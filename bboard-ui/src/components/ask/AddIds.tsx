@@ -3,7 +3,8 @@
 // weeks, long after a job is deleted. The young of one dam born the same day are one group; the
 // person pastes a column (from a scanner or a spreadsheet), one ID per young in order, and each is
 // saved as a correction (records.ts issueCorrection): a new record that replaces the old, which
-// stays on file. Nothing is saved until "Save".
+// stays on file. Nothing is saved until "Save". Young that already have an ID are listed with it,
+// and a column that doesn't line up with them is refused, never guessed at (ask-job/ids.ts).
 // SPDX-License-Identifier: Apache-2.0
 
 import React, { useState } from 'react';
@@ -20,42 +21,11 @@ import {
   Typography,
 } from '@mui/material';
 import { useT } from '../../i18n/app';
-import { correctionWaitsForBackup, issueCorrection, type StrainRecord } from '../../veilcore/records';
-import { isAnimal } from '../../veilcore/animal-profile';
-import { isReceivedRecord } from '../../ask/hint';
+import type { AppKey } from '../../i18n/app/en';
+import { correctionWaitsForBackup, issueCorrection } from '../../veilcore/records';
+import { assignIds, idsOf, type Litter } from '../../ask-job/ids';
 
-/** Only young made in this long are asked about. */
-const RECENT_DAYS = 180;
-
-export type Litter = {
-  readonly key: string;
-  readonly dam: string;
-  readonly born: string;
-  readonly young: StrainRecord[];
-};
-
-/** The person's own young with no ID yet, by dam and birth date, newest first. */
-export const littersWithoutIds = (records: readonly StrainRecord[], today: string): Litter[] => {
-  const since = new Date(`${today}T12:00:00`);
-  since.setDate(since.getDate() - RECENT_DAYS);
-  const from = since.toISOString().slice(0, 10);
-  const groups = new Map<string, Litter>();
-  for (const r of records) {
-    if (!isAnimal(r) || isReceivedRecord(r) || r.refId?.trim() || r.supersededBy) continue;
-    const dam = r.parents?.find((p) => p.role === 'dam');
-    if (!dam || !r.dateCreated || r.dateCreated < from) continue;
-    const key = `${dam.recordId ?? dam.name}|${r.dateCreated}`;
-    const g = groups.get(key) ?? { key, dam: dam.name || dam.individualId || '', born: r.dateCreated, young: [] };
-    g.young.push(r);
-    groups.set(key, g);
-  }
-  return [...groups.values()]
-    .map((g) => ({
-      ...g,
-      young: [...g.young].sort((a, b) => a.strainName.localeCompare(b.strainName, undefined, { numeric: true })),
-    }))
-    .sort((a, b) => b.born.localeCompare(a.born));
-};
+export { littersWithoutIds, type Litter } from '../../ask-job/ids';
 
 export const AddIds: React.FC<{ litter: Litter; onClose: () => void }> = ({ litter, onClose }) => {
   const tr = useT();
@@ -64,23 +34,25 @@ export const AddIds: React.FC<{ litter: Litter; onClose: () => void }> = ({ litt
   const [text, setText] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string>();
-  const [done, setDone] = useState(0);
-  const ids = text
-    .split(/\r?\n|\t|,/)
-    .map((s) => s.trim())
-    .filter(Boolean)
-    .slice(0, litter.young.length);
+  // Saved in this box already: never saved twice if a later one fails.
+  const [saved, setSaved] = useState<ReadonlySet<string>>(new Set());
+  const ids = idsOf(text);
+  const plan = ids.length ? assignIds(litter, ids) : { pairs: [] };
+  const pairs = 'pairs' in plan ? plan.pairs : [];
+  const refusal = 'why' in plan ? plan : undefined;
+  const newId = new Map(pairs.map(([r, id]) => [r.id, id] as const));
   const waits = litter.young.some((r) => correctionWaitsForBackup(r.id));
   const save = async () => {
     setBusy(true);
     setError(undefined);
     try {
-      for (const [i, r] of litter.young.entries()) {
-        if (i < done || !ids[i]) continue;
+      const done = new Set(saved);
+      for (const [r, id] of pairs) {
+        if (done.has(r.id)) continue;
         await issueCorrection(
           r.id,
           {
-            refId: ids[i],
+            refId: id,
             animal: {
               breed: r.animal?.breed ?? '',
               herd: r.animal?.herd ?? '',
@@ -90,7 +62,8 @@ export const AddIds: React.FC<{ litter: Litter; onClose: () => void }> = ({ litt
           },
           t('app.job.ids.reason'),
         );
-        setDone(i + 1);
+        done.add(r.id);
+        setSaved(new Set(done));
       }
       onClose();
     } catch (e) {
@@ -101,15 +74,19 @@ export const AddIds: React.FC<{ litter: Litter; onClose: () => void }> = ({ litt
   };
   return (
     <Dialog open onClose={busy ? undefined : onClose} fullWidth data-add-ids="">
-      <DialogTitle>{tp('app.job.ids.title', litter.young.length, { dam: litter.dam })}</DialogTitle>
+      <DialogTitle>{tp('app.job.ids.title', litter.missing.length, { dam: litter.dam })}</DialogTitle>
       <DialogContent>
         <Stack spacing={2} sx={{ pt: 1 }}>
           <Typography variant="body2">{tr.date(`${litter.born}T12:00:00`)}</Typography>
           <Box component="ol" sx={{ m: 0, pl: 3 }}>
-            {litter.young.map((r, i) => (
-              <Typography component="li" variant="body2" key={r.id}>
+            {litter.young.map((r) => (
+              <Typography component="li" variant="body2" key={r.id} data-add-ids-row="">
                 {r.strainName}
-                {ids[i] ? ` · ${ids[i]}` : ''}
+                {r.refId?.trim()
+                  ? ` · ${t('app.job.ids.already', { id: r.refId.trim() })}`
+                  : newId.has(r.id)
+                    ? ` · ${newId.get(r.id)}`
+                    : ''}
               </Typography>
             ))}
           </Box>
@@ -124,7 +101,7 @@ export const AddIds: React.FC<{ litter: Litter; onClose: () => void }> = ({ litt
             minRows={4}
             value={text}
             onChange={(e) => setText(e.target.value.slice(0, 20_000))}
-            helperText={t('app.job.answer.idsCount', { n: String(ids.length), count: String(litter.young.length) })}
+            helperText={t('app.job.answer.idsCount', { n: String(ids.length), count: String(litter.missing.length) })}
             slotProps={{ htmlInput: { 'data-add-ids-paste': '' } }}
           />
           <Alert severity="info" variant="outlined">
@@ -133,6 +110,16 @@ export const AddIds: React.FC<{ litter: Litter; onClose: () => void }> = ({ litt
           {waits && (
             <Alert severity="warning" variant="outlined">
               {t('app.sealed.correctBackupFirst')}
+            </Alert>
+          )}
+          {refusal && (
+            <Alert severity="warning" variant="outlined" role="alert" data-add-ids-refused={refusal.why}>
+              {t(`app.job.ids.no.${refusal.why}` as AppKey, {
+                ...('id' in refusal ? { id: refusal.id } : {}),
+                ...('name' in refusal ? { name: refusal.name } : {}),
+                ...('typed' in refusal ? { typed: refusal.typed } : {}),
+                ...('n' in refusal ? { n: String(refusal.n), count: String(refusal.count) } : {}),
+              })}
             </Alert>
           )}
           {error && (
@@ -148,12 +135,12 @@ export const AddIds: React.FC<{ litter: Litter; onClose: () => void }> = ({ litt
         </Button>
         <Button
           variant="contained"
-          disabled={busy || waits || !ids.length || (!!ids.length && !scheme.trim())}
+          disabled={busy || waits || !pairs.length || !!refusal || !scheme.trim()}
           onClick={() => void save()}
           sx={{ minHeight: 44 }}
           data-add-ids-save=""
         >
-          {tp('app.job.ids.save', ids.length)}
+          {tp('app.job.ids.save', pairs.length)}
         </Button>
       </DialogActions>
     </Dialog>

@@ -142,8 +142,11 @@ export const job = {
     'Le code de preuve de chaque enregistrement va au serveur de VeilCore et est daté sur Midnight dans un lot. Les noms et détails partent verrouillés avec votre clé : le serveur ne peut pas les lire.',
   'app.job.approve.publicReports':
     'Rien de public : chaque rapport va au concédant, verrouillé, par le canal propre à votre accord.',
-  'app.job.approve.offline':
-    'Pas de réseau ? Pas de souci. Je l’enverrai quand vous serez en ligne, avec VeilCore ouvert.',
+  'app.job.approve.offline': 'Pas de réseau ? Pas de souci. Ça part dès que vous êtes en ligne, avec VeilCore ouvert.',
+  'app.job.approve.offlineRecords':
+    'Pas de réseau ? Pas de souci. Ça part dès que vous êtes en ligne, avec VeilCore ouvert. Si ce n’est pas parti avant le {when}, je vous demanderai avant de l’envoyer.',
+  'app.job.approve.offlineLater':
+    'Pas de réseau ? Pas de souci. Ça part dès que vous êtes en ligne, avec VeilCore ouvert. Si ce n’est pas parti avant le {when}, rien n’est envoyé : redemandez-le-moi.',
 
   'app.job.backup.records.one':
     'Enregistrez d’abord votre sauvegarde. Sans elle, perdre ce téléphone, c’est perdre cet enregistrement.',
@@ -202,6 +205,8 @@ export const job = {
   'app.job.state.needsYou': 'Vous attend',
   'app.job.state.waiting': 'Nouvel essai {when}',
   'app.job.when.soon': 'dans {n} min ({time})',
+  'app.job.when.at': 'à {time}',
+  'app.job.when.on': 'le {date}',
   'app.job.wait.records.one':
     'Rien n’est perdu : votre enregistrement est gardé ici et part dès que vous êtes de nouveau en ligne.',
   'app.job.wait.records.other':
@@ -221,6 +226,9 @@ export const job = {
     'Vous avez validé ceci il y a plus de 3 jours et ce n’est pas encore parti. Envoyez-le maintenant ou abandonnez-le : rien n’a été envoyé.',
   'app.job.needs.stuck':
     'Ceci s’est arrêté 30 jours après votre validation. Ouvrez vos enregistrements ou l’accord pour voir ce qui est passé.',
+  'app.job.needs.stuckNone': 'Ceci s’est arrêté 30 jours après votre validation. Rien n’a été envoyé.',
+  'app.job.needs.stuckRecords':
+    'Le serveur de VeilCore n’a pas confirmé ces enregistrements depuis 30 jours. Ils sont toujours gardés ici. Certains y sont peut-être déjà : « Envoyer maintenant » vérifie d’abord et n’en envoie aucun deux fois.',
   'app.job.failed.amount':
     'Pas envoyé : le montant a changé depuis votre validation (un autre rapport ou paiement est arrivé). Il est maintenant de {amount}. Refaites la demande pour l’envoyer.',
   'app.job.sendNow': 'Envoyer maintenant',
@@ -248,4 +256,12 @@ export const job = {
   'app.job.ids.save.one': 'Enregistrer {count} identifiant',
   'app.job.ids.save.other': 'Enregistrer {count} identifiants',
   'app.job.ids.reason': 'Identifiant ajouté',
+  'app.job.ids.already': 'déjà {id}',
+  'app.job.ids.no.twice': '{id} figure deux fois dans la colonne. Vérifiez la colonne.',
+  'app.job.ids.no.taken':
+    '{id} est déjà sur {name}. Collez seulement les identifiants qui manquent, dans l’ordre, ou toute la colonne à nouveau.',
+  'app.job.ids.no.differs':
+    '{name} a déjà {id}, mais la colonne indique {typed} à cette ligne. Vérifiez l’ordre de la colonne.',
+  'app.job.ids.no.tooMany':
+    'Cela fait {n} identifiants pour {count} petits qui n’en ont pas encore. Collez seulement ceux qui manquent, dans l’ordre, ou toute la colonne à nouveau.',
 } satisfies Partial<AppTranslation>;

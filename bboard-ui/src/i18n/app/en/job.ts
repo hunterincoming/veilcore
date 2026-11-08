@@ -128,7 +128,11 @@ export const job = {
     'Each record’s proof code goes to VeilCore’s server and is dated on Midnight in a batch. Names and details go locked with your key: the server can’t read them.',
   'app.job.approve.publicReports':
     'Nothing public: each report goes to the licensor, locked, over your agreement’s own channel.',
-  'app.job.approve.offline': 'No signal? Fine. I’ll send it when you’re back online, with VeilCore open.',
+  'app.job.approve.offline': 'No signal? Fine. It goes when you’re back online, with VeilCore open.',
+  'app.job.approve.offlineRecords':
+    'No signal? Fine. It goes when you’re back online, with VeilCore open. If it hasn’t gone by {when}, I’ll ask you before sending it.',
+  'app.job.approve.offlineLater':
+    'No signal? Fine. It goes when you’re back online, with VeilCore open. If it hasn’t gone by {when}, nothing is sent: ask me again.',
 
   'app.job.backup.records.one': 'Save your backup first. Without it, losing this phone means losing this record.',
   'app.job.backup.records.other':
@@ -184,6 +188,8 @@ export const job = {
   'app.job.state.needsYou': 'Needs you',
   'app.job.state.waiting': 'Tries again {when}',
   'app.job.when.soon': 'in {n} min ({time})',
+  'app.job.when.at': 'at {time}',
+  'app.job.when.on': 'on {date}',
   'app.job.wait.records.one': 'Nothing is lost: your record is kept here and goes out as soon as you’re back online.',
   'app.job.wait.records.other':
     'Nothing is lost: your {count} records are kept here and go out as soon as you’re back online.',
@@ -202,6 +208,9 @@ export const job = {
     'You approved this more than 3 days ago and it hasn’t gone out yet. Send it now, or discard it: nothing has been sent.',
   'app.job.needs.stuck':
     'This stopped 30 days after you approved it. Open your records or the agreement to see what got through.',
+  'app.job.needs.stuckNone': 'This stopped 30 days after you approved it. Nothing was sent.',
+  'app.job.needs.stuckRecords':
+    'VeilCore’s server hasn’t confirmed these records in 30 days. They are still kept here. Some may be there already: Send now checks first and sends none twice.',
   'app.job.failed.amount':
     'Not sent: the amount changed since you approved it (another report or payment came in). It now comes to {amount}. Ask again to send it.',
   'app.job.sendNow': 'Send now',
@@ -229,4 +238,12 @@ export const job = {
   'app.job.ids.save.one': 'Save {count} ID',
   'app.job.ids.save.other': 'Save {count} IDs',
   'app.job.ids.reason': 'ID added',
+  'app.job.ids.already': 'already {id}',
+  'app.job.ids.no.twice': '{id} is in the column twice. Check the column.',
+  'app.job.ids.no.taken':
+    '{id} is already on {name}. Paste only the IDs still missing, in order, or the whole column again.',
+  'app.job.ids.no.differs':
+    '{name} already has {id}, but the column says {typed} there. Check the order of the column.',
+  'app.job.ids.no.tooMany':
+    'That’s {n} IDs for {count} young still without one. Paste only the IDs still missing, in order, or the whole column again.',
 };

@@ -87,7 +87,7 @@ export const JobsOnHome: React.FC = () => {
   for (const l of litters.slice(0, 3))
     lines.push({
       key: `ids-${l.key}`,
-      text: tp('app.job.home.ids', l.young.length, { dam: l.dam }),
+      text: tp('app.job.home.ids', l.missing.length, { dam: l.dam }),
       go: () => setLitter(l),
     });
   if (!lines.length) return null;

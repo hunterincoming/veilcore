@@ -50,6 +50,7 @@ import {
   getJob,
   onJobsChange,
   anyStarted,
+  deadlineOf,
   type Figures,
   type Job,
   type Step,
@@ -234,6 +235,13 @@ const JobResult: React.FC<{ job: Job; fromApp: boolean }> = ({ job: latest, from
       setDetail(undefined);
       return;
     }
+    // Changed in another tab: the banner above says so, once (V6).
+    if (r.refused === 'changed') {
+      setChangedElsewhere(true);
+      setError(undefined);
+      setDetail(undefined);
+      return;
+    }
     setError(t(`app.job.no.${r.refused}` as AppKey, { n: r.words ?? '' }));
     setDetail(r.words && r.refused !== 'tooManyReports' ? r.words : undefined);
   };
@@ -397,6 +405,7 @@ const JobResult: React.FC<{ job: Job; fromApp: boolean }> = ({ job: latest, from
         <Alert
           severity="warning"
           variant="outlined"
+          role="alert"
           data-job-changed=""
           action={
             <Button
@@ -776,8 +785,13 @@ const JobResult: React.FC<{ job: Job; fromApp: boolean }> = ({ job: latest, from
             </Typography>
           )}
         </Collapse>
-        <Typography variant="body2" color="text.secondary">
-          {t('app.job.approve.offline')}
+        <Typography variant="body2" color="text.secondary" data-job-offline="">
+          {t(
+            job.kind === 'batch' || job.kind === 'import'
+              ? 'app.job.approve.offlineRecords'
+              : 'app.job.approve.offlineLater',
+            { when: localStamp(deadlineOf(job), tr.locale) },
+          )}
         </Typography>
         <Typography variant="caption" color="text.secondary">
           {t('app.job.privacy')}
@@ -960,11 +974,14 @@ const FilePick: React.FC<{ disabled: boolean; onFile: (f: File) => void }> = ({ 
 
 // ---- after approval ----------------------------------------------------------------------------
 
-/** "in 2 min (12:47 AM)" within the hour, else the date and time. */
+/** "in 2 min (12:47 AM)" within the hour, "at 3:15 PM" later today, else "on 11/9/2026". */
 const whenText = (ms: number, tr: Translator): string => {
   const min = Math.max(1, Math.round((ms - Date.now()) / 60_000));
-  const time = tr.date(ms, { hour: 'numeric', minute: '2-digit' });
-  return min <= 60 ? tr.t('app.job.when.soon', { n: String(min), time }) : localStamp(ms, tr.locale);
+  const time = new Date(ms).toLocaleTimeString(tr.locale, { hour: 'numeric', minute: '2-digit' });
+  if (min <= 60) return tr.t('app.job.when.soon', { n: String(min), time });
+  return new Date(ms).toDateString() === new Date().toDateString()
+    ? tr.t('app.job.when.at', { time })
+    : tr.t('app.job.when.on', { date: tr.date(ms) });
 };
 
 const JobProgress: React.FC<{ job: Job; fromApp: boolean }> = ({ job, fromApp }) => {
@@ -1032,9 +1049,29 @@ const JobProgress: React.FC<{ job: Job; fromApp: boolean }> = ({ job, fromApp })
               </Stack>
             )}
           </Alert>
+        ) : s.state === 'needsYou' && s.why === 'stuck' && s.kind === 'records' ? (
+          // Records sent but never confirmed: still kept here; Send now asks the server first (V1).
+          <Alert key={s.id} severity="warning" variant="outlined" data-job-needs="stuck">
+            {t('app.job.needs.stuckRecords')}
+            <Stack direction="row" spacing={1} sx={{ mt: 1, flexWrap: 'wrap' }}>
+              {fromApp && (job.state === 'running' || job.state === 'approved') && (
+                <Button
+                  variant="contained"
+                  size="small"
+                  onClick={() => void tryAgain(job.id, s.id).then(() => runnerTick())}
+                  data-job-send-now=""
+                >
+                  {t('app.job.sendNow')}
+                </Button>
+              )}
+              <Button size="small" component={RouterLink} to="/records">
+                {t('app.job.toRecords')}
+              </Button>
+            </Stack>
+          </Alert>
         ) : s.state === 'needsYou' && s.why === 'stuck' ? (
           <Alert key={s.id} severity="warning" variant="outlined" data-job-needs="stuck">
-            {t('app.job.needs.stuck')}
+            {t(anyStarted(job) ? 'app.job.needs.stuck' : 'app.job.needs.stuckNone')}
           </Alert>
         ) : s.state === 'needsYou' ? (
           <Alert key={s.id} severity="warning" variant="outlined" data-job-needs={s.kind}>
@@ -1073,7 +1110,6 @@ const JobProgress: React.FC<{ job: Job; fromApp: boolean }> = ({ job, fromApp })
         ) : s.state === 'todo' && s.why && s.kind === 'records' ? (
           <Alert key={s.id} severity="info" variant="outlined" data-job-retry={s.kind}>
             {tp('app.job.wait.records', count)}
-            <Box sx={{ mt: 0.5 }}>{t('app.job.approve.offline')}</Box>
           </Alert>
         ) : s.state === 'todo' && s.why ? (
           <Alert key={s.id} severity="info" variant="outlined" data-job-retry={s.kind}>

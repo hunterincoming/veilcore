@@ -139,8 +139,11 @@ export const job = {
     'El código de prueba de cada registro va al servidor de VeilCore y se fecha en Midnight en un lote. Los nombres y detalles van cifrados con su clave: el servidor no puede leerlos.',
   'app.job.approve.publicReports':
     'Nada público: cada informe va al licenciante, cifrado, por el canal propio de su acuerdo.',
-  'app.job.approve.offline':
-    '¿Sin señal? No pasa nada. Lo enviaré cuando vuelva a estar en línea, con VeilCore abierto.',
+  'app.job.approve.offline': '¿Sin señal? No pasa nada. Saldrá cuando vuelva a estar en línea, con VeilCore abierto.',
+  'app.job.approve.offlineRecords':
+    '¿Sin señal? No pasa nada. Saldrá cuando vuelva a estar en línea, con VeilCore abierto. Si no ha salido antes del {when}, le preguntaré antes de enviarlo.',
+  'app.job.approve.offlineLater':
+    '¿Sin señal? No pasa nada. Saldrá cuando vuelva a estar en línea, con VeilCore abierto. Si no ha salido antes del {when}, no se envía nada: pídamelo de nuevo.',
 
   'app.job.backup.records.one':
     'Guarde primero su copia de seguridad. Sin ella, perder este teléfono es perder este registro.',
@@ -199,6 +202,8 @@ export const job = {
   'app.job.state.needsYou': 'Necesita su atención',
   'app.job.state.waiting': 'Nuevo intento {when}',
   'app.job.when.soon': 'en {n} min ({time})',
+  'app.job.when.at': 'a las {time}',
+  'app.job.when.on': 'el {date}',
   'app.job.wait.records.one':
     'No se pierde nada: su registro queda guardado aquí y sale en cuanto vuelva a estar en línea.',
   'app.job.wait.records.other':
@@ -218,6 +223,9 @@ export const job = {
     'Lo aprobó hace más de 3 días y aún no ha salido. Envíelo ahora o descártelo: no se ha enviado nada.',
   'app.job.needs.stuck':
     'Esto se detuvo 30 días después de que lo aprobara. Abra sus registros o el acuerdo para ver qué llegó.',
+  'app.job.needs.stuckNone': 'Esto se detuvo 30 días después de que lo aprobara. No se envió nada.',
+  'app.job.needs.stuckRecords':
+    'El servidor de VeilCore no ha confirmado estos registros en 30 días. Siguen guardados aquí. Puede que algunos ya estén allí: «Enviar ahora» lo comprueba primero y no envía ninguno dos veces.',
   'app.job.failed.amount':
     'No enviado: el importe cambió desde que lo aprobó (llegó otro informe o pago). Ahora es {amount}. Vuelva a pedirlo para enviarlo.',
   'app.job.sendNow': 'Enviar ahora',
@@ -245,4 +253,12 @@ export const job = {
   'app.job.ids.save.one': 'Guardar {count} identificación',
   'app.job.ids.save.other': 'Guardar {count} identificaciones',
   'app.job.ids.reason': 'Identificación añadida',
+  'app.job.ids.already': 'ya {id}',
+  'app.job.ids.no.twice': '{id} aparece dos veces en la columna. Revise la columna.',
+  'app.job.ids.no.taken':
+    '{id} ya está en {name}. Pegue solo las identificaciones que faltan, en orden, o la columna entera de nuevo.',
+  'app.job.ids.no.differs':
+    '{name} ya tiene {id}, pero la columna pone {typed} en esa fila. Revise el orden de la columna.',
+  'app.job.ids.no.tooMany':
+    'Son {n} identificaciones para {count} crías que aún no tienen. Pegue solo las que faltan, en orden, o la columna entera de nuevo.',
 } satisfies Partial<AppTranslation>;

@@ -341,7 +341,9 @@ deterministic. Every record name in the browser is masked first, received ones t
 someone else chose can't split the text; values bind only to the person's own records. At most
 3 clauses, split on joining words in the five languages, Japanese て-form and 「、」 included.
 Each clause's reader must use every word but a fixed list of fillers: a leftover word or any
-negation refuses the whole plan ("no tag yet" is read as IDs to follow, not a negation). A name
+negation refuses the whole plan ("no tag yet" is read as IDs to follow, not a negation). A word
+that means different things in two languages is read in the person's language only: "hier" is
+yesterday in French and "here" in German. A name
 two of the person's own records share is refused. A refusal says what it understood, which words
 it couldn't use, and offers a shorter sentence made only from the words typed (or "get <their
 record> ready to license" in their language) for them to send. The hint's example, unedited,
@@ -373,7 +375,9 @@ as the stamp background; a records send also stops between batches if the page c
 runner across tabs, its lease checked before each step. Each step is written as running before it
 sends, and nothing is sent unless the ledger's `pending` write succeeded. A report is signed only
 if it comes to exactly the amount and currency Approve showed; otherwise nothing is signed and the
-page says the new amount. Records are sent from the ledger as themselves (a resend is the same records); a report is
+page says the new amount. Records are sent from the ledger as themselves (a resend is the same records), and rows sent
+before with no answer are looked up on the server first: one it holds is marked saved and never
+sent again, and if the server can't be asked, nothing is sent until it can; a report is
 read for fresh and signed once (`deal-client.ts sayOnce`), so a retry after a lost answer finds
 it and sends no second one; a stamp goes through the existing stamp path, its queue entry
 marked as started by the approved job, with the stamp queue's "may have gone out" stop. An
@@ -388,15 +392,20 @@ unknown outcome stops and asks. There is no automatic rollback.
   on the result screen. A report's typed figures are kept only until that report is sent.
 - never holds the request as typed, tokens, secrets, or a copy of what another store keeps.
 - expiry is checked on every read. A job waiting for approval expires 72 hours after it was made
-  (a report job at the end of its earliest report's due day, if sooner). An approved job that has
-  started, or whose records are `pending`, never lapses; 30 days after approval it stops for the
-  person to look at. An approved records job not sent by its deadline asks ("Send now" or
-  "Discard") and never loses its records; an approved report or stamp job not started expires.
-  Any job is deleted 7 days after it ends. Held records are dropped, through `dropHeld` (only
-  `held` rows of that job), only for a job whose records step never started; a job's stamps not
-  yet made leave the stamp queue when it ends.
+  (a report job at the end of its earliest report's due day, if sooner). An approved records job
+  never ends by itself and never loses its records: not sent by its deadline, it asks ("Send
+  now" or "Discard"); sent but not confirmed 30 days after approval (or after the last "Send
+  now"), it asks again ("Send now", which checks the server first). An approved report or stamp
+  job not started by its deadline expires; one that started stops 30 days after approval for
+  the person to look at. Any ended job is deleted 7 days after it ends. Held records are
+  dropped, through `dropHeld` (only `held` rows of that job), only for a job never approved or
+  one the person discarded, and never once its records step started; a job's stamps not yet
+  made leave the stamp queue when it ends.
 - young saved without IDs are listed on Home from the records themselves ("Bella's litter (6):
   add IDs"), not from the job, with a box to paste a column; each ID is saved as a correction.
+  Young that already have an ID are listed with it: a whole column pasted again must agree with
+  them row by row, a shorter one goes on the young still without one and may not repeat a saved
+  ID, and anything else is refused (`src/ask-job/ids.ts`).
 
 Also on the device while a job waits: its records in the bulk-import ledger as `held` rows, and
 their new keys. A backup made while a job waits holds those keys, for records that may never be

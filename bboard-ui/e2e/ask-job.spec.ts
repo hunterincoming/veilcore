@@ -193,6 +193,9 @@ test('bring in a collection, then cut clones: got ready with no request, online 
   const bar = page.locator('[data-approve-bar]');
   await expect(bar).toBeInViewport();
   await expect(page.locator('[data-approve-left]')).toHaveText('Save your backup to approve');
+  // Not sent by its deadline, it asks first: it never says it will just send whenever.
+  await expect(page.locator('[data-job-offline]')).toContainText('If it hasn’t gone by ');
+  await expect(page.locator('[data-job-offline]')).toContainText('I’ll ask you before sending it.');
 
   context.off('request', count);
 
@@ -350,11 +353,15 @@ test('a mid-job failure says what is safe; a crash mid-send resumes with the sam
   await doIt(page, 'cut 2 clones off Blue Dream');
   await backup(page);
   await approve(page, 'Approve: save 2 records');
-  await expect(page.locator('[data-job-retry="records"]')).toContainText(
-    'No signal? Fine. I’ll send it when you’re back online, with VeilCore open.',
+  const retry = page.locator('[data-job-retry="records"]');
+  await expect(retry).toHaveText(
+    'Nothing is lost: your 2 records are kept here and go out as soon as you’re back online.',
     { timeout: 60_000 },
   );
-  await expect(page.locator('[data-job-step="records"]')).toContainText('Tries again');
+  // The time only, never the date, while it's within the hour.
+  await expect(page.locator('[data-job-step="records"]')).toContainText(
+    /Tries again in \d+ min \(\d{1,2}:\d{2}\s?[AP]M\)$/,
+  );
   await shot(page, '9-failure');
 
   // Now the registry takes the records and never answers: the tab is closed mid-send.
@@ -503,7 +510,10 @@ test('what’s due: three reports drafted, a figure typed in each, a stale tab r
   await expect(other.locator('[data-job-report="0"]')).toContainText('USD 999.90 owed');
   await expect(page.locator('[data-job-changed]')).toBeVisible();
   await approve(page, 'Approve: send 3 reports, USD 350.05 owed in total');
-  await expect(page.locator('[data-job-error]')).toContainText('This job changed in another tab. Check it again.');
+  // Said once, by the banner: no second copy of it as an error (V6).
+  await expect(page.locator('[data-job-changed]')).toContainText('This job changed in another tab. Check it again.');
+  await expect(page.locator('[data-job-error]')).toHaveCount(0);
+  await expect(page.getByText('This job changed in another tab. Check it again.')).toHaveCount(1);
   await page.evaluate(() => window.scrollTo(0, 0));
   await shot(page, '8b-stale-tab-refused');
   await page.waitForTimeout(2000);

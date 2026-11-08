@@ -147,7 +147,11 @@ export const job = {
   'app.job.approve.publicReports':
     'Nichts Öffentliches: Jeder Bericht geht verschlossen an den Lizenzgeber, über den eigenen Kanal Ihrer Vereinbarung.',
   'app.job.approve.offline':
-    'Kein Netz? Kein Problem. Ich sende es, wenn Sie wieder online sind und VeilCore offen ist.',
+    'Kein Netz? Kein Problem. Es geht hinaus, sobald Sie wieder online sind und VeilCore offen ist.',
+  'app.job.approve.offlineRecords':
+    'Kein Netz? Kein Problem. Es geht hinaus, sobald Sie wieder online sind und VeilCore offen ist. Ist es bis {when} nicht hinausgegangen, frage ich Sie, bevor ich es sende.',
+  'app.job.approve.offlineLater':
+    'Kein Netz? Kein Problem. Es geht hinaus, sobald Sie wieder online sind und VeilCore offen ist. Ist es bis {when} nicht hinausgegangen, wird nichts gesendet: Fragen Sie mich dann erneut.',
 
   'app.job.backup.records.one':
     'Speichern Sie zuerst Ihre Sicherung. Ohne sie ist dieser Datensatz weg, wenn Sie dieses Telefon verlieren.',
@@ -206,6 +210,8 @@ export const job = {
   'app.job.state.needsYou': 'Wartet auf Sie',
   'app.job.state.waiting': 'Neuer Versuch {when}',
   'app.job.when.soon': 'in {n} Min. ({time})',
+  'app.job.when.at': 'um {time}',
+  'app.job.when.on': 'am {date}',
   'app.job.wait.records.one':
     'Nichts geht verloren: Ihr Datensatz bleibt hier und geht hinaus, sobald Sie wieder online sind.',
   'app.job.wait.records.other':
@@ -225,6 +231,9 @@ export const job = {
     'Sie haben das vor mehr als 3 Tagen freigegeben, und es ist noch nicht hinausgegangen. Jetzt senden oder verwerfen: Gesendet wurde nichts.',
   'app.job.needs.stuck':
     'Das wurde 30 Tage nach Ihrer Freigabe angehalten. Öffnen Sie Ihre Datensätze oder die Vereinbarung, um zu sehen, was angekommen ist.',
+  'app.job.needs.stuckNone': 'Das wurde 30 Tage nach Ihrer Freigabe angehalten. Es wurde nichts gesendet.',
+  'app.job.needs.stuckRecords':
+    'Der Server von VeilCore hat diese Datensätze seit 30 Tagen nicht bestätigt. Sie sind weiter hier gespeichert. Einige sind vielleicht schon dort: „Jetzt senden“ prüft zuerst und sendet keinen doppelt.',
   'app.job.failed.amount':
     'Nicht gesendet: Der Betrag hat sich seit Ihrer Freigabe geändert (ein anderer Bericht oder eine Zahlung kam hinzu). Er beträgt jetzt {amount}. Fragen Sie erneut, um ihn zu senden.',
   'app.job.sendNow': 'Jetzt senden',
@@ -252,4 +261,12 @@ export const job = {
   'app.job.ids.save.one': '{count} Kennnummer speichern',
   'app.job.ids.save.other': '{count} Kennnummern speichern',
   'app.job.ids.reason': 'Kennnummer ergänzt',
+  'app.job.ids.already': 'bereits {id}',
+  'app.job.ids.no.twice': '{id} steht zweimal in der Spalte. Prüfen Sie die Spalte.',
+  'app.job.ids.no.taken':
+    '{id} ist bereits bei {name} gespeichert. Fügen Sie nur die noch fehlenden Kennnummern der Reihe nach ein oder die ganze Spalte erneut.',
+  'app.job.ids.no.differs':
+    '{name} hat bereits {id}, die Spalte nennt dort aber {typed}. Prüfen Sie die Reihenfolge der Spalte.',
+  'app.job.ids.no.tooMany':
+    'Das sind {n} Kennnummern für {count} Jungtiere ohne Kennnummer. Fügen Sie nur die noch fehlenden der Reihe nach ein oder die ganze Spalte erneut.',
 } satisfies Partial<AppTranslation>;

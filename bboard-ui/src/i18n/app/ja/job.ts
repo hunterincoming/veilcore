@@ -124,6 +124,10 @@ export const job = {
   'app.job.approve.publicReports':
     '公開されるものはありません。各報告は封印されて、契約専用の経路でライセンス元に届きます。',
   'app.job.approve.offline': '電波がなくても大丈夫です。オンラインに戻ってVeilCoreを開いたときに送信します。',
+  'app.job.approve.offlineRecords':
+    '電波がなくても大丈夫です。オンラインに戻ってVeilCoreを開いたときに送信します。{when}までに送信できなかった場合は、送信する前にあなたに確認します。',
+  'app.job.approve.offlineLater':
+    '電波がなくても大丈夫です。オンラインに戻ってVeilCoreを開いたときに送信します。{when}までに送信できなかった場合は何も送信しません。もう一度依頼してください。',
 
   'app.job.backup.records.other':
     '先にバックアップを保存してください。ないと、この電話をなくしたときにこの{count}件の記録も失われます。',
@@ -176,6 +180,8 @@ export const job = {
   'app.job.state.needsYou': '確認が必要',
   'app.job.state.waiting': '再試行：{when}',
   'app.job.when.soon': '{n}分後（{time}）',
+  'app.job.when.at': '{time}',
+  'app.job.when.on': '{date}',
   'app.job.wait.records.other':
     '何も失われていません。記録{count}件はここに保存されていて、オンラインに戻りしだい送信します。',
   'app.job.done.records.other': '記録{count}件を保存しました。',
@@ -190,6 +196,9 @@ export const job = {
   'app.job.needs.lapsed':
     '3日以上前に承認しましたが、まだ送信されていません。いま送信するか、破棄してください。何も送信していません。',
   'app.job.needs.stuck': '承認から30日たったため停止しました。記録一覧か契約を開いて、届いたものを確認してください。',
+  'app.job.needs.stuckNone': '承認から30日たったため停止しました。何も送信していません。',
+  'app.job.needs.stuckRecords':
+    'VeilCoreのサーバーで、これらの記録が30日間確認できていません。記録はこの端末に保存されたままです。すでに届いているものがあるかもしれません。「いま送信」はまず確認し、同じものを二度送りません。',
   'app.job.failed.amount':
     '送信していません。承認したあとに金額が変わりました（別の報告か支払いが入りました）。現在の金額は{amount}です。送るには、もう一度依頼してください。',
   'app.job.sendNow': 'いま送信',
@@ -214,4 +223,11 @@ export const job = {
     '番号はそれぞれ訂正として保存されます。新しい記録が古い記録に代わり、古い記録も残ります。取り消せません。',
   'app.job.ids.save.other': '番号{count}件を保存',
   'app.job.ids.reason': '番号を追加',
+  'app.job.ids.already': '登録済み {id}',
+  'app.job.ids.no.twice': '{id}が列に2回あります。列を確認してください。',
+  'app.job.ids.no.taken':
+    '{id}はすでに{name}に登録されています。まだない番号だけを順番どおりに貼り付けるか、列全体をもう一度貼り付けてください。',
+  'app.job.ids.no.differs': '{name}はすでに{id}ですが、列のその行は{typed}です。列の順番を確認してください。',
+  'app.job.ids.no.tooMany':
+    '番号が{n}件ありますが、番号のない子は{count}件です。まだない番号だけを順番どおりに貼り付けるか、列全体をもう一度貼り付けてください。',
 } satisfies Partial<AppTranslation>;
