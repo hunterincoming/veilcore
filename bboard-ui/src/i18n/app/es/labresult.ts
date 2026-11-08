@@ -187,6 +187,8 @@ export const labresult = {
   'app.lr.check.choose': 'Elegir el archivo de resultado',
   'app.lr.check.bad': 'Este resultado no se puede usar: {problem}',
   'app.lr.check.looking': 'Buscando de quién es la clave…',
+  'app.lr.check.noSalt':
+    'Este resultado se firmó antes de que los nombres de los laboratorios en los resultados llevaran sal, así que no se busca el nombre de su laboratorio: el tipo anterior de vínculo de nombre podía mostrar qué registro analizó un laboratorio. La firma sigue siendo válida. Para que se muestre el nombre del laboratorio, pida al laboratorio que vuelva a firmar el resultado.',
   'app.lr.check.replacedBy': 'Sustituido por el resultado {code}, firmado con la misma clave ({reason}).',
   'app.lr.check.namesOther':
     'Nombra el resultado {code} como sustituido. Ese resultado no está en este archivo, u otra clave lo firmó, así que aquí no cambia nada de él.',
@@ -252,4 +254,6 @@ export const labresult = {
     'El archivo de secuencia de la marca no está guardado. Si sale ahora se pierde para siempre, y el sello nunca podrá abrirse en una disputa. ¿Salir de todos modos?',
   'app.lr.problem.ctMissing':
     'Un resultado detectado sin Ct (Undetermined, N/A, >40) se contradice. Compruebe que las columnas de resultado y Ct no estén mezcladas.',
+  'app.lr.problem.bindingSalt':
+    'La sal del nombre del laboratorio no tiene su forma: 64 caracteres hexadecimales, no todos iguales.',
 } satisfies Partial<AppTranslation>;

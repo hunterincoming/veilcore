@@ -26,6 +26,13 @@
 // shown only in a dispute (markSeal). VeilCore never tests DNA, never marks it, and vouches
 // for no result: it dates what a lab signed.
 //
+// The lab's NAME on a result is a separate binding at the registry (claims-key.ts
+// resultBindingHash): its key, the tested record's proof code and the statement's bindingSalt,
+// 32 random bytes made here for every result. The salt is what keeps the binding from being read
+// back: the key is in every result file and the result's code is the binding's own subject, so
+// without it anyone with a list of proof codes could see which records a lab tested (SPEC 11.12,
+// "Why the binding is salted"). A result signed before the salt has no name binding read for it.
+//
 // Version 1 bundles keep checking exactly as before (lab-numbers.ts readLabNumbers).
 // SPDX-License-Identifier: Apache-2.0
 
@@ -109,6 +116,12 @@ export type LabResultStatement = {
   readonly qc?: readonly QcFigure[];
   readonly result?: NumbersResult | PathogenResult | MatchResult | LineageResult | MarkResult;
   readonly replaces?: Replaces;
+  /**
+   * The salt of the lab's name binding (claims-key.ts resultBindingHash): 32 random bytes, hex,
+   * one per result, made by makeLabResult. Absent on results signed before salts were added,
+   * which still check but never carry the lab's name.
+   */
+  readonly bindingSalt?: string;
 };
 
 /** Why a statement or a result can't be used: a code the screens put in words (app.lr.problem.*). */
@@ -144,6 +157,7 @@ export const PROBLEM_CODES = [
   'duplicate',
   'csvResult',
   'ctMissing',
+  'bindingSalt',
 ] as const;
 export type ProblemCode = (typeof PROBLEM_CODES)[number];
 
@@ -278,7 +292,19 @@ const resultProblem = (kind: ResultKind, subject: string, r: unknown): void => {
 };
 
 const STATEMENT_REQUIRED = ['format', 'kind', 'subject', 'sampleId', 'accession', 'method', 'tested'] as const;
-const STATEMENT_OPTIONAL = ['panel', 'received', 'qc', 'result', 'replaces'] as const;
+const STATEMENT_OPTIONAL = ['panel', 'received', 'qc', 'result', 'replaces', 'bindingSalt'] as const;
+
+/** A binding salt: 64 lowercase hex characters, not all one byte value (SPEC 11.12). */
+export const isBindingSalt = (v: unknown): v is string =>
+  typeof v === 'string' && HEX64.test(v) && !/^(..)\1{31}$/.test(v);
+
+/** A new binding salt, from the browser's secure generator. */
+export const newBindingSalt = (): string => {
+  for (;;) {
+    const s = Array.from(crypto.getRandomValues(new Uint8Array(32)), (x) => x.toString(16).padStart(2, '0')).join('');
+    if (isBindingSalt(s)) return s;
+  }
+};
 
 /**
  * A statement in its canonical form, checked: every rule of SPEC 11.12. A value in any other
@@ -314,6 +340,8 @@ export const checkedStatement = (v: unknown): LabResultStatement => {
     )
       fail('qc', `QC figures: 1 to ${QC_MAX}, each a name and a value, names not repeated.`);
   }
+  if (v.bindingSalt !== undefined && !isBindingSalt(v.bindingSalt))
+    fail('bindingSalt', 'The salt of the lab’s name is 64 hex characters, not all the same byte.');
   resultProblem(kind, v.subject as string, v.result);
   if (v.replaces !== undefined) {
     const r = v.replaces;
@@ -514,7 +542,12 @@ export const makeLabResult = async (
   input: LabResultInput,
   now = Date.now(),
 ): Promise<{ readonly bundle: LabResultBundle; readonly commitment: string; readonly keyText: string }> => {
-  const statement = checkedStatement({ format: LAB_RESULT_FORMAT, ...input.statement });
+  // Every result gets its own salt for the lab's name binding, unless the input brings one.
+  const statement = checkedStatement({
+    format: LAB_RESULT_FORMAT,
+    ...input.statement,
+    bindingSalt: input.statement.bindingSalt ?? newBindingSalt(),
+  });
   const schema = schemaForResult(statement);
   if (statement.kind === 'numbers') {
     if (!SCHEMAS[schema] || RESULT_CALL_SCHEMAS.includes(schema)) fail('form', 'No published form for these numbers.');
@@ -720,7 +753,8 @@ type HeldResult = {
 /**
  * The lab's results that still need its name: kept, signed, not yet bound, and not replaced or
  * withdrawn since by a later result of the same key (naming one of those would put the lab's
- * name back on a result it no longer stands behind).
+ * name back on a result it no longer stands behind). A result signed before binding salts can't
+ * be named at all: its binding could only be the unsalted kind no checker reads.
  */
 export const unboundToName = <R extends HeldResult>(records: readonly R[]): R[] => {
   const replaced = new Set(
@@ -731,7 +765,12 @@ export const unboundToName = <R extends HeldResult>(records: readonly R[]): R[] 
     }),
   );
   return records.filter(
-    (r) => r.labResult && r.labSignature && !r.labResult.bindingId && !replaced.has(r.labSignature.record),
+    (r) =>
+      r.labResult &&
+      r.labSignature &&
+      !r.labResult.bindingId &&
+      r.labResult.statement.bindingSalt !== undefined &&
+      !replaced.has(r.labSignature.record),
   );
 };
 

@@ -3,7 +3,8 @@
 // For each result: seal and sign it (makeLabResult), keep it as a record the lab holds, so it is
 // dated in the next hourly batch like any record (createRecords; nothing goes to Midnight per
 // result), then post the lab's binding naming its key on that result (claims-key.ts
-// resultBindingHash), which is what lets a checker print the lab's registered name. A result
+// resultBindingHash, salted with the statement's bindingSalt so it can't be matched against a
+// list of proof codes), which is what lets a checker print the lab's registered name. A result
 // that replaces one of the lab's own earlier results withdraws that one's binding.
 //
 // The lab hands each result to whoever sent the sample as a file (or locked inside the report,
@@ -20,6 +21,7 @@ import {
   unboundToName,
   type LabResultBundle,
   type LabResultInput,
+  type LabResultStatement,
   type ProblemCode,
 } from './lab-result';
 import { createRecords, newRecordId, setLabResultBinding, type NewRecordInput, type StrainRecord } from './records';
@@ -52,19 +54,25 @@ const TOO_MANY = /too many requests/i;
 /** The registry's answer when its write limit is reached: binding more now only waits. */
 export const isRateLimited = (error: string | undefined): boolean => !!error && TOO_MANY.test(error);
 
-/** Post the lab's binding for one result; once more after a minute when the registry says "too many". */
+/**
+ * Post the lab's binding for one result; once more after a minute when the registry says "too
+ * many". A result without a binding salt (signed before salts) is never bound: the only binding
+ * it could have is the unsalted kind, which gave away the record tested and no checker reads.
+ */
 export const bindResult = async (
   attester: AttesterProfile,
   commitment: string,
-  subject: string,
+  statement: Pick<LabResultStatement, 'subject' | 'bindingSalt'>,
   wait = pause,
 ): Promise<{ attestationId?: string; error?: string }> => {
+  const salt = statement.bindingSalt;
+  if (salt === undefined) return { error: 'this result was signed before binding salts: sign it again to name it' };
   const k = claimsKeyFor(attester.keypair.privateKey);
   const post = () =>
     attestRecord(
       attester,
       commitment,
-      resultBindingHash(k.keyText, subject),
+      resultBindingHash(k.keyText, statement.subject, salt),
       'other',
       bindingIdSuffix(k, attester.keypair.publicKey),
     );
@@ -122,9 +130,7 @@ export const nameUnbound = async (
   const todo = unboundToName(records);
   let named = 0;
   for (const r of todo) {
-    const out = await bindResult(attester, r.labSignature!.record, r.labResult!.statement.subject, () =>
-      Promise.resolve(),
-    );
+    const out = await bindResult(attester, r.labSignature!.record, r.labResult!.statement, () => Promise.resolve());
     if (!out.attestationId) return { named, left: todo.length - named, ...(out.error ? { error: out.error } : {}) };
     setLabResultBinding(r.id, out.attestationId);
     named++;
@@ -183,7 +189,7 @@ export const signResults = async (
     }
     const b = limited
       ? { error: 'too many requests; not tried' }
-      : await bindResult(attester, m.commitment, m.bundle.statement.subject, wait);
+      : await bindResult(attester, m.commitment, m.bundle.statement, wait);
     if (isRateLimited(b.error)) limited = true;
     const recordId = m.input.id ?? '';
     if (b.attestationId) setLabResultBinding(recordId, b.attestationId);

@@ -20,7 +20,8 @@
 //      The attestation shows the attester vouches for this key on this record about that plant;
 //      the owner proof shows whoever holds the claims key chose that attester (so no other
 //      registered lab can post a binding to a key it doesn't hold and take the name). The
-//      attestation is retractable by the lab, like any other.
+//      attestation is retractable by the lab, like any other. A lab result v2 is bound the same
+//      way with its own documentHash, salted per result (resultBindingHash below).
 //
 // A checker (chain/claim-check.ts) reads the proveAttested call on chain, then the attestations
 // about that record, keeps only bindings whose signature, owner proof and hash all check here,
@@ -128,18 +129,29 @@ export const bindingHash = (keyText: string, aboutProofCode: string, reportAttes
   return toHex(sha256(cat(KEY_TAG, fromHex(keyText), fromHex(aboutProofCode), enc.encode(reportAttestationId))));
 };
 
-const RESULT_TAG = enc.encode('veilcore:lab-result-binding:v2\0');
+const RESULT_TAG = enc.encode('veilcore:lab-result-binding:v2:salted\0');
 
 /**
- * A lab result v2's binding (lab-result.ts): this key, on this result, about the record it was
- * tested from. A v2 result names its sample's record inside what the lab signed, so its binding
- * stands on its own rather than on a report signature; withdrawing the binding withdraws the
- * name. Its own tag, so it can never be read as a v1 binding or the other way round.
+ * A lab result v2's binding (lab-result.ts; SPEC 11.12, "The laboratory's name binding"): this
+ * key, on this result, about the record it was tested from, under the statement's bindingSalt.
+ * A v2 result names its sample's record inside what the lab signed, so its binding stands on its
+ * own rather than on a report signature; withdrawing the binding withdraws the name. Its own tag,
+ * so it can never be read as a v1 binding or the other way round.
+ *
+ * The salt is why it is safe to publish. The key is in every result file and the result's code
+ * is the attestation's own subject; the earlier, unsalted form (SHA-256 of a tag, the key and the
+ * proof code) let anyone with a list of proof codes hash each one and see which record a lab
+ * tested. That form is no longer made or read.
  */
-export const resultBindingHash = (keyText: string, aboutProofCode: string): string => {
-  if (!/^[0-9a-f]{128}$/.test(keyText) || !/^[0-9a-f]{64}$/.test(aboutProofCode))
-    throw new Error('a claims key and a proof code');
-  return toHex(sha256(cat(RESULT_TAG, fromHex(keyText), fromHex(aboutProofCode))));
+export const resultBindingHash = (keyText: string, aboutProofCode: string, bindingSalt: string): string => {
+  if (
+    !/^[0-9a-f]{128}$/.test(keyText) ||
+    !/^[0-9a-f]{64}$/.test(aboutProofCode) ||
+    !/^[0-9a-f]{64}$/.test(bindingSalt) ||
+    /^(..)\1{31}$/.test(bindingSalt)
+  )
+    throw new Error('a claims key, a proof code and a binding salt');
+  return toHex(sha256(cat(RESULT_TAG, fromHex(keyText), fromHex(aboutProofCode), fromHex(bindingSalt))));
 };
 
 const ownerMessage = (attesterPublicKeyHex: string): Uint8Array => {
@@ -201,6 +213,8 @@ export const findBinding = <A extends BindingCandidate>(
   key: JubjubPoint,
   aboutProofCode: string,
   aboutAttestations: readonly ReportCandidate[],
+  /** A v2 result's bindingSalt; without it no v2 binding is read (only v1's, on a report). */
+  bindingSalt?: string,
 ):
   | { readonly kind: 'bound'; readonly attestation: A }
   | { readonly kind: 'retracted'; readonly attestation: A }
@@ -209,7 +223,7 @@ export const findBinding = <A extends BindingCandidate>(
   const keyText = claimsKeyText(key);
   let v2Hash: string | undefined;
   try {
-    v2Hash = resultBindingHash(keyText, aboutProofCode);
+    v2Hash = bindingSalt === undefined ? undefined : resultBindingHash(keyText, aboutProofCode, bindingSalt);
   } catch {
     v2Hash = undefined;
   }
@@ -239,7 +253,7 @@ export const findBinding = <A extends BindingCandidate>(
     .map((a) => ({
       a,
       // A v2 result's binding stands on its own (resultBindingHash); a v1 one on a report it names.
-      v2: a.documentHash === v2Hash,
+      v2: v2Hash !== undefined && a.documentHash === v2Hash,
       report: reports.find(
         (r) => r.attester.publicKey === a.attester.publicKey && hashFor(r.attestationId) === a.documentHash,
       ),

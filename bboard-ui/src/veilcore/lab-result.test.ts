@@ -30,6 +30,7 @@ import vectors from './fixtures/lab-result-v2.json';
 import { claimMaterial } from './claims-input';
 import { signatureParts } from './lab-attest';
 import { claimsKeyFor, claimsKeyText, findBinding, resultBindingHash, bindingIdSuffix } from './claims-key';
+import { sha256 } from '@noble/hashes/sha2.js';
 import { ClaimsSimulator } from '../../../contract/src/test/claims-simulator';
 import { claimFromCells } from '../../../contract/src/verify-claims';
 
@@ -37,6 +38,7 @@ import { claimFromCells } from '../../../contract/src/verify-claims';
 type Raw = Record<string, unknown> & LabResultBundle;
 const copy = (x: unknown): Raw => JSON.parse(JSON.stringify(x)) as Raw;
 
+const unhex = (h: string): Uint8Array => Uint8Array.from(h.match(/../g) ?? [], (b) => parseInt(b, 16));
 const A = 'a1'.repeat(32);
 const B = 'b2'.repeat(32);
 const C = 'c3'.repeat(32);
@@ -271,17 +273,99 @@ describe('the lab’s binding of its key to a v2 result', () => {
       attestationId: `att_x${bindingIdSuffix(k, lab.publicKey)}`,
       type: 'other',
       subjectCommitment: commitment,
-      documentHash: resultBindingHash(claimsKeyText(k.key), bundle.statement.subject),
+      documentHash: resultBindingHash(claimsKeyText(k.key), bundle.statement.subject, bundle.statement.bindingSalt!),
       attester: { publicKey: lab.publicKey },
       signatureValid: true,
       retraction: null,
     };
-    expect(findBinding([att], commitment, k.key, A, []).kind).toBe('bound');
-    expect(findBinding([{ ...att, retraction: { reason: 'issued-in-error' } }], commitment, k.key, A, []).kind).toBe(
-      'retracted',
+    const salt = bundle.statement.bindingSalt;
+    expect(salt).toMatch(/^[0-9a-f]{64}$/);
+    expect(findBinding([att], commitment, k.key, A, [], salt).kind).toBe('bound');
+    expect(
+      findBinding([{ ...att, retraction: { reason: 'issued-in-error' } }], commitment, k.key, A, [], salt).kind,
+    ).toBe('retracted');
+    // About another record: no name. Without the salt: no name either.
+    expect(findBinding([att], commitment, k.key, B, [], salt).kind).toBe('none');
+    expect(findBinding([att], commitment, k.key, A, []).kind).toBe('none');
+  });
+
+  it('gives every result its own salt, and keeps one the input brings', async () => {
+    const lab = await generateKeypair();
+    const one = await makeLabResult(lab.privateKey, pathogen);
+    const two = await makeLabResult(lab.privateKey, pathogen);
+    expect(one.bundle.statement.bindingSalt).not.toBe(two.bundle.statement.bindingSalt);
+    const given = 'ab'.repeat(16) + 'cd'.repeat(16);
+    const kept = await makeLabResult(lab.privateKey, {
+      ...pathogen,
+      statement: { ...pathogen.statement, bindingSalt: given },
+    });
+    expect(kept.bundle.statement.bindingSalt).toBe(given);
+    await expect(
+      makeLabResult(lab.privateKey, {
+        ...pathogen,
+        statement: { ...pathogen.statement, bindingSalt: '00'.repeat(32) },
+      }),
+    ).rejects.toMatchObject({ code: 'bindingSalt' });
+  });
+
+  it('an outsider with the lab’s key and a list of proof codes can no longer link a result to its record', async () => {
+    const lab = await generateKeypair();
+    const k = claimsKeyFor(lab.privateKey);
+    const keyText = claimsKeyText(k.key);
+    const hexOf = (b: Uint8Array) => Array.from(b, (x) => x.toString(16).padStart(2, '0')).join('');
+    const codes = Array.from({ length: 100 }, () => hexOf(crypto.getRandomValues(new Uint8Array(32))));
+    // Two of the lab's clients' records, tested; the rest are records the outsider has seen.
+    const tested = [codes[17], codes[63]];
+    const made = await Promise.all(
+      tested.map((subject) =>
+        makeLabResult(lab.privateKey, { ...pathogen, statement: { ...pathogen.statement, subject } }),
+      ),
     );
-    // About another record: no name.
-    expect(findBinding([att], commitment, k.key, B, []).kind).toBe('none');
+    // What the registry serves to anyone: the lab's binding on each result's code. The key is in
+    // every result file, so the outsider has it too.
+    const published = made.map((m) => ({
+      attestationId: `att_x${bindingIdSuffix(k, lab.publicKey)}`,
+      type: 'other',
+      subjectCommitment: m.commitment,
+      documentHash: resultBindingHash(keyText, m.bundle.statement.subject, m.bundle.statement.bindingSalt!),
+      attester: { publicKey: lab.publicKey },
+      signatureValid: true,
+      retraction: null,
+    }));
+    // The attack on the earlier, unsalted binding: hash each code with the key, compare.
+    const unsalted = (c: string) =>
+      hexOf(
+        sha256(
+          new Uint8Array([
+            ...new TextEncoder().encode('veilcore:lab-result-binding:v2\0'),
+            ...unhex(keyText),
+            ...unhex(c),
+          ]),
+        ),
+      );
+    // Even holding the salt of the lab's OTHER result (shown to it on that result's check link).
+    const leakedSalt = made[1].bundle.statement.bindingSalt!;
+    const hits = codes.filter((c) =>
+      published
+        .slice(0, 1)
+        .some(
+          (p) =>
+            p.documentHash === unsalted(c) ||
+            p.documentHash === resultBindingHash(keyText, c, leakedSalt) ||
+            findBinding([p], p.subjectCommitment, k.key, c, []).kind !== 'none',
+        ),
+    );
+    expect(hits).toEqual([]);
+    // The checker the holder shows the result to has the salt in the file and gets the lab's name.
+    expect(
+      findBinding([published[0]], made[0].commitment, k.key, tested[0], [], made[0].bundle.statement.bindingSalt).kind,
+    ).toBe('bound');
+    // And an unsalted binding, were a lab to post one, is never read.
+    const old = { ...published[0], documentHash: unsalted(tested[0]) };
+    expect(
+      findBinding([old], made[0].commitment, k.key, tested[0], [], made[0].bundle.statement.bindingSalt).kind,
+    ).toBe('none');
+    expect(findBinding([old], made[0].commitment, k.key, tested[0], []).kind).toBe('none');
   });
 });
 
@@ -300,6 +384,8 @@ describe('the SDK’s lab result vectors (SPEC 11.12)', () => {
     labBindings: { name: string; fields: Fields; statement: unknown; values: (string | null)[]; bound: boolean }[];
     markSeals: { name: string; sequence: string; salt: string; seal: string }[];
     markRefusals: { name: string; sequence: string; salt: string }[];
+    labNameBindings: { name: string; key: string; subject: string; salt: string; nameBinding: string }[];
+    labNameBindingRefusals: { name: string; key: string; subject: string; salt: string }[];
   };
   const v = vectors as unknown as Vectors;
 
@@ -357,6 +443,12 @@ describe('the SDK’s lab result vectors (SPEC 11.12)', () => {
   it('seals marks as the vectors do', () => {
     for (const m of v.markSeals) expect(markSeal(m.sequence, m.salt), m.name).toBe(m.seal);
     for (const m of v.markRefusals) expect(() => markSeal(m.sequence, m.salt), m.name).toThrow();
+  });
+
+  it('makes the lab’s name bindings as the vectors do', () => {
+    for (const b of v.labNameBindings) expect(resultBindingHash(b.key, b.subject, b.salt), b.name).toBe(b.nameBinding);
+    for (const b of v.labNameBindingRefusals)
+      expect(() => resultBindingHash(b.key, b.subject, b.salt), b.name).toThrow();
   });
 });
 
