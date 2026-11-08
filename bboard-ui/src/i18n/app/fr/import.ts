@@ -56,7 +56,7 @@ export const importing = {
   'app.import.cols.notInFile': 'Pas dans mon fichier',
   'app.import.cols.bredBy': 'Obtenu par, quand une ligne ne le dit pas',
   'app.import.cols.bredByHelp':
-    'Votre nom ou votre entreprise, si vous les avez obtenues. Laissez vide si vous ne savez pas.',
+    'Remplit les lignes sans obtenteur. Laissez vide pour du matériel collecté, donné ou traditionnel.',
   'app.import.cols.dates': 'Comment les dates sont-elles écrites ?',
   'app.import.cols.datesHelp':
     'Certaines dates, comme 03/04/2021, peuvent se lire des deux façons. Choisissez comment votre fichier les écrit, sinon elles sont gardées telles quelles.',

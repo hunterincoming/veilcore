@@ -55,7 +55,8 @@ export const importing = {
   'app.import.cols.pick': 'Elegir una columna',
   'app.import.cols.notInFile': 'No está en mi archivo',
   'app.import.cols.bredBy': 'Obtenida por, cuando una fila no lo dice',
-  'app.import.cols.bredByHelp': 'Su nombre o empresa, si usted las obtuvo. Déjelo vacío si no lo sabe.',
+  'app.import.cols.bredByHelp':
+    'Rellena las filas sin obtentor. Déjelo vacío para material recolectado, donado o tradicional.',
   'app.import.cols.dates': '¿Cómo se escriben las fechas?',
   'app.import.cols.datesHelp':
     'Algunas fechas, como 03/04/2021, pueden leerse de las dos formas. Elija cómo las escribe su archivo, o se conservan tal como están.',

@@ -14,6 +14,7 @@ import { animalDraftHasContent, parseAnimalDraft, type AnimalDraft, type LogKind
 import { parseStrainDraft, strainDraftHasContent, type StrainDraft } from './strain-draft';
 import {
   LANDRACE_METHOD,
+  guardNotes,
   originHasContent,
   originNotes,
   parseOrigin,
@@ -149,7 +150,13 @@ export const parseDraft = (raw: string | null): Draft | undefined => {
     const d: Draft = {
       strainName: str(v.strainName, 200),
       bredBy: str(v.bredBy, 200),
-      dateCreated: /^\d{4}-\d{2}-\d{2}$/.test(str(v.dateCreated)) ? str(v.dateCreated) : base.dateCreated,
+      // Left empty on purpose (a landrace or received material): kept empty, never today.
+      dateCreated:
+        v.dateCreated === ''
+          ? ''
+          : /^\d{4}-\d{2}-\d{2}$/.test(str(v.dateCreated))
+            ? str(v.dateCreated)
+            : base.dateCreated,
       parents,
       taxon: str(v.taxon, 200),
       breedingMethod: str(v.breedingMethod, 100),
@@ -184,7 +191,7 @@ export const sealInputOf = (draft: Draft): SealInput => ({
   notes: stageNotes(
     draft.stage,
     draft.selectedFor,
-    originApplies(draft) ? originNotes(draft.origin, draft.notes) : draft.notes,
+    originApplies(draft) ? originNotes(draft.origin, draft.notes) : guardNotes(draft.notes),
   ),
   parents: draft.parents,
   breedingMethod: draft.breedingMethod,
@@ -200,9 +207,14 @@ export const sealInputOf = (draft: Draft): SealInput => ({
  * empty: they are this stage's, not the parent's. The name box suggests one as a
  * placeholder only (nextStageNamePlaceholder), never as text that would be sealed unread.
  */
-export const nextStageDraft = (parent: Pick<StrainRecord, 'id' | 'strainName' | 'bredBy' | 'taxon'>): Draft => ({
+export const nextStageDraft = (
+  parent: Pick<StrainRecord, 'id' | 'strainName' | 'bredBy' | 'taxon'> & { readonly breedingMethod?: string },
+): Draft => ({
   ...emptyDraft(),
   bredBy: parent.bredBy,
+  // A parent logged with no breeder (a landrace, or received material): the next stage asks for
+  // none either, rather than nudging the holder to name someone.
+  ...(parent.bredBy.trim() ? {} : { source: parent.breedingMethod === LANDRACE_METHOD ? 'landrace' : 'received' }),
   taxon: parent.taxon ?? '',
   parents: [{ recordId: parent.id, name: parent.strainName }],
   stageOf: parent.id,

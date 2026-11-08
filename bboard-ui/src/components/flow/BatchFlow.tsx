@@ -18,6 +18,8 @@ import {
   MenuItem,
   Stack,
   TextField,
+  ToggleButton,
+  ToggleButtonGroup,
   Typography,
 } from '@mui/material';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
@@ -43,6 +45,10 @@ import {
 } from '../../veilcore/bulk-import';
 import {
   EDIT_MAX,
+  existingOf,
+  firstTaken,
+  semenCodeApplies,
+  youngLimit,
   batchProblems,
   batchRows,
   breederOptional,
@@ -52,10 +58,10 @@ import {
   isReceived,
   ownDefaults,
   suggestTags,
-  UNLIKELY_YOUNG,
   unlikelyYoung,
   type BatchPlan,
   type BatchPreset,
+  type ChildDam,
   type ChildDetails,
 } from '../../ask/batch';
 import { MAX_BATCH, type Handoff } from '../../ask/handoff';
@@ -87,6 +93,13 @@ const useOnline = (): boolean =>
 /** Rows this browser already has: in the bulk import's ledger (sent or waiting), or records in the set. */
 const takenRows = (records: readonly StrainRecord[]): ReadonlySet<string> =>
   new Set([...Object.keys(loadLedger().rows), ...records.map(recordRowHash)]);
+
+/** Names already used: the person's records and the ledger's (a batch held for its backup included). */
+const takenNames = (records: readonly StrainRecord[]): ReadonlySet<string> =>
+  new Set([
+    ...records.map((r) => r.strainName),
+    ...Object.values(loadLedger().rows).flatMap((e) => (e.record?.strainName ? [e.record.strainName] : [])),
+  ]);
 
 const VAULT_WORDS: Record<string, AppKey> = {
   locked: 'app.sealed.refuse.noKey',
@@ -144,15 +157,40 @@ export const BatchFlow: React.FC<{ handoff: Handoff }> = ({ handoff }) => {
   const typing = preset === 'offspring' && sireId === TYPED;
   // Each child's own details, by its place in the batch, and the ID scheme they share.
   const [edits, setEdits] = useState<Record<number, ChildDetails>>({});
+  // Each young animal's dam, when not the batch's: '' the same, TYPED, or one of the person's records.
+  const [damPicks, setDamPicks] = useState<Record<number, string>>({});
   const [idScheme, setIdScheme] = useState('');
+  const [firstId, setFirstId] = useState('');
   const [lotName, setLotName] = useState('');
   const [firstTag, setFirstTag] = useState('');
   const shown = Number.isFinite(count) ? Math.min(count, MAX_BATCH) : 0;
+  // What the screen shows is exactly what is sealed: per-child fields only while they are on the
+  // screen (EDIT_MAX at most), tags only while a first tag is typed. Edits made before a field
+  // went away are never sealed unseen.
+  const each = shown <= EDIT_MAX;
   const tags = suggestTags(firstTag, shown);
+  const ids = suggestTags(firstId, shown);
+  const damOfChild = (i: number): ChildDam | undefined => {
+    const pick = damPicks[i] ?? '';
+    if (pick === TYPED) return { name: edits[i]?.dam?.name ?? '', individualId: edits[i]?.dam?.individualId ?? '' };
+    const r = pick ? own(pick) : undefined;
+    return r ? { record: r } : undefined;
+  };
   const children: ChildDetails[] = Array.from({ length: shown }, (_, i) =>
-    preset === 'clones' ? { tag: edits[i]?.tag ?? tags[i] } : { ...edits[i], born: edits[i]?.born ?? '' },
+    preset === 'clones'
+      ? { tag: firstTag.trim() ? ((each ? edits[i]?.tag : undefined) ?? tags[i]) : '' }
+      : each
+        ? {
+            sex: edits[i]?.sex,
+            individualId: edits[i]?.individualId ?? ids[i],
+            born: edits[i]?.born ?? '',
+            dam: damOfChild(i),
+          }
+        : {},
   );
   const editChild = (i: number, d: ChildDetails) => setEdits({ ...edits, [i]: { ...edits[i], ...d } });
+  // IDs and tags already on the person's records: a batch never repeats one.
+  const existing = useMemo(() => existingOf(records, isAnimal), [records]);
   const unnumbered: BatchPlan = {
     preset,
     count,
@@ -170,27 +208,28 @@ export const BatchFlow: React.FC<{ handoff: Handoff }> = ({ handoff }) => {
   // Numbered past any child already made: the same clones again, or a second litter the same day,
   // are new records, never the old ones said to be saved again.
   const taken = useMemo(() => takenRows(records), [records]);
-  const start = useMemo(
-    () => firstFreeStart(unnumbered, taken),
-    [
-      taken,
-      preset,
-      count,
-      baseName,
-      date,
-      bredBy,
-      taxon,
-      parentId,
-      sireId,
-      damId,
-      sireName,
-      sireTypedId,
-      semenCode,
-      lotName,
-    ],
-  );
+  const usedNames = useMemo(() => takenNames(records), [records]);
+  // Everything a child is hashed with goes in the key, its own details included.
+  const planKey = JSON.stringify([
+    preset,
+    count,
+    baseName,
+    date,
+    bredBy,
+    taxon,
+    parentId,
+    sireId,
+    damId,
+    sireName,
+    sireTypedId,
+    semenCode,
+    lotName,
+    idScheme,
+    children.map((c) => [c.sex, c.individualId, c.born, c.tag, c.dam?.record?.id, c.dam?.name, c.dam?.individualId]),
+  ]);
+  const start = useMemo(() => firstFreeStart(unnumbered, taken, usedNames), [taken, usedNames, planKey]);
   const plan: BatchPlan = { ...unnumbered, start };
-  const problems = batchProblems(plan);
+  const problems = batchProblems(plan, existing);
   const names = childNames(baseName, Number.isFinite(count) ? count : 0, start);
 
   const [screen, setScreen] = useState<Screen>('review');
@@ -225,7 +264,8 @@ export const BatchFlow: React.FC<{ handoff: Handoff }> = ({ handoff }) => {
         return;
       }
       // Numbered again against what this browser holds now (another tab may have made some).
-      const made = batchRows({ ...plan, start: firstFreeStart(plan, takenRows(allRecords())) });
+      const all = allRecords();
+      const made = batchRows({ ...plan, start: firstFreeStart(plan, takenRows(all), takenNames(all)) });
       const result = await sealRows(made, { commit: holdForBackup, batchSize: made.length, gapMs: 0 });
       const refused = Object.values(result.outcomes).find((o) => o.state === 'refused');
       if (refused && refused.state === 'refused') {
@@ -316,8 +356,9 @@ export const BatchFlow: React.FC<{ handoff: Handoff }> = ({ handoff }) => {
                       value={role === 'sire' ? sireId : damId}
                       slotProps={{ select: { sx: { whiteSpace: 'normal', overflowWrap: 'anywhere' } } }}
                       onChange={(e) => (role === 'sire' ? setSireId : setDamId)(e.target.value)}
+                      // Said once, under the sire: pick from your records, or type the sire.
                       helperText={
-                        animals.length || (role === 'sire' && typing) ? undefined : t('app.ask.batch.noAnimals')
+                        role === 'sire' && !typing && !animals.length ? t('app.ask.batch.noAnimals') : undefined
                       }
                       fullWidth
                     >
@@ -353,13 +394,16 @@ export const BatchFlow: React.FC<{ handoff: Handoff }> = ({ handoff }) => {
                           onChange={(e) => setSireTypedId(e.target.value.slice(0, 200))}
                           fullWidth
                         />
-                        <TextField
-                          label={t('app.batch.semenCode')}
-                          value={semenCode}
-                          onChange={(e) => setSemenCode(e.target.value.slice(0, 100))}
-                          helperText={t('app.batch.semenCodeHelp')}
-                          fullWidth
-                        />
+                        {/* Only where straws carry a code: cattle, sheep, goats (batch.ts semenCodeApplies). */}
+                        {semenCodeApplies(taxon) && (
+                          <TextField
+                            label={t('app.batch.semenCode')}
+                            value={semenCode}
+                            onChange={(e) => setSemenCode(e.target.value.slice(0, 100))}
+                            helperText={t('app.batch.semenCodeHelp')}
+                            fullWidth
+                          />
+                        )}
                       </Stack>
                     )}
                   </React.Fragment>
@@ -373,13 +417,13 @@ export const BatchFlow: React.FC<{ handoff: Handoff }> = ({ handoff }) => {
               onChange={(e) => setCountText(e.target.value.replace(/[^\d]/g, '').slice(0, 4))}
               error={problems.includes('count') && countText !== ''}
               helperText={
-                unlikelyYoung(preset, count)
-                  ? t('app.ask.batch.unlikely', { n: UNLIKELY_YOUNG })
+                unlikelyYoung(preset, count, taxon, children)
+                  ? t('app.ask.batch.unlikely', { n: youngLimit(taxon) })
                   : t('app.ask.batch.upTo', { max: MAX_BATCH })
               }
               slotProps={{
                 htmlInput: { inputMode: 'numeric' },
-                formHelperText: unlikelyYoung(preset, count)
+                formHelperText: unlikelyYoung(preset, count, taxon, children)
                   ? ({ sx: { color: 'warning.dark' }, 'data-batch-unlikely': '' } as object)
                   : {},
               }}
@@ -421,7 +465,13 @@ export const BatchFlow: React.FC<{ handoff: Handoff }> = ({ handoff }) => {
               fullWidth
             />
             <TextField
-              label={preset === 'clones' ? t('app.ask.batch.cutOn') : t('app.ask.batch.bornOn')}
+              label={
+                preset === 'clones'
+                  ? t('app.ask.batch.cutOn')
+                  : each && names.length > 1
+                    ? t('app.batch.bornOnAll')
+                    : t('app.ask.batch.bornOn')
+              }
               type="date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
@@ -454,7 +504,7 @@ export const BatchFlow: React.FC<{ handoff: Handoff }> = ({ handoff }) => {
                     helperText={t('app.batch.tags.help')}
                     fullWidth
                   />
-                  {names.length <= EDIT_MAX &&
+                  {each &&
                     firstTag.trim() !== '' &&
                     names.map((n, i) => (
                       <TextField
@@ -472,6 +522,17 @@ export const BatchFlow: React.FC<{ handoff: Handoff }> = ({ handoff }) => {
                       {t('app.batch.dupTag', { tag: firstRepeat(children.map((c) => c.tag)) ?? '' })}
                     </Alert>
                   )}
+                  {problems.includes('takenTag') && (
+                    <Alert severity="error" variant="outlined" data-batch-taken="">
+                      {t('app.batch.takenTag', {
+                        tag:
+                          firstTaken(
+                            children.map((c) => c.tag),
+                            existing.tags,
+                          ) ?? '',
+                      })}
+                    </Alert>
+                  )}
                 </Stack>
               </Box>
             )}
@@ -481,11 +542,9 @@ export const BatchFlow: React.FC<{ handoff: Handoff }> = ({ handoff }) => {
                   {t('app.batch.each.title')}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  {names.length <= EDIT_MAX
-                    ? t('app.batch.each.help')
-                    : t('app.batch.tooManyToEdit', { max: EDIT_MAX })}
+                  {each ? t('app.batch.each.help') : t('app.batch.tooManyToEdit', { max: EDIT_MAX })}
                 </Typography>
-                {names.length <= EDIT_MAX && (
+                {each && (
                   <Stack spacing={2} sx={{ pt: 1.5 }}>
                     <Autocomplete<string, false, false, true>
                       freeSolo
@@ -504,9 +563,20 @@ export const BatchFlow: React.FC<{ handoff: Handoff }> = ({ handoff }) => {
                         />
                       )}
                     />
+                    {/* Tag packs are numbered: the first ID, and the rest numbered on (as clones' tags). */}
+                    <TextField
+                      label={t('app.batch.each.firstId')}
+                      value={firstId}
+                      onChange={(e) => setFirstId(e.target.value.slice(0, 200))}
+                      helperText={t('app.batch.each.firstIdHelp')}
+                      fullWidth
+                      slotProps={{ htmlInput: { 'data-first-id': '' } }}
+                    />
                     {names.map((n, i) => {
                       const c = children[i] ?? {};
                       const id = c.individualId ?? '';
+                      const hint = idShapeHint(id, idScheme, (k) => t(k));
+                      const damPick = damPicks[i] ?? '';
                       return (
                         <Box
                           key={i}
@@ -522,36 +592,80 @@ export const BatchFlow: React.FC<{ handoff: Handoff }> = ({ handoff }) => {
                               label={t('app.batch.each.id')}
                               value={id}
                               onChange={(e) => editChild(i, { individualId: e.target.value.slice(0, 200) })}
-                              helperText={t(idShapeHint(id, idScheme, (k) => t(k)) ?? 'app.batch.each.idHelp')}
+                              helperText={hint ? t(hint) : undefined}
                               fullWidth
                               slotProps={{ htmlInput: { 'data-child-id': i } }}
                             />
-                            {/* Stacked on a phone: side by side, the date is cut off at 360px. */}
-                            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
-                              <TextField
-                                select
-                                size="small"
-                                label={t('app.animal.sex')}
-                                value={c.sex ?? 'unknown'}
-                                onChange={(e) => editChild(i, { sex: e.target.value as AnimalSex })}
-                                sx={{ flex: 1, minWidth: 0 }}
-                              >
-                                {ANIMAL_SEXES.map((x) => (
-                                  <MenuItem key={x} value={x}>
-                                    {sexWords(x, tr)}
+                            {/* One tap each: female, male, not stated. */}
+                            <ToggleButtonGroup
+                              exclusive
+                              size="small"
+                              fullWidth
+                              value={c.sex ?? 'unknown'}
+                              onChange={(_, v: AnimalSex | null) => v && editChild(i, { sex: v })}
+                              aria-label={t('app.animal.sex')}
+                              data-child-sex={i}
+                            >
+                              {ANIMAL_SEXES.map((x) => (
+                                <ToggleButton key={x} value={x} sx={{ minHeight: 44, textTransform: 'none' }}>
+                                  {sexWords(x, tr)}
+                                </ToggleButton>
+                              ))}
+                            </ToggleButtonGroup>
+                            <TextField
+                              size="small"
+                              type="date"
+                              label={t('app.batch.each.born')}
+                              value={c.born || date}
+                              onChange={(e) => editChild(i, { born: e.target.value })}
+                              slotProps={{ inputLabel: { shrink: true }, htmlInput: { 'data-child-born': i } }}
+                              fullWidth
+                            />
+                            {/* A calf crop: many cows to one bull. Each young animal can name its own dam. */}
+                            <TextField
+                              select
+                              size="small"
+                              label={t('app.batch.each.dam')}
+                              value={damPick}
+                              onChange={(e) => setDamPicks({ ...damPicks, [i]: e.target.value })}
+                              slotProps={{ select: { sx: { whiteSpace: 'normal', overflowWrap: 'anywhere' } } }}
+                              fullWidth
+                              data-child-dam={i}
+                            >
+                              <MenuItem value="">{t('app.batch.each.damSame')}</MenuItem>
+                              <MenuItem value={TYPED}>{t('app.batch.sireTyped')}</MenuItem>
+                              {animals
+                                .filter((r) => r.id !== sireId)
+                                .map((r) => (
+                                  <MenuItem key={r.id} value={r.id}>
+                                    {r.strainName || r.refId}
                                   </MenuItem>
                                 ))}
-                              </TextField>
-                              <TextField
-                                size="small"
-                                type="date"
-                                label={t('app.batch.each.born')}
-                                value={c.born || date}
-                                onChange={(e) => editChild(i, { born: e.target.value })}
-                                slotProps={{ inputLabel: { shrink: true }, htmlInput: { 'data-child-born': i } }}
-                                sx={{ flex: 1, minWidth: 0 }}
-                              />
-                            </Stack>
+                            </TextField>
+                            {damPick === TYPED && (
+                              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
+                                <TextField
+                                  size="small"
+                                  label={t('app.batch.damName')}
+                                  value={edits[i]?.dam?.name ?? ''}
+                                  onChange={(e) =>
+                                    editChild(i, { dam: { ...edits[i]?.dam, name: e.target.value.slice(0, 200) } })
+                                  }
+                                  fullWidth
+                                />
+                                <TextField
+                                  size="small"
+                                  label={t('app.batch.damId')}
+                                  value={edits[i]?.dam?.individualId ?? ''}
+                                  onChange={(e) =>
+                                    editChild(i, {
+                                      dam: { ...edits[i]?.dam, individualId: e.target.value.slice(0, 200) },
+                                    })
+                                  }
+                                  fullWidth
+                                />
+                              </Stack>
+                            )}
                           </Stack>
                         </Box>
                       );
@@ -559,6 +673,22 @@ export const BatchFlow: React.FC<{ handoff: Handoff }> = ({ handoff }) => {
                     {problems.includes('dupId') && (
                       <Alert severity="error" variant="outlined" data-batch-dup="">
                         {t('app.batch.dupId', { id: firstRepeat(children.map((c) => c.individualId)) ?? '' })}
+                      </Alert>
+                    )}
+                    {problems.includes('takenId') && (
+                      <Alert severity="error" variant="outlined" data-batch-taken="">
+                        {t('app.batch.takenId', {
+                          id:
+                            firstTaken(
+                              children.map((c) => c.individualId),
+                              existing.ids,
+                            ) ?? '',
+                        })}
+                      </Alert>
+                    )}
+                    {problems.includes('born') && (
+                      <Alert severity="error" variant="outlined" data-batch-born="">
+                        {t('app.batch.bornFuture')}
                       </Alert>
                     )}
                   </Stack>

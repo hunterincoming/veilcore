@@ -161,7 +161,7 @@ export const ask = {
   'app.ask.batch.offspringIntro': '子ごとに新しい記録を作り、父と母に紐付けます。',
   'app.ask.batch.cutFrom': '取った元',
   'app.ask.batch.noPlants': '先に植物を記録してください。クローンはあなたの記録から取ります。',
-  'app.ask.batch.noAnimals': '先に父か母を記録してください。子はあなた自身の記録に紐付けます。',
+  'app.ask.batch.noAnimals': '記録から父か母を選ぶか、父を入力してください。',
   'app.ask.batch.notListed': 'なし',
   'app.ask.batch.howManyClones': 'クローンの数',
   'app.ask.batch.howManyYoung': '子の数',

@@ -81,7 +81,7 @@ export const log = {
   'app.log.x.selectedFor': 'Selected for: {v}',
   'app.log.x.parents': 'Parents: {v}',
   'app.log.x.species': 'Species: {v}',
-  'app.log.x.madeBy': 'Made by: {v}',
+  'app.log.x.madeBy': 'How it was made: {v}',
   'app.log.x.ref': 'Your reference: {v}',
   'app.log.x.notes': 'Notes added',
   'app.log.sealedWarn':

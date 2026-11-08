@@ -6,8 +6,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   LANDRACE_METHOD,
   acqDateOf,
+  NOTES_GUARD,
   emptyOrigin,
+  guardNotes,
   isTraditionalOrWild,
+  mcpdGroup,
+  mcpdWithMeaning,
   originHasContent,
   originLines,
   originNotes,
@@ -18,6 +22,7 @@ import {
   breederRequired,
   draftHasContent,
   emptyDraft,
+  nextStageDraft,
   originApplies,
   parseDraft,
   plantReady,
@@ -65,7 +70,8 @@ describe('the origin lines in the notes', () => {
     const notes = originNotes(o, 'SMTA: not a label down here');
     expect(parseOriginBlock(notes)).toEqual({
       origin: { received: '2019-03-04', smta: 'SMTA-77', ircc: 'ABSCH-IRCC-MX-1234' },
-      rest: 'SMTA: not a label down here',
+      // The holder's own notes, guarded: they start like a label.
+      rest: 'Notes:\nSMTA: not a label down here',
     });
     // Ordinary notes, or a label not at the start, are the holder's own.
     expect(parseOriginBlock('Watered daily.\nSMTA: 1')).toEqual({ origin: {}, rest: 'Watered daily.\nSMTA: 1' });
@@ -76,6 +82,24 @@ describe('the origin lines in the notes', () => {
   it('a typed line break can never start a line that reads as another label', () => {
     const o = { ...emptyOrigin(), from: 'a place\nSMTA: forged' };
     expect(parseOriginBlock(originNotes(o, '')).origin).toEqual({ from: 'a place SMTA: forged' });
+    // Nor a control character, a line separator or a bidirectional override.
+    expect(originLines({ smta: 'A\u2028B\u202Ecba\u0001' })).toEqual(['SMTA: A B cba']);
+  });
+
+  it('the holder’s own notes can never pose as an origin block, a stage header or a batch’s lines', () => {
+    const forged = 'SMTA: FAKE-123\nDOI or PUID: 10.1/x';
+    const sealed = originNotes({}, forged);
+    expect(sealed).toBe(`${NOTES_GUARD}\n${forged}`);
+    expect(parseOriginBlock(sealed).origin).toEqual({});
+    for (const first of ['Stage: F9', 'Lot: fake', 'Sire semen code: X'])
+      expect(guardNotes(`${first}\nmore`).startsWith(`${NOTES_GUARD}\n`), first).toBe(true);
+    // Ordinary notes are unchanged.
+    expect(guardNotes('  Watered daily.  ')).toBe('Watered daily.');
+    // After a real block, they stay behind the blank line: never read as part of it.
+    const after = originNotes({ country: 'MEX' }, forged);
+    expect(parseOriginBlock(after).origin).toEqual({ country: 'MEX' });
+    // Bred by the holder: the plant form guards the notes too.
+    expect(sealInputOf({ ...emptyDraft(), strainName: 'X', bredBy: 'Me', notes: forged }).notes).toBe(sealed);
   });
 
   it('reads MCPD dates and statuses as a passport sheet writes them', () => {
@@ -129,6 +153,19 @@ describe('the plant form: "Bred by" only for the holder’s own breeding', () =>
       collection: 'Banco Comunitario',
       country: 'MEX',
     });
+  });
+
+  it('a next stage of a plant logged with no breeder asks for none either', () => {
+    const landrace = { id: 'VEIL-1', strainName: 'Bolita', bredBy: '', taxon: '', breedingMethod: LANDRACE_METHOD };
+    expect(breederRequired(nextStageDraft(landrace))).toBe(false);
+    expect(breederRequired(nextStageDraft({ ...landrace, breedingMethod: '' }))).toBe(false);
+    expect(breederRequired(nextStageDraft({ ...landrace, bredBy: 'Harbour Farm' }))).toBe(true);
+    expect(originApplies(nextStageDraft(landrace))).toBe(false);
+  });
+
+  it('keeps an empty date for a landrace, never today', () => {
+    const d = draft({ source: 'landrace', dateCreated: '' });
+    expect(parseDraft(JSON.stringify(d))?.dateCreated).toBe('');
   });
 
   it('keeps the choice and the origin in the draft between visits', () => {
@@ -204,12 +241,44 @@ describe('a genebank passport sheet (MCPD) through the bulk import', () => {
     expect(f.bredBy).toBe('');
     expect(f.breedingMethod).toBe(LANDRACE_METHOD);
     expect(f.notes).toBe(
-      'Country of origin: MEX\nReceived on: 2019-03-04\nDOI or PUID: 10.18730/XYZ\nMCPD SAMPSTAT: 300\nMCPD COLLSRC: 20\n\nblue',
+      'Country of origin: MEX\nReceived on: 2019-03-04\nDOI or PUID: 10.18730/XYZ\nMCPD SAMPSTAT: 300 (traditional cultivar or landrace)\nMCPD COLLSRC: 20 (farm or cultivated habitat)\nHolding institute (INSTCODE): MEX001\n\nblue',
     );
     // An advanced cultivar (SAMPSTAT 500) is not called a landrace.
     expect(
       rowFields(row(['', 'A2', 'B73', 'Zea', 'mays', '500', '', '', '', '', '']), m).breedingMethod,
     ).toBeUndefined();
+  });
+
+  it('never puts the sheet-wide default breeder on wild, weedy or traditional material', () => {
+    const m = { ...guessMapping(headers), bredByDefault: 'Harbour Farm' };
+    const cells = (status: string) => ['', 'A1', 'X', 'Zea', 'mays', status, '', '', '', '', ''];
+    for (const status of ['100', '120', '200', '300']) expect(rowFields(row(cells(status)), m).bredBy, status).toBe('');
+    // Bred material takes the default; a breeder the row itself names is always kept.
+    expect(rowFields(row(cells('500')), m).bredBy).toBe('Harbour Farm');
+    const named = guessMapping([...headers, 'Breeder']);
+    expect(rowFields(row([...cells('300'), 'Named Breeder']), { ...named, bredByDefault: 'Harbour Farm' }).bredBy).toBe(
+      'Named Breeder',
+    );
+  });
+
+  it('reads who it came from and the rest of the passport, with each code’s meaning', () => {
+    const h = ['ACCENAME', 'DONORNAME', 'DONORCODE', 'INSTCODE', 'COLLSITE', 'MLSSTAT', 'ANCEST'];
+    const f = rowFields(
+      row(['Bolita', 'Community seed bank', 'MEX123', 'MEX001', '3 km N of Huautla', '1', 'Bolita/Olotillo']),
+      guessMapping(h),
+    );
+    expect(parseOriginBlock(f.notes).origin).toEqual({
+      donor: 'Community seed bank (MEX123)',
+      instCode: 'MEX001',
+      collSite: '3 km N of Huautla',
+      mlsStat: '1 (in the Multilateral System)',
+      ancest: 'Bolita/Olotillo',
+    });
+    expect(mcpdWithMeaning('sampStat', '999')).toBe('999 (other)');
+    expect(mcpdWithMeaning('sampStat', '777')).toBe('777');
+    expect(mcpdGroup('collSrc', '26')).toBe('farm');
+    // A header that is an object's own property name is no MCPD column.
+    expect(guessMapping(['constructor', '__proto__', 'toString']).columns.genus).toBeNull();
   });
 
   it('a sheet without passport columns imports exactly as before', () => {

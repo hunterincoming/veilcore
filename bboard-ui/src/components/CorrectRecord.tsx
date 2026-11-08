@@ -29,12 +29,19 @@ import {
 import EditIcon from '@mui/icons-material/EditOutlined';
 import { useNavigate } from 'react-router-dom';
 import { previewCorrection, type CorrectionPreview } from '../veilcore/corrections';
-import { correctionWaitsForBackup, integrityOf, issueCorrection, type StrainRecord } from '../veilcore/records';
+import {
+  allRecords,
+  correctionWaitsForBackup,
+  integrityOf,
+  issueCorrection,
+  type StrainRecord,
+} from '../veilcore/records';
 import { INK_COLOR } from '../config/theme';
 import { useRecordT } from '../i18n/app';
 import { ANIMAL_SEXES, isAnimal, type AnimalSex } from '../veilcore/animal-profile';
 import type { AppKey } from '../i18n/app/en';
 import { SCHEMES, idShapeHint, sexWords } from './flow/AnimalForm';
+import { line } from '../ask/batch';
 
 const FIELD_LABEL: Record<string, AppKey> = {
   'profileData.cultivarName': 'app.plant.fix.field.cultivarName',
@@ -54,6 +61,14 @@ const FIELD_LABEL: Record<string, AppKey> = {
 
 /** corrections.ts's consequence for these severities, in the page's language (the same English). */
 const consequenceKey = (p: CorrectionPreview): AppKey => `app.plant.fix.c.${p.descentSeverity}.${p.termsSeverity}`;
+
+/**
+ * Whether anything this browser knows of depends on the record: a record naming it as a parent,
+ * or an agreement on it. Without either, a material correction affects nothing else yet, and the
+ * screen says so plainly instead of warning about offspring and agreements a newborn hasn't got.
+ */
+const hasDependants = (record: StrainRecord): boolean =>
+  (record.licenseIds?.length ?? 0) > 0 || allRecords().some((r) => r.parents?.some((p) => p.recordId === record.id));
 
 export const CorrectRecord: React.FC<{
   record: StrainRecord;
@@ -76,8 +91,8 @@ export const CorrectRecord: React.FC<{
   const [sex, setSex] = useState<AnimalSex>(record.animal?.sex ?? 'unknown');
   const [individualId, setIndividualId] = useState(record.refId ?? '');
   const [idScheme, setIdScheme] = useState(record.animal?.idScheme ?? '');
-  /** As the profile seals them: one line, trimmed; a scheme only beside an ID. */
-  const oneLine = (v: string) => v.replace(/\s+/g, ' ').trim();
+  /** As the profile seals them: one line, trimmed; a scheme only beside an ID (batch.ts line). */
+  const oneLine = line;
   const animalEdits: Partial<StrainRecord> = animal
     ? {
         refId: oneLine(individualId),
@@ -141,7 +156,7 @@ export const CorrectRecord: React.FC<{
       )}
 
       <Dialog open={open && waits} onClose={reset} maxWidth="sm" fullWidth>
-        <DialogTitle>{t('app.plant.fix.title', { id: record.id })}</DialogTitle>
+        <DialogTitle>{t('app.plant.fix.title', { id: record.strainName || record.refId || record.id })}</DialogTitle>
         <DialogContent>
           {/* Said before anything is typed (round 3, L7): a correction can't be saved yet. */}
           <Alert severity="warning" variant="outlined" sx={{ mt: 1 }} data-correction-backup-first="">
@@ -159,7 +174,7 @@ export const CorrectRecord: React.FC<{
       </Dialog>
 
       <Dialog open={open && !waits} onClose={reset} maxWidth="sm" fullWidth>
-        <DialogTitle>{t('app.plant.fix.title', { id: record.id })}</DialogTitle>
+        <DialogTitle>{t('app.plant.fix.title', { id: record.strainName || record.refId || record.id })}</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ pt: 1 }}>
             <Typography variant="body2" color="text.secondary">
@@ -267,8 +282,13 @@ export const CorrectRecord: React.FC<{
                     <Chip key={f} size="small" variant="outlined" label={FIELD_LABEL[f] ? t(FIELD_LABEL[f]) : f} />
                   ))}
                 </Stack>
-                <Typography variant="body2" color="text.secondary">
-                  {preview.consequence ? t(consequenceKey(preview)) : ''}
+                <Typography variant="body2" color="text.secondary" data-fix-consequence="">
+                  {!preview.consequence
+                    ? ''
+                    : (preview.descentSeverity === 'material' || preview.termsSeverity === 'material') &&
+                        !hasDependants(record)
+                      ? t('app.plant.fix.c.none')
+                      : t(consequenceKey(preview))}
                 </Typography>
                 <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
                   {t('app.plant.fix.workedOut')}

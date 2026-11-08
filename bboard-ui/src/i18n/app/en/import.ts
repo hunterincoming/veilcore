@@ -56,7 +56,8 @@ export const importing = {
   'app.import.cols.pick': 'Pick a column',
   'app.import.cols.notInFile': 'Not in my file',
   'app.import.cols.bredBy': 'Bred by, where a row doesn’t say',
-  'app.import.cols.bredByHelp': 'Your name or business, if you bred them. Leave empty if you don’t know.',
+  'app.import.cols.bredByHelp':
+    'Fills rows with no breeder. Leave empty for collected, donated or traditional material.',
   'app.import.cols.dates': 'How are dates written?',
   'app.import.cols.datesHelp':
     'Some dates, like 03/04/2021, could be either. Pick how your file writes them, or they are kept as written.',

@@ -16,8 +16,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   received, and permit, SMTA, IRCC and GLIS DOI numbers, all optional. They are sealed in the
   record's notes as labelled lines (`bboard-ui/src/veilcore/origin-notes.ts`): no new sealed
   field, no new profile version, and no record hashes any differently.
-- Every check page says: "A date shows who held this record first, not who bred it or where it
-  came from."
+- Every check page says: "The date shows the holder had this record by then. It doesn't show
+  who bred it or where it came from."
 - The bulk import maps a genebank passport sheet's MCPD columns by name (ACCENAME, ACCENUMB,
   GENUS, SPECIES, SAMPSTAT, COLLSRC, ORIGCTY, ACQDATE, PUID); SAMPSTAT 300 is sealed as
   "Landrace / heirloom".
@@ -28,6 +28,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   and individual ID can be corrected afterwards, as a new record that supersedes the sealed one.
 - Cut clones: a lot name and size sealed in each clone's notes, and a plant tag for each clone,
   numbered on from the first. Clones of a plant logged with no breeder need none either.
+- After two reviews: a repeat litter or clone cut is numbered on by name and by each child's
+  own details, never "saved" as the old records; IDs and tags already on the holder's records
+  are refused; each young animal can name its own dam; sex is one tap; IDs number on like tags;
+  the semen code is asked only for cattle, sheep and goats; a newborn's tag correction no longer
+  warns about offspring and agreements it hasn't got; the holder's own notes can't pose as an
+  origin block; wild and traditional import rows never take the default breeder; MCPD codes
+  show their meaning and the donor columns import; on a phone the Ask bubble stays off forms.
 - All new words in English, German, Spanish, French and Japanese.
 
 ### Midnight's Ledger 9 fork: midnight-js 5 (6 Nov 2026)

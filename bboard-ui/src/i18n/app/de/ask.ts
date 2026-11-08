@@ -168,8 +168,7 @@ export const ask = {
   'app.ask.batch.cutFrom': 'Geschnitten von',
   'app.ask.batch.noPlants':
     'Erfassen Sie zuerst die Pflanze: Stecklinge werden von einem Ihrer Datensätze geschnitten.',
-  'app.ask.batch.noAnimals':
-    'Erfassen Sie zuerst Vater oder Mutter: Nachwuchs wird mit Ihren eigenen Datensätzen verknüpft.',
+  'app.ask.batch.noAnimals': 'Wählen Sie Vater oder Mutter aus Ihren Datensätzen, oder geben Sie den Vater ein.',
   'app.ask.batch.notListed': 'Keines',
   'app.ask.batch.howManyClones': 'Wie viele Stecklinge',
   'app.ask.batch.howManyYoung': 'Wie viele Jungtiere',

@@ -171,8 +171,7 @@ export const ask = {
   'app.ask.batch.cutFrom': 'Coupées sur',
   'app.ask.batch.noPlants':
     'Enregistrez d’abord la plante : les boutures sont coupées sur l’un de vos enregistrements.',
-  'app.ask.batch.noAnimals':
-    'Enregistrez d’abord le père ou la mère : la descendance est liée à vos propres enregistrements.',
+  'app.ask.batch.noAnimals': 'Choisissez le père ou la mère dans vos enregistrements, ou saisissez le père.',
   'app.ask.batch.notListed': 'Aucun',
   'app.ask.batch.howManyClones': 'Combien de boutures',
   'app.ask.batch.howManyYoung': 'Combien de jeunes',

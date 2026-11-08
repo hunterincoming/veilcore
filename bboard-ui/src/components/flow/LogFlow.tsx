@@ -92,6 +92,7 @@ import {
   saveDraft,
   sealInputOf,
   stampProblem,
+  today,
   unsavedPlantLine,
 } from './log-flow-state';
 import { animalParentOptionsOf, parentOptionsOf, strainParentOptionsOf } from '../stage/record-kinds';
@@ -543,6 +544,10 @@ const PlantForm: React.FC<{
       // A landrace is said once: "How it was made" follows, when it says nothing yet.
       ...(v === 'landrace' && !draft.breedingMethod ? { breedingMethod: LANDRACE_METHOD } : {}),
       ...(v !== 'landrace' && draft.breedingMethod === LANDRACE_METHOD ? { breedingMethod: '' } : {}),
+      // "When you made it" means nothing for a family heirloom or seed received: today is not
+      // filled in for them (the date is the holder's own note, optional).
+      ...(v !== 'bred' && draft.dateCreated === today() ? { dateCreated: '' } : {}),
+      ...(v === 'bred' && !draft.dateCreated ? { dateCreated: today() } : {}),
     });
   const moreId = useId();
   const hintId = useId();
@@ -644,7 +649,7 @@ const PlantForm: React.FC<{
         slotProps={{ htmlInput: { 'data-bred-by': ownBreeding ? 'required' : 'optional' } }}
       />
       <TextField
-        label={t('app.log.whenMade')}
+        label={ownBreeding ? t('app.log.whenMade') : t('app.origin.dateNote')}
         type="date"
         value={draft.dateCreated}
         onChange={(e) => set('dateCreated', e.target.value)}
@@ -912,7 +917,13 @@ const Review: React.FC<{
             onChange={onChange}
             action={draft.bredBy.trim() ? change : t('app.common.add')}
           />
-          <Line k={t('app.log.k.made')} v={draft.dateCreated} onChange={onChange} action={change} />
+          <Line
+            k={originSourceOf(draft) === 'bred' ? t('app.log.k.made') : t('app.origin.dateNote')}
+            v={draft.dateCreated || t('app.origin.notStated')}
+            empty={!draft.dateCreated}
+            onChange={onChange}
+            action={draft.dateCreated ? change : t('app.common.add')}
+          />
           <Line
             k={t('app.log.k.more')}
             v={extras.length ? extras.join(' · ') : t('app.log.noneAdded')}

@@ -19,17 +19,28 @@
 //
 // The labels are always this English, whatever language the screen is in, so every record reads
 // the same; the screens show them in the visitor's language. Each value is flattened to one line
-// when it is written, so a value can never start a line of its own and be read as another label.
+// when it is written (control characters and bidirectional overrides too), so a value can never
+// start a line of its own and be read as another label. And the holder's own notes can't pose as
+// a block: when they would start with one of these labels (or a batch's, or the stage header's),
+// they are sealed after a "Notes:" line, which no reader takes for a label (guardNotes).
 // The MCPD codes (FAO/Bioversity Multi-Crop Passport Descriptors v2.1) come from a genebank's
-// passport sheet through the bulk import, kept as the sheet wrote them.
+// passport sheet through the bulk import, kept as the sheet wrote them, with the code's meaning
+// in brackets for SAMPSTAT, COLLSRC and MLSSTAT.
 //
-// A record with these lines still says nothing about who bred the material: a date shows who
-// held a record first, not who bred it or where it came from (the check page says so).
+// Every line is the holder's own statement: nobody checked it. A record with these lines still
+// says nothing about who bred the material: the date shows the holder had the record by then,
+// not who bred it or where it came from (the check page says so).
 // SPDX-License-Identifier: Apache-2.0
 
-/** One line: every kind of line break becomes a space (as stage-notes.ts flattenAnswer). */
+/**
+ * One line: every line break, control character, line or paragraph separator and bidirectional
+ * override or isolate becomes a space (an override could make a value display as another).
+ */
 const flattenAnswer = (s: string | undefined): string =>
-  (s ?? '').replace(/\s*[\r\n\u2028\u2029\u0085\v\f]+\s*/g, ' ').trim();
+  (s ?? '')
+    .replace(/[\p{Cc}\u2028\u2029\u202A-\u202E\u2066-\u2069]+/gu, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
 
 /** Who the material is from: bred by the holder, received, or a community's landrace or heirloom. */
 export type OriginSource = 'bred' | 'received' | 'landrace';
@@ -55,6 +66,16 @@ export type Origin = {
   readonly sampStat: string;
   /** MCPD COLLSRC (collecting or acquisition source), from an import. */
   readonly collSrc: string;
+  /** MCPD DONORNAME and DONORCODE: who it was received from, from an import. */
+  readonly donor: string;
+  /** MCPD INSTCODE: the institute holding the accession, from an import. */
+  readonly instCode: string;
+  /** MCPD COLLSITE: where it was collected, from an import. */
+  readonly collSite: string;
+  /** MCPD MLSSTAT: whether it is in the Plant Treaty's Multilateral System, from an import. */
+  readonly mlsStat: string;
+  /** MCPD ANCEST: the pedigree as the sheet wrote it, from an import. */
+  readonly ancest: string;
 };
 export type OriginField = keyof Origin;
 
@@ -70,7 +91,32 @@ export const ORIGIN_LABELS: readonly (readonly [OriginField, string])[] = [
   ['doi', 'DOI or PUID: '],
   ['sampStat', 'MCPD SAMPSTAT: '],
   ['collSrc', 'MCPD COLLSRC: '],
+  ['donor', 'Donor: '],
+  ['instCode', 'Holding institute (INSTCODE): '],
+  ['collSite', 'Collecting site: '],
+  ['mlsStat', 'MCPD MLSSTAT: '],
+  ['ancest', 'Pedigree (ANCEST): '],
 ];
+
+/**
+ * Labels other notes headers start with: the stage header (stage-notes.ts) and a batch's lines
+ * (ask/batch.ts). Kept here so the holder's own notes can never begin like any of them.
+ */
+const OTHER_LABELS = ['Stage: ', 'Selected for: ', 'Sire semen code: ', 'Lot: ', 'Lot size: '];
+
+/** The line put before the holder's own notes when they would start like a label. */
+export const NOTES_GUARD = 'Notes:';
+
+/**
+ * The holder's own notes, trimmed, sealed so they can't pose as a labelled block: when the first
+ * line starts with any label, a "Notes:" line goes first. Notes that don't are unchanged.
+ */
+export const guardNotes = (notes: string): string => {
+  const rest = notes.trim();
+  const first = rest.split(/\r\n|\r|\n/, 1)[0] ?? '';
+  const looks = [...ORIGIN_LABELS.map(([, l]) => l), ...OTHER_LABELS].some((l) => first.startsWith(l));
+  return looks ? `${NOTES_GUARD}\n${rest}` : rest;
+};
 
 /** The most characters kept per value (a draft keeps no more than it would seal). */
 export const ORIGIN_MAX = 200;
@@ -86,6 +132,11 @@ export const emptyOrigin = (): Origin => ({
   doi: '',
   sampStat: '',
   collSrc: '',
+  donor: '',
+  instCode: '',
+  collSite: '',
+  mlsStat: '',
+  ancest: '',
 });
 
 export const originHasContent = (o: Partial<Origin> | undefined): boolean =>
@@ -109,10 +160,13 @@ export const originLines = (o: Partial<Origin> | undefined): string[] =>
       })
     : [];
 
-/** The notes a record is sealed with: the origin block first, a blank line, then the rest as written. */
+/**
+ * The notes a record is sealed with: the origin block first, a blank line, then the rest as
+ * written; with no block, the holder's notes guarded so they can't pose as one (guardNotes).
+ */
 export const originNotes = (o: Partial<Origin> | undefined, notes: string): string => {
   const lines = originLines(o);
-  const rest = notes.trim();
+  const rest = guardNotes(notes);
   if (!lines.length) return rest;
   return rest ? `${lines.join('\n')}\n\n${rest}` : lines.join('\n');
 };
@@ -151,6 +205,44 @@ export const acqDateOf = (v: string): string => {
   const s = v.trim();
   const m = /^(\d{4})(\d{2})(\d{2})$/.exec(s);
   return m ? `${m[1]}-${m[2]}-${m[3]}` : s;
+};
+
+/** What an MCPD code's group means, in plain English (sealed) and as a key for the screens. */
+export type McpdField = 'sampStat' | 'collSrc' | 'mlsStat';
+const MCPD_GROUPS: Record<McpdField, readonly [RegExp, string, string][]> = {
+  sampStat: [
+    [/^1\d\d$/, 'wild', 'wild'],
+    [/^2\d\d$/, 'weedy', 'weedy'],
+    [/^300$/, 'landrace', 'traditional cultivar or landrace'],
+    [/^4\d\d$/, 'research', 'breeding or research material'],
+    [/^500$/, 'improved', 'advanced or improved cultivar'],
+    [/^600$/, 'gmo', 'genetically modified'],
+    [/^999$/, 'other', 'other'],
+  ],
+  collSrc: [
+    [/^1\d$/, 'wild', 'wild habitat'],
+    [/^2\d$/, 'farm', 'farm or cultivated habitat'],
+    [/^30$/, 'market', 'market or shop'],
+    [/^40$/, 'institute', 'institute, research station or genebank'],
+    [/^50$/, 'seedCompany', 'seed company'],
+    [/^6\d$/, 'weedy', 'weedy or disturbed habitat'],
+    [/^99$/, 'other', 'other'],
+  ],
+  mlsStat: [
+    [/^0$/, 'out', 'not in the Multilateral System'],
+    [/^1$/, 'in', 'in the Multilateral System'],
+  ],
+};
+
+/** The group an MCPD code belongs to ('landrace', 'farm'…), or undefined for a code not in the list. */
+export const mcpdGroup = (field: McpdField, code: string): string | undefined =>
+  MCPD_GROUPS[field].find(([re]) => re.test(code.trim()))?.[1];
+
+/** A code as it is sealed: "300 (traditional cultivar or landrace)", or as written when unknown. */
+export const mcpdWithMeaning = (field: McpdField, code: string): string => {
+  const c = code.trim();
+  const hit = MCPD_GROUPS[field].find(([re]) => re.test(c));
+  return hit ? `${c} (${hit[2]})` : c;
 };
 
 /** MCPD SAMPSTAT codes for wild, weedy and traditional material: nobody's own breeding. */

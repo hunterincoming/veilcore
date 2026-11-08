@@ -9,6 +9,13 @@ import {
   SEMEN_CODE_LABEL,
   batchProblems,
   batchRows,
+  existingOf,
+  hasOwnDam,
+  line,
+  semenCodeApplies,
+  speciesGroup,
+  unlikelyYoung,
+  youngLimit,
   breederOptional,
   firstFreeStart,
   firstRepeat,
@@ -17,7 +24,15 @@ import {
   typedSireOf,
   type BatchPlan,
 } from './batch';
-import { sealRowRecord } from '../veilcore/bulk-import';
+import {
+  holdForBackup,
+  loadLedger,
+  recordRowHash,
+  sealRowRecord,
+  sealRows,
+  type Committer,
+  type PreparedRow,
+} from '../veilcore/bulk-import';
 import { checkIntegrity, type StrainRecord } from '../veilcore/records';
 import { committedRecordFields, type CommittedRecordInput } from '../veilcore/commitment';
 import { ANIMAL_PROFILE } from '../veilcore/animal-profile';
@@ -62,6 +77,17 @@ const mother = {
   profile: undefined,
   animal: undefined,
 } as unknown as StrainRecord;
+
+const clonesPlan = (over: Partial<BatchPlan> = {}): BatchPlan => ({
+  preset: 'clones',
+  count: 3,
+  baseName: 'Blue Dream #12 clone',
+  date: '2026-11-06',
+  parent: mother,
+  bredBy: 'Harbour Farm',
+  taxon: 'Cannabis sativa',
+  ...over,
+});
 
 const litter = (over: Partial<BatchPlan> = {}): BatchPlan => ({
   preset: 'offspring',
@@ -158,6 +184,128 @@ describe('young animals, one by one', () => {
   });
 });
 
+// Review (7 Nov, B1): rows are hashed with each child's own details, so numbering by the bare
+// defaults started at 1 again and a second batch "saved" nothing. Numbered past every name used,
+// then past every clash of the rows as they will be sealed.
+describe('a second batch with the same details is new records, numbered on', () => {
+  const taken = (extra: readonly StrainRecord[] = []) =>
+    new Set([...Object.keys(loadLedger().rows), ...extra.map(recordRowHash)]);
+  // The person's records' names (in the app: the record set and the ledger's waiting records).
+  const saved = new Set<string>();
+  const names = () => saved;
+  const saveAll = async (rows: PreparedRow[]) => {
+    const sent: string[] = [];
+    const commit: Committer = (batch) => {
+      sent.push(...batch.map((r) => r.id));
+      return Promise.resolve({ stored: batch.map((r) => r.id), refused: [] });
+    };
+    await sealRows(rows, { commit: holdForBackup, batchSize: rows.length, gapMs: 0 });
+    await sealRows(rows, { commit, gapMs: 0 });
+    for (const r of rows) saved.add(r.fields.strainName);
+    return sent;
+  };
+  const twoCalves = litter({ count: 2, children: [{ sex: 'female' }, { sex: 'male' }] });
+
+  it('a repeat litter with the same sexes gets start 3, and both litters are saved', async () => {
+    const one = await saveAll(batchRows({ ...twoCalves, start: firstFreeStart(twoCalves, taken(), names()) }));
+    expect(one).toHaveLength(2);
+    // By name (the ledger's records) and by the rows themselves (their own details hashed).
+    expect(firstFreeStart(twoCalves, taken(), names())).toBe(3);
+    // Even with no names to go by, never a row already sealed: calf 1 (female) is taken.
+    expect(firstFreeStart(twoCalves, taken())).toBeGreaterThan(1);
+    const two = await saveAll(batchRows({ ...twoCalves, start: firstFreeStart(twoCalves, taken(), names()) }));
+    expect(two).toHaveLength(2);
+    expect(new Set([...one, ...two]).size).toBe(4);
+  });
+
+  it('repeat clones with the same first tag are numbered on, never said to be saved', async () => {
+    const tagged = clonesPlan({ children: suggestTags('T-01', 3).map((tag) => ({ tag })) });
+    const one = await saveAll(batchRows({ ...tagged, start: firstFreeStart(tagged, taken(), names()) }));
+    expect(one).toHaveLength(3);
+    expect(firstFreeStart(tagged, taken())).toBeGreaterThan(1);
+    expect(firstFreeStart(tagged, taken(), names())).toBe(4);
+    const two = await saveAll(batchRows({ ...tagged, start: firstFreeStart(tagged, taken(), names()) }));
+    expect(two).toHaveLength(3);
+  });
+
+  it('clones with other tags are numbered on by name: two records never share a name', () => {
+    const used = new Set(['Blue Dream #12 clone 1', 'Blue Dream #12 clone 2', 'Blue Dream #12 clone 2b', 'Other 9']);
+    const tagged = clonesPlan({ children: suggestTags('NEW-1', 3).map((tag) => ({ tag })) });
+    expect(firstFreeStart(tagged, new Set(), used)).toBe(3);
+    expect(batchRows({ ...tagged, start: 3 })[0].fields.strainName).toBe('Blue Dream #12 clone 3');
+  });
+});
+
+describe('IDs and tags already on the person’s records, and dates', () => {
+  it('refuses an ID or a tag another of the person’s records already has, as written', () => {
+    const existing = existingOf([cow, { ...mother, refId: 'T-02' }], (r) => r.profile === ANIMAL_PROFILE);
+    expect(existing.ids?.has('UK123456700009')).toBe(true);
+    expect(
+      batchProblems(litter({ idScheme: 'Ear tag', children: [{ individualId: 'UK123456700009' }] }), existing),
+    ).toEqual(['takenId']);
+    expect(
+      batchProblems(litter({ idScheme: 'Ear tag', children: [{ individualId: 'uk123456700009' }] }), existing),
+    ).toEqual([]);
+    expect(batchProblems(clonesPlan({ children: [{ tag: 'T-01' }, { tag: 'T-02' }] }), existing)).toEqual(['takenTag']);
+  });
+
+  it('a date of birth must be a real date, and not still to come', () => {
+    expect(batchProblems(litter({ children: [{ born: '2026-02-30' }] }))).toEqual(['born']);
+    expect(batchProblems(litter({ children: [{ born: '2999-01-01' }] }))).toEqual(['born']);
+    expect(batchProblems(litter({ children: [{ born: '2026-01-02' }] }))).toEqual([]);
+  });
+
+  it('one line, sealed: control characters and bidirectional overrides become spaces', () => {
+    expect(line(' UK\u202E123\u0001 ')).toBe('UK 123');
+  });
+});
+
+describe('a calf crop: many cows to one bull', () => {
+  const crop = litter({
+    dam: undefined,
+    typedSire: { name: 'Stud Bull', individualId: '' },
+    count: 3,
+    children: [
+      { dam: { record: cow } },
+      { dam: { name: 'Bess', individualId: 'UK999' } },
+      { dam: { name: ' ', individualId: '' } },
+    ],
+  });
+
+  it('each calf names its own dam: a record, typed, or none', () => {
+    const [a, b, c] = batchRows(crop).map((r) => r.fields.parents);
+    expect(a[1]).toEqual({ recordId: cow.id, name: 'Daisy', role: 'dam', individualId: 'UK123456700009' });
+    expect(b[1]).toEqual({ role: 'dam', name: 'Bess', individualId: 'UK999' });
+    expect(c).toHaveLength(1);
+    expect([hasOwnDam(crop.children?.[0]), hasOwnDam(crop.children?.[2])]).toEqual([true, false]);
+  });
+
+  it('every calf having its own dam is a parent enough', () => {
+    expect(
+      batchProblems(litter({ dam: undefined, count: 1, children: [{ dam: { name: 'Bess', individualId: '' } }] })),
+    ).toEqual([]);
+  });
+
+  it('a cow has twins at most; a calf crop with its own dams is not one cow’s', () => {
+    expect(youngLimit('Cattle (Bos taurus)')).toBe(2);
+    expect(youngLimit('Horse')).toBe(2);
+    expect(youngLimit('Dog')).toBe(16);
+    expect(youngLimit('牛')).toBe(2);
+    expect(youngLimit('')).toBe(20);
+    expect(unlikelyYoung('offspring', 3, 'Bos taurus')).toBe(true);
+    expect(unlikelyYoung('offspring', 3, 'Bos taurus', crop.children)).toBe(false);
+    expect(unlikelyYoung('offspring', 8, 'Canis familiaris')).toBe(false);
+  });
+
+  it('a semen code is asked for cattle, sheep and goats, and sealed only for them', () => {
+    expect(['Bos taurus', 'Rind', 'vache', 'ヤギ'].map(semenCodeApplies)).toEqual([true, true, true, true]);
+    expect(['Dog', 'Equus caballus', 'Perro'].map(semenCodeApplies)).toEqual([false, false, false]);
+    expect(speciesGroup('Labrador dog')).toBe('dog');
+    const dogs = litter({ taxon: 'Dog', typedSire: { name: 'Stud', individualId: '' }, semenCode: 'X1' });
+    expect(batchRows(dogs)[0].fields.notes).toBe('');
+  });
+});
+
 describe('a correction to a young animal’s sex and ID, after it is saved', () => {
   it('names the fields that changed, each one the registry accepts, and never edits the original', () => {
     const before = { ...cow, nonce: 'n'.repeat(64), loggedAt: 1, parents: [] } as StrainRecord;
@@ -177,16 +325,7 @@ describe('a correction to a young animal’s sex and ID, after it is saved', () 
 });
 
 describe('clones: a lot, and a plant tag each', () => {
-  const clones = (over: Partial<BatchPlan> = {}): BatchPlan => ({
-    preset: 'clones',
-    count: 3,
-    baseName: 'Blue Dream #12 clone',
-    date: '2026-11-06',
-    parent: mother,
-    bredBy: 'Harbour Farm',
-    taxon: 'Cannabis sativa',
-    ...over,
-  });
+  const clones = clonesPlan;
 
   it('numbers tags on from the first, keeping the digits’ width', () => {
     expect(suggestTags('1A4000300012345000099', 3)).toEqual([
@@ -242,5 +381,13 @@ describe('clones: a lot, and a plant tag each', () => {
       notes: 'Lot: Lot 7\nLot size: 3',
       breedingMethod: 'Clone / cutting',
     });
+  });
+});
+
+describe('on a phone, the Ask bubble stays off a form being filled in', () => {
+  it('the logging screens, a new document and the import; not the records list or a record', async () => {
+    const { formScreen } = await import('./hint');
+    for (const p of ['/new', '/new/', '/documents/new', '/records/import']) expect(formScreen(p), p).toBe(true);
+    for (const p of ['/records', '/record/VEIL-1', '/', '/newsletter']) expect(formScreen(p), p).toBe(false);
   });
 });

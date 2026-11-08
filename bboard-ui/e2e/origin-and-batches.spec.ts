@@ -63,7 +63,8 @@ const standIn = async (page: Page, held: { records: Rec[] } = { records: [] }) =
   return { held, vault };
 };
 
-const DATED_NOT_ORIGIN = 'A date shows who held this record first, not who bred it or where it came from.';
+const DATED_NOT_ORIGIN =
+  'The date shows the holder had this record by then. It doesn’t show who bred it or where it came from.';
 
 test('a landrace with no breeder and where it came from, then clones with a lot and a tag each', async ({ page }) => {
   test.setTimeout(240_000);
@@ -84,7 +85,13 @@ test('a landrace with no breeder and where it came from, then clones with a lot 
   await page.getByRole('radio', { name: 'A landrace or heirloom kept by a community' }).check();
   await expect(bredBy).toHaveAttribute('data-bred-by', 'optional');
   await expect(page.getByLabel(/Breeder, if known/)).toHaveValue('');
-  await expect(page.getByText('Leave it empty unless you know who bred it. Not you, unless you bred it.')).toBeVisible();
+  await expect(
+    page.getByText('Leave it empty unless you know who bred it. Don’t put your own name unless you bred it.'),
+  ).toBeVisible();
+  // A family heirloom has no "when you made it": the date is left empty, the holder's own note.
+  await expect(page.getByLabel('Date for your own note (optional)')).toHaveValue('');
+  // On a phone, the Ask bubble stays off the form: it covered this very choice (user review).
+  await expect(page.locator('[data-ask-open]')).toHaveCount(0);
   await shot(page, 'origin-1-plant-landrace', true);
   await page.getByRole('button', { name: /Next: check it/ }).click();
 
@@ -103,7 +110,8 @@ test('a landrace with no breeder and where it came from, then clones with a lot 
 
   // The review: the breeder not stated, and the origin, each with a way back.
   await expect(page.getByText('Is this right?')).toBeVisible();
-  await expect(page.getByText('Not stated')).toBeVisible();
+  await expect(page.getByText('Not stated')).toHaveCount(2);
+  await expect(page.getByText('How it was made: Landrace / heirloom')).toBeVisible();
   const review = page.locator('[data-origin-review]');
   await expect(review).toContainText('From: Sierra Mazateca, from a community seed fair');
   await expect(review).toContainText('Country of origin: MEX');
@@ -167,6 +175,30 @@ test('a landrace with no breeder and where it came from, then clones with a lot 
     expect(r.bredBy).toBe('');
     expect(r.parents).toEqual([{ recordId: plant.id, name }]);
   }
+  // Cut again with the same first tag: those tags are already on records, so it is refused; with
+  // the next tags it is new records, numbered on, never the old ones said to be saved again.
+  await page.goto(`/record/${plant.id}`);
+  await page.getByText('Cut clones from this').click();
+  await page.getByLabel(/How many clones/).fill('3');
+  await page.getByLabel('First plant tag').fill('1A4000300012345000099');
+  await expect(page.locator('[data-batch-taken]')).toContainText(
+    'One of your records already has the tag 1A4000300012345000099.',
+  );
+  await page.getByLabel('First plant tag').fill('1A4000300012345000300');
+  await expect(page.locator('[data-batch-taken]')).toHaveCount(0);
+  await expect(page.locator('[data-batch-children="3"]')).toContainText(`${name} clone 4`);
+  await page.getByRole('button', { name: /Next: save your backup/ }).click();
+  await saveAndCheckBackup(page);
+  await page.getByRole('button', { name: 'Save 3 records' }).click();
+  await expect(page.locator('[data-batch-saved="3"]')).toBeVisible({ timeout: 60_000 });
+  await expect.poll(() => held.records.length, { timeout: 30_000 }).toBe(7);
+  expect(
+    openRecordRows(held.records, vault)
+      .map((r) => r.strainName)
+      .filter((n) => n !== name)
+      .sort(),
+  ).toEqual([1, 2, 3, 4, 5, 6].map((n) => `${name} clone ${n}`));
+
   // Sealed: the registry's copy holds neither the name nor where it came from in the clear.
   for (const r of held.records) {
     expect(JSON.stringify(r)).not.toContain(name);
@@ -188,7 +220,7 @@ test('every check page says a date is not who bred it; the terms say not to regi
   await expect(page.locator('[data-dated-not-origin]')).toHaveText(DATED_NOT_ORIGIN);
   // In the visitor's language.
   await page.goto('/verify/example?lang=ja');
-  await expect(page.locator('[data-dated-not-origin]')).toContainText('誰が育成したかや、どこから来たかではありません');
+  await expect(page.locator('[data-dated-not-origin]')).toContainText('誰が育成したか、どこから来たかは示しません');
   await page.goto('/terms');
   await expect(
     page.getByText('Don’t register other people’s traditional varieties, landraces or breeds as your own breeding.', {
@@ -201,9 +233,9 @@ test('a genebank passport sheet (MCPD) maps its columns by name', async ({ page 
   await standIn(page);
   await page.goto('/records/import');
   const csv = [
-    'INSTCODE,ACCENUMB,ACCENAME,GENUS,SPECIES,SAMPSTAT,COLLSRC,ORIGCTY,ACQDATE,PUID',
-    'MEX001,E2E-1,Bolita,Zea,mays,300,20,MEX,20190304,10.18730/E2E01',
-    'MEX001,E2E-2,Olotillo,Zea,mays,300,26,MEX,1968----,10.18730/E2E02',
+    'INSTCODE,ACCENUMB,ACCENAME,GENUS,SPECIES,SAMPSTAT,COLLSRC,ORIGCTY,ACQDATE,PUID,DONORNAME',
+    'MEX001,E2E-1,Bolita,Zea,mays,300,20,MEX,20190304,10.18730/E2E01,Community seed bank',
+    'MEX001,E2E-2,Olotillo,Zea,mays,300,26,MEX,1968----,10.18730/E2E02,Community seed bank',
   ].join('\n');
   await page.locator('input[type="file"]').setInputFiles({
     name: 'passport.csv',
@@ -223,15 +255,19 @@ test('a genebank passport sheet (MCPD) maps its columns by name', async ({ page 
     ['origCty', 'ORIGCTY'],
     ['acqDate', 'ACQDATE'],
     ['puid', 'PUID'],
+    ['donorName', 'DONORNAME'],
+    ['instCode', 'INSTCODE'],
   ])
     await expect(page.locator(`[data-plant-column="${field}"]`), field).toContainText(header);
+  // A code is shown with what it means.
+  await expect(page.locator('[data-plant-column="sampStat"]')).toContainText(
+    'For example: 300 (traditional cultivar or landrace)',
+  );
   await passport.scrollIntoViewIfNeeded();
   await shot(page, 'import-1-passport-columns', true);
 });
 
-test('a litter by a sire not on VeilCore: each calf’s sex, ID and birth date, then a correction', async ({
-  page,
-}) => {
+test('a litter by a sire not on VeilCore: each calf’s sex, ID and birth date, then a correction', async ({ page }) => {
   test.setTimeout(240_000);
   const errors = watch(page);
   const { held, vault } = await standIn(page);
@@ -240,29 +276,42 @@ test('a litter by a sire not on VeilCore: each calf’s sex, ID and birth date, 
 
   // The sire: typed in, with his semen code.
   await page.getByRole('combobox', { name: 'Sire' }).click();
-  await page.getByRole('option', { name: 'Not on VeilCore: type the sire' }).click();
+  await page.getByRole('option', { name: 'Not on VeilCore (type it in)' }).click();
   const typed = page.locator('[data-sire-typed]');
   await typed.getByLabel('Sire’s name').fill('Stud Bull (test data)');
   await typed.getByLabel('Sire’s ID or registration number').fill('USA840003123456789');
-  await typed.getByLabel('Semen code (optional)').fill('7HO12345');
-  await page.getByLabel(/Breeder or holder/).fill('North Farm (test data)');
+  // No semen code for a species whose straws carry none; for cattle, there is.
+  await expect(typed.getByLabel('Straw or semen code (optional)')).toHaveCount(0);
+  await page.getByLabel(/^Species/).fill('Dog');
+  await expect(typed.getByLabel('Straw or semen code (optional)')).toHaveCount(0);
   await page.getByLabel(/^Species/).fill('Cattle (Bos taurus)');
+  await typed.getByLabel('Straw or semen code (optional)').fill('7HO12345');
+  await page.getByLabel(/Breeder or holder/).fill('North Farm (test data)');
   await page.getByLabel(/^Name/).fill('Stud calf');
+  // Two calves from one cow: a cow has twins at most, so it is said, not refused.
+  await expect(page.locator('[data-batch-unlikely]')).toHaveCount(0);
 
   // Each calf: an ID needs its scheme; two calves can't share one.
   const calf = (i: number) => page.locator(`[data-batch-child="${i}"]`);
   await expect(calf(0)).toContainText('Stud calf 1');
-  await calf(0).getByLabel('ID: ear tag, microchip or registration').fill('UK123456700010');
+  // The tag pack is numbered: the first ID, and the next one numbered on.
+  await page.locator('[data-first-id]').fill('UK123456700010');
+  await expect(calf(1).getByLabel('ID: ear tag, microchip or registration')).toHaveValue('UK123456700011');
   await expect(page.getByRole('button', { name: /Next: save your backup/ })).toHaveAttribute('aria-disabled', 'true');
   await page.getByRole('combobox', { name: /ID scheme/ }).fill('Ear tag');
   await calf(1).getByLabel('ID: ear tag, microchip or registration').fill('UK123456700010');
   await expect(page.locator('[data-batch-dup]')).toContainText('Two young animals have the same ID: UK123456700010.');
   await calf(1).getByLabel('ID: ear tag, microchip or registration').fill('UK123456700011');
-  await calf(0).getByRole('combobox', { name: 'Sex' }).click();
-  await page.getByRole('option', { name: 'Female' }).click();
-  await calf(1).getByRole('combobox', { name: 'Sex' }).click();
-  await page.getByRole('option', { name: 'Male', exact: true }).click();
+  // One tap each for sex.
+  await calf(0).getByRole('button', { name: 'Female' }).click();
+  await calf(1).getByRole('button', { name: 'Male', exact: true }).click();
+  await expect(calf(1).getByRole('button', { name: 'Male', exact: true })).toHaveAttribute('aria-pressed', 'true');
   await calf(1).getByLabel('Born').fill('2026-11-02');
+  // Calf 2 is out of another cow, not on VeilCore.
+  await calf(1).getByRole('combobox', { name: 'Dam (if different)' }).click();
+  await page.getByRole('option', { name: 'Not on VeilCore (type it in)' }).click();
+  await calf(1).getByLabel('Dam’s name').fill('Bess (test data)');
+  await calf(1).getByLabel('Dam’s ID').fill('UK123456700002');
   await page.locator('[data-sire-typed]').scrollIntoViewIfNeeded();
   await shot(page, 'batch-2-offspring-typed-sire');
   await calf(0).scrollIntoViewIfNeeded();
@@ -280,10 +329,12 @@ test('a litter by a sire not on VeilCore: each calf’s sex, ID and birth date, 
     ['Stud calf 1', 'UK123456700010', 'female', expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/)],
     ['Stud calf 2', 'UK123456700011', 'male', '2026-11-02'],
   ]);
+  const bull = { role: 'sire', name: 'Stud Bull (test data)', individualId: 'USA840003123456789' };
+  expect(calves[0].parents).toEqual([bull]);
+  expect(calves[1].parents).toEqual([bull, { role: 'dam', name: 'Bess (test data)', individualId: 'UK123456700002' }]);
   for (const r of calves) {
     expect(r.profile).toBe('veilcore/profile/animal-individual/v1');
     expect((r.animal as { idScheme: string }).idScheme).toBe('Ear tag');
-    expect(r.parents).toEqual([{ role: 'sire', name: 'Stud Bull (test data)', individualId: 'USA840003123456789' }]);
     expect(r.notes).toBe('Sire semen code: 7HO12345');
   }
 
@@ -292,12 +343,17 @@ test('a litter by a sire not on VeilCore: each calf’s sex, ID and birth date, 
   await page.goto(`/record/${first.id}`);
   await page.getByText('Fix a mistake').click();
   const dialog = page.getByRole('dialog');
+  // Titled by the calf's name, not its long code.
+  await expect(dialog).toContainText('Correct Stud calf 1');
   await dialog.getByRole('combobox', { name: 'Sex' }).click();
   await page.getByRole('option', { name: 'Male', exact: true }).click();
   await dialog.getByLabel('Individual ID').fill('UK123456700012');
   await dialog.getByRole('button', { name: 'Check what this affects' }).click();
-  await expect(dialog).toContainText('Sex');
-  await expect(dialog).toContainText('Individual ID');
+  await expect(dialog).toContainText('individual ID');
+  // A newborn with no offspring or agreements: no warning about either.
+  await expect(dialog.locator('[data-fix-consequence]')).toHaveText(
+    'Nothing else is affected: this record has no offspring or agreements in this browser. The old version stays on record, and the correction points back to it.',
+  );
   await dialog.getByLabel('Why are you correcting this?').fill('DNA parentage result');
   await shot(page, 'batch-4-correct-sex-and-id');
   await dialog.getByRole('button', { name: 'Issue correction' }).click();

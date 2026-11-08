@@ -56,7 +56,7 @@ export const importing = {
   'app.import.cols.notInFile': 'Nicht in meiner Datei',
   'app.import.cols.bredBy': 'Gezüchtet von, wo eine Zeile es nicht sagt',
   'app.import.cols.bredByHelp':
-    'Ihr Name oder Unternehmen, wenn Sie sie gezüchtet haben. Leer lassen, wenn Sie es nicht wissen.',
+    'Füllt Zeilen ohne Züchter. Lassen Sie es leer bei gesammeltem, gespendetem oder traditionellem Material.',
   'app.import.cols.dates': 'Wie sind Daten geschrieben?',
   'app.import.cols.datesHelp':
     'Manche Daten wie 03/04/2021 können beides bedeuten. Wählen Sie, wie Ihre Datei sie schreibt, sonst bleiben sie, wie sie sind.',

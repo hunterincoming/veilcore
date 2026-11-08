@@ -29,6 +29,7 @@ import LockIcon from '@mui/icons-material/LockOutlined';
 import UploadIcon from '@mui/icons-material/UploadFileOutlined';
 import { Link as RouterLink } from 'react-router-dom';
 import { AppHeader } from '../AppHeader';
+import { mcpdGroup, type McpdField } from '../../veilcore/origin-notes';
 import { BackupStep } from '../flow/BackupStep';
 import { FlowFrame, ScreenHeading, focusScreenHeading, softDisabled } from '../flow/FlowFrame';
 import { ANIMAL_RECORDS_ENABLED, IS_MAINNET } from '../../config/network';
@@ -110,6 +111,19 @@ const FIELD_KEY: Record<FieldKey, AppKey> = {
   origCty: 'app.import.field.origCty',
   acqDate: 'app.import.field.acqDate',
   puid: 'app.import.field.puid',
+  donorName: 'app.import.field.donorName',
+  donorCode: 'app.import.field.donorCode',
+  instCode: 'app.import.field.instCode',
+  collSite: 'app.import.field.collSite',
+  mlsStat: 'app.import.field.mlsStat',
+  ancest: 'app.import.field.ancest',
+};
+
+/** A passport sheet's coded columns (MCPD): their example shown with what the code means. */
+const MCPD_CODED: Partial<Record<FieldKey, McpdField>> = {
+  sampStat: 'sampStat',
+  collSrc: 'collSrc',
+  mlsStat: 'mlsStat',
 };
 
 /** An animal list's column names (bulk-import.ts ANIMAL_FIELDS), in the page's language. */
@@ -511,6 +525,14 @@ const Columns: React.FC<{
   const passportFound = PASSPORT_FIELDS.some((f) => (mapping.columns[f] ?? null) !== null);
   const [passport, setPassport] = useState(passportFound);
   const passportId = useId();
+  /** "For example: 300 (traditional cultivar or landrace)" for a coded passport column; else as before. */
+  const exampleWords = (f: FieldKey, v: string): string => {
+    const coded = MCPD_CODED[f];
+    const group = coded ? mcpdGroup(coded, v) : undefined;
+    return coded && group
+      ? t('app.origin.mcpdExample', { v, meaning: t(`app.origin.mcpd.${coded}.${group}` as AppKey) })
+      : t('app.import.cols.example', { v });
+  };
   const columnSelect = (f: FieldKey) => {
     const col = mapping.columns[f] ?? null;
     return (
@@ -523,7 +545,7 @@ const Columns: React.FC<{
         onChange={(e) => setColumn(f, e.target.value)}
         helperText={
           col !== null && sampleOf(sheet, col)
-            ? t('app.import.cols.example', { v: sampleOf(sheet, col) })
+            ? exampleWords(f, sampleOf(sheet, col))
             : f === 'parents'
               ? t('app.import.cols.twoParents')
               : undefined

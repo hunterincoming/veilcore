@@ -52,7 +52,7 @@ export const importing = {
   'app.import.cols.pick': '列を選ぶ',
   'app.import.cols.notInFile': 'ファイルにない',
   'app.import.cols.bredBy': '行に記載がない場合の育成者',
-  'app.import.cols.bredByHelp': '自分で育成したなら、あなたの名前か事業者名。わからなければ空欄のままにしてください。',
+  'app.import.cols.bredByHelp': '育成者のない行に入ります。採集・寄贈・在来の材料なら空欄にしてください。',
   'app.import.cols.dates': '日付の書き方は？',
   'app.import.cols.datesHelp':
     '03/04/2021のように、どちらとも読める日付があります。ファイルでの書き方を選ばなければ、書かれたままにします。',

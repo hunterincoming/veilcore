@@ -31,7 +31,7 @@ import { sealAnimalRecord, sealRecord } from './seal-record';
 import { isAnimal, isCalendarDate, type AnimalDetails, type AnimalSex } from './animal-profile';
 import type { SaveRefusal } from './store';
 import { nameLinkParams, verifyPath } from './verify-link';
-import { LANDRACE_METHOD, acqDateOf, originNotes } from './origin-notes';
+import { LANDRACE_METHOD, acqDateOf, isTraditionalOrWild, mcpdWithMeaning, originNotes } from './origin-notes';
 
 // ── Limits ─────────────────────────────────────────────────────────────────────────────
 
@@ -736,7 +736,20 @@ export const FIELDS = [
  * put in front of the species; the rest are sealed in the notes, each under its own label
  * (origin-notes.ts), so the record's fingerprint is computed exactly as for any other plant.
  */
-export const PASSPORT_FIELDS = ['genus', 'sampStat', 'collSrc', 'origCty', 'acqDate', 'puid'] as const;
+export const PASSPORT_FIELDS = [
+  'genus',
+  'sampStat',
+  'collSrc',
+  'origCty',
+  'acqDate',
+  'puid',
+  'donorName',
+  'donorCode',
+  'instCode',
+  'collSite',
+  'mlsStat',
+  'ancest',
+] as const;
 export type PassportFieldKey = (typeof PASSPORT_FIELDS)[number];
 export type FieldKey = (typeof FIELDS)[number] | PassportFieldKey;
 
@@ -755,6 +768,12 @@ export const FIELD_LABELS: Record<FieldKey, string> = {
   origCty: 'Country of origin (ORIGCTY)',
   acqDate: 'Date received (ACQDATE)',
   puid: 'Permanent ID or DOI (PUID)',
+  donorName: 'Received from (DONORNAME)',
+  donorCode: 'Donor institute code (DONORCODE)',
+  instCode: 'Holding institute code (INSTCODE)',
+  collSite: 'Collecting site (COLLSITE)',
+  mlsStat: 'In the Multilateral System (MLSSTAT)',
+  ancest: 'Pedigree (ANCEST)',
 };
 
 /** MCPD descriptor names, exactly as a passport sheet heads its columns, and the field each fills. */
@@ -768,6 +787,12 @@ const MCPD_HEADERS: Readonly<Record<string, FieldKey>> = {
   ORIGCTY: 'origCty',
   ACQDATE: 'acqDate',
   PUID: 'puid',
+  DONORNAME: 'donorName',
+  DONORCODE: 'donorCode',
+  INSTCODE: 'instCode',
+  COLLSITE: 'collSite',
+  MLSSTAT: 'mlsStat',
+  ANCEST: 'ancest',
 };
 
 export type DateOrder = 'auto' | 'mdy' | 'dmy';
@@ -802,6 +827,12 @@ export const emptyMapping = (): Mapping => ({
     origCty: null,
     acqDate: null,
     puid: null,
+    donorName: null,
+    donorCode: null,
+    instCode: null,
+    collSite: null,
+    mlsStat: null,
+    ancest: null,
   },
   bredByDefault: '',
   dateOrder: 'auto',
@@ -836,7 +867,8 @@ export const guessMapping = (headers: string[]): Mapping => {
   const columns = { ...m.columns };
   // A passport sheet (MCPD) first: its descriptor names say exactly which column is which.
   headers.forEach((h, i) => {
-    const f = MCPD_HEADERS[h.trim().toUpperCase()];
+    const key = h.trim().toUpperCase();
+    const f = Object.hasOwn(MCPD_HEADERS, key) ? MCPD_HEADERS[key] : undefined;
     if (f && columns[f] === null) columns[f] = i;
   });
   const taken = new Set(Object.values(columns).filter((c): c is number => c !== null));
@@ -1144,24 +1176,37 @@ export const rowFields = (
     name,
   }));
   const date = normalizeDate(cellOf(row, c.dateCreated), order);
-  // A passport sheet's columns (MCPD): the genus before the species, the rest into the notes.
+  // A passport sheet's columns (MCPD): the genus before the species, the rest into the notes,
+  // each code with its meaning.
   const sampStat = oneLine(cellOf(row, c.sampStat));
+  const collSrc = oneLine(cellOf(row, c.collSrc));
+  const mlsStat = oneLine(cellOf(row, c.mlsStat));
+  const donorName = oneLine(cellOf(row, c.donorName));
+  const donorCode = oneLine(cellOf(row, c.donorCode));
   const notes = originNotes(
     {
       country: oneLine(cellOf(row, c.origCty)),
       received: acqDateOf(oneLine(cellOf(row, c.acqDate))),
       doi: oneLine(cellOf(row, c.puid)),
-      sampStat,
-      collSrc: oneLine(cellOf(row, c.collSrc)),
+      sampStat: sampStat ? mcpdWithMeaning('sampStat', sampStat) : '',
+      collSrc: collSrc ? mcpdWithMeaning('collSrc', collSrc) : '',
+      donor: donorName && donorCode ? `${donorName} (${donorCode})` : donorName || donorCode,
+      instCode: oneLine(cellOf(row, c.instCode)),
+      collSite: oneLine(cellOf(row, c.collSite)),
+      mlsStat: mlsStat ? mcpdWithMeaning('mlsStat', mlsStat) : '',
+      ancest: oneLine(cellOf(row, c.ancest)),
     },
     multiLine(cellOf(row, c.notes)),
   );
+  // Wild, weedy or traditional material (SAMPSTAT 1xx, 2xx, 300) is nobody's own breeding: the
+  // sheet-wide default breeder is never put on it, only a breeder the row itself names.
+  const traditional = isTraditionalOrWild(sampStat);
   return {
     strainName: oneLine(cellOf(row, c.strainName)),
     refId: oneLine(cellOf(row, c.refId)),
     taxon: [oneLine(cellOf(row, c.genus)), oneLine(cellOf(row, c.taxon))].filter(Boolean).join(' '),
     parents,
-    bredBy: oneLine(cellOf(row, c.bredBy)) || oneLine(mapping.bredByDefault),
+    bredBy: oneLine(cellOf(row, c.bredBy)) || (traditional ? '' : oneLine(mapping.bredByDefault)),
     dateCreated: date.value,
     notes,
     // MCPD SAMPSTAT 300 is "traditional cultivar / landrace": said in "How it was made" too.

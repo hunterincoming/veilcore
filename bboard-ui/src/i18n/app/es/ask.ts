@@ -166,7 +166,7 @@ export const ask = {
   'app.ask.batch.offspringIntro': 'Un registro nuevo por cría, cada uno vinculado a su padre y su madre.',
   'app.ask.batch.cutFrom': 'Cortados de',
   'app.ask.batch.noPlants': 'Registre primero la planta: los esquejes se cortan de uno de sus registros.',
-  'app.ask.batch.noAnimals': 'Registre primero el padre o la madre: las crías se vinculan a sus propios registros.',
+  'app.ask.batch.noAnimals': 'Elija el padre o la madre de sus registros, o escriba el padre.',
   'app.ask.batch.notListed': 'Ninguno',
   'app.ask.batch.howManyClones': 'Cuántos esquejes',
   'app.ask.batch.howManyYoung': 'Cuántas crías',

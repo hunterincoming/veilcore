@@ -50,12 +50,15 @@ the country of origin, the date received, and a permit, SMTA, IRCC and GLIS DOI 
 are sealed in the record's notes as labelled lines (`bboard-ui/src/veilcore/origin-notes.ts`),
 so no record hashes any differently and no profile version changes; the app checks no format.
 A genebank's passport sheet (MCPD: ACCENAME, ACCENUMB, GENUS, SPECIES, SAMPSTAT, COLLSRC,
-ORIGCTY, ACQDATE, PUID) imports through `/records/import` the same way. The permit or agreement
+ORIGCTY, ACQDATE, PUID, DONORNAME, DONORCODE, INSTCODE, COLLSITE, MLSSTAT, ANCEST) imports
+through `/records/import` the same way, each code sealed with its meaning; wild, weedy and
+traditional rows (SAMPSTAT 1xx, 2xx, 300) never take the sheet-wide default breeder. The permit or agreement
 itself can be kept as a document record (`docs/document-profile.md`) about the plant or animal
 record: fingerprinted on the device, dated, and shown only when the holder chooses.
 
-Every check page says: "A date shows who held this record first, not who bred it or where it
-came from." The terms of use ask nobody to register other people's traditional varieties as
+Every line is the holder's own statement; VeilCore checks none of it. Every check page says:
+"The date shows the holder had this record by then. It doesn't show who bred it or where it came
+from." The terms of use ask nobody to register other people's traditional varieties as
 their own breeding.
 
 ## Words to use and to avoid

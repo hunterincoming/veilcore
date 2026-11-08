@@ -19,7 +19,7 @@ import {
 
 /** The step's fields, in screen order, with their words. MCPD codes come only from an import. */
 const FIELDS: readonly {
-  readonly k: Exclude<OriginField, 'sampStat' | 'collSrc'>;
+  readonly k: Exclude<OriginField, 'sampStat' | 'collSrc' | 'donor' | 'instCode' | 'collSite' | 'mlsStat' | 'ancest'>;
   readonly label: AppKey;
   readonly help?: AppKey;
   readonly placeholder?: AppKey;
@@ -46,6 +46,11 @@ const LINE_WORDS: Record<OriginField, AppKey> = {
   doi: 'app.origin.x.doi',
   sampStat: 'app.origin.x.sampStat',
   collSrc: 'app.origin.x.collSrc',
+  donor: 'app.origin.x.donor',
+  instCode: 'app.origin.x.instCode',
+  collSite: 'app.origin.x.collSite',
+  mlsStat: 'app.origin.x.mlsStat',
+  ancest: 'app.origin.x.ancest',
 };
 
 export const OriginStep: React.FC<{
