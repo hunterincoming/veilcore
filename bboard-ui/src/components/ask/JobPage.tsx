@@ -54,7 +54,7 @@ import {
   stampTomorrow,
   type Prepared,
 } from '../../ask-job/prepare';
-import { tryAgain } from '../../ask-job/run';
+import { reportIndex, tryAgain } from '../../ask-job/run';
 import { runnerTick } from '../../ask-job/start';
 import { JOB_STATE_KEY, jobWords } from '../../ask-job/words';
 
@@ -149,7 +149,17 @@ const owedOf = (terms: LicenseTerms, type: string, from: string, d: Draft | unde
       )?.total
     : undefined;
 
-const JobResult: React.FC<{ job: Job; fromApp: boolean }> = ({ job, fromApp }) => {
+const JobResult: React.FC<{ job: Job; fromApp: boolean }> = ({ job: latest, fromApp }) => {
+  // What this tab drew stays on screen: a change made in another tab is said, never swapped in
+  // under the person's thumb. Approve sends the hash of what is shown.
+  const [job, setShown] = useState(latest);
+  const [changedElsewhere, setChangedElsewhere] = useState(false);
+  const ownHashes = useRef(new Set<string>([latest.hash]));
+  useEffect(() => {
+    if (latest.hash === job.hash) return;
+    if (ownHashes.current.has(latest.hash)) setShown(latest);
+    else setChangedElsewhere(true);
+  }, [latest.hash]);
   const tr = useT();
   const { t, tp } = tr;
   const navigate = useNavigate();
@@ -162,6 +172,8 @@ const JobResult: React.FC<{ job: Job; fromApp: boolean }> = ({ job, fromApp }) =
   const [seen, setSeen] = useState(false);
   const [publicOpen, setPublicOpen] = useState(false);
   const [backupTick, setBackupTick] = useState(0);
+  // The backup step stays on screen until its own finish button, so its check is seen.
+  const [inBackup, setInBackup] = useState(() => job.backupNeeded && !backupDone(job));
   const permanent = useRef<HTMLElement>(null);
   // The hash of exactly what this tab draws: what Approve sends.
   const rendered = planHash(job);
@@ -184,6 +196,10 @@ const JobResult: React.FC<{ job: Job; fromApp: boolean }> = ({ job, fromApp }) =
   }, []);
 
   const refusal = (r: Prepared) => {
+    if ('job' in r) {
+      ownHashes.current.add(r.job.hash);
+      setShown(r.job);
+    }
     if ('refused' in r) {
       setError(t(`app.job.no.${r.refused}` as AppKey, { n: r.words ?? '' }));
       setDetail(r.words && r.refused !== 'tooManyReports' ? r.words : undefined);
@@ -287,6 +303,28 @@ const JobResult: React.FC<{ job: Job; fromApp: boolean }> = ({ job, fromApp }) =
   return (
     <Stack spacing={3} sx={{ pb: 2 }} data-job-kind={job.kind}>
       <ScreenHeading>{titleOf(job, records, tr)}</ScreenHeading>
+      {changedElsewhere && (
+        <Alert
+          severity="warning"
+          variant="outlined"
+          data-job-changed=""
+          action={
+            <Button
+              color="inherit"
+              onClick={() => {
+                setShown(latest);
+                setChangedElsewhere(false);
+                setError(undefined);
+              }}
+              sx={{ minHeight: 44 }}
+            >
+              {t('app.job.open')}
+            </Button>
+          }
+        >
+          {t('app.job.no.changed')}
+        </Alert>
+      )}
       {readOnly && (
         <Alert severity="info" variant="outlined" data-job-readonly="">
           {t('app.job.readOnly')}
@@ -578,7 +616,7 @@ const JobResult: React.FC<{ job: Job; fromApp: boolean }> = ({ job, fromApp }) =
       {/* 4. The backup, when new keys need it */}
       {job.backupNeeded && !readOnly && (
         <Box data-job-block="backup">
-          {backupDone(job) ? (
+          {backupDone(job) && !inBackup ? (
             <Alert severity="success" variant="outlined">
               {t('app.job.backup.done')}
             </Alert>
@@ -591,7 +629,10 @@ const JobResult: React.FC<{ job: Job; fromApp: boolean }> = ({ job, fromApp }) =
                 title={t('app.ask.batch.backupTitle')}
                 finishLabel={t('app.job.backup.finish')}
                 headingComponent="h2"
-                onDone={() => setBackupTick((n) => n + 1)}
+                onDone={() => {
+                  setInBackup(false);
+                  setBackupTick((n) => n + 1);
+                }}
               />
             </>
           )}
@@ -761,7 +802,7 @@ const JobProgress: React.FC<{ job: Job }> = ({ job }) => {
       : s.kind === 'stamp'
         ? t('app.job.step.stamp', { name: recordName })
         : (() => {
-            const ref = job.refs.reports?.[Number(s.id.slice(6))];
+            const ref = job.refs.reports?.[reportIndex(s.id)];
             return t('app.job.step.report', {
               from: ref ? tr.date(`${ref.periodFrom}T12:00:00`) : '',
               to: ref ? tr.date(`${ref.periodTo}T12:00:00`) : '',
@@ -801,7 +842,7 @@ const JobProgress: React.FC<{ job: Job }> = ({ job }) => {
                 <Button
                   size="small"
                   component={RouterLink}
-                  to={`/license-invite/${job.refs.reports?.[Number(s.id.slice(6))]?.inviteId ?? ''}`}
+                  to={`/license-invite/${job.refs.reports?.[reportIndex(s.id)]?.inviteId ?? ''}`}
                 >
                   {t('app.job.openAgreement')}
                 </Button>

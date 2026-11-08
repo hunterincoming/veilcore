@@ -52,7 +52,8 @@ import { searchRecords } from '../../ask/search';
 import { today } from '../flow/log-flow-state';
 import type { EngineState } from './useAskEngine';
 import { planJob, type PlanResult } from '../../ask/plan';
-import type { Refusal } from '../../ask-job/prepare';
+// Part of the sheet's own file, so a job can be got ready with no signal (the barn).
+import { prepareJob, type Refusal } from '../../ask-job/prepare';
 import { JOB_STATE_KEY, jobWords } from '../../ask-job/words';
 
 // The optional on-device model: its files only in a build with VITE_ASK_MODEL (vite.config.ts
@@ -255,7 +256,17 @@ export default function AskSheet({
         {chips(CHIPS)}
         <Box>
           <FormControlLabel
-            control={<Switch checked={doIt} onChange={(e) => setDoIt(e.target.checked)} data-ask-doit="" />}
+            control={
+              <Switch
+                checked={doIt}
+                onChange={(e) => {
+                  setDoIt(e.target.checked);
+                  // The job's page, fetched now while there may be a signal: it opens offline too.
+                  if (e.target.checked) void import('./JobPage').catch(() => undefined);
+                }}
+                data-ask-doit=""
+              />
+            }
             label={t('app.job.mode')}
           />
           {doIt && (
@@ -351,9 +362,7 @@ const JobTurn: React.FC<{
     let live = true;
     let p = preparing.get(id);
     if (!p) {
-      p = import('../../ask-job/prepare').then((m) =>
-        m.prepareJob(plan.plan, jobWords(tr), Date.now(), today()).then((r) => ('job' in r ? { id: r.job.id } : r)),
-      );
+      p = prepareJob(plan.plan, jobWords(tr), Date.now(), today()).then((r) => ('job' in r ? { id: r.job.id } : r));
       preparing.set(id, p);
     }
     void p.then(

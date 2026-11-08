@@ -65,8 +65,13 @@ export const stepOrder = (steps: readonly Step[]): Step[] =>
 const setStep = (j: Job, id: string, patch: Partial<Step>): Job =>
   withHash({ ...j, steps: j.steps.map((s) => (s.id === id ? { ...s, ...patch } : s)) });
 
-/** The report a step is about: its index in the job's reports. */
-const reportOf = (j: Job, step: Step): ReportRef | undefined => j.refs.reports?.[Number(step.id.slice(7))];
+/** A report step's id: `report<n>`, n its place in the job's reports. */
+export const reportStepId = (n: number): string => `report${n}`;
+export const reportIndex = (stepId: string): number =>
+  /^report\d+$/.test(stepId) ? Number(stepId.slice('report'.length)) : -1;
+
+/** The report a step is about. */
+const reportOf = (j: Job, step: Step): ReportRef | undefined => j.refs.reports?.[reportIndex(step.id)];
 
 /** Run one step of one job, writing its state before and after. */
 const runStep = async (deps: RunDeps, job: Job, step: Step): Promise<Job | undefined> => {

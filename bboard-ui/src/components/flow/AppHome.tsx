@@ -362,6 +362,9 @@ export const AppHome: React.FC = () => {
 
         <LoadNoticeBar />
 
+        {/* Ask's "Do it for me" jobs: one to check, one being done, a record got ready to license. */}
+        <JobsOnHome />
+
         {/* What is open since last time, one line and one button each (PickUp.tsx). Nothing open,
             nothing shown. It asks for the backup when records wait for one, so the alert below
             doesn't say it again. */}

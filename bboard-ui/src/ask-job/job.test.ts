@@ -3,7 +3,7 @@
 // page rule, one step at a time with its state written first, a crash before and after every
 // step, a lost report answer, nextTryAt across a reload, and permanent steps last.
 // SPDX-License-Identifier: Apache-2.0
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   JOB_KEEP_MS,
   JOB_TTL_MS,
@@ -250,6 +250,38 @@ describe('the runner', () => {
     expect((await getJob(j.id, clock))?.steps[0].note).toBe('already');
   });
 
+  it('each report step sends its own report, with its own figures', async () => {
+    const reports = ['2026-01-01', '2026-04-01', '2026-07-01'].map((from, i) => ({
+      inviteId: 'i',
+      periodFrom: from,
+      periodTo: `p${i}`,
+      statementId: `s${i}`,
+    }));
+    const sent: [string, string | undefined][] = [];
+    await putJob(
+      job({
+        kind: 'due',
+        state: 'approved',
+        refs: { reports },
+        figures: { report0: { quantity: '1' }, report1: { quantity: '2' }, report2: { nothing: true } },
+        steps: reports.map((_, i) => ({ id: `report${i}`, kind: 'report' as const, state: 'todo' as const })),
+      }),
+    );
+    await runJobs(
+      deps({
+        report: (_j, ref, f) => {
+          sent.push([ref.statementId, f?.quantity ?? (f?.nothing ? 'nothing' : undefined)]);
+          return Promise.resolve({ kind: 'done' });
+        },
+      }),
+    );
+    expect(sent).toEqual([
+      ['s0', '1'],
+      ['s1', '2'],
+      ['s2', 'nothing'],
+    ]);
+  });
+
   it('nextTryAt survives a reload: no retry before it', async () => {
     const j = await putJob(job({ state: 'approved' }));
     const d = deps({ records: () => Promise.resolve({ kind: 'retry', at: clock + 60_000, why: 'offline' }) });
@@ -314,5 +346,22 @@ describe('the words', () => {
     const path = await import('node:path');
     const src = fs.readFileSync(path.join(__dirname, '../veilcore/backup.ts'), 'utf8');
     expect(src).not.toMatch(/indexedDB|veilcore\.ask\.job/);
+  });
+});
+
+describe('the page rule', () => {
+  it('the app’s runner never runs on a check or prove page, nor in a hidden tab', async () => {
+    const { runnerAllowed } = await import('./start');
+    const at = (pathname: string, visibilityState = 'visible') => {
+      vi.stubGlobal('location', { pathname });
+      vi.stubGlobal('document', { visibilityState });
+      return runnerAllowed();
+    };
+    expect(at('/records')).toBe(true);
+    expect(at('/ask/job/ab')).toBe(true);
+    expect(at('/verify/VEIL-1')).toBe(false);
+    expect(at('/prove/PR-1')).toBe(false);
+    expect(at('/records', 'hidden')).toBe(false);
+    vi.unstubAllGlobals();
   });
 });
