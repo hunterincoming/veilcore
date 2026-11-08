@@ -559,6 +559,90 @@ describe('sealing many rows', () => {
     expect(reg.kept.size).toBe(7);
   });
 
+  /** The browser's Web Locks, as two tabs of one browser share them: one holder per name at a time. */
+  const webLocks = () => {
+    const tails = new Map<string, Promise<unknown>>();
+    const names: string[] = [];
+    const request = <T>(name: string, _o: { mode: 'exclusive' }, fn: () => Promise<T>): Promise<T> => {
+      names.push(name);
+      const before = tails.get(name) ?? Promise.resolve();
+      const run = before.then(fn, fn);
+      tails.set(
+        name,
+        run.catch(() => undefined),
+      );
+      return run;
+    };
+    return { request, names };
+  };
+
+  /** A registry whose answers take a moment, so two tabs' batches overlap. */
+  const slowRegistry = () => {
+    const reg = registry();
+    const commit: Committer = async (b) => {
+      await new Promise((r) => setTimeout(r, 5));
+      return reg.commit(b);
+    };
+    return { ...reg, commit };
+  };
+
+  for (const [what, locks] of [
+    ['Web Locks', true],
+    ['no Web Locks (the lease in localStorage)', false],
+  ] as const)
+    it(`two tabs sealing the same rows at once make one record per row (${what})`, async () => {
+      const lm = webLocks();
+      vi.stubGlobal('navigator', locks ? { locks: lm } : {});
+      try {
+        const reg = slowRegistry();
+        const rows = prepared();
+        const [a, b] = await Promise.all([
+          sealRows(rows, { commit: reg.commit, batchSize: 3, gapMs: 0 }),
+          sealRows(rows, { commit: reg.commit, batchSize: 3, gapMs: 0 }),
+        ]);
+        expect(reg.kept.size).toBe(7);
+        const ids = (o: typeof a) => Object.values(o.outcomes).map((x) => (x.state === 'sealed' ? x.recordId : ''));
+        expect(new Set(ids(a))).toEqual(new Set(reg.kept.keys()));
+        expect(new Set(ids(b))).toEqual(new Set(reg.kept.keys()));
+        expect(Object.values(loadLedger().rows).filter((e) => e.state === 'sealed')).toHaveLength(7);
+        if (locks) expect(new Set(lm.names)).toEqual(new Set(['veilcore.bulk-ledger']));
+      } finally {
+        vi.unstubAllGlobals();
+        vi.stubGlobal('localStorage', {
+          getItem: (k: string) => local.get(k) ?? null,
+          setItem: (k: string, v: string) => void local.set(k, v),
+          removeItem: (k: string) => void local.delete(k),
+        });
+      }
+    });
+
+  it('a tab whose send may not have landed keeps its waiting record when another tab seals meanwhile', async () => {
+    vi.stubGlobal('navigator', { locks: webLocks() });
+    try {
+      const reg = registry();
+      const rows = prepared();
+      // Tab A: the answer is lost, so its three records wait in the ledger.
+      const lost: Committer = (b) => {
+        reg.sent.push(b.map((r) => r.id));
+        for (const r of b) reg.kept.set(r.id, r);
+        return Promise.resolve({ stored: [], refused: [], retry: "Couldn't reach VeilCore's server." });
+      };
+      await sealRows(rows.slice(0, 3), { commit: lost, batchSize: 3, gapMs: 0 });
+      // Tab B seals the rest; then A picks up again: the same three records, nothing new.
+      await sealRows(rows.slice(3), { commit: reg.commit, batchSize: 3, gapMs: 0 });
+      await sealRows(rows, { commit: reg.commit, batchSize: 3, gapMs: 0 });
+      expect(reg.kept.size).toBe(7);
+      expect(reg.sent.at(-1)).toEqual(reg.sent[0]);
+    } finally {
+      vi.unstubAllGlobals();
+      vi.stubGlobal('localStorage', {
+        getItem: (k: string) => local.get(k) ?? null,
+        setItem: (k: string, v: string) => void local.set(k, v),
+        removeItem: (k: string) => void local.delete(k),
+      });
+    }
+  });
+
   it('a record the registry refuses by id is dropped with its keys, and the row says why', async () => {
     const reg = registry();
     const picky: Committer = (b) => {
