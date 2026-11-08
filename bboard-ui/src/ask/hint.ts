@@ -55,7 +55,7 @@ type HintRecord = Pick<StrainRecord, 'id' | 'strainName'> & {
  * (records.ts receivedFields): the source's id, its commitment (which can come without the id,
  * transfers.ts custodySubject), when it arrived, or its transfer.
  */
-const isReceivedRecord = (r: HintRecord): boolean =>
+export const isReceivedRecord = (r: HintRecord): boolean =>
   Boolean(r.receivedFrom || r.receivedFromCommitment || r.receivedAt || r.transferId);
 export type HintKind = 'clones' | 'calves';
 

@@ -4,15 +4,7 @@
 // records it showed, never one sealed new.
 // SPDX-License-Identifier: Apache-2.0
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import {
-  NOT_KEPT,
-  dropHeld,
-  holdForBackup,
-  loadLedger,
-  saveLedger,
-  sealRows,
-  type Committer,
-} from './bulk-import';
+import { NOT_KEPT, dropHeld, holdForBackup, loadLedger, saveLedger, sealRows, type Committer } from './bulk-import';
 import { batchRows, type BatchPlan } from '../ask/batch';
 import { __resetRecordKeysForTests, keysFor } from './record-keys';
 import type { StrainRecord } from './records';
