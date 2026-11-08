@@ -7,7 +7,7 @@
 
 import React, { useMemo, useRef, useState } from 'react';
 import { Alert, Box, Button, Collapse, Paper, Snackbar, Stack, Typography } from '@mui/material';
-import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
 import AddIcon from '@mui/icons-material/Add';
 import ChevronIcon from '@mui/icons-material/ChevronRight';
 import InboxIcon from '@mui/icons-material/MoveToInboxOutlined';
@@ -62,6 +62,7 @@ import type { StrainRecord } from '../../veilcore/records';
 import type { SavedReport } from '../../veilcore/saved-report';
 import { PickUp } from './PickUp';
 import { keysOnlyHere } from './keys-only-here';
+import { wantsPasteFirst } from '../site/paste-entry';
 
 /**
  * A plant's card line: "Tied to the plant: DNA report signed by …, not dated yet." or "Not
@@ -146,6 +147,9 @@ export const AppHome: React.FC = () => {
   const licenses = useLicenses();
   const role = useRole();
   const navigate = useNavigate();
+  // Opened from "Got a lab code or a link?" on the public pages (site/paste-entry.ts): the
+  // paste box comes first, with focus, for a lab or anyone else who was sent something.
+  const pasteFirst = wantsPasteFirst(useLocation().search);
   const [query, setQuery] = useState('');
   const [sort, setSort] = useState<SortKey>('recent');
   const [more, setMore] = useState(false);
@@ -265,7 +269,23 @@ export const AppHome: React.FC = () => {
       <Box sx={{ maxWidth: 560, mx: 'auto' }}>
         <AppHeader />
         <Stack spacing={2.5}>
-          {labOnly ? (
+          {pasteFirst && <PasteBox lead />}
+          {pasteFirst ? (
+            // Someone who came to paste a code isn't asked to make a record first; the way to
+            // make one stays, one line down.
+            labOnly ? (
+              labPanel('h2')
+            ) : (
+              <Button
+                component={RouterLink}
+                to="/new"
+                startIcon={<AddIcon />}
+                sx={{ minHeight: 44, alignSelf: 'center' }}
+              >
+                {t('app.home.paste.orMake')}
+              </Button>
+            )
+          ) : labOnly ? (
             labPanel('h1')
           ) : (
             <Stack spacing={2} sx={{ textAlign: 'center', py: { xs: 2, md: 4 } }}>
@@ -320,7 +340,7 @@ export const AppHome: React.FC = () => {
           {!labOnly && <OldLinksNote records={records} />}
           <LockedRecords />
           <LockedAgreements />
-          <PasteBox />
+          {!pasteFirst && <PasteBox />}
           {/* A lab's own links (persona review, 17 Oct): no spreadsheet of plants, no "logging my plant first". */}
           <Stack spacing={1} sx={{ alignItems: 'center', pt: 1 }}>
             {!labOnly && (
@@ -367,6 +387,8 @@ export const AppHome: React.FC = () => {
             </Button>
           )}
         </Stack>
+
+        {pasteFirst && <PasteBox focus />}
 
         <LoadNoticeBar />
 
@@ -565,7 +587,7 @@ export const AppHome: React.FC = () => {
           })}
         </Stack>
 
-        <PasteBox />
+        {!pasteFirst && <PasteBox />}
 
         {!labOnly && (
           <Paper

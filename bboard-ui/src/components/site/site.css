@@ -441,7 +441,7 @@ html:has(.vcm) {
 }
 .vcm header.hero .hash-demo {
   grid-column: 2;
-  grid-row: 2 / span 3;
+  grid-row: 2 / span 4;
 }
 /* The second sentence answers the first: its own line, in pollen gold (12.7:1 on ink). */
 .vcm header.hero h1 em {
@@ -476,6 +476,27 @@ html:has(.vcm) {
 }
 .vcm .hero-band .btn:not(.solid):hover {
   background: rgba(246, 243, 236, 0.18);
+}
+.vcm .hero-paste {
+  grid-column: 1;
+  margin-top: 18px;
+  font-size: 17px;
+  line-height: 1.5;
+  color: var(--on-dark);
+}
+.vcm .hero-paste a {
+  color: var(--on-dark);
+  font-weight: 700;
+  text-decoration: underline;
+  text-decoration-color: var(--pollen);
+  text-decoration-thickness: 3px;
+  text-decoration-skip-ink: none;
+  text-underline-offset: 4px;
+  white-space: nowrap;
+}
+.vcm .hero-paste a:hover {
+  color: var(--ink);
+  background: var(--pollen);
 }
 .vcm .hero-status {
   margin-top: 28px;
@@ -887,7 +908,8 @@ html:has(.vcm) {
 }
 .vcm .demos {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  /* Four ways in (make, check, paste what you were sent, watch): two by two. */
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 40px;
   margin-top: 48px;
 }

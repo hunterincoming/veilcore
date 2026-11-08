@@ -118,6 +118,7 @@ export const home = {
   'app.home.paste.label': 'Hat Ihnen jemand einen Code oder Link geschickt?',
   'app.home.paste.placeholder': 'Hier einfügen',
   'app.home.paste.go': 'Los',
+  'app.home.paste.orMake': 'Nichts einzufügen? Einen Datensatz anlegen',
   'app.home.paste.hint':
     'Ein Laborcode, ein Link zu einem Datensatz, eine Anfrage, nachzuweisen, dass Sie einen Datensatz halten, oder eine Vereinbarung zum Unterschreiben. Wir erkennen, was es ist.',
   'app.home.paste.whichPlant':

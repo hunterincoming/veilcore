@@ -66,6 +66,8 @@ export const es: Strings = {
   'm.hero.title1': 'Feche su registro.',
   'm.hero.title2': 'Mantenga su genética en privado.',
   'm.hero.how': 'Cómo funciona',
+  'm.hero.pasteQ': '¿Alguien le envió un código de laboratorio o un enlace?',
+  'm.hero.pasteGo': 'Péguelo aquí →',
   'm.hero.cultivar': 'Cultivar',
   'm.hero.bredBy': 'Obtenido por',
   'm.hero.bredByDefault': 'Su nombre aquí',
@@ -87,6 +89,9 @@ export const es: Strings = {
     'Una planta, un animal o un documento inventados: séllelo, guarde su copia de seguridad y vea su página.',
   'm.demo.verify.title': 'Verificar un registro',
   'm.demo.verify.text': 'Ingrese el identificador de un registro y vea lo que su titular divulgó y si está anclado.',
+  'm.demo.paste.title': '¿Recibió un código o un enlace?',
+  'm.demo.paste.text':
+    'Un laboratorio con el código de laboratorio de un obtentor, o cualquiera que recibió un enlace a un registro o un acuerdo para firmar: péguelo y se abre la pantalla correcta.',
   'm.demo.video.title': 'Ver cómo funciona',
   'm.demo.video.text':
     'Una animación de 60 segundos sobre la idea: qué se queda con usted, qué va a Midnight y cómo alguien lo comprueba.',

@@ -248,9 +248,20 @@ export const lab = {
     ' · まだ公開されていません。公開されるまで、誰もあなたの署名をこの名前と照合できません。',
   'app.lab.key.publishAgain': 'もう一度公開する',
   'app.lab.key.publicKey': '公開鍵',
-  'app.lab.key.domain.title': '自社サイトでの鍵の公開',
-  'app.lab.key.domain.why':
-    'このファイルを自社サイトの /.well-known/veilcore-lab.json に置き、下にドメインを入力して「今すぐ確認」を押してください。鍵がサイトを指定し、サイトが鍵を掲載するので、VeilCoreに問い合わせなくても両者が対応していることを誰でも確認でき、貴社の署名を表示するページにもそう表示されます。鍵を使わなくなったら、ファイルから削除してください。',
+  'app.lab.key.ready': '鍵の準備ができました。サンプルの到着の署名と、ラボレポートへの署名ができます。',
+  'app.lab.key.continue': '続ける',
+  'app.lab.key.optional.title': 'この鍵が貴ラボのものだと示す（任意・一度だけ）',
+  'app.lab.key.optional.intro':
+    'サンプルの受け取りや署名には必要ありません。署名を確認する人が、その名前が貴ラボのものだとわかるようになります。私たちが照合するのは名前だけで、あなたの仕事を保証するものではありません。',
+  'app.lab.key.optional.step1':
+    '公開されているライセンスまたは認定の登録情報を<mail>hunter@veilcore.org</mail>までメールでお送りください。',
+  'app.lab.key.optional.step2':
+    'または、ラボのウェブサイトを管理している場合：このファイルを /.well-known/veilcore-lab.json に置き、ドメインを入力して「今すぐ確認」を押してください。VeilCoreに問い合わせなくても、鍵とサイトが対応していることを誰でも確認できます。鍵を使わなくなったら、ファイルから削除してください。',
+  'app.lab.key.optional.otherWays': 'その他の方法',
+  'app.lab.key.showKey': '鍵を表示',
+  'app.lab.key.hideKey': '鍵を隠す',
+  'app.lab.key.copyKey': '鍵をコピー',
+  'app.lab.key.copied': 'コピーしました',
   'app.lab.key.domain.saveFile': 'veilcore-lab.json を保存',
   'app.lab.key.domain.orTxt':
     'DNSしか変更できない場合は、_veilcore-lab.<ドメイン> に次のTXTレコードを追加してください：',

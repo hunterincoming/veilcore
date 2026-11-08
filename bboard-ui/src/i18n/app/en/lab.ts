@@ -255,9 +255,20 @@ export const lab = {
   'app.lab.key.notPublishedYet': ' · not published yet: until it is, nobody can match your signatures to this name.',
   'app.lab.key.publishAgain': 'Publish again',
   'app.lab.key.publicKey': 'Public key',
-  'app.lab.key.domain.title': 'Your key on your own website',
-  'app.lab.key.domain.why':
-    'Put this file on your website at /.well-known/veilcore-lab.json, then type your domain below and press Look now. Your key names the website and the website lists your key, so anyone can see they go together without asking VeilCore, and pages that show your signatures say so. To retire the key, take it out of the file.',
+  'app.lab.key.ready': 'Your key is ready. You can now sign that a sample arrived, and sign your lab reports.',
+  'app.lab.key.continue': 'Continue',
+  'app.lab.key.optional.title': "Show people this key is your lab's (optional, do it once)",
+  'app.lab.key.optional.intro':
+    "You don't need this to receive samples or sign. It lets anyone checking your signature see the name is your lab's. We match the name; we don't vouch for your work.",
+  'app.lab.key.optional.step1':
+    'Email us your public license or accreditation listing at <mail>hunter@veilcore.org</mail>.',
+  'app.lab.key.optional.step2':
+    "Or, if you run your lab's website: put this file on it at /.well-known/veilcore-lab.json, then type your domain and press Look now. Anyone can then see the key and the website go together without asking VeilCore. To retire the key, take it out of the file.",
+  'app.lab.key.optional.otherWays': 'Other ways',
+  'app.lab.key.showKey': 'Show key',
+  'app.lab.key.hideKey': 'Hide key',
+  'app.lab.key.copyKey': 'Copy key',
+  'app.lab.key.copied': 'Copied',
   'app.lab.key.domain.saveFile': 'Save veilcore-lab.json',
   'app.lab.key.domain.orTxt':
     'Or, if you can only change your DNS, add this TXT record at _veilcore-lab.<your domain>:',

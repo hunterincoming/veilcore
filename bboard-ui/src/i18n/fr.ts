@@ -65,6 +65,8 @@ export const fr: Strings = {
   'm.hero.title1': 'Datez votre enregistrement.',
   'm.hero.title2': 'Gardez votre génétique privée.',
   'm.hero.how': 'Comment ça marche',
+  'm.hero.pasteQ': 'Quelqu’un vous a envoyé un code laboratoire ou un lien ?',
+  'm.hero.pasteGo': 'Collez-le ici →',
   'm.hero.cultivar': 'Cultivar',
   'm.hero.bredBy': 'Obtenu par',
   'm.hero.bredByDefault': 'Votre nom ici',
@@ -87,6 +89,9 @@ export const fr: Strings = {
   'm.demo.verify.title': 'Vérifier un enregistrement',
   'm.demo.verify.text':
     "Saisissez l'identifiant d'un enregistrement et voyez ce que son détenteur a divulgué et s'il est ancré.",
+  'm.demo.paste.title': 'Vous avez reçu un code ou un lien ?',
+  'm.demo.paste.text':
+    'Un laboratoire avec le code laboratoire d’un obtenteur, ou toute personne qui a reçu un lien vers un enregistrement ou un contrat à signer : collez-le et le bon écran s’ouvre.',
   'm.demo.video.title': 'Voir comment cela fonctionne',
   'm.demo.video.text':
     "Une animation de 60 secondes sur l'idée : ce qui reste chez vous, ce qui va sur Midnight, et comment quelqu'un le vérifie.",
