@@ -2,7 +2,8 @@ import { describe, expect, it } from 'vitest';
 // The Effect runtime the wallet SDK submits with (a dependency of the wallet SDK, hoisted to the
 // repo's node_modules): the error shape below is the one it really rejects with.
 import { Data, Effect, pipe } from 'effect';
-import { MAX_ERROR_TEXT, describeError, errorChain, redact } from './error-chain.js';
+import { MAX_ERROR_TEXT, chainText, describeError, errorChain, redact } from './error-chain.js';
+import { isStaleDustTime, nodeRefusal } from './wallet.js';
 
 // The same shapes as wallet-sdk-node-client (NodeClientError.SubmissionError carries the
 // transaction bytes as `txData`) and wallet-sdk-capabilities (SubmissionError wraps it).
@@ -120,3 +121,25 @@ describe('redaction', () => {
   });
 });
 
+describe('node refusals through the real error shape', () => {
+  it('a 1010 behind a FiberFailure is a refusal (it was never admitted)', async () => {
+    const e = await asFacadeRejects(
+      new NodeSubmissionError({
+        message: 'Transaction submission failed',
+        txData: TX_BYTES,
+        cause: rpcError('1010: Invalid Transaction: Custom error: 171', 1010),
+      }),
+    );
+    expect(nodeRefusal(e)).toBe('171');
+    expect(isStaleDustTime(e)).toBe(true);
+    expect(chainText(e)).toContain('Custom error: 171');
+  });
+
+  it('a transaction the pool later marks invalid, a drop or a lost socket stays "may have been sent"', async () => {
+    const invalid = await asFacadeRejects(new NodeInvalidError({ message: 'Transaction is invalid and was rejected by the node', txData: TX_BYTES }));
+    expect(nodeRefusal(invalid)).toBeUndefined();
+    const lost = await asFacadeRejects({ _tag: 'ConnectionError', message: 'Could not connect before the configured reconnectionTimeout elapsed' });
+    expect(nodeRefusal(lost)).toBeUndefined();
+    expect(isStaleDustTime(lost)).toBe(false);
+  });
+});

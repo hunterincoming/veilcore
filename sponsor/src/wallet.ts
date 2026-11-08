@@ -46,6 +46,7 @@ import type { UnboundTx } from '@midnight-ntwrk/midnight-js-types';
 import type { SealedTx } from './policy.js';
 import { NotSentError, type PayingWallet } from './sponsor.js';
 import { log } from './log.js';
+import { chainText } from './error-chain.js';
 import { StallTracker, type SyncPart } from './sync-stall.js';
 
 type Keystore = ReturnType<typeof createKeystore>;
@@ -75,16 +76,24 @@ export const deriveRoleSeeds = (seedHex: string): RoleSeeds => {
   }
 };
 
-/** The node's "1010: Invalid Transaction": never admitted, so it cannot land. */
+/**
+ * The node's "1010: Invalid Transaction": never admitted, so it cannot land.
+ *
+ * Read from the whole cause chain (error-chain.ts). The wallet SDK's submitTransaction
+ * rejects with Effect's FiberFailure ("Transaction submission error", no `cause`); the node's
+ * "1010: Invalid Transaction: Custom error: N" is two links further down, inside the Effect
+ * Cause. Reading only `message` and `cause` missed it, so every refusal was taken for "may
+ * have been sent".
+ */
 export const nodeRefusal = (e: unknown): string | undefined => {
-  const text = e instanceof Error ? `${e.message} ${String(e.cause ?? '')}` : String(e);
+  const text = e instanceof Error || (typeof e === 'object' && e !== null) ? chainText(e) : String(e);
   if (!/\b1010\b.*Invalid Transaction|Invalid Transaction.*\b1010\b/i.test(text)) return undefined;
   return /Custom error:\s*(\d+)/i.exec(text)?.[1] ?? 'none';
 };
 
 /** Custom error 171, OutOfDustValidityWindow: the indexer is behind. Wait, then rebuild. */
 export const isStaleDustTime = (e: unknown): boolean =>
-  /Custom error:\s*171\b/i.test(e instanceof Error ? `${e.message} ${String(e.cause ?? '')}` : String(e));
+  /Custom error:\s*171\b/i.test(typeof e === 'object' && e !== null ? chainText(e) : String(e));
 
 const isStrictlyComplete = (progress: unknown): boolean =>
   typeof progress === 'object' &&
