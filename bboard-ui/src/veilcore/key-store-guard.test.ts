@@ -173,7 +173,7 @@ describe('one tab at a time', () => {
     );
     expect(still).toEqual([true, false]);
     // The other tab's lease is left alone.
-    expect(JSON.parse(local.get('veilcore.lock.t')!).owner).toBe('other');
+    expect((JSON.parse(local.get('veilcore.lock.t')!) as { owner: string }).owner).toBe('other');
     still = [];
     // A lease that ran out counts as lost even if it still names this tab: another tab could
     // have taken it and let it go in between.
