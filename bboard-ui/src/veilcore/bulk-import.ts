@@ -1605,22 +1605,30 @@ export const LEDGER_LOCK = 'veilcore.bulk-ledger';
 
 const STOPPED = 'Stopped. Pick it up again any time.';
 
+/** Said when this browser wouldn't write the ledger: nothing was sent. */
+export const NOT_WRITTEN = 'This browser wouldn’t keep what VeilCore needs to send these safely, so nothing was sent.';
+
+/** Said for a row another job (or a batch screen) holds for its backup. */
+export const HELD_ELSEWHERE =
+  'Another job in this browser holds this record for its backup. Finish or discard it first.';
+
 /** Said for a row a job would have to seal anew: its kept record isn't in this browser any more. */
 export const NOT_KEPT = 'This record isn’t kept in this browser any more, so it wasn’t sent.';
 
 /**
- * Forget records held for a backup and never sent: only rows whose state is `held` and whose
- * hash is in `hashes` (one job's own), with their keys. A pending or sealed row is never
+ * Forget records held for a backup and never sent: only rows whose state is `held`, whose hash
+ * is in `hashes` and that `job` holds (no job: rows a batch screen held), with their keys. A pending or sealed row is never
  * touched: it may be on the registry, and its key is the only way to open it. Under the ledger's
  * lock, so it never crosses a batch being sent from another tab. Returns how many were dropped.
  */
-export const dropHeld = (hashes: readonly string[]): Promise<number> =>
+export const dropHeld = (hashes: readonly string[], job?: string): Promise<number> =>
   withTabLock(LEDGER_LOCK, (held) => {
     const ledger = loadLedger();
     const gone: string[] = [];
     for (const h of new Set(hashes)) {
       const e = ledger.rows[h];
-      if (e?.state !== 'held') continue;
+      // Only this job's own held rows (a row held by another job or a batch screen stays).
+      if (e?.state !== 'held' || e.job !== job) continue;
       gone.push(e.recordId);
       delete ledger.rows[h];
     }
@@ -1672,6 +1680,8 @@ export const sealRows = async (
     shouldStop?: () => boolean;
     /** Send only records already sealed and kept in the ledger; seal none new (a job's records). */
     onlyKept?: boolean;
+    /** With holdForBackup: the job the held rows belong to (ask-job). */
+    heldBy?: string;
   } = {},
 ): Promise<SealResult> => {
   const commit = opts.commit ?? registryCommit;
@@ -1702,11 +1712,23 @@ export const sealRows = async (
           outcomes[row.hash] = { state: 'sealed', recordId: entry.recordId, fingerprint: entry.fingerprint };
           continue;
         }
+        if (holding && entry?.state === 'held' && entry.job !== opts.heldBy) {
+          // Held for another job (or a batch screen): never shared, or dropping one would take the other's.
+          outcomes[row.hash] = { state: 'refused', reason: HELD_ELSEWHERE };
+          continue;
+        }
         if ((entry?.state === 'pending' || entry?.state === 'held') && entry.record && keysFor(entry.recordId)) {
           // Held for the backup, or sent before and not confirmed: the same record again. Held
           // only while nothing is sent (holdForBackup); about to be sent, it is pending from here
           // on, so dropHeld never takes away a record that may have landed.
-          if (!holding) ledger.rows[row.hash] = { ...entry, state: 'pending' };
+          if (!holding)
+            ledger.rows[row.hash] = {
+              recordId: entry.recordId,
+              fingerprint: entry.fingerprint,
+              state: 'pending',
+              at: entry.at,
+              record: entry.record,
+            };
           batch.push(entry.record);
           hashOf.set(entry.recordId, row.hash);
           continue;
@@ -1735,6 +1757,7 @@ export const sealRows = async (
             state: holding ? 'held' : 'pending',
             at: Date.now(),
             record,
+            ...(holding && opts.heldBy ? { job: opts.heldBy } : {}),
           };
           batch.push(record);
           hashOf.set(record.id, row.hash);
@@ -1750,8 +1773,13 @@ export const sealRows = async (
         for (const id of fresh) forgetKeys(id);
         return STOPPED;
       }
-      // Written down before anything is sent: a closed tab from here on loses nothing.
-      saveLedger(ledger);
+      // Written down before anything is sent: a closed tab from here on loses nothing. If this
+      // browser won't keep it (full storage), nothing is sent: a record on the registry whose
+      // row still read `held` could later have its keys dropped (dropHeld).
+      if (!saveLedger(ledger)) {
+        for (const id of fresh) forgetKeys(id);
+        return NOT_WRITTEN;
+      }
 
       if (batch.length) {
         const result = await answerIn(commit(batch), opts.commitMs ?? COMMIT_MS);

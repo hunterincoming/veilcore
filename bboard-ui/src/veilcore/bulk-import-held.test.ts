@@ -4,9 +4,20 @@
 // records it showed, never one sealed new.
 // SPDX-License-Identifier: Apache-2.0
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { NOT_KEPT, dropHeld, holdForBackup, loadLedger, saveLedger, sealRows, type Committer } from './bulk-import';
+import {
+  HELD_ELSEWHERE,
+  NOT_KEPT,
+  NOT_WRITTEN,
+  dropHeld,
+  holdForBackup,
+  loadLedger,
+  saveLedger,
+  sealRows,
+  type Committer,
+} from './bulk-import';
 import { batchRows, type BatchPlan } from '../ask/batch';
 import { __resetRecordKeysForTests, keysFor } from './record-keys';
+import { LEDGER_KEY } from './bulk-import-ledger';
 import type { StrainRecord } from './records';
 
 const local = new Map<string, string>();
@@ -109,5 +120,56 @@ describe('onlyKept', () => {
     expect(sent).toEqual([kept[0]]);
     expect(out.outcomes[rows[1].hash]).toEqual({ state: 'refused', reason: NOT_KEPT });
     expect(loadLedger().rows[rows[1].hash]).toBeUndefined();
+  });
+});
+
+describe('the ledger write comes first (review B2)', () => {
+  it('a ledger that won’t save sends nothing: a sent record never reads as held', async () => {
+    const rows = batchRows(plan(2));
+    await sealRows(rows, { commit: holdForBackup, batchSize: 10, gapMs: 0 });
+    // Full storage from here on: the ledger can't be written.
+    const real = localStorage.setItem.bind(localStorage);
+    vi.stubGlobal('localStorage', {
+      getItem: (k: string) => local.get(k) ?? null,
+      setItem: (k: string, v: string) => {
+        if (k === LEDGER_KEY) throw new Error('QuotaExceededError');
+        real(k, v);
+      },
+      removeItem: (k: string) => void local.delete(k),
+    });
+    const sent: string[] = [];
+    const spy: Committer = (batch) => {
+      sent.push(...batch.map((r) => r.id));
+      return ok(batch);
+    };
+    const out = await sealRows(rows, { commit: spy, gapMs: 0 });
+    expect(sent).toEqual([]);
+    expect(out.stopped).toBe(NOT_WRITTEN);
+    // Still held, never sent: dropping them later loses nothing.
+    expect(rows.every((r) => loadLedger().rows[r.hash].state === 'held')).toBe(true);
+  });
+});
+
+describe('held rows belong to a job (review L10)', () => {
+  it('another job can’t reuse or drop them', async () => {
+    const rows = batchRows(plan(2));
+    await sealRows(rows, { commit: holdForBackup, batchSize: 10, gapMs: 0, heldBy: 'job-a' });
+    const ids = rows.map((r) => loadLedger().rows[r.hash].recordId);
+    const other = await sealRows(rows, { commit: holdForBackup, batchSize: 10, gapMs: 0, heldBy: 'job-b' });
+    expect(Object.values(other.outcomes)).toEqual(rows.map(() => ({ state: 'refused', reason: HELD_ELSEWHERE })));
+    expect(
+      await dropHeld(
+        rows.map((r) => r.hash),
+        'job-b',
+      ),
+    ).toBe(0);
+    expect(await dropHeld(rows.map((r) => r.hash))).toBe(0);
+    for (const id of ids) expect(keysFor(id)).toBeDefined();
+    expect(
+      await dropHeld(
+        rows.map((r) => r.hash),
+        'job-a',
+      ),
+    ).toBe(2);
   });
 });

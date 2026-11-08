@@ -326,7 +326,11 @@ export const childFields = (p: BatchPlan, name: string, child?: ChildDetails): R
     ],
     bredBy: p.bredBy.trim(),
     dateCreated: child?.born || p.date,
-    notes: typed && line(p.semenCode) && semenCodeApplies(p.taxon) ? `${SEMEN_CODE_LABEL}${line(p.semenCode)}` : '',
+    // The straw's code: for a sire typed in, or a sire record bred by artificial insemination.
+    notes:
+      (typed || p.sire) && line(p.semenCode) && semenCodeApplies(p.taxon)
+        ? `${SEMEN_CODE_LABEL}${line(p.semenCode)}`
+        : '',
     animal: {
       breed: own(damRecord)?.animal?.breed || own(p.sire)?.animal?.breed || '',
       idScheme: individualId ? line(p.idScheme) : '',

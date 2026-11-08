@@ -17,6 +17,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import {
+  anyStarted,
   deadlineOf,
   listJobs,
   updateJob,
@@ -50,7 +51,8 @@ export type RunDeps = {
   readonly now: () => number;
   /** This page may send the holder's requests (holder-guard.ts) and the tab is visible. */
   readonly allowed: () => boolean;
-  readonly lock: <T>(fn: () => Promise<T>) => Promise<T>;
+  /** The runner's lock across tabs; `held` says whether this tab still holds it (a lease can run out). */
+  readonly lock: <T>(fn: (held: () => boolean) => Promise<T>) => Promise<T>;
   readonly send: Senders;
 };
 
@@ -84,7 +86,7 @@ const runStep = async (deps: RunDeps, job: Job, step: Step): Promise<Job | undef
   // Marked running before anything is sent: a crash from here on is seen as one.
   const marked = await updateJob(job.id, (j) =>
     j.state === 'approved' || j.state === 'running'
-      ? setStep({ ...j, state: 'running' }, step.id, { state: 'running', why: undefined })
+      ? setStep({ ...j, state: 'running' }, step.id, { state: 'running', why: undefined, started: true })
       : undefined,
   );
   if (!marked || marked.state !== 'running') return marked;
@@ -125,11 +127,16 @@ const runStep = async (deps: RunDeps, job: Job, step: Step): Promise<Job | undef
 };
 
 /** Take one job as far as it can go now. */
-export const advance = async (deps: RunDeps, id: string): Promise<Job | undefined> => {
+export const advance = async (
+  deps: RunDeps,
+  id: string,
+  held: () => boolean = () => true,
+): Promise<Job | undefined> => {
   for (let guard = 0; guard < 50; guard++) {
     const job = (await listJobs(deps.now())).find((j) => j.id === id);
     if (!job || (job.state !== 'approved' && job.state !== 'running')) return job;
-    if (deps.now() >= deadlineOf(job) && job.steps.some((s) => s.state === 'todo')) return job;
+    // Past its deadline, never started and not resumed by the person: nothing goes (the sweep ends or asks).
+    if (deps.now() >= deadlineOf(job) && !anyStarted(job) && !job.resumedAt) return job;
     const steps = stepOrder(job.steps);
     if (steps.every((s) => s.state === 'done'))
       return updateJob(id, (j) => withHash({ ...j, state: 'done', endedAt: deps.now(), figures: undefined }));
@@ -139,7 +146,8 @@ export const advance = async (deps: RunDeps, id: string): Promise<Job | undefine
     const next = steps.find((s) => s.state !== 'done')!;
     if (next.state === 'needsYou') return job;
     if (next.nextTryAt !== undefined && next.nextTryAt > deps.now()) return job;
-    if (!deps.allowed()) return job;
+    // The page rule, and the lock, checked again right before each step (L8).
+    if (!deps.allowed() || !held()) return job;
     const after = await runStep(deps, job, next);
     const now = after?.steps.find((s) => s.id === next.id);
     // Not finished this time: leave it for the next tick.
@@ -151,9 +159,9 @@ export const advance = async (deps: RunDeps, id: string): Promise<Job | undefine
 /** One pass over every approved job, under the runner's lock. */
 export const runJobs = async (deps: RunDeps): Promise<void> => {
   if (!deps.allowed()) return;
-  await deps.lock(async () => {
+  await deps.lock(async (held) => {
     for (const j of await listJobs(deps.now()))
-      if (j.state === 'approved' || j.state === 'running') await advance(deps, j.id);
+      if (j.state === 'approved' || j.state === 'running') await advance(deps, j.id, held);
   });
 };
 
@@ -161,6 +169,6 @@ export const runJobs = async (deps: RunDeps): Promise<void> => {
 export const tryAgain = (id: string, stepId: string): Promise<Job | undefined> =>
   updateJob(id, (j) =>
     j.state === 'running' || j.state === 'approved'
-      ? setStep(j, stepId, { state: 'todo', why: undefined, nextTryAt: undefined })
+      ? setStep({ ...j, resumedAt: Date.now() }, stepId, { state: 'todo', why: undefined, nextTryAt: undefined })
       : undefined,
   );

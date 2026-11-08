@@ -23,6 +23,9 @@ import { allRecords, getRecord } from '../veilcore/records';
 import { isReceivedRecord } from '../ask/hint';
 import { TabLockUnavailable } from '../veilcore/tab-lock';
 import { SponsorRefusal } from '../veilcore/chain/sponsor-client';
+import { DATING_PAUSED } from '../veilcore/chain/paused';
+import { chainNotReady } from '../veilcore/chain/config';
+import { holderRequestsPaused } from '../veilcore/holder-guard';
 import { noteStampFailure, stampErrorText, stampKey, stampRetries } from '../veilcore/chain/key-stamp';
 import { holdStamp } from '../veilcore/chain/stamp-background';
 import { stampsLookUsed, tomorrowAt } from './capacity';
@@ -38,13 +41,19 @@ export const keptRows = (hashes: readonly string[]): PreparedRow[] =>
 export const sendRecords = async (job: Job): Promise<StepOutcome> => {
   const hashes = job.refs.rowHashes ?? [];
   if (!hashes.length) return { kind: 'failed', why: NOT_KEPT };
-  const r = await sealRows(keptRows(hashes), { onlyKept: true, gapMs: 2500 });
+  // Stops between batches when this page may no longer send (moved to a check or prove page,
+  // or hidden): the rest goes on the next pass, as the same records.
+  const r = await sealRows(keptRows(hashes), { onlyKept: true, gapMs: 2500, shouldStop: () => !pageMaySend() });
   const refused = Object.values(r.outcomes).find((o) => o.state === 'refused');
   if (refused && refused.state === 'refused') return { kind: 'failed', why: refused.reason };
   if (r.stopped) return { kind: 'retry', at: Date.now() + MINUTE, why: r.stopped };
   const saved = Object.values(r.outcomes).filter((o) => o.state === 'sealed').length;
   return { kind: 'done', note: String(saved) };
 };
+
+/** The page rule (stamp-background.ts): not a check or prove page, and visible. */
+export const pageMaySend = (): boolean =>
+  !holderRequestsPaused() && (typeof document === 'undefined' || document.visibilityState === 'visible');
 
 /** This side of a held license's deal, when it can talk on it. */
 export const licenseeParty = (h: HeldLicense): DealParty | undefined =>
@@ -73,7 +82,8 @@ export const sendReport: Senders['report'] = async (_job, ref, figures) => {
   if (!reportsLive(h)) return { kind: 'failed', why: 'This agreement isn’t live in this browser any more.' };
   const party = licenseeParty(h);
   if (!party) return { kind: 'failed', why: 'This agreement isn’t live in this browser any more.' };
-  if (!figures) return { kind: 'failed', why: 'This report’s figures aren’t here any more.' };
+  if (!figures || figures.amount === undefined || !figures.currency)
+    return { kind: 'failed', why: 'This report’s figures aren’t here any more.' };
   // Read fresh: a report sent from another tab or device since counts.
   let entries;
   try {
@@ -93,6 +103,12 @@ export const sendReport: Senders['report'] = async (_job, ref, figures) => {
   );
   const body = buildStatement(terms, ledger, { ...ref, ...figures, type: h.agreement!.type });
   if (!body) return { kind: 'failed', why: 'A figure isn’t a plain number.' };
+  // Signed only if it comes to exactly what Approve showed (the top-up and the deal's currency
+  // included). Anything else (another report sent meanwhile changed the yearly minimum, the deal
+  // named another currency) is refused by the plan: nothing is signed, and the page says the new
+  // amount; asking again makes a new plan to approve.
+  if (body.amountOwed !== figures.amount || body.currency !== figures.currency)
+    return { kind: 'failed', why: `amount:${body.currency} ${body.amountOwed}` };
   try {
     const r = await sayOnce(party, body);
     return { kind: 'done', ...(r.already ? { note: 'already' } : {}) };
@@ -116,6 +132,8 @@ export const sendStamp: Senders['stamp'] = async (job, recordId, resumed) => {
   const now = Date.now();
   const record = getRecord(recordId);
   if (keysFor(recordId)?.anchor) return { kind: 'done' };
+  // Dating paused, or this build can't send: wait, never stamp (the stamp background does the same).
+  if (DATING_PAUSED || chainNotReady()) return { kind: 'waiting', at: now + 60 * MINUTE, why: 'paused' };
   // Fresh: still one of the person's own records, with its keys here.
   if (!record || isReceivedRecord(record))
     return { kind: 'failed', why: 'This record isn’t one of yours here any more.' };

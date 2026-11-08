@@ -16,7 +16,8 @@ import {
   newJobId,
   planHash,
   putJob,
-  setDropHeld,
+  setStoreHooks,
+  JOB_STUCK_MS,
   updateJob,
   withHash,
   type Job,
@@ -26,13 +27,21 @@ import { advance, runJobs, stepOrder, tryAgain, type RunDeps, type Senders, type
 const T0 = Date.UTC(2026, 10, 7, 12);
 let clock = T0;
 const dropped: string[][] = [];
+const forgotStamps: string[] = [];
+let pending = false;
 beforeEach(() => {
   clock = T0;
   dropped.length = 0;
+  forgotStamps.length = 0;
+  pending = false;
   __useJobBackend();
-  setDropHeld((h) => {
-    dropped.push([...h]);
-    return Promise.resolve(h.length);
+  setStoreHooks({
+    dropHeld: (h) => {
+      dropped.push([...h]);
+      return Promise.resolve(h.length);
+    },
+    rowsPending: () => pending,
+    forgetStamps: (job) => void forgotStamps.push(job),
   });
 });
 
@@ -65,7 +74,7 @@ const deps = (send: Partial<Senders>, allowed = () => true): RunDeps & { calls: 
     calls,
     now: () => clock,
     allowed,
-    lock: (fn) => fn(),
+    lock: (fn) => fn(() => true),
     send: {
       records: wrap('records', send.records),
       report: wrap('report', send.report),
@@ -106,6 +115,33 @@ describe('approve is compare-and-set', () => {
     expect(planHash({ ...a, frozen: { today: '2026-11-08' } })).not.toBe(a.hash);
   });
 
+  it('the store checks the answers too: a report job with no figures is refused (L7)', async () => {
+    const j = await putJob(
+      job({
+        kind: 'due',
+        refs: { reports: [{ inviteId: 'i', periodFrom: '2026-07-01', periodTo: '2026-09-30', statementId: 's' }] },
+        steps: [{ id: 'report0', kind: 'report', state: 'todo' }],
+      }),
+    );
+    expect(await approveJob(j.id, j.hash, clock)).toEqual({ refused: 'unanswered' });
+  });
+
+  it('a report due sooner than 72 hours lapses at the end of its due day (L6)', async () => {
+    const j = await putJob(
+      job({
+        kind: 'due',
+        refs: {
+          reports: [
+            { inviteId: 'i', periodFrom: '2026-07-01', periodTo: '2026-09-30', statementId: 's', dueOn: '2026-11-07' },
+          ],
+        },
+        steps: [{ id: 'report0', kind: 'report', state: 'todo' }],
+      }),
+    );
+    expect((await getJob(j.id, new Date('2026-11-07T23:00:00').getTime()))?.state).toBe('ready');
+    expect((await getJob(j.id, new Date('2026-11-08T00:00:01').getTime()))?.state).toBe('expired');
+  });
+
   it('only once, and not after 72 hours', async () => {
     const j = await putJob(job());
     await approveJob(j.id, j.hash, clock);
@@ -132,10 +168,78 @@ describe('expiry and deletion, on every read', () => {
     expect(await listJobs(clock + JOB_KEEP_MS)).toEqual([]);
   });
 
-  it('an approved job whose records are on their way doesn’t lapse', async () => {
-    const j = await putJob(job({ state: 'running', steps: [{ id: 'records', kind: 'records', state: 'running' }] }));
+  it('an approved job whose records are on their way doesn’t lapse, nor drop them', async () => {
+    const j = await putJob(
+      job({ state: 'running', steps: [{ id: 'records', kind: 'records', state: 'running', started: true }] }),
+    );
     clock = T0 + JOB_TTL_MS + 1;
-    expect((await getJob(j.id, clock))?.state).toBe('running');
+    expect((await getJob(j.id, clock))?.steps[0].state).toBe('running');
+    expect(dropped).toEqual([]);
+  });
+
+  it('a records step back to todo after a lost answer keeps the job alive until it is resolved', async () => {
+    const j = await putJob(job({ state: 'approved', approvedAt: T0 }));
+    await runJobs(deps({ records: () => Promise.resolve({ kind: 'retry', at: clock + 60_000, why: 'offline' }) }));
+    clock = T0 + JOB_TTL_MS * 5;
+    const k = await getJob(j.id, clock);
+    expect([k?.state, k?.steps[0].state]).toEqual(['running', 'todo']);
+    expect(dropped).toEqual([]);
+    // Rows pending in the ledger (they may have landed) count the same, started or not.
+    const p = await putJob(job({ state: 'approved', approvedAt: clock }));
+    pending = true;
+    clock += JOB_TTL_MS + 1;
+    expect((await getJob(p.id, clock))?.state).toBe('approved');
+  });
+
+  it('approved and never sent at 72 hours: it asks, it doesn’t drop the records', async () => {
+    const j = await putJob(job({ state: 'approved', approvedAt: T0 }));
+    clock = T0 + JOB_TTL_MS;
+    const k = await getJob(j.id, clock);
+    expect([k?.state, k?.steps[0].state, k?.steps[0].why]).toEqual(['running', 'needsYou', 'lapsed']);
+    expect(dropped).toEqual([]);
+    // Try again sends them; nothing was lost.
+    await tryAgain(j.id, 'records');
+    const d = deps({});
+    await runJobs(d);
+    expect(d.calls).toEqual(['records']);
+    expect((await getJob(j.id, clock))?.state).toBe('done');
+  });
+
+  it('a lapsed job the person discards drops its held rows, never sent', async () => {
+    const j = await putJob(job({ state: 'approved', approvedAt: T0 }));
+    clock = T0 + JOB_TTL_MS;
+    await getJob(j.id, clock);
+    await discardJob(j.id, clock);
+    expect((await getJob(j.id, clock))?.state).toBe('discarded');
+    expect(dropped).toEqual([['h1', 'h2']]);
+  });
+
+  it('a job stuck 30 days after approval stops, visibly, its started rows kept', async () => {
+    const j = await putJob(
+      job({
+        state: 'running',
+        approvedAt: T0,
+        steps: [{ id: 'records', kind: 'records', state: 'todo', started: true, nextTryAt: T0 + 1 }],
+      }),
+    );
+    clock = T0 + JOB_STUCK_MS;
+    const k = await getJob(j.id, clock);
+    expect([k?.state, k?.steps[0].state, k?.steps[0].why]).toEqual(['stopped', 'needsYou', 'stuck']);
+    clock += JOB_KEEP_MS;
+    expect(await getJob(j.id, clock)).toBeUndefined();
+    // Started: never dropped, even when the job is deleted (B2).
+    expect(dropped).toEqual([]);
+  });
+
+  it('a job’s stamps not yet made go with it when it expires or is discarded (S7)', async () => {
+    const r = await putJob(
+      job({ kind: 'ready', refs: { recordId: 'VEIL-1' }, steps: [{ id: 'stamp', kind: 'stamp', state: 'todo' }] }),
+    );
+    const d = await putJob(job({ kind: 'ready', refs: { recordId: 'VEIL-2' }, steps: [] }));
+    await discardJob(d.id, clock);
+    clock = T0 + JOB_TTL_MS;
+    await listJobs(clock);
+    expect(forgotStamps.sort()).toEqual([r.id, d.id].sort());
   });
 
   it('an approved report job lapses at 72 hours, figures gone, nothing sent', async () => {
@@ -144,7 +248,7 @@ describe('expiry and deletion, on every read', () => {
         kind: 'due',
         state: 'approved',
         refs: { reports: [{ inviteId: 'i', periodFrom: '2026-07-01', periodTo: '2026-09-30', statementId: 's' }] },
-        figures: { report0: { quantity: '40' } },
+        figures: { report0: { quantity: '40', amount: '4.00', currency: 'USD' } },
         steps: [{ id: 'report0', kind: 'report', state: 'todo' }],
       }),
     );
@@ -207,7 +311,7 @@ describe('the runner', () => {
         kind: 'due',
         state: 'running',
         refs: { reports: [{ inviteId: 'i', periodFrom: '2026-07-01', periodTo: '2026-09-30', statementId: 's' }] },
-        figures: { report0: { quantity: '40' } },
+        figures: { report0: { quantity: '40', amount: '4.00', currency: 'USD' } },
         steps: [{ id: 'report0', kind: 'report', state: 'running' }],
       }),
     );
@@ -237,7 +341,7 @@ describe('the runner', () => {
         kind: 'due',
         state: 'approved',
         refs: { reports: [{ inviteId: 'i', periodFrom: '2026-07-01', periodTo: '2026-09-30', statementId: 's' }] },
-        figures: { report0: { quantity: '40' } },
+        figures: { report0: { quantity: '40', amount: '4.00', currency: 'USD' } },
         steps: [{ id: 'report0', kind: 'report', state: 'todo' }],
       }),
     );
@@ -263,7 +367,11 @@ describe('the runner', () => {
         kind: 'due',
         state: 'approved',
         refs: { reports },
-        figures: { report0: { quantity: '1' }, report1: { quantity: '2' }, report2: { nothing: true } },
+        figures: {
+          report0: { quantity: '1', amount: '0.10', currency: 'USD' },
+          report1: { quantity: '2', amount: '0.20', currency: 'USD' },
+          report2: { nothing: true, amount: '0.00', currency: 'USD' },
+        },
         steps: reports.map((_, i) => ({ id: `report${i}`, kind: 'report' as const, state: 'todo' as const })),
       }),
     );
@@ -363,5 +471,25 @@ describe('the page rule', () => {
     expect(at('/prove/PR-1')).toBe(false);
     expect(at('/records', 'hidden')).toBe(false);
     vi.unstubAllGlobals();
+  });
+});
+
+describe('the words a refusal offers', () => {
+  it('“get <record> ready to license” in each language is a sentence the planner reads', async () => {
+    const { planJob } = await import('../ask/plan');
+    const rec = { id: `VEIL-${'1'.padStart(32, '0')}`, strainName: 'Blue Dream', licenseIds: [] } as never;
+    for (const lang of ['en', 'de', 'es', 'fr', 'ja'] as const) {
+      const { job: words } = (await import(`../i18n/app/${lang}/job.ts`)) as { job: Record<string, string> };
+      const text = words['app.job.suggest.ready'].replace('{name}', 'Blue Dream');
+      expect(planJob(text, { records: [rec], animals: true }), `${lang}: ${text}`).toMatchObject({
+        type: 'plan',
+        plan: { job: 'ready' },
+      });
+    }
+  });
+
+  it('French never says “licencier” (to fire someone)', async () => {
+    const { job: fr } = await import('../i18n/app/fr/job');
+    for (const [k, v] of Object.entries(fr)) expect(/licenci/i.test(v), `${k}: ${v}`).toBe(false);
   });
 });

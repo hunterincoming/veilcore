@@ -7,7 +7,7 @@
 import { holderRequestsPaused } from '../veilcore/holder-guard';
 import { withTabLock, TabLockUnavailable } from '../veilcore/tab-lock';
 import { runJobs, type RunDeps } from './run';
-import { SENDERS } from './senders';
+import { SENDERS, pageMaySend } from './senders';
 import { onJobsChange } from './store';
 import './prepare';
 
@@ -15,13 +15,12 @@ import './prepare';
 export const RUNNER_LOCK = 'veilcore.ask.job-runner';
 
 /** The page rule, the same as stamp-background.ts: not on a check or prove page, and visible. */
-export const runnerAllowed = (): boolean =>
-  !holderRequestsPaused() && (typeof document === 'undefined' || document.visibilityState === 'visible');
+export const runnerAllowed = (): boolean => pageMaySend();
 
 export const RUN_DEPS: RunDeps = {
   now: () => Date.now(),
   allowed: runnerAllowed,
-  lock: (fn) => withTabLock(RUNNER_LOCK, () => fn()),
+  lock: (fn) => withTabLock(RUNNER_LOCK, (held) => fn(held)),
   send: SENDERS,
 };
 

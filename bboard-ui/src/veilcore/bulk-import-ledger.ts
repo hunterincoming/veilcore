@@ -21,6 +21,8 @@ export type LedgerEntry = {
   readonly at: number;
   /** The whole record while it is waiting to be confirmed (it is what the registry gets anyway). */
   readonly record?: StrainRecord;
+  /** A held row's job ("Do it for me", ask-job/store.ts): only that job may drop it or reuse it. */
+  readonly job?: string;
 };
 
 export type Ledger = { version: 1; rows: Record<string, LedgerEntry> };

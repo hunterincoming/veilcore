@@ -31,6 +31,11 @@ const STORE = 'jobs';
 export const JOB_TTL_MS = 72 * 3600_000;
 /** How long a job is kept after it ends (done, stopped, expired, discarded). */
 export const JOB_KEEP_MS = 7 * 86_400_000;
+/**
+ * How long an approved job that has started may keep trying before it stops for the person to
+ * look at (never deleted while it runs; this is its visible end).
+ */
+export const JOB_STUCK_MS = 30 * 86_400_000;
 
 export type JobKind = 'batch' | 'due' | 'import' | 'ready';
 export type StepKind = 'records' | 'report' | 'stamp';
@@ -46,6 +51,11 @@ export type Step = {
   readonly why?: string;
   /** What it was about when it ended ("already there", how many were saved). */
   readonly note?: string;
+  /**
+   * It has been marked running at least once: something may have been sent. A job with a started
+   * records step never has its held rows dropped (they may be on the registry).
+   */
+  readonly started?: boolean;
 };
 
 /**
@@ -68,6 +78,10 @@ export type BatchSpec = {
   readonly taxon?: string;
   /** Pasted on the result screen: one ID per young animal, in order. */
   readonly ids?: readonly string[];
+  /** Clones: the lot, as typed ("lot B"). */
+  readonly lotName?: string;
+  /** Born or cut yesterday, as typed; else today. */
+  readonly date?: 'yesterday';
 };
 
 export type ReportRef = {
@@ -77,10 +91,34 @@ export type ReportRef = {
   readonly periodTo: string;
   /** Made at prepare, never derived: the report's id. */
   readonly statementId: string;
+  /** The deal's currency, read fresh at prepare (royalty-terms.ts withDealCurrency). */
+  readonly currency?: string;
+  /** When the terms say this report is due (YYYY-MM-DD). */
+  readonly dueOn?: string;
+  /**
+   * When the period ends a contract year with a yearly minimum: what that year's other reports owe
+   * so far (read fresh at prepare) and the minimum, so the top-up is in the amount approved.
+   */
+  readonly minimum?: {
+    readonly yearFrom: string;
+    readonly yearTo: string;
+    readonly owedBefore: string;
+    readonly minimum: string;
+  };
 };
 
-/** A report's figures as typed on the result screen: kept only until it is sent. */
-export type Figures = { readonly quantity?: string; readonly offspring?: string; readonly nothing?: boolean };
+/**
+ * A report's figures as typed on the result screen, and what they come to (the amount and currency
+ * Approve shows, in the plan's hash): kept only until it is sent. The report is signed only if it
+ * comes to exactly this.
+ */
+export type Figures = {
+  readonly quantity?: string;
+  readonly offspring?: string;
+  readonly nothing?: boolean;
+  readonly amount?: string;
+  readonly currency?: string;
+};
 
 export type JobState = 'ready' | 'approved' | 'running' | 'done' | 'stopped' | 'expired' | 'discarded';
 
@@ -94,6 +132,8 @@ export type Job = {
   readonly hash: string;
   readonly createdAt: number;
   readonly approvedAt?: number;
+  /** The person said to go on after it stopped for them (Try again): it never lapses again. */
+  readonly resumedAt?: number;
   readonly endedAt?: number;
   /** Values fixed when the job was made (in the hash): today's date on this device. */
   readonly frozen: { readonly today: string };
@@ -146,23 +186,60 @@ export const newJobId = (): string =>
 
 export const isLive = (j: Job): boolean => j.state === 'ready' || j.state === 'approved' || j.state === 'running';
 export const isEnded = (j: Job): boolean => !isLive(j);
-export const deadlineOf = (j: Pick<Job, 'createdAt'>): number => j.createdAt + JOB_TTL_MS;
+/** End of a calendar day on this device's clock. */
+const endOfDay = (day: string): number => new Date(`${day}T23:59:59.999`).getTime();
+
+/**
+ * When approval lapses: 72 hours after the job was made, or, for reports, at the end of the
+ * earliest report's due day if that is sooner (a report due today waits no longer than today).
+ */
+export const deadlineOf = (j: Pick<Job, 'createdAt'> & Partial<Pick<Job, 'refs' | 'frozen'>>): number => {
+  const ttl = j.createdAt + JOB_TTL_MS;
+  const dues = (j.refs?.reports ?? [])
+    .map((r) => r.dueOn)
+    .filter((d): d is string => !!d && (!j.frozen || d >= j.frozen.today))
+    .map(endOfDay);
+  return Math.min(ttl, ...dues);
+};
+
+/** Some step was started: something may have gone out. */
+export const anyStarted = (j: Job): boolean => j.steps.some((s) => s.started);
+/** The records step was started: its rows may be on the registry, so they are never dropped. */
+export const recordsStarted = (j: Job): boolean => j.steps.some((s) => s.kind === 'records' && s.started);
 
 // ---- the pure rules (tested without a database) ----------------------------------------------
 
-export type ApproveRefusal = 'changed' | 'notReady' | 'expired' | 'gone';
+export type ApproveRefusal = 'changed' | 'notReady' | 'expired' | 'gone' | 'unanswered';
 
 /** Approve: only the plan the tab drew, only while ready, only before its deadline. */
 export const approveIn = (
   cur: Job | undefined,
   renderedHash: string,
   now: number,
+  answered: (j: Job) => boolean = complete,
 ): { job: Job } | { refused: ApproveRefusal } => {
   if (!cur) return { refused: 'gone' };
   if (cur.state !== 'ready') return { refused: 'notReady' };
   if (now >= deadlineOf(cur)) return { refused: 'expired' };
   if (cur.hash !== renderedHash || planHash(cur) !== renderedHash) return { refused: 'changed' };
-  return { job: { ...cur, state: 'approved', approvedAt: now } };
+  // Checked again here, not only on the screen: every question answered (L7).
+  if (!answered(cur)) return { refused: 'unanswered' };
+  // The hash stays the one approved. Values another store now keeps (pasted IDs, sealed into the
+  // held records; the answers) aren't needed after approval and go (L9).
+  const spec = cur.spec ? { ...cur.spec, ids: undefined, bredBy: undefined, taxon: undefined } : undefined;
+  return { job: { ...cur, ...(spec ? { spec } : {}), state: 'approved', approvedAt: now } };
+};
+
+/** What the store itself can check of a job's answers: rows sealed, a file read, every report's figures. */
+export const complete = (j: Job): boolean => {
+  if ((j.kind === 'batch' || j.kind === 'import') && !j.refs.rowHashes?.length) return false;
+  if (j.kind === 'import' && !j.sheet) return false;
+  if (j.kind === 'due')
+    return (j.refs.reports ?? []).every((_, i) => {
+      const f = j.figures?.[`report${i}`];
+      return !!f && f.amount !== undefined && (f.nothing === true || /^\d+(\.\d+)?$/.test(f.quantity ?? ''));
+    });
+  return true;
 };
 
 /** An edit: only to the plan the tab drew, only while ready. Bumps rev and the hash. */
@@ -177,30 +254,61 @@ export const editIn = (
   return { job: withHash({ ...change(cur), rev: cur.rev + 1 }) };
 };
 
-/** What a read finds due: keep it, stop it (expired), or delete it. */
-export const sweepOf = (j: Job, now: number): 'keep' | 'expire' | 'delete' => {
-  if (isLive(j) && now >= deadlineOf(j) && !onlyResends(j)) return 'expire';
-  if (isEnded(j) && now >= (j.endedAt ?? j.createdAt) + JOB_KEEP_MS) return 'delete';
-  return 'keep';
-};
+export type Sweep = 'keep' | 'expire' | 'lapse' | 'stuck' | 'delete';
 
 /**
- * An approved job whose only steps left are records already on their way: sending them again is
- * the same records (the ledger keeps them), never a stale act, so it doesn't lapse; it would
- * otherwise leave records that may have landed waiting for nobody.
+ * What a read finds due (design v2, 4, and the security review's S1, S2):
+ *   - a job waiting for approval expires at its deadline, and its held rows go;
+ *   - an approved job that has started (something may have gone out, or its rows are `pending` in
+ *     the ledger) never lapses: it keeps going until it is done, then 30 days after approval it
+ *     stops for the person to look at ('stuck'), its rows kept;
+ *   - an approved job not started by its deadline: a records job asks the person ('lapse': send
+ *     now, or discard) and never loses its records; a report or stamp job expires (nothing went);
+ *   - any ended job is deleted 7 days after it ended.
  */
-const onlyResends = (j: Job): boolean =>
-  j.state !== 'ready' &&
-  j.steps.every((s) => s.state === 'done' || (s.kind === 'records' && s.state !== 'todo' && s.state !== 'failed'));
+export const sweepOf = (j: Job, now: number, rowsPending = false): Sweep => {
+  if (isEnded(j)) return now >= (j.endedAt ?? j.createdAt) + JOB_KEEP_MS ? 'delete' : 'keep';
+  if (j.state === 'ready') return now >= deadlineOf(j) ? 'expire' : 'keep';
+  if (now >= (j.approvedAt ?? j.createdAt) + JOB_STUCK_MS) return 'stuck';
+  if (anyStarted(j) || rowsPending || j.resumedAt) return 'keep';
+  if (now < deadlineOf(j)) return 'keep';
+  if (j.kind === 'batch' || j.kind === 'import')
+    return j.steps.some((s) => s.state === 'needsYou' && s.why === 'lapsed') ? 'keep' : 'lapse';
+  return 'expire';
+};
 
-/** A job stopped at its deadline: steps not done stay undone, typed figures go. */
+/** A job stopped at its deadline: steps not done stay undone (one that may have gone out still says so), typed figures go. */
 export const expired = (j: Job, now: number): Job =>
   withHash({
     ...j,
     state: 'expired',
     endedAt: now,
     figures: undefined,
-    steps: j.steps.map((s) => (s.state === 'done' ? s : { ...s, state: 'failed', nextTryAt: undefined })),
+    steps: j.steps.map((s) =>
+      s.state === 'done' || s.state === 'needsYou' ? s : { ...s, state: 'failed', nextTryAt: undefined },
+    ),
+  });
+
+/** An approved records job not sent by its deadline: it asks, it never drops (S1). */
+export const lapsed = (j: Job): Job =>
+  withHash({
+    ...j,
+    state: 'running',
+    steps: j.steps.map((s) =>
+      s.kind === 'records' && s.state !== 'done' ? { ...s, state: 'needsYou', why: 'lapsed', nextTryAt: undefined } : s,
+    ),
+  });
+
+/** 30 days after approval and still not done: stopped, for the person to look at. */
+export const stuck = (j: Job, now: number): Job =>
+  withHash({
+    ...j,
+    state: 'stopped',
+    endedAt: now,
+    figures: undefined,
+    steps: j.steps.map((s) =>
+      s.state === 'done' ? s : { ...s, state: 'needsYou', why: 'stuck', nextTryAt: undefined },
+    ),
   });
 
 // ---- where jobs are kept ----------------------------------------------------------------------
@@ -299,10 +407,33 @@ export const __useJobBackend = (b: JobBackend = memoryBackend()): JobBackend => 
   return b;
 };
 
-/** Drops a job's held records (bulk-import.ts dropHeld): set by the app, a stand-in in tests. */
-let dropHeldRows: (hashes: readonly string[]) => Promise<unknown> = () => Promise.resolve();
-export const setDropHeld = (f: (hashes: readonly string[]) => Promise<unknown>): void => {
-  dropHeldRows = f;
+/**
+ * What the store asks of the rest of the app, set by it (ask-job/prepare.ts), stand-ins in tests:
+ *   dropHeld       drop this job's own held rows (bulk-import.ts dropHeld: `held` rows only)
+ *   rowsPending    whether any of these rows are `pending` in the ledger (they may have landed)
+ *   forgetStamps   clear this job's stamps from the stamp queue (key-stamp.ts byJob), unless stopped
+ */
+export type StoreHooks = {
+  dropHeld: (hashes: readonly string[], job: string) => Promise<unknown>;
+  rowsPending: (hashes: readonly string[]) => boolean;
+  forgetStamps: (job: string) => void;
+};
+let hooks: StoreHooks = {
+  dropHeld: () => Promise.resolve(),
+  rowsPending: () => false,
+  forgetStamps: () => undefined,
+};
+export const setStoreHooks = (h: Partial<StoreHooks>): void => {
+  hooks = { ...hooks, ...h };
+};
+
+/**
+ * What goes with a job that ends without its records sent: its held rows (only if its records step
+ * never started: B2) and its stamps not yet made (S7).
+ */
+const letGo = async (j: Job): Promise<void> => {
+  hooks.forgetStamps(j.id);
+  if (j.refs.rowHashes?.length && !recordsStarted(j)) await hooks.dropHeld(j.refs.rowHashes, j.id);
 };
 
 const listeners = new Set<() => void>();
@@ -332,25 +463,29 @@ export const listJobs = async (now = Date.now()): Promise<Job[]> => {
   const out: Job[] = [];
   let changed = false;
   for (const j of await b.all()) {
-    const what = sweepOf(j, now);
+    const pending = !!j.refs.rowHashes?.length && hooks.rowsPending(j.refs.rowHashes);
+    const what = sweepOf(j, now, pending);
     if (what === 'keep') {
       out.push(j);
       continue;
     }
     changed = true;
-    const kept = await b.tx(j.id, (cur) => {
-      if (!cur) return { out: undefined };
-      const again = sweepOf(cur, now);
-      if (again === 'delete') return { del: true, out: undefined };
-      if (again === 'expire') {
-        const e = expired(cur, now);
-        return { put: e, out: e };
-      }
-      return { out: cur };
+    const kept = await b.tx<{ job?: Job; ended: boolean }>(j.id, (cur) => {
+      if (!cur) return { out: { ended: true } };
+      const again = sweepOf(cur, now, pending);
+      if (again === 'delete') return { del: true, out: { ended: true } };
+      const next =
+        again === 'expire'
+          ? expired(cur, now)
+          : again === 'lapse'
+            ? lapsed(cur)
+            : again === 'stuck'
+              ? stuck(cur, now)
+              : cur;
+      return { put: next, out: { job: next, ended: again === 'expire' || again === 'stuck' } };
     });
-    // Records held for its backup and never sent go with it (only `held` rows: dropHeld).
-    if (j.refs.rowHashes?.length) await dropHeldRows(j.refs.rowHashes);
-    if (kept) out.push(kept);
+    if (kept.ended) await letGo(kept.job ?? j);
+    if (kept.job) out.push(kept.job);
   }
   if (changed) notify();
   return out.sort((a, b) => b.createdAt - a.createdAt);
@@ -371,9 +506,10 @@ export const approveJob = async (
   id: string,
   renderedHash: string,
   now = Date.now(),
+  answered: (j: Job) => boolean = complete,
 ): Promise<{ job: Job } | { refused: ApproveRefusal }> => {
   const r = await pick().tx<{ job: Job } | { refused: ApproveRefusal }>(id, (cur) => {
-    const a = approveIn(cur, renderedHash, now);
+    const a = approveIn(cur, renderedHash, now, answered);
     return 'job' in a ? { put: a.job, out: a } : { out: a };
   });
   notify();
@@ -405,10 +541,15 @@ export const updateJob = async (id: string, change: (j: Job) => Job | undefined)
   return r;
 };
 
-/** Discard a job not approved: its held records are dropped (only `held` ones). */
+/**
+ * Discard a job: one not approved, or approved but not started (nothing went: a lapsed job the
+ * person chooses not to send). Its held records and its stamps not yet made go.
+ */
 export const discardJob = async (id: string, now = Date.now()): Promise<void> => {
   const j = await updateJob(id, (cur) =>
-    cur.state === 'ready' ? withHash({ ...cur, state: 'discarded', endedAt: now, figures: undefined }) : undefined,
+    cur.state === 'ready' || ((cur.state === 'approved' || cur.state === 'running') && !anyStarted(cur))
+      ? withHash({ ...cur, state: 'discarded', endedAt: now, figures: undefined })
+      : undefined,
   );
-  if (j?.state === 'discarded' && j.refs.rowHashes?.length) await dropHeldRows(j.refs.rowHashes);
+  if (j?.state === 'discarded') await letGo(j);
 };
