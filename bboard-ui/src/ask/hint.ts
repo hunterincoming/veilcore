@@ -5,6 +5,9 @@
 // The example must do what it says: it is read with Shortcuts before it is shown, and a record
 // whose name would send it elsewhere ("Due Diligence" reads as What's due, "Backup" as the backup
 // screen) is passed over for the next latest. No record that works: no hint.
+//
+// Only the person's own records: a received record's name was chosen by whoever sent it, and the
+// hint puts its text in the Ask box with one tap, so it never comes from there.
 // SPDX-License-Identifier: Apache-2.0
 
 import { isAnimal } from '../veilcore/animal-profile';
@@ -30,7 +33,22 @@ export const agreementScreen = (pathname: string): boolean =>
   /^\/(license|license-invite|prove-license)\/[^/]+(\/.*)?$/.test(pathname) ||
   /^\/(claim|lender)\/?$/.test(pathname);
 
-type HintRecord = Pick<StrainRecord, 'id' | 'strainName'> & { readonly profile?: string; readonly loggedAt?: number };
+type HintRecord = Pick<StrainRecord, 'id' | 'strainName'> & {
+  readonly profile?: string;
+  readonly loggedAt?: number;
+  readonly receivedFrom?: string;
+  readonly receivedFromCommitment?: string;
+  readonly receivedAt?: number;
+  readonly transferId?: string;
+};
+
+/**
+ * A record that came from someone else, by any of the marks a received record carries
+ * (records.ts receivedFields): the source's id, its commitment (which can come without the id,
+ * transfers.ts custodySubject), when it arrived, or its transfer.
+ */
+const isReceivedRecord = (r: HintRecord): boolean =>
+  Boolean(r.receivedFrom || r.receivedFromCommitment || r.receivedAt || r.transferId);
 export type HintKind = 'clones' | 'calves';
 
 /** The example to show, or undefined. `render` writes it in the person's language. */
@@ -39,7 +57,9 @@ export const hintExample = (
   animalsOffered: boolean,
   render: (kind: HintKind, name: string) => string,
 ): { readonly kind: HintKind; readonly name: string; readonly text: string } | undefined => {
-  const named = records.filter((r) => (r.strainName ?? '').trim().length >= 2 && (r.strainName ?? '').length <= 60);
+  const named = records.filter(
+    (r) => !isReceivedRecord(r) && (r.strainName ?? '').trim().length >= 2 && (r.strainName ?? '').length <= 60,
+  );
   const animals = named.filter(isAnimal);
   const plants = named.filter((r) => !isAnimal(r) && !isStrain(r));
   const kind: HintKind = animalsOffered && animals.length > 0 && animals.length > plants.length ? 'calves' : 'clones';

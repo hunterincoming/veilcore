@@ -495,6 +495,9 @@ export const licensing = {
   'app.lic.real.needAnchor':
     'Pour concéder une vraie licence sur cet enregistrement, établissez d’abord sur sa page la preuve que vous le détenez. La licence est émise à partir de la clé propre de l’enregistrement.',
   'app.lic.real.openRecord': 'Ouvrir l’enregistrement',
+  'app.lic.real.inviteUnsure':
+    'Impossible de savoir si le lien a été créé : aucune réponse claire n’est revenue. S’il l’a été, personne ne peut l’utiliser, car il n’est jamais arrivé sur cette page, et il expire de lui-même au bout de 30 jours. D’ici là, le serveur de VeilCore garde avec lui le nom saisi et l’identité on-chain de cet enregistrement. Ne créez un nouveau lien que si vous en avez encore besoin.',
+  'app.lic.real.inviteAgain': 'Créer un nouveau lien',
   'app.lic.real.notAccepted': 'L’autre partie n’a pas encore accepté.',
   'app.lic.real.keyChanged':
     'La clé de cet enregistrement a changé depuis l’acceptation. Rien n’a été envoyé : recommencez avec un nouveau lien.',

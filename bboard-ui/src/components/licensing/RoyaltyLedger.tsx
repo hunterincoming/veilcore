@@ -10,7 +10,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { forgetKey, nameKey } from '../../veilcore/payment-partners';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Alert,
   Box,
@@ -29,7 +29,8 @@ import {
   Typography,
 } from '@mui/material';
 import ContentCopyIcon from '@mui/icons-material/ContentCopyOutlined';
-import { downloadDealRecord, say, type DealEntry, type DealParty } from '../../veilcore/deal-client';
+import { TabLockUnavailable } from '../../veilcore/tab-lock';
+import { downloadDealRecord, sayOnce, type DealEntry, type DealParty } from '../../veilcore/deal-client';
 import { publicOf, type DealSide, type StatementLine } from '../../veilcore/deal';
 import {
   currencyDigits,
@@ -121,7 +122,7 @@ const dayText = (d: string, tr: Translator): string => dateWords(d, tr);
 /** A signed time as a calendar date, in the same short form as every other date here. */
 const when = (ms: number, tr: Translator): string => tr.date(ms, { day: 'numeric', month: 'short', year: 'numeric' });
 
-type Send = (b: Parameters<typeof say>[1]) => Promise<boolean>;
+type Send = (b: Parameters<typeof sayOnce>[1]) => Promise<boolean>;
 
 export const RoyaltyLedger: React.FC<{
   party: DealParty;
@@ -145,6 +146,7 @@ export const RoyaltyLedger: React.FC<{
   );
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string>();
+  const [notice, setNotice] = useState<string>();
   const [form, setForm] = useState<
     { kind: 'report'; period?: RoyaltyPeriod; replaces?: Report } | { kind: 'payout' } | { kind: 'invoice' }
   >();
@@ -180,18 +182,34 @@ export const RoyaltyLedger: React.FC<{
     [ledger],
   );
 
+  // One send at a time from this page: a second tap before the first answers sends nothing.
+  const sending = useRef(false);
+  /**
+   * Every royalty message is signed once and sent at most once (deal-client.ts sayOnce): after a
+   * lost answer, trying again sends the same signed message, never a second report or payment.
+   */
   const send: Send = async (body) => {
+    if (sending.current) return false;
+    sending.current = true;
     setBusy(true);
     setError(undefined);
+    setNotice(undefined);
     try {
-      await say(party, body);
+      const r = await sayOnce(party, body);
+      // A report that says the same as one already there is that report (royalty-ledger.ts):
+      // say so, rather than look as if a second one went.
+      if (r.already && body.type === 'statement')
+        setNotice(
+          r.sentAt ? tr.t('app.roy.alreadyThereOn', { date: when(r.sentAt, tr) }) : tr.t('app.roy.alreadyThere'),
+        );
       setForm(undefined);
       refresh();
       return true;
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(e instanceof TabLockUnavailable ? tr.t('app.roy.noLock') : e instanceof Error ? e.message : String(e));
       return false;
     } finally {
+      sending.current = false;
       setBusy(false);
     }
   };
@@ -324,9 +342,14 @@ export const RoyaltyLedger: React.FC<{
         </Box>
 
         <HowToRead tr={tr} />
+        {notice && (
+          <Alert severity="info" variant="outlined" data-already-there="" onClose={() => setNotice(undefined)}>
+            {notice}
+          </Alert>
+        )}
         {error && (
-          <Alert severity="error" variant="outlined">
-            {error}
+          <Alert severity="error" variant="outlined" data-send-error="">
+            {error} {tr.t('app.roy.sendsSame')}
           </Alert>
         )}
       </Stack>
@@ -1611,7 +1634,7 @@ const PayoutForm: React.FC<{
   allowLink: boolean;
   before?: Extract<DealEntry, { type: 'payout' }>;
   tr: Translator;
-  onSend: (b: Parameters<typeof say>[1]) => void;
+  onSend: (b: Parameters<typeof sayOnce>[1]) => void;
   onCancel: () => void;
 }> = ({ busy, currency, allowLink, before, tr, onSend, onCancel }) => {
   const [holder, setHolder] = useState(before && !tokenOfMethod(before.method) ? before.account : '');
@@ -1677,7 +1700,7 @@ const InvoiceForm: React.FC<{
   busy: boolean;
   before?: Extract<DealEntry, { type: 'invoice-details' }>;
   tr: Translator;
-  onSend: (b: Parameters<typeof say>[1]) => void;
+  onSend: (b: Parameters<typeof sayOnce>[1]) => void;
   onCancel: () => void;
 }> = ({ busy, before, tr, onSend, onCancel }) => {
   const [name, setName] = useState(before?.legalName ?? '');

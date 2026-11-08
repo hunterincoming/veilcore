@@ -10,7 +10,9 @@ import { identityOf, licenseRequestFor, recoveryCommitmentOf } from './chain/act
 import { contractStateAfter } from './chain/test-chain';
 import {
   commitHashOf,
+  createInvite,
   headNow,
+  InviteOutcomeUnknown,
   invitePath,
   licenseCode,
   licenseStatusNow,
@@ -175,5 +177,61 @@ describe("the licensee's key in this browser and its backup", () => {
     expect(mergeHeldLicenses([{ ...held(), secret: 'ff'.repeat(32) }, other, { junk: true }])).toBe(1);
     expect(heldLicense(held().inviteId)?.secret).toBe('aa'.repeat(32));
     expect(heldLicense(other.inviteId)?.secret).toBe('ee'.repeat(32));
+  });
+});
+
+describe('making an invite when the answer is lost', () => {
+  const ID = 'aa'.repeat(32);
+  const answer = (status: number, body: unknown) =>
+    vi.fn(() => Promise.resolve(new Response(JSON.stringify(body), { status })));
+
+  it('an id that comes back is the invite', async () => {
+    vi.stubGlobal('fetch', answer(200, { id: `LI-${'A'.repeat(32)}`, expiresAt: 1 }));
+    try {
+      const inv = await createInvite(ID, 'Joe');
+      expect(inv.inviteId).toBe(`LI-${'A'.repeat(32)}`);
+      expect(inv.acceptToken).not.toBe(inv.issuerToken);
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it('a refusal says why: nothing was made', async () => {
+    vi.stubGlobal('fetch', answer(429, { error: 'too many invites from this address today; try again tomorrow' }));
+    try {
+      const e = await createInvite(ID, 'Joe').catch((x: unknown) => x);
+      expect(e).toBeInstanceOf(Error);
+      expect(e).not.toBeInstanceOf(InviteOutcomeUnknown);
+      expect((e as Error).message).toMatch(/too many invites/);
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  for (const [what, f] of [
+    ['no connection', vi.fn(() => Promise.reject(new TypeError('Failed to fetch')))],
+    ['a server error', answer(502, { error: 'bad gateway' })],
+    ['an answer without an id', answer(200, { ok: true })],
+  ] as const)
+    it(`${what}: it may have been made, and it says so instead of guessing`, async () => {
+      vi.stubGlobal('fetch', f);
+      try {
+        await expect(createInvite(ID, 'Joe')).rejects.toBeInstanceOf(InviteOutcomeUnknown);
+        // One request: never a second invite behind the person's back.
+        expect(f).toHaveBeenCalledTimes(1);
+      } finally {
+        vi.unstubAllGlobals();
+      }
+    });
+
+  it('the pages make another only when asked, and one per tap', async () => {
+    const { readFile } = await import('node:fs/promises');
+    for (const file of ['../components/licensing/RealLicensePanel.tsx', '../components/licensing/HandOnIssuer.tsx']) {
+      const src = await readFile(new URL(file, import.meta.url), 'utf8');
+      expect(src, file).toMatch(/e instanceof InviteOutcomeUnknown\) setUnsure\(true\)/);
+      expect(src, file).toMatch(/disabled=\{[^}]*unsure[^}]*\}/);
+      expect(src, file).toContain("tr.t('app.lic.real.inviteAgain')");
+      expect(src, file).toMatch(/if \((sending|starting)\.current\) return;/);
+    }
   });
 });

@@ -12,13 +12,18 @@
 //   - a payment settles a report only if it is exactly the accepted amount, in its currency (to
 //     the currency's own digits). Anything else is a short payment: the rest stays owed, and
 //     the report stays to pay (and overdue) (panel M2);
-//   - a report the licensor asked to fix is replaced by a corrected one naming it (`replaces`).
+//   - a report the licensor asked to fix is replaced by a corrected one naming it (`replaces`);
+//   - two reports for the same period that say exactly the same thing (deal-content.ts: all but
+//     the signed time and the report's id) are one report, the first: a resend signed again, or a
+//     second tab, never doubles what is owed. An answer, payment or confirmation naming the copy
+//     counts for the first, under the same "first one stands" rules.
 // "I paid" opens only once the licensor has accepted (design v3, 3): there is no deemed acceptance,
 // because signed times are the sender's own clock.
 // SPDX-License-Identifier: Apache-2.0
 
 import type { DealEntry } from './deal-client';
 import { dealOrder } from './deal-order';
+import { entryContent } from './deal-content';
 import type { DealBody, StatementLine } from './deal';
 import type { LicenseTerms } from './licenses';
 import {
@@ -93,11 +98,20 @@ export const ledgerOf = (entries: readonly DealEntry[]): Ledger => {
   const payouts = sorted.filter((e): e is PayoutEntry => e.type === 'payout' && e.from === 'issuer');
   const invoices = sorted.filter((e): e is InvoiceEntry => e.type === 'invoice-details' && e.from === 'issuer');
   const bySig = new Map<string, Report>();
+  const byContent = new Map<string, Report>();
   const ordered: Report[] = [];
   for (const e of sorted) {
     if (e.type !== 'statement' || e.from !== 'licensee') continue;
+    // The same report signed again (its period is in what it says): the first one stands.
+    const same = entryContent(e);
+    const first = byContent.get(same);
+    if (first) {
+      bySig.set(e.signature, first);
+      continue;
+    }
     const r: Report = { statement: e, number: ordered.length + 1, notices: [] };
     bySig.set(e.signature, r);
+    byContent.set(same, r);
     ordered.push(r);
   }
   const notices: NoticeEntry[] = [];

@@ -169,6 +169,13 @@ export const royalties = {
   'app.roy.howI':
     'Cada período: la otra parte envía un informe, usted lo acepta o pide corregirlo, ella paga y usted confirma que llegó.',
   'app.roy.none': 'Aún no hay informes.',
+  'app.roy.noLock':
+    'Este navegador no guarda lo que VeilCore necesita para enviar desde una sola pestaña a la vez, así que no se envió nada.',
+  'app.roy.alreadyThereOn':
+    'Este informe ya está: uno con exactamente las mismas cifras para este periodo se envió el {date}, así que no se envió nada nuevo. Para enviar otro del mismo periodo, añada una nota que diga para qué es.',
+  'app.roy.alreadyThere':
+    'Este informe ya está: uno con exactamente las mismas cifras para este periodo ya se envió, así que no se envió nada nuevo. Para enviar otro del mismo periodo, añada una nota que diga para qué es.',
+  'app.roy.sendsSame': 'Si lo intenta de nuevo, se envía el mismo mensaje firmado, así que no puede contar dos veces.',
   'app.roy.home.l.running': 'Este período termina pronto. Su informe de {period} vencerá el',
   'app.roy.home.l.report': 'Su informe de {period} vence el',
   'app.roy.home.l.answer': 'El informe {n} espera la respuesta de {licensor}.',
