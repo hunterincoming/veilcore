@@ -176,6 +176,10 @@ export const job = {
   'app.job.left.backup': 'Speichern Sie Ihre Sicherung, um freizugeben',
   'app.job.left.idsUnused':
     'Sie haben Kennnummern eingegeben, aber noch nicht verwendet. Verwenden Sie diese Kennnummern oder leeren Sie die Felder.',
+  'app.job.left.idsBlocked':
+    'Eine Kennnummer hier gehört bereits einem anderen Tier. Korrigieren Sie zuerst das rot markierte Feld.',
+  'app.job.left.idsMoved':
+    'Die Kennnummern dieses Auftrags wurden in einem anderen Tab geändert. Ihre eingegebenen Kennnummern sind noch hier: Verwenden Sie sie, um jene zu ersetzen, oder leeren Sie sie, um die neuen zu sehen.',
   'app.job.left.scroll': 'Lesen Sie „Nicht rückgängig zu machen“, um freizugeben',
   'app.job.left.saving': 'Ihre Eingabe wird gespeichert…',
   'app.job.left.ready': 'Bereit zur Freigabe',
@@ -269,6 +273,10 @@ export const job = {
   'app.job.ids.no.twice': '{id} steht in zwei Feldern.',
   'app.job.ids.no.taken': '{id} ist bereits die Kennnummer von {name}.',
   'app.job.ids.no.elsewhere': '{id} ist bereits die Kennnummer von {name}, einem anderen Ihrer Tiere.',
+  'app.job.ids.offline':
+    'Ihre anderen Geräte konnten nicht geprüft werden, daher wurde nichts gespeichert. Versuchen Sie es erneut, wenn Sie online sind.',
+  'app.job.ids.clash':
+    'Gespeichert, aber {id} steht jetzt bei {names}: Ein anderes Gerät hat es im selben Moment gespeichert. Korrigieren Sie eines davon noch heute.',
   'app.job.ids.changed':
     'Seit dies angezeigt wurde, hat sich auf einem anderen Gerät oder in einem anderen Tab etwas geändert, daher wurde nichts weiter gespeichert. Prüfen Sie die Felder und speichern Sie erneut.',
   'app.job.ids.paste.spaces':

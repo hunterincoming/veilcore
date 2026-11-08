@@ -148,6 +148,9 @@ export const job = {
   'app.job.left.backup': '承認するにはバックアップを保存してください',
   'app.job.left.idsUnused':
     '番号を入力しましたが、まだ使っていません。「この番号を使う」を押すか、入力を消してください。',
+  'app.job.left.idsBlocked': 'ここの番号が、すでに別の動物の番号になっています。先に赤く表示された欄を直してください。',
+  'app.job.left.idsMoved':
+    'この作業の番号が別のタブで変更されました。入力した番号はそのまま残っています。「この番号を使う」で置き換えるか、入力を消して新しい番号を表示してください。',
   'app.job.left.scroll': '承認するには「元に戻せないこと」を読んでください',
   'app.job.left.saving': '入力を保存しています…',
   'app.job.left.ready': '承認できます',
@@ -232,6 +235,10 @@ export const job = {
   'app.job.ids.no.twice': '{id}が2つの欄にあります。',
   'app.job.ids.no.taken': '{id}はすでに{name}の番号です。',
   'app.job.ids.no.elsewhere': '{id}は、あなたの別の動物「{name}」の番号です。',
+  'app.job.ids.offline':
+    'ほかの端末を確認できなかったため、何も保存していません。オンラインのときにもう一度試してください。',
+  'app.job.ids.clash':
+    '保存しましたが、{id}がいま{names}にあります。別の端末が同時に保存しました。今日中にどちらかを訂正してください。',
   'app.job.ids.changed':
     '表示してから別の端末か別のタブで変更があったため、これ以上は保存していません。欄を確認して、もう一度保存してください。',
   'app.job.ids.paste.spaces':

@@ -313,14 +313,16 @@ export const pasteInto = (
 };
 
 /**
- * Text put into an empty box all at once without a paste event (a phone's clipboard chip, an
- * input method), split where it holds several IDs: words that each have a digit and share one
- * shape ("M1 M2 M3", "985112000000001 985112000000002") are a column; a word without a digit
- * means one ID written with spaces ("UK 123456 700001"), so it is left whole (undefined); words
- * with digits of different shapes can't be told apart: 'unclear'.
+ * Text put into an empty box all at once without a paste event (a phone's clipboard chip,
+ * autofill, dictation), with spaces in it. It is never split across young (verification round 6,
+ * S1): one ID is often printed in groups ("985 112 345 678 901", "UK 123456 700001"), and a
+ * real paste keeps it in one box too. Kept whole (undefined) when it reads as one ID in groups:
+ * a word with no digit (a country or herd mark), or digit groups only. Refused ('unclear') when
+ * every word mixes letters and digits ("M1 M2 M3"): that is likely several IDs, and which young
+ * each is for can't be told.
  */
-export const splitInsert = (text: string): string[] | 'unclear' | undefined => {
+export const splitInsert = (text: string): 'unclear' | undefined => {
   const words = text.trim().split(/\s+/).filter(Boolean);
-  if (words.length < 2 || words.some((w) => !DIGIT.test(w))) return undefined;
-  return new Set(words.map(shapeOf)).size === 1 ? words : 'unclear';
+  if (words.length < 2) return undefined;
+  return words.every((w) => DIGIT.test(w) && LETTER.test(w)) ? 'unclear' : undefined;
 };

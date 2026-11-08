@@ -10,9 +10,10 @@
 // already has an ID (a double beep, a 7th scan) is taken back, with a note. A person's Tab moves
 // focus as anywhere else, on to the buttons; a person's Enter in a filled box moves to the next
 // empty one. A paste fills its box and the boxes below, one line each, only when it plainly lines
-// up, and so does text put in all at once without a paste (a phone's clipboard chip: "M1 M2 M3");
-// otherwise nothing is filled and the reason sits right under that box. Under the boxes, each
-// young with the ID it will get.
+// up;
+// otherwise nothing is filled and the reason sits right under that box. Text put into one box
+// all at once without a paste (a phone's clipboard chip) stays in that box, never split across
+// young. Under the boxes, each young with the ID it will get.
 // SPDX-License-Identifier: Apache-2.0
 
 import React, { useEffect, useRef, useState } from 'react';
@@ -119,19 +120,13 @@ export const IdBoxes: React.FC<{
   };
   const onChange = (key: string, next: string) => {
     const before = values[key] ?? '';
-    // Several IDs put in an empty box at once, with no paste event (a phone's clipboard chip, an
-    // input method): read as a pasted column, or refused if it can't be told (S1).
-    if (!before.trim() && next.length - before.length > 1) {
-      const split = splitInsert(next);
-      if (split === 'unclear') {
-        onValues({ ...values, [key]: '' });
-        setNote({ at: key, note: { why: 'spaces' } });
-        return;
-      }
-      if (split) {
-        paste(key, split.join('\n'));
-        return;
-      }
+    // Several words put in an empty box at once, with no paste event (a phone's clipboard chip,
+    // autofill): kept whole as one ID in groups, never split across young; refused when it is
+    // likely several IDs (S1).
+    if (!before.trim() && next.length - before.length > 1 && splitInsert(next) === 'unclear') {
+      onValues({ ...values, [key]: '' });
+      setNote({ at: key, note: { why: 'spaces' } });
+      return;
     }
     // Changed other than by adding to it (cleared, edited by hand): no longer the scanned ID.
     const was = scanned.current.get(key);

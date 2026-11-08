@@ -153,6 +153,9 @@ export const job = {
   'app.job.left.questions.other': 'Answer {count} questions to approve',
   'app.job.left.backup': 'Save your backup to approve',
   'app.job.left.idsUnused': 'You typed IDs but haven’t used them yet. Use these IDs, or clear them.',
+  'app.job.left.idsBlocked': 'An ID here is already on another animal. Fix the box marked in red first.',
+  'app.job.left.idsMoved':
+    'The IDs in this job changed in another tab. The IDs you typed are still here: use them to replace those, or clear them to see the new ones.',
   'app.job.left.scroll': 'Read “Can’t be undone” to approve',
   'app.job.left.saving': 'Saving what you typed…',
   'app.job.left.ready': 'Ready to approve',
@@ -245,6 +248,9 @@ export const job = {
   'app.job.ids.no.twice': '{id} is in two boxes.',
   'app.job.ids.no.taken': '{id} is already {name}’s ID.',
   'app.job.ids.no.elsewhere': '{id} is already the ID of {name}, another of your animals.',
+  'app.job.ids.offline': 'Couldn’t check your other devices, so nothing was saved. Try again when you’re online.',
+  'app.job.ids.clash':
+    'Saved, but {id} is now on {names}: another device saved it at the same moment. Correct one of them today.',
   'app.job.ids.changed':
     'Something changed on another device or in another tab since this was shown, so nothing more was saved. Check the boxes, then save again.',
   'app.job.ids.paste.spaces':

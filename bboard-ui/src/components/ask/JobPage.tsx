@@ -363,6 +363,8 @@ const JobResult: React.FC<{ job: Job; fromApp: boolean }> = ({ job: latest, from
     !empty &&
     !unsaved &&
     !idsDraft.dirty &&
+    // An ID in the plan now on another animal (saved elsewhere meanwhile): never approved (round 6, S2).
+    !idsDraft.blocked &&
     // A change from another tab is said at the top; Approve still sends only the plan shown here,
     // and the store refuses it if that isn't the plan any more (compare-and-set).
     savingCount === 0;
@@ -835,7 +837,7 @@ const JobResult: React.FC<{ job: Job; fromApp: boolean }> = ({ job: latest, from
               // By the Approve button, so it is in view on a phone: typed IDs are used or cleared, never dropped.
               <Stack spacing={1} data-job-ids-unused="">
                 <Typography variant="body2" sx={{ fontWeight: 700 }} role="alert">
-                  {t('app.job.left.idsUnused')}
+                  {idsDraft.moved ? t('app.job.left.idsMoved') : t('app.job.left.idsUnused')}
                 </Typography>
                 <Stack direction="row" spacing={1}>
                   <Button
@@ -858,6 +860,16 @@ const JobResult: React.FC<{ job: Job; fromApp: boolean }> = ({ job: latest, from
                   </Button>
                 </Stack>
               </Stack>
+            ) : idsDraft.blocked ? (
+              <Typography
+                variant="body2"
+                sx={{ fontWeight: 700 }}
+                role="alert"
+                data-approve-left=""
+                data-job-ids-blocked=""
+              >
+                {t('app.job.left.idsBlocked')}
+              </Typography>
             ) : (
               <Typography variant="body2" sx={{ fontWeight: 700 }} data-approve-left="">
                 {left}
@@ -998,6 +1010,8 @@ type IdsDraft = ReturnType<typeof checkBoxes> & {
   setValues: (v: Record<string, string>) => void;
   /** Typed and not put in the plan yet: Approve waits (S8). */
   dirty: boolean;
+  /** The plan's IDs changed in another tab while IDs were typed here: they are kept, and said. */
+  moved: boolean;
   blocked: boolean;
   use: () => void;
   clear: () => void;
@@ -1012,11 +1026,23 @@ const useIdsDraft = (
   const fromPlan = () => Object.fromEntries(rows.map((r, i) => [r.key, planned[i] ?? '']));
   const [values, setValues] = useState<Record<string, string>>(fromPlan);
   const plan = rows.map((r, i) => (planned[i] ?? '').trim()).join('\n');
-  // The plan changed (another tab, or Use here): the boxes show it.
+  const typedNow = (v: Readonly<Record<string, string>>) => {
+    const l = rows.map((r) => (v[r.key] ?? '').trim());
+    while (l.length && !l[l.length - 1]) l.pop();
+    return l.join('\n');
+  };
+  // The plan changed (another tab, or Use here). Nothing typed: the boxes show it. IDs typed here
+  // and not used: they stay, and a note says the plan's changed (never cleared without a word).
   const [seenPlan, setSeenPlan] = useState(plan);
+  const [moved, setMoved] = useState(false);
   if (seenPlan !== plan) {
+    const typedBefore = typedNow(values) !== seenPlan.replace(/\n+$/, '');
     setSeenPlan(plan);
-    setValues(fromPlan());
+    if (typedBefore && typedNow(values) !== plan.replace(/\n+$/, '')) setMoved(true);
+    else {
+      setValues(fromPlan());
+      setMoved(false);
+    }
   }
   const checked = checkBoxes(rows, values, others);
   const list = rows.map((r) => (values[r.key] ?? '').trim());
@@ -1028,9 +1054,13 @@ const useIdsDraft = (
     values,
     setValues,
     dirty,
+    moved: moved && dirty,
     blocked: Object.keys(checked.errors).length > 0,
     use: () => onUse(list),
-    clear: () => setValues(fromPlan()),
+    clear: () => {
+      setValues(fromPlan());
+      setMoved(false);
+    },
   };
 };
 

@@ -202,11 +202,16 @@ describe('round 5: lists, headings over one ID, and several IDs put in at once',
     expect(boxes(pasteInto(six, 'p1', 'UK1\nUK22', {}))).toEqual(['p1=UK1', 'p2=UK22']);
   });
 
-  it('several IDs put in at once with spaces: a column when they share a shape, unclear when not, one ID with a word', () => {
-    expect(splitInsert('M1 M2 M3')).toEqual(['M1', 'M2', 'M3']);
-    expect(splitInsert('985112000000001 985112000000002')).toEqual(['985112000000001', '985112000000002']);
-    expect(splitInsert('A1 B22')).toBe('unclear');
+  it('words put in one box at once are never split across young: one ID in groups stays whole, several IDs are refused', () => {
+    expect(splitInsert('985 112 345 678 901')).toBeUndefined();
+    expect(splitInsert('123456 700001')).toBeUndefined();
     expect(splitInsert('UK 123456 700001')).toBeUndefined();
+    expect(splitInsert('M1 M2 M3')).toBe('unclear');
+    expect(splitInsert('A1 B22')).toBe('unclear');
     expect(splitInsert('A1')).toBeUndefined();
+    // Kept whole, it is one ID in one box.
+    expect(checkBoxes(six, { p1: '985 112 345 678 901' }).pairs.map(([r, id]) => `${r.key}=${id}`)).toEqual([
+      'p1=985 112 345 678 901',
+    ]);
   });
 });

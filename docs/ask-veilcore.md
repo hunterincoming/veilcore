@@ -421,27 +421,34 @@ unknown outcome stops and asks. There is no automatic rollback.
   its pair is swallowed, and a scan into a box a scan already filled (a double beep) is taken
   back with a note. A person's Tab moves focus as anywhere, so the buttons (Save, "Use these
   IDs", Approve) are reached by keyboard; a person's Enter in a filled box moves to the next
-  empty one. Several IDs put into an empty box at once without a paste (a phone's clipboard
-  chip: "M1 M2 M3") are read as a pasted column when they share a shape, and refused when they
-  can't be told apart. A paste is a shortcut: it fills its box and the boxes below, one line each, only
-  when it plainly lines up. More than one column, a list on one line (comma or semicolon), a
-  heading, invisible or control characters, more lines than boxes from there down, or a first
-  line that is an ID a young already has, are refused with nothing filled (Japanese commas count as
-commas, and a heading over a single ID is caught too); it stops at a young
+  empty one. Words put into one box at once without a paste (a phone's clipboard chip,
+  autofill) are never split across young: one ID printed in groups ("985 112 345 678 901") stays
+  whole, and words that each mix letters and digits ("M1 M2 M3", likely several IDs) are refused.
+  A paste is a shortcut: it fills its box and the boxes below, one line each, only when it
+  plainly lines up. More than one column, a list on one line (comma or semicolon, Japanese commas
+  too), a heading (over a single ID too), invisible or control characters, more lines than boxes
+  from there down, or a first line that is an ID a young already has, are refused with nothing
+  filled; it stops at a young
   that has an ID and says so, and an empty line never clears what was typed. Before Save, each
   young is listed with the ID it will get; a box that breaks a rule (the same ID twice, one
   already in the litter or on another of the person's animals) says why under it, and Save
   waits. The boxes are locked while Save runs. Right before each correction the records are read
   afresh, the boxes rebuilt and every check run again (`src/ask-job/save-ids.ts`): if anything
   differs from what the person saw (another device put that ID on another pup meanwhile),
-  nothing more is sent and the screen says so. And a record is corrected once
-  (`records.ts issueCorrection` refuses a record that has a correction already, unless the
-  change is that correction's own, compared field by field). So two tabs or devices can't give
-  one pup two IDs, or one ID to two pups. Cancel with IDs typed asks first. The IDs on a litter's result screen use
+  nothing more is sent and the screen says so. That read must reach the registry: offline, or
+  when it answers with an error, nothing is saved and the person is told to try again online
+  (`records.ts refresh`). And a record is corrected once (`records.ts issueCorrection` refuses a
+  record that has a correction already, unless the change is that correction's own, compared
+  field by field). Online, this stops a stale tab or device from giving one pup two IDs, or one
+  ID to two pups. It can't stop two devices that press Save in the same second, each reading
+  before the other's write lands: after the last correction the records are read once more, and
+  an ID now on two animals is said loudly, naming both, so it is corrected the same day. Cancel with IDs typed asks first. The IDs on a litter's result screen use
   the same boxes, before Approve ("Use these IDs" puts them in the plan, bound to its hash), and
   the made block lists each young with its ID (`src/ask-job/ids.ts`). IDs typed there and not
   used keep Approve off, with a note and both actions (use them, or clear them) by the button:
-  typed IDs are never dropped without a word.
+  typed IDs are never dropped without a word, even when another tab changes the plan's IDs
+  meanwhile (they stay, and a note says so). An ID in the plan that is now on another animal
+  keeps Approve off too.
 
 Also on the device while a job waits: its records in the bulk-import ledger as `held` rows, and
 their new keys. A backup made while a job waits holds those keys, for records that may never be

@@ -171,6 +171,10 @@ export const job = {
   'app.job.left.backup': 'Enregistrez votre sauvegarde pour valider',
   'app.job.left.idsUnused':
     'Vous avez saisi des identifiants sans les utiliser encore. Utilisez ces identifiants, ou effacez-les.',
+  'app.job.left.idsBlocked':
+    'Un identifiant ici est déjà sur un autre animal. Corrigez d’abord la case marquée en rouge.',
+  'app.job.left.idsMoved':
+    'Les identifiants de cette tâche ont changé dans un autre onglet. Ceux que vous avez saisis sont toujours là : utilisez-les pour les remplacer, ou effacez-les pour voir les nouveaux.',
   'app.job.left.scroll': 'Lisez « Impossible à annuler » pour valider',
   'app.job.left.saving': 'Enregistrement de votre saisie…',
   'app.job.left.ready': 'Prêt à valider',
@@ -264,6 +268,10 @@ export const job = {
   'app.job.ids.no.twice': '{id} est dans deux cases.',
   'app.job.ids.no.taken': '{id} est déjà l’identifiant de {name}.',
   'app.job.ids.no.elsewhere': '{id} est déjà l’identifiant de {name}, un autre de vos animaux.',
+  'app.job.ids.offline':
+    'Impossible de vérifier vos autres appareils, donc rien n’a été enregistré. Réessayez quand vous serez en ligne.',
+  'app.job.ids.clash':
+    'Enregistré, mais {id} est maintenant sur {names} : un autre appareil l’a enregistré au même moment. Corrigez l’un d’eux aujourd’hui.',
   'app.job.ids.changed':
     'Quelque chose a changé sur un autre appareil ou dans un autre onglet depuis l’affichage, donc rien de plus n’a été enregistré. Vérifiez les cases, puis enregistrez à nouveau.',
   'app.job.ids.paste.spaces':

@@ -168,6 +168,10 @@ export const job = {
   'app.job.left.backup': 'Guarde su copia de seguridad para aprobar',
   'app.job.left.idsUnused':
     'Escribió identificaciones pero aún no las ha usado. Use estas identificaciones o bórrelas.',
+  'app.job.left.idsBlocked':
+    'Una identificación de aquí ya está en otro animal. Corrija primero la casilla marcada en rojo.',
+  'app.job.left.idsMoved':
+    'Las identificaciones de esta tarea cambiaron en otra pestaña. Las que escribió siguen aquí: úselas para reemplazar aquellas o bórrelas para ver las nuevas.',
   'app.job.left.scroll': 'Lea «No se puede deshacer» para aprobar',
   'app.job.left.saving': 'Guardando lo que escribió…',
   'app.job.left.ready': 'Listo para aprobar',
@@ -261,6 +265,10 @@ export const job = {
   'app.job.ids.no.twice': '{id} está en dos casillas.',
   'app.job.ids.no.taken': '{id} ya es la identificación de {name}.',
   'app.job.ids.no.elsewhere': '{id} ya es la identificación de {name}, otro de sus animales.',
+  'app.job.ids.offline':
+    'No se pudieron comprobar sus otros dispositivos, así que no se guardó nada. Vuelva a intentarlo cuando tenga conexión.',
+  'app.job.ids.clash':
+    'Guardado, pero {id} está ahora en {names}: otro dispositivo lo guardó en el mismo momento. Corrija uno de ellos hoy.',
   'app.job.ids.changed':
     'Algo cambió en otro dispositivo o en otra pestaña desde que se mostró esto, así que no se guardó nada más. Revise las casillas y guarde de nuevo.',
   'app.job.ids.paste.spaces':
