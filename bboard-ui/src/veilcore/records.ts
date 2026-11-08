@@ -1742,6 +1742,24 @@ export const updateReceivedNotes = (id: string, notes: ReceivedNotes): StrainRec
 export const correctionWaitsForBackup = (id: string): boolean =>
   rowStateOf(RECORDS_KEY, id) === 'legacy' || (!!vaultKeyIfAny() && vaultNeedsBackup());
 
+/** Whether a value already says what an edit would make it say: field by field, never by key order. */
+const saysAlready = (have: unknown, want: unknown): boolean => {
+  if (want === undefined || want === null || want === '') return have === undefined || have === null || have === '';
+  if (typeof want !== 'object') return have === want;
+  if (Array.isArray(want))
+    return Array.isArray(have) && have.length === want.length && want.every((w, i) => saysAlready(have[i], w));
+  if (!have || typeof have !== 'object') return false;
+  return Object.entries(want as Record<string, unknown>).every(([k, w]) =>
+    saysAlready((have as Record<string, unknown>)[k], w),
+  );
+};
+
+/** Whether a record already says what these edits would make it say. */
+const sameEdits = (r: StrainRecord, edits: Partial<StrainRecord>): boolean =>
+  Object.entries(edits).every(([k, v]) => saysAlready((r as Record<string, unknown>)[k], v));
+
+export const ALREADY_CORRECTED = (): string => enT.t('app.sealed.alreadyCorrected');
+
 /**
  * Issue a correction.
  *
@@ -1752,13 +1770,6 @@ export const correctionWaitsForBackup = (id: string): boolean =>
  * Severity comes from the SDK, classified by which field changed. It is not a parameter
  * here, deliberately: a caller who could set it would set it to cosmetic.
  */
-/** Whether a record already says what these edits would make it say. */
-const sameEdits = (r: StrainRecord, edits: Partial<StrainRecord>): boolean =>
-  Object.entries(edits).every(([k, v]) => JSON.stringify((r as Record<string, unknown>)[k]) === JSON.stringify(v));
-
-/** Said when a record has been corrected already: its correction is the one to correct. */
-export const ALREADY_CORRECTED = (): string => enT.t('app.sealed.alreadyCorrected');
-
 export const issueCorrection = async (
   originalId: string,
   edits: Partial<StrainRecord>,

@@ -85,3 +85,118 @@ describe('a record is corrected once', () => {
     expect(again?.refId).toBe('T4');
   });
 });
+
+describe('two devices can’t put one ID on two pups (X6)', () => {
+  const animalPup = async (b: Browser, name: string) =>
+    b.run(async () => {
+      const { ANIMAL_PROFILE } = await import('./animal-profile');
+      const fields: Record<string, unknown> = {
+        nonce: b.m.commitment.newNonce(),
+        strainName: name,
+        bredBy: 'Kennel Nord',
+        dateCreated: '2026-11-01',
+        notes: '',
+        loggedAt: Date.UTC(2026, 10, 1),
+        refId: '',
+        taxon: 'Canis familiaris',
+        profile: ANIMAL_PROFILE,
+        animal: { breed: 'Border Collie', idScheme: '', sex: 'female', herd: '' },
+        parents: [{ name: 'Bella', role: 'dam', individualId: 'BELLA-1' }],
+      };
+      return {
+        id: `VEIL-${randomBytes(16).toString('hex').toUpperCase()}`,
+        ...fields,
+        recordFingerprint: await b.m.commitment.fingerprintRecord(fields as never),
+        licenseIds: [],
+      };
+    });
+
+  it('B, not yet synced, saves pup 4 = T4 after A put T4 on pup 6: nothing is sent, B is told', async () => {
+    const A = await browser('devA');
+    const p4 = await animalPup(A, 'Bella pup 4');
+    const p6 = await animalPup(A, 'Bella pup 6');
+    await A.run(async () => {
+      A.m.holder.holderKey();
+      A.m.vault.mintVault();
+      A.m.vault.markVaultBackedUp();
+      await A.m.records.createRecordSaved(p4 as never);
+      await A.m.records.createRecordSaved(p6 as never);
+      await A.m.backup.checkBackup(fileOf(JSON.stringify(A.m.backup.backupContents())));
+    });
+    // Device B: the same holder and keys (restored from the backup), its own storage.
+    const B = await browser('devB', { map: new Map(A.storage) });
+    await B.run(() => B.m.records.hydrate());
+    const { saveIds, checkNow } = await import('../ask-job/save-ids');
+    const litter = await B.run(() => ({ young: [p4.id, p6.id].map((id) => B.m.records.getRecord(id)!) }));
+    const values = { [p4.id]: 'T4' };
+    // What B's screen shows: pup 4 gets T4, no box flagged.
+    const shown = await B.run(() => checkNow(litter, values, B.m.records.allRecords()));
+    expect(shown.errors).toEqual({});
+    expect(shown.pairs.map(([r, id]) => `${r.name}=${id}`)).toEqual(['Bella pup 4=T4']);
+
+    // Meanwhile device A puts T4 on pup 6.
+    await A.run(() =>
+      A.m.records.issueCorrection(
+        p6.id,
+        { refId: 'T4', animal: { breed: 'Border Collie', herd: '', sex: 'female', idScheme: 'Microchip' } },
+        'ID added',
+      ),
+    );
+    expect(liveCorrectionsOf(p6.id)).toHaveLength(1);
+
+    // B presses Save: the records are read afresh, T4 is now pup 6's, nothing is sent.
+    const r = await B.run(() =>
+      saveIds(litter, values, shown.pairs, 'Microchip', 'ID added', {
+        hydrate: B.m.records.hydrate,
+        allRecords: B.m.records.allRecords,
+        issueCorrection: B.m.records.issueCorrection,
+      }),
+    );
+    expect(r).toEqual({ changed: true, saved: 0 });
+    expect(liveCorrectionsOf(p4.id)).toHaveLength(0);
+    // And B's boxes, drawn again, say why.
+    const again = await B.run(() => checkNow(litter, values, B.m.records.allRecords()));
+    expect(again.errors[p4.id]).toEqual({ why: 'taken', id: 'T4', name: 'Bella pup 6' });
+  });
+
+  it('with nothing changed elsewhere, it saves; the same change again from another device is that correction', async () => {
+    const A = await browser('devA2');
+    const p1 = await animalPup(A, 'Bella pup 1');
+    await A.run(async () => {
+      A.m.holder.holderKey();
+      A.m.vault.mintVault();
+      A.m.vault.markVaultBackedUp();
+      await A.m.records.createRecordSaved(p1 as never);
+      await A.m.backup.checkBackup(fileOf(JSON.stringify(A.m.backup.backupContents())));
+    });
+    const B = await browser('devB2', { map: new Map(A.storage) });
+    await B.run(() => B.m.records.hydrate());
+    const { saveIds, checkNow } = await import('../ask-job/save-ids');
+    const litterOn = (b: Browser) => b.run(() => ({ young: [b.m.records.getRecord(p1.id)!] }));
+    const save = async (b: Browser) => {
+      const litter = await litterOn(b);
+      const values = { [p1.id]: 'W1' };
+      const shown = await b.run(() => checkNow(litter, values, b.m.records.allRecords()));
+      return b.run(() =>
+        saveIds(litter, values, shown.pairs, 'Microchip', 'ID added', {
+          hydrate: b.m.records.hydrate,
+          allRecords: b.m.records.allRecords,
+          issueCorrection: b.m.records.issueCorrection,
+        }),
+      );
+    };
+    expect(await save(A)).toEqual({ saved: 1 });
+    // B, not yet synced, makes the identical change: the registry refuses its stale copy, and
+    // nothing is changed; synced, the same change is that correction, nothing new.
+    const edits = { refId: 'W1', animal: { breed: 'Border Collie', herd: '', sex: 'female', idScheme: 'Microchip' } };
+    await B.run(async () => {
+      await expect(B.m.records.issueCorrection(p1.id, edits as never, 'ID added')).rejects.toThrow(
+        /nothing was changed/,
+      );
+    });
+    await B.run(() => B.m.records.hydrate());
+    const again = await B.run(() => B.m.records.issueCorrection(p1.id, edits as never, 'ID added'));
+    expect(again?.refId).toBe('W1');
+    expect(liveCorrectionsOf(p1.id)).toHaveLength(1);
+  });
+});
