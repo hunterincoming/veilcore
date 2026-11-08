@@ -643,6 +643,60 @@ describe('sealing many rows', () => {
     }
   });
 
+  it('a tab whose lease ran out while it sealed writes and sends nothing, and drops the keys it made', async () => {
+    const reg = registry();
+    const rows = prepared().slice(0, 3);
+    // No Web Locks: the lease. Sealing takes long (a slowed tab); another tab takes the lease.
+    const realNow = Date.now;
+    let skew = 0;
+    vi.spyOn(Date, 'now').mockImplementation(() => realNow() + skew);
+    // Once the lease is taken, time jumps past it while the batch seals.
+    vi.stubGlobal('localStorage', {
+      getItem: (k: string) => local.get(k) ?? null,
+      setItem: (k: string, v: string) => {
+        local.set(k, v);
+        if (k === 'veilcore.lock.veilcore.bulk-ledger') skew = 60_000;
+      },
+      removeItem: (k: string) => void local.delete(k),
+    });
+    try {
+      const out = await sealRows(rows, { commit: reg.commit, batchSize: 3, gapMs: 0 });
+      expect(out.stopped).toBe('Stopped. Pick it up again any time.');
+      expect(reg.sent).toHaveLength(0);
+      expect(Object.keys(loadLedger().rows)).toHaveLength(0);
+      expect(Object.keys(JSON.parse(local.get('veilcore.record-keys.v1') ?? '{}') as object)).toHaveLength(0);
+    } finally {
+      vi.restoreAllMocks();
+      vi.stubGlobal('localStorage', {
+        getItem: (k: string) => local.get(k) ?? null,
+        setItem: (k: string, v: string) => void local.set(k, v),
+        removeItem: (k: string) => void local.delete(k),
+      });
+    }
+    // Picked up again: sealed once, as new records.
+    await sealRows(rows, { commit: reg.commit, batchSize: 3, gapMs: 0 });
+    expect(reg.kept.size).toBe(3);
+  });
+
+  it('a registry that doesn’t answer in time: kept here, and sent again as the same records', async () => {
+    const reg = registry();
+    let hang = true;
+    const slow: Committer = (b) => {
+      if (hang) {
+        hang = false;
+        reg.sent.push(b.map((r) => r.id));
+        return new Promise(() => undefined);
+      }
+      return reg.commit(b);
+    };
+    const rows = prepared().slice(0, 2);
+    const first = await sealRows(rows, { commit: slow, batchSize: 5, gapMs: 0, commitMs: 20 });
+    expect(first.stopped).toMatch(/^Couldn't reach VeilCore's server\. The last 2 rows were kept here/);
+    await sealRows(rows, { commit: slow, batchSize: 5, gapMs: 0 });
+    expect(reg.sent[1]).toEqual(reg.sent[0]);
+    expect(reg.kept.size).toBe(2);
+  });
+
   it('a record the registry refuses by id is dropped with its keys, and the row says why', async () => {
     const reg = registry();
     const picky: Committer = (b) => {

@@ -13,7 +13,7 @@ import {
   setAnchor,
   type RecordKeys,
 } from './record-keys';
-import { withLease, withTabLock } from './tab-lock';
+import { TabLockUnavailable, withLease, withTabLock } from './tab-lock';
 
 const KEY = 'veilcore.record-keys.v1';
 const local = new Map<string, string>();
@@ -134,7 +134,8 @@ describe('one tab at a time', () => {
     expect(request).toHaveBeenCalledWith('x', { mode: 'exclusive' }, expect.any(Function));
   });
 
-  it('storage that can’t be written: the work still runs', async () => {
+  it('storage that can’t be written or read: the work does not run (another tab might be doing it)', async () => {
+    const work = vi.fn(() => Promise.resolve('ran'));
     vi.stubGlobal('localStorage', {
       getItem: () => null,
       setItem: () => {
@@ -142,6 +143,54 @@ describe('one tab at a time', () => {
       },
       removeItem: () => {},
     });
-    expect(await withLease('t', () => Promise.resolve('ran'))).toBe('ran');
+    await expect(withLease('t', work)).rejects.toBeInstanceOf(TabLockUnavailable);
+    vi.stubGlobal('localStorage', {
+      getItem: () => {
+        throw new Error('blocked');
+      },
+      setItem: () => {},
+      removeItem: () => {},
+    });
+    await expect(withLease('t', work)).rejects.toBeInstanceOf(TabLockUnavailable);
+    expect(work).not.toHaveBeenCalled();
+  });
+
+  it('held() says when a slowed tab’s lease ran out and another tab took it', async () => {
+    let t = 1_000;
+    const deps = { now: () => t, sleep: () => Promise.resolve() };
+    let still: boolean[] = [];
+    await withLease(
+      't',
+      (held) => {
+        still.push(held());
+        // Past the lease (timers slowed in a background tab), and another tab takes it.
+        t += 31_000;
+        local.set('veilcore.lock.t', JSON.stringify({ owner: 'other', until: t + 30_000 }));
+        still.push(held());
+        return Promise.resolve();
+      },
+      deps,
+    );
+    expect(still).toEqual([true, false]);
+    // The other tab's lease is left alone.
+    expect(JSON.parse(local.get('veilcore.lock.t')!).owner).toBe('other');
+    still = [];
+    // A lease that ran out counts as lost even if it still names this tab: another tab could
+    // have taken it and let it go in between.
+    await withLease(
+      'u',
+      (held) => {
+        t += 31_000;
+        still.push(held());
+        return Promise.resolve();
+      },
+      deps,
+    );
+    expect(still).toEqual([false]);
+  });
+
+  it('with the browser’s own locks, held() is always true', async () => {
+    vi.stubGlobal('navigator', { locks: { request: (_n: string, _o: unknown, fn: () => Promise<boolean>) => fn() } });
+    expect(await withTabLock('x', (held) => Promise.resolve(held()))).toBe(true);
   });
 });
