@@ -1,0 +1,9 @@
+{
+  "id": "veilcore/schema/pathogen/v1",
+  "title": "One pathogen or viroid test of one sample (HLVd, a virus, a bacterium), as a laboratory reports it. Slot 0 is the call: 1 detected, 0 not detected. Slot 1 is the cycle threshold (Ct) when the method gives one, times 100. Which target, which method and which sample are in the laboratory's signed result statement (veilcore/lab-result/v2), not here. The laboratory signs the record. Published by VeilCore (veilcore.org).",
+  "slots": [
+    { "slot": 0, "type": "uint", "path": "pathogen.detected", "scale": 1, "comparable": true },
+    { "slot": 1, "type": "uint", "path": "pathogen.ct", "scale": 100, "comparable": false }
+  ],
+  "k": 1
+}

@@ -239,6 +239,8 @@ export type LabDelivery = {
    * report signature's id, so withdrawing or correcting a report withdraws its numbers too.
    */
   readonly numbersBindings?: Readonly<Record<string, string>>;
+  /** The code of the lab result v2 sent with a report, by the report signature's id: a corrected report's result names it. */
+  readonly resultCodes?: Readonly<Record<string, string>>;
 };
 
 const isDelivery = (v: unknown): v is LabDelivery =>
@@ -252,7 +254,8 @@ const isDelivery = (v: unknown): v is LabDelivery =>
   optional(v.receiptLinked, isString) &&
   (v.lockConfirmed === undefined || v.lockConfirmed === true) &&
   (v.numbersBindings === undefined ||
-    (isObject(v.numbersBindings) && Object.values(v.numbersBindings).every(isString)));
+    (isObject(v.numbersBindings) && Object.values(v.numbersBindings).every(isString))) &&
+  (v.resultCodes === undefined || (isObject(v.resultCodes) && Object.values(v.resultCodes).every(isString)));
 
 const readDeliveries = (): Record<string, LabDelivery> => {
   try {
@@ -323,6 +326,17 @@ export const rememberBinding = (transferId: string, reportAttestationId: string,
   if (!here) return;
   rememberDelivery({ ...here, numbersBindings: { ...(here.numbersBindings ?? {}), [reportAttestationId]: bindingId } });
 };
+
+/** Keep the code of the lab result v2 sent with a report (lab-result.ts). */
+export const rememberResultCode = (transferId: string, reportAttestationId: string, code: string): void => {
+  const here = readDeliveries()[transferId];
+  if (!here) return;
+  rememberDelivery({ ...here, resultCodes: { ...(here.resultCodes ?? {}), [reportAttestationId]: code } });
+};
+
+/** The code of the lab result v2 sent with a report, if this browser sent one. */
+export const resultCodeFor = (transferId: string, reportAttestationId: string): string | undefined =>
+  readDeliveries()[transferId]?.resultCodes?.[reportAttestationId];
 
 /** The numbers binding sent with a report, if any. */
 export const bindingFor = (transferId: string, reportAttestationId: string): string | undefined =>

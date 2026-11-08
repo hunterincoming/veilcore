@@ -27,6 +27,29 @@ import { DocumentDate, DocumentFacts, Fact, FileCompare } from './DocumentParts'
 import { schemaWords, slotWords } from './NumbersFields';
 import { ProveNumber } from './ProveNumber';
 import { LabSignaturePanel } from './LabSignaturePanel';
+import { ResultFacts } from '../lab/ResultFacts';
+
+/** The result file again, from the record that holds it: the same bundle the lab handed over. */
+const downloadResult = async (record: StrainRecord) => {
+  if (!record.labResult || !record.labSignature || !record.fieldSet) return;
+  const [{ committedOnly }, { download }] = await Promise.all([
+    import('../../veilcore/lab-numbers'),
+    import('../lab/download'),
+  ]);
+  const { about: _about, ...signature } = record.labSignature;
+  void _about;
+  const bundle = {
+    kind: 'veilcore-lab-numbers',
+    v: 2,
+    record: committedOnly(record as never),
+    signature,
+    statement: record.labResult.statement,
+  };
+  download(
+    JSON.stringify(bundle, null, 2),
+    `${record.labResult.statement.accession.replace(/[^A-Za-z0-9._-]+/g, '_')}.veilcore-result.json`,
+  );
+};
 import { SCHEMAS, shownNumber, type HeldFieldSet } from '../../veilcore/field-set';
 
 /** The numbers sealed with the document, from the holder's own copy: nobody else has them. */
@@ -141,6 +164,22 @@ export const DocumentDetail: React.FC<{ record: StrainRecord }> = ({ record }) =
         <Paper sx={{ p: { xs: 2.5, md: 3 } }}>
           <DocumentFacts fields={f} />
         </Paper>
+        {record.labResult && record.labSignature && (
+          <Paper sx={{ p: { xs: 2.5, md: 3 } }} data-lab-result-panel="">
+            <Typography variant="h6" component="h2" sx={{ mb: 1 }}>
+              {t('app.lr.panelTitle')}
+            </Typography>
+            <ResultFacts statement={record.labResult.statement} code={record.labSignature.record} />
+            <Button
+              variant="outlined"
+              sx={{ mt: 2, minHeight: 44 }}
+              onClick={() => void downloadResult(record)}
+              data-result-download=""
+            >
+              {t('app.lr.tools.download')}
+            </Button>
+          </Paper>
+        )}
         {record.fieldSet && <HeldNumbers held={record.fieldSet} />}
         {record.fieldSet && LAB_SIGNING_ENABLED && <LabSignaturePanel record={record} signatureOk={labOk} />}
         {record.fieldSet && <ProveNumber record={record} labSignatureOk={labOk === true} />}

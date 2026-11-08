@@ -1,0 +1,8 @@
+{
+  "id": "veilcore/schema/lab-retraction/v1",
+  "title": "A laboratory withdraws one of its own earlier results. Slot 0 is always 1. Which result is withdrawn, and why, are in the laboratory's signed result statement (veilcore/lab-result/v2). The laboratory signs the record. Published by VeilCore (veilcore.org).",
+  "slots": [
+    { "slot": 0, "type": "uint", "path": "retraction.withdrawn", "scale": 1, "comparable": true }
+  ],
+  "k": 1
+}

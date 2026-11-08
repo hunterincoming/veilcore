@@ -1,0 +1,8 @@
+{
+  "id": "veilcore/schema/dna-mark/v1",
+  "title": "A laboratory's record that it looked for a DNA mark in a sample. Slot 0 is the call: 1 the mark was found, 0 it was not. The mark's sequence is never here: the laboratory's signed result statement (veilcore/lab-result/v2) carries only a salted SHA-256 of it, and the sequence is shown only when a dispute needs it. The laboratory signs the record. Published by VeilCore (veilcore.org).",
+  "slots": [
+    { "slot": 0, "type": "uint", "path": "mark.found", "scale": 1, "comparable": true }
+  ],
+  "k": 1
+}

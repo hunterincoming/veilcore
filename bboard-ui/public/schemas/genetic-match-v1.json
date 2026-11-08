@@ -1,0 +1,10 @@
+{
+  "id": "veilcore/schema/genetic-match/v1",
+  "title": "A laboratory's comparison of one sample with one other record by a stated genotyping method. Slot 0 is the call: 1 the genotypes match, 0 they do not. Slot 1 is the number of markers compared, slot 2 the number that differ. Which records were compared (by their proof codes), the method and the panel are in the laboratory's signed result statement (veilcore/lab-result/v2); no genotype is in either. The laboratory signs the record. Published by VeilCore (veilcore.org).",
+  "slots": [
+    { "slot": 0, "type": "uint", "path": "match.matches", "scale": 1, "comparable": true },
+    { "slot": 1, "type": "uint", "path": "match.compared", "scale": 1, "comparable": false },
+    { "slot": 2, "type": "uint", "path": "match.differing", "scale": 1, "comparable": false }
+  ],
+  "k": 1
+}

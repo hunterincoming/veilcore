@@ -69,6 +69,8 @@ const LogFlow = page(() => import('./components/flow/LogFlow'), 'LogFlow', 'afte
 const DocumentNew = page(() => import('./components/document/DocumentNew'), 'DocumentNew', 'after');
 const DocumentCheck = page(() => import('./components/document/DocumentCheck'), 'DocumentCheck', 'wait');
 const ClaimCheck = page(() => import('./components/document/ClaimCheck'), 'ClaimCheck');
+const LabResultsPage = page(() => import('./components/lab/LabResultsPage'), 'LabResultsPage');
+const LabResultCheck = page(() => import('./components/lab/LabResultCheck'), 'LabResultCheck');
 const BulkImportPage = page(() => import('./components/lab-import/BulkImportPage'), 'BulkImportPage');
 const RestorePage = page(() => import('./components/flow/RestorePage'), 'RestorePage');
 const BackupPage = page(() => import('./components/flow/BackupPage'), 'BackupPage');
@@ -318,6 +320,15 @@ const routes = (
       element={
         <Light>
           <DocumentCheck />
+        </Light>
+      }
+    />
+    <Route path="/lab/results" element={withLayout(<LabResultsPage />)} />
+    <Route
+      path="/check-lab-result"
+      element={
+        <Light>
+          <LabResultCheck />
         </Light>
       }
     />

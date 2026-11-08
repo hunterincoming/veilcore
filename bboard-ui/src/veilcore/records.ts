@@ -30,6 +30,7 @@ import type { DocumentDetails } from './document-profile';
 import type { HeldFieldSet } from './field-set';
 import type { MadeClaim } from './claim-link';
 import type { LabSignature } from './lab-attest';
+import type { LabResultStatement } from './lab-result';
 import {
   allowReplace,
   checkRecordIntegrity,
@@ -173,6 +174,13 @@ export type StrainRecord = {
    */
   readonly labSignature?: LabSignature;
   readonly labOnChain?: LabOnChain;
+  /**
+   * A lab result v2's statement (lab-result.ts): what the lab signed about the sample, the method
+   * and the call, bound into the record through its lab-result.json file entry. The holder's
+   * copy only, sealed like the rest of it; never public. `bindingId` is the lab's attestation
+   * naming its key on this result, kept by the lab that signed it so a later result can withdraw it.
+   */
+  readonly labResult?: HeldLabResult;
   readonly photoFingerprints?: string[]; // photos hashed locally, never uploaded
   readonly refId?: string; // breeder's own reference / lot ID
   /**
@@ -336,6 +344,8 @@ export const isStrainRecord = (v: unknown): v is StrainRecord => {
       (typeof r.labSignature === 'object' && r.labSignature !== null && !Array.isArray(r.labSignature))) &&
     (r.labOnChain === undefined ||
       (typeof r.labOnChain === 'object' && r.labOnChain !== null && !Array.isArray(r.labOnChain))) &&
+    (r.labResult === undefined ||
+      (typeof r.labResult === 'object' && r.labResult !== null && !Array.isArray(r.labResult))) &&
     num(r.loggedAt) &&
     num(r.dnaPairedAt) &&
     (r.parents === undefined || Array.isArray(r.parents)) &&
@@ -368,6 +378,8 @@ export type NewRecordInput = {
   fieldSchema?: string;
   fieldSetRoot?: string;
   fieldSet?: HeldFieldSet;
+  labSignature?: LabSignature;
+  labResult?: HeldLabResult;
   /** The name's salt (round 6): made when the record is sealed (seal-record.ts). */
   nameSalt?: string;
 };
@@ -1673,6 +1685,21 @@ export const addClaim = (id: string, claim: MadeClaim): StrainRecord | undefined
   records = records.map((r) => {
     if (r.id !== id) return r;
     updated = { ...r, claims: [...(r.claims ?? []), claim] };
+    return updated;
+  });
+  if (updated) persist();
+  return updated;
+};
+
+/** A lab result v2 on a record (lab-result.ts): the statement, and the lab's binding id when this browser signed it. */
+export type HeldLabResult = { readonly statement: LabResultStatement; readonly bindingId?: string };
+
+/** Keep the lab's binding id on a result this browser signed. */
+export const setLabResultBinding = (id: string, bindingId: string): StrainRecord | undefined => {
+  let updated: StrainRecord | undefined;
+  records = records.map((r) => {
+    if (r.id !== id || !r.labResult) return r;
+    updated = { ...r, labResult: { ...r.labResult, bindingId } };
     return updated;
   });
   if (updated) persist();
