@@ -174,6 +174,8 @@ export const job = {
   'app.job.left.questions.one': 'Beantworten Sie {count} Frage, um freizugeben',
   'app.job.left.questions.other': 'Beantworten Sie {count} Fragen, um freizugeben',
   'app.job.left.backup': 'Speichern Sie Ihre Sicherung, um freizugeben',
+  'app.job.left.idsUnused':
+    'Sie haben Kennnummern eingegeben, aber noch nicht verwendet. Verwenden Sie diese Kennnummern oder leeren Sie die Felder.',
   'app.job.left.scroll': 'Lesen Sie „Nicht rückgängig zu machen“, um freizugeben',
   'app.job.left.saving': 'Ihre Eingabe wird gespeichert…',
   'app.job.left.ready': 'Bereit zur Freigabe',
@@ -278,6 +280,7 @@ export const job = {
   'app.job.ids.discard': 'Verwerfen',
   'app.job.ids.discardAsk': 'Die eingegebenen Kennnummern verwerfen? Sie sind nicht gespeichert.',
   'app.job.ids.use': 'Diese Kennnummern verwenden',
+  'app.job.ids.clear': 'Leeren',
   'app.job.ids.paste.over':
     'Das sind {n} Zeilen für {count} Felder von hier abwärts, es passt also nicht. Nichts wurde ausgefüllt. Kopieren Sie nur die Kennnummern dieser Jungtiere oder fügen Sie in ein Feld weiter oben ein.',
   'app.job.ids.paste.startsAt':

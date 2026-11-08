@@ -152,6 +152,7 @@ export const job = {
   'app.job.left.questions.one': 'Answer {count} question to approve',
   'app.job.left.questions.other': 'Answer {count} questions to approve',
   'app.job.left.backup': 'Save your backup to approve',
+  'app.job.left.idsUnused': 'You typed IDs but haven’t used them yet. Use these IDs, or clear them.',
   'app.job.left.scroll': 'Read “Can’t be undone” to approve',
   'app.job.left.saving': 'Saving what you typed…',
   'app.job.left.ready': 'Ready to approve',
@@ -255,6 +256,7 @@ export const job = {
   'app.job.ids.discard': 'Discard',
   'app.job.ids.discardAsk': 'Discard the IDs you typed? They aren’t saved.',
   'app.job.ids.use': 'Use these IDs',
+  'app.job.ids.clear': 'Clear them',
   'app.job.ids.paste.over':
     'That’s {n} lines for {count} boxes from here down, so it doesn’t line up. Nothing was filled. Copy only the IDs for these young, or paste into a box higher up.',
   'app.job.ids.paste.startsAt':

@@ -146,6 +146,8 @@ export const job = {
     'ここにある内容のまま、詳しい入力画面を開きます。この作業は破棄します。何も送信していません。',
   'app.job.left.questions.other': '承認するには質問{count}件に答えてください',
   'app.job.left.backup': '承認するにはバックアップを保存してください',
+  'app.job.left.idsUnused':
+    '番号を入力しましたが、まだ使っていません。「この番号を使う」を押すか、入力を消してください。',
   'app.job.left.scroll': '承認するには「元に戻せないこと」を読んでください',
   'app.job.left.saving': '入力を保存しています…',
   'app.job.left.ready': '承認できます',
@@ -241,6 +243,7 @@ export const job = {
   'app.job.ids.discard': '破棄',
   'app.job.ids.discardAsk': '入力した番号を破棄しますか？まだ保存していません。',
   'app.job.ids.use': 'この番号を使う',
+  'app.job.ids.clear': '入力を消す',
   'app.job.ids.paste.over':
     'ここから下の欄は{count}件ですが、{n}行あるため合いません。何も入力していません。この子たちの番号だけをコピーするか、もっと上の欄に貼り付けてください。',
   'app.job.ids.paste.startsAt':

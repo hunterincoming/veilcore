@@ -414,8 +414,9 @@ unknown outcome stops and asks. There is no automatic rollback.
   Each young has its own box (`src/components/ask/IdBoxes.tsx`), labelled with its birth order,
   name and sex, read from the records as they are now on every render: a young that has an ID,
   given here or in another tab or device, shows it, read-only. The person types or scans into
-  each box. A scanner is told from a hand by timing: a Tab or Enter within 60 ms of the last
-  character typed into the box is a scanner's. A scanner's key never leaves the boxes or presses
+  each box. A scanner is told from a hand by timing: a Tab or Enter within 150 ms of the last
+  character typed into the box is a scanner's (wide on purpose: a quick hand taken for a scanner
+  only moves to the next empty box). A scanner's key never leaves the boxes or presses
   a button: a filled box moves on to the next empty one, the last stays put, the second key of
   its pair is swallowed, and a scan into a box a scan already filled (a double beep) is taken
   back with a note. A person's Tab moves focus as anywhere, so the buttons (Save, "Use these
@@ -438,7 +439,9 @@ commas, and a heading over a single ID is caught too); it stops at a young
   change is that correction's own, compared field by field). So two tabs or devices can't give
   one pup two IDs, or one ID to two pups. Cancel with IDs typed asks first. The IDs on a litter's result screen use
   the same boxes, before Approve ("Use these IDs" puts them in the plan, bound to its hash), and
-  the made block lists each young with its ID (`src/ask-job/ids.ts`).
+  the made block lists each young with its ID (`src/ask-job/ids.ts`). IDs typed there and not
+  used keep Approve off, with a note and both actions (use them, or clear them) by the button:
+  typed IDs are never dropped without a word.
 
 Also on the device while a job waits: its records in the bulk-import ledger as `held` rows, and
 their new keys. A backup made while a job waits holds those keys, for records that may never be

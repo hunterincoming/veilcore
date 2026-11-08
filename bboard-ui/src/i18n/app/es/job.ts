@@ -166,6 +166,8 @@ export const job = {
   'app.job.left.questions.one': 'Responda {count} pregunta para aprobar',
   'app.job.left.questions.other': 'Responda {count} preguntas para aprobar',
   'app.job.left.backup': 'Guarde su copia de seguridad para aprobar',
+  'app.job.left.idsUnused':
+    'Escribió identificaciones pero aún no las ha usado. Use estas identificaciones o bórrelas.',
   'app.job.left.scroll': 'Lea «No se puede deshacer» para aprobar',
   'app.job.left.saving': 'Guardando lo que escribió…',
   'app.job.left.ready': 'Listo para aprobar',
@@ -270,6 +272,7 @@ export const job = {
   'app.job.ids.discard': 'Descartar',
   'app.job.ids.discardAsk': '¿Descartar las identificaciones que escribió? No están guardadas.',
   'app.job.ids.use': 'Usar estas identificaciones',
+  'app.job.ids.clear': 'Borrarlas',
   'app.job.ids.paste.over':
     'Son {n} líneas para {count} casillas desde aquí hacia abajo, así que no encaja. No se rellenó nada. Copie solo las identificaciones de estas crías o pegue en una casilla más arriba.',
   'app.job.ids.paste.startsAt':

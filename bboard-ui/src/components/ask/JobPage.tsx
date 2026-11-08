@@ -310,6 +310,31 @@ const JobResult: React.FC<{ job: Job; fromApp: boolean }> = ({ job: latest, from
   // ---- what each kind of job shows ----
   const plan = job.kind === 'batch' ? batchPlanOf(job, words) : undefined;
   const ids = heldIds(job);
+  const shownNames = useMemo(() => {
+    const fromLedger = ids.map((rid) => loadLedger().rows && records.find((r) => r.id === rid)?.strainName);
+    const ledgerRows = loadLedger().rows;
+    const held = (job.refs.rowHashes ?? []).map((h) => ledgerRows[h]?.record?.strainName).filter(Boolean) as string[];
+    return held.length
+      ? held
+      : fromLedger.filter(Boolean).length
+        ? (fromLedger as string[])
+        : plan
+          ? childNames(plan.baseName, plan.count, 1)
+          : [];
+  }, [ids.join(','), records, job.hash]);
+  // The young to come, one box each for their IDs: names and sexes as the plan makes them.
+  const youngRows: IdRow[] = useMemo(
+    () =>
+      plan?.preset === 'offspring'
+        ? childNames(plan.baseName, plan.count, 1).map((name, i) => ({
+            key: `young${i}`,
+            name: shownNames[i] ?? name,
+            ...(plan.children?.[i]?.sex ? { sex: plan.children[i].sex } : {}),
+          }))
+        : [],
+    [job.hash, shownNames.join('|')],
+  );
+
   const count = job.kind === 'batch' ? (job.spec?.count ?? 0) : job.kind === 'import' ? (job.sheet?.ready ?? 0) : 0;
   const recordName = nameOf(records, job.refs.recordId);
   const approveLabel =
@@ -321,6 +346,15 @@ const JobResult: React.FC<{ job: Job; fromApp: boolean }> = ({ job: latest, from
           ? t('app.job.btn.stamp', { name: recordName })
           : t('app.job.btn.ready');
   const empty = (job.kind === 'batch' || job.kind === 'import') && ids.length === 0 && !questions.includes('file');
+  // IDs typed on this screen and not put in the plan yet: never dropped without a word (S8).
+  const idsDraft = useIdsDraft(
+    job.kind === 'batch' && job.spec?.preset === 'offspring' && !job.spec.individualId && job.spec.count > 1
+      ? youngRows
+      : [],
+    job.spec?.ids ?? [],
+    useMemo(() => otherIds(records, []), [records]),
+    (list) => void act(() => changeBatch(job, { ids: list }, words)),
+  );
   const canApprove =
     !readOnly &&
     questions.length === 0 &&
@@ -328,6 +362,7 @@ const JobResult: React.FC<{ job: Job; fromApp: boolean }> = ({ job: latest, from
     !busy &&
     !empty &&
     !unsaved &&
+    !idsDraft.dirty &&
     // A change from another tab is said at the top; Approve still sends only the plan shown here,
     // and the store refuses it if that isn't the plan any more (compare-and-set).
     savingCount === 0;
@@ -381,31 +416,6 @@ const JobResult: React.FC<{ job: Job; fromApp: boolean }> = ({ job: latest, from
         },
       });
     });
-
-  const shownNames = useMemo(() => {
-    const fromLedger = ids.map((rid) => loadLedger().rows && records.find((r) => r.id === rid)?.strainName);
-    const ledgerRows = loadLedger().rows;
-    const held = (job.refs.rowHashes ?? []).map((h) => ledgerRows[h]?.record?.strainName).filter(Boolean) as string[];
-    return held.length
-      ? held
-      : fromLedger.filter(Boolean).length
-        ? (fromLedger as string[])
-        : plan
-          ? childNames(plan.baseName, plan.count, 1)
-          : [];
-  }, [ids.join(','), records, job.hash]);
-  // The young to come, one box each for their IDs: names and sexes as the plan makes them.
-  const youngRows: IdRow[] = useMemo(
-    () =>
-      plan?.preset === 'offspring'
-        ? childNames(plan.baseName, plan.count, 1).map((name, i) => ({
-            key: `young${i}`,
-            name: shownNames[i] ?? name,
-            ...(plan.children?.[i]?.sex ? { sex: plan.children[i].sex } : {}),
-          }))
-        : [],
-    [job.hash, shownNames.join('|')],
-  );
 
   const backupBlock = job.backupNeeded && !readOnly && (inBackup || !backupDone(job));
   const openBackup = () => {
@@ -492,13 +502,7 @@ const JobResult: React.FC<{ job: Job; fromApp: boolean }> = ({ job: latest, from
             />
           )}
           {job.kind === 'batch' && job.spec?.preset === 'offspring' && !job.spec.individualId && job.spec.count > 1 && (
-            <IdsStep
-              rows={youngRows}
-              value={job.spec.ids ?? []}
-              others={otherIds(records, [])}
-              disabled={readOnly || busy}
-              onUse={(list) => act(() => changeBatch(job, { ids: list }, words))}
-            />
+            <IdsStep draft={idsDraft} disabled={readOnly || busy} />
           )}
           {job.kind === 'due' &&
             reports.map((ref, i) => {
@@ -827,9 +831,38 @@ const JobResult: React.FC<{ job: Job; fromApp: boolean }> = ({ job: latest, from
           sx={{ position: 'sticky', bottom: 0, zIndex: 2, p: 1.5, borderRadius: 0, mx: { xs: -2, sm: 0 } }}
         >
           <Stack spacing={1}>
-            <Typography variant="body2" sx={{ fontWeight: 700 }} data-approve-left="">
-              {left}
-            </Typography>
+            {idsDraft.dirty ? (
+              // By the Approve button, so it is in view on a phone: typed IDs are used or cleared, never dropped.
+              <Stack spacing={1} data-job-ids-unused="">
+                <Typography variant="body2" sx={{ fontWeight: 700 }} role="alert">
+                  {t('app.job.left.idsUnused')}
+                </Typography>
+                <Stack direction="row" spacing={1}>
+                  <Button
+                    variant="outlined"
+                    disabled={busy || idsDraft.blocked}
+                    onClick={idsDraft.use}
+                    sx={{ minHeight: 44 }}
+                    data-job-ids-unused-use=""
+                  >
+                    {t('app.job.ids.use')}
+                  </Button>
+                  <Button
+                    color="inherit"
+                    disabled={busy}
+                    onClick={idsDraft.clear}
+                    sx={{ minHeight: 44 }}
+                    data-job-ids-unused-clear=""
+                  >
+                    {t('app.job.ids.clear')}
+                  </Button>
+                </Stack>
+              </Stack>
+            ) : (
+              <Typography variant="body2" sx={{ fontWeight: 700 }} data-approve-left="">
+                {left}
+              </Typography>
+            )}
             {!asks.length && questions.includes('backup') ? (
               <Button variant="contained" size="large" fullWidth onClick={openBackup} data-job-backup-bar="">
                 {t('app.job.btn.backup')}
@@ -928,36 +961,27 @@ const Answer: React.FC<{ label: string; disabled: boolean; onUse: (v: string) =>
  * one per young in order, a box left empty for a young with no ID yet (verification X5).
  */
 const IdsStep: React.FC<{
-  rows: readonly IdRow[];
-  value: readonly string[];
-  others: ReadonlyMap<string, string>;
+  draft: IdsDraft;
   disabled: boolean;
-  onUse: (l: string[]) => void;
-}> = ({ rows, value, others, disabled, onUse }) => {
+}> = ({ draft, disabled }) => {
   const { t } = useT();
-  const fromPlan = () => Object.fromEntries(rows.map((r, i) => [r.key, value[i] ?? '']));
-  const [values, setValues] = useState<Record<string, string>>(fromPlan);
-  const planned = rows.map((r, i) => (value[i] ?? '').trim()).join('\n');
-  // The plan changed (another tab, or Use here): the boxes show it.
-  const [seen, setSeen] = useState(planned);
-  if (seen !== planned) {
-    setSeen(planned);
-    setValues(fromPlan());
-  }
-  const { pairs, errors } = checkBoxes(rows, values, others);
-  const list = rows.map((r) => (values[r.key] ?? '').trim());
-  while (list.length && !list[list.length - 1]) list.pop();
-  const same = list.join('\n') === planned.replace(/\n+$/, '');
   return (
     <Stack spacing={1} data-job-ids="">
       <Typography variant="body2" color="text.secondary">
         {t('app.job.answer.idsLater')}
       </Typography>
-      <IdBoxes rows={rows} values={values} onValues={setValues} errors={errors} pairs={pairs} disabled={disabled} />
+      <IdBoxes
+        rows={draft.rows}
+        values={draft.values}
+        onValues={draft.setValues}
+        errors={draft.errors}
+        pairs={draft.pairs}
+        disabled={disabled}
+      />
       <Button
         variant="outlined"
-        disabled={disabled || Object.keys(errors).length > 0 || same}
-        onClick={() => onUse(list)}
+        disabled={disabled || draft.blocked || !draft.dirty}
+        onClick={draft.use}
         sx={{ alignSelf: 'flex-start', minHeight: 44 }}
         data-job-ids-use=""
       >
@@ -965,6 +989,49 @@ const IdsStep: React.FC<{
       </Button>
     </Stack>
   );
+};
+
+/** The IDs typed on the result screen, against the plan's: what "Use these IDs" would put in it. */
+type IdsDraft = ReturnType<typeof checkBoxes> & {
+  rows: readonly IdRow[];
+  values: Readonly<Record<string, string>>;
+  setValues: (v: Record<string, string>) => void;
+  /** Typed and not put in the plan yet: Approve waits (S8). */
+  dirty: boolean;
+  blocked: boolean;
+  use: () => void;
+  clear: () => void;
+};
+
+const useIdsDraft = (
+  rows: readonly IdRow[],
+  planned: readonly string[],
+  others: ReadonlyMap<string, string>,
+  onUse: (l: string[]) => void,
+): IdsDraft => {
+  const fromPlan = () => Object.fromEntries(rows.map((r, i) => [r.key, planned[i] ?? '']));
+  const [values, setValues] = useState<Record<string, string>>(fromPlan);
+  const plan = rows.map((r, i) => (planned[i] ?? '').trim()).join('\n');
+  // The plan changed (another tab, or Use here): the boxes show it.
+  const [seenPlan, setSeenPlan] = useState(plan);
+  if (seenPlan !== plan) {
+    setSeenPlan(plan);
+    setValues(fromPlan());
+  }
+  const checked = checkBoxes(rows, values, others);
+  const list = rows.map((r) => (values[r.key] ?? '').trim());
+  while (list.length && !list[list.length - 1]) list.pop();
+  const dirty = rows.length > 0 && list.join('\n') !== plan.replace(/\n+$/, '');
+  return {
+    ...checked,
+    rows,
+    values,
+    setValues,
+    dirty,
+    blocked: Object.keys(checked.errors).length > 0,
+    use: () => onUse(list),
+    clear: () => setValues(fromPlan()),
+  };
 };
 
 const FilePick: React.FC<{ disabled: boolean; onFile: (f: File) => void }> = ({ disabled, onFile }) => {

@@ -346,6 +346,86 @@ test('a litter with its sexes and IDs pasted; an edit in another tab leaves the 
   expectNoErrors(errors);
 });
 
+test('IDs typed on a litter’s result screen and not used: Approve waits, says so by the button, then uses them', async ({
+  page,
+}) => {
+  test.setTimeout(300_000);
+  const errors = watch(page);
+  const held = newHeld();
+  const setup = { holder: randomBytes(32).toString('hex'), vault: newVaultKey() };
+  await standIn(page, held, setup);
+  await page.goto('/records');
+  await doIt(page, 'import my herd');
+  await page.locator('[data-job-file]').setInputFiles({
+    name: 'herd.csv',
+    mimeType: 'text/csv',
+    buffer: Buffer.from(
+      'Name,Species,Breed,Sex,Date of birth,Breeder\nBella,Dog,Border Collie,female,2023-04-05,Kennel Nord\n',
+    ),
+  });
+  await expect(page.locator('[data-job-block="made"]')).toContainText('1 ready');
+  await backup(page);
+  await approve(page, 'Approve: save 1 record');
+  await expect(page.locator('[data-job-done]')).toBeVisible({ timeout: 60_000 });
+
+  await page.setViewportSize({ width: 360, height: 740 });
+  await page.goto('/records');
+  await doIt(page, 'Bella whelped 3 pups');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Check this: 3 young from Bella');
+  await backup(page);
+  await page.locator('[data-job-permanent]').evaluate((el) => el.scrollIntoView({ block: 'center' }));
+  await expect(page.locator('[data-job-approve]')).toBeEnabled();
+
+  // Two IDs typed by hand, not used: Approve waits, and the note and both actions sit by it, in view.
+  const boxes = page.locator('[data-job-ids] [data-id-box]');
+  await boxes.nth(0).click();
+  await page.keyboard.type('985112000000001', { delay: 20 });
+  await boxes.nth(1).click();
+  await page.keyboard.type('985112000000002', { delay: 20 });
+  const approveButton = page.locator('[data-job-approve]');
+  await expect(approveButton).toBeDisabled();
+  const unused = page.locator('[data-job-ids-unused]');
+  await expect(unused).toContainText('You typed IDs but haven’t used them yet. Use these IDs, or clear them.');
+  await expect(unused).toBeInViewport();
+  await expect(unused.getByRole('button', { name: 'Use these IDs' })).toBeInViewport();
+  await expect(unused.getByRole('button', { name: 'Clear them' })).toBeInViewport();
+  await shot(page, 'ids-unused-en');
+
+  // Clear them: the boxes go back to the plan (no IDs), and Approve is back.
+  await unused.getByRole('button', { name: 'Clear them' }).click();
+  expect(await boxes.evaluateAll((els) => els.map((e) => (e as HTMLInputElement).value))).toEqual(['', '', '']);
+  await expect(approveButton).toBeEnabled();
+
+  // Typed again and used: they go in the plan, each pup with its ID, and are saved with it.
+  await boxes.nth(0).click();
+  await page.keyboard.type('985112000000001', { delay: 20 });
+  await boxes.nth(1).click();
+  await page.keyboard.type('985112000000002', { delay: 20 });
+  await expect(approveButton).toBeDisabled();
+  await page.locator('[data-job-ids-unused-use]').click();
+  await expect(page.locator('[data-job-made-id]')).toHaveText([
+    'Bella pup 1 gets 985112000000001',
+    'Bella pup 2 gets 985112000000002',
+  ]);
+  await expect(unused).toHaveCount(0);
+  // New records, new keys: the backup is asked again; the IDs need their scheme.
+  const scheme = page.locator('[data-job-question="scheme"]');
+  if (await scheme.count()) {
+    await scheme.locator('input').fill('Microchip');
+    await scheme.getByRole('button', { name: 'Use this' }).click();
+  }
+  if (await page.locator('[data-job-backup-open]').count()) await backup(page);
+  await approve(page, 'Approve: save 3 records');
+  await expect(page.locator('[data-job-done]')).toContainText('3 records saved.', { timeout: 60_000 });
+  await expect.poll(() => held.records.length, { timeout: 30_000 }).toBe(4);
+  const pups = openRecordRows(held.records, setup.vault).filter((r) => r.strainName !== 'Bella');
+  const tagged: Record<string, string> = Object.fromEntries(
+    pups.filter((r) => r.refId).map((r) => [String(r.strainName), String(r.refId)]),
+  );
+  expect(tagged).toEqual({ 'Bella pup 1': '985112000000001', 'Bella pup 2': '985112000000002' });
+  expectNoErrors(errors);
+});
+
 /** A paste into a box, as the browser hands it to the page. */
 const pasteText = (page: Page, selector: string, text: string) =>
   page.locator(selector).evaluate((el, t) => {
@@ -480,7 +560,7 @@ test('Add IDs on a phone: one box per young; a whole litter scanned with Tab+Ent
 
   // Saved by keyboard alone: a person's Tab from the last box reaches Save, and Enter presses it.
   await boxes.nth(5).click();
-  await page.waitForTimeout(100);
+  await page.waitForTimeout(300);
   const onSave = () => page.evaluate(() => !!document.activeElement?.hasAttribute('data-add-ids-save'));
   for (let i = 0; i < 20 && !(await onSave()); i++) await page.keyboard.press('Tab');
   expect(await onSave()).toBe(true);

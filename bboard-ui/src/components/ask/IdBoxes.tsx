@@ -23,8 +23,13 @@ import { pasteInto, splitInsert, type BoxError, type IdRow, type PasteRefusal, t
 
 /** A key a scanner ends a scan with, pressed in an empty box this soon after a move: swallowed. */
 const SCAN_GAP_MS = 300;
-/** A Tab or Enter this soon after the last character typed into the box: a scanner's, not a hand's. */
-const SCANNER_MS = 60;
+/**
+ * A Tab or Enter this soon after the last character typed into the box: a scanner's, not a hand's.
+ * A scanner sends its keys a few ms apart, but a busy phone can space them out; taking a quick
+ * hand for a scanner costs only a move to the next empty box (a second Tab moves on), while
+ * taking a scanner for a hand would let its key leave the boxes, so the window errs wide.
+ */
+const SCANNER_MS = 150;
 
 export const IdBoxes: React.FC<{
   rows: readonly IdRow[];

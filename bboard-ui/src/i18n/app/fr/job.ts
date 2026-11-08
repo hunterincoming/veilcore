@@ -169,6 +169,8 @@ export const job = {
   'app.job.left.questions.one': 'Répondez à {count} question pour valider',
   'app.job.left.questions.other': 'Répondez à {count} questions pour valider',
   'app.job.left.backup': 'Enregistrez votre sauvegarde pour valider',
+  'app.job.left.idsUnused':
+    'Vous avez saisi des identifiants sans les utiliser encore. Utilisez ces identifiants, ou effacez-les.',
   'app.job.left.scroll': 'Lisez « Impossible à annuler » pour valider',
   'app.job.left.saving': 'Enregistrement de votre saisie…',
   'app.job.left.ready': 'Prêt à valider',
@@ -273,6 +275,7 @@ export const job = {
   'app.job.ids.discard': 'Abandonner',
   'app.job.ids.discardAsk': 'Abandonner les identifiants saisis ? Ils ne sont pas enregistrés.',
   'app.job.ids.use': 'Utiliser ces identifiants',
+  'app.job.ids.clear': 'Les effacer',
   'app.job.ids.paste.over':
     'Cela fait {n} lignes pour {count} cases à partir d’ici, donc ça ne correspond pas. Rien n’a été rempli. Copiez seulement les identifiants de ces petits, ou collez dans une case plus haut.',
   'app.job.ids.paste.startsAt':
