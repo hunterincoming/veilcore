@@ -69,8 +69,9 @@ import {
   type Prepared,
 } from '../../ask-job/prepare';
 import { reportIndex, tryAgain } from '../../ask-job/run';
-import { waitWords } from '../../ask-job/whys';
-import { readColumn, type PasteRefusal } from '../../ask-job/ids';
+import { refusedReason, waitWords } from '../../ask-job/whys';
+import { checkBoxes, otherIds, type IdRow } from '../../ask-job/ids';
+import { IdBoxes } from './IdBoxes';
 import { runnerTick } from '../../ask-job/start';
 import { JOB_STATE_KEY, jobTitle, jobWords } from '../../ask-job/words';
 
@@ -393,6 +394,18 @@ const JobResult: React.FC<{ job: Job; fromApp: boolean }> = ({ job: latest, from
           ? childNames(plan.baseName, plan.count, 1)
           : [];
   }, [ids.join(','), records, job.hash]);
+  // The young to come, one box each for their IDs: names and sexes as the plan makes them.
+  const youngRows: IdRow[] = useMemo(
+    () =>
+      plan?.preset === 'offspring'
+        ? childNames(plan.baseName, plan.count, 1).map((name, i) => ({
+            key: `young${i}`,
+            name: shownNames[i] ?? name,
+            ...(plan.children?.[i]?.sex ? { sex: plan.children[i].sex } : {}),
+          }))
+        : [],
+    [job.hash, shownNames.join('|')],
+  );
 
   const backupBlock = job.backupNeeded && !readOnly && (inBackup || !backupDone(job));
   const openBackup = () => {
@@ -479,9 +492,10 @@ const JobResult: React.FC<{ job: Job; fromApp: boolean }> = ({ job: latest, from
             />
           )}
           {job.kind === 'batch' && job.spec?.preset === 'offspring' && !job.spec.individualId && job.spec.count > 1 && (
-            <IdsPaste
-              count={job.spec.count}
+            <IdsStep
+              rows={youngRows}
               value={job.spec.ids ?? []}
+              others={otherIds(records, [])}
               disabled={readOnly || busy}
               onUse={(list) => act(() => changeBatch(job, { ids: list }, words))}
             />
@@ -664,13 +678,17 @@ const JobResult: React.FC<{ job: Job; fromApp: boolean }> = ({ job: latest, from
                       })}`}
                   </Line>
                   {(() => {
+                    // Each young with the ID it will get, as the plan says it (X5).
                     const list = plan.children?.map((c) => c?.individualId ?? '') ?? [];
-                    const given = list.filter(Boolean);
-                    const missing = job.spec.count - given.length;
+                    const missing = job.spec.count - list.filter(Boolean).length;
                     return (
                       <>
-                        {given.length > 0 && (
-                          <Line>{t('app.job.made.ids', { first: given[0], last: given[given.length - 1] })}</Line>
+                        {youngRows.map((r, i) =>
+                          list[i] ? (
+                            <Line key={r.key}>
+                              <span data-job-made-id="">{t('app.job.ids.pair', { name: r.name, id: list[i] })}</span>
+                            </Line>
+                          ) : null,
                         )}
                         {missing > 0 && <Line>{tp('app.job.made.noIds', missing)}</Line>}
                       </>
@@ -904,53 +922,46 @@ const Answer: React.FC<{ label: string; disabled: boolean; onUse: (v: string) =>
   );
 };
 
-const IdsPaste: React.FC<{
-  count: number;
+/**
+ * A litter's IDs before Approve: one box per young to come (IdBoxes.tsx, the same as Add IDs), and
+ * each young with the ID it will get. "Use these IDs" puts them in the plan (bound to its hash),
+ * one per young in order, a box left empty for a young with no ID yet (verification X5).
+ */
+const IdsStep: React.FC<{
+  rows: readonly IdRow[];
   value: readonly string[];
+  others: ReadonlyMap<string, string>;
   disabled: boolean;
   onUse: (l: string[]) => void;
-}> = ({ count, value, disabled, onUse }) => {
+}> = ({ rows, value, others, disabled, onUse }) => {
   const { t } = useT();
-  const [text, setText] = useState(value.join('\n'));
-  // One line a young, in place: an empty line is "no ID for this one", never a shift; anything
-  // that isn't plainly one column, or longer than the litter, is refused (ask-job/ids.ts).
-  const col = readColumn(text);
-  const refusal: PasteRefusal | undefined = Array.isArray(col) ? undefined : col;
-  const lines = Array.isArray(col) ? col : [];
-  const tooMany = lines.length > count;
-  const list = refusal || tooMany ? [] : lines;
-  const typed = list.filter(Boolean).length;
+  const fromPlan = () => Object.fromEntries(rows.map((r, i) => [r.key, value[i] ?? '']));
+  const [values, setValues] = useState<Record<string, string>>(fromPlan);
+  const planned = rows.map((r, i) => (value[i] ?? '').trim()).join('\n');
+  // The plan changed (another tab, or Use here): the boxes show it.
+  const [seen, setSeen] = useState(planned);
+  if (seen !== planned) {
+    setSeen(planned);
+    setValues(fromPlan());
+  }
+  const { pairs, errors } = checkBoxes(rows, values, others);
+  const list = rows.map((r) => (values[r.key] ?? '').trim());
+  while (list.length && !list[list.length - 1]) list.pop();
+  const same = list.join('\n') === planned.replace(/\n+$/, '');
   return (
     <Stack spacing={1} data-job-ids="">
-      <TextField
-        label={t('app.job.answer.ids')}
-        multiline
-        minRows={3}
-        value={text}
-        disabled={disabled}
-        onChange={(e) => setText(e.target.value.slice(0, 20_000))}
-        error={!!refusal || tooMany}
-        helperText={
-          refusal
-            ? t(`app.job.ids.paste.${refusal.why}` as AppKey, {
-                ...('id' in refusal ? { id: refusal.id } : {}),
-                ...('line' in refusal ? { line: String(refusal.line) } : {}),
-              })
-            : tooMany
-              ? t('app.job.answer.idsTooMany', { n: String(lines.length), count: String(count) })
-              : typed
-                ? t('app.job.answer.idsCount', { n: String(typed), count: String(count) })
-                : t('app.job.answer.idsLater')
-        }
-        slotProps={{ htmlInput: { 'data-job-ids-paste': '' } }}
-      />
+      <Typography variant="body2" color="text.secondary">
+        {t('app.job.answer.idsLater')}
+      </Typography>
+      <IdBoxes rows={rows} values={values} onValues={setValues} errors={errors} pairs={pairs} disabled={disabled} />
       <Button
         variant="outlined"
-        disabled={disabled || !!refusal || tooMany || list.join('\n') === value.join('\n')}
+        disabled={disabled || Object.keys(errors).length > 0 || same}
         onClick={() => onUse(list)}
-        sx={{ alignSelf: 'flex-start' }}
+        sx={{ alignSelf: 'flex-start', minHeight: 44 }}
+        data-job-ids-use=""
       >
-        {t('app.job.answer.use')}
+        {t('app.job.ids.use')}
       </Button>
     </Stack>
   );
@@ -1127,6 +1138,9 @@ const JobProgress: React.FC<{ job: Job; fromApp: boolean }> = ({ job, fromApp })
             {waitWords(s.why) === 'records'
               ? tp('app.job.wait.records', count)
               : t(`app.job.wait.${waitWords(s.why)}` as AppKey)}
+            {waitWords(s.why) === 'refused' && refusedReason(s.why) && (
+              <Box sx={{ mt: 0.5 }}>{t('app.job.why', { why: refusedReason(s.why) })}</Box>
+            )}
           </Alert>
         ) : s.state === 'todo' && s.why ? (
           <Alert key={s.id} severity="info" variant="outlined" data-job-retry={s.kind}>

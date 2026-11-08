@@ -80,11 +80,7 @@ export const job = {
   'app.job.answer.bredBy': '¿Quién los crió?',
   'app.job.answer.taxon': '¿De qué especie son?',
   'app.job.answer.scheme': '¿Qué tipo de identificación son?',
-  'app.job.answer.ids': 'Identificaciones (opcional): pegue una columna, una por línea, en orden',
   'app.job.answer.idsLater': '¿Aún sin identificaciones? Déjelo vacío: la página de inicio se lo recordará.',
-  'app.job.answer.idsCount': '{n} de {count} pegadas.',
-  'app.job.answer.idsTooMany':
-    'Son {n} líneas para {count} crías. Pegue una línea por cría, en orden; deje vacía la línea de una cría sin identificación.',
   'app.job.answer.file': 'Elija el archivo con su colección (CSV o Excel).',
   'app.job.answer.filePick': 'Elegir un archivo',
   'app.job.answer.use': 'Usar esto',
@@ -106,7 +102,6 @@ export const job = {
   'app.job.made.noId': 'aún sin identificación',
   'app.job.made.tags': 'Etiquetas de planta de {first} a {last}',
   'app.job.made.lot': 'Lote: {lot}',
-  'app.job.made.ids': 'Identificaciones: de {first} a {last}',
   'app.job.made.noIds.one': 'Aún sin identificación para {count}: la página de inicio se la pedirá.',
   'app.job.made.noIds.other': 'Aún sin identificaciones para {count}: la página de inicio se las pedirá.',
   'app.job.made.importReady.one': '{count} listo',
@@ -264,6 +259,20 @@ export const job = {
   'app.job.ids.no.twice': '{id} está en dos casillas.',
   'app.job.ids.no.taken': '{id} ya es la identificación de {name}.',
   'app.job.ids.no.elsewhere': '{id} ya es la identificación de {name}, otro de sus animales.',
+  'app.job.ids.gone': 'El registro de {name} ya no está aquí. Cierre esto y vuelva a abrirlo.',
+  'app.job.ids.keep': 'Seguir editando',
+  'app.job.ids.discard': 'Descartar',
+  'app.job.ids.discardAsk': '¿Descartar las identificaciones que escribió? No están guardadas.',
+  'app.job.ids.use': 'Usar estas identificaciones',
+  'app.job.ids.paste.over':
+    'Son {n} líneas para {count} casillas desde aquí hacia abajo, así que no encaja. No se rellenó nada. Copie solo las identificaciones de estas crías o pegue en una casilla más arriba.',
+  'app.job.ids.paste.startsAt':
+    '«{id}» ya es la identificación de {name}, así que esta columna empieza más arriba. No se rellenó nada. Copie solo las identificaciones de las crías que aún no tienen.',
+  'app.job.ids.paste.comma':
+    'La línea {line} tiene una coma o un punto y coma: una identificación por línea. No se rellenó nada.',
+  'app.job.ids.no.comma': 'Una identificación por casilla: esta tiene una coma o un punto y coma.',
+  'app.job.wait.refused':
+    'No se pierde nada: sus registros se guardan aquí. El servidor de VeilCore rechazó este guardado, así que aún no se guardó nada. Lo volveré a intentar.',
   'app.job.ids.help':
     'Escriba o escanee la identificación de cada cría en su propia casilla. El Intro o el Tab de un escáner pasa a la siguiente casilla vacía. También puede pegar una columna en una casilla: rellena esa casilla y las de debajo.',
   'app.job.ids.schemeNeeded': 'Indique a qué numeración pertenecen estas identificaciones.',
@@ -277,12 +286,10 @@ export const job = {
   'app.job.ids.paste.header':
     '«{id}» parece un encabezado de columna, no una identificación. Copie las identificaciones sin el encabezado y péguelas de nuevo. No se rellenó nada.',
   'app.job.ids.paste.invisible':
-    'La línea {line} solo tiene caracteres invisibles. Copie de nuevo las identificaciones o escríbalas. No se rellenó nada.',
+    'La línea {line} tiene caracteres invisibles. Copie de nuevo las identificaciones o escríbalas. No se rellenó nada.',
   'app.job.ids.paste.stopped.one': 'Se detuvo en {name}: ya tiene identificación, así que 1 línea no se usó.',
   'app.job.ids.paste.stopped.other':
     'Se detuvo en {name}: ya tiene identificación, así que {count} líneas no se usaron.',
-  'app.job.ids.paste.over.one': 'Más líneas que casillas: 1 línea no se usó.',
-  'app.job.ids.paste.over.other': 'Más líneas que casillas: {count} líneas no se usaron.',
   'app.job.ids.no.invisible': 'Contiene caracteres invisibles. Vacíela y escriba o escanee la identificación de nuevo.',
   'app.job.wait.noKey':
     'Sus registros se guardan aquí, pero este navegador no tiene la clave con la que el servidor de VeilCore los conoce, así que no se volvió a enviar nada. Restaure su copia de seguridad para continuar.',

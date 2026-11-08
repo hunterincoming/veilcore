@@ -380,7 +380,8 @@ page says the new amount. Records are sent from the ledger as themselves (a rese
 before with no answer are looked up on the server first: one it holds is marked saved and never
 sent again. If the server can't be asked, or what it holds can't be written down here, or this
 browser has no holder key (restore the backup), nothing is sent until it can, and the page says
-which; it also tells full storage and a failure here apart from no connection. A
+which; it also tells full storage, a save the server turned down (with its reason) and a failure
+here apart from no connection. A
 record sent before and refused when sent again keeps its key and its row: the first send may
 have landed. A report is
 read for fresh and signed once (`deal-client.ts sayOnce`), so a retry after a lost answer finds
@@ -410,18 +411,24 @@ unknown outcome stops and asks. There is no automatic rollback.
   made leave the stamp queue when it ends.
 - young saved without IDs are listed on Home from the records themselves ("Bella's litter (6):
   add IDs"), not from the job, with a box to paste a column; each ID is saved as a correction.
-  Each young has its own box, labelled with its birth order, name and sex; one that has an ID
-  shows it, read-only. The person types or scans into each box (a scanner's Enter or Tab moves to
-  the next empty box), so an ID can only go on the young whose box it is in. A paste is a
-  shortcut: it fills its box and the boxes below, one line each, only when it is plainly one
-  column (a line with a tab, after one trailing tab, is refused, and so are a heading and a line
-  of invisible characters), and it stops at a young that has an ID and says so. Before Save,
-  each young is listed with the ID it will get; a box that breaks a rule (the same ID twice, one
-  already in the litter or on another of the person's animals, invisible characters) says why
-  under it, and Save waits. A save that stops part way keeps what was saved; Save again sends
-  only the rest (`src/ask-job/ids.ts`). The IDs pasted on a litter's result screen are read the
-  same way: one line a young, in place, refused unless plainly one column no longer than the
-  litter.
+  Each young has its own box (`src/components/ask/IdBoxes.tsx`), labelled with its birth order,
+  name and sex, read from the records as they are now on every render: a young that has an ID,
+  given here or in another tab or device, shows it, read-only. The person types or scans into
+  each box. Inside a box Tab and Enter never leave the boxes or press a button: a filled box moves
+  on to the next empty one, the last stays put, and the second key of a scanner's pair is
+  swallowed. A paste is a shortcut: it fills its box and the boxes below, one line each, only
+  when it plainly lines up. More than one column, a list on one line (comma or semicolon), a
+  heading, invisible or control characters, more lines than boxes from there down, or a first
+  line that is an ID a young already has are refused with nothing filled; it stops at a young
+  that has an ID and says so, and an empty line never clears what was typed. Before Save, each
+  young is listed with the ID it will get; a box that breaks a rule (the same ID twice, one
+  already in the litter or on another of the person's animals) says why under it, and Save
+  waits. Records are read afresh before Save, the boxes are locked while it runs, and a record
+  is corrected once (`records.ts issueCorrection` refuses a record that has a correction
+  already, unless the change is that correction's own): two tabs can't give one pup two IDs or
+  one ID to two pups. Cancel with IDs typed asks first. The IDs on a litter's result screen use
+  the same boxes, before Approve ("Use these IDs" puts them in the plan, bound to its hash), and
+  the made block lists each young with its ID (`src/ask-job/ids.ts`).
 
 Also on the device while a job waits: its records in the bulk-import ledger as `held` rows, and
 their new keys. A backup made while a job waits holds those keys, for records that may never be

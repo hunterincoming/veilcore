@@ -14,14 +14,20 @@ export const NOT_NOTED = 'Couldn’t note which records VeilCore’s server alre
 
 /** Said by sealRows (bulk-import.ts) when this browser's storage wouldn't keep the ledger. */
 const FULL = 'This browser wouldn’t keep what VeilCore needs';
-/** Said by sealRows when the registry didn't answer: the rows are kept to send again. */
-const OFFLINE = /as the same records\.$|^Couldn’t reach|^Couldn't reach/;
+/** Said by sealRows when the registry didn't answer (bulk-import.ts registryCommit). */
+const OFFLINE = /^Couldn['’]t reach/;
+/** Said by sealRows after any whole-save answer it keeps the rows for: the registry's reason, then this. */
+const KEPT = / The last (row was|\d+ rows were) kept here and will be sent again, as the same records\.$/;
 
-export type WaitWords = 'records' | 'cantCheck' | 'notNoted' | 'noKey' | 'full' | 'local';
+export type WaitWords = 'records' | 'refused' | 'cantCheck' | 'notNoted' | 'noKey' | 'full' | 'local';
+
+/** The registry's own reason for turning a whole save down, without what sealRows adds. */
+export const refusedReason = (why: string | undefined): string => (why ?? '').replace(KEPT, '').trim();
 
 /**
- * Which words a waiting records step is said with (verification W6, S5): no connection
- * ('records'), the server couldn't be asked, this browser couldn't note what it has, no holder key
+ * Which words a waiting records step is said with (verification W6, S5, round 4 S3): no
+ * connection ('records'), the server turned the whole save down ('refused', with its reason),
+ * the server couldn't be asked, this browser couldn't note what it has, no holder key
  * (restore the backup), storage full, or anything else that went wrong here (a lock, a thrown
  * error, the page left): "couldn't save here, will try again".
  */
@@ -36,4 +42,6 @@ export const waitWords = (why: string | undefined): WaitWords =>
           ? 'full'
           : why && OFFLINE.test(why)
             ? 'records'
-            : 'local';
+            : why && KEPT.test(why)
+              ? 'refused'
+              : 'local';

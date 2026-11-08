@@ -73,11 +73,7 @@ export const job = {
   'app.job.answer.bredBy': '繁殖者は誰ですか？',
   'app.job.answer.taxon': '動物種は何ですか？',
   'app.job.answer.scheme': 'どの番号の体系ですか？',
-  'app.job.answer.ids': '個体識別番号（任意）：1行に1つずつ、順に列を貼り付け',
   'app.job.answer.idsLater': 'まだ番号がない場合は空のままで。ホームでお知らせします。',
-  'app.job.answer.idsCount': '{count}件中{n}件を貼り付けました。',
-  'app.job.answer.idsTooMany':
-    '{count}件の子に対して{n}行あります。子ごとに1行ずつ順番に貼り付けてください。番号のまだない子の行は空にしてください。',
   'app.job.answer.file': 'コレクションのファイル（CSVまたはExcel）を選んでください。',
   'app.job.answer.filePick': 'ファイルを選ぶ',
   'app.job.answer.use': 'これを使う',
@@ -98,7 +94,6 @@ export const job = {
   'app.job.made.noId': '番号なし',
   'app.job.made.tags': '植物タグ{first}〜{last}',
   'app.job.made.lot': 'ロット：{lot}',
-  'app.job.made.ids': '個体識別番号：{first}〜{last}',
   'app.job.made.noIds.other': '{count}件はまだ番号がありません。ホームでお知らせします。',
   'app.job.made.importReady.other': '準備できたもの{count}件',
   'app.job.made.importFix.other':
@@ -235,6 +230,20 @@ export const job = {
   'app.job.ids.no.twice': '{id}が2つの欄にあります。',
   'app.job.ids.no.taken': '{id}はすでに{name}の番号です。',
   'app.job.ids.no.elsewhere': '{id}は、あなたの別の動物「{name}」の番号です。',
+  'app.job.ids.gone': '{name}の記録が見つかりません。いったん閉じて開き直してください。',
+  'app.job.ids.keep': '編集を続ける',
+  'app.job.ids.discard': '破棄',
+  'app.job.ids.discardAsk': '入力した番号を破棄しますか？まだ保存していません。',
+  'app.job.ids.use': 'この番号を使う',
+  'app.job.ids.paste.over':
+    'ここから下の欄は{count}件ですが、{n}行あるため合いません。何も入力していません。この子たちの番号だけをコピーするか、もっと上の欄に貼り付けてください。',
+  'app.job.ids.paste.startsAt':
+    '「{id}」はすでに{name}の番号です。この列はもっと上から始まっています。何も入力していません。番号のまだない子の番号だけをコピーしてください。',
+  'app.job.ids.paste.comma':
+    '{line}行目にカンマかセミコロンがあります。1行に1つの番号にしてください。何も入力していません。',
+  'app.job.ids.no.comma': '1つの欄に1つの番号です。カンマかセミコロンが含まれています。',
+  'app.job.wait.refused':
+    '記録はこの端末に保存されたままです。VeilCoreのサーバーがこの保存を受け付けなかったため、まだ何も保存されていません。もう一度試します。',
   'app.job.ids.help':
     '子ごとに、それぞれの欄へ番号を入力するかスキャンしてください。スキャナーのEnterやTabで次の空欄に移ります。1列を欄に貼り付けることもできます。その欄から下の欄へ順に入ります。',
   'app.job.ids.schemeNeeded': 'これらの番号がどの番号体系のものかを入力してください。',
@@ -247,9 +256,8 @@ export const job = {
   'app.job.ids.paste.header':
     '「{id}」は番号ではなく列の見出しのようです。見出しを除いて番号をコピーし、もう一度貼り付けてください。何も入力していません。',
   'app.job.ids.paste.invisible':
-    '{line}行目には見えない文字しかありません。番号をもう一度コピーするか、入力してください。何も入力していません。',
+    '{line}行目に見えない文字が含まれています。番号をもう一度コピーするか、入力してください。何も入力していません。',
   'app.job.ids.paste.stopped.other': '{name}で止めました。すでに番号があるため、{count}行は使っていません。',
-  'app.job.ids.paste.over.other': '欄より行が多いため、{count}行は使っていません。',
   'app.job.ids.no.invisible':
     '見えない文字が含まれています。欄を空にして、番号をもう一度入力するかスキャンしてください。',
   'app.job.wait.noKey':

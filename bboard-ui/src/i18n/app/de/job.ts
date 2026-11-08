@@ -85,11 +85,7 @@ export const job = {
   'app.job.answer.bredBy': 'Wer hat sie gezüchtet?',
   'app.job.answer.taxon': 'Welche Art sind sie?',
   'app.job.answer.scheme': 'Welche Art von Kennnummer ist das?',
-  'app.job.answer.ids': 'Kennnummern (freiwillig): eine Spalte einfügen, eine pro Zeile, in Reihenfolge',
   'app.job.answer.idsLater': 'Noch keine Kennnummern? Lassen Sie es leer: Die Startseite erinnert Sie.',
-  'app.job.answer.idsCount': '{n} von {count} eingefügt.',
-  'app.job.answer.idsTooMany':
-    'Das sind {n} Zeilen für {count} Jungtiere. Fügen Sie eine Zeile pro Jungtier ein, der Reihe nach; lassen Sie die Zeile eines Jungtiers ohne Kennnummer leer.',
   'app.job.answer.file': 'Wählen Sie die Datei mit Ihrer Sammlung (CSV oder Excel).',
   'app.job.answer.filePick': 'Datei wählen',
   'app.job.answer.use': 'Übernehmen',
@@ -112,7 +108,6 @@ export const job = {
   'app.job.made.noId': 'noch keine Kennnummer',
   'app.job.made.tags': 'Pflanzenetiketten {first} bis {last}',
   'app.job.made.lot': 'Charge: {lot}',
-  'app.job.made.ids': 'Kennnummern: {first} bis {last}',
   'app.job.made.noIds.one': 'Noch keine Kennnummer für {count}: Die Startseite fragt danach.',
   'app.job.made.noIds.other': 'Noch keine Kennnummern für {count}: Die Startseite fragt danach.',
   'app.job.made.importReady.one': '{count} bereit',
@@ -272,6 +267,20 @@ export const job = {
   'app.job.ids.no.twice': '{id} steht in zwei Feldern.',
   'app.job.ids.no.taken': '{id} ist bereits die Kennnummer von {name}.',
   'app.job.ids.no.elsewhere': '{id} ist bereits die Kennnummer von {name}, einem anderen Ihrer Tiere.',
+  'app.job.ids.gone': 'Der Datensatz von {name} ist nicht mehr da. Schließen Sie dies und öffnen Sie es erneut.',
+  'app.job.ids.keep': 'Weiter bearbeiten',
+  'app.job.ids.discard': 'Verwerfen',
+  'app.job.ids.discardAsk': 'Die eingegebenen Kennnummern verwerfen? Sie sind nicht gespeichert.',
+  'app.job.ids.use': 'Diese Kennnummern verwenden',
+  'app.job.ids.paste.over':
+    'Das sind {n} Zeilen für {count} Felder von hier abwärts, es passt also nicht. Nichts wurde ausgefüllt. Kopieren Sie nur die Kennnummern dieser Jungtiere oder fügen Sie in ein Feld weiter oben ein.',
+  'app.job.ids.paste.startsAt':
+    '„{id}“ ist bereits die Kennnummer von {name}, diese Spalte beginnt also weiter oben. Nichts wurde ausgefüllt. Kopieren Sie nur die Kennnummern der Jungtiere, die noch keine haben.',
+  'app.job.ids.paste.comma':
+    'Zeile {line} enthält ein Komma oder Semikolon: eine Kennnummer pro Zeile. Nichts wurde ausgefüllt.',
+  'app.job.ids.no.comma': 'Eine Kennnummer pro Feld: Hier steht ein Komma oder Semikolon.',
+  'app.job.wait.refused':
+    'Nichts geht verloren: Ihre Datensätze sind hier gespeichert. Der Server von VeilCore hat diese Speicherung abgelehnt, also ist noch nichts gespeichert. Ich versuche es erneut.',
   'app.job.ids.help':
     'Geben oder scannen Sie die Kennnummer jedes Jungtiers in sein eigenes Feld. Enter oder Tab eines Scanners springt zum nächsten leeren Feld. Sie können auch eine Spalte in ein Feld einfügen: Sie füllt dieses Feld und die darunter.',
   'app.job.ids.schemeNeeded': 'Geben Sie an, zu welcher Nummerierung diese Kennnummern gehören.',
@@ -285,13 +294,11 @@ export const job = {
   'app.job.ids.paste.header':
     '„{id}“ sieht nach einer Spaltenüberschrift aus, nicht nach einer Kennnummer. Kopieren Sie die Kennnummern ohne Überschrift und fügen Sie sie erneut ein. Nichts wurde ausgefüllt.',
   'app.job.ids.paste.invisible':
-    'Zeile {line} enthält nur unsichtbare Zeichen. Kopieren Sie die Kennnummern erneut oder geben Sie sie ein. Nichts wurde ausgefüllt.',
+    'Zeile {line} enthält unsichtbare Zeichen. Kopieren Sie die Kennnummern erneut oder geben Sie sie ein. Nichts wurde ausgefüllt.',
   'app.job.ids.paste.stopped.one':
     'Bei {name} angehalten: Es hat schon eine Kennnummer, also wurde 1 Zeile nicht verwendet.',
   'app.job.ids.paste.stopped.other':
     'Bei {name} angehalten: Es hat schon eine Kennnummer, also wurden {count} Zeilen nicht verwendet.',
-  'app.job.ids.paste.over.one': 'Mehr Zeilen als Felder: 1 Zeile wurde nicht verwendet.',
-  'app.job.ids.paste.over.other': 'Mehr Zeilen als Felder: {count} Zeilen wurden nicht verwendet.',
   'app.job.ids.no.invisible':
     'Hier stehen unsichtbare Zeichen. Leeren Sie das Feld und geben oder scannen Sie die Kennnummer erneut.',
   'app.job.wait.noKey':

@@ -82,11 +82,7 @@ export const job = {
   'app.job.answer.bredBy': 'Qui les a sélectionnés ?',
   'app.job.answer.taxon': 'De quelle espèce sont-ils ?',
   'app.job.answer.scheme': 'Quel genre d’identifiant est-ce ?',
-  'app.job.answer.ids': 'Identifiants (facultatif) : collez une colonne, un par ligne, dans l’ordre',
   'app.job.answer.idsLater': 'Pas encore d’identifiants ? Laissez vide : l’accueil vous le rappellera.',
-  'app.job.answer.idsCount': '{n} sur {count} collés.',
-  'app.job.answer.idsTooMany':
-    'Cela fait {n} lignes pour {count} petits. Collez une ligne par petit, dans l’ordre ; laissez vide la ligne d’un petit sans identifiant.',
   'app.job.answer.file': 'Choisissez le fichier de votre collection (CSV ou Excel).',
   'app.job.answer.filePick': 'Choisir un fichier',
   'app.job.answer.use': 'Utiliser',
@@ -109,7 +105,6 @@ export const job = {
   'app.job.made.noId': 'pas encore d’identifiant',
   'app.job.made.tags': 'Étiquettes de plante de {first} à {last}',
   'app.job.made.lot': 'Lot : {lot}',
-  'app.job.made.ids': 'Identifiants : de {first} à {last}',
   'app.job.made.noIds.one': 'Pas encore d’identifiant pour {count} : l’accueil le demandera.',
   'app.job.made.noIds.other': 'Pas encore d’identifiants pour {count} : l’accueil les demandera.',
   'app.job.made.importReady.one': '{count} prêt',
@@ -267,6 +262,20 @@ export const job = {
   'app.job.ids.no.twice': '{id} est dans deux cases.',
   'app.job.ids.no.taken': '{id} est déjà l’identifiant de {name}.',
   'app.job.ids.no.elsewhere': '{id} est déjà l’identifiant de {name}, un autre de vos animaux.',
+  'app.job.ids.gone': 'L’enregistrement de {name} n’est plus là. Fermez ceci et rouvrez-le.',
+  'app.job.ids.keep': 'Continuer',
+  'app.job.ids.discard': 'Abandonner',
+  'app.job.ids.discardAsk': 'Abandonner les identifiants saisis ? Ils ne sont pas enregistrés.',
+  'app.job.ids.use': 'Utiliser ces identifiants',
+  'app.job.ids.paste.over':
+    'Cela fait {n} lignes pour {count} cases à partir d’ici, donc ça ne correspond pas. Rien n’a été rempli. Copiez seulement les identifiants de ces petits, ou collez dans une case plus haut.',
+  'app.job.ids.paste.startsAt':
+    '« {id} » est déjà l’identifiant de {name}, donc cette colonne commence plus haut. Rien n’a été rempli. Copiez seulement les identifiants des petits qui n’en ont pas encore.',
+  'app.job.ids.paste.comma':
+    'La ligne {line} contient une virgule ou un point-virgule : un identifiant par ligne. Rien n’a été rempli.',
+  'app.job.ids.no.comma': 'Un identifiant par case : celle-ci contient une virgule ou un point-virgule.',
+  'app.job.wait.refused':
+    'Rien n’est perdu : vos enregistrements sont gardés ici. Le serveur de VeilCore a refusé cet enregistrement, donc rien n’est encore enregistré. Je réessaierai.',
   'app.job.ids.help':
     'Saisissez ou scannez l’identifiant de chaque petit dans sa propre case. Entrée ou Tab d’un scanner passe à la case vide suivante. Vous pouvez aussi coller une colonne dans une case : elle remplit cette case et celles du dessous.',
   'app.job.ids.schemeNeeded': 'Indiquez à quelle numérotation appartiennent ces identifiants.',
@@ -280,12 +289,10 @@ export const job = {
   'app.job.ids.paste.header':
     '« {id} » ressemble à un en-tête de colonne, pas à un identifiant. Copiez les identifiants sans l’en-tête et collez à nouveau. Rien n’a été rempli.',
   'app.job.ids.paste.invisible':
-    'La ligne {line} ne contient que des caractères invisibles. Copiez à nouveau les identifiants ou saisissez-les. Rien n’a été rempli.',
+    'La ligne {line} contient des caractères invisibles. Copiez à nouveau les identifiants ou saisissez-les. Rien n’a été rempli.',
   'app.job.ids.paste.stopped.one': 'Arrêté à {name} : il a déjà un identifiant, donc 1 ligne n’a pas été utilisée.',
   'app.job.ids.paste.stopped.other':
     'Arrêté à {name} : il a déjà un identifiant, donc {count} lignes n’ont pas été utilisées.',
-  'app.job.ids.paste.over.one': 'Plus de lignes que de cases : 1 ligne n’a pas été utilisée.',
-  'app.job.ids.paste.over.other': 'Plus de lignes que de cases : {count} lignes n’ont pas été utilisées.',
   'app.job.ids.no.invisible':
     'Elle contient des caractères invisibles. Videz-la et saisissez ou scannez l’identifiant à nouveau.',
   'app.job.wait.noKey':

@@ -72,11 +72,7 @@ export const job = {
   'app.job.answer.bredBy': 'Who bred them?',
   'app.job.answer.taxon': 'What species are they?',
   'app.job.answer.scheme': 'What kind of ID are these?',
-  'app.job.answer.ids': 'IDs (optional): paste a column, one per line, in order',
   'app.job.answer.idsLater': 'No IDs yet? Leave it empty: Home will remind you.',
-  'app.job.answer.idsCount': '{n} of {count} pasted.',
-  'app.job.answer.idsTooMany':
-    'That’s {n} lines for {count} young. Paste one line for each, in order; leave a line empty for a young with no ID yet.',
   'app.job.answer.file': 'Pick the file with your collection (CSV or Excel).',
   'app.job.answer.filePick': 'Pick a file',
   'app.job.answer.use': 'Use this',
@@ -98,7 +94,6 @@ export const job = {
   'app.job.made.noId': 'no ID yet',
   'app.job.made.tags': 'Plant tags {first} to {last}',
   'app.job.made.lot': 'Lot: {lot}',
-  'app.job.made.ids': 'IDs: {first} to {last}',
   'app.job.made.noIds.one': 'No ID yet for {count}: Home will ask for it.',
   'app.job.made.noIds.other': 'No IDs yet for {count}: Home will ask for them.',
   'app.job.made.importReady.one': '{count} ready',
@@ -249,6 +244,19 @@ export const job = {
   'app.job.ids.no.twice': '{id} is in two boxes.',
   'app.job.ids.no.taken': '{id} is already {name}’s ID.',
   'app.job.ids.no.elsewhere': '{id} is already the ID of {name}, another of your animals.',
+  'app.job.ids.gone': '{name}’s record isn’t here any more. Close this and open it again.',
+  'app.job.ids.keep': 'Keep editing',
+  'app.job.ids.discard': 'Discard',
+  'app.job.ids.discardAsk': 'Discard the IDs you typed? They aren’t saved.',
+  'app.job.ids.use': 'Use these IDs',
+  'app.job.ids.paste.over':
+    'That’s {n} lines for {count} boxes from here down, so it doesn’t line up. Nothing was filled. Copy only the IDs for these young, or paste into a box higher up.',
+  'app.job.ids.paste.startsAt':
+    '“{id}” is already {name}’s ID, so this column starts higher up. Nothing was filled. Copy only the IDs of the young still without one.',
+  'app.job.ids.paste.comma': 'Line {line} has a comma or semicolon in it: one ID a line. Nothing was filled.',
+  'app.job.ids.no.comma': 'One ID a box: this has a comma or semicolon in it.',
+  'app.job.wait.refused':
+    'Nothing is lost: your records are kept here. VeilCore’s server turned this save down, so nothing was saved yet. I’ll try again.',
   'app.job.ids.help':
     'Type or scan each young’s ID in its own box. A scanner’s Enter or Tab moves to the next empty box. You can also paste one column into a box: it fills that box and the ones below.',
   'app.job.ids.schemeNeeded': 'Say which numbering these IDs belong to.',
@@ -262,12 +270,10 @@ export const job = {
   'app.job.ids.paste.header':
     '“{id}” looks like a column heading, not an ID. Copy the IDs without the heading and paste again. Nothing was filled.',
   'app.job.ids.paste.invisible':
-    'Line {line} holds only invisible characters. Copy the IDs again, or type them. Nothing was filled.',
+    'Line {line} has invisible characters in it. Copy the IDs again, or type them. Nothing was filled.',
   'app.job.ids.paste.stopped.one': 'Stopped at {name}: it already has an ID, so 1 line wasn’t used.',
   'app.job.ids.paste.stopped.other': 'Stopped at {name}: it already has an ID, so {count} lines weren’t used.',
-  'app.job.ids.paste.over.one': 'More lines than boxes: 1 line wasn’t used.',
-  'app.job.ids.paste.over.other': 'More lines than boxes: {count} lines weren’t used.',
-  'app.job.ids.no.invisible': 'This holds invisible characters. Clear it and type or scan the ID again.',
+  'app.job.ids.no.invisible': 'This has invisible characters in it. Clear it and type or scan the ID again.',
   'app.job.wait.noKey':
     'Your records are kept here, but this browser doesn’t have the key VeilCore’s server knows them by, so nothing was sent again. Restore your backup to continue.',
   'app.job.wait.full':

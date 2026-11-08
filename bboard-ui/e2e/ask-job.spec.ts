@@ -302,9 +302,19 @@ test('a litter with its sexes and IDs pasted; an edit in another tab leaves the 
     .getByRole('button')
     .click();
   await expect(other).toHaveURL(jobUrl);
-  await other.locator('[data-job-ids] textarea').first().fill('985112000000001\n985112000000002\n985112000000003');
-  await other.locator('[data-job-ids]').getByRole('button', { name: 'Use this' }).click();
-  await expect(other.locator('[data-job-block="made"]')).toContainText('IDs: 985112000000001 to 985112000000003');
+  // One box per pup, as in Add IDs: the column pasted into the first, each pup shown with its ID.
+  await pasteText(other, '[data-job-ids] [data-id-box] >> nth=0', '985112000000001\n985112000000002\n985112000000003');
+  await expect(other.locator('[data-job-ids] [data-id-pair]')).toHaveText([
+    'Bella pup 1 gets 985112000000001',
+    'Bella pup 2 gets 985112000000002',
+    'Bella pup 3 gets 985112000000003',
+  ]);
+  await other.locator('[data-job-ids-use]').click();
+  await expect(other.locator('[data-job-made-id]')).toHaveText([
+    'Bella pup 1 gets 985112000000001',
+    'Bella pup 2 gets 985112000000002',
+    'Bella pup 3 gets 985112000000003',
+  ]);
 
   // The first tab still shows what it drew, and says the job changed.
   await expect(page.locator('[data-job-changed]')).toContainText('This job changed in another tab. Check it again.');
@@ -320,7 +330,7 @@ test('a litter with its sexes and IDs pasted; an edit in another tab leaves the 
 
   // Shown again, the IDs need their scheme: one question, then the backup, then Approve.
   await page.locator('[data-job-changed]').getByRole('button', { name: 'Check it' }).click();
-  await expect(made).toContainText('IDs: 985112000000001 to 985112000000003');
+  await expect(made).toContainText('Bella pup 3 gets 985112000000003');
   await page.locator('[data-job-question="scheme"] input').fill('Microchip');
   await page.locator('[data-job-question="scheme"]').getByRole('button', { name: 'Use this' }).click();
   await backup(page);
@@ -345,13 +355,13 @@ const pasteText = (page: Page, selector: string, text: string) =>
   }, text);
 
 /** A scanner: the ID typed fast, then Tab and Enter. */
-const scan = async (page: Page, id: string) => {
-  await page.keyboard.type(id, { delay: 5 });
-  await page.keyboard.press('Tab');
-  await page.keyboard.press('Enter');
+const scan = async (page: Page, id: string, gap = 5) => {
+  await page.keyboard.type(id, { delay: gap });
+  await page.keyboard.press('Tab', { delay: gap });
+  await page.keyboard.press('Enter', { delay: gap });
 };
 
-test('Add IDs on a phone: one box per young; three scanned into a litter of six, checked, saved on the right pups; two columns refused', async ({
+test('Add IDs on a phone: one box per young; a whole litter scanned with Tab+Enter, checked, saved on the right pups; two columns refused', async ({
   page,
 }) => {
   test.setTimeout(300_000);
@@ -390,44 +400,63 @@ test('Add IDs on a phone: one box per young; three scanned into a litter of six,
   await line.getByRole('button').click();
   const box = page.locator('[data-add-ids]');
   await expect(box.getByRole('heading', { level: 2 })).toHaveText('Add IDs: Bella’s 6 young');
-  await expect(box.locator('[data-add-ids-young]')).toHaveCount(6);
+  await expect(box.locator('[data-id-young]')).toHaveCount(6);
   const scheme = box.locator('[data-add-ids-scheme]');
   if (!(await scheme.inputValue())) await scheme.fill('Microchip');
+  const boxes = box.locator('[data-id-box]');
+  const filled = () => boxes.evaluateAll((els) => els.map((e) => (e as HTMLInputElement).value));
+  const chips = [1, 2, 3, 4, 5, 6].map((n) => `98511200000000${n}`);
 
-  // Scanned: each scan ends with Tab then Enter, and lands in the next empty box, never two on.
-  const boxes = box.locator('[data-add-ids-box]');
+  // The whole litter scanned, each scan ending Tab then Enter, with no gap and with 5 ms between
+  // keys: each lands in the next empty box, never two on, and the last one stays put (never on
+  // Cancel or Save).
+  for (const gap of [0, 5]) {
+    await boxes.nth(0).click();
+    for (const id of chips) await scan(page, id, gap);
+    await expect(box).toBeVisible();
+    expect(await filled()).toEqual(chips);
+    await expect(boxes.nth(5)).toBeFocused();
+    await expect(box.locator('[data-id-pair]')).toHaveCount(6);
+    // Cancel with IDs typed asks first: keep editing keeps them; discard closes.
+    await box.locator('[data-add-ids-cancel]').click();
+    await expect(box.locator('[data-add-ids-discard]')).toContainText('Discard the IDs you typed? They aren’t saved.');
+    await box.getByRole('button', { name: 'Keep editing' }).click();
+    expect(await filled()).toEqual(chips);
+    await box.locator('[data-add-ids-cancel]').click();
+    await box.locator('[data-add-ids-discard-yes]').click();
+    await expect(box).toHaveCount(0);
+    await line.getByRole('button').click();
+    if (!(await scheme.inputValue())) await scheme.fill('Microchip');
+  }
+
+  // Three scanned, then two columns pasted into box 4: refused, nothing filled, the reason under
+  // that box and in view.
   await boxes.nth(0).click();
-  for (const n of [1, 2, 3]) await scan(page, `98511200000000${n}`);
-  expect(await boxes.evaluateAll((els) => els.map((e) => (e as HTMLInputElement).value))).toEqual([
-    '985112000000001',
-    '985112000000002',
-    '985112000000003',
-    '',
-    '',
-    '',
-  ]);
+  for (const id of chips.slice(0, 3)) await scan(page, id);
+  expect(await filled()).toEqual([...chips.slice(0, 3), '', '', '']);
   await expect(boxes.nth(3)).toBeFocused();
   // What Save will do, young by young.
-  await expect(box.locator('[data-add-ids-pair]')).toHaveText([
+  await expect(box.locator('[data-id-pair]')).toHaveText([
     'Bella pup 1 gets 985112000000001',
     'Bella pup 2 gets 985112000000002',
     'Bella pup 3 gets 985112000000003',
   ]);
   await expect(box.locator('[data-add-ids-save]')).toHaveText('Save 3 IDs');
-  await box.locator('[data-add-ids-preview]').scrollIntoViewIfNeeded();
+  await box.locator('[data-id-preview]').scrollIntoViewIfNeeded();
   await shot(page, 'ids-scan-en');
-
-  // Two columns pasted into box 4: refused, nothing filled, the reason under that box, in view.
-  await pasteText(page, '[data-add-ids-box] >> nth=3', '985112000000004\tGB-44\n985112000000005\tGB-45');
-  const note = box.locator('[data-add-ids-paste-note="columns"]');
+  await pasteText(page, '[data-id-box] >> nth=3', '985112000000004\tGB-44\n985112000000005\tGB-45');
+  const note = box.locator('[data-id-paste-note="columns"]');
   await expect(note).toHaveText(
     'That’s more than one column. Copy just the column of IDs and paste again. Nothing was filled.',
   );
   await expect(note).toBeInViewport();
-  expect(await boxes.nth(3).inputValue()).toBe('');
-  expect(await boxes.nth(4).inputValue()).toBe('');
-  await expect(box.locator('[data-add-ids-pair]')).toHaveCount(3);
+  expect(await filled()).toEqual([...chips.slice(0, 3), '', '', '']);
   await shot(page, 'ids-columns-en');
+  // More lines than boxes from there down: refused too, nothing filled.
+  await pasteText(page, '[data-id-box] >> nth=3', 'A1\nA2\nA3\nA4');
+  await expect(box.locator('[data-id-paste-note="over"]')).toBeInViewport();
+  expect(await filled()).toEqual([...chips.slice(0, 3), '', '', '']);
+  await shot(page, 'ids-over-en');
 
   // Saved: each ID on the pup whose box it was in.
   await box.locator('[data-add-ids-save]').click();
@@ -449,22 +478,26 @@ test('Add IDs on a phone: one box per young; three scanned into a litter of six,
   });
   await expect(line).toContainText('Bella’s litter (3): add IDs');
 
-  // In Japanese: the saved IDs shown read-only, a scan, then two columns refused.
+  // In Japanese: the saved IDs shown read-only, the rest scanned to the end (staying on the last
+  // box), then two columns refused.
   await page.evaluate(() => localStorage.setItem('veilcore.lang', 'ja'));
   await page.reload();
   await line.getByRole('button').click();
-  await expect(box.locator('[data-add-ids-saved]')).toHaveCount(3);
+  await expect(box.locator('[data-id-saved]')).toHaveCount(3);
   await expect(boxes).toHaveCount(3);
   if (!(await scheme.inputValue())) await scheme.fill('Microchip');
   await boxes.nth(0).click();
-  await scan(page, '985112000000004');
+  await scan(page, chips[3]);
   await expect(boxes.nth(1)).toBeFocused();
-  await expect(box.locator('[data-add-ids-pair]')).toHaveText(['Bella pup 4：985112000000004']);
-  await box.locator('[data-add-ids-preview]').scrollIntoViewIfNeeded();
+  await expect(box.locator('[data-id-pair]')).toHaveText(['Bella pup 4：985112000000004']);
+  await box.locator('[data-id-preview]').scrollIntoViewIfNeeded();
   await shot(page, 'ids-scan-ja');
-  await pasteText(page, '[data-add-ids-box] >> nth=1', 'A\tB\nC\tD');
-  await expect(box.locator('[data-add-ids-paste-note="columns"]')).toBeInViewport();
+  await pasteText(page, '[data-id-box] >> nth=1', 'A\tB\nC\tD');
+  await expect(box.locator('[data-id-paste-note="columns"]')).toBeInViewport();
   await shot(page, 'ids-columns-ja');
+  await box.locator('[data-add-ids-cancel]').click();
+  await expect(box.locator('[data-add-ids-discard]')).toBeInViewport();
+  await shot(page, 'ids-discard-ja');
   await page.evaluate(() => localStorage.setItem('veilcore.lang', 'en'));
   expectNoErrors(errors);
 });

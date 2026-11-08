@@ -1,10 +1,11 @@
-// "Add IDs" (components/ask/AddIds.tsx): the young of one dam born the same day, one box each,
-// and what each box will save. A correction is permanent, so which young an ID goes on never
-// depends on how a paste lines up (verification V5, W1, X1): every young has its own box, labelled
-// with its name, birth order and sex, and the person types or scans into it. A paste is only a
-// shortcut that fills the box it lands in and the boxes below, one line each, and only when it is
-// plainly one column: anything else is refused, and it never runs past a young that has an ID.
-// Before Save, each young is shown with the ID it will get.
+// IDs for young, one box each (components/ask/IdBoxes.tsx): in Add IDs (AddIds.tsx), for young
+// saved without them, and on a litter's result screen before Approve (JobPage.tsx). A correction
+// is permanent, so which young an ID goes on never depends on how a paste lines up (verification
+// V5, W1, X1, X4, X5): every young has its own box, labelled with its birth order, name and sex,
+// and the person types or scans into it. A paste is only a shortcut that fills the box it lands in
+// and the boxes below, one line each, and only when it plainly lines up: one column, no heading,
+// no more lines than boxes, never past a young that has an ID. Each young is shown with the ID
+// it will get before Save or Approve.
 // SPDX-License-Identifier: Apache-2.0
 
 import type { StrainRecord } from '../veilcore/records';
@@ -50,76 +51,113 @@ export const littersWithoutIds = (records: readonly StrainRecord[], today: strin
     .sort((a, b) => b.born.localeCompare(a.born));
 };
 
-/** Characters a copy can carry that show nothing: zero-width, joiners, direction marks, soft hyphen. */
-const INVISIBLE = /[\u00AD\u180E\u200B-\u200F\u202A-\u202E\u2060-\u2064\u206A-\u206F\uFEFF]/;
+/** A record as it is now: followed through its corrections, made here or in another tab (X2). */
+export const latestOf = (records: readonly StrainRecord[], r: StrainRecord): StrainRecord => {
+  let cur = records.find((x) => x.id === r.id) ?? r;
+  for (let i = 0; i < 20 && cur.supersededBy; i++) {
+    const next = records.find((x) => x.id === cur.supersededBy);
+    if (!next) break;
+    cur = next;
+  }
+  return cur;
+};
 
-const same = (a: string, b: string) => a.toUpperCase() === b.toUpperCase();
+/** One box: a young, by a key that stays put, and its ID if it has one (then read-only). */
+export type IdRow = {
+  readonly key: string;
+  readonly name: string;
+  readonly sex?: string;
+  readonly saved?: string;
+  /** The record to correct (Add IDs): the young's newest record. */
+  readonly record?: StrainRecord;
+};
 
-/** The ID a young has: saved on its record, or saved from this box just now (a retry after a stop). */
-export const savedIdOf = (r: StrainRecord, savedHere: ReadonlyMap<string, string>): string | undefined =>
-  r.refId?.trim() || savedHere.get(r.id);
+/** A litter's boxes from the records as they are now, never as they were when the box opened. */
+export const rowsOfLitter = (litter: Pick<Litter, 'young'>, records: readonly StrainRecord[]): IdRow[] =>
+  litter.young.map((y) => {
+    const now = latestOf(records, y);
+    return {
+      key: y.id,
+      name: now.strainName,
+      sex: now.animal?.sex,
+      ...(hasId(now) ? { saved: now.refId!.trim() } : {}),
+      record: now,
+    };
+  });
 
-/** IDs the person's other own animals already have: ID to name. The litter's young, and the
- * records that replaced them (their corrections, saved from this box), are not others (S1). */
-export const otherIds = (records: readonly StrainRecord[], litter: Pick<Litter, 'young'>): Map<string, string> => {
-  const mine = new Set(litter.young.map((r) => r.id));
+/** IDs the person's other own animals have: ID to name. A young of these rows, in any of its
+ * versions, is not "another animal" (its saved ID counts as `taken` instead). */
+export const otherIds = (records: readonly StrainRecord[], rows: readonly IdRow[]): Map<string, string> => {
+  const mine = new Set(rows.map((r) => r.key));
+  const isMine = (r: StrainRecord): boolean => {
+    let cur: StrainRecord | undefined = r;
+    for (let i = 0; i < 20 && cur; i++) {
+      if (mine.has(cur.id)) return true;
+      const back: string | undefined = cur.supersedes?.recordId;
+      cur = back ? records.find((x) => x.id === back) : undefined;
+    }
+    return false;
+  };
   const out = new Map<string, string>();
   for (const r of records) {
-    if (!isAnimal(r) || isReceivedRecord(r) || r.supersededBy || !r.refId?.trim()) continue;
-    if (mine.has(r.id) || (r.supersedes?.recordId && mine.has(r.supersedes.recordId))) continue;
+    if (!isAnimal(r) || isReceivedRecord(r) || r.supersededBy || !r.refId?.trim() || isMine(r)) continue;
     out.set(r.refId.trim(), r.strainName);
   }
   return out;
 };
 
+/** Characters that show nothing or split a line unseen: controls, zero-width, joiners, direction marks, soft hyphen, line separators. */
+const INVISIBLE =
+  // eslint-disable-next-line no-control-regex -- control characters are exactly what it looks for
+  /[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\x9F\u00AD\u180E\u200B-\u200F\u2028-\u202E\u2060-\u2064\u206A-\u206F\uFEFF]/;
+/** A list typed on one line ("A1, A2" or "A1; A2"): several IDs where one box takes one. */
+const LIST = /[,;]/;
+
+const same = (a: string, b: string) => a.toUpperCase() === b.toUpperCase();
+
 export type BoxError =
   | { readonly why: 'invisible' }
+  | { readonly why: 'comma' }
   | { readonly why: 'twice'; readonly id: string }
   | { readonly why: 'taken'; readonly id: string; readonly name: string }
   | { readonly why: 'elsewhere'; readonly id: string; readonly name: string };
 
 /**
- * What Save would do, box by box: each young still without an ID that has something in its box,
- * with that ID (`pairs`, in birth order: what the screen shows before Save), and each box that
- * breaks a rule, with why (`errors`, by record id). Save only when there are pairs and no errors.
+ * What Save (or Use) would do, box by box: each young still without an ID that has something in
+ * its box, with that ID (`pairs`, in birth order: what the screen shows first), and each box that
+ * breaks a rule, with why (`errors`, by key). Only when there are pairs and no errors.
  */
 export const checkBoxes = (
-  litter: Pick<Litter, 'young'>,
+  rows: readonly IdRow[],
   values: Readonly<Record<string, string>>,
-  savedHere: ReadonlyMap<string, string> = new Map(),
   others: ReadonlyMap<string, string> = new Map(),
-): { pairs: [StrainRecord, string][]; errors: Record<string, BoxError> } => {
-  const open = litter.young.filter((r) => !savedIdOf(r, savedHere));
-  const typed = open.map((r) => [r, (values[r.id] ?? '').trim()] as const).filter(([, v]) => v);
+): { pairs: [IdRow, string][]; errors: Record<string, BoxError> } => {
+  const typed = rows
+    .filter((r) => !r.saved)
+    .map((r) => [r, (values[r.key] ?? '').trim()] as const)
+    .filter(([, v]) => v);
   const errors: Record<string, BoxError> = {};
   for (const [r, v] of typed) {
-    if (INVISIBLE.test(v)) {
-      errors[r.id] = { why: 'invisible' };
-      continue;
+    if (INVISIBLE.test(v)) errors[r.key] = { why: 'invisible' };
+    else if (LIST.test(v)) errors[r.key] = { why: 'comma' };
+    else if (typed.some(([o, w]) => o !== r && same(w, v))) errors[r.key] = { why: 'twice', id: v };
+    else {
+      const sib = rows.find((o) => o.saved && same(o.saved, v));
+      const other = [...others].find(([o]) => same(o, v));
+      if (sib) errors[r.key] = { why: 'taken', id: v, name: sib.name };
+      else if (other) errors[r.key] = { why: 'elsewhere', id: v, name: other[1] };
     }
-    const twin = typed.find(([o, w]) => o !== r && same(w, v));
-    if (twin) {
-      errors[r.id] = { why: 'twice', id: v };
-      continue;
-    }
-    const sib = litter.young.find((o) => {
-      const s = savedIdOf(o, savedHere);
-      return s !== undefined && same(s, v);
-    });
-    if (sib) {
-      errors[r.id] = { why: 'taken', id: v, name: sib.strainName };
-      continue;
-    }
-    const other = [...others].find(([o]) => same(o, v));
-    if (other) errors[r.id] = { why: 'elsewhere', id: v, name: other[1] };
   }
-  return { pairs: typed.filter(([r]) => !errors[r.id]).map(([r, v]) => [r, v]), errors };
+  return { pairs: typed.filter(([r]) => !errors[r.key]).map(([r, v]) => [r, v]), errors };
 };
 
 export type PasteRefusal =
   | { readonly why: 'columns' }
   | { readonly why: 'header'; readonly id: string }
-  | { readonly why: 'invisible'; readonly line: number };
+  | { readonly why: 'invisible'; readonly line: number }
+  | { readonly why: 'comma'; readonly line: number }
+  | { readonly why: 'over'; readonly n: number; readonly count: number }
+  | { readonly why: 'startsAt'; readonly id: string; readonly name: string };
 
 export type Pasted = {
   readonly values: Record<string, string>;
@@ -127,8 +165,6 @@ export type Pasted = {
   readonly filled: readonly string[];
   /** It reached a young that has an ID and stopped there: that young, and the lines not used. */
   readonly stopped?: { readonly name: string; readonly left: number };
-  /** More lines than boxes below: how many weren't used. */
-  readonly over?: number;
 };
 
 /** Words a column's heading is made of, in the five languages. */
@@ -168,8 +204,6 @@ const HEADINGS = new Set(
     'identificacion',
     'número',
     'numero',
-    'chip',
-    'microchip',
     'boucle',
     'boucles',
     'identifiant',
@@ -187,8 +221,18 @@ const HEADINGS = new Set(
   ].map((w) => w.toLowerCase()),
 );
 
-/** Whether a first line reads as a column's heading, not an ID. */
-export const looksLikeHeading = (first: string, second: string | undefined, scheme = ''): boolean => {
+const DIGIT = /\p{Nd}/u;
+const LETTER = /\p{L}/u;
+/** A line's shape: each letter a, each digit 9, the rest as is ("UK123-04" is "aa999-99"). */
+const shapeOf = (s: string) => s.replace(/\p{L}/gu, 'a').replace(/\p{Nd}/gu, '9');
+
+/**
+ * Whether a first line reads as a column's heading, not an ID: a heading word or the scheme; no
+ * digit over a line with one; or, over lines that all share one shape, a line with letters in it
+ * that doesn't share it ("Litter 3 tags" over 985112000000001…), or that has a space where the
+ * line under it has none ("Tag 2026" over A1).
+ */
+export const looksLikeHeading = (first: string, below: readonly string[] = [], scheme = ''): boolean => {
   const w = first
     .trim()
     .replace(/[:：]+$/, '')
@@ -196,15 +240,21 @@ export const looksLikeHeading = (first: string, second: string | undefined, sche
     .toLowerCase();
   if (!w) return false;
   if (HEADINGS.has(w) || (scheme.trim() && w === scheme.trim().toLowerCase())) return true;
-  // No digit in it, when the line under it has one: a heading over a column of tags.
-  return !/\d/.test(w) && !!second && /\d/.test(second);
+  const rest = below.map((l) => l.trim()).filter(Boolean);
+  if (!rest.length) return false;
+  if (!DIGIT.test(w) && DIGIT.test(rest[0])) return true;
+  if (!LETTER.test(w)) return false;
+  const shapes = new Set(rest.map(shapeOf));
+  if (rest.length >= 2 && shapes.size === 1 && !shapes.has(shapeOf(first.trim()))) return true;
+  return /\s/.test(first.trim()) && !rest.some((l) => /\s/.test(l));
 };
 
 /**
- * A pasted column, line by line in place (an empty line stays, as "no ID for this one"), or why
- * it isn't plainly one column: a line with a tab (after one trailing tab, a scanner's, is
- * dropped) is more than one column; a first line that reads as a heading, or a line with
- * invisible characters, is refused too. Empty lines at the very end go.
+ * A pasted column, line by line in place (an empty line stays, as "nothing for this box"), or why
+ * it isn't plainly one column of IDs: a line with a tab (after one trailing tab, a scanner's, is
+ * dropped) is more than one column; a line with a comma or semicolon is a list; a first line that
+ * reads as a heading, or a line with invisible characters, is refused too. Empty lines at the
+ * very end go.
  */
 export const readColumn = (text: string, scheme = ''): string[] | PasteRefusal => {
   const lines = text.split(/\r\n|\r|\n/).map((l) => (l.endsWith('\t') ? l.slice(0, -1) : l));
@@ -213,34 +263,45 @@ export const readColumn = (text: string, scheme = ''): string[] | PasteRefusal =
   const cells = lines.map((l) => l.trim());
   const bad = cells.findIndex((c) => INVISIBLE.test(c));
   if (bad !== -1) return { why: 'invisible', line: bad + 1 };
-  if (cells.length && looksLikeHeading(cells[0], cells[1], scheme)) return { why: 'header', id: cells[0] };
+  const list = cells.findIndex((c) => LIST.test(c));
+  if (list !== -1) return { why: 'comma', line: list + 1 };
+  if (cells.length && looksLikeHeading(cells[0], cells.slice(1), scheme)) return { why: 'header', id: cells[0] };
   return cells;
 };
 
 /**
- * A paste into the box of young `startId`: one line a box, from that box down, never past a young
- * that has an ID and never into one; only a plain column (readColumn).
+ * A paste into the box of `startKey`: one line a box, from that box down, only a plain column
+ * (readColumn). Refused, with nothing filled, when it has more lines than boxes from there to the
+ * end (it doesn't line up), or when its first line is an ID a young here already has (the column
+ * starts higher up). It never goes into or past a young that has an ID: it stops there and says
+ * so. An empty line never clears a box: what was typed there stays.
  */
 export const pasteInto = (
-  litter: Pick<Litter, 'young'>,
-  startId: string,
+  rows: readonly IdRow[],
+  startKey: string,
   text: string,
   values: Readonly<Record<string, string>>,
-  savedHere: ReadonlyMap<string, string> = new Map(),
   scheme = '',
 ): Pasted | PasteRefusal => {
   const cells = readColumn(text, scheme);
   if (!Array.isArray(cells)) return cells;
-  const at = litter.young.findIndex((r) => r.id === startId);
+  const at = Math.max(
+    0,
+    rows.findIndex((r) => r.key === startKey),
+  );
+  const room = rows.length - at;
+  if (cells.length > room) return { why: 'over', n: cells.length, count: room };
+  const startsAt = cells[0] ? rows.find((r) => r.saved && same(r.saved, cells[0])) : undefined;
+  if (startsAt) return { why: 'startsAt', id: cells[0], name: startsAt.name };
   const next = { ...values };
   const filled: string[] = [];
   for (let k = 0; k < cells.length; k++) {
-    const r = litter.young[at + k];
-    if (!r) return { values: next, filled, over: cells.length - k };
-    if (savedIdOf(r, savedHere))
-      return { values: next, filled, stopped: { name: r.strainName, left: cells.length - k } };
-    next[r.id] = cells[k];
-    filled.push(r.id);
+    const r = rows[at + k];
+    if (r.saved) return { values: next, filled, stopped: { name: r.name, left: cells.length - k } };
+    if (cells[k]) {
+      next[r.key] = cells[k];
+      filled.push(r.key);
+    }
   }
   return { values: next, filled };
 };
