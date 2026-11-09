@@ -64,6 +64,12 @@ export type MadeClaim = {
      * tested). The laboratory's binding names it (claims-key.ts); the check page prints it.
      */
     readonly about?: string;
+    /**
+     * A lab result v2's bindingSalt (lab-result.ts), so the checker can recompute the lab's
+     * salted binding about `about`. It links this one result to its record, which the link
+     * already says; nothing else.
+     */
+    readonly bindingSalt?: string;
   };
 };
 
@@ -112,10 +118,17 @@ export const readClaimLink = (hash: string): MadeClaim | undefined => {
       !/^[0-9a-f]{2,256}$/.test(a.txId) ||
       typeof a.attester !== 'string' ||
       !/^[0-9a-f]{128}$/.test(a.attester) ||
-      (a.about !== undefined && (typeof a.about !== 'string' || !HEX64.test(a.about)))
+      (a.about !== undefined && (typeof a.about !== 'string' || !HEX64.test(a.about))) ||
+      (a.bindingSalt !== undefined &&
+        (typeof a.bindingSalt !== 'string' || !HEX64.test(a.bindingSalt) || a.about === undefined))
     )
       return undefined;
-    attested = { txId: a.txId, attester: a.attester, ...(typeof a.about === 'string' ? { about: a.about } : {}) };
+    attested = {
+      txId: a.txId,
+      attester: a.attester,
+      ...(typeof a.about === 'string' ? { about: a.about } : {}),
+      ...(typeof a.bindingSalt === 'string' ? { bindingSalt: a.bindingSalt } : {}),
+    };
   }
   const op = o.op === 'at-most' || o.op === 'at-least' ? o.op : undefined;
   const bound = str('bound');

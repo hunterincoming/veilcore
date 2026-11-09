@@ -189,6 +189,8 @@ export const labresult = {
   'app.lr.check.choose': 'Choisir le fichier de résultat',
   'app.lr.check.bad': 'Ce résultat ne peut pas être utilisé : {problem}',
   'app.lr.check.looking': 'Recherche du titulaire de la clé…',
+  'app.lr.check.noSalt':
+    'Ce résultat a été signé avant que les noms des laboratoires sur les résultats soient salés : le nom de son laboratoire n’est donc pas recherché, car l’ancien type de lien de nom pouvait montrer quel enregistrement un laboratoire a analysé. La signature reste valable. Pour que le nom du laboratoire s’affiche, demandez au laboratoire de signer à nouveau le résultat.',
   'app.lr.check.replacedBy': 'Remplacé par le résultat {code}, signé avec la même clé ({reason}).',
   'app.lr.check.namesOther':
     'Il nomme le résultat {code} comme remplacé. Ce résultat n’est pas dans ce fichier, ou une autre clé l’a signé, donc rien n’est changé ici à son sujet.',
@@ -255,4 +257,6 @@ export const labresult = {
     'Le fichier de séquence de la marque n’est pas enregistré. Si vous partez maintenant, il est perdu pour de bon, et le sceau ne pourra jamais être ouvert en cas de litige. Partir quand même ?',
   'app.lr.problem.ctMissing':
     'Un résultat détecté sans Ct (Undetermined, N/A, >40) se contredit. Vérifiez que les colonnes du résultat et du Ct ne sont pas inversées.',
+  'app.lr.problem.bindingSalt':
+    'Le sel du nom du laboratoire n’est pas dans sa forme : 64 caractères hexadécimaux, pas tous identiques.',
 } satisfies Partial<AppTranslation>;
