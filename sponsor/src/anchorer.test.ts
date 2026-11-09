@@ -327,3 +327,203 @@ describe('anchoring job (mocked registry and chain)', () => {
     expect(s.anchorer.status()).toMatchObject({ alert: false, consecutiveFailures: 0, lastAnchoredBatch: 'B-1' });
   });
 });
+
+describe('anchoring diagnostics (what the log says, never a secret)', () => {
+  const SEED = '0123456789abcdef'.repeat(4);
+  const withLog = () => {
+    const s = setup();
+    const lines: { level: string; msg: string; extra?: Record<string, unknown> }[] = [];
+    // The same anchorer, with a log that keeps the extra fields.
+    const a = new Anchorer(
+      {
+        network: 'preprod',
+        contractAddress: 'ef'.repeat(32),
+        sealEveryMs: 60 * 60_000,
+        sealAtPending: 10,
+        landingGraceMs: 10 * 60_000,
+        waitForLandingMs: 0,
+        pollMs: 1,
+        maxFeeSpecks: 5_000n,
+      },
+      s.registry,
+      s.chain,
+      s.store,
+      (job) => job(),
+      s.budget,
+      () => Date.now(),
+      () => Promise.resolve(),
+      (level, msg, extra) => lines.push({ level, msg, extra }),
+    );
+    return { ...s, a, lines };
+  };
+
+  it('a submit that may have been sent logs the error chain, redacted, in one line', async () => {
+    const s = withLog();
+    s.registry.pending = 12;
+    // Effect's FiberFailure shape: no `cause`, the real error under a symbol.
+    const inner = Object.assign(new Error(`1010: Invalid Transaction: Custom error: 154 ${SEED}`), { code: 1010 });
+    const outer = Object.assign(new Error('Transaction submission error'), { name: '(FiberFailure) SubmissionError' });
+    (outer as unknown as Record<symbol, unknown>)[Symbol.for('effect/Runtime/FiberFailure/Cause')] = { _tag: 'Fail', error: inner };
+    s.chain.prepare = (root: string) =>
+      Chain.prototype.prepare.call(s.chain, root).then((p) => ({ ...p, submit: () => Promise.reject(outer) }));
+    expect(await s.a.runOnce()).toMatch(/may have failed/);
+    const line = s.lines.find((l) => l.msg === 'anchoring: submit threw');
+    expect(line?.extra).toMatchObject({ txId: 'tx-1', notSent: false });
+    const text = String(line?.extra?.error);
+    expect(text).toContain('Custom error: 154 [hex 64] [code 1010]');
+    expect(text).not.toContain(SEED);
+    expect(text.length).toBeLessThanOrEqual(500);
+    expect(JSON.stringify(s.lines)).not.toContain(SEED);
+  });
+
+  it('a NotSentError is logged too, marked not sent', async () => {
+    const s = withLog();
+    s.registry.pending = 12;
+    s.chain.submitFails = 'not-sent';
+    await s.a.runOnce();
+    expect(s.lines.find((l) => l.msg === 'anchoring: submit threw')?.extra).toMatchObject({ notSent: true, error: 'NotSentError: stale' });
+  });
+
+  it('logs every lookup’s state, and a lookup that fails', async () => {
+    const s = withLog();
+    s.registry.pending = 12;
+    await s.a.runOnce();
+    expect(s.lines.filter((l) => l.msg === 'anchoring: lookup').map((l) => l.extra?.state)).toEqual(['landed']);
+    s.store.save({ batchId: 'B-9', root: ROOT, txId: 'tx-x', ttl: new Date(Date.now() + 60_000).toISOString(), seqBefore: '5', stage: 'sent' });
+    s.chain.lookup = () => Promise.reject(new Error(`the indexer answered 502 ${SEED}`));
+    expect(await s.a.runOnce()).toMatch(/^error:/);
+    const failed = s.lines.find((l) => l.msg === 'anchoring: lookup failed');
+    expect(failed?.extra).toMatchObject({ txId: 'tx-x' });
+    expect(String(failed?.extra?.error)).toBe('Error: the indexer answered 502 [hex 64]');
+  });
+});
+
+describe('a transaction that never lands', () => {
+  it('reaches the alert: waiting no longer resets the failure count', async () => {
+    const s = setup();
+    s.registry.pending = 12;
+    s.chain.submitFails = 'maybe';
+    expect(await s.anchorer.runOnce()).toMatch(/may have failed/); // 1
+    expect(await s.anchorer.runOnce()).toMatch(/waiting for tx-1/); // still 1
+    expect(s.anchorer.status().consecutiveFailures).toBe(1);
+    s.advance(41 * 60_000);
+    expect(await s.anchorer.runOnce()).toMatch(/never landed and has expired/); // 2
+    expect(await s.anchorer.runOnce()).toMatch(/may have failed/); // 3
+    expect(s.anchorer.status()).toMatchObject({ alert: true, consecutiveFailures: 3 });
+  });
+});
+
+describe('the fee hold is settled or released whatever the error looks like', () => {
+  const evil = () => {
+    // An error whose every property read throws: no logging may skip the money handling.
+    const throwing = () => {
+      throw new Error('getter');
+    };
+    return new Proxy({}, { get: throwing, getPrototypeOf: throwing, has: throwing, ownKeys: throwing });
+  };
+  const withEvilSubmit = (s: ReturnType<typeof setup>, err: unknown) => {
+    s.chain.prepare = (root: string) =>
+      Chain.prototype.prepare.call(s.chain, root).then((p) => ({ ...p, submit: () => Promise.reject(err) }));
+  };
+
+  it('a Proxy that throws on every read: taken as maybe-sent, the fee settled, nothing left held', async () => {
+    const s = setup({ budget: 100_000n });
+    s.registry.pending = 12;
+    withEvilSubmit(s, evil());
+    expect(await s.anchorer.runOnce()).toMatch(/may have failed/);
+    // Settled at the fee (1 000), not still held at the 5 000 ceiling.
+    expect(s.budget.unspent()).toBe(100_000n - 1_000n);
+    expect(s.store.peek()?.stage).toBe('sent');
+  });
+
+  it('an error with throwing getters: the same', async () => {
+    const s = setup({ budget: 100_000n });
+    s.registry.pending = 12;
+    withEvilSubmit(s, {
+      get name(): string {
+        throw new Error('getter');
+      },
+      get message(): string {
+        throw new Error('getter');
+      },
+    });
+    expect(await s.anchorer.runOnce()).toMatch(/may have failed/);
+    expect(s.budget.unspent()).toBe(100_000n - 1_000n);
+  });
+
+  it('a NotSentError: released in full, even if logging throws', async () => {
+    const s = setup({ budget: 100_000n });
+    s.registry.pending = 12;
+    s.chain.submitFails = 'not-sent';
+    const a = new Anchorer(
+      { network: 'preprod', contractAddress: 'ef'.repeat(32), sealEveryMs: 3_600_000, sealAtPending: 10, landingGraceMs: 600_000, waitForLandingMs: 0, pollMs: 1, maxFeeSpecks: 5_000n },
+      s.registry,
+      s.chain,
+      s.store,
+      (job) => job(),
+      s.budget,
+      () => Date.now(),
+      () => Promise.resolve(),
+      (_l, msg) => {
+        if (msg === 'anchoring: submit threw') throw new Error('log sink down');
+      },
+    );
+    expect(await a.runOnce()).toMatch(/^not sent/);
+    expect(s.budget.unspent()).toBe(100_000n);
+    expect(s.store.peek()).toBeUndefined();
+  });
+});
+
+describe('backoff after a refusal the network says is final', () => {
+  const refuse = (s: ReturnType<typeof setup>, retryable: boolean) => {
+    s.chain.prepare = (root: string) =>
+      Chain.prototype.prepare.call(s.chain, root).then((p) => ({
+        ...p,
+        submit: () => Promise.reject(new NotSentError('The network refused the transaction (error 154).', retryable)),
+      }));
+  };
+  const MIN = 60_000;
+
+  it('waits 5, 10, 20, 40, then at most 60 minutes; an anchored batch resets it', async () => {
+    const s = setup();
+    s.registry.pending = 12;
+    refuse(s, false);
+    const tries = () => s.chain.prepared;
+    await s.anchorer.runOnce();
+    expect(tries()).toBe(1);
+    // Each gap: the run just before the wait is up does nothing, the run at it tries again.
+    for (const [gap, n] of [[5, 2], [10, 3], [20, 4], [40, 5], [60, 6], [60, 7]] as const) {
+      s.advance((gap - 2) * MIN);
+      expect(await s.anchorer.runOnce()).toMatch(/refused by the network last time/);
+      expect(tries()).toBe(n - 1);
+      expect(s.anchorer.status().nextTryAt).toBeDefined();
+      s.advance(2 * MIN);
+      await s.anchorer.runOnce();
+      expect(tries()).toBe(n);
+    }
+    // It lands: the wait is gone.
+    s.chain.prepare = Chain.prototype.prepare.bind(s.chain);
+    s.advance(60 * MIN);
+    expect(await s.anchorer.runOnce()).toMatch(/^anchored/);
+    expect(s.anchorer.status().nextTryAt).toBeUndefined();
+    s.registry.list.push({ batchId: 'B-2', root: 'cd'.repeat(32), sealedAt: Date.now(), anchored: false });
+    refuse(s, false);
+    await s.anchorer.runOnce();
+    const before = tries();
+    s.advance(5 * MIN);
+    await s.anchorer.runOnce();
+    expect(tries()).toBe(before + 1); // back to 5 minutes
+  });
+
+  it('a retryable refusal (the indexer is behind, 171) stays on the 5-minute tick', async () => {
+    const s = setup();
+    s.registry.pending = 12;
+    refuse(s, true);
+    for (let i = 1; i <= 5; i++) {
+      await s.anchorer.runOnce();
+      expect(s.chain.prepared).toBe(i);
+      s.advance(5 * MIN);
+    }
+    expect(s.anchorer.status().nextTryAt).toBeUndefined();
+  });
+});
