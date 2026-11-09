@@ -280,6 +280,10 @@ export const job = {
   'app.job.ids.savedSome': '{saved} gespeichert, {left} nicht gespeichert.',
   'app.job.ids.offlineRest':
     'Ihre anderen Geräte konnten vor den übrigen nicht geprüft werden, daher wurden diese nicht gespeichert. Versuchen Sie es erneut, wenn Sie online sind.',
+  'app.job.ids.lostRest':
+    'Die Verbindung brach ab, während die Kennnummer von {name} gespeichert wurde. Sie ist also vielleicht gespeichert, die übrigen nicht. Öffnen Sie, sobald Sie online sind, den Datensatz von {name}, um es zu sehen, und versuchen Sie es dann erneut.',
+  'app.job.ids.failedRest':
+    'Die übrigen wurden nicht gespeichert: VeilCore hat die Kennnummer von {name} nicht angenommen ({why}).',
   'app.job.ids.unchecked':
     '{saved} gespeichert, aber VeilCore war danach nicht erreichbar, um zu prüfen, dass kein anderes Gerät im selben Moment dieselben Kennnummern gespeichert hat. Prüfen Sie es erneut, wenn Sie online sind: Öffnen Sie die Datensätze dieses Wurfs und sehen Sie sich ihre Kennnummern an.',
   'app.job.ids.changed':

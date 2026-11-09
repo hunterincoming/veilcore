@@ -37,7 +37,7 @@ export type SaveIdsResult =
   /** A young's record isn't here any more. */
   | { readonly gone: string; readonly saved: number }
   /** A correction was refused or failed (records.ts issueCorrection threw): nothing more sent. */
-  | { readonly failed: unknown; readonly saved: number };
+  | { readonly failed: unknown; readonly saved: number; readonly name: string };
 
 /** The boxes and their checks, from the records as they are now. */
 export const checkNow = (
@@ -97,7 +97,7 @@ export const saveIds = async (
       );
     } catch (failed) {
       // Refused (corrected elsewhere, no connection) or failed: those before it stay saved.
-      return { failed, saved: done.size };
+      return { failed, saved: done.size, name: row.name };
     }
     if (!fixed) return { gone: row.name, saved: done.size };
     done.add(row.key);

@@ -114,10 +114,16 @@ const INVISIBLE =
 const LIST = /[,;、，；]/;
 
 /**
- * An ID as compared: spaces, dashes and dots taken out, and case ignored, so one microchip typed
- * "985 112 345 678 901" and "985-112-345678901" is one ID (verification round 7, S1).
+ * An ID as compared: full-width characters read as their plain forms (NFKC: "９８５" is "985"),
+ * spaces, dashes and dots taken out, and case ignored, so one microchip typed
+ * "985 112 345 678 901", "985-112-345678901" or in full-width digits is one ID (verification
+ * rounds 7 and 8).
  */
-export const idKey = (id: string): string => id.replace(/[\s\-.\u2010-\u2015\uFF0D\uFF0E\u30FB]/g, '').toUpperCase();
+export const idKey = (id: string): string =>
+  id
+    .normalize('NFKC')
+    .replace(/[\s\-.\u2010-\u2015\uFF0D\uFF0E\u30FB]/g, '')
+    .toUpperCase();
 
 const same = (a: string, b: string) => idKey(a) === idKey(b);
 

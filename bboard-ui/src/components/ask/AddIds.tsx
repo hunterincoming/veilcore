@@ -72,6 +72,19 @@ export const AddIds: React.FC<{ litter: Litter; onClose: () => void }> = ({ litt
           ? e.message
           : String(e);
 
+  /**
+   * After some were saved, why the rest weren't, said about the job (round 8): never a record's
+   * own "nothing was changed" next to "2 saved".
+   */
+  const stoppedAt = (e: unknown, name: string): string => {
+    const key = e instanceof CorrectionRefused ? e.key : undefined;
+    if (key === 'app.sealed.correctNeedsConnection') return t('app.job.ids.offlineRest');
+    if (key === 'app.sealed.correctionConnectionLost') return t('app.job.ids.lostRest', { name });
+    if (key === 'app.sealed.alreadyCorrected' || (e instanceof Error && e.message === ALREADY_CORRECTED()))
+      return t('app.job.ids.changed');
+    return t('app.job.ids.failedRest', { name, why: said(e) });
+  };
+
   const save = async () => {
     setBusy(true);
     setError(undefined);
@@ -95,7 +108,7 @@ export const AddIds: React.FC<{ litter: Litter; onClose: () => void }> = ({ litt
       if ('offline' in r) setError(some + t(some ? 'app.job.ids.offlineRest' : 'app.job.ids.offline'));
       else if ('changed' in r) setError(some + t('app.job.ids.changed'));
       else if ('gone' in r) setError(some + t('app.job.ids.gone', { name: r.gone }));
-      else if ('failed' in r) setError(some + said(r.failed));
+      else if ('failed' in r) setError(some ? some + stoppedAt(r.failed, r.name) : said(r.failed));
       else if (r.unchecked)
         // Saved, but the check afterwards couldn't reach VeilCore: said, never closed quietly.
         setError(t('app.job.ids.unchecked', { saved: String(r.saved) }));

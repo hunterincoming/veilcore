@@ -242,6 +242,9 @@ export const job = {
   'app.job.ids.savedSome': '{saved}件を保存し、{left}件は保存していません。',
   'app.job.ids.offlineRest':
     '残りを保存する前にほかの端末を確認できなかったため、残りは保存していません。オンラインのときにもう一度試してください。',
+  'app.job.ids.lostRest':
+    '{name}の番号を保存している途中で接続が切れたため、その番号は保存されたかどうか分からず、残りは保存していません。オンラインのときに{name}の記録を開いて確認し、もう一度試してください。',
+  'app.job.ids.failedRest': '残りは保存していません。VeilCoreが{name}の番号を受け付けませんでした（{why}）。',
   'app.job.ids.unchecked':
     '{saved}件を保存しましたが、そのあとVeilCoreに接続できず、別の端末が同時に同じ番号を保存していないか確認できませんでした。オンラインのときに、この子たちの記録を開いて番号を確認してください。',
   'app.job.ids.changed':

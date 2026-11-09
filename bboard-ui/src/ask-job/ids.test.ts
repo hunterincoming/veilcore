@@ -230,3 +230,17 @@ describe('the same ID typed two ways is one ID (round 7, S1)', () => {
     });
   });
 });
+
+describe('full-width digits and letters are the same ID (round 8)', () => {
+  it('NFKC first: the same chip typed in full-width matches', () => {
+    const wide = String.fromCharCode(...[...'985112345678901'].map((c) => c.charCodeAt(0) + 0xfee0));
+    expect(checkBoxes(six, { p1: '985112345678901', p2: wide }).errors).toEqual({
+      p1: { why: 'twice', id: '985112345678901' },
+      p2: { why: 'twice', id: wide },
+    });
+    const wideA2 = String.fromCharCode(0xff41, 0xff12);
+    expect(checkBoxes(withSaved, { p3: wideA2 }).errors).toEqual({
+      p3: { why: 'taken', id: wideA2, name: 'Bella pup 2' },
+    });
+  });
+});

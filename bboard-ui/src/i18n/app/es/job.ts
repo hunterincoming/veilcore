@@ -272,6 +272,9 @@ export const job = {
   'app.job.ids.savedSome': '{saved} guardadas, {left} sin guardar.',
   'app.job.ids.offlineRest':
     'No se pudieron comprobar sus otros dispositivos antes del resto, así que no se guardaron. Vuelva a intentarlo cuando tenga conexión.',
+  'app.job.ids.lostRest':
+    'Se perdió la conexión mientras se guardaba la identificación de {name}, así que puede que se guardara o no, y el resto no se guardó. Cuando tenga conexión, abra el registro de {name} para verlo y vuelva a intentarlo.',
+  'app.job.ids.failedRest': 'El resto no se guardó: VeilCore no aceptó la identificación de {name} ({why}).',
   'app.job.ids.unchecked':
     '{saved} guardadas, pero después no se pudo contactar con VeilCore para comprobar que ningún otro dispositivo guardara las mismas identificaciones en ese momento. Compruébelo cuando tenga conexión: abra los registros de esta camada y mire sus identificaciones.',
   'app.job.ids.changed':

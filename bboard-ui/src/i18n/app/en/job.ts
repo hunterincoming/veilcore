@@ -254,6 +254,9 @@ export const job = {
   'app.job.ids.savedSome': '{saved} saved, {left} not saved.',
   'app.job.ids.offlineRest':
     'Couldn’t check your other devices before the rest, so they weren’t saved. Try again when you’re online.',
+  'app.job.ids.lostRest':
+    'The connection was lost while {name}’s ID was being saved, so it may or may not have been saved, and the rest weren’t. When you’re online, open {name}’s record to see, then try again.',
+  'app.job.ids.failedRest': 'The rest weren’t saved: VeilCore didn’t take {name}’s ID ({why}).',
   'app.job.ids.unchecked':
     '{saved} saved, but VeilCore couldn’t be reached afterwards to check that no other device saved the same IDs at that moment. Check again when you’re online: open this litter’s records and look at their IDs.',
   'app.job.ids.changed':

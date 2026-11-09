@@ -275,6 +275,10 @@ export const job = {
   'app.job.ids.savedSome': '{saved} enregistrés, {left} non enregistrés.',
   'app.job.ids.offlineRest':
     'Impossible de vérifier vos autres appareils avant les suivants, donc ils n’ont pas été enregistrés. Réessayez quand vous serez en ligne.',
+  'app.job.ids.lostRest':
+    'La connexion a été perdue pendant l’enregistrement de l’identifiant de {name} : il est peut-être enregistré, les suivants ne le sont pas. Une fois en ligne, ouvrez l’enregistrement de {name} pour le voir, puis réessayez.',
+  'app.job.ids.failedRest':
+    'Les suivants n’ont pas été enregistrés : VeilCore n’a pas accepté l’identifiant de {name} ({why}).',
   'app.job.ids.unchecked':
     '{saved} enregistrés, mais VeilCore n’a pas pu être joint ensuite pour vérifier qu’aucun autre appareil n’a enregistré les mêmes identifiants au même moment. Vérifiez-le une fois en ligne : ouvrez les enregistrements de cette portée et regardez leurs identifiants.',
   'app.job.ids.changed':
