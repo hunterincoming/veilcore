@@ -17,6 +17,7 @@ import {
   allRecords,
   integrityOf,
   useSealedView,
+  latestVersionOf,
 } from '../veilcore/records';
 import { LockedRecords } from './LockedRecords';
 import { RecordSaveNotices } from './RecordSaveNotices';
@@ -531,10 +532,24 @@ export const RecordDetail: React.FC = () => {
               {REAL_CHAIN && keys && (
                 <ActionRow section="log" label={t('app.plant.action.freshBackup')} onClick={() => setMode('backup')} />
               )}
-              {/* A holder who mistypes something needs a path that is not deletion. */}
+              {/* A holder who mistypes something needs a path that is not deletion. A record is
+                  corrected once: one corrected already (here, in another tab or on another device)
+                  points to its latest version, the one to correct. The form stays mounted, so a
+                  refusal found while it is open is said inside it. */}
               <CorrectRecord
                 record={record}
-                trigger={(open) => <ActionRow section="log" label={t('app.plant.action.fix')} last onClick={open} />}
+                trigger={(open) =>
+                  record.supersededBy ? (
+                    <ActionRow
+                      section="log"
+                      label={t('app.plant.action.seeLatest')}
+                      last
+                      onClick={() => navigate(`/record/${latestVersionOf(record.id)}`)}
+                    />
+                  ) : (
+                    <ActionRow section="log" label={t('app.plant.action.fix')} last onClick={open} />
+                  )
+                }
               />
             </Paper>
           </Box>

@@ -10,6 +10,16 @@ export const sealed = {
   'app.sealed.refuse.mismatch': 'il ne correspond pas à son code de preuve, donc il n’a pas été enregistré',
   'app.sealed.mismatch':
     'Cet enregistrement ne correspond pas à son code de preuve : il a peut-être été modifié après avoir été scellé. Il ne sera plus enregistré, envoyé ni partagé.',
+  'app.sealed.alreadyCorrected':
+    'Cet enregistrement a déjà été corrigé, dans un autre onglet ou sur un autre appareil. Ouvrez la dernière version pour la corriger.',
+  'app.sealed.correctedSameWay':
+    'Cet enregistrement a déjà été corrigé de la même façon, dans un autre onglet ou sur un autre appareil. Votre motif n’a pas été enregistré avec la correction. Ouvrez la dernière version pour la voir.',
+  'app.sealed.correctNeedsConnection':
+    'Corriger un enregistrement demande une connexion : VeilCore vérifie d’abord qu’il n’a pas été corrigé dans un autre onglet ou sur un autre appareil. Rien n’a été modifié. Réessayez une fois en ligne.',
+  'app.sealed.correctionConnectionLost':
+    'La connexion a été coupée pendant l’enregistrement de cette correction : elle n’est donc pas gardée ici pour être envoyée plus tard. Cet enregistrement n’est plus enregistré tant que VeilCore ne peut pas dire si la correction est arrivée ; une fois en ligne, l’enregistrement l’affiche si c’est le cas.',
+  'app.sealed.correctionNotStored':
+    'Cet enregistrement a été modifié dans un autre onglet ou sur un autre appareil pendant l’enregistrement de la correction, donc la correction n’a pas été enregistrée. Rien n’a été modifié. L’enregistrement est affiché tel qu’il est maintenant : vérifiez-le, puis corrigez-le à nouveau.',
   'app.sealed.locked.title.one': '{count} enregistrement verrouillé',
   'app.sealed.locked.title.other': '{count} enregistrements verrouillés',
   'app.sealed.locked.pageTitle': 'Cet enregistrement est verrouillé',
@@ -161,6 +171,10 @@ export const sealed = {
     'rien n’a encore été enregistré. Enregistrez d’abord une copie de secours et vérifiez-la',
   'app.sealed.refuse.olderCopy':
     'VeilCore a déjà une copie plus récente, enregistrée depuis un autre onglet ou un autre appareil, donc cette modification n’a pas été enregistrée. La copie plus récente est affichée maintenant ; refaites la modification si vous la voulez toujours',
+  'app.sealed.refuse.supersededByLocked':
+    'il a déjà été corrigé, et une correction ne peut pas être annulée, donc cette modification n’a pas été enregistrée. Il a été relu depuis VeilCore ; ouvrez sa dernière version pour le modifier',
+  'app.sealed.refuse.recordRefused':
+    'son enregistrement n’a pas pu être enregistré avec elle, donc la correction ne l’a pas été non plus. Rien n’a été modifié ; il a été relu depuis VeilCore, réessayez donc la correction',
   'app.sealed.unsaved.backup':
     'Copie verrouillée pas encore envoyée — enregistrez et vérifiez votre copie de secours. La date de votre enregistrement n’attend pas cela.',
   'app.sealed.unsaved.key':

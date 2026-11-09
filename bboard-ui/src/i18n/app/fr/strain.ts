@@ -173,6 +173,7 @@ export const strain = {
   'app.strain.v.app.plant.f.method': 'Méthode d’obtention',
   'app.strain.v.app.plant.f.statedDate': 'Date déclarée d’obtention ou d’isolement (déclaration du détenteur)',
   'app.strain.v.app.plant.fix.field.cultivarName': 'nom de la souche',
+  'app.strain.v.app.plant.fix.field.name': 'nom de la souche',
   'app.strain.v.app.plant.fix.field.breederName': 'obtenue ou isolée par',
   'app.strain.v.app.plant.fix.field.breedingMethod': 'méthode d’obtention',
   'app.strain.v.app.verify.field.breeding-method': 'Méthode d’obtention',

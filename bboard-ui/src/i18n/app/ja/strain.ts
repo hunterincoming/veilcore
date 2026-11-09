@@ -168,6 +168,7 @@ export const strain = {
   'app.strain.v.app.plant.f.method': '作出方法',
   'app.strain.v.app.plant.f.statedDate': '作出日・分離日（保有者の申告）',
   'app.strain.v.app.plant.fix.field.cultivarName': '菌株名',
+  'app.strain.v.app.plant.fix.field.name': '菌株名',
   'app.strain.v.app.plant.fix.field.breederName': '作出者・分離者',
   'app.strain.v.app.plant.fix.field.breedingMethod': '作出方法',
   'app.strain.v.app.verify.field.breeding-method': '作出方法',
