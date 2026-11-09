@@ -427,7 +427,7 @@ export const en = {
     'Built. Goes live with the next veilcore.org deploy, once a real license has worked end to end on the main network.',
   // Licenses on, on veilcore.org's own build (AGREEMENTS_LIVE, mainnet sponsor live): the main-network cell (components/site/Home.tsx).
   'm.live.lic.live':
-    'Yes: licenses, with real transactions, and royalty reports with their answer, “I paid” and “received”. Handing a license on is built, not yet tried on the main network. Paying royalties on Midnight itself is on the test site only.',
+    'Yes: licenses, with real transactions, and royalty reports with their answer, “I paid” and “Receipt confirmed”. Handing a license on is built, not yet tried on the main network. Paying royalties on Midnight itself is on the test site only.',
   // The check page looking a record's date up on Midnight itself (docs/check-on-chain.md).
   // On veilcore.org it needs the read-only relay; the mainnet overlay says "Yes." once a
   // build has one (CHAIN_READS).

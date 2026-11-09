@@ -451,6 +451,20 @@ describe("what's live where", () => {
     expect(e['m.live.lic.live']).toMatch(/^Yes: licenses, with real transactions, and royalty reports/);
     expect(e['m.live.lic.live']).toMatch(/Handing a license on is built, not yet tried on the main network\./);
     expect(e['m.live.lic.live']).toMatch(/Paying royalties on Midnight itself is on the test site only\.$/);
+    // The cell names the royalty screen's own words, in each language: the licensee's button
+    // (app.roy.pay.iPaid) and the licensor's status (app.roy.st.received).
+    for (const [lang, app] of [
+      ['en', appEn],
+      ['de', appDe],
+      ['es', appEs],
+      ['fr', appFr],
+      ['ja', appJa],
+    ] as const) {
+      const cell = (LANGUAGES[lang].strings as Record<string, string>)['m.live.lic.live'];
+      const words = app as Record<string, string>;
+      expect(cell, lang).toContain(words['app.roy.pay.iPaid']);
+      expect(cell, lang).toContain(words['app.roy.st.received']);
+    }
     expect(e['m.live.lic.mainNext']).toMatch(/^Licenses go live with the deploy/);
     expect(e['m.live.lic.mainNext']).toMatch(/Royalty statements and payments: built, not live yet\.$/);
     expect(e['m.live.dna.main']).toMatch(/not dated/);
@@ -848,7 +862,12 @@ describe('Japanese (round 6)', () => {
     const all = [ja, jaTestchain, ...FLAGS.map((f) => jaMainnet(f))] as Record<string, string>[];
     const OTHER_TERMS =
       /育種家|育種者|ブラウザー|受領確認|ラボ報告書|DNA検査報告書|テストネット(?!ワーク)|ラボ契約|固定|所有|植物を登録/;
-    for (const s of all) expect(offenders(s, OTHER_TERMS)).toEqual([]);
+    // A button's own label, quoted, is the app's word, not the page's: 「受領確認済み」 is the
+    // royalty screen's status (app.roy.st.received), named in the licenses cell.
+    const unquoted = (s: Record<string, string>) =>
+      Object.fromEntries(Object.entries(s).map(([k, v]) => [k, v.split('「受領確認済み」').join('')]));
+    for (const s of all) expect(offenders(unquoted(s), OTHER_TERMS)).toEqual([]);
+    expect(ja['m.live.lic.live']).toContain('「受領確認済み」');
     expect(ja['m.hero.bredBy']).toBe('育成者');
     expect(ja['m.contact.1t']).toBe('育成者とラボの方');
     expect(ja['m.hero.lede']).toMatch(/育成者、種苗会社、ラボのために/);

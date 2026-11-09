@@ -62,7 +62,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Contract maintenance (circuit keys, authority, retirement, the committee tools) is refused
   on a network past the fork, before anything is built: midnight-js 5 cannot maintain a Ledger
   8 contract there.
-- Proof server: 9.0.0 on mainnet, 8.1.3 on test networks until they fork.
+- Proof server: 9.0.1 on mainnet (9.0.0 was never published), 8.1.3 on test networks until they fork.
 - A switch for a notice that dating is paused (`VITE_DATING_PAUSED`), off by default, in all
   five languages.
 - Lockfile review: `docs/log/ledger-9-lockfile.md`.

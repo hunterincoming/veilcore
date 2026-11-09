@@ -303,10 +303,11 @@ const LICENSES_ON_SITE = THIS_BUILD.agreementsLive === true && MAINNET_SENDS;
 const liveRows = (): readonly LiveRow[] =>
   LIVE_ROWS.map((r): LiveRow => {
     if (MAINNET_SENDS && r[0] === 'prove') return ['prove', true, true, false] as unknown as LiveRow;
-    // Licenses: "Yes" in the veilcore.org column only on a veilcore.org build that has them on
-    // (config/copy.ts AGREEMENTS_LIVE, with the mainnet sponsor live), like "prove" above. Any
-    // other build (the test site, the demo) can't know veilcore.org has been deployed with
-    // them, so it says they come with the next deploy (m.live.lic.next), never "Yes".
+    // Licenses: a tick in the veilcore.org column on every build while AGREEMENTS_LIVE is on. The
+    // cell's words (cellKey, below) say "Yes" once royalties have worked on veilcore.org
+    // (config/copy.ts ROYALTIES_RUN_ON_MAINNET): on veilcore.org's own build, and on the test
+    // site and the demo too, since it is a fact about veilcore.org. Until then they say licenses
+    // come with the deploy (m.live.lic.mainNext).
     if (AGREEMENTS_LIVE && r[0] === 'lic') return ['lic', true, true, false] as unknown as LiveRow;
     // "Prove one number" on veilcore.org (the sponsor pays for VeilCore's claims contract).
     if (CLAIMS_ON_SITE && r[0] === 'claims') return ['claims', true, true, false] as unknown as LiveRow;
