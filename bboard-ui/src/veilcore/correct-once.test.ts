@@ -564,6 +564,49 @@ describe('a record is corrected once', () => {
     expect(rows().find((r) => r.id === rec.id)?.supersededBy).toBe(C);
   });
 
+  it('two tabs each hold a change to an unsure record: both are kept in this browser, and both saved after a reload', async () => {
+    const { A, rec } = await saved();
+    const rec2 = await pup(A);
+    await A.run(() => A.m.records.createRecordSaved(rec2 as never));
+    // A second tab of the same browser (its storage).
+    const B = await browser('B', {}, 'A');
+    await B.run(() => B.m.records.hydrate());
+    const loseNext = () => {
+      let once = true;
+      reg.misbehave.fault = (method, path) =>
+        once && method === 'PUT' && path === '/api/records' ? ((once = false), 'lose') : undefined;
+    };
+    loseNext();
+    await tryFix(A, rec.id, form({ notes: 'a' }), 'typo');
+    loseNext();
+    await tryFix(B, rec2.id, form({ notes: 'b' }), 'typo');
+    const C1 = correctionsOf(rec.id)[0].id;
+    const C2 = correctionsOf(rec2.id)[0].id;
+    // Offline: each tab changes its own unsure record; B writes the kept set last.
+    reg.misbehave.fault = () => 'fail';
+    await A.run(() => A.m.records.pairDna(rec.id, 'aa'.repeat(32), 'a.txt'));
+    await new Promise((r) => setTimeout(r, 50));
+    await B.run(() => B.m.records.pairDna(rec2.id, 'bb'.repeat(32), 'b.txt'));
+    await new Promise((r) => setTimeout(r, 50));
+    // Both are kept in this browser.
+    const kept = await B.run(
+      () => JSON.parse(localStorage.getItem('veilcore.unsure.v1') ?? '{}') as Record<string, Record<string, unknown>>,
+    );
+    const ids = Object.keys(Object.values(kept)[0] ?? {}).sort();
+    expect(ids).toEqual([rec.id, rec2.id].sort());
+    // Both tabs closed; one opened again, online: both changes saved, both records linked.
+    reg.misbehave.fault = null;
+    const T = await browser('T', {}, 'A');
+    await T.run(() => T.m.records.hydrate());
+    await new Promise((r) => setTimeout(r, 300));
+    expect(await T.run(() => T.m.records.getRecord(rec.id)?.dnaFingerprint)).toBe('aa'.repeat(32));
+    expect(await T.run(() => T.m.records.getRecord(rec2.id)?.dnaFingerprint)).toBe('bb'.repeat(32));
+    expect(rows().find((r) => r.id === rec.id)?.supersededBy).toBe(C1);
+    expect(rows().find((r) => r.id === rec2.id)?.supersededBy).toBe(C2);
+    // Settled: nothing left kept.
+    expect(await T.run(() => localStorage.getItem('veilcore.unsure.v1'))).toBeNull();
+  });
+
   describe('the very same correction', () => {
     it('chain R → B → C: R with B’s change and reason again gives C, the latest, not B', async () => {
       const { A, rec, backup } = await saved();

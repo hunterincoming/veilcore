@@ -532,9 +532,11 @@ const savesOnTheWay = new Set<Promise<SaveResult>>();
  * it). Kept in this browser (UNSURE_KEY), like the outbox, so a reload doesn't lose that change;
  * shown meanwhile as not saved yet (unsavedReason).
  */
-type UnsureEntry = { correctionId: string; before: StrainRecord; here?: StrainRecord };
+type UnsureEntry = { correctionId: string; before: StrainRecord; here?: StrainRecord; at?: number };
 const UNSURE_KEY = 'veilcore.unsure.v1';
 const unsure = new Map<string, UnsureEntry>();
+/** Entries this tab settled since it last wrote the set (id → the entry's `at`), to take out of the kept set. */
+const settledHere = new Map<string, number>();
 let unsureLoadedFor: string | null | undefined;
 
 /** This holder's unsure records, as kept in this browser: { holder key → { id → entry } }. */
@@ -561,13 +563,21 @@ const unsureNow = (): Map<string, UnsureEntry> => {
   return unsure;
 };
 
-/** Keep the unsure set in this browser (none: the entry goes). */
+/**
+ * Keep the unsure set in this browser, merged with what is kept there already: every tab of this
+ * browser writes it, so another tab's entries stay. By record id, the newer entry (`at`) is kept;
+ * one this tab settled goes, unless the kept one is newer (another tab's since).
+ */
 const keepUnsure = (): void => {
   const h = holderKeyIfAny()?.toLowerCase();
   if (!h) return;
   try {
     const all = unsureStore();
-    if (unsure.size) all[h] = Object.fromEntries(unsure);
+    const merged: Record<string, UnsureEntry> = { ...(all[h] ?? {}) };
+    for (const [id, at] of settledHere) if (merged[id] && (merged[id].at ?? 0) <= at) delete merged[id];
+    for (const [id, e] of unsure) if (!merged[id] || (merged[id].at ?? 0) <= (e.at ?? 0)) merged[id] = e;
+    settledHere.clear();
+    if (Object.keys(merged).length) all[h] = merged;
     else delete all[h];
     if (Object.keys(all).length) localStorage.setItem(UNSURE_KEY, JSON.stringify(all));
     else localStorage.removeItem(UNSURE_KEY);
@@ -586,6 +596,7 @@ const saveRecords = (rows: StrainRecord[]): Promise<SaveResult> => {
       const e = held.get(r.id);
       if (e && e.here !== r) {
         e.here = r;
+        e.at = Date.now();
         kept = true;
       }
     }
@@ -633,8 +644,9 @@ const savesSettled = async (): Promise<void> => {
 const settleUnsure = (mine: readonly StrainRecord[]): boolean => {
   let changed = false;
   const held = unsureNow();
-  for (const [id, { before, here: kept }] of held) {
+  for (const [id, { before, here: kept, at }] of held) {
     held.delete(id);
+    settledHere.set(id, at ?? 0);
     const theirs = records.find((r) => r.id === id);
     // This page's copy, or (after a reload) the one this browser kept.
     const here = mine.find((r) => r.id === id) ?? kept;
@@ -2140,7 +2152,7 @@ export const issueCorrection = async (
     records = previous;
     // Unsure until the registry is read: never saved before then (saveRecords), where its
     // copy here, without the link, could drop a link the registry holds.
-    unsureNow().set(originalId, { correctionId: corrected.id, before });
+    unsureNow().set(originalId, { correctionId: corrected.id, before, at: Date.now() });
     keepUnsure();
     notify();
     takeFromOutbox([corrected.id]);
