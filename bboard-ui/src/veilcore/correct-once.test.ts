@@ -386,6 +386,184 @@ describe('a record is corrected once', () => {
     ]);
   });
 
+  describe('a record is never cut off from a correction the registry holds', () => {
+    /**
+     * Another device saves a change to the record while this one's correction is on its way: the
+     * registry then refuses this copy of the record ("older-copy"). `lose`: the answer is lost.
+     */
+    const raceWithOtherDevice = (other: Browser, recId: string, lose: boolean) => {
+      let first = true;
+      vi.stubGlobal('fetch', async (url: string, init?: RequestInit) => {
+        if (first && init?.method === 'PUT' && new URL(url).pathname === '/api/records') {
+          first = false;
+          await other.run(() => other.m.records.pairDna(recId, '34'.repeat(32), 'b.txt'));
+          await new Promise((r) => setTimeout(r, 200));
+          const res = await reg.fetch(url, init);
+          if (lose) throw new TypeError('fetch failed');
+          return res;
+        }
+        return reg.fetch(url, init);
+      });
+    };
+    const onRegistry = (id: string) => rows().find((r) => r.id === id);
+
+    it('the verifier’s race: answer lost, the record refused but its correction stored: linked again, never "didn’t arrive"', async () => {
+      const { A, rec, backup } = await saved();
+      reg.misbehave.oneCorrection = true;
+      const B = await device('B', backup);
+      raceWithOtherDevice(B, rec.id, true);
+      const a = await tryFix(A, rec.id, form({ notes: 'x' }), 'typo');
+      expect(a.err).toBe(A.m.records.CORRECTION_CONNECTION_LOST());
+      // As the registry left it: the correction stored, the record without its link.
+      const C = correctionsOf(rec.id)[0]?.id;
+      expect(C).toBeDefined();
+      expect(onRegistry(rec.id)?.supersededBy).toBeUndefined();
+      // The next read links the record to it again, and saves that.
+      await A.run(() => A.m.records.hydrate());
+      await new Promise((r) => setTimeout(r, 300));
+      expect(await A.run(() => A.m.records.getRecord(rec.id)?.supersededBy)).toBe(C);
+      expect(onRegistry(rec.id)?.supersededBy).toBe(C);
+      expect(await A.run(() => A.m.records.latestVersionOf(rec.id))).toBe(C);
+      // B's change is kept.
+      expect(await A.run(() => A.m.records.getRecord(rec.id)?.dnaFingerprint)).toBe('34'.repeat(32));
+      // Every retry finds it: the same change is that correction; another is refused with the way to it.
+      expect((await tryFix(A, rec.id, form({ notes: 'x' }), 'typo')).ok).toBe(C);
+      const other = await tryFix(A, rec.id, form({ notes: 'y' }), 'typo');
+      expect(other.err).toBe(A.m.records.ALREADY_CORRECTED());
+      expect(other.latestId).toBe(C);
+      const fromB = await tryFix(B, rec.id, form({ notes: 'z' }), 'typo');
+      expect(fromB.err).toBe(B.m.records.ALREADY_CORRECTED());
+      expect(fromB.latestId).toBe(C);
+      expect(correctionsOf(rec.id).map((r) => r.id)).toEqual([C]);
+    });
+
+    it('a read alone links a record to the one correction naming it (latestVersionOf follows it too)', async () => {
+      const { A, rec, backup } = await saved();
+      const B = await device('B', backup);
+      raceWithOtherDevice(B, rec.id, true);
+      await tryFix(A, rec.id, form({ notes: 'x' }), 'typo');
+      const C = correctionsOf(rec.id)[0].id;
+      // A device that never corrected anything reads the set.
+      const D = await device('D', backup);
+      expect(await D.run(() => D.m.records.getRecord(rec.id)?.supersededBy)).toBe(C);
+      expect(await D.run(() => D.m.records.latestVersionOf(rec.id))).toBe(C);
+    });
+
+    it('the same race, answer received (registry without the pair rule): its correction taken back, said, and correctable', async () => {
+      const { A, rec, backup } = await saved();
+      reg.misbehave.oneCorrection = true;
+      const B = await device('B', backup);
+      raceWithOtherDevice(B, rec.id, false);
+      const a = await tryFix(A, rec.id, form({ notes: 'x' }), 'typo');
+      expect(a.err).toBe(A.m.records.CORRECTION_NOT_STORED());
+      expect(correctionsOf(rec.id)).toHaveLength(0);
+      const b = await tryFix(A, rec.id, form({ notes: 'x' }), 'typo');
+      expect(b.ok).toBeDefined();
+      expect(onRegistry(rec.id)?.supersededBy).toBe(b.ok);
+      expect(await A.run(() => A.m.records.getRecord(rec.id)?.dnaFingerprint)).toBe('34'.repeat(32));
+    });
+
+    it('the same race on a registry that keeps the pair together ("record-refused"): nothing stored, said, and correctable', async () => {
+      const { A, rec, backup } = await saved();
+      reg.misbehave.oneCorrection = true;
+      reg.misbehave.pairCorrections = true;
+      const B = await device('B', backup);
+      raceWithOtherDevice(B, rec.id, false);
+      const a = await tryFix(A, rec.id, form({ notes: 'x' }), 'typo');
+      expect(a.err).toBe(A.m.records.CORRECTION_NOT_STORED());
+      expect(A.m.records.CORRECTION_NOT_STORED()).toMatch(/changed in another tab or on another device.*wasn’t stored/);
+      expect(correctionsOf(rec.id)).toHaveLength(0);
+      const b = await tryFix(A, rec.id, form({ notes: 'x' }), 'typo');
+      expect(b.ok).toBeDefined();
+      expect(correctionsOf(rec.id).map((r) => r.id)).toEqual([b.ok]);
+    });
+
+    it('the same race on that registry, answer lost: nothing stored, so the record is as it was, and correctable', async () => {
+      const { A, rec, backup } = await saved();
+      reg.misbehave.oneCorrection = true;
+      reg.misbehave.pairCorrections = true;
+      const B = await device('B', backup);
+      raceWithOtherDevice(B, rec.id, true);
+      const a = await tryFix(A, rec.id, form({ notes: 'x' }), 'typo');
+      expect(a.err).toBe(A.m.records.CORRECTION_CONNECTION_LOST());
+      expect(correctionsOf(rec.id)).toHaveLength(0);
+      await A.run(() => A.m.records.hydrate());
+      expect(await A.run(() => A.m.records.getRecord(rec.id)?.supersededBy)).toBeUndefined();
+      const b = await tryFix(A, rec.id, form({ notes: 'x' }), 'typo');
+      expect(b.ok).toBeDefined();
+    });
+
+    it('api-store says "record-refused" in the app’s words', async () => {
+      const { A, rec } = await saved();
+      reg.misbehave.fault = (method, path, body) =>
+        method === 'PUT' && path === '/api/records'
+          ? new Response(
+              JSON.stringify({
+                ok: false,
+                rejected: (JSON.parse(body) as { id: string }[]).map((r) => ({
+                  id: r.id,
+                  reason: 'record R was refused in this save',
+                  code: 'record-refused',
+                  status: 409,
+                })),
+                notWritten: [],
+              }),
+              { headers: { 'content-type': 'application/json' } },
+            )
+          : undefined;
+      const result = await A.run(async () => {
+        const r = A.m.records.getRecord(rec.id)!;
+        return A.m.api.apiStore.save(A.m.records.RECORDS_KEY, [{ ...r, licenseIds: ['LIC-3'] }]);
+      });
+      expect(result.refused).toEqual([
+        expect.objectContaining({ id: rec.id, words: 'app.sealed.refuse.recordRefused' }),
+      ]);
+    });
+  });
+
+  it('a deleted correction: the record can be corrected again, as the registry allows', async () => {
+    const { A, rec } = await saved();
+    reg.misbehave.oneCorrection = true;
+    reg.misbehave.lockSupersededBy = true;
+    const c = await tryFix(A, rec.id, form({ notes: 'c' }), 'typo');
+    expect(c.ok).toBeDefined();
+    await A.run(() => A.m.api.deleteRecords([c.ok!]));
+    await A.run(() => A.m.records.hydrate());
+    expect(await A.run(() => A.m.records.getRecord(rec.id)?.supersededBy)).toBeUndefined();
+    expect(await A.run(() => A.m.records.latestVersionOf(rec.id))).toBe(rec.id);
+    const again = await tryFix(A, rec.id, form({ notes: 'c again' }), 'typo');
+    expect(again.ok).toBeDefined();
+    expect(rows().find((r) => r.id === rec.id)?.supersededBy).toBe(again.ok);
+    expect(correctionsOf(rec.id).map((r) => r.id)).toEqual([again.ok]);
+  });
+
+  it('a change made while the record is unsure is shown as not saved yet, and survives a reload', async () => {
+    const { A, rec } = await saved();
+    let once = true;
+    reg.misbehave.fault = (method, path) =>
+      once && method === 'PUT' && path === '/api/records' ? ((once = false), 'lose') : undefined;
+    await tryFix(A, rec.id, form({ notes: 'x' }), 'typo');
+    const C = correctionsOf(rec.id)[0].id;
+    // Offline now: nothing settles it yet.
+    reg.misbehave.fault = () => 'fail';
+    await A.run(() => A.m.records.pairDna(rec.id, 'cd'.repeat(32), 'report.txt'));
+    await new Promise((r) => setTimeout(r, 100));
+    expect(await A.run(() => A.m.records.unsavedReason(rec.id))).toBe('retry');
+    // The tab is closed and opened again (this browser's storage), back online.
+    reg.misbehave.fault = null;
+    const A2 = await browser('A2', {}, 'A');
+    await A2.run(() => A2.m.records.hydrate());
+    await new Promise((r) => setTimeout(r, 300));
+    expect(await A2.run(() => A2.m.records.getRecord(rec.id)?.supersededBy)).toBe(C);
+    expect(await A2.run(() => A2.m.records.getRecord(rec.id)?.dnaFingerprint)).toBe('cd'.repeat(32));
+    expect(await A2.run(() => A2.m.records.unsavedReason(rec.id))).toBeUndefined();
+    // Saved on the registry too: a fresh read from another tab sees the change and the link.
+    const A3 = await browser('A3', {}, 'A');
+    await A3.run(() => A3.m.records.hydrate());
+    expect(await A3.run(() => A3.m.records.getRecord(rec.id)?.dnaFingerprint)).toBe('cd'.repeat(32));
+    expect(rows().find((r) => r.id === rec.id)?.supersededBy).toBe(C);
+  });
+
   describe('the very same correction', () => {
     it('chain R → B → C: R with B’s change and reason again gives C, the latest, not B', async () => {
       const { A, rec, backup } = await saved();

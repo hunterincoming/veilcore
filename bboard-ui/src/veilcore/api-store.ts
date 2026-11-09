@@ -590,6 +590,11 @@ export const ALREADY_CORRECTED_CODE = 'already-corrected';
  * holds already: a correction is permanent, so the link to it is too (veilcore-api, PR #8).
  */
 export const SUPERSEDED_BY_LOCKED_CODE = 'supersededby-locked';
+/**
+ * The code the registry gives a correction it didn't store because the record it corrects,
+ * in the same save, was refused: the two are kept together or not at all (veilcore-api PR #8).
+ */
+export const RECORD_REFUSED_CODE = 'record-refused';
 
 const hashOf = async (v: Record<string, unknown>): Promise<string> =>
   Array.from(
@@ -1011,6 +1016,12 @@ const sealAndSave = async (key: string, value: readonly unknown[], k: string): P
       // saveAll), which shows the record corrected, with its latest version.
       if (r.code === SUPERSEDED_BY_LOCKED_CODE) {
         refused.push({ id: r.id, reason: r.reason, words: 'app.sealed.refuse.supersededByLocked' });
+        continue;
+      }
+      // A correction not stored because its record was refused in the same save: nothing was
+      // kept, and the set is read again (records.ts issueCorrection), to correct again.
+      if (r.code === RECORD_REFUSED_CODE) {
+        refused.push({ id: r.id, reason: r.reason, words: 'app.sealed.refuse.recordRefused' });
         continue;
       }
       refused.push({ id: r.id, reason: r.reason });

@@ -18,6 +18,8 @@ export const sealed = {
     'Zum Korrigieren eines Datensatzes ist eine Verbindung nötig: VeilCore prüft zuerst, dass er nicht in einem anderen Tab oder auf einem anderen Gerät korrigiert wurde. Es wurde nichts geändert. Versuchen Sie es erneut, wenn Sie online sind.',
   'app.sealed.correctionConnectionLost':
     'Die Verbindung brach ab, während diese Korrektur gespeichert wurde, daher wird sie hier nicht zum späteren Senden aufbewahrt. Dieser Datensatz wird erst wieder gespeichert, wenn VeilCore sagen kann, ob die Korrektur angekommen ist; sobald Sie online sind, zeigt der Datensatz sie an, falls ja.',
+  'app.sealed.correctionNotStored':
+    'Dieser Datensatz wurde in einem anderen Tab oder auf einem anderen Gerät geändert, während die Korrektur gespeichert wurde, daher wurde die Korrektur nicht gespeichert. Es wurde nichts geändert. Der Datensatz wird so angezeigt, wie er jetzt ist: Prüfen Sie ihn und korrigieren Sie ihn dann erneut.',
   'app.sealed.locked.title.one': '{count} verschlossener Datensatz',
   'app.sealed.locked.title.other': '{count} verschlossene Datensätze',
   'app.sealed.locked.pageTitle': 'Dieser Datensatz ist verschlossen',
@@ -170,7 +172,9 @@ export const sealed = {
   'app.sealed.refuse.olderCopy':
     'VeilCore hat bereits eine neuere Kopie davon, gespeichert in einem anderen Tab oder auf einem anderen Gerät, daher wurde diese Änderung nicht gespeichert. Jetzt wird die neuere Kopie angezeigt; nehmen Sie die Änderung erneut vor, wenn Sie sie noch möchten',
   'app.sealed.refuse.supersededByLocked':
-    'er wurde bereits korrigiert, in einem anderen Tab oder auf einem anderen Gerät, und eine Korrektur lässt sich nicht rückgängig machen, daher wurde diese Änderung nicht gespeichert. Er wurde erneut von VeilCore gelesen; öffnen Sie die neueste Fassung, um ihn zu ändern',
+    'er wurde bereits korrigiert, und eine Korrektur lässt sich nicht rückgängig machen, daher wurde diese Änderung nicht gespeichert. Er wurde erneut von VeilCore gelesen; öffnen Sie die neueste Fassung, um ihn zu ändern',
+  'app.sealed.refuse.recordRefused':
+    'sein Datensatz konnte nicht mit ihr gespeichert werden, daher wurde auch die Korrektur nicht gespeichert. Es wurde nichts geändert; er wurde erneut von VeilCore gelesen, versuchen Sie die Korrektur also noch einmal',
   'app.sealed.unsaved.backup':
     'Verschlossene Kopie noch nicht hochgeladen – Sicherungskopie speichern und prüfen. Das Datum Ihres Datensatzes wartet nicht darauf.',
   'app.sealed.unsaved.key':

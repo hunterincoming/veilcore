@@ -19,6 +19,8 @@ export const sealed = {
     'Correcting a record needs a connection: VeilCore first checks it wasn’t corrected in another tab or on another device. Nothing was changed. Try again when you’re online.',
   'app.sealed.correctionConnectionLost':
     'The connection dropped while this correction was being saved, so it isn’t kept here to send later. This record isn’t saved again until VeilCore can say whether the correction arrived; once you’re online, the record shows it if it did.',
+  'app.sealed.correctionNotStored':
+    'This record was changed in another tab or on another device while the correction was being saved, so the correction wasn’t stored. Nothing was changed. The record is shown as it is now: check it, then correct it again.',
   // LockedRecords.tsx (Home and a locked record's page)
   'app.sealed.locked.title.one': '{count} locked record',
   'app.sealed.locked.title.other': '{count} locked records',
@@ -171,7 +173,9 @@ export const sealed = {
   'app.sealed.refuse.olderCopy':
     'VeilCore already has a newer copy of it, saved from another tab or device, so this change wasn’t saved. The newer copy is shown now; make the change again if you still want it',
   'app.sealed.refuse.supersededByLocked':
-    'it was corrected already, in another tab or on another device, and a correction can’t be undone, so this change wasn’t saved. It was read again from VeilCore; open its latest version to change it',
+    'it was corrected already, and a correction can’t be undone, so this change wasn’t saved. It was read again from VeilCore; open its latest version to change it',
+  'app.sealed.refuse.recordRefused':
+    'its record couldn’t be saved with it, so the correction wasn’t stored either. Nothing was changed; it was read again from VeilCore, so try the correction again',
   'app.sealed.unsaved.backup':
     'Locked copy not uploaded yet — save and check your backup. Your record’s date isn’t waiting on this.',
   'app.sealed.unsaved.key':

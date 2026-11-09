@@ -18,6 +18,8 @@ export const sealed = {
     'Para corregir un registro hace falta conexión: VeilCore comprueba primero que no se haya corregido en otra pestaña o en otro dispositivo. No se cambió nada. Vuelva a intentarlo cuando tenga conexión.',
   'app.sealed.correctionConnectionLost':
     'La conexión se cortó mientras se guardaba esta corrección, así que no se guarda aquí para enviarla después. Este registro no se vuelve a guardar hasta que VeilCore pueda decir si la corrección llegó; cuando tenga conexión, el registro la mostrará si llegó.',
+  'app.sealed.correctionNotStored':
+    'Este registro se cambió en otra pestaña o en otro dispositivo mientras se guardaba la corrección, así que la corrección no se guardó. No se cambió nada. El registro se muestra como está ahora: revíselo y vuelva a corregirlo.',
   'app.sealed.locked.title.one': '{count} registro bloqueado',
   'app.sealed.locked.title.other': '{count} registros bloqueados',
   'app.sealed.locked.pageTitle': 'Este registro está bloqueado',
@@ -164,7 +166,9 @@ export const sealed = {
   'app.sealed.refuse.olderCopy':
     'VeilCore ya tiene una copia más reciente, guardada desde otra pestaña u otro dispositivo, así que este cambio no se guardó. Ahora se muestra la copia más reciente; vuelva a hacer el cambio si todavía lo quiere',
   'app.sealed.refuse.supersededByLocked':
-    'ya se corrigió, en otra pestaña o en otro dispositivo, y una corrección no se puede deshacer, así que este cambio no se guardó. Se volvió a leer desde VeilCore; abra la versión más reciente para cambiarlo',
+    'ya se corrigió, y una corrección no se puede deshacer, así que este cambio no se guardó. Se volvió a leer desde VeilCore; abra la versión más reciente para cambiarlo',
+  'app.sealed.refuse.recordRefused':
+    'su registro no se pudo guardar con ella, así que la corrección tampoco se guardó. No se cambió nada; se volvió a leer desde VeilCore, así que vuelva a intentar la corrección',
   'app.sealed.unsaved.backup':
     'Copia bloqueada aún sin subir: guarde y compruebe su copia de seguridad. La fecha de su registro no espera por esto.',
   'app.sealed.unsaved.key':
