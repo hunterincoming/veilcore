@@ -1130,7 +1130,7 @@ export const SendResultsPanel: React.FC<{
             title: d.input.title || file.name,
             report: { name: file.name, sha256: file.sha, size: file.bytes.length },
           });
-          const bound = await bindResult(attester, made.commitment, subject);
+          const bound = await bindResult(attester, made.commitment, made.bundle.statement);
           if (bound.error || !bound.attestationId)
             throw new Error(t('app.lab.out.notRecorded', { error: bound.error ?? t('app.lab.out.noAnswer') }));
           bindingId = bound.attestationId;

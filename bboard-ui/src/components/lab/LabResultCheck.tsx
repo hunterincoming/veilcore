@@ -56,7 +56,12 @@ const useSigner = (b: LabResultBundle, asked: boolean): LabSigner | undefined =>
         ]);
         const key = keyFromHex(b.signature.key);
         const list = await attestationsFor(b.signature.record, { claimsKeyBindings: true });
-        if (live) setS(key ? findBinding(list, b.signature.record, key, b.statement.subject, []) : { kind: 'none' });
+        if (live)
+          setS(
+            key
+              ? findBinding(list, b.signature.record, key, b.statement.subject, [], b.statement.bindingSalt)
+              : { kind: 'none' },
+          );
       } catch {
         if (live) setS({ kind: 'none' });
       }
@@ -177,7 +182,13 @@ const OneChecked: React.FC<{
       >
         {who ? `${who} ` : ''}
         {t('app.attest.signedBy', { key: keyShort(b.signature.key) })}
-        {!lookUp && (
+        {/* Signed before binding salts: there is no name binding this page would read (SPEC 11.12). */}
+        {!b.statement.bindingSalt && (
+          <Typography variant="body2" sx={{ mt: 1 }} data-lab-name-unsalted="">
+            {t('app.lr.check.noSalt')}
+          </Typography>
+        )}
+        {!lookUp && b.statement.bindingSalt && (
           <Box sx={{ mt: 1 }}>
             <Typography variant="body2" sx={{ mb: 1 }}>
               {t('app.lr.check.nameText')}

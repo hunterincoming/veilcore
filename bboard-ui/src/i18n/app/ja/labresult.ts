@@ -184,6 +184,8 @@ export const labresult = {
   'app.lr.check.choose': '結果ファイルを選ぶ',
   'app.lr.check.bad': 'この結果は使えません：{problem}',
   'app.lr.check.looking': '誰の鍵か調べています…',
+  'app.lr.check.noSalt':
+    'この結果は、結果に付くラボ名にソルトが加えられる前に署名されたため、ラボ名は照会しません。以前の形式の名前リンクでは、ラボがどの記録を検査したかが分かってしまう可能性がありました。署名は引き続き有効です。ラボ名を表示するには、ラボに結果を署名し直すよう依頼してください。',
   'app.lr.check.replacedBy': '同じ鍵で署名された結果{code}に置き換えられています（{reason}）。',
   'app.lr.check.namesOther':
     '結果{code}を置き換えたとしています。その結果はこのファイルにないか、別の鍵で署名されているため、ここではその結果について何も変わりません。',
@@ -247,4 +249,6 @@ export const labresult = {
     'マークの配列ファイルが保存されていません。今離れると完全に失われ、紛争で封印を開くことは二度とできません。それでも離れますか？',
   'app.lr.problem.ctMissing':
     '検出の結果にCt値がない（Undetermined、N/A、>40）のは矛盾しています。結果とCt値の列が入れ替わっていないか確認してください。',
+  'app.lr.problem.bindingSalt':
+    'ラボ名のソルトが正しい形式ではありません。16進数64文字で、すべて同じ値ではないものが必要です。',
 } satisfies Partial<AppTranslation>;

@@ -189,6 +189,8 @@ export const labresult = {
   'app.lr.check.choose': 'Ergebnisdatei auswählen',
   'app.lr.check.bad': 'Dieses Ergebnis kann nicht verwendet werden: {problem}',
   'app.lr.check.looking': 'Es wird nachgeschlagen, wessen Schlüssel das ist…',
+  'app.lr.check.noSalt':
+    'Dieses Ergebnis wurde signiert, bevor die Namen von Laboren auf Ergebnissen gesalzen wurden. Deshalb wird der Name des Labors nicht nachgeschlagen: Die alte Art der Namensverknüpfung konnte zeigen, welchen Eintrag ein Labor untersucht hat. Die Signatur ist weiterhin gültig. Damit der Name des Labors angezeigt wird, bitten Sie das Labor, das Ergebnis neu zu signieren.',
   'app.lr.check.replacedBy': 'Ersetzt durch Ergebnis {code}, signiert mit demselben Schlüssel ({reason}).',
   'app.lr.check.namesOther':
     'Es nennt Ergebnis {code} als ersetzt. Dieses Ergebnis ist nicht in dieser Datei, oder ein anderer Schlüssel hat es signiert, also ändert sich hier nichts daran.',
@@ -256,4 +258,6 @@ export const labresult = {
     'Die Sequenzdatei der Markierung ist nicht gespeichert. Wenn Sie jetzt gehen, ist sie endgültig verloren, und das Siegel lässt sich in keinem Streitfall mehr öffnen. Trotzdem gehen?',
   'app.lr.problem.ctMissing':
     'Ein nachgewiesenes Ergebnis ohne Ct (Undetermined, N/A, >40) widerspricht sich. Prüfen Sie, ob die Spalten für Ergebnis und Ct vertauscht sind.',
+  'app.lr.problem.bindingSalt':
+    'Das Salz für den Namen des Labors hat nicht seine Form: 64 Hexadezimalzeichen, nicht alle gleich.',
 } satisfies Partial<AppTranslation>;
