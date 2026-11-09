@@ -263,19 +263,19 @@ describe('the mainnet strings', () => {
         for (const [k, v] of Object.entries(o)) expect(v.match(/\bdemos?\b/i)?.[0], k).toBeUndefined();
       }
   });
-  // Blueprint section 4: no cadence ("by hand", "automatically", "hourly") on any mainnet page
-  // until the scheduled anchoring job has run on mainnet (config/copy.ts
-  // SCHEDULED_ANCHORING_RUN_ON_MAINNET); records are batched and dated on Midnight.
-  it('claim no anchoring cadence until the scheduled job has run on mainnet, in any language or build', async () => {
+  // Blueprint section 4: no cadence on a mainnet page until the scheduled anchoring job has run on
+  // mainnet (config/copy.ts SCHEDULED_ANCHORING_RUN_ON_MAINNET). It has (8 Nov 2026, batch
+  // B-20261108-0AF6), so pages say "automatically"; none says "by hand" or names an interval.
+  it('since the scheduled job has run on mainnet: anchored automatically, never by hand, no interval, in any language or build', async () => {
     const { LANGUAGES } = await import('./i18n/catalogs');
     const { SCHEDULED_ANCHORING_RUN_ON_MAINNET } = await import('./config/copy');
     const { withoutCadence } = await import('./i18n/mainnet-overlay');
-    expect(SCHEDULED_ANCHORING_RUN_ON_MAINNET).toBe(false);
-    const CADENCE =
-      /by hand|automatic|hourly|every hour|von Hand|automatisch|stündlich|a mano|automáticamente|cada hora|à la main|automatiquement|toutes les heures|手作業|自動|毎時/i;
+    expect(SCHEDULED_ANCHORING_RUN_ON_MAINNET).toBe(true);
+    const NOT_SO =
+      /by hand|hourly|every hour|von Hand|stündlich|a mano|cada hora|à la main|toutes les heures|手作業|毎時/i;
     const ABOUT_BATCHES = /batch|anchor|Stapel|verank|lote|ancl|\blots?\b|ancr|バッチ|アンカー/i;
     // True as written: the first batches were anchored by hand (11 Oct); "checking by hand" is
-    // about checking; and the test-site column is about the test network, where the job runs.
+    // about checking; and the test-site column is about the test network.
     const HISTORY = ['m.postB.text', 'm.tech.check.t', 'm.tech.lede', 'm.live.stamp.test'];
     const hits: string[] = [];
     for (const claimsOnMainnet of [true, false])
@@ -295,15 +295,20 @@ describe('the mainnet strings', () => {
             for (const [k, v] of Object.entries(page))
               if (v && !HISTORY.includes(k))
                 for (const sen of v.split(/(?<=[.;。])\s*/))
-                  if (CADENCE.test(sen) && ABOUT_BATCHES.test(sen)) hits.push(`${l} ${k}: ${sen}`);
+                  if (NOT_SO.test(sen) && ABOUT_BATCHES.test(sen)) hits.push(`${l} ${k}: ${sen}`);
         }
     expect(hits).toEqual([]);
-    // Flipped, the cadence the job has shown comes back, as written.
+    // With the sponsor live (veilcore.org), the cadence the job has shown is said, as written.
     const o = mainnetStrings({ claimsOnMainnet: true, policyApproved: true, chainSends: true });
-    expect(o['m.hero.status']).toMatch(/batches that are dated there/);
-    const raw = { 'm.hero.status': 'they go into batches that are anchored there automatically.' };
-    expect(withoutCadence(raw, true)).toEqual(raw);
-    expect(withoutCadence(raw, false)['m.hero.status']).toBe('they go into batches that are dated there.');
+    expect(o['m.hero.status']).toMatch(/batches that are anchored there automatically/);
+    expect(o['m.live.stamp.main']).toMatch(/^Yes\. Batches are dated automatically/);
+    // Before the switch, neither cadence; after it, "automatically" stays and "by hand" goes.
+    const auto = { 'm.hero.status': 'they go into batches that are anchored there automatically.' };
+    const hand = { 'm.hero.status': 'they go into batches that we anchor there by hand for now.' };
+    expect(withoutCadence(auto, true)).toEqual(auto);
+    expect(withoutCadence(auto, false)['m.hero.status']).toBe('they go into batches that are dated there.');
+    expect(withoutCadence(hand, true)['m.hero.status']).toBe('they go into batches that are dated there.');
+    expect(withoutCadence(hand, false)['m.hero.status']).toBe('they go into batches that are dated there.');
   });
   it('every language veilcore.org offers sets every mainnet sentence the English does, for every build', async () => {
     const { LANGUAGES } = await import('./i18n/catalogs');
@@ -340,7 +345,7 @@ describe('the mainnet strings', () => {
         const all = Object.entries(o).filter(([k]) => !(DATED_POSTS as readonly string[]).includes(k));
         expect(all.filter(([, v]) => /by hand|can't do it yet|aren't dated|not yet dated/.test(v))).toEqual([]);
         for (const k of ['m.hero.status', 'm.stat2.s', 'm.privacy.test.text'] as const)
-          expect(o[k], k).toMatch(/dated (on Midnight's main network|there)/);
+          expect(o[k], k).toMatch(/anchored (on Midnight's main network|there) automatically/);
         const ja = jaMainnet(flags);
         expect(
           Object.values(ja).filter((v) => /手作業|まだ使えません|日付が付きません|まだ日付は付きません/.test(v)),

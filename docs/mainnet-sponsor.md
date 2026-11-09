@@ -142,7 +142,15 @@ show up too.
 
 Mainnet moved to Ledger 9. The `ledger-9` branch moves the site, sponsor and tools to
 midnight-js 5, which calls VeilCore's unchanged Ledger 8 contract on either ledger. A proof
-server serves one ledger, so the mainnet sponsor needs a 9.0.0 one.
+server serves one ledger, so the mainnet sponsor needs a 9.0.1 one.
+
+**What went wrong on 8 November, and the fix.** After the fork the sponsor still pointed at the
+8.1.3 proof server, so anchoring failed. Two things got in the way of the new one: the tag
+`9.0.0` is not published on Docker Hub (use `9.0.1`), and a service made with Railway's
+**New project** lands outside the sponsor's project and environment, where the private address
+`proof-server-ledger9.railway.internal` doesn't reach it. Create it inside the existing project
+and environment (**veilcore-api / production**). With that done, the scheduled job dated
+batch `B-20261108-0AF6` at block 3370721 on its own, for about 0.21 DUST.
 
 **What the chain side needs.** Midnight's support matrix for Ledger 9 mainnet names indexer
 **4.4.101, re-indexed from genesis** (not 4.4.0-rc.6). VeilCore runs no indexer: the sponsor
@@ -154,11 +162,14 @@ Do these in order. Each says how you know it worked.
 1. **Merge.** Merge the `ledger-9` pull request once CI is green.
 2. **Your Mac.** In the repository folder: `git checkout main`, `git pull`, then `npm ci`
    (Node 24 and npm 11.6.2: `node -v` and `npm -v` say so).
-3. **Proof server.** Railway → VeilCore project → New → Docker Image →
-   `midnightntwrk/proof-server:9.0.0`. Start command `midnight-proof-server -v`, name it
-   `proof-server-ledger9`, no public domain. When it is up, write down the image digest Railway
-   shows for the deploy (`sha256:…`), check it against Midnight's signed release manifest, and
-   send it so it is recorded in the repo. Leave `proof-server` (8.1.3) alone: preprod uses it.
+3. **Proof server.** Railway → the **veilcore-api** project, **production** environment (not
+   "New project") → New → Docker Image →
+   `midnightntwrk/proof-server@sha256:90e36a14f92c2004127f0ed1cfd6ee89d770cf1f6e9cd7f02026ffd4ecb42f37`
+   (9.0.1, the digest from Midnight's release notes, tag `proof-server-9.0.1`). Railway refuses a
+   tag and a digest together; if it refuses the digest form, use `midnightntwrk/proof-server:9.0.1`
+   and check the digest Railway shows for the deploy is the one above. There is no 9.0.0 image.
+   Start command `midnight-proof-server -v`, name it `proof-server-ledger9`, no public domain.
+   Leave `proof-server` (8.1.3) alone: preprod uses it. Done 8 November.
 4. **Point the sponsor at it, BEFORE the new code.** `veilcore-sponsor-mainnet` → Variables:
    `PROOF_SERVER_URL=http://proof-server-ledger9.railway.internal:6300`. The running code
    accepts any http address, so this is safe to do first.
@@ -190,7 +201,8 @@ Do these in order. Each says how you know it worked.
    Once the job has dated a batch on mainnet on its own schedule (not a call made by hand),
    flip `SCHEDULED_ANCHORING_RUN_ON_MAINNET` to `true` in `bboard-ui/src/config/copy.ts` in a
    reviewed commit: until then every page says records are batched and dated on Midnight, and
-   claims no cadence.
+   claims no cadence. Done 8 November (batch `B-20261108-0AF6`): the pages now say batches are
+   anchored automatically, and still name no interval.
 10. **Site, live.** The step 8 command without `VITE_DATING_PAUSED=true`.
 11. **Commit the release list.** `git add releases && git commit -m "Release list: mainnet"`,
     then push.

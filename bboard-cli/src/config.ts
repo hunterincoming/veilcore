@@ -104,7 +104,7 @@ export class MainnetConfig implements Config {
 
 /**
  * Mainnet moved to Midnight Ledger 9 on 6 November 2026, and a proof server serves one ledger:
- * the CLI starts proof-server-mainnet.yml (9.0.0) for mainnet, proof-server.yml (8.1.3) for the
+ * the CLI starts proof-server-mainnet.yml (9.0.1) for mainnet, proof-server.yml (8.1.3) for the
  * test networks until they fork. testkit-js reads the file name when it starts the container.
  */
 export const MAINNET_PROOF_SERVER_FILE = 'proof-server-mainnet.yml';

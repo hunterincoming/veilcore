@@ -431,7 +431,9 @@ describe("what's live where", () => {
     // Nothing is called live on veilcore.org until it has worked there: only veilcore.org's
     // own build (licenses on, mainnet sponsor live) says "Yes"; the test site never does.
     expect(home).toMatch(/const LICENSES_ON_SITE = THIS_BUILD\.agreementsLive === true && MAINNET_SENDS;/);
-    expect(home).toMatch(/LICENSES_ON_SITE\s*\?\s*'m\.live\.lic\.live'\s*:\s*'m\.live\.lic\.next'/);
+    // Once royalties have worked on veilcore.org, the test site and the demo say so too (a fact
+    // about veilcore.org); a mainnet build says "Yes" only with licenses on.
+    expect(home).toMatch(/LICENSES_ON_SITE \|\| !IS_MAINNET\s*\?\s*'m\.live\.lic\.live'\s*:\s*'m\.live\.lic\.next'/);
     expect(e['m.live.lic.next']).not.toMatch(/^Yes/);
     expect(e['m.live.lic.next']).toMatch(/next veilcore\.org deploy/);
     // The test-site cell doesn't say "Yes" for royalties until v2 has run there.
@@ -439,10 +441,30 @@ describe("what's live where", () => {
     expect(e['m.live.lic.testNext']).toMatch(/^Yes for licenses/);
     expect(e['m.live.lic.testNext']).toMatch(/Royalty statements and payments: built/);
     // The veilcore.org cell: no "Yes" for royalties until v2 has worked on mainnet, on any build.
+    // It has (8 Nov 2026: license accepted, report sent, answered, paid, received).
     expect(home).toMatch(/!ROYALTIES_RUN_ON_MAINNET\s*\?\s*'m\.live\.lic\.mainNext'/);
     expect(fs.readFileSync(path.join(SRC, 'config/copy.ts'), 'utf8')).toMatch(
-      /export const ROYALTIES_RUN_ON_MAINNET = false;/,
+      /export const ROYALTIES_RUN_ON_MAINNET = true;/,
     );
+    // The "Yes" claims only what ran on mainnet: reports, answers, "I paid", "received". Handing a
+    // license on hasn't been tried there, and paying on Midnight itself is test-only.
+    expect(e['m.live.lic.live']).toMatch(/^Yes: licenses, with real transactions, and royalty reports/);
+    expect(e['m.live.lic.live']).toMatch(/Handing a license on is built, not yet tried on the main network\./);
+    expect(e['m.live.lic.live']).toMatch(/Paying royalties on Midnight itself is on the test site only\.$/);
+    // The cell names the royalty screen's own words, in each language: the licensee's button
+    // (app.roy.pay.iPaid) and the licensor's status (app.roy.st.received).
+    for (const [lang, app] of [
+      ['en', appEn],
+      ['de', appDe],
+      ['es', appEs],
+      ['fr', appFr],
+      ['ja', appJa],
+    ] as const) {
+      const cell = (LANGUAGES[lang].strings as Record<string, string>)['m.live.lic.live'];
+      const words = app as Record<string, string>;
+      expect(cell, lang).toContain(words['app.roy.pay.iPaid']);
+      expect(cell, lang).toContain(words['app.roy.st.received']);
+    }
     expect(e['m.live.lic.mainNext']).toMatch(/^Licenses go live with the deploy/);
     expect(e['m.live.lic.mainNext']).toMatch(/Royalty statements and payments: built, not live yet\.$/);
     expect(e['m.live.dna.main']).toMatch(/not dated/);
@@ -840,7 +862,12 @@ describe('Japanese (round 6)', () => {
     const all = [ja, jaTestchain, ...FLAGS.map((f) => jaMainnet(f))] as Record<string, string>[];
     const OTHER_TERMS =
       /育種家|育種者|ブラウザー|受領確認|ラボ報告書|DNA検査報告書|テストネット(?!ワーク)|ラボ契約|固定|所有|植物を登録/;
-    for (const s of all) expect(offenders(s, OTHER_TERMS)).toEqual([]);
+    // A button's own label, quoted, is the app's word, not the page's: 「受領確認済み」 is the
+    // royalty screen's status (app.roy.st.received), named in the licenses cell.
+    const unquoted = (s: Record<string, string>) =>
+      Object.fromEntries(Object.entries(s).map(([k, v]) => [k, v.split('「受領確認済み」').join('')]));
+    for (const s of all) expect(offenders(unquoted(s), OTHER_TERMS)).toEqual([]);
+    expect(ja['m.live.lic.live']).toContain('「受領確認済み」');
     expect(ja['m.hero.bredBy']).toBe('育成者');
     expect(ja['m.contact.1t']).toBe('育成者とラボの方');
     expect(ja['m.hero.lede']).toMatch(/育成者、種苗会社、ラボのために/);
@@ -853,9 +880,10 @@ describe('Japanese (round 6)', () => {
         [...new Set([...Object.keys(mainnetStrings(f)), 'm.status.keyTitle'])].sort(),
       );
       expect(networkOverlay({ ...MAINNET, ...f }, 'ja')).toEqual({ ...mainnetStrings(f), ...o });
-      // No cadence until the scheduled job has run on mainnet (SCHEDULED_ANCHORING_RUN_ON_MAINNET).
+      // The scheduled job has run on mainnet (SCHEDULED_ANCHORING_RUN_ON_MAINNET): never "by hand",
+      // and no interval.
       for (const k of ['m.hero.status', 'm.demo.lede', 'm.stat2.s', 'm.privacy.lede', 'm.privacy.test.text'] as const)
-        expect(o[k], k).not.toMatch(/手作業|自動/);
+        expect(o[k], k).not.toMatch(/手作業|毎時/);
       expect(o['m.status.keyText']).toMatch(
         f.policyApproved ? /書面のメンテナンスポリシーに基づき公表します/ : /提案段階/,
       );

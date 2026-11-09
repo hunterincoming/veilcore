@@ -10,7 +10,7 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Alert,
   Autocomplete,
@@ -30,6 +30,7 @@ import EditIcon from '@mui/icons-material/EditOutlined';
 import { useNavigate } from 'react-router-dom';
 import { previewCorrection, type CorrectionPreview } from '../veilcore/corrections';
 import {
+  CorrectionRefused,
   allRecords,
   correctionWaitsForBackup,
   integrityOf,
@@ -43,7 +44,19 @@ import type { AppKey } from '../i18n/app/en';
 import { SCHEMES, idShapeHint, sexWords } from './flow/AnimalForm';
 import { line } from '../ask/batch';
 
+// The names previewCorrection gives (veilcore-records diffRecords: the envelope's paths), each in
+// the page's words; a strain's or an animal's own words come from useRecordT. Never a raw path.
 const FIELD_LABEL: Record<string, AppKey> = {
+  'subject.name': 'app.plant.fix.field.name',
+  'subject.originator': 'app.plant.fix.field.breederName',
+  'subject.taxon': 'app.plant.fix.field.taxon',
+  'subject.internalDesignation': 'app.plant.fix.field.internalReference',
+  'subject.claimedCreationDate': 'app.plant.fix.field.claimedCreationDate',
+  'profileData.method': 'app.plant.fix.field.breedingMethod',
+  'profileData.designation': 'app.plant.fix.field.designation',
+  'profileData.breed': 'app.plant.fix.field.breed',
+  'profileData.herd': 'app.plant.fix.field.herd',
+  'profileData.taxon': 'app.plant.fix.field.taxon',
   'profileData.cultivarName': 'app.plant.fix.field.cultivarName',
   'profileData.breederName': 'app.plant.fix.field.breederName',
   'profileData.breedingMethod': 'app.plant.fix.field.breedingMethod',
@@ -108,6 +121,17 @@ export const CorrectRecord: React.FC<{
   const [reason, setReason] = useState('');
   const [preview, setPreview] = useState<CorrectionPreview | null>(null);
   const [error, setError] = useState<string | null>(null);
+  /**
+   * Refused: corrected already, in another tab or on another device. Its latest version (this
+   * id) is the one to open, and to correct.
+   */
+  const [latestId, setLatestId] = useState<string | null>(null);
+  // An error is said at the foot of a long form: brought into view, or on a phone the holder
+  // sees only Cancel and nothing seems to happen.
+  const errorRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (error) errorRef.current?.scrollIntoView?.({ block: 'nearest' });
+  }, [error]);
   const waits = open && correctionWaitsForBackup(record.id);
 
   const edited: StrainRecord = {
@@ -134,6 +158,7 @@ export const CorrectRecord: React.FC<{
   const reset = () => {
     setOpen(false);
     setError(null);
+    setLatestId(null);
     setPreview(null);
     setReason('');
     setName(record.strainName);
@@ -306,15 +331,37 @@ export const CorrectRecord: React.FC<{
               />
             )}
             {error && (
-              <Alert severity="error" variant="outlined">
+              <Alert
+                ref={errorRef}
+                severity="error"
+                variant="outlined"
+                {...(latestId ? { 'data-fix-corrected-already': '' } : {})}
+              >
                 {error}
+                {/* Under the words, not beside them: beside, a phone squeezes them into a column. */}
+                {latestId && (
+                  <Box sx={{ mt: 1.5 }}>
+                    <Button
+                      variant="outlined"
+                      color="inherit"
+                      sx={{ minHeight: 44 }}
+                      onClick={() => {
+                        const to = latestId;
+                        reset();
+                        void navigate(`/record/${to}`);
+                      }}
+                    >
+                      {t('app.plant.fix.openLatest')}
+                    </Button>
+                  </Box>
+                )}
               </Alert>
             )}
           </Stack>
         </DialogContent>
         <DialogActions>
           <Button onClick={reset}>{t('app.common.cancel')}</Button>
-          {!preview ? (
+          {latestId ? null : !preview ? (
             <Button variant="contained" onClick={check} disabled={!dirty || needsScheme}>
               {t('app.plant.fix.check')}
             </Button>
@@ -330,6 +377,8 @@ export const CorrectRecord: React.FC<{
                 }
                 setBusy(true);
                 setError(null);
+                // issueCorrection asks the registry first, and makes nothing when it can't answer
+                // or says this record was corrected already (a record is corrected once).
                 try {
                   const corrected = await issueCorrection(
                     record.id,
@@ -344,6 +393,13 @@ export const CorrectRecord: React.FC<{
                   // here, where the holder is looking, instead of navigating to a
                   // correction that does not exist.
                   setBusy(false);
+                  if (e instanceof CorrectionRefused) {
+                    // Said in the page's language; when corrected already, with the way to the
+                    // latest version.
+                    setLatestId(e.latestId ?? null);
+                    setError(t(e.key));
+                    return;
+                  }
                   setError(e instanceof Error ? e.message : t('app.plant.fix.notSaved'));
                 }
               }}
