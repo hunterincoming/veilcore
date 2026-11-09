@@ -77,6 +77,26 @@ export const fakeRegistry = () => {
      * carrying it out; a Response is answered instead.
      */
     fault: null as ((method: string, path: string, body: string) => 'lose' | 'fail' | Response | undefined) | null,
+    /**
+     * A record is corrected once, as the registry refuses it (veilcore-api corrections.js, a
+     * unique index per holder and corrected record): a second correction of a record this
+     * holder holds a correction of is refused by id with code "already-corrected", and so is a
+     * row in the same save marked `supersededBy` that refused correction.
+     */
+    oneCorrection: false,
+    /**
+     * A correction is permanent, so the link to it is too (veilcore-api PR #8): a row that drops
+     * or changes a record's `supersededBy` this registry holds is refused by id with code
+     * "supersededby-locked" (checked before "already-corrected": a second device re-linking a
+     * record to its own correction gets this for the record, and that for the correction).
+     */
+    lockSupersededBy: false,
+    /**
+     * A correction and its record's link are kept together or not at all (veilcore-api PR #8):
+     * a correction whose record, in the same save and pointing to it, is refused isn't stored,
+     * and is refused by id with code "record-refused".
+     */
+    pairCorrections: false,
   };
   let n = 0;
 
@@ -162,7 +182,30 @@ export const fakeRegistry = () => {
         const notWritten: string[] = [];
         const items = JSON.parse(body) as Row[];
         const theirKid = items.map((r) => (r.sealed as { kid?: string } | undefined)?.kid).find(Boolean);
+        const correctionOf = (r: Row) => (r.supersedes as { recordId?: string } | undefined)?.recordId;
+        /** Second corrections in this save: id → the record and the correction held already. */
+        const second = new Map<string, { recordId: string; correctionId: string }>();
+        if (misbehave.oneCorrection && path === '/api/records')
+          for (const r of items) {
+            const of = correctionOf(r);
+            if (!of) continue;
+            const held = [...records.values()].find(
+              (x) => x.holder === holder && x.id !== r.id && correctionOf(x) === of,
+            );
+            if (held) second.set(r.id, { recordId: of, correctionId: held.id });
+          }
+        const alreadyCorrected = (id: string, c: { recordId: string; correctionId: string }) => ({
+          id,
+          reason: `already corrected: record ${c.recordId} already has a correction here (${c.correctionId}). A record is corrected once, so correct ${c.correctionId} instead; nothing was changed`,
+          code: 'already-corrected',
+          status: 409,
+          ...c,
+        });
+        /** Rows to store, written once every row of the save is decided. */
+        const writes = new Map<string, Row & { holder: string }>();
         for (const r of items) {
+          const refusedCorrection =
+            second.get(r.id) ?? (typeof r.supersededBy === 'string' ? second.get(r.supersededBy) : undefined);
           const s = r.sealed as { kid?: string } | undefined;
           const heldRev = typeof t.get(r.id)?.rev === 'number' ? (t.get(r.id)!.rev as number) : null;
           const rev = typeof r.rev === 'number' && Number.isSafeInteger(r.rev) ? r.rev : null;
@@ -193,6 +236,23 @@ export const fakeRegistry = () => {
               status: 409,
               storedRev: heldRev,
             });
+          // After the rev check, as the registry plans a save: a stale copy is "older-copy" first.
+          else if (
+            misbehave.lockSupersededBy &&
+            path === '/api/records' &&
+            typeof t.get(r.id)?.supersededBy === 'string' &&
+            t.get(r.id)!.holder === holder &&
+            // A link to a correction since deleted may go (the registry's exception).
+            t.has(String(t.get(r.id)!.supersededBy)) &&
+            t.get(r.id)!.supersededBy !== r.supersededBy
+          )
+            rejected.push({
+              id: r.id,
+              reason: `this record's correction is ${String(t.get(r.id)!.supersededBy)}, and a correction is permanent; nothing was changed`,
+              code: 'supersededby-locked',
+              status: 409,
+            });
+          else if (refusedCorrection) rejected.push(alreadyCorrected(r.id, refusedCorrection));
           else if (!s) rejected.push({ id: r.id, reason: 'new rows must be sealed' });
           else if ((kid ?? theirKid) !== s.kid)
             rejected.push({ id: r.id, reason: "sealed with a different vault key than this holder's other records" });
@@ -202,7 +262,7 @@ export const fakeRegistry = () => {
             const kept = t.get(r.id);
             const { attestation: _a, ...clientRow } = r;
             void _a;
-            t.set(r.id, {
+            writes.set(r.id, {
               ...clientRow,
               ...(kept?.attestation ? { attestation: kept.attestation } : {}),
               ...(kept?.receivedFrom ? { receivedFrom: kept.receivedFrom } : {}),
@@ -210,6 +270,26 @@ export const fakeRegistry = () => {
             });
           }
         }
+        // A correction and its record's link in one save are kept together or not at all: a
+        // correction whose record (in this save, pointing to it) was refused isn't stored.
+        if (misbehave.pairCorrections && path === '/api/records') {
+          const refusedIds = new Set(rejected.map((x) => x.id));
+          for (const r of items) {
+            const of = correctionOf(r);
+            if (!of || !writes.has(r.id) || !refusedIds.has(of)) continue;
+            const original = items.find((x) => x.id === of);
+            if (original?.supersededBy !== r.id) continue;
+            writes.delete(r.id);
+            rejected.push({
+              id: r.id,
+              reason: `record ${of} was refused in this save, so its correction wasn't stored either; nothing was changed`,
+              code: 'record-refused',
+              status: 409,
+              recordId: of,
+            });
+          }
+        }
+        for (const [id, row] of writes) t.set(id, row);
         return json({ ok: rejected.length === 0, rejected, notWritten });
       }
       if (method === 'DELETE') {

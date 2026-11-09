@@ -272,6 +272,11 @@ export const job = {
     'Impossible de vérifier vos autres appareils, donc rien n’a été enregistré. Réessayez quand vous serez en ligne.',
   'app.job.ids.clash':
     'Enregistré, mais {id} est maintenant sur {names} : un autre appareil l’a enregistré au même moment. Corrigez l’un d’eux aujourd’hui.',
+  'app.job.ids.savedSome': '{saved} enregistrés, {left} non enregistrés.',
+  'app.job.ids.offlineRest':
+    'Impossible de vérifier vos autres appareils avant les suivants, donc ils n’ont pas été enregistrés. Réessayez quand vous serez en ligne.',
+  'app.job.ids.unchecked':
+    '{saved} enregistrés, mais VeilCore n’a pas pu être joint ensuite pour vérifier qu’aucun autre appareil n’a enregistré les mêmes identifiants au même moment. Vérifiez-le une fois en ligne : ouvrez les enregistrements de cette portée et regardez leurs identifiants.',
   'app.job.ids.changed':
     'Quelque chose a changé sur un autre appareil ou dans un autre onglet depuis l’affichage, donc rien de plus n’a été enregistré. Vérifiez les cases, puis enregistrez à nouveau.',
   'app.job.ids.paste.spaces':

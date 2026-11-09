@@ -29,6 +29,7 @@ import { licensing } from './licensing';
 import { royalties } from './royalties';
 import { document } from './document';
 import { attest } from './attest';
+import { labresult } from './labresult';
 import { start } from './start';
 import { receipt } from './receipt';
 import { ask } from './ask';
@@ -59,6 +60,7 @@ export const appDe: AppTranslation = {
   ...royalties,
   ...document,
   ...attest,
+  ...labresult,
   ...start,
   ...receipt,
   ...ask,

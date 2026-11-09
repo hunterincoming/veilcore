@@ -215,3 +215,18 @@ describe('round 5: lists, headings over one ID, and several IDs put in at once',
     ]);
   });
 });
+
+describe('the same ID typed two ways is one ID (round 7, S1)', () => {
+  it('spaces, dashes, dots and case are ignored when IDs are compared', () => {
+    expect(checkBoxes(six, { p1: '985 112 345 678 901', p2: '985-112-345678901' }).errors).toEqual({
+      p1: { why: 'twice', id: '985 112 345 678 901' },
+      p2: { why: 'twice', id: '985-112-345678901' },
+    });
+    expect(checkBoxes(withSaved, { p3: 'a-2' }).errors).toEqual({
+      p3: { why: 'taken', id: 'a-2', name: 'Bella pup 2' },
+    });
+    expect(checkBoxes(six, { p1: 'tag.9' }, new Map([['TAG 9', 'Rex']])).errors).toEqual({
+      p1: { why: 'elsewhere', id: 'tag.9', name: 'Rex' },
+    });
+  });
+});

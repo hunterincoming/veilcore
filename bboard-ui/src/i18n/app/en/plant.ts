@@ -39,6 +39,9 @@ export const plant = {
   'app.plant.action.familyTree': 'Family tree',
   'app.plant.action.freshBackup': 'Save a fresh backup',
   'app.plant.action.fix': 'Fix a mistake',
+  // RecordDetail.tsx, CorrectRecord.tsx: a record corrected already (in another tab or device)
+  'app.plant.action.seeLatest': 'Corrected already: open the latest version',
+  'app.plant.fix.openLatest': 'Open the latest version',
   'app.plant.agreements': 'Agreements',
   'app.plant.openAgreement': 'Open agreement {id}',
   'app.plant.unnamedCounterparty': 'unnamed counterparty',
@@ -407,6 +410,12 @@ export const plant = {
   'app.plant.fix.field.attestations': 'attestations',
   'app.plant.fix.field.sealedAt': 'sealed date',
   'app.plant.fix.field.holder': 'holder',
+  // CorrectRecord.tsx FIELD_LABEL: the envelope's names for a record's name, species and the rest
+  'app.plant.fix.field.name': 'name',
+  'app.plant.fix.field.taxon': 'species',
+  'app.plant.fix.field.designation': 'designation',
+  'app.plant.fix.field.breed': 'breed',
+  'app.plant.fix.field.herd': 'herd or farm',
   'app.plant.fix.c.cosmetic.cosmetic':
     'Nothing downstream is affected. Offspring keep their ancestry checks, and any agreements stand.',
   'app.plant.fix.c.cosmetic.material':

@@ -26,6 +26,7 @@ import {
 import { useT } from '../../i18n/app';
 import {
   ALREADY_CORRECTED,
+  CorrectionRefused,
   allRecords,
   correctionWaitsForBackup,
   issueCorrection,
@@ -61,6 +62,16 @@ export const AddIds: React.FC<{ litter: Litter; onClose: () => void }> = ({ litt
     else onClose();
   };
 
+  /** A refusal in the page's language (CorrectionRefused carries its words' key). */
+  const said = (e: unknown): string =>
+    e instanceof CorrectionRefused
+      ? t(e.key)
+      : e instanceof Error && e.message === ALREADY_CORRECTED()
+        ? t('app.sealed.alreadyCorrected')
+        : e instanceof Error
+          ? e.message
+          : String(e);
+
   const save = async () => {
     setBusy(true);
     setError(undefined);
@@ -72,9 +83,22 @@ export const AddIds: React.FC<{ litter: Litter; onClose: () => void }> = ({ litt
         allRecords,
         issueCorrection,
       });
-      if ('offline' in r) setError(t('app.job.ids.offline'));
-      else if ('changed' in r) setError(t('app.job.ids.changed'));
-      else if ('gone' in r) setError(t('app.job.ids.gone', { name: r.gone }));
+      // Some saved before it stopped: said how many, and how many weren't.
+      const some =
+        'saved' in r &&
+        r.saved > 0 &&
+        !('clashes' in r) &&
+        !('unchecked' in r) &&
+        ('offline' in r || 'changed' in r || 'gone' in r || 'failed' in r)
+          ? `${t('app.job.ids.savedSome', { saved: String(r.saved), left: String(pairs.length - r.saved) })} `
+          : '';
+      if ('offline' in r) setError(some + t(some ? 'app.job.ids.offlineRest' : 'app.job.ids.offline'));
+      else if ('changed' in r) setError(some + t('app.job.ids.changed'));
+      else if ('gone' in r) setError(some + t('app.job.ids.gone', { name: r.gone }));
+      else if ('failed' in r) setError(some + said(r.failed));
+      else if (r.unchecked)
+        // Saved, but the check afterwards couldn't reach VeilCore: said, never closed quietly.
+        setError(t('app.job.ids.unchecked', { saved: String(r.saved) }));
       else if (r.clashes?.length)
         // Saved, but another device saved one of these IDs on another animal the same moment: said loudly.
         setError(
@@ -84,8 +108,7 @@ export const AddIds: React.FC<{ litter: Litter; onClose: () => void }> = ({ litt
         );
       else onClose();
     } catch (e) {
-      const m = e instanceof Error ? e.message : String(e);
-      setError(m === ALREADY_CORRECTED() ? t('app.sealed.alreadyCorrected') : m);
+      setError(said(e));
     } finally {
       setBusy(false);
     }

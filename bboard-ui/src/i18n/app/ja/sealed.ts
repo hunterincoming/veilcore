@@ -11,7 +11,15 @@ export const sealed = {
   'app.sealed.mismatch':
     'この記録は証明コードと一致しません。封印後に変更された可能性があります。今後、保存・送付・共有はされません。',
   'app.sealed.alreadyCorrected':
-    'この記録は、別のタブまたは別の端末ですでに訂正されています。いったん閉じて開き直し、訂正を確認してください。',
+    'この記録は、別のタブまたは別の端末ですでに訂正されています。訂正するには最新版を開いてください。',
+  'app.sealed.correctedSameWay':
+    'この記録は、別のタブまたは別の端末で、すでに同じ内容に訂正されています。あなたの訂正理由は保存されていません。最新版を開いて確認してください。',
+  'app.sealed.correctNeedsConnection':
+    '記録の訂正には接続が必要です。VeilCoreはまず、別のタブや別の端末で訂正されていないかを確認します。何も変更していません。オンラインのときにもう一度お試しください。',
+  'app.sealed.correctionConnectionLost':
+    'この訂正の保存中に接続が切れたため、後で送るためにここには保存していません。訂正が届いたかどうかをVeilCoreで確認できるまで、この記録は保存しません。オンラインになると、届いていた場合は記録に表示されます。',
+  'app.sealed.correctionNotStored':
+    '訂正の保存中に、別のタブまたは別の端末でこの記録が変更されたため、訂正は保存されませんでした。何も変更していません。記録を現在の状態で表示しています。確認してから、もう一度訂正してください。',
   'app.sealed.locked.title.other': 'ロックされた記録 {count}件',
   'app.sealed.locked.pageTitle': 'この記録はロックされています',
   'app.sealed.locked.text':
@@ -140,6 +148,10 @@ export const sealed = {
   'app.sealed.refuse.backupFirstNew': 'まだ何も保存していません。先にバックアップを保存して確認してください',
   'app.sealed.refuse.olderCopy':
     'VeilCoreには別のタブや端末で保存された新しいコピーがすでにあるため、この変更は保存されませんでした。新しいコピーを表示しています。必要なら、もう一度変更してください',
+  'app.sealed.refuse.supersededByLocked':
+    'すでに訂正されており、訂正は取り消せないため、この変更は保存されませんでした。VeilCoreから読み直しました。変更するには最新版を開いてください',
+  'app.sealed.refuse.recordRefused':
+    '元の記録を一緒に保存できなかったため、訂正も保存されませんでした。何も変更していません。VeilCoreから読み直したので、もう一度訂正してください',
   'app.sealed.unsaved.backup':
     'ロックしたコピーはまだアップロードされていません。バックアップを保存して確認してください。記録の日付はこれを待ちません。',
   'app.sealed.unsaved.key':

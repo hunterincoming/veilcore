@@ -13,6 +13,7 @@ import {
   Alert,
   Box,
   Button,
+  Checkbox,
   CircularProgress,
   FormControl,
   FormControlLabel,
@@ -67,8 +68,11 @@ import {
   type ReportSigner,
 } from '../../veilcore/custody';
 import { LAB_RESULTS_ENABLED, LAB_SIGNING_ENABLED } from '../../config/network';
-import { NumbersFields } from '../document/NumbersFields';
-import { LAB_SCHEMAS, numbersOf, type TypedNumbers } from '../../veilcore/field-set';
+import { ResultForm } from '../lab/ResultForm';
+import { ResultFacts, kindWords } from '../lab/ResultFacts';
+import { emptyDraft, tryDraft, type ResultDraft } from '../../veilcore/lab-result-draft';
+import type { LabResultBundle, ProblemCode } from '../../veilcore/lab-result';
+import type { AppKey } from '../../i18n/app/en';
 import { OPEN_SIGNING_KEY_EVENT } from '../AttesterSetup';
 import { NameCheckText } from '../NameCheckText';
 import { focusScreenHeading } from './FlowFrame';
@@ -100,6 +104,8 @@ import {
   wasOpened,
   rememberBinding,
   bindingFor,
+  rememberResultCode,
+  resultCodeFor,
   type ResultState,
   type ResultSummary,
 } from '../../veilcore/lab-results';
@@ -390,7 +396,7 @@ type Opened = {
   /** What kind of report the lab said it is (inside the locked file); absent on older reports. */
   kind?: ReportKind;
   /** Numbers the lab signed with this report (lab-numbers.ts), checked; or why they can't be used. */
-  numbers?: LabNumbers;
+  numbers?: LabNumbers | LabResultBundle;
   numbersProblem?: string;
 };
 
@@ -456,7 +462,7 @@ const SignerLine: React.FC<{ signer: ReportSigner }> = ({ signer }) => {
  * record the breeder holds, with the lab's signature kept on it. Added once: a record already
  * carrying this signature is linked instead.
  */
-const SignedNumbers: React.FC<{ numbers?: LabNumbers; problem?: string; about: string }> = ({
+const SignedNumbers: React.FC<{ numbers?: LabNumbers | LabResultBundle; problem?: string; about: string }> = ({
   numbers,
   problem,
   about,
@@ -484,6 +490,7 @@ const SignedNumbers: React.FC<{ numbers?: LabNumbers; problem?: string; about: s
         id: newRecordId(),
         recordFingerprint: await fingerprintRecord(numbers.record),
         labSignature: { ...numbers.signature, about },
+        ...(numbers.v === 2 ? { labResult: { statement: numbers.statement } } : {}),
         parents: [],
         photoFingerprints: [],
       } as never);
@@ -496,9 +503,16 @@ const SignedNumbers: React.FC<{ numbers?: LabNumbers; problem?: string; about: s
   return (
     <Box sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2, p: 1.5 }} data-lab-numbers-in="">
       <Typography variant="body2" sx={{ fontWeight: 700 }}>
-        {t('app.labnums.inReport', { form: schemaWords(numbers.record.fieldSet.schema, tr) })}
+        {numbers.v === 2
+          ? t('app.lr.inReport', { kind: kindWords(numbers.statement.kind, tr) })
+          : t('app.labnums.inReport', { form: schemaWords(numbers.record.fieldSet.schema, tr) })}
       </Typography>
-      {(schema?.slots ?? [])
+      {numbers.v === 2 && (
+        <Box sx={{ my: 1 }}>
+          <ResultFacts statement={numbers.statement} code={numbers.signature.record} />
+        </Box>
+      )}
+      {(numbers.v === 1 || numbers.statement.kind === 'numbers' ? (schema?.slots ?? []) : [])
         .filter((s) => s.type === 'uint' && numbers.record.fieldSet.values[s.slot] != null)
         .map((s) => (
           <Typography key={s.slot} variant="body2">
@@ -563,14 +577,15 @@ export const LabResultsPanel: React.FC<{
         if ('error' in locked) throw new Error(locked.error);
         const { bytes, kind, numbers: numbersBytes } = await openReportWithKind(locked, keys.recordSecret, transfer.id);
         // Numbers the lab signed: checked here, and only for this plant.
-        let numbers: LabNumbers | undefined;
+        let numbers: LabNumbers | LabResultBundle | undefined;
         let numbersProblem: string | undefined;
         if (numbersBytes && LAB_SIGNING_ENABLED) {
           try {
             const text = new TextDecoder().decode(numbersBytes);
             const { readLabNumbers } = await import('../../veilcore/lab-numbers');
             numbers = await readLabNumbers(text);
-            const about = (JSON.parse(text) as { about?: unknown }).about;
+            // A v2 result names the record it was tested from inside what the lab signed.
+            const about = numbers.v === 2 ? numbers.statement.subject : (JSON.parse(text) as { about?: unknown }).about;
             if (about !== record.recordFingerprint) throw new Error(t('app.labnums.otherPlant'));
             if (numbers.record.document?.files?.[0]?.sha256 !== reportFingerprint(bytes))
               throw new Error(t('app.labnums.otherReport'));
@@ -917,10 +932,12 @@ export const SendResultsPanel: React.FC<{
   const [file, setFile] = useState<{ name: string; bytes: Uint8Array; sha: string }>();
   // What kind of report the lab sends (persona review, 17 Oct): the lab chooses; nothing is assumed.
   const [kind, setKind] = useState<ReportKind>();
-  // Numbers from the report the lab signs (lab-numbers.ts), test network only for now.
-  const [numSchema, setNumSchema] = useState('');
-  const [numTyped, setNumTyped] = useState<TypedNumbers>({});
-  const [numTitle, setNumTitle] = useState('');
+  // A signed result with the report (lab-result.ts, v2), test network only for now: bound to
+  // this delivery's record, with the method and the sample. Off until the lab turns it on.
+  const [withResult, setWithResult] = useState(false);
+  const [res, setRes] = useState<ResultDraft>(() => emptyDraft('numbers'));
+  const [resProblem, setResProblem] = useState<ProblemCode>();
+  const [sampleId, setSampleId] = useState('');
   const [busy, setBusy] = useState<string>();
   const [problem, setProblem] = useState<string>();
   const [note, setNote] = useState<string>();
@@ -938,6 +955,18 @@ export const SendResultsPanel: React.FC<{
   const subject = record.receivedFromCommitment ?? stored?.sourceCommitment;
   const tr = useT();
   const { t } = tr;
+
+  // The sender's sample ID, for the result's statement (the lab can change it).
+  useEffect(() => {
+    if (!transferId || !LAB_SIGNING_ENABLED) return;
+    let live = true;
+    void custodyOf(transferId).then((c) => {
+      if (live && !('error' in c) && c.sample.sampleId) setSampleId(c.sample.sampleId);
+    });
+    return () => {
+      live = false;
+    };
+  }, [transferId]);
 
   const reload = useCallback(async () => {
     if (!transferId || !subject) return;
@@ -1070,41 +1099,43 @@ export const SendResultsPanel: React.FC<{
       const signed = await attestRecord(attester, subject, doc, 'laboratory-report', salt ? LAB_DOC_ID_SUFFIX : '');
       if (signed.error || !signed.attestationId)
         throw new Error(t('app.lab.out.notRecorded', { error: signed.error ?? t('app.lab.out.noAnswer') }));
-      // Numbers the lab signs (docs/lab-signing.md): the lab writes the record, signs it with the
-      // claims key its own attester key makes, and binds that key to this record, about this
-      // plant, for the report signature just made: withdrawing that withdraws the name too.
+      // A signed result with the report (lab-result.ts, v2): the lab writes the record, its
+      // statement names this delivery's record, the sample and the method, and the lab signs it
+      // with the claims key its own attester key makes, then binds that key to the result.
       let numbersBytes: Uint8Array | undefined;
       let bindingId: string | undefined;
+      let resultCode: string | undefined;
       try {
-        const nums = LAB_SIGNING_ENABLED && numSchema ? numbersOf(numSchema, numTyped) : undefined;
-        if (nums?.bad.length) throw new Error(t('app.doc.need.numbers'));
-        if (nums?.any) {
+        if (LAB_SIGNING_ENABLED && withResult) {
           // Only a report signature bound to the record can be checked by anyone (lab-doc.ts).
           if (!salt) throw new Error(t('app.labnums.oldCode'));
-          const { makeLabNumbers } = await import('../../veilcore/lab-numbers');
-          const { bindingHash, bindingIdSuffix, claimsKeyFor } = await import('../../veilcore/claims-key');
-          const made = await makeLabNumbers(attester.keypair.privateKey, {
-            title: numTitle.trim() || file.name,
-            labName: attester.displayName ?? '',
-            holder: record.bredBy || t('app.lab.card.unknownBreeder'),
-            plantName: record.strainName,
-            issued: new Date().toISOString().slice(0, 10),
-            report: { name: file.name, sha256: file.sha, size: file.bytes.length },
-            schema: numSchema,
-            values: nums.values,
-          });
-          const k = claimsKeyFor(attester.keypair.privateKey);
-          const bound = await attestRecord(
-            attester,
-            made.commitment,
-            bindingHash(made.keyText, subject, signed.attestationId),
-            'other',
-            bindingIdSuffix(k, attester.keypair.publicKey),
+          // A corrected report's result names the result it corrects (SPEC 11.12, replaces).
+          const earlier =
+            replacing?.attestationId && !res.replaces.trim()
+              ? resultCodeFor(transferId, replacing.attestationId)
+              : undefined;
+          const d = tryDraft(
+            { ...res, subject, ...(earlier ? { replaces: earlier, reason: 'correction' as const } : {}) },
+            attester.displayName ?? '',
           );
+          if (!d.ok) {
+            setResProblem(d.code);
+            throw new Error(t(`app.lr.problem.${d.code}` as AppKey));
+          }
+          setResProblem(undefined);
+          const { makeLabResult } = await import('../../veilcore/lab-result');
+          const { bindResult } = await import('../../veilcore/lab-result-sign');
+          const made = await makeLabResult(attester.keypair.privateKey, {
+            ...d.input,
+            title: d.input.title || file.name,
+            report: { name: file.name, sha256: file.sha, size: file.bytes.length },
+          });
+          const bound = await bindResult(attester, made.commitment, subject);
           if (bound.error || !bound.attestationId)
             throw new Error(t('app.lab.out.notRecorded', { error: bound.error ?? t('app.lab.out.noAnswer') }));
           bindingId = bound.attestationId;
-          numbersBytes = new TextEncoder().encode(JSON.stringify({ ...made.numbers, about: subject }));
+          resultCode = made.commitment;
+          numbersBytes = new TextEncoder().encode(JSON.stringify({ ...made.bundle, about: subject }));
         }
       } catch (e) {
         await retract(attester, signed.attestationId, 'issued-in-error');
@@ -1141,6 +1172,7 @@ export const SendResultsPanel: React.FC<{
         }
       }
       if (bindingId) rememberBinding(transferId, signed.attestationId, bindingId);
+      if (resultCode) rememberResultCode(transferId, signed.attestationId, resultCode);
       setSent(true);
       setScreen((n) => n + 1);
       labChanged();
@@ -1381,32 +1413,38 @@ export const SendResultsPanel: React.FC<{
           {LAB_SIGNING_ENABLED && file && kind && (
             <Box sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2, p: 2 }} data-lab-numbers="">
               <Typography variant="subtitle1" component="h3" sx={{ fontWeight: 700 }}>
-                {t('app.labnums.title')}
+                {t('app.lr.out.title')}
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
-                {t('app.labnums.text')}
+                {t('app.lr.out.text')}
               </Typography>
-              <NumbersFields
-                schema={numSchema}
-                onSchema={(id) => {
-                  setNumSchema(id);
-                  setNumTyped({});
-                }}
-                typed={numTyped}
-                onTyped={setNumTyped}
-                bad={numSchema ? numbersOf(numSchema, numTyped).bad : []}
-                forms={LAB_SCHEMAS}
-                bare
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={withResult}
+                    onChange={(e) => {
+                      setWithResult(e.target.checked);
+                      if (e.target.checked)
+                        setRes((r) => ({
+                          ...r,
+                          kind: kind === 'pathogen' ? 'pathogen' : r.kind,
+                          accession: r.accession || record.labRef || '',
+                          sampleId: r.sampleId || sampleId,
+                        }));
+                    }}
+                  />
+                }
+                label={t('app.lr.tools.single')}
+                sx={{ minHeight: 44, mb: withResult ? 1 : 0 }}
+                data-with-result=""
               />
-              {numSchema && (
-                <TextField
-                  label={t('app.labnums.resultTitle')}
-                  placeholder={file.name}
-                  value={numTitle}
-                  onChange={(e) => setNumTitle(e.target.value)}
-                  fullWidth
-                  sx={{ mt: 2 }}
-                  slotProps={{ htmlInput: { maxLength: 200 } }}
+              {withResult && (
+                <ResultForm
+                  draft={res}
+                  onDraft={setRes}
+                  kinds={['numbers', 'pathogen']}
+                  fixedSubject
+                  problem={resProblem}
                 />
               )}
             </Box>

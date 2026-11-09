@@ -28,6 +28,11 @@ import seedQuality from '../../public/schemas/seed-quality-v1.json';
 import varietySimilarity from '../../public/schemas/variety-similarity-v1.json';
 import varietyIdentity from '../../public/schemas/variety-identity-v1.json';
 import animalParentage from '../../public/schemas/animal-parentage-v1.json';
+import pathogen from '../../public/schemas/pathogen-v1.json';
+import geneticMatch from '../../public/schemas/genetic-match-v1.json';
+import lineageCheck from '../../public/schemas/lineage-check-v1.json';
+import dnaMark from '../../public/schemas/dna-mark-v1.json';
+import labRetraction from '../../public/schemas/lab-retraction-v1.json';
 
 /** The published schemas this site seals numbers under, by their document id. */
 export const SCHEMAS: Readonly<Record<string, FieldSchema>> = {
@@ -38,18 +43,40 @@ export const SCHEMAS: Readonly<Record<string, FieldSchema>> = {
   [varietySimilarity.id]: varietySimilarity as FieldSchema,
   [varietyIdentity.id]: varietyIdentity as FieldSchema,
   [animalParentage.id]: animalParentage as FieldSchema,
+  // The calls of a lab result v2 (lab-result.ts): each filled from the result's own form
+  // (pathogen, comparison, parentage check, DNA mark, withdrawal), never typed slot by slot.
+  [pathogen.id]: pathogen as FieldSchema,
+  [geneticMatch.id]: geneticMatch as FieldSchema,
+  [lineageCheck.id]: lineageCheck as FieldSchema,
+  [dnaMark.id]: dnaMark as FieldSchema,
+  [labRetraction.id]: labRetraction as FieldSchema,
 };
 export type SchemaName = keyof typeof SCHEMAS;
 
-/** Where each schema's document is published on this site. */
-/** Forms only a laboratory fills, with its report (lab-numbers.ts). */
-export const LAB_ONLY_SCHEMAS: readonly string[] = [varietySimilarity.id, varietyIdentity.id, animalParentage.id];
+/** The forms a lab result v2 fills from its own fields (lab-result.ts), one per kind of result. */
+export const RESULT_CALL_SCHEMAS: readonly string[] = [
+  pathogen.id,
+  geneticMatch.id,
+  lineageCheck.id,
+  dnaMark.id,
+  labRetraction.id,
+];
+
+/** Forms only a laboratory fills, with its report (lab-numbers.ts, lab-result.ts). */
+export const LAB_ONLY_SCHEMAS: readonly string[] = [
+  varietySimilarity.id,
+  varietyIdentity.id,
+  animalParentage.id,
+  ...RESULT_CALL_SCHEMAS,
+];
 
 /** The forms a holder is offered when sealing their own document's numbers. */
 export const OFFERED_SCHEMAS: readonly string[] = Object.keys(SCHEMAS).filter((id) => !LAB_ONLY_SCHEMAS.includes(id));
 
 /** The forms a laboratory is offered when it adds numbers to a report (test network only for now). */
-export const LAB_SCHEMAS: readonly string[] = LAB_SIGNING_ENABLED ? Object.keys(SCHEMAS) : [];
+export const LAB_SCHEMAS: readonly string[] = LAB_SIGNING_ENABLED
+  ? Object.keys(SCHEMAS).filter((id) => !RESULT_CALL_SCHEMAS.includes(id))
+  : [];
 
 export const schemaPath = (id: string): string => `/schemas/${id.split('/').slice(-2).join('-')}.json`;
 

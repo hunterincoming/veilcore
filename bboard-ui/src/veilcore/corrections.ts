@@ -26,7 +26,7 @@ import type { StrainRecord } from './records';
 export const CHANGED_FIELD_NAMES: readonly string[] = Object.freeze([
   // The app's own record fields (records.ts StrainRecord).
   'id', 'nonce', 'strainName', 'bredBy', 'dateCreated', 'notes', 'loggedAt', 'recordFingerprint', 'keyBinding',
-  'parents', 'breedingMethod', 'profile', 'taxon', 'animal', 'strain', 'photoFingerprints', 'refId', 'dnaFingerprint',
+  'parents', 'breedingMethod', 'profile', 'taxon', 'animal', 'strain', 'document', 'photoFingerprints', 'refId', 'dnaFingerprint',
   'dnaFileName', 'dnaPairedAt', 'dnaFileSha256', 'dnaResultId', 'attestation', 'supersedes', 'supersededBy',
   'receivedFrom', 'receivedFromCommitment', 'receivedAt', 'transferId', 'quantity', 'licenseIds',
   'deliveryNote', 'labRef', 'resultLock', 'receiptRejected',
@@ -38,6 +38,10 @@ export const CHANGED_FIELD_NAMES: readonly string[] = Object.freeze([
   'subject.claimedCreationDate', 'subjectType', 'profileData',
   'profileData.breedingMethod', 'profileData.notes', 'profileData.breed', 'profileData.sex',
   'profileData.individualId', 'profileData.idScheme', 'profileData.herd', 'profileData.parentIds',
+  // A strain or line's own (envelope.ts toEnvelope, strain-profile.ts): its method was refused as
+  // an unknown name, so a strain's method or designation could never be corrected.
+  'profileData.method', 'profileData.designation', 'profileData.group', 'profileData.deposits',
+  'profileData.generation', 'profileData.parentDeposits',
   // Envelope paths older sites wrote, and the SDK's other classified names.
   'profileData.cultivarName', 'profileData.breederName', 'profileData.claimedCreationDate',
   'profileData.internalReference', 'profileData.taxon', 'profileData.phenotypeSelection',

@@ -16,7 +16,14 @@ beforeAll(() => {
     return Promise.resolve(answer());
   });
 });
-afterAll(() => vi.unstubAllGlobals());
+// The records saved in the background by the tests below (createRecord, pairDna) finish first:
+// removing the stubs under a save on its way left it failing with no one to hear (TabLockUnavailable).
+afterAll(async () => {
+  const records = await import('./veilcore/records');
+  await new Promise((r) => setTimeout(r, 50));
+  await records.recordSavesSettled();
+  vi.unstubAllGlobals();
+});
 
 describe('saving a lab report keeps the file’s SHA-256 and where it came from', () => {
   it('pairDna stores the SHA-256 and the lab report id, and a new pairing replaces both', async () => {

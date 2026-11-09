@@ -171,6 +171,7 @@ export const strain = {
   'app.strain.v.app.plant.f.method': 'Cómo se obtuvo',
   'app.strain.v.app.plant.f.statedDate': 'Fecha declarada de obtención o aislamiento (declaración del titular)',
   'app.strain.v.app.plant.fix.field.cultivarName': 'nombre de la cepa',
+  'app.strain.v.app.plant.fix.field.name': 'nombre de la cepa',
   'app.strain.v.app.plant.fix.field.breederName': 'obtenida o aislada por',
   'app.strain.v.app.plant.fix.field.breedingMethod': 'cómo se obtuvo',
   'app.strain.v.app.verify.field.breeding-method': 'Cómo se obtuvo',

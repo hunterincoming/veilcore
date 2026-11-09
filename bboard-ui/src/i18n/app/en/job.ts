@@ -251,6 +251,11 @@ export const job = {
   'app.job.ids.offline': 'Couldn’t check your other devices, so nothing was saved. Try again when you’re online.',
   'app.job.ids.clash':
     'Saved, but {id} is now on {names}: another device saved it at the same moment. Correct one of them today.',
+  'app.job.ids.savedSome': '{saved} saved, {left} not saved.',
+  'app.job.ids.offlineRest':
+    'Couldn’t check your other devices before the rest, so they weren’t saved. Try again when you’re online.',
+  'app.job.ids.unchecked':
+    '{saved} saved, but VeilCore couldn’t be reached afterwards to check that no other device saved the same IDs at that moment. Check again when you’re online: open this litter’s records and look at their IDs.',
   'app.job.ids.changed':
     'Something changed on another device or in another tab since this was shown, so nothing more was saved. Check the boxes, then save again.',
   'app.job.ids.paste.spaces':

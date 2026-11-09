@@ -33,6 +33,7 @@ import { importedRecordIds } from '../../veilcore/bulk-import-ledger';
 import { importStampsOn } from '../../veilcore/bulk-import';
 import { useRole, isBreeder, isLab, requestRoleChange } from '../../veilcore/role';
 import { loadAttester } from '../../veilcore/attester-keys';
+import { LAB_SIGNING_ENABLED } from '../../config/network';
 import { RecordFinder, matchesQuery, sortRecords, type SortKey } from '../RecordFinder';
 import { AppHeader } from '../AppHeader';
 import { OPEN_RECEIVE_EVENT } from '../ClaimTransfer';
@@ -245,6 +246,17 @@ export const AppHome: React.FC = () => {
         >
           {loadAttester() ? t('app.home.labSignature') : t('app.home.setUpLabSignature')}
         </Button>
+        {LAB_SIGNING_ENABLED && (
+          <Button
+            component={RouterLink}
+            to="/lab/results"
+            variant="outlined"
+            sx={{ minHeight: 48 }}
+            data-lab-results-link=""
+          >
+            {t('app.lr.tools.open')}
+          </Button>
+        )}
       </Stack>
     </Paper>
   );

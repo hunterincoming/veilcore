@@ -269,6 +269,11 @@ export const job = {
     'No se pudieron comprobar sus otros dispositivos, así que no se guardó nada. Vuelva a intentarlo cuando tenga conexión.',
   'app.job.ids.clash':
     'Guardado, pero {id} está ahora en {names}: otro dispositivo lo guardó en el mismo momento. Corrija uno de ellos hoy.',
+  'app.job.ids.savedSome': '{saved} guardadas, {left} sin guardar.',
+  'app.job.ids.offlineRest':
+    'No se pudieron comprobar sus otros dispositivos antes del resto, así que no se guardaron. Vuelva a intentarlo cuando tenga conexión.',
+  'app.job.ids.unchecked':
+    '{saved} guardadas, pero después no se pudo contactar con VeilCore para comprobar que ningún otro dispositivo guardara las mismas identificaciones en ese momento. Compruébelo cuando tenga conexión: abra los registros de esta camada y mire sus identificaciones.',
   'app.job.ids.changed':
     'Algo cambió en otro dispositivo o en otra pestaña desde que se mostró esto, así que no se guardó nada más. Revise las casillas y guarde de nuevo.',
   'app.job.ids.paste.spaces':

@@ -113,7 +113,13 @@ const INVISIBLE =
 /** A list typed on one line ("A1, A2", "A1; A2", or with Japanese commas 「、」「，」): several IDs where one box takes one. */
 const LIST = /[,;、，；]/;
 
-const same = (a: string, b: string) => a.toUpperCase() === b.toUpperCase();
+/**
+ * An ID as compared: spaces, dashes and dots taken out, and case ignored, so one microchip typed
+ * "985 112 345 678 901" and "985-112-345678901" is one ID (verification round 7, S1).
+ */
+export const idKey = (id: string): string => id.replace(/[\s\-.\u2010-\u2015\uFF0D\uFF0E\u30FB]/g, '').toUpperCase();
+
+const same = (a: string, b: string) => idKey(a) === idKey(b);
 
 export type BoxError =
   | { readonly why: 'invisible' }

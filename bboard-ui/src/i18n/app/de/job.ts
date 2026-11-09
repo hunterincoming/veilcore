@@ -277,6 +277,11 @@ export const job = {
     'Ihre anderen Geräte konnten nicht geprüft werden, daher wurde nichts gespeichert. Versuchen Sie es erneut, wenn Sie online sind.',
   'app.job.ids.clash':
     'Gespeichert, aber {id} steht jetzt bei {names}: Ein anderes Gerät hat es im selben Moment gespeichert. Korrigieren Sie eines davon noch heute.',
+  'app.job.ids.savedSome': '{saved} gespeichert, {left} nicht gespeichert.',
+  'app.job.ids.offlineRest':
+    'Ihre anderen Geräte konnten vor den übrigen nicht geprüft werden, daher wurden diese nicht gespeichert. Versuchen Sie es erneut, wenn Sie online sind.',
+  'app.job.ids.unchecked':
+    '{saved} gespeichert, aber VeilCore war danach nicht erreichbar, um zu prüfen, dass kein anderes Gerät im selben Moment dieselben Kennnummern gespeichert hat. Prüfen Sie es erneut, wenn Sie online sind: Öffnen Sie die Datensätze dieses Wurfs und sehen Sie sich ihre Kennnummern an.',
   'app.job.ids.changed':
     'Seit dies angezeigt wurde, hat sich auf einem anderen Gerät oder in einem anderen Tab etwas geändert, daher wurde nichts weiter gespeichert. Prüfen Sie die Felder und speichern Sie erneut.',
   'app.job.ids.paste.spaces':
