@@ -287,7 +287,7 @@ export const lab = {
     'Su clave privada se guarda en el almacenamiento de este navegador, sin cifrar, y en ningún otro lugar. Para probar está bien. Cualquier cosa que pueda ejecutarse en este sitio, o una extensión del navegador con acceso a él, podría leerla. Si la pierde, no podrá firmar nada nuevo; lo que firmó antes sigue siendo válido, así que guarde una copia en un lugar seguro. Un laboratorio que la use de verdad firmaría dentro de sus propios sistemas: consulte la <link>guía de integración</link>.',
   'app.lab.key.downloadBackup': 'Descargar la copia de seguridad de la clave',
   'app.lab.key.backupNow':
-    'La clave de su laboratorio solo está en este navegador. Guarde ahora su copia de seguridad: así no se pierde con un teléfono o una computadora perdidos, y su primer código funciona enseguida.',
+    'La clave de su laboratorio solo está en este navegador, y ninguna copia de seguridad anterior la contiene. Guarde ahora una copia nueva, para no perder la clave si pierde el teléfono o la computadora.',
   'app.lab.key.backedUp': 'Copia de seguridad guardada y comprobada.',
   'app.lab.key.matchHow':
     'Para aparecer como verificado, envíenos su registro público de licencia o acreditación a <mail>hunter@veilcore.org</mail>. Comprobamos el nombre; no respondemos por su trabajo.',

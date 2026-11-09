@@ -36,6 +36,7 @@ import {
   lookAtLabDomain,
   publishAttester,
   loadAttester,
+  labKeyBackedUp,
   type AttesterProfile,
 } from '../veilcore/attester-keys';
 import { prepareToReceive } from '../veilcore/receive';
@@ -109,6 +110,8 @@ export const AttesterSetup: React.FC<{
   // to stop at "Save a backup and check it first" with no way there.
   const [backingUp, setBackingUp] = useState(false);
   const [backedUp, setBackedUp] = useState(false);
+  // A checked backup holds this key: saved here just now, or at any time before (attester-keys.ts).
+  const keySafe = backedUp || labKeyBackedUp();
   const { t } = useT();
   // Folded until asked for (a lab tested it, 8 Nov): matching the name, other ways, the raw key.
   const [showMatch, setShowMatch] = useState(false);
@@ -223,7 +226,7 @@ export const AttesterSetup: React.FC<{
                 finishLabel={t('app.backup.done')}
                 onDone={() => {
                   setBackingUp(false);
-                  setBackedUp(true);
+                  setBackedUp(labKeyBackedUp());
                 }}
               />
             </Box>
@@ -256,17 +259,21 @@ export const AttesterSetup: React.FC<{
                   {t('app.lab.key.ready')}
                 </Typography>
               )}
-              {backedUp ? (
+              {keySafe ? (
                 <Alert severity="success" variant="outlined" data-lab-backed-up="">
                   {t('app.lab.key.backedUp')}
                 </Alert>
               ) : (
                 <Stack spacing={1}>
                   <Typography variant="body2">{t('app.lab.key.backupNow')}</Typography>
+                  {/* The solid button until a backup holds the key (verification, 8 Nov): the key is
+                      only in this browser, and the backup made to receive the first code was made
+                      before it. */}
                   <Button
-                    variant="outlined"
+                    variant="contained"
                     onClick={() => void backup()}
                     sx={{ minHeight: 44, alignSelf: 'flex-start' }}
+                    data-lab-key-backup=""
                   >
                     {t('app.lab.recv.saveBackup')}
                   </Button>
@@ -453,10 +460,11 @@ export const AttesterSetup: React.FC<{
           )}
         </DialogContent>
         <DialogActions>
-          {/* Once the key is made, the next real step is the page under the dialog (receive the
-              sample, sign that it arrived): "Continue" is the one solid button. */}
+          {/* Once the key is made and a backup holds it, the next real step is the page under the
+              dialog (receive the sample, sign that it arrived): "Continue" is then the one solid
+              button. Before that, the backup is. */}
           <Button
-            variant={profile && !backingUp ? 'contained' : 'text'}
+            variant={profile && !backingUp && keySafe ? 'contained' : 'text'}
             onClick={() => {
               setOpen(false);
               setBackingUp(false);

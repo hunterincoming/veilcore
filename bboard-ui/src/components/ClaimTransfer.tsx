@@ -59,7 +59,7 @@ import {
   type CustodySubject,
   type SampleDetails,
 } from '../veilcore/transfers';
-import { allRecords, hydrate, RECORDS_KEY, updateReceivedNotes, type StrainRecord } from '../veilcore/records';
+import { allRecords, hydrateAnswered, RECORDS_KEY, updateReceivedNotes, type StrainRecord } from '../veilcore/records';
 import { getRole, roleAfterReceiving, setRole } from '../veilcore/role';
 import { rowStateOf } from '../veilcore/api-store';
 import { claimWithCode, finishReceiving, readyToReceive, receiptBlocker } from '../veilcore/receive';
@@ -754,8 +754,6 @@ export const ClaimTransfer: React.FC<{
         return;
       }
       setNeedsBackup(false);
-      // Whether this browser keeps records of its own, read before the claim adds one.
-      const ownRecords = allRecords().some((r) => !r.receivedFrom);
       // Kept until the received record is sealed and accepted: the offer key and the lock
       // are only in the code. Let go only on a definite refusal (round 3, L8).
       const res = await claimWithCode(code);
@@ -778,9 +776,16 @@ export const ClaimTransfer: React.FC<{
         ...(resultLock ? { recipient: resultLock } : {}),
         receivedAt: Date.now(),
       });
-      await hydrate();
-      // A first-time lab gets the lab view from here on (role.ts roleAfterReceiving).
-      const view = roleAfterReceiving(getRole(), ownRecords);
+      const loaded = await hydrateAnswered();
+      // A first-time lab gets the lab view from here on (role.ts roleAfterReceiving), judged
+      // only on the registry's own answer: when it couldn't answer, what is shown is this
+      // browser's copy, which on a new device holds none of a breeder's records, so the view
+      // is left as it is (verification, 8 Nov).
+      const view = roleAfterReceiving(
+        getRole(),
+        allRecords().some((r) => !r.receivedFrom),
+        loaded,
+      );
       if (view) setRole(view);
       // The registry leaves only a stub (the name, where it came from); what the sender said
       // about the material is in their sealed offer, opened here with the code's key, and the

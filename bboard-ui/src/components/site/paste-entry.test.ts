@@ -36,11 +36,16 @@ describe('the paste entry', () => {
 
 describe('the view after receiving (roleAfterReceiving)', () => {
   it('a first-time receiver with no records of its own gets the lab view', () =>
-    expect(roleAfterReceiving(null, false)).toBe('lab'));
-  it('someone with records of their own keeps their view', () => expect(roleAfterReceiving(null, true)).toBeNull());
+    expect(roleAfterReceiving(null, false, true)).toBe('lab'));
+  it('someone with records of their own keeps their view', () =>
+    expect(roleAfterReceiving(null, true, true)).toBeNull());
   it('a view someone chose is kept', () => {
-    expect(roleAfterReceiving('breeder', false)).toBeNull();
-    expect(roleAfterReceiving('lab', false)).toBeNull();
-    expect(roleAfterReceiving('both', true)).toBeNull();
+    expect(roleAfterReceiving('breeder', false, true)).toBeNull();
+    expect(roleAfterReceiving('lab', false, true)).toBeNull();
+    expect(roleAfterReceiving('both', true, true)).toBeNull();
+  });
+  it('nothing changes when the records could not be read from the registry', () => {
+    expect(roleAfterReceiving(null, false, false)).toBeNull();
+    expect(roleAfterReceiving('breeder', false, false)).toBeNull();
   });
 });

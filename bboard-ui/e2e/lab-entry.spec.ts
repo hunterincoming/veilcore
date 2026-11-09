@@ -16,6 +16,7 @@ import {
   API,
   REAL_REGISTRY,
   expectNoErrors,
+  isolate,
   json,
   plainRowRefusal,
   saveAndCheckBackup,
@@ -229,7 +230,7 @@ test('a fresh browser lands on /, finds the lab path, pastes a lab code and rece
   const entry = lab.locator('[data-paste-entry="hero"]');
   await expect(entry).toHaveText('Paste it here →');
   await expect(lab.getByText('Got a lab code or a link from someone?')).toBeVisible();
-  await expect(entry).toBeInViewport();
+  await expect(entry).toBeInViewport({ ratio: 1 });
   // The bottom section offers it too, beside "Make a record" and "Verify a record".
   await expect(lab.locator('[data-paste-entry="demo"]')).toContainText('Got a code or link?');
   await entry.click();
@@ -267,9 +268,21 @@ test('a fresh browser lands on /, finds the lab path, pastes a lab code and rece
   await keyDialog.getByLabel(/^Name/).fill('E2E Lab');
   await keyDialog.getByRole('button', { name: /Create my key/ }).click();
 
-  // The key screen: ready, "Continue" first; the name matching and the raw key folded away.
+  // The key screen: ready; the name matching and the raw key folded away. The key is only in
+  // this browser and the backup made to receive was made before it, so saving a backup is the
+  // solid button, and "Continue" becomes it only once a checked backup holds the key.
   await expect(keyDialog.locator('[data-lab-key-ready]')).toBeVisible();
-  await expect(keyDialog.getByRole('button', { name: 'Continue' })).toBeVisible();
+  const cont = keyDialog.getByRole('button', { name: 'Continue' });
+  const save = keyDialog.locator('[data-lab-key-backup]');
+  await expect(save).toHaveClass(/MuiButton-contained/);
+  await expect(cont).toBeVisible();
+  await expect(cont).not.toHaveClass(/MuiButton-contained/);
+  await expect(keyDialog.getByText(/first code works/)).toHaveCount(0);
+  await save.click();
+  await saveAndCheckBackup(lab);
+  await keyDialog.getByRole('button', { name: 'Done' }).click();
+  await expect(keyDialog.locator('[data-lab-backed-up]')).toBeVisible();
+  await expect(cont).toHaveClass(/MuiButton-contained/);
   await expect(keyDialog.getByText(/We match the name; we don't vouch for your work\./)).toBeHidden();
   await expect(keyDialog.getByText(/\/\.well-known\/veilcore-lab\.json/)).toBeHidden();
   await expect(keyDialog.getByText(/_veilcore-lab\./)).toBeHidden();
@@ -289,7 +302,7 @@ test('a fresh browser lands on /, finds the lab path, pastes a lab code and rece
   await keyDialog.getByRole('button', { name: 'Show key' }).click();
   await expect(keyDialog.getByText(pub, { exact: true })).toBeVisible();
   await expect(keyDialog.getByRole('button', { name: 'Copy key' })).toBeVisible();
-  await keyDialog.getByRole('button', { name: 'Continue' }).click();
+  await cont.click();
 
   // Straight back to the plant, whose next step is now signing that the sample arrived.
   await expect(lab.getByRole('heading', { name: 'Sign that it arrived' })).toBeVisible();
@@ -300,4 +313,19 @@ test('a fresh browser lands on /, finds the lab path, pastes a lab code and rece
   expectNoErrors(labErrors);
   await breederCtx.close();
   await labCtx.close();
+});
+
+test('in Japanese at 360px the way in shows on the first screen, above the hero buttons', async ({ page }) => {
+  const errors = watch(page);
+  await page.addInitScript(() => localStorage.setItem('veilcore.lang', 'ja'));
+  await isolate(page);
+  await page.goto('/');
+  const entry = page.locator('[data-paste-entry="hero"]');
+  await expect(entry).toHaveText('ここに貼り付ける →');
+  // The translation notice and the longer lede used to push it under the first screen.
+  await expect(entry).toBeInViewport({ ratio: 1 });
+  const link = await entry.boundingBox();
+  const buttons = await page.locator('.hero-actions').boundingBox();
+  expect(link && buttons && link.y < buttons.y).toBe(true);
+  expectNoErrors(errors);
 });

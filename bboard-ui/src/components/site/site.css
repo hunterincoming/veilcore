@@ -1878,6 +1878,15 @@ html:has(.vcm) {
     margin-top: 24px;
     gap: 10px;
   }
+  /* On a phone the way in for a lab, or anyone sent a code, comes before the buttons: under
+     them it fell below the first screen in Japanese, under the translation notice. */
+  .vcm .hero-paste {
+    order: -1;
+  }
+  .vcm header.hero h1,
+  .vcm header.hero .lede {
+    order: -2;
+  }
   .vcm .hero-actions .btn {
     flex: 1 1 auto;
     white-space: nowrap;

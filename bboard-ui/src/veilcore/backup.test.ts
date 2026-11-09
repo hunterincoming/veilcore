@@ -389,3 +389,33 @@ describe('a password on the backup file (version 4, persona review 17 Oct)', () 
     expect(backupMessageWords(backup.NEEDS_PASSWORD, de)).toBe(de.t('app.backup.pw.needed'));
   });
 });
+
+describe("the lab's key in the backup (labKeyBackedUp)", () => {
+  it('a backup made before the key does not count; a checked one that holds it does', async () => {
+    const { backup } = await setup();
+    const lab = await import('./attester-keys');
+    const before = JSON.stringify(backup.backupContents());
+    expect((await backup.checkBackup(fileOf(before))).ok).toBe(true);
+    expect(lab.labKeyBackedUp()).toBe(false); // no key yet
+
+    await lab.createAttester('E2E Lab', 'laboratory');
+    expect(lab.labKeyBackedUp()).toBe(false);
+    // The backup saved to receive the first code, made before the key: refused, nothing marked.
+    expect((await backup.checkBackup(fileOf(before))).ok).toBe(false);
+    expect(lab.labKeyBackedUp()).toBe(false);
+
+    expect((await backup.checkBackup(fileOf(JSON.stringify(backup.backupContents())))).ok).toBe(true);
+    expect(lab.labKeyBackedUp()).toBe(true);
+  });
+
+  it('a mark for another key is not taken for this one, and a check that marks nothing marks nothing', async () => {
+    const { backup } = await setup();
+    const lab = await import('./attester-keys');
+    lab.markLabKeyBackedUp('aa'.repeat(32));
+    await lab.createAttester('E2E Lab', 'laboratory');
+    expect(lab.labKeyBackedUp()).toBe(false);
+    const text = JSON.stringify(backup.backupContents());
+    expect((await backup.checkBackup(fileOf(text), undefined, { mark: false })).ok).toBe(true);
+    expect(lab.labKeyBackedUp()).toBe(false);
+  });
+});

@@ -281,7 +281,7 @@ export const lab = {
     "Your private key is stored in this browser's storage, unencrypted, and nowhere else. That's fine for trying it out. Anything that can run in this site, or a browser extension with access to it, could read it. If you lose it you can't sign anything new; what you signed before stays valid, so back it up somewhere safe. A lab using it for real would sign inside its own systems: see the <link>integration guide</link>.",
   'app.lab.key.downloadBackup': 'Download key backup',
   'app.lab.key.backupNow':
-    "Your lab's key is only in this browser. Save your backup now: then a lost phone or computer doesn't lose it, and your first code works straight away.",
+    "Your lab's key is only in this browser, and no backup you saved before holds it. Save a new backup now, so a lost phone or computer doesn't lose your key.",
   'app.lab.key.backedUp': 'Backup saved and checked.',
   'app.lab.key.matchHow':
     "To show as matched, send us your public license or accreditation listing at <mail>hunter@veilcore.org</mail>. We match the name; we don't vouch for your work.",

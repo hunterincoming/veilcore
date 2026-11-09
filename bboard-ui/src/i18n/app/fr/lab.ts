@@ -293,7 +293,7 @@ export const lab = {
     'Votre clé privée est stockée dans l’espace de stockage de ce navigateur, non chiffrée, et nulle part ailleurs. C’est suffisant pour essayer. Tout ce qui peut s’exécuter sur ce site, ou une extension de navigateur qui y a accès, pourrait la lire. Si vous la perdez, vous ne pourrez plus rien signer de nouveau ; ce que vous avez signé reste valide, alors sauvegardez-la en lieu sûr. Un laboratoire qui l’utiliserait réellement signerait dans ses propres systèmes : voir le <link>guide d’intégration</link>.',
   'app.lab.key.downloadBackup': 'Télécharger la copie de secours de la clé',
   'app.lab.key.backupNow':
-    'La clé de votre laboratoire n’est que dans ce navigateur. Enregistrez votre copie de secours maintenant : un téléphone ou un ordinateur perdu ne la perd plus, et votre premier code fonctionne tout de suite.',
+    'La clé de votre laboratoire n’est que dans ce navigateur, et aucune copie de secours enregistrée avant ne la contient. Enregistrez maintenant une nouvelle copie, pour ne pas perdre votre clé avec un téléphone ou un ordinateur perdu.',
   'app.lab.key.backedUp': 'Copie de secours enregistrée et vérifiée.',
   'app.lab.key.matchHow':
     'Pour apparaître comme vérifié, envoyez-nous votre inscription publique de licence ou d’accréditation à <mail>hunter@veilcore.org</mail>. Nous vérifions le nom ; nous ne nous portons pas garants de votre travail.',
