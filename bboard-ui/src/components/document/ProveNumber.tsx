@@ -112,6 +112,8 @@ export const ProveNumber: React.FC<{ record: StrainRecord; labSignatureOk?: bool
           attester: record.labSignature.key,
           contract: record.labOnChain.contract,
           about: record.labSignature.about,
+          // A v2 result's salt, so the checker can confirm the lab's binding about that record.
+          bindingSalt: record.labResult?.statement.bindingSalt,
         }
       : undefined;
   const copy = async (c: MadeClaim) => {
@@ -119,7 +121,12 @@ export const ProveNumber: React.FC<{ record: StrainRecord; labSignatureOk?: bool
       lab && lab.contract === c.contract
         ? {
             ...c,
-            attested: { txId: lab.txId, attester: lab.attester, ...(lab.about ? { about: lab.about } : {}) },
+            attested: {
+              txId: lab.txId,
+              attester: lab.attester,
+              ...(lab.about ? { about: lab.about } : {}),
+              ...(lab.about && lab.bindingSalt ? { bindingSalt: lab.bindingSalt } : {}),
+            },
           }
         : c;
     await navigator.clipboard.writeText(claimLink(withLab, window.location.origin));

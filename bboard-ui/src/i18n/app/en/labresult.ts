@@ -201,6 +201,8 @@ export const labresult = {
   'app.lr.check.choose': 'Choose the result file',
   'app.lr.check.bad': 'This result can’t be used: {problem}',
   'app.lr.check.looking': 'Looking up whose key it is…',
+  'app.lr.check.noSalt':
+    'This result was signed before labs’ names on results were salted, so its lab’s name isn’t looked up: the old kind of name link could show which record a lab tested. The signature still checks. To have the lab’s name shown, ask the lab to sign the result again.',
   'app.lr.check.replacedBy': 'Replaced by result {code}, signed by the same key ({reason}).',
   'app.lr.check.namesOther':
     'It names result {code} as replaced. That result isn’t in this file, or another key signed it, so nothing here changes it.',
@@ -267,4 +269,5 @@ export const labresult = {
     'The mark’s sequence file isn’t saved. If you leave now it is lost for good, and the seal can never be opened in a dispute. Leave anyway?',
   'app.lr.problem.ctMissing':
     'A detected result with no Ct (Undetermined, N/A, >40) contradicts itself. Check that the result and Ct columns aren’t mixed up.',
+  'app.lr.problem.bindingSalt': 'The salt of the lab’s name isn’t in its form: 64 hex characters, not all the same.',
 };

@@ -7,13 +7,22 @@ import type { StrainRecord } from './records';
 
 export const LEDGER_KEY = 'veilcore.bulk-import.v1';
 
+/**
+ * held     sealed in this browser and kept for the backup, never sent (holdForBackup writes it)
+ * pending  sent, or about to be: it may have landed, so it is only ever sent again as itself
+ * sealed   the registry has it
+ */
+export type LedgerState = 'held' | 'pending' | 'sealed';
+
 export type LedgerEntry = {
   readonly recordId: string;
   readonly fingerprint: string;
-  readonly state: 'pending' | 'sealed';
+  readonly state: LedgerState;
   readonly at: number;
   /** The whole record while it is waiting to be confirmed (it is what the registry gets anyway). */
   readonly record?: StrainRecord;
+  /** A held row's job ("Do it for me", ask-job/store.ts): only that job may drop it or reuse it. */
+  readonly job?: string;
 };
 
 export type Ledger = { version: 1; rows: Record<string, LedgerEntry> };

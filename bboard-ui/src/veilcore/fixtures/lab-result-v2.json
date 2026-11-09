@@ -527,6 +527,30 @@
       "canonical": "{\"accession\":\"LAB-26-1187\",\"format\":\"veilcore/lab-result/v2\",\"kind\":\"pathogen\",\"method\":{\"id\":\"RT-qPCR HLVd SOP-14\",\"version\":\"3\"},\"result\":{\"detected\":false,\"sampleType\":\"feuille\",\"target\":\"HLVd\"},\"sampleId\":\"Échantillon-1\",\"subject\":\"a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\",\"tested\":\"2026-11-05\"}",
       "sha256": "04d99ec413fab580d7bafc224508c8cc29acac461f1b009649aba00db0074149",
       "size": 325
+    },
+    {
+      "name": "a result with the salt of its name binding, as every result is now signed",
+      "statement": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "S-0412",
+        "accession": "LAB-26-1187",
+        "method": {
+          "id": "RT-qPCR HLVd SOP-14",
+          "version": "3"
+        },
+        "tested": "2026-11-05",
+        "kind": "pathogen",
+        "result": {
+          "target": "HLVd",
+          "sampleType": "leaf",
+          "detected": false
+        },
+        "bindingSalt": "9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c"
+      },
+      "canonical": "{\"accession\":\"LAB-26-1187\",\"bindingSalt\":\"9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c\",\"format\":\"veilcore/lab-result/v2\",\"kind\":\"pathogen\",\"method\":{\"id\":\"RT-qPCR HLVd SOP-14\",\"version\":\"3\"},\"result\":{\"detected\":false,\"sampleType\":\"leaf\",\"target\":\"HLVd\"},\"sampleId\":\"S-0412\",\"subject\":\"a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\",\"tested\":\"2026-11-05\"}",
+      "sha256": "dca35dcb3d3f5f5c009b5be3df4770cbae522b7958fc2bb7ff5597b8c4554342",
+      "size": 395
     }
   ],
   "labStatementRefusals": [
@@ -1209,6 +1233,90 @@
           "result": "b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2",
           "reason": "because"
         }
+      }
+    },
+    {
+      "name": "a binding salt in upper case",
+      "statement": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "S-0412",
+        "accession": "LAB-26-1187",
+        "method": {
+          "id": "RT-qPCR HLVd SOP-14",
+          "version": "3"
+        },
+        "tested": "2026-11-05",
+        "kind": "pathogen",
+        "result": {
+          "target": "HLVd",
+          "sampleType": "leaf",
+          "detected": false
+        },
+        "bindingSalt": "9E9E9E9E9E9E9E9E9E9E9E9E9E9E9E9E9E9E9E9E9E9E9E9E9E9E9E9E9E9E9E9E"
+      }
+    },
+    {
+      "name": "a binding salt of 31 bytes",
+      "statement": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "S-0412",
+        "accession": "LAB-26-1187",
+        "method": {
+          "id": "RT-qPCR HLVd SOP-14",
+          "version": "3"
+        },
+        "tested": "2026-11-05",
+        "kind": "pathogen",
+        "result": {
+          "target": "HLVd",
+          "sampleType": "leaf",
+          "detected": false
+        },
+        "bindingSalt": "9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e"
+      }
+    },
+    {
+      "name": "a binding salt that is all one byte value",
+      "statement": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "S-0412",
+        "accession": "LAB-26-1187",
+        "method": {
+          "id": "RT-qPCR HLVd SOP-14",
+          "version": "3"
+        },
+        "tested": "2026-11-05",
+        "kind": "pathogen",
+        "result": {
+          "target": "HLVd",
+          "sampleType": "leaf",
+          "detected": false
+        },
+        "bindingSalt": "0000000000000000000000000000000000000000000000000000000000000000"
+      }
+    },
+    {
+      "name": "a binding salt written as a number",
+      "statement": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "S-0412",
+        "accession": "LAB-26-1187",
+        "method": {
+          "id": "RT-qPCR HLVd SOP-14",
+          "version": "3"
+        },
+        "tested": "2026-11-05",
+        "kind": "pathogen",
+        "result": {
+          "target": "HLVd",
+          "sampleType": "leaf",
+          "detected": false
+        },
+        "bindingSalt": 7
       }
     }
   ],
@@ -3156,6 +3264,56 @@
       "name": "a short salt",
       "sequence": "ACGTACGTAC",
       "salt": "00000000000000000000000000000000000000000000000000000000000000"
+    }
+  ],
+  "labNameBindings": [
+    {
+      "name": "a key, a subject and a salt",
+      "key": "1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e",
+      "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+      "salt": "9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c",
+      "nameBinding": "2c9ce5f265c47e45c149d61e7e66729435d979091957148171b50294be25bb8d"
+    },
+    {
+      "name": "the same key and subject, another salt, another binding",
+      "key": "1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e",
+      "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+      "salt": "4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e",
+      "nameBinding": "8bc122f3179a489686c98653598467d53cbe9071af16103b2677c4e7cf394299"
+    },
+    {
+      "name": "the same key and salt, another subject",
+      "key": "1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e",
+      "subject": "b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2",
+      "salt": "9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c",
+      "nameBinding": "ab532993f955cda01fcd91515aed1a9d7db335ac652b7a92fb6731a956c9528a"
+    },
+    {
+      "name": "another key",
+      "key": "3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c",
+      "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+      "salt": "9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c",
+      "nameBinding": "90aeb171684bd63600ac07a4908e80ad242e33b90d4f7c465e0717ea1f483bd7"
+    }
+  ],
+  "labNameBindingRefusals": [
+    {
+      "name": "a salt that is all one byte value",
+      "key": "1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e",
+      "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+      "salt": "0000000000000000000000000000000000000000000000000000000000000000"
+    },
+    {
+      "name": "a key of 127 hex characters",
+      "key": "f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e",
+      "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+      "salt": "9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c"
+    },
+    {
+      "name": "a subject in upper case",
+      "key": "1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e",
+      "subject": "A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1",
+      "salt": "9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c"
     }
   ]
 }

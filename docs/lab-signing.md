@@ -95,7 +95,12 @@ showing the rest. Code: `veilcore/lab-result.ts`.
   sample); a Ct with more than two decimals, an inconclusive result or an ambiguous date is refused,
   not rounded or guessed. Each result is kept as a record the lab holds, so it is dated in the next
   hourly batch, and the lab posts a binding naming its key on it (`claims-key.ts resultBindingHash`;
-  it stands on its own, without a report signature). After the registry refuses twice for its write
+  it stands on its own, without a report signature). The binding is salted with the statement's
+  `bindingSalt`, 32 random bytes per result (SPEC 11.12): the key is in every result file and the
+  result's code is the binding's subject, so an unsalted binding let anyone with a list of proof
+  codes see which records a lab tested. A checker gets the salt in the result file (or on a claim
+  link), so it can confirm the name; nobody else can. Results signed before the salt still check,
+  without the lab's name, and the old unsalted bindings are not read. After the registry refuses twice for its write
   limit the run stops posting names; "Add your lab's name" posts them later. A result that replaces
   one of the lab's own withdraws that one's binding, whether or not its own name posted, and a
   withdrawal that fails is shown. The lab gets one file per result (per row, or a zip of separate

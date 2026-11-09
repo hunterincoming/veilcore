@@ -80,6 +80,11 @@ export type StampRetryEntry = {
   readonly lastAt: number;
   /** Stopped for the person to look at: it may have gone out, or this site can't make it. */
   readonly stopped?: 'sent' | 'cannot';
+  /**
+   * Started by an approved "Do it for me" job (ask-job/run.ts), by its id: the person started it
+   * by approving that job, so the background may try it again like any stamp they started.
+   */
+  readonly byJob?: string;
 };
 
 const memory = new Map<string, StampRetryEntry>();
@@ -125,11 +130,12 @@ export const stampRetriesSnapshot = (): Record<string, StampRetryEntry> => {
 export const noteStampFailure = (
   recordId: string,
   error: string,
-  opts: { retryAfterSeconds?: number; background?: boolean; now?: number } = {},
+  opts: { retryAfterSeconds?: number; background?: boolean; now?: number; byJob?: string } = {},
 ): StampRetryEntry => {
   const now = opts.now ?? Date.now();
   const all = readAll();
   const tries = (all[recordId]?.tries ?? 0) + 1;
+  const byJob = opts.byJob ?? all[recordId]?.byJob;
   const v = stampVerdict(error, tries, opts.retryAfterSeconds);
   let entry: StampRetryEntry;
   if (v.kind !== 'retry') entry = { tries, lastError: error, lastAt: now, stopped: v.kind };
@@ -147,6 +153,7 @@ export const noteStampFailure = (
       ...(tries < QUICK_RETRY_MS.length + 1 + MAX_BACKGROUND_TRIES ? { nextAt: now + wait } : {}),
     };
   }
+  if (byJob) entry = { ...entry, byJob };
   writeAll({ ...all, [recordId]: entry });
   return entry;
 };
@@ -165,7 +172,16 @@ export const retryStampNow = (recordId: string, now = Date.now()): void => {
   const all = readAll();
   const e = all[recordId];
   if (!e) return;
-  writeAll({ ...all, [recordId]: { tries: e.tries, lastError: e.lastError, lastAt: e.lastAt, nextAt: now } });
+  writeAll({
+    ...all,
+    [recordId]: {
+      tries: e.tries,
+      lastError: e.lastError,
+      lastAt: e.lastAt,
+      nextAt: now,
+      ...(e.byJob ? { byJob: e.byJob } : {}),
+    },
+  });
 };
 
 // ---- making the stamp, one at a time ------------------------------------------------------

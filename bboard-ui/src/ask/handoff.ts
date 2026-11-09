@@ -44,6 +44,55 @@ export type AskDraft = {
   readonly count?: number;
   /** Parents: ids of records in this browser, matched from names typed in the Ask box. */
   readonly parents?: readonly string[];
+  /**
+   * A batch's own details, carried over from a "Do it for me" job's "Change something" (each from
+   * what was typed in Ask or on the job's page): each young's sex and ID, the ID scheme, the first
+   * plant tag, the lot, a sire's code (and whether it is a straw's), the date.
+   */
+  readonly details?: BatchDetails;
+};
+
+export type BatchDetails = {
+  readonly sexes?: readonly ('male' | 'female' | '')[];
+  readonly ids?: readonly string[];
+  readonly idScheme?: string;
+  readonly firstTag?: string;
+  readonly lotName?: string;
+  readonly sireCode?: string;
+  readonly semen?: boolean;
+  /** YYYY-MM-DD, not in the future. */
+  readonly date?: string;
+};
+
+const text = (v: unknown, max = 200): string | undefined =>
+  typeof v === 'string' && v.trim()
+    ? v
+        .replace(/[\p{Cc}]+/gu, ' ')
+        .trim()
+        .slice(0, max)
+    : undefined;
+
+/** A batch's details from router state, checked, every value only as long as a field takes. */
+export const readDetails = (v: unknown): BatchDetails | undefined => {
+  if (!v || typeof v !== 'object') return undefined;
+  const d = v as Record<string, unknown>;
+  const sexes = Array.isArray(d.sexes)
+    ? (d.sexes as unknown[])
+        .slice(0, MAX_BATCH)
+        .map((x): 'male' | 'female' | '' => (x === 'male' || x === 'female' ? x : ''))
+    : undefined;
+  const ids = Array.isArray(d.ids) ? (d.ids as unknown[]).slice(0, MAX_BATCH).map((x) => text(x) ?? '') : undefined;
+  const date = typeof d.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(d.date) ? d.date : undefined;
+  const out: BatchDetails = {
+    ...(sexes?.some(Boolean) ? { sexes } : {}),
+    ...(ids?.some(Boolean) ? { ids } : {}),
+    ...(text(d.idScheme) ? { idScheme: text(d.idScheme) } : {}),
+    ...(text(d.firstTag) ? { firstTag: text(d.firstTag) } : {}),
+    ...(text(d.lotName) ? { lotName: text(d.lotName) } : {}),
+    ...(text(d.sireCode, 100) ? { sireCode: text(d.sireCode, 100), semen: d.semen === true } : {}),
+    ...(date ? { date } : {}),
+  };
+  return Object.keys(out).length ? out : undefined;
 };
 
 /** A draft from a link: kind, preset and count only. */
@@ -100,6 +149,7 @@ export const readAskState = (state: unknown, ownRecordIds: ReadonlySet<string>):
         .slice(0, 2)
     : [];
   const count = isBatch(v.preset) ? batchCount(v.count) : undefined;
+  const details = isBatch(v.preset) && v.source === 'ask' ? readDetails(v.details) : undefined;
   return {
     v: 1,
     source: v.source,
@@ -108,6 +158,7 @@ export const readAskState = (state: unknown, ownRecordIds: ReadonlySet<string>):
     ...(name ? { name } : {}),
     ...(count ? { count } : {}),
     ...(parents.length ? { parents } : {}),
+    ...(details ? { details } : {}),
   };
 };
 

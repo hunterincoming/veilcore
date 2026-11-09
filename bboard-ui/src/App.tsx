@@ -85,6 +85,7 @@ const PartnersPage = page(() => import('./components/partners/PartnersPage'), 'P
 const TermsBuilder = page(() => import('./components/licensing/TermsBuilder'), 'TermsBuilder');
 const LicenseDetail = page(() => import('./components/licensing/LicenseDetail'), 'LicenseDetail', 'after');
 const CounterSignPage = page(() => import('./components/licensing/CounterSignPage'), 'CounterSignPage');
+const JobPage = page(() => import('./components/ask/JobPage'), 'JobPage');
 const LicensingHub = page(() => import('./components/licensing/LicensingHub'), 'LicensingHub');
 const DocPage = page(() => import('./components/DocPage'), 'DocPage');
 const Implementations = page(() => import('./components/Implementations'), 'Implementations');
@@ -119,6 +120,10 @@ const AppLayout: React.FC<React.PropsWithChildren> = ({ children }) => {
     // with the chain features only, which it checks itself; never on a check or prove page:
     // stamp-background.ts).
     void import('./veilcore/chain/stamp-background').then((m) => m.startStampRetries());
+    // Ask's approved "Do it for me" jobs, carried on while the app is open: never on a check or
+    // prove page, the same rule as the stamps (ask-job/start.ts). Nothing runs that the person
+    // hasn't approved.
+    void import('./ask-job/start').then((m) => m.startJobRunner());
   }, [pathname]);
   return (
     <Box
@@ -338,6 +343,8 @@ const routes = (
     <Route path="/record/:id" element={withLayout(<RecordDetail />)} />
     <Route path="/record/:id/license" element={withLayout(<TermsBuilder />)} />
     <Route path="/licenses" element={withLayout(<LicensingHub />)} />
+    {/* Ask's "Do it for me": one job's result to check, then its progress (components/ask/JobPage.tsx). */}
+    <Route path="/ask/job/:id" element={withLayout(<JobPage />)} />
     <Route path="/license/:id" element={withLayout(<LicenseDetail />)} />
     <Route
       path="/prove-license/:id"
