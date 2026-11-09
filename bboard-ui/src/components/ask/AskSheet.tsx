@@ -19,8 +19,10 @@ import {
   Divider,
   Drawer,
   IconButton,
+  FormControlLabel,
   Link,
   Stack,
+  Switch,
   TextField,
   Typography,
   useMediaQuery,
@@ -49,6 +51,11 @@ import { useDealsReadHere } from '../../veilcore/deal-client';
 import { searchRecords } from '../../ask/search';
 import { today } from '../flow/log-flow-state';
 import type { EngineState } from './useAskEngine';
+import { planJob, type PlanResult } from '../../ask/plan';
+// Part of the sheet's own file, so a job can be got ready with no signal (the barn).
+import { prepareJob, type Refusal } from '../../ask-job/prepare';
+import { JOB_STATE_KEY, jobWords, readySentence } from '../../ask-job/words';
+import { holderRequestsPaused } from '../../veilcore/holder-guard';
 
 // The optional on-device model: its files only in a build with VITE_ASK_MODEL (vite.config.ts
 // makes it a constant, so without it these imports, the workers and WebLLM are left out).
@@ -56,7 +63,13 @@ const ModelBridge = import.meta.env.VITE_ASK_MODEL ? lazy(() => import('./ModelB
 const ModelPanel = import.meta.env.VITE_ASK_MODEL ? lazy(() => import('./ModelPanel')) : undefined;
 const SHORTCUTS: EngineState = { status: 'shortcuts', engine: shortcutsEngine };
 
-type Turn = { readonly id: number; readonly text?: string; readonly result: AskResult };
+type Turn = {
+  readonly id: number;
+  readonly text?: string;
+  readonly result: AskResult;
+  /** "Do it for me": the plan read from the text, or why not. */
+  readonly job?: PlanResult;
+};
 
 // The conversation, for as long as this page is open. Never written anywhere.
 let kept: Turn[] = [];
@@ -71,6 +84,7 @@ const CAN: readonly AppKey[] = [
   'app.ask.can.3',
   'app.ask.can.4',
   'app.ask.can.5',
+  'app.job.can',
 ];
 
 const KINDS: readonly DraftKind[] = [
@@ -106,10 +120,15 @@ export default function AskSheet({
   const [engineAgain, setEngineAgain] = useState(0);
   const [engine, setEngine] = useState<EngineState>(SHORTCUTS);
   const modelOn = engine.status === 'model';
+  // "Do it for me" (ask/plan.ts): one request, one finished result to approve.
+  const [doIt, setDoIt] = useState(false);
+  // The hint's example as it was put in the box: until it is edited, it never starts a job.
+  const [hintText, setHintText] = useState<string>();
   // The hint's example, typed into the box for the person to send or change.
   useEffect(() => {
     if (!prefill || !open) return;
     setText(prefill.text.slice(0, ASK_MAX_CHARS));
+    setHintText(prefill.text.slice(0, ASK_MAX_CHARS));
     const id = setTimeout(() => input.current?.focus(), 150);
     return () => clearTimeout(id);
   }, [prefill, open]);
@@ -132,6 +151,17 @@ export default function AskSheet({
     const typed = text.trim().slice(0, ASK_MAX_CHARS);
     if (!typed) return;
     setText('');
+    if (doIt) {
+      // Shortcuts plans: deterministic, from this text and the records in this browser.
+      const fromHint = hintText !== undefined && typed === hintText.trim();
+      setHintText(undefined);
+      add({
+        text: typed,
+        result: { type: 'miss', closest: [] },
+        job: planJob(typed, { records, animals: ANIMAL_RECORDS_ENABLED, lang: tr.lang }, { fromHint }),
+      });
+      return;
+    }
     add({ text: typed, result: await engine.engine.interpret(typed, ctx) });
   };
 
@@ -226,6 +256,30 @@ export default function AskSheet({
           </Typography>
         )}
         {chips(CHIPS)}
+        {/* Never on a check or prove page: a job isn't got ready there (holder-guard.ts). */}
+        {!holderRequestsPaused() && (
+          <Box>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={doIt}
+                  onChange={(e) => {
+                    setDoIt(e.target.checked);
+                    // The job's page, fetched now while there may be a signal: it opens offline too.
+                    if (e.target.checked) void import('./JobPage').catch(() => undefined);
+                  }}
+                  data-ask-doit=""
+                />
+              }
+              label={t('app.job.mode')}
+            />
+            {doIt && (
+              <Typography variant="body2" color="text.secondary">
+                {t('app.job.modeHelp')}
+              </Typography>
+            )}
+          </Box>
+        )}
         <Box
           component="form"
           onSubmit={(e) => {
@@ -259,7 +313,22 @@ export default function AskSheet({
                     {t('app.ask.you', { text: turn.text })}
                   </Typography>
                 )}
-                <Answer result={turn.result} records={records} onClose={onClose} chips={chips} />
+                {turn.job ? (
+                  <JobTurn
+                    id={turn.id}
+                    plan={turn.job}
+                    onClose={onClose}
+                    chips={chips}
+                    onUse={(text) => {
+                      // Made only from what the person typed and their own record names: a
+                      // sentence they send themselves, not the hint's.
+                      setText(text.slice(0, ASK_MAX_CHARS));
+                      setTimeout(() => input.current?.focus(), 0);
+                    }}
+                  />
+                ) : (
+                  <Answer result={turn.result} records={records} onClose={onClose} chips={chips} />
+                )}
               </Box>
             ))}
             <Button
@@ -286,6 +355,126 @@ export default function AskSheet({
     </Drawer>
   );
 }
+
+/** Jobs being made from a turn, once each (React may draw a turn twice). */
+const preparing = new Map<number, Promise<{ id: string } | { refused: Refusal; words?: string }>>();
+
+/**
+ * "Do it for me": the plan read from the text, got ready on this device, then opened to check.
+ * A refusal says why, with the three closest things Ask can do.
+ */
+const JobTurn: React.FC<{
+  id: number;
+  plan: PlanResult;
+  onClose: () => void;
+  chips: (a: readonly AskAction[]) => React.ReactNode;
+  /** Put a sentence in the box, for the person to send. */
+  onUse: (text: string) => void;
+}> = ({ id, plan, onClose, chips, onUse }) => {
+  const tr = useT();
+  const { t } = tr;
+  const navigate = useNavigate();
+  const [out, setOut] = useState<{ id: string } | { refused: Refusal; words?: string }>();
+  useEffect(() => {
+    if (plan.type !== 'plan') return;
+    let live = true;
+    let p = preparing.get(id);
+    if (!p) {
+      p = prepareJob(plan.plan, jobWords(tr), Date.now(), today()).then((r) => ('job' in r ? { id: r.job.id } : r));
+      preparing.set(id, p);
+    }
+    void p.then(
+      (r) => {
+        if (!live) return;
+        setOut(r);
+        if ('id' in r) {
+          onClose();
+          void navigate(`/ask/job/${r.id}`, { state: { [JOB_STATE_KEY]: r.id } });
+        }
+      },
+      (e: unknown) => live && setOut({ refused: 'records', words: e instanceof Error ? e.message : String(e) }),
+    );
+    return () => {
+      live = false;
+    };
+  }, [id]);
+  if (plan.type === 'refuse') {
+    // What it understood, what it couldn't use, and a sentence that works, for the person to send.
+    const sentences = (plan.suggest ?? []).map((s) => ('text' in s ? s.text : readySentence(tr, s.ready)));
+    return (
+      <Card data="job-refused">
+        {plan.understood && (
+          <Typography variant="body2" data-job-understood="">
+            {t('app.job.understood', { text: plan.understood })}
+          </Typography>
+        )}
+        <Typography variant="body2" data-job-refused={plan.why}>
+          {t(`app.job.no.${plan.why}` as AppKey, { words: (plan.words ?? []).join(' ') })}
+        </Typography>
+        {sentences.length > 0 && (
+          <Stack spacing={1}>
+            {sentences.map((text) => (
+              <Button
+                key={text}
+                variant="outlined"
+                onClick={() => onUse(text)}
+                sx={{ alignSelf: 'flex-start', textTransform: 'none', textAlign: 'left' }}
+                data-job-use=""
+              >
+                {t('app.job.use', { text })}
+              </Button>
+            ))}
+          </Stack>
+        )}
+        {plan.why === 'notFound' && (
+          <Button
+            variant="outlined"
+            onClick={() => {
+              onClose();
+              void navigate('/new');
+            }}
+            sx={{ alignSelf: 'flex-start' }}
+          >
+            {t('app.job.newRecord')}
+          </Button>
+        )}
+        {!sentences.length && plan.why !== 'notFound' && chips(plan.closest)}
+      </Card>
+    );
+  }
+  if (!out || 'id' in out)
+    return (
+      <Card data="job-working">
+        <Typography variant="body2" data-job-working="">
+          {t('app.job.working')}
+        </Typography>
+        {out && (
+          <Button
+            variant="contained"
+            onClick={() => {
+              onClose();
+              void navigate(`/ask/job/${out.id}`, { state: { [JOB_STATE_KEY]: out.id } });
+            }}
+            sx={{ alignSelf: 'flex-start' }}
+          >
+            {t('app.job.open')}
+          </Button>
+        )}
+      </Card>
+    );
+  return (
+    <Card data="job-refused">
+      <Typography variant="body2" data-job-refused={out.refused}>
+        {t(`app.job.no.${out.refused}` as AppKey, { n: out.words ?? '' })}
+      </Typography>
+      {out.words && out.refused !== 'tooManyReports' && (
+        <Typography variant="caption" color="text.secondary">
+          {out.words}
+        </Typography>
+      )}
+    </Card>
+  );
+};
 
 const Card: React.FC<React.PropsWithChildren<{ data?: string }>> = ({ children, data }) => (
   <Box

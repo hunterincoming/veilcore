@@ -33,6 +33,7 @@ import { start } from './start';
 import { receipt } from './receipt';
 import { ask } from './ask';
 import { origin } from './origin';
+import { job } from './job';
 
 export const appEn = {
   ...common,
@@ -63,6 +64,7 @@ export const appEn = {
   ...receipt,
   ...ask,
   ...origin,
+  ...job,
 };
 
 export type AppKey = keyof typeof appEn;

@@ -61,6 +61,7 @@ import { dnaTieSentence } from '../../veilcore/dna-tie';
 import type { StrainRecord } from '../../veilcore/records';
 import type { SavedReport } from '../../veilcore/saved-report';
 import { PickUp } from './PickUp';
+import { JobsOnHome } from '../ask/JobsOnHome';
 import { keysOnlyHere } from './keys-only-here';
 
 /**
@@ -317,6 +318,9 @@ export const AppHome: React.FC = () => {
           )}
           <LoadNoticeBar />
 
+          {/* Ask's "Do it for me" jobs: one to check, one being done, a record got ready to license. */}
+          <JobsOnHome />
+
           {!labOnly && <OldLinksNote records={records} />}
           <LockedRecords />
           <LockedAgreements />
@@ -369,6 +373,9 @@ export const AppHome: React.FC = () => {
         </Stack>
 
         <LoadNoticeBar />
+
+        {/* Ask's "Do it for me" jobs: one to check, one being done, a record got ready to license. */}
+        <JobsOnHome />
 
         {/* What is open since last time, one line and one button each (PickUp.tsx). Nothing open,
             nothing shown. It asks for the backup when records wait for one, so the alert below

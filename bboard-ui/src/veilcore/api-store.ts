@@ -1195,6 +1195,23 @@ export const registryKids = async (k: string): Promise<Set<string> | 'unknown'> 
   return kids;
 };
 
+/**
+ * The records the registry holds for this holder, asked afresh: each id with its proof code, or
+ * 'unknown' when it can't answer. Asked only about records sent from here before, so no holder
+ * key here (lost, or a private window's) is never "none": it is 'no-key', and nothing is asked
+ * (verification W7); the backup brings the key back.
+ */
+export const registryRecordCodes = async (): Promise<Map<string, string> | 'unknown' | 'no-key'> => {
+  const k = holderKeyIfAny();
+  if (!k) return 'no-key';
+  const rows = await readWholeSet('records', k);
+  if (!rows) return 'unknown';
+  const out = new Map<string, string>();
+  for (const r of rows)
+    if (isObject(r) && isString(r.id)) out.set(r.id, isString(r.recordFingerprint) ? r.recordFingerprint : '');
+  return out;
+};
+
 export type VaultOutcome = 'have' | 'made' | 'locked' | 'unknown' | 'cant-store';
 
 /** Inside the lock: re-read the key, ask the registry afresh, and make one only if that is safe. */

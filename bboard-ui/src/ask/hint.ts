@@ -41,6 +41,12 @@ export const agreementScreen = (pathname: string): boolean =>
  */
 export const formScreen = (pathname: string): boolean => /^\/(new|documents\/new|records\/import)\/?$/.test(pathname);
 
+/**
+ * A "Do it for me" job's page (components/ask/JobPage.tsx): its Approve bar sits at the bottom of
+ * the screen, so the Ask bubble is never shown there, on any screen size (design v2, 3).
+ */
+export const jobScreen = (pathname: string): boolean => /^\/ask\/job(\/|$)/.test(pathname);
+
 type HintRecord = Pick<StrainRecord, 'id' | 'strainName'> & {
   readonly profile?: string;
   readonly loggedAt?: number;
@@ -55,7 +61,7 @@ type HintRecord = Pick<StrainRecord, 'id' | 'strainName'> & {
  * (records.ts receivedFields): the source's id, its commitment (which can come without the id,
  * transfers.ts custodySubject), when it arrived, or its transfer.
  */
-const isReceivedRecord = (r: HintRecord): boolean =>
+export const isReceivedRecord = (r: HintRecord): boolean =>
   Boolean(r.receivedFrom || r.receivedFromCommitment || r.receivedAt || r.transferId);
 export type HintKind = 'clones' | 'calves';
 

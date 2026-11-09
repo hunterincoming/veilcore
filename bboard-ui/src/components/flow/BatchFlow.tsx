@@ -36,6 +36,7 @@ import { isStrain } from '../../veilcore/strain-profile';
 import { holderKey } from '../../veilcore/holder';
 import { makeVaultIfSafe } from '../../veilcore/api-store';
 import {
+  HELD_FOR_BACKUP,
   holdForBackup,
   loadLedger,
   recordRowHash,
@@ -125,7 +126,10 @@ export const BatchFlow: React.FC<{ handoff: Handoff }> = ({ handoff }) => {
   const pair = sireAndDam(handed.filter(isAnimal));
 
   const [parentId, setParentId] = useState(preset === 'clones' ? (handed.find((r) => !isAnimal(r))?.id ?? '') : '');
-  const [sireId, setSireId] = useState(pair.sire?.id ?? '');
+  // What a "Do it for me" job carried over (its "Change something"): each young's sex and ID, the
+  // sire's code, the tag, the lot, the date. Only from Ask, never from a link.
+  const carried = handoff.source === 'ask' ? handoff.details : undefined;
+  const [sireId, setSireId] = useState(pair.sire?.id ?? (carried?.sireCode ? TYPED : ''));
   const [damId, setDamId] = useState(pair.dam?.id ?? '');
   const [countText, setCountText] = useState(String(handoff.count ?? 1));
   const parent = own(parentId);
@@ -148,21 +152,31 @@ export const BatchFlow: React.FC<{ handoff: Handoff }> = ({ handoff }) => {
   const baseName = baseTyped ?? defaultBase;
   const bredBy = bredByTyped ?? defaults.bredBy;
   const taxon = taxonTyped ?? defaults.taxon;
-  const [date, setDate] = useState(today());
+  const [date, setDate] = useState(carried?.date && carried.date <= today() ? carried.date : today());
   const count = /^\d{1,4}$/.test(countText.trim()) ? Number(countText.trim()) : NaN;
   // A sire not on VeilCore (a stud's bull, by artificial insemination): typed in, with his semen code.
   const [sireName, setSireName] = useState('');
-  const [sireTypedId, setSireTypedId] = useState('');
-  const [semenCode, setSemenCode] = useState('');
+  const [sireTypedId, setSireTypedId] = useState(carried?.sireCode && !pair.sire ? carried.sireCode : '');
+  const [semenCode, setSemenCode] = useState(carried?.sireCode && carried.semen ? carried.sireCode : '');
   const typing = preset === 'offspring' && sireId === TYPED;
   // Each child's own details, by its place in the batch, and the ID scheme they share.
-  const [edits, setEdits] = useState<Record<number, ChildDetails>>({});
+  const [edits, setEdits] = useState<Record<number, ChildDetails>>(() =>
+    Object.fromEntries(
+      Array.from({ length: Math.max(carried?.sexes?.length ?? 0, carried?.ids?.length ?? 0) }, (_, i) => [
+        i,
+        {
+          ...(carried?.sexes?.[i] ? { sex: carried.sexes[i] } : {}),
+          ...(carried?.ids?.[i] ? { individualId: carried.ids[i] } : {}),
+        },
+      ]),
+    ),
+  );
   // Each young animal's dam, when not the batch's: '' the same, TYPED, or one of the person's records.
   const [damPicks, setDamPicks] = useState<Record<number, string>>({});
-  const [idScheme, setIdScheme] = useState('');
+  const [idScheme, setIdScheme] = useState(carried?.idScheme ?? '');
   const [firstId, setFirstId] = useState('');
-  const [lotName, setLotName] = useState('');
-  const [firstTag, setFirstTag] = useState('');
+  const [lotName, setLotName] = useState(carried?.lotName ?? '');
+  const [firstTag, setFirstTag] = useState(carried?.firstTag ?? '');
   const shown = Number.isFinite(count) ? Math.min(count, MAX_BATCH) : 0;
   // What the screen shows is exactly what is sealed: per-child fields only while they are on the
   // screen (EDIT_MAX at most), tags only while a first tag is typed. Edits made before a field
@@ -267,6 +281,11 @@ export const BatchFlow: React.FC<{ handoff: Handoff }> = ({ handoff }) => {
       const all = allRecords();
       const made = batchRows({ ...plan, start: firstFreeStart(plan, takenRows(all), takenNames(all)) });
       const result = await sealRows(made, { commit: holdForBackup, batchSize: made.length, gapMs: 0 });
+      // Not kept (full storage), or held by a job: nothing was sealed for this batch.
+      if (result.stopped && !result.stopped.startsWith(HELD_FOR_BACKUP)) {
+        setError(result.stopped);
+        return;
+      }
       const refused = Object.values(result.outcomes).find((o) => o.state === 'refused');
       if (refused && refused.state === 'refused') {
         setError(refused.reason);

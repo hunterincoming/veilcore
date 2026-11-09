@@ -635,6 +635,9 @@ const savesSettled = async (): Promise<void> => {
   for (let i = 0; i < 5 && savesOnTheWay.size; i++) await Promise.allSettled([...savesOnTheWay]);
 };
 
+/** savesSettled, for a test's teardown: nothing of this page's still on its way when its stubs go. */
+export const recordSavesSettled = (): Promise<void> => savesSettled();
+
 /**
  * After a read of the registry (refresh): every unsure record is settled by what it holds. Its
  * copy says whether the correction arrived: pointing to it if so, as before if not; taken as
@@ -711,9 +714,9 @@ export const hydrate = async (opts: { resave?: boolean } = {}): Promise<void> =>
 /**
  * hydrate, saying whether the registry answered: true when what is shown is its set now; false
  * when it couldn't, and what is shown is this browser's copy. A correction needs the first
- * (issueCorrection).
+ * (issueCorrection), and so does saving IDs (ask-job/save-ids.ts).
  */
-const refresh = async (opts: { resave?: boolean } = {}): Promise<boolean> => {
+export const refresh = async (opts: { resave?: boolean } = {}): Promise<boolean> => {
   const before = records;
   try {
     records = await store.load(RECORDS_KEY, isStrainRecord);

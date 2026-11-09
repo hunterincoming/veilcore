@@ -20,7 +20,7 @@ import ChatIcon from '@mui/icons-material/ChatBubbleOutlineOutlined';
 import CloseIcon from '@mui/icons-material/Close';
 import { useT } from '../../i18n/app';
 import { useRecords } from '../../veilcore/records';
-import { agreementScreen, formScreen, hintExample, hintPage } from '../../ask/hint';
+import { agreementScreen, formScreen, hintExample, hintPage, jobScreen } from '../../ask/hint';
 import { useLocation } from 'react-router-dom';
 import { ANIMAL_RECORDS_ENABLED } from '../../config/network';
 import { askOpened, dismissHint, hintDone, markAskOpened, noteHintShown } from '../../ask-local/hint-flag';
@@ -87,7 +87,8 @@ export const AskLauncher: React.FC = () => {
   const narrow = useMediaQuery(theme.breakpoints.down('md'));
   // Not over an agreement's terms or its accept, report and pay buttons on a phone-sized screen,
   // nor over a form being filled in there (hint.ts formScreen).
-  const bubbleHere = !typing && !(narrow && (agreementScreen(pathname) || formScreen(pathname)));
+  const bubbleHere =
+    !typing && !jobScreen(pathname) && !(narrow && (agreementScreen(pathname) || formScreen(pathname)));
   const hint = !hintDoneAtLoad && !dismissed && !!example && hintPage(pathname);
 
   // Counted once per visit, the first time the hint shows.

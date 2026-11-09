@@ -91,7 +91,9 @@ describe('record secrets stay in the browser, or sealed in the record', () => {
       blockHeight: 2,
     });
     await records.issueCorrection(rec.id, { notes: 'fixed' }, 'typo');
-    await new Promise((r) => setTimeout(r, 50)); // let the saves go out
+    // Every save of this page has its answer (not a guess at how long that takes).
+    await new Promise((r) => setTimeout(r, 0));
+    await records.recordSavesSettled();
 
     const puts = sent.filter((s) => s.includes('/api/records'));
     // At least one save each for the record, its pairing and its correction (the registry
@@ -150,7 +152,8 @@ describe('a record that names its own key', () => {
     expect(rec.id).toBe(id);
     expect(await records.checkIntegrity(rec)).toBe('match');
     const fixed = await records.issueCorrection(rec.id, { notes: 'fixed' }, 'typo');
-    await new Promise((r) => setTimeout(r, 50));
+    await new Promise((r) => setTimeout(r, 0));
+    await records.recordSavesSettled();
 
     // The correction is a new record with a key of its own, never the original's.
     const theirs = bindingForSecret(keysFor(fixed!.id)!.recordSecret);

@@ -222,6 +222,7 @@ export const APP_ROUTES = Object.freeze([
   '/lender',
   '/intake',
   '/intake/send',
+  '/ask/job/:job',
 ]);
 
 /**
@@ -250,7 +251,8 @@ export const routesToCheck = () => [
       .replace(':prove', `PR-${randomHex(8).toUpperCase()}`)
       .replace(':license', `LIC-${randomHex(8).toUpperCase()}`)
       .replace(':invite', `LI-${randomHex(16).toUpperCase()}`)
-      .replace(':hex', randomHex(32)),
+      .replace(':hex', randomHex(32))
+      .replace(':job', randomHex(16)),
   ),
   `/${randomHex(8)}/${randomHex(8)}`,
 ];

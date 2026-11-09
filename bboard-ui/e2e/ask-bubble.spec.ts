@@ -21,6 +21,7 @@ const CAN = [
   'Explain words like “proof code”',
   'Find your records',
   'Fill in a new record for you to check and save',
+  'Do it for me: I get a whole job ready; you approve it once.',
 ];
 
 for (const [label, viewport] of [
@@ -81,7 +82,8 @@ test('first open: what Ask can do, as a list, then folded under "What can Ask do
   await expect(page.locator('[data-ask-can]')).toHaveCount(0);
   const toggle = page.locator('[data-ask-can-toggle]');
   await expect(toggle).toHaveText('What can Ask do?');
-  expect((await toggle.boundingBox())?.height ?? 0).toBeGreaterThanOrEqual(44);
+  // 44px, give or take the browser's sub-pixel rounding (43.99997).
+  expect((await toggle.boundingBox())?.height ?? 0).toBeGreaterThanOrEqual(43.5);
   await toggle.click();
   await expect(page.locator('[data-ask-can] li')).toHaveText(CAN);
   // Seen before this page loaded: the next visit opens folded too.
