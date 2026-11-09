@@ -81,16 +81,21 @@ export const ROYALTIES_RUN_ON_TEST = false;
  * paid on veilcore.org. Until it has, the home page's veilcore.org cell says licenses go live with
  * the deploy and royalty statements and payments are built, not live (m.live.lic.mainNext).
  * Hunter turns it on in a reviewed commit after that first report, never before.
+ * On since 8 November 2026: the maintainer ran a license and a royalty report end to end on
+ * veilcore.org (license accepted, report sent, answered, "I paid", "received"). From then on the
+ * veilcore.org cell says "Yes" on every build (m.live.lic.live): it is a fact about veilcore.org.
  */
-export const ROYALTIES_RUN_ON_MAINNET = false;
+export const ROYALTIES_RUN_ON_MAINNET = true;
 
 /**
  * Whether the sponsor's scheduled anchoring job has run on mainnet (batches dated on Midnight's
  * main network on a schedule, not by hand). Until it has, no page claims either cadence: they
  * say records are batched and dated on Midnight (i18n/mainnet-overlay.ts withoutCadence). Hunter
  * turns it on in a reviewed commit after the job has run once on mainnet.
+ * On since 8 November 2026: the job dated batch B-20261108-0AF6 at block 3370721 on its own
+ * schedule. The pages say batches are anchored automatically, and name no interval.
  */
-export const SCHEDULED_ANCHORING_RUN_ON_MAINNET = false;
+export const SCHEDULED_ANCHORING_RUN_ON_MAINNET = true;
 
 /** The label agreements carry while AGREEMENTS_LIVE is false. */
 export const PRACTICE_LABEL = AGREEMENTS_LIVE ? '' : 'Practice only';

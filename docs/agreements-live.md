@@ -1,18 +1,14 @@
 # Agreements on chain: the build to "live"
 
-Status: built and switched on in code (the two lines under "Going live", below). Licences are
-on the test network (test.veilcore.org): the licence steps of the test run
-([agreements-test-run.md](agreements-test-run.md)) went through there with a phone. They go live
-on veilcore.org with the next deploy, once a real licence has worked end to end on mainnet;
-until then nothing here is called live on veilcore.org. Royalties v2 (section 4) is built and
-not yet run on any network: its steps in the test run go through on test.veilcore.org before the
-mainnet site deploy. Until they have, the home page's test-site cell says royalties are built,
-not live (`ROYALTIES_RUN_ON_TEST` in `bboard-ui/src/config/copy.ts`, turned on by a reviewed
-commit after that run). On veilcore.org the same holds: until the first real royalty report has
-been sent, answered and paid on mainnet, the home page's veilcore.org cell says licences go live
-with the deploy and royalty statements and payments are built, not live
-(`ROYALTIES_RUN_ON_MAINNET`, same file). Hunter flips it in a reviewed commit after that first
-report has worked. Paying in NIGHT on Midnight itself stays on test networks
+Status: live on veilcore.org. On 8 November 2026 Hunter ran it end to end on mainnet: a licence
+accepted in a private window, then a royalty report sent, answered, marked paid and confirmed
+received. `ROYALTIES_RUN_ON_MAINNET` (`bboard-ui/src/config/copy.ts`) is on, so the home page's
+veilcore.org cell says "Yes". Handing a licence on has not been tried on mainnet yet, and the
+cell says so. Licences are on the test network (test.veilcore.org) too: the licence steps of the
+test run ([agreements-test-run.md](agreements-test-run.md)) went through there with a phone.
+Royalties v2 has not been run there: the test-site cell says royalties are built, not live,
+until it has (`ROYALTIES_RUN_ON_TEST`, same file, turned on by a reviewed commit after that
+run). Paying in NIGHT on Midnight itself stays on test networks
 (`ONCHAIN_PAYMENTS`). Owner: hunter@veilcore.org. This page says
 what the website does with VeilCore's contract once agreements are live, who does what, and
 what VeilCore never does. The switch is in one reviewed place, below.

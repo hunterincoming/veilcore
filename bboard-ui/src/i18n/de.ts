@@ -326,7 +326,7 @@ export const de: Strings = {
     'Gebaut. Geht mit dem nächsten Deployment von veilcore.org live, sobald eine echte Lizenz im Hauptnetz einmal vollständig funktioniert hat.',
   // Licenses on, on veilcore.org's own build (AGREEMENTS_LIVE, mainnet sponsor live): the main-network cell (components/site/Home.tsx).
   'm.live.lic.live':
-    'Ja: Lizenzen, Abrechnungen von Lizenzgebühren und die Weitergabe einer Lizenz, mit echten Transaktionen. Lizenzgebühren direkt auf Midnight zahlen gibt es nur auf der Testseite.',
+    'Ja: Lizenzen, mit echten Transaktionen, und Berichte über Lizenzgebühren mit Antwort, „Ich habe bezahlt“ und „Eingang bestätigt“. Die Weitergabe einer Lizenz ist gebaut, im Hauptnetz aber noch nicht ausprobiert. Lizenzgebühren direkt auf Midnight zahlen gibt es nur auf der Testseite.',
   'm.live.chain.t': 'Die Prüfseite liest Midnight selbst',
   'm.live.chain.main': 'Noch nicht: Dafür braucht es unseren Relaisdienst, der nur liest.',
   'm.live.chain.test': 'Ja.',

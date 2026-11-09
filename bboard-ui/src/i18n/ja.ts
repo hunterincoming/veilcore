@@ -330,7 +330,7 @@ export const ja: Strings = {
     '構築済み。本物のライセンスがメインネットワークで最初から最後まで一度動いた後、次回のveilcore.orgのデプロイで公開されます。',
   // Licenses on, on veilcore.org's own build (AGREEMENTS_LIVE, mainnet sponsor live): the main-network cell (components/site/Home.tsx).
   'm.live.lic.live':
-    'はい。本物のトランザクションで：ライセンス、ロイヤリティの明細、ライセンスの引き継ぎ。Midnight上でのロイヤリティの支払いはテストサイトだけです。',
+    'はい。本物のトランザクションでのライセンスと、ロイヤリティ報告とその回答、「支払いました」「受領確認済み」。ライセンスの引き継ぎは構築済みですが、メインネットワークではまだ試していません。Midnight上でのロイヤリティの支払いはテストサイトだけです。',
   'm.live.chain.t': '確認ページがMidnightを自ら読む',
   'm.live.chain.main': '未対応。私たちの読み取り専用リレーが必要です。',
   'm.live.chain.test': 'あり。',
