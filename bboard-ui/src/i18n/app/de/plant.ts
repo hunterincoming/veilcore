@@ -42,6 +42,8 @@ export const plant = {
   'app.plant.action.familyTree': 'Stammbaum',
   'app.plant.action.freshBackup': 'Eine neue Sicherungskopie speichern',
   'app.plant.action.fix': 'Einen Fehler korrigieren',
+  'app.plant.action.seeLatest': 'Bereits korrigiert: neueste Fassung öffnen',
+  'app.plant.fix.openLatest': 'Neueste Fassung öffnen',
   'app.plant.agreements': 'Vereinbarungen',
   'app.plant.openAgreement': 'Vereinbarung {id} öffnen',
   'app.plant.unnamedCounterparty': 'unbenannte Gegenpartei',
@@ -405,6 +407,11 @@ export const plant = {
   'app.plant.fix.field.attestations': 'Bestätigungen',
   'app.plant.fix.field.sealedAt': 'Versiegelungsdatum',
   'app.plant.fix.field.holder': 'Inhaber',
+  'app.plant.fix.field.name': 'Name',
+  'app.plant.fix.field.taxon': 'Art',
+  'app.plant.fix.field.designation': 'Bezeichnung',
+  'app.plant.fix.field.breed': 'Rasse',
+  'app.plant.fix.field.herd': 'Herde oder Betrieb',
   'app.plant.fix.c.cosmetic.cosmetic':
     'Nichts Nachgelagertes ist betroffen. Nachkommen behalten ihre Abstammungsprüfungen, und Vereinbarungen bleiben bestehen.',
   'app.plant.fix.c.cosmetic.material':
