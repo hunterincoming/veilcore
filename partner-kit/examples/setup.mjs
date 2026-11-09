@@ -168,7 +168,7 @@ const healthy = async (url) => {
  * @param {import('../src/network.js').Network} [network]
  */
 export const proofServer = async (url, say = console.log, network = 'preprod') => {
-  // A proof server serves one Midnight ledger: 9.0.0 for mainnet (Ledger 9), 8.1.3 elsewhere.
+  // A proof server serves one Midnight ledger: 9.0.1 for mainnet (Ledger 9), 8.1.3 elsewhere.
   const image = proofServerImageFor(network);
   if (await healthy(url)) return () => undefined;
   if (url !== DEFAULT_PROOF_SERVER)

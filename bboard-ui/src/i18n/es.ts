@@ -326,7 +326,7 @@ export const es: Strings = {
     'Construido. Se activa con el próximo despliegue de veilcore.org, cuando una licencia real haya funcionado de principio a fin en la red principal.',
   // Licenses on, on veilcore.org's own build (AGREEMENTS_LIVE, mainnet sponsor live): the main-network cell (components/site/Home.tsx).
   'm.live.lic.live':
-    'Sí: licencias, declaraciones de regalías y traspaso de una licencia, con transacciones reales. Pagar regalías en Midnight mismo solo está en el sitio de pruebas.',
+    'Sí: licencias, con transacciones reales, e informes de regalías con su respuesta, «Ya pagué» y «Recepción confirmada». El traspaso de una licencia está construido, pero aún no se ha probado en la red principal. Pagar regalías en Midnight mismo solo está en el sitio de pruebas.',
   'm.live.chain.t': 'La página de comprobación lee Midnight por sí misma',
   'm.live.chain.main': 'Todavía no: necesita nuestro relé de solo lectura.',
   'm.live.chain.test': 'Sí.',
