@@ -93,6 +93,13 @@ const VerifyExample = page(() => import('./components/verify/VerifyExample'), 'V
 // Round 5 (CONTRACT.md #31): this site's files against its release's published list.
 const CheckThisSite = page(() => import('./components/site/CheckThisSite'), 'CheckThisSite');
 const Terms = page(() => import('./components/site/Terms'), 'Terms');
+// Only in the end-to-end build (package.json e2e:build sets VITE_E2E_FIXTURES=1): a stand-in for
+// a live license's page around the real royalty ledger (e2e-fixtures/RoyaltyPayFixture.tsx). The
+// condition is a constant in every other build, so the page and its route are left out of it.
+const E2E_FIXTURES = import.meta.env.VITE_E2E_FIXTURES === '1';
+const RoyaltyPayFixture = E2E_FIXTURES
+  ? page(() => import('./e2e-fixtures/RoyaltyPayFixture'), 'RoyaltyPayFixture')
+  : undefined;
 // The app frame's parts: one file, so the frame arrives in one request.
 const layoutParts = () => import('./app-layout-parts');
 const RolePicker = page<{ ask: boolean }>(layoutParts, 'RolePicker');
@@ -396,6 +403,16 @@ const routes = (
         </Light>
       }
     />
+    {RoyaltyPayFixture && (
+      <Route
+        path="/e2e/royalty-pay"
+        element={
+          <Light>
+            <RoyaltyPayFixture />
+          </Light>
+        }
+      />
+    )}
     {/* Anything else: say so, rather than render an empty page. */}
     <Route path="*" element={<NotFound />} />
   </>

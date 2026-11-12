@@ -38,7 +38,14 @@ import {
   toMinor,
 } from './money';
 import { addYears, currencyOf, localDay, offspringOf, ruleOf, type RoyaltyRule } from './royalty-terms';
-import { contractYearOf, daysBetween, endsContractYear, periodsOf, type RoyaltyPeriod } from './royalty-periods';
+import {
+  addDays,
+  contractYearOf,
+  daysBetween,
+  endsContractYear,
+  periodsOf,
+  type RoyaltyPeriod,
+} from './royalty-periods';
 
 export type StatementEntry = Extract<DealEntry, { type: 'statement' }>;
 export type ReplyEntry = Extract<DealEntry, { type: 'reply' }>;
@@ -60,6 +67,12 @@ export type Report = {
    */
   short?: string;
   received?: ReceivedEntry;
+  /**
+   * The payment, checked on Cardano: the right reference, at least what the report leaves to
+   * pay, to the licensor's signed address (cardano-pay.ts). Settles the report without
+   * "received" (SPEC 11.10, "Settled on chain").
+   */
+  chainSettled?: { readonly tx: string };
   /** The corrected report that took this one's place. */
   replacedBy?: StatementEntry;
   /** The report this one corrects. */
@@ -92,8 +105,15 @@ export const shortOf = (r: Report, paid: Pick<PaidEntry, 'amount' | 'currency'>)
   return got > want ? undefined : minorText(want - got, digits);
 };
 
-/** The ledger as the signed messages make it, in the registry's order (dealOrder). */
-export const ledgerOf = (entries: readonly DealEntry[]): Ledger => {
+/**
+ * The ledger as the signed messages make it, in the registry's order (dealOrder). `onChain`:
+ * the reports (by signature) whose payment this page checked on a public chain and found to
+ * pay them in full (cardano-pay.ts checkCardanoPayment); the check itself is the caller's.
+ */
+export const ledgerOf = (
+  entries: readonly DealEntry[],
+  onChain: ReadonlyMap<string, { readonly tx: string }> = new Map(),
+): Ledger => {
   const sorted = dealOrder(entries);
   const payouts = sorted.filter((e): e is PayoutEntry => e.type === 'payout' && e.from === 'issuer');
   const invoices = sorted.filter((e): e is InvoiceEntry => e.type === 'invoice-details' && e.from === 'issuer');
@@ -132,6 +152,9 @@ export const ledgerOf = (entries: readonly DealEntry[]): Ledger => {
       if (e.type === 'paid' && !r.paid && r.reply?.decision === 'accepted') {
         r.paid = e;
         r.short = shortOf(r, e);
+        // Only the payment the report counts, and only the transaction it names.
+        const chain = onChain.get(r.statement.signature);
+        if (chain && chain.tx === e.reference.trim().toLowerCase()) r.chainSettled = { tx: chain.tx };
       }
       if (e.type === 'received' && !r.received && r.paid) r.received = e;
     }
@@ -164,7 +187,16 @@ export const ledgerOf = (entries: readonly DealEntry[]): Ledger => {
 /** Reports still in play: not replaced by a corrected one. Newest first. */
 export const liveReports = (l: Ledger): Report[] => l.reports.filter((r) => !r.replacedBy);
 
-export type ReportState = 'waiting' | 'fix' | 'to-pay' | 'short' | 'paid' | 'received' | 'replaced' | 'nothing-due';
+export type ReportState =
+  | 'waiting'
+  | 'fix'
+  | 'to-pay'
+  | 'short'
+  | 'paid'
+  | 'received'
+  | 'settled'
+  | 'replaced'
+  | 'nothing-due';
 
 export const stateOf = (r: Report): ReportState =>
   r.replacedBy
@@ -173,15 +205,17 @@ export const stateOf = (r: Report): ReportState =>
       ? 'short'
       : r.received
         ? 'received'
-        : r.paid
-          ? 'paid'
-          : r.reply?.decision === 'disputed'
-            ? 'fix'
-            : r.reply?.decision === 'accepted'
-              ? toPayOf(r) === '0' || /^0(\.0+)?$/.test(toPayOf(r))
-                ? 'nothing-due'
-                : 'to-pay'
-              : 'waiting';
+        : r.chainSettled
+          ? 'settled'
+          : r.paid
+            ? 'paid'
+            : r.reply?.decision === 'disputed'
+              ? 'fix'
+              : r.reply?.decision === 'accepted'
+                ? toPayOf(r) === '0' || /^0(\.0+)?$/.test(toPayOf(r))
+                  ? 'nothing-due'
+                  : 'to-pay'
+                : 'waiting';
 
 /** What the payer sends for a report: the amount owed less any tax withheld (as the report or payment says). */
 export const toPayOf = (r: Report, taxWithheld?: string): string => {
@@ -508,6 +542,42 @@ export const periodRows = (terms: LicenseTerms, ledger: Ledger, today: string): 
     return { period, report, step: 'done', overdue: 0 };
   });
 };
+
+// ---- payments due soon and overdue: the in-app reminders and the public notice ------------
+
+/** How many days ahead a payment counts as due soon. */
+export const DUE_SOON_DAYS = 7;
+
+export type PaymentAlert = {
+  readonly kind: 'soon' | 'overdue';
+  readonly report: Report;
+  /** The date the terms set for the payment. */
+  readonly due: string;
+  /** Overdue: the first day it was late (the day after `due`). */
+  readonly since?: string;
+  /** Soon: days left (0 = due today). Overdue: days late. */
+  readonly days: number;
+};
+
+/**
+ * Accepted reports not paid in full, by their payment due date: overdue from the day after it,
+ * due soon within DUE_SOON_DAYS before it. A short payment stays overdue for what is left. A
+ * report paid ("I paid") and waiting for the licensor to confirm is not overdue: the licensee
+ * did their part; whether it arrived is the confirmation's question. Oldest first.
+ */
+export const paymentAlerts = (
+  terms: LicenseTerms,
+  ledger: Ledger,
+  today: string,
+  soonDays = DUE_SOON_DAYS,
+): PaymentAlert[] =>
+  periodRows(terms, ledger, today).flatMap((row): PaymentAlert[] => {
+    if (row.step !== 'pay' || !row.due || !row.report) return [];
+    if (row.overdue > 0)
+      return [{ kind: 'overdue', report: row.report, due: row.due, since: addDays(row.due, 1), days: row.overdue }];
+    const left = daysBetween(today, row.due);
+    return left <= soonDays ? [{ kind: 'soon', report: row.report, due: row.due, days: left }] : [];
+  });
 
 /** The balance accepted and not yet paid, in the deal's currency. */
 export const balanceOwed = (ledger: Ledger, currency: string): string => {

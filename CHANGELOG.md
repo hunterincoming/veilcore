@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Royalty payments: overdue in the open, and stablecoin pay built (8 Nov 2026)
+
+- An accepted royalty report not paid by its due date shows as Overdue on both sides, with
+  in-app reminders when a payment is due within a week. The licensor's record's public check
+  page says "A royalty statement is overdue since <date>", nothing more, as the holder's word
+  (needs the registry's `license-notices-v1`). "Revoke for non-payment" sends a signed notice,
+  revokes on Midnight as before, and the public page then says a license was revoked for
+  non-payment.
+- Paying a USD royalty in USDCx or USDM on Cardano, straight from the licensee's own wallet to
+  the licensor's signed address, with a CIP-20 reference; a payment found on Cardano settles
+  the report without "received" (SPEC 11.10 draft, "Settled on chain"). Addresses screened
+  against a bundled OFAC list first. Off on mainnet (`STABLECOIN_PAY_ON_MAINNET`), on for test
+  networks. One new package, @emurgo/cardano-serialization-lib-browser 17.0.0.
+- The NIGHT payment check (test networks) compares with the report's amount less declared
+  tax, not the payer's figure. Details: `docs/royalty-pay.md`.
+
 ### Where it came from, and real batches (7 Nov 2026)
 
 - A plant logged as a landrace or heirloom, or as material received from a breeder, a seed

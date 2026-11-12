@@ -81,6 +81,13 @@ mainnet. Its settings are `RELAY_NETWORK`, `BLOCKFROST_PROJECT_ID`, `ALLOWED_ORI
 maintenance setting or an operator token. How to deploy it and point the site at it
 (`VITE_INDEXER_RELAY_URL`): **`docs/check-on-chain.md`**.
 
+Optional, and off unless set: `CARDANO_BLOCKFROST_PROJECT_ID`, a Blockfrost **Cardano**
+project (mainnet beside Midnight mainnet, preprod otherwise; never the Midnight project's
+id). It adds one read, `GET /cardano/tx/<hash>` (`src/cardano-relay.ts`), which the site uses
+to check a royalty paid in a stablecoin on Cardano (`VITE_CARDANO_RELAY_URL=<relay>/cardano`,
+**`docs/royalty-pay.md`**). The answer is rebuilt in one fixed shape; 30 lookups a minute per
+client.
+
 ## Settings (environment variables)
 
 Required:

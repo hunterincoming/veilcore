@@ -1,0 +1,9 @@
+{
+  "v": "veilcore/sanctions-list/v1",
+  "list": "OFAC Specially Designated Nationals (SDN) list, entries of feature type \"Digital Currency Address - ADA\"",
+  "source": "https://www.treasury.gov/ofac/downloads/sanctions/1.0/sdn_advanced.xml",
+  "listIssued": null,
+  "extracted": "2026-11-08",
+  "how": "Not yet read from OFAC's own file: treasury.gov could not be reached from the session that built this. The nightly extract at github.com/0xB10C/ofac-sanctioned-digital-currency-addresses (generated from sdn_advanced.xml) lists no Cardano (ADA) addresses as of 8 November 2026; its generator knows 18 asset types and ADA is not one of them. Run scripts/ofac-cardano-list.mjs on a fresh sdn_advanced.xml before mainnet and commit the result.",
+  "addresses": []
+}

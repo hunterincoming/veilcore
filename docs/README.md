@@ -17,6 +17,7 @@ Start with [design.md](design.md). The record format itself is specified in
 | [simple-flow.md](simple-flow.md) | The order of steps in the web app, and why |
 | [corrections.md](corrections.md) | Correcting a record without losing the original |
 | [check-on-chain.md](check-on-chain.md) | How the check page looks a date up on Midnight |
+| [royalty-pay.md](royalty-pay.md) | Overdue royalties on the public check page, revoke for non-payment, and paying in a stablecoin on Cardano (off on mainnet) |
 | [evidence-bundle.md](evidence-bundle.md) | The offline evidence bundle |
 | [evidence-in-practice.md](evidence-in-practice.md) | Using the evidence bundle with a lawyer, examiner or buyer |
 | [lab-name-checks.md](lab-name-checks.md) | Checking a lab's name before marking its key |

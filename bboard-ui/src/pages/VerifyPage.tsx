@@ -105,6 +105,7 @@ import { useAnchorCheck } from '../components/verify/useAnchorCheck';
 import { VerifierChallengePanel } from '../components/chain/VerifierChallengePanel';
 import { LicenseProofPanel } from '../components/licensing/LicenseProof';
 import { LendHere } from '../components/licensing/LendHere';
+import { LicenseNotices } from '../components/verify/LicenseNotices';
 import { AGREEMENTS_ON_CHAIN } from '../config/copy';
 import { publicCustodyLines, publicCustodyOf } from '../veilcore/custody';
 import { NameCheckText } from '../components/NameCheckText';
@@ -1066,6 +1067,9 @@ export const VerifyPage: React.FC = () => {
             recordId={id}
           />
         )}
+        {/* What the record's holder says about royalties on licenses from it: overdue, or revoked
+            for non-payment, with a date and nothing else (veilcore/license-notices.ts). */}
+        {AGREEMENTS_ON_CHAIN && result?.found && <LicenseNotices verify={result} />}
         {/* Someone says they're licensed from this record: ask them to prove it (rule 5). */}
         {REAL_CHAIN && AGREEMENTS_ON_CHAIN && result?.found && linked('chain') && (
           <LicenseProofPanel identity={linked('chain') ?? ''} recordId={id} />

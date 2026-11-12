@@ -221,6 +221,9 @@ holds or moves anyone's money.
   the agreement exists, when, and its state on chain.
 - Payment rails are the partner's, under the partner's licenses. A money-moving feature
   inside VeilCore needs a lawyer's opinion first; none is planned.
+- Overdue royalties on a record's public check page, "Revoke for non-payment", and paying in a
+  dollar stablecoin on Cardano straight from the licensee's wallet (off on mainnet):
+  [royalty-pay.md](royalty-pay.md). VeilCore still never holds or moves the money.
 
 ## Known limits (accepted, from review round 3 and the attack pass of 21 October 2026)
 

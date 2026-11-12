@@ -207,6 +207,11 @@ export type OnChainLicense = {
   readonly activeSeenAt?: number;
   readonly revokeTx?: string;
   readonly revokedAt?: number;
+  /**
+   * Revoked with "Revoke for non-payment": the record's public check page says so
+   * (license-notices.ts). Absent for any other revocation, whose reason stays private.
+   */
+  readonly revokedFor?: 'non-payment';
   /** Handing this license on to a new holder, while it is under way (hand-on.ts). */
   readonly handOn?: HandOnInvite;
   /** Who held it before, oldest first: each earlier holder's deal, kept for its signed history. */

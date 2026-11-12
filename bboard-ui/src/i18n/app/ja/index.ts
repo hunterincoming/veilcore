@@ -35,6 +35,7 @@ import { sealed } from './sealed';
 import { verify } from './verify';
 import { licensing } from './licensing';
 import { royalties } from './royalties';
+import { royaltyPay } from './royalty-pay';
 import { document } from './document';
 import { attest } from './attest';
 import { labresult } from './labresult';
@@ -65,6 +66,7 @@ export const appJa: AppTranslation = {
   ...dating,
   ...licensing,
   ...royalties,
+  ...royaltyPay,
   ...document,
   ...attest,
   ...labresult,

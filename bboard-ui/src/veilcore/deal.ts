@@ -149,6 +149,12 @@ export type DealBody =
       readonly details?: string;
       /** The payee's own payment link (https), where offered. */
       readonly link?: string;
+      /**
+       * For a token paying a currency (`cardano:USDCx` for USD): how many units of the currency
+       * one token counts as. Only "1" is offered: the payee signs that the token pays at par
+       * (cardano-pay.ts, SPEC 11.10 "Settled on chain"). Absent for every other method.
+       */
+      readonly rate?: string;
     }
   | {
       /** The payee's details for an invoice: only for a statement called an invoice. */
@@ -391,7 +397,8 @@ export const wellFormed = (m: unknown, now = Date.now()): m is DealMessage => {
         text(o.account) &&
         text(o.currency, 10) &&
         opt(o.details, 1000) &&
-        (o.link === undefined || (text(o.link, 300) && /^https:\/\/\S+$/.test(o.link as string)))
+        (o.link === undefined || (text(o.link, 300) && /^https:\/\/\S+$/.test(o.link as string))) &&
+        optDec(o.rate)
       );
     case 'invoice-details':
       return text(o.legalName, 200) && o.legalName !== '' && opt(o.address, 500) && opt(o.taxId, 80);

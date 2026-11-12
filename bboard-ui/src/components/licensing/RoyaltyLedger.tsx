@@ -51,7 +51,20 @@ import { NextUp } from './DealSteps';
 import { nextRoyaltyStep, suggestedPeriod } from './steps';
 import { MidnightPayoutForm, OnChainPaymentCheck, PayOnMidnight } from './OnChainPay';
 import { methodWords, reusedPayments, tokenOfMethod } from '../../veilcore/onchain-pay';
-import { ONCHAIN_PAYMENTS } from '../../config/copy';
+import { ONCHAIN_PAYMENTS, STABLECOIN_PAY } from '../../config/copy';
+import {
+  CardanoCheckLine,
+  CardanoPayoutForm,
+  PayOnCardano,
+  PaymentAlerts,
+  cardanoMethodWords,
+  paidToken as cardanoPaidToken,
+  useCardanoChecks,
+  usePublicNotices,
+} from './RoyaltyPay';
+import { tokensFor, type CardanoCheck } from '../../veilcore/cardano-pay';
+import { ConfirmInline } from './DealSteps';
+import { DisclosureReceipt } from '../chain/DisclosureReceipt';
 import { rich, useT } from '../../i18n/app';
 import { forKind, labelOr, type Translator } from '../../i18n/translate';
 import type { AppKey } from '../../i18n/app/en';
@@ -67,6 +80,7 @@ import {
   paidMessage,
   paymentReference,
   payoutLock,
+  paymentAlerts,
   periodRows,
   reportLines,
   stateOf,
@@ -74,6 +88,7 @@ import {
   toPayOf,
   type Ledger,
   type NoticeEntry,
+  type PaymentAlert,
   type PeriodRow,
   type Report,
   type ReportInput,
@@ -136,9 +151,31 @@ export const RoyaltyLedger: React.FC<{
   agreementType?: string;
   /** A cannabis record: the licensor's own payment link isn't offered (design v3, 10). */
   cannabis?: boolean;
-}> = ({ party, side, terms: agreedTerms, entries, refresh, agreed, agreementType, cannabis }) => {
+  /**
+   * The licensor's side: their record's id at the registry, where its public check page says a
+   * royalty statement is overdue (license-notices.ts). Absent on the licensee's side.
+   */
+  publicRecordId?: string;
+  /** The licensor's side: revoke the license for non-payment of this report (RealLicensePanel). */
+  onRevokeForNonPayment?: (r: Report) => void;
+  /** A revocation is under way: its buttons wait. */
+  revoking?: boolean;
+}> = ({
+  party,
+  side,
+  terms: agreedTerms,
+  entries,
+  refresh,
+  agreed,
+  agreementType,
+  cannabis,
+  publicRecordId,
+  onRevokeForNonPayment,
+  revoking,
+}) => {
   const tr = forKind(useT(), subjectOf(agreedTerms));
-  const ledger = useMemo(() => ledgerOfEntries(entries ?? []), [entries]);
+  // Payments made on Cardano are checked there, and settle their reports (RoyaltyPay.tsx).
+  const { ledger, checks } = useCardanoChecks(entries ?? NO_ENTRIES);
   // Old terms named no currency: their reports were in the licensor's payout currency (review round 1, 5).
   const terms = useMemo(
     () => withDealCurrency(agreedTerms, ledger.reports[0]?.statement.currency, ledger.payout?.currency),
@@ -151,7 +188,7 @@ export const RoyaltyLedger: React.FC<{
     { kind: 'report'; period?: RoyaltyPeriod; replaces?: Report } | { kind: 'payout' } | { kind: 'invoice' }
   >();
   const [more, setMore] = useState(false);
-  const [payoutKind, setPayoutKind] = useState<'other' | 'midnight'>('other');
+  const [payoutKind, setPayoutKind] = useState<PayoutKind>('other');
   const today = localDay();
   const schedule = scheduleOf(terms);
   const names = {
@@ -159,6 +196,9 @@ export const RoyaltyLedger: React.FC<{
     licensee: terms.licensee || tr.t('app.roy.who.licensee'),
   };
   const rows = useMemo(() => periodRows(terms, ledger, today), [terms, ledger, today]);
+  // Due soon and overdue, on both sides; the licensor's record's public page says what is overdue.
+  const alerts = useMemo(() => (schedule ? paymentAlerts(terms, ledger, today) : []), [schedule, terms, ledger, today]);
+  const publicState = usePublicNotices(side === 'issuer' ? publicRecordId : undefined, alerts, ledger);
   const mine = useMemo(() => publicOf(party.mySecret), [party.mySecret]);
   const live = liveReports(ledger);
   // One on-chain transaction counts for one report only (onchain-pay.ts reusedPayments).
@@ -222,7 +262,22 @@ export const RoyaltyLedger: React.FC<{
     );
   }
 
-  const ctx: Ctx = { side, terms, ledger, names, tr, busy, send, today, cannabis: !!cannabis, agreementType };
+  const ctx: Ctx = {
+    side,
+    terms,
+    ledger,
+    names,
+    tr,
+    busy,
+    send,
+    today,
+    cannabis: !!cannabis,
+    agreementType,
+    alerts,
+    checks,
+    onRevokeForNonPayment,
+    revoking: !!revoking,
+  };
 
   return (
     <Paper variant="outlined" sx={{ p: { xs: 2, md: 2.5 } }} data-royalties="">
@@ -235,6 +290,14 @@ export const RoyaltyLedger: React.FC<{
             {side === 'licensee' ? tr.t('app.roy.howL') : tr.t('app.roy.howI')}
           </Typography>
         </Box>
+
+        <PaymentAlerts
+          side={side}
+          alerts={alerts}
+          licensee={names.licensee}
+          tr={tr}
+          publicState={side === 'issuer' && publicRecordId ? publicState : undefined}
+        />
 
         {schedule ? (
           <HomeCard
@@ -368,7 +431,15 @@ type Ctx = {
   today: string;
   cannabis: boolean;
   agreementType?: string;
+  alerts: readonly PaymentAlert[];
+  checks: ReadonlyMap<string, CardanoCheck>;
+  onRevokeForNonPayment?: (r: Report) => void;
+  revoking: boolean;
 };
+
+const NO_ENTRIES: readonly DealEntry[] = [];
+
+type PayoutKind = 'other' | 'midnight' | 'cardano';
 
 // ---- the home card: the next date, the balance, one button -------------------------------------
 
@@ -1017,6 +1088,8 @@ const ReportCard: React.FC<{
   const receipts = useReceipts(r, ledger.payout?.account, keysChanged);
   const payToken = ledger.payout ? tokenOfMethod(ledger.payout.method) : undefined;
   const paidToken = r.paid ? tokenOfMethod(r.paid.method) : undefined;
+  const paidOnCardano = cardanoPaidToken(r);
+  const overdue = ctx.alerts.find((a) => a.kind === 'overdue' && a.report === r);
   const lines: readonly StatementLine[] = s.lines ?? [{ kind: 'royalty', quantity: s.quantity, amount: s.amountOwed }];
   // What the terms say these figures come to, worked out here: shown to both sides if it differs.
   const expected = expectedTotal(terms, ledger.reports, s, ctx.agreementType);
@@ -1029,7 +1102,7 @@ const ReportCard: React.FC<{
         })
       : tr.t(`app.roy.st.${st}` as AppKey);
   const color =
-    st === 'received'
+    st === 'received' || st === 'settled'
       ? 'success'
       : st === 'fix' || st === 'short'
         ? 'error'
@@ -1049,6 +1122,7 @@ const ReportCard: React.FC<{
             : tr.t('app.roy.c.title', { n: r.number })}
         </Typography>
         <Chip size="small" label={label} color={color} variant="outlined" />
+        {overdue && <Chip size="small" label={tr.t('app.rpay.st.overdue')} color="error" data-report-overdue="" />}
       </Stack>
       <Typography variant="body2" color="text.secondary">
         {tr.t('app.roy.c.period', { period: periodText(s.periodFrom, s.periodTo, tr), date: when(s.at, tr) })}
@@ -1231,12 +1305,23 @@ const ReportCard: React.FC<{
           token={paidToken}
           txId={r.paid.reference}
           payTo={ledger.payout?.account ?? r.paid.payTo}
-          amount={r.paid.amount}
+          // What the accepted report leaves to pay: amountOwed less the tax it declared (SPEC
+          // 11.10, "Settled"), never the amount the payer wrote in "I paid".
+          amount={toPayOf(r, s.taxWithheld ?? '0')}
           statementSig={s.signature}
           reusedFor={reusedFor}
         />
       )}
-      {side === 'issuer' && r.paid && !r.received && (
+      {r.paid && paidOnCardano && (
+        <CardanoCheckLine
+          check={ctx.checks.get(s.signature)}
+          report={r}
+          token={paidOnCardano}
+          licensor={names.licensor}
+          tr={tr}
+        />
+      )}
+      {side === 'issuer' && r.paid && !r.received && !r.chainSettled && (
         <Stack spacing={0.5}>
           <Typography variant="body2">{tr.t('app.roy.c.checkArrived', { ref: r.paid.reference })}</Typography>
           <Button
@@ -1291,7 +1376,24 @@ const ReportCard: React.FC<{
         </Button>
       )}
 
-      {(st === 'to-pay' || st === 'short' || st === 'paid' || st === 'received' || st === 'nothing-due') && (
+      {/* The licensor, on a report overdue: revoke the license for non-payment (RealLicensePanel). */}
+      {side === 'issuer' && overdue && ctx.onRevokeForNonPayment && (
+        <ConfirmInline
+          label={tr.t('app.rpay.revoke.open')}
+          question={tr.t('app.rpay.revoke.what', { licensee: names.licensee })}
+          confirmLabel={tr.t('app.rpay.revoke.yes')}
+          receipt={<DisclosureReceipt circuits={['revokeLicense']} dense />}
+          disabled={busy || ctx.revoking}
+          onConfirm={() => ctx.onRevokeForNonPayment?.(r)}
+        />
+      )}
+
+      {(st === 'to-pay' ||
+        st === 'short' ||
+        st === 'paid' ||
+        st === 'received' ||
+        st === 'settled' ||
+        st === 'nothing-due') && (
         <Button
           size="small"
           variant="outlined"
@@ -1386,7 +1488,9 @@ const PayPanel: React.FC<{
   const [paidOn, setPaidOn] = useState(today);
   // Tax withheld is what the report declared, and the licensor accepted: it can't change at
   // payment (review round 1, 4).
-  const amount = toPayOf(r);
+  const amount = toPayOf(r, s.taxWithheld ?? '0');
+  // The licensor asked to be paid in a stablecoin on Cardano: the wallet pays, not "I paid".
+  const onCardano = !!payout && payout.method.startsWith('cardano:');
   const reference = paymentReference(s.signature, terms.licensor);
   const locked = lock.locked && !confirmed;
   // payTo is left empty: the payout it used is named by its signature, and the account itself
@@ -1404,6 +1508,11 @@ const PayPanel: React.FC<{
         {period && (
           <Typography variant="body2" color="text.secondary">
             {tr.t('app.roy.pay.due', { date: dateWords(period.paymentDue, tr) })}
+          </Typography>
+        )}
+        {period && (
+          <Typography variant="body2" color="text.secondary" data-consequence="">
+            {tr.t('app.rpay.l.consequence')}
           </Typography>
         )}
         {!payout ? (
@@ -1450,7 +1559,7 @@ const PayPanel: React.FC<{
                 />
               </Alert>
             )}
-            {!payToken && (
+            {!payToken && !onCardano && (
               <Stack spacing={1}>
                 {payout.account && <CopyValue label={tr.t('app.roy.payout.holder')} value={payout.account} tr={tr} />}
                 {payout.details && <CopyValue label={tr.t('app.roy.payout.bank')} value={payout.details} tr={tr} />}
@@ -1461,7 +1570,7 @@ const PayPanel: React.FC<{
                 )}
               </Stack>
             )}
-            <CopyValue label={tr.t('app.roy.pay.reference')} value={reference} tr={tr} mono />
+            {!onCardano && <CopyValue label={tr.t('app.roy.pay.reference')} value={reference} tr={tr} mono />}
             {terms.bankFees && (
               <Typography variant="body2" color="text.secondary">
                 {labelOr(tr, `app.roy.s.fees.${terms.bankFees}`, terms.bankFees)}
@@ -1494,7 +1603,16 @@ const PayPanel: React.FC<{
               {tr.t('app.lic.ledger.l.currencyMismatch', { token: payToken.code, currency: s.currency })}
             </Alert>
           ))}
-        {!payToken && (
+        {payout && onCardano && (
+          <PayOnCardano
+            report={r}
+            payout={payout}
+            licensor={names.licensor}
+            busy={busy || locked}
+            paid={(method, ref) => void paid(method, ref)}
+          />
+        )}
+        {!payToken && !onCardano && (
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} sx={{ alignItems: { sm: 'center' } }}>
             <TextField
               size="small"
@@ -1529,7 +1647,14 @@ const PayPanel: React.FC<{
 };
 
 const payoutText = (p: Extract<DealEntry, { type: 'payout' }>, tr: Translator): string =>
-  [tokenOfMethod(p.method) ? methodWords(p.method, tr) : '', p.account, p.details, p.link].filter(Boolean).join('\n');
+  [
+    tokenOfMethod(p.method) ? methodWords(p.method, tr) : (cardanoMethodWords(p.method, tr) ?? ''),
+    p.account,
+    p.details,
+    p.link,
+  ]
+    .filter(Boolean)
+    .join('\n');
 
 // ---- where the licensor is paid ---------------------------------------------------------------
 
@@ -1537,11 +1662,14 @@ const PayoutBlock: React.FC<{
   ctx: Ctx;
   editing?: 'payout' | 'invoice';
   onEdit: (k: 'payout' | 'invoice' | undefined) => void;
-  payoutKind: 'other' | 'midnight';
-  setPayoutKind: (k: 'other' | 'midnight') => void;
+  payoutKind: PayoutKind;
+  setPayoutKind: (k: PayoutKind) => void;
 }> = ({ ctx, editing, onEdit, payoutKind, setPayoutKind }) => {
   const { side, ledger, names, tr, busy, send, terms, cannabis } = ctx;
   const payout = ledger.payout;
+  // A US dollar stablecoin on Cardano: for deals in USD, not on cannabis records (like payment links).
+  const cardano = STABLECOIN_PAY && !cannabis && currencyOf(terms) === 'USD' && tokensFor().length > 0;
+  const choices = ONCHAIN_PAYMENTS || cardano;
   return (
     <Stack spacing={1} data-payout="">
       <Typography variant="subtitle2">{tr.t('app.roy.payout.title')}</Typography>
@@ -1574,7 +1702,7 @@ const PayoutBlock: React.FC<{
           </Button>
         </Stack>
       )}
-      {editing === 'payout' && ONCHAIN_PAYMENTS && (
+      {editing === 'payout' && choices && (
         <Stack
           direction="row"
           spacing={1}
@@ -1589,16 +1717,28 @@ const PayoutBlock: React.FC<{
           >
             {tr.t('app.roy.payout.bankOrLink')}
           </Button>
-          <Button
-            size="small"
-            variant={payoutKind === 'midnight' ? 'contained' : 'outlined'}
-            onClick={() => setPayoutKind('midnight')}
-          >
-            {tr.t('app.lic.ledger.onMidnight')}
-          </Button>
+          {ONCHAIN_PAYMENTS && (
+            <Button
+              size="small"
+              variant={payoutKind === 'midnight' ? 'contained' : 'outlined'}
+              onClick={() => setPayoutKind('midnight')}
+            >
+              {tr.t('app.lic.ledger.onMidnight')}
+            </Button>
+          )}
+          {cardano && (
+            <Button
+              size="small"
+              variant={payoutKind === 'cardano' ? 'contained' : 'outlined'}
+              onClick={() => setPayoutKind('cardano')}
+              data-payout-cardano=""
+            >
+              {tr.t('app.rpay.payout.option')}
+            </Button>
+          )}
         </Stack>
       )}
-      {editing === 'payout' && (!ONCHAIN_PAYMENTS || payoutKind === 'other') && (
+      {editing === 'payout' && (!choices || payoutKind === 'other') && (
         <PayoutForm
           busy={busy}
           currency={currencyOf(terms)}
@@ -1611,6 +1751,9 @@ const PayoutBlock: React.FC<{
       )}
       {editing === 'payout' && ONCHAIN_PAYMENTS && payoutKind === 'midnight' && (
         <MidnightPayoutForm busy={busy} onSend={(b) => void send(b)} onCancel={() => onEdit(undefined)} />
+      )}
+      {editing === 'payout' && cardano && payoutKind === 'cardano' && (
+        <CardanoPayoutForm busy={busy} onSend={(b) => void send(b)} onCancel={() => onEdit(undefined)} />
       )}
       {editing === 'invoice' && (
         <InvoiceForm

@@ -6,6 +6,7 @@
 import { createServer } from "node:http";
 import { clientIp } from "./server.js";
 import { createIndexerRelay, loadReadRelayConfig, readRelayHandler } from "./indexer-relay.js";
+import { createCardanoRelay } from "./cardano-relay.js";
 import { log, scrubOutput } from "./log.js";
 
 const loaded = loadReadRelayConfig(process.env);
@@ -21,8 +22,10 @@ const relay = createIndexerRelay({
   indexerWS: cfg.indexerWS,
   allowedOrigins: cfg.allowedOrigins,
 });
+// GET /cardano/tx/<hash>, only when a Cardano project id is set (cardano-relay.ts).
+const cardano = cfg.cardano ? createCardanoRelay(cfg.cardano) : undefined;
 const ip = (req: Parameters<typeof clientIp>[0]) => clientIp(req, cfg.trustProxyHops);
-const server = createServer((req, res) => void readRelayHandler(relay, cfg, ip)(req, res));
+const server = createServer((req, res) => void readRelayHandler(relay, cfg, ip, cardano)(req, res));
 relay.attach(server, ip);
 server.requestTimeout = 60_000;
 server.listen(cfg.port, () =>
@@ -30,6 +33,7 @@ server.listen(cfg.port, () =>
     port: cfg.port,
     network: cfg.network,
     origins: cfg.allowedOrigins,
+    cardano: cfg.cardano?.network ?? "off",
   }),
 );
 

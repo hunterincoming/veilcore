@@ -68,6 +68,9 @@ export const AGREEMENT_FEATURES = Object.freeze({
   "payment-receipts-v1": "receipts from payment partners",
   // Ships with agreements (config/copy.ts PASSKEY_BACKUP): the lost-phone way back.
   "passkey-vault-v1": "the backup copy that opens with a passkey",
+  // A licensor's record's public check page says a royalty statement is overdue, or a license
+  // was revoked for non-payment (bboard-ui veilcore/license-notices.ts, docs/royalty-pay.md).
+  "license-notices-v1": "overdue and revoked-for-non-payment notices on a record's check page",
 });
 
 /** Whether the site's source has agreements switched on for mainnet (config/copy.ts). */

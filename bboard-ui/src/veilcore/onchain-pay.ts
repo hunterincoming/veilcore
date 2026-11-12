@@ -234,6 +234,20 @@ export const keepSent = (statementSig: string, txId: string): void => {
   }
 };
 
+/**
+ * Forget the transaction kept for this statement: only when the payer says it never went (not
+ * in their wallet's history), so the page offers to pay again.
+ */
+export const forgetSent = (statementSig: string): void => {
+  try {
+    const all = sentAll();
+    delete all[statementSig];
+    localStorage.setItem(SENT_KEY, JSON.stringify(all));
+  } catch {
+    /* nothing kept to forget */
+  }
+};
+
 // ---- one payment, one statement, across every deal -------------------------------------
 //
 // reusedPayments catches one transaction given for two statements of the same deal. A

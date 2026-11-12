@@ -284,6 +284,7 @@ export const royalties = {
   'app.roy.st.short': 'Short payment',
   'app.roy.st.paid': 'Paid, waiting for confirmation',
   'app.roy.st.received': 'Receipt confirmed',
+  'app.roy.st.settled': 'Paid, checked on Cardano',
   'app.roy.st.nothing-due': 'Accepted, nothing to pay',
   'app.roy.st.replaced': 'Replaced by report {n}',
   'app.roy.pay.title': 'Pay this report',

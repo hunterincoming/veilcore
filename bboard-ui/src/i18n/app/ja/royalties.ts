@@ -271,6 +271,7 @@ export const royalties = {
   'app.roy.st.short': '支払い不足',
   'app.roy.st.paid': '支払い済み・確認待ち',
   'app.roy.st.received': '受領確認済み',
+  'app.roy.st.settled': '支払い済み、Cardano上で確認済み',
   'app.roy.st.nothing-due': '承認済み・支払いなし',
   'app.roy.st.replaced': '報告{n}に置き換え',
   'app.roy.pay.title': 'この報告を支払う',
