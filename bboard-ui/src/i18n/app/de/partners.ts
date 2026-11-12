@@ -18,7 +18,7 @@ export const partners = {
     'Sobald der Datensatz in einem datierten Stapel ist, kann jeder nachsehen, bis wann sein Prüfcode existierte. Das Datum stammt von Midnight, nicht von VeilCore oder vom Antragsteller.',
   'app.partners.gives.3.t': 'Laborsignaturen, geprüft',
   'app.partners.gives.3.d':
-    'Empfangsbestätigungen für Proben und Laborberichte, jede Signatur geprüft, und ob der Betreiber von VeilCore den Namen des Labors mit einem öffentlichen Verzeichnis abgeglichen hat. Eine Empfangsbestätigung zählt nur, wenn das Register sie einer Lieferung des Datensatzes zuordnet, und Sie sehen, ob das Angekommene zum Gesendeten passt.',
+    'Die Empfangsbestätigungen für Proben und Laborberichte, die der Antragsteller zeigt, jede Signatur geprüft, und ob der Betreiber von VeilCore den Namen des Labors mit einem öffentlichen Verzeichnis abgeglichen hat. Laborsignaturen sind privat, außer der Antragsteller zeigt sie. Eine Empfangsbestätigung zählt nur, wenn das Register sie einer Lieferung des Datensatzes zuordnet, und Sie sehen, ob das Angekommene zum Gesendeten passt.',
   'app.partners.gives.4.t': 'Dieselbe Prüfung für alle',
   'app.partners.gives.4.d': 'Der Link jedes Antragstellers wird auf dieselbe Weise geprüft, von Ihrer Seite.',
   'app.partners.not.title': 'Was es nicht zeigt',
