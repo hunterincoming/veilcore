@@ -305,7 +305,7 @@ export const labresult = {
   'app.lr.form.cultureAdd': '培地を追加',
   'app.lr.form.lodValue': '検出限界',
   'app.lr.form.unit': '単位（CFU/g、CFU/25 gなど）',
-  'app.lr.form.countValue': '報告どおりの数',
+  'app.lr.form.countValue': '報告どおりの数（任意：方法が数を出さない場合は空欄）',
   'app.lr.form.positive': '陽性対照（微生物と量）',
   'app.lr.form.positiveGrew': '陽性対照',
   'app.lr.form.negativeGrew': '陰性対照',
@@ -324,7 +324,7 @@ export const labresult = {
   'app.lr.problem.cultures': '各培地を時間と温度とともに入力してください。1～4件で、重複はできません。',
   'app.lr.problem.lod': '検出限界は0より大きい数値と単位です（指数表記は使わず、1e3ではなく1000と書いてください）。',
   'app.lr.problem.count':
-    '生存微生物が検出された場合は、報告書の数（0より大きい値）を単位とともに入力してください。検出されなかった場合は数を入力しません。検出限界がそれを示します。',
+    '生存微生物が検出された場合、数は任意です（増菌培養では数が出ません）。入力する場合は0より大きい値を単位とともに入力してください。検出されなかった場合は数を入力しません。検出限界がそれを示します。',
   'app.lr.problem.controls':
     '対照の結果を選んでください。陽性対照が発育しなかった試験、または陰性対照が発育した試験には署名できません。再試験して、その結果に署名してください。',
   'app.lr.check.paired':
@@ -357,4 +357,5 @@ export const labresult = {
     'この結果は同じ鍵で署名された結果{by}によって取り下げられているため、工程前サンプルの結果{code}とはもう組として扱われません。',
   'app.lr.check.pairReplacedAfter':
     'この結果は同じ鍵で署名された結果{by}に置き換えられているため、工程前サンプルの結果{code}とはもう組として扱われません。新しい結果を確認してください。',
+  'app.lr.f.noCount': '生存微生物を検出（数の報告なし）',
 } satisfies Partial<AppTranslation>;

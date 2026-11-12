@@ -316,7 +316,7 @@ export const labresult = {
   'app.lr.form.cultureAdd': 'Nährmedium hinzufügen',
   'app.lr.form.lodValue': 'Nachweisgrenze',
   'app.lr.form.unit': 'Einheit (KBE/g, KBE je 25 g …)',
-  'app.lr.form.countValue': 'Anzahl wie berichtet',
+  'app.lr.form.countValue': 'Anzahl wie berichtet (optional: leer lassen, wenn das Verfahren keine liefert)',
   'app.lr.form.positive': 'Positivkontrolle (Organismus und Menge)',
   'app.lr.form.positiveGrew': 'Positivkontrolle',
   'app.lr.form.negativeGrew': 'Negativkontrolle',
@@ -336,7 +336,7 @@ export const labresult = {
   'app.lr.problem.cultures': 'Geben Sie jedes Nährmedium mit Dauer und Temperatur an: 1 bis 4, keines doppelt.',
   'app.lr.problem.lod': 'Die Nachweisgrenze ist eine Zahl über 0 mit ihrer Einheit (ohne Exponent: 1000, nicht 1e3).',
   'app.lr.problem.count':
-    'Wenn lebensfähige Organismen nachgewiesen wurden, geben Sie die Anzahl aus dem Bericht an, über 0, mit ihrer Einheit. Wenn keine nachgewiesen wurden, gibt es keine Anzahl: Die Nachweisgrenze sagt es.',
+    'Wenn lebensfähige Organismen nachgewiesen wurden, ist eine Anzahl optional (eine Anreicherung liefert keine); wenn angegeben, liegt sie über 0, mit ihrer Einheit. Wenn keine nachgewiesen wurden, gibt es keine Anzahl: Die Nachweisgrenze sagt es.',
   'app.lr.problem.controls':
     'Geben Sie an, wie die Kontrollen ausfielen. Ein Lauf, bei dem die Positivkontrolle nicht gewachsen ist oder die Negativkontrolle schon, kann nicht signiert werden: Testen Sie erneut und signieren Sie die Wiederholung.',
   'app.lr.check.paired':
@@ -369,4 +369,5 @@ export const labresult = {
     'Dieses Ergebnis wurde durch Ergebnis {by} zurückgezogen, mit demselben Schlüssel signiert, und gilt daher nicht mehr als Paar mit dem Ergebnis der Probe vor dem Abtötungsschritt {code}.',
   'app.lr.check.pairReplacedAfter':
     'Dieses Ergebnis wurde durch Ergebnis {by} ersetzt, mit demselben Schlüssel signiert, und gilt daher nicht mehr als Paar mit dem Ergebnis der Probe vor dem Abtötungsschritt {code}: Prüfen Sie das neuere Ergebnis.',
+  'app.lr.f.noCount': 'Lebensfähige Organismen nachgewiesen (keine Anzahl berichtet)',
 } satisfies Partial<AppTranslation>;

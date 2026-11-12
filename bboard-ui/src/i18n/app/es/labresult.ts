@@ -312,7 +312,7 @@ export const labresult = {
   'app.lr.form.cultureAdd': 'Añadir un medio',
   'app.lr.form.lodValue': 'Límite de detección',
   'app.lr.form.unit': 'Unidad (UFC/g, UFC por 25 g…)',
-  'app.lr.form.countValue': 'Recuento según el informe',
+  'app.lr.form.countValue': 'Recuento según el informe (opcional: déjelo vacío si el método no da ninguno)',
   'app.lr.form.positive': 'Control positivo (organismo y cantidad)',
   'app.lr.form.positiveGrew': 'Control positivo',
   'app.lr.form.negativeGrew': 'Control negativo',
@@ -333,7 +333,7 @@ export const labresult = {
   'app.lr.problem.lod':
     'El límite de detección es un número mayor que 0, con su unidad (sin exponente: escriba 1000, no 1e3).',
   'app.lr.problem.count':
-    'Si se recuperaron organismos viables, indique el recuento que da el informe, mayor que 0, con su unidad. Si no se recuperó ninguno, no hay recuento: lo dice el límite de detección.',
+    'Si se recuperaron organismos viables, el recuento es opcional (un enriquecimiento no da ninguno); si se indica, es mayor que 0, con su unidad. Si no se recuperó ninguno, no hay recuento: lo dice el límite de detección.',
   'app.lr.problem.controls':
     'Indique cómo salieron los controles. Una serie cuyo control positivo no creció, o cuyo control negativo sí, no se puede firmar: repita la prueba y firme la repetición.',
   'app.lr.check.paired':
@@ -366,4 +366,5 @@ export const labresult = {
     'Este resultado fue retirado por el resultado {by}, firmado con la misma clave, así que ya no se lee como par con el resultado de la muestra anterior {code}.',
   'app.lr.check.pairReplacedAfter':
     'Este resultado fue sustituido por el resultado {by}, firmado con la misma clave, así que ya no se lee como par con el resultado de la muestra anterior {code}: consulte el resultado más reciente.',
+  'app.lr.f.noCount': 'Se recuperaron organismos viables (sin recuento informado)',
 } satisfies Partial<AppTranslation>;

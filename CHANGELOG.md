@@ -26,7 +26,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   page says which one was withdrawn); a pair needs both tests to look for the same thing, and says
   so when the methods differ; the lab form refuses "1,000", "1.000", "0,5" and other separated
   numbers, with how to type them, instead of reading "1,000" as 1; none recovered has no count and
-  reads as "< {limit of detection}", never 0; the claim note says a claim doesn't show whether the
+  reads as "< {limit of detection}", never 0, and some recovered may leave the count out
+  (an enrichment test gives none: "no count reported"); the claim note says a claim doesn't show whether the
   sample was taken before or after the kill step; Japanese no longer calls that claim a proof; the
   standards are cited correctly; Spanish, German and French wording fixed.
 - Lab signing stays on the test network only.
