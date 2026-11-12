@@ -57,6 +57,9 @@
     },
     "@midnightntwrk/ledger-v9": "1.0.0",
     "@midnightntwrk/onchain-runtime-v4": "4.0.0",
+    "@midnightntwrk/wallet-sdk-node-client": {
+      "testcontainers": "^12.0.1"
+    },
     "vite-plugin-top-level-await": {
       "uuid": "^11.1.1"
     }
