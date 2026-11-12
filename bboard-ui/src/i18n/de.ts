@@ -65,6 +65,8 @@ export const de: Strings = {
   'm.hero.title1': 'Datieren Sie Ihren Datensatz.',
   'm.hero.title2': 'Ihre Genetik bleibt privat.',
   'm.hero.how': 'So funktioniert es',
+  'm.hero.pasteQ': 'Laborcode oder Link von jemandem bekommen?',
+  'm.hero.pasteGo': 'Hier einfügen →',
   'm.hero.cultivar': 'Sorte',
   'm.hero.bredBy': 'Gezüchtet von',
   'm.hero.bredByDefault': 'Ihr Name',
@@ -87,6 +89,9 @@ export const de: Strings = {
   'm.demo.verify.title': 'Datensatz prüfen',
   'm.demo.verify.text':
     'Geben Sie die Kennung eines Datensatzes ein und sehen Sie, was sein Inhaber offengelegt hat und ob er verankert ist.',
+  'm.demo.paste.title': 'Code oder Link bekommen?',
+  'm.demo.paste.text':
+    'Ein Labor mit dem Laborcode eines Züchters, oder jemand mit einem Link zu einem Datensatz oder einer Vereinbarung zum Unterschreiben: einfügen, und die passende Seite öffnet sich.',
   'm.demo.video.title': 'Ansehen, wie es funktioniert',
   'm.demo.video.text':
     'Eine 60-Sekunden-Animation der Idee: was bei Ihnen bleibt, was auf Midnight kommt und wie jemand es prüft.',

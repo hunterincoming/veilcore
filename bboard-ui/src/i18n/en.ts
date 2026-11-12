@@ -104,6 +104,8 @@ export const en = {
   'm.hero.lede':
     'For breeders, seed companies and labs working with plant and animal genetics: give your records a date nobody can backdate. Your genetic data stays locked: DNA files never leave your computer, and what you type reaches our server locked. Only a proof code goes on Midnight, which dates it.',
   'm.hero.how': 'How it works',
+  'm.hero.pasteQ': 'Got a lab code or a link from someone?',
+  'm.hero.pasteGo': 'Paste it here →',
   'm.hero.cultivar': 'Cultivar',
   'm.hero.bredBy': 'Bred by',
   'm.hero.bredByDefault': 'Your name here',
@@ -261,6 +263,9 @@ export const en = {
   'm.demo.create.text': 'A made-up plant, animal or document: seal it, save your backup, then see its page.',
   'm.demo.verify.title': 'Verify a record',
   'm.demo.verify.text': "Enter a record's identifier and see what its holder disclosed and whether it is anchored.",
+  'm.demo.paste.title': 'Got a code or link?',
+  'm.demo.paste.text':
+    "A lab with a breeder's lab code, or anyone sent a record link or an agreement to sign: paste it and the right screen opens.",
   'm.demo.video.title': 'Watch how it works',
   'm.demo.video.text':
     'A 60-second animation of the idea: what stays with you, what goes on Midnight, and how someone checks it.',

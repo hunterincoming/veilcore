@@ -713,6 +713,13 @@ export const hydrate = async (opts: { resave?: boolean } = {}): Promise<void> =>
 
 /**
  * hydrate, saying whether the registry answered: true when what is shown is its set now; false
+ * when what is shown is only this browser's copy (refresh). After a claim, the lab view is
+ * judged on the first only (ClaimTransfer.tsx, role.ts roleAfterReceiving).
+ */
+export const hydrateAnswered = (): Promise<boolean> => refresh();
+
+/**
+ * hydrate, saying whether the registry answered: true when what is shown is its set now; false
  * when it couldn't, and what is shown is this browser's copy. A correction needs the first
  * (issueCorrection), and so does saving IDs (ask-job/save-ids.ts).
  */

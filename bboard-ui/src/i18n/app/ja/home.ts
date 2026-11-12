@@ -104,6 +104,7 @@ export const home = {
   'app.home.paste.label': 'コードやリンクが送られてきましたか？',
   'app.home.paste.placeholder': 'ここに貼り付け',
   'app.home.paste.go': '開く',
+  'app.home.paste.orMake': '貼り付けるものがない場合は、記録を作る',
   'app.home.paste.hint':
     'ラボコード、記録のリンク、記録の保有の証明リクエスト、署名する契約。どれかはこちらで判断します。',
   'app.home.paste.whichPlant': '保有の証明を求めるリクエストです。どの植物について聞かれましたか？',

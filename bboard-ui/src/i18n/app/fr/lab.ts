@@ -265,9 +265,21 @@ export const lab = {
     ' · pas encore publiée : d’ici là, personne ne peut rattacher vos signatures à ce nom.',
   'app.lab.key.publishAgain': 'Publier de nouveau',
   'app.lab.key.publicKey': 'Clé publique',
-  'app.lab.key.domain.title': 'Votre clé sur votre propre site',
-  'app.lab.key.domain.why':
-    'Placez ce fichier sur votre site à /.well-known/veilcore-lab.json, saisissez votre domaine ci-dessous et appuyez sur « Vérifier maintenant ». Votre clé désigne le site et le site publie votre clé : chacun peut voir qu’ils vont ensemble sans demander à VeilCore, et les pages qui affichent vos signatures le disent. Pour retirer la clé, enlevez-la du fichier.',
+  'app.lab.key.ready':
+    'Votre clé est prête. Vous pouvez maintenant signer qu’un échantillon est arrivé et signer vos rapports de laboratoire.',
+  'app.lab.key.continue': 'Continuer',
+  'app.lab.key.optional.title': 'Montrer que cette clé est celle de votre laboratoire (facultatif, une seule fois)',
+  'app.lab.key.optional.intro':
+    'Ce n’est pas nécessaire pour recevoir des échantillons ni pour signer. Cela permet à quiconque vérifie votre signature de voir que le nom est celui de votre laboratoire. Nous vérifions le nom ; nous ne nous portons pas garants de votre travail.',
+  'app.lab.key.optional.step1':
+    'Envoyez-nous votre inscription publique de licence ou d’accréditation à <mail>hunter@veilcore.org</mail>.',
+  'app.lab.key.optional.step2':
+    'Ou, si vous gérez le site de votre laboratoire : placez ce fichier à /.well-known/veilcore-lab.json, saisissez votre domaine et appuyez sur « Vérifier maintenant ». Chacun peut alors voir que la clé et le site vont ensemble sans demander à VeilCore. Pour retirer la clé, enlevez-la du fichier.',
+  'app.lab.key.optional.otherWays': 'Autres moyens',
+  'app.lab.key.showKey': 'Afficher la clé',
+  'app.lab.key.hideKey': 'Masquer la clé',
+  'app.lab.key.copyKey': 'Copier la clé',
+  'app.lab.key.copied': 'Copiée',
   'app.lab.key.domain.saveFile': 'Enregistrer veilcore-lab.json',
   'app.lab.key.domain.orTxt':
     'Ou, si vous ne pouvez modifier que votre DNS, ajoutez cet enregistrement TXT à _veilcore-lab.<votre domaine> :',
@@ -281,7 +293,7 @@ export const lab = {
     'Votre clé privée est stockée dans l’espace de stockage de ce navigateur, non chiffrée, et nulle part ailleurs. C’est suffisant pour essayer. Tout ce qui peut s’exécuter sur ce site, ou une extension de navigateur qui y a accès, pourrait la lire. Si vous la perdez, vous ne pourrez plus rien signer de nouveau ; ce que vous avez signé reste valide, alors sauvegardez-la en lieu sûr. Un laboratoire qui l’utiliserait réellement signerait dans ses propres systèmes : voir le <link>guide d’intégration</link>.',
   'app.lab.key.downloadBackup': 'Télécharger la copie de secours de la clé',
   'app.lab.key.backupNow':
-    'La clé de votre laboratoire n’est que dans ce navigateur. Enregistrez votre copie de secours maintenant : un téléphone ou un ordinateur perdu ne la perd plus, et votre premier code fonctionne tout de suite.',
+    'La clé de votre laboratoire n’est que dans ce navigateur, et aucune copie de secours enregistrée avant ne la contient. Enregistrez maintenant une nouvelle copie, pour ne pas perdre votre clé avec un téléphone ou un ordinateur perdu.',
   'app.lab.key.backedUp': 'Copie de secours enregistrée et vérifiée.',
   'app.lab.key.matchHow':
     'Pour apparaître comme vérifié, envoyez-nous votre inscription publique de licence ou d’accréditation à <mail>hunter@veilcore.org</mail>. Nous vérifions le nom ; nous ne nous portons pas garants de votre travail.',

@@ -55,6 +55,23 @@ export const setRole = (r: Role): void => {
 /** Whether to show the things a breeder does: log, send, license. */
 export const isBreeder = (r: Role | null): boolean => r === 'breeder' || r === 'both' || r === null;
 
+/**
+ * The view to switch to once this browser has received a delivery, or null to leave it.
+ * A first visit never asks who you are (App.tsx), so a lab arriving with a code was shown a
+ * breeder's Home ("Your plants", "Log new") with its sample on it and no lab tools (a lab
+ * tested it, 8 Nov). Someone who has never said, and holds no records of their own, is a
+ * lab or a receiver of material: the lab view. Anyone who chose a view, or keeps their own
+ * records here, keeps theirs, and so does anyone whose records couldn't be read just now (a
+ * breeder who restored a backup on a new device while the registry was unreachable would
+ * otherwise look like a newcomer).
+ */
+export const roleAfterReceiving = (
+  current: Role | null,
+  hasOwnRecords: boolean,
+  /** Whether the registry answered the read `hasOwnRecords` comes from; without it, no change. */
+  loaded: boolean,
+): Role | null => (loaded && current === null && !hasOwnRecords ? 'lab' : null);
+
 /** Whether to show the things a lab does: receive, attest, retract. */
 export const isLab = (r: Role | null): boolean => r === 'lab' || r === 'both';
 

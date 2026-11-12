@@ -291,6 +291,36 @@ export const retract = async (
   }
 };
 
+// --- whether a checked backup holds this lab key -----------------------------------------
+//
+// The key is made in this browser and lives nowhere else until a backup holding it has been
+// saved and opened again (backup.ts checkBackup). A backup made before the key (the one a lab
+// saves to receive its first code) doesn't hold it, so the key screen keeps asking until one
+// does (verification of 8 Nov: a lab that pressed Continue and skipped it lost its key with
+// the browser). Kept as the public key that was backed up, so a different key is never
+// taken as backed up.
+const BACKED_UP = 'veilcore.attester.backed-up.v1';
+
+/** Note that a checked backup holds the lab key `publicKey` (backup.ts checkBackup, a restore). */
+export const markLabKeyBackedUp = (publicKey: string): void => {
+  try {
+    localStorage.setItem(BACKED_UP, publicKey);
+  } catch {
+    /* asked again next time */
+  }
+};
+
+/** Whether a checked backup holds this browser's lab key. False with no key. */
+export const labKeyBackedUp = (): boolean => {
+  const lab = loadAttester();
+  if (!lab) return false;
+  try {
+    return localStorage.getItem(BACKED_UP) === lab.keypair.publicKey;
+  } catch {
+    return false;
+  }
+};
+
 /**
  * Adopt a lab's signing profile from the one-file backup (backup.ts) on a new device.
  * Refuses to replace a different key already in this browser: a published key replaced

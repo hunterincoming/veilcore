@@ -6,7 +6,7 @@
 // list of this holder's own transfers; nothing is changed by asking.
 // SPDX-License-Identifier: Apache-2.0
 
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Alert, Box, Button, Paper, Stack, TextField, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { recognise } from '../../veilcore/paste';
@@ -16,8 +16,25 @@ import { useRecords } from '../../veilcore/records';
 import { useRecordKeys } from '../../veilcore/record-keys';
 import { useT } from '../../i18n/app';
 
-export const PasteBox: React.FC = () => {
+export const PasteBox: React.FC<{
+  /**
+   * Home opened to paste something (/records?paste, site/paste-entry.ts): the box is the
+   * page's first thing and its heading, and the field has focus, so a lab arriving with a
+   * code from the landing page pastes it straight away.
+   */
+  lead?: boolean;
+  /** Give the field focus as the page opens (with `lead`, or first under a returning holder's heading). */
+  focus?: boolean;
+}> = ({ lead = false, focus = lead }) => {
   const [value, setValue] = useState('');
+  const field = useRef<HTMLInputElement>(null);
+  // After the new page's heading focus (App.tsx NewPageFocus, focusScreenHeading), which
+  // runs as the page draws: the field takes it from there.
+  useEffect(() => {
+    if (!focus) return;
+    const timer = window.setTimeout(() => field.current?.focus({ preventScroll: true }), 150);
+    return () => window.clearTimeout(timer);
+  }, [focus]);
   const [problem, setProblem] = useState<string>();
   const [choose, setChoose] = useState<string>(); // a proof request, waiting for "which plant?"
   const [busy, setBusy] = useState(false);
@@ -68,18 +85,25 @@ export const PasteBox: React.FC = () => {
   };
 
   return (
-    <Paper sx={{ p: { xs: 2, md: 2.5 } }}>
-      <Typography
-        component="label"
-        htmlFor="paste-box"
-        variant="subtitle1"
-        sx={{ fontWeight: 700, display: 'block', mb: 1 }}
-      >
-        {t('app.home.paste.label')}
-      </Typography>
+    <Paper sx={{ p: { xs: 2, md: 2.5 } }} data-paste-box={lead ? 'lead' : ''}>
+      {lead ? (
+        <Typography variant="h5" component="h1" sx={{ fontWeight: 700, mb: 1.5 }}>
+          <label htmlFor="paste-box">{t('app.home.paste.label')}</label>
+        </Typography>
+      ) : (
+        <Typography
+          component="label"
+          htmlFor="paste-box"
+          variant="subtitle1"
+          sx={{ fontWeight: 700, display: 'block', mb: 1 }}
+        >
+          {t('app.home.paste.label')}
+        </Typography>
+      )}
       <Stack direction="row" spacing={1}>
         <TextField
           id="paste-box"
+          inputRef={field}
           placeholder={t('app.home.paste.placeholder')}
           value={value}
           onChange={(e) => setValue(e.target.value)}

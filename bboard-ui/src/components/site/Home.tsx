@@ -28,6 +28,7 @@ import { IS_TEST_SITE, MAINNET_SENDS, THIS_BUILD, useI18n } from '../../i18n';
 import { FOUNDERS_MAIL, RoleLine, SDK_REPO, SiteShell, X_HANDLE } from './SiteShell';
 import { FoldGroup, FoldItem, FoldPoint, usePhone } from './Fold';
 import { hasRecordsHere } from './returning';
+import { PASTE_ENTRY } from './paste-entry';
 import { IS_MAINNET, MAINNET_CLAIMS_ADDRESS, MAINNET_CONTRACT_ADDRESS, explorerFor } from '../../config/network';
 import { AGREEMENTS_LIVE, ROYALTIES_RUN_ON_MAINNET, ROYALTIES_RUN_ON_TEST } from '../../config/copy';
 
@@ -530,6 +531,15 @@ export const Home: React.FC = () => {
                 {t('m.hero.how')}
               </a>
             </div>
+            {/* The third way in (a lab tested it, 8 Nov): anyone who was sent a lab code or a
+                link goes straight to the box that opens it (paste-entry.ts). */}
+            <p className="hero-paste">
+              {t('m.hero.pasteQ')}
+              {sp}
+              <RouterLink to={PASTE_ENTRY} data-paste-entry="hero">
+                {t('m.hero.pasteGo')}
+              </RouterLink>
+            </p>
             <p className="hero-status">{t('m.hero.status')}</p>
           </div>
           <Fingerprint key={lang} />
@@ -710,6 +720,14 @@ export const Home: React.FC = () => {
             <RouterLink className="demo" to="/verify">
               <h3>{t('m.demo.verify.title')}</h3>
               <p>{t('m.demo.verify.text')}</p>
+              <div className="meta-row">
+                <span className="chip live">{t('m.chip.interactive')}</span>
+                <span className="chip">{t('m.chip.1min')}</span>
+              </div>
+            </RouterLink>
+            <RouterLink className="demo" to={PASTE_ENTRY} data-paste-entry="demo">
+              <h3>{t('m.demo.paste.title')}</h3>
+              <p>{t('m.demo.paste.text')}</p>
               <div className="meta-row">
                 <span className="chip live">{t('m.chip.interactive')}</span>
                 <span className="chip">{t('m.chip.1min')}</span>

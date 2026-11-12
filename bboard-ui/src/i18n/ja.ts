@@ -74,6 +74,8 @@ export const ja: Strings = {
   'm.hero.title1': '記録に日付を。',
   'm.hero.title2': '遺伝情報は非公開のまま。',
   'm.hero.how': '仕組みを見る',
+  'm.hero.pasteQ': 'ラボコードやリンクが送られてきましたか？',
+  'm.hero.pasteGo': 'ここに貼り付ける →',
   'm.hero.cultivar': '品種',
   'm.hero.bredBy': '育成者',
   'm.hero.bredByDefault': 'お名前',
@@ -94,6 +96,9 @@ export const ja: Strings = {
   'm.demo.create.text': '架空の植物、動物、または書類を封印し、バックアップを保存して、そのページを開きます。',
   'm.demo.verify.title': '記録を検証する',
   'm.demo.verify.text': '記録の識別子を入力すると、保有者が開示した内容と、アンカー済みかどうかを確認できます。',
+  'm.demo.paste.title': 'コードやリンクをお持ちですか？',
+  'm.demo.paste.text':
+    '育成者からラボコードを受け取ったラボや、記録のリンク・署名する契約を受け取った方は、貼り付けるだけで必要な画面が開きます。',
   'm.demo.video.title': '仕組みを動画で見る',
   'm.demo.video.text':
     '考え方を60秒のアニメーションで紹介します。手元に残るもの、Midnightに載るもの、そして相手がそれをどう確認するか。',

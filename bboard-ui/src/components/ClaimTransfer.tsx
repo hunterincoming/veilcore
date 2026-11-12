@@ -59,13 +59,15 @@ import {
   type CustodySubject,
   type SampleDetails,
 } from '../veilcore/transfers';
-import { hydrate, RECORDS_KEY, updateReceivedNotes, type StrainRecord } from '../veilcore/records';
+import { allRecords, hydrateAnswered, RECORDS_KEY, updateReceivedNotes, type StrainRecord } from '../veilcore/records';
+import { getRole, roleAfterReceiving, setRole } from '../veilcore/role';
 import { rowStateOf } from '../veilcore/api-store';
 import { claimWithCode, finishReceiving, readyToReceive, receiptBlocker } from '../veilcore/receive';
 import { loadAttester, type AttesterProfile } from '../veilcore/attester-keys';
 import {
   deliveryForRecord,
   labChanged,
+  LAB_CHANGED_EVENT,
   markReceiptLinked,
   rememberDelivery,
   reportLockFor,
@@ -77,6 +79,7 @@ import { BackupStep } from './flow/BackupStep';
 import { rich, useT } from '../i18n/app';
 import { enT, type Translator } from '../i18n/translate';
 import { SupportDetails } from './SupportDetails';
+import { OPEN_SIGNING_KEY_EVENT } from './AttesterSetup';
 
 /** Opens the header's receive dialog from elsewhere on the page (a lab's first screen). */
 export const OPEN_RECEIVE_EVENT = 'veilcore:open-receive';
@@ -504,6 +507,13 @@ export const SignReceiptPanel: React.FC<{
   receipt?: LabReceipt | null;
   onDone: () => void;
 }> = ({ record, receipt, onDone }) => {
+  // Read again when the lab's key is made in the dialog this panel opens.
+  const [, setKeyVersion] = useState(0);
+  useEffect(() => {
+    const bump = () => setKeyVersion((v) => v + 1);
+    window.addEventListener(LAB_CHANGED_EVENT, bump);
+    return () => window.removeEventListener(LAB_CHANGED_EVENT, bump);
+  }, []);
   const attester = loadAttester();
   const [subject, setSubject] = useState<CustodySubject | { refuse: string } | null>(null);
   const [busy, setBusy] = useState(false);
@@ -573,8 +583,20 @@ export const SignReceiptPanel: React.FC<{
   }
   if (!attester) {
     return (
-      <Alert severity="info" variant="outlined">
+      // With the way to do it, here (a lab tested it, 8 Nov): the words alone were a dead end.
+      <Alert severity="info" variant="outlined" data-sign-needs-key="">
         {t('app.lab.recv.setUpFirst')}
+        {/* Under the words, not beside them: on a phone a button beside them squeezed the text. */}
+        <Box sx={{ mt: 1.25 }}>
+          <Button
+            color="inherit"
+            variant="outlined"
+            onClick={() => window.dispatchEvent(new Event(OPEN_SIGNING_KEY_EVENT))}
+            sx={{ minHeight: 44 }}
+          >
+            {t('app.plant.next.setup.action')}
+          </Button>
+        </Box>
       </Alert>
     );
   }
@@ -754,7 +776,17 @@ export const ClaimTransfer: React.FC<{
         ...(resultLock ? { recipient: resultLock } : {}),
         receivedAt: Date.now(),
       });
-      await hydrate();
+      const loaded = await hydrateAnswered();
+      // A first-time lab gets the lab view from here on (role.ts roleAfterReceiving), judged
+      // only on the registry's own answer: when it couldn't answer, what is shown is this
+      // browser's copy, which on a new device holds none of a breeder's records, so the view
+      // is left as it is (verification, 8 Nov).
+      const view = roleAfterReceiving(
+        getRole(),
+        allRecords().some((r) => !r.receivedFrom),
+        loaded,
+      );
+      if (view) setRole(view);
       // The registry leaves only a stub (the name, where it came from); what the sender said
       // about the material is in their sealed offer, opened here with the code's key, and the
       // received record is sealed with the recipient's own commitment and saved. Nothing goes

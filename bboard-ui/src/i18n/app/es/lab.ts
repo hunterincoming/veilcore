@@ -260,9 +260,21 @@ export const lab = {
     ' · todavía no publicada: hasta que lo esté, nadie puede relacionar sus firmas con este nombre.',
   'app.lab.key.publishAgain': 'Publicar de nuevo',
   'app.lab.key.publicKey': 'Clave pública',
-  'app.lab.key.domain.title': 'Su clave en su propio sitio web',
-  'app.lab.key.domain.why':
-    'Ponga este archivo en su sitio web en /.well-known/veilcore-lab.json, escriba su dominio abajo y pulse «Consultar ahora». Su clave nombra el sitio y el sitio publica su clave, así cualquiera puede ver que van juntos sin preguntar a VeilCore, y las páginas que muestran sus firmas lo dicen. Para retirar la clave, quítela del archivo.',
+  'app.lab.key.ready':
+    'Su clave está lista. Ya puede firmar que llegó una muestra y firmar sus informes de laboratorio.',
+  'app.lab.key.continue': 'Continuar',
+  'app.lab.key.optional.title': 'Mostrar que esta clave es de su laboratorio (opcional, una sola vez)',
+  'app.lab.key.optional.intro':
+    'No lo necesita para recibir muestras ni para firmar. Permite que quien compruebe su firma vea que el nombre es de su laboratorio. Comprobamos el nombre; no respondemos por su trabajo.',
+  'app.lab.key.optional.step1':
+    'Envíenos su registro público de licencia o acreditación a <mail>hunter@veilcore.org</mail>.',
+  'app.lab.key.optional.step2':
+    'O, si gestiona el sitio web de su laboratorio: ponga este archivo en /.well-known/veilcore-lab.json, escriba su dominio y pulse «Consultar ahora». Así cualquiera puede ver que la clave y el sitio van juntos sin preguntar a VeilCore. Para retirar la clave, quítela del archivo.',
+  'app.lab.key.optional.otherWays': 'Otras formas',
+  'app.lab.key.showKey': 'Mostrar clave',
+  'app.lab.key.hideKey': 'Ocultar clave',
+  'app.lab.key.copyKey': 'Copiar clave',
+  'app.lab.key.copied': 'Copiada',
   'app.lab.key.domain.saveFile': 'Guardar veilcore-lab.json',
   'app.lab.key.domain.orTxt': 'O, si solo puede cambiar su DNS, añada este registro TXT en _veilcore-lab.<su dominio>:',
   'app.lab.key.domain.field': 'Dominio de su sitio web',
@@ -275,7 +287,7 @@ export const lab = {
     'Su clave privada se guarda en el almacenamiento de este navegador, sin cifrar, y en ningún otro lugar. Para probar está bien. Cualquier cosa que pueda ejecutarse en este sitio, o una extensión del navegador con acceso a él, podría leerla. Si la pierde, no podrá firmar nada nuevo; lo que firmó antes sigue siendo válido, así que guarde una copia en un lugar seguro. Un laboratorio que la use de verdad firmaría dentro de sus propios sistemas: consulte la <link>guía de integración</link>.',
   'app.lab.key.downloadBackup': 'Descargar la copia de seguridad de la clave',
   'app.lab.key.backupNow':
-    'La clave de su laboratorio solo está en este navegador. Guarde ahora su copia de seguridad: así no se pierde con un teléfono o una computadora perdidos, y su primer código funciona enseguida.',
+    'La clave de su laboratorio solo está en este navegador, y ninguna copia de seguridad anterior la contiene. Guarde ahora una copia nueva, para no perder la clave si pierde el teléfono o la computadora.',
   'app.lab.key.backedUp': 'Copia de seguridad guardada y comprobada.',
   'app.lab.key.matchHow':
     'Para aparecer como verificado, envíenos su registro público de licencia o acreditación a <mail>hunter@veilcore.org</mail>. Comprobamos el nombre; no respondemos por su trabajo.',
