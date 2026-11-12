@@ -565,7 +565,15 @@ export class VeilcoreRecordCheck extends HTMLElement {
         items.push(
           line('info', 'And', `${c.labReceipts.length - shown.length} more signatures (see the full check page).`),
         );
-      if (c.labReceipts.length === 0) items.push(line('info', 'Lab signatures:', 'none about this record.'));
+      // Private unless the holder shows them (8 Nov 2026): never "none about this record".
+      if (c.labReceipts.length === 0)
+        items.push(
+          line(
+            'info',
+            'Lab signatures:',
+            'the holder hasn’t shown any. A lab’s receipts and reports are private unless the holder chooses to show them.',
+          ),
+        );
       if (c.keyBound.keyInLink !== 'not-given')
         items.push(line(c.keyBound.keyInLink === 'matches' ? 'ok' : 'warn', 'Key:', c.keyBound.reason));
       if (c.supersededBy)

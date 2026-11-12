@@ -169,7 +169,7 @@ export const prove = {
   'app.prove.share.nameWarning': 'Wenn eingeschaltet, sieht jeder mit der ID des Datensatzes den Namen.',
   'app.prove.share.labSigs.title': 'Laborsignaturen',
   'app.prove.share.labSigs.intro':
-    'Empfangsbestätigungen und Berichte eines Labors zu diesem Datensatz sind privat: Nur Sie und das Labor sehen sie. Schalten Sie eine ein, um sie auf Ihrem Prüflink zu zeigen. Jeder mit dem Link sieht dann, dass das Labor sie signiert hat, und den Namen des Labors.',
+    'Empfangsbestätigungen und Berichte eines Labors zu diesem Datensatz sind privat: Nur Sie und das Labor sehen sie. Schalten Sie eine ein, um sie auf Ihrem Prüflink zu zeigen und allen, die den Prüfcode dieses Datensatzes haben (Ihre Links, die eine Zahl belegen, enthalten ihn). Sie sehen dann, dass das Labor sie signiert hat, und den Namen des Labors.',
   'app.prove.share.labSigs.item': 'Auf Ihrem Prüflink zeigen, dass {who} dies signiert hat',
   'app.prove.share.labSigs.receipt': 'Empfangsbestätigung für eine Probe, signiert am {date}',
   'app.prove.share.labSigs.report': 'Laborbericht, signiert am {date}',

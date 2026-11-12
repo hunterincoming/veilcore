@@ -7,6 +7,10 @@
 //   GET /verify/:id                        the record, as its holder chose to share it
 //   GET /proof/:fingerprint                its inclusion proof (batch, root, date stamp)
 //   GET /attestations/subject/:fingerprint lab signatures about it
+// A lab's receipts and reports are private on the registry (since 8 Nov 2026): it answers only
+// the ones the holder chose to show, in /verify's `sharedAttestations` (and, since 12 Nov, by
+// proof code too). Both lists are read, each signature checked here the same way, and the
+// answer never says no lab signed: only that the holder hasn't shown any.
 // and then checks for itself whatever can be checked: the link's fingerprint against the
 // registry's answer, the inclusion proof folding to its batch root, every signature and
 // withdrawal, the lab report pairing, the record's key against the fingerprint, and (when
@@ -22,6 +26,9 @@ import { COMMITMENT_ALGORITHM, verifyInclusion, type InclusionProof } from 'veil
 import { fingerprintOfFields, isHex64, keyMatchesFingerprint, nameCodeOf } from './hash.js';
 import { CUT, LinkError, parseCheckLink, type CheckLink } from './link.js';
 import { checkSignatures, cleanName, type CustodyEntry, type LabReceipt } from './signatures.js';
+
+/** Most signatures a holder can show on one check link (the registry's limit). */
+const SHARED_MAX = 50;
 
 /** VeilCore's public registry. A partner may name another (or a copy it runs). */
 export const DEFAULT_REGISTRY = 'https://veilcore-api-production.up.railway.app';
@@ -139,7 +146,11 @@ export type RecordCheck = {
   readonly dated: Dated;
   readonly keyBound: KeyBound;
   readonly labReceipts: readonly LabReceipt[];
-  /** How many signatures the registry holds about the fingerprint (it sends at most 100). */
+  /**
+   * How many signatures the registry shows about the fingerprint (it sends at most 100): the
+   * public ones and those the holder chose to show. A lab's receipts and reports are private
+   * unless the holder shows them, so 0 never means no lab signed.
+   */
   readonly labReceiptsTotal: number;
   /** The registry's clock: when it first stored this content. Its word. */
   readonly registryFirstSeen: string | null;
@@ -394,7 +405,17 @@ export const checkRecord = async (linkOrId: string, opts: CheckOptions = {}): Pr
     problems.push('The registry did not send the lab signatures, so none were checked.');
   } else {
     const savedShared = typeof r.dnaPairedByHolder === 'boolean';
-    const out = await checkSignatures(attRes.body.attestations, fingerprint, {
+    // The open list, and the signatures the holder chose to show on this link (/verify's
+    // `sharedAttestations`): each is checked below like any other, and only those about this
+    // proof code are kept. A registry that also lists them by proof code sends them twice:
+    // each is read once.
+    const open: unknown[] = attRes.body.attestations;
+    const seen = new Set(open.map((a) => (isObject(a) && typeof a.attestationId === 'string' ? a.attestationId : '')));
+    const sharedList: unknown[] = Array.isArray(r.sharedAttestations) ? r.sharedAttestations.slice(0, SHARED_MAX) : [];
+    const shown = sharedList.filter(
+      (a) => isObject(a) && typeof a.attestationId === 'string' && !seen.has(a.attestationId),
+    );
+    const out = await checkSignatures([...open, ...shown], fingerprint, {
       now,
       custody: custodyOf(r.custody),
       savedReport: savedShared
@@ -409,7 +430,9 @@ export const checkRecord = async (linkOrId: string, opts: CheckOptions = {}): Pr
     });
     labReceipts = out.receipts;
     labReportsWithheld = out.withheld;
-    labReceiptsTotal = typeof attRes.body.total === 'number' ? attRes.body.total : labReceipts.length;
+    labReceiptsTotal =
+      (typeof attRes.body.total === 'number' ? attRes.body.total : open.length) +
+      shown.filter((a) => isObject(a) && a.subjectCommitment === fingerprint).length;
     if (out.withheld > 0)
       problems.push(
         `The registry says a lab signed ${out.withheld === 1 ? 'a report' : `${out.withheld} reports`} about this record before 17 October 2026. ${out.withheld === 1 ? 'That signature names' : 'Those signatures name'} the report file, so the registry shows ${out.withheld === 1 ? 'it' : 'them'} only to the delivery’s sender and lab, and ${out.withheld === 1 ? 'it was' : 'they were'} not checked here.`,
@@ -752,6 +775,10 @@ export const nameSentence = (
           ? `Name given in this link (not checked): “${p.nameInLink ?? ''}”.`
           : 'This link doesn’t carry the name.';
 
+/** What the answer says when it holds no lab signature: the holder's choice, never "no lab signed". */
+export const NONE_SHOWN =
+  'The holder hasn’t shown any lab signatures. A lab’s receipts and reports are private unless the holder chooses to show them.';
+
 /** One plain paragraph. Never says the material is anything. */
 export const summaryOf = (p: Parts): string => {
   if (p.linkLooksCut) return `${CUT} Nothing was checked.`;
@@ -787,10 +814,14 @@ export const summaryOf = (p: Parts): string => {
   const counted = p.labReceipts.filter((x) => x.counts);
   const named = counted.filter((x) => x.signer.nameCheck === 'checked');
   const withdrawn = p.labReceipts.filter((x) => x.withdrawn).length;
+  // A lab's receipts and reports are private unless the holder shows them (8 Nov 2026): none
+  // here says the holder hasn't shown any, never that no lab signed.
   parts.push(
-    counted.length === 0
-      ? 'No lab signature counts for it.'
-      : `${counted.length} lab signature${counted.length === 1 ? '' : 's'} verified (${named.length} with a name VeilCore’s operator checked).`,
+    p.labReceipts.length === 0
+      ? NONE_SHOWN
+      : counted.length === 0
+        ? 'No lab signature shown counts for it.'
+        : `${counted.length} lab signature${counted.length === 1 ? '' : 's'} verified (${named.length} with a name VeilCore’s operator checked).`,
   );
   if (withdrawn) parts.push(`${withdrawn} withdrawn by ${withdrawn === 1 ? 'its signer' : 'their signers'}.`);
   const custodyIssues = p.labReceipts.filter(

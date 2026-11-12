@@ -22,7 +22,9 @@
 - A lab's receipts and reports about your record are **private** (since the registry's 8
   November 2026 update): the registry shows them only to you and the lab, and to whoever
   sent the delivery. Your record's check page shows a lab signature only when you turn it on
-  under Show someone, "Lab signatures".
+  under Show someone, "Lab signatures". One you turn on is also shown to anyone who has the
+  record's proof code (it is on the check page, and your links that prove a number carry it),
+  until you turn it off.
 - The check and prove pages never send your holder key. A prove request tells our server
   which on-chain key it names.
 - Each release publishes the list of its files. You can check that the files your browser
@@ -104,7 +106,7 @@ record backup first.
 | Your sharing choices for each record's public check page, and the values you choose to show (readable: they are what the page shows) | What a stranger with the link sees | As long as the record |
 | Lab codes: a tag in place of the recipient's name (made with a key derived from your vault key, which we don't have; without it the tag can't be turned back into the name), the delivery's details (name, breeder, quantity, note) locked with a key that travels only in the lab code, a one-way digest of the claim code, which record it came from and was received as, which holder account received it, and (when filled in) the sample details: sample ID, seal number, where and when it was taken, a witness's name, and what the lab wrote on arrival, **locked** with the same key as the delivery's details (we don't have it; the server stores the box). Lab codes made before sealing keep the recipient's handle, quantity, note and sample details as typed until the purge (it replaces every such handle, whoever sent it) | So a lab can take delivery and sign a receipt | No set period |
 | Labs: public signing key, the name the key gives itself, role, and VeilCore's name-check notes | So signatures can be checked and named | No set period |
-| Lab signatures (attestations) and withdrawals. A lab's receipts and reports about a record, and a lab key's genetic-fingerprint and inspection signatures, are private: shown only to the record's holder, the delivery's sender and that lab, and on the record's check page only the ones the holder chooses to show | So a record's holder can see who handled it, and show it when they choose | No set period |
+| Lab signatures (attestations) and withdrawals. A lab's receipts and reports about a record, and a lab key's genetic-fingerprint and inspection signatures, are private: shown only to the record's holder, the delivery's sender and that lab, and on the record's check page (and to anyone with its proof code) only the ones the holder chooses to show | So a record's holder can see who handled it, and show it when they choose | No set period |
 | Locked lab reports a lab sends you (encrypted to your key with `age`; the server can't open them), with their size and SHA-256 | So you can collect them | **Deleted 180 days after they arrive**, checked every hour. Not in backups. Off on the main site for now. |
 | Requests to prove control of a record's key, with the asker's name as typed and the answers | The prove-by-link feature | **Deleted after 7 days** |
 | Batches: each record's fingerprint, its inclusion proof, the batch root, where it was anchored, and the Bitcoin stamp | So anyone can check a record's date | Kept: they are what make old records checkable |

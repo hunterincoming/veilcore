@@ -186,7 +186,9 @@ test('a withdrawn receipt, an undated record, a missing record, a bare id and no
   await field.fill(reg.links.undated);
   await field.press('Enter');
   await expect(out(page)).toContainText('Date: Not in a batch yet, so there is no date stamp.');
-  await expect(out(page)).toContainText('Lab signatures: none about this record.');
+  await expect(out(page)).toContainText(
+    'Lab signatures: the holder hasn’t shown any. A lab’s receipts and reports are private unless the holder chooses to show them.',
+  );
 
   await field.fill(reg.links.missing);
   await field.press('Enter');

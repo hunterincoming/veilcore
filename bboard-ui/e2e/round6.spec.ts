@@ -4,7 +4,10 @@
 //     report from GET /attestations/subject/:fp. Now the lab signs the report bound to the
 //     record with a salt only the sender and the lab hold: the public answer has no hash a
 //     file can be compared with, and the buyer with the holder's link and the file still sees
-//     that the lab signed that file;
+//     that the lab signed that file. Since 8 Nov 2026 the lab's signatures are private: a
+//     stranger sees none until the holder shows one, and the check page says the holder
+//     hasn't shown any (never that no lab signed); once shown, it appears, on the check link
+//     and by the record's proof code;
 //   - finding 2: a genuine link forwarded with another name after the # showed that name as the
 //     holder's. Now the check page says "This name does not match the record";
 //   - finding 5: the holder's browser sent its holder key on a prove page and the check page.
@@ -31,7 +34,7 @@ const b64u = (s: string) => Buffer.from(s, 'utf8').toString('base64url');
 test.describe('round 6 against a real registry: the lab report hash and the name in a link', () => {
   test.skip(!REAL_REGISTRY, 'needs a real registry');
 
-  test('finding 3: no public report hash; finding 2: a forged name is flagged; the file still checks', async ({
+  test('finding 3: no public report hash, and no lab signature until the holder shows it; finding 2: a forged name is flagged; the file still checks', async ({
     browser,
   }) => {
     const tag = Date.now().toString(36);
@@ -94,8 +97,7 @@ test.describe('round 6 against a real registry: the lab report hash and the name
     await lab.getByRole('button', { name: /Sign, lock and send/ }).click();
     await expect(lab.getByRole('heading', { name: /^Sent$/ })).toBeVisible();
 
-    // Breeder saves it to the plant (the lab's signature matched with the delivery's salt) and
-    // makes a share link with the name and "whether a DNA report is saved".
+    // Breeder saves it to the plant (the lab's signature matched with the delivery's salt).
     await breeder.goto(`/record/${recordId}`);
     await breeder
       .getByRole('alert')
@@ -107,8 +109,78 @@ test.describe('round 6 against a real registry: the lab report hash and the name
     await expect(breeder.getByText('PAIRING CODE', { exact: true })).toBeVisible();
     await expect(breeder.locator('[data-lab-match]')).toContainText('Round6 Lab');
     await breeder.getByRole('button', { name: /Back to the plant/ }).click();
+
+    // Which registry: since 8 Nov 2026 a lab's signatures are private until the holder shows
+    // them (private-lab-signatures-v1), and a shown one is read by proof code too
+    // (shared-by-proof-code-v1). Before, every lab signature was public.
+    const features = (((await (await fetch(`${API}/health`)).json()) as { features?: string[] }).features ?? []) as string[];
+    const labPrivate = features.includes('private-lab-signatures-v1');
+    const byCode = features.includes('shared-by-proof-code-v1');
+    test
+      .info()
+      .annotations.push({ type: 'registry', description: labPrivate ? 'lab signatures private' : 'before 8 Nov' });
+    const LAB_TYPES = ['laboratory-report', 'chain-of-custody'];
+    type Subject = { attestations: { type: string; attestationId: string; documentHash?: string }[]; total: number };
+    const subject = async (fp: string) =>
+      (await (await fetch(`${API}/attestations/subject/${fp}`)).json()) as Subject;
+
+    // 1. A share link with "whether a DNA report is saved" and no lab signature shown.
     await breeder.getByRole('button', { name: /Show someone/ }).click();
     await breeder.getByLabel(/Whether a DNA report is saved/).check();
+    await breeder.getByRole('button', { name: /Get the link/ }).click();
+    await breeder.getByRole('switch', { name: 'Put the name in the link' }).check();
+    const linkNone = await breeder.locator('input[readonly]').first().inputValue();
+
+    // Finding 3: a stranger with ONLY the record id. No hash a file can be compared with, and
+    // (lab signatures private) no lab signature at all while the holder shows none.
+    const v = (await (await fetch(`${API}/verify/${recordId}`)).json()) as Record<string, unknown>;
+    const fp = String(v.recordFingerprint);
+    expect(v.nameCode).toMatch(/^[0-9a-f]{64}$/);
+    const before = await subject(fp);
+    if (labPrivate) {
+      expect(before.attestations.filter((x) => LAB_TYPES.includes(x.type))).toEqual([]);
+      expect(v.sharedAttestations).toBeUndefined();
+    } else {
+      const reports = before.attestations.filter((x) => x.type === 'laboratory-report');
+      expect(reports).toHaveLength(1);
+      expect(reports[0].attestationId).toMatch(/_ld1$/);
+    }
+    expect(JSON.stringify(before)).not.toContain(sha(report));
+
+    // The buyer's check page says what the holder showed, and never that no lab signed.
+    const nu = new URL(linkNone);
+    const bctx2 = await browser.newContext();
+    const buyer = await bctx2.newPage();
+    watchAll(buyer, 'buyer');
+    await isolate(buyer);
+    await buyer.goto(`${nu.pathname}${nu.search}${nu.hash}`);
+    await expect(buyer.locator('[data-holder-name]')).toContainText(`Name matches the record: ${NAME}`);
+    if (labPrivate) {
+      await expect(buyer.locator('[data-none-shown]')).toHaveText(
+        'The holder hasn’t shown any lab signatures here. A lab’s receipts and reports are private unless the holder chooses to show them.',
+      );
+      await expect(buyer.getByText(/signature verified in this browser/)).toHaveCount(0);
+      await buyer
+        .locator('[data-dna-file]')
+        .setInputFiles({ name: 'report.pdf', mimeType: 'application/pdf', buffer: report });
+      await expect(buyer.locator('[data-dna-file-result]')).toHaveAttribute('data-dna-file-result', 'matches');
+      await expect(
+        buyer.getByText('No lab signature shown here matches it, so as shown it is the holder’s own statement.'),
+      ).toBeVisible();
+      expect(await buyer.locator('main').innerText()).not.toContain('Round6 Lab');
+    } else {
+      await expect(buyer.getByText(/Lab.s receipt for a sample, signature verified in this browser/)).toBeVisible();
+    }
+    expect(await buyer.locator('main').innerText()).not.toMatch(/has been signed about this record|No lab has signed/);
+
+    // 2. The holder shows the lab report (the one their saved DNA report matches).
+    await breeder.goto(`/record/${recordId}`);
+    await breeder.getByRole('button', { name: /Show someone/ }).click();
+    await expect(breeder.getByLabel(/Whether a DNA report is saved/)).toBeChecked();
+    const suggest = breeder.locator('[data-lab-share-section] [data-lab-share-suggest]');
+    const reportId = (await suggest.getAttribute('data-lab-share-suggest')) ?? '';
+    expect(reportId).toMatch(/^att_[0-9a-f]{16}_ld1/);
+    await suggest.getByRole('button', { name: 'Show it' }).click();
     await breeder.getByRole('button', { name: /Get the link/ }).click();
     await breeder.getByRole('switch', { name: 'Put the name in the link' }).check();
     const shareLink = await breeder.locator('input[readonly]').first().inputValue();
@@ -116,30 +188,30 @@ test.describe('round 6 against a real registry: the lab report hash and the name
     expect(h.get('ns')).toMatch(/^[0-9a-f]{64}$/);
     expect(h.get('ls')).toMatch(/^[0-9a-f]{64}$/);
 
-    // Finding 3: a stranger with ONLY the record id. No hash a file can be compared with.
-    const v = (await (await fetch(`${API}/verify/${recordId}`)).json()) as Record<string, unknown>;
-    const fp = String(v.recordFingerprint);
-    expect(v.nameCode).toMatch(/^[0-9a-f]{64}$/);
-    const a = (await (await fetch(`${API}/attestations/subject/${fp}`)).json()) as {
-      attestations: { type: string; attestationId: string; documentHash?: string }[];
-    };
-    const reports = a.attestations.filter((x) => x.type === 'laboratory-report');
-    expect(reports).toHaveLength(1);
-    expect(reports[0].attestationId).toMatch(/_ld1$/);
+    // It appears: on /verify, and by the record's proof code too (still no hash a file can be
+    // compared with). Against a registry from before, it was there all along.
+    if (labPrivate) {
+      const shared = (await (await fetch(`${API}/verify/${recordId}`)).json()) as {
+        sharedAttestations?: { attestationId: string }[];
+      };
+      expect(shared.sharedAttestations?.map((a) => a.attestationId)).toEqual([reportId]);
+    }
+    const after = await subject(fp);
+    const reports = after.attestations.filter((x) => x.type === 'laboratory-report');
+    expect(reports.map((x) => x.attestationId)).toEqual(labPrivate && !byCode ? [] : [reportId]);
+    if (labPrivate) expect(after.attestations.filter((x) => x.type === 'chain-of-custody')).toEqual([]);
     expect(reports.map((x) => x.documentHash)).not.toContain(sha(report));
-    expect(JSON.stringify(a)).not.toContain(sha(report));
+    expect(JSON.stringify(after)).not.toContain(sha(report));
 
     // Finding 2: the genuine link, forwarded with a different name.
     const FORGED = 'Gelato 41 (lab certified clone)';
     const forgedH = new URLSearchParams(h);
     forgedH.set('n', b64u(FORGED));
     const u = new URL(shareLink);
-    const bctx2 = await browser.newContext();
-    const buyer = await bctx2.newPage();
-    watchAll(buyer, 'buyer');
-    await isolate(buyer);
+    // A fresh load: the page read the first link's answer, from before the holder showed it.
+    await buyer.goto('about:blank');
     await buyer.goto(`${u.pathname}${u.search}#${forgedH.toString()}`);
-    await expect(buyer.getByText(/Lab.s receipt for a sample, signature verified in this browser/)).toBeVisible();
+    await expect(buyer.getByText(/Lab report, signature verified in this browser/)).toBeVisible();
     await expect(buyer.locator('[data-name-check="differs"]')).toContainText(
       `This name does not match the record: ${FORGED}`,
     );

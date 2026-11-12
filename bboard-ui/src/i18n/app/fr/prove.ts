@@ -168,7 +168,7 @@ export const prove = {
   'app.prove.share.nameWarning': 'Si c’est activé, quiconque a l’identifiant de l’enregistrement voit le nom.',
   'app.prove.share.labSigs.title': 'Signatures de laboratoire',
   'app.prove.share.labSigs.intro':
-    'Les accusés de réception et les rapports d’un laboratoire sur cet enregistrement sont privés : seuls vous et le laboratoire pouvez les voir. Activez-en un pour l’afficher sur votre lien de vérification. Quiconque a le lien voit alors que le laboratoire l’a signé, et le nom du laboratoire.',
+    'Les accusés de réception et les rapports d’un laboratoire sur cet enregistrement sont privés : seuls vous et le laboratoire pouvez les voir. Activez-en un pour l’afficher sur votre lien de vérification et à quiconque a le code de preuve de cet enregistrement (vos liens qui prouvent un nombre le contiennent). Ils voient alors que le laboratoire l’a signé, et le nom du laboratoire.',
   'app.prove.share.labSigs.item': 'Montrer sur votre lien de vérification que {who} a signé ceci',
   'app.prove.share.labSigs.receipt': 'Accusé de réception d’un échantillon, signé le {date}',
   'app.prove.share.labSigs.report': 'Rapport de laboratoire, signé le {date}',

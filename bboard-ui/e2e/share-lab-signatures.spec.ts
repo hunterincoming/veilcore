@@ -5,8 +5,10 @@
 // to show on the check link (Show someone → "Lab signatures"), and the check page verifies
 // those in the browser. Two cases: the holder shows nothing, and the page says so honestly
 // (never "no lab signed"); the holder shows the one lab report, and the page shows it and no
-// other. Against a registry from before 8 Nov 2026 (every lab signature public) the same steps
-// still work, and the page shows the signatures as it always did.
+// other. Then (12 Nov 2026) the shown report is read by the record's proof code too, as the claim
+// check page reads it, and turning it off takes it away at once. Against a registry from before
+// 8 Nov 2026 (every lab signature public) the same steps still work, and the page shows the
+// signatures as it always did.
 //
 // E2E_SHOTS=<dir> saves the share control and both check pages at 360px, in English and Japanese.
 // Skipped without a real registry.
@@ -267,6 +269,30 @@ test('the holder shows no lab signature, then one lab report: the check page say
     });
     expectNoErrors(s.errors);
     await s.ctx.close();
+  }
+
+  // 3. By proof code (12 Nov 2026, the claim check page names a plant only by it): the report the
+  // holder shows is read there too, the receipt not; turned off, it is gone at once.
+  const labOnCode = async () =>
+    ((await (await fetch(`${API}/attestations/subject/${fp}`)).json()) as { attestations: { attestationId: string; type: string }[] })
+      .attestations.filter((a) => a.type === 'chain-of-custody' || a.type === 'laboratory-report')
+      .map((a) => a.attestationId);
+  const health = (await (await fetch(`${API}/health`)).json()) as { features?: string[] };
+  if (labPrivate && health.features?.includes('shared-by-proof-code-v1')) {
+    expect(await labOnCode()).toEqual([reportId]);
+    await breeder.goto(`/record/${recordId}`);
+    await breeder.getByRole('button', { name: /Show someone/ }).click();
+    const sw = section.locator(`[data-lab-share="${reportId}"]`).getByRole('switch');
+    await expect(sw).toBeChecked();
+    await sw.uncheck();
+    await breeder.getByRole('button', { name: /Get the link/ }).click();
+    await expect(breeder.locator('input[readonly]').first()).toBeVisible();
+    await expect.poll(labOnCode).toEqual([]);
+    const v = (await (await fetch(`${API}/verify/${recordId}`)).json()) as VerifyBody;
+    expect(v.sharedAttestations).toBeUndefined();
+  } else if (!labPrivate) {
+    // Before 8 Nov 2026 every lab signature was public by proof code.
+    expect((await labOnCode()).length).toBeGreaterThanOrEqual(2);
   }
 
   expectNoErrors(breederErrors);
