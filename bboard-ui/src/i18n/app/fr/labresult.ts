@@ -272,7 +272,7 @@ export const labresult = {
   'app.lr.f.cultures': 'Milieux et incubation',
   'app.lr.f.culture': '{medium} : {time} à {temperature}',
   'app.lr.f.lod': 'Limite de détection',
-  'app.lr.f.count': 'Retrouvé, selon le rapport',
+  'app.lr.f.count': 'Résultat, selon le rapport',
   'app.lr.f.controls': 'Contrôles',
   'app.lr.f.positiveGrew': 'le témoin positif ({control}) a poussé',
   'app.lr.f.negativeClean': 'témoin négatif, aucune pousse',
@@ -287,7 +287,7 @@ export const labresult = {
     'Le laboratoire n’a retrouvé aucun organisme viable dans {portion}, avec {method} (version {version}) et une limite de détection de {lod}.',
   'app.lr.note.recovered': 'Le laboratoire a retrouvé des organismes viables dans {portion}, avec {method}.',
   'app.lr.note.viabilityLimits':
-    'C’est ce que le laboratoire a trouvé dans la prise d’essai, dans ces conditions, et rien de plus. Un test ne retrouve que ce qui pousse sur ses milieux, dans son temps et à sa température, au-dessus de sa limite de détection : des organismes abîmés, dormants (spores) ou qui demandent d’autres conditions peuvent ne pas pousser, et une prise d’essai peut ne pas représenter tout le lot. Que l’échantillon vienne de ce lot, et le lot de cette souche, c’est la parole de l’expéditeur.',
+    'C’est ce que le laboratoire a trouvé dans la prise d’essai, dans ces conditions, et rien de plus. Un test ne retrouve que ce qui pousse sur ses milieux, dans son temps et à sa température, au-dessus de sa limite de détection : des organismes abîmés, dormants (spores) ou qui demandent d’autres conditions peuvent ne pas pousser, et une prise d’essai peut ne pas représenter tout le lot. Que l’échantillon vienne de ce lot, et le lot de cette souche, cela repose sur la déclaration de l’expéditeur.',
   'app.lr.note.strain':
     'La fiche de la souche n’est nommée que par son code de preuve : rien de cette fiche ne figure dans ce résultat.',
   'app.lr.form.viabilityIntro':
@@ -315,13 +315,13 @@ export const labresult = {
   'app.lr.form.cultureAdd': 'Ajouter un milieu',
   'app.lr.form.lodValue': 'Limite de détection',
   'app.lr.form.unit': 'Unité (UFC/g, UFC pour 25 g…)',
-  'app.lr.form.countValue': 'Dénombrement selon le rapport (facultatif ; 0 s’il n’y en a aucun)',
+  'app.lr.form.countValue': 'Dénombrement selon le rapport',
   'app.lr.form.positive': 'Témoin positif (organisme et quantité)',
   'app.lr.form.positiveGrew': 'Témoin positif',
   'app.lr.form.negativeGrew': 'Témoin négatif',
   'app.lr.control.grew': 'A poussé',
   'app.lr.control.noGrowth': 'Aucune pousse',
-  'app.lr.control.notRun': 'Pas fait',
+  'app.lr.control.notRun': 'Non réalisé',
   'app.lr.form.qcUsualViability': 'Ajouter les détails habituels de la série',
   'app.lr.problem.batch': 'Saisissez le numéro de lot : une ligne.',
   'app.lr.problem.stage': 'Indiquez si l’échantillon a été prélevé avant ou après l’étape d’inactivation.',
@@ -336,17 +336,38 @@ export const labresult = {
   'app.lr.problem.cultures': 'Indiquez chaque milieu avec sa durée et sa température : 1 à 4, aucun en double.',
   'app.lr.problem.lod':
     'La limite de détection est un nombre supérieur à 0, avec son unité (sans exposant : écrivez 1000, pas 1e3).',
-  'app.lr.problem.count': 'Le dénombrement est un nombre avec son unité : 0 si rien n’a été retrouvé, plus de 0 sinon.',
+  'app.lr.problem.count':
+    'Si des organismes viables ont été retrouvés, indiquez le dénombrement du rapport, supérieur à 0, avec son unité. S’il n’y en a aucun, il n’y a pas de dénombrement : la limite de détection le dit.',
   'app.lr.problem.controls':
     'Indiquez le résultat des témoins. Une série dont le témoin positif n’a pas poussé, ou dont le témoin négatif a poussé, ne peut pas être signée : refaites le test et signez la répétition.',
   'app.lr.check.paired':
-    'Apparié au résultat de l’échantillon d’avant {code} pour le lot {batch}, signé par la même clé. Avant l’étape d’inactivation : {before}. Après : {after}.',
+    'Apparié au résultat de l’échantillon d’avant {code} pour le lot {batch}, signé par la même clé ; les deux tests recherchaient {target}. Avant l’étape d’inactivation : {before}. Après : {after}.',
   'app.lr.check.pairBothNone':
     'L’échantillon d’avant n’a lui non plus rien donné, donc cette paire ne montre pas que l’étape d’inactivation a changé quoi que ce soit.',
   'app.lr.check.pairMissing':
     'Il nomme le résultat de l’échantillon d’avant {code}, qui n’est pas parmi les fichiers choisis. Choisissez les deux fichiers ensemble pour les voir en paire.',
   'app.lr.check.pairNot':
-    'Il nomme le résultat {code} comme échantillon d’avant, mais ils ne forment pas une paire (autre clé, autre lot, autre fiche de souche ou autre étape, ou un échantillon d’avant prélevé plus tard) : rien ici ne les relie.',
+    'Il nomme le résultat {code} comme échantillon d’avant, mais ils ne forment pas une paire (autre clé, autre lot, autre fiche de souche, autre cible ou autre étape, ou un échantillon d’avant prélevé plus tard) : rien ici ne les relie.',
   'app.lr.claim.viability':
-    'Une affirmation selon laquelle aucun organisme viable n’a été retrouvé ne montre ni la méthode, ni les milieux et l’incubation, ni la prise d’essai, ni la limite de détection, et elle dit peu sans eux. Ils figurent dans le fichier de résultat du laboratoire. C’est un constat sur la prise d’essai, pas sur tout le lot.',
+    'Une affirmation selon laquelle aucun organisme viable n’a été retrouvé ne montre ni la méthode, ni les milieux et l’incubation, ni la prise d’essai, ni la limite de détection, et elle dit peu sans eux. Elle ne montre pas non plus si l’échantillon a été prélevé avant ou après l’étape d’inactivation, sauf si l’affirmation montre aussi l’étape. Tout cela figure dans le fichier de résultat du laboratoire. C’est un constat sur la prise d’essai, pas sur tout le lot.',
+  'app.lr.f.belowLod': '< {lod} : aucun retrouvé au-dessus de la limite de détection',
+  'app.lr.form.belowLod':
+    'Aucun retrouvé : pas de dénombrement. Le résultat se lit comme inférieur à la limite de détection (par exemple « < 1 UFC pour 25 g »), jamais comme 0.',
+  'app.lr.form.numberHelp': 'Un nombre simple : 1000, 0.5. Sans virgule, espace ni point des milliers.',
+  'app.lr.problem.lodNumber':
+    'Saisissez la limite de détection comme un nombre simple : des chiffres, et un point seulement avant les décimales (1000, 0.5). « 1,000 », « 1.000 », « 1 000 » et « 0,5 » ne sont pas lus, car ils peuvent désigner des nombres différents. Un nombre entier suivi d’exactement trois décimales ressemble à un point des milliers : saisissez mille comme 1000, et 2,125 comme 2.1250.',
+  'app.lr.problem.countNumber':
+    'Saisissez le dénombrement comme un nombre simple : des chiffres, et un point seulement avant les décimales (4300000, 0.5). « 4,300 », « 4.300 », « 4 300 » et « 0,5 » ne sont pas lus, car ils peuvent désigner des nombres différents. Un nombre entier suivi d’exactement trois décimales ressemble à un point des milliers : saisissez quatre mille trois cents comme 4300.',
+  'app.lr.check.pairMethodSame':
+    'Les deux ont utilisé la même méthode, {method} : l’échantillon d’avant montre donc que cette méthode a retrouvé quelque chose dans ce lot avant l’étape d’inactivation. Que la série de l’échantillon d’après pouvait le retrouver dans la matière traitée, c’est son propre témoin positif qui le montre.',
+  'app.lr.check.pairMethodsDiffer':
+    'Les deux tests ont utilisé des méthodes différentes ({before} avant, {after} après). L’échantillon d’avant montre donc seulement que le lot contenait quelque chose que ce laboratoire a retrouvé avant l’étape d’inactivation, pas que la méthode de l’échantillon d’après le retrouve dans cette matière.',
+  'app.lr.check.pairWithdrawnBefore':
+    'Il nomme le résultat de l’échantillon d’avant {code}, mais ce résultat a été retiré par le résultat {by}, signé par la même clé. Les deux ne sont plus lus comme une paire.',
+  'app.lr.check.pairReplacedBefore':
+    'Il nomme le résultat de l’échantillon d’avant {code}, mais ce résultat a été remplacé par le résultat {by}, signé par la même clé. Les deux ne sont plus lus comme une paire : consultez le résultat le plus récent.',
+  'app.lr.check.pairWithdrawnAfter':
+    'Ce résultat a été retiré par le résultat {by}, signé par la même clé ; il n’est donc plus lu comme une paire avec le résultat de l’échantillon d’avant {code}.',
+  'app.lr.check.pairReplacedAfter':
+    'Ce résultat a été remplacé par le résultat {by}, signé par la même clé ; il n’est donc plus lu comme une paire avec le résultat de l’échantillon d’avant {code} : consultez le résultat le plus récent.',
 } satisfies Partial<AppTranslation>;

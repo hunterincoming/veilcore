@@ -72,7 +72,12 @@ const ViabilityFacts: React.FC<{ s: LabResultStatement }> = ({ s }) => {
           .join(' · ')}
       </Fact>
       <Fact label={t('app.lr.f.lod')}>{amountWords(r.lod)}</Fact>
-      {r.count && <Fact label={t('app.lr.f.count')}>{amountWords(r.count)}</Fact>}
+      {/* As a report gives it: a count when some were recovered, "< LOD" when none were (never 0). */}
+      <Fact label={t('app.lr.f.count')}>
+        <span data-viability-found={r.detected ? 'count' : 'below-lod'}>
+          {r.detected && r.count ? amountWords(r.count) : t('app.lr.f.belowLod', { lod: amountWords(r.lod) })}
+        </span>
+      </Fact>
       <Fact label={t('app.lr.f.controls')}>
         {t('app.lr.f.positiveGrew', { control: seen(r.controls.positive) })}
         {r.controls.negativeGrew === false ? ` · ${t('app.lr.f.negativeClean')}` : ''}

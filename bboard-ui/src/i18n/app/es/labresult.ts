@@ -257,42 +257,42 @@ export const labresult = {
   'app.lr.problem.bindingSalt':
     'La sal del nombre del laboratorio no tiene su forma: 64 caracteres hexadecimales, no todos iguales.',
   // ---- viability (../en/labresult.ts) ----
-  'app.lr.kind.viability': 'Prueba de viabilidad antes o después de un paso de eliminación',
+  'app.lr.kind.viability': 'Prueba de viabilidad antes o después de un paso de inactivación',
   'app.doc.schema.viability': 'Prueba de viabilidad (el resultado)',
   'app.doc.slot.recovered': 'Organismos viables recuperados (1 sí, 0 ninguno)',
-  'app.doc.slot.stage': 'Muestra tomada (0 antes del paso de eliminación, 1 después)',
+  'app.doc.slot.stage': 'Muestra tomada (0 antes del paso de inactivación, 1 después)',
   'app.lr.f.stage': 'Muestra tomada',
   'app.lr.f.batch': 'Lote',
-  'app.lr.f.killStep': 'Paso de eliminación (según el remitente)',
+  'app.lr.f.killStep': 'Paso de inactivación (según el remitente)',
   'app.lr.f.recovers': 'Qué recupera la prueba',
   'app.lr.f.portion': 'Porción analizada',
   'app.lr.f.cultures': 'Medios e incubación',
   'app.lr.f.culture': '{medium}: {time} a {temperature}',
   'app.lr.f.lod': 'Límite de detección',
-  'app.lr.f.count': 'Recuperado, según el informe',
+  'app.lr.f.count': 'Resultado, según el informe',
   'app.lr.f.controls': 'Controles',
   'app.lr.f.positiveGrew': 'el control positivo ({control}) creció',
   'app.lr.f.negativeClean': 'control negativo, sin crecimiento',
   'app.lr.f.sampled': 'Fecha de muestreo',
   'app.lr.f.strain': 'Registro de la cepa de la que se hizo el lote (código de prueba)',
   'app.lr.f.before': 'Resultado de la muestra anterior que nombra (código)',
-  'app.lr.stage.before': 'Antes del paso de eliminación',
-  'app.lr.stage.after': 'Después del paso de eliminación',
+  'app.lr.stage.before': 'Antes del paso de inactivación',
+  'app.lr.stage.after': 'Después del paso de inactivación',
   'app.lr.call.recovered': 'Se recuperaron organismos viables',
   'app.lr.call.noneRecovered': 'No se recuperaron organismos viables',
   'app.lr.note.noneRecovered':
     'El laboratorio informó que no recuperó organismos viables de {portion}, con {method} (versión {version}) y un límite de detección de {lod}.',
   'app.lr.note.recovered': 'El laboratorio informó que recuperó organismos viables de {portion}, con {method}.',
   'app.lr.note.viabilityLimits':
-    'Esto es lo que el laboratorio encontró en la porción que analizó, en estas condiciones, y nada más. Una prueba recupera solo lo que crece en sus medios, en su tiempo y a su temperatura, por encima de su límite de detección: los organismos dañados, latentes (esporas) o que necesitan otras condiciones pueden no crecer, y una porción puede no representar todo el lote. Que la muestra venga de este lote, y el lote de esta cepa, es la palabra del remitente.',
+    'Esto es lo que el laboratorio encontró en la porción que analizó, en estas condiciones, y nada más. Una prueba recupera solo lo que crece en sus medios, en su tiempo y a su temperatura, por encima de su límite de detección: los organismos dañados, latentes (esporas) o que necesitan otras condiciones pueden no crecer, y una porción puede no representar todo el lote. Que la muestra venga de este lote, y el lote de esta cepa, es lo que declara el remitente.',
   'app.lr.note.strain':
     'El registro de la cepa se nombra solo por su código de prueba: nada de ese registro está en este resultado.',
   'app.lr.form.viabilityIntro':
-    'Para una muestra tomada antes o después de un paso de eliminación, como un tratamiento térmico o una inactivación. Escriba lo que dice su informe. Firme solo una corrida válida: el control positivo creció y, si hizo uno, el control negativo no.',
+    'Para una muestra tomada antes o después de un paso de inactivación, como un tratamiento térmico o una inactivación. Escriba lo que dice su informe. Firme solo una serie válida: el control positivo creció y, si hizo uno, el control negativo no.',
   'app.lr.form.read': 'Fecha de lectura (fin de la incubación)',
   'app.lr.form.batch': 'ID del lote',
   'app.lr.form.stage': 'Cuándo se tomó la muestra',
-  'app.lr.form.killStep': 'Paso de eliminación: método y parámetros',
+  'app.lr.form.killStep': 'Paso de inactivación: método y parámetros',
   'app.lr.form.killStepHelp': 'Como lo indica el remitente, por ejemplo «vapor, 95 °C en el núcleo durante 30 min».',
   'app.lr.form.beforePick': 'El resultado de la muestra anterior de este lote (opcional)',
   'app.lr.form.beforeCode': 'O su código de resultado',
@@ -312,17 +312,17 @@ export const labresult = {
   'app.lr.form.cultureAdd': 'Añadir un medio',
   'app.lr.form.lodValue': 'Límite de detección',
   'app.lr.form.unit': 'Unidad (UFC/g, UFC por 25 g…)',
-  'app.lr.form.countValue': 'Recuento según el informe (opcional; 0 si ninguno)',
+  'app.lr.form.countValue': 'Recuento según el informe',
   'app.lr.form.positive': 'Control positivo (organismo y cantidad)',
   'app.lr.form.positiveGrew': 'Control positivo',
   'app.lr.form.negativeGrew': 'Control negativo',
   'app.lr.control.grew': 'Creció',
   'app.lr.control.noGrowth': 'Sin crecimiento',
   'app.lr.control.notRun': 'No se hizo',
-  'app.lr.form.qcUsualViability': 'Añadir los datos habituales de la corrida',
+  'app.lr.form.qcUsualViability': 'Añadir los datos habituales de la serie',
   'app.lr.problem.batch': 'Escriba el ID del lote: una línea.',
-  'app.lr.problem.stage': 'Indique si la muestra se tomó antes o después del paso de eliminación.',
-  'app.lr.problem.killStep': 'Una muestra posterior nombra su paso de eliminación: método y parámetros, una línea.',
+  'app.lr.problem.stage': 'Indique si la muestra se tomó antes o después del paso de inactivación.',
+  'app.lr.problem.killStep': 'Una muestra posterior nombra su paso de inactivación: método y parámetros, una línea.',
   'app.lr.problem.before':
     'Nombre el resultado de la muestra anterior por su código de 64 caracteres. Solo una muestra posterior nombra uno.',
   'app.lr.problem.strain': 'Indique el código de prueba del registro de la cepa: 64 caracteres.',
@@ -333,17 +333,37 @@ export const labresult = {
   'app.lr.problem.lod':
     'El límite de detección es un número mayor que 0, con su unidad (sin exponente: escriba 1000, no 1e3).',
   'app.lr.problem.count':
-    'El recuento es un número con su unidad: 0 si no se recuperó ninguno, más de 0 si se recuperaron algunos.',
+    'Si se recuperaron organismos viables, indique el recuento que da el informe, mayor que 0, con su unidad. Si no se recuperó ninguno, no hay recuento: lo dice el límite de detección.',
   'app.lr.problem.controls':
-    'Indique cómo salieron los controles. Una corrida cuyo control positivo no creció, o cuyo control negativo sí, no se puede firmar: repita la prueba y firme la repetición.',
+    'Indique cómo salieron los controles. Una serie cuyo control positivo no creció, o cuyo control negativo sí, no se puede firmar: repita la prueba y firme la repetición.',
   'app.lr.check.paired':
-    'Emparejado con el resultado de la muestra anterior {code} del lote {batch}, firmado con la misma clave. Antes del paso de eliminación: {before}. Después: {after}.',
+    'Emparejado con el resultado de la muestra anterior {code} del lote {batch}, firmado con la misma clave; ambas pruebas buscaban {target}. Antes del paso de inactivación: {before}. Después: {after}.',
   'app.lr.check.pairBothNone':
-    'En la muestra anterior tampoco se recuperó nada, así que este par no muestra que el paso de eliminación cambiara algo.',
+    'En la muestra anterior tampoco se recuperó nada, así que este par no muestra que el paso de inactivación cambiara algo.',
   'app.lr.check.pairMissing':
     'Nombra el resultado de la muestra anterior {code}, que no está entre los archivos elegidos. Elija ambos archivos juntos para verlos como par.',
   'app.lr.check.pairNot':
-    'Nombra el resultado {code} como su muestra anterior, pero no forman par (otra clave, otro lote, otro registro de cepa u otra etapa, o una muestra anterior tomada después), así que nada aquí los vincula.',
+    'Nombra el resultado {code} como su muestra anterior, pero no forman par (otra clave, otro lote, otro registro de cepa, otro objetivo u otra etapa, o una muestra anterior tomada después), así que nada aquí los vincula.',
   'app.lr.claim.viability':
-    'Una afirmación de que no se recuperaron organismos viables no muestra el método, los medios y la incubación, la porción analizada ni el límite de detección, y dice poco sin ellos. Están en el archivo de resultado del laboratorio. Es un hallazgo sobre la porción analizada, no sobre todo el lote.',
+    'Una afirmación de que no se recuperaron organismos viables no muestra el método, los medios y la incubación, la porción analizada ni el límite de detección, y dice poco sin ellos. Tampoco muestra si la muestra se tomó antes o después del paso de inactivación, salvo que la afirmación también muestre la etapa. Todo esto está en el archivo de resultado del laboratorio. Es un hallazgo sobre la porción analizada, no sobre todo el lote.',
+  'app.lr.f.belowLod': '< {lod}: no se recuperó ninguno por encima del límite de detección',
+  'app.lr.form.belowLod':
+    'No se recuperó ninguno: no hay recuento. El resultado se lee como por debajo del límite de detección (por ejemplo «< 1 UFC por 25 g»), nunca como 0.',
+  'app.lr.form.numberHelp': 'Un número simple: 1000, 0.5. Sin comas, espacios ni puntos de miles.',
+  'app.lr.problem.lodNumber':
+    'Escriba el límite de detección como un número simple: cifras, y un punto solo antes de los decimales (1000, 0.5). «1,000», «1.000», «1 000» y «0,5» no se leen, porque pueden significar números distintos. Un número entero con exactamente tres decimales parece un punto de miles: escriba mil como 1000, y 2,125 como 2.1250.',
+  'app.lr.problem.countNumber':
+    'Escriba el recuento como un número simple: cifras, y un punto solo antes de los decimales (4300000, 0.5). «4,300», «4.300», «4 300» y «0,5» no se leen, porque pueden significar números distintos. Un número entero con exactamente tres decimales parece un punto de miles: escriba cuatro mil trescientos como 4300.',
+  'app.lr.check.pairMethodSame':
+    'Ambas usaron el mismo método, {method}, así que la muestra anterior muestra que este método recuperó algo de este lote antes del paso de inactivación. Si la serie de la muestra posterior podía recuperarlo del material tratado lo muestra su propio control positivo.',
+  'app.lr.check.pairMethodsDiffer':
+    'Las dos pruebas usaron métodos distintos ({before} antes, {after} después). Así que la muestra anterior solo muestra que el lote llevaba algo que este laboratorio recuperó antes del paso de inactivación, no que el método de la muestra posterior lo recupere de este material.',
+  'app.lr.check.pairWithdrawnBefore':
+    'Nombra el resultado de la muestra anterior {code}, pero ese resultado fue retirado por el resultado {by}, firmado con la misma clave. Ya no se leen como par.',
+  'app.lr.check.pairReplacedBefore':
+    'Nombra el resultado de la muestra anterior {code}, pero ese resultado fue sustituido por el resultado {by}, firmado con la misma clave. Ya no se leen como par: consulte el resultado más reciente.',
+  'app.lr.check.pairWithdrawnAfter':
+    'Este resultado fue retirado por el resultado {by}, firmado con la misma clave, así que ya no se lee como par con el resultado de la muestra anterior {code}.',
+  'app.lr.check.pairReplacedAfter':
+    'Este resultado fue sustituido por el resultado {by}, firmado con la misma clave, así que ya no se lee como par con el resultado de la muestra anterior {code}: consulte el resultado más reciente.',
 } satisfies Partial<AppTranslation>;

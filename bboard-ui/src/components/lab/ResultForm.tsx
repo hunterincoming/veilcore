@@ -28,7 +28,10 @@ const QPCR_DETAILS = [
   'Run ID',
 ];
 
-/** Run details a viability report usually carries besides the controls (USP <71>, ISO 11737-2). */
+/**
+ * Run details a viability report usually carries besides the controls (a bioburden count, ISO
+ * 11737-1, before the kill step; a sterility test, USP <71> and ISO 11737-2, after it).
+ */
 const VIABILITY_DETAILS = ['Medium lot', 'Growth promotion', 'Neutraliser', 'Method suitability', 'Run ID'];
 
 /** An earlier result of this lab's, to name in "replaces" (or, for a before-sample, in "before"). */
@@ -308,19 +311,28 @@ export const ResultForm: React.FC<{
           </Box>
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
             {field('lodValue', 'app.lr.form.lodValue', {
-              error: problem === 'lod',
+              error: problem === 'lod' || problem === 'lodNumber',
+              helperText: t('app.lr.form.numberHelp'),
               slotProps: { htmlInput: { inputMode: 'decimal', 'data-field': 'lodValue' } },
             })}
             {field('lodUnit', 'app.lr.form.unit', { error: problem === 'lod' })}
           </Stack>
           {yesNo('detected', 'app.lr.call.recovered', 'app.lr.call.noneRecovered')}
-          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-            {field('countValue', 'app.lr.form.countValue', {
-              error: problem === 'count',
-              slotProps: { htmlInput: { inputMode: 'decimal', 'data-field': 'countValue' } },
-            })}
-            {field('countUnit', 'app.lr.form.unit', { error: problem === 'count' })}
-          </Stack>
+          {/* A count only when some were recovered: none recovered is below the limit, not 0. */}
+          {d.detected === 'yes' && (
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+              {field('countValue', 'app.lr.form.countValue', {
+                error: problem === 'count' || problem === 'countNumber',
+                slotProps: { htmlInput: { inputMode: 'decimal', 'data-field': 'countValue' } },
+              })}
+              {field('countUnit', 'app.lr.form.unit', { error: problem === 'count' })}
+            </Stack>
+          )}
+          {d.detected === 'no' && (
+            <Typography variant="body2" color="text.secondary" data-viability-below="">
+              {t('app.lr.form.belowLod')}
+            </Typography>
+          )}
           {field('positive', 'app.lr.form.positive', { error: problem === 'controls' })}
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
             {pick('positiveGrew', 'app.lr.form.positiveGrew', [

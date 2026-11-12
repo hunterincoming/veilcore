@@ -133,6 +133,21 @@ const Dispute: React.FC<{ seal: string }> = ({ seal }) => {
 const PairLine: React.FC<{ after: LabResultBundle; pair: ViabilityPair }> = ({ after, pair }) => {
   const tr = useT();
   const { t } = tr;
+  if (pair.state === 'broken') {
+    // A withdrawn or replaced result is no longer evidence about the other: say which, and why.
+    const k = `app.lr.check.pair${pair.reason === 'retraction' ? 'Withdrawn' : 'Replaced'}${pair.side === 'before' ? 'Before' : 'After'}`;
+    return (
+      <Alert
+        severity="warning"
+        variant="outlined"
+        sx={{ mb: 2 }}
+        data-viability-pair="broken"
+        data-pair-side={pair.side}
+      >
+        {t(k as AppKey, { code: short(pair.code), by: short(pair.by) })}
+      </Alert>
+    );
+  }
   if (pair.state !== 'paired')
     return (
       <Alert severity="info" variant="outlined" sx={{ mb: 2 }} data-viability-pair={pair.state}>
@@ -140,14 +155,24 @@ const PairLine: React.FC<{ after: LabResultBundle; pair: ViabilityPair }> = ({ a
       </Alert>
     );
   const before = pair.before.statement.result as ViabilityResult;
+  const ver = (m: { id: string; version: string }) => `${seen(m.id)} (${m.version})`;
   return (
     <Alert severity="info" variant="outlined" sx={{ mb: 2 }} data-viability-pair="paired">
       {t('app.lr.check.paired', {
         code: short(resultCode(pair.before)),
         batch: seen((after.statement.result as ViabilityResult).batch),
+        target: seen(before.target),
         before: callWords(pair.before.statement, tr),
         after: callWords(after.statement, tr),
       })}
+      <Typography variant="body2" sx={{ mt: 1 }} data-viability-pair-method={pair.methodsDiffer ? 'differ' : 'same'}>
+        {pair.methodsDiffer
+          ? t('app.lr.check.pairMethodsDiffer', {
+              before: ver(pair.before.statement.method),
+              after: ver(after.statement.method),
+            })
+          : t('app.lr.check.pairMethodSame', { method: ver(after.statement.method) })}
+      </Typography>
       {!before.detected && (
         <Typography variant="body2" sx={{ mt: 1 }} data-viability-pair-flat="">
           {t('app.lr.check.pairBothNone')}

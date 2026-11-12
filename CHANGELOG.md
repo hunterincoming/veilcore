@@ -22,6 +22,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   method, the portion and the limit of detection, and what a test can't show. They never call a
   batch dead or sterile. A new call form, `/schemas/viability-v1.json`; the claims contract is
   unchanged. In all five languages.
+- Fixes from an independent check: a withdrawn or replaced result no longer reads as paired (the
+  page says which one was withdrawn); a pair needs both tests to look for the same thing, and says
+  so when the methods differ; the lab form refuses "1,000", "1.000", "0,5" and other separated
+  numbers, with how to type them, instead of reading "1,000" as 1; none recovered has no count and
+  reads as "< {limit of detection}", never 0; the claim note says a claim doesn't show whether the
+  sample was taken before or after the kill step; Japanese no longer calls that claim a proof; the
+  standards are cited correctly; Spanish, German and French wording fixed.
 - Lab signing stays on the test network only.
 
 ### Lab signatures: private unless the holder shows them (not live yet; ships with the registry)

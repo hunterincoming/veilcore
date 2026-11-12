@@ -3,7 +3,10 @@
 // before/after pair for one batch, the after-sample naming the before-sample's result and the
 // strain record by proof code only; the producer checks the two files together, sees them paired
 // and the honest words ("no viable organisms recovered" under the stated method and limit), and
-// adds the after result to its strain record. A run whose positive control didn't grow is refused.
+// adds the after result to its strain record. A run whose positive control didn't grow is refused,
+// and so is a number typed with separators ("1,000", "4,300"): nothing is tidied or guessed. None
+// recovered reads as below the limit of detection, never as a count of 0. When the lab withdraws
+// the before-sample's result, the two no longer read as a pair.
 // All records and files are practice data.
 // SPDX-License-Identifier: Apache-2.0
 import { readFileSync } from 'node:fs';
@@ -134,11 +137,19 @@ test('a lab signs a before/after kill-step pair; the producer checks them togeth
   await form.locator('[data-culture="0"]').getByLabel('Medium').fill('PDA with chloramphenicol');
   await form.locator('[data-culture="0"]').getByLabel('Time').fill('7 days');
   await form.locator('[data-culture="0"]').getByLabel('Temperature').fill('25 °C');
-  await form.getByLabel('Limit of detection').fill('100');
+  // A number with separators is refused, with how to type it: "1,000" could be a thousand or one.
+  await form.getByLabel('Limit of detection').fill('1,000');
   await form.getByLabel(/^Unit/).nth(0).fill('CFU/g');
   await choose(form, lab, 'Result', 'Viable organisms recovered');
   await form.getByLabel(/Count as reported/).fill('4300000');
   await form.getByLabel(/^Unit/).nth(1).fill('CFU/g');
+  await lab.getByRole('button', { name: 'Sign this result' }).click();
+  await expect(lab.locator('[data-result-problem="lodNumber"]')).toContainText('type a thousand as 1000');
+  await form.getByLabel('Limit of detection').fill('100');
+  await form.getByLabel(/Count as reported/).fill('4,300');
+  await lab.getByRole('button', { name: 'Sign this result' }).click();
+  await expect(lab.locator('[data-result-problem="countNumber"]')).toContainText('plain number');
+  await form.getByLabel(/Count as reported/).fill('4300000');
   await shot(lab, 'viability-before-form');
   await lab.getByRole('button', { name: 'Sign this result' }).click();
   await expect(lab.getByRole('heading', { name: 'Signed and kept' })).toBeVisible({ timeout: 60_000 });
@@ -167,8 +178,9 @@ test('a lab signs a before/after kill-step pair; the producer checks them togeth
   await form.getByLabel('Limit of detection').fill('1');
   await form.getByLabel(/^Unit/).nth(0).fill('CFU per 25 g');
   await choose(form, lab, 'Result', 'No viable organisms recovered');
-  await form.getByLabel(/Count as reported/).fill('0');
-  await form.getByLabel(/^Unit/).nth(1).fill('CFU per 25 g');
+  // None recovered: no count to type; the result is below the limit of detection.
+  await expect(form.getByLabel(/Count as reported/)).toHaveCount(0);
+  await expect(form.locator('[data-viability-below]')).toContainText('never as 0');
   // An invalid run can't be signed: a positive control that didn't grow is refused, by name.
   await choose(form, lab, 'Positive control', 'No growth');
   await lab.getByRole('button', { name: 'Sign this result' }).click();
@@ -200,7 +212,15 @@ test('a lab signs a before/after kill-step pair; the producer checks them togeth
   await expect(checked).toHaveCount(2);
   const after = checked.filter({ has: producer.locator('[data-viability-stage="after"]') });
   await expect(after.locator('[data-viability-pair="paired"]')).toContainText(
-    'Before the kill step: Viable organisms recovered. After it: No viable organisms recovered.',
+    'both tests looked for The production strain. Before the kill step: Viable organisms recovered. After it: No viable organisms recovered.',
+  );
+  // The two used different methods: said plainly.
+  await expect(after.locator('[data-viability-pair-method="differ"]')).toContainText(
+    'The two tests used different methods (Spread plate on PDA, SOP-M7 (2) before, Enrichment then PDA, SOP-M9 (1) after).',
+  );
+  // None recovered is "< LOD", never a count of 0.
+  await expect(after.locator('[data-viability-found="below-lod"]')).toHaveText(
+    '< 1 CFU per 25 g: none recovered above the limit of detection',
   );
   await expect(after.locator('[data-lab-result-call]')).toHaveText('No viable organisms recovered');
   await expect(after.locator('[data-viability-note="none"]')).toHaveText(
@@ -213,6 +233,7 @@ test('a lab signs a before/after kill-step pair; the producer checks them togeth
   await expect(after).toContainText('nothing in that record is in this result');
   const pageText = await producer.locator('[data-lab-result-check]').innerText();
   expect(pageText).not.toMatch(/\bdead\b|steril|\bproves?\b/i);
+  expect(pageText).not.toMatch(/as reported\s*:?\s*0\b/i);
   await after.locator('[data-lab-name-find]').click();
   await expect(after).toHaveAttribute('data-signer', 'bound', { timeout: 20_000 });
   await expect(after).toContainText('Signed by a key named “E2E Micro Lab” (name not checked)');
@@ -227,6 +248,34 @@ test('a lab signs a before/after kill-step pair; the producer checks them togeth
   await expect(panel).toContainText('After the kill step');
   await expect(panel).toContainText('MEAL-26-0907');
   await shot(producer, 'viability-record');
+
+  // The lab withdraws the before-sample's result. Checked with all three files, the after-sample
+  // no longer reads as paired: it says the before-sample's result was withdrawn.
+  await lab.getByRole('button', { name: 'Sign another' }).click();
+  await choose(form, lab, 'What kind of result', 'Withdrawal of an earlier result');
+  await form.getByLabel(/Proof code the sender gave for this sample/).fill(strain);
+  await form.getByLabel(/Sample ID/).fill('MEAL-0907-PRE');
+  await form.getByLabel('Your accession number').fill('LAB-26-2209');
+  await form.getByLabel('Method or SOP').fill('Spread plate on PDA, SOP-M7');
+  await form.getByLabel('Method version').fill('2');
+  await form.getByLabel('Date tested').fill(daysAgo(0));
+  await choose(form, lab, 'The result to withdraw', /LAB-26-2201 · MEAL-0907-PRE/);
+  await lab.getByRole('button', { name: 'Sign this result' }).click();
+  await expect(lab.getByRole('heading', { name: 'Signed and kept' })).toBeVisible({ timeout: 60_000 });
+  const withdrawFile = await download(lab, () => lab.locator('[data-result-download]').click());
+  await producer.goto('/check-lab-result');
+  await producer.locator('[data-result-input]').setInputFiles([beforeFile, afterFile, withdrawFile]);
+  await expect(producer.locator('[data-lab-result-checked]')).toHaveCount(3);
+  const after3 = producer
+    .locator('[data-lab-result-checked]')
+    .filter({ has: producer.locator('[data-viability-stage="after"]') });
+  await expect(after3.locator('[data-viability-pair="paired"]')).toHaveCount(0);
+  await expect(after3.locator('[data-viability-pair="broken"]')).toContainText(
+    'but that result was withdrawn by result',
+  );
+  await expect(after3.locator('[data-viability-pair="broken"]')).toHaveAttribute('data-pair-side', 'before');
+  await shot(producer, 'viability-check-withdrawn');
+  expectNoErrors(labErrors);
   expectNoErrors(prodErrors);
   await prodCtx.close();
   await labCtx.close();

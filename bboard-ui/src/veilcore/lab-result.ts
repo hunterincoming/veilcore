@@ -138,7 +138,10 @@ export type ViabilityResult = {
   readonly lod: Amount;
   /** Whether viable organisms were recovered. */
   readonly detected: boolean;
-  /** What was recovered: "0" when none were, above 0 when some were. */
+  /**
+   * What was recovered, as reported: above 0, given when some were and only then. None recovered
+   * is below the limit of detection ("< 1 CFU per 25 g"), never a count of 0.
+   */
   readonly count?: Amount;
   /** The positive control grew; a negative control, if run, didn't. An invalid run isn't signed. */
   readonly controls: { readonly positive: string; readonly positiveGrew: true; readonly negativeGrew?: false };
@@ -212,6 +215,8 @@ export const PROBLEM_CODES = [
   'lod',
   'count',
   'controls',
+  'lodNumber',
+  'countNumber',
 ] as const;
 export type ProblemCode = (typeof PROBLEM_CODES)[number];
 
@@ -244,7 +249,7 @@ export const COUNT_MAX = 1_000_000_000;
 /** A decimal as a report prints it: no sign, no exponent, 15 whole digits and 6 decimals at most. */
 export const DECIMAL = /^(0|[1-9]\d{0,14})(\.\d{1,6})?$/;
 const ZERO = /^0(\.0+)?$/;
-/** The most media one viability result names (USP <71> uses two). */
+/** The most media one viability result names (a USP <71> sterility test uses two). */
 export const CULTURES_MAX = 4;
 /** A medium's time and temperature, and a unit: short, like a QC figure. */
 export const SHORT_MAX = 60;
@@ -333,11 +338,11 @@ const viabilityProblem = (r: Record<string, unknown>): void => {
     fail('cultures', `Media: 1 to ${CULTURES_MAX}, each with its time and temperature, none repeated.`);
   if (!isAmount(r.lod, true)) fail('lod', 'The limit of detection is a number above 0, with its unit.');
   if (typeof r.detected !== 'boolean') fail('result', 'Say whether viable organisms were recovered.');
-  if (r.count !== undefined) {
-    if (!isAmount(r.count, false)) fail('count', 'The count is a number with its unit.');
-    if (ZERO.test((r.count as Amount).value) === r.detected)
-      fail('count', 'The count is 0 when none were recovered, and above 0 when some were.');
-  }
+  // None recovered is below the limit of detection, never a count of 0: the count is left out.
+  if (r.detected === false && r.count !== undefined)
+    fail('count', 'No count when none were recovered: the limit of detection says it.');
+  if (r.detected === true && !isAmount(r.count, true))
+    fail('count', 'When viable organisms were recovered, give the count, above 0, with its unit.');
   const k = r.controls;
   if (
     !isObject(k) ||
@@ -887,15 +892,26 @@ export const replacedBy = (
 /**
  * How an after-sample's viability result stands to the before-sample result it names (SPEC 11.12,
  * "The pair"): 'paired' only when that result is here, signed by the same key, a viability result
- * at stage before, for the same batch and strain record, and not sampled after the after-sample.
- * 'missing' when it isn't among these results; 'unpaired' when it is but fails one of those.
+ * at stage before, for the same batch, strain record and target, not sampled after the
+ * after-sample, and neither result is replaced or withdrawn by another one here (replacedBy).
+ * 'missing' when it isn't among these results; 'unpaired' when it is but fails one of the first
+ * rules; 'broken' when they would pair but one of the two was replaced or withdrawn ('side' says
+ * which). A pair whose two tests named different methods is still a pair, and says so.
  */
 export type ViabilityPair =
-  | { readonly state: 'paired'; readonly before: LabResultBundle }
-  | { readonly state: 'missing' | 'unpaired'; readonly code: string };
+  | { readonly state: 'paired'; readonly before: LabResultBundle; readonly methodsDiffer: boolean }
+  | { readonly state: 'missing' | 'unpaired'; readonly code: string }
+  | {
+      readonly state: 'broken';
+      readonly code: string;
+      readonly side: 'before' | 'after';
+      readonly reason: ReplaceReason;
+      readonly by: string;
+    };
 
 export const viabilityPairs = (all: readonly LabResultBundle[]): Map<string, ViabilityPair> => {
   const byCode = new Map(all.map((r) => [resultCode(r), r]));
+  const replaced = replacedBy(all);
   const out = new Map<string, ViabilityPair>();
   for (const a of all) {
     if (a.statement.kind !== 'viability') continue;
@@ -913,8 +929,21 @@ export const viabilityPairs = (all: readonly LabResultBundle[]): Map<string, Via
       br?.stage === 'before' &&
       br.batch === ar.batch &&
       br.strain === ar.strain &&
+      br.target === ar.target &&
       br.sampled <= ar.sampled;
-    out.set(resultCode(a), pairs ? { state: 'paired', before: b } : { state: 'unpaired', code: ar.before });
+    if (!pairs) {
+      out.set(resultCode(a), { state: 'unpaired', code: ar.before });
+      continue;
+    }
+    // A withdrawn or replaced result is no longer evidence about the other: the pair is broken.
+    const gone = replaced.get(ar.before) ?? replaced.get(resultCode(a));
+    if (gone) {
+      const side = replaced.has(ar.before) ? 'before' : 'after';
+      out.set(resultCode(a), { state: 'broken', code: ar.before, side, reason: gone.reason, by: gone.by });
+      continue;
+    }
+    const [am, bm] = [a.statement.method, b.statement.method];
+    out.set(resultCode(a), { state: 'paired', before: b, methodsDiffer: am.id !== bm.id || am.version !== bm.version });
   }
   return out;
 };

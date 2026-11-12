@@ -283,7 +283,7 @@ export const labresult = {
   'app.lr.f.cultures': 'Media and incubation',
   'app.lr.f.culture': '{medium}: {time} at {temperature}',
   'app.lr.f.lod': 'Limit of detection',
-  'app.lr.f.count': 'Recovered, as reported',
+  'app.lr.f.count': 'Result, as reported',
   'app.lr.f.controls': 'Controls',
   'app.lr.f.positiveGrew': 'positive control ({control}) grew',
   'app.lr.f.negativeClean': 'negative control, no growth',
@@ -324,7 +324,7 @@ export const labresult = {
   'app.lr.form.cultureAdd': 'Add a medium',
   'app.lr.form.lodValue': 'Limit of detection',
   'app.lr.form.unit': 'Unit (CFU/g, CFU per 25 g…)',
-  'app.lr.form.countValue': 'Count as reported (optional; 0 when none)',
+  'app.lr.form.countValue': 'Count as reported',
   'app.lr.form.positive': 'Positive control (organism and amount)',
   'app.lr.form.positiveGrew': 'Positive control',
   'app.lr.form.negativeGrew': 'Negative control',
@@ -341,17 +341,38 @@ export const labresult = {
   'app.lr.problem.portion': 'Name the portion tested and its amount.',
   'app.lr.problem.cultures': 'Give each medium with its time and temperature: 1 to 4, none repeated.',
   'app.lr.problem.lod': 'The limit of detection is a number above 0, with its unit (no exponent: write 1000, not 1e3).',
-  'app.lr.problem.count': 'The count is a number with its unit: 0 when none were recovered, above 0 when some were.',
+  'app.lr.problem.count':
+    'When viable organisms were recovered, give the count the report gives, above 0, with its unit. When none were, there is no count: the limit of detection says it.',
   'app.lr.problem.controls':
     'Say how the controls went. A run whose positive control didn’t grow, or whose negative control did, can’t be signed: test again and sign the repeat.',
   'app.lr.check.paired':
-    'Paired with the before-sample result {code} for batch {batch}, signed by the same key. Before the kill step: {before}. After it: {after}.',
+    'Paired with the before-sample result {code} for batch {batch}, signed by the same key; both tests looked for {target}. Before the kill step: {before}. After it: {after}.',
   'app.lr.check.pairBothNone':
     'The before-sample also had none recovered, so this pair doesn’t show that the kill step changed anything.',
   'app.lr.check.pairMissing':
     'It names before-sample result {code}, which isn’t among the files chosen. Choose both files together to see them as a pair.',
   'app.lr.check.pairNot':
-    'It names result {code} as its before-sample, but they don’t pair (another key, batch, strain record or stage, or a before-sample taken later), so nothing here links them.',
+    'It names result {code} as its before-sample, but they don’t pair (another key, batch, strain record, target or stage, or a before-sample taken later), so nothing here links them.',
   'app.lr.claim.viability':
-    'A claim that no viable organisms were recovered doesn’t show the method, the media and incubation, the portion tested or the limit of detection, and says little without them. They are in the lab’s result file. It is a finding about the portion tested, not the whole batch.',
+    'A claim that no viable organisms were recovered doesn’t show the method, the media and incubation, the portion tested or the limit of detection, and says little without them. Nor does it show whether the sample was taken before or after the kill step, unless the claim shows the stage too. All of these are in the lab’s result file. It is a finding about the portion tested, not the whole batch.',
+  'app.lr.f.belowLod': '< {lod}: none recovered above the limit of detection',
+  'app.lr.form.belowLod':
+    'None recovered: there is no count. The result reads as below the limit of detection (for example “< 1 CFU per 25 g”), never as 0.',
+  'app.lr.form.numberHelp': 'A plain number: 1000, 0.5. No commas, spaces or thousands points.',
+  'app.lr.problem.lodNumber':
+    'Type the limit of detection as a plain number: digits, and a point only before decimals (1000, 0.5). “1,000”, “1.000”, “1 000” and “0,5” aren’t read, because they can mean different numbers. A whole number with exactly three decimals looks like a thousands point: type a thousand as 1000, and 2.125 as 2.1250.',
+  'app.lr.problem.countNumber':
+    'Type the count as a plain number: digits, and a point only before decimals (4300000, 0.5). “4,300”, “4.300”, “4 300” and “0,5” aren’t read, because they can mean different numbers. A whole number with exactly three decimals looks like a thousands point: type four thousand three hundred as 4300.',
+  'app.lr.check.pairMethodSame':
+    'Both used the same method, {method}, so the before-sample shows that this method recovered something from this batch before the kill step. Whether the after-sample’s run could recover it from treated material is what that run’s own positive control shows.',
+  'app.lr.check.pairMethodsDiffer':
+    'The two tests used different methods ({before} before, {after} after). So the before-sample shows only that the batch carried something this lab recovered before the kill step, not that the after-sample’s method recovers it from this material.',
+  'app.lr.check.pairWithdrawnBefore':
+    'It names before-sample result {code}, but that result was withdrawn by result {by}, signed by the same key. The two are no longer read as a pair.',
+  'app.lr.check.pairReplacedBefore':
+    'It names before-sample result {code}, but that result was replaced by result {by}, signed by the same key. The two are no longer read as a pair: check the newer result.',
+  'app.lr.check.pairWithdrawnAfter':
+    'This result was withdrawn by result {by}, signed by the same key, so it is no longer read as a pair with before-sample result {code}.',
+  'app.lr.check.pairReplacedAfter':
+    'This result was replaced by result {by}, signed by the same key, so it is no longer read as a pair with before-sample result {code}: check the newer result.',
 };

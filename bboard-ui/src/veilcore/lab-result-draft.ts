@@ -5,6 +5,7 @@
 
 import { numbersOf, type TypedNumbers } from './field-set';
 import {
+  DECIMAL,
   LAB_RESULT_FORMAT,
   checkedStatement,
   isFutureDate,
@@ -170,8 +171,23 @@ const call = (v: YesNo, code: ProblemCode = 'result'): boolean => {
 
 const code = (v: string, c: ProblemCode): string => proofCodeOf(v) ?? bad(c, 'A proof code is 64 hex characters.');
 
-/** A number as typed: a decimal comma read as a point, nothing else tidied (the statement refuses the rest). */
-const decimal = (v: string): string => v.trim().replace(',', '.');
+/**
+ * A number as typed, refused unless it is a plain decimal: digits, and a point only before the
+ * decimals. Nothing is tidied or guessed: "1,000" may be a thousand or one, "0,5" a half, and
+ * "1.000" a thousand to a lab in Germany or France. A whole number followed by exactly three
+ * decimals ("1.000", "4.300") reads either way, so it is refused too, and the message says how to
+ * type each (SPEC 11.12: a value in any other form is refused, never tidied).
+ */
+const decimal = (v: string, c: 'lodNumber' | 'countNumber'): string => {
+  const t = v.trim();
+  if (t === '') return t;
+  if (!DECIMAL.test(t) || /^[1-9]\d{0,2}\.\d{3}$/.test(t))
+    bad(
+      c,
+      'Type a plain number: digits, with a point only before decimals (1000, 0.5). No commas, spaces or thousands points.',
+    );
+  return t;
+};
 
 const viability = (d: ResultDraft): ViabilityResult => {
   const stage: ViabilityStage =
@@ -185,7 +201,11 @@ const viability = (d: ResultDraft): ViabilityResult => {
   const cultures = d.cultures
     .map((c) => ({ medium: c.medium.trim(), time: c.time.trim(), temperature: c.temperature.trim() }))
     .filter((c) => c.medium || c.time || c.temperature);
-  const count = decimal(d.countValue);
+  const lod = decimal(d.lodValue, 'lodNumber');
+  // A count only when some were recovered; none recovered is below the limit of detection, not 0.
+  const some = call(d.detected);
+  const count = some ? decimal(d.countValue, 'countNumber') : '';
+  if (some && !count) bad('count', 'Give the count the report gives, with its unit.');
   if (count && !d.countUnit.trim()) bad('count', 'Give the count’s unit.');
   return {
     batch: d.batch.trim(),
@@ -197,8 +217,8 @@ const viability = (d: ResultDraft): ViabilityResult => {
     target: d.recovers.trim(),
     portion: d.portion.trim(),
     cultures,
-    lod: { value: decimal(d.lodValue), unit: d.lodUnit.trim() },
-    detected: call(d.detected),
+    lod: { value: lod, unit: d.lodUnit.trim() },
+    detected: some,
     ...(count ? { count: { value: count, unit: d.countUnit.trim() } } : {}),
     controls: {
       positive: d.positive.trim(),

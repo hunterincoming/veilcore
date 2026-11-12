@@ -126,31 +126,56 @@ Who asked: a producer that grows a production fungus and sells the dried meal he
 kill step) so no live culture leaves its site, and has a lab test samples before and after it.
 The same shape fits inactivated vaccines and cell lines, heat-treated seed and sterilised substrate.
 
-- **What the lab signs** is what a microbiology report holds (USP <71>, ISO 11737-2, a plate count,
-  an enrichment culture, PDA plating for fungi): the batch or lot; whether the sample was taken
+- **What the lab signs** is what a microbiology report holds (before the kill step, a plate or
+  bioburden count as in ISO 11737-1; after it, a sterility test as in USP <71> and ISO 11737-2, or
+  an enrichment culture; PDA plating for fungi): the batch or lot; whether the sample was taken
   before or after the kill step; for an after-sample, the kill step's method and parameters as the
   sender states them; what the test recovers; the portion tested; each medium with its incubation
-  time and temperature (up to four: USP <71> uses two); the limit of detection; whether viable
-  organisms were recovered and, optionally, the count with its unit; the positive control (what it
+  time and temperature (up to four: a USP <71> sterility test uses two); the limit of detection;
+  whether viable organisms were recovered and, when they were, the count with its unit (required
+  then, above 0); the positive control (what it
   was, and that it grew) and, if run, the negative control (no growth); the date sampled. The
   method and version, sample ID, accession number, the dates received and read, and other run
   details (`qc`) are the statement's own fields.
+- **None recovered has no count.** A report gives it as below the limit of detection ("< 1 CFU per
+  25 g", "not detected in 25 g"), never as 0, and so does the result: the count is left out and the
+  pages show "< {limit}: none recovered above the limit of detection".
+- **Numbers are typed plain.** The limit and the count take digits and a point before decimals
+  only. "1,000", "1.000", "1 000", "0,5" and the like are refused with a message saying how to type
+  them, because they mean different numbers in different countries; nothing is tidied or guessed. A
+  whole number with exactly three decimals ("4.300") reads like a thousands point and is refused too.
 - **An invalid run isn't signed.** A positive control that didn't grow, or a negative control that
   did, is refused on the form and by the statement's own check: "none recovered" on a test that
-  couldn't recover anything would be worse than no result.
+  couldn't recover anything would be worse than no result. (Under USP <71>, growth in the negative
+  control makes the test invalid; a positive control that doesn't grow is a separate failure, of
+  growth promotion or method suitability, after which the medium or method can't be used. Either
+  way there is nothing to sign.)
 - **The strain, without showing it.** `strain` is the proof code of the strain record the batch
   was made from (it can be the record the sample was sent under). Only the code is in the result:
   nothing in the strain record. A claim on Midnight shows neither.
+- **What several result files show together.** Each result names the same strain record by the
+  same code, so anyone given two or more files can tie those batches to one strain record, and date
+  them. The batch IDs and the lab's accession numbers, read in order with their dates, show how
+  often the holder produces and roughly how much. And every claim made on Midnight on a lab's
+  result shows that lab's key and the claim's date, so the number and timing of claims on one lab's
+  results are public. A holder who doesn't want that shows a buyer the claim, not the file, or
+  hands out one file at a time.
 - **The pair.** An after-sample can name its before-sample's result (`before`). The check page
   takes several files at once, and shows the two as a pair only when the same key signed both, the
-  named one is a before-sample, the batch and the strain record are the same, and it wasn't sampled
-  later. If the before-sample also had none recovered, it says the pair doesn't show the kill step
-  changed anything.
+  named one is a before-sample, the batch, the strain record and what the test recovers (`target`)
+  are the same, it wasn't sampled later, and neither result has been withdrawn or replaced by
+  another file chosen. If one was, it says which, and doesn't call them a pair. If the methods
+  differ it says so: the before-sample then shows only that the batch carried something the lab
+  recovered before the kill step, not that the after-sample's method recovers it from this
+  material. (What shows the after-sample's run could recover it is that run's own positive control,
+  ideally the strain added to killed product.) If the before-sample also had none recovered, it
+  says the pair doesn't show the kill step changed anything.
 - **The words.** Every page says the lab reported no viable organisms recovered from the portion,
   under the method and with the limit of detection stated, and that a test recovers only what grows
   under its conditions. No page calls a batch dead or sterile, or says a result proves it; the unit
-  tests check that in all five languages. The claim check adds that a claim on the call doesn't
-  show the method, the media, the portion or the limit.
+  tests check that in all five languages (in Japanese, a bare 証明, "proof", is caught too). The
+  claim check adds that a claim on the call doesn't show the method, the media, the portion or the
+  limit, or whether the sample was taken before or after the kill step.
 - **On Midnight:** the call and the stage are the field set, under `/schemas/viability-v1.json`
   (slot 0: 1 recovered, 0 none; slot 1: 0 before, 1 after), so a holder can prove "none recovered"
   with the lab's signature. The claims contract is unchanged.
