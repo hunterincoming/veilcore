@@ -26,6 +26,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Against a registry from before this change (every lab signature public), the site works as
   before: the grant is sent again without the field when the registry refuses it.
   In all five languages.
+- `deploy:mainnet`, `deploy:test` and `deploy:prod` refuse a registry whose `/health` doesn't
+  list `private-lab-signatures-v1`, so the site can't go out before the registry.
 
 ### Lab results v2: the lab's name link is salted (8 Nov 2026, test network)
 
