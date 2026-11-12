@@ -216,4 +216,49 @@ describe('the check page', () => {
     expect(old.ok && old.lab?.ok && old.lab.signer).toEqual({ kind: 'none' });
     expect(asked).toBe(false);
   });
+
+  it('a v1 binding names the lab only while the plant’s holder shows the report it names', async () => {
+    // The registry keeps a lab's report private (8 Nov 2026) and lists it by the plant's proof
+    // code only while its holder shows it (shared-by-proof-code-v1, 12 Nov 2026): the claim
+    // page reads the plant's list by that proof code, as a stranger, and nothing else.
+    const { checkClaim } = await import('./chain/claim-check');
+    const lab = await generateKeypair();
+    const k = claimsKeyFor(lab.privateKey);
+    const CONTRACT = 'c1'.repeat(32);
+    const link = {
+      kind: 'range' as const,
+      contract: CONTRACT,
+      txId: 'ab'.repeat(32),
+      record: RECORD,
+      schema: 'veilcore/schema/seed-quality/v1',
+      slot: 0,
+      op: 'at-least' as const,
+      bound: '9500',
+      attested: { txId: 'cd'.repeat(32), attester: k.keyText, about: PLANT },
+    };
+    const onChain = {
+      [link.txId]: {
+        kind: 'range',
+        record: Uint8Array.from(Buffer.from(RECORD, 'hex')),
+        schema: fieldSchemaId(SCHEMAS['veilcore/schema/seed-quality/v1']),
+        slot: 0,
+        op: 'at least',
+        bound: 9500n,
+      },
+      [link.attested.txId]: { kind: 'attested', record: Uint8Array.from(Buffer.from(RECORD, 'hex')), attester: k.key },
+    };
+    const read = (_c: string, txId: string) => Promise.resolve({ claim: onChain[txId] as never, blockHeight: 7 });
+    const good = binding(lab, bindingIdSuffix(k, lab.publicKey), {}, bindingHash(k.keyText, PLANT, REPORT_ID));
+    let shown = false;
+    const lists = (r: string) => Promise.resolve(r === PLANT ? (shown ? [report(lab)] : []) : [good]);
+    const hidden = await checkClaim(link, { read, contract: CONTRACT, attestations: lists });
+    expect(hidden.ok && hidden.lab?.ok && hidden.lab.signer).toEqual({ kind: 'none' });
+    shown = true;
+    const named = await checkClaim(link, { read, contract: CONTRACT, attestations: lists });
+    expect(named.ok && named.lab).toMatchObject({ ok: true, signer: { kind: 'bound' } });
+    // Taken back: no name again.
+    shown = false;
+    const again = await checkClaim(link, { read, contract: CONTRACT, attestations: lists });
+    expect(again.ok && again.lab?.ok && again.lab.signer).toEqual({ kind: 'none' });
+  });
 });

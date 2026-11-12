@@ -161,7 +161,7 @@ export const prove = {
   'app.prove.share.nameWarning': 'オンにすると、記録のIDを知る人は誰でも名前を見られます。',
   'app.prove.share.labSigs.title': 'ラボの署名',
   'app.prove.share.labSigs.intro':
-    'この記録についてのラボの受領書と検査報告書は非公開で、あなたとラボだけが見られます。オンにすると、あなたの確認リンクに表示されます。リンクを持つ人は誰でも、ラボが署名したことと、ラボの名前を見られます。',
+    'この記録についてのラボの受領書と検査報告書は非公開で、あなたとラボだけが見られます。オンにすると、あなたの確認リンクと、この記録の証明コードを持つ人（数値を証明するリンクに含まれます）に表示されます。その人たちは、ラボが署名したことと、ラボの名前を見られます。',
   'app.prove.share.labSigs.item': '{who}が署名したことを確認リンクに表示する',
   'app.prove.share.labSigs.receipt': 'サンプルの受領書、{date}に署名',
   'app.prove.share.labSigs.report': '検査報告書、{date}に署名',

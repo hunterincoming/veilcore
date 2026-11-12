@@ -548,7 +548,7 @@ describe('lab receipts', () => {
       nameCheckRecord: null,
     });
     expect(c.labReceipts[0].words).toMatch(/withdrawn by its signer/);
-    expect(c.summary).toMatch(/No lab signature counts for it\. 1 withdrawn by its signer\./);
+    expect(c.summary).toMatch(/No lab signature shown counts for it\. 1 withdrawn by its signer\./);
 
     const other = await generateKeypair();
     const notTheirs = await signRetraction({ ...retraction, attesterPublicKey: other.publicKey }, other.privateKey);
@@ -610,6 +610,89 @@ describe('lab receipts', () => {
   });
 });
 
+// Lab signatures private (registry, 8 Nov 2026): a lab's receipts and reports are answered only
+// when the holder shows them, in /verify's `sharedAttestations` (and since 12 Nov by proof code
+// too). The check reads both, checks each the same way, and never says no lab signed.
+describe('lab signatures the holder shows', () => {
+  const shownVerify = (shared: unknown) => ({
+    found: true,
+    id: ID,
+    cultivar: 'Practice record',
+    recordFingerprint: FP,
+    keyBound: true,
+    custody: [{ receiptAttestationId: 'att_receipt', covered: 'covered', differences: [] }],
+    sharedAttestations: shared,
+  });
+
+  it('none shown: the answer says the holder hasn’t shown any, never that no lab signed', async () => {
+    const { c } = await run(LINK, { attestations: [] });
+    expect(c.labReceipts).toEqual([]);
+    expect(c.labReceiptsTotal).toBe(0);
+    expect(c.summary).toContain(
+      'The holder hasn’t shown any lab signatures. A lab’s receipts and reports are private unless the holder chooses to show them.',
+    );
+    expect(c.summary + asText(c)).not.toMatch(/no lab (has )?signed|No lab signature counts/i);
+  });
+
+  it('shown on the check link only: read from /verify, verified here, the lab named', async () => {
+    const { c, asked } = await run(LINK, { verify: shownVerify([served(receipt)]), attestations: [] });
+    expect(asked.some((u) => u.startsWith('/verify/'))).toBe(true);
+    expect(c.labReceipts).toHaveLength(1);
+    expect(c.labReceipts[0]).toMatchObject({ kind: 'lab-receipt', signatureVerified: true, counts: true });
+    expect(c.labReceipts[0].signer.registeredName).toBe('Practice Lab');
+    expect(c.labReceiptsTotal).toBe(1);
+    expect(c.summary).toMatch(/1 lab signature verified \(1 with a name VeilCore’s operator checked\)/);
+    expect(c.summary).not.toContain('hasn’t shown any');
+  });
+
+  it('shown and also listed by proof code: each read once', async () => {
+    const { c } = await run(LINK, {
+      verify: shownVerify([served(receipt), served(report)]),
+      attestations: [served(receipt)],
+    });
+    expect(c.labReceipts.map((r) => r.attestationId).sort()).toEqual(['att_receipt', 'att_report']);
+    expect(c.labReceiptsTotal).toBe(2);
+  });
+
+  it('a shown signature is checked like any other: forged, about another record, or withdrawn', async () => {
+    const forged = { ...served(report), signature: '00'.repeat(64) };
+    const elsewhere = await signAttestation(
+      { ...report, attestationId: 'att_elsewhere', subjectCommitment: OTHER_FP },
+      lab.privateKey,
+    );
+    const retraction = await signRetraction(
+      {
+        attestationId: receipt.attestationId,
+        attesterPublicKey: lab.publicKey,
+        reason: 'sample-compromised',
+        retractedAt: '2026-10-13T00:00:00Z',
+      },
+      lab.privateKey,
+    );
+    const { c } = await run(LINK, {
+      verify: shownVerify([forged, served(elsewhere), served(receipt, { retraction }), 'junk', null]),
+      attestations: [],
+    });
+    expect(c.labReceipts.map((r) => r.attestationId).sort()).toEqual(['att_receipt', 'att_report']);
+    expect(c.labReceipts.find((r) => r.attestationId === 'att_report')).toMatchObject({
+      signatureVerified: false,
+      counts: false,
+    });
+    expect(c.labReceipts.find((r) => r.attestationId === 'att_receipt')).toMatchObject({
+      withdrawn: true,
+      counts: false,
+    });
+    expect(JSON.stringify(c.labReceipts)).not.toContain('att_elsewhere');
+    expect(c.summary).toMatch(/No lab signature shown counts for it/);
+  });
+
+  it('a /verify list that is not a list is ignored', async () => {
+    const { c } = await run(LINK, { verify: shownVerify({ attestationId: 'att_receipt' }), attestations: [] });
+    expect(c.labReceipts).toEqual([]);
+    expect(c.summary).toContain('The holder hasn’t shown any lab signatures.');
+  });
+});
+
 describe('chain of custody: a receipt only when tied to a delivery', () => {
   it('a chain-of-custody signature the registry ties to no delivery: a signed statement, not counted', async () => {
     // Anyone can register a key under a lab-like name and sign one about any fingerprint.
@@ -648,7 +731,7 @@ describe('chain of custody: a receipt only when tied to a delivery', () => {
         'Signed custody statement (not tied to a delivery): signature verified, signed by a key named “Acme Analytical Labs” (name not checked). The registry ties it to no delivery of this record, and anyone can sign one, so it is not counted.',
       );
       expect(r.words).not.toMatch(/receipt for a sample/);
-      expect(c.summary).toMatch(/No lab signature counts for it/);
+      expect(c.summary).toMatch(/No lab signature shown counts for it/);
     }
   });
 
