@@ -301,6 +301,14 @@ export const fr: Strings = {
   'm.live.results.t': 'Rapports de laboratoire verrouillés pour vous',
   'm.live.results.main': 'Oui. Nouveau, encore en test.',
   'm.live.results.test': 'Oui. Nouveau, encore en test.',
+  // Numbers and results a lab signs (config/network.ts LAB_SIGNING_ENABLED). The veilcore.org cell
+  // says 'main' until it has worked there (config/copy.ts LAB_SIGNING_RUN_ON_MAINNET), then 'live'.
+  'm.live.signed.t': 'Chiffres et résultats signés par un laboratoire',
+  'm.live.signed.main': 'Construit, mais pas encore essayé sur le réseau principal.',
+  'm.live.signed.test':
+    'Oui. Le laboratoire signe avec sa propre clé. Seuls le laboratoire et la personne à qui il remet le résultat le voient, sauf si l’un des deux le partage.',
+  'm.live.signed.live':
+    'Oui. Le laboratoire signe avec sa propre clé. Seuls le laboratoire et la personne à qui il remet le résultat le voient, sauf si l’un des deux le partage.',
   'm.live.dna.t': "Une date pour l'association de votre rapport ADN",
   'm.live.dna.main': 'Conservée avec votre enregistrement, non datée.',
   'm.live.dna.test': 'Oui, envoyée depuis votre navigateur.',

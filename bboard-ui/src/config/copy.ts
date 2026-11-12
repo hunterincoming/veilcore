@@ -88,6 +88,16 @@ export const ROYALTIES_RUN_ON_TEST = false;
 export const ROYALTIES_RUN_ON_MAINNET = true;
 
 /**
+ * Whether lab signing (config/network.ts LAB_SIGNING_ENABLED) has worked on veilcore.org: a lab
+ * key made there, one result signed on a record, checked on /check-lab-result, and its signature
+ * hidden from a check link until the holder shared it. Until it has, the home page's veilcore.org
+ * cell says it is built and not yet tried on the main network (m.live.signed.main), never "Yes".
+ * Hunter turns it on in a reviewed commit after that first run, never before: then the
+ * veilcore.org cell says "Yes" on every build (m.live.signed.live), a fact about veilcore.org.
+ */
+export const LAB_SIGNING_RUN_ON_MAINNET = false;
+
+/**
  * Whether the sponsor's scheduled anchoring job has run on mainnet (batches dated on Midnight's
  * main network on a schedule, not by hand). Until it has, no page claims either cadence: they
  * say records are batched and dated on Midnight (i18n/mainnet-overlay.ts withoutCadence). Hunter

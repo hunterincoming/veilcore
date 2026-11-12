@@ -73,7 +73,7 @@ export const LAB_ONLY_SCHEMAS: readonly string[] = [
 /** The forms a holder is offered when sealing their own document's numbers. */
 export const OFFERED_SCHEMAS: readonly string[] = Object.keys(SCHEMAS).filter((id) => !LAB_ONLY_SCHEMAS.includes(id));
 
-/** The forms a laboratory is offered when it adds numbers to a report (test network only for now). */
+/** The forms a laboratory is offered when it adds numbers to a report (none where LAB_SIGNING_ENABLED is off). */
 export const LAB_SCHEMAS: readonly string[] = LAB_SIGNING_ENABLED
   ? Object.keys(SCHEMAS).filter((id) => !RESULT_CALL_SCHEMAS.includes(id))
   : [];

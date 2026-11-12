@@ -1,8 +1,13 @@
 # Numbers a laboratory signs
 
-Status: built, on the test network only (`LAB_SIGNING_ENABLED` in `bboard-ui/src/config/network.ts`).
-Not on veilcore.org until the whole journey has run once on the test site by hand, and then
-once on mainnet.
+Status: built, and switched on for veilcore.org as well as the test network on 12 November 2026
+(`LAB_SIGNING_ENABLED` in `bboard-ui/src/config/network.ts`; to turn it off on a network, list the
+network in `LAB_SIGNING_OFF`). It ships after lab signatures went private (registry
+`private-lab-signatures-v1`, which every site deploy requires). Not called live on veilcore.org
+until a lab key has been made there, one result signed and checked, and its signature confirmed
+hidden until the holder shares it; then `LAB_SIGNING_RUN_ON_MAINNET` in
+`bboard-ui/src/config/copy.ts` is turned on in a reviewed commit, and the home page's
+"What's live where" cell says so.
 
 ## What it is for
 
@@ -51,8 +56,8 @@ VeilCore says exactly what it can check and nothing more.
 
 ## Version 2: a result bound to its sample (7 November 2026)
 
-Status: built, on the test network only (the same `LAB_SIGNING_ENABLED` switch). Specified in the
-SDK's SPEC 11.12 (draft), with 63 vectors computed there from the text alone; this app checks
+Status: built, behind the same `LAB_SIGNING_ENABLED` switch (on for veilcore.org too).
+Specified in the SDK's SPEC 11.12 (draft), with 63 vectors computed there from the text alone; this app checks
 them (`lab-result.test.ts`).
 
 Version 1 names the plant only by a name the lab typed; the link to the record lived in the
@@ -106,7 +111,7 @@ showing the rest. Code: `veilcore/lab-result.ts`.
   withdrawal that fails is shown. The lab gets one file per result (per row, or a zip of separate
   files: no file holds two clients' results), an archive for its own records, and a summary CSV for
   its LIMS that also lists the rows not signed.
-- **Checking:** `/check-lab-result` (test network only, like signing) checks a result file in the
+- **Checking:** `/check-lab-result` (behind the same switch as signing) checks a result file in the
   browser (form, binding, call, signature). It looks up the lab's name only when asked, since that
   sends the result's code to the registry, and shows "replaced by" only for a later result signed by
   the same key, about the same record, not tested earlier. A replaced result reads as replaced, not

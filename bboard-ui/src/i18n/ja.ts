@@ -303,6 +303,14 @@ export const ja: Strings = {
   'm.live.results.t': 'あなただけが開ける検査報告書',
   'm.live.results.main': 'あり。新機能で、まだテスト中です。',
   'm.live.results.test': 'あり。新機能で、まだテスト中です。',
+  // Numbers and results a lab signs (config/network.ts LAB_SIGNING_ENABLED). The veilcore.org cell
+  // says 'main' until it has worked there (config/copy.ts LAB_SIGNING_RUN_ON_MAINNET), then 'live'.
+  'm.live.signed.t': 'ラボが署名する数値と結果',
+  'm.live.signed.main': '構築済みですが、メインネットワークではまだ試していません。',
+  'm.live.signed.test':
+    'あり。ラボが自らの鍵で署名します。結果を見られるのはラボと結果を受け取った人だけで、どちらかが共有しない限りほかの人には見えません。',
+  'm.live.signed.live':
+    'あり。ラボが自らの鍵で署名します。結果を見られるのはラボと結果を受け取った人だけで、どちらかが共有しない限りほかの人には見えません。',
   'm.live.dna.t': 'DNA報告書の紐付けに付く日付',
   'm.live.dna.main': '記録と一緒に保存されますが、日付は確定しません。',
   'm.live.dna.test': 'あり。ブラウザから送信します。',

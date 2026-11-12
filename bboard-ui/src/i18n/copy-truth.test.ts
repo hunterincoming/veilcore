@@ -57,7 +57,7 @@ const says = (src: string, words: string): boolean => appText(src).includes(word
 import { type Lang } from './index';
 import { networkOverlay, LANGUAGES } from './catalogs';
 import { ja, jaMainnet, jaTestchain } from './ja';
-import { animalRecordsEnabledFor, labResultsEnabledFor } from '../config/network';
+import { animalRecordsEnabledFor, labResultsEnabledFor, labSigningEnabledFor } from '../config/network';
 import { readIndexersFor } from '../veilcore/chain/config';
 import { brokenPromises } from './promise-rule';
 
@@ -397,6 +397,7 @@ describe("what's live where", () => {
       'share',
       'lab',
       'results',
+      'signed',
       'dna',
       'prove',
       'claims',
@@ -475,6 +476,30 @@ describe("what's live where", () => {
     expect(Object.values(LANGUAGES).map((l) => (l.strings as Record<string, string>)['m.live.results.not'])).toEqual(
       Object.keys(LANGUAGES).map(() => undefined),
     );
+    // Numbers and results a lab signs: switched on for veilcore.org (LAB_SIGNING_ENABLED, 12 Nov
+    // 2026), but not called live there until one has been signed and checked on mainnet
+    // (config/copy.ts LAB_SIGNING_RUN_ON_MAINNET). Until then the veilcore.org cell says "built,
+    // not yet tried", in every language and on every build.
+    expect(rows.find((r) => r.row === 'signed')?.has).toEqual([labSigningEnabledFor('mainnet'), true, false]);
+    expect(home).toMatch(
+      /LAB_SIGNING_RUN_ON_MAINNET && row === 'signed' && col === 'main'\s*\?\s*'m\.live\.signed\.live'/,
+    );
+    const signedRun = /export const LAB_SIGNING_RUN_ON_MAINNET = (true|false);/.exec(
+      fs.readFileSync(path.join(SRC, 'config/copy.ts'), 'utf8'),
+    )?.[1];
+    expect(signedRun).toBe('false');
+    expect(e['m.live.signed.main']).toBe('Built, not yet tried on the main network.');
+    expect(e['m.live.signed.main']).not.toMatch(/^Yes/);
+    expect(e['m.live.signed.test']).toMatch(/^Yes\. The lab signs with its own key\./);
+    expect(e['m.live.signed.live']).toMatch(/unless one of them shares it\.$/);
+    for (const l of Object.values(LANGUAGES)) {
+      const s = l.strings as Record<string, string>;
+      for (const k of ['t', 'main', 'test', 'live']) expect(s[`m.live.signed.${k}`], k).toBeTruthy();
+      expect(s['m.live.signed.not']).toBeUndefined();
+      // The cell says "not yet" in its own words, never the "Yes" the other cells start with.
+      expect(s['m.live.signed.main']).not.toBe(s['m.live.signed.live']);
+    }
+    for (const s of [testSite, ...mainnetVariants]) expect(s['m.live.signed.main']).toBe(e['m.live.signed.main']);
     // Prove-by-link checks a key, not the record.
     // The record names its own key (SPEC 3.6.1, docs/identity-in-record.md).
     expect(e['m.live.prove.test']).toBe(

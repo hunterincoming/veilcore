@@ -932,7 +932,7 @@ export const SendResultsPanel: React.FC<{
   const [file, setFile] = useState<{ name: string; bytes: Uint8Array; sha: string }>();
   // What kind of report the lab sends (persona review, 17 Oct): the lab chooses; nothing is assumed.
   const [kind, setKind] = useState<ReportKind>();
-  // A signed result with the report (lab-result.ts, v2), test network only for now: bound to
+  // A signed result with the report (lab-result.ts, v2), behind LAB_SIGNING_ENABLED: bound to
   // this delivery's record, with the method and the sample. Off until the lab turns it on.
   const [withResult, setWithResult] = useState(false);
   const [res, setRes] = useState<ResultDraft>(() => emptyDraft('numbers'));

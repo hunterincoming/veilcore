@@ -299,6 +299,14 @@ export const de: Strings = {
   'm.live.results.t': 'Laborberichte, die nur Sie öffnen können',
   'm.live.results.main': 'Ja. Neu und noch in der Erprobung.',
   'm.live.results.test': 'Ja. Neu und noch in der Erprobung.',
+  // Numbers and results a lab signs (config/network.ts LAB_SIGNING_ENABLED). The veilcore.org cell
+  // says 'main' until it has worked there (config/copy.ts LAB_SIGNING_RUN_ON_MAINNET), then 'live'.
+  'm.live.signed.t': 'Zahlen und Ergebnisse, die ein Labor signiert',
+  'm.live.signed.main': 'Gebaut, im Hauptnetz aber noch nicht ausprobiert.',
+  'm.live.signed.test':
+    'Ja. Das Labor signiert mit seinem eigenen Schlüssel. Nur das Labor und die Person, der es das Ergebnis gibt, sehen es, außer einer von beiden teilt es.',
+  'm.live.signed.live':
+    'Ja. Das Labor signiert mit seinem eigenen Schlüssel. Nur das Labor und die Person, der es das Ergebnis gibt, sehen es, außer einer von beiden teilt es.',
   'm.live.dna.t': 'Ein Datum für die Kopplung Ihres DNA-Berichts',
   'm.live.dna.main': 'Mit Ihrem Datensatz gespeichert, nicht datiert.',
   'm.live.dna.test': 'Ja, aus Ihrem Browser gesendet.',

@@ -4,7 +4,7 @@
 // unless the checker asks: "Find the lab's name" sends the result's code (in the file) to the
 // registry for the lab's own binding naming its key (claims-key.ts findBinding), printed in the
 // wording every page uses for signers; "Find the record…" reads the checker's own records, which
-// sends their holder key. Test network only, like lab signing.
+// sends their holder key. Behind the same switch as lab signing (LAB_SIGNING_ENABLED).
 // SPDX-License-Identifier: Apache-2.0
 
 import React, { useEffect, useRef, useState } from 'react';

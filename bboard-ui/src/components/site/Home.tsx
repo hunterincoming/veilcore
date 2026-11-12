@@ -29,7 +29,12 @@ import { FOUNDERS_MAIL, RoleLine, SDK_REPO, SiteShell, X_HANDLE } from './SiteSh
 import { FoldGroup, FoldItem, FoldPoint, usePhone } from './Fold';
 import { hasRecordsHere } from './returning';
 import { IS_MAINNET, MAINNET_CLAIMS_ADDRESS, MAINNET_CONTRACT_ADDRESS, explorerFor } from '../../config/network';
-import { AGREEMENTS_LIVE, ROYALTIES_RUN_ON_MAINNET, ROYALTIES_RUN_ON_TEST } from '../../config/copy';
+import {
+  AGREEMENTS_LIVE,
+  LAB_SIGNING_RUN_ON_MAINNET,
+  ROYALTIES_RUN_ON_MAINNET,
+  ROYALTIES_RUN_ON_TEST,
+} from '../../config/copy';
 
 const APP_REPO = 'https://github.com/hunterincoming/veilcore';
 /** The public test site (docs/test-site.md). It goes live with this release. */
@@ -286,6 +291,10 @@ const LIVE_ROWS = [
   ['lab', true, true, false],
   // Lab reports locked to the breeder: on veilcore.org too since 16 Oct 2026 (config/network.ts).
   ['results', true, true, false],
+  // Numbers and results a lab signs (config/network.ts LAB_SIGNING_ENABLED): switched on for
+  // veilcore.org on 12 Nov 2026. Its cell says "built, not yet tried" until it has worked there
+  // (config/copy.ts LAB_SIGNING_RUN_ON_MAINNET, cellKey below).
+  ['signed', true, true, false],
   ['dna', true, true, false],
   ['prove', false, true, true],
   ['claims', true, false, true],
@@ -330,7 +339,10 @@ const cellKey = (row: string, col: string) =>
         ? 'm.live.lic.testNext'
         : CLAIMS_ON_SITE && row === 'claims' && col !== 'not'
           ? 'm.live.claims.live'
-          : `m.live.${row}.${col}`) as Parameters<ReturnType<typeof useI18n>['t']>[0];
+          : // Lab signing: "Yes" on veilcore.org only once it has worked there, on every build.
+            LAB_SIGNING_RUN_ON_MAINNET && row === 'signed' && col === 'main'
+            ? 'm.live.signed.live'
+            : `m.live.${row}.${col}`) as Parameters<ReturnType<typeof useI18n>['t']>[0];
 
 const LiveWhere: React.FC<{ phone: boolean }> = ({ phone }) => {
   const { t } = useI18n();
