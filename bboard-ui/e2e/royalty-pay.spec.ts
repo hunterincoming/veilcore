@@ -36,7 +36,11 @@ const cardanoFixtures = async () => {
   const C = await lib();
   const key = (s: number) => C.PrivateKey.from_normal_bytes(new Uint8Array(32).fill(s));
   const base = (p: number, s: number) =>
-    C.BaseAddress.new(0, C.Credential.from_keyhash(key(p).to_public().hash()), C.Credential.from_keyhash(key(s).to_public().hash())).to_address();
+    C.BaseAddress.new(
+      0,
+      C.Credential.from_keyhash(key(p).to_public().hash()),
+      C.Credential.from_keyhash(key(s).to_public().hash()),
+    ).to_address();
   const licensor = base(1, 2).to_bech32();
   const payer = base(3, 4);
   const assets = C.Assets.new();
@@ -62,12 +66,18 @@ const relayAnswer = async (txHex: string) => {
   for (let i = 0; i < outs.len(); i++) {
     const o = outs.get(i);
     const amounts = [{ unit: 'lovelace', quantity: o.amount().coin().to_str() }];
-    const q = o.amount().multiasset()?.get(C.ScriptHash.from_hex(TOKEN.policyId))?.get(C.AssetName.new(Buffer.from(TOKEN.assetName, 'hex')));
+    const q = o
+      .amount()
+      .multiasset()
+      ?.get(C.ScriptHash.from_hex(TOKEN.policyId))
+      ?.get(C.AssetName.new(Buffer.from(TOKEN.assetName, 'hex')));
     if (q) amounts.push({ unit: TOKEN.policyId + TOKEN.assetName, quantity: q.to_str() });
     outputs.push({ address: o.address().to_bech32(), amounts });
   }
   const meta = tx.auxiliary_data()?.metadata()?.get(C.BigNum.from_str('674'));
-  const msg = meta ? (JSON.parse(C.decode_metadatum_to_json_str(meta, C.MetadataJsonSchema.NoConversions)) as { msg: string[] }).msg : [];
+  const msg = meta
+    ? (JSON.parse(C.decode_metadatum_to_json_str(meta, C.MetadataJsonSchema.NoConversions)) as { msg: string[] }).msg
+    : [];
   return { hash: fixed.transaction_hash().to_hex(), valid: true, confirmations: 12, outputs, msg };
 };
 
@@ -148,7 +158,9 @@ test.describe('royalties: overdue, reminders, revoke for non-payment, the public
   test.skip(REAL_REGISTRY, 'this uses the stand-in registry');
 
   for (const lang of ['en', 'ja'] as const) {
-    test(`overdue on both sides and on the public check page, then revoked for non-payment (${lang})`, async ({ browser }) => {
+    test(`overdue on both sides and on the public check page, then revoked for non-payment (${lang})`, async ({
+      browser,
+    }) => {
       test.setTimeout(240_000);
       const state = registry();
       const issuer = await browser.newPage();
@@ -164,7 +176,8 @@ test.describe('royalties: overdue, reminders, revoke for non-payment, the public
       await issuer.goto('/e2e/royalty-pay?side=issuer&scenario=overdue');
       const alert = issuer.locator('[data-payment-alert="overdue"]');
       await expect(alert).toBeVisible({ timeout: 60_000 });
-      if (lang === 'en') await expect(alert).toContainText('Payment for report 1 from Practice Grower is overdue since');
+      if (lang === 'en')
+        await expect(alert).toContainText('Payment for report 1 from Practice Grower is overdue since');
       await expect(issuer.locator('[data-report-overdue]')).toBeVisible();
       await expect(issuer.locator('[data-public-notice="shown"]')).toBeVisible();
       // Sent with a kind and a date, nothing else.
@@ -192,12 +205,15 @@ test.describe('royalties: overdue, reminders, revoke for non-payment, the public
       const notices = visitor.locator('[data-license-notices]');
       await expect(notices.locator('[data-license-notice="overdue"]')).toBeVisible();
       if (lang === 'en') await expect(notices).toContainText('A royalty statement is overdue since');
-      for (const hidden of ['1,000', '1000', 'Practice Grower', 'Hana Rivera', '2.50']) await expect(notices).not.toContainText(hidden);
+      for (const hidden of ['1,000', '1000', 'Practice Grower', 'Hana Rivera', '2.50'])
+        await expect(notices).not.toContainText(hidden);
       await shot(visitor, `public-overdue-${lang}`);
 
       // Revoke for non-payment: confirm, a signed notice goes to the licensee, the public page changes.
       const before = state.messages.length;
-      await issuer.getByRole('button', { name: lang === 'en' ? 'Revoke for non-payment' : '不払いを理由に取り消す' }).click();
+      await issuer
+        .getByRole('button', { name: lang === 'en' ? 'Revoke for non-payment' : '不払いを理由に取り消す' })
+        .click();
       await expect(issuer.locator('[data-confirm-inline]')).toBeVisible();
       await shot(issuer, `revoke-confirm-${lang}`);
       await issuer.locator('[data-confirm-inline] button').first().click();
@@ -225,11 +241,16 @@ test.describe('royalties: overdue, reminders, revoke for non-payment, the public
       await standIn(p, state);
     }
     await issuer.goto('/e2e/royalty-pay?side=issuer&scenario=soon');
-    await expect(issuer.locator('[data-payment-alert="soon"]')).toContainText('from Practice Grower is due on', { timeout: 60_000 });
-    await licensee.goto('/e2e/royalty-pay?side=licensee&scenario=soon');
-    await expect(licensee.locator('[data-payment-alert="soon"]')).toContainText('Reminder: payment for report 1 is due on', {
+    await expect(issuer.locator('[data-payment-alert="soon"]')).toContainText('from Practice Grower is due on', {
       timeout: 60_000,
     });
+    await licensee.goto('/e2e/royalty-pay?side=licensee&scenario=soon');
+    await expect(licensee.locator('[data-payment-alert="soon"]')).toContainText(
+      'Reminder: payment for report 1 is due on',
+      {
+        timeout: 60_000,
+      },
+    );
     await expect(licensee.locator('[data-report-overdue]')).toHaveCount(0);
     expect(state.noticeBodies).toEqual([]);
     await shot(licensee, 'soon-licensee-en');
@@ -268,17 +289,19 @@ test.describe('paying in a stablecoin on Cardano (test network)', () => {
       await licensee.addInitScript(
         ([utxo, change]) => {
           const api = {
-            getNetworkId: async () => 0,
-            getUtxos: async () => [utxo],
-            getChangeAddress: async () => change,
-            getUsedAddresses: async () => [change],
-            signTx: async () => 'a0',
-            submitTx: async (tx: string) => {
+            getNetworkId: () => Promise.resolve(0),
+            getUtxos: () => Promise.resolve([utxo]),
+            getChangeAddress: () => Promise.resolve(change),
+            getUsedAddresses: () => Promise.resolve([change]),
+            signTx: () => Promise.resolve('a0'),
+            submitTx: (tx: string) => {
               (window as unknown as { __sent?: string }).__sent = tx;
-              return 'ok';
+              return Promise.resolve('ok');
             },
           };
-          (window as unknown as { cardano: unknown }).cardano = { practice: { name: 'Practice Wallet', enable: async () => api } };
+          (window as unknown as { cardano: unknown }).cardano = {
+            practice: { name: 'Practice Wallet', enable: () => Promise.resolve(api) },
+          };
         },
         [fx.utxo, fx.payerHex],
       );
@@ -288,17 +311,20 @@ test.describe('paying in a stablecoin on Cardano (test network)', () => {
       await licensee.goto(`/e2e/royalty-pay?side=licensee&scenario=usd&payTo=${fx.licensor}`);
       const pay = licensee.locator('[data-pay-on-cardano=""]');
       await expect(pay).toBeVisible({ timeout: 60_000 });
-      if (lang === 'en') await expect(licensee.locator('[data-pay-cardano]')).toHaveText('Pay 1000.00 tUSD with Practice Wallet');
+      if (lang === 'en')
+        await expect(licensee.locator('[data-pay-cardano]')).toHaveText('Pay 1000.00 tUSD with Practice Wallet');
       await expect(pay.locator('[data-screened]')).toBeVisible();
       await shot(licensee, `stablecoin-pay-${lang}`);
 
       await licensee.locator('[data-pay-cardano]').click();
       // Recorded in the signed "I paid", then found on Cardano: settled, no "received".
       await expect(licensee.locator('[data-cardano-check="ok"]')).toBeVisible({ timeout: 60_000 });
-      const sent = await relayAnswer((await licensee.evaluate(() => (window as unknown as { __sent: string }).__sent))!);
+      const sent = await relayAnswer(await licensee.evaluate(() => (window as unknown as { __sent: string }).__sent));
       const toLicensor = sent.outputs.filter((o) => o.address === fx.licensor);
       expect(toLicensor).toHaveLength(1);
-      expect(toLicensor[0].amounts.find((a) => a.unit === TOKEN.policyId + TOKEN.assetName)?.quantity).toBe('1000000000');
+      expect(toLicensor[0].amounts.find((a) => a.unit === TOKEN.policyId + TOKEN.assetName)?.quantity).toBe(
+        '1000000000',
+      );
       expect(sent.msg).toHaveLength(1);
       expect(sent.msg[0]).toMatch(/^vc1:[0-9a-f]{32}$/);
       // Nothing goes anywhere else: the other outputs are the payer's own change.
