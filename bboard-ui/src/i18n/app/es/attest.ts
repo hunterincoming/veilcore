@@ -64,7 +64,7 @@ export const attest = {
   'app.claim.check.labConflict':
     'Más de un laboratorio reclama esta clave, así que no se muestra ningún nombre. Tome los números como del propio titular.',
   'app.claim.check.labUnidentified':
-    'Ningún laboratorio ha dicho que esta clave sea suya para este registro. Tome los números como del propio titular.',
+    'Esta página no encontró ningún laboratorio que diga que esta clave es suya para este registro (las firmas de informes de un laboratorio son privadas, salvo que el titular las muestre). Tome los números como del propio titular.',
   'app.claim.check.labAbout': 'Los resultados se refieren al registro con el código de prueba',
   'app.claim.check.labFieldSecret':
     'El laboratorio también conoce estos números y podría demostrar cosas sobre ellos por su cuenta.',

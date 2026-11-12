@@ -77,7 +77,7 @@ export const plant = {
   'app.plant.tie.notNow': '今は植物に結び付いていません',
   'app.plant.tie.lab': '{lead}DNA報告書',
   'app.plant.tie.self': 'あなたが保存したDNA報告書（一致するラボの署名はありません）',
-  'app.plant.tie.selfPublic': '保有者が保存したDNA報告書（一致するラボの署名はありません）',
+  'app.plant.tie.selfPublic': '保有者が保存したDNA報告書（ここに表示されたラボの署名で一致するものはありません）',
   'app.plant.tie.savedHolder': 'あなたが保存したDNA報告書',
   'app.plant.tie.savedPublic': '保有者が保存したDNA報告書',
   'app.plant.tie.replaced': 'ここに保存したDNA報告書をラボが差し替えました',

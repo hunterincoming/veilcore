@@ -17,15 +17,15 @@ export const verify = {
     '{which} a été remplacé par son laboratoire le {on} par un rapport corrigé. {tail}{staleNote}',
   'app.verify.report.withdrawn': '{which} a été retiré par son laboratoire le {on}. {tail}{staleNote}',
   'app.verify.report.ownSha':
-    'Le détenteur a enregistré un fichier de rapport ADN sur cet enregistrement{asOf} (SHA-256 {sha}). Aucune signature de laboratoire sur cet enregistrement n’y correspond : c’est la propre déclaration du détenteur.{staleNote}',
+    'Le détenteur a enregistré un fichier de rapport ADN sur cet enregistrement{asOf} (SHA-256 {sha}). Aucune signature de laboratoire montrée ici n’y correspond : tel que montré, c’est la propre déclaration du détenteur. Les signatures d’un laboratoire sont privées, sauf si le détenteur choisit de les montrer.{staleNote}',
   'app.verify.report.own':
-    'Le détenteur a enregistré un fichier de rapport ADN sur cet enregistrement. Aucune signature de laboratoire sur cet enregistrement n’y correspond : c’est la propre déclaration du détenteur.{staleNote}',
+    'Le détenteur a enregistré un fichier de rapport ADN sur cet enregistrement. Aucune signature de laboratoire montrée ici n’y correspond : tel que montré, c’est la propre déclaration du détenteur. Les signatures d’un laboratoire sont privées, sauf si le détenteur choisit de les montrer.{staleNote}',
   'app.verify.report.unnamedSigned':
     'Le détenteur a enregistré un rapport ADN sur cet enregistrement. Ce lien ne nomme pas le fichier : cette page ne peut donc pas dire s’il s’agit du rapport signé indiqué ci-dessus.',
   'app.verify.report.unnamedWithdrawn':
     'Le détenteur a enregistré un rapport ADN sur cet enregistrement. Ce lien ne nomme pas le fichier, et chaque rapport signé au sujet de cet enregistrement a été retiré par son laboratoire : c’est donc la propre déclaration du détenteur.',
   'app.verify.report.unnamedNone':
-    'Le détenteur a enregistré un rapport ADN sur cet enregistrement. Aucun laboratoire n’a signé de rapport au sujet de cet enregistrement : c’est donc la propre déclaration du détenteur.',
+    'Le détenteur a enregistré un rapport ADN sur cet enregistrement. Aucune signature de rapport de laboratoire n’est montrée ici : tel que montré, c’est donc la propre déclaration du détenteur. Les signatures d’un laboratoire sont privées, sauf si le détenteur choisit de les montrer.',
   'app.verify.kind.receipts.one': 'un accusé de réception de laboratoire',
   'app.verify.kind.receipts.other': '{count} accusés de réception de laboratoire',
   'app.verify.kind.reports.one': 'un rapport de laboratoire',
@@ -165,7 +165,7 @@ export const verify = {
   'app.verify.noneVerified':
     'Le registre signale une attestation signée, mais aucune n’a pu être vérifiée dans ce navigateur.',
   'app.verify.noneSigned':
-    'Aucun accusé de réception ni rapport de laboratoire n’a été signé au sujet de cet enregistrement.',
+    'Le détenteur n’a montré ici aucune signature de laboratoire. Les accusés de réception et les rapports d’un laboratoire sont privés, sauf si le détenteur choisit de les montrer.',
   'app.verify.badSigs.one':
     'Une signature signalée par le registre ne se vérifie pas dans ce navigateur : elle n’est donc pas comptée.',
   'app.verify.badSigs.other':
@@ -207,7 +207,7 @@ export const verify = {
   'app.verify.sharedNothing': 'Le détenteur n’a rien partagé au-delà des éléments de base ci-dessus.',
   'app.verify.notShared': 'Non partagé par le détenteur : {list}.',
   'app.verify.alwaysShown':
-    'Toujours affichés : l’identifiant de l’enregistrement, son code de preuve ({fp}), la date à laquelle le registre l’a conservé pour la première fois, et ce que cette page a pu vérifier sur son lot et sur les attestations signées (un accusé de réception de laboratoire, un rapport de laboratoire). Le nom, seulement quand le lien le porte (les vôtres ne le portent que si vous l’activez) ou que vous choisissez de le montrer.',
+    'Toujours affichés : l’identifiant de l’enregistrement, son code de preuve ({fp}), la date à laquelle le registre l’a conservé pour la première fois, et ce que cette page a pu vérifier sur son lot et sur les attestations signées montrées (un accusé de réception ou un rapport de laboratoire seulement si vous choisissez de le montrer). Le nom, seulement quand le lien le porte (les vôtres ne le portent que si vous l’activez) ou que vous choisissez de le montrer.',
   'app.verify.ex.title': 'Exemple : un enregistrement inventé.',
   'app.verify.ex.intro':
     'Ceci montre à quoi ressemble la page de vérification d’un enregistrement, avec une note sous chaque ligne. Rien n’y a été consulté ni vérifié.',
@@ -274,4 +274,6 @@ export const verify = {
     'Le détenteur a enregistré un rapport ADN avec cet enregistrement. Pour savoir lequel, choisissez le fichier que le détenteur vous a envoyé : cette page le vérifie par rapport à l’enregistrement, avec ce que contient ce lien.',
   'app.verify.report.noSaltInLink':
     'Le détenteur a enregistré un rapport ADN avec cet enregistrement. Quel fichier c’est ne peut se vérifier qu’avec le lien de vérification du détenteur lui-même et le fichier.',
+  'app.verify.unnamedReceipt':
+    'Un accusé de réception de laboratoire pour un échantillon de cet enregistrement, selon le registre. Le détenteur n’a pas montré quel laboratoire l’a signé.',
 } satisfies Partial<AppTranslation>;

@@ -17,7 +17,7 @@ import {
   type MadeClaim,
 } from '../claim-link';
 import { findBinding, type BindingCandidate } from '../claims-key';
-import { attestationsFor } from '../attesters';
+import { attestationsFor, mergeAttestations, sharedAttestationsOf } from '../attesters';
 
 export type ClaimReader = (
   contract: string,
@@ -47,6 +47,14 @@ export const checkClaim = async (
     contract?: string;
     /** The attestations about a record (attesters.ts attestationsFor, signatures checked there). */
     attestations?: (record: string) => Promise<readonly BindingCandidate[]>;
+    /**
+     * The lab signatures the holder of the record the numbers are about chose to show (its
+     * /verify `sharedAttestations`, 8 Nov 2026). The registry keeps a lab's report signature
+     * private otherwise, so without them a v1 binding can't find the report it names and the
+     * lab is not identified. Verified here like the open list, and only those about that
+     * record kept.
+     */
+    sharedAbout?: unknown;
   } = {},
 ): Promise<ClaimVerdict> => {
   const contract = deps.contract ?? CLAIMS_CONTRACT;
@@ -69,7 +77,13 @@ export const checkClaim = async (
         if (link.attested.about && a.claim.attester) {
           try {
             const get = deps.attestations ?? ((r: string) => attestationsFor(r, { claimsKeyBindings: true }));
-            const [list, aboutList] = await Promise.all([get(link.record), get(link.attested.about)]);
+            const about = link.attested.about;
+            const [list, open, shared] = await Promise.all([
+              get(link.record),
+              get(about),
+              sharedAttestationsOf(deps.sharedAbout, about),
+            ]);
+            const aboutList = mergeAttestations<BindingCandidate>(open, shared);
             signer = findBinding(
               list,
               link.record,

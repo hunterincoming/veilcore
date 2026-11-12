@@ -17,15 +17,15 @@ export const verify = {
     '{which} wurde am {on} von seinem Labor durch einen korrigierten ersetzt. {tail}{staleNote}',
   'app.verify.report.withdrawn': '{which} wurde am {on} von seinem Labor zurückgezogen. {tail}{staleNote}',
   'app.verify.report.ownSha':
-    'Der Inhaber hat eine Datei eines DNA-Berichts zu diesem Datensatz gespeichert{asOf} (SHA-256 {sha}). Keine Laborsignatur zu diesem Datensatz passt dazu, daher ist sie die eigene Angabe des Inhabers.{staleNote}',
+    'Der Inhaber hat eine Datei eines DNA-Berichts zu diesem Datensatz gespeichert{asOf} (SHA-256 {sha}). Keine hier gezeigte Laborsignatur passt dazu, daher ist sie, wie gezeigt, die eigene Angabe des Inhabers. Die Signaturen eines Labors sind privat, außer der Inhaber zeigt sie.{staleNote}',
   'app.verify.report.own':
-    'Der Inhaber hat eine Datei eines DNA-Berichts zu diesem Datensatz gespeichert. Keine Laborsignatur zu diesem Datensatz passt dazu, daher ist sie die eigene Angabe des Inhabers.{staleNote}',
+    'Der Inhaber hat eine Datei eines DNA-Berichts zu diesem Datensatz gespeichert. Keine hier gezeigte Laborsignatur passt dazu, daher ist sie, wie gezeigt, die eigene Angabe des Inhabers. Die Signaturen eines Labors sind privat, außer der Inhaber zeigt sie.{staleNote}',
   'app.verify.report.unnamedSigned':
     'Der Inhaber hat einen DNA-Bericht zu diesem Datensatz gespeichert. Dieser Link nennt die Datei nicht, daher kann diese Seite nicht sagen, ob es der oben aufgeführte signierte Laborbericht ist.',
   'app.verify.report.unnamedWithdrawn':
     'Der Inhaber hat einen DNA-Bericht zu diesem Datensatz gespeichert. Dieser Link nennt die Datei nicht, und jeder zu diesem Datensatz signierte Laborbericht wurde von seinem Labor zurückgezogen, daher ist es die eigene Angabe des Inhabers.',
   'app.verify.report.unnamedNone':
-    'Der Inhaber hat einen DNA-Bericht zu diesem Datensatz gespeichert. Kein Labor hat einen Laborbericht zu diesem Datensatz signiert, daher ist es die eigene Angabe des Inhabers.',
+    'Der Inhaber hat einen DNA-Bericht zu diesem Datensatz gespeichert. Hier wird keine Signatur eines Laborberichts gezeigt, daher ist es, wie gezeigt, die eigene Angabe des Inhabers. Die Signaturen eines Labors sind privat, außer der Inhaber zeigt sie.',
   'app.verify.kind.receipts.one': 'eine Empfangsbestätigung eines Labors',
   'app.verify.kind.receipts.other': '{count} Empfangsbestätigungen von Laboren',
   'app.verify.kind.reports.one': 'ein Laborbericht',
@@ -166,7 +166,7 @@ export const verify = {
   'app.verify.noneVerified':
     'Das Register meldet eine signierte Bestätigung, aber keine ließ sich in diesem Browser prüfen.',
   'app.verify.noneSigned':
-    'Zu diesem Datensatz wurde weder eine Empfangsbestätigung noch ein Laborbericht eines Labors signiert.',
+    'Der Inhaber hat hier keine Laborsignaturen gezeigt. Empfangsbestätigungen und Berichte eines Labors sind privat, außer der Inhaber zeigt sie.',
   'app.verify.badSigs.one':
     'Eine vom Register gemeldete Signatur lässt sich in diesem Browser nicht prüfen und zählt daher nicht.',
   'app.verify.badSigs.other':
@@ -207,7 +207,7 @@ export const verify = {
   'app.verify.sharedNothing': 'Der Inhaber hat nichts über die Grundangaben oben hinaus geteilt.',
   'app.verify.notShared': 'Vom Inhaber nicht geteilt: {list}.',
   'app.verify.alwaysShown':
-    'Immer angezeigt: die Datensatz-ID, sein Prüfcode ({fp}), wann das Register ihn zuerst gespeichert hat, und was diese Seite über seinen Stapel und signierte Bestätigungen (eine Empfangsbestätigung eines Labors, einen Laborbericht) prüfen konnte. Der Name nur, wenn der Link ihn trägt (Ihre Links tun das nur, wenn Sie es einschalten) oder Sie ihn zeigen möchten.',
+    'Immer angezeigt: die Datensatz-ID, sein Prüfcode ({fp}), wann das Register ihn zuerst gespeichert hat, und was diese Seite über seinen Stapel und gezeigte signierte Bestätigungen (eine Empfangsbestätigung oder ein Bericht eines Labors nur, wenn Sie sie zeigen) prüfen konnte. Der Name nur, wenn der Link ihn trägt (Ihre Links tun das nur, wenn Sie es einschalten) oder Sie ihn zeigen möchten.',
   'app.verify.ex.title': 'Beispiel: ein erfundener Datensatz.',
   'app.verify.ex.intro':
     'Das zeigt, wie die Prüfseite eines Datensatzes aussieht, mit einer Anmerkung unter jeder Zeile. Hier wurde nichts nachgeschlagen oder geprüft.',
@@ -275,4 +275,6 @@ export const verify = {
     'Der Inhaber hat einen DNA-Bericht zu diesem Datensatz gespeichert. Um zu sehen, welchen, wählen Sie die Datei, die der Inhaber Ihnen geschickt hat: Diese Seite prüft sie mit dem, was in diesem Link steht, gegen den Datensatz.',
   'app.verify.report.noSaltInLink':
     'Der Inhaber hat einen DNA-Bericht zu diesem Datensatz gespeichert. Welche Datei es ist, lässt sich nur mit dem eigenen Prüflink des Inhabers und der Datei prüfen.',
+  'app.verify.unnamedReceipt':
+    'Eine Empfangsbestätigung eines Labors für eine Probe aus diesem Datensatz, wie das Register meldet. Der Inhaber hat nicht gezeigt, welches Labor sie signiert hat.',
 } satisfies Partial<AppTranslation>;

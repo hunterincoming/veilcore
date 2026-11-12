@@ -189,7 +189,7 @@ export const animal = {
     'Noch hat kein Labor eine Empfangsbestätigung für dieses Tier signiert. Ein Datensatz, für den nur Sie einstehen, ist ein schwächerer Nachweis als einer, den ein Labor signiert. Senden Sie eine Probe an ein Labor: Seine Empfangsbestätigung wird mit seinem Schlüssel signiert, nicht mit Ihrem.',
   'app.animal.v.app.verify.field.parent-names': 'Vater und Mutter (Namen und Kennungen)',
   'app.animal.v.app.verify.alwaysShown':
-    'Immer angezeigt: die Datensatz-ID, sein Prüfcode ({fp}), wann das Register ihn zuerst gespeichert hat, und was diese Seite über seinen Stapel und signierte Bestätigungen (eine Empfangsbestätigung eines Labors, einen Laborbericht) prüfen konnte. Der Name des Tieres nur, wenn der Link ihn trägt (Ihre Links tun das nur, wenn Sie es einschalten) oder Sie ihn zeigen möchten.',
+    'Immer angezeigt: die Datensatz-ID, sein Prüfcode ({fp}), wann das Register ihn zuerst gespeichert hat, und was diese Seite über seinen Stapel und gezeigte signierte Bestätigungen (eine Empfangsbestätigung oder ein Bericht eines Labors nur, wenn Sie sie zeigen) prüfen konnte. Der Name des Tieres nur, wenn der Link ihn trägt (Ihre Links tun das nur, wenn Sie es einschalten) oder Sie ihn zeigen möchten.',
   'app.animal.v.app.verify.ownReceiptTail':
     ' Sie sehen das, weil das Tier in diesem Browser ist; wer Ihren Link erhält, sieht nur die Signaturzeile oben.',
   'app.animal.v.app.prove.openCheckPage': 'Die Prüfseite des Tieres öffnen',

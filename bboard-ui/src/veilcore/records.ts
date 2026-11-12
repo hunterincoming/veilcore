@@ -269,6 +269,12 @@ export type StrainRecord = {
    */
   readonly grantToConfirm?: DisclosureKey[];
   /**
+   * The lab signatures (lab reports and receipts) the holder chose to show on their check
+   * link (8 Nov 2026, disclosure.ts GrantValues.sharedAttestations): the registry keeps them
+   * private otherwise. Off unless the holder turns one on.
+   */
+  readonly sharedAttestations?: string[];
+  /**
    * Where `resultLock` came from: the lab code (pasted here), or the sender's sealed offer
    * (round 3, P1). A lock without this was put on the record before either was required, and
    * is used only when it matches the lock this browser kept from the code (lab-results.ts
@@ -792,17 +798,28 @@ const resendGrants = (force: readonly string[] = []): Promise<number> =>
  * the backup is checked; the registry holds it in plain text, so its grant is taken into the
  * sealed copy when it is converted (convertLegacy).
  */
-const keepGrant = async (id: string, show: DisclosureKey[]): Promise<StrainRecord | { error: string }> => {
+const keepGrant = async (
+  id: string,
+  show: DisclosureKey[],
+  shared?: readonly string[],
+): Promise<StrainRecord | { error: string }> => {
   const r = getRecord(id);
   if (!r) return { error: 'that record isn’t in this browser' };
   if (integrityOf(id) === 'mismatch') return { error: enT.t('app.sealed.mismatch') };
   // A choice made on the share screen answers the question about the grant listed before
   // locking too (P2).
-  const { grantToConfirm: _ask, ...rest } = r;
+  const { grantToConfirm: _ask, sharedAttestations: before, ...rest } = r;
   void _ask;
+  // The lab signatures chosen to show on the check link (8 Nov 2026): the new choice when one
+  // is given, else the earlier one; none at all leaves the field out.
+  const sharedNow = shared === undefined ? before : [...new Set(shared)];
   // A saved DNA report is published only bound with the record's own pairing salt (round 5):
   // made now if it has none, and kept with the choice, before anything is published.
-  const next: StrainRecord = withPairSalt({ ...rest, grant: [...show] });
+  const next: StrainRecord = withPairSalt({
+    ...rest,
+    grant: [...show],
+    ...(sharedNow?.length ? { sharedAttestations: [...sharedNow] } : {}),
+  });
   if (rowStateOf(RECORDS_KEY, id) === 'legacy') return next;
   records = records.map((x) => (x.id === id ? next : x));
   notify();
@@ -1468,6 +1485,7 @@ export const HOLDER_ONLY_FIELDS = [
   'resultLockFrom',
   'grant',
   'grantToConfirm',
+  'sharedAttestations',
   'licenseIds',
 ] as const;
 
@@ -2122,6 +2140,7 @@ export const issueCorrection = async (
     supersededBy: undefined,
     grant: undefined,
     grantToConfirm: undefined,
+    sharedAttestations: undefined,
     // Its own secrets go in with its first save (round 4, F5), never the original's.
     secrets: undefined,
   } as StrainRecord;

@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Lab signatures: private unless the holder shows them (not live yet; ships with the registry)
+
+- The registry is changing to keep a lab's receipts and reports about a record private: only
+  the holder, the delivery's parties and the lab can read them. This site update goes with it.
+- Show someone has a "Lab signatures" section under "Whether a DNA report is saved": one switch
+  per lab receipt or report, "Show that … signed this on your check link", off by default. When
+  the saved DNA report matches a lab report and the link carries its lab salt, showing that
+  report is suggested. The choice is kept with the record's sealed copy and sent in the grant as
+  `values.sharedAttestations`; ids no longer about the record are left out before sending.
+- The check page reads `sharedAttestations` from `/verify`, checks each signature and
+  withdrawal in the browser, keeps only those about the record, and uses them like the open
+  list (the lab report line, receipt lines, the signer footer). A custody line that names no
+  receipt is still shown, without the lab.
+- It no longer says "No lab's receipt or lab report has been signed about this record". It says
+  the holder hasn't shown any lab signatures, and that they are private unless the holder
+  shows them. The DNA report lines and the claim check's "lab not identified" line say the same.
+- Against a registry from before this change (every lab signature public), the site works as
+  before: the grant is sent again without the field when the registry refuses it.
+  In all five languages.
+
 ### Lab results v2: the lab's name link is salted (8 Nov 2026, test network)
 
 - The binding a lab posts to put its name on a result no longer gives away which record it

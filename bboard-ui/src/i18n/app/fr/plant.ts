@@ -82,7 +82,7 @@ export const plant = {
   'app.plant.tie.lab': 'Rapport ADN {lead}',
   'app.plant.tie.self': 'Rapport ADN que vous avez enregistré (aucune signature de laboratoire n’y correspond)',
   'app.plant.tie.selfPublic':
-    'Rapport ADN enregistré par le détenteur (aucune signature de laboratoire n’y correspond)',
+    'Rapport ADN enregistré par le détenteur (aucune signature de laboratoire montrée ici n’y correspond)',
   'app.plant.tie.savedHolder': 'Rapport ADN que vous avez enregistré',
   'app.plant.tie.savedPublic': 'Rapport ADN enregistré par le détenteur',
   'app.plant.tie.replaced': 'le laboratoire a remplacé le rapport ADN enregistré ici',

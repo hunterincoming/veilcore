@@ -166,7 +166,9 @@ test('seal, see it is not tied to the plant, save a DNA report, see it tied, dat
   await expect(dnaSwitch).not.toBeChecked();
   await expect(tie).toHaveCount(0);
   await dnaSwitch.check();
-  await expect(tie).toContainText('Tied to the plant: DNA report the holder saved (no lab signature matches it).');
+  await expect(tie).toContainText(
+    'Tied to the plant: DNA report the holder saved (no lab signature shown here matches it).',
+  );
   await expect(tie).toContainText('It doesn’t show by itself that a plant matches.');
   await page.getByRole('button', { name: 'Back to the plant' }).first().click();
 

@@ -115,7 +115,7 @@ export const strain = {
     'Ningún laboratorio ha firmado todavía un acuse de recibo para esta cepa. Un registro que solo usted respalda es una evidencia más débil que uno que firma un laboratorio. Envíe una muestra a un laboratorio: su acuse de recibo se firma con su clave, no con la suya.',
   'app.strain.v.app.verify.field.parent-names': 'Cepas parentales (nombres y números de depósito)',
   'app.strain.v.app.verify.alwaysShown':
-    'Siempre se muestra: el ID del registro, su código de prueba ({fp}), cuándo lo guardó por primera vez el servidor de registros y lo que esta página pudo comprobar sobre su lote y las atestaciones firmadas (un acuse de recibo de laboratorio, un informe de laboratorio). El nombre, solo cuando el enlace lo lleva (los suyos lo llevan solo si usted lo activa) o usted decide mostrarlo.',
+    'Siempre se muestra: el ID del registro, su código de prueba ({fp}), cuándo lo guardó por primera vez el servidor de registros y lo que esta página pudo comprobar sobre su lote y las atestaciones firmadas mostradas (un acuse de recibo o un informe de laboratorio solo si usted decide mostrarlo). El nombre, solo cuando el enlace lo lleva (los suyos lo llevan solo si usted lo activa) o usted decide mostrarlo.',
   'app.strain.v.app.verify.ownReceiptTail':
     ' Usted lo ve porque la cepa está en este navegador; quien reciba el enlace solo ve la línea de firma de arriba.',
   'app.strain.v.app.prove.openCheckPage': 'Abrir la página de comprobación de la cepa',

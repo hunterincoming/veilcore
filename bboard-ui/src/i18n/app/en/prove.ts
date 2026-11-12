@@ -164,4 +164,22 @@ export const prove = {
   'app.prove.share.nameInLinkHelp':
     'If on, everyone you send this link to sees the name, and so does anyone they pass it on to.',
   'app.prove.share.nameWarning': 'If on, anyone with the record ID sees the name.',
+  'app.prove.share.labSigs.title': 'Lab signatures',
+  'app.prove.share.labSigs.intro':
+    'A lab’s receipts and reports about this record are private: only you and the lab can see them. Turn one on to show it on your check link. Anyone with the link then sees that the lab signed it, and the lab’s name.',
+  'app.prove.share.labSigs.item': 'Show that {who} signed this on your check link',
+  'app.prove.share.labSigs.receipt': 'Receipt for a sample, signed {date}',
+  'app.prove.share.labSigs.report': 'Lab report, signed {date}',
+  'app.prove.share.labSigs.withdrawn': 'Withdrawn by the lab on {date}; the check page says so.',
+  'app.prove.share.labSigs.needsStatus':
+    'To show lab signatures on your check link, turn on “Whether a DNA report is saved”.',
+  'app.prove.share.labSigs.none': 'No lab has signed a receipt or report about this record yet.',
+  'app.prove.share.labSigs.loading': 'Looking up lab signatures…',
+  'app.prove.share.labSigs.couldntLoad':
+    'Couldn’t read the lab signatures just now. Your earlier choice stays as it is.',
+  'app.prove.share.labSigs.suggest':
+    'Your saved DNA report matches a lab report signed by {lab}. Show it, so the check page can say the lab signed that file.',
+  'app.prove.share.labSigs.suggestButton': 'Show it',
+  'app.prove.share.labSigs.plainHash':
+    'This older signature names the report file’s SHA-256: once shown, anyone with a copy of the file could tell it is saved to this record.',
 };

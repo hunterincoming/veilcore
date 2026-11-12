@@ -66,7 +66,7 @@ export const attest = {
   'app.claim.check.labConflict':
     'More than one laboratory claims this key, so no name is shown. Read the numbers as the holder’s own.',
   'app.claim.check.labUnidentified':
-    'No laboratory has said this key is theirs for this record. Read the numbers as the holder’s own.',
+    'This page found no laboratory saying this key is theirs for this record (a lab’s report signatures are private unless the holder shows them). Read the numbers as the holder’s own.',
   'app.claim.check.labAbout': 'The results are about the record with proof code',
   'app.claim.check.labFieldSecret': 'The laboratory knows these numbers too, and could prove things about them itself.',
   'app.claim.check.labKey': 'Signing key',

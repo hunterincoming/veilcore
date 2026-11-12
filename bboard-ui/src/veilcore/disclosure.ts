@@ -43,6 +43,7 @@ import { isAnimal } from './animal-profile';
 import type { StrainRecord } from './records';
 import { stableStringify } from './vault';
 import { dnaBindingOf } from './dna-link';
+import { loadAttestations } from './attesters';
 
 const BASE = import.meta.env.VITE_API_BASE ?? '';
 
@@ -218,6 +219,13 @@ export type GrantValues = {
    * field's value.
    */
   custodySummary?: CustodySummaryEntry[];
+  /**
+   * Under attestation-status (8 Nov 2026): the lab signatures the holder chose to show on
+   * their check link. The registry keeps every lab report and receipt private and answers
+   * exactly these on /verify (`sharedAttestations`). Ids only; the holder's choice is kept in
+   * the record's sealed copy (StrainRecord.sharedAttestations).
+   */
+  sharedAttestations?: string[];
 };
 
 export type CustodySummaryEntry = {
@@ -254,8 +262,45 @@ export const grantValuesNow = async (
   } else if (isObject(stored) && Array.isArray(stored.custodySummary)) {
     v.custodySummary = stored.custodySummary as CustodySummaryEntry[];
   }
+  const shared = await sharedIdsNow(r, stored);
+  if (shared.length) v.sharedAttestations = shared;
   return v;
 };
+
+/**
+ * Whether the registry takes `values.sharedAttestations` (8 Nov 2026). An older registry
+ * refuses the unknown value, and the whole grant with it; there every lab signature is still
+ * public, so nothing needs sharing and the field is left out from then on (putGrant).
+ */
+let sharedRefused = false;
+const SHARED_REFUSAL = /^values\.sharedAttestations is not a value a grant publishes/;
+/** Tests only: forget that the registry refused the field. */
+export const resetSharedRefusal = (): void => {
+  sharedRefused = false;
+};
+
+/**
+ * The lab signatures the holder chose to show (the record's sealed copy), as they can be
+ * published now: only those still about this record as it is now and visible to this holder
+ * key. The registry refuses a whole grant naming any other, so one that went stale (the
+ * record changed, or the holder can no longer see it) is left out rather than sent. When the
+ * list can't be read now, the ones the registry publishes (`stored`) are kept, as long as the
+ * holder still chooses them, so a page that can't reach the list never takes them away.
+ */
+const sharedIdsNow = async (r: StrainRecord, stored: unknown): Promise<string[]> => {
+  if (sharedRefused) return [];
+  const chosen = (Array.isArray(r.sharedAttestations) ? r.sharedAttestations : []).filter(isString);
+  if (!chosen.length || !r.recordFingerprint) return [];
+  const visible = await loadAttestations(r.recordFingerprint, { asHolder: true }).catch(() => null);
+  if (visible) {
+    const ids = new Set(visible.map((a) => a.attestationId));
+    return [...new Set(chosen)].filter((id) => ids.has(id)).slice(0, SHARED_IDS_MAX);
+  }
+  const kept = isObject(stored) && Array.isArray(stored.sharedAttestations) ? stored.sharedAttestations : [];
+  return kept.filter((id): id is string => isString(id) && chosen.includes(id)).slice(0, SHARED_IDS_MAX);
+};
+/** The registry's limit on shared signatures per grant. */
+const SHARED_IDS_MAX = 50;
 
 /**
  * What a grant publishes, read from the record here. Only the granted keys' values, and
@@ -287,16 +332,25 @@ export const grantValuesFor = (r: StrainRecord, show: readonly DisclosureKey[]):
   return v;
 };
 
-const putGrant = async (r: StrainRecord, show: DisclosureKey[], values?: GrantValues) =>
-  fetch(`${BASE}/api/records/${encodeURIComponent(r.id)}/disclosure`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json', 'x-holder-key': holderKey() },
-    body: JSON.stringify({
-      show,
-      forFingerprint: r.recordFingerprint || null,
-      values: values ?? (await grantValuesNow(r, show)),
-    }),
-  });
+const putGrant = async (r: StrainRecord, show: DisclosureKey[], values?: GrantValues): Promise<Response> => {
+  const v = values ?? (await grantValuesNow(r, show));
+  const send = (body: GrantValues) =>
+    fetch(`${BASE}/api/records/${encodeURIComponent(r.id)}/disclosure`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'x-holder-key': holderKey() },
+      body: JSON.stringify({ show, forFingerprint: r.recordFingerprint || null, values: body }),
+    });
+  const res = await send(v);
+  if (res.status !== 400 || !v.sharedAttestations) return res;
+  // A registry from before 8 Nov 2026 refuses the field (and the whole grant). Lab signatures
+  // are public there, so the grant is sent again without it, and it isn't sent to it again.
+  const error = await errorOf(res.clone());
+  if (!SHARED_REFUSAL.test(error)) return res;
+  sharedRefused = true;
+  const { sharedAttestations: _shared, ...rest } = v;
+  void _shared;
+  return send(rest);
+};
 
 /** The holder's choice for a record, as its sealed copy keeps it; null when it keeps none. */
 export const sealedGrantOf = (r: StrainRecord): DisclosureKey[] | null =>
@@ -316,7 +370,11 @@ export const shareScreenStart = (r: StrainRecord | undefined): Disclosure => {
  * Keeps a choice in the record's sealed copy and says when the registry has stored it
  * (records.ts keepGrant registers itself here, so this module needn't import records.ts).
  */
-type GrantKeeper = (id: string, show: DisclosureKey[]) => Promise<StrainRecord | { error: string }>;
+type GrantKeeper = (
+  id: string,
+  show: DisclosureKey[],
+  shared?: readonly string[],
+) => Promise<StrainRecord | { error: string }>;
 let keeper: GrantKeeper | null = null;
 export const registerGrantKeeper = (k: GrantKeeper): void => {
   keeper = k;
@@ -348,10 +406,16 @@ export const keepSealedGrant = async (r: StrainRecord): Promise<boolean> => {
  * only then published. Success only on the registry's positive answer echoing what it
  * stored, so the page never shows a link whose view the registry did not agree to.
  */
-export const saveGrant = async (record: StrainRecord, d: Disclosure): Promise<Grant | { error: string }> => {
+export const saveGrant = async (
+  record: StrainRecord,
+  d: Disclosure,
+  shared?: readonly string[],
+): Promise<Grant | { error: string }> => {
   const show = keysOn(d);
   if (!keeper) return { error: 'the choice couldn’t be kept with the record, so nothing was shared' };
-  const kept = await keeper(record.id, show);
+  // `shared`: the lab signatures chosen to show on the check link, kept with the choice
+  // (undefined keeps the record's earlier choice).
+  const kept = await keeper(record.id, show, shared);
   if ('error' in kept) return kept;
   try {
     const res = await putGrant(kept, show);
@@ -399,9 +463,19 @@ const storedValuesOf = async (g: ListedGrant, key: string): Promise<unknown> => 
   }
 };
 
-/** Whether the registry publishes exactly the values this browser would send now. */
-export const sameGrantValues = (stored: unknown, wanted: GrantValues): boolean =>
-  isObject(stored) && stableStringify(stored) === stableStringify(wanted);
+/**
+ * Whether the registry publishes exactly the values this browser would send now, the shared
+ * lab signatures included (in any order: they are a set), so a grant whose shared signatures
+ * differ is sent again and one whose shared signatures match is left alone.
+ */
+export const sameGrantValues = (stored: unknown, wanted: GrantValues): boolean => {
+  if (!isObject(stored)) return false;
+  const norm = (v: Record<string, unknown>): Record<string, unknown> =>
+    Array.isArray(v.sharedAttestations)
+      ? { ...v, sharedAttestations: [...(v.sharedAttestations as unknown[])].map(String).sort() }
+      : v;
+  return stableStringify(norm(stored)) === stableStringify(norm(wanted));
+};
 
 /** Keys that publish no value: the registry's own facts (CONTRACT.md #7). */
 export const VALUELESS_KEYS: readonly DisclosureKey[] = ['existence', 'descent-clean'];

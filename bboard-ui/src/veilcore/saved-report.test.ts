@@ -228,12 +228,15 @@ describe('the public check page’s lab report line', () => {
 
   it('no matching signature, or no file named, is said as exactly that', () => {
     expect(publicReportLine({ paired: true, linkSha: SHA_V2, atts: [v1], bound: true }).text).toMatch(
-      /No lab signature on this record matches it, so it is the holder’s own statement/,
+      /No lab signature shown here matches it, so as shown it is the holder’s own statement\. A lab’s signatures are private unless the holder chooses to show them\./,
     );
     expect(publicReportLine({ paired: true, atts: [v1], bound: true }).text).toMatch(
       /This link doesn’t name the file, so this page can’t tell whether it is the signed lab report listed above/,
     );
-    expect(publicReportLine({ paired: true, atts: [], bound: true }).text).toMatch(/No lab has signed a lab report/);
+    const none = publicReportLine({ paired: true, atts: [], bound: true }).text;
+    // Lab signatures are private unless the holder shows them (8 Nov 2026): never "no lab signed".
+    expect(none).toMatch(/No lab report signature is shown here/);
+    expect(none).not.toMatch(/No lab has signed/);
     expect(publicReportLine({ paired: false, atts: [v1], bound: true }).text).toBe(
       'The holder has not saved a DNA report to this record.',
     );
