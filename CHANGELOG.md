@@ -28,6 +28,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   In all five languages.
 - `deploy:mainnet`, `deploy:test` and `deploy:prod` refuse a registry whose `/health` doesn't
   list `private-lab-signatures-v1`, so the site can't go out before the registry.
+- Wording that still called a lab's signature public now says it is private unless the holder
+  shows it: the note a breeder gets when a lab report arrives (plants, animals, strains; shown
+  once more to those who dismissed the old one), the lab's "Sent" screen and its name help, the
+  partners page, "We don't vouch for results", and the privacy page (what the server keeps;
+  on veilcore.org also "What strangers can see"). Docs: privacy terms, simple flow, lab
+  signing, and the partner guide. In all five languages.
 
 ### Lab results v2: the lab's name link is salted (8 Nov 2026, test network)
 

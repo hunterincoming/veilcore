@@ -19,7 +19,7 @@ export const partners = {
     'Once the record is in a dated batch, anyone can look up when its proof code existed by. The date comes from Midnight, not from VeilCore or the applicant.',
   'app.partners.gives.3.t': 'Lab signatures, checked',
   'app.partners.gives.3.d':
-    'Receipts for samples and lab reports, each signature checked, and whether VeilCore’s operator matched the lab’s name to a public listing. A receipt counts only when the registry ties it to a delivery of the record, and you see whether what arrived matches what was sent.',
+    'The receipts for samples and lab reports the applicant chooses to show, each signature checked, and whether VeilCore’s operator matched the lab’s name to a public listing. A lab’s signatures are private unless the applicant shows them. A receipt counts only when the registry ties it to a delivery of the record, and you see whether what arrived matches what was sent.',
   'app.partners.gives.4.t': 'The same check for everyone',
   'app.partners.gives.4.d': 'Every applicant’s link is checked the same way, by your page.',
   'app.partners.not.title': 'What it does not show',

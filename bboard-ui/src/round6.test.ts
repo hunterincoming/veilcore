@@ -119,7 +119,10 @@ describe('the smaller wording fixes', () => {
   it('the lab’s Sent screen says what checkers really see: the registered name, marked unchecked until matched', () => {
     const s = source('components/flow/LabResults.tsx').replace(/\s+/g, ' ');
     expect(s).not.toMatch(/name only if/);
-    expect(s).toContain('They also see the name your key is registered under.');
+    // Lab signatures are private since 8 Nov 2026: shown only when the breeder shows them.
+    expect(s).toContain('Your signature on it is private too');
+    expect(s).not.toMatch(/Your signature is public/);
+    expect(s).toContain('If they do, anyone with that link also sees the name your key is registered under.');
   });
 
   it('"Got it" doesn’t wrap', () => {
