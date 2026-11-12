@@ -13,7 +13,7 @@
 // save, a lost post or a junk post can't leave this page showing the wrong thing.
 // SPDX-License-Identifier: Apache-2.0
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, Button, Checkbox, FormControlLabel, Stack, TextField, Typography } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
 import ContentCopyIcon from '@mui/icons-material/ContentCopyOutlined';
@@ -26,13 +26,12 @@ import {
   setOnChain,
   revokeLicense,
   type License,
-  type OnChainLicense,
 } from '../../veilcore/licenses';
 import { dealParty, sayOnce, useDeal } from '../../veilcore/deal-client';
 import { RoyaltyLedger } from './RoyaltyLedger';
-import { ledgerOf, type Report } from '../../veilcore/royalty-ledger';
-import { noticeRef, syncNotices, type LicenseNotice } from '../../veilcore/license-notices';
-import { localDay } from '../../veilcore/royalty-terms';
+import { ledgerOf, noticeDayOf, paymentAlerts, revokedNoticeOf, type Report } from '../../veilcore/royalty-ledger';
+import { dealNotices, syncNotices } from '../../veilcore/license-notices';
+import { utcDay } from '../../veilcore/royalty-terms';
 import { getRecord } from '../../veilcore/records';
 import { hasOffspringRoyalty, isControlledTerms } from '../../veilcore/royalty-terms';
 import { OffspringRoyalty } from './OffspringRoyalty';
@@ -96,6 +95,11 @@ export const RealLicensePanel: React.FC<{ license: License; blocked: boolean; on
   );
 
   const gone = Boolean(oc?.revokeTx || oc?.goneSeenAt);
+  // Revoked for non-payment, as the deal's signed messages say (any device), not this browser.
+  const revokedNotice = useMemo(
+    () => (deal.entries ? revokedNoticeOf(ledgerOf(deal.entries)) : undefined),
+    [deal.entries],
+  );
   const issued = Boolean(oc?.issueTx || oc?.issueSeenAt);
   const live = Boolean(oc && (oc.activateTx || oc.activeSeenAt) && !gone);
 
@@ -215,24 +219,53 @@ export const RealLicensePanel: React.FC<{ license: License; blocked: boolean; on
     };
   }, [oc, gone, issued, live, license.id, onToast, tr]);
 
-  /** The record's public notices for this deal after a revocation for non-payment. */
-  const publishRevoked = async (on: string) => {
-    if (!oc?.commitment) return;
-    const reports = ledgerOf(deal.entries ?? []).reports;
-    const revokedRef = noticeRef('revoked', oc.commitment);
-    const want = new Map<string, LicenseNotice>([[revokedRef, { kind: 'revoked', reason: 'non-payment', on }]]);
-    const mine = new Set([revokedRef, ...reports.map((x) => noticeRef('overdue', x.statement.signature))]);
-    await syncNotices(license.recordId, want, mine);
+  /** The licensor's signed word that the license was revoked for non-payment of `r`, dated by the chain. */
+  const sayRevoked = async (r: Report, at: number): Promise<boolean> => {
+    if (!party) return false;
+    await sayOnce(party, {
+      type: 'notice',
+      kind: 'revoked',
+      about: 'payment',
+      periodFrom: r.statement.periodFrom,
+      periodTo: r.statement.periodTo,
+      statementSig: r.statement.signature,
+      asOf: utcDay(new Date(at)),
+      note: tr.t('app.rpay.revoke.note', { n: r.number }),
+    });
+    return true;
   };
 
-  // Revoked for non-payment: the record's public check page says so. Sent again whenever this
-  // page opens until the registry has it (a lost answer, another device): it is the same notice.
-  const revokedOn = oc?.revokedFor === 'non-payment' && oc.revokedAt ? localDay(new Date(oc.revokedAt)) : undefined;
+  // Once the license is gone from the chain (revoked here, on another device, or by a plain
+  // "Revoke"), the record's public check page says what the deal's signed messages say, worked
+  // out the same way on every device (license-notices.ts dealNotices): the overdue lines come
+  // off, and "revoked for non-payment" goes up only if the deal holds the licensor's signed
+  // `revoked` notice. Run whenever this page opens with the license gone, so a lost answer, a
+  // cleared browser or another device all end with the same public page.
   const dealRead = deal.entries !== undefined;
+  const entriesKey = (deal.entries ?? []).map((e) => e.signature).join(',');
   useEffect(() => {
-    if (gone && revokedOn && dealRead) void publishRevoked(revokedOn);
-    // publishRevoked reads this render's deal; it runs once the deal has been read.
-  }, [gone, revokedOn, dealRead]);
+    if (!gone || !dealRead || !party || !oc) return;
+    let on = true;
+    void (async () => {
+      const ledger = ledgerOf(deal.entries ?? []);
+      // Revoked for non-payment here, but the signed notice saying so never landed: send it again
+      // (the same notice; sayOnce never sends two). Only this device knows to.
+      if (oc.revokedFor === 'non-payment' && oc.revokedForStatement && !revokedNoticeOf(ledger)) {
+        const r = ledger.reports.find((x) => x.statement.signature === oc.revokedForStatement);
+        if (r) {
+          const sent = await sayRevoked(r, oc.revokedAt ?? Date.now()).catch(() => false);
+          if (sent && on) deal.refresh();
+          return; // the page runs this again with the notice in the deal
+        }
+      }
+      const { want, mine } = dealNotices(ledger, [], true);
+      if (want.size || mine.size) await syncNotices(license.recordId, want, mine);
+    })();
+    return () => {
+      on = false;
+    };
+    // entriesKey stands for deal.entries: run again only when the deal's messages change.
+  }, [gone, dealRead, entriesKey, oc?.revokedFor, oc?.revokedForStatement]);
 
   if (!keys?.anchor) {
     return (
@@ -337,34 +370,37 @@ export const RealLicensePanel: React.FC<{ license: License; blocked: boolean; on
     });
 
   /**
-   * Revoke for non-payment of an overdue report (docs/royalty-pay.md): a signed notice to the
-   * licensee first, over the deal's channel, then the same revocation on Midnight as "Revoke",
-   * then the record's public check page says a license from it was revoked for non-payment, and
-   * the overdue notices for this deal come off. The reason is the licensor's word; the
-   * revocation itself is on chain.
+   * Revoke for non-payment of an overdue report (docs/royalty-pay.md, "Overdue, notice, cure,
+   * revoke"): only once a notice of breach about it has been sent and its cure period has run out
+   * with no "I paid" (royalty-ledger.ts paymentAlerts `revocable`, checked again here). The
+   * revocation goes on Midnight first, the same as "Revoke"; only then the signed `revoked`
+   * notice to the licensee, so it never says something the chain doesn't. The record's public
+   * check page follows from that notice (the effect above).
    */
   const revokeForNonPayment = (r: Report) =>
     call.run(async (progress) => {
       if (!oc?.commitment || !oc.issuerRecord || !party) throw new Error(tr.t('app.lic.real.nothingToRevoke'));
-      const today = localDay();
-      await sayOnce(party, {
-        type: 'notice',
-        kind: 'breach',
-        about: 'payment',
-        periodFrom: r.statement.periodFrom,
-        periodTo: r.statement.periodTo,
-        statementSig: r.statement.signature,
-        asOf: today,
-        note: tr.t('app.rpay.revoke.note', { n: r.number }),
-      });
+      const now = ledgerOf(deal.entries ?? []);
+      const alert = paymentAlerts(license.terms, now, utcDay()).find(
+        (a) => a.kind === 'overdue' && a.report.statement.signature === r.statement.signature,
+      );
+      if (!alert?.revocable) throw new Error(tr.t('app.rpay.revoke.notYet'));
       const { revokeLicenseOnChain } = await import('../../veilcore/chain/actions');
       const done = await revokeLicenseOnChain(hexBytes(keys.recordSecret), oc.commitment, oc.issuerRecord, {
         progress,
       });
       const at = done.blockTime ?? Date.now();
-      setOnChain(license.id, (c) => ({ ...c!, revokeTx: done.txId, revokedAt: at, revokedFor: 'non-payment' }));
+      setOnChain(license.id, (c) => ({
+        ...c!,
+        revokeTx: done.txId,
+        revokedAt: at,
+        revokedFor: 'non-payment',
+        revokedForStatement: r.statement.signature,
+      }));
       revokeLicense(license.id, tr.t('app.rpay.revoke.reason'));
-      await publishRevoked(localDay(new Date(at)));
+      // If this send doesn't land, the effect above sends it again when the page next opens.
+      await sayRevoked(r, at).catch(() => undefined);
+      deal.refresh();
       return done;
     });
 
@@ -619,9 +655,9 @@ export const RealLicensePanel: React.FC<{ license: License; blocked: boolean; on
       )}
 
       {gone && (
-        <Alert severity="error" variant="outlined" data-license-gone={oc?.revokedFor ?? ''}>
-          {oc?.revokedFor === 'non-payment' && oc.revokedAt
-            ? tr.t('app.rpay.revoke.done', { date: tr.date(oc.revokedAt) })
+        <Alert severity="error" variant="outlined" data-license-gone={revokedNotice ? 'non-payment' : ''}>
+          {revokedNotice
+            ? tr.t('app.rpay.revoke.done', { date: tr.date(`${noticeDayOf(revokedNotice)}T12:00:00Z`) })
             : oc?.revokedAt
               ? tr.t('app.lic.real.goneOn', { date: tr.date(oc.revokedAt) })
               : tr.t('app.lic.real.gone')}

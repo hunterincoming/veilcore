@@ -7,7 +7,8 @@ export const royaltyPay = {
   'app.rpay.st.overdue': '期限超過',
   'app.rpay.l.soon': 'リマインダー：報告{n}の支払期限は{date}です。',
   'app.rpay.l.overdue': '報告{n}の支払いは{date}から期限を過ぎています。',
-  'app.rpay.l.consequence': '支払わないと公開確認ページに表示され、ライセンスが取り消されることがあります。',
+  'app.rpay.l.consequence':
+    '支払われない場合、{licensor}の記録の公開確認ページに、ロイヤリティ報告の支払いが期限を過ぎていると表示されることがあります。契約違反の通知を受けてから{days}日以内に支払えば、不払いによるライセンスの取り消しはできません。',
   'app.rpay.i.soon': '{licensee}からの報告{n}の支払期限は{date}です。',
   'app.rpay.i.overdue': '{licensee}からの報告{n}の支払いは{date}から期限を過ぎています。',
   'app.rpay.i.public':
@@ -18,7 +19,7 @@ export const royaltyPay = {
     'VeilCoreのレジストリはまだ公開の通知を受け付けていないため、記録の公開確認ページには表示されません。',
   'app.rpay.revoke.open': '不払いを理由に取り消す',
   'app.rpay.revoke.what':
-    'Midnight上でライセンスを終了します。元に戻すことはできません。{licensee}には先に署名付きの通知が届きます。その後、記録の公開確認ページに、この記録からのライセンスが不払いにより取り消されたことと、その日付が表示されます。',
+    'Midnight上でライセンスを終了します。元に戻すことはできません。契約違反の通知は送信済みで、支払いの猶予期間は支払い済みの記録がないまま終わっています。その後、{licensee}に不払いにより取り消したという署名付きの通知が届き、記録の公開確認ページにもその旨と日付が表示されます。',
   'app.rpay.revoke.yes': 'ライセンスを取り消す',
   'app.rpay.revoke.note': '報告{n}の不払いによりライセンスを取り消しました。',
   'app.rpay.revoke.reason': '不払い',
@@ -30,7 +31,7 @@ export const royaltyPay = {
     'この記録を保有し、ライセンスを出した人による記載です。VeilCoreは確認していません。誰の名前も、金額や条件も表示しません。',
   'app.rpay.payout.option': 'CardanoのUSドル建てステーブルコイン',
   'app.rpay.payout.info':
-    '相手は自分のウォレットから、あなたのCardanoアドレスに直接{code}で支払います。保存すると、1 {code}を1USドルとして数えることに同意したことになります。Cardanoの支払いは公開されます。金額、両方のアドレス、日付は誰でも見られますが、あなたが誰かは見えません。この契約専用の新しいアドレスを使うと、ほかの取引と切り離せます。VeilCoreがお金を預かったり動かしたりすることはありません。',
+    '相手は自分のウォレットから、あなたのCardanoアドレスに直接{code}で支払います。保存すると、1 {code}を1USドルとして数えることに同意したことになります。Cardanoの支払いは公開されます。金額、両方のアドレス、日付は誰でも見られます。支払いにあなたの名前は含まれませんが、アドレスは取引所などを通じて個人と結び付けられることがよくあります。この契約専用の新しいアドレスを使うと、ほかの取引と切り離せます。VeilCoreがお金を預かったり動かしたりすることはありません。',
   'app.rpay.payout.token': 'ステーブルコイン',
   'app.rpay.payout.address': 'あなたのCardanoアドレス（{prefix}…）',
   'app.rpay.payout.useMine': '{name}のアドレスを使う',
@@ -79,4 +80,43 @@ export const royaltyPay = {
   'app.rpay.c.unreachable': 'Cardanoに接続できませんでした。もう一度試します。',
   'app.rpay.c.no-relay': 'このサイトはまだCardanoを確認できないため、{licensor}が手動で支払いを確認します。',
   'app.rpay.c.not-tx': '支払い参照はCardanoのトランザクションではありません。',
+  'app.rpay.l.breach':
+    '{licensor}が{date}に契約違反の通知を送りました。{cureBy}までに支払ってください。その翌日以降、支払い済みの記録がなければ、不払いによりライセンスを取り消されることがあります。',
+  'app.rpay.l.cureOver':
+    '{licensor}が{date}に契約違反の通知を送り、支払いの猶予期間は{cureBy}に終わりました。不払いによりライセンスを取り消されることがあります。支払い済みなら「支払いました」で記録してください。',
+  'app.rpay.i.breach':
+    '{date}に契約違反の通知を送りました。{licensee}は{cureBy}まで支払えます。支払い済みの記録がなければ、その翌日から「不払いを理由に取り消す」が使えます。',
+  'app.rpay.i.cureOver':
+    '{date}に契約違反の通知を送りました。支払いの猶予期間は支払い済みの記録がないまま{cureBy}に終わったので、不払いにより取り消すことができます。',
+  'app.rpay.i.noNotice':
+    '不払いにより取り消すには、まず下の報告から契約違反の通知を送ってください。{licensee}にはそこから{days}日の支払い猶予があります。',
+  'app.rpay.l.answered':
+    '{date}に異議を伝えました：「{note}」。ライセンサーはこれを見られます。相手の記録の公開確認ページには、あなたが異議を唱えていることが表示されるか、この支払いについて何も表示されません。',
+  'app.rpay.i.answered': '{licensee}が異議を唱えています（{date}）：「{note}」',
+  'app.rpay.i.publicDisputed':
+    '記録の公開確認ページの表示：「ロイヤリティ報告の支払いが{date}から期限を過ぎています。ライセンシーは異議を唱えています（{answered}から）。」金額、条件、名前は表示されません。',
+  'app.rpay.i.publicWithheld':
+    '{licensee}が異議を唱えていますが、VeilCoreのレジストリはまだその回答を並べて表示できません。そのため、記録の公開確認ページにはこの件について何も表示されません。',
+  'app.rpay.l.iPaid': '支払いました',
+  'app.rpay.l.dispute': '異議を伝える',
+  'app.rpay.l.disputeAgain': 'もう一度回答する',
+  'app.rpay.l.disputeNote': '理由（短く。相手に表示されます）',
+  'app.rpay.l.disputeShows':
+    '{licensor}には、あなたの署名付きでこれが表示されます。公開確認ページには異議があることだけが表示され、書いた内容は表示されません。',
+  'app.rpay.l.disputeSend': '回答を送る',
+  'app.rpay.breach.open': '契約違反の通知を送る',
+  'app.rpay.breach.what':
+    'この支払いが期限を過ぎていることを伝える、署名と日付付きの通知を{licensee}に送ります。相手にはそこから{days}日の支払い猶予があります。その後も支払い済みの記録がない場合に限り、不払いによりライセンスを取り消せます。',
+  'app.rpay.breach.send': '通知を送る',
+  'app.rpay.breach.extra': '補足（任意。相手に表示されます）',
+  'app.rpay.breach.note':
+    '{due}が期限の報告{n}の支払いがまだありません。この通知から{days}日以内に支払ってください。その後も未払いの場合、不払いによりライセンスを取り消すことがあります。',
+  'app.rpay.revoke.notYet':
+    'まだできません。不払いによる取り消しは、契約違反の通知後の支払い猶予期間が支払い済みの記録がないまま終わってからです。',
+  'app.rpay.notice.answer': '{who}が{date}に{period}の支払いについて異議を伝えました：「{note}」',
+  'app.rpay.notice.revoked': '{who}が{date}に不払いによりライセンスを取り消しました（{period}）。',
+  'app.rpay.notice.cureBy': '支払い猶予：{cureBy}まで。',
+  'app.rpay.pub.disputed': 'ライセンシーは異議を唱えています（{date}から）。',
+  'app.rpay.pay.otherWay':
+    '{licensor}はCardano上の{code}での支払いを求めていますが、このページではその方法で支払えません。相手が受け付ける別の方法で支払い、下の「支払いました」で記録してください。',
 };

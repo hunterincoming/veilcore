@@ -5,27 +5,27 @@
 // fixed practice keys, its messages signed and sealed by the app's own code (deal-client say)
 // and sent to the test's stand-in registry, and the ledger shown for either side.
 //
-//   /e2e/royalty-pay?side=issuer|licensee&scenario=overdue|soon|usd
+//   /e2e/royalty-pay?side=issuer|licensee&scenario=overdue|soon|usd[&start=YYYY-MM-DD][&method=…]
 //
-// "Revoke for non-payment" here sends the same signed notice and the same public notice as the
-// license page (RealLicensePanel.tsx); the revocation on Midnight itself is the one step left
-// out, because the test has no chain to prove it on.
+// `start` pins the license's start date (the page shows the one it used, data-e2e-start), so a
+// test can move the browser's clock and still open the same deal; `method` sets the payout's
+// method in the usd scenario (a Cardano token this build can't pay, for instance). The page
+// offers no revoke: revoking is tested on the real license page (e2e/royalty-revoke.spec.ts),
+// with Midnight's two steps stood in for (veilcore/chain/e2e-chain.ts). The terms it used are on
+// window.__e2eTerms, so that test can make the license the real page opens.
 // SPDX-License-Identifier: Apache-2.0
 
 import React, { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Alert, Container, Stack, Typography } from '@mui/material';
 import { publicOf } from '../veilcore/deal';
-import { readAll, say, sayOnce, useDeal, type DealParty } from '../veilcore/deal-client';
+import { readAll, say, useDeal, type DealParty } from '../veilcore/deal-client';
 import { RoyaltyLedger } from '../components/licensing/RoyaltyLedger';
-import { ledgerOf, type Report } from '../veilcore/royalty-ledger';
 import { addDays, addMonths, periodsOf } from '../veilcore/royalty-periods';
-import { applyPreset, localDay, termsToSeal } from '../veilcore/royalty-terms';
+import { applyPreset, termsToSeal, utcDay } from '../veilcore/royalty-terms';
 import { emptyTermsFor } from '../components/licensing/LicenseTermsFields';
 import type { LicenseTerms } from '../veilcore/licenses';
-import { noticeRef, syncNotices, type LicenseNotice } from '../veilcore/license-notices';
 import { cardanoMethod, tokensFor } from '../veilcore/cardano-pay';
-import { useT } from '../i18n/app';
 import { LanguageBar } from '../i18n/LanguagePicker';
 
 /** Practice keys and license, fixed so the two sides' pages open the same channel. */
@@ -56,10 +56,10 @@ const party = (side: 'issuer' | 'licensee'): DealParty =>
  * A start date that puts the first quarter's payment due `dueIn` days from today (negative:
  * already late), the rest of the terms a clone license at 2.50 USD a cutting.
  */
-const termsFor = (dueIn: number): LicenseTerms => {
-  const today = localDay();
-  let start = addMonths(today, -6);
-  for (let i = 0; i < 400; i++) {
+const termsFor = (dueIn: number, pinned?: string): LicenseTerms => {
+  const today = utcDay();
+  let start = pinned && /^\d{4}-\d{2}-\d{2}$/.test(pinned) ? pinned : addMonths(today, -6);
+  for (let i = 0; i < 400 && !pinned; i++) {
     const first = periodsOf({ every: 'quarter', reportDueDays: 30, paymentDueDays: 14 }, start, undefined, today)[0];
     if (first && first.paymentDue === addDays(today, dueIn)) break;
     start = addDays(start, first && first.paymentDue > addDays(today, dueIn) ? -1 : 1);
@@ -96,10 +96,17 @@ const seed = async (terms: LicenseTerms, scenario: string) => {
   const licensee = party('licensee');
   if ((await readAll(issuer)).length > 0) return;
   const token = tokensFor()[0];
+  const method = new URLSearchParams(location.search).get('method');
   await say(
     issuer,
-    scenario === 'usd' && token
-      ? { type: 'payout', method: cardanoMethod(token.code), account: payoutAddress(), currency: 'USD', rate: '1' }
+    scenario === 'usd' && (token || method)
+      ? {
+          type: 'payout',
+          method: new URLSearchParams(location.search).get('method') ?? cardanoMethod(token.code),
+          account: payoutAddress(),
+          currency: 'USD',
+          rate: '1',
+        }
       : {
           type: 'payout',
           method: 'bank',
@@ -108,7 +115,7 @@ const seed = async (terms: LicenseTerms, scenario: string) => {
           details: 'Practice Bank, account 000-PRACTICE',
         },
   );
-  const first = periodsOf(terms.reporting!, terms.startDate, terms.endDate, localDay())[0];
+  const first = periodsOf(terms.reporting!, terms.startDate, terms.endDate, utcDay())[0];
   await say(licensee, {
     type: 'statement',
     statementId: 'E2E-1',
@@ -125,14 +132,16 @@ const seed = async (terms: LicenseTerms, scenario: string) => {
 };
 
 export const RoyaltyPayFixture: React.FC = () => {
-  const tr = useT();
   const [q] = useSearchParams();
   const side = q.get('side') === 'licensee' ? 'licensee' : 'issuer';
   const scenario = q.get('scenario') ?? 'overdue';
-  const terms = useMemo(() => termsFor(scenario === 'soon' ? 3 : -20), [scenario]);
+  const start = q.get('start') ?? undefined;
+  const terms = useMemo(() => termsFor(scenario === 'soon' ? 3 : -20, start), [scenario, start]);
   const [ready, setReady] = useState(false);
   const [problem, setProblem] = useState<string>();
-  const [revoked, setRevoked] = useState<string>();
+  useEffect(() => {
+    (window as unknown as { __e2eTerms?: LicenseTerms }).__e2eTerms = terms;
+  }, [terms]);
   useEffect(() => {
     void seed(terms, scenario).then(
       () => setReady(true),
@@ -142,30 +151,6 @@ export const RoyaltyPayFixture: React.FC = () => {
   const p = useMemo(() => party(side), [side]);
   const deal = useDeal(ready ? p : undefined, 3_000);
 
-  /** As RealLicensePanel does, but for the step on Midnight: the notice, then the public notice. */
-  const revokeForNonPayment = async (r: Report) => {
-    const today = localDay();
-    await sayOnce(p, {
-      type: 'notice',
-      kind: 'breach',
-      about: 'payment',
-      periodFrom: r.statement.periodFrom,
-      periodTo: r.statement.periodTo,
-      statementSig: r.statement.signature,
-      asOf: today,
-      note: tr.t('app.rpay.revoke.note', { n: r.number }),
-    });
-    const reports = ledgerOf(deal.entries ?? []).reports;
-    const revokedRef = noticeRef('revoked', COMMITMENT);
-    const want = new Map<string, LicenseNotice>([[revokedRef, { kind: 'revoked', reason: 'non-payment', on: today }]]);
-    await syncNotices(
-      E2E_RECORD,
-      want,
-      new Set([revokedRef, ...reports.map((x) => noticeRef('overdue', x.statement.signature))]),
-    );
-    setRevoked(today);
-  };
-
   return (
     <Container maxWidth="sm" sx={{ py: 2, px: 2 }} data-e2e-fixture="">
       <LanguageBar />
@@ -174,24 +159,17 @@ export const RoyaltyPayFixture: React.FC = () => {
           {side === 'issuer' ? 'Hana Rivera → Practice Grower' : 'Practice Grower → Hana Rivera'}
         </Typography>
         {problem && <Alert severity="error">{problem}</Alert>}
-        {revoked ? (
-          <Alert severity="error" variant="outlined" data-license-gone="non-payment">
-            {tr.t('app.rpay.revoke.done', { date: tr.date(`${revoked}T12:00:00`) })}
-          </Alert>
-        ) : (
-          ready && (
-            <RoyaltyLedger
-              party={p}
-              side={side}
-              terms={terms}
-              entries={deal.entries}
-              refresh={deal.refresh}
-              agreementType="license"
-              {...(side === 'issuer'
-                ? { publicRecordId: E2E_RECORD, onRevokeForNonPayment: (r: Report) => void revokeForNonPayment(r) }
-                : {})}
-            />
-          )
+        <span data-e2e-start={terms.startDate} hidden />
+        {ready && (
+          <RoyaltyLedger
+            party={p}
+            side={side}
+            terms={terms}
+            entries={deal.entries}
+            refresh={deal.refresh}
+            agreementType="license"
+            {...(side === 'issuer' ? { publicRecordId: E2E_RECORD } : {})}
+          />
         )}
       </Stack>
     </Container>

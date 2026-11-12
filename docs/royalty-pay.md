@@ -1,13 +1,18 @@
 # Royalty payments: overdue in the open, and paying in a stablecoin
 
-Status, 8 November 2026. Built on branch `royalty-pay`; nothing here is live on veilcore.org.
+Status, 12 November 2026. Built on branch `royalty-pay`; nothing here is live on veilcore.org.
 
-- **Part 1, overdue, reminders, revoke for non-payment:** built for every network. It needs the
-  registry's `license-notices-v1` (veilcore-api branch `license-notices`) deployed first, as
-  `scripts/registry-features.mjs` checks. Not run on any network yet.
-- **Part 2, paying in USDCx or USDM on Cardano:** built, **off on mainnet**
-  (`STABLECOIN_PAY_ON_MAINNET = false` in `bboard-ui/src/config/copy.ts`), on for test networks.
-  Not run on any network yet.
+- **Part 1, overdue, notice of breach, cure period, revoke for non-payment:** built for every
+  network. It needs the registry's `license-notices-v1` (veilcore-api branch `license-notices`)
+  deployed first, as `scripts/registry-features.mjs` checks. Showing the licensee's dispute
+  beside a public line also needs the registry to accept a notice's `disputed` date (see "The
+  licensee's answer"); until it does, a disputed line is taken down instead. Not run on any
+  network yet.
+- **Part 2, paying in USDCx or USDM on Cardano:** built, **off everywhere** unless switched on
+  on purpose: on mainnet only by changing `STABLECOIN_PAY_ON_MAINNET` in
+  `bboard-ui/src/config/copy.ts` (no build setting can); on a test network only in a build that
+  sets both `VITE_STABLECOIN_PAY=on` and a test token (`VITE_CARDANO_TEST_ASSET`). The test
+  site's deploy sets neither; only the end-to-end build does. Not run on any network yet.
 
 ## The line this keeps
 
@@ -26,10 +31,23 @@ royalty. Every design choice below follows from that (research: `payments/legal.
 the terms (`royalty-periods.ts`). A short payment stays overdue. A report the licensee marked
 "I paid" is not overdue: they did their part, and whether it arrived is the licensor's
 confirmation. Both sides' royalty pages show the alerts at the top; the report card carries an
-"Overdue" chip. The licensee's alert, and the pay screen, say: "Not paying shows on the public
-check page, and the license can be revoked."
+"Overdue" chip. The licensee's alert, and the pay screen, say what happens next: the licensor's
+public check page can say a statement is overdue, and after a notice of breach they have 30 days
+to pay before the license can be revoked for non-payment.
 
 In-app only. Email and push are a separate backlog item.
+
+### Dates are UTC
+
+Every royalty deadline is a **UTC calendar day** (`royalty-terms.ts utcDay`): due, overdue, due
+soon, the notice's day, the cure period, the public notice's dates, the CSV's dates. Both sides
+get the same day at the same moment wherever they are. Before, "today" was each device's own
+calendar day, so at 16:00 UTC a licensor in Tokyo (already the next day) could find a payment
+overdue, post the public line and see "Revoke for non-payment" while it was still the due day for
+a licensee in Los Angeles. UTC makes a payment late from 00:00 UTC on the day after its due date
+for everyone (in Los Angeles that is 16:00 or 17:00 on the due date itself; the 30-day cure
+period makes those hours irrelevant to revoking). Tested at that boundary in both zones
+(`royalty-cure.test.ts`).
 
 ### Overdue on the public check page
 
@@ -41,40 +59,80 @@ record holder's word, not checked by VeilCore.
 
 - **Where it is stored:** the registry (`PUT/DELETE /api/records/:id/license-notices/:ref`,
   read on `/verify/:id` as `licenseNotices`). The registry refuses any body that isn't exactly
-  `{kind:"overdue", since}` or `{kind:"revoked", reason:"non-payment", on}`, so a notice can't
-  carry terms even from a modified client.
-- **The reference** is 32 hex characters of SHA-256 over the kind and the statement's
-  signature (or the license commitment). Only the two parties hold those, so it tells a stranger
-  nothing and lets the licensor's pages on any device find their own notice.
-- **Kept in step:** whenever the licensor's royalty page opens, it reads the public notices
-  and puts up or takes off this deal's, leaving other licenses' alone
-  (`license-notices.ts syncNotices`). Paid, it comes off.
+  `{kind:"overdue", since}` or `{kind:"revoked", reason:"non-payment", on}` (plus, once it
+  accepts it, a `disputed` date), so a notice can't carry terms even from a modified client.
+- **The reference** is 32 hex characters of SHA-256 over the kind and a signature only the two
+  parties hold: the statement's for an overdue line, the licensor's signed `revoked` notice's for
+  a revoked line. It lets the licensor's pages on any device find their own notice. It does not
+  make the line anonymous: see "What the public page gives away".
+- **Worked out from the deal, not from one browser** (`license-notices.ts dealNotices`): what is
+  public for a deal follows from its signed messages and from the chain. While the license is
+  live, the licensor's royalty page puts up an overdue line per report overdue now and takes off
+  the rest, leaving other licenses' alone (`syncNotices`). Once the license is gone from the
+  chain, the license page, on any device that opens it, takes this deal's overdue lines off and
+  puts up the revoked line only if the deal holds the licensor's signed `revoked` notice. A lost
+  answer, a cleared browser, a second device or a plain "Revoke" all end on the same public page.
+  Paid, the line comes off.
 - **Why not "the license's own" check page:** there isn't one, on purpose. A buyer proving a
   license learns only that someone holds a live license from the record (verifier rule 5), not
   which. Tying the notice to the proving license would undo that privacy, so the notice sits on
   the record's page, about "a license from this record".
 
-### Revoke for non-payment
+### Overdue, notice, cure, revoke
 
-On an overdue report the licensor gets **Revoke for non-payment**. It does three things, in
-order (`RealLicensePanel.tsx revokeForNonPayment`):
+Revoking for non-payment is never one click away from a missed date. The steps, each one dated
+in UTC (`royalty-ledger.ts breachOf`, `paymentAlerts`):
 
-1. A signed notice to the licensee over the deal's channel (a `notice` of kind `breach`, so
-   the published checker and older apps read it): "License revoked for non-payment of report N."
-2. The existing revocation on Midnight (`revokeLicense`, the same circuit and disclosure as
-   "Revoke"). No contract change.
-3. The record's public check page: **"A license from this record was revoked on <date> for
-   non-payment."**, and the overdue line for that deal comes off. Sent again each time the page
-   opens until the registry has it.
+1. **Overdue** the day after the payment due date. The licensor's report card now offers only
+   **Send a notice of breach** (and the public line goes up, above).
+2. **Notice of breach.** A signed, dated `notice` of kind `breach` about the payment, naming the
+   report, over the deal's channel. It counts from the later of the day the licensor signed and
+   the day the registry received it, so neither the sender nor the registry can date it back to
+   shorten the time to pay. One sent before the payment was late starts nothing. Both sides then
+   see **"Pay by <date>"**: the cure deadline.
+3. **Cure period: 30 days** (`CURE_DAYS`). The license terms carry no cure period
+   (`royalty-terms.ts RoyaltyTermsFields`), and adding a field would change what both sides
+   already signed, so every deal gets the same 30 days, and both pages say so. A later terms
+   version can add its own; old terms keep 30.
+4. **Revoke for non-payment** is offered only from the day after the cure deadline, and only if
+   nothing was marked paid. `RealLicensePanel.tsx revokeForNonPayment` checks that again, then
+   revokes on Midnight (`revokeLicense`, the same circuit and disclosure as "Revoke"; no
+   contract change), and only then sends the licensee a signed `notice` of kind `revoked`
+   ("License revoked for non-payment of report N"), so the licensee never holds a signed
+   statement the chain doesn't back. If that send doesn't land, the page sends it again when it
+   next opens. The public page then says **"A license from this record was revoked on <date> for
+   non-payment."** and the overdue line comes off (above).
 
-The reason is the licensor's word; the revocation itself is on chain.
+"I paid" at any point before the revoke ends it: the report is no longer overdue, so there is
+nothing to revoke for non-payment. A plain **Revoke** stays as it was and says nothing public
+about payment (it takes this deal's overdue lines down).
+
+### The licensee's answer
+
+On an overdue payment, before or after a notice of breach, the licensee's alert offers two
+answers, both signed messages on the deal's channel:
+
+- **I paid**: the report's own pay form, with the payment reference (a `paid` message, as
+  always). The report stops being overdue.
+- **Dispute it**: a short note (up to 500 characters), sent as a `notice` of kind `answer`
+  about the payment. The licensor sees it on their alert and on the report. It doesn't stop the
+  cure period: a court, not the app, decides who is right.
+
+The public line shows the dispute next to it: **"The licensee disputes this (since <date>)."**,
+a date and nothing of what they wrote. The registry only takes what the record's holder sends,
+so the licensor's page relays it: once the deal holds an answer, it sends the line with a
+`disputed` date. A registry that refuses that field (today's `license-notices-v1`) answers 400,
+and then the page **takes the line down** rather than keep one side alone up, and tells the
+licensor so. The registry change is small (accept an optional `disputed` date on both kinds and
+return it on `/verify/:id`). A modified licensor client could leave the dispute off, as it could
+post a false line: that is why the page says whose word the line is.
 
 ### Known limits (Part 1)
 
 - The notice is only as current as the licensor's last visit to the royalty page. A payment
   made while they're away still shows overdue until they open it.
 - A licensee who taps "I paid" without paying takes the report out of overdue. The licensor
-  still has the notice of breach and the ordinary Revoke.
+  still has the ordinary Revoke, and the signed "I paid" as evidence.
 - The registry stores what the holder sends. It can't check that a report is overdue: it sees
   no terms. That is why the page says whose word it is.
 
@@ -182,11 +240,50 @@ Fee and minimum-ada parameters are pinned (`cardano-tx.ts PROTOCOL`: Conway-era 
 preprod values). If Cardano changes them, a transfer built with old ones is refused by the
 network before anything moves.
 
+### A Cardano payout this page can't pay
+
+A payout naming `cardano:<code>` hides the bank details, the reference and "I paid" only when
+this build has stablecoin pay switched on **and** can pay that token (`cardanoOffer`: a token it
+knows, USD at 1:1, an address on its Cardano network). Otherwise the licensee sees a line saying
+the wallet isn't offered, with the normal details, reference and "I paid" below it, recorded as
+paid another way. Before, any `cardano:` payout hid all three, so a licensee on mainnet (or a
+payout naming a token this build doesn't know, which a modified licensor client can send) could
+not record any payment, went overdue and could be revoked (`royalty-pay.spec.ts` checks this).
+
 ### Test networks
 
-On preprod there is no real USDCx. A test build names a test token with
-`VITE_CARDANO_TEST_ASSET=CODE:policy:assetname:decimals` (ignored on mainnet). The test site
-needs one minted on preprod and the relay's Cardano preprod project id; neither exists yet.
+On preprod there is no real USDCx. A test build offers stablecoin pay only with both
+`VITE_STABLECOIN_PAY=on` and a test token,
+`VITE_CARDANO_TEST_ASSET=CODE:policy:assetname:decimals` (both ignored on mainnet). The test
+site sets neither: it needs a token minted on preprod and the relay's Cardano preprod project
+id, and neither exists yet.
+
+### Before stablecoin pay is switched on, anywhere
+
+Found by the independent check of 12 November. Not built; each needs doing before any build
+(test network included) turns stablecoin pay on:
+
+1. **The relay can fake "settled".** The page settles a report, with no "received", on the
+   VeilCore relay's word alone. A compromised relay can't invent the reference, but for a real
+   transaction carrying it, it can report a larger amount, more blocks or `valid`: a payment of
+   0.000001 could read as 1,000. Then VeilCore's server is vouching for a money fact. Fix: check
+   in the reader's own browser against a second, independent source (a public Koios endpoint,
+   say) and settle only when both agree, or keep "checked on Cardano" as information and still
+   ask the licensor for "received". At least link the transaction on a public explorer. The SDK
+   is already right: its reader brings its own lookup.
+2. **The payee address isn't inside the signed terms.** It is in a licensor-signed `payout`
+   message, which the registry can't forge, but the registry can hold back a newer payout and
+   serve an older one, and both the site and the SDK accept payment to any earlier payout the
+   licensor signed. Fix: settle only against the newest payout before the `paid` message (by
+   `seq`) and warn on a gap in `seq`, or sign the payout's hash into the terms or an `agree`.
+3. **The memo can link a record to a Cardano address.** The `vc1:` prefix marks every such
+   transaction on public Cardano as a VeilCore royalty, and the overdue line coming off a record's
+   check page around the same day lets an observer tie that record to the licensor's address and
+   the amount. Warn the payer on the pay screen that the payment, its amount and both addresses
+   are public and can be linked to the record, and consider dropping the fixed prefix (any 32-hex
+   line, matched against the expected reference).
+4. The relay sees which transaction hashes each browser asks about. It keeps no log of them, but
+   VeilCore's server could tie a browser to a payment: say so on the pay screen.
 
 ### Before mainnet (all of these)
 
@@ -201,6 +298,22 @@ needs one minted on preprod and the relay's Cardano preprod project id; neither 
 7. Then change `STABLECOIN_PAY_ON_MAINNET` in a reviewed commit. Nothing is called live until a
    real payment has worked once on mainnet.
 
+## What the public page gives away
+
+The public lines carry a kind and dates, never an amount, a name, the terms or which license. They
+are still not anonymous, and nothing here should say they tell a stranger nothing:
+
+- **Revoked.** A license's revocation is public on Midnight (`revokeLicense` discloses the
+  license commitment and the issuing record). A "revoked on <date> for non-payment" line on a
+  record's page can be lined up with the revocations on Midnight that day, and so with that
+  license and its activation. Its reference is now made from the licensor's signed `revoked`
+  notice, not the license commitment, so it no longer names the on-chain license outright; the
+  date still narrows it, often to one.
+- **Overdue.** The line's dates, and the day it comes off, are public. With stablecoin pay on,
+  the day it comes off can be lined up with a `vc1:` payment on Cardano (above).
+- The registry caps a record at 20 notices; above that a new line can't be put up, and the page
+  says it couldn't.
+
 ## The NIGHT check (test networks)
 
 The licensor's page checked a NIGHT payment against the amount the payer wrote in "I paid".
@@ -211,7 +324,8 @@ report declared, as SPEC 11.10's "Settled" says (`RoyaltyLedger.tsx`, tested in
 ## Deploy order when this ships
 
 1. Registry: merge veilcore-api `license-notices` (adds `license-notices-v1`; site deploys
-   refuse without it).
+   refuse without it), with the optional `disputed` date (until then a disputed line is taken
+   down rather than shown without the licensee's side).
 2. Sponsor read relay: only when turning on the Cardano lookup (`sponsor/` changed: deploy the
    code first, then add `CARDANO_BLOCKFROST_PROJECT_ID`).
 3. Site.

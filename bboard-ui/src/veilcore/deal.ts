@@ -169,9 +169,16 @@ export type DealBody =
        * A signed, dated note to the other side about one period (royalty-ledger.ts): a reminder
        * from either side, or a notice of breach from the licensor. It says only what the
        * period's dates and the messages show; it never decides who is late.
+       *   answer   the licensee's answer to an overdue payment or a notice of breach about it:
+       *            a short dispute note (paying is answered with "I paid", a `paid` message).
+       *   revoked  the licensor's word, sent once the revocation is on Midnight, that they
+       *            revoked the license for non-payment of this report. The record's public
+       *            check page says so only because this message is in the deal
+       *            (license-notices.ts dealNotices), on any device.
+       * Both are about a payment and name the report (`statementSig`).
        */
       readonly type: 'notice';
-      readonly kind: 'reminder' | 'breach';
+      readonly kind: 'reminder' | 'breach' | 'answer' | 'revoked';
       readonly about: 'report' | 'answer' | 'payment' | 'receipt' | 'other';
       readonly periodFrom: string;
       readonly periodTo: string;
@@ -404,7 +411,10 @@ export const wellFormed = (m: unknown, now = Date.now()): m is DealMessage => {
       return text(o.legalName, 200) && o.legalName !== '' && opt(o.address, 500) && opt(o.taxId, 80);
     case 'notice':
       return (
-        (o.kind === 'reminder' || (o.kind === 'breach' && o.from === 'issuer')) &&
+        (o.kind === 'reminder' ||
+          ((o.kind === 'breach' || o.kind === 'revoked') && o.from === 'issuer') ||
+          (o.kind === 'answer' && o.from === 'licensee')) &&
+        ((o.kind !== 'answer' && o.kind !== 'revoked') || (o.about === 'payment' && sig(o.statementSig))) &&
         ['report', 'answer', 'payment', 'receipt', 'other'].includes(o.about as string) &&
         day(o.periodFrom) &&
         day(o.periodTo) &&
@@ -412,7 +422,8 @@ export const wellFormed = (m: unknown, now = Date.now()): m is DealMessage => {
         (o.dueOn === undefined || day(o.dueOn)) &&
         day(o.asOf) &&
         opt(o.note) &&
-        (o.kind !== 'breach' || (typeof o.note === 'string' && o.note.trim() !== ''))
+        ((o.kind !== 'breach' && o.kind !== 'answer') || (typeof o.note === 'string' && o.note.trim() !== '')) &&
+        (o.kind !== 'answer' || text(o.note, 500))
       );
     case 'statement': {
       const e = o.evidence as Record<string, unknown> | undefined;

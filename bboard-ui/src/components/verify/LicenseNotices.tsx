@@ -1,7 +1,8 @@
 // On a record's public check page: what its holder says about royalties on licenses from it
 // (veilcore/license-notices.ts). Only "a royalty statement is overdue since <date>" and "a
-// license from this record was revoked on <date> for non-payment": never an amount, a term, a
-// period, a name or which license. Said as the holder's word, because it is.
+// license from this record was revoked on <date> for non-payment", each with the licensee's
+// answer beside it when they disputed it: never an amount, a term, a period, a name or which
+// license. Said as the holder's word, because it is.
 // SPDX-License-Identifier: Apache-2.0
 
 import React from 'react';
@@ -25,6 +26,11 @@ export const LicenseNotices: React.FC<{ verify: unknown }> = ({ verify }) => {
             {n.kind === 'overdue'
               ? tr.t('app.rpay.pub.overdue', { date: dateWords(n.since, tr) })
               : tr.t('app.rpay.pub.revoked', { date: dateWords(n.on, tr) })}
+            {n.disputed && (
+              <Typography variant="body2" sx={{ mt: 0.5 }} data-license-notice-disputed={n.disputed}>
+                {tr.t('app.rpay.pub.disputed', { date: dateWords(n.disputed, tr) })}
+              </Typography>
+            )}
           </Alert>
         ))}
         <Typography variant="body2" color="text.secondary">

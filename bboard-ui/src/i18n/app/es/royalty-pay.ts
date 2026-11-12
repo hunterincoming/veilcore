@@ -8,7 +8,7 @@ export const royaltyPay = {
   'app.rpay.l.soon': 'Recordatorio: el pago del informe {n} vence el {date}.',
   'app.rpay.l.overdue': 'El pago del informe {n} está vencido desde el {date}.',
   'app.rpay.l.consequence':
-    'Si no se paga, se ve en la página de comprobación pública, y la licencia se puede revocar.',
+    'Si no se paga, la página de comprobación pública del registro de {licensor} puede decir que un informe de regalías está vencido. Tras un aviso de incumplimiento tiene {days} días para pagar antes de que la licencia se pueda revocar por falta de pago.',
   'app.rpay.i.soon': 'El pago de {licensee} del informe {n} vence el {date}.',
   'app.rpay.i.overdue': 'El pago de {licensee} del informe {n} está vencido desde el {date}.',
   'app.rpay.i.public':
@@ -19,7 +19,7 @@ export const royaltyPay = {
     'El registro de VeilCore todavía no acepta avisos públicos, así que esto no está en la página de comprobación pública de su registro.',
   'app.rpay.revoke.open': 'Revocar por falta de pago',
   'app.rpay.revoke.what':
-    'Esto termina la licencia en Midnight y no se puede deshacer. {licensee} recibe antes un aviso firmado. Luego la página de comprobación pública de su registro dice que una licencia de él se revocó por falta de pago, y cuándo.',
+    'Esto termina la licencia en Midnight y no se puede deshacer. Su aviso de incumplimiento se envió y el plazo para pagar terminó sin nada marcado como pagado. Luego {licensee} recibe un aviso firmado de que se revocó por falta de pago, y la página de comprobación pública de su registro lo dice, con la fecha.',
   'app.rpay.revoke.yes': 'Revocar la licencia',
   'app.rpay.revoke.note': 'Licencia revocada por falta de pago del informe {n}.',
   'app.rpay.revoke.reason': 'Falta de pago',
@@ -31,7 +31,7 @@ export const royaltyPay = {
     'Lo dice quien tiene este registro y lo licenció. VeilCore no lo comprueba. No nombra a nadie ni muestra montos o condiciones.',
   'app.rpay.payout.option': 'Stablecoin en dólares en Cardano',
   'app.rpay.payout.info':
-    'Le pagan desde su propia billetera directamente a su dirección de Cardano, en {code}. Al guardar esto acepta que 1 {code} cuenta como 1 dólar estadounidense. Los pagos en Cardano son públicos: cualquiera ve el monto, las dos direcciones y la fecha, pero no quién es usted. Una dirección nueva solo para este acuerdo lo separa de los demás. VeilCore nunca guarda ni mueve el dinero.',
+    'Le pagan desde su propia billetera directamente a su dirección de Cardano, en {code}. Al guardar esto acepta que 1 {code} cuenta como 1 dólar estadounidense. Los pagos en Cardano son públicos: cualquiera ve el monto, las dos direcciones y la fecha. El pago no lo nombra, pero una dirección a menudo se puede vincular a una persona, por ejemplo a través de un exchange. Una dirección nueva solo para este acuerdo lo separa de los demás. VeilCore nunca guarda ni mueve el dinero.',
   'app.rpay.payout.token': 'Stablecoin',
   'app.rpay.payout.address': 'Su dirección de Cardano ({prefix}…)',
   'app.rpay.payout.useMine': 'Usar mi dirección de {name}',
@@ -81,4 +81,43 @@ export const royaltyPay = {
   'app.rpay.c.unreachable': 'No se pudo llegar a Cardano. La página lo vuelve a intentar.',
   'app.rpay.c.no-relay': 'Este sitio todavía no puede comprobar Cardano, así que {licensor} confirma el pago a mano.',
   'app.rpay.c.not-tx': 'La referencia de pago no es una transacción de Cardano.',
+  'app.rpay.l.breach':
+    '{licensor} envió un aviso de incumplimiento el {date}. Pague a más tardar el {cureBy}: después de ese día, si no hay nada marcado como pagado, puede revocar la licencia por falta de pago.',
+  'app.rpay.l.cureOver':
+    '{licensor} envió un aviso de incumplimiento el {date}, y el plazo para pagar terminó el {cureBy}. Ahora puede revocar la licencia por falta de pago. Si ya pagó, regístrelo con «Pagué».',
+  'app.rpay.i.breach':
+    'Envió un aviso de incumplimiento el {date}. {licensee} tiene hasta el {cureBy} para pagar. «Revocar por falta de pago» se ofrece desde el día siguiente, si no hay nada marcado como pagado.',
+  'app.rpay.i.cureOver':
+    'Envió un aviso de incumplimiento el {date}. El plazo para pagar terminó el {cureBy} sin nada marcado como pagado, así que puede revocar por falta de pago.',
+  'app.rpay.i.noNotice':
+    'Para revocar por falta de pago, primero envíe un aviso de incumplimiento en el informe de abajo. {licensee} tendrá entonces {days} días para pagar.',
+  'app.rpay.l.answered':
+    'Lo disputó el {date}: «{note}». El licenciante lo ve. La página de comprobación pública de su registro muestra que usted lo disputa, o no dice nada sobre este pago.',
+  'app.rpay.i.answered': '{licensee} lo disputa ({date}): «{note}»',
+  'app.rpay.i.publicDisputed':
+    'La página de comprobación pública de su registro dice: «Un informe de regalías está vencido desde el {date}. El licenciatario lo disputa (desde el {answered}).» Sin montos, condiciones ni nombres.',
+  'app.rpay.i.publicWithheld':
+    '{licensee} lo disputa, y el registro de VeilCore aún no puede mostrar su respuesta al lado, así que no hay nada sobre esto en la página de comprobación pública de su registro.',
+  'app.rpay.l.iPaid': 'Pagué',
+  'app.rpay.l.dispute': 'Disputarlo',
+  'app.rpay.l.disputeAgain': 'Responder de nuevo',
+  'app.rpay.l.disputeNote': 'Por qué (breve; la otra parte lo verá)',
+  'app.rpay.l.disputeShows':
+    '{licensor} lo ve, firmado por usted. La página de comprobación pública solo muestra que lo disputa, nunca lo que escribió.',
+  'app.rpay.l.disputeSend': 'Enviar mi respuesta',
+  'app.rpay.breach.open': 'Enviar un aviso de incumplimiento',
+  'app.rpay.breach.what':
+    'Un aviso firmado y fechado a {licensee} de que este pago está vencido. Luego tiene {days} días para pagar. Solo después, si no hay nada marcado como pagado, puede revocar la licencia por falta de pago.',
+  'app.rpay.breach.send': 'Enviar el aviso',
+  'app.rpay.breach.extra': 'Algo que añadir (opcional; la otra parte lo verá)',
+  'app.rpay.breach.note':
+    'El pago del informe {n}, que vencía el {due}, no se ha hecho. Tiene {days} días desde este aviso para pagar. Después, si sigue sin pagarse, la licencia se puede revocar por falta de pago.',
+  'app.rpay.revoke.notYet':
+    'Todavía no: revocar por falta de pago solo es posible cuando el plazo para pagar tras su aviso de incumplimiento ha terminado sin nada marcado como pagado.',
+  'app.rpay.notice.answer': '{who} disputó el pago de {period} el {date}: «{note}»',
+  'app.rpay.notice.revoked': '{who} revocó la licencia por falta de pago ({period}) el {date}.',
+  'app.rpay.notice.cureBy': 'Plazo para pagar: hasta el {cureBy}.',
+  'app.rpay.pub.disputed': 'El licenciatario lo disputa (desde el {date}).',
+  'app.rpay.pay.otherWay':
+    '{licensor} pidió cobrar en {code} en Cardano, y esta página no puede pagar así. Págele de otra forma que acepte y luego regístrelo abajo con «Pagué».',
 };

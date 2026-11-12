@@ -334,6 +334,8 @@ export const royalties = {
   'app.roy.tl.received': '{who}：報告{n}の{amount}の受領を確認',
   'app.roy.tl.reminder': '{who}：リマインダーを送信（{period}）',
   'app.roy.tl.breach': '{who}：契約違反の通知を送信（{period}）',
+  'app.roy.tl.answer': '{who}：支払いに異議（{period}）',
+  'app.roy.tl.revoked': '{who}：不払いによりライセンスを取り消し（{period}）',
   'app.roy.tl.show': '経過（{n}件）',
   'app.roy.tl.hide': '経過を隠す',
   'app.roy.tl.dated': '各ステップの記録です。実行した側が署名し、VeilCoreのバッチとしてMidnight上で日付が付きます。',

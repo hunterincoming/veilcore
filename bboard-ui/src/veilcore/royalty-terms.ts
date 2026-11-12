@@ -222,9 +222,17 @@ export const SHARED_DEFAULTS = {
   checkNoticeDays: 30,
 };
 
-/** Today, as a calendar date where the user is (not UTC). */
+/** Today, as a calendar date where the user is (not UTC). For dates a person picks, never a deadline. */
 export const localDay = (now = new Date()): string =>
   `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+
+/**
+ * Today as a UTC calendar date: the day every royalty deadline is counted in (due, overdue, the
+ * cure period, the public notices). Both sides of a deal, in any time zone, get the same day at
+ * the same moment, so a licensor in Tokyo can't find a payment late while it is still the due
+ * day for a licensee in California (docs/royalty-pay.md, "Dates are UTC").
+ */
+export const utcDay = (now = new Date()): string => now.toISOString().slice(0, 10);
 
 /** A calendar date plus whole years: 29 February goes to 28 February in a year without one. */
 export const addYears = (day: string, years: number): string => {

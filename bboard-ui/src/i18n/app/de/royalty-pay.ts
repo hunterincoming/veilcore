@@ -8,7 +8,7 @@ export const royaltyPay = {
   'app.rpay.l.soon': 'Erinnerung: Die Zahlung für Bericht {n} ist am {date} fällig.',
   'app.rpay.l.overdue': 'Die Zahlung für Bericht {n} ist seit dem {date} überfällig.',
   'app.rpay.l.consequence':
-    'Wer nicht zahlt, steht damit auf der öffentlichen Prüfseite, und die Lizenz kann widerrufen werden.',
+    'Wird nicht gezahlt, kann die öffentliche Prüfseite des Datensatzes von {licensor} sagen, dass eine Lizenzabrechnung überfällig ist. Nach einer Mitteilung über die Vertragsverletzung haben Sie {days} Tage Zeit zu zahlen, bevor die Lizenz wegen Nichtzahlung widerrufen werden kann.',
   'app.rpay.i.soon': 'Die Zahlung von {licensee} für Bericht {n} ist am {date} fällig.',
   'app.rpay.i.overdue': 'Die Zahlung von {licensee} für Bericht {n} ist seit dem {date} überfällig.',
   'app.rpay.i.public':
@@ -19,7 +19,7 @@ export const royaltyPay = {
     'Das Register von VeilCore nimmt noch keine öffentlichen Hinweise an, daher steht das nicht auf der öffentlichen Prüfseite Ihres Datensatzes.',
   'app.rpay.revoke.open': 'Wegen Nichtzahlung widerrufen',
   'app.rpay.revoke.what':
-    'Damit endet die Lizenz auf Midnight, und das lässt sich nicht rückgängig machen. {licensee} erhält zuerst einen signierten Hinweis. Die öffentliche Prüfseite Ihres Datensatzes sagt dann, dass eine Lizenz davon wegen Nichtzahlung widerrufen wurde, und wann.',
+    'Damit endet die Lizenz auf Midnight, und das lässt sich nicht rückgängig machen. Ihre Mitteilung über die Vertragsverletzung ist gesendet, und die Frist zum Zahlen ist abgelaufen, ohne dass etwas als bezahlt markiert wurde. {licensee} erhält dann einen signierten Hinweis, dass sie wegen Nichtzahlung widerrufen wurde, und die öffentliche Prüfseite Ihres Datensatzes sagt das, mit Datum.',
   'app.rpay.revoke.yes': 'Lizenz widerrufen',
   'app.rpay.revoke.note': 'Lizenz wegen Nichtzahlung von Bericht {n} widerrufen.',
   'app.rpay.revoke.reason': 'Nichtzahlung',
@@ -31,7 +31,7 @@ export const royaltyPay = {
     'Angabe der Person, die diesen Datensatz hält und ihn lizenziert hat. VeilCore prüft sie nicht. Sie nennt niemanden und zeigt keine Beträge oder Bedingungen.',
   'app.rpay.payout.option': 'US-Dollar-Stablecoin auf Cardano',
   'app.rpay.payout.info':
-    'Die andere Seite zahlt aus ihrem eigenen Wallet direkt an Ihre Cardano-Adresse, in {code}. Mit dem Speichern stimmen Sie zu, dass 1 {code} als 1 US-Dollar zählt. Zahlungen auf Cardano sind öffentlich: Jeder sieht den Betrag, beide Adressen und das Datum, aber nicht, wer Sie sind. Eine neue Adresse nur für diesen Vertrag hält ihn von Ihren anderen getrennt. VeilCore hält oder bewegt das Geld nie.',
+    'Die andere Seite zahlt aus ihrem eigenen Wallet direkt an Ihre Cardano-Adresse, in {code}. Mit dem Speichern stimmen Sie zu, dass 1 {code} als 1 US-Dollar zählt. Zahlungen auf Cardano sind öffentlich: Jeder sieht den Betrag, beide Adressen und das Datum. Die Zahlung nennt Ihren Namen nicht, aber eine Adresse lässt sich oft einer Person zuordnen, zum Beispiel über eine Börse. Eine neue Adresse nur für diesen Vertrag hält ihn von Ihren anderen getrennt. VeilCore hält oder bewegt das Geld nie.',
   'app.rpay.payout.token': 'Stablecoin',
   'app.rpay.payout.address': 'Ihre Cardano-Adresse ({prefix}…)',
   'app.rpay.payout.useMine': 'Meine {name}-Adresse verwenden',
@@ -81,4 +81,43 @@ export const royaltyPay = {
   'app.rpay.c.no-relay':
     'Diese Website kann Cardano noch nicht prüfen, daher bestätigt {licensor} die Zahlung von Hand.',
   'app.rpay.c.not-tx': 'Die Zahlungsreferenz ist keine Cardano-Transaktion.',
+  'app.rpay.l.breach':
+    '{licensor} hat am {date} eine Mitteilung über die Vertragsverletzung gesendet. Zahlen Sie bis zum {cureBy}: Danach kann die Lizenz wegen Nichtzahlung widerrufen werden, wenn nichts als bezahlt markiert ist.',
+  'app.rpay.l.cureOver':
+    '{licensor} hat am {date} eine Mitteilung über die Vertragsverletzung gesendet, und die Frist zum Zahlen endete am {cureBy}. Die Lizenz kann jetzt wegen Nichtzahlung widerrufen werden. Wenn Sie gezahlt haben, halten Sie es mit „Ich habe bezahlt“ fest.',
+  'app.rpay.i.breach':
+    'Sie haben am {date} eine Mitteilung über die Vertragsverletzung gesendet. {licensee} hat bis zum {cureBy} Zeit zu zahlen. „Wegen Nichtzahlung widerrufen“ wird ab dem Tag danach angeboten, wenn nichts als bezahlt markiert ist.',
+  'app.rpay.i.cureOver':
+    'Sie haben am {date} eine Mitteilung über die Vertragsverletzung gesendet. Die Frist zum Zahlen endete am {cureBy}, ohne dass etwas als bezahlt markiert wurde. Sie können wegen Nichtzahlung widerrufen.',
+  'app.rpay.i.noNotice':
+    'Um wegen Nichtzahlung zu widerrufen, senden Sie zuerst beim Bericht unten eine Mitteilung über die Vertragsverletzung. {licensee} hat dann {days} Tage Zeit zu zahlen.',
+  'app.rpay.l.answered':
+    'Sie haben dem am {date} widersprochen: „{note}“. Die Lizenzgeberseite sieht das. Die öffentliche Prüfseite ihres Datensatzes zeigt, dass Sie widersprechen, oder sagt nichts zu dieser Zahlung.',
+  'app.rpay.i.answered': '{licensee} widerspricht ({date}): „{note}“',
+  'app.rpay.i.publicDisputed':
+    'Die öffentliche Prüfseite Ihres Datensatzes sagt: „Eine Lizenzabrechnung ist seit dem {date} überfällig. Die Lizenznehmerseite widerspricht (seit dem {answered}).“ Keine Beträge, Bedingungen oder Namen.',
+  'app.rpay.i.publicWithheld':
+    '{licensee} widerspricht, und das Register von VeilCore kann diese Antwort noch nicht daneben zeigen. Deshalb steht dazu nichts auf der öffentlichen Prüfseite Ihres Datensatzes.',
+  'app.rpay.l.iPaid': 'Ich habe bezahlt',
+  'app.rpay.l.dispute': 'Widersprechen',
+  'app.rpay.l.disputeAgain': 'Erneut antworten',
+  'app.rpay.l.disputeNote': 'Warum (kurz; die andere Seite sieht es)',
+  'app.rpay.l.disputeShows':
+    '{licensor} sieht das, von Ihnen signiert. Die öffentliche Prüfseite zeigt nur, dass Sie widersprechen, nie, was Sie geschrieben haben.',
+  'app.rpay.l.disputeSend': 'Antwort senden',
+  'app.rpay.breach.open': 'Mitteilung über Vertragsverletzung senden',
+  'app.rpay.breach.what':
+    'Eine signierte, datierte Mitteilung an {licensee}, dass diese Zahlung überfällig ist. Danach bleiben {days} Tage zum Zahlen. Erst dann, wenn nichts als bezahlt markiert ist, können Sie die Lizenz wegen Nichtzahlung widerrufen.',
+  'app.rpay.breach.send': 'Mitteilung senden',
+  'app.rpay.breach.extra': 'Ergänzung (freiwillig; die andere Seite sieht es)',
+  'app.rpay.breach.note':
+    'Die Zahlung für Bericht {n}, fällig am {due}, ist nicht erfolgt. Sie haben ab dieser Mitteilung {days} Tage Zeit zu zahlen. Ist sie danach noch offen, kann die Lizenz wegen Nichtzahlung widerrufen werden.',
+  'app.rpay.revoke.notYet':
+    'Noch nicht: Ein Widerruf wegen Nichtzahlung ist erst möglich, wenn die Frist nach Ihrer Mitteilung über die Vertragsverletzung abgelaufen ist und nichts als bezahlt markiert wurde.',
+  'app.rpay.notice.answer': '{who} hat am {date} der Zahlung für {period} widersprochen: „{note}“',
+  'app.rpay.notice.revoked': '{who} hat die Lizenz am {date} wegen Nichtzahlung widerrufen ({period}).',
+  'app.rpay.notice.cureBy': 'Frist zum Zahlen: bis zum {cureBy}.',
+  'app.rpay.pub.disputed': 'Die Lizenznehmerseite widerspricht (seit dem {date}).',
+  'app.rpay.pay.otherWay':
+    '{licensor} möchte in {code} auf Cardano bezahlt werden, was diese Seite nicht zahlen kann. Zahlen Sie auf einem anderen Weg, den die andere Seite annimmt, und halten Sie es unten mit „Ich habe bezahlt“ fest.',
 };

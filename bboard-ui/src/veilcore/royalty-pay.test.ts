@@ -310,12 +310,26 @@ describe('when stablecoin pay is offered', () => {
     );
     expect(cardanoUnits('123.45', CARDANO_TOKENS[0])).toBe(123_450_000n);
   });
-  it('off on mainnet, on for test networks (this test build is preprod)', () => {
+  it('off everywhere unless switched on: mainnet by code only, a test build by VITE_STABLECOIN_PAY=on and a test token', () => {
     expect(STABLECOIN_PAY_ON_MAINNET).toBe(false);
-    expect(STABLECOIN_PAY).toBe(true);
+    // This unit-test build sets neither, so it is off (the test site's deploy sets neither too).
+    expect(STABLECOIN_PAY).toBe(false);
     const src = readFileSync(new URL('../config/copy.ts', import.meta.url), 'utf8');
     expect(src).toMatch(/export const STABLECOIN_PAY_ON_MAINNET = false;/);
-    expect(src).toMatch(/export const STABLECOIN_PAY = IS_MAINNET \? STABLECOIN_PAY_ON_MAINNET : true;/);
+    expect(src).toMatch(
+      /export const STABLECOIN_PAY = IS_MAINNET\s*\?\s*STABLECOIN_PAY_ON_MAINNET\s*:\s*import\.meta\.env\.VITE_STABLECOIN_PAY === 'on' && !!import\.meta\.env\.VITE_CARDANO_TEST_ASSET;/,
+    );
+    // Only the end-to-end build switches it on; no deploy script names the setting.
+    const pkg = JSON.parse(readFileSync(new URL('../../package.json', import.meta.url), 'utf8')) as {
+      scripts: Record<string, string>;
+    };
+    expect(
+      Object.entries(pkg.scripts)
+        .filter(([, v]) => v.includes('VITE_STABLECOIN_PAY'))
+        .map(([k]) => k),
+    ).toEqual(['e2e:build']);
+    for (const f of ['../../../scripts/deploy-mainnet.mjs', '../../../scripts/deploy-test-site.mjs'])
+      expect(readFileSync(new URL(f, import.meta.url), 'utf8')).not.toMatch(/VITE_STABLECOIN_PAY/);
   });
   it('addresses: checksum, a payment address, and the network in prefix and header', () => {
     expect(cardanoAddressProblem(LICENSOR_TEST, 'preprod')).toBeUndefined();

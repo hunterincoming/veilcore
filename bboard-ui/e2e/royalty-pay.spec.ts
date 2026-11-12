@@ -4,13 +4,14 @@
 //     record's public check page saying "a royalty statement is overdue since <date>" and
 //     nothing else (no amount, no name), sent with only a kind and a date;
 //   - due soon, as a reminder;
-//   - "Revoke for non-payment": a signed notice to the licensee, then the public page says a
-//     license from the record was revoked for non-payment and the overdue line comes off;
+//   - a notice of breach and its cure period on both sides, the licensee's dispute next to the
+//     public line, and the cure period running out (in UTC days, the browser's clock moved);
+//   - a Cardano payout this build can't pay: the bank details, reference and "I paid" stay (B1);
 //   - the stablecoin pay screen: a CIP-30 wallet (a stand-in) pays the licensor's signed
 //     address with the reference, and the transaction the page built, read back through the
 //     relay, settles the report on both sides with no "received".
-// The license page itself needs a license on Midnight, so these open the e2e fixture page
-// around the real ledger (src/e2e-fixtures/RoyaltyPayFixture.tsx). Screenshots in en and ja go
+// These open the e2e fixture page around the real ledger (src/e2e-fixtures/RoyaltyPayFixture.tsx);
+// revoking is tested on the real license page (royalty-revoke.spec.ts). Screenshots in en and ja go
 // to E2E_SHOTS (when set) as pay-*.png. All names and figures are practice data.
 // SPDX-License-Identifier: Apache-2.0
 import { createHash } from 'node:crypto';
@@ -157,11 +158,16 @@ const shot = async (page: Page, name: string) => {
 test.describe('royalties: overdue, reminders, revoke for non-payment, the public page', () => {
   test.skip(REAL_REGISTRY, 'this uses the stand-in registry');
 
+  const BREACH = { en: 'Send a notice of breach', ja: '契約違反の通知を送る' } as const;
+  const REVOKE = { en: 'Revoke for non-payment', ja: '不払いを理由に取り消す' } as const;
+  const DAY = 86_400_000;
+  const utc = (ms: number) => new Date(ms).toISOString().slice(0, 10);
+
   for (const lang of ['en', 'ja'] as const) {
-    test(`overdue on both sides and on the public check page, then revoked for non-payment (${lang})`, async ({
+    test(`overdue, a notice of breach and its cure period, the licensee's dispute, on both sides and the public page (${lang})`, async ({
       browser,
     }) => {
-      test.setTimeout(240_000);
+      test.setTimeout(300_000);
       const state = registry();
       const issuer = await browser.newPage();
       const licensee = await browser.newPage();
@@ -172,28 +178,34 @@ test.describe('royalties: overdue, reminders, revoke for non-payment, the public
         await standIn(p, state);
       }
 
-      // The licensor's page: overdue, the report marked, and what the public page now says.
+      // The licensor's page: overdue, the report marked, what the public page now says, and no
+      // revoke yet: a notice of breach comes first.
       await issuer.goto('/e2e/royalty-pay?side=issuer&scenario=overdue');
       const alert = issuer.locator('[data-payment-alert="overdue"]');
       await expect(alert).toBeVisible({ timeout: 60_000 });
-      if (lang === 'en')
+      await expect(alert).toHaveAttribute('data-cure', 'no-notice');
+      if (lang === 'en') {
         await expect(alert).toContainText('Payment for report 1 from Practice Grower is overdue since');
+        await expect(alert).toContainText('first send a notice of breach');
+      }
       await expect(issuer.locator('[data-report-overdue]')).toBeVisible();
       await expect(issuer.locator('[data-public-notice="shown"]')).toBeVisible();
+      await expect(issuer.getByRole('button', { name: REVOKE[lang] })).toHaveCount(0);
       // Sent with a kind and a date, nothing else.
       expect(state.noticeBodies).toHaveLength(1);
       expect(Object.keys(state.noticeBodies[0] as object).sort()).toEqual(['kind', 'since']);
       expect((state.noticeBodies[0] as { kind: string }).kind).toBe('overdue');
+      const start = await issuer.locator('[data-e2e-start]').getAttribute('data-e2e-start');
       await shot(issuer, `overdue-licensor-${lang}`);
 
       // The licensee's page: overdue, and what not paying means.
       await licensee.goto('/e2e/royalty-pay?side=licensee&scenario=overdue');
-      await expect(licensee.locator('[data-payment-alert="overdue"]')).toBeVisible({ timeout: 60_000 });
-      await expect(licensee.locator('[data-payment-alert="overdue"] [data-consequence]')).toBeVisible();
+      const lAlert = licensee.locator('[data-payment-alert="overdue"]');
+      await expect(lAlert).toBeVisible({ timeout: 60_000 });
+      await expect(lAlert.locator('[data-consequence]')).toBeVisible();
+      await expect(lAlert.locator('[data-respond]')).toBeVisible();
       if (lang === 'en')
-        await expect(licensee.locator('[data-payment-alert="overdue"]')).toContainText(
-          'Not paying shows on the public check page, and the license can be revoked.',
-        );
+        await expect(lAlert).toContainText('you have 30 days to pay before the license can be revoked');
       await shot(licensee, `overdue-licensee-${lang}`);
 
       // The public check page: the line, the holder's word, no amount, no names.
@@ -209,26 +221,106 @@ test.describe('royalties: overdue, reminders, revoke for non-payment, the public
         await expect(notices).not.toContainText(hidden);
       await shot(visitor, `public-overdue-${lang}`);
 
-      // Revoke for non-payment: confirm, a signed notice goes to the licensee, the public page changes.
+      // The licensor sends a notice of breach: signed, dated, with the time to pay.
       const before = state.messages.length;
-      await issuer
-        .getByRole('button', { name: lang === 'en' ? 'Revoke for non-payment' : '不払いを理由に取り消す' })
-        .click();
+      await issuer.getByRole('button', { name: BREACH[lang] }).click();
       await expect(issuer.locator('[data-confirm-inline]')).toBeVisible();
-      await shot(issuer, `revoke-confirm-${lang}`);
+      await shot(issuer, `breach-confirm-${lang}`);
       await issuer.locator('[data-confirm-inline] button').first().click();
-      await expect(issuer.locator('[data-license-gone="non-payment"]')).toBeVisible({ timeout: 30_000 });
-      expect(state.messages.length).toBe(before + 1);
-      await shot(issuer, `revoked-licensor-${lang}`);
-      await expect(licensee.locator('[data-notice="breach"]')).toBeVisible({ timeout: 30_000 });
+      await expect.poll(() => state.messages.length, { timeout: 30_000 }).toBe(before + 1);
+      const cureBy = utc(Date.now() + 30 * DAY);
+      await expect(issuer.locator('[data-payment-alert="overdue"]')).toHaveAttribute('data-cure', 'running', {
+        timeout: 30_000,
+      });
+      await expect(issuer.locator(`[data-payment-alert="overdue"] [data-cure-by="${cureBy}"]`)).toBeVisible();
+      await expect(issuer.getByRole('button', { name: REVOKE[lang] })).toHaveCount(0);
+
+      // The licensee sees it, and until when they have to pay.
+      await licensee.reload();
+      await expect(lAlert).toHaveAttribute('data-cure', 'running', { timeout: 60_000 });
+      await expect(licensee.locator(`[data-payment-alert="overdue"] [data-cure-by="${cureBy}"]`)).toBeVisible();
+      await expect(licensee.locator('[data-notice="breach"]')).toBeVisible();
+      if (lang === 'en') await expect(lAlert).toContainText('Hana Rivera sent a notice of breach on');
+      await shot(licensee, `breach-licensee-${lang}`);
+
+      // The licensee answers: a short dispute note, signed. The licensor sees it, and the public
+      // line says the licensee disputes it (a date, never what they wrote).
+      await lAlert.locator('[data-respond-dispute]').click();
+      await licensee.locator('[data-dispute-note] textarea').first().fill('Paid by bank transfer on the due date.');
+      await licensee.locator('[data-dispute-send]').click();
+      await expect(lAlert.locator('[data-answer]')).toBeVisible({ timeout: 30_000 });
+      await issuer.reload();
+      const iAnswer = issuer.locator('[data-payment-alert="overdue"] [data-answer]');
+      await expect(iAnswer).toContainText('Paid by bank transfer on the due date.', { timeout: 60_000 });
+      await expect(issuer.locator('[data-public-notice="shown"]')).toBeVisible();
+      const last = state.noticeBodies[state.noticeBodies.length - 1] as Record<string, string>;
+      expect(Object.keys(last).sort()).toEqual(['disputed', 'kind', 'since']);
+      expect(last.disputed).toBe(utc(Date.now()));
       await visitor.reload();
-      await expect(visitor.locator('[data-license-notice="revoked"]')).toBeVisible();
-      await expect(visitor.locator('[data-license-notice="overdue"]')).toHaveCount(0);
-      if (lang === 'en') await expect(visitor.locator('[data-license-notices]')).toContainText('for non-payment');
-      await shot(visitor, `public-revoked-${lang}`);
+      await expect(visitor.locator('[data-license-notice-disputed]')).toBeVisible();
+      await expect(visitor.locator('[data-license-notices]')).not.toContainText('bank transfer');
+      if (lang === 'en')
+        await expect(visitor.locator('[data-license-notices]')).toContainText('The licensee disputes this');
+      await shot(visitor, `public-disputed-${lang}`);
+
+      // A day before the time to pay runs out: still no revoke. The day after: the cure period
+      // is over on both sides (revoking itself is on the real license page, royalty-revoke.spec).
+      await issuer.clock.setFixedTime(Date.parse(`${cureBy}T23:00:00Z`));
+      await issuer.goto(`/e2e/royalty-pay?side=issuer&scenario=overdue&start=${start}`);
+      await expect(issuer.locator('[data-payment-alert="overdue"]')).toHaveAttribute('data-cure', 'running', {
+        timeout: 60_000,
+      });
+      await issuer.clock.setFixedTime(Date.parse(`${cureBy}T00:00:00Z`) + DAY);
+      await issuer.goto(`/e2e/royalty-pay?side=issuer&scenario=overdue&start=${start}`);
+      await expect(issuer.locator('[data-payment-alert="overdue"]')).toHaveAttribute('data-cure', 'over', {
+        timeout: 60_000,
+      });
+      await shot(issuer, `cure-over-licensor-${lang}`);
+      await licensee.clock.setFixedTime(Date.parse(`${cureBy}T00:00:00Z`) + DAY);
+      await licensee.goto(`/e2e/royalty-pay?side=licensee&scenario=overdue&start=${start}`);
+      await expect(licensee.locator('[data-payment-alert="overdue"]')).toHaveAttribute('data-cure', 'over', {
+        timeout: 60_000,
+      });
+      await shot(licensee, `cure-over-licensee-${lang}`);
       expectNoErrors([...issuerErrors, ...licenseeErrors, ...visitorErrors]);
     });
   }
+
+  test('a Cardano payout this build can’t pay never hides the normal way to pay (B1)', async ({ browser }) => {
+    test.setTimeout(240_000);
+    const state = registry();
+    const issuer = await browser.newPage();
+    const licensee = await browser.newPage();
+    const errors = [...watch(issuer), ...watch(licensee)];
+    for (const p of [issuer, licensee]) {
+      await asHolder(p, 'en');
+      await standIn(p, state);
+    }
+    const fx = await cardanoFixtures();
+    // USDCx is a mainnet token: this preprod build knows only its test token, so it can't pay it.
+    const q = `scenario=usd&method=cardano:USDCx&payTo=${fx.licensor}`;
+    await issuer.goto(`/e2e/royalty-pay?side=issuer&${q}`);
+    await expect(issuer.locator('[data-payout]')).toBeVisible({ timeout: 60_000 });
+    await licensee.goto(`/e2e/royalty-pay?side=licensee&${q}`);
+    // The note says why the wallet isn't offered, and the bank details, the reference and "I paid" stay.
+    await expect(licensee.locator('[data-pay-on-cardano="other-way"]')).toContainText(
+      'Hana Rivera asked to be paid in USDCx on Cardano, which this page can’t pay.',
+      { timeout: 60_000 },
+    );
+    await expect(licensee.locator('[data-pay-on-cardano="off"], [data-pay-on-cardano="not-offered"]')).toHaveCount(0);
+    await expect(licensee.locator('[data-pay]')).toContainText('Payment reference');
+    await expect(licensee.locator('[data-i-paid]')).toBeVisible();
+    await expect(licensee.locator('[data-payment-alert="overdue"]')).toBeVisible();
+    await shot(licensee, 'cardano-other-way-en');
+    // "I paid": no longer overdue on either side, nothing to revoke, the public line comes off.
+    await licensee.locator('[data-i-paid]').click();
+    await expect(licensee.locator('[data-payment-alert="overdue"]')).toHaveCount(0, { timeout: 30_000 });
+    await issuer.reload();
+    await expect(issuer.locator('[data-royalties]')).toBeVisible({ timeout: 60_000 });
+    await expect(issuer.locator('[data-payment-alert="overdue"]')).toHaveCount(0);
+    await expect.poll(() => state.notices.length, { timeout: 30_000 }).toBe(0);
+    expectNoErrors(errors);
+  });
 
   test('due soon: a reminder on both sides, nothing on the public page', async ({ browser }) => {
     test.setTimeout(180_000);

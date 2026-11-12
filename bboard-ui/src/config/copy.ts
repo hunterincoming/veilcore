@@ -76,8 +76,15 @@ export const ONCHAIN_PAYMENTS = !IS_MAINNET;
  */
 export const STABLECOIN_PAY_ON_MAINNET = false;
 
-/** Whether this build offers stablecoin pay: always on a test network, on mainnet only by the line above. */
-export const STABLECOIN_PAY = IS_MAINNET ? STABLECOIN_PAY_ON_MAINNET : true;
+/**
+ * Whether this build offers stablecoin pay. Off everywhere unless switched on on purpose: on
+ * mainnet only by the line above (no build setting can), on a test network only when the build
+ * sets both VITE_STABLECOIN_PAY=on and a test token (VITE_CARDANO_TEST_ASSET). The test site's
+ * deploy sets neither; only the end-to-end build does (package.json e2e:build).
+ */
+export const STABLECOIN_PAY = IS_MAINNET
+  ? STABLECOIN_PAY_ON_MAINNET
+  : import.meta.env.VITE_STABLECOIN_PAY === 'on' && !!import.meta.env.VITE_CARDANO_TEST_ASSET;
 
 /**
  * Whether royalties v2 (statements, answers, payments, receipts) has worked end to end on the

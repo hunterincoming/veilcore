@@ -9,7 +9,8 @@ export const royaltyPay = {
   'app.rpay.st.overdue': 'Overdue',
   'app.rpay.l.soon': 'Reminder: payment for report {n} is due on {date}.',
   'app.rpay.l.overdue': 'Payment for report {n} is overdue since {date}.',
-  'app.rpay.l.consequence': 'Not paying shows on the public check page, and the license can be revoked.',
+  'app.rpay.l.consequence':
+    'If it isn’t paid, the public check page of {licensor}’s record can say a royalty statement is overdue. After a notice of breach you have {days} days to pay before the license can be revoked for non-payment.',
   'app.rpay.i.soon': 'Payment for report {n} from {licensee} is due on {date}.',
   'app.rpay.i.overdue': 'Payment for report {n} from {licensee} is overdue since {date}.',
   'app.rpay.i.public':
@@ -21,7 +22,7 @@ export const royaltyPay = {
   // ---- revoke for non-payment ----
   'app.rpay.revoke.open': 'Revoke for non-payment',
   'app.rpay.revoke.what':
-    'This ends the license on Midnight and can’t be undone. {licensee} gets a signed notice first. Your record’s public check page then says a license from it was revoked for non-payment, and when.',
+    'This ends the license on Midnight and can’t be undone. Your notice of breach was sent and the time to pay has run out with nothing marked paid. {licensee} then gets a signed notice that it was revoked for non-payment, and your record’s public check page says so, with the date.',
   'app.rpay.revoke.yes': 'Revoke the license',
   'app.rpay.revoke.note': 'License revoked for non-payment of report {n}.',
   'app.rpay.revoke.reason': 'Non-payment',
@@ -35,7 +36,7 @@ export const royaltyPay = {
   // ---- paying in a stablecoin on Cardano: the licensor's payout ----
   'app.rpay.payout.option': 'US dollar stablecoin on Cardano',
   'app.rpay.payout.info':
-    'They pay from their own wallet straight to your Cardano address, in {code}. By saving this you agree that 1 {code} counts as 1 US dollar. Cardano payments are public: anyone can see the amount, both addresses and the date, but not who you are. A new address just for this deal keeps it apart from your others. VeilCore never holds or moves the money.',
+    'They pay from their own wallet straight to your Cardano address, in {code}. By saving this you agree that 1 {code} counts as 1 US dollar. Cardano payments are public: anyone can see the amount, both addresses and the date. The payment doesn’t name you, but an address can often be traced to a person, for example through an exchange. A new address just for this deal keeps it apart from your others. VeilCore never holds or moves the money.',
   'app.rpay.payout.token': 'Stablecoin',
   'app.rpay.payout.address': 'Your Cardano address ({prefix}…)',
   'app.rpay.payout.useMine': 'Use my {name} address',
@@ -84,4 +85,43 @@ export const royaltyPay = {
   'app.rpay.c.unreachable': 'Couldn’t reach Cardano. The page tries again.',
   'app.rpay.c.no-relay': 'This site can’t check Cardano yet, so {licensor} confirms the payment by hand.',
   'app.rpay.c.not-tx': 'The payment reference isn’t a Cardano transaction.',
+  'app.rpay.l.breach':
+    '{licensor} sent a notice of breach on {date}. Pay by {cureBy}: after that day, if nothing is marked paid, they can revoke the license for non-payment.',
+  'app.rpay.l.cureOver':
+    '{licensor} sent a notice of breach on {date}, and the time to pay ended on {cureBy}. They can now revoke the license for non-payment. If you have paid, record it with “I paid”.',
+  'app.rpay.i.breach':
+    'You sent a notice of breach on {date}. {licensee} has until {cureBy} to pay. “Revoke for non-payment” is offered from the day after, if nothing is marked paid.',
+  'app.rpay.i.cureOver':
+    'You sent a notice of breach on {date}. The time to pay ended on {cureBy} with nothing marked paid, so you may revoke for non-payment.',
+  'app.rpay.i.noNotice':
+    'To revoke for non-payment, first send a notice of breach on the report below. {licensee} then has {days} days to pay.',
+  'app.rpay.l.answered':
+    'You disputed this on {date}: “{note}”. The licensor sees it. Their record’s public check page shows that you dispute it, or says nothing about this payment.',
+  'app.rpay.i.answered': '{licensee} disputes this ({date}): “{note}”',
+  'app.rpay.i.publicDisputed':
+    'Your record’s public check page says: “A royalty statement is overdue since {date}. The licensee disputes this (since {answered}).” No amounts, terms or names.',
+  'app.rpay.i.publicWithheld':
+    '{licensee} disputes this, and VeilCore’s registry can’t show their answer beside it yet, so nothing about it is on your record’s public check page.',
+  'app.rpay.l.iPaid': 'I paid',
+  'app.rpay.l.dispute': 'Dispute it',
+  'app.rpay.l.disputeAgain': 'Answer again',
+  'app.rpay.l.disputeNote': 'Why (short; they’ll see it)',
+  'app.rpay.l.disputeShows':
+    '{licensor} sees this, signed by you. The public check page shows only that you dispute it, never what you wrote.',
+  'app.rpay.l.disputeSend': 'Send my answer',
+  'app.rpay.breach.open': 'Send a notice of breach',
+  'app.rpay.breach.what':
+    'A signed, dated notice to {licensee} that this payment is overdue. They then have {days} days to pay. Only after that, if nothing is marked paid, can you revoke the license for non-payment.',
+  'app.rpay.breach.send': 'Send the notice',
+  'app.rpay.breach.extra': 'Anything to add (optional; they’ll see it)',
+  'app.rpay.breach.note':
+    'Payment for report {n}, due on {due}, has not been made. You have {days} days from this notice to pay. After that, if it is still unpaid, the license may be revoked for non-payment.',
+  'app.rpay.revoke.notYet':
+    'Not yet: revoking for non-payment is only possible once the time to pay after your notice of breach has run out with nothing marked paid.',
+  'app.rpay.notice.answer': '{who} disputed the payment for {period} on {date}: “{note}”',
+  'app.rpay.notice.revoked': '{who} revoked the license for non-payment ({period}) on {date}.',
+  'app.rpay.notice.cureBy': 'Time to pay: until {cureBy}.',
+  'app.rpay.pub.disputed': 'The licensee disputes this (since {date}).',
+  'app.rpay.pay.otherWay':
+    '{licensor} asked to be paid in {code} on Cardano, which this page can’t pay. Pay them another way they accept, then record it below with “I paid”.',
 };

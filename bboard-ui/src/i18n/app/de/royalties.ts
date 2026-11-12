@@ -345,6 +345,8 @@ export const royalties = {
   'app.roy.tl.received': '{who}: Eingang von {amount} für Bericht {n} bestätigt',
   'app.roy.tl.reminder': '{who}: Erinnerung gesendet ({period})',
   'app.roy.tl.breach': '{who}: Mitteilung über Vertragsverletzung gesendet ({period})',
+  'app.roy.tl.answer': '{who}: einer Zahlung widersprochen ({period})',
+  'app.roy.tl.revoked': '{who}: Lizenz wegen Nichtzahlung widerrufen ({period})',
   'app.roy.tl.show': 'Verlauf ({n} Schritte)',
   'app.roy.tl.hide': 'Verlauf ausblenden',
   'app.roy.tl.dated':

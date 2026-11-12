@@ -13,10 +13,12 @@ import { Alert, Box, Button, Collapse, MenuItem, Stack, TextField, Typography } 
 import type { Translator } from '../../i18n/translate';
 import type { AppKey } from '../../i18n/app/en';
 import { useT } from '../../i18n/app';
-import { dateWords } from '../../veilcore/royalty-terms';
+import { dateWords, utcDay } from '../../veilcore/royalty-terms';
 import { formatMoney } from '../../veilcore/money';
 import {
+  CURE_DAYS,
   ledgerOf,
+  noticeDayOf,
   toPayOf,
   type Ledger,
   type PaymentAlert,
@@ -40,96 +42,237 @@ import {
 import { findCardanoWallets, payOnCardano, type Cip30Entry } from '../../veilcore/cardano-tx';
 import { OFAC_CARDANO, screenAddresses } from '../../veilcore/sanctions';
 import { forgetSent, keepSent, sentFor } from '../../veilcore/onchain-pay';
-import { noticeRef, syncNotices, type LicenseNotice, type NoticeOutcome } from '../../veilcore/license-notices';
+import { dealNotices, noticeRef, syncNotices, type NoticeOutcome } from '../../veilcore/license-notices';
+import type { DealBody } from '../../veilcore/deal';
 import { STABLECOIN_PAY } from '../../config/copy';
 import { NETWORK } from '../../config/network';
 import type { DealEntry } from '../../veilcore/deal-client';
 
 const short = (s: string) => (s.length > 24 ? `${s.slice(0, 14)}…${s.slice(-6)}` : s);
 
-// ---- reminders ---------------------------------------------------------------------------------
+// ---- reminders, overdue, notice of breach, the licensee's answer ------------------------------
 
-/** Due soon and overdue, at the top of the royalties on both sides. */
+type PublicState = {
+  outcome: NoticeOutcome | 'idle';
+  shown: ReadonlySet<string>;
+  /** Left off the public page: the registry can't show the licensee's dispute beside it. */
+  withheld: ReadonlySet<string>;
+};
+
+/**
+ * Due soon and overdue, at the top of the royalties on both sides. On an overdue payment, both
+ * sides see where it stands: no notice of breach yet; a notice, and the last day to pay (the cure
+ * period, royalty-ledger.ts CURE_DAYS); or the cure period over. The licensee answers here: "I
+ * paid" (the report's own pay form), or a short dispute note, signed, which the licensor sees and
+ * the public page shows next to the overdue line.
+ */
 export const PaymentAlerts: React.FC<{
   side: 'issuer' | 'licensee';
   alerts: readonly PaymentAlert[];
   licensee: string;
+  licensor: string;
   tr: Translator;
+  busy: boolean;
+  /** Sends a signed message on the deal (RoyaltyLedger send). */
+  send: (b: DealBody) => Promise<boolean>;
   /** The licensor's side: what the record's public check page says now, and whether it could. */
-  publicState?: { outcome: NoticeOutcome | 'idle'; shown: ReadonlySet<string> };
-}> = ({ side, alerts, licensee, tr, publicState }) => {
+  publicState?: PublicState;
+}> = ({ side, alerts, licensee, licensor, tr, busy, send, publicState }) => {
   if (alerts.length === 0) return null;
   return (
     <Stack spacing={1} data-payment-alerts="">
-      {alerts.map((a) => {
-        const n = a.report.number;
-        const late = a.kind === 'overdue';
-        const date = dateWords(late ? a.since! : a.due, tr);
-        const ref = late ? noticeRef('overdue', a.report.statement.signature) : '';
-        return (
-          <Alert
-            key={a.report.statement.signature}
-            severity={late ? 'error' : 'info'}
-            variant="outlined"
-            data-payment-alert={a.kind}
-          >
-            <Typography variant="body2" sx={{ fontWeight: 600 }}>
-              {side === 'licensee'
-                ? tr.t(late ? 'app.rpay.l.overdue' : 'app.rpay.l.soon', { n, date })
-                : tr.t(late ? 'app.rpay.i.overdue' : 'app.rpay.i.soon', { n, date, licensee })}
-            </Typography>
-            {side === 'licensee' && (
-              <Typography variant="body2" data-consequence="">
-                {tr.t('app.rpay.l.consequence')}
-              </Typography>
-            )}
-            {side === 'issuer' && late && publicState && publicState.outcome !== 'idle' && (
-              <Typography
-                variant="body2"
-                data-public-notice={publicState.shown.has(ref) ? 'shown' : publicState.outcome}
-              >
-                {publicState.shown.has(ref)
-                  ? tr.t('app.rpay.i.public', { date })
-                  : publicState.outcome === 'unsupported'
-                    ? tr.t('app.rpay.i.publicUnsupported')
-                    : tr.t('app.rpay.i.publicFailed')}
-              </Typography>
-            )}
-          </Alert>
-        );
-      })}
+      {alerts.map((a) => (
+        <OneAlert
+          key={a.report.statement.signature}
+          a={a}
+          side={side}
+          licensee={licensee}
+          licensor={licensor}
+          tr={tr}
+          busy={busy}
+          send={send}
+          publicState={publicState}
+        />
+      ))}
     </Stack>
+  );
+};
+
+const OneAlert: React.FC<{
+  a: PaymentAlert;
+  side: 'issuer' | 'licensee';
+  licensee: string;
+  licensor: string;
+  tr: Translator;
+  busy: boolean;
+  send: (b: DealBody) => Promise<boolean>;
+  publicState?: PublicState;
+}> = ({ a, side, licensee, licensor, tr, busy, send, publicState }) => {
+  const [disputing, setDisputing] = useState(false);
+  const [note, setNote] = useState('');
+  const n = a.report.number;
+  const late = a.kind === 'overdue';
+  const date = dateWords(late ? a.since! : a.due, tr);
+  const ref = late ? noticeRef('overdue', a.report.statement.signature) : '';
+  const s = a.report.statement;
+  const answerDay = a.answer ? dateWords(noticeDayOf(a.answer), tr) : '';
+  return (
+    <Alert
+      severity={late ? 'error' : 'info'}
+      variant="outlined"
+      data-payment-alert={a.kind}
+      {...(late ? { 'data-cure': a.revocable ? 'over' : a.breach ? 'running' : 'no-notice' } : {})}
+    >
+      <Typography variant="body2" sx={{ fontWeight: 600 }}>
+        {side === 'licensee'
+          ? tr.t(late ? 'app.rpay.l.overdue' : 'app.rpay.l.soon', { n, date })
+          : tr.t(late ? 'app.rpay.i.overdue' : 'app.rpay.i.soon', { n, date, licensee })}
+      </Typography>
+      {late && a.breach && (
+        <Typography variant="body2" data-cure-by={a.breach.cureBy}>
+          {side === 'licensee'
+            ? tr.t(a.revocable ? 'app.rpay.l.cureOver' : 'app.rpay.l.breach', {
+                licensor,
+                date: dateWords(a.breach.from, tr),
+                cureBy: dateWords(a.breach.cureBy, tr),
+              })
+            : tr.t(a.revocable ? 'app.rpay.i.cureOver' : 'app.rpay.i.breach', {
+                licensee,
+                date: dateWords(a.breach.from, tr),
+                cureBy: dateWords(a.breach.cureBy, tr),
+              })}
+        </Typography>
+      )}
+      {late && !a.breach && (
+        <Typography variant="body2" data-consequence="">
+          {side === 'licensee'
+            ? tr.t('app.rpay.l.consequence', { licensor, days: CURE_DAYS })
+            : tr.t('app.rpay.i.noNotice', { licensee, days: CURE_DAYS })}
+        </Typography>
+      )}
+      {!late && side === 'licensee' && (
+        <Typography variant="body2" data-consequence="">
+          {tr.t('app.rpay.l.consequence', { licensor, days: CURE_DAYS })}
+        </Typography>
+      )}
+      {late && a.answer && (
+        <Typography variant="body2" data-answer="" sx={{ mt: 0.5 }}>
+          {side === 'licensee'
+            ? tr.t('app.rpay.l.answered', { date: answerDay, note: a.answer.note ?? '' })
+            : tr.t('app.rpay.i.answered', { licensee, date: answerDay, note: a.answer.note ?? '' })}
+        </Typography>
+      )}
+      {side === 'issuer' && late && publicState && publicState.outcome !== 'idle' && (
+        <Typography
+          variant="body2"
+          sx={{ mt: 0.5 }}
+          data-public-notice={
+            publicState.shown.has(ref) ? 'shown' : publicState.withheld.has(ref) ? 'withheld' : publicState.outcome
+          }
+        >
+          {publicState.shown.has(ref)
+            ? a.answer
+              ? tr.t('app.rpay.i.publicDisputed', { date, answered: answerDay })
+              : tr.t('app.rpay.i.public', { date })
+            : publicState.withheld.has(ref)
+              ? tr.t('app.rpay.i.publicWithheld', { licensee })
+              : publicState.outcome === 'unsupported'
+                ? tr.t('app.rpay.i.publicUnsupported')
+                : tr.t('app.rpay.i.publicFailed')}
+        </Typography>
+      )}
+      {/* The licensee's answer: they paid (the report's own form), or a short dispute note. */}
+      {side === 'licensee' && late && (
+        <Box sx={{ mt: 1 }} data-respond="">
+          {!disputing ? (
+            <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }}>
+              <Button
+                size="small"
+                variant="outlined"
+                color="inherit"
+                data-respond-paid=""
+                onClick={() => document.getElementById(`report-${n}`)?.scrollIntoView({ behavior: 'smooth' })}
+              >
+                {tr.t('app.rpay.l.iPaid')}
+              </Button>
+              <Button
+                size="small"
+                variant="outlined"
+                color="inherit"
+                data-respond-dispute=""
+                disabled={busy}
+                onClick={() => setDisputing(true)}
+              >
+                {a.answer ? tr.t('app.rpay.l.disputeAgain') : tr.t('app.rpay.l.dispute')}
+              </Button>
+            </Stack>
+          ) : (
+            <Stack spacing={1}>
+              <TextField
+                size="small"
+                multiline
+                label={tr.t('app.rpay.l.disputeNote')}
+                helperText={tr.t('app.rpay.l.disputeShows', { licensor })}
+                value={note}
+                onChange={(e) => setNote(e.target.value.slice(0, 500))}
+                data-dispute-note=""
+              />
+              <Stack direction="row" spacing={1}>
+                <Button
+                  size="small"
+                  variant="contained"
+                  disabled={busy || !note.trim()}
+                  data-dispute-send=""
+                  onClick={() =>
+                    void send({
+                      type: 'notice',
+                      kind: 'answer',
+                      about: 'payment',
+                      periodFrom: s.periodFrom,
+                      periodTo: s.periodTo,
+                      statementSig: s.signature,
+                      dueOn: a.due,
+                      asOf: utcDay(),
+                      note: note.trim(),
+                    }).then((ok) => ok && (setDisputing(false), setNote('')))
+                  }
+                >
+                  {tr.t('app.rpay.l.disputeSend')}
+                </Button>
+                <Button size="small" color="inherit" onClick={() => setDisputing(false)}>
+                  {tr.t('app.lic.ledger.cancel')}
+                </Button>
+              </Stack>
+            </Stack>
+          )}
+        </Box>
+      )}
+    </Alert>
   );
 };
 
 /**
  * The licensor's page keeps their record's public notices for this deal in step with its
- * messages: an overdue notice per report overdue now, none for the rest (license-notices.ts).
- * Once when the page opens and whenever what is overdue changes.
+ * messages (license-notices.ts dealNotices): an overdue notice per report overdue now, with the
+ * licensee's dispute beside it, none for the rest. Once when the page opens and whenever what is
+ * overdue changes.
  */
 export const usePublicNotices = (
   recordId: string | undefined,
   alerts: readonly PaymentAlert[],
   ledger: Ledger,
-): { outcome: NoticeOutcome | 'idle'; shown: ReadonlySet<string> } => {
-  const want = useMemo(() => {
-    const m = new Map<string, LicenseNotice>();
-    for (const a of alerts)
-      if (a.kind === 'overdue' && a.since)
-        m.set(noticeRef('overdue', a.report.statement.signature), { kind: 'overdue', since: a.since });
-    return m;
-  }, [alerts]);
-  const mine = useMemo(() => new Set(ledger.reports.map((r) => noticeRef('overdue', r.statement.signature))), [ledger]);
-  const key = [...want].map(([r, n]) => `${r}:${n.kind === 'overdue' ? n.since : ''}`).join(',') + `|${mine.size}`;
-  const [state, setState] = useState<{ outcome: NoticeOutcome | 'idle'; shown: ReadonlySet<string> }>({
-    outcome: 'idle',
-    shown: new Set(),
-  });
+): PublicState => {
+  const { want, mine } = useMemo(() => dealNotices(ledger, alerts, false), [ledger, alerts]);
+  const key =
+    [...want].map(([r, n]) => `${r}:${n.kind === 'overdue' ? n.since : n.on}:${n.disputed ?? ''}`).join(',') +
+    `|${[...mine].sort().join(',')}`;
+  const [state, setState] = useState<PublicState>({ outcome: 'idle', shown: new Set(), withheld: new Set() });
   useEffect(() => {
     if (!recordId || (want.size === 0 && mine.size === 0)) return;
     let live = true;
     void syncNotices(recordId, want, mine).then((r) => {
-      if (live) setState({ outcome: r.outcome, shown: new Set(r.shown.map((n) => n.ref)) });
+      if (live)
+        setState({ outcome: r.outcome, shown: new Set(r.shown.map((n) => n.ref)), withheld: new Set(r.withheld) });
     });
     return () => {
       live = false;
