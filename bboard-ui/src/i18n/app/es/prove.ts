@@ -163,7 +163,7 @@ export const prove = {
   'app.prove.share.nameWarning': 'Si está activado, cualquiera con el ID del registro ve el nombre.',
   'app.prove.share.labSigs.title': 'Firmas de laboratorio',
   'app.prove.share.labSigs.intro':
-    'Los acuses de recibo y los informes de un laboratorio sobre este registro son privados: solo usted y el laboratorio pueden verlos. Active uno para mostrarlo en su enlace de comprobación. Cualquiera con el enlace verá entonces que el laboratorio lo firmó, y el nombre del laboratorio.',
+    'Los acuses de recibo y los informes de un laboratorio sobre este registro son privados: solo usted y el laboratorio pueden verlos. Active uno para mostrarlo en su enlace de comprobación y a cualquiera que tenga el código de prueba de este registro (sus enlaces que demuestran un número lo llevan). Verán entonces que el laboratorio lo firmó, y el nombre del laboratorio.',
   'app.prove.share.labSigs.item': 'Mostrar en su enlace de comprobación que {who} firmó esto',
   'app.prove.share.labSigs.receipt': 'Acuse de recibo de una muestra, firmado el {date}',
   'app.prove.share.labSigs.report': 'Informe de laboratorio, firmado el {date}',

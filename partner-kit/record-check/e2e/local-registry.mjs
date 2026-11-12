@@ -222,6 +222,12 @@ export const startRegistry = async ({ registryDir, port = 8920, dir }) => {
       return JSON.parse(text);
     };
     const op = { 'x-operator-token': OPERATOR };
+    // A registry that keeps lab signatures private (8 Nov 2026) answers a lab's receipts and
+    // reports only when the holder shows them (the grant's sharedAttestations). The seeded
+    // holder shows them, as the site's Show someone does; an older registry has every one
+    // public and refuses the field, so it is sent only to one that says it takes it.
+    const features = (await (await fetch(`${base}/health`)).json()).features ?? [];
+    const labPrivate = features.includes('private-lab-signatures-v1');
     const HOLDER = randomBytes(32).toString('hex');
     const holder = { 'x-holder-key': HOLDER };
     const VAULT = randomBytes(32);
@@ -342,11 +348,13 @@ export const startRegistry = async ({ registryDir, port = 8920, dir }) => {
         },
         kp.privateKey,
       );
+    const looseReceipt = `att_r_${randomBytes(4).toString('hex')}`;
+    const boundReport = `att_l_${randomBytes(4).toString('hex')}_ld1`;
     await call(
       'POST',
       '/attestations',
       await sign(checkedLab, {
-        attestationId: `att_r_${randomBytes(4).toString('hex')}`,
+        attestationId: looseReceipt,
         type: 'chain-of-custody',
         subjectCommitment: bound.recordFingerprint,
         documentHash: sha256('sample'),
@@ -357,7 +365,7 @@ export const startRegistry = async ({ registryDir, port = 8920, dir }) => {
       'POST',
       '/attestations',
       await sign(checkedLab, {
-        attestationId: `att_l_${randomBytes(4).toString('hex')}_ld1`,
+        attestationId: boundReport,
         type: 'laboratory-report',
         subjectCommitment: bound.recordFingerprint,
         documentHash: labDocument(LAB_SHA, bound.recordFingerprint, LAB_S),
@@ -466,6 +474,12 @@ export const startRegistry = async ({ registryDir, port = 8920, dir }) => {
             { receiptAttestationId: receiptMatching, covered: 'covered', differingFields: [] },
             { receiptAttestationId: receiptSealDiffers, covered: 'covered', differingFields: ['sealNumber'] },
           ].sort((a, b) => a.receiptAttestationId.localeCompare(b.receiptAttestationId)),
+          // Shown: the receipts and the bound report. Not the report signed the old way, over
+          // the file's plain SHA-256: the site warns that showing it lets anyone with the file
+          // tell it is this record's, so a private registry never shows it here.
+          ...(labPrivate
+            ? { sharedAttestations: [looseReceipt, boundReport, receiptMatching, receiptSealDiffers] }
+            : {}),
         },
       },
       holder,
@@ -492,6 +506,13 @@ export const startRegistry = async ({ registryDir, port = 8920, dir }) => {
       otherLab.privateKey,
     );
     await call('POST', `/attestations/${withdrawnId}/retract`, retraction);
+    if (labPrivate)
+      await call(
+        'PUT',
+        `/api/records/${older.id}/disclosure`,
+        { ...grantFor(older, ['existence', 'attestation-status']), values: { sharedAttestations: [withdrawnId] } },
+        holder,
+      );
 
     const sealed = await call('POST', '/batches/seal', undefined, op);
     const TX = randomBytes(32).toString('hex');
@@ -527,6 +548,7 @@ export const startRegistry = async ({ registryDir, port = 8920, dir }) => {
       stop,
       log: () => log,
       batchId: sealed.batchId,
+      labPrivate,
       txId: TX,
       records: { bound, older, undated },
       nameParam,

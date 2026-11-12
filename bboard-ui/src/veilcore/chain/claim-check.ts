@@ -17,7 +17,7 @@ import {
   type MadeClaim,
 } from '../claim-link';
 import { findBinding, type BindingCandidate } from '../claims-key';
-import { attestationsFor, mergeAttestations, sharedAttestationsOf } from '../attesters';
+import { attestationsFor } from '../attesters';
 
 export type ClaimReader = (
   contract: string,
@@ -45,16 +45,15 @@ export const checkClaim = async (
   deps: {
     read?: ClaimReader;
     contract?: string;
-    /** The attestations about a record (attesters.ts attestationsFor, signatures checked there). */
-    attestations?: (record: string) => Promise<readonly BindingCandidate[]>;
     /**
-     * The lab signatures the holder of the record the numbers are about chose to show (its
-     * /verify `sharedAttestations`, 8 Nov 2026). The registry keeps a lab's report signature
-     * private otherwise, so without them a v1 binding can't find the report it names and the
-     * lab is not identified. Verified here like the open list, and only those about that
-     * record kept.
+     * The attestations about a record (attesters.ts attestationsFor, signatures checked there).
+     * About the plant the numbers are about (`attested.about`), the registry's answer also holds
+     * the lab signatures its holder chose to show (registry feature shared-by-proof-code-v1, 12
+     * Nov 2026): a lab's report signature is private otherwise, and a v1 binding names the lab
+     * only through it. A claim link names the plant only by proof code, so that is where they
+     * are read; nothing in the link has to carry them.
      */
-    sharedAbout?: unknown;
+    attestations?: (record: string) => Promise<readonly BindingCandidate[]>;
   } = {},
 ): Promise<ClaimVerdict> => {
   const contract = deps.contract ?? CLAIMS_CONTRACT;
@@ -78,12 +77,8 @@ export const checkClaim = async (
           try {
             const get = deps.attestations ?? ((r: string) => attestationsFor(r, { claimsKeyBindings: true }));
             const about = link.attested.about;
-            const [list, open, shared] = await Promise.all([
-              get(link.record),
-              get(about),
-              sharedAttestationsOf(deps.sharedAbout, about),
-            ]);
-            const aboutList = mergeAttestations<BindingCandidate>(open, shared);
+            // The plant's list holds the lab signatures its holder shows (see `attestations`).
+            const [list, aboutList] = await Promise.all([get(link.record), get(about)]);
             signer = findBinding(
               list,
               link.record,

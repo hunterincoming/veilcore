@@ -33,11 +33,12 @@ They send you a **check link**. Anyone can open it.
   the registry shows them only to the record's holder and the lab. When the applicant
   shows one on their check link (Show someone, "Lab signatures"), you see it, and whether
   VeilCore's operator matched the lab's name to a public licence or accreditation listing.
-  (The full check page reads the shown ones. The `record-check` field in this kit doesn't
-  read them yet, so it shows no lab signatures.) A receipt is shown as one only when the
-  registry ties it to a delivery of the record, and then you also see whether what arrived
-  matches what was sent. A custody signature tied to no delivery is shown as a signed statement and not
-  counted: anyone can sign one.
+  The full check page and the `record-check` field in this kit both read the shown ones and
+  check each signature themselves. When the applicant shows none, the answer says the
+  holder hasn't shown any lab signatures. It never says no lab signed: it can't know. A
+  receipt is shown as one only when the registry ties it to a delivery of the record, and
+  then you also see whether what arrived matches what was sent. A custody signature tied to
+  no delivery is shown as a signed statement and not counted: anyone can sign one.
 - **A key.** Records made since 14 October 2026 name the depositor's key. They can later
   prove they still control the record.
 - **The same check for everyone.** Every applicant's link is checked the same way, by your
@@ -284,7 +285,7 @@ same rule as the field's `required` and the command's exit 0
     "custody": { "covered": "covered", "differences": [], "clean": true },  // lab receipts: the delivery's sample details (the registry's report)
     "words": "Lab's receipt for a sample, signature verified, signed by … VeilCore doesn't vouch for the lab's work."
   }],
-  "labReceiptsTotal": 1,
+  "labReceiptsTotal": 1,              // the public ones and those the holder shows; 0 never means no lab signed
   "registryFirstSeen": "…",            // the registry's clock
   "supersededBy": null,
   "summary": "Record found, and the link's fingerprint matches the registry's. …",
@@ -339,7 +340,7 @@ All are free, need no key, and allow any origin (CORS).
 |---|---|
 | `GET /verify/:id[?show=…]` | The record as its holder chose to share it: fingerprint, whether it names its key, lab report pairing and delivery receipts (`custody`, if lab status is shared), the lab signatures the holder chose to show (`sharedAttestations`), the registry's anchor report. |
 | `GET /proof/:fingerprint` | The inclusion proof: batch, path, root, the anchor the operator reported, the Bitcoin stamp status. |
-| `GET /attestations/subject/:fingerprint?limit=&offset=` | The public signatures about the fingerprint, with withdrawals and name check records (100 a page, `total`). A lab's receipts and reports are private and not listed here: read the ones the holder shows from `/verify`. |
+| `GET /attestations/subject/:fingerprint?limit=&offset=` | The public signatures about the fingerprint, with withdrawals and name check records (100 a page, `total`). A lab's receipts and reports are private: listed here only when the record's holder shows them (registries since 12 Nov 2026), and always in `/verify`'s `sharedAttestations`. The check reads both and counts each once. |
 | `GET /records/:id` | The public view of a record. |
 | `GET /batches`, `/batches/:id/root.bin`, `/batches/:id/root.bin.ots` | Batches, and each batch root's Bitcoin stamp file (OpenTimestamps). |
 | `GET /.well-known/veilcore-registry` | Which network and contract this registry anchors to. |

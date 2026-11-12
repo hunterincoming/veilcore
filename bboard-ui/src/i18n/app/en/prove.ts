@@ -166,7 +166,7 @@ export const prove = {
   'app.prove.share.nameWarning': 'If on, anyone with the record ID sees the name.',
   'app.prove.share.labSigs.title': 'Lab signatures',
   'app.prove.share.labSigs.intro':
-    'A lab’s receipts and reports about this record are private: only you and the lab can see them. Turn one on to show it on your check link. Anyone with the link then sees that the lab signed it, and the lab’s name.',
+    'A lab’s receipts and reports about this record are private: only you and the lab can see them. Turn one on to show it on your check link and to anyone with this record’s proof code (your links that prove a number carry it). They then see that the lab signed it, and the lab’s name.',
   'app.prove.share.labSigs.item': 'Show that {who} signed this on your check link',
   'app.prove.share.labSigs.receipt': 'Receipt for a sample, signed {date}',
   'app.prove.share.labSigs.report': 'Lab report, signed {date}',

@@ -49,6 +49,7 @@ const ALL = [
   'document-profile-v1',
   'strain-profile-v1',
   'private-lab-signatures-v1',
+  'shared-by-proof-code-v1',
 ];
 /** What agreements on chain use: required for a test site, and for mainnet once agreements are live. */
 const AGREEMENTS = ['license-invites-v1', 'deals-v1', 'payment-receipts-v1', 'passkey-vault-v1'];
@@ -109,10 +110,10 @@ const runScript = (script: string, env: Record<string, string>, cwd = ROOT) =>
   });
 
 describe('the features the site needs', () => {
-  it('are exactly sealed records, lab results, animal records, finishing a delivery, locked sample details, the record and agreement rev, locked names, bound DNA reports, sharing who bred it, name codes, bound lab reports, dating first, document records, strain records and private lab signatures', () => {
+  it('are exactly sealed records, lab results, animal records, finishing a delivery, locked sample details, the record and agreement rev, locked names, bound DNA reports, sharing who bred it, name codes, bound lab reports, dating first, document records, strain records, private lab signatures and shared ones read by proof code', () => {
     expect(Object.keys(REQUIRED_FEATURES)).toEqual(ALL);
     expect(featuresLine('https://r.example')).toBe(
-      'Registry https://r.example serves sealed records, lab results, animal records, finishing a received delivery, locked sample details, refusing an older copy of a record, refusing an older copy of an agreement, locked record names, DNA reports shown only as a bound code, sharing who bred it, checking the name in a link, keeping lab report hashes private, dating a record the moment it is sealed, document records, strain and line records and lab signatures kept private and shown only when the holder shares them.',
+      'Registry https://r.example serves sealed records, lab results, animal records, finishing a received delivery, locked sample details, refusing an older copy of a record, refusing an older copy of an agreement, locked record names, DNA reports shown only as a bound code, sharing who bred it, checking the name in a link, keeping lab report hashes private, dating a record the moment it is sealed, document records, strain and line records, lab signatures kept private and shown only when the holder shares them and shared lab signatures read by proof code, on the claim check page.',
     );
   });
 
@@ -155,6 +156,7 @@ describe('the features the site needs', () => {
           'document-profile-v1',
           'strain-profile-v1',
           'private-lab-signatures-v1',
+          'shared-by-proof-code-v1',
         ],
       },
       'R',
@@ -269,6 +271,7 @@ describe('deploy:test', () => {
           'document-profile-v1',
           'strain-profile-v1',
           'private-lab-signatures-v1',
+          'shared-by-proof-code-v1',
         ],
       },
     });
@@ -297,6 +300,7 @@ describe('deploy:test', () => {
           'document-profile-v1',
           'strain-profile-v1',
           'private-lab-signatures-v1',
+          'shared-by-proof-code-v1',
         ],
       },
     });
@@ -325,6 +329,7 @@ describe('deploy:test', () => {
           'document-profile-v1',
           'strain-profile-v1',
           'private-lab-signatures-v1',
+          'shared-by-proof-code-v1',
         ],
       },
     });
@@ -353,6 +358,7 @@ describe('deploy:test', () => {
           'document-profile-v1',
           'strain-profile-v1',
           'private-lab-signatures-v1',
+          'shared-by-proof-code-v1',
         ],
       },
     });
@@ -381,6 +387,7 @@ describe('deploy:test', () => {
           'document-profile-v1',
           'strain-profile-v1',
           'private-lab-signatures-v1',
+          'shared-by-proof-code-v1',
         ],
       },
     });
@@ -541,4 +548,26 @@ describe('private lab signatures: the site never goes out before the registry', 
     expect(r.text).toMatch(MISSING);
     expect(r.text).not.toMatch(/Building the test-network site/);
   }, 30_000);
+});
+
+// Shared lab signatures by proof code (veilcore-api, 12 Nov 2026): the claim check page reads the
+// lab's shared report on /attestations/subject. Every deploy refuses a registry without it.
+describe('shared lab signatures by proof code: the site never goes out before the registry', () => {
+  const MISSING =
+    /The registry at .* is missing shared-by-proof-code-v1 \(shared lab signatures read by proof code, on the claim check page\), which this site uses/;
+  const BEFORE = ALL.filter((f) => f !== 'shared-by-proof-code-v1');
+  const preprod = { anchors: [{ chain: 'midnight', network: 'preprod', contractAddress: 'ab'.repeat(32) }] };
+
+  it('the check names it and says to deploy the registry first', () => {
+    const r = checkFeatures({ ok: true, features: BEFORE }, 'R');
+    expect(!r.ok && r.missing).toEqual(['shared-by-proof-code-v1']);
+    expect(!r.ok && r.problem).toMatch(DEPLOY_FIRST);
+  });
+
+  it('deploy:test refuses the registry from before', async () => {
+    const old = await stub({ descriptor: preprod, health: { ok: true, features: BEFORE } });
+    const r = await checkTestRegistry(old.api);
+    expect(r.ok).toBe(false);
+    expect(!r.ok && r.problem).toMatch(MISSING);
+  });
 });
