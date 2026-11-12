@@ -1,3 +1,8 @@
+> [!NOTE]
+> **Historical: written before mainnet launch; see [README](../README.md#where-it-stands) for current status.**
+> Both contracts have been on Midnight mainnet since 8 October 2026. This page is kept as the
+> pre-launch record.
+
 # What VeilCore needs before mainnet
 
 Status as of 5 October 2026, evening. Owner: the maintainer (hunter@veilcore.org) unless marked. Decisions are

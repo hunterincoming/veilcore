@@ -1,0 +1,5 @@
+# Shows each person under one name and address in `git log` and `git shortlog`.
+# Maps only identities confirmed as Hunter Roberts's. Commits by anyone or anything else
+# (including those authored as "Claude") keep their recorded author.
+Hunter Roberts <293143993+hunterincoming@users.noreply.github.com> <hunter@veilcore.org>
+Hunter Roberts <293143993+hunterincoming@users.noreply.github.com> Chunk <chunk@Chunks-MacBook-Air.local>

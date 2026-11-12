@@ -1,0 +1,30 @@
+name: Feature request
+description: Suggest something VeilCore should do.
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Changes to the record format belong in [veilcore-sdk](https://github.com/hunterincoming/veilcore-sdk/issues). The deployed contracts are frozen: a change there means a new deployment under the [maintenance policy](https://github.com/hunterincoming/veilcore/blob/main/docs/maintenance-policy.md), not a code change here.
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem
+      description: Who has it, and what they can't do today.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What you'd like
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: What you do now, or other ways to solve it
+  - type: textarea
+    id: privacy
+    attributes:
+      label: What it would reveal
+      description: Anything new it would send to the registry or put on chain. VeilCore keeps record details in the holder's browser.

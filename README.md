@@ -2,15 +2,31 @@
 
 Dated, private records for plant and animal genetics, on Midnight.
 
+**For** breeders, growers, labs and nurseries who need to show they held a cultivar, an animal
+line, a strain or a document by a date, and for the buyers, examiners, lenders and courts who
+check it.
+
 A breeder seals a record of a cultivar or an animal line in the browser. The details are
 encrypted there, and DNA files are never uploaded. Only a 32-byte proof code is anchored on
 Midnight, in a batch with others. Later a buyer, examiner or court can check what the record
 said and when it existed: free, no account, without having to trust us.
 (What our server can still see: [the list](#what-leaves-your-browser).)
 
-**[veilcore.org](https://veilcore.org)** runs on Midnight mainnet ·
-[test.veilcore.org](https://test.veilcore.org) is for practice ·
-the record format is an open spec: [veilcore-sdk](https://github.com/hunterincoming/veilcore-sdk)
+**Try it:** **[veilcore.org](https://veilcore.org)** runs on Midnight mainnet ·
+[test.veilcore.org](https://test.veilcore.org) is for practice, no wallet or account ·
+[a sample check page](https://veilcore.org/verify/example)
+
+**Record format:** an open spec, [SPEC.md](https://github.com/hunterincoming/veilcore-sdk/blob/main/SPEC.md),
+with libraries in TypeScript, Python and Rust in [veilcore-sdk](https://github.com/hunterincoming/veilcore-sdk)
+
+| Status | |
+|---|---|
+| **Live on veilcore.org** | Sealing records, dated in batches on Midnight mainnet; check pages; proving a record by link; dating a DNA report pairing; lab codes and signed receipts; licenses and royalty reports. No wallet needed: VeilCore's fee service pays the network fee. |
+| **Built, not yet run on mainnet** | Handing a license on to another grower, with the breeder's approval. |
+| **Test network only** | Numbers a lab signs for a claim ([docs/lab-signing.md](docs/lab-signing.md)); paying royalties in NIGHT on Midnight. |
+| **Not built** | A paid plan for labs (designed only: [docs/lab-plan.md](docs/lab-plan.md)). |
+
+Details and dates: [Where it stands](#where-it-stands). No formal security audit yet: [the reviews so far](#current-status).
 
 ```mermaid
 flowchart LR
@@ -65,8 +81,12 @@ Build fingerprints: [docs/fingerprints.md](docs/fingerprints.md).
   from payer to payee or through a payment partner (VeilCore never holds money; paying in NIGHT
   on Midnight itself is on the test network only), royalties on declared offspring, handing a
   license on with the breeder's approval, and a pack a lender can check with a free tool.
-  Lab hand-overs and breeder shares work the same way.
+  Lab hand-overs and breeder shares are built the same way.
   [docs/agreements-live.md](docs/agreements-live.md)
+- **Numbers a lab signs for a claim: test network only** (`LAB_SIGNING_ENABLED` in
+  `bboard-ui/src/config/network.ts`). They come to veilcore.org once the whole journey has run
+  by hand on the test site, and are called live there once it has run on mainnet
+  ([docs/lab-signing.md](docs/lab-signing.md)).
 - **Five languages:** English, plus Spanish, Japanese, German and French as drafts on the test
   site until a fluent speaker signs each off ([how](docs/translations/README.md)).
 - **No audit.** Twelve rounds of adversarial review are public, with the attacks kept as tests
@@ -187,7 +207,7 @@ cd ../bboard-ui && npm run build
 (protocol version 1, frozen) covers records, licenses and lineage. `contract/src/veilcore-claims.compact`
 proves one fact about a sealed record without showing the rest (a value, a bound on a number,
 that two records differ, that a correction changed only some values), optionally on values a
-laboratory signed; see [`docs/claims-design.md`](docs/claims-design.md) and SPEC 4.5 in veilcore-sdk.
+laboratory signed (from the website, lab-signed values are on the test network only); see [`docs/claims-design.md`](docs/claims-design.md) and SPEC 4.5 in veilcore-sdk.
 The claims contract has no maintenance authority (an empty committee).
 
 The main contract covers records, licenses and lineage in 24 circuits. The design, the normative

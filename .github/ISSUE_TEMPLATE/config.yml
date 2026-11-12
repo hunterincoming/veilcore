@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Report a security problem
+    url: https://github.com/hunterincoming/veilcore/blob/main/SECURITY.md
+    about: Privately, never in a public issue. SECURITY.md says how.
+  - name: The record format and SDK
+    url: https://github.com/hunterincoming/veilcore-sdk/issues
+    about: Issues with SPEC.md or the TypeScript, Python and Rust libraries go to veilcore-sdk.
