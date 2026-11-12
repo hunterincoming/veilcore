@@ -138,7 +138,8 @@ later", which carries on to the backup.
   a lab with one can't send locked results and is told to ask for a new code.
 - The lab, on the received plant's page: **Send results back to the breeder** → choose
   the file → **Sign, lock and send**. Its browser signs the file's fingerprint with the
-  lab's key (a `laboratory-report` attestation, public), locks the file (the open `age`
+  lab's key (a `laboratory-report` attestation, private since 8 Nov 2026: only the breeder
+  and the lab see it unless the breeder shows it on the check link), locks the file (the open `age`
   format, X25519), and uploads only the locked file.
 - The registry (`lineage/lab-results.mjs`) refuses anything that isn't an age file, lets
   only the delivery's receiver add, only its sender read or delete; 5 per delivery, 15 MB.

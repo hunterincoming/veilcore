@@ -241,7 +241,7 @@ export const animal = {
   'app.animal.v.app.lab.results.noKey':
     "This animal's key isn't on this device, so its lab reports can't be opened here. <link>Get your records back from your backup</link> first.",
   'app.animal.v.app.lab.results.whatOthersSee':
-    '<b>What others can see.</b> The lab’s signature is public; the report isn’t. Anyone with a link to this animal’s check page sees that a lab report about it was signed, the report file’s SHA-256, and the name the lab’s key is registered under: marked “name not checked” unless VeilCore’s operator has matched it to a public license or accreditation listing. If you save the report to this animal and share “Whether a DNA report is saved” in Show someone, they also see that the saved file matches it.',
+    '<b>What others can see.</b> The lab’s signature on this report is private, like the report: only you and the lab see it. To show it, choose Show someone and turn it on under “Lab signatures”. Anyone with that link then sees that the lab signed a report about this animal, and the name the lab’s key is registered under: marked “name not checked” unless VeilCore’s operator has matched it to a public license or accreditation listing. If it is a DNA report and you save it to this animal, the page can also say the lab signed that file.',
   'app.animal.v.app.lab.results.nothingYet':
     'Nothing yet. When a lab you sent a sample of this animal to sends a lab report, it shows up here.',
   'app.animal.v.app.lab.results.savedHere': ' · saved to this animal',

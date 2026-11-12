@@ -29,11 +29,14 @@ They send you a **check link**. Anyone can open it.
   change it afterwards.
 - **A date.** Once the record is in a dated batch, anyone can look up when its proof code
   existed by. The date comes from Midnight, not from VeilCore and not from the applicant.
-- **Lab signatures, checked.** If a lab signed a receipt for a sample, or a lab report,
-  you see it, and whether VeilCore's operator matched the lab's name to a public licence
-  or accreditation listing. A receipt is shown as one only when the registry ties it to a
-  delivery of the record, and then you also see whether what arrived matches what was
-  sent. A custody signature tied to no delivery is shown as a signed statement and not
+- **Lab signatures, checked.** A lab's receipts and reports about a record are private:
+  the registry shows them only to the record's holder and the lab. When the applicant
+  shows one on their check link (Show someone, "Lab signatures"), you see it, and whether
+  VeilCore's operator matched the lab's name to a public licence or accreditation listing.
+  (The full check page reads the shown ones. The `record-check` field in this kit doesn't
+  read them yet, so it shows no lab signatures.) A receipt is shown as one only when the
+  registry ties it to a delivery of the record, and then you also see whether what arrived
+  matches what was sent. A custody signature tied to no delivery is shown as a signed statement and not
   counted: anyone can sign one.
 - **A key.** Records made since 14 October 2026 name the depositor's key. They can later
   prove they still control the record.
@@ -291,7 +294,9 @@ same rule as the field's `required` and the command's exit 0
 ```
 
 A lab receipt is a chain-of-custody signature whose id the registry ties to a delivery of
-this record (the `custody` list in `/verify`, sent when the holder shares lab status).
+this record (the `custody` list in `/verify`, sent when the holder shares lab status). A
+custody line carries the receipt's id, which leads to the lab, only when the holder shows
+that receipt.
 `custody.covered` is `covered` when the signature covers the sample details the delivery
 records, `changed` when the lab changed them after signing, `not-covered` for an older
 receipt; `differences` says how what arrived differs from what was sent. `clean` is true
@@ -332,9 +337,9 @@ All are free, need no key, and allow any origin (CORS).
 
 | Route | What it answers |
 |---|---|
-| `GET /verify/:id[?show=…]` | The record as its holder chose to share it: fingerprint, whether it names its key, lab report pairing and delivery receipts (`custody`, if lab status is shared), the registry's anchor report. |
+| `GET /verify/:id[?show=…]` | The record as its holder chose to share it: fingerprint, whether it names its key, lab report pairing and delivery receipts (`custody`, if lab status is shared), the lab signatures the holder chose to show (`sharedAttestations`), the registry's anchor report. |
 | `GET /proof/:fingerprint` | The inclusion proof: batch, path, root, the anchor the operator reported, the Bitcoin stamp status. |
-| `GET /attestations/subject/:fingerprint?limit=&offset=` | Lab signatures about the fingerprint, with withdrawals and name check records (100 a page, `total`). |
+| `GET /attestations/subject/:fingerprint?limit=&offset=` | The public signatures about the fingerprint, with withdrawals and name check records (100 a page, `total`). A lab's receipts and reports are private and not listed here: read the ones the holder shows from `/verify`. |
 | `GET /records/:id` | The public view of a record. |
 | `GET /batches`, `/batches/:id/root.bin`, `/batches/:id/root.bin.ots` | Batches, and each batch root's Bitcoin stamp file (OpenTimestamps). |
 | `GET /.well-known/veilcore-registry` | Which network and contract this registry anchors to. |

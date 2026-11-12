@@ -157,7 +157,7 @@ export const strain = {
   'app.strain.v.app.lab.results.noKey':
     'La clave de esta cepa no está en este dispositivo, así que aquí no se pueden abrir sus informes de laboratorio. Primero <link>recupere sus cepas desde su copia de seguridad</link>.',
   'app.strain.v.app.lab.results.whatOthersSee':
-    '<b>Lo que otros pueden ver.</b> La firma del laboratorio es pública; el informe no. Cualquiera con un enlace a la página de comprobación de esta cepa ve que se firmó un informe de laboratorio sobre ella, el SHA-256 del archivo del informe y el nombre con el que está registrada la clave del laboratorio: marcado “nombre no comprobado” salvo que el operador de VeilCore lo haya cotejado con un listado público de licencias o acreditaciones. Si guarda el informe en esta cepa y comparte “Si hay un informe de ADN guardado” en Mostrar a alguien, también ven que el archivo guardado coincide.',
+    '<b>Lo que otros pueden ver.</b> La firma del laboratorio sobre este informe es privada, como el informe: solo usted y el laboratorio la ven. Para mostrarla, elija Mostrar a alguien y actívela en “Firmas de laboratorio”. Cualquiera con ese enlace verá entonces que el laboratorio firmó un informe sobre esta cepa, y el nombre con el que está registrada la clave del laboratorio: marcado “nombre no comprobado” salvo que el operador de VeilCore lo haya cotejado con un listado público de licencias o acreditaciones. Si es un informe de ADN y lo guarda en esta cepa, la página también puede decir que el laboratorio firmó ese archivo.',
   'app.strain.v.app.lab.results.nothingYet':
     'Nada todavía. Cuando un laboratorio al que envió esta cepa mande un informe de laboratorio, aparecerá aquí.',
   'app.strain.v.app.lab.results.savedHere': ' · guardado en esta cepa',

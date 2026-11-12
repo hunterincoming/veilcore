@@ -52,7 +52,11 @@ VeilCore says exactly what it can check and nothing more.
    calls on Midnight, finds the binding, checks it in the browser, and prints the lab with the
    same wording every page uses for signers ("a key named … (name not checked)", or the operator's
    dated match). A withdrawn binding, two labs claiming one key, or none: the numbers read as the
-   holder's own.
+   holder's own. Since 8 Nov 2026 the registry keeps a lab's report signature private (shown only
+   to the holder, the delivery's sender and the lab). A version 1 binding names that signature, so
+   the holder's own page still finds it (it asks with the holder key), but the public claim check
+   page finds no report and reads the numbers as the holder's own. A version 2 binding (below)
+   stands on its own and still names the lab to whoever has the salt.
 
 ## Version 2: a result bound to its sample (7 November 2026)
 

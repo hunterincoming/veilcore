@@ -18,7 +18,7 @@ export const partners = {
     'Une fois l’enregistrement dans un lot daté, chacun peut consulter à quelle date son code de preuve existait au plus tard. La date vient de Midnight, ni de VeilCore ni du candidat.',
   'app.partners.gives.3.t': 'Des signatures de laboratoire, vérifiées',
   'app.partners.gives.3.d':
-    'Des accusés de réception pour les échantillons et les rapports de laboratoire, chaque signature vérifiée, et si l’opérateur de VeilCore a rapproché le nom du laboratoire d’une liste publique. Un accusé ne compte que si le registre le relie à une livraison de l’enregistrement, et vous voyez si ce qui est arrivé correspond à ce qui a été envoyé.',
+    'Les accusés de réception pour les échantillons et les rapports de laboratoire que le candidat choisit de montrer, chaque signature vérifiée, et si l’opérateur de VeilCore a rapproché le nom du laboratoire d’une liste publique. Les signatures d’un laboratoire sont privées, sauf si le candidat les montre. Un accusé ne compte que si le registre le relie à une livraison de l’enregistrement, et vous voyez si ce qui est arrivé correspond à ce qui a été envoyé.',
   'app.partners.gives.4.t': 'La même vérification pour tous',
   'app.partners.gives.4.d': 'Le lien de chaque candidat est vérifié de la même manière, par votre page.',
   'app.partners.not.title': 'Ce qu’il ne montre pas',
