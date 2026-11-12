@@ -253,9 +253,9 @@ describe('a viability result', () => {
     expect(bad({ stage: 'before', before: undefined })).toThrow(expect.objectContaining({ code: 'killStep' }));
     expect(bad({ strain: 'Aspergillus oryzae RIB40' })).toThrow(expect.objectContaining({ code: 'strain' }));
     expect(bad({ count: { value: '3', unit: 'CFU per 25 g' } })).toThrow(expect.objectContaining({ code: 'count' }));
-    // None recovered carries no count, not even 0; some recovered carries one, above 0.
+    // None recovered carries no count, not even 0; some recovered may carry one, above 0 when given.
     expect(bad({ count: { value: '0', unit: 'CFU per 25 g' } })).toThrow(expect.objectContaining({ code: 'count' }));
-    expect(bad({ detected: true })).toThrow(expect.objectContaining({ code: 'count' }));
+    expect(bad({ detected: true })).not.toThrow();
     expect(bad({ detected: true, count: { value: '0', unit: 'CFU per 25 g' } })).toThrow(
       expect.objectContaining({ code: 'count' }),
     );
@@ -334,13 +334,14 @@ describe('the lab’s form for a viability result', () => {
     expect(code({ positiveGrew: '' })).toBe('controls');
     expect(code({ stage: '' })).toBe('stage');
     expect(code({ strain: 'not a code' })).toBe('strain');
-    expect(code({ detected: 'yes', countValue: '', countUnit: 'CFU per 25 g' })).toBe('count');
+    // Some recovered with no count (an enrichment test): signed, with no count.
+    expect(code({ detected: 'yes', countValue: '', countUnit: '' })).toBe('signed');
     expect(code({ detected: 'yes', countValue: '2', countUnit: '' })).toBe('count');
     expect(code({ killStep: '' })).toBe('killStep');
     expect(code({ lodValue: '0' })).toBe('lod');
   });
 
-  it('none recovered signs no count (a count left in a hidden field is not used), some recovered signs one', () => {
+  it('none recovered signs no count (a count left in a hidden field is not used); some recovered signs one if given', () => {
     const none = tryDraft(filled({ countValue: '0', countUnit: 'CFU per 25 g' }), 'L');
     expect(none.ok && 'count' in (none.input.statement.result as object)).toBe(false);
     const some = tryDraft(filled({ detected: 'yes', countValue: '3', countUnit: 'CFU per 25 g' }), 'L');
@@ -348,6 +349,8 @@ describe('the lab’s form for a viability result', () => {
       value: '3',
       unit: 'CFU per 25 g',
     });
+    const enrich = tryDraft(filled({ detected: 'yes', countValue: '', countUnit: '' }), 'L');
+    expect(enrich.ok && 'count' in (enrich.input.statement.result as object)).toBe(false);
   });
 
   it('refuses a number that isn’t a plain decimal, never tidying or guessing it', () => {
@@ -385,7 +388,7 @@ describe('the lab’s form for a viability result', () => {
 
 describe('the words for a viability result', () => {
   const KEYS = Object.keys(en).filter((k) =>
-    /viability|recovered|noneRecovered|\.stage|killStep|recovers|portion|cultures?\b|\.lod|\.count|belowLod|numberHelp|controls?|positive|negative|sampled|strain|before|pair/i.test(
+    /viability|recovered|noneRecovered|\.stage|killStep|recovers|portion|cultures?\b|\.lod|\.count|belowLod|noCount|numberHelp|controls?|positive|negative|sampled|strain|before|pair/i.test(
       k,
     ),
   );
@@ -444,5 +447,27 @@ describe('the words for a viability result', () => {
     expect(text).toContain('Result, as reported < 1 CFU per 25 g: none recovered above the limit of detection');
     expect(text).not.toMatch(/as reported:? 0\b/);
     expect(text).not.toMatch(/\bdead\b|steril|\bproves?\b/i);
+  });
+
+  it('shows a recovered result with no count (enrichment) as “no count reported”', async () => {
+    const lab = await generateKeypair();
+    const { count: _drop, ...rest } = before.statement.result as ViabilityResult;
+    void _drop;
+    const { bundle } = await makeLabResult(lab.privateKey, {
+      ...before,
+      statement: { ...before.statement, result: rest },
+    });
+    const { LanguageProvider } = await import('../i18n');
+    const { ResultFacts } = await import('../components/lab/ResultFacts');
+    vi.stubGlobal('window', {
+      localStorage: { getItem: () => null, setItem: () => undefined },
+      location: { search: '' },
+    });
+    const html = renderToStaticMarkup(
+      React.createElement(LanguageProvider, null, React.createElement(ResultFacts, { statement: bundle.statement })),
+    );
+    const text = html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ');
+    expect(text).toContain('Result, as reported Viable organisms recovered (no count reported)');
+    expect(text).not.toMatch(/as reported:? 0\b/);
   });
 });

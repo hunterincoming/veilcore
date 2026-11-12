@@ -135,8 +135,9 @@ The same shape fits inactivated vaccines and cell lines, heat-treated seed and s
   before or after the kill step; for an after-sample, the kill step's method and parameters as the
   sender states them; what the test recovers; the portion tested; each medium with its incubation
   time and temperature (up to four: a USP <71> sterility test uses two); the limit of detection;
-  whether viable organisms were recovered and, when they were, the count with its unit (required
-  then, above 0); the positive control (what it
+  whether viable organisms were recovered and, when they were, the count with its unit if the
+  method gives one (optional: an enrichment or presence/absence test gives none, and the pages
+  then say "no count reported"; above 0 when given); the positive control (what it
   was, and that it grew) and, if run, the negative control (no growth); the date sampled. The
   method and version, sample ID, accession number, the dates received and read, and other run
   details (`qc`) are the statement's own fields.

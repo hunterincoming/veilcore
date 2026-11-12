@@ -324,7 +324,7 @@ export const labresult = {
   'app.lr.form.cultureAdd': 'Add a medium',
   'app.lr.form.lodValue': 'Limit of detection',
   'app.lr.form.unit': 'Unit (CFU/g, CFU per 25 g…)',
-  'app.lr.form.countValue': 'Count as reported',
+  'app.lr.form.countValue': 'Count as reported (optional: leave empty if the method gives none)',
   'app.lr.form.positive': 'Positive control (organism and amount)',
   'app.lr.form.positiveGrew': 'Positive control',
   'app.lr.form.negativeGrew': 'Negative control',
@@ -342,7 +342,7 @@ export const labresult = {
   'app.lr.problem.cultures': 'Give each medium with its time and temperature: 1 to 4, none repeated.',
   'app.lr.problem.lod': 'The limit of detection is a number above 0, with its unit (no exponent: write 1000, not 1e3).',
   'app.lr.problem.count':
-    'When viable organisms were recovered, give the count the report gives, above 0, with its unit. When none were, there is no count: the limit of detection says it.',
+    'When viable organisms were recovered, a count is optional (an enrichment test gives none); when given, it is above 0, with its unit. When none were, there is no count: the limit of detection says it.',
   'app.lr.problem.controls':
     'Say how the controls went. A run whose positive control didn’t grow, or whose negative control did, can’t be signed: test again and sign the repeat.',
   'app.lr.check.paired':
@@ -375,4 +375,5 @@ export const labresult = {
     'This result was withdrawn by result {by}, signed by the same key, so it is no longer read as a pair with before-sample result {code}.',
   'app.lr.check.pairReplacedAfter':
     'This result was replaced by result {by}, signed by the same key, so it is no longer read as a pair with before-sample result {code}: check the newer result.',
+  'app.lr.f.noCount': 'Viable organisms recovered (no count reported)',
 };

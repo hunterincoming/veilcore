@@ -315,7 +315,7 @@ export const labresult = {
   'app.lr.form.cultureAdd': 'Ajouter un milieu',
   'app.lr.form.lodValue': 'Limite de détection',
   'app.lr.form.unit': 'Unité (UFC/g, UFC pour 25 g…)',
-  'app.lr.form.countValue': 'Dénombrement selon le rapport',
+  'app.lr.form.countValue': 'Dénombrement selon le rapport (facultatif : laissez vide si la méthode n’en donne pas)',
   'app.lr.form.positive': 'Témoin positif (organisme et quantité)',
   'app.lr.form.positiveGrew': 'Témoin positif',
   'app.lr.form.negativeGrew': 'Témoin négatif',
@@ -337,7 +337,7 @@ export const labresult = {
   'app.lr.problem.lod':
     'La limite de détection est un nombre supérieur à 0, avec son unité (sans exposant : écrivez 1000, pas 1e3).',
   'app.lr.problem.count':
-    'Si des organismes viables ont été retrouvés, indiquez le dénombrement du rapport, supérieur à 0, avec son unité. S’il n’y en a aucun, il n’y a pas de dénombrement : la limite de détection le dit.',
+    'Si des organismes viables ont été retrouvés, le dénombrement est facultatif (un enrichissement n’en donne pas) ; s’il est indiqué, il est supérieur à 0, avec son unité. S’il n’y en a aucun, il n’y a pas de dénombrement : la limite de détection le dit.',
   'app.lr.problem.controls':
     'Indiquez le résultat des témoins. Une série dont le témoin positif n’a pas poussé, ou dont le témoin négatif a poussé, ne peut pas être signée : refaites le test et signez la répétition.',
   'app.lr.check.paired':
@@ -370,4 +370,5 @@ export const labresult = {
     'Ce résultat a été retiré par le résultat {by}, signé par la même clé ; il n’est donc plus lu comme une paire avec le résultat de l’échantillon d’avant {code}.',
   'app.lr.check.pairReplacedAfter':
     'Ce résultat a été remplacé par le résultat {by}, signé par la même clé ; il n’est donc plus lu comme une paire avec le résultat de l’échantillon d’avant {code} : consultez le résultat le plus récent.',
+  'app.lr.f.noCount': 'Organismes viables retrouvés (aucun dénombrement rapporté)',
 } satisfies Partial<AppTranslation>;

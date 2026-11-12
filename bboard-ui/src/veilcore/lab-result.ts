@@ -139,7 +139,8 @@ export type ViabilityResult = {
   /** Whether viable organisms were recovered. */
   readonly detected: boolean;
   /**
-   * What was recovered, as reported: above 0, given when some were and only then. None recovered
+   * What was recovered, as reported: above 0, only when some were, and optional then (an
+   * enrichment or presence/absence test gives no count). None recovered
    * is below the limit of detection ("< 1 CFU per 25 g"), never a count of 0.
    */
   readonly count?: Amount;
@@ -341,8 +342,9 @@ const viabilityProblem = (r: Record<string, unknown>): void => {
   // None recovered is below the limit of detection, never a count of 0: the count is left out.
   if (r.detected === false && r.count !== undefined)
     fail('count', 'No count when none were recovered: the limit of detection says it.');
-  if (r.detected === true && !isAmount(r.count, true))
-    fail('count', 'When viable organisms were recovered, give the count, above 0, with its unit.');
+  // Some recovered: a count is optional (enrichment and presence/absence tests give none), above 0 when given.
+  if (r.detected === true && r.count !== undefined && !isAmount(r.count, true))
+    fail('count', 'A count, when given, is a number above 0 with its unit.');
   const k = r.controls;
   if (
     !isObject(k) ||

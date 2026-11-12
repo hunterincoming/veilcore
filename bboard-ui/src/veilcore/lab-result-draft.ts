@@ -202,10 +202,10 @@ const viability = (d: ResultDraft): ViabilityResult => {
     .map((c) => ({ medium: c.medium.trim(), time: c.time.trim(), temperature: c.temperature.trim() }))
     .filter((c) => c.medium || c.time || c.temperature);
   const lod = decimal(d.lodValue, 'lodNumber');
-  // A count only when some were recovered; none recovered is below the limit of detection, not 0.
+  // A count only when some were recovered, and optional then (enrichment gives none); none
+  // recovered is below the limit of detection, never 0.
   const some = call(d.detected);
   const count = some ? decimal(d.countValue, 'countNumber') : '';
-  if (some && !count) bad('count', 'Give the count the report gives, with its unit.');
   if (count && !d.countUnit.trim()) bad('count', 'Give the count’s unit.');
   return {
     batch: d.batch.trim(),
