@@ -1,0 +1,133 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/hunterincoming/veilcore/blob/main/deployments/schema.json",
+  "title": "VeilCore deployments",
+  "description": "Where VeilCore's contracts are deployed on one Midnight network, what they were built from, and the SHA-256 of every compiled artefact. scripts/verify-deployment.mjs reads it and compares the chain with it; scripts/deployments.test.mjs keeps it in step with docs/fingerprints.md, the README and the release manifests.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["$schema", "format", "network", "networkLedger", "toolchain", "indexers", "contracts"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "format": { "const": "veilcore-deployments/v1" },
+    "network": { "$ref": "#/$defs/network" },
+    "networkLedger": {
+      "description": "The Midnight ledger version the network runs, and the date it moved to it (null if not known or not applicable).",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["version", "since"],
+      "properties": {
+        "version": { "type": "integer", "minimum": 1 },
+        "since": { "type": ["string", "null"], "pattern": "^\\d{4}-\\d{2}-\\d{2}$" }
+      }
+    },
+    "toolchain": {
+      "description": "The toolchain the contracts were compiled with. `compiler` must match the compiler-version file at the repository root, `node` the .nvmrc.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["compiler", "node", "fingerprints"],
+      "properties": {
+        "compiler": { "$ref": "#/$defs/version" },
+        "node": { "$ref": "#/$defs/version" },
+        "fingerprints": { "type": "string" }
+      }
+    },
+    "indexers": {
+      "description": "Public indexers that serve this network. None needs a VeilCore secret.",
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["url", "operator", "note"],
+        "properties": {
+          "url": { "type": "string", "pattern": "^https://[^?#]+$" },
+          "operator": { "type": "string", "minLength": 1 },
+          "origin": { "type": "string", "pattern": "^https://[^/?#]+$" },
+          "projectIdEnv": { "type": "string", "pattern": "^[A-Z][A-Z0-9_]*$" },
+          "note": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "contracts": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/contract" }
+    }
+  },
+  "$defs": {
+    "network": { "enum": ["mainnet", "preprod", "preview"] },
+    "version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "commit": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+    "address": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "txid": { "type": "string", "pattern": "^[0-9a-f]{66}$" },
+    "contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name", "source", "address", "network", "compiler", "compactRuntime", "ledgerVersion",
+        "commit", "sourceCommit", "fingerprintsCommit", "deployment", "maintenanceAuthority",
+        "contractCode", "circuits"
+      ],
+      "properties": {
+        "name": { "enum": ["veilcore", "veilcore-claims"] },
+        "source": { "type": "string", "pattern": "^contract/src/[a-z-]+\\.compact$" },
+        "address": { "$ref": "#/$defs/address" },
+        "network": { "$ref": "#/$defs/network" },
+        "compiler": { "$ref": "#/$defs/version" },
+        "compactRuntime": { "$ref": "#/$defs/version" },
+        "ledgerVersion": { "description": "The Midnight ledger the contract was compiled for.", "type": "integer", "minimum": 1 },
+        "commit": {
+          "description": "The full commit the artefacts below were built from, or null where it was not recorded (the deployment note says what is known).",
+          "oneOf": [{ "$ref": "#/$defs/commit" }, { "type": "null" }]
+        },
+        "sourceCommit": { "description": "A full commit whose contract source is the deployed source.", "$ref": "#/$defs/commit" },
+        "fingerprintsCommit": { "description": "The full commit that recorded the artefact hashes in docs/fingerprints.md.", "$ref": "#/$defs/commit" },
+        "deployment": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["transaction", "block", "date", "record"],
+          "properties": {
+            "transaction": { "oneOf": [{ "$ref": "#/$defs/txid" }, { "type": "null" }] },
+            "block": { "oneOf": [{ "type": "integer", "minimum": 0 }, { "type": "null" }] },
+            "date": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$" },
+            "record": { "type": "string", "pattern": "^docs/" },
+            "note": { "type": "string" }
+          }
+        },
+        "maintenanceAuthority": {
+          "description": "What the contract's maintenance authority should be. The verify script fails if the chain differs. A null counter is reported, not compared.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["retired", "committee", "threshold", "counter", "note"],
+          "properties": {
+            "retired": { "type": "boolean" },
+            "committee": { "type": "integer", "minimum": 0 },
+            "threshold": { "type": "integer", "minimum": 0 },
+            "counter": { "oneOf": [{ "type": "integer", "minimum": 0 }, { "type": "null" }] },
+            "retiredBy": { "oneOf": [{ "$ref": "#/$defs/txid" }, { "type": "null" }] },
+            "note": { "type": "string" }
+          }
+        },
+        "contractCode": { "description": "SHA-256 of contract/index.js as the compiler wrote it.", "$ref": "#/$defs/sha256" },
+        "circuits": {
+          "description": "Every circuit that carries a key, by name: the SHA-256 of its verifier key, prover key, and both ZKIR forms.",
+          "type": "object",
+          "minProperties": 1,
+          "propertyNames": { "pattern": "^[a-z][A-Za-z0-9]*$" },
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["verifierKey", "proverKey", "zkir", "bzkir"],
+            "properties": {
+              "verifierKey": { "$ref": "#/$defs/sha256" },
+              "proverKey": { "$ref": "#/$defs/sha256" },
+              "zkir": { "$ref": "#/$defs/sha256" },
+              "bzkir": { "$ref": "#/$defs/sha256" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

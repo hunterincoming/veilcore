@@ -1,6 +1,6 @@
 **dApp name:** VeilCore — Proof of Prior Possession for Plant Genetics
 
-**Contract repository:** https://github.com/hunterincoming/veilcore-midnight-testnet
+**Contract repository:** https://github.com/hunterincoming/veilcore (named `veilcore-midnight-testnet` when this record was first filed; GitHub redirects the old address)
 
 > **Revision 4.** This header describes the contract as it is now: one contract, 24
 > circuits, source at `ceb3a16`. It replaces the header approved in August and
@@ -29,6 +29,8 @@ One contract exposes 24 circuits:
 - **Descent (3):** `proposeParent`, `confirmParent`, `withdrawParent`
 - **Obligations (6):** `proposeObligation`, `encumberOwnRecord`, `withdrawObligation`,
   `acceptObligation`, `rejectObligation`, `discharge`
+
+`proveOwnership` is a historical name: the circuit proves knowledge of the record's secret, which shows possession of the record (with its anchor date, prior possession), not legal ownership. Renaming it would change its keys, so the name stays.
 
 Six pure circuits compute the published hashes and carry no keys: `commit`,
 `recoveryCommit`, `licenseCommit`, `licenseKey`, `presentationTag`, `obligationKey`.
@@ -435,7 +437,7 @@ first written did not achieve this).
 **Four authorisation defects were found in the licensing circuits and fixed.** An outside
 Midnight developer compiled the contract, deployed it to preprod, ran every circuit
 and replayed them as an attacker, reporting each finding with a transaction hash:
-[issue #22](https://github.com/hunterincoming/veilcore-midnight-testnet/issues/22).
+[issue #22](https://github.com/hunterincoming/veilcore/issues/22).
 
 1. `countersignLicense` took the licence commitment as a public argument. That
    commitment is disclosed by `issueLicense` and is a key in a public map, so any
@@ -939,7 +941,7 @@ Unchanged at 1. The contract holds no funds and no circuit moves tokens.
 ### What was found and fixed
 
 **Outside review.** An outside Midnight developer attacked the licensing circuits in
-August ([issue #22](https://github.com/hunterincoming/veilcore-midnight-testnet/issues/22);
+August ([issue #22](https://github.com/hunterincoming/veilcore/issues/22);
 *Revision — 24–25 August 2026* above). In September they checked the third revision's
 build against its public transcripts, which found the defect in *Correction — 16
 September 2026*. The repository records no review by them of this build.

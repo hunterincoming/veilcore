@@ -229,7 +229,7 @@ once #1605 is resolved.
   (npmjs.com, Add Organization, free plan), which also reserves the name. Then the package's
   `"private": true` comes off and it is published from the Mac like the SDK.
 - **Proving key files:** a GitHub release tagged `zk-r4` on the public repo
-  `hunterincoming/veilcore-midnight-testnet`. On the Mac: `npm run keys:stage -w @veilcore/contracts`,
+  `hunterincoming/veilcore` (then named `veilcore-midnight-testnet`). On the Mac: `npm run keys:stage -w @veilcore/contracts`,
   then upload every file it produces to that release. The kit checks every file against the
   committed fingerprints, so a wrong file is refused.
 - **Managed option at launch:** ~~dating only~~ changed later on 6 Oct: **VeilCore-run**, custody

@@ -48,6 +48,21 @@ flowchart LR
 Deploy transactions and blocks: [the deployment record](docs/deployment-record-revision-4.md#mainnet-deployment).
 Build fingerprints: [docs/fingerprints.md](docs/fingerprints.md).
 
+### Verify the deployed contracts
+
+Check that both contracts on mainnet carry the circuits built from this source. No account,
+wallet or compiler needed:
+
+```bash
+npm ci
+npm run verify:deployment -- --network mainnet
+```
+
+It reads each contract's verifier keys from a Midnight indexer and prints PASS or FAIL per
+circuit, against the hashes in [`deployments/mainnet.json`](deployments/mainnet.json). To
+rebuild the contracts yourself with compiler 0.31.1 and compare every file, and to use an
+indexer of your own choosing instead of ours, see [docs/reproduce-build.md](docs/reproduce-build.md).
+
 ## Where it stands
 
 - **Works on veilcore.org:** sealing records; batches anchored on Midnight's main network automatically (the
