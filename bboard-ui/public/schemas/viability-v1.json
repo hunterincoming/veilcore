@@ -1,0 +1,9 @@
+{
+  "id": "veilcore/schema/viability/v1",
+  "title": "A laboratory's test for viable organisms in a sample taken before or after a kill step (a heat treatment, an inactivation, a sterilisation). Slot 0 is the call: 1 viable organisms were recovered, 0 none were recovered under the stated method, medium, incubation and limit of detection. Slot 1 is when the sample was taken: 0 before the kill step, 1 after it. None recovered is not proof that a batch is dead or sterile. Which batch, which strain record, which method, medium, incubation, portion and limit of detection are in the laboratory's signed result statement (veilcore/lab-result/v2), not here. The laboratory signs the record. Published by VeilCore (veilcore.org).",
+  "slots": [
+    { "slot": 0, "type": "uint", "path": "viability.recovered", "scale": 1, "comparable": true },
+    { "slot": 1, "type": "uint", "path": "viability.stage", "scale": 1, "comparable": true }
+  ],
+  "k": 1
+}

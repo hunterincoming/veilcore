@@ -41,6 +41,7 @@ describe('a field set on a document', () => {
       'veilcore/schema/seed-quality/v1',
       'veilcore/schema/variety-identity/v1',
       'veilcore/schema/variety-similarity/v1',
+      'veilcore/schema/viability/v1',
     ]);
     expect(await schemaIdHex('veilcore/schema/potency/v1')).toBe(withSet.fieldSet!.schemaId);
     expect(schemaPath('veilcore/schema/potency/v1')).toBe('/schemas/potency-v1.json');

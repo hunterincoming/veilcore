@@ -4,7 +4,7 @@
 
 import React from 'react';
 import { Autocomplete, Box, Button, MenuItem, Stack, TextField, Typography } from '@mui/material';
-import { QC_MAX, REPLACE_REASONS, type ProblemCode, type ResultKind } from '../../veilcore/lab-result';
+import { CULTURES_MAX, QC_MAX, REPLACE_REASONS, type ProblemCode, type ResultKind } from '../../veilcore/lab-result';
 import type { ResultDraft, YesNo } from '../../veilcore/lab-result-draft';
 import { LAB_SCHEMAS, numbersOf } from '../../veilcore/field-set';
 import { NumbersFields } from '../document/NumbersFields';
@@ -28,8 +28,16 @@ const QPCR_DETAILS = [
   'Run ID',
 ];
 
-/** An earlier result of this lab's, to name in "replaces". */
-export type MyResult = { readonly code: string; readonly label: string };
+/** Run details a viability report usually carries besides the controls (USP <71>, ISO 11737-2). */
+const VIABILITY_DETAILS = ['Medium lot', 'Growth promotion', 'Neutraliser', 'Method suitability', 'Run ID'];
+
+/** An earlier result of this lab's, to name in "replaces" (or, for a before-sample, in "before"). */
+export type MyResult = {
+  readonly code: string;
+  readonly label: string;
+  /** A viability result's before-sample: its batch, so an after-sample can name it. */
+  readonly beforeSample?: { readonly batch: string };
+};
 
 export const ResultForm: React.FC<{
   draft: ResultDraft;
@@ -45,7 +53,7 @@ export const ResultForm: React.FC<{
   const { t } = tr;
   const set = <K extends keyof ResultDraft>(k: K, v: ResultDraft[K]) => onDraft({ ...d, [k]: v });
   const field = (
-    k: Exclude<keyof ResultDraft, 'qc' | 'typed'>,
+    k: Exclude<keyof ResultDraft, 'qc' | 'typed' | 'cultures'>,
     label: AppKey,
     extra: Partial<React.ComponentProps<typeof TextField>> = {},
   ) => (
@@ -77,9 +85,32 @@ export const ResultForm: React.FC<{
       <MenuItem value="no">{t(no)}</MenuItem>
     </TextField>
   );
-  const date = (k: 'tested' | 'received', label: AppKey) =>
+  const date = (k: 'tested' | 'received' | 'sampled', label: AppKey) =>
     field(k, label, { type: 'date', slotProps: { inputLabel: { shrink: true }, htmlInput: { 'data-field': k } } });
   const retraction = d.kind === 'retraction';
+  const viable = d.kind === 'viability';
+  const befores = mine.filter((m) => m.beforeSample);
+  const pick = (
+    k: 'stage' | 'positiveGrew' | 'negativeGrew',
+    label: AppKey,
+    options: readonly (readonly [string, AppKey])[],
+  ) => (
+    <TextField
+      select
+      label={t(label)}
+      value={d[k]}
+      onChange={(e) => set(k, e.target.value as never)}
+      error={problem === k || (problem === 'controls' && k !== 'stage')}
+      fullWidth
+      slotProps={{ htmlInput: { 'data-field': k } }}
+    >
+      {options.map(([v, words]) => (
+        <MenuItem key={v} value={v}>
+          {t(words)}
+        </MenuItem>
+      ))}
+    </TextField>
+  );
 
   return (
     <Stack spacing={2} data-result-form="">
@@ -117,7 +148,7 @@ export const ResultForm: React.FC<{
         </Stack>
       )}
       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-        {date('tested', 'app.lr.form.tested')}
+        {date('tested', viable ? 'app.lr.form.read' : 'app.lr.form.tested')}
         {date('received', 'app.lr.form.received')}
       </Stack>
 
@@ -183,6 +214,125 @@ export const ResultForm: React.FC<{
           <Typography variant="body2" color="text.secondary">
             {t('app.lr.note.lineage')}
           </Typography>
+        </>
+      )}
+      {viable && (
+        <>
+          <Typography variant="body2" color="text.secondary" data-viability-intro="">
+            {t('app.lr.form.viabilityIntro')}
+          </Typography>
+          {field('batch', 'app.lr.form.batch')}
+          {pick('stage', 'app.lr.form.stage', [
+            ['before', 'app.lr.stage.before'],
+            ['after', 'app.lr.stage.after'],
+          ])}
+          {d.stage === 'after' &&
+            field('killStep', 'app.lr.form.killStep', { helperText: t('app.lr.form.killStepHelp') })}
+          {d.stage === 'after' && befores.length > 0 && (
+            <TextField
+              select
+              label={t('app.lr.form.beforePick')}
+              value={befores.some((m) => m.code === d.before) ? d.before : ''}
+              onChange={(e) => set('before', e.target.value)}
+              error={problem === 'before'}
+              fullWidth
+              slotProps={{ htmlInput: { 'data-field': 'beforePick' } }}
+            >
+              <MenuItem value="">{t('app.lr.form.replacesNone')}</MenuItem>
+              {befores.map((m) => (
+                <MenuItem key={m.code} value={m.code}>
+                  {m.label}
+                </MenuItem>
+              ))}
+            </TextField>
+          )}
+          {d.stage === 'after' &&
+            field('before', befores.length ? 'app.lr.form.beforeCode' : 'app.lr.form.before', {
+              helperText: t('app.lr.form.beforeHelp'),
+            })}
+          {field('strain', 'app.lr.form.strain', { helperText: t('app.lr.form.strainHelp') })}
+          {date('sampled', 'app.lr.form.sampled')}
+          {field('recovers', 'app.lr.form.recovers', { error: problem === 'target' })}
+          {field('portion', 'app.lr.form.portion')}
+          <Box>
+            <Typography variant="body2" sx={{ fontWeight: 700, mb: 1 }}>
+              {t('app.lr.form.cultures')}
+            </Typography>
+            <Stack spacing={1.5}>
+              {d.cultures.map((c, i) => (
+                <Stack key={i} direction={{ xs: 'column', sm: 'row' }} spacing={1} data-culture={i}>
+                  {(['medium', 'time', 'temperature'] as const).map((k) => (
+                    <TextField
+                      key={k}
+                      label={t(`app.lr.form.culture.${k}` as AppKey)}
+                      value={c[k]}
+                      onChange={(e) =>
+                        set(
+                          'cultures',
+                          d.cultures.map((x, j) => (j === i ? { ...x, [k]: e.target.value } : x)),
+                        )
+                      }
+                      error={problem === 'cultures'}
+                      size="small"
+                      sx={{ flex: { sm: k === 'medium' ? 2 : 1 } }}
+                      slotProps={{ htmlInput: { maxLength: k === 'medium' ? 200 : 60 } }}
+                    />
+                  ))}
+                  {d.cultures.length > 1 && (
+                    <Button
+                      size="small"
+                      onClick={() =>
+                        set(
+                          'cultures',
+                          d.cultures.filter((_, j) => j !== i),
+                        )
+                      }
+                      sx={{ minHeight: 40, alignSelf: { xs: 'flex-start', sm: 'auto' } }}
+                    >
+                      {t('app.lr.form.qcRemove')}
+                    </Button>
+                  )}
+                </Stack>
+              ))}
+              {d.cultures.length < CULTURES_MAX && (
+                <Button
+                  size="small"
+                  variant="outlined"
+                  onClick={() => set('cultures', [...d.cultures, { medium: '', time: '', temperature: '' }])}
+                  sx={{ alignSelf: 'flex-start', minHeight: 40 }}
+                >
+                  {t('app.lr.form.cultureAdd')}
+                </Button>
+              )}
+            </Stack>
+          </Box>
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+            {field('lodValue', 'app.lr.form.lodValue', {
+              error: problem === 'lod',
+              slotProps: { htmlInput: { inputMode: 'decimal', 'data-field': 'lodValue' } },
+            })}
+            {field('lodUnit', 'app.lr.form.unit', { error: problem === 'lod' })}
+          </Stack>
+          {yesNo('detected', 'app.lr.call.recovered', 'app.lr.call.noneRecovered')}
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+            {field('countValue', 'app.lr.form.countValue', {
+              error: problem === 'count',
+              slotProps: { htmlInput: { inputMode: 'decimal', 'data-field': 'countValue' } },
+            })}
+            {field('countUnit', 'app.lr.form.unit', { error: problem === 'count' })}
+          </Stack>
+          {field('positive', 'app.lr.form.positive', { error: problem === 'controls' })}
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+            {pick('positiveGrew', 'app.lr.form.positiveGrew', [
+              ['yes', 'app.lr.control.grew'],
+              ['no', 'app.lr.control.noGrowth'],
+            ])}
+            {pick('negativeGrew', 'app.lr.form.negativeGrew', [
+              ['no', 'app.lr.control.noGrowth'],
+              ['yes', 'app.lr.control.grew'],
+              ['not-run', 'app.lr.control.notRun'],
+            ])}
+          </Stack>
         </>
       )}
       {d.kind === 'dna-mark' && (
@@ -258,20 +408,20 @@ export const ResultForm: React.FC<{
               </Button>
             </Stack>
           ))}
-          {d.kind === 'pathogen' && d.qc.length === 0 && (
+          {(d.kind === 'pathogen' || viable) && d.qc.length === 0 && (
             <Button
               size="small"
               variant="outlined"
               onClick={() =>
                 set(
                   'qc',
-                  QPCR_DETAILS.map((name) => ({ name, value: '' })),
+                  (viable ? VIABILITY_DETAILS : QPCR_DETAILS).map((name) => ({ name, value: '' })),
                 )
               }
               sx={{ alignSelf: 'flex-start', minHeight: 40 }}
               data-qc-usual=""
             >
-              {t('app.lr.form.qcUsual')}
+              {t(viable ? 'app.lr.form.qcUsualViability' : 'app.lr.form.qcUsual')}
             </Button>
           )}
           {d.qc.length < QC_MAX && (

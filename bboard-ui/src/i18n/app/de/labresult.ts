@@ -260,4 +260,92 @@ export const labresult = {
     'Ein nachgewiesenes Ergebnis ohne Ct (Undetermined, N/A, >40) widerspricht sich. Prüfen Sie, ob die Spalten für Ergebnis und Ct vertauscht sind.',
   'app.lr.problem.bindingSalt':
     'Das Salz für den Namen des Labors hat nicht seine Form: 64 Hexadezimalzeichen, nicht alle gleich.',
+  // ---- viability (../en/labresult.ts) ----
+  'app.lr.kind.viability': 'Lebensfähigkeitstest vor oder nach einem Abtötungsschritt',
+  'app.doc.schema.viability': 'Lebensfähigkeitstest (das Ergebnis)',
+  'app.doc.slot.recovered': 'Lebensfähige Organismen gefunden (1 ja, 0 keine)',
+  'app.doc.slot.stage': 'Probe genommen (0 vor dem Abtötungsschritt, 1 danach)',
+  'app.lr.f.stage': 'Probe genommen',
+  'app.lr.f.batch': 'Charge oder Los',
+  'app.lr.f.killStep': 'Abtötungsschritt (wie vom Absender angegeben)',
+  'app.lr.f.recovers': 'Was der Test erfasst',
+  'app.lr.f.portion': 'Geprüfte Teilmenge',
+  'app.lr.f.cultures': 'Nährmedien und Bebrütung',
+  'app.lr.f.culture': '{medium}: {time} bei {temperature}',
+  'app.lr.f.lod': 'Nachweisgrenze',
+  'app.lr.f.count': 'Gefunden, wie berichtet',
+  'app.lr.f.controls': 'Kontrollen',
+  'app.lr.f.positiveGrew': 'Positivkontrolle ({control}) gewachsen',
+  'app.lr.f.negativeClean': 'Negativkontrolle ohne Wachstum',
+  'app.lr.f.sampled': 'Datum der Probenahme',
+  'app.lr.f.strain': 'Stammdatensatz, aus dem die Charge hergestellt wurde (Nachweiscode)',
+  'app.lr.f.before': 'Genanntes Ergebnis der Probe davor (Code)',
+  'app.lr.stage.before': 'Vor dem Abtötungsschritt',
+  'app.lr.stage.after': 'Nach dem Abtötungsschritt',
+  'app.lr.call.recovered': 'Lebensfähige Organismen gefunden',
+  'app.lr.call.noneRecovered': 'Keine lebensfähigen Organismen gefunden',
+  'app.lr.note.noneRecovered':
+    'Das Labor hat in {portion} keine lebensfähigen Organismen gefunden, mit {method} (Version {version}) und einer Nachweisgrenze von {lod}.',
+  'app.lr.note.recovered': 'Das Labor hat in {portion} lebensfähige Organismen gefunden, mit {method}.',
+  'app.lr.note.viabilityLimits':
+    'Das ist, was das Labor in der geprüften Teilmenge unter diesen Bedingungen gefunden hat, und nicht mehr. Ein Test erfasst nur, was auf seinen Nährmedien, in seiner Zeit und bei seiner Temperatur oberhalb seiner Nachweisgrenze wächst: Geschädigte, ruhende (Sporen) oder anders anspruchsvolle Organismen wachsen womöglich nicht, und eine Teilmenge steht nicht unbedingt für die ganze Charge. Dass die Probe aus dieser Charge und die Charge aus diesem Stamm stammt, ist die Angabe des Absenders.',
+  'app.lr.note.strain':
+    'Der Stammdatensatz ist nur mit seinem Nachweiscode genannt: Nichts aus diesem Datensatz steht in diesem Ergebnis.',
+  'app.lr.form.viabilityIntro':
+    'Für eine Probe, die vor oder nach einem Abtötungsschritt genommen wurde, etwa einer Wärmebehandlung oder einer Inaktivierung. Tragen Sie ein, was in Ihrem Bericht steht. Signieren Sie nur einen gültigen Lauf: Die Positivkontrolle ist gewachsen und, falls Sie eine angesetzt haben, die Negativkontrolle nicht.',
+  'app.lr.form.read': 'Datum abgelesen (Ende der Bebrütung)',
+  'app.lr.form.batch': 'Chargen- oder Losnummer',
+  'app.lr.form.stage': 'Wann die Probe genommen wurde',
+  'app.lr.form.killStep': 'Abtötungsschritt: Verfahren und Parameter',
+  'app.lr.form.killStepHelp': 'Wie vom Absender angegeben, zum Beispiel „Dampf, 95 °C Kerntemperatur für 30 min“.',
+  'app.lr.form.beforePick': 'Das Ergebnis der Probe davor für diese Charge (optional)',
+  'app.lr.form.beforeCode': 'Oder sein Ergebniscode',
+  'app.lr.form.before': 'Code des Ergebnisses der Probe davor (optional)',
+  'app.lr.form.beforeHelp':
+    'Verknüpft dieses Ergebnis mit dem Ergebnis der Probe davor aus derselben Charge, von Ihrem Labor signiert.',
+  'app.lr.form.strain': 'Nachweiscode des Stammdatensatzes, aus dem die Charge hergestellt wurde',
+  'app.lr.form.strainHelp':
+    'Vom Absender: 64 Zeichen. Nur der Code kommt in das Ergebnis, nichts aus dem Datensatz. Er kann derselbe wie der der Probe sein.',
+  'app.lr.form.sampled': 'Datum der Probenahme',
+  'app.lr.form.recovers': 'Was der Test erfasst (der Produktionsstamm, Hefen und Schimmelpilze gesamt …)',
+  'app.lr.form.portion': 'Geprüfte Teilmenge und ihre Menge (25 g Mehl in 225 mL Bouillon …)',
+  'app.lr.form.cultures': 'Nährmedien und Bebrütung',
+  'app.lr.form.culture.medium': 'Nährmedium',
+  'app.lr.form.culture.time': 'Dauer',
+  'app.lr.form.culture.temperature': 'Temperatur',
+  'app.lr.form.cultureAdd': 'Nährmedium hinzufügen',
+  'app.lr.form.lodValue': 'Nachweisgrenze',
+  'app.lr.form.unit': 'Einheit (KBE/g, KBE je 25 g …)',
+  'app.lr.form.countValue': 'Anzahl wie berichtet (optional; 0, wenn keine)',
+  'app.lr.form.positive': 'Positivkontrolle (Organismus und Menge)',
+  'app.lr.form.positiveGrew': 'Positivkontrolle',
+  'app.lr.form.negativeGrew': 'Negativkontrolle',
+  'app.lr.control.grew': 'Gewachsen',
+  'app.lr.control.noGrowth': 'Kein Wachstum',
+  'app.lr.control.notRun': 'Nicht angesetzt',
+  'app.lr.form.qcUsualViability': 'Die üblichen Laufangaben hinzufügen',
+  'app.lr.problem.batch': 'Geben Sie die Chargen- oder Losnummer ein: eine Zeile.',
+  'app.lr.problem.stage': 'Geben Sie an, ob die Probe vor oder nach dem Abtötungsschritt genommen wurde.',
+  'app.lr.problem.killStep': 'Eine Probe danach nennt ihren Abtötungsschritt: Verfahren und Parameter, eine Zeile.',
+  'app.lr.problem.before':
+    'Nennen Sie das Ergebnis der Probe davor mit seinem 64-stelligen Code. Nur eine Probe danach nennt eines.',
+  'app.lr.problem.strain': 'Geben Sie den Nachweiscode des Stammdatensatzes an: 64 Zeichen.',
+  'app.lr.problem.sampled': 'Das Datum der Probenahme ist ein echtes Datum, nicht nach dem Eingangs- oder Ablesedatum.',
+  'app.lr.problem.portion': 'Nennen Sie die geprüfte Teilmenge und ihre Menge.',
+  'app.lr.problem.cultures': 'Geben Sie jedes Nährmedium mit Dauer und Temperatur an: 1 bis 4, keines doppelt.',
+  'app.lr.problem.lod': 'Die Nachweisgrenze ist eine Zahl über 0 mit ihrer Einheit (ohne Exponent: 1000, nicht 1e3).',
+  'app.lr.problem.count':
+    'Die Anzahl ist eine Zahl mit ihrer Einheit: 0, wenn keine gefunden wurden, über 0, wenn welche gefunden wurden.',
+  'app.lr.problem.controls':
+    'Geben Sie an, wie die Kontrollen ausfielen. Ein Lauf, bei dem die Positivkontrolle nicht gewachsen ist oder die Negativkontrolle schon, kann nicht signiert werden: Testen Sie erneut und signieren Sie die Wiederholung.',
+  'app.lr.check.paired':
+    'Gepaart mit dem Ergebnis der Probe davor {code} für Charge {batch}, mit demselben Schlüssel signiert. Vor dem Abtötungsschritt: {before}. Danach: {after}.',
+  'app.lr.check.pairBothNone':
+    'Auch in der Probe davor wurde nichts gefunden, daher zeigt dieses Paar nicht, dass der Abtötungsschritt etwas verändert hat.',
+  'app.lr.check.pairMissing':
+    'Es nennt das Ergebnis der Probe davor {code}, das nicht unter den gewählten Dateien ist. Wählen Sie beide Dateien zusammen, um sie als Paar zu sehen.',
+  'app.lr.check.pairNot':
+    'Es nennt das Ergebnis {code} als Probe davor, aber die beiden passen nicht zusammen (anderer Schlüssel, andere Charge, anderer Stammdatensatz oder andere Stufe, oder eine später genommene Probe davor), daher verknüpft hier nichts sie.',
+  'app.lr.claim.viability':
+    'Eine Aussage, dass keine lebensfähigen Organismen gefunden wurden, zeigt weder das Verfahren noch die Nährmedien und die Bebrütung, die geprüfte Teilmenge oder die Nachweisgrenze, und ohne diese sagt sie wenig. Sie stehen in der Ergebnisdatei des Labors. Sie ist ein Befund über die geprüfte Teilmenge, nicht über die ganze Charge.',
 } satisfies Partial<AppTranslation>;

@@ -164,7 +164,7 @@ export const ClaimCheck: React.FC = () => {
                 )}
               </Paper>
             )}
-            {isCall && <ClaimResultFile record={link.record} />}
+            {isCall && <ClaimResultFile record={link.record} schema={link.schema} />}
             <Paper sx={{ p: { xs: 2.5, md: 3 } }}>
               <Typography variant="overline" sx={{ display: 'block', mb: 1 }}>
                 {t('app.claim.check.record')}

@@ -52,7 +52,7 @@ VeilCore says exactly what it can check and nothing more.
 ## Version 2: a result bound to its sample (7 November 2026)
 
 Status: built, on the test network only (the same `LAB_SIGNING_ENABLED` switch). Specified in the
-SDK's SPEC 11.12 (draft), with 63 vectors computed there from the text alone; this app checks
+SDK's SPEC 11.12 (draft), with 133 vectors computed there from the text alone; this app checks
 them (`lab-result.test.ts`).
 
 Version 1 names the plant only by a name the lab typed; the link to the record lived in the
@@ -113,6 +113,44 @@ showing the rest. Code: `veilcore/lab-result.ts`.
   as unsigned. The page reads the holder's own records only when asked (that sends the holder key),
   and then offers to add the result to the record it was sent under.
 - Version 1 results keep checking exactly as before.
+
+### A viability result: a sample before or after a kill step (12 November 2026)
+
+Status: built, on the test network only (the same switch). SPEC 11.12, "Viability" (draft).
+
+Who asked: a producer that grows a production fungus and sells the dried meal heat-treats it (a
+kill step) so no live culture leaves its site, and has a lab test samples before and after it.
+The same shape fits inactivated vaccines and cell lines, heat-treated seed and sterilised substrate.
+
+- **What the lab signs** is what a microbiology report holds (USP <71>, ISO 11737-2, a plate count,
+  an enrichment culture, PDA plating for fungi): the batch or lot; whether the sample was taken
+  before or after the kill step; for an after-sample, the kill step's method and parameters as the
+  sender states them; what the test recovers; the portion tested; each medium with its incubation
+  time and temperature (up to four: USP <71> uses two); the limit of detection; whether viable
+  organisms were recovered and, optionally, the count with its unit; the positive control (what it
+  was, and that it grew) and, if run, the negative control (no growth); the date sampled. The
+  method and version, sample ID, accession number, the dates received and read, and other run
+  details (`qc`) are the statement's own fields.
+- **An invalid run isn't signed.** A positive control that didn't grow, or a negative control that
+  did, is refused on the form and by the statement's own check: "none recovered" on a test that
+  couldn't recover anything would be worse than no result.
+- **The strain, without showing it.** `strain` is the proof code of the strain record the batch
+  was made from (it can be the record the sample was sent under). Only the code is in the result:
+  nothing in the strain record. A claim on Midnight shows neither.
+- **The pair.** An after-sample can name its before-sample's result (`before`). The check page
+  takes several files at once, and shows the two as a pair only when the same key signed both, the
+  named one is a before-sample, the batch and the strain record are the same, and it wasn't sampled
+  later. If the before-sample also had none recovered, it says the pair doesn't show the kill step
+  changed anything.
+- **The words.** Every page says the lab reported no viable organisms recovered from the portion,
+  under the method and with the limit of detection stated, and that a test recovers only what grows
+  under its conditions. No page calls a batch dead or sterile, or says a result proves it; the unit
+  tests check that in all five languages. The claim check adds that a claim on the call doesn't
+  show the method, the media, the portion or the limit.
+- **On Midnight:** the call and the stage are the field set, under `/schemas/viability-v1.json`
+  (slot 0: 1 recovered, 0 none; slot 1: 0 before, 1 after), so a holder can prove "none recovered"
+  with the lab's signature. The claims contract is unchanged.
+- **Where:** `/lab/results` (one result; not in the CSV) and the delivery flow's result form.
 
 ## The forms (public, at `/schemas/`)
 

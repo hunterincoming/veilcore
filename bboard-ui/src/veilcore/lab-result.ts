@@ -26,6 +26,15 @@
 // shown only in a dispute (markSeal). VeilCore never tests DNA, never marks it, and vouches
 // for no result: it dates what a lab signed.
 //
+// A viability result (SPEC 11.12, "Viability") is a test for viable organisms in a sample taken
+// before or after a kill step: a fungal meal heat-treated so no live culture leaves the site, an
+// inactivated vaccine or cell line, heat-treated seed, a sterilised substrate. It carries what a
+// microbiology report holds (the batch, the portion, each medium with its time and temperature,
+// the limit of detection, what grew, the controls), names the strain record the batch was made
+// from by proof code only, and an after-sample may name its before-sample's result. A run whose
+// positive control didn't grow, or whose negative control did, isn't signed. "None recovered" is
+// never "dead" or "sterile" anywhere it is shown.
+//
 // The lab's NAME on a result is a separate binding at the registry (claims-key.ts
 // resultBindingHash): its key, the tested record's proof code and the statement's bindingSalt,
 // 32 random bytes made here for every result. The salt is what keeps the binding from being read
@@ -50,7 +59,7 @@ export const LAB_RESULT_FORMAT = 'veilcore/lab-result/v2';
 /** The name of the statement's entry in the record's files. Exactly one, always this name. */
 export const RESULT_FILE_NAME = 'lab-result.json';
 
-export const RESULT_KINDS = ['numbers', 'pathogen', 'match', 'lineage', 'dna-mark', 'retraction'] as const;
+export const RESULT_KINDS = ['numbers', 'pathogen', 'match', 'lineage', 'dna-mark', 'viability', 'retraction'] as const;
 export type ResultKind = (typeof RESULT_KINDS)[number];
 export const REPLACE_REASONS = ['re-test', 'correction', 'retraction'] as const;
 export type ReplaceReason = (typeof REPLACE_REASONS)[number];
@@ -61,6 +70,7 @@ export const CALL_SCHEMA: Readonly<Record<Exclude<ResultKind, 'numbers'>, string
   match: 'veilcore/schema/genetic-match/v1',
   lineage: 'veilcore/schema/lineage-check/v1',
   'dna-mark': 'veilcore/schema/dna-mark/v1',
+  viability: 'veilcore/schema/viability/v1',
   retraction: 'veilcore/schema/lab-retraction/v1',
 };
 
@@ -101,6 +111,39 @@ export type MarkResult = {
   readonly label?: string;
 };
 
+export const VIABILITY_STAGES = ['before', 'after'] as const;
+export type ViabilityStage = (typeof VIABILITY_STAGES)[number];
+/** A medium, and how long and at what temperature it was incubated, as the report states them. */
+export type Culture = { readonly medium: string; readonly time: string; readonly temperature: string };
+/** A decimal as the report prints it, and its unit ("100", "CFU/g"). */
+export type Amount = { readonly value: string; readonly unit: string };
+export type ViabilityResult = {
+  /** The batch or lot the sample was taken from. */
+  readonly batch: string;
+  readonly stage: ViabilityStage;
+  /** The kill step's method and parameters, as the sender states them: an after-sample's only. */
+  readonly killStep?: string;
+  /** An after-sample's: the code of the result for the same batch's before-sample. */
+  readonly before?: string;
+  /** The proof code of the strain record the batch was made from. Nothing of the record itself. */
+  readonly strain: string;
+  /** YYYY-MM-DD: when the sample was taken. */
+  readonly sampled: string;
+  /** What the test recovers ("the production strain", "total yeasts and moulds"). */
+  readonly target: string;
+  /** The portion tested and its amount ("25 g of meal in 225 mL broth"). */
+  readonly portion: string;
+  readonly cultures: readonly Culture[];
+  /** The limit of detection: above 0. */
+  readonly lod: Amount;
+  /** Whether viable organisms were recovered. */
+  readonly detected: boolean;
+  /** What was recovered: "0" when none were, above 0 when some were. */
+  readonly count?: Amount;
+  /** The positive control grew; a negative control, if run, didn't. An invalid run isn't signed. */
+  readonly controls: { readonly positive: string; readonly positiveGrew: true; readonly negativeGrew?: false };
+};
+
 export type LabResultStatement = {
   readonly format: typeof LAB_RESULT_FORMAT;
   readonly kind: ResultKind;
@@ -114,7 +157,7 @@ export type LabResultStatement = {
   readonly tested: string;
   readonly received?: string;
   readonly qc?: readonly QcFigure[];
-  readonly result?: NumbersResult | PathogenResult | MatchResult | LineageResult | MarkResult;
+  readonly result?: NumbersResult | PathogenResult | MatchResult | LineageResult | MarkResult | ViabilityResult;
   readonly replaces?: Replaces;
   /**
    * The salt of the lab's name binding (claims-key.ts resultBindingHash): 32 random bytes, hex,
@@ -158,6 +201,17 @@ export const PROBLEM_CODES = [
   'csvResult',
   'ctMissing',
   'bindingSalt',
+  'batch',
+  'stage',
+  'killStep',
+  'before',
+  'strain',
+  'sampled',
+  'portion',
+  'cultures',
+  'lod',
+  'count',
+  'controls',
 ] as const;
 export type ProblemCode = (typeof PROBLEM_CODES)[number];
 
@@ -187,6 +241,13 @@ export const QC_MAX = 12;
 export const QC_LINE_MAX = 60;
 /** Counts are whole numbers up to a billion: a panel, not a genome. */
 export const COUNT_MAX = 1_000_000_000;
+/** A decimal as a report prints it: no sign, no exponent, 15 whole digits and 6 decimals at most. */
+export const DECIMAL = /^(0|[1-9]\d{0,14})(\.\d{1,6})?$/;
+const ZERO = /^0(\.0+)?$/;
+/** The most media one viability result names (USP <71> uses two). */
+export const CULTURES_MAX = 4;
+/** A medium's time and temperature, and a unit: short, like a QC figure. */
+export const SHORT_MAX = 60;
 
 const isObject = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);
 
@@ -224,6 +285,72 @@ const onlyKeys = (o: Record<string, unknown>, required: readonly string[], optio
 
 const isRef = (v: unknown): v is MethodRef =>
   isObject(v) && onlyKeys(v, ['id', 'version']) && isLine(v.id) && isLine(v.version);
+
+const isAmount = (v: unknown, positive: boolean): v is Amount =>
+  isObject(v) &&
+  onlyKeys(v, ['value', 'unit']) &&
+  typeof v.value === 'string' &&
+  DECIMAL.test(v.value) &&
+  !(positive && ZERO.test(v.value)) &&
+  isLine(v.unit, SHORT_MAX);
+
+const viabilityProblem = (r: Record<string, unknown>): void => {
+  if (
+    !onlyKeys(
+      r,
+      ['batch', 'stage', 'strain', 'sampled', 'target', 'portion', 'cultures', 'lod', 'detected', 'controls'],
+      ['killStep', 'before', 'count'],
+    )
+  )
+    fail('result', 'The result isn’t in its form.');
+  if (!isLine(r.batch)) fail('batch', 'Name the batch or lot: one line.');
+  if (!VIABILITY_STAGES.includes(r.stage as ViabilityStage))
+    fail('stage', 'Say whether the sample was taken before or after the kill step.');
+  if (r.stage === 'after' ? !isLine(r.killStep) : r.killStep !== undefined)
+    fail('killStep', 'An after-sample names its kill step, one line; a before-sample doesn’t.');
+  if (r.before !== undefined && (r.stage !== 'after' || typeof r.before !== 'string' || !HEX64.test(r.before)))
+    fail('before', 'Only an after-sample names a before-sample’s result, by its 64-hex code.');
+  if (typeof r.strain !== 'string' || !HEX64.test(r.strain))
+    fail('strain', 'Name the strain record by its proof code, 64 hex characters.');
+  if (!isCalendarDate(r.sampled)) fail('sampled', 'The date sampled is a real date, YYYY-MM-DD.');
+  if (!isLine(r.target)) fail('target', 'Name what the test recovers.');
+  if (!isLine(r.portion)) fail('portion', 'Name the portion tested and its amount.');
+  const c = r.cultures;
+  if (
+    !Array.isArray(c) ||
+    c.length < 1 ||
+    c.length > CULTURES_MAX ||
+    !c.every(
+      (x) =>
+        isObject(x) &&
+        onlyKeys(x, ['medium', 'time', 'temperature']) &&
+        isLine(x.medium) &&
+        isLine(x.time, SHORT_MAX) &&
+        isLine(x.temperature, SHORT_MAX),
+    ) ||
+    new Set(c.map((x) => canonicalise(x))).size !== c.length
+  )
+    fail('cultures', `Media: 1 to ${CULTURES_MAX}, each with its time and temperature, none repeated.`);
+  if (!isAmount(r.lod, true)) fail('lod', 'The limit of detection is a number above 0, with its unit.');
+  if (typeof r.detected !== 'boolean') fail('result', 'Say whether viable organisms were recovered.');
+  if (r.count !== undefined) {
+    if (!isAmount(r.count, false)) fail('count', 'The count is a number with its unit.');
+    if (ZERO.test((r.count as Amount).value) === r.detected)
+      fail('count', 'The count is 0 when none were recovered, and above 0 when some were.');
+  }
+  const k = r.controls;
+  if (
+    !isObject(k) ||
+    !onlyKeys(k, ['positive', 'positiveGrew'], ['negativeGrew']) ||
+    !isLine(k.positive) ||
+    k.positiveGrew !== true ||
+    (k.negativeGrew !== undefined && k.negativeGrew !== false)
+  )
+    fail(
+      'controls',
+      'Name the positive control, which grew; a run whose positive control didn’t grow, or whose negative control did, isn’t signed.',
+    );
+};
 
 const resultProblem = (kind: ResultKind, subject: string, r: unknown): void => {
   if (kind === 'retraction') {
@@ -281,6 +408,9 @@ const resultProblem = (kind: ResultKind, subject: string, r: unknown): void => {
       }
       return;
     }
+    case 'viability':
+      viabilityProblem(r);
+      return;
     case 'dna-mark':
       if (!onlyKeys(r, ['seal', 'found'], ['label'])) fail('result', 'The result isn’t in its form.');
       if (typeof r.seal !== 'string' || !HEX64.test(r.seal)) fail('seal', 'The mark’s seal is 64 hex characters.');
@@ -343,6 +473,11 @@ export const checkedStatement = (v: unknown): LabResultStatement => {
   if (v.bindingSalt !== undefined && !isBindingSalt(v.bindingSalt))
     fail('bindingSalt', 'The salt of the lab’s name is 64 hex characters, not all the same byte.');
   resultProblem(kind, v.subject as string, v.result);
+  if (kind === 'viability') {
+    const sampled = (v.result as ViabilityResult).sampled;
+    if (sampled > (v.tested as string) || (v.received !== undefined && sampled > (v.received as string)))
+      fail('sampled', 'The date sampled is not after the date received or the date tested.');
+  }
   if (v.replaces !== undefined) {
     const r = v.replaces;
     if (
@@ -499,6 +634,11 @@ export const callValues = (s: LabResultStatement): (bigint | null)[] => {
     case 'dna-mark':
       v[0] = b((s.result as MarkResult).found);
       break;
+    case 'viability': {
+      const r = s.result as ViabilityResult;
+      [v[0], v[1]] = [b(r.detected), r.stage === 'after' ? 1n : 0n];
+      break;
+    }
     case 'retraction':
       v[0] = 1n;
       break;
@@ -740,6 +880,41 @@ export const replacedBy = (
       old.statement.replaces?.result !== resultCode(r)
     )
       out.set(rep.result, { by: resultCode(r), reason: rep.reason });
+  }
+  return out;
+};
+
+/**
+ * How an after-sample's viability result stands to the before-sample result it names (SPEC 11.12,
+ * "The pair"): 'paired' only when that result is here, signed by the same key, a viability result
+ * at stage before, for the same batch and strain record, and not sampled after the after-sample.
+ * 'missing' when it isn't among these results; 'unpaired' when it is but fails one of those.
+ */
+export type ViabilityPair =
+  | { readonly state: 'paired'; readonly before: LabResultBundle }
+  | { readonly state: 'missing' | 'unpaired'; readonly code: string };
+
+export const viabilityPairs = (all: readonly LabResultBundle[]): Map<string, ViabilityPair> => {
+  const byCode = new Map(all.map((r) => [resultCode(r), r]));
+  const out = new Map<string, ViabilityPair>();
+  for (const a of all) {
+    if (a.statement.kind !== 'viability') continue;
+    const ar = a.statement.result as ViabilityResult;
+    if (ar.stage !== 'after' || ar.before === undefined) continue;
+    const b = byCode.get(ar.before);
+    if (!b) {
+      out.set(resultCode(a), { state: 'missing', code: ar.before });
+      continue;
+    }
+    const br = b.statement.result as ViabilityResult | undefined;
+    const pairs =
+      b.signature.key === a.signature.key &&
+      b.statement.kind === 'viability' &&
+      br?.stage === 'before' &&
+      br.batch === ar.batch &&
+      br.strain === ar.strain &&
+      br.sampled <= ar.sampled;
+    out.set(resultCode(a), pairs ? { state: 'paired', before: b } : { state: 'unpaired', code: ar.before });
   }
   return out;
 };

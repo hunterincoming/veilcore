@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Lab results: a viability result for a sample before or after a kill step (test network only)
+
+- A lab can sign a test for viable organisms in a sample taken before or after a kill step (a
+  heat treatment, an inactivation): the batch, the stage, the kill step's method and parameters,
+  what the test recovers, the portion tested, each medium with its incubation time and
+  temperature, the limit of detection, whether anything was recovered and the count, the controls
+  and the date sampled (SDK SPEC 11.12, "Viability", draft). A run whose positive control didn't
+  grow, or whose negative control did, can't be signed.
+- The batch is tied to the strain record it was made from by proof code only. An after-sample can
+  name the before-sample's result; the check page takes several files at once and shows the two as
+  a pair only when the same key signed both for the same batch and strain record.
+- The check page, the record and the claim check say "no viable organisms recovered" with the
+  method, the portion and the limit of detection, and what a test can't show. They never call a
+  batch dead or sterile. A new call form, `/schemas/viability-v1.json`; the claims contract is
+  unchanged. In all five languages.
+- Lab signing stays on the test network only.
+
 ### Lab signatures: private unless the holder shows them (not live yet; ships with the registry)
 
 - The registry is changing to keep a lab's receipts and reports about a record private: only

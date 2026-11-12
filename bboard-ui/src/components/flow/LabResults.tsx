@@ -1442,7 +1442,7 @@ export const SendResultsPanel: React.FC<{
                 <ResultForm
                   draft={res}
                   onDraft={setRes}
-                  kinds={['numbers', 'pathogen']}
+                  kinds={['numbers', 'pathogen', 'viability']}
                   fixedSubject
                   problem={resProblem}
                 />

@@ -99,6 +99,27 @@
       ],
       "k": 1
     },
+    "veilcore/schema/viability/v1": {
+      "id": "veilcore/schema/viability/v1",
+      "title": "A laboratory's test for viable organisms in a sample taken before or after a kill step (a heat treatment, an inactivation, a sterilisation). Slot 0 is the call: 1 viable organisms were recovered, 0 none were recovered under the stated method, medium, incubation and limit of detection. Slot 1 is when the sample was taken: 0 before the kill step, 1 after it. None recovered is not proof that a batch is dead or sterile. Which batch, which strain record, which method, medium, incubation, portion and limit of detection are in the laboratory's signed result statement (veilcore/lab-result/v2), not here. The laboratory signs the record. Published by VeilCore (veilcore.org).",
+      "slots": [
+        {
+          "slot": 0,
+          "type": "uint",
+          "path": "viability.recovered",
+          "scale": 1,
+          "comparable": true
+        },
+        {
+          "slot": 1,
+          "type": "uint",
+          "path": "viability.stage",
+          "scale": 1,
+          "comparable": true
+        }
+      ],
+      "k": 1
+    },
     "veilcore/schema/lab-retraction/v1": {
       "id": "veilcore/schema/lab-retraction/v1",
       "title": "A laboratory withdraws one of its own earlier results. Slot 0 is always 1. Which result is withdrawn, and why, are in the laboratory's signed result statement (veilcore/lab-result/v2). The laboratory signs the record. Published by VeilCore (veilcore.org).",
@@ -551,6 +572,227 @@
       "canonical": "{\"accession\":\"LAB-26-1187\",\"bindingSalt\":\"9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c\",\"format\":\"veilcore/lab-result/v2\",\"kind\":\"pathogen\",\"method\":{\"id\":\"RT-qPCR HLVd SOP-14\",\"version\":\"3\"},\"result\":{\"detected\":false,\"sampleType\":\"leaf\",\"target\":\"HLVd\"},\"sampleId\":\"S-0412\",\"subject\":\"a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\",\"tested\":\"2026-11-05\"}",
       "sha256": "dca35dcb3d3f5f5c009b5be3df4770cbae522b7958fc2bb7ff5597b8c4554342",
       "size": 395
+    },
+    {
+      "name": "viability: a before-sample, organisms recovered, with a count",
+      "statement": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "MEAL-0907-PRE",
+        "accession": "LAB-26-2201",
+        "method": {
+          "id": "Spread plate on PDA, SOP-M7",
+          "version": "2"
+        },
+        "tested": "2026-11-10",
+        "kind": "viability",
+        "received": "2026-11-03",
+        "qc": [
+          {
+            "name": "Medium lot",
+            "value": "PDA-2611"
+          }
+        ],
+        "result": {
+          "batch": "MEAL-26-0907",
+          "stage": "before",
+          "strain": "d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4",
+          "sampled": "2026-11-02",
+          "target": "The production strain",
+          "portion": "10 g of meal, 1 in 10, 0.1 mL on each of 3 plates",
+          "cultures": [
+            {
+              "medium": "PDA with chloramphenicol",
+              "time": "7 days",
+              "temperature": "25 °C"
+            }
+          ],
+          "lod": {
+            "value": "100",
+            "unit": "CFU/g"
+          },
+          "detected": true,
+          "count": {
+            "value": "4300000",
+            "unit": "CFU/g"
+          },
+          "controls": {
+            "positive": "Production strain, about 50 CFU",
+            "positiveGrew": true,
+            "negativeGrew": false
+          }
+        },
+        "bindingSalt": "6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a"
+      },
+      "canonical": "{\"accession\":\"LAB-26-2201\",\"bindingSalt\":\"6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a\",\"format\":\"veilcore/lab-result/v2\",\"kind\":\"viability\",\"method\":{\"id\":\"Spread plate on PDA, SOP-M7\",\"version\":\"2\"},\"qc\":[{\"name\":\"Medium lot\",\"value\":\"PDA-2611\"}],\"received\":\"2026-11-03\",\"result\":{\"batch\":\"MEAL-26-0907\",\"controls\":{\"negativeGrew\":false,\"positive\":\"Production strain, about 50 CFU\",\"positiveGrew\":true},\"count\":{\"unit\":\"CFU/g\",\"value\":\"4300000\"},\"cultures\":[{\"medium\":\"PDA with chloramphenicol\",\"temperature\":\"25 °C\",\"time\":\"7 days\"}],\"detected\":true,\"lod\":{\"unit\":\"CFU/g\",\"value\":\"100\"},\"portion\":\"10 g of meal, 1 in 10, 0.1 mL on each of 3 plates\",\"sampled\":\"2026-11-02\",\"stage\":\"before\",\"strain\":\"d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4\",\"target\":\"The production strain\"},\"sampleId\":\"MEAL-0907-PRE\",\"subject\":\"a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\",\"tested\":\"2026-11-10\"}",
+      "sha256": "ea82678c3a854c34ce3bd93a82eba09e75e1dc2588c45e88854947e1a06a2c2d",
+      "size": 949
+    },
+    {
+      "name": "viability: an after-sample naming its before-sample, none recovered in two media",
+      "statement": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "MEAL-0907-POST",
+        "accession": "LAB-26-2202",
+        "method": {
+          "id": "Enrichment then PDA, SOP-M9",
+          "version": "1"
+        },
+        "tested": "2026-11-10",
+        "kind": "viability",
+        "received": "2026-11-03",
+        "qc": [
+          {
+            "name": "Medium lot",
+            "value": "PDA-2611"
+          }
+        ],
+        "result": {
+          "batch": "MEAL-26-0907",
+          "stage": "after",
+          "strain": "d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4",
+          "sampled": "2026-11-03",
+          "target": "The production strain",
+          "portion": "25 g of meal in 225 mL broth",
+          "cultures": [
+            {
+              "medium": "Potato dextrose broth",
+              "time": "7 days",
+              "temperature": "25 °C"
+            },
+            {
+              "medium": "PDA with chloramphenicol",
+              "time": "7 days",
+              "temperature": "25 °C"
+            }
+          ],
+          "lod": {
+            "value": "1",
+            "unit": "CFU per 25 g"
+          },
+          "detected": false,
+          "count": {
+            "value": "0",
+            "unit": "CFU per 25 g"
+          },
+          "controls": {
+            "positive": "Production strain, about 50 CFU",
+            "positiveGrew": true,
+            "negativeGrew": false
+          },
+          "killStep": "Steam, 95 °C core for 30 min, then dried at 70 °C",
+          "before": "e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5"
+        },
+        "bindingSalt": "6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a"
+      },
+      "canonical": "{\"accession\":\"LAB-26-2202\",\"bindingSalt\":\"6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a\",\"format\":\"veilcore/lab-result/v2\",\"kind\":\"viability\",\"method\":{\"id\":\"Enrichment then PDA, SOP-M9\",\"version\":\"1\"},\"qc\":[{\"name\":\"Medium lot\",\"value\":\"PDA-2611\"}],\"received\":\"2026-11-03\",\"result\":{\"batch\":\"MEAL-26-0907\",\"before\":\"e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5\",\"controls\":{\"negativeGrew\":false,\"positive\":\"Production strain, about 50 CFU\",\"positiveGrew\":true},\"count\":{\"unit\":\"CFU per 25 g\",\"value\":\"0\"},\"cultures\":[{\"medium\":\"Potato dextrose broth\",\"temperature\":\"25 °C\",\"time\":\"7 days\"},{\"medium\":\"PDA with chloramphenicol\",\"temperature\":\"25 °C\",\"time\":\"7 days\"}],\"detected\":false,\"killStep\":\"Steam, 95 °C core for 30 min, then dried at 70 °C\",\"lod\":{\"unit\":\"CFU per 25 g\",\"value\":\"1\"},\"portion\":\"25 g of meal in 225 mL broth\",\"sampled\":\"2026-11-03\",\"stage\":\"after\",\"strain\":\"d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4\",\"target\":\"The production strain\"},\"sampleId\":\"MEAL-0907-POST\",\"subject\":\"a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\",\"tested\":\"2026-11-10\"}",
+      "sha256": "ba36575b3282b133a49a22487f4c4649c397a9a0738abba54cdea5dd98384b70",
+      "size": 1150
+    },
+    {
+      "name": "viability: an after-sample, the least it carries (no count, no before-sample, no negative control)",
+      "statement": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "MEAL-0907-POST",
+        "accession": "LAB-26-2202",
+        "method": {
+          "id": "Enrichment then PDA, SOP-M9",
+          "version": "1"
+        },
+        "tested": "2026-11-10",
+        "kind": "viability",
+        "result": {
+          "batch": "MEAL-26-0907",
+          "stage": "after",
+          "strain": "d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4",
+          "sampled": "2026-11-03",
+          "target": "The production strain",
+          "portion": "25 g of meal in 225 mL broth",
+          "cultures": [
+            {
+              "medium": "Potato dextrose broth",
+              "time": "7 days",
+              "temperature": "25 °C"
+            },
+            {
+              "medium": "PDA with chloramphenicol",
+              "time": "7 days",
+              "temperature": "25 °C"
+            }
+          ],
+          "lod": {
+            "value": "1",
+            "unit": "CFU per 25 g"
+          },
+          "detected": false,
+          "controls": {
+            "positive": "A. brasiliensis ATCC 16404",
+            "positiveGrew": true
+          },
+          "killStep": "Steam, 95 °C core for 30 min, then dried at 70 °C"
+        },
+        "bindingSalt": "6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a"
+      },
+      "canonical": "{\"accession\":\"LAB-26-2202\",\"bindingSalt\":\"6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a\",\"format\":\"veilcore/lab-result/v2\",\"kind\":\"viability\",\"method\":{\"id\":\"Enrichment then PDA, SOP-M9\",\"version\":\"1\"},\"result\":{\"batch\":\"MEAL-26-0907\",\"controls\":{\"positive\":\"A. brasiliensis ATCC 16404\",\"positiveGrew\":true},\"cultures\":[{\"medium\":\"Potato dextrose broth\",\"temperature\":\"25 °C\",\"time\":\"7 days\"},{\"medium\":\"PDA with chloramphenicol\",\"temperature\":\"25 °C\",\"time\":\"7 days\"}],\"detected\":false,\"killStep\":\"Steam, 95 °C core for 30 min, then dried at 70 °C\",\"lod\":{\"unit\":\"CFU per 25 g\",\"value\":\"1\"},\"portion\":\"25 g of meal in 225 mL broth\",\"sampled\":\"2026-11-03\",\"stage\":\"after\",\"strain\":\"d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4\",\"target\":\"The production strain\"},\"sampleId\":\"MEAL-0907-POST\",\"subject\":\"a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\",\"tested\":\"2026-11-10\"}",
+      "sha256": "94d843a8f36eca192d666566df86ea8e3a4fe9a938cddecd9941403d000599de",
+      "size": 932
+    },
+    {
+      "name": "viability: sent under the strain record itself",
+      "statement": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4",
+        "sampleId": "MEAL-0907-PRE",
+        "accession": "LAB-26-2201",
+        "method": {
+          "id": "Spread plate on PDA, SOP-M7",
+          "version": "2"
+        },
+        "tested": "2026-11-10",
+        "kind": "viability",
+        "received": "2026-11-03",
+        "qc": [
+          {
+            "name": "Medium lot",
+            "value": "PDA-2611"
+          }
+        ],
+        "result": {
+          "batch": "MEAL-26-0907",
+          "stage": "before",
+          "strain": "d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4",
+          "sampled": "2026-11-02",
+          "target": "The production strain",
+          "portion": "10 g of meal, 1 in 10, 0.1 mL on each of 3 plates",
+          "cultures": [
+            {
+              "medium": "PDA with chloramphenicol",
+              "time": "7 days",
+              "temperature": "25 °C"
+            }
+          ],
+          "lod": {
+            "value": "100",
+            "unit": "CFU/g"
+          },
+          "detected": true,
+          "count": {
+            "value": "4300000",
+            "unit": "CFU/g"
+          },
+          "controls": {
+            "positive": "Production strain, about 50 CFU",
+            "positiveGrew": true,
+            "negativeGrew": false
+          }
+        },
+        "bindingSalt": "6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a"
+      },
+      "canonical": "{\"accession\":\"LAB-26-2201\",\"bindingSalt\":\"6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a\",\"format\":\"veilcore/lab-result/v2\",\"kind\":\"viability\",\"method\":{\"id\":\"Spread plate on PDA, SOP-M7\",\"version\":\"2\"},\"qc\":[{\"name\":\"Medium lot\",\"value\":\"PDA-2611\"}],\"received\":\"2026-11-03\",\"result\":{\"batch\":\"MEAL-26-0907\",\"controls\":{\"negativeGrew\":false,\"positive\":\"Production strain, about 50 CFU\",\"positiveGrew\":true},\"count\":{\"unit\":\"CFU/g\",\"value\":\"4300000\"},\"cultures\":[{\"medium\":\"PDA with chloramphenicol\",\"temperature\":\"25 °C\",\"time\":\"7 days\"}],\"detected\":true,\"lod\":{\"unit\":\"CFU/g\",\"value\":\"100\"},\"portion\":\"10 g of meal, 1 in 10, 0.1 mL on each of 3 plates\",\"sampled\":\"2026-11-02\",\"stage\":\"before\",\"strain\":\"d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4\",\"target\":\"The production strain\"},\"sampleId\":\"MEAL-0907-PRE\",\"subject\":\"d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4\",\"tested\":\"2026-11-10\"}",
+      "sha256": "9b00e81a1d9a88c210f98d7cfe7c0387ebeaa0d655f1772d6c1dcf00b97ba94b",
+      "size": 949
     }
   ],
   "labStatementRefusals": [
@@ -1318,6 +1560,1285 @@
         },
         "bindingSalt": 7
       }
+    },
+    {
+      "name": "viability: a stage the format doesn’t have",
+      "statement": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "MEAL-0907-PRE",
+        "accession": "LAB-26-2201",
+        "method": {
+          "id": "Spread plate on PDA, SOP-M7",
+          "version": "2"
+        },
+        "tested": "2026-11-10",
+        "kind": "viability",
+        "received": "2026-11-03",
+        "qc": [
+          {
+            "name": "Medium lot",
+            "value": "PDA-2611"
+          }
+        ],
+        "result": {
+          "batch": "MEAL-26-0907",
+          "stage": "during",
+          "strain": "d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4",
+          "sampled": "2026-11-02",
+          "target": "The production strain",
+          "portion": "10 g of meal, 1 in 10, 0.1 mL on each of 3 plates",
+          "cultures": [
+            {
+              "medium": "PDA with chloramphenicol",
+              "time": "7 days",
+              "temperature": "25 °C"
+            }
+          ],
+          "lod": {
+            "value": "100",
+            "unit": "CFU/g"
+          },
+          "detected": true,
+          "count": {
+            "value": "4300000",
+            "unit": "CFU/g"
+          },
+          "controls": {
+            "positive": "Production strain, about 50 CFU",
+            "positiveGrew": true,
+            "negativeGrew": false
+          }
+        },
+        "bindingSalt": "6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a"
+      }
+    },
+    {
+      "name": "viability: an after-sample with no kill step",
+      "statement": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "MEAL-0907-POST",
+        "accession": "LAB-26-2202",
+        "method": {
+          "id": "Enrichment then PDA, SOP-M9",
+          "version": "1"
+        },
+        "tested": "2026-11-10",
+        "kind": "viability",
+        "received": "2026-11-03",
+        "qc": [
+          {
+            "name": "Medium lot",
+            "value": "PDA-2611"
+          }
+        ],
+        "result": {
+          "batch": "MEAL-26-0907",
+          "stage": "after",
+          "strain": "d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4",
+          "sampled": "2026-11-03",
+          "target": "The production strain",
+          "portion": "25 g of meal in 225 mL broth",
+          "cultures": [
+            {
+              "medium": "Potato dextrose broth",
+              "time": "7 days",
+              "temperature": "25 °C"
+            },
+            {
+              "medium": "PDA with chloramphenicol",
+              "time": "7 days",
+              "temperature": "25 °C"
+            }
+          ],
+          "lod": {
+            "value": "1",
+            "unit": "CFU per 25 g"
+          },
+          "detected": false,
+          "count": {
+            "value": "0",
+            "unit": "CFU per 25 g"
+          },
+          "controls": {
+            "positive": "Production strain, about 50 CFU",
+            "positiveGrew": true,
+            "negativeGrew": false
+          },
+          "before": "e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5"
+        },
+        "bindingSalt": "6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a"
+      }
+    },
+    {
+      "name": "viability: a before-sample with a kill step",
+      "statement": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "MEAL-0907-PRE",
+        "accession": "LAB-26-2201",
+        "method": {
+          "id": "Spread plate on PDA, SOP-M7",
+          "version": "2"
+        },
+        "tested": "2026-11-10",
+        "kind": "viability",
+        "received": "2026-11-03",
+        "qc": [
+          {
+            "name": "Medium lot",
+            "value": "PDA-2611"
+          }
+        ],
+        "result": {
+          "batch": "MEAL-26-0907",
+          "stage": "before",
+          "strain": "d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4",
+          "sampled": "2026-11-02",
+          "target": "The production strain",
+          "portion": "10 g of meal, 1 in 10, 0.1 mL on each of 3 plates",
+          "cultures": [
+            {
+              "medium": "PDA with chloramphenicol",
+              "time": "7 days",
+              "temperature": "25 °C"
+            }
+          ],
+          "lod": {
+            "value": "100",
+            "unit": "CFU/g"
+          },
+          "detected": true,
+          "count": {
+            "value": "4300000",
+            "unit": "CFU/g"
+          },
+          "controls": {
+            "positive": "Production strain, about 50 CFU",
+            "positiveGrew": true,
+            "negativeGrew": false
+          },
+          "killStep": "Steam"
+        },
+        "bindingSalt": "6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a"
+      }
+    },
+    {
+      "name": "viability: a before-sample naming a before-sample",
+      "statement": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "MEAL-0907-PRE",
+        "accession": "LAB-26-2201",
+        "method": {
+          "id": "Spread plate on PDA, SOP-M7",
+          "version": "2"
+        },
+        "tested": "2026-11-10",
+        "kind": "viability",
+        "received": "2026-11-03",
+        "qc": [
+          {
+            "name": "Medium lot",
+            "value": "PDA-2611"
+          }
+        ],
+        "result": {
+          "batch": "MEAL-26-0907",
+          "stage": "before",
+          "strain": "d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4",
+          "sampled": "2026-11-02",
+          "target": "The production strain",
+          "portion": "10 g of meal, 1 in 10, 0.1 mL on each of 3 plates",
+          "cultures": [
+            {
+              "medium": "PDA with chloramphenicol",
+              "time": "7 days",
+              "temperature": "25 °C"
+            }
+          ],
+          "lod": {
+            "value": "100",
+            "unit": "CFU/g"
+          },
+          "detected": true,
+          "count": {
+            "value": "4300000",
+            "unit": "CFU/g"
+          },
+          "controls": {
+            "positive": "Production strain, about 50 CFU",
+            "positiveGrew": true,
+            "negativeGrew": false
+          },
+          "before": "e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5"
+        },
+        "bindingSalt": "6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a"
+      }
+    },
+    {
+      "name": "viability: no strain record",
+      "statement": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "MEAL-0907-PRE",
+        "accession": "LAB-26-2201",
+        "method": {
+          "id": "Spread plate on PDA, SOP-M7",
+          "version": "2"
+        },
+        "tested": "2026-11-10",
+        "kind": "viability",
+        "received": "2026-11-03",
+        "qc": [
+          {
+            "name": "Medium lot",
+            "value": "PDA-2611"
+          }
+        ],
+        "result": {
+          "batch": "MEAL-26-0907",
+          "stage": "before",
+          "sampled": "2026-11-02",
+          "target": "The production strain",
+          "portion": "10 g of meal, 1 in 10, 0.1 mL on each of 3 plates",
+          "cultures": [
+            {
+              "medium": "PDA with chloramphenicol",
+              "time": "7 days",
+              "temperature": "25 °C"
+            }
+          ],
+          "lod": {
+            "value": "100",
+            "unit": "CFU/g"
+          },
+          "detected": true,
+          "count": {
+            "value": "4300000",
+            "unit": "CFU/g"
+          },
+          "controls": {
+            "positive": "Production strain, about 50 CFU",
+            "positiveGrew": true,
+            "negativeGrew": false
+          }
+        },
+        "bindingSalt": "6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a"
+      }
+    },
+    {
+      "name": "viability: a strain named by name, not by proof code",
+      "statement": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "MEAL-0907-PRE",
+        "accession": "LAB-26-2201",
+        "method": {
+          "id": "Spread plate on PDA, SOP-M7",
+          "version": "2"
+        },
+        "tested": "2026-11-10",
+        "kind": "viability",
+        "received": "2026-11-03",
+        "qc": [
+          {
+            "name": "Medium lot",
+            "value": "PDA-2611"
+          }
+        ],
+        "result": {
+          "batch": "MEAL-26-0907",
+          "stage": "before",
+          "strain": "Aspergillus oryzae RIB40",
+          "sampled": "2026-11-02",
+          "target": "The production strain",
+          "portion": "10 g of meal, 1 in 10, 0.1 mL on each of 3 plates",
+          "cultures": [
+            {
+              "medium": "PDA with chloramphenicol",
+              "time": "7 days",
+              "temperature": "25 °C"
+            }
+          ],
+          "lod": {
+            "value": "100",
+            "unit": "CFU/g"
+          },
+          "detected": true,
+          "count": {
+            "value": "4300000",
+            "unit": "CFU/g"
+          },
+          "controls": {
+            "positive": "Production strain, about 50 CFU",
+            "positiveGrew": true,
+            "negativeGrew": false
+          }
+        },
+        "bindingSalt": "6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a"
+      }
+    },
+    {
+      "name": "viability: no batch",
+      "statement": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "MEAL-0907-PRE",
+        "accession": "LAB-26-2201",
+        "method": {
+          "id": "Spread plate on PDA, SOP-M7",
+          "version": "2"
+        },
+        "tested": "2026-11-10",
+        "kind": "viability",
+        "received": "2026-11-03",
+        "qc": [
+          {
+            "name": "Medium lot",
+            "value": "PDA-2611"
+          }
+        ],
+        "result": {
+          "batch": "",
+          "stage": "before",
+          "strain": "d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4",
+          "sampled": "2026-11-02",
+          "target": "The production strain",
+          "portion": "10 g of meal, 1 in 10, 0.1 mL on each of 3 plates",
+          "cultures": [
+            {
+              "medium": "PDA with chloramphenicol",
+              "time": "7 days",
+              "temperature": "25 °C"
+            }
+          ],
+          "lod": {
+            "value": "100",
+            "unit": "CFU/g"
+          },
+          "detected": true,
+          "count": {
+            "value": "4300000",
+            "unit": "CFU/g"
+          },
+          "controls": {
+            "positive": "Production strain, about 50 CFU",
+            "positiveGrew": true,
+            "negativeGrew": false
+          }
+        },
+        "bindingSalt": "6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a"
+      }
+    },
+    {
+      "name": "viability: sampled after the date tested",
+      "statement": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "MEAL-0907-PRE",
+        "accession": "LAB-26-2201",
+        "method": {
+          "id": "Spread plate on PDA, SOP-M7",
+          "version": "2"
+        },
+        "tested": "2026-11-10",
+        "kind": "viability",
+        "received": "2026-11-03",
+        "qc": [
+          {
+            "name": "Medium lot",
+            "value": "PDA-2611"
+          }
+        ],
+        "result": {
+          "batch": "MEAL-26-0907",
+          "stage": "before",
+          "strain": "d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4",
+          "sampled": "2026-11-11",
+          "target": "The production strain",
+          "portion": "10 g of meal, 1 in 10, 0.1 mL on each of 3 plates",
+          "cultures": [
+            {
+              "medium": "PDA with chloramphenicol",
+              "time": "7 days",
+              "temperature": "25 °C"
+            }
+          ],
+          "lod": {
+            "value": "100",
+            "unit": "CFU/g"
+          },
+          "detected": true,
+          "count": {
+            "value": "4300000",
+            "unit": "CFU/g"
+          },
+          "controls": {
+            "positive": "Production strain, about 50 CFU",
+            "positiveGrew": true,
+            "negativeGrew": false
+          }
+        },
+        "bindingSalt": "6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a"
+      }
+    },
+    {
+      "name": "viability: sampled after the date received",
+      "statement": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "MEAL-0907-PRE",
+        "accession": "LAB-26-2201",
+        "method": {
+          "id": "Spread plate on PDA, SOP-M7",
+          "version": "2"
+        },
+        "tested": "2026-11-10",
+        "kind": "viability",
+        "received": "2026-11-03",
+        "qc": [
+          {
+            "name": "Medium lot",
+            "value": "PDA-2611"
+          }
+        ],
+        "result": {
+          "batch": "MEAL-26-0907",
+          "stage": "before",
+          "strain": "d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4",
+          "sampled": "2026-11-04",
+          "target": "The production strain",
+          "portion": "10 g of meal, 1 in 10, 0.1 mL on each of 3 plates",
+          "cultures": [
+            {
+              "medium": "PDA with chloramphenicol",
+              "time": "7 days",
+              "temperature": "25 °C"
+            }
+          ],
+          "lod": {
+            "value": "100",
+            "unit": "CFU/g"
+          },
+          "detected": true,
+          "count": {
+            "value": "4300000",
+            "unit": "CFU/g"
+          },
+          "controls": {
+            "positive": "Production strain, about 50 CFU",
+            "positiveGrew": true,
+            "negativeGrew": false
+          }
+        },
+        "bindingSalt": "6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a"
+      }
+    },
+    {
+      "name": "viability: no medium",
+      "statement": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "MEAL-0907-PRE",
+        "accession": "LAB-26-2201",
+        "method": {
+          "id": "Spread plate on PDA, SOP-M7",
+          "version": "2"
+        },
+        "tested": "2026-11-10",
+        "kind": "viability",
+        "received": "2026-11-03",
+        "qc": [
+          {
+            "name": "Medium lot",
+            "value": "PDA-2611"
+          }
+        ],
+        "result": {
+          "batch": "MEAL-26-0907",
+          "stage": "before",
+          "strain": "d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4",
+          "sampled": "2026-11-02",
+          "target": "The production strain",
+          "portion": "10 g of meal, 1 in 10, 0.1 mL on each of 3 plates",
+          "cultures": [],
+          "lod": {
+            "value": "100",
+            "unit": "CFU/g"
+          },
+          "detected": true,
+          "count": {
+            "value": "4300000",
+            "unit": "CFU/g"
+          },
+          "controls": {
+            "positive": "Production strain, about 50 CFU",
+            "positiveGrew": true,
+            "negativeGrew": false
+          }
+        },
+        "bindingSalt": "6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a"
+      }
+    },
+    {
+      "name": "viability: five media",
+      "statement": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "MEAL-0907-PRE",
+        "accession": "LAB-26-2201",
+        "method": {
+          "id": "Spread plate on PDA, SOP-M7",
+          "version": "2"
+        },
+        "tested": "2026-11-10",
+        "kind": "viability",
+        "received": "2026-11-03",
+        "qc": [
+          {
+            "name": "Medium lot",
+            "value": "PDA-2611"
+          }
+        ],
+        "result": {
+          "batch": "MEAL-26-0907",
+          "stage": "before",
+          "strain": "d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4",
+          "sampled": "2026-11-02",
+          "target": "The production strain",
+          "portion": "10 g of meal, 1 in 10, 0.1 mL on each of 3 plates",
+          "cultures": [
+            {
+              "medium": "M0",
+              "time": "7 days",
+              "temperature": "25 °C"
+            },
+            {
+              "medium": "M1",
+              "time": "7 days",
+              "temperature": "25 °C"
+            },
+            {
+              "medium": "M2",
+              "time": "7 days",
+              "temperature": "25 °C"
+            },
+            {
+              "medium": "M3",
+              "time": "7 days",
+              "temperature": "25 °C"
+            },
+            {
+              "medium": "M4",
+              "time": "7 days",
+              "temperature": "25 °C"
+            }
+          ],
+          "lod": {
+            "value": "100",
+            "unit": "CFU/g"
+          },
+          "detected": true,
+          "count": {
+            "value": "4300000",
+            "unit": "CFU/g"
+          },
+          "controls": {
+            "positive": "Production strain, about 50 CFU",
+            "positiveGrew": true,
+            "negativeGrew": false
+          }
+        },
+        "bindingSalt": "6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a"
+      }
+    },
+    {
+      "name": "viability: the same medium twice",
+      "statement": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "MEAL-0907-PRE",
+        "accession": "LAB-26-2201",
+        "method": {
+          "id": "Spread plate on PDA, SOP-M7",
+          "version": "2"
+        },
+        "tested": "2026-11-10",
+        "kind": "viability",
+        "received": "2026-11-03",
+        "qc": [
+          {
+            "name": "Medium lot",
+            "value": "PDA-2611"
+          }
+        ],
+        "result": {
+          "batch": "MEAL-26-0907",
+          "stage": "before",
+          "strain": "d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4",
+          "sampled": "2026-11-02",
+          "target": "The production strain",
+          "portion": "10 g of meal, 1 in 10, 0.1 mL on each of 3 plates",
+          "cultures": [
+            {
+              "medium": "PDA with chloramphenicol",
+              "time": "7 days",
+              "temperature": "25 °C"
+            },
+            {
+              "medium": "PDA with chloramphenicol",
+              "time": "7 days",
+              "temperature": "25 °C"
+            }
+          ],
+          "lod": {
+            "value": "100",
+            "unit": "CFU/g"
+          },
+          "detected": true,
+          "count": {
+            "value": "4300000",
+            "unit": "CFU/g"
+          },
+          "controls": {
+            "positive": "Production strain, about 50 CFU",
+            "positiveGrew": true,
+            "negativeGrew": false
+          }
+        },
+        "bindingSalt": "6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a"
+      }
+    },
+    {
+      "name": "viability: a medium with no temperature",
+      "statement": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "MEAL-0907-PRE",
+        "accession": "LAB-26-2201",
+        "method": {
+          "id": "Spread plate on PDA, SOP-M7",
+          "version": "2"
+        },
+        "tested": "2026-11-10",
+        "kind": "viability",
+        "received": "2026-11-03",
+        "qc": [
+          {
+            "name": "Medium lot",
+            "value": "PDA-2611"
+          }
+        ],
+        "result": {
+          "batch": "MEAL-26-0907",
+          "stage": "before",
+          "strain": "d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4",
+          "sampled": "2026-11-02",
+          "target": "The production strain",
+          "portion": "10 g of meal, 1 in 10, 0.1 mL on each of 3 plates",
+          "cultures": [
+            {
+              "medium": "PDA",
+              "time": "7 days"
+            }
+          ],
+          "lod": {
+            "value": "100",
+            "unit": "CFU/g"
+          },
+          "detected": true,
+          "count": {
+            "value": "4300000",
+            "unit": "CFU/g"
+          },
+          "controls": {
+            "positive": "Production strain, about 50 CFU",
+            "positiveGrew": true,
+            "negativeGrew": false
+          }
+        },
+        "bindingSalt": "6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a"
+      }
+    },
+    {
+      "name": "viability: a limit of detection of 0",
+      "statement": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "MEAL-0907-PRE",
+        "accession": "LAB-26-2201",
+        "method": {
+          "id": "Spread plate on PDA, SOP-M7",
+          "version": "2"
+        },
+        "tested": "2026-11-10",
+        "kind": "viability",
+        "received": "2026-11-03",
+        "qc": [
+          {
+            "name": "Medium lot",
+            "value": "PDA-2611"
+          }
+        ],
+        "result": {
+          "batch": "MEAL-26-0907",
+          "stage": "before",
+          "strain": "d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4",
+          "sampled": "2026-11-02",
+          "target": "The production strain",
+          "portion": "10 g of meal, 1 in 10, 0.1 mL on each of 3 plates",
+          "cultures": [
+            {
+              "medium": "PDA with chloramphenicol",
+              "time": "7 days",
+              "temperature": "25 °C"
+            }
+          ],
+          "lod": {
+            "value": "0",
+            "unit": "CFU/g"
+          },
+          "detected": true,
+          "count": {
+            "value": "4300000",
+            "unit": "CFU/g"
+          },
+          "controls": {
+            "positive": "Production strain, about 50 CFU",
+            "positiveGrew": true,
+            "negativeGrew": false
+          }
+        },
+        "bindingSalt": "6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a"
+      }
+    },
+    {
+      "name": "viability: a limit of detection with an exponent",
+      "statement": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "MEAL-0907-PRE",
+        "accession": "LAB-26-2201",
+        "method": {
+          "id": "Spread plate on PDA, SOP-M7",
+          "version": "2"
+        },
+        "tested": "2026-11-10",
+        "kind": "viability",
+        "received": "2026-11-03",
+        "qc": [
+          {
+            "name": "Medium lot",
+            "value": "PDA-2611"
+          }
+        ],
+        "result": {
+          "batch": "MEAL-26-0907",
+          "stage": "before",
+          "strain": "d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4",
+          "sampled": "2026-11-02",
+          "target": "The production strain",
+          "portion": "10 g of meal, 1 in 10, 0.1 mL on each of 3 plates",
+          "cultures": [
+            {
+              "medium": "PDA with chloramphenicol",
+              "time": "7 days",
+              "temperature": "25 °C"
+            }
+          ],
+          "lod": {
+            "value": "1e2",
+            "unit": "CFU/g"
+          },
+          "detected": true,
+          "count": {
+            "value": "4300000",
+            "unit": "CFU/g"
+          },
+          "controls": {
+            "positive": "Production strain, about 50 CFU",
+            "positiveGrew": true,
+            "negativeGrew": false
+          }
+        },
+        "bindingSalt": "6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a"
+      }
+    },
+    {
+      "name": "viability: a limit of detection with no unit",
+      "statement": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "MEAL-0907-PRE",
+        "accession": "LAB-26-2201",
+        "method": {
+          "id": "Spread plate on PDA, SOP-M7",
+          "version": "2"
+        },
+        "tested": "2026-11-10",
+        "kind": "viability",
+        "received": "2026-11-03",
+        "qc": [
+          {
+            "name": "Medium lot",
+            "value": "PDA-2611"
+          }
+        ],
+        "result": {
+          "batch": "MEAL-26-0907",
+          "stage": "before",
+          "strain": "d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4",
+          "sampled": "2026-11-02",
+          "target": "The production strain",
+          "portion": "10 g of meal, 1 in 10, 0.1 mL on each of 3 plates",
+          "cultures": [
+            {
+              "medium": "PDA with chloramphenicol",
+              "time": "7 days",
+              "temperature": "25 °C"
+            }
+          ],
+          "lod": {
+            "value": "100",
+            "unit": ""
+          },
+          "detected": true,
+          "count": {
+            "value": "4300000",
+            "unit": "CFU/g"
+          },
+          "controls": {
+            "positive": "Production strain, about 50 CFU",
+            "positiveGrew": true,
+            "negativeGrew": false
+          }
+        },
+        "bindingSalt": "6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a"
+      }
+    },
+    {
+      "name": "viability: a count written as a number",
+      "statement": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "MEAL-0907-PRE",
+        "accession": "LAB-26-2201",
+        "method": {
+          "id": "Spread plate on PDA, SOP-M7",
+          "version": "2"
+        },
+        "tested": "2026-11-10",
+        "kind": "viability",
+        "received": "2026-11-03",
+        "qc": [
+          {
+            "name": "Medium lot",
+            "value": "PDA-2611"
+          }
+        ],
+        "result": {
+          "batch": "MEAL-26-0907",
+          "stage": "before",
+          "strain": "d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4",
+          "sampled": "2026-11-02",
+          "target": "The production strain",
+          "portion": "10 g of meal, 1 in 10, 0.1 mL on each of 3 plates",
+          "cultures": [
+            {
+              "medium": "PDA with chloramphenicol",
+              "time": "7 days",
+              "temperature": "25 °C"
+            }
+          ],
+          "lod": {
+            "value": "100",
+            "unit": "CFU/g"
+          },
+          "detected": true,
+          "count": {
+            "value": 4300000,
+            "unit": "CFU/g"
+          },
+          "controls": {
+            "positive": "Production strain, about 50 CFU",
+            "positiveGrew": true,
+            "negativeGrew": false
+          }
+        },
+        "bindingSalt": "6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a"
+      }
+    },
+    {
+      "name": "viability: none recovered with a count above 0",
+      "statement": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "MEAL-0907-POST",
+        "accession": "LAB-26-2202",
+        "method": {
+          "id": "Enrichment then PDA, SOP-M9",
+          "version": "1"
+        },
+        "tested": "2026-11-10",
+        "kind": "viability",
+        "received": "2026-11-03",
+        "qc": [
+          {
+            "name": "Medium lot",
+            "value": "PDA-2611"
+          }
+        ],
+        "result": {
+          "batch": "MEAL-26-0907",
+          "stage": "after",
+          "strain": "d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4",
+          "sampled": "2026-11-03",
+          "target": "The production strain",
+          "portion": "25 g of meal in 225 mL broth",
+          "cultures": [
+            {
+              "medium": "Potato dextrose broth",
+              "time": "7 days",
+              "temperature": "25 °C"
+            },
+            {
+              "medium": "PDA with chloramphenicol",
+              "time": "7 days",
+              "temperature": "25 °C"
+            }
+          ],
+          "lod": {
+            "value": "1",
+            "unit": "CFU per 25 g"
+          },
+          "detected": false,
+          "count": {
+            "value": "3",
+            "unit": "CFU per 25 g"
+          },
+          "controls": {
+            "positive": "Production strain, about 50 CFU",
+            "positiveGrew": true,
+            "negativeGrew": false
+          },
+          "killStep": "Steam, 95 °C core for 30 min, then dried at 70 °C",
+          "before": "e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5"
+        },
+        "bindingSalt": "6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a"
+      }
+    },
+    {
+      "name": "viability: recovered with a count of 0",
+      "statement": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "MEAL-0907-PRE",
+        "accession": "LAB-26-2201",
+        "method": {
+          "id": "Spread plate on PDA, SOP-M7",
+          "version": "2"
+        },
+        "tested": "2026-11-10",
+        "kind": "viability",
+        "received": "2026-11-03",
+        "qc": [
+          {
+            "name": "Medium lot",
+            "value": "PDA-2611"
+          }
+        ],
+        "result": {
+          "batch": "MEAL-26-0907",
+          "stage": "before",
+          "strain": "d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4",
+          "sampled": "2026-11-02",
+          "target": "The production strain",
+          "portion": "10 g of meal, 1 in 10, 0.1 mL on each of 3 plates",
+          "cultures": [
+            {
+              "medium": "PDA with chloramphenicol",
+              "time": "7 days",
+              "temperature": "25 °C"
+            }
+          ],
+          "lod": {
+            "value": "100",
+            "unit": "CFU/g"
+          },
+          "detected": true,
+          "count": {
+            "value": "0",
+            "unit": "CFU/g"
+          },
+          "controls": {
+            "positive": "Production strain, about 50 CFU",
+            "positiveGrew": true,
+            "negativeGrew": false
+          }
+        },
+        "bindingSalt": "6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a"
+      }
+    },
+    {
+      "name": "viability: detected written as text",
+      "statement": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "MEAL-0907-PRE",
+        "accession": "LAB-26-2201",
+        "method": {
+          "id": "Spread plate on PDA, SOP-M7",
+          "version": "2"
+        },
+        "tested": "2026-11-10",
+        "kind": "viability",
+        "received": "2026-11-03",
+        "qc": [
+          {
+            "name": "Medium lot",
+            "value": "PDA-2611"
+          }
+        ],
+        "result": {
+          "batch": "MEAL-26-0907",
+          "stage": "before",
+          "strain": "d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4",
+          "sampled": "2026-11-02",
+          "target": "The production strain",
+          "portion": "10 g of meal, 1 in 10, 0.1 mL on each of 3 plates",
+          "cultures": [
+            {
+              "medium": "PDA with chloramphenicol",
+              "time": "7 days",
+              "temperature": "25 °C"
+            }
+          ],
+          "lod": {
+            "value": "100",
+            "unit": "CFU/g"
+          },
+          "detected": "no growth",
+          "count": {
+            "value": "4300000",
+            "unit": "CFU/g"
+          },
+          "controls": {
+            "positive": "Production strain, about 50 CFU",
+            "positiveGrew": true,
+            "negativeGrew": false
+          }
+        },
+        "bindingSalt": "6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a"
+      }
+    },
+    {
+      "name": "viability: a positive control that did not grow (an invalid run)",
+      "statement": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "MEAL-0907-PRE",
+        "accession": "LAB-26-2201",
+        "method": {
+          "id": "Spread plate on PDA, SOP-M7",
+          "version": "2"
+        },
+        "tested": "2026-11-10",
+        "kind": "viability",
+        "received": "2026-11-03",
+        "qc": [
+          {
+            "name": "Medium lot",
+            "value": "PDA-2611"
+          }
+        ],
+        "result": {
+          "batch": "MEAL-26-0907",
+          "stage": "before",
+          "strain": "d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4",
+          "sampled": "2026-11-02",
+          "target": "The production strain",
+          "portion": "10 g of meal, 1 in 10, 0.1 mL on each of 3 plates",
+          "cultures": [
+            {
+              "medium": "PDA with chloramphenicol",
+              "time": "7 days",
+              "temperature": "25 °C"
+            }
+          ],
+          "lod": {
+            "value": "100",
+            "unit": "CFU/g"
+          },
+          "detected": true,
+          "count": {
+            "value": "4300000",
+            "unit": "CFU/g"
+          },
+          "controls": {
+            "positive": "Production strain, about 50 CFU",
+            "positiveGrew": false,
+            "negativeGrew": false
+          }
+        },
+        "bindingSalt": "6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a"
+      }
+    },
+    {
+      "name": "viability: a negative control that grew (an invalid run)",
+      "statement": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "MEAL-0907-PRE",
+        "accession": "LAB-26-2201",
+        "method": {
+          "id": "Spread plate on PDA, SOP-M7",
+          "version": "2"
+        },
+        "tested": "2026-11-10",
+        "kind": "viability",
+        "received": "2026-11-03",
+        "qc": [
+          {
+            "name": "Medium lot",
+            "value": "PDA-2611"
+          }
+        ],
+        "result": {
+          "batch": "MEAL-26-0907",
+          "stage": "before",
+          "strain": "d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4",
+          "sampled": "2026-11-02",
+          "target": "The production strain",
+          "portion": "10 g of meal, 1 in 10, 0.1 mL on each of 3 plates",
+          "cultures": [
+            {
+              "medium": "PDA with chloramphenicol",
+              "time": "7 days",
+              "temperature": "25 °C"
+            }
+          ],
+          "lod": {
+            "value": "100",
+            "unit": "CFU/g"
+          },
+          "detected": true,
+          "count": {
+            "value": "4300000",
+            "unit": "CFU/g"
+          },
+          "controls": {
+            "positive": "Production strain, about 50 CFU",
+            "positiveGrew": true,
+            "negativeGrew": true
+          }
+        },
+        "bindingSalt": "6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a"
+      }
+    },
+    {
+      "name": "viability: no positive control",
+      "statement": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "MEAL-0907-PRE",
+        "accession": "LAB-26-2201",
+        "method": {
+          "id": "Spread plate on PDA, SOP-M7",
+          "version": "2"
+        },
+        "tested": "2026-11-10",
+        "kind": "viability",
+        "received": "2026-11-03",
+        "qc": [
+          {
+            "name": "Medium lot",
+            "value": "PDA-2611"
+          }
+        ],
+        "result": {
+          "batch": "MEAL-26-0907",
+          "stage": "before",
+          "strain": "d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4",
+          "sampled": "2026-11-02",
+          "target": "The production strain",
+          "portion": "10 g of meal, 1 in 10, 0.1 mL on each of 3 plates",
+          "cultures": [
+            {
+              "medium": "PDA with chloramphenicol",
+              "time": "7 days",
+              "temperature": "25 °C"
+            }
+          ],
+          "lod": {
+            "value": "100",
+            "unit": "CFU/g"
+          },
+          "detected": true,
+          "count": {
+            "value": "4300000",
+            "unit": "CFU/g"
+          },
+          "controls": {
+            "positiveGrew": true
+          }
+        },
+        "bindingSalt": "6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a"
+      }
+    },
+    {
+      "name": "viability: a field the result doesn’t have",
+      "statement": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "MEAL-0907-PRE",
+        "accession": "LAB-26-2201",
+        "method": {
+          "id": "Spread plate on PDA, SOP-M7",
+          "version": "2"
+        },
+        "tested": "2026-11-10",
+        "kind": "viability",
+        "received": "2026-11-03",
+        "qc": [
+          {
+            "name": "Medium lot",
+            "value": "PDA-2611"
+          }
+        ],
+        "result": {
+          "batch": "MEAL-26-0907",
+          "stage": "before",
+          "strain": "d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4",
+          "sampled": "2026-11-02",
+          "target": "The production strain",
+          "portion": "10 g of meal, 1 in 10, 0.1 mL on each of 3 plates",
+          "cultures": [
+            {
+              "medium": "PDA with chloramphenicol",
+              "time": "7 days",
+              "temperature": "25 °C"
+            }
+          ],
+          "lod": {
+            "value": "100",
+            "unit": "CFU/g"
+          },
+          "detected": true,
+          "count": {
+            "value": "4300000",
+            "unit": "CFU/g"
+          },
+          "controls": {
+            "positive": "Production strain, about 50 CFU",
+            "positiveGrew": true,
+            "negativeGrew": false
+          },
+          "sterile": true
+        },
+        "bindingSalt": "6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a"
+      }
     }
   ],
   "labBindings": [
@@ -2082,6 +3603,313 @@
       "values": [
         "9650",
         "9800",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "bound": true
+    },
+    {
+      "name": "viability: a before-sample, recovered",
+      "fields": {
+        "about": [
+          {
+            "name": "MEAL-0907-PRE"
+          }
+        ],
+        "fieldSchema": "b5399b9e10f8f2787843aac9ee6e484be485c9f900e178528f413427f6afe3a7",
+        "fieldSetRoot": "e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5",
+        "files": [
+          {
+            "name": "report.pdf",
+            "sha256": "f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6",
+            "size": 51234
+          },
+          {
+            "name": "lab-result.json",
+            "sha256": "ea82678c3a854c34ce3bd93a82eba09e75e1dc2588c45e88854947e1a06a2c2d",
+            "size": 949
+          }
+        ],
+        "holder": "Example Plant Lab",
+        "issued": "2026-11-10",
+        "issuer": "Example Plant Lab",
+        "loggedAt": 1793000000000,
+        "nonce": "0707070707070707070707070707070707070707070707070707070707070707",
+        "notes": "",
+        "profile": "veilcore/profile/document/v1",
+        "reference": "LAB-26-2201",
+        "title": "LAB-26-2201",
+        "type": "lab-report"
+      },
+      "statement": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "MEAL-0907-PRE",
+        "accession": "LAB-26-2201",
+        "method": {
+          "id": "Spread plate on PDA, SOP-M7",
+          "version": "2"
+        },
+        "tested": "2026-11-10",
+        "kind": "viability",
+        "received": "2026-11-03",
+        "qc": [
+          {
+            "name": "Medium lot",
+            "value": "PDA-2611"
+          }
+        ],
+        "result": {
+          "batch": "MEAL-26-0907",
+          "stage": "before",
+          "strain": "d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4",
+          "sampled": "2026-11-02",
+          "target": "The production strain",
+          "portion": "10 g of meal, 1 in 10, 0.1 mL on each of 3 plates",
+          "cultures": [
+            {
+              "medium": "PDA with chloramphenicol",
+              "time": "7 days",
+              "temperature": "25 °C"
+            }
+          ],
+          "lod": {
+            "value": "100",
+            "unit": "CFU/g"
+          },
+          "detected": true,
+          "count": {
+            "value": "4300000",
+            "unit": "CFU/g"
+          },
+          "controls": {
+            "positive": "Production strain, about 50 CFU",
+            "positiveGrew": true,
+            "negativeGrew": false
+          }
+        },
+        "bindingSalt": "6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a"
+      },
+      "values": [
+        "1",
+        "0",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "bound": true
+    },
+    {
+      "name": "viability: an after-sample, none recovered",
+      "fields": {
+        "about": [
+          {
+            "name": "MEAL-0907-POST"
+          }
+        ],
+        "fieldSchema": "b5399b9e10f8f2787843aac9ee6e484be485c9f900e178528f413427f6afe3a7",
+        "fieldSetRoot": "e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5",
+        "files": [
+          {
+            "name": "report.pdf",
+            "sha256": "f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6",
+            "size": 51234
+          },
+          {
+            "name": "lab-result.json",
+            "sha256": "ba36575b3282b133a49a22487f4c4649c397a9a0738abba54cdea5dd98384b70",
+            "size": 1150
+          }
+        ],
+        "holder": "Example Plant Lab",
+        "issued": "2026-11-10",
+        "issuer": "Example Plant Lab",
+        "loggedAt": 1793000000000,
+        "nonce": "0707070707070707070707070707070707070707070707070707070707070707",
+        "notes": "",
+        "profile": "veilcore/profile/document/v1",
+        "reference": "LAB-26-2202",
+        "title": "LAB-26-2202",
+        "type": "lab-report"
+      },
+      "statement": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "MEAL-0907-POST",
+        "accession": "LAB-26-2202",
+        "method": {
+          "id": "Enrichment then PDA, SOP-M9",
+          "version": "1"
+        },
+        "tested": "2026-11-10",
+        "kind": "viability",
+        "received": "2026-11-03",
+        "qc": [
+          {
+            "name": "Medium lot",
+            "value": "PDA-2611"
+          }
+        ],
+        "result": {
+          "batch": "MEAL-26-0907",
+          "stage": "after",
+          "strain": "d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4",
+          "sampled": "2026-11-03",
+          "target": "The production strain",
+          "portion": "25 g of meal in 225 mL broth",
+          "cultures": [
+            {
+              "medium": "Potato dextrose broth",
+              "time": "7 days",
+              "temperature": "25 °C"
+            },
+            {
+              "medium": "PDA with chloramphenicol",
+              "time": "7 days",
+              "temperature": "25 °C"
+            }
+          ],
+          "lod": {
+            "value": "1",
+            "unit": "CFU per 25 g"
+          },
+          "detected": false,
+          "count": {
+            "value": "0",
+            "unit": "CFU per 25 g"
+          },
+          "controls": {
+            "positive": "Production strain, about 50 CFU",
+            "positiveGrew": true,
+            "negativeGrew": false
+          },
+          "killStep": "Steam, 95 °C core for 30 min, then dried at 70 °C",
+          "before": "e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5"
+        },
+        "bindingSalt": "6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a"
+      },
+      "values": [
+        "0",
+        "1",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "bound": true
+    },
+    {
+      "name": "viability: an after-sample, the least it carries",
+      "fields": {
+        "about": [
+          {
+            "name": "MEAL-0907-POST"
+          }
+        ],
+        "fieldSchema": "b5399b9e10f8f2787843aac9ee6e484be485c9f900e178528f413427f6afe3a7",
+        "fieldSetRoot": "e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5",
+        "files": [
+          {
+            "name": "report.pdf",
+            "sha256": "f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6",
+            "size": 51234
+          },
+          {
+            "name": "lab-result.json",
+            "sha256": "94d843a8f36eca192d666566df86ea8e3a4fe9a938cddecd9941403d000599de",
+            "size": 932
+          }
+        ],
+        "holder": "Example Plant Lab",
+        "issued": "2026-11-10",
+        "issuer": "Example Plant Lab",
+        "loggedAt": 1793000000000,
+        "nonce": "0707070707070707070707070707070707070707070707070707070707070707",
+        "notes": "",
+        "profile": "veilcore/profile/document/v1",
+        "reference": "LAB-26-2202",
+        "title": "LAB-26-2202",
+        "type": "lab-report"
+      },
+      "statement": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "MEAL-0907-POST",
+        "accession": "LAB-26-2202",
+        "method": {
+          "id": "Enrichment then PDA, SOP-M9",
+          "version": "1"
+        },
+        "tested": "2026-11-10",
+        "kind": "viability",
+        "result": {
+          "batch": "MEAL-26-0907",
+          "stage": "after",
+          "strain": "d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4",
+          "sampled": "2026-11-03",
+          "target": "The production strain",
+          "portion": "25 g of meal in 225 mL broth",
+          "cultures": [
+            {
+              "medium": "Potato dextrose broth",
+              "time": "7 days",
+              "temperature": "25 °C"
+            },
+            {
+              "medium": "PDA with chloramphenicol",
+              "time": "7 days",
+              "temperature": "25 °C"
+            }
+          ],
+          "lod": {
+            "value": "1",
+            "unit": "CFU per 25 g"
+          },
+          "detected": false,
+          "controls": {
+            "positive": "A. brasiliensis ATCC 16404",
+            "positiveGrew": true
+          },
+          "killStep": "Steam, 95 °C core for 30 min, then dried at 70 °C"
+        },
+        "bindingSalt": "6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a"
+      },
+      "values": [
+        "0",
+        "1",
         null,
         null,
         null,
@@ -3217,6 +5045,435 @@
         null
       ],
       "bound": false
+    },
+    {
+      "name": "viability: the field set says before, the statement after",
+      "fields": {
+        "about": [
+          {
+            "name": "MEAL-0907-POST"
+          }
+        ],
+        "fieldSchema": "b5399b9e10f8f2787843aac9ee6e484be485c9f900e178528f413427f6afe3a7",
+        "fieldSetRoot": "e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5",
+        "files": [
+          {
+            "name": "report.pdf",
+            "sha256": "f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6",
+            "size": 51234
+          },
+          {
+            "name": "lab-result.json",
+            "sha256": "ba36575b3282b133a49a22487f4c4649c397a9a0738abba54cdea5dd98384b70",
+            "size": 1150
+          }
+        ],
+        "holder": "Example Plant Lab",
+        "issued": "2026-11-10",
+        "issuer": "Example Plant Lab",
+        "loggedAt": 1793000000000,
+        "nonce": "0707070707070707070707070707070707070707070707070707070707070707",
+        "notes": "",
+        "profile": "veilcore/profile/document/v1",
+        "reference": "LAB-26-2202",
+        "title": "LAB-26-2202",
+        "type": "lab-report"
+      },
+      "statement": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "MEAL-0907-POST",
+        "accession": "LAB-26-2202",
+        "method": {
+          "id": "Enrichment then PDA, SOP-M9",
+          "version": "1"
+        },
+        "tested": "2026-11-10",
+        "kind": "viability",
+        "received": "2026-11-03",
+        "qc": [
+          {
+            "name": "Medium lot",
+            "value": "PDA-2611"
+          }
+        ],
+        "result": {
+          "batch": "MEAL-26-0907",
+          "stage": "after",
+          "strain": "d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4",
+          "sampled": "2026-11-03",
+          "target": "The production strain",
+          "portion": "25 g of meal in 225 mL broth",
+          "cultures": [
+            {
+              "medium": "Potato dextrose broth",
+              "time": "7 days",
+              "temperature": "25 °C"
+            },
+            {
+              "medium": "PDA with chloramphenicol",
+              "time": "7 days",
+              "temperature": "25 °C"
+            }
+          ],
+          "lod": {
+            "value": "1",
+            "unit": "CFU per 25 g"
+          },
+          "detected": false,
+          "count": {
+            "value": "0",
+            "unit": "CFU per 25 g"
+          },
+          "controls": {
+            "positive": "Production strain, about 50 CFU",
+            "positiveGrew": true,
+            "negativeGrew": false
+          },
+          "killStep": "Steam, 95 °C core for 30 min, then dried at 70 °C",
+          "before": "e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5"
+        },
+        "bindingSalt": "6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a"
+      },
+      "values": [
+        "0",
+        "0",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "bound": false
+    },
+    {
+      "name": "viability: the field set says none recovered, the statement some",
+      "fields": {
+        "about": [
+          {
+            "name": "MEAL-0907-PRE"
+          }
+        ],
+        "fieldSchema": "b5399b9e10f8f2787843aac9ee6e484be485c9f900e178528f413427f6afe3a7",
+        "fieldSetRoot": "e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5",
+        "files": [
+          {
+            "name": "report.pdf",
+            "sha256": "f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6",
+            "size": 51234
+          },
+          {
+            "name": "lab-result.json",
+            "sha256": "ea82678c3a854c34ce3bd93a82eba09e75e1dc2588c45e88854947e1a06a2c2d",
+            "size": 949
+          }
+        ],
+        "holder": "Example Plant Lab",
+        "issued": "2026-11-10",
+        "issuer": "Example Plant Lab",
+        "loggedAt": 1793000000000,
+        "nonce": "0707070707070707070707070707070707070707070707070707070707070707",
+        "notes": "",
+        "profile": "veilcore/profile/document/v1",
+        "reference": "LAB-26-2201",
+        "title": "LAB-26-2201",
+        "type": "lab-report"
+      },
+      "statement": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "MEAL-0907-PRE",
+        "accession": "LAB-26-2201",
+        "method": {
+          "id": "Spread plate on PDA, SOP-M7",
+          "version": "2"
+        },
+        "tested": "2026-11-10",
+        "kind": "viability",
+        "received": "2026-11-03",
+        "qc": [
+          {
+            "name": "Medium lot",
+            "value": "PDA-2611"
+          }
+        ],
+        "result": {
+          "batch": "MEAL-26-0907",
+          "stage": "before",
+          "strain": "d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4",
+          "sampled": "2026-11-02",
+          "target": "The production strain",
+          "portion": "10 g of meal, 1 in 10, 0.1 mL on each of 3 plates",
+          "cultures": [
+            {
+              "medium": "PDA with chloramphenicol",
+              "time": "7 days",
+              "temperature": "25 °C"
+            }
+          ],
+          "lod": {
+            "value": "100",
+            "unit": "CFU/g"
+          },
+          "detected": true,
+          "count": {
+            "value": "4300000",
+            "unit": "CFU/g"
+          },
+          "controls": {
+            "positive": "Production strain, about 50 CFU",
+            "positiveGrew": true,
+            "negativeGrew": false
+          }
+        },
+        "bindingSalt": "6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a"
+      },
+      "values": [
+        "0",
+        "0",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "bound": false
+    },
+    {
+      "name": "viability: the field set leaves out the stage",
+      "fields": {
+        "about": [
+          {
+            "name": "MEAL-0907-POST"
+          }
+        ],
+        "fieldSchema": "b5399b9e10f8f2787843aac9ee6e484be485c9f900e178528f413427f6afe3a7",
+        "fieldSetRoot": "e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5",
+        "files": [
+          {
+            "name": "report.pdf",
+            "sha256": "f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6",
+            "size": 51234
+          },
+          {
+            "name": "lab-result.json",
+            "sha256": "ba36575b3282b133a49a22487f4c4649c397a9a0738abba54cdea5dd98384b70",
+            "size": 1150
+          }
+        ],
+        "holder": "Example Plant Lab",
+        "issued": "2026-11-10",
+        "issuer": "Example Plant Lab",
+        "loggedAt": 1793000000000,
+        "nonce": "0707070707070707070707070707070707070707070707070707070707070707",
+        "notes": "",
+        "profile": "veilcore/profile/document/v1",
+        "reference": "LAB-26-2202",
+        "title": "LAB-26-2202",
+        "type": "lab-report"
+      },
+      "statement": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "MEAL-0907-POST",
+        "accession": "LAB-26-2202",
+        "method": {
+          "id": "Enrichment then PDA, SOP-M9",
+          "version": "1"
+        },
+        "tested": "2026-11-10",
+        "kind": "viability",
+        "received": "2026-11-03",
+        "qc": [
+          {
+            "name": "Medium lot",
+            "value": "PDA-2611"
+          }
+        ],
+        "result": {
+          "batch": "MEAL-26-0907",
+          "stage": "after",
+          "strain": "d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4",
+          "sampled": "2026-11-03",
+          "target": "The production strain",
+          "portion": "25 g of meal in 225 mL broth",
+          "cultures": [
+            {
+              "medium": "Potato dextrose broth",
+              "time": "7 days",
+              "temperature": "25 °C"
+            },
+            {
+              "medium": "PDA with chloramphenicol",
+              "time": "7 days",
+              "temperature": "25 °C"
+            }
+          ],
+          "lod": {
+            "value": "1",
+            "unit": "CFU per 25 g"
+          },
+          "detected": false,
+          "count": {
+            "value": "0",
+            "unit": "CFU per 25 g"
+          },
+          "controls": {
+            "positive": "Production strain, about 50 CFU",
+            "positiveGrew": true,
+            "negativeGrew": false
+          },
+          "killStep": "Steam, 95 °C core for 30 min, then dried at 70 °C",
+          "before": "e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5"
+        },
+        "bindingSalt": "6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a"
+      },
+      "values": [
+        "0",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "bound": false
+    },
+    {
+      "name": "viability: under the pathogen form",
+      "fields": {
+        "about": [
+          {
+            "name": "MEAL-0907-POST"
+          }
+        ],
+        "fieldSchema": "9eea08c843ee416d9b8f99af91379750db2b339fd7f455db25669a4480506871",
+        "fieldSetRoot": "e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5",
+        "files": [
+          {
+            "name": "report.pdf",
+            "sha256": "f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6",
+            "size": 51234
+          },
+          {
+            "name": "lab-result.json",
+            "sha256": "ba36575b3282b133a49a22487f4c4649c397a9a0738abba54cdea5dd98384b70",
+            "size": 1150
+          }
+        ],
+        "holder": "Example Plant Lab",
+        "issued": "2026-11-10",
+        "issuer": "Example Plant Lab",
+        "loggedAt": 1793000000000,
+        "nonce": "0707070707070707070707070707070707070707070707070707070707070707",
+        "notes": "",
+        "profile": "veilcore/profile/document/v1",
+        "reference": "LAB-26-2202",
+        "title": "LAB-26-2202",
+        "type": "lab-report"
+      },
+      "statement": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "MEAL-0907-POST",
+        "accession": "LAB-26-2202",
+        "method": {
+          "id": "Enrichment then PDA, SOP-M9",
+          "version": "1"
+        },
+        "tested": "2026-11-10",
+        "kind": "viability",
+        "received": "2026-11-03",
+        "qc": [
+          {
+            "name": "Medium lot",
+            "value": "PDA-2611"
+          }
+        ],
+        "result": {
+          "batch": "MEAL-26-0907",
+          "stage": "after",
+          "strain": "d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4",
+          "sampled": "2026-11-03",
+          "target": "The production strain",
+          "portion": "25 g of meal in 225 mL broth",
+          "cultures": [
+            {
+              "medium": "Potato dextrose broth",
+              "time": "7 days",
+              "temperature": "25 °C"
+            },
+            {
+              "medium": "PDA with chloramphenicol",
+              "time": "7 days",
+              "temperature": "25 °C"
+            }
+          ],
+          "lod": {
+            "value": "1",
+            "unit": "CFU per 25 g"
+          },
+          "detected": false,
+          "count": {
+            "value": "0",
+            "unit": "CFU per 25 g"
+          },
+          "controls": {
+            "positive": "Production strain, about 50 CFU",
+            "positiveGrew": true,
+            "negativeGrew": false
+          },
+          "killStep": "Steam, 95 °C core for 30 min, then dried at 70 °C",
+          "before": "e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5"
+        },
+        "bindingSalt": "6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a"
+      },
+      "values": [
+        "0",
+        "1",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "bound": false
     }
   ],
   "markSeals": [
@@ -3314,6 +5571,1069 @@
       "key": "1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e",
       "subject": "A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1",
       "salt": "9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c"
+    }
+  ],
+  "labViabilityPairs": [
+    {
+      "name": "an after-sample and the before-sample it names",
+      "after": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "MEAL-0907-POST",
+        "accession": "LAB-26-2202",
+        "method": {
+          "id": "Enrichment then PDA, SOP-M9",
+          "version": "1"
+        },
+        "tested": "2026-11-10",
+        "kind": "viability",
+        "received": "2026-11-03",
+        "qc": [
+          {
+            "name": "Medium lot",
+            "value": "PDA-2611"
+          }
+        ],
+        "result": {
+          "batch": "MEAL-26-0907",
+          "stage": "after",
+          "strain": "d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4",
+          "sampled": "2026-11-03",
+          "target": "The production strain",
+          "portion": "25 g of meal in 225 mL broth",
+          "cultures": [
+            {
+              "medium": "Potato dextrose broth",
+              "time": "7 days",
+              "temperature": "25 °C"
+            },
+            {
+              "medium": "PDA with chloramphenicol",
+              "time": "7 days",
+              "temperature": "25 °C"
+            }
+          ],
+          "lod": {
+            "value": "1",
+            "unit": "CFU per 25 g"
+          },
+          "detected": false,
+          "count": {
+            "value": "0",
+            "unit": "CFU per 25 g"
+          },
+          "controls": {
+            "positive": "Production strain, about 50 CFU",
+            "positiveGrew": true,
+            "negativeGrew": false
+          },
+          "killStep": "Steam, 95 °C core for 30 min, then dried at 70 °C",
+          "before": "e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5"
+        },
+        "bindingSalt": "6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a"
+      },
+      "before": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "MEAL-0907-PRE",
+        "accession": "LAB-26-2201",
+        "method": {
+          "id": "Spread plate on PDA, SOP-M7",
+          "version": "2"
+        },
+        "tested": "2026-11-10",
+        "kind": "viability",
+        "received": "2026-11-03",
+        "qc": [
+          {
+            "name": "Medium lot",
+            "value": "PDA-2611"
+          }
+        ],
+        "result": {
+          "batch": "MEAL-26-0907",
+          "stage": "before",
+          "strain": "d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4",
+          "sampled": "2026-11-02",
+          "target": "The production strain",
+          "portion": "10 g of meal, 1 in 10, 0.1 mL on each of 3 plates",
+          "cultures": [
+            {
+              "medium": "PDA with chloramphenicol",
+              "time": "7 days",
+              "temperature": "25 °C"
+            }
+          ],
+          "lod": {
+            "value": "100",
+            "unit": "CFU/g"
+          },
+          "detected": true,
+          "count": {
+            "value": "4300000",
+            "unit": "CFU/g"
+          },
+          "controls": {
+            "positive": "Production strain, about 50 CFU",
+            "positiveGrew": true,
+            "negativeGrew": false
+          }
+        },
+        "bindingSalt": "6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a"
+      },
+      "beforeCode": "e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5",
+      "paired": true
+    },
+    {
+      "name": "the before-sample also showed none recovered: still a pair, read as it is",
+      "after": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "MEAL-0907-POST",
+        "accession": "LAB-26-2202",
+        "method": {
+          "id": "Enrichment then PDA, SOP-M9",
+          "version": "1"
+        },
+        "tested": "2026-11-10",
+        "kind": "viability",
+        "received": "2026-11-03",
+        "qc": [
+          {
+            "name": "Medium lot",
+            "value": "PDA-2611"
+          }
+        ],
+        "result": {
+          "batch": "MEAL-26-0907",
+          "stage": "after",
+          "strain": "d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4",
+          "sampled": "2026-11-03",
+          "target": "The production strain",
+          "portion": "25 g of meal in 225 mL broth",
+          "cultures": [
+            {
+              "medium": "Potato dextrose broth",
+              "time": "7 days",
+              "temperature": "25 °C"
+            },
+            {
+              "medium": "PDA with chloramphenicol",
+              "time": "7 days",
+              "temperature": "25 °C"
+            }
+          ],
+          "lod": {
+            "value": "1",
+            "unit": "CFU per 25 g"
+          },
+          "detected": false,
+          "count": {
+            "value": "0",
+            "unit": "CFU per 25 g"
+          },
+          "controls": {
+            "positive": "Production strain, about 50 CFU",
+            "positiveGrew": true,
+            "negativeGrew": false
+          },
+          "killStep": "Steam, 95 °C core for 30 min, then dried at 70 °C",
+          "before": "e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5"
+        },
+        "bindingSalt": "6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a"
+      },
+      "before": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "MEAL-0907-PRE",
+        "accession": "LAB-26-2201",
+        "method": {
+          "id": "Spread plate on PDA, SOP-M7",
+          "version": "2"
+        },
+        "tested": "2026-11-10",
+        "kind": "viability",
+        "received": "2026-11-03",
+        "qc": [
+          {
+            "name": "Medium lot",
+            "value": "PDA-2611"
+          }
+        ],
+        "result": {
+          "batch": "MEAL-26-0907",
+          "stage": "before",
+          "strain": "d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4",
+          "sampled": "2026-11-02",
+          "target": "The production strain",
+          "portion": "10 g of meal, 1 in 10, 0.1 mL on each of 3 plates",
+          "cultures": [
+            {
+              "medium": "PDA with chloramphenicol",
+              "time": "7 days",
+              "temperature": "25 °C"
+            }
+          ],
+          "lod": {
+            "value": "100",
+            "unit": "CFU/g"
+          },
+          "detected": false,
+          "count": {
+            "value": "0",
+            "unit": "CFU/g"
+          },
+          "controls": {
+            "positive": "Production strain, about 50 CFU",
+            "positiveGrew": true,
+            "negativeGrew": false
+          }
+        },
+        "bindingSalt": "6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a"
+      },
+      "beforeCode": "e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5",
+      "paired": true
+    },
+    {
+      "name": "the after-sample names another result",
+      "after": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "MEAL-0907-POST",
+        "accession": "LAB-26-2202",
+        "method": {
+          "id": "Enrichment then PDA, SOP-M9",
+          "version": "1"
+        },
+        "tested": "2026-11-10",
+        "kind": "viability",
+        "received": "2026-11-03",
+        "qc": [
+          {
+            "name": "Medium lot",
+            "value": "PDA-2611"
+          }
+        ],
+        "result": {
+          "batch": "MEAL-26-0907",
+          "stage": "after",
+          "strain": "d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4",
+          "sampled": "2026-11-03",
+          "target": "The production strain",
+          "portion": "25 g of meal in 225 mL broth",
+          "cultures": [
+            {
+              "medium": "Potato dextrose broth",
+              "time": "7 days",
+              "temperature": "25 °C"
+            },
+            {
+              "medium": "PDA with chloramphenicol",
+              "time": "7 days",
+              "temperature": "25 °C"
+            }
+          ],
+          "lod": {
+            "value": "1",
+            "unit": "CFU per 25 g"
+          },
+          "detected": false,
+          "count": {
+            "value": "0",
+            "unit": "CFU per 25 g"
+          },
+          "controls": {
+            "positive": "Production strain, about 50 CFU",
+            "positiveGrew": true,
+            "negativeGrew": false
+          },
+          "killStep": "Steam, 95 °C core for 30 min, then dried at 70 °C",
+          "before": "f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6"
+        },
+        "bindingSalt": "6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a"
+      },
+      "before": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "MEAL-0907-PRE",
+        "accession": "LAB-26-2201",
+        "method": {
+          "id": "Spread plate on PDA, SOP-M7",
+          "version": "2"
+        },
+        "tested": "2026-11-10",
+        "kind": "viability",
+        "received": "2026-11-03",
+        "qc": [
+          {
+            "name": "Medium lot",
+            "value": "PDA-2611"
+          }
+        ],
+        "result": {
+          "batch": "MEAL-26-0907",
+          "stage": "before",
+          "strain": "d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4",
+          "sampled": "2026-11-02",
+          "target": "The production strain",
+          "portion": "10 g of meal, 1 in 10, 0.1 mL on each of 3 plates",
+          "cultures": [
+            {
+              "medium": "PDA with chloramphenicol",
+              "time": "7 days",
+              "temperature": "25 °C"
+            }
+          ],
+          "lod": {
+            "value": "100",
+            "unit": "CFU/g"
+          },
+          "detected": true,
+          "count": {
+            "value": "4300000",
+            "unit": "CFU/g"
+          },
+          "controls": {
+            "positive": "Production strain, about 50 CFU",
+            "positiveGrew": true,
+            "negativeGrew": false
+          }
+        },
+        "bindingSalt": "6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a"
+      },
+      "beforeCode": "e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5",
+      "paired": false
+    },
+    {
+      "name": "the after-sample names no before-sample",
+      "after": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "MEAL-0907-POST",
+        "accession": "LAB-26-2202",
+        "method": {
+          "id": "Enrichment then PDA, SOP-M9",
+          "version": "1"
+        },
+        "tested": "2026-11-10",
+        "kind": "viability",
+        "result": {
+          "batch": "MEAL-26-0907",
+          "stage": "after",
+          "strain": "d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4",
+          "sampled": "2026-11-03",
+          "target": "The production strain",
+          "portion": "25 g of meal in 225 mL broth",
+          "cultures": [
+            {
+              "medium": "Potato dextrose broth",
+              "time": "7 days",
+              "temperature": "25 °C"
+            },
+            {
+              "medium": "PDA with chloramphenicol",
+              "time": "7 days",
+              "temperature": "25 °C"
+            }
+          ],
+          "lod": {
+            "value": "1",
+            "unit": "CFU per 25 g"
+          },
+          "detected": false,
+          "controls": {
+            "positive": "A. brasiliensis ATCC 16404",
+            "positiveGrew": true
+          },
+          "killStep": "Steam, 95 °C core for 30 min, then dried at 70 °C"
+        },
+        "bindingSalt": "6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a"
+      },
+      "before": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "MEAL-0907-PRE",
+        "accession": "LAB-26-2201",
+        "method": {
+          "id": "Spread plate on PDA, SOP-M7",
+          "version": "2"
+        },
+        "tested": "2026-11-10",
+        "kind": "viability",
+        "received": "2026-11-03",
+        "qc": [
+          {
+            "name": "Medium lot",
+            "value": "PDA-2611"
+          }
+        ],
+        "result": {
+          "batch": "MEAL-26-0907",
+          "stage": "before",
+          "strain": "d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4",
+          "sampled": "2026-11-02",
+          "target": "The production strain",
+          "portion": "10 g of meal, 1 in 10, 0.1 mL on each of 3 plates",
+          "cultures": [
+            {
+              "medium": "PDA with chloramphenicol",
+              "time": "7 days",
+              "temperature": "25 °C"
+            }
+          ],
+          "lod": {
+            "value": "100",
+            "unit": "CFU/g"
+          },
+          "detected": true,
+          "count": {
+            "value": "4300000",
+            "unit": "CFU/g"
+          },
+          "controls": {
+            "positive": "Production strain, about 50 CFU",
+            "positiveGrew": true,
+            "negativeGrew": false
+          }
+        },
+        "bindingSalt": "6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a"
+      },
+      "beforeCode": "e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5",
+      "paired": false
+    },
+    {
+      "name": "another batch",
+      "after": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "MEAL-0907-POST",
+        "accession": "LAB-26-2202",
+        "method": {
+          "id": "Enrichment then PDA, SOP-M9",
+          "version": "1"
+        },
+        "tested": "2026-11-10",
+        "kind": "viability",
+        "received": "2026-11-03",
+        "qc": [
+          {
+            "name": "Medium lot",
+            "value": "PDA-2611"
+          }
+        ],
+        "result": {
+          "batch": "MEAL-26-0907",
+          "stage": "after",
+          "strain": "d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4",
+          "sampled": "2026-11-03",
+          "target": "The production strain",
+          "portion": "25 g of meal in 225 mL broth",
+          "cultures": [
+            {
+              "medium": "Potato dextrose broth",
+              "time": "7 days",
+              "temperature": "25 °C"
+            },
+            {
+              "medium": "PDA with chloramphenicol",
+              "time": "7 days",
+              "temperature": "25 °C"
+            }
+          ],
+          "lod": {
+            "value": "1",
+            "unit": "CFU per 25 g"
+          },
+          "detected": false,
+          "count": {
+            "value": "0",
+            "unit": "CFU per 25 g"
+          },
+          "controls": {
+            "positive": "Production strain, about 50 CFU",
+            "positiveGrew": true,
+            "negativeGrew": false
+          },
+          "killStep": "Steam, 95 °C core for 30 min, then dried at 70 °C",
+          "before": "e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5"
+        },
+        "bindingSalt": "6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a"
+      },
+      "before": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "MEAL-0907-PRE",
+        "accession": "LAB-26-2201",
+        "method": {
+          "id": "Spread plate on PDA, SOP-M7",
+          "version": "2"
+        },
+        "tested": "2026-11-10",
+        "kind": "viability",
+        "received": "2026-11-03",
+        "qc": [
+          {
+            "name": "Medium lot",
+            "value": "PDA-2611"
+          }
+        ],
+        "result": {
+          "batch": "MEAL-26-0908",
+          "stage": "before",
+          "strain": "d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4",
+          "sampled": "2026-11-02",
+          "target": "The production strain",
+          "portion": "10 g of meal, 1 in 10, 0.1 mL on each of 3 plates",
+          "cultures": [
+            {
+              "medium": "PDA with chloramphenicol",
+              "time": "7 days",
+              "temperature": "25 °C"
+            }
+          ],
+          "lod": {
+            "value": "100",
+            "unit": "CFU/g"
+          },
+          "detected": true,
+          "count": {
+            "value": "4300000",
+            "unit": "CFU/g"
+          },
+          "controls": {
+            "positive": "Production strain, about 50 CFU",
+            "positiveGrew": true,
+            "negativeGrew": false
+          }
+        },
+        "bindingSalt": "6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a"
+      },
+      "beforeCode": "e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5",
+      "paired": false
+    },
+    {
+      "name": "another strain record",
+      "after": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "MEAL-0907-POST",
+        "accession": "LAB-26-2202",
+        "method": {
+          "id": "Enrichment then PDA, SOP-M9",
+          "version": "1"
+        },
+        "tested": "2026-11-10",
+        "kind": "viability",
+        "received": "2026-11-03",
+        "qc": [
+          {
+            "name": "Medium lot",
+            "value": "PDA-2611"
+          }
+        ],
+        "result": {
+          "batch": "MEAL-26-0907",
+          "stage": "after",
+          "strain": "d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4",
+          "sampled": "2026-11-03",
+          "target": "The production strain",
+          "portion": "25 g of meal in 225 mL broth",
+          "cultures": [
+            {
+              "medium": "Potato dextrose broth",
+              "time": "7 days",
+              "temperature": "25 °C"
+            },
+            {
+              "medium": "PDA with chloramphenicol",
+              "time": "7 days",
+              "temperature": "25 °C"
+            }
+          ],
+          "lod": {
+            "value": "1",
+            "unit": "CFU per 25 g"
+          },
+          "detected": false,
+          "count": {
+            "value": "0",
+            "unit": "CFU per 25 g"
+          },
+          "controls": {
+            "positive": "Production strain, about 50 CFU",
+            "positiveGrew": true,
+            "negativeGrew": false
+          },
+          "killStep": "Steam, 95 °C core for 30 min, then dried at 70 °C",
+          "before": "e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5"
+        },
+        "bindingSalt": "6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a"
+      },
+      "before": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "MEAL-0907-PRE",
+        "accession": "LAB-26-2201",
+        "method": {
+          "id": "Spread plate on PDA, SOP-M7",
+          "version": "2"
+        },
+        "tested": "2026-11-10",
+        "kind": "viability",
+        "received": "2026-11-03",
+        "qc": [
+          {
+            "name": "Medium lot",
+            "value": "PDA-2611"
+          }
+        ],
+        "result": {
+          "batch": "MEAL-26-0907",
+          "stage": "before",
+          "strain": "c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3",
+          "sampled": "2026-11-02",
+          "target": "The production strain",
+          "portion": "10 g of meal, 1 in 10, 0.1 mL on each of 3 plates",
+          "cultures": [
+            {
+              "medium": "PDA with chloramphenicol",
+              "time": "7 days",
+              "temperature": "25 °C"
+            }
+          ],
+          "lod": {
+            "value": "100",
+            "unit": "CFU/g"
+          },
+          "detected": true,
+          "count": {
+            "value": "4300000",
+            "unit": "CFU/g"
+          },
+          "controls": {
+            "positive": "Production strain, about 50 CFU",
+            "positiveGrew": true,
+            "negativeGrew": false
+          }
+        },
+        "bindingSalt": "6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a"
+      },
+      "beforeCode": "e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5",
+      "paired": false
+    },
+    {
+      "name": "the before-sample was taken the same day as the after-sample",
+      "after": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "MEAL-0907-POST",
+        "accession": "LAB-26-2202",
+        "method": {
+          "id": "Enrichment then PDA, SOP-M9",
+          "version": "1"
+        },
+        "tested": "2026-11-10",
+        "kind": "viability",
+        "received": "2026-11-03",
+        "qc": [
+          {
+            "name": "Medium lot",
+            "value": "PDA-2611"
+          }
+        ],
+        "result": {
+          "batch": "MEAL-26-0907",
+          "stage": "after",
+          "strain": "d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4",
+          "sampled": "2026-11-03",
+          "target": "The production strain",
+          "portion": "25 g of meal in 225 mL broth",
+          "cultures": [
+            {
+              "medium": "Potato dextrose broth",
+              "time": "7 days",
+              "temperature": "25 °C"
+            },
+            {
+              "medium": "PDA with chloramphenicol",
+              "time": "7 days",
+              "temperature": "25 °C"
+            }
+          ],
+          "lod": {
+            "value": "1",
+            "unit": "CFU per 25 g"
+          },
+          "detected": false,
+          "count": {
+            "value": "0",
+            "unit": "CFU per 25 g"
+          },
+          "controls": {
+            "positive": "Production strain, about 50 CFU",
+            "positiveGrew": true,
+            "negativeGrew": false
+          },
+          "killStep": "Steam, 95 °C core for 30 min, then dried at 70 °C",
+          "before": "e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5"
+        },
+        "bindingSalt": "6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a"
+      },
+      "before": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "MEAL-0907-PRE",
+        "accession": "LAB-26-2201",
+        "method": {
+          "id": "Spread plate on PDA, SOP-M7",
+          "version": "2"
+        },
+        "tested": "2026-11-10",
+        "kind": "viability",
+        "received": "2026-11-03",
+        "qc": [
+          {
+            "name": "Medium lot",
+            "value": "PDA-2611"
+          }
+        ],
+        "result": {
+          "batch": "MEAL-26-0907",
+          "stage": "before",
+          "strain": "d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4",
+          "sampled": "2026-11-03",
+          "target": "The production strain",
+          "portion": "10 g of meal, 1 in 10, 0.1 mL on each of 3 plates",
+          "cultures": [
+            {
+              "medium": "PDA with chloramphenicol",
+              "time": "7 days",
+              "temperature": "25 °C"
+            }
+          ],
+          "lod": {
+            "value": "100",
+            "unit": "CFU/g"
+          },
+          "detected": true,
+          "count": {
+            "value": "4300000",
+            "unit": "CFU/g"
+          },
+          "controls": {
+            "positive": "Production strain, about 50 CFU",
+            "positiveGrew": true,
+            "negativeGrew": false
+          }
+        },
+        "bindingSalt": "6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a"
+      },
+      "beforeCode": "e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5",
+      "paired": true
+    },
+    {
+      "name": "the \"before\" is itself an after-sample",
+      "after": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "MEAL-0907-POST",
+        "accession": "LAB-26-2202",
+        "method": {
+          "id": "Enrichment then PDA, SOP-M9",
+          "version": "1"
+        },
+        "tested": "2026-11-10",
+        "kind": "viability",
+        "received": "2026-11-03",
+        "qc": [
+          {
+            "name": "Medium lot",
+            "value": "PDA-2611"
+          }
+        ],
+        "result": {
+          "batch": "MEAL-26-0907",
+          "stage": "after",
+          "strain": "d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4",
+          "sampled": "2026-11-03",
+          "target": "The production strain",
+          "portion": "25 g of meal in 225 mL broth",
+          "cultures": [
+            {
+              "medium": "Potato dextrose broth",
+              "time": "7 days",
+              "temperature": "25 °C"
+            },
+            {
+              "medium": "PDA with chloramphenicol",
+              "time": "7 days",
+              "temperature": "25 °C"
+            }
+          ],
+          "lod": {
+            "value": "1",
+            "unit": "CFU per 25 g"
+          },
+          "detected": false,
+          "count": {
+            "value": "0",
+            "unit": "CFU per 25 g"
+          },
+          "controls": {
+            "positive": "Production strain, about 50 CFU",
+            "positiveGrew": true,
+            "negativeGrew": false
+          },
+          "killStep": "Steam, 95 °C core for 30 min, then dried at 70 °C",
+          "before": "e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5"
+        },
+        "bindingSalt": "6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a"
+      },
+      "before": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "MEAL-0907-POST",
+        "accession": "LAB-26-2202",
+        "method": {
+          "id": "Enrichment then PDA, SOP-M9",
+          "version": "1"
+        },
+        "tested": "2026-11-10",
+        "kind": "viability",
+        "received": "2026-11-03",
+        "qc": [
+          {
+            "name": "Medium lot",
+            "value": "PDA-2611"
+          }
+        ],
+        "result": {
+          "batch": "MEAL-26-0907",
+          "stage": "after",
+          "strain": "d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4",
+          "sampled": "2026-11-03",
+          "target": "The production strain",
+          "portion": "25 g of meal in 225 mL broth",
+          "cultures": [
+            {
+              "medium": "Potato dextrose broth",
+              "time": "7 days",
+              "temperature": "25 °C"
+            },
+            {
+              "medium": "PDA with chloramphenicol",
+              "time": "7 days",
+              "temperature": "25 °C"
+            }
+          ],
+          "lod": {
+            "value": "1",
+            "unit": "CFU per 25 g"
+          },
+          "detected": false,
+          "count": {
+            "value": "0",
+            "unit": "CFU per 25 g"
+          },
+          "controls": {
+            "positive": "Production strain, about 50 CFU",
+            "positiveGrew": true,
+            "negativeGrew": false
+          },
+          "killStep": "Steam, 95 °C core for 30 min, then dried at 70 °C"
+        },
+        "bindingSalt": "6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a"
+      },
+      "beforeCode": "e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5",
+      "paired": false
+    },
+    {
+      "name": "the \"before\" is a pathogen result",
+      "after": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "MEAL-0907-POST",
+        "accession": "LAB-26-2202",
+        "method": {
+          "id": "Enrichment then PDA, SOP-M9",
+          "version": "1"
+        },
+        "tested": "2026-11-10",
+        "kind": "viability",
+        "received": "2026-11-03",
+        "qc": [
+          {
+            "name": "Medium lot",
+            "value": "PDA-2611"
+          }
+        ],
+        "result": {
+          "batch": "MEAL-26-0907",
+          "stage": "after",
+          "strain": "d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4",
+          "sampled": "2026-11-03",
+          "target": "The production strain",
+          "portion": "25 g of meal in 225 mL broth",
+          "cultures": [
+            {
+              "medium": "Potato dextrose broth",
+              "time": "7 days",
+              "temperature": "25 °C"
+            },
+            {
+              "medium": "PDA with chloramphenicol",
+              "time": "7 days",
+              "temperature": "25 °C"
+            }
+          ],
+          "lod": {
+            "value": "1",
+            "unit": "CFU per 25 g"
+          },
+          "detected": false,
+          "count": {
+            "value": "0",
+            "unit": "CFU per 25 g"
+          },
+          "controls": {
+            "positive": "Production strain, about 50 CFU",
+            "positiveGrew": true,
+            "negativeGrew": false
+          },
+          "killStep": "Steam, 95 °C core for 30 min, then dried at 70 °C",
+          "before": "e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5"
+        },
+        "bindingSalt": "6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a"
+      },
+      "before": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "S-0412",
+        "accession": "LAB-26-1187",
+        "method": {
+          "id": "RT-qPCR HLVd SOP-14",
+          "version": "3"
+        },
+        "tested": "2026-11-05",
+        "kind": "pathogen",
+        "result": {
+          "target": "HLVd",
+          "sampleType": "leaf",
+          "detected": false
+        }
+      },
+      "beforeCode": "e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5",
+      "paired": false
+    },
+    {
+      "name": "the before-sample was taken a day after the after-sample",
+      "after": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "MEAL-0907-POST",
+        "accession": "LAB-26-2202",
+        "method": {
+          "id": "Enrichment then PDA, SOP-M9",
+          "version": "1"
+        },
+        "tested": "2026-11-10",
+        "kind": "viability",
+        "received": "2026-11-03",
+        "qc": [
+          {
+            "name": "Medium lot",
+            "value": "PDA-2611"
+          }
+        ],
+        "result": {
+          "batch": "MEAL-26-0907",
+          "stage": "after",
+          "strain": "d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4",
+          "sampled": "2026-11-03",
+          "target": "The production strain",
+          "portion": "25 g of meal in 225 mL broth",
+          "cultures": [
+            {
+              "medium": "Potato dextrose broth",
+              "time": "7 days",
+              "temperature": "25 °C"
+            },
+            {
+              "medium": "PDA with chloramphenicol",
+              "time": "7 days",
+              "temperature": "25 °C"
+            }
+          ],
+          "lod": {
+            "value": "1",
+            "unit": "CFU per 25 g"
+          },
+          "detected": false,
+          "count": {
+            "value": "0",
+            "unit": "CFU per 25 g"
+          },
+          "controls": {
+            "positive": "Production strain, about 50 CFU",
+            "positiveGrew": true,
+            "negativeGrew": false
+          },
+          "killStep": "Steam, 95 °C core for 30 min, then dried at 70 °C",
+          "before": "e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5"
+        },
+        "bindingSalt": "6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a"
+      },
+      "before": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "MEAL-0907-PRE",
+        "accession": "LAB-26-2201",
+        "method": {
+          "id": "Spread plate on PDA, SOP-M7",
+          "version": "2"
+        },
+        "tested": "2026-11-10",
+        "kind": "viability",
+        "received": "2026-11-04",
+        "qc": [
+          {
+            "name": "Medium lot",
+            "value": "PDA-2611"
+          }
+        ],
+        "result": {
+          "batch": "MEAL-26-0907",
+          "stage": "before",
+          "strain": "d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4",
+          "sampled": "2026-11-04",
+          "target": "The production strain",
+          "portion": "10 g of meal, 1 in 10, 0.1 mL on each of 3 plates",
+          "cultures": [
+            {
+              "medium": "PDA with chloramphenicol",
+              "time": "7 days",
+              "temperature": "25 °C"
+            }
+          ],
+          "lod": {
+            "value": "100",
+            "unit": "CFU/g"
+          },
+          "detected": true,
+          "count": {
+            "value": "4300000",
+            "unit": "CFU/g"
+          },
+          "controls": {
+            "positive": "Production strain, about 50 CFU",
+            "positiveGrew": true,
+            "negativeGrew": false
+          }
+        },
+        "bindingSalt": "6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a"
+      },
+      "beforeCode": "e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5",
+      "paired": false
     }
   ]
 }
