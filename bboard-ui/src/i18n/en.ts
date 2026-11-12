@@ -104,6 +104,8 @@ export const en = {
   'm.hero.lede':
     'For breeders, seed companies and labs working with plant and animal genetics: give your records a date nobody can backdate. Your genetic data stays locked: DNA files never leave your computer, and what you type reaches our server locked. Only a proof code goes on Midnight, which dates it.',
   'm.hero.how': 'How it works',
+  'm.hero.pasteQ': 'Got a lab code or a link from someone?',
+  'm.hero.pasteGo': 'Paste it here →',
   'm.hero.cultivar': 'Cultivar',
   'm.hero.bredBy': 'Bred by',
   'm.hero.bredByDefault': 'Your name here',
@@ -261,6 +263,9 @@ export const en = {
   'm.demo.create.text': 'A made-up plant, animal or document: seal it, save your backup, then see its page.',
   'm.demo.verify.title': 'Verify a record',
   'm.demo.verify.text': "Enter a record's identifier and see what its holder disclosed and whether it is anchored.",
+  'm.demo.paste.title': 'Got a code or link?',
+  'm.demo.paste.text':
+    "A lab with a breeder's lab code, or anyone sent a record link or an agreement to sign: paste it and the right screen opens.",
   'm.demo.video.title': 'Watch how it works',
   'm.demo.video.text':
     'A 60-second animation of the idea: what stays with you, what goes on Midnight, and how someone checks it.',
@@ -427,7 +432,7 @@ export const en = {
     'Built. Goes live with the next veilcore.org deploy, once a real license has worked end to end on the main network.',
   // Licenses on, on veilcore.org's own build (AGREEMENTS_LIVE, mainnet sponsor live): the main-network cell (components/site/Home.tsx).
   'm.live.lic.live':
-    'Yes: licenses, royalty statements and handing a license on, with real transactions. Paying royalties on Midnight itself is on the test site only.',
+    'Yes: licenses, with real transactions, and royalty reports with their answer, “I paid” and “Receipt confirmed”. Handing a license on is built, not yet tried on the main network. Paying royalties on Midnight itself is on the test site only.',
   // The check page looking a record's date up on Midnight itself (docs/check-on-chain.md).
   // On veilcore.org it needs the read-only relay; the mainnet overlay says "Yes." once a
   // build has one (CHAIN_READS).
@@ -541,7 +546,7 @@ export const en = {
     'Midnight is a public network: what goes there can’t be changed or removed by anyone, us included, and anyone can read it. Your genetics, your terms, your name and your files never go there. What does: the proof code of each batch of records; a record’s own key and its date stamp; a code made from a DNA report, when you date its pairing; which records are linked as parent and child, once both holders confirm (a link can’t be undone); that a record has a license, an obligation or a lender’s claim recorded on it, and when that changed; a lab’s public key when it signs a certificate there; a value you choose to prove exactly, in full; and, where this site lets a royalty be paid in NIGHT, the amount and the two addresses. Before each of these steps, the app shows a receipt listing exactly what that step makes public. A code or key on its own says nothing about you, but anyone you give a check link to can follow what happens to that record on the network from then on.',
   'm.privacy.helper.title': 'The helper, and its optional model',
   'm.privacy.helper.text':
-    'Ask, the helper in the app, where this site offers it, works on your device. Nothing you type into it is sent anywhere; only the app’s own Save sends anything, and that goes to our server locked, as above. Where this site offers the optional language model, it is downloaded once from Hugging Face, a separate company: Hugging Face sees your IP address, the time, which model files, and that the request comes from this site; we see that a download started. The model runs on your device, in a part of the page that can’t reach the network, so nothing you type reaches Hugging Face or us, then or later. You can delete the model from the helper’s panel.',
+    'Ask, the helper in the app, where this site offers it, works on your device. Nothing you type into it is sent anywhere; only the app’s own Save sends anything, and that goes to our server locked, as above. Where this site offers the optional language model, it is downloaded once from Hugging Face, a separate company: Hugging Face sees your IP address, the time, which model files, and that the request comes from this site; we see that a download started. The model runs on your device, in a part of the page that can’t reach the network, so nothing you type reaches Hugging Face or us, then or later. You can delete the model from the helper’s panel. Its “Do it for me” keeps a record of each job on your device only, never in a backup: the steps and how far they got, references to the records and agreements involved, and the figures you type for a report until it is sent; never what you typed to ask. It is deleted 7 days after the job ends. While a job waits for your approval, its new records are kept in your browser, locked, with their keys; a backup made meanwhile holds those keys too. Getting reports ready reads each of your agreements’ messages from our server, one after another, so our server can see that those agreements were read together; nothing is sent until you approve.',
   'm.privacy.hosts.title': 'Hosting',
   'm.privacy.hosts.text':
     'This website is hosted on Vercel, which logs IP addresses and requests. Our registry server runs on Railway, which logs requests.',

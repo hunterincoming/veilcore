@@ -66,6 +66,8 @@ export const es: Strings = {
   'm.hero.title1': 'Feche su registro.',
   'm.hero.title2': 'Mantenga su genética en privado.',
   'm.hero.how': 'Cómo funciona',
+  'm.hero.pasteQ': '¿Alguien le envió un código de laboratorio o un enlace?',
+  'm.hero.pasteGo': 'Péguelo aquí →',
   'm.hero.cultivar': 'Cultivar',
   'm.hero.bredBy': 'Obtenido por',
   'm.hero.bredByDefault': 'Su nombre aquí',
@@ -87,6 +89,9 @@ export const es: Strings = {
     'Una planta, un animal o un documento inventados: séllelo, guarde su copia de seguridad y vea su página.',
   'm.demo.verify.title': 'Verificar un registro',
   'm.demo.verify.text': 'Ingrese el identificador de un registro y vea lo que su titular divulgó y si está anclado.',
+  'm.demo.paste.title': '¿Recibió un código o un enlace?',
+  'm.demo.paste.text':
+    'Un laboratorio con el código de laboratorio de un obtentor, o cualquiera que recibió un enlace a un registro o un acuerdo para firmar: péguelo y se abre la pantalla correcta.',
   'm.demo.video.title': 'Ver cómo funciona',
   'm.demo.video.text':
     'Una animación de 60 segundos sobre la idea: qué se queda con usted, qué va a Midnight y cómo alguien lo comprueba.',
@@ -218,7 +223,7 @@ export const es: Strings = {
     'Midnight es una red pública: lo que va allí no puede cambiarlo ni borrarlo nadie, nosotros incluidos, y cualquiera puede leerlo. Su genética, sus condiciones, su nombre y sus archivos nunca van allí. Lo que sí va: el código de prueba de cada lote de registros; la clave propia de un registro y su sello de fecha; un código hecho a partir de un informe de ADN, cuando fecha su vínculo; qué registros están enlazados como progenitor y descendiente, una vez que ambos titulares lo confirman (un enlace no se puede deshacer); que un registro tiene una licencia, una obligación o una anotación de prestamista registrada, y cuándo cambió; la clave pública de un laboratorio cuando firma allí un certificado; un valor que usted elige probar con exactitud, completo; y, donde este sitio permite pagar una regalía en NIGHT, el importe y las dos direcciones. Antes de cada uno de estos pasos, la aplicación muestra un recibo que enumera exactamente qué hace público ese paso. Un código o una clave por sí solos no dicen nada de usted, pero cualquiera a quien dé un enlace de comprobación puede seguir desde entonces lo que le ocurre a ese registro en la red.',
   'm.privacy.helper.title': 'El asistente y su modelo opcional',
   'm.privacy.helper.text':
-    'Ask, el asistente de la aplicación, donde este sitio lo ofrece, funciona en su dispositivo. Nada de lo que escriba en él se envía a ninguna parte; solo el botón Guardar de la aplicación envía algo, y eso va cerrado a nuestro servidor, como se explica arriba. Donde este sitio ofrece el modelo de lenguaje opcional, se descarga una vez desde Hugging Face, una empresa aparte: Hugging Face ve su dirección IP, la hora, qué archivos del modelo y que la petición viene de este sitio; nosotros vemos que empezó una descarga. El modelo se ejecuta en su dispositivo, en una parte de la página que no puede acceder a la red, así que nada de lo que escriba llega a Hugging Face ni a nosotros, ni entonces ni después. Puede borrar el modelo desde el panel del asistente.',
+    'Ask, el asistente de la aplicación, donde este sitio lo ofrece, funciona en su dispositivo. Nada de lo que escriba en él se envía a ninguna parte; solo el botón Guardar de la aplicación envía algo, y eso va cerrado a nuestro servidor, como se explica arriba. Donde este sitio ofrece el modelo de lenguaje opcional, se descarga una vez desde Hugging Face, una empresa aparte: Hugging Face ve su dirección IP, la hora, qué archivos del modelo y que la petición viene de este sitio; nosotros vemos que empezó una descarga. El modelo se ejecuta en su dispositivo, en una parte de la página que no puede acceder a la red, así que nada de lo que escriba llega a Hugging Face ni a nosotros, ni entonces ni después. Puede borrar el modelo desde el panel del asistente. Su «Hazlo por mí» guarda un registro de cada trabajo solo en su dispositivo, nunca en una copia de seguridad: los pasos y hasta dónde llegaron, referencias a los registros y acuerdos implicados, y las cifras que escribe para un informe hasta que se envía; nunca lo que escribió para pedirlo. Se borra 7 días después de que termine el trabajo. Mientras un trabajo espera su aprobación, sus registros nuevos se guardan cerrados en su navegador, con sus claves; una copia de seguridad hecha mientras tanto también tiene esas claves. Preparar los informes lee los mensajes de cada uno de sus acuerdos desde nuestro servidor, uno tras otro, así que nuestro servidor puede ver que esos acuerdos se leyeron juntos; no se envía nada hasta que usted lo apruebe.',
   'm.privacy.hosts.title': 'Alojamiento',
   'm.privacy.hosts.text':
     'Este sitio web está alojado en Vercel, que registra direcciones IP y solicitudes. Nuestro servidor de registro funciona en Railway, que registra solicitudes.',
@@ -326,7 +331,7 @@ export const es: Strings = {
     'Construido. Se activa con el próximo despliegue de veilcore.org, cuando una licencia real haya funcionado de principio a fin en la red principal.',
   // Licenses on, on veilcore.org's own build (AGREEMENTS_LIVE, mainnet sponsor live): the main-network cell (components/site/Home.tsx).
   'm.live.lic.live':
-    'Sí: licencias, declaraciones de regalías y traspaso de una licencia, con transacciones reales. Pagar regalías en Midnight mismo solo está en el sitio de pruebas.',
+    'Sí: licencias, con transacciones reales, e informes de regalías con su respuesta, «Ya pagué» y «Recepción confirmada». El traspaso de una licencia está construido, pero aún no se ha probado en la red principal. Pagar regalías en Midnight mismo solo está en el sitio de pruebas.',
   'm.live.chain.t': 'La página de comprobación lee Midnight por sí misma',
   'm.live.chain.main': 'Todavía no: necesita nuestro relé de solo lectura.',
   'm.live.chain.test': 'Sí.',

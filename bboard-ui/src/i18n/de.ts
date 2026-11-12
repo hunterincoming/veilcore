@@ -65,6 +65,8 @@ export const de: Strings = {
   'm.hero.title1': 'Datieren Sie Ihren Datensatz.',
   'm.hero.title2': 'Ihre Genetik bleibt privat.',
   'm.hero.how': 'So funktioniert es',
+  'm.hero.pasteQ': 'Laborcode oder Link von jemandem bekommen?',
+  'm.hero.pasteGo': 'Hier einfügen →',
   'm.hero.cultivar': 'Sorte',
   'm.hero.bredBy': 'Gezüchtet von',
   'm.hero.bredByDefault': 'Ihr Name',
@@ -87,6 +89,9 @@ export const de: Strings = {
   'm.demo.verify.title': 'Datensatz prüfen',
   'm.demo.verify.text':
     'Geben Sie die Kennung eines Datensatzes ein und sehen Sie, was sein Inhaber offengelegt hat und ob er verankert ist.',
+  'm.demo.paste.title': 'Code oder Link bekommen?',
+  'm.demo.paste.text':
+    'Ein Labor mit dem Laborcode eines Züchters, oder jemand mit einem Link zu einem Datensatz oder einer Vereinbarung zum Unterschreiben: einfügen, und die passende Seite öffnet sich.',
   'm.demo.video.title': 'Ansehen, wie es funktioniert',
   'm.demo.video.text':
     'Eine 60-Sekunden-Animation der Idee: was bei Ihnen bleibt, was auf Midnight kommt und wie jemand es prüft.',
@@ -218,7 +223,7 @@ export const de: Strings = {
     'Midnight ist ein öffentliches Netzwerk: Was dort landet, kann niemand ändern oder entfernen, auch wir nicht, und jeder kann es lesen. Ihre Genetik, Ihre Bedingungen, Ihr Name und Ihre Dateien landen dort nie. Was dort landet: der Prüfcode jedes Stapels von Datensätzen; der eigene Schlüssel eines Datensatzes und sein Datumsstempel; ein Code aus einem DNA-Bericht, wenn Sie dessen Kopplung datieren; welche Datensätze als Eltern und Nachkommen verknüpft sind, sobald beide Inhaber bestätigen (eine Verknüpfung lässt sich nicht zurücknehmen); dass auf einem Datensatz eine Lizenz, eine Verpflichtung oder der Anspruch eines Kreditgebers vermerkt ist, und wann sich das geändert hat; der öffentliche Schlüssel eines Labors, wenn es dort ein Zertifikat signiert; ein Wert, den Sie exakt nachweisen wollen, vollständig; und, wo diese Website Lizenzgebühren in NIGHT zahlen lässt, der Betrag und die beiden Adressen. Vor jedem dieser Schritte zeigt die App eine Quittung, die genau auflistet, was der Schritt öffentlich macht. Ein Code oder Schlüssel allein sagt nichts über Sie, aber wer von Ihnen einen Prüflink bekommt, kann von da an verfolgen, was mit diesem Datensatz im Netzwerk geschieht.',
   'm.privacy.helper.title': 'Der Helfer und sein optionales Modell',
   'm.privacy.helper.text':
-    'Ask, der Helfer in der App, arbeitet dort, wo diese Website ihn anbietet, auf Ihrem Gerät. Nichts, was Sie dort eingeben, wird irgendwohin gesendet; nur das Speichern der App selbst sendet etwas, und das geht verschlossen an unseren Server, wie oben beschrieben. Wo diese Website das optionale Sprachmodell anbietet, wird es einmal von Hugging Face heruntergeladen, einem eigenen Unternehmen: Hugging Face sieht Ihre IP-Adresse, die Uhrzeit, welche Modelldateien und dass die Anfrage von dieser Website kommt; wir sehen, dass ein Download begonnen hat. Das Modell läuft auf Ihrem Gerät, in einem Teil der Seite, der das Netzwerk nicht erreichen kann; nichts, was Sie eingeben, gelangt zu Hugging Face oder zu uns, weder dann noch später. Sie können das Modell im Bereich des Helfers löschen.',
+    'Ask, der Helfer in der App, arbeitet dort, wo diese Website ihn anbietet, auf Ihrem Gerät. Nichts, was Sie dort eingeben, wird irgendwohin gesendet; nur das Speichern der App selbst sendet etwas, und das geht verschlossen an unseren Server, wie oben beschrieben. Wo diese Website das optionale Sprachmodell anbietet, wird es einmal von Hugging Face heruntergeladen, einem eigenen Unternehmen: Hugging Face sieht Ihre IP-Adresse, die Uhrzeit, welche Modelldateien und dass die Anfrage von dieser Website kommt; wir sehen, dass ein Download begonnen hat. Das Modell läuft auf Ihrem Gerät, in einem Teil der Seite, der das Netzwerk nicht erreichen kann; nichts, was Sie eingeben, gelangt zu Hugging Face oder zu uns, weder dann noch später. Sie können das Modell im Bereich des Helfers löschen. Sein „Für mich erledigen“ führt zu jedem Auftrag eine Aufzeichnung nur auf Ihrem Gerät, nie in einer Sicherung: die Schritte und wie weit sie sind, Verweise auf die beteiligten Datensätze und Vereinbarungen und die Zahlen, die Sie für einen Bericht eingeben, bis er gesendet ist; nie, was Sie zum Fragen geschrieben haben. Sie wird 7 Tage nach dem Ende des Auftrags gelöscht. Solange ein Auftrag auf Ihre Zustimmung wartet, bleiben seine neuen Datensätze verschlossen mit ihren Schlüsseln in Ihrem Browser; eine Sicherung aus dieser Zeit enthält diese Schlüssel ebenfalls. Um Berichte vorzubereiten, werden die Nachrichten Ihrer Vereinbarungen nacheinander von unserem Server gelesen, sodass unser Server sehen kann, dass diese Vereinbarungen zusammen gelesen wurden; gesendet wird erst, wenn Sie freigeben.',
   'm.privacy.hosts.title': 'Hosting',
   'm.privacy.hosts.text':
     'Diese Website wird bei Vercel gehostet, das IP-Adressen und Anfragen protokolliert. Unser Registerserver läuft bei Railway, das Anfragen protokolliert.',
@@ -326,7 +331,7 @@ export const de: Strings = {
     'Gebaut. Geht mit dem nächsten Deployment von veilcore.org live, sobald eine echte Lizenz im Hauptnetz einmal vollständig funktioniert hat.',
   // Licenses on, on veilcore.org's own build (AGREEMENTS_LIVE, mainnet sponsor live): the main-network cell (components/site/Home.tsx).
   'm.live.lic.live':
-    'Ja: Lizenzen, Abrechnungen von Lizenzgebühren und die Weitergabe einer Lizenz, mit echten Transaktionen. Lizenzgebühren direkt auf Midnight zahlen gibt es nur auf der Testseite.',
+    'Ja: Lizenzen, mit echten Transaktionen, und Berichte über Lizenzgebühren mit Antwort, „Ich habe bezahlt“ und „Eingang bestätigt“. Die Weitergabe einer Lizenz ist gebaut, im Hauptnetz aber noch nicht ausprobiert. Lizenzgebühren direkt auf Midnight zahlen gibt es nur auf der Testseite.',
   'm.live.chain.t': 'Die Prüfseite liest Midnight selbst',
   'm.live.chain.main': 'Noch nicht: Dafür braucht es unseren Relaisdienst, der nur liest.',
   'm.live.chain.test': 'Ja.',

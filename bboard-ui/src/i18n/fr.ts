@@ -65,6 +65,8 @@ export const fr: Strings = {
   'm.hero.title1': 'Datez votre enregistrement.',
   'm.hero.title2': 'Gardez votre génétique privée.',
   'm.hero.how': 'Comment ça marche',
+  'm.hero.pasteQ': 'Quelqu’un vous a envoyé un code laboratoire ou un lien ?',
+  'm.hero.pasteGo': 'Collez-le ici →',
   'm.hero.cultivar': 'Cultivar',
   'm.hero.bredBy': 'Obtenu par',
   'm.hero.bredByDefault': 'Votre nom ici',
@@ -87,6 +89,9 @@ export const fr: Strings = {
   'm.demo.verify.title': 'Vérifier un enregistrement',
   'm.demo.verify.text':
     "Saisissez l'identifiant d'un enregistrement et voyez ce que son détenteur a divulgué et s'il est ancré.",
+  'm.demo.paste.title': 'Vous avez reçu un code ou un lien ?',
+  'm.demo.paste.text':
+    'Un laboratoire avec le code laboratoire d’un obtenteur, ou toute personne qui a reçu un lien vers un enregistrement ou un contrat à signer : collez-le et le bon écran s’ouvre.',
   'm.demo.video.title': 'Voir comment cela fonctionne',
   'm.demo.video.text':
     "Une animation de 60 secondes sur l'idée : ce qui reste chez vous, ce qui va sur Midnight, et comment quelqu'un le vérifie.",
@@ -220,7 +225,7 @@ export const fr: Strings = {
     'Midnight est un réseau public : ce qui y va ne peut être ni modifié ni retiré par personne, nous compris, et tout le monde peut le lire. Votre génétique, vos conditions, votre nom et vos fichiers n’y vont jamais. Ce qui y va : le code de preuve de chaque lot d’enregistrements ; la clé propre d’un enregistrement et son cachet de date ; un code tiré d’un rapport ADN, quand vous datez son association ; quels enregistrements sont liés comme parent et enfant, une fois que les deux détenteurs confirment (un lien ne peut pas être défait) ; qu’un enregistrement porte une licence, une obligation ou une mention de prêteur, et quand cela a changé ; la clé publique d’un laboratoire quand il y signe un certificat ; une valeur que vous choisissez de prouver exactement, en entier ; et, là où ce site permet de payer une redevance en NIGHT, le montant et les deux adresses. Avant chacune de ces étapes, l’application affiche un reçu qui liste exactement ce que l’étape rend public. Un code ou une clé seuls ne disent rien de vous, mais quiconque reçoit de vous un lien de vérification peut suivre dès lors ce qui arrive à cet enregistrement sur le réseau.',
   'm.privacy.helper.title': 'L’assistant et son modèle facultatif',
   'm.privacy.helper.text':
-    'Ask, l’assistant de l’application, là où ce site le propose, fonctionne sur votre appareil. Rien de ce que vous y tapez n’est envoyé nulle part ; seul le bouton Enregistrer de l’application envoie quelque chose, et cela part verrouillé vers notre serveur, comme décrit plus haut. Là où ce site propose le modèle de langue facultatif, il est téléchargé une fois depuis Hugging Face, une société distincte : Hugging Face voit votre adresse IP, l’heure, quels fichiers du modèle et que la demande vient de ce site ; nous voyons qu’un téléchargement a commencé. Le modèle tourne sur votre appareil, dans une partie de la page qui ne peut pas atteindre le réseau ; rien de ce que vous tapez n’atteint Hugging Face ni nous, ni à ce moment ni plus tard. Vous pouvez supprimer le modèle depuis le panneau de l’assistant.',
+    'Ask, l’assistant de l’application, là où ce site le propose, fonctionne sur votre appareil. Rien de ce que vous y tapez n’est envoyé nulle part ; seul le bouton Enregistrer de l’application envoie quelque chose, et cela part verrouillé vers notre serveur, comme décrit plus haut. Là où ce site propose le modèle de langue facultatif, il est téléchargé une fois depuis Hugging Face, une société distincte : Hugging Face voit votre adresse IP, l’heure, quels fichiers du modèle et que la demande vient de ce site ; nous voyons qu’un téléchargement a commencé. Le modèle tourne sur votre appareil, dans une partie de la page qui ne peut pas atteindre le réseau ; rien de ce que vous tapez n’atteint Hugging Face ni nous, ni à ce moment ni plus tard. Vous pouvez supprimer le modèle depuis le panneau de l’assistant. Son « Faites-le pour moi » garde une trace de chaque tâche sur votre appareil seulement, jamais dans une sauvegarde : les étapes et leur avancement, des références aux enregistrements et accords concernés, et les chiffres que vous saisissez pour un rapport jusqu’à son envoi ; jamais ce que vous avez écrit pour demander. Elle est supprimée 7 jours après la fin de la tâche. Tant qu’une tâche attend votre accord, ses nouveaux enregistrements restent verrouillés dans votre navigateur, avec leurs clés ; une sauvegarde faite entre-temps contient aussi ces clés. Préparer les rapports lit les messages de chacun de vos accords sur notre serveur, l’un après l’autre : notre serveur peut donc voir que ces accords ont été lus ensemble ; rien n’est envoyé avant que vous validiez.',
   'm.privacy.hosts.title': 'Hébergement',
   'm.privacy.hosts.text':
     'Ce site est hébergé chez Vercel, qui enregistre les adresses IP et les requêtes. Notre serveur de registre fonctionne chez Railway, qui enregistre les requêtes.',
@@ -328,7 +333,7 @@ export const fr: Strings = {
     'Construit. Mis en service avec le prochain déploiement de veilcore.org, une fois qu’une vraie licence aura fonctionné de bout en bout sur le réseau principal.',
   // Licenses on, on veilcore.org's own build (AGREEMENTS_LIVE, mainnet sponsor live): the main-network cell (components/site/Home.tsx).
   'm.live.lic.live':
-    'Oui : licences, relevés de redevances et transmission d’une licence, avec de vraies transactions. Payer les redevances sur Midnight même n’existe que sur le site de test.',
+    'Oui : licences, avec de vraies transactions, et rapports de redevances avec leur réponse, « J’ai payé » et « Réception confirmée ». La transmission d’une licence est construite, mais pas encore essayée sur le réseau principal. Payer les redevances sur Midnight même n’existe que sur le site de test.',
   'm.live.chain.t': 'La page de vérification lit Midnight elle-même',
   'm.live.chain.main': 'Pas encore : il faut notre relais en lecture seule.',
   'm.live.chain.test': 'Oui.',

@@ -81,8 +81,9 @@ import {
   putInOutbox,
   takeFromOutbox,
 } from './outbox';
-import { holderKey, holderRequestsPaused } from './holder';
+import { holderKey, holderKeyIfAny, holderRequestsPaused } from './holder';
 import { enT, type Translator } from '../i18n/translate';
+import type { AppKey } from '../i18n/app/en';
 
 /**
  * A second party confirming they received this material.
@@ -518,8 +519,211 @@ onVaultChange(() => {
   else if (justBackedUp && Object.keys(outboxRecords()).length) void hydrate();
 });
 
+/** This page's saves of the record set still on their way to the registry. */
+const savesOnTheWay = new Set<Promise<SaveResult>>();
+
+/**
+ * Records whose correction's save lost its answer (records.ts issueCorrection): the registry may
+ * hold the correction, with the record pointing to it, or neither. Until a read of the registry
+ * says which, the record is not saved: this page's copy, put back as it was before the
+ * correction, would go out above the registry's and drop the link to a correction it holds (a
+ * record cut off from its correction, never correctable again). `before`: the record as it was
+ * then; `here`: as this browser has it now, with any change made meanwhile (settleUnsure keeps
+ * it). Kept in this browser (UNSURE_KEY), like the outbox, so a reload doesn't lose that change;
+ * shown meanwhile as not saved yet (unsavedReason).
+ */
+type UnsureEntry = { correctionId: string; before: StrainRecord; here?: StrainRecord; at?: number };
+const UNSURE_KEY = 'veilcore.unsure.v1';
+const unsure = new Map<string, UnsureEntry>();
+/** Entries this tab settled since it last wrote the set (id → the entry's `at`), to take out of the kept set. */
+const settledHere = new Map<string, number>();
+let unsureLoadedFor: string | null | undefined;
+
+/** This holder's unsure records, as kept in this browser: { holder key → { id → entry } }. */
+const unsureStore = (): Record<string, Record<string, UnsureEntry>> => {
+  try {
+    const raw = localStorage.getItem(UNSURE_KEY);
+    const v: unknown = raw ? JSON.parse(raw) : {};
+    return v && typeof v === 'object' ? (v as Record<string, Record<string, UnsureEntry>>) : {};
+  } catch {
+    return {};
+  }
+};
+
+/** The unsure set, read from this browser once per holder key. */
+const unsureNow = (): Map<string, UnsureEntry> => {
+  const h = holderKeyIfAny()?.toLowerCase() ?? null;
+  if (unsureLoadedFor !== h) {
+    unsureLoadedFor = h;
+    unsure.clear();
+    if (h)
+      for (const [id, e] of Object.entries(unsureStore()[h] ?? {}))
+        if (e && typeof e.correctionId === 'string' && isStrainRecord(e.before)) unsure.set(id, e);
+  }
+  return unsure;
+};
+
+/**
+ * Keep the unsure set in this browser, merged with what is kept there already: every tab of this
+ * browser writes it, so another tab's entries stay. By record id, the newer entry (`at`) is kept;
+ * one this tab settled goes, unless the kept one is newer (another tab's since).
+ */
+const keepUnsure = (): void => {
+  const h = holderKeyIfAny()?.toLowerCase();
+  if (!h) return;
+  try {
+    const all = unsureStore();
+    const merged: Record<string, UnsureEntry> = { ...(all[h] ?? {}) };
+    for (const [id, at] of settledHere) if (merged[id] && (merged[id].at ?? 0) <= at) delete merged[id];
+    for (const [id, e] of unsure) if (!merged[id] || (merged[id].at ?? 0) <= (e.at ?? 0)) merged[id] = e;
+    settledHere.clear();
+    if (Object.keys(merged).length) all[h] = merged;
+    else delete all[h];
+    if (Object.keys(all).length) localStorage.setItem(UNSURE_KEY, JSON.stringify(all));
+    else localStorage.removeItem(UNSURE_KEY);
+  } catch {
+    /* blocked storage: kept for this page only */
+  }
+};
+
+/** store.save of the record set, counted while it is on its way (savesSettled). Never an unsure record. */
+const saveRecords = (rows: StrainRecord[]): Promise<SaveResult> => {
+  const held = unsureNow();
+  if (held.size) {
+    // Not sent; this browser keeps the change made to it, for when it is settled.
+    let kept = false;
+    for (const r of rows) {
+      const e = held.get(r.id);
+      if (e && e.here !== r) {
+        e.here = r;
+        e.at = Date.now();
+        kept = true;
+      }
+    }
+    if (kept) keepUnsure();
+  }
+  const p = store.save(RECORDS_KEY, held.size ? rows.filter((r) => !held.has(r.id)) : rows);
+  savesOnTheWay.add(p);
+  const done = () => void savesOnTheWay.delete(p);
+  p.then(done, done);
+  return p;
+};
+
+/**
+ * Until this page's saves on their way have their answers (a few rounds at most, as saves can
+ * start more). A registry read before then can hold an older copy of a record than this page
+ * has (a change made a moment ago, still being sent), and would replace it: a correction made
+ * from it would leave that change out, for good.
+ */
+/** How long a correction waits for this page's saves on their way (savesSettled). Changed by tests. */
+export const SAVES_WAIT = { ms: 15_000 };
+
+/** savesSettled, or false when they are still on their way after SAVES_WAIT (a save that never answers). */
+const savesSettledInTime = async (): Promise<boolean> => {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const late = new Promise<false>((r) => {
+    timer = setTimeout(() => r(false), SAVES_WAIT.ms);
+  });
+  try {
+    return await Promise.race([savesSettled().then(() => true as const), late]);
+  } finally {
+    clearTimeout(timer);
+  }
+};
+
+const savesSettled = async (): Promise<void> => {
+  for (let i = 0; i < 5 && savesOnTheWay.size; i++) await Promise.allSettled([...savesOnTheWay]);
+};
+
+/** savesSettled, for a test's teardown: nothing of this page's still on its way when its stubs go. */
+export const recordSavesSettled = (): Promise<void> => savesSettled();
+
+/**
+ * After a read of the registry (refresh): every unsure record is settled by what it holds. Its
+ * copy says whether the correction arrived: pointing to it if so, as before if not; taken as
+ * it is. A change this page made to the record meanwhile (any field but the link) goes on top
+ * of it, to be saved. True when there is such a change.
+ */
+const settleUnsure = (mine: readonly StrainRecord[]): boolean => {
+  let changed = false;
+  const held = unsureNow();
+  for (const [id, { before, here: kept, at }] of held) {
+    held.delete(id);
+    settledHere.set(id, at ?? 0);
+    const theirs = records.find((r) => r.id === id);
+    // This page's copy, or (after a reload) the one this browser kept.
+    const here = mine.find((r) => r.id === id) ?? kept;
+    if (!theirs || !here) continue;
+    const a = before as unknown as Record<string, unknown>;
+    const b = here as unknown as Record<string, unknown>;
+    const keys = [...new Set([...Object.keys(a), ...Object.keys(b)])].filter(
+      (k) => k !== 'supersededBy' && JSON.stringify(a[k]) !== JSON.stringify(b[k]),
+    );
+    if (!keys.length) continue;
+    const next: Record<string, unknown> = { ...theirs };
+    for (const k of keys)
+      if (b[k] === undefined) delete next[k];
+      else next[k] = b[k];
+    records = records.map((r) => (r.id === id ? (next as StrainRecord) : r));
+    changed = true;
+  }
+  keepUnsure();
+  return changed;
+};
+
+/**
+ * After a full read of the registry: every record's link to its correction as the set says it.
+ *   - A record with no link, and one correction in the set naming it: linked to that one. The
+ *     registry can hold a correction whose record's link never arrived (a save whose record half
+ *     was refused while its correction half was stored, and whose answer was lost); without the
+ *     link the record could never be corrected again, and the correction not reached from it.
+ *   - A link to a correction the registry no longer holds (deleted): let go, or moved to the one
+ *     correction in the set naming the record. The registry lets such a link go, and takes a new
+ *     correction then.
+ * Never on a cut-off read (truncated), where "not in the set" proves nothing. True when a
+ * record changed, to be saved.
+ */
+const relinkCorrections = (): boolean => {
+  if (loadNoticeOf(RECORDS_KEY).truncated) return false;
+  const naming = new Map<string, string[]>();
+  for (const r of records) {
+    const of = r.supersedes?.recordId;
+    if (of) naming.set(of, [...(naming.get(of) ?? []), r.id]);
+  }
+  let changed = false;
+  records = records.map((r) => {
+    const held = r.supersededBy !== undefined && rowStateOf(RECORDS_KEY, r.supersededBy) !== undefined;
+    if (held) return r;
+    const only = naming.get(r.id)?.length === 1 ? naming.get(r.id)![0] : undefined;
+    if (only === undefined && r.supersededBy === undefined) return r;
+    if (only === r.supersededBy) return r;
+    changed = true;
+    if (only !== undefined) return { ...r, supersededBy: only };
+    const { supersededBy: _gone, ...rest } = r;
+    void _gone;
+    return rest;
+  });
+  return changed;
+};
+
 /** Re-fetch from the registry. Used on start, after a claim, and by the sync below. */
 export const hydrate = async (opts: { resave?: boolean } = {}): Promise<void> => {
+  await refresh(opts);
+};
+
+/**
+ * hydrate, saying whether the registry answered: true when what is shown is its set now; false
+ * when what is shown is only this browser's copy (refresh). After a claim, the lab view is
+ * judged on the first only (ClaimTransfer.tsx, role.ts roleAfterReceiving).
+ */
+export const hydrateAnswered = (): Promise<boolean> => refresh();
+
+/**
+ * hydrate, saying whether the registry answered: true when what is shown is its set now; false
+ * when it couldn't, and what is shown is this browser's copy. A correction needs the first
+ * (issueCorrection), and so does saving IDs (ask-job/save-ids.ts).
+ */
+export const refresh = async (opts: { resave?: boolean } = {}): Promise<boolean> => {
   const before = records;
   try {
     records = await store.load(RECORDS_KEY, isStrainRecord);
@@ -530,8 +734,14 @@ export const hydrate = async (opts: { resave?: boolean } = {}): Promise<void> =>
     loadedOnce = true;
     if (before.length === 0) records = Object.values(outboxRecords()).filter(isStrainRecord);
     if (first || (before.length === 0 && records.length)) notify();
-    return;
+    return false;
   }
+  // The registry has answered: what it holds settles every record left unsure by a correction
+  // whose answer was lost, and a change made to one meanwhile is sent now.
+  const settledChanges = unsureNow().size ? settleUnsure(before) : false;
+  // Each record's link to its correction as the set says (relinkCorrections): after the unsure
+  // ones are settled, so a correction the registry holds is never taken as one that didn't arrive.
+  const relinked = relinkCorrections();
   // A record's secrets sealed with it (round 4, F5): kept here when this browser has none for
   // it, as after restoring the vault key on a new device or a wiped browser.
   for (const r of records) if (r.secrets && rowStateOf(RECORDS_KEY, r.id) === 'open') adoptSealedSecrets(r, r.secrets);
@@ -562,7 +772,12 @@ export const hydrate = async (opts: { resave?: boolean } = {}): Promise<void> =>
   notify();
   // Sent again with the next save; not straight after a refusal (saveAll reads the set back
   // with resave off), so a registry that keeps refusing is asked once per sync, not in a loop.
-  if ((kept || merged || revFix || nameFix || saltFix || nameSaltFix) && opts.resave !== false) void saveAll();
+  if (
+    settledChanges ||
+    relinked ||
+    ((kept || merged || revFix || nameFix || saltFix || nameSaltFix) && opts.resave !== false)
+  )
+    void saveAll();
   // Kept here and not on VeilCore yet: its proof code is dated now (CONTRACT.md #38).
   else void dateFirst();
   await convertLegacy();
@@ -570,6 +785,7 @@ export const hydrate = async (opts: { resave?: boolean } = {}): Promise<void> =>
     syncedOnce = true;
     void resendGrants();
   }
+  return true;
 };
 
 /** disclosure.ts syncGrants over this set: never from a record that doesn't match its fingerprint. */
@@ -597,7 +813,7 @@ const keepGrant = async (id: string, show: DisclosureKey[]): Promise<StrainRecor
   if (rowStateOf(RECORDS_KEY, id) === 'legacy') return next;
   records = records.map((x) => (x.id === id ? next : x));
   notify();
-  const result = await store.save(RECORDS_KEY, records);
+  const result = await saveRecords(records);
   reportSave('records', result);
   const refusedHere = result.refused.filter((x) => x.id === '*' || x.id === id);
   if (result.offline || refusedHere.length) {
@@ -698,7 +914,7 @@ export const startRecordSync = (): void => {
  */
 const saveAll = async (grantsToResend: readonly string[] = []): Promise<SaveResult> => {
   withSealedSecrets();
-  const result = await store.save(RECORDS_KEY, records);
+  const result = await saveRecords(records);
   settleOutbox(result);
   reportSave('records', result);
   // Whatever waits in this browser for its locked copy is dated now (CONTRACT.md #38).
@@ -920,6 +1136,9 @@ export const proofCodeSent = (id: string): boolean => registryHasProofCode(id);
 /** Why a record is shown but not on the registry yet, or undefined when it is. */
 export type UnsavedReason = 'backup' | 'key' | 'retry';
 export const unsavedReason = (id: string): UnsavedReason | undefined => {
+  // A record left unsure by a correction whose answer was lost: kept here, sent once the
+  // registry is read again (settleUnsure).
+  if (unsureNow().has(id)) return 'retry';
   if (!inOutbox(id)) return undefined;
   if (vaultKeyIfAny() && vaultNeedsBackup()) return 'backup';
   if (!vaultKeyIfAny() && lockedRecords().some((l) => l.kid)) return 'key';
@@ -1125,7 +1344,7 @@ export const createRecords = async (inputs: readonly NewRecordInput[]): Promise<
   );
   const ids = new Set(batch.map((r) => r.id));
   keepDataIfFirst(records.length);
-  const result = await store.save(RECORDS_KEY, [...batch, ...records.filter((r) => !ids.has(r.id))]);
+  const result = await saveRecords([...batch, ...records.filter((r) => !ids.has(r.id))]);
   // Held for the backup (L1): nothing was sent, and the importer stops and says why.
   if (result.held?.length) {
     return {
@@ -1647,7 +1866,7 @@ export const finishReceived = async (
   const sealedRecord: StrainRecord = { ...built, ...notes, nonce, recordFingerprint };
   records = records.map((x) => (x.id === id ? sealedRecord : x));
   notify();
-  const result = await store.save(RECORDS_KEY, records);
+  const result = await saveRecords(records);
   reportSave('records', result);
   const refusedHere = result.refused.filter((x) => x.id === '*' || x.id === id);
   if (result.offline || refusedHere.length || rowStateOf(RECORDS_KEY, id) !== 'open') {
@@ -1770,6 +1989,94 @@ export const correctionWaitsForBackup = (id: string): boolean =>
   rowStateOf(RECORDS_KEY, id) === 'legacy' || (!!vaultKeyIfAny() && vaultNeedsBackup());
 
 /**
+ * A correction refused before anything was kept or sent, in words the page shows in its own
+ * language (`key`). `latestId`: the record's latest version, the one to open (and to correct),
+ * when it was corrected already.
+ */
+export class CorrectionRefused extends Error {
+  constructor(
+    readonly key: AppKey,
+    readonly latestId?: string,
+  ) {
+    super(enT.t(key));
+    this.name = 'CorrectionRefused';
+  }
+}
+
+/** Said when a record has been corrected already: its correction is the one to correct. */
+export const ALREADY_CORRECTED = (): string => enT.t('app.sealed.alreadyCorrected');
+/** Said when the same change was made already, with another reason: this one's wasn't saved. */
+export const CORRECTED_SAME_WAY = (): string => enT.t('app.sealed.correctedSameWay');
+/** Said when the registry can't be asked first: a correction is made only after it answers. */
+export const CORRECT_NEEDS_CONNECTION = (): string => enT.t('app.sealed.correctNeedsConnection');
+/** Said when the record half was refused (changed elsewhere meanwhile), so nothing was stored. */
+export const CORRECTION_NOT_STORED = (): string => enT.t('app.sealed.correctionNotStored');
+/** Said when the connection went while a correction was being saved: nothing is kept to send. */
+export const CORRECTION_CONNECTION_LOST = (): string => enT.t('app.sealed.correctionConnectionLost');
+
+/**
+ * Whether `existing`, a correction of `before`, is the very correction these edits would make:
+ * its whole sealed body, not just the fields a form sends. The would-be correction is
+ * fingerprinted with the existing one's nonce, key binding and time, so the two proof codes are
+ * equal exactly when every sealed field is (commitment.ts committedRecordFields).
+ */
+const isSameCorrection = async (
+  before: StrainRecord,
+  existing: StrainRecord,
+  edits: Partial<StrainRecord>,
+): Promise<boolean> => {
+  if (!existing.recordFingerprint || !existing.nonce) return false;
+  const { nonce, keyBinding, loggedAt } = existing;
+  try {
+    const would = await fingerprintRecord({ ...before, ...edits, nonce, keyBinding, loggedAt });
+    return would === existing.recordFingerprint;
+  } catch {
+    return false;
+  }
+};
+
+/**
+ * A record is corrected once (another tab, another device, or an earlier try whose answer was
+ * lost corrected it already). The very same correction with the same reason is that one,
+ * nothing new and nothing lost: its latest version is returned. The same change with another
+ * reason is said as such (the reason given here was not saved). Anything else is refused.
+ */
+const correctedAlready = async (
+  before: StrainRecord,
+  edits: Partial<StrainRecord>,
+  reason: string,
+): Promise<StrainRecord> => {
+  const latestId = latestVersionOf(before.id);
+  const existing = before.supersededBy ? getRecord(before.supersededBy) : undefined;
+  if (existing && (await isSameCorrection(before, existing, edits))) {
+    const latest = getRecord(latestId);
+    if (existing.supersedes?.reason === reason && latest) return latest;
+    throw new CorrectionRefused('app.sealed.correctedSameWay', latestId);
+  }
+  throw new CorrectionRefused('app.sealed.alreadyCorrected', latestId);
+};
+
+/**
+ * The latest version of a record this browser has: the end of its corrections (each record is
+ * corrected once, so a chain), or the record itself. Never loops on a bad chain.
+ */
+export const latestVersionOf = (id: string): string => {
+  const seen = new Set<string>();
+  let at = id;
+  for (;;) {
+    seen.add(at);
+    const link = getRecord(at)?.supersededBy;
+    // Its link, or else the one correction in the set naming it (a link that never arrived,
+    // relinkCorrections).
+    const of = at;
+    const naming = link ? [] : records.filter((r) => r.supersedes?.recordId === of);
+    const next = link ?? (naming.length === 1 ? naming[0].id : undefined);
+    if (!next || seen.has(next) || !getRecord(next)) return at;
+    at = next;
+  }
+};
+
+/**
  * Issue a correction.
  *
  * The original is not edited and not deleted — it is marked as superseded and stays on
@@ -1784,14 +2091,22 @@ export const issueCorrection = async (
   edits: Partial<StrainRecord>,
   reason: string,
 ): Promise<StrainRecord | undefined> => {
-  const before = getRecord(originalId);
-  if (!before) return undefined;
+  if (!getRecord(originalId)) return undefined;
   // Made from the original's fields, so never from ones that don't match its fingerprint.
   if (integrityOf(originalId) === 'mismatch') throw new Error(enT.t('app.sealed.mismatch'));
   // A correction is two saves the registry must both take: never of a record saved before
   // locking, nor under a key that isn't in a checked backup yet (round 3, L7, L1). Said up
   // front; it used to leave a correction on the registry while saying nothing had changed.
   if (correctionWaitsForBackup(originalId)) throw new Error(enT.t('app.sealed.backupFirstAction'));
+  // A record is corrected once. Whether another tab or device corrected it is known only from
+  // the registry, so it is asked now, and a correction is made only when it answered: one made
+  // from this browser's copy alone, offline, would be the second live correction of a record
+  // corrected elsewhere meanwhile. A correction is permanent, so it waits for a connection.
+  if (!(await savesSettledInTime())) throw new CorrectionRefused('app.sealed.correctNeedsConnection');
+  if (!(await refresh({ resave: false }))) throw new CorrectionRefused('app.sealed.correctNeedsConnection');
+  const before = getRecord(originalId);
+  if (!before) return undefined;
+  if (before.supersededBy) return correctedAlready(before, edits, reason);
 
   const { supersedesFor } = await import('veilcore-records');
 
@@ -1838,9 +2153,25 @@ export const issueCorrection = async (
   // Awaited, not fire-and-forget: a correction only exists once the registry holds both
   // halves. If it refused either, put everything back as it was — locally and on the
   // registry — and say why, rather than showing a correction nobody can verify.
-  const result = await store.save(RECORDS_KEY, records);
+  const result = await saveRecords(records);
+  // Offline (the connection went after the registry was asked): never kept to send later,
+  // where it could become a second correction of a record corrected elsewhere meanwhile.
+  // Taken back here and not sent again. The registry may have it all the same (a save whose
+  // answer was lost): its keys stay, and trying again finds it there (correctedAlready).
+  if (result.offline) {
+    records = previous;
+    // Unsure until the registry is read: never saved before then (saveRecords), where its
+    // copy here, without the link, could drop a link the registry holds.
+    unsureNow().set(originalId, { correctionId: corrected.id, before, at: Date.now() });
+    keepUnsure();
+    notify();
+    takeFromOutbox([corrected.id]);
+    const kept = outboxRecords()[originalId];
+    if (kept && kept.supersededBy === corrected.id) takeFromOutbox([originalId]);
+    throw new CorrectionRefused('app.sealed.correctionConnectionLost');
+  }
   const refusedHere = result.refused.filter((x) => x.id === '*' || x.id === corrected.id || x.id === originalId);
-  if (!result.offline && (refusedHere.length || result.held?.length)) {
+  if (refusedHere.length || result.held?.length) {
     records = previous;
     notify();
     // The registry may have taken one half: a correction it stored is deleted before its
@@ -1853,12 +2184,41 @@ export const issueCorrection = async (
       }
     }
     forgetKeys(id); // made for the correction above; nothing is sealed under them now
-    await store.save(RECORDS_KEY, records);
-    await hydrate();
+    await saveRecords(records);
+    const answered = await refresh();
+    // Another tab or device saved a correction of this record first: the registry refuses this
+    // one ("already-corrected", one correction per record) and the record's new link to it
+    // ("supersededby-locked", a link it holds is kept for good), both in the one save. Read
+    // again above, so the record points to the correction the registry holds; said as that,
+    // with the way to the latest version.
+    if (
+      refusedHere.some(
+        (x) => x.words === 'app.sealed.alreadyCorrected' || x.words === 'app.sealed.refuse.supersededByLocked',
+      )
+    ) {
+      const now = getRecord(originalId);
+      if (answered && now?.supersededBy) return correctedAlready(now, edits, reason);
+      throw new CorrectionRefused('app.sealed.alreadyCorrected', answered ? latestVersionOf(originalId) : undefined);
+    }
+    // The registry holds a correction of this record all the same (read again above, and linked
+    // there: relinkCorrections). Never said as one that didn't arrive.
+    const now = getRecord(originalId);
+    if (answered && now?.supersededBy) return correctedAlready(now, edits, reason);
+    // The record half was refused (another tab or device saved a change to it meanwhile:
+    // "older-copy"), so the correction half wasn't kept either ("record-refused", or deleted
+    // above). Nothing was changed; the record is shown as it is now, to correct again.
+    if (
+      refusedHere.some(
+        (x) =>
+          x.words === 'app.sealed.refuse.recordRefused' ||
+          (x.id === originalId && x.words === 'app.sealed.refuse.olderCopy'),
+      )
+    )
+      throw new CorrectionRefused('app.sealed.correctionNotStored');
     throw new Error(`The registry refused this correction, so nothing was changed. ${describeRefusals(refusedHere)}`);
   }
   settleOutbox(result);
   reportSave('records', result);
-  if (!result.ok && !result.offline) await hydrate();
+  if (!result.ok) await hydrate();
   return corrected;
 };

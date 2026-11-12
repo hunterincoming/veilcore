@@ -160,9 +160,14 @@ Also note your deployer wallet's two addresses: run the tool with the deployer w
 Those go in `SPONSOR_FORBIDDEN_ADDRESSES`.
 
 **Midnight's Ledger 9 fork (mainnet, 6 November 2026).** A proof server serves one ledger. The
-mainnet sponsor needs `midnightntwrk/proof-server:9.0.0` (its own Railway service,
-`proof-server-ledger9`, set up as below with that image); a sponsor on preprod keeps 8.1.3 until
-preprod forks. Set the mainnet sponsor's `PROOF_SERVER_URL` to the 9.0.0 one. The sponsor itself
+mainnet sponsor needs proof server 9.0.1 (there is no 9.0.0 image): its own Railway service,
+`proof-server-ledger9`, set up as below with
+`midnightntwrk/proof-server@sha256:90e36a14f92c2004127f0ed1cfd6ee89d770cf1f6e9cd7f02026ffd4ecb42f37` (from Midnight's release notes, tag
+`proof-server-9.0.1`; Railway refuses a tag and a digest together; if it refuses the digest form,
+use `midnightntwrk/proof-server:9.0.1`). Create it inside the existing project and environment
+(veilcore-api / production), not with Railway's "New project", or the sponsor can't reach it.
+A sponsor on preprod keeps 8.1.3 until preprod forks. Set the mainnet sponsor's
+`PROOF_SERVER_URL` to `http://proof-server-ledger9.railway.internal:6300`. The sponsor itself
 reads and pays for transactions of either ledger (`src/policy.ts`).
 
 **4. On Railway, add a proof server** in the same project: New → Docker Image →

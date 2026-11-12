@@ -236,7 +236,7 @@ describe('batches', () => {
     const held = await sealRows(rows, { commit: holdForBackup, batchSize: rows.length, gapMs: 0 });
     expect(held.stopped).toContain(HELD_FOR_BACKUP);
     const pending = Object.values(loadLedger().rows);
-    expect(pending.map((e) => e.state)).toEqual(['pending', 'pending', 'pending']);
+    expect(pending.map((e) => e.state)).toEqual(['held', 'held', 'held']);
     const ids = pending.map((e) => e.recordId);
     // Every new key is here before the backup is made.
     for (const id of ids) expect(keysFor(id)).toBeDefined();

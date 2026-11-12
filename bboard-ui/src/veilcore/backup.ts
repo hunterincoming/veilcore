@@ -36,7 +36,7 @@ import {
   wasForgotten,
   type RecordKeys,
 } from './record-keys';
-import { adoptAttester, loadAttester } from './attester-keys';
+import { adoptAttester, loadAttester, markLabKeyBackedUp } from './attester-keys';
 import { allDeliveries, deliveriesMissingFrom, mergeDeliveries } from './lab-results';
 import { allSentCodes, mergeSentCodes } from './transfers';
 import { isVaultKey, markVaultBackedUp, setVaultKey, vaultHasSealed, vaultKeyIfAny, vaultKid } from './vault';
@@ -494,6 +494,8 @@ export const checkBackup = async (
     markIssuerDealsBackedUp(v.issuerDeals);
     markLenderBackedUp(v.lender);
     if (vault) markVaultBackedUp();
+    // Checked above: the file holds this lab key.
+    if (lab) markLabKeyBackedUp(lab.keypair.publicKey);
   }
   return { ok: true, records: held.length, recordIds: held.map((k) => k.recordId) };
 };
@@ -592,6 +594,12 @@ export const restoreAny = async (file: File, password?: string, opts: RestoreOpt
   const vault = fileVault ? adoptVaultKey(fileVault, opts.mark !== false) : 'none';
   const recordIds = entries.map((e) => restoreKeysEntry(e, { mark: opts.mark }).recordId);
   const labAdopted = lab ? adoptAttester(lab) : false;
+  // A lab key that came from the file is in that file: backed up, unless this is a copy that
+  // marks nothing (a passkey copy, RestoreOptions).
+  if (labAdopted && opts.mark !== false) {
+    const adopted = loadAttester();
+    if (adopted) markLabKeyBackedUp(adopted.keypair.publicKey);
+  }
   // Merged, never replacing an entry already here (a lock this browser has stays).
   const deliveries = mergeDeliveries(v.labDeliveries);
   const sentCodes = mergeSentCodes(v.sentCodes);

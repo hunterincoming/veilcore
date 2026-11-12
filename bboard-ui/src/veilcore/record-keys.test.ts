@@ -4,6 +4,8 @@ import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 
 const local = new Map<string, string>();
 const sent: string[] = [];
+/** What the stand-in registry holds, by id. */
+const held = new Map<string, unknown>();
 
 beforeAll(() => {
   vi.stubGlobal('localStorage', {
@@ -16,8 +18,22 @@ beforeAll(() => {
       `${String(url)}\n${JSON.stringify(init?.headers ?? {})}\n${typeof init?.body === 'string' ? init.body : ''}`,
     );
     const method = init?.method ?? 'GET';
-    if (method === 'PUT') return Promise.resolve(new Response(JSON.stringify({ ok: true }), { status: 200 }));
-    return Promise.resolve(new Response(JSON.stringify([]), { status: 200 }));
+    // Keeps the records it is sent and gives them back, as the registry does: a correction reads
+    // the registry first (records.ts issueCorrection), and an empty answer would be a registry
+    // that lost the record.
+    const path = new URL(String(url)).pathname;
+    if (method === 'PUT') {
+      // An older copy than the one held is not taken (the registry's rev check, CONTRACT.md
+      // #20): two saves on their way at once can arrive in either order.
+      if (path === '/api/records' && typeof init?.body === 'string')
+        for (const r of JSON.parse(init.body) as { id: string; rev?: number }[]) {
+          const have = held.get(r.id) as { rev?: number } | undefined;
+          if (!have || (r.rev ?? 0) >= (have.rev ?? 0)) held.set(r.id, r);
+        }
+      return Promise.resolve(new Response(JSON.stringify({ ok: true }), { status: 200 }));
+    }
+    const rows = path === '/api/records' ? [...held.values()] : [];
+    return Promise.resolve(new Response(JSON.stringify(rows), { status: 200 }));
   });
 });
 // Since round 3 (L1) nothing is sealed and sent before the key is in a checked backup: as a holder does first.
@@ -75,7 +91,9 @@ describe('record secrets stay in the browser, or sealed in the record', () => {
       blockHeight: 2,
     });
     await records.issueCorrection(rec.id, { notes: 'fixed' }, 'typo');
-    await new Promise((r) => setTimeout(r, 50)); // let the saves go out
+    // Every save of this page has its answer (not a guess at how long that takes).
+    await new Promise((r) => setTimeout(r, 0));
+    await records.recordSavesSettled();
 
     const puts = sent.filter((s) => s.includes('/api/records'));
     // At least one save each for the record, its pairing and its correction (the registry
@@ -134,7 +152,8 @@ describe('a record that names its own key', () => {
     expect(rec.id).toBe(id);
     expect(await records.checkIntegrity(rec)).toBe('match');
     const fixed = await records.issueCorrection(rec.id, { notes: 'fixed' }, 'typo');
-    await new Promise((r) => setTimeout(r, 50));
+    await new Promise((r) => setTimeout(r, 0));
+    await records.recordSavesSettled();
 
     // The correction is a new record with a key of its own, never the original's.
     const theirs = bindingForSecret(keysFor(fixed!.id)!.recordSecret);

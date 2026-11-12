@@ -117,6 +117,7 @@ export const home = {
   'app.home.paste.label': 'Quelqu’un vous a envoyé un code ou un lien ?',
   'app.home.paste.placeholder': 'Collez-le ici',
   'app.home.paste.go': 'Ouvrir',
+  'app.home.paste.orMake': 'Rien à coller ? Créez un enregistrement',
   'app.home.paste.hint':
     'Un code laboratoire, un lien vers un enregistrement, une demande de prouver que vous détenez un enregistrement ou un contrat à signer. Nous reconnaissons lequel.',
   'app.home.paste.whichPlant':

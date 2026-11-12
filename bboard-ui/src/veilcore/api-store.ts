@@ -580,6 +580,21 @@ const noteSent = (rk: string, rev: number, hash: string): void => {
 };
 /** The code the registry gives a row it refused as an older copy than the one it holds. */
 export const OLDER_COPY = 'older-copy';
+/**
+ * The code the registry gives a second correction of a record it holds a correction of already
+ * (veilcore-api corrections.js: one correction per holder and record, a unique index).
+ */
+export const ALREADY_CORRECTED_CODE = 'already-corrected';
+/**
+ * The code the registry gives a row that would remove or change a record's `supersededBy` it
+ * holds already: a correction is permanent, so the link to it is too (veilcore-api, PR #8).
+ */
+export const SUPERSEDED_BY_LOCKED_CODE = 'supersededby-locked';
+/**
+ * The code the registry gives a correction it didn't store because the record it corrects,
+ * in the same save, was refused: the two are kept together or not at all (veilcore-api PR #8).
+ */
+export const RECORD_REFUSED_CODE = 'record-refused';
 
 const hashOf = async (v: Record<string, unknown>): Promise<string> =>
   Array.from(
@@ -990,6 +1005,25 @@ const sealAndSave = async (key: string, value: readonly unknown[], k: string): P
         refused.push({ id: r.id, reason: r.reason, words: 'app.sealed.refuse.olderCopy' });
         continue;
       }
+      // A record is corrected once: another tab or device saved a correction of it first.
+      // Said as that, in the page's language (records.ts issueCorrection reads `words`).
+      if (r.code === ALREADY_CORRECTED_CODE) {
+        refused.push({ id: r.id, reason: r.reason, words: 'app.sealed.alreadyCorrected' });
+        continue;
+      }
+      // This copy of the record drops or changes the link to its correction, which the registry
+      // keeps for good. Said as that; the save is answered by reading the set again (records.ts
+      // saveAll), which shows the record corrected, with its latest version.
+      if (r.code === SUPERSEDED_BY_LOCKED_CODE) {
+        refused.push({ id: r.id, reason: r.reason, words: 'app.sealed.refuse.supersededByLocked' });
+        continue;
+      }
+      // A correction not stored because its record was refused in the same save: nothing was
+      // kept, and the set is read again (records.ts issueCorrection), to correct again.
+      if (r.code === RECORD_REFUSED_CODE) {
+        refused.push({ id: r.id, reason: r.reason, words: 'app.sealed.refuse.recordRefused' });
+        continue;
+      }
       refused.push({ id: r.id, reason: r.reason });
     }
   }
@@ -1159,6 +1193,23 @@ export const registryKids = async (k: string): Promise<Set<string> | 'unknown'> 
     }
   }
   return kids;
+};
+
+/**
+ * The records the registry holds for this holder, asked afresh: each id with its proof code, or
+ * 'unknown' when it can't answer. Asked only about records sent from here before, so no holder
+ * key here (lost, or a private window's) is never "none": it is 'no-key', and nothing is asked
+ * (verification W7); the backup brings the key back.
+ */
+export const registryRecordCodes = async (): Promise<Map<string, string> | 'unknown' | 'no-key'> => {
+  const k = holderKeyIfAny();
+  if (!k) return 'no-key';
+  const rows = await readWholeSet('records', k);
+  if (!rows) return 'unknown';
+  const out = new Map<string, string>();
+  for (const r of rows)
+    if (isObject(r) && isString(r.id)) out.set(r.id, isString(r.recordFingerprint) ? r.recordFingerprint : '');
+  return out;
 };
 
 export type VaultOutcome = 'have' | 'made' | 'locked' | 'unknown' | 'cant-store';

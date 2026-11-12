@@ -28,6 +28,7 @@ import { IS_TEST_SITE, MAINNET_SENDS, THIS_BUILD, useI18n } from '../../i18n';
 import { FOUNDERS_MAIL, RoleLine, SDK_REPO, SiteShell, X_HANDLE } from './SiteShell';
 import { FoldGroup, FoldItem, FoldPoint, usePhone } from './Fold';
 import { hasRecordsHere } from './returning';
+import { PASTE_ENTRY } from './paste-entry';
 import { IS_MAINNET, MAINNET_CLAIMS_ADDRESS, MAINNET_CONTRACT_ADDRESS, explorerFor } from '../../config/network';
 import { AGREEMENTS_LIVE, ROYALTIES_RUN_ON_MAINNET, ROYALTIES_RUN_ON_TEST } from '../../config/copy';
 
@@ -303,10 +304,11 @@ const LICENSES_ON_SITE = THIS_BUILD.agreementsLive === true && MAINNET_SENDS;
 const liveRows = (): readonly LiveRow[] =>
   LIVE_ROWS.map((r): LiveRow => {
     if (MAINNET_SENDS && r[0] === 'prove') return ['prove', true, true, false] as unknown as LiveRow;
-    // Licenses: "Yes" in the veilcore.org column only on a veilcore.org build that has them on
-    // (config/copy.ts AGREEMENTS_LIVE, with the mainnet sponsor live), like "prove" above. Any
-    // other build (the test site, the demo) can't know veilcore.org has been deployed with
-    // them, so it says they come with the next deploy (m.live.lic.next), never "Yes".
+    // Licenses: a tick in the veilcore.org column on every build while AGREEMENTS_LIVE is on. The
+    // cell's words (cellKey, below) say "Yes" once royalties have worked on veilcore.org
+    // (config/copy.ts ROYALTIES_RUN_ON_MAINNET): on veilcore.org's own build, and on the test
+    // site and the demo too, since it is a fact about veilcore.org. Until then they say licenses
+    // come with the deploy (m.live.lic.mainNext).
     if (AGREEMENTS_LIVE && r[0] === 'lic') return ['lic', true, true, false] as unknown as LiveRow;
     // "Prove one number" on veilcore.org (the sponsor pays for VeilCore's claims contract).
     if (CLAIMS_ON_SITE && r[0] === 'claims') return ['claims', true, true, false] as unknown as LiveRow;
@@ -316,10 +318,12 @@ const cellKey = (row: string, col: string) =>
   (MAINNET_SENDS && row === 'prove' && col === 'main'
     ? 'm.live.prove.test'
     : AGREEMENTS_LIVE && row === 'lic' && col === 'main'
-      ? // "Yes" only on veilcore.org's own build, and only once royalties have worked there too.
+      ? // "Yes" only once royalties have worked on veilcore.org. After that, a mainnet build says
+        // "Yes" only with licenses on (veilcore.org's own build); the test site and the demo say
+        // it too, since it is a fact about veilcore.org, not about the build.
         !ROYALTIES_RUN_ON_MAINNET
         ? 'm.live.lic.mainNext'
-        : LICENSES_ON_SITE
+        : LICENSES_ON_SITE || !IS_MAINNET
           ? 'm.live.lic.live'
           : 'm.live.lic.next'
       : // The test site: licenses are there; royalties say "Yes" only once v2 has run there.
@@ -527,6 +531,15 @@ export const Home: React.FC = () => {
                 {t('m.hero.how')}
               </a>
             </div>
+            {/* The third way in (a lab tested it, 8 Nov): anyone who was sent a lab code or a
+                link goes straight to the box that opens it (paste-entry.ts). */}
+            <p className="hero-paste">
+              {t('m.hero.pasteQ')}
+              {sp}
+              <RouterLink to={PASTE_ENTRY} data-paste-entry="hero">
+                {t('m.hero.pasteGo')}
+              </RouterLink>
+            </p>
             <p className="hero-status">{t('m.hero.status')}</p>
           </div>
           <Fingerprint key={lang} />
@@ -707,6 +720,14 @@ export const Home: React.FC = () => {
             <RouterLink className="demo" to="/verify">
               <h3>{t('m.demo.verify.title')}</h3>
               <p>{t('m.demo.verify.text')}</p>
+              <div className="meta-row">
+                <span className="chip live">{t('m.chip.interactive')}</span>
+                <span className="chip">{t('m.chip.1min')}</span>
+              </div>
+            </RouterLink>
+            <RouterLink className="demo" to={PASTE_ENTRY} data-paste-entry="demo">
+              <h3>{t('m.demo.paste.title')}</h3>
+              <p>{t('m.demo.paste.text')}</p>
               <div className="meta-row">
                 <span className="chip live">{t('m.chip.interactive')}</span>
                 <span className="chip">{t('m.chip.1min')}</span>

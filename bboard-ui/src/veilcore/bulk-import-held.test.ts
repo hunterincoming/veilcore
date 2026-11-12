@@ -1,0 +1,250 @@
+// The ledger's `held` state (bulk-import.ts): rows sealed for a backup and never sent are held;
+// sending moves them to pending first; dropHeld forgets only held rows of the hashes given, so a
+// record that may be on the registry never loses its key. And `onlyKept`: a job sends only the
+// records it showed, never one sealed new.
+// SPDX-License-Identifier: Apache-2.0
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+  HELD_ELSEWHERE,
+  HELD_FOR_BACKUP,
+  NOT_KEPT,
+  NOT_WRITTEN,
+  anyPending,
+  dropHeld,
+  markLanded,
+  holdForBackup,
+  loadLedger,
+  saveLedger,
+  sealRows,
+  type Committer,
+} from './bulk-import';
+import { batchRows, type BatchPlan } from '../ask/batch';
+import { __resetRecordKeysForTests, keysFor } from './record-keys';
+import { LEDGER_KEY } from './bulk-import-ledger';
+import type { StrainRecord } from './records';
+
+const local = new Map<string, string>();
+beforeEach(() => {
+  local.clear();
+  vi.stubGlobal('localStorage', {
+    getItem: (k: string) => local.get(k) ?? null,
+    setItem: (k: string, v: string) => void local.set(k, v),
+    removeItem: (k: string) => void local.delete(k),
+  });
+  vi.stubGlobal('fetch', () => {
+    throw new Error('these tests never reach the network');
+  });
+  __resetRecordKeysForTests();
+});
+
+const mother = {
+  id: `VEIL-${'1'.padStart(32, '0')}`,
+  strainName: 'Blue Dream',
+  bredBy: 'Harbour Farm',
+  dateCreated: '2026-01-02',
+  notes: '',
+  taxon: 'Cannabis sativa',
+  licenseIds: [],
+  recordFingerprint: 'ab'.repeat(32),
+} as unknown as StrainRecord;
+const plan = (count = 3): BatchPlan => ({
+  preset: 'clones',
+  count,
+  baseName: 'Blue Dream clone',
+  bredBy: 'Harbour Farm',
+  taxon: 'Cannabis sativa',
+  date: '2026-11-07',
+  parent: mother,
+});
+const ok: Committer = (batch) => Promise.resolve({ stored: batch.map((r) => r.id), refused: [] });
+const lost: Committer = () => Promise.resolve({ stored: [], refused: [], retry: 'no answer' });
+
+describe('held rows', () => {
+  it('holdForBackup writes held; sending moves them to pending before the commit', async () => {
+    const rows = batchRows(plan());
+    await sealRows(rows, { commit: holdForBackup, batchSize: 10, gapMs: 0 });
+    expect(Object.values(loadLedger().rows).map((e) => e.state)).toEqual(['held', 'held', 'held']);
+    const seen: string[][] = [];
+    const watching: Committer = (batch) => {
+      seen.push(Object.values(loadLedger().rows).map((e) => e.state));
+      return lost(batch);
+    };
+    await sealRows(rows, { commit: watching, gapMs: 0 });
+    // Written as pending before anything left.
+    expect(seen).toEqual([['pending', 'pending', 'pending']]);
+  });
+
+  it('dropHeld forgets only held rows of the hashes given, with their keys', async () => {
+    const a = batchRows(plan(2));
+    const b = batchRows({ ...plan(2), baseName: 'Other clone' });
+    await sealRows(a, { commit: holdForBackup, batchSize: 10, gapMs: 0 });
+    await sealRows(b, { commit: holdForBackup, batchSize: 10, gapMs: 0 });
+    const idsA = a.map((r) => loadLedger().rows[r.hash].recordId);
+    expect(await dropHeld(a.map((r) => r.hash))).toBe(2);
+    for (const id of idsA) expect(keysFor(id)).toBeUndefined();
+    // The other job's rows are untouched.
+    expect(b.every((r) => loadLedger().rows[r.hash]?.state === 'held')).toBe(true);
+  });
+
+  it('after a crash mid-send, discarding deletes nothing: the rows are pending', async () => {
+    const rows = batchRows(plan());
+    await sealRows(rows, { commit: holdForBackup, batchSize: 10, gapMs: 0 });
+    await sealRows(rows, { commit: lost, gapMs: 0 });
+    const ids = rows.map((r) => loadLedger().rows[r.hash].recordId);
+    expect(await dropHeld(rows.map((r) => r.hash))).toBe(0);
+    for (const id of ids) expect(keysFor(id)).toBeDefined();
+    expect(rows.every((r) => loadLedger().rows[r.hash].state === 'pending')).toBe(true);
+  });
+
+  it('sealed rows are never dropped either', async () => {
+    const rows = batchRows(plan(1));
+    await sealRows(rows, { commit: holdForBackup, batchSize: 10, gapMs: 0 });
+    await sealRows(rows, { commit: ok, gapMs: 0 });
+    expect(await dropHeld(rows.map((r) => r.hash))).toBe(0);
+    expect(loadLedger().rows[rows[0].hash].state).toBe('sealed');
+  });
+});
+
+describe('onlyKept', () => {
+  it('sends the kept records as themselves, and seals none new', async () => {
+    const rows = batchRows(plan(2));
+    await sealRows(rows, { commit: holdForBackup, batchSize: 10, gapMs: 0 });
+    const kept = rows.map((r) => loadLedger().rows[r.hash].recordId);
+    // One row's kept record is gone (another tab discarded it): it is refused, not sealed again.
+    const l = loadLedger();
+    delete l.rows[rows[1].hash];
+    saveLedger(l);
+    const sent: string[] = [];
+    const spy: Committer = (batch) => {
+      sent.push(...batch.map((r) => r.id));
+      return ok(batch);
+    };
+    const out = await sealRows(rows, { commit: spy, gapMs: 0, onlyKept: true });
+    expect(sent).toEqual([kept[0]]);
+    expect(out.outcomes[rows[1].hash]).toEqual({ state: 'refused', reason: NOT_KEPT });
+    expect(loadLedger().rows[rows[1].hash]).toBeUndefined();
+  });
+});
+
+describe('the ledger write comes first (review B2)', () => {
+  it('a ledger that won’t save sends nothing: a sent record never reads as held', async () => {
+    const rows = batchRows(plan(2));
+    await sealRows(rows, { commit: holdForBackup, batchSize: 10, gapMs: 0 });
+    // Full storage from here on: the ledger can't be written.
+    const real = localStorage.setItem.bind(localStorage);
+    vi.stubGlobal('localStorage', {
+      getItem: (k: string) => local.get(k) ?? null,
+      setItem: (k: string, v: string) => {
+        if (k === LEDGER_KEY) throw new Error('QuotaExceededError');
+        real(k, v);
+      },
+      removeItem: (k: string) => void local.delete(k),
+    });
+    const sent: string[] = [];
+    const spy: Committer = (batch) => {
+      sent.push(...batch.map((r) => r.id));
+      return ok(batch);
+    };
+    const out = await sealRows(rows, { commit: spy, gapMs: 0 });
+    expect(sent).toEqual([]);
+    expect(out.stopped).toBe(NOT_WRITTEN);
+    // Still held, never sent: dropping them later loses nothing.
+    expect(rows.every((r) => loadLedger().rows[r.hash].state === 'held')).toBe(true);
+  });
+});
+
+describe('held rows belong to a job (review L10)', () => {
+  it('another job can’t reuse or drop them', async () => {
+    const rows = batchRows(plan(2));
+    await sealRows(rows, { commit: holdForBackup, batchSize: 10, gapMs: 0, heldBy: 'job-a' });
+    const ids = rows.map((r) => loadLedger().rows[r.hash].recordId);
+    const other = await sealRows(rows, { commit: holdForBackup, batchSize: 10, gapMs: 0, heldBy: 'job-b' });
+    expect(Object.values(other.outcomes)).toEqual(rows.map(() => ({ state: 'refused', reason: HELD_ELSEWHERE })));
+    expect(
+      await dropHeld(
+        rows.map((r) => r.hash),
+        'job-b',
+      ),
+    ).toBe(0);
+    expect(await dropHeld(rows.map((r) => r.hash))).toBe(0);
+    for (const id of ids) expect(keysFor(id)).toBeDefined();
+    expect(
+      await dropHeld(
+        rows.map((r) => r.hash),
+        'job-a',
+      ),
+    ).toBe(2);
+  });
+});
+
+describe('what a batch held for its backup says', () => {
+  it('starts with HELD_FOR_BACKUP, whatever sealRows adds after it', async () => {
+    const out = await sealRows(batchRows(plan(2)), { commit: holdForBackup, batchSize: 10, gapMs: 0 });
+    expect(out.stopped?.startsWith(HELD_FOR_BACKUP)).toBe(true);
+  });
+
+  it('rows sent with no answer that the server holds are marked sealed, and never sent again', async () => {
+    const rows = batchRows(plan(3));
+    await sealRows(rows, { commit: holdForBackup, batchSize: 10, gapMs: 0 });
+    const hashes = rows.map((r) => r.hash);
+    expect(anyPending(hashes)).toBe(false);
+    await sealRows(rows, { commit: lost, gapMs: 0 });
+    expect(anyPending(hashes)).toBe(true);
+    const [first, second] = rows.map((r) => loadLedger().rows[r.hash]);
+    // The server has the first; the second under its id but another proof code is not the same record.
+    const landed = await markLanded(
+      hashes,
+      new Map([
+        [first.recordId, first.fingerprint],
+        [second.recordId, 'cd'.repeat(32)],
+      ]),
+    );
+    expect(landed).toBe(1);
+    expect(rows.map((r) => loadLedger().rows[r.hash].state)).toEqual(['sealed', 'pending', 'pending']);
+    expect(keysFor(first.recordId)).toBeTruthy();
+    const sent: string[][] = [];
+    await sealRows(rows, {
+      commit: (b) => {
+        sent.push(b.map((r) => r.id));
+        return ok(b);
+      },
+      gapMs: 0,
+    });
+    expect(sent).toEqual([rows.slice(1).map((r) => loadLedger().rows[r.hash].recordId)]);
+    expect(anyPending(hashes)).toBe(false);
+  });
+
+  it('found on the server but not written down: says so, and the rows stay pending (W3)', async () => {
+    const rows = batchRows(plan(2));
+    await sealRows(rows, { commit: holdForBackup, batchSize: 10, gapMs: 0 });
+    await sealRows(rows, { commit: lost, gapMs: 0 });
+    const first = loadLedger().rows[rows[0].hash];
+    const real = localStorage.setItem.bind(localStorage);
+    vi.stubGlobal('localStorage', {
+      getItem: (k: string) => local.get(k) ?? null,
+      setItem: (k: string, v: string) => {
+        if (k === LEDGER_KEY) throw new Error('full');
+        real(k, v);
+      },
+      removeItem: (k: string) => void local.delete(k),
+    });
+    const hashes = rows.map((r) => r.hash);
+    expect(await markLanded(hashes, new Map([[first.recordId, first.fingerprint]]))).toBe('not-written');
+    expect(rows.map((r) => loadLedger().rows[r.hash].state)).toEqual(['pending', 'pending']);
+    // Nothing found: nothing to write, nothing refused.
+    expect(await markLanded(hashes, new Map())).toBe(0);
+  });
+
+  it('a record sent before and refused when sent again keeps its key and its row (W3, W7)', async () => {
+    const rows = batchRows(plan(2));
+    await sealRows(rows, { commit: holdForBackup, batchSize: 10, gapMs: 0 });
+    await sealRows(rows, { commit: lost, gapMs: 0 });
+    const ids = rows.map((r) => loadLedger().rows[r.hash].recordId);
+    const refuseAll: Committer = (b) =>
+      Promise.resolve({ stored: [], refused: b.map((r) => ({ id: r.id, reason: 'older copy' })) });
+    const r = await sealRows(rows, { commit: refuseAll, gapMs: 0 });
+    expect(Object.values(r.outcomes).map((o) => o.state)).toEqual(['refused', 'refused']);
+    expect(rows.map((x) => loadLedger().rows[x.hash]?.state)).toEqual(['pending', 'pending']);
+    expect(ids.every((id) => keysFor(id))).toBe(true);
+  });
+});

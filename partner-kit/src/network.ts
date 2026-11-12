@@ -34,12 +34,13 @@ export const DEFAULT_PROOF_SERVER = 'http://127.0.0.1:6300';
 
 /**
  * A proof server is built for one Midnight ledger, and no published image serves both. Mainnet
- * moved to Ledger 9 on 6 November 2026 and needs proof server 9.0.0. The test networks stay on
- * Ledger 8 until they fork, with 8.1.3 (Midnight's 2 October 2026 security patch, by digest).
- * 9.0.0 is pinned by tag only: add its digest, from Midnight's signed release manifest, before
- * relying on it.
+ * moved to Ledger 9 on 6 November 2026 and needs proof server 9.0.1 (9.0.0 was never published on
+ * Docker Hub), pinned by the digest in Midnight's release notes (midnight-ledger, tag
+ * proof-server-9.0.1). The test networks stay on Ledger 8 until they fork, with 8.1.3 (Midnight's
+ * 2 October 2026 security patch, by digest).
  */
-export const PROOF_SERVER_IMAGE_LEDGER9 = 'midnightntwrk/proof-server:9.0.0';
+export const PROOF_SERVER_IMAGE_LEDGER9 =
+  'midnightntwrk/proof-server:9.0.1@sha256:90e36a14f92c2004127f0ed1cfd6ee89d770cf1f6e9cd7f02026ffd4ecb42f37';
 export const PROOF_SERVER_IMAGE_LEDGER8 =
   'midnightntwrk/proof-server:8.1.3@sha256:0f4ab0716985eaebbe55a970348f52ff05ffd8a96631ed7232bd0c4ba02c115c';
 

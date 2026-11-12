@@ -70,7 +70,14 @@ export const checkClaim = async (
           try {
             const get = deps.attestations ?? ((r: string) => attestationsFor(r, { claimsKeyBindings: true }));
             const [list, aboutList] = await Promise.all([get(link.record), get(link.attested.about)]);
-            signer = findBinding(list, link.record, a.claim.attester, link.attested.about, aboutList);
+            signer = findBinding(
+              list,
+              link.record,
+              a.claim.attester,
+              link.attested.about,
+              aboutList,
+              link.attested.bindingSalt,
+            );
           } catch {
             signer = { kind: 'none' };
           }

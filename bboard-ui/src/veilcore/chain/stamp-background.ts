@@ -1,7 +1,8 @@
 // Key date stamps that didn't go through, tried again while the app is open (key-stamp.ts).
 //
 // Only stamps that were started and failed are here: nothing is stamped that the person never
-// started. One at a time, only while the tab is visible, never on a check or prove page (those
+// started. A stamp started by an approved "Do it for me" job is one the person started, by
+// approving it (its entry says which job: key-stamp.ts byJob, ask-job/run.ts). One at a time, only while the tab is visible, never on a check or prove page (those
 // pages do nothing of the holder's: holder-guard.ts), and never for a record whose log screen is
 // open and trying it itself (holdStamp). A stamp that may have gone out, or one this site can't
 // make, waits for the person.

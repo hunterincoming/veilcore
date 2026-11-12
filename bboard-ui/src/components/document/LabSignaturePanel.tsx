@@ -27,9 +27,12 @@ type Held = DocumentRecordLike & { readonly fieldSet: HeldFieldSet };
 const useSigner = (record: StrainRecord): LabSigner | undefined => {
   const [signer, setSigner] = useState<LabSigner>();
   const sig = record.labSignature;
+  const salt = record.labResult?.statement.bindingSalt;
+  // A v2 result without a salt has no binding to look up: nothing is sent for it.
+  const unsalted = !!record.labResult && salt === undefined;
   useEffect(() => {
     setSigner(undefined);
-    if (!sig?.about) return void setSigner({ kind: 'none' });
+    if (!sig?.about || unsalted) return void setSigner({ kind: 'none' });
     let live = true;
     void (async () => {
       try {
@@ -44,7 +47,8 @@ const useSigner = (record: StrainRecord): LabSigner | undefined => {
           attestationsFor(sig.record, { claimsKeyBindings: true }),
           about ? attestationsFor(about) : Promise.resolve([]),
         ]);
-        if (live) setSigner(key && about ? findBinding(list, sig.record, key, about, aboutList) : { kind: 'none' });
+        if (live)
+          setSigner(key && about ? findBinding(list, sig.record, key, about, aboutList, salt) : { kind: 'none' });
       } catch {
         if (live) setSigner({ kind: 'none' });
       }
@@ -52,7 +56,7 @@ const useSigner = (record: StrainRecord): LabSigner | undefined => {
     return () => {
       live = false;
     };
-  }, [sig]);
+  }, [sig, salt, unsalted]);
   return signer;
 };
 
@@ -94,8 +98,11 @@ export const LabSignaturePanel: React.FC<{
     }
   };
 
-  const who =
-    signer?.kind === 'bound'
+  // A lab result v2 signed before binding salts: no name binding is read for it (SPEC 11.12).
+  const unsalted = !!record.labResult && record.labResult.statement.bindingSalt === undefined;
+  const who = unsalted
+    ? t('app.lr.check.noSalt')
+    : signer?.kind === 'bound'
       ? signerLabel(signer.attestation as ResolvedAttestation, 'Signed by', Date.now(), tr).text
       : signer?.kind === 'retracted'
         ? withdrawnWords(signer, !!record.labResult, tr)

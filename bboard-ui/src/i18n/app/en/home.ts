@@ -118,6 +118,7 @@ export const home = {
   'app.home.paste.label': 'Someone sent you a code or link?',
   'app.home.paste.placeholder': 'Paste it here',
   'app.home.paste.go': 'Go',
+  'app.home.paste.orMake': 'Nothing to paste? Make a record',
   'app.home.paste.hint':
     "A lab code, a record link, a request to prove you hold a record, or an agreement to sign. We'll work out which.",
   'app.home.paste.whichPlant': "That's a request to prove you hold a plant. Which one did they ask about?",

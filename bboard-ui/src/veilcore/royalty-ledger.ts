@@ -728,3 +728,44 @@ export const upcomingPeriods = (terms: LicenseTerms, today: string): RoyaltyPeri
   terms.reporting
     ? periodsOf(terms.reporting, terms.startDate, terms.endDate, today).filter((p) => p.paymentDue >= today)
     : [];
+
+/**
+ * A report as the license page's form makes it (RoyaltyLedger.tsx ReportForm), from the figures
+ * typed for one period: the lines, the top-up to the yearly minimum worked out from the other
+ * reports, and the total. "Nothing to report" sends zeros. Undefined while a figure isn't a plain
+ * decimal. Ask's "What's due" job (ask-job) builds its reports here, so both send the same thing.
+ */
+export const buildStatement = (
+  terms: LicenseTerms,
+  ledger: Ledger,
+  r: {
+    readonly statementId: string;
+    readonly periodFrom: string;
+    readonly periodTo: string;
+    readonly quantity?: string;
+    readonly offspring?: string;
+    readonly nothing?: boolean;
+    readonly type?: string;
+  },
+): Extract<DealBody, { type: 'statement' }> | undefined => {
+  const input: ReportInput = r.nothing
+    ? { quantity: '0', offspring: '0' }
+    : { quantity: r.quantity || '0', offspring: r.offspring || '0' };
+  const opts = { type: r.type, periodFrom: r.periodFrom };
+  const base = reportLines(terms, input, opts);
+  if (!base) return undefined;
+  const topUp = expectedTopUp(terms, ledger.reports, { periodFrom: r.periodFrom, periodTo: r.periodTo }, base.total);
+  const out = reportLines(terms, input, { ...opts, minimumTopUp: topUp });
+  if (!out) return undefined;
+  return {
+    type: 'statement',
+    statementId: r.statementId,
+    periodFrom: r.periodFrom,
+    periodTo: r.periodTo,
+    basis: out.basis,
+    quantity: out.quantity,
+    currency: currencyOf(terms),
+    amountOwed: out.total,
+    lines: out.lines,
+  };
+};

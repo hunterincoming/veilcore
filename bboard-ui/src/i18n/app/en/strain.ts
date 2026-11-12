@@ -167,6 +167,7 @@ export const strain = {
   'app.strain.v.app.plant.f.method': 'How it was made',
   'app.strain.v.app.plant.f.statedDate': 'Stated date made or isolated (the holder’s claim)',
   'app.strain.v.app.plant.fix.field.cultivarName': 'strain name',
+  'app.strain.v.app.plant.fix.field.name': 'strain name',
   'app.strain.v.app.plant.fix.field.breederName': 'made or isolated by',
   'app.strain.v.app.plant.fix.field.breedingMethod': 'how it was made',
   'app.strain.v.app.verify.field.breeding-method': 'How it was made',

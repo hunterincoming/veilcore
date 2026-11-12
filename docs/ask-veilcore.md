@@ -76,7 +76,10 @@ How that is kept true:
 - **The conversation is kept in memory only**, for as long as the page is open: never stored,
   never in a backup.
 - **Saving is the app's own Save**, on the screen Ask opens, with the backup step and the
-  receipt as for anything else.
+  receipt as for anything else. "Do it for me" (below) is the one exception: there the one
+  Approve on the job's page is the Save, and it covers only the plan that page shows.
+- **"Do it for me" keeps a job record on this device**, and nothing else new. See
+  [Do it for me](#do-it-for-me) for what it holds and when it goes.
 
 ## The provenance rule
 
@@ -279,10 +282,11 @@ fetches only pinned addresses. `e2e/ask-model.spec.ts`:
   WebLLM. With the network off, a request Shortcuts can't read is answered by the model path,
   with no request. `scripts/eval-ask.mjs` counts requests while the real model answers on a GPU.
 
-**The one thing Ask stores:** how far the person has got with Ask, under one key
+**What Ask stores:** how far the person has got with Ask, under one key
 (`veilcore.ask.seen.v1`): how many visits the hint has shown on ("1" to "3"), "dismissed", or
 "opened". Seeing the hint is not opening Ask: what Ask can do and the model panel are shown in
-full on the real first open. Never what was typed.
+full on the real first open. Never what was typed. And, only once the person uses "Do it for
+me", the job record and the held rows below.
 
 **To pin it and measure it (the maintainer, on the Mac, in order):**
 
@@ -307,3 +311,145 @@ full on the real first open. Never what was typed.
 
 Not before it: voice (browser speech sends audio to Apple or Google), photo-to-draft, a cloud
 model, WebMCP, agent-to-agent licensing.
+
+## Do it for me
+
+Part A (built): one request, got ready on this device as one finished result, sent only after
+one approval. Names: "Do it for me", 「まとめて準備」 (no "AI"), "Für mich erledigen", "Hazlo por
+mí", "Faites-le pour moi". It is a switch in Ask's sheet.
+
+The jobs:
+
+1. **A birth or a cut, each with its own details**: "Bella whelped 6 pups, 4 male 2 female",
+   "3 calves by AI bull 7HO12345 out of Cow #9", "Daisy calved today, bull calf, tag 1234",
+   "cut 12 clones off Blue Dream, tag 1A4-0099". No date stamps. IDs can be pasted as a column on
+   the result screen; young saved without them show on Home as "Add 6 IDs".
+2. **What's due, reports drafted**: every report due on the agreements this browser holds as a
+   licensee, at most 5, in one sheet. The person types each number or ticks "Nothing to report".
+3. **Bring in a collection**: "add my 40 mothers". The person picks the file on the result
+   screen; the bulk import's own steps read it (`readSheet`, `guessMapping` with the passport
+   columns, `checkRows`) and the result says "40 ready, 3 need a fix". No stamps.
+4. **Get one record ready to license**: its key date stamp (one sponsored step) and the backup
+   check. Home then shows "Blue Dream: ready to license", or "ready tomorrow" while the stamp
+   waits.
+
+Batch plus license, and the license quantity field, are Part B and not built: a request that
+licenses is refused with the closest things Ask can do.
+
+**The planner** (`src/ask/plan.ts`, `src/ask/clauses.ts`) is Shortcuts: fixed word lists,
+deterministic. Every record name in the browser is masked first, received ones too, so a name
+someone else chose can't split the text; values bind only to the person's own records. At most
+3 clauses, split on joining words in the five languages, Japanese て-form and 「、」 included.
+Each clause's reader must use every word but a fixed list of fillers: a leftover word or any
+negation refuses the whole plan ("no tag yet" is read as IDs to follow, not a negation). A word
+that means different things in two languages is read in the person's language only: "hier" is
+yesterday in French and "here" in German, and in any other language Ask asks which day, offering
+the sentence with each that plans (with another day word said too, that day is used). A name
+two of the person's own records share is refused. A refusal says what it understood, which words
+it couldn't use, and offers a shorter sentence made only from the words typed (or "get <their
+record> ready to license" in their language) for them to send. The hint's example, unedited,
+never starts a job. `src/ask/plan-phrases.test.ts` holds the users' review phrasings, in five
+languages. Every value
+carries its source (typed span, own record, the frozen rule "today", or the person on the result
+screen); `provenanceHolds` checks it in the tests. The optional on-device model is not used to
+plan jobs.
+
+**Nothing is sent while a job is got ready**, except for "What's due": each agreement's messages
+are read fresh from the deal channel (reads with the deal's write token, never the holder key),
+never from what a page read earlier, and what each report will come to (the top-up to a yearly
+minimum included) is fixed in the plan from that read. Jobs are never got ready on a check or
+prove page. Records are sealed here and held for the backup (the bulk-import ledger's `held`
+state, each row marked with its job, never shared between jobs); sealing needs this browser's
+vault key already here (read locally, no request), and without it Ask says "Open VeilCore once with a connection first." `e2e/ask-job.spec.ts` counts
+the requests while a batch is got ready, online and with the network off: none.
+
+**Approve** sends the hash of the plan the page drew. In one IndexedDB transaction the job is
+approved only if that is still the stored plan's hash and the job is still waiting: an edit in
+another tab, then Approve on the stale page, sends nothing. Every edit bumps the plan's `rev`.
+Approve stays off until every question is answered and "Can't be undone" has been on screen.
+A job page opened from a link is read-only ("Open from Home to approve"). There is no Ask
+bubble on a job's page.
+
+**The runner** (`src/ask-job/run.ts`) carries out approved jobs only, only where the page may
+send the holder's requests and the tab is visible (never on `/prove` or `/verify`, the same rule
+as the stamp background; a records send also stops between batches if the page changes), one
+runner across tabs, its lease checked before each step. Each step is written as running before it
+sends, and nothing is sent unless the ledger's `pending` write succeeded. A report is signed only
+if it comes to exactly the amount and currency Approve showed; otherwise nothing is signed and the
+page says the new amount. Records are sent from the ledger as themselves (a resend is the same records), and rows sent
+before with no answer are looked up on the server first: one it holds is marked saved and never
+sent again. If the server can't be asked, or what it holds can't be written down here, or this
+browser has no holder key (restore the backup), nothing is sent until it can, and the page says
+which; it also tells full storage, a save the server turned down (with its reason) and a failure
+here apart from no connection. A
+record sent before and refused when sent again keeps its key and its row: the first send may
+have landed. A report is
+read for fresh and signed once (`deal-client.ts sayOnce`), so a retry after a lost answer finds
+it and sends no second one; a stamp goes through the existing stamp path, its queue entry
+marked as started by the approved job, with the stamp queue's "may have gone out" stop. An
+unknown outcome stops and asks. There is no automatic rollback.
+
+**The job record** (IndexedDB `veilcore.ask.job.v1`, this device only, never in a backup):
+
+- holds step states and when to try next, the plan's `rev` and hash, when it was made and
+  approved, and references: row hashes in the bulk-import ledger, record ids, the agreements'
+  invite ids and periods, the report ids made at prepare. Also the few values typed in the
+  request that a batch is rebuilt from (counts, a sire's code, a first tag) and the answers given
+  on the result screen. A report's typed figures are kept only until that report is sent.
+- never holds the request as typed, tokens, secrets, or a copy of what another store keeps, but
+  the parent's name as shown when the job was made, so its title still says it while the
+  records can't be read.
+- expiry is checked on every read. A job waiting for approval expires 72 hours after it was made
+  (a report job at the end of its earliest report's due day, if sooner). An approved records job
+  never ends by itself and never loses its records: not sent by its deadline, it asks ("Send
+  now" or "Discard"); sent but not confirmed 30 days after approval (or after the last "Send
+  now"), it asks again ("Send now", which checks the server first). An approved report or stamp
+  job not started by its deadline expires; one that started stops 30 days after approval for
+  the person to look at. Any ended job is deleted 7 days after it ends. Held records are
+  dropped, through `dropHeld` (only `held` rows of that job), only for a job never approved or
+  one the person discarded, and never once its records step started; a job's stamps not yet
+  made leave the stamp queue when it ends.
+- young saved without IDs are listed on Home from the records themselves ("Bella's litter (6):
+  add IDs"), not from the job, with a box to paste a column; each ID is saved as a correction.
+  Each young has its own box (`src/components/ask/IdBoxes.tsx`), labelled with its birth order,
+  name and sex, read from the records as they are now on every render: a young that has an ID,
+  given here or in another tab or device, shows it, read-only. The person types or scans into
+  each box. A scanner is told from a hand by timing: a Tab or Enter within 150 ms of the last
+  character typed into the box is a scanner's (wide on purpose: a quick hand taken for a scanner
+  only moves to the next empty box). A scanner's key never leaves the boxes or presses
+  a button: a filled box moves on to the next empty one, the last stays put, the second key of
+  its pair is swallowed, and a scan into a box a scan already filled (a double beep) is taken
+  back with a note. A person's Tab moves focus as anywhere, so the buttons (Save, "Use these
+  IDs", Approve) are reached by keyboard; a person's Enter in a filled box moves to the next
+  empty one. Words put into one box at once without a paste (a phone's clipboard chip,
+  autofill) are never split across young: one ID printed in groups ("985 112 345 678 901") stays
+  whole, and words that each mix letters and digits ("M1 M2 M3", likely several IDs) are refused.
+  A paste is a shortcut: it fills its box and the boxes below, one line each, only when it
+  plainly lines up. More than one column, a list on one line (comma or semicolon, Japanese commas
+  too), a heading (over a single ID too), invisible or control characters, more lines than boxes
+  from there down, or a first line that is an ID a young already has, are refused with nothing
+  filled; it stops at a young
+  that has an ID and says so, and an empty line never clears what was typed. Before Save, each
+  young is listed with the ID it will get; a box that breaks a rule (the same ID twice, one
+  already in the litter or on another of the person's animals) says why under it, and Save
+  waits. The boxes are locked while Save runs. Right before each correction the records are read
+  afresh, the boxes rebuilt and every check run again (`src/ask-job/save-ids.ts`): if anything
+  differs from what the person saw (another device put that ID on another pup meanwhile),
+  nothing more is sent and the screen says so. That read must reach the registry: offline, or
+  when it answers with an error, nothing is saved and the person is told to try again online
+  (`records.ts refresh`). And a record is corrected once (`records.ts issueCorrection` refuses a
+  record that has a correction already, unless the change is that correction's own, compared
+  field by field). Online, this stops a stale tab or device from giving one pup two IDs, or one
+  ID to two pups. It can't stop two devices that press Save in the same second, each reading
+  before the other's write lands: after the last correction the records are read once more, and
+  an ID now on two animals is said loudly, naming both, so it is corrected the same day. Cancel with IDs typed asks first. The IDs on a litter's result screen use
+  the same boxes, before Approve ("Use these IDs" puts them in the plan, bound to its hash), and
+  the made block lists each young with its ID (`src/ask-job/ids.ts`). IDs typed there and not
+  used keep Approve off, with a note and both actions (use them, or clear them) by the button:
+  typed IDs are never dropped without a word, even when another tab changes the plan's IDs
+  meanwhile (they stay, and a note says so). An ID in the plan that is now on another animal
+  keeps Approve off too.
+
+Also on the device while a job waits: its records in the bulk-import ledger as `held` rows, and
+their new keys. A backup made while a job waits holds those keys, for records that may never be
+saved: harmless, and said here so it isn't a surprise.

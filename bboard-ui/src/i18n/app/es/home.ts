@@ -116,6 +116,7 @@ export const home = {
   'app.home.paste.label': '¿Alguien le envió un código o un enlace?',
   'app.home.paste.placeholder': 'Péguelo aquí',
   'app.home.paste.go': 'Ir',
+  'app.home.paste.orMake': '¿Nada que pegar? Cree un registro',
   'app.home.paste.hint':
     'Un código de laboratorio, un enlace a un registro, una solicitud para demostrar que tiene un registro o un acuerdo para firmar. Nosotros averiguamos cuál es.',
   'app.home.paste.whichPlant': 'Es una solicitud para demostrar que tiene una planta. ¿Por cuál le preguntaron?',
