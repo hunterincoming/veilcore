@@ -45,7 +45,7 @@ declare global {
      */
     readonly VITE_CARDANO_RELAY_URL?: string;
     /** A preprod test token standing in for USDCx (`CODE:policy:name:decimals`); ignored on mainnet. */
-    readonly VITE_CARDANO_TEST_TOKEN?: string;
+    readonly VITE_CARDANO_TEST_ASSET?: string;
     /** '1' only in the end-to-end build (package.json e2e:build): adds the /e2e fixture pages. */
     readonly VITE_E2E_FIXTURES?: string;
   }

@@ -19,7 +19,7 @@
     "preview": "vite preview",
     "prepack": "yarn build",
     "test": "vitest run",
-    "e2e:build": "tsc && VITE_E2E_FIXTURES=1 VITE_CARDANO_RELAY_URL=http://cardano.e2e.invalid VITE_CARDANO_TEST_TOKEN=tUSD:abababababababababababababababababababababababababababab:74555344:6 VITE_ASK_MODEL=test VITE_REAL_CHAIN=1 VITE_REAL_CHAIN_CONTRACT_ADDRESS=0000000000000000000000000000000000000000000000000000000000000000 VITE_SPONSOR_URL=http://sponsor.e2e.invalid VITE_API_BASE=${E2E_API_BASE:-http://registry.e2e.invalid} vite build --mode preview --outDir e2e-dist --emptyOutDir",
+    "e2e:build": "tsc && VITE_E2E_FIXTURES=1 VITE_CARDANO_RELAY_URL=http://cardano.e2e.invalid VITE_CARDANO_TEST_ASSET=tUSD:abababababababababababababababababababababababababababab:74555344:6 VITE_ASK_MODEL=test VITE_REAL_CHAIN=1 VITE_REAL_CHAIN_CONTRACT_ADDRESS=0000000000000000000000000000000000000000000000000000000000000000 VITE_SPONSOR_URL=http://sponsor.e2e.invalid VITE_API_BASE=${E2E_API_BASE:-http://registry.e2e.invalid} vite build --mode preview --outDir e2e-dist --emptyOutDir",
     "e2e": "playwright test",
     "record:walkthrough": "node e2e/record-walkthrough.mjs"
   },

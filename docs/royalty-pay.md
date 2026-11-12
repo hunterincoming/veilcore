@@ -185,7 +185,7 @@ network before anything moves.
 ### Test networks
 
 On preprod there is no real USDCx. A test build names a test token with
-`VITE_CARDANO_TEST_TOKEN=CODE:policy:assetname:decimals` (ignored on mainnet). The test site
+`VITE_CARDANO_TEST_ASSET=CODE:policy:assetname:decimals` (ignored on mainnet). The test site
 needs one minted on preprod and the relay's Cardano preprod project id; neither exists yet.
 
 ### Before mainnet (all of these)

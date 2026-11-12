@@ -86,7 +86,7 @@ export const CARDANO_TOKENS: readonly CardanoToken[] = [
 ];
 
 /**
- * A test token on preprod, from the build (`VITE_CARDANO_TEST_TOKEN`, `CODE:policy:name:decimals`):
+ * A test token on preprod, from the build (`VITE_CARDANO_TEST_ASSET`, `CODE:policy:name:decimals`):
  * preprod has no real USDCx, so the test site names one it can mint. Never read on mainnet.
  */
 export const testTokenFrom = (raw: string | undefined, midnight: string = NETWORK): CardanoToken | undefined => {
@@ -99,7 +99,7 @@ export const testTokenFrom = (raw: string | undefined, midnight: string = NETWOR
 /** The tokens this build can be paid in: its network's, and a test token on a test build. */
 export const tokensFor = (
   midnight: string = NETWORK,
-  testToken: string | undefined = import.meta.env.VITE_CARDANO_TEST_TOKEN,
+  testToken: string | undefined = import.meta.env.VITE_CARDANO_TEST_ASSET,
 ): CardanoToken[] => {
   const net = cardanoNetworkOf(midnight);
   const test = testTokenFrom(testToken, midnight);
