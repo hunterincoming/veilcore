@@ -274,8 +274,12 @@ test('the holder shows no lab signature, then one lab report: the check page say
   // 3. By proof code (12 Nov 2026, the claim check page names a plant only by it): the report the
   // holder shows is read there too, the receipt not; turned off, it is gone at once.
   const labOnCode = async () =>
-    ((await (await fetch(`${API}/attestations/subject/${fp}`)).json()) as { attestations: { attestationId: string; type: string }[] })
-      .attestations.filter((a) => a.type === 'chain-of-custody' || a.type === 'laboratory-report')
+    (
+      (await (await fetch(`${API}/attestations/subject/${fp}`)).json()) as {
+        attestations: { attestationId: string; type: string }[];
+      }
+    ).attestations
+      .filter((a) => a.type === 'chain-of-custody' || a.type === 'laboratory-report')
       .map((a) => a.attestationId);
   const health = (await (await fetch(`${API}/health`)).json()) as { features?: string[] };
   if (labPrivate && health.features?.includes('shared-by-proof-code-v1')) {

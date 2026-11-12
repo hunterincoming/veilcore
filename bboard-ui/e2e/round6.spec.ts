@@ -113,7 +113,8 @@ test.describe('round 6 against a real registry: the lab report hash and the name
     // Which registry: since 8 Nov 2026 a lab's signatures are private until the holder shows
     // them (private-lab-signatures-v1), and a shown one is read by proof code too
     // (shared-by-proof-code-v1). Before, every lab signature was public.
-    const features = (((await (await fetch(`${API}/health`)).json()) as { features?: string[] }).features ?? []) as string[];
+    const features = (((await (await fetch(`${API}/health`)).json()) as { features?: string[] }).features ??
+      []) as string[];
     const labPrivate = features.includes('private-lab-signatures-v1');
     const byCode = features.includes('shared-by-proof-code-v1');
     test
@@ -121,8 +122,7 @@ test.describe('round 6 against a real registry: the lab report hash and the name
       .annotations.push({ type: 'registry', description: labPrivate ? 'lab signatures private' : 'before 8 Nov' });
     const LAB_TYPES = ['laboratory-report', 'chain-of-custody'];
     type Subject = { attestations: { type: string; attestationId: string; documentHash?: string }[]; total: number };
-    const subject = async (fp: string) =>
-      (await (await fetch(`${API}/attestations/subject/${fp}`)).json()) as Subject;
+    const subject = async (fp: string) => (await (await fetch(`${API}/attestations/subject/${fp}`)).json()) as Subject;
 
     // 1. A share link with "whether a DNA report is saved" and no lab signature shown.
     await breeder.getByRole('button', { name: /Show someone/ }).click();
