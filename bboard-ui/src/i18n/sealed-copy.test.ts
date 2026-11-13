@@ -780,7 +780,7 @@ describe('round 6: the sentences the fifth review found false', () => {
         /a code made from its name, which says nothing about the name without the key in your check link;/,
       );
       expect(s).toMatch(
-        /one made before 17 October 2026 names the report file[’']s SHA-256, which our server shows only to you and the lab\./,
+        /one made before 17 October 2026 names the report file[’']s SHA-256, which our server shows only to you, the lab and whoever sent the lab the sample\./,
       );
       expect(s).toMatch(
         /kept for 7 days: our server learns which on-chain key each request names\. The prove and check pages never send your holder key\./,

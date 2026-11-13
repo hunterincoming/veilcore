@@ -16,15 +16,15 @@ export const verify = {
   'app.verify.report.replaced': '{which} was replaced by its lab on {on} with a corrected one. {tail}{staleNote}',
   'app.verify.report.withdrawn': '{which} was withdrawn by its lab on {on}. {tail}{staleNote}',
   'app.verify.report.ownSha':
-    'The holder saved a DNA report file to this record{asOf} (SHA-256 {sha}). No lab signature on this record matches it, so it is the holder’s own statement.{staleNote}',
+    'The holder saved a DNA report file to this record{asOf} (SHA-256 {sha}). No lab signature shown here matches it, so as shown it is the holder’s own statement. A lab’s signatures are private unless the holder chooses to show them.{staleNote}',
   'app.verify.report.own':
-    'The holder saved a DNA report file to this record. No lab signature on this record matches it, so it is the holder’s own statement.{staleNote}',
+    'The holder saved a DNA report file to this record. No lab signature shown here matches it, so as shown it is the holder’s own statement. A lab’s signatures are private unless the holder chooses to show them.{staleNote}',
   'app.verify.report.unnamedSigned':
     'The holder saved a DNA report to this record. This link doesn’t name the file, so this page can’t tell whether it is the signed lab report listed above.',
   'app.verify.report.unnamedWithdrawn':
-    'The holder saved a DNA report to this record. This link doesn’t name the file, and every lab report signed about this record was withdrawn by its lab, so it is the holder’s own statement.',
+    'The holder saved a DNA report to this record. This link doesn’t name the file, and every lab report signature shown here was withdrawn by its lab, so it is the holder’s own statement.',
   'app.verify.report.unnamedNone':
-    'The holder saved a DNA report to this record. No lab has signed a lab report about this record, so it is the holder’s own statement.',
+    'The holder saved a DNA report to this record. No lab report signature is shown here, so as shown it is the holder’s own statement. A lab’s signatures are private unless the holder chooses to show them.',
   'app.verify.kind.receipts.one': 'a lab’s receipt',
   'app.verify.kind.receipts.other': '{count} lab receipts',
   'app.verify.kind.reports.one': 'a lab report',
@@ -161,7 +161,8 @@ export const verify = {
   'app.verify.sampleDetails': 'Sample details, as the registry reports them:',
   'app.verify.moreSigs': '{forWhom}And {n} more signatures, each verified in this browser.',
   'app.verify.noneVerified': 'The registry reports a signed attestation, but none could be verified in this browser.',
-  'app.verify.noneSigned': "No lab's receipt or lab report has been signed about this record.",
+  'app.verify.noneSigned':
+    'The holder hasn’t shown any lab signatures here. A lab’s receipts and reports are private unless the holder chooses to show them.',
   'app.verify.badSigs.one': 'One signature the registry reports doesn’t verify in this browser, so it is not counted.',
   'app.verify.badSigs.other':
     '{count} signatures the registry reports don’t verify in this browser, so they are not counted.',
@@ -200,7 +201,7 @@ export const verify = {
   'app.verify.sharedNothing': 'The holder has shared nothing beyond the basics above.',
   'app.verify.notShared': 'Not shared by the holder: {list}.',
   'app.verify.alwaysShown':
-    "Always shown: the record ID, its proof code ({fp}), when the registry first stored it, and what this page could check about its batch and any signed attestations (a lab's receipt, a lab report). The name only when the link carries it (yours do only when you switch that on) or you choose to show it.",
+    "Always shown: the record ID, its proof code ({fp}), when the registry first stored it, and what this page could check about its batch and any signed attestations shown (a lab's receipt or report only when you choose to show it). The name only when the link carries it (yours do only when you switch that on) or you choose to show it.",
   // components/verify/VerifyExample.tsx: a made-up record, line by line.
   'app.verify.ex.title': 'Example: a made-up record.',
   'app.verify.ex.intro':
@@ -265,4 +266,6 @@ export const verify = {
     'The holder saved a DNA report to this record. To see which, choose the file the holder sent you: this page checks it against the record, using what is in this link.',
   'app.verify.report.noSaltInLink':
     'The holder saved a DNA report to this record. Which file it is can be checked only with the holder’s own check link and the file.',
+  'app.verify.unnamedReceipt':
+    'A lab’s receipt for a sample from this record, as the registry reports it. The holder hasn’t shown which lab signed it.',
 };

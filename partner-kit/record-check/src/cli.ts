@@ -60,6 +60,7 @@ export const asText = (c: RecordCheck): string => {
     if (d.bitcoinStamp) lines.push(`Bitcoin stamp file: ${d.bitcoinStamp} (the registry's report)`);
     lines.push(`Key: ${c.keyBound.reason}`);
     for (const r of c.labReceipts) lines.push(`- ${r.words}`);
+    for (const u of c.unnamedCustody) lines.push(`- ${u.words}`);
     if (c.labReceiptsTotal > c.labReceipts.length)
       lines.push(`  (${c.labReceiptsTotal - c.labReceipts.length} more not fetched)`);
     if (c.registryFirstSeen) lines.push(`First stored by the registry: ${c.registryFirstSeen} (the registry’s clock)`);

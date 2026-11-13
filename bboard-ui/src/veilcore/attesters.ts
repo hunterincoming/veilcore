@@ -99,6 +99,13 @@ export type ResolvedAttestation = SignedAttestation & {
    * or as a signature that failed.
    */
   documentWithheld?: boolean;
+  /**
+   * The registry's mark on a private signature it served to this holder key (12 Nov 2026): a
+   * lab's report or receipt, or a lab key's genetic-fingerprint or inspection. Absent from
+   * older registries and on every public row. The registry's word, used only to offer it in
+   * the share list.
+   */
+  private?: boolean;
 };
 
 /** What arrives from the registry, before anything is checked. */
@@ -143,62 +150,163 @@ const checkRetraction = async (r: unknown, a: SignedAttestation): Promise<Retrac
 };
 
 /**
+ * Rows as the registry sends them, checked here before being shown: the signature and any
+ * retraction verified in this browser, and only rows about `commitment` kept. Used for the
+ * open list (attestationsFor) and for the signatures a holder chose to show on /verify
+ * (sharedAttestationsOf), which get exactly the same checks.
+ */
+export const checkAttestations = async (
+  rows: readonly unknown[],
+  commitment: string,
+  opts: { claimsKeyBindings?: boolean } = {},
+): Promise<ResolvedAttestation[]> => {
+  const incoming = rows
+    .filter(isIncomingAttestation)
+    // Bound to the record on screen. A valid signature about another record is a
+    // valid signature about another record.
+    .filter((a) => a.subjectCommitment === commitment)
+    // A laboratory's claims-key binding (claims-key.ts) is not a report or a receipt: only the
+    // claim check page, which asks for them, reads it.
+    .filter((a) => opts.claimsKeyBindings === true || !isClaimsKeyBinding(a.attestationId));
+
+  return await Promise.all(
+    incoming.map(async (a): Promise<ResolvedAttestation> => {
+      const { retraction: reported, ...rest } = a;
+      const withheld = (rest as { documentWithheld?: unknown }).documentWithheld === true;
+      let signatureValid = false;
+      try {
+        // The registry saying a signature is valid is not evidence. Checking it here is.
+        signatureValid = withheld ? false : await verifyAttestation(rest);
+      } catch {
+        signatureValid = false;
+      }
+      const retraction = reported === null || reported === undefined ? null : await checkRetraction(reported, rest);
+      return {
+        ...rest,
+        signatureValid,
+        ...(withheld ? { documentWithheld: true } : {}),
+        retraction,
+        retractionUnverified: reported !== null && reported !== undefined && retraction === null,
+      };
+    }),
+  );
+};
+
+/** The registry's largest page of attestations (lineage/attesters.mjs ATTESTATION_LIMITS.page). */
+const PAGE = 100;
+/**
+ * At most this many pages. The registry keeps at most 100 + 1,000 public and 100 + 1,000
+ * private signatures per record (unvetted and vetted keys apart): 22 pages. A list longer than
+ * this (rows stored before a ceiling) is not read in part: loadAttestations answers null.
+ */
+const MAX_PAGES = 23;
+
+/**
+ * The open list for a record, or null when the registry could not be asked or answered
+ * something else (so a caller can tell "none" from "couldn't say").
+ */
+export const loadAttestations = async (
+  commitment?: string,
+  opts: { asHolder?: boolean; claimsKeyBindings?: boolean; allPages?: boolean } = {},
+): Promise<ResolvedAttestation[] | null> => {
+  if (!commitment || !HEX64.test(commitment)) return null;
+  try {
+    const key = opts.asHolder && !holderRequestsPaused() ? holderKeyIfAny() : null;
+    const init = key ? { headers: { 'x-holder-key': key }, cache: 'no-store' as const } : undefined;
+    const url = `${BASE}/attestations/subject/${encodeURIComponent(commitment)}`;
+    if (!opts.allPages) {
+      const res = await fetch(url, init);
+      if (!res.ok) return null;
+      const body = await readJson(res);
+      if (!isObject(body) || !Array.isArray(body.attestations)) return null;
+      return await checkAttestations(body.attestations, commitment, opts);
+    }
+    // Every page (12 Nov 2026): the registry sends at most PAGE rows at a time, public ones
+    // first, so a record with more than that would hide the holder's own lab signatures past
+    // the first page from the share list. A page that fails fails the whole list, and so does
+    // running out of pages before the end (13 Nov 2026): a caller takes the list as complete
+    // (disclosure.ts sharedIdsNow drops a shared signature it doesn't find), so a part of it is
+    // "couldn't say", never "these are all".
+    const rows: unknown[] = [];
+    let complete = false;
+    for (let offset = 0, n = 0; n < MAX_PAGES; n++) {
+      const res = await fetch(`${url}?limit=${String(PAGE)}&offset=${String(offset)}`, init);
+      if (!res.ok) return null;
+      const body = await readJson(res);
+      if (!isObject(body) || !Array.isArray(body.attestations)) return null;
+      rows.push(...(body.attestations as unknown[]));
+      offset += body.attestations.length;
+      const total = typeof body.total === 'number' ? body.total : 0;
+      if (body.attestations.length === 0 || offset >= total) {
+        complete = true;
+        break;
+      }
+    }
+    if (!complete) return null;
+    const seen = new Set<string>();
+    const once = rows.filter((a) => {
+      const id = isObject(a) && isString(a.attestationId) ? a.attestationId : '';
+      if (!id || seen.has(id)) return false;
+      seen.add(id);
+      return true;
+    });
+    return await checkAttestations(once, commitment, opts);
+  } catch {
+    return null;
+  }
+};
+
+/**
  * Every attestation about a record, checked here before being shown. Attestations about
  * any other commitment are dropped: they are not about this record.
  *
- * `asHolder` (round 6, CONTRACT.md #34): sent with this browser's holder key, so a lab report
- * signature made before round 6 comes back whole when this holder sent or received the
- * delivery it came back on. Only the holder's own app pages ask that way, never the public
- * check or prove pages (holder.ts holderRequestsPaused).
+ * `asHolder` (round 6, CONTRACT.md #34): sent with this browser's holder key. Since 8 Nov 2026
+ * the registry keeps every lab signature (lab reports, receipts, and a lab key's other
+ * signatures) private: it serves them only to the record's holder, the delivery's parties and
+ * the lab, by holder key. Only the holder's own app pages ask that way, never the public check
+ * or prove pages (holder.ts holderRequestsPaused); those read the ones the holder chose to show
+ * (sharedAttestationsOf).
  */
 export const attestationsFor = async (
   commitment?: string,
   opts: { asHolder?: boolean; claimsKeyBindings?: boolean } = {},
-): Promise<ResolvedAttestation[]> => {
-  if (!commitment || !HEX64.test(commitment)) return [];
-  try {
-    const key = opts.asHolder && !holderRequestsPaused() ? holderKeyIfAny() : null;
-    const res = await fetch(
-      `${BASE}/attestations/subject/${encodeURIComponent(commitment)}`,
-      key ? { headers: { 'x-holder-key': key }, cache: 'no-store' } : undefined,
-    );
-    if (!res.ok) return [];
-    const body = await readJson(res);
-    if (!isObject(body) || !Array.isArray(body.attestations)) return [];
-    const incoming = body.attestations
-      .filter(isIncomingAttestation)
-      // Bound to the record on screen. A valid signature about another record is a
-      // valid signature about another record.
-      .filter((a) => a.subjectCommitment === commitment)
-      // A laboratory's claims-key binding (claims-key.ts) is not a report or a receipt: only the
-      // claim check page, which asks for them, reads it.
-      .filter((a) => opts.claimsKeyBindings === true || !isClaimsKeyBinding(a.attestationId));
+): Promise<ResolvedAttestation[]> => (await loadAttestations(commitment, opts)) ?? [];
 
-    return await Promise.all(
-      incoming.map(async (a): Promise<ResolvedAttestation> => {
-        const { retraction: reported, ...rest } = a;
-        const withheld = (rest as { documentWithheld?: unknown }).documentWithheld === true;
-        let signatureValid = false;
-        try {
-          // The registry saying a signature is valid is not evidence. Checking it here is.
-          signatureValid = withheld ? false : await verifyAttestation(rest);
-        } catch {
-          signatureValid = false;
-        }
-        const retraction = reported === null || reported === undefined ? null : await checkRetraction(reported, rest);
-        return {
-          ...rest,
-          signatureValid,
-          ...(withheld ? { documentWithheld: true } : {}),
-          retraction,
-          retractionUnverified: reported !== null && reported !== undefined && retraction === null,
-        };
-      }),
-    );
+/** Most signatures a holder can show on /verify (the registry's limit). */
+export const SHARED_MAX = 50;
+
+/**
+ * The signatures the holder chose to show on their check link (/verify's `sharedAttestations`,
+ * 8 Nov 2026), checked exactly as the open list is: each signature and retraction verified
+ * here, and only those about this record kept. Anything else in the field is ignored.
+ */
+export const sharedAttestationsOf = async (v: unknown, commitment?: string): Promise<ResolvedAttestation[]> => {
+  if (!Array.isArray(v) || !commitment || !HEX64.test(commitment)) return [];
+  try {
+    return await checkAttestations(v.slice(0, SHARED_MAX), commitment);
   } catch {
     return [];
   }
 };
+
+/** Two lists as one, each signature once (the first copy kept). */
+export const mergeAttestations = <A extends { readonly attestationId: string }>(
+  ...lists: readonly (readonly A[])[]
+): A[] => {
+  const seen = new Set<string>();
+  const out: A[] = [];
+  for (const list of lists)
+    for (const a of list) {
+      if (seen.has(a.attestationId)) continue;
+      seen.add(a.attestationId);
+      out.push(a);
+    }
+  return out;
+};
+
+/** A lab's report or receipt: what a holder can choose to show on their check link. */
+export const isLabSignature = (a: ResolvedAttestation): boolean =>
+  a.type === 'laboratory-report' || a.type === 'chain-of-custody';
 
 /** A signature that failed here: not one the registry withheld (round 6), which can't be checked at all. */
 export const failedSignature = (a: ResolvedAttestation): boolean => !a.signatureValid && a.documentWithheld !== true;

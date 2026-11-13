@@ -81,7 +81,8 @@ export const plant = {
   'app.plant.tie.notNow': 'Nicht mehr mit der Pflanze verknüpft',
   'app.plant.tie.lab': 'DNA-Bericht, {lead}',
   'app.plant.tie.self': 'DNA-Bericht, den Sie gespeichert haben (keine Laborsignatur passt dazu)',
-  'app.plant.tie.selfPublic': 'DNA-Bericht, den der Inhaber gespeichert hat (keine Laborsignatur passt dazu)',
+  'app.plant.tie.selfPublic':
+    'DNA-Bericht, den der Inhaber gespeichert hat (keine hier gezeigte Laborsignatur passt dazu)',
   'app.plant.tie.savedHolder': 'DNA-Bericht, den Sie gespeichert haben',
   'app.plant.tie.savedPublic': 'DNA-Bericht, den der Inhaber gespeichert hat',
   'app.plant.tie.replaced': 'das Labor hat den hier gespeicherten DNA-Bericht ersetzt',

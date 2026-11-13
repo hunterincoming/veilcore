@@ -98,6 +98,7 @@ import {
   reportFingerprint,
   resultState,
   sendLockedResult,
+  labKeyProof,
   sentRowWords,
   sendRefusal,
   shortResultId,
@@ -400,8 +401,12 @@ type Opened = {
   numbersProblem?: string;
 };
 
-/** What the breeder is told once, when a lab report first arrives: what others can see. */
-const SEEN_VISIBILITY = 'veilcore.lab-visibility-seen.v1';
+/**
+ * What the breeder is told once, when a lab report first arrives: what others can see. v2
+ * (12 Nov 2026): v1 said the lab's signature was public; lab signatures are private now, so a
+ * breeder who dismissed that note is told once again.
+ */
+const SEEN_VISIBILITY = 'veilcore.lab-visibility-seen.v2';
 const seenVisibility = (): boolean => {
   try {
     return localStorage.getItem(SEEN_VISIBILITY) === '1';
@@ -410,9 +415,9 @@ const seenVisibility = (): boolean => {
   }
 };
 
-/** Exactly what a stranger with a link sees about a lab report (VerifyPage.tsx). (app.lab.results.publicWords.) */
+/** What a stranger with a link sees about a lab report (VerifyPage.tsx), in English (app.lab.results.whatOthersSee). */
 export const PUBLIC_REPORT_WORDS =
-  'The lab’s signature is public; the report isn’t. Anyone with a link to this plant’s check page sees that a lab report about it was signed, the report file’s SHA-256, and the name the lab’s key is registered under: marked “name not checked” unless VeilCore’s operator has matched it to a public license or accreditation listing. If you save the report to this plant and share “Whether a DNA report is saved” in Show someone, they also see that the saved file matches it.';
+  'The lab’s signature on this report is private, like the report: only you and the lab see it. To show it, choose Show someone and turn it on under “Lab signatures”. Anyone with that link then sees that the lab signed a report about this plant, and the name the lab’s key is registered under: marked “name not checked” unless VeilCore’s operator has matched it to a public license or accreditation listing. If it is a DNA report and you save it to this plant, the page can also say the lab signed that file.';
 
 const SignerLine: React.FC<{ signer: ReportSigner }> = ({ signer }) => {
   const tr = useT();
@@ -1105,6 +1110,11 @@ export const SendResultsPanel: React.FC<{
       let numbersBytes: Uint8Array | undefined;
       let bindingId: string | undefined;
       let resultCode: string | undefined;
+      // Everything between posting the signature and sending the file is in here, so a throw
+      // anywhere (the result, locking the report, the key's proof) withdraws what was posted
+      // rather than leave a signature with no report behind it.
+      let locked: Awaited<ReturnType<typeof lockReport>>;
+      let keyProof: Awaited<ReturnType<typeof labKeyProof>>;
       try {
         if (LAB_SIGNING_ENABLED && withResult) {
           // Only a report signature bound to the record can be checked by anyone (lab-doc.ts).
@@ -1137,12 +1147,14 @@ export const SendResultsPanel: React.FC<{
           resultCode = made.commitment;
           numbersBytes = new TextEncoder().encode(JSON.stringify({ ...made.bundle, about: subject }));
         }
+        locked = await lockReport(file.bytes, lock, kind, numbersBytes);
+        keyProof = await labKeyProof(attester.keypair.privateKey, transferId, signed.attestationId);
       } catch (e) {
+        if (bindingId) await retract(attester, bindingId, 'issued-in-error');
         await retract(attester, signed.attestationId, 'issued-in-error');
         throw e;
       }
-      const locked = await lockReport(file.bytes, lock, kind, numbersBytes);
-      const out = await sendLockedResult(transferId, locked, signed.attestationId, replacing?.id);
+      const out = await sendLockedResult(transferId, locked, signed.attestationId, replacing?.id, keyProof);
       if ('error' in out) {
         if (bindingId) await retract(attester, bindingId, 'issued-in-error');
         const undo = await retract(attester, signed.attestationId, 'issued-in-error');
@@ -1189,7 +1201,7 @@ export const SendResultsPanel: React.FC<{
         <Typography variant="h5" component="h2" tabIndex={-1} data-screen-heading="">
           {t('app.lab.out.sent')}
         </Typography>
-        <Typography variant="body1">{t('app.lab.out.sentText', { sha: short(file.sha) })}</Typography>
+        <Typography variant="body1">{t('app.lab.out.sentText')}</Typography>
         <Typography variant="body2" color="text.secondary">
           {t('app.lab.out.sentName', { name: attester?.displayName ?? t('app.lab.out.yourLab') })}
         </Typography>

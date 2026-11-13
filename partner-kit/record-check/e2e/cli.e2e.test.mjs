@@ -102,10 +102,11 @@ describe('partner-kit check, against a local registry', () => {
       ],
     );
     // Round 6: the lab report is signed bound to the record, so no file hash is public; the one
-    // signed before that is withheld by the registry and only counted.
+    // signed before that is withheld by the registry and only counted. A registry that keeps lab
+    // signatures private (8 Nov 2026) shows only what the holder showed: not that one.
     assert.equal(c.labReceipts.find((x) => x.kind === 'lab-report').documentBound, true);
     assert.equal(c.labReceipts.find((x) => x.kind === 'lab-report').documentSha256, undefined);
-    assert.equal(c.labReportsWithheld, 1);
+    assert.equal(c.labReportsWithheld, reg.labPrivate ? 0 : 1);
     assert.equal(c.nameCheck, 'matches');
     assert.equal(c.nameByHolder, 'Partner check test record');
     // The receipts tied to deliveries, with their sample details as the registry reports them.

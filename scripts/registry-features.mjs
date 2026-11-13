@@ -5,7 +5,8 @@
 // sample details, a record's and an agreement's public `rev` (the registry refuses an
 // older copy), locked record names, DNA reports shown only bound (round 5), and "Bred by" as a
 // fact a holder may share (persona review, 17 Oct), and since round 6 a record's name code and
-// lab report signatures bound to the record. A
+// lab report signatures bound to the record, and since 8 Nov 2026 lab signatures kept private
+// and shown only when the holder shares them (and since 12 Nov, read by proof code too). A
 // registry that doesn't serve one of them would leave the site offering something that fails when
 // someone uses it. So all three site deploys (scripts/site-mainnet-preflight.mjs for
 // the mainnet site, scripts/site-prod-preflight.mjs for the test-network site on veilcore.org,
@@ -55,6 +56,15 @@ export const REQUIRED_FEATURES = Object.freeze({
   // Every site logs strains and lines (config/network.ts STRAIN_RECORDS_ENABLED, 3 Nov): an
   // older registry refuses a sealed record under an unknown profile.
   "strain-profile-v1": "strain and line records",
+  // Lab signatures private (veilcore-api hide-lab-reports, 8 Nov 2026): the check page shows the
+  // ones the holder shares, from /verify's `sharedAttestations`. Required so the site can't go
+  // out before the registry: the site works against an older registry, but the order must be
+  // registry, then site, and the old live site says no lab signed when it gets none.
+  "private-lab-signatures-v1": "lab signatures kept private and shown only when the holder shares them",
+  // The lab signatures a holder shares, also answered by proof code (veilcore-api, 12 Nov 2026):
+  // the claim check page names a plant only by its proof code, and reads the lab's shared report
+  // on /attestations/subject to name the lab. Without it that page can't name the lab.
+  "shared-by-proof-code-v1": "shared lab signatures read by proof code, on the claim check page",
 });
 
 /**

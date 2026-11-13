@@ -119,7 +119,7 @@ test('(a) a plant with a marker in every field, sent to a lab: no marker is in t
   await l.page.getByRole('button', { name: /Set up your lab.s signature/ }).click();
   await l.page.getByLabel(/^Name/).fill('E2E Lab');
   await l.page.getByRole('button', { name: /Create my key/ }).click();
-  await l.page.getByRole('button', { name: /^Done$/ }).click();
+  await l.page.getByRole('button', { name: /^(Continue|Done)$/ }).click();
   await receiveWithBackupFirst(l.page, code);
   await l.page.getByLabel(/I physically received this material/).check();
   await l.page.getByRole('button', { name: /Sign with my key/ }).click();

@@ -117,7 +117,7 @@ export const strain = {
     'Aucun laboratoire n’a encore signé d’accusé de réception pour cette souche. Un enregistrement que vous seul soutenez est une preuve plus faible qu’un enregistrement signé par un laboratoire. Envoyez un échantillon à un laboratoire : son accusé de réception est signé avec sa clé, pas la vôtre.',
   'app.strain.v.app.verify.field.parent-names': 'Souches parentes (noms et numéros de dépôt)',
   'app.strain.v.app.verify.alwaysShown':
-    'Toujours affichés : l’identifiant de l’enregistrement, son code de preuve ({fp}), la date à laquelle le registre l’a conservé pour la première fois, et ce que cette page a pu vérifier sur son lot et sur les attestations signées (un accusé de réception de laboratoire, un rapport de laboratoire). Le nom, seulement quand le lien le porte (les vôtres ne le portent que si vous l’activez) ou que vous choisissez de le montrer.',
+    'Toujours affichés : l’identifiant de l’enregistrement, son code de preuve ({fp}), la date à laquelle le registre l’a conservé pour la première fois, et ce que cette page a pu vérifier sur son lot et sur les attestations signées montrées (un accusé de réception ou un rapport de laboratoire seulement si vous choisissez de le montrer). Le nom, seulement quand le lien le porte (les vôtres ne le portent que si vous l’activez) ou que vous choisissez de le montrer.',
   'app.strain.v.app.verify.ownReceiptTail':
     ' Vous le voyez parce que la souche est dans ce navigateur ; la personne à qui vous envoyez le lien ne voit que la ligne de signature ci-dessus.',
   'app.strain.v.app.prove.openCheckPage': 'Ouvrir la page de vérification de la souche',
@@ -159,7 +159,7 @@ export const strain = {
   'app.strain.v.app.lab.results.noKey':
     'La clé de cette souche n’est pas sur cet appareil : ses rapports de laboratoire ne peuvent donc pas être ouverts ici. <link>Récupérez d’abord vos souches depuis votre copie de secours</link>.',
   'app.strain.v.app.lab.results.whatOthersSee':
-    '<b>Ce que les autres peuvent voir.</b> La signature du laboratoire est publique ; le rapport ne l’est pas. Quiconque a un lien vers la page de vérification de cette souche voit qu’un rapport de laboratoire la concernant a été signé, le SHA-256 du fichier du rapport et le nom sous lequel la clé du laboratoire est enregistrée : marqué « nom non vérifié » sauf si l’opérateur de VeilCore l’a rapproché d’une liste publique de licences ou d’accréditations. Si vous enregistrez le rapport sur cette souche et partagez « Si un rapport ADN est enregistré » dans Montrer à quelqu’un, on voit aussi que le fichier enregistré y correspond.',
+    '<b>Ce que les autres peuvent voir.</b> La signature du laboratoire sur ce rapport est privée, comme le rapport : seuls vous et le laboratoire la voyez. Pour la montrer, choisissez Montrer à quelqu’un et activez-la sous « Signatures de laboratoire ». Quiconque a ce lien voit alors que le laboratoire a signé un rapport sur cette souche, et le nom sous lequel la clé du laboratoire est enregistrée : marqué « nom non vérifié » sauf si l’opérateur de VeilCore l’a rapproché d’une liste publique de licences ou d’accréditations. S’il s’agit d’un rapport ADN et que vous l’enregistrez sur cette souche, la page peut aussi dire que le laboratoire a signé ce fichier.',
   'app.strain.v.app.lab.results.nothingYet':
     'Rien pour l’instant. Quand un laboratoire auquel vous avez envoyé cette souche enverra un rapport de laboratoire, il apparaîtra ici.',
   'app.strain.v.app.lab.results.savedHere': ' · enregistré sur cette souche',

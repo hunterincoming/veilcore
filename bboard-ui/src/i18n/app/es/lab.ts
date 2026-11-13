@@ -294,7 +294,8 @@ export const lab = {
   'app.lab.key.intro':
     'Cuando confirma que recibió material, o firma un informe, se firma con una clave que solo usted tiene. Se convierte en su declaración, no en algo que registramos en su nombre. La clave se crea en este navegador; solo se publican su mitad pública, su nombre y la acreditación que indique.',
   'app.lab.key.name': 'Nombre',
-  'app.lab.key.nameHelp': 'Cómo lo ve cualquiera que compruebe un registro que usted firmó.',
+  'app.lab.key.nameHelp':
+    'Cómo lo ven donde se muestran sus firmas: el obtentor y cualquiera a quien él se las muestre.',
   'app.lab.key.role': 'Función',
   'app.lab.key.accreditation': 'Acreditación (opcional)',
   'app.lab.key.accreditationHelp':
@@ -329,7 +330,7 @@ export const lab = {
     'La clave de esta planta no está en este dispositivo, así que aquí no se pueden abrir sus informes de laboratorio. Primero <link>recupere sus plantas desde su copia de seguridad</link>.',
   'app.lab.results.gotIt': 'Entendido',
   'app.lab.results.whatOthersSee':
-    '<b>Lo que otros pueden ver.</b> La firma del laboratorio es pública; el informe no. Cualquiera con un enlace a la página de comprobación de esta planta ve que se firmó un informe de laboratorio sobre ella, el SHA-256 del archivo del informe y el nombre con el que está registrada la clave del laboratorio: marcado “nombre no comprobado” salvo que el operador de VeilCore lo haya cotejado con un listado público de licencias o acreditaciones. Si guarda el informe en esta planta y comparte “Si hay un informe de ADN guardado” en Mostrar a alguien, también ven que el archivo guardado coincide.',
+    '<b>Lo que otros pueden ver.</b> La firma del laboratorio sobre este informe es privada, como el informe: solo usted y el laboratorio la ven. Para mostrarla, elija Mostrar a alguien y actívela en “Firmas de laboratorio”. Cualquiera con ese enlace verá entonces que el laboratorio firmó un informe sobre esta planta, y el nombre con el que está registrada la clave del laboratorio: marcado “nombre no comprobado” salvo que el operador de VeilCore lo haya cotejado con un listado público de licencias o acreditaciones. Si es un informe de ADN y lo guarda en esta planta, la página también puede decir que el laboratorio firmó ese archivo.',
   'app.lab.results.noCurrent': 'No hay informe vigente de {lab}: el original fue reemplazado y la corrección retirada.',
   'app.lab.results.looking': 'Buscando informes de laboratorio…',
   'app.lab.results.nothingYet':
@@ -395,9 +396,9 @@ export const lab = {
   'app.lab.out.andJoin': ', y ',
   'app.lab.out.sent': 'Enviado',
   'app.lab.out.sentText':
-    'Solo el obtentor puede abrirlo. Su firma es pública, el informe no: cualquiera con un enlace a la página de comprobación de esta planta ve que se firmó un informe de laboratorio sobre ella, y su SHA-256 ({sha}).',
+    'Solo el obtentor puede abrirlo. Su firma sobre él también es privada: solo el obtentor y usted pueden verla, salvo que el obtentor decida mostrarla en su enlace de comprobación. Si firmó un acuse de recibo de la muestra y el obtentor muestra si hay un informe de ADN guardado, su página de comprobación dice que un laboratorio recibió una muestra y si lo que llegó coincide con lo enviado, sin el nombre de su laboratorio.',
   'app.lab.out.sentName':
-    'También ven el nombre con el que está registrada su clave. Hasta que el operador de VeilCore lo coteje con un listado público de licencias o acreditaciones, aparece como “una clave llamada “{name}” (nombre no comprobado)”.',
+    'Si lo hace, cualquiera con ese enlace ve también el nombre con el que está registrada su clave. Hasta que el operador de VeilCore lo coteje con un listado público de licencias o acreditaciones, aparece como “una clave llamada “{name}” (nombre no comprobado)”.',
   'app.lab.out.yourLab': 'su laboratorio',
   'app.lab.out.youSent': 'Informes de laboratorio que envió',
   'app.lab.out.rowHead': '{id} · enviado {when}',
