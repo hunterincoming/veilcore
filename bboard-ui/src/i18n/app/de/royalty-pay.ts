@@ -150,7 +150,7 @@ export const royaltyPay = {
   'app.rpay.i.breachNotRegistered':
     'Die öffentliche Prüfseite sagt, dass diese Zahlung überfällig ist, aber noch nicht, dass Sie eine Mitteilung über die Vertragsverletzung gesendet haben: Die Seite von {licensee} hat diesen Bericht noch nicht beim Register von VeilCore registriert. Das geschieht normalerweise von selbst, wenn die Lizenz dort das nächste Mal geöffnet wird. Bis dahin kann die Frist zum Zahlen dort nicht beginnen. Ihre signierte Mitteilung liegt so oder so vor.',
   'app.rpay.i.breachNotDue':
-    '{licensee} hat diesen Bericht beim Register von VeilCore als am {due} fällig registriert. Die öffentliche Prüfseite kann daher erst ab dem Tag danach sagen, dass Sie eine Mitteilung über die Vertragsverletzung gesendet haben. Bis dahin sagt sie, dass die Zahlung überfällig ist. Ihre signierte Mitteilung liegt so oder so vor.',
+    '{licensee} hat diesen Bericht beim Register von VeilCore als am {due} fällig registriert. Das Register nimmt eine Mitteilung über die Vertragsverletzung erst ab dem Tag danach an, daher sagt die öffentliche Prüfseite Ihres Datensatzes noch nicht, dass Sie eine gesendet haben. Diese Seite fragt erneut nach, wenn sie nach dem {due} geöffnet wird. Ihre signierte Mitteilung liegt so oder so vor.',
   'app.rpay.l.answerPredates':
     'Sie haben dem am {date} widersprochen: „{note}“. {licensor} sieht das, von Ihnen signiert. Diese Lizenz wurde erstellt, bevor das Register von VeilCore die Schlüssel aufbewahrt hat, die Antworten brauchen, daher kann sie dort nicht hinterlegt werden.',
   'app.rpay.l.pubOverdue':
@@ -158,7 +158,7 @@ export const royaltyPay = {
   'app.rpay.l.pubOverdueOther':
     'Die öffentliche Prüfseite des Datensatzes von {licensor} sagt, als dessen Angabe, dass eine Lizenzgebührenabrechnung seit dem {date} überfällig ist, zu einer Nachricht in dieser Vereinbarung, die keiner Ihrer Berichte ist.',
   'app.rpay.l.pubOverdueUnreadable':
-    'Die öffentliche Prüfseite des Datensatzes von {licensor} sagt, als dessen Angabe, dass eine Lizenzgebührenabrechnung seit dem {date} überfällig ist, zu einer Nachricht in dieser Vereinbarung, die diese Seite nicht öffnen kann, oder zu einer zweiten Kopie einer Nachricht, die schon hier ist. Sie passt daher zu keinem Ihrer Berichte. Sie können dem widersprechen.',
+    'Die öffentliche Prüfseite des Datensatzes von {licensor} sagt, als dessen Angabe, dass eine Lizenzgebührenabrechnung seit dem {date} überfällig ist, zu einer Nachricht in dieser Vereinbarung, die diese Seite nicht öffnen kann, oder zu einer zweiten Kopie einer Nachricht, die schon hier ist. Sie passt daher zu keinem Ihrer Berichte.',
   'app.rpay.l.pubRevoked':
     'Die öffentliche Prüfseite des Datensatzes von {licensor} sagt, als dessen Angabe, dass eine Lizenz von diesem Datensatz am {date} wegen Nichtzahlung widerrufen wurde.',
   'app.rpay.l.pubBreach':
@@ -166,4 +166,9 @@ export const royaltyPay = {
   'app.rpay.l.pubAnswers': 'Daneben, in Ihrem eigenen Namen: {answers}',
   'app.rpay.l.pubDisputeFailed':
     'Ihre Antwort ließ sich gerade nicht hinterlegen. Versuchen Sie es gleich noch einmal.',
+  'app.rpay.i.dueDiffers':
+    'Die Seite von {licensee} hat diesen Bericht beim Register von VeilCore als am {registered} fällig registriert, später als der {due}, den Ihre signierten Bedingungen nennen. Das Register richtet sich nach dem registrierten Datum: Es nimmt eine Mitteilung über die Vertragsverletzung erst ab dem Tag danach an, und sobald dieses Datum vorbei ist, kann die öffentliche Prüfseite Ihres Datensatzes die Zahlung erst ab dem Tag danach als überfällig nennen. Die signierten Bedingungen in der Vereinbarung nennen weiterhin den {due}.',
+  'app.rpay.l.pubLookupFailed':
+    'Gerade ließ sich nicht jede Nachricht dieser Vereinbarung beim Register von VeilCore prüfen. Eine Angabe, die die öffentliche Prüfseite des Datensatzes von {licensor} zu einer davon macht, fehlt hier daher vielleicht. Prüfen Sie gleich noch einmal.',
+  'app.rpay.l.pubLookupAgain': 'Erneut prüfen',
 };

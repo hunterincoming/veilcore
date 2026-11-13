@@ -149,7 +149,7 @@ export const royaltyPay = {
   'app.rpay.i.breachNotRegistered':
     'The public check page says this payment is overdue, but not yet that you sent a notice of breach: {licensee}’s page hasn’t registered this report with VeilCore’s registry. Their page normally does that by itself when they next open the license. Until then the time to pay can’t start there. Your signed notice is in the deal either way.',
   'app.rpay.i.breachNotDue':
-    '{licensee} registered this report with VeilCore’s registry as due on {due}, so the public check page can say you sent a notice of breach only from the day after. Until then it says the payment is overdue. Your signed notice is in the deal either way.',
+    '{licensee} registered this report with VeilCore’s registry as due on {due}. The registry files a notice of breach only from the day after that date, so your record’s public check page doesn’t say yet that you sent one. This page asks again when it opens after {due}. Your signed notice is in the deal either way.',
   'app.rpay.l.answerPredates':
     'You disputed this on {date}: “{note}”. {licensor} sees it, signed by you. This license was made before VeilCore’s registry kept the keys that answers need, so it can’t be filed there.',
   'app.rpay.l.pubOverdue':
@@ -157,11 +157,16 @@ export const royaltyPay = {
   'app.rpay.l.pubOverdueOther':
     '{licensor}’s record’s public check page says, as their word, that a royalty statement is overdue since {date}, about a message in this deal that isn’t one of your reports.',
   'app.rpay.l.pubOverdueUnreadable':
-    '{licensor}’s record’s public check page says, as their word, that a royalty statement is overdue since {date}, about a message in this deal that this page can’t open, or a second copy of a message already here, so it doesn’t match any of your reports. You can dispute it.',
+    '{licensor}’s record’s public check page says, as their word, that a royalty statement is overdue since {date}, about a message in this deal that this page can’t open, or a second copy of a message already here, so it doesn’t match any of your reports.',
   'app.rpay.l.pubRevoked':
     '{licensor}’s record’s public check page says, as their word, that a license from the record was revoked on {date} for non-payment.',
   'app.rpay.l.pubBreach':
     '{licensor} told VeilCore’s registry on {date} that they had sent a notice of breach. The time to pay runs until {cureBy}.',
   'app.rpay.l.pubAnswers': 'Beside it, in your own name: {answers}',
   'app.rpay.l.pubDisputeFailed': 'Your answer couldn’t be filed just now. Try again in a moment.',
+  'app.rpay.i.dueDiffers':
+    '{licensee}’s page registered this report with VeilCore’s registry as due on {registered}, later than the {due} your signed terms say. The registry goes by the registered date: it files a notice of breach only from the day after it, and once that date has passed, your record’s public check page can say the payment is overdue only from the day after it. The signed terms in the deal still say {due}.',
+  'app.rpay.l.pubLookupFailed':
+    'Couldn’t check every message in this deal with VeilCore’s registry just now, so a line that {licensor}’s record’s public check page carries about one of them may be missing here. Check again in a moment.',
+  'app.rpay.l.pubLookupAgain': 'Check again',
 };

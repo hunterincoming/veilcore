@@ -13,7 +13,10 @@
 //     answer beside it; the licensee's page shows it too.
 //   - the licensee's page registers its report there (with the due date from the terms); a notice
 //     of breach about another deal message, or one dated before the due date, is refused, and a
-//     stranger's line about the statement on their own record is refused (review round 3, B2, L1).
+//     stranger's line about the statement on their own record is refused (review round 3, B2, L1);
+//   - R5-5 (review round 5, B1), on a second practice deal: a licensee page that registers a later
+//     due date than the terms say, now passed. The licensor's page dates the line from the day
+//     after it, says the dates differ, and the notice of breach is filed.
 // The deal channel, the notices, the answers and the check page are the real registry's. Only what
 // the license page lists (records, licenses, deliveries) is stood in for, as in
 // royalty-revoke.spec.ts, and Midnight's two steps (src/veilcore/chain/e2e-chain.ts). The licensee
@@ -39,14 +42,27 @@ import {
 } from './helpers';
 
 const DAY = 86_400_000;
+// One vault key for the holder's records in every test: the registry refuses a record sealed under
+// another vault key than the holder's others (DIFFERENT_VAULT_KEY).
+const VAULT = newVaultKey();
 const HOLDER = randomBytes(32).toString('hex');
 const RECORD = `VEIL-${randomBytes(16).toString('hex').toUpperCase()}`;
 const LICENSE = 'LIC-E2E-REG';
-// The e2e fixture's practice deal (src/e2e-fixtures/RoyaltyPayFixture.tsx).
-const ISSUER_SECRET = '1a'.repeat(32);
-const LICENSEE_SECRET = '2b'.repeat(32);
-const COMMITMENT = '3c'.repeat(32);
-const ISSUER_RECORD = '4d'.repeat(32);
+// The e2e fixture's practice deals (src/e2e-fixtures/RoyaltyPayFixture.tsx): `a`, and `b` (`deal=b`).
+type Deal = { issuer: string; licensee: string; commitment: string; record: string };
+const DEAL_A: Deal = {
+  issuer: '1a'.repeat(32),
+  licensee: '2b'.repeat(32),
+  commitment: '3c'.repeat(32),
+  record: '4d'.repeat(32),
+};
+const DEAL_B: Deal = {
+  issuer: '1b'.repeat(32),
+  licensee: '2c'.repeat(32),
+  commitment: '3d'.repeat(32),
+  record: '4e'.repeat(32),
+};
+const ISSUER_SECRET = DEAL_A.issuer;
 const IDENTITY = '5e'.repeat(32);
 const hex = (b: Uint8Array) => Buffer.from(b).toString('hex');
 const publicOf = (secret: string) => hex(ed25519.getPublicKey(Buffer.from(secret, 'hex')));
@@ -93,7 +109,7 @@ const setClock = async (offsetMs: number) => {
  * and the fixture deal's channel opened the way the site opens it (a license invite taken to the
  * reveal, with the two sides' deal keys as its nonces), so the registry holds the licensee's key.
  */
-const seedRegistry = async (vault: string) => {
+const seedRegistry = async (vault: string, deal: Deal = DEAL_A, recordId = RECORD) => {
   const committed = {
     breedingMethod: '',
     bredBy: 'Hana Rivera',
@@ -110,10 +126,11 @@ const seedRegistry = async (vault: string) => {
   const saved = await call(
     'PUT',
     '/api/records',
-    [sealedRecordRow({ id: RECORD, ...committed, recordFingerprint }, vault)],
+    [sealedRecordRow({ id: recordId, ...committed, recordFingerprint }, vault)],
     HOLDER,
   );
   expect(saved.status, JSON.stringify(saved.json)).toBe(200);
+  expect(saved.json.rejected ?? [], JSON.stringify(saved.json)).toEqual([]);
   const accept = randomBytes(16).toString('base64url');
   const issuer = randomBytes(16).toString('base64url');
   const inv = await call('POST', '/license-invites', {
@@ -124,20 +141,19 @@ const seedRegistry = async (vault: string) => {
   });
   expect(inv.status, JSON.stringify(inv.json)).toBe(200);
   const id = String(inv.json.id);
-  const licenseeNonce = publicOf(LICENSEE_SECRET);
+  const licenseeNonce = publicOf(deal.licensee);
   const commitHash = createHash('sha256')
-    .update(Buffer.from(COMMITMENT + ISSUER_RECORD + licenseeNonce, 'hex'))
+    .update(Buffer.from(deal.commitment + deal.record + licenseeNonce, 'hex'))
     .digest('hex');
   expect((await call('POST', `/license-invites/${id}/accept`, { commitHash, token: accept })).status).toBe(200);
   expect(
-    (await call('POST', `/license-invites/${id}/nonce`, { issuerNonce: publicOf(ISSUER_SECRET), token: issuer }))
-      .status,
+    (await call('POST', `/license-invites/${id}/nonce`, { issuerNonce: publicOf(deal.issuer), token: issuer })).status,
   ).toBe(200);
   expect(
     (
       await call('POST', `/license-invites/${id}/reveal`, {
-        commitment: COMMITMENT,
-        issuerRecord: ISSUER_RECORD,
+        commitment: deal.commitment,
+        issuerRecord: deal.record,
         licenseeNonce,
         token: accept,
       })
@@ -145,13 +161,13 @@ const seedRegistry = async (vault: string) => {
   ).toBe(200);
   // The channel's id and token, as deal.ts dealKeys makes them.
   const shared = x25519.getSharedSecret(
-    ed25519.utils.toMontgomerySecret(Buffer.from(ISSUER_SECRET, 'hex')),
+    ed25519.utils.toMontgomerySecret(Buffer.from(deal.issuer, 'hex')),
     ed25519.utils.toMontgomery(Buffer.from(licenseeNonce, 'hex')),
   );
   const okm = hkdf(
     sha256,
     shared,
-    sha256(Buffer.from(COMMITMENT + ISSUER_RECORD, 'hex')),
+    sha256(Buffer.from(deal.commitment + deal.record, 'hex')),
     new TextEncoder().encode('veilcore/deal/v1'),
     64,
   );
@@ -168,6 +184,41 @@ const seedRegistry = async (vault: string) => {
     `${JSON.stringify(opened.json)} (the registry must be fresh: the fixture's deal keys are fixed)`,
   ).toBe(200);
   expect(opened.json.opened).toBe(true);
+};
+
+/** The licensor's license on deal `deal`, live since 200 days ago, as the license page reads it. */
+const licenseFor = (id: string, recordId: string, deal: Deal, terms: unknown) => {
+  const t0 = Date.now() - 200 * DAY;
+  return {
+    id,
+    type: 'license',
+    recordId,
+    recordFingerprint: '3f'.repeat(32),
+    terms,
+    agreementFingerprint: '5a'.repeat(32),
+    agreementSalt: '6b'.repeat(16),
+    state: 'active',
+    createdAt: t0,
+    royaltyLog: [],
+    onChain: {
+      inviteId: 'e2e-invite-1',
+      acceptToken: 'e2e-accept',
+      issuerToken: 'e2e-issuer',
+      identity: IDENTITY,
+      label: 'Practice Grower',
+      invitedAt: t0,
+      issuerNonce: publicOf(deal.issuer),
+      partySecret: deal.issuer,
+      termsSentAt: t0,
+      commitment: deal.commitment,
+      issuerRecord: deal.record,
+      licenseeNonce: publicOf(deal.licensee),
+      issueTx: 'e2e-issue',
+      issuedAt: t0,
+      activateTx: 'e2e-activate',
+      activatedAt: t0,
+    },
+  };
 };
 
 /** Only what the license page lists is stood in for; the deal, notices and answers are the real registry's. */
@@ -188,6 +239,7 @@ const licensorDevice = async (
   vault: string,
   rows: () => Record<string, unknown>[],
   clock?: number,
+  recordId = RECORD,
 ) => {
   const page = await browser.newPage();
   const errors = watch(page);
@@ -210,9 +262,9 @@ const licensorDevice = async (
     },
     [
       HOLDER,
-      RECORD,
+      recordId,
       JSON.stringify({
-        recordId: RECORD,
+        recordId,
         recordSecret: '7e'.repeat(32),
         recoverySecret: '8f'.repeat(32),
         createdAt: Date.now() - 300 * DAY,
@@ -245,7 +297,7 @@ test.describe('royalty notices against a real registry: its clock and its gates'
   }) => {
     test.setTimeout(420_000);
     await setClock(0);
-    const vault = newVaultKey();
+    const vault = VAULT;
     await seedRegistry(vault);
 
     // The licensee's page seeds the deal through the registry: a payout, an accepted report now overdue.
@@ -260,37 +312,7 @@ test.describe('royalty notices against a real registry: its clock and its gates'
     await expect(licensee.locator('[data-payment-alert="overdue"]')).toBeVisible({ timeout: 90_000 });
     const terms = await licensee.evaluate(() => (window as unknown as { __e2eTerms: unknown }).__e2eTerms);
     const start = await licensee.locator('[data-e2e-start]').getAttribute('data-e2e-start');
-    const t0 = Date.now() - 200 * DAY;
-    const license = {
-      id: LICENSE,
-      type: 'license',
-      recordId: RECORD,
-      recordFingerprint: '3f'.repeat(32),
-      terms,
-      agreementFingerprint: '5a'.repeat(32),
-      agreementSalt: '6b'.repeat(16),
-      state: 'active',
-      createdAt: t0,
-      royaltyLog: [],
-      onChain: {
-        inviteId: 'e2e-invite-1',
-        acceptToken: 'e2e-accept',
-        issuerToken: 'e2e-issuer',
-        identity: IDENTITY,
-        label: 'Practice Grower',
-        invitedAt: t0,
-        issuerNonce: publicOf(ISSUER_SECRET),
-        partySecret: ISSUER_SECRET,
-        termsSentAt: t0,
-        commitment: COMMITMENT,
-        issuerRecord: ISSUER_RECORD,
-        licenseeNonce: publicOf(LICENSEE_SECRET),
-        issueTx: 'e2e-issue',
-        issuedAt: t0,
-        activateTx: 'e2e-activate',
-        activatedAt: t0,
-      },
-    };
+    const license = licenseFor(LICENSE, RECORD, DEAL_A, terms);
     const rows = [sealedLicenseRow(license, vault)];
 
     // The licensor's license page: the overdue line goes up at the registry, then the notice of
@@ -434,6 +456,85 @@ test.describe('royalty notices against a real registry: its clock and its gates'
     await expect(after.locator('[data-answer="filed"]')).toBeVisible();
     expectNoErrors([...a.errors, ...b.errors, ...c.errors, ...licenseeErrors, ...visitorErrors]);
   });
+
+  test('R5-5: a licensee page that registers a later due date than the terms can’t keep the licensor’s line off (B1)', async ({
+    browser,
+  }) => {
+    test.setTimeout(300_000);
+    await setClock(0);
+    const vault = VAULT;
+    const recordB = `VEIL-${randomBytes(16).toString('hex').toUpperCase()}`;
+    await seedRegistry(vault, DEAL_B, recordB);
+    const today = utc(Date.now());
+    // The fixture's report is due 20 days ago by the terms; this licensee's page registers it as
+    // due 5 days ago instead (a modified client: the registration is re-signed with its deal key).
+    const later = utc(Date.now() - 5 * DAY);
+    const licensee = await browser.newPage();
+    const licenseeErrors = watch(licensee);
+    await licensee.addInitScript((h) => {
+      localStorage.setItem('veilcore.holder.v1', h);
+      localStorage.setItem('veilcore.lang', 'en');
+    }, '2d'.repeat(32));
+    await isolate(licensee);
+    await licensee.route(`${API}/license-answers`, async (route) => {
+      const body = JSON.parse(route.request().postData() ?? '{}') as { answer?: Record<string, unknown> };
+      if (route.request().method() !== 'POST' || body.answer?.type !== 'statement') return route.continue();
+      const answer = { ...body.answer, dueOn: later };
+      const signature = hex(
+        ed25519.sign(
+          new TextEncoder().encode(`veilcore/license-answer/v1\n${canonicalise(answer)}`),
+          Buffer.from(DEAL_B.licensee, 'hex'),
+        ),
+      );
+      return route.continue({ postData: JSON.stringify({ answer, signature }) });
+    });
+    await licensee.goto('/e2e/royalty-pay?side=licensee&scenario=overdue&deal=b');
+    await expect(licensee.locator('[data-payment-alert="overdue"]')).toBeVisible({ timeout: 90_000 });
+    const terms = (await licensee.evaluate(() => (window as unknown as { __e2eTerms: unknown }).__e2eTerms)) as {
+      startDate: string;
+    };
+    // The registry holds the later date for the report.
+    let statement = '';
+    await expect
+      .poll(
+        async () => {
+          for (const fp of await dealMessages(DEAL_B)) {
+            const r = (await call('GET', `/license-answers/${fp}`)).json.registered as { dueOn?: string } | undefined;
+            if (r?.dueOn) {
+              statement = fp;
+              return r.dueOn;
+            }
+          }
+          return '';
+        },
+        { timeout: 60_000 },
+      )
+      .toBe(later);
+    await licensee.close();
+
+    // The licensor's page dates the line from the day after the registered date, says the dates
+    // differ, and the notice of breach is filed.
+    const rows = [sealedLicenseRow(licenseFor('LIC-E2E-REG-B', recordB, DEAL_B, terms), vault)];
+    const a = await licensorDevice(browser, vault, () => rows, undefined, recordB);
+    await a.page.goto('/license/LIC-E2E-REG-B');
+    const alert = a.page.locator('[data-payment-alert="overdue"]');
+    await expect(alert).toHaveAttribute('data-cure', 'no-notice', { timeout: 90_000 });
+    await expect(a.page.locator('[data-public-notice="shown"]')).toBeVisible({ timeout: 30_000 });
+    await expect(alert.locator(`[data-due-differs="${later}"]`)).toBeVisible();
+    const dayAfter = utc(Date.parse(`${later}T00:00:00Z`) + DAY);
+    const onRecord = async () => (await call('GET', `/verify/${recordB}`)).json.licenseNotices;
+    expect(await onRecord()).toMatchObject([{ kind: 'overdue', since: dayAfter }]);
+    await a.page.getByRole('button', { name: 'Send a notice of breach' }).click();
+    await a.page.locator('[data-confirm-inline] button').first().click();
+    await expect(alert).toHaveAttribute('data-cure', 'running', { timeout: 30_000 });
+    await expect(a.page.locator(`[data-public-breach="${today}"]`)).toBeVisible({ timeout: 30_000 });
+    await expect(alert.locator('[data-breach-held]')).toHaveCount(0);
+    expect(await onRecord()).toMatchObject([{ kind: 'overdue', since: dayAfter, breachNoticeOn: today }]);
+    expect((await call('GET', `/license-answers/${statement}`)).json.lines).toMatchObject([
+      { since: dayAfter, breachNoticeOn: today },
+    ]);
+    expectNoErrors([...a.errors, ...licenseeErrors]);
+  });
 });
 
 /**
@@ -441,16 +542,16 @@ test.describe('royalty notices against a real registry: its clock and its gates'
  * it (a modified licensor client has the deal, so it knows this too). Found by trying the deal's
  * messages, read with the fixture deal's token.
  */
-const dealMessages = async (): Promise<string[]> => {
-  const licenseeNonce = publicOf(LICENSEE_SECRET);
+const dealMessages = async (deal: Deal = DEAL_A): Promise<string[]> => {
+  const licenseeNonce = publicOf(deal.licensee);
   const shared = x25519.getSharedSecret(
-    ed25519.utils.toMontgomerySecret(Buffer.from(ISSUER_SECRET, 'hex')),
+    ed25519.utils.toMontgomerySecret(Buffer.from(deal.issuer, 'hex')),
     ed25519.utils.toMontgomery(Buffer.from(licenseeNonce, 'hex')),
   );
   const okm = hkdf(
     sha256,
     shared,
-    sha256(Buffer.from(COMMITMENT + ISSUER_RECORD, 'hex')),
+    sha256(Buffer.from(deal.commitment + deal.record, 'hex')),
     new TextEncoder().encode('veilcore/deal/v1'),
     64,
   );

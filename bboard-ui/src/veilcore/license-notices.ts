@@ -150,6 +150,8 @@ export type RegistryView = {
    * there, ever. Pages say so plainly instead of "tries again".
    */
   readonly predates?: boolean;
+  /** Some of the messages asked about couldn't be looked up (lookupStatements; review round 5, L1). */
+  readonly incomplete?: boolean;
 };
 
 /** The licensee's registration of one statement: "my statement, payment due on dueOn" (filed on `on`). */
@@ -222,70 +224,110 @@ export const holderNotices = async (
 
 /** At most this many statements in one lookup (registry POST /license-answers/lookup). */
 const LOOKUP_MAX = 100;
+/** How long to wait before each new try of a lookup that failed (a 429, a 5xx, no network). */
+export const LOOKUP_BACKOFF_MS: readonly number[] = [1_000, 4_000];
+/** The most a registry's Retry-After is waited for, in ms. */
+const RETRY_AFTER_MAX_MS = 15_000;
+const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 
 /**
  * What is on file about some statements (any messages in a deal), for either side (no key: the
  * fingerprints are known only to the deal's two sides and the registry), read in one request per
  * 100 and merged into one view. A statement's lines live on one record, signed by the deal's
  * licensor (the registry refuses any other), so a line here is only ever about this deal.
- * Undefined when it can't be read.
+ *
+ * A request that fails (too many requests, the registry down, no network) is tried again after
+ * LOOKUP_BACKOFF_MS. If one still fails, `complete` is false and the view, if any, holds what
+ * the other requests read, marked `incomplete`: the page then says it couldn't check every
+ * message, instead of showing no lines as if there were none (review round 5, L1). A registry
+ * with no lookup at all (404) has no lines to show: `complete`, no view.
  */
-export const statementNotices = async (
+export const lookupStatements = async (
   fingerprints: readonly string[],
   f: typeof fetch = fetch,
-): Promise<RegistryView | undefined> => {
+  wait: (ms: number) => Promise<void> = sleep,
+): Promise<{ readonly view?: RegistryView; readonly complete: boolean }> => {
   const lines: PublishedNotice[] = [];
   const answers = new Map<string, readonly LicenseeAnswer[]>();
   const registered = new Map<string, Registration>();
   const unique = [...new Set(fingerprints)].filter((fp) => /^[0-9a-f]{64}$/.test(fp));
   let now: number | undefined;
+  let read = Date.now();
   let predates = false;
-  try {
-    for (let i = 0; i < unique.length; i += LOOKUP_MAX) {
-      const res = await f(`${BASE}/license-answers/lookup`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ statements: unique.slice(i, i + LOOKUP_MAX) }),
-        cache: 'no-store',
-      });
-      if (!res.ok) return undefined;
-      const body = (await res.json()) as { results?: unknown; now?: unknown };
-      if (typeof body.now !== 'number' || !Array.isArray(body.results)) return undefined;
-      now = body.now;
-      for (const x of body.results as Record<string, unknown>[]) {
-        if (typeof x?.statement !== 'string' || !unique.includes(x.statement)) continue;
-        const ref = noticeRef(x.statement);
-        const a = answersOf(x.answers);
-        if (a) answers.set(ref, a);
-        const reg = x.registered as Record<string, unknown> | undefined;
-        if (
-          reg &&
-          typeof reg.dueOn === 'string' &&
-          DAY.test(reg.dueOn) &&
-          typeof reg.on === 'string' &&
-          DAY.test(reg.on)
-        )
-          registered.set(ref, { dueOn: reg.dueOn, on: reg.on });
-        if (x.predates === true) predates = true;
-        const l = noticesOf({ licenseNotices: x.lines })
-          .filter((n) => n.ref === ref)
-          .pop();
-        if (l) lines.push(l);
+  let complete = true;
+  /** One chunk's answer, tried again on a failure that may pass; undefined if it never came. */
+  const ask = async (chunk: readonly string[]): Promise<{ results: unknown[]; now: number } | 'none' | undefined> => {
+    for (let i = 0; ; i++) {
+      let retryAfter: number | undefined;
+      try {
+        const res = await f(`${BASE}/license-answers/lookup`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ statements: chunk }),
+          cache: 'no-store',
+        });
+        if (res.status === 404) return 'none';
+        if (res.ok) {
+          const body = (await res.json()) as { results?: unknown; now?: unknown };
+          if (typeof body.now !== 'number' || !Array.isArray(body.results)) return undefined;
+          return { results: body.results as unknown[], now: body.now };
+        }
+        // Anything else but "too many requests" or a server error won't change on a new try.
+        if (res.status !== 429 && res.status < 500) return undefined;
+        const ra = Number(res.headers.get('retry-after'));
+        if (Number.isFinite(ra) && ra > 0) retryAfter = Math.min(ra * 1000, RETRY_AFTER_MAX_MS);
+      } catch {
+        // No network, or the answer was cut off: try again.
       }
+      if (i >= LOOKUP_BACKOFF_MS.length) return undefined;
+      await wait(Math.max(LOOKUP_BACKOFF_MS[i], retryAfter ?? 0));
     }
-  } catch {
-    return undefined;
+  };
+  for (let i = 0; i < unique.length; i += LOOKUP_MAX) {
+    const got = await ask(unique.slice(i, i + LOOKUP_MAX));
+    if (got === 'none') return { complete: true };
+    if (!got) {
+      complete = false;
+      continue;
+    }
+    now = got.now;
+    read = Date.now();
+    for (const x of got.results as Record<string, unknown>[]) {
+      if (typeof x?.statement !== 'string' || !unique.includes(x.statement)) continue;
+      const ref = noticeRef(x.statement);
+      const a = answersOf(x.answers);
+      if (a) answers.set(ref, a);
+      const reg = x.registered as Record<string, unknown> | undefined;
+      if (reg && typeof reg.dueOn === 'string' && DAY.test(reg.dueOn) && typeof reg.on === 'string' && DAY.test(reg.on))
+        registered.set(ref, { dueOn: reg.dueOn, on: reg.on });
+      if (x.predates === true) predates = true;
+      const l = noticesOf({ licenseNotices: x.lines })
+        .filter((n) => n.ref === ref)
+        .pop();
+      if (l) lines.push(l);
+    }
   }
-  if (now === undefined) return undefined;
+  if (now === undefined) return { complete: unique.length === 0 ? true : complete };
   return {
-    lines: new Map(lines.map((n) => [n.ref, n])),
-    answers,
-    registered,
-    now,
-    read: Date.now(),
-    ...(predates ? { predates } : {}),
+    complete,
+    view: {
+      lines: new Map(lines.map((n) => [n.ref, n])),
+      answers,
+      registered,
+      now,
+      read,
+      ...(predates ? { predates } : {}),
+      ...(complete ? {} : { incomplete: true }),
+    },
   };
 };
+
+/** lookupStatements' view: undefined when nothing could be read. */
+export const statementNotices = async (
+  fingerprints: readonly string[],
+  f: typeof fetch = fetch,
+  wait?: (ms: number) => Promise<void>,
+): Promise<RegistryView | undefined> => (await lookupStatements(fingerprints, f, wait)).view;
 
 /** What the licensee signs for an answer: "veilcore/license-answer/v1\n" + the canonical answer. */
 export const answerPayload = (statement: string, type: 'paid' | 'disputed', reference?: string) => ({
@@ -449,11 +491,14 @@ const call = async (
     // "paid" on file; a notice of breach for a statement the licensee hasn't registered, or before
     // its due date; a statement it holds no deal for, or one from before it kept the deal keys).
     if (res.status === 409) {
-      const why = (await res.json().catch(() => undefined)) as { code?: unknown; dueOn?: unknown } | undefined;
+      const why = (await res.json().catch(() => undefined)) as
+        | { code?: unknown; dueOn?: unknown; now?: unknown }
+        | undefined;
       return {
         outcome: why?.code === 'predates' ? 'predates' : 'refused',
         ...(typeof why?.code === 'string' ? { code: why.code } : {}),
-        ...(typeof why?.dueOn === 'string' ? { dueOn: why.dueOn } : {}),
+        ...(typeof why?.dueOn === 'string' && DAY.test(why.dueOn) ? { dueOn: why.dueOn } : {}),
+        ...(typeof why?.now === 'number' ? { now: why.now } : {}),
       };
     }
     if (!res.ok) return { outcome: 'failed' };
@@ -498,6 +543,8 @@ export const syncNotices = async (
   signer: string,
   f: typeof fetch = fetch,
   had?: RegistryView,
+  /** The licensee's registrations, by reference, when the page has read them (statementNotices). */
+  registered?: ReadonlyMap<string, Registration>,
 ): Promise<{
   readonly outcome: NoticeOutcome;
   readonly shown: PublishedNotice[];
@@ -505,11 +552,17 @@ export const syncNotices = async (
   readonly refused: string[];
   /** Notices of breach the registry wouldn't file yet, by reference; the plain overdue line stands. */
   readonly held: ReadonlyMap<string, BreachHeld>;
+  /**
+   * The due date the licensee registered, by reference, when the registry named it in a refusal
+   * (`not-due`): the page compares it with the signed terms' and tells the licensor if they differ.
+   */
+  readonly registeredDue: ReadonlyMap<string, string>;
   readonly view?: RegistryView;
 }> => {
   const held = new Map<string, BreachHeld>();
+  const registeredDue = new Map<string, string>();
   const first = had ? { view: had } : await holderNotices(recordId, f);
-  if (!('view' in first)) return { outcome: first.outcome, shown: [], refused: [], held };
+  if (!('view' in first)) return { outcome: first.outcome, shown: [], refused: [], held, registeredDue };
   const lines = new Map(first.view.lines);
   let now = first.view.now;
   // Widened on purpose: `failed` below changes it, which narrowing can't see.
@@ -519,15 +572,46 @@ export const syncNotices = async (
     if (o === 'predates') outcome = 'predates';
     else if (outcome === 'ok') outcome = o === 'refused' ? 'failed' : o;
   };
-  const put = async (ref: string, n: LicenseNotice): Promise<CallResult> => {
+  let readAt = first.view.read;
+  /** The registry's UTC day: `at` (its time in an answer), or its last time counted on from then. */
+  const registryDay = (at?: number) => utcDay(new Date(at ?? now + Math.max(0, Date.now() - readAt)));
+  const putOnce = async (ref: string, n: LicenseNotice): Promise<CallResult> => {
     const r = await putNotice(recordId, ref, n, signer, f);
     if (r.outcome === 'ok') {
       if (r.line) lines.set(ref, r.line);
-      if (r.now) now = r.now;
+      if (r.now) {
+        now = r.now;
+        readAt = Date.now();
+      }
     }
     return r;
   };
-  for (const [ref, n] of want) {
+  /**
+   * Puts a line up. "Overdue since" (and a notice of breach) can't be on or before the due date
+   * the licensee registered once that date has passed (registry `not-due`). A licensee's page that
+   * registered a later date than the terms say would otherwise keep the licensor's line off for
+   * good, since this page dates it from the terms (review round 5, B1). So once the registered
+   * date has passed, the line is sent once more, dated from the day after it: later than the terms
+   * say, which understates and is safe, and the notice of breach is filed.
+   */
+  const put = async (ref: string, n: LicenseNotice): Promise<CallResult> => {
+    const r = await putOnce(ref, n);
+    if (r.outcome === 'refused' && r.code === 'not-due' && r.dueOn) {
+      registeredDue.set(ref, r.dueOn);
+      if (n.kind !== 'revoked' && r.dueOn < registryDay(r.now) && n.since <= r.dueOn) {
+        return putOnce(ref, { ...n, since: addDays(r.dueOn, 1) });
+      }
+    }
+    return r;
+  };
+  for (const [ref, asked] of want) {
+    // A registered due date that has passed moves "since" to the day after it (B1, below).
+    const reg = registered?.get(ref)?.dueOn;
+    if (reg) registeredDue.set(ref, reg);
+    const n: LicenseNotice =
+      reg && asked.kind !== 'revoked' && reg < registryDay() && asked.since <= reg
+        ? { ...asked, since: addDays(reg, 1) }
+        : asked;
     const there = lines.get(ref);
     if (there && same(there, n)) continue;
     const r = await put(ref, n);
@@ -541,11 +625,12 @@ export const syncNotices = async (
       }
       continue;
     }
-    if (r.outcome === 'refused' && n.kind === 'breach' && (r.code === 'not-registered' || r.code === 'not-due')) {
+    const notDueYet = r.code === 'not-due' && !!r.dueOn && r.dueOn >= registryDay(r.now);
+    if (r.outcome === 'refused' && n.kind === 'breach' && (r.code === 'not-registered' || notDueYet)) {
       // Not filed as a notice of breach yet (the licensee's page hasn't registered the statement,
-      // or it isn't past the due date they registered): the plain overdue line, the licensor's
-      // word, stands meanwhile, and the page says why.
-      held.set(ref, r.code === 'not-due' ? { code: 'not-due', dueOn: r.dueOn ?? '' } : { code: 'not-registered' });
+      // or the due date they registered hasn't passed by the registry's clock): the plain overdue
+      // line, the licensor's word, stands meanwhile, and the page says why.
+      held.set(ref, r.code === 'not-due' ? { code: 'not-due', dueOn: r.dueOn! } : { code: 'not-registered' });
       const plain: LicenseNotice = { kind: 'overdue', since: n.since, statement: n.statement };
       if (there && same(there, plain)) continue;
       const o = await put(ref, plain);
@@ -572,6 +657,7 @@ export const syncNotices = async (
     shown: [...lines.values()].filter((n) => mine.has(n.ref)),
     refused: [...refused],
     held,
+    registeredDue,
     view,
   };
 };

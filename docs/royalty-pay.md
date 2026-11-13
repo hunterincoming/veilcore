@@ -114,9 +114,13 @@ in UTC (`royalty-ledger.ts breachOf`, `paymentAlerts`):
    date. From then on a resend of the overdue or breach line changes nothing at the registry:
    its "overdue since" date and the licensor's signature over it stay as they were, and the same
    holds once the line is revoked (review round 4, N3). Before that, once the due date the
-   licensee registered has passed, "overdue since" can't be on or before it (`409 not-due`). The registry files it only for a report the licensee's page registered, and only from
-   the day after the due date registered with it (below, "The licensee registers each report").
-   Until then the plain overdue line stands, and the licensor's alert says why. Both sides then
+   licensee registered has passed, "overdue since" can't be on or before it (`409 not-due`).
+   The registry files a notice of breach only for a report the licensee's page registered, and
+   only from the day after the due date registered with it (below, "The licensee registers
+   each report"). Until then the plain overdue line stands, and the licensor's alert says why.
+   When the registered date is later than the terms' and has passed, the licensor's page dates
+   both lines from the day after the registered date (later than the terms say, so the line
+   understates), and its alert says the two dates differ (review round 5, B1). Both sides then
    see **"Pay by <date>"**: the cure deadline, from the later of the deal's date and the
    registry's.
 3. **Cure period: 30 days** (`CURE_DAYS`). The license terms carry no cure period
@@ -198,7 +202,7 @@ of its own.
 ### The licensee sees every public line
 
 The licensee's page asks the registry about every message in the deal at once (`POST
-/license-answers/lookup`, 100 at a time; `license-notices.ts statementNotices`) and shows every
+/license-answers/lookup`, 100 at a time; `license-notices.ts lookupStatements`) and shows every
 line the licensor's record's public page carries about them, with the day the licensor told the
 registry about a notice of breach and the last day to pay, whatever its own reckoning says
 (`RoyaltyPay.tsx LicenseePublicLines`). Each offers **I paid** (on a report the licensor accepted
@@ -214,6 +218,19 @@ this page can't open, or a second copy of a message already here, so it doesn't 
 your reports", `app.rpay.l.pubOverdueUnreadable`) and offers **Dispute it**, filed at the
 registry in the licensee's name with their deal key. Such a message can never carry a notice of
 breach or a revoked line, because the licensee's page never registers it.
+
+It holds once the license is gone from Midnight too, however it went (review round 5, M1). The
+registry never learns the chain's state, so a licensor who revoked in the ordinary way could
+still put lines up. The licensee's license page, once the license is gone, shows the signed
+notice of a revocation for non-payment if the deal holds one, and below it the same public lines
+with **Dispute it** (`RoyaltyPay.tsx LicenseeAfterRevoke`). There is nothing to pay from there,
+so it offers no **I paid**.
+
+A lookup request that fails (too many requests, the registry down, no network) is tried twice
+more, after 1 and 4 seconds (longer if the registry asks, up to 15). If one still fails, the
+page shows what the others read and says it couldn't check every message, with **Check again**
+(`app.rpay.l.pubLookupFailed`), instead of showing no lines as if there were none (review
+round 5, L1).
 
 ### The licensee's answer
 
@@ -282,9 +299,16 @@ RevokedForNonPayment`).
   remains the record holder's word about *some* license. A warning on the licensee's page when
   the invite was accepted on the licensor's own device was considered and not built: someone
   doing this on purpose uses a second browser, so it would only catch honest mistakes.
-- A licensee who registers a due date far in the future keeps the notice of breach off for that
-  report, but not the licensor's plain overdue line: before the registered date has passed,
-  "overdue since" isn't held to it, so a made-up date can't silence the licensor's own word.
+- A licensee whose page registers a later due date than the terms say holds the notice of breach
+  back until the day after that date, and from then on the public line can't say "overdue since"
+  any earlier than that day: the registry can't check the date against the terms, which only the
+  two sides hold. It can't keep either line off, though. Before the registered date has passed,
+  the plain overdue line isn't held to it. Once it has passed, the licensor's page reads the
+  registered date (it is public at the registry, by statement) and dates both lines from the day
+  after it, so the notice of breach is filed then (review round 5, B1). The licensor's alert
+  names both dates; the signed terms in the deal still say which one was agreed. A made-up date
+  can delay the notice of breach and make the public line understate how long it has been
+  overdue, but it can't silence the licensor's word.
 
 ### Licenses from before this
 

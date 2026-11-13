@@ -148,7 +148,7 @@ export const royaltyPay = {
   'app.rpay.i.breachNotRegistered':
     'La página de comprobación pública dice que este pago está vencido, pero todavía no que usted envió un aviso de incumplimiento: la página de {licensee} aún no ha registrado este informe en el registro de VeilCore. Normalmente lo hace sola la próxima vez que abran la licencia. Hasta entonces el plazo para pagar no puede empezar allí. Su aviso firmado está en el acuerdo de todos modos.',
   'app.rpay.i.breachNotDue':
-    '{licensee} registró este informe en el registro de VeilCore con vencimiento el {due}, así que la página de comprobación pública solo puede decir que usted envió un aviso de incumplimiento a partir del día siguiente. Hasta entonces dice que el pago está vencido. Su aviso firmado está en el acuerdo de todos modos.',
+    '{licensee} registró este informe en el registro de VeilCore con vencimiento el {due}. El registro solo archiva un aviso de incumplimiento a partir del día siguiente a esa fecha, así que la página de comprobación pública de su registro todavía no dice que usted envió uno. Esta página vuelve a preguntar cuando se abra después del {due}. Su aviso firmado está en el acuerdo de todos modos.',
   'app.rpay.l.answerPredates':
     'Lo disputó el {date}: «{note}». {licensor} lo ve, firmado por usted. Esta licencia se hizo antes de que el registro de VeilCore guardara las claves que necesitan las respuestas, así que no se puede archivar allí.',
   'app.rpay.l.pubOverdue':
@@ -156,11 +156,16 @@ export const royaltyPay = {
   'app.rpay.l.pubOverdueOther':
     'La página de comprobación pública del registro de {licensor} dice, como palabra suya, que un estado de regalías está vencido desde el {date}, sobre un mensaje de este acuerdo que no es uno de sus informes.',
   'app.rpay.l.pubOverdueUnreadable':
-    'La página de comprobación pública del registro de {licensor} dice, como palabra suya, que un estado de regalías está vencido desde el {date}, sobre un mensaje de este acuerdo que esta página no puede abrir, o una segunda copia de un mensaje que ya está aquí, así que no corresponde a ninguno de sus informes. Puede disputarlo.',
+    'La página de comprobación pública del registro de {licensor} dice, como palabra suya, que un estado de regalías está vencido desde el {date}, sobre un mensaje de este acuerdo que esta página no puede abrir, o una segunda copia de un mensaje que ya está aquí, así que no corresponde a ninguno de sus informes.',
   'app.rpay.l.pubRevoked':
     'La página de comprobación pública del registro de {licensor} dice, como palabra suya, que una licencia de ese registro se revocó el {date} por falta de pago.',
   'app.rpay.l.pubBreach':
     '{licensor} comunicó al registro de VeilCore el {date} que había enviado un aviso de incumplimiento. El plazo para pagar corre hasta el {cureBy}.',
   'app.rpay.l.pubAnswers': 'Al lado, en su propio nombre: {answers}',
   'app.rpay.l.pubDisputeFailed': 'No se pudo archivar su respuesta ahora. Vuelva a intentarlo en un momento.',
+  'app.rpay.i.dueDiffers':
+    'La página de {licensee} registró este informe en el registro de VeilCore con vencimiento el {registered}, más tarde que el {due} que indican sus términos firmados. El registro se rige por la fecha registrada: solo archiva un aviso de incumplimiento a partir del día siguiente a esa fecha y, una vez pasada, la página de comprobación pública de su registro solo puede decir que el pago está vencido a partir de ese día siguiente. Los términos firmados del acuerdo siguen indicando el {due}.',
+  'app.rpay.l.pubLookupFailed':
+    'Ahora no se pudo comprobar cada mensaje de este acuerdo en el registro de VeilCore, así que aquí podría faltar una línea que la página de comprobación pública del registro de {licensor} muestra sobre alguno de ellos. Vuelva a comprobarlo en un momento.',
+  'app.rpay.l.pubLookupAgain': 'Comprobar de nuevo',
 };

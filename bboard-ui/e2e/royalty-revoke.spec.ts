@@ -6,7 +6,10 @@
 //   - revoked for non-payment while the registry's notices were down, then the browser's storage
 //     cleared and the license opened again from the registry's copy: the stuck overdue line
 //     comes off and the revoked line goes up;
-//   - a plain "Revoke": the overdue line comes off, and nothing about payment is said;
+//   - a plain "Revoke": the overdue line comes off, and nothing about payment is said; a line a
+//     modified licensor client puts up afterwards, on a report or on a message the licensee's page
+//     can't open, still shows on the licensee's page once the license is gone, with a Dispute
+//     (review round 5, M1);
 //   - a licensor's browser with its clock set past the time to pay, while the registry's clock
 //     says the time to pay is still running: no revoke for non-payment is offered;
 //   - the licensee, after the revocation: the signed notice, whether the public page says so, and
@@ -358,7 +361,7 @@ test.describe('revoking on the real license page: the public check page follows 
 
   test('a plain revoke: the overdue line comes off and nothing about payment is said', async ({ browser }) => {
     test.setTimeout(300_000);
-    const { state, vault } = await setUp(browser);
+    const { state, vault, licensee, licenseeErrors } = await setUp(browser);
     const a = await licensorDevice(browser, state, vault, 'ACTIVE');
     await a.page.goto(`/license/${LICENSE}`);
     await expect(a.page.locator('[data-public-notice="shown"]')).toBeVisible({ timeout: 90_000 });
@@ -373,7 +376,59 @@ test.describe('revoking on the real license page: the public check page follows 
     const { visitor, errors } = await publicPage(browser, state);
     await expect(visitor.locator('[data-verify-result], main')).toBeVisible({ timeout: 30_000 });
     await expect(visitor.locator('[data-license-notices]')).toHaveCount(0);
-    expectNoErrors([...a.errors, ...errors]);
+
+    // M1: the registry doesn't know the license is gone. A modified licensor client puts lines up
+    // again, on the report and on junk it posted to the deal; the licensee's page, the license gone,
+    // shows both with a Dispute, and the dispute is filed in the licensee's name.
+    const junkIv = 'AAAAAAAAAAAAAAAA';
+    const junkCt = 'bm90IGEgbWVzc2FnZSBhdCBhbGw';
+    const junk = createHash('sha256').update(`${junkIv}.${junkCt}`).digest('hex');
+    state.messages.push({
+      seq: state.messages.length + 1,
+      iv: junkIv,
+      ct: junkCt,
+      receivedAt: Date.now(),
+      fingerprint: junk,
+    });
+    // The report is the deal's second message (the fixture seeds payout, report, reply).
+    const report = state.messages[1].fingerprint;
+    const refOf = (fp: string) =>
+      createHash('sha256').update(`veilcore/license-notice/v2\n${fp}`, 'utf8').digest('hex').slice(0, 32);
+    const day = new Date(Date.now() - 5 * DAY).toISOString().slice(0, 10);
+    for (const statement of [report, junk])
+      state.n.lines.set(refOf(statement), {
+        ref: refOf(statement),
+        kind: 'overdue',
+        day,
+        statement,
+        updatedAt: Date.now(),
+      });
+    const start = await licensee.locator('[data-e2e-start]').getAttribute('data-e2e-start');
+    await licensee.goto(`/e2e/royalty-pay?side=licensee&scenario=overdue&start=${start}&gone=1`);
+    const gone = licensee.locator('[data-e2e-gone]');
+    await expect(gone.locator('[data-licensee-line="overdue"]')).toHaveCount(2, { timeout: 60_000 });
+    await expect(gone.locator(`[data-line-ref="${refOf(junk)}"]`)).toHaveAttribute('data-line-unreadable', '');
+    await expect(gone.locator(`[data-line-ref="${refOf(report)}"]`)).toContainText('(report 1)');
+    // Nothing to pay from here: the license is gone; only a dispute is offered.
+    await expect(gone.locator('[data-respond-paid]')).toHaveCount(0);
+    const onReport = gone.locator(`[data-line-ref="${refOf(report)}"]`);
+    await onReport.locator('[data-respond-dispute]').click();
+    await onReport.locator('[data-dispute-note] textarea').first().fill('Paid by wire on the due date.');
+    await onReport.locator('[data-dispute-send]').click();
+    await expect
+      .poll(() => (state.n.answers.get(report) ?? []).map((x) => x.type), { timeout: 30_000 })
+      .toEqual(['disputed']);
+    await expect(onReport).toContainText('The licensee disputes this', { timeout: 30_000 });
+    await expect(onReport.locator('[data-respond-dispute]')).toHaveCount(0);
+    const onJunk = gone.locator(`[data-line-ref="${refOf(junk)}"]`);
+    await onJunk.locator('[data-respond-dispute]').click();
+    await onJunk.locator('[data-dispute-note] textarea').first().fill('Not a message I sent.');
+    await onJunk.locator('[data-dispute-send]').click();
+    await expect
+      .poll(() => (state.n.answers.get(junk) ?? []).map((x) => x.type), { timeout: 30_000 })
+      .toEqual(['disputed']);
+    await shot(licensee, 'licensee-gone-lines');
+    expectNoErrors([...a.errors, ...errors, ...licenseeErrors]);
   });
 
   test('a licensor browser set past the time to pay while the registry says it is still running: no revoke offered', async ({

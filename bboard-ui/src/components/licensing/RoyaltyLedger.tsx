@@ -223,10 +223,14 @@ export const RoyaltyLedger: React.FC<{
     () => [...new Set([...(entries ?? NO_ENTRIES).map((e) => e.fingerprint), ...skipped])],
     [entries, skipped],
   );
-  const [licenseeView, setLicenseeView, readAgain] = useRegistryView(side === 'licensee' ? party : undefined, ledger, {
-    terms,
-    fingerprints,
-  });
+  const [licenseeView, setLicenseeView, readAgain, lookupIncomplete] = useRegistryView(
+    side === 'licensee' ? party : undefined,
+    ledger,
+    {
+      terms,
+      fingerprints,
+    },
+  );
   const [issuerView, setIssuerView] = useState<RegistryView>();
   const view = side === 'licensee' ? licenseeView : issuerView;
   // Due soon and overdue, on both sides; the licensor's record's public page says what is overdue.
@@ -354,6 +358,7 @@ export const RoyaltyLedger: React.FC<{
             mySecret={party.mySecret}
             fingerprints={fingerprints}
             unreadable={skipped}
+            incomplete={lookupIncomplete}
             tr={tr}
             busy={busy}
             send={send}

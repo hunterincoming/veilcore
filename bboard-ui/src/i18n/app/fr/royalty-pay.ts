@@ -155,7 +155,7 @@ export const royaltyPay = {
   'app.rpay.i.breachNotRegistered':
     'La page de vérification publique indique que ce paiement est en retard, mais pas encore que vous avez envoyé un avis de manquement : la page de {licensee} n’a pas encore enregistré ce rapport au registre de VeilCore. Elle le fait normalement d’elle-même à la prochaine ouverture de la licence. D’ici là, le délai pour payer ne peut pas commencer au registre. Votre avis signé est dans l’accord dans tous les cas.',
   'app.rpay.i.breachNotDue':
-    '{licensee} a enregistré ce rapport au registre de VeilCore comme dû le {due} : la page de vérification publique ne peut donc indiquer que vous avez envoyé un avis de manquement qu’à partir du lendemain. D’ici là, elle indique que le paiement est en retard. Votre avis signé est dans l’accord dans tous les cas.',
+    '{licensee} a enregistré ce rapport au registre de VeilCore comme dû le {due}. Le registre ne dépose un avis de manquement qu’à partir du lendemain de cette date : la page de vérification publique de votre enregistrement n’indique donc pas encore que vous en avez envoyé un. Cette page redemande lorsqu’elle est ouverte après le {due}. Votre avis signé est dans l’accord dans tous les cas.',
   'app.rpay.l.answerPredates':
     'Vous l’avez contesté le {date} : « {note} ». {licensor} le voit, signé par vous. Cette licence a été faite avant que le registre de VeilCore conserve les clés dont les réponses ont besoin : elle ne peut donc pas y être déposée.',
   'app.rpay.l.pubOverdue':
@@ -163,11 +163,16 @@ export const royaltyPay = {
   'app.rpay.l.pubOverdueOther':
     'La page de vérification publique de l’enregistrement de {licensor} indique, comme sa déclaration, qu’un relevé de redevances est en retard depuis le {date}, à propos d’un message de cet accord qui n’est pas l’un de vos rapports.',
   'app.rpay.l.pubOverdueUnreadable':
-    'La page de vérification publique de l’enregistrement de {licensor} indique, comme sa déclaration, qu’un relevé de redevances est en retard depuis le {date}, à propos d’un message de cet accord que cette page ne peut pas ouvrir, ou d’une seconde copie d’un message déjà présent : il ne correspond donc à aucun de vos rapports. Vous pouvez le contester.',
+    'La page de vérification publique de l’enregistrement de {licensor} indique, comme sa déclaration, qu’un relevé de redevances est en retard depuis le {date}, à propos d’un message de cet accord que cette page ne peut pas ouvrir, ou d’une seconde copie d’un message déjà présent : il ne correspond donc à aucun de vos rapports.',
   'app.rpay.l.pubRevoked':
     'La page de vérification publique de l’enregistrement de {licensor} indique, comme sa déclaration, qu’une licence issue de cet enregistrement a été révoquée le {date} pour non-paiement.',
   'app.rpay.l.pubBreach':
     '{licensor} a indiqué au registre de VeilCore le {date} avoir envoyé un avis de manquement. Le délai pour payer court jusqu’au {cureBy}.',
   'app.rpay.l.pubAnswers': 'À côté, en votre propre nom : {answers}',
   'app.rpay.l.pubDisputeFailed': 'Votre réponse n’a pas pu être déposée pour l’instant. Réessayez dans un moment.',
+  'app.rpay.i.dueDiffers':
+    'La page de {licensee} a enregistré ce rapport au registre de VeilCore comme dû le {registered}, plus tard que le {due} indiqué par vos conditions signées. Le registre s’en tient à la date enregistrée : il ne dépose un avis de manquement qu’à partir du lendemain de cette date et, une fois celle-ci passée, la page de vérification publique de votre enregistrement ne peut indiquer le paiement en retard qu’à partir de ce lendemain. Les conditions signées dans l’accord indiquent toujours le {due}.',
+  'app.rpay.l.pubLookupFailed':
+    'Impossible pour l’instant de vérifier chaque message de cet accord auprès du registre de VeilCore : une ligne que la page de vérification publique de l’enregistrement de {licensor} affiche sur l’un d’eux peut donc manquer ici. Vérifiez de nouveau dans un moment.',
+  'app.rpay.l.pubLookupAgain': 'Vérifier de nouveau',
 };

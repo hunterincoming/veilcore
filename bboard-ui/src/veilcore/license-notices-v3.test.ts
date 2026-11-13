@@ -81,12 +81,14 @@ describe('a notice of breach the registry won’t file yet (B2)', () => {
   const breach: LicenseNotice = { kind: 'breach', since: '2026-05-15', statement: fp('b') };
   const registry = (code: 'not-registered' | 'not-due') => {
     const puts: Record<string, unknown>[] = [];
+    // The registry's clock: before the registered due date below, so the notice of breach is held.
+    const now = Date.parse('2026-05-17T12:00:00Z');
     const f: typeof fetch = (_u, init) => {
-      if ((init?.method ?? 'GET') === 'GET') return json(200, { licenseNotices: [], now: Date.now() });
+      if ((init?.method ?? 'GET') === 'GET') return json(200, { licenseNotices: [], now });
       const b = JSON.parse(init!.body as string) as Record<string, unknown>;
       puts.push(b);
-      if (b.kind === 'breach') return json(409, { code, ...(code === 'not-due' ? { dueOn: '2026-05-20' } : {}) });
-      return json(200, { ref, kind: 'overdue', since: b.since, now: Date.now() });
+      if (b.kind === 'breach') return json(409, { code, ...(code === 'not-due' ? { dueOn: '2026-05-20' } : {}), now });
+      return json(200, { ref, kind: 'overdue', since: b.since, now });
     };
     return { puts, f };
   };
@@ -98,7 +100,7 @@ describe('a notice of breach the registry won’t file yet (B2)', () => {
     expect(r.held.get(ref)).toEqual({ code: 'not-registered' });
     expect(r.shown).toEqual([{ ref, kind: 'overdue', since: '2026-05-15' }]);
   });
-  it('registered as due later than the licensor’s terms say: held with that date', async () => {
+  it('registered as due later than the licensor’s terms say, and still to come: held with that date', async () => {
     const { f } = registry('not-due');
     const r = await syncNotices('rec-1', new Map([[ref, breach]]), new Set([ref]), SECRET, f);
     expect(r.held.get(ref)).toEqual({ code: 'not-due', dueOn: '2026-05-20' });

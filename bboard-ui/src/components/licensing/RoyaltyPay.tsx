@@ -52,8 +52,10 @@ import {
   cureEndsOn,
   dealNotices,
   fileAnswer,
+  lookupStatements,
   noticeRef,
   registerStatement,
+  registryToday,
   reportRef,
   statementNotices,
   syncNotices,
@@ -67,7 +69,7 @@ import type { DealBody } from '../../veilcore/deal';
 import type { LicenseTerms } from '../../veilcore/licenses';
 import { STABLECOIN_PAY } from '../../config/copy';
 import { NETWORK } from '../../config/network';
-import { sayOnce, type DealEntry, type DealParty } from '../../veilcore/deal-client';
+import { dealSkippedReadHere, sayOnce, type DealEntry, type DealParty } from '../../veilcore/deal-client';
 
 const short = (s: string) => (s.length > 24 ? `${s.slice(0, 14)}…${s.slice(-6)}` : s);
 
@@ -79,6 +81,10 @@ type PublicState = {
   lines: ReadonlyMap<string, PublishedNotice>;
   /** Notices of breach the registry wouldn't file yet, by reference (the plain overdue line stands). */
   held?: ReadonlyMap<string, BreachHeld>;
+  /** The due date the licensee registered for each report, by reference, where the page learnt it. */
+  registeredDue?: ReadonlyMap<string, string>;
+  /** The registry's view after the last sync: its clock, for whether a registered date has passed. */
+  view?: RegistryView;
 };
 
 /** The licensee's answers as the public page shows them beside a line: "says it was paid (date)", "disputes this (since date)". */
@@ -155,6 +161,14 @@ const OneAlert: React.FC<{
   const filed = (view?.answers.get(ref) ?? a.registry?.answers ?? []).find((x) => x.type === 'disputed');
   const line = publicState?.lines.get(ref);
   const held = publicState?.held?.get(ref);
+  // A registered due date that has passed by the registry's clock no longer holds anything back:
+  // the page has dated the line from the day after it instead (review round 5, B1).
+  const heldNow =
+    held && (held.code !== 'not-due' || !publicState?.view || held.dueOn >= registryToday(publicState.view))
+      ? held
+      : undefined;
+  const registeredDue = publicState?.registeredDue?.get(ref);
+  const shownSince = line?.kind === 'overdue' ? dateWords(line.since, tr) : date;
   return (
     <Alert
       severity={late ? 'error' : 'info'}
@@ -219,9 +233,10 @@ const OneAlert: React.FC<{
         >
           {line
             ? [
+                // The date the public page shows, which can be later than the terms' (B1).
                 line.breachNoticeOn
-                  ? tr.t('app.rpay.i.publicBreach', { date, breach: dateWords(line.breachNoticeOn, tr) })
-                  : tr.t('app.rpay.i.public', { date }),
+                  ? tr.t('app.rpay.i.publicBreach', { date: shownSince, breach: dateWords(line.breachNoticeOn, tr) })
+                  : tr.t('app.rpay.i.public', { date: shownSince }),
                 line.answers?.length
                   ? tr.t('app.rpay.i.publicAnswers', { answers: answerWords(line.answers, tr) })
                   : '',
@@ -237,11 +252,21 @@ const OneAlert: React.FC<{
                   : tr.t('app.rpay.i.publicFailed')}
         </Typography>
       )}
-      {side === 'issuer' && late && a.breach && held && (
-        <Typography variant="body2" sx={{ mt: 0.5 }} data-breach-held={held.code}>
-          {held.code === 'not-due'
-            ? tr.t('app.rpay.i.breachNotDue', { licensee, due: dateWords(held.dueOn, tr) })
+      {side === 'issuer' && late && a.breach && heldNow && (
+        <Typography variant="body2" sx={{ mt: 0.5 }} data-breach-held={heldNow.code}>
+          {heldNow.code === 'not-due'
+            ? tr.t('app.rpay.i.breachNotDue', { licensee, due: dateWords(heldNow.dueOn, tr) })
             : tr.t('app.rpay.i.breachNotRegistered', { licensee })}
+        </Typography>
+      )}
+      {/* A later date than the terms' changes what the public page can say (B1); an earlier one doesn't. */}
+      {side === 'issuer' && late && registeredDue && registeredDue > a.due && (
+        <Typography variant="body2" sx={{ mt: 0.5 }} data-due-differs={registeredDue}>
+          {tr.t('app.rpay.i.dueDiffers', {
+            licensee,
+            registered: dateWords(registeredDue, tr),
+            due: dateWords(a.due, tr),
+          })}
         </Typography>
       )}
       {/* The licensee's answer: they paid (the report's own form), or a short dispute note. */}
@@ -352,11 +377,22 @@ export const usePublicNotices = (
   useEffect(() => {
     if (!recordId || (want.size === 0 && mine.size === 0)) return;
     let live = true;
-    void syncNotices(recordId, want, mine, signer).then((r) => {
+    void (async () => {
+      // The due dates the licensee registered (public at the registry, by statement): a passed one
+      // dates the line from the day after it, and one that differs from the terms is said (B1).
+      const asked = [...want.values()].filter((n) => n.kind !== 'revoked').map((n) => n.statement);
+      const reg = asked.length ? await statementNotices(asked) : undefined;
+      const r = await syncNotices(recordId, want, mine, signer, fetch, undefined, reg?.registered);
       if (!live) return;
-      setState({ outcome: r.outcome, lines: new Map(r.shown.map((n) => [n.ref, n])), held: r.held });
+      setState({
+        outcome: r.outcome,
+        lines: new Map(r.shown.map((n) => [n.ref, n])),
+        held: r.held,
+        registeredDue: r.registeredDue,
+        view: r.view,
+      });
       if (r.view) onView(r.view);
-    });
+    })();
     return () => {
       live = false;
     };
@@ -386,8 +422,10 @@ export const useRegistryView = (
     /** Every message's fingerprint in the deal, so a line about any of them shows here. */
     readonly fingerprints?: readonly string[];
   } = {},
-): readonly [RegistryView | undefined, (v: RegistryView) => void, () => void] => {
+): readonly [RegistryView | undefined, (v: RegistryView) => void, () => void, boolean] => {
   const [view, setView] = useState<RegistryView>();
+  /** The last read couldn't look up every message, even after trying again (review round 5, L1). */
+  const [incomplete, setIncomplete] = useState(false);
   /** Read again (after something was filed from outside this hook). */
   const [again, setAgain] = useState(0);
   const reports = useMemo(() => (party ? liveReports(ledger) : []), [party, ledger]);
@@ -413,9 +451,12 @@ export const useRegistryView = (
     if (!party || fps.length === 0) return;
     let live = true;
     void (async () => {
-      let v = await statementNotices(fps);
+      const got = await lookupStatements(fps);
+      let v = got.view;
+      let complete = got.complete;
       let filedNow = false;
-      if (v && !v.predates) {
+      // Only from a complete read: a report in a part that couldn't be read isn't known to be unfiled.
+      if (v && complete && !v.predates) {
         for (const r of reports) {
           const ref = reportRef(r);
           const dueOn = due.get(r.statement.fingerprint);
@@ -433,15 +474,22 @@ export const useRegistryView = (
           }
         }
       }
-      if (filedNow) v = (await statementNotices(fps)) ?? v;
-      if (live && v) setView(v);
+      if (filedNow) {
+        const reread = await lookupStatements(fps);
+        if (reread.view) v = reread.view;
+        complete = reread.complete;
+      }
+      if (!live) return;
+      // An incomplete read still shows what it found; the page says the rest couldn't be checked.
+      if (v) setView(v);
+      setIncomplete(!complete);
     })();
     return () => {
       live = false;
     };
     // `key` stands for the messages, the reports and what the licensee said about each.
   }, [party?.mySecret, key]);
-  return [view, setView, () => setAgain((n) => n + 1)] as const;
+  return [view, setView, () => setAgain((n) => n + 1), incomplete] as const;
 };
 
 /**
@@ -463,25 +511,59 @@ export const LicenseePublicLines: React.FC<{
    * dealSkippedReadHere): a line about one is shown with its own words and a Dispute (N1).
    */
   unreadable?: readonly string[];
+  /**
+   * The last read couldn't look up every message (useRegistryView; review round 5, L1): the page
+   * says so, with a way to check again, instead of showing no lines as if there were none.
+   */
+  incomplete?: boolean;
+  /** Lines shown elsewhere on the page with their own answer (the revoked report's), by reference. */
+  except?: ReadonlySet<string>;
+  /** The page has the reports' pay forms for "I paid" to lead to (not once the license is gone). */
+  payHere?: boolean;
   tr: Translator;
   busy: boolean;
   send: (b: DealBody) => Promise<boolean>;
   onFiled: () => void;
-}> = ({ view, ledger, alerts, licensor, mySecret, fingerprints, unreadable = [], tr, busy, send, onFiled }) => {
-  if (!view || view.lines.size === 0) return null;
+}> = ({
+  view,
+  ledger,
+  alerts,
+  licensor,
+  mySecret,
+  fingerprints,
+  unreadable = [],
+  incomplete = false,
+  except,
+  payHere = true,
+  tr,
+  busy,
+  send,
+  onFiled,
+}) => {
+  const shown = [...(view?.lines.values() ?? [])].filter((l) => !except?.has(l.ref));
+  if (shown.length === 0 && !incomplete) return null;
   const byRef = new Map(ledger.reports.map((r) => [reportRef(r), r]));
   const fpOf = new Map(fingerprints.map((fp) => [noticeRef(fp), fp]));
   const unread = new Set(unreadable.map(noticeRef));
   const inAlert = new Set(alerts.filter((a) => a.kind === 'overdue').map((a) => reportRef(a.report)));
   return (
     <Stack spacing={1} data-licensee-public="">
-      {[...view.lines.values()].map((line) => (
+      {incomplete && (
+        <Alert severity="warning" variant="outlined" data-lookup-incomplete="">
+          <Typography variant="body2">{tr.t('app.rpay.l.pubLookupFailed', { licensor })}</Typography>
+          <Button size="small" color="inherit" sx={{ mt: 0.5 }} data-lookup-again="" onClick={onFiled}>
+            {tr.t('app.rpay.l.pubLookupAgain')}
+          </Button>
+        </Alert>
+      )}
+      {shown.map((line) => (
         <OnePublicLine
           key={line.ref}
           line={line}
           report={byRef.get(line.ref)}
-          answers={view.answers.get(line.ref) ?? line.answers ?? []}
+          answers={view?.answers.get(line.ref) ?? line.answers ?? []}
           offer={!inAlert.has(line.ref)}
+          payHere={payHere}
           licensor={licensor}
           mySecret={mySecret}
           tr={tr}
@@ -501,6 +583,7 @@ const OnePublicLine: React.FC<{
   report: Report | undefined;
   answers: readonly LicenseeAnswer[];
   offer: boolean;
+  payHere: boolean;
   licensor: string;
   mySecret: string;
   tr: Translator;
@@ -511,12 +594,26 @@ const OnePublicLine: React.FC<{
   fingerprint: string | undefined;
   /** That message is one this page couldn't open, or a second copy of one it read. */
   unreadable?: boolean;
-}> = ({ line, report, answers, offer, licensor, mySecret, tr, busy, send, onFiled, fingerprint, unreadable }) => {
+}> = ({
+  line,
+  report,
+  answers,
+  offer,
+  payHere,
+  licensor,
+  mySecret,
+  tr,
+  busy,
+  send,
+  onFiled,
+  fingerprint,
+  unreadable,
+}) => {
   const [disputing, setDisputing] = useState(false);
   const [note, setNote] = useState('');
   const [failed, setFailed] = useState(false);
   const disputed = answers.some((x) => x.type === 'disputed');
-  const canPay = !!report && report.reply?.decision === 'accepted' && !report.paid;
+  const canPay = payHere && !!report && report.reply?.decision === 'accepted' && !report.paid;
   const what =
     line.kind === 'revoked'
       ? tr.t('app.rpay.l.pubRevoked', { licensor, date: dateWords(line.on, tr) })
@@ -634,14 +731,14 @@ const OnePublicLine: React.FC<{
  * they can still give: a dispute, signed on the deal and filed at the registry in their own name.
  */
 export const RevokedForNonPayment: React.FC<{
-  party: { readonly mySecret: string };
+  /** What the registry has on file about the deal's messages (useRegistryView). */
+  view: RegistryView | undefined;
   ledger: Ledger;
   licensor: string;
   send: (b: DealBody) => Promise<boolean>;
   busy: boolean;
-}> = ({ party, ledger, licensor, send, busy }) => {
+}> = ({ view, ledger, licensor, send, busy }) => {
   const tr = useT();
-  const [view] = useRegistryView(party, ledger);
   const [disputing, setDisputing] = useState(false);
   const [note, setNote] = useState('');
   const revoked = revokedNoticeOf(ledger);
@@ -727,14 +824,35 @@ export const RevokedForNonPayment: React.FC<{
   );
 };
 
-/** RevokedForNonPayment for a page that holds the deal's messages and its party (the licensee's license page). */
+/**
+ * The licensee's license page once the license is gone from the chain, however it went: the
+ * licensor's signed notice of a revocation for non-payment, if the deal holds one
+ * (RevokedForNonPayment), and every line the licensor's record's public check page carries about
+ * any message in the deal, with a Dispute (LicenseePublicLines). A licensor who revoked in the
+ * ordinary way can still put lines up, and the registry doesn't know the license is gone, so the
+ * licensee keeps seeing them and can answer each one (review round 5, M1).
+ */
 export const LicenseeAfterRevoke: React.FC<{
   party: DealParty;
   entries: readonly DealEntry[];
   refresh: () => void;
   licensor: string;
 }> = ({ party, entries, refresh, licensor }) => {
+  const tr = useT();
   const ledger = useMemo(() => ledgerOf(entries), [entries]);
+  // Every message's fingerprint, including the ones the page left out (deal-client.ts
+  // dealSkippedReadHere), as on the live license's page (RoyaltyLedger.tsx).
+  const skipped = useMemo(() => dealSkippedReadHere(party), [entries, party]);
+  const fingerprints = useMemo(
+    () => [...new Set([...entries.map((e) => e.fingerprint), ...skipped])],
+    [entries, skipped],
+  );
+  const [view, , readAgain, incomplete] = useRegistryView(party, ledger, { fingerprints });
+  const revoked = revokedNoticeOf(ledger);
+  const revokedReport = revoked
+    ? ledger.reports.find((r) => r.statement.signature === revoked.statementSig)
+    : undefined;
+  const except = useMemo(() => new Set(revokedReport ? [reportRef(revokedReport)] : []), [revokedReport]);
   const [busy, setBusy] = useState(false);
   const send = async (b: DealBody) => {
     setBusy(true);
@@ -748,7 +866,30 @@ export const LicenseeAfterRevoke: React.FC<{
       setBusy(false);
     }
   };
-  return <RevokedForNonPayment party={party} ledger={ledger} licensor={licensor} send={send} busy={busy} />;
+  return (
+    <Stack spacing={1}>
+      <RevokedForNonPayment view={view} ledger={ledger} licensor={licensor} send={send} busy={busy} />
+      <LicenseePublicLines
+        view={view}
+        ledger={ledger}
+        alerts={[]}
+        licensor={licensor}
+        mySecret={party.mySecret}
+        fingerprints={fingerprints}
+        unreadable={skipped}
+        incomplete={incomplete}
+        except={except}
+        payHere={false}
+        tr={tr}
+        busy={busy}
+        send={send}
+        onFiled={() => {
+          refresh();
+          readAgain();
+        }}
+      />
+    </Stack>
+  );
 };
 
 // ---- the licensor's payout on Cardano ------------------------------------------------------------

@@ -9,7 +9,11 @@
 //
 // `start` pins the license's start date (the page shows the one it used, data-e2e-start), so a
 // test can move the browser's clock and still open the same deal; `method` sets the payout's
-// method in the usd scenario (a Cardano token this build can't pay, for instance). The page
+// method in the usd scenario (a Cardano token this build can't pay, for instance); `gone=1`, on
+// the licensee's side, shows only what their license page shows once the license is gone from
+// the chain, however it went (LicenseInvitePage: LicenseeAfterRevoke, no ledger); `deal=b` opens a
+// second practice deal with keys of its own (a test against a real registry needs a fresh deal
+// for each flow). The page
 // offers no revoke: revoking is tested on the real license page (e2e/royalty-revoke.spec.ts),
 // with Midnight's two steps stood in for (veilcore/chain/e2e-chain.ts). On the licensee's side,
 // once the deal holds the licensor's `revoked` notice, it also shows what the licensee's own
@@ -32,28 +36,32 @@ import { cardanoMethod, tokensFor } from '../veilcore/cardano-pay';
 import { LanguageBar } from '../i18n/LanguagePicker';
 
 /** Practice keys and license, fixed so the two sides' pages open the same channel. */
-const ISSUER_SECRET = '1a'.repeat(32);
-const LICENSEE_SECRET = '2b'.repeat(32);
-const COMMITMENT = '3c'.repeat(32);
-const ISSUER_RECORD = '4d'.repeat(32);
+const DEALS = {
+  a: { issuer: '1a'.repeat(32), licensee: '2b'.repeat(32), commitment: '3c'.repeat(32), record: '4d'.repeat(32) },
+  b: { issuer: '1b'.repeat(32), licensee: '2c'.repeat(32), commitment: '3d'.repeat(32), record: '4e'.repeat(32) },
+} as const;
+type DealName = keyof typeof DEALS;
+const dealName = (): DealName => (new URLSearchParams(location.search).get('deal') === 'b' ? 'b' : 'a');
 export const E2E_RECORD = `VEIL-${'E2'.repeat(16)}`;
 
-const party = (side: 'issuer' | 'licensee'): DealParty =>
-  side === 'issuer'
+const party = (side: 'issuer' | 'licensee', name: DealName = dealName()): DealParty => {
+  const d = DEALS[name];
+  return side === 'issuer'
     ? {
         side,
-        mySecret: ISSUER_SECRET,
-        theirPublic: publicOf(LICENSEE_SECRET),
-        commitment: COMMITMENT,
-        issuerRecord: ISSUER_RECORD,
+        mySecret: d.issuer,
+        theirPublic: publicOf(d.licensee),
+        commitment: d.commitment,
+        issuerRecord: d.record,
       }
     : {
         side,
-        mySecret: LICENSEE_SECRET,
-        theirPublic: publicOf(ISSUER_SECRET),
-        commitment: COMMITMENT,
-        issuerRecord: ISSUER_RECORD,
+        mySecret: d.licensee,
+        theirPublic: publicOf(d.issuer),
+        commitment: d.commitment,
+        issuerRecord: d.record,
       };
+};
 
 /**
  * A start date that puts the first quarter's payment due `dueIn` days from today (negative:
@@ -139,6 +147,7 @@ export const RoyaltyPayFixture: React.FC = () => {
   const side = q.get('side') === 'licensee' ? 'licensee' : 'issuer';
   const scenario = q.get('scenario') ?? 'overdue';
   const start = q.get('start') ?? undefined;
+  const gone = side === 'licensee' && q.get('gone') === '1';
   const terms = useMemo(() => termsFor(scenario === 'soon' ? 3 : -20, start), [scenario, start]);
   const [ready, setReady] = useState(false);
   const [problem, setProblem] = useState<string>();
@@ -165,10 +174,15 @@ export const RoyaltyPayFixture: React.FC = () => {
         <span data-e2e-start={terms.startDate} hidden />
         {/* The licensee's side after a revocation for non-payment, as their license page shows it
             (LicenseInvitePage): this page has no chain, so it shows it once the deal holds the notice. */}
-        {ready && side === 'licensee' && deal.entries?.some((e) => e.type === 'notice' && e.kind === 'revoked') && (
-          <LicenseeAfterRevoke party={p} entries={deal.entries} refresh={deal.refresh} licensor="Hana Rivera" />
-        )}
-        {ready && (
+        {ready &&
+          side === 'licensee' &&
+          deal.entries &&
+          (gone || deal.entries.some((e) => e.type === 'notice' && e.kind === 'revoked')) && (
+            <Stack data-e2e-gone={gone ? '' : undefined}>
+              <LicenseeAfterRevoke party={p} entries={deal.entries} refresh={deal.refresh} licensor="Hana Rivera" />
+            </Stack>
+          )}
+        {ready && !gone && (
           <RoyaltyLedger
             party={p}
             side={side}
