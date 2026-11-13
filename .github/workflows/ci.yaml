@@ -128,6 +128,13 @@ jobs:
         run: |
           node --test scripts/case-collisions.test.mjs scripts/release-manifest.test.mjs scripts/check-bitcoin-stamp.test.mjs
 
+      # deployments/*.json against docs/fingerprints.md, the README, the deploy guard, the release
+      # list and the pinned compiler; then the deployment check against a stand-in indexer
+      # (docs/reproduce-build.md). Nothing is read from a real network.
+      - name: Deployments file and deployment check
+        run: |
+          npm run test:deployments
+
       - name: Maintenance committee launcher
         working-directory: bboard-cli
         run: |
