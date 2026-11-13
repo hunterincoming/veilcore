@@ -56,11 +56,11 @@
     "veilcore-records": "0.18.1"
   },
   "devDependencies": {
-    "@playwright/test": "1.56.0",
-    "@swc/core": "^1.15.41",
+    "@playwright/test": "1.64.1",
+    "@swc/core": "^1.16.20",
     "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3",
-    "@vitejs/plugin-react": "^6.0.2",
+    "@vitejs/plugin-react": "^6.1.2",
     "eslint-plugin-react": "^7.37.5"
   }
 }

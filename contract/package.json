@@ -42,13 +42,13 @@
     "fingerprints:check": "node fingerprints.mjs --check"
   },
   "devDependencies": {
-    "@eslint/eslintrc": "^3.3.5",
+    "@eslint/eslintrc": "^3.3.7",
     "@eslint/js": "^9.39.4",
-    "@typescript-eslint/eslint-plugin": "^8.61.0",
+    "@typescript-eslint/eslint-plugin": "^8.72.1",
     "eslint": "^9.39.4",
     "eslint-config-prettier": "^10.1.8",
-    "eslint-plugin-prettier": "^5.5.6",
-    "globals": "^17.6.0",
+    "eslint-plugin-prettier": "^5.5.7",
+    "globals": "^17.13.0",
     "typescript": "^5.9.3",
     "vitest": "^4.1.12"
   }
