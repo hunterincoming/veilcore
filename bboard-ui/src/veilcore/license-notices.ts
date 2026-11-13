@@ -671,3 +671,22 @@ export const syncNotices = async (
 
 /** The last day to pay after a notice of breach the registry received on `breachNoticeOn`. */
 export const cureEndsOn = (breachNoticeOn: string): string => addDays(breachNoticeOn, CURE_DAYS);
+
+/**
+ * The licensor's page once the license is gone: the deal's public lines in step with its messages
+ * (dealNotices, revoked), read against the registry's own view first. Without that view (a failed
+ * read) nothing is sent and undefined comes back: from an empty "want" a sync would take a live
+ * revoked line down, and its notice-of-breach date with it (review round 8).
+ */
+export const syncGoneNotices = async (
+  recordId: string,
+  ledger: Parameters<typeof dealNotices>[0],
+  signer: string,
+  f: typeof fetch = fetch,
+): Promise<Awaited<ReturnType<typeof syncNotices>> | undefined> => {
+  const had = await holderNotices(recordId, f);
+  if (!('view' in had)) return undefined;
+  const { want, mine } = dealNotices(ledger, [], true, had.view);
+  if (!want.size && !mine.size) return undefined;
+  return syncNotices(recordId, want, mine, signer, f, had.view);
+};

@@ -1,7 +1,7 @@
 // The licensee's page once the license is gone (LicenseeAfterRevoke): a line about the revoked report
 // that is not "revoked" stays in the list, with Dispute (round-6 review, P6-8).
 import { describe, expect, it } from 'vitest';
-import { noticeRef, type RegistryView } from '../../veilcore/license-notices';
+import { noticeRef, syncGoneNotices, type RegistryView } from '../../veilcore/license-notices';
 import { ledgerOf } from '../../veilcore/royalty-ledger';
 import type { DealEntry } from '../../veilcore/deal-client';
 import { answerKey, revokedBoxSays, revokedLineExcept } from './RoyaltyPay';
@@ -121,5 +121,29 @@ describe('M1 gone path', () => {
     expect(answerKey(view, true)).toBe('app.rpay.l.answerSeen');
     expect(answerKey(view, false)).toBe('app.rpay.l.answerPending');
     expect(answerKey({ ...view, predates: true }, false)).toBe('app.rpay.l.answerPredates');
+  });
+
+  // The licensor's page once the license is gone: a failed read of the registry sends nothing, so
+  // a live revoked line isn't taken down (round-8 review).
+  it('sends nothing when the registry read fails', async () => {
+    const store = new Map<string, string>([['veilcore.holder.v1', 'ab'.repeat(32)]]);
+    const g = globalThis as unknown as { localStorage?: Pick<Storage, 'getItem' | 'setItem' | 'removeItem'> };
+    const before = g.localStorage;
+    g.localStorage = {
+      getItem: (k) => store.get(k) ?? null,
+      setItem: (k, v) => void store.set(k, v),
+      removeItem: (k) => void store.delete(k),
+    };
+    const calls: string[] = [];
+    const f: typeof fetch = (_u, init) => {
+      calls.push(init?.method ?? 'GET');
+      return Promise.resolve(new Response('busy', { status: 503 }));
+    };
+    try {
+      expect(await syncGoneNotices('rec', ledgerOf(entries), 'cd'.repeat(32), f)).toBeUndefined();
+    } finally {
+      g.localStorage = before;
+    }
+    expect(calls).toEqual(['GET']);
   });
 });

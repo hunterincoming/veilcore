@@ -30,7 +30,14 @@ import {
 import { dealParty, sayOnce, useDeal } from '../../veilcore/deal-client';
 import { RoyaltyLedger } from './RoyaltyLedger';
 import { ledgerOf, noticeDayOf, paymentAlerts, revokedNoticeOf, type Report } from '../../veilcore/royalty-ledger';
-import { dealNotices, holderNotices, registryGate, registryNow, syncNotices } from '../../veilcore/license-notices';
+import {
+  dealNotices,
+  holderNotices,
+  registryGate,
+  registryNow,
+  syncGoneNotices,
+  syncNotices,
+} from '../../veilcore/license-notices';
 import { utcDay } from '../../veilcore/royalty-terms';
 import { getRecord } from '../../veilcore/records';
 import { hasOffspringRoyalty, isControlledTerms } from '../../veilcore/royalty-terms';
@@ -263,11 +270,9 @@ export const RealLicensePanel: React.FC<{ license: License; blocked: boolean; on
       }
       // "Revoked for non-payment" goes public only if the registry's own notice of breach, clock
       // and answers allow it (license-notices.ts dealNotices); it refuses otherwise anyway.
-      const had = await holderNotices(license.recordId);
-      const view = 'view' in had ? had.view : undefined;
-      const { want, mine } = dealNotices(ledger, [], true, view);
-      if (!want.size && !mine.size) return;
-      const synced = await syncNotices(license.recordId, want, mine, party.mySecret, fetch, view);
+      // Nothing is sent without the registry's own view (license-notices.ts syncGoneNotices).
+      const synced = await syncGoneNotices(license.recordId, ledger, party.mySecret);
+      if (!synced) return;
       if (on && synced.outcome === 'ok')
         setRevokedPublic(synced.shown.some((n) => n.kind === 'revoked') ? 'shown' : 'not-shown');
     })();

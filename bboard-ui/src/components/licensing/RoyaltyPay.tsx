@@ -375,6 +375,9 @@ export const usePublicNotices = (
   useEffect(() => {
     if (!recordId || (want.size === 0 && mine.size === 0)) return;
     let live = true;
+    // What changed hasn't been sent yet: say nothing about the public page until it has (an
+    // earlier outcome would read as this report's).
+    setState((s) => ({ ...s, outcome: 'idle' }));
     void (async () => {
       // The due dates the licensee registered (public at the registry, by statement): a passed one
       // dates the line from the day after it, and one that differs from the terms is said (B1).
@@ -479,7 +482,9 @@ export const useRegistryView = (
       }
       if (!live) return;
       // An incomplete read still shows what it found; the page says the rest couldn't be checked.
-      if (v) setView(v);
+      // A view kept from before a read that failed is marked incomplete, so nothing on the page
+      // says an answer hasn't been filed when the read that would show it didn't come back.
+      if (v) setView(complete ? v : { ...v, incomplete: true });
       setIncomplete(!complete);
     })();
     return () => {
