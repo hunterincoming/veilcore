@@ -304,9 +304,9 @@ export const es: Strings = {
   'm.live.signed.t': 'Números y resultados que firma un laboratorio',
   'm.live.signed.main': 'Construido, pero aún no se ha probado en la red principal.',
   'm.live.signed.test':
-    'Sí. El laboratorio firma con su propia clave. Solo el laboratorio y la persona a quien entrega el resultado lo ven, salvo que uno de los dos lo comparta.',
+    'Sí. El laboratorio firma con su propia clave. Solo el titular del registro, el laboratorio y quien le envió la muestra lo ven, y solo el titular puede mostrarlo a otros.',
   'm.live.signed.live':
-    'Sí. El laboratorio firma con su propia clave. Solo el laboratorio y la persona a quien entrega el resultado lo ven, salvo que uno de los dos lo comparta.',
+    'Sí. El laboratorio firma con su propia clave. Solo el titular del registro, el laboratorio y quien le envió la muestra lo ven, y solo el titular puede mostrarlo a otros.',
   'm.live.dna.t': 'Una fecha para la vinculación de su informe de ADN',
   'm.live.dna.main': 'Se guarda con su registro, sin fecha.',
   'm.live.dna.test': 'Sí, enviada desde su navegador.',

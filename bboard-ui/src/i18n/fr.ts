@@ -306,9 +306,9 @@ export const fr: Strings = {
   'm.live.signed.t': 'Chiffres et résultats signés par un laboratoire',
   'm.live.signed.main': 'Construit, mais pas encore essayé sur le réseau principal.',
   'm.live.signed.test':
-    'Oui. Le laboratoire signe avec sa propre clé. Seuls le laboratoire et la personne à qui il remet le résultat le voient, sauf si l’un des deux le partage.',
+    'Oui. Le laboratoire signe avec sa propre clé. Seuls le détenteur de l’enregistrement, le laboratoire et la personne qui lui a envoyé l’échantillon le voient, et seul le détenteur peut le montrer à d’autres.',
   'm.live.signed.live':
-    'Oui. Le laboratoire signe avec sa propre clé. Seuls le laboratoire et la personne à qui il remet le résultat le voient, sauf si l’un des deux le partage.',
+    'Oui. Le laboratoire signe avec sa propre clé. Seuls le détenteur de l’enregistrement, le laboratoire et la personne qui lui a envoyé l’échantillon le voient, et seul le détenteur peut le montrer à d’autres.',
   'm.live.dna.t': "Une date pour l'association de votre rapport ADN",
   'm.live.dna.main': 'Conservée avec votre enregistrement, non datée.',
   'm.live.dna.test': 'Oui, envoyée depuis votre navigateur.',

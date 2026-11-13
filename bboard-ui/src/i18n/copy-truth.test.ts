@@ -491,7 +491,12 @@ describe("what's live where", () => {
     expect(e['m.live.signed.main']).toBe('Built, not yet tried on the main network.');
     expect(e['m.live.signed.main']).not.toMatch(/^Yes/);
     expect(e['m.live.signed.test']).toMatch(/^Yes\. The lab signs with its own key\./);
-    expect(e['m.live.signed.live']).toMatch(/unless one of them shares it\.$/);
+    // Who sees it (final review, 12 Nov 2026): the holder, the lab and the delivery's sender;
+    // only the holder can show it.
+    expect(e['m.live.signed.live']).toMatch(
+      /the record’s holder, the lab and whoever sent it the sample see it, and only the holder can show it to others\.$/,
+    );
+    for (const k of ['test', 'live']) expect(e[`m.live.signed.${k}`]).not.toMatch(/unless one of them shares it/);
     for (const l of Object.values(LANGUAGES)) {
       const s = l.strings as Record<string, string>;
       for (const k of ['t', 'main', 'test', 'live']) expect(s[`m.live.signed.${k}`], k).toBeTruthy();

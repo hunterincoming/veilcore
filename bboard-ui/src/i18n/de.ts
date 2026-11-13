@@ -304,9 +304,9 @@ export const de: Strings = {
   'm.live.signed.t': 'Zahlen und Ergebnisse, die ein Labor signiert',
   'm.live.signed.main': 'Gebaut, im Hauptnetz aber noch nicht ausprobiert.',
   'm.live.signed.test':
-    'Ja. Das Labor signiert mit seinem eigenen Schlüssel. Nur das Labor und die Person, der es das Ergebnis gibt, sehen es, außer einer von beiden teilt es.',
+    'Ja. Das Labor signiert mit seinem eigenen Schlüssel. Nur der Inhaber des Datensatzes, das Labor und wer ihm die Probe geschickt hat, sehen es, und nur der Inhaber kann es anderen zeigen.',
   'm.live.signed.live':
-    'Ja. Das Labor signiert mit seinem eigenen Schlüssel. Nur das Labor und die Person, der es das Ergebnis gibt, sehen es, außer einer von beiden teilt es.',
+    'Ja. Das Labor signiert mit seinem eigenen Schlüssel. Nur der Inhaber des Datensatzes, das Labor und wer ihm die Probe geschickt hat, sehen es, und nur der Inhaber kann es anderen zeigen.',
   'm.live.dna.t': 'Ein Datum für die Kopplung Ihres DNA-Berichts',
   'm.live.dna.main': 'Mit Ihrem Datensatz gespeichert, nicht datiert.',
   'm.live.dna.test': 'Ja, aus Ihrem Browser gesendet.',

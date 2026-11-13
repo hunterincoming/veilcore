@@ -405,9 +405,9 @@ export const en = {
   'm.live.signed.t': 'Numbers and results a lab signs',
   'm.live.signed.main': 'Built, not yet tried on the main network.',
   'm.live.signed.test':
-    'Yes. The lab signs with its own key. Only the lab and the person it gives the result to see it, unless one of them shares it.',
+    'Yes. The lab signs with its own key. Only the record’s holder, the lab and whoever sent it the sample see it, and only the holder can show it to others.',
   'm.live.signed.live':
-    'Yes. The lab signs with its own key. Only the lab and the person it gives the result to see it, unless one of them shares it.',
+    'Yes. The lab signs with its own key. Only the record’s holder, the lab and whoever sent it the sample see it, and only the holder can show it to others.',
   'm.live.dna.t': 'A date for your DNA report pairing',
   'm.live.dna.main': 'Saved with your record, not dated.',
   'm.live.dna.test': 'Yes, sent from your browser.',
