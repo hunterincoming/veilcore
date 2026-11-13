@@ -1110,6 +1110,11 @@ export const SendResultsPanel: React.FC<{
       let numbersBytes: Uint8Array | undefined;
       let bindingId: string | undefined;
       let resultCode: string | undefined;
+      // Everything between posting the signature and sending the file is in here, so a throw
+      // anywhere (the result, locking the report, the key's proof) withdraws what was posted
+      // rather than leave a signature with no report behind it.
+      let locked: Awaited<ReturnType<typeof lockReport>>;
+      let keyProof: Awaited<ReturnType<typeof labKeyProof>>;
       try {
         if (LAB_SIGNING_ENABLED && withResult) {
           // Only a report signature bound to the record can be checked by anyone (lab-doc.ts).
@@ -1142,12 +1147,13 @@ export const SendResultsPanel: React.FC<{
           resultCode = made.commitment;
           numbersBytes = new TextEncoder().encode(JSON.stringify({ ...made.bundle, about: subject }));
         }
+        locked = await lockReport(file.bytes, lock, kind, numbersBytes);
+        keyProof = await labKeyProof(attester.keypair.privateKey, transferId, signed.attestationId);
       } catch (e) {
+        if (bindingId) await retract(attester, bindingId, 'issued-in-error');
         await retract(attester, signed.attestationId, 'issued-in-error');
         throw e;
       }
-      const locked = await lockReport(file.bytes, lock, kind, numbersBytes);
-      const keyProof = await labKeyProof(attester.keypair.privateKey, transferId, signed.attestationId);
       const out = await sendLockedResult(transferId, locked, signed.attestationId, replacing?.id, keyProof);
       if ('error' in out) {
         if (bindingId) await retract(attester, bindingId, 'issued-in-error');
