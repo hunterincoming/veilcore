@@ -157,8 +157,10 @@ export const AppFooter: React.FC<{
               <Item to="https://github.com/hunterincoming/veilcore-rs" external>
                 {t('footer.rustImplementation')}
               </Item>
-              <Item to="https://github.com/hunterincoming/veilcore-sdk" external>
-                GitHub
+              {/* This site's own repository (re-review of ux-polish, 13 Nov: "GitHub" went to the
+                  SDK a second time, and the site's code had no link). */}
+              <Item to="https://github.com/hunterincoming/veilcore" external>
+                {t('footer.siteCode')}
               </Item>
             </Stack>
 

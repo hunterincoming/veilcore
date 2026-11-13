@@ -29,6 +29,7 @@ import {
   plainRowRefusal,
   saveAndCheckBackup,
   watch,
+  clickAsk,
 } from './helpers';
 
 test.skip(REAL_REGISTRY, 'this uses the stand-in registry');
@@ -76,7 +77,7 @@ const standIn = async (page: Page, held: Held, setup: { holder: string; vault: s
 const newHeld = (): Held => ({ records: [], puts: [], mode: 'ok' });
 
 const openAsk = async (page: Page) => {
-  await page.locator('[data-ask-open]').click();
+  await clickAsk(page);
   await expect(page.locator('[data-ask-sheet]')).toBeVisible();
 };
 
@@ -865,7 +866,7 @@ test('get a record ready to license; an approved job sends nothing on a check or
   });
   await page.waitForTimeout(20_000);
   // No "Do it for me" on a prove page: the switch isn't there.
-  await page.locator('[data-ask-open]').click();
+  await clickAsk(page);
   await expect(page.locator('[data-ask-sheet]')).toBeVisible();
   await expect(page.locator('[data-ask-doit]')).toHaveCount(0);
   await page.keyboard.press('Escape');

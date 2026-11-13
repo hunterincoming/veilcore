@@ -13,10 +13,11 @@
 // an agreement's screens (its terms, accepting it, its royalty reports and payments). On a touch
 // screen or a phone-sized one it also steps aside while a text field has focus.
 //
-// On a phone it is not a bubble at all: it is a small button in the header, beside the language
-// and the network (SiteHeader.tsx), in the page's flow, so it covers nothing (review of
-// ux-polish, 13 Nov: even as an icon the bubble sat on the record's status lines at 390px in
-// German). It is still not offered on an agreement's screens or a form being filled in there.
+// On a phone it is not a bubble at all: it is the first item under the header's "Menu"
+// (SiteHeader.tsx), so it covers nothing (review of ux-polish, 13 Nov: even as an icon the
+// bubble sat on the record's status lines at 390px in German) and takes no line of the header
+// (re-review, 13 Nov: as a button beside the network it landed alone on a fourth line). It is
+// still not offered on an agreement's screens or a form being filled in there.
 // SPDX-License-Identifier: Apache-2.0
 
 import React, { Suspense, lazy, useEffect, useMemo, useState } from 'react';
@@ -110,14 +111,14 @@ export const AskLauncher: React.FC = () => {
   const { pathname } = useLocation();
   const theme = useTheme();
   const narrow = useMediaQuery(theme.breakpoints.down('md'));
-  // A phone: a button in the header instead of a bubble (where the header keeps a place for it).
+  // A phone: an item under the header's "Menu" instead of a bubble (where the header keeps a place for it).
   const phone = useMediaQuery(theme.breakpoints.down('sm'), { noSsr: true });
   const [slot, setSlot] = useState<HTMLElement | null>(() =>
     typeof document === 'undefined' ? null : document.getElementById(ASK_SLOT_ID),
   );
   useEffect(() => setSlot(document.getElementById(ASK_SLOT_ID)), [pathname]);
   const inHeader = phone && slot !== null;
-  // In the header it covers nothing, so it doesn't step aside for typing (the header would move).
+  // In the menu it covers nothing, so it doesn't step aside for typing.
   const typing = useTyping(narrow && !inHeader);
   // Not over an agreement's terms or its accept, report and pay buttons on a phone-sized screen,
   // nor over a form being filled in there (hint.ts formScreen); on a phone not offered there.
@@ -150,6 +151,16 @@ export const AskLauncher: React.FC = () => {
     if (withExample) setPrefill((p) => ({ text: exampleText, n: (p?.n ?? 0) + 1 }));
     setWanted(true);
     setOpen(true);
+  };
+
+  const close = () => {
+    setOpen(false);
+    // Opened from the menu, which has closed since: focus goes back to "Menu", not to nowhere.
+    if (inHeader)
+      setTimeout(() => {
+        const a = document.activeElement;
+        if (!a || a === document.body) document.querySelector<HTMLElement>('[data-site-menu-button]')?.focus();
+      }, 300);
   };
 
   return (
@@ -229,15 +240,25 @@ export const AskLauncher: React.FC = () => {
         slot &&
         createPortal(
           <Button
-            variant="contained"
+            variant="text"
             color="primary"
-            size="small"
             onClick={() => press()}
             aria-haspopup="dialog"
             data-ask-open=""
             data-ask-compact=""
             startIcon={<ChatIcon aria-hidden="true" />}
-            sx={{ minHeight: 44, borderRadius: '22px 22px 6px 22px', px: 1.75, whiteSpace: 'nowrap' }}
+            sx={{
+              display: 'flex',
+              width: '100%',
+              justifyContent: 'flex-start',
+              minHeight: 44,
+              px: 2,
+              borderRadius: '6px',
+              fontSize: 15,
+              fontWeight: 600,
+              textTransform: 'none',
+              whiteSpace: 'nowrap',
+            }}
           >
             {t('app.ask.button')}
           </Button>,
@@ -245,7 +266,7 @@ export const AskLauncher: React.FC = () => {
         )}
       {wanted && (
         <Suspense fallback={null}>
-          <AskSheet open={open} onClose={() => setOpen(false)} firstOpen={!openedAtLoad} prefill={prefill} />
+          <AskSheet open={open} onClose={close} firstOpen={!openedAtLoad} prefill={prefill} />
         </Suspense>
       )}
     </>

@@ -843,7 +843,7 @@ const Review: React.FC<{
   onSealed: (id: string) => void;
 }> = ({ step, draft, onChange, onChangeOrigin, onSealed }) => {
   const [busy, setBusy] = useState(false);
-  // "See exactly what's sealed": folded until asked for (fresh-eyes review, 12 Nov).
+  // "What can't change, and where it's stored": folded until asked for (fresh-eyes review, 12 Nov).
   const [showSealed, setShowSealed] = useState(false);
   const [error, setError] = useState<string>();
   const animal = draft.kind === 'animal' && draft.animal ? draft.animal : undefined;
@@ -938,8 +938,9 @@ const Review: React.FC<{
       )}
       {/* Fresh-eyes review, 12 Nov: "Seal it" sat about 1,800px down on a phone, under the lock
           warning, where the details are stored and the whole receipt. Now one plain line, with
-          the lock warning and where the details are stored folded under "See exactly what's
-          sealed". The receipt stays in view just before the button, as docs/ask-veilcore.md
+          the lock warning and where the details are stored folded under "What can't change, and
+          where it's stored" (it was "See exactly what's sealed", which is the receipt's job: re-review,
+          13 Nov). The receipt stays in view just before the button, as docs/ask-veilcore.md
           requires (review of ux-polish, 13 Nov), set compactly. */}
       <Stack direction="row" spacing={1} sx={{ alignItems: 'flex-start' }}>
         <LockIcon fontSize="small" sx={{ mt: '2px', color: 'text.secondary' }} aria-hidden="true" />
@@ -953,7 +954,7 @@ const Review: React.FC<{
             aria-controls="seal-details"
             sx={{ fontWeight: 700, verticalAlign: 'baseline', fontSize: 'inherit' }}
           >
-            {t('app.log.seeSealed')}
+            {t('app.log.sealDetails')}
           </Link>
         </Typography>
       </Stack>

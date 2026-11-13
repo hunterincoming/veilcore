@@ -30,7 +30,14 @@ export const LanguagePicker: React.FC = () => {
           ),
         },
       }}
-      sx={{ minWidth: 92, '& .MuiSelect-select': { py: 0.75, fontSize: 14 } }}
+      // Narrower on a phone, so the mark, "Menu" and the language share one line at 360px in
+      // every language (re-review of ux-polish, 13 Nov).
+      sx={{
+        minWidth: { xs: 0, sm: 92 },
+        '& .MuiSelect-select': { py: 0.75, fontSize: 14, pl: { xs: 1, sm: 1.75 } },
+        '& .MuiSelect-select.MuiSelect-select': { pr: { xs: 3, sm: 4 } },
+        '& .MuiSelect-icon': { right: { xs: 2, sm: 7 } },
+      }}
     >
       {choices.map((l) => (
         <MenuItem key={l} value={l} lang={l}>

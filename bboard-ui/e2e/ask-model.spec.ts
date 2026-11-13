@@ -21,7 +21,7 @@ import type { AddressInfo } from 'node:net';
 import { fileURLToPath } from 'node:url';
 import { expect, test, type BrowserContext, type Page, type Request } from '@playwright/test';
 import { downloadWorkerCsp, engineWorkerCsp, modelWorkerRouteSrc } from '../../scripts/ask-model-csp.mjs';
-import { API, REAL_REGISTRY, expectNoErrors, watch } from './helpers';
+import { API, REAL_REGISTRY, expectNoErrors, watch, clickAsk } from './helpers';
 
 test.skip(REAL_REGISTRY, 'this uses the stand-in registry');
 
@@ -152,7 +152,7 @@ const desktopWithGpu = async (page: Page) => {
 };
 
 const openAsk = async (page: Page) => {
-  await page.locator('[data-ask-open]').click();
+  await clickAsk(page);
   await expect(page.locator('[data-ask-sheet]')).toBeVisible();
 };
 

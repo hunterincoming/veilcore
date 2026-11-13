@@ -15,6 +15,7 @@ export const de: Strings = {
   'footer.allImplementations': 'Alle drei Implementierungen',
   'footer.referenceImplementation': 'Referenzimplementierung',
   'footer.rustImplementation': 'Rust-Implementierung',
+  'footer.siteCode': 'Code dieser Website',
   'footer.thisSite': 'Diese Website',
   'footer.yourRecords': 'Ihre Datensätze',
   'footer.agreements': 'Vereinbarungen',

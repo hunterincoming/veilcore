@@ -15,6 +15,7 @@ export const fr: Strings = {
   'footer.allImplementations': 'Les trois implémentations',
   'footer.referenceImplementation': 'Implémentation de référence',
   'footer.rustImplementation': 'Implémentation en Rust',
+  'footer.siteCode': 'Code de ce site',
   'footer.thisSite': 'Ce site',
   'footer.yourRecords': 'Vos enregistrements',
   'footer.agreements': 'Contrats',

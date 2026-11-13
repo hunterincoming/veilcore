@@ -20,6 +20,7 @@ export const en = {
   'footer.allImplementations': 'All three implementations',
   'footer.referenceImplementation': 'Reference implementation',
   'footer.rustImplementation': 'Rust implementation',
+  'footer.siteCode': 'This site’s code',
   'footer.thisSite': 'This site',
   'footer.yourRecords': 'Your records',
   'footer.agreements': 'Agreements',

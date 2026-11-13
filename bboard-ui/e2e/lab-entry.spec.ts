@@ -297,7 +297,15 @@ test('a fresh browser lands on /, finds the lab path, pastes a lab code and rece
   await expect(keyDialog.getByText(/We match the name; we don't vouch for your work\./)).toBeVisible();
   await expect(keyDialog.getByText(/\/\.well-known\/veilcore-lab\.json/)).toBeVisible();
   await expect(keyDialog.getByText(/_veilcore-lab\./)).toBeHidden();
+  // A fold's words count as visible as soon as it starts to open, while the dialog (centred on
+  // the screen) is still growing and moving. "Other ways" was found shut once (13 Nov, under
+  // load; not reproduced in 12 runs since, 4 of them at a sixth of the CPU): most likely a click
+  // that landed as the button moved and was retried, opening and shutting it. So each fold is
+  // let finish opening before anything inside it is clicked, and "Other ways" must say it is open.
+  await expect(keyDialog.locator('#fold-lab-key-optional')).toHaveClass(/MuiCollapse-entered/);
   await keyDialog.getByRole('button', { name: 'Other ways' }).click();
+  await expect(keyDialog.getByRole('button', { name: 'Other ways' })).toHaveAttribute('aria-expanded', 'true');
+  await expect(keyDialog.locator('#fold-lab-key-other-ways')).toHaveClass(/MuiCollapse-entered/);
   await expect(keyDialog.getByText(/_veilcore-lab\./)).toBeVisible();
   await keyDialog.getByRole('button', { name: 'Show key' }).click();
   await expect(keyDialog.getByText(pub, { exact: true })).toBeVisible();

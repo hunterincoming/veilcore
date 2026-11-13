@@ -24,6 +24,31 @@ export const watch = (page: Page): string[] => {
 };
 export const expectNoErrors = (errors: string[]) => expect(errors, errors.join('\n')).toEqual([]);
 
+/**
+ * Ask's button: the bubble on a tablet or computer, the first item under the header's "Menu" on
+ * a phone (docs/ask-veilcore.md). On a phone the menu is opened first, so the button is on screen.
+ */
+export const askButton = async (page: Page) => {
+  const ask = page.locator('[data-ask-open]');
+  await expect(ask).toHaveCount(1);
+  if (!(await ask.isVisible()) && (await ask.getAttribute('data-ask-compact')) !== null) {
+    await page.locator('[data-site-menu-button]').click();
+    await expect(ask).toBeVisible();
+  }
+  return ask;
+};
+/** Opens Ask, from the bubble or (on a phone) from the header's "Menu". */
+export const clickAsk = async (page: Page) => (await askButton(page)).click();
+/** Ask is offered on this page, and can be reached; on a phone the menu is closed again after. */
+export const expectAskOffered = async (page: Page) => {
+  const ask = await askButton(page);
+  await expect(ask).toBeVisible();
+  if ((await ask.getAttribute('data-ask-compact')) !== null) {
+    await page.keyboard.press('Escape');
+    await expect(ask).toBeHidden();
+  }
+};
+
 export type Handler = (route: Route, url: URL, body: unknown) => Promise<void> | void;
 export const json = (route: Route, status: number, body: unknown) =>
   route.fulfill({ status, contentType: 'application/json', body: JSON.stringify(body) });

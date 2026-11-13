@@ -85,7 +85,7 @@ export const log = {
   'app.log.sealing': 'Sellando…',
   'app.log.sealPlain':
     'Una vez sellado, esto no puede cambiar (las correcciones se añaden después, como registros nuevos). Solo van códigos a Midnight; sus detalles siguen bloqueados.',
-  'app.log.seeSealed': 'Ver exactamente qué se sella',
+  'app.log.sealDetails': 'Qué ya no puede cambiar y dónde se guarda',
   'app.log.seal': 'Sellarlo',
   'app.log.sealingPlant': 'Sellando su planta…',
   'app.log.sealStampsKey':

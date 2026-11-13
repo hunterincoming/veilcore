@@ -86,7 +86,7 @@ export const log = {
   'app.log.sealing': 'Scellement…',
   'app.log.sealPlain':
     'Une fois scellé, ceci ne peut plus changer (les corrections s’ajoutent ensuite, comme nouveaux enregistrements). Seuls des codes vont sur Midnight ; vos détails restent verrouillés.',
-  'app.log.seeSealed': 'Voir exactement ce qui est scellé',
+  'app.log.sealDetails': 'Ce qui ne pourra plus changer, et où c’est conservé',
   'app.log.seal': 'Sceller',
   'app.log.sealingPlant': 'Scellement de votre plante…',
   'app.log.sealStampsKey':

@@ -215,6 +215,8 @@ test('every check page says a date is not who bred it; the terms say not to regi
   await expect(page.locator('[data-dated-not-origin]')).toHaveText(DATED_NOT_ORIGIN);
   await page.goto('/verify/example');
   await expect(page.locator('[data-dated-not-origin]')).toHaveText(DATED_NOT_ORIGIN);
+  // One main heading, the made-up record's name, saying it is an example.
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Harbour Mist (example)');
   await shot(page, 'origin-4-check-page-line');
   await page.goto('/check-claim');
   await expect(page.locator('[data-dated-not-origin]')).toHaveText(DATED_NOT_ORIGIN);

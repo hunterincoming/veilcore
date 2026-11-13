@@ -24,6 +24,7 @@ export const ja: Strings = {
   'footer.allImplementations': '3つの実装すべて',
   'footer.referenceImplementation': 'リファレンス実装',
   'footer.rustImplementation': 'Rust実装',
+  'footer.siteCode': 'このサイトのコード',
   'footer.thisSite': 'このサイト',
   'footer.yourRecords': 'あなたの記録',
   'footer.agreements': '契約',

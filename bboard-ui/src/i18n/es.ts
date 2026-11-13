@@ -16,6 +16,7 @@ export const es: Strings = {
   'footer.allImplementations': 'Las tres implementaciones',
   'footer.referenceImplementation': 'Implementación de referencia',
   'footer.rustImplementation': 'Implementación en Rust',
+  'footer.siteCode': 'Código de este sitio',
   'footer.thisSite': 'Este sitio',
   'footer.yourRecords': 'Sus registros',
   'footer.agreements': 'Acuerdos',

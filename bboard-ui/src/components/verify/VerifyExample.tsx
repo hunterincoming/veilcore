@@ -49,7 +49,11 @@ export const VerifyExample: React.FC = () => {
               <Typography variant="overline" sx={{ color: 'text.secondary' }}>
                 {t('app.verify.ex.status')}
               </Typography>
-              <Typography variant="h5">{t('app.verify.ex.name')}</Typography>
+              {/* The page's one main heading: the made-up record's name, which says "(example)" in
+                  every language (re-review of ux-polish, 13 Nov: the page had no h1). */}
+              <Typography variant="h5" component="h1">
+                {t('app.verify.ex.name')}
+              </Typography>
             </Box>
           </Stack>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>

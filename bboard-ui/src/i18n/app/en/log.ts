@@ -91,7 +91,7 @@ export const log = {
   'app.log.sealing': 'Sealing…',
   'app.log.sealPlain':
     'Once sealed, this can’t change (corrections come later, as new records). Only codes go on Midnight; your details stay locked.',
-  'app.log.seeSealed': 'See exactly what’s sealed',
+  'app.log.sealDetails': 'What can’t change, and where it’s stored',
   'app.log.seal': 'Seal it',
   'app.log.sealingPlant': 'Sealing your plant…',
   'app.log.sealStampsKey':
