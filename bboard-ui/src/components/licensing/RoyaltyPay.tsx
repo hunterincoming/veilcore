@@ -222,7 +222,9 @@ const OneAlert: React.FC<{
             : tr.t('app.rpay.i.answered', { licensee, date: answerDay, note: a.answer.note ?? '' })}
         </Typography>
       )}
-      {side === 'issuer' && late && publicState && publicState.outcome !== 'idle' && (
+      {/* A "revoked" line here means another device already revoked the license and this one
+          hasn't caught up: the overdue words would be untrue, so nothing is said until it has. */}
+      {side === 'issuer' && late && publicState && publicState.outcome !== 'idle' && line?.kind !== 'revoked' && (
         <Typography
           variant="body2"
           sx={{ mt: 0.5 }}
