@@ -12,6 +12,7 @@ import type {
   MatchResult,
   NumbersResult,
   PathogenResult,
+  ViabilityResult,
 } from '../../veilcore/lab-result';
 import { useT } from '../../i18n/app';
 import type { Translator } from '../../i18n/translate';
@@ -33,6 +34,8 @@ export const callWords = (s: LabResultStatement, tr: Translator): string => {
       return tr.t((r as LineageResult).consistent ? 'app.lr.call.consistent' : 'app.lr.call.excluded');
     case 'dna-mark':
       return tr.t((r as MarkResult).found ? 'app.lr.call.found' : 'app.lr.call.notFound');
+    case 'viability':
+      return tr.t((r as ViabilityResult).detected ? 'app.lr.call.recovered' : 'app.lr.call.noneRecovered');
     case 'retraction':
       return tr.t('app.lr.call.withdrawn');
     case 'numbers':
@@ -41,6 +44,76 @@ export const callWords = (s: LabResultStatement, tr: Translator): string => {
 };
 
 export const kindWords = (k: LabResultStatement['kind'], tr: Translator): string => tr.t(`app.lr.kind.${k}` as AppKey);
+
+/** "1 CFU per 25 g": a viability result's limit or count, as the lab typed it. */
+export const amountWords = (a: { value: string; unit: string }): string => `${a.value} ${seen(a.unit)}`;
+
+/**
+ * What a viability result says, in the words every page uses: "none recovered" is always said
+ * with the method, the portion and the limit of detection, and never as dead or sterile.
+ */
+const ViabilityFacts: React.FC<{ s: LabResultStatement }> = ({ s }) => {
+  const { t } = useT();
+  const r = s.result as ViabilityResult;
+  return (
+    <>
+      <Fact label={t('app.lr.f.stage')}>
+        <span data-viability-stage={r.stage}>{t(`app.lr.stage.${r.stage}` as AppKey)}</span>
+      </Fact>
+      <Fact label={t('app.lr.f.batch')}>{seen(r.batch)}</Fact>
+      {r.killStep !== undefined && <Fact label={t('app.lr.f.killStep')}>{seen(r.killStep)}</Fact>}
+      <Fact label={t('app.lr.f.recovers')}>{seen(r.target)}</Fact>
+      <Fact label={t('app.lr.f.portion')}>{seen(r.portion)}</Fact>
+      <Fact label={t('app.lr.f.cultures')}>
+        {r.cultures
+          .map((c) =>
+            t('app.lr.f.culture', { medium: seen(c.medium), time: seen(c.time), temperature: seen(c.temperature) }),
+          )
+          .join(' · ')}
+      </Fact>
+      <Fact label={t('app.lr.f.lod')}>{amountWords(r.lod)}</Fact>
+      {/* As a report gives it: the count, if the method gives one; "< LOD" when none were (never 0). */}
+      <Fact label={t('app.lr.f.count')}>
+        <span data-viability-found={!r.detected ? 'below-lod' : r.count ? 'count' : 'no-count'}>
+          {!r.detected
+            ? t('app.lr.f.belowLod', { lod: amountWords(r.lod) })
+            : r.count
+              ? amountWords(r.count)
+              : t('app.lr.f.noCount')}
+        </span>
+      </Fact>
+      <Fact label={t('app.lr.f.controls')}>
+        {t('app.lr.f.positiveGrew', { control: seen(r.controls.positive) })}
+        {r.controls.negativeGrew === false ? ` · ${t('app.lr.f.negativeClean')}` : ''}
+      </Fact>
+      <Fact label={t('app.lr.f.sampled')}>{r.sampled}</Fact>
+      <Fact label={t('app.lr.f.strain')} mono>
+        {r.strain}
+      </Fact>
+      {r.before !== undefined && (
+        <Fact label={t('app.lr.f.before')} mono>
+          {r.before}
+        </Fact>
+      )}
+      <Typography variant="body2" sx={{ fontWeight: 600 }} data-viability-note={r.detected ? 'recovered' : 'none'}>
+        {r.detected
+          ? t('app.lr.note.recovered', { method: seen(s.method.id), portion: seen(r.portion) })
+          : t('app.lr.note.noneRecovered', {
+              method: seen(s.method.id),
+              version: seen(s.method.version),
+              portion: seen(r.portion),
+              lod: amountWords(r.lod),
+            })}
+      </Typography>
+      <Typography variant="body2" color="text.secondary" data-viability-limits="">
+        {t('app.lr.note.viabilityLimits')}
+      </Typography>
+      <Typography variant="body2" color="text.secondary">
+        {t('app.lr.note.strain')}
+      </Typography>
+    </>
+  );
+};
 
 export const ResultFacts: React.FC<{ statement: LabResultStatement; code?: string }> = ({ statement: s, code }) => {
   const tr = useT();
@@ -106,6 +179,7 @@ export const ResultFacts: React.FC<{ statement: LabResultStatement; code?: strin
           </Typography>
         </>
       )}
+      {s.kind === 'viability' && <ViabilityFacts s={s} />}
       {s.kind === 'dna-mark' && (
         <>
           {(r as MarkResult).label !== undefined && (
@@ -126,7 +200,7 @@ export const ResultFacts: React.FC<{ statement: LabResultStatement; code?: strin
       <Fact label={t('app.lr.f.accession')}>{seen(s.accession)}</Fact>
       <Fact label={t('app.lr.f.method')}>{ver(s.method)}</Fact>
       {s.panel && <Fact label={t('app.lr.f.panel')}>{ver(s.panel)}</Fact>}
-      <Fact label={t('app.lr.f.tested')}>{s.tested}</Fact>
+      <Fact label={t(s.kind === 'viability' ? 'app.lr.form.read' : 'app.lr.f.tested')}>{s.tested}</Fact>
       {s.received && <Fact label={t('app.lr.f.received')}>{s.received}</Fact>}
       {s.qc && <Fact label={t('app.lr.f.qc')}>{s.qc.map((q) => `${seen(q.name)}: ${seen(q.value)}`).join(' · ')}</Fact>}
       {s.replaces && (

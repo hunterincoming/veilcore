@@ -33,6 +33,7 @@ import { say, useDeal, type DealParty } from '../../veilcore/deal-client';
 import { TermsBox, useOfferedTerms, type Offered } from './DealTerms';
 import { ControlledWarnings } from './RoyaltyTermsForm';
 import { RoyaltyLedger } from './RoyaltyLedger';
+import { LicenseeAfterRevoke } from './RoyaltyPay';
 import { OffspringRoyalty } from './OffspringRoyalty';
 import { tokenFromHash } from '../../veilcore/prove-relay';
 import {
@@ -59,9 +60,7 @@ import { handOnOffered, newHolderSteps } from '../../veilcore/hand-on';
 import { HandOnHolder } from './HandOnHolder';
 import { ChainStatusLine } from '../chain/ChainStatusLine';
 import type { ChainReceipt } from '../../veilcore/chain/actions';
-import { Wordmark } from '../Wordmark';
 import { rich, useT } from '../../i18n/app';
-import { LanguageBar } from '../../i18n/LanguagePicker';
 import { DisclosureReceipt } from '../chain/DisclosureReceipt';
 
 const POLL_MS = 8_000;
@@ -69,12 +68,8 @@ const POLL_MS = 8_000;
 const shown = (h: string) => (h.slice(0, 16).match(/..../g) ?? []).join(' ');
 
 const Frame: React.FC<React.PropsWithChildren> = ({ children }) => (
-  <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
+  <Box sx={{ bgcolor: 'background.default' }}>
     <Container maxWidth="sm" sx={{ py: { xs: 4, md: 7 } }}>
-      <LanguageBar />
-      <Stack direction="row" sx={{ justifyContent: 'center', mb: 3 }}>
-        <Wordmark />
-      </Stack>
       <Paper sx={{ p: { xs: 2.5, md: 4 } }}>{children}</Paper>
     </Container>
   </Box>
@@ -550,6 +545,19 @@ export const LicenseInvitePage: React.FC = () => {
         <Alert severity="error" variant="outlined" sx={{ mb: 2 }}>
           {tr.t('app.lic.inv.gone')}
         </Alert>
+      )}
+      {/* Revoked for non-payment: the licensor's signed notice stays readable, and can still be disputed. */}
+      {gone && !handedOn && party && deal.entries && (
+        <Box sx={{ mb: 2 }}>
+          <LicenseeAfterRevoke
+            party={party}
+            entries={deal.entries}
+            refresh={deal.refresh}
+            licensor={
+              (held?.agreement?.terms as { licensor?: string } | undefined)?.licensor || tr.t('app.roy.who.licensor')
+            }
+          />
+        </Box>
       )}
 
       {held && isLive && !gone && held.agreement && (

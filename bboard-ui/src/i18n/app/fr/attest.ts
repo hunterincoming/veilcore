@@ -65,7 +65,7 @@ export const attest = {
   'app.claim.check.labConflict':
     'Plus d’un laboratoire revendique cette clé, aucun nom n’est donc affiché. Considérez les chiffres comme ceux du titulaire.',
   'app.claim.check.labUnidentified':
-    'Aucun laboratoire n’a déclaré que cette clé était la sienne pour cet enregistrement. Considérez les chiffres comme ceux du titulaire.',
+    'Cette page n’a trouvé aucun laboratoire déclarant que cette clé est la sienne pour cet enregistrement (les signatures de rapports d’un laboratoire sont privées, sauf si le détenteur les montre). Considérez les chiffres comme ceux du titulaire.',
   'app.claim.check.labAbout': 'Les résultats portent sur l’enregistrement au code de preuve',
   'app.claim.check.labFieldSecret':
     'Le laboratoire connaît aussi ces chiffres et pourrait lui-même prouver des choses à leur sujet.',

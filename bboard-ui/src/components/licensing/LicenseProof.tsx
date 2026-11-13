@@ -40,9 +40,7 @@ import { AGREEMENTS_ON_CHAIN } from '../../config/copy';
 import { useChainCall } from '../chain/useChainCall';
 import { ChainStatusLine } from '../chain/ChainStatusLine';
 import { SendLink } from '../chain/ProveWatch';
-import { Wordmark } from '../Wordmark';
 import { rich, useT } from '../../i18n/app';
-import { LanguageBar } from '../../i18n/LanguagePicker';
 import { DisclosureReceipt } from '../chain/DisclosureReceipt';
 
 const WEEK = 7 * 24 * 60 * 60_000;
@@ -240,12 +238,8 @@ export const LicenseProofPanel: React.FC<{ identity: string; recordId?: string }
 // --- the holder ------------------------------------------------------------------------
 
 const Frame: React.FC<React.PropsWithChildren> = ({ children }) => (
-  <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
+  <Box sx={{ bgcolor: 'background.default' }}>
     <Container maxWidth="sm" sx={{ py: { xs: 4, md: 7 } }}>
-      <LanguageBar />
-      <Stack direction="row" sx={{ justifyContent: 'center', mb: 3 }}>
-        <Wordmark />
-      </Stack>
       <Paper sx={{ p: { xs: 2.5, md: 4 } }}>{children}</Paper>
     </Container>
   </Box>

@@ -298,7 +298,8 @@ export const lab = {
   'app.lab.key.intro':
     'Wenn Sie bestätigen, dass Sie Material erhalten haben, oder einen Bericht signieren, wird mit einem Schlüssel signiert, den nur Sie halten. Es wird Ihre Erklärung, nicht etwas, das wir in Ihrem Namen erfasst haben. Der Schlüssel wird in diesem Browser erstellt; veröffentlicht werden nur seine öffentliche Hälfte, Ihr Name und eine angegebene Akkreditierung.',
   'app.lab.key.name': 'Name',
-  'app.lab.key.nameHelp': 'Wie Sie für alle erscheinen, die einen von Ihnen signierten Datensatz prüfen.',
+  'app.lab.key.nameHelp':
+    'Wie Sie dort erscheinen, wo Ihre Signaturen gezeigt werden: dem Züchter und allen, denen er sie zeigt.',
   'app.lab.key.role': 'Rolle',
   'app.lab.key.accreditation': 'Akkreditierung (optional)',
   'app.lab.key.accreditationHelp':
@@ -333,7 +334,7 @@ export const lab = {
     'Der Schlüssel dieser Pflanze ist nicht auf diesem Gerät, daher können ihre Laborberichte hier nicht geöffnet werden. <link>Holen Sie Ihre Pflanzen zuerst aus Ihrer Sicherungskopie zurück</link>.',
   'app.lab.results.gotIt': 'Verstanden',
   'app.lab.results.whatOthersSee':
-    '<b>Was andere sehen können.</b> Die Signatur des Labors ist öffentlich, der Bericht nicht. Wer einen Link zur Prüfseite dieser Pflanze hat, sieht, dass ein Laborbericht über sie signiert wurde, den SHA-256 der Berichtsdatei und den Namen, unter dem der Schlüssel des Labors registriert ist: markiert mit „Name nicht geprüft“, sofern der Betreiber von VeilCore ihn nicht mit einem öffentlichen Lizenz- oder Akkreditierungsverzeichnis abgeglichen hat. Wenn Sie den Bericht bei dieser Pflanze speichern und unter „Jemandem zeigen“ „Ob ein DNA-Bericht gespeichert ist“ teilen, sieht man auch, dass die gespeicherte Datei dazu passt.',
+    '<b>Was andere sehen können.</b> Die Signatur des Labors zu diesem Bericht ist privat, wie der Bericht: Nur Sie und das Labor sehen sie. Um sie zu zeigen, wählen Sie „Jemandem zeigen“ und schalten Sie sie unter „Laborsignaturen“ ein. Wer diesen Link hat, sieht dann, dass das Labor einen Bericht über diese Pflanze signiert hat, und den Namen, unter dem der Schlüssel des Labors registriert ist: markiert mit „Name nicht geprüft“, sofern der Betreiber von VeilCore ihn nicht mit einem öffentlichen Lizenz- oder Akkreditierungsverzeichnis abgeglichen hat. Ist es ein DNA-Bericht und speichern Sie ihn bei dieser Pflanze, kann die Seite auch sagen, dass das Labor diese Datei signiert hat.',
   'app.lab.results.noCurrent':
     'Kein aktueller Bericht von {lab}: Das Original wurde ersetzt und die Korrektur zurückgezogen.',
   'app.lab.results.looking': 'Laborberichte werden gesucht…',
@@ -403,9 +404,9 @@ export const lab = {
   'app.lab.out.andJoin': ', und ',
   'app.lab.out.sent': 'Gesendet',
   'app.lab.out.sentText':
-    'Nur der Züchter kann ihn öffnen. Ihre Signatur ist öffentlich, der Bericht nicht: Wer einen Link zur Prüfseite dieser Pflanze hat, sieht, dass ein Laborbericht über sie signiert wurde, und seinen SHA-256 ({sha}).',
+    'Nur der Züchter kann ihn öffnen. Auch Ihre Signatur darauf ist privat: Nur der Züchter und Sie sehen sie, außer der Züchter zeigt sie auf seinem Prüflink. Wenn Sie eine Empfangsbestätigung für die Probe signiert haben und der Züchter zeigt, ob ein DNA-Bericht gespeichert ist, sagt seine Prüfseite, dass ein Labor eine Probe erhalten hat und ob das Angekommene dem Gesendeten entspricht, ohne den Namen Ihres Labors.',
   'app.lab.out.sentName':
-    'Man sieht auch den Namen, unter dem Ihr Schlüssel registriert ist. Bis der Betreiber von VeilCore ihn mit einem öffentlichen Lizenz- oder Akkreditierungsverzeichnis abgleicht, erscheint er als „einem Schlüssel namens „{name}“ (Name nicht geprüft)“.',
+    'Tut er das, sieht jeder mit diesem Link auch den Namen, unter dem Ihr Schlüssel registriert ist. Bis der Betreiber von VeilCore ihn mit einem öffentlichen Lizenz- oder Akkreditierungsverzeichnis abgleicht, erscheint er als „einem Schlüssel namens „{name}“ (Name nicht geprüft)“.',
   'app.lab.out.yourLab': 'Ihr Labor',
   'app.lab.out.youSent': 'Von Ihnen gesendete Laborberichte',
   'app.lab.out.rowHead': '{id} · gesendet {when}',

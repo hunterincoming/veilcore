@@ -5,6 +5,7 @@ export const de: Strings = {
   // Header and footer
   'nav.language': 'Sprache',
   'nav.main': 'Hauptnavigation',
+  'nav.home': 'VeilCore-Startseite',
   'footer.documents': 'Dokumente',
   'footer.spec': 'Spezifikation',
   'footer.partners': 'Einen Nachweis verlangen',
@@ -14,14 +15,15 @@ export const de: Strings = {
   'footer.allImplementations': 'Alle drei Implementierungen',
   'footer.referenceImplementation': 'Referenzimplementierung',
   'footer.rustImplementation': 'Rust-Implementierung',
+  'footer.siteCode': 'Code dieser Website',
   'footer.thisSite': 'Diese Website',
-  'footer.whatThisIs': 'Worum es geht',
   'footer.yourRecords': 'Ihre Datensätze',
   'footer.agreements': 'Vereinbarungen',
   'footer.privacy': 'Datenschutz in der Demo',
   'footer.terms': 'Nutzungsbedingungen',
   'draft.banner': 'Maschinell erstellter Übersetzungsentwurf, wird noch geprüft. Maßgeblich ist die englische Seite.',
   'draft.showEnglish': 'Englisch anzeigen',
+  'draft.close': 'Hinweis schließen',
   'notice.datingPaused':
     'Das Datieren auf Midnight ist wegen des Netzwerk-Upgrades von Midnight pausiert. Ihre Datensätze sind gespeichert und werden datiert, sobald es wieder läuft.',
   // The record app's frame and the browser tab's titles.
@@ -29,7 +31,7 @@ export const de: Strings = {
   'app.frame.section.send': 'Senden und empfangen',
   'app.frame.section.license': 'Lizenzen und Lizenzgebühren',
   'app.frame.section.prove': 'Nachweisen und prüfen',
-  'app.frame.home': 'Startseite. Ihr Fortschritt ist gespeichert.',
+  'app.frame.home': 'Ihre Datensätze. Ihr Fortschritt ist gespeichert.',
   'title.founders': 'Gründer',
   'title.terms': 'Nutzungsbedingungen',
   'title.privacy': 'Datenschutz in der Demo',
@@ -59,7 +61,7 @@ export const de: Strings = {
   'm.nav.updates': 'Neuigkeiten',
   'm.nav.spec': 'Spezifikation',
   'm.nav.demo': 'Demo testen',
-  'm.nav.yours': 'Ihre Einträge',
+  'm.nav.yours': 'Ihre Datensätze',
   'm.nav.menu': 'Menü',
   'm.hero.label': 'Nachweis dessen, was Sie in Händen halten',
   'm.hero.title1': 'Datieren Sie Ihren Datensatz.',
@@ -140,11 +142,9 @@ export const de: Strings = {
   'm.contact.email': 'E-Mail an die Gründer',
   'm.contact.spec': 'Spezifikation lesen',
   'm.foot.explore': 'Entdecken',
-  'm.foot.build': 'Entwicklung',
   'm.foot.contact': 'Kontakt',
   'm.foot.verify': 'Datensatz prüfen',
   'm.foot.fine': 'Nachweis, dass Sie einen Datensatz zu einem Datum hatten. Kein Rechtstitel an der Pflanze.',
-  'm.foot.privacy': 'Datenschutz in der Demo',
   'm.foot.terms': 'Nutzungsbedingungen',
   'm.terms.inEnglish': 'Diese Bedingungen sind auf Englisch; es gilt der englische Text.',
   'm.verify.label': 'Prüfen',
@@ -196,7 +196,7 @@ export const de: Strings = {
   'm.privacy.full': 'Die vollständige Liste',
   'm.privacy.stored.title': 'Auf unserem Testserver gespeichert',
   'm.privacy.stored.text':
-    'Ihre Datensätze und Vereinbarungen, von Ihrem Browser verschlossen, bevor sie gesendet werden: der Name jedes Datensatzes, Züchter, Art, Daten, Notizen, Referenznummern, Eltern, die Prüfcodes und Dateinamen der Fotos und Laborberichte, die Sie hinzufügen, Vertragsbedingungen und Vertragspartner, Menge und Notiz, die Sie einem Labor schicken, die Probenangaben, die Sie und das Labor schreiben (Proben-ID, Siegelnummer, wo und wann die Probe genommen wurde, ein Zeuge, wie sie ankam), die Namen, die Sie Empfängern geben, und die geheimen Schlüssel jedes Datensatzes. Unser Server speichert sie verschlossen, und wir haben den Schlüssel nicht: Er liegt in Ihrem Browser und in Ihrer Sicherungsdatei. Der Schlüssel der Probenangaben steckt auch im Laborcode, damit das Labor sie öffnen kann. Wenn Sie es wählen, steckt der Name eines Datensatzes außerdem in einem Prüflink, den Sie erstellen, nach dem #. Diesen Teil sendet ein Browser nicht, wenn er den Link öffnet, aber der Link geht vollständig an jeden, dem Sie ihn schicken, und an jede Website, in die Sie ihn einfügen, auch an das Formular eines Partners. Lesen kann unser Server: die ID jedes Datensatzes; seinen Prüfcode, seine Schlüsselbindung und seine Profilart; einen Code aus seinem Namen, der ohne den Schlüssel in Ihrem Prüflink nichts über den Namen verrät; seine Korrekturverweise (welchen Datensatz eine Korrektur ersetzt, welche Felder sie geändert hat und wann); wann der Server ihn zuerst gesehen hat; wie oft er gespeichert wurde und wann zuletzt; ungefähr wie groß er ist (seine Größenstufe); was Sie auf seiner Prüfseite zeigen möchten (seinen Namen, wenn Sie ihn zeigen möchten, und ob ein DNA-Bericht gespeichert ist, als Code, der ohne den Schlüssel in Ihrem Prüflink nichts über die Datei verrät); die Elternverknüpfungen, die Sie registrieren; und seinen Stapel mit dessen Datumsstempel. Hat eine Vereinbarung eine Lizenzgebühr auf Nachkommen, kann unser Server lesen, welchen Datensatz sie betrifft und seit wann sie gilt, und jeder kann fragen, ob dieser Datensatz eine trägt: Die Abstammungsprüfung braucht das. Bei einer Lieferung: aus welchem Datensatz sie stammt, welches Inhaberkonto sie empfangen hat, wann sie empfangen wurde und ein Kennzeichen anstelle des Empfängernamens. Bei einer Lieferung von vor den Kennzeichen steht der Name so da, wie er eingegeben wurde, bis die Bereinigung des Registers ihn ersetzt. Bei Laboren: der öffentliche Signaturschlüssel und die Signaturen, die sie veröffentlichen. Die Signatur eines Labors über einen Bericht nennt den Bericht gebunden an Ihren Datensatz, mit einem Schlüssel, den nur Sie und das Labor haben; eine vor dem 17. Oktober 2026 erstellte nennt den SHA-256 der Berichtsdatei, den unser Server nur Ihnen und dem Labor zeigt. Anfragen, den Schlüssel eines Datensatzes nachzuweisen, mit dem Namen, den der Fragende eingegeben hat, 7 Tage lang: Unser Server erfährt, welchen On-Chain-Schlüssel jede Anfrage nennt. Die Nachweis- und Prüfseiten senden Ihren Inhaberschlüssel nie. Ihr Inhaberschlüssel, den Ihr Browser bei jedem Speichern mitsendet, damit der Server Ihre Datensätze findet; der Server behält davon nur einen Einweg-Hash. Datensätze, die vor dem Verschließen gespeichert wurden, bleiben für uns lesbar, bis Ihr Browser sie verschließt, und der Name eines Datensatzes, der gespeichert wurde, bevor Namen verschlossen wurden, bleibt für uns lesbar, bis Ihr Browser den Datensatz erneut speichert. Probenangaben, die vor dem Verschließen geschrieben wurden, bleiben für uns lesbar, bis das Register sie entfernt. Unsere externen Sicherungen von davor behalten eine lesbare Kopie von alledem, bis wir den Schlüssel vernichten, der sie öffnet. Verschlossene Laborberichte, die ein Labor Ihnen schickt: verschlossen gespeichert, ohne den Schlüssel, und nach 180 Tagen gelöscht. Der Server ist das Testregister von VeilCore, gehostet bei Railway.',
+    'Ihre Datensätze und Vereinbarungen, von Ihrem Browser verschlossen, bevor sie gesendet werden: der Name jedes Datensatzes, Züchter, Art, Daten, Notizen, Referenznummern, Eltern, die Prüfcodes und Dateinamen der Fotos und Laborberichte, die Sie hinzufügen, Vertragsbedingungen und Vertragspartner, Menge und Notiz, die Sie einem Labor schicken, die Probenangaben, die Sie und das Labor schreiben (Proben-ID, Siegelnummer, wo und wann die Probe genommen wurde, ein Zeuge, wie sie ankam), die Namen, die Sie Empfängern geben, und die geheimen Schlüssel jedes Datensatzes. Unser Server speichert sie verschlossen, und wir haben den Schlüssel nicht: Er liegt in Ihrem Browser und in Ihrer Sicherungsdatei. Der Schlüssel der Probenangaben steckt auch im Laborcode, damit das Labor sie öffnen kann. Wenn Sie es wählen, steckt der Name eines Datensatzes außerdem in einem Prüflink, den Sie erstellen, nach dem #. Diesen Teil sendet ein Browser nicht, wenn er den Link öffnet, aber der Link geht vollständig an jeden, dem Sie ihn schicken, und an jede Website, in die Sie ihn einfügen, auch an das Formular eines Partners. Lesen kann unser Server: die ID jedes Datensatzes; seinen Prüfcode, seine Schlüsselbindung und seine Profilart; einen Code aus seinem Namen, der ohne den Schlüssel in Ihrem Prüflink nichts über den Namen verrät; seine Korrekturverweise (welchen Datensatz eine Korrektur ersetzt, welche Felder sie geändert hat und wann); wann der Server ihn zuerst gesehen hat; wie oft er gespeichert wurde und wann zuletzt; ungefähr wie groß er ist (seine Größenstufe); was Sie auf seiner Prüfseite zeigen möchten (seinen Namen, wenn Sie ihn zeigen möchten, und ob ein DNA-Bericht gespeichert ist, als Code, der ohne den Schlüssel in Ihrem Prüflink nichts über die Datei verrät); die Elternverknüpfungen, die Sie registrieren; und seinen Stapel mit dessen Datumsstempel. Hat eine Vereinbarung eine Lizenzgebühr auf Nachkommen, kann unser Server lesen, welchen Datensatz sie betrifft und seit wann sie gilt, und jeder kann fragen, ob dieser Datensatz eine trägt: Die Abstammungsprüfung braucht das. Bei einer Lieferung: aus welchem Datensatz sie stammt, welches Inhaberkonto sie empfangen hat, wann sie empfangen wurde und ein Kennzeichen anstelle des Empfängernamens. Bei einer Lieferung von vor den Kennzeichen steht der Name so da, wie er eingegeben wurde, bis die Bereinigung des Registers ihn ersetzt. Bei Laboren: der öffentliche Signaturschlüssel und die Signaturen, die sie erstellen. Empfangsbestätigungen und Berichte eines Labors zu Ihrem Datensatz sind privat: Unser Server zeigt sie nur Ihnen, dem Labor und demjenigen, der ihm die Probe geschickt hat, außer Sie zeigen sie auf Ihrem Prüflink. Wenn Sie zeigen, ob ein DNA-Bericht gespeichert ist, sagt Ihre Prüfseite außerdem für jede Empfangsbestätigung, dass ein Labor eine Probe erhalten hat und ob das Angekommene dem Gesendeten entspricht, ohne den Namen des Labors. Die Signatur eines Labors über einen Bericht nennt den Bericht gebunden an Ihren Datensatz, mit einem Schlüssel, den nur Sie und das Labor haben; eine vor dem 17. Oktober 2026 erstellte nennt den SHA-256 der Berichtsdatei, den unser Server nur Ihnen, dem Labor und demjenigen zeigt, der ihm die Probe geschickt hat. Anfragen, den Schlüssel eines Datensatzes nachzuweisen, mit dem Namen, den der Fragende eingegeben hat, 7 Tage lang: Unser Server erfährt, welchen On-Chain-Schlüssel jede Anfrage nennt. Die Nachweis- und Prüfseiten senden Ihren Inhaberschlüssel nie. Ihr Inhaberschlüssel, den Ihr Browser bei jedem Speichern mitsendet, damit der Server Ihre Datensätze findet; der Server behält davon nur einen Einweg-Hash. Datensätze, die vor dem Verschließen gespeichert wurden, bleiben für uns lesbar, bis Ihr Browser sie verschließt, und der Name eines Datensatzes, der gespeichert wurde, bevor Namen verschlossen wurden, bleibt für uns lesbar, bis Ihr Browser den Datensatz erneut speichert. Probenangaben, die vor dem Verschließen geschrieben wurden, bleiben für uns lesbar, bis das Register sie entfernt. Unsere externen Sicherungen von davor behalten eine lesbare Kopie von alledem, bis wir den Schlüssel vernichten, der sie öffnet. Verschlossene Laborberichte, die ein Labor Ihnen schickt: verschlossen gespeichert, ohne den Schlüssel, und nach 180 Tagen gelöscht. Der Server ist das Testregister von VeilCore, gehostet bei Railway.',
   'm.privacy.local.title': 'Verlässt Ihren Browser nie unverschlossen',
   'm.privacy.local.text':
     'Ihre DNA-Dateien verlassen nie Ihr Gerät. Laborberichte reisen verschlossen. Ihr Browser liest die DNA-Berichte, Laborberichte und Fotos, die Sie hinzufügen, um aus jeder einen Code zu machen; die Dateien selbst werden nie hochgeladen. Ein Laborbericht erreicht unseren Server nur, wenn ein Labor ihn an Sie zurückschickt, verschlossen, sodass nur Sie ihn öffnen können.',
@@ -444,7 +444,7 @@ export const de: Strings = {
   'm.open.1link': 'Alle drei Implementierungen →',
   'm.open.3t': 'Wir bürgen nicht für Ergebnisse.',
   'm.open.3p':
-    'Ein Datensatz zeigt, welcher Schlüssel ihn signiert hat, unter welchem Namen dieser registriert wurde, eine Akkreditierung, die sein Inhaber angegeben hat (das prüfen wir nicht), und ob der Betreiber von VeilCore diesen Namen mit einem öffentlichen Lizenz- oder Akkreditierungsverzeichnis abgeglichen hat, und an welchem Tag. VeilCore bürgt für kein Labor: Wer einen Datensatz prüft, entscheidet, was eine Signatur wert ist.',
+    'Die Signaturen eines Labors zu einem Datensatz bleiben privat, außer der Inhaber des Datensatzes zeigt sie. Jede gezeigte nennt den Schlüssel, der signiert hat, den Namen, unter dem dieser registriert wurde, eine Akkreditierung, die sein Inhaber angegeben hat (das prüfen wir nicht), und ob der Betreiber von VeilCore diesen Namen mit einem öffentlichen Lizenz- oder Akkreditierungsverzeichnis abgeglichen hat, und an welchem Tag. VeilCore bürgt für kein Labor: Wer einen Datensatz prüft, entscheidet, was eine Signatur wert ist.',
   'm.open.4t': 'Jeder kann ein Register betreiben.',
   'm.open.4p':
     'Das Format erlaubt einem Labor, einer Anerkennungsstelle oder einem Sortenschutzgremium, ein eigenes Register unter eigener Webdomain zu betreiben und zu verankern, ohne uns zu fragen. Unser eigener Registercode ist nicht veröffentlicht.',

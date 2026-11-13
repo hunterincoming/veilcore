@@ -318,8 +318,13 @@ export const SharedFacts: React.FC<{ data: SharedFactsData; preview?: boolean }>
 const previewReportLine = (
   saved: SavedReport | null | undefined,
   tr: Translator,
+  labReportShown = true,
 ): { status: FactStatus; text: string; tie: DnaTie } | undefined => {
   if (!saved) return undefined;
+  // The lab's signature is private unless the holder shows it (8 Nov 2026): not shown, the
+  // check page can't say a lab signed it.
+  if (saved.kind === 'lab' && !labReportShown)
+    return { status: 'reported', text: tr.t('app.verify.report.own', { staleNote: '' }), tie: { state: 'self' } };
   const tie = dnaTieOf(saved, tr);
   if (saved.kind === 'none') return { status: 'reported', text: tr.t('app.verify.report.notSaved'), tie };
   if (saved.kind === 'replaced' || saved.kind === 'withdrawn')
@@ -329,15 +334,17 @@ const previewReportLine = (
 };
 
 /** The holder's preview: what the verify page will show under these switches. */
-export const DisclosedFacts: React.FC<{ record: StrainRecord; disclosure: Disclosure; saved?: SavedReport | null }> = ({
-  record,
-  disclosure,
-  saved,
-}) => {
+export const DisclosedFacts: React.FC<{
+  record: StrainRecord;
+  disclosure: Disclosure;
+  saved?: SavedReport | null;
+  /** Whether the lab report matching the saved DNA report is shown on the check link (8 Nov 2026). */
+  labReportShown?: boolean;
+}> = ({ record, disclosure, saved, labReportShown }) => {
   const animal = isAnimal(record);
   const strain = isStrain(record);
   const tr = forKind(useT(), animal ? 'animal' : strain ? 'strain' : 'plant');
-  const labReport = previewReportLine(saved, tr);
+  const labReport = previewReportLine(saved, tr, labReportShown ?? true);
   const sire = sireOf(record);
   const dam = damOf(record);
   return (

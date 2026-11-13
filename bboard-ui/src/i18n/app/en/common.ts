@@ -7,7 +7,6 @@ export const common = {
   'app.common.add': 'Add',
   'app.common.tryAgain': 'Try again',
   'app.common.fileInEnglish': 'This file is in English.',
-  'app.common.headerHome': 'VeilCore: your plants',
   // i18n/network-words.ts: config/network.ts networkLabel, word for word.
   'app.common.network.mainnet': 'Midnight’s main network',
   'app.common.network.preprod': 'Midnight preprod (test network)',

@@ -27,9 +27,7 @@ import { ChainStatusLine } from '../chain/ChainStatusLine';
 import type { ChainReceipt } from '../../veilcore/chain/actions';
 import { ConfirmInline, HowItWorks } from './DealSteps';
 import { backupReturnTo } from '../flow/backup-return';
-import { Wordmark } from '../Wordmark';
 import { useT } from '../../i18n/app';
-import { LanguageBar } from '../../i18n/LanguagePicker';
 import { DisclosureReceipt } from '../chain/DisclosureReceipt';
 
 const HEX64 = /^[0-9a-f]{64}$/;
@@ -46,12 +44,8 @@ export const recordKeyFrom = (text: string): string | undefined => {
 };
 
 const Frame: React.FC<React.PropsWithChildren> = ({ children }) => (
-  <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
+  <Box sx={{ bgcolor: 'background.default' }}>
     <Container maxWidth="sm" sx={{ py: { xs: 4, md: 7 } }}>
-      <LanguageBar />
-      <Stack direction="row" sx={{ justifyContent: 'center', mb: 3 }}>
-        <Wordmark />
-      </Stack>
       <Paper sx={{ p: { xs: 2.5, md: 4 } }}>{children}</Paper>
     </Container>
   </Box>

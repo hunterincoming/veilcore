@@ -68,6 +68,8 @@ import {
   attestationsFor,
   countsAsSigned,
   failedSignature,
+  mergeAttestations,
+  sharedAttestationsOf,
   signerLabel,
   withheldLabReports,
   type ResolvedAttestation,
@@ -75,7 +77,6 @@ import {
 import { isBoundLabDocument, labSaltFromLink } from '../veilcore/lab-doc';
 import { INK_COLOR, LINK_SX, POLLEN } from '../config/theme';
 import { DatedStamp } from '../components/DatedStamp';
-import { Wordmark } from '../components/Wordmark';
 import { NETWORK, explorerFor, isTestNetwork } from '../config/network';
 import { Fact, FactKey, SharedFacts } from '../components/verify/DisclosedFacts';
 import { pairingPending, pendingReportLine, publicReportLine, withdrawnSignaturesLine } from '../veilcore/saved-report';
@@ -105,13 +106,13 @@ import { useAnchorCheck } from '../components/verify/useAnchorCheck';
 import { VerifierChallengePanel } from '../components/chain/VerifierChallengePanel';
 import { LicenseProofPanel } from '../components/licensing/LicenseProof';
 import { LendHere } from '../components/licensing/LendHere';
+import { LicenseNotices } from '../components/verify/LicenseNotices';
 import { AGREEMENTS_ON_CHAIN } from '../config/copy';
-import { publicCustodyLines, publicCustodyOf } from '../veilcore/custody';
+import { publicCustodyLines, publicCustodyOf, unnamedCustodyOf } from '../veilcore/custody';
 import { NameCheckText } from '../components/NameCheckText';
 import { rich, useT } from '../i18n/app';
 import { enT, forKind, type Translator } from '../i18n/translate';
 import { networkWords } from '../i18n/network-words';
-import { LanguageBar } from '../i18n/LanguagePicker';
 
 const API = import.meta.env.VITE_API_BASE ?? '';
 /** The mark for a date checked on a test network: amber, never mainnet's pollen-gold stamp. */
@@ -250,6 +251,12 @@ type VerifyResult = {
    * the sample details and where they differ (custody.ts publicCustodyOf). Never the details.
    */
   custody?: unknown;
+  /**
+   * The lab signatures the holder chose to show on this link (8 Nov 2026): the registry keeps
+   * every lab report and receipt private otherwise. Served whole; verified here like the open
+   * list (attesters.ts sharedAttestationsOf).
+   */
+  sharedAttestations?: unknown;
   /** `animal` for a record sealed under the animal profile (absent: a plant). */
   subjectKind?: string;
   /** An animal's sire and dam, under the parent-names grant. */
@@ -449,6 +456,8 @@ export const VerifyPage: React.FC = () => {
   const binding = bindingOf(linkFingerprint(fp), result?.found ? result.recordFingerprint : undefined);
   const bound = binding.kind === 'bound';
   const fingerprint = binding.kind === 'mismatch' ? undefined : binding.fingerprint;
+  // The signatures the holder chose to show (8 Nov 2026), as the registry sent them.
+  const sharedRows = result?.found ? result.sharedAttestations : undefined;
   useEffect(() => {
     let live = true;
     setProof('checking');
@@ -459,11 +468,16 @@ export const VerifyPage: React.FC = () => {
       return;
     }
     void proofFor(fingerprint).then((p) => live && setProof(p));
-    void attestationsFor(fingerprint).then((a) => live && setAtts(a));
+    // The open list, and the lab signatures the holder chose to show here: the registry keeps
+    // every other lab signature private. Both are verified here and kept only when about this
+    // record, then read as one list by every line below.
+    void Promise.all([attestationsFor(fingerprint), sharedAttestationsOf(sharedRows, fingerprint)]).then(
+      ([open, shared]) => live && setAtts(mergeAttestations(open, shared)),
+    );
     return () => {
       live = false;
     };
-  }, [fingerprint]);
+  }, [fingerprint, sharedRows]);
 
   // Once the inclusion proof leads to a batch root and the registry names the transaction
   // that wrote it, this browser looks that transaction up on Midnight itself: it must be
@@ -488,6 +502,9 @@ export const VerifyPage: React.FC = () => {
   // Round 2 of the 15 Oct review: the check page used to drop a seal mismatch the breeder's
   // own page showed. The registry's report of each receipt's sample details, by receipt.
   const publicCustody = publicCustodyOf(result?.custody);
+  // Custody lines that name no receipt (8 Nov 2026): the holder didn't show that receipt, so
+  // the line is said without the lab.
+  const unnamedCustody = unnamedCustodyOf(result?.custody);
   // Round 5: what each signature is, said on its own line and counted the same way in the
   // footer: a lab's receipt, a lab report, or some other signed statement.
   const withdrawnLine = withdrawnSignaturesLine(atts ?? [], tr);
@@ -562,29 +579,9 @@ export const VerifyPage: React.FC = () => {
   const name = nameCheck.state === 'none' ? undefined : displayName(nameCheck.name);
 
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
+    <Box sx={{ bgcolor: 'background.default' }}>
       {/* IDs, fingerprints and hashes are long unbroken strings: they wrap, the page never scrolls sideways. */}
       <Container component="main" maxWidth="sm" sx={{ py: { xs: 5, md: 8 }, overflowWrap: 'anywhere' }}>
-        <LanguageBar />
-        <Stack
-          component={RouterLink}
-          to="/"
-          aria-label={t('app.verify.homeAria')}
-          direction="row"
-          spacing={1.25}
-          sx={{
-            alignItems: 'center',
-            justifyContent: 'center',
-            mb: 2,
-            mx: 'auto',
-            width: 'fit-content',
-            minHeight: 44,
-            textDecoration: 'none',
-            color: 'text.primary',
-          }}
-        >
-          <Wordmark />
-        </Stack>
         {/* One line for a stranger who arrived from a QR code or a shared link. */}
         <Typography
           variant="body2"
@@ -892,6 +889,23 @@ export const VerifyPage: React.FC = () => {
                       </Fact>
                     );
                   })}
+                  {unnamedCustody.map((c, i) => (
+                    <Fact key={`unnamed-${String(i)}`} status="reported">
+                      <Box component="span" data-unnamed-custody="">
+                        {t('app.verify.unnamedReceipt')}
+                      </Box>
+                      <Box component="span" sx={{ display: 'block', mt: 0.5 }} data-public-custody="">
+                        <Box component="span" sx={{ display: 'block', color: 'text.secondary' }}>
+                          {t('app.verify.sampleDetails')}
+                        </Box>
+                        {publicCustodyLines(c, tr).map((l) => (
+                          <Box component="span" key={l} sx={{ display: 'block' }} data-custody-line="">
+                            {l}
+                          </Box>
+                        ))}
+                      </Box>
+                    </Fact>
+                  ))}
                   {signed.length > SIGNATURE_LINES && (
                     <Fact status={bound ? 'checked' : 'reported'}>
                       {t('app.verify.moreSigs', { forWhom, n: signed.length - SIGNATURE_LINES })}
@@ -915,7 +929,13 @@ export const VerifyPage: React.FC = () => {
                     result.attested === true ? (
                       <Fact status="failed">{t('app.verify.noneVerified')}</Fact>
                     ) : (
-                      <Fact ok={false}>{t('app.verify.noneSigned')}</Fact>
+                      // The registry keeps lab signatures private unless the holder shows them
+                      // (8 Nov 2026): "none shown", never "none signed".
+                      <Fact ok={false}>
+                        <Box component="span" data-none-shown="">
+                          {t('app.verify.noneSigned')}
+                        </Box>
+                      </Fact>
                     ))}
                   {withdrawnLine && <Fact ok={false}>{withdrawnLine}</Fact>}
                   {badSigs > 0 && <Fact status="failed">{tp('app.verify.badSigs', badSigs)}</Fact>}
@@ -1066,6 +1086,9 @@ export const VerifyPage: React.FC = () => {
             recordId={id}
           />
         )}
+        {/* What the record's holder says about royalties on licenses from it: overdue, or revoked
+            for non-payment, with a date and nothing else (veilcore/license-notices.ts). */}
+        {AGREEMENTS_ON_CHAIN && result?.found && <LicenseNotices verify={result} />}
         {/* Someone says they're licensed from this record: ask them to prove it (rule 5). */}
         {REAL_CHAIN && AGREEMENTS_ON_CHAIN && result?.found && linked('chain') && (
           <LicenseProofPanel identity={linked('chain') ?? ''} recordId={id} />

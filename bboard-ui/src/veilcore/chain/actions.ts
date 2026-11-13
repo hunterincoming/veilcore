@@ -30,6 +30,7 @@ import { makeProviders, PRIVATE_STATE_ID, type Hooks } from './providers';
 import { setProverProgress } from './prover';
 import { browserCallDeps, type CallDeps } from './prover-choice';
 import { assertNotPaused } from './paused';
+import { e2eChain } from './e2e-chain';
 
 export type ChainReceipt = {
   readonly circuit: BrowserCircuit;
@@ -290,13 +291,26 @@ export const revokeLicenseOnChain = (
   commitmentHex: string,
   issuingRecordHex: string,
   opts: CallOptions = {},
-) =>
-  call(
+): Promise<ChainReceipt> => {
+  // The end-to-end build's stand-in for Midnight (e2e-chain.ts); undefined in every other build.
+  const stand = e2eChain()?.revoke;
+  if (stand) {
+    const r = stand(commitmentHex, issuingRecordHex);
+    return Promise.resolve({
+      circuit: 'revokeLicense',
+      txId: r.txId,
+      txHash: r.txId,
+      blockHeight: 1,
+      blockTime: r.blockTime,
+    });
+  }
+  return call(
     'revokeLicense',
     [hexToBytes(commitmentHex), hexToBytes(issuingRecordHex)],
     createVeilcorePrivateState(recordSecret),
     opts,
   );
+};
 
 /**
  * The current holder proposes handing their license on to the commitment the new holder built

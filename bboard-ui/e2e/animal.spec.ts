@@ -331,7 +331,7 @@ test('log an animal with its ID, sire and dam; tie a DNA report; date it; show s
     page.getByText('Individual ID, as the holder states it: 0000000017 (Japan cattle ID (10 digits))').first(),
   ).toBeVisible();
   await expect(page.locator('[data-dna-tie="self"]').first()).toContainText(
-    'Tied to the animal: DNA report the holder saved (no lab signature matches it).',
+    'Tied to the animal: DNA report the holder saved (no lab signature shown here matches it).',
   );
   await page.getByRole('button', { name: 'Get the link' }).click();
   // The name goes in the link, after the # (round 5), only when the holder switches it on

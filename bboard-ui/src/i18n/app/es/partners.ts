@@ -18,7 +18,7 @@ export const partners = {
     'Cuando el registro está en un lote fechado, cualquiera puede consultar desde cuándo existía su código de prueba. La fecha viene de Midnight, no de VeilCore ni del solicitante.',
   'app.partners.gives.3.t': 'Firmas de laboratorio, verificadas',
   'app.partners.gives.3.d':
-    'Acuses de recibo de muestras e informes de laboratorio, con cada firma verificada, y si el operador de VeilCore cotejó el nombre del laboratorio con un listado público. Un acuse cuenta solo cuando el servidor de registros lo vincula a un envío del registro, y usted ve si lo que llegó coincide con lo que se envió.',
+    'Los acuses de recibo de muestras y los informes de laboratorio que el solicitante decide mostrar, con cada firma verificada, y si el operador de VeilCore cotejó el nombre del laboratorio con un listado público. Las firmas de un laboratorio son privadas salvo que el solicitante las muestre. Un acuse cuenta solo cuando el servidor de registros lo vincula a un envío del registro, y usted ve si lo que llegó coincide con lo que se envió.',
   'app.partners.gives.4.t': 'La misma verificación para todos',
   'app.partners.gives.4.d': 'El enlace de cada solicitante se verifica de la misma manera, en su página.',
   'app.partners.not.title': 'Lo que no muestra',

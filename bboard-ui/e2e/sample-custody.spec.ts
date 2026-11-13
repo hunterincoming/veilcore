@@ -127,7 +127,7 @@ const sendAndReceive = async (browser: Browser, t: Typed, arrivedSeal: string, t
   await lab.getByRole('button', { name: /Set up your lab.s signature/ }).click();
   await lab.getByLabel(/^Name/).fill('E2E Lab');
   await lab.getByRole('button', { name: /Create my key/ }).click();
-  await lab.getByRole('button', { name: /^Done$/ }).click();
+  await lab.getByRole('button', { name: /^(Continue|Done)$/ }).click();
   await receiveWithBackupFirst(lab, code);
 
   // The form starts from what the breeder wrote, opened in the lab's browser with the code's
@@ -284,7 +284,7 @@ test('a different seal number: said plainly on the breeder’s plant page, certi
   const breederKey = await r.breeder.evaluate(() => localStorage.getItem('veilcore.holder.v1') ?? '');
   const publicView = async () =>
     (await (await fetch(`${API}/verify/${r.recordId}`)).json()) as {
-      custody?: { receiptAttestationId: string }[];
+      custody?: { receiptAttestationId?: string }[];
       recordFingerprint?: string;
       staleGrant?: string[];
     };
@@ -302,16 +302,18 @@ test('a different seal number: said plainly on the breeder’s plant page, certi
     });
   expect((await share({})).status).toBe(200);
   const shared = await publicView();
-  const receiptId = shared.custody?.[0]?.receiptAttestationId ?? '';
+  const receiptId = (
+    (await (
+      await fetch(`${API}/transfers/${r.transferId}/custody`, { headers: { 'x-holder-key': breederKey } })
+    ).json()) as { receiptAttestationId: string }
+  ).receiptAttestationId;
   expect(receiptId).toMatch(/^att_[0-9a-f]{16}_sc2_[0-9a-f]{64}$/);
-  expect(shared.custody).toEqual([
-    {
-      receiptAttestationId: receiptId,
-      custody: 'sealed',
-      receiptNamesSampleDetails: true,
-      sampleDetailsCheckedBy: 'holder',
-    },
-  ]);
+  // Since 8 Nov 2026 a line names its receipt only when the holder shows that receipt on the
+  // check link (it leads to the lab); a registry from before names it always.
+  expect(shared.custody).toHaveLength(1);
+  const { receiptAttestationId: named, ...rest } = shared.custody?.[0] ?? {};
+  expect(named === undefined || named === receiptId).toBe(true);
+  expect(rest).toEqual({ custody: 'sealed', receiptNamesSampleDetails: true, sampleDetailsCheckedBy: 'holder' });
   expect(shared.staleGrant).toBeUndefined();
   const strangerCtx = await browser.newContext();
   const stranger = await strangerCtx.newPage();
@@ -448,7 +450,7 @@ test('the whole way round: logged, backed up, sent with sample details; received
   await lab.getByRole('button', { name: /Set up your lab.s signature/ }).click();
   await lab.getByLabel(/^Name/).fill('E2E Lab');
   await lab.getByRole('button', { name: /Create my key/ }).click();
-  await lab.getByRole('button', { name: /^Done$/ }).click();
+  await lab.getByRole('button', { name: /^(Continue|Done)$/ }).click();
   await receiveWithBackupFirst(lab, code);
   await expect(lab.getByLabel('Sample ID on arrival')).toHaveValue(t.sampleId);
   await lab.getByLabel('Yes', { exact: true }).check();

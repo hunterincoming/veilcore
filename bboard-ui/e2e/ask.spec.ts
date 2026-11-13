@@ -21,6 +21,8 @@ import {
   saveAndCheckBackup,
   startPlant,
   watch,
+  clickAsk,
+  expectAskOffered,
 } from './helpers';
 
 test.skip(REAL_REGISTRY, 'this uses the stand-in registry');
@@ -64,7 +66,7 @@ const standIn = async (page: Page, holder: string, vault: string, held: { record
 };
 
 const openAsk = async (page: Page) => {
-  await page.locator('[data-ask-open]').click();
+  await clickAsk(page);
   await expect(page.locator('[data-ask-sheet]')).toBeVisible();
   await expect(page.locator('[data-ask-privacy]')).toHaveText(
     'Typing here sends nothing. Only Save does. Works offline.',
@@ -84,7 +86,7 @@ test('Ask makes no request while it drafts, online or offline, and fills the log
   // A browser with no holder key: background sync has nothing to send and stays off.
   await isolate(page);
   await page.goto('/records');
-  await expect(page.locator('[data-ask-open]')).toBeVisible();
+  await expectAskOffered(page);
   await openAsk(page);
   await shot(page, 'sheet');
   await shot(page, 'sheet', true);
@@ -167,7 +169,15 @@ test('the receipt before the key date stamp, then 3 clones from Ask saved with t
   await page.getByLabel(/Bred by/).fill('E2E');
   await page.getByRole('button', { name: /Next: check it/ }).click();
   const receipt = page.locator('[data-receipt="anchor"]');
+  // In view without asking, just before the button (docs/ask-veilcore.md); only the lock
+  // warning and where the details are stored fold under one plain line (review, 13 Nov).
   await expect(receipt).toBeVisible();
+  await expect(page.locator('[data-seal-details]')).toHaveCount(0);
+  const sealBox = await page.getByRole('button', { name: /Seal it/ }).boundingBox();
+  const receiptBox = await receipt.boundingBox();
+  expect(sealBox && receiptBox && receiptBox.y + receiptBox.height <= sealBox.y).toBe(true);
+  await page.getByRole('button', { name: 'What can’t change, and where it’s stored' }).click();
+  await expect(page.locator('[data-seal-details]')).toContainText("Once sealed, this part can't change.");
   await expect(receipt.locator('[data-receipt-public]')).toContainText(
     'A code made from your record’s key (not the record)',
   );
@@ -210,7 +220,7 @@ test('the receipt before the key date stamp, then 3 clones from Ask saved with t
     await page.goto(path);
     // On a phone the bubble itself stays off a form being filled in, the import included (hint.ts formScreen).
     if (path === '/records/import') await expect(page.locator('[data-screen-heading]').first()).toBeVisible();
-    else await expect(page.locator('[data-ask-open]')).toBeVisible();
+    else await expectAskOffered(page);
     await expect(hint, path).toHaveCount(0);
   }
   await page.goto('/records/import');
@@ -231,7 +241,7 @@ test('the receipt before the key date stamp, then 3 clones from Ask saved with t
   await expect(hint).toHaveCount(0);
   expect(await page.evaluate(() => localStorage.getItem('veilcore.ask.seen.v1'))).toBe('dismissed');
   await page.reload();
-  await expect(page.locator('[data-ask-open]')).toBeVisible();
+  await expectAskOffered(page);
   await expect(hint).toHaveCount(0);
   await page.evaluate(() => localStorage.removeItem('veilcore.ask.seen.v1'));
   await page.reload();

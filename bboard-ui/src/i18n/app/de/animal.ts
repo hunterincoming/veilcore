@@ -189,7 +189,7 @@ export const animal = {
     'Noch hat kein Labor eine Empfangsbestätigung für dieses Tier signiert. Ein Datensatz, für den nur Sie einstehen, ist ein schwächerer Nachweis als einer, den ein Labor signiert. Senden Sie eine Probe an ein Labor: Seine Empfangsbestätigung wird mit seinem Schlüssel signiert, nicht mit Ihrem.',
   'app.animal.v.app.verify.field.parent-names': 'Vater und Mutter (Namen und Kennungen)',
   'app.animal.v.app.verify.alwaysShown':
-    'Immer angezeigt: die Datensatz-ID, sein Prüfcode ({fp}), wann das Register ihn zuerst gespeichert hat, und was diese Seite über seinen Stapel und signierte Bestätigungen (eine Empfangsbestätigung eines Labors, einen Laborbericht) prüfen konnte. Der Name des Tieres nur, wenn der Link ihn trägt (Ihre Links tun das nur, wenn Sie es einschalten) oder Sie ihn zeigen möchten.',
+    'Immer angezeigt: die Datensatz-ID, sein Prüfcode ({fp}), wann das Register ihn zuerst gespeichert hat, und was diese Seite über seinen Stapel und gezeigte signierte Bestätigungen (eine Empfangsbestätigung oder ein Bericht eines Labors nur, wenn Sie sie zeigen) prüfen konnte. Der Name des Tieres nur, wenn der Link ihn trägt (Ihre Links tun das nur, wenn Sie es einschalten) oder Sie ihn zeigen möchten.',
   'app.animal.v.app.verify.ownReceiptTail':
     ' Sie sehen das, weil das Tier in diesem Browser ist; wer Ihren Link erhält, sieht nur die Signaturzeile oben.',
   'app.animal.v.app.prove.openCheckPage': 'Die Prüfseite des Tieres öffnen',
@@ -232,7 +232,7 @@ export const animal = {
   'app.animal.v.app.lab.results.noKey':
     'Der Schlüssel dieses Tieres ist nicht auf diesem Gerät, daher können seine Laborberichte hier nicht geöffnet werden. <link>Holen Sie Ihre Datensätze zuerst aus Ihrer Sicherungskopie zurück</link>.',
   'app.animal.v.app.lab.results.whatOthersSee':
-    '<b>Was andere sehen können.</b> Die Signatur des Labors ist öffentlich, der Bericht nicht. Wer einen Link zur Prüfseite dieses Tieres hat, sieht, dass ein Laborbericht über es signiert wurde, den SHA-256 der Berichtsdatei und den Namen, unter dem der Schlüssel des Labors registriert ist: markiert mit „Name nicht geprüft“, sofern der Betreiber von VeilCore ihn nicht mit einem öffentlichen Lizenz- oder Akkreditierungsverzeichnis abgeglichen hat. Wenn Sie den Bericht bei diesem Tier speichern und unter „Jemandem zeigen“ „Ob ein DNA-Bericht gespeichert ist“ teilen, sieht man auch, dass die gespeicherte Datei dazu passt.',
+    '<b>Was andere sehen können.</b> Die Signatur des Labors zu diesem Bericht ist privat, wie der Bericht: Nur Sie und das Labor sehen sie. Um sie zu zeigen, wählen Sie „Jemandem zeigen“ und schalten Sie sie unter „Laborsignaturen“ ein. Wer diesen Link hat, sieht dann, dass das Labor einen Bericht über dieses Tier signiert hat, und den Namen, unter dem der Schlüssel des Labors registriert ist: markiert mit „Name nicht geprüft“, sofern der Betreiber von VeilCore ihn nicht mit einem öffentlichen Lizenz- oder Akkreditierungsverzeichnis abgeglichen hat. Ist es ein DNA-Bericht und speichern Sie ihn bei diesem Tier, kann die Seite auch sagen, dass das Labor diese Datei signiert hat.',
   'app.animal.v.app.lab.results.nothingYet':
     'Noch nichts. Wenn ein Labor, an das Sie eine Probe dieses Tieres gesendet haben, einen Laborbericht sendet, erscheint er hier.',
   'app.animal.v.app.lab.results.savedHere': ' · bei diesem Tier gespeichert',

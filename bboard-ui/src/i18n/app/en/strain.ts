@@ -113,7 +113,7 @@ export const strain = {
     'No lab has signed a receipt for this strain yet. A record only you stand behind is weaker evidence than one a lab signs for. Send a sample to a lab: their receipt is signed with their key, not yours.',
   'app.strain.v.app.verify.field.parent-names': 'Parent strains (names and deposit numbers)',
   'app.strain.v.app.verify.alwaysShown':
-    "Always shown: the record ID, its proof code ({fp}), when the registry first stored it, and what this page could check about its batch and any signed attestations (a lab's receipt, a lab report). The name only when the link carries it (yours do only when you switch that on) or you choose to show it.",
+    "Always shown: the record ID, its proof code ({fp}), when the registry first stored it, and what this page could check about its batch and any signed attestations shown (a lab's receipt or report only when you choose to show it). The name only when the link carries it (yours do only when you switch that on) or you choose to show it.",
   'app.strain.v.app.verify.ownReceiptTail':
     ' You see this because the strain is in this browser; someone you send the link to sees only the signature line above.',
   'app.strain.v.app.prove.openCheckPage': "Open the strain's check page",
@@ -153,7 +153,7 @@ export const strain = {
   'app.strain.v.app.lab.results.noKey':
     "This strain's key isn't on this device, so its lab reports can't be opened here. <link>Get your strains back from your backup</link> first.",
   'app.strain.v.app.lab.results.whatOthersSee':
-    '<b>What others can see.</b> The lab’s signature is public; the report isn’t. Anyone with a link to this strain’s check page sees that a lab report about it was signed, the report file’s SHA-256, and the name the lab’s key is registered under: marked “name not checked” unless VeilCore’s operator has matched it to a public license or accreditation listing. If you save the report to this strain and share “Whether a DNA report is saved” in Show someone, they also see that the saved file matches it.',
+    '<b>What others can see.</b> The lab’s signature on this report is private, like the report: only you and the lab see it. To show it, choose Show someone and turn it on under “Lab signatures”. Anyone with that link then sees that the lab signed a report about this strain, and the name the lab’s key is registered under: marked “name not checked” unless VeilCore’s operator has matched it to a public license or accreditation listing. If it is a DNA report and you save it to this strain, the page can also say the lab signed that file.',
   'app.strain.v.app.lab.results.nothingYet':
     'Nothing yet. When a lab you sent this strain to sends a lab report, it shows up here.',
   'app.strain.v.app.lab.results.savedHere': ' · saved to this strain',

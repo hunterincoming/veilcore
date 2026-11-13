@@ -242,7 +242,7 @@ test('a lab sends results back: signed by the lab, locked for the breeder, opene
   await lab.getByRole('button', { name: /Set up your lab.s signature/ }).click();
   await lab.getByLabel(/^Name/).fill('E2E Lab');
   await lab.getByRole('button', { name: /Create my key/ }).click();
-  await lab.getByRole('button', { name: /^Done$/ }).click();
+  await lab.getByRole('button', { name: /^(Continue|Done)$/ }).click();
   await receiveWithBackupFirst(lab, code!);
   await lab.getByLabel(/I physically received this material/).check();
   await lab.getByRole('button', { name: /Sign with my key/ }).click();
@@ -332,6 +332,14 @@ test('a lab sends results back: signed by the lab, locked for the breeder, opene
   const dnaSwitch = breeder.getByLabel(/Whether a DNA report is saved/);
   await expect(dnaSwitch).not.toBeChecked();
   await dnaSwitch.check();
+  // Since 8 Nov 2026 a lab's receipt and report are private unless the holder shows them on
+  // the check link: both shown here, each off until turned on.
+  const labShares = breeder.locator('[data-lab-share]').getByRole('switch');
+  await expect(labShares).toHaveCount(2);
+  for (const s of await labShares.all()) {
+    await expect(s).not.toBeChecked();
+    await s.check();
+  }
   await breeder.getByRole('button', { name: /Get the link/ }).click();
   await breeder.getByRole('switch', { name: 'Put the name in the link' }).check();
   const shareLink = await breeder.locator('input[readonly]').first().inputValue();
@@ -427,6 +435,14 @@ test('a lab sends results back: signed by the lab, locked for the breeder, opene
   await expect(breeder.locator('[data-status-row="DNA report"]')).toContainText(
     'DNA report signed by a key named “E2E Lab”',
   );
+  // The corrected report is a new lab signature, private until shown (8 Nov 2026): the share
+  // screen suggests it, as the saved report's match.
+  await breeder.getByRole('button', { name: /Show someone/ }).click();
+  await breeder.locator('[data-lab-share-suggest]').getByRole('button', { name: 'Show it' }).click();
+  await expect(breeder.locator('[data-lab-share]').getByRole('switch')).toHaveCount(3);
+  for (const s of await breeder.locator('[data-lab-share]').getByRole('switch').all()) await expect(s).toBeChecked();
+  await breeder.getByRole('button', { name: /Get the link/ }).click();
+  await expect(breeder.locator('input[readonly]').first()).toBeVisible();
   // Round 6: the older link (it names the first file) now describes the corrected one, saved now.
   {
     const t = await buyerLine(

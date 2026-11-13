@@ -23,9 +23,7 @@ import {
   royaltyProtectionPending,
   useAgreementsWaitForBackup,
 } from '../../veilcore/licenses';
-import { Wordmark } from '../Wordmark';
 import { AgreementsBackupFirst } from './AgreementsBackupFirst';
-import { LanguageBar } from '../../i18n/LanguagePicker';
 import { useT } from '../../i18n/app';
 import { startRecordSync } from '../../veilcore/records';
 
@@ -56,13 +54,8 @@ export const CounterSignPage: React.FC = () => {
   }, [license]);
 
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
+    <Box sx={{ bgcolor: 'background.default' }}>
       <Container maxWidth="sm" sx={{ py: { xs: 5, md: 8 } }}>
-        <LanguageBar />
-        <Stack direction="row" spacing={1.25} sx={{ alignItems: 'center', justifyContent: 'center', mb: 4 }}>
-          <Wordmark />
-        </Stack>
-
         {!license ? (
           <Paper sx={{ p: 4, textAlign: 'center' }}>
             <Typography sx={{ mb: 1 }}>{tr.t('app.lic.sign.notHere')}</Typography>

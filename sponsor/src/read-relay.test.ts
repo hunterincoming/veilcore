@@ -82,7 +82,7 @@ describe("read-only relay: only its own settings", () => {
 
   it("lists exactly the settings loadReadRelayConfig reads", () => {
     expect([...READ_RELAY_SETTINGS].sort()).toEqual(
-      ["ALLOWED_ORIGINS", "BLOCKFROST_PROJECT_ID", "INDEXER_URL", "INDEXER_WS_URL", "PORT", "RELAY_NETWORK", "TRUST_PROXY_HOPS"],
+      ["ALLOWED_ORIGINS", "BLOCKFROST_PROJECT_ID", "CARDANO_BLOCKFROST_PROJECT_ID", "INDEXER_URL", "INDEXER_WS_URL", "PORT", "RELAY_NETWORK", "TRUST_PROXY_HOPS"],
     );
     // All of them set, nothing else: it starts.
     expect(

@@ -241,51 +241,77 @@ const FIELD_NAMES: readonly string[] = [
 ];
 const HIDDEN = /[\p{Cc}\p{Cf}\u2028\u2029]+/gu;
 
-/** /verify's `custody`, by receipt id; anything not in shape is left out. */
+/**
+ * One /verify `custody` line, or null when it is not in shape. `receiptAttestationId` is ''
+ * for a line that names no receipt: since 8 Nov 2026 the registry names one only when the
+ * holder shows that receipt on their check link.
+ */
+const custodyLineOf = (x: unknown): PublicCustody | null => {
+  if (typeof x !== 'object' || x === null) return null;
+  const c = x as Record<string, unknown>;
+  if (c.receiptAttestationId !== undefined && typeof c.receiptAttestationId !== 'string') return null;
+  const id = typeof c.receiptAttestationId === 'string' ? c.receiptAttestationId : '';
+  if (c.custody === 'sealed' || c.custody === 'removed') {
+    const s =
+      typeof c.custodySummary === 'object' && c.custodySummary !== null
+        ? (c.custodySummary as Record<string, unknown>)
+        : undefined;
+    const summary =
+      c.custody === 'sealed' &&
+      s &&
+      c.custodySummaryBy === 'holder' &&
+      typeof s.covered === 'string' &&
+      COVERED_STATES.includes(s.covered) &&
+      Array.isArray(s.differingFields)
+        ? {
+            covered: s.covered as 'covered' | 'changed' | 'not-covered',
+            differingFields: s.differingFields.filter(
+              (f): f is string => typeof f === 'string' && FIELD_NAMES.includes(f),
+            ),
+          }
+        : undefined;
+    return {
+      receiptAttestationId: id,
+      differences: [],
+      custody: c.custody,
+      ...(summary ? { custodySummary: summary } : {}),
+    };
+  }
+  if (typeof c.covered !== 'string') return null;
+  if (!COVERED_STATES.includes(c.covered) || !Array.isArray(c.differences)) return null;
+  return {
+    receiptAttestationId: id,
+    covered: c.covered as PublicCustody['covered'],
+    differences: c.differences
+      .filter((d): d is string => typeof d === 'string')
+      .slice(0, 10)
+      .map((d) => d.replace(HIDDEN, ' ').slice(0, 300)),
+  };
+};
+
+/** /verify's `custody`, by receipt id; anything not in shape, or naming no receipt, is left out. */
 export const publicCustodyOf = (v: unknown): Map<string, PublicCustody> => {
   const out = new Map<string, PublicCustody>();
   if (!Array.isArray(v)) return out;
   for (const x of v.slice(0, 100)) {
-    if (typeof x !== 'object' || x === null) continue;
-    const c = x as Record<string, unknown>;
-    if (typeof c.receiptAttestationId !== 'string') continue;
-    if (c.custody === 'sealed' || c.custody === 'removed') {
-      const s =
-        typeof c.custodySummary === 'object' && c.custodySummary !== null
-          ? (c.custodySummary as Record<string, unknown>)
-          : undefined;
-      const summary =
-        c.custody === 'sealed' &&
-        s &&
-        c.custodySummaryBy === 'holder' &&
-        typeof s.covered === 'string' &&
-        COVERED_STATES.includes(s.covered) &&
-        Array.isArray(s.differingFields)
-          ? {
-              covered: s.covered as 'covered' | 'changed' | 'not-covered',
-              differingFields: s.differingFields.filter(
-                (f): f is string => typeof f === 'string' && FIELD_NAMES.includes(f),
-              ),
-            }
-          : undefined;
-      out.set(c.receiptAttestationId, {
-        receiptAttestationId: c.receiptAttestationId,
-        differences: [],
-        custody: c.custody,
-        ...(summary ? { custodySummary: summary } : {}),
-      });
-      continue;
-    }
-    if (typeof c.covered !== 'string') continue;
-    if (!COVERED_STATES.includes(c.covered) || !Array.isArray(c.differences)) continue;
-    out.set(c.receiptAttestationId, {
-      receiptAttestationId: c.receiptAttestationId,
-      covered: c.covered as PublicCustody['covered'],
-      differences: c.differences
-        .filter((d): d is string => typeof d === 'string')
-        .slice(0, 10)
-        .map((d) => d.replace(HIDDEN, ' ').slice(0, 300)),
-    });
+    const line = custodyLineOf(x);
+    if (line?.receiptAttestationId) out.set(line.receiptAttestationId, line);
+  }
+  return out;
+};
+
+/**
+ * /verify's `custody` lines that name no receipt: since 8 Nov 2026 the registry names a
+ * line's receipt only when the holder shows that receipt on their check link. Each is still
+ * said, without the lab: a seal number that differed, or that the details were covered, is
+ * about the sample, and the registry still reports it under the holder's lab-status grant.
+ */
+export const unnamedCustodyOf = (v: unknown): PublicCustody[] => {
+  if (!Array.isArray(v)) return [];
+  const out: PublicCustody[] = [];
+  for (const x of v.slice(0, 100)) {
+    const line = custodyLineOf(x);
+    if (line && !line.receiptAttestationId) out.push(line);
   }
   return out;
 };

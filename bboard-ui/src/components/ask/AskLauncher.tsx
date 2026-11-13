@@ -11,11 +11,28 @@
 //
 // The bubble never sits on something being agreed to: on a phone-sized screen it is not shown on
 // an agreement's screens (its terms, accepting it, its royalty reports and payments). On a touch
-// screen it also steps aside while a field that brings up the keyboard has focus.
+// screen or a phone-sized one it also steps aside while a text field has focus.
+//
+// On a phone it is not a bubble at all: it is the first item under the header's "Menu"
+// (SiteHeader.tsx), so it covers nothing (review of ux-polish, 13 Nov: even as an icon the
+// bubble sat on the record's status lines at 390px in German) and takes no line of the header
+// (re-review, 13 Nov: as a button beside the network it landed alone on a fourth line). It is
+// still not offered on an agreement's screens or a form being filled in there.
 // SPDX-License-Identifier: Apache-2.0
 
 import React, { Suspense, lazy, useEffect, useMemo, useState } from 'react';
-import { Container, Fab, GlobalStyles, IconButton, Paper, Typography, useMediaQuery, useTheme } from '@mui/material';
+import { createPortal } from 'react-dom';
+import {
+  Button,
+  Container,
+  Fab,
+  GlobalStyles,
+  IconButton,
+  Paper,
+  Typography,
+  useMediaQuery,
+  useTheme,
+} from '@mui/material';
 import ChatIcon from '@mui/icons-material/ChatBubbleOutlineOutlined';
 import CloseIcon from '@mui/icons-material/Close';
 import { useT } from '../../i18n/app';
@@ -24,6 +41,7 @@ import { agreementScreen, formScreen, hintExample, hintPage, jobScreen } from '.
 import { useLocation } from 'react-router-dom';
 import { ANIMAL_RECORDS_ENABLED } from '../../config/network';
 import { askOpened, dismissHint, hintDone, markAskOpened, noteHintShown } from '../../ask-local/hint-flag';
+import { ASK_SLOT_ID } from '../SiteHeader';
 
 const AskSheet = lazy(() => import('./AskSheet'));
 
@@ -42,23 +60,32 @@ export const opensKeyboard = (el: Element | null): boolean => {
   return (el as HTMLElement).isContentEditable === true;
 };
 
-/** On a touch screen: whether a text field on the page (not in Ask) has focus. */
-const useTypingOnTouch = (): boolean => {
+/**
+ * Whether a text field on the page (not in Ask) has focus. Watched on a touch screen and on any
+ * phone-sized one (fresh-eyes review, 12 Nov: the bubble sat on fields being typed into at
+ * 360-390px, worst in Japanese and German).
+ */
+const useTyping = (watchIt: boolean): boolean => {
   const [typing, setTyping] = useState(false);
   useEffect(() => {
-    if (typeof matchMedia === 'undefined' || !matchMedia('(pointer: coarse)').matches) return;
+    const coarse = typeof matchMedia !== 'undefined' && matchMedia('(pointer: coarse)').matches;
+    if (!watchIt && !coarse) {
+      setTyping(false);
+      return;
+    }
     const check = () => {
       const el = document.activeElement;
       setTyping(opensKeyboard(el) && !el?.closest('[data-ask-sheet]'));
     };
     const later = () => setTimeout(check, 0);
+    check();
     document.addEventListener('focusin', check);
     document.addEventListener('focusout', later);
     return () => {
       document.removeEventListener('focusin', check);
       document.removeEventListener('focusout', later);
     };
-  }, []);
+  }, [watchIt]);
   return typing;
 };
 
@@ -73,7 +100,6 @@ export const AskLauncher: React.FC = () => {
   const [hintDoneAtLoad] = useState(hintDone);
   const [openedAtLoad] = useState(askOpened);
   const [dismissed, setDismissed] = useState(false);
-  const typing = useTypingOnTouch();
   const example = useMemo(
     () =>
       hintExample(records, ANIMAL_RECORDS_ENABLED, (kind, name) =>
@@ -85,10 +111,19 @@ export const AskLauncher: React.FC = () => {
   const { pathname } = useLocation();
   const theme = useTheme();
   const narrow = useMediaQuery(theme.breakpoints.down('md'));
+  // A phone: an item under the header's "Menu" instead of a bubble (where the header keeps a place for it).
+  const phone = useMediaQuery(theme.breakpoints.down('sm'), { noSsr: true });
+  const [slot, setSlot] = useState<HTMLElement | null>(() =>
+    typeof document === 'undefined' ? null : document.getElementById(ASK_SLOT_ID),
+  );
+  useEffect(() => setSlot(document.getElementById(ASK_SLOT_ID)), [pathname]);
+  const inHeader = phone && slot !== null;
+  // In the menu it covers nothing, so it doesn't step aside for typing.
+  const typing = useTyping(narrow && !inHeader);
   // Not over an agreement's terms or its accept, report and pay buttons on a phone-sized screen,
-  // nor over a form being filled in there (hint.ts formScreen).
-  const bubbleHere =
-    !typing && !jobScreen(pathname) && !(narrow && (agreementScreen(pathname) || formScreen(pathname)));
+  // nor over a form being filled in there (hint.ts formScreen); on a phone not offered there.
+  const offered = !jobScreen(pathname) && !(narrow && (agreementScreen(pathname) || formScreen(pathname)));
+  const bubbleHere = offered && !typing && !inHeader;
   const hint = !hintDoneAtLoad && !dismissed && !!example && hintPage(pathname);
 
   // Counted once per visit, the first time the hint shows.
@@ -116,6 +151,16 @@ export const AskLauncher: React.FC = () => {
     if (withExample) setPrefill((p) => ({ text: exampleText, n: (p?.n ?? 0) + 1 }));
     setWanted(true);
     setOpen(true);
+  };
+
+  const close = () => {
+    setOpen(false);
+    // Opened from the menu, which has closed since: focus goes back to "Menu", not to nowhere.
+    if (inHeader)
+      setTimeout(() => {
+        const a = document.activeElement;
+        if (!a || a === document.body) document.querySelector<HTMLElement>('[data-site-menu-button]')?.focus();
+      }, 300);
   };
 
   return (
@@ -190,9 +235,38 @@ export const AskLauncher: React.FC = () => {
           {t('app.ask.button')}
         </Fab>
       )}
+      {offered &&
+        inHeader &&
+        slot &&
+        createPortal(
+          <Button
+            variant="text"
+            color="primary"
+            onClick={() => press()}
+            aria-haspopup="dialog"
+            data-ask-open=""
+            data-ask-compact=""
+            startIcon={<ChatIcon aria-hidden="true" />}
+            sx={{
+              display: 'flex',
+              width: '100%',
+              justifyContent: 'flex-start',
+              minHeight: 44,
+              px: 2,
+              borderRadius: '6px',
+              fontSize: 15,
+              fontWeight: 600,
+              textTransform: 'none',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {t('app.ask.button')}
+          </Button>,
+          slot,
+        )}
       {wanted && (
         <Suspense fallback={null}>
-          <AskSheet open={open} onClose={() => setOpen(false)} firstOpen={!openedAtLoad} prefill={prefill} />
+          <AskSheet open={open} onClose={close} firstOpen={!openedAtLoad} prefill={prefill} />
         </Suspense>
       )}
     </>

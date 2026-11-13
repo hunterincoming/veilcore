@@ -166,4 +166,27 @@ export const prove = {
   'app.prove.share.nameInLinkHelp':
     'Si c’est activé, tous ceux à qui vous envoyez ce lien voient le nom, ainsi que quiconque à qui ils le transmettent.',
   'app.prove.share.nameWarning': 'Si c’est activé, quiconque a l’identifiant de l’enregistrement voit le nom.',
+  'app.prove.share.custodyNote':
+    'Si c’est activé, la page de vérification montre aussi, pour chaque accusé de réception qu’un laboratoire a signé pour un échantillon de cet enregistrement, qu’un laboratoire a reçu un échantillon (pas lequel) et si ce qui est arrivé correspond à ce qui a été envoyé.',
+  'app.prove.share.labSigs.title': 'Signatures de laboratoire',
+  'app.prove.share.labSigs.intro':
+    'Les accusés de réception et les rapports d’un laboratoire sur cet enregistrement sont privés : seuls vous, le laboratoire et la personne qui lui a envoyé l’échantillon pouvez les voir. Activez-en un pour l’afficher sur votre lien de vérification et à quiconque a le code de preuve de cet enregistrement (vos liens qui prouvent un nombre le contiennent). Ils voient alors que le laboratoire l’a signé, et le nom du laboratoire. Même si aucun n’est activé, « Si un rapport ADN est enregistré » montre, pour chaque accusé de réception, qu’un laboratoire a reçu un échantillon et si ce qui est arrivé correspond à ce qui a été envoyé, sans le nom du laboratoire.',
+  'app.prove.share.labSigs.item': 'Montrer sur votre lien de vérification que {who} a signé ceci',
+  'app.prove.share.labSigs.receipt': 'Accusé de réception d’un échantillon, signé le {date}',
+  'app.prove.share.labSigs.report': 'Rapport de laboratoire, signé le {date}',
+  'app.prove.share.labSigs.fingerprint': 'Empreinte génétique, signée le {date}',
+  'app.prove.share.labSigs.inspection': 'Inspection, signée le {date}',
+  'app.prove.share.labSigs.withdrawn': 'Retiré par le laboratoire le {date} ; la page de vérification le dit.',
+  'app.prove.share.labSigs.needsStatus':
+    'Pour montrer des signatures de laboratoire sur votre lien de vérification, activez « Si un rapport ADN est enregistré ».',
+  'app.prove.share.labSigs.none':
+    'Aucun laboratoire n’a encore signé d’accusé de réception ni de rapport sur cet enregistrement.',
+  'app.prove.share.labSigs.loading': 'Recherche des signatures de laboratoire…',
+  'app.prove.share.labSigs.couldntLoad':
+    'Impossible de lire les signatures de laboratoire pour l’instant. Votre choix précédent reste tel quel.',
+  'app.prove.share.labSigs.suggest':
+    'Votre rapport ADN enregistré correspond à un rapport de laboratoire signé par {lab}. Montrez-le, pour que la page de vérification puisse dire que le laboratoire a signé ce fichier.',
+  'app.prove.share.labSigs.suggestButton': 'Le montrer',
+  'app.prove.share.labSigs.plainHash':
+    'Cette signature plus ancienne indique le SHA-256 du fichier du rapport : une fois montrée, quiconque a une copie du fichier pourrait savoir qu’il est joint à cet enregistrement.',
 } satisfies Partial<AppTranslation>;

@@ -154,6 +154,7 @@ const PRIVATE_MARKERS = [
 const SEALED_ONLY = [
   'grant',
   'grantToConfirm',
+  'sharedAttestations',
   'sentTo',
   'resultLockFrom',
   'offerKeys',

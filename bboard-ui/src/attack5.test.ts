@@ -31,7 +31,10 @@ const hex = (n: number) =>
 describe('finding 1: the site check fetches every page the app serves, with random ids', () => {
   it('APP_ROUTES covers every route in App.tsx', () => {
     const app = fs.readFileSync(path.join(SRC, 'App.tsx'), 'utf8');
-    const routes = [...app.matchAll(/<Route\s+path="([^"]+)"/g)].map((m) => m[1]).filter((p) => p !== '*');
+    // /e2e/… pages exist only in the end-to-end build (App.tsx E2E_FIXTURES), never on a deployed site.
+    const routes = [...app.matchAll(/<Route\s+path="([^"]+)"/g)]
+      .map((m) => m[1])
+      .filter((p) => p !== '*' && !p.startsWith('/e2e/'));
     expect(routes.length).toBeGreaterThan(15);
     const listed = APP_ROUTES.map((r) => r.replace(/\?.*$/, '').replace(/:[a-z]+/g, ':x'));
     for (const r of routes) {

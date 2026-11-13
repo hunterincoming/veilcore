@@ -16,6 +16,111 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Saves of one kind are now sealed one at a time, in the order they start; the requests still
   go out without waiting on each other.
 
+### Royalty payments: overdue in the open, and stablecoin pay built (8 Nov 2026)
+
+- An accepted royalty report not paid by its due date shows as Overdue on both sides, with
+  in-app reminders when a payment is due within a week. The licensor's record's public check
+  page says "A royalty statement is overdue since <date>", nothing more, as the holder's word
+  (needs the registry's `license-notices-v1` to `-v3`). Revoking for non-payment takes a signed notice
+  of breach first and 30 days to pay (the cure period); only then is "Revoke for non-payment"
+  offered. It revokes on Midnight as before, then sends the licensee a signed notice, and the
+  public page says a license was revoked for non-payment. The licensee can answer with "I paid"
+  or a short dispute, which the public line shows beside it. Every deadline is a UTC date. The
+  public lines are worked out from the deal's signed messages and the chain, so any device, a
+  cleared browser or a plain "Revoke" leaves the same public page. Every line is signed with the
+  licensor's deal key; the licensee's page registers each report at the registry with its due
+  date, and a notice of breach is filed only for a registered report after that date. The
+  licensee's page shows every public line about their deal.
+- Paying a USD royalty in USDCx or USDM on Cardano, straight from the licensee's own wallet to
+  the licensor's signed address, with a CIP-20 reference; a payment found on Cardano settles
+  the report without "received" (SPEC 11.10 draft, "Settled on chain"). Addresses screened
+  against a bundled OFAC list first. Off everywhere unless switched on: on mainnet only by
+  `STABLECOIN_PAY_ON_MAINNET` in code, on a test network only with `VITE_STABLECOIN_PAY=on` and a
+  test token. A Cardano payout the page can't pay never hides the bank details and "I paid". One
+  new package, @emurgo/cardano-serialization-lib-browser 17.0.0.
+- The NIGHT payment check (test networks) compares with the report's amount less declared
+  tax, not the payer's figure. Details: `docs/royalty-pay.md`.
+
+### Lab results: a viability result for a sample before or after a kill step (test network only)
+
+- A lab can sign a test for viable organisms in a sample taken before or after a kill step (a
+  heat treatment, an inactivation): the batch, the stage, the kill step's method and parameters,
+  what the test recovers, the portion tested, each medium with its incubation time and
+  temperature, the limit of detection, whether anything was recovered and the count, the controls
+  and the date sampled (SDK SPEC 11.12, "Viability", draft). A run whose positive control didn't
+  grow, or whose negative control did, can't be signed.
+- The batch is tied to the strain record it was made from by proof code only. An after-sample can
+  name the before-sample's result; the check page takes several files at once and shows the two as
+  a pair only when the same key signed both for the same batch and strain record.
+- The check page, the record and the claim check say "no viable organisms recovered" with the
+  method, the portion and the limit of detection, and what a test can't show. They never call a
+  batch dead or sterile. A new call form, `/schemas/viability-v1.json`; the claims contract is
+  unchanged. In all five languages.
+- Fixes from an independent check: a withdrawn or replaced result no longer reads as paired (the
+  page says which one was withdrawn); a pair needs both tests to look for the same thing, and says
+  so when the methods differ; the lab form refuses "1,000", "1.000", "0,5" and other separated
+  numbers, with how to type them, instead of reading "1,000" as 1; none recovered has no count and
+  reads as "< {limit of detection}", never 0, and some recovered may leave the count out
+  (an enrichment test gives none: "no count reported"); the claim note says a claim doesn't show whether the
+  sample was taken before or after the kill step; Japanese no longer calls that claim a proof; the
+  standards are cited correctly; Spanish, German and French wording fixed.
+- Fixes from the final check: a signed result whose limit of detection or count reads like a
+  thousands point ("1.000", "12.500") is refused by its own check too, as in the SDK; an
+  after-sample that itself replaces its before-sample no longer reads as paired in the SDK either
+  (the page already said so); the pair no longer says the before-sample "also" had none recovered
+  when the after-sample recovered something; what the test recovers is quoted in the pair line; a
+  count unit with no count is refused instead of dropped; the number hint shows under the count
+  too; a missing control choice no longer marks the positive control's name.
+- Last fixes: a limit or count with any whole part but 0 and exactly three decimals ("1234.567",
+  "1000.000") is refused too, as in the SDK ("0.125" stands); the claim note says a claim covers
+  the result only, instead of "proves" it, in all five languages; the word check reads every lab
+  string in all five languages instead of a list of keys; a result that replaces its own pair
+  says so, instead of naming the same result twice.
+- Lab signing stays on the test network only.
+
+### Lab signatures: private unless the holder shows them (not live yet; ships with the registry)
+
+- The registry is changing to keep a lab's receipts and reports about a record private: only
+  the holder, the delivery's parties and the lab can read them. This site update goes with it.
+- Show someone has a "Lab signatures" section under "Whether a DNA report is saved": one switch
+  per lab receipt or report, "Show that … signed this on your check link", off by default. When
+  the saved DNA report matches a lab report and the link carries its lab salt, showing that
+  report is suggested. The choice is kept with the record's sealed copy and sent in the grant as
+  `values.sharedAttestations`; ids no longer about the record are left out before sending.
+- The check page reads `sharedAttestations` from `/verify`, checks each signature and
+  withdrawal in the browser, keeps only those about the record, and uses them like the open
+  list (the lab report line, receipt lines, the signer footer). A custody line that names no
+  receipt is still shown, without the lab.
+- It no longer says "No lab's receipt or lab report has been signed about this record". It says
+  the holder hasn't shown any lab signatures, and that they are private unless the holder
+  shows them. The DNA report lines and the claim check's "lab not identified" line say the same.
+- Against a registry from before this change (every lab signature public), the site works as
+  before: the grant is sent again without the field when the registry refuses it.
+  In all five languages.
+- `deploy:mainnet`, `deploy:test` and `deploy:prod` refuse a registry whose `/health` doesn't
+  list `private-lab-signatures-v1`, so the site can't go out before the registry.
+- Wording that still called a lab's signature public now says it is private unless the holder
+  shows it: the note a breeder gets when a lab report arrives (plants, animals, strains; shown
+  once more to those who dismissed the old one), the lab's "Sent" screen and its name help, the
+  partners page, "We don't vouch for results", and the privacy page (what the server keeps;
+  on veilcore.org also "What strangers can see"). Docs: privacy terms, simple flow, lab
+  signing, and the partner guide. In all five languages.
+- Final review fixes (12 Nov 2026):
+  - The share screen says what "Whether a DNA report is saved" already shows without any
+    signature shown: for each lab receipt, that a lab received a sample and whether what
+    arrived matches what was sent, without the lab's name. Said under that switch, in the
+    "Lab signatures" intro (which now says the delivery's sender sees them too), on the lab's
+    Sent screen and in the privacy page. In all five languages.
+  - The share list and the grant read every page of the holder's signatures, not only the
+    first 100.
+  - A lab key's genetic-fingerprint and inspection signatures can be shown too, when the
+    registry marks them private.
+  - A lab's signed report carries its key's proof (`x-lab-key-proof`), which the registry now
+    needs for a first report on a delivery with no receipt.
+  - The partner field keeps custody lines that name no receipt (`unnamedCustody`), so a seal
+    mismatch is not lost when the holder hasn't shown the receipt.
+  - Wording: a withdrawn lab report is "every one shown"; French "joint à cet enregistrement".
+
 ### Lab results v2: the lab's name link is salted (8 Nov 2026, test network)
 
 - The binding a lab posts to put its name on a result no longer gives away which record it

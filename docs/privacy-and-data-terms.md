@@ -18,7 +18,15 @@
   out a code from each file you add (its SHA-256); the files are never uploaded. A lab's
   signature on a report you sent names the report bound to your record with a salt only you
   and the lab hold; one made before 17 October 2026 names the file's SHA-256, which the
-  registry shows only to you and the lab.
+  registry shows only to you, the lab and whoever sent the lab the sample.
+- A lab's receipts and reports about your record are **private** (since the registry's 8
+  November 2026 update): the registry shows them only to you and the lab, and to whoever
+  sent the delivery. Your record's check page shows a lab signature only when you turn it on
+  under Show someone, "Lab signatures". One you turn on is also shown to anyone who has the
+  record's proof code (it is on the check page, and your links that prove a number carry it),
+  until you turn it off. With "Whether a DNA report is saved" on, the check page also says,
+  for each lab receipt, that a lab received a sample and whether what arrived matches what
+  was sent, without the lab's name.
 - The check and prove pages never send your holder key. A prove request tells our server
   which on-chain key it names.
 - Each release publishes the list of its files. You can check that the files your browser
@@ -81,7 +89,7 @@ The site uses your browser's local storage, on this device only. No cookies.
 | Check requests (`veilcore.prove-asks.v1`, `veilcore.verifier-challenges.v1`, `veilcore.verifier-challenges.lasting.v1`) | Requests you made to someone to prove they control a record's key, and their answers. |
 | A form you haven't finished (`veilcore.log-draft.v1`) | So a half-typed record isn't lost. |
 | A random fee-sponsor ticket (`veilcore.sponsor-ticket.v1`) | Made for the date-stamp service only. Not your holder key. |
-| Your role and language (`veilcore.role.v1`, `veilcore.lang`), a "seen this" flag (`veilcore.lab-visibility-seen.v1`) | Settings. |
+| Your role and language (`veilcore.role.v1`, `veilcore.lang`), a "seen this" flag (`veilcore.lab-visibility-seen.v2`) | Settings. |
 
 To remove them, clear this site's data in your browser settings. Save your holder key and
 record backup first.
@@ -100,7 +108,7 @@ record backup first.
 | Your sharing choices for each record's public check page, and the values you choose to show (readable: they are what the page shows) | What a stranger with the link sees | As long as the record |
 | Lab codes: a tag in place of the recipient's name (made with a key derived from your vault key, which we don't have; without it the tag can't be turned back into the name), the delivery's details (name, breeder, quantity, note) locked with a key that travels only in the lab code, a one-way digest of the claim code, which record it came from and was received as, which holder account received it, and (when filled in) the sample details: sample ID, seal number, where and when it was taken, a witness's name, and what the lab wrote on arrival, **locked** with the same key as the delivery's details (we don't have it; the server stores the box). Lab codes made before sealing keep the recipient's handle, quantity, note and sample details as typed until the purge (it replaces every such handle, whoever sent it) | So a lab can take delivery and sign a receipt | No set period |
 | Labs: public signing key, the name the key gives itself, role, and VeilCore's name-check notes | So signatures can be checked and named | No set period |
-| Lab signatures (attestations) and withdrawals | Public statements labs choose to publish | No set period |
+| Lab signatures (attestations) and withdrawals. A lab's receipts and reports about a record, and a lab key's genetic-fingerprint and inspection signatures, are private: shown only to the record's holder, the delivery's sender and that lab, and on the record's check page (and to anyone with its proof code) only the ones the holder chooses to show | So a record's holder can see who handled it, and show it when they choose | No set period |
 | Locked lab reports a lab sends you (encrypted to your key with `age`; the server can't open them), with their size and SHA-256 | So you can collect them | **Deleted 180 days after they arrive**, checked every hour. Not in backups. Off on the main site for now. |
 | Requests to prove control of a record's key, with the asker's name as typed and the answers | The prove-by-link feature | **Deleted after 7 days** |
 | Batches: each record's fingerprint, its inclusion proof, the batch root, where it was anchored, and the Bitcoin stamp | So anyone can check a record's date | Kept: they are what make old records checkable |
@@ -175,7 +183,7 @@ checked.]*
   server's copy of the records and their sharing choices (the server can also do this for
   your holder key directly: `DELETE /api/records`; the site has no button for it yet).
   Deleting **doesn't** remove: batch fingerprints and anchors already on Midnight or Bitcoin;
-  the inclusion proofs the registry keeps for batches; signatures labs published; lab codes
+  the inclusion proofs the registry keeps for batches; signatures labs made about it; lab codes
   and their sample details; encrypted backups until their lock ends; and copies anyone you
   shared with already has.
 - **Correct.** A sealed record can't change. A correction is a new record that points to

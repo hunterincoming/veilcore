@@ -5,11 +5,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import React, { useEffect, useState } from 'react';
-import { Link as RouterLink, useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { Alert, Box, CircularProgress, Container, Paper, Stack, Typography } from '@mui/material';
 import { anchoredFingerprintOf, readClaimLink, type ClaimVerdict } from '../../veilcore/claim-link';
-import { Wordmark } from '../Wordmark';
-import { LanguageBar } from '../../i18n/LanguagePicker';
 import { DatedNotOrigin } from '../verify/DatedNotOrigin';
 import { useT } from '../../i18n/app';
 import { DocumentDate, Fact } from './DocumentParts';
@@ -47,24 +45,8 @@ export const ClaimCheck: React.FC = () => {
   }, [hash]);
 
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }} data-claim-check="">
+    <Box sx={{ bgcolor: 'background.default' }} data-claim-check="">
       <Container component="main" maxWidth="sm" sx={{ py: { xs: 5, md: 8 }, overflowWrap: 'anywhere' }}>
-        <LanguageBar />
-        <Stack
-          component={RouterLink}
-          to="/"
-          direction="row"
-          sx={{
-            justifyContent: 'center',
-            mb: 2,
-            mx: 'auto',
-            width: 'fit-content',
-            minHeight: 44,
-            color: 'text.primary',
-          }}
-        >
-          <Wordmark />
-        </Stack>
         <Typography variant="h4" component="h1" sx={{ mb: 1 }}>
           {t('app.claim.check.title')}
         </Typography>
@@ -164,7 +146,7 @@ export const ClaimCheck: React.FC = () => {
                 )}
               </Paper>
             )}
-            {isCall && <ClaimResultFile record={link.record} />}
+            {isCall && <ClaimResultFile record={link.record} schema={link.schema} />}
             <Paper sx={{ p: { xs: 2.5, md: 3 } }}>
               <Typography variant="overline" sx={{ display: 'block', mb: 1 }}>
                 {t('app.claim.check.record')}

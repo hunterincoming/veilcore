@@ -30,6 +30,7 @@
 
 import { isObject, isString, isNumber, readJson } from './json';
 import { answerTokenHash, newAnswerToken } from './prove-relay';
+import { e2eChain } from './chain/e2e-chain';
 
 const BASE = import.meta.env.VITE_API_BASE ?? '';
 const HEX64 = /^[0-9a-f]{64}$/;
@@ -361,6 +362,9 @@ export const licenseStatusNow = async (
   issuerRecord: string,
   read = latestLedger,
 ): Promise<'PENDING' | 'ACTIVE' | 'none'> => {
+  // The end-to-end build's stand-in for Midnight (chain/e2e-chain.ts); undefined in every other build.
+  const stand = e2eChain()?.status;
+  if (stand) return stand(commitment, issuerRecord);
   const { licenseKeyOf } = await import('./chain/actions');
   const { LicenseState } = await import('../../../contract/src/managed/veilcore/contract/index.js');
   const l = await read();

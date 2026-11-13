@@ -2,8 +2,8 @@
 //
 // Due dates come only from the period dates the terms set: never from a message's signed time,
 // which is the sender's own clock. All the maths is on calendar days ("2026-03-31"), with no time
-// of day and no time zone. "Today" is the user's own calendar day (localDay), not UTC's: a grower
-// in Tokyo at 08:00 on 1 April is in April, though UTC is still in March.
+// of day and no time zone. "Today" is the UTC calendar day (utcDay), the same for both sides at
+// the same moment: a deadline can't pass for one side while it is still the due day for the other.
 //
 // Periods run from the license's start date, not from calendar quarters: a license starting
 // 15 January reports 15 Jan - 14 Apr, 15 Apr - 14 Jul, and so on. The month-end rule: period k
@@ -15,7 +15,7 @@
 
 import type { Period, Reporting } from './royalty-terms';
 
-export { localDay } from './royalty-terms';
+export { localDay, utcDay } from './royalty-terms';
 
 const MONTHS: Record<Period, number> = { month: 1, quarter: 3, half: 6, year: 12 };
 

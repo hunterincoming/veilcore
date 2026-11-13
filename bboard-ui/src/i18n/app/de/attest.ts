@@ -66,7 +66,7 @@ export const attest = {
   'app.claim.check.labConflict':
     'Mehr als ein Labor beansprucht diesen Schlüssel, daher wird kein Name angezeigt. Lesen Sie die Zahlen als Eingaben des Inhabers.',
   'app.claim.check.labUnidentified':
-    'Kein Labor hat erklärt, dass dieser Schlüssel für diesen Datensatz seiner ist. Lesen Sie die Zahlen als Eingaben des Inhabers.',
+    'Diese Seite hat kein Labor gefunden, das erklärt, dass dieser Schlüssel für diesen Datensatz seiner ist (die Berichtssignaturen eines Labors sind privat, außer der Inhaber zeigt sie). Lesen Sie die Zahlen als Eingaben des Inhabers.',
   'app.claim.check.labAbout': 'Die Ergebnisse betreffen den Datensatz mit dem Nachweiscode',
   'app.claim.check.labFieldSecret':
     'Das Labor kennt diese Zahlen ebenfalls und könnte selbst Aussagen darüber belegen.',

@@ -69,6 +69,24 @@ export const PASSKEY_BACKUP = AGREEMENTS_ON_CHAIN;
 export const ONCHAIN_PAYMENTS = !IS_MAINNET;
 
 /**
+ * Royalties paid in a US dollar stablecoin (USDCx, USDM) on Cardano, from the licensee's own
+ * wallet straight to the licensor's signed address (veilcore/cardano-pay.ts,
+ * docs/royalty-pay.md). Off on mainnet until Mako's yes, a lawyer's review, a fresh sanctions
+ * list and a first real payment on a test network: changed by a reviewed commit, on purpose.
+ */
+export const STABLECOIN_PAY_ON_MAINNET = false;
+
+/**
+ * Whether this build offers stablecoin pay. Off everywhere unless switched on on purpose: on
+ * mainnet only by the line above (no build setting can), on a test network only when the build
+ * sets both VITE_STABLECOIN_PAY=on and a test token (VITE_CARDANO_TEST_ASSET). The test site's
+ * deploy sets neither; only the end-to-end build does (package.json e2e:build).
+ */
+export const STABLECOIN_PAY = IS_MAINNET
+  ? STABLECOIN_PAY_ON_MAINNET
+  : import.meta.env.VITE_STABLECOIN_PAY === 'on' && !!import.meta.env.VITE_CARDANO_TEST_ASSET;
+
+/**
  * Whether royalties v2 (statements, answers, payments, receipts) has worked end to end on the
  * test network (docs/agreements-test-run.md). Until it has, the home page's test-site cell says
  * licenses are there and royalties are built, not "Yes" (m.live.lic.testNext). Turned on by a

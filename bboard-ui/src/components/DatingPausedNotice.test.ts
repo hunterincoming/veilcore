@@ -60,9 +60,11 @@ describe('the dating-paused notice', () => {
     }
   });
 
-  it('sits on the public pages and on every app page with a header', () => {
+  it('sits in the one header, which the public pages, the app and the check pages all have', () => {
     const at = (f: string) => readFileSync(new URL(f, import.meta.url), 'utf8');
-    expect(at('./site/SiteShell.tsx')).toContain('<DatingPausedNotice />');
-    expect(at('./AppHeader.tsx')).toContain('<DatingPausedNotice />');
+    expect(at('./SiteHeader.tsx')).toContain('<DatingPausedNotice />');
+    expect(at('./site/SiteShell.tsx')).toContain('<SiteHeader />');
+    // The app's frame and the check pages' frame (App.tsx).
+    expect(at('../App.tsx').match(/<SiteHeader\b/g)?.length).toBe(2);
   });
 });
