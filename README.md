@@ -17,7 +17,8 @@ said and when it existed: free, no account, without having to trust us.
 [a sample check page](https://veilcore.org/verify/example)
 
 **Record format:** an open spec, [SPEC.md](https://github.com/hunterincoming/veilcore-sdk/blob/main/SPEC.md),
-with libraries in TypeScript, Python and Rust in [veilcore-sdk](https://github.com/hunterincoming/veilcore-sdk)
+with the TypeScript library and a Python conformance implementation in [veilcore-sdk](https://github.com/hunterincoming/veilcore-sdk),
+and a Rust implementation in [veilcore-rs](https://github.com/hunterincoming/veilcore-rs)
 
 | Status | |
 |---|---|
@@ -153,7 +154,7 @@ a host sent everyone the same files.
 
 This is the application: the contract, the API, the CLI and the web app.
 
-The record format itself is a separate, open specification with implementations in TypeScript, Python and Rust (all three written by the same team; an implementation by someone else is still to come): **[veilcore-sdk](https://github.com/hunterincoming/veilcore-sdk)**. Checking a record's fingerprint needs SHA-256 and nothing from this repository or from us. Checking what the contract says (anchors, licenses, lineage) needs Midnight's tooling to read chain state; see Current status.
+The record format itself is a separate, open specification, **[veilcore-sdk](https://github.com/hunterincoming/veilcore-sdk)**, which holds the TypeScript library and a Python conformance implementation; a Rust implementation is in **[veilcore-rs](https://github.com/hunterincoming/veilcore-rs)** (all three written by the same team; an implementation by someone else is still to come). Checking a record's fingerprint needs SHA-256 and nothing from this repository or from us. Checking what the contract says (anchors, licenses, lineage) needs Midnight's tooling to read chain state; see Current status.
 
 ```
 contract/     # The Compact contract (veilcore.compact), verifier rules (verify.ts), tests, hash vectors

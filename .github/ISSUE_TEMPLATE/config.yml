@@ -5,4 +5,7 @@ contact_links:
     about: Privately, never in a public issue. SECURITY.md says how.
   - name: The record format and SDK
     url: https://github.com/hunterincoming/veilcore-sdk/issues
-    about: Issues with SPEC.md or the TypeScript, Python and Rust libraries go to veilcore-sdk.
+    about: Issues with SPEC.md, the TypeScript library or the Python conformance implementation go to veilcore-sdk.
+  - name: The Rust implementation
+    url: https://github.com/hunterincoming/veilcore-rs/issues
+    about: Issues with the Rust implementation go to veilcore-rs.

@@ -5,8 +5,11 @@
 # new install scripts) and check it against the release notes. CI must pass. Never merge
 # one unread, and never answer one with `npm audit fix`: lockfile changes are made by hand.
 #
-# Security updates are separate: they follow the repository's Dependabot security settings,
-# not this file.
+# Security updates follow the repository's Dependabot security settings, but the `ignore`
+# entries below apply to them too: an entry that names only a dependency blocks its security
+# pull requests as well. So the Midnight packages get no Dependabot pull requests at all,
+# security included. Their alerts still show under Security > Dependabot, and are handled by
+# hand, in the reviewed migration described below.
 
 version: 2
 updates:
