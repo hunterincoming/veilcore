@@ -337,12 +337,14 @@ export const labresult = {
   'app.lr.problem.lod': 'Die Nachweisgrenze ist eine Zahl über 0 mit ihrer Einheit (ohne Exponent: 1000, nicht 1e3).',
   'app.lr.problem.count':
     'Wenn lebensfähige Organismen nachgewiesen wurden, ist eine Anzahl optional (eine Anreicherung liefert keine); wenn angegeben, liegt sie über 0, mit ihrer Einheit. Wenn keine nachgewiesen wurden, gibt es keine Anzahl: Die Nachweisgrenze sagt es.',
+  'app.lr.problem.countUnitAlone':
+    'Geben Sie die Anzahl ein oder leeren Sie ihre Einheit: Eine Einheit ohne Anzahl wird nicht signiert. Lassen Sie beides leer, wenn das Verfahren keine Anzahl liefert.',
   'app.lr.problem.controls':
     'Geben Sie an, wie die Kontrollen ausfielen. Ein Lauf, bei dem die Positivkontrolle nicht gewachsen ist oder die Negativkontrolle schon, kann nicht signiert werden: Testen Sie erneut und signieren Sie die Wiederholung.',
   'app.lr.check.paired':
-    'Gepaart mit dem Ergebnis der Probe vor dem Abtötungsschritt {code} für Charge {batch}, mit demselben Schlüssel signiert; beide Tests suchten nach {target}. Vor dem Abtötungsschritt: {before}. Danach: {after}.',
+    'Gepaart mit dem Ergebnis der Probe vor dem Abtötungsschritt {code} für Charge {batch}, mit demselben Schlüssel signiert; beide Tests suchten nach „{target}“. Vor dem Abtötungsschritt: {before}. Danach: {after}.',
   'app.lr.check.pairBothNone':
-    'Auch in der Probe vor dem Abtötungsschritt wurde nichts nachgewiesen, daher zeigt dieses Paar nicht, dass der Abtötungsschritt etwas verändert hat.',
+    'In der Probe vor dem Abtötungsschritt wurde nichts nachgewiesen, daher zeigt dieses Paar nicht, dass der Abtötungsschritt etwas verändert hat.',
   'app.lr.check.pairMissing':
     'Es nennt das Ergebnis der Probe vor dem Abtötungsschritt {code}, das nicht unter den gewählten Dateien ist. Wählen Sie beide Dateien zusammen, um sie als Paar zu sehen.',
   'app.lr.check.pairNot':

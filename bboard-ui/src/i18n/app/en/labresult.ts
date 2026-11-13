@@ -343,12 +343,14 @@ export const labresult = {
   'app.lr.problem.lod': 'The limit of detection is a number above 0, with its unit (no exponent: write 1000, not 1e3).',
   'app.lr.problem.count':
     'When viable organisms were recovered, a count is optional (an enrichment test gives none); when given, it is above 0, with its unit. When none were, there is no count: the limit of detection says it.',
+  'app.lr.problem.countUnitAlone':
+    'Type the count, or clear its unit: a unit with no count isn’t signed. Leave both empty if the method gives no count.',
   'app.lr.problem.controls':
     'Say how the controls went. A run whose positive control didn’t grow, or whose negative control did, can’t be signed: test again and sign the repeat.',
   'app.lr.check.paired':
-    'Paired with the before-sample result {code} for batch {batch}, signed by the same key; both tests looked for {target}. Before the kill step: {before}. After it: {after}.',
+    'Paired with the before-sample result {code} for batch {batch}, signed by the same key; both tests looked for “{target}”. Before the kill step: {before}. After it: {after}.',
   'app.lr.check.pairBothNone':
-    'The before-sample also had none recovered, so this pair doesn’t show that the kill step changed anything.',
+    'The before-sample had none recovered, so this pair doesn’t show that the kill step changed anything.',
   'app.lr.check.pairMissing':
     'It names before-sample result {code}, which isn’t among the files chosen. Choose both files together to see them as a pair.',
   'app.lr.check.pairNot':

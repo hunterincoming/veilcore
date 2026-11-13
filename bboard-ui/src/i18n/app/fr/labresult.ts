@@ -338,12 +338,14 @@ export const labresult = {
     'La limite de détection est un nombre supérieur à 0, avec son unité (sans exposant : écrivez 1000, pas 1e3).',
   'app.lr.problem.count':
     'Si des organismes viables ont été retrouvés, le dénombrement est facultatif (un enrichissement n’en donne pas) ; s’il est indiqué, il est supérieur à 0, avec son unité. S’il n’y en a aucun, il n’y a pas de dénombrement : la limite de détection le dit.',
+  'app.lr.problem.countUnitAlone':
+    'Saisissez le dénombrement ou effacez son unité : une unité sans dénombrement n’est pas signée. Laissez les deux vides si la méthode n’en donne pas.',
   'app.lr.problem.controls':
     'Indiquez le résultat des témoins. Une série dont le témoin positif n’a pas poussé, ou dont le témoin négatif a poussé, ne peut pas être signée : refaites le test et signez la répétition.',
   'app.lr.check.paired':
-    'Apparié au résultat de l’échantillon d’avant {code} pour le lot {batch}, signé par la même clé ; les deux tests recherchaient {target}. Avant l’étape d’inactivation : {before}. Après : {after}.',
+    'Apparié au résultat de l’échantillon d’avant {code} pour le lot {batch}, signé par la même clé ; les deux tests recherchaient « {target} ». Avant l’étape d’inactivation : {before}. Après : {after}.',
   'app.lr.check.pairBothNone':
-    'L’échantillon d’avant n’a lui non plus rien donné, donc cette paire ne montre pas que l’étape d’inactivation a changé quoi que ce soit.',
+    'L’échantillon d’avant n’a rien donné, donc cette paire ne montre pas que l’étape d’inactivation a changé quoi que ce soit.',
   'app.lr.check.pairMissing':
     'Il nomme le résultat de l’échantillon d’avant {code}, qui n’est pas parmi les fichiers choisis. Choisissez les deux fichiers ensemble pour les voir en paire.',
   'app.lr.check.pairNot':

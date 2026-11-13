@@ -4,7 +4,14 @@
 
 import React from 'react';
 import { Autocomplete, Box, Button, MenuItem, Stack, TextField, Typography } from '@mui/material';
-import { CULTURES_MAX, QC_MAX, REPLACE_REASONS, type ProblemCode, type ResultKind } from '../../veilcore/lab-result';
+import {
+  CULTURES_MAX,
+  QC_MAX,
+  REPLACE_REASONS,
+  isLine,
+  type ProblemCode,
+  type ResultKind,
+} from '../../veilcore/lab-result';
 import type { ResultDraft, YesNo } from '../../veilcore/lab-result-draft';
 import { LAB_SCHEMAS, numbersOf } from '../../veilcore/field-set';
 import { NumbersFields } from '../document/NumbersFields';
@@ -103,7 +110,14 @@ export const ResultForm: React.FC<{
       label={t(label)}
       value={d[k]}
       onChange={(e) => set(k, e.target.value as never)}
-      error={problem === k || (problem === 'controls' && k !== 'stage')}
+      error={
+        problem === k ||
+        // Only the control choice that stops signing: one not made, a positive that didn't grow, a
+        // negative that did.
+        (problem === 'controls' &&
+          ((k === 'positiveGrew' && d.positiveGrew !== 'yes') ||
+            (k === 'negativeGrew' && d.negativeGrew !== 'no' && d.negativeGrew !== 'not-run')))
+      }
       fullWidth
       slotProps={{ htmlInput: { 'data-field': k } }}
     >
@@ -322,10 +336,13 @@ export const ResultForm: React.FC<{
           {d.detected === 'yes' && (
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
               {field('countValue', 'app.lr.form.countValue', {
-                error: problem === 'count' || problem === 'countNumber',
+                error: problem === 'count' || problem === 'countNumber' || problem === 'countUnitAlone',
+                helperText: t('app.lr.form.numberHelp'),
                 slotProps: { htmlInput: { inputMode: 'decimal', 'data-field': 'countValue' } },
               })}
-              {field('countUnit', 'app.lr.form.unit', { error: problem === 'count' })}
+              {field('countUnit', 'app.lr.form.unit', {
+                error: problem === 'count' || problem === 'countUnitAlone',
+              })}
             </Stack>
           )}
           {d.detected === 'no' && (
@@ -333,7 +350,10 @@ export const ResultForm: React.FC<{
               {t('app.lr.form.belowLod')}
             </Typography>
           )}
-          {field('positive', 'app.lr.form.positive', { error: problem === 'controls' })}
+          {field('positive', 'app.lr.form.positive', {
+            // Red only when it is what's missing, not when a control choice is.
+            error: problem === 'controls' && !isLine(d.positive.trim()),
+          })}
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
             {pick('positiveGrew', 'app.lr.form.positiveGrew', [
               ['yes', 'app.lr.control.grew'],

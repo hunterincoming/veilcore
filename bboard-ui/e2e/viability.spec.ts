@@ -212,7 +212,7 @@ test('a lab signs a before/after kill-step pair; the producer checks them togeth
   await expect(checked).toHaveCount(2);
   const after = checked.filter({ has: producer.locator('[data-viability-stage="after"]') });
   await expect(after.locator('[data-viability-pair="paired"]')).toContainText(
-    'both tests looked for The production strain. Before the kill step: Viable organisms recovered. After it: No viable organisms recovered.',
+    'both tests looked for “The production strain”. Before the kill step: Viable organisms recovered. After it: No viable organisms recovered.',
   );
   // The two used different methods: said plainly.
   await expect(after.locator('[data-viability-pair-method="differ"]')).toContainText(

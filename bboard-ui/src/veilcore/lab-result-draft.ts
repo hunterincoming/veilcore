@@ -6,6 +6,7 @@
 import { numbersOf, type TypedNumbers } from './field-set';
 import {
   DECIMAL,
+  THOUSANDS_LOOKALIKE,
   LAB_RESULT_FORMAT,
   checkedStatement,
   isFutureDate,
@@ -181,7 +182,7 @@ const code = (v: string, c: ProblemCode): string => proofCodeOf(v) ?? bad(c, 'A 
 const decimal = (v: string, c: 'lodNumber' | 'countNumber'): string => {
   const t = v.trim();
   if (t === '') return t;
-  if (!DECIMAL.test(t) || /^[1-9]\d{0,2}\.\d{3}$/.test(t))
+  if (!DECIMAL.test(t) || THOUSANDS_LOOKALIKE.test(t))
     bad(
       c,
       'Type a plain number: digits, with a point only before decimals (1000, 0.5). No commas, spaces or thousands points.',
@@ -207,6 +208,8 @@ const viability = (d: ResultDraft): ViabilityResult => {
   const some = call(d.detected);
   const count = some ? decimal(d.countValue, 'countNumber') : '';
   if (count && !d.countUnit.trim()) bad('count', 'Give the count’s unit.');
+  // A unit typed with no count is not dropped without a word: the lab may have meant to give one.
+  if (some && !count && d.countUnit.trim()) bad('countUnitAlone', 'Type the count, or clear its unit.');
   return {
     batch: d.batch.trim(),
     stage,

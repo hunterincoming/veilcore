@@ -334,12 +334,14 @@ export const labresult = {
     'El límite de detección es un número mayor que 0, con su unidad (sin exponente: escriba 1000, no 1e3).',
   'app.lr.problem.count':
     'Si se recuperaron organismos viables, el recuento es opcional (un enriquecimiento no da ninguno); si se indica, es mayor que 0, con su unidad. Si no se recuperó ninguno, no hay recuento: lo dice el límite de detección.',
+  'app.lr.problem.countUnitAlone':
+    'Escriba el recuento o borre su unidad: una unidad sin recuento no se firma. Deje ambos vacíos si el método no da ningún recuento.',
   'app.lr.problem.controls':
     'Indique cómo salieron los controles. Una serie cuyo control positivo no creció, o cuyo control negativo sí, no se puede firmar: repita la prueba y firme la repetición.',
   'app.lr.check.paired':
-    'Emparejado con el resultado de la muestra anterior {code} del lote {batch}, firmado con la misma clave; ambas pruebas buscaban {target}. Antes del paso de inactivación: {before}. Después: {after}.',
+    'Emparejado con el resultado de la muestra anterior {code} del lote {batch}, firmado con la misma clave; ambas pruebas buscaban «{target}». Antes del paso de inactivación: {before}. Después: {after}.',
   'app.lr.check.pairBothNone':
-    'En la muestra anterior tampoco se recuperó nada, así que este par no muestra que el paso de inactivación cambiara algo.',
+    'En la muestra anterior no se recuperó nada, así que este par no muestra que el paso de inactivación cambiara algo.',
   'app.lr.check.pairMissing':
     'Nombra el resultado de la muestra anterior {code}, que no está entre los archivos elegidos. Elija ambos archivos juntos para verlos como par.',
   'app.lr.check.pairNot':

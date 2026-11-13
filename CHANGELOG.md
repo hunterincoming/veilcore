@@ -30,6 +30,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (an enrichment test gives none: "no count reported"); the claim note says a claim doesn't show whether the
   sample was taken before or after the kill step; Japanese no longer calls that claim a proof; the
   standards are cited correctly; Spanish, German and French wording fixed.
+- Fixes from the final check: a signed result whose limit of detection or count reads like a
+  thousands point ("1.000", "12.500") is refused by its own check too, as in the SDK; an
+  after-sample that itself replaces its before-sample no longer reads as paired in the SDK either
+  (the page already said so); the pair no longer says the before-sample "also" had none recovered
+  when the after-sample recovered something; what the test recovers is quoted in the pair line; a
+  count unit with no count is refused instead of dropped; the number hint shows under the count
+  too; a missing control choice no longer marks the positive control's name.
 - Lab signing stays on the test network only.
 
 ### Lab signatures: private unless the holder shows them (not live yet; ships with the registry)

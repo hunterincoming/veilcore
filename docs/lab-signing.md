@@ -59,7 +59,7 @@ VeilCore says exactly what it can check and nothing more.
 ## Version 2: a result bound to its sample (7 November 2026)
 
 Status: built, on the test network only (the same `LAB_SIGNING_ENABLED` switch). Specified in the
-SDK's SPEC 11.12 (draft), with 133 vectors computed there from the text alone; this app checks
+SDK's SPEC 11.12 (draft), with 156 vectors computed there from the text alone; this app checks
 them (`lab-result.test.ts`).
 
 Version 1 names the plant only by a name the lab typed; the link to the record lived in the
@@ -125,7 +125,7 @@ showing the rest. Code: `veilcore/lab-result.ts`.
 
 Status: built, on the test network only (the same switch). SPEC 11.12, "Viability" (draft).
 
-Who asked: a producer that grows a production fungus and sells the dried meal heat-treats it (a
+Use case: a producer that grows a production fungus and sells the dried meal heat-treats it (a
 kill step) so no live culture leaves its site, and has a lab test samples before and after it.
 The same shape fits inactivated vaccines and cell lines, heat-treated seed and sterilised substrate.
 
@@ -147,7 +147,10 @@ The same shape fits inactivated vaccines and cell lines, heat-treated seed and s
 - **Numbers are typed plain.** The limit and the count take digits and a point before decimals
   only. "1,000", "1.000", "1 000", "0,5" and the like are refused with a message saying how to type
   them, because they mean different numbers in different countries; nothing is tidied or guessed. A
-  whole number with exactly three decimals ("4.300") reads like a thousands point and is refused too.
+  whole number with exactly three decimals ("4.300") reads like a thousands point and is refused too,
+  and a signed result carrying one is refused by its own check, here and in the SDK ("1.5", "1000"
+  and "0.125" stand). A unit typed with no count is refused too, not dropped: the lab may have
+  meant to give a count.
 - **An invalid run isn't signed.** A positive control that didn't grow, or a negative control that
   did, is refused on the form and by the statement's own check: "none recovered" on a test that
   couldn't recover anything would be worse than no result. (Under USP <71>, growth in the negative
@@ -168,11 +171,12 @@ The same shape fits inactivated vaccines and cell lines, heat-treated seed and s
   takes several files at once, and shows the two as a pair only when the same key signed both, the
   named one is a before-sample, the batch, the strain record and what the test recovers (`target`)
   are the same, it wasn't sampled later, and neither result has been withdrawn or replaced by
-  another file chosen. If one was, it says which, and doesn't call them a pair. If the methods
+  another file chosen, the two themselves included (an after-sample that replaces its own
+  before-sample breaks the pair). If one was, it says which, and doesn't call them a pair. If the methods
   differ it says so: the before-sample then shows only that the batch carried something the lab
   recovered before the kill step, not that the after-sample's method recovers it from this
   material. (What shows the after-sample's run could recover it is that run's own positive control,
-  ideally the strain added to killed product.) If the before-sample also had none recovered, it
+  ideally the strain added to killed product.) If the before-sample had none recovered, it
   says the pair doesn't show the kill step changed anything.
 - **The words.** Every page says the lab reported no viable organisms recovered from the portion,
   under the method and with the limit of detection stated, and that a test recovers only what grows

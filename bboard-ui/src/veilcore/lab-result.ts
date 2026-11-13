@@ -218,6 +218,7 @@ export const PROBLEM_CODES = [
   'controls',
   'lodNumber',
   'countNumber',
+  'countUnitAlone',
 ] as const;
 export type ProblemCode = (typeof PROBLEM_CODES)[number];
 
@@ -250,6 +251,13 @@ export const COUNT_MAX = 1_000_000_000;
 /** A decimal as a report prints it: no sign, no exponent, 15 whole digits and 6 decimals at most. */
 export const DECIMAL = /^(0|[1-9]\d{0,14})(\.\d{1,6})?$/;
 const ZERO = /^0(\.0+)?$/;
+/**
+ * One to three whole digits, a point and exactly three digits ("1.000", "12.500"): German, French
+ * and Spanish write the point between thousands, so a reader there takes these for a thousand or
+ * more. A viability amount (limit of detection, count) refuses them, signed or typed (SPEC 11.12);
+ * "1000", "1.5" and "0.125" stand.
+ */
+export const THOUSANDS_LOOKALIKE = /^[1-9]\d{0,2}\.\d{3}$/;
 /** The most media one viability result names (a USP <71> sterility test uses two). */
 export const CULTURES_MAX = 4;
 /** A medium's time and temperature, and a unit: short, like a QC figure. */
@@ -297,6 +305,7 @@ const isAmount = (v: unknown, positive: boolean): v is Amount =>
   onlyKeys(v, ['value', 'unit']) &&
   typeof v.value === 'string' &&
   DECIMAL.test(v.value) &&
+  !THOUSANDS_LOOKALIKE.test(v.value) &&
   !(positive && ZERO.test(v.value)) &&
   isLine(v.unit, SHORT_MAX);
 

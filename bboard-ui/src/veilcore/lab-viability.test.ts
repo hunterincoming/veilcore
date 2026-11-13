@@ -18,6 +18,7 @@ import {
   type LabResultBundle,
   type LabResultInput,
   type LabResultStatement,
+  type ProblemCode,
   type ViabilityResult,
 } from './lab-result';
 import { emptyDraft, tryDraft, type ResultDraft } from './lab-result-draft';
@@ -263,6 +264,20 @@ describe('a viability result', () => {
     expect(bad({ sampled: '2026-11-11' })).toThrow(expect.objectContaining({ code: 'sampled' }));
     expect(bad({ cultures: [] })).toThrow(expect.objectContaining({ code: 'cultures' }));
   });
+
+  it('refuses a signed limit or count that reads like a thousands point ("1.000"), as the SDK does', () => {
+    const s = { format: 'veilcore/lab-result/v2', ...before.statement } as LabResultStatement;
+    const r = s.result as ViabilityResult;
+    const with_ = (result: object) => () => checkedStatement({ ...s, result: { ...r, ...result } });
+    for (const v of ['1.000', '12.500', '4.300', '100.000'])
+      expect(with_({ lod: { value: v, unit: 'CFU/g' } }), v).toThrow(expect.objectContaining({ code: 'lod' }));
+    for (const v of ['12.500', '4.300'])
+      expect(with_({ count: { value: v, unit: 'CFU/g' } }), v).toThrow(expect.objectContaining({ code: 'count' }));
+    // Plain decimals stand, and so does a point then three digits that can't be a thousands group.
+    for (const v of ['1', '1.5', '2.25', '0.125', '1000', '1234.567', '1.0000'])
+      expect(with_({ lod: { value: v, unit: 'CFU/g' } }), v).not.toThrow();
+    expect(with_({ count: { value: '1000', unit: 'CFU/g' } })).not.toThrow();
+  });
 });
 
 describe('the lab’s form for a viability result', () => {
@@ -351,6 +366,52 @@ describe('the lab’s form for a viability result', () => {
     });
     const enrich = tryDraft(filled({ detected: 'yes', countValue: '', countUnit: '' }), 'L');
     expect(enrich.ok && 'count' in (enrich.input.statement.result as object)).toBe(false);
+    // A unit typed with no count isn't dropped without a word: the lab is asked for the count.
+    const alone = tryDraft(filled({ detected: 'yes', countValue: '', countUnit: 'CFU/g' }), 'L');
+    expect(alone.ok ? 'signed' : alone.code).toBe('countUnitAlone');
+    // None recovered: a unit left in the hidden count field is not used, as above.
+    expect(tryDraft(filled({ countValue: '', countUnit: 'CFU/g' }), 'L').ok).toBe(true);
+  });
+
+  it('marks only the field to fix: a missing control choice is not the positive control’s name', async () => {
+    const { LanguageProvider } = await import('../i18n');
+    const { ResultForm } = await import('../components/lab/ResultForm');
+    vi.stubGlobal('window', {
+      localStorage: { getItem: () => null, setItem: () => undefined },
+      location: { search: '' },
+    });
+    const invalid = (over: Partial<ResultDraft>, problem: ProblemCode) => {
+      const html = renderToStaticMarkup(
+        React.createElement(
+          LanguageProvider,
+          null,
+          React.createElement(ResultForm, {
+            draft: filled(over),
+            onDraft: () => undefined,
+            kinds: ['viability'],
+            mine: [],
+            problem,
+          }),
+        ),
+      );
+      const marked = (f: string) => {
+        const tag = html.match(new RegExp(`<input[^>]*data-field="${f}"[^>]*>`))?.[0] ?? '';
+        expect(tag, f).not.toBe('');
+        return /aria-invalid="true"/.test(tag);
+      };
+      return { marked, html };
+    };
+    const neg = invalid({ negativeGrew: '' }, 'controls');
+    expect(neg.marked('negativeGrew')).toBe(true);
+    expect(neg.marked('positiveGrew')).toBe(false);
+    expect(neg.marked('positive')).toBe(false);
+    const name = invalid({ positive: '' }, 'controls');
+    expect(name.marked('positive')).toBe(true);
+    expect(name.marked('negativeGrew')).toBe(false);
+    // The count takes the same number hint as the limit of detection.
+    const some = invalid({ detected: 'yes' }, 'countUnitAlone');
+    expect(some.marked('countValue')).toBe(true);
+    expect(some.html.match(/A plain number: 1000, 0\.5\./g)).toHaveLength(2);
   });
 
   it('refuses a number that isn’t a plain decimal, never tidying or guessing it', () => {
@@ -387,23 +448,37 @@ describe('the lab’s form for a viability result', () => {
 });
 
 describe('the words for a viability result', () => {
-  const KEYS = Object.keys(en).filter((k) =>
-    /viability|recovered|noneRecovered|\.stage|killStep|recovers|portion|cultures?\b|\.lod|\.count|belowLod|noCount|numberHelp|controls?|positive|negative|sampled|strain|before|pair/i.test(
-      k,
-    ),
+  const KEYS = Object.keys(en).filter(
+    (k) =>
+      /viability|recovered|noneRecovered|\.stage|killStep|recovers|portion|cultures?\b|\.lod|\.count|belowLod|noCount|numberHelp|controls?|positive|negative|sampled|strain|before|pair/i.test(
+        k,
+      ) ||
+      // Review of kill-step-result: six words the form added that the pattern above missed.
+      /^app\.lr\.(f|form|problem)\.batch$|^app\.lr\.form\.(read|unit|cultureAdd)$/.test(k),
   );
-  // "Dead", "sterile" and "proves" in each language: what a "none recovered" result never says.
+  // "Dead", "sterile", "proves" and "ownership" in each language: what a "none recovered" result
+  // never says (a record shows prior possession, never ownership).
   const NEVER: Record<string, RegExp> = {
-    en: /\bdead\b|steril|\bprove/i,
-    de: /\btot\b|steril|beweis/i,
-    es: /muert|estéril|esteril|prueba que|demuestra/i,
-    fr: /\bmort|stérile|sterile|prouve|démontre/i,
+    en: /\bdead\b|steril|\bprove|\bown(er|ership)\b/i,
+    de: /\btot\b|steril|beweis|eigentum/i,
+    es: /muert|estéril|esteril|prueba que|demuestra|propiedad|propietari|dueñ/i,
+    fr: /\bmort|stérile|sterile|prouve|démontre|propriét/i,
     // 証明 on its own is "proof"; 証明コード is the site's word for a proof code, which is a code.
-    ja: /死|無菌|証明(?!コード)/,
+    ja: /死|無菌|証明(?!コード)|所有/,
   };
 
   it('has every new word in all five languages', () => {
     expect(KEYS.length).toBeGreaterThan(40);
+    for (const k of [
+      'app.lr.f.batch',
+      'app.lr.form.batch',
+      'app.lr.problem.batch',
+      'app.lr.form.read',
+      'app.lr.form.unit',
+      'app.lr.form.cultureAdd',
+      'app.lr.problem.countUnitAlone',
+    ])
+      expect(KEYS, k).toContain(k);
     for (const [lang, dict] of Object.entries({ de, es, fr, ja }))
       for (const k of KEYS) expect((dict as Record<string, string>)[k], `${lang} ${k}`).toBeTruthy();
   });
