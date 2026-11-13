@@ -3,6 +3,9 @@
 // SPDX-License-Identifier: Apache-2.0
 export { RolePicker } from './components/RolePicker';
 export { SaveProblemBar } from './components/SaveProblemBar';
-export { AppFooter } from './components/AppFooter';
 // Ask VeilCore's button (the sheet is fetched when it is pressed).
 export { AskLauncher } from './components/ask/AskLauncher';
+// The network badge the one header (SiteHeader.tsx) carries on the app's pages, and the
+// footer's "change view".
+export { NetworkBadge } from './components/veilcore/WalletBadge';
+export { RoleChangeLink } from './components/RoleChangeLink';

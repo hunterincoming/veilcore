@@ -29,6 +29,9 @@ import { backupHoldsLine } from '../stage/record-kinds';
 import { rich, useT } from '../../i18n/app';
 import { backupMessageWords } from './backup-words';
 import { PasskeyCopyMaker } from './PasskeyCopy';
+import { loadAttester } from '../../veilcore/attester-keys';
+import { getRole, isLab } from '../../veilcore/role';
+import { prepareToReceive } from '../../veilcore/receive';
 
 const Done: React.FC<{ text: string; sub?: string }> = ({ text, sub }) => (
   <Stack direction="row" spacing={1.25} sx={{ alignItems: 'center' }}>
@@ -155,11 +158,22 @@ export const BackupStep: React.FC<{
   const pwReady = !usePassword || (pw.length >= MIN_BACKUP_PASSWORD && pw === pw2);
   // A locked file picked for the check, waiting for its password.
   const [waiting, setWaiting] = useState<File>();
+  // A lab's receiving key that couldn't be made before this backup (said, not blocking).
+  const [labKeyMissing, setLabKeyMissing] = useState(false);
 
   const save = async () => {
     if (!pwReady || locking) return;
     setLocking(true);
     try {
+      // A lab's backup holds the key its received records are locked with, made here first if
+      // there is none yet. It used to be made only when the first code was used, after this
+      // backup, so a lab that backed up first was asked to back up again (review, 12 Nov).
+      // A lab ('lab' or 'both'). If the key can't be made now the backup is still saved, and
+      // says so under "Saved" (review of ux-polish, 13 Nov: it used to fail silently).
+      if (loadAttester() || isLab(getRole())) {
+        const made = await prepareToReceive().catch(() => undefined);
+        setLabKeyMissing(!made || !('ok' in made));
+      }
       const now = Date.now();
       const text = await backupFileText(usePassword ? pw : undefined, now);
       savedText.current = text;
@@ -240,6 +254,11 @@ export const BackupStep: React.FC<{
               text={t('app.backup.saved')}
               sub={locked ? t('app.backup.pw.savedSub', { file: saved }) : t('app.backup.savedSub', { file: saved })}
             />
+            {labKeyMissing && (
+              <Alert severity="warning" variant="outlined" sx={{ mt: 1 }} data-lab-key-missing="">
+                {t('app.backup.labKeyNotMade')}
+              </Alert>
+            )}
           </Box>
         ) : (
           <Stack spacing={1.25}>

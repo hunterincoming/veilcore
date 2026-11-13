@@ -12,6 +12,8 @@ export const backup = {
   'app.backup.saveIt': 'Speichern',
   'app.backup.saved': 'Gespeichert',
   'app.backup.savedSub': '{file} · eine Datei für alles',
+  'app.backup.labKeyNotMade':
+    'Der Empfangsschlüssel Ihres Labors konnte gerade nicht erstellt werden, deshalb ist er noch nicht in dieser Sicherung. Für alles andere taugt die Sicherung. Speichern Sie eine neue, wenn Ihr erster Datensatz angekommen ist.',
   'app.backup.saveFile': 'Sicherungsdatei speichern',
   'app.backup.copyTitle': 'Eine Kopie woanders ablegen (empfohlen)',
   'app.backup.wayBack': 'Wenn dieses Handy oder dieser Computer kaputtgeht, ist diese Kopie Ihr Weg zurück.',

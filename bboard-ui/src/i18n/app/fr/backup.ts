@@ -12,6 +12,8 @@ export const backup = {
   'app.backup.saveIt': 'L’enregistrer',
   'app.backup.saved': 'Enregistrée',
   'app.backup.savedSub': '{file} · un seul fichier pour tout',
+  'app.backup.labKeyNotMade':
+    'La clé de réception de votre laboratoire n’a pas pu être créée pour l’instant : ce fichier de secours ne la contient donc pas encore. Pour tout le reste, il est valable. Enregistrez-en un nouveau après l’arrivée de votre premier enregistrement.',
   'app.backup.saveFile': 'Enregistrer le fichier de secours',
   'app.backup.copyTitle': 'En mettre une copie ailleurs (recommandé)',
   'app.backup.wayBack':

@@ -14,6 +14,7 @@ import { Chip, Stack } from '@mui/material';
 import BoltIcon from '@mui/icons-material/Bolt';
 import ScienceIcon from '@mui/icons-material/ScienceOutlined';
 import { useT } from '../../i18n/app';
+import { NETWORK } from '../../config/network';
 
 export const WalletBadge: React.FC<{ network: string }> = ({ network }) => {
   const { t } = useT();
@@ -41,3 +42,6 @@ export const WalletBadge: React.FC<{ network: string }> = ({ network }) => {
     </Stack>
   );
 };
+
+/** The header's badge for this build's network (SiteHeader on the app's pages). */
+export const NetworkBadge: React.FC = () => <WalletBadge network={NETWORK} />;

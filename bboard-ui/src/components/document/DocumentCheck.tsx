@@ -6,11 +6,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import React, { useEffect, useState } from 'react';
-import { Link as RouterLink, useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { Alert, Box, CircularProgress, Container, Paper, Stack, Typography } from '@mui/material';
 import { readDocumentLink, type ReadLink } from '../../veilcore/document-link';
-import { Wordmark } from '../Wordmark';
-import { LanguageBar } from '../../i18n/LanguagePicker';
 import { useT } from '../../i18n/app';
 import { DocumentDate, DocumentFacts, Fact, FileCompare, seen } from './DocumentParts';
 
@@ -29,24 +27,8 @@ export const DocumentCheck: React.FC = () => {
   }, [hash]);
 
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }} data-document-check="">
+    <Box sx={{ bgcolor: 'background.default' }} data-document-check="">
       <Container component="main" maxWidth="sm" sx={{ py: { xs: 5, md: 8 }, overflowWrap: 'anywhere' }}>
-        <LanguageBar />
-        <Stack
-          component={RouterLink}
-          to="/"
-          direction="row"
-          sx={{
-            justifyContent: 'center',
-            mb: 2,
-            mx: 'auto',
-            width: 'fit-content',
-            minHeight: 44,
-            color: 'text.primary',
-          }}
-        >
-          <Wordmark />
-        </Stack>
         <Typography variant="h4" component="h1" sx={{ mb: 1 }}>
           {t('app.doc.check.title')}
         </Typography>

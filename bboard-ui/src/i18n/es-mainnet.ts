@@ -67,7 +67,6 @@ export const esMainnet = buildMainnet({
       'Le envían un enlace. Usted toca una vez, y la página de la otra persona comprueba en la red que usted controla la clave propia de su planta. Su registro nombró esa clave al sellarse, así que no se puede cambiar por otra. No dice nada sobre quién es usted ni sobre quién obtuvo la planta. Este sitio web todavía no puede hacerlo.',
     'footer.privacy': 'Privacidad del sitio',
     'title.privacy': 'Privacidad del sitio',
-    'm.foot.privacy': 'Privacidad del sitio',
     'm.privacy.label': 'Privacidad del sitio',
     'm.privacy.title': 'Qué guarda este sitio.',
     'm.privacy.lede':

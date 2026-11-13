@@ -310,7 +310,8 @@ test('log a strain with its designation, deposits and parent; tie a DNA report; 
   await check.goto(new URL(shareLink).pathname + new URL(shareLink).search + new URL(shareLink).hash);
   await expect(check.getByText('Parent strains, as the holder states them: Practice parent (TEST 0001)')).toBeVisible();
   // What wasn't shared is named in a strain's words: no cultivar, no breeding, no "bred by".
-  const body = await check.locator('body').innerText();
+  // The page itself, not the site's footer, which describes VeilCore for plants and animals.
+  const body = await check.locator('main').innerText();
   expect(body).toContain('How it was made');
   expect(body).toContain('Made or isolated by');
   expect(body).not.toMatch(/cultivar|Breeding method|Bred by|\bplant\b/i);

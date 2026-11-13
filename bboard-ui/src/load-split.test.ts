@@ -30,6 +30,9 @@ describe('the first download, in the source', () => {
         './components/flow/FlowFrame',
         // A page that fails to draw says so (round 3, L5): small, and needed before any page.
         './components/PageErrorBoundary',
+        // The one header and footer, which the public pages load anyway (SiteShell.tsx).
+        './components/AppFooter',
+        './components/SiteHeader',
         './components/site/Founders',
         './components/site/Home',
         './components/site/NotFound',
@@ -51,7 +54,11 @@ describe('the first download, in the source', () => {
   });
 
   it('the public pages take the language picker through its lazy wrapper', () => {
-    expect(read('components/site/SiteShell.tsx')).toMatch(/from '\.\.\/\.\.\/i18n\/lazy-picker'/);
+    // Through the one header, which every page has (fresh-eyes review, 12 Nov).
+    expect(read('components/site/SiteShell.tsx')).toMatch(/from '\.\.\/SiteHeader'/);
+    expect(read('components/SiteHeader.tsx')).toMatch(/from '\.\.\/i18n\/lazy-picker'/);
+    expect(staticImports(read('components/SiteHeader.tsx'))).not.toContain('../i18n/LanguagePicker');
+    expect(staticImports(read('components/AppFooter.tsx')).some((s) => /i18n\/app|veilcore\//.test(s))).toBe(false);
     expect(staticImports(read('i18n/lazy-picker.tsx'))).not.toContain('./LanguagePicker');
   });
 
@@ -202,6 +209,29 @@ describe.skipIf(!built)('the first download, in the built site (dist/)', () => {
       expect(src.includes('ask-model-engine.worker'), f).toBe(false);
     }
     expect(fs.existsSync(path.join(DIST, 'ask-model'))).toBe(false);
+  });
+
+  it('React, React Router and MUI’s shared parts never wait for another chunk while loading', () => {
+    // vite-plugin-top-level-await turns a chunk with a dynamic import that imports a waiting
+    // chunk (i18n awaits its language) into `__tla = Promise.all([...]).then(async () => {...})`:
+    // its exports exist only after a microtask. MUI's Container reads Stack's at load without
+    // waiting, so when React Router (which has a dynamic import) landed in Stack's chunk the
+    // built site crashed with "n is not a function" (ux-polish review, 13 Nov). The library
+    // chunks, and everything they load, must set their exports at once (vite.config.ts).
+    const dir = path.join(DIST, 'assets');
+    const assets = fs.readdirSync(dir).filter((f) => f.endsWith('.js'));
+    const late = (f: string) => /let __tla\s*=\s*Promise\.all\(/.test(fs.readFileSync(path.join(DIST, f), 'utf8'));
+    const libs = assets
+      .filter((f) => /^(react|router|Stack|Container|Box)-[\w-]+\.js$/.test(f))
+      .map((f) => `assets/${f}`);
+    expect(libs.map((f) => path.basename(f).split('-')[0]).sort()).toEqual([
+      'Box',
+      'Container',
+      'Stack',
+      'react',
+      'router',
+    ]);
+    expect(closure(libs).filter(late)).toEqual([]);
   });
 
   it('the check page’s own file brings no WebAssembly with it', () => {
