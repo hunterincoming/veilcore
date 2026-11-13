@@ -142,7 +142,7 @@ test('a Ledger 8 state with the same keys (a network before its fork) also passe
   assert.match(out, /state read in Ledger 8 format/);
 });
 
-test('two indexers: agreeing passes; disagreeing FAILs that contract', async () => {
+test('two indexers: agreeing passes; disagreeing cannot check that contract (exit 2), not FAIL', async () => {
   serve('one', { ...GENUINE });
   serve('two', { ...GENUINE });
   let r = await verify(['--indexer', `${base}/one`, '--second-indexer', `${base}/two`]);
@@ -150,8 +150,20 @@ test('two indexers: agreeing passes; disagreeing FAILs that contract', async () 
   assert.match(r.out, /both indexers report the same state, byte for byte/);
   serve('two', { ...GENUINE, [CLAIMS]: edited(CLAIMS, (s) => (s.maintenanceAuthority = new v9.ContractMaintenanceAuthority([], 1, 2n))) });
   r = await verify(['--indexer', `${base}/one`, '--second-indexer', `${base}/two`]);
+  assert.equal(r.code, 2, r.out);
+  assert.match(r.out, /CANNOT CHECK {2}the two indexers report different states/);
+  assert.match(r.out, /RESULT: CANNOT CHECK: indexers disagree about veilcore-claims .*The rest matches: 24 of 24 circuits\./);
+  assert.doesNotMatch(r.out, /FAIL|chain does not match/);
+  // A contract that really differs is still a FAIL (exit 1), with the disagreement named.
+  serve('one', { ...GENUINE, [MAIN]: edited(MAIN, (s) => s.setOperation('proveLicense', opWith(s.operation('anchor').verifierKey))) });
+  serve('two', {
+    ...GENUINE,
+    [MAIN]: edited(MAIN, (s) => s.setOperation('proveLicense', opWith(s.operation('anchor').verifierKey))),
+    [CLAIMS]: edited(CLAIMS, (s) => (s.maintenanceAuthority = new v9.ContractMaintenanceAuthority([], 1, 2n))),
+  });
+  r = await verify(['--indexer', `${base}/one`, '--second-indexer', `${base}/two`]);
   assert.equal(r.code, 1, r.out);
-  assert.match(r.out, /FAIL {2}the two indexers report different states/);
+  assert.match(r.out, /RESULT: FAIL\..*23 of 24 circuits match\. Not checked, the indexers disagree: veilcore-claims\./);
 });
 
 test('cannot check (exit 2): indexer down, no such contract, wrong network, bad arguments', async () => {

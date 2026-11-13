@@ -194,3 +194,32 @@ test('no link to the repository\'s old name', () => {
   for (const f of ['README.md', ...readdirSync(path.join(ROOT, 'docs')).filter((x) => x.endsWith('.md')).map((x) => `docs/${x}`)])
     assert.doesNotMatch(read(f), /github\.com\/hunterincoming\/veilcore-midnight-testnet/, f);
 });
+
+test('verify:build with nothing built cannot check (exit 2), with --partial too; a built file that differs FAILs (exit 1)', async () => {
+  const { mkdtempSync, mkdirSync, writeFileSync, rmSync } = await import('node:fs');
+  const { tmpdir } = await import('node:os');
+  const { spawnSync } = await import('node:child_process');
+  const dir = mkdtempSync(path.join(tmpdir(), 'verify-build-'));
+  try {
+    for (const c of deployments.mainnet.contracts) mkdirSync(path.join(dir, c.name), { recursive: true });
+    const run = (...extra) =>
+      spawnSync(process.execPath, ['scripts/verify-build.mjs', '--network', 'mainnet', '--managed', dir, ...extra], {
+        cwd: ROOT,
+        encoding: 'utf8',
+      });
+    for (const extra of [[], ['--partial']]) {
+      const r = run(...extra);
+      assert.equal(r.status, 2, r.stdout + r.stderr);
+      assert.match(r.stdout, /CANNOT CHECK: nothing to compare\. None of the 118 artefacts/);
+      assert.doesNotMatch(r.stdout, /PASS/);
+    }
+    // One file there, and not the published one.
+    mkdirSync(path.join(dir, 'veilcore', 'contract'), { recursive: true });
+    writeFileSync(path.join(dir, 'veilcore', 'contract', 'index.js'), 'not the build\n');
+    const r = run('--partial');
+    assert.equal(r.status, 1, r.stdout + r.stderr);
+    assert.match(r.stdout, /DIFFERS {2}contract\/index\.js/);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});

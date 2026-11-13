@@ -44,7 +44,8 @@ npm run verify:deployment -- --network mainnet
 
 For each circuit it prints `PASS` or `FAIL` with the first 16 hex digits of the hash, then the
 maintenance authority, then one result line. It exits 0 when everything matches, 1 when
-anything differs, 2 when it could not check (an indexer unreachable, bad arguments). Expected
+anything differs, 2 when it could not check (an indexer unreachable, bad arguments, or two
+indexers reporting different states for a contract). Expected
 ending on mainnet:
 
 ```
@@ -64,7 +65,9 @@ so a check that does not trust us should use an indexer you choose:
   ```
   The id is never printed; only host names are.
 - or any indexer: `--indexer <GraphQL URL>`, and `--second-indexer <URL>` to require two
-  indexers to report byte-identical states.
+  indexers to report byte-identical states. If they don't (one may be a block behind), that
+  contract is not checked and the run ends `RESULT: CANNOT CHECK: indexers disagree …` with
+  exit 2; try again shortly.
 
 **What it compares.** The SHA-256 of each circuit's verifier key in the contract's current
 state, against `circuits.<name>.verifierKey` in the deployments file. Midnight checks every proof
@@ -105,11 +108,29 @@ compact update 0.31.1
 compact compile --version        # must print 0.31.1
 ```
 
-On Linux x86-64 you can instead take the compiler release directly, as CI does, and check it:
+On Linux x86-64 you can instead take the compiler release directly, as CI does
+(`.github/workflows/ci.yaml`, "Install Compact compiler"), check it, unpack it, and add the
+same small `compact` shim CI uses, because `contract/package.json` runs `compact compile`:
 
 ```bash
-curl -fsSLO https://github.com/midnightntwrk/compact/releases/download/compactc-v0.31.1/compactc_v0.31.1_x86_64-unknown-linux-musl.zip
-echo "e291b4bab4d4e857707008f8b1c25c2b8e0c843f6c737d0ee6c0d9ac69a6bbfb  compactc_v0.31.1_x86_64-unknown-linux-musl.zip" | sha256sum -c -
+dir="$HOME/compactc-0.31.1"
+zip="$dir.zip"
+curl -fsSL --retry 3 -o "$zip" \
+  https://github.com/midnightntwrk/compact/releases/download/compactc-v0.31.1/compactc_v0.31.1_x86_64-unknown-linux-musl.zip
+echo "e291b4bab4d4e857707008f8b1c25c2b8e0c843f6c737d0ee6c0d9ac69a6bbfb  $zip" | sha256sum -c -
+mkdir -p "$dir"
+unzip -q "$zip" -d "$dir"
+# `compact compile …` goes straight to the pinned compactc; nothing else is available.
+cat > "$dir/compact" <<'SHIM'
+#!/usr/bin/env bash
+set -euo pipefail
+if [ "${1:-}" != "compile" ]; then echo "compact (CI): only 'compile' is available" >&2; exit 2; fi
+shift
+exec compactc "$@"
+SHIM
+chmod +x "$dir/compact"
+export PATH="$dir:$PATH"        # in this terminal; add it to your shell profile to keep it
+compact compile --version       # must print 0.31.1
 ```
 
 (CI records this checksum. No checksum for the macOS download is recorded in this repository.)
@@ -119,8 +140,22 @@ one (`-- --strict` makes a mismatch an error).
 
 ### Build and compare
 
+Build on `main`, as cloned above. Stay on it: the commits in the table are where each
+contract was built, but the scripts used here (`verify:build`, `check:compiler`) and the
+`compact` step that builds both contracts are newer (at `ceb3a16` the claims contract did not
+exist yet, and `npm run compact` builds only the main one). The contracts' source on `main` is
+the same as at those commits, which you can check yourself; each command prints nothing:
+
 ```bash
-git checkout ceb3a1606e29fb87da3def2d0c69036e99f1f055   # or c75c155…, or main: the source is the same
+git diff ceb3a1606e29fb87da3def2d0c69036e99f1f055 main -- contract/src/veilcore.compact
+git diff c75c155e5eb48bcbc601cfb39db940a6aa6158a6 main -- 'contract/src/*.compact'
+```
+
+(`contract/src/` holds more than the contracts: TypeScript checking code and tests, which have
+changed since and are not compiled into either contract. The `.compact` files are the whole
+source of both.)
+
+```bash
 nvm use                                                 # Node 24.11.1 from .nvmrc
 npm ci
 npm run check:compiler -- --strict
@@ -139,6 +174,9 @@ The older check does the same against `docs/fingerprints.md`:
 
 Without the proving parameters, `compact compile --skip-zk` builds only the ZKIR and the
 contract code; compare those with `npm run verify:build -- --network mainnet --partial`.
+`verify:build` exits 0 when everything it compared matches, 1 when a file differs (or, without
+`--partial`, is missing), and 2 when it cannot check: bad arguments, no build folder, or not
+one artefact built to compare.
 
 ### What has been reproduced so far
 

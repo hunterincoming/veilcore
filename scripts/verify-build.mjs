@@ -8,7 +8,8 @@
 //                                                        and .bzkir files are reported as not built
 //
 // Exit 0: everything compared matches (and, without --partial, everything was there).
-// Exit 1: a file differs, or is missing without --partial. Exit 2: bad arguments or no build.
+// Exit 1: a file differs, or is missing without --partial. Exit 2: bad arguments, no build, or
+// nothing built to compare (not one artefact there).
 // SPDX-License-Identifier: Apache-2.0
 import { createHash } from 'node:crypto';
 import { existsSync, readFileSync } from 'node:fs';
@@ -86,6 +87,14 @@ for (const c of d.contracts) {
 }
 
 console.log('');
+// Nothing built (an empty or wrong --managed folder) is not a match: with --partial it used to
+// say "all 0 built artefacts match" and exit 0.
+if (matched === 0 && differ === 0) {
+  console.log(
+    `CANNOT CHECK: nothing to compare. None of the ${total} artefacts in deployments/${network}.json is in the build. Run \`cd contract && npm run compact\` (or \`compact compile --skip-zk\` with --partial) first.`,
+  );
+  process.exit(2);
+}
 if (differ > 0) {
   console.log(`FAIL: ${differ} built file(s) differ from deployments/${network}.json.${compiler.ok ? '' : ' Check the compiler version first (above).'}`);
   process.exit(1);

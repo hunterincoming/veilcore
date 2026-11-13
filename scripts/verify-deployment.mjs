@@ -18,7 +18,8 @@
 //   --network mainnet|preprod   default mainnet
 //   --contract <name>           only veilcore or veilcore-claims
 //   --indexer <url>             an indexer GraphQL URL of your choice
-//   --second-indexer <url>      a second indexer; both must report byte-identical states
+//   --second-indexer <url>      a second indexer; both must report byte-identical states (if
+//                               they don't, the run cannot check that contract: exit 2)
 //
 // With no --indexer: a Blockfrost project id of your own in the variable the file names
 // (VEILCORE_BLOCKFROST_PROJECT_ID on mainnet) is used if set; otherwise VeilCore's public
@@ -233,14 +234,17 @@ export const run = async (argv, { env = process.env, log = console.log } = {}) =
   let allOk = true;
   let circuits = 0;
   let matching = 0;
+  // Contracts the two indexers report differently: not a finding about the chain, so the run
+  // cannot say PASS or FAIL for them (exit 2), unless another contract already FAILs (exit 1).
+  const disagree = [];
   for (const c of contracts) {
     log(`\n${c.name}  ${c.address}`);
     const hex = await fetchStateHex(first, c.address);
     if (second !== undefined) {
       const other = await fetchStateHex(second, c.address);
       if (other !== hex) {
-        allOk = false;
-        log(`  FAIL  the two indexers report different states for this contract (one may be behind; try again shortly)`);
+        disagree.push(c.name);
+        log(`  CANNOT CHECK  the two indexers report different states for this contract (one may be behind; try again shortly)`);
         continue;
       }
       log('  both indexers report the same state, byte for byte');
@@ -252,12 +256,22 @@ export const run = async (argv, { env = process.env, log = console.log } = {}) =
     allOk &&= r.ok;
   }
   log('');
+  const unchecked =
+    disagree.length > 0 ? ` Not checked, the indexers disagree: ${disagree.join(', ')}.` : '';
+  if (!allOk) {
+    log(`RESULT: FAIL. The chain does not match deployments/${d.network}.json (see FAIL above): ${matching} of ${circuits} circuits match.${unchecked}`);
+    return 1;
+  }
+  if (disagree.length > 0) {
+    log(
+      `RESULT: CANNOT CHECK: indexers disagree about ${disagree.join(', ')} (one may be behind; try again shortly).${circuits > 0 ? ` The rest matches: ${matching} of ${circuits} circuits.` : ''}`,
+    );
+    return 2;
+  }
   log(
-    allOk
-      ? `RESULT: PASS. On ${d.network}, every circuit's verifier key matches the published build (${matching} of ${circuits}), and each maintenance authority is as published.`
-      : `RESULT: FAIL. The chain does not match deployments/${d.network}.json (see FAIL above): ${matching} of ${circuits} circuits match.`,
+    `RESULT: PASS. On ${d.network}, every circuit's verifier key matches the published build (${matching} of ${circuits}), and each maintenance authority is as published.`,
   );
-  return allOk ? 0 : 1;
+  return 0;
 };
 
 const invoked = () => {
