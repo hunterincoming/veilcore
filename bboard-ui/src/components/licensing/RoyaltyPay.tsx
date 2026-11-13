@@ -760,17 +760,22 @@ export const RevokedForNonPayment: React.FC<{
           “{revoked.note}”
         </Typography>
       )}
-      <Typography
-        variant="body2"
-        sx={{ mt: 0.5 }}
-        data-revoked-public={line?.kind === 'revoked' ? 'shown' : 'not-shown'}
-      >
-        {line?.kind === 'revoked'
-          ? tr.t('app.rpay.l.revokedPublic', { licensor, date: dateWords(line.on, tr) })
-          : view?.predates
-            ? tr.t('app.rpay.predates')
-            : tr.t('app.rpay.l.revokedNotPublic', { licensor })}
-      </Typography>
+      {/* A line about this report that isn't "revoked" (overdue, notice of breach) is shown with
+          the other public lines below, with Dispute; this box then says nothing about the public
+          page rather than that it is silent. */}
+      {(!line || line.kind === 'revoked') && (
+        <Typography
+          variant="body2"
+          sx={{ mt: 0.5 }}
+          data-revoked-public={line?.kind === 'revoked' ? 'shown' : 'not-shown'}
+        >
+          {line?.kind === 'revoked'
+            ? tr.t('app.rpay.l.revokedPublic', { licensor, date: dateWords(line.on, tr) })
+            : view?.predates
+              ? tr.t('app.rpay.predates')
+              : tr.t('app.rpay.l.revokedNotPublic', { licensor })}
+        </Typography>
+      )}
       {disputed ? (
         <Typography variant="body2" sx={{ mt: 0.5 }} data-answer="filed">
           {tr.t('app.rpay.l.revokedDisputed', { date: dateWords(disputed.on, tr), licensor })}
@@ -832,6 +837,19 @@ export const RevokedForNonPayment: React.FC<{
  * ordinary way can still put lines up, and the registry doesn't know the license is gone, so the
  * licensee keeps seeing them and can answer each one (review round 5, M1).
  */
+/**
+ * Which public line the licensee's list leaves to the revoked box (RevokedForNonPayment): the
+ * revoked report's line, and only when that line is "revoked", which the box shows. Any other line
+ * about that report (overdue, notice of breach) stays in the list, with Dispute.
+ */
+export const revokedLineExcept = (view: RegistryView | undefined, ledger: Ledger): Set<string> => {
+  const revoked = revokedNoticeOf(ledger);
+  const report = revoked ? ledger.reports.find((r) => r.statement.signature === revoked.statementSig) : undefined;
+  if (!report) return new Set();
+  const ref = reportRef(report);
+  return new Set(view?.lines.get(ref)?.kind === 'revoked' ? [ref] : []);
+};
+
 export const LicenseeAfterRevoke: React.FC<{
   party: DealParty;
   entries: readonly DealEntry[];
@@ -848,11 +866,7 @@ export const LicenseeAfterRevoke: React.FC<{
     [entries, skipped],
   );
   const [view, , readAgain, incomplete] = useRegistryView(party, ledger, { fingerprints });
-  const revoked = revokedNoticeOf(ledger);
-  const revokedReport = revoked
-    ? ledger.reports.find((r) => r.statement.signature === revoked.statementSig)
-    : undefined;
-  const except = useMemo(() => new Set(revokedReport ? [reportRef(revokedReport)] : []), [revokedReport]);
+  const except = useMemo(() => revokedLineExcept(view, ledger), [view, ledger]);
   const [busy, setBusy] = useState(false);
   const send = async (b: DealBody) => {
     setBusy(true);

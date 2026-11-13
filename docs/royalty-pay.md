@@ -302,7 +302,9 @@ RevokedForNonPayment`).
 - A licensee whose page registers a later due date than the terms say holds the notice of breach
   back until the day after that date, and from then on the public line can't say "overdue since"
   any earlier than that day: the registry can't check the date against the terms, which only the
-  two sides hold. It can't keep either line off, though. Before the registered date has passed,
+  two sides hold. It can't keep the plain overdue line off. A far-off date (say 9999-12-31) does
+  keep the notice of breach, and so "revoked for non-payment", off until then, which in practice
+  is for good; the overdue line and the revoke on Midnight still work. Before the registered date has passed,
   the plain overdue line isn't held to it. Once it has passed, the licensor's page reads the
   registered date (it is public at the registry, by statement) and dates both lines from the day
   after it, so the notice of breach is filed then (review round 5, B1). The licensor's alert

@@ -193,6 +193,28 @@ describe('a lookup that fails is tried again, and then said (L1)', () => {
     expect(r.view?.lines.has(noticeRef(lineOn))).toBe(true);
   });
 
+  it('a 404 on a later chunk (a registry rolled back mid-read): the lines read stand, marked incomplete', async () => {
+    let n = 0;
+    const f: typeof fetch = (_u, init) => {
+      const { statements } = JSON.parse(init!.body as string) as { statements: string[] };
+      return n++ === 0 ? answer(statements) : json(404, {});
+    };
+    const late = [...fps.slice(100), ...fps.slice(0, 100)]; // the line's statement is in the first chunk
+    const r = await lookupStatements(late, f, () => Promise.resolve());
+    expect(r.complete).toBe(false);
+    expect(r.view?.incomplete).toBe(true);
+    expect(r.view?.lines.has(noticeRef(lineOn))).toBe(true);
+  });
+
+  it('a 404 on the first chunk: a registry without lookups, nothing to read', async () => {
+    const r = await lookupStatements(
+      fps,
+      () => json(404, {}),
+      () => Promise.resolve(),
+    );
+    expect(r).toEqual({ complete: true });
+  });
+
   it('a chunk that keeps failing: what the rest read is kept, and the view says it is incomplete', async () => {
     const waits: number[] = [];
     const f: typeof fetch = (_u, init) => {

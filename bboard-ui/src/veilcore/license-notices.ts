@@ -285,7 +285,14 @@ export const lookupStatements = async (
   };
   for (let i = 0; i < unique.length; i += LOOKUP_MAX) {
     const got = await ask(unique.slice(i, i + LOOKUP_MAX));
-    if (got === 'none') return { complete: true };
+    // A 404 on the first ask: a registry without lookups, so there is nothing to read. Later in
+    // the list (a registry rolled back mid-read), the lines already read stand and the read is
+    // marked not complete rather than reported as "no lines".
+    if (got === 'none') {
+      if (i === 0) return { complete: true };
+      complete = false;
+      continue;
+    }
     if (!got) {
       complete = false;
       continue;
