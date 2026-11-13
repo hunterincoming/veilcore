@@ -91,7 +91,7 @@ test('a lab signs results bound to a record; the breeder checks them, adds one, 
   await lab.getByRole('button', { name: /Set up your lab.s signature/ }).click();
   await lab.getByLabel(/^Name/).fill('E2E Lab');
   await lab.getByRole('button', { name: /Create my key/ }).click();
-  await lab.getByRole('button', { name: /^Done$/ }).click();
+  await lab.getByRole('button', { name: /^(Continue|Done)$/ }).click();
   await receiveWithBackupFirst(lab, code);
   await lab.getByLabel(/I physically received this material/).check();
   await lab.getByRole('button', { name: /Sign with my key/ }).click();

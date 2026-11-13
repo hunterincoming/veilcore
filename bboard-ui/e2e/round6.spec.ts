@@ -80,7 +80,7 @@ test.describe('round 6 against a real registry: the lab report hash and the name
     await lab.getByRole('button', { name: /Set up your lab.s signature/ }).click();
     await lab.getByLabel(/^Name/).fill('Round6 Lab');
     await lab.getByRole('button', { name: /Create my key/ }).click();
-    await lab.getByRole('button', { name: /^Done$/ }).click();
+    await lab.getByRole('button', { name: /^(Continue|Done)$/ }).click();
     await receiveWithBackupFirst(lab, code);
     await lab.getByLabel(/I physically received this material/).check();
     await lab.getByRole('button', { name: /Sign with my key/ }).click();
