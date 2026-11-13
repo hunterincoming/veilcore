@@ -194,8 +194,12 @@ export const checkAttestations = async (
 
 /** The registry's largest page of attestations (lineage/attesters.mjs ATTESTATION_LIMITS.page). */
 const PAGE = 100;
-/** At most this many pages: the registry keeps at most 1,000 public and 1,000 private per record. */
-const MAX_PAGES = 21;
+/**
+ * At most this many pages. The registry keeps at most 100 + 1,000 public and 100 + 1,000
+ * private signatures per record (unvetted and vetted keys apart): 22 pages. A list longer than
+ * this (rows stored before a ceiling) is not read in part: loadAttestations answers null.
+ */
+const MAX_PAGES = 23;
 
 /**
  * The open list for a record, or null when the registry could not be asked or answered
@@ -219,8 +223,12 @@ export const loadAttestations = async (
     }
     // Every page (12 Nov 2026): the registry sends at most PAGE rows at a time, public ones
     // first, so a record with more than that would hide the holder's own lab signatures past
-    // the first page from the share list. A page that fails fails the whole list.
+    // the first page from the share list. A page that fails fails the whole list, and so does
+    // running out of pages before the end (13 Nov 2026): a caller takes the list as complete
+    // (disclosure.ts sharedIdsNow drops a shared signature it doesn't find), so a part of it is
+    // "couldn't say", never "these are all".
     const rows: unknown[] = [];
+    let complete = false;
     for (let offset = 0, n = 0; n < MAX_PAGES; n++) {
       const res = await fetch(`${url}?limit=${String(PAGE)}&offset=${String(offset)}`, init);
       if (!res.ok) return null;
@@ -229,8 +237,12 @@ export const loadAttestations = async (
       rows.push(...(body.attestations as unknown[]));
       offset += body.attestations.length;
       const total = typeof body.total === 'number' ? body.total : 0;
-      if (body.attestations.length === 0 || offset >= total) break;
+      if (body.attestations.length === 0 || offset >= total) {
+        complete = true;
+        break;
+      }
     }
+    if (!complete) return null;
     const seen = new Set<string>();
     const once = rows.filter((a) => {
       const id = isObject(a) && isString(a.attestationId) ? a.attestationId : '';

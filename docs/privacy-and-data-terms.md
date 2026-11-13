@@ -18,7 +18,7 @@
   out a code from each file you add (its SHA-256); the files are never uploaded. A lab's
   signature on a report you sent names the report bound to your record with a salt only you
   and the lab hold; one made before 17 October 2026 names the file's SHA-256, which the
-  registry shows only to you and the lab.
+  registry shows only to you, the lab and whoever sent the lab the sample.
 - A lab's receipts and reports about your record are **private** (since the registry's 8
   November 2026 update): the registry shows them only to you and the lab, and to whoever
   sent the delivery. Your record's check page shows a lab signature only when you turn it on

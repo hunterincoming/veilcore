@@ -25,6 +25,9 @@ import { appDe } from '../i18n/app/de';
 import { appEs } from '../i18n/app/es';
 import { appFr } from '../i18n/app/fr';
 import { appJa } from '../i18n/app/ja';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const appTranslations = { en: appEn, de: appDe, es: appEs, fr: appFr, ja: appJa };
 
@@ -327,6 +330,28 @@ describe('L3: the share list and the grant read every page of the holder’s sig
     );
     expect(await loadAttestations(PLANT, { asHolder: true, allPages: true })).toBeNull();
   });
+
+  it('running out of pages before the end is “couldn’t say”, not the whole list: stored shares are kept', async () => {
+    // A registry that keeps saying there is more: one row a page, total far past every page.
+    const one = row(await signed('att_page_row', 'genetic-fingerprint'));
+    let pages = 0;
+    vi.stubGlobal('fetch', (input: RequestInfo | URL) => {
+      const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
+      if (!url.includes('/attestations/subject/')) return Promise.resolve(new Response('{}', { status: 404 }));
+      pages++;
+      const body = { attestations: [one], total: 1_000_000 };
+      return Promise.resolve(
+        new Response(JSON.stringify(body), { status: 200, headers: { 'content-type': 'application/json' } }),
+      );
+    });
+    expect(await loadAttestations(PLANT, { asHolder: true, allPages: true })).toBeNull();
+    expect(pages).toBeGreaterThan(20);
+    expect(pages).toBeLessThan(30);
+    // The grant: the share the registry publishes now is kept, not dropped as gone.
+    const r = rec({ sharedAttestations: ['att_far_report'] });
+    const v = await grantValuesNow(r, ['attestation-status'], { sharedAttestations: ['att_far_report'] });
+    expect(v.sharedAttestations).toEqual(['att_far_report']);
+  });
 });
 
 describe('L5: a lab key’s genetic fingerprint or inspection, offered only when the registry marks it private', () => {
@@ -400,5 +425,43 @@ describe('M2 and L6: what the share screen and the lab’s Sent screen say', () 
     expect(en['app.verify.report.unnamedWithdrawn']).toMatch(/every lab report signature shown here was withdrawn/);
     const fr = appTranslations.fr as Record<string, string>;
     expect(Object.values(fr).join('\n')).not.toMatch(/enregistré sur cet enregistrement/);
+  });
+});
+
+describe('the privacy pages name everyone who sees a lab’s signatures, as the share screen does', () => {
+  // 13 Nov 2026: the share intro names the sender too; the privacy pages said "only you and
+  // the lab". Every language, the test and mainnet pages alike.
+  const dir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../i18n');
+  const read = (f: string) => fs.readFileSync(path.join(dir, f), 'utf8');
+  const cases: [string[], RegExp, RegExp[]][] = [
+    [
+      ['en.ts', 'en-mainnet.ts'],
+      /whoever sent the lab the sample/,
+      [/only to you and the lab\b/, /only you and the lab see them/],
+    ],
+    [
+      ['de.ts', 'de-mainnet.ts'],
+      /die Probe geschickt hat/,
+      [/nur Ihnen und dem Labor\b/, /Nur Sie und das Labor sehen sie/],
+    ],
+    [
+      ['es.ts', 'es-mainnet.ts'],
+      /quien le envió la muestra/,
+      [/solo a usted y al laboratorio\b/, /solo usted y el laboratorio los ven/],
+    ],
+    [
+      ['fr.ts', 'fr-mainnet.ts'],
+      /la personne qui lui a envoyé l'échantillon/,
+      [/qu'à vous et au laboratoire\b/, /seuls vous et le laboratoire les voyez/],
+    ],
+    [['ja.ts'], /ラボにサンプルを送った人/, [/あなたとラボにだけ見せます/, /あなたとラボだけが見られます/]],
+  ];
+  it('every language says the sender sees them too, and none says only you and the lab', () => {
+    for (const [files, names, never] of cases)
+      for (const f of files) {
+        const src = read(f);
+        expect(src, f).toMatch(names);
+        for (const n of never) expect(src, `${f} ${String(n)}`).not.toMatch(n);
+      }
   });
 });
