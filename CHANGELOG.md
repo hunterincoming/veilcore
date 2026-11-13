@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### A change undone before it is saved is saved undone (13 Nov 2026, not deployed yet)
+
+- A holder who changed a record and changed it back before the first save was answered had the
+  change-back skipped: it matched the copy last saved, and the change still on its way wasn't
+  counted. The registry kept the change while the page showed the original. A save now skips a
+  row only when nothing sent above the copy last saved is still unanswered (on its way, or its
+  answer lost); otherwise the row is sent again, one rev above.
+
 ### Two quick saves of a record keep the newer copy (13 Nov 2026, not deployed yet)
 
 - A save's rev was taken after its hashing finished, and hashing can finish in any order. A
