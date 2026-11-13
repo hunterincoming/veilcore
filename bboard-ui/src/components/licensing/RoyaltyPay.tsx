@@ -456,16 +456,22 @@ export const LicenseePublicLines: React.FC<{
   alerts: readonly PaymentAlert[];
   licensor: string;
   mySecret: string;
-  /** Every message's fingerprint in the deal (what the lines are about). */
+  /** Every message's fingerprint in the deal (what the lines are about), read or not. */
   fingerprints: readonly string[];
+  /**
+   * The ones this page couldn't open, or that repeat a message already read (deal-client.ts
+   * dealSkippedReadHere): a line about one is shown with its own words and a Dispute (N1).
+   */
+  unreadable?: readonly string[];
   tr: Translator;
   busy: boolean;
   send: (b: DealBody) => Promise<boolean>;
   onFiled: () => void;
-}> = ({ view, ledger, alerts, licensor, mySecret, fingerprints, tr, busy, send, onFiled }) => {
+}> = ({ view, ledger, alerts, licensor, mySecret, fingerprints, unreadable = [], tr, busy, send, onFiled }) => {
   if (!view || view.lines.size === 0) return null;
   const byRef = new Map(ledger.reports.map((r) => [reportRef(r), r]));
   const fpOf = new Map(fingerprints.map((fp) => [noticeRef(fp), fp]));
+  const unread = new Set(unreadable.map(noticeRef));
   const inAlert = new Set(alerts.filter((a) => a.kind === 'overdue').map((a) => reportRef(a.report)));
   return (
     <Stack spacing={1} data-licensee-public="">
@@ -483,6 +489,7 @@ export const LicenseePublicLines: React.FC<{
           send={send}
           onFiled={onFiled}
           fingerprint={fpOf.get(line.ref)}
+          unreadable={unread.has(line.ref)}
         />
       ))}
     </Stack>
@@ -502,7 +509,9 @@ const OnePublicLine: React.FC<{
   onFiled: () => void;
   /** The message the line is about, when it is not one of the reports. */
   fingerprint: string | undefined;
-}> = ({ line, report, answers, offer, licensor, mySecret, tr, busy, send, onFiled, fingerprint }) => {
+  /** That message is one this page couldn't open, or a second copy of one it read. */
+  unreadable?: boolean;
+}> = ({ line, report, answers, offer, licensor, mySecret, tr, busy, send, onFiled, fingerprint, unreadable }) => {
   const [disputing, setDisputing] = useState(false);
   const [note, setNote] = useState('');
   const [failed, setFailed] = useState(false);
@@ -513,9 +522,17 @@ const OnePublicLine: React.FC<{
       ? tr.t('app.rpay.l.pubRevoked', { licensor, date: dateWords(line.on, tr) })
       : report
         ? tr.t('app.rpay.l.pubOverdue', { licensor, n: report.number, date: dateWords(line.since, tr) })
-        : tr.t('app.rpay.l.pubOverdueOther', { licensor, date: dateWords(line.since, tr) });
+        : unreadable
+          ? tr.t('app.rpay.l.pubOverdueUnreadable', { licensor, date: dateWords(line.since, tr) })
+          : tr.t('app.rpay.l.pubOverdueOther', { licensor, date: dateWords(line.since, tr) });
   return (
-    <Alert severity="warning" variant="outlined" data-licensee-line={line.kind} data-line-ref={line.ref}>
+    <Alert
+      severity="warning"
+      variant="outlined"
+      data-licensee-line={line.kind}
+      data-line-ref={line.ref}
+      {...(unreadable && !report ? { 'data-line-unreadable': '' } : {})}
+    >
       <Typography variant="body2" sx={{ fontWeight: 600 }}>
         {what}
       </Typography>

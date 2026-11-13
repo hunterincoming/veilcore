@@ -30,7 +30,13 @@ import {
 } from '@mui/material';
 import ContentCopyIcon from '@mui/icons-material/ContentCopyOutlined';
 import { TabLockUnavailable } from '../../veilcore/tab-lock';
-import { downloadDealRecord, sayOnce, type DealEntry, type DealParty } from '../../veilcore/deal-client';
+import {
+  dealSkippedReadHere,
+  downloadDealRecord,
+  sayOnce,
+  type DealEntry,
+  type DealParty,
+} from '../../veilcore/deal-client';
 import { publicOf, type DealSide, type StatementLine } from '../../veilcore/deal';
 import {
   currencyDigits,
@@ -209,8 +215,14 @@ export const RoyaltyLedger: React.FC<{
   // Whether the cure period has run out is the registry's call, by its own clock (royalty-ledger.ts
   // registryAllowsRevoke), never this device's date.
   // The licensee's page also registers each report there with its due date (a notice of breach
-  // needs that), and reads what is on file about every message in the deal.
-  const fingerprints = useMemo(() => (entries ?? NO_ENTRIES).map((e) => e.fingerprint), [entries]);
+  // needs that), and reads what is on file about every message in the deal, including the ones it
+  // can't open and second copies (deal-client.ts dealSkippedReadHere; review round 4, N1): the
+  // licensor can put a line on any of them, and the licensee sees it and can dispute it.
+  const skipped = useMemo(() => (entries ? dealSkippedReadHere(party) : []), [entries, party]);
+  const fingerprints = useMemo(
+    () => [...new Set([...(entries ?? NO_ENTRIES).map((e) => e.fingerprint), ...skipped])],
+    [entries, skipped],
+  );
   const [licenseeView, setLicenseeView, readAgain] = useRegistryView(side === 'licensee' ? party : undefined, ledger, {
     terms,
     fingerprints,
@@ -341,6 +353,7 @@ export const RoyaltyLedger: React.FC<{
             licensor={names.licensor}
             mySecret={party.mySecret}
             fingerprints={fingerprints}
+            unreadable={skipped}
             tr={tr}
             busy={busy}
             send={send}

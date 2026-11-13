@@ -126,7 +126,7 @@ export const royaltyPay = {
   'app.rpay.pub.revoked':
     'La personne qui détient cet enregistrement déclare qu’une licence issue de cet enregistrement a été révoquée le {date} pour non-paiement.',
   'app.rpay.pub.revokedChecked':
-    'La personne qui détient cet enregistrement a indiqué au registre de VeilCore le {date} avoir envoyé un avis de manquement, et {days} jours se sont écoulés ensuite sans paiement enregistré au registre avant que cette ligne soit acceptée.',
+    'La personne qui détient cet enregistrement a indiqué au registre de VeilCore le {date} avoir envoyé un avis de manquement, et {days} jours se sont écoulés ensuite sans paiement enregistré au registre avant que cette ligne soit acceptée. Le registre a vérifié ces dates, pas l’identité du licencié.',
   'app.rpay.pub.answerPaid': 'Le licencié déclare avoir payé ({date}).',
   'app.rpay.pub.who':
     'Qu’un paiement soit dû relève de la déclaration de la personne qui détient l’enregistrement ; VeilCore ne le vérifie pas. La date à côté d’un avis de manquement est le jour où cette personne l’a indiqué au registre de VeilCore, selon l’horloge du registre. Les réponses du licencié sont signées par lui, et la personne qui détient l’enregistrement ne peut pas les retirer. Personne n’est nommé, et aucun montant ni aucune condition n’est affiché.',
@@ -153,7 +153,7 @@ export const royaltyPay = {
   'app.rpay.predates':
     'Cette licence a été faite avant que le registre de VeilCore conserve les clés dont les avis publics ont besoin : rien sur ses paiements ne peut donc aller sur la page de vérification publique ni y recevoir de réponse. Les rappels, les avis de manquement, le délai pour payer et les réponses fonctionnent toujours entre vous deux, signés.',
   'app.rpay.i.breachNotRegistered':
-    'La page de vérification publique indique que ce paiement est en retard, mais pas encore que vous avez envoyé un avis de manquement : la page de {licensee} n’a pas encore enregistré ce rapport au registre de VeilCore. Elle le fait d’elle-même à la prochaine ouverture de la licence. D’ici là, le délai pour payer ne peut pas commencer au registre. Votre avis signé est dans l’accord dans tous les cas.',
+    'La page de vérification publique indique que ce paiement est en retard, mais pas encore que vous avez envoyé un avis de manquement : la page de {licensee} n’a pas encore enregistré ce rapport au registre de VeilCore. Elle le fait normalement d’elle-même à la prochaine ouverture de la licence. D’ici là, le délai pour payer ne peut pas commencer au registre. Votre avis signé est dans l’accord dans tous les cas.',
   'app.rpay.i.breachNotDue':
     '{licensee} a enregistré ce rapport au registre de VeilCore comme dû le {due} : la page de vérification publique ne peut donc indiquer que vous avez envoyé un avis de manquement qu’à partir du lendemain. D’ici là, elle indique que le paiement est en retard. Votre avis signé est dans l’accord dans tous les cas.',
   'app.rpay.l.answerPredates':
@@ -162,6 +162,8 @@ export const royaltyPay = {
     'La page de vérification publique de l’enregistrement de {licensor} indique, comme sa déclaration, qu’un relevé de redevances est en retard depuis le {date} (rapport {n}).',
   'app.rpay.l.pubOverdueOther':
     'La page de vérification publique de l’enregistrement de {licensor} indique, comme sa déclaration, qu’un relevé de redevances est en retard depuis le {date}, à propos d’un message de cet accord qui n’est pas l’un de vos rapports.',
+  'app.rpay.l.pubOverdueUnreadable':
+    'La page de vérification publique de l’enregistrement de {licensor} indique, comme sa déclaration, qu’un relevé de redevances est en retard depuis le {date}, à propos d’un message de cet accord que cette page ne peut pas ouvrir, ou d’une seconde copie d’un message déjà présent : il ne correspond donc à aucun de vos rapports. Vous pouvez le contester.',
   'app.rpay.l.pubRevoked':
     'La page de vérification publique de l’enregistrement de {licensor} indique, comme sa déclaration, qu’une licence issue de cet enregistrement a été révoquée le {date} pour non-paiement.',
   'app.rpay.l.pubBreach':

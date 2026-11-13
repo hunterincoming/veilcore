@@ -111,7 +111,10 @@ in UTC (`royalty-ledger.ts breachOf`, `paymentAlerts`):
    shorten the time to pay. One sent before the payment was late starts nothing, and both pages
    say so under it, with no deadline. The licensor's page then puts the public line up as
    `breach`: the registry dates it the first time it arrives, and a resend never moves that
-   date. The registry files it only for a report the licensee's page registered, and only from
+   date. From then on a resend of the overdue or breach line changes nothing at the registry:
+   its "overdue since" date and the licensor's signature over it stay as they were, and the same
+   holds once the line is revoked (review round 4, N3). Before that, once the due date the
+   licensee registered has passed, "overdue since" can't be on or before it (`409 not-due`). The registry files it only for a report the licensee's page registered, and only from
    the day after the due date registered with it (below, "The licensee registers each report").
    Until then the plain overdue line stands, and the licensor's alert says why. Both sides then
    see **"Pay by <date>"**: the cure deadline, from the later of the deal's date and the
@@ -132,8 +135,9 @@ in UTC (`royalty-ledger.ts breachOf`, `paymentAlerts`):
    signed statement the chain doesn't back. If that send doesn't land, the page sends it again
    when it next opens (only while it knows the revocation's time). The public page then says
    **"The record holder says a license from this record was revoked on <date> for
-   non-payment."**, with the registry's date for the notice of breach and that the 30 days passed
-   with no payment on file there.
+   non-payment."**, with the registry's date for the notice of breach, that the 30 days passed
+   with no payment on file there, and that the registry checked those dates, not who the
+   licensee is (Known limits).
 5. **The registry is the gate** (veilcore-api, `license-notices-v2` and `-v3`). It accepts the
    revoked line only with a `breach` line on file for that statement (so a statement the licensee
    registered, past its due date), received at least 30 full UTC days earlier by its own clock, a
@@ -182,7 +186,8 @@ notice. Registering as the report goes out happens while the licensee is certain
 back on purpose), the licensor can't use the registry's gate for that report: the public page
 can say the payment is overdue (the licensor's word, as always), but not that a notice of breach
 was sent, and never "revoked for non-payment". The licensor's alert says so plainly: the report
-isn't registered yet, it will be the next time the licensee opens the license, and the signed
+isn't registered yet, the licensee's page normally registers it the next time they open the
+license (an old or modified page, or a licensee who never comes back, won't), and the signed
 notice of breach is in the deal either way. The licensor still has everything that matters in a
 dispute: the signed report, the signed notice of breach, the ordinary Revoke on Midnight, and the
 deal record as evidence. The registry only refuses to put its own name to a timeline it couldn't
@@ -199,6 +204,16 @@ registry about a notice of breach and the last day to pay, whatever its own reck
 (`RoyaltyPay.tsx LicenseePublicLines`). Each offers **I paid** (on a report the licensor accepted
 and that isn't marked paid) or **Dispute it**. A line about a deal message that isn't one of the
 licensee's reports is shown too, and a dispute about it is filed at the registry directly.
+
+That covers every message in the deal, not only the ones the page can read (review round 4, N1).
+A modified licensor client can post junk to the deal, or seal one of the licensee's own reports
+again (same signed message, new fingerprint), and put an overdue line on it. The page leaves such
+a message out of the ledger, but notes its fingerprint (`deal-client.ts dealSkippedReadHere`) and
+asks the registry about it with the rest. A line about one says so ("a message in this deal that
+this page can't open, or a second copy of a message already here, so it doesn't match any of
+your reports", `app.rpay.l.pubOverdueUnreadable`) and offers **Dispute it**, filed at the
+registry in the licensee's name with their deal key. Such a message can never carry a notice of
+breach or a revoked line, because the licensee's page never registers it.
 
 ### The licensee's answer
 
@@ -257,6 +272,19 @@ RevokedForNonPayment`).
 - The registry can't tell which record a deal is about (it never learns a record's on-chain
   identity). It takes the record the deal's licensor signs a line for, and keeps all of a
   statement's lines on that one record.
+- The registry can't tell whether the licensee is a different person from the licensor (review
+  round 4, N2). A licensor can open a license invite and accept it themselves, so they hold both
+  deal keys, then send a "report" as the licensee, register it, file a notice of breach and,
+  31 days later, get "revoked for non-payment" accepted on their own record. No real licensee is
+  named or harmed by it (a real licensee's page never sees that deal), but the public line would
+  look like a checked timeline about a real license. So the revoked line says what was checked:
+  the registry checked the dates, not who the licensee is (`app.rpay.pub.revokedChecked`). It
+  remains the record holder's word about *some* license. A warning on the licensee's page when
+  the invite was accepted on the licensor's own device was considered and not built: someone
+  doing this on purpose uses a second browser, so it would only catch honest mistakes.
+- A licensee who registers a due date far in the future keeps the notice of breach off for that
+  report, but not the licensor's plain overdue line: before the registered date has passed,
+  "overdue since" isn't held to it, so a made-up date can't silence the licensor's own word.
 
 ### Licenses from before this
 

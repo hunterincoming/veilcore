@@ -122,7 +122,7 @@ export const royaltyPay = {
   'app.rpay.pub.breach': 'The record holder told VeilCore’s registry on {date} that they had sent a notice of breach.',
   'app.rpay.pub.revoked': 'The record holder says a license from this record was revoked on {date} for non-payment.',
   'app.rpay.pub.revokedChecked':
-    'The record holder told VeilCore’s registry on {date} that they had sent a notice of breach, and {days} days passed after that with no payment on file there before this line was accepted.',
+    'The record holder told VeilCore’s registry on {date} that they had sent a notice of breach, and {days} days passed after that with no payment on file there before this line was accepted. The registry checked those dates, not who the licensee is.',
   'app.rpay.pub.answerPaid': 'The licensee says it was paid ({date}).',
   'app.rpay.pub.who':
     'Whether a payment was due is the record holder’s word; VeilCore doesn’t check it. The date beside a notice of breach is the day the record holder told VeilCore’s registry about it, by the registry’s own clock. The licensee’s answers are signed by the licensee, and the record holder can’t remove them. No one is named, and no amounts or terms are shown.',
@@ -147,7 +147,7 @@ export const royaltyPay = {
   'app.rpay.predates':
     'This license was made before VeilCore’s registry kept the keys that public notices need, so nothing about its payments can go on the public check page or be answered there. Reminders, notices of breach, the time to pay and answers still work between the two of you, signed.',
   'app.rpay.i.breachNotRegistered':
-    'The public check page says this payment is overdue, but not yet that you sent a notice of breach: {licensee}’s page hasn’t registered this report with VeilCore’s registry. It does that by itself the next time they open the license. Until then the time to pay can’t start there. Your signed notice is in the deal either way.',
+    'The public check page says this payment is overdue, but not yet that you sent a notice of breach: {licensee}’s page hasn’t registered this report with VeilCore’s registry. Their page normally does that by itself when they next open the license. Until then the time to pay can’t start there. Your signed notice is in the deal either way.',
   'app.rpay.i.breachNotDue':
     '{licensee} registered this report with VeilCore’s registry as due on {due}, so the public check page can say you sent a notice of breach only from the day after. Until then it says the payment is overdue. Your signed notice is in the deal either way.',
   'app.rpay.l.answerPredates':
@@ -156,6 +156,8 @@ export const royaltyPay = {
     '{licensor}’s record’s public check page says, as their word, that a royalty statement is overdue since {date} (report {n}).',
   'app.rpay.l.pubOverdueOther':
     '{licensor}’s record’s public check page says, as their word, that a royalty statement is overdue since {date}, about a message in this deal that isn’t one of your reports.',
+  'app.rpay.l.pubOverdueUnreadable':
+    '{licensor}’s record’s public check page says, as their word, that a royalty statement is overdue since {date}, about a message in this deal that this page can’t open, or a second copy of a message already here, so it doesn’t match any of your reports. You can dispute it.',
   'app.rpay.l.pubRevoked':
     '{licensor}’s record’s public check page says, as their word, that a license from the record was revoked on {date} for non-payment.',
   'app.rpay.l.pubBreach':
