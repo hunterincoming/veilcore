@@ -241,7 +241,7 @@ export const labresult = {
   'app.lr.check.withdrawn':
     'このラボはもうこの結果を支持していません。署名は今も確認できます。後の結果で置き換えられた可能性があります。このサンプルの最新の結果をラボか保有者に確認してください。',
   'app.lr.claim.onlyCall':
-    'この証明が示すのは結果だけです。何を検査したか、どの記録と比較したかは、ラボの結果ファイルにあり、この証明にはありません。そのファイルがあれば選んでください。ここでこの証明と照合し、送信しません。',
+    'この証明の対象は結果だけです。何を検査したか、どの記録と比較したかは、ラボの結果ファイルにあり、この証明にはありません。そのファイルがあれば選んでください。ここでこの証明と照合し、送信しません。',
   'app.lr.claim.choose': 'ラボの結果ファイルを選ぶ',
   'app.lr.claim.same': '結果ファイルは、この証明と同じ署名済みの結果のものです：',
   'app.lr.claim.otherResult': 'そのファイルは別の結果のもので、この証明の結果ではありません。',
@@ -251,4 +251,117 @@ export const labresult = {
     '検出の結果にCt値がない（Undetermined、N/A、>40）のは矛盾しています。結果とCt値の列が入れ替わっていないか確認してください。',
   'app.lr.problem.bindingSalt':
     'ラボ名のソルトが正しい形式ではありません。16進数64文字で、すべて同じ値ではないものが必要です。',
+  // ---- viability (../en/labresult.ts) ----
+  'app.lr.kind.viability': '不活化工程の前または後の生存性試験',
+  'app.doc.schema.viability': '生存性試験（判定）',
+  'app.doc.slot.recovered': '生存微生物の検出（1 あり、0 なし）',
+  'app.doc.slot.stage': '採取時点（0 不活化工程の前、1 後）',
+  'app.lr.f.stage': '採取時点',
+  'app.lr.f.batch': 'バッチまたはロット',
+  'app.lr.f.killStep': '不活化工程（送付者の記載どおり）',
+  'app.lr.f.recovers': '試験で検出する対象',
+  'app.lr.f.portion': '試験に用いた量',
+  'app.lr.f.cultures': '培地と培養条件',
+  'app.lr.f.culture': '{medium}：{temperature}で{time}',
+  'app.lr.f.lod': '検出限界',
+  'app.lr.f.count': '結果（報告どおり）',
+  'app.lr.f.controls': '対照',
+  'app.lr.f.positiveGrew': '陽性対照（{control}）は発育',
+  'app.lr.f.negativeClean': '陰性対照は発育なし',
+  'app.lr.f.sampled': '採取日',
+  'app.lr.f.strain': 'バッチの元になった菌株の記録（証明コード）',
+  'app.lr.f.before': '指定している工程前サンプルの結果（コード）',
+  'app.lr.stage.before': '不活化工程の前',
+  'app.lr.stage.after': '不活化工程の後',
+  'app.lr.call.recovered': '生存微生物を検出',
+  'app.lr.call.noneRecovered': '生存微生物は検出されず',
+  'app.lr.note.noneRecovered':
+    'ラボは、{method}（バージョン{version}）、検出限界{lod}の条件で、{portion}から生存微生物を検出しなかったと報告しています。',
+  'app.lr.note.recovered': 'ラボは、{method}の条件で、{portion}から生存微生物を検出したと報告しています。',
+  'app.lr.note.viabilityLimits':
+    'これは、ラボがこの条件で試験した量について見いだしたことであり、それ以上ではありません。試験で検出できるのは、その培地・培養時間・温度で発育し、検出限界を超えるものだけです。損傷を受けた微生物、休眠状態のもの（胞子）、別の条件を必要とするものは発育しないことがあり、試験した量がバッチ全体を代表するとは限りません。サンプルがこのバッチから、バッチがこの菌株から来たことは、送付者の申告です。',
+  'app.lr.note.strain': '菌株の記録は証明コードだけで示されています。その記録の内容はこの結果に含まれていません。',
+  'app.lr.form.viabilityIntro':
+    '熱処理や不活化処理などの不活化工程の前または後に採取したサンプル用です。報告書の記載どおりに入力してください。有効な試験だけに署名してください。陽性対照が発育し、陰性対照を置いた場合はそれが発育しなかったものです。',
+  'app.lr.form.read': '判定日（培養終了日）',
+  'app.lr.form.batch': 'バッチまたはロットID',
+  'app.lr.form.stage': 'サンプルの採取時点',
+  'app.lr.form.killStep': '不活化工程：方法と条件',
+  'app.lr.form.killStepHelp': '送付者の記載どおりに。例：「蒸気、中心温度95 °Cで30分」',
+  'app.lr.form.beforePick': 'このバッチの工程前サンプルの結果（任意）',
+  'app.lr.form.beforeCode': 'またはその結果コード',
+  'app.lr.form.before': '工程前サンプルの結果コード（任意）',
+  'app.lr.form.beforeHelp': 'この結果を、同じバッチの工程前サンプルの結果（貴ラボの署名入り）と結び付けます。',
+  'app.lr.form.strain': 'バッチの元になった菌株の記録の証明コード',
+  'app.lr.form.strainHelp':
+    '送付者から受け取った64文字です。結果に入るのはコードだけで、記録の内容は入りません。サンプルのコードと同じでもかまいません。',
+  'app.lr.form.sampled': '採取日',
+  'app.lr.form.recovers': '試験で検出する対象（生産菌株、真菌数の合計など）',
+  'app.lr.form.portion': '試験に用いた量（ブロス225 mL中のミール25 gなど）',
+  'app.lr.form.cultures': '培地と培養条件',
+  'app.lr.form.culture.medium': '培地',
+  'app.lr.form.culture.time': '時間',
+  'app.lr.form.culture.temperature': '温度',
+  'app.lr.form.cultureAdd': '培地を追加',
+  'app.lr.form.lodValue': '検出限界',
+  'app.lr.form.unit': '単位（CFU/g、CFU/25 gなど）',
+  'app.lr.form.countValue': '報告どおりの数（任意：方法が数を出さない場合は空欄）',
+  'app.lr.form.positive': '陽性対照（微生物と量）',
+  'app.lr.form.positiveGrew': '陽性対照',
+  'app.lr.form.negativeGrew': '陰性対照',
+  'app.lr.control.grew': '発育あり',
+  'app.lr.control.noGrowth': '発育なし',
+  'app.lr.control.notRun': '実施せず',
+  'app.lr.form.qcUsualViability': '通常の試験情報を追加',
+  'app.lr.problem.batch': 'バッチまたはロットIDを1行で入力してください。',
+  'app.lr.problem.stage': 'サンプルを不活化工程の前と後のどちらで採取したかを選んでください。',
+  'app.lr.problem.killStep': '工程後のサンプルには不活化工程（方法と条件）を1行で記載します。',
+  'app.lr.problem.before':
+    '工程前サンプルの結果は64文字のコードで指定してください。指定できるのは工程後のサンプルだけです。',
+  'app.lr.problem.strain': '菌株の記録の証明コード（64文字）を入力してください。',
+  'app.lr.problem.sampled': '採取日は実在する日付で、受付日や判定日より後にはできません。',
+  'app.lr.problem.portion': '試験に用いた量を入力してください。',
+  'app.lr.problem.cultures': '各培地を時間と温度とともに入力してください。1～4件で、重複はできません。',
+  'app.lr.problem.lod': '検出限界は0より大きい数値と単位です（指数表記は使わず、1e3ではなく1000と書いてください）。',
+  'app.lr.problem.count':
+    '生存微生物が検出された場合、数は任意です（増菌培養では数が出ません）。入力する場合は0より大きい値を単位とともに入力してください。検出されなかった場合は数を入力しません。検出限界がそれを示します。',
+  'app.lr.problem.countUnitAlone':
+    '数を入力するか、単位を消してください。数のない単位は署名されません。方法が数を出さない場合は、両方とも空欄にしてください。',
+  'app.lr.problem.controls':
+    '対照の結果を選んでください。陽性対照が発育しなかった試験、または陰性対照が発育した試験には署名できません。再試験して、その結果に署名してください。',
+  'app.lr.check.paired':
+    'バッチ{batch}の工程前サンプルの結果{code}と組になっており、同じ鍵で署名されています。両試験とも「{target}」を対象としています。不活化工程の前：{before}。後：{after}。',
+  'app.lr.check.pairBothNone':
+    '工程前サンプルで何も検出されていないため、この組は不活化工程によって何かが変わったことを示していません。',
+  'app.lr.check.pairMissing':
+    '工程前サンプルの結果{code}を指定していますが、選んだファイルの中にありません。2つのファイルを一緒に選ぶと、組として表示されます。',
+  'app.lr.check.pairNot':
+    '結果{code}を工程前サンプルとして指定していますが、組になりません（鍵、バッチ、菌株の記録、検出対象、採取時点のいずれかが異なるか、工程前サンプルの採取が後になっています）。ここでは両者を結び付けません。',
+  'app.lr.claim.viability':
+    '生存微生物が検出されなかったという台帳上の主張（クレーム）は、方法、培地と培養条件、試験に用いた量、検出限界を示さず、それらがなければほとんど意味を持ちません。また、採取時点も併せて示されない限り、サンプルが不活化工程の前と後のどちらで採取されたかも示しません。これらはすべてラボの結果ファイルにあります。これは試験した量についての所見であり、バッチ全体についてのものではありません。',
+  'app.lr.f.belowLod': '< {lod}：検出限界を超えるものは検出されず',
+  'app.lr.form.belowLod':
+    '検出されなかった場合、数はありません。結果は検出限界未満（例：「< 1 CFU/25 g」）として表示され、0とは表示されません。',
+  'app.lr.form.numberHelp': '区切りのない数値：1000、0.5。カンマ、空白、桁区切りの点は使いません。',
+  'app.lr.problem.lodNumber':
+    '検出限界は区切りのない数値で入力してください。数字と、小数の前の点だけです（1000、0.5）。「1,000」「1.000」「1 000」「0,5」は、異なる数を意味しうるため読み取りません。整数の後に小数がちょうど3桁ある数は桁区切りに見えます。千は1000、2.125は2.1250と入力してください。',
+  'app.lr.problem.countNumber':
+    '数は区切りのない数値で入力してください。数字と、小数の前の点だけです（4300000、0.5）。「4,300」「4.300」「4 300」「0,5」は、異なる数を意味しうるため読み取りません。整数の後に小数がちょうど3桁ある数は桁区切りに見えます。四千三百は4300と入力してください。',
+  'app.lr.check.pairMethodSame':
+    '両方とも同じ方法（{method}）を用いているため、工程前サンプルは、この方法が不活化工程の前にこのバッチから何かを検出したことを示します。工程後の試験が処理済みの材料からそれを検出できたかどうかは、その試験自体の陽性対照が示します。',
+  'app.lr.check.pairMethodsDiffer':
+    '2つの試験は異なる方法を用いています（前：{before}、後：{after}）。そのため工程前サンプルが示すのは、不活化工程の前にこのラボが検出したものをバッチが含んでいたことだけで、工程後サンプルの方法がこの材料からそれを検出できることではありません。',
+  'app.lr.check.pairWithdrawnBefore':
+    '工程前サンプルの結果{code}を指定していますが、その結果は同じ鍵で署名された結果{by}によって取り下げられています。両者はもう組として扱われません。',
+  'app.lr.check.pairReplacedBefore':
+    '工程前サンプルの結果{code}を指定していますが、その結果は同じ鍵で署名された結果{by}に置き換えられています。両者はもう組として扱われません。新しい結果を確認してください。',
+  'app.lr.check.pairWithdrawnAfter':
+    'この結果は同じ鍵で署名された結果{by}によって取り下げられているため、工程前サンプルの結果{code}とはもう組として扱われません。',
+  'app.lr.check.pairReplacedAfter':
+    'この結果は同じ鍵で署名された結果{by}に置き換えられているため、工程前サンプルの結果{code}とはもう組として扱われません。新しい結果を確認してください。',
+  'app.lr.check.pairSelfBefore':
+    'この結果は工程前サンプルの結果{code}を組の相手として指定していますが、同じ鍵で署名されたこの結果自身がその結果を置き換えています。置き換えた結果とは組として扱われません。',
+  'app.lr.check.pairSelfAfter':
+    'この結果は、同じ鍵で署名された工程前サンプルの結果{code}自身によって置き換えられているため、両者はもう組として扱われません。',
+  'app.lr.f.noCount': '生存微生物を検出（数の報告なし）',
 } satisfies Partial<AppTranslation>;

@@ -261,7 +261,7 @@ export const labresult = {
   'app.lr.check.withdrawn':
     'This lab no longer stands behind this result. The signature still checks. It may have been replaced by a later result: ask the lab or the holder for the latest result for this sample.',
   'app.lr.claim.onlyCall':
-    'This claim proves the result only. What was tested for, or which records were compared, is in the lab’s result file, not in this claim. If you have that file, choose it: it is checked here, against this claim, and not sent.',
+    'This claim covers the result only. What was tested for, or which records were compared, is in the lab’s result file, not in this claim. If you have that file, choose it: it is checked here, against this claim, and not sent.',
   'app.lr.claim.choose': 'Choose the lab’s result file',
   'app.lr.claim.same': 'The result file is for the same signed result as this claim:',
   'app.lr.claim.otherResult': 'That file is for a different result, not the one this claim is about.',
@@ -270,4 +270,116 @@ export const labresult = {
   'app.lr.problem.ctMissing':
     'A detected result with no Ct (Undetermined, N/A, >40) contradicts itself. Check that the result and Ct columns aren’t mixed up.',
   'app.lr.problem.bindingSalt': 'The salt of the lab’s name isn’t in its form: 64 hex characters, not all the same.',
+  // ---- a viability result: a sample before or after a kill step (ResultForm, ResultFacts, LabResultCheck) ----
+  'app.lr.kind.viability': 'Viability test before or after a kill step',
+  'app.doc.schema.viability': 'Viability test (the call)',
+  'app.doc.slot.recovered': 'Viable organisms recovered (1 yes, 0 none)',
+  'app.doc.slot.stage': 'Sample taken (0 before the kill step, 1 after)',
+  'app.lr.f.stage': 'Sample taken',
+  'app.lr.f.batch': 'Batch or lot',
+  'app.lr.f.killStep': 'Kill step (as the sender stated it)',
+  'app.lr.f.recovers': 'What the test recovers',
+  'app.lr.f.portion': 'Portion tested',
+  'app.lr.f.cultures': 'Media and incubation',
+  'app.lr.f.culture': '{medium}: {time} at {temperature}',
+  'app.lr.f.lod': 'Limit of detection',
+  'app.lr.f.count': 'Result, as reported',
+  'app.lr.f.controls': 'Controls',
+  'app.lr.f.positiveGrew': 'positive control ({control}) grew',
+  'app.lr.f.negativeClean': 'negative control, no growth',
+  'app.lr.f.sampled': 'Date sampled',
+  'app.lr.f.strain': 'Strain record the batch was made from (proof code)',
+  'app.lr.f.before': 'Before-sample result it names (code)',
+  'app.lr.stage.before': 'Before the kill step',
+  'app.lr.stage.after': 'After the kill step',
+  'app.lr.call.recovered': 'Viable organisms recovered',
+  'app.lr.call.noneRecovered': 'No viable organisms recovered',
+  'app.lr.note.noneRecovered':
+    'The lab reported no viable organisms recovered from {portion}, under {method} (version {version}), with a limit of detection of {lod}.',
+  'app.lr.note.recovered': 'The lab reported viable organisms recovered from {portion}, under {method}.',
+  'app.lr.note.viabilityLimits':
+    'This is what the lab found in the portion it tested, under these conditions, and no more. A test recovers only what grows on its media, in its time and at its temperature, above its limit of detection: organisms that are injured, dormant (spores) or need other conditions may not grow, and a portion may not stand for the whole batch. That the sample came from this batch, and the batch from this strain, is the sender’s word.',
+  'app.lr.note.strain': 'The strain record is named by its proof code only: nothing in that record is in this result.',
+  'app.lr.form.viabilityIntro':
+    'For a sample taken before or after a kill step, such as a heat treatment or an inactivation. Type what your report says. Sign only a valid run: the positive control grew and, if you ran one, the negative control didn’t.',
+  'app.lr.form.read': 'Date read (end of incubation)',
+  'app.lr.form.batch': 'Batch or lot ID',
+  'app.lr.form.stage': 'When the sample was taken',
+  'app.lr.form.killStep': 'Kill step: method and parameters',
+  'app.lr.form.killStepHelp': 'As the sender states it, for example “steam, 95 °C core for 30 min”.',
+  'app.lr.form.beforePick': 'The before-sample result for this batch (optional)',
+  'app.lr.form.beforeCode': 'Or its result code',
+  'app.lr.form.before': 'The before-sample result’s code (optional)',
+  'app.lr.form.beforeHelp': 'Links this result to the same batch’s before-sample result, signed by your lab.',
+  'app.lr.form.strain': 'Proof code of the strain record the batch was made from',
+  'app.lr.form.strainHelp':
+    'From the sender: 64 characters. Only the code goes into the result, nothing in the record. It can be the same as the sample’s.',
+  'app.lr.form.sampled': 'Date sampled',
+  'app.lr.form.recovers': 'What the test recovers (the production strain, total yeasts and moulds…)',
+  'app.lr.form.portion': 'Portion tested and its amount (25 g of meal in 225 mL broth…)',
+  'app.lr.form.cultures': 'Media and incubation',
+  'app.lr.form.culture.medium': 'Medium',
+  'app.lr.form.culture.time': 'Time',
+  'app.lr.form.culture.temperature': 'Temperature',
+  'app.lr.form.cultureAdd': 'Add a medium',
+  'app.lr.form.lodValue': 'Limit of detection',
+  'app.lr.form.unit': 'Unit (CFU/g, CFU per 25 g…)',
+  'app.lr.form.countValue': 'Count as reported (optional: leave empty if the method gives none)',
+  'app.lr.form.positive': 'Positive control (organism and amount)',
+  'app.lr.form.positiveGrew': 'Positive control',
+  'app.lr.form.negativeGrew': 'Negative control',
+  'app.lr.control.grew': 'Grew',
+  'app.lr.control.noGrowth': 'No growth',
+  'app.lr.control.notRun': 'Not run',
+  'app.lr.form.qcUsualViability': 'Add the usual run details',
+  'app.lr.problem.batch': 'Type the batch or lot ID: one line.',
+  'app.lr.problem.stage': 'Say whether the sample was taken before or after the kill step.',
+  'app.lr.problem.killStep': 'An after-sample names its kill step: method and parameters, one line.',
+  'app.lr.problem.before': 'Name the before-sample result by its 64-character code. Only an after-sample names one.',
+  'app.lr.problem.strain': 'Give the strain record’s proof code: 64 characters.',
+  'app.lr.problem.sampled': 'The date sampled is a real date, not after the date received or the date read.',
+  'app.lr.problem.portion': 'Name the portion tested and its amount.',
+  'app.lr.problem.cultures': 'Give each medium with its time and temperature: 1 to 4, none repeated.',
+  'app.lr.problem.lod': 'The limit of detection is a number above 0, with its unit (no exponent: write 1000, not 1e3).',
+  'app.lr.problem.count':
+    'When viable organisms were recovered, a count is optional (an enrichment test gives none); when given, it is above 0, with its unit. When none were, there is no count: the limit of detection says it.',
+  'app.lr.problem.countUnitAlone':
+    'Type the count, or clear its unit: a unit with no count isn’t signed. Leave both empty if the method gives no count.',
+  'app.lr.problem.controls':
+    'Say how the controls went. A run whose positive control didn’t grow, or whose negative control did, can’t be signed: test again and sign the repeat.',
+  'app.lr.check.paired':
+    'Paired with the before-sample result {code} for batch {batch}, signed by the same key; both tests looked for “{target}”. Before the kill step: {before}. After it: {after}.',
+  'app.lr.check.pairBothNone':
+    'The before-sample had none recovered, so this pair doesn’t show that the kill step changed anything.',
+  'app.lr.check.pairMissing':
+    'It names before-sample result {code}, which isn’t among the files chosen. Choose both files together to see them as a pair.',
+  'app.lr.check.pairNot':
+    'It names result {code} as its before-sample, but they don’t pair (another key, batch, strain record, target or stage, or a before-sample taken later), so nothing here links them.',
+  'app.lr.claim.viability':
+    'A claim that no viable organisms were recovered doesn’t show the method, the media and incubation, the portion tested or the limit of detection, and says little without them. Nor does it show whether the sample was taken before or after the kill step, unless the claim shows the stage too. All of these are in the lab’s result file. It is a finding about the portion tested, not the whole batch.',
+  'app.lr.f.belowLod': '< {lod}: none recovered above the limit of detection',
+  'app.lr.form.belowLod':
+    'None recovered: there is no count. The result reads as below the limit of detection (for example “< 1 CFU per 25 g”), never as 0.',
+  'app.lr.form.numberHelp': 'A plain number: 1000, 0.5. No commas, spaces or thousands points.',
+  'app.lr.problem.lodNumber':
+    'Type the limit of detection as a plain number: digits, and a point only before decimals (1000, 0.5). “1,000”, “1.000”, “1 000” and “0,5” aren’t read, because they can mean different numbers. A whole number with exactly three decimals looks like a thousands point: type a thousand as 1000, and 2.125 as 2.1250.',
+  'app.lr.problem.countNumber':
+    'Type the count as a plain number: digits, and a point only before decimals (4300000, 0.5). “4,300”, “4.300”, “4 300” and “0,5” aren’t read, because they can mean different numbers. A whole number with exactly three decimals looks like a thousands point: type four thousand three hundred as 4300.',
+  'app.lr.check.pairMethodSame':
+    'Both used the same method, {method}, so the before-sample shows that this method recovered something from this batch before the kill step. Whether the after-sample’s run could recover it from treated material is what that run’s own positive control shows.',
+  'app.lr.check.pairMethodsDiffer':
+    'The two tests used different methods ({before} before, {after} after). So the before-sample shows only that the batch carried something this lab recovered before the kill step, not that the after-sample’s method recovers it from this material.',
+  'app.lr.check.pairWithdrawnBefore':
+    'It names before-sample result {code}, but that result was withdrawn by result {by}, signed by the same key. The two are no longer read as a pair.',
+  'app.lr.check.pairReplacedBefore':
+    'It names before-sample result {code}, but that result was replaced by result {by}, signed by the same key. The two are no longer read as a pair: check the newer result.',
+  'app.lr.check.pairWithdrawnAfter':
+    'This result was withdrawn by result {by}, signed by the same key, so it is no longer read as a pair with before-sample result {code}.',
+  'app.lr.check.pairReplacedAfter':
+    'This result was replaced by result {by}, signed by the same key, so it is no longer read as a pair with before-sample result {code}: check the newer result.',
+  'app.lr.check.pairSelfBefore':
+    'This result names before-sample result {code} as its pair, but it also replaces that result (signed by the same key). A result is not read as a pair with the result it replaces.',
+  'app.lr.check.pairSelfAfter':
+    'This result was replaced by before-sample result {code} itself, signed by the same key, so the two are no longer read as a pair.',
+  'app.lr.f.noCount': 'Viable organisms recovered (no count reported)',
 };

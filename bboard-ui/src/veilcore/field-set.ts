@@ -32,6 +32,7 @@ import pathogen from '../../public/schemas/pathogen-v1.json';
 import geneticMatch from '../../public/schemas/genetic-match-v1.json';
 import lineageCheck from '../../public/schemas/lineage-check-v1.json';
 import dnaMark from '../../public/schemas/dna-mark-v1.json';
+import viability from '../../public/schemas/viability-v1.json';
 import labRetraction from '../../public/schemas/lab-retraction-v1.json';
 
 /** The published schemas this site seals numbers under, by their document id. */
@@ -44,11 +45,12 @@ export const SCHEMAS: Readonly<Record<string, FieldSchema>> = {
   [varietyIdentity.id]: varietyIdentity as FieldSchema,
   [animalParentage.id]: animalParentage as FieldSchema,
   // The calls of a lab result v2 (lab-result.ts): each filled from the result's own form
-  // (pathogen, comparison, parentage check, DNA mark, withdrawal), never typed slot by slot.
+  // (pathogen, comparison, parentage check, DNA mark, viability, withdrawal), never typed slot by slot.
   [pathogen.id]: pathogen as FieldSchema,
   [geneticMatch.id]: geneticMatch as FieldSchema,
   [lineageCheck.id]: lineageCheck as FieldSchema,
   [dnaMark.id]: dnaMark as FieldSchema,
+  [viability.id]: viability as FieldSchema,
   [labRetraction.id]: labRetraction as FieldSchema,
 };
 export type SchemaName = keyof typeof SCHEMAS;
@@ -59,6 +61,7 @@ export const RESULT_CALL_SCHEMAS: readonly string[] = [
   geneticMatch.id,
   lineageCheck.id,
   dnaMark.id,
+  viability.id,
   labRetraction.id,
 ];
 

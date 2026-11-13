@@ -9,10 +9,10 @@ import React, { useRef, useState } from 'react';
 import { Alert, Box, Button, Paper, Typography } from '@mui/material';
 import { useT } from '../../i18n/app';
 import type { AppKey } from '../../i18n/app/en';
-import { readResultsText, resultCode, type LabResultStatement } from '../../veilcore/lab-result';
+import { CALL_SCHEMA, readResultsText, resultCode, type LabResultStatement } from '../../veilcore/lab-result';
 import { ResultFacts } from './ResultFacts';
 
-export const ClaimResultFile: React.FC<{ record: string }> = ({ record }) => {
+export const ClaimResultFile: React.FC<{ record: string; schema?: string }> = ({ record, schema }) => {
   const { t } = useT();
   const pick = useRef<HTMLInputElement>(null);
   const [found, setFound] = useState<{ statement: LabResultStatement } | { problem: string }>();
@@ -21,6 +21,12 @@ export const ClaimResultFile: React.FC<{ record: string }> = ({ record }) => {
       <Alert severity="info" variant="outlined" sx={{ mb: 1.5 }}>
         {t('app.lr.claim.onlyCall')}
       </Alert>
+      {/* "None recovered" means nothing without the method, the portion and the limit: say so. */}
+      {schema === CALL_SCHEMA.viability && (
+        <Alert severity="info" variant="outlined" sx={{ mb: 1.5 }} data-claim-viability="">
+          {t('app.lr.claim.viability')}
+        </Alert>
+      )}
       <Button variant="outlined" onClick={() => pick.current?.click()} sx={{ minHeight: 44 }}>
         {t('app.lr.claim.choose')}
       </Button>

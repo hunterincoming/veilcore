@@ -4,7 +4,8 @@
 // unless the checker asks: "Find the lab's name" sends the result's code (in the file) to the
 // registry for the lab's own binding naming its key (claims-key.ts findBinding), printed in the
 // wording every page uses for signers; "Find the record…" reads the checker's own records, which
-// sends their holder key. Test network only, like lab signing.
+// sends their holder key. Test network only, like lab signing. Several files can be chosen at
+// once, so a viability result's after-sample is read beside the before-sample it names (the pair).
 // SPDX-License-Identifier: Apache-2.0
 
 import React, { useEffect, useRef, useState } from 'react';
@@ -18,15 +19,19 @@ import {
   readResultsText,
   replacedBy,
   resultCode,
+  viabilityPairs,
   type LabResultBundle,
   type MarkResult,
   type ProblemCode,
+  type ViabilityPair,
+  type ViabilityResult,
 } from '../../veilcore/lab-result';
 import type { LabSigner } from '../../veilcore/claim-link';
 import { signerLabel, type ResolvedAttestation } from '../../veilcore/attesters';
 import { createRecord, useRecords, useRecordsLoaded } from '../../veilcore/records';
 import { keyShort } from '../../veilcore/lab-key-text';
-import { ResultFacts } from './ResultFacts';
+import { ResultFacts, callWords } from './ResultFacts';
+import { seen } from '../document/DocumentParts';
 import { withdrawnWords } from './signer-words';
 import { LAB_SIGNING_ENABLED } from '../../config/network';
 
@@ -122,11 +127,70 @@ const Dispute: React.FC<{ seal: string }> = ({ seal }) => {
   );
 };
 
+/** An after-sample beside the before-sample it names: paired only under SPEC 11.12's rules. */
+const PairLine: React.FC<{ after: LabResultBundle; pair: ViabilityPair }> = ({ after, pair }) => {
+  const tr = useT();
+  const { t } = tr;
+  if (pair.state === 'broken') {
+    // A withdrawn or replaced result is no longer evidence about the other: say which, and why.
+    // When one of the two replaced the other, say that, rather than name the same result twice.
+    const side = pair.side === 'before' ? 'Before' : 'After';
+    const k = pair.self
+      ? `app.lr.check.pairSelf${side}`
+      : `app.lr.check.pair${pair.reason === 'retraction' ? 'Withdrawn' : 'Replaced'}${side}`;
+    return (
+      <Alert
+        severity="warning"
+        variant="outlined"
+        sx={{ mb: 2 }}
+        data-viability-pair="broken"
+        data-pair-side={pair.side}
+        data-pair-self={pair.self ? 'yes' : undefined}
+      >
+        {t(k as AppKey, { code: short(pair.code), by: short(pair.by) })}
+      </Alert>
+    );
+  }
+  if (pair.state !== 'paired')
+    return (
+      <Alert severity="info" variant="outlined" sx={{ mb: 2 }} data-viability-pair={pair.state}>
+        {t(pair.state === 'missing' ? 'app.lr.check.pairMissing' : 'app.lr.check.pairNot', { code: short(pair.code) })}
+      </Alert>
+    );
+  const before = pair.before.statement.result as ViabilityResult;
+  const ver = (m: { id: string; version: string }) => `${seen(m.id)} (${m.version})`;
+  return (
+    <Alert severity="info" variant="outlined" sx={{ mb: 2 }} data-viability-pair="paired">
+      {t('app.lr.check.paired', {
+        code: short(resultCode(pair.before)),
+        batch: seen((after.statement.result as ViabilityResult).batch),
+        target: seen(before.target),
+        before: callWords(pair.before.statement, tr),
+        after: callWords(after.statement, tr),
+      })}
+      <Typography variant="body2" sx={{ mt: 1 }} data-viability-pair-method={pair.methodsDiffer ? 'differ' : 'same'}>
+        {pair.methodsDiffer
+          ? t('app.lr.check.pairMethodsDiffer', {
+              before: ver(pair.before.statement.method),
+              after: ver(after.statement.method),
+            })
+          : t('app.lr.check.pairMethodSame', { method: ver(after.statement.method) })}
+      </Typography>
+      {!before.detected && (
+        <Typography variant="body2" sx={{ mt: 1 }} data-viability-pair-flat="">
+          {t('app.lr.check.pairBothNone')}
+        </Typography>
+      )}
+    </Alert>
+  );
+};
+
 const OneChecked: React.FC<{
   bundle: LabResultBundle;
   replaced?: { by: string; reason: string };
   inFile: Set<string>;
-}> = ({ bundle: b, replaced, inFile }) => {
+  pair?: ViabilityPair;
+}> = ({ bundle: b, replaced, inFile, pair }) => {
   const tr = useT();
   const { t } = tr;
   const [lookUp, setLookUp] = useState(false);
@@ -216,6 +280,7 @@ const OneChecked: React.FC<{
           {t('app.lr.check.namesOther', { code: short(rep.result) })}
         </Typography>
       )}
+      {pair && <PairLine after={b} pair={pair} />}
       <ResultFacts statement={b.statement} code={code} />
       {b.statement.kind === 'dna-mark' && (
         <Box sx={{ mt: 2 }}>
@@ -277,6 +342,7 @@ export const LabResultCheck: React.FC = () => {
   const [read, setRead] = useState<readonly Read[]>();
   const ok = (read ?? []).filter((r): r is Extract<Read, { ok: true }> => r.ok).map((r) => r.bundle);
   const replaced = replacedBy(ok);
+  const pairs = viabilityPairs(ok);
   const inFile = new Set(ok.map(resultCode));
   return (
     <Box sx={{ bgcolor: 'background.default' }} data-lab-result-check="">
@@ -304,13 +370,26 @@ export const LabResultCheck: React.FC = () => {
             <input
               ref={pick}
               type="file"
+              multiple
               hidden
               data-result-input=""
               onChange={(e) => {
-                const f = e.target.files?.[0];
+                // Several files read as one set: a before-sample and its after-sample pair up.
+                const files = Array.from(e.target.files ?? []);
                 e.target.value = '';
                 setRead(undefined);
-                if (f) void f.text().then(readResultsText).then(setRead);
+                if (files.length)
+                  void Promise.all(files.map((f) => f.text().then(readResultsText))).then((all) =>
+                    // The same result chosen twice is shown once.
+                    setRead(
+                      all
+                        .flat()
+                        .filter(
+                          (r, i, a) =>
+                            !r.ok || a.findIndex((x) => x.ok && resultCode(x.bundle) === resultCode(r.bundle)) === i,
+                        ),
+                    ),
+                  );
               }}
             />
             <Stack spacing={2.5}>
@@ -321,6 +400,7 @@ export const LabResultCheck: React.FC = () => {
                     bundle={r.bundle}
                     replaced={replaced.get(resultCode(r.bundle))}
                     inFile={inFile}
+                    pair={pairs.get(resultCode(r.bundle))}
                   />
                 ) : (
                   <Alert key={`bad${i}`} severity="error" variant="outlined" data-lab-result-bad={r.code}>
