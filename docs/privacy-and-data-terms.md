@@ -24,7 +24,9 @@
   sent the delivery. Your record's check page shows a lab signature only when you turn it on
   under Show someone, "Lab signatures". One you turn on is also shown to anyone who has the
   record's proof code (it is on the check page, and your links that prove a number carry it),
-  until you turn it off.
+  until you turn it off. With "Whether a DNA report is saved" on, the check page also says,
+  for each lab receipt, that a lab received a sample and whether what arrived matches what
+  was sent, without the lab's name.
 - The check and prove pages never send your holder key. A prove request tells our server
   which on-chain key it names.
 - Each release publishes the list of its files. You can check that the files your browser

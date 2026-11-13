@@ -392,7 +392,7 @@ export const lab = {
   'app.lab.out.andJoin': ', und ',
   'app.lab.out.sent': 'Gesendet',
   'app.lab.out.sentText':
-    'Nur der Züchter kann ihn öffnen. Auch Ihre Signatur darauf ist privat: Nur der Züchter und Sie sehen sie, außer der Züchter zeigt sie auf seinem Prüflink.',
+    'Nur der Züchter kann ihn öffnen. Auch Ihre Signatur darauf ist privat: Nur der Züchter und Sie sehen sie, außer der Züchter zeigt sie auf seinem Prüflink. Wenn Sie eine Empfangsbestätigung für die Probe signiert haben und der Züchter zeigt, ob ein DNA-Bericht gespeichert ist, sagt seine Prüfseite, dass ein Labor eine Probe erhalten hat und ob das Angekommene dem Gesendeten entspricht, ohne den Namen Ihres Labors.',
   'app.lab.out.sentName':
     'Tut er das, sieht jeder mit diesem Link auch den Namen, unter dem Ihr Schlüssel registriert ist. Bis der Betreiber von VeilCore ihn mit einem öffentlichen Lizenz- oder Akkreditierungsverzeichnis abgleicht, erscheint er als „einem Schlüssel namens „{name}“ (Name nicht geprüft)“.',
   'app.lab.out.yourLab': 'Ihr Labor',

@@ -485,12 +485,47 @@ const errorOf = async (res: Response): Promise<string> => {
 };
 const unreachable = 'could not reach the VeilCore registry; check your connection and try again';
 
-/** The lab sends a locked result on the delivery it received; `replaces` names one it corrects. */
+/**
+ * What the lab's key signs so the registry ties its first report on a delivery to this lab (12
+ * Nov 2026, the registry's lineage/lab-results.mjs labKeyProofText): without a receipt, nothing
+ * else shows the report's key is the lab's that received the delivery, and another lab that
+ * claimed a delivery of the same plant could tie this lab's report as its own first one.
+ */
+export const labKeyProofText = (transferId: string, attestationId: string): string =>
+  `veilcore:lab-result-key:v1\n${transferId}\n${attestationId}`;
+
+/** The proof (128 hex): the attester key's Ed25519 signature over labKeyProofText. */
+export const labKeyProof = async (
+  privateKeyHex: string,
+  transferId: string,
+  attestationId: string,
+): Promise<string> => {
+  const key = await crypto.subtle.importKey(
+    'pkcs8',
+    bytesOf(privateKeyHex) as BufferSource,
+    { name: 'Ed25519' },
+    false,
+    ['sign'],
+  );
+  const sig = await crypto.subtle.sign(
+    'Ed25519',
+    key,
+    new TextEncoder().encode(labKeyProofText(transferId, attestationId)),
+  );
+  return hexOf(new Uint8Array(sig));
+};
+
+/**
+ * The lab sends a locked result on the delivery it received; `replaces` names one it corrects.
+ * `keyProof` (labKeyProof) goes with every signed report: the registry needs it for the first
+ * one on a delivery with no receipt, and ignores it otherwise.
+ */
 export const sendLockedResult = async (
   transferId: string,
   locked: Uint8Array,
   attestationId?: string,
   replaces?: string,
+  keyProof?: string,
 ): Promise<{ id: string } | { error: string }> => {
   const params = new URLSearchParams();
   if (attestationId) params.set('attestationId', attestationId);
@@ -500,7 +535,11 @@ export const sendLockedResult = async (
   try {
     res = await fetch(`${BASE}/transfers/${encodeURIComponent(transferId)}/results${q}`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/octet-stream', 'x-holder-key': holderKey() },
+      headers: {
+        'Content-Type': 'application/octet-stream',
+        'x-holder-key': holderKey(),
+        ...(attestationId && keyProof ? { 'x-lab-key-proof': keyProof } : {}),
+      },
       body: locked as unknown as BodyInit,
     });
   } catch {

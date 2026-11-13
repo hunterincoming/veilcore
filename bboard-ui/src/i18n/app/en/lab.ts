@@ -378,7 +378,7 @@ export const lab = {
   'app.lab.out.andJoin': ', and ',
   'app.lab.out.sent': 'Sent',
   'app.lab.out.sentText':
-    'Only the breeder can open it. Your signature on it is private too: only the breeder and you can see it, unless the breeder chooses to show it on their check link.',
+    'Only the breeder can open it. Your signature on it is private too: only the breeder and you can see it, unless the breeder chooses to show it on their check link. If you signed a receipt for the sample and the breeder shows whether a DNA report is saved, their check page says that a lab received a sample and whether what arrived matches what was sent, without your lab’s name.',
   'app.lab.out.sentName':
     "If they do, anyone with that link also sees the name your key is registered under. Until VeilCore's operator matches it to a public license or accreditation listing, it shows as “a key named “{name}” (name not checked)”.",
   'app.lab.out.yourLab': 'your lab',

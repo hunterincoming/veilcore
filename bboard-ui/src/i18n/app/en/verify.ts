@@ -22,7 +22,7 @@ export const verify = {
   'app.verify.report.unnamedSigned':
     'The holder saved a DNA report to this record. This link doesn’t name the file, so this page can’t tell whether it is the signed lab report listed above.',
   'app.verify.report.unnamedWithdrawn':
-    'The holder saved a DNA report to this record. This link doesn’t name the file, and every lab report signed about this record was withdrawn by its lab, so it is the holder’s own statement.',
+    'The holder saved a DNA report to this record. This link doesn’t name the file, and every lab report signature shown here was withdrawn by its lab, so it is the holder’s own statement.',
   'app.verify.report.unnamedNone':
     'The holder saved a DNA report to this record. No lab report signature is shown here, so as shown it is the holder’s own statement. A lab’s signatures are private unless the holder chooses to show them.',
   'app.verify.kind.receipts.one': 'a lab’s receipt',
