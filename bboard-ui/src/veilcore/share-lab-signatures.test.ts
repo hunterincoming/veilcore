@@ -12,7 +12,10 @@
 
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { generateKeypair, signAttestation, signRetraction, type SignedAttestation } from 'veilcore-records';
-import { checkAttestations, mergeAttestations, sharedAttestationsOf } from './attesters';
+import { checkAttestations, loadAttestations, mergeAttestations, sharedAttestationsOf } from './attesters';
+import { shareableLabSignatures } from '../components/wizard/LabSignatureShare';
+import { labKeyProof, labKeyProofText, sendLockedResult } from './lab-results';
+import { verifyEd25519 } from 'veilcore-records';
 import { publicCustodyLines, publicCustodyOf, unnamedCustodyOf } from './custody';
 import { grantValuesNow, resetSharedRefusal, sameGrantValues, saveGrant, registerGrantKeeper } from './disclosure';
 import { publicReportLine } from './saved-report';
@@ -172,7 +175,11 @@ beforeEach(() => {
       Promise.resolve(new Response(JSON.stringify(v), { status, headers: { 'content-type': 'application/json' } }));
     if (url.includes('/attestations/subject/')) {
       if (visible === 'down') return reply(503, { error: 'down' });
-      return reply(200, { attestations: visible, total: visible.length });
+      // As the registry pages: at most 100 a time (?limit=, ?offset=).
+      const q = new URL(url, 'http://registry.test').searchParams;
+      const limit = Math.min(Number(q.get('limit') ?? 100), 100);
+      const offset = Number(q.get('offset') ?? 0);
+      return reply(200, { attestations: visible.slice(offset, offset + limit), total: visible.length });
     }
     if (url.endsWith('/disclosure') && method === 'PUT') {
       const values = (body as { values?: Record<string, unknown> }).values ?? {};
@@ -280,4 +287,118 @@ const noKeys = () => ({
   'individual-id': false,
   name: false,
   'bred-by': false,
+});
+
+// ---- final review fixes (12 Nov 2026) -----------------------------------------------------
+
+describe('L3: the share list and the grant read every page of the holder’s signatures', () => {
+  it('a lab report past the first 100 rows is offered and kept in the grant', async () => {
+    const many: unknown[] = [];
+    for (let i = 0; i < 140; i++) many.push(row(await signed(`att_open_${String(i)}`, 'genetic-fingerprint')));
+    const late = row(await signed('att_late_report', 'laboratory-report'));
+    visible = [...many, { ...late, private: true }];
+    // One page, as before: the report is not in it.
+    const first = await loadAttestations(PLANT, { asHolder: true });
+    expect(first?.length).toBe(100);
+    expect(first?.some((a) => a.attestationId === 'att_late_report')).toBe(false);
+    // Every page: it is, once.
+    calls = [];
+    const all = await loadAttestations(PLANT, { asHolder: true, allPages: true });
+    expect(all?.length).toBe(141);
+    expect(all?.filter((a) => a.attestationId === 'att_late_report')).toHaveLength(1);
+    expect(
+      calls.filter((c) => c.url.includes('/attestations/subject/')).map((c) => new URL(c.url, 'http://x').search),
+    ).toEqual(['?limit=100&offset=0', '?limit=100&offset=100']);
+    expect(shareableLabSignatures(all ?? []).map((a) => a.attestationId)).toEqual(['att_late_report']);
+    // The grant keeps a shared id from the second page.
+    const r = rec({ sharedAttestations: ['att_late_report'] });
+    expect((await grantValuesNow(r, ['attestation-status'])).sharedAttestations).toEqual(['att_late_report']);
+  });
+
+  it('a page that fails fails the whole list', async () => {
+    const many: unknown[] = [];
+    for (let i = 0; i < 101; i++) many.push(row(await signed(`att_f_${String(i)}`, 'genetic-fingerprint')));
+    visible = many;
+    const real = globalThis.fetch;
+    vi.stubGlobal('fetch', (input: RequestInfo | URL, init?: RequestInit) =>
+      (typeof input === 'string' ? input : input instanceof URL ? input.href : input.url).includes('offset=100')
+        ? Promise.resolve(new Response('{}', { status: 503 }))
+        : real(input, init),
+    );
+    expect(await loadAttestations(PLANT, { asHolder: true, allPages: true })).toBeNull();
+  });
+});
+
+describe('L5: a lab key’s genetic fingerprint or inspection, offered only when the registry marks it private', () => {
+  it('private ones are offered, with their own words in every language; public ones are not', async () => {
+    const rows = await checkAttestations(
+      [
+        { ...row(await signed('att_gf_private', 'genetic-fingerprint')), private: true },
+        { ...row(await signed('att_insp_private', 'inspection')), private: true },
+        row(await signed('att_gf_public', 'genetic-fingerprint')),
+        row(await signed('att_insp_public', 'inspection')),
+        row(await signed('att_report', 'laboratory-report')),
+        { ...row(await signed('att_other', 'other')), private: true },
+      ],
+      PLANT,
+    );
+    expect(shareableLabSignatures(rows).map((a) => a.attestationId)).toEqual([
+      'att_gf_private',
+      'att_insp_private',
+      'att_report',
+    ]);
+    for (const l of ['en', 'de', 'es', 'fr', 'ja'] as const) {
+      const t = appTranslations[l] as Record<string, string>;
+      for (const k of ['app.prove.share.labSigs.fingerprint', 'app.prove.share.labSigs.inspection'])
+        expect(t[k], `${l} ${k}`).toMatch(/\{date\}/);
+    }
+  });
+});
+
+describe('L1: the lab’s key proves a first report is its own', () => {
+  it('labKeyProof is the attester key’s Ed25519 signature over the delivery and signature ids', async () => {
+    const proof = await labKeyProof(lab.privateKey, 'TR-ABC', 'att_x_ld1');
+    expect(proof).toMatch(/^[0-9a-f]{128}$/);
+    expect(labKeyProofText('TR-ABC', 'att_x_ld1')).toBe('veilcore:lab-result-key:v1\nTR-ABC\natt_x_ld1');
+    expect(await verifyEd25519(labKeyProofText('TR-ABC', 'att_x_ld1'), proof, lab.publicKey)).toBe(true);
+    // Another delivery or another signature: not this proof.
+    expect(await verifyEd25519(labKeyProofText('TR-OTHER', 'att_x_ld1'), proof, lab.publicKey)).toBe(false);
+    expect(await verifyEd25519(labKeyProofText('TR-ABC', 'att_y_ld1'), proof, lab.publicKey)).toBe(false);
+  });
+
+  it('sendLockedResult sends it as x-lab-key-proof with the signature, and not without one', async () => {
+    const seen: Headers[] = [];
+    vi.stubGlobal('fetch', (_input: RequestInfo | URL, init?: RequestInit) => {
+      seen.push(new Headers(init?.headers));
+      return Promise.resolve(new Response(JSON.stringify({ id: 'LR-1' }), { status: 200 }));
+    });
+    const proof = 'a'.repeat(128);
+    expect(await sendLockedResult('TR-ABC', new Uint8Array([1]), 'att_x_ld1', undefined, proof)).toEqual({
+      id: 'LR-1',
+    });
+    expect(seen[0].get('x-lab-key-proof')).toBe(proof);
+    await sendLockedResult('TR-ABC', new Uint8Array([1]), undefined, undefined, proof);
+    expect(seen[1].get('x-lab-key-proof')).toBeNull();
+  });
+});
+
+describe('M2 and L6: what the share screen and the lab’s Sent screen say', () => {
+  const langs = ['en', 'de', 'es', 'fr', 'ja'] as const;
+  it('the custody line under “Whether a DNA report is saved” is said, in every language', () => {
+    for (const l of langs) {
+      const t = appTranslations[l] as Record<string, string>;
+      for (const k of ['app.prove.share.custodyNote', 'app.prove.share.labSigs.intro', 'app.lab.out.sentText'])
+        expect(t[k], `${l} ${k}`).toBeTruthy();
+    }
+    const en = appTranslations.en as Record<string, string>;
+    expect(en['app.prove.share.custodyNote']).toMatch(
+      /that a lab received a sample \(not which lab\) and whether what arrived matches what was sent/,
+    );
+    expect(en['app.prove.share.labSigs.intro']).not.toMatch(/only you and the lab can see them/);
+    expect(en['app.prove.share.labSigs.intro']).toMatch(/without the lab’s name/);
+    expect(en['app.lab.out.sentText']).toMatch(/without your lab’s name/);
+    expect(en['app.verify.report.unnamedWithdrawn']).toMatch(/every lab report signature shown here was withdrawn/);
+    const fr = appTranslations.fr as Record<string, string>;
+    expect(Object.values(fr).join('\n')).not.toMatch(/enregistré sur cet enregistrement/);
+  });
 });

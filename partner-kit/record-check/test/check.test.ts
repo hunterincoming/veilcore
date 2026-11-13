@@ -822,6 +822,83 @@ describe('chain of custody: a receipt only when tied to a delivery', () => {
   });
 });
 
+describe('custody lines for receipts the holder hasn’t shown (M1, 12 Nov 2026)', () => {
+  it('a line with no receipt id is kept without the lab: a mismatch is never lost', async () => {
+    const { c } = await run(LINK, {
+      verify: withCustody([{ covered: 'covered', differences: ['Seal number differs: sent 4471, received 4472'] }]),
+      attestations: [],
+    });
+    expect(c.labReceipts).toEqual([]);
+    expect(c.unnamedCustody).toHaveLength(1);
+    expect(c.unnamedCustody[0]).toMatchObject({
+      covered: 'covered',
+      differences: ['Seal number differs: sent 4471, received 4472'],
+      clean: false,
+    });
+    expect(c.unnamedCustody[0].words).toMatch(
+      /^A lab’s receipt for a sample from this record, as the registry reports it\. The holder hasn’t shown which lab signed it/,
+    );
+    expect(c.unnamedCustody[0].words).toMatch(
+      /What arrived does NOT match what was sent: Seal number differs: sent 4471, received 4472\.$/,
+    );
+    expect(c.summary).toMatch(
+      /For a sample a lab received \(the holder hasn’t shown which lab\), what arrived does NOT match what was sent/,
+    );
+    for (const w of FORBIDDEN) expect(c.unnamedCustody[0].words).not.toMatch(w);
+  });
+
+  it('each kind of line: matches, changed, older receipt, sealed with the sender’s word, removed', async () => {
+    const one = async (line: Record<string, unknown>) =>
+      (await run(LINK, { verify: withCustody([line]), attestations: [] })).c;
+    let c = await one({ covered: 'covered', differences: [] });
+    expect(c.unnamedCustody[0]).toMatchObject({ clean: true });
+    expect(c.unnamedCustody[0].words).toMatch(/what arrived matches what was sent\.$/);
+    expect(c.summary).not.toMatch(/does NOT match/);
+    c = await one({ covered: 'changed', differences: [] });
+    expect(c.unnamedCustody[0].words).toMatch(/does NOT cover them\.$/);
+    expect(c.summary).toMatch(
+      /what arrived does NOT match what was sent, or the lab’s details were changed after signing/,
+    );
+    c = await one({ covered: 'not-covered', differences: [] });
+    expect(c.unnamedCustody[0].words).toMatch(/an older receipt\)\.$/);
+    c = await one({
+      custody: 'sealed',
+      custodySummary: { covered: 'covered', differingFields: ['sealNumber'] },
+      custodySummaryBy: 'holder',
+    });
+    expect(c.unnamedCustody[0]).toMatchObject({
+      state: 'sealed',
+      clean: false,
+      senderSays: { covered: 'covered', differingFields: ['sealNumber'] },
+    });
+    expect(c.unnamedCustody[0].words).toMatch(/seal number \(the sender’s word\)\.$/);
+    expect(c.summary).toMatch(/does NOT match/);
+    c = await one({ custody: 'removed' });
+    expect(c.unnamedCustody[0]).toMatchObject({ state: 'removed', clean: false });
+  });
+
+  it('a named line still goes with its receipt; a line with a bad id or out of shape is dropped', async () => {
+    const { c } = await run(LINK, {
+      verify: withCustody([
+        { receiptAttestationId: 'att_receipt', covered: 'covered', differences: [] },
+        { receiptAttestationId: '', covered: 'covered', differences: [] },
+        { receiptAttestationId: 7, covered: 'covered', differences: [] },
+        { covered: 'maybe', differences: [] },
+        'nonsense',
+        { covered: 'covered', differences: [] },
+      ]),
+      attestations: [served(receipt)],
+    });
+    expect(c.labReceipts[0].kind).toBe('lab-receipt');
+    expect(c.unnamedCustody).toHaveLength(1);
+    expect(c.unnamedCustody[0].clean).toBe(true);
+  });
+
+  it('none when lab status isn’t shared, and none for a missing record', async () => {
+    expect((await run(LINK)).c.unnamedCustody).toEqual([]);
+  });
+});
+
 describe('the key in the link', () => {
   it('matches the key the record named; another key, or part of one, does not', async () => {
     const withKey = (k: string, ks = KEY_SALT, cd = CONTENT) => `${LINK}&chain=${k}&ks=${ks}&cd=${cd}`;

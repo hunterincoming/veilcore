@@ -391,7 +391,7 @@ export const lab = {
   'app.lab.out.andJoin': ', et ',
   'app.lab.out.sent': 'Envoyé',
   'app.lab.out.sentText':
-    'Seul l’obtenteur peut l’ouvrir. Votre signature dessus est privée aussi : seuls l’obtenteur et vous pouvez la voir, sauf si l’obtenteur choisit de la montrer sur son lien de vérification.',
+    'Seul l’obtenteur peut l’ouvrir. Votre signature dessus est privée aussi : seuls l’obtenteur et vous pouvez la voir, sauf si l’obtenteur choisit de la montrer sur son lien de vérification. Si vous avez signé un accusé de réception pour l’échantillon et que l’obtenteur montre si un rapport ADN est enregistré, sa page de vérification indique qu’un laboratoire a reçu un échantillon et si ce qui est arrivé correspond à ce qui a été envoyé, sans le nom de votre laboratoire.',
   'app.lab.out.sentName':
     'S’il le fait, quiconque a ce lien voit aussi le nom sous lequel votre clé est enregistrée. Tant que l’opérateur de VeilCore ne l’a pas rapproché d’une liste publique de licences ou d’accréditations, il apparaît comme « une clé nommée « {name} » (nom non vérifié) ».',
   'app.lab.out.yourLab': 'votre laboratoire',

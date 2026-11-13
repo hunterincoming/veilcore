@@ -438,7 +438,7 @@ describe('round 6: the check page describes the file saved NOW, from the registr
   it('an older registry and a link naming no file: never "No lab has signed" beside withdrawn lab reports', () => {
     const l = publicReportLine({ paired: true, atts: finalAtts, bound: true });
     expect(l.text).not.toMatch(/No lab has signed/);
-    expect(l.text).toMatch(/every lab report signed about this record was withdrawn by its lab/);
+    expect(l.text).toMatch(/every lab report signature shown here was withdrawn by its lab/);
   });
 
   it('the breeder’s preview, the certificate and the check page use the same words', () => {

@@ -12,7 +12,8 @@
 //            delivery's offer key as the site seals them, and the holder's grant publishing
 //            what the holder's app worked out about each; in a batch dated on preprod
 //   older    an older record (no key); a receipt from a key nobody checked, then withdrawn
-//            by that key; same batch
+//            by that key; a delivery whose receipt the holder doesn't show, its seal number
+//            differing (a registry that keeps lab signatures private); same batch
 //   undated  sealed after the batch: in no batch
 // SPDX-License-Identifier: Apache-2.0
 import { spawn } from 'node:child_process';
@@ -387,18 +388,18 @@ export const startRegistry = async ({ registryDir, port = 8920, dir }) => {
     // as the site signs it), attached to the delivery. Both sides are sealed with the
     // delivery's offer key, and the digest is the salted v2 one (`_sc2_`): the registry stores
     // them locked and can't compare them; the holder's grant says what the holder's app found.
-    const deliver = async (sample, arrival) => {
+    const deliver = async (sample, arrival, rec = bound) => {
       const labHolder = { 'x-holder-key': randomBytes(32).toString('hex') };
       const offerKey = randomBytes(32);
-      const sealedOffer = gcm(offerKey, offerAad(bound), {
-        strainName: bound.strainName,
-        bredBy: bound.bredBy,
-        dateCreated: bound.dateCreated,
+      const sealedOffer = gcm(offerKey, offerAad(rec), {
+        strainName: rec.strainName,
+        bredBy: rec.bredBy,
+        dateCreated: rec.dateCreated,
       });
       const offer = await call(
         'POST',
         '/transfers',
-        { sourceRecord: bound.id, toHandle: handleTag(VAULT, 'lab@e2e.test'), sealedOffer },
+        { sourceRecord: rec.id, toHandle: handleTag(VAULT, 'lab@e2e.test'), sealedOffer },
         holder,
       );
       const salt = randomBytes(32).toString('base64url');
@@ -415,7 +416,7 @@ export const startRegistry = async ({ registryDir, port = 8920, dir }) => {
         labHolder,
       );
       const stub = (await call('GET', '/api/records', undefined, labHolder)).find((r) => r.id === claim.recordId);
-      const fromOffer = ungcm(offerKey, offerAad(bound), claim.offerSealed);
+      const fromOffer = ungcm(offerKey, offerAad(rec), claim.offerSealed);
       const received = seal({
         ...stub,
         ...fromOffer,
@@ -445,7 +446,7 @@ export const startRegistry = async ({ registryDir, port = 8920, dir }) => {
         await sign(checkedLab, {
           attestationId,
           type: 'chain-of-custody',
-          subjectCommitment: bound.recordFingerprint,
+          subjectCommitment: rec.recordFingerprint,
           documentHash: received.recordFingerprint,
         }),
       );
@@ -506,11 +507,30 @@ export const startRegistry = async ({ registryDir, port = 8920, dir }) => {
       otherLab.privateKey,
     );
     await call('POST', `/attestations/${withdrawnId}/retract`, retraction);
+    // A delivery of `older` whose receipt the holder does NOT show (12 Nov 2026): its custody
+    // line comes without the receipt's id or the lab, and the seal number differs. A registry
+    // from before private lab signatures would show the receipt itself, so only on one that
+    // keeps them private.
+    const receiptUnshown = labPrivate
+      ? await deliver(
+          { sampleId: 'E2E-3', sealNumber: '6600' },
+          { sampleId: 'E2E-3', sealNumber: '6606', sealIntact: 'yes', arrivedOn },
+          older,
+        )
+      : undefined;
     if (labPrivate)
       await call(
         'PUT',
         `/api/records/${older.id}/disclosure`,
-        { ...grantFor(older, ['existence', 'attestation-status']), values: { sharedAttestations: [withdrawnId] } },
+        {
+          ...grantFor(older, ['existence', 'attestation-status']),
+          values: {
+            sharedAttestations: [withdrawnId],
+            custodySummary: [
+              { receiptAttestationId: receiptUnshown, covered: 'covered', differingFields: ['sealNumber'] },
+            ],
+          },
+        },
         holder,
       );
 

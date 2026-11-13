@@ -19,5 +19,11 @@ export {
   type RecordCheck,
 } from './check.js';
 export { CUT, parseCheckLink, type CheckLink } from './link.js';
-export { type CustodyEntry, type LabReceipt, type NameCheck, type NameCheckStatus } from './signatures.js';
+export {
+  type CustodyEntry,
+  type LabReceipt,
+  type NameCheck,
+  type NameCheckStatus,
+  type UnnamedCustody,
+} from './signatures.js';
 export { fingerprintOfFields, keyMatchesFingerprint, pairingFingerprintOfSha } from './hash.js';

@@ -291,7 +291,7 @@ const sharedIdsNow = async (r: StrainRecord, stored: unknown): Promise<string[]>
   if (sharedRefused) return [];
   const chosen = (Array.isArray(r.sharedAttestations) ? r.sharedAttestations : []).filter(isString);
   if (!chosen.length || !r.recordFingerprint) return [];
-  const visible = await loadAttestations(r.recordFingerprint, { asHolder: true }).catch(() => null);
+  const visible = await loadAttestations(r.recordFingerprint, { asHolder: true, allPages: true }).catch(() => null);
   if (visible) {
     const ids = new Set(visible.map((a) => a.attestationId));
     return [...new Set(chosen)].filter((id) => ids.has(id)).slice(0, SHARED_IDS_MAX);

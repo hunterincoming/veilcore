@@ -88,7 +88,7 @@ export const plant = {
   'app.plant.tie.replaced': 'le laboratoire a remplacé le rapport ADN enregistré ici',
   'app.plant.tie.withdrawn': 'le laboratoire a retiré le rapport ADN enregistré ici',
   'app.plant.tie.add': 'ajoutez un rapport ADN',
-  'app.plant.tie.noneSaved': 'aucun rapport ADN n’est enregistré sur cet enregistrement',
+  'app.plant.tie.noneSaved': 'aucun rapport ADN n’est joint à cet enregistrement',
   'app.plant.tie.cameBack': 'un rapport de laboratoire est arrivé : ouvrez-le ici',
   'app.plant.tie.openedNotSaved': 'un rapport de laboratoire est ouvert, pas enregistré sur cette plante',
   'app.plant.tie.notDated': 'pas encore daté',
