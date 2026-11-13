@@ -1,0 +1,62 @@
+name: Bug report
+description: Something on veilcore.org, test.veilcore.org, the CLI or the code doesn't work, or says more than it does.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Security problems go to [SECURITY.md](https://github.com/hunterincoming/veilcore/security/policy), not here.** This tracker is public.
+
+        Never paste a record's secret keys, a backup file, a recovery sheet, a lab code, or a check link's part after the `#`. Wording that claims more than the code does counts as a bug too.
+  - type: dropdown
+    id: where
+    attributes:
+      label: Where
+      options:
+        - veilcore.org (Midnight mainnet)
+        - test.veilcore.org (test network)
+        - Local build
+        - CLI (bboard-cli)
+        - Partner kit (@veilcore/contracts)
+        - Docs or README
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Commit or release
+      description: The commit, or the release shown at /check-this-site on the site you used.
+      placeholder: e.g. 009f81f
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Go to ...
+        2. Click ...
+        3. See ...
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Browser and device
+      placeholder: e.g. Safari 18 on iPhone 15, Chrome 131 on macOS
+  - type: textarea
+    id: extra
+    attributes:
+      label: Anything else
+      description: Screenshots, console output, a failing test. Remove any secrets first.

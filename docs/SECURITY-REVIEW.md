@@ -1,7 +1,7 @@
 # Security review: scope for an outside reviewer
 
-For a security firm reviewing VeilCore before agreements go live on mainnet. Contact:
-hunter@veilcore.org.
+For a security firm reviewing VeilCore's licenses and royalties. Written before they went live
+on veilcore.org (8 November 2026, [agreements-live.md](agreements-live.md)). Contact: hunter@veilcore.org.
 
 ## What VeilCore is, in two lines
 

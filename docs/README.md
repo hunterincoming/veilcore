@@ -29,7 +29,7 @@ Start with [design.md](design.md). The record format itself is specified in
 | Document | What it covers |
 |---|---|
 | [agreements-live.md](agreements-live.md) | Licenses on chain: royalties, payments, offspring royalties, handing a license on, lenders |
-| [agreements-test-run.md](agreements-test-run.md) | The full run on the test network before licenses go live on veilcore.org |
+| [agreements-test-run.md](agreements-test-run.md) | The full run on the test network before licenses went live on veilcore.org |
 
 ## The deployed contracts
 
@@ -39,7 +39,7 @@ Start with [design.md](design.md). The record format itself is specified in
 | [fingerprints.md](fingerprints.md) | SHA-256 of every compiled artefact, to compare with your own build |
 | [maintenance-policy.md](maintenance-policy.md) | Who holds the main contract's maintenance key, and when it may be used |
 | [maintenance-committee.md](maintenance-committee.md) | The plan to move that key to two of three holders |
-| [mainnet-completeness.md](mainnet-completeness.md) | What was required before mainnet, and what is still open |
+| [mainnet-completeness.md](mainnet-completeness.md) | Historical: what was required before mainnet (kept as written; README has current status) |
 
 ## Reviews and test runs
 

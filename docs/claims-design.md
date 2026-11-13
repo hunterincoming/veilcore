@@ -210,7 +210,7 @@ shape works, and for the repeated-comparison warning, belongs to that work.
 
 `contract/src/schnorr.compact` says the standard library's `jubjubSchnorrVerify` gains the
 identity-key check in Compact 0.34. It landed in **0.35.0**
-(https://docs.midnight.network/relnotes/compact/toolchain-0.35.0); pointed out by Guvenkaya
-while scoping their review. When migrating (ledger 9), go straight to 0.35 or later before
+(https://docs.midnight.network/relnotes/compact/toolchain-0.35.0); pointed out by an outside
+security reviewer while scoping a review. When migrating (ledger 9), go straight to 0.35 or later before
 replacing the custom Schnorr check. The comment in the `.compact` file is left as it is for
 now, because that file is frozen and fingerprinted for the mainnet deploy.
