@@ -127,7 +127,7 @@ const sendAndReceive = async (browser: Browser, t: Typed, arrivedSeal: string, t
   await lab.getByRole('button', { name: /Set up your lab.s signature/ }).click();
   await lab.getByLabel(/^Name/).fill('E2E Lab');
   await lab.getByRole('button', { name: /Create my key/ }).click();
-  await lab.getByRole('button', { name: /^Done$/ }).click();
+  await lab.getByRole('button', { name: /^(Continue|Done)$/ }).click();
   await receiveWithBackupFirst(lab, code);
 
   // The form starts from what the breeder wrote, opened in the lab's browser with the code's
@@ -450,7 +450,7 @@ test('the whole way round: logged, backed up, sent with sample details; received
   await lab.getByRole('button', { name: /Set up your lab.s signature/ }).click();
   await lab.getByLabel(/^Name/).fill('E2E Lab');
   await lab.getByRole('button', { name: /Create my key/ }).click();
-  await lab.getByRole('button', { name: /^Done$/ }).click();
+  await lab.getByRole('button', { name: /^(Continue|Done)$/ }).click();
   await receiveWithBackupFirst(lab, code);
   await expect(lab.getByLabel('Sample ID on arrival')).toHaveValue(t.sampleId);
   await lab.getByLabel('Yes', { exact: true }).check();
