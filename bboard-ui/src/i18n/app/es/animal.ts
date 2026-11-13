@@ -187,7 +187,7 @@ export const animal = {
     'Ningún laboratorio ha firmado todavía un acuse de recibo para este animal. Un registro que solo usted respalda es una evidencia más débil que uno que firma un laboratorio. Envíe una muestra a un laboratorio: su acuse de recibo se firma con su clave, no con la suya.',
   'app.animal.v.app.verify.field.parent-names': 'Padre y madre (nombres e identificaciones)',
   'app.animal.v.app.verify.alwaysShown':
-    'Siempre se muestra: el ID del registro, su código de prueba ({fp}), cuándo lo guardó por primera vez el servidor de registros y lo que esta página pudo comprobar sobre su lote y las atestaciones firmadas (un acuse de recibo de laboratorio, un informe de laboratorio). El nombre del animal, solo cuando el enlace lo lleva (los suyos lo llevan solo si usted lo activa) o usted decide mostrarlo.',
+    'Siempre se muestra: el ID del registro, su código de prueba ({fp}), cuándo lo guardó por primera vez el servidor de registros y lo que esta página pudo comprobar sobre su lote y las atestaciones firmadas mostradas (un acuse de recibo o un informe de laboratorio solo si usted decide mostrarlo). El nombre del animal, solo cuando el enlace lo lleva (los suyos lo llevan solo si usted lo activa) o usted decide mostrarlo.',
   'app.animal.v.app.verify.ownReceiptTail':
     ' Usted lo ve porque el animal está en este navegador; quien reciba el enlace solo ve la línea de firma de arriba.',
   'app.animal.v.app.prove.openCheckPage': 'Abrir la página de comprobación del animal',
@@ -230,7 +230,7 @@ export const animal = {
   'app.animal.v.app.lab.results.noKey':
     'La clave de este animal no está en este dispositivo, así que aquí no se pueden abrir sus informes de laboratorio. Primero <link>recupere sus registros desde su copia de seguridad</link>.',
   'app.animal.v.app.lab.results.whatOthersSee':
-    '<b>Lo que otros pueden ver.</b> La firma del laboratorio es pública; el informe no. Cualquiera con un enlace a la página de comprobación de este animal ve que se firmó un informe de laboratorio sobre él, el SHA-256 del archivo del informe y el nombre con el que está registrada la clave del laboratorio: marcado “nombre no comprobado” salvo que el operador de VeilCore lo haya cotejado con un listado público de licencias o acreditaciones. Si guarda el informe en este animal y comparte “Si hay un informe de ADN guardado” en Mostrar a alguien, también ven que el archivo guardado coincide.',
+    '<b>Lo que otros pueden ver.</b> La firma del laboratorio sobre este informe es privada, como el informe: solo usted y el laboratorio la ven. Para mostrarla, elija Mostrar a alguien y actívela en “Firmas de laboratorio”. Cualquiera con ese enlace verá entonces que el laboratorio firmó un informe sobre este animal, y el nombre con el que está registrada la clave del laboratorio: marcado “nombre no comprobado” salvo que el operador de VeilCore lo haya cotejado con un listado público de licencias o acreditaciones. Si es un informe de ADN y lo guarda en este animal, la página también puede decir que el laboratorio firmó ese archivo.',
   'app.animal.v.app.lab.results.nothingYet':
     'Nada todavía. Cuando un laboratorio al que envió una muestra de este animal mande un informe de laboratorio, aparecerá aquí.',
   'app.animal.v.app.lab.results.savedHere': ' · guardado en este animal',

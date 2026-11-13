@@ -81,7 +81,7 @@ export const plant = {
   'app.plant.tie.notNow': 'Not tied to the plant now',
   'app.plant.tie.lab': 'DNA report {lead}',
   'app.plant.tie.self': 'DNA report you saved (no lab signature matches it)',
-  'app.plant.tie.selfPublic': 'DNA report the holder saved (no lab signature matches it)',
+  'app.plant.tie.selfPublic': 'DNA report the holder saved (no lab signature shown here matches it)',
   'app.plant.tie.savedHolder': 'DNA report you saved',
   'app.plant.tie.savedPublic': 'DNA report the holder saved',
   'app.plant.tie.replaced': 'the lab replaced the DNA report saved here',

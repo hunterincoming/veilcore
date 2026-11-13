@@ -52,7 +52,7 @@ import {
 import { canonicalUrl } from '../../config/network';
 import { nameLinkParams, verifyPath } from '../../veilcore/verify-link';
 import { dnaLinkParams } from '../../veilcore/dna-link';
-import { labLinkParams } from '../../veilcore/lab-doc';
+import { LAB_SALT_PARAM, labLinkParams } from '../../veilcore/lab-doc';
 import { useRecordKeys } from '../../veilcore/record-keys';
 import { proveLinkParams } from '../../veilcore/prove-link';
 import { REAL_CHAIN } from '../../veilcore/chain/config';
@@ -61,6 +61,8 @@ import { useSavedReport } from '../flow/LabResults';
 import { savedReportSentence, type SavedReport } from '../../veilcore/saved-report';
 import { useRecordT } from '../../i18n/app';
 import { isAnimal, recordTitle } from '../../veilcore/animal-profile';
+import { loadAttestations, type ResolvedAttestation } from '../../veilcore/attesters';
+import { LabSignatureShare } from './LabSignatureShare';
 
 export const Step5ProveDisclosure: React.FC<{
   recordId: string;
@@ -90,6 +92,10 @@ export const Step5ProveDisclosure: React.FC<{
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<{ absolute: string; relative: string }>();
+  // The lab signatures the holder can show on the check link (8 Nov 2026), read with the
+  // holder key, and which are chosen: the record's sealed choice, off for any not chosen.
+  const [labAtts, setLabAtts] = useState<ResolvedAttestation[] | null | 'unknown'>(null);
+  const [chosenSigs, setChosenSigs] = useState<ReadonlySet<string>>(() => new Set(record?.sharedAttestations ?? []));
   const [copied, setCopied] = useState(false);
   // Whether the link carries the record's name after the # (round 5): off unless the holder
   // turns it on for this link (persona review, 17 Oct). Only the people the link is sent to
@@ -120,6 +126,18 @@ export const Step5ProveDisclosure: React.FC<{
   useEffect(() => {
     if (result) linkInput.current?.focus();
   }, [result]);
+
+  const fingerprintNow = record?.recordFingerprint;
+  useEffect(() => {
+    let live = true;
+    setLabAtts(null);
+    void loadAttestations(fingerprintNow, { asHolder: true, allPages: true }).then(
+      (a) => live && setLabAtts(a ?? 'unknown'),
+    );
+    return () => {
+      live = false;
+    };
+  }, [fingerprintNow]);
 
   useEffect(() => {
     let live = true;
@@ -154,6 +172,23 @@ export const Step5ProveDisclosure: React.FC<{
     ...(disclosure['attestation-status'] && saved?.kind === 'lab' ? labLinkParams(record, [saved.signed]) : {}),
   };
 
+  const toggleSig = (id: string) => {
+    setChosenSigs((p) => {
+      const next = new Set(p);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+    setResult(undefined); // not saved until the button is pressed
+    setError(null);
+  };
+  // The lab report matching the saved DNA report, when the link carries its lab salt: showing
+  // it lets the check page say the lab signed that file.
+  const suggested =
+    disclosure['attestation-status'] && saved?.kind === 'lab' && LAB_SALT_PARAM in reportParam
+      ? { id: saved.signed.attestationId, lab: saved.lab }
+      : null;
+
   const toggle = (key: keyof Disclosure) => {
     setDisclosure((p) => ({ ...p, [key]: !p[key] }));
     setResult(undefined); // selection changed — not saved until the button is pressed
@@ -168,7 +203,7 @@ export const Step5ProveDisclosure: React.FC<{
       // The grant carries the values it publishes, read from this record here (the
       // registry can't read it), and the fingerprint they were read from.
       // Lineage is no longer offered (it only ever said "not checked"): never re-published.
-      const out = await saveGrant(record, { ...disclosure, 'descent-clean': false });
+      const out = await saveGrant(record, { ...disclosure, 'descent-clean': false }, [...chosenSigs]);
       if ('error' in out) {
         // No link without a stored grant: a link shown now would show strangers
         // whatever the registry held before, not what is on screen.
@@ -211,10 +246,12 @@ export const Step5ProveDisclosure: React.FC<{
     }
   };
 
+  const sigsChanged =
+    [...chosenSigs].sort().join(',') !== [...new Set(record.sharedAttestations ?? [])].sort().join(',');
   const unsaved =
     stored === 'loading' || stored === 'unknown' || stored.updatedAt === null
       ? true
-      : stored.show.join(',') !== keysOn({ ...disclosure, 'descent-clean': false }).join(',');
+      : stored.show.join(',') !== keysOn({ ...disclosure, 'descent-clean': false }).join(',') || sigsChanged;
 
   // The registry shows something else than the holder's own choice (another tab, an older
   // version of the site, or the server itself): both are said, and the holder chooses.
@@ -281,6 +318,18 @@ export const Step5ProveDisclosure: React.FC<{
                     {t('app.prove.share.nameWarning')}
                   </Typography>
                 )}
+                {/* Under this switch the check page also shows the custody line of each lab
+                    receipt, without the lab's name (the registry's publicCustody): said here. */}
+                {f.key === 'attestation-status' && (
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                    sx={{ display: 'block', mt: -0.5, mb: 0.5 }}
+                    data-custody-note=""
+                  >
+                    {t('app.prove.share.custodyNote')}
+                  </Typography>
+                )}
               </React.Fragment>
             ))}
             <Stack direction="row" spacing={1} sx={{ alignItems: 'center', mt: 1, opacity: 0.7 }}>
@@ -293,6 +342,16 @@ export const Step5ProveDisclosure: React.FC<{
           <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
             {sharedNowWords(stored, unsaved, tr)}
           </Typography>
+          <Box sx={{ mt: 2 }}>
+            <LabSignatureShare
+              atts={labAtts}
+              chosen={chosenSigs}
+              onToggle={toggleSig}
+              statusOn={disclosure['attestation-status']}
+              suggested={suggested}
+              tr={tr}
+            />
+          </Box>
         </Box>
 
         {/* live preview */}
@@ -301,7 +360,12 @@ export const Step5ProveDisclosure: React.FC<{
             {t('app.prove.share.strangerSees')}
           </Typography>
           <Paper variant="outlined" sx={{ p: 2, mt: 0.5, background: 'rgba(30,34,39,0.02)' }}>
-            <DisclosedFacts record={record} disclosure={disclosure} saved={saved} />
+            <DisclosedFacts
+              record={record}
+              disclosure={disclosure}
+              saved={saved}
+              labReportShown={saved?.kind === 'lab' ? chosenSigs.has(saved.signed.attestationId) : undefined}
+            />
           </Paper>
         </Box>
       </Stack>

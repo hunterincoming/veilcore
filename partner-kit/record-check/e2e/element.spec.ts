@@ -102,9 +102,12 @@ test('a matching link: the plain answer, the form submits, nothing but the regis
     'The lab signed the report bound to this record; which file it is can be checked only with the file and the holder’s link.',
   );
   await expect(out(page)).not.toContainText('It is the report file saved to this record now.');
-  await expect(out(page)).toContainText(
-    'The registry says a lab signed a report about this record before 17 October 2026. That signature names the report file, so the registry shows it only to the delivery’s sender and lab, and it was not checked here.',
-  );
+  // A registry from before 8 Nov 2026 withholds it and says a lab signed; one that keeps lab
+  // signatures private shows only what the holder showed, and the holder didn't show this one.
+  const withheld =
+    'The registry says a lab signed a report about this record before 17 October 2026. That signature names the report file, so the registry shows it only to the delivery’s sender and lab, and it was not checked here.';
+  if (reg.labPrivate) await expect(out(page)).not.toContainText(withheld);
+  else await expect(out(page)).toContainText(withheld);
   // Receipts tied to deliveries of the record, over sample details stored locked: the
   // registry can't compare them, so the sender's app's word is said as the sender's. One
   // matches, one's seal doesn't; no seal number is ever shown.
@@ -186,7 +189,9 @@ test('a withdrawn receipt, an undated record, a missing record, a bare id and no
   await field.fill(reg.links.undated);
   await field.press('Enter');
   await expect(out(page)).toContainText('Date: Not in a batch yet, so there is no date stamp.');
-  await expect(out(page)).toContainText('Lab signatures: none about this record.');
+  await expect(out(page)).toContainText(
+    'Lab signatures: the holder hasn’t shown any. A lab’s receipts and reports are private unless the holder chooses to show them.',
+  );
 
   await field.fill(reg.links.missing);
   await field.press('Enter');

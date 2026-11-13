@@ -88,7 +88,7 @@ describe('a record and its DNA report', () => {
     );
     // The check page says it neutrally: the holder, not "you".
     expect(dnaTieSentence(tie, undefined, 'public')).toBe(
-      'Tied to the plant: DNA report the holder saved (no lab signature matches it).',
+      'Tied to the plant: DNA report the holder saved (no lab signature shown here matches it).',
     );
     expect(dnaTieRow(tie, NOT_DATED)).toMatchObject({ mark: 'done', label: 'Tied to the plant' });
   });
@@ -243,7 +243,7 @@ describe('the evidence bundle’s README.txt (bundle.ts tiedToPlantLines)', () =
 
   it('the holder’s own file, not dated; a withdrawn one is not tied now', () => {
     expect(tiedToPlantLines(ev(report), [])[0]).toBe(
-      'Tied to the plant: DNA report the holder saved (no lab signature matches it).',
+      'Tied to the plant: DNA report the holder saved (no lab signature shown here matches it).',
     );
     expect(tiedToPlantLines(ev(report), [])[1]).toBe(
       "Nothing dates this DNA report yet: it was saved after sealing, so this record's batch doesn't date it.",

@@ -45,7 +45,14 @@ export const checkClaim = async (
   deps: {
     read?: ClaimReader;
     contract?: string;
-    /** The attestations about a record (attesters.ts attestationsFor, signatures checked there). */
+    /**
+     * The attestations about a record (attesters.ts attestationsFor, signatures checked there).
+     * About the plant the numbers are about (`attested.about`), the registry's answer also holds
+     * the lab signatures its holder chose to show (registry feature shared-by-proof-code-v1, 12
+     * Nov 2026): a lab's report signature is private otherwise, and a v1 binding names the lab
+     * only through it. A claim link names the plant only by proof code, so that is where they
+     * are read; nothing in the link has to carry them.
+     */
     attestations?: (record: string) => Promise<readonly BindingCandidate[]>;
   } = {},
 ): Promise<ClaimVerdict> => {
@@ -69,7 +76,9 @@ export const checkClaim = async (
         if (link.attested.about && a.claim.attester) {
           try {
             const get = deps.attestations ?? ((r: string) => attestationsFor(r, { claimsKeyBindings: true }));
-            const [list, aboutList] = await Promise.all([get(link.record), get(link.attested.about)]);
+            const about = link.attested.about;
+            // The plant's list holds the lab signatures its holder shows (see `attestations`).
+            const [list, aboutList] = await Promise.all([get(link.record), get(about)]);
             signer = findBinding(
               list,
               link.record,

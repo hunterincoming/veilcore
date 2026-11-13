@@ -470,6 +470,16 @@ export class VeilcoreRecordCheck extends HTMLElement {
     return line('ok', 'Checked:', r.words);
   }
 
+  #unnamedLine(u: RecordCheck['unnamedCustody'][number]): HTMLLIElement {
+    if (u.state === 'sealed' && u.senderSays?.covered === 'changed')
+      return line('bad', 'Changed after signing (sender’s word):', u.words);
+    if (u.state === 'sealed' && u.senderSays?.differingFields.length)
+      return line('bad', 'Does not match (sender’s word):', u.words);
+    if (u.covered === 'changed') return line('bad', 'Changed after signing:', u.words);
+    if (u.differences.length) return line('bad', 'Does not match:', u.words);
+    return line('info', 'Lab receipt (lab not shown):', u.words);
+  }
+
   #render(c: RecordCheck): void {
     const items: HTMLLIElement[] = [];
     let heading: string;
@@ -565,7 +575,18 @@ export class VeilcoreRecordCheck extends HTMLElement {
         items.push(
           line('info', 'And', `${c.labReceipts.length - shown.length} more signatures (see the full check page).`),
         );
-      if (c.labReceipts.length === 0) items.push(line('info', 'Lab signatures:', 'none about this record.'));
+      // A receipt the holder hasn't shown still has its custody line (8 Nov 2026): a mismatch
+      // is never lost because the lab isn't named.
+      for (const u of c.unnamedCustody.slice(0, 5)) items.push(this.#unnamedLine(u));
+      // Private unless the holder shows them (8 Nov 2026): never "none about this record".
+      if (c.labReceipts.length === 0)
+        items.push(
+          line(
+            'info',
+            'Lab signatures:',
+            'the holder hasn’t shown any. A lab’s receipts and reports are private unless the holder chooses to show them.',
+          ),
+        );
       if (c.keyBound.keyInLink !== 'not-given')
         items.push(line(c.keyBound.keyInLink === 'matches' ? 'ok' : 'warn', 'Key:', c.keyBound.reason));
       if (c.supersededBy)

@@ -44,8 +44,10 @@ const useSigner = (record: StrainRecord): LabSigner | undefined => {
         const key = keyFromHex(sig.key);
         const about = sig.about;
         const [list, aboutList] = await Promise.all([
-          attestationsFor(sig.record, { claimsKeyBindings: true }),
-          about ? attestationsFor(about) : Promise.resolve([]),
+          // The holder's own page (8 Nov 2026): the lab's report signature on the record the
+          // numbers are about is private, served only to the holder key, so it asks with it.
+          attestationsFor(sig.record, { claimsKeyBindings: true, asHolder: true }),
+          about ? attestationsFor(about, { asHolder: true }) : Promise.resolve([]),
         ]);
         if (live)
           setSigner(key && about ? findBinding(list, sig.record, key, about, aboutList, salt) : { kind: 'none' });

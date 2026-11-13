@@ -17,15 +17,15 @@ export const verify = {
     '{which} fue reemplazado por su laboratorio el {on} por uno corregido. {tail}{staleNote}',
   'app.verify.report.withdrawn': '{which} fue retirado por su laboratorio el {on}. {tail}{staleNote}',
   'app.verify.report.ownSha':
-    'El titular guardó un archivo de informe de ADN en este registro{asOf} (SHA-256 {sha}). Ninguna firma de laboratorio de este registro coincide con él, así que es la propia declaración del titular.{staleNote}',
+    'El titular guardó un archivo de informe de ADN en este registro{asOf} (SHA-256 {sha}). Ninguna firma de laboratorio mostrada aquí coincide con él, así que, tal como se muestra, es la propia declaración del titular. Las firmas de un laboratorio son privadas, salvo que el titular decida mostrarlas.{staleNote}',
   'app.verify.report.own':
-    'El titular guardó un archivo de informe de ADN en este registro. Ninguna firma de laboratorio de este registro coincide con él, así que es la propia declaración del titular.{staleNote}',
+    'El titular guardó un archivo de informe de ADN en este registro. Ninguna firma de laboratorio mostrada aquí coincide con él, así que, tal como se muestra, es la propia declaración del titular. Las firmas de un laboratorio son privadas, salvo que el titular decida mostrarlas.{staleNote}',
   'app.verify.report.unnamedSigned':
     'El titular guardó un informe de ADN en este registro. Este enlace no nombra el archivo, así que esta página no puede saber si es el informe firmado que aparece arriba.',
   'app.verify.report.unnamedWithdrawn':
-    'El titular guardó un informe de ADN en este registro. Este enlace no nombra el archivo, y todos los informes firmados sobre este registro fueron retirados por su laboratorio, así que es la propia declaración del titular.',
+    'El titular guardó un informe de ADN en este registro. Este enlace no nombra el archivo, y todos los informes firmados que se muestran aquí fueron retirados por su laboratorio, así que es la propia declaración del titular.',
   'app.verify.report.unnamedNone':
-    'El titular guardó un informe de ADN en este registro. Ningún laboratorio ha firmado un informe sobre este registro, así que es la propia declaración del titular.',
+    'El titular guardó un informe de ADN en este registro. Aquí no se muestra ninguna firma de un informe de laboratorio, así que, tal como se muestra, es la propia declaración del titular. Las firmas de un laboratorio son privadas, salvo que el titular decida mostrarlas.',
   'app.verify.kind.receipts.one': 'un acuse de recibo de laboratorio',
   'app.verify.kind.receipts.other': '{count} acuses de recibo de laboratorio',
   'app.verify.kind.reports.one': 'un informe de laboratorio',
@@ -165,7 +165,8 @@ export const verify = {
   'app.verify.moreSigs': '{forWhom}Y {n} firmas más, cada una verificada en este navegador.',
   'app.verify.noneVerified':
     'El servidor de registros informa una atestación firmada, pero no se pudo verificar ninguna en este navegador.',
-  'app.verify.noneSigned': 'No se ha firmado ningún acuse de recibo ni informe de laboratorio sobre este registro.',
+  'app.verify.noneSigned':
+    'El titular no ha mostrado aquí ninguna firma de laboratorio. Los acuses de recibo y los informes de un laboratorio son privados, salvo que el titular decida mostrarlos.',
   'app.verify.badSigs.one':
     'Una firma que informa el servidor de registros no se verifica en este navegador, así que no se cuenta.',
   'app.verify.badSigs.other':
@@ -206,7 +207,7 @@ export const verify = {
   'app.verify.sharedNothing': 'El titular no compartió nada más allá de lo básico de arriba.',
   'app.verify.notShared': 'No compartido por el titular: {list}.',
   'app.verify.alwaysShown':
-    'Siempre se muestra: el ID del registro, su código de prueba ({fp}), cuándo lo guardó por primera vez el servidor de registros y lo que esta página pudo comprobar sobre su lote y las atestaciones firmadas (un acuse de recibo de laboratorio, un informe de laboratorio). El nombre, solo cuando el enlace lo lleva (los suyos lo llevan solo si usted lo activa) o usted decide mostrarlo.',
+    'Siempre se muestra: el ID del registro, su código de prueba ({fp}), cuándo lo guardó por primera vez el servidor de registros y lo que esta página pudo comprobar sobre su lote y las atestaciones firmadas mostradas (un acuse de recibo o un informe de laboratorio solo si usted decide mostrarlo). El nombre, solo cuando el enlace lo lleva (los suyos lo llevan solo si usted lo activa) o usted decide mostrarlo.',
   'app.verify.ex.title': 'Ejemplo: un registro inventado.',
   'app.verify.ex.intro':
     'Esto muestra cómo es la página de comprobación de un registro, con una nota bajo cada línea. Aquí no se consultó ni comprobó nada.',
@@ -271,4 +272,6 @@ export const verify = {
     'El titular guardó un informe de ADN en este registro. Para ver cuál, elija el archivo que le envió el titular: esta página lo comprueba con el registro, usando lo que lleva este enlace.',
   'app.verify.report.noSaltInLink':
     'El titular guardó un informe de ADN en este registro. Qué archivo es solo se puede comprobar con el enlace de comprobación del propio titular y el archivo.',
+  'app.verify.unnamedReceipt':
+    'Un acuse de recibo de laboratorio de una muestra de este registro, según el servidor de registros. El titular no ha mostrado qué laboratorio lo firmó.',
 } satisfies Partial<AppTranslation>;

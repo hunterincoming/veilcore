@@ -300,7 +300,8 @@ export const lab = {
   'app.lab.key.intro':
     'Quand vous confirmez avoir reçu du matériel, ou signez un rapport, c’est signé avec une clé que vous seul détenez. Cela devient votre déclaration, pas quelque chose que nous avons inscrit en votre nom. La clé est créée dans ce navigateur ; seuls sa moitié publique, votre nom et l’accréditation que vous indiquez sont publiés.',
   'app.lab.key.name': 'Nom',
-  'app.lab.key.nameHelp': 'Comment vous apparaissez à quiconque vérifie un enregistrement que vous avez signé.',
+  'app.lab.key.nameHelp':
+    'Comment vous apparaissez là où vos signatures sont montrées : à l’obtenteur, et à quiconque il les montre.',
   'app.lab.key.role': 'Rôle',
   'app.lab.key.accreditation': 'Accréditation (facultatif)',
   'app.lab.key.accreditationHelp':
@@ -335,7 +336,7 @@ export const lab = {
     'La clé de cette plante n’est pas sur cet appareil : ses rapports de laboratoire ne peuvent donc pas être ouverts ici. <link>Récupérez d’abord vos plantes depuis votre copie de secours</link>.',
   'app.lab.results.gotIt': 'Compris',
   'app.lab.results.whatOthersSee':
-    '<b>Ce que les autres peuvent voir.</b> La signature du laboratoire est publique ; le rapport ne l’est pas. Quiconque a un lien vers la page de vérification de cette plante voit qu’un rapport de laboratoire la concernant a été signé, le SHA-256 du fichier du rapport et le nom sous lequel la clé du laboratoire est enregistrée : marqué « nom non vérifié » sauf si l’opérateur de VeilCore l’a rapproché d’une liste publique de licences ou d’accréditations. Si vous enregistrez le rapport sur cette plante et partagez « Si un rapport ADN est enregistré » dans Montrer à quelqu’un, on voit aussi que le fichier enregistré y correspond.',
+    '<b>Ce que les autres peuvent voir.</b> La signature du laboratoire sur ce rapport est privée, comme le rapport : seuls vous et le laboratoire la voyez. Pour la montrer, choisissez Montrer à quelqu’un et activez-la sous « Signatures de laboratoire ». Quiconque a ce lien voit alors que le laboratoire a signé un rapport sur cette plante, et le nom sous lequel la clé du laboratoire est enregistrée : marqué « nom non vérifié » sauf si l’opérateur de VeilCore l’a rapproché d’une liste publique de licences ou d’accréditations. S’il s’agit d’un rapport ADN et que vous l’enregistrez sur cette plante, la page peut aussi dire que le laboratoire a signé ce fichier.',
   'app.lab.results.noCurrent':
     'Aucun rapport en vigueur de {lab} : l’original a été remplacé et la correction retirée.',
   'app.lab.results.looking': 'Recherche des rapports de laboratoire…',
@@ -402,9 +403,9 @@ export const lab = {
   'app.lab.out.andJoin': ', et ',
   'app.lab.out.sent': 'Envoyé',
   'app.lab.out.sentText':
-    'Seul l’obtenteur peut l’ouvrir. Votre signature est publique, le rapport ne l’est pas : quiconque a un lien vers la page de vérification de cette plante voit qu’un rapport de laboratoire la concernant a été signé, et son SHA-256 ({sha}).',
+    'Seul l’obtenteur peut l’ouvrir. Votre signature dessus est privée aussi : seuls l’obtenteur et vous pouvez la voir, sauf si l’obtenteur choisit de la montrer sur son lien de vérification. Si vous avez signé un accusé de réception pour l’échantillon et que l’obtenteur montre si un rapport ADN est enregistré, sa page de vérification indique qu’un laboratoire a reçu un échantillon et si ce qui est arrivé correspond à ce qui a été envoyé, sans le nom de votre laboratoire.',
   'app.lab.out.sentName':
-    'On voit aussi le nom sous lequel votre clé est enregistrée. Tant que l’opérateur de VeilCore ne l’a pas rapproché d’une liste publique de licences ou d’accréditations, il apparaît comme « une clé nommée « {name} » (nom non vérifié) ».',
+    'S’il le fait, quiconque a ce lien voit aussi le nom sous lequel votre clé est enregistrée. Tant que l’opérateur de VeilCore ne l’a pas rapproché d’une liste publique de licences ou d’accréditations, il apparaît comme « une clé nommée « {name} » (nom non vérifié) ».',
   'app.lab.out.yourLab': 'votre laboratoire',
   'app.lab.out.youSent': 'Rapports de laboratoire que vous avez envoyés',
   'app.lab.out.rowHead': '{id} · envoyé {when}',

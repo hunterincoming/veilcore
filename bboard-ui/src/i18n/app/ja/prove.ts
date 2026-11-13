@@ -159,4 +159,25 @@ export const prove = {
   'app.prove.share.nameInLinkHelp':
     'オンにすると、このリンクを送った相手全員と、その相手がリンクを転送した人に名前が見えます。',
   'app.prove.share.nameWarning': 'オンにすると、記録のIDを知る人は誰でも名前を見られます。',
+  'app.prove.share.custodyNote':
+    'オンにすると、この記録のサンプルについてラボが署名した受領書ごとに、ラボがサンプルを受け取ったこと（どのラボかは表示されません）と、届いたものが送ったものと一致するかどうかも、確認ページに表示されます。',
+  'app.prove.share.labSigs.title': 'ラボの署名',
+  'app.prove.share.labSigs.intro':
+    'この記録についてのラボの受領書と検査報告書は非公開で、あなたとラボ、そしてラボにサンプルを送った人だけが見られます。オンにすると、あなたの確認リンクと、この記録の証明コードを持つ人（数値を証明するリンクに含まれます）に表示されます。その人たちは、ラボが署名したことと、ラボの名前を見られます。どれもオンにしなくても、「DNA報告書が保存されているか」がオンなら、受領書ごとに、ラボがサンプルを受け取ったことと、届いたものが送ったものと一致するかどうかが、ラボの名前なしで表示されます。',
+  'app.prove.share.labSigs.item': '{who}が署名したことを確認リンクに表示する',
+  'app.prove.share.labSigs.receipt': 'サンプルの受領書、{date}に署名',
+  'app.prove.share.labSigs.report': '検査報告書、{date}に署名',
+  'app.prove.share.labSigs.fingerprint': 'DNAフィンガープリント、{date}に署名',
+  'app.prove.share.labSigs.inspection': '検査（インスペクション）、{date}に署名',
+  'app.prove.share.labSigs.withdrawn': 'ラボが{date}に取り下げました。確認ページにもそう表示されます。',
+  'app.prove.share.labSigs.needsStatus':
+    'ラボの署名を確認リンクに表示するには、「DNA報告書が保存されているか」をオンにしてください。',
+  'app.prove.share.labSigs.none': 'この記録について、受領書や検査報告書に署名したラボはまだありません。',
+  'app.prove.share.labSigs.loading': 'ラボの署名を探しています…',
+  'app.prove.share.labSigs.couldntLoad': '今はラボの署名を読み込めませんでした。以前の選択はそのままです。',
+  'app.prove.share.labSigs.suggest':
+    '保存したDNA報告書は、{lab}が署名した検査報告書と一致します。表示すると、確認ページでラボがそのファイルに署名したことを示せます。',
+  'app.prove.share.labSigs.suggestButton': '表示する',
+  'app.prove.share.labSigs.plainHash':
+    'この古い署名には報告書ファイルのSHA-256が含まれます。表示すると、そのファイルのコピーを持つ人は誰でも、この記録に保存されていることがわかります。',
 } satisfies Partial<AppTranslation>;

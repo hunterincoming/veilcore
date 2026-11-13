@@ -7,6 +7,10 @@
 //   GET /verify/:id                        the record, as its holder chose to share it
 //   GET /proof/:fingerprint                its inclusion proof (batch, root, date stamp)
 //   GET /attestations/subject/:fingerprint lab signatures about it
+// A lab's receipts and reports are private on the registry (since 8 Nov 2026): it answers only
+// the ones the holder chose to show, in /verify's `sharedAttestations` (and, since 12 Nov, by
+// proof code too). Both lists are read, each signature checked here the same way, and the
+// answer never says no lab signed: only that the holder hasn't shown any.
 // and then checks for itself whatever can be checked: the link's fingerprint against the
 // registry's answer, the inclusion proof folding to its batch root, every signature and
 // withdrawal, the lab report pairing, the record's key against the fingerprint, and (when
@@ -21,7 +25,17 @@
 import { COMMITMENT_ALGORITHM, verifyInclusion, type InclusionProof } from 'veilcore-records';
 import { fingerprintOfFields, isHex64, keyMatchesFingerprint, nameCodeOf } from './hash.js';
 import { CUT, LinkError, parseCheckLink, type CheckLink } from './link.js';
-import { checkSignatures, cleanName, type CustodyEntry, type LabReceipt } from './signatures.js';
+import {
+  checkSignatures,
+  cleanName,
+  unnamedCustodyWords,
+  type CustodyEntry,
+  type LabReceipt,
+  type UnnamedCustody,
+} from './signatures.js';
+
+/** Most signatures a holder can show on one check link (the registry's limit). */
+const SHARED_MAX = 50;
 
 /** VeilCore's public registry. A partner may name another (or a copy it runs). */
 export const DEFAULT_REGISTRY = 'https://veilcore-api-production.up.railway.app';
@@ -139,7 +153,18 @@ export type RecordCheck = {
   readonly dated: Dated;
   readonly keyBound: KeyBound;
   readonly labReceipts: readonly LabReceipt[];
-  /** How many signatures the registry holds about the fingerprint (it sends at most 100). */
+  /**
+   * Custody lines for lab receipts the holder hasn't shown (sent when the holder shares lab
+   * status): a lab received a sample from this record, and whether what arrived matches what
+   * was sent. Which lab, and its signature, are not shown, so nothing here is checked: it is
+   * the registry's report. Empty when there are none or lab status is not shared.
+   */
+  readonly unnamedCustody: readonly UnnamedCustody[];
+  /**
+   * How many signatures the registry shows about the fingerprint (it sends at most 100): the
+   * public ones and those the holder chose to show. A lab's receipts and reports are private
+   * unless the holder shows them, so 0 never means no lab signed.
+   */
   readonly labReceiptsTotal: number;
   /** The registry's clock: when it first stored this content. Its word. */
   readonly registryFirstSeen: string | null;
@@ -261,6 +286,7 @@ export const checkRecord = async (linkOrId: string, opts: CheckOptions = {}): Pr
       dated: notChecked('No record with this id in the registry.'),
       keyBound: { recordNamesKey: null, keyInLink: 'not-given', key: null, reason: 'No record.' },
       labReceipts: [],
+      unnamedCustody: [],
       labReceiptsTotal: 0,
       registryFirstSeen: null,
       supersededBy: null,
@@ -369,6 +395,7 @@ export const checkRecord = async (linkOrId: string, opts: CheckOptions = {}): Pr
       ),
       keyBound,
       labReceipts: [],
+      unnamedCustody: [],
       labReceiptsTotal: 0,
       labReportsWithheld: 0,
       problems,
@@ -388,13 +415,25 @@ export const checkRecord = async (linkOrId: string, opts: CheckOptions = {}): Pr
   const dated = await dateOf(proofRes, fingerprint, opts.checkAnchor, problems);
 
   let labReceipts: LabReceipt[] = [];
+  // Read whatever happened to the signatures: the registry's /verify sent these lines.
+  const unnamedCustody = unnamedCustodyOf(r.custody);
   let labReceiptsTotal = 0;
   let labReportsWithheld = 0;
   if (attRes === null || attRes.status !== 200 || !isObject(attRes.body) || !Array.isArray(attRes.body.attestations)) {
     problems.push('The registry did not send the lab signatures, so none were checked.');
   } else {
     const savedShared = typeof r.dnaPairedByHolder === 'boolean';
-    const out = await checkSignatures(attRes.body.attestations, fingerprint, {
+    // The open list, and the signatures the holder chose to show on this link (/verify's
+    // `sharedAttestations`): each is checked below like any other, and only those about this
+    // proof code are kept. A registry that also lists them by proof code sends them twice:
+    // each is read once.
+    const open: unknown[] = attRes.body.attestations;
+    const seen = new Set(open.map((a) => (isObject(a) && typeof a.attestationId === 'string' ? a.attestationId : '')));
+    const sharedList: unknown[] = Array.isArray(r.sharedAttestations) ? r.sharedAttestations.slice(0, SHARED_MAX) : [];
+    const shown = sharedList.filter(
+      (a) => isObject(a) && typeof a.attestationId === 'string' && !seen.has(a.attestationId),
+    );
+    const out = await checkSignatures([...open, ...shown], fingerprint, {
       now,
       custody: custodyOf(r.custody),
       savedReport: savedShared
@@ -409,7 +448,9 @@ export const checkRecord = async (linkOrId: string, opts: CheckOptions = {}): Pr
     });
     labReceipts = out.receipts;
     labReportsWithheld = out.withheld;
-    labReceiptsTotal = typeof attRes.body.total === 'number' ? attRes.body.total : labReceipts.length;
+    labReceiptsTotal =
+      (typeof attRes.body.total === 'number' ? attRes.body.total : open.length) +
+      shown.filter((a) => isObject(a) && a.subjectCommitment === fingerprint).length;
     if (out.withheld > 0)
       problems.push(
         `The registry says a lab signed ${out.withheld === 1 ? 'a report' : `${out.withheld} reports`} about this record before 17 October 2026. ${out.withheld === 1 ? 'That signature names' : 'Those signatures name'} the report file, so the registry shows ${out.withheld === 1 ? 'it' : 'them'} only to the delivery’s sender and lab, and ${out.withheld === 1 ? 'it was' : 'they were'} not checked here.`,
@@ -428,6 +469,7 @@ export const checkRecord = async (linkOrId: string, opts: CheckOptions = {}): Pr
     dated,
     keyBound,
     labReceipts,
+    unnamedCustody,
     labReceiptsTotal,
     labReportsWithheld,
     problems,
@@ -472,11 +514,43 @@ const isCoveredState = (v: unknown): v is 'covered' | 'changed' | 'not-covered' 
  * recorded on the delivery, and how what arrived differs from what was sent. Anything out
  * of shape is dropped.
  */
+type CustodyLine = Omit<CustodyEntry, 'receiptAttestationId'> & { readonly receiptAttestationId?: string };
 const custodyOf = (v: unknown): CustodyEntry[] | undefined => {
+  const all = custodyLinesOf(v);
+  return all === undefined
+    ? undefined
+    : all.filter((e): e is CustodyEntry => typeof e.receiptAttestationId === 'string');
+};
+/**
+ * The custody lines that name no receipt (8 Nov 2026): the registry names a receipt only when
+ * the holder shows it, and otherwise sends the line without its id. Such a line still says a
+ * lab received a sample from this record and whether what arrived matches what was sent; the
+ * site's check page shows it (custody.ts unnamedCustodyOf), and so does this.
+ */
+const unnamedCustodyOf = (v: unknown): UnnamedCustody[] =>
+  (custodyLinesOf(v) ?? [])
+    .filter((e) => e.receiptAttestationId === undefined)
+    .slice(0, 100)
+    .map((e) => {
+      const line = {
+        ...(e.covered ? { covered: e.covered } : {}),
+        differences: e.differences,
+        clean: e.covered === 'covered' && e.differences.length === 0 && e.custody === undefined,
+        ...(e.custody ? { state: e.custody } : {}),
+        ...(e.custodySummary ? { senderSays: e.custodySummary } : {}),
+      };
+      return { ...line, words: unnamedCustodyWords(line) };
+    });
+const custodyLinesOf = (v: unknown): CustodyLine[] | undefined => {
   if (!Array.isArray(v)) return undefined;
-  const out: CustodyEntry[] = [];
+  const out: CustodyLine[] = [];
   for (const e of v.slice(0, 200)) {
-    if (!isObject(e) || typeof e.receiptAttestationId !== 'string' || !e.receiptAttestationId) continue;
+    if (!isObject(e)) continue;
+    // A line names its receipt only when the holder shows that receipt; one that names none is
+    // kept without an id (unnamedCustodyOf). An id that is there must be a non-empty string.
+    if (e.receiptAttestationId !== undefined && (typeof e.receiptAttestationId !== 'string' || !e.receiptAttestationId))
+      continue;
+    const id = typeof e.receiptAttestationId === 'string' ? { receiptAttestationId: e.receiptAttestationId } : {};
     // Sealed sample details (the registry can't read them) or removed ones: no `covered`.
     if (e.custody === 'sealed' || e.custody === 'removed') {
       const s = isObject(e.custodySummary) ? e.custodySummary : undefined;
@@ -495,7 +569,7 @@ const custodyOf = (v: unknown): CustodyEntry[] | undefined => {
             }
           : undefined;
       out.push({
-        receiptAttestationId: e.receiptAttestationId,
+        ...id,
         differences: [],
         custody: e.custody,
         ...(summary ? { custodySummary: summary } : {}),
@@ -509,7 +583,7 @@ const custodyOf = (v: unknown): CustodyEntry[] | undefined => {
           .map((d) => cleanName(d, 300))
           .filter((d): d is string => d !== null)
       : [];
-    out.push({ receiptAttestationId: e.receiptAttestationId, covered: e.covered, differences });
+    out.push({ ...id, covered: e.covered, differences });
   }
   return out;
 };
@@ -752,6 +826,10 @@ export const nameSentence = (
           ? `Name given in this link (not checked): “${p.nameInLink ?? ''}”.`
           : 'This link doesn’t carry the name.';
 
+/** What the answer says when it holds no lab signature: the holder's choice, never "no lab signed". */
+export const NONE_SHOWN =
+  'The holder hasn’t shown any lab signatures. A lab’s receipts and reports are private unless the holder chooses to show them.';
+
 /** One plain paragraph. Never says the material is anything. */
 export const summaryOf = (p: Parts): string => {
   if (p.linkLooksCut) return `${CUT} Nothing was checked.`;
@@ -787,10 +865,14 @@ export const summaryOf = (p: Parts): string => {
   const counted = p.labReceipts.filter((x) => x.counts);
   const named = counted.filter((x) => x.signer.nameCheck === 'checked');
   const withdrawn = p.labReceipts.filter((x) => x.withdrawn).length;
+  // A lab's receipts and reports are private unless the holder shows them (8 Nov 2026): none
+  // here says the holder hasn't shown any, never that no lab signed.
   parts.push(
-    counted.length === 0
-      ? 'No lab signature counts for it.'
-      : `${counted.length} lab signature${counted.length === 1 ? '' : 's'} verified (${named.length} with a name VeilCore’s operator checked).`,
+    p.labReceipts.length === 0
+      ? NONE_SHOWN
+      : counted.length === 0
+        ? 'No lab signature shown counts for it.'
+        : `${counted.length} lab signature${counted.length === 1 ? '' : 's'} verified (${named.length} with a name VeilCore’s operator checked).`,
   );
   if (withdrawn) parts.push(`${withdrawn} withdrawn by ${withdrawn === 1 ? 'its signer' : 'their signers'}.`);
   const custodyIssues = p.labReceipts.filter(
@@ -802,6 +884,18 @@ export const summaryOf = (p: Parts): string => {
         x.custody.senderSays?.covered === 'changed' ||
         (x.custody.senderSays?.differingFields.length ?? 0) > 0),
   ).length;
+  // Lines for receipts the holder hasn't shown count the same way: what arrived differs.
+  const unnamedIssues = p.unnamedCustody.filter(
+    (x) =>
+      x.covered === 'changed' ||
+      x.differences.length > 0 ||
+      x.senderSays?.covered === 'changed' ||
+      (x.senderSays?.differingFields.length ?? 0) > 0,
+  ).length;
+  if (unnamedIssues)
+    parts.push(
+      `For ${unnamedIssues === 1 ? 'a sample' : `${unnamedIssues} samples`} a lab received (the holder hasn’t shown which lab), what arrived does NOT match what was sent, or the lab’s details were changed after signing.`,
+    );
   if (custodyIssues)
     parts.push(
       `${custodyIssues} lab receipt${custodyIssues === 1 ? '' : 's'} for a sample ${custodyIssues === 1 ? 'does' : 'do'} NOT match what was sent, or ${custodyIssues === 1 ? 'was' : 'were'} changed after signing.`,

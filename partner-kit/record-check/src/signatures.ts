@@ -97,6 +97,56 @@ export type CustodyEntry = {
   };
 };
 
+/**
+ * A custody line for a lab receipt the holder hasn't shown (the registry's /verify `custody`
+ * line with no receipt id, 8 Nov 2026): a lab received a sample from this record, and how what
+ * arrived compares with what was sent. The lab and its signature are not shown, so nothing here
+ * was checked: it is the registry's report.
+ */
+export type UnnamedCustody = {
+  readonly covered?: CustodyEntry['covered'];
+  readonly differences: readonly string[];
+  /** Covered and nothing differs. */
+  readonly clean: boolean;
+  /** Sealed or removed sample details (CustodyEntry.custody). */
+  readonly state?: 'sealed' | 'removed';
+  /** Sealed: what the sender's app says about them (the sender's word). */
+  readonly senderSays?: CustodyEntry['custodySummary'];
+  /** In plain words. */
+  readonly words: string;
+};
+
+/** What the sender's app says about sealed sample details, as a sentence (or ''). */
+const senderSaysWords = (s: CustodyEntry['custodySummary'] | undefined): string =>
+  !s
+    ? ''
+    : s.covered === 'changed'
+      ? ' The sender’s app says the lab changed its arrival details after signing (the sender’s word).'
+      : s.covered === 'not-covered'
+        ? ' The sender’s app says the receipt doesn’t cover them (the sender’s word).'
+        : s.differingFields.length
+          ? ` The sender’s app says these differ between what was sent and what arrived: ${s.differingFields.map((f) => FIELD_WORDS[f] ?? f).join(', ')} (the sender’s word).`
+          : ' The sender’s app says what arrived matches what was sent (the sender’s word).';
+
+/** An unnamed custody line in plain words. */
+export const unnamedCustodyWords = (c: Omit<UnnamedCustody, 'words'>): string => {
+  const lead =
+    'A lab’s receipt for a sample from this record, as the registry reports it. The holder hasn’t shown which lab signed it, so its signature was not checked here.';
+  const tail =
+    c.state === 'removed'
+      ? ' Its sample details were written before sealing and have since been removed, so it can’t be compared with them.'
+      : c.state === 'sealed'
+        ? ` The lab’s receipt names sample details. They are stored locked, so the registry can’t check them; the holder’s app can.${senderSaysWords(c.senderSays)}`
+        : c.covered === 'changed'
+          ? ' The lab changed its arrival details after signing, so its signature does NOT cover them.'
+          : c.covered === 'not-covered'
+            ? ' It doesn’t cover the sample details (an older receipt).'
+            : c.differences.length
+              ? ` What arrived does NOT match what was sent: ${c.differences.map((d) => d.replace(/[.\s]+$/, '')).join('; ')}.`
+              : ' The registry reports that its signature covers the sample details, and that what arrived matches what was sent.';
+  return `${lead}${tail}`;
+};
+
 export type LabReceipt = {
   /**
    * lab-receipt: a lab's receipt for a sample, tied by the registry to a delivery of this

@@ -704,13 +704,25 @@ describe.skipIf(!TARGET)('the sealed-records contract against a real registry', 
 
     // The breeder shares the lab status of the source: the registry says "sealed", and the
     // summary the breeder's app worked out goes with the grant (names of fields, no values).
+    // The breeder shows the lab's receipt on the check link (8 Nov 2026): a registry that keeps
+    // lab signatures private serves it as `sharedAttestations`; an older one refuses the field,
+    // and the app sends the grant again without it (lab signatures are public there).
     const g = await A.disclosure.saveGrant(
       A.records.getRecord(r1.id)!,
       A.disclosure.disclosureFrom(['attestation-status']),
+      [signed.attestationId],
     );
     expect('error' in g).toBe(false);
+    expect(A.records.getRecord(r1.id)?.sharedAttestations).toEqual([signed.attestationId]);
     const v = await verify(r1.id);
-    expect(v.signedAttestation).toBe(true);
+    const privateLab = Array.isArray(v.sharedAttestations);
+    if (privateLab) {
+      expect((v.sharedAttestations as unknown[]).map((a) => obj(a).attestationId)).toEqual([signed.attestationId]);
+      // A private signature never counts in the public summary, shown or not.
+      expect(v.signedAttestation).toBe(false);
+    } else {
+      expect(v.signedAttestation).toBe(true);
+    }
     expect(v.dnaPairedByHolder).toBe(false);
     expect(v.custody).toEqual([
       {
@@ -725,6 +737,21 @@ describe.skipIf(!TARGET)('the sealed-records contract against a real registry', 
     ]);
     // Unchanged since: nothing to send again.
     expect(await A.disclosure.syncGrants(A.records.getRecord)).toBe(0);
+
+    // Not shown: the line still says what the custody was, without naming the receipt.
+    const g2 = await A.disclosure.saveGrant(
+      A.records.getRecord(r1.id)!,
+      A.disclosure.disclosureFrom(['attestation-status']),
+      [],
+    );
+    expect('error' in g2).toBe(false);
+    expect(A.records.getRecord(r1.id)?.sharedAttestations).toBeUndefined();
+    const v2 = await verify(r1.id);
+    expect(v2.sharedAttestations).toBeUndefined();
+    const line = obj((v2.custody as unknown[])[0]);
+    if (privateLab) expect(line).not.toHaveProperty('receiptAttestationId');
+    else expect(line.receiptAttestationId).toBe(signed.attestationId);
+    expect(line).toMatchObject({ custody: 'sealed', custodySummaryBy: 'holder' });
   });
 
   it('a stale tab’s save: the real registry refuses it as an older copy by id; the app says so and shows the newer copy', async () => {

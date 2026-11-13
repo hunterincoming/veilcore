@@ -288,7 +288,8 @@ export const lab = {
   'app.lab.key.intro':
     'When you confirm you received material, or sign a report, it is signed with a key only you hold. It becomes your statement, not something we recorded on your behalf. The key is made in this browser; only its public half, your name and any accreditation you enter are published.',
   'app.lab.key.name': 'Name',
-  'app.lab.key.nameHelp': 'How you appear to anyone checking a record you signed.',
+  'app.lab.key.nameHelp':
+    'How you appear where your signatures are shown: to the breeder, and to anyone they show them to.',
   'app.lab.key.role': 'Role',
   'app.lab.key.accreditation': 'Accreditation (optional)',
   'app.lab.key.accreditationHelp':
@@ -323,7 +324,7 @@ export const lab = {
     "This plant's key isn't on this device, so its lab reports can't be opened here. <link>Get your plants back from your backup</link> first.",
   'app.lab.results.gotIt': 'Got it',
   'app.lab.results.whatOthersSee':
-    '<b>What others can see.</b> The lab’s signature is public; the report isn’t. Anyone with a link to this plant’s check page sees that a lab report about it was signed, the report file’s SHA-256, and the name the lab’s key is registered under: marked “name not checked” unless VeilCore’s operator has matched it to a public license or accreditation listing. If you save the report to this plant and share “Whether a DNA report is saved” in Show someone, they also see that the saved file matches it.',
+    '<b>What others can see.</b> The lab’s signature on this report is private, like the report: only you and the lab see it. To show it, choose Show someone and turn it on under “Lab signatures”. Anyone with that link then sees that the lab signed a report about this plant, and the name the lab’s key is registered under: marked “name not checked” unless VeilCore’s operator has matched it to a public license or accreditation listing. If it is a DNA report and you save it to this plant, the page can also say the lab signed that file.',
   'app.lab.results.noCurrent': 'No current report from {lab}: the original was replaced and the correction withdrawn.',
   'app.lab.results.looking': 'Looking for lab reports…',
   'app.lab.results.nothingYet': 'Nothing yet. When a lab you sent this plant to sends a lab report, it shows up here.',
@@ -388,9 +389,9 @@ export const lab = {
   'app.lab.out.andJoin': ', and ',
   'app.lab.out.sent': 'Sent',
   'app.lab.out.sentText':
-    "Only the breeder can open it. Your signature is public, the report isn't: anyone with a link to this plant's check page sees that a lab report about it was signed, and its SHA-256 ({sha}).",
+    'Only the breeder can open it. Your signature on it is private too: only the breeder and you can see it, unless the breeder chooses to show it on their check link. If you signed a receipt for the sample and the breeder shows whether a DNA report is saved, their check page says that a lab received a sample and whether what arrived matches what was sent, without your lab’s name.',
   'app.lab.out.sentName':
-    "They also see the name your key is registered under. Until VeilCore's operator matches it to a public license or accreditation listing, it shows as “a key named “{name}” (name not checked)”.",
+    "If they do, anyone with that link also sees the name your key is registered under. Until VeilCore's operator matches it to a public license or accreditation listing, it shows as “a key named “{name}” (name not checked)”.",
   'app.lab.out.yourLab': 'your lab',
   'app.lab.out.youSent': 'Lab reports you sent',
   'app.lab.out.rowHead': '{id} · sent {when}',

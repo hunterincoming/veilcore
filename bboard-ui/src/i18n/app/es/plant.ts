@@ -79,7 +79,8 @@ export const plant = {
   'app.plant.tie.notNow': 'Ya no vinculado a la planta',
   'app.plant.tie.lab': 'Informe de ADN {lead}',
   'app.plant.tie.self': 'Informe de ADN que usted guardó (ninguna firma de laboratorio coincide con él)',
-  'app.plant.tie.selfPublic': 'Informe de ADN que guardó el titular (ninguna firma de laboratorio coincide con él)',
+  'app.plant.tie.selfPublic':
+    'Informe de ADN que guardó el titular (ninguna firma de laboratorio mostrada aquí coincide con él)',
   'app.plant.tie.savedHolder': 'Informe de ADN que usted guardó',
   'app.plant.tie.savedPublic': 'Informe de ADN que guardó el titular',
   'app.plant.tie.replaced': 'el laboratorio reemplazó el informe de ADN guardado aquí',
