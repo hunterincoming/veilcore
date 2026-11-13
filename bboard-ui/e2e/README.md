@@ -45,6 +45,13 @@ its `verify.html` from `file://` with the network off. Against a real registry i
 needs an operator token and an anchor contract (`E2E_OPERATOR_TOKEN`,
 `E2E_ANCHOR_CONTRACT`): how to start one for it is in `docs/evidence-bundle.md`.
 
+`royalty-registry.spec.ts` runs a royalty notice end to end against the registry's own gates:
+the notice of breach dated by the registry, an early "revoked for non-payment" refused, the
+licensee's answer, and the revoke once the cure period has run out. It moves the registry's clock,
+so start that registry with a fresh database and the test clock on (never on a deployed registry;
+it refuses to start on Railway with it):
+`DB_PATH=/tmp/e2e.db VEILCORE_OTS=off VEILCORE_TEST_CLOCK=on PORT=8790 node server.js`.
+
 ## The registry contract, without a browser
 
 `src/veilcore/registry-contract.test.ts` drives the app's own modules (saving, opening,

@@ -71,6 +71,11 @@ export const AGREEMENT_FEATURES = Object.freeze({
   // A licensor's record's public check page says a royalty statement is overdue, or a license
   // was revoked for non-payment (bboard-ui veilcore/license-notices.ts, docs/royalty-pay.md).
   "license-notices-v1": "overdue and revoked-for-non-payment notices on a record's check page",
+  // The registry as the clock and the gate for those notices: lines tied to the deal's statement,
+  // the notice of breach dated by the registry, "revoked for non-payment" refused until the cure
+  // period has run out by its clock with nothing paid on file, and the licensee's own signed
+  // answer beside the line (POST /license-answers). The site sends only this shape.
+  "license-notices-v2": "the licensee's answer beside a notice, and the registry's own cure period",
 });
 
 /** Whether the site's source has agreements switched on for mainnet (config/copy.ts). */

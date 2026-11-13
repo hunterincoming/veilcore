@@ -12,24 +12,15 @@ export const royaltyPay = {
     'Sans paiement, la page de vérification publique de l’enregistrement de {licensor} peut indiquer qu’un relevé de redevances est en retard. Après un avis de manquement, vous avez {days} jours pour payer avant que la licence puisse être révoquée pour non-paiement.',
   'app.rpay.i.soon': 'Le paiement de {licensee} pour le rapport {n} est dû le {date}.',
   'app.rpay.i.overdue': 'Le paiement de {licensee} pour le rapport {n} est en retard depuis le {date}.',
-  'app.rpay.i.public':
-    'La page de vérification publique de votre enregistrement indique : « Un relevé de redevances est en retard depuis le {date}. » Ni montants, ni conditions, ni noms. Elle l’enlève dès que le paiement est arrivé.',
   'app.rpay.i.publicFailed':
     'Impossible de mettre cela sur la page de vérification publique de votre enregistrement pour l’instant. La page réessaie à sa prochaine ouverture.',
   'app.rpay.i.publicUnsupported':
     'Le registre de VeilCore n’accepte pas encore d’avis publics : cela n’apparaît donc pas sur la page de vérification publique de votre enregistrement.',
   'app.rpay.revoke.open': 'Révoquer pour non-paiement',
-  'app.rpay.revoke.what':
-    'Cela met fin à la licence sur Midnight et ne peut pas être annulé. Votre avis de manquement a été envoyé et le délai pour payer est écoulé sans paiement indiqué. {licensee} reçoit ensuite un avis signé indiquant qu’elle a été révoquée pour non-paiement, et la page de vérification publique de votre enregistrement l’indique, avec la date.',
   'app.rpay.revoke.yes': 'Révoquer la licence',
   'app.rpay.revoke.note': 'Licence révoquée pour non-paiement du rapport {n}.',
   'app.rpay.revoke.reason': 'Non-paiement',
-  'app.rpay.revoke.done': 'Révoquée pour non-paiement le {date}. La page de vérification publique l’indique.',
   'app.rpay.pub.title': 'Redevances sur les licences issues de cet enregistrement',
-  'app.rpay.pub.overdue': 'Un relevé de redevances est en retard depuis le {date}.',
-  'app.rpay.pub.revoked': 'Une licence issue de cet enregistrement a été révoquée le {date} pour non-paiement.',
-  'app.rpay.pub.who':
-    'Déclaré par la personne qui détient cet enregistrement et l’a concédé en licence. VeilCore ne le vérifie pas. Cela ne nomme personne et ne montre ni montants ni conditions.',
   'app.rpay.payout.option': 'Stablecoin en dollars américains sur Cardano',
   'app.rpay.payout.info':
     'L’autre partie paie depuis son propre portefeuille, directement à votre adresse Cardano, en {code}. En enregistrant ceci, vous acceptez que 1 {code} compte pour 1 dollar américain. Les paiements sur Cardano sont publics : tout le monde voit le montant, les deux adresses et la date. Le paiement ne vous nomme pas, mais une adresse peut souvent être reliée à une personne, par exemple via une plateforme d’échange. Une nouvelle adresse réservée à cet accord le sépare de vos autres. VeilCore ne détient ni ne déplace jamais l’argent.',
@@ -96,19 +87,11 @@ export const royaltyPay = {
     'Vous avez envoyé un avis de manquement le {date}. Le délai pour payer a pris fin le {cureBy} sans paiement indiqué : vous pouvez révoquer pour non-paiement.',
   'app.rpay.i.noNotice':
     'Pour révoquer pour non-paiement, envoyez d’abord un avis de manquement sur le rapport ci-dessous. {licensee} aura alors {days} jours pour payer.',
-  'app.rpay.l.answered':
-    'Vous l’avez contesté le {date} : « {note} ». Le concédant le voit. La page de vérification publique de son enregistrement indique que vous contestez, ou ne dit rien de ce paiement.',
   'app.rpay.i.answered': '{licensee} conteste ({date}) : « {note} »',
-  'app.rpay.i.publicDisputed':
-    'La page de vérification publique de votre enregistrement indique : « Un relevé de redevances est en retard depuis le {date}. Le licencié le conteste (depuis le {answered}). » Aucun montant, aucune condition, aucun nom.',
-  'app.rpay.i.publicWithheld':
-    '{licensee} conteste, et le registre de VeilCore ne peut pas encore afficher sa réponse à côté : rien à ce sujet ne figure donc sur la page de vérification publique de votre enregistrement.',
   'app.rpay.l.iPaid': 'J’ai payé',
   'app.rpay.l.dispute': 'Contester',
   'app.rpay.l.disputeAgain': 'Répondre à nouveau',
   'app.rpay.l.disputeNote': 'Pourquoi (court ; l’autre partie le verra)',
-  'app.rpay.l.disputeShows':
-    '{licensor} le voit, signé par vous. La page de vérification publique indique seulement que vous contestez, jamais ce que vous avez écrit.',
   'app.rpay.l.disputeSend': 'Envoyer ma réponse',
   'app.rpay.breach.open': 'Envoyer un avis de manquement',
   'app.rpay.breach.what':
@@ -123,6 +106,47 @@ export const royaltyPay = {
   'app.rpay.notice.revoked': '{who} a révoqué la licence pour non-paiement ({period}) le {date}.',
   'app.rpay.notice.cureBy': 'Délai pour payer : jusqu’au {cureBy}.',
   'app.rpay.pub.disputed': 'Le licencié le conteste (depuis le {date}).',
+  'app.rpay.i.public':
+    'La page de vérification publique de votre enregistrement indique : « La personne qui détient cet enregistrement déclare qu’un relevé de redevances est en retard depuis le {date}. » Ni montants, ni conditions, ni noms. Elle l’enlève dès que le paiement est arrivé.',
+  'app.rpay.i.publicBreach':
+    'La page de vérification publique de votre enregistrement indique, comme votre déclaration, qu’un relevé de redevances est en retard depuis le {date}, et que votre avis de manquement est parvenu au registre de VeilCore le {breach}. Le délai pour payer court à partir de ce jour. Ni montants, ni conditions, ni noms.',
+  'app.rpay.i.publicAnswers': 'À côté, au nom du licencié lui-même : {answers}',
+  'app.rpay.i.publicNoRecord':
+    'Cet enregistrement n’est pas conservé au registre de VeilCore sous la clé de détenteur de ce navigateur : rien ne peut donc être mis sur sa page de vérification publique depuis ici. Ouvrez la licence sur l’appareil qui a sauvegardé l’enregistrement, ou restaurez ici votre sauvegarde.',
+  'app.rpay.revoke.what':
+    'Cela met fin à la licence sur Midnight et ne peut pas être annulé. Votre avis de manquement a été envoyé et le délai pour payer est écoulé selon l’horloge du registre de VeilCore, sans paiement indiqué. {licensee} reçoit ensuite un avis signé indiquant qu’elle a été révoquée pour non-paiement. La page de vérification publique de votre enregistrement l’indique, avec la date, si le registre confirme que le délai s’est écoulé sans paiement enregistré ; sinon, elle ne dit rien du paiement.',
+  'app.rpay.revoke.done': 'Révoquée pour non-paiement le {date}.',
+  'app.rpay.revoke.public': 'La page de vérification publique de votre enregistrement l’indique.',
+  'app.rpay.revoke.notPublic':
+    'Le registre de VeilCore n’a pas accepté de ligne publique sur le non-paiement (le délai n’était pas écoulé selon son horloge, ou un paiement y est enregistré) : la page de vérification publique ne dit donc rien du paiement.',
+  'app.rpay.pub.overdue':
+    'La personne qui détient cet enregistrement déclare qu’un relevé de redevances est en retard depuis le {date}.',
+  'app.rpay.pub.breach': 'Son avis de manquement est parvenu au registre de VeilCore le {date}.',
+  'app.rpay.pub.revoked':
+    'La personne qui détient cet enregistrement déclare qu’une licence issue de cet enregistrement a été révoquée le {date} pour non-paiement.',
+  'app.rpay.pub.revokedChecked':
+    'Son avis de manquement est parvenu au registre de VeilCore le {date}, et {days} jours se sont écoulés ensuite sans paiement enregistré au registre avant que cette ligne soit acceptée.',
+  'app.rpay.pub.answerPaid': 'Le licencié déclare avoir payé ({date}).',
+  'app.rpay.pub.who':
+    'Qu’un paiement soit dû relève de la déclaration de la personne qui détient l’enregistrement ; VeilCore ne le vérifie pas. La date d’un avis de manquement est celle du registre de VeilCore lui-même. Les réponses du licencié sont signées par lui, et la personne qui détient l’enregistrement ne peut pas les retirer. Personne n’est nommé, et aucun montant ni aucune condition n’est affiché.',
+  'app.rpay.l.answered':
+    'Vous l’avez contesté le {date} : « {note} ». {licensor} le voit. Votre réponse est déposée au registre de VeilCore sous votre propre clé (le {filed}) : partout où la page de vérification publique de l’enregistrement de {licensor} dit quelque chose de ce paiement, elle indique que vous contestez, avec cette date. {licensor} ne peut pas la retirer.',
+  'app.rpay.l.answerPending':
+    'Vous l’avez contesté le {date} : « {note} ». {licensor} le voit. Le dépôt de votre réponse au registre de VeilCore, où la page de vérification publique de l’enregistrement de {licensor} l’affiche, n’a pas encore abouti. Cette page réessaie à chaque ouverture.',
+  'app.rpay.l.disputeShows':
+    '{licensor} le voit, signé par vous. Votre réponse est aussi déposée en votre nom au registre de VeilCore : la page de vérification publique indique seulement que vous contestez et la date, jamais ce que vous avez écrit.',
   'app.rpay.pay.otherWay':
-    '{licensor} a demandé à être payé en {code} sur Cardano, ce que cette page ne peut pas faire. Payez par un autre moyen qu’il accepte, puis indiquez-le ci-dessous avec « J’ai payé ».',
+    '{licensor} a demandé à être payé en {code} sur Cardano, ce que cette page ne peut pas faire. Demandez à {licensor} d’autres coordonnées de paiement, payez par ce moyen, puis indiquez-le ci-dessous avec « J’ai payé ».',
+  'app.rpay.l.revoked':
+    '{licensor} a révoqué la licence pour non-paiement du rapport {n}, dans un avis signé daté du {date}.',
+  'app.rpay.l.revokedPublic':
+    'La page de vérification publique de l’enregistrement de {licensor} indique qu’elle a été révoquée le {date} pour non-paiement. Le registre de VeilCore ne l’a accepté qu’une fois le délai pour payer écoulé selon son horloge, sans paiement enregistré.',
+  'app.rpay.l.revokedNotPublic':
+    'La page de vérification publique de l’enregistrement de {licensor} ne dit rien d’un non-paiement : le registre de VeilCore ne l’a pas accepté.',
+  'app.rpay.l.revokedDisputed':
+    'Vous l’avez contesté le {date}. Votre réponse est déposée en votre propre nom au registre de VeilCore, et {licensor} ne peut pas la retirer : partout où la page de vérification publique de l’enregistrement de {licensor} dit quelque chose de ce paiement, elle indique que vous contestez.',
+  'app.rpay.notice.early':
+    'Il a été envoyé avant que le paiement soit en retard : il n’ouvre donc aucun délai pour payer.',
+  'app.rpay.notice.notThisOne':
+    'Le délai pour payer court à partir du premier avis de manquement envoyé après que le paiement est en retard.',
 };

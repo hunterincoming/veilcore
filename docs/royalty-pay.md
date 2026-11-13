@@ -3,11 +3,11 @@
 Status, 12 November 2026. Built on branch `royalty-pay`; nothing here is live on veilcore.org.
 
 - **Part 1, overdue, notice of breach, cure period, revoke for non-payment:** built for every
-  network. It needs the registry's `license-notices-v1` (veilcore-api branch `license-notices`)
-  deployed first, as `scripts/registry-features.mjs` checks. Showing the licensee's dispute
-  beside a public line also needs the registry to accept a notice's `disputed` date (see "The
-  licensee's answer"); until it does, a disputed line is taken down instead. Not run on any
-  network yet.
+  network. It needs the registry's `license-notices-v1` and `license-notices-v2` (veilcore-api
+  branch `license-notices`, which also carries the old `license-notices-dispute` work) deployed
+  first, as `scripts/registry-features.mjs` checks. The registry is the clock and the gate for
+  the public lines (below). Not run on any network yet; run end to end against a real local
+  registry (`e2e/royalty-registry.spec.ts`).
 - **Part 2, paying in USDCx or USDM on Cardano:** built, **off everywhere** unless switched on
   on purpose: on mainnet only by changing `STABLECOIN_PAY_ON_MAINNET` in
   `bboard-ui/src/config/copy.ts` (no build setting can); on a test network only in a build that
@@ -51,28 +51,40 @@ period makes those hours irrelevant to revoking). Tested at that boundary in bot
 
 ### Overdue on the public check page
 
+A licensor's browser can be modified, so it is never trusted to decide a payment breach on its
+own. The public page never states one as fact: what the registry can check, the registry checks
+and enforces; what it can't is worded as the licensor's claim, with the licensee's own answer
+beside it, which the licensor can't remove.
+
 The licensor's record's public check page (`/verify/:id`) gets one line per overdue report:
-**"A royalty statement is overdue since <date>."** Nothing else: no amount, period, terms, name,
-or which license. It is the licensor's own statement about their record, published from their
-browser under their holder key, exactly as a disclosure grant is, and the page labels it as the
-record holder's word, not checked by VeilCore.
+**"The record holder says a royalty statement is overdue since <date>."** Once they send a
+notice of breach: **"Their notice of breach reached VeilCore's registry on <date>."** (the
+registry's own date). Nothing else: no amount, period, terms, name, or which license. It is
+published from the licensor's browser under their holder key, exactly as a disclosure grant is,
+and the page says whose word each part is.
 
 - **Where it is stored:** the registry (`PUT/DELETE /api/records/:id/license-notices/:ref`,
-  read on `/verify/:id` as `licenseNotices`). The registry refuses any body that isn't exactly
-  `{kind:"overdue", since}` or `{kind:"revoked", reason:"non-payment", on}` (plus, once it
-  accepts it, a `disputed` date), so a notice can't carry terms even from a modified client.
-- **The reference** is 32 hex characters of SHA-256 over the kind and a signature only the two
-  parties hold: the statement's for an overdue line, the licensor's signed `revoked` notice's for
-  a revoked line. It lets the licensor's pages on any device find their own notice. It does not
-  make the line anonymous: see "What the public page gives away".
+  `GET` for the holder's own view with the registry's time, read on `/verify/:id` as
+  `licenseNotices`; veilcore-api README, "License notices"). The registry refuses any body that
+  isn't exactly `{kind:"overdue"|"breach", since, statement}` or `{kind:"revoked",
+  reason:"non-payment", on, statement}`, so a line can't carry terms or text even from a
+  modified client. `statement` is the fingerprint of the licensee's statement message in the
+  deal; it is never public.
+- **The reference** is 32 hex characters of SHA-256 over `veilcore/license-notice/v2\n` and the
+  statement's fingerprint, which only the two sides and the registry know. The registry checks
+  it, finds the deal that holds that statement, and from the deal the licensee's key (copied from
+  the license invite when the deal opened). It lets both sides' pages, on any device, find the
+  line. It does not make the line anonymous: see "What the public page gives away".
 - **Worked out from the deal, not from one browser** (`license-notices.ts dealNotices`): what is
   public for a deal follows from its signed messages and from the chain. While the license is
   live, the licensor's royalty page puts up an overdue line per report overdue now and takes off
   the rest, leaving other licenses' alone (`syncNotices`). Once the license is gone from the
-  chain, the license page, on any device that opens it, takes this deal's overdue lines off and
-  puts up the revoked line only if the deal holds the licensor's signed `revoked` notice. A lost
-  answer, a cleared browser, a second device or a plain "Revoke" all end on the same public page.
-  Paid, the line comes off.
+  chain, the license page, on any device that opens it, puts up the revoked line only if the deal
+  holds the licensor's signed `revoked` notice dated after the cure period, the report isn't
+  marked paid, and the registry's own notice-of-breach date, clock and answers allow it;
+  otherwise the line comes off and nothing about payment is said. A lost answer, a cleared
+  browser, a second device or a plain "Revoke" all end on the same public page. Paid, the line
+  comes off.
 - **Why not "the license's own" check page:** there isn't one, on purpose. A buyer proving a
   license learns only that someone holds a live license from the record (verifier rule 5), not
   which. Tying the notice to the proving license would undo that privacy, so the notice sits on
@@ -88,20 +100,35 @@ in UTC (`royalty-ledger.ts breachOf`, `paymentAlerts`):
 2. **Notice of breach.** A signed, dated `notice` of kind `breach` about the payment, naming the
    report, over the deal's channel. It counts from the later of the day the licensor signed and
    the day the registry received it, so neither the sender nor the registry can date it back to
-   shorten the time to pay. One sent before the payment was late starts nothing. Both sides then
-   see **"Pay by <date>"**: the cure deadline.
+   shorten the time to pay. One sent before the payment was late starts nothing, and both pages
+   say so under it, with no deadline. The licensor's page then puts the public line up as
+   `breach`: the registry dates it the first time it arrives, and a resend never moves that
+   date. Both sides then see **"Pay by <date>"**: the cure deadline, from the later of the
+   deal's date and the registry's.
 3. **Cure period: 30 days** (`CURE_DAYS`). The license terms carry no cure period
    (`royalty-terms.ts RoyaltyTermsFields`), and adding a field would change what both sides
    already signed, so every deal gets the same 30 days, and both pages say so. A later terms
    version can add its own; old terms keep 30.
-4. **Revoke for non-payment** is offered only from the day after the cure deadline, and only if
-   nothing was marked paid. `RealLicensePanel.tsx revokeForNonPayment` checks that again, then
-   revokes on Midnight (`revokeLicense`, the same circuit and disclosure as "Revoke"; no
-   contract change), and only then sends the licensee a signed `notice` of kind `revoked`
-   ("License revoked for non-payment of report N"), so the licensee never holds a signed
-   statement the chain doesn't back. If that send doesn't land, the page sends it again when it
-   next opens. The public page then says **"A license from this record was revoked on <date> for
-   non-payment."** and the overdue line comes off (above).
+4. **Revoke for non-payment** is offered only from the day after the cure deadline by the
+   **registry's** clock, counted from the registry's date for the notice of breach, and only if
+   nothing was marked paid, in the deal or at the registry (`royalty-ledger.ts
+   registryAllowsRevoke`). The registry's time comes from its own answers (`now`), never this
+   device's date: a licensor's browser set a month ahead offers nothing early.
+   `RealLicensePanel.tsx revokeForNonPayment` asks the registry again, then revokes on Midnight
+   (`revokeLicense`, the same circuit and disclosure as "Revoke"; no contract change), and only
+   then sends the licensee a signed `notice` of kind `revoked` ("License revoked for non-payment
+   of report N"), dated by the block's time or else the registry's, so the licensee never holds a
+   signed statement the chain doesn't back. If that send doesn't land, the page sends it again
+   when it next opens (only while it knows the revocation's time). The public page then says
+   **"The record holder says a license from this record was revoked on <date> for
+   non-payment."**, with the registry's date for the notice of breach and that the 30 days passed
+   with no payment on file there.
+5. **The registry is the gate** (veilcore-api, `license-notices-v2`). It accepts the revoked line
+   only with a `breach` line on file for that statement, received at least 30 full UTC days
+   earlier by its own clock, a revocation date no earlier than that, and no "paid" on file (the
+   licensee's own answer, or a checked payment partner's receipt). Otherwise it answers 409 and
+   the page falls back to a plain revoke: nothing public about payment, and the licensor's page
+   says why. The line's date is fixed when first accepted.
 
 "I paid" at any point before the revoke ends it: the report is no longer overdue, so there is
 nothing to revoke for non-payment. A plain **Revoke** stays as it was and says nothing public
@@ -118,14 +145,22 @@ answers, both signed messages on the deal's channel:
   about the payment. The licensor sees it on their alert and on the report. It doesn't stop the
   cure period: a court, not the app, decides who is right.
 
-The public line shows the dispute next to it: **"The licensee disputes this (since <date>)."**,
-a date and nothing of what they wrote. The registry only takes what the record's holder sends,
-so the licensor's page relays it: once the deal holds an answer, it sends the line with a
-`disputed` date. A registry that refuses that field (today's `license-notices-v1`) answers 400,
-and then the page **takes the line down** rather than keep one side alone up, and tells the
-licensor so. The registry change is small (accept an optional `disputed` date on both kinds and
-return it on `/verify/:id`). A modified licensor client could leave the dispute off, as it could
-post a false line: that is why the page says whose word the line is.
+Each is also **filed at the registry in the licensee's own name** (`POST /license-answers`,
+`license-notices.ts fileAnswer`): `paid` with the SHA-256 of the payment reference (never the
+reference), or `disputed`, signed with the licensee's deal key, which the registry knows from the
+deal holding the statement. No holder key is involved and the licensor's page plays no part, so
+the licensor can't leave it off, remove it or change it. The first of each type stands, with the
+registry's date. The licensee's page files it whenever the deal holds the answer and the registry
+doesn't yet, so a filing that didn't land is retried, and says which ("filed on <date>", or "not
+yet, tried again when this page opens").
+
+The public page shows it beside every line about that statement: **"The licensee disputes this
+(since <date>)."** or **"The licensee says it was paid (<date>)."**, its type and date and nothing
+of what they wrote. A "paid" on file also stops "revoked for non-payment" at the registry.
+
+After a revocation for non-payment, the licensee's license page still shows the licensor's signed
+notice, whether the public page says so, and lets them dispute it (`RoyaltyPay.tsx
+RevokedForNonPayment`).
 
 ### Known limits (Part 1)
 
@@ -133,8 +168,16 @@ post a false line: that is why the page says whose word the line is.
   made while they're away still shows overdue until they open it.
 - A licensee who taps "I paid" without paying takes the report out of overdue. The licensor
   still has the ordinary Revoke, and the signed "I paid" as evidence.
-- The registry stores what the holder sends. It can't check that a report is overdue: it sees
-  no terms. That is why the page says whose word it is.
+- The registry can't check that a report is overdue at all: it sees no terms and can't read the
+  deal. A modified licensor client can still post an overdue line and a notice of breach about a
+  statement that was never due. That is why the page words it as the holder's claim, the
+  licensee's answer stands beside it, and a "paid" on file stops the revoked line.
+- The registry checks that the line's statement is a message in a deal it holds, but not that
+  the record's holder is that deal's licensor: it can't tie a holder key to a deal key. Only the
+  two sides (and the registry) know a statement's fingerprint.
+- A licensee who answers "paid" without paying stops the public revoked line. The licensor can
+  still revoke on Midnight, which says nothing public about payment, and holds the signed "I
+  paid" as evidence.
 
 ## Part 2: paying in a US dollar stablecoin on Cardano
 
@@ -323,9 +366,11 @@ report declared, as SPEC 11.10's "Settled" says (`RoyaltyLedger.tsx`, tested in
 
 ## Deploy order when this ships
 
-1. Registry: merge veilcore-api `license-notices` (adds `license-notices-v1`; site deploys
-   refuse without it), with the optional `disputed` date (until then a disputed line is taken
-   down rather than shown without the licensee's side).
+1. Registry: merge veilcore-api `license-notices` to `main` (one branch: the notices, the
+   merge with `main`, the old `license-notices-dispute` work and the v2 gates and answers; it adds
+   `license-notices-v1` and `license-notices-v2` to `/health`, and site deploys refuse without
+   both). `license-notices-dispute` points at the same commit and needs no merge of its own. Never
+   set `VEILCORE_TEST_CLOCK` on Railway: the registry refuses to start with it there.
 2. Sponsor read relay: only when turning on the Cardano lookup (`sponsor/` changed: deploy the
    code first, then add `CARDANO_BLOCKFROST_PROJECT_ID`).
 3. Site.

@@ -33,6 +33,7 @@ import { say, useDeal, type DealParty } from '../../veilcore/deal-client';
 import { TermsBox, useOfferedTerms, type Offered } from './DealTerms';
 import { ControlledWarnings } from './RoyaltyTermsForm';
 import { RoyaltyLedger } from './RoyaltyLedger';
+import { LicenseeAfterRevoke } from './RoyaltyPay';
 import { OffspringRoyalty } from './OffspringRoyalty';
 import { tokenFromHash } from '../../veilcore/prove-relay';
 import {
@@ -550,6 +551,19 @@ export const LicenseInvitePage: React.FC = () => {
         <Alert severity="error" variant="outlined" sx={{ mb: 2 }}>
           {tr.t('app.lic.inv.gone')}
         </Alert>
+      )}
+      {/* Revoked for non-payment: the licensor's signed notice stays readable, and can still be disputed. */}
+      {gone && !handedOn && party && deal.entries && (
+        <Box sx={{ mb: 2 }}>
+          <LicenseeAfterRevoke
+            party={party}
+            entries={deal.entries}
+            refresh={deal.refresh}
+            licensor={
+              (held?.agreement?.terms as { licensor?: string } | undefined)?.licensor || tr.t('app.roy.who.licensor')
+            }
+          />
+        </Box>
       )}
 
       {held && isLive && !gone && held.agreement && (

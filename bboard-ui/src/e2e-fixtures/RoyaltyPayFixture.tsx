@@ -11,7 +11,9 @@
 // test can move the browser's clock and still open the same deal; `method` sets the payout's
 // method in the usd scenario (a Cardano token this build can't pay, for instance). The page
 // offers no revoke: revoking is tested on the real license page (e2e/royalty-revoke.spec.ts),
-// with Midnight's two steps stood in for (veilcore/chain/e2e-chain.ts). The terms it used are on
+// with Midnight's two steps stood in for (veilcore/chain/e2e-chain.ts). On the licensee's side,
+// once the deal holds the licensor's `revoked` notice, it also shows what the licensee's own
+// license page shows after a revocation for non-payment (RoyaltyPay.tsx LicenseeAfterRevoke). The terms it used are on
 // window.__e2eTerms, so that test can make the license the real page opens.
 // SPDX-License-Identifier: Apache-2.0
 
@@ -21,6 +23,7 @@ import { Alert, Container, Stack, Typography } from '@mui/material';
 import { publicOf } from '../veilcore/deal';
 import { readAll, say, useDeal, type DealParty } from '../veilcore/deal-client';
 import { RoyaltyLedger } from '../components/licensing/RoyaltyLedger';
+import { LicenseeAfterRevoke } from '../components/licensing/RoyaltyPay';
 import { addDays, addMonths, periodsOf } from '../veilcore/royalty-periods';
 import { applyPreset, termsToSeal, utcDay } from '../veilcore/royalty-terms';
 import { emptyTermsFor } from '../components/licensing/LicenseTermsFields';
@@ -160,6 +163,11 @@ export const RoyaltyPayFixture: React.FC = () => {
         </Typography>
         {problem && <Alert severity="error">{problem}</Alert>}
         <span data-e2e-start={terms.startDate} hidden />
+        {/* The licensee's side after a revocation for non-payment, as their license page shows it
+            (LicenseInvitePage): this page has no chain, so it shows it once the deal holds the notice. */}
+        {ready && side === 'licensee' && deal.entries?.some((e) => e.type === 'notice' && e.kind === 'revoked') && (
+          <LicenseeAfterRevoke party={p} entries={deal.entries} refresh={deal.refresh} licensor="Hana Rivera" />
+        )}
         {ready && (
           <RoyaltyLedger
             party={p}

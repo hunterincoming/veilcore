@@ -30,7 +30,7 @@ import {
 import { dealParty, sayOnce, useDeal } from '../../veilcore/deal-client';
 import { RoyaltyLedger } from './RoyaltyLedger';
 import { ledgerOf, noticeDayOf, paymentAlerts, revokedNoticeOf, type Report } from '../../veilcore/royalty-ledger';
-import { dealNotices, syncNotices } from '../../veilcore/license-notices';
+import { dealNotices, holderNotices, registryGate, registryNow, syncNotices } from '../../veilcore/license-notices';
 import { utcDay } from '../../veilcore/royalty-terms';
 import { getRecord } from '../../veilcore/records';
 import { hasOffspringRoyalty, isControlledTerms } from '../../veilcore/royalty-terms';
@@ -95,6 +95,8 @@ export const RealLicensePanel: React.FC<{ license: License; blocked: boolean; on
   );
 
   const gone = Boolean(oc?.revokeTx || oc?.goneSeenAt);
+  /** Whether the record's public check page says it was revoked for non-payment (the registry decides). */
+  const [revokedPublic, setRevokedPublic] = useState<'shown' | 'not-shown'>();
   // Revoked for non-payment, as the deal's signed messages say (any device), not this browser.
   const revokedNotice = useMemo(
     () => (deal.entries ? revokedNoticeOf(ledgerOf(deal.entries)) : undefined),
@@ -249,17 +251,25 @@ export const RealLicensePanel: React.FC<{ license: License; blocked: boolean; on
     void (async () => {
       const ledger = ledgerOf(deal.entries ?? []);
       // Revoked for non-payment here, but the signed notice saying so never landed: send it again
-      // (the same notice; sayOnce never sends two). Only this device knows to.
-      if (oc.revokedFor === 'non-payment' && oc.revokedForStatement && !revokedNoticeOf(ledger)) {
+      // (the same notice, dated by the revocation's own time, never this moment; sayOnce never
+      // sends two). Only this device knows to, and only while it knows when the revocation was.
+      if (oc.revokedFor === 'non-payment' && oc.revokedForStatement && oc.revokedAt && !revokedNoticeOf(ledger)) {
         const r = ledger.reports.find((x) => x.statement.signature === oc.revokedForStatement);
         if (r) {
-          const sent = await sayRevoked(r, oc.revokedAt ?? Date.now()).catch(() => false);
+          const sent = await sayRevoked(r, oc.revokedAt).catch(() => false);
           if (sent && on) deal.refresh();
           return; // the page runs this again with the notice in the deal
         }
       }
-      const { want, mine } = dealNotices(ledger, [], true);
-      if (want.size || mine.size) await syncNotices(license.recordId, want, mine);
+      // "Revoked for non-payment" goes public only if the registry's own notice of breach, clock
+      // and answers allow it (license-notices.ts dealNotices); it refuses otherwise anyway.
+      const had = await holderNotices(license.recordId);
+      const view = 'view' in had ? had.view : undefined;
+      const { want, mine } = dealNotices(ledger, [], true, view);
+      if (!want.size && !mine.size) return;
+      const synced = await syncNotices(license.recordId, want, mine, fetch, view);
+      if (on && synced.outcome === 'ok')
+        setRevokedPublic(synced.shown.some((n) => n.kind === 'revoked') ? 'shown' : 'not-shown');
     })();
     return () => {
       on = false;
@@ -381,15 +391,21 @@ export const RealLicensePanel: React.FC<{ license: License; blocked: boolean; on
     call.run(async (progress) => {
       if (!oc?.commitment || !oc.issuerRecord || !party) throw new Error(tr.t('app.lic.real.nothingToRevoke'));
       const now = ledgerOf(deal.entries ?? []);
-      const alert = paymentAlerts(license.terms, now, utcDay()).find(
+      // Checked again against the registry, now: its date for the notice of breach and its clock,
+      // never this device's (a device set to a later date offers nothing early).
+      const had = await holderNotices(license.recordId);
+      const view = 'view' in had ? had.view : undefined;
+      const gate = registryGate(view);
+      const alert = paymentAlerts(license.terms, now, utcDay(), undefined, undefined, gate).find(
         (a) => a.kind === 'overdue' && a.report.statement.signature === r.statement.signature,
       );
-      if (!alert?.revocable) throw new Error(tr.t('app.rpay.revoke.notYet'));
+      if (!alert?.revocable || !view) throw new Error(tr.t('app.rpay.revoke.notYet'));
       const { revokeLicenseOnChain } = await import('../../veilcore/chain/actions');
       const done = await revokeLicenseOnChain(hexBytes(keys.recordSecret), oc.commitment, oc.issuerRecord, {
         progress,
       });
-      const at = done.blockTime ?? Date.now();
+      // Dated by the chain's block time, or else the registry's clock: never this device's date.
+      const at = done.blockTime ?? registryNow(view);
       setOnChain(license.id, (c) => ({
         ...c!,
         revokeTx: done.txId,
@@ -655,9 +671,23 @@ export const RealLicensePanel: React.FC<{ license: License; blocked: boolean; on
       )}
 
       {gone && (
-        <Alert severity="error" variant="outlined" data-license-gone={revokedNotice ? 'non-payment' : ''}>
+        <Alert
+          severity="error"
+          variant="outlined"
+          data-license-gone={revokedNotice ? 'non-payment' : ''}
+          {...(revokedNotice && revokedPublic ? { 'data-revoked-public': revokedPublic } : {})}
+        >
           {revokedNotice
-            ? tr.t('app.rpay.revoke.done', { date: tr.date(`${noticeDayOf(revokedNotice)}T12:00:00Z`) })
+            ? [
+                tr.t('app.rpay.revoke.done', { date: tr.date(`${noticeDayOf(revokedNotice)}T12:00:00Z`) }),
+                revokedPublic === 'shown'
+                  ? tr.t('app.rpay.revoke.public')
+                  : revokedPublic === 'not-shown'
+                    ? tr.t('app.rpay.revoke.notPublic')
+                    : '',
+              ]
+                .filter(Boolean)
+                .join(' ')
             : oc?.revokedAt
               ? tr.t('app.lic.real.goneOn', { date: tr.date(oc.revokedAt) })
               : tr.t('app.lic.real.gone')}

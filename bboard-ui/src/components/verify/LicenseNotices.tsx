@@ -1,13 +1,14 @@
 // On a record's public check page: what its holder says about royalties on licenses from it
-// (veilcore/license-notices.ts). Only "a royalty statement is overdue since <date>" and "a
-// license from this record was revoked on <date> for non-payment", each with the licensee's
-// answer beside it when they disputed it: never an amount, a term, a period, a name or which
-// license. Said as the holder's word, because it is.
+// (veilcore/license-notices.ts), worded as their claim, with what VeilCore's registry checked
+// itself (the day it received their notice of breach, and that the time to pay ran out by its own
+// clock before a "revoked for non-payment" line was accepted) and the licensee's own answers beside
+// it, which the holder can't remove. Never an amount, a term, a period, a name or which license.
 // SPDX-License-Identifier: Apache-2.0
 
 import React from 'react';
 import { Alert, Paper, Stack, Typography } from '@mui/material';
 import { noticesOf } from '../../veilcore/license-notices';
+import { CURE_DAYS } from '../../veilcore/royalty-ledger';
 import { dateWords } from '../../veilcore/royalty-terms';
 import { useT } from '../../i18n/app';
 
@@ -26,11 +27,26 @@ export const LicenseNotices: React.FC<{ verify: unknown }> = ({ verify }) => {
             {n.kind === 'overdue'
               ? tr.t('app.rpay.pub.overdue', { date: dateWords(n.since, tr) })
               : tr.t('app.rpay.pub.revoked', { date: dateWords(n.on, tr) })}
-            {n.disputed && (
-              <Typography variant="body2" sx={{ mt: 0.5 }} data-license-notice-disputed={n.disputed}>
-                {tr.t('app.rpay.pub.disputed', { date: dateWords(n.disputed, tr) })}
+            {n.breachNoticeOn && (
+              <Typography variant="body2" sx={{ mt: 0.5 }} data-license-notice-breach={n.breachNoticeOn}>
+                {n.kind === 'overdue'
+                  ? tr.t('app.rpay.pub.breach', { date: dateWords(n.breachNoticeOn, tr) })
+                  : tr.t('app.rpay.pub.revokedChecked', { date: dateWords(n.breachNoticeOn, tr), days: CURE_DAYS })}
               </Typography>
             )}
+            {(n.answers ?? []).map((a) => (
+              <Typography
+                key={a.type}
+                variant="body2"
+                sx={{ mt: 0.5, fontWeight: 600 }}
+                data-license-notice-answer={a.type}
+                data-on={a.on}
+              >
+                {tr.t(a.type === 'paid' ? 'app.rpay.pub.answerPaid' : 'app.rpay.pub.disputed', {
+                  date: dateWords(a.on, tr),
+                })}
+              </Typography>
+            ))}
           </Alert>
         ))}
         <Typography variant="body2" color="text.secondary">

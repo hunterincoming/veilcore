@@ -4,12 +4,16 @@
 //   - every date is a UTC calendar day: both sides see the same day at the same moment, in Tokyo
 //     and in Los Angeles alike, around 16:00 UTC when their own calendars differ;
 //   - overdue the day after the payment due date; revoking for non-payment only after a notice
-//     of breach and CURE_DAYS with no "I paid";
+//     of breach and CURE_DAYS with no "I paid", by the REGISTRY's clock and its own date for the
+//     notice (registryAllowsRevoke), never the device's;
 //   - a notice dated back (by its sender or the registry) never starts the cure period early;
 //   - the licensee's answer (a dispute) and the licensor's `revoked` notice, who may send them;
-//   - the public lines: overdue with the dispute beside it, revoked only with the signed notice,
-//     nothing about payment after a plain revoke; a registry that can't show the dispute takes
-//     the line down rather than show one side.
+//   - the public lines: overdue, then with the notice of breach; revoked only with the signed
+//     notice AND the registry's gate (its notice-of-breach date, its clock, no "paid" on file),
+//     nothing about payment after a plain revoke or a refused one.
+// Includes the round-2 verifier's probes (vrp2-int premature.int): a revoke with no notice of
+// breach, one in the middle of the cure period, one after "I paid", a device clock 31 days ahead,
+// a dispute re-sent later, a revoked notice received late.
 // SPDX-License-Identifier: Apache-2.0
 
 import { afterEach, describe, expect, it } from 'vitest';
@@ -22,12 +26,22 @@ import {
   ledgerOf,
   noticeDayOf,
   paymentAlerts,
+  registryAllowsRevoke,
+  revocableFromDay,
   revokedNoticeOf,
   type NoticeEntry,
 } from './royalty-ledger';
 import { localDay, utcDay } from './royalty-terms';
 import type { LicenseTerms } from './licenses';
-import { dealNotices, noticeRef, parseNotice, syncNotices, type LicenseNotice } from './license-notices';
+import {
+  dealNotices,
+  noticeRef,
+  parseNotice,
+  registryGate,
+  syncNotices,
+  type PublishedNotice,
+  type RegistryView,
+} from './license-notices';
 
 {
   const g = globalThis as unknown as { localStorage?: Storage };
@@ -112,8 +126,25 @@ const paid = msg(9, {
   at: at('2026-06-01'),
 });
 
-const overdueOn = (entries: DealEntry[], day: string) =>
-  paymentAlerts(terms, ledgerOf(entries), day).find((a) => a.kind === 'overdue');
+const overdueOn = (entries: DealEntry[], day: string, view?: RegistryView) =>
+  paymentAlerts(terms, ledgerOf(entries), day, undefined, undefined, registryGate(view)).find(
+    (a) => a.kind === 'overdue',
+  );
+
+const REF = noticeRef(statement.fingerprint);
+/** What the registry has on file, read at `registryDay` noon by its clock (and now by this device's). */
+const viewOf = (
+  registryDay: string,
+  lines: PublishedNotice[] = [],
+  answers: [string, PublishedNotice['answers']][] = [],
+): RegistryView => ({
+  lines: new Map(lines.map((l) => [l.ref, l])),
+  answers: new Map(answers.map(([r, a]) => [r, a ?? []])),
+  now: at(registryDay),
+  read: Date.now(),
+});
+const breachLine = (breachNoticeOn: string, extra: Partial<PublishedNotice> = {}): PublishedNotice =>
+  ({ ref: REF, kind: 'overdue', since: '2026-05-15', breachNoticeOn, ...extra }) as PublishedNotice;
 
 describe('every royalty date is a UTC calendar day', () => {
   const zone = process.env.TZ;
@@ -171,13 +202,45 @@ describe('overdue, notice of breach, cure period, revoke', () => {
     expect(a?.breach).toBeUndefined();
   });
 
-  it(`a notice of breach starts ${CURE_DAYS} days; revoking is offered from the day after the last`, () => {
+  it(`a notice of breach starts ${CURE_DAYS} days; revoking is offered from the day after the last, by the registry's clock`, () => {
     const breach = notice(3, { asOf: '2026-05-20' });
     const entries = [statement, reply, breach];
     expect(CURE_DAYS).toBe(30);
+    expect(revocableFromDay('2026-05-20')).toBe('2026-06-20');
     expect(overdueOn(entries, '2026-05-20')?.breach).toMatchObject({ from: '2026-05-20', cureBy: '2026-06-19' });
-    expect(overdueOn(entries, '2026-06-19')).toMatchObject({ revocable: false });
-    expect(overdueOn(entries, '2026-06-20')).toMatchObject({ revocable: true });
+    const line = [breachLine('2026-05-20')];
+    expect(overdueOn(entries, '2026-06-19', viewOf('2026-06-19', line))).toMatchObject({ revocable: false });
+    expect(overdueOn(entries, '2026-06-20', viewOf('2026-06-20', line))).toMatchObject({ revocable: true });
+    // Without the registry, never: the device's date alone offers nothing.
+    expect(overdueOn(entries, '2026-12-31')).toMatchObject({ revocable: false });
+  });
+
+  it('probe: a device clock 31 days ahead offers nothing while the registry says mid-cure', () => {
+    const entries = [statement, reply, notice(3, {})];
+    const line = [breachLine('2026-05-20')];
+    expect(overdueOn(entries, '2026-06-25', viewOf('2026-05-25', line))).toMatchObject({ revocable: false });
+    expect(overdueOn(entries, '2026-05-25', viewOf('2026-06-25', line))).toMatchObject({ revocable: true });
+  });
+
+  it('the registry’s later date for the notice moves the deadline both sides see, never earlier', () => {
+    const entries = [statement, reply, notice(3, { asOf: '2026-05-20' })];
+    // The line went up four days after the deal's notice (the registry was down): its date counts.
+    const a = overdueOn(entries, '2026-06-21', viewOf('2026-06-21', [breachLine('2026-05-24')]));
+    expect(a?.breach?.cureBy).toBe('2026-06-23');
+    expect(a?.revocable).toBe(false);
+    // A registry date before the deal's own never shortens it.
+    expect(overdueOn(entries, '2026-06-01', viewOf('2026-06-01', [breachLine('2026-05-18')]))?.breach?.cureBy).toBe(
+      '2026-06-19',
+    );
+  });
+
+  it('a "paid" from the licensee on file at the registry stops it, a dispute does not', () => {
+    const entries = [statement, reply, notice(3, {})];
+    const paidLine = [breachLine('2026-05-20', { answers: [{ type: 'paid', on: '2026-05-22' }] })];
+    expect(overdueOn(entries, '2026-07-01', viewOf('2026-07-01', paidLine))?.revocable).toBe(false);
+    const disputed = [breachLine('2026-05-20', { answers: [{ type: 'disputed', on: '2026-05-22' }] })];
+    expect(overdueOn(entries, '2026-07-01', viewOf('2026-07-01', disputed))?.revocable).toBe(true);
+    expect(registryAllowsRevoke(undefined, '2027-01-01')).toBe(false);
   });
 
   it('"I paid" during the cure period ends it: not overdue, nothing to revoke', () => {
@@ -208,7 +271,11 @@ describe('overdue, notice of breach, cure period, revoke', () => {
 
   it('the licensee’s dispute is on the alert, and doesn’t stop the cure period', () => {
     const answer = notice(4, { kind: 'answer', from: 'licensee', asOf: '2026-05-25', note: 'Paid by cheque' });
-    const a = overdueOn([statement, reply, notice(3, {}), answer], '2026-06-20');
+    const a = overdueOn(
+      [statement, reply, notice(3, {}), answer],
+      '2026-06-20',
+      viewOf('2026-06-20', [breachLine('2026-05-20')]),
+    );
     expect(a?.answer?.note).toBe('Paid by cheque');
     expect(a?.revocable).toBe(true);
   });
@@ -239,81 +306,150 @@ describe('who may send an answer or a revoked notice', () => {
   });
 });
 
-describe('the public lines, from the deal’s signed messages', () => {
-  const overdueRef = noticeRef('overdue', sig);
+describe('the public lines, from the deal’s signed messages and the registry’s gate', () => {
   const live = [statement, reply, notice(3, {})];
   const alertsOn = (entries: DealEntry[], day: string) => paymentAlerts(terms, ledgerOf(entries), day);
+  const revokedMsg = (seq: number, asOf: string, receivedAt = at(asOf)) =>
+    notice(seq, { kind: 'revoked', asOf, note: 'License revoked for non-payment of report 1.' }, receivedAt);
+  const gone = (entries: DealEntry[], v?: RegistryView) => [
+    ...dealNotices(ledgerOf(entries), [], true, v).want.values(),
+  ];
 
-  it('live: the overdue line, with the licensee’s dispute next to it once they answer', () => {
-    const plain = dealNotices(ledgerOf(live), alertsOn(live, '2026-05-30'), false);
-    expect(plain.want.get(overdueRef)).toEqual({ kind: 'overdue', since: '2026-05-15' });
-    const answered = [...live, notice(4, { kind: 'answer', from: 'licensee', asOf: '2026-05-25', note: 'No.' })];
-    const withAnswer = dealNotices(ledgerOf(answered), alertsOn(answered, '2026-05-30'), false);
-    expect(withAnswer.want.get(overdueRef)).toEqual({ kind: 'overdue', since: '2026-05-15', disputed: '2026-05-25' });
+  it('live: an overdue line, then "breach" once the deal holds the notice that started the cure period', () => {
+    const before = [statement, reply];
+    expect([...dealNotices(ledgerOf(before), alertsOn(before, '2026-05-16'), false).want]).toEqual([
+      [REF, { kind: 'overdue', since: '2026-05-15', statement: statement.fingerprint }],
+    ]);
+    expect([...dealNotices(ledgerOf(live), alertsOn(live, '2026-05-30'), false).want.values()]).toEqual([
+      { kind: 'breach', since: '2026-05-15', statement: statement.fingerprint },
+    ]);
+    // An early notice (before the payment was late) starts nothing: still plain overdue.
+    const early = [statement, reply, notice(3, { asOf: '2026-05-10' })];
+    expect([...dealNotices(ledgerOf(early), alertsOn(early, '2026-05-30'), false).want.values()][0].kind).toBe(
+      'overdue',
+    );
   });
 
-  it('gone after a plain revoke: nothing about payment, and the overdue line comes off', () => {
-    const r = dealNotices(ledgerOf(live), [], true);
+  it('gone after a plain revoke: nothing about payment, and the line comes off', () => {
+    const r = dealNotices(ledgerOf(live), [], true, viewOf('2026-07-01', [breachLine('2026-05-20')]));
     expect(r.want.size).toBe(0);
-    expect(r.mine.has(overdueRef)).toBe(true);
+    expect(r.mine.has(REF)).toBe(true);
   });
 
-  it('gone with the licensor’s signed revoked notice: revoked for non-payment, dated by it', () => {
-    const revoked = notice(5, { kind: 'revoked', asOf: '2026-06-21' });
-    const entries = [...live, revoked];
+  it('gone with the signed revoked notice after the cure period, by the registry: revoked for non-payment, dated by the notice', () => {
+    const entries = [...live, revokedMsg(5, '2026-06-21')];
     const l = ledgerOf(entries);
-    expect(revokedNoticeOf(l)?.signature).toBe(revoked.signature);
-    const r = dealNotices(l, [], true);
-    const ref = noticeRef('revoked', revoked.signature);
-    expect([...r.want]).toEqual([[ref, { kind: 'revoked', reason: 'non-payment', on: '2026-06-21' }]]);
-    expect(r.mine.has(overdueRef)).toBe(true);
-    // Its reference is made from that notice's signature, which only the two sides hold.
-    expect(ref).not.toBe(noticeRef('revoked', '3c'.repeat(32)));
+    expect(revokedNoticeOf(l)?.from).toBe('issuer');
+    expect(gone(entries, viewOf('2026-06-22', [breachLine('2026-05-20')]))).toEqual([
+      { kind: 'revoked', reason: 'non-payment', on: '2026-06-21', statement: statement.fingerprint },
+    ]);
+    // Without the registry's view: nothing.
+    expect(gone(entries)).toEqual([]);
+  });
+
+  it('probe: a revoked notice with NO notice of breach on file publishes nothing', () => {
+    expect(gone([statement, reply, revokedMsg(5, '2026-05-16')], viewOf('2026-07-01'))).toEqual([]);
+    expect(
+      gone(
+        [statement, reply, revokedMsg(5, '2026-07-01')],
+        viewOf('2026-07-01', [{ ref: REF, kind: 'overdue', since: '2026-05-15' }]),
+      ),
+    ).toEqual([]);
+  });
+
+  it('probe: a revoked notice five days into the cure period publishes nothing, even once the registry’s clock has passed it', () => {
+    const entries = [...live, revokedMsg(5, '2026-05-25')];
+    expect(gone(entries, viewOf('2026-05-25', [breachLine('2026-05-20')]))).toEqual([]);
+    expect(gone(entries, viewOf('2026-07-30', [breachLine('2026-05-20')]))).toEqual([]);
+  });
+
+  it('probe: "I paid" before the revoke, in the deal or on file at the registry, publishes nothing', () => {
+    expect(
+      gone([...live, paid, revokedMsg(10, '2026-06-25')], viewOf('2026-06-26', [breachLine('2026-05-20')])),
+    ).toEqual([]);
+    const onFile = [breachLine('2026-05-20', { answers: [{ type: 'paid', on: '2026-05-28' }] })];
+    expect(gone([...live, revokedMsg(10, '2026-06-25')], viewOf('2026-06-26', onFile))).toEqual([]);
+    const answersOnly = viewOf('2026-06-26', [breachLine('2026-05-20')], [[REF, [{ type: 'paid', on: '2026-05-28' }]]]);
+    expect(
+      dealNotices(ledgerOf([...live, revokedMsg(10, '2026-06-25')]), [], true, {
+        ...answersOnly,
+        lines: new Map([[REF, breachLine('2026-05-20', { answers: [{ type: 'paid', on: '2026-05-28' }] })]]),
+      }).want.size,
+    ).toBe(0);
+  });
+
+  it('probe: a revoked notice received late is dated by its first receipt, and a line already up keeps its date', () => {
+    const late = revokedMsg(5, '2026-06-20', at('2026-06-27'));
+    expect(gone([...live, late], viewOf('2026-06-28', [breachLine('2026-05-20')]))).toEqual([
+      { kind: 'revoked', reason: 'non-payment', on: '2026-06-27', statement: statement.fingerprint },
+    ]);
+    // Sent again (another signed copy, received later still): the first stands.
+    const again = revokedMsg(6, '2026-07-04', at('2026-07-04'));
+    expect(gone([...live, late, again], viewOf('2026-07-05', [breachLine('2026-05-20')]))[0]).toMatchObject({
+      on: '2026-06-27',
+    });
+    // Once the registry holds the line, its own first date is kept, whatever the notice says.
+    const up = {
+      ref: REF,
+      kind: 'revoked',
+      reason: 'non-payment',
+      on: '2026-06-28',
+      breachNoticeOn: '2026-05-20',
+    } as PublishedNotice;
+    expect(gone([...live, late], viewOf('2026-08-01', [up]))[0]).toMatchObject({ on: '2026-06-28' });
   });
 
   it('a revoked notice while the license is still live on chain changes nothing public', () => {
-    const entries = [...live, notice(5, { kind: 'revoked', asOf: '2026-06-21' })];
+    const entries = [...live, revokedMsg(5, '2026-06-21')];
     const r = dealNotices(ledgerOf(entries), alertsOn(entries, '2026-06-22'), false);
-    expect([...r.want.values()]).toEqual([{ kind: 'overdue', since: '2026-05-15' }]);
+    expect([...r.want.values()]).toEqual([{ kind: 'breach', since: '2026-05-15', statement: statement.fingerprint }]);
   });
 
-  it('the public page reads a dispute date, and nothing else besides', () => {
+  it('the public page reads the licensee’s answers, never what anyone wrote', () => {
     const ref = 'a'.repeat(32);
-    expect(parseNotice({ ref, kind: 'overdue', since: '2026-05-15', disputed: '2026-05-25' })).toEqual({
+    expect(
+      parseNotice({ ref, kind: 'overdue', since: '2026-05-15', answers: [{ type: 'disputed', on: '2026-05-25' }] }),
+    ).toEqual({
       ref,
       kind: 'overdue',
       since: '2026-05-15',
-      disputed: '2026-05-25',
+      answers: [{ type: 'disputed', on: '2026-05-25' }],
     });
-    expect(parseNotice({ ref, kind: 'overdue', since: '2026-05-15', disputed: 'Paid by cheque' })).toBeUndefined();
+    expect(parseNotice({ ref, kind: 'overdue', since: '2026-05-15', disputed: 'Paid by cheque' })).toEqual({
+      ref,
+      kind: 'overdue',
+      since: '2026-05-15',
+    });
   });
 
-  it('a registry that refuses the dispute (one from before it): the line comes down, never one side alone', async () => {
+  it('a revoked line the registry refuses: not shown, and the report’s line comes off (a plain revoke)', async () => {
     localStorage.setItem('veilcore.holder.v1', 'ab'.repeat(32));
-    let published: Record<string, unknown>[] = [{ ref: overdueRef, kind: 'overdue', since: '2026-05-15' }];
+    let published: Record<string, unknown>[] = [
+      { ref: REF, kind: 'overdue', since: '2026-05-15', breachNoticeOn: '2026-05-20' },
+    ];
     const calls: string[] = [];
     const f: typeof fetch = (url, init) => {
       const u = url instanceof Request ? url.url : url.toString();
       const method = init?.method ?? 'GET';
       calls.push(method);
       if (method === 'GET')
-        return Promise.resolve(new Response(JSON.stringify({ licenseNotices: published }), { status: 200 }));
-      if (method === 'PUT') {
-        const body = JSON.parse(init!.body as string) as Record<string, unknown>;
-        if ('disputed' in body) return Promise.resolve(new Response('{"error":"expected exactly"}', { status: 400 }));
-      }
+        return Promise.resolve(
+          new Response(JSON.stringify({ licenseNotices: published, now: at('2026-06-21') }), { status: 200 }),
+        );
+      if (method === 'PUT')
+        return Promise.resolve(new Response('{"error":"not yet","code":"cure-not-over"}', { status: 409 }));
       if (method === 'DELETE') published = published.filter((x) => x.ref !== u.split('/').pop());
       return Promise.resolve(new Response('{}', { status: 200 }));
     };
-    const want = new Map<string, LicenseNotice>([
-      [overdueRef, { kind: 'overdue', since: '2026-05-15', disputed: '2026-05-25' }],
+    const want = new Map([
+      [REF, { kind: 'revoked', reason: 'non-payment', on: '2026-06-21', statement: statement.fingerprint } as const],
     ]);
-    const r = await syncNotices('rec-1', want, new Set([overdueRef]), f);
+    const r = await syncNotices('rec-1', want, new Set([REF]), f);
     expect(calls).toEqual(['GET', 'PUT', 'DELETE']);
     expect(published).toEqual([]);
     expect(r.outcome).toBe('ok');
     expect(r.shown).toEqual([]);
-    expect(r.withheld).toEqual([overdueRef]);
+    expect(r.refused).toEqual([REF]);
   });
 });
 

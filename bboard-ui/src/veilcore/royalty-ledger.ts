@@ -555,7 +555,9 @@ export const DUE_SOON_DAYS = 7;
 // the licensor may then send a signed notice of breach about that payment; the licensee has
 // CURE_DAYS from the day of the notice to pay; only after that day, with still no "I paid", is
 // revoking for non-payment offered. Every day here is a UTC calendar date (royalty-terms.ts
-// utcDay), the same for both sides.
+// utcDay), the same for both sides. Whether the cure period has run out is the REGISTRY's call,
+// by its own clock and its own date for the notice (registryAllowsRevoke): a licensor's device
+// can be modified or set to any date, and the public "revoked for non-payment" line depends on it.
 
 /**
  * Days the licensee has to pay after a notice of breach about a payment. The license terms carry
@@ -606,6 +608,37 @@ export const answerOf = (r: Report): NoticeEntry | undefined =>
 export const revokedNoticeOf = (ledger: Ledger): NoticeEntry | undefined =>
   ledger.notices.find((n) => n.kind === 'revoked' && n.from === 'issuer' && n.about === 'payment' && !!n.statementSig);
 
+/**
+ * The first UTC day the registry accepts "revoked for non-payment" after a notice of breach it
+ * received on `breachNoticeOn`: the day after the cure period's last day (registry server.js
+ * revocableFrom, the same rule).
+ */
+export const revocableFromDay = (breachNoticeOn: string, cureDays = CURE_DAYS): string =>
+  addDays(breachNoticeOn, cureDays + 1);
+
+/** What the registry has on file about one report's lines: its notice-of-breach day, the licensee's answers. */
+export type RegistryLine = {
+  readonly breachNoticeOn?: string;
+  readonly answers: readonly { readonly type: 'paid' | 'disputed'; readonly on: string }[];
+};
+
+/**
+ * Whether the registry would accept "revoked for non-payment" for a report today (its own UTC
+ * day, never this device's): a notice of breach on file, received at least the cure period
+ * earlier, and no "paid" from the licensee on file. The registry checks the same, and refuses
+ * otherwise; a page asks this only to offer the button.
+ */
+export const registryAllowsRevoke = (line: RegistryLine | undefined, registryToday: string, cureDays = CURE_DAYS) =>
+  !!line?.breachNoticeOn &&
+  registryToday >= revocableFromDay(line.breachNoticeOn, cureDays) &&
+  !line.answers.some((a) => a.type === 'paid');
+
+/** The registry's side of the alerts: its UTC day, and what it has on file for a report. */
+export type RegistryGate = {
+  readonly today: string;
+  readonly lineOf: (r: Report) => RegistryLine | undefined;
+};
+
 export type PaymentAlert = {
   readonly kind: 'soon' | 'overdue';
   readonly report: Report;
@@ -619,7 +652,16 @@ export type PaymentAlert = {
   readonly breach?: Breach;
   /** Overdue: the licensee's latest answer (a dispute note), if any. */
   readonly answer?: NoticeEntry;
-  /** Overdue: the cure period has run out with no "I paid", so the licensor may revoke for non-payment. */
+  /**
+   * Overdue: what the registry has on file for this report (its notice-of-breach day and the
+   * licensee's answers), when the page could ask it.
+   */
+  readonly registry?: RegistryLine;
+  /**
+   * Overdue: the cure period has run out by the REGISTRY's clock, after a notice of breach it
+   * received, with no "I paid" in the deal and no "paid" on file there, so the licensor may revoke
+   * for non-payment. Never from this device's date: false when the registry couldn't be asked.
+   */
   readonly revocable?: boolean;
 };
 
@@ -636,12 +678,20 @@ export const paymentAlerts = (
   today: string,
   soonDays = DUE_SOON_DAYS,
   cureDays = CURE_DAYS,
+  registry?: RegistryGate,
 ): PaymentAlert[] =>
   periodRows(terms, ledger, today).flatMap((row): PaymentAlert[] => {
     if (row.step !== 'pay' || !row.due || !row.report) return [];
     if (row.overdue > 0) {
       const since = addDays(row.due, 1);
-      const breach = breachOf(row.report, since, cureDays);
+      const signed = breachOf(row.report, since, cureDays);
+      const line = registry?.lineOf(row.report);
+      // The deadline both sides see: the later of the deal's notice and the registry's own date
+      // for it (the one that decides whether "revoked for non-payment" can go public).
+      const breach =
+        signed && line?.breachNoticeOn && addDays(line.breachNoticeOn, cureDays) > signed.cureBy
+          ? { ...signed, cureBy: addDays(line.breachNoticeOn, cureDays) }
+          : signed;
       const answer = answerOf(row.report);
       return [
         {
@@ -652,7 +702,8 @@ export const paymentAlerts = (
           days: row.overdue,
           ...(breach ? { breach } : {}),
           ...(answer ? { answer } : {}),
-          revocable: !!breach && today > breach.cureBy,
+          ...(line ? { registry: line } : {}),
+          revocable: !!breach && !!registry && registryAllowsRevoke(line, registry.today, cureDays),
         },
       ];
     }

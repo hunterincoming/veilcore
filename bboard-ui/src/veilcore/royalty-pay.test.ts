@@ -584,34 +584,63 @@ describe('the sanctions screen', () => {
   });
 });
 
-describe('the public notice: a kind, a date and an opaque reference, nothing else', () => {
-  it('references are 32 hex, per kind and subject, and say nothing without the signature', () => {
-    const a = noticeRef('overdue', 'ab'.repeat(64));
+describe('the public notice: a kind, dates and an opaque reference, nothing else', () => {
+  const fp = (c: string) => c.repeat(64);
+  it('a reference is 32 hex, made from the statement’s fingerprint, and says nothing without it', () => {
+    const a = noticeRef(fp('a'));
     expect(a).toMatch(/^[0-9a-f]{32}$/);
-    expect(noticeRef('overdue', 'cd'.repeat(64))).not.toBe(a);
-    expect(noticeRef('revoked', 'ab'.repeat(64))).not.toBe(a);
+    expect(noticeRef(fp('b'))).not.toBe(a);
+    // The registry makes the same one (veilcore-api server.js licenseNoticeRef).
+    expect(noticeRef('0'.repeat(64))).toBe(
+      createHash('sha256')
+        .update(`veilcore/license-notice/v2\n${'0'.repeat(64)}`)
+        .digest('hex')
+        .slice(0, 32),
+    );
   });
-  it('reads only the two shapes; any amount, name or free text is dropped', () => {
+  it('reads only the two shapes, the registry’s notice-of-breach day and the licensee’s answers; anything else is dropped', () => {
     const ref = 'a'.repeat(32);
     expect(parseNotice({ ref, kind: 'overdue', since: '2026-05-15' })).toEqual({
       ref,
       kind: 'overdue',
       since: '2026-05-15',
     });
+    expect(
+      parseNotice({
+        ref,
+        kind: 'overdue',
+        since: '2026-05-15',
+        breachNoticeOn: '2026-05-20',
+        answers: [
+          { type: 'disputed', on: '2026-05-21' },
+          { type: 'withdrawn', on: '2026-05-22' },
+          { type: 'paid', on: 'soon' },
+        ],
+      }),
+    ).toEqual({
+      ref,
+      kind: 'overdue',
+      since: '2026-05-15',
+      breachNoticeOn: '2026-05-20',
+      answers: [{ type: 'disputed', on: '2026-05-21' }],
+    });
     expect(parseNotice({ ref, kind: 'revoked', reason: 'non-payment', on: '2026-06-01' })).toBeTruthy();
     expect(parseNotice({ ref, kind: 'revoked', reason: 'they were rude', on: '2026-06-01' })).toBeUndefined();
     expect(parseNotice({ ref, kind: 'overdue', since: '15 May' })).toBeUndefined();
+    expect(parseNotice({ ref, kind: 'overdue', since: '2026-05-15', breachNoticeOn: 'yesterday' })).toBeUndefined();
     expect(parseNotice({ ref: 'x', kind: 'overdue', since: '2026-05-15' })).toBeUndefined();
     const out = noticesOf({
-      licenseNotices: [{ ref, kind: 'overdue', since: '2026-05-15', amount: '1000', licensee: 'Bo' }],
+      licenseNotices: [
+        { ref, kind: 'overdue', since: '2026-05-15', amount: '1000', licensee: 'Bo', note: 'he never paid' },
+      ],
     });
     expect(out).toEqual([{ ref, kind: 'overdue', since: '2026-05-15' }]);
   });
   it('the licensor’s page puts up what is overdue, takes off its own stale ones, leaves other licenses’ alone', async () => {
-    const mineOld = noticeRef('overdue', 'ab'.repeat(64));
-    const mineNew = noticeRef('overdue', 'cd'.repeat(64));
-    const othersLicense = noticeRef('overdue', 'ef'.repeat(64));
-    let published = [
+    const mineOld = noticeRef(fp('a'));
+    const mineNew = noticeRef(fp('c'));
+    const othersLicense = noticeRef(fp('e'));
+    let published: Record<string, unknown>[] = [
       { ref: mineOld, kind: 'overdue', since: '2026-02-15' },
       { ref: othersLicense, kind: 'overdue', since: '2026-03-01' },
     ];
@@ -620,49 +649,58 @@ describe('the public notice: a kind, a date and an opaque reference, nothing els
     const f: typeof fetch = (url, init) => {
       const u = url instanceof Request ? url.url : url.toString();
       const method = init?.method ?? 'GET';
-      calls.push(`${method} ${u.replace(/^.*?(\/(api|verify)\/)/, '$1')}`);
+      calls.push(`${method} ${u.replace(/^.*?(\/api\/)/, '$1')}`);
       if (method === 'GET')
         return Promise.resolve(
-          new Response(JSON.stringify({ found: true, licenseNotices: published }), { status: 200 }),
+          new Response(JSON.stringify({ licenseNotices: published, now: Date.now() }), { status: 200 }),
         );
       const ref = u.split('/').pop()!;
-      if (method === 'PUT')
-        published = [
-          ...published.filter((x) => x.ref !== ref),
-          { ref, ...(JSON.parse(init!.body as string) as { kind: string; since: string }) },
-        ];
+      if (method === 'PUT') {
+        const body = JSON.parse(init!.body as string) as Record<string, unknown>;
+        delete body.statement;
+        published = [...published.filter((x) => x.ref !== ref), { ref, ...body }];
+        return Promise.resolve(new Response(JSON.stringify({ ref, ...body, now: Date.now() }), { status: 200 }));
+      }
       if (method === 'DELETE') published = published.filter((x) => x.ref !== ref);
       return Promise.resolve(new Response('{}', { status: 200 }));
     };
-    const want = new Map<string, LicenseNotice>([[mineNew, { kind: 'overdue', since: '2026-05-15' }]]);
+    const want = new Map<string, LicenseNotice>([
+      [mineNew, { kind: 'overdue', since: '2026-05-15', statement: fp('c') }],
+    ]);
     const r = await syncNotices('rec-1', want, new Set([mineOld, mineNew]), f);
     expect(r.outcome).toBe('ok');
     expect(calls).toEqual([
-      'GET /verify/rec-1',
+      'GET /api/records/rec-1/license-notices',
       `PUT /api/records/rec-1/license-notices/${mineNew}`,
       `DELETE /api/records/rec-1/license-notices/${mineOld}`,
     ]);
     expect(published.map((x) => x.ref).sort()).toEqual([mineNew, othersLicense].sort());
+    expect(r.view?.lines.has(mineNew)).toBe(true);
     // Nothing changed: nothing is sent again.
     calls.length = 0;
     await syncNotices('rec-1', want, new Set([mineOld, mineNew]), f);
-    expect(calls).toEqual(['GET /verify/rec-1']);
+    expect(calls).toEqual(['GET /api/records/rec-1/license-notices']);
   });
-  it('a registry from before notices: said, not hidden', async () => {
+  it('a registry from before v2, and a record not under this holder key: each said for what it is', async () => {
     localStorage.setItem('veilcore.holder.v1', 'ab'.repeat(32));
-    const f: typeof fetch = (_url, init) =>
+    const want = new Map<string, LicenseNotice>([
+      ['a'.repeat(32), { kind: 'overdue', since: '2026-05-15', statement: fp('a') }],
+    ]);
+    const old: typeof fetch = () => Promise.resolve(new Response('Cannot GET', { status: 404 }));
+    expect((await syncNotices('rec-1', want, new Set(), old)).outcome).toBe('unsupported');
+    const notMine: typeof fetch = () =>
       Promise.resolve(
-        new Response(init?.method === 'PUT' ? '{"error":"not found"}' : '{"found":true}', {
-          status: init?.method === 'PUT' ? 404 : 200,
-        }),
+        new Response('{"error":"no such record under this holder key","code":"no-record"}', { status: 404 }),
       );
-    const r = await syncNotices(
-      'rec-1',
-      new Map([['a'.repeat(32), { kind: 'overdue', since: '2026-05-15' }]]),
-      new Set(),
-      f,
-    );
-    expect(r.outcome).toBe('unsupported');
+    expect((await syncNotices('rec-1', want, new Set(), notMine)).outcome).toBe('no-record');
+    // A PUT answered 404 for the record (it was deleted meanwhile) is no-record too, never "unsupported".
+    const putGone: typeof fetch = (_u, init) =>
+      Promise.resolve(
+        init?.method === 'PUT'
+          ? new Response('{"error":"no such record under this holder key"}', { status: 404 })
+          : new Response(JSON.stringify({ licenseNotices: [], now: Date.now() }), { status: 200 }),
+      );
+    expect((await syncNotices('rec-1', want, new Set(), putGone)).outcome).toBe('no-record');
   });
 });
 

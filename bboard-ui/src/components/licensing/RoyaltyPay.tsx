@@ -2,6 +2,8 @@
 //   - PaymentAlerts: the in-app reminders on both sides (due soon, overdue), and on the
 //     licensor's side the line saying what their record's public check page says;
 //   - usePublicNotices: the licensor's page keeps that public notice in step with the deal;
+//   - useRegistryView: the licensee's page reads what the registry has on file and files the
+//     licensee's own answers there; RevokedForNonPayment: their side after a revocation;
 //   - CardanoPayoutForm, PayOnCardano, useCardanoChecks, CardanoCheckLine: paying in USDCx or
 //     USDM from the licensee's own wallet, and both pages checking it on Cardano.
 // VeilCore never holds, routes, pauses or starts a payment: the wallet is the licensee's, the
@@ -17,8 +19,10 @@ import { dateWords, utcDay } from '../../veilcore/royalty-terms';
 import { formatMoney } from '../../veilcore/money';
 import {
   CURE_DAYS,
+  answerOf,
   ledgerOf,
   noticeDayOf,
+  revokedNoticeOf,
   toPayOf,
   type Ledger,
   type PaymentAlert,
@@ -42,11 +46,21 @@ import {
 import { findCardanoWallets, payOnCardano, type Cip30Entry } from '../../veilcore/cardano-tx';
 import { OFAC_CARDANO, screenAddresses } from '../../veilcore/sanctions';
 import { forgetSent, keepSent, sentFor } from '../../veilcore/onchain-pay';
-import { dealNotices, noticeRef, syncNotices, type NoticeOutcome } from '../../veilcore/license-notices';
+import {
+  dealNotices,
+  fileAnswer,
+  reportRef,
+  statementNotices,
+  syncNotices,
+  type LicenseeAnswer,
+  type NoticeOutcome,
+  type PublishedNotice,
+  type RegistryView,
+} from '../../veilcore/license-notices';
 import type { DealBody } from '../../veilcore/deal';
 import { STABLECOIN_PAY } from '../../config/copy';
 import { NETWORK } from '../../config/network';
-import type { DealEntry } from '../../veilcore/deal-client';
+import { sayOnce, type DealEntry, type DealParty } from '../../veilcore/deal-client';
 
 const short = (s: string) => (s.length > 24 ? `${s.slice(0, 14)}…${s.slice(-6)}` : s);
 
@@ -54,17 +68,25 @@ const short = (s: string) => (s.length > 24 ? `${s.slice(0, 14)}…${s.slice(-6)
 
 type PublicState = {
   outcome: NoticeOutcome | 'idle';
-  shown: ReadonlySet<string>;
-  /** Left off the public page: the registry can't show the licensee's dispute beside it. */
-  withheld: ReadonlySet<string>;
+  /** The record's lines for this deal as the registry has them now, by reference. */
+  lines: ReadonlyMap<string, PublishedNotice>;
 };
+
+/** The licensee's answers as the public page shows them beside a line: "says it was paid (date)", "disputes this (since date)". */
+const answerWords = (answers: readonly LicenseeAnswer[] | undefined, tr: Translator): string =>
+  (answers ?? [])
+    .map((x) =>
+      tr.t(x.type === 'paid' ? 'app.rpay.pub.answerPaid' : 'app.rpay.pub.disputed', { date: dateWords(x.on, tr) }),
+    )
+    .join(' ');
 
 /**
  * Due soon and overdue, at the top of the royalties on both sides. On an overdue payment, both
  * sides see where it stands: no notice of breach yet; a notice, and the last day to pay (the cure
- * period, royalty-ledger.ts CURE_DAYS); or the cure period over. The licensee answers here: "I
- * paid" (the report's own pay form), or a short dispute note, signed, which the licensor sees and
- * the public page shows next to the overdue line.
+ * period, royalty-ledger.ts CURE_DAYS, counted from the registry's date for it); or the cure period
+ * over by the registry's clock. The licensee answers here: "I paid" (the report's own pay form),
+ * or a short dispute note, signed. Either one is also filed at the registry in their own name
+ * (useRegistryView), where the public page shows it beside the licensor's line.
  */
 export const PaymentAlerts: React.FC<{
   side: 'issuer' | 'licensee';
@@ -77,7 +99,9 @@ export const PaymentAlerts: React.FC<{
   send: (b: DealBody) => Promise<boolean>;
   /** The licensor's side: what the record's public check page says now, and whether it could. */
   publicState?: PublicState;
-}> = ({ side, alerts, licensee, licensor, tr, busy, send, publicState }) => {
+  /** The licensee's side: what the registry has on file in their name. */
+  view?: RegistryView;
+}> = ({ side, alerts, licensee, licensor, tr, busy, send, publicState, view }) => {
   if (alerts.length === 0) return null;
   return (
     <Stack spacing={1} data-payment-alerts="">
@@ -92,6 +116,7 @@ export const PaymentAlerts: React.FC<{
           busy={busy}
           send={send}
           publicState={publicState}
+          view={view}
         />
       ))}
     </Stack>
@@ -107,15 +132,19 @@ const OneAlert: React.FC<{
   busy: boolean;
   send: (b: DealBody) => Promise<boolean>;
   publicState?: PublicState;
-}> = ({ a, side, licensee, licensor, tr, busy, send, publicState }) => {
+  view?: RegistryView;
+}> = ({ a, side, licensee, licensor, tr, busy, send, publicState, view }) => {
   const [disputing, setDisputing] = useState(false);
   const [note, setNote] = useState('');
   const n = a.report.number;
   const late = a.kind === 'overdue';
   const date = dateWords(late ? a.since! : a.due, tr);
-  const ref = late ? noticeRef('overdue', a.report.statement.signature) : '';
+  const ref = reportRef(a.report);
   const s = a.report.statement;
   const answerDay = a.answer ? dateWords(noticeDayOf(a.answer), tr) : '';
+  // The dispute as filed at the registry in the licensee's name: the first one stands there.
+  const filed = (view?.answers.get(ref) ?? a.registry?.answers ?? []).find((x) => x.type === 'disputed');
+  const line = publicState?.lines.get(ref);
   return (
     <Alert
       severity={late ? 'error' : 'info'}
@@ -156,9 +185,16 @@ const OneAlert: React.FC<{
         </Typography>
       )}
       {late && a.answer && (
-        <Typography variant="body2" data-answer="" sx={{ mt: 0.5 }}>
+        <Typography variant="body2" data-answer={filed ? 'filed' : 'not-filed'} sx={{ mt: 0.5 }}>
           {side === 'licensee'
-            ? tr.t('app.rpay.l.answered', { date: answerDay, note: a.answer.note ?? '' })
+            ? filed
+              ? tr.t('app.rpay.l.answered', {
+                  date: answerDay,
+                  note: a.answer.note ?? '',
+                  licensor,
+                  filed: dateWords(filed.on, tr),
+                })
+              : tr.t('app.rpay.l.answerPending', { date: answerDay, note: a.answer.note ?? '', licensor })
             : tr.t('app.rpay.i.answered', { licensee, date: answerDay, note: a.answer.note ?? '' })}
         </Typography>
       )}
@@ -166,18 +202,24 @@ const OneAlert: React.FC<{
         <Typography
           variant="body2"
           sx={{ mt: 0.5 }}
-          data-public-notice={
-            publicState.shown.has(ref) ? 'shown' : publicState.withheld.has(ref) ? 'withheld' : publicState.outcome
-          }
+          data-public-notice={line ? 'shown' : publicState.outcome}
+          {...(line?.breachNoticeOn ? { 'data-public-breach': line.breachNoticeOn } : {})}
         >
-          {publicState.shown.has(ref)
-            ? a.answer
-              ? tr.t('app.rpay.i.publicDisputed', { date, answered: answerDay })
-              : tr.t('app.rpay.i.public', { date })
-            : publicState.withheld.has(ref)
-              ? tr.t('app.rpay.i.publicWithheld', { licensee })
-              : publicState.outcome === 'unsupported'
-                ? tr.t('app.rpay.i.publicUnsupported')
+          {line
+            ? [
+                line.breachNoticeOn
+                  ? tr.t('app.rpay.i.publicBreach', { date, breach: dateWords(line.breachNoticeOn, tr) })
+                  : tr.t('app.rpay.i.public', { date }),
+                line.answers?.length
+                  ? tr.t('app.rpay.i.publicAnswers', { answers: answerWords(line.answers, tr) })
+                  : '',
+              ]
+                .filter(Boolean)
+                .join(' ')
+            : publicState.outcome === 'unsupported'
+              ? tr.t('app.rpay.i.publicUnsupported')
+              : publicState.outcome === 'no-record'
+                ? tr.t('app.rpay.i.publicNoRecord')
                 : tr.t('app.rpay.i.publicFailed')}
         </Typography>
       )}
@@ -207,43 +249,27 @@ const OneAlert: React.FC<{
               </Button>
             </Stack>
           ) : (
-            <Stack spacing={1}>
-              <TextField
-                size="small"
-                multiline
-                label={tr.t('app.rpay.l.disputeNote')}
-                helperText={tr.t('app.rpay.l.disputeShows', { licensor })}
-                value={note}
-                onChange={(e) => setNote(e.target.value.slice(0, 500))}
-                data-dispute-note=""
-              />
-              <Stack direction="row" spacing={1}>
-                <Button
-                  size="small"
-                  variant="contained"
-                  disabled={busy || !note.trim()}
-                  data-dispute-send=""
-                  onClick={() =>
-                    void send({
-                      type: 'notice',
-                      kind: 'answer',
-                      about: 'payment',
-                      periodFrom: s.periodFrom,
-                      periodTo: s.periodTo,
-                      statementSig: s.signature,
-                      dueOn: a.due,
-                      asOf: utcDay(),
-                      note: note.trim(),
-                    }).then((ok) => ok && (setDisputing(false), setNote('')))
-                  }
-                >
-                  {tr.t('app.rpay.l.disputeSend')}
-                </Button>
-                <Button size="small" color="inherit" onClick={() => setDisputing(false)}>
-                  {tr.t('app.lic.ledger.cancel')}
-                </Button>
-              </Stack>
-            </Stack>
+            <DisputeForm
+              tr={tr}
+              licensor={licensor}
+              busy={busy}
+              note={note}
+              setNote={setNote}
+              onCancel={() => setDisputing(false)}
+              onSend={() =>
+                void send({
+                  type: 'notice',
+                  kind: 'answer',
+                  about: 'payment',
+                  periodFrom: s.periodFrom,
+                  periodTo: s.periodTo,
+                  statementSig: s.signature,
+                  dueOn: a.due,
+                  asOf: utcDay(),
+                  note: note.trim(),
+                }).then((ok) => ok && (setDisputing(false), setNote('')))
+              }
+            />
           )}
         </Box>
       )}
@@ -251,35 +277,243 @@ const OneAlert: React.FC<{
   );
 };
 
+/** The licensee's short dispute note, signed and sent on the deal; what it means, before it goes. */
+const DisputeForm: React.FC<{
+  tr: Translator;
+  licensor: string;
+  busy: boolean;
+  note: string;
+  setNote: (s: string) => void;
+  onSend: () => void;
+  onCancel: () => void;
+}> = ({ tr, licensor, busy, note, setNote, onSend, onCancel }) => (
+  <Stack spacing={1}>
+    <TextField
+      size="small"
+      multiline
+      label={tr.t('app.rpay.l.disputeNote')}
+      helperText={tr.t('app.rpay.l.disputeShows', { licensor })}
+      value={note}
+      onChange={(e) => setNote(e.target.value.slice(0, 500))}
+      data-dispute-note=""
+    />
+    <Stack direction="row" spacing={1}>
+      <Button size="small" variant="contained" disabled={busy || !note.trim()} data-dispute-send="" onClick={onSend}>
+        {tr.t('app.rpay.l.disputeSend')}
+      </Button>
+      <Button size="small" color="inherit" onClick={onCancel}>
+        {tr.t('app.lic.ledger.cancel')}
+      </Button>
+    </Stack>
+  </Stack>
+);
+
 /**
- * The licensor's page keeps their record's public notices for this deal in step with its
- * messages (license-notices.ts dealNotices): an overdue notice per report overdue now, with the
- * licensee's dispute beside it, none for the rest. Once when the page opens and whenever what is
- * overdue changes.
+ * The licensor's page keeps their record's public lines for this deal in step with its messages
+ * (license-notices.ts dealNotices): a line per report overdue now, with the registry's date for
+ * their notice of breach, none for the rest. Once when the page opens and whenever what is overdue
+ * changes. What the registry has on file afterwards goes to `onView`, for the alerts (the cure
+ * period by the registry's clock).
  */
 export const usePublicNotices = (
   recordId: string | undefined,
   alerts: readonly PaymentAlert[],
   ledger: Ledger,
+  onView: (v: RegistryView) => void,
 ): PublicState => {
   const { want, mine } = useMemo(() => dealNotices(ledger, alerts, false), [ledger, alerts]);
   const key =
-    [...want].map(([r, n]) => `${r}:${n.kind === 'overdue' ? n.since : n.on}:${n.disputed ?? ''}`).join(',') +
+    [...want].map(([r, n]) => `${r}:${n.kind}:${n.kind === 'revoked' ? n.on : n.since}`).join(',') +
     `|${[...mine].sort().join(',')}`;
-  const [state, setState] = useState<PublicState>({ outcome: 'idle', shown: new Set(), withheld: new Set() });
+  const [state, setState] = useState<PublicState>({ outcome: 'idle', lines: new Map() });
   useEffect(() => {
     if (!recordId || (want.size === 0 && mine.size === 0)) return;
     let live = true;
     void syncNotices(recordId, want, mine).then((r) => {
-      if (live)
-        setState({ outcome: r.outcome, shown: new Set(r.shown.map((n) => n.ref)), withheld: new Set(r.withheld) });
+      if (!live) return;
+      setState({ outcome: r.outcome, lines: new Map(r.shown.map((n) => [n.ref, n])) });
+      if (r.view) onView(r.view);
     });
     return () => {
       live = false;
     };
-    // `key` stands for want and mine: the same notices are not sent again on every render.
+    // `key` stands for want and mine: the same lines are not sent again on every render.
   }, [recordId, key]);
   return state;
+};
+
+/** Reports the licensee's page asks the registry about: those still to settle, or with a notice or an answer. */
+const askedAbout = (ledger: Ledger): Report[] =>
+  ledger.reports.filter(
+    (r) =>
+      !r.replacedBy &&
+      r.reply?.decision === 'accepted' &&
+      (!r.received || r.notices.some((x) => x.about === 'payment')) &&
+      !r.chainSettled,
+  );
+
+/**
+ * The licensee's side: what the registry has on file about their reports (the licensor's lines,
+ * its date for a notice of breach, their own answers), and their answers filed there in their own
+ * name, signed with their deal key: "paid" for every report they marked paid, "disputed" for every
+ * one they disputed. A filing that didn't land is tried again whenever the deal's messages change
+ * or the page opens. The licensor can't remove or change what is filed.
+ */
+export const useRegistryView = (
+  party: { readonly mySecret: string } | undefined,
+  ledger: Ledger,
+): readonly [RegistryView | undefined, (v: RegistryView) => void] => {
+  const [view, setView] = useState<RegistryView>();
+  const reports = useMemo(() => (party ? askedAbout(ledger) : []), [party, ledger]);
+  const key = reports.map((r) => `${r.statement.fingerprint}:${r.paid ? 'p' : ''}${answerOf(r) ? 'd' : ''}`).join(',');
+  useEffect(() => {
+    if (!party || reports.length === 0) return;
+    let live = true;
+    void (async () => {
+      const fps = reports.map((r) => r.statement.fingerprint);
+      let v = await statementNotices(fps);
+      let filedNow = false;
+      for (const r of reports) {
+        const has = (t: 'paid' | 'disputed') => !!v?.answers.get(reportRef(r))?.some((x) => x.type === t);
+        if (r.paid && r.paid.from === 'licensee' && !has('paid')) {
+          filedNow =
+            !!(await fileAnswer(party.mySecret, r.statement.fingerprint, 'paid', r.paid.reference)) || filedNow;
+        }
+        if (answerOf(r) && !has('disputed')) {
+          filedNow = !!(await fileAnswer(party.mySecret, r.statement.fingerprint, 'disputed')) || filedNow;
+        }
+      }
+      if (filedNow) v = (await statementNotices(fps)) ?? v;
+      if (live && v) setView(v);
+    })();
+    return () => {
+      live = false;
+    };
+    // `key` stands for the reports and what the licensee said about each.
+  }, [party?.mySecret, key]);
+  return [view, setView] as const;
+};
+
+/**
+ * The licensee's side once the license is gone and the deal holds the licensor's signed notice
+ * that it was revoked for non-payment: what it says, whether the licensor's record's public check
+ * page says so (the registry decides that, by its own clock), and the licensee's answer, which
+ * they can still give: a dispute, signed on the deal and filed at the registry in their own name.
+ */
+export const RevokedForNonPayment: React.FC<{
+  party: { readonly mySecret: string };
+  ledger: Ledger;
+  licensor: string;
+  send: (b: DealBody) => Promise<boolean>;
+  busy: boolean;
+}> = ({ party, ledger, licensor, send, busy }) => {
+  const tr = useT();
+  const [view] = useRegistryView(party, ledger);
+  const [disputing, setDisputing] = useState(false);
+  const [note, setNote] = useState('');
+  const revoked = revokedNoticeOf(ledger);
+  const report = revoked ? ledger.reports.find((r) => r.statement.signature === revoked.statementSig) : undefined;
+  if (!revoked || !report) return null;
+  const ref = reportRef(report);
+  const line = view?.lines.get(ref);
+  const answers = view?.answers.get(ref) ?? line?.answers ?? [];
+  const disputed = answers.find((x) => x.type === 'disputed');
+  const mine = answerOf(report);
+  const s = report.statement;
+  return (
+    <Alert severity="error" variant="outlined" data-revoked-for-non-payment="">
+      <Typography variant="body2" sx={{ fontWeight: 600 }}>
+        {tr.t('app.rpay.l.revoked', { licensor, n: report.number, date: dateWords(noticeDayOf(revoked), tr) })}
+      </Typography>
+      {revoked.note && (
+        <Typography variant="body2" sx={{ fontStyle: 'italic' }}>
+          “{revoked.note}”
+        </Typography>
+      )}
+      <Typography
+        variant="body2"
+        sx={{ mt: 0.5 }}
+        data-revoked-public={line?.kind === 'revoked' ? 'shown' : 'not-shown'}
+      >
+        {line?.kind === 'revoked'
+          ? tr.t('app.rpay.l.revokedPublic', { licensor, date: dateWords(line.on, tr) })
+          : tr.t('app.rpay.l.revokedNotPublic', { licensor })}
+      </Typography>
+      {disputed ? (
+        <Typography variant="body2" sx={{ mt: 0.5 }} data-answer="filed">
+          {tr.t('app.rpay.l.revokedDisputed', { date: dateWords(disputed.on, tr), licensor })}
+        </Typography>
+      ) : mine ? (
+        <Typography variant="body2" sx={{ mt: 0.5 }} data-answer="not-filed">
+          {tr.t('app.rpay.l.answerPending', {
+            date: dateWords(noticeDayOf(mine), tr),
+            note: mine.note ?? '',
+            licensor,
+          })}
+        </Typography>
+      ) : (
+        <Box sx={{ mt: 1 }} data-respond="">
+          {!disputing ? (
+            <Button
+              size="small"
+              variant="outlined"
+              color="inherit"
+              data-respond-dispute=""
+              disabled={busy}
+              onClick={() => setDisputing(true)}
+            >
+              {tr.t('app.rpay.l.dispute')}
+            </Button>
+          ) : (
+            <DisputeForm
+              tr={tr}
+              licensor={licensor}
+              busy={busy}
+              note={note}
+              setNote={setNote}
+              onCancel={() => setDisputing(false)}
+              onSend={() =>
+                void send({
+                  type: 'notice',
+                  kind: 'answer',
+                  about: 'payment',
+                  periodFrom: s.periodFrom,
+                  periodTo: s.periodTo,
+                  statementSig: s.signature,
+                  asOf: utcDay(),
+                  note: note.trim(),
+                }).then((ok) => ok && (setDisputing(false), setNote('')))
+              }
+            />
+          )}
+        </Box>
+      )}
+    </Alert>
+  );
+};
+
+/** RevokedForNonPayment for a page that holds the deal's messages and its party (the licensee's license page). */
+export const LicenseeAfterRevoke: React.FC<{
+  party: DealParty;
+  entries: readonly DealEntry[];
+  refresh: () => void;
+  licensor: string;
+}> = ({ party, entries, refresh, licensor }) => {
+  const ledger = useMemo(() => ledgerOf(entries), [entries]);
+  const [busy, setBusy] = useState(false);
+  const send = async (b: DealBody) => {
+    setBusy(true);
+    try {
+      await sayOnce(party, b);
+      refresh();
+      return true;
+    } catch {
+      return false;
+    } finally {
+      setBusy(false);
+    }
+  };
+  return <RevokedForNonPayment party={party} ledger={ledger} licensor={licensor} send={send} busy={busy} />;
 };
 
 // ---- the licensor's payout on Cardano ------------------------------------------------------------

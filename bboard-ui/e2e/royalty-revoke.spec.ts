@@ -6,14 +6,19 @@
 //   - revoked for non-payment while the registry's notices were down, then the browser's storage
 //     cleared and the license opened again from the registry's copy: the stuck overdue line
 //     comes off and the revoked line goes up;
-//   - a plain "Revoke": the overdue line comes off, and nothing about payment is said.
-// What is public is worked out from the deal's signed messages and the chain, never from a flag
-// one browser kept. Midnight's two steps the page takes here (reading the license's state, and
+//   - a plain "Revoke": the overdue line comes off, and nothing about payment is said;
+//   - a licensor's browser with its clock set past the time to pay, while the registry's clock
+//     says the time to pay is still running: no revoke for non-payment is offered;
+//   - the licensee, after the revocation: the signed notice, whether the public page says so, and
+//     a dispute they can still file in their own name, shown beside the public line.
+// What is public is worked out from the deal's signed messages, the chain and the registry's gate
+// (its date for the notice of breach, its clock), never from a flag one browser kept or its date. Midnight's two steps the page takes here (reading the license's state, and
 // the revocation) are stood in for in the e2e build only (src/veilcore/chain/e2e-chain.ts); the
 // deal, the notices and the sealed license go through a stand-in registry. The licensee's side
 // is the e2e fixture page (it seeds the deal: the payout, an accepted report now overdue).
-// Time to pay after the notice of breach is CURE_DAYS (30): the licensor's browser clock is
-// moved past it. Screenshots to E2E_SHOTS (when set) as revoke-*.png. All practice data.
+// Time to pay after the notice of breach is CURE_DAYS (30): the stand-in registry's clock is moved
+// past it, and the licensor's browser clock with it (notices-standin.ts). royalty-registry.spec.ts
+// runs the same against a real registry. Screenshots to E2E_SHOTS (when set) as revoke-*.png. All practice data.
 // SPDX-License-Identifier: Apache-2.0
 import { createHash } from 'node:crypto';
 import { mkdirSync } from 'node:fs';
@@ -31,6 +36,7 @@ import {
   sealedLicenseRow,
   watch,
 } from './helpers';
+import { kindsOf, noticeRoute, noticeState, verifyNotices, type NoticeState } from './notices-standin';
 
 const RECORD = `VEIL-${'E2'.repeat(16)}`;
 const HOLDER = 'ab'.repeat(32);
@@ -49,8 +55,8 @@ test.use({ viewport: { width: 360, height: 780 } });
 
 type Registry = {
   messages: { seq: number; iv: string; ct: string; receivedAt: number; fingerprint: string }[];
-  notices: Record<string, unknown>[];
-  noticesDown: boolean;
+  /** The record's notices, the licensee's answers and the registry's clock (notices-standin.ts). */
+  n: NoticeState;
   licenseRows: Record<string, unknown>[];
 };
 
@@ -89,24 +95,15 @@ const standIn = async (page: Page, state: Registry, original?: Record<string, un
     }
     if (m && method === 'POST' && m[2] === 'read')
       return json(route, 200, { messages: state.messages.filter((x) => x.seq > Number(body?.after ?? 0)) });
-    const n = /^\/api\/records\/([^/]+)\/license-notices\/([0-9a-f]{32})$/.exec(url.pathname);
-    if (n && state.noticesDown) return json(route, 503, { error: 'down' });
-    if (n && method === 'PUT') {
-      state.notices = [...state.notices.filter((x) => x.ref !== n[2]), { ref: n[2], ...(body ?? {}) }];
-      return json(route, 200, { ok: true });
-    }
-    if (n && method === 'DELETE') {
-      state.notices = state.notices.filter((x) => x.ref !== n[2]);
-      return json(route, 200, { removed: true });
-    }
+    if (await noticeRoute(route, url, method, body, state.n, RECORD)) return;
     if (method === 'GET' && url.pathname === `/verify/${RECORD}`) {
-      if (state.noticesDown) return json(route, 503, { error: 'down' });
+      if (state.n.down) return json(route, 503, { error: 'down' });
       return json(route, 200, {
         found: true,
         id: RECORD,
         recordFingerprint: '3f'.repeat(32),
         disclosed: ['own'],
-        ...(state.notices.length ? { licenseNotices: state.notices, licenseNoticesBy: 'record-holder' } : {}),
+        ...verifyNotices(state.n),
       });
     }
     return route.fallback();
@@ -169,7 +166,7 @@ const licensorDevice = async (
 
 /** The deal seeded by the licensee's page, and the license the licensor's page opens, sealed at the registry. */
 const setUp = async (browser: Browser) => {
-  const state: Registry = { messages: [], notices: [], noticesDown: false, licenseRows: [] };
+  const state: Registry = { messages: [], n: noticeState(), licenseRows: [] };
   const vault = newVaultKey();
   const licensee = await browser.newPage();
   const licenseeErrors = watch(licensee);
@@ -231,16 +228,17 @@ const overdueThenBreach = async (page: Page, state: Registry): Promise<string> =
   const alert = page.locator('[data-payment-alert="overdue"]');
   await expect(alert).toHaveAttribute('data-cure', 'no-notice', { timeout: 60_000 });
   await expect(page.locator('[data-public-notice="shown"]')).toBeVisible({ timeout: 30_000 });
-  await expect.poll(() => state.notices.map((n) => n.kind)).toEqual(['overdue']);
+  await expect.poll(() => kindsOf(state.n)).toEqual(['overdue']);
   await expect(page.getByRole('button', { name: 'Revoke for non-payment' })).toHaveCount(0);
   await page.getByRole('button', { name: 'Send a notice of breach' }).click();
   await page.locator('[data-confirm-inline] button').first().click();
   await expect(alert).toHaveAttribute('data-cure', 'running', { timeout: 30_000 });
+  await expect.poll(() => kindsOf(state.n), { timeout: 30_000 }).toEqual(['breach']);
   await expect(page.getByRole('button', { name: 'Revoke for non-payment' })).toHaveCount(0);
   return (await alert.locator('[data-cure-by]').getAttribute('data-cure-by'))!;
 };
 
-/** The day after the cure period ends, in the licensor's browser. */
+/** The day after the cure period ends: the registry's clock and the licensor's browser's. */
 const afterCure = (cureBy: string) => Date.parse(`${cureBy}T00:00:00Z`) + DAY + 3_600_000;
 
 const revokeForNonPayment = async (page: Page) => {
@@ -275,28 +273,46 @@ test.describe('revoking on the real license page: the public check page follows 
     const cureBy = await overdueThenBreach(a.page, state);
     await a.page.close();
 
-    // A second device, after the cure period: the license page offers the revoke, and does it.
+    // A second device, after the cure period by the registry's clock: the license page offers the
+    // revoke, and does it.
+    state.n.clock = afterCure(cureBy);
     const b = await licensorDevice(browser, state, vault, 'ACTIVE', { clock: afterCure(cureBy) });
     await b.page.goto(`/license/${LICENSE}`);
     await revokeForNonPayment(b.page);
-    await expect.poll(() => state.notices.map((n) => n.kind), { timeout: 30_000 }).toEqual(['revoked']);
+    await expect.poll(() => kindsOf(state.n), { timeout: 30_000 }).toEqual(['revoked']);
+    await expect(b.page.locator('[data-revoked-public="shown"]')).toBeVisible({ timeout: 30_000 });
     await shot(b.page, 'second-device');
 
-    // The licensee holds the signed word that it was revoked for non-payment.
+    // The licensee holds the signed word that it was revoked for non-payment, sees that the public
+    // page says so, and can still dispute it, in their own name.
     await licensee.clock.setFixedTime(afterCure(cureBy));
     await licensee.reload();
     await expect(licensee.locator('[data-notice="revoked"]')).toBeVisible({ timeout: 60_000 });
+    const after = licensee.locator('[data-revoked-for-non-payment]');
+    await expect(after).toBeVisible({ timeout: 60_000 });
+    await expect(after.locator('[data-revoked-public="shown"]')).toBeVisible({ timeout: 30_000 });
+    await after.locator('[data-respond-dispute]').click();
+    await after.locator('[data-dispute-note] textarea').first().fill('Paid in full by wire before the notice.');
+    await after.locator('[data-dispute-send]').click();
+    await expect(after.locator('[data-answer="filed"]')).toBeVisible({ timeout: 60_000 });
+    await shot(licensee, 'licensee-after');
 
     // The first device, opened again: it reads the license gone, says why from the deal, and
     // changes nothing public.
+    state.n.clock = afterCure(cureBy) + DAY;
     const again = await licensorDevice(browser, state, vault, 'none', { clock: afterCure(cureBy) + DAY });
     await again.page.goto(`/license/${LICENSE}`);
     await expect(again.page.locator('[data-license-gone="non-payment"]')).toBeVisible({ timeout: 90_000 });
-    await expect.poll(() => state.notices.map((n) => n.kind)).toEqual(['revoked']);
+    await expect.poll(() => kindsOf(state.n)).toEqual(['revoked']);
 
     const { visitor, errors } = await publicPage(browser, state);
     await expect(visitor.locator('[data-license-notice="revoked"]')).toContainText('for non-payment');
+    await expect(
+      visitor.locator('[data-license-notice="revoked"] [data-license-notice-answer="disputed"]'),
+    ).toBeVisible();
+    await expect(visitor.locator('[data-license-notices]')).not.toContainText('wire');
     await expect(visitor.locator('[data-license-notice="overdue"]')).toHaveCount(0);
+    await shot(visitor, 'public-revoked');
     expectNoErrors([...a.errors, ...b.errors, ...again.errors, ...errors, ...licenseeErrors]);
   });
 
@@ -310,24 +326,28 @@ test.describe('revoking on the real license page: the public check page follows 
     await a.page.close();
 
     // Revoked for non-payment while the registry's notices are down: the public page is stuck
-    // on the overdue line.
+    // on the overdue line. (The page checked the registry just before revoking; it went down after.)
+    state.n.clock = afterCure(cureBy);
     const b = await licensorDevice(browser, state, vault, 'ACTIVE', { clock: afterCure(cureBy) });
     await b.page.goto(`/license/${LICENSE}`);
     await expect(b.page.locator('[data-payment-alert="overdue"]')).toHaveAttribute('data-cure', 'over', {
       timeout: 90_000,
     });
-    state.noticesDown = true;
+    await b.page.route(`${API}/api/records/*/license-notices/*`, (route) => {
+      state.n.down = true;
+      return route.fallback();
+    });
     await revokeForNonPayment(b.page);
     await b.page.close();
-    state.noticesDown = false;
-    expect(state.notices.map((n) => n.kind)).toEqual(['overdue']);
+    state.n.down = false;
+    expect(kindsOf(state.n)).toEqual(['breach']);
 
     // The same licensor, storage cleared and their keys back (as from a backup): the license as
     // the registry had it before the revocation (no revocation, no reason on it).
     const c = await licensorDevice(browser, state, vault, 'none', { clock: afterCure(cureBy), original });
     await c.page.goto(`/license/${LICENSE}`);
     await expect(c.page.locator('[data-license-gone="non-payment"]')).toBeVisible({ timeout: 90_000 });
-    await expect.poll(() => state.notices.map((n) => n.kind), { timeout: 30_000 }).toEqual(['revoked']);
+    await expect.poll(() => kindsOf(state.n), { timeout: 30_000 }).toEqual(['revoked']);
     await shot(c.page, 'cleared');
 
     const { visitor, errors } = await publicPage(browser, state);
@@ -342,17 +362,36 @@ test.describe('revoking on the real license page: the public check page follows 
     const a = await licensorDevice(browser, state, vault, 'ACTIVE');
     await a.page.goto(`/license/${LICENSE}`);
     await expect(a.page.locator('[data-public-notice="shown"]')).toBeVisible({ timeout: 90_000 });
-    await expect.poll(() => state.notices.map((n) => n.kind)).toEqual(['overdue']);
+    await expect.poll(() => kindsOf(state.n)).toEqual(['overdue']);
     await a.page.getByRole('button', { name: 'Revoke on chain' }).click();
     await a.page.locator('[data-confirm-inline] input').fill('Ending the deal');
     await a.page.locator('[data-confirm-inline] button').first().click();
     await expect(a.page.locator('[data-license-gone=""]')).toBeVisible({ timeout: 60_000 });
-    await expect.poll(() => state.notices, { timeout: 30_000 }).toEqual([]);
+    await expect.poll(() => state.n.lines.size, { timeout: 30_000 }).toBe(0);
     await shot(a.page, 'plain');
 
     const { visitor, errors } = await publicPage(browser, state);
     await expect(visitor.locator('[data-verify-result], main')).toBeVisible({ timeout: 30_000 });
     await expect(visitor.locator('[data-license-notices]')).toHaveCount(0);
     expectNoErrors([...a.errors, ...errors]);
+  });
+
+  test('a licensor browser set past the time to pay while the registry says it is still running: no revoke offered', async ({
+    browser,
+  }) => {
+    test.setTimeout(300_000);
+    const { state, vault } = await setUp(browser);
+    const a = await licensorDevice(browser, state, vault, 'ACTIVE');
+    const cureBy = await overdueThenBreach(a.page, state);
+    await a.page.close();
+    // The browser 40 days past the time to pay; the registry's clock five days into it.
+    state.n.clock = Date.now() + 5 * DAY;
+    const b = await licensorDevice(browser, state, vault, 'ACTIVE', { clock: afterCure(cureBy) + 40 * DAY });
+    await b.page.goto(`/license/${LICENSE}`);
+    await expect(b.page.locator('[data-public-notice="shown"]')).toBeVisible({ timeout: 90_000 });
+    await expect(b.page.locator('[data-payment-alert="overdue"]')).toHaveAttribute('data-cure', 'running');
+    await expect(b.page.getByRole('button', { name: 'Revoke for non-payment' })).toHaveCount(0);
+    expect(kindsOf(state.n)).toEqual(['breach']);
+    expectNoErrors([...a.errors, ...b.errors]);
   });
 });

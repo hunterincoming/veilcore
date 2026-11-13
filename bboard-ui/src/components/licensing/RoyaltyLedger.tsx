@@ -61,7 +61,9 @@ import {
   paidToken as cardanoPaidToken,
   useCardanoChecks,
   usePublicNotices,
+  useRegistryView,
 } from './RoyaltyPay';
+import { registryGate, type RegistryView } from '../../veilcore/license-notices';
 import { cardanoOffer, cardanoTokenOf, tokensFor, type CardanoCheck } from '../../veilcore/cardano-pay';
 import { ConfirmInline } from './DealSteps';
 import { DisclosureReceipt } from '../chain/DisclosureReceipt';
@@ -83,11 +85,13 @@ import {
   paymentReference,
   payoutLock,
   paymentAlerts,
+  breachOf,
   periodRows,
   reportLines,
   stateOf,
   statementHtml,
   toPayOf,
+  type Breach,
   type Ledger,
   type NoticeEntry,
   type PaymentAlert,
@@ -199,9 +203,21 @@ export const RoyaltyLedger: React.FC<{
     licensee: terms.licensee || tr.t('app.roy.who.licensee'),
   };
   const rows = useMemo(() => periodRows(terms, ledger, today), [terms, ledger, today]);
+  // What the registry has on file for this deal's lines: the licensee's page reads it (and files
+  // their own answers there); the licensor's page gets it from keeping its public lines in step.
+  // Whether the cure period has run out is the registry's call, by its own clock (royalty-ledger.ts
+  // registryAllowsRevoke), never this device's date.
+  const [licenseeView, setLicenseeView] = useRegistryView(side === 'licensee' ? party : undefined, ledger);
+  const [issuerView, setIssuerView] = useState<RegistryView>();
+  const view = side === 'licensee' ? licenseeView : issuerView;
   // Due soon and overdue, on both sides; the licensor's record's public page says what is overdue.
-  const alerts = useMemo(() => (schedule ? paymentAlerts(terms, ledger, today) : []), [schedule, terms, ledger, today]);
-  const publicState = usePublicNotices(side === 'issuer' ? publicRecordId : undefined, alerts, ledger);
+  const alerts = useMemo(
+    () => (schedule ? paymentAlerts(terms, ledger, today, undefined, undefined, registryGate(view)) : []),
+    [schedule, terms, ledger, today, view],
+  );
+  const publicState = usePublicNotices(side === 'issuer' ? publicRecordId : undefined, alerts, ledger, (v) =>
+    side === 'issuer' ? setIssuerView(v) : setLicenseeView(v),
+  );
   const mine = useMemo(() => publicOf(party.mySecret), [party.mySecret]);
   const live = liveReports(ledger);
   // One on-chain transaction counts for one report only (onchain-pay.ts reusedPayments).
@@ -303,6 +319,7 @@ export const RoyaltyLedger: React.FC<{
           busy={busy}
           send={send}
           publicState={side === 'issuer' && publicRecordId ? publicState : undefined}
+          view={side === 'licensee' ? view : undefined}
         />
 
         {schedule ? (
@@ -1097,6 +1114,10 @@ const ReportCard: React.FC<{
   const paidToken = r.paid ? tokenOfMethod(r.paid.method) : undefined;
   const paidOnCardano = cardanoPaidToken(r);
   const overdue = ctx.alerts.find((a) => a.kind === 'overdue' && a.report === r);
+  // The notice of breach that started this report's cure period, if one did (royalty-ledger.ts
+  // breachOf): with the registry's date while overdue, from the deal once it no longer is.
+  const due = overdue?.due ?? period?.paymentDue;
+  const cure = overdue?.breach ?? (due ? breachOf(r, addDays(due, 1)) : undefined);
   const lines: readonly StatementLine[] = s.lines ?? [{ kind: 'royalty', quantity: s.quantity, amount: s.amountOwed }];
   // What the terms say these figures come to, worked out here: shown to both sides if it differs.
   const expected = expectedTotal(terms, ledger.reports, s, ctx.agreementType);
@@ -1230,7 +1251,7 @@ const ReportCard: React.FC<{
         </Alert>
       ))}
       {r.notices.map((n) => (
-        <NoticeLine key={n.signature} n={n} ctx={ctx} />
+        <NoticeLine key={n.signature} n={n} ctx={ctx} cure={cure} dueKnown={!!due} />
       ))}
 
       {/* The licensor answers once: Accept, or Ask to fix with a reason. */}
@@ -1446,7 +1467,12 @@ const ReportCard: React.FC<{
   );
 };
 
-const NoticeLine: React.FC<{ n: NoticeEntry; ctx: Ctx }> = ({ n, ctx }) => {
+const NoticeLine: React.FC<{ n: NoticeEntry; ctx: Ctx; cure?: Breach; dueKnown: boolean }> = ({
+  n,
+  ctx,
+  cure,
+  dueKnown,
+}) => {
   const { tr, names } = ctx;
   const who = n.mine ? tr.t('app.roy.who.you') : n.from === 'issuer' ? names.licensor : names.licensee;
   const period = periodText(n.periodFrom, n.periodTo, tr);
@@ -1457,8 +1483,16 @@ const NoticeLine: React.FC<{ n: NoticeEntry; ctx: Ctx }> = ({ n, ctx }) => {
         ? tr.t('app.rpay.notice.revoked', { who, period, date: dateWords(noticeDayOf(n), tr) })
         : n.kind === 'breach'
           ? tr.t('app.roy.notice.breach', { who, period, note: n.note ?? '', date: dateWords(n.asOf, tr) }) +
-            (n.about === 'payment' && n.from === 'issuer'
-              ? ` ${tr.t('app.rpay.notice.cureBy', { cureBy: dateWords(addDays(noticeDayOf(n), CURE_DAYS), tr) })}`
+            (n.about === 'payment' && n.from === 'issuer' && dueKnown
+              ? ` ${
+                  // Only the notice that started the cure period has a deadline: one sent before the
+                  // payment was late starts nothing (royalty-ledger.ts breachOf).
+                  cure?.notice.signature === n.signature
+                    ? tr.t('app.rpay.notice.cureBy', { cureBy: dateWords(cure.cureBy, tr) })
+                    : cure
+                      ? tr.t('app.rpay.notice.notThisOne')
+                      : tr.t('app.rpay.notice.early')
+                }`
               : '')
           : n.dueOn && (n.about === 'report' || n.about === 'payment')
             ? tr.t(`app.roy.notice.${n.about}Due` as AppKey, {
@@ -1622,7 +1656,10 @@ const PayPanel: React.FC<{
             )}
             {!payToken && !onCardano && (
               <Stack spacing={1}>
-                {payout.account && <CopyValue label={tr.t('app.roy.payout.holder')} value={payout.account} tr={tr} />}
+                {/* A Cardano payout's account is an address this page can't pay, not an account holder. */}
+                {payout.account && !cardanoAsked && (
+                  <CopyValue label={tr.t('app.roy.payout.holder')} value={payout.account} tr={tr} />
+                )}
                 {payout.details && <CopyValue label={tr.t('app.roy.payout.bank')} value={payout.details} tr={tr} />}
                 {payout.link && (
                   <Link href={payout.link} target="_blank" rel="noopener noreferrer" sx={{ fontWeight: 600 }}>
