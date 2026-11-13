@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { noticeRef, type RegistryView } from '../../veilcore/license-notices';
 import { ledgerOf } from '../../veilcore/royalty-ledger';
 import type { DealEntry } from '../../veilcore/deal-client';
-import { revokedLineExcept } from './RoyaltyPay';
+import { revokedBoxSays, revokedLineExcept } from './RoyaltyPay';
 
 describe('M1 gone path', () => {
   const at = (day: string) => Date.parse(`${day}T12:00:00Z`);
@@ -91,5 +91,25 @@ describe('M1 gone path', () => {
 
   it('leaves nothing out with no revoked notice in the deal', () => {
     expect([...revokedLineExcept(view, ledgerOf(entries.slice(0, 3)))]).toEqual([]);
+  });
+
+  // The revoked box says the public page is silent only after a full read found no line
+  // (round-7 review, R7-1).
+  it('says nothing about the public page while the read is loading, failed or incomplete', () => {
+    expect(revokedBoxSays(undefined, undefined, false)).toBeUndefined();
+    expect(revokedBoxSays({ ...view, lines: new Map(), incomplete: true }, undefined, false)).toBeUndefined();
+    expect(revokedBoxSays({ ...view, lines: new Map() }, undefined, true)).toBeUndefined();
+  });
+
+  it('leaves an overdue or breach line to the list, and says "none" only after a full read', () => {
+    const line = view.lines.get(REF);
+    expect(revokedBoxSays(view, line, false)).toBeUndefined();
+    expect(revokedBoxSays({ ...view, lines: new Map() }, undefined, false)).toBe('none');
+    expect(revokedBoxSays({ ...view, lines: new Map(), predates: true }, undefined, false)).toBe('predates');
+  });
+
+  it('says "revoked" for a revoked line, even if the read was incomplete', () => {
+    const revoked = { ref: REF, kind: 'revoked', since: '2026-05-15', on: '2026-06-20' } as never;
+    expect(revokedBoxSays(view, revoked, true)).toBe('revoked');
   });
 });

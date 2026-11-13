@@ -725,6 +725,22 @@ const OnePublicLine: React.FC<{
 };
 
 /**
+ * What the revoked box says about the licensor's record's public check page: 'revoked' when the
+ * registry's line about the report is "revoked"; 'none' or 'predates' only when the whole read came
+ * back and found no line; nothing at all while the read is loading, failed or incomplete, or when
+ * the line is another kind (overdue, notice of breach), which the list of public lines shows.
+ */
+export const revokedBoxSays = (
+  view: RegistryView | undefined,
+  line: PublishedNotice | undefined,
+  incomplete: boolean,
+): 'revoked' | 'none' | 'predates' | undefined => {
+  if (line?.kind === 'revoked') return 'revoked';
+  if (line || !view || view.incomplete || incomplete) return undefined;
+  return view.predates ? 'predates' : 'none';
+};
+
+/**
  * The licensee's side once the license is gone and the deal holds the licensor's signed notice
  * that it was revoked for non-payment: what it says, whether the licensor's record's public check
  * page says so (the registry decides that, by its own clock), and the licensee's answer, which
@@ -737,7 +753,9 @@ export const RevokedForNonPayment: React.FC<{
   licensor: string;
   send: (b: DealBody) => Promise<boolean>;
   busy: boolean;
-}> = ({ view, ledger, licensor, send, busy }) => {
+  /** The registry's read left some messages out (useRegistryView). */
+  incomplete?: boolean;
+}> = ({ view, ledger, licensor, send, busy, incomplete = false }) => {
   const tr = useT();
   const [disputing, setDisputing] = useState(false);
   const [note, setNote] = useState('');
@@ -746,6 +764,7 @@ export const RevokedForNonPayment: React.FC<{
   if (!revoked || !report) return null;
   const ref = reportRef(report);
   const line = view?.lines.get(ref);
+  const said = revokedBoxSays(view, line, incomplete);
   const answers = view?.answers.get(ref) ?? line?.answers ?? [];
   const disputed = answers.find((x) => x.type === 'disputed');
   const mine = answerOf(report);
@@ -763,15 +782,11 @@ export const RevokedForNonPayment: React.FC<{
       {/* A line about this report that isn't "revoked" (overdue, notice of breach) is shown with
           the other public lines below, with Dispute; this box then says nothing about the public
           page rather than that it is silent. */}
-      {(!line || line.kind === 'revoked') && (
-        <Typography
-          variant="body2"
-          sx={{ mt: 0.5 }}
-          data-revoked-public={line?.kind === 'revoked' ? 'shown' : 'not-shown'}
-        >
-          {line?.kind === 'revoked'
+      {said !== undefined && (
+        <Typography variant="body2" sx={{ mt: 0.5 }} data-revoked-public={said === 'revoked' ? 'shown' : 'not-shown'}>
+          {said === 'revoked' && line?.kind === 'revoked'
             ? tr.t('app.rpay.l.revokedPublic', { licensor, date: dateWords(line.on, tr) })
-            : view?.predates
+            : said === 'predates'
               ? tr.t('app.rpay.predates')
               : tr.t('app.rpay.l.revokedNotPublic', { licensor })}
         </Typography>
@@ -882,7 +897,14 @@ export const LicenseeAfterRevoke: React.FC<{
   };
   return (
     <Stack spacing={1}>
-      <RevokedForNonPayment view={view} ledger={ledger} licensor={licensor} send={send} busy={busy} />
+      <RevokedForNonPayment
+        view={view}
+        ledger={ledger}
+        licensor={licensor}
+        send={send}
+        busy={busy}
+        incomplete={incomplete}
+      />
       <LicenseePublicLines
         view={view}
         ledger={ledger}
