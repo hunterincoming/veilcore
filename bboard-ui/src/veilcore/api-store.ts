@@ -857,8 +857,42 @@ export const apiStore: Store = {
   },
 };
 
+/**
+ * Saves of one kind are sealed one at a time, in the order they were started. A save's revs are
+ * taken while it is sealed, after awaits (the integrity check, the content hash), and those
+ * finish in any order: an earlier save of an older copy of a row could take a higher rev than a
+ * later save of the newer copy, and the registry then kept the older copy (CONTRACT.md #20 works
+ * the other way). A record's DNA pairing and its sealed secrets were lost that way when they
+ * were saved just after the record was made. Only the sealing waits: the request and its answer
+ * don't hold up the next save.
+ */
+const sealing = new Map<RowKind, Promise<unknown>>();
+const inTurn = <T>(kind: RowKind, f: () => Promise<T>): Promise<T> => {
+  const p = (sealing.get(kind) ?? Promise.resolve()).then(f);
+  sealing.set(
+    kind,
+    p.catch(() => undefined),
+  );
+  return p;
+};
+
+type Sealed =
+  | { readonly done: SaveResult }
+  | {
+      readonly wire: Record<string, unknown>[];
+      readonly pending: { id: string; hash: string; rev: number }[];
+      readonly refused: SaveRefusal[];
+      readonly state: Loaded | undefined;
+    };
+
 const sealAndSave = async (key: string, value: readonly unknown[], k: string): Promise<SaveResult> => {
   const kind = kindFor(key);
+  const sealed = await inTurn(kind, () => sealForSave(kind, value));
+  if ('done' in sealed) return sealed.done;
+  return sendSealed(key, kind, k, sealed);
+};
+
+const sealForSave = async (kind: RowKind, value: readonly unknown[]): Promise<Sealed> => {
   const refused: SaveRefusal[] = [];
   const state = current(kind);
   // Nothing is sealed and sent under a key that isn't in a checked backup yet (round 3, L1):
@@ -942,7 +976,7 @@ const sealAndSave = async (key: string, value: readonly unknown[], k: string): P
     } catch {
       // The key went while this save was being made (Start over in this tab, or a restore):
       // nothing is sent, and nothing is sealed under another key.
-      return { ok: false, refused: [...refused, vaultRefusal('locked')], pending: pending.map((p) => p.id) };
+      return { done: { ok: false, refused: [...refused, vaultRefusal('locked')], pending: pending.map((p) => p.id) } };
     }
     // The rev goes in the clear too, the same number as inside the box, so the registry can
     // refuse an older copy than the one it holds (round 3, L2; for agreements round 4, F1).
@@ -952,8 +986,17 @@ const sealAndSave = async (key: string, value: readonly unknown[], k: string): P
     wire.push(kind === 'licenses' ? { id, rev, sealed } : { ...publicPart(item), ...nameCodeField(item), rev, sealed });
     pending.push({ id, hash, rev });
   }
-  if (held.length) return { ok: false, refused, held, pending: held, accepted: [] };
-  if (wire.length === 0) return { ok: refused.length === 0, refused, pending: [], accepted: [] };
+  if (held.length) return { done: { ok: false, refused, held, pending: held, accepted: [] } };
+  if (wire.length === 0) return { done: { ok: refused.length === 0, refused, pending: [], accepted: [] } };
+  return { wire, pending, refused, state };
+};
+
+const sendSealed = async (
+  key: string,
+  kind: RowKind,
+  k: string,
+  { wire, pending, refused, state }: Exclude<Sealed, { readonly done: SaveResult }>,
+): Promise<SaveResult> => {
   const sent = pending.map((p) => p.id);
 
   let res: Response;
@@ -1038,7 +1081,11 @@ const sealAndSave = async (key: string, value: readonly unknown[], k: string): P
   // (vault.ts markVaultSealed), and only now are the revs this browser's high-water marks.
   const no = new Set(refused.map((r) => r.id));
   const accepted = pending.filter((p) => !no.has(p.id));
-  for (const p of accepted) lastSealed.set(revKey(kind, p.id), { hash: p.hash, rev: p.rev });
+  // Answers can come back in any order: what was last sealed is the highest rev taken, never
+  // an older copy's whose answer came in later.
+  for (const p of accepted)
+    if ((lastSealed.get(revKey(kind, p.id))?.rev ?? -1) < p.rev)
+      lastSealed.set(revKey(kind, p.id), { hash: p.hash, rev: p.rev });
   raiseRevs(accepted.map((p) => [kind, p.id, p.rev] as const));
   if (accepted.length) markVaultSealed();
   if (state) {

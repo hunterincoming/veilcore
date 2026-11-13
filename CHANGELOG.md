@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Two quick saves of a record keep the newer copy (13 Nov 2026, not deployed yet)
+
+- A save's rev was taken after its hashing finished, and hashing can finish in any order. A
+  record saved as made and saved again a moment later (with its DNA pairing and its sealed
+  secrets) could give the older copy the higher rev, and the registry kept that one. A
+  correction made next was built on it, so the pairing and the sealed secrets were lost there.
+  Saves of one kind are now sealed one at a time, in the order they start; the requests still
+  go out without waiting on each other.
+
 ### Lab results v2: the lab's name link is salted (8 Nov 2026, test network)
 
 - The binding a lab posts to put its name on a result no longer gives away which record it

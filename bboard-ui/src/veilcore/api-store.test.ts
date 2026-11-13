@@ -356,6 +356,44 @@ describe('sealed rows load back', () => {
     await settle();
     expect(lic2.allLicenses()[0]).toMatchObject({ recordId: 'VEIL-X', terms: { licensee: S.licensee } });
   });
+
+  it('a later save of a row goes above an earlier one, however long the earlier one takes to seal', async () => {
+    // A record saved as made, then saved again at once with its pairing (records.ts createRecord,
+    // pairDna). The first save's hashing finishes last, as it can on a busy machine: it used to
+    // take the higher rev, and the registry then kept the copy without the pairing.
+    const { api } = await modules();
+    const nonce = 'ab'.repeat(16);
+    const first = { id: 'VEIL-ORDER', ...(await plantInput({ nonce, notes: 'first-copy' })) };
+    const later = { id: 'VEIL-ORDER', ...(await plantInput({ nonce, notes: 'later-copy' })) };
+    const real = crypto.subtle.digest.bind(crypto.subtle);
+    const slow = vi.spyOn(crypto.subtle, 'digest').mockImplementation(async (algo, data) => {
+      const out = await real(algo, data);
+      const text = new TextDecoder().decode(data);
+      if (text.includes('first-copy')) await new Promise((r) => setTimeout(r, 100));
+      return out;
+    });
+    try {
+      await Promise.all([
+        api.apiStore.save('veilcore.records.v1', [first]),
+        api.apiStore.save('veilcore.records.v1', [later]),
+      ]);
+    } finally {
+      slow.mockRestore();
+    }
+    // The registry keeps the copy with the highest rev (CONTRACT.md #20).
+    const puts = sent
+      .filter((s) => s.method === 'PUT' && new URL(s.url).pathname === '/api/records')
+      .map((s) => (JSON.parse(s.body) as Row[])[0]);
+    expect(puts).toHaveLength(2);
+    rows.set(
+      'VEIL-ORDER',
+      puts.reduce((a, b) => ((b.rev as number) > (a.rev as number) ? b : a)),
+    );
+    vi.resetModules();
+    const again = await modules();
+    await again.records.hydrate();
+    expect(again.records.getRecord('VEIL-ORDER')?.notes).toBe('later-copy');
+  });
 });
 
 describe('a record that does not match its fingerprint', () => {
