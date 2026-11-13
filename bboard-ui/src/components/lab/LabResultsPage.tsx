@@ -31,6 +31,7 @@ import {
   unboundToName,
   type ProblemCode,
   type MarkOpening,
+  type ViabilityResult,
 } from '../../veilcore/lab-result';
 import { emptyDraft, today, tryDraft, type ResultDraft } from '../../veilcore/lab-result-draft';
 import {
@@ -525,10 +526,15 @@ export const LabResultsPage: React.FC = () => {
   const attester = loadAttester();
   const myKey = useMemo(() => (attester ? claimsKeyFor(attester.keypair.privateKey).keyText : undefined), [attester]);
   const mineRecords = records.filter((r) => r.labResult && r.labSignature && r.labSignature.key === myKey);
-  const mine: MyResult[] = mineRecords.map((r) => ({
-    code: r.labSignature!.record,
-    label: `${r.labResult!.statement.accession} · ${r.labResult!.statement.sampleId} · ${kindWords(r.labResult!.statement.kind, tr)} · ${callWords(r.labResult!.statement, tr)}`,
-  }));
+  const mine: MyResult[] = mineRecords.map((r) => {
+    const s = r.labResult!.statement;
+    const v = s.kind === 'viability' ? (s.result as ViabilityResult) : undefined;
+    return {
+      code: r.labSignature!.record,
+      label: `${s.accession} · ${s.sampleId} · ${kindWords(s.kind, tr)}${v ? ` · ${v.batch} · ${t(`app.lr.stage.${v.stage}` as AppKey)}` : ''} · ${callWords(s, tr)}`,
+      ...(v?.stage === 'before' ? { beforeSample: { batch: v.batch } } : {}),
+    };
+  });
 
   const body = !LAB_SIGNING_ENABLED ? (
     <Alert severity="info" variant="outlined">

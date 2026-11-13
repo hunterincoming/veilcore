@@ -250,7 +250,7 @@ export const labresult = {
   'app.lr.check.withdrawn':
     'Dieses Labor steht nicht mehr hinter diesem Ergebnis. Die Signatur stimmt weiterhin. Es wurde vielleicht durch ein späteres Ergebnis ersetzt: Fragen Sie das Labor oder den Inhaber nach dem neuesten Ergebnis für diese Probe.',
   'app.lr.claim.onlyCall':
-    'Dieser Nachweis belegt nur das Ergebnis. Worauf geprüft oder was verglichen wurde, steht in der Ergebnisdatei des Labors, nicht in diesem Nachweis. Wenn Sie die Datei haben, wählen Sie sie: Sie wird hier gegen diesen Nachweis geprüft und nicht gesendet.',
+    'Dieser Nachweis umfasst nur das Ergebnis. Worauf geprüft oder was verglichen wurde, steht in der Ergebnisdatei des Labors, nicht in diesem Nachweis. Wenn Sie die Datei haben, wählen Sie sie: Sie wird hier gegen diesen Nachweis geprüft und nicht gesendet.',
   'app.lr.claim.choose': 'Ergebnisdatei des Labors auswählen',
   'app.lr.claim.same': 'Die Ergebnisdatei gehört zu demselben signierten Ergebnis wie dieser Nachweis:',
   'app.lr.claim.otherResult': 'Diese Datei gehört zu einem anderen Ergebnis, nicht zu dem dieses Nachweises.',
@@ -260,4 +260,120 @@ export const labresult = {
     'Ein nachgewiesenes Ergebnis ohne Ct (Undetermined, N/A, >40) widerspricht sich. Prüfen Sie, ob die Spalten für Ergebnis und Ct vertauscht sind.',
   'app.lr.problem.bindingSalt':
     'Das Salz für den Namen des Labors hat nicht seine Form: 64 Hexadezimalzeichen, nicht alle gleich.',
+  // ---- viability (../en/labresult.ts) ----
+  'app.lr.kind.viability': 'Lebensfähigkeitstest vor oder nach einem Abtötungsschritt',
+  'app.doc.schema.viability': 'Lebensfähigkeitstest (das Ergebnis)',
+  'app.doc.slot.recovered': 'Lebensfähige Organismen nachgewiesen (1 ja, 0 keine)',
+  'app.doc.slot.stage': 'Probe genommen (0 vor dem Abtötungsschritt, 1 danach)',
+  'app.lr.f.stage': 'Probe genommen',
+  'app.lr.f.batch': 'Charge oder Los',
+  'app.lr.f.killStep': 'Abtötungsschritt (wie vom Absender angegeben)',
+  'app.lr.f.recovers': 'Was der Test erfasst',
+  'app.lr.f.portion': 'Geprüfte Teilmenge',
+  'app.lr.f.cultures': 'Nährmedien und Bebrütung',
+  'app.lr.f.culture': '{medium}: {time} bei {temperature}',
+  'app.lr.f.lod': 'Nachweisgrenze',
+  'app.lr.f.count': 'Ergebnis, wie berichtet',
+  'app.lr.f.controls': 'Kontrollen',
+  'app.lr.f.positiveGrew': 'Positivkontrolle ({control}) gewachsen',
+  'app.lr.f.negativeClean': 'Negativkontrolle ohne Wachstum',
+  'app.lr.f.sampled': 'Datum der Probenahme',
+  'app.lr.f.strain': 'Stammdatensatz, aus dem die Charge hergestellt wurde (Nachweiscode)',
+  'app.lr.f.before': 'Genanntes Ergebnis der Probe vor dem Abtötungsschritt (Code)',
+  'app.lr.stage.before': 'Vor dem Abtötungsschritt',
+  'app.lr.stage.after': 'Nach dem Abtötungsschritt',
+  'app.lr.call.recovered': 'Lebensfähige Organismen nachgewiesen',
+  'app.lr.call.noneRecovered': 'Keine lebensfähigen Organismen nachgewiesen',
+  'app.lr.note.noneRecovered':
+    'Das Labor hat in {portion} keine lebensfähigen Organismen nachgewiesen, mit {method} (Version {version}) und einer Nachweisgrenze von {lod}.',
+  'app.lr.note.recovered': 'Das Labor hat in {portion} lebensfähige Organismen nachgewiesen, mit {method}.',
+  'app.lr.note.viabilityLimits':
+    'Das ist, was das Labor in der geprüften Teilmenge unter diesen Bedingungen nachgewiesen hat, und nicht mehr. Ein Test erfasst nur, was auf seinen Nährmedien, in seiner Zeit und bei seiner Temperatur oberhalb seiner Nachweisgrenze wächst: Geschädigte, ruhende (Sporen) oder anders anspruchsvolle Organismen wachsen womöglich nicht, und eine Teilmenge steht nicht unbedingt für die ganze Charge. Dass die Probe aus dieser Charge und die Charge aus diesem Stamm stammt, ist die Angabe des Absenders.',
+  'app.lr.note.strain':
+    'Der Stammdatensatz ist nur mit seinem Nachweiscode genannt: Nichts aus diesem Datensatz steht in diesem Ergebnis.',
+  'app.lr.form.viabilityIntro':
+    'Für eine Probe, die vor oder nach einem Abtötungsschritt genommen wurde, etwa einer Wärmebehandlung oder einer Inaktivierung. Tragen Sie ein, was in Ihrem Bericht steht. Signieren Sie nur einen gültigen Lauf: Die Positivkontrolle ist gewachsen und, falls Sie eine angesetzt haben, die Negativkontrolle nicht.',
+  'app.lr.form.read': 'Datum abgelesen (Ende der Bebrütung)',
+  'app.lr.form.batch': 'Chargen- oder Losnummer',
+  'app.lr.form.stage': 'Wann die Probe genommen wurde',
+  'app.lr.form.killStep': 'Abtötungsschritt: Verfahren und Parameter',
+  'app.lr.form.killStepHelp': 'Wie vom Absender angegeben, zum Beispiel „Dampf, 95 °C Kerntemperatur für 30 min“.',
+  'app.lr.form.beforePick': 'Das Ergebnis der Probe vor dem Abtötungsschritt für diese Charge (optional)',
+  'app.lr.form.beforeCode': 'Oder sein Ergebniscode',
+  'app.lr.form.before': 'Code des Ergebnisses der Probe vor dem Abtötungsschritt (optional)',
+  'app.lr.form.beforeHelp':
+    'Verknüpft dieses Ergebnis mit dem Ergebnis der Probe vor dem Abtötungsschritt aus derselben Charge, von Ihrem Labor signiert.',
+  'app.lr.form.strain': 'Nachweiscode des Stammdatensatzes, aus dem die Charge hergestellt wurde',
+  'app.lr.form.strainHelp':
+    'Vom Absender: 64 Zeichen. Nur der Code kommt in das Ergebnis, nichts aus dem Datensatz. Er kann derselbe wie der der Probe sein.',
+  'app.lr.form.sampled': 'Datum der Probenahme',
+  'app.lr.form.recovers': 'Was der Test erfasst (der Produktionsstamm, Hefen und Schimmelpilze gesamt …)',
+  'app.lr.form.portion': 'Geprüfte Teilmenge und ihre Menge (25 g Futtermehl in 225 mL Bouillon …)',
+  'app.lr.form.cultures': 'Nährmedien und Bebrütung',
+  'app.lr.form.culture.medium': 'Nährmedium',
+  'app.lr.form.culture.time': 'Dauer',
+  'app.lr.form.culture.temperature': 'Temperatur',
+  'app.lr.form.cultureAdd': 'Nährmedium hinzufügen',
+  'app.lr.form.lodValue': 'Nachweisgrenze',
+  'app.lr.form.unit': 'Einheit (KBE/g, KBE je 25 g …)',
+  'app.lr.form.countValue': 'Anzahl wie berichtet (optional: leer lassen, wenn das Verfahren keine liefert)',
+  'app.lr.form.positive': 'Positivkontrolle (Organismus und Menge)',
+  'app.lr.form.positiveGrew': 'Positivkontrolle',
+  'app.lr.form.negativeGrew': 'Negativkontrolle',
+  'app.lr.control.grew': 'Gewachsen',
+  'app.lr.control.noGrowth': 'Kein Wachstum',
+  'app.lr.control.notRun': 'Nicht angesetzt',
+  'app.lr.form.qcUsualViability': 'Die üblichen Laufangaben hinzufügen',
+  'app.lr.problem.batch': 'Geben Sie die Chargen- oder Losnummer ein: eine Zeile.',
+  'app.lr.problem.stage': 'Geben Sie an, ob die Probe vor oder nach dem Abtötungsschritt genommen wurde.',
+  'app.lr.problem.killStep':
+    'Eine Probe nach dem Abtötungsschritt nennt diesen Schritt: Verfahren und Parameter, eine Zeile.',
+  'app.lr.problem.before':
+    'Nennen Sie das Ergebnis der Probe vor dem Abtötungsschritt mit seinem 64-stelligen Code. Nur eine Probe nach dem Abtötungsschritt nennt eines.',
+  'app.lr.problem.strain': 'Geben Sie den Nachweiscode des Stammdatensatzes an: 64 Zeichen.',
+  'app.lr.problem.sampled': 'Das Datum der Probenahme ist ein echtes Datum, nicht nach dem Eingangs- oder Ablesedatum.',
+  'app.lr.problem.portion': 'Nennen Sie die geprüfte Teilmenge und ihre Menge.',
+  'app.lr.problem.cultures': 'Geben Sie jedes Nährmedium mit Dauer und Temperatur an: 1 bis 4, keines doppelt.',
+  'app.lr.problem.lod': 'Die Nachweisgrenze ist eine Zahl über 0 mit ihrer Einheit (ohne Exponent: 1000, nicht 1e3).',
+  'app.lr.problem.count':
+    'Wenn lebensfähige Organismen nachgewiesen wurden, ist eine Anzahl optional (eine Anreicherung liefert keine); wenn angegeben, liegt sie über 0, mit ihrer Einheit. Wenn keine nachgewiesen wurden, gibt es keine Anzahl: Die Nachweisgrenze sagt es.',
+  'app.lr.problem.countUnitAlone':
+    'Geben Sie die Anzahl ein oder leeren Sie ihre Einheit: Eine Einheit ohne Anzahl wird nicht signiert. Lassen Sie beides leer, wenn das Verfahren keine Anzahl liefert.',
+  'app.lr.problem.controls':
+    'Geben Sie an, wie die Kontrollen ausfielen. Ein Lauf, bei dem die Positivkontrolle nicht gewachsen ist oder die Negativkontrolle schon, kann nicht signiert werden: Testen Sie erneut und signieren Sie die Wiederholung.',
+  'app.lr.check.paired':
+    'Gepaart mit dem Ergebnis der Probe vor dem Abtötungsschritt {code} für Charge {batch}, mit demselben Schlüssel signiert; beide Tests suchten nach „{target}“. Vor dem Abtötungsschritt: {before}. Danach: {after}.',
+  'app.lr.check.pairBothNone':
+    'In der Probe vor dem Abtötungsschritt wurde nichts nachgewiesen, daher zeigt dieses Paar nicht, dass der Abtötungsschritt etwas verändert hat.',
+  'app.lr.check.pairMissing':
+    'Es nennt das Ergebnis der Probe vor dem Abtötungsschritt {code}, das nicht unter den gewählten Dateien ist. Wählen Sie beide Dateien zusammen, um sie als Paar zu sehen.',
+  'app.lr.check.pairNot':
+    'Es nennt das Ergebnis {code} als Probe vor dem Abtötungsschritt, aber die beiden passen nicht zusammen (anderer Schlüssel, andere Charge, anderer Stammdatensatz, anderes Testziel oder andere Stufe, oder eine später genommene Probe), daher verknüpft hier nichts sie.',
+  'app.lr.claim.viability':
+    'Eine Aussage, dass keine lebensfähigen Organismen nachgewiesen wurden, zeigt weder das Verfahren noch die Nährmedien und die Bebrütung, die geprüfte Teilmenge oder die Nachweisgrenze, und ohne diese sagt sie wenig. Sie zeigt auch nicht, ob die Probe vor oder nach dem Abtötungsschritt genommen wurde, außer die Aussage zeigt auch die Stufe. All das steht in der Ergebnisdatei des Labors. Sie ist ein Befund über die geprüfte Teilmenge, nicht über die ganze Charge.',
+  'app.lr.f.belowLod': '< {lod}: keine nachgewiesen oberhalb der Nachweisgrenze',
+  'app.lr.form.belowLod':
+    'Keine nachgewiesen: Es gibt keine Anzahl. Das Ergebnis lautet „unter der Nachweisgrenze“ (zum Beispiel „< 1 KBE je 25 g“), nie 0.',
+  'app.lr.form.numberHelp': 'Eine einfache Zahl: 1000, 0.5. Ohne Kommas, Leerzeichen oder Tausenderpunkte.',
+  'app.lr.problem.lodNumber':
+    'Geben Sie die Nachweisgrenze als einfache Zahl ein: Ziffern und nur vor Dezimalstellen ein Punkt (1000, 0.5). „1,000“, „1.000“, „1 000“ und „0,5“ werden nicht gelesen, weil sie verschiedene Zahlen bedeuten können. Eine ganze Zahl mit genau drei Dezimalstellen sieht aus wie ein Tausenderpunkt: Tausend als 1000 eingeben, 2,125 als 2.1250.',
+  'app.lr.problem.countNumber':
+    'Geben Sie die Anzahl als einfache Zahl ein: Ziffern und nur vor Dezimalstellen ein Punkt (4300000, 0.5). „4,300“, „4.300“, „4 300“ und „0,5“ werden nicht gelesen, weil sie verschiedene Zahlen bedeuten können. Eine ganze Zahl mit genau drei Dezimalstellen sieht aus wie ein Tausenderpunkt: viertausenddreihundert als 4300 eingeben.',
+  'app.lr.check.pairMethodSame':
+    'Beide nutzten dasselbe Verfahren, {method}: Die Probe vor dem Abtötungsschritt zeigt also, dass dieses Verfahren vor dem Abtötungsschritt etwas aus dieser Charge nachgewiesen hat. Ob der Lauf der Probe nach dem Abtötungsschritt es aus behandeltem Material nachweisen konnte, zeigt dessen eigene Positivkontrolle.',
+  'app.lr.check.pairMethodsDiffer':
+    'Die beiden Tests nutzten verschiedene Verfahren ({before} davor, {after} danach). Die Probe vor dem Abtötungsschritt zeigt daher nur, dass die Charge etwas enthielt, das dieses Labor vor dem Abtötungsschritt nachgewiesen hat, nicht, dass das Verfahren der Probe nach dem Abtötungsschritt es aus diesem Material nachweist.',
+  'app.lr.check.pairWithdrawnBefore':
+    'Es nennt das Ergebnis der Probe vor dem Abtötungsschritt {code}, aber dieses wurde durch Ergebnis {by} zurückgezogen, mit demselben Schlüssel signiert. Die beiden gelten nicht mehr als Paar.',
+  'app.lr.check.pairReplacedBefore':
+    'Es nennt das Ergebnis der Probe vor dem Abtötungsschritt {code}, aber dieses wurde durch Ergebnis {by} ersetzt, mit demselben Schlüssel signiert. Die beiden gelten nicht mehr als Paar: Prüfen Sie das neuere Ergebnis.',
+  'app.lr.check.pairWithdrawnAfter':
+    'Dieses Ergebnis wurde durch Ergebnis {by} zurückgezogen, mit demselben Schlüssel signiert, und gilt daher nicht mehr als Paar mit dem Ergebnis der Probe vor dem Abtötungsschritt {code}.',
+  'app.lr.check.pairReplacedAfter':
+    'Dieses Ergebnis wurde durch Ergebnis {by} ersetzt, mit demselben Schlüssel signiert, und gilt daher nicht mehr als Paar mit dem Ergebnis der Probe vor dem Abtötungsschritt {code}: Prüfen Sie das neuere Ergebnis.',
+  'app.lr.check.pairSelfBefore':
+    'Dieses Ergebnis nennt das Ergebnis der Probe vor dem Abtötungsschritt {code} als Paar, ersetzt dieses Ergebnis aber zugleich (mit demselben Schlüssel signiert). Ein Ergebnis gilt nicht als Paar mit dem Ergebnis, das es ersetzt.',
+  'app.lr.check.pairSelfAfter':
+    'Dieses Ergebnis wurde durch das Ergebnis der Probe vor dem Abtötungsschritt {code} selbst ersetzt, mit demselben Schlüssel signiert. Die beiden gelten daher nicht mehr als Paar.',
+  'app.lr.f.noCount': 'Lebensfähige Organismen nachgewiesen (keine Anzahl berichtet)',
 } satisfies Partial<AppTranslation>;

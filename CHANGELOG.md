@@ -32,6 +32,43 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The NIGHT payment check (test networks) compares with the report's amount less declared
   tax, not the payer's figure. Details: `docs/royalty-pay.md`.
 
+### Lab results: a viability result for a sample before or after a kill step (test network only)
+
+- A lab can sign a test for viable organisms in a sample taken before or after a kill step (a
+  heat treatment, an inactivation): the batch, the stage, the kill step's method and parameters,
+  what the test recovers, the portion tested, each medium with its incubation time and
+  temperature, the limit of detection, whether anything was recovered and the count, the controls
+  and the date sampled (SDK SPEC 11.12, "Viability", draft). A run whose positive control didn't
+  grow, or whose negative control did, can't be signed.
+- The batch is tied to the strain record it was made from by proof code only. An after-sample can
+  name the before-sample's result; the check page takes several files at once and shows the two as
+  a pair only when the same key signed both for the same batch and strain record.
+- The check page, the record and the claim check say "no viable organisms recovered" with the
+  method, the portion and the limit of detection, and what a test can't show. They never call a
+  batch dead or sterile. A new call form, `/schemas/viability-v1.json`; the claims contract is
+  unchanged. In all five languages.
+- Fixes from an independent check: a withdrawn or replaced result no longer reads as paired (the
+  page says which one was withdrawn); a pair needs both tests to look for the same thing, and says
+  so when the methods differ; the lab form refuses "1,000", "1.000", "0,5" and other separated
+  numbers, with how to type them, instead of reading "1,000" as 1; none recovered has no count and
+  reads as "< {limit of detection}", never 0, and some recovered may leave the count out
+  (an enrichment test gives none: "no count reported"); the claim note says a claim doesn't show whether the
+  sample was taken before or after the kill step; Japanese no longer calls that claim a proof; the
+  standards are cited correctly; Spanish, German and French wording fixed.
+- Fixes from the final check: a signed result whose limit of detection or count reads like a
+  thousands point ("1.000", "12.500") is refused by its own check too, as in the SDK; an
+  after-sample that itself replaces its before-sample no longer reads as paired in the SDK either
+  (the page already said so); the pair no longer says the before-sample "also" had none recovered
+  when the after-sample recovered something; what the test recovers is quoted in the pair line; a
+  count unit with no count is refused instead of dropped; the number hint shows under the count
+  too; a missing control choice no longer marks the positive control's name.
+- Last fixes: a limit or count with any whole part but 0 and exactly three decimals ("1234.567",
+  "1000.000") is refused too, as in the SDK ("0.125" stands); the claim note says a claim covers
+  the result only, instead of "proves" it, in all five languages; the word check reads every lab
+  string in all five languages instead of a list of keys; a result that replaces its own pair
+  says so, instead of naming the same result twice.
+- Lab signing stays on the test network only.
+
 ### Lab signatures: private unless the holder shows them (not live yet; ships with the registry)
 
 - The registry is changing to keep a lab's receipts and reports about a record private: only

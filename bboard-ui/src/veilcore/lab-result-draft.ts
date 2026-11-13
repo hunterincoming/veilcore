@@ -5,6 +5,8 @@
 
 import { numbersOf, type TypedNumbers } from './field-set';
 import {
+  DECIMAL,
+  THOUSANDS_LOOKALIKE,
   LAB_RESULT_FORMAT,
   checkedStatement,
   isFutureDate,
@@ -19,6 +21,8 @@ import {
   type ProblemCode,
   type ReplaceReason,
   type ResultKind,
+  type ViabilityResult,
+  type ViabilityStage,
 } from './lab-result';
 
 export type YesNo = '' | 'yes' | 'no';
@@ -57,6 +61,26 @@ export type ResultDraft = {
   readonly found: YesNo;
   readonly replaces: string;
   readonly reason: ReplaceReason | '';
+  // A viability result (lab-result.ts ViabilityResult): a sample before or after a kill step.
+  readonly batch: string;
+  readonly stage: ViabilityStage | '';
+  readonly killStep: string;
+  /** An after-sample's before-sample result: its code, or a check link ending in it. */
+  readonly before: string;
+  readonly strain: string;
+  readonly sampled: string;
+  /** What the test recovers (kept apart from a pathogen test's target, which starts as HLVd). */
+  readonly recovers: string;
+  readonly portion: string;
+  readonly cultures: readonly { readonly medium: string; readonly time: string; readonly temperature: string }[];
+  readonly lodValue: string;
+  readonly lodUnit: string;
+  readonly countValue: string;
+  readonly countUnit: string;
+  readonly positive: string;
+  readonly positiveGrew: YesNo;
+  /** 'not-run' when the lab ran no negative control. */
+  readonly negativeGrew: YesNo | 'not-run';
 };
 
 /** Today on the lab's own calendar, YYYY-MM-DD (not UTC: an evening in the Americas is still today). */
@@ -97,6 +121,22 @@ export const emptyDraft = (kind: ResultKind = 'pathogen'): ResultDraft => ({
   found: '',
   replaces: '',
   reason: '',
+  batch: '',
+  stage: '',
+  killStep: '',
+  before: '',
+  strain: '',
+  sampled: '',
+  recovers: '',
+  portion: '',
+  cultures: [{ medium: '', time: '', temperature: '' }],
+  lodValue: '',
+  lodUnit: '',
+  countValue: '',
+  countUnit: '',
+  positive: '',
+  positiveGrew: '',
+  negativeGrew: '',
 });
 
 /**
@@ -131,6 +171,65 @@ const call = (v: YesNo, code: ProblemCode = 'result'): boolean => {
 };
 
 const code = (v: string, c: ProblemCode): string => proofCodeOf(v) ?? bad(c, 'A proof code is 64 hex characters.');
+
+/**
+ * A number as typed, refused unless it is a plain decimal: digits, and a point only before the
+ * decimals. Nothing is tidied or guessed: "1,000" may be a thousand or one, "0,5" a half, and
+ * "1.000" a thousand to a lab in Germany or France. A whole number followed by exactly three
+ * decimals ("1.000", "4.300") reads either way, so it is refused too, and the message says how to
+ * type each (SPEC 11.12: a value in any other form is refused, never tidied).
+ */
+const decimal = (v: string, c: 'lodNumber' | 'countNumber'): string => {
+  const t = v.trim();
+  if (t === '') return t;
+  if (!DECIMAL.test(t) || THOUSANDS_LOOKALIKE.test(t))
+    bad(
+      c,
+      'Type a plain number: digits, with a point only before decimals (1000, 0.5). No commas, spaces or thousands points.',
+    );
+  return t;
+};
+
+const viability = (d: ResultDraft): ViabilityResult => {
+  const stage: ViabilityStage =
+    d.stage || bad('stage', 'Say whether the sample was taken before or after the kill step.');
+  const after = stage === 'after';
+  // A run whose controls failed isn't signed: say so here, before anything else is checked.
+  if (d.positiveGrew === 'no' || d.negativeGrew === 'yes')
+    bad('controls', 'A run whose positive control didn’t grow, or whose negative control did, isn’t signed.');
+  if (d.positiveGrew === '') bad('controls', 'Say whether the positive control grew.');
+  if (d.negativeGrew === '') bad('controls', 'Say whether a negative control was run.');
+  const cultures = d.cultures
+    .map((c) => ({ medium: c.medium.trim(), time: c.time.trim(), temperature: c.temperature.trim() }))
+    .filter((c) => c.medium || c.time || c.temperature);
+  const lod = decimal(d.lodValue, 'lodNumber');
+  // A count only when some were recovered, and optional then (enrichment gives none); none
+  // recovered is below the limit of detection, never 0.
+  const some = call(d.detected);
+  const count = some ? decimal(d.countValue, 'countNumber') : '';
+  if (count && !d.countUnit.trim()) bad('count', 'Give the count’s unit.');
+  // A unit typed with no count is not dropped without a word: the lab may have meant to give one.
+  if (some && !count && d.countUnit.trim()) bad('countUnitAlone', 'Type the count, or clear its unit.');
+  return {
+    batch: d.batch.trim(),
+    stage,
+    ...(after ? { killStep: d.killStep.trim() } : {}),
+    ...(after && d.before.trim() ? { before: code(d.before, 'before') } : {}),
+    strain: code(d.strain, 'strain'),
+    sampled: d.sampled.trim(),
+    target: d.recovers.trim(),
+    portion: d.portion.trim(),
+    cultures,
+    lod: { value: lod, unit: d.lodUnit.trim() },
+    detected: some,
+    ...(count ? { count: { value: count, unit: d.countUnit.trim() } } : {}),
+    controls: {
+      positive: d.positive.trim(),
+      positiveGrew: true,
+      ...(d.negativeGrew === 'no' ? { negativeGrew: false } : {}),
+    },
+  };
+};
 
 /**
  * The input to sign for a draft, and, for a DNA mark, the opening the lab must keep. Throws a
@@ -194,6 +293,9 @@ export const draftToInput = (d: ResultDraft, labName: string): { input: LabResul
       };
       break;
     }
+    case 'viability':
+      result = viability(d);
+      break;
     case 'retraction':
       result = undefined;
       break;
