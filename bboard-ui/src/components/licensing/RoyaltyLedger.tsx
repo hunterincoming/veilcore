@@ -56,6 +56,7 @@ import {
   CardanoCheckLine,
   CardanoPayoutForm,
   PayOnCardano,
+  LicenseePublicLines,
   PaymentAlerts,
   cardanoMethodWords,
   paidToken as cardanoPaidToken,
@@ -207,7 +208,13 @@ export const RoyaltyLedger: React.FC<{
   // their own answers there); the licensor's page gets it from keeping its public lines in step.
   // Whether the cure period has run out is the registry's call, by its own clock (royalty-ledger.ts
   // registryAllowsRevoke), never this device's date.
-  const [licenseeView, setLicenseeView] = useRegistryView(side === 'licensee' ? party : undefined, ledger);
+  // The licensee's page also registers each report there with its due date (a notice of breach
+  // needs that), and reads what is on file about every message in the deal.
+  const fingerprints = useMemo(() => (entries ?? NO_ENTRIES).map((e) => e.fingerprint), [entries]);
+  const [licenseeView, setLicenseeView, readAgain] = useRegistryView(side === 'licensee' ? party : undefined, ledger, {
+    terms,
+    fingerprints,
+  });
   const [issuerView, setIssuerView] = useState<RegistryView>();
   const view = side === 'licensee' ? licenseeView : issuerView;
   // Due soon and overdue, on both sides; the licensor's record's public page says what is overdue.
@@ -215,8 +222,12 @@ export const RoyaltyLedger: React.FC<{
     () => (schedule ? paymentAlerts(terms, ledger, today, undefined, undefined, registryGate(view)) : []),
     [schedule, terms, ledger, today, view],
   );
-  const publicState = usePublicNotices(side === 'issuer' ? publicRecordId : undefined, alerts, ledger, (v) =>
-    side === 'issuer' ? setIssuerView(v) : setLicenseeView(v),
+  const publicState = usePublicNotices(
+    side === 'issuer' ? publicRecordId : undefined,
+    alerts,
+    ledger,
+    party.mySecret,
+    (v) => (side === 'issuer' ? setIssuerView(v) : setLicenseeView(v)),
   );
   const mine = useMemo(() => publicOf(party.mySecret), [party.mySecret]);
   const live = liveReports(ledger);
@@ -321,6 +332,24 @@ export const RoyaltyLedger: React.FC<{
           publicState={side === 'issuer' && publicRecordId ? publicState : undefined}
           view={side === 'licensee' ? view : undefined}
         />
+
+        {side === 'licensee' && (
+          <LicenseePublicLines
+            view={licenseeView}
+            ledger={ledger}
+            alerts={alerts}
+            licensor={names.licensor}
+            mySecret={party.mySecret}
+            fingerprints={fingerprints}
+            tr={tr}
+            busy={busy}
+            send={send}
+            onFiled={() => {
+              refresh();
+              readAgain();
+            }}
+          />
+        )}
 
         {schedule ? (
           <HomeCard

@@ -444,7 +444,7 @@ describe('the public lines, from the dealâ€™s signed messages and the registryâ€
     const want = new Map([
       [REF, { kind: 'revoked', reason: 'non-payment', on: '2026-06-21', statement: statement.fingerprint } as const],
     ]);
-    const r = await syncNotices('rec-1', want, new Set([REF]), f);
+    const r = await syncNotices('rec-1', want, new Set([REF]), 'cd'.repeat(32), f);
     expect(calls).toEqual(['GET', 'PUT', 'DELETE']);
     expect(published).toEqual([]);
     expect(r.outcome).toBe('ok');

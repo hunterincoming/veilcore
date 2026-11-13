@@ -520,6 +520,19 @@ export type PeriodRow = {
   readonly overdue: number;
 };
 
+/**
+ * A report's payment due date under the terms (its period's, royalty-periods.ts): what the
+ * licensee's page registers at VeilCore's registry with the statement (license-notices.ts
+ * registerStatement). Undefined for terms with no schedule, or a report for no period of them.
+ */
+export const paymentDueOf = (terms: LicenseTerms, r: Report): string | undefined => {
+  if (!terms.reporting) return undefined;
+  const s = r.statement;
+  return periodsOf(terms.reporting, terms.startDate, terms.endDate, s.periodTo).find(
+    (p) => p.from === s.periodFrom && p.to === s.periodTo,
+  )?.paymentDue;
+};
+
 /** Each period of the license up to today, with its report and what it waits for. Oldest first. */
 export const periodRows = (terms: LicenseTerms, ledger: Ledger, today: string): PeriodRow[] => {
   if (!terms.reporting) return [];

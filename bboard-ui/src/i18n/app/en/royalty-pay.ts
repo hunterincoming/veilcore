@@ -106,9 +106,9 @@ export const royaltyPay = {
   'app.rpay.notice.cureBy': 'Time to pay: until {cureBy}.',
   'app.rpay.pub.disputed': 'The licensee disputes this (since {date}).',
   'app.rpay.i.public':
-    'Your record’s public check page says: “The record holder says a royalty statement is overdue since {date}.” No amounts, terms or names. It comes off when the payment is in.',
+    'Your record’s public check page says: “The record holder says a royalty statement is overdue since {date}.” No amounts, terms or names. It comes off the next time this page checks, once the payment is recorded.',
   'app.rpay.i.publicBreach':
-    'Your record’s public check page says, as your word, that a royalty statement is overdue since {date}, and that your notice of breach reached VeilCore’s registry on {breach}. The time to pay counts from that day. No amounts, terms or names.',
+    'Your record’s public check page says, as your word, that a royalty statement is overdue since {date}, and that you told VeilCore’s registry on {breach} that you had sent a notice of breach. The time to pay counts from that day. No amounts, terms or names.',
   'app.rpay.i.publicAnswers': 'Beside it, in the licensee’s own name: {answers}',
   'app.rpay.i.publicNoRecord':
     'This record isn’t saved on VeilCore’s registry under this browser’s holder key, so nothing can go on its public check page from here. Open the license on the device that saved the record, or restore your backup here.',
@@ -119,15 +119,15 @@ export const royaltyPay = {
   'app.rpay.revoke.notPublic':
     'VeilCore’s registry didn’t accept a public line about non-payment (the time to pay hadn’t run out by its clock, or a payment is on file), so the public check page says nothing about payment.',
   'app.rpay.pub.overdue': 'The record holder says a royalty statement is overdue since {date}.',
-  'app.rpay.pub.breach': 'Their notice of breach reached VeilCore’s registry on {date}.',
+  'app.rpay.pub.breach': 'The record holder told VeilCore’s registry on {date} that they had sent a notice of breach.',
   'app.rpay.pub.revoked': 'The record holder says a license from this record was revoked on {date} for non-payment.',
   'app.rpay.pub.revokedChecked':
-    'Their notice of breach reached VeilCore’s registry on {date}, and {days} days passed after it with no payment on file there before this line was accepted.',
+    'The record holder told VeilCore’s registry on {date} that they had sent a notice of breach, and {days} days passed after that with no payment on file there before this line was accepted.',
   'app.rpay.pub.answerPaid': 'The licensee says it was paid ({date}).',
   'app.rpay.pub.who':
-    'Whether a payment was due is the record holder’s word; VeilCore doesn’t check it. The date of a notice of breach is VeilCore’s registry’s own. The licensee’s answers are signed by the licensee, and the record holder can’t remove them. No one is named, and no amounts or terms are shown.',
+    'Whether a payment was due is the record holder’s word; VeilCore doesn’t check it. The date beside a notice of breach is the day the record holder told VeilCore’s registry about it, by the registry’s own clock. The licensee’s answers are signed by the licensee, and the record holder can’t remove them. No one is named, and no amounts or terms are shown.',
   'app.rpay.l.answered':
-    'You disputed this on {date}: “{note}”. {licensor} sees it. Your answer is filed with VeilCore’s registry under your own key (on {filed}): wherever {licensor}’s record’s public check page says anything about this payment, it shows that you dispute it, with that date. {licensor} can’t remove it.',
+    'You disputed this on {date}: “{note}”. {licensor} sees it. Your answer is filed with VeilCore’s registry under your own key (on {filed}). Any line about this payment on {licensor}’s record’s public check page shows that you dispute it, with that date, and {licensor} can’t remove it.',
   'app.rpay.l.answerPending':
     'You disputed this on {date}: “{note}”. {licensor} sees it. Filing your answer with VeilCore’s registry, where {licensor}’s record’s public check page shows it, hasn’t worked yet. This page tries again whenever it opens.',
   'app.rpay.l.disputeShows':
@@ -141,7 +141,25 @@ export const royaltyPay = {
   'app.rpay.l.revokedNotPublic':
     '{licensor}’s record’s public check page says nothing about non-payment: VeilCore’s registry hasn’t accepted it.',
   'app.rpay.l.revokedDisputed':
-    'You disputed this on {date}. Your answer is filed with VeilCore’s registry in your own name, and {licensor} can’t remove it: wherever {licensor}’s record’s public check page says anything about this payment, it shows that you dispute it.',
+    'You disputed this on {date}. Your answer is filed with VeilCore’s registry in your own name, and {licensor} can’t remove it: any line about this payment on {licensor}’s record’s public check page shows that you dispute it.',
   'app.rpay.notice.early': 'It was sent before the payment was late, so it starts no time to pay.',
   'app.rpay.notice.notThisOne': 'The time to pay counts from the first notice of breach after the payment was late.',
+  'app.rpay.predates':
+    'This license was made before VeilCore’s registry kept the keys that public notices need, so nothing about its payments can go on the public check page or be answered there. Reminders, notices of breach, the time to pay and answers still work between the two of you, signed.',
+  'app.rpay.i.breachNotRegistered':
+    'The public check page says this payment is overdue, but not yet that you sent a notice of breach: {licensee}’s page hasn’t registered this report with VeilCore’s registry. It does that by itself the next time they open the license. Until then the time to pay can’t start there. Your signed notice is in the deal either way.',
+  'app.rpay.i.breachNotDue':
+    '{licensee} registered this report with VeilCore’s registry as due on {due}, so the public check page can say you sent a notice of breach only from the day after. Until then it says the payment is overdue. Your signed notice is in the deal either way.',
+  'app.rpay.l.answerPredates':
+    'You disputed this on {date}: “{note}”. {licensor} sees it, signed by you. This license was made before VeilCore’s registry kept the keys that answers need, so it can’t be filed there.',
+  'app.rpay.l.pubOverdue':
+    '{licensor}’s record’s public check page says, as their word, that a royalty statement is overdue since {date} (report {n}).',
+  'app.rpay.l.pubOverdueOther':
+    '{licensor}’s record’s public check page says, as their word, that a royalty statement is overdue since {date}, about a message in this deal that isn’t one of your reports.',
+  'app.rpay.l.pubRevoked':
+    '{licensor}’s record’s public check page says, as their word, that a license from the record was revoked on {date} for non-payment.',
+  'app.rpay.l.pubBreach':
+    '{licensor} told VeilCore’s registry on {date} that they had sent a notice of breach. The time to pay runs until {cureBy}.',
+  'app.rpay.l.pubAnswers': 'Beside it, in your own name: {answers}',
+  'app.rpay.l.pubDisputeFailed': 'Your answer couldn’t be filed just now. Try again in a moment.',
 };

@@ -186,9 +186,10 @@ test.describe('royalties: overdue, reminders, revoke for non-payment, the public
       await expect(issuer.locator('[data-report-overdue]')).toBeVisible();
       await expect(issuer.locator('[data-public-notice="shown"]')).toBeVisible();
       await expect(issuer.getByRole('button', { name: REVOKE[lang] })).toHaveCount(0);
-      // Sent with a kind, a date and the statement it is about (its fingerprint), nothing else.
+      // Sent with a kind, a date and the statement it is about (its fingerprint), signed with the
+      // licensor's deal key, nothing else.
       expect(state.n.bodies).toHaveLength(1);
-      expect(Object.keys(state.n.bodies[0]).sort()).toEqual(['kind', 'since', 'statement']);
+      expect(Object.keys(state.n.bodies[0]).sort()).toEqual(['kind', 'signature', 'since', 'statement']);
       expect(state.n.bodies[0].kind).toBe('overdue');
       const start = await issuer.locator('[data-e2e-start]').getAttribute('data-e2e-start');
       await shot(issuer, `overdue-licensor-${lang}`);
@@ -201,6 +202,16 @@ test.describe('royalties: overdue, reminders, revoke for non-payment, the public
       await expect(lAlert.locator('[data-respond]')).toBeVisible();
       if (lang === 'en')
         await expect(lAlert).toContainText('you have 30 days to pay before the license can be revoked');
+      // Its page registered the report at the registry, signed, with the due date from the terms:
+      // what a notice of breach about it needs (B2).
+      await expect.poll(() => state.n.registrations.length, { timeout: 30_000 }).toBe(1);
+      const reg = state.n.registrations[0] as { answer: Record<string, string>; signature: string };
+      expect(Object.keys(reg.answer).sort()).toEqual(['dueOn', 'statement', 'type', 'v']);
+      expect(reg.answer.type).toBe('statement');
+      expect(reg.answer.statement).toBe(state.n.bodies[0].statement);
+      expect(reg.answer.dueOn < utc(Date.now())).toBe(true);
+      // And it shows what the licensor's public check page says, whatever its own reckoning.
+      await expect(licensee.locator('[data-licensee-line="overdue"]')).toBeVisible({ timeout: 30_000 });
       await shot(licensee, `overdue-licensee-${lang}`);
 
       // The public check page: the line, the holder's word, no amount, no names.
@@ -240,6 +251,9 @@ test.describe('royalties: overdue, reminders, revoke for non-payment, the public
       await expect(licensee.locator(`[data-payment-alert="overdue"] [data-cure-by="${cureBy}"]`)).toBeVisible();
       await expect(licensee.locator('[data-notice="breach"]')).toBeVisible();
       if (lang === 'en') await expect(lAlert).toContainText('Hana Rivera sent a notice of breach on');
+      await expect(
+        licensee.locator(`[data-licensee-line="overdue"] [data-line-breach="${utc(Date.now())}"]`),
+      ).toBeVisible();
       await shot(licensee, `breach-licensee-${lang}`);
 
       // The licensee answers: a short dispute note, signed. The licensor sees it, and the public
@@ -351,6 +365,42 @@ test.describe('royalties: overdue, reminders, revoke for non-payment, the public
     await expect(issuer.locator('[data-payment-alert="overdue"]')).toHaveCount(0);
     await expect.poll(() => state.n.lines.size, { timeout: 30_000 }).toBe(0);
     expectNoErrors(errors);
+  });
+
+  test('a notice of breach before the licensee’s page registered the report: held, the plain overdue line stands (B2)', async ({
+    browser,
+  }) => {
+    test.setTimeout(180_000);
+    const state = registry();
+    const issuer = await browser.newPage();
+    const errors = watch(issuer);
+    await asHolder(issuer, 'en');
+    await standIn(issuer, state);
+    await issuer.goto('/e2e/royalty-pay?side=issuer&scenario=overdue');
+    await expect(issuer.locator('[data-public-notice="shown"]')).toBeVisible({ timeout: 60_000 });
+    await issuer.getByRole('button', { name: BREACH.en }).click();
+    await issuer.locator('[data-confirm-inline] button').first().click();
+    // The signed notice is in the deal; the registry won't file it: the licensee never registered.
+    await expect(issuer.locator('[data-breach-held="not-registered"]')).toBeVisible({ timeout: 30_000 });
+    await expect(issuer.locator('[data-breach-held]')).toContainText('hasn’t registered this report');
+    expect(kindsOf(state.n)).toEqual(['overdue']);
+    expect(state.n.bodies.map((b) => b.kind)).toContain('breach');
+    await expect(issuer.locator('[data-public-breach]')).toHaveCount(0);
+    await shot(issuer, 'breach-held-en');
+    // The licensee's page opens: it registers the report, and the licensor's next visit files the
+    // notice of breach, dated by the registry that day.
+    const licensee = await browser.newPage();
+    const lErrors = watch(licensee);
+    await asHolder(licensee, 'en');
+    await standIn(licensee, state);
+    await licensee.goto('/e2e/royalty-pay?side=licensee&scenario=overdue');
+    await expect.poll(() => state.n.registered.size, { timeout: 60_000 }).toBe(1);
+    await expect(licensee.locator('[data-licensee-line="overdue"]')).toBeVisible({ timeout: 30_000 });
+    await issuer.reload();
+    await expect(issuer.locator(`[data-public-breach="${utc(Date.now())}"]`)).toBeVisible({ timeout: 60_000 });
+    expect(kindsOf(state.n)).toEqual(['breach']);
+    await expect(issuer.locator('[data-breach-held]')).toHaveCount(0);
+    expectNoErrors([...errors, ...lErrors]);
   });
 
   test('due soon: a reminder on both sides, nothing on the public page', async ({ browser }) => {

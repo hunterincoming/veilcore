@@ -1,7 +1,7 @@
 // What a record's public check page says about royalties on licenses from it, and nothing else
 // (docs/royalty-pay.md, "Overdue on the public page"). The licensor's page puts up lines about one
 // royalty statement each, under their holder key (registry: PUT
-// /api/records/:id/license-notices/:ref, license-notices-v2):
+// /api/records/:id/license-notices/:ref, license-notices-v3):
 //
 //   overdue   "The record holder says a royalty statement is overdue since <date>." A statement
 //             they accepted, not paid by its due date (royalty-ledger.ts paymentAlerts).
@@ -13,11 +13,17 @@
 //             refuses, and the page falls back to a plain revoke that says nothing about payment.
 //
 // A licensor's browser can be modified, so it isn't trusted with any of that: what the registry
-// can check, it checks (the dates, the cure period, "paid"). What it can't (whether a payment was
-// due at all) is worded as the licensor's claim, and the licensee answers it in their own name:
-// "paid" or "disputed", signed with their deal key and filed at the registry (fileAnswer), where
-// the licensor can neither remove nor change it. The public page shows the answer's type and date
-// beside the line, never what anyone wrote.
+// can check, it checks (the dates, the cure period, "paid"). Every line is signed with the deal's
+// licensor key (lineSignature), so only that licensor can say anything about its statements, on one
+// record. The licensee's page registers each of their statements there, with its due date, signed
+// with their deal key (registerStatement): a notice of breach is filed only for a registered
+// statement, from the day after that date (review round 3, B2). What the registry can't check
+// (whether a payment was due at all) is worded as the licensor's claim, and the licensee answers
+// it in their own name: "paid" or "disputed", signed with their deal key and filed at the registry
+// (fileAnswer), where the licensor can neither remove nor change it. The public page shows the
+// answer's type and date beside the line, never what anyone wrote. The licensee's page reads what
+// is on file about every message in the deal (statementNotices), so no line about them goes up
+// without their page showing it.
 //
 // What is public is worked out from the deal's signed messages, the chain and the registry
 // (dealNotices), never from something one browser remembers. A line's reference is made from the
@@ -135,9 +141,19 @@ export const noticesOf = (verify: unknown): PublishedNotice[] => {
 export type RegistryView = {
   readonly lines: ReadonlyMap<string, PublishedNotice>;
   readonly answers: ReadonlyMap<string, readonly LicenseeAnswer[]>;
+  /** The licensee's registration of a statement, by reference: its due date and the day it was filed. */
+  readonly registered?: ReadonlyMap<string, Registration>;
   readonly now: number;
   readonly read: number;
+  /**
+   * The deal is from before the registry kept the deal keys (M1): nothing about it can be filed
+   * there, ever. Pages say so plainly instead of "tries again".
+   */
+  readonly predates?: boolean;
 };
+
+/** The licensee's registration of one statement: "my statement, payment due on dueOn" (filed on `on`). */
+export type Registration = { readonly dueOn: string; readonly on: string };
 
 /** The registry's time now, counted on from when the view was read. */
 export const registryNow = (v: RegistryView): number => v.now + Math.max(0, Date.now() - v.read);
@@ -157,7 +173,15 @@ export const registryGate = (v: RegistryView | undefined) =>
       }
     : undefined;
 
-export type NoticeOutcome = 'ok' | 'no-key' | 'no-record' | 'unsupported' | 'failed';
+/** `predates`: the license's deal is from before the registry kept the deal keys (M1). */
+export type NoticeOutcome = 'ok' | 'no-key' | 'no-record' | 'unsupported' | 'failed' | 'predates';
+
+/**
+ * Why the registry wouldn't file a notice of breach for a report, while the plain overdue line
+ * stands: the licensee's page hasn't registered the statement yet, or registered it as due on a
+ * later day than `dueOn`'s day after (review round 3, B2).
+ */
+export type BreachHeld = { readonly code: 'not-registered' } | { readonly code: 'not-due'; readonly dueOn: string };
 
 /** What a 404 means: the record isn't under this holder key, or the registry has no such route. */
 const missing = async (res: Response): Promise<NoticeOutcome> => {
@@ -196,9 +220,15 @@ export const holderNotices = async (
   }
 };
 
+/** At most this many statements in one lookup (registry POST /license-answers/lookup). */
+const LOOKUP_MAX = 100;
+
 /**
- * What is on file about some statements, for either side (no key: the fingerprints are known only
- * to the deal's two sides and the registry), merged into one view. Undefined when it can't be read.
+ * What is on file about some statements (any messages in a deal), for either side (no key: the
+ * fingerprints are known only to the deal's two sides and the registry), read in one request per
+ * 100 and merged into one view. A statement's lines live on one record, signed by the deal's
+ * licensor (the registry refuses any other), so a line here is only ever about this deal.
+ * Undefined when it can't be read.
  */
 export const statementNotices = async (
   fingerprints: readonly string[],
@@ -206,28 +236,55 @@ export const statementNotices = async (
 ): Promise<RegistryView | undefined> => {
   const lines: PublishedNotice[] = [];
   const answers = new Map<string, readonly LicenseeAnswer[]>();
+  const registered = new Map<string, Registration>();
+  const unique = [...new Set(fingerprints)].filter((fp) => /^[0-9a-f]{64}$/.test(fp));
   let now: number | undefined;
+  let predates = false;
   try {
-    for (const fp of fingerprints) {
-      const res = await f(`${BASE}/license-answers/${fp}`, { cache: 'no-store' });
+    for (let i = 0; i < unique.length; i += LOOKUP_MAX) {
+      const res = await f(`${BASE}/license-answers/lookup`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ statements: unique.slice(i, i + LOOKUP_MAX) }),
+        cache: 'no-store',
+      });
       if (!res.ok) return undefined;
-      const body = (await res.json()) as { answers?: unknown; lines?: unknown; now?: unknown };
-      if (typeof body.now !== 'number') return undefined;
+      const body = (await res.json()) as { results?: unknown; now?: unknown };
+      if (typeof body.now !== 'number' || !Array.isArray(body.results)) return undefined;
       now = body.now;
-      const ref = noticeRef(fp);
-      const a = answersOf(body.answers);
-      if (a) answers.set(ref, a);
-      // The newest line about it (a statement is on one record; a licensor could repeat it).
-      const l = noticesOf({ licenseNotices: body.lines })
-        .filter((n) => n.ref === ref)
-        .pop();
-      if (l) lines.push(l);
+      for (const x of body.results as Record<string, unknown>[]) {
+        if (typeof x?.statement !== 'string' || !unique.includes(x.statement)) continue;
+        const ref = noticeRef(x.statement);
+        const a = answersOf(x.answers);
+        if (a) answers.set(ref, a);
+        const reg = x.registered as Record<string, unknown> | undefined;
+        if (
+          reg &&
+          typeof reg.dueOn === 'string' &&
+          DAY.test(reg.dueOn) &&
+          typeof reg.on === 'string' &&
+          DAY.test(reg.on)
+        )
+          registered.set(ref, { dueOn: reg.dueOn, on: reg.on });
+        if (x.predates === true) predates = true;
+        const l = noticesOf({ licenseNotices: x.lines })
+          .filter((n) => n.ref === ref)
+          .pop();
+        if (l) lines.push(l);
+      }
     }
   } catch {
     return undefined;
   }
   if (now === undefined) return undefined;
-  return { lines: new Map(lines.map((n) => [n.ref, n])), answers, now, read: Date.now() };
+  return {
+    lines: new Map(lines.map((n) => [n.ref, n])),
+    answers,
+    registered,
+    now,
+    read: Date.now(),
+    ...(predates ? { predates } : {}),
+  };
 };
 
 /** What the licensee signs for an answer: "veilcore/license-answer/v1\n" + the canonical answer. */
@@ -238,11 +295,56 @@ export const answerPayload = (statement: string, type: 'paid' | 'disputed', refe
   ...(type === 'paid' ? { referenceHash: hex(sha256(utf8((reference ?? '').trim()))) } : {}),
 });
 
+/** What the licensee signs to register a statement as theirs, with its payment's due date. */
+export const registrationPayload = (statement: string, dueOn: string) => ({
+  v: 'veilcore/license-answer/v1' as const,
+  statement,
+  type: 'statement' as const,
+  dueOn,
+});
+
+const postAnswer = async (
+  mySecret: string,
+  answer: Record<string, unknown>,
+  f: typeof fetch,
+): Promise<{ readonly on: string; readonly dueOn?: string } | 'predates' | undefined> => {
+  const signature = hex(ed25519.sign(utf8(`veilcore/license-answer/v1\n${canonicalise(answer)}`), bytes(mySecret)));
+  try {
+    const res = await f(`${BASE}/license-answers`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ answer, signature }),
+    });
+    if (res.status === 409) {
+      const why = (await res.json().catch(() => undefined)) as { code?: unknown } | undefined;
+      return why?.code === 'predates' ? 'predates' : undefined;
+    }
+    if (!res.ok) return undefined;
+    const out = (await res.json()) as { on?: unknown; dueOn?: unknown };
+    if (typeof out.on !== 'string') return undefined;
+    return { on: out.on, ...(typeof out.dueOn === 'string' ? { dueOn: out.dueOn } : {}) };
+  } catch {
+    return undefined;
+  }
+};
+
+/**
+ * The licensee registers one of their statements at the registry, signed with their deal key:
+ * "this is my royalty statement, its payment is due on `dueOn`" (the date both sides' pages work
+ * out from the signed terms). Only then can the licensor file a notice of breach about it there,
+ * and only from the day after `dueOn` (review round 3, B2). The first registration stands. The
+ * licensee's page does it by itself for every statement in the deal (RoyaltyPay.tsx
+ * useRegistryView), so an honest licensee never has to think about it.
+ */
+export const registerStatement = (mySecret: string, statement: string, dueOn: string, f: typeof fetch = fetch) =>
+  postAnswer(mySecret, registrationPayload(statement, dueOn), f);
+
 /**
  * The licensee files their own answer to a statement at the registry, signed with their deal key:
  * paid (with the SHA-256 of the payment reference, never the reference itself) or disputed. The
  * licensor can't remove or change it; the first of each type stands. Returns the day it is
  * filed under, or undefined when it couldn't be filed (the page tries again when it next opens).
+ * A "paid" with no reference at all is never sent: the registry refuses it (review round 3, L5).
  */
 export const fileAnswer = async (
   mySecret: string,
@@ -251,20 +353,9 @@ export const fileAnswer = async (
   reference?: string,
   f: typeof fetch = fetch,
 ): Promise<string | undefined> => {
-  const answer = answerPayload(statement, type, reference);
-  const signature = hex(ed25519.sign(utf8(`veilcore/license-answer/v1\n${canonicalise(answer)}`), bytes(mySecret)));
-  try {
-    const res = await f(`${BASE}/license-answers`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ answer, signature }),
-    });
-    if (!res.ok) return undefined;
-    const out = (await res.json()) as { on?: unknown };
-    return typeof out.on === 'string' ? out.on : undefined;
-  } catch {
-    return undefined;
-  }
+  if (type === 'paid' && !(reference ?? '').trim()) return undefined;
+  const r = await postAnswer(mySecret, answerPayload(statement, type, reference), f);
+  return typeof r === 'object' ? r.on : undefined;
 };
 
 /**
@@ -321,13 +412,26 @@ export const dealNotices = (
   return { want, mine };
 };
 
+/** What the licensor signs for a line: "veilcore/license-line/v1\n" + canonical { recordId, ...line }. */
+export const lineSignature = (mySecret: string, recordId: string, n: LicenseNotice): string =>
+  hex(ed25519.sign(utf8(`veilcore/license-line/v1\n${canonicalise({ ...n, recordId })}`), bytes(mySecret)));
+
+type CallResult = {
+  readonly outcome: NoticeOutcome | 'refused';
+  readonly line?: PublishedNotice;
+  readonly now?: number;
+  /** A refusal's code (409), and the due date the licensee registered when it is `not-due`. */
+  readonly code?: string;
+  readonly dueOn?: string;
+};
+
 const call = async (
   method: 'PUT' | 'DELETE',
   recordId: string,
   ref: string,
-  body: LicenseNotice | undefined,
+  body: (LicenseNotice & { readonly signature: string }) | undefined,
   f: typeof fetch,
-): Promise<{ readonly outcome: NoticeOutcome | 'refused'; readonly line?: PublishedNotice; readonly now?: number }> => {
+): Promise<CallResult> => {
   const key = holderKeyIfAny();
   if (!key) return { outcome: 'no-key' };
   try {
@@ -342,8 +446,16 @@ const call = async (
       return { outcome: method === 'DELETE' && why === 'unsupported' ? 'ok' : why };
     }
     // 409: the registry refused it (a revoked line before the cure period ran out, or with
-    // "paid" on file; a statement it holds no deal for).
-    if (res.status === 409) return { outcome: 'refused' };
+    // "paid" on file; a notice of breach for a statement the licensee hasn't registered, or before
+    // its due date; a statement it holds no deal for, or one from before it kept the deal keys).
+    if (res.status === 409) {
+      const why = (await res.json().catch(() => undefined)) as { code?: unknown; dueOn?: unknown } | undefined;
+      return {
+        outcome: why?.code === 'predates' ? 'predates' : 'refused',
+        ...(typeof why?.code === 'string' ? { code: why.code } : {}),
+        ...(typeof why?.dueOn === 'string' ? { dueOn: why.dueOn } : {}),
+      };
+    }
     if (!res.ok) return { outcome: 'failed' };
     if (method === 'DELETE') return { outcome: 'ok' };
     const out = (await res.json().catch(() => undefined)) as Record<string, unknown> | undefined;
@@ -357,8 +469,9 @@ const call = async (
   }
 };
 
-export const putNotice = (recordId: string, ref: string, n: LicenseNotice, f: typeof fetch = fetch) =>
-  call('PUT', recordId, ref, n, f);
+/** Puts a line up, signed with the licensor's deal key (`signer`, their deal secret). */
+export const putNotice = (recordId: string, ref: string, n: LicenseNotice, signer: string, f: typeof fetch = fetch) =>
+  call('PUT', recordId, ref, { ...n, signature: lineSignature(signer, recordId, n) }, f);
 export const deleteNotice = (recordId: string, ref: string, f: typeof fetch = fetch) =>
   call('DELETE', recordId, ref, undefined, f);
 
@@ -374,12 +487,15 @@ const same = (there: PublishedNotice, n: LicenseNotice): boolean =>
  * (other licenses) are left alone. A revoked line the registry refuses (the cure period not over
  * by its clock, "paid" on file) is not shown, and the line for that report comes off: the public
  * page then says nothing about payment, as after a plain revoke. Returns what was done, and the
- * registry's view after it, for the page to say.
+ * registry's view after it, for the page to say. A notice of breach the registry won't file yet
+ * (`held`) leaves the plain overdue line up. Every line is signed with the licensor's deal key.
  */
 export const syncNotices = async (
   recordId: string,
   want: ReadonlyMap<string, LicenseNotice>,
   mine: ReadonlySet<string>,
+  /** The licensor's deal secret: every line is signed with it (lineSignature). */
+  signer: string,
   f: typeof fetch = fetch,
   had?: RegistryView,
 ): Promise<{
@@ -387,52 +503,75 @@ export const syncNotices = async (
   readonly shown: PublishedNotice[];
   /** Refused by the registry: a revoked line it won't show (so that report's line came off). */
   readonly refused: string[];
+  /** Notices of breach the registry wouldn't file yet, by reference; the plain overdue line stands. */
+  readonly held: ReadonlyMap<string, BreachHeld>;
   readonly view?: RegistryView;
 }> => {
+  const held = new Map<string, BreachHeld>();
   const first = had ? { view: had } : await holderNotices(recordId, f);
-  if (!('view' in first)) return { outcome: first.outcome, shown: [], refused: [] };
+  if (!('view' in first)) return { outcome: first.outcome, shown: [], refused: [], held };
   const lines = new Map(first.view.lines);
   let now = first.view.now;
-  let outcome: NoticeOutcome = 'ok';
+  // Widened on purpose: `failed` below changes it, which narrowing can't see.
+  let outcome = 'ok' as NoticeOutcome;
   const refused = new Set<string>();
+  const failed = (o: NoticeOutcome | 'refused') => {
+    if (o === 'predates') outcome = 'predates';
+    else if (outcome === 'ok') outcome = o === 'refused' ? 'failed' : o;
+  };
+  const put = async (ref: string, n: LicenseNotice): Promise<CallResult> => {
+    const r = await putNotice(recordId, ref, n, signer, f);
+    if (r.outcome === 'ok') {
+      if (r.line) lines.set(ref, r.line);
+      if (r.now) now = r.now;
+    }
+    return r;
+  };
   for (const [ref, n] of want) {
     const there = lines.get(ref);
     if (there && same(there, n)) continue;
-    const r = await putNotice(recordId, ref, n, f);
-    if (r.outcome === 'refused') {
-      if (n.kind === 'revoked') {
-        refused.add(ref);
-        if (there) {
-          const d = await deleteNotice(recordId, ref, f);
-          if (d.outcome === 'ok') lines.delete(ref);
-          else if (outcome === 'ok') outcome = d.outcome === 'refused' ? 'failed' : d.outcome;
-        }
-      } else if (outcome === 'ok') outcome = 'failed';
+    const r = await put(ref, n);
+    if (r.outcome === 'ok') continue;
+    if (r.outcome === 'refused' && n.kind === 'revoked') {
+      refused.add(ref);
+      if (there) {
+        const d = await deleteNotice(recordId, ref, f);
+        if (d.outcome === 'ok') lines.delete(ref);
+        else failed(d.outcome);
+      }
       continue;
     }
-    if (r.outcome !== 'ok') {
-      outcome = r.outcome;
+    if (r.outcome === 'refused' && n.kind === 'breach' && (r.code === 'not-registered' || r.code === 'not-due')) {
+      // Not filed as a notice of breach yet (the licensee's page hasn't registered the statement,
+      // or it isn't past the due date they registered): the plain overdue line, the licensor's
+      // word, stands meanwhile, and the page says why.
+      held.set(ref, r.code === 'not-due' ? { code: 'not-due', dueOn: r.dueOn ?? '' } : { code: 'not-registered' });
+      const plain: LicenseNotice = { kind: 'overdue', since: n.since, statement: n.statement };
+      if (there && same(there, plain)) continue;
+      const o = await put(ref, plain);
+      if (o.outcome !== 'ok') failed(o.outcome);
       continue;
     }
-    if (r.line) lines.set(ref, r.line);
-    if (r.now) now = r.now;
+    failed(r.outcome);
   }
   for (const ref of [...lines.keys()])
     if (mine.has(ref) && !want.has(ref)) {
       const d = await deleteNotice(recordId, ref, f);
       if (d.outcome === 'ok') lines.delete(ref);
-      else if (outcome === 'ok') outcome = d.outcome === 'refused' ? 'failed' : d.outcome;
+      else failed(d.outcome);
     }
   const view: RegistryView = {
     lines,
     answers: new Map([...lines].filter(([, n]) => n.answers).map(([ref, n]) => [ref, n.answers!])),
     now,
     read: Date.now(),
+    ...(outcome === 'predates' ? { predates: true } : {}),
   };
   return {
     outcome,
     shown: [...lines.values()].filter((n) => mine.has(n.ref)),
     refused: [...refused],
+    held,
     view,
   };
 };

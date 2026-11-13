@@ -76,6 +76,11 @@ export const AGREEMENT_FEATURES = Object.freeze({
   // period has run out by its clock with nothing paid on file, and the licensee's own signed
   // answer beside the line (POST /license-answers). The site sends only this shape.
   "license-notices-v2": "the licensee's answer beside a notice, and the registry's own cure period",
+  // Lines signed with the deal's licensor key, on one record per statement; a notice of breach
+  // only for a statement the licensee registered, from the day after its registered due date;
+  // POST /license-answers/lookup for the licensee's page (review round 3, B2, L1). The site sends
+  // only this shape: a registry with v2 alone refuses its lines.
+  "license-notices-v3": "notices signed by the licensor, and only for statements the licensee registered",
 });
 
 /** Whether the site's source has agreements switched on for mainnet (config/copy.ts). */

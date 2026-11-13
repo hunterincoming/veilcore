@@ -102,9 +102,9 @@ export const royaltyPay = {
   'app.rpay.notice.cureBy': 'Frist zum Zahlen: bis zum {cureBy}.',
   'app.rpay.pub.disputed': 'Die Lizenznehmerseite widerspricht (seit dem {date}).',
   'app.rpay.i.public':
-    'Die öffentliche Prüfseite Ihres Datensatzes sagt: „Die Person, die diesen Datensatz hält, gibt an, dass eine Lizenzgebührenabrechnung seit dem {date} überfällig ist.“ Keine Beträge, Bedingungen oder Namen. Der Hinweis verschwindet, sobald die Zahlung da ist.',
+    'Die öffentliche Prüfseite Ihres Datensatzes sagt: „Die Person, die diesen Datensatz hält, gibt an, dass eine Lizenzgebührenabrechnung seit dem {date} überfällig ist.“ Keine Beträge, Bedingungen oder Namen. Der Hinweis verschwindet, wenn diese Seite das nächste Mal prüft, sobald die Zahlung vermerkt ist.',
   'app.rpay.i.publicBreach':
-    'Die öffentliche Prüfseite Ihres Datensatzes sagt, als Ihre Angabe, dass eine Lizenzgebührenabrechnung seit dem {date} überfällig ist, und dass Ihre Mitteilung über die Vertragsverletzung am {breach} beim Register von VeilCore eingegangen ist. Die Frist zum Zahlen zählt ab diesem Tag. Keine Beträge, Bedingungen oder Namen.',
+    'Die öffentliche Prüfseite Ihres Datensatzes sagt, als Ihre Angabe, dass eine Lizenzgebührenabrechnung seit dem {date} überfällig ist, und dass Sie dem Register von VeilCore am {breach} mitgeteilt haben, eine Mitteilung über die Vertragsverletzung gesendet zu haben. Die Frist zum Zahlen zählt ab diesem Tag. Keine Beträge, Bedingungen oder Namen.',
   'app.rpay.i.publicAnswers': 'Daneben, im eigenen Namen der Lizenznehmerseite: {answers}',
   'app.rpay.i.publicNoRecord':
     'Dieser Datensatz ist im Register von VeilCore nicht unter dem Inhaberschlüssel dieses Browsers gespeichert, daher kann von hier nichts auf seine öffentliche Prüfseite. Öffnen Sie die Lizenz auf dem Gerät, das den Datensatz gespeichert hat, oder stellen Sie hier Ihre Sicherung wieder her.',
@@ -117,16 +117,16 @@ export const royaltyPay = {
   'app.rpay.pub.overdue':
     'Die Person, die diesen Datensatz hält, gibt an, dass eine Lizenzgebührenabrechnung seit dem {date} überfällig ist.',
   'app.rpay.pub.breach':
-    'Die Mitteilung über die Vertragsverletzung dieser Person ist am {date} beim Register von VeilCore eingegangen.',
+    'Die Person, die diesen Datensatz hält, hat dem Register von VeilCore am {date} mitgeteilt, dass sie eine Mitteilung über die Vertragsverletzung gesendet hat.',
   'app.rpay.pub.revoked':
     'Die Person, die diesen Datensatz hält, gibt an, dass eine Lizenz von diesem Datensatz am {date} wegen Nichtzahlung widerrufen wurde.',
   'app.rpay.pub.revokedChecked':
-    'Die Mitteilung über die Vertragsverletzung dieser Person ist am {date} beim Register von VeilCore eingegangen, und danach vergingen {days} Tage ohne dort vermerkte Zahlung, bevor dieser Hinweis angenommen wurde.',
+    'Die Person, die diesen Datensatz hält, hat dem Register von VeilCore am {date} mitgeteilt, dass sie eine Mitteilung über die Vertragsverletzung gesendet hat, und danach vergingen {days} Tage ohne dort vermerkte Zahlung, bevor dieser Hinweis angenommen wurde.',
   'app.rpay.pub.answerPaid': 'Die Lizenznehmerseite gibt an, dass bezahlt wurde ({date}).',
   'app.rpay.pub.who':
-    'Ob eine Zahlung fällig war, ist die Angabe der Person, die den Datensatz hält; VeilCore prüft das nicht. Das Datum einer Mitteilung über die Vertragsverletzung stammt vom Register von VeilCore selbst. Die Antworten der Lizenznehmerseite sind von ihr signiert, und die Person, die den Datensatz hält, kann sie nicht entfernen. Niemand wird genannt, und es werden keine Beträge oder Bedingungen gezeigt.',
+    'Ob eine Zahlung fällig war, ist die Angabe der Person, die den Datensatz hält; VeilCore prüft das nicht. Das Datum neben einer Mitteilung über die Vertragsverletzung ist der Tag, an dem diese Person sie dem Register von VeilCore mitgeteilt hat, nach der Uhr des Registers. Die Antworten der Lizenznehmerseite sind von ihr signiert, und die Person, die den Datensatz hält, kann sie nicht entfernen. Niemand wird genannt, und es werden keine Beträge oder Bedingungen gezeigt.',
   'app.rpay.l.answered':
-    'Sie haben dem am {date} widersprochen: „{note}“. {licensor} sieht das. Ihre Antwort ist beim Register von VeilCore unter Ihrem eigenen Schlüssel hinterlegt (am {filed}): Wo immer die öffentliche Prüfseite des Datensatzes von {licensor} etwas zu dieser Zahlung sagt, zeigt sie, dass Sie widersprechen, mit diesem Datum. {licensor} kann das nicht entfernen.',
+    'Sie haben dem am {date} widersprochen: „{note}“. {licensor} sieht das. Ihre Antwort ist beim Register von VeilCore unter Ihrem eigenen Schlüssel hinterlegt (am {filed}). Jeder Hinweis zu dieser Zahlung auf der öffentlichen Prüfseite des Datensatzes von {licensor} zeigt, dass Sie widersprechen, mit diesem Datum, und {licensor} kann das nicht entfernen.',
   'app.rpay.l.answerPending':
     'Sie haben dem am {date} widersprochen: „{note}“. {licensor} sieht das. Ihre Antwort beim Register von VeilCore zu hinterlegen, wo die öffentliche Prüfseite des Datensatzes von {licensor} sie zeigt, hat noch nicht geklappt. Diese Seite versucht es bei jedem Öffnen wieder.',
   'app.rpay.l.disputeShows':
@@ -140,9 +140,28 @@ export const royaltyPay = {
   'app.rpay.l.revokedNotPublic':
     'Die öffentliche Prüfseite des Datensatzes von {licensor} sagt nichts über Nichtzahlung: Das Register von VeilCore hat es nicht angenommen.',
   'app.rpay.l.revokedDisputed':
-    'Sie haben dem am {date} widersprochen. Ihre Antwort ist in Ihrem eigenen Namen beim Register von VeilCore hinterlegt, und {licensor} kann sie nicht entfernen: Wo immer die öffentliche Prüfseite des Datensatzes von {licensor} etwas zu dieser Zahlung sagt, zeigt sie, dass Sie widersprechen.',
+    'Sie haben dem am {date} widersprochen. Ihre Antwort ist in Ihrem eigenen Namen beim Register von VeilCore hinterlegt, und {licensor} kann sie nicht entfernen: Jeder Hinweis zu dieser Zahlung auf der öffentlichen Prüfseite des Datensatzes von {licensor} zeigt, dass Sie widersprechen.',
   'app.rpay.notice.early':
     'Sie wurde gesendet, bevor die Zahlung überfällig war, und setzt daher keine Frist zum Zahlen in Gang.',
   'app.rpay.notice.notThisOne':
     'Die Frist zum Zahlen zählt ab der ersten Mitteilung über die Vertragsverletzung, nachdem die Zahlung überfällig war.',
+  'app.rpay.predates':
+    'Diese Lizenz wurde erstellt, bevor das Register von VeilCore die Schlüssel aufbewahrt hat, die öffentliche Hinweise brauchen. Zu ihren Zahlungen kann daher nichts auf die öffentliche Prüfseite und dort auch nichts beantwortet werden. Erinnerungen, Mitteilungen über die Vertragsverletzung, die Frist zum Zahlen und Antworten funktionieren zwischen Ihnen beiden weiterhin, signiert.',
+  'app.rpay.i.breachNotRegistered':
+    'Die öffentliche Prüfseite sagt, dass diese Zahlung überfällig ist, aber noch nicht, dass Sie eine Mitteilung über die Vertragsverletzung gesendet haben: Die Seite von {licensee} hat diesen Bericht noch nicht beim Register von VeilCore registriert. Das geschieht von selbst, wenn die Lizenz dort das nächste Mal geöffnet wird. Bis dahin kann die Frist zum Zahlen dort nicht beginnen. Ihre signierte Mitteilung liegt so oder so vor.',
+  'app.rpay.i.breachNotDue':
+    '{licensee} hat diesen Bericht beim Register von VeilCore als am {due} fällig registriert. Die öffentliche Prüfseite kann daher erst ab dem Tag danach sagen, dass Sie eine Mitteilung über die Vertragsverletzung gesendet haben. Bis dahin sagt sie, dass die Zahlung überfällig ist. Ihre signierte Mitteilung liegt so oder so vor.',
+  'app.rpay.l.answerPredates':
+    'Sie haben dem am {date} widersprochen: „{note}“. {licensor} sieht das, von Ihnen signiert. Diese Lizenz wurde erstellt, bevor das Register von VeilCore die Schlüssel aufbewahrt hat, die Antworten brauchen, daher kann sie dort nicht hinterlegt werden.',
+  'app.rpay.l.pubOverdue':
+    'Die öffentliche Prüfseite des Datensatzes von {licensor} sagt, als dessen Angabe, dass eine Lizenzgebührenabrechnung seit dem {date} überfällig ist (Bericht {n}).',
+  'app.rpay.l.pubOverdueOther':
+    'Die öffentliche Prüfseite des Datensatzes von {licensor} sagt, als dessen Angabe, dass eine Lizenzgebührenabrechnung seit dem {date} überfällig ist, zu einer Nachricht in dieser Vereinbarung, die keiner Ihrer Berichte ist.',
+  'app.rpay.l.pubRevoked':
+    'Die öffentliche Prüfseite des Datensatzes von {licensor} sagt, als dessen Angabe, dass eine Lizenz von diesem Datensatz am {date} wegen Nichtzahlung widerrufen wurde.',
+  'app.rpay.l.pubBreach':
+    '{licensor} hat dem Register von VeilCore am {date} mitgeteilt, eine Mitteilung über die Vertragsverletzung gesendet zu haben. Die Frist zum Zahlen läuft bis zum {cureBy}.',
+  'app.rpay.l.pubAnswers': 'Daneben, in Ihrem eigenen Namen: {answers}',
+  'app.rpay.l.pubDisputeFailed':
+    'Ihre Antwort ließ sich gerade nicht hinterlegen. Versuchen Sie es gleich noch einmal.',
 };

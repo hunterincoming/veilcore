@@ -658,6 +658,7 @@ describe('the public notice: a kind, dates and an opaque reference, nothing else
       if (method === 'PUT') {
         const body = JSON.parse(init!.body as string) as Record<string, unknown>;
         delete body.statement;
+        delete body.signature;
         published = [...published.filter((x) => x.ref !== ref), { ref, ...body }];
         return Promise.resolve(new Response(JSON.stringify({ ref, ...body, now: Date.now() }), { status: 200 }));
       }
@@ -667,7 +668,7 @@ describe('the public notice: a kind, dates and an opaque reference, nothing else
     const want = new Map<string, LicenseNotice>([
       [mineNew, { kind: 'overdue', since: '2026-05-15', statement: fp('c') }],
     ]);
-    const r = await syncNotices('rec-1', want, new Set([mineOld, mineNew]), f);
+    const r = await syncNotices('rec-1', want, new Set([mineOld, mineNew]), 'cd'.repeat(32), f);
     expect(r.outcome).toBe('ok');
     expect(calls).toEqual([
       'GET /api/records/rec-1/license-notices',
@@ -678,7 +679,7 @@ describe('the public notice: a kind, dates and an opaque reference, nothing else
     expect(r.view?.lines.has(mineNew)).toBe(true);
     // Nothing changed: nothing is sent again.
     calls.length = 0;
-    await syncNotices('rec-1', want, new Set([mineOld, mineNew]), f);
+    await syncNotices('rec-1', want, new Set([mineOld, mineNew]), 'cd'.repeat(32), f);
     expect(calls).toEqual(['GET /api/records/rec-1/license-notices']);
   });
   it('a registry from before v2, and a record not under this holder key: each said for what it is', async () => {
@@ -687,12 +688,12 @@ describe('the public notice: a kind, dates and an opaque reference, nothing else
       ['a'.repeat(32), { kind: 'overdue', since: '2026-05-15', statement: fp('a') }],
     ]);
     const old: typeof fetch = () => Promise.resolve(new Response('Cannot GET', { status: 404 }));
-    expect((await syncNotices('rec-1', want, new Set(), old)).outcome).toBe('unsupported');
+    expect((await syncNotices('rec-1', want, new Set(), 'cd'.repeat(32), old)).outcome).toBe('unsupported');
     const notMine: typeof fetch = () =>
       Promise.resolve(
         new Response('{"error":"no such record under this holder key","code":"no-record"}', { status: 404 }),
       );
-    expect((await syncNotices('rec-1', want, new Set(), notMine)).outcome).toBe('no-record');
+    expect((await syncNotices('rec-1', want, new Set(), 'cd'.repeat(32), notMine)).outcome).toBe('no-record');
     // A PUT answered 404 for the record (it was deleted meanwhile) is no-record too, never "unsupported".
     const putGone: typeof fetch = (_u, init) =>
       Promise.resolve(
@@ -700,7 +701,7 @@ describe('the public notice: a kind, dates and an opaque reference, nothing else
           ? new Response('{"error":"no such record under this holder key"}', { status: 404 })
           : new Response(JSON.stringify({ licenseNotices: [], now: Date.now() }), { status: 200 }),
       );
-    expect((await syncNotices('rec-1', want, new Set(), putGone)).outcome).toBe('no-record');
+    expect((await syncNotices('rec-1', want, new Set(), 'cd'.repeat(32), putGone)).outcome).toBe('no-record');
   });
 });
 

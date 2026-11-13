@@ -267,7 +267,7 @@ export const RealLicensePanel: React.FC<{ license: License; blocked: boolean; on
       const view = 'view' in had ? had.view : undefined;
       const { want, mine } = dealNotices(ledger, [], true, view);
       if (!want.size && !mine.size) return;
-      const synced = await syncNotices(license.recordId, want, mine, fetch, view);
+      const synced = await syncNotices(license.recordId, want, mine, party.mySecret, fetch, view);
       if (on && synced.outcome === 'ok')
         setRevokedPublic(synced.shown.some((n) => n.kind === 'revoked') ? 'shown' : 'not-shown');
     })();

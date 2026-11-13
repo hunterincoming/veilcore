@@ -11,6 +11,9 @@
 //     registry): revoke for non-payment on the real license page, the registry accepts the line,
 //     and the public page shows it with the registry's date for the notice and the licensee's
 //     answer beside it; the licensee's page shows it too.
+//   - the licensee's page registers its report there (with the due date from the terms); a notice
+//     of breach about another deal message, or one dated before the due date, is refused, and a
+//     stranger's line about the statement on their own record is refused (review round 3, B2, L1).
 // The deal channel, the notices, the answers and the check page are the real registry's. Only what
 // the license page lists (records, licenses, deliveries) is stood in for, as in
 // royalty-revoke.spec.ts, and Midnight's two steps (src/veilcore/chain/e2e-chain.ts). The licensee
@@ -48,6 +51,18 @@ const IDENTITY = '5e'.repeat(32);
 const hex = (b: Uint8Array) => Buffer.from(b).toString('hex');
 const publicOf = (secret: string) => hex(ed25519.getPublicKey(Buffer.from(secret, 'hex')));
 const utc = (ms: number) => new Date(ms).toISOString().slice(0, 10);
+/** A line signed as the site's license-notices.ts lineSignature signs it, with `secret`. */
+const signedLine = (secret: string, recordId: string, line: Record<string, string>) => ({
+  ...line,
+  signature: hex(
+    ed25519.sign(
+      new TextEncoder().encode(`veilcore/license-line/v1\n${canonicalise({ ...line, recordId })}`),
+      Buffer.from(secret, 'hex'),
+    ),
+  ),
+});
+const refOf = (fp: string) =>
+  createHash('sha256').update(`veilcore/license-notice/v2\n${fp}`).digest('hex').slice(0, 32);
 
 test.use({ viewport: { width: 360, height: 780 } });
 
@@ -303,22 +318,55 @@ test.describe('royalty notices against a real registry: its clock and its gates'
     const own = await call('GET', `/api/records/${RECORD}/license-notices`, undefined, HOLDER);
     expect(own.status).toBe(200);
     const ref = String(line.ref);
+    const statement = await statementOf(ref);
     const early = await call(
       'PUT',
       `/api/records/${RECORD}/license-notices/${ref}`,
-      // The statement's fingerprint is what the ref is made from; the registry checks it.
-      { kind: 'revoked', reason: 'non-payment', on: today, statement: await statementOf(ref) },
+      // The statement's fingerprint is what the ref is made from; the registry checks it, and the
+      // licensor's signature with the deal's key.
+      signedLine(ISSUER_SECRET, RECORD, { kind: 'revoked', reason: 'non-payment', on: today, statement }),
       HOLDER,
     );
     expect(early.status, JSON.stringify(early.json)).toBe(409);
     expect(early.json.code).toBe('cure-not-over');
     expect((await verify()).licenseNotices).toMatchObject([{ kind: 'overdue' }]);
 
+    // B2: the licensee's page registered the report, with the due date from the terms; the notice
+    // of breach was filed after it. Another deal message (the licensor's own payout, say) was
+    // never registered: no notice of breach about it. One dated on or before the due date: refused.
+    const reg = (await call('GET', `/license-answers/${statement}`)).json.registered as { dueOn: string; on: string };
+    expect(reg.dueOn < today).toBe(true);
+    const others = (await dealMessages()).filter((f) => f !== statement);
+    expect(others.length).toBeGreaterThan(0);
+    const P1 = await call(
+      'PUT',
+      `/api/records/${RECORD}/license-notices/${refOf(others[0])}`,
+      signedLine(ISSUER_SECRET, RECORD, { kind: 'breach', since: today, statement: others[0] }),
+      HOLDER,
+    );
+    expect([P1.status, P1.json.code]).toEqual([409, 'not-registered']);
+    // L1: a stranger who learned the fingerprint, on their own record: refused.
+    const stranger = randomBytes(32).toString('hex');
+    const strangerRecord = `VEIL-${randomBytes(16).toString('hex').toUpperCase()}`;
+    await saveRecord(strangerRecord, stranger, vault);
+    const P2 = await call(
+      'PUT',
+      `/api/records/${strangerRecord}/license-notices/${ref}`,
+      signedLine(randomBytes(32).toString('hex'), strangerRecord, { kind: 'overdue', since: today, statement }),
+      stranger,
+    );
+    expect([P2.status, P2.json.code]).toEqual([403, 'not-licensor']);
+    expect((await call('GET', `/license-answers/${statement}`)).json.lines).toMatchObject([
+      { kind: 'overdue', breachNoticeOn: today },
+    ]);
+
     // The licensee disputes it: signed, filed at the registry in their own name, beside the line.
     await licensee.reload();
     const lAlert = licensee.locator('[data-payment-alert="overdue"]');
     await expect(lAlert).toHaveAttribute('data-cure', 'running', { timeout: 90_000 });
     await expect(lAlert.locator(`[data-cure-by="${cureBy}"]`)).toBeVisible();
+    // The licensee's page shows what the public page says, with the day of the notice of breach.
+    await expect(licensee.locator(`[data-licensee-line="overdue"] [data-line-breach="${today}"]`)).toBeVisible();
     await lAlert.locator('[data-respond-dispute]').click();
     await licensee.locator('[data-dispute-note] textarea').first().fill('Paid by bank transfer on the due date.');
     await licensee.locator('[data-dispute-send]').click();
@@ -393,7 +441,7 @@ test.describe('royalty notices against a real registry: its clock and its gates'
  * it (a modified licensor client has the deal, so it knows this too). Found by trying the deal's
  * messages, read with the fixture deal's token.
  */
-const statementOf = async (ref: string): Promise<string> => {
+const dealMessages = async (): Promise<string[]> => {
   const licenseeNonce = publicOf(LICENSEE_SECRET);
   const shared = x25519.getSharedSecret(
     ed25519.utils.toMontgomerySecret(Buffer.from(ISSUER_SECRET, 'hex')),
@@ -409,10 +457,34 @@ const statementOf = async (ref: string): Promise<string> => {
   const dealId = hex(okm.slice(32, 48));
   const token = Buffer.from(okm.slice(48, 64)).toString('base64url');
   const r = await call('POST', `/deals/${dealId}/read`, { token, after: 0 });
-  const messages = (r.json.messages ?? []) as { fingerprint: string }[];
-  const fp = messages
-    .map((m) => m.fingerprint)
-    .find((f) => createHash('sha256').update(`veilcore/license-notice/v2\n${f}`).digest('hex').slice(0, 32) === ref);
+  return ((r.json.messages ?? []) as { fingerprint: string }[]).map((m) => m.fingerprint);
+};
+const statementOf = async (ref: string): Promise<string> => {
+  const fp = (await dealMessages()).find((f) => refOf(f) === ref);
   expect(fp, 'a deal message makes the line’s reference').toBeTruthy();
   return fp!;
+};
+
+/** A record saved under `holder` (someone else's, for the stranger's probe). */
+const saveRecord = async (id: string, holder: string, vault: string) => {
+  const committed = {
+    breedingMethod: '',
+    bredBy: 'Someone Else',
+    dateCreated: '2026-01-01',
+    loggedAt: Date.now() - 100 * DAY,
+    nonce: randomBytes(16).toString('hex'),
+    notes: '',
+    parents: [],
+    photoFingerprints: [],
+    refId: '',
+    strainName: 'Other Plant',
+  };
+  const recordFingerprint = createHash('sha256').update(canonicalise(committed)).digest('hex');
+  const saved = await call(
+    'PUT',
+    '/api/records',
+    [sealedRecordRow({ id, ...committed, recordFingerprint }, vault)],
+    holder,
+  );
+  expect(saved.status, JSON.stringify(saved.json)).toBe(200);
 };

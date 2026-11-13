@@ -1,11 +1,11 @@
 # Royalty payments: overdue in the open, and paying in a stablecoin
 
-Status, 12 November 2026. Built on branch `royalty-pay`; nothing here is live on veilcore.org.
+Status, 13 November 2026. Built on branch `royalty-pay`; nothing here is live on veilcore.org.
 
 - **Part 1, overdue, notice of breach, cure period, revoke for non-payment:** built for every
-  network. It needs the registry's `license-notices-v1` and `license-notices-v2` (veilcore-api
-  branch `license-notices`, which also carries the old `license-notices-dispute` work) deployed
-  first, as `scripts/registry-features.mjs` checks. The registry is the clock and the gate for
+  network. It needs the registry's `license-notices-v1`, `-v2` and `-v3` (veilcore-api branch
+  `license-notices`, which also carries the old `license-notices-dispute` work) deployed first,
+  as `scripts/registry-features.mjs` checks. The registry is the clock and the gate for
   the public lines (below). Not run on any network yet; run end to end against a real local
   registry (`e2e/royalty-registry.spec.ts`).
 - **Part 2, paying in USDCx or USDM on Cardano:** built, **off everywhere** unless switched on
@@ -58,21 +58,29 @@ beside it, which the licensor can't remove.
 
 The licensor's record's public check page (`/verify/:id`) gets one line per overdue report:
 **"The record holder says a royalty statement is overdue since <date>."** Once they send a
-notice of breach: **"Their notice of breach reached VeilCore's registry on <date>."** (the
-registry's own date). Nothing else: no amount, period, terms, name, or which license. It is
+notice of breach: **"The record holder told VeilCore's registry on <date> that they had sent a
+notice of breach."** (the registry's own date for when it was told; the notice itself goes to the
+licensee in the deal). Nothing else: no amount, period, terms, name, or which license. It is
 published from the licensor's browser under their holder key, exactly as a disclosure grant is,
-and the page says whose word each part is.
+signed with their deal key, and the page says whose word each part is.
 
 - **Where it is stored:** the registry (`PUT/DELETE /api/records/:id/license-notices/:ref`,
   `GET` for the holder's own view with the registry's time, read on `/verify/:id` as
   `licenseNotices`; veilcore-api README, "License notices"). The registry refuses any body that
-  isn't exactly `{kind:"overdue"|"breach", since, statement}` or `{kind:"revoked",
-  reason:"non-payment", on, statement}`, so a line can't carry terms or text even from a
-  modified client. `statement` is the fingerprint of the licensee's statement message in the
-  deal; it is never public.
+  isn't exactly `{kind:"overdue"|"breach", since, statement, signature}` or `{kind:"revoked",
+  reason:"non-payment", on, statement, signature}`, so a line can't carry terms or text even
+  from a modified client. `statement` is the fingerprint of the licensee's statement message in
+  the deal; it is never public.
+- **Signed by the licensor's deal key** (`license-notices.ts lineSignature`), over the record it
+  goes on: `veilcore/license-line/v1\n` + canonical `{recordId, ...line}`. The registry checks it
+  against the issuer key the deal holds, so only that deal's licensor can say anything about its
+  statements. A stranger who learned a fingerprint, or another record holder, can't put a line
+  about it anywhere, and a signature made for one record can't be replayed onto another. A
+  statement's lines live on one record (the first one its licensor put a line on, until they take
+  it off), so the licensee's page always reads the line about the deal's own record.
 - **The reference** is 32 hex characters of SHA-256 over `veilcore/license-notice/v2\n` and the
   statement's fingerprint, which only the two sides and the registry know. The registry checks
-  it, finds the deal that holds that statement, and from the deal the licensee's key (copied from
+  it, finds the deal that holds that statement, and from the deal both sides' keys (copied from
   the license invite when the deal opened). It lets both sides' pages, on any device, find the
   line. It does not make the line anonymous: see "What the public page gives away".
 - **Worked out from the deal, not from one browser** (`license-notices.ts dealNotices`): what is
@@ -103,8 +111,11 @@ in UTC (`royalty-ledger.ts breachOf`, `paymentAlerts`):
    shorten the time to pay. One sent before the payment was late starts nothing, and both pages
    say so under it, with no deadline. The licensor's page then puts the public line up as
    `breach`: the registry dates it the first time it arrives, and a resend never moves that
-   date. Both sides then see **"Pay by <date>"**: the cure deadline, from the later of the
-   deal's date and the registry's.
+   date. The registry files it only for a report the licensee's page registered, and only from
+   the day after the due date registered with it (below, "The licensee registers each report").
+   Until then the plain overdue line stands, and the licensor's alert says why. Both sides then
+   see **"Pay by <date>"**: the cure deadline, from the later of the deal's date and the
+   registry's.
 3. **Cure period: 30 days** (`CURE_DAYS`). The license terms carry no cure period
    (`royalty-terms.ts RoyaltyTermsFields`), and adding a field would change what both sides
    already signed, so every deal gets the same 30 days, and both pages say so. A later terms
@@ -123,16 +134,71 @@ in UTC (`royalty-ledger.ts breachOf`, `paymentAlerts`):
    **"The record holder says a license from this record was revoked on <date> for
    non-payment."**, with the registry's date for the notice of breach and that the 30 days passed
    with no payment on file there.
-5. **The registry is the gate** (veilcore-api, `license-notices-v2`). It accepts the revoked line
-   only with a `breach` line on file for that statement, received at least 30 full UTC days
-   earlier by its own clock, a revocation date no earlier than that, and no "paid" on file (the
-   licensee's own answer, or a checked payment partner's receipt). Otherwise it answers 409 and
+5. **The registry is the gate** (veilcore-api, `license-notices-v2` and `-v3`). It accepts the
+   revoked line only with a `breach` line on file for that statement (so a statement the licensee
+   registered, past its due date), received at least 30 full UTC days earlier by its own clock, a
+   revocation date no earlier than that, and no "paid" on file (the licensee's own answer, or a
+   checked payment partner's receipt). Otherwise it answers 409 and
    the page falls back to a plain revoke: nothing public about payment, and the licensor's page
    says why. The line's date is fixed when first accepted.
 
 "I paid" at any point before the revoke ends it: the report is no longer overdue, so there is
 nothing to revoke for non-payment. A plain **Revoke** stays as it was and says nothing public
 about payment (it takes this deal's overdue lines down).
+
+### The licensee registers each report
+
+A modified licensor client could once get "revoked for non-payment" published about something
+the licensee never saw (review round 3, B2): any deal message counted as the "statement", even the
+licensor's own payout message, and a notice of breach could be filed the day a report arrived,
+before anything was due, so the 30 days ran out a day after the payment was due.
+
+Now the licensee's page **registers** each of their reports at the registry, signed with their
+deal key: "this is my royalty statement, and its payment is due on `dueOn`"
+(`license-notices.ts registerStatement`, `POST /license-answers` with type `statement`). The due
+date comes from the terms both sides signed (`royalty-ledger.ts paymentDueOf`: the report's
+period's payment due date), the same date both pages already show. The page does it by itself,
+for every report in the deal, whenever it opens or the deal's messages change, so it happens the
+first time the licensee's page sees the report, normally as they send it. The first registration
+stands.
+
+The registry then files a notice of breach only for a registered statement, and only from the
+day after its registered due date, by its own clock (`409 not-registered`, `409 not-due`). That
+one rule closes all three gaps:
+
+- the licensor's own messages are never registered, so they can't stand in for a statement;
+- a notice can't be filed before the payment was due;
+- the cure period can't start before the licensee's page knew about the statement, because the
+  registration comes first and the registry dates the notice itself.
+
+Why the due date comes from the registration, and why the registration happens when the report
+is sent rather than when the licensor accepts it: the registry can't read the deal or the terms,
+so somebody has to tell it the date, and the licensee is the side the rule protects. Registering
+at acceptance would need the licensee to come back after the licensor answers; a licensee who
+stops paying is the most likely to stop coming back, and then the licensor could never file a
+notice. Registering as the report goes out happens while the licensee is certainly there.
+
+**If the licensee never registers** (an old browser, or a modified licensee client that holds it
+back on purpose), the licensor can't use the registry's gate for that report: the public page
+can say the payment is overdue (the licensor's word, as always), but not that a notice of breach
+was sent, and never "revoked for non-payment". The licensor's alert says so plainly: the report
+isn't registered yet, it will be the next time the licensee opens the license, and the signed
+notice of breach is in the deal either way. The licensor still has everything that matters in a
+dispute: the signed report, the signed notice of breach, the ordinary Revoke on Midnight, and the
+deal record as evidence. The registry only refuses to put its own name to a timeline it couldn't
+check. A licensee whose page registers a later due date than the terms say gets the same result
+for that report; the licensor's alert names the date the licensee registered, which is evidence
+of its own.
+
+### The licensee sees every public line
+
+The licensee's page asks the registry about every message in the deal at once (`POST
+/license-answers/lookup`, 100 at a time; `license-notices.ts statementNotices`) and shows every
+line the licensor's record's public page carries about them, with the day the licensor told the
+registry about a notice of breach and the last day to pay, whatever its own reckoning says
+(`RoyaltyPay.tsx LicenseePublicLines`). Each offers **I paid** (on a report the licensor accepted
+and that isn't marked paid) or **Dispute it**. A line about a deal message that isn't one of the
+licensee's reports is shown too, and a dispute about it is filed at the registry directly.
 
 ### The licensee's answer
 
@@ -156,7 +222,14 @@ yet, tried again when this page opens").
 
 The public page shows it beside every line about that statement: **"The licensee disputes this
 (since <date>)."** or **"The licensee says it was paid (<date>)."**, its type and date and nothing
-of what they wrote. A "paid" on file also stops "revoked for non-payment" at the registry.
+of what they wrote. A statement's lines are all on one record and all signed by the deal's
+licensor, so "every line about that statement" is every public line about that payment.
+
+A "paid" on file stops "revoked for non-payment" at the registry **for good**, whatever the
+reference: the registry stores only its hash and can't tell a real reference from a made-up one.
+A "paid" with an empty reference is refused (the registry refuses the hash of the empty string,
+and the page never sends one). The licensor's answer to a false "paid" is the ordinary Revoke on
+Midnight, which says nothing public about payment, with the signed "I paid" as evidence.
 
 After a revocation for non-payment, the licensee's license page still shows the licensor's signed
 notice, whether the public page says so, and lets them dispute it (`RoyaltyPay.tsx
@@ -172,12 +245,36 @@ RevokedForNonPayment`).
   deal. A modified licensor client can still post an overdue line and a notice of breach about a
   statement that was never due. That is why the page words it as the holder's claim, the
   licensee's answer stands beside it, and a "paid" on file stops the revoked line.
-- The registry checks that the line's statement is a message in a deal it holds, but not that
-  the record's holder is that deal's licensor: it can't tie a holder key to a deal key. Only the
-  two sides (and the registry) know a statement's fingerprint.
-- A licensee who answers "paid" without paying stops the public revoked line. The licensor can
-  still revoke on Midnight, which says nothing public about payment, and holds the signed "I
-  paid" as evidence.
+- A licensee who answers "paid" without paying, with any reference at all, stops the public
+  revoked line for good. The licensor can still revoke on Midnight, which says nothing public
+  about payment, and holds the signed "I paid" as evidence.
+- A licensee whose page never registers a report (above) keeps the notice of breach and
+  "revoked for non-payment" off the public page for it. The overdue line, the signed notice in
+  the deal and the revoke on Midnight are unaffected.
+- A report is registered as it is sent. One the licensor later asked to fix stays registered, so
+  a modified licensor client could file a notice of breach about it after its due date. The
+  licensee's page shows that line and offers "Dispute it"; the dispute stands beside it.
+- The registry can't tell which record a deal is about (it never learns a record's on-chain
+  identity). It takes the record the deal's licensor signs a line for, and keeps all of a
+  statement's lines on that one record.
+
+### Licenses from before this
+
+The registry learns the two sides' deal keys from the license invite, copied onto the deal when
+it opens (the deal keys were kept from the `license-notices` deploy on). A deal opened before that
+whose invite has since expired (invites last 30 days) has no keys on file, so the registry can
+check neither side's signature for it. Nothing about it can be put up or answered there, ever:
+the registry answers `409 predates`, and both pages say plainly that the license was made before
+this existed (`app.rpay.predates`, `app.rpay.l.answerPredates`), instead of "tries again". The
+reminders, the notice of breach, the time to pay and the dispute still work between the two of
+them, signed in the deal.
+
+The clean way for both sides to opt in is a new license (supersede): a fresh invite, so both
+sides check each other's keys with the 6-digit code again, and the registry keeps them from the
+start. A lighter way was considered and not built: each side signs their own deal key's public
+half with the old deal key inside the deal, and the registry accepts the pair only when both
+signatures check against each other. It would still rest on nothing the registry checked when
+the deal opened, which is why the new license is the recommended path.
 
 ## Part 2: paying in a US dollar stablecoin on Cardano
 
@@ -349,9 +446,9 @@ are still not anonymous, and nothing here should say they tell a stranger nothin
 - **Revoked.** A license's revocation is public on Midnight (`revokeLicense` discloses the
   license commitment and the issuing record). A "revoked on <date> for non-payment" line on a
   record's page can be lined up with the revocations on Midnight that day, and so with that
-  license and its activation. Its reference is now made from the licensor's signed `revoked`
-  notice, not the license commitment, so it no longer names the on-chain license outright; the
-  date still narrows it, often to one.
+  license and its activation. Its reference is made from the fingerprint of the licensee's
+  statement message in the deal, not from the license commitment, so it doesn't name the
+  on-chain license outright; the date still narrows it, often to one.
 - **Overdue.** The line's dates, and the day it comes off, are public. With stablecoin pay on,
   the day it comes off can be lined up with a `vc1:` payment on Cardano (above).
 - The registry caps a record at 20 notices; above that a new line can't be put up, and the page
@@ -367,10 +464,12 @@ report declared, as SPEC 11.10's "Settled" says (`RoyaltyLedger.tsx`, tested in
 ## Deploy order when this ships
 
 1. Registry: merge veilcore-api `license-notices` to `main` (one branch: the notices, the
-   merge with `main`, the old `license-notices-dispute` work and the v2 gates and answers; it adds
-   `license-notices-v1` and `license-notices-v2` to `/health`, and site deploys refuse without
-   both). `license-notices-dispute` points at the same commit and needs no merge of its own. Never
-   set `VEILCORE_TEST_CLOCK` on Railway: the registry refuses to start with it there.
+   merge with `main`, the old `license-notices-dispute` work, the v2 gates and answers and the v3
+   signatures and registrations; it adds `license-notices-v1`, `-v2` and `-v3` to `/health`, and
+   site deploys refuse without all three). `license-notices-dispute` points at the same commit and
+   needs no merge of its own. Never set `VEILCORE_TEST_CLOCK` on Railway: the registry refuses to
+   start with it there, or with `VEILCORE_ANCHOR_NETWORK=mainnet`, and answers its test clock only
+   to a request from its own machine.
 2. Sponsor read relay: only when turning on the Cardano lookup (`sponsor/` changed: deploy the
    code first, then add `CARDANO_BLOCKFROST_PROJECT_ID`).
 3. Site.

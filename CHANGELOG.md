@@ -12,13 +12,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - An accepted royalty report not paid by its due date shows as Overdue on both sides, with
   in-app reminders when a payment is due within a week. The licensor's record's public check
   page says "A royalty statement is overdue since <date>", nothing more, as the holder's word
-  (needs the registry's `license-notices-v1`). Revoking for non-payment takes a signed notice
+  (needs the registry's `license-notices-v1` to `-v3`). Revoking for non-payment takes a signed notice
   of breach first and 30 days to pay (the cure period); only then is "Revoke for non-payment"
   offered. It revokes on Midnight as before, then sends the licensee a signed notice, and the
   public page says a license was revoked for non-payment. The licensee can answer with "I paid"
   or a short dispute, which the public line shows beside it. Every deadline is a UTC date. The
   public lines are worked out from the deal's signed messages and the chain, so any device, a
-  cleared browser or a plain "Revoke" leaves the same public page.
+  cleared browser or a plain "Revoke" leaves the same public page. Every line is signed with the
+  licensor's deal key; the licensee's page registers each report at the registry with its due
+  date, and a notice of breach is filed only for a registered report after that date. The
+  licensee's page shows every public line about their deal.
 - Paying a USD royalty in USDCx or USDM on Cardano, straight from the licensee's own wallet to
   the licensor's signed address, with a CIP-20 reference; a payment found on Cardano settles
   the report without "received" (SPEC 11.10 draft, "Settled on chain"). Addresses screened

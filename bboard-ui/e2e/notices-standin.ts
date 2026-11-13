@@ -1,9 +1,12 @@
-// The stand-in registry's license notices (veilcore-api server.js, license-notices-v2), for the
+// The stand-in registry's license notices (veilcore-api server.js, license-notices-v3), for the
 // royalty browser tests that don't run against a real registry: the same rules, kept small. Lines
-// are about one statement; the notice of breach is dated by THIS registry's clock (`clock`, which a
-// test moves, never the browser's); "revoked for non-payment" is refused (409) until the cure period
-// has run out by that clock with no "paid" on file; the licensee's answers stand beside the line,
-// first of each type. royalty-registry.spec.ts runs the same flow against a real registry.
+// are about one statement and carry the licensor's signature (its presence is checked here; the
+// real registry checks it against the deal's key); a notice of breach is filed only for a statement
+// the licensee's page registered, from the day after its registered due date, and is dated by THIS
+// registry's clock (`clock`, which a test moves, never the browser's); "revoked for non-payment" is
+// refused (409) until the cure period has run out by that clock with no "paid" on file; the
+// licensee's answers stand beside the line, first of each type. royalty-registry.spec.ts runs the
+// same flow against a real registry.
 // SPDX-License-Identifier: Apache-2.0
 import type { Route } from '@playwright/test';
 
@@ -25,6 +28,10 @@ export type NoticeState = {
   clock?: number;
   lines: Map<string, Line>;
   answers: Map<string, { type: 'paid' | 'disputed'; at: number }[]>;
+  /** The licensee's registrations, by statement: the due date and when it was filed. */
+  registered: Map<string, { dueOn: string; at: number }>;
+  /** Every registration the licensee's page sent, as sent. */
+  registrations: Record<string, unknown>[];
   /** Every PUT body, as sent. */
   bodies: Record<string, unknown>[];
   /** Every answer the licensee filed, as sent. */
@@ -36,6 +43,8 @@ export type NoticeState = {
 export const noticeState = (): NoticeState => ({
   lines: new Map(),
   answers: new Map(),
+  registered: new Map(),
+  registrations: [],
   bodies: [],
   answerBodies: [],
   down: false,
@@ -51,7 +60,7 @@ const publicLine = (s: NoticeState, l: Line) => {
     ...(l.kind === 'overdue' ? { since: l.day } : { reason: 'non-payment', on: l.day }),
     ...(l.breachAt ? { breachNoticeOn: utcDay(l.breachAt) } : {}),
     ...(answers.length ? { answers } : {}),
-    updatedAt: new Date(l.updatedAt).toISOString(),
+    updatedAt: utcDay(l.updatedAt),
   };
 };
 
@@ -102,10 +111,18 @@ export const noticeRoute = async (
     }
     if (method === 'PUT' && body) {
       s.bodies.push(body);
+      if (typeof body.signature !== 'string' || !/^[0-9a-f]{128}$/.test(body.signature))
+        return json(route, 400, { error: 'unsigned' }).then(() => true);
       const had = s.lines.get(ref);
       const statement = String(body.statement);
       let breachAt = had?.breachAt;
-      if (body.kind === 'breach' && !breachAt) breachAt = t;
+      if (body.kind === 'breach' && !breachAt) {
+        const reg = s.registered.get(statement);
+        if (!reg) return json(route, 409, { code: 'not-registered', now: t }).then(() => true);
+        if (utcDay(t) <= reg.dueOn || String(body.since) <= reg.dueOn)
+          return json(route, 409, { code: 'not-due', dueOn: reg.dueOn, now: t }).then(() => true);
+        breachAt = t;
+      }
       let kind: Line['kind'] = body.kind === 'revoked' ? 'revoked' : 'overdue';
       let day = String(body.kind === 'revoked' ? body.on : body.since);
       if (body.kind === 'revoked' && had?.kind !== 'revoked') {
@@ -127,6 +144,15 @@ export const noticeRoute = async (
     }
   }
   if (method === 'POST' && url.pathname === '/license-answers' && body) {
+    const r = body.answer as { statement: string; type: string; dueOn?: string };
+    if (r.type === 'statement') {
+      s.registrations.push(body);
+      const had = s.registered.get(r.statement);
+      if (!had) s.registered.set(r.statement, { dueOn: String(r.dueOn), at: t });
+      const reg = s.registered.get(r.statement)!;
+      await json(route, 200, { filed: !had, type: 'statement', on: utcDay(reg.at), dueOn: reg.dueOn, now: t });
+      return true;
+    }
     s.answerBodies.push(body);
     const a = body.answer as { statement: string; type: 'paid' | 'disputed' };
     const list = s.answers.get(a.statement) ?? [];
@@ -134,6 +160,24 @@ export const noticeRoute = async (
     if (!first) list.push({ type: a.type, at: t });
     s.answers.set(a.statement, list);
     await json(route, 200, { filed: !first, type: a.type, on: utcDay(first?.at ?? t), now: t });
+    return true;
+  }
+  if (method === 'POST' && url.pathname === '/license-answers/lookup' && body) {
+    if (s.down) return json(route, 503, { error: 'down' }).then(() => true);
+    const statements = (body.statements as string[]) ?? [];
+    await json(route, 200, {
+      results: statements.map((st) => {
+        const reg = s.registered.get(st);
+        return {
+          statement: st,
+          answers: (s.answers.get(st) ?? []).map((x) => ({ type: x.type, on: utcDay(x.at) })),
+          lines: [...s.lines.values()].filter((l) => l.statement === st).map((l) => publicLine(s, l)),
+          ...(reg ? { registered: { dueOn: reg.dueOn, on: utcDay(reg.at) } } : {}),
+        };
+      }),
+      now: t,
+      cureDays: CURE_DAYS,
+    });
     return true;
   }
   const g = /^\/license-answers\/([0-9a-f]{64})$/.exec(url.pathname);

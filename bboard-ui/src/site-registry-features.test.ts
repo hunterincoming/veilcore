@@ -57,6 +57,7 @@ const AGREEMENTS = [
   'passkey-vault-v1',
   'license-notices-v1',
   'license-notices-v2',
+  'license-notices-v3',
 ];
 const DEPLOY_FIRST = /Deploy the registry first: put the registry's latest code live on Railway/;
 
