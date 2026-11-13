@@ -99,6 +99,13 @@ export type ResolvedAttestation = SignedAttestation & {
    * or as a signature that failed.
    */
   documentWithheld?: boolean;
+  /**
+   * The registry's mark on a private signature it served to this holder key (12 Nov 2026): a
+   * lab's report or receipt, or a lab key's genetic-fingerprint or inspection. Absent from
+   * older registries and on every public row. The registry's word, used only to offer it in
+   * the share list.
+   */
+  private?: boolean;
 };
 
 /** What arrives from the registry, before anything is checked. */
@@ -185,25 +192,53 @@ export const checkAttestations = async (
   );
 };
 
+/** The registry's largest page of attestations (lineage/attesters.mjs ATTESTATION_LIMITS.page). */
+const PAGE = 100;
+/** At most this many pages: the registry keeps at most 1,000 public and 1,000 private per record. */
+const MAX_PAGES = 21;
+
 /**
  * The open list for a record, or null when the registry could not be asked or answered
  * something else (so a caller can tell "none" from "couldn't say").
  */
 export const loadAttestations = async (
   commitment?: string,
-  opts: { asHolder?: boolean; claimsKeyBindings?: boolean } = {},
+  opts: { asHolder?: boolean; claimsKeyBindings?: boolean; allPages?: boolean } = {},
 ): Promise<ResolvedAttestation[] | null> => {
   if (!commitment || !HEX64.test(commitment)) return null;
   try {
     const key = opts.asHolder && !holderRequestsPaused() ? holderKeyIfAny() : null;
-    const res = await fetch(
-      `${BASE}/attestations/subject/${encodeURIComponent(commitment)}`,
-      key ? { headers: { 'x-holder-key': key }, cache: 'no-store' } : undefined,
-    );
-    if (!res.ok) return null;
-    const body = await readJson(res);
-    if (!isObject(body) || !Array.isArray(body.attestations)) return null;
-    return await checkAttestations(body.attestations, commitment, opts);
+    const init = key ? { headers: { 'x-holder-key': key }, cache: 'no-store' as const } : undefined;
+    const url = `${BASE}/attestations/subject/${encodeURIComponent(commitment)}`;
+    if (!opts.allPages) {
+      const res = await fetch(url, init);
+      if (!res.ok) return null;
+      const body = await readJson(res);
+      if (!isObject(body) || !Array.isArray(body.attestations)) return null;
+      return await checkAttestations(body.attestations, commitment, opts);
+    }
+    // Every page (12 Nov 2026): the registry sends at most PAGE rows at a time, public ones
+    // first, so a record with more than that would hide the holder's own lab signatures past
+    // the first page from the share list. A page that fails fails the whole list.
+    const rows: unknown[] = [];
+    for (let offset = 0, n = 0; n < MAX_PAGES; n++) {
+      const res = await fetch(`${url}?limit=${String(PAGE)}&offset=${String(offset)}`, init);
+      if (!res.ok) return null;
+      const body = await readJson(res);
+      if (!isObject(body) || !Array.isArray(body.attestations)) return null;
+      rows.push(...(body.attestations as unknown[]));
+      offset += body.attestations.length;
+      const total = typeof body.total === 'number' ? body.total : 0;
+      if (body.attestations.length === 0 || offset >= total) break;
+    }
+    const seen = new Set<string>();
+    const once = rows.filter((a) => {
+      const id = isObject(a) && isString(a.attestationId) ? a.attestationId : '';
+      if (!id || seen.has(id)) return false;
+      seen.add(id);
+      return true;
+    });
+    return await checkAttestations(once, commitment, opts);
   } catch {
     return null;
   }

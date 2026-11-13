@@ -157,6 +157,12 @@ test('the holder shows no lab signature, then one lab report: the check page say
   const section = breeder.locator('[data-lab-share-section]');
   await expect(section.locator('[data-lab-share-needs-status]')).toBeVisible();
   await breeder.getByLabel(/Whether a DNA report is saved/).check();
+  // What that switch shows even with no signature turned on, said next to it (12 Nov 2026).
+  await expect(breeder.locator('[data-custody-note]')).toHaveText(
+    'If on, the check page also shows, for each receipt a lab signed for a sample from this record, that a lab received a sample (not which lab) and whether what arrived matches what was sent.',
+  );
+  await expect(section).toContainText('only you, the lab and whoever sent it the sample can see them');
+  await expect(section).toContainText('without the lab’s name');
   // The lab's receipt and its report, each off until the holder turns it on.
   await expect(section.locator('[data-lab-share]')).toHaveCount(2);
   for (const s of await section.getByRole('switch').all()) await expect(s).not.toBeChecked();

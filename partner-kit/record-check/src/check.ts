@@ -25,7 +25,14 @@
 import { COMMITMENT_ALGORITHM, verifyInclusion, type InclusionProof } from 'veilcore-records';
 import { fingerprintOfFields, isHex64, keyMatchesFingerprint, nameCodeOf } from './hash.js';
 import { CUT, LinkError, parseCheckLink, type CheckLink } from './link.js';
-import { checkSignatures, cleanName, type CustodyEntry, type LabReceipt } from './signatures.js';
+import {
+  checkSignatures,
+  cleanName,
+  unnamedCustodyWords,
+  type CustodyEntry,
+  type LabReceipt,
+  type UnnamedCustody,
+} from './signatures.js';
 
 /** Most signatures a holder can show on one check link (the registry's limit). */
 const SHARED_MAX = 50;
@@ -146,6 +153,13 @@ export type RecordCheck = {
   readonly dated: Dated;
   readonly keyBound: KeyBound;
   readonly labReceipts: readonly LabReceipt[];
+  /**
+   * Custody lines for lab receipts the holder hasn't shown (sent when the holder shares lab
+   * status): a lab received a sample from this record, and whether what arrived matches what
+   * was sent. Which lab, and its signature, are not shown, so nothing here is checked: it is
+   * the registry's report. Empty when there are none or lab status is not shared.
+   */
+  readonly unnamedCustody: readonly UnnamedCustody[];
   /**
    * How many signatures the registry shows about the fingerprint (it sends at most 100): the
    * public ones and those the holder chose to show. A lab's receipts and reports are private
@@ -272,6 +286,7 @@ export const checkRecord = async (linkOrId: string, opts: CheckOptions = {}): Pr
       dated: notChecked('No record with this id in the registry.'),
       keyBound: { recordNamesKey: null, keyInLink: 'not-given', key: null, reason: 'No record.' },
       labReceipts: [],
+      unnamedCustody: [],
       labReceiptsTotal: 0,
       registryFirstSeen: null,
       supersededBy: null,
@@ -380,6 +395,7 @@ export const checkRecord = async (linkOrId: string, opts: CheckOptions = {}): Pr
       ),
       keyBound,
       labReceipts: [],
+      unnamedCustody: [],
       labReceiptsTotal: 0,
       labReportsWithheld: 0,
       problems,
@@ -399,6 +415,8 @@ export const checkRecord = async (linkOrId: string, opts: CheckOptions = {}): Pr
   const dated = await dateOf(proofRes, fingerprint, opts.checkAnchor, problems);
 
   let labReceipts: LabReceipt[] = [];
+  // Read whatever happened to the signatures: the registry's /verify sent these lines.
+  const unnamedCustody = unnamedCustodyOf(r.custody);
   let labReceiptsTotal = 0;
   let labReportsWithheld = 0;
   if (attRes === null || attRes.status !== 200 || !isObject(attRes.body) || !Array.isArray(attRes.body.attestations)) {
@@ -451,6 +469,7 @@ export const checkRecord = async (linkOrId: string, opts: CheckOptions = {}): Pr
     dated,
     keyBound,
     labReceipts,
+    unnamedCustody,
     labReceiptsTotal,
     labReportsWithheld,
     problems,
@@ -495,11 +514,43 @@ const isCoveredState = (v: unknown): v is 'covered' | 'changed' | 'not-covered' 
  * recorded on the delivery, and how what arrived differs from what was sent. Anything out
  * of shape is dropped.
  */
+type CustodyLine = Omit<CustodyEntry, 'receiptAttestationId'> & { readonly receiptAttestationId?: string };
 const custodyOf = (v: unknown): CustodyEntry[] | undefined => {
+  const all = custodyLinesOf(v);
+  return all === undefined
+    ? undefined
+    : all.filter((e): e is CustodyEntry => typeof e.receiptAttestationId === 'string');
+};
+/**
+ * The custody lines that name no receipt (8 Nov 2026): the registry names a receipt only when
+ * the holder shows it, and otherwise sends the line without its id. Such a line still says a
+ * lab received a sample from this record and whether what arrived matches what was sent; the
+ * site's check page shows it (custody.ts unnamedCustodyOf), and so does this.
+ */
+const unnamedCustodyOf = (v: unknown): UnnamedCustody[] =>
+  (custodyLinesOf(v) ?? [])
+    .filter((e) => e.receiptAttestationId === undefined)
+    .slice(0, 100)
+    .map((e) => {
+      const line = {
+        ...(e.covered ? { covered: e.covered } : {}),
+        differences: e.differences,
+        clean: e.covered === 'covered' && e.differences.length === 0 && e.custody === undefined,
+        ...(e.custody ? { state: e.custody } : {}),
+        ...(e.custodySummary ? { senderSays: e.custodySummary } : {}),
+      };
+      return { ...line, words: unnamedCustodyWords(line) };
+    });
+const custodyLinesOf = (v: unknown): CustodyLine[] | undefined => {
   if (!Array.isArray(v)) return undefined;
-  const out: CustodyEntry[] = [];
+  const out: CustodyLine[] = [];
   for (const e of v.slice(0, 200)) {
-    if (!isObject(e) || typeof e.receiptAttestationId !== 'string' || !e.receiptAttestationId) continue;
+    if (!isObject(e)) continue;
+    // A line names its receipt only when the holder shows that receipt; one that names none is
+    // kept without an id (unnamedCustodyOf). An id that is there must be a non-empty string.
+    if (e.receiptAttestationId !== undefined && (typeof e.receiptAttestationId !== 'string' || !e.receiptAttestationId))
+      continue;
+    const id = typeof e.receiptAttestationId === 'string' ? { receiptAttestationId: e.receiptAttestationId } : {};
     // Sealed sample details (the registry can't read them) or removed ones: no `covered`.
     if (e.custody === 'sealed' || e.custody === 'removed') {
       const s = isObject(e.custodySummary) ? e.custodySummary : undefined;
@@ -518,7 +569,7 @@ const custodyOf = (v: unknown): CustodyEntry[] | undefined => {
             }
           : undefined;
       out.push({
-        receiptAttestationId: e.receiptAttestationId,
+        ...id,
         differences: [],
         custody: e.custody,
         ...(summary ? { custodySummary: summary } : {}),
@@ -532,7 +583,7 @@ const custodyOf = (v: unknown): CustodyEntry[] | undefined => {
           .map((d) => cleanName(d, 300))
           .filter((d): d is string => d !== null)
       : [];
-    out.push({ receiptAttestationId: e.receiptAttestationId, covered: e.covered, differences });
+    out.push({ ...id, covered: e.covered, differences });
   }
   return out;
 };
@@ -833,6 +884,18 @@ export const summaryOf = (p: Parts): string => {
         x.custody.senderSays?.covered === 'changed' ||
         (x.custody.senderSays?.differingFields.length ?? 0) > 0),
   ).length;
+  // Lines for receipts the holder hasn't shown count the same way: what arrived differs.
+  const unnamedIssues = p.unnamedCustody.filter(
+    (x) =>
+      x.covered === 'changed' ||
+      x.differences.length > 0 ||
+      x.senderSays?.covered === 'changed' ||
+      (x.senderSays?.differingFields.length ?? 0) > 0,
+  ).length;
+  if (unnamedIssues)
+    parts.push(
+      `For ${unnamedIssues === 1 ? 'a sample' : `${unnamedIssues} samples`} a lab received (the holder hasn’t shown which lab), what arrived does NOT match what was sent, or the lab’s details were changed after signing.`,
+    );
   if (custodyIssues)
     parts.push(
       `${custodyIssues} lab receipt${custodyIssues === 1 ? '' : 's'} for a sample ${custodyIssues === 1 ? 'does' : 'do'} NOT match what was sent, or ${custodyIssues === 1 ? 'was' : 'were'} changed after signing.`,

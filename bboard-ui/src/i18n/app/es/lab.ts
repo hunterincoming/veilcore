@@ -384,7 +384,7 @@ export const lab = {
   'app.lab.out.andJoin': ', y ',
   'app.lab.out.sent': 'Enviado',
   'app.lab.out.sentText':
-    'Solo el obtentor puede abrirlo. Su firma sobre él también es privada: solo el obtentor y usted pueden verla, salvo que el obtentor decida mostrarla en su enlace de comprobación.',
+    'Solo el obtentor puede abrirlo. Su firma sobre él también es privada: solo el obtentor y usted pueden verla, salvo que el obtentor decida mostrarla en su enlace de comprobación. Si firmó un acuse de recibo de la muestra y el obtentor muestra si hay un informe de ADN guardado, su página de comprobación dice que un laboratorio recibió una muestra y si lo que llegó coincide con lo enviado, sin el nombre de su laboratorio.',
   'app.lab.out.sentName':
     'Si lo hace, cualquiera con ese enlace ve también el nombre con el que está registrada su clave. Hasta que el operador de VeilCore lo coteje con un listado público de licencias o acreditaciones, aparece como “una clave llamada “{name}” (nombre no comprobado)”.',
   'app.lab.out.yourLab': 'su laboratorio',

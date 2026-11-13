@@ -98,6 +98,7 @@ import {
   reportFingerprint,
   resultState,
   sendLockedResult,
+  labKeyProof,
   sentRowWords,
   sendRefusal,
   shortResultId,
@@ -1146,7 +1147,8 @@ export const SendResultsPanel: React.FC<{
         throw e;
       }
       const locked = await lockReport(file.bytes, lock, kind, numbersBytes);
-      const out = await sendLockedResult(transferId, locked, signed.attestationId, replacing?.id);
+      const keyProof = await labKeyProof(attester.keypair.privateKey, transferId, signed.attestationId);
+      const out = await sendLockedResult(transferId, locked, signed.attestationId, replacing?.id, keyProof);
       if ('error' in out) {
         if (bindingId) await retract(attester, bindingId, 'issued-in-error');
         const undo = await retract(attester, signed.attestationId, 'issued-in-error');

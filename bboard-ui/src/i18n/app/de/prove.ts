@@ -167,12 +167,16 @@ export const prove = {
   'app.prove.share.nameInLinkHelp':
     'Wenn eingeschaltet, sehen alle, denen Sie diesen Link schicken, den Namen, und auch alle, an die sie ihn weitergeben.',
   'app.prove.share.nameWarning': 'Wenn eingeschaltet, sieht jeder mit der ID des Datensatzes den Namen.',
+  'app.prove.share.custodyNote':
+    'Wenn eingeschaltet, zeigt die Prüfseite außerdem für jede Empfangsbestätigung, die ein Labor für eine Probe aus diesem Datensatz signiert hat, dass ein Labor eine Probe erhalten hat (nicht welches) und ob das Angekommene dem Gesendeten entspricht.',
   'app.prove.share.labSigs.title': 'Laborsignaturen',
   'app.prove.share.labSigs.intro':
-    'Empfangsbestätigungen und Berichte eines Labors zu diesem Datensatz sind privat: Nur Sie und das Labor sehen sie. Schalten Sie eine ein, um sie auf Ihrem Prüflink zu zeigen und allen, die den Prüfcode dieses Datensatzes haben (Ihre Links, die eine Zahl belegen, enthalten ihn). Sie sehen dann, dass das Labor sie signiert hat, und den Namen des Labors.',
+    'Empfangsbestätigungen und Berichte eines Labors zu diesem Datensatz sind privat: Nur Sie, das Labor und wer ihm die Probe geschickt hat, sehen sie. Schalten Sie eine ein, um sie auf Ihrem Prüflink zu zeigen und allen, die den Prüfcode dieses Datensatzes haben (Ihre Links, die eine Zahl belegen, enthalten ihn). Sie sehen dann, dass das Labor sie signiert hat, und den Namen des Labors. Auch wenn keine eingeschaltet ist, zeigt „Ob ein DNA-Bericht gespeichert ist“ für jede Empfangsbestätigung, dass ein Labor eine Probe erhalten hat und ob das Angekommene dem Gesendeten entspricht, ohne den Namen des Labors.',
   'app.prove.share.labSigs.item': 'Auf Ihrem Prüflink zeigen, dass {who} dies signiert hat',
   'app.prove.share.labSigs.receipt': 'Empfangsbestätigung für eine Probe, signiert am {date}',
   'app.prove.share.labSigs.report': 'Laborbericht, signiert am {date}',
+  'app.prove.share.labSigs.fingerprint': 'DNA-Fingerabdruck, signiert am {date}',
+  'app.prove.share.labSigs.inspection': 'Inspektion, signiert am {date}',
   'app.prove.share.labSigs.withdrawn': 'Vom Labor am {date} zurückgezogen; die Prüfseite sagt das.',
   'app.prove.share.labSigs.needsStatus':
     'Um Laborsignaturen auf Ihrem Prüflink zu zeigen, schalten Sie „Ob ein DNA-Bericht gespeichert ist“ ein.',

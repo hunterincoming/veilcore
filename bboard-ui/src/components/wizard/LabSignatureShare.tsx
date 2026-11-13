@@ -1,7 +1,8 @@
 // "Show on my check link", per lab signature (8 Nov 2026).
 //
-// The registry keeps a lab's receipts and reports about a record private: only the holder,
-// the delivery's parties and the lab can read them. The holder can show chosen ones on their
+// The registry keeps a lab's receipts and reports about a record private (and a lab key's
+// genetic-fingerprint or inspection signatures): only the holder, the delivery's sender and
+// the lab can read them. The holder can show chosen ones on their
 // check link (disclosure.ts GrantValues.sharedAttestations, under "Whether a DNA report is
 // saved"). Each is off until the holder turns it on. When the saved DNA report matches a lab
 // report, and the link carries that report's lab salt, showing that report is suggested: the
@@ -14,9 +15,26 @@ import { isLabSignature, signerLabel, type ResolvedAttestation } from '../../vei
 import { isBoundLabDocument } from '../../veilcore/lab-doc';
 import type { Translator } from '../../i18n/translate';
 
-/** The lab signatures a holder can show: a lab's reports and receipts that verify here. */
+/** A lab key's other signatures, private only when the registry says the key is a lab's. */
+const LAB_KEY_TYPES: readonly string[] = ['genetic-fingerprint', 'inspection'];
+
+/**
+ * The lab signatures a holder can show, that verify here: a lab's reports and receipts, and a
+ * lab key's genetic-fingerprint or inspection when the registry marks it private (12 Nov 2026,
+ * `private`; only the registry can tell a lab's key from anyone else's). A public one needs no
+ * showing: anyone with the proof code reads it already.
+ */
 export const shareableLabSignatures = (atts: readonly ResolvedAttestation[]): ResolvedAttestation[] =>
-  atts.filter((a) => isLabSignature(a) && a.signatureValid);
+  atts.filter((a) => a.signatureValid && (isLabSignature(a) || (LAB_KEY_TYPES.includes(a.type) && a.private === true)));
+
+const kindLine = (a: ResolvedAttestation, date: string, tr: Translator): string =>
+  a.type === 'chain-of-custody'
+    ? tr.t('app.prove.share.labSigs.receipt', { date })
+    : a.type === 'genetic-fingerprint'
+      ? tr.t('app.prove.share.labSigs.fingerprint', { date })
+      : a.type === 'inspection'
+        ? tr.t('app.prove.share.labSigs.inspection', { date })
+        : tr.t('app.prove.share.labSigs.report', { date });
 
 export const LabSignatureShare: React.FC<{
   /** The holder's view of the record's signatures; null while loading, 'unknown' when it couldn't be read. */
@@ -90,9 +108,7 @@ export const LabSignatureShare: React.FC<{
                         color="text.secondary"
                         sx={{ display: 'block' }}
                       >
-                        {a.type === 'chain-of-custody'
-                          ? t('app.prove.share.labSigs.receipt', { date })
-                          : t('app.prove.share.labSigs.report', { date })}
+                        {kindLine(a, date, tr)}
                         {a.retraction
                           ? `${t('app.common.sentenceSep')}${t('app.prove.share.labSigs.withdrawn', { date: tr.date(a.retraction.retractedAt) })}`
                           : ''}

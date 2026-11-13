@@ -285,6 +285,10 @@ same rule as the field's `required` and the command's exit 0
     "custody": { "covered": "covered", "differences": [], "clean": true },  // lab receipts: the delivery's sample details (the registry's report)
     "words": "Lab's receipt for a sample, signature verified, signed by … VeilCore doesn't vouch for the lab's work."
   }],
+  "unnamedCustody": [{                // receipts the holder hasn't shown: a lab received a sample (not which), the registry's report
+    "covered": "covered", "differences": ["Seal number differs: sent …, received …"], "clean": false,
+    "words": "A lab's receipt for a sample from this record, as the registry reports it. …"
+  }],
   "labReceiptsTotal": 1,              // the public ones and those the holder shows; 0 never means no lab signed
   "registryFirstSeen": "…",            // the registry's clock
   "supersededBy": null,
@@ -297,7 +301,10 @@ same rule as the field's `required` and the command's exit 0
 A lab receipt is a chain-of-custody signature whose id the registry ties to a delivery of
 this record (the `custody` list in `/verify`, sent when the holder shares lab status). A
 custody line carries the receipt's id, which leads to the lab, only when the holder shows
-that receipt.
+that receipt. A line without one is in `unnamedCustody`: a lab received a sample from the
+record and how what arrived compares with what was sent, without the lab or its signature, so
+nothing in it was checked here. A mismatch there counts in the summary like one under a
+receipt.
 `custody.covered` is `covered` when the signature covers the sample details the delivery
 records, `changed` when the lab changed them after signing, `not-covered` for an older
 receipt; `differences` says how what arrived differs from what was sent. `clean` is true

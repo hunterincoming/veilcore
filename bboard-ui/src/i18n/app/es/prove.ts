@@ -161,12 +161,16 @@ export const prove = {
   'app.prove.share.nameInLinkHelp':
     'Si está activado, todos a quienes envíe este enlace ven el nombre, y también cualquiera a quien se lo pasen.',
   'app.prove.share.nameWarning': 'Si está activado, cualquiera con el ID del registro ve el nombre.',
+  'app.prove.share.custodyNote':
+    'Si está activado, la página de comprobación también muestra, para cada acuse de recibo que un laboratorio firmó por una muestra de este registro, que un laboratorio recibió una muestra (no cuál) y si lo que llegó coincide con lo enviado.',
   'app.prove.share.labSigs.title': 'Firmas de laboratorio',
   'app.prove.share.labSigs.intro':
-    'Los acuses de recibo y los informes de un laboratorio sobre este registro son privados: solo usted y el laboratorio pueden verlos. Active uno para mostrarlo en su enlace de comprobación y a cualquiera que tenga el código de prueba de este registro (sus enlaces que demuestran un número lo llevan). Verán entonces que el laboratorio lo firmó, y el nombre del laboratorio.',
+    'Los acuses de recibo y los informes de un laboratorio sobre este registro son privados: solo usted, el laboratorio y quien le envió la muestra pueden verlos. Active uno para mostrarlo en su enlace de comprobación y a cualquiera que tenga el código de prueba de este registro (sus enlaces que demuestran un número lo llevan). Verán entonces que el laboratorio lo firmó, y el nombre del laboratorio. Aunque no active ninguno, “Si hay un informe de ADN guardado” muestra, para cada acuse de recibo, que un laboratorio recibió una muestra y si lo que llegó coincide con lo enviado, sin el nombre del laboratorio.',
   'app.prove.share.labSigs.item': 'Mostrar en su enlace de comprobación que {who} firmó esto',
   'app.prove.share.labSigs.receipt': 'Acuse de recibo de una muestra, firmado el {date}',
   'app.prove.share.labSigs.report': 'Informe de laboratorio, firmado el {date}',
+  'app.prove.share.labSigs.fingerprint': 'Huella genética, firmada el {date}',
+  'app.prove.share.labSigs.inspection': 'Inspección, firmada el {date}',
   'app.prove.share.labSigs.withdrawn': 'Retirado por el laboratorio el {date}; la página de comprobación lo dice.',
   'app.prove.share.labSigs.needsStatus':
     'Para mostrar firmas de laboratorio en su enlace de comprobación, active “Si hay un informe de ADN guardado”.',

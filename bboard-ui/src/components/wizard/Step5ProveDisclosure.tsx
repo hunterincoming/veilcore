@@ -131,7 +131,9 @@ export const Step5ProveDisclosure: React.FC<{
   useEffect(() => {
     let live = true;
     setLabAtts(null);
-    void loadAttestations(fingerprintNow, { asHolder: true }).then((a) => live && setLabAtts(a ?? 'unknown'));
+    void loadAttestations(fingerprintNow, { asHolder: true, allPages: true }).then(
+      (a) => live && setLabAtts(a ?? 'unknown'),
+    );
     return () => {
       live = false;
     };
@@ -314,6 +316,18 @@ export const Step5ProveDisclosure: React.FC<{
                     data-name-warning=""
                   >
                     {t('app.prove.share.nameWarning')}
+                  </Typography>
+                )}
+                {/* Under this switch the check page also shows the custody line of each lab
+                    receipt, without the lab's name (the registry's publicCustody): said here. */}
+                {f.key === 'attestation-status' && (
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                    sx={{ display: 'block', mt: -0.5, mb: 0.5 }}
+                    data-custody-note=""
+                  >
+                    {t('app.prove.share.custodyNote')}
                   </Typography>
                 )}
               </React.Fragment>

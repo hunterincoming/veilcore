@@ -4,28 +4,28 @@
 import type { AppTranslation } from '../../translate';
 
 export const verify = {
-  'app.verify.report.notSaved': 'Le détenteur n’a pas enregistré de rapport ADN sur cet enregistrement.',
+  'app.verify.report.notSaved': 'Le détenteur n’a joint aucun rapport ADN à cet enregistrement.',
   'app.verify.report.pending':
     'Le rapport ADN enregistré n’est pas affiché pour le moment : l’enregistrement a changé après que son détenteur a choisi de le partager, et son application n’a pas encore envoyé la mise à jour.',
   'app.verify.report.asOf': ' (au moment où ce lien a été créé)',
   'app.verify.report.staleNote':
     ' Ce lien a été créé quand un autre fichier était enregistré ; cette ligne concerne celui enregistré maintenant.',
   'app.verify.report.matches':
-    'Le détenteur a enregistré un rapport ADN sur cet enregistrement{asOf}. Son fichier (SHA-256 {sha}) correspond au rapport de laboratoire {lead} : signature vérifiée dans ce navigateur.{rest}{staleNote}',
-  'app.verify.report.which': 'Le rapport ADN enregistré sur cet enregistrement{asOf} (SHA-256 {sha})',
+    'Le détenteur a joint un rapport ADN à cet enregistrement{asOf}. Son fichier (SHA-256 {sha}) correspond au rapport de laboratoire {lead} : signature vérifiée dans ce navigateur.{rest}{staleNote}',
+  'app.verify.report.which': 'Le rapport ADN joint à cet enregistrement{asOf} (SHA-256 {sha})',
   'app.verify.report.replaced':
     '{which} a été remplacé par son laboratoire le {on} par un rapport corrigé. {tail}{staleNote}',
   'app.verify.report.withdrawn': '{which} a été retiré par son laboratoire le {on}. {tail}{staleNote}',
   'app.verify.report.ownSha':
-    'Le détenteur a enregistré un fichier de rapport ADN sur cet enregistrement{asOf} (SHA-256 {sha}). Aucune signature de laboratoire montrée ici n’y correspond : tel que montré, c’est la propre déclaration du détenteur. Les signatures d’un laboratoire sont privées, sauf si le détenteur choisit de les montrer.{staleNote}',
+    'Le détenteur a joint un fichier de rapport ADN à cet enregistrement{asOf} (SHA-256 {sha}). Aucune signature de laboratoire montrée ici n’y correspond : tel que montré, c’est la propre déclaration du détenteur. Les signatures d’un laboratoire sont privées, sauf si le détenteur choisit de les montrer.{staleNote}',
   'app.verify.report.own':
-    'Le détenteur a enregistré un fichier de rapport ADN sur cet enregistrement. Aucune signature de laboratoire montrée ici n’y correspond : tel que montré, c’est la propre déclaration du détenteur. Les signatures d’un laboratoire sont privées, sauf si le détenteur choisit de les montrer.{staleNote}',
+    'Le détenteur a joint un fichier de rapport ADN à cet enregistrement. Aucune signature de laboratoire montrée ici n’y correspond : tel que montré, c’est la propre déclaration du détenteur. Les signatures d’un laboratoire sont privées, sauf si le détenteur choisit de les montrer.{staleNote}',
   'app.verify.report.unnamedSigned':
-    'Le détenteur a enregistré un rapport ADN sur cet enregistrement. Ce lien ne nomme pas le fichier : cette page ne peut donc pas dire s’il s’agit du rapport signé indiqué ci-dessus.',
+    'Le détenteur a joint un rapport ADN à cet enregistrement. Ce lien ne nomme pas le fichier : cette page ne peut donc pas dire s’il s’agit du rapport signé indiqué ci-dessus.',
   'app.verify.report.unnamedWithdrawn':
-    'Le détenteur a enregistré un rapport ADN sur cet enregistrement. Ce lien ne nomme pas le fichier, et chaque rapport signé au sujet de cet enregistrement a été retiré par son laboratoire : c’est donc la propre déclaration du détenteur.',
+    'Le détenteur a joint un rapport ADN à cet enregistrement. Ce lien ne nomme pas le fichier, et chaque rapport signé montré ici a été retiré par son laboratoire : c’est donc la propre déclaration du détenteur.',
   'app.verify.report.unnamedNone':
-    'Le détenteur a enregistré un rapport ADN sur cet enregistrement. Aucune signature de rapport de laboratoire n’est montrée ici : tel que montré, c’est donc la propre déclaration du détenteur. Les signatures d’un laboratoire sont privées, sauf si le détenteur choisit de les montrer.',
+    'Le détenteur a joint un rapport ADN à cet enregistrement. Aucune signature de rapport de laboratoire n’est montrée ici : tel que montré, c’est donc la propre déclaration du détenteur. Les signatures d’un laboratoire sont privées, sauf si le détenteur choisit de les montrer.',
   'app.verify.kind.receipts.one': 'un accusé de réception de laboratoire',
   'app.verify.kind.receipts.other': '{count} accusés de réception de laboratoire',
   'app.verify.kind.reports.one': 'un rapport de laboratoire',
@@ -134,7 +134,7 @@ export const verify = {
   'app.verify.withheldReports.other':
     'Le registre signale qu’un laboratoire a signé {count} rapports sur cet enregistrement ({dates}). Ces signatures désignent les fichiers des rapports : le registre ne les montre donc qu’à l’obtenteur et au laboratoire, et cette page ne peut pas les vérifier.',
   'app.verify.report.labUnknown':
-    'Le détenteur a enregistré un fichier de rapport ADN sur cet enregistrement{asOf} (SHA-256 {sha}). Un laboratoire a signé un rapport sur cet enregistrement, mais cette page ne peut pas dire si c’est ce fichier : {why}{staleNote}',
+    'Le détenteur a joint un fichier de rapport ADN à cet enregistrement{asOf} (SHA-256 {sha}). Un laboratoire a signé un rapport sur cet enregistrement, mais cette page ne peut pas dire si c’est ce fichier : {why}{staleNote}',
   'app.verify.report.whyNoLabSalt':
     'ce lien ne porte pas la clé du rapport de laboratoire. Demandez au détenteur un lien de vérification fait avec le rapport ADN affiché.',
   'app.verify.report.whyWithheld':
@@ -192,7 +192,7 @@ export const verify = {
   'app.verify.own.notConfirmed': ' Cette page ne l’a pas confirmé sur la chaîne.',
   'app.verify.own.notAnchored':
     'Détention antérieure : pas encore ancré, sa date repose donc sur les données de ce registre.',
-  'app.verify.dna.saved': 'Le détenteur a enregistré un rapport ADN sur cet enregistrement.',
+  'app.verify.dna.saved': 'Le détenteur a joint un rapport ADN à cet enregistrement.',
   'app.verify.lineage.intact':
     'Le registre signale la lignée comme intacte — une chaîne ininterrompue jusqu’à l’enregistrement scellé. Cette page ne l’a pas vérifié.',
   'app.verify.lineage.notChecked':
@@ -230,7 +230,7 @@ export const verify = {
   'app.verify.ex.note4':
     'Un laboratoire peut signer avec sa propre clé son accusé de réception d’un échantillon et son rapport de laboratoire. Chaque ligne dit de quoi il s’agit. La page vérifie la signature ; c’est à vous de juger si la clé appartient à un laboratoire de confiance.',
   'app.verify.ex.fact5':
-    'Le détenteur a enregistré un rapport ADN sur cet enregistrement. Son fichier (SHA-256 7c1e04d2…9b3a51) correspond au rapport de laboratoire signé par une clé nommée « Example Lab » (nom non vérifié) : signature vérifiée dans ce navigateur.',
+    'Le détenteur a joint un rapport ADN à cet enregistrement. Son fichier (SHA-256 7c1e04d2…9b3a51) correspond au rapport de laboratoire signé par une clé nommée « Example Lab » (nom non vérifié) : signature vérifiée dans ce navigateur.',
   'app.verify.ex.note5':
     'Le détenteur choisit quelles informations apparaissent ici. Tout ce qui n’est pas partagé est indiqué comme non partagé.',
   'app.verify.ex.marks':
@@ -265,7 +265,7 @@ export const verify = {
   'app.verify.dnaCheck.reading': 'Lecture du fichier…',
   'app.verify.dnaCheck.tooBig': 'Ce fichier est trop volumineux pour être vérifié ici.',
   'app.verify.dnaCheck.matches': '{file} est le rapport ADN que le détenteur a enregistré avec cet enregistrement.',
-  'app.verify.dnaCheck.differs': '{file} n’est pas le rapport ADN enregistré avec cet enregistrement.',
+  'app.verify.dnaCheck.differs': '{file} n’est pas le rapport ADN joint à cet enregistrement.',
   'app.verify.dnaCheck.noSalt':
     'Ce lien ne contient pas ce qu’il faut pour vérifier le fichier du rapport ADN. Demandez au détenteur son lien de vérification et le fichier.',
   'app.verify.report.fileMatches': 'Le fichier que vous avez choisi est celui enregistré.',

@@ -23,7 +23,7 @@ export const verify = {
   'app.verify.report.unnamedSigned':
     'Der Inhaber hat einen DNA-Bericht zu diesem Datensatz gespeichert. Dieser Link nennt die Datei nicht, daher kann diese Seite nicht sagen, ob es der oben aufgeführte signierte Laborbericht ist.',
   'app.verify.report.unnamedWithdrawn':
-    'Der Inhaber hat einen DNA-Bericht zu diesem Datensatz gespeichert. Dieser Link nennt die Datei nicht, und jeder zu diesem Datensatz signierte Laborbericht wurde von seinem Labor zurückgezogen, daher ist es die eigene Angabe des Inhabers.',
+    'Der Inhaber hat einen DNA-Bericht zu diesem Datensatz gespeichert. Dieser Link nennt die Datei nicht, und jeder hier gezeigte signierte Laborbericht wurde von seinem Labor zurückgezogen, daher ist es die eigene Angabe des Inhabers.',
   'app.verify.report.unnamedNone':
     'Der Inhaber hat einen DNA-Bericht zu diesem Datensatz gespeichert. Hier wird keine Signatur eines Laborberichts gezeigt, daher ist es, wie gezeigt, die eigene Angabe des Inhabers. Die Signaturen eines Labors sind privat, außer der Inhaber zeigt sie.',
   'app.verify.kind.receipts.one': 'eine Empfangsbestätigung eines Labors',

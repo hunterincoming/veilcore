@@ -23,7 +23,7 @@ export const verify = {
   'app.verify.report.unnamedSigned':
     'El titular guardó un informe de ADN en este registro. Este enlace no nombra el archivo, así que esta página no puede saber si es el informe firmado que aparece arriba.',
   'app.verify.report.unnamedWithdrawn':
-    'El titular guardó un informe de ADN en este registro. Este enlace no nombra el archivo, y todos los informes firmados sobre este registro fueron retirados por su laboratorio, así que es la propia declaración del titular.',
+    'El titular guardó un informe de ADN en este registro. Este enlace no nombra el archivo, y todos los informes firmados que se muestran aquí fueron retirados por su laboratorio, así que es la propia declaración del titular.',
   'app.verify.report.unnamedNone':
     'El titular guardó un informe de ADN en este registro. Aquí no se muestra ninguna firma de un informe de laboratorio, así que, tal como se muestra, es la propia declaración del titular. Las firmas de un laboratorio son privadas, salvo que el titular decida mostrarlas.',
   'app.verify.kind.receipts.one': 'un acuse de recibo de laboratorio',

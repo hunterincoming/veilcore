@@ -34,6 +34,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   partners page, "We don't vouch for results", and the privacy page (what the server keeps;
   on veilcore.org also "What strangers can see"). Docs: privacy terms, simple flow, lab
   signing, and the partner guide. In all five languages.
+- Final review fixes (12 Nov 2026):
+  - The share screen says what "Whether a DNA report is saved" already shows without any
+    signature shown: for each lab receipt, that a lab received a sample and whether what
+    arrived matches what was sent, without the lab's name. Said under that switch, in the
+    "Lab signatures" intro (which now says the delivery's sender sees them too), on the lab's
+    Sent screen and in the privacy page. In all five languages.
+  - The share list and the grant read every page of the holder's signatures, not only the
+    first 100.
+  - A lab key's genetic-fingerprint and inspection signatures can be shown too, when the
+    registry marks them private.
+  - A lab's signed report carries its key's proof (`x-lab-key-proof`), which the registry now
+    needs for a first report on a delivery with no receipt.
+  - The partner field keeps custody lines that name no receipt (`unnamedCustody`), so a seal
+    mismatch is not lost when the holder hasn't shown the receipt.
+  - Wording: a withdrawn lab report is "every one shown"; French "joint à cet enregistrement".
 
 ### Lab results v2: the lab's name link is salted (8 Nov 2026, test network)
 
