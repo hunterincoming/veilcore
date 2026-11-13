@@ -115,7 +115,9 @@ const setup = (over: { budget?: bigint } = {}) => {
     () => Promise.resolve(),
     (_l, m) => logs.push(m),
   );
-  return { anchorer, registry, chain, store, logs, budget, advance: (ms: number) => (t += ms) };
+  // `now` is the anchorer's clock: a saved attempt's ttl is set from it, never from Date.now(),
+  // which runs on while the test does and left a 1 ms margin short on a busy CI machine.
+  return { anchorer, registry, chain, store, logs, budget, now: () => t, advance: (ms: number) => (t += ms) };
 };
 
 describe('anchoring job: only for a registry that anchors where this service does', () => {
@@ -245,7 +247,7 @@ describe('anchoring job (mocked registry and chain)', () => {
 
   it('after a restart, looks the saved attempt up instead of sending again', async () => {
     const s = setup();
-    s.store.save({ batchId: 'B-9', root: ROOT, txId: 'tx-old', ttl: new Date(Date.now() + 60_000).toISOString(), seqBefore: '5', stage: 'sending' });
+    s.store.save({ batchId: 'B-9', root: ROOT, txId: 'tx-old', ttl: new Date(s.now() + 60_000).toISOString(), seqBefore: '5', stage: 'sending' });
     s.registry.list = [{ batchId: 'B-9', root: ROOT, sealedAt: 1, anchored: false }];
     expect(await s.anchorer.runOnce()).toMatch(/waiting for tx-old/);
     expect(s.chain.prepared).toBe(0);
@@ -256,7 +258,7 @@ describe('anchoring job (mocked registry and chain)', () => {
 
   it('builds a fresh transaction only after the old one has expired unseen', async () => {
     const s = setup();
-    s.store.save({ batchId: 'B-9', root: ROOT, txId: 'tx-old', ttl: new Date(Date.now() + 60_000).toISOString(), seqBefore: '5', stage: 'sent' });
+    s.store.save({ batchId: 'B-9', root: ROOT, txId: 'tx-old', ttl: new Date(s.now() + 60_000).toISOString(), seqBefore: '5', stage: 'sent' });
     s.registry.list = [{ batchId: 'B-9', root: ROOT, sealedAt: 1, anchored: false }];
     await s.anchorer.runOnce();
     expect(s.chain.prepared).toBe(0);
@@ -268,7 +270,7 @@ describe('anchoring job (mocked registry and chain)', () => {
 
   it('a transaction that failed on chain is rebuilt', async () => {
     const s = setup();
-    s.store.save({ batchId: 'B-9', root: ROOT, txId: 'tx-bad', ttl: new Date(Date.now() + 60_000).toISOString(), seqBefore: '5', stage: 'sent' });
+    s.store.save({ batchId: 'B-9', root: ROOT, txId: 'tx-bad', ttl: new Date(s.now() + 60_000).toISOString(), seqBefore: '5', stage: 'sent' });
     s.registry.list = [{ batchId: 'B-9', root: ROOT, sealedAt: 1, anchored: false }];
     s.chain.landings.set('tx-bad', { state: 'failed' });
     expect(await s.anchorer.runOnce()).toMatch(/failed on chain/);
