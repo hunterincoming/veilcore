@@ -45,8 +45,9 @@ npm run verify:deployment -- --network mainnet
 For each circuit it prints `PASS` or `FAIL` with the first 16 hex digits of the hash, then the
 maintenance authority, then one result line. It exits 0 when everything matches, 1 when
 anything differs, 2 when it could not check (an indexer unreachable, bad arguments, or two
-indexers reporting different states for a contract). Expected
-ending on mainnet:
+indexers reporting different verifier keys or maintenance authority for a contract). An
+internal error in the script itself (a bug: it is printed as is, with no `RESULT` line) also
+exits 2: no verdict either way. Expected ending on mainnet:
 
 ```
 RESULT: PASS. On mainnet, every circuit's verifier key matches the published build (29 of 29), and each maintenance authority is as published.
@@ -65,9 +66,12 @@ so a check that does not trust us should use an indexer you choose:
   ```
   The id is never printed; only host names are.
 - or any indexer: `--indexer <GraphQL URL>`, and `--second-indexer <URL>` to require two
-  indexers to report byte-identical states. If they don't (one may be a block behind), that
-  contract is not checked and the run ends `RESULT: CANNOT CHECK: indexers disagree …` with
-  exit 2; try again shortly.
+  indexers to agree on what the verdict rests on: every circuit's verifier key and the
+  maintenance authority. The rest of the state (the ledger data, which changes with every
+  anchored batch) is not compared, so two indexers a block apart still agree. If they disagree
+  on a key or the authority, that contract is not checked and the run ends
+  `RESULT: CANNOT CHECK: indexers disagree …` with exit 2; try again shortly. If they agree
+  and the chain differs from the file, it is a `FAIL` (exit 1) as with one indexer.
 
 **What it compares.** The SHA-256 of each circuit's verifier key in the contract's current
 state, against `circuits.<name>.verifierKey` in the deployments file. Midnight checks every proof
@@ -190,12 +194,32 @@ please open an issue with the `verify:build` output.
 ### Check the published key files
 
 The keys are also published as the `zk-r4` release of this repository, and served by the site
-under `/keys/`. Their SHA-256 must equal the deployments file:
+under `/keys/`. Their SHA-256 must equal the deployments file. Download one from the release,
+with the GitHub CLI or with curl:
+
+```bash
+gh release download zk-r4 -R hunterincoming/veilcore -p 'veilcore.proveLicense.verifier'
+# or
+curl -fLO https://github.com/hunterincoming/veilcore/releases/download/zk-r4/veilcore.proveLicense.verifier
+```
+
+Then hash it. On macOS:
 
 ```bash
 shasum -a 256 veilcore.proveLicense.verifier
 # b338dda3501ae2dec26b241b353495580debcb359455b0671b6619197f29d59b
 ```
+
+On Linux (`shasum` is not always installed there):
+
+```bash
+sha256sum veilcore.proveLicense.verifier
+# b338dda3501ae2dec26b241b353495580debcb359455b0671b6619197f29d59b
+```
+
+Every key file in the release is named `<contract>.<circuit>.verifier` (for example
+`veilcore-claims.proveRange.verifier`); its hash is `circuits.<circuit>.verifierKey` under that
+contract in `deployments/mainnet.json`.
 
 ## The test network
 

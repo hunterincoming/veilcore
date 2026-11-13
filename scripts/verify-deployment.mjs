@@ -18,8 +18,11 @@
 //   --network mainnet|preprod   default mainnet
 //   --contract <name>           only veilcore or veilcore-claims
 //   --indexer <url>             an indexer GraphQL URL of your choice
-//   --second-indexer <url>      a second indexer; both must report byte-identical states (if
-//                               they don't, the run cannot check that contract: exit 2)
+//   --second-indexer <url>      a second indexer; both must report the same verifier key for
+//                               every circuit and the same maintenance authority (if they don't,
+//                               the run cannot check that contract: exit 2). The rest of the
+//                               state (the ledger data, which changes with every anchored batch)
+//                               is not compared: the verdict does not rest on it.
 //
 // With no --indexer: a Blockfrost project id of your own in the variable the file names
 // (VEILCORE_BLOCKFROST_PROJECT_ID on mainnet) is used if set; otherwise VeilCore's public
@@ -27,7 +30,9 @@
 // choose. The project id is never printed; only host names are.
 //
 // Exit 0: every circuit and authority matches. Exit 1: something differs (the output names it).
-// Exit 2: the check could not be made (bad arguments, an indexer unreachable or refusing).
+// Exit 2: the check could not be made (bad arguments, an indexer unreachable or refusing, two
+// indexers disagreeing about the keys or the authority), or the script itself failed with an
+// internal error (printed as is): no verdict either way.
 // SPDX-License-Identifier: Apache-2.0
 import { createHash } from 'node:crypto';
 import { realpathSync } from 'node:fs';
@@ -144,6 +149,36 @@ export const fetchStateHex = async (ix, address, timeoutMs = 30_000) => {
   return hex.replace(/^0x/i, '').toLowerCase();
 };
 
+/** What the verdict rests on, from one state: each circuit's verifier key hash and the authority. */
+export const verdictFacts = (stateHex) => {
+  let state;
+  try {
+    state = readContractStateHex(stateHex);
+  } catch (e) {
+    throw new CannotCheck(`A state the indexers gave could not be read: ${e instanceof Error ? e.message : String(e)}`);
+  }
+  const keys = {};
+  for (const n of state.operations()) {
+    const name = typeof n === 'string' ? n : Buffer.from(n).toString('utf8');
+    let vk;
+    try {
+      vk = state.operation(name)?.verifierKey;
+    } catch {
+      vk = undefined;
+    }
+    keys[name] = vk instanceof Uint8Array && vk.length > 0 ? sha256Hex(vk) : null;
+  }
+  const a = authorityReport(state);
+  return { keys, authority: { committee: a.committee, threshold: a.threshold, counter: String(a.counter), retired: a.retired } };
+};
+
+/** Where two indexers' facts differ: the circuits, and "maintenance authority". Empty: they agree. */
+export const factsDiffer = (x, y) => {
+  const out = [...new Set([...Object.keys(x.keys), ...Object.keys(y.keys)])].sort().filter((n) => x.keys[n] !== y.keys[n]);
+  if (JSON.stringify(x.authority) !== JSON.stringify(y.authority)) out.push('maintenance authority');
+  return out;
+};
+
 const short = (h) => (h === undefined ? 'none' : `${h.slice(0, 16)}…`);
 
 /** Every line of one contract's check, and whether it passed. */
@@ -241,13 +276,19 @@ export const run = async (argv, { env = process.env, log = console.log } = {}) =
     log(`\n${c.name}  ${c.address}`);
     const hex = await fetchStateHex(first, c.address);
     if (second !== undefined) {
+      // Only what the verdict rests on is compared: the rest of the state changes with every
+      // anchored batch, so two healthy indexers a block apart would rarely be byte-identical.
       const other = await fetchStateHex(second, c.address);
-      if (other !== hex) {
+      const differ = other === hex ? [] : factsDiffer(verdictFacts(hex), verdictFacts(other));
+      if (differ.length > 0) {
         disagree.push(c.name);
-        log(`  CANNOT CHECK  the two indexers report different states for this contract (one may be behind; try again shortly)`);
+        log(
+          `  CANNOT CHECK  the two indexers report different verifier keys or maintenance authority for this contract (${differ.join(', ')}; one may be behind; try again shortly)`,
+        );
         continue;
       }
-      log('  both indexers report the same state, byte for byte');
+      const rest = other === hex ? 'the same state, byte for byte' : 'the rest of the state differs, as it does between batches; it is not what is checked';
+      log(`  both indexers report the same verifier key for every circuit and the same maintenance authority (${rest})`);
     }
     const r = checkOne(c, hex, d.network);
     for (const l of r.lines) log(l);

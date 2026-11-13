@@ -3,7 +3,8 @@
 // fixtures/verify-deployment/states.json: built from the published zk-r4 verifier keys in
 // Ledger 9 format, not recorded from mainnet (make-states.mjs says how). Every failing case is
 // derived from them here: a swapped key, a missing circuit, an extra circuit, a live claims
-// authority, two indexers that disagree, a Ledger 8 state, an indexer that is down.
+// authority, two indexers that disagree (and two whose states differ only in ledger data), a
+// Ledger 8 state, an indexer that is down.
 // Run: npm run test:deployments
 // SPDX-License-Identifier: Apache-2.0
 import assert from 'node:assert/strict';
@@ -147,11 +148,11 @@ test('two indexers: agreeing passes; disagreeing cannot check that contract (exi
   serve('two', { ...GENUINE });
   let r = await verify(['--indexer', `${base}/one`, '--second-indexer', `${base}/two`]);
   assert.equal(r.code, 0, r.out);
-  assert.match(r.out, /both indexers report the same state, byte for byte/);
+  assert.match(r.out, /both indexers report the same verifier key for every circuit and the same maintenance authority \(the same state, byte for byte\)/);
   serve('two', { ...GENUINE, [CLAIMS]: edited(CLAIMS, (s) => (s.maintenanceAuthority = new v9.ContractMaintenanceAuthority([], 1, 2n))) });
   r = await verify(['--indexer', `${base}/one`, '--second-indexer', `${base}/two`]);
   assert.equal(r.code, 2, r.out);
-  assert.match(r.out, /CANNOT CHECK {2}the two indexers report different states/);
+  assert.match(r.out, /CANNOT CHECK {2}the two indexers report different verifier keys or maintenance authority for this contract \(maintenance authority;/);
   assert.match(r.out, /RESULT: CANNOT CHECK: indexers disagree about veilcore-claims .*The rest matches: 24 of 24 circuits\./);
   assert.doesNotMatch(r.out, /FAIL|chain does not match/);
   // A contract that really differs is still a FAIL (exit 1), with the disagreement named.
@@ -164,6 +165,28 @@ test('two indexers: agreeing passes; disagreeing cannot check that contract (exi
   r = await verify(['--indexer', `${base}/one`, '--second-indexer', `${base}/two`]);
   assert.equal(r.code, 1, r.out);
   assert.match(r.out, /RESULT: FAIL\..*23 of 24 circuits match\. Not checked, the indexers disagree: veilcore-claims\./);
+});
+
+test('two indexers a batch apart: the ledger data differs, the keys and authority agree, so it checks (exit 0)', async () => {
+  // The main contract's data changes with every anchored batch; the verdict does not rest on it.
+  const later = edited(MAIN, (s) => (s.data = new v9.ChargedState(v9.StateValue.newArray().arrayPush(v9.StateValue.newNull()))));
+  assert.notEqual(later, GENUINE[MAIN]);
+  serve('one', { ...GENUINE });
+  serve('two', { ...GENUINE, [MAIN]: later });
+  const r = await verify(['--indexer', `${base}/one`, '--second-indexer', `${base}/two`]);
+  assert.equal(r.code, 0, r.out);
+  assert.match(r.out, /the rest of the state differs, as it does between batches; it is not what is checked/);
+  assert.match(r.out, /RESULT: PASS\..*\(29 of 29\)/);
+});
+
+test('two indexers that disagree about one verifier key: that circuit named, exit 2, not FAIL', async () => {
+  serve('one', { ...GENUINE });
+  serve('two', { ...GENUINE, [MAIN]: edited(MAIN, (s) => s.setOperation('proveLicense', opWith(s.operation('anchor').verifierKey))) });
+  const r = await verify(['--indexer', `${base}/one`, '--second-indexer', `${base}/two`, '--contract', 'veilcore']);
+  assert.equal(r.code, 2, r.out);
+  assert.match(r.out, /different verifier keys or maintenance authority for this contract \(proveLicense;/);
+  assert.match(r.out, /RESULT: CANNOT CHECK: indexers disagree about veilcore/);
+  assert.doesNotMatch(r.out, /FAIL/);
 });
 
 test('cannot check (exit 2): indexer down, no such contract, wrong network, bad arguments', async () => {
