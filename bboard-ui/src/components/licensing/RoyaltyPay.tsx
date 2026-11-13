@@ -218,9 +218,7 @@ const OneAlert: React.FC<{
                   licensor,
                   filed: dateWords(filed.on, tr),
                 })
-              : view?.predates
-                ? tr.t('app.rpay.l.answerPredates', { date: answerDay, note: a.answer.note ?? '', licensor })
-                : tr.t('app.rpay.l.answerPending', { date: answerDay, note: a.answer.note ?? '', licensor })
+              : tr.t(answerKey(view, false), { date: answerDay, note: a.answer.note ?? '', licensor })
             : tr.t('app.rpay.i.answered', { licensee, date: answerDay, note: a.answer.note ?? '' })}
         </Typography>
       )}
@@ -725,6 +723,19 @@ const OnePublicLine: React.FC<{
 };
 
 /**
+ * Which words go with a licensee's answer the registry hasn't shown as filed: that filing hasn't
+ * worked yet, or that the license predates it, only after a full read of the registry; before
+ * that (loading, failed, incomplete), only that the licensor sees it.
+ */
+export const answerKey = (
+  view: RegistryView | undefined,
+  incomplete: boolean,
+): 'app.rpay.l.answerSeen' | 'app.rpay.l.answerPredates' | 'app.rpay.l.answerPending' => {
+  if (!view || view.incomplete || incomplete) return 'app.rpay.l.answerSeen';
+  return view.predates ? 'app.rpay.l.answerPredates' : 'app.rpay.l.answerPending';
+};
+
+/**
  * What the revoked box says about the licensor's record's public check page: 'revoked' when the
  * registry's line about the report is "revoked"; 'none' or 'predates' only when the whole read came
  * back and found no line; nothing at all while the read is loading, failed or incomplete, or when
@@ -797,7 +808,7 @@ export const RevokedForNonPayment: React.FC<{
         </Typography>
       ) : mine ? (
         <Typography variant="body2" sx={{ mt: 0.5 }} data-answer="not-filed">
-          {tr.t(view?.predates ? 'app.rpay.l.answerPredates' : 'app.rpay.l.answerPending', {
+          {tr.t(answerKey(view, incomplete), {
             date: dateWords(noticeDayOf(mine), tr),
             note: mine.note ?? '',
             licensor,

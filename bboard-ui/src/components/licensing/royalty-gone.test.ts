@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { noticeRef, type RegistryView } from '../../veilcore/license-notices';
 import { ledgerOf } from '../../veilcore/royalty-ledger';
 import type { DealEntry } from '../../veilcore/deal-client';
-import { revokedBoxSays, revokedLineExcept } from './RoyaltyPay';
+import { answerKey, revokedBoxSays, revokedLineExcept } from './RoyaltyPay';
 
 describe('M1 gone path', () => {
   const at = (day: string) => Date.parse(`${day}T12:00:00Z`);
@@ -111,5 +111,15 @@ describe('M1 gone path', () => {
   it('says "revoked" for a revoked line, even if the read was incomplete', () => {
     const revoked = { ref: REF, kind: 'revoked', since: '2026-05-15', on: '2026-06-20' } as never;
     expect(revokedBoxSays(view, revoked, true)).toBe('revoked');
+  });
+
+  // An answer not shown as filed is said to be pending, or not fileable, only after a full read
+  // (round-8 review).
+  it('says nothing about filing an answer before a full read', () => {
+    expect(answerKey(undefined, false)).toBe('app.rpay.l.answerSeen');
+    expect(answerKey({ ...view, incomplete: true }, false)).toBe('app.rpay.l.answerSeen');
+    expect(answerKey(view, true)).toBe('app.rpay.l.answerSeen');
+    expect(answerKey(view, false)).toBe('app.rpay.l.answerPending');
+    expect(answerKey({ ...view, predates: true }, false)).toBe('app.rpay.l.answerPredates');
   });
 });

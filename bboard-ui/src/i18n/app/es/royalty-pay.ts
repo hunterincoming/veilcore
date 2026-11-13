@@ -126,6 +126,8 @@ export const royaltyPay = {
     'Si un pago se debía es la palabra de quien tiene el registro; VeilCore no lo comprueba. La fecha junto a un aviso de incumplimiento es el día en que quien tiene el registro lo comunicó al registro de VeilCore, según el reloj del propio registro. Las respuestas del licenciatario están firmadas por él, y quien tiene el registro no puede quitarlas. No se nombra a nadie ni se muestran montos o condiciones.',
   'app.rpay.l.answered':
     'Lo disputó el {date}: «{note}». {licensor} lo ve. Su respuesta está archivada en el registro de VeilCore con su propia clave (el {filed}). Toda línea sobre este pago en la página de comprobación pública del registro de {licensor} muestra que usted lo disputa, con esa fecha, y {licensor} no puede quitarla.',
+  // Before a full read of the registry: nothing said about filing either way.
+  'app.rpay.l.answerSeen': 'Lo disputó el {date}: «{note}». {licensor} lo ve.',
   'app.rpay.l.answerPending':
     'Lo disputó el {date}: «{note}». {licensor} lo ve. Aún no se pudo archivar su respuesta en el registro de VeilCore, donde la muestra la página de comprobación pública del registro de {licensor}. Esta página lo vuelve a intentar cada vez que se abre.',
   'app.rpay.l.disputeShows':

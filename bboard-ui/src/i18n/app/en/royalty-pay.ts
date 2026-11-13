@@ -128,6 +128,8 @@ export const royaltyPay = {
     'Whether a payment was due is the record holder’s word; VeilCore doesn’t check it. The date beside a notice of breach is the day the record holder told VeilCore’s registry about it, by the registry’s own clock. The licensee’s answers are signed by the licensee, and the record holder can’t remove them. No one is named, and no amounts or terms are shown.',
   'app.rpay.l.answered':
     'You disputed this on {date}: “{note}”. {licensor} sees it. Your answer is filed with VeilCore’s registry under your own key (on {filed}). Any line about this payment on {licensor}’s record’s public check page shows that you dispute it, with that date, and {licensor} can’t remove it.',
+  // Before a full read of the registry: nothing said about filing either way.
+  'app.rpay.l.answerSeen': 'You disputed this on {date}: “{note}”. {licensor} sees it.',
   'app.rpay.l.answerPending':
     'You disputed this on {date}: “{note}”. {licensor} sees it. Filing your answer with VeilCore’s registry, where {licensor}’s record’s public check page shows it, hasn’t worked yet. This page tries again whenever it opens.',
   'app.rpay.l.disputeShows':

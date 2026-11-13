@@ -127,6 +127,8 @@ export const royaltyPay = {
     'Ob eine Zahlung fällig war, ist die Angabe der Person, die den Datensatz hält; VeilCore prüft das nicht. Das Datum neben einer Mitteilung über die Vertragsverletzung ist der Tag, an dem diese Person sie dem Register von VeilCore mitgeteilt hat, nach der Uhr des Registers. Die Antworten der Lizenznehmerseite sind von ihr signiert, und die Person, die den Datensatz hält, kann sie nicht entfernen. Niemand wird genannt, und es werden keine Beträge oder Bedingungen gezeigt.',
   'app.rpay.l.answered':
     'Sie haben dem am {date} widersprochen: „{note}“. {licensor} sieht das. Ihre Antwort ist beim Register von VeilCore unter Ihrem eigenen Schlüssel hinterlegt (am {filed}). Jeder Hinweis zu dieser Zahlung auf der öffentlichen Prüfseite des Datensatzes von {licensor} zeigt, dass Sie widersprechen, mit diesem Datum, und {licensor} kann das nicht entfernen.',
+  // Before a full read of the registry: nothing said about filing either way.
+  'app.rpay.l.answerSeen': 'Sie haben dem am {date} widersprochen: „{note}“. {licensor} sieht das.',
   'app.rpay.l.answerPending':
     'Sie haben dem am {date} widersprochen: „{note}“. {licensor} sieht das. Ihre Antwort beim Register von VeilCore zu hinterlegen, wo die öffentliche Prüfseite des Datensatzes von {licensor} sie zeigt, hat noch nicht geklappt. Diese Seite versucht es bei jedem Öffnen wieder.',
   'app.rpay.l.disputeShows':

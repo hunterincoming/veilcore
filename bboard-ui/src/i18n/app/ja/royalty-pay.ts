@@ -123,6 +123,8 @@ export const royaltyPay = {
     '支払いが必要だったかどうかは、この記録の保有者の申告です。VeilCoreはそれを確認していません。契約違反の通知の横の日付は、保有者がそれをVeilCoreのレジストリに伝えた日で、レジストリ自身の時計によるものです。ライセンシーの回答はライセンシーが署名したもので、記録の保有者は削除できません。誰の名前も、金額や条件も表示しません。',
   'app.rpay.l.answered':
     '{date}に異議を申し立てました：「{note}」。{licensor}にも見えます。あなたの回答は、あなた自身の鍵でVeilCoreのレジストリに登録されています（{filed}）。{licensor}の記録の公開確認ページにこの支払いについての表示があれば、どれにもあなたが異議を申し立てていることがその日付とともに表示されます。{licensor}は削除できません。',
+  // Before a full read of the registry: nothing said about filing either way.
+  'app.rpay.l.answerSeen': '{date}に異議を申し立てました：「{note}」。{licensor}にも見えます。',
   'app.rpay.l.answerPending':
     '{date}に異議を申し立てました：「{note}」。{licensor}にも見えます。{licensor}の記録の公開確認ページに表示されるVeilCoreのレジストリへの回答の登録は、まだできていません。このページを開くたびにもう一度試します。',
   'app.rpay.l.disputeShows':

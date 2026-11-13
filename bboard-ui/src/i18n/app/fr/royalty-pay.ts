@@ -132,6 +132,8 @@ export const royaltyPay = {
     'Qu’un paiement soit dû relève de la déclaration de la personne qui détient l’enregistrement ; VeilCore ne le vérifie pas. La date à côté d’un avis de manquement est le jour où cette personne l’a indiqué au registre de VeilCore, selon l’horloge du registre. Les réponses du licencié sont signées par lui, et la personne qui détient l’enregistrement ne peut pas les retirer. Personne n’est nommé, et aucun montant ni aucune condition n’est affiché.',
   'app.rpay.l.answered':
     'Vous l’avez contesté le {date} : « {note} ». {licensor} le voit. Votre réponse est déposée au registre de VeilCore sous votre propre clé (le {filed}). Toute ligne sur ce paiement dans la page de vérification publique de l’enregistrement de {licensor} indique que vous contestez, avec cette date, et {licensor} ne peut pas la retirer.',
+  // Before a full read of the registry: nothing said about filing either way.
+  'app.rpay.l.answerSeen': 'Vous l’avez contesté le {date} : « {note} ». {licensor} le voit.',
   'app.rpay.l.answerPending':
     'Vous l’avez contesté le {date} : « {note} ». {licensor} le voit. Le dépôt de votre réponse au registre de VeilCore, où la page de vérification publique de l’enregistrement de {licensor} l’affiche, n’a pas encore abouti. Cette page réessaie à chaque ouverture.',
   'app.rpay.l.disputeShows':
