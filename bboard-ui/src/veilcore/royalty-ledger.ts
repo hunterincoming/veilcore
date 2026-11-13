@@ -37,8 +37,15 @@ import {
   sumAmounts,
   toMinor,
 } from './money';
-import { addYears, currencyOf, localDay, offspringOf, ruleOf, type RoyaltyRule } from './royalty-terms';
-import { contractYearOf, daysBetween, endsContractYear, periodsOf, type RoyaltyPeriod } from './royalty-periods';
+import { addYears, currencyOf, offspringOf, ruleOf, utcDay, type RoyaltyRule } from './royalty-terms';
+import {
+  addDays,
+  contractYearOf,
+  daysBetween,
+  endsContractYear,
+  periodsOf,
+  type RoyaltyPeriod,
+} from './royalty-periods';
 
 export type StatementEntry = Extract<DealEntry, { type: 'statement' }>;
 export type ReplyEntry = Extract<DealEntry, { type: 'reply' }>;
@@ -60,6 +67,12 @@ export type Report = {
    */
   short?: string;
   received?: ReceivedEntry;
+  /**
+   * The payment, checked on Cardano: the right reference, at least what the report leaves to
+   * pay, to the licensor's signed address (cardano-pay.ts). Settles the report without
+   * "received" (SPEC 11.10, "Settled on chain").
+   */
+  chainSettled?: { readonly tx: string };
   /** The corrected report that took this one's place. */
   replacedBy?: StatementEntry;
   /** The report this one corrects. */
@@ -92,8 +105,15 @@ export const shortOf = (r: Report, paid: Pick<PaidEntry, 'amount' | 'currency'>)
   return got > want ? undefined : minorText(want - got, digits);
 };
 
-/** The ledger as the signed messages make it, in the registry's order (dealOrder). */
-export const ledgerOf = (entries: readonly DealEntry[]): Ledger => {
+/**
+ * The ledger as the signed messages make it, in the registry's order (dealOrder). `onChain`:
+ * the reports (by signature) whose payment this page checked on a public chain and found to
+ * pay them in full (cardano-pay.ts checkCardanoPayment); the check itself is the caller's.
+ */
+export const ledgerOf = (
+  entries: readonly DealEntry[],
+  onChain: ReadonlyMap<string, { readonly tx: string }> = new Map(),
+): Ledger => {
   const sorted = dealOrder(entries);
   const payouts = sorted.filter((e): e is PayoutEntry => e.type === 'payout' && e.from === 'issuer');
   const invoices = sorted.filter((e): e is InvoiceEntry => e.type === 'invoice-details' && e.from === 'issuer');
@@ -132,6 +152,9 @@ export const ledgerOf = (entries: readonly DealEntry[]): Ledger => {
       if (e.type === 'paid' && !r.paid && r.reply?.decision === 'accepted') {
         r.paid = e;
         r.short = shortOf(r, e);
+        // Only the payment the report counts, and only the transaction it names.
+        const chain = onChain.get(r.statement.signature);
+        if (chain && chain.tx === e.reference.trim().toLowerCase()) r.chainSettled = { tx: chain.tx };
       }
       if (e.type === 'received' && !r.received && r.paid) r.received = e;
     }
@@ -164,7 +187,16 @@ export const ledgerOf = (entries: readonly DealEntry[]): Ledger => {
 /** Reports still in play: not replaced by a corrected one. Newest first. */
 export const liveReports = (l: Ledger): Report[] => l.reports.filter((r) => !r.replacedBy);
 
-export type ReportState = 'waiting' | 'fix' | 'to-pay' | 'short' | 'paid' | 'received' | 'replaced' | 'nothing-due';
+export type ReportState =
+  | 'waiting'
+  | 'fix'
+  | 'to-pay'
+  | 'short'
+  | 'paid'
+  | 'received'
+  | 'settled'
+  | 'replaced'
+  | 'nothing-due';
 
 export const stateOf = (r: Report): ReportState =>
   r.replacedBy
@@ -173,15 +205,17 @@ export const stateOf = (r: Report): ReportState =>
       ? 'short'
       : r.received
         ? 'received'
-        : r.paid
-          ? 'paid'
-          : r.reply?.decision === 'disputed'
-            ? 'fix'
-            : r.reply?.decision === 'accepted'
-              ? toPayOf(r) === '0' || /^0(\.0+)?$/.test(toPayOf(r))
-                ? 'nothing-due'
-                : 'to-pay'
-              : 'waiting';
+        : r.chainSettled
+          ? 'settled'
+          : r.paid
+            ? 'paid'
+            : r.reply?.decision === 'disputed'
+              ? 'fix'
+              : r.reply?.decision === 'accepted'
+                ? toPayOf(r) === '0' || /^0(\.0+)?$/.test(toPayOf(r))
+                  ? 'nothing-due'
+                  : 'to-pay'
+                : 'waiting';
 
 /** What the payer sends for a report: the amount owed less any tax withheld (as the report or payment says). */
 export const toPayOf = (r: Report, taxWithheld?: string): string => {
@@ -486,6 +520,19 @@ export type PeriodRow = {
   readonly overdue: number;
 };
 
+/**
+ * A report's payment due date under the terms (its period's, royalty-periods.ts): what the
+ * licensee's page registers at VeilCore's registry with the statement (license-notices.ts
+ * registerStatement). Undefined for terms with no schedule, or a report for no period of them.
+ */
+export const paymentDueOf = (terms: LicenseTerms, r: Report): string | undefined => {
+  if (!terms.reporting) return undefined;
+  const s = r.statement;
+  return periodsOf(terms.reporting, terms.startDate, terms.endDate, s.periodTo).find(
+    (p) => p.from === s.periodFrom && p.to === s.periodTo,
+  )?.paymentDue;
+};
+
 /** Each period of the license up to today, with its report and what it waits for. Oldest first. */
 export const periodRows = (terms: LicenseTerms, ledger: Ledger, today: string): PeriodRow[] => {
   if (!terms.reporting) return [];
@@ -508,6 +555,174 @@ export const periodRows = (terms: LicenseTerms, ledger: Ledger, today: string): 
     return { period, report, step: 'done', overdue: 0 };
   });
 };
+
+// ---- payments due soon and overdue: the in-app reminders and the public notice ------------
+
+/** How many days ahead a payment counts as due soon. */
+export const DUE_SOON_DAYS = 7;
+
+// ---- notice of breach, the cure period, the licensee's answer -----------------------------
+//
+// "Revoke for non-payment" is never one click away from a missed date (docs/royalty-pay.md,
+// "Overdue, notice, cure, revoke"): the report falls overdue the day after its payment due date;
+// the licensor may then send a signed notice of breach about that payment; the licensee has
+// CURE_DAYS from the day of the notice to pay; only after that day, with still no "I paid", is
+// revoking for non-payment offered. Every day here is a UTC calendar date (royalty-terms.ts
+// utcDay), the same for both sides. Whether the cure period has run out is the REGISTRY's call,
+// by its own clock and its own date for the notice (registryAllowsRevoke): a licensor's device
+// can be modified or set to any date, and the public "revoked for non-payment" line depends on it.
+
+/**
+ * Days the licensee has to pay after a notice of breach about a payment. The license terms carry
+ * no cure period (royalty-terms.ts RoyaltyTermsFields; adding one would change terms already
+ * signed), so every deal gets this one, and both sides' pages say so.
+ */
+export const CURE_DAYS = 30;
+
+/**
+ * The day a notice counts from: the later of the date the sender signed (`asOf`) and the UTC day
+ * the registry received it. A notice dated back by the sender, or by the registry, never starts
+ * the cure period early: both would have to agree.
+ */
+export const noticeDayOf = (n: Pick<NoticeEntry, 'asOf' | 'receivedAt'>): string => {
+  const got = n.receivedAt > 0 ? utcDay(new Date(n.receivedAt)) : undefined;
+  return got && got > n.asOf ? got : n.asOf;
+};
+
+export type Breach = {
+  /** The licensor's signed notice of breach about this report's payment. */
+  readonly notice: NoticeEntry;
+  /** The day it counts from (noticeDayOf), never before the report fell overdue. */
+  readonly from: string;
+  /** The last day to pay: `from` plus CURE_DAYS. Revoking for non-payment is offered the day after. */
+  readonly cureBy: string;
+};
+
+/**
+ * The notice of breach that starts this report's cure period: the first one the licensor sent
+ * about its payment on or after the day it fell overdue (`since`). One sent before then (the
+ * report wasn't late) starts nothing.
+ */
+export const breachOf = (r: Report, since: string, cureDays = CURE_DAYS): Breach | undefined => {
+  for (const n of r.notices) {
+    if (n.kind !== 'breach' || n.from !== 'issuer' || n.about !== 'payment') continue;
+    const from = noticeDayOf(n);
+    if (from < since) continue;
+    return { notice: n, from, cureBy: addDays(from, cureDays) };
+  }
+  return undefined;
+};
+
+/** The licensee's latest signed answer to an overdue payment or a notice of breach (a dispute note). */
+export const answerOf = (r: Report): NoticeEntry | undefined =>
+  [...r.notices].reverse().find((n) => n.kind === 'answer' && n.from === 'licensee' && n.about === 'payment');
+
+/** The licensor's signed word that they revoked the license for non-payment of this report. */
+export const revokedNoticeOf = (ledger: Ledger): NoticeEntry | undefined =>
+  ledger.notices.find((n) => n.kind === 'revoked' && n.from === 'issuer' && n.about === 'payment' && !!n.statementSig);
+
+/**
+ * The first UTC day the registry accepts "revoked for non-payment" after a notice of breach it
+ * received on `breachNoticeOn`: the day after the cure period's last day (registry server.js
+ * revocableFrom, the same rule).
+ */
+export const revocableFromDay = (breachNoticeOn: string, cureDays = CURE_DAYS): string =>
+  addDays(breachNoticeOn, cureDays + 1);
+
+/** What the registry has on file about one report's lines: its notice-of-breach day, the licensee's answers. */
+export type RegistryLine = {
+  readonly breachNoticeOn?: string;
+  readonly answers: readonly { readonly type: 'paid' | 'disputed'; readonly on: string }[];
+};
+
+/**
+ * Whether the registry would accept "revoked for non-payment" for a report today (its own UTC
+ * day, never this device's): a notice of breach on file, received at least the cure period
+ * earlier, and no "paid" from the licensee on file. The registry checks the same, and refuses
+ * otherwise; a page asks this only to offer the button.
+ */
+export const registryAllowsRevoke = (line: RegistryLine | undefined, registryToday: string, cureDays = CURE_DAYS) =>
+  !!line?.breachNoticeOn &&
+  registryToday >= revocableFromDay(line.breachNoticeOn, cureDays) &&
+  !line.answers.some((a) => a.type === 'paid');
+
+/** The registry's side of the alerts: its UTC day, and what it has on file for a report. */
+export type RegistryGate = {
+  readonly today: string;
+  readonly lineOf: (r: Report) => RegistryLine | undefined;
+};
+
+export type PaymentAlert = {
+  readonly kind: 'soon' | 'overdue';
+  readonly report: Report;
+  /** The date the terms set for the payment. */
+  readonly due: string;
+  /** Overdue: the first day it was late (the day after `due`). */
+  readonly since?: string;
+  /** Soon: days left (0 = due today). Overdue: days late. */
+  readonly days: number;
+  /** Overdue: the notice of breach that started the cure period, once there is one. */
+  readonly breach?: Breach;
+  /** Overdue: the licensee's latest answer (a dispute note), if any. */
+  readonly answer?: NoticeEntry;
+  /**
+   * Overdue: what the registry has on file for this report (its notice-of-breach day and the
+   * licensee's answers), when the page could ask it.
+   */
+  readonly registry?: RegistryLine;
+  /**
+   * Overdue: the cure period has run out by the REGISTRY's clock, after a notice of breach it
+   * received, with no "I paid" in the deal and no "paid" on file there, so the licensor may revoke
+   * for non-payment. Never from this device's date: false when the registry couldn't be asked.
+   */
+  readonly revocable?: boolean;
+};
+
+/**
+ * Accepted reports not paid in full, by their payment due date: overdue from the day after it,
+ * due soon within DUE_SOON_DAYS before it. A short payment stays overdue for what is left. A
+ * report paid ("I paid") and waiting for the licensor to confirm is not overdue: the licensee
+ * did their part; whether it arrived is the confirmation's question. `today` is the UTC day
+ * (utcDay). Oldest first.
+ */
+export const paymentAlerts = (
+  terms: LicenseTerms,
+  ledger: Ledger,
+  today: string,
+  soonDays = DUE_SOON_DAYS,
+  cureDays = CURE_DAYS,
+  registry?: RegistryGate,
+): PaymentAlert[] =>
+  periodRows(terms, ledger, today).flatMap((row): PaymentAlert[] => {
+    if (row.step !== 'pay' || !row.due || !row.report) return [];
+    if (row.overdue > 0) {
+      const since = addDays(row.due, 1);
+      const signed = breachOf(row.report, since, cureDays);
+      const line = registry?.lineOf(row.report);
+      // The deadline both sides see: the later of the deal's notice and the registry's own date
+      // for it (the one that decides whether "revoked for non-payment" can go public).
+      const breach =
+        signed && line?.breachNoticeOn && addDays(line.breachNoticeOn, cureDays) > signed.cureBy
+          ? { ...signed, cureBy: addDays(line.breachNoticeOn, cureDays) }
+          : signed;
+      const answer = answerOf(row.report);
+      return [
+        {
+          kind: 'overdue',
+          report: row.report,
+          due: row.due,
+          since,
+          days: row.overdue,
+          ...(breach ? { breach } : {}),
+          ...(answer ? { answer } : {}),
+          ...(line ? { registry: line } : {}),
+          revocable: !!breach && !!registry && registryAllowsRevoke(line, registry.today, cureDays),
+        },
+      ];
+    }
+    const left = daysBetween(today, row.due);
+    return left <= soonDays ? [{ kind: 'soon', report: row.report, due: row.due, days: left }] : [];
+  });
 
 /** The balance accepted and not yet paid, in the deal's currency. */
 export const balanceOwed = (ledger: Ledger, currency: string): string => {
@@ -549,7 +764,7 @@ export const ledgerCsv = (ledger: Ledger, licensorName?: string): string => {
     'received_on',
     'replaced_by_report',
   ];
-  const day = (t?: number) => (t ? localDay(new Date(t)) : '');
+  const day = (t?: number) => (t ? utcDay(new Date(t)) : '');
   const rows = [...ledger.reports].reverse().map((r) => {
     const s = r.statement;
     const by = r.replacedBy ? ledger.reports.find((x) => x.statement.signature === r.replacedBy!.signature) : undefined;

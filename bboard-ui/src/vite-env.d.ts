@@ -39,6 +39,17 @@ declare global {
     readonly VITE_DATING_PAUSED?: string;
     /** Ask's on-device model: unset (never offered), 'on', or 'test' / 'eval' for builds never deployed (ask-local/manifest.ts). */
     readonly VITE_ASK_MODEL?: string;
+    /**
+     * The Cardano relay (sponsor/src/cardano-relay.ts, `<relay>/cardano`): where a stablecoin
+     * royalty payment is checked. No key in it. Unset: the page says it can't check Cardano.
+     */
+    readonly VITE_CARDANO_RELAY_URL?: string;
+    /** A preprod test token standing in for USDCx (`CODE:policy:name:decimals`); ignored on mainnet. */
+    readonly VITE_CARDANO_TEST_ASSET?: string;
+    /** "on" offers stablecoin pay on a test network, with VITE_CARDANO_TEST_ASSET (config/copy.ts). Ignored on mainnet. */
+    readonly VITE_STABLECOIN_PAY?: string;
+    /** '1' only in the end-to-end build (package.json e2e:build): adds the /e2e fixture pages. */
+    readonly VITE_E2E_FIXTURES?: string;
   }
 
   interface ImportMeta {

@@ -207,6 +207,14 @@ export type OnChainLicense = {
   readonly activeSeenAt?: number;
   readonly revokeTx?: string;
   readonly revokedAt?: number;
+  /**
+   * Revoked with "Revoke for non-payment", for the report signed `revokedForStatement`. Only so
+   * this page can send the signed `revoked` notice again if the first send didn't land: what the
+   * record's public check page says is worked out from that notice in the deal, never from this
+   * (license-notices.ts dealNotices). Absent for any other revocation, whose reason stays private.
+   */
+  readonly revokedFor?: 'non-payment';
+  readonly revokedForStatement?: string;
   /** Handing this license on to a new holder, while it is under way (hand-on.ts). */
   readonly handOn?: HandOnInvite;
   /** Who held it before, oldest first: each earlier holder's deal, kept for its signed history. */

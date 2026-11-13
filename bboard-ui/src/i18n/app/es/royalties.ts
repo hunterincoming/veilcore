@@ -279,6 +279,7 @@ export const royalties = {
   'app.roy.st.short': 'Pago incompleto',
   'app.roy.st.paid': 'Pagado, esperando confirmación',
   'app.roy.st.received': 'Recepción confirmada',
+  'app.roy.st.settled': 'Pagado, comprobado en Cardano',
   'app.roy.st.nothing-due': 'Aceptado, nada que pagar',
   'app.roy.st.replaced': 'Sustituido por el informe {n}',
   'app.roy.pay.title': 'Pagar este informe',
@@ -343,6 +344,8 @@ export const royalties = {
   'app.roy.tl.received': '{who}: confirmó la recepción de {amount} por el informe {n}',
   'app.roy.tl.reminder': '{who}: envió un recordatorio ({period})',
   'app.roy.tl.breach': '{who}: envió un aviso de incumplimiento ({period})',
+  'app.roy.tl.answer': '{who}: disputó un pago ({period})',
+  'app.roy.tl.revoked': '{who}: revocó la licencia por falta de pago ({period})',
   'app.roy.tl.show': 'Historial ({n} pasos)',
   'app.roy.tl.hide': 'Ocultar el historial',
   'app.roy.tl.dated':

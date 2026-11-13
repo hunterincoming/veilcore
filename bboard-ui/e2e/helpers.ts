@@ -219,6 +219,12 @@ export const sealedRecordRow = (r: Record<string, unknown> & { id: string }, key
   return { ...open, sealed: seal('records', r.id, hidden, key) };
 };
 
+/** A licence as GET /api/licenses answers it: only its id in the clear, the rest sealed (CONTRACT.md #5). */
+export const sealedLicenseRow = (l: Record<string, unknown> & { id: string }, key: string): Record<string, unknown> => {
+  const { id, ...rest } = l;
+  return { id, sealed: seal('licenses', id, rest, key) };
+};
+
 // ---- the stand-in registry and sealed rows ------------------------------------------------
 //
 // The stand-in keeps what the browser sends, as the real registry does: sealed rows it can't

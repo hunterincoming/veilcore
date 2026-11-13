@@ -34,6 +34,7 @@ import type { Duplex } from "node:stream";
 import { WebSocket, WebSocketServer, type RawData } from "ws";
 import { clientBucket } from "./limits.js";
 import { log } from "./log.js";
+import type { CardanoRelay } from "./cardano-relay.js";
 
 export type RelayConfig = {
   /** Upstream GraphQL over HTTP, key included (never sent to a browser). */
@@ -978,8 +979,13 @@ export type ReadRelayConfig = {
   readonly indexerWS: string;
   readonly allowedOrigins: readonly string[];
   readonly trustProxyHops: number;
-  /** Values kept out of the logs (the project id). */
+  /** Values kept out of the logs (the project ids). */
   readonly secrets: readonly string[];
+  /**
+   * The Cardano lookup for stablecoin royalty payments (cardano-relay.ts), when
+   * CARDANO_BLOCKFROST_PROJECT_ID is set: Cardano mainnet beside Midnight's, preprod otherwise.
+   */
+  readonly cardano?: { readonly network: "mainnet" | "preprod"; readonly projectId: string };
 };
 
 /** Blockfrost's Midnight indexer for a network. The id rides in the URLs, so they are secrets. */
@@ -1006,6 +1012,8 @@ export const READ_RELAY_SETTINGS: readonly string[] = [
   "ALLOWED_ORIGINS",
   "PORT",
   "TRUST_PROXY_HOPS",
+  // Optional: a Blockfrost Cardano project id, for GET /cardano/tx/<hash> (cardano-relay.ts).
+  "CARDANO_BLOCKFROST_PROJECT_ID",
 ];
 
 /**
@@ -1142,6 +1150,20 @@ export const loadReadRelayConfig = (
   const port = int(env.PORT, 8080, 1, 65535, "PORT");
   const trustProxyHops = int(env.TRUST_PROXY_HOPS, 1, 0, 5, "TRUST_PROXY_HOPS");
 
+  // The Cardano lookup, only when its own project id is given: a Cardano project, not a
+  // Midnight one, on the Cardano network that goes with this Midnight network.
+  const cardanoId = (env.CARDANO_BLOCKFROST_PROJECT_ID ?? "").trim();
+  const cardanoNet = network === "mainnet" ? "mainnet" : "preprod";
+  if (cardanoId) {
+    if (!/^[A-Za-z0-9_-]{8,}$/.test(cardanoId))
+      problems.push("CARDANO_BLOCKFROST_PROJECT_ID must be a Blockfrost Cardano project id.");
+    else if (!cardanoId.toLowerCase().startsWith(cardanoNet))
+      problems.push(
+        `CARDANO_BLOCKFROST_PROJECT_ID must be a Cardano ${cardanoNet} project (its id starts "${cardanoNet}").`,
+      );
+    else if (cardanoId === id) problems.push("CARDANO_BLOCKFROST_PROJECT_ID is the Midnight project's id: Cardano needs its own.");
+  }
+
   if (problems.length > 0 || !network) return { ok: false, problems };
   return {
     ok: true,
@@ -1151,7 +1173,8 @@ export const loadReadRelayConfig = (
       ...ep,
       allowedOrigins: origins,
       trustProxyHops,
-      secrets: id ? [id] : [],
+      ...(cardanoId ? { cardano: { network: cardanoNet, projectId: cardanoId } } : {}),
+      secrets: [...(id ? [id] : []), ...(cardanoId ? [cardanoId] : [])],
     },
   };
 };
@@ -1166,6 +1189,7 @@ export const readRelayHandler =
     relay: IndexerRelay,
     cfg: Pick<ReadRelayConfig, "network" | "allowedOrigins">,
     clientIp: (req: IncomingMessage) => string | undefined,
+    cardano?: CardanoRelay,
   ) =>
   async (req: IncomingMessage, res: ServerResponse): Promise<void> => {
     const origin = typeof req.headers.origin === "string" ? req.headers.origin : undefined;
@@ -1187,7 +1211,7 @@ export const readRelayHandler =
       if (req.method === "OPTIONS") {
         res.writeHead(204, {
           ...cors,
-          "access-control-allow-methods": "POST",
+          "access-control-allow-methods": cardano ? "POST, GET" : "POST",
           "access-control-allow-headers": "content-type, accept",
           "access-control-max-age": "600",
         });
@@ -1199,6 +1223,11 @@ export const readRelayHandler =
       if (path === "/indexer") {
         await relay.http(req, res, clientIp(req), cors);
         return;
+      }
+      const tx = /^\/cardano\/tx\/([^/]+)$/.exec(path);
+      if (cardano && tx && req.method === "GET") {
+        const a = await cardano.tx(tx[1].toLowerCase(), clientIp(req));
+        return send(a.status, a.body, cors);
       }
       send(404, { ok: false, reason: "Not found." }, cors);
     } catch {

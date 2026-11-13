@@ -1,19 +1,27 @@
 // A royalty message is signed once and sent at most once (deal-client.ts sayOnce), and two
 // copies of the same report count once (royalty-ledger.ts): a lost answer, a double tap or a
-// second tab never doubles what is owed.
+// second tab never doubles what is owed. A message the page leaves out (junk, or a second copy)
+// is still noted, so the licensee sees a public line about it (review round 4, N1).
 // SPDX-License-Identifier: Apache-2.0
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import React from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
 import * as deal from './deal';
 import {
   LANDED_MS,
   RESIGN_MS,
   __resetOutboxForTests,
+  dealSkippedReadHere,
+  fingerprintOf,
   readAll,
   sayOnce,
   type DealEntry,
   type DealParty,
 } from './deal-client';
 import { balanceOwed, ledgerOf, stateOf } from './royalty-ledger';
+import { noticeRef, type RegistryView } from './license-notices';
+import { LicenseePublicLines } from '../components/licensing/RoyaltyPay';
+import { enT } from '../i18n/translate';
 
 const H = (c: string) => c.repeat(64);
 const at = (d: string) => Date.parse(`${d}T12:00:00Z`);
@@ -441,5 +449,74 @@ describe('a second report that says the same', () => {
     await sayOnce(licensee, { ...report(), mine: false } as unknown as deal.DealBody);
     expect(reg.posts).toHaveLength(2);
     expect(await reports(issuer)).toHaveLength(2);
+  });
+});
+
+describe('a message the licensee’s page leaves out still counts for the public lines (review round 4, N1)', () => {
+  /** Posts straight to the deal, as a modified licensor client could with the write token. */
+  const postRaw = async (iv: string, ct: string) => {
+    const keys = await deal.dealKeys(ISS, deal.publicOf(LIC), H('c'), H('d'));
+    const list = reg.deals.get(keys.dealId)!;
+    list.push({ seq: list.length + 100, iv, ct, receivedAt: Date.now() });
+    return fingerprintOf(iv, ct);
+  };
+
+  it('junk, and the licensee’s own report sealed again, are noted by fingerprint for the lookup', async () => {
+    await sayOnce(licensee, report());
+    const [mine] = await readAll(licensee);
+    expect(dealSkippedReadHere(licensee)).toEqual([]);
+    // Junk bytes, and the same signed report sealed again under a new iv (a new fingerprint).
+    const junk = await postRaw('AAAAAAAAAAAAAAAA', 'bm90IGEgbWVzc2FnZSBhdCBhbGw');
+    // The licensor holds the channel key too: it opens the report and seals the very same bytes again.
+    const keys = await deal.dealKeys(ISS, deal.publicOf(LIC), H('c'), H('d'));
+    const sent = reg.deals.get(keys.dealId)!.find((x) => x.seq === mine.seq)!;
+    const b64 = (t: string) => Uint8Array.from(Buffer.from(t, 'base64url'));
+    const aad = new TextEncoder().encode(keys.dealId);
+    const plain = await crypto.subtle.decrypt(
+      { name: 'AES-GCM', iv: b64(sent.iv), additionalData: aad },
+      keys.enc,
+      b64(sent.ct),
+    );
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const ct = new Uint8Array(
+      await crypto.subtle.encrypt({ name: 'AES-GCM', iv, additionalData: aad }, keys.enc, plain),
+    );
+    const copy = await postRaw(Buffer.from(iv).toString('base64url'), Buffer.from(ct).toString('base64url'));
+    expect(copy).not.toBe(mine.fingerprint);
+
+    const entries = await readAll(licensee);
+    // The page shows one report, as before…
+    expect(entries.map((e) => e.fingerprint)).toEqual([mine.fingerprint]);
+    // …and still asks the registry about both messages it left out.
+    expect([...dealSkippedReadHere(licensee)].sort()).toEqual([junk, copy].sort());
+  });
+
+  it('a line about one is shown to the licensee with its own words and a Dispute', () => {
+    const junk = 'e7'.repeat(32);
+    const ref = noticeRef(junk);
+    const view: RegistryView = {
+      lines: new Map([[ref, { ref, kind: 'overdue', since: '2026-05-15' }]]),
+      answers: new Map(),
+      now: Date.now(),
+      read: Date.now(),
+    };
+    const html = renderToStaticMarkup(
+      React.createElement(LicenseePublicLines, {
+        view,
+        ledger: ledgerOf([]),
+        alerts: [],
+        licensor: 'Ada',
+        mySecret: LIC,
+        fingerprints: [junk],
+        unreadable: [junk],
+        tr: enT,
+        busy: false,
+        send: () => Promise.resolve(true),
+        onFiled: () => undefined,
+      }),
+    );
+    expect(html).toContain('data-line-unreadable');
+    expect(html).toContain('data-respond-dispute');
+    expect(html).toContain('this page can’t open, or a second copy of a message already here');
   });
 });

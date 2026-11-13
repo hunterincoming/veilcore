@@ -94,6 +94,18 @@ let readVersion = 0;
 /** A deal's messages as this page last read them, or undefined when it hasn't read them. */
 export const dealEntriesReadHere = (p: DealParty): readonly DealEntry[] | undefined => readHere.get(dealKeyOf(p));
 
+/**
+ * The fingerprints of the deal's messages this page left out when it last read them: one that
+ * doesn't open or check out (junk, a bad signature, sealed for someone else), and a second copy
+ * of a message already read (the same signed message sealed again, which the registry dates as a
+ * new message). The licensor can put a public line on any message in the deal, so the licensee's
+ * page asks about these too and shows what is said about them (review round 4, N1).
+ */
+const skippedHere = new Map<string, readonly string[]>();
+
+/** The fingerprints readAll left out of a deal when this page last read it (none when it hasn't). */
+export const dealSkippedReadHere = (p: DealParty): readonly string[] => skippedHere.get(dealKeyOf(p)) ?? [];
+
 /** Re-renders when this page reads a deal's messages again. */
 export const useDealsReadHere = (): number =>
   useSyncExternalStore(
@@ -104,8 +116,9 @@ export const useDealsReadHere = (): number =>
     () => readVersion,
   );
 
-const keepRead = (p: DealParty, entries: DealEntry[]): DealEntry[] => {
+const keepRead = (p: DealParty, entries: DealEntry[], skipped: readonly string[] = []): DealEntry[] => {
   readHere.set(dealKeyOf(p), entries);
+  skippedHere.set(dealKeyOf(p), skipped);
   readVersion++;
   readListeners.forEach((l) => l());
   return entries;
@@ -337,11 +350,15 @@ export const sayOnce = async (p: DealParty, body: DealBody, now: () => number = 
   });
 };
 
-/** Every message of the deal that opens and checks out, oldest first. Anything else is left out. */
+/**
+ * Every message of the deal that opens and checks out, oldest first. Anything else is left out,
+ * and its fingerprint noted (dealSkippedReadHere).
+ */
 export const readAll = async (p: DealParty): Promise<DealEntry[]> => {
   const keys = await connect(p);
   const all: DealEntry[] = [];
   const seen = new Set<string>();
+  const skipped: string[] = [];
   let after = 0;
   for (let page = 0; page < 20; page++) {
     let out: unknown;
@@ -356,17 +373,21 @@ export const readAll = async (p: DealParty): Promise<DealEntry[]> => {
     for (const raw of list) {
       if (!isObject(raw) || !isNumber(raw.seq) || !isString(raw.iv) || !isString(raw.ct)) continue;
       after = Math.max(after, raw.seq);
+      // Worked out here, never taken from the registry (review round 3, L1).
+      const fingerprint = await fingerprintOf(raw.iv, raw.ct);
       const o = await openMessage({ iv: raw.iv, ct: raw.ct }, keys, p.side);
-      // A replayed copy carries the same signature: shown once.
-      if (!o || seen.has(o.signature)) continue;
+      // A replayed copy carries the same signature: shown once. What is left out is still noted.
+      if (!o || seen.has(o.signature)) {
+        skipped.push(fingerprint);
+        continue;
+      }
       seen.add(o.signature);
       all.push(
         noteSigned(
           {
             ...o.message,
             seq: raw.seq,
-            // Worked out here, never taken from the registry (review round 3, L1).
-            fingerprint: await fingerprintOf(raw.iv, raw.ct),
+            fingerprint,
             receivedAt: isNumber(raw.receivedAt) ? raw.receivedAt : 0,
             signature: o.signature,
             mine: o.mine,
@@ -379,7 +400,7 @@ export const readAll = async (p: DealParty): Promise<DealEntry[]> => {
   }
   // In the registry's order (seq), never the senders' own clocks: a message signed with an earlier
   // time can't jump ahead of one already there (panel review, M2; deal-order.ts).
-  return keepRead(p, dealOrder(all));
+  return keepRead(p, dealOrder(all), skipped);
 };
 
 /** What the registry dates for a message: SHA-256 of "iv.ct", hex (registry deals.mjs). */
