@@ -33,7 +33,7 @@ import { applyPreset, termsToSeal, utcDay } from '../veilcore/royalty-terms';
 import { emptyTermsFor } from '../components/licensing/LicenseTermsFields';
 import type { LicenseTerms } from '../veilcore/licenses';
 import { cardanoMethod, tokensFor } from '../veilcore/cardano-pay';
-import { LanguageBar } from '../i18n/LanguagePicker';
+import { DraftBanner, LanguagePicker } from '../i18n/LanguagePicker';
 
 /** Practice keys and license, fixed so the two sides' pages open the same channel. */
 const DEALS = {
@@ -165,7 +165,8 @@ export const RoyaltyPayFixture: React.FC = () => {
 
   return (
     <Container maxWidth="sm" sx={{ py: 2, px: 2 }} data-e2e-fixture="">
-      <LanguageBar />
+      <LanguagePicker />
+      <DraftBanner />
       <Stack spacing={2}>
         <Typography variant="h5" component="h1">
           {side === 'issuer' ? 'Hana Rivera → Practice Grower' : 'Practice Grower → Hana Rivera'}
