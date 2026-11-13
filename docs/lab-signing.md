@@ -59,7 +59,7 @@ VeilCore says exactly what it can check and nothing more.
 ## Version 2: a result bound to its sample (7 November 2026)
 
 Status: built, on the test network only (the same `LAB_SIGNING_ENABLED` switch). Specified in the
-SDK's SPEC 11.12 (draft), with 156 vectors computed there from the text alone; this app checks
+SDK's SPEC 11.12 (draft), with 158 vectors computed there from the text alone; this app checks
 them (`lab-result.test.ts`).
 
 Version 1 names the plant only by a name the lab typed; the link to the record lived in the
@@ -147,9 +147,10 @@ The same shape fits inactivated vaccines and cell lines, heat-treated seed and s
 - **Numbers are typed plain.** The limit and the count take digits and a point before decimals
   only. "1,000", "1.000", "1 000", "0,5" and the like are refused with a message saying how to type
   them, because they mean different numbers in different countries; nothing is tidied or guessed. A
-  whole number with exactly three decimals ("4.300") reads like a thousands point and is refused too,
-  and a signed result carrying one is refused by its own check, here and in the SDK ("1.5", "1000"
-  and "0.125" stand). A unit typed with no count is refused too, not dropped: the lab may have
+  whole number other than 0 with exactly three decimals ("4.300", "1234.567", "1000.000") reads
+  like a thousands point and is refused too, and a signed result carrying one is refused by its own
+  check, here and in the SDK. "1.5", "1000" and "0.125" stand: a thousands group never starts with
+  0, and a misreading could only make "0.125" look bigger. A unit typed with no count is refused too, not dropped: the lab may have
   meant to give a count.
 - **An invalid run isn't signed.** A positive control that didn't grow, or a negative control that
   did, is refused on the form and by the statement's own check: "none recovered" on a test that

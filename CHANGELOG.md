@@ -37,6 +37,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   when the after-sample recovered something; what the test recovers is quoted in the pair line; a
   count unit with no count is refused instead of dropped; the number hint shows under the count
   too; a missing control choice no longer marks the positive control's name.
+- Last fixes: a limit or count with any whole part but 0 and exactly three decimals ("1234.567",
+  "1000.000") is refused too, as in the SDK ("0.125" stands); the claim note says a claim covers
+  the result only, instead of "proves" it, in all five languages; the word check reads every lab
+  string in all five languages instead of a list of keys; a result that replaces its own pair
+  says so, instead of naming the same result twice.
 - Lab signing stays on the test network only.
 
 ### Lab signatures: private unless the holder shows them (not live yet; ships with the registry)

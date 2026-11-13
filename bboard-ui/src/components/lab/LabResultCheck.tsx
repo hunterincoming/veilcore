@@ -135,7 +135,11 @@ const PairLine: React.FC<{ after: LabResultBundle; pair: ViabilityPair }> = ({ a
   const { t } = tr;
   if (pair.state === 'broken') {
     // A withdrawn or replaced result is no longer evidence about the other: say which, and why.
-    const k = `app.lr.check.pair${pair.reason === 'retraction' ? 'Withdrawn' : 'Replaced'}${pair.side === 'before' ? 'Before' : 'After'}`;
+    // When one of the two replaced the other, say that, rather than name the same result twice.
+    const side = pair.side === 'before' ? 'Before' : 'After';
+    const k = pair.self
+      ? `app.lr.check.pairSelf${side}`
+      : `app.lr.check.pair${pair.reason === 'retraction' ? 'Withdrawn' : 'Replaced'}${side}`;
     return (
       <Alert
         severity="warning"
@@ -143,6 +147,7 @@ const PairLine: React.FC<{ after: LabResultBundle; pair: ViabilityPair }> = ({ a
         sx={{ mb: 2 }}
         data-viability-pair="broken"
         data-pair-side={pair.side}
+        data-pair-self={pair.self ? 'yes' : undefined}
       >
         {t(k as AppKey, { code: short(pair.code), by: short(pair.by) })}
       </Alert>

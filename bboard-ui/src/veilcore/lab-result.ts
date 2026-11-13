@@ -252,12 +252,13 @@ export const COUNT_MAX = 1_000_000_000;
 export const DECIMAL = /^(0|[1-9]\d{0,14})(\.\d{1,6})?$/;
 const ZERO = /^0(\.0+)?$/;
 /**
- * One to three whole digits, a point and exactly three digits ("1.000", "12.500"): German, French
- * and Spanish write the point between thousands, so a reader there takes these for a thousand or
- * more. A viability amount (limit of detection, count) refuses them, signed or typed (SPEC 11.12);
- * "1000", "1.5" and "0.125" stand.
+ * A whole part that is not 0, a point and exactly three digits ("1.000", "12.500", "1234.567",
+ * "1000.000"): German, French and Spanish write the point between thousands, so a reader there can
+ * take these for a number a thousand times bigger. A viability amount (limit of detection, count)
+ * refuses them, signed or typed (SPEC 11.12); "1000", "1.5", "1.0000" and "0.125" stand ("0.125"
+ * because a thousands group never starts with 0, and a misreading could only make it look bigger).
  */
-export const THOUSANDS_LOOKALIKE = /^[1-9]\d{0,2}\.\d{3}$/;
+export const THOUSANDS_LOOKALIKE = /^[1-9]\d*\.\d{3}$/;
 /** The most media one viability result names (a USP <71> sterility test uses two). */
 export const CULTURES_MAX = 4;
 /** A medium's time and temperature, and a unit: short, like a QC figure. */
@@ -907,7 +908,8 @@ export const replacedBy = (
  * after-sample, and neither result is replaced or withdrawn by another one here (replacedBy).
  * 'missing' when it isn't among these results; 'unpaired' when it is but fails one of the first
  * rules; 'broken' when they would pair but one of the two was replaced or withdrawn ('side' says
- * which). A pair whose two tests named different methods is still a pair, and says so.
+ * which, and 'self' says when it was the other of the two that replaced it). A pair whose two tests
+ * named different methods is still a pair, and says so.
  */
 export type ViabilityPair =
   | { readonly state: 'paired'; readonly before: LabResultBundle; readonly methodsDiffer: boolean }
@@ -918,6 +920,8 @@ export type ViabilityPair =
       readonly side: 'before' | 'after';
       readonly reason: ReplaceReason;
       readonly by: string;
+      /** `by` is the other result of the pair itself (the after-sample's result replaces the before-sample's, or the reverse). */
+      readonly self: boolean;
     };
 
 export const viabilityPairs = (all: readonly LabResultBundle[]): Map<string, ViabilityPair> => {
@@ -950,7 +954,8 @@ export const viabilityPairs = (all: readonly LabResultBundle[]): Map<string, Via
     const gone = replaced.get(ar.before) ?? replaced.get(resultCode(a));
     if (gone) {
       const side = replaced.has(ar.before) ? 'before' : 'after';
-      out.set(resultCode(a), { state: 'broken', code: ar.before, side, reason: gone.reason, by: gone.by });
+      const self = gone.by === (side === 'before' ? resultCode(a) : ar.before);
+      out.set(resultCode(a), { state: 'broken', code: ar.before, side, reason: gone.reason, by: gone.by, self });
       continue;
     }
     const [am, bm] = [a.statement.method, b.statement.method];

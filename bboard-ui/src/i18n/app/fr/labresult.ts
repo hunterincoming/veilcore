@@ -249,7 +249,7 @@ export const labresult = {
   'app.lr.check.withdrawn':
     'Ce laboratoire ne soutient plus ce résultat. La signature se vérifie toujours. Il a peut-être été remplacé par un résultat ultérieur : demandez au laboratoire ou au titulaire le dernier résultat pour cet échantillon.',
   'app.lr.claim.onlyCall':
-    'Cette preuve ne montre que le résultat. Ce qui a été recherché, ou les enregistrements comparés, figure dans le fichier de résultat du laboratoire, pas dans cette preuve. Si vous avez ce fichier, choisissez-le : il est vérifié ici, contre cette preuve, et n’est pas envoyé.',
+    'Cette preuve ne porte que sur le résultat. Ce qui a été recherché, ou les enregistrements comparés, figure dans le fichier de résultat du laboratoire, pas dans cette preuve. Si vous avez ce fichier, choisissez-le : il est vérifié ici, contre cette preuve, et n’est pas envoyé.',
   'app.lr.claim.choose': 'Choisir le fichier de résultat du laboratoire',
   'app.lr.claim.same': 'Le fichier de résultat porte sur le même résultat signé que cette preuve :',
   'app.lr.claim.otherResult': 'Ce fichier porte sur un autre résultat, pas sur celui de cette preuve.',
@@ -372,5 +372,9 @@ export const labresult = {
     'Ce résultat a été retiré par le résultat {by}, signé par la même clé ; il n’est donc plus lu comme une paire avec le résultat de l’échantillon d’avant {code}.',
   'app.lr.check.pairReplacedAfter':
     'Ce résultat a été remplacé par le résultat {by}, signé par la même clé ; il n’est donc plus lu comme une paire avec le résultat de l’échantillon d’avant {code} : consultez le résultat le plus récent.',
+  'app.lr.check.pairSelfBefore':
+    'Ce résultat nomme comme paire le résultat de l’échantillon d’avant {code}, mais il remplace aussi ce résultat (signé par la même clé). Un résultat n’est pas lu comme une paire avec le résultat qu’il remplace.',
+  'app.lr.check.pairSelfAfter':
+    'Ce résultat a été remplacé par le résultat de l’échantillon d’avant {code} lui-même, signé par la même clé ; les deux ne sont donc plus lus comme une paire.',
   'app.lr.f.noCount': 'Organismes viables retrouvés (aucun dénombrement rapporté)',
 } satisfies Partial<AppTranslation>;

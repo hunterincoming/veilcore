@@ -261,7 +261,7 @@ export const labresult = {
   'app.lr.check.withdrawn':
     'This lab no longer stands behind this result. The signature still checks. It may have been replaced by a later result: ask the lab or the holder for the latest result for this sample.',
   'app.lr.claim.onlyCall':
-    'This claim proves the result only. What was tested for, or which records were compared, is in the lab’s result file, not in this claim. If you have that file, choose it: it is checked here, against this claim, and not sent.',
+    'This claim covers the result only. What was tested for, or which records were compared, is in the lab’s result file, not in this claim. If you have that file, choose it: it is checked here, against this claim, and not sent.',
   'app.lr.claim.choose': 'Choose the lab’s result file',
   'app.lr.claim.same': 'The result file is for the same signed result as this claim:',
   'app.lr.claim.otherResult': 'That file is for a different result, not the one this claim is about.',
@@ -377,5 +377,9 @@ export const labresult = {
     'This result was withdrawn by result {by}, signed by the same key, so it is no longer read as a pair with before-sample result {code}.',
   'app.lr.check.pairReplacedAfter':
     'This result was replaced by result {by}, signed by the same key, so it is no longer read as a pair with before-sample result {code}: check the newer result.',
+  'app.lr.check.pairSelfBefore':
+    'This result names before-sample result {code} as its pair, but it also replaces that result (signed by the same key). A result is not read as a pair with the result it replaces.',
+  'app.lr.check.pairSelfAfter':
+    'This result was replaced by before-sample result {code} itself, signed by the same key, so the two are no longer read as a pair.',
   'app.lr.f.noCount': 'Viable organisms recovered (no count reported)',
 };

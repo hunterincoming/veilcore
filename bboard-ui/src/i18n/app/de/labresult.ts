@@ -250,7 +250,7 @@ export const labresult = {
   'app.lr.check.withdrawn':
     'Dieses Labor steht nicht mehr hinter diesem Ergebnis. Die Signatur stimmt weiterhin. Es wurde vielleicht durch ein späteres Ergebnis ersetzt: Fragen Sie das Labor oder den Inhaber nach dem neuesten Ergebnis für diese Probe.',
   'app.lr.claim.onlyCall':
-    'Dieser Nachweis belegt nur das Ergebnis. Worauf geprüft oder was verglichen wurde, steht in der Ergebnisdatei des Labors, nicht in diesem Nachweis. Wenn Sie die Datei haben, wählen Sie sie: Sie wird hier gegen diesen Nachweis geprüft und nicht gesendet.',
+    'Dieser Nachweis umfasst nur das Ergebnis. Worauf geprüft oder was verglichen wurde, steht in der Ergebnisdatei des Labors, nicht in diesem Nachweis. Wenn Sie die Datei haben, wählen Sie sie: Sie wird hier gegen diesen Nachweis geprüft und nicht gesendet.',
   'app.lr.claim.choose': 'Ergebnisdatei des Labors auswählen',
   'app.lr.claim.same': 'Die Ergebnisdatei gehört zu demselben signierten Ergebnis wie dieser Nachweis:',
   'app.lr.claim.otherResult': 'Diese Datei gehört zu einem anderen Ergebnis, nicht zu dem dieses Nachweises.',
@@ -371,5 +371,9 @@ export const labresult = {
     'Dieses Ergebnis wurde durch Ergebnis {by} zurückgezogen, mit demselben Schlüssel signiert, und gilt daher nicht mehr als Paar mit dem Ergebnis der Probe vor dem Abtötungsschritt {code}.',
   'app.lr.check.pairReplacedAfter':
     'Dieses Ergebnis wurde durch Ergebnis {by} ersetzt, mit demselben Schlüssel signiert, und gilt daher nicht mehr als Paar mit dem Ergebnis der Probe vor dem Abtötungsschritt {code}: Prüfen Sie das neuere Ergebnis.',
+  'app.lr.check.pairSelfBefore':
+    'Dieses Ergebnis nennt das Ergebnis der Probe vor dem Abtötungsschritt {code} als Paar, ersetzt dieses Ergebnis aber zugleich (mit demselben Schlüssel signiert). Ein Ergebnis gilt nicht als Paar mit dem Ergebnis, das es ersetzt.',
+  'app.lr.check.pairSelfAfter':
+    'Dieses Ergebnis wurde durch das Ergebnis der Probe vor dem Abtötungsschritt {code} selbst ersetzt, mit demselben Schlüssel signiert. Die beiden gelten daher nicht mehr als Paar.',
   'app.lr.f.noCount': 'Lebensfähige Organismen nachgewiesen (keine Anzahl berichtet)',
 } satisfies Partial<AppTranslation>;

@@ -34,6 +34,11 @@ import { labresult as de } from '../i18n/app/de/labresult';
 import { labresult as es } from '../i18n/app/es/labresult';
 import { labresult as fr } from '../i18n/app/fr/labresult';
 import { labresult as ja } from '../i18n/app/ja/labresult';
+import { lab as enLab } from '../i18n/app/en/lab';
+import { lab as deLab } from '../i18n/app/de/lab';
+import { lab as esLab } from '../i18n/app/es/lab';
+import { lab as frLab } from '../i18n/app/fr/lab';
+import { lab as jaLab } from '../i18n/app/ja/lab';
 
 const STRAIN = 'd4'.repeat(32);
 const SAMPLE_RECORD = 'a1'.repeat(32);
@@ -186,6 +191,7 @@ describe('a viability result', () => {
       side: 'before',
       reason: 'retraction',
       by: wb.commitment,
+      self: false,
     });
     // The after-sample withdrawn.
     const wa = await makeLabResult(lab.privateKey, withdrawalOf(a.commitment));
@@ -204,6 +210,32 @@ describe('a viability result', () => {
     // A withdrawal signed by another key withdraws nothing: still a pair.
     const theirs = await makeLabResult(other.privateKey, withdrawalOf(b.commitment));
     expect(viabilityPairs([b.bundle, a.bundle, theirs.bundle]).get(a.commitment)?.state).toBe('paired');
+  });
+
+  it('an after-sample result that replaces its own before-sample breaks the pair, and says so once', async () => {
+    const lab = await generateKeypair();
+    const b = await makeLabResult(lab.privateKey, before);
+    const input = afterOf(b.commitment);
+    const a = await makeLabResult(lab.privateKey, {
+      ...input,
+      statement: { ...input.statement, replaces: { result: b.commitment, reason: 're-test' } },
+    });
+    expect(viabilityPairs([b.bundle, a.bundle]).get(a.commitment)).toEqual({
+      state: 'broken',
+      code: b.commitment,
+      side: 'before',
+      reason: 're-test',
+      by: a.commitment,
+      self: true,
+    });
+    // Its own words name the before-sample's result once, and not this result as the one replacing it.
+    for (const [lang, dict] of Object.entries({ en, de, es, fr, ja }))
+      for (const k of ['app.lr.check.pairSelfBefore', 'app.lr.check.pairSelfAfter'] as const) {
+        const v = (dict as Record<string, string>)[k];
+        expect(v, `${lang} ${k}`).toBeTruthy();
+        expect(v.split('{code}').length, `${lang} ${k}`).toBe(2);
+        expect(v, `${lang} ${k}`).not.toContain('{by}');
+      }
   });
 
   it('reads the SDK’s pair vectors as the SDK does', () => {
@@ -236,8 +268,10 @@ describe('a viability result', () => {
       const all = [as(p.before, p.beforeCode), a, ...p.held.map((h) => as(h.statement, h.code))].filter(
         (x): x is LabResultBundle => x !== undefined,
       );
-      const got = viabilityPairs(all).get(resultCode(a))?.state === 'paired';
-      expect(got, p.name).toBe(p.paired);
+      const pair = viabilityPairs(all).get(resultCode(a));
+      expect(pair?.state === 'paired', p.name).toBe(p.paired);
+      // The two vectors where one result of the pair replaces the other read as that, not as a third result.
+      if (p.name.includes('itself replaces')) expect(pair, p.name).toMatchObject({ state: 'broken', self: true });
     }
   });
 
@@ -269,12 +303,12 @@ describe('a viability result', () => {
     const s = { format: 'veilcore/lab-result/v2', ...before.statement } as LabResultStatement;
     const r = s.result as ViabilityResult;
     const with_ = (result: object) => () => checkedStatement({ ...s, result: { ...r, ...result } });
-    for (const v of ['1.000', '12.500', '4.300', '100.000'])
+    for (const v of ['1.000', '12.500', '4.300', '100.000', '1234.567', '1000.000', '4300000.000'])
       expect(with_({ lod: { value: v, unit: 'CFU/g' } }), v).toThrow(expect.objectContaining({ code: 'lod' }));
-    for (const v of ['12.500', '4.300'])
+    for (const v of ['12.500', '4.300', '1234.567', '1000.000'])
       expect(with_({ count: { value: v, unit: 'CFU/g' } }), v).toThrow(expect.objectContaining({ code: 'count' }));
-    // Plain decimals stand, and so does a point then three digits that can't be a thousands group.
-    for (const v of ['1', '1.5', '2.25', '0.125', '1000', '1234.567', '1.0000'])
+    // Plain decimals stand, and so does a point then three digits after 0: a thousands group never starts with 0.
+    for (const v of ['1', '1.5', '2.25', '0.125', '1000', '1234.5670', '1.0000'])
       expect(with_({ lod: { value: v, unit: 'CFU/g' } }), v).not.toThrow();
     expect(with_({ count: { value: '1000', unit: 'CFU/g' } })).not.toThrow();
   });
@@ -448,47 +482,66 @@ describe('the lab’s form for a viability result', () => {
 });
 
 describe('the words for a viability result', () => {
-  const KEYS = Object.keys(en).filter(
-    (k) =>
-      /viability|recovered|noneRecovered|\.stage|killStep|recovers|portion|cultures?\b|\.lod|\.count|belowLod|noCount|numberHelp|controls?|positive|negative|sampled|strain|before|pair/i.test(
-        k,
-      ) ||
-      // Review of kill-step-result: six words the form added that the pattern above missed.
-      /^app\.lr\.(f|form|problem)\.batch$|^app\.lr\.form\.(read|unit|cultureAdd)$/.test(k),
-  );
+  // Every string of the lab pages (app.lab.*, app.lr.* and the rest of lab.ts and labresult.ts), in
+  // all five languages: a key added later is checked without being named here.
+  const COPY: Record<string, Record<string, string>> = {
+    en: { ...en, ...enLab },
+    de: { ...de, ...deLab },
+    es: { ...es, ...esLab },
+    fr: { ...fr, ...frLab },
+    ja: { ...ja, ...jaLab },
+  };
+  const KEYS = Object.keys(COPY.en);
   // "Dead", "sterile", "proves" and "ownership" in each language: what a "none recovered" result
-  // never says (a record shows prior possession, never ownership).
+  // never says, and no lab result proves anything (a record shows prior possession, never
+  // ownership). "Proof code" and the claim's own name in de/es/fr/ja are nouns, not checked here.
   const NEVER: Record<string, RegExp> = {
-    en: /\bdead\b|steril|\bprove|\bown(er|ership)\b/i,
-    de: /\btot\b|steril|beweis|eigentum/i,
-    es: /muert|estéril|esteril|prueba que|demuestra|propiedad|propietari|dueñ/i,
-    fr: /\bmort|stérile|sterile|prouve|démontre|propriét/i,
-    // 証明 on its own is "proof"; 証明コード is the site's word for a proof code, which is a code.
-    ja: /死|無菌|証明(?!コード)|所有/,
+    en: /\bdead\b|steril|\bprov(e|es|ed|en|ing)\b|\bown(er|ers|ership)\b/i,
+    de: /\btot\b|steril|beweis|belegt|eigentum/i,
+    es: /muert|estéril|esteril|(?<!código de )prueba que|demuestr|demostr|propiedad|propietari|dueñ/i,
+    fr: /\bmort|stérile|sterile|prouv|démontr|propriét/i,
+    // The verb only: 証明 alone is the claim's name (この証明), and 証明コード is a proof code.
+    ja: /死|無菌|証明(する|し|さ|でき)|所有/,
+  };
+  // Explicit denials, which say the word to say it doesn't hold. Each must still deny it.
+  const DENIALS: Record<string, string> = {
+    'fr app.lr.note.lineage': 'ne la prouve pas',
+    'es app.lab.strength.invalidWhy': 'No se puede demostrar',
+    'ja app.lab.strength.invalidWhy': '証明されていない',
   };
 
-  it('has every new word in all five languages', () => {
-    expect(KEYS.length).toBeGreaterThan(40);
-    for (const k of [
-      'app.lr.f.batch',
-      'app.lr.form.batch',
-      'app.lr.problem.batch',
-      'app.lr.form.read',
-      'app.lr.form.unit',
-      'app.lr.form.cultureAdd',
-      'app.lr.problem.countUnitAlone',
-    ])
-      expect(KEYS, k).toContain(k);
-    for (const [lang, dict] of Object.entries({ de, es, fr, ja }))
-      for (const k of KEYS) expect((dict as Record<string, string>)[k], `${lang} ${k}`).toBeTruthy();
+  it('has every word in all five languages', () => {
+    expect(KEYS.length).toBeGreaterThan(600);
+    expect(KEYS).toContain('app.lr.kind.viability');
+    expect(KEYS).toContain('app.lab.strength.invalidWhy');
+    for (const [lang, dict] of Object.entries(COPY))
+      // A string in each (Japanese joins sentences with no space, so one may be empty there).
+      for (const k of KEYS) expect(typeof dict[k], `${lang} ${k}`).toBe('string');
   });
 
   it('never says the batch is dead or sterile, or that a result proves it, in any language', () => {
-    for (const [lang, dict] of Object.entries({ en, de, es, fr, ja }))
+    for (const [lang, dict] of Object.entries(COPY))
       for (const k of KEYS) {
-        const v = (dict as Record<string, string>)[k];
-        expect(NEVER[lang].test(v), `${lang} ${k}: ${v}`).toBe(false);
+        const v = dict[k];
+        const denial = DENIALS[`${lang} ${k}`];
+        if (denial) {
+          expect(v, `${lang} ${k} is on the denials list`).toContain(denial);
+          expect(NEVER[lang].test(v.replace(denial, '')), `${lang} ${k}: ${v}`).toBe(false);
+        } else expect(NEVER[lang].test(v), `${lang} ${k}: ${v}`).toBe(false);
       }
+    for (const d of Object.keys(DENIALS)) {
+      const [lang, k] = d.split(' ');
+      expect(NEVER[lang].test(COPY[lang][k]), `${d} still needs its place on the list`).toBe(true);
+    }
+  });
+
+  it('would have caught the claim note that said “proves”', () => {
+    expect(NEVER.en.test('This claim proves the result only.')).toBe(true);
+    expect(NEVER.de.test('Dieser Nachweis belegt nur das Ergebnis.')).toBe(true);
+    expect(NEVER.es.test('Esta prueba solo demuestra el resultado.')).toBe(true);
+    expect(NEVER.fr.test('Cette preuve prouve le résultat.')).toBe(true);
+    expect(NEVER.ja.test('この結果を証明します。')).toBe(true);
+    expect(COPY.en['app.lr.claim.onlyCall']).toMatch(/^This claim covers the result only\./);
   });
 
   afterEach(() => vi.unstubAllGlobals());

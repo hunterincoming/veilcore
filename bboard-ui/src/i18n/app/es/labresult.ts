@@ -246,7 +246,7 @@ export const labresult = {
   'app.lr.check.withdrawn':
     'Este laboratorio ya no respalda este resultado. La firma sigue verificándose. Puede haberse sustituido por un resultado posterior: pida al laboratorio o al titular el último resultado de esta muestra.',
   'app.lr.claim.onlyCall':
-    'Esta prueba solo demuestra el resultado. Qué se analizó, o qué registros se compararon, está en el archivo de resultado del laboratorio, no en esta prueba. Si tiene ese archivo, elíjalo: se comprueba aquí, contra esta prueba, y no se envía.',
+    'Esta prueba solo cubre el resultado. Qué se analizó, o qué registros se compararon, está en el archivo de resultado del laboratorio, no en esta prueba. Si tiene ese archivo, elíjalo: se comprueba aquí, contra esta prueba, y no se envía.',
   'app.lr.claim.choose': 'Elegir el archivo de resultado del laboratorio',
   'app.lr.claim.same': 'El archivo de resultado es del mismo resultado firmado que esta prueba:',
   'app.lr.claim.otherResult': 'Ese archivo es de otro resultado, no del que trata esta prueba.',
@@ -368,5 +368,9 @@ export const labresult = {
     'Este resultado fue retirado por el resultado {by}, firmado con la misma clave, así que ya no se lee como par con el resultado de la muestra anterior {code}.',
   'app.lr.check.pairReplacedAfter':
     'Este resultado fue sustituido por el resultado {by}, firmado con la misma clave, así que ya no se lee como par con el resultado de la muestra anterior {code}: consulte el resultado más reciente.',
+  'app.lr.check.pairSelfBefore':
+    'Este resultado nombra como par el resultado de la muestra anterior {code}, pero también sustituye ese resultado (firmado con la misma clave). Un resultado no se lee como par con el resultado que sustituye.',
+  'app.lr.check.pairSelfAfter':
+    'Este resultado fue sustituido por el propio resultado de la muestra anterior {code}, firmado con la misma clave, así que ya no se leen como par.',
   'app.lr.f.noCount': 'Se recuperaron organismos viables (sin recuento informado)',
 } satisfies Partial<AppTranslation>;
