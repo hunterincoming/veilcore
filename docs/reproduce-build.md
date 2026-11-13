@@ -69,9 +69,10 @@ so a check that does not trust us should use an indexer you choose:
   indexers to agree on what the verdict rests on: every circuit's verifier key and the
   maintenance authority. The rest of the state (the ledger data, which changes with every
   anchored batch) is not compared, so two indexers a block apart still agree. If they disagree
-  on a key or the authority, that contract is not checked and the run ends
-  `RESULT: CANNOT CHECK: indexers disagree …` with exit 2; try again shortly. If they agree
-  and the chain differs from the file, it is a `FAIL` (exit 1) as with one indexer.
+  on a key or the authority, or a state cannot be read, that contract is not checked and the
+  run ends `RESULT: CANNOT CHECK: …` with exit 2; try again shortly. If any other contract
+  differs from the file, the run is still a `FAIL` (exit 1) and names the contracts not
+  checked.
 
 **What it compares.** The SHA-256 of each circuit's verifier key in the contract's current
 state, against `circuits.<name>.verifierKey` in the deployments file. Midnight checks every proof

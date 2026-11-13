@@ -274,12 +274,26 @@ export const run = async (argv, { env = process.env, log = console.log } = {}) =
   const disagree = [];
   for (const c of contracts) {
     log(`\n${c.name}  ${c.address}`);
+    // A state that cannot be read, or a second indexer that fails, leaves this contract not
+    // checked, so a FAIL found on another contract still ends the run with RESULT: FAIL, exit 1.
+    // The first indexer being down or missing the contract still stops the run (exit 2).
     const hex = await fetchStateHex(first, c.address);
+    let differ = [];
+    let other;
+    try {
+      if (second !== undefined) {
+        // Only what the verdict rests on is compared: the rest of the state changes with every
+        // anchored batch, so two healthy indexers a block apart would rarely be byte-identical.
+        other = await fetchStateHex(second, c.address);
+        differ = other === hex ? [] : factsDiffer(verdictFacts(hex), verdictFacts(other));
+      }
+    } catch (e) {
+      if (!(e instanceof CannotCheck)) throw e;
+      disagree.push(c.name);
+      log(`  CANNOT CHECK  ${e.message}`);
+      continue;
+    }
     if (second !== undefined) {
-      // Only what the verdict rests on is compared: the rest of the state changes with every
-      // anchored batch, so two healthy indexers a block apart would rarely be byte-identical.
-      const other = await fetchStateHex(second, c.address);
-      const differ = other === hex ? [] : factsDiffer(verdictFacts(hex), verdictFacts(other));
       if (differ.length > 0) {
         disagree.push(c.name);
         log(
@@ -290,7 +304,15 @@ export const run = async (argv, { env = process.env, log = console.log } = {}) =
       const rest = other === hex ? 'the same state, byte for byte' : 'the rest of the state differs, as it does between batches; it is not what is checked';
       log(`  both indexers report the same verifier key for every circuit and the same maintenance authority (${rest})`);
     }
-    const r = checkOne(c, hex, d.network);
+    let r;
+    try {
+      r = checkOne(c, hex, d.network);
+    } catch (e) {
+      if (!(e instanceof CannotCheck)) throw e;
+      disagree.push(c.name);
+      log(`  CANNOT CHECK  ${e.message}`);
+      continue;
+    }
     for (const l of r.lines) log(l);
     circuits += r.circuits;
     matching += r.circuits - Math.min(r.failed, r.circuits);
@@ -298,14 +320,14 @@ export const run = async (argv, { env = process.env, log = console.log } = {}) =
   }
   log('');
   const unchecked =
-    disagree.length > 0 ? ` Not checked, the indexers disagree: ${disagree.join(', ')}.` : '';
+    disagree.length > 0 ? ` Not checked (indexers disagree or could not be read): ${disagree.join(', ')}.` : '';
   if (!allOk) {
     log(`RESULT: FAIL. The chain does not match deployments/${d.network}.json (see FAIL above): ${matching} of ${circuits} circuits match.${unchecked}`);
     return 1;
   }
   if (disagree.length > 0) {
     log(
-      `RESULT: CANNOT CHECK: indexers disagree about ${disagree.join(', ')} (one may be behind; try again shortly).${circuits > 0 ? ` The rest matches: ${matching} of ${circuits} circuits.` : ''}`,
+      `RESULT: CANNOT CHECK: ${disagree.join(', ')} (the indexers disagree or a state could not be read; one may be behind; try again shortly).${circuits > 0 ? ` The rest matches: ${matching} of ${circuits} circuits.` : ''}`,
     );
     return 2;
   }

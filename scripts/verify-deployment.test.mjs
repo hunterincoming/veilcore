@@ -153,7 +153,7 @@ test('two indexers: agreeing passes; disagreeing cannot check that contract (exi
   r = await verify(['--indexer', `${base}/one`, '--second-indexer', `${base}/two`]);
   assert.equal(r.code, 2, r.out);
   assert.match(r.out, /CANNOT CHECK {2}the two indexers report different verifier keys or maintenance authority for this contract \(maintenance authority;/);
-  assert.match(r.out, /RESULT: CANNOT CHECK: indexers disagree about veilcore-claims .*The rest matches: 24 of 24 circuits\./);
+  assert.match(r.out, /RESULT: CANNOT CHECK: veilcore-claims \(the indexers disagree.*The rest matches: 24 of 24 circuits\./);
   assert.doesNotMatch(r.out, /FAIL|chain does not match/);
   // A contract that really differs is still a FAIL (exit 1), with the disagreement named.
   serve('one', { ...GENUINE, [MAIN]: edited(MAIN, (s) => s.setOperation('proveLicense', opWith(s.operation('anchor').verifierKey))) });
@@ -164,7 +164,7 @@ test('two indexers: agreeing passes; disagreeing cannot check that contract (exi
   });
   r = await verify(['--indexer', `${base}/one`, '--second-indexer', `${base}/two`]);
   assert.equal(r.code, 1, r.out);
-  assert.match(r.out, /RESULT: FAIL\..*23 of 24 circuits match\. Not checked, the indexers disagree: veilcore-claims\./);
+  assert.match(r.out, /RESULT: FAIL\..*23 of 24 circuits match\. Not checked \(indexers disagree or could not be read\): veilcore-claims\./);
 });
 
 test('two indexers a batch apart: the ledger data differs, the keys and authority agree, so it checks (exit 0)', async () => {
@@ -185,8 +185,27 @@ test('two indexers that disagree about one verifier key: that circuit named, exi
   const r = await verify(['--indexer', `${base}/one`, '--second-indexer', `${base}/two`, '--contract', 'veilcore']);
   assert.equal(r.code, 2, r.out);
   assert.match(r.out, /different verifier keys or maintenance authority for this contract \(proveLicense;/);
-  assert.match(r.out, /RESULT: CANNOT CHECK: indexers disagree about veilcore/);
+  assert.match(r.out, /RESULT: CANNOT CHECK: veilcore \(the indexers disagree/);
   assert.doesNotMatch(r.out, /FAIL/);
+});
+
+test('a real FAIL still wins when the second indexer gives an unreadable state for another contract (exit 1)', async () => {
+  const bad = edited(MAIN, (s) => s.setOperation('proveLicense', opWith(s.operation('anchor').verifierKey)));
+  serve('one', { ...GENUINE, [MAIN]: bad });
+  serve('two', { ...GENUINE, [MAIN]: bad, [CLAIMS]: '00ff00ff' });
+  const r = await verify(['--indexer', `${base}/one`, '--second-indexer', `${base}/two`]);
+  assert.equal(r.code, 1, r.out);
+  assert.match(r.out, /CANNOT CHECK {2}A state the indexers gave could not be read/);
+  assert.match(r.out, /RESULT: FAIL\..*Not checked \(indexers disagree or could not be read\): veilcore-claims\./);
+});
+
+test('an unreadable state from the first indexer leaves that contract not checked (exit 2)', async () => {
+  serve('one', { ...GENUINE, [CLAIMS]: '00ff00ff' });
+  const r = await verify(['--indexer', `${base}/one`]);
+  assert.equal(r.code, 2, r.out);
+  assert.match(r.out, /CANNOT CHECK {2}The state the indexer gave for veilcore-claims could not be read/);
+  assert.match(r.out, /RESULT: CANNOT CHECK: veilcore-claims/);
+  assert.doesNotMatch(r.out, /RESULT: (PASS|FAIL)/);
 });
 
 test('cannot check (exit 2): indexer down, no such contract, wrong network, bad arguments', async () => {
