@@ -2,7 +2,7 @@
 // (api/src/deploy-guard.ts, assertJoinAllowed / assertClaimsJoinAllowed) with the network
 // passed in: here it is checked against the real guard with an address pinned.
 // SPDX-License-Identifier: Apache-2.0
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { setNetworkId } from '../../api/src/network-id.js';
 
@@ -50,10 +50,29 @@ describe('the address rule', () => {
     expect(() => resolveAddress('mainnet', 'veilcore', PIN.claims)).toThrow(/Refusing/);
   });
 
-  it('on preprod defaults to the 5 October contracts, as the run record names them', () => {
-    const record = readFileSync(new URL('../../docs/log/preprod-run-5oct.md', import.meta.url), 'utf8');
-    expect(record).toContain(`\`${PREPROD_ADDRESSES.veilcore}\``);
-    expect(record).toContain(`\`${PREPROD_ADDRESSES.claims}\``);
+  it('on preprod defaults to the contracts the test site uses, as their run records name them', () => {
+    // The practice contract (7 October) for records, the 5 October claims contract.
+    const practice = readFileSync(new URL('../../docs/log/preprod-paper-key-practice.md', import.meta.url), 'utf8');
+    const smoke = readFileSync(new URL('../../docs/log/preprod-run-5oct.md', import.meta.url), 'utf8');
+    expect(practice).toContain(`\`${PREPROD_ADDRESSES.veilcore}\``);
+    expect(smoke).toContain(`\`${PREPROD_ADDRESSES.claims}\``);
+    // The test site's deploy refuses a sponsor on any other main contract.
+    const deployTest = readFileSync(new URL('../../scripts/deploy-test-site.mjs', import.meta.url), 'utf8');
+    expect(deployTest).toMatch(new RegExp(`const CONTRACT = '${PREPROD_ADDRESSES.veilcore}'`));
+    // And the newest test-site release was built for these two.
+    const dir = new URL('../../releases/preprod/', import.meta.url);
+    const releases = readdirSync(dir)
+      .filter((f) => f.endsWith('.json'))
+      .map(
+        (f) =>
+          JSON.parse(readFileSync(new URL(f, dir), 'utf8')) as {
+            date: string;
+            build: { settings: Record<string, string> };
+          },
+      );
+    const newest = releases.sort((a, b) => a.date.localeCompare(b.date)).at(-1);
+    expect(newest?.build.settings.VITE_REAL_CHAIN_CONTRACT_ADDRESS).toBe(PREPROD_ADDRESSES.veilcore);
+    expect(newest?.build.settings.VITE_REAL_CHAIN_CLAIMS_ADDRESS).toBe(PREPROD_ADDRESSES.claims);
     expect(defaultAddress('preprod', 'veilcore')).toBe(PREPROD_ADDRESSES.veilcore);
     expect(defaultAddress('undeployed', 'veilcore')).toBeUndefined();
     expect(() => resolveAddress('preview', 'claims')).toThrow(/Give the claims contract's address on preview/);
