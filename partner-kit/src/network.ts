@@ -143,13 +143,17 @@ export const endpointsFor = (
 export type ContractKind = 'veilcore' | 'claims';
 
 /**
- * VeilCore's contracts on preprod: the pair deployed by the 5 October 2026 smoke test
- * (docs/log/preprod-run-5oct.md), from the build in the deployment record. Test network: the
- * main contract's maintenance key was random and discarded; the claims contract's
- * authority is an empty committee. Anything there is test data.
+ * VeilCore's contracts on preprod: the ones test.veilcore.org and its fee service use, so a
+ * record made on the test site is found here. The main contract is the practice contract of
+ * 7 October 2026 (docs/log/preprod-paper-key-practice.md; scripts/deploy-test-site.mjs
+ * refuses a sponsor on any other), whose maintenance authority was then retired; the claims
+ * contract is the one the 5 October smoke test deployed (docs/log/preprod-run-5oct.md), with
+ * an empty committee. Both from the build in the deployment record. (Until November 2026 the
+ * main contract here was the 5 October one, 93c062e1…, which the test site never used.)
+ * Anything on preprod is test data.
  */
 export const PREPROD_ADDRESSES: Readonly<Record<ContractKind, string>> = {
-  veilcore: '93c062e10863ee8d4d72694a42908aa6c55036645fcc327fafc533bc827dc294',
+  veilcore: '72fe33436d424fcf247919c8e2f0de224175cc55061739be0ebffb2d650f2f73',
   claims: '29d3ea80e121518f8fd8bd72533d856cf29cdbddbda1b6f322a661aa4f2484b6',
 };
 
