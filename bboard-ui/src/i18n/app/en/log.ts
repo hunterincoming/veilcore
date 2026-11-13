@@ -89,6 +89,9 @@ export const log = {
   'app.log.savedOn':
     'The details are stored locked on {server}, so you can come back to them, and we don’t have the key. The name is locked too; a check link carries it after the # only if you switch that on. Only a proof code is dated on {datedOn}.',
   'app.log.sealing': 'Sealing…',
+  'app.log.sealPlain':
+    'Once sealed, this can’t change (corrections come later, as new records). Only codes go on Midnight; your details stay locked.',
+  'app.log.seeSealed': 'See exactly what’s sealed',
   'app.log.seal': 'Seal it',
   'app.log.sealingPlant': 'Sealing your plant…',
   'app.log.sealStampsKey':

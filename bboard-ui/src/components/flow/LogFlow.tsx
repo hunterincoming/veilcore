@@ -843,6 +843,8 @@ const Review: React.FC<{
   onSealed: (id: string) => void;
 }> = ({ step, draft, onChange, onChangeOrigin, onSealed }) => {
   const [busy, setBusy] = useState(false);
+  // "See exactly what's sealed": folded until asked for (fresh-eyes review, 12 Nov).
+  const [showSealed, setShowSealed] = useState(false);
   const [error, setError] = useState<string>();
   const animal = draft.kind === 'animal' && draft.animal ? draft.animal : undefined;
   const strain = draft.kind === 'strain' && draft.strain ? draft.strain : undefined;
@@ -934,18 +936,43 @@ const Review: React.FC<{
           {originApplies(draft) && <OriginReviewLine origin={draft.origin} onChange={onChangeOrigin} />}
         </Box>
       )}
-      <Alert icon={<LockIcon />} severity="info" variant="outlined">
-        {rich(t('app.log.sealedWarn'), { b: (c) => <b>{c}</b> })}
-      </Alert>
-      <Typography variant="body2" color="text.secondary">
-        {t('app.log.savedOn', { server: t('app.copy.ourServer'), datedOn: t('app.copy.datedOn') })}
-      </Typography>
-      {/* What the seal's key date stamp puts on Midnight, before the button that starts it. Round 5:
-          one button, one name; dating the key is part of sealing, said here as the receipt's lead
-          (review round 1: one explanation, not three in a row). */}
-      {REAL_CHAIN && (
-        <DisclosureReceipt circuits={['anchor']} lead={t('app.log.sealStampsKey')} leadId="seal-stamps-key" />
-      )}
+      {/* Fresh-eyes review, 12 Nov: "Seal it" sat about 1,800px down on a phone, under the lock
+          warning, where the details are stored and the whole receipt. Now one plain line, the
+          rest folded under "See exactly what's sealed", and the button on the first screen. */}
+      <Stack direction="row" spacing={1} sx={{ alignItems: 'flex-start' }}>
+        <LockIcon fontSize="small" sx={{ mt: '2px', color: 'text.secondary' }} aria-hidden="true" />
+        <Typography variant="body2" data-seal-plain="">
+          <span id="seal-plain">{t('app.log.sealPlain')}</span>{' '}
+          {/* At the end of the line, not a row of its own, so the button stays on the first
+              screen of a phone. */}
+          <Link
+            component="button"
+            type="button"
+            onClick={() => setShowSealed(!showSealed)}
+            aria-expanded={showSealed}
+            aria-controls="seal-details"
+            sx={{ fontWeight: 700, verticalAlign: 'baseline', fontSize: 'inherit' }}
+          >
+            {t('app.log.seeSealed')}
+          </Link>
+        </Typography>
+      </Stack>
+      <Collapse in={showSealed} id="seal-details" data-seal-details="" unmountOnExit>
+        <Stack spacing={1.5} sx={{ pt: 1 }}>
+          <Alert icon={<LockIcon />} severity="info" variant="outlined">
+            {rich(t('app.log.sealedWarn'), { b: (c) => <b>{c}</b> })}
+          </Alert>
+          <Typography variant="body2" color="text.secondary">
+            {t('app.log.savedOn', { server: t('app.copy.ourServer'), datedOn: t('app.copy.datedOn') })}
+          </Typography>
+          {/* What the seal's key date stamp puts on Midnight, before the button that starts it.
+              Round 5: one button, one name; dating the key is part of sealing, said here as the
+              receipt's lead. */}
+          {REAL_CHAIN && (
+            <DisclosureReceipt circuits={['anchor']} lead={t('app.log.sealStampsKey')} leadId="seal-stamps-key" />
+          )}
+        </Stack>
+      </Collapse>
       {error && (
         <Alert severity="error" variant="outlined">
           {error}
@@ -961,7 +988,8 @@ const Review: React.FC<{
         onClick={() => void seal()}
         startIcon={busy ? <CircularProgress size={18} color="inherit" /> : undefined}
         sx={{ py: 1.6 }}
-        {...(REAL_CHAIN ? { 'data-stamps-key': '', 'aria-describedby': 'seal-stamps-key' } : {})}
+        {...(REAL_CHAIN ? { 'data-stamps-key': '' } : {})}
+        aria-describedby="seal-plain"
       >
         {busy ? t('app.log.sealing') : t('app.log.seal')}
       </Button>

@@ -84,6 +84,9 @@ export const log = {
   'app.log.savedOn':
     'Les détails sont conservés verrouillés sur {server} pour que vous puissiez y revenir, et nous n’avons pas la clé. Le nom est verrouillé lui aussi ; un lien de vérification ne le porte après le # que si vous l’activez. Seul un code de preuve est daté, sur {datedOn}.',
   'app.log.sealing': 'Scellement…',
+  'app.log.sealPlain':
+    'Une fois scellé, ceci ne peut plus changer (les corrections s’ajoutent ensuite, comme nouveaux enregistrements). Seuls des codes vont sur Midnight ; vos détails restent verrouillés.',
+  'app.log.seeSealed': 'Voir exactement ce qui est scellé',
   'app.log.seal': 'Sceller',
   'app.log.sealingPlant': 'Scellement de votre plante…',
   'app.log.sealStampsKey':

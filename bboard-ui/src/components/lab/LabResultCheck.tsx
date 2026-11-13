@@ -10,8 +10,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
 import { Alert, Box, Button, Container, Paper, Stack, Typography } from '@mui/material';
-import { Wordmark } from '../Wordmark';
-import { LanguageBar } from '../../i18n/LanguagePicker';
 import { useT } from '../../i18n/app';
 import type { AppKey } from '../../i18n/app/en';
 import {
@@ -283,22 +281,6 @@ export const LabResultCheck: React.FC = () => {
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }} data-lab-result-check="">
       <Container component="main" maxWidth="sm" sx={{ py: { xs: 5, md: 8 }, overflowWrap: 'anywhere' }}>
-        <LanguageBar />
-        <Stack
-          component={RouterLink}
-          to="/"
-          direction="row"
-          sx={{
-            justifyContent: 'center',
-            mb: 2,
-            mx: 'auto',
-            width: 'fit-content',
-            minHeight: 44,
-            color: 'text.primary',
-          }}
-        >
-          <Wordmark />
-        </Stack>
         <Typography variant="h4" component="h1" sx={{ mb: 1 }}>
           {t('app.lr.check.title')}
         </Typography>

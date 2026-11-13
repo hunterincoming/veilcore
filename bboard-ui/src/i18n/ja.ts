@@ -14,6 +14,7 @@ export const ja: Strings = {
   // Header and footer
   'nav.language': '言語',
   'nav.main': 'メイン',
+  'nav.home': 'VeilCoreホーム',
   'footer.documents': '文書',
   'footer.spec': '仕様書',
   'footer.partners': '記録の提出を求める',
@@ -31,6 +32,7 @@ export const ja: Strings = {
   'footer.terms': '利用規約',
   'draft.banner': '機械で作成した翻訳の下書きで、現在確認中です。英語版のページが正式な版です。',
   'draft.showEnglish': '英語で表示',
+  'draft.close': 'このお知らせを閉じる',
   'notice.datingPaused':
     'Midnightのネットワークアップグレードのため、Midnightでの日付付けを一時停止しています。記録は保存されており、再開しだい日付が付けられます。',
   // The record app's frame and the browser tab's titles.
@@ -38,7 +40,7 @@ export const ja: Strings = {
   'app.frame.section.send': '送付と受け取り',
   'app.frame.section.license': 'ライセンスとロイヤルティ',
   'app.frame.section.prove': '証明と確認',
-  'app.frame.home': 'ホームへ。入力した内容は保存されています。',
+  'app.frame.home': 'あなたの記録へ。入力した内容は保存されています。',
   'title.founders': '創業者',
   'title.terms': '利用規約',
   'title.privacy': 'デモのプライバシー',

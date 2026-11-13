@@ -83,6 +83,9 @@ export const log = {
   'app.log.savedOn':
     '詳細は、後で見返せるように{server}にロックした状態で保存され、私たちはその鍵を持っていません。名前もロックされます。確認リンクの#の後ろに名前が入るのは、そうすると選んだときだけです。日付が付くのは、{datedOn}上の証明コードだけです。',
   'app.log.sealing': '封印しています…',
+  'app.log.sealPlain':
+    '封印すると、この内容は変更できません（訂正は後から新しい記録として追加します）。Midnightに載るのはコードだけで、詳細はロックされたままです。',
+  'app.log.seeSealed': '封印される内容を詳しく見る',
   'app.log.seal': '封印する',
   'app.log.sealingPlant': '植物を封印しています…',
   'app.log.sealStampsKey':

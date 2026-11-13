@@ -84,6 +84,9 @@ export const log = {
   'app.log.savedOn':
     'Die Angaben werden verschlossen auf {server} gespeichert, damit Sie darauf zurückkommen können, und wir haben den Schlüssel nicht. Auch der Name ist verschlossen; ein Prüflink trägt ihn nach dem # nur, wenn Sie das einschalten. Nur ein Prüfcode wird datiert, auf {datedOn}.',
   'app.log.sealing': 'Wird versiegelt…',
+  'app.log.sealPlain':
+    'Einmal versiegelt, lässt sich das nicht mehr ändern (Korrekturen kommen später als neue Datensätze). Nur Codes gehen auf Midnight; Ihre Angaben bleiben verschlossen.',
+  'app.log.seeSealed': 'Genau ansehen, was versiegelt wird',
   'app.log.seal': 'Versiegeln',
   'app.log.sealingPlant': 'Ihre Pflanze wird versiegelt…',
   'app.log.sealStampsKey':

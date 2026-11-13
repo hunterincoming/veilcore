@@ -15,7 +15,6 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBackOutlined';
 import CodeIcon from '@mui/icons-material/CodeOutlined';
 import { LINK_SX, LINE_COLOR, SHEET } from '../config/theme';
 import { DOCS, DOCS_COMMIT, DOCS_VERSION, REPO_VIEW, docHtml } from '../veilcore/docs';
-import { LanguageBar } from '../i18n/LanguagePicker';
 import { InEnglishPage, useT } from '../i18n/app';
 
 /** Phones only. Desktop styles are the ones above, unchanged. */
@@ -39,7 +38,6 @@ export const DocPage: React.FC = () => {
   if (!meta) {
     return (
       <Container maxWidth="md" sx={{ py: 8 }}>
-        <LanguageBar />
         <Typography variant="h4" sx={{ mb: 2 }}>
           {t('app.common.noDoc')}
         </Typography>
@@ -53,7 +51,6 @@ export const DocPage: React.FC = () => {
   return (
     // Inside the app layout's own container, so no second set of side gutters on a phone.
     <Container maxWidth="md" sx={{ py: { xs: 1, sm: 5, md: 8 }, px: { xs: 0, sm: 3 } }}>
-      <LanguageBar />
       <InEnglishPage />
       <Button
         component={RouterLink}

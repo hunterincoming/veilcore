@@ -167,6 +167,11 @@ test('the receipt before the key date stamp, then 3 clones from Ask saved with t
   await page.getByLabel(/Bred by/).fill('E2E');
   await page.getByRole('button', { name: /Next: check it/ }).click();
   const receipt = page.locator('[data-receipt="anchor"]');
+  // Folded under one plain line until asked for, with "Seal it" on a 390px phone's first
+  // screen (fresh-eyes review, 12 Nov).
+  await expect(receipt).toBeHidden();
+  await expect(page.getByRole('button', { name: /Seal it/ })).toBeInViewport({ ratio: 1 });
+  await page.getByText('See exactly what’s sealed').click();
   await expect(receipt).toBeVisible();
   await expect(receipt.locator('[data-receipt-public]')).toContainText(
     'A code made from your record’s key (not the record)',

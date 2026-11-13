@@ -8,6 +8,7 @@ export const en = {
   'nav.licenses': 'Agreements',
   'nav.language': 'Language',
   'nav.main': 'Main',
+  'nav.home': 'VeilCore home',
   'footer.about': 'An open record format for plant and animal genetics.',
   'footer.howCheck': 'How checking works →',
   'footer.documents': 'Documents',
@@ -27,6 +28,7 @@ export const en = {
   'footer.terms': 'Terms of use',
   'draft.banner': 'Machine-drafted translation, under review. The English page is the authoritative version.',
   'draft.showEnglish': 'Show English',
+  'draft.close': 'Close this notice',
   // Shown only while a build turns it on (DATING_PAUSED, config/network.ts).
   'notice.datingPaused':
     "Dating on Midnight is paused for Midnight's network upgrade. Your records are saved and will be dated when it's back.",
@@ -37,7 +39,7 @@ export const en = {
   'app.frame.section.send': 'Send & receive',
   'app.frame.section.license': 'License & royalties',
   'app.frame.section.prove': 'Prove & check',
-  'app.frame.home': 'Home. Your progress is saved.',
+  'app.frame.home': 'Your records. Your progress is saved.',
   'title.founders': 'Founders',
   'title.terms': 'Terms of use',
   'title.privacy': 'Demo privacy',

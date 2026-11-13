@@ -75,7 +75,6 @@ import {
 import { isBoundLabDocument, labSaltFromLink } from '../veilcore/lab-doc';
 import { INK_COLOR, LINK_SX, POLLEN } from '../config/theme';
 import { DatedStamp } from '../components/DatedStamp';
-import { Wordmark } from '../components/Wordmark';
 import { NETWORK, explorerFor, isTestNetwork } from '../config/network';
 import { Fact, FactKey, SharedFacts } from '../components/verify/DisclosedFacts';
 import { pairingPending, pendingReportLine, publicReportLine, withdrawnSignaturesLine } from '../veilcore/saved-report';
@@ -111,7 +110,6 @@ import { NameCheckText } from '../components/NameCheckText';
 import { rich, useT } from '../i18n/app';
 import { enT, forKind, type Translator } from '../i18n/translate';
 import { networkWords } from '../i18n/network-words';
-import { LanguageBar } from '../i18n/LanguagePicker';
 
 const API = import.meta.env.VITE_API_BASE ?? '';
 /** The mark for a date checked on a test network: amber, never mainnet's pollen-gold stamp. */
@@ -565,26 +563,6 @@ export const VerifyPage: React.FC = () => {
     <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
       {/* IDs, fingerprints and hashes are long unbroken strings: they wrap, the page never scrolls sideways. */}
       <Container component="main" maxWidth="sm" sx={{ py: { xs: 5, md: 8 }, overflowWrap: 'anywhere' }}>
-        <LanguageBar />
-        <Stack
-          component={RouterLink}
-          to="/"
-          aria-label={t('app.verify.homeAria')}
-          direction="row"
-          spacing={1.25}
-          sx={{
-            alignItems: 'center',
-            justifyContent: 'center',
-            mb: 2,
-            mx: 'auto',
-            width: 'fit-content',
-            minHeight: 44,
-            textDecoration: 'none',
-            color: 'text.primary',
-          }}
-        >
-          <Wordmark />
-        </Stack>
         {/* One line for a stranger who arrived from a QR code or a shared link. */}
         <Typography
           variant="body2"

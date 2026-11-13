@@ -11,7 +11,8 @@
 //
 // The bubble never sits on something being agreed to: on a phone-sized screen it is not shown on
 // an agreement's screens (its terms, accepting it, its royalty reports and payments). On a touch
-// screen it also steps aside while a field that brings up the keyboard has focus.
+// screen or a phone-sized one it also steps aside while a text field has focus, and on a phone
+// it is its icon only, so it covers as little as it can.
 // SPDX-License-Identifier: Apache-2.0
 
 import React, { Suspense, lazy, useEffect, useMemo, useState } from 'react';
@@ -26,6 +27,19 @@ import { ANIMAL_RECORDS_ENABLED } from '../../config/network';
 import { askOpened, dismissHint, hintDone, markAskOpened, noteHintShown } from '../../ask-local/hint-flag';
 
 const AskSheet = lazy(() => import('./AskSheet'));
+
+/** Read by screen readers, not shown: the compact bubble's name. */
+const visuallyHidden: React.CSSProperties = {
+  border: 0,
+  clip: 'rect(0 0 0 0)',
+  height: 1,
+  margin: -1,
+  overflow: 'hidden',
+  padding: 0,
+  position: 'absolute',
+  whiteSpace: 'nowrap',
+  width: 1,
+};
 
 /** The bubble's size and offset: the room left at the bottom of every page that shows it. */
 export const BUBBLE_HEIGHT = 48;
@@ -42,23 +56,32 @@ export const opensKeyboard = (el: Element | null): boolean => {
   return (el as HTMLElement).isContentEditable === true;
 };
 
-/** On a touch screen: whether a text field on the page (not in Ask) has focus. */
-const useTypingOnTouch = (): boolean => {
+/**
+ * Whether a text field on the page (not in Ask) has focus. Watched on a touch screen and on any
+ * phone-sized one (fresh-eyes review, 12 Nov: the bubble sat on fields being typed into at
+ * 360-390px, worst in Japanese and German).
+ */
+const useTyping = (watchIt: boolean): boolean => {
   const [typing, setTyping] = useState(false);
   useEffect(() => {
-    if (typeof matchMedia === 'undefined' || !matchMedia('(pointer: coarse)').matches) return;
+    const coarse = typeof matchMedia !== 'undefined' && matchMedia('(pointer: coarse)').matches;
+    if (!watchIt && !coarse) {
+      setTyping(false);
+      return;
+    }
     const check = () => {
       const el = document.activeElement;
       setTyping(opensKeyboard(el) && !el?.closest('[data-ask-sheet]'));
     };
     const later = () => setTimeout(check, 0);
+    check();
     document.addEventListener('focusin', check);
     document.addEventListener('focusout', later);
     return () => {
       document.removeEventListener('focusin', check);
       document.removeEventListener('focusout', later);
     };
-  }, []);
+  }, [watchIt]);
   return typing;
 };
 
@@ -73,7 +96,6 @@ export const AskLauncher: React.FC = () => {
   const [hintDoneAtLoad] = useState(hintDone);
   const [openedAtLoad] = useState(askOpened);
   const [dismissed, setDismissed] = useState(false);
-  const typing = useTypingOnTouch();
   const example = useMemo(
     () =>
       hintExample(records, ANIMAL_RECORDS_ENABLED, (kind, name) =>
@@ -85,6 +107,9 @@ export const AskLauncher: React.FC = () => {
   const { pathname } = useLocation();
   const theme = useTheme();
   const narrow = useMediaQuery(theme.breakpoints.down('md'));
+  // A phone: the bubble is its icon only, its name kept for screen readers (review, 12 Nov).
+  const phone = useMediaQuery(theme.breakpoints.down('sm'));
+  const typing = useTyping(narrow);
   // Not over an agreement's terms or its accept, report and pay buttons on a phone-sized screen,
   // nor over a form being filled in there (hint.ts formScreen).
   const bubbleHere =
@@ -172,22 +197,24 @@ export const AskLauncher: React.FC = () => {
       )}
       {bubbleHere && (
         <Fab
-          variant="extended"
+          variant={phone ? 'circular' : 'extended'}
           color="primary"
           onClick={() => press()}
           aria-haspopup="dialog"
           data-ask-open=""
+          data-ask-compact={phone ? '' : undefined}
           sx={{
             position: 'fixed',
             right: BUBBLE_OFFSET,
             bottom: BUBBLE_OFFSET,
             height: BUBBLE_HEIGHT,
+            ...(phone ? { width: BUBBLE_HEIGHT, minHeight: BUBBLE_HEIGHT } : {}),
             borderRadius: `${BUBBLE_HEIGHT / 2}px ${BUBBLE_HEIGHT / 2}px 6px ${BUBBLE_HEIGHT / 2}px`,
             zIndex: (th) => th.zIndex.speedDial,
           }}
         >
-          <ChatIcon sx={{ mr: 1 }} aria-hidden="true" />
-          {t('app.ask.button')}
+          <ChatIcon sx={phone ? undefined : { mr: 1 }} aria-hidden="true" />
+          {phone ? <span style={visuallyHidden}>{t('app.ask.button')}</span> : t('app.ask.button')}
         </Fab>
       )}
       {wanted && (

@@ -14,13 +14,11 @@ import { Link as RouterLink } from 'react-router-dom';
 import VerifiedIcon from '@mui/icons-material/VerifiedOutlined';
 import LockIcon from '@mui/icons-material/LockOutlined';
 import { LINK_SX, MUTED_COLOR } from '../../config/theme';
-import { Wordmark } from '../Wordmark';
 import { IS_MAINNET } from '../../config/network';
 import { Fact, FactKey } from './DisclosedFacts';
 import { geneticsLabel } from '../../veilcore/disclosure';
 import { useT } from '../../i18n/app';
 import { networkWords } from '../../i18n/network-words';
-import { LanguageBar } from '../../i18n/LanguagePicker';
 import { DatedNotOrigin } from './DatedNotOrigin';
 
 const Note: React.FC<{ children: React.ReactNode }> = ({ children }) => (
@@ -38,27 +36,6 @@ export const VerifyExample: React.FC = () => {
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
       <Container maxWidth="sm" sx={{ py: { xs: 5, md: 8 } }}>
-        <LanguageBar />
-        <Stack
-          component={RouterLink}
-          to="/"
-          aria-label={t('app.verify.homeAria')}
-          direction="row"
-          spacing={1.25}
-          sx={{
-            alignItems: 'center',
-            justifyContent: 'center',
-            mb: 3,
-            mx: 'auto',
-            width: 'fit-content',
-            minHeight: 44,
-            textDecoration: 'none',
-            color: 'text.primary',
-          }}
-        >
-          <Wordmark />
-        </Stack>
-
         <Alert severity="info" variant="outlined" sx={{ mb: 3 }}>
           <Typography variant="subtitle2">{t('app.verify.ex.title')}</Typography>
           <Typography variant="body2">{t('app.verify.ex.intro')}</Typography>

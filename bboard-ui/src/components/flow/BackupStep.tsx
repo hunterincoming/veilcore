@@ -29,6 +29,9 @@ import { backupHoldsLine } from '../stage/record-kinds';
 import { rich, useT } from '../../i18n/app';
 import { backupMessageWords } from './backup-words';
 import { PasskeyCopyMaker } from './PasskeyCopy';
+import { loadAttester } from '../../veilcore/attester-keys';
+import { getRole } from '../../veilcore/role';
+import { prepareToReceive } from '../../veilcore/receive';
 
 const Done: React.FC<{ text: string; sub?: string }> = ({ text, sub }) => (
   <Stack direction="row" spacing={1.25} sx={{ alignItems: 'center' }}>
@@ -160,6 +163,10 @@ export const BackupStep: React.FC<{
     if (!pwReady || locking) return;
     setLocking(true);
     try {
+      // A lab's backup holds the key its received records are locked with, made here first if
+      // there is none yet. It used to be made only when the first code was used, after this
+      // backup, so a lab that backed up first was asked to back up again (review, 12 Nov).
+      if (loadAttester() || getRole() === 'lab') await prepareToReceive().catch(() => undefined);
       const now = Date.now();
       const text = await backupFileText(usePassword ? pw : undefined, now);
       savedText.current = text;

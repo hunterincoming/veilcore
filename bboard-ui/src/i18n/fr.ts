@@ -5,6 +5,7 @@ export const fr: Strings = {
   // Header and footer
   'nav.language': 'Langue',
   'nav.main': 'Navigation principale',
+  'nav.home': 'Accueil VeilCore',
   'footer.documents': 'Documents',
   'footer.spec': 'Spécification',
   'footer.partners': 'Exiger un enregistrement',
@@ -22,6 +23,7 @@ export const fr: Strings = {
   'footer.terms': 'Conditions d’utilisation',
   'draft.banner': 'Traduction provisoire faite par machine, en cours de relecture. La page en anglais fait foi.',
   'draft.showEnglish': 'Afficher en anglais',
+  'draft.close': 'Fermer cet avis',
   'notice.datingPaused':
     'La datation sur Midnight est suspendue pendant la mise à niveau du réseau de Midnight. Vos enregistrements sont sauvegardés et seront datés dès son retour.',
   // The record app's frame and the browser tab's titles.
@@ -29,7 +31,7 @@ export const fr: Strings = {
   'app.frame.section.send': 'Envoyer et recevoir',
   'app.frame.section.license': 'Licences et redevances',
   'app.frame.section.prove': 'Prouver et vérifier',
-  'app.frame.home': 'Accueil. Votre progression est enregistrée.',
+  'app.frame.home': 'Vos enregistrements. Votre progression est enregistrée.',
   'title.founders': 'Fondateurs',
   'title.terms': 'Conditions d’utilisation',
   'title.privacy': 'Confidentialité de la démo',

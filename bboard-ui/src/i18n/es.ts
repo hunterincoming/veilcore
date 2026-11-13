@@ -6,6 +6,7 @@ export const es: Strings = {
   // Header and footer
   'nav.language': 'Idioma',
   'nav.main': 'Principal',
+  'nav.home': 'Inicio de VeilCore',
   'footer.documents': 'Documentos',
   'footer.spec': 'Especificación',
   'footer.partners': 'Exigir un registro',
@@ -24,6 +25,7 @@ export const es: Strings = {
   'draft.banner':
     'Traducción preliminar hecha por máquina, en revisión. La página en inglés es la versión de referencia.',
   'draft.showEnglish': 'Ver en inglés',
+  'draft.close': 'Cerrar este aviso',
   'notice.datingPaused':
     'El fechado en Midnight está en pausa por la actualización de la red de Midnight. Sus registros están guardados y se fecharán cuando vuelva a funcionar.',
   // The record app's frame and the browser tab's titles.
@@ -31,7 +33,7 @@ export const es: Strings = {
   'app.frame.section.send': 'Enviar y recibir',
   'app.frame.section.license': 'Licencias y regalías',
   'app.frame.section.prove': 'Demostrar y comprobar',
-  'app.frame.home': 'Inicio. Su avance está guardado.',
+  'app.frame.home': 'Sus registros. Su avance está guardado.',
   'title.founders': 'Fundadores',
   'title.terms': 'Términos de uso',
   'title.privacy': 'Privacidad de la demo',

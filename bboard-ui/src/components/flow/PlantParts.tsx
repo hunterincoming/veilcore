@@ -229,11 +229,41 @@ export const PlantStatus: React.FC<{
     tr,
     proofCodeSent(record.id) || !inOutbox(record.id) ? nextBatchRow(tr, cadence) : { value: t('app.plant.notSentYet') },
   );
-  const batch = { done: dated.mark === 'done', mark: dated.mark, value: dated.value };
-  const datedSub = (extra?: string) => [dated.sub, extra].filter(Boolean).join(' ') || undefined;
+  // One plain line for the record's date (fresh-eyes review, 12 Nov): "waiting: …" until its
+  // batch has a date, "dated …" once it has. The words around the value only; what the value
+  // says comes from recordDateRow as before.
+  const datedValue =
+    proof === 'checking' || dated.mark === 'failed'
+      ? dated.value
+      : dated.mark === 'wait'
+        ? t('app.plant.date.waiting', { what: dated.value })
+        : t('app.plant.date.dated', { what: dated.value });
+  const batch = { done: dated.mark === 'done', mark: dated.mark, value: datedValue };
 
-  // Round 5: one main date, the record's. The key's stamp is a second line under it with
-  // one line of why, so a breeder never reads two competing "dates".
+  // And one line for proof you hold it: the key's own date stamp, on its own row, never mixed
+  // into the record's date. Same facts as keyStampLine (the key's anchor, and the retry queue).
+  const holdRow = (k: RecordKeys) =>
+    k.anchor
+      ? {
+          done: true,
+          mark: 'done' as RowMark,
+          value:
+            k.anchor.anchoredAt === undefined
+              ? t('app.plant.done')
+              : t('app.plant.hold.dated', { date: tr.date(k.anchor.anchoredAt) }),
+        }
+      : {
+          done: false,
+          mark: 'wait' as RowMark,
+          value: retry
+            ? retry.stopped === 'sent'
+              ? t('app.plant.hold.maySent')
+              : retry.stopped === 'cannot'
+                ? t('app.plant.hold.cannot')
+                : t('app.plant.hold.retrying')
+            : t('app.plant.hold.notYet'),
+        };
+
   const rows: { done: boolean; mark?: RowMark; id: string; label: string; value: string; sub?: string }[] = [
     ...(received
       ? []
@@ -241,11 +271,14 @@ export const PlantStatus: React.FC<{
           {
             ...batch,
             id: 'Record dated',
-            label: t('app.plant.recordDated'),
-            sub: datedSub(REAL_CHAIN ? keyStampLine(keys, tr, retry) : undefined),
+            label: t('app.plant.recordDate'),
+            ...(dated.sub ? { sub: dated.sub } : {}),
           },
-          // Right under the record's date: a date shows a description existed; the DNA
-          // report is what ties the record to the plant itself.
+          ...(REAL_CHAIN && keys
+            ? [{ ...holdRow(keys), id: 'Proof you hold it', label: t('app.plant.holdProof') }]
+            : []),
+          // Under the dates: a date shows a description existed; the DNA report is what ties
+          // the record to the plant itself.
           dnaReportRow(dna.tie, dna.date, arrived, waiting, tr),
         ]),
     received
@@ -265,7 +298,8 @@ export const PlantStatus: React.FC<{
   ];
   // The specimen sheet's stamp, pressed in its top right corner: gold once the record's
   // date is checked on Midnight, a dashed PRACTICE stamp for a test network's date, and the
-  // dashed outline of the stamp still to come before then. Not on a record received from
+  // nothing before then: the record's date line says it is waiting, and a third "not dated
+  // yet" beside it read as a contradiction (review, 12 Nov). Not on a record received from
   // someone else: that record's date is the sender's.
   const anchored = proof !== 'checking' && proof.status === 'anchor-reported' ? proof.proof.anchor : undefined;
   const checkedAt =
@@ -279,9 +313,7 @@ export const PlantStatus: React.FC<{
             anchored && isTestNetwork(anchored.network) ? t('app.plant.stamp.practice') : t('app.plant.stamp.dated'),
           date: tr.date(checkedAt, { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' }),
         }
-      : batch.mark === 'failed'
-        ? undefined
-        : { state: 'waiting' as const, word: t('app.plant.stamp.waiting') };
+      : undefined;
   const STAMP = { xs: 72, sm: 92 };
   return (
     <Paper sx={{ px: { xs: 2, md: 2.5 }, py: { xs: 1, md: 1.25 }, position: 'relative' }} data-specimen-sheet="">

@@ -30,6 +30,9 @@ describe('the first download, in the source', () => {
         './components/flow/FlowFrame',
         // A page that fails to draw says so (round 3, L5): small, and needed before any page.
         './components/PageErrorBoundary',
+        // The one header and footer, which the public pages load anyway (SiteShell.tsx).
+        './components/AppFooter',
+        './components/SiteHeader',
         './components/site/Founders',
         './components/site/Home',
         './components/site/NotFound',
@@ -51,7 +54,11 @@ describe('the first download, in the source', () => {
   });
 
   it('the public pages take the language picker through its lazy wrapper', () => {
-    expect(read('components/site/SiteShell.tsx')).toMatch(/from '\.\.\/\.\.\/i18n\/lazy-picker'/);
+    // Through the one header, which every page has (fresh-eyes review, 12 Nov).
+    expect(read('components/site/SiteShell.tsx')).toMatch(/from '\.\.\/SiteHeader'/);
+    expect(read('components/SiteHeader.tsx')).toMatch(/from '\.\.\/i18n\/lazy-picker'/);
+    expect(staticImports(read('components/SiteHeader.tsx'))).not.toContain('../i18n/LanguagePicker');
+    expect(staticImports(read('components/AppFooter.tsx')).some((s) => /i18n\/app|veilcore\//.test(s))).toBe(false);
     expect(staticImports(read('i18n/lazy-picker.tsx'))).not.toContain('./LanguagePicker');
   });
 
