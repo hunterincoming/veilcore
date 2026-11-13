@@ -484,7 +484,9 @@ export const useRegistryView = (
       // An incomplete read still shows what it found; the page says the rest couldn't be checked.
       // A view kept from before a read that failed is marked incomplete, so nothing on the page
       // says an answer hasn't been filed when the read that would show it didn't come back.
+      // A read that failed outright marks the view kept from an earlier one the same way.
       if (v) setView(complete ? v : { ...v, incomplete: true });
+      else if (!complete) setView((p) => p && { ...p, incomplete: true });
       setIncomplete(!complete);
     })();
     return () => {

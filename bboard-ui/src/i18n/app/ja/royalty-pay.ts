@@ -92,6 +92,8 @@ export const royaltyPay = {
   'app.rpay.breach.extra': '補足（任意。相手に表示されます）',
   'app.rpay.breach.note':
     '{due}が期限の報告{n}の支払いがまだありません。この通知から{days}日以内に支払ってください。その後も未払いの場合、不払いによりライセンスを取り消すことがあります。',
+  'app.rpay.revoke.registryDown':
+    'VeilCoreのレジストリに今つながらなかったため、何も取り消していません。少し待ってからもう一度お試しください。',
   'app.rpay.revoke.notYet':
     'まだできません。不払いによる取り消しは、契約違反の通知後の支払い猶予期間が支払い済みの記録がないまま終わってからです。',
   'app.rpay.notice.answer': '{who}が{date}に{period}の支払いについて異議を伝えました：「{note}」',

@@ -100,6 +100,8 @@ export const royaltyPay = {
   'app.rpay.breach.extra': 'Autre chose à ajouter (facultatif ; l’autre partie le verra)',
   'app.rpay.breach.note':
     'Le paiement du rapport {n}, dû le {due}, n’a pas été effectué. Vous avez {days} jours à compter de cet avis pour payer. Ensuite, s’il reste impayé, la licence peut être révoquée pour non-paiement.',
+  'app.rpay.revoke.registryDown':
+    'Le registre de VeilCore n’a pas pu être joint à l’instant, donc rien n’a été révoqué. Réessayez dans un moment.',
   'app.rpay.revoke.notYet':
     'Pas encore : la révocation pour non-paiement n’est possible qu’une fois le délai pour payer après votre avis de manquement écoulé sans paiement indiqué.',
   'app.rpay.notice.answer': '{who} a contesté le paiement pour {period} le {date} : « {note} »',

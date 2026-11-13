@@ -95,6 +95,8 @@ export const royaltyPay = {
   'app.rpay.breach.extra': 'Ergänzung (freiwillig; die andere Seite sieht es)',
   'app.rpay.breach.note':
     'Die Zahlung für Bericht {n}, fällig am {due}, ist nicht erfolgt. Sie haben ab dieser Mitteilung {days} Tage Zeit zu zahlen. Ist sie danach noch offen, kann die Lizenz wegen Nichtzahlung widerrufen werden.',
+  'app.rpay.revoke.registryDown':
+    'Das Register von VeilCore war gerade nicht erreichbar, daher wurde nichts widerrufen. Versuchen Sie es gleich noch einmal.',
   'app.rpay.revoke.notYet':
     'Noch nicht: Ein Widerruf wegen Nichtzahlung ist erst möglich, wenn die Frist nach Ihrer Mitteilung über die Vertragsverletzung abgelaufen ist und nichts als bezahlt markiert wurde.',
   'app.rpay.notice.answer': '{who} hat am {date} der Zahlung für {period} widersprochen: „{note}“',

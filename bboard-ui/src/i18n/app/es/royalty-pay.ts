@@ -95,6 +95,8 @@ export const royaltyPay = {
   'app.rpay.breach.extra': 'Algo que añadir (opcional; la otra parte lo verá)',
   'app.rpay.breach.note':
     'El pago del informe {n}, que vencía el {due}, no se ha hecho. Tiene {days} días desde este aviso para pagar. Después, si sigue sin pagarse, la licencia se puede revocar por falta de pago.',
+  'app.rpay.revoke.registryDown':
+    'No se pudo contactar con el registro de VeilCore en este momento, así que no se revocó nada. Vuelva a intentarlo en un momento.',
   'app.rpay.revoke.notYet':
     'Todavía no: revocar por falta de pago solo es posible cuando el plazo para pagar tras su aviso de incumplimiento ha terminado sin nada marcado como pagado.',
   'app.rpay.notice.answer': '{who} disputó el pago de {period} el {date}: «{note}»',

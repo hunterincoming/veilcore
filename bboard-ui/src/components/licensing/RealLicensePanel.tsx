@@ -399,12 +399,14 @@ export const RealLicensePanel: React.FC<{ license: License; blocked: boolean; on
       // Checked again against the registry, now: its date for the notice of breach and its clock,
       // never this device's (a device set to a later date offers nothing early).
       const had = await holderNotices(license.recordId);
-      const view = 'view' in had ? had.view : undefined;
+      // A failed read says so: it is not a sign that the time to pay hasn't run out.
+      if (!('view' in had)) throw new Error(tr.t('app.rpay.revoke.registryDown'));
+      const view = had.view;
       const gate = registryGate(view);
       const alert = paymentAlerts(license.terms, now, utcDay(), undefined, undefined, gate).find(
         (a) => a.kind === 'overdue' && a.report.statement.signature === r.statement.signature,
       );
-      if (!alert?.revocable || !view) throw new Error(tr.t('app.rpay.revoke.notYet'));
+      if (!alert?.revocable) throw new Error(tr.t('app.rpay.revoke.notYet'));
       const { revokeLicenseOnChain } = await import('../../veilcore/chain/actions');
       const done = await revokeLicenseOnChain(hexBytes(keys.recordSecret), oc.commitment, oc.issuerRecord, {
         progress,
