@@ -11,12 +11,27 @@
 //
 // The bubble never sits on something being agreed to: on a phone-sized screen it is not shown on
 // an agreement's screens (its terms, accepting it, its royalty reports and payments). On a touch
-// screen or a phone-sized one it also steps aside while a text field has focus, and on a phone
-// it is its icon only, so it covers as little as it can.
+// screen or a phone-sized one it also steps aside while a text field has focus.
+//
+// On a phone it is not a bubble at all: it is a small button in the header, beside the language
+// and the network (SiteHeader.tsx), in the page's flow, so it covers nothing (review of
+// ux-polish, 13 Nov: even as an icon the bubble sat on the record's status lines at 390px in
+// German). It is still not offered on an agreement's screens or a form being filled in there.
 // SPDX-License-Identifier: Apache-2.0
 
 import React, { Suspense, lazy, useEffect, useMemo, useState } from 'react';
-import { Container, Fab, GlobalStyles, IconButton, Paper, Typography, useMediaQuery, useTheme } from '@mui/material';
+import { createPortal } from 'react-dom';
+import {
+  Button,
+  Container,
+  Fab,
+  GlobalStyles,
+  IconButton,
+  Paper,
+  Typography,
+  useMediaQuery,
+  useTheme,
+} from '@mui/material';
 import ChatIcon from '@mui/icons-material/ChatBubbleOutlineOutlined';
 import CloseIcon from '@mui/icons-material/Close';
 import { useT } from '../../i18n/app';
@@ -25,21 +40,9 @@ import { agreementScreen, formScreen, hintExample, hintPage, jobScreen } from '.
 import { useLocation } from 'react-router-dom';
 import { ANIMAL_RECORDS_ENABLED } from '../../config/network';
 import { askOpened, dismissHint, hintDone, markAskOpened, noteHintShown } from '../../ask-local/hint-flag';
+import { ASK_SLOT_ID } from '../SiteHeader';
 
 const AskSheet = lazy(() => import('./AskSheet'));
-
-/** Read by screen readers, not shown: the compact bubble's name. */
-const visuallyHidden: React.CSSProperties = {
-  border: 0,
-  clip: 'rect(0 0 0 0)',
-  height: 1,
-  margin: -1,
-  overflow: 'hidden',
-  padding: 0,
-  position: 'absolute',
-  whiteSpace: 'nowrap',
-  width: 1,
-};
 
 /** The bubble's size and offset: the room left at the bottom of every page that shows it. */
 export const BUBBLE_HEIGHT = 48;
@@ -107,13 +110,19 @@ export const AskLauncher: React.FC = () => {
   const { pathname } = useLocation();
   const theme = useTheme();
   const narrow = useMediaQuery(theme.breakpoints.down('md'));
-  // A phone: the bubble is its icon only, its name kept for screen readers (review, 12 Nov).
-  const phone = useMediaQuery(theme.breakpoints.down('sm'));
-  const typing = useTyping(narrow);
+  // A phone: a button in the header instead of a bubble (where the header keeps a place for it).
+  const phone = useMediaQuery(theme.breakpoints.down('sm'), { noSsr: true });
+  const [slot, setSlot] = useState<HTMLElement | null>(() =>
+    typeof document === 'undefined' ? null : document.getElementById(ASK_SLOT_ID),
+  );
+  useEffect(() => setSlot(document.getElementById(ASK_SLOT_ID)), [pathname]);
+  const inHeader = phone && slot !== null;
+  // In the header it covers nothing, so it doesn't step aside for typing (the header would move).
+  const typing = useTyping(narrow && !inHeader);
   // Not over an agreement's terms or its accept, report and pay buttons on a phone-sized screen,
-  // nor over a form being filled in there (hint.ts formScreen).
-  const bubbleHere =
-    !typing && !jobScreen(pathname) && !(narrow && (agreementScreen(pathname) || formScreen(pathname)));
+  // nor over a form being filled in there (hint.ts formScreen); on a phone not offered there.
+  const offered = !jobScreen(pathname) && !(narrow && (agreementScreen(pathname) || formScreen(pathname)));
+  const bubbleHere = offered && !typing && !inHeader;
   const hint = !hintDoneAtLoad && !dismissed && !!example && hintPage(pathname);
 
   // Counted once per visit, the first time the hint shows.
@@ -197,26 +206,43 @@ export const AskLauncher: React.FC = () => {
       )}
       {bubbleHere && (
         <Fab
-          variant={phone ? 'circular' : 'extended'}
+          variant="extended"
           color="primary"
           onClick={() => press()}
           aria-haspopup="dialog"
           data-ask-open=""
-          data-ask-compact={phone ? '' : undefined}
           sx={{
             position: 'fixed',
             right: BUBBLE_OFFSET,
             bottom: BUBBLE_OFFSET,
             height: BUBBLE_HEIGHT,
-            ...(phone ? { width: BUBBLE_HEIGHT, minHeight: BUBBLE_HEIGHT } : {}),
             borderRadius: `${BUBBLE_HEIGHT / 2}px ${BUBBLE_HEIGHT / 2}px 6px ${BUBBLE_HEIGHT / 2}px`,
             zIndex: (th) => th.zIndex.speedDial,
           }}
         >
-          <ChatIcon sx={phone ? undefined : { mr: 1 }} aria-hidden="true" />
-          {phone ? <span style={visuallyHidden}>{t('app.ask.button')}</span> : t('app.ask.button')}
+          <ChatIcon sx={{ mr: 1 }} aria-hidden="true" />
+          {t('app.ask.button')}
         </Fab>
       )}
+      {offered &&
+        inHeader &&
+        slot &&
+        createPortal(
+          <Button
+            variant="contained"
+            color="primary"
+            size="small"
+            onClick={() => press()}
+            aria-haspopup="dialog"
+            data-ask-open=""
+            data-ask-compact=""
+            startIcon={<ChatIcon aria-hidden="true" />}
+            sx={{ minHeight: 44, borderRadius: '22px 22px 6px 22px', px: 1.75, whiteSpace: 'nowrap' }}
+          >
+            {t('app.ask.button')}
+          </Button>,
+          slot,
+        )}
       {wanted && (
         <Suspense fallback={null}>
           <AskSheet open={open} onClose={() => setOpen(false)} firstOpen={!openedAtLoad} prefill={prefill} />

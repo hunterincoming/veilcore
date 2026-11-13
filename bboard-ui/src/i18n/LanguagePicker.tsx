@@ -1,6 +1,5 @@
-// The language picker in the header, and the banner over a draft translation. LanguageBar
-// is both, for a page of the app with no header of its own (the check page, a prove link,
-// an agreement to sign, the documents).
+// The language picker in the one header (components/SiteHeader.tsx), and the notice over a
+// draft translation, which every page has under that header.
 // SPDX-License-Identifier: Apache-2.0
 
 import React, { useState } from 'react';
@@ -92,8 +91,15 @@ export const DraftBanner: React.FC = () => {
       {/* The words get the bar's whole width (a phone squeezed them into a narrow column beside
           the buttons); "Show English" follows them, and the close button keeps the right edge. */}
       <Box sx={{ flex: 1, minWidth: 0, display: 'flex', flexWrap: 'wrap', alignItems: 'center', columnGap: 1 }}>
-        <Typography variant="caption" sx={{ lineHeight: 1.4, py: 0.5 }} title={en['draft.banner']}>
+        <Typography variant="caption" component="p" sx={{ lineHeight: 1.4, py: 0.5, m: 0, flexBasis: '100%' }}>
           {t('draft.banner')}
+          {/* The same sentence in English, for whoever can't read the draft (review of ux-polish,
+              13 Nov: it was a tooltip, which a phone never shows). */}
+          {lang !== 'en' && (
+            <Box component="span" lang="en" sx={{ display: 'block', color: 'text.secondary' }} data-draft-english="">
+              {en['draft.banner']}
+            </Box>
+          )}
         </Typography>
         <Button
           size="small"
@@ -103,25 +109,9 @@ export const DraftBanner: React.FC = () => {
           {t('draft.showEnglish')}
         </Button>
       </Box>
-      <IconButton size="small" onClick={close} aria-label={t('draft.close')} sx={{ width: 36, height: 36 }}>
+      <IconButton size="small" onClick={close} aria-label={t('draft.close')} sx={{ width: 44, height: 44 }}>
         <CloseIcon fontSize="small" />
       </IconButton>
-    </Box>
-  );
-};
-
-/** The picker on the right and the draft banner under it, for a page with no header. */
-export const LanguageBar: React.FC = () => {
-  const { choices, isDraft } = useI18n();
-  if (choices.length < 2 && !isDraft) return null;
-  return (
-    <Box data-language-bar="">
-      {choices.length >= 2 && (
-        <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 1.5 }}>
-          <LanguagePicker />
-        </Box>
-      )}
-      <DraftBanner />
     </Box>
   );
 };

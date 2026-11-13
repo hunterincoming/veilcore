@@ -44,7 +44,7 @@ export const recordKeyFrom = (text: string): string | undefined => {
 };
 
 const Frame: React.FC<React.PropsWithChildren> = ({ children }) => (
-  <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
+  <Box sx={{ bgcolor: 'background.default' }}>
     <Container maxWidth="sm" sx={{ py: { xs: 4, md: 7 } }}>
       <Paper sx={{ p: { xs: 2.5, md: 4 } }}>{children}</Paper>
     </Container>

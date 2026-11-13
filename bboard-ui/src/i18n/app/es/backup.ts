@@ -12,6 +12,8 @@ export const backup = {
   'app.backup.saveIt': 'Guárdelo',
   'app.backup.saved': 'Guardado',
   'app.backup.savedSub': '{file} · un solo archivo para todo',
+  'app.backup.labKeyNotMade':
+    'No se pudo crear ahora la clave de recepción de su laboratorio, así que esta copia de seguridad aún no la contiene. Para todo lo demás, la copia sirve. Guarde una nueva cuando llegue su primer registro.',
   'app.backup.saveFile': 'Guardar el archivo de copia de seguridad',
   'app.backup.copyTitle': 'Ponga una copia en otro lugar (recomendado)',
   'app.backup.wayBack': 'Si este teléfono o esta computadora se rompen, esa copia es su forma de recuperarlo todo.',

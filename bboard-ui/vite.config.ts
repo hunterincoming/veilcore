@@ -255,7 +255,8 @@ const recordBuildSettings = (): Plugin => {
 // the output). A test or evaluation build ('test', 'eval') is refused for the site's modes.
 const askModelFlag = (mode: string): string => {
   const v = String({ ...loadEnv(mode, process.cwd(), 'VITE_'), ...process.env }.VITE_ASK_MODEL ?? '').trim();
-  if (v && !['on', 'test', 'eval'].includes(v)) throw new Error(`\n\nVITE_ASK_MODEL=${v}: use on, test or eval, or leave it unset.\n`);
+  if (v && !['on', 'test', 'eval'].includes(v))
+    throw new Error(`\n\nVITE_ASK_MODEL=${v}: use on, test or eval, or leave it unset.\n`);
   if ((v === 'test' || v === 'eval') && (mode === 'mainnet' || mode === 'preprod'))
     throw new Error(`\n\nVITE_ASK_MODEL=${v} is a build for tests on this computer, never for --mode ${mode}.\n`);
   return v;
@@ -292,6 +293,16 @@ export default defineConfig(({ mode, command }) => {
           manualChunks: (id) => {
             // Separate chunk for WASM modules to avoid top-level await issues
             if (id.includes('onchain-runtime-v3')) return 'wasm';
+            // React (with its JSX runtime) and React Router each in a chunk of their own, so
+            // the bundler never files them inside a chunk that waits for something.
+            // vite-plugin-top-level-await wraps any chunk with a dynamic import (React
+            // Router has one) in an async function; when that chunk also imports a waiting
+            // chunk (i18n, which awaits its language), its exports are set only after a
+            // microtask, and a chunk that imports it without waiting (MUI's Container from
+            // Stack) crashed the built site with "n is not a function" (review of
+            // ux-polish, 13 Nov). load-split.test.ts checks the built site for this.
+            if (/[\\/]node_modules[\\/]react[\\/]/.test(id)) return 'react';
+            if (/[\\/]node_modules[\\/]react-router(-dom)?[\\/]/.test(id)) return 'router';
           },
         },
       },

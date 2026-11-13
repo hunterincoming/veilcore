@@ -131,7 +131,7 @@ export const importing = {
   'app.import.sum.byBatch':
     'Ihr öffentlicher Datumsstempel kommt, wenn ihr Stapel auf {dated} datiert wird. Sie müssen nichts tun.',
   'app.import.sum.stampsLater':
-    'Ihre Einträge sind bereits versiegelt und werden mit ihrem Stapel auf {dated} datiert. Der Schlüsselstempel jeder Pflanze wartet, bis Sie ihn brauchen: Bevor Sie nachweisen, dass Sie eine Pflanze halten, oder sie lizenzieren, erledigt ihre Seite das in ein bis zwei Minuten.',
+    'Ihre Datensätze sind bereits versiegelt und werden mit ihrem Stapel auf {dated} datiert. Der Schlüsselstempel jeder Pflanze wartet, bis Sie ihn brauchen: Bevor Sie nachweisen, dass Sie eine Pflanze halten, oder sie lizenzieren, erledigt ihre Seite das in ein bis zwei Minuten.',
   'app.import.sum.untilSaved':
     'Bis sie gespeichert und geprüft ist, sind die Schlüssel der neuen Datensätze nur in diesem Browser.',
   'app.import.sum.noDna.one':
@@ -151,7 +151,7 @@ export const importing = {
   'app.import.stamps.allDone': 'Alles erledigt.',
   'app.import.stamps.goOn': 'Weiter',
   'app.import.stamps.notNeeded':
-    'Diese brauchen Sie noch nicht. Ihre Einträge werden mit ihrem Stapel auf {dated} datiert. Der Schlüsselstempel einer Pflanze zählt erst, bevor Sie nachweisen, dass Sie sie halten, oder sie lizenzieren, und die Seite der Pflanze erledigt das dann in ein bis zwei Minuten. Kein wochenlanges Warten.',
+    'Diese brauchen Sie noch nicht. Ihre Datensätze werden mit ihrem Stapel auf {dated} datiert. Der Schlüsselstempel einer Pflanze zählt erst, bevor Sie nachweisen, dass Sie sie halten, oder sie lizenzieren, und die Seite der Pflanze erledigt das dann in ein bis zwei Minuten. Kein wochenlanges Warten.',
   'app.import.stamps.startAll': 'Doch jetzt alle stempeln',
   'app.import.stamps.stopAll': 'Anhalten und jeden erst bei Bedarf stempeln',
   'app.import.stamps.saveIt': 'Speichern',

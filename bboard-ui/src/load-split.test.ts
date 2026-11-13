@@ -211,6 +211,29 @@ describe.skipIf(!built)('the first download, in the built site (dist/)', () => {
     expect(fs.existsSync(path.join(DIST, 'ask-model'))).toBe(false);
   });
 
+  it('React, React Router and MUI’s shared parts never wait for another chunk while loading', () => {
+    // vite-plugin-top-level-await turns a chunk with a dynamic import that imports a waiting
+    // chunk (i18n awaits its language) into `__tla = Promise.all([...]).then(async () => {...})`:
+    // its exports exist only after a microtask. MUI's Container reads Stack's at load without
+    // waiting, so when React Router (which has a dynamic import) landed in Stack's chunk the
+    // built site crashed with "n is not a function" (ux-polish review, 13 Nov). The library
+    // chunks, and everything they load, must set their exports at once (vite.config.ts).
+    const dir = path.join(DIST, 'assets');
+    const assets = fs.readdirSync(dir).filter((f) => f.endsWith('.js'));
+    const late = (f: string) => /let __tla\s*=\s*Promise\.all\(/.test(fs.readFileSync(path.join(DIST, f), 'utf8'));
+    const libs = assets
+      .filter((f) => /^(react|router|Stack|Container|Box)-[\w-]+\.js$/.test(f))
+      .map((f) => `assets/${f}`);
+    expect(libs.map((f) => path.basename(f).split('-')[0]).sort()).toEqual([
+      'Box',
+      'Container',
+      'Stack',
+      'react',
+      'router',
+    ]);
+    expect(closure(libs).filter(late)).toEqual([]);
+  });
+
   it('the check page’s own file brings no WebAssembly with it', () => {
     const verify = fs.readdirSync(path.join(DIST, 'assets')).filter((f) => /^VerifyPage-.*\.js$/.test(f));
     expect(verify).toHaveLength(1);

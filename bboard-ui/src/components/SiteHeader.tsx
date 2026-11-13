@@ -1,11 +1,16 @@
 // The one header, on every page: the public pages, the app and the check pages (fresh-eyes
 // review, 12 Nov: there were three, the app had no way back to the site, and "Home" meant two
-// different pages). The mark always goes to veilcore.org's home page; the same few links
-// follow it everywhere; then the language, and on the app's pages which network this is.
+// different pages). The mark always goes to veilcore.org's home page; the same links follow it
+// everywhere (About, Updates, Team, Verify, and the demo or your records); then the language,
+// and on the app's pages which network this is and, on a phone, Ask (AskLauncher.tsx).
 // Under it, the notices every page carries (dating paused, a draft translation).
+//
+// The parts come in the page in the order they are drawn, so the keyboard meets them in the
+// order the eye does (review of ux-polish, 13 Nov: no CSS order). On a phone the section links
+// fold into "Menu"; the demo or your records stays out.
 // SPDX-License-Identifier: Apache-2.0
 
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Box, Container, Link, Stack } from '@mui/material';
 import { Link as RouterLink, useLocation } from 'react-router-dom';
 import { useI18n } from '../i18n';
@@ -54,6 +59,108 @@ const ctaSx = {
   '&:hover': { textDecoration: 'none', filter: 'brightness(0.96)', background: POLLEN },
 } as const;
 
+/** Where AskLauncher puts its phone-sized button (App.tsx AppLayout): in the header, over nothing. */
+export const ASK_SLOT_ID = 'veilcore-ask-slot';
+
+/** The section links, inline from md up; on a phone in the menu. */
+const sections = [
+  { id: 'about', key: 'm.nav.about' },
+  { id: 'updates', key: 'm.nav.updates' },
+  { id: 'team', key: 'm.nav.team' },
+] as const;
+
+/** On a phone: the section links and Verify under one "Menu" button, a list that drops below it. */
+const PhoneMenu: React.FC = () => {
+  const { t } = useI18n();
+  const [open, setOpen] = useState(false);
+  const button = useRef<HTMLButtonElement>(null);
+  const box = useRef<HTMLDivElement>(null);
+  const { pathname, hash } = useLocation();
+  // A link followed closes it.
+  useEffect(() => setOpen(false), [pathname, hash]);
+  // Escape closes it and puts focus back on its button; a tap outside closes it.
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return;
+      setOpen(false);
+      button.current?.focus();
+    };
+    const onDown = (e: PointerEvent) => {
+      if (!box.current?.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('keydown', onKey);
+    document.addEventListener('pointerdown', onDown);
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      document.removeEventListener('pointerdown', onDown);
+    };
+  }, [open]);
+  const item = { ...linkSx, display: 'flex', px: 2, '&:hover': { backgroundColor: 'rgba(0,0,0,0.04)' } } as const;
+  return (
+    <Box ref={box} sx={{ position: 'relative', display: { xs: 'block', md: 'none' } }}>
+      <Box
+        component="button"
+        type="button"
+        ref={button}
+        aria-expanded={open}
+        aria-controls="site-menu"
+        onClick={() => setOpen(!open)}
+        data-site-menu-button=""
+        sx={{
+          ...linkSx,
+          px: 1.25,
+          border: '1px solid',
+          borderColor: 'divider',
+          borderRadius: '8px',
+          background: 'transparent',
+          cursor: 'pointer',
+          font: 'inherit',
+          fontSize: 15,
+          fontWeight: 600,
+        }}
+      >
+        {t('m.nav.menu')}
+      </Box>
+      {open && (
+        <Box
+          component="ul"
+          id="site-menu"
+          data-site-menu=""
+          sx={{
+            position: 'absolute',
+            right: 0,
+            top: 'calc(100% + 4px)',
+            zIndex: (th) => th.zIndex.appBar,
+            m: 0,
+            p: 0.5,
+            listStyle: 'none',
+            minWidth: 200,
+            bgcolor: 'background.paper',
+            border: '1px solid',
+            borderColor: 'divider',
+            borderRadius: '8px',
+            boxShadow: 3,
+          }}
+        >
+          {sections.map((s) => (
+            <li key={s.id} onClick={() => setOpen(false)}>
+              <SectionLink id={s.id} sx={item}>
+                {t(s.key)}
+              </SectionLink>
+            </li>
+          ))}
+          <li onClick={() => setOpen(false)}>
+            <Link component={RouterLink} to="/verify" sx={item}>
+              {t('m.foot.verify')}
+            </Link>
+          </li>
+        </Box>
+      )}
+    </Box>
+  );
+};
+
 export const SiteHeader: React.FC<{
   /** The app's pages: which network this build is about, beside the language. */
   badge?: React.ReactNode;
@@ -61,47 +168,37 @@ export const SiteHeader: React.FC<{
   const { t } = useI18n();
   // Someone coming back to this browser gets their records one click away.
   const [returning] = useState(hasRecordsHere);
+  const wide = { display: { xs: 'none', md: 'inline-flex' } } as const;
   return (
     <Box component="header" data-site-header="" sx={{ pt: { xs: 1, md: 2.5 } }}>
       <Container maxWidth="lg">
         <Stack
           direction="row"
           useFlexGap
-          sx={{ alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', columnGap: 2, rowGap: 0.5 }}
+          sx={{ alignItems: 'center', flexWrap: 'wrap', columnGap: { xs: 1.5, md: 2.5 }, rowGap: 0.5 }}
         >
           <Stack
             component={RouterLink}
             to="/"
             aria-label={t('nav.home')}
             direction="row"
-            sx={{ alignItems: 'center', textDecoration: 'none', minHeight: 44 }}
+            sx={{ alignItems: 'center', textDecoration: 'none', minHeight: 44, mr: 'auto' }}
           >
             <Wordmark />
-          </Stack>
-          <Stack
-            direction="row"
-            useFlexGap
-            sx={{ alignItems: 'center', flexWrap: 'wrap', gap: 1, order: { xs: 1, md: 2 } }}
-          >
-            <LanguagePicker />
-            {badge}
           </Stack>
           <Stack
             component="nav"
             aria-label={t('nav.main')}
             direction="row"
             useFlexGap
-            sx={{
-              alignItems: 'center',
-              flexWrap: 'wrap',
-              columnGap: { xs: 2, md: 2.5 },
-              order: { xs: 2, md: 1 },
-              flexBasis: { xs: '100%', md: 'auto' },
-              ml: { md: 'auto' },
-            }}
+            sx={{ alignItems: 'center', columnGap: { xs: 1, md: 2.5 } }}
           >
-            <SectionLink id="about">{t('m.nav.about')}</SectionLink>
-            <Link component={RouterLink} to="/verify" sx={linkSx}>
+            {sections.map((s) => (
+              <SectionLink key={s.id} id={s.id} sx={wide}>
+                {t(s.key)}
+              </SectionLink>
+            ))}
+            <Link component={RouterLink} to="/verify" sx={{ ...linkSx, ...wide }}>
               {t('m.foot.verify')}
             </Link>
             {returning ? (
@@ -113,6 +210,23 @@ export const SiteHeader: React.FC<{
                 {t('m.nav.demo')}
               </SectionLink>
             )}
+            <PhoneMenu />
+          </Stack>
+          {/* After the links, on the same line from md up; on a phone the line under them. */}
+          <Stack
+            direction="row"
+            useFlexGap
+            sx={{
+              alignItems: 'center',
+              flexWrap: 'wrap',
+              gap: 1,
+              flexBasis: { xs: '100%', md: 'auto' },
+              '&:empty': { display: 'none' },
+            }}
+          >
+            <LanguagePicker />
+            {badge}
+            {badge && <Box component="span" id={ASK_SLOT_ID} sx={{ display: 'contents' }} />}
           </Stack>
         </Stack>
         <Box sx={{ mt: { xs: 1, md: 2 }, '&:empty': { display: 'none' } }}>

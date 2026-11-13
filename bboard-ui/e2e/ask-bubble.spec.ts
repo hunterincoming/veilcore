@@ -24,8 +24,30 @@ const CAN = [
   'Do it for me: I get a whole job ready; you approve it once.',
 ];
 
+test('phone: Ask is a button in the header, in the page, over nothing', async ({ page }) => {
+  // Review of ux-polish, 13 Nov: even as an icon the bubble sat on the record's status lines at
+  // 390px in German. On a phone it is in the header, beside the language and the network.
+  const errors = watch(page);
+  await isolate(page);
+  await page.goto('/records');
+  const ask = page.locator('[data-ask-open]');
+  await expect(ask).toBeVisible();
+  await expect(ask).toHaveText('Ask');
+  await expect(ask).toHaveAttribute('data-ask-compact', '');
+  expect(await ask.evaluate((el) => !!el.closest('[data-site-header]'))).toBe(true);
+  expect(await ask.evaluate((el) => getComputedStyle(el).position)).not.toBe('fixed');
+  // No room kept under the page for a bubble that isn't there.
+  expect(await page.evaluate(() => getComputedStyle(document.body).paddingBottom)).toBe('0px');
+  await expect(page.locator('[data-ask-hint]')).toHaveCount(0);
+  await shot(page, 'phone');
+  await ask.click();
+  await expect(page.locator('[data-ask-can]')).toBeVisible();
+  await shot(page, 'phone-card');
+  expectNoErrors(errors);
+});
+
 for (const [label, viewport] of [
-  ['phone', { width: 390, height: 844 }],
+  ['tablet', { width: 800, height: 1000 }],
   ['desktop', { width: 1280, height: 800 }],
 ] as const) {
   test(`${label}: the bubble sits bottom right, with room left under every page`, async ({ page }) => {
@@ -37,6 +59,7 @@ for (const [label, viewport] of [
     await expect(bubble).toBeVisible();
     await expect(bubble).toHaveText('Ask');
     await expect(bubble.locator('svg')).toHaveCount(1);
+    await expect(bubble).not.toHaveAttribute('data-ask-compact');
     const box = await bubble.boundingBox();
     expect(box).not.toBeNull();
     if (!box) return;
@@ -112,7 +135,8 @@ test('on a phone the bubble stays off an agreement’s screens (terms, accepting
 });
 
 test.describe('on a touch screen', () => {
-  test.use({ viewport: { width: 360, height: 740 }, hasTouch: true, isMobile: true });
+  // A tablet: the bubble floats there (on a phone it is in the header and steps aside for nothing).
+  test.use({ viewport: { width: 800, height: 1000 }, hasTouch: true, isMobile: true });
   test('the bubble steps aside while a text field on the page has focus', async ({ page }) => {
     const errors = watch(page);
     await isolate(page);
@@ -121,11 +145,11 @@ test.describe('on a touch screen', () => {
     await expect(bubble).toBeVisible();
     const field = page.getByPlaceholder('Paste it here');
     await field.focus();
-    await page.setViewportSize({ width: 360, height: 420 });
+    await page.setViewportSize({ width: 800, height: 560 });
     await expect(bubble).toHaveCount(0);
     await shot(page, 'phone-keyboard');
     await field.blur();
-    await page.setViewportSize({ width: 360, height: 740 });
+    await page.setViewportSize({ width: 800, height: 1000 });
     await expect(bubble).toBeVisible();
     // A checkbox or radio brings up no keyboard: the bubble stays.
     await page.evaluate(() => {

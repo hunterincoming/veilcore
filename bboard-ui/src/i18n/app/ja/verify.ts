@@ -90,7 +90,6 @@ export const verify = {
   'app.verify.kindReport': '検査報告書（ファイルのSHA-256 {sha}）',
   'app.verify.kindStatement': '署名付きの陳述',
   'app.verify.forWhom': 'レジストリが報告する証明コードについて：',
-  'app.verify.homeAria': 'VeilCoreホーム',
   'app.verify.intro':
     'このページはVeilCoreの記録を確認します。記録とは、遺伝素材の説明の証明コードで、アンカーされると日付が付き、遺伝情報なしで公開されます。確認は無料で、アカウントも不要です。<link>VeilCoreとは？</link>',
   'app.verify.checkingRecord': '記録を確認しています',

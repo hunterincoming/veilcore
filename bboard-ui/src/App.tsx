@@ -232,11 +232,15 @@ const LayoutFrame = Object.assign(AppLayout, layoutPreload);
  * footer as everywhere else, without the app's own parts (fresh-eyes review, 12 Nov).
  */
 const CheckChrome: React.FC<React.PropsWithChildren> = ({ children }) => (
-  <>
+  // One screen tall together, the page taking what the header and footer leave: a short page
+  // ends with the footer at the bottom of the screen, a long one right after its content. The
+  // pages themselves no longer ask for a full screen each, which put the footer below the fold
+  // (review of ux-polish, 13 Nov).
+  <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
     <SiteHeader />
-    {children}
+    <Box sx={{ flex: 1 }}>{children}</Box>
     <AppFooter />
-  </>
+  </Box>
 );
 const CheckFrame = CheckChrome;
 const withLayout = (el: React.ReactNode) => (

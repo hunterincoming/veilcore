@@ -27,7 +27,7 @@ export const DocumentCheck: React.FC = () => {
   }, [hash]);
 
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }} data-document-check="">
+    <Box sx={{ bgcolor: 'background.default' }} data-document-check="">
       <Container component="main" maxWidth="sm" sx={{ py: { xs: 5, md: 8 }, overflowWrap: 'anywhere' }}>
         <Typography variant="h4" component="h1" sx={{ mb: 1 }}>
           {t('app.doc.check.title')}

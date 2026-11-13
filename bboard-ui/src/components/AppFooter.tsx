@@ -129,7 +129,9 @@ export const AppFooter: React.FC<{
                 {t('m.foot.explore')}
               </Typography>
               <Item to="/#about">{t('m.nav.about')}</Item>
+              <Item to="/#demo">{t('m.foot.demo')}</Item>
               <Item to="/#updates">{t('m.nav.updates')}</Item>
+              <Item to="/#live">{t('m.live.label')}</Item>
               <Item to="/founders">{t('m.nav.team')}</Item>
               <Item to="/verify">{t('m.foot.verify')}</Item>
             </Stack>
@@ -154,6 +156,9 @@ export const AppFooter: React.FC<{
               </Item>
               <Item to="https://github.com/hunterincoming/veilcore-rs" external>
                 {t('footer.rustImplementation')}
+              </Item>
+              <Item to="https://github.com/hunterincoming/veilcore-sdk" external>
+                GitHub
               </Item>
             </Stack>
 

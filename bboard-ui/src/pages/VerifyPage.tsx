@@ -560,7 +560,7 @@ export const VerifyPage: React.FC = () => {
   const name = nameCheck.state === 'none' ? undefined : displayName(nameCheck.name);
 
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
+    <Box sx={{ bgcolor: 'background.default' }}>
       {/* IDs, fingerprints and hashes are long unbroken strings: they wrap, the page never scrolls sideways. */}
       <Container component="main" maxWidth="sm" sx={{ py: { xs: 5, md: 8 }, overflowWrap: 'anywhere' }}>
         {/* One line for a stranger who arrived from a QR code or a shared link. */}

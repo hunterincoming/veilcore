@@ -279,7 +279,7 @@ export const LabResultCheck: React.FC = () => {
   const replaced = replacedBy(ok);
   const inFile = new Set(ok.map(resultCode));
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }} data-lab-result-check="">
+    <Box sx={{ bgcolor: 'background.default' }} data-lab-result-check="">
       <Container component="main" maxWidth="sm" sx={{ py: { xs: 5, md: 8 }, overflowWrap: 'anywhere' }}>
         <Typography variant="h4" component="h1" sx={{ mb: 1 }}>
           {t('app.lr.check.title')}

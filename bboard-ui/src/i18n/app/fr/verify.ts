@@ -102,7 +102,6 @@ export const verify = {
   'app.verify.kindReport': 'Rapport de laboratoire (SHA-256 du fichier {sha})',
   'app.verify.kindStatement': 'Déclaration signée',
   'app.verify.forWhom': 'Pour le code de preuve que signale le registre : ',
-  'app.verify.homeAria': 'Accueil VeilCore',
   'app.verify.intro':
     'Cette page vérifie un enregistrement VeilCore : un code de preuve de la description d’un matériel génétique, daté une fois ancré, publié sans la génétique. La vérification est gratuite et ne demande aucun compte. <link>Qu’est-ce que VeilCore ?</link>',
   'app.verify.checkingRecord': 'Vérification de l’enregistrement',

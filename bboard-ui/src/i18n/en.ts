@@ -21,7 +21,6 @@ export const en = {
   'footer.referenceImplementation': 'Reference implementation',
   'footer.rustImplementation': 'Rust implementation',
   'footer.thisSite': 'This site',
-  'footer.whatThisIs': 'What this is',
   'footer.yourRecords': 'Your records',
   'footer.agreements': 'Agreements',
   'footer.privacy': 'Demo privacy',
@@ -459,11 +458,9 @@ export const en = {
 
   'm.foot.explore': 'Explore',
   'm.foot.demo': 'Demo',
-  'm.foot.build': 'Build',
   'm.foot.contact': 'Contact',
   'm.foot.verify': 'Verify a record',
   'm.foot.fine': 'Evidence you held a record by a date. Not a title to the plant.',
-  'm.foot.privacy': 'Demo privacy',
   'm.foot.terms': 'Terms of use',
   'm.terms.inEnglish': 'These terms are in English, and the English text governs.',
 

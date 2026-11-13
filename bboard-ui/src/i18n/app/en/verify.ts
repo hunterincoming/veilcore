@@ -102,7 +102,6 @@ export const verify = {
   'app.verify.kindReport': 'Lab report (file SHA-256 {sha})',
   'app.verify.kindStatement': 'Signed statement',
   'app.verify.forWhom': 'For the proof code the registry reports: ',
-  'app.verify.homeAria': 'VeilCore home',
   'app.verify.intro':
     "This page checks a VeilCore record: a proof code made from a description of genetic material, dated once it's anchored, published without the genetics. Checking is free and needs no account. <link>What is VeilCore?</link>",
   'app.verify.checkingRecord': 'Checking the record',

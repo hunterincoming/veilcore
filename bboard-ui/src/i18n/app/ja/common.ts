@@ -9,7 +9,6 @@ export const common = {
   'app.common.add': '追加',
   'app.common.tryAgain': 'もう一度試す',
   'app.common.fileInEnglish': 'このファイルは英語です。',
-  'app.common.headerHome': 'VeilCore：あなたの植物',
   'app.common.network.mainnet': 'Midnightのメインネットワーク',
   'app.common.network.preprod': 'Midnight preprod（テストネットワーク）',
   'app.common.network.preview': 'Midnight Preview（テストネットワーク）',

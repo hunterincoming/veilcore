@@ -34,7 +34,7 @@ export const VerifyExample: React.FC = () => {
   const tr = useT();
   const { t } = tr;
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
+    <Box sx={{ bgcolor: 'background.default' }}>
       <Container maxWidth="sm" sx={{ py: { xs: 5, md: 8 } }}>
         <Alert severity="info" variant="outlined" sx={{ mb: 3 }}>
           <Typography variant="subtitle2">{t('app.verify.ex.title')}</Typography>

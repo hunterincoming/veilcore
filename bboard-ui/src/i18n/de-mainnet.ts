@@ -67,7 +67,6 @@ export const deMainnet = buildMainnet({
       'Man schickt Ihnen einen Link. Sie tippen einmal, und die Seite der anderen Person prüft im Netzwerk, dass Sie den eigenen Schlüssel Ihrer Pflanze kontrollieren. Ihr Datensatz hat diesen Schlüssel beim Versiegeln benannt, deshalb lässt er sich nicht austauschen. Wer Sie sind oder wer die Pflanze gezüchtet hat, zeigt es nicht. Diese Website kann das noch nicht.',
     'footer.privacy': 'Datenschutz der Website',
     'title.privacy': 'Datenschutz der Website',
-    'm.foot.privacy': 'Datenschutz der Website',
     'm.privacy.label': 'Datenschutz der Website',
     'm.privacy.title': 'Was diese Website speichert.',
     'm.privacy.lede':

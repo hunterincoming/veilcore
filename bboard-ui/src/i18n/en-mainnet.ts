@@ -81,7 +81,6 @@ const common: Overlay = {
     "They send you a link. You tap once, and their page checks on the network that you control your plant's own key. Your record named that key when it was sealed, so it can't be swapped. It says nothing about who you are or who bred the plant. This website can't do it yet.",
   'footer.privacy': 'Site privacy',
   'title.privacy': 'Site privacy',
-  'm.foot.privacy': 'Site privacy',
   'm.privacy.label': 'Site privacy',
   'm.privacy.title': 'What this site keeps.',
 

@@ -11,7 +11,10 @@ Ask drafts; only you save, sign or send. It works with Wi-Fi off.
 An **Ask** button on the record app's pages (「VeilCoreに聞く」 in Japanese; never "AI"). It is a
 chat bubble at the bottom right; on a touch screen it steps aside while a field that brings up
 the keyboard (not a checkbox or radio) has focus on the page, so it never sits on the field or
-its button with the keyboard up. Once someone has a
+its button with the keyboard up. On a phone it is not a bubble: it is a small button in the
+header, beside the language and the network, so it covers nothing on the page; like the bubble
+on a phone-sized screen, it is not offered on an agreement's screens or a form being filled in.
+Once someone has a
 record, a hint sits by it with an example naming their own latest record ("Try: cut 6 clones
 from Gelato", or "Try: record 2 calves from Daisy" for someone whose records are mostly
 animals); tapping it opens Ask with the example typed in. The example is read with Shortcuts

@@ -54,7 +54,7 @@ export const CounterSignPage: React.FC = () => {
   }, [license]);
 
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
+    <Box sx={{ bgcolor: 'background.default' }}>
       <Container maxWidth="sm" sx={{ py: { xs: 5, md: 8 } }}>
         {!license ? (
           <Paper sx={{ p: 4, textAlign: 'center' }}>

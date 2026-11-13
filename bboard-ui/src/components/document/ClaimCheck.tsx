@@ -45,7 +45,7 @@ export const ClaimCheck: React.FC = () => {
   }, [hash]);
 
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }} data-claim-check="">
+    <Box sx={{ bgcolor: 'background.default' }} data-claim-check="">
       <Container component="main" maxWidth="sm" sx={{ py: { xs: 5, md: 8 }, overflowWrap: 'anywhere' }}>
         <Typography variant="h4" component="h1" sx={{ mb: 1 }}>
           {t('app.claim.check.title')}

@@ -232,18 +232,31 @@ export const PlantStatus: React.FC<{
   // One plain line for the record's date (fresh-eyes review, 12 Nov): "waiting: …" until its
   // batch has a date, "dated …" once it has. The words around the value only; what the value
   // says comes from recordDateRow as before.
+  // Two values say it in their own words (review of ux-polish, 13 Nov): a batch still waiting
+  // for its stamp ("waiting: in a batch, waiting for …" said it twice), and a date the registry
+  // reports without giving the day ("dated on date not given").
+  const reportedDay = (() => {
+    if (proof === 'checking' || proof.status === 'none' || proof.status === 'pending') return undefined;
+    const at = proof.proof.anchor?.anchoredAt;
+    return at && !Number.isNaN(Date.parse(at)) ? at : undefined;
+  })();
   const datedValue =
     proof === 'checking' || dated.mark === 'failed'
       ? dated.value
-      : dated.mark === 'wait'
-        ? t('app.plant.date.waiting', { what: dated.value })
-        : t('app.plant.date.dated', { what: dated.value });
+      : proof.status === 'pending'
+        ? t('app.plant.date.inBatch')
+        : dated.mark === 'wait'
+          ? t('app.plant.date.waiting', { what: dated.value })
+          : dated.mark === 'reported' && !reportedDay
+            ? t('app.plant.date.reportedNoDay')
+            : t('app.plant.date.dated', { what: dated.value });
   const batch = { done: dated.mark === 'done', mark: dated.mark, value: datedValue };
 
   // And one line for proof you hold it: the key's own date stamp, on its own row, never mixed
   // into the record's date. Same facts as keyStampLine (the key's anchor, and the retry queue).
-  const holdRow = (k: RecordKeys) =>
-    k.anchor
+  // Shown whenever the chain features are on, as main's key-stamp line was, keys or not.
+  const holdRow = (k?: RecordKeys) =>
+    k?.anchor
       ? {
           done: true,
           mark: 'done' as RowMark,
@@ -274,9 +287,7 @@ export const PlantStatus: React.FC<{
             label: t('app.plant.recordDate'),
             ...(dated.sub ? { sub: dated.sub } : {}),
           },
-          ...(REAL_CHAIN && keys
-            ? [{ ...holdRow(keys), id: 'Proof you hold it', label: t('app.plant.holdProof') }]
-            : []),
+          ...(REAL_CHAIN ? [{ ...holdRow(keys), id: 'Proof you hold it', label: t('app.plant.holdProof') }] : []),
           // Under the dates: a date shows a description existed; the DNA report is what ties
           // the record to the plant itself.
           dnaReportRow(dna.tie, dna.date, arrived, waiting, tr),
