@@ -297,7 +297,15 @@ test('a fresh browser lands on /, finds the lab path, pastes a lab code and rece
   await expect(keyDialog.getByText(/We match the name; we don't vouch for your work\./)).toBeVisible();
   await expect(keyDialog.getByText(/\/\.well-known\/veilcore-lab\.json/)).toBeVisible();
   await expect(keyDialog.getByText(/_veilcore-lab\./)).toBeHidden();
+  // A fold's words count as visible as soon as it starts to open, while the dialog (centred on
+  // the screen) is still growing and moving. "Other ways" was found shut once (13 Nov, under
+  // load; not reproduced in 12 runs since, 4 of them at a sixth of the CPU): most likely a click
+  // that landed as the button moved and was retried, opening and shutting it. So each fold is
+  // let finish opening before anything inside it is clicked, and "Other ways" must say it is open.
+  await expect(keyDialog.locator('#fold-lab-key-optional')).toHaveClass(/MuiCollapse-entered/);
   await keyDialog.getByRole('button', { name: 'Other ways' }).click();
+  await expect(keyDialog.getByRole('button', { name: 'Other ways' })).toHaveAttribute('aria-expanded', 'true');
+  await expect(keyDialog.locator('#fold-lab-key-other-ways')).toHaveClass(/MuiCollapse-entered/);
   await expect(keyDialog.getByText(/_veilcore-lab\./)).toBeVisible();
   await keyDialog.getByRole('button', { name: 'Show key' }).click();
   await expect(keyDialog.getByText(pub, { exact: true })).toBeVisible();
@@ -328,4 +336,83 @@ test('in Japanese at 360px the way in shows on the first screen, above the hero 
   const buttons = await page.locator('.hero-actions').boundingBox();
   expect(link && buttons && link.y < buttons.y).toBe(true);
   expectNoErrors(errors);
+});
+
+// Fresh-eyes review, 12 Nov (problem 4): a lab that made its key and saved a checked backup
+// on /backup before its first code was still stopped at "Save a backup and check it first",
+// because the key that locks its records was only made when the code was used, after that
+// backup. One checked backup must be enough.
+test('a lab that backs up before its first code receives it without a second backup', async ({ browser }) => {
+  test.setTimeout(300_000);
+  const reg = registry();
+
+  const breederCtx = await browser.newContext({ viewport: { width: 360, height: 780 } });
+  await reg.attach(breederCtx);
+  const breeder = await breederCtx.newPage();
+  const breederErrors = watch(breeder);
+  await breeder.goto('/records');
+  await breeder.getByText('Start', { exact: true }).click();
+  await startPlant(breeder);
+  await breeder.getByLabel(/Plant or line name/).fill(`Backup first ${Date.now()}`);
+  await breeder.getByLabel(/Bred by/).fill('E2E');
+  await breeder.getByRole('button', { name: /Next: check it/ }).click();
+  await breeder.getByRole('button', { name: /Seal it/ }).click();
+  await breeder.getByRole('button', { name: /Do the date stamp later/ }).click({ timeout: 90_000 });
+  const recordId = await breeder.evaluate(
+    () => Object.keys(JSON.parse(localStorage.getItem('veilcore.record-keys.v1') ?? '{}') as object)[0],
+  );
+  await breeder.getByRole('button', { name: /No report yet: skip/ }).click();
+  await saveAndCheckBackup(breeder);
+  const breederKey = await breeder.evaluate(() => localStorage.getItem('veilcore.holder.v1') ?? '');
+  await expect
+    .poll(() => reg.rows(breederKey).some((r) => r.id === recordId && !!r.sealed && !r.bodyPending), {
+      timeout: 30_000,
+    })
+    .toBe(true);
+  await breeder.goto(`/record/${recordId}`);
+  await breeder.getByText('Send it to a lab or breeder').click();
+  await breeder.getByLabel(/Who are you sending it to/).fill('lab@e2e');
+  await breeder.getByRole('button', { name: /Make a code for the lab/ }).click();
+  const codeEl = breeder.getByText(/^TR-[0-9A-F]{8}\./);
+  await expect(codeEl).toBeVisible();
+  const code = (await codeEl.innerText()).trim();
+
+  // The lab: says it is a lab, makes its key, closes the key screen, then saves and checks a
+  // backup on /backup, the way the reviewer did.
+  const labCtx = await browser.newContext({ viewport: { width: 360, height: 780 } });
+  await reg.attach(labCtx);
+  const lab = await labCtx.newPage();
+  const labErrors = watch(lab);
+  await lab.goto('/records');
+  await lab.getByRole('button', { name: "I'm a lab" }).click();
+  await lab.getByRole('button', { name: /I run a lab/ }).click();
+  await lab.getByRole('button', { name: /Set up your lab.s signature/ }).click();
+  const keyDialog = lab.getByRole('dialog', { name: /signing key|signature/ });
+  await keyDialog.getByLabel(/^Name/).fill('E2E Lab');
+  await keyDialog.getByRole('button', { name: /Create my key/ }).click();
+  await expect(keyDialog.locator('[data-lab-key-ready]')).toBeVisible();
+  await keyDialog.getByRole('button', { name: /^(Continue|Done)$/ }).click();
+  await lab.goto('/backup');
+  await saveAndCheckBackup(lab);
+
+  // The code: no second backup asked for.
+  await lab.goto('/records');
+  await lab.getByLabel(/Someone sent you a code or link/).fill(code);
+  await lab.getByRole('button', { name: /^Go$/ }).click();
+  const dialog = lab.getByRole('dialog', { name: 'Receive material' });
+  await dialog.getByRole('button', { name: /Receive it/ }).click();
+  // Received at once. (The stand-in registry can't confirm the breeder's proof code, so the
+  // dialog stops before signing, saying so; that is not what this test is about.)
+  await expect(
+    lab.getByLabel(/I physically received this material/).or(dialog.getByRole('button', { name: 'Go to the record' })),
+  ).toBeVisible({ timeout: 30_000 });
+  await expect(lab.locator('[data-backup-first]')).toHaveCount(0);
+  const labKey = await lab.evaluate(() => localStorage.getItem('veilcore.holder.v1') ?? '');
+  expect(reg.rows(labKey).some((r) => r.receivedFrom === recordId)).toBe(true);
+  await expect(lab.getByText(/Save a backup and check it first/)).toHaveCount(0);
+
+  expectNoErrors(breederErrors);
+  expectNoErrors(labErrors);
+  await breederCtx.close();
+  await labCtx.close();
 });

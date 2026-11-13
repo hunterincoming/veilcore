@@ -6,6 +6,7 @@ export const es: Strings = {
   // Header and footer
   'nav.language': 'Idioma',
   'nav.main': 'Principal',
+  'nav.home': 'Inicio de VeilCore',
   'footer.documents': 'Documentos',
   'footer.spec': 'Especificación',
   'footer.partners': 'Exigir un registro',
@@ -15,8 +16,8 @@ export const es: Strings = {
   'footer.allImplementations': 'Las tres implementaciones',
   'footer.referenceImplementation': 'Implementación de referencia',
   'footer.rustImplementation': 'Implementación en Rust',
+  'footer.siteCode': 'Código de este sitio',
   'footer.thisSite': 'Este sitio',
-  'footer.whatThisIs': 'Qué es esto',
   'footer.yourRecords': 'Sus registros',
   'footer.agreements': 'Acuerdos',
   'footer.privacy': 'Privacidad de la demo',
@@ -24,6 +25,7 @@ export const es: Strings = {
   'draft.banner':
     'Traducción preliminar hecha por máquina, en revisión. La página en inglés es la versión de referencia.',
   'draft.showEnglish': 'Ver en inglés',
+  'draft.close': 'Cerrar este aviso',
   'notice.datingPaused':
     'El fechado en Midnight está en pausa por la actualización de la red de Midnight. Sus registros están guardados y se fecharán cuando vuelva a funcionar.',
   // The record app's frame and the browser tab's titles.
@@ -31,7 +33,7 @@ export const es: Strings = {
   'app.frame.section.send': 'Enviar y recibir',
   'app.frame.section.license': 'Licencias y regalías',
   'app.frame.section.prove': 'Demostrar y comprobar',
-  'app.frame.home': 'Inicio. Su avance está guardado.',
+  'app.frame.home': 'Sus registros. Su avance está guardado.',
   'title.founders': 'Fundadores',
   'title.terms': 'Términos de uso',
   'title.privacy': 'Privacidad de la demo',
@@ -140,11 +142,9 @@ export const es: Strings = {
   'm.contact.email': 'Escriba a los fundadores',
   'm.contact.spec': 'Lea la especificación',
   'm.foot.explore': 'Explorar',
-  'm.foot.build': 'Desarrollo',
   'm.foot.contact': 'Contacto',
   'm.foot.verify': 'Verificar un registro',
   'm.foot.fine': 'Prueba de que usted tenía un registro en una fecha. No es un título sobre la planta.',
-  'm.foot.privacy': 'Privacidad de la demo',
   'm.foot.terms': 'Términos de uso',
   'm.terms.inEnglish': 'Estos términos están en inglés y rige el texto en inglés.',
   'm.verify.label': 'Verificar',

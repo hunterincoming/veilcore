@@ -11,6 +11,8 @@ export const backup = {
   'app.backup.saveIt': 'Save it',
   'app.backup.saved': 'Saved',
   'app.backup.savedSub': '{file} · one file for everything',
+  'app.backup.labKeyNotMade':
+    'Your lab’s receiving key couldn’t be made just now, so this backup doesn’t hold it yet. The backup is good for everything else. Save a new one after your first record arrives.',
   'app.backup.saveFile': 'Save backup file',
   'app.backup.copyTitle': 'Put a copy somewhere else (recommended)',
   'app.backup.wayBack': 'If this phone or computer breaks, that copy is your way back.',

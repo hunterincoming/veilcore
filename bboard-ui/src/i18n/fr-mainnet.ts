@@ -67,7 +67,6 @@ export const frMainnet = buildMainnet({
       'On vous envoie un lien. Vous touchez une fois, et la page de votre interlocuteur vérifie sur le réseau que vous contrôlez la clé propre à votre plante. Votre enregistrement a nommé cette clé au moment où il a été scellé : elle ne peut donc pas être remplacée. Cela ne dit rien de qui vous êtes ni de qui a obtenu la plante. Ce site ne peut pas encore le faire.',
     'footer.privacy': 'Confidentialité du site',
     'title.privacy': 'Confidentialité du site',
-    'm.foot.privacy': 'Confidentialité du site',
     'm.privacy.label': 'Confidentialité du site',
     'm.privacy.title': 'Ce que ce site conserve.',
     'm.privacy.lede':

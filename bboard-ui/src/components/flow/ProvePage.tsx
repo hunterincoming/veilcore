@@ -26,14 +26,12 @@ import { ChainStatusLine } from '../chain/ChainStatusLine';
 import { ProveWatch } from '../chain/ProveWatch';
 import { FlowFrame } from './FlowFrame';
 import { rich, useT } from '../../i18n/app';
-import { LanguageBar } from '../../i18n/LanguagePicker';
 import { DatingPausedNotice } from '../DatingPausedNotice';
 import { DisclosureReceipt } from '../chain/DisclosureReceipt';
 
-/** This page has no app header: the language picker and the draft banner sit above its frame. */
+/** The prove page's frame; the language picker and the draft notice are in the one header (SiteHeader.tsx). */
 const ProveFrame: React.FC<React.PropsWithChildren> = ({ children }) => (
   <>
-    <LanguageBar />
     <FlowFrame section="prove">{children}</FlowFrame>
   </>
 );

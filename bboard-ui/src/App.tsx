@@ -9,6 +9,8 @@ import { Founders, VerifyLookup } from './components/site/Founders';
 import { Privacy } from './components/site/Privacy';
 import { NotFound } from './components/site/NotFound';
 import { PageErrorBoundary } from './components/PageErrorBoundary';
+import { SiteHeader } from './components/SiteHeader';
+import { AppFooter } from './components/AppFooter';
 import { Box, Container, GlobalStyles, ThemeProvider } from '@mui/material';
 import { MotionConfig } from 'framer-motion';
 import { FONT, lightFocusStyles, lightTheme } from './config/theme';
@@ -105,8 +107,9 @@ const RoyaltyPayFixture = E2E_FIXTURES
 const layoutParts = () => import('./app-layout-parts');
 const RolePicker = page<{ ask: boolean }>(layoutParts, 'RolePicker');
 const SaveProblemBar = page(layoutParts, 'SaveProblemBar');
-const AppFooter = page(layoutParts, 'AppFooter');
+const RoleChangeLink = page(layoutParts, 'RoleChangeLink');
 const AskLauncher = page(layoutParts, 'AskLauncher');
+const NetworkBadge = page(layoutParts, 'NetworkBadge');
 
 const AppLayout: React.FC<React.PropsWithChildren> = ({ children }) => {
   // The role question belongs to the app: making records, holding them, licensing them.
@@ -144,8 +147,10 @@ const AppLayout: React.FC<React.PropsWithChildren> = ({ children }) => {
         A lab says so with "I'm a lab" on its home screen or the footer's "change" link,
         which open this. */}
       <RolePicker ask={false} />
+      {/* The one header, as on every page (fresh-eyes review, 12 Nov). */}
+      <SiteHeader badge={<NetworkBadge />} />
       {/* The one main landmark: the header, the page and its notices. The footer stays outside. */}
-      <Container component="main" maxWidth="md" sx={{ py: { xs: 3, md: 6 } }}>
+      <Container component="main" maxWidth="md" sx={{ pt: { xs: 2, md: 4 }, pb: { xs: 3, md: 6 } }}>
         <SaveProblemBar />
         {/* A page that fails to draw says so plainly, not with a blank screen (round 3, L5). */}
         <PageErrorBoundary>{children}</PageErrorBoundary>
@@ -155,7 +160,9 @@ const AppLayout: React.FC<React.PropsWithChildren> = ({ children }) => {
       {/* Ask VeilCore (docs/ask-veilcore.md): drafts on the app's pages, never on the public ones.
         Before the footer: its spacer keeps the page's last line clear of the button. */}
       <AskLauncher />
-      <AppFooter />
+      <AppFooter>
+        <RoleChangeLink />
+      </AppFooter>
     </Box>
   );
 };
@@ -163,7 +170,13 @@ const AppLayout: React.FC<React.PropsWithChildren> = ({ children }) => {
 /** The frame's own files, fetched with the page's (preloadPage). */
 const layoutPreload: Preloadable = {
   preload: () =>
-    Promise.all([RolePicker.preload(), SaveProblemBar.preload(), AppFooter.preload(), AskLauncher.preload()]),
+    Promise.all([
+      RolePicker.preload(),
+      SaveProblemBar.preload(),
+      AskLauncher.preload(),
+      RoleChangeLink.preload(),
+      NetworkBadge.preload(),
+    ]),
 };
 
 /**
@@ -220,6 +233,23 @@ const Light: React.FC<React.PropsWithChildren> = ({ children }) => (
 );
 
 const LayoutFrame = Object.assign(AppLayout, layoutPreload);
+
+/**
+ * The pages people are sent to (a record to check, an agreement to sign): the same header and
+ * footer as everywhere else, without the app's own parts (fresh-eyes review, 12 Nov).
+ */
+const CheckChrome: React.FC<React.PropsWithChildren> = ({ children }) => (
+  // One screen tall together, the page taking what the header and footer leave: a short page
+  // ends with the footer at the bottom of the screen, a long one right after its content. The
+  // pages themselves no longer ask for a full screen each, which put the footer below the fold
+  // (review of ux-polish, 13 Nov).
+  <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+    <SiteHeader />
+    <Box sx={{ flex: 1 }}>{children}</Box>
+    <AppFooter />
+  </Box>
+);
+const CheckFrame = CheckChrome;
 const withLayout = (el: React.ReactNode) => (
   <Light>
     <LayoutFrame>{el}</LayoutFrame>
@@ -323,7 +353,9 @@ const routes = (
       path="/check-claim"
       element={
         <Light>
-          <ClaimCheck />
+          <CheckFrame>
+            <ClaimCheck />
+          </CheckFrame>
         </Light>
       }
     />
@@ -331,7 +363,9 @@ const routes = (
       path="/check-document"
       element={
         <Light>
-          <DocumentCheck />
+          <CheckFrame>
+            <DocumentCheck />
+          </CheckFrame>
         </Light>
       }
     />
@@ -340,7 +374,9 @@ const routes = (
       path="/check-lab-result"
       element={
         <Light>
-          <LabResultCheck />
+          <CheckFrame>
+            <LabResultCheck />
+          </CheckFrame>
         </Light>
       }
     />
@@ -357,7 +393,9 @@ const routes = (
       path="/prove-license/:id"
       element={
         <Light>
-          <ProveLicensePage />
+          <CheckFrame>
+            <ProveLicensePage />
+          </CheckFrame>
         </Light>
       }
     />
@@ -365,7 +403,9 @@ const routes = (
       path="/license-invite/:id"
       element={
         <Light>
-          <LicenseInvitePage />
+          <CheckFrame>
+            <LicenseInvitePage />
+          </CheckFrame>
         </Light>
       }
     />
@@ -373,7 +413,9 @@ const routes = (
       path="/claim"
       element={
         <Light>
-          <ClaimPage />
+          <CheckFrame>
+            <ClaimPage />
+          </CheckFrame>
         </Light>
       }
     />
@@ -381,7 +423,9 @@ const routes = (
       path="/lender"
       element={
         <Light>
-          <LenderPage />
+          <CheckFrame>
+            <LenderPage />
+          </CheckFrame>
         </Light>
       }
     />
@@ -389,7 +433,9 @@ const routes = (
       path="/license/:id/sign"
       element={
         <Light>
-          <CounterSignPage />
+          <CheckFrame>
+            <CounterSignPage />
+          </CheckFrame>
         </Light>
       }
     />
@@ -398,7 +444,9 @@ const routes = (
       path="/verify/example"
       element={
         <Light>
-          <VerifyExample />
+          <CheckFrame>
+            <VerifyExample />
+          </CheckFrame>
         </Light>
       }
     />
@@ -406,7 +454,9 @@ const routes = (
       path="/verify/:id"
       element={
         <Light>
-          <VerifyPage />
+          <CheckFrame>
+            <VerifyPage />
+          </CheckFrame>
         </Light>
       }
     />

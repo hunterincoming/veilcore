@@ -102,7 +102,6 @@ export const verify = {
   'app.verify.kindReport': 'Laborbericht (SHA-256 der Datei {sha})',
   'app.verify.kindStatement': 'Signierte Erklärung',
   'app.verify.forWhom': 'Für den Prüfcode, den das Register meldet: ',
-  'app.verify.homeAria': 'VeilCore-Startseite',
   'app.verify.intro':
     'Diese Seite prüft einen VeilCore-Datensatz: einen Prüfcode der Beschreibung von genetischem Material, datiert, sobald er verankert ist, veröffentlicht ohne die Genetik. Die Prüfung ist kostenlos und braucht kein Konto. <link>Was ist VeilCore?</link>',
   'app.verify.checkingRecord': 'Datensatz wird geprüft',

@@ -60,9 +60,7 @@ import { handOnOffered, newHolderSteps } from '../../veilcore/hand-on';
 import { HandOnHolder } from './HandOnHolder';
 import { ChainStatusLine } from '../chain/ChainStatusLine';
 import type { ChainReceipt } from '../../veilcore/chain/actions';
-import { Wordmark } from '../Wordmark';
 import { rich, useT } from '../../i18n/app';
-import { LanguageBar } from '../../i18n/LanguagePicker';
 import { DisclosureReceipt } from '../chain/DisclosureReceipt';
 
 const POLL_MS = 8_000;
@@ -70,12 +68,8 @@ const POLL_MS = 8_000;
 const shown = (h: string) => (h.slice(0, 16).match(/..../g) ?? []).join(' ');
 
 const Frame: React.FC<React.PropsWithChildren> = ({ children }) => (
-  <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
+  <Box sx={{ bgcolor: 'background.default' }}>
     <Container maxWidth="sm" sx={{ py: { xs: 4, md: 7 } }}>
-      <LanguageBar />
-      <Stack direction="row" sx={{ justifyContent: 'center', mb: 3 }}>
-        <Wordmark />
-      </Stack>
       <Paper sx={{ p: { xs: 2.5, md: 4 } }}>{children}</Paper>
     </Container>
   </Box>

@@ -12,6 +12,8 @@ export const backup = {
   'app.backup.saveIt': '保存する',
   'app.backup.saved': '保存しました',
   'app.backup.savedSub': '{file} · すべてが入った1つのファイル',
+  'app.backup.labKeyNotMade':
+    '検査機関の受け取り用の鍵を今は作れなかったため、このバックアップにはまだ入っていません。ほかのものはこのバックアップで大丈夫です。最初の記録が届いたら、新しいバックアップを保存してください。',
   'app.backup.saveFile': 'バックアップファイルを保存',
   'app.backup.copyTitle': 'コピーを別の場所にも置く（おすすめ）',
   'app.backup.wayBack': 'このスマートフォンやコンピューターが壊れたとき、そのコピーが取り戻す手段になります。',

@@ -14,13 +14,11 @@ import { Link as RouterLink } from 'react-router-dom';
 import VerifiedIcon from '@mui/icons-material/VerifiedOutlined';
 import LockIcon from '@mui/icons-material/LockOutlined';
 import { LINK_SX, MUTED_COLOR } from '../../config/theme';
-import { Wordmark } from '../Wordmark';
 import { IS_MAINNET } from '../../config/network';
 import { Fact, FactKey } from './DisclosedFacts';
 import { geneticsLabel } from '../../veilcore/disclosure';
 import { useT } from '../../i18n/app';
 import { networkWords } from '../../i18n/network-words';
-import { LanguageBar } from '../../i18n/LanguagePicker';
 import { DatedNotOrigin } from './DatedNotOrigin';
 
 const Note: React.FC<{ children: React.ReactNode }> = ({ children }) => (
@@ -36,29 +34,8 @@ export const VerifyExample: React.FC = () => {
   const tr = useT();
   const { t } = tr;
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
+    <Box sx={{ bgcolor: 'background.default' }}>
       <Container maxWidth="sm" sx={{ py: { xs: 5, md: 8 } }}>
-        <LanguageBar />
-        <Stack
-          component={RouterLink}
-          to="/"
-          aria-label={t('app.verify.homeAria')}
-          direction="row"
-          spacing={1.25}
-          sx={{
-            alignItems: 'center',
-            justifyContent: 'center',
-            mb: 3,
-            mx: 'auto',
-            width: 'fit-content',
-            minHeight: 44,
-            textDecoration: 'none',
-            color: 'text.primary',
-          }}
-        >
-          <Wordmark />
-        </Stack>
-
         <Alert severity="info" variant="outlined" sx={{ mb: 3 }}>
           <Typography variant="subtitle2">{t('app.verify.ex.title')}</Typography>
           <Typography variant="body2">{t('app.verify.ex.intro')}</Typography>
@@ -72,7 +49,11 @@ export const VerifyExample: React.FC = () => {
               <Typography variant="overline" sx={{ color: 'text.secondary' }}>
                 {t('app.verify.ex.status')}
               </Typography>
-              <Typography variant="h5">{t('app.verify.ex.name')}</Typography>
+              {/* The page's one main heading: the made-up record's name, which says "(example)" in
+                  every language (re-review of ux-polish, 13 Nov: the page had no h1). */}
+              <Typography variant="h5" component="h1">
+                {t('app.verify.ex.name')}
+              </Typography>
             </Box>
           </Stack>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>

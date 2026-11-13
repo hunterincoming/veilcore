@@ -9,7 +9,6 @@ export const common = {
   'app.common.add': 'Ajouter',
   'app.common.tryAgain': 'Réessayer',
   'app.common.fileInEnglish': 'Ce fichier est en anglais.',
-  'app.common.headerHome': 'VeilCore : vos plantes',
   'app.common.network.mainnet': 'le réseau principal de Midnight',
   'app.common.network.preprod': 'Midnight preprod (réseau de test)',
   'app.common.network.preview': 'Midnight Preview (réseau de test)',
