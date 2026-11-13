@@ -38,6 +38,6 @@
   "devDependencies": {
     "@midnight-ntwrk/testkit-js": "5.0.0",
     "@midnight-ntwrk/zkir-v2": "2.2.0",
-    "@scure/bip39": "2.2.0"
+    "@scure/bip39": "2.4.0"
   }
 }
