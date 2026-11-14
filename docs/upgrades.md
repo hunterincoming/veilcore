@@ -5,6 +5,14 @@ policy for the main contract (see *Decisions for the founders*), so nothing here
 until both founders approve it. Nothing in this document has been built or tested on a
 network.
 
+**Update, 14 November 2026.** Midnight mainnet moved to Ledger 9 on 6 November 2026 (preview
+relaunched on 7 November, preprod upgraded on 9 November:
+docs.midnight.network/relnotes/ledger-9). The rest of this page is as written on 9 October,
+before that date was known: "before the fork" and "after the fork" below mean before and after
+6 November on mainnet. What was done for the fork is in
+[mainnet-sponsor.md](mainnet-sponsor.md), section 8, with a Ledger 9 known issue about fees
+paid with one DUST spend and how the sponsor stands.
+
 ---
 
 ## The one-paragraph version
@@ -130,9 +138,10 @@ instruction that reads another contract's state; it only works on the contract's
 **So a new VeilCore contract can neither read nor call version 1 to check a record.** The
 link between versions has to be checked by verifier software, against chain data.
 
-**9. No fork date is announced.** Midnight's compatibility matrix lists mainnet on ledger 8,
-Compact 0.31.1, midnight-js 4.1.1, says Compact 0.34 and 0.35 target ledger 9, and gives no
-date (docs.midnight.network/relnotes/support-matrix). The midnight-js guide gives none either
+**9. No fork date was announced on 9 October; mainnet moved to Ledger 9 on 6 November 2026.**
+On 9 October Midnight's compatibility matrix listed mainnet on ledger 8,
+Compact 0.31.1, midnight-js 4.1.1, said Compact 0.34 and 0.35 target ledger 9, and gave no
+date (docs.midnight.network/relnotes/support-matrix). The midnight-js guide gave none either
 and says to adopt version 5 "before the fork, with enough lead time to ship it to your users"
 (line 340). The wallet's ledger-9 pull request mentions a preset "fork schedule" but shows no
 date (github.com/midnightntwrk/midnight-wallet/pull/811). Nothing we found sets an end date for
@@ -162,7 +171,8 @@ deployed contract's circuits are bound to the proof system that compiled them."
 ### Unknown (ask Nick)
 
 Whether "no governance arm" is only the library's choice or Midnight's policy; whether
-Midnight will ever stop accepting old-format proofs; the fork date and notice; how pre-fork
+Midnight will ever stop accepting old-format proofs; the fork date and notice (answered since:
+mainnet forked on 6 November 2026); how pre-fork
 transactions stay decodable after midnight-js drops the retained era (we have already been
 bitten once: indexer #1605, decoding of old state broke after the 28 September upgrade,
 `docs/mainnet-completeness.md`). The exact questions are below.
@@ -382,7 +392,8 @@ and midnight-js will drop that (Known 6). So:
    source by Compact 0.35 and keep calling it against the existing data? Does 0.35 lay out
    the same source's data the same way?
 4. Is there a date, or a block, for the v9 fork on mainnet? How much notice will dApps get,
-   and does preprod fork first?
+   and does preprod fork first? (Answered since: mainnet forked on 6 November 2026, preprod on
+   9 November.)
 5. Will Midnight commit to a notice period before mainnet stops accepting old-format
    (zk-stdlib v1) proofs, if it ever does?
 6. Once midnight-js drops the pre-fork era, what is the supported way to decode pre-fork
