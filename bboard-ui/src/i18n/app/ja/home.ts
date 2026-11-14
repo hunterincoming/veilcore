@@ -25,7 +25,7 @@ export const home = {
   'app.home.imALab': 'ラボです',
   'app.home.whatStops': '誰かが先に私の植物や動物を記録するのを、何が防ぐのですか？',
   'app.home.samplesReceived': '受け取ったサンプル',
-  'app.home.yourPlants': 'あなたの植物',
+  'app.home.yourRecords': 'あなたの記録',
   'app.home.logNew': '新しく記録',
   'app.home.saveIt': '保存する',
   'app.home.finishBackupLine': '<b>仕上げ：バックアップを保存してください。</b>{line}',
@@ -56,7 +56,7 @@ export const home = {
   'app.home.saveABackup': 'バックアップを保存',
   'app.home.exportAll': 'すべての記録をエクスポート',
   'app.home.importRecords': '記録をインポート',
-  'app.home.trust.title': '「<em>あなたの</em>品種を私が先に記録するのを、何が防ぐのですか？」',
+  'app.home.trust.title': '「<em>あなたの</em>素材を私が先に記録するのを、何が防ぐのですか？」',
   'app.home.trust.lede': 'VeilCoreの記録を偽造しにくくしているのは、次の3つです。',
   'app.home.trust.1t': '早い記録は早いものとして示される',
   'app.home.trust.1b':
@@ -87,7 +87,7 @@ export const home = {
   'app.home.saveProblem.text': 'レジストリが{what}の一部を保存しなかったため、レジストリにある内容に戻しました：{list}',
   'app.home.sort.recent': '新しい順',
   'app.home.sort.oldest': '古い順',
-  'app.home.sort.name': '品種名',
+  'app.home.sort.name': '名前',
   'app.home.sort.breeder': '育成者',
   'app.home.search.lab': '名前、育成者、TRコード、メモ、または受付番号',
   'app.home.search.breeder': '名前、育成者、または管理番号',
@@ -98,7 +98,7 @@ export const home = {
   'app.home.paste.ownCode': 'それはあなた自身のコードです。ラボに送ってください。ここで受け取らないでください。',
   'app.home.paste.cutOff': 'そのコードは途中で切れているようです。送られてきたラボコードを全部コピーしてください。',
   'app.home.paste.noneStamped':
-    '保有の証明を求めるリクエストですが、この端末の植物にはまだ日付スタンプが押されたものがありません。新しい端末ですか？先にバックアップから植物を取り戻してください。',
+    '保有の証明を求めるリクエストですが、この端末の記録にはまだ日付スタンプが押されたものがありません。新しい端末ですか？先にバックアップから記録を取り戻してください。',
   'app.home.paste.unknown':
     'VeilCoreのコードやリンクではないようです。送られてきたものを全部コピーして、もう一度お試しください。',
   'app.home.paste.label': 'コードやリンクが送られてきましたか？',
@@ -107,7 +107,7 @@ export const home = {
   'app.home.paste.orMake': '貼り付けるものがない場合は、記録を作る',
   'app.home.paste.hint':
     'ラボコード、記録のリンク、記録の保有の証明リクエスト、署名する契約。どれかはこちらで判断します。',
-  'app.home.paste.whichPlant': '保有の証明を求めるリクエストです。どの植物について聞かれましたか？',
+  'app.home.paste.whichRecord': '保有の証明を求めるリクエストです。どの記録について聞かれましたか？',
   'app.home.notFinished': '未完了 · 次：バックアップを保存',
   'app.home.receivedFrom': '{name} から受け取り',
   'app.home.receivedFromNamed': '{name}から · 相手の記録 {id}',

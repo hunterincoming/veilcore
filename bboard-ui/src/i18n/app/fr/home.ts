@@ -27,7 +27,7 @@ export const home = {
   'app.home.imALab': 'Je suis un laboratoire',
   'app.home.whatStops': 'Qu’est-ce qui empêche quelqu’un d’enregistrer ma plante ou mon animal en premier ?',
   'app.home.samplesReceived': 'Échantillons reçus',
-  'app.home.yourPlants': 'Vos plantes',
+  'app.home.yourRecords': 'Vos enregistrements',
   'app.home.logNew': 'Enregistrer',
   'app.home.saveIt': 'L’enregistrer',
   'app.home.finishBackupLine': '<b>Pour finir : enregistrez votre copie de secours.</b> {line}',
@@ -67,7 +67,7 @@ export const home = {
   'app.home.saveABackup': 'Enregistrer une copie de secours',
   'app.home.exportAll': 'Exporter tous les enregistrements',
   'app.home.importRecords': 'Importer des enregistrements',
-  'app.home.trust.title': '« Qu’est-ce qui m’empêche d’enregistrer <em>votre</em> variété ? »',
+  'app.home.trust.title': '« Qu’est-ce qui m’empêche d’enregistrer <em>votre</em> matériel ? »',
   'app.home.trust.lede': 'Trois choses rendent un enregistrement VeilCore difficile à falsifier :',
   'app.home.trust.1t': 'Un enregistrement antérieur apparaît comme antérieur',
   'app.home.trust.1b':
@@ -100,7 +100,7 @@ export const home = {
     'Le registre n’a pas conservé certains de vos {what} ; ils ont donc été remis à ce qu’il détient : {list}',
   'app.home.sort.recent': 'Plus récents d’abord',
   'app.home.sort.oldest': 'Plus anciens d’abord',
-  'app.home.sort.name': 'Nom de la variété',
+  'app.home.sort.name': 'Nom',
   'app.home.sort.breeder': 'Obtenteur',
   'app.home.search.lab': 'Nom, obtenteur, code TR, note ou votre n° d’enregistrement',
   'app.home.search.breeder': 'Nom, obtenteur ou votre propre référence',
@@ -111,7 +111,7 @@ export const home = {
   'app.home.paste.ownCode': 'C’est votre propre code. Envoyez-le au laboratoire ; ne le recevez pas ici.',
   'app.home.paste.cutOff': 'Ce code semble coupé. Copiez le code laboratoire complet qu’on vous a envoyé.',
   'app.home.paste.noneStamped':
-    'C’est une demande de prouver que vous détenez une plante, mais aucune plante de cet appareil n’a encore d’horodatage. Sur un nouvel appareil ? Récupérez d’abord vos plantes depuis votre copie de secours.',
+    'C’est une demande de prouver que vous détenez un enregistrement, mais aucun enregistrement de cet appareil n’a encore d’horodatage. Sur un nouvel appareil ? Récupérez d’abord vos enregistrements depuis votre copie de secours.',
   'app.home.paste.unknown':
     'Cela ne ressemble pas à un code ou un lien VeilCore. Copiez tout ce qu’on vous a envoyé et réessayez.',
   'app.home.paste.label': 'Quelqu’un vous a envoyé un code ou un lien ?',
@@ -120,8 +120,8 @@ export const home = {
   'app.home.paste.orMake': 'Rien à coller ? Créez un enregistrement',
   'app.home.paste.hint':
     'Un code laboratoire, un lien vers un enregistrement, une demande de prouver que vous détenez un enregistrement ou un contrat à signer. Nous reconnaissons lequel.',
-  'app.home.paste.whichPlant':
-    'C’est une demande de prouver que vous détenez une plante. Laquelle vous a-t-on demandée ?',
+  'app.home.paste.whichRecord':
+    'C’est une demande de prouver que vous détenez un enregistrement. Lequel vous a-t-on demandé ?',
   'app.home.notFinished': 'Pas terminé · ensuite : enregistrez votre copie de secours',
   'app.home.receivedFrom': 'Reçue de {name}',
   'app.home.receivedFromNamed': 'De {name} · leur enregistrement {id}',

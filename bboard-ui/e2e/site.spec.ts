@@ -68,7 +68,7 @@ for (const [path, text] of PAGES) {
   });
 }
 
-test('/records/import has its own title, not "Your plants"', async ({ page }) => {
+test('/records/import has its own title, not "Your records"', async ({ page }) => {
   await isolate(page);
   await page.goto('/records/import');
   await expect(page).toHaveTitle('Date your collection · VeilCore');

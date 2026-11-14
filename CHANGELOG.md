@@ -15,6 +15,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   row only when nothing sent above the copy last saved is still unanswered (on its way, or its
   answer lost); otherwise the row is sent again, one rev above.
 
+### Plant, animal and microbe wording (14 Nov 2026, not deployed yet)
+
+- The home page's opening line, the page description, the link previews and the summary shown
+  before the script runs say "plant, animal and microbial genetics", in all five languages.
+- In the app, wording that applies to every kind of record no longer says plant or cultivar:
+  the list heading is always "Your records", the sort is by "Name", the trust panel asks "What
+  stops me from logging your material?", and the paste box says "a record". In all five
+  languages. A plant's own form still says cultivar.
+
 ### Two quick saves of a record keep the newer copy (13 Nov 2026, not deployed yet)
 
 - A save's rev was taken after its hashing finished, and hashing can finish in any order. A

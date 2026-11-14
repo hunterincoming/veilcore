@@ -73,7 +73,6 @@ export const animal = {
   'app.animal.f.statedBirth': 'Date of birth (holder’s statement)',
   'app.animal.tree.sire': 'Sire',
   'app.animal.tree.dam': 'Dam',
-  'app.animal.home.yourRecords': 'Your records',
 
   // The check page (pages/VerifyPage.tsx, verify/DisclosedFacts.tsx).
   'app.animal.verify.sireLine': 'Sire, as the holder states it: {v}',

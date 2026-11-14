@@ -216,7 +216,7 @@ test('a plant logged with no backup is still dated in the next batch, and Home p
   expect((await rows()).find((r) => r.id === recordId)?.recordFingerprint).toBe(row.recordFingerprint);
   await page.goto('/records');
   await page.reload();
-  await expect(page.getByRole('heading', { name: 'Your plants' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Your records' })).toBeVisible();
   await expect(page.locator(`[data-home-unsaved="${recordId}"]`)).toHaveCount(0);
   await expect(page.locator('[data-pickup-item="locked-copies"]')).toHaveCount(0);
   await expect(page.locator('[data-pickup-item="fresh-backup"]')).toHaveCount(0);

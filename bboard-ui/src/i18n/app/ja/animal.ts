@@ -64,7 +64,6 @@ export const animal = {
   'app.animal.f.statedBirth': '生年月日（保有者の申告）',
   'app.animal.tree.sire': '父',
   'app.animal.tree.dam': '母',
-  'app.animal.home.yourRecords': 'あなたの記録',
   'app.animal.verify.sireLine': '父（保有者の申告）：{v}',
   'app.animal.verify.damLine': '母（保有者の申告）：{v}',
   'app.animal.verify.idLine': '個体識別番号（保有者の申告）：{id}（{scheme}）',

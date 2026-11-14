@@ -1,5 +1,5 @@
 // TrustPanel — answers the killer objection in plain breeder language:
-// "What stops me from logging YOUR cultivar?"
+// "What stops me from logging YOUR material?"
 // SPDX-License-Identifier: Apache-2.0
 
 import React from 'react';

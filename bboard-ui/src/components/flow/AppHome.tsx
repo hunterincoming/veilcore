@@ -41,8 +41,7 @@ import { OPEN_SIGNING_KEY_EVENT } from '../AttesterSetup';
 import { linkCard } from '../a11y';
 import { INK_COLOR, GROUND, POLLEN, WASH } from '../../config/theme';
 import { useT, useRecordT, rich } from '../../i18n/app';
-import { isAnimal, recordTitle } from '../../veilcore/animal-profile';
-import { isStrain } from '../../veilcore/strain-profile';
+import { recordTitle } from '../../veilcore/animal-profile';
 import { isDocument } from '../../veilcore/document-profile';
 import { typeWords } from '../document/DocumentParts';
 import { SECTIONS, focusScreenHeading } from './FlowFrame';
@@ -379,11 +378,7 @@ export const AppHome: React.FC = () => {
       <Stack spacing={2.5}>
         <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
           <Typography variant="h4" component="h1">
-            {labOnly
-              ? t('app.home.samplesReceived')
-              : records.some((r) => isAnimal(r) || isStrain(r))
-                ? t('app.animal.home.yourRecords')
-                : t('app.home.yourPlants')}
+            {labOnly ? t('app.home.samplesReceived') : t('app.home.yourRecords')}
           </Typography>
           {!labOnly && (
             <Button component={RouterLink} to="/new" variant="contained" startIcon={<AddIcon />} sx={{ minHeight: 48 }}>

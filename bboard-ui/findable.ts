@@ -58,7 +58,7 @@ export const llmsTxt = (live: boolean): string =>
   [
     '# VeilCore',
     '',
-    '> An open record format and a service on Midnight for dated, private records of plant and animal genetics. A breeder or lab proves what they held and when, without showing the genetics. Checking a record is free, offline-capable and needs no account.',
+    '> An open record format and a service on Midnight for dated, private records of plant, animal and microbial genetics. A breeder or lab proves what they held and when, without showing the genetics. Checking a record is free, offline-capable and needs no account.',
     '',
     'A record is sealed in the browser. Only a 32-byte proof code is dated on Midnight, in a batch with others; the details stay locked and DNA files never leave the device. Later a buyer, examiner or court can check what the record said and when it existed.',
     '',
@@ -136,7 +136,7 @@ export const structuredData = (): string =>
         url: `${SITE}/`,
         logo: `${SITE}/icon.png`,
         description:
-          'An open record format and a service on Midnight for dated, private records of plant and animal genetics.',
+          'An open record format and a service on Midnight for dated, private records of plant, animal and microbial genetics.',
         email: 'hunter@veilcore.org',
         founder: [
           { '@type': 'Person', name: 'Makoto Steiner', jobTitle: 'Co-Founder & CEO' },
