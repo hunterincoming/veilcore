@@ -230,7 +230,7 @@ export const en = {
     "A lab's signatures about a record stay private unless the record's holder shows them. Each one shown says which key signed it, the name it was registered under, any accreditation its holder declared (we don't check that), and whether VeilCore's operator has matched that name to a public license or accreditation listing, and on what day. VeilCore doesn't vouch for any lab: whoever checks a record decides what a signature is worth.",
   'm.open.4t': 'Anyone can run a registry.',
   'm.open.4p':
-    "The format lets a lab, certifier or rights body run its own, under its own web domain, and anchor without asking us. Our own registry code isn't published.",
+    "The format lets a lab, certifier or rights body run its own, under its own web domain, and anchor without asking us. Our own registry's code is public, under the Apache-2.0 license, at github.com/hunterincoming/veilcore-api.",
   'm.open.6t': 'Checking without us.',
   'm.open.6p':
     'With that bundle, anyone can check a record offline: open its verify.html, then look up the one transaction it names on a Midnight explorer. Records sealed since 14 October also need spec section 3.6.1, in the spec on this site and in SDK 0.16.0 and later.',
@@ -343,12 +343,12 @@ export const en = {
   'm.status.label': 'Where this is',
   'm.status.title1': 'Where things',
   'm.status.title2': 'stand.',
-  'm.status.lede': "What is done, and what isn't yet.",
+  'm.status.lede': 'What runs today, and how far it has been checked.',
   'm.stat3.b': 'No audit',
   'm.stat3.s': 'No independent security audit yet. Our own reviews of the contracts are public.',
   'm.stat3.link': 'Read them on GitHub →',
-  'm.stat4.b': 'Open to first users',
-  'm.stat4.s': "It's ready for real records. Breeders and labs who start now get set up by the founders directly.",
+  'm.stat4.b': 'No sign-up, no wallet',
+  'm.stat4.s': 'Make a record now. Checking one is free and needs no account.',
   // Mainnet builds only: the contract addresses, in "For technical readers".
   'm.addr.title': 'The contracts, for anyone who wants to check them.',
   'm.addr.main': 'Main contract',
@@ -357,7 +357,7 @@ export const en = {
   'm.addr.explorer': 'Look them up on midnightexplorer.com (run by TexLabs) →',
   'm.status.keyTitle': 'Who can change the contract.',
   'm.status.keyText':
-    "One maintenance key can change how VeilCore's contract on Midnight works. Whoever holds it can add or replace the contract's operations, which could take over any record's identity, add licenses for any issuer, add or remove obligations and parent links, or switch operations off. It cannot backdate the network's block times, and every change shows on chain. It can't change or remove a batch that's already anchored, or the date it gives a record: that is in the transaction that anchored it, which nobody can alter. Today the key is on paper, one copy with each founder, and either copy alone can use it. Moving it to a group of keys that must agree is planned, not done. Every use is announced publicly, under a written maintenance policy.",
+    "One maintenance key can change how VeilCore's contract on Midnight works. Whoever holds it can add or replace the contract's operations, which could take over any record's identity, add licenses for any issuer, add or remove obligations and parent links, or switch operations off. It cannot backdate the network's block times, and every change shows on chain. It can't change or remove a batch that's already anchored, or the date it gives a record: that is in the transaction that anchored it, which nobody can alter. Today the key is on paper, one copy with each founder, and either copy alone can use it. Moving it to three keys, where two must agree, was planned before Midnight's Ledger 9 upgrade on 6 November 2026 and has not been done. The network still accepts the key, so treat it as live. The contract's change counter was 16 on 13 November 2026. Anyone can check it, and any change raises it. Every use is announced publicly, under a written maintenance policy.",
   'm.status.keyLink': 'Read the maintenance policy →',
   // "For technical readers" (home page, near the end): collapsed until opened.
   'm.tech.title': 'For technical readers',
@@ -451,8 +451,8 @@ export const en = {
   'm.live.chain.test': 'Yes.',
 
   'm.contact.label': 'Get in touch',
-  'm.contact.title1': 'Tell us',
-  'm.contact.title2': 'where it fails.',
+  'm.contact.title1': 'Talk to',
+  'm.contact.title2': 'the founders.',
   'm.contact.1t': 'Breeders and labs',
   'm.contact.1p': 'Try it on made-up records, then tell us what it would need for your real ones.',
   'm.contact.2t': 'Seed certifiers, examiners and rights bodies',
@@ -469,7 +469,7 @@ export const en = {
   'm.foot.demo': 'Demo',
   'm.foot.contact': 'Contact',
   'm.foot.verify': 'Verify a record',
-  'm.foot.fine': 'Evidence you held a record by a date. Not a title to the plant.',
+  'm.foot.fine': 'Evidence you held a record by a date. Not a title to what it describes.',
   'm.foot.terms': 'Terms of use',
   'm.terms.inEnglish': 'These terms are in English, and the English text governs.',
 

@@ -347,11 +347,17 @@ const cellKey = (row: string, col: string) =>
 
 const LiveWhere: React.FC<{ phone: boolean }> = ({ phone }) => {
   const { t } = useI18n();
-  const cols = [
-    ['main', 'chip live', t('m.live.colMain')],
-    ['test', 'chip', t('m.live.colTest')],
-    ['not', 'chip', t('m.live.colNot')],
-  ] as const;
+  const rows = liveRows();
+  // The "Not yet" column is there only while some feature has a cell in it: an empty column
+  // of dashes says nothing.
+  const showNot = rows.some((r) => r[3]);
+  const cols = (
+    [
+      ['main', 'chip live', t('m.live.colMain')],
+      ['test', 'chip', t('m.live.colTest')],
+      ['not', 'chip', t('m.live.colNot')],
+    ] as const
+  ).filter(([col]) => col !== 'not' || showNot);
   const table = (
     <table className="live-table">
       <thead>
@@ -370,11 +376,11 @@ const LiveWhere: React.FC<{ phone: boolean }> = ({ phone }) => {
               </a>
             )}
           </th>
-          <th scope="col">{t('m.live.colNot')}</th>
+          {showNot && <th scope="col">{t('m.live.colNot')}</th>}
         </tr>
       </thead>
       <tbody>
-        {liveRows().map(([row, ...has]) => (
+        {rows.map(([row, ...has]) => (
           <tr key={row}>
             <th scope="row">{t(`m.live.${row}.t`)}</th>
             {cols.map(([col, chip, name], i) =>
@@ -785,6 +791,10 @@ export const Home: React.FC = () => {
               <b>{t('m.stat2.b')}</b>
               <span>{t('m.stat2.s')}</span>
             </div>
+            <div className="stat ok">
+              <b>{t('m.stat4.b')}</b>
+              <span>{t('m.stat4.s')}</span>
+            </div>
             <div className="stat">
               <b>{t('m.stat3.b')}</b>
               <span>
@@ -795,10 +805,6 @@ export const Home: React.FC = () => {
                   {t('m.stat3.link')}
                 </a>
               </span>
-            </div>
-            <div className="stat">
-              <b>{t('m.stat4.b')}</b>
-              <span>{t('m.stat4.s')}</span>
             </div>
           </div>
         </Entry>

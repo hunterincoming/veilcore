@@ -75,7 +75,7 @@ export const labresult = {
   // ---- the lab's tools (LabResultsPage.tsx) ----
   'app.lr.tools.title': 'Sign lab results',
   'app.lr.tools.intro':
-    'For a lab: sign each result together with the record the sender named for the sample, the method, the sample ID and your accession number. Each result is kept as a record you hold and dated in the next hourly batch. Give each result, as its own file, to whoever sent that sample.',
+    'For a lab: sign each result together with the record the sender named for the sample, the method, the sample ID and your accession number. Each result is kept as a record you hold and dated in the next batch. Give each result, as its own file, to whoever sent that sample.',
   'app.lr.tools.testOnly': 'Lab results are on the test network only. They aren’t on veilcore.org yet.',
   'app.lr.tools.setUp': 'Set up your lab’s signing key first.',
   'app.lr.tools.single': 'One result',
@@ -85,7 +85,7 @@ export const labresult = {
   'app.lr.tools.signedOne': 'Signed and kept',
   'app.lr.tools.signedMany': 'Signed and kept: {n}',
   'app.lr.tools.signedText':
-    'Each is a record you hold, dated in the next hourly batch. Give each file to whoever sent the sample: they can check it and add it to their own records.',
+    'Each is a record you hold, dated in the next batch. Give each file to whoever sent the sample: they can check it and add it to their own records.',
   'app.lr.tools.download': 'Download the result file',
   'app.lr.tools.downloadAll': 'Download each result as its own file (zip)',
   'app.lr.tools.summary': 'Download a summary for your LIMS (CSV)',

@@ -32,17 +32,22 @@ import { getNetworkId } from './network-id.js';
 import { type AnySigningKey, frameworkKey, hexKey } from './signing-key.js';
 
 /*
- * AFTER MIDNIGHT'S LEDGER 9 FORK (mainnet, 6 November 2026) THIS IS NOT AVAILABLE.
+ * AFTER MIDNIGHT'S LEDGER 9 FORK (mainnet, 6 November 2026) THIS CODE REFUSES. THE NETWORK
+ * DOES NOT.
  *
  * VeilCore's contracts are Ledger 8 contracts (compactc 0.31) and stay so. midnight-js 5 calls
  * them on either side of the fork, but refuses to maintain them once a network has forked
- * (EraMismatchError 'ledger8-maintenance-on-ledger9-network'): a maintenance update is built
- * against the contract's own build, and maintaining a Ledger 8 contract on a Ledger 9 network
- * needs the contract recompiled with compactc 0.36, which VeilCore does not do (it would change
- * every verifier key; migration guide, "If you keep ledger 8 contracts"). So on a forked
- * network (mainnet now) adding or removing a circuit key, replacing the authority and the
- * retirement below are refused here, before anything is built or sent, with that reason. On a
- * network not yet forked (preprod, preview) they work as before, as Ledger 8 transactions.
+ * (EraMismatchError 'ledger8-maintenance-on-ledger9-network'). That is a rule of the library,
+ * not of the chain: Ledger 9 applies a maintenance update to a pre-fork contract, checking only
+ * the counter and the committee's signatures, so the maintenance key is still accepted by the
+ * network. Replacing the authority needs no recompile (it uses the address, the counter and
+ * the key). What does differ is the bytes that are signed: a Ledger 8 update, which is what
+ * this file builds, is not valid on a Ledger 9 network.
+ *
+ * So on a forked network (mainnet now) adding or removing a circuit key, replacing the
+ * authority and the retirement below are refused here, before anything is built or sent. On a
+ * network not yet forked they work as before, as Ledger 8 transactions. Replacing the
+ * authority with Ledger 9 types is scripts/committee (docs/maintenance-committee.md).
  */
 
 /** Refuse maintenance on a network past the Ledger 9 fork (see above). Nothing is built or sent. */
@@ -52,9 +57,9 @@ export const assertMaintenanceAvailable = async (publicDataProvider: {
   const era = protocolVersionToLedger(await publicDataProvider.queryLatestProtocolVersion());
   if (era !== 'v8')
     throw new Error(
-      "Contract maintenance is not available on this network: it has moved to Midnight Ledger 9, and VeilCore's " +
-        'contracts are Ledger 8 contracts, which midnight-js can call but no longer maintain (that needs the contract ' +
-        'recompiled, which would change every circuit key). Nothing was built or sent.',
+      'Contract maintenance is not available on this network: it has moved to Midnight Ledger 9, and this tool builds ' +
+        "Ledger 8 maintenance updates, which a Ledger 9 network does not accept. The network still accepts the contract's " +
+        'maintenance key; this tool does not use it here. Nothing was built or sent.',
     );
 };
 

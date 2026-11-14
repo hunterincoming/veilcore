@@ -11,6 +11,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { isAnimal } from '../veilcore/animal-profile';
+import { isDocument } from '../veilcore/document-profile';
 import { isStrain } from '../veilcore/strain-profile';
 import type { StrainRecord } from '../veilcore/records';
 import type { DraftKind } from './handoff';
@@ -75,7 +76,8 @@ export const hintExample = (
     (r) => !isReceivedRecord(r) && (r.strainName ?? '').trim().length >= 2 && (r.strainName ?? '').length <= 60,
   );
   const animals = named.filter(isAnimal);
-  const plants = named.filter((r) => !isAnimal(r) && !isStrain(r));
+  // A document is not a plant: nobody cuts clones from a permit (onboarding audit, 14 Nov).
+  const plants = named.filter((r) => !isAnimal(r) && !isStrain(r) && !isDocument(r));
   const kind: HintKind = animalsOffered && animals.length > 0 && animals.length > plants.length ? 'calves' : 'clones';
   const ctx = {
     records: records as readonly StrainRecord[],

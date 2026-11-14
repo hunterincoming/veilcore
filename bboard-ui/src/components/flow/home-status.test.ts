@@ -29,7 +29,7 @@ describe('Home’s line for a plant (test builds, where keys are date stamped fr
 
   it('a missing backup is still "Not finished": the keys are only on this device', () => {
     expect(homeStatusLine({ loggedAt }, keys(), on)).toEqual({
-      text: 'Not finished · next: save your backup',
+      text: 'Not in your backup yet · next: save your backup',
       unfinished: true,
     });
   });

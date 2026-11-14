@@ -68,7 +68,7 @@ export const labresult = {
     'VeilCore no tomó ni analizó esta muestra y no avala el resultado. Muestra que la clave de este laboratorio firmó este resultado, y la fecha del lote muestra que existía para entonces. Que la muestra venga del registro nombrado es palabra del remitente, salvo que un registro de cadena de custodia muestre más.',
   'app.lr.tools.title': 'Firmar resultados de laboratorio',
   'app.lr.tools.intro':
-    'Para laboratorios: firme cada resultado junto con el registro que el remitente indicó para la muestra, el método, el ID de la muestra y su número de registro de laboratorio. Cada resultado se guarda como un registro que usted tiene y se fecha en el siguiente lote horario. Entregue cada resultado, como archivo propio, a quien envió esa muestra.',
+    'Para laboratorios: firme cada resultado junto con el registro que el remitente indicó para la muestra, el método, el ID de la muestra y su número de registro de laboratorio. Cada resultado se guarda como un registro que usted tiene y se fecha en el siguiente lote. Entregue cada resultado, como archivo propio, a quien envió esa muestra.',
   'app.lr.tools.testOnly':
     'Los resultados de laboratorio están solo en la red de pruebas. Todavía no están en veilcore.org.',
   'app.lr.tools.setUp': 'Primero configure la clave de firma de su laboratorio.',
@@ -79,7 +79,7 @@ export const labresult = {
   'app.lr.tools.signedOne': 'Firmado y guardado',
   'app.lr.tools.signedMany': 'Firmados y guardados: {n}',
   'app.lr.tools.signedText':
-    'Cada uno es un registro que usted tiene, fechado en el siguiente lote horario. Entregue cada archivo a quien envió la muestra: puede comprobarlo y añadirlo a sus propios registros.',
+    'Cada uno es un registro que usted tiene, fechado en el siguiente lote. Entregue cada archivo a quien envió la muestra: puede comprobarlo y añadirlo a sus propios registros.',
   'app.lr.tools.download': 'Descargar el archivo del resultado',
   'app.lr.tools.downloadAll': 'Descargar cada resultado como archivo propio (zip)',
   'app.lr.tools.summary': 'Descargar un resumen para su LIMS (CSV)',

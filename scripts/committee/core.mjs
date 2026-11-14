@@ -1,8 +1,20 @@
 // The maintenance committee: three keys, any two of which must sign a change to the
 // main contract. Pure functions only: nothing here reads a network, a file or a key store.
 //
-// How Midnight's ledger (ledger-v8 8.1.0, the version this repo pins) treats a contract's
-// maintenance authority, checked against the real ledger code in committee.test.mjs:
+// LEDGER 9. Midnight's mainnet moved to Ledger 9 on 6 November 2026, and what a holder signs
+// changed with it: the bytes of the same update differ between Ledger 8 and Ledger 9
+// ("midnight:contract-update:" became "midnight:contract-maintenance-update-..."), so a
+// signature made with ledger-v8 is not valid on a Ledger 9 network. Everything here (building,
+// signing, combining, checking) therefore uses Ledger 9 types, from @midnightntwrk/ledger-v9
+// 1.0.1 (ledger 9.1.0.1, which has the key-removal fee fix). It is installed under the name
+// `ledger-v9-committee`, because package.json pins the plain name to 1.0.0 for midnight-js 5.0.0.
+// Keys did not change: a key made before the upgrade is the same key after it. Replacing the
+// authority of a contract built with compactc 0.31 needs no recompile: the ledger checks the
+// counter and the signatures, nothing about the compiler (the rehearsal in
+// docs/committee-rehearsal.md, and committee.test.mjs).
+//
+// How Midnight's ledger treats a contract's maintenance authority, checked against the real
+// ledger code in committee.test.mjs:
 //
 //  - The authority is ContractMaintenanceAuthority(committee, threshold, counter): a list of
 //    public keys, how many of them must sign, and a replay counter.
@@ -10,6 +22,7 @@
 //    [index into the CURRENT committee, signData(key, update.dataToSign)]. dataToSign covers
 //    the address, the instructions and the counter, nothing else, so holders can sign on
 //    separate machines at different times and one person adds the signatures and sends it.
+//    Signatures must be for different members: the same index twice is refused.
 //  - The update must carry the authority's current counter. Every update raises the counter
 //    by one, so a signed update that has been used, or overtaken, can never be used again.
 //  - Replacing the authority: the new authority's counter must be exactly current + 1.
@@ -17,9 +30,10 @@
 //    (which lets anyone change the contract with no signature at all), and a threshold of
 //    2^32 silently becomes 0. This file refuses all three before anything is signed.
 //
-// midnight-js 4.1.1 cannot build any of this (replaceAuthority takes one key and always
-// installs a one-key committee with threshold 1), so the update is built here from the
-// ledger's own types, as api/src/maintenance.ts already does for the provable retirement.
+// midnight-js cannot build any of this (replaceAuthority takes one key and always installs a
+// one-key committee with threshold 1, and midnight-js 5 refuses to maintain a pre-upgrade
+// contract on a Ledger 9 network at all: a rule of the library, not of the chain), so the
+// update is built here from the ledger's own types.
 // SPDX-License-Identifier: Apache-2.0
 
 import { createHash } from 'node:crypto';
@@ -34,31 +48,54 @@ import {
   signData,
   signatureVerifyingKey,
   verifySignature,
-} from '@midnightntwrk/ledger-v8';
+} from 'ledger-v9-committee';
 
 /** VeilCore's committee: three keys, two signatures. Anything else is refused. */
 export const COMMITTEE_SIZE = 3;
 export const COMMITTEE_THRESHOLD = 2;
 
 export const KEY_CARD_FORMAT = 'veilcore-committee-key/v1';
-export const REQUEST_FORMAT = 'veilcore-maintenance-request/v1';
-export const SIGNATURE_FORMAT = 'veilcore-maintenance-signature/v1';
+// v2: Ledger 9. A v1 request or signature was made with Ledger 8 types and can never be used
+// on a Ledger 9 network; both are refused by name, and a Ledger 8 signature copied into a v2
+// file does not verify.
+export const REQUEST_FORMAT = 'veilcore-maintenance-request/v2';
+export const SIGNATURE_FORMAT = 'veilcore-maintenance-signature/v2';
+/** A new holder's signature over a change's check code, made before the change is sent. */
+export const CONFIRMATION_FORMAT = 'veilcore-committee-confirmation/v1';
+// v2: holds its creation time and the request it checked (bboard-cli/src/launcher/committee.ts).
+export const DRY_RUN_FORMAT = 'veilcore-maintenance-dry-run/v2';
+/** A dry-run record older than this is refused: make a new dry run. */
+export const DRY_RUN_MAX_AGE_MS = 24 * 60 * 60 * 1000;
+const LEDGER8_REQUEST_FORMAT = 'veilcore-maintenance-request/v1';
+const LEDGER8_SIGNATURE_FORMAT = 'veilcore-maintenance-signature/v1';
 
 export const NETWORKS = ['mainnet', 'preprod', 'preview', 'undeployed'];
 
 const HEX64 = /^[0-9a-f]{64}$/;
 const HOLDER = /^[a-z0-9][a-z0-9-]{0,31}$/;
+/** Every practice card's holder name starts with this, and no real card's does. */
+export const PRACTICE_PREFIX = 'practice-';
 const CIRCUIT = /^[A-Za-z_][A-Za-z0-9_]{0,63}$/;
 
 const sha256Hex = (bytes) => createHash('sha256').update(bytes).digest('hex');
 const toHex = (bytes) => Buffer.from(bytes).toString('hex');
 const fromHex = (hex) => new Uint8Array(Buffer.from(hex, 'hex'));
 
+/** Ledger 9 holds a key or a signature as { tag, value }; VeilCore's keys are all Schnorr keys. */
+const tagged = (hex) => ({ tag: 'schnorr', value: hex });
+
 /** A key as people copy it: spaces, dashes and case do not matter. */
 export const cleanHex = (text) =>
   String(text ?? '')
     .replace(/[\s-]/g, '')
     .toLowerCase();
+
+/** A committee key as plain hex, from Ledger 9's { tag, value } or from hex. Only Schnorr keys. */
+export const bareKey = (k) => {
+  if (typeof k === 'string') return cleanHex(k);
+  if (k?.tag === 'schnorr' && typeof k.value === 'string') return cleanHex(k.value);
+  throw new Error("The contract's maintenance committee holds a key that is not a Schnorr key; refused.");
+};
 
 /** A public key shown for checking by eye or out loud: the first and last 8 characters. */
 export const fingerprint = (publicKey) => `${publicKey.slice(0, 8)}…${publicKey.slice(-8)}`;
@@ -76,7 +113,7 @@ export const parseSigningKey = (text) => {
   const t = cleanHex(raw);
   if (!HEX64.test(t)) return { problem: `That is ${t.length} characters; a key is exactly 64, each 0-9 or a-f.` };
   try {
-    return { value: t, publicKey: signatureVerifyingKey(t) };
+    return { value: t, publicKey: signatureVerifyingKey(tagged(t)).value };
   } catch {
     return { problem: 'Those 64 characters are not a valid signing key. Check the copy for a typo.' };
   }
@@ -91,7 +128,7 @@ export const parsePublicKey = (text) => {
   if (!HEX64.test(t))
     return { problem: `That is ${t.length} characters; a public key is exactly 64, each 0-9 or a-f.` };
   try {
-    new ContractMaintenanceAuthority([t], 1, 0n);
+    new ContractMaintenanceAuthority([tagged(t)], 1, 0n);
     return { value: t };
   } catch {
     return { problem: 'Those 64 characters are not a valid public key. Check the copy for a typo.' };
@@ -103,35 +140,58 @@ export const parsePublicKey = (text) => {
  *
  * The card is public. Its proof is a signature over a VeilCore-only message naming the
  * holder and the key (it starts "veilcore:", and every maintenance update the ledger signs
- * starts "midnight:contract-update:", so the two can never be confused). The proof shows the
+ * starts "midnight:contract-", so the two can never be confused). A card made before the
+ * Ledger 9 upgrade is still valid: the key and this message did not change. The proof shows the
  * key was copied correctly before it is given any power: a committee member whose paper copy
  * has a typo is a lost key, and with two lost keys the contract can never be maintained.
  * It does not show WHO made the card: confirm each public key with its holder in person or
  * on a call (the fingerprint, out loud), never only by message.
+ *
+ * PRACTICE CARDS. A card made for a rehearsal is marked three ways, and all three must agree:
+ * `practice: true` in the card, a holder name that starts "practice-", and a proof made over a
+ * different message (it says "practice"). So the mark cannot be taken off: a practice card with
+ * `practice` removed, or renamed, no longer proves its key. Every mainnet path refuses a
+ * practice card (rebuildRequest below), because a rehearsal ends by deleting its keys.
  */
 
-export const possessionMessage = (holder, publicKey) =>
-  new TextEncoder().encode(`veilcore:committee-key:v1\n${holder}\n${publicKey}`);
+export const possessionMessage = (holder, publicKey, practice = false) =>
+  new TextEncoder().encode(`veilcore:committee-key:v1${practice ? ':practice' : ''}\n${holder}\n${publicKey}`);
 
-/** A new card for `holder`, signed by `signingKey`. */
-export const makeKeyCard = (holder, signingKey, createdAt = new Date().toISOString()) => {
+/** Why this holder name does not fit this kind of card, or null. */
+const holderNameProblem = (holder, practice) => {
+  if (practice && !holder.startsWith(PRACTICE_PREFIX))
+    return `A practice card's holder name must start with "${PRACTICE_PREFIX}" (like "${PRACTICE_PREFIX}mako").`;
+  if (!practice && holder.startsWith(PRACTICE_PREFIX))
+    return `A holder name that starts with "${PRACTICE_PREFIX}" is for practice cards only (keygen --practice).`;
+  return null;
+};
+
+/** A new card for `holder`, signed by `signingKey`. `practice`: a rehearsal card (see above). */
+export const makeKeyCard = (holder, signingKey, createdAt = new Date().toISOString(), { practice = false } = {}) => {
   if (!HOLDER.test(holder))
     throw new Error('The holder name must be 1-32 characters: small letters, digits and dashes (like "mako").');
+  if (practice !== true && practice !== false) throw new Error('practice must be true or false.');
+  const name = holderNameProblem(holder, practice);
+  if (name !== null) throw new Error(name);
   const k = parseSigningKey(signingKey);
   if ('problem' in k) throw new Error(k.problem);
   return {
     format: KEY_CARD_FORMAT,
     holder,
+    ...(practice ? { practice: true } : {}),
     publicKey: k.publicKey,
     fingerprint: fingerprint(k.publicKey),
-    possessionProof: signData(k.value, possessionMessage(holder, k.publicKey)),
+    possessionProof: signData(tagged(k.value), possessionMessage(holder, k.publicKey, practice)).value,
     createdAt,
   };
 };
 
+/** Is this a practice card? (Only meaningful for a card that passed checkKeyCard.) */
+export const isPracticeCard = (card) => card?.practice === true;
+
 /**
  * A card checked: the right format, a valid key, and a proof made by that key.
- * @returns {{ ok: true, holder: string, publicKey: string } | { ok: false, problem: string }}
+ * @returns {{ ok: true, holder: string, publicKey: string, practice: boolean } | { ok: false, problem: string }}
  */
 export const checkKeyCard = (card) => {
   const who = typeof card?.holder === 'string' ? `"${card.holder}"` : 'this card';
@@ -139,23 +199,38 @@ export const checkKeyCard = (card) => {
     return { ok: false, problem: `${who} is not a VeilCore committee key card (${KEY_CARD_FORMAT}).` };
   if (typeof card.holder !== 'string' || !HOLDER.test(card.holder))
     return { ok: false, problem: `${who}: the holder name is missing or not small letters, digits and dashes.` };
+  if (card.practice !== undefined && card.practice !== true)
+    return { ok: false, problem: `${who}: "practice" must be true or left out.` };
+  const practice = card.practice === true;
+  const name = holderNameProblem(card.holder, practice);
+  if (name !== null) return { ok: false, problem: `${who}: ${name}` };
   const pk = parsePublicKey(card.publicKey);
   if ('problem' in pk) return { ok: false, problem: `${who}: ${pk.problem}` };
   if (pk.value !== card.publicKey)
     return { ok: false, problem: `${who}: the public key must be written in small letters, no spaces.` };
   let proved = false;
   try {
-    proved = verifySignature(pk.value, possessionMessage(card.holder, pk.value), String(card.possessionProof ?? ''));
+    proved = verifySignature(
+      tagged(pk.value),
+      possessionMessage(card.holder, pk.value, practice),
+      tagged(String(card.possessionProof ?? '')),
+    );
   } catch {
     proved = false;
   }
   if (!proved)
     return {
       ok: false,
-      problem: `${who}: the proof does not match the key. The card was edited, or made for another holder name.`,
+      problem:
+        `${who}: the proof does not match the key. The card was edited (its key, its holder name or its ` +
+        'practice mark), or made for another holder name.',
     };
-  return { ok: true, holder: card.holder, publicKey: pk.value };
+  return { ok: true, holder: card.holder, publicKey: pk.value, practice };
 };
+
+export const PRACTICE_ON_MAINNET =
+  'is a PRACTICE card, made for a rehearsal. Practice keys are thrown away, so a practice card is never ' +
+  'accepted on mainnet. Each holder makes a real key (keygen without --practice).';
 
 /** Does this signing key belong to this card? (Checking a stored copy against the card.) */
 export const keyMatchesCard = (signingKey, card) => {
@@ -205,7 +280,7 @@ export const committeeProblems = (cards, threshold, { forbid = [] } = {}) => {
 
 /** The ledger's authority as plain data (committee as hex strings, counter as a bigint). */
 export const authorityView = (a) => ({
-  committee: [...a.committee].map((k) => cleanHex(k)),
+  committee: [...a.committee].map(bareKey),
   threshold: Number(a.threshold),
   counter: BigInt(a.counter),
 });
@@ -226,7 +301,7 @@ export const isRetired = (a) => a.threshold > a.committee.length;
 const sameKeys = (a, b) => a.length === b.length && a.every((k, i) => k === b[i]);
 
 const plainCurrent = (current) => ({
-  committee: current.committee.map(cleanHex),
+  committee: [...current.committee].map(bareKey),
   threshold: Number(current.threshold),
   counter: String(BigInt(current.counter)),
 });
@@ -235,14 +310,22 @@ const plainCurrent = (current) => ({
 const actionToInstruction = (action, current, opts) => {
   switch (action?.kind) {
     case 'replace-authority': {
-      const problems = committeeProblems(action.committee, action.threshold, { forbid: opts.forbid });
+      // A single key that can change the contract today can never be a member, on every path
+      // (install, request, read, sign, submit): the request names the authority it is valid
+      // against, so the rule needs nothing from the caller.
+      const forbid = [...(opts.forbid ?? []), ...(current.committee.length === 1 ? current.committee : [])];
+      const problems = committeeProblems(action.committee, action.threshold, { forbid });
+      if (opts.network === 'mainnet' && Array.isArray(action.committee))
+        for (const card of action.committee)
+          if (isPracticeCard(card) || String(card?.holder ?? '').startsWith(PRACTICE_PREFIX))
+            problems.push(`"${String(card?.holder)}" ${PRACTICE_ON_MAINNET}`);
       if (problems.length > 0) return { problem: problems.join(' ') };
       const keys = action.committee.map((c) => c.publicKey);
       if (sameKeys(keys, current.committee) && action.threshold === current.threshold)
         return { problem: 'That committee is the one already in place: nothing would change.' };
       return {
         instruction: new ReplaceAuthority(
-          new ContractMaintenanceAuthority(keys, COMMITTEE_THRESHOLD, BigInt(current.counter) + 1n),
+          new ContractMaintenanceAuthority(keys.map(tagged), COMMITTEE_THRESHOLD, BigInt(current.counter) + 1n),
         ),
         describe:
           `Replace who can change the contract with a committee of ${keys.length} keys, any ${action.threshold} of ` +
@@ -293,6 +376,14 @@ const actionToInstruction = (action, current, opts) => {
  */
 export const rebuildRequest = (req, opts = {}) => {
   const problems = [];
+  if (req?.format === LEDGER8_REQUEST_FORMAT)
+    return {
+      ok: false,
+      problems: [
+        "This request was made before Midnight's Ledger 9 upgrade. What a holder signs changed with that upgrade, " +
+          'so it can never be used. Make a new request with this version of the tool.',
+      ],
+    };
   if (req === null || typeof req !== 'object' || req.format !== REQUEST_FORMAT)
     return { ok: false, problems: [`This is not a VeilCore maintenance request (${REQUEST_FORMAT}).`] };
   if (!NETWORKS.includes(req.network)) problems.push(`Unknown network "${String(req.network)}".`);
@@ -319,7 +410,7 @@ export const rebuildRequest = (req, opts = {}) => {
   const instructions = [];
   const lines = [];
   for (const a of actions) {
-    const r = actionToInstruction(a, current, opts);
+    const r = actionToInstruction(a, current, { ...opts, network: req.network });
     if ('problem' in r) problems.push(r.problem);
     else {
       instructions.push(r.instruction);
@@ -355,6 +446,35 @@ export const makeRequest = ({ network, contractAddress, current, actions, reason
   return { ...req, dataToSign: toHex(r.update.dataToSign), dataToSignSha256: sha256Hex(r.update.dataToSign) };
 };
 
+export const PERMANENT_WARNING =
+  'A wrong committee key is PERMANENT. After this change only these keys can change the contract. If two of ' +
+  'them are not held by the people named (a typo, a lost copy, a key made by someone else), nobody can ever ' +
+  'change or fix this contract again, and nothing can undo it. Check every key with its holder, out loud.';
+
+/**
+ * Exactly what a request changes: every key that can change the contract now, every key that
+ * can afterwards, and the counter before and after. Keys are written in full.
+ */
+export const changeSummary = (req) => {
+  const c = plainCurrent(req.current);
+  const before = BigInt(c.counter);
+  const first = Array.isArray(req.actions) ? req.actions[0] : undefined;
+  const lines = [
+    `Now:       ${c.committee.length} key(s), ${c.threshold} signature(s) needed, counter ${before}.`,
+    ...c.committee.map((k, i) => `           ${i + 1}. ${k}`),
+  ];
+  if (first?.kind === 'replace-authority')
+    lines.push(
+      `After:     ${first.committee.length} keys, ${first.threshold} signatures needed, counter ${before + 1n}.`,
+      ...first.committee.map((card, i) => `           ${i + 1}. ${card.publicKey} (${card.holder})`),
+      `WARNING:   ${PERMANENT_WARNING}`,
+    );
+  else if (first?.kind === 'retire')
+    lines.push(`After:     no keys at all (retired for good), counter ${before + 1n}.`);
+  else lines.push(`After:     the same key(s) and threshold, counter ${before + 1n}.`);
+  return lines;
+};
+
 /** What a request does, in plain words, for the person about to sign or send it. */
 export const describeRequest = (req, rebuilt, { pinnedMainnetAddress } = {}) => {
   const address = cleanHex(req.contractAddress);
@@ -372,6 +492,7 @@ export const describeRequest = (req, rebuilt, { pinnedMainnetAddress } = {}) => 
     `Valid for: the authority as it stands now, ${c.committee.length} key(s), ${c.threshold} signature(s) needed, counter ${c.counter}.`,
     '           Once any other change is made, this request can never be used.',
     ...rebuilt.lines.map((l, i) => `Change ${i + 1}:  ${l}`),
+    ...changeSummary(req),
     ...(req.reason ? [`Reason:    ${req.reason}`] : []),
     `Check code: ${sha256Hex(rebuilt.update.dataToSign).slice(0, 16)} (compare with the other signers)`,
   ];
@@ -404,7 +525,7 @@ export const signRequest = (req, signingKey, opts = {}) => {
     dataToSignSha256: sha256Hex(rebuilt.update.dataToSign),
     index,
     publicKey: k.publicKey,
-    signature: signData(k.value, rebuilt.update.dataToSign),
+    signature: signData(tagged(k.value), rebuilt.update.dataToSign).value,
   };
 };
 
@@ -433,6 +554,13 @@ export const assembleSigned = (req, signatureFiles, onChain, opts = {}) => {
   const byIndex = new Map();
   for (const [n, s] of signatureFiles.entries()) {
     const label = `Signature ${n + 1}`;
+    if (s?.format === LEDGER8_SIGNATURE_FORMAT) {
+      problems.push(
+        `${label} was made before Midnight's Ledger 9 upgrade (with Ledger 8). It is not valid on Ledger 9: ` +
+          'the holder must sign this request again with this version of the tool.',
+      );
+      continue;
+    }
     if (s?.format !== SIGNATURE_FORMAT) {
       problems.push(`${label} is not a VeilCore maintenance signature file.`);
       continue;
@@ -451,12 +579,14 @@ export const assembleSigned = (req, signatureFiles, onChain, opts = {}) => {
     }
     let valid = false;
     try {
-      valid = verifySignature(member, rebuilt.update.dataToSign, String(s.signature));
+      valid = verifySignature(tagged(member), rebuilt.update.dataToSign, tagged(String(s.signature)));
     } catch {
       valid = false;
     }
     if (!valid) {
-      problems.push(`${label} does not verify: it was damaged or edited.`);
+      problems.push(
+        `${label} does not verify: it was damaged or edited, or made with the Ledger 8 tool (not valid on Ledger 9).`,
+      );
       continue;
     }
     if (byIndex.has(index)) {
@@ -472,13 +602,128 @@ export const assembleSigned = (req, signatureFiles, onChain, opts = {}) => {
   if (byIndex.size < chain.threshold) return { ok: false, problems };
   let update = rebuilt.update;
   for (const index of [...byIndex.keys()].sort((a, b) => a - b))
-    update = update.addSignature(BigInt(index), byIndex.get(index));
+    update = update.addSignature(BigInt(index), tagged(byIndex.get(index)));
   return {
     ok: true,
     update,
     signers: [...byIndex.keys()].map((i) => fingerprint(chain.committee[i])),
     warnings: problems,
   };
+};
+
+/* **********************************************************************
+ * Confirmations: before a new committee is sent, each of its holders signs the change's
+ * check code with their stored key.
+ *
+ * A card's proof was made when the key was made. This is made at the last moment, from the
+ * copy the holder actually kept (the paper, the USB drive), over the hash of the exact bytes
+ * the change signs: the address, the three keys, the threshold and both counters. So a card
+ * with a mistyped key, a paper copy that no longer reads, or a holder who cannot sign is found
+ * while it is still harmless. The message starts "veilcore:", so it can never count as a
+ * maintenance signature (those start "midnight:contract-"). A confirmation holds no secret.
+ */
+
+/** The cards of the committee a request installs; empty when it installs none. */
+export const newCommittee = (req) => {
+  const a = Array.isArray(req?.actions) ? req.actions[0] : undefined;
+  return a?.kind === 'replace-authority' && Array.isArray(a.committee) ? a.committee : [];
+};
+
+export const confirmationMessage = ({ network, contractAddress, dataToSignSha256, holder, publicKey }) =>
+  new TextEncoder().encode(
+    `veilcore:committee-confirm:v1\n${network}\n${contractAddress}\n${dataToSignSha256}\n${holder}\n${publicKey}`,
+  );
+
+/**
+ * One new holder's confirmation of the change in `req`, signed with their stored key.
+ * Throws when the request is not acceptable, the card is not one of the new committee's, or
+ * the key is not the card's.
+ */
+export const makeConfirmation = (req, card, signingKey, opts = {}) => {
+  const rebuilt = rebuildRequest(req, opts);
+  if (!rebuilt.ok) throw new Error(rebuilt.problems.join(' '));
+  const c = checkKeyCard(card);
+  if (!c.ok) throw new Error(c.problem);
+  const place = newCommittee(req).findIndex((m) => m.publicKey === c.publicKey && m.holder === c.holder);
+  if (place < 0)
+    throw new Error(
+      `"${c.holder}" (${fingerprint(c.publicKey)}) is not one of the keys this change installs. Check you have ` +
+        'the right card and the right dry-run record.',
+    );
+  const k = parseSigningKey(signingKey);
+  if ('problem' in k) throw new Error(k.problem);
+  if (k.publicKey !== c.publicKey)
+    throw new Error(
+      `That key is NOT the one on ${c.holder}'s card (${fingerprint(c.publicKey)}). Check the copy for a typo. ` +
+        'Nothing was signed. Tell the person installing the committee: it must not be sent.',
+    );
+  const body = {
+    network: req.network,
+    contractAddress: cleanHex(req.contractAddress),
+    dataToSignSha256: sha256Hex(rebuilt.update.dataToSign),
+    holder: c.holder,
+    publicKey: c.publicKey,
+  };
+  return {
+    format: CONFIRMATION_FORMAT,
+    ...body,
+    counter: String(BigInt(req.current.counter)),
+    place,
+    signature: signData(tagged(k.value), confirmationMessage(body)).value,
+    createdAt: new Date().toISOString(),
+  };
+};
+
+/**
+ * Why the new committee in `req` is not confirmed by all of its holders; empty when every
+ * one of them has a valid confirmation among `files` for exactly this change (and when the
+ * request installs no committee). Only the signature is trusted: every other field of a
+ * confirmation file is rebuilt from the request.
+ */
+export const confirmationProblems = (req, files, opts = {}) => {
+  const rebuilt = rebuildRequest(req, opts);
+  if (!rebuilt.ok) return rebuilt.problems;
+  const cards = newCommittee(req);
+  if (cards.length === 0) return [];
+  const digest = sha256Hex(rebuilt.update.dataToSign);
+  const list = Array.isArray(files) ? files : [];
+  const problems = [];
+  for (const [n, f] of list.entries()) {
+    const label = `Confirmation ${n + 1}`;
+    if (f === null || typeof f !== 'object' || f.format !== CONFIRMATION_FORMAT)
+      problems.push(`${label} is not a VeilCore committee confirmation file (${CONFIRMATION_FORMAT}).`);
+    else if (f.dataToSignSha256 !== digest)
+      problems.push(
+        `${label} was made for a different change (check code ${String(f.dataToSignSha256).slice(0, 16)}; this ` +
+          `one is ${digest.slice(0, 16)}).`,
+      );
+    else if (!cards.some((c) => c.publicKey === f.publicKey))
+      problems.push(`${label} is from a key that is not one of the three this change installs.`);
+  }
+  for (const card of cards) {
+    const message = confirmationMessage({
+      network: req.network,
+      contractAddress: cleanHex(req.contractAddress),
+      dataToSignSha256: digest,
+      holder: card.holder,
+      publicKey: card.publicKey,
+    });
+    const confirmed = list.some((f) => {
+      if (f?.format !== CONFIRMATION_FORMAT || f.publicKey !== card.publicKey) return false;
+      try {
+        return verifySignature(tagged(card.publicKey), message, tagged(String(f.signature ?? '')));
+      } catch {
+        return false;
+      }
+    });
+    if (!confirmed)
+      problems.push(
+        `No valid confirmation from "${card.holder}" (${fingerprint(card.publicKey)}) for check code ` +
+          `${digest.slice(0, 16)}. Each of the three new holders must sign it with their stored key ` +
+          '(cli.mjs confirm) before this change is sent.',
+      );
+  }
+  return problems;
 };
 
 /** Is the change in `req` visible on chain? (The counter moved on, and a new authority is the one asked for.) */

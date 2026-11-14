@@ -1,20 +1,24 @@
 # Two of three keys for the main contract
 
-**Status: PREPARED, 14 October 2026. Not done. Nothing has been sent to any network.**
+**Status: PREPARED, 14 October 2026; ported to Midnight Ledger 9 on 14 November 2026. Not
+done. The committee has not been installed. Nothing has been sent to any network.**
 The tools are built and tested against Midnight's own ledger code on a computer. They have
-not run on preprod or mainnet. The preprod rehearsal below comes first. Who holds the three
-keys is the founders' decision.
+not run on a node, a test network or mainnet. The local rehearsal
+(`docs/committee-rehearsal.md`) comes first. Who holds the three keys is the founders' decision.
 
-**Since 6 November 2026 this cannot be sent on mainnet.** Mainnet moved to Midnight Ledger 9
-that day. VeilCore's contracts are Ledger 8 contracts (compactc 0.31.1). midnight-js 5 still
-calls them, but refuses to maintain a Ledger 8 contract on a Ledger 9 network: that needs the
-contract recompiled with a Ledger 9 compiler, which would change every circuit key, so VeilCore
-does not do it. The tools now say so and stop before a wallet is opened (`submit.mjs`,
-`assertMaintenanceAvailable`); `show`, `request` and signing still work. On preprod, until it
-forks, everything below works as before. The same holds for adding or removing circuit keys
-and for retiring the authority (`api/src/maintenance.ts`). Whether Midnight will offer a way
-to maintain Ledger 8 contracts after the fork is not known; `docs/upgrades.md` has the plan
-for a new contract version instead.
+**The single key is still live.** Mainnet moved to Midnight Ledger 9 on 6 November 2026. The
+network still accepts the key: Ledger 9 applies a maintenance update to a contract built before
+the upgrade, checking only the counter and the signatures. Replacing the authority needs **no
+recompile**; it uses the contract's address, the counter and the key. What changed is the
+tooling. midnight-js 5 refuses to maintain a pre-upgrade contract on a Ledger 9 network (a rule
+of the library, not of the chain), so VeilCore's other maintenance tools (adding or removing
+circuit keys, retiring; `api/src/maintenance.ts`) still stop there. And the bytes a holder
+signs differ between Ledger 8 and Ledger 9, so a signature made with the old (Ledger 8) tool
+is not valid now. The committee tools therefore build, sign, combine and check with Ledger 9
+types (`@midnightntwrk/ledger-v9` 1.0.1), and old request and signature files are refused.
+Sending to mainnet is off by default (Part 2, steps 6 to 8).
+
+The main contract's counter was **16 on 13 November 2026**.
 
 ---
 
@@ -87,32 +91,54 @@ The offline tool runs from the main folder: `node scripts/committee/cli.mjs <com
 
 ## Step by step
 
-### Part 1: rehearse on preprod (must be done first)
+### Part 1: rehearse (must be done first)
+
+**Since 9 November 2026 this rehearsal runs on a local network, not on preprod:** follow
+`docs/committee-rehearsal.md`. Preprod moved to Ledger 9 that day, a contract built with
+compactc 0.31.1 can no longer be deployed there, and VeilCore's preprod contracts are retired.
+The preprod steps below are kept as the record of the plan; the commands are the same with
+`undeployed` in place of `preprod`.
 
 Same steps as mainnet, on a practice contract with practice keys. Nothing here is real.
+
+**Practice keys are made with `--practice` and a name that starts `practice-`.** That marks
+the card three ways (a `practice: true` field, the name, and a proof made over a different
+message), so the mark can't be taken off without breaking the card. Every mainnet command
+refuses a practice card: a rehearsal ends by deleting its keys, and a committee of deleted keys
+on mainnet could never be undone. The other way round, a test network only warns about a card
+that is not a practice card, because a real card may be checked there. Never name a practice
+key `hunter`, `mako` or `backup`: the tool refuses `--practice` without the `practice-` name,
+and the name without `--practice`.
 
 1. **Hunter:** deploy a practice contract with a paper key: `npm run preprod-remote`, option
    1, keep the authority, let it make a key, write it down. Note the contract address.
 2. **Three practice keys.** They're throwaway. Make Hunter's on paper to practise the real
    thing. The other two can go to files in `/tmp` to save time. From the main folder:
    ```
-   node scripts/committee/cli.mjs keygen --holder hunter --paper --card /tmp/practice-hunter.json
-   node scripts/committee/cli.mjs keygen --holder mako --out /tmp/practice-mako.key --card /tmp/practice-mako.json
-   node scripts/committee/cli.mjs keygen --holder backup --out /tmp/practice-backup.key --card /tmp/practice-backup.json
+   node scripts/committee/cli.mjs keygen --practice --holder practice-hunter --paper --card /tmp/practice-hunter.json
+   node scripts/committee/cli.mjs keygen --practice --holder practice-mako --out /tmp/practice-mako.key --card /tmp/practice-mako.json
+   node scripts/committee/cli.mjs keygen --practice --holder practice-backup --out /tmp/practice-backup.key --card /tmp/practice-backup.json
    ```
+   Each says `PRACTICE KEY: for a rehearsal only`.
 3. **Install, dry run, then for real.** Export `VEILCORE_BLOCKFROST_PREPROD_PROJECT_ID` first,
    as the runbook says. From `bboard-cli`:
    ```
-   npm run committee -- preprod install --address <practice address> --card /tmp/practice-hunter.json --card /tmp/practice-mako.json --card /tmp/practice-backup.json --dry-run
-   npm run committee -- preprod install --address <practice address> --card /tmp/practice-hunter.json --card /tmp/practice-mako.json --card /tmp/practice-backup.json
+   npm run committee -- preprod install --address <practice address> --card /tmp/practice-hunter.json --card /tmp/practice-mako.json --card /tmp/practice-backup.json --dry-run --out /tmp/practice-dry.json
+   node ../scripts/committee/cli.mjs confirm --record /tmp/practice-dry.json --card /tmp/practice-hunter.json --out /tmp/confirm-hunter.json
+   node ../scripts/committee/cli.mjs confirm --record /tmp/practice-dry.json --card /tmp/practice-mako.json --key-file /tmp/practice-mako.key --out /tmp/confirm-mako.json
+   node ../scripts/committee/cli.mjs confirm --record /tmp/practice-dry.json --card /tmp/practice-backup.json --key-file /tmp/practice-backup.key --out /tmp/confirm-backup.json
+   npm run committee -- preprod install --address <practice address> --card /tmp/practice-hunter.json --card /tmp/practice-mako.json --card /tmp/practice-backup.json --confirm /tmp/confirm-hunter.json --confirm /tmp/confirm-mako.json --confirm /tmp/confirm-backup.json
    ```
-   Type the practice paper key when asked. For the real run, use the preprod test wallet,
-   never the mainnet phrase. Type `INSTALL` when asked.
+   Type the practice paper key when asked. The three `confirm` lines are the holders signing
+   the dry run's check code (Part 2, step 7): type `CONFIRM`, and for the first one the practice
+   key from paper. For the real run, use the preprod test wallet, never the mainnet phrase.
+   Type `INSTALL` when asked. No line may warn `is NOT a practice card`: if one does, a card
+   was made without `--practice`. Stop and make it again.
 4. **Check:** `npm run committee -- preprod show --address <practice address>` shows 3
    keys, 2 needed, counter up by one.
 5. **A change needing two signatures:** swap the backup key for a new one.
    ```
-   node scripts/committee/cli.mjs keygen --holder backup --out /tmp/practice-backup2.key --card /tmp/practice-backup2.json
+   node scripts/committee/cli.mjs keygen --practice --holder practice-backup --out /tmp/practice-backup2.key --card /tmp/practice-backup2.json
    npm run committee -- preprod request --address <practice address> --replace --card /tmp/practice-hunter.json --card /tmp/practice-mako.json --card /tmp/practice-backup2.json --reason "rehearsal" --out /tmp/practice-request.json
    node scripts/committee/cli.mjs sign --request /tmp/practice-request.json --out /tmp/sig-hunter.json
    node scripts/committee/cli.mjs sign --request /tmp/practice-request.json --key-file /tmp/practice-mako.key --out /tmp/sig-mako.json
@@ -131,8 +157,9 @@ Same steps as mainnet, on a practice contract with practice keys. Nothing here i
 
 1. **Hunter: read today's counter** (no wallet, sends nothing):
    `npm run committee -- mainnet show`
-   It should say 1 key, 1 signature needed, and a counter (expected 16). That number goes
-   into `docs/maintenance-policy.md` and the deployment record, where it is marked not yet recorded.
+   It should say 1 key, 1 signature needed, and counter 16 (its value on 13 November 2026,
+   recorded in `docs/maintenance-policy.md` and `deployments/mainnet.json`). Any other number
+   means something changed the contract: stop and find out what.
 2. **Founders:** choose the three holders (above), approve this change in writing, and
    announce it **at least 14 days before** sending, as the maintenance policy requires.
 3. **Each holder makes their key on their own computer** (Wi-Fi off is fine):
@@ -156,20 +183,78 @@ Same steps as mainnet, on a practice contract with practice keys. Nothing here i
    ```
    npm run committee -- mainnet install --card ../committee-key-hunter.json --card ../committee-key-mako.json --card ../committee-key-backup.json --dry-run
    ```
-   It shows exactly what will change, asks for the current paper key (hidden), and must end
-   with `DRY RUN, nothing sent`.
-7. **Hunter: install** (after the 14 days): the same command without `--dry-run`. It asks
-   for the paper key, then the private-state password, the 24-word wallet phrase (hidden,
-   only here), the DUST address check, a sync, and finally `Type INSTALL`. It confirms from
-   the chain and writes a receipt file (public).
-8. **Hunter: check again** with `npm run committee -- mainnet show`: 3 keys, 2 needed,
+   It shows exactly what will change (the key that can change the contract now, the three keys
+   afterwards, each in full, and the counter before and after), warns that **a wrong committee
+   key is permanent**, asks for the current paper key (hidden), and must end with
+   `DRY RUN, nothing sent`. It writes a dry-run record, `dry-run-mainnet-counter-16-....json`
+   (public, no secret), and prints a **check code**: the first 16 characters of the hash of
+   exactly what will be signed (the contract address, the three keys in order, the threshold,
+   and the counter before and after). Read the three keys back against the cards with their
+   holders. A practice card is refused here, before the paper key is asked for.
+
+   **The record is a speed bump, not proof.** It is a plain file; anyone could write one by
+   hand. It exists so that sending takes a second, deliberate command. The run that sends
+   trusts nothing in it: it reads the chain again, builds the change again from the cards, and
+   compares every field (network, address, both counters, the check code, the request inside,
+   the list of what changes). It also refuses a record **more than 24 hours old**, so do steps
+   6, 7 and 8 inside one day. If the day runs out, run step 6 again: the confirmations from
+   step 7 stay valid as long as the keys and the counter are the same.
+7. **Each of the three new holders confirms, offline, with their stored key.** Hunter sends
+   the dry-run record to Mako and the backup holder (it holds no secret). Each holder, on
+   their own computer, from the main folder:
+   ```
+   node scripts/committee/cli.mjs confirm --record dry-run-mainnet-counter-16-....json --card committee-key-<name>.json
+   ```
+   It rebuilds the change from the record and shows it: the three keys in full, the counters,
+   the check code. **Compare the check code with the other holders on a call, out loud.** Then
+   type `CONFIRM` and the key from paper (hidden). It signs the check code and writes
+   `confirmation-<name>-<check code>.json` (no secret). Send that file to Hunter.
+
+   Why: this is the last moment a mistake is harmless. A card whose key was mistyped, a paper
+   copy that can no longer be read, or a holder who can't sign fails here, with nothing sent.
+   The same mistake found after the install is permanent. If a holder's `confirm` says
+   `That key is NOT the one on ...'s card`, **stop: do not install.** That holder makes a new
+   key (step 3) and everyone starts again from step 4. The signature is a VeilCore-only
+   message; it can't be used to change the contract.
+8. **Hunter: install** (after the 14 days, and only after the local rehearsal passed). Sending
+   to mainnet is off by default: the command needs `--send-on-mainnet`, the dry-run record and
+   the three confirmations in place of `--dry-run`, or it stops before anything is read or typed:
+   ```
+   npm run committee -- mainnet install --card ../committee-key-hunter.json --card ../committee-key-mako.json --card ../committee-key-backup.json --send-on-mainnet --dry-run-record dry-run-mainnet-counter-16-....json --confirm confirmation-hunter-....json --confirm confirmation-mako-....json --confirm confirmation-backup-....json
+   ```
+   The record must be for exactly this change, less than 24 hours old, and for the counter the
+   chain still shows. The tool verifies all three confirmations against the check code it works
+   out itself; with one missing, made for another change, or not signed by that card's key, it
+   stops before the paper key is asked for. Then it asks for the paper key, the private-state
+   password, the 24-word wallet phrase (hidden, only here), the DUST address check, a sync,
+   and finally `Type INSTALL ON MAINNET`. It confirms from the chain and writes a receipt
+   file (public).
+9. **Hunter: check again** with `npm run committee -- mainnet show`: 3 keys, 2 needed,
    counter one higher. **Then destroy both sheets of the old paper key** (shred them, Mako's
    too). They control nothing now.
-9. **Publish:** a new deployment record revision with the receipt (transaction, block, new
-   counter, the three public keys and who holds them), and update the maintenance policy,
-   the runbook and the website wording about who holds the authority. Anyone who pinned the
-   old counter in our verifier (`authorityCounter`) will see refusals until they take the
-   new number.
+10. **Publish:** a new deployment record revision with the receipt (transaction, block, new
+    counter, the three public keys and who holds them), and update the maintenance policy,
+    the runbook and the website wording about who holds the authority. Anyone who pinned the
+    old counter in our verifier (`authorityCounter`) will see refusals until they take the
+    new number.
+11. **Bring the repository in line, the same day.** Until this is done the deployment check
+    fails, on purpose. In this order:
+    1. In `deployments/mainnet.json`, in the `veilcore` contract's `maintenanceAuthority`, set
+       `committee: 3, threshold: 2, counter: 17`, and rewrite its `note` to say the committee
+       was installed, when, and in which transaction.
+    2. Update the site's key sentence, `m.status.keyText`, in all five languages:
+       `bboard-ui/src/i18n/en.ts`, `de.ts`, `es.ts`, `fr.ts`, `ja.ts`, and the same key in
+       `en-mainnet.ts` and `mainnet-overlay.ts` beside them. It must stop saying one key on paper and a
+       counter of 16, and say three keys, two needed, counter 17 and the date.
+    3. Update its test, `bboard-ui/src/i18n/copy-truth.test.ts` (*the maintenance key*): the
+       five sets of sentences it pins, and the line that expects
+       `{ retired: false, committee: 1, threshold: 1, counter: 16 }`, which becomes
+       `committee: 3, threshold: 2, counter: 17`. Run `npm test -w bboard-ui`.
+    4. Check the file against the chain (reads only, sends nothing):
+       ```
+       npm run verify:deployment -- --network mainnet
+       ```
+       It must pass. Then commit, open the pull request, and deploy the site the usual way.
 
 ## Storing each key
 
@@ -189,6 +274,8 @@ Same steps as mainnet, on a practice contract with practice keys. Nothing here i
 
 1. **Whoever prepares it** makes a request from the chain as it is now (sends nothing):
    - change a holder: `npm run committee -- mainnet request --replace --card A --card B --card C --reason "..."`
+     (the new committee's three holders then confirm the dry run's check code, exactly as in
+     Part 2 step 7, and the send needs `--confirm` three times)
    - switch off a circuit: `npm run committee -- mainnet request --remove <circuit> --reason "..."`
    - add a circuit key: `npm run committee -- mainnet request --insert <circuit>=<file.verifier> --reason "..."`
    - retire for good: `npm run committee -- mainnet request --retire --reason "..."`
@@ -201,7 +288,10 @@ Same steps as mainnet, on a practice contract with practice keys. Nothing here i
    `signature-....json` file (no secret). Send it back.
 3. **Whoever sends it** (Hunter, with the DUST wallet):
    `npm run committee -- mainnet submit --request request-....json --sig sig1.json --sig sig2.json --dry-run`
-   then the same without `--dry-run`, and `SEND`.
+   then, on mainnet within 24 hours, the same with
+   `--send-on-mainnet --dry-run-record <the file the dry run wrote>` in place of `--dry-run`
+   (and, for `--replace`, `--confirm <file>` three times), and `SEND ON MAINNET`. (On a local
+   network: the same without `--dry-run`, and `SEND`.)
 
 A request only works against the counter it was made for. Once any change lands, older
 requests and signatures can never be used. Until then, two valid signatures are an
@@ -234,13 +324,39 @@ Nobody, including VeilCore, can change it. Nothing here applies to it.
 
 ## What was tested, and where
 
-**Tested on a computer, against Midnight's real ledger code** (`@midnight-ntwrk/ledger-v8`
-8.1.0, the WebAssembly build of the ledger the node runs), with a contract held in a local
-ledger state. Signatures, thresholds and counters are the ledger's own checks. Proofs and
-fees are switched off because a maintenance change has no proof and there's no wallet.
-`node --test scripts/committee/committee.test.mjs` (15 checks) and
-`cd bboard-cli && npx vitest run src/launcher/committee.test.ts` (3 checks):
+**Tested on a computer, against Midnight's real ledger code** (`@midnightntwrk/ledger-v9`
+1.0.1, the WebAssembly build of ledger 9.1.0.1, which the node runs), with a contract held in
+a local ledger state and throwaway keys. Signatures, thresholds and counters are the ledger's
+own checks. Proofs and fees are switched off because a maintenance change has no proof and
+there's no wallet.
+`node --test scripts/committee/committee.test.mjs` (34 checks) and
+`cd bboard-cli && npx vitest run src/launcher/committee.test.ts` (10 checks):
 
+- **on Ledger 9, from the contract as it stands on mainnet** (VeilCore's 24 circuit names
+  with the 24 verifier keys of the published build, one key, counter 16): the install the tool
+  builds is accepted and the counter becomes 17, with all 24 circuit keys unchanged; the old
+  key is refused afterwards; one signature is refused; the same holder signing twice is
+  refused; every pair of two holders is accepted; a wrong counter is refused; a signature
+  made with ledger-v8 is refused; the same transaction is read and accepted by ledger-v9
+  1.0.0, the version midnight-js 5.0.0 and the wallet use. These need the compiled keys
+  (`npm run compact` in `contract/`) and are skipped without them;
+- sending is refused on a network still on Ledger 8, and on mainnet unless
+  `--send-on-mainnet` and a dry-run record of exactly that change are given; a record more
+  than 24 hours old, dated in the future, with no date, in the old format, or with any field
+  that does not match what the run works out again, is refused;
+- a practice card is refused by every mainnet command (show, install dry run, install,
+  request, sign, confirm, submit), including one among real cards and a request relabelled by
+  hand; its mark can't be removed without breaking its proof; a test network warns about a
+  card that is not a practice card;
+- a new committee is sent only with a valid confirmation from each of its three holders for
+  exactly that change: none, two of three, one made for another change, and one signed by
+  another key are each refused before the paper key is asked for;
+- the single key in place is refused as a member of the new committee by install, by
+  `request --replace` and by `submit`;
+- before anything is handed to the proof server or the wallet, the transaction must read back
+  byte for byte in ledger-v9 1.0.0 (the wallet's copy);
+- every refusal by the ledger is matched against the ledger's own words, so a refusal for
+  another reason does not count;
 - the install from one paper key to 3 keys and 2 signatures, and the old key then refused,
   alone or with a member;
 - one signature refused; any two accepted in any order; three accepted;
@@ -262,27 +378,31 @@ Seven safety checks in `core.mjs` (duplicate key, threshold, current key as a me
 signature, stale counter, edited request, signer not on the committee) were each removed
 one at a time to confirm a test catches it.
 
-**Not tested, needs the preprod rehearsal:** a real node and indexer accepting a 3-key,
-2-signature authority and a 2-signature change (VeilCore has never done this on a live
-network); the indexer reading the new authority back; the wallet paying for it; the proof
-server step. The one-signature version of this exact path (replacing an authority with our
-own update) already ran on mainnet when the claims contract was retired. No local chain
-could run here (Docker images couldn't be downloaded), so testing stopped at the dry run.
+**Not tested, needs the local rehearsal (`docs/committee-rehearsal.md`):** a real Ledger 9
+node and indexer accepting a 3-key, 2-signature authority and a 2-signature change (VeilCore
+has never done this on a live network); the indexer reading the new authority back; the
+wallet paying for it; the proof server step; midnight-js 5 carrying our own Ledger 9
+maintenance transaction. The one-signature version of this path ran on mainnet when the
+claims contract was retired, but that was on Ledger 8. No local chain could run where this
+was built (no Docker), so testing stopped at the ledger's own code.
 
 ## For the record: what Midnight supports, and where we read it
 
 - **The authority is a committee, a threshold and a counter.**
   `ContractMaintenanceAuthority(committee, threshold, counter)`,
-  `node_modules/@midnight-ntwrk/ledger-v8/ledger-v8.d.ts` (class at line 726): "If a
+  `node_modules/ledger-v9-committee/ledger-v9.d.ts` (ledger-v9 1.0.1; class at line 769): "If a
   threshold of the public keys in this committee sign off, they can change the rules of
   this contract". "At deployment, `counter` must be `0n`, and any subsequent update should
   set counter to exactly one greater than the current value."
 - **A change** is `MaintenanceUpdate(address, updates, counter)` with
-  `addSignature(idx, signature)` and `dataToSign` (same file, line 2202). The updates are
-  `ReplaceAuthority`, `VerifierKeyRemove`, `VerifierKeyInsert` (`SingleUpdate`, line 2135).
+  `addSignature(idx, signature)` and `dataToSign` (same file, line 2312). The updates are
+  `ReplaceAuthority`, `VerifierKeyRemove`, `VerifierKeyInsert` (`SingleUpdate`, line 2222).
   Each signature is the signer's place in the committee plus `signData(key, dataToSign)`.
-  `dataToSign` covers only the address, the changes and the counter (it starts
-  `midnight:contract-update:`), so holders can sign separately and one person sends.
+  `dataToSign` covers only the address, the changes and the counter, so holders can sign
+  separately and one person sends. On Ledger 8 it started `midnight:contract-update:`; on
+  Ledger 9 it starts `midnight:contract-maintenance-update`, which is why a Ledger 8
+  signature is not valid on Ledger 9. In ledger-v9 a key or a signature is
+  `{ tag: 'schnorr', value: <hex> }`; the key itself is the same on both.
 - **midnight-js 4.1.1 supports only one key.** `replaceAuthority(newAuthority: SigningKey)`
   (`node_modules/@midnight-ntwrk/midnight-js-contracts/dist/governance/tx-interfaces.d.ts`,
   line 60), with a TODO for "Add additional authorities"
@@ -299,24 +419,27 @@ could run here (Docker images couldn't be downloaded), so testing stopped at the
   (one person would get two votes), a threshold of 0 (anyone could change the contract
   with no signature), a threshold of 2^32 (it silently becomes 0). The tool accepts only
   three different keys and a threshold of exactly 2, and refuses the current paper key as a
-  member.
-- **Mainnet today:** mainnet runs ledger 8 with midnight-js 4.1.1 (`docs/upgrades.md`,
-  *Known* 9). The ledger accepts our own authority replacement there: the claims contract's
-  empty committee (8 October) was one. A threshold above 1 hasn't been used by VeilCore on
-  any live network. After Midnight's next upgrade (ledger 9) the authority carries over
-  unchanged (`docs/upgrades.md`, *Known* 1), so installing the committee before that upgrade
-  is the safer order.
+  member (on install, `request --replace` and `submit` alike).
+- **Mainnet today:** mainnet has run Ledger 9 since 6 November 2026. The authority carried
+  over unchanged (`docs/upgrades.md`, *Known* 1): one key, threshold 1, counter 16 on
+  13 November 2026. The committee was meant to be installed before that upgrade and was not.
+  Ledger 9 applies a maintenance update to a pre-upgrade contract with no check of the
+  compiler or the era (`docs/upgrades.md`, *Known* 2; midnight-ledger `ledger-9.1.0.1`,
+  `ledger/src/semantics.rs` and `ledger/src/verify.rs`), and Midnight's Ledger 9 release
+  notes say replace-authority and key inserts "are accepted". Run here against that ledger
+  code; not yet on a node. A threshold above 1 hasn't been used by VeilCore on any live
+  network.
 - **How the key is held today:** made by the CLI on deploy (`sampleSigningKey`), shown once
   in groups of eight, typed back from paper, never written to disk (`bboard-cli/src/index.ts`,
   `makePaperKey`; `api/src/memory-overlays.ts`). Two sheets, one per founder
   (`docs/ops/runbook.md`, step 18). The deploy added 16 circuit keys after the deploy
   transaction, each raising the counter (deployment record revision 4, *Mainnet deployment*),
-  so the counter is expected to be 16. Read it in step 1 rather than assume it.
+  so the counter is 16 (13 November 2026). Read it again in step 1 rather than assume it.
 
 ## The files
 
 - `scripts/committee/core.mjs`: the rules (cards, committee checks, requests, signatures).
-- `scripts/committee/cli.mjs`: the offline tool (keygen, check, read, sign).
+- `scripts/committee/cli.mjs`: the offline tool (keygen, check, read, sign, confirm).
 - `scripts/committee/submit.mjs`: sending and confirming from the chain.
 - `scripts/committee/committee.test.mjs`: the tests against the real ledger.
 - `bboard-cli/src/launcher/committee.ts`: the online tool (show, install, request, submit).

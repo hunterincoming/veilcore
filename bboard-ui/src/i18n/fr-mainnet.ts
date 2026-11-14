@@ -46,7 +46,7 @@ export const frMainnet = buildMainnet({
     'm.post2.title': 'Une exécution complète sur le réseau de test de Midnight',
     'm.post2.text':
       'Le contrat a été déployé sur le réseau de test de Midnight et a passé les 26 vérifications de bout en bout, en utilisant 16 de ses 24 opérations avec de vraies preuves.',
-    'm.contact.1p': 'Créez un enregistrement, puis dites-nous ce qui manque pour votre travail.',
+    'm.contact.1p': "Créez un enregistrement aujourd'hui. Écrivez-nous pour l'adapter à votre façon de travailler.",
     'm.nav.demo': 'Créer un enregistrement',
     'm.foot.demo': 'Créer un enregistrement',
     'm.hero.demoLabel': 'Code de preuve en direct',
@@ -100,7 +100,7 @@ export const frMainnet = buildMainnet({
       "Le contrat principal est sur le réseau principal de Midnight. Les enregistrements scellés sur ce site vont dans des lots que nous y ancrons à la main pour l'instant. Le contrat de revendications suivra.",
   },
   keyHolders:
-    "Une clé de maintenance peut modifier le fonctionnement du contrat principal de VeilCore sur Midnight. Son détenteur peut ajouter ou remplacer des opérations du contrat, ce qui pourrait lui permettre de prendre le contrôle de l'identité de n'importe quel enregistrement, d'ajouter des licences au nom de n'importe quel émetteur, d'ajouter ou de retirer des obligations et des liens de parenté, ou de désactiver des opérations. Elle ne peut pas antidater les heures de bloc du réseau, et chaque modification est visible sur la chaîne. Elle ne peut ni modifier ni retirer un lot déjà ancré, ni la date qu’il donne à un enregistrement : elle se trouve dans la transaction qui l’a ancré, que personne ne peut modifier. Aujourd'hui, la clé est sur papier, une copie chez chaque fondateur, et une seule copie suffit pour l'utiliser. Le passage à un groupe de clés qui doivent s'accorder est prévu, mais pas encore fait.",
+    "Une clé de maintenance peut modifier le fonctionnement du contrat principal de VeilCore sur Midnight. Son détenteur peut ajouter ou remplacer des opérations du contrat, ce qui pourrait lui permettre de prendre le contrôle de l'identité de n'importe quel enregistrement, d'ajouter des licences au nom de n'importe quel émetteur, d'ajouter ou de retirer des obligations et des liens de parenté, ou de désactiver des opérations. Elle ne peut pas antidater les heures de bloc du réseau, et chaque modification est visible sur la chaîne. Elle ne peut ni modifier ni retirer un lot déjà ancré, ni la date qu’il donne à un enregistrement : elle se trouve dans la transaction qui l’a ancré, que personne ne peut modifier. Aujourd'hui, la clé est sur papier, une copie chez chaque fondateur, et une seule copie suffit pour l'utiliser. Le passage à trois clés, dont deux doivent s'accorder, était prévu avant la mise à niveau Ledger 9 de Midnight du 6 novembre 2026 et n'a pas été fait. Le réseau accepte toujours la clé : considérez-la donc comme active. Le compteur de modifications du contrat était à 16 le 13 novembre 2026. Tout le monde peut le vérifier, et toute modification l'augmente.",
   policyApproved: ' Chaque utilisation est annoncée publiquement, selon une politique de maintenance écrite.',
   policyProposed: ' Une politique pour son utilisation est proposée, pas encore décidée.',
   claimsNoKey:

@@ -46,7 +46,7 @@ export const esMainnet = buildMainnet({
     'm.post2.title': 'Una ejecución completa en la red de pruebas de Midnight',
     'm.post2.text':
       'El contrato se desplegó en la red de pruebas de Midnight y pasó las 26 comprobaciones de extremo a extremo, usando 16 de sus 24 operaciones con pruebas reales.',
-    'm.contact.1p': 'Cree un registro y luego díganos qué le falta para su trabajo.',
+    'm.contact.1p': 'Cree un registro hoy. Escríbanos para adaptarlo a su forma de trabajar.',
     'm.nav.demo': 'Crear un registro',
     'm.foot.demo': 'Crear un registro',
     'm.hero.demoLabel': 'Código de prueba en vivo',
@@ -100,7 +100,7 @@ export const esMainnet = buildMainnet({
       'El contrato principal está en la red principal de Midnight. Los registros sellados en este sitio van a lotes que, por ahora, anclamos allí a mano. El contrato de afirmaciones vendrá después.',
   },
   keyHolders:
-    'Una clave de mantenimiento puede cambiar cómo funciona el contrato principal de VeilCore en Midnight. Quien la tenga puede añadir o reemplazar operaciones del contrato, lo que podría permitirle tomar el control de la identidad de cualquier registro, añadir licencias en nombre de cualquier emisor, añadir o quitar obligaciones y vínculos de parentesco, o desactivar operaciones. No puede antedatar los tiempos de bloque de la red, y cada cambio queda a la vista en la cadena. No puede cambiar ni quitar un lote ya anclado, ni la fecha que da a un registro: eso está en la transacción que lo ancló, que nadie puede alterar. Hoy la clave está en papel, una copia en manos de cada fundador, y cualquiera de las dos copias basta por sí sola para usarla. Pasarla a un grupo de claves que deban estar de acuerdo está previsto, pero aún no está hecho.',
+    'Una clave de mantenimiento puede cambiar cómo funciona el contrato principal de VeilCore en Midnight. Quien la tenga puede añadir o reemplazar operaciones del contrato, lo que podría permitirle tomar el control de la identidad de cualquier registro, añadir licencias en nombre de cualquier emisor, añadir o quitar obligaciones y vínculos de parentesco, o desactivar operaciones. No puede antedatar los tiempos de bloque de la red, y cada cambio queda a la vista en la cadena. No puede cambiar ni quitar un lote ya anclado, ni la fecha que da a un registro: eso está en la transacción que lo ancló, que nadie puede alterar. Hoy la clave está en papel, una copia en manos de cada fundador, y cualquiera de las dos copias basta por sí sola para usarla. Pasarla a tres claves, de las que dos deban estar de acuerdo, estaba previsto antes de la actualización de Midnight a Ledger 9 del 6 de noviembre de 2026 y no se ha hecho. La red sigue aceptando la clave, así que debe considerarse activa. El contador de cambios del contrato estaba en 16 el 13 de noviembre de 2026. Cualquiera puede comprobarlo, y cualquier cambio lo aumenta.',
   policyApproved: ' Cada uso se anuncia públicamente, según una política de mantenimiento escrita.',
   policyProposed: ' Hay una política propuesta para usarla, todavía no decidida.',
   claimsNoKey:

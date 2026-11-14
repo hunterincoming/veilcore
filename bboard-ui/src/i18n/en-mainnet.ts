@@ -58,7 +58,7 @@ const common: Overlay = {
   'm.post2.title': "A full run on Midnight's preprod test network",
   'm.post2.text':
     "The contract deployed to Midnight's preprod test network and passed all 26 end-to-end checks, using 16 of its 24 operations with real proofs.",
-  'm.contact.1p': 'Make a record, then tell us what is missing for your work.',
+  'm.contact.1p': 'Make a record today. Write to us to fit it into the way you work.',
 
   // Records made here are real on mainnet: no "demo" labels.
   'm.nav.demo': 'Make a record',
@@ -128,7 +128,7 @@ const claimsPending: Overlay = {
 export const DATED_POSTS: readonly StringKey[] = ['m.post0.text', 'm.post2.title', 'm.post2.text'];
 
 const KEY_HOLDERS =
-  "One maintenance key can change how VeilCore's main contract on Midnight works. Whoever holds it can add or replace the contract's operations, which could take over any record's identity, add licenses for any issuer, add or remove obligations and parent links, or switch operations off. It cannot backdate the network's block times, and every change shows on chain. It can't change or remove a batch that's already anchored, or the date it gives a record: that is in the transaction that anchored it, which nobody can alter. Today the key is on paper, one copy with each founder, and either copy alone can use it. Moving it to a group of keys that must agree is planned, not done.";
+  "One maintenance key can change how VeilCore's main contract on Midnight works. Whoever holds it can add or replace the contract's operations, which could take over any record's identity, add licenses for any issuer, add or remove obligations and parent links, or switch operations off. It cannot backdate the network's block times, and every change shows on chain. It can't change or remove a batch that's already anchored, or the date it gives a record: that is in the transaction that anchored it, which nobody can alter. Today the key is on paper, one copy with each founder, and either copy alone can use it. Moving it to three keys, where two must agree, was planned before Midnight's Ledger 9 upgrade on 6 November 2026 and has not been done. The network still accepts the key, so treat it as live. The contract's change counter was 16 on 13 November 2026. Anyone can check it, and any change raises it.";
 const CLAIMS_NO_KEY = ' The claims contract has no maintenance key: nobody, including us, can change it.';
 
 /** Who can change the contracts. "Decided" only when the policy's status line says APPROVED. */

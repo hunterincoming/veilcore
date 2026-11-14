@@ -86,7 +86,7 @@ test('the published build, as mainnet serves it (Ledger 9 format): PASS for all 
   assert.equal((out.match(/^ {2}PASS {2}/gm) ?? []).length, 24 + 5 + 2, out);
   assert.match(out, /PASS {2}proveLicense +b338dda3501ae2de…/);
   assert.match(out, /state read in Ledger 9 format; the contract was compiled for Ledger 8 \(compactc 0\.31\.1\)/);
-  assert.match(out, /maintenance authority: 1 key\(s\), threshold 1, counter 16 \(published: 1 key\(s\), threshold 1; the counter is not recorded/);
+  assert.match(out, /maintenance authority: 1 key\(s\), threshold 1, counter 16 \(published: 1 key\(s\), threshold 1, counter 16\)/);
   assert.match(out, /maintenance authority: retired \(empty committee\), counter 1/);
   assert.match(out, /RESULT: PASS\. On mainnet, every circuit's verifier key matches the published build \(29 of 29\)/);
   assert.doesNotMatch(out, /FAIL/);

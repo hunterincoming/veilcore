@@ -117,7 +117,7 @@ export const home = {
     'Ein Laborcode, ein Link zu einem Datensatz, eine Anfrage, nachzuweisen, dass Sie einen Datensatz halten, oder eine Vereinbarung zum Unterschreiben. Wir erkennen, was es ist.',
   'app.home.paste.whichRecord':
     'Das ist eine Anfrage, nachzuweisen, dass Sie einen Datensatz halten. Nach welchem wurde gefragt?',
-  'app.home.notFinished': 'Nicht fertig · als Nächstes: Sicherungskopie speichern',
+  'app.home.notFinished': 'Noch nicht in Ihrer Sicherungskopie · als Nächstes: Sicherungskopie speichern',
   'app.home.receivedFrom': 'Erhalten von {name}',
   'app.home.receivedFromNamed': 'Von {name} · deren Datensatz {id}',
   'app.home.receivedFromName': 'Von {name}',
@@ -131,7 +131,8 @@ export const home = {
   'app.home.labReportDated': 'DNA-Bericht datiert',
   'app.home.datesReportFor': 'Datiert einen DNA-Bericht für {name}',
   'app.home.aPlant': 'eine Pflanze',
-  'app.home.datingUnfinished': '{dated} · nicht fertig · als Nächstes: Sicherungskopie speichern',
+  'app.home.datingUnfinished':
+    '{dated} · noch nicht in Ihrer Sicherungskopie · als Nächstes: Sicherungskopie speichern',
   'app.home.datingSealed': '{dated} · versiegelt am {date}',
   'app.home.export.label': 'Ihre Datensätze und Vereinbarungen von VeilCore herunterladen',
   'app.home.export.done':
