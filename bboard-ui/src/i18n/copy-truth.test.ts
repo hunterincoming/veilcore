@@ -533,6 +533,11 @@ describe("what's live where", () => {
     expect(Object.keys(en)).not.toContain('m.live.colTestNote');
     expect(home).not.toMatch(/colTestNote|going live/);
   });
+  it('the "Not yet" column shows only while some row has a cell in it', () => {
+    expect(home).toMatch(/const showNot = rows\.some\(\(r\) => r\[3\]\);/);
+    expect(home).toMatch(/\{showNot && <th scope="col">\{t\('m\.live\.colNot'\)\}<\/th>\}/);
+    expect(home).toMatch(/\.filter\(\(\[col\]\) => col !== 'not' \|\| showNot\)/);
+  });
   it('on the test site itself, the column is "This test site", with no link to itself (round 6)', () => {
     expect(en['m.live.colTestHere']).toBe('This test site (test.veilcore.org)');
     // The test site shows colTestHere; every other build the link.

@@ -68,7 +68,7 @@ export const labresult = {
     'VeilCore n’a ni prélevé ni testé cet échantillon et ne se porte pas garant du résultat. Il montre que la clé de ce laboratoire a signé ce résultat, et la date du lot montre qu’il existait à cette date. Que l’échantillon vienne de l’enregistrement nommé est la parole de l’expéditeur, sauf si un suivi de la chaîne de traçabilité en montre davantage.',
   'app.lr.tools.title': 'Signer des résultats de laboratoire',
   'app.lr.tools.intro':
-    'Pour les laboratoires : signez chaque résultat avec l’enregistrement que l’expéditeur a indiqué pour l’échantillon, la méthode, l’ID de l’échantillon et votre numéro d’enregistrement. Chaque résultat est gardé comme un enregistrement que vous détenez et daté dans le prochain lot horaire. Remettez chaque résultat, dans son propre fichier, à qui a envoyé cet échantillon.',
+    'Pour les laboratoires : signez chaque résultat avec l’enregistrement que l’expéditeur a indiqué pour l’échantillon, la méthode, l’ID de l’échantillon et votre numéro d’enregistrement. Chaque résultat est gardé comme un enregistrement que vous détenez et daté dans le prochain lot. Remettez chaque résultat, dans son propre fichier, à qui a envoyé cet échantillon.',
   'app.lr.tools.testOnly':
     'Les résultats de laboratoire sont sur le réseau de test uniquement. Ils ne sont pas encore sur veilcore.org.',
   'app.lr.tools.setUp': 'Configurez d’abord la clé de signature de votre laboratoire.',
@@ -79,7 +79,7 @@ export const labresult = {
   'app.lr.tools.signedOne': 'Signé et gardé',
   'app.lr.tools.signedMany': 'Signés et gardés : {n}',
   'app.lr.tools.signedText':
-    'Chacun est un enregistrement que vous détenez, daté dans le prochain lot horaire. Remettez chaque fichier à qui a envoyé l’échantillon : il peut le vérifier et l’ajouter à ses propres enregistrements.',
+    'Chacun est un enregistrement que vous détenez, daté dans le prochain lot. Remettez chaque fichier à qui a envoyé l’échantillon : il peut le vérifier et l’ajouter à ses propres enregistrements.',
   'app.lr.tools.download': 'Télécharger le fichier du résultat',
   'app.lr.tools.downloadAll': 'Télécharger chaque résultat dans son propre fichier (zip)',
   'app.lr.tools.summary': 'Télécharger un récapitulatif pour votre LIMS (CSV)',

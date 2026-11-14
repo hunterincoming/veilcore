@@ -68,7 +68,7 @@ export const labresult = {
     'VeilCore hat diese Probe weder genommen noch geprüft und bürgt nicht für das Ergebnis. Es zeigt, dass der Schlüssel dieses Labors das Ergebnis signiert hat, und das Datum des Stapels zeigt, dass es bis dahin existierte. Dass die Probe aus dem genannten Datensatz stammt, ist die Angabe des Absenders, außer ein Nachweis der Probenkette zeigt mehr.',
   'app.lr.tools.title': 'Laborergebnisse signieren',
   'app.lr.tools.intro':
-    'Für Labore: Signieren Sie jedes Ergebnis zusammen mit dem Datensatz, den der Absender für die Probe genannt hat, der Methode, der Proben-ID und Ihrer Eingangsnummer. Jedes Ergebnis wird als Datensatz aufbewahrt, der bei Ihnen liegt, und im nächsten stündlichen Stapel datiert. Geben Sie jedes Ergebnis als eigene Datei an den Absender dieser Probe.',
+    'Für Labore: Signieren Sie jedes Ergebnis zusammen mit dem Datensatz, den der Absender für die Probe genannt hat, der Methode, der Proben-ID und Ihrer Eingangsnummer. Jedes Ergebnis wird als Datensatz aufbewahrt, der bei Ihnen liegt, und im nächsten Stapel datiert. Geben Sie jedes Ergebnis als eigene Datei an den Absender dieser Probe.',
   'app.lr.tools.testOnly': 'Laborergebnisse gibt es nur im Testnetz. Auf veilcore.org sind sie noch nicht.',
   'app.lr.tools.setUp': 'Richten Sie zuerst den Signaturschlüssel Ihres Labors ein.',
   'app.lr.tools.single': 'Ein Ergebnis',
@@ -78,7 +78,7 @@ export const labresult = {
   'app.lr.tools.signedOne': 'Signiert und aufbewahrt',
   'app.lr.tools.signedMany': 'Signiert und aufbewahrt: {n}',
   'app.lr.tools.signedText':
-    'Jedes ist ein Datensatz, der bei Ihnen liegt, datiert im nächsten stündlichen Stapel. Geben Sie jede Datei an den Absender der Probe: Er kann sie prüfen und seinen eigenen Datensätzen hinzufügen.',
+    'Jedes ist ein Datensatz, der bei Ihnen liegt, datiert im nächsten Stapel. Geben Sie jede Datei an den Absender der Probe: Er kann sie prüfen und seinen eigenen Datensätzen hinzufügen.',
   'app.lr.tools.download': 'Ergebnisdatei herunterladen',
   'app.lr.tools.downloadAll': 'Jedes Ergebnis als eigene Datei herunterladen (ZIP)',
   'app.lr.tools.summary': 'Übersicht für Ihr LIMS herunterladen (CSV)',

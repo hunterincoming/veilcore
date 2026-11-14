@@ -46,7 +46,7 @@ export const esMainnet = buildMainnet({
     'm.post2.title': 'Una ejecución completa en la red de pruebas de Midnight',
     'm.post2.text':
       'El contrato se desplegó en la red de pruebas de Midnight y pasó las 26 comprobaciones de extremo a extremo, usando 16 de sus 24 operaciones con pruebas reales.',
-    'm.contact.1p': 'Cree un registro y luego díganos qué le falta para su trabajo.',
+    'm.contact.1p': 'Cree un registro hoy. Escríbanos para adaptarlo a su forma de trabajar.',
     'm.nav.demo': 'Crear un registro',
     'm.foot.demo': 'Crear un registro',
     'm.hero.demoLabel': 'Código de prueba en vivo',

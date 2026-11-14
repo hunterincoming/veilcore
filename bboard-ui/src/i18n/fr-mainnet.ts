@@ -46,7 +46,7 @@ export const frMainnet = buildMainnet({
     'm.post2.title': 'Une exécution complète sur le réseau de test de Midnight',
     'm.post2.text':
       'Le contrat a été déployé sur le réseau de test de Midnight et a passé les 26 vérifications de bout en bout, en utilisant 16 de ses 24 opérations avec de vraies preuves.',
-    'm.contact.1p': 'Créez un enregistrement, puis dites-nous ce qui manque pour votre travail.',
+    'm.contact.1p': "Créez un enregistrement aujourd'hui. Écrivez-nous pour l'adapter à votre façon de travailler.",
     'm.nav.demo': 'Créer un enregistrement',
     'm.foot.demo': 'Créer un enregistrement',
     'm.hero.demoLabel': 'Code de preuve en direct',
