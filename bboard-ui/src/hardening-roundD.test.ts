@@ -668,6 +668,9 @@ describe('Docs are bundled from an exact SDK commit, not fetched from a branch',
     expect(docs.DOCS_COMMIT).toMatch(/^[0-9a-f]{40}$/);
     expect(docs.REPO_VIEW.endsWith(`/blob/${docs.DOCS_COMMIT}`)).toBe(true);
     for (const d of Object.values(docs.DOCS)) {
+      // Each document's "Source" opens the exact commit its text was copied from.
+      expect(docs.commitOf(d)).toMatch(/^[0-9a-f]{40}$/);
+      expect(docs.sourceOf(d)).toBe(`${docs.REPO_VIEW.replace(docs.DOCS_COMMIT, docs.commitOf(d))}/${d.file}`);
       expect(d.md).toBe(fs.readFileSync(path.join(HERE, 'docs', d.file), 'utf8'));
       // The published contact is the company address, never a personal one.
       expect(d.md).not.toMatch(/gmail\.com/i);
