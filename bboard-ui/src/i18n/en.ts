@@ -230,7 +230,7 @@ export const en = {
     "A lab's signatures about a record stay private unless the record's holder shows them. Each one shown says which key signed it, the name it was registered under, any accreditation its holder declared (we don't check that), and whether VeilCore's operator has matched that name to a public license or accreditation listing, and on what day. VeilCore doesn't vouch for any lab: whoever checks a record decides what a signature is worth.",
   'm.open.4t': 'Anyone can run a registry.',
   'm.open.4p':
-    "The format lets a lab, certifier or rights body run its own, under its own web domain, and anchor without asking us. Our own registry code isn't published.",
+    "The format lets a lab, certifier or rights body run its own, under its own web domain, and anchor without asking us. Our own registry's code is public, under the Apache-2.0 license, at github.com/hunterincoming/veilcore-api.",
   'm.open.6t': 'Checking without us.',
   'm.open.6p':
     'With that bundle, anyone can check a record offline: open its verify.html, then look up the one transaction it names on a Midnight explorer. Records sealed since 14 October also need spec section 3.6.1, in the spec on this site and in SDK 0.16.0 and later.',

@@ -446,7 +446,7 @@ export const es: Strings = {
     'Las firmas de un laboratorio sobre un registro son privadas salvo que el titular del registro las muestre. Cada una que se muestra dice qué clave la firmó, el nombre con que se registró esa clave, cualquier acreditación que declaró su titular (no la comprobamos) y si el operador de VeilCore ha cotejado ese nombre con un listado público de licencias o acreditaciones, y en qué fecha. VeilCore no responde por ningún laboratorio: quien comprueba un registro decide cuánto vale una firma.',
   'm.open.4t': 'Cualquiera puede gestionar un servidor de registros.',
   'm.open.4p':
-    'El formato permite que un laboratorio, una certificadora o un organismo de derechos lleve su propio registro, en su propio dominio web, y ancle sin pedirnos permiso. El código de nuestro propio registro no está publicado.',
+    'El formato permite que un laboratorio, una certificadora o un organismo de derechos lleve su propio registro, en su propio dominio web, y ancle sin pedirnos permiso. El código de nuestro propio registro es público, con licencia Apache-2.0, en github.com/hunterincoming/veilcore-api.',
   'm.faq.label': 'Preguntas',
   'm.faq.title1': 'Preguntas',
   'm.faq.title2': 'que nos hacen.',
