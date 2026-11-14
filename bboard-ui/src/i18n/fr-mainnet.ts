@@ -36,7 +36,7 @@ export const frMainnet = buildMainnet({
       "Il est conçu pour servir de preuve, et notre note pour les juristes dit ce qu'un enregistrement prouve et ce qu'il ne prouve pas. Les enregistrements scellés ici vont dans des lots que nous ancrons à la main sur le réseau principal de Midnight. Une fois le lot d'un enregistrement ancré, la date montre que l'enregistrement existait à ce moment-là ; ce que cela vaut dans un litige, c'est au tribunal d'en juger.",
     'm.stat2.b': 'Réseau principal',
     'm.foot.about':
-      "Un format d'enregistrement ouvert pour la génétique végétale et animale. Les enregistrements sont datés par ancrage sur le réseau principal de Midnight.",
+      "Un format d'enregistrement ouvert pour la génétique végétale, animale et microbienne. Les enregistrements sont datés par ancrage sur le réseau principal de Midnight.",
     'm.get.2b':
       "Ils sont attachés à l'enregistrement. Un licencié peut prouver qu'il détient une licence en vigueur sans montrer laquelle. Une redevance ou autre obligation sur un parent apparaît sur chaque descendant confirmé par les deux détenteurs ; VeilCore l'enregistre et ne la perçoit pas. Intégré au contrat sur le réseau principal de Midnight ; simulé sur ce site.",
     'm.demo.lede':

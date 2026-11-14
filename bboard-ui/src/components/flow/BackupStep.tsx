@@ -364,7 +364,7 @@ export const BackupStep: React.FC<{
       <Part n={3} level={partLevel} title={t('app.backup.checkTitle')} active={!!saved && checked === undefined}>
         {/* Always there, so the result is announced when it arrives. */}
         <Box role="status" ref={worksRef} tabIndex={checked !== undefined ? -1 : undefined} sx={{ outline: 'none' }}>
-          {checked !== undefined && <Done text={t('app.backup.itWorks')} sub={backupHoldsLine(checked, records, tr)} />}
+          {checked !== undefined && <Done text={t('app.backup.itWorks')} sub={backupHoldsLine(checked, tr)} />}
         </Box>
         {checked === undefined && (
           <>

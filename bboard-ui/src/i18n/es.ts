@@ -237,7 +237,7 @@ export const es: Strings = {
   'm.privacy.contact': 'Preguntas: hunter@veilcore.org',
   // Round 2 truth pass (14 Oct 2026): keys added or newly translated.
   'm.hero.lede':
-    'Para obtentores, empresas de semillas y laboratorios que trabajan con genética vegetal y animal: dé a sus registros una fecha que nadie puede antedatar. Sus datos genéticos se quedan cerrados: los archivos de ADN nunca salen de su computadora, y lo que escribe llega cerrado a nuestro servidor. Solo un código de prueba va a Midnight, que lo fecha.',
+    'Para obtentores, empresas de semillas y laboratorios que trabajan con genética vegetal, animal y microbiana: dé a sus registros una fecha que nadie puede antedatar. Sus datos genéticos se quedan cerrados: los archivos de ADN nunca salen de su computadora, y lo que escribe llega cerrado a nuestro servidor. Solo un código de prueba va a Midnight, que lo fecha.',
   'm.for.3p':
     'Envíe material con un código de laboratorio. El laboratorio firma un acuse de recibo con su propia clave, así el registro muestra a una segunda parte. El acuse es una firma real, guardada por el registro de VeilCore, no en la cadena. Condiciones como no propagar son solo de práctica en la demo web.',
   'm.get.1b': 'para un registro de lo que usted tiene, sin mostrar su genética.',
@@ -279,7 +279,7 @@ export const es: Strings = {
   'm.postB.text':
     'Los primeros lotes del servidor de registros se anclaron a mano en la red principal de Midnight. Uno de ellos, con cinco de nuestros propios registros de prueba, también tiene su raíz sellada en Bitcoin, en el bloque 971004. Comprobado el 15 de octubre con dos exploradores de bloques: el sello lleva a los bloques 971004 y 971005 de Bitcoin. Aún falta comprobarlo con la herramienta oficial de OpenTimestamps y un nodo completo de Bitcoin.',
   'm.founders.lede':
-    'VeilCore es un formato de registro probatorio para genética vegetal y animal. Prueba que usted tenía un registro de su material en una fecha determinada, sin entregar sus datos genéticos.',
+    'VeilCore es un formato de registro probatorio para genética vegetal, animal y microbiana. Prueba que usted tenía un registro de su material en una fecha determinada, sin entregar sus datos genéticos.',
   'm.live.label': 'Qué funciona dónde',
   'm.live.title1': 'Qué funciona,',
   'm.live.title2': 'y dónde.',
@@ -338,7 +338,7 @@ export const es: Strings = {
   // Round 3 (14 Oct 2026): the rest of the landing page, so no English shows through.
   'nav.newCultivar': 'Nuevo registro',
   'nav.licenses': 'Acuerdos',
-  'footer.about': 'Un formato de registro abierto para genética vegetal y animal.',
+  'footer.about': 'Un formato de registro abierto para genética vegetal, animal y microbiana.',
   'footer.howCheck': 'Cómo funciona la comprobación →',
   'm.hero.status':
     'Lanzamiento en la red principal de Midnight. Hoy los registros se fechan en una red de pruebas de Midnight, lo que todavía no prueba nada.',
@@ -350,7 +350,7 @@ export const es: Strings = {
   'm.stat2.s':
     'Ambos contratos probados de principio a fin en una red de pruebas de Midnight. Aún no están en la red principal.',
   'm.foot.about':
-    'Un formato de registro abierto para genética vegetal y animal. Diseñado para anclarse en Midnight; en pruebas en una red de pruebas de Midnight.',
+    'Un formato de registro abierto para genética vegetal, animal y microbiana. Diseñado para anclarse en Midnight; en pruebas en una red de pruebas de Midnight.',
   'm.for.2p':
     'Los obtentores quieren usar sus marcadores para mostrar que una variedad es distinta, y los guardan como secretos comerciales. Una afirmación de VeilCore prueba un hecho sobre ellos sin mostrar el resto. Ninguna oficina de examen ni certificadora la acepta todavía.',
   'm.hero.note':
@@ -571,7 +571,7 @@ export const esTestchain: Strings = {
   'm.stat2.s':
     'Este sitio funciona en una red de pruebas de Midnight, para practicar. Ambos contratos están en la red principal de Midnight desde el 8 de octubre de 2026.',
   'm.foot.about':
-    'Un formato de registro abierto para genética vegetal y animal. Este es el sitio de prueba, en una red de pruebas de Midnight; veilcore.org funciona en la red principal de Midnight.',
+    'Un formato de registro abierto para genética vegetal, animal y microbiana. Este es el sitio de prueba, en una red de pruebas de Midnight; veilcore.org funciona en la red principal de Midnight.',
   'm.for.1p':
     'Selle un registro y vincule su informe de ADN. Si la planta aparece con otro nombre, un laboratorio puede comparar una prueba nueva con su informe. En este sitio de prueba puede fechar el vínculo desde su navegador, y nadie puede copiarlo a su propio registro. VeilCore no hace pruebas de ADN.',
   'm.demo.lede':

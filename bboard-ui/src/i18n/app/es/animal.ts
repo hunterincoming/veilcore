@@ -65,7 +65,6 @@ export const animal = {
   'app.animal.f.statedBirth': 'Fecha de nacimiento (declaración del titular)',
   'app.animal.tree.sire': 'Padre',
   'app.animal.tree.dam': 'Madre',
-  'app.animal.home.yourRecords': 'Sus registros',
   'app.animal.verify.sireLine': 'Padre, según el titular: {v}',
   'app.animal.verify.damLine': 'Madre, según el titular: {v}',
   'app.animal.verify.idLine': 'Identificación individual, según el titular: {id} ({scheme})',

@@ -100,27 +100,17 @@ export const keysOnlyHereSubject = (ids: readonly string[], records: readonly Re
 };
 
 /**
- * Home's backup warning in the visitor's language, as a whole sentence: keysOnlyHereSubject's
- * subject and the rest. `alert`: "… keys only on this device."; `reset`: "… keys with no
- * checked backup. Save your backup first: …" (the Start over question).
+ * Home's backup warning in the visitor's language, as a whole sentence. `alert`: "… keys only
+ * on this device."; `reset`: "… keys with no checked backup. Save your backup first: …" (the
+ * Start over question). It counts records: the ids can be animals, strains and documents as
+ * well as plants.
  */
-export const keysOnlyHereLine = (
-  ids: readonly string[],
-  records: readonly Rec[],
-  kind: 'alert' | 'reset',
-  tr: Translator = enT,
-): string => {
-  const { datings } = countKinds(ids, records);
-  const noun = datings > 0 ? 'Records' : 'Plants';
-  return tr.tp(kind === 'alert' ? `app.home.keysOnlyHere${noun}` : `app.home.resetWarning${noun}`, ids.length);
-};
+export const keysOnlyHereLine = (ids: readonly string[], kind: 'alert' | 'reset', tr: Translator = enT): string =>
+  tr.tp(kind === 'alert' ? 'app.home.keysOnlyHereRecords' : 'app.home.resetWarningRecords', ids.length);
 
 /** The backup check's "It works." line. */
-export const backupHoldsLine = (ids: readonly string[], records: readonly Rec[], tr: Translator = enT): string => {
-  if (ids.length === 0) return tr.t('app.backup.holds.none');
-  const { datings } = countKinds(ids, records);
-  return tr.tp(datings > 0 ? 'app.backup.holds.records' : 'app.backup.holds.plants', ids.length);
-};
+export const backupHoldsLine = (ids: readonly string[], tr: Translator = enT): string =>
+  ids.length === 0 ? tr.t('app.backup.holds.none') : tr.tp('app.backup.holds.records', ids.length);
 
 /** "Keys for 3 plants restored." or "Keys for 4 records restored (3 plants, 1 dated lab report)." */
 export const restoredKeysLine = (ids: readonly string[], records: readonly Rec[], tr: Translator = enT): string => {

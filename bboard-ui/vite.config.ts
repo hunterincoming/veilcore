@@ -79,9 +79,9 @@ const mainnetBuild = (mode: string, command: string) => {
 
 // The page description search engines and link previews show, by mode.
 const DESCRIPTION = {
-  test: 'An open record format for plant and animal genetics. Seal a record on your own computer; only its proof code is dated on Midnight. Test site: practice records on a Midnight test network. No security audit yet.',
+  test: 'An open record format for plant, animal and microbial genetics. Seal a record on your own computer; only its proof code is dated on Midnight. Test site: practice records on a Midnight test network. No security audit yet.',
   mainnet:
-    "An open record format for plant and animal genetics. Seal a record on your own computer; only its proof code is dated, on Midnight's main network. Free to check, no account.",
+    "An open record format for plant, animal and microbial genetics. Seal a record on your own computer; only its proof code is dated, on Midnight's main network. Free to check, no account.",
 };
 
 const siteDescription = (mode: string): Plugin => ({
@@ -97,7 +97,7 @@ const siteDescription = (mode: string): Plugin => ({
 // HTML and no script (the Content-Security-Policy allows none inline); index.html styles it
 // in the site's paper and ink for the moment before the app draws.
 const SUMMARY_HEAD = `<main class="static-summary">
-<h1>VeilCore: dated, private records for plant and animal genetics</h1>
+<h1>VeilCore: dated, private records for plant, animal and microbial genetics</h1>
 <p>A breeder or lab logs a record of a cultivar or an animal line in the browser. Everything typed is locked there before it is sent, and VeilCore doesn't have the key. DNA files never leave the device. Only a 32-byte proof code is dated on Midnight. Later a buyer, examiner or court can check what the record said and when it existed: free, with no account. A record shows a description was held by a date. It isn't ownership, and VeilCore doesn't test DNA.</p>`;
 
 const SUMMARY_TAIL = `<h2>Team</h2>
@@ -120,7 +120,7 @@ const summaryOf = (live: boolean) => ({
 <h2>Where it stands</h2>
 <ul>
 <li>On Midnight's main network since 8 October 2026. Open to first users since 20 October 2026; every record so far is the team's own test data.</li>
-<li>Works on veilcore.org: sealing records; batches dated on Midnight automatically, every hour; proving a record by link; dating a DNA report pairing; lab receipts and reports signed with the lab's own key. No wallet needed: VeilCore pays the network fee.</li>
+<li>Works on veilcore.org: sealing records; batches dated on Midnight automatically; proving a record by link; dating a DNA report pairing; lab receipts and reports signed with the lab's own key. No wallet needed: VeilCore pays the network fee.</li>
 ${live ? LICENSES_LIVE : LICENSES_PRACTICE}
 <li>No formal audit yet. Twelve rounds of adversarial review are public.</li>
 </ul>

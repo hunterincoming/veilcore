@@ -36,7 +36,7 @@ export const esMainnet = buildMainnet({
       'Está hecho para servir como prueba, y nuestra nota para abogados dice qué prueba un registro y qué no. Los registros sellados aquí van a lotes que anclamos a mano en la red principal de Midnight. Cuando el lote de un registro está anclado, la fecha muestra que el registro existía en ese momento; lo que eso valga en una disputa lo decide el tribunal.',
     'm.stat2.b': 'Red principal',
     'm.foot.about':
-      'Un formato abierto de registros para la genética vegetal y animal. Los registros se fechan anclándolos en la red principal de Midnight.',
+      'Un formato abierto de registros para la genética vegetal, animal y microbiana. Los registros se fechan anclándolos en la red principal de Midnight.',
     'm.get.2b':
       'Se adjuntan al registro. Un licenciatario puede probar que tiene una licencia vigente sin mostrar cuál. Una regalía u otra obligación sobre un progenitor aparece en cada descendiente que ambos titulares confirmaron; VeilCore la anota y no la cobra. Incorporado al contrato en la red principal de Midnight; simulado en este sitio web.',
     'm.demo.lede':

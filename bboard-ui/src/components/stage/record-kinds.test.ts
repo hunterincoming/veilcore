@@ -21,6 +21,7 @@ import { labReportFacts } from './lab-report-date';
 import { canAddNextStage } from './stage-notes';
 import {
   backupHoldsLine,
+  keysOnlyHereLine,
   countKinds,
   datingCardLine,
   datingHomeStatus,
@@ -119,11 +120,16 @@ describe('counts say "records" when they include records that date a lab report'
   });
 
   it('the backup check', () => {
-    expect(backupHoldsLine([], all)).toBe('Your records are in it.');
-    expect(backupHoldsLine([plant.id], all)).toBe('Your plant is in it.');
-    expect(backupHoldsLine([plant.id, other.id], all)).toBe('All 2 of your plants are in it.');
-    expect(backupHoldsLine([plant.id, dating.id], all)).toBe('All 2 of your records are in it.');
-    expect(source('flow/BackupStep.tsx')).toContain('backupHoldsLine(checked, records, tr)');
+    // Records, whatever they are about: the ids can be animals, strains and documents too.
+    expect(backupHoldsLine([])).toBe('Your records are in it.');
+    expect(backupHoldsLine([plant.id])).toBe('Your record is in it.');
+    expect(backupHoldsLine([plant.id, other.id])).toBe('All 2 of your records are in it.');
+    expect(backupHoldsLine([plant.id, dating.id])).toBe('All 2 of your records are in it.');
+    expect(source('flow/BackupStep.tsx')).toContain('backupHoldsLine(checked, tr)');
+    expect(keysOnlyHereLine([plant.id], 'alert')).toBe('A record has keys only on this device.');
+    expect(keysOnlyHereLine([plant.id, other.id], 'alert')).toBe('2 records have keys only on this device.');
+    expect(keysOnlyHereLine([plant.id], 'reset')).toMatch(/^A record has keys with no checked backup\./);
+    expect(keysOnlyHereLine([plant.id, other.id], 'reset')).toMatch(/^2 records have keys with no checked backup\./);
   });
 
   it('restoring from a backup', () => {

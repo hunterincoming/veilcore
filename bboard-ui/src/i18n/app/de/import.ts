@@ -172,6 +172,6 @@ export const importing = {
     'Ihr öffentlicher Datumsstempel kommt, wenn ihr Stapel auf {dated} datiert wird. Die Seite jeder Pflanze zeigt, wann das geschehen ist. Sie müssen nichts tun.',
   'app.import.done.dateStamp':
     'Ein Datumsstempel zeigt, dass die Angaben zu diesem Datum existierten. Er bestätigt nicht, dass sie stimmen.',
-  'app.import.done.toPlants': 'Zu Ihren Pflanzen',
+  'app.import.done.toRecords': 'Zu Ihren Datensätzen',
   'app.import.done.another': 'Eine weitere Datei importieren',
 } satisfies Partial<AppTranslation>;

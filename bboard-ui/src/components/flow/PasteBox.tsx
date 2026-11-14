@@ -135,7 +135,7 @@ export const PasteBox: React.FC<{
       {choose && (
         <Box sx={{ mt: 1.5 }}>
           <Typography variant="body1" sx={{ fontWeight: 700, mb: 1 }}>
-            {t('app.home.paste.whichPlant')}
+            {t('app.home.paste.whichRecord')}
           </Typography>
           <Stack spacing={1}>
             {provable.map((r) => (

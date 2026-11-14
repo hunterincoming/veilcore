@@ -4,7 +4,7 @@
 import type { AppTranslation } from '../../translate';
 
 export const home = {
-  'app.home.firstPlant': 'Registremos su primera planta o su primer animal',
+  'app.home.firstRecord': 'Creemos su primer registro',
   'app.home.oldLinks':
     'Los enlaces de comprobación y códigos QR hechos antes del 17 de octubre de 2026 ya no muestran el nombre de sus registros: VeilCore ahora guarda los nombres cerrados, así que el servidor de registros no tiene ninguno que mostrar. Para compartir un nombre, abra el registro, elija Mostrar a alguien, active el nombre y envíe el enlace nuevo. Un certificado nuevo tiene un código QR nuevo.',
   'app.home.continueDraftNamed': 'Continúe su borrador: {name}',
@@ -24,20 +24,14 @@ export const home = {
     'Muestra que su clave firmó: que llegó una muestra, o qué informe envió. No muestra quién tiene la clave: cualquiera puede registrar una clave con cualquier nombre.',
   'app.home.breederToo': 'También soy obtentor',
   'app.home.imALab': 'Soy un laboratorio',
-  'app.home.whatStops': '¿Qué impide que alguien registre mi planta o mi animal primero?',
+  'app.home.whatStops': '¿Qué impide que alguien registre mi material primero?',
   'app.home.samplesReceived': 'Muestras recibidas',
-  'app.home.yourPlants': 'Sus plantas',
-  'app.home.logNew': 'Registrar nueva',
+  'app.home.yourRecords': 'Sus registros',
+  'app.home.logNew': 'Registrar nuevo',
   'app.home.saveIt': 'Guardarla',
   'app.home.finishBackupLine': '<b>Para terminar: guarde su copia de seguridad.</b> {line}',
-  'app.home.keysOnlyHerePlants.one': 'Una planta tiene claves solo en este dispositivo.',
-  'app.home.keysOnlyHerePlants.other': '{count} plantas tienen claves solo en este dispositivo.',
   'app.home.keysOnlyHereRecords.one': 'Un registro tiene claves solo en este dispositivo.',
   'app.home.keysOnlyHereRecords.other': '{count} registros tienen claves solo en este dispositivo.',
-  'app.home.resetWarningPlants.one':
-    'Una planta tiene claves sin una copia de seguridad comprobada. Guarde primero su copia de seguridad: si borra el navegador más tarde, se perderían para siempre.',
-  'app.home.resetWarningPlants.other':
-    '{count} plantas tienen claves sin una copia de seguridad comprobada. Guarde primero su copia de seguridad: si borra el navegador más tarde, se perderían para siempre.',
   'app.home.resetWarningRecords.one':
     'Un registro tiene claves sin una copia de seguridad comprobada. Guarde primero su copia de seguridad: si borra el navegador más tarde, se perderían para siempre.',
   'app.home.resetWarningRecords.other':
@@ -66,7 +60,7 @@ export const home = {
   'app.home.saveABackup': 'Guardar una copia de seguridad',
   'app.home.exportAll': 'Exportar todos los registros',
   'app.home.importRecords': 'Importar registros',
-  'app.home.trust.title': '“¿Qué me impide registrar <em>su</em> cultivar?”',
+  'app.home.trust.title': '“¿Qué me impide registrar <em>su</em> material?”',
   'app.home.trust.lede': 'Tres cosas hacen que un registro de VeilCore sea difícil de falsificar:',
   'app.home.trust.1t': 'Un registro anterior se ve como anterior',
   'app.home.trust.1b':
@@ -99,7 +93,7 @@ export const home = {
     'El servidor de registros no guardó algunos de sus {what}, así que se devolvieron a lo que tiene guardado: {list}',
   'app.home.sort.recent': 'Más recientes primero',
   'app.home.sort.oldest': 'Más antiguos primero',
-  'app.home.sort.name': 'Nombre del cultivar',
+  'app.home.sort.name': 'Nombre',
   'app.home.sort.breeder': 'Obtentor',
   'app.home.search.lab': 'Nombre, obtentor, código TR, nota o su n.º de registro interno',
   'app.home.search.breeder': 'Nombre, obtentor o su propia referencia',
@@ -110,7 +104,7 @@ export const home = {
   'app.home.paste.ownCode': 'Ese es su propio código. Envíelo al laboratorio; no lo reciba aquí.',
   'app.home.paste.cutOff': 'Ese código parece incompleto. Copie el código de laboratorio completo que le enviaron.',
   'app.home.paste.noneStamped':
-    'Es una solicitud para demostrar que tiene una planta, pero ninguna de las plantas de este dispositivo tiene todavía sello de fecha. ¿Está en un dispositivo nuevo? Recupere primero sus plantas desde su copia de seguridad.',
+    'Es una solicitud para demostrar que tiene un registro, pero ninguno de los registros de este dispositivo tiene todavía sello de fecha. ¿Está en un dispositivo nuevo? Recupere primero sus registros desde su copia de seguridad.',
   'app.home.paste.unknown':
     'No parece un código ni un enlace de VeilCore. Copie todo lo que le enviaron e inténtelo de nuevo.',
   'app.home.paste.label': '¿Alguien le envió un código o un enlace?',
@@ -119,7 +113,7 @@ export const home = {
   'app.home.paste.orMake': '¿Nada que pegar? Cree un registro',
   'app.home.paste.hint':
     'Un código de laboratorio, un enlace a un registro, una solicitud para demostrar que tiene un registro o un acuerdo para firmar. Nosotros averiguamos cuál es.',
-  'app.home.paste.whichPlant': 'Es una solicitud para demostrar que tiene una planta. ¿Por cuál le preguntaron?',
+  'app.home.paste.whichRecord': 'Es una solicitud para demostrar que tiene un registro. ¿Por cuál le preguntaron?',
   'app.home.notFinished': 'Sin terminar · siguiente: guarde su copia de seguridad',
   'app.home.receivedFrom': 'Recibida de {name}',
   'app.home.receivedFromNamed': 'De {name} · su registro {id}',

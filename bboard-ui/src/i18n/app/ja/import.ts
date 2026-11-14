@@ -145,6 +145,6 @@ export const importing = {
     '公開の日付スタンプは、バッチに{dated}で日付が付いたときに押されます。いつ押されたかは各植物のページに表示されます。あなたがすることはありません。',
   'app.import.done.dateStamp':
     '日付スタンプは、その日付までに内容が存在したことを示します。内容が正しいことは確認しません。',
-  'app.import.done.toPlants': 'あなたの植物へ',
+  'app.import.done.toRecords': 'あなたの記録へ',
   'app.import.done.another': '別のファイルを取り込む',
 } satisfies Partial<AppTranslation>;

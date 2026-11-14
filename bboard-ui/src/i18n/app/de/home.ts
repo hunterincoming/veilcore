@@ -4,7 +4,7 @@
 import type { AppTranslation } from '../../translate';
 
 export const home = {
-  'app.home.firstPlant': 'Erfassen wir Ihre erste Pflanze oder Ihr erstes Tier',
+  'app.home.firstRecord': 'Legen wir Ihren ersten Datensatz an',
   'app.home.oldLinks':
     'Prüflinks und QR-Codes, die vor dem 17. Oktober 2026 erstellt wurden, zeigen die Namen Ihrer Datensätze nicht mehr: VeilCore hält Namen jetzt verschlossen, daher hat das Register keinen zu zeigen. Um einen Namen zu teilen, öffnen Sie den Datensatz, wählen Sie „Jemandem zeigen“, schalten Sie den Namen ein und senden Sie den neuen Link. Ein neues Zertifikat hat einen neuen QR-Code.',
   'app.home.continueDraftNamed': 'Entwurf fortsetzen: {name}',
@@ -25,20 +25,14 @@ export const home = {
     'Sie zeigt, dass Ihr Schlüssel signiert hat: dass eine Probe ankam oder welchen Bericht Sie geschickt haben. Sie zeigt nicht, wer den Schlüssel hält: Jeder kann einen Schlüssel unter jedem Namen registrieren.',
   'app.home.breederToo': 'Ich bin auch Züchter',
   'app.home.imALab': 'Ich bin ein Labor',
-  'app.home.whatStops': 'Was hindert jemanden daran, meine Pflanze oder mein Tier zuerst zu erfassen?',
+  'app.home.whatStops': 'Was hindert jemanden daran, mein Material zuerst zu erfassen?',
   'app.home.samplesReceived': 'Erhaltene Proben',
-  'app.home.yourPlants': 'Ihre Pflanzen',
+  'app.home.yourRecords': 'Ihre Datensätze',
   'app.home.logNew': 'Neu erfassen',
   'app.home.saveIt': 'Speichern',
   'app.home.finishBackupLine': '<b>Zum Abschluss: Sicherungskopie speichern.</b> {line}',
-  'app.home.keysOnlyHerePlants.one': 'Eine Pflanze hat Schlüssel nur auf diesem Gerät.',
-  'app.home.keysOnlyHerePlants.other': '{count} Pflanzen haben Schlüssel nur auf diesem Gerät.',
   'app.home.keysOnlyHereRecords.one': 'Ein Datensatz hat Schlüssel nur auf diesem Gerät.',
   'app.home.keysOnlyHereRecords.other': '{count} Datensätze haben Schlüssel nur auf diesem Gerät.',
-  'app.home.resetWarningPlants.one':
-    'Eine Pflanze hat Schlüssel ohne geprüfte Sicherungskopie. Speichern Sie zuerst Ihre Sicherungskopie: Wenn Sie den Browser später leeren, wären sie endgültig verloren.',
-  'app.home.resetWarningPlants.other':
-    '{count} Pflanzen haben Schlüssel ohne geprüfte Sicherungskopie. Speichern Sie zuerst Ihre Sicherungskopie: Wenn Sie den Browser später leeren, wären sie endgültig verloren.',
   'app.home.resetWarningRecords.one':
     'Ein Datensatz hat Schlüssel ohne geprüfte Sicherungskopie. Speichern Sie zuerst Ihre Sicherungskopie: Wenn Sie den Browser später leeren, wären sie endgültig verloren.',
   'app.home.resetWarningRecords.other':
@@ -67,7 +61,7 @@ export const home = {
   'app.home.saveABackup': 'Sicherungskopie speichern',
   'app.home.exportAll': 'Alle Datensätze exportieren',
   'app.home.importRecords': 'Datensätze importieren',
-  'app.home.trust.title': '„Was hindert mich daran, <em>Ihre</em> Sorte zu erfassen?“',
+  'app.home.trust.title': '„Was hindert mich daran, <em>Ihr</em> Material zu erfassen?“',
   'app.home.trust.lede': 'Drei Dinge machen einen VeilCore-Datensatz schwer zu fälschen:',
   'app.home.trust.1t': 'Ein früherer Datensatz zeigt sich als früher',
   'app.home.trust.1b':
@@ -100,7 +94,7 @@ export const home = {
     'Das Register hat einige Ihrer {what} nicht gespeichert, daher wurden sie auf den dort gespeicherten Stand zurückgesetzt: {list}',
   'app.home.sort.recent': 'Neueste zuerst',
   'app.home.sort.oldest': 'Älteste zuerst',
-  'app.home.sort.name': 'Sortenname',
+  'app.home.sort.name': 'Name',
   'app.home.sort.breeder': 'Gezüchtet von',
   'app.home.search.lab': 'Name, Züchter, TR-Code, Notiz oder Ihre Eingangsnummer',
   'app.home.search.breeder': 'Name, Züchter oder Ihre eigene Referenz',
@@ -112,7 +106,7 @@ export const home = {
   'app.home.paste.cutOff':
     'Dieser Code scheint abgeschnitten. Kopieren Sie den ganzen Laborcode, den man Ihnen geschickt hat.',
   'app.home.paste.noneStamped':
-    'Das ist eine Anfrage, nachzuweisen, dass Sie eine Pflanze halten, aber keine Pflanze auf diesem Gerät hat bisher einen Datumsstempel. Neues Gerät? Stellen Sie zuerst Ihre Pflanzen aus der Sicherungskopie wieder her.',
+    'Das ist eine Anfrage, nachzuweisen, dass Sie einen Datensatz halten, aber kein Datensatz auf diesem Gerät hat bisher einen Datumsstempel. Neues Gerät? Stellen Sie zuerst Ihre Datensätze aus der Sicherungskopie wieder her.',
   'app.home.paste.unknown':
     'Das sieht nicht nach einem Code oder Link von VeilCore aus. Kopieren Sie alles, was man Ihnen geschickt hat, und versuchen Sie es erneut.',
   'app.home.paste.label': 'Hat Ihnen jemand einen Code oder Link geschickt?',
@@ -121,8 +115,8 @@ export const home = {
   'app.home.paste.orMake': 'Nichts einzufügen? Einen Datensatz anlegen',
   'app.home.paste.hint':
     'Ein Laborcode, ein Link zu einem Datensatz, eine Anfrage, nachzuweisen, dass Sie einen Datensatz halten, oder eine Vereinbarung zum Unterschreiben. Wir erkennen, was es ist.',
-  'app.home.paste.whichPlant':
-    'Das ist eine Anfrage, nachzuweisen, dass Sie eine Pflanze halten. Nach welcher wurde gefragt?',
+  'app.home.paste.whichRecord':
+    'Das ist eine Anfrage, nachzuweisen, dass Sie einen Datensatz halten. Nach welchem wurde gefragt?',
   'app.home.notFinished': 'Nicht fertig · als Nächstes: Sicherungskopie speichern',
   'app.home.receivedFrom': 'Erhalten von {name}',
   'app.home.receivedFromNamed': 'Von {name} · deren Datensatz {id}',

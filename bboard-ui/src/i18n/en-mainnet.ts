@@ -47,7 +47,7 @@ const common: Overlay = {
     "It's built to be evidence, and our note for lawyers says what a record proves and what it doesn't. Records sealed here go into batches that we anchor on Midnight's main network by hand. Once a record's batch is anchored, the date shows the record existed by then; what that's worth in a dispute is for the court to weigh.",
   'm.stat2.b': 'Main network',
   'm.foot.about':
-    "An open record format for plant and animal genetics. Records are dated by anchoring on Midnight's main network.",
+    "An open record format for plant, animal and microbial genetics. Records are dated by anchoring on Midnight's main network.",
   'm.get.2b':
     "They attach to the record. A licensee can prove they hold a live license without showing which one. A royalty or other obligation on a parent shows on every offspring both holders confirmed; VeilCore records it and doesn't collect it. Built into the contract on Midnight's main network; simulated on this website.",
   'm.demo.lede':

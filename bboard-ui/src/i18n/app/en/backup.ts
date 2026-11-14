@@ -78,8 +78,6 @@ export const backup = {
   'app.backup.holds.none': 'Your records are in it.',
   'app.backup.holds.records.one': 'Your record is in it.',
   'app.backup.holds.records.other': 'All {count} of your records are in it.',
-  'app.backup.holds.plants.one': 'Your plant is in it.',
-  'app.backup.holds.plants.other': 'All {count} of your plants are in it.',
   'app.backup.restoredPlants.one': 'Keys for {count} plant restored.',
   'app.backup.restoredPlants.other': 'Keys for {count} plants restored.',
   'app.backup.restoredRecords.one': 'Keys for {count} record restored ({plants}, {datings}).',

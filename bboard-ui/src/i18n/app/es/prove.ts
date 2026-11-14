@@ -28,12 +28,12 @@ export const prove = {
   'app.prove.missingPart': 'A este enlace le falta la última parte',
   'app.prove.missingPartText':
     'La respuesta solo puede volver con el enlace completo. Abra el enlace exactamente como se lo enviaron, o pida que se lo envíen de nuevo.',
-  'app.prove.someoneWants': 'Alguien quiere que demuestre que tiene una planta',
-  'app.prove.noPlantsHere':
-    'Sus plantas no están en este teléfono o computadora. Abra este enlace donde las guarda, o recupérelas aquí desde su archivo de copia de seguridad, y luego vuelva a abrir el enlace.',
-  'app.prove.notThisPlant':
-    'Ninguna de las plantas de aquí es la que le preguntaron. Si la guarda en otro teléfono o computadora, abra allí este enlace. Si solo la tiene en un archivo de copia de seguridad, restáurela aquí y vuelva a abrir el enlace.',
-  'app.prove.getBack': 'Recuperar mis plantas desde una copia de seguridad',
+  'app.prove.someoneWants': 'Alguien quiere que demuestre que tiene un registro',
+  'app.prove.noRecordsHere':
+    'Sus registros no están en este teléfono o computadora. Abra este enlace donde los guarda, o recupérelos aquí desde su archivo de copia de seguridad, y luego vuelva a abrir el enlace.',
+  'app.prove.notThisRecord':
+    'Ninguno de los registros de aquí es el que le preguntaron. Si lo guarda en otro teléfono o computadora, abra allí este enlace. Si solo lo tiene en un archivo de copia de seguridad, restáurelo aquí y vuelva a abrir el enlace.',
+  'app.prove.getBack': 'Recuperar mis registros desde una copia de seguridad',
   'app.prove.done': 'Listo',
   'app.prove.doneText':
     'Verán la respuesta en su página. No se envió nada sobre la planta: solo la prueba de que usted tiene su registro.',

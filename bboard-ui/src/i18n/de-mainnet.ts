@@ -36,7 +36,7 @@ export const deMainnet = buildMainnet({
       'Es ist als Beweismittel gebaut, und unser Hinweis für Juristen sagt, was ein Datensatz beweist und was nicht. Datensätze, die hier versiegelt werden, kommen in Stapel, die wir von Hand im Hauptnetz von Midnight verankern. Sobald der Stapel eines Datensatzes verankert ist, zeigt das Datum, dass der Datensatz zu diesem Zeitpunkt existierte; was das in einem Streit wert ist, entscheidet das Gericht.',
     'm.stat2.b': 'Hauptnetz',
     'm.foot.about':
-      'Ein offenes Datensatzformat für pflanzliche und tierische Genetik. Datensätze werden durch Verankerung im Hauptnetz von Midnight datiert.',
+      'Ein offenes Datensatzformat für pflanzliche, tierische und mikrobielle Genetik. Datensätze werden durch Verankerung im Hauptnetz von Midnight datiert.',
     'm.get.2b':
       'Sie hängen am Datensatz. Ein Lizenznehmer kann beweisen, dass er eine gültige Lizenz hält, ohne zu zeigen, welche. Eine Lizenzgebühr oder andere Verpflichtung auf einem Elternteil erscheint bei jedem Nachkommen, den beide Inhaber bestätigt haben; VeilCore erfasst sie und zieht sie nicht ein. Im Contract im Hauptnetz von Midnight eingebaut; auf dieser Website simuliert.',
     'm.demo.lede':

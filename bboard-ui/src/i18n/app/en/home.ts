@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 export const home = {
-  'app.home.firstPlant': 'Let’s log your first plant or animal',
+  'app.home.firstRecord': 'Let’s log your first record',
   'app.home.oldLinks':
     'Check links and QR codes made before 17 October 2026 no longer show your records’ names: VeilCore keeps names locked now, so the registry has none to show. To share a name, open the record, choose Show someone, switch the name on, and send the new link. A new certificate has a new QR code.',
   'app.home.continueDraftNamed': 'Continue your draft: {name}',
@@ -23,20 +23,14 @@ export const home = {
     "It shows that your key signed: that a sample arrived, or which report you sent. It doesn't show who holds the key: anyone can register a key under any name.",
   'app.home.breederToo': "I'm a breeder too",
   'app.home.imALab': "I'm a lab",
-  'app.home.whatStops': 'What stops someone logging my plant or animal first?',
+  'app.home.whatStops': 'What stops someone logging my material first?',
   'app.home.samplesReceived': 'Samples received',
-  'app.home.yourPlants': 'Your plants',
+  'app.home.yourRecords': 'Your records',
   'app.home.logNew': 'Log new',
   'app.home.saveIt': 'Save it',
   'app.home.finishBackupLine': '<b>Finish: save your backup.</b> {line}',
-  'app.home.keysOnlyHerePlants.one': 'A plant has keys only on this device.',
-  'app.home.keysOnlyHerePlants.other': '{count} plants have keys only on this device.',
   'app.home.keysOnlyHereRecords.one': 'A record has keys only on this device.',
   'app.home.keysOnlyHereRecords.other': '{count} records have keys only on this device.',
-  'app.home.resetWarningPlants.one':
-    'A plant has keys with no checked backup. Save your backup first: clearing the browser later would lose them for good.',
-  'app.home.resetWarningPlants.other':
-    '{count} plants have keys with no checked backup. Save your backup first: clearing the browser later would lose them for good.',
   'app.home.resetWarningRecords.one':
     'A record has keys with no checked backup. Save your backup first: clearing the browser later would lose them for good.',
   'app.home.resetWarningRecords.other':
@@ -65,7 +59,7 @@ export const home = {
   'app.home.exportAll': 'Export all records',
   'app.home.importRecords': 'Import records',
   // TrustPanel.tsx
-  'app.home.trust.title': '“What stops me from logging <em>your</em> cultivar?”',
+  'app.home.trust.title': '“What stops me from logging <em>your</em> material?”',
   'app.home.trust.lede': 'Three things make a VeilCore record hard to fake:',
   'app.home.trust.1t': 'An earlier record shows as earlier',
   'app.home.trust.1b':
@@ -100,7 +94,7 @@ export const home = {
   // RecordFinder.tsx
   'app.home.sort.recent': 'Newest first',
   'app.home.sort.oldest': 'Oldest first',
-  'app.home.sort.name': 'Cultivar name',
+  'app.home.sort.name': 'Name',
   'app.home.sort.breeder': 'Bred by',
   'app.home.search.lab': 'Name, breeder, TR code, note or your accession no.',
   'app.home.search.breeder': 'Name, breeder, or your own reference',
@@ -112,7 +106,7 @@ export const home = {
   'app.home.paste.ownCode': "That's your own code. Send it to the lab; don't receive it here.",
   'app.home.paste.cutOff': 'That code looks cut off. Copy the whole lab code they sent you.',
   'app.home.paste.noneStamped':
-    "That's a request to prove you hold a plant, but none of the plants on this device has a date stamp yet. On a new device? Get your plants back from your backup first.",
+    "That's a request to prove you hold a record, but none of the records on this device has a date stamp yet. On a new device? Get your records back from your backup first.",
   'app.home.paste.unknown':
     "That doesn't look like a VeilCore code or link. Copy the whole thing they sent you and try again.",
   'app.home.paste.label': 'Someone sent you a code or link?',
@@ -121,7 +115,7 @@ export const home = {
   'app.home.paste.orMake': 'Nothing to paste? Make a record',
   'app.home.paste.hint':
     "A lab code, a record link, a request to prove you hold a record, or an agreement to sign. We'll work out which.",
-  'app.home.paste.whichPlant': "That's a request to prove you hold a plant. Which one did they ask about?",
+  'app.home.paste.whichRecord': "That's a request to prove you hold a record. Which one did they ask about?",
   // plant-status-words.ts: a plant's line on Home.
   'app.home.notFinished': 'Not finished · next: save your backup',
   'app.home.receivedFrom': 'Received from {name}',

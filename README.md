@@ -1,6 +1,6 @@
 # VeilCore
 
-Dated, private records for plant and animal genetics, on Midnight.
+Dated, private records for plant, animal and microbial genetics, on Midnight.
 
 **For** breeders, growers, labs and nurseries who need to show they held a cultivar, an animal
 line, a strain or a document by a date, and for the buyers, examiners, lenders and courts who

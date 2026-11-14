@@ -1254,7 +1254,7 @@ const Finished: React.FC<{ job: Job; onAnother: () => void }> = ({ job, onAnothe
       </Typography>
       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
         <Button component={RouterLink} to="/records" variant="outlined" size="large" sx={{ minHeight: 48, flex: 1 }}>
-          {t('app.import.done.toPlants')}
+          {t('app.import.done.toRecords')}
         </Button>
         <Button variant="text" size="large" onClick={onAnother} sx={{ minHeight: 48, flex: 1 }}>
           {t('app.import.done.another')}

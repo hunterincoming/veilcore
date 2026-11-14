@@ -171,6 +171,6 @@ export const importing = {
     'Leur horodatage public arrive quand leur lot est daté sur {dated}. La page de chaque plante montre quand c’est fait. Vous n’avez rien à faire.',
   'app.import.done.dateStamp':
     'Un horodatage montre que les informations existaient à cette date. Il ne confirme pas qu’elles sont exactes.',
-  'app.import.done.toPlants': 'Aller à vos plantes',
+  'app.import.done.toRecords': 'Aller à vos enregistrements',
   'app.import.done.another': 'Importer un autre fichier',
 } satisfies Partial<AppTranslation>;

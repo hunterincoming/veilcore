@@ -630,7 +630,7 @@ describe('the check page reading Midnight itself, per build (round 7)', () => {
         expect(o['footer.about'], `${lang} overlay`).toBeUndefined();
       }
     }
-    expect(en['footer.about']).toBe('An open record format for plant and animal genetics.');
+    expect(en['footer.about']).toBe('An open record format for plant, animal and microbial genetics.');
     expect(en['footer.howCheck']).toBe('How checking works →');
     for (const s of [en, testSite, mainnetNoRelay, mainnetRelay])
       expect(s['m.tech.check.p']).toMatch(/Looking a record up by its identifier on this site uses our server\.$/);

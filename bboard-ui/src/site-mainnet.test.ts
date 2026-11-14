@@ -298,6 +298,25 @@ describe('the mainnet strings', () => {
                   if (NOT_SO.test(sen) && ABOUT_BATCHES.test(sen)) hits.push(`${l} ${k}: ${sen}`);
         }
     expect(hits).toEqual([]);
+    // The texts that are not i18n strings follow the same rule: the summary shown before the
+    // script runs (vite.config.ts) and llms.txt (findable.ts). Read as source, so every build's
+    // summary and both license states are covered.
+    const { llmsTxt } = await import('../findable');
+    const statics: [string, string][] = [
+      ['vite.config.ts', fs.readFileSync(path.join(UI, 'vite.config.ts'), 'utf8')],
+      ['findable.ts', fs.readFileSync(path.join(UI, 'findable.ts'), 'utf8')],
+      ['llms.txt', llmsTxt(false)],
+      ['llms.txt (licenses on)', llmsTxt(true)],
+    ];
+    const staticHits = statics.flatMap(([name, text]) =>
+      text
+        .split(/\n|(?<=[.;])\s+/)
+        .filter((sen) => NOT_SO.test(sen) && ABOUT_BATCHES.test(sen))
+        .map((sen) => `${name}: ${sen.trim()}`),
+    );
+    expect(staticHits).toEqual([]);
+    expect(llmsTxt(true)).toMatch(/batches of proof codes are anchored automatically\./);
+    expect(statics[0][1]).toMatch(/batches dated on Midnight automatically;/);
     // With the sponsor live (veilcore.org), the cadence the job has shown is said, as written.
     const o = mainnetStrings({ claimsOnMainnet: true, policyApproved: true, chainSends: true });
     expect(o['m.hero.status']).toMatch(/batches that are anchored there automatically/);
@@ -493,7 +512,8 @@ describe('builds', () => {
     // Readers that don't run JavaScript (search engines, AI assistants) get the facts.
     const sponsorHtml = fs.readFileSync(path.join(tmp, 'dist-sponsor', 'index.html'), 'utf8');
     expect(sponsorHtml).toMatch(/<div id="root"><main class="static-summary">/);
-    expect(sponsorHtml).toMatch(/automatically, every hour/);
+    expect(sponsorHtml).toMatch(/batches dated on Midnight automatically;/);
+    expect(sponsorHtml).not.toMatch(/hourly|every hour/i);
     expect(sponsorHtml).toMatch(/never sold a token, coin or presale/);
     expect(sponsorHtml).not.toMatch(TEST_WORDING);
     // Another contract than the pinned one is refused.
@@ -525,7 +545,7 @@ describe('builds', () => {
     // Without the sponsor, the summary doesn't say batches are dated automatically.
     expect(mainHtml).toMatch(/Makoto \(Mako\) Steiner, co-founder and CEO/);
     expect(mainHtml).toMatch(/never sold a token, coin or presale/);
-    expect(mainHtml).not.toMatch(/every hour|proving a record by link/);
+    expect(mainHtml).not.toMatch(/dated on Midnight automatically|every hour|proving a record by link/);
     const preHtml = fs.readFileSync(path.join(preDist, 'index.html'), 'utf8');
     expect(preHtml).toMatch(/Test site: practice records on a Midnight test network\. No security audit yet\./);
     expect(preHtml).toMatch(/This is the test site: records made here are practice records/);
