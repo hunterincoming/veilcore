@@ -60,6 +60,12 @@ export const KEY_CARD_FORMAT = 'veilcore-committee-key/v1';
 // file does not verify.
 export const REQUEST_FORMAT = 'veilcore-maintenance-request/v2';
 export const SIGNATURE_FORMAT = 'veilcore-maintenance-signature/v2';
+/** A new holder's signature over a change's check code, made before the change is sent. */
+export const CONFIRMATION_FORMAT = 'veilcore-committee-confirmation/v1';
+// v2: holds its creation time and the request it checked (bboard-cli/src/launcher/committee.ts).
+export const DRY_RUN_FORMAT = 'veilcore-maintenance-dry-run/v2';
+/** A dry-run record older than this is refused: make a new dry run. */
+export const DRY_RUN_MAX_AGE_MS = 24 * 60 * 60 * 1000;
 const LEDGER8_REQUEST_FORMAT = 'veilcore-maintenance-request/v1';
 const LEDGER8_SIGNATURE_FORMAT = 'veilcore-maintenance-signature/v1';
 
@@ -67,6 +73,8 @@ export const NETWORKS = ['mainnet', 'preprod', 'preview', 'undeployed'];
 
 const HEX64 = /^[0-9a-f]{64}$/;
 const HOLDER = /^[a-z0-9][a-z0-9-]{0,31}$/;
+/** Every practice card's holder name starts with this, and no real card's does. */
+export const PRACTICE_PREFIX = 'practice-';
 const CIRCUIT = /^[A-Za-z_][A-Za-z0-9_]{0,63}$/;
 
 const sha256Hex = (bytes) => createHash('sha256').update(bytes).digest('hex');
@@ -138,30 +146,52 @@ export const parsePublicKey = (text) => {
  * has a typo is a lost key, and with two lost keys the contract can never be maintained.
  * It does not show WHO made the card: confirm each public key with its holder in person or
  * on a call (the fingerprint, out loud), never only by message.
+ *
+ * PRACTICE CARDS. A card made for a rehearsal is marked three ways, and all three must agree:
+ * `practice: true` in the card, a holder name that starts "practice-", and a proof made over a
+ * different message (it says "practice"). So the mark cannot be taken off: a practice card with
+ * `practice` removed, or renamed, no longer proves its key. Every mainnet path refuses a
+ * practice card (rebuildRequest below), because a rehearsal ends by deleting its keys.
  */
 
-export const possessionMessage = (holder, publicKey) =>
-  new TextEncoder().encode(`veilcore:committee-key:v1\n${holder}\n${publicKey}`);
+export const possessionMessage = (holder, publicKey, practice = false) =>
+  new TextEncoder().encode(`veilcore:committee-key:v1${practice ? ':practice' : ''}\n${holder}\n${publicKey}`);
 
-/** A new card for `holder`, signed by `signingKey`. */
-export const makeKeyCard = (holder, signingKey, createdAt = new Date().toISOString()) => {
+/** Why this holder name does not fit this kind of card, or null. */
+const holderNameProblem = (holder, practice) => {
+  if (practice && !holder.startsWith(PRACTICE_PREFIX))
+    return `A practice card's holder name must start with "${PRACTICE_PREFIX}" (like "${PRACTICE_PREFIX}mako").`;
+  if (!practice && holder.startsWith(PRACTICE_PREFIX))
+    return `A holder name that starts with "${PRACTICE_PREFIX}" is for practice cards only (keygen --practice).`;
+  return null;
+};
+
+/** A new card for `holder`, signed by `signingKey`. `practice`: a rehearsal card (see above). */
+export const makeKeyCard = (holder, signingKey, createdAt = new Date().toISOString(), { practice = false } = {}) => {
   if (!HOLDER.test(holder))
     throw new Error('The holder name must be 1-32 characters: small letters, digits and dashes (like "mako").');
+  if (practice !== true && practice !== false) throw new Error('practice must be true or false.');
+  const name = holderNameProblem(holder, practice);
+  if (name !== null) throw new Error(name);
   const k = parseSigningKey(signingKey);
   if ('problem' in k) throw new Error(k.problem);
   return {
     format: KEY_CARD_FORMAT,
     holder,
+    ...(practice ? { practice: true } : {}),
     publicKey: k.publicKey,
     fingerprint: fingerprint(k.publicKey),
-    possessionProof: signData(tagged(k.value), possessionMessage(holder, k.publicKey)).value,
+    possessionProof: signData(tagged(k.value), possessionMessage(holder, k.publicKey, practice)).value,
     createdAt,
   };
 };
 
+/** Is this a practice card? (Only meaningful for a card that passed checkKeyCard.) */
+export const isPracticeCard = (card) => card?.practice === true;
+
 /**
  * A card checked: the right format, a valid key, and a proof made by that key.
- * @returns {{ ok: true, holder: string, publicKey: string } | { ok: false, problem: string }}
+ * @returns {{ ok: true, holder: string, publicKey: string, practice: boolean } | { ok: false, problem: string }}
  */
 export const checkKeyCard = (card) => {
   const who = typeof card?.holder === 'string' ? `"${card.holder}"` : 'this card';
@@ -169,6 +199,11 @@ export const checkKeyCard = (card) => {
     return { ok: false, problem: `${who} is not a VeilCore committee key card (${KEY_CARD_FORMAT}).` };
   if (typeof card.holder !== 'string' || !HOLDER.test(card.holder))
     return { ok: false, problem: `${who}: the holder name is missing or not small letters, digits and dashes.` };
+  if (card.practice !== undefined && card.practice !== true)
+    return { ok: false, problem: `${who}: "practice" must be true or left out.` };
+  const practice = card.practice === true;
+  const name = holderNameProblem(card.holder, practice);
+  if (name !== null) return { ok: false, problem: `${who}: ${name}` };
   const pk = parsePublicKey(card.publicKey);
   if ('problem' in pk) return { ok: false, problem: `${who}: ${pk.problem}` };
   if (pk.value !== card.publicKey)
@@ -177,7 +212,7 @@ export const checkKeyCard = (card) => {
   try {
     proved = verifySignature(
       tagged(pk.value),
-      possessionMessage(card.holder, pk.value),
+      possessionMessage(card.holder, pk.value, practice),
       tagged(String(card.possessionProof ?? '')),
     );
   } catch {
@@ -186,10 +221,16 @@ export const checkKeyCard = (card) => {
   if (!proved)
     return {
       ok: false,
-      problem: `${who}: the proof does not match the key. The card was edited, or made for another holder name.`,
+      problem:
+        `${who}: the proof does not match the key. The card was edited (its key, its holder name or its ` +
+        'practice mark), or made for another holder name.',
     };
-  return { ok: true, holder: card.holder, publicKey: pk.value };
+  return { ok: true, holder: card.holder, publicKey: pk.value, practice };
 };
+
+export const PRACTICE_ON_MAINNET =
+  'is a PRACTICE card, made for a rehearsal. Practice keys are thrown away, so a practice card is never ' +
+  'accepted on mainnet. Each holder makes a real key (keygen without --practice).';
 
 /** Does this signing key belong to this card? (Checking a stored copy against the card.) */
 export const keyMatchesCard = (signingKey, card) => {
@@ -269,7 +310,15 @@ const plainCurrent = (current) => ({
 const actionToInstruction = (action, current, opts) => {
   switch (action?.kind) {
     case 'replace-authority': {
-      const problems = committeeProblems(action.committee, action.threshold, { forbid: opts.forbid });
+      // A single key that can change the contract today can never be a member, on every path
+      // (install, request, read, sign, submit): the request names the authority it is valid
+      // against, so the rule needs nothing from the caller.
+      const forbid = [...(opts.forbid ?? []), ...(current.committee.length === 1 ? current.committee : [])];
+      const problems = committeeProblems(action.committee, action.threshold, { forbid });
+      if (opts.network === 'mainnet' && Array.isArray(action.committee))
+        for (const card of action.committee)
+          if (isPracticeCard(card) || String(card?.holder ?? '').startsWith(PRACTICE_PREFIX))
+            problems.push(`"${String(card?.holder)}" ${PRACTICE_ON_MAINNET}`);
       if (problems.length > 0) return { problem: problems.join(' ') };
       const keys = action.committee.map((c) => c.publicKey);
       if (sameKeys(keys, current.committee) && action.threshold === current.threshold)
@@ -361,7 +410,7 @@ export const rebuildRequest = (req, opts = {}) => {
   const instructions = [];
   const lines = [];
   for (const a of actions) {
-    const r = actionToInstruction(a, current, opts);
+    const r = actionToInstruction(a, current, { ...opts, network: req.network });
     if ('problem' in r) problems.push(r.problem);
     else {
       instructions.push(r.instruction);
@@ -560,6 +609,121 @@ export const assembleSigned = (req, signatureFiles, onChain, opts = {}) => {
     signers: [...byIndex.keys()].map((i) => fingerprint(chain.committee[i])),
     warnings: problems,
   };
+};
+
+/* **********************************************************************
+ * Confirmations: before a new committee is sent, each of its holders signs the change's
+ * check code with their stored key.
+ *
+ * A card's proof was made when the key was made. This is made at the last moment, from the
+ * copy the holder actually kept (the paper, the USB drive), over the hash of the exact bytes
+ * the change signs: the address, the three keys, the threshold and both counters. So a card
+ * with a mistyped key, a paper copy that no longer reads, or a holder who cannot sign is found
+ * while it is still harmless. The message starts "veilcore:", so it can never count as a
+ * maintenance signature (those start "midnight:contract-"). A confirmation holds no secret.
+ */
+
+/** The cards of the committee a request installs; empty when it installs none. */
+export const newCommittee = (req) => {
+  const a = Array.isArray(req?.actions) ? req.actions[0] : undefined;
+  return a?.kind === 'replace-authority' && Array.isArray(a.committee) ? a.committee : [];
+};
+
+export const confirmationMessage = ({ network, contractAddress, dataToSignSha256, holder, publicKey }) =>
+  new TextEncoder().encode(
+    `veilcore:committee-confirm:v1\n${network}\n${contractAddress}\n${dataToSignSha256}\n${holder}\n${publicKey}`,
+  );
+
+/**
+ * One new holder's confirmation of the change in `req`, signed with their stored key.
+ * Throws when the request is not acceptable, the card is not one of the new committee's, or
+ * the key is not the card's.
+ */
+export const makeConfirmation = (req, card, signingKey, opts = {}) => {
+  const rebuilt = rebuildRequest(req, opts);
+  if (!rebuilt.ok) throw new Error(rebuilt.problems.join(' '));
+  const c = checkKeyCard(card);
+  if (!c.ok) throw new Error(c.problem);
+  const place = newCommittee(req).findIndex((m) => m.publicKey === c.publicKey && m.holder === c.holder);
+  if (place < 0)
+    throw new Error(
+      `"${c.holder}" (${fingerprint(c.publicKey)}) is not one of the keys this change installs. Check you have ` +
+        'the right card and the right dry-run record.',
+    );
+  const k = parseSigningKey(signingKey);
+  if ('problem' in k) throw new Error(k.problem);
+  if (k.publicKey !== c.publicKey)
+    throw new Error(
+      `That key is NOT the one on ${c.holder}'s card (${fingerprint(c.publicKey)}). Check the copy for a typo. ` +
+        'Nothing was signed. Tell the person installing the committee: it must not be sent.',
+    );
+  const body = {
+    network: req.network,
+    contractAddress: cleanHex(req.contractAddress),
+    dataToSignSha256: sha256Hex(rebuilt.update.dataToSign),
+    holder: c.holder,
+    publicKey: c.publicKey,
+  };
+  return {
+    format: CONFIRMATION_FORMAT,
+    ...body,
+    counter: String(BigInt(req.current.counter)),
+    place,
+    signature: signData(tagged(k.value), confirmationMessage(body)).value,
+    createdAt: new Date().toISOString(),
+  };
+};
+
+/**
+ * Why the new committee in `req` is not confirmed by all of its holders; empty when every
+ * one of them has a valid confirmation among `files` for exactly this change (and when the
+ * request installs no committee). Only the signature is trusted: every other field of a
+ * confirmation file is rebuilt from the request.
+ */
+export const confirmationProblems = (req, files, opts = {}) => {
+  const rebuilt = rebuildRequest(req, opts);
+  if (!rebuilt.ok) return rebuilt.problems;
+  const cards = newCommittee(req);
+  if (cards.length === 0) return [];
+  const digest = sha256Hex(rebuilt.update.dataToSign);
+  const list = Array.isArray(files) ? files : [];
+  const problems = [];
+  for (const [n, f] of list.entries()) {
+    const label = `Confirmation ${n + 1}`;
+    if (f === null || typeof f !== 'object' || f.format !== CONFIRMATION_FORMAT)
+      problems.push(`${label} is not a VeilCore committee confirmation file (${CONFIRMATION_FORMAT}).`);
+    else if (f.dataToSignSha256 !== digest)
+      problems.push(
+        `${label} was made for a different change (check code ${String(f.dataToSignSha256).slice(0, 16)}; this ` +
+          `one is ${digest.slice(0, 16)}).`,
+      );
+    else if (!cards.some((c) => c.publicKey === f.publicKey))
+      problems.push(`${label} is from a key that is not one of the three this change installs.`);
+  }
+  for (const card of cards) {
+    const message = confirmationMessage({
+      network: req.network,
+      contractAddress: cleanHex(req.contractAddress),
+      dataToSignSha256: digest,
+      holder: card.holder,
+      publicKey: card.publicKey,
+    });
+    const confirmed = list.some((f) => {
+      if (f?.format !== CONFIRMATION_FORMAT || f.publicKey !== card.publicKey) return false;
+      try {
+        return verifySignature(tagged(card.publicKey), message, tagged(String(f.signature ?? '')));
+      } catch {
+        return false;
+      }
+    });
+    if (!confirmed)
+      problems.push(
+        `No valid confirmation from "${card.holder}" (${fingerprint(card.publicKey)}) for check code ` +
+          `${digest.slice(0, 16)}. Each of the three new holders must sign it with their stored key ` +
+          '(cli.mjs confirm) before this change is sent.',
+      );
+  }
+  return problems;
 };
 
 /** Is the change in `req` visible on chain? (The counter moved on, and a new authority is the one asked for.) */

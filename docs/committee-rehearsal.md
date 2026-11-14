@@ -5,6 +5,12 @@ exists only inside Docker on your Mac and is deleted at the end. No step touches
 preprod. Never type the real maintenance key, a real wallet phrase, or a Blockfrost id into
 any of it. The keys made here go in `/tmp` and are thrown away.
 
+**Every key here is a practice key**, made with `--practice` and a name that starts
+`practice-`. A practice card is refused by every mainnet command, so a card from this rehearsal
+can never be installed on the real contract by mistake (its key is deleted in step 11). If any
+step prints `WARNING: ... is NOT a practice card`, a card was made without `--practice`: stop,
+delete it, and make it again.
+
 **Status, 14 November 2026: written, not yet run.** These steps come from a local test
 against Midnight's Ledger 9 code and from Midnight's own fork-test files (midnight-js
 `testkit-js/compose-fork.yml`). The machine they were written on has no Docker, so no step
@@ -151,13 +157,14 @@ One "old" key (it stands in for the paper key) and three committee keys:
 ```
 export REPO="$(pwd)"
 export R=/tmp/vc-rehearsal
-node scripts/committee/cli.mjs keygen --holder old --out $R/old.key --card $R/old-card.json
-node scripts/committee/cli.mjs keygen --holder hunter --out $R/hunter.key --card $R/hunter.json
-node scripts/committee/cli.mjs keygen --holder mako --out $R/mako.key --card $R/mako.json
-node scripts/committee/cli.mjs keygen --holder backup --out $R/backup.key --card $R/backup.json
+node scripts/committee/cli.mjs keygen --practice --holder practice-old --out $R/old.key --card $R/old-card.json
+node scripts/committee/cli.mjs keygen --practice --holder practice-hunter --out $R/hunter.key --card $R/hunter.json
+node scripts/committee/cli.mjs keygen --practice --holder practice-mako --out $R/mako.key --card $R/mako.json
+node scripts/committee/cli.mjs keygen --practice --holder practice-backup --out $R/backup.key --card $R/backup.json
 ```
 
-**Pass:** four lines saying `Key written to ...`, and `ls $R` shows eight files besides
+**Pass:** each prints `PRACTICE KEY: for a rehearsal only`, there are four lines saying
+`Key written to ...`, and `ls $R` shows eight files besides
 `compose.yml`. (`$REPO` and `$R` are used in the steps below; if you open a new Terminal
 window, run the two `export` lines again from the repository folder.)
 
@@ -249,17 +256,53 @@ When it asks for the current maintenance key, paste the old key (copy it again w
 
 **Pass:** it prints `Now:` with 1 key and counter 16, `After:` with 3 keys, 2 signatures
 needed and counter 17, each key in full, the warning that a wrong committee key is
-PERMANENT, and ends with `DRY RUN, nothing sent`. Check the three keys under `After:`
-against the `publicKey` in each card file. `show` still says counter 16.
+PERMANENT, a `Check code:` of 16 characters, and ends with `DRY RUN, nothing sent`. It prints
+no `NOT a practice card` warning. Check the three keys under `After:` against the `publicKey`
+in each card file, and that each name starts `practice-`. `show` still says counter 16.
+
+Then the three new holders confirm, as they will before the real install: each signs the dry
+run's check code with their own stored key.
+
+```
+node $REPO/scripts/committee/cli.mjs confirm --record $R/dry-install.json --card $R/hunter.json --key-file $R/hunter.key --out $R/confirm-hunter.json
+node $REPO/scripts/committee/cli.mjs confirm --record $R/dry-install.json --card $R/mako.json --key-file $R/mako.key --out $R/confirm-mako.json
+node $REPO/scripts/committee/cli.mjs confirm --record $R/dry-install.json --card $R/backup.json --key-file $R/backup.key --out $R/confirm-backup.json
+node $REPO/scripts/committee/cli.mjs confirm --record $R/dry-install.json --card $R/mako.json --key-file $R/hunter.key --out $R/confirm-wrong.json
+```
+
+Type `CONFIRM` each time.
+
+**Pass:** the first three each show the same check code as the dry run and end
+`Confirmed by practice-... for check code ...`. The fourth (Mako's card with Hunter's key, the
+mistake this step exists to find) says `That key is NOT the one on practice-mako's card` and
+writes no `confirm-wrong.json`.
 
 ### 7. The install
 
+First with one confirmation left out, which must refuse:
+
 ```
-npm run committee -- undeployed install --address $A1 --card $R/hunter.json --card $R/mako.json --card $R/backup.json --out $R/installed.json
+npm run committee -- undeployed install --address $A1 --card $R/hunter.json --card $R/mako.json --card $R/backup.json --confirm $R/confirm-hunter.json --confirm $R/confirm-mako.json --out $R/installed.json
+```
+
+**Pass:** it says `No valid confirmation from "practice-backup"` and `Nothing was sent.`, and
+does not ask for the old key. Then with all three:
+
+```
+npm run committee -- undeployed install --address $A1 --card $R/hunter.json --card $R/mako.json --card $R/backup.json --confirm $R/confirm-hunter.json --confirm $R/confirm-mako.json --confirm $R/confirm-backup.json --out $R/installed.json
 ```
 
 Paste the old key when asked. It starts a Ledger 9 proof server, syncs the local chain's
 built-in wallet, and asks you to type `INSTALL`.
+
+**Two copies of Ledger 9 meet here.** The tool builds the transaction with ledger-v9 1.0.1;
+the proof server client and the wallet read it with ledger-v9 1.0.0. Only the transaction's
+bytes pass between them, and for this transaction the two versions write the same bytes
+(compared both ways with a throwaway transaction, and in the tests). The tool checks it again
+for the real transaction after you type `INSTALL` and before the proof server or the wallet
+sees it. If it prints `The wallet's copy of Midnight Ledger 9 does not read this transaction
+as it was built`, **stop**: nothing was sent, `show` still says counter 16, and trying again
+will not help. Copy the line and send it.
 
 **Pass:** it prints `Sent: transaction ...`, then `On chain now: 3 key(s); 2 signature(s)
 needed for any change; counter 17.`, and writes `$R/installed.json`. Then:
@@ -269,8 +312,8 @@ npm run committee -- undeployed show --address $A1 --card $R/hunter.json --card 
 npm run committee -- undeployed install --address $A1 --card $R/hunter.json --card $R/mako.json --card $R/backup.json
 ```
 
-**Pass:** `show` lists the three keys with the names hunter, mako and backup, and counter
-17. The second `install` says `This committee is already installed. Nothing to do.` and asks
+**Pass:** `show` lists the three keys with the names practice-hunter, practice-mako and
+practice-backup, and counter 17. The second `install` says `This committee is already installed. Nothing to do.` and asks
 for nothing.
 
 **If the wallet never finishes syncing, or the send fails:** this is the uncertain part named
@@ -282,7 +325,7 @@ at the top. Stop, copy the last lines, and send them. Run `show`: if it still sa
 A request to change the backup holder, which needs two signatures:
 
 ```
-node $REPO/scripts/committee/cli.mjs keygen --holder backup --out $R/backup2.key --card $R/backup2.json
+node $REPO/scripts/committee/cli.mjs keygen --practice --holder practice-backup --out $R/backup2.key --card $R/backup2.json
 npm run committee -- undeployed request --address $A1 --replace --card $R/hunter.json --card $R/mako.json --card $R/backup2.json --reason "rehearsal" --out $R/request.json
 node $REPO/scripts/committee/cli.mjs sign --request $R/request.json --key-file $R/old.key --out $R/sig-old.json
 node $REPO/scripts/committee/cli.mjs sign --request $R/request.json --key-file $R/hunter.key --out $R/sig-hunter.json
@@ -311,6 +354,10 @@ npm run committee -- undeployed submit --request $R/request.json --sig $R/sig-hu
 ```
 
 Type `SIGN` for the first command, and `SEND` when the third asks.
+
+(On mainnet a change of holder also needs the three new holders' confirmations of this dry
+run, as in step 6. On a test network they are checked only when given; step 7 has already
+shown that part.)
 
 **Pass:** the dry run ends with `DRY RUN, nothing sent`. The send prints `Sent: transaction
 ...`. `show` says 3 keys, 2 needed, counter 18, and its third key is the `publicKey` in

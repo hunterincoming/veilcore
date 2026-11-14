@@ -21,6 +21,15 @@
 // `allowMainnet: true`, which the operator tool (bboard-cli/src/launcher/committee.ts) does only
 // after --send-on-mainnet and a matching dry-run record.
 //
+// TWO COPIES OF LEDGER 9. The update is built with ledger-v9 1.0.1 (core.mjs), while midnight-js
+// 5.0.0, the proof provider and the wallet read it with ledger-v9 1.0.0. No ledger object crosses
+// between them: LedgerTransaction.seal keeps only the serialised bytes, and each side decodes those
+// bytes with its own copy. For this transaction the bytes are the same format in both versions
+// (checked both ways with a throwaway replace-authority transaction, and in committee.test.mjs).
+// It is checked again for the real transaction, every time, before anything is handed to the
+// wallet (assertReadableByWalletLedger): if a later version changes the format, the tool stops
+// there with nothing sent.
+//
 // NOT YET SHOWN ON A NODE: this Ledger 9 path has been run against the ledger's own code
 // (committee.test.mjs) but not against a real node, indexer and wallet. The rehearsal in
 // docs/committee-rehearsal.md does that on a local network, and comes before any mainnet use.
@@ -28,7 +37,10 @@
 
 import { Intent, Transaction } from 'ledger-v9-committee';
 import { ContractState as Ledger8ContractState } from '@midnightntwrk/ledger-v8';
-import { ContractState as Ledger9ContractState } from '@midnight-ntwrk/midnight-js-protocol/v9';
+import {
+  ContractState as Ledger9ContractState,
+  Transaction as WalletLedgerTransaction,
+} from '@midnight-ntwrk/midnight-js-protocol/v9';
 import { protocolVersionToLedger } from '@midnight-ntwrk/midnight-js-protocol';
 import { submitTx } from '@midnight-ntwrk/midnight-js-contracts';
 import { LedgerTransaction } from '@midnight-ntwrk/midnight-js-types';
@@ -66,6 +78,36 @@ export const assertLedger9Network = async (publicDataProvider) => {
     );
 };
 
+const sameBytes = (a, b) => Buffer.from(a).equals(Buffer.from(b));
+
+/**
+ * Refuse unless the ledger copy the wallet and midnight-js use (ledger-v9 1.0.0) reads this
+ * transaction, built with ledger-v9 1.0.1, as exactly the same thing: the same bytes when it
+ * writes it back, holding the same maintenance update. Nothing is sent before this passes.
+ * `decoder` is the wallet side's Transaction class (replaced in tests).
+ */
+export const assertReadableByWalletLedger = (tx, update, decoder = WalletLedgerTransaction) => {
+  const stop = (why) => {
+    throw new Error(
+      `The wallet's copy of Midnight Ledger 9 does not read this transaction as it was built (${why}). ` +
+        'The two ledger versions in this tool no longer agree. Nothing was sent. Do not retry: report it.',
+    );
+  };
+  const bytes = tx.serialize();
+  let read;
+  try {
+    read = decoder.deserialize('signature', 'pre-proof', 'pre-binding', bytes);
+  } catch (e) {
+    return stop(`it could not be read: ${e instanceof Error ? e.message : String(e)}`);
+  }
+  if (!sameBytes(read.serialize(), bytes)) stop('it reads back as different bytes');
+  const updates = [...(read.intents?.values() ?? [])]
+    .flatMap((intent) => [...intent.actions])
+    .filter((a) => a?.dataToSign !== undefined);
+  if (updates.length !== 1 || !sameBytes(updates[0].dataToSign, update.dataToSign))
+    stop('it does not hold this one maintenance update');
+};
+
 export const MAINNET_REFUSAL =
   'Refused: sending a maintenance change to MAINNET is off by default. Nothing was built or sent.';
 
@@ -81,7 +123,7 @@ export const sendMaintenanceUpdate = async (
   address,
   update,
   landed,
-  { log = () => {}, waitMs = 2_000, tries = 60, allowMainnet = false } = {},
+  { log = () => {}, waitMs = 2_000, tries = 60, allowMainnet = false, walletLedgerTransaction } = {},
 ) => {
   if (String(providers.config.networkId).toLowerCase() === 'mainnet' && allowMainnet !== true)
     throw new Error(MAINNET_REFUSAL);
@@ -95,16 +137,15 @@ export const sendMaintenanceUpdate = async (
       `The chain's counter is ${before.counter}, but this update is for ${update.counter}. Nothing was sent.`,
     );
   await assertLedger9Network(providers.publicDataProvider);
-  const unprovenTx = LedgerTransaction.seal(
-    'v9',
-    'Unproven',
-    Transaction.fromParts(
-      providers.config.networkId,
-      undefined,
-      undefined,
-      Intent.new(ttlOneHour()).addMaintenanceUpdate(update),
-    ),
+  const built = Transaction.fromParts(
+    providers.config.networkId,
+    undefined,
+    undefined,
+    Intent.new(ttlOneHour()).addMaintenanceUpdate(update),
   );
+  // Before the proof server or the wallet sees it (top of file, TWO COPIES OF LEDGER 9).
+  assertReadableByWalletLedger(built, update, walletLedgerTransaction);
+  const unprovenTx = LedgerTransaction.seal('v9', 'Unproven', built);
   let finalized;
   try {
     finalized = await submitTx(providers, { unprovenTx });

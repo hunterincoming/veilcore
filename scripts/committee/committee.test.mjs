@@ -31,20 +31,30 @@ import {
   createWalletProviderFromHandlers,
 } from '@midnight-ntwrk/midnight-js-types';
 import {
+  CONFIRMATION_FORMAT,
+  DRY_RUN_FORMAT,
   PERMANENT_WARNING,
   assembleSigned,
   authorityView,
   checkKeyCard,
   committeeProblems,
+  confirmationProblems,
   describeRequest,
   isRetired,
+  makeConfirmation,
   makeKeyCard,
   makeRequest,
+  possessionMessage,
   rebuildRequest,
   requestLanded,
   signRequest,
 } from './core.mjs';
-import { MAINNET_REFUSAL, readAuthorityNow, sendMaintenanceUpdate } from './submit.mjs';
+import {
+  MAINNET_REFUSAL,
+  assertReadableByWalletLedger,
+  readAuthorityNow,
+  sendMaintenanceUpdate,
+} from './submit.mjs';
 import { main, makeIo, unsafeKeyPath } from './cli.mjs';
 
 const NET = 'undeployed';
@@ -170,7 +180,12 @@ test('a key card proves its key, and nothing else passes for one', () => {
   const key = newKey();
   const card = makeKeyCard('mako', key);
   assert.equal(card.publicKey, pub(key).value);
-  assert.deepEqual(checkKeyCard(roundTrip(card)), { ok: true, holder: 'mako', publicKey: card.publicKey });
+  assert.deepEqual(checkKeyCard(roundTrip(card)), {
+    ok: true,
+    holder: 'mako',
+    publicKey: card.publicKey,
+    practice: false,
+  });
   assert.match(checkKeyCard({ ...card, holder: 'hunter' }).problem, /does not match/);
   const other = makeKeyCard('mako', newKey());
   assert.match(checkKeyCard({ ...card, publicKey: other.publicKey }).problem, /does not match/);
@@ -180,7 +195,185 @@ test('a key card proves its key, and nothing else passes for one', () => {
   // The proof can never double as an approval of a contract change.
   const u = new L.MaintenanceUpdate('ab'.repeat(32), [], 0n);
   assert.match(Buffer.from(u.dataToSign).toString('latin1'), /^midnight:contract-maintenance-update/);
-  
+});
+
+// The ledger's own refusals, word for word (ledger 9.1.0.1), so a refusal for some other
+// reason does not pass for the one a test is about.
+const BAD_SIGNATURE = (place) => new RegExp(`^Error: signature for key id ${place} invalid for contract ContractAddress`);
+const NOT_A_MEMBER = (place) =>
+  new RegExp(`declared signture for key id ${place} does not correspond to a committee member`);
+const SIGNATURE_TWICE = /committee signature used more than once in the transaction/;
+const BELOW_THRESHOLD = (have) => new RegExp(`does not meet required threshold \\(${have}/2 signatures\\)`);
+const WRONG_COUNTER = /the signed counter for ContractAddress\([0-9a-f]{64}\) did not match the expected one/;
+const NOT_NORMAL_FORM = /^Error: transaction is not in normal form$/;
+
+// ─────────────────────────────────────────────────────────── practice cards
+
+/** Three practice holders, as a rehearsal makes them. */
+const practiceHolders = () => {
+  const keys = { hunter: newKey(), mako: newKey(), backup: newKey() };
+  const list = Object.entries(keys).map(([h, k]) => makeKeyCard(`practice-${h}`, k, undefined, { practice: true }));
+  return { keys, list };
+};
+
+test('a practice card is marked three ways, and the mark cannot be taken off', () => {
+  const key = newKey();
+  const card = makeKeyCard('practice-mako', key, undefined, { practice: true });
+  assert.equal(card.practice, true);
+  assert.deepEqual(checkKeyCard(roundTrip(card)), {
+    ok: true,
+    holder: 'practice-mako',
+    publicKey: card.publicKey,
+    practice: true,
+  });
+  // A real card has no such field, and its name cannot start with practice-.
+  assert.equal('practice' in makeKeyCard('mako', key), false);
+  assert.throws(() => makeKeyCard('practice-mako', key), /starts with "practice-" is for practice cards only/);
+  assert.throws(() => makeKeyCard('mako', key, undefined, { practice: true }), /must start with "practice-"/);
+  assert.throws(() => makeKeyCard('practice-mako', key, undefined, { practice: 'yes' }), /practice must be true or false/);
+  // The mark taken off by hand: the name still gives it away.
+  const { practice: _mark, ...unmarked } = card;
+  assert.match(checkKeyCard(unmarked).problem, /starts with "practice-" is for practice cards only/);
+  // The mark taken off and the card renamed: the proof was made over the practice message.
+  assert.match(checkKeyCard({ ...unmarked, holder: 'mako' }).problem, /proof does not match the key/);
+  // A real card marked as practice, or a practice proof under a real name: refused too.
+  const real = makeKeyCard('mako', key);
+  assert.match(checkKeyCard({ ...real, practice: true }).problem, /must start with "practice-"/);
+  assert.match(checkKeyCard({ ...real, holder: 'practice-mako', practice: true }).problem, /proof does not match the key/);
+  assert.match(checkKeyCard({ ...card, practice: 'true' }).problem, /"practice" must be true or left out/);
+  assert.match(checkKeyCard({ ...card, practice: false }).problem, /"practice" must be true or left out/);
+  // The two proofs are over different messages.
+  assert.notDeepEqual(possessionMessage('practice-mako', card.publicKey, true), possessionMessage('practice-mako', card.publicKey));
+});
+
+test('practice cards are refused on mainnet on every path: request, read, sign, confirm, submit', () => {
+  const c = chain();
+  const p = practiceHolders();
+  const refusal = /"practice-hunter" is a PRACTICE card.*never accepted on mainnet/s;
+  const args = (network, committee) => ({
+    network,
+    contractAddress: c.address,
+    current: c.authority(),
+    actions: [{ kind: 'replace-authority', committee, threshold: 2 }],
+  });
+  // A test network takes them.
+  const local = roundTrip(makeRequest(args(NET, p.list)));
+  assert.ok(rebuildRequest(local).ok);
+  // Mainnet does not: no request is made.
+  assert.throws(() => makeRequest(args('mainnet', p.list)), refusal);
+  // One practice card among real ones is enough.
+  const h = holders();
+  assert.throws(() => makeRequest(args('mainnet', [p.list[0], h.cards.mako, h.cards.backup])), refusal);
+  // A request file written by hand for mainnet (the test-network one, relabelled, with or
+  // without its data to sign): not read, not signed, not confirmed, not put together.
+  for (const forged of [{ ...local, network: 'mainnet' }, { ...local, network: 'mainnet', dataToSign: undefined }]) {
+    const r = rebuildRequest(forged);
+    assert.equal(r.ok, false);
+    assert.match(r.problems.join(' '), refusal);
+    assert.throws(() => signRequest(forged, c.paperKey), refusal);
+    assert.throws(() => makeConfirmation(forged, p.list[0], p.keys.hunter), refusal);
+    assert.match(confirmationProblems(forged, []).join(' '), refusal);
+    const put = assembleSigned(forged, [signRequest(local, c.paperKey)], c.authority());
+    assert.equal(put.ok, false);
+    assert.match(put.problems.join(' '), refusal);
+  }
+  // The same three real cards on mainnet are fine: only the mark is refused.
+  assert.ok(rebuildRequest(roundTrip(makeRequest(args('mainnet', h.list)))).ok);
+});
+
+// ───────────────────────────────────────── the old single key is never a member
+
+test('the single key in place cannot be a member of a new committee: request, sign, submit, with or without forbid', () => {
+  const c = chain();
+  const h = holders();
+  const withPaper = [makeKeyCard('hunter', c.paperKey), h.cards.mako, h.cards.backup];
+  const refusal = /"hunter" is the contract's current maintenance key .* cannot be a committee member\. Make a new key\./;
+  const args = { network: NET, contractAddress: c.address, current: c.authority() };
+  // `request --replace` gave no forbid list: refused all the same.
+  assert.throws(
+    () => makeRequest({ ...args, actions: [{ kind: 'replace-authority', committee: withPaper, threshold: 2 }] }),
+    refusal,
+  );
+  // A request file written by hand, as `submit` and `sign` read it: refused at every step.
+  const good = request(c, [{ kind: 'replace-authority', committee: h.list, threshold: 2 }]);
+  const { dataToSign: _d, dataToSignSha256: _h, ...bare } = good;
+  const forged = { ...bare, actions: [{ kind: 'replace-authority', committee: withPaper, threshold: 2 }] };
+  assert.match(rebuildRequest(forged).problems.join(' '), refusal);
+  assert.throws(() => signRequest(forged, c.paperKey), refusal);
+  const put = assembleSigned(forged, [signRequest(good, c.paperKey)], c.authority());
+  assert.equal(put.ok, false);
+  assert.match(put.problems.join(' '), refusal);
+  // Once a committee of three is in place, its members may stay through a rotation.
+  install(c, h);
+  const rotate = request(c, [
+    { kind: 'replace-authority', committee: [h.cards.hunter, h.cards.mako, makeKeyCard('backup', newKey())], threshold: 2 },
+  ]);
+  assert.ok(rebuildRequest(rotate).ok);
+});
+
+// ─────────────────────────────── confirmations: the new holders sign the check code
+
+test('a new committee is confirmed only when each of its three holders signs the check code with their key', () => {
+  const c = chain();
+  const h = holders();
+  const req = request(c, [{ kind: 'replace-authority', committee: h.list, threshold: 2 }]);
+  const digest = sha256(rebuildRequest(req).update.dataToSign);
+  const confirm = (who) => roundTrip(makeConfirmation(req, h.cards[who], h.keys[who]));
+  const all = ['hunter', 'mako', 'backup'].map(confirm);
+  assert.equal(all[0].format, CONFIRMATION_FORMAT);
+  assert.equal(all[0].dataToSignSha256, digest);
+  assert.deepEqual(confirmationProblems(req, all), []);
+  assert.deepEqual(confirmationProblems(req, [all[2], all[0], all[1]]), [], 'in any order');
+  // The message can never count as a maintenance signature, and holds no key.
+  for (const f of all) assert.doesNotMatch(JSON.stringify(f), new RegExp(Object.values(h.keys).join('|')));
+  // None, one or two: each missing holder is named.
+  const missing = (who) => new RegExp(`No valid confirmation from "${who}" \\(.{17}\\) for check code ${digest.slice(0, 16)}`);
+  const none = confirmationProblems(req, []).join(' ');
+  for (const who of ['hunter', 'mako', 'backup']) assert.match(none, missing(who));
+  const two = confirmationProblems(req, [all[0], all[1]]);
+  assert.equal(two.length, 1);
+  assert.match(two[0], missing('backup'));
+  assert.match(confirmationProblems(req, [all[0], all[0], all[1]]).join(' '), missing('backup'), 'the same holder twice');
+  // A holder whose stored key is not the card's (a mistyped paper copy) cannot make one.
+  assert.throws(() => makeConfirmation(req, h.cards.mako, newKey()), /That key is NOT the one on mako's card/);
+  // A card that is not one of the three, and a card renamed, cannot either.
+  const outsider = newKey();
+  assert.throws(
+    () => makeConfirmation(req, makeKeyCard('eve', outsider), outsider),
+    /"eve" \(.{17}\) is not one of the keys this change installs/,
+  );
+  // A confirmation signed by another key under mako's name, or one edited, does not verify.
+  const forged = { ...all[1], signature: makeConfirmation(req, h.cards.hunter, h.keys.hunter).signature };
+  assert.match(confirmationProblems(req, [all[0], forged, all[2]]).join(' '), missing('mako'));
+  // For another change (another counter, or one key different): refused, and the holder still missing.
+  const other = { ...req, current: { ...req.current, counter: '7' }, dataToSign: undefined };
+  const stale = confirmationProblems(other, all).join(' ');
+  assert.match(stale, /Confirmation 1 was made for a different change \(check code [0-9a-f]{16}; this one is [0-9a-f]{16}\)/);
+  assert.match(stale, /No valid confirmation from "hunter"/);
+  const swapped = request(c, [
+    { kind: 'replace-authority', committee: [h.cards.hunter, h.cards.mako, makeKeyCard('backup', newKey())], threshold: 2 },
+  ]);
+  assert.match(confirmationProblems(swapped, all).join(' '), /Confirmation 3 was made for a different change/);
+  // The same change on another network is another message.
+  const elsewhere = { ...req, network: 'preprod', dataToSign: undefined };
+  assert.match(confirmationProblems(elsewhere, all).join(' '), /No valid confirmation from "hunter"/);
+  // Not a confirmation file at all.
+  assert.match(
+    confirmationProblems(req, [all[0], all[1], { nonsense: true }]).join(' '),
+    /Confirmation 3 is not a VeilCore committee confirmation file/,
+  );
+  // A maintenance signature is not a confirmation, and a confirmation is not a maintenance signature.
+  const s = signRequest(req, c.paperKey);
+  assert.match(confirmationProblems(req, [all[0], all[1], s]).join(' '), /Confirmation 3 is not a VeilCore committee confirmation file/);
+  const asSig = assembleSigned(req, [{ ...s, signature: all[0].signature }], c.authority());
+  assert.equal(asSig.ok, false);
+  assert.match(asSig.problems.join(' '), /Signature 1 does not verify/);
+  // A change that installs no committee needs none.
+  assert.deepEqual(confirmationProblems(request(c, [{ kind: 'retire' }]), []), []);
+  assert.throws(
+    () => makeConfirmation(request(c, [{ kind: 'retire' }]), h.cards.mako, h.keys.mako),
+    /is not one of the keys this change installs/,
+  );
 });
 
 test('the committee must be three different keys with a threshold of two', () => {
@@ -238,7 +431,7 @@ test('the ledger accepts committees VeilCore refuses (why core.mjs checks first)
       [new L.ReplaceAuthority(new L.ContractMaintenanceAuthority([pub(A)], 1, n))],
       0n,
     );
-    refusedBy(e, u.addSignature(0n, sig(e.paperKey, u.dataToSign)), /normal form/);
+    refusedBy(e, u.addSignature(0n, sig(e.paperKey, u.dataToSign)), NOT_NORMAL_FORM);
   }
 });
 
@@ -263,12 +456,12 @@ test('install: the paper key hands the contract to the 2-of-3 committee, and los
   const r = request(c, [{ kind: 'retire' }]);
   assert.throws(() => signRequest(r, c.paperKey), /not on the contract's current committee/);
   const raw = rebuildRequest(r);
-  refusedBy(c, raw.update.addSignature(0n, sig(c.paperKey, raw.update.dataToSign)), /invalid|threshold/);
+  refusedBy(c, raw.update.addSignature(0n, sig(c.paperKey, raw.update.dataToSign)), BAD_SIGNATURE(0));
   // One committee member alone cannot either.
   const one = assembleSigned(r, [signRequest(r, h.keys.mako)], c.authority());
   assert.equal(one.ok, false);
   assert.match(one.problems.join(), /1 valid signature.*2 are needed/);
-  refusedBy(c, raw.update.addSignature(1n, sig(h.keys.mako, raw.update.dataToSign)), /threshold/);
+  refusedBy(c, raw.update.addSignature(1n, sig(h.keys.mako, raw.update.dataToSign)), BELOW_THRESHOLD(1));
   assert.equal(c.authority().counter, after.counter, 'nothing changed');
 });
 
@@ -316,7 +509,7 @@ test('any two holders can rotate a lost key out; the lost key is then useless', 
     raw
       .addSignature(0n, sig(h.keys.hunter, raw.dataToSign))
       .addSignature(1n, sig(h.keys.mako, raw.dataToSign)),
-    /invalid/,
+    BAD_SIGNATURE(0),
   );
   // The new key does.
   const ok = assembleSigned(r2, [signRequest(r2, newHunter), signRequest(r2, h.keys.mako)], c.authority());
@@ -335,7 +528,7 @@ test('a signed change can be used once, and never after another change', () => {
   const a = assembleSigned(req, sigs, c.authority());
   assert.ok(a.ok);
   c.send(a.update);
-  refusedBy(c, a.update, /invalid|counter/); // replayed as is
+  refusedBy(c, a.update, WRONG_COUNTER); // replayed as is
   const again = assembleSigned(req, sigs, c.authority());
   assert.equal(again.ok, false);
   assert.match(again.problems.join(), /can never be used/);
@@ -418,7 +611,7 @@ test(
     const ops = () => c.state().index(c.address).operations();
     const rm = request(c, [{ kind: 'remove-key', circuit: 'anchor' }]);
     const one = rebuildRequest(rm).update;
-    refusedBy(c, one.addSignature(0n, sig(h.keys.hunter, one.dataToSign)), /threshold/);
+    refusedBy(c, one.addSignature(0n, sig(h.keys.hunter, one.dataToSign)), BELOW_THRESHOLD(1));
     c.send(assembleSigned(rm, [signRequest(rm, h.keys.hunter), signRequest(rm, h.keys.backup)], c.authority()).update);
     assert.deepEqual(ops(), ['pairDna']);
 
@@ -569,11 +762,13 @@ test('Ledger 9: after the install the old key is refused', needKeys, () => {
   // The ledger refuses it in every place, alone, doubled, or beside a real member.
   const raw = rebuildRequest(req).update;
   const old = sig(c.paperKey, raw.dataToSign);
-  for (const i of [0n, 1n, 2n, 3n]) refusedBy(c, raw.addSignature(i, old), /./);
-  refusedBy(c, raw.addSignature(0n, old).addSignature(1n, old), /./);
-  refusedBy(c, raw.addSignature(0n, old).addSignature(1n, sig(h.keys.mako, raw.dataToSign)), /./);
-  // The install itself cannot be sent a second time.
-  refusedBy(c, installUpdate, /./);
+  for (const i of [0, 1, 2]) refusedBy(c, raw.addSignature(BigInt(i), old), BAD_SIGNATURE(i));
+  refusedBy(c, raw.addSignature(3n, old), NOT_A_MEMBER(3));
+  refusedBy(c, raw.addSignature(0n, old).addSignature(1n, old), SIGNATURE_TWICE);
+  refusedBy(c, raw.addSignature(0n, old).addSignature(1n, sig(h.keys.mako, raw.dataToSign)), BAD_SIGNATURE(0));
+  // The install itself cannot be sent a second time: its one signature is the old key's, and
+  // place 0 is now a holder's.
+  refusedBy(c, installUpdate, BAD_SIGNATURE(0));
   assert.equal(c.authority().counter, 17n);
 });
 
@@ -587,9 +782,9 @@ test('Ledger 9: one signature is refused', needKeys, () => {
     const one = assembleSigned(req, [signRequest(req, h.keys[who])], c.authority());
     assert.equal(one.ok, false);
     assert.match(one.problems.join(), /1 valid signature.*2 are needed/);
-    refusedBy(c, raw.addSignature(BigInt(i), sig(h.keys[who], raw.dataToSign)), /threshold/i);
+    refusedBy(c, raw.addSignature(BigInt(i), sig(h.keys[who], raw.dataToSign)), BELOW_THRESHOLD(1));
   }
-  refusedBy(c, raw, /threshold/i); // and none at all
+  refusedBy(c, raw, BELOW_THRESHOLD(0)); // and none at all
   assert.equal(c.authority().counter, 17n);
 });
 
@@ -606,9 +801,9 @@ test('Ledger 9: the same holder signing twice is refused', needKeys, () => {
   assert.equal(assembleSigned(req, [m, { ...m, index: 0, publicKey: h.cards.hunter.publicKey }], c.authority()).ok, false);
   const raw = rebuildRequest(req).update;
   const s = sig(h.keys.mako, raw.dataToSign);
-  refusedBy(c, raw.addSignature(0n, s).addSignature(1n, s), /./);
-  refusedBy(c, raw.addSignature(1n, s).addSignature(2n, s), /./);
-  refusedBy(c, raw.addSignature(1n, s).addSignature(1n, s), /./);
+  refusedBy(c, raw.addSignature(0n, s).addSignature(1n, s), SIGNATURE_TWICE);
+  refusedBy(c, raw.addSignature(1n, s).addSignature(2n, s), SIGNATURE_TWICE);
+  refusedBy(c, raw.addSignature(1n, s).addSignature(1n, s), SIGNATURE_TWICE);
   assert.equal(c.authority().counter, 17n);
 });
 
@@ -655,7 +850,7 @@ test('Ledger 9: a wrong counter is refused', needKeys, () => {
     assert.match(put.problems.join(), /chain's counter is 16.*can never be used/s);
     // And the ledger refuses it when it is sent anyway.
     const raw = rebuildRequest(req).update;
-    refusedBy(c, raw.addSignature(0n, sk(s.signature)), /./);
+    refusedBy(c, raw.addSignature(0n, sk(s.signature)), WRONG_COUNTER);
   }
   // The right counter for the update, a wrong one inside the new authority (it must be 17).
   for (const next of [16n, 18n]) {
@@ -664,7 +859,7 @@ test('Ledger 9: a wrong counter is refused', needKeys, () => {
       [new L.ReplaceAuthority(new L.ContractMaintenanceAuthority(h.list.map((x) => sk(x.publicKey)), 2, next))],
       16n,
     );
-    refusedBy(c, u.addSignature(0n, sig(c.paperKey, u.dataToSign)), /./);
+    refusedBy(c, u.addSignature(0n, sig(c.paperKey, u.dataToSign)), NOT_NORMAL_FORM);
   }
   assert.equal(c.authority().counter, 16n);
   assert.equal(c.authority().committee.length, 1);
@@ -699,7 +894,7 @@ test('Ledger 9: a signature made with ledger-v8 is refused', needKeys, () => {
     /before Midnight's Ledger 9 upgrade/,
   );
   // Sent anyway: the ledger refuses it, and nothing changes.
-  refusedBy(c, raw.addSignature(0n, sk(sig8)), /./);
+  refusedBy(c, raw.addSignature(0n, sk(sig8)), BAD_SIGNATURE(0));
   assert.equal(c.authority().counter, 16n);
   // A Ledger 8 transaction is not even read by Ledger 9.
   const tx8 = L8.Transaction.fromParts(
@@ -879,6 +1074,40 @@ test('sendMaintenanceUpdate: sent once, confirmed from the chain, never twice', 
   assert.equal(e.authority().committee.length, 1);
 });
 
+test('before anything is sent: the transaction must read back the same in the ledger copy the wallet uses', async () => {
+  const c = chain();
+  const { update, landed } = signedInstall(c, holders());
+  // ledger-v9 1.0.1 built it; ledger-v9 1.0.0 (midnight-js 5.0.0, the wallet) reads the same bytes.
+  assert.equal(L900.Transaction === L.Transaction, false, 'two separate copies of the ledger');
+  assert.doesNotThrow(() => assertReadableByWalletLedger(c.tx(update), update));
+  const bytes = c.tx(update).serialize();
+  const back = L900.Transaction.deserialize('signature', 'pre-proof', 'pre-binding', bytes);
+  assert.deepEqual(Buffer.from(back.serialize()), Buffer.from(bytes));
+  assert.deepEqual(
+    Buffer.from(L.Transaction.deserialize('signature', 'pre-proof', 'pre-binding', back.serialize()).serialize()),
+    Buffer.from(bytes),
+  );
+  // A wallet ledger that cannot read it, reads it differently, or reads another update: stopped.
+  const cannot = { deserialize: () => { throw new Error('unknown tag'); } };
+  const differs = { deserialize: () => ({ serialize: () => bytes.slice(1), intents: new Map() }) };
+  const other = rebuildRequest(request(c, [{ kind: 'retire' }])).update;
+  for (const [decoder, u, why] of [
+    [cannot, update, /does not read this transaction as it was built \(it could not be read: unknown tag\)/],
+    [differs, update, /does not read this transaction as it was built \(it reads back as different bytes\)/],
+    [undefined, other, /does not read this transaction as it was built \(it does not hold this one maintenance update\)/],
+  ])
+    assert.throws(() => assertReadableByWalletLedger(c.tx(update), u, decoder), why);
+  // In the sending path it comes before the proof server and the wallet: nothing is submitted.
+  let submitted = 0;
+  const providers = framework(c, { watch: () => false, submit: () => `tx${++submitted}` });
+  await assert.rejects(
+    () => sendMaintenanceUpdate(providers, c.address, update, landed, { waitMs: 1, walletLedgerTransaction: cannot }),
+    /it could not be read: unknown tag\)\. The two ledger versions in this tool no longer agree\. Nothing was sent\./,
+  );
+  assert.equal(submitted, 0);
+  assert.equal(c.authority().counter, 0n, 'nothing changed on chain');
+});
+
 // ──────────────────────────────────────────────────────────── the offline tool
 
 const tmp = () => mkdtempSync(path.join(os.tmpdir(), 'committee-test-'));
@@ -998,4 +1227,120 @@ test('sign: shows the change, asks for SIGN, writes a signature that counts', as
   const pin = await cli(['sign', '--request', 'main.json', '--out', 'y.json'], ['SIGN', h.keys.mako], dir);
   assert.equal(pin.code, 1);
   assert.match(pin.screen, /only for the pinned VeilCore main contract/);
+});
+
+test('keygen --practice: a practice card needs the flag and the name, and says what it is', async () => {
+  const dir = tmp();
+  const key = path.join(dir, 'p.key');
+  const made = await cli(['keygen', '--practice', '--holder', 'practice-mako', '--out', key], [], dir);
+  assert.equal(made.code, 0, made.screen);
+  assert.match(made.screen, /PRACTICE KEY: for a rehearsal only\. Its card is marked as practice and is refused on mainnet\./);
+  const card = JSON.parse(readFileSync(path.join(dir, 'committee-key-practice-mako.json'), 'utf8'));
+  assert.equal(card.practice, true);
+  assert.deepEqual(checkKeyCard(card), { ok: true, holder: 'practice-mako', publicKey: card.publicKey, practice: true });
+  assert.equal(JSON.parse(readFileSync(key, 'utf8')).practice, true);
+  const checked = await cli(['check', '--card', 'committee-key-practice-mako.json', '--key-file', key], [], dir);
+  assert.equal(checked.code, 0);
+  assert.match(checked.screen, /This is a PRACTICE card: for a rehearsal only\. It is refused on mainnet\./);
+  // The flag without the name, the name without the flag, the flag with a value: nothing is made.
+  const noName = await cli(['keygen', '--practice', '--holder', 'mako', '--out', path.join(dir, 'a.key')], [], dir);
+  assert.equal(noName.code, 1);
+  assert.match(noName.screen, /A practice key's holder name must start with "practice-": --practice --holder practice-mako\. Nothing was made\./);
+  const noFlag = await cli(['keygen', '--holder', 'practice-hunter', '--out', path.join(dir, 'b.key')], [], dir);
+  assert.equal(noFlag.code, 1);
+  assert.match(noFlag.screen, /A holder name that starts with "practice-" is for rehearsals: add --practice\. Nothing was made\./);
+  const valued = await cli(['keygen', '--holder', 'practice-x', '--practice', 'yes', '--out', path.join(dir, 'c.key')], [], dir);
+  assert.equal(valued.code, 1);
+  assert.match(valued.screen, /--practice takes no value\. Nothing was made\./);
+  for (const f of ['a.key', 'b.key', 'c.key', 'committee-key-mako.json', 'committee-key-practice-hunter.json'])
+    assert.equal(existsSync(path.join(dir, f)), false, f);
+  // A real key says nothing about practice.
+  const real = await cli(['keygen', '--holder', 'mako', '--out', path.join(dir, 'm.key')], [], dir);
+  assert.equal(real.code, 0);
+  assert.doesNotMatch(real.screen, /PRACTICE/);
+  assert.equal('practice' in JSON.parse(readFileSync(path.join(dir, 'committee-key-mako.json'), 'utf8')), false);
+});
+
+test('confirm: a new holder signs the check code from the dry-run record, offline, with the stored key', async () => {
+  const c = chain();
+  const h = holders();
+  const dir = tmp();
+  const req = request(c, [{ kind: 'replace-authority', committee: h.list, threshold: 2 }]);
+  const digest = sha256(rebuildRequest(req).update.dataToSign);
+  const record = { format: DRY_RUN_FORMAT, network: NET, dataToSignSha256: digest, request: req };
+  const write = (name, value) => writeFileSync(path.join(dir, name), JSON.stringify(value));
+  write('dry.json', record);
+  for (const who of ['hunter', 'mako', 'backup']) write(`${who}.json`, h.cards[who]);
+  const base = ['confirm', '--record', 'dry.json'];
+
+  // Not typed: nothing signed. The change and its check code are shown first.
+  const no = await cli([...base, '--card', 'mako.json', '--out', 'no.json'], ['yes'], dir);
+  assert.equal(no.code, 1);
+  assert.match(no.screen, new RegExp(`Check code: ${digest.slice(0, 16)}`));
+  assert.match(no.screen, /After: +3 keys, 2 signatures needed, counter 1\./);
+  assert.match(no.screen, /Not confirmed\. Nothing was signed\./);
+  // Real cards on a test network: a warning for each, not a refusal. Practice cards: none.
+  assert.equal(no.screen.match(/WARNING: "(hunter|mako|backup)" \(.{17}\) is NOT a practice card, and this is undeployed/g).length, 3);
+  const quiet = practiceHolders();
+  const pr = request(c, [{ kind: 'replace-authority', committee: quiet.list, threshold: 2 }]);
+  write('p-req.json', pr);
+  const shown = await cli(['read', '--request', 'p-req.json'], [], dir);
+  assert.equal(shown.code, 0);
+  assert.doesNotMatch(shown.screen, /NOT a practice card/);
+  write('real-req.json', req);
+  assert.match((await cli(['read', '--request', 'real-req.json'], [], dir)).screen, /WARNING: "hunter" .* is NOT a practice card/);
+  // A stored copy that is not the card's key (the typo this step exists to find): nothing written.
+  const typo = await cli([...base, '--card', 'mako.json', '--out', 'typo.json'], ['CONFIRM', newKey()], dir);
+  assert.equal(typo.code, 1);
+  assert.match(typo.screen, /That key is NOT the one on mako's card .* Nothing was signed\. Tell the person installing the committee: it must not be sent\./);
+  // From paper, and from a key file: the key is never on screen or in the file.
+  const yes = await cli([...base, '--card', 'mako.json', '--out', 'c-mako.json'], ['CONFIRM', h.keys.mako], dir);
+  assert.equal(yes.code, 0, yes.screen);
+  assert.match(yes.screen, new RegExp(`Confirmed by mako \\(.{17}\\) for check code ${digest.slice(0, 16)}\\.`));
+  assert.doesNotMatch(yes.screen, new RegExp(h.keys.mako));
+  assert.doesNotMatch(readFileSync(path.join(dir, 'c-mako.json'), 'utf8'), new RegExp(h.keys.mako));
+  const files = [JSON.parse(readFileSync(path.join(dir, 'c-mako.json'), 'utf8'))];
+  for (const who of ['hunter', 'backup']) {
+    const keyFile = path.join(tmp(), `${who}.key`);
+    writeFileSync(keyFile, JSON.stringify({ signingKey: h.keys[who] }));
+    const r = await cli([...base, '--card', `${who}.json`, '--key-file', keyFile, '--out', `c-${who}.json`], ['CONFIRM'], dir);
+    assert.equal(r.code, 0, r.screen);
+    files.push(JSON.parse(readFileSync(path.join(dir, `c-${who}.json`), 'utf8')));
+  }
+  assert.deepEqual(confirmationProblems(req, files), [], 'the three files are what the sending tool needs');
+  // A card that is not one of the three.
+  const eve = newKey();
+  write('eve.json', makeKeyCard('eve', eve));
+  const out = await cli([...base, '--card', 'eve.json', '--out', 'eve-c.json'], ['CONFIRM', eve], dir);
+  assert.equal(out.code, 1);
+  assert.match(out.screen, /"eve" \(.{17}\) is not one of the keys this change installs\. .* Nothing was signed\./);
+  // A record whose check code is not its request's, an old-format record, a change with no committee.
+  write('edited.json', { ...record, dataToSignSha256: 'ab'.repeat(32) });
+  const edited = await cli(['confirm', '--record', 'edited.json', '--card', 'mako.json'], ['CONFIRM', h.keys.mako], dir);
+  assert.equal(edited.code, 1);
+  assert.match(edited.screen, /The record says one check code and the change inside it gives another: the file was changed after it was made\./);
+  write('v1.json', { ...record, format: 'veilcore-maintenance-dry-run/v1' });
+  const v1 = await cli(['confirm', '--record', 'v1.json', '--card', 'mako.json'], ['CONFIRM', h.keys.mako], dir);
+  assert.equal(v1.code, 1);
+  assert.match(v1.screen, /v1\.json is not a dry-run record \(veilcore-maintenance-dry-run\/v2\)/);
+  const retire = request(c, [{ kind: 'retire' }]);
+  write('retire.json', { ...record, request: retire, dataToSignSha256: sha256(rebuildRequest(retire).update.dataToSign) });
+  const none = await cli(['confirm', '--record', 'retire.json', '--card', 'mako.json'], ['CONFIRM', h.keys.mako], dir);
+  assert.equal(none.code, 1);
+  assert.match(none.screen, /This change installs no new committee, so there is nothing to confirm\. Nothing was signed\./);
+  // On mainnet: only for the pinned contract, and never for practice cards.
+  const main = { ...req, network: 'mainnet', dataToSign: undefined };
+  write('main.json', { ...record, request: main, dataToSignSha256: sha256(rebuildRequest(main).update.dataToSign) });
+  const pin = await cli(['confirm', '--record', 'main.json', '--card', 'mako.json'], ['CONFIRM', h.keys.mako], dir);
+  assert.equal(pin.code, 1);
+  assert.match(pin.screen, /on mainnet this tool confirms only for the pinned VeilCore main contract\. Nothing was signed\./);
+  const p = practiceHolders();
+  const practice = { ...request(c, [{ kind: 'replace-authority', committee: p.list, threshold: 2 }]), network: 'mainnet', dataToSign: undefined };
+  write('practice.json', { ...record, request: practice });
+  write('p-hunter.json', p.list[0]);
+  const refused = await cli(['confirm', '--record', 'practice.json', '--card', 'p-hunter.json'], ['CONFIRM', p.keys.hunter], dir);
+  assert.equal(refused.code, 1);
+  assert.match(refused.screen, /This change cannot be confirmed: "practice-hunter" is a PRACTICE card.*never accepted on mainnet/s);
+  for (const f of ['no.json', 'typo.json', 'eve-c.json'])
+    assert.equal(existsSync(path.join(dir, f)), false, f);
 });

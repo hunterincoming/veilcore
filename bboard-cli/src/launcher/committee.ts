@@ -7,24 +7,35 @@
  *
  *   network   mainnet | preprod | undeployed (a local chain)
  *   command   show                       read the authority now (no wallet, sends nothing)
- *             install --card A --card B --card C [--dry-run]
+ *             install --card A --card B --card C [--dry-run] [--confirm FILE x3]
  *                                        the CURRENT single key (typed from paper) hands the
  *                                        contract to the three keys on the cards, any 2 of 3
  *             request --replace --card A --card B --card C | --retire |
  *                     --remove CIRCUIT ... | --insert CIRCUIT=FILE ...  [--reason TEXT] [--out FILE]
  *                                        write a request file for the holders to sign
- *             submit --request FILE --sig FILE --sig FILE [--dry-run]
+ *             submit --request FILE --sig FILE --sig FILE [--dry-run] [--confirm FILE x3]
  *                                        check the signatures against the chain and send it
  *   --address HEX   the contract, on preprod or a local chain (mainnet: always the pinned one)
  *
  * --dry-run reads the chain, builds and checks everything, and stops before the wallet:
  * nothing is sent. It writes a dry-run record (a public file: what was checked, for which
- * counter).
+ * counter, when, and the request itself).
  *
  * MAINNET IS OFF BY DEFAULT. On mainnet, install and submit send nothing unless the command
  * has both --send-on-mainnet and --dry-run-record FILE, where FILE is the record a --dry-run
- * of exactly the same change wrote, for the counter the chain still shows. Without them the
- * command is refused before anything is read or typed. Every run prints exactly what will
+ * of exactly the same change wrote in the last 24 hours, for the counter the chain still
+ * shows. Without them the command is refused before anything is read or typed. The record is
+ * a speed bump, not proof that a dry run happened: it is a plain file, and everything in it
+ * that can be worked out again is, and compared.
+ *
+ * A NEW COMMITTEE NEEDS ITS HOLDERS' CONFIRMATIONS. A change that installs a committee is
+ * sent on mainnet only with --confirm FILE three times: each new holder's signature over the
+ * dry run's check code, made offline with their stored key (scripts/committee/cli.mjs
+ * confirm). All three are verified before the paper key or the wallet is asked for. On a
+ * test network they are checked when given.
+ *
+ * PRACTICE CARDS (keygen --practice) are refused by every mainnet command. On a test network
+ * a card that is not a practice card gets a warning, not a refusal. Every run prints exactly what will
  * change (each key that can change the contract now, each key afterwards, the counter before
  * and after) and warns that a wrong committee key is permanent.
  *
@@ -57,13 +68,19 @@ import {
   type AuthorityView,
   type KeyCard,
   type Request,
+  DRY_RUN_FORMAT,
+  DRY_RUN_MAX_AGE_MS,
+  PRACTICE_ON_MAINNET,
   assembleSigned,
   changeSummary,
   checkKeyCard,
+  confirmationProblems,
   describeRequest,
   fingerprint,
+  isPracticeCard,
   isRetired,
   makeRequest,
+  newCommittee,
   parseSigningKey,
   rebuildRequest,
   requestLanded,
@@ -115,6 +132,8 @@ export type Options = {
   readonly address?: string;
   readonly cards: string[];
   readonly sigs: string[];
+  /** New holders' confirmations of the check code (needed to send a new committee on mainnet). */
+  readonly confirms: string[];
   readonly request?: string;
   readonly replace: boolean;
   readonly retire: boolean;
@@ -127,12 +146,17 @@ export type Options = {
 export const USAGE = `Usage: committee.ts <mainnet|preprod|undeployed> <show|install|request|submit> [options]
   show
   install --card FILE --card FILE --card FILE [--dry-run] [--out FILE]
+          [--confirm FILE --confirm FILE --confirm FILE]
   request (--replace --card FILE --card FILE --card FILE | --retire | --remove CIRCUIT ... | --insert CIRCUIT=VKFILE ...)
           [--reason TEXT] [--out FILE]
   submit  --request FILE --sig FILE --sig FILE [--dry-run] [--out FILE]
+          [--confirm FILE --confirm FILE --confirm FILE]
   --address HEX   the contract on preprod or a local chain (mainnet always uses the pinned address)
   --send-on-mainnet --dry-run-record FILE
-                  mainnet only, both needed to send: FILE is what --dry-run wrote for the same change
+                  mainnet only, both needed to send: FILE is what --dry-run wrote for the same change,
+                  in the last 24 hours
+  --confirm FILE  each new holder's confirmation of the dry run's check code (cli.mjs confirm);
+                  all three are needed to send a new committee on mainnet
 See docs/maintenance-committee.md.`;
 
 export const MAINNET_OFF =
@@ -154,6 +178,7 @@ export const parseOptions = (argv: readonly string[]): Options => {
     sendOnMainnet: false,
     cards: [] as string[],
     sigs: [] as string[],
+    confirms: [] as string[],
     replace: false,
     retire: false,
     remove: [] as string[],
@@ -193,6 +218,9 @@ export const parseOptions = (argv: readonly string[]): Options => {
         break;
       case '--sig':
         o.sigs.push(value());
+        break;
+      case '--confirm':
+        o.confirms.push(value());
         break;
       case '--request':
         o.request = value();
@@ -237,6 +265,8 @@ export const parseOptions = (argv: readonly string[]): Options => {
     throw new UsageError(
       '--send-on-mainnet and --dry-run-record are for the run that sends (install or submit, without --dry-run).',
     );
+  if (o.confirms.length > 0 && !sends)
+    throw new UsageError('--confirm is for the run that sends (install or submit, without --dry-run).');
   if (o.network === 'mainnet' && sends && !(o.sendOnMainnet && o.dryRunRecord !== undefined))
     throw new UsageError(MAINNET_OFF);
   return o;
@@ -250,14 +280,26 @@ const readJson = (file: string, what: string): unknown => {
   }
 };
 
-/** The three cards, each checked (format, valid key, proof of possession). */
-const readCards = (files: readonly string[]): KeyCard[] =>
+/**
+ * The cards, each checked (format, valid key, proof of possession). On mainnet a practice
+ * card is refused, whatever the command. On a test network a card that is NOT a practice card
+ * gets a warning: it may be a real card being checked, which is allowed.
+ */
+const readCards = (files: readonly string[], network: Network, logger: Logger): KeyCard[] =>
   files.map((f) => {
     const card = readJson(f, 'key card');
     const c = checkKeyCard(card);
     if (!c.ok) throw new UsageError(`${f}: ${c.problem}`);
+    if (network === 'mainnet' && c.practice)
+      throw new UsageError(`${f}: "${c.holder}" ${PRACTICE_ON_MAINNET} Nothing was read, signed or sent.`);
+    if (network !== 'mainnet' && !c.practice) logger.warn(notPracticeWarning(c.holder, c.publicKey, network));
     return card as KeyCard;
   });
+
+export const notPracticeWarning = (holder: string, publicKey: string, network: string): string =>
+  `WARNING: "${holder}" (${fingerprint(publicKey)}) is NOT a practice card, and this is ${network}, a test ` +
+  'network. For a rehearsal, make practice keys (keygen --practice --holder practice-NAME). If this is a real ' +
+  'card being checked here, never delete its key.';
 
 /** Write a public file, never over an existing one. */
 const writePublic = (file: string, value: unknown): string => {
@@ -454,7 +496,7 @@ const openWallet = async (
  * Public: it holds no key and no signature.
  */
 
-export const DRY_RUN_FORMAT = 'veilcore-maintenance-dry-run/v1';
+export { DRY_RUN_FORMAT };
 
 type DryRunRecord = {
   readonly format: string;
@@ -466,7 +508,10 @@ type DryRunRecord = {
   /** SHA-256 of the exact bytes the signatures cover: the address, the change and the counter. */
   readonly dataToSignSha256: string;
   readonly change: string[];
-  readonly checkedAt: string;
+  /** When the dry run was made. A record older than 24 hours is refused. */
+  readonly createdAt: string;
+  /** The request that was checked (public). Holders confirm a new committee from it. */
+  readonly request: Request;
 };
 
 const digestOf = (update: { readonly dataToSign: Uint8Array }): string =>
@@ -482,31 +527,70 @@ const writeDryRunRecord = (
   const digest = digestOf(update);
   const record: DryRunRecord = {
     format: DRY_RUN_FORMAT,
-    what: 'A VeilCore maintenance change, checked against the chain in a dry run. Nothing was sent.',
+    what:
+      'A VeilCore maintenance change, checked against the chain in a dry run. Nothing was sent. This file is ' +
+      'not proof of anything: the tool works everything in it out again before it sends.',
     network: o.network,
     contractAddress: req.contractAddress,
     counterBefore: String(current.counter),
     counterAfter: String(current.counter + 1n),
     dataToSignSha256: digest,
     change: changeSummary(req),
-    checkedAt: new Date().toISOString(),
+    createdAt: new Date().toISOString(),
+    request: req,
   };
   if (o.out !== undefined) return writePublic(o.out, record);
-  // The default name holds the counter and the check code, so a file already there is for this same change.
-  const file = path.resolve(`dry-run-${o.network}-counter-${record.counterBefore}-${digest.slice(0, 16)}.json`);
-  if (!existsSync(file)) writePublic(file, record);
-  return file;
+  // The default name holds the counter, the check code and the time: one file for each dry run.
+  return writePublic(
+    `dry-run-${o.network}-counter-${record.counterBefore}-${digest.slice(0, 16)}-${record.createdAt.replace(/[-:]|\.\d+/g, '')}.json`,
+    record,
+  );
+};
+
+/** A clock a little ahead of this one is not a record from the future. */
+const DRY_RUN_FUTURE_MS = 5 * 60 * 1000;
+
+const readJsonFiles = (files: readonly string[], what: string): unknown[] | { problem: string } => {
+  const out: unknown[] = [];
+  for (const f of files) {
+    try {
+      out.push(JSON.parse(readFileSync(f, 'utf8')) as unknown);
+    } catch (e) {
+      return { problem: `Could not read the ${what} ${f}: ${e instanceof Error ? e.message : String(e)}` };
+    }
+  }
+  return out;
 };
 
 /**
- * On mainnet: the reasons this change must not be sent, or none. It needs --send-on-mainnet
- * and the record of a dry run of exactly this change, for the counter the chain shows now.
+ * The new holders' confirmations (--confirm): the reasons this change must not be sent, or
+ * none. A change that installs a committee needs a valid confirmation from each of its three
+ * holders on mainnet; on a test network they are checked when any is given.
+ */
+export const confirmationSendProblems = (o: Pick<Options, 'network' | 'confirms'>, req: Request): string[] => {
+  if (newCommittee(req).length === 0) return [];
+  if (o.network !== 'mainnet' && o.confirms.length === 0) return [];
+  const files = readJsonFiles(o.confirms, 'confirmation');
+  if ('problem' in files) return [files.problem, 'Nothing was sent.'];
+  const problems = confirmationProblems(req, files);
+  return problems.length === 0 ? [] : [...problems, 'Nothing was sent.'];
+};
+
+/**
+ * On mainnet: the reasons this change must not be sent, or none. It needs --send-on-mainnet,
+ * the record of a dry run of exactly this change made in the last 24 hours for the counter the
+ * chain shows now, and, for a new committee, each new holder's confirmation.
+ *
+ * The record is a speed bump, not proof: it is a plain file anyone could write. So nothing in
+ * it is trusted. Every field is compared with what this run works out for itself from the
+ * chain and the command line, and the request inside it is rebuilt and must give the same bytes.
  */
 export const mainnetSendProblems = (
-  o: Pick<Options, 'network' | 'sendOnMainnet' | 'dryRunRecord'>,
+  o: Pick<Options, 'network' | 'sendOnMainnet' | 'dryRunRecord' | 'confirms'>,
   req: Request,
   update: { readonly dataToSign: Uint8Array },
   current: AuthorityView,
+  now: number = Date.now(),
 ): string[] => {
   if (o.network !== 'mainnet') return [];
   if (!o.sendOnMainnet || o.dryRunRecord === undefined) return [MAINNET_OFF];
@@ -518,7 +602,7 @@ export const mainnetSendProblems = (
   }
   const problems: string[] = [];
   if (r === null || typeof r !== 'object' || r.format !== DRY_RUN_FORMAT)
-    return [`${o.dryRunRecord} is not a dry-run record (${DRY_RUN_FORMAT}).`];
+    return [`${o.dryRunRecord} is not a dry-run record (${DRY_RUN_FORMAT}). Make a new dry run with this tool.`];
   if (r.network !== 'mainnet') problems.push(`The dry-run record is for ${String(r.network)}, not mainnet.`);
   if (r.contractAddress !== req.contractAddress) problems.push('The dry-run record is for a different contract.');
   if (r.counterBefore !== String(current.counter))
@@ -526,10 +610,47 @@ export const mainnetSendProblems = (
       `The dry run was made at counter ${String(r.counterBefore)}; the chain now shows ${current.counter}. ` +
         'Something changed the contract since. Start again from a new dry run.',
     );
-  if (r.dataToSignSha256 !== digestOf(update))
+  else if (r.counterAfter !== String(current.counter + 1n))
+    problems.push(
+      `The dry-run record gives the counter after the change as ${String(r.counterAfter)}; it would be ${current.counter + 1n}.`,
+    );
+  const digest = digestOf(update);
+  if (r.dataToSignSha256 !== digest)
     problems.push('The dry-run record is for a different change than this one (other keys, or another request).');
-  return problems.length === 0 ? [] : [...problems, 'Nothing was sent.'];
+  // Its age. The time is in the file, so this stops an old record, not a made-up one.
+  const made = typeof r.createdAt === 'string' ? Date.parse(r.createdAt) : NaN;
+  if (
+    typeof r.createdAt !== 'string' ||
+    !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z$/.test(r.createdAt) ||
+    Number.isNaN(made)
+  )
+    problems.push('The dry-run record does not say when it was made. Make a new dry run.');
+  else if (made > now + DRY_RUN_FUTURE_MS)
+    problems.push(`The dry-run record says it was made in the future (${r.createdAt}). Make a new dry run.`);
+  else if (now - made > DRY_RUN_MAX_AGE_MS)
+    problems.push(
+      `The dry-run record is more than 24 hours old (made ${r.createdAt}). Make a new dry run, and send within ` +
+        '24 hours of it.',
+    );
+  // The request inside it, rebuilt: the same bytes, for the same network and contract.
+  const inside = rebuildRequest(r.request);
+  if (!inside.ok)
+    problems.push(`The request inside the dry-run record is not acceptable: ${inside.problems.join(' ')}`);
+  else if (
+    digestOf(inside.update) !== digest ||
+    r.request?.network !== 'mainnet' ||
+    r.request.contractAddress !== req.contractAddress
+  )
+    problems.push('The request inside the dry-run record is not this change.');
+  if (!Array.isArray(r.change) || r.change.join('\n') !== changeSummary(req).join('\n'))
+    problems.push('What the dry-run record says will change is not what this run would change.');
+  if (problems.length > 0) return [...problems, 'Nothing was sent.'];
+  return confirmationSendProblems(o, req);
 };
+
+/** Every reason not to send, on any network (the mainnet switch, and the confirmations). */
+const sendProblems = (o: Options, req: Request, update: { readonly dataToSign: Uint8Array }, current: AuthorityView) =>
+  o.network === 'mainnet' ? mainnetSendProblems(o, req, update, current) : confirmationSendProblems(o, req);
 
 /* **********************************************************************
  * The commands.
@@ -566,9 +687,10 @@ const send = async (
   word: string,
 ): Promise<boolean> => {
   const { o, prompt, logger } = c;
-  // Mainnet is off by default (top of file): the flag and a dry-run record of exactly this
-  // change, for the counter the chain shows now. Checked before a wallet is opened.
-  const blocked = mainnetSendProblems(o, req, update, current);
+  // Mainnet is off by default (top of file): the flag, a dry-run record of exactly this change
+  // for the counter the chain shows now, and a new committee's confirmations. Checked before a
+  // wallet is opened.
+  const blocked = sendProblems(o, req, update, current);
   if (blocked.length > 0) {
     for (const l of blocked) logger.error(l);
     return false;
@@ -637,15 +759,17 @@ const send = async (
 
 const show = async ({ o, logger, reader }: Ctx): Promise<boolean> => {
   const address = contractOf(o);
+  // The cards first: a practice card on mainnet is refused before the chain is read.
+  const cards = readCards(o.cards, o.network, logger);
   const a = await readAuthorityNow(reader, address);
   logger.info(`Contract ${address} on ${o.network}:`);
-  for (const l of describeAuthority(a, readCards(o.cards))) logger.info(l);
+  for (const l of describeAuthority(a, cards)) logger.info(l);
   return true;
 };
 
 const install = async (c: Ctx): Promise<boolean> => {
   const { o, prompt, logger } = c;
-  const cards = readCards(o.cards);
+  const cards = readCards(o.cards, o.network, logger);
   const address = contractOf(o);
   const current = await readAuthorityNow(c.reader, address);
   logger.info(`The authority now: ${describeAuthority(current).join(' ')}`);
@@ -668,9 +792,10 @@ const install = async (c: Ctx): Promise<boolean> => {
   const rebuilt = rebuildRequest(req);
   if (!rebuilt.ok) throw new UsageError(rebuilt.problems.join(' '));
   for (const l of describeRequest(req, rebuilt, { pinnedMainnetAddress: MAINNET_VEILCORE_ADDRESS })) logger.info(l);
-  // On mainnet, hold the run that sends to its dry run before the paper key is asked for.
+  // Hold the run that sends to its dry run (mainnet) and to the new holders' confirmations
+  // before the paper key is asked for.
   if (!o.dryRun) {
-    const blocked = mainnetSendProblems(o, req, rebuilt.update, current);
+    const blocked = sendProblems(o, req, rebuilt.update, current);
     if (blocked.length > 0) {
       for (const l of blocked) logger.error(l);
       return false;
@@ -715,9 +840,11 @@ const install = async (c: Ctx): Promise<boolean> => {
     logger.info(
       'DRY RUN, nothing sent: the paper key is the one on chain, the three cards are valid and different, and the ' +
         `change is built for counter ${current.counter}. Dry-run record (public, no secrets): ${record}. ` +
+        CONFIRM_NEXT +
         (o.network === 'mainnet'
-          ? 'To send on mainnet, run again with --send-on-mainnet --dry-run-record and that file in place of --dry-run.'
-          : 'Run again without --dry-run to send it.'),
+          ? 'Then, to send on mainnet within 24 hours, run again with --send-on-mainnet --dry-run-record and that ' +
+            'file, and --confirm three times, in place of --dry-run.'
+          : 'Run again without --dry-run to send it (with --confirm three times to check the confirmations).'),
     );
     return true;
   }
@@ -725,17 +852,30 @@ const install = async (c: Ctx): Promise<boolean> => {
   if (done)
     logger.info(
       'Installed. The old paper key can no longer change anything: once a second check (show) agrees, destroy ' +
-        'both paper copies of it (docs/maintenance-committee.md, step 7).',
+        'both paper copies of it (docs/maintenance-committee.md, Part 2, step 9).',
     );
   return done;
 };
 
+const CONFIRM_NEXT =
+  'Next, each of the three new holders signs the check code with their stored key, offline: ' +
+  'node scripts/committee/cli.mjs confirm --record <that file> --card <their card>. ';
+
+/** On a test network: a warning for each card of a new committee that is not a practice card. */
+const warnRealCards = (o: Options, req: Request, logger: Logger): void => {
+  if (o.network === 'mainnet') return;
+  for (const card of newCommittee(req))
+    if (!isPracticeCard(card)) logger.warn(notPracticeWarning(card.holder, card.publicKey, o.network));
+};
+
 const requestCommand = async ({ o, logger, reader }: Ctx): Promise<boolean> => {
   const address = contractOf(o);
+  // The cards first: a practice card on mainnet is refused before the chain is read.
+  const cards = o.replace ? readCards(o.cards, o.network, logger) : [];
   const current = await readAuthorityNow(reader, address);
   if (isRetired(current)) throw new UsageError('This contract is retired: nobody can change it.');
   let actions: Action[];
-  if (o.replace) actions = [{ kind: 'replace-authority', committee: readCards(o.cards), threshold: 2 }];
+  if (o.replace) actions = [{ kind: 'replace-authority', committee: cards, threshold: 2 }];
   else if (o.retire) actions = [{ kind: 'retire' }];
   else
     actions = [
@@ -752,8 +892,17 @@ const requestCommand = async ({ o, logger, reader }: Ctx): Promise<boolean> => {
         };
       }),
     ];
-  const req = makeRequest({ network: o.network, contractAddress: address, current, actions, reason: o.reason });
-  const rebuilt = rebuildRequest(req);
+  // A single key that can change the contract today cannot be a member of the new committee:
+  // the same rule as install. core.mjs applies it to every request by itself; it is said here
+  // too so the rule does not rest on one place.
+  const forbid = current.committee.length === 1 ? current.committee : [];
+  let req: Request;
+  try {
+    req = makeRequest({ network: o.network, contractAddress: address, current, actions, reason: o.reason, forbid });
+  } catch (e) {
+    throw new UsageError(e instanceof Error ? e.message : String(e));
+  }
+  const rebuilt = rebuildRequest(req, { forbid });
   if (!rebuilt.ok) throw new UsageError(rebuilt.problems.join(' '));
   for (const l of describeRequest(req, rebuilt, { pinnedMainnetAddress: MAINNET_VEILCORE_ADDRESS })) logger.info(l);
   const file = writePublic(
@@ -776,15 +925,20 @@ const submit = async (c: Ctx): Promise<boolean> => {
   const rebuilt = rebuildRequest(req);
   if (!rebuilt.ok) throw new UsageError(rebuilt.problems.join(' '));
   for (const l of describeRequest(req, rebuilt, { pinnedMainnetAddress: MAINNET_VEILCORE_ADDRESS })) logger.info(l);
+  warnRealCards(o, req, logger);
   const current = await readAuthorityNow(c.reader, address);
   if (requestLanded(req, current)) {
     logger.info('The chain already shows this change. Nothing to send.');
     return true;
   }
+  // A single key that can change the contract today cannot be a member of the new committee,
+  // judged against the chain as it is now, not only against what the request file says.
+  const forbid = current.committee.length === 1 ? current.committee : [];
   const signed = assembleSigned(
     req,
     o.sigs.map((f) => readJson(f, 'signature')),
     current,
+    { forbid },
   );
   if (!signed.ok) throw new UsageError(signed.problems.join(' '));
   for (const w of signed.warnings) logger.warn(`Ignored: ${w}`);
@@ -793,8 +947,11 @@ const submit = async (c: Ctx): Promise<boolean> => {
     const record = writeDryRunRecord(o, req, signed.update, current);
     logger.info(
       `DRY RUN, nothing sent: the signatures are valid for the chain as it is now. Dry-run record (public, no secrets): ${record}. ` +
+        (newCommittee(req).length > 0 ? CONFIRM_NEXT : '') +
         (o.network === 'mainnet'
-          ? 'To send on mainnet, run again with --send-on-mainnet --dry-run-record and that file in place of --dry-run.'
+          ? 'To send on mainnet within 24 hours, run again with --send-on-mainnet --dry-run-record and that file ' +
+            (newCommittee(req).length > 0 ? '(and --confirm three times) ' : '') +
+            'in place of --dry-run.'
           : 'Run again without --dry-run to send.'),
     );
     return true;

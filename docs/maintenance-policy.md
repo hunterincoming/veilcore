@@ -78,10 +78,11 @@ authority is replaced by the committee in one published maintenance transaction.
 
 **Status, 14 November 2026: the committee has not been installed, and the single key is
 live.** Mainnet moved to Ledger 9 on 6 November 2026 before the committee was installed.
-Since then VeilCore's own tools refuse to use the key on mainnet (the committee tool, which
-exists to replace it, sends there only when asked with an explicit option after a dry run),
-but the network still accepts it: either paper copy alone can still change the contract, so
-treat it as live.
+The network still accepts the key: either paper copy alone can still change the contract, so
+treat it as live. Of VeilCore's own tools, the committee tool, which exists to replace the
+key, can use it on mainnet, and only with an explicit option after a dry run (and, to install
+the committee, each new holder's signed confirmation). The other maintenance tools stop on a
+Ledger 9 network, which is a limit of midnight-js 5 and not a protection.
 Replacing the authority needs no recompile of the contract. The committee tools now build
 and sign with Ledger 9 types; they have been run against Midnight's ledger code on a
 computer, not yet on a node, and the local rehearsal comes first

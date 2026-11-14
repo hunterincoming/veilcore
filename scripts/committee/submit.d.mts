@@ -30,6 +30,13 @@ export declare const assertLedger9Network: (publicDataProvider: ChainReader) => 
 
 export declare const MAINNET_REFUSAL: string;
 
+/** Throws unless ledger-v9 1.0.0 (the wallet's copy) reads the transaction back byte for byte. */
+export declare const assertReadableByWalletLedger: (
+  tx: { serialize(): Uint8Array },
+  update: { readonly dataToSign: Uint8Array },
+  decoder?: unknown,
+) => void;
+
 export declare const sendMaintenanceUpdate: (
   providers: {
     readonly publicDataProvider: ChainReader;
@@ -41,5 +48,12 @@ export declare const sendMaintenanceUpdate: (
   address: string,
   update: MaintenanceUpdate,
   landed: (authority: AuthorityView) => boolean,
-  options?: { log?: (line: string) => void; waitMs?: number; tries?: number; allowMainnet?: boolean },
+  options?: {
+    log?: (line: string) => void;
+    waitMs?: number;
+    tries?: number;
+    allowMainnet?: boolean;
+    /** Tests only: the wallet side's Transaction class. */
+    walletLedgerTransaction?: unknown;
+  },
 ) => Promise<{ sent: boolean; txId?: string; blockHeight?: number; authority: AuthorityView }>;

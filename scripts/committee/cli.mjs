@@ -1,18 +1,26 @@
 #!/usr/bin/env node
 // The committee tools that never touch a network: make a key, check a stored key, read a
-// request, sign a request. Each holder runs these on their own computer.
+// request, sign a request, confirm a new committee. Each holder runs these on their own computer.
 //
 //   node scripts/committee/cli.mjs keygen --holder mako --paper
 //   node scripts/committee/cli.mjs keygen --holder mako --out /Volumes/KEYS/mako-key.json
+//   node scripts/committee/cli.mjs keygen --practice --holder practice-mako --out /tmp/x/mako.key
 //   node scripts/committee/cli.mjs check  --card committee-key-mako.json [--key-file FILE]
 //   node scripts/committee/cli.mjs read   --request request.json
 //   node scripts/committee/cli.mjs sign   --request request.json [--key-file FILE] [--out FILE]
+//   node scripts/committee/cli.mjs confirm --record dry-run-....json --card committee-key-mako.json
+//                                          [--key-file FILE] [--out FILE]
 //
+// keygen --practice makes a rehearsal card: marked as practice, named practice-..., and refused
+// on mainnet by every tool. confirm is what each holder of a NEW committee does just before it
+// is sent: sign the dry run's check code with the stored key, so a key that cannot sign is
+// found while it is still harmless.
 // A signing key is shown on screen only in --paper mode, and is never written to a log.
 // With --out it is written to a file you choose (0600, never over an existing file) and
 // not shown. Without --key-file, a key is typed in from paper, hidden.
 // SPDX-License-Identifier: Apache-2.0
 
+import { createHash } from 'node:crypto';
 import { closeSync, constants, existsSync, fsyncSync, openSync, readFileSync, writeSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -22,12 +30,17 @@ import { fileURLToPath } from 'node:url';
 import { sampleSigningKey } from 'ledger-v9-committee';
 import { readMainnetPins } from '../mainnet-pins.mjs';
 import {
+  DRY_RUN_FORMAT,
+  PRACTICE_PREFIX,
   checkKeyCard,
   describeRequest,
   fingerprint,
   groupHex,
+  isPracticeCard,
   keyMatchesCard,
+  makeConfirmation,
   makeKeyCard,
+  newCommittee,
   parseSigningKey,
   rebuildRequest,
   signRequest,
@@ -179,6 +192,16 @@ const keygen = async (flags, io) => {
   const holder = String(flags.holder ?? '');
   if (!/^[a-z0-9][a-z0-9-]{0,31}$/.test(holder))
     throw new Stop('Say whose key this is: --holder NAME (small letters, digits, dashes; like --holder mako).');
+  const practice = flags.practice !== undefined;
+  if (practice && flags.practice !== true) throw new Stop('--practice takes no value. Nothing was made.');
+  if (practice && !holder.startsWith(PRACTICE_PREFIX))
+    throw new Stop(
+      `A practice key's holder name must start with "${PRACTICE_PREFIX}": --practice --holder ${PRACTICE_PREFIX}${holder}. Nothing was made.`,
+    );
+  if (!practice && holder.startsWith(PRACTICE_PREFIX))
+    throw new Stop(
+      `A holder name that starts with "${PRACTICE_PREFIX}" is for rehearsals: add --practice. Nothing was made.`,
+    );
   const paper = flags.paper === true;
   const out = typeof flags.out === 'string' ? path.resolve(flags.out) : undefined;
   if (paper === (out !== undefined))
@@ -193,7 +216,9 @@ const keygen = async (flags, io) => {
   }
 
   const key = sampleSigningKey().value;
-  const card = makeKeyCard(holder, key);
+  const card = makeKeyCard(holder, key, undefined, { practice });
+  if (practice)
+    io.say('PRACTICE KEY: for a rehearsal only. Its card is marked as practice and is refused on mainnet.');
   if (paper) {
     io.say('');
     io.say('  YOUR COMMITTEE SIGNING KEY. Write it on paper now, twice, on two sheets. The spaces are only to');
@@ -222,7 +247,19 @@ const keygen = async (flags, io) => {
   } else {
     writeSecretFile(
       out,
-      `${JSON.stringify({ warning: WARN_FILE, holder, publicKey: card.publicKey, signingKey: key }, null, 2)}\n`,
+      `${JSON.stringify(
+        practice
+          ? {
+              warning: 'A PRACTICE key for a VeilCore rehearsal. It protects nothing. Delete it afterwards.',
+              practice: true,
+              holder,
+              publicKey: card.publicKey,
+              signingKey: key,
+            }
+          : { warning: WARN_FILE, holder, publicKey: card.publicKey, signingKey: key },
+        null,
+        2,
+      )}\n`,
     );
     if (keyMatchesCard(readKeyFile(out), card) !== true)
       throw new Stop('The key file did not read back correctly. Delete it and try again.');
@@ -251,6 +288,7 @@ const check = async (flags, io) => {
       `That key is NOT the one on ${c.holder}'s card (${fingerprint(c.publicKey)}). Check the copy for a typo.`,
     );
   io.say(`OK: this copy is ${c.holder}'s committee key (${fingerprint(c.publicKey)}), and the card's proof is valid.`);
+  if (c.practice) io.say('This is a PRACTICE card: for a rehearsal only. It is refused on mainnet.');
 };
 
 const pinned = () => {
@@ -258,11 +296,27 @@ const pinned = () => {
   return p.ok ? p.veilcore : undefined;
 };
 
+/**
+ * On a test network: say so for each card of a new committee that is not a practice card.
+ * A warning, not a refusal: a real card may be checked on a test network. (On mainnet a
+ * practice card is refused by rebuildRequest.)
+ */
+const warnRealCards = (req, io) => {
+  if (req.network === 'mainnet') return;
+  for (const card of newCommittee(req))
+    if (!isPracticeCard(card))
+      io.say(
+        `WARNING: "${card.holder}" (${fingerprint(card.publicKey)}) is NOT a practice card, and this is ` +
+          `${req.network}, a test network. For a rehearsal, make practice keys (keygen --practice).`,
+      );
+};
+
 const read = async (flags, io) => {
   const req = readJson(flags.request, 'request');
   const r = rebuildRequest(req);
   if (!r.ok) throw new Stop(`This request cannot be signed: ${r.problems.join(' ')}`);
   for (const l of describeRequest(req, r, { pinnedMainnetAddress: pinned() })) io.say(l);
+  warnRealCards(req, io);
   return { req, r };
 };
 
@@ -292,18 +346,75 @@ const sign = async (flags, io) => {
   io.say('It holds no secret. Send it to the person who sends the change. Your key was not stored.');
 };
 
+/**
+ * A holder of a NEW committee signs the dry run's check code with their stored key. The record
+ * is only read for the request inside it: the change is rebuilt from that request and shown,
+ * and the check code is worked out here, never taken from the file.
+ */
+const confirm = async (flags, io) => {
+  const record = readJson(flags.record, 'record');
+  if (record === null || typeof record !== 'object' || record.format !== DRY_RUN_FORMAT)
+    throw new Stop(`${flags.record} is not a dry-run record (${DRY_RUN_FORMAT}). Ask for the file the dry run wrote.`);
+  const req = record.request;
+  const r = rebuildRequest(req);
+  if (!r.ok) throw new Stop(`This change cannot be confirmed: ${r.problems.join(' ')}`);
+  for (const l of describeRequest(req, r, { pinnedMainnetAddress: pinned() })) io.say(l);
+  warnRealCards(req, io);
+  const digest = createHash('sha256').update(r.update.dataToSign).digest('hex');
+  const code = digest.slice(0, 16);
+  if (record.dataToSignSha256 !== digest)
+    throw new Stop(
+      'The record says one check code and the change inside it gives another: the file was changed after it was ' +
+        'made. Do not confirm it. Ask for a fresh dry run. Nothing was signed.',
+    );
+  if (newCommittee(req).length === 0)
+    throw new Stop('This change installs no new committee, so there is nothing to confirm. Nothing was signed.');
+  if (req.network === 'mainnet' && req.contractAddress !== pinned())
+    throw new Stop(
+      'Refused: on mainnet this tool confirms only for the pinned VeilCore main contract. Nothing was signed.',
+    );
+  const card = readJson(flags.card, 'card');
+  const c = checkKeyCard(card);
+  if (!c.ok) throw new Stop(c.problem);
+  if (!newCommittee(req).some((m) => m.publicKey === c.publicKey && m.holder === c.holder))
+    throw new Stop(
+      `"${c.holder}" (${fingerprint(c.publicKey)}) is not one of the keys this change installs. Check you have ` +
+        'the right card and the right record. Nothing was signed.',
+    );
+  io.say('');
+  io.say(`You are confirming that you, ${c.holder}, hold the key ${fingerprint(c.publicKey)} and can sign with it,`);
+  io.say('and that the three keys above are the ones agreed. Compare the check code with the other holders, out');
+  io.say('loud. This does not approve or send anything by itself.');
+  if ((await io.ask('Type CONFIRM to sign the check code, anything else to stop: ')) !== 'CONFIRM')
+    throw new Stop('Not confirmed. Nothing was signed.');
+  const key =
+    typeof flags['key-file'] === 'string'
+      ? readKeyFile(flags['key-file'])
+      : await askKey(io, 'Your committee key, from paper (nothing shows): ');
+  const s = makeConfirmation(req, card, key);
+  const out = path.resolve(
+    typeof flags.out === 'string' ? flags.out : `confirmation-${c.holder}-${s.dataToSignSha256.slice(0, 16)}.json`,
+  );
+  writeNewFile(out, `${JSON.stringify(s, null, 2)}\n`);
+  io.wipe();
+  io.say(`Confirmed by ${c.holder} (${fingerprint(c.publicKey)}) for check code ${code}. Written to ${out}.`);
+  io.say('It holds no secret. Send it to the person who sends the change. Your key was not stored.');
+};
+
 const USAGE = `Usage:
   node scripts/committee/cli.mjs keygen --holder NAME (--paper | --out FILE) [--card FILE]
+  node scripts/committee/cli.mjs keygen --practice --holder practice-NAME (--paper | --out FILE) [--card FILE]
   node scripts/committee/cli.mjs check  --card FILE [--key-file FILE]
   node scripts/committee/cli.mjs read   --request FILE
   node scripts/committee/cli.mjs sign   --request FILE [--key-file FILE] [--out FILE]
+  node scripts/committee/cli.mjs confirm --record FILE --card FILE [--key-file FILE] [--out FILE]
 See docs/maintenance-committee.md.`;
 
 /** Run one command. Returns the exit code. */
 export const main = async (argv, io = makeIo()) => {
   try {
     const { command, flags } = parseArgs(argv);
-    const run = { keygen, check, read, sign }[command];
+    const run = { keygen, check, read, sign, confirm }[command];
     if (run === undefined) {
       io.say(USAGE);
       return command === undefined || command === 'help' ? 0 : 2;

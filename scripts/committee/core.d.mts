@@ -8,11 +8,18 @@ export declare const COMMITTEE_THRESHOLD: number;
 export declare const KEY_CARD_FORMAT: string;
 export declare const REQUEST_FORMAT: string;
 export declare const SIGNATURE_FORMAT: string;
+export declare const CONFIRMATION_FORMAT: string;
+export declare const DRY_RUN_FORMAT: string;
+export declare const DRY_RUN_MAX_AGE_MS: number;
+export declare const PRACTICE_PREFIX: string;
+export declare const PRACTICE_ON_MAINNET: string;
 export declare const NETWORKS: readonly string[];
 
 export type KeyCard = {
   readonly format: string;
   readonly holder: string;
+  /** A rehearsal card: refused on mainnet. Covered by the card's proof. */
+  readonly practice?: true;
   readonly publicKey: string;
   readonly fingerprint: string;
   readonly possessionProof: string;
@@ -55,6 +62,19 @@ export type SignatureFile = {
   readonly signature: string;
 };
 
+export type ConfirmationFile = {
+  readonly format: string;
+  readonly network: string;
+  readonly contractAddress: string;
+  readonly dataToSignSha256: string;
+  readonly holder: string;
+  readonly publicKey: string;
+  readonly counter: string;
+  readonly place: number;
+  readonly signature: string;
+  readonly createdAt: string;
+};
+
 export type Rebuilt = { ok: true; update: MaintenanceUpdate; lines: string[] } | { ok: false; problems: string[] };
 
 /** A committee key as the ledger holds it (Ledger 9: tagged) or as plain hex. */
@@ -73,11 +93,17 @@ export declare const fingerprint: (publicKey: string) => string;
 export declare const groupHex: (hex: string) => string;
 export declare const parseSigningKey: (text: unknown) => { value: string; publicKey: string } | { problem: string };
 export declare const parsePublicKey: (text: unknown) => { value: string } | { problem: string };
-export declare const possessionMessage: (holder: string, publicKey: string) => Uint8Array;
-export declare const makeKeyCard: (holder: string, signingKey: string, createdAt?: string) => KeyCard;
+export declare const possessionMessage: (holder: string, publicKey: string, practice?: boolean) => Uint8Array;
+export declare const makeKeyCard: (
+  holder: string,
+  signingKey: string,
+  createdAt?: string,
+  options?: { practice?: boolean },
+) => KeyCard;
+export declare const isPracticeCard: (card: unknown) => boolean;
 export declare const checkKeyCard: (
   card: unknown,
-) => { ok: true; holder: string; publicKey: string } | { ok: false; problem: string };
+) => { ok: true; holder: string; publicKey: string; practice: boolean } | { ok: false; problem: string };
 export declare const keyMatchesCard: (signingKey: string, card: KeyCard) => boolean;
 export declare const committeeProblems: (
   cards: readonly unknown[],
@@ -111,6 +137,25 @@ export declare const assembleSigned: (
   onChain: Authority,
   options?: { forbid?: readonly string[] },
 ) => { ok: true; update: MaintenanceUpdate; signers: string[]; warnings: string[] } | { ok: false; problems: string[] };
+export declare const newCommittee: (req: unknown) => readonly KeyCard[];
+export declare const confirmationMessage: (fields: {
+  network: string;
+  contractAddress: string;
+  dataToSignSha256: string;
+  holder: string;
+  publicKey: string;
+}) => Uint8Array;
+export declare const makeConfirmation: (
+  req: Request,
+  card: unknown,
+  signingKey: string,
+  options?: { forbid?: readonly string[] },
+) => ConfirmationFile;
+export declare const confirmationProblems: (
+  req: Request,
+  files: readonly unknown[],
+  options?: { forbid?: readonly string[] },
+) => string[];
 export declare const requestLanded: (
   req: Request,
   onChain: Authority,
