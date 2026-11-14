@@ -187,6 +187,8 @@ export const labresult = {
   'app.lr.check.intro':
     'Wählen Sie die Ergebnisdatei, die Ihnen ein Labor gegeben hat. Sie wird in diesem Browser geprüft. Nichts daraus wird gesendet, außer Sie fragen nach dem Namen des Labors: Dann geht nur der Code des Ergebnisses an das Register.',
   'app.lr.check.choose': 'Ergebnisdatei auswählen',
+  'app.lr.check.viabilityTestOnly':
+    'Das ist ein Lebensfähigkeitsergebnis (ein Test vor oder nach einem Abtötungsschritt). Diese gibt es vorerst nur im Testnetz, deshalb liest diese Seite es nicht.',
   'app.lr.check.bad': 'Dieses Ergebnis kann nicht verwendet werden: {problem}',
   'app.lr.check.looking': 'Es wird nachgeschlagen, wessen Schlüssel das ist…',
   'app.lr.check.noSalt':

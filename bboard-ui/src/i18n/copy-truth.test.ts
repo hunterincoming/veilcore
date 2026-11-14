@@ -476,8 +476,7 @@ describe("what's live where", () => {
     expect(Object.values(LANGUAGES).map((l) => (l.strings as Record<string, string>)['m.live.results.not'])).toEqual(
       Object.keys(LANGUAGES).map(() => undefined),
     );
-    // Numbers and results a lab signs: switched on for veilcore.org (LAB_SIGNING_ENABLED, 12 Nov
-    // 2026), but not called live there until one has been signed and checked on mainnet
+    // Numbers and results a lab signs: switched on for veilcore.org (LAB_SIGNING_ENABLED), but not called live there until one has been signed and checked on mainnet
     // (config/copy.ts LAB_SIGNING_RUN_ON_MAINNET). Until then the veilcore.org cell says "built,
     // not yet tried", in every language and on every build.
     expect(rows.find((r) => r.row === 'signed')?.has).toEqual([labSigningEnabledFor('mainnet'), true, false]);

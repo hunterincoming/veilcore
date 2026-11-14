@@ -1,13 +1,15 @@
 # Numbers a laboratory signs
 
-Status: built, and switched on for veilcore.org as well as the test network on 12 November 2026
+Status: built, and switched on in the site's code for veilcore.org as well as the test network
 (`LAB_SIGNING_ENABLED` in `bboard-ui/src/config/network.ts`; to turn it off on a network, list the
-network in `LAB_SIGNING_OFF`). It ships after lab signatures went private (registry
+network in `LAB_SIGNING_OFF`). It is on veilcore.org from the first site deploy that carries the
+switch. A viability result (below) is the exception: test network only
+(`VIABILITY_RESULTS_ENABLED`). It ships after lab signatures went private (registry
 `private-lab-signatures-v1`, which every site deploy requires). Not called live on veilcore.org
 until a lab key has been made there, one result signed and checked, and its signature confirmed
 hidden until the holder shares it; then `LAB_SIGNING_RUN_ON_MAINNET` in
 `bboard-ui/src/config/copy.ts` is turned on in a reviewed commit, and the home page's
-"What's live where" cell says so.
+"What's live where" cell says so. The steps of that first run: [lab-mainnet-test.md](lab-mainnet-test.md).
 
 ## What it is for
 
@@ -128,7 +130,11 @@ showing the rest. Code: `veilcore/lab-result.ts`.
 
 ### A viability result: a sample before or after a kill step (12 November 2026)
 
-Status: built, on the test network only (the same switch). SPEC 11.12, "Viability" (draft).
+Status: built, on the test network only. It has its own switch, `VIABILITY_RESULTS_ENABLED` in
+`bboard-ui/src/config/network.ts`, off on mainnet: it was built after lab signing's mainnet switch
+and has not been reviewed for the main network. On veilcore.org the lab's forms don't offer it, a
+draft of one is refused, and `/check-lab-result` says it doesn't read one. SPEC 11.12, "Viability"
+(draft).
 
 Use case: a producer that grows a production fungus and sells the dried meal heat-treats it (a
 kill step) so no live culture leaves its site, and has a lab test samples before and after it.

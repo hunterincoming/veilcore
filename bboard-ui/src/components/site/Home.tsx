@@ -293,7 +293,7 @@ const LIVE_ROWS = [
   // Lab reports locked to the breeder: on veilcore.org too since 16 Oct 2026 (config/network.ts).
   ['results', true, true, false],
   // Numbers and results a lab signs (config/network.ts LAB_SIGNING_ENABLED): switched on for
-  // veilcore.org on 12 Nov 2026. Its cell says "built, not yet tried" until it has worked there
+  // veilcore.org too (from the first site deploy that carries it). Its cell says "built, not yet tried" until it has worked there
   // (config/copy.ts LAB_SIGNING_RUN_ON_MAINNET, cellKey below).
   ['signed', true, true, false],
   ['dna', true, true, false],

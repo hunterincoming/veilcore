@@ -182,6 +182,8 @@ export const labresult = {
   'app.lr.check.intro':
     'ラボから受け取った結果ファイルを選んでください。このブラウザで確認します。ラボの名前を調べるよう求めない限り、中身は送信しません。求めた場合も、レジストリに送るのは結果コードだけです。',
   'app.lr.check.choose': '結果ファイルを選ぶ',
+  'app.lr.check.viabilityTestOnly':
+    'これは生存性試験の結果（不活化工程の前または後の試験）です。今のところテストネットワークだけで使えるため、このページでは読み込みません。',
   'app.lr.check.bad': 'この結果は使えません：{problem}',
   'app.lr.check.looking': '誰の鍵か調べています…',
   'app.lr.check.noSalt':

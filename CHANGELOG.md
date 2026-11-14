@@ -18,6 +18,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - "What's live where" has a row for it. Its veilcore.org cell says "Built, not yet tried on the
   main network." until one result has been signed and checked there (`LAB_SIGNING_RUN_ON_MAINNET`
   in `config/copy.ts`, off). In all five languages.
+- A viability result (a sample before or after a kill step) stays on the test network only, behind
+  its own switch (`VIABILITY_RESULTS_ENABLED`, off on mainnet): it was built after this switch and
+  has not been reviewed for the main network. On veilcore.org the forms don't offer it, a draft of
+  one is refused, and the check page says it doesn't read one. In all five languages.
+- The README and `docs/lab-signing.md` say the same: built, switched on, not yet run on mainnet.
+  The steps of the first run on veilcore.org are in `docs/lab-mainnet-test.md`.
 
 ### The maintenance key is live; the committee tools move to Ledger 9 (14 Nov 2026, not deployed, nothing sent)
 

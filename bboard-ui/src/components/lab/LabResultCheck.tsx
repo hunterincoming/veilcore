@@ -34,7 +34,7 @@ import { keyShort } from '../../veilcore/lab-key-text';
 import { ResultFacts, callWords } from './ResultFacts';
 import { seen } from '../document/DocumentParts';
 import { withdrawnWords } from './signer-words';
-import { LAB_SIGNING_ENABLED } from '../../config/network';
+import { LAB_SIGNING_ENABLED, VIABILITY_RESULTS_ENABLED } from '../../config/network';
 
 const short = (h: string) => `${h.slice(0, 8)}…${h.slice(-6)}`;
 
@@ -395,7 +395,12 @@ export const LabResultCheck: React.FC = () => {
             />
             <Stack spacing={2.5}>
               {(read ?? []).map((r, i) =>
-                r.ok ? (
+                r.ok && r.bundle.statement.kind === 'viability' && !VIABILITY_RESULTS_ENABLED ? (
+                  // Not read on a network where viability results are off (config/network.ts).
+                  <Alert key={`off${i}`} severity="info" variant="outlined" data-lab-result-viability-off="">
+                    {t('app.lr.check.viabilityTestOnly')}
+                  </Alert>
+                ) : r.ok ? (
                   <OneChecked
                     key={resultCode(r.bundle)}
                     bundle={r.bundle}

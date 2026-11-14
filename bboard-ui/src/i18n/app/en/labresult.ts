@@ -199,6 +199,8 @@ export const labresult = {
   'app.lr.check.intro':
     'Choose the result file a lab gave you. It is checked in this browser. Nothing in it is sent unless you ask for the lab’s name: then only the result’s code goes to the registry.',
   'app.lr.check.choose': 'Choose the result file',
+  'app.lr.check.viabilityTestOnly':
+    'This is a viability result (a test before or after a kill step). Those are on the test network only for now, so this page doesn’t read it.',
   'app.lr.check.bad': 'This result can’t be used: {problem}',
   'app.lr.check.looking': 'Looking up whose key it is…',
   'app.lr.check.noSalt':

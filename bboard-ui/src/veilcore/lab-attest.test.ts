@@ -25,7 +25,8 @@ import { RangeOp } from '../../../contract/src/managed/veilcore-claims/contract/
 import { claimFromCells } from '../../../contract/src/verify-claims';
 import { claimLink, compareAttested, readClaimLink, type MadeClaim } from './claim-link';
 import { checkClaim } from './chain/claim-check';
-import { labSigningEnabledFor } from '../config/network';
+import { labSigningEnabledFor, viabilityResultsEnabledFor } from '../config/network';
+import { emptyDraft, tryDraft } from './lab-result-draft';
 import { REQUIRED_FEATURES } from '../../../scripts/registry-features.mjs';
 
 /** A laboratory's signing key, as tests need one (the app derives it: claims-key.ts). */
@@ -247,7 +248,7 @@ describe('on the claims contract', () => {
 describe('on veilcore.org', () => {
   it('laboratory signing and the genetic forms are on on mainnet, behind one switch that can turn them off', () => {
     const src = (f: string) => fs.readFileSync(path.join(dir, f), 'utf8');
-    // On in every build since 12 Nov 2026, after lab signatures went private (the registry's
+    // On in every build, after lab signatures went private (the registry's
     // private-lab-signatures-v1, which every site deploy requires).
     expect(labSigningEnabledFor('mainnet')).toBe(true);
     expect(labSigningEnabledFor('preprod')).toBe(true);
@@ -270,5 +271,26 @@ describe('on veilcore.org', () => {
     // The check page offers adding and publishing a result (review, 8 Nov).
     expect(src('../components/lab/LabResultCheck.tsx')).toContain('!LAB_SIGNING_ENABLED ? (');
     expect(src('../components/flow/LabResults.tsx')).toContain('if (LAB_SIGNING_ENABLED && withResult)');
+  });
+
+  it('a viability result stays off on mainnet: not offered, not signed, not read', () => {
+    const src = (f: string) => fs.readFileSync(path.join(dir, f), 'utf8');
+    // Built after the mainnet switch and not reviewed for the main network yet.
+    expect(viabilityResultsEnabledFor('mainnet')).toBe(false);
+    expect(viabilityResultsEnabledFor('preprod')).toBe(true);
+    expect(src('../config/network.ts')).toContain("const VIABILITY_RESULTS_OFF: readonly string[] = ['mainnet'];");
+    // Both forms take their kinds through ResultForm, which drops it where it is off.
+    expect(src('../components/lab/ResultForm.tsx')).toContain(
+      "asked.filter((k) => k !== 'viability' || VIABILITY_RESULTS_ENABLED)",
+    );
+    // No draft of one becomes something to sign, whatever the form shows.
+    expect(tryDraft(emptyDraft('viability'), 'A lab', false)).toMatchObject({ ok: false, code: 'kind' });
+    expect(tryDraft(emptyDraft('viability'), 'A lab', true)).not.toMatchObject({ code: 'kind' });
+    // The check page says so instead of reading one, in every language.
+    expect(src('../components/lab/LabResultCheck.tsx')).toContain(
+      "r.ok && r.bundle.statement.kind === 'viability' && !VIABILITY_RESULTS_ENABLED ? (",
+    );
+    for (const l of ['en', 'de', 'es', 'fr', 'ja'])
+      expect(src(`../i18n/app/${l}/labresult.ts`)).toContain("'app.lr.check.viabilityTestOnly':");
   });
 });
