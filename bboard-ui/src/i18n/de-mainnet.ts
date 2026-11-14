@@ -46,7 +46,7 @@ export const deMainnet = buildMainnet({
     'm.post2.title': 'Ein vollständiger Durchlauf im Testnetz von Midnight',
     'm.post2.text':
       'Der Contract wurde im Testnetz von Midnight bereitgestellt und hat alle 26 End-to-End-Prüfungen bestanden, wobei 16 seiner 24 Operationen mit echten Beweisen genutzt wurden.',
-    'm.contact.1p': 'Legen Sie einen Datensatz an und sagen Sie uns dann, was für Ihre Arbeit fehlt.',
+    'm.contact.1p': 'Legen Sie heute einen Datensatz an. Schreiben Sie uns, damit er zu Ihrer Arbeitsweise passt.',
     'm.nav.demo': 'Datensatz anlegen',
     'm.foot.demo': 'Datensatz anlegen',
     'm.hero.demoLabel': 'Prüfcode live',

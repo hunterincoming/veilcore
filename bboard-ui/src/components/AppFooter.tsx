@@ -81,7 +81,8 @@ export const AppFooter: React.FC<{
           spacing={{ xs: 3, md: 6 }}
           sx={{ justifyContent: 'space-between' }}
         >
-          <Box sx={{ maxWidth: 360 }}>
+          {/* Narrower beside the link groups, so all five sit on one row at 1280px (onboarding audit, 14 Nov). */}
+          <Box sx={{ maxWidth: { xs: 360, md: 250 }, flexShrink: 0 }}>
             <Box
               sx={{
                 display: 'flex',
@@ -123,7 +124,11 @@ export const AppFooter: React.FC<{
             </Link>
           </Box>
 
-          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={{ xs: 3, sm: 5 }} sx={{ flexWrap: 'wrap' }}>
+          <Stack
+            direction={{ xs: 'column', sm: 'row' }}
+            spacing={{ xs: 3, sm: 4 }}
+            sx={{ flexWrap: { xs: 'wrap', lg: 'nowrap' } }}
+          >
             <Stack direction={{ xs: 'row', sm: 'column' }} useFlexGap sx={group}>
               <Typography component="p" sx={groupName}>
                 {t('m.foot.explore')}
@@ -175,7 +180,7 @@ export const AppFooter: React.FC<{
               {children}
             </Stack>
 
-            <Stack direction={{ xs: 'row', sm: 'column' }} useFlexGap sx={group}>
+            <Stack direction={{ xs: 'row', sm: 'column' }} useFlexGap sx={{ ...group, flexShrink: 0 }}>
               <Typography component="p" sx={groupName}>
                 {t('m.foot.contact')}
               </Typography>

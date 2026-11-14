@@ -116,7 +116,7 @@ export const home = {
     'Un code laboratoire, un lien vers un enregistrement, une demande de prouver que vous détenez un enregistrement ou un contrat à signer. Nous reconnaissons lequel.',
   'app.home.paste.whichRecord':
     'C’est une demande de prouver que vous détenez un enregistrement. Lequel vous a-t-on demandé ?',
-  'app.home.notFinished': 'Pas terminé · ensuite : enregistrez votre copie de secours',
+  'app.home.notFinished': 'Pas encore dans votre copie de secours · ensuite : enregistrez votre copie de secours',
   'app.home.receivedFrom': 'Reçue de {name}',
   'app.home.receivedFromNamed': 'De {name} · leur enregistrement {id}',
   'app.home.receivedFromName': 'De {name}',
@@ -130,7 +130,8 @@ export const home = {
   'app.home.labReportDated': 'Rapport ADN daté',
   'app.home.datesReportFor': 'Date un rapport ADN pour {name}',
   'app.home.aPlant': 'une plante',
-  'app.home.datingUnfinished': '{dated} · pas terminé · ensuite : enregistrez votre copie de secours',
+  'app.home.datingUnfinished':
+    '{dated} · pas encore dans votre copie de secours · ensuite : enregistrez votre copie de secours',
   'app.home.datingSealed': '{dated} · scellé le {date}',
   'app.home.export.label': 'Télécharger vos enregistrements et contrats depuis VeilCore',
   'app.home.export.done':

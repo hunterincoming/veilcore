@@ -91,7 +91,7 @@ describe('Home: a dated lab report shows under its plant, not as a plant', () =>
 
   it('the line under the plant: "DNA report dated", and only a missing backup is unfinished', () => {
     expect(datingHomeStatus(dating, { backedUpAt: undefined }, true)).toEqual({
-      text: 'DNA report dated · not finished · next: save your backup',
+      text: 'DNA report dated · not in your backup yet · next: save your backup',
       unfinished: true,
     });
     expect(datingHomeStatus(dating, { backedUpAt: 1 }, true).text).toMatch(/^DNA report dated · sealed /);

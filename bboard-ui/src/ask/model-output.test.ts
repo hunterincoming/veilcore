@@ -225,6 +225,10 @@ describe('the hint by the bubble', () => {
       name: 'Cow 9',
     });
     expect(hintExample([animal('Daisy', 1)], false, r)).toBeUndefined();
+    // A document is not offered clones, and never outvotes a plant.
+    const permit = { ...plant('Audit permit', 9), profile: 'veilcore/profile/document/v1' };
+    expect(hintExample([permit], true, r)).toBeUndefined();
+    expect(hintExample([plant('Gelato', 1), permit], true, r)).toMatchObject({ kind: 'clones', name: 'Gelato' });
   });
 
   it('never shows a name the other side chose: received records are passed over', async () => {

@@ -58,7 +58,7 @@ const common: Overlay = {
   'm.post2.title': "A full run on Midnight's preprod test network",
   'm.post2.text':
     "The contract deployed to Midnight's preprod test network and passed all 26 end-to-end checks, using 16 of its 24 operations with real proofs.",
-  'm.contact.1p': 'Make a record, then tell us what is missing for your work.',
+  'm.contact.1p': 'Make a record today. Write to us to fit it into the way you work.',
 
   // Records made here are real on mainnet: no "demo" labels.
   'm.nav.demo': 'Make a record',

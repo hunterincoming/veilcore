@@ -114,7 +114,7 @@ export const home = {
   'app.home.paste.hint':
     'Un código de laboratorio, un enlace a un registro, una solicitud para demostrar que tiene un registro o un acuerdo para firmar. Nosotros averiguamos cuál es.',
   'app.home.paste.whichRecord': 'Es una solicitud para demostrar que tiene un registro. ¿Por cuál le preguntaron?',
-  'app.home.notFinished': 'Sin terminar · siguiente: guarde su copia de seguridad',
+  'app.home.notFinished': 'Aún no está en su copia de seguridad · siguiente: guarde su copia de seguridad',
   'app.home.receivedFrom': 'Recibida de {name}',
   'app.home.receivedFromNamed': 'De {name} · su registro {id}',
   'app.home.receivedFromName': 'De {name}',
@@ -128,7 +128,8 @@ export const home = {
   'app.home.labReportDated': 'Informe de ADN fechado',
   'app.home.datesReportFor': 'Fecha un informe de ADN de {name}',
   'app.home.aPlant': 'una planta',
-  'app.home.datingUnfinished': '{dated} · sin terminar · siguiente: guarde su copia de seguridad',
+  'app.home.datingUnfinished':
+    '{dated} · aún no está en su copia de seguridad · siguiente: guarde su copia de seguridad',
   'app.home.datingSealed': '{dated} · sellado el {date}',
   'app.home.export.label': 'Descargar sus registros y acuerdos de VeilCore',
   'app.home.export.done':
