@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### The maintenance key is live; the committee tools move to Ledger 9 (14 Nov 2026, not deployed, nothing sent)
+
+- The site, the maintenance policy and the committee document now say what is true of the main
+  contract's key: the 2-of-3 committee has not been installed, our own tools refuse to use the key
+  since Midnight's Ledger 9 upgrade, the network still accepts it, and the counter was 16 on
+  13 November 2026. Earlier wording said maintenance needed a recompile and could not be sent.
+  Replacing the authority needs no recompile.
+- The committee tools (`scripts/committee`, `bboard-cli/src/launcher/committee.ts`) build, sign,
+  combine and check with Ledger 9 types (`@midnightntwrk/ledger-v9` 1.0.1, installed as
+  `ledger-v9-committee`). A signature made with ledger-v8 is not valid on Ledger 9; old request
+  and signature files are refused. Tested against the ledger's own code from the contract as it
+  stands on mainnet (24 circuits, one key, counter 16); not yet on a node.
+- Sending to mainnet is off by default: it needs `--send-on-mainnet` and the record a `--dry-run`
+  of the same change wrote. Every run prints each key before and after, the counter before and
+  after, and that a wrong committee key is permanent.
+- `deployments/mainnet.json` records counter 16, so `npm run verify:deployment` fails if it moves.
+- `docs/committee-rehearsal.md`: the steps to rehearse the change on a local network.
+
 ### "Records in evidence" claims only what is built (14 Nov 2026, not deployed yet)
 
 - The note for counsel (`/docs/evidence`, `bboard-ui/src/docs/EVIDENCE.md`) says what is live on

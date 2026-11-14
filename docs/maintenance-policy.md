@@ -43,7 +43,7 @@ The key holder cannot backdate block time, and every change is visible on chain.
   contract needs. Midnight's own maintainers say that where circuits compile
   differently after an upgrade, "a maintenance verifier-key update would be needed"
   ([midnight-node #1969](https://github.com/midnightntwrk/midnight-node/issues/1969)).
-  The next upgrade, ledger v8 to v9, is expected in 2026 with no date announced
+  The upgrade from ledger v8 to v9 happened on mainnet on 6 November 2026
   ([midnight-js v5 migration guide](https://github.com/midnightntwrk/midnight-js/blob/main/docs/releases/v5.0.0/migration-guide.md)).
   A contract nobody can maintain may stop working at such an upgrade and could then
   only be replaced.
@@ -76,6 +76,17 @@ it needs our own maintenance code. That is built and tested as part of the move 
 midnight-js 5, which has to happen before the v8 to v9 upgrade in any case, and then the
 authority is replaced by the committee in one published maintenance transaction.
 
+**Status, 14 November 2026: the committee has not been installed, and the single key is
+live.** Mainnet moved to Ledger 9 on 6 November 2026 before the committee was installed.
+Since then VeilCore's own tools refuse to use the key on mainnet (the committee tool, which
+exists to replace it, sends there only when asked with an explicit option after a dry run),
+but the network still accepts it: either paper copy alone can still change the contract, so
+treat it as live.
+Replacing the authority needs no recompile of the contract. The committee tools now build
+and sign with Ledger 9 types; they have been run against Midnight's ledger code on a
+computer, not yet on a node, and the local rehearsal comes first
+(`docs/maintenance-committee.md`, `docs/committee-rehearsal.md`).
+
 ## How it is used
 
 Every use of the authority:
@@ -98,10 +109,12 @@ checks report it with every verdict, the partner kit's `readAuthority` reads it,
 verifier can require the value it expects (`authorityCounter`), so any later change
 becomes a refusal.
 
-**Not yet recorded:** the main contract's counter on mainnet today. Read it from
-the chain with `readAuthority({ network: 'mainnet', ... })` and record it here and in the
-deployment record. Until then this document gives no expected value.
-*15 Oct 2026: still not read: it can't be read without a key (mainnet's indexer is reachable only through Blockfrost or GetBlock, both keyed, since Midnight's own was retired 30 Sep; the community Midnight Explorer documents no maintenance-authority view, and a third party's page would not be the chain's own word anyway). Hunter reads it, sending nothing and needing no wallet, from `bboard-cli` with his Blockfrost id in his terminal: `npm run committee -- mainnet show` (`docs/maintenance-committee.md` expects 16, from the 16 maintenance transactions after the deploy; not yet confirmed on chain).*
+**The main contract's counter on mainnet was 16 on 13 November 2026** (the 16 maintenance
+transactions that added circuit keys after the deploy; nothing since). It is recorded in
+`deployments/mainnet.json`, and `npm run verify:deployment` fails if the chain shows another
+value. Anyone can read it with `readAuthority({ network: 'mainnet', ... })`; any maintenance
+update raises it.
+*Earlier note, 15 Oct 2026, kept for the record: still not read: it can't be read without a key (mainnet's indexer is reachable only through Blockfrost or GetBlock, both keyed, since Midnight's own was retired 30 Sep; the community Midnight Explorer documents no maintenance-authority view, and a third party's page would not be the chain's own word anyway). Hunter reads it, sending nothing and needing no wallet, from `bboard-cli` with his Blockfrost id in his terminal: `npm run committee -- mainnet show` (`docs/maintenance-committee.md` expects 16, from the 16 maintenance transactions after the deploy; not yet confirmed on chain).*
 
 ## If a key is lost or exposed
 
@@ -117,7 +130,8 @@ deployment record. Until then this document gives no expected value.
 
 1. Launch: one key, two founder-held paper copies.
 2. With midnight-js 5 and before the ledger v9 upgrade: two-of-three committee including
-   an independent holder.
+   an independent holder. *Not done: the upgrade came first (6 November 2026). The committee
+   is still the next step, and until it is installed the single key is live.*
 3. As adoption grows: hand the committee to independent parties (for example a
    standards body, an accredited lab, or a foundation) under these same published rules.
 

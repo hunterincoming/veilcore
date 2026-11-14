@@ -80,8 +80,8 @@ against the verifier key stored in the contract, so matching keys mean the chain
 calls proved against the published circuits. A circuit that is missing, extra, or has a
 different key is a `FAIL`. The maintenance authority (who could change the keys) is compared
 with `maintenanceAuthority`: the claims contract must show an empty committee (no key can change
-it); the main contract one key and threshold 1, with its counter printed (it is not recorded
-yet; 16 is expected). The comparison is `checkContractState` in `api/src/state-check.ts`, the
+it); the main contract one key and threshold 1, and counter 16 (its value on
+13 November 2026; any maintenance update raises it, so a different counter is a `FAIL`). The comparison is `checkContractState` in `api/src/state-check.ts`, the
 check the registry and the partner kit run before trusting a state.
 
 **What it does not show.** The indexer is trusted for what it reports; use two you trust for a

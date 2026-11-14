@@ -221,7 +221,7 @@ cd ../bboard-ui && npm run build
 ## Current status
 
 **Two contracts, both on Midnight mainnet since 8 October 2026** (addresses above). `contract/src/veilcore.compact`
-(protocol version 1, frozen) covers records, licenses and lineage. `contract/src/veilcore-claims.compact`
+(protocol version 1, source frozen) covers records, licenses and lineage. `contract/src/veilcore-claims.compact`
 proves one fact about a sealed record without showing the rest (a value, a bound on a number,
 that two records differ, that a correction changed only some values), optionally on values a
 laboratory signed (from the website, lab-signed values are on the test network only); see [`docs/claims-design.md`](docs/claims-design.md) and SPEC 4.5 in veilcore-sdk.

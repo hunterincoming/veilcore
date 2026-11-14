@@ -47,8 +47,8 @@
         "retired": false,
         "committee": 1,
         "threshold": 1,
-        "counter": null,
-        "note": "One signing key (docs/maintenance-policy.md). The counter is not yet recorded; 16 is expected (16 key-adding updates after the deploy). The verify script prints the live value."
+        "counter": 16,
+        "note": "One signing key, live: the network still accepts it (docs/maintenance-policy.md). The 2-of-3 committee has not been installed. The counter was 16 on 13 November 2026 (16 key-adding updates after the deploy). Any maintenance update raises it, and the verify script then fails until this file says why."
       },
       "contractCode": "4e23ffc28f3de3ce670d9cea2896301dfeec8b4593d1b65332eb18f74ba5d286",
       "circuits": {
