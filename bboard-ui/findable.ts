@@ -45,7 +45,7 @@ export const agreementsLive = (root: string): boolean =>
   /export const AGREEMENTS_LIVE\s*=\s*true\b/.test(readFileSync(resolve(root, 'src/config/copy.ts'), 'utf8'));
 
 const status = (live: boolean): string[] => [
-  "- On Midnight's main network since 8 October 2026: records are sealed in the browser and batches of proof codes are anchored every hour. VeilCore pays the network fee; no wallet or account is needed.",
+  "- On Midnight's main network since 8 October 2026: records are sealed in the browser and batches of proof codes are anchored automatically. VeilCore pays the network fee; no wallet or account is needed.",
   live
     ? '- Licenses: a breeder licenses a record to a grower on Midnight, with royalty statements and payments signed by both sides, royalties on declared offspring, handing a license on with the breeder’s approval, and lenders’ claims. VeilCore records obligations and never holds money.'
     : '- Licenses and royalties are built and run on the test site (test.veilcore.org); on veilcore.org they are switched off until a final test run.',

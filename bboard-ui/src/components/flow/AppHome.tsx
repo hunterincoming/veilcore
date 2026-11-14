@@ -207,7 +207,7 @@ export const AppHome: React.FC = () => {
   // key, which is downloaded first so they can be restored (attack round D).
   const onReset = () => {
     const key = holderKeyIfAny();
-    const keysWarning = unbackedIds.length > 0 ? `\n\n${keysOnlyHereLine(unbackedIds, records, 'reset', tr)}` : '';
+    const keysWarning = unbackedIds.length > 0 ? `\n\n${keysOnlyHereLine(unbackedIds, 'reset', tr)}` : '';
     if (window.confirm(t('app.home.resetConfirm') + keysWarning)) {
       if (key) downloadHolderKey(key);
       startOver();

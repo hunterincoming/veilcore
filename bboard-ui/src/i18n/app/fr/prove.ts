@@ -28,12 +28,12 @@ export const prove = {
   'app.prove.missingPart': 'Il manque la dernière partie de ce lien',
   'app.prove.missingPartText':
     'La réponse ne peut repartir qu’avec le lien complet. Ouvrez le lien exactement tel qu’il vous a été envoyé, ou demandez qu’on vous le renvoie.',
-  'app.prove.someoneWants': 'Quelqu’un veut que vous prouviez que vous détenez une plante',
-  'app.prove.noPlantsHere':
-    'Vos plantes ne sont pas sur ce téléphone ou cet ordinateur. Ouvrez ce lien là où vous les gardez, ou récupérez-les ici depuis votre fichier de copie de secours, puis ouvrez de nouveau le lien.',
-  'app.prove.notThisPlant':
-    'Aucune des plantes présentes ici n’est celle demandée. Si vous la gardez sur un autre téléphone ou ordinateur, ouvrez-y ce lien. Si vous ne l’avez que dans un fichier de copie de secours, restaurez-la ici, puis ouvrez de nouveau le lien.',
-  'app.prove.getBack': 'Récupérer mes plantes depuis une copie de secours',
+  'app.prove.someoneWants': 'Quelqu’un veut que vous prouviez que vous détenez un enregistrement',
+  'app.prove.noRecordsHere':
+    'Vos enregistrements ne sont pas sur ce téléphone ou cet ordinateur. Ouvrez ce lien là où vous les gardez, ou récupérez-les ici depuis votre fichier de copie de secours, puis ouvrez de nouveau le lien.',
+  'app.prove.notThisRecord':
+    'Aucun des enregistrements présents ici n’est celui demandé. Si vous le gardez sur un autre téléphone ou ordinateur, ouvrez-y ce lien. Si vous ne l’avez que dans un fichier de copie de secours, restaurez-le ici, puis ouvrez de nouveau le lien.',
+  'app.prove.getBack': 'Récupérer mes enregistrements depuis une copie de secours',
   'app.prove.done': 'Terminé',
   'app.prove.doneText':
     'La réponse s’affichera sur sa page. Rien n’a été envoyé sur la plante : seulement la preuve que vous détenez son enregistrement.',

@@ -169,6 +169,6 @@ export const importing = {
     'Su sello de fecha público llega cuando su lote se fecha en {dated}. La página de cada planta muestra cuándo ocurrió. No tiene que hacer nada.',
   'app.import.done.dateStamp':
     'Un sello de fecha muestra que los datos existían en esa fecha. No confirma que sean correctos.',
-  'app.import.done.toPlants': 'Ir a sus plantas',
+  'app.import.done.toRecords': 'Ir a sus registros',
   'app.import.done.another': 'Importar otro archivo',
 } satisfies Partial<AppTranslation>;

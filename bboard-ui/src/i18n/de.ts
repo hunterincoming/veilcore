@@ -279,7 +279,7 @@ export const de: Strings = {
   'm.postB.text':
     'Die ersten Stapel des Registers wurden von Hand im Hauptnetz von Midnight verankert. Bei einem davon, mit fünf unserer eigenen Testdatensätze, ist die Wurzel zusätzlich auf Bitcoin gestempelt, in Block 971004. Am 15. Oktober mit zwei Block-Explorern geprüft: Der Stempel führt zu den Bitcoin-Blöcken 971004 und 971005. Eine Prüfung mit dem offiziellen OpenTimestamps-Werkzeug und einem vollständigen Bitcoin-Knoten steht noch aus.',
   'm.founders.lede':
-    'VeilCore ist ein Datensatzformat für Beweiszwecke, für pflanzliche und tierische Genetik. Es belegt, dass Sie einen Datensatz Ihres Materials zu einem bestimmten Datum hatten, ohne dass Sie Ihre genetischen Daten herausgeben.',
+    'VeilCore ist ein Datensatzformat für Beweiszwecke, für pflanzliche, tierische und mikrobielle Genetik. Es belegt, dass Sie einen Datensatz Ihres Materials zu einem bestimmten Datum hatten, ohne dass Sie Ihre genetischen Daten herausgeben.',
   'm.live.label': 'Was wo läuft',
   'm.live.title1': 'Was funktioniert,',
   'm.live.title2': 'und wo.',
@@ -338,7 +338,7 @@ export const de: Strings = {
   // Round 3 (14 Oct 2026): the rest of the landing page, so no English shows through.
   'nav.newCultivar': 'Neuer Datensatz',
   'nav.licenses': 'Vereinbarungen',
-  'footer.about': 'Ein offenes Datensatzformat für pflanzliche und tierische Genetik.',
+  'footer.about': 'Ein offenes Datensatzformat für pflanzliche, tierische und mikrobielle Genetik.',
   'footer.howCheck': 'Wie die Prüfung funktioniert →',
   'm.hero.status':
     'Start im Hauptnetz von Midnight. Heute werden Datensätze in einem Testnetz von Midnight datiert, und das beweist noch nichts.',
@@ -349,7 +349,7 @@ export const de: Strings = {
   'm.stat2.b': 'Testnetz',
   'm.stat2.s': 'Beide Contracts in einem Testnetz von Midnight durchgehend getestet. Noch nicht im Hauptnetz.',
   'm.foot.about':
-    'Ein offenes Datensatzformat für pflanzliche und tierische Genetik. Gebaut für die Verankerung auf Midnight; getestet in einem Testnetz von Midnight.',
+    'Ein offenes Datensatzformat für pflanzliche, tierische und mikrobielle Genetik. Gebaut für die Verankerung auf Midnight; getestet in einem Testnetz von Midnight.',
   'm.for.2p':
     'Züchter möchten mit ihren Markern zeigen, dass eine Sorte unterscheidbar ist, und behandeln diese Marker als Geschäftsgeheimnis. Ein VeilCore-Claim beweist eine Tatsache über sie, ohne den Rest zu zeigen. Noch akzeptiert keine Prüfstelle und keine Anerkennungsstelle ihn.',
   'm.hero.note':
@@ -574,7 +574,7 @@ export const deTestchain: Strings = {
   'm.stat2.s':
     'Diese Website läuft in einem Testnetz von Midnight, zum Üben. Beide Contracts sind seit dem 8. Oktober 2026 im Hauptnetz von Midnight.',
   'm.foot.about':
-    'Ein offenes Datensatzformat für pflanzliche und tierische Genetik. Dies ist die Test-Website, in einem Testnetz von Midnight; veilcore.org läuft im Hauptnetz von Midnight.',
+    'Ein offenes Datensatzformat für pflanzliche, tierische und mikrobielle Genetik. Dies ist die Test-Website, in einem Testnetz von Midnight; veilcore.org läuft im Hauptnetz von Midnight.',
   'm.for.1p':
     'Versiegeln Sie einen Datensatz und koppeln Sie seinen DNA-Bericht. Taucht die Pflanze unter anderem Namen auf, kann ein Labor einen neuen Test mit Ihrem Bericht vergleichen. Auf dieser Test-Website können Sie die Kopplung aus Ihrem Browser datieren, und niemand kann sie auf seinen eigenen Datensatz kopieren. VeilCore führt keine DNA-Tests durch.',
   'm.demo.lede':

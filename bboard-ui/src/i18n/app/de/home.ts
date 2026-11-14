@@ -4,7 +4,7 @@
 import type { AppTranslation } from '../../translate';
 
 export const home = {
-  'app.home.firstPlant': 'Erfassen wir Ihre erste Pflanze oder Ihr erstes Tier',
+  'app.home.firstRecord': 'Legen wir Ihren ersten Datensatz an',
   'app.home.oldLinks':
     'Prüflinks und QR-Codes, die vor dem 17. Oktober 2026 erstellt wurden, zeigen die Namen Ihrer Datensätze nicht mehr: VeilCore hält Namen jetzt verschlossen, daher hat das Register keinen zu zeigen. Um einen Namen zu teilen, öffnen Sie den Datensatz, wählen Sie „Jemandem zeigen“, schalten Sie den Namen ein und senden Sie den neuen Link. Ein neues Zertifikat hat einen neuen QR-Code.',
   'app.home.continueDraftNamed': 'Entwurf fortsetzen: {name}',
@@ -25,20 +25,14 @@ export const home = {
     'Sie zeigt, dass Ihr Schlüssel signiert hat: dass eine Probe ankam oder welchen Bericht Sie geschickt haben. Sie zeigt nicht, wer den Schlüssel hält: Jeder kann einen Schlüssel unter jedem Namen registrieren.',
   'app.home.breederToo': 'Ich bin auch Züchter',
   'app.home.imALab': 'Ich bin ein Labor',
-  'app.home.whatStops': 'Was hindert jemanden daran, meine Pflanze oder mein Tier zuerst zu erfassen?',
+  'app.home.whatStops': 'Was hindert jemanden daran, mein Material zuerst zu erfassen?',
   'app.home.samplesReceived': 'Erhaltene Proben',
   'app.home.yourRecords': 'Ihre Datensätze',
   'app.home.logNew': 'Neu erfassen',
   'app.home.saveIt': 'Speichern',
   'app.home.finishBackupLine': '<b>Zum Abschluss: Sicherungskopie speichern.</b> {line}',
-  'app.home.keysOnlyHerePlants.one': 'Eine Pflanze hat Schlüssel nur auf diesem Gerät.',
-  'app.home.keysOnlyHerePlants.other': '{count} Pflanzen haben Schlüssel nur auf diesem Gerät.',
   'app.home.keysOnlyHereRecords.one': 'Ein Datensatz hat Schlüssel nur auf diesem Gerät.',
   'app.home.keysOnlyHereRecords.other': '{count} Datensätze haben Schlüssel nur auf diesem Gerät.',
-  'app.home.resetWarningPlants.one':
-    'Eine Pflanze hat Schlüssel ohne geprüfte Sicherungskopie. Speichern Sie zuerst Ihre Sicherungskopie: Wenn Sie den Browser später leeren, wären sie endgültig verloren.',
-  'app.home.resetWarningPlants.other':
-    '{count} Pflanzen haben Schlüssel ohne geprüfte Sicherungskopie. Speichern Sie zuerst Ihre Sicherungskopie: Wenn Sie den Browser später leeren, wären sie endgültig verloren.',
   'app.home.resetWarningRecords.one':
     'Ein Datensatz hat Schlüssel ohne geprüfte Sicherungskopie. Speichern Sie zuerst Ihre Sicherungskopie: Wenn Sie den Browser später leeren, wären sie endgültig verloren.',
   'app.home.resetWarningRecords.other':

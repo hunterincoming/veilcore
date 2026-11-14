@@ -23,6 +23,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the list heading is always "Your records", the sort is by "Name", the trust panel asks "What
   stops me from logging your material?", and the paste box says "a record". In all five
   languages. A plant's own form still says cultivar.
+- The same for the rest of the shared wording: the footer and About lines and the README say
+  "plant, animal and microbial genetics"; the button that opens the trust panel says "my
+  material"; a first visit says "Let's log your first record"; the import page's button says
+  "Go to your records"; a request to prove you hold a record no longer says "plant" when the
+  record isn't on the device ("Get my records back from a backup"); and the backup check and the
+  backup warning count records, not plants (an animal was counted as a plant). French says
+  "matériel génétique" in the trust question; Spanish says "Registrar nuevo".
+- The summary shown before the script runs and llms.txt no longer say batches are dated "every
+  hour": they say "automatically", as the pages do (the rule is in `config/copy.ts`), and
+  `site-mainnet.test.ts` now checks these two texts as well.
 
 ### Two quick saves of a record keep the newer copy (13 Nov 2026, not deployed yet)
 

@@ -36,7 +36,7 @@ const PAGES: [string, RegExp][] = [
   ['/privacy', /privacy/i],
   ['/verify', /check/i],
   ['/verify/example', /example/i],
-  ['/records', /log your first plant|your plants/i],
+  ['/records', /log your first record|your records/i],
   ['/records/import', /date your whole collection/i],
   ['/new', /what do you want to prove\?/i],
   ['/restore', /backup/i],
@@ -298,7 +298,7 @@ test.describe('stand-in registry', () => {
         }),
     });
     await page.goto(`/prove/PR-${'CD'.repeat(16)}`);
-    await expect(page.getByRole('link', { name: /Get my plants back from a backup/ })).toBeVisible();
+    await expect(page.getByRole('link', { name: /Get my records back from a backup/ })).toBeVisible();
     await expect(page.getByRole('button', { name: /^Prove it$/ })).toHaveCount(0);
     expectNoErrors(errors);
   });

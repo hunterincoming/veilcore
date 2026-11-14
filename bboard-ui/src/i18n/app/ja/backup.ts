@@ -75,7 +75,6 @@ export const backup = {
     '<b>ファイルが見つかりませんか？</b>その場合、記録は誰にも取り戻せません。私たちにもできません。あなたの鍵を持ったことがないからです。だからこそ、あなたが保有していることを証明できるのです。以前の端末がまだ動くなら、そこでVeilCoreを開いて新しいバックアップを保存してください。',
   'app.backup.holds.none': 'あなたの記録が入っています。',
   'app.backup.holds.records.other': 'あなたの記録{count}件がすべて入っています。',
-  'app.backup.holds.plants.other': 'あなたの植物{count}件がすべて入っています。',
   'app.backup.restoredPlants.other': '植物{count}件の鍵を復元しました。',
   'app.backup.restoredRecords.other': '記録{count}件の鍵を復元しました（{plants}、{datings}）。',
   'app.backup.nPlants.other': '植物{count}件',

@@ -27,12 +27,12 @@ export const prove = {
   'app.prove.missingPart': 'Diesem Link fehlt der letzte Teil',
   'app.prove.missingPartText':
     'Die Antwort kann nur mit dem ganzen Link zurückgehen. Öffnen Sie den Link genau so, wie er gesendet wurde, oder bitten Sie darum, ihn erneut zu senden.',
-  'app.prove.someoneWants': 'Jemand möchte, dass Sie beweisen, dass Sie eine Pflanze halten',
-  'app.prove.noPlantsHere':
-    'Ihre Pflanzen sind nicht auf diesem Telefon oder Computer. Öffnen Sie diesen Link dort, wo Sie sie aufbewahren, oder holen Sie sie hier aus Ihrer Sicherungsdatei zurück und öffnen Sie den Link dann erneut.',
-  'app.prove.notThisPlant':
-    'Keine der Pflanzen hier ist die, nach der gefragt wurde. Wenn Sie sie auf einem anderen Telefon oder Computer aufbewahren, öffnen Sie diesen Link dort. Wenn Sie sie nur in einer Sicherungsdatei haben, stellen Sie sie hier wieder her und öffnen Sie den Link dann erneut.',
-  'app.prove.getBack': 'Meine Pflanzen aus einer Sicherungskopie zurückholen',
+  'app.prove.someoneWants': 'Jemand möchte, dass Sie beweisen, dass Sie einen Datensatz halten',
+  'app.prove.noRecordsHere':
+    'Ihre Datensätze sind nicht auf diesem Telefon oder Computer. Öffnen Sie diesen Link dort, wo Sie sie aufbewahren, oder holen Sie sie hier aus Ihrer Sicherungsdatei zurück und öffnen Sie den Link dann erneut.',
+  'app.prove.notThisRecord':
+    'Keiner der Datensätze hier ist der, nach dem gefragt wurde. Wenn Sie ihn auf einem anderen Telefon oder Computer aufbewahren, öffnen Sie diesen Link dort. Wenn Sie ihn nur in einer Sicherungsdatei haben, stellen Sie ihn hier wieder her und öffnen Sie den Link dann erneut.',
+  'app.prove.getBack': 'Meine Datensätze aus einer Sicherungskopie zurückholen',
   'app.prove.done': 'Fertig',
   'app.prove.doneText':
     'Die Antwort erscheint auf der Seite des Anfragenden. Über die Pflanze wurde nichts gesendet: nur der Beweis, dass Sie ihren Datensatz halten.',

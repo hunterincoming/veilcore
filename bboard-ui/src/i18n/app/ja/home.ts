@@ -4,7 +4,7 @@
 import type { AppTranslation } from '../../translate';
 
 export const home = {
-  'app.home.firstPlant': '最初の植物か動物を記録しましょう',
+  'app.home.firstRecord': '最初の記録を作りましょう',
   'app.home.oldLinks':
     '2026年10月17日より前に作った確認リンクとQRコードには、記録の名前が表示されなくなりました。VeilCoreは名前に鍵をかけて保存するようになったため、レジストリには表示する名前がありません。名前を共有するには、記録を開いて「誰かに見せる」を選び、名前をオンにして、新しいリンクを送ってください。新しい証明書には新しいQRコードが付きます。',
   'app.home.continueDraftNamed': '下書きの続き：{name}',
@@ -23,16 +23,13 @@ export const home = {
     'あなたの鍵が署名したこと、つまりサンプルが届いたことや、どの報告書を送ったかがわかります。誰がその鍵を持っているかはわかりません。誰でも、どんな名前でも鍵を登録できるからです。',
   'app.home.breederToo': '育成者でもあります',
   'app.home.imALab': 'ラボです',
-  'app.home.whatStops': '誰かが先に私の植物や動物を記録するのを、何が防ぐのですか？',
+  'app.home.whatStops': '誰かが先に私の素材を記録するのを、何が防ぐのですか？',
   'app.home.samplesReceived': '受け取ったサンプル',
   'app.home.yourRecords': 'あなたの記録',
   'app.home.logNew': '新しく記録',
   'app.home.saveIt': '保存する',
   'app.home.finishBackupLine': '<b>仕上げ：バックアップを保存してください。</b>{line}',
-  'app.home.keysOnlyHerePlants.other': '植物{count}件の鍵がこの端末にしかありません。',
   'app.home.keysOnlyHereRecords.other': '記録{count}件の鍵がこの端末にしかありません。',
-  'app.home.resetWarningPlants.other':
-    '植物{count}件に、確認済みのバックアップがない鍵があります。先にバックアップを保存してください。後でブラウザのデータを消去すると、それらは永久に失われます。',
   'app.home.resetWarningRecords.other':
     '記録{count}件に、確認済みのバックアップがない鍵があります。先にバックアップを保存してください。後でブラウザのデータを消去すると、それらは永久に失われます。',
   'app.home.resetConfirm':

@@ -127,7 +127,7 @@ export const ProvePage: React.FC = () => {
         <>
           <Title>{t('app.prove.someoneWants')}</Title>
           <Typography variant="body1" sx={{ mb: 2 }}>
-            {Object.keys(allKeys).length === 0 ? t('app.prove.noPlantsHere') : t('app.prove.notThisPlant')}
+            {Object.keys(allKeys).length === 0 ? t('app.prove.noRecordsHere') : t('app.prove.notThisRecord')}
           </Typography>
           <Button variant="outlined" size="large" component={RouterLink} to="/restore" sx={{ py: 1.2 }}>
             {t('app.prove.getBack')}

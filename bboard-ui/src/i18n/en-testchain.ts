@@ -31,7 +31,7 @@ export const testchainStrings: Overlay = {
   'm.stat2.s':
     "This site runs on a Midnight test network, for practice. Both contracts have been on Midnight's main network since 8 October 2026.",
   'm.foot.about':
-    "An open record format for plant and animal genetics. This is the test site, on a Midnight test network; veilcore.org runs on Midnight's main network.",
+    "An open record format for plant, animal and microbial genetics. This is the test site, on a Midnight test network; veilcore.org runs on Midnight's main network.",
   'm.for.1p':
     "Seal a record and pair its DNA report. If the plant turns up under another name, a lab can compare a new test with your report. On this test site you can date the pairing from your browser, and nobody can copy it to their own record. VeilCore doesn't test DNA.",
   'm.demo.lede':

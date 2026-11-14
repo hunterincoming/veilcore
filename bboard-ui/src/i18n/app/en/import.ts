@@ -169,6 +169,6 @@ export const importing = {
     "Their public date stamp comes when their batch is dated on {dated}. Each plant's page shows when that has happened. Nothing for you to do.",
   'app.import.done.dateStamp':
     "A date stamp shows the details existed by that date. It doesn't confirm they are right.",
-  'app.import.done.toPlants': 'Go to your plants',
+  'app.import.done.toRecords': 'Go to your records',
   'app.import.done.another': 'Import another file',
 };

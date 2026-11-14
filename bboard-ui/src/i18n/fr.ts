@@ -281,7 +281,7 @@ export const fr: Strings = {
   'm.postB.text':
     "Les premiers lots du registre ont été ancrés à la main sur le réseau principal de Midnight. L'un d'eux, cinq de nos propres enregistrements de test, a aussi sa racine horodatée sur Bitcoin, dans le bloc 971004. Vérifié le 15 octobre avec deux explorateurs de blocs : l'horodatage mène aux blocs Bitcoin 971004 et 971005. Une vérification avec l'outil officiel OpenTimestamps et un nœud Bitcoin complet reste à faire.",
   'm.founders.lede':
-    "VeilCore est un format d'enregistrement probatoire pour la génétique végétale et animale. Il prouve que vous déteniez un enregistrement de votre matériel à une date donnée, sans remettre vos données génétiques.",
+    "VeilCore est un format d'enregistrement probatoire pour la génétique végétale, animale et microbienne. Il prouve que vous déteniez un enregistrement de votre matériel à une date donnée, sans remettre vos données génétiques.",
   'm.live.label': 'Ce qui marche où',
   'm.live.title1': 'Ce qui fonctionne,',
   'm.live.title2': 'et où.',
@@ -340,7 +340,7 @@ export const fr: Strings = {
   // Round 3 (14 Oct 2026): the rest of the landing page, so no English shows through.
   'nav.newCultivar': 'Nouvel enregistrement',
   'nav.licenses': 'Contrats',
-  'footer.about': "Un format d'enregistrement ouvert pour la génétique végétale et animale.",
+  'footer.about': "Un format d'enregistrement ouvert pour la génétique végétale, animale et microbienne.",
   'footer.howCheck': 'Comment fonctionne la vérification →',
   'm.hero.status':
     "Lancement sur le réseau principal de Midnight. Aujourd'hui, les enregistrements sont datés sur un réseau de test de Midnight, ce qui ne prouve encore rien.",
@@ -352,7 +352,7 @@ export const fr: Strings = {
   'm.stat2.s':
     'Les deux contrats testés de bout en bout sur un réseau de test de Midnight. Pas encore sur le réseau principal.',
   'm.foot.about':
-    "Un format d'enregistrement ouvert pour la génétique végétale et animale. Conçu pour s'ancrer sur Midnight ; en test sur un réseau de test de Midnight.",
+    "Un format d'enregistrement ouvert pour la génétique végétale, animale et microbienne. Conçu pour s'ancrer sur Midnight ; en test sur un réseau de test de Midnight.",
   'm.for.2p':
     "Les sélectionneurs veulent utiliser leurs marqueurs pour montrer qu'une variété est distincte, et les gardent comme secrets d'affaires. Une revendication VeilCore prouve un fait à leur sujet sans montrer le reste. Aucun office d'examen ni organisme de certification ne l'accepte encore.",
   'm.hero.note':
@@ -574,7 +574,7 @@ export const frTestchain: Strings = {
   'm.stat2.s':
     "Ce site fonctionne sur un réseau de test de Midnight, pour s'exercer. Les deux contrats sont sur le réseau principal de Midnight depuis le 8 octobre 2026.",
   'm.foot.about':
-    "Un format d'enregistrement ouvert pour la génétique végétale et animale. Ceci est le site de test, sur un réseau de test de Midnight ; veilcore.org fonctionne sur le réseau principal de Midnight.",
+    "Un format d'enregistrement ouvert pour la génétique végétale, animale et microbienne. Ceci est le site de test, sur un réseau de test de Midnight ; veilcore.org fonctionne sur le réseau principal de Midnight.",
   'm.for.1p':
     "Scellez un enregistrement et associez-y son rapport ADN. Si la plante réapparaît sous un autre nom, un laboratoire peut comparer un nouveau test avec votre rapport. Sur ce site de test, vous pouvez dater l'association depuis votre navigateur, et personne ne peut la copier sur son propre enregistrement. VeilCore ne fait pas de tests ADN.",
   'm.demo.lede':

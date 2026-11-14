@@ -28,12 +28,12 @@ export const prove = {
   'app.prove.missingPart': 'This link is missing its last part',
   'app.prove.missingPartText':
     'The answer can only go back with the whole link. Open the link exactly as they sent it, or ask them to send it again.',
-  'app.prove.someoneWants': 'Someone wants you to prove you hold a plant',
-  'app.prove.noPlantsHere':
-    'Your plants aren’t on this phone or computer. Open this link where you keep them, or get them back here from your backup file, then open the link again.',
-  'app.prove.notThisPlant':
-    'None of the plants here is the one they asked about. If you keep it on another phone or computer, open this link there. If you only have it in a backup file, restore it here, then open the link again.',
-  'app.prove.getBack': 'Get my plants back from a backup',
+  'app.prove.someoneWants': 'Someone wants you to prove you hold a record',
+  'app.prove.noRecordsHere':
+    'Your records aren’t on this phone or computer. Open this link where you keep them, or get them back here from your backup file, then open the link again.',
+  'app.prove.notThisRecord':
+    'None of the records here is the one they asked about. If you keep it on another phone or computer, open this link there. If you only have it in a backup file, restore it here, then open the link again.',
+  'app.prove.getBack': 'Get my records back from a backup',
   'app.prove.done': 'Done',
   'app.prove.doneText':
     "They'll see the answer on their page. Nothing about the plant was sent: only proof that you hold its record.",

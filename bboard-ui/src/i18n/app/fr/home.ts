@@ -4,7 +4,7 @@
 import type { AppTranslation } from '../../translate';
 
 export const home = {
-  'app.home.firstPlant': 'Enregistrons votre première plante ou votre premier animal',
+  'app.home.firstRecord': 'Créons votre premier enregistrement',
   'app.home.oldLinks':
     'Les liens de vérification et codes QR faits avant le 17 octobre 2026 ne montrent plus le nom de vos enregistrements : VeilCore garde désormais les noms verrouillés, donc le registre n’en a aucun à montrer. Pour partager un nom, ouvrez l’enregistrement, choisissez Montrer à quelqu’un, activez le nom et envoyez le nouveau lien. Un nouveau certificat a un nouveau code QR.',
   'app.home.continueDraftNamed': 'Reprendre votre brouillon : {name}',
@@ -25,20 +25,14 @@ export const home = {
     'Elle montre que votre clé a signé : qu’un échantillon est arrivé, ou quel rapport vous avez envoyé. Elle ne montre pas qui détient la clé : n’importe qui peut enregistrer une clé sous n’importe quel nom.',
   'app.home.breederToo': 'Je suis aussi obtenteur',
   'app.home.imALab': 'Je suis un laboratoire',
-  'app.home.whatStops': 'Qu’est-ce qui empêche quelqu’un d’enregistrer ma plante ou mon animal en premier ?',
+  'app.home.whatStops': 'Qu’est-ce qui empêche quelqu’un d’enregistrer mon matériel génétique en premier ?',
   'app.home.samplesReceived': 'Échantillons reçus',
   'app.home.yourRecords': 'Vos enregistrements',
   'app.home.logNew': 'Enregistrer',
   'app.home.saveIt': 'L’enregistrer',
   'app.home.finishBackupLine': '<b>Pour finir : enregistrez votre copie de secours.</b> {line}',
-  'app.home.keysOnlyHerePlants.one': '{count} plante a des clés uniquement sur cet appareil.',
-  'app.home.keysOnlyHerePlants.other': '{count} plantes ont des clés uniquement sur cet appareil.',
   'app.home.keysOnlyHereRecords.one': '{count} enregistrement a des clés uniquement sur cet appareil.',
   'app.home.keysOnlyHereRecords.other': '{count} enregistrements ont des clés uniquement sur cet appareil.',
-  'app.home.resetWarningPlants.one':
-    '{count} plante a des clés sans copie de secours vérifiée. Enregistrez d’abord votre copie de secours : si vous videz le navigateur plus tard, elles seraient perdues pour de bon.',
-  'app.home.resetWarningPlants.other':
-    '{count} plantes ont des clés sans copie de secours vérifiée. Enregistrez d’abord votre copie de secours : si vous videz le navigateur plus tard, elles seraient perdues pour de bon.',
   'app.home.resetWarningRecords.one':
     '{count} enregistrement a des clés sans copie de secours vérifiée. Enregistrez d’abord votre copie de secours : si vous videz le navigateur plus tard, elles seraient perdues pour de bon.',
   'app.home.resetWarningRecords.other':
@@ -67,7 +61,7 @@ export const home = {
   'app.home.saveABackup': 'Enregistrer une copie de secours',
   'app.home.exportAll': 'Exporter tous les enregistrements',
   'app.home.importRecords': 'Importer des enregistrements',
-  'app.home.trust.title': '« Qu’est-ce qui m’empêche d’enregistrer <em>votre</em> matériel ? »',
+  'app.home.trust.title': '« Qu’est-ce qui m’empêche d’enregistrer <em>votre</em> matériel génétique ? »',
   'app.home.trust.lede': 'Trois choses rendent un enregistrement VeilCore difficile à falsifier :',
   'app.home.trust.1t': 'Un enregistrement antérieur apparaît comme antérieur',
   'app.home.trust.1b':

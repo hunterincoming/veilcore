@@ -118,7 +118,7 @@ const HEX64 = /^[0-9a-f]{64}$/;
 
 /** Home's first-visit heading: a draft in this browser is named, so it is finished, not started again. */
 export const draftHeading = (draft: Draft | undefined, tr: Translator = enT): string => {
-  if (!draft) return tr.t('app.home.firstPlant');
+  if (!draft) return tr.t('app.home.firstRecord');
   const name =
     draft.kind === 'animal' && draft.animal
       ? draft.animal.name.trim() || draft.animal.individualId.trim()

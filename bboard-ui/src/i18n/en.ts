@@ -9,7 +9,7 @@ export const en = {
   'nav.language': 'Language',
   'nav.main': 'Main',
   'nav.home': 'VeilCore home',
-  'footer.about': 'An open record format for plant and animal genetics.',
+  'footer.about': 'An open record format for plant, animal and microbial genetics.',
   'footer.howCheck': 'How checking works →',
   'footer.documents': 'Documents',
   'footer.spec': 'Specification',
@@ -79,7 +79,7 @@ export const en = {
   'm.stat2.b': 'Test network',
   'm.stat2.s': 'Both contracts tested end to end on a Midnight test network. Not on the main network yet.',
   'm.foot.about':
-    'An open record format for plant and animal genetics. Designed to anchor on Midnight; testing on a Midnight test network.',
+    'An open record format for plant, animal and microbial genetics. Designed to anchor on Midnight; testing on a Midnight test network.',
   'm.for.2p':
     'Breeders want to use their markers to show a variety is distinct, and keep those markers as trade secrets. A VeilCore claim proves one fact about them without showing the rest. No examining office or certifier accepts it yet.',
   // End of the network wording.
@@ -481,7 +481,7 @@ export const en = {
 
   'm.founders.label': 'Founders',
   'm.founders.lede':
-    'VeilCore is an evidentiary record format for plant and animal genetics. It gives evidence that you held a record of your material by a given date, without handing over your genetic data.',
+    'VeilCore is an evidentiary record format for plant, animal and microbial genetics. It gives evidence that you held a record of your material by a given date, without handing over your genetic data.',
   'm.founders.leads': 'Leads',
   'm.founders.also': 'Also',
   'm.founders.languages': 'Languages',

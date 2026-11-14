@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 export const home = {
-  'app.home.firstPlant': 'Let’s log your first plant or animal',
+  'app.home.firstRecord': 'Let’s log your first record',
   'app.home.oldLinks':
     'Check links and QR codes made before 17 October 2026 no longer show your records’ names: VeilCore keeps names locked now, so the registry has none to show. To share a name, open the record, choose Show someone, switch the name on, and send the new link. A new certificate has a new QR code.',
   'app.home.continueDraftNamed': 'Continue your draft: {name}',
@@ -23,20 +23,14 @@ export const home = {
     "It shows that your key signed: that a sample arrived, or which report you sent. It doesn't show who holds the key: anyone can register a key under any name.",
   'app.home.breederToo': "I'm a breeder too",
   'app.home.imALab': "I'm a lab",
-  'app.home.whatStops': 'What stops someone logging my plant or animal first?',
+  'app.home.whatStops': 'What stops someone logging my material first?',
   'app.home.samplesReceived': 'Samples received',
   'app.home.yourRecords': 'Your records',
   'app.home.logNew': 'Log new',
   'app.home.saveIt': 'Save it',
   'app.home.finishBackupLine': '<b>Finish: save your backup.</b> {line}',
-  'app.home.keysOnlyHerePlants.one': 'A plant has keys only on this device.',
-  'app.home.keysOnlyHerePlants.other': '{count} plants have keys only on this device.',
   'app.home.keysOnlyHereRecords.one': 'A record has keys only on this device.',
   'app.home.keysOnlyHereRecords.other': '{count} records have keys only on this device.',
-  'app.home.resetWarningPlants.one':
-    'A plant has keys with no checked backup. Save your backup first: clearing the browser later would lose them for good.',
-  'app.home.resetWarningPlants.other':
-    '{count} plants have keys with no checked backup. Save your backup first: clearing the browser later would lose them for good.',
   'app.home.resetWarningRecords.one':
     'A record has keys with no checked backup. Save your backup first: clearing the browser later would lose them for good.',
   'app.home.resetWarningRecords.other':

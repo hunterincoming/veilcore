@@ -120,7 +120,7 @@ const summaryOf = (live: boolean) => ({
 <h2>Where it stands</h2>
 <ul>
 <li>On Midnight's main network since 8 October 2026. Open to first users since 20 October 2026; every record so far is the team's own test data.</li>
-<li>Works on veilcore.org: sealing records; batches dated on Midnight automatically, every hour; proving a record by link; dating a DNA report pairing; lab receipts and reports signed with the lab's own key. No wallet needed: VeilCore pays the network fee.</li>
+<li>Works on veilcore.org: sealing records; batches dated on Midnight automatically; proving a record by link; dating a DNA report pairing; lab receipts and reports signed with the lab's own key. No wallet needed: VeilCore pays the network fee.</li>
 ${live ? LICENSES_LIVE : LICENSES_PRACTICE}
 <li>No formal audit yet. Twelve rounds of adversarial review are public.</li>
 </ul>

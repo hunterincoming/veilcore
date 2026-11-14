@@ -4,7 +4,7 @@
 import type { AppTranslation } from '../../translate';
 
 export const home = {
-  'app.home.firstPlant': 'Registremos su primera planta o su primer animal',
+  'app.home.firstRecord': 'Creemos su primer registro',
   'app.home.oldLinks':
     'Los enlaces de comprobación y códigos QR hechos antes del 17 de octubre de 2026 ya no muestran el nombre de sus registros: VeilCore ahora guarda los nombres cerrados, así que el servidor de registros no tiene ninguno que mostrar. Para compartir un nombre, abra el registro, elija Mostrar a alguien, active el nombre y envíe el enlace nuevo. Un certificado nuevo tiene un código QR nuevo.',
   'app.home.continueDraftNamed': 'Continúe su borrador: {name}',
@@ -24,20 +24,14 @@ export const home = {
     'Muestra que su clave firmó: que llegó una muestra, o qué informe envió. No muestra quién tiene la clave: cualquiera puede registrar una clave con cualquier nombre.',
   'app.home.breederToo': 'También soy obtentor',
   'app.home.imALab': 'Soy un laboratorio',
-  'app.home.whatStops': '¿Qué impide que alguien registre mi planta o mi animal primero?',
+  'app.home.whatStops': '¿Qué impide que alguien registre mi material primero?',
   'app.home.samplesReceived': 'Muestras recibidas',
   'app.home.yourRecords': 'Sus registros',
-  'app.home.logNew': 'Registrar nueva',
+  'app.home.logNew': 'Registrar nuevo',
   'app.home.saveIt': 'Guardarla',
   'app.home.finishBackupLine': '<b>Para terminar: guarde su copia de seguridad.</b> {line}',
-  'app.home.keysOnlyHerePlants.one': 'Una planta tiene claves solo en este dispositivo.',
-  'app.home.keysOnlyHerePlants.other': '{count} plantas tienen claves solo en este dispositivo.',
   'app.home.keysOnlyHereRecords.one': 'Un registro tiene claves solo en este dispositivo.',
   'app.home.keysOnlyHereRecords.other': '{count} registros tienen claves solo en este dispositivo.',
-  'app.home.resetWarningPlants.one':
-    'Una planta tiene claves sin una copia de seguridad comprobada. Guarde primero su copia de seguridad: si borra el navegador más tarde, se perderían para siempre.',
-  'app.home.resetWarningPlants.other':
-    '{count} plantas tienen claves sin una copia de seguridad comprobada. Guarde primero su copia de seguridad: si borra el navegador más tarde, se perderían para siempre.',
   'app.home.resetWarningRecords.one':
     'Un registro tiene claves sin una copia de seguridad comprobada. Guarde primero su copia de seguridad: si borra el navegador más tarde, se perderían para siempre.',
   'app.home.resetWarningRecords.other':
