@@ -1,4 +1,4 @@
-# If VeilCore disappears (23 Oct 2026)
+# If VeilCore disappears (23 Oct 2026, updated 14 Nov 2026)
 
 A standard people can rely on has to keep working if the company behind it stops: shut down,
 bought, or just offline for a week. This page says, piece by piece, what a holder can still
@@ -11,8 +11,14 @@ With **their backup file** and nothing from us, a holder can still show any of t
 recompute its proof code, show it sits in a batch, and point at the Midnight transaction
 that dates that batch. A buyer, examiner or court can check all of it with free, open tools.
 
-What a holder can't do without us yet: make *new* records the way the website does, or read
-the private messages of a license deal.
+What a holder can't do without us yet: make *new* records the way the website does, or carry
+on a license deal (the messages already exchanged are in the backup file; the channel they
+travel over is on our registry).
+
+The code for every part is now public: the website and the fee service in this repository,
+and from 14 November the registry (`veilcore-api`). That closes the gap in code, not the gap
+in practice: nobody but us runs a registry or a fee service, so if ours stop, there is nowhere
+to save or date a new record until someone sets both up.
 
 ## Piece by piece
 
@@ -25,7 +31,7 @@ the private messages of a license deal.
 | Checking a record | `npx veilcore-records verify` (open source, on npm), the evidence bundle's `verify.html` and `verify.py`, the Python and Rust implementations | ✅ No server, no account. Three implementations, all written by us so far |
 | The format itself | SPEC.md in veilcore-sdk, Apache-2.0 | ✅ Anyone can implement it from the text and the 181 vectors |
 | The website | This repository, Apache-2.0; every release has a manifest and can be rebuilt | ⚠️ Anyone can host it, but it needs a registry and a fee service to save and date records |
-| The registry (stores sealed records, batches them, relays lab codes and deal messages) | Our server. Its code (`veilcore-api`) **is not public yet** | ❌ The biggest gap. Without its code, someone else can't run a compatible one |
+| The registry (stores sealed records, batches them, relays lab codes and deal messages) | Our server. Its code is public **from 14 Nov 2026**: [hunterincoming/veilcore-api](https://github.com/hunterincoming/veilcore-api), Apache-2.0 | ⚠️ Anyone can run a compatible one from the code and its README, and nobody else does yet. Someone has to host it, keep its database and backups, and pair it with a fee service to date its batches. A new one starts empty: nothing on ours moves to it, so the backup file is still what a holder relies on. Only we have ever run it, so setting one up without our help is untested |
 | The fee service (pays the network fee so nobody needs a wallet) | Our server (`sponsor/`, in this repository) | ⚠️ The code is here; someone has to run it and fund it |
 | License state (issued, active, revoked) | The main contract on Midnight | ✅ Public chain state; the verifier rules are in `docs/design.md` |
 | License terms and royalty messages | Encrypted on our registry; **and, from 23 Oct, in the backup file** (`dealRecords`) | ✅ Each side's backup keeps every message of its deals as signed (terms, statements, replies, payments, confirmations), checkable by anyone with `npx veilcore-records deal <file>` (veilcore-records 0.18.0 on npm). Kept for the holder, not restored: a deal's channel itself stays on the registry |
@@ -55,8 +61,11 @@ is gone, and leaving them out keeps it small. The backup file is the thing to ke
 
 ## Still to do, in order
 
-1. **Publish the registry's code.** Before that: check its history for anything secret, and
-   rotate whatever was ever in it. Hunter's call on timing.
+1. ~~Publish the registry's code~~: done 14 Nov
+   ([hunterincoming/veilcore-api](https://github.com/hunterincoming/veilcore-api), Apache-2.0).
+   Still open under it: **a registry and fee service run by someone else.** The code and its
+   README are public; what's missing is a second operator, and a write-up of running both from
+   a fresh start that doesn't lean on what we know from operating ours.
 2. ~~Publish the backup command to npm~~: done 23 Oct (veilcore-records 0.17.1, built and
    signed by CI, approved by a person with 2FA before it went live).
 3. ~~The strain profile in veilcore-records~~: done 23 Oct (SPEC 11.9 and 30 vectors in

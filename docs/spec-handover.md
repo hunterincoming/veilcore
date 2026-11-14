@@ -56,9 +56,9 @@ the code a neutral owner and a legal home that outlives a company.
 
 ## Order, and what each step needs
 
-1. **Now:** publish the registry's code (see [without-veilcore.md](without-veilcore.md)), and
-   get one implementation written by someone outside VeilCore. A format moved before anyone
-   else has implemented it is still effectively ours.
+1. **Now:** get one implementation written by someone outside VeilCore. A format moved before
+   anyone else has implemented it is still effectively ours. (The registry's code, the other
+   half of this step, is public since 14 Nov 2026: see [without-veilcore.md](without-veilcore.md).)
 2. **Five genuine supporters** for the Community Group: people who'd actually review the text,
    not friends clicking a button. Then propose it, with SPEC sections 1 to 10 as the first
    draft.

@@ -447,7 +447,7 @@ export const de: Strings = {
     'Die Signaturen eines Labors zu einem Datensatz bleiben privat, außer der Inhaber des Datensatzes zeigt sie. Jede gezeigte nennt den Schlüssel, der signiert hat, den Namen, unter dem dieser registriert wurde, eine Akkreditierung, die sein Inhaber angegeben hat (das prüfen wir nicht), und ob der Betreiber von VeilCore diesen Namen mit einem öffentlichen Lizenz- oder Akkreditierungsverzeichnis abgeglichen hat, und an welchem Tag. VeilCore bürgt für kein Labor: Wer einen Datensatz prüft, entscheidet, was eine Signatur wert ist.',
   'm.open.4t': 'Jeder kann ein Register betreiben.',
   'm.open.4p':
-    'Das Format erlaubt einem Labor, einer Anerkennungsstelle oder einem Sortenschutzgremium, ein eigenes Register unter eigener Webdomain zu betreiben und zu verankern, ohne uns zu fragen. Unser eigener Registercode ist nicht veröffentlicht.',
+    'Das Format erlaubt einem Labor, einer Anerkennungsstelle oder einem Sortenschutzgremium, ein eigenes Register unter eigener Webdomain zu betreiben und zu verankern, ohne uns zu fragen. Unser eigener Registercode ist öffentlich, unter der Apache-2.0-Lizenz, auf github.com/hunterincoming/veilcore-api.',
   'm.faq.label': 'Fragen',
   'm.faq.title1': 'Fragen,',
   'm.faq.title2': 'die man uns stellt.',

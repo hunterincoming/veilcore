@@ -192,8 +192,10 @@ npm run dev                      # http://localhost:5173
 ```
 
 The app opens and you can log a record, but with no registry set it keeps records for that
-browser session only. The registry (`veilcore-api`) isn't public yet: to save records, point
-the app at one with `VITE_API_BASE=<registry address>`. For a full practice run with a
+browser session only. The registry is a separate repository
+([hunterincoming/veilcore-api](https://github.com/hunterincoming/veilcore-api), Apache-2.0): to
+save records, run one (its README says how) and point the app at it with
+`VITE_API_BASE=<registry address>`. For a full practice run with a
 registry and the test network, use [test.veilcore.org](https://test.veilcore.org).
 
 ## Building from a fresh clone

@@ -450,7 +450,7 @@ export const fr: Strings = {
     "Les signatures d'un laboratoire sur un enregistrement restent privées, sauf si le détenteur de l'enregistrement les montre. Chacune de celles qui sont montrées indique quelle clé a signé, le nom sous lequel cette clé a été enregistrée, toute accréditation déclarée par son détenteur (nous ne la vérifions pas), et si l'opérateur de VeilCore a rapproché ce nom d'une liste publique de licences ou d'accréditations, et à quelle date. VeilCore ne se porte garant d'aucun laboratoire : c'est la personne qui vérifie un enregistrement qui décide de ce que vaut une signature.",
   'm.open.4t': 'Chacun peut tenir un registre.',
   'm.open.4p':
-    "Le format permet à un laboratoire, un organisme de certification ou un organisme de droits de gérer son propre registre, sous son propre domaine web, et d'ancrer sans nous demander. Le code de notre propre registre n'est pas publié.",
+    "Le format permet à un laboratoire, un organisme de certification ou un organisme de droits de gérer son propre registre, sous son propre domaine web, et d'ancrer sans nous demander. Le code de notre propre registre est public, sous licence Apache-2.0, sur github.com/hunterincoming/veilcore-api.",
   'm.faq.label': 'Questions',
   'm.faq.title1': 'Les questions',
   'm.faq.title2': "qu'on nous pose.",
