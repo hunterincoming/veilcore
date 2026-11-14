@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   shows what is owed (it shows what each side declared), or that a third party can contest a
   record (SPEC 11.7 only; no screen). Obligations show on descendants both holders confirm, and
   the check page's choice of facts is one per record, not one per recipient.
-- The text is the SDK's, from commit `14ceaea` (`EVIDENCE_COMMIT` in `veilcore/docs.ts`); the
+- The text is the SDK's, from commit `dabb71c` (`EVIDENCE_COMMIT` in `veilcore/docs.ts`); the
   page's "Source" link opens that commit. SPEC and INTEGRATING stay at `3196c68`. English only.
 
 ### A change undone before it is saved is saved undone (13 Nov 2026, not deployed yet)

@@ -8,7 +8,7 @@ Version 0.1 - August 2026, revised November 2026 - draft for comment
 
 ## Summary
 
-VeilCore is a records system for plant and animal genetics - plant varieties, breeding lines, seed lots, cultures, animal lines. It lets a holder establish four things that are ordinarily difficult or impossible to establish without disclosing the material itself:
+VeilCore is a records system for plant, animal and microbial genetics - plant varieties, breeding lines, seed lots, cultures, animal lines. It lets a holder establish four things that are ordinarily difficult or impossible to establish without disclosing the material itself:
 
 **That a record of it existed by a date.** Provable to a third party, without revealing what "it" is. Who controls that record now can be shown too; who held it in between cannot.
 
@@ -16,7 +16,7 @@ VeilCore is a records system for plant and animal genetics - plant varieties, br
 
 **What a second party confirmed about it.** A laboratory's receipt, its report, signed by the laboratory and retractable only by them.
 
-**What terms a counterparty agreed to, and whether the license is still live.** Countersigned, bound to the record, and revocable - once revoked, it cannot be shown as live to anyone who checks.
+**What terms a counterparty agreed to, and whether the license is still live.** Countersigned, bound to the record, and revocable - once revoked, it cannot be shown as live to a verifier who applies the published revocation rule (section 1.5).
 
 Each of these is separately disclosable in the record format; section 1.6 says what the website at veilcore.org offers today. **The genetics themselves are never disclosable through the system at all.**
 
@@ -58,7 +58,7 @@ A record can declare what it descends from. Where a license carried an obligatio
 
 **What it does not do:** it does not detect undeclared descent, and it does not test descent: a parent link means both holders agreed the child descends from the parent, not that a genetic test showed it. A licensee who propagates quietly and never registers, sells or tests the result is invisible to any records system. The mechanism operates when material surfaces commercially - which is also when a licensor would want to act.
 
-**Where it stands:** parent links and obligations are in the contract on Midnight's main network, and the website at veilcore.org offers them with licenses. The run on the main network on 8 November 2026 covered a license and a royalty report; this note does not claim that a parent link or an obligation has been run there.
+**Where it stands:** parent links and obligations are in the contract on Midnight's main network, and the website at veilcore.org offers them with licenses. The run on veilcore.org on 8 November 2026 covered a license and a royalty report; this note does not claim that a parent link or an obligation has been run there.
 
 ### 1.4 Second-party confirmation
 
@@ -72,11 +72,11 @@ A holder's own record is their own account. A second party confirming it is mate
 
 ### 1.5 Licensing, and revocation as the enforcement mechanism
 
-The system carries an agreement from draft, through issue by the licensor and countersignature by the licensee, to active, and it stays active until the licensor revokes it. On chain a license is only pending (issued) or active (countersigned), and revoking removes it; the contract stores no terms and has no expiry. An end date is a term the two parties hold. The VeilCore web app shows a license past its end date as expired on the parties' own screens, and the chain goes on reporting it as live until it is revoked. Terms name the record and the hash of any report bound to it, so what was licensed is not a matter of recollection.
+The system carries an agreement from draft, through issue by the licensor and countersignature by the licensee, to active, and it stays active until the licensor revokes it. On chain a license is only pending (issued) or active (countersigned), and revoking removes it; the contract stores no terms and has no expiry. An end date is a term the two parties hold. The VeilCore web app shows a license past its end date as expired on the parties' own screens, and the chain goes on reporting it as live until it is revoked. Each agreement carries a fingerprint: a SHA-256 hash over the agreement type, the terms, the record's fingerprint and a random salt. Anyone given the terms and the salt can recompute it, so what was licensed is not a matter of recollection. It does not cover the hash of a report, and the contract does not store it.
 
 **Royalty reports are recorded as each side declared and signed them:** what the licensee reported, the licensor's answer, and each side's statement that a payment was made and received. The record shows what was declared. It does not show that anything is owed, and the system does not process payments and does not hold funds.
 
-**Revocation is the enforcement mechanism, and it is worth understanding why.** Nobody can police an unreported grow - not the licensor, and not any records system. But a licensee whose license is revoked cannot show a live license to the next buyer, the next laboratory, or any scheme that requires a record for entry. The licensor is not policing the plant. They are making the licensee's paper worthless.
+**Revocation is the enforcement mechanism, and it is worth understanding why.** Nobody can police an unreported grow - not the licensor, and not any records system. But a licensee whose license is revoked cannot show a live license to the next buyer, the next laboratory, or any scheme that requires a record for entry. That holds for a verifier who applies the published revocation rule (rule 5 in the VeilCore repository's docs/design.md): a revoked license's old proof path still verifies on chain until the next seal, and the rule refuses it. The licensor is not policing the plant. They are making the licensee's paper worthless.
 
 This is the honest answer to "royalties on genetics are unenforceable." They are unenforceable by pursuit. They are enforceable by making non-compliance visible at the point where the licensee needs to prove something to someone else.
 
@@ -88,7 +88,7 @@ In the record format (SPEC section 8), a holder grants specific facts to specifi
 
 **The genetics are never disclosable.** There is no grant that reveals them, by design.
 
-**The website at veilcore.org does less than the format allows.** A holder chooses which facts a record's check page shows - among them prior possession once anchored, whether a DNA report is saved, parent names and the record's name. That one choice applies to everyone who has the record's identifier or link, not recipient by recipient. Whether descent is clean, and the terms of an agreement, are not among the facts a holder can choose to show there.
+**The website at veilcore.org does less than the format allows.** A holder chooses which facts a record's check page shows - among them prior possession once anchored, whether a DNA report is saved, parent names and the record's name. The registry answers the same facts to everyone who has the record's identifier; a check link the holder sends can also carry the record's name. Whether descent is clean, and the terms of an agreement, are not among the facts a holder can choose to show there.
 
 For counsel, the discovery consequence is worth stating to clients plainly: selective disclosure governs what a holder shares voluntarily. It is not a shield in discovery, and producing a record in response to a request or an order is unaffected by any of it.
 
