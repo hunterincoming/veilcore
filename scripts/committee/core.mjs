@@ -1,8 +1,20 @@
 // The maintenance committee: three keys, any two of which must sign a change to the
 // main contract. Pure functions only: nothing here reads a network, a file or a key store.
 //
-// How Midnight's ledger (ledger-v8 8.1.0, the version this repo pins) treats a contract's
-// maintenance authority, checked against the real ledger code in committee.test.mjs:
+// LEDGER 9. Midnight's mainnet moved to Ledger 9 on 6 November 2026, and what a holder signs
+// changed with it: the bytes of the same update differ between Ledger 8 and Ledger 9
+// ("midnight:contract-update:" became "midnight:contract-maintenance-update-..."), so a
+// signature made with ledger-v8 is not valid on a Ledger 9 network. Everything here (building,
+// signing, combining, checking) therefore uses Ledger 9 types, from @midnightntwrk/ledger-v9
+// 1.0.1 (ledger 9.1.0.1, which has the key-removal fee fix). It is installed under the name
+// `ledger-v9-committee`, because package.json pins the plain name to 1.0.0 for midnight-js 5.0.0.
+// Keys did not change: a key made before the upgrade is the same key after it. Replacing the
+// authority of a contract built with compactc 0.31 needs no recompile: the ledger checks the
+// counter and the signatures, nothing about the compiler (the rehearsal in
+// docs/committee-rehearsal.md, and committee.test.mjs).
+//
+// How Midnight's ledger treats a contract's maintenance authority, checked against the real
+// ledger code in committee.test.mjs:
 //
 //  - The authority is ContractMaintenanceAuthority(committee, threshold, counter): a list of
 //    public keys, how many of them must sign, and a replay counter.
@@ -10,6 +22,7 @@
 //    [index into the CURRENT committee, signData(key, update.dataToSign)]. dataToSign covers
 //    the address, the instructions and the counter, nothing else, so holders can sign on
 //    separate machines at different times and one person adds the signatures and sends it.
+//    Signatures must be for different members: the same index twice is refused.
 //  - The update must carry the authority's current counter. Every update raises the counter
 //    by one, so a signed update that has been used, or overtaken, can never be used again.
 //  - Replacing the authority: the new authority's counter must be exactly current + 1.
@@ -17,9 +30,10 @@
 //    (which lets anyone change the contract with no signature at all), and a threshold of
 //    2^32 silently becomes 0. This file refuses all three before anything is signed.
 //
-// midnight-js 4.1.1 cannot build any of this (replaceAuthority takes one key and always
-// installs a one-key committee with threshold 1), so the update is built here from the
-// ledger's own types, as api/src/maintenance.ts already does for the provable retirement.
+// midnight-js cannot build any of this (replaceAuthority takes one key and always installs a
+// one-key committee with threshold 1, and midnight-js 5 refuses to maintain a pre-upgrade
+// contract on a Ledger 9 network at all: a rule of the library, not of the chain), so the
+// update is built here from the ledger's own types.
 // SPDX-License-Identifier: Apache-2.0
 
 import { createHash } from 'node:crypto';
@@ -34,15 +48,20 @@ import {
   signData,
   signatureVerifyingKey,
   verifySignature,
-} from '@midnightntwrk/ledger-v8';
+} from 'ledger-v9-committee';
 
 /** VeilCore's committee: three keys, two signatures. Anything else is refused. */
 export const COMMITTEE_SIZE = 3;
 export const COMMITTEE_THRESHOLD = 2;
 
 export const KEY_CARD_FORMAT = 'veilcore-committee-key/v1';
-export const REQUEST_FORMAT = 'veilcore-maintenance-request/v1';
-export const SIGNATURE_FORMAT = 'veilcore-maintenance-signature/v1';
+// v2: Ledger 9. A v1 request or signature was made with Ledger 8 types and can never be used
+// on a Ledger 9 network; both are refused by name, and a Ledger 8 signature copied into a v2
+// file does not verify.
+export const REQUEST_FORMAT = 'veilcore-maintenance-request/v2';
+export const SIGNATURE_FORMAT = 'veilcore-maintenance-signature/v2';
+const LEDGER8_REQUEST_FORMAT = 'veilcore-maintenance-request/v1';
+const LEDGER8_SIGNATURE_FORMAT = 'veilcore-maintenance-signature/v1';
 
 export const NETWORKS = ['mainnet', 'preprod', 'preview', 'undeployed'];
 
@@ -54,11 +73,21 @@ const sha256Hex = (bytes) => createHash('sha256').update(bytes).digest('hex');
 const toHex = (bytes) => Buffer.from(bytes).toString('hex');
 const fromHex = (hex) => new Uint8Array(Buffer.from(hex, 'hex'));
 
+/** Ledger 9 holds a key or a signature as { tag, value }; VeilCore's keys are all Schnorr keys. */
+const tagged = (hex) => ({ tag: 'schnorr', value: hex });
+
 /** A key as people copy it: spaces, dashes and case do not matter. */
 export const cleanHex = (text) =>
   String(text ?? '')
     .replace(/[\s-]/g, '')
     .toLowerCase();
+
+/** A committee key as plain hex, from Ledger 9's { tag, value } or from hex. Only Schnorr keys. */
+export const bareKey = (k) => {
+  if (typeof k === 'string') return cleanHex(k);
+  if (k?.tag === 'schnorr' && typeof k.value === 'string') return cleanHex(k.value);
+  throw new Error("The contract's maintenance committee holds a key that is not a Schnorr key; refused.");
+};
 
 /** A public key shown for checking by eye or out loud: the first and last 8 characters. */
 export const fingerprint = (publicKey) => `${publicKey.slice(0, 8)}…${publicKey.slice(-8)}`;
@@ -76,7 +105,7 @@ export const parseSigningKey = (text) => {
   const t = cleanHex(raw);
   if (!HEX64.test(t)) return { problem: `That is ${t.length} characters; a key is exactly 64, each 0-9 or a-f.` };
   try {
-    return { value: t, publicKey: signatureVerifyingKey(t) };
+    return { value: t, publicKey: signatureVerifyingKey(tagged(t)).value };
   } catch {
     return { problem: 'Those 64 characters are not a valid signing key. Check the copy for a typo.' };
   }
@@ -91,7 +120,7 @@ export const parsePublicKey = (text) => {
   if (!HEX64.test(t))
     return { problem: `That is ${t.length} characters; a public key is exactly 64, each 0-9 or a-f.` };
   try {
-    new ContractMaintenanceAuthority([t], 1, 0n);
+    new ContractMaintenanceAuthority([tagged(t)], 1, 0n);
     return { value: t };
   } catch {
     return { problem: 'Those 64 characters are not a valid public key. Check the copy for a typo.' };
@@ -103,7 +132,8 @@ export const parsePublicKey = (text) => {
  *
  * The card is public. Its proof is a signature over a VeilCore-only message naming the
  * holder and the key (it starts "veilcore:", and every maintenance update the ledger signs
- * starts "midnight:contract-update:", so the two can never be confused). The proof shows the
+ * starts "midnight:contract-", so the two can never be confused). A card made before the
+ * Ledger 9 upgrade is still valid: the key and this message did not change. The proof shows the
  * key was copied correctly before it is given any power: a committee member whose paper copy
  * has a typo is a lost key, and with two lost keys the contract can never be maintained.
  * It does not show WHO made the card: confirm each public key with its holder in person or
@@ -124,7 +154,7 @@ export const makeKeyCard = (holder, signingKey, createdAt = new Date().toISOStri
     holder,
     publicKey: k.publicKey,
     fingerprint: fingerprint(k.publicKey),
-    possessionProof: signData(k.value, possessionMessage(holder, k.publicKey)),
+    possessionProof: signData(tagged(k.value), possessionMessage(holder, k.publicKey)).value,
     createdAt,
   };
 };
@@ -145,7 +175,11 @@ export const checkKeyCard = (card) => {
     return { ok: false, problem: `${who}: the public key must be written in small letters, no spaces.` };
   let proved = false;
   try {
-    proved = verifySignature(pk.value, possessionMessage(card.holder, pk.value), String(card.possessionProof ?? ''));
+    proved = verifySignature(
+      tagged(pk.value),
+      possessionMessage(card.holder, pk.value),
+      tagged(String(card.possessionProof ?? '')),
+    );
   } catch {
     proved = false;
   }
@@ -205,7 +239,7 @@ export const committeeProblems = (cards, threshold, { forbid = [] } = {}) => {
 
 /** The ledger's authority as plain data (committee as hex strings, counter as a bigint). */
 export const authorityView = (a) => ({
-  committee: [...a.committee].map((k) => cleanHex(k)),
+  committee: [...a.committee].map(bareKey),
   threshold: Number(a.threshold),
   counter: BigInt(a.counter),
 });
@@ -226,7 +260,7 @@ export const isRetired = (a) => a.threshold > a.committee.length;
 const sameKeys = (a, b) => a.length === b.length && a.every((k, i) => k === b[i]);
 
 const plainCurrent = (current) => ({
-  committee: current.committee.map(cleanHex),
+  committee: [...current.committee].map(bareKey),
   threshold: Number(current.threshold),
   counter: String(BigInt(current.counter)),
 });
@@ -242,7 +276,7 @@ const actionToInstruction = (action, current, opts) => {
         return { problem: 'That committee is the one already in place: nothing would change.' };
       return {
         instruction: new ReplaceAuthority(
-          new ContractMaintenanceAuthority(keys, COMMITTEE_THRESHOLD, BigInt(current.counter) + 1n),
+          new ContractMaintenanceAuthority(keys.map(tagged), COMMITTEE_THRESHOLD, BigInt(current.counter) + 1n),
         ),
         describe:
           `Replace who can change the contract with a committee of ${keys.length} keys, any ${action.threshold} of ` +
@@ -293,6 +327,14 @@ const actionToInstruction = (action, current, opts) => {
  */
 export const rebuildRequest = (req, opts = {}) => {
   const problems = [];
+  if (req?.format === LEDGER8_REQUEST_FORMAT)
+    return {
+      ok: false,
+      problems: [
+        "This request was made before Midnight's Ledger 9 upgrade. What a holder signs changed with that upgrade, " +
+          'so it can never be used. Make a new request with this version of the tool.',
+      ],
+    };
   if (req === null || typeof req !== 'object' || req.format !== REQUEST_FORMAT)
     return { ok: false, problems: [`This is not a VeilCore maintenance request (${REQUEST_FORMAT}).`] };
   if (!NETWORKS.includes(req.network)) problems.push(`Unknown network "${String(req.network)}".`);
@@ -355,6 +397,35 @@ export const makeRequest = ({ network, contractAddress, current, actions, reason
   return { ...req, dataToSign: toHex(r.update.dataToSign), dataToSignSha256: sha256Hex(r.update.dataToSign) };
 };
 
+export const PERMANENT_WARNING =
+  'A wrong committee key is PERMANENT. After this change only these keys can change the contract. If two of ' +
+  'them are not held by the people named (a typo, a lost copy, a key made by someone else), nobody can ever ' +
+  'change or fix this contract again, and nothing can undo it. Check every key with its holder, out loud.';
+
+/**
+ * Exactly what a request changes: every key that can change the contract now, every key that
+ * can afterwards, and the counter before and after. Keys are written in full.
+ */
+export const changeSummary = (req) => {
+  const c = plainCurrent(req.current);
+  const before = BigInt(c.counter);
+  const first = Array.isArray(req.actions) ? req.actions[0] : undefined;
+  const lines = [
+    `Now:       ${c.committee.length} key(s), ${c.threshold} signature(s) needed, counter ${before}.`,
+    ...c.committee.map((k, i) => `           ${i + 1}. ${k}`),
+  ];
+  if (first?.kind === 'replace-authority')
+    lines.push(
+      `After:     ${first.committee.length} keys, ${first.threshold} signatures needed, counter ${before + 1n}.`,
+      ...first.committee.map((card, i) => `           ${i + 1}. ${card.publicKey} (${card.holder})`),
+      `WARNING:   ${PERMANENT_WARNING}`,
+    );
+  else if (first?.kind === 'retire')
+    lines.push(`After:     no keys at all (retired for good), counter ${before + 1n}.`);
+  else lines.push(`After:     the same key(s) and threshold, counter ${before + 1n}.`);
+  return lines;
+};
+
 /** What a request does, in plain words, for the person about to sign or send it. */
 export const describeRequest = (req, rebuilt, { pinnedMainnetAddress } = {}) => {
   const address = cleanHex(req.contractAddress);
@@ -372,6 +443,7 @@ export const describeRequest = (req, rebuilt, { pinnedMainnetAddress } = {}) => 
     `Valid for: the authority as it stands now, ${c.committee.length} key(s), ${c.threshold} signature(s) needed, counter ${c.counter}.`,
     '           Once any other change is made, this request can never be used.',
     ...rebuilt.lines.map((l, i) => `Change ${i + 1}:  ${l}`),
+    ...changeSummary(req),
     ...(req.reason ? [`Reason:    ${req.reason}`] : []),
     `Check code: ${sha256Hex(rebuilt.update.dataToSign).slice(0, 16)} (compare with the other signers)`,
   ];
@@ -404,7 +476,7 @@ export const signRequest = (req, signingKey, opts = {}) => {
     dataToSignSha256: sha256Hex(rebuilt.update.dataToSign),
     index,
     publicKey: k.publicKey,
-    signature: signData(k.value, rebuilt.update.dataToSign),
+    signature: signData(tagged(k.value), rebuilt.update.dataToSign).value,
   };
 };
 
@@ -433,6 +505,13 @@ export const assembleSigned = (req, signatureFiles, onChain, opts = {}) => {
   const byIndex = new Map();
   for (const [n, s] of signatureFiles.entries()) {
     const label = `Signature ${n + 1}`;
+    if (s?.format === LEDGER8_SIGNATURE_FORMAT) {
+      problems.push(
+        `${label} was made before Midnight's Ledger 9 upgrade (with Ledger 8). It is not valid on Ledger 9: ` +
+          'the holder must sign this request again with this version of the tool.',
+      );
+      continue;
+    }
     if (s?.format !== SIGNATURE_FORMAT) {
       problems.push(`${label} is not a VeilCore maintenance signature file.`);
       continue;
@@ -451,12 +530,14 @@ export const assembleSigned = (req, signatureFiles, onChain, opts = {}) => {
     }
     let valid = false;
     try {
-      valid = verifySignature(member, rebuilt.update.dataToSign, String(s.signature));
+      valid = verifySignature(tagged(member), rebuilt.update.dataToSign, tagged(String(s.signature)));
     } catch {
       valid = false;
     }
     if (!valid) {
-      problems.push(`${label} does not verify: it was damaged or edited.`);
+      problems.push(
+        `${label} does not verify: it was damaged or edited, or made with the Ledger 8 tool (not valid on Ledger 9).`,
+      );
       continue;
     }
     if (byIndex.has(index)) {
@@ -472,7 +553,7 @@ export const assembleSigned = (req, signatureFiles, onChain, opts = {}) => {
   if (byIndex.size < chain.threshold) return { ok: false, problems };
   let update = rebuilt.update;
   for (const index of [...byIndex.keys()].sort((a, b) => a - b))
-    update = update.addSignature(BigInt(index), byIndex.get(index));
+    update = update.addSignature(BigInt(index), tagged(byIndex.get(index)));
   return {
     ok: true,
     update,

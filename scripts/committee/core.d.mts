@@ -1,6 +1,7 @@
 // Types for core.mjs, so the operator tool (bboard-cli/src/launcher/committee.ts) can import it.
 // SPDX-License-Identifier: Apache-2.0
-import type { MaintenanceUpdate } from '@midnightntwrk/ledger-v8';
+// Ledger 9 types: `ledger-v9-committee` is @midnightntwrk/ledger-v9 1.0.1 (see core.mjs).
+import type { MaintenanceUpdate } from 'ledger-v9-committee';
 
 export declare const COMMITTEE_SIZE: number;
 export declare const COMMITTEE_THRESHOLD: number;
@@ -56,7 +57,18 @@ export type SignatureFile = {
 
 export type Rebuilt = { ok: true; update: MaintenanceUpdate; lines: string[] } | { ok: false; problems: string[] };
 
+/** A committee key as the ledger holds it (Ledger 9: tagged) or as plain hex. */
+export type CommitteeKey = string | { readonly tag: string; readonly value: string };
+type Authority = {
+  readonly committee: Iterable<CommitteeKey>;
+  readonly threshold: number;
+  readonly counter: bigint;
+};
+
+export declare const PERMANENT_WARNING: string;
 export declare const cleanHex: (text: unknown) => string;
+export declare const bareKey: (key: CommitteeKey) => string;
+export declare const changeSummary: (req: Request) => string[];
 export declare const fingerprint: (publicKey: string) => string;
 export declare const groupHex: (hex: string) => string;
 export declare const parseSigningKey: (text: unknown) => { value: string; publicKey: string } | { problem: string };
@@ -72,17 +84,13 @@ export declare const committeeProblems: (
   threshold: number,
   options?: { forbid?: readonly string[] },
 ) => string[];
-export declare const authorityView: (a: {
-  readonly committee: Iterable<string>;
-  readonly threshold: number;
-  readonly counter: bigint;
-}) => AuthorityView;
+export declare const authorityView: (a: Authority) => AuthorityView;
 export declare const isRetired: (a: { readonly committee: readonly unknown[]; readonly threshold: number }) => boolean;
 export declare const rebuildRequest: (req: unknown, options?: { forbid?: readonly string[] }) => Rebuilt;
 export declare const makeRequest: (args: {
   network: string;
   contractAddress: string;
-  current: { committee: readonly string[]; threshold: number; counter: bigint | string };
+  current: { committee: readonly CommitteeKey[]; threshold: number; counter: bigint | string };
   actions: readonly Action[];
   reason?: string;
   forbid?: readonly string[];
@@ -100,10 +108,10 @@ export declare const signRequest: (
 export declare const assembleSigned: (
   req: Request,
   signatureFiles: readonly unknown[],
-  onChain: { readonly committee: Iterable<string>; readonly threshold: number; readonly counter: bigint },
+  onChain: Authority,
   options?: { forbid?: readonly string[] },
 ) => { ok: true; update: MaintenanceUpdate; signers: string[]; warnings: string[] } | { ok: false; problems: string[] };
 export declare const requestLanded: (
   req: Request,
-  onChain: { readonly committee: Iterable<string>; readonly threshold: number; readonly counter: bigint },
+  onChain: Authority,
 ) => boolean;

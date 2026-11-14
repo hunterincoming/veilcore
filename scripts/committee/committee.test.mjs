@@ -1,14 +1,17 @@
-// The committee tools against Midnight's real ledger code: ledger-v8 (the WebAssembly build
-// the node is made from) holding a contract in a local LedgerState. Signatures, thresholds,
-// counters and verifier-key rules are all checked by the ledger here; proofs and fees are
-// switched off, because a maintenance update has no proof and there is no wallet to pay.
-// What this cannot show is a real node and indexer accepting it: that is the preprod
-// rehearsal in docs/maintenance-committee.md.
+// The committee tools against Midnight's real ledger code: ledger-v9 1.0.1 (ledger 9.1.0.1, the
+// WebAssembly build of the code the node runs) holding a contract in a local LedgerState.
+// Signatures, thresholds, counters and verifier-key rules are all checked by the ledger here;
+// proofs and fees are switched off, because a maintenance update has no proof and there is no
+// wallet to pay. Every key is made here and thrown away. Nothing touches a network.
+// What this cannot show is a real node, indexer and wallet accepting it: that is the local
+// rehearsal in docs/committee-rehearsal.md.
 //
-//   node --test scripts/committee/
+//   node --test scripts/committee/committee.test.mjs
 //
-// Set COMMITTEE_TEST_VK to a compiled verifier key file (any circuit's .verifier from a
-// Compact build) to also run the insert-key checks; without one they are skipped.
+// The Ledger 9 install tests need VeilCore's 24 compiled verifier keys (contract/src/managed/
+// veilcore/keys after `npm run compact` in contract/, or COMMITTEE_TEST_KEYS=DIR); without them
+// those tests are skipped. COMMITTEE_TEST_VK (one .verifier file) does the same for the older
+// insert-key checks.
 // SPDX-License-Identifier: Apache-2.0
 
 import assert from 'node:assert/strict';
@@ -18,7 +21,9 @@ import path from 'node:path';
 import { PassThrough } from 'node:stream';
 import { test } from 'node:test';
 import { createHash } from 'node:crypto';
-import * as L from '@midnightntwrk/ledger-v8';
+import * as L from 'ledger-v9-committee';
+import * as L8 from '@midnightntwrk/ledger-v8';
+import * as L900 from '@midnight-ntwrk/midnight-js-protocol/v9';
 import {
   SerializedContractState,
   createMidnightProviderFromHandlers,
@@ -26,7 +31,9 @@ import {
   createWalletProviderFromHandlers,
 } from '@midnight-ntwrk/midnight-js-types';
 import {
+  PERMANENT_WARNING,
   assembleSigned,
+  authorityView,
   checkKeyCard,
   committeeProblems,
   describeRequest,
@@ -37,19 +44,30 @@ import {
   requestLanded,
   signRequest,
 } from './core.mjs';
-import { readAuthorityNow, sendMaintenanceUpdate } from './submit.mjs';
+import { MAINNET_REFUSAL, readAuthorityNow, sendMaintenanceUpdate } from './submit.mjs';
 import { main, makeIo, unsafeKeyPath } from './cli.mjs';
 
 const NET = 'undeployed';
+const REPO = path.resolve(import.meta.dirname, '..', '..');
 
-const VK_FILE =
-  process.env.COMMITTEE_TEST_VK ??
-  path.resolve(import.meta.dirname, '..', '..', 'contract', 'src', 'managed', 'veilcore', 'keys', 'anchor.verifier');
+const KEYS_DIR =
+  process.env.COMMITTEE_TEST_KEYS ?? path.join(REPO, 'contract', 'src', 'managed', 'veilcore', 'keys');
+const VK_FILE = process.env.COMMITTEE_TEST_VK ?? path.join(KEYS_DIR, 'anchor.verifier');
 const HAVE_VK = existsSync(VK_FILE);
 
+// Ledger 9 holds keys and signatures as { tag, value }; the tool's files hold plain hex.
+const sk = (hex) => ({ tag: 'schnorr', value: hex });
+/** A new throwaway signing key, as hex. */
+const newKey = () => L.sampleSigningKey().value;
+/** The public key of a signing key, as the ledger holds it. */
+const pub = (key) => L.signatureVerifyingKey(sk(key));
+/** A signature by `key`, as the ledger holds it. */
+const sig = (key, bytes) => L.signData(sk(key), bytes);
+const sha256 = (bytes) => createHash('sha256').update(bytes).digest('hex');
+
 /** A one-contract chain whose transactions are checked by the real ledger rules. */
-const chain = (operations = []) => {
-  let state = L.LedgerState.blank(NET);
+const chain = (operations = [], from) => {
+  let state = from?.state ?? L.LedgerState.blank(NET);
   const strict = new L.WellFormedStrictness();
   strict.enforceBalancing = false;
   strict.verifyContractProofs = false;
@@ -69,16 +87,32 @@ const chain = (operations = []) => {
     state = next;
   };
   const ttl = () => new Date(Date.now() + 3_600_000);
-  const paperKey = L.sampleSigningKey();
-  const cs = new L.ContractState();
-  cs.maintenanceAuthority = new L.ContractMaintenanceAuthority([L.signatureVerifyingKey(paperKey)], 1, 0n);
-  const deploy = new L.ContractDeploy(cs);
-  apply(L.Transaction.fromParts(NET, undefined, undefined, L.Intent.new(ttl()).addDeploy(deploy)));
-  const address = deploy.address;
-  const send = (u) =>
-    apply(L.Transaction.fromParts(NET, undefined, undefined, L.Intent.new(ttl()).addMaintenanceUpdate(u)));
+  const tx = (u) => L.Transaction.fromParts(NET, undefined, undefined, L.Intent.new(ttl()).addMaintenanceUpdate(u));
+  let paperKey = from?.paperKey;
+  let address = from?.address;
+  if (from === undefined) {
+    paperKey = newKey();
+    const cs = new L.ContractState();
+    cs.maintenanceAuthority = new L.ContractMaintenanceAuthority([pub(paperKey)], 1, 0n);
+    const deploy = new L.ContractDeploy(cs);
+    apply(L.Transaction.fromParts(NET, undefined, undefined, L.Intent.new(ttl()).addDeploy(deploy)));
+    address = deploy.address;
+  }
+  const send = (u) => apply(tx(u));
   const authority = () => state.index(address).maintenanceAuthority;
-  const c = { paperKey, address, apply, send, authority, state: () => state };
+  const c = {
+    paperKey,
+    address,
+    apply,
+    send,
+    tx,
+    authority,
+    state: () => state,
+    /** The contract's whole state, as bytes: unchanged bytes mean nothing changed. */
+    bytes: () => Buffer.from(state.index(address).serialize()).toString('hex'),
+    /** A throwaway copy at this point (a LedgerState is immutable). */
+    fork: () => chain([], { state, paperKey, address }),
+  };
   // The real contract has 16 key-adding updates behind it: bring the counter up the same way.
   if (HAVE_VK)
     for (const op of operations) {
@@ -87,7 +121,7 @@ const chain = (operations = []) => {
         [new L.VerifierKeyInsert(op, new L.ContractOperationVersionedVerifierKey('v3', vkBytes()))],
         authority().counter,
       );
-      u = u.addSignature(0n, L.signData(paperKey, u.dataToSign));
+      u = u.addSignature(0n, sig(paperKey, u.dataToSign));
       send(u);
     }
   return c;
@@ -96,7 +130,7 @@ const chain = (operations = []) => {
 const vkBytes = () => new Uint8Array(readFileSync(VK_FILE));
 
 const holders = () => {
-  const keys = { hunter: L.sampleSigningKey(), mako: L.sampleSigningKey(), backup: L.sampleSigningKey() };
+  const keys = { hunter: newKey(), mako: newKey(), backup: newKey() };
   const cards = Object.fromEntries(Object.entries(keys).map(([h, k]) => [h, makeKeyCard(h, k)]));
   return { keys, cards, list: [cards.hunter, cards.mako, cards.backup] };
 };
@@ -109,10 +143,10 @@ const install = (c, h) => {
     current: c.authority(),
     actions: [{ kind: 'replace-authority', committee: h.list, threshold: 2 }],
     reason: 'install the committee',
-    forbid: [...c.authority().committee],
+    forbid: authorityView(c.authority()).committee,
   });
-  const sig = signRequest(roundTrip(req), c.paperKey);
-  const a = assembleSigned(roundTrip(req), [roundTrip(sig)], c.authority());
+  const s = signRequest(roundTrip(req), c.paperKey);
+  const a = assembleSigned(roundTrip(req), [roundTrip(s)], c.authority());
   assert.ok(a.ok, a.ok ? '' : a.problems.join(' '));
   c.send(a.update);
   return req;
@@ -124,32 +158,36 @@ const roundTrip = (x) => JSON.parse(JSON.stringify(x));
 const request = (c, actions, reason = 'test') =>
   roundTrip(makeRequest({ network: NET, contractAddress: c.address, current: c.authority(), actions, reason }));
 
-const refusedBy = (c, update, re) => assert.throws(() => c.send(update), re);
+const refusedBy = (c, update, re) => {
+  const was = c.bytes();
+  assert.throws(() => c.send(update), re);
+  assert.equal(c.bytes(), was, 'the contract state is byte-identical after the refusal');
+};
 
 // ─────────────────────────────────────────────────────────────── key cards
 
 test('a key card proves its key, and nothing else passes for one', () => {
-  const key = L.sampleSigningKey();
+  const key = newKey();
   const card = makeKeyCard('mako', key);
-  assert.equal(card.publicKey, L.signatureVerifyingKey(key));
+  assert.equal(card.publicKey, pub(key).value);
   assert.deepEqual(checkKeyCard(roundTrip(card)), { ok: true, holder: 'mako', publicKey: card.publicKey });
   assert.match(checkKeyCard({ ...card, holder: 'hunter' }).problem, /does not match/);
-  const other = makeKeyCard('mako', L.sampleSigningKey());
+  const other = makeKeyCard('mako', newKey());
   assert.match(checkKeyCard({ ...card, publicKey: other.publicKey }).problem, /does not match/);
   assert.match(checkKeyCard({ ...card, publicKey: '00'.repeat(32) }).problem, /not a valid public key/);
   assert.match(checkKeyCard({ ...card, format: 'x' }).problem, /not a VeilCore committee key card/);
   assert.throws(() => makeKeyCard('Mako Steiner', key), /holder name/);
   // The proof can never double as an approval of a contract change.
   const u = new L.MaintenanceUpdate('ab'.repeat(32), [], 0n);
-  assert.match(Buffer.from(u.dataToSign).toString('latin1'), /^midnight:contract-update:/);
-  assert.doesNotMatch(Buffer.from(L.signData(key, new Uint8Array())).toString(), /^veilcore:/);
+  assert.match(Buffer.from(u.dataToSign).toString('latin1'), /^midnight:contract-maintenance-update/);
+  
 });
 
 test('the committee must be three different keys with a threshold of two', () => {
   const h = holders();
   assert.deepEqual(committeeProblems(h.list, 2), []);
   assert.match(committeeProblems(h.list.slice(0, 2), 2).join(), /exactly 3 keys/);
-  assert.match(committeeProblems([...h.list, makeKeyCard('x', L.sampleSigningKey())], 2).join(), /exactly 3 keys/);
+  assert.match(committeeProblems([...h.list, makeKeyCard('x', newKey())], 2).join(), /exactly 3 keys/);
   for (const t of [0, 1, 3, 2 ** 32, 2.5, '2'])
     assert.match(committeeProblems(h.list, t).join(), /threshold must be exactly 2/, `threshold ${t}`);
   // The ledger itself would take this: one person, two votes.
@@ -163,15 +201,15 @@ test('the committee must be three different keys with a threshold of two', () =>
 
 test('the ledger accepts committees VeilCore refuses (why core.mjs checks first)', () => {
   const c = chain();
-  const A = L.sampleSigningKey();
-  const B = L.sampleSigningKey();
+  const A = newKey();
+  const B = newKey();
   // threshold 0: anyone, no signature.
   let u = new L.MaintenanceUpdate(
     c.address,
-    [new L.ReplaceAuthority(new L.ContractMaintenanceAuthority([A, B].map(L.signatureVerifyingKey), 0, 1n))],
+    [new L.ReplaceAuthority(new L.ContractMaintenanceAuthority([A, B].map(pub), 0, 1n))],
     0n,
   );
-  c.send(u.addSignature(0n, L.signData(c.paperKey, u.dataToSign)));
+  c.send(u.addSignature(0n, sig(c.paperKey, u.dataToSign)));
   const free = new L.MaintenanceUpdate(
     c.address,
     [new L.ReplaceAuthority(new L.ContractMaintenanceAuthority([], 1, 2n))],
@@ -180,27 +218,27 @@ test('the ledger accepts committees VeilCore refuses (why core.mjs checks first)
   c.send(free); // no signature at all, and the ledger takes it
   assert.equal(c.authority().committee.length, 0);
   // A threshold of 2^32 wraps to 0.
-  assert.equal(new L.ContractMaintenanceAuthority([L.signatureVerifyingKey(A)], 2 ** 32, 0n).threshold, 0);
+  assert.equal(new L.ContractMaintenanceAuthority([pub(A)], 2 ** 32, 0n).threshold, 0);
   // The same key twice: one holder signs as two members.
   const d = chain();
   u = new L.MaintenanceUpdate(
     d.address,
-    [new L.ReplaceAuthority(new L.ContractMaintenanceAuthority([A, A, B].map(L.signatureVerifyingKey), 2, 1n))],
+    [new L.ReplaceAuthority(new L.ContractMaintenanceAuthority([A, A, B].map(pub), 2, 1n))],
     0n,
   );
-  d.send(u.addSignature(0n, L.signData(d.paperKey, u.dataToSign)));
+  d.send(u.addSignature(0n, sig(d.paperKey, u.dataToSign)));
   u = new L.MaintenanceUpdate(d.address, [new L.ReplaceAuthority(new L.ContractMaintenanceAuthority([], 1, 2n))], 1n);
-  d.send(u.addSignature(0n, L.signData(A, u.dataToSign)).addSignature(1n, L.signData(A, u.dataToSign)));
+  d.send(u.addSignature(0n, sig(A, u.dataToSign)).addSignature(1n, sig(A, u.dataToSign)));
   assert.equal(d.authority().committee.length, 0, 'one person changed a "2 of 3" contract alone');
   // The new authority's counter must be exactly current + 1.
   const e = chain();
   for (const n of [0n, 2n, 5n]) {
     u = new L.MaintenanceUpdate(
       e.address,
-      [new L.ReplaceAuthority(new L.ContractMaintenanceAuthority([L.signatureVerifyingKey(A)], 1, n))],
+      [new L.ReplaceAuthority(new L.ContractMaintenanceAuthority([pub(A)], 1, n))],
       0n,
     );
-    refusedBy(e, u.addSignature(0n, L.signData(e.paperKey, u.dataToSign)), /normal form/);
+    refusedBy(e, u.addSignature(0n, sig(e.paperKey, u.dataToSign)), /normal form/);
   }
 });
 
@@ -213,7 +251,7 @@ test('install: the paper key hands the contract to the 2-of-3 committee, and los
   const req = install(c, h);
   const after = c.authority();
   assert.deepEqual(
-    [...after.committee],
+    authorityView(after).committee,
     h.list.map((x) => x.publicKey),
   );
   assert.equal(after.threshold, 2);
@@ -225,12 +263,12 @@ test('install: the paper key hands the contract to the 2-of-3 committee, and los
   const r = request(c, [{ kind: 'retire' }]);
   assert.throws(() => signRequest(r, c.paperKey), /not on the contract's current committee/);
   const raw = rebuildRequest(r);
-  refusedBy(c, raw.update.addSignature(0n, L.signData(c.paperKey, raw.update.dataToSign)), /invalid|threshold/);
+  refusedBy(c, raw.update.addSignature(0n, sig(c.paperKey, raw.update.dataToSign)), /invalid|threshold/);
   // One committee member alone cannot either.
   const one = assembleSigned(r, [signRequest(r, h.keys.mako)], c.authority());
   assert.equal(one.ok, false);
   assert.match(one.problems.join(), /1 valid signature.*2 are needed/);
-  refusedBy(c, raw.update.addSignature(1n, L.signData(h.keys.mako, raw.update.dataToSign)), /threshold/);
+  refusedBy(c, raw.update.addSignature(1n, sig(h.keys.mako, raw.update.dataToSign)), /threshold/);
   assert.equal(c.authority().counter, after.counter, 'nothing changed');
 });
 
@@ -245,12 +283,12 @@ test('install refuses a committee that includes the paper key, and a wrong paper
         contractAddress: c.address,
         current: c.authority(),
         actions: [{ kind: 'replace-authority', committee: withPaper, threshold: 2 }],
-        forbid: [...c.authority().committee],
+        forbid: authorityView(c.authority()).committee,
       }),
     /current maintenance key/,
   );
   const req = request(c, [{ kind: 'replace-authority', committee: h.list, threshold: 2 }]);
-  assert.throws(() => signRequest(req, L.sampleSigningKey()), /not on the contract's current committee/);
+  assert.throws(() => signRequest(req, newKey()), /not on the contract's current committee/);
 });
 
 // ─────────────────────────────────────────────── later changes: two holders sign
@@ -259,7 +297,7 @@ test('any two holders can rotate a lost key out; the lost key is then useless', 
   const c = chain();
   const h = holders();
   install(c, h);
-  const newHunter = L.sampleSigningKey();
+  const newHunter = newKey();
   const cards = [makeKeyCard('hunter', newHunter), h.cards.mako, h.cards.backup];
   const req = request(c, [{ kind: 'replace-authority', committee: cards, threshold: 2 }], 'hunter lost his key');
   // Signed in any order, on separate machines, sent by someone else.
@@ -268,7 +306,7 @@ test('any two holders can rotate a lost key out; the lost key is then useless', 
   assert.ok(a.ok);
   c.send(a.update);
   assert.ok(requestLanded(req, c.authority()));
-  assert.equal(c.authority().committee[0], cards[0].publicKey);
+  assert.equal(authorityView(c.authority()).committee[0], cards[0].publicKey);
   // The lost key no longer counts, even together with a member.
   const r2 = request(c, [{ kind: 'retire' }]);
   assert.throws(() => signRequest(r2, h.keys.hunter), /not on the contract's current committee/);
@@ -276,8 +314,8 @@ test('any two holders can rotate a lost key out; the lost key is then useless', 
   refusedBy(
     c,
     raw
-      .addSignature(0n, L.signData(h.keys.hunter, raw.dataToSign))
-      .addSignature(1n, L.signData(h.keys.mako, raw.dataToSign)),
+      .addSignature(0n, sig(h.keys.hunter, raw.dataToSign))
+      .addSignature(1n, sig(h.keys.mako, raw.dataToSign)),
     /invalid/,
   );
   // The new key does.
@@ -291,7 +329,7 @@ test('a signed change can be used once, and never after another change', () => {
   const c = chain();
   const h = holders();
   install(c, h);
-  const D = makeKeyCard('backup', L.sampleSigningKey());
+  const D = makeKeyCard('backup', newKey());
   const req = request(c, [{ kind: 'replace-authority', committee: [h.cards.hunter, h.cards.mako, D], threshold: 2 }]);
   const sigs = [signRequest(req, h.keys.hunter), signRequest(req, h.keys.mako)];
   const a = assembleSigned(req, sigs, c.authority());
@@ -380,7 +418,7 @@ test(
     const ops = () => c.state().index(c.address).operations();
     const rm = request(c, [{ kind: 'remove-key', circuit: 'anchor' }]);
     const one = rebuildRequest(rm).update;
-    refusedBy(c, one.addSignature(0n, L.signData(h.keys.hunter, one.dataToSign)), /threshold/);
+    refusedBy(c, one.addSignature(0n, sig(h.keys.hunter, one.dataToSign)), /threshold/);
     c.send(assembleSigned(rm, [signRequest(rm, h.keys.hunter), signRequest(rm, h.keys.backup)], c.authority()).update);
     assert.deepEqual(ops(), ['pairDna']);
 
@@ -405,88 +443,401 @@ test(
   },
 );
 
+// ─────────────────────── Ledger 9: the install, from the contract as it stands on mainnet
+//
+// The start is the main contract's shape on mainnet: VeilCore's 24 circuit names, each with
+// its compactc 0.31.1 verifier key in the pre-upgrade slot ('v3'), one maintenance key,
+// counter 16 (16 key-adding updates). The key files are checked against the hashes in
+// deployments/mainnet.json, so these are the keys on chain, not stand-ins. The data is empty
+// and the maintenance key is a throwaway: a maintenance update reads neither.
+
+const MAINNET = JSON.parse(readFileSync(path.join(REPO, 'deployments', 'mainnet.json'), 'utf8')).contracts.find(
+  (c) => c.name === 'veilcore',
+);
+const CIRCUITS = Object.keys(MAINNET.circuits);
+const keyFile = (name) => path.join(KEYS_DIR, `${name}.verifier`);
+const HAVE_KEYS = CIRCUITS.every((n) => existsSync(keyFile(n)));
+const needKeys = {
+  skip: HAVE_KEYS
+    ? false
+    : `VeilCore's compiled verifier keys are not in ${KEYS_DIR}: run "npm run compact" in contract/, or set COMMITTEE_TEST_KEYS`,
+};
+
+let mainnetShape;
+/** A fresh copy of the contract as it stands on mainnet: 24 circuits, one key, counter 16. */
+const asOnMainnet = () => {
+  if (mainnetShape === undefined) {
+    const c = chain();
+    const insert = (names) => {
+      const u = new L.MaintenanceUpdate(
+        c.address,
+        names.map((n) => {
+          const vk = new Uint8Array(readFileSync(keyFile(n)));
+          assert.equal(sha256(vk), MAINNET.circuits[n].verifierKey, `${n}: the key file is the one on mainnet`);
+          return new L.VerifierKeyInsert(n, new L.ContractOperationVersionedVerifierKey('v3', vk));
+        }),
+        c.authority().counter,
+      );
+      c.send(u.addSignature(0n, sig(c.paperKey, u.dataToSign)));
+    };
+    // 16 updates, 24 keys: the first carries nine, the other fifteen one each.
+    insert(CIRCUITS.slice(0, 9));
+    for (const n of CIRCUITS.slice(9)) insert([n]);
+    mainnetShape = c;
+  }
+  return mainnetShape.fork();
+};
+
+const operationHashes = (c) => {
+  const cs = c.state().index(c.address);
+  return Object.fromEntries(
+    cs
+      .operations()
+      .map(String)
+      .sort()
+      .map((n) => [n, sha256(cs.operation(n).serialize())]),
+  );
+};
+
+/** The install with the tool, from request to signed update, each file through JSON. */
+const toolInstall = (c, h) => {
+  const req = roundTrip(
+    makeRequest({
+      network: NET,
+      contractAddress: c.address,
+      current: c.authority(),
+      actions: [{ kind: 'replace-authority', committee: h.list, threshold: 2 }],
+      reason: 'install the committee',
+      forbid: authorityView(c.authority()).committee,
+    }),
+  );
+  const signed = assembleSigned(req, [roundTrip(signRequest(req, c.paperKey))], c.authority());
+  assert.ok(signed.ok, signed.ok ? '' : signed.problems.join(' '));
+  return { req, update: signed.update };
+};
+
+/** A change that leaves the contract as it was: one circuit's key removed and put back. */
+const sameKeyAgain = (c) => {
+  const vk = readFileSync(keyFile('anchor'));
+  return request(c, [
+    { kind: 'remove-key', circuit: 'anchor' },
+    { kind: 'insert-key', circuit: 'anchor', verifierKey: vk.toString('hex'), verifierKeySha256: sha256(vk) },
+  ]);
+};
+
+test('Ledger 9: the start is the contract as on mainnet (24 circuits, one key, counter 16)', needKeys, () => {
+  const c = asOnMainnet();
+  const a = authorityView(c.authority());
+  assert.equal(CIRCUITS.length, 24);
+  assert.deepEqual(c.state().index(c.address).operations().map(String).sort(), [...CIRCUITS].sort());
+  assert.deepEqual(a, { committee: [pub(c.paperKey).value], threshold: 1, counter: 16n });
+});
+
+test('Ledger 9: the install the tool builds is accepted; the counter becomes 17', needKeys, () => {
+  const c = asOnMainnet();
+  const h = holders();
+  const before = operationHashes(c);
+  const { req, update } = toolInstall(c, h);
+  // What the people signing and sending are shown: every key in full, the counter, the warning.
+  const shown = describeRequest(req, rebuildRequest(req)).join('\n');
+  assert.match(shown, new RegExp(`Now: +1 key\\(s\\), 1 signature\\(s\\) needed, counter 16\\.\\n +1\\. ${pub(c.paperKey).value}`));
+  assert.match(shown, /After: +3 keys, 2 signatures needed, counter 17\./);
+  for (const card of h.list) assert.ok(shown.includes(`${card.publicKey} (${card.holder})`));
+  assert.ok(shown.includes(PERMANENT_WARNING));
+  assert.match(PERMANENT_WARNING, /wrong committee key is PERMANENT/);
+
+  c.send(update);
+  assert.deepEqual(authorityView(c.authority()), {
+    committee: h.list.map((x) => x.publicKey),
+    threshold: 2,
+    counter: 17n,
+  });
+  assert.ok(requestLanded(req, c.authority()));
+  assert.deepEqual(operationHashes(c), before, 'all 24 circuit keys are unchanged');
+});
+
+test('Ledger 9: after the install the old key is refused', needKeys, () => {
+  const c = asOnMainnet();
+  const h = holders();
+  const { update: installUpdate } = toolInstall(c, h);
+  c.send(installUpdate);
+  const req = sameKeyAgain(c);
+  // The tool gives the old key no signature, and counts none from it.
+  assert.throws(() => signRequest(req, c.paperKey), /not on the contract's current committee/);
+  const forged = { ...signRequest(req, h.keys.hunter), signature: sig(c.paperKey, rebuildRequest(req).update.dataToSign).value };
+  assert.equal(assembleSigned(req, [forged, signRequest(req, h.keys.mako)], c.authority()).ok, false);
+  // The ledger refuses it in every place, alone, doubled, or beside a real member.
+  const raw = rebuildRequest(req).update;
+  const old = sig(c.paperKey, raw.dataToSign);
+  for (const i of [0n, 1n, 2n, 3n]) refusedBy(c, raw.addSignature(i, old), /./);
+  refusedBy(c, raw.addSignature(0n, old).addSignature(1n, old), /./);
+  refusedBy(c, raw.addSignature(0n, old).addSignature(1n, sig(h.keys.mako, raw.dataToSign)), /./);
+  // The install itself cannot be sent a second time.
+  refusedBy(c, installUpdate, /./);
+  assert.equal(c.authority().counter, 17n);
+});
+
+test('Ledger 9: one signature is refused', needKeys, () => {
+  const c = asOnMainnet();
+  const h = holders();
+  c.send(toolInstall(c, h).update);
+  const req = sameKeyAgain(c);
+  const raw = rebuildRequest(req).update;
+  for (const [i, who] of ['hunter', 'mako', 'backup'].entries()) {
+    const one = assembleSigned(req, [signRequest(req, h.keys[who])], c.authority());
+    assert.equal(one.ok, false);
+    assert.match(one.problems.join(), /1 valid signature.*2 are needed/);
+    refusedBy(c, raw.addSignature(BigInt(i), sig(h.keys[who], raw.dataToSign)), /threshold/i);
+  }
+  refusedBy(c, raw, /threshold/i); // and none at all
+  assert.equal(c.authority().counter, 17n);
+});
+
+test('Ledger 9: the same holder signing twice is refused', needKeys, () => {
+  const c = asOnMainnet();
+  const h = holders();
+  c.send(toolInstall(c, h).update);
+  const req = sameKeyAgain(c);
+  const m = signRequest(req, h.keys.mako);
+  const twice = assembleSigned(req, [m, roundTrip(m)], c.authority());
+  assert.equal(twice.ok, false);
+  assert.match(twice.problems.join(), /second signature from the same key/);
+  // Under another member's place: the tool refuses it, and so does the ledger.
+  assert.equal(assembleSigned(req, [m, { ...m, index: 0, publicKey: h.cards.hunter.publicKey }], c.authority()).ok, false);
+  const raw = rebuildRequest(req).update;
+  const s = sig(h.keys.mako, raw.dataToSign);
+  refusedBy(c, raw.addSignature(0n, s).addSignature(1n, s), /./);
+  refusedBy(c, raw.addSignature(1n, s).addSignature(2n, s), /./);
+  refusedBy(c, raw.addSignature(1n, s).addSignature(1n, s), /./);
+  assert.equal(c.authority().counter, 17n);
+});
+
+test('Ledger 9: every pair of two holders is accepted', needKeys, () => {
+  const base = asOnMainnet();
+  const h = holders();
+  base.send(toolInstall(base, h).update);
+  const before = operationHashes(base);
+  for (const [a, b] of [
+    ['hunter', 'mako'],
+    ['hunter', 'backup'],
+    ['mako', 'backup'],
+  ]) {
+    const c = base.fork();
+    const req = sameKeyAgain(c);
+    // Signed in either order, on separate machines.
+    const signed = assembleSigned(req, [signRequest(req, h.keys[b]), signRequest(req, h.keys[a])].map(roundTrip), c.authority());
+    assert.ok(signed.ok, `${a} and ${b}`);
+    c.send(signed.update);
+    assert.equal(c.authority().counter, 18n, `${a} and ${b}`);
+    assert.equal(c.authority().committee.length, 3);
+    assert.deepEqual(operationHashes(c), before);
+  }
+  assert.equal(base.authority().counter, 17n, 'the copies did not touch the original');
+});
+
+test('Ledger 9: a wrong counter is refused', needKeys, () => {
+  const c = asOnMainnet();
+  const h = holders();
+  const current = authorityView(c.authority());
+  for (const counter of [15n, 17n, 0n]) {
+    const req = roundTrip(
+      makeRequest({
+        network: NET,
+        contractAddress: c.address,
+        current: { ...current, counter },
+        actions: [{ kind: 'replace-authority', committee: h.list, threshold: 2 }],
+      }),
+    );
+    const s = signRequest(req, c.paperKey);
+    // The tool refuses to put it together against the chain as it is.
+    const put = assembleSigned(req, [s], c.authority());
+    assert.equal(put.ok, false, `counter ${counter}`);
+    assert.match(put.problems.join(), /chain's counter is 16.*can never be used/s);
+    // And the ledger refuses it when it is sent anyway.
+    const raw = rebuildRequest(req).update;
+    refusedBy(c, raw.addSignature(0n, sk(s.signature)), /./);
+  }
+  // The right counter for the update, a wrong one inside the new authority (it must be 17).
+  for (const next of [16n, 18n]) {
+    const u = new L.MaintenanceUpdate(
+      c.address,
+      [new L.ReplaceAuthority(new L.ContractMaintenanceAuthority(h.list.map((x) => sk(x.publicKey)), 2, next))],
+      16n,
+    );
+    refusedBy(c, u.addSignature(0n, sig(c.paperKey, u.dataToSign)), /./);
+  }
+  assert.equal(c.authority().counter, 16n);
+  assert.equal(c.authority().committee.length, 1);
+});
+
+test('Ledger 9: a signature made with ledger-v8 is refused', needKeys, () => {
+  const c = asOnMainnet();
+  const h = holders();
+  const { req, update } = toolInstall(c, h);
+  const raw = rebuildRequest(req).update;
+  // The same change as Ledger 8 writes it, signed by the same key with ledger-v8.
+  const u8 = new L8.MaintenanceUpdate(
+    c.address,
+    [new L8.ReplaceAuthority(new L8.ContractMaintenanceAuthority(h.list.map((x) => x.publicKey), 2, 17n))],
+    16n,
+  );
+  assert.equal(L8.signatureVerifyingKey(c.paperKey), pub(c.paperKey).value, 'the key itself is the same on both');
+  assert.notEqual(Buffer.from(u8.dataToSign).toString('hex'), Buffer.from(raw.dataToSign).toString('hex'));
+  const sig8 = L8.signData(c.paperKey, u8.dataToSign);
+  assert.ok(L8.verifySignature(L8.signatureVerifyingKey(c.paperKey), u8.dataToSign, sig8), 'valid on Ledger 8');
+  // In a signature file of today's format: it does not verify.
+  const good = signRequest(req, c.paperKey);
+  const file8 = assembleSigned(req, [{ ...good, signature: sig8 }], c.authority());
+  assert.equal(file8.ok, false);
+  assert.match(file8.problems.join(), /does not verify.*Ledger 8/);
+  // In a file the Ledger 8 tool wrote: refused by its format, as is a Ledger 8 request.
+  const old = assembleSigned(req, [{ ...good, format: 'veilcore-maintenance-signature/v1', signature: sig8 }], c.authority());
+  assert.equal(old.ok, false);
+  assert.match(old.problems.join(), /before Midnight's Ledger 9 upgrade/);
+  assert.match(
+    rebuildRequest({ ...req, format: 'veilcore-maintenance-request/v1' }).problems.join(),
+    /before Midnight's Ledger 9 upgrade/,
+  );
+  // Sent anyway: the ledger refuses it, and nothing changes.
+  refusedBy(c, raw.addSignature(0n, sk(sig8)), /./);
+  assert.equal(c.authority().counter, 16n);
+  // A Ledger 8 transaction is not even read by Ledger 9.
+  const tx8 = L8.Transaction.fromParts(
+    NET,
+    undefined,
+    undefined,
+    L8.Intent.new(new Date(Date.now() + 3_600_000)).addMaintenanceUpdate(u8.addSignature(0n, sig8)),
+  );
+  assert.throws(() => L.Transaction.deserialize('signature', 'pre-proof', 'pre-binding', tx8.serialize()));
+  // The Ledger 9 signature over the same change is accepted.
+  c.send(update);
+  assert.equal(c.authority().counter, 17n);
+});
+
+test('Ledger 9: the transaction is read and accepted by ledger-v9 1.0.0 too (what midnight-js 5.0.0 and the wallet pin)', needKeys, () => {
+  const c = asOnMainnet();
+  const { update } = toolInstall(c, holders());
+  const bytes = c.tx(update).serialize();
+  const tx = L900.Transaction.deserialize('signature', 'pre-proof', 'pre-binding', bytes);
+  const state = L900.LedgerState.deserialize(c.state().serialize());
+  const strict = new L900.WellFormedStrictness();
+  strict.enforceBalancing = false;
+  strict.verifyContractProofs = false;
+  strict.verifyNativeProofs = false;
+  const now = BigInt(Math.floor(Date.now() / 1000));
+  const [next, result] = state.apply(
+    tx.eraseProofs().wellFormed(state, strict, new Date()),
+    new L900.TransactionContext(state, {
+      secondsSinceEpoch: now,
+      secondsSinceEpochErr: 30,
+      parentBlockHash: '00'.repeat(32),
+      lastBlockTime: now - 6n,
+    }),
+  );
+  assert.equal(result.type, 'success');
+  assert.equal(next.index(c.address).maintenanceAuthority.counter, 17n);
+  // The fee a replace-authority costs is computed the same by both versions.
+  const fee = (Lx, t) => t.fees(Lx.LedgerParameters.initialParameters());
+  assert.equal(fee(L, c.tx(update)), fee(L900, tx));
+});
+
 // ────────────────────────────────────────────── sending, against the same ledger
 
 /**
- * midnight-js 5 providers over a local ledger: a network not yet past the Ledger 9 fork
- * (protocol version 1.x), whose indexer hands over Ledger 8 state bytes. A maintenance
- * update has no circuit to prove: proving it only changes its stage.
+ * midnight-js 5 providers over a local ledger on Ledger 9 (protocol version 2.x), whose
+ * indexer hands over Ledger 9 state bytes. A maintenance update has no circuit to prove:
+ * proving it only changes its stage.
  */
-const framework = (c, { watch, submit, protocolVersion = 1_000_000 }) => {
-  const placeholderProver = { check: async () => [], prove: async () => new L.Proof('0100').serialize() };
+const framework = (c, { watch, submit, protocolVersion = 2_001_000, networkId = NET }) => {
+  const placeholderProver = {
+    check: async () => [],
+    prove: async () => new L.Proof('0100').serialize(),
+    lookupKey: async () => undefined,
+  };
+  const read9 = (tx) => tx.deserialize({ v9: L.Transaction });
   return {
     publicDataProvider: {
       queryContractState: async (a) => ({
         protocolVersion,
-        contractState: SerializedContractState.fromBytes('v8', c.state().index(a).serialize()),
+        contractState: SerializedContractState.fromBytes('v9', c.state().index(a).serialize()),
       }),
       queryLatestProtocolVersion: async () => protocolVersion,
       watchForTxData: async (txId) => {
         if (watch()) throw new Error('websocket closed');
-        return { era: 'v8', txId, txHash: txId, blockHeight: 1, status: 'SucceedEntirely' };
+        return { era: 'v9', txId, txHash: txId, blockHeight: 1, status: 'SucceedEntirely' };
       },
     },
     proofProvider: createProofProviderFromHandlers({
-      v8: (tx) => tx.deserialize({ v8: L.Transaction }).prove(placeholderProver, L.CostModel.initialCostModel()),
-      v9: undefined,
+      v8: undefined,
+      v9: (tx) => read9(tx).prove(placeholderProver, L.CostModel.initialCostModel()),
     }),
     walletProvider: createWalletProviderFromHandlers({
-      v8: async (tx) => tx.deserialize({ v8: L.Transaction }).bind(),
-      v9: undefined,
+      v8: undefined,
+      v9: async (tx) => read9(tx).bind(),
       getCoinPublicKey: () => '00'.repeat(32),
       getEncryptionPublicKey: () => '00'.repeat(32),
     }),
     midnightProvider: createMidnightProviderFromHandlers({
-      v8: async (tx) => submit(tx.deserialize({ v8: L.Transaction })),
-      v9: undefined,
+      v8: undefined,
+      v9: async (tx) => submit(read9(tx)),
     }),
-    config: { networkId: NET, ttlSeconds: 3600 },
+    config: { networkId, ttlSeconds: 3600 },
   };
 };
 
-test('sendMaintenanceUpdate: refused before anything is built on a network past the Ledger 9 fork', async () => {
-  const c = chain();
-  const h = holders();
+const signedInstall = (c, h) => {
   const req = request(c, [{ kind: 'replace-authority', committee: h.list, threshold: 2 }]);
   const signed = assembleSigned(req, [signRequest(req, c.paperKey)], c.authority());
   assert.ok(signed.ok);
+  return { req, update: signed.update, landed: (a) => requestLanded(req, a) };
+};
+
+test('sendMaintenanceUpdate: refused before anything is built on a network still on Ledger 8', async () => {
+  const c = chain();
+  const { update, landed } = signedInstall(c, holders());
   let submitted = 0;
-  const forked = framework(c, { watch: () => false, submit: () => `tx${++submitted}`, protocolVersion: 2_001_000 });
+  const notForked = framework(c, { watch: () => false, submit: () => `tx${++submitted}`, protocolVersion: 1_000_000 });
   await assert.rejects(
-    () => sendMaintenanceUpdate(forked, c.address, signed.update, (a) => requestLanded(req, a), { waitMs: 1 }),
-    /not available on this network: it has moved to Midnight Ledger 9.*Nothing was built or sent/s,
+    () => sendMaintenanceUpdate(notForked, c.address, update, landed, { waitMs: 1 }),
+    /not on Midnight Ledger 9.*Nothing was built or sent/s,
   );
   assert.equal(submitted, 0);
   assert.equal(c.authority().counter, 0n, 'nothing changed on chain');
 });
 
-test('readAuthorityNow reads the authority from either ledger\'s state bytes', async () => {
+test('sendMaintenanceUpdate: mainnet is refused unless the caller allows it', async () => {
   const c = chain();
-  const read8 = await readAuthorityNow(framework(c, { watch: () => false, submit: () => '' }).publicDataProvider, c.address);
-  assert.deepEqual(read8.committee, [L.signatureVerifyingKey(c.paperKey)]);
-  assert.equal(read8.threshold, 1);
-  assert.equal(read8.counter, 0n);
-  // A Ledger 9 state: keys are { tag: 'schnorr', value }; the view is the same plain hex.
-  const L9 = await import('@midnight-ntwrk/midnight-js-protocol/v9');
-  const cs9 = new L9.ContractState();
-  cs9.maintenanceAuthority = new L9.ContractMaintenanceAuthority(
-    [{ tag: 'schnorr', value: L.signatureVerifyingKey(c.paperKey) }],
-    1,
-    3n,
-  );
-  const read9 = await readAuthorityNow(
-    { queryContractState: async () => ({ contractState: SerializedContractState.fromBytes('v9', cs9.serialize()) }) },
+  const { update, landed } = signedInstall(c, holders());
+  let asked = 0;
+  let submitted = 0;
+  const mainnet = framework(c, { watch: () => false, submit: () => `tx${++submitted}`, networkId: 'mainnet' });
+  const read = mainnet.publicDataProvider.queryContractState;
+  mainnet.publicDataProvider.queryContractState = async (a) => (asked++, read(a));
+  for (const options of [undefined, {}, { allowMainnet: false }, { allowMainnet: 'yes' }, { allowMainnet: 1 }])
+    await assert.rejects(() => sendMaintenanceUpdate(mainnet, c.address, update, landed, options), (e) => e.message === MAINNET_REFUSAL);
+  assert.equal(asked, 0, 'refused before the chain is even read');
+  assert.equal(submitted, 0);
+  assert.equal(c.authority().counter, 0n, 'nothing changed');
+});
+
+test("readAuthorityNow reads the authority from either ledger's state bytes", async () => {
+  const c = chain();
+  const read9 = await readAuthorityNow(framework(c, { watch: () => false, submit: () => '' }).publicDataProvider, c.address);
+  assert.deepEqual(read9, { committee: [pub(c.paperKey).value], threshold: 1, counter: 0n });
+  // A Ledger 8 state (a network not yet upgraded): keys are bare hex; the view is the same.
+  const cs8 = new L8.ContractState();
+  cs8.maintenanceAuthority = new L8.ContractMaintenanceAuthority([pub(c.paperKey).value], 1, 3n);
+  const read8 = await readAuthorityNow(
+    { queryContractState: async () => ({ contractState: SerializedContractState.fromBytes('v8', cs8.serialize()) }) },
     c.address,
   );
-  assert.deepEqual(read9, { committee: read8.committee, threshold: 1, counter: 3n });
+  assert.deepEqual(read8, { committee: read9.committee, threshold: 1, counter: 3n });
 });
 
 test('sendMaintenanceUpdate: sent once, confirmed from the chain, never twice', async () => {
   const c = chain();
   const h = holders();
-  const req = request(c, [{ kind: 'replace-authority', committee: h.list, threshold: 2 }]);
-  const signed = assembleSigned(req, [signRequest(req, c.paperKey)], c.authority());
-  assert.ok(signed.ok);
+  const { update, landed } = signedInstall(c, h);
   let submitted = 0;
   let loseConfirmation = false;
   const providers = framework(c, {
@@ -497,33 +848,28 @@ test('sendMaintenanceUpdate: sent once, confirmed from the chain, never twice', 
       return `tx${submitted}`;
     },
   });
-  const landed = (a) => requestLanded(req, a);
-  const r = await sendMaintenanceUpdate(providers, c.address, signed.update, landed, { waitMs: 1 });
+  const r = await sendMaintenanceUpdate(providers, c.address, update, landed, { waitMs: 1 });
   assert.equal(r.sent, true);
   assert.equal(submitted, 1);
   assert.equal(r.authority.threshold, 2);
-  const again = await sendMaintenanceUpdate(providers, c.address, signed.update, landed, { waitMs: 1 });
+  const again = await sendMaintenanceUpdate(providers, c.address, update, landed, { waitMs: 1 });
   assert.equal(again.sent, false, 'run again: the chain shows it, nothing is sent');
   assert.equal(submitted, 1);
 
   // Landed, but the confirmation was lost: the chain says it landed, so it is not an error.
   const d = chain();
-  const req2 = request(d, [{ kind: 'replace-authority', committee: h.list, threshold: 2 }]);
-  const s2 = assembleSigned(req2, [signRequest(req2, d.paperKey)], d.authority());
+  const second = signedInstall(d, h);
   loseConfirmation = true;
   const p2 = framework(d, { watch: () => loseConfirmation, submit: (tx) => (d.apply(tx), 'txL') });
-  const lost = await sendMaintenanceUpdate(p2, d.address, s2.update, (a) => requestLanded(req2, a), { waitMs: 1 });
+  const lost = await sendMaintenanceUpdate(p2, d.address, second.update, second.landed, { waitMs: 1 });
   assert.equal(lost.sent, true);
-  assert.ok(requestLanded(req2, d.authority()));
+  assert.ok(second.landed(d.authority()));
 
   // Refused by the network: the error comes back, nothing is claimed.
   loseConfirmation = false;
   const e = chain();
   const req3 = request(e, [{ kind: 'replace-authority', committee: h.list, threshold: 2 }]);
-  const bad = rebuildRequest(req3).update.addSignature(
-    0n,
-    L.signData(L.sampleSigningKey(), rebuildRequest(req3).update.dataToSign),
-  );
+  const bad = rebuildRequest(req3).update.addSignature(0n, sig(newKey(), rebuildRequest(req3).update.dataToSign));
   const p3 = framework(e, { watch: () => false, submit: (tx) => (e.apply(tx), 'txR') });
   await assert.rejects(
     () => sendMaintenanceUpdate(p3, e.address, bad, (a) => requestLanded(req3, a), { waitMs: 1 }),
@@ -574,7 +920,7 @@ test('keygen --out: the key goes to a 0600 file, never on screen; never over a f
   // check: the stored copy against the card.
   assert.equal((await cli(['check', '--card', 'committee-key-mako.json', '--key-file', key], [], dir)).code, 0);
   assert.equal((await cli(['check', '--card', 'committee-key-mako.json'], [stored.signingKey], dir)).code, 0);
-  const wrong = await cli(['check', '--card', 'committee-key-mako.json'], [L.sampleSigningKey()], dir);
+  const wrong = await cli(['check', '--card', 'committee-key-mako.json'], [newKey()], dir);
   assert.equal(wrong.code, 1);
   assert.match(wrong.screen, /NOT the one/);
   // Places a key file must not go.
@@ -598,7 +944,7 @@ test('keygen --paper: shown once, checked back from paper, written nowhere', asy
     if (m && key === undefined) {
       key = m[1].replace(/ /g, '');
       input.write('WRITTEN\n');
-      input.write(`${L.sampleSigningKey()}\n`); // a copying mistake first
+      input.write(`${newKey()}\n`); // a copying mistake first
       input.write(`${m[1]}\n`); // then the right one, with its spaces
       input.end();
     }
@@ -615,7 +961,7 @@ test('keygen --paper: shown once, checked back from paper, written nowhere', asy
   assert.match(screen, /does not match/);
   assert.match(screen, /Your paper copy matches/);
   const card = JSON.parse(readFileSync(path.join(dir, 'committee-key-backup.json'), 'utf8'));
-  assert.equal(card.publicKey, L.signatureVerifyingKey(key));
+  assert.equal(card.publicKey, pub(key).value);
   assert.doesNotMatch(readFileSync(path.join(dir, 'committee-key-backup.json'), 'utf8'), new RegExp(key));
 });
 

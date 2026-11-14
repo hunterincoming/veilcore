@@ -19,7 +19,7 @@ import path from 'node:path';
 import { createInterface } from 'node:readline/promises';
 import { Writable } from 'node:stream';
 import { fileURLToPath } from 'node:url';
-import { sampleSigningKey } from '@midnightntwrk/ledger-v8';
+import { sampleSigningKey } from 'ledger-v9-committee';
 import { readMainnetPins } from '../mainnet-pins.mjs';
 import {
   checkKeyCard,
@@ -192,7 +192,7 @@ const keygen = async (flags, io) => {
     if (existsSync(out)) throw new Stop(`${out} already exists. A key file is never written over. Nothing was made.`);
   }
 
-  const key = sampleSigningKey();
+  const key = sampleSigningKey().value;
   const card = makeKeyCard(holder, key);
   if (paper) {
     io.say('');

@@ -1,6 +1,6 @@
 // Types for submit.mjs, so the operator tool (bboard-cli/src/launcher/committee.ts) can import it.
 // SPDX-License-Identifier: Apache-2.0
-import type { MaintenanceUpdate } from '@midnightntwrk/ledger-v8';
+import type { MaintenanceUpdate } from 'ledger-v9-committee';
 import type { AuthorityView } from './core.mjs';
 
 type Authority = {
@@ -25,8 +25,10 @@ export type ChainReader = StateReader & { queryLatestProtocolVersion(): Promise<
 
 export declare const readAuthorityNow: (publicDataProvider: StateReader, address: string) => Promise<AuthorityView>;
 
-/** Throws on a network past Midnight's Ledger 9 fork: a Ledger 8 contract cannot be maintained there. */
-export declare const assertMaintenanceAvailable: (publicDataProvider: ChainReader) => Promise<void>;
+/** Throws on a network that is not on Midnight Ledger 9: this tool builds Ledger 9 updates only. */
+export declare const assertLedger9Network: (publicDataProvider: ChainReader) => Promise<void>;
+
+export declare const MAINNET_REFUSAL: string;
 
 export declare const sendMaintenanceUpdate: (
   providers: {
@@ -39,5 +41,5 @@ export declare const sendMaintenanceUpdate: (
   address: string,
   update: MaintenanceUpdate,
   landed: (authority: AuthorityView) => boolean,
-  options?: { log?: (line: string) => void; waitMs?: number; tries?: number },
+  options?: { log?: (line: string) => void; waitMs?: number; tries?: number; allowMainnet?: boolean },
 ) => Promise<{ sent: boolean; txId?: string; blockHeight?: number; authority: AuthorityView }>;

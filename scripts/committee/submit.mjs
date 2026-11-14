@@ -10,15 +10,24 @@
 // an update that landed with only the confirmation lost is reported as landed. Running it
 // again after it landed sends nothing.
 //
-// AFTER MIDNIGHT'S LEDGER 9 FORK (mainnet, 6 November 2026) SENDING IS NOT AVAILABLE. VeilCore's
-// contracts are Ledger 8 contracts; midnight-js 5 calls them on either side of the fork but
-// refuses to maintain them on a forked network (that needs the contract recompiled, which would
-// change every circuit key; see api/src/maintenance.ts). So on a forked network sending is
-// refused before anything is built; reading the authority (show) and preparing and signing
-// requests still work. On a network not yet forked it sends a Ledger 8 transaction, as before.
+// LEDGER 9. The update is a Ledger 9 one (core.mjs), so it is sent only on a network that has
+// moved to Ledger 9, as a Ledger 9 transaction; on a network still on Ledger 8 it is refused
+// before anything is built. midnight-js 5 refuses to maintain a pre-upgrade contract through
+// its own helpers; that is a rule of the library, not of the chain, and this path does not use
+// those helpers. No recompile is involved: replacing the authority uses the address, the
+// counter and the signatures.
+//
+// MAINNET IS OFF BY DEFAULT. On mainnet nothing is built or sent unless the caller passes
+// `allowMainnet: true`, which the operator tool (bboard-cli/src/launcher/committee.ts) does only
+// after --send-on-mainnet and a matching dry-run record.
+//
+// NOT YET SHOWN ON A NODE: this Ledger 9 path has been run against the ledger's own code
+// (committee.test.mjs) but not against a real node, indexer and wallet. The rehearsal in
+// docs/committee-rehearsal.md does that on a local network, and comes before any mainnet use.
 // SPDX-License-Identifier: Apache-2.0
 
-import { ContractState as Ledger8ContractState, Intent, Transaction } from '@midnightntwrk/ledger-v8';
+import { Intent, Transaction } from 'ledger-v9-committee';
+import { ContractState as Ledger8ContractState } from '@midnightntwrk/ledger-v8';
 import { ContractState as Ledger9ContractState } from '@midnight-ntwrk/midnight-js-protocol/v9';
 import { protocolVersionToLedger } from '@midnight-ntwrk/midnight-js-protocol';
 import { submitTx } from '@midnight-ntwrk/midnight-js-contracts';
@@ -27,13 +36,6 @@ import { ttlOneHour } from '@midnight-ntwrk/midnight-js-utils';
 import { authorityView } from './core.mjs';
 
 const SUCCEED_ENTIRELY = 'SucceedEntirely';
-
-/** Ledger 9 keeps committee keys as { tag, value }; Ledger 8 as bare hex. Both hold Schnorr keys only. */
-const bareKey = (k) => {
-  if (typeof k === 'string') return k;
-  if (k?.tag === 'schnorr' && typeof k.value === 'string') return k.value;
-  throw new Error("The contract's maintenance committee holds a key that is not a Schnorr key; refused.");
-};
 
 /**
  * The maintenance authority from an indexer read: midnight-js 5's `{ contractState }` (bytes
@@ -51,24 +53,27 @@ export const readAuthorityNow = async (publicDataProvider, address) => {
   const state = await publicDataProvider.queryContractState(address);
   if (state === null || state === undefined) throw new Error(`No contract found at ${address} on this network.`);
   const a = authorityOf(state);
-  return authorityView({ committee: [...a.committee].map(bareKey), threshold: a.threshold, counter: a.counter });
+  return authorityView(a);
 };
 
-/** Refuse on a network past the Ledger 9 fork (see the top of this file). Nothing is built or sent. */
-export const assertMaintenanceAvailable = async (publicDataProvider) => {
+/** Refuse on a network that is not on Ledger 9 (see the top of this file). Nothing is built or sent. */
+export const assertLedger9Network = async (publicDataProvider) => {
   const era = protocolVersionToLedger(await publicDataProvider.queryLatestProtocolVersion());
-  if (era !== 'v8')
+  if (era !== 'v9')
     throw new Error(
-      "Contract maintenance is not available on this network: it has moved to Midnight Ledger 9, and VeilCore's " +
-        'contracts are Ledger 8 contracts, which midnight-js can call but no longer maintain (that needs the contract ' +
-        'recompiled, which would change every circuit key). Nothing was built or sent.',
+      'This network is not on Midnight Ledger 9. This tool builds Ledger 9 maintenance updates, which only a ' +
+        'Ledger 9 network accepts. Nothing was built or sent.',
     );
 };
+
+export const MAINNET_REFUSAL =
+  'Refused: sending a maintenance change to MAINNET is off by default. Nothing was built or sent.';
 
 /**
  * Send `update` and wait until `landed(authority)` holds on chain.
  * @param providers midnight-js 5 providers: { publicDataProvider, proofProvider, walletProvider,
- *   midnightProvider, config: { networkId } }. Refused past the Ledger 9 fork (top of file).
+ *   midnightProvider, config: { networkId } }. Refused on a network not on Ledger 9, and on
+ *   mainnet unless `allowMainnet` is true (top of file).
  * @returns {Promise<{ sent: boolean, txId?: string, blockHeight?: number, authority: object }>}
  */
 export const sendMaintenanceUpdate = async (
@@ -76,8 +81,10 @@ export const sendMaintenanceUpdate = async (
   address,
   update,
   landed,
-  { log = () => {}, waitMs = 2_000, tries = 60 } = {},
+  { log = () => {}, waitMs = 2_000, tries = 60, allowMainnet = false } = {},
 ) => {
+  if (String(providers.config.networkId).toLowerCase() === 'mainnet' && allowMainnet !== true)
+    throw new Error(MAINNET_REFUSAL);
   const before = await readAuthorityNow(providers.publicDataProvider, address);
   if (landed(before)) {
     log('The chain already shows this change: nothing was sent.');
@@ -87,9 +94,9 @@ export const sendMaintenanceUpdate = async (
     throw new Error(
       `The chain's counter is ${before.counter}, but this update is for ${update.counter}. Nothing was sent.`,
     );
-  await assertMaintenanceAvailable(providers.publicDataProvider);
+  await assertLedger9Network(providers.publicDataProvider);
   const unprovenTx = LedgerTransaction.seal(
-    'v8',
+    'v9',
     'Unproven',
     Transaction.fromParts(
       providers.config.networkId,

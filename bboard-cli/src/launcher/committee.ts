@@ -18,7 +18,22 @@
  *   --address HEX   the contract, on preprod or a local chain (mainnet: always the pinned one)
  *
  * --dry-run reads the chain, builds and checks everything, and stops before the wallet:
- * nothing is sent. Sending asks for the wallet's recovery phrase hidden, here only, the way
+ * nothing is sent. It writes a dry-run record (a public file: what was checked, for which
+ * counter).
+ *
+ * MAINNET IS OFF BY DEFAULT. On mainnet, install and submit send nothing unless the command
+ * has both --send-on-mainnet and --dry-run-record FILE, where FILE is the record a --dry-run
+ * of exactly the same change wrote, for the counter the chain still shows. Without them the
+ * command is refused before anything is read or typed. Every run prints exactly what will
+ * change (each key that can change the contract now, each key afterwards, the counter before
+ * and after) and warns that a wrong committee key is permanent.
+ *
+ * Everything is built and signed with Midnight Ledger 9 types (scripts/committee/core.mjs),
+ * so it sends only on a network that is on Ledger 9. That path has been run against the
+ * ledger's own code, not yet against a node: rehearse on a local network first
+ * (docs/committee-rehearsal.md).
+ *
+ * Sending asks for the wallet's recovery phrase hidden, here only, the way
  * `npm run mainnet` does; the phrase is never written anywhere. Fees are paid from DUST
  * the wallet already has: nothing is registered for DUST and no DUST address is changed.
  *
@@ -43,6 +58,7 @@ import {
   type KeyCard,
   type Request,
   assembleSigned,
+  changeSummary,
   checkKeyCard,
   describeRequest,
   fingerprint,
@@ -53,11 +69,7 @@ import {
   requestLanded,
   signRequest,
 } from '../../../scripts/committee/core.mjs';
-import {
-  assertMaintenanceAvailable,
-  readAuthorityNow,
-  sendMaintenanceUpdate,
-} from '../../../scripts/committee/submit.mjs';
+import { assertLedger9Network, readAuthorityNow, sendMaintenanceUpdate } from '../../../scripts/committee/submit.mjs';
 import { MAINNET_VEILCORE_ADDRESS } from '../../../api/src/deploy-guard';
 import { indexerWebSocket, usePlainForBlockfrost } from '../../../api/src/indexer-websocket';
 import { endpointsFor } from '../../../partner-kit/src/network';
@@ -68,6 +80,7 @@ import {
   StandaloneConfig,
   blockfrostProjectIdFor,
   currentDir,
+  useMainnetProofServer,
 } from '../config.js';
 import { createLogger, redactThisSession, scrubTerminal } from '../logger-utils.js';
 import { createPrompt, PromptClosedError, type Prompt } from '../prompt.js';
@@ -95,6 +108,10 @@ export type Options = {
   readonly network: Network;
   readonly command: Command;
   readonly dryRun: boolean;
+  /** Mainnet only: the operator asked, in so many words, to send to mainnet. */
+  readonly sendOnMainnet: boolean;
+  /** The record a --dry-run of the same change wrote (required to send on mainnet). */
+  readonly dryRunRecord?: string;
   readonly address?: string;
   readonly cards: string[];
   readonly sigs: string[];
@@ -109,12 +126,19 @@ export type Options = {
 
 export const USAGE = `Usage: committee.ts <mainnet|preprod|undeployed> <show|install|request|submit> [options]
   show
-  install --card FILE --card FILE --card FILE [--dry-run]
+  install --card FILE --card FILE --card FILE [--dry-run] [--out FILE]
   request (--replace --card FILE --card FILE --card FILE | --retire | --remove CIRCUIT ... | --insert CIRCUIT=VKFILE ...)
           [--reason TEXT] [--out FILE]
-  submit  --request FILE --sig FILE --sig FILE [--dry-run]
+  submit  --request FILE --sig FILE --sig FILE [--dry-run] [--out FILE]
   --address HEX   the contract on preprod or a local chain (mainnet always uses the pinned address)
+  --send-on-mainnet --dry-run-record FILE
+                  mainnet only, both needed to send: FILE is what --dry-run wrote for the same change
 See docs/maintenance-committee.md.`;
+
+export const MAINNET_OFF =
+  'Sending to MAINNET is off by default. First run the same command with --dry-run: it sends nothing and writes ' +
+  'a dry-run record. Then, to send, run it with --send-on-mainnet --dry-run-record FILE (the record the dry run ' +
+  'wrote) in place of --dry-run. Nothing was read, signed or sent.';
 
 /** The command line, checked. Throws UsageError with what is wrong. */
 export const parseOptions = (argv: readonly string[]): Options => {
@@ -127,6 +151,7 @@ export const parseOptions = (argv: readonly string[]): Options => {
     network,
     command,
     dryRun: false,
+    sendOnMainnet: false,
     cards: [] as string[],
     sigs: [] as string[],
     replace: false,
@@ -147,6 +172,12 @@ export const parseOptions = (argv: readonly string[]): Options => {
     switch (flag) {
       case '--dry-run':
         o.dryRun = true;
+        break;
+      case '--send-on-mainnet':
+        o.sendOnMainnet = true;
+        break;
+      case '--dry-run-record':
+        o.dryRunRecord = value();
         break;
       case '--replace':
         o.replace = true;
@@ -199,6 +230,15 @@ export const parseOptions = (argv: readonly string[]): Options => {
   }
   if (o.dryRun && (o.command === 'show' || o.command === 'request'))
     throw new UsageError(`${o.command} never sends anything; --dry-run is not needed.`);
+  const sends = (o.command === 'install' || o.command === 'submit') && !o.dryRun;
+  if (o.sendOnMainnet && o.network !== 'mainnet')
+    throw new UsageError(`--send-on-mainnet is for mainnet only; this is ${o.network}.`);
+  if ((o.sendOnMainnet || o.dryRunRecord !== undefined) && !sends)
+    throw new UsageError(
+      '--send-on-mainnet and --dry-run-record are for the run that sends (install or submit, without --dry-run).',
+    );
+  if (o.network === 'mainnet' && sends && !(o.sendOnMainnet && o.dryRunRecord !== undefined))
+    throw new UsageError(MAINNET_OFF);
   return o;
 };
 
@@ -324,6 +364,19 @@ const openWallet = async (
     return undefined;
   }
   if (network !== 'undeployed' && !(await settlePassword(prompt.askHidden, logger))) return undefined;
+  // A local chain is read at fixed local addresses (endpointsFor('undeployed')). The wallet
+  // must use that same chain, not start a new one of its own, which is what the test kit does
+  // unless it is told where the chain is (docs/committee-rehearsal.md, step 3).
+  if (network === 'undeployed' && process.env.MN_TEST_ENVIRONMENT !== 'env-var-remote') {
+    logger.error(
+      'To send on a local chain, say where it is: set MN_TEST_ENVIRONMENT=env-var-remote and the MN_TEST_* ' +
+        'variables as in docs/committee-rehearsal.md (step 3). Nothing was sent.',
+    );
+    return undefined;
+  }
+  // This tool sends only on a Ledger 9 network (assertLedger9Network), and a proof server
+  // serves one ledger: the 9.0.1 one, on every network.
+  useMainnetProofServer();
   const testEnv: TestEnvironment = config.getEnvironment(logger);
   let wallet: MidnightWalletProvider | undefined;
   const stop = async (): Promise<void> => {
@@ -397,6 +450,88 @@ const openWallet = async (
 };
 
 /* **********************************************************************
+ * The dry-run record: what a --dry-run checked, so the run that sends can be held to it.
+ * Public: it holds no key and no signature.
+ */
+
+export const DRY_RUN_FORMAT = 'veilcore-maintenance-dry-run/v1';
+
+type DryRunRecord = {
+  readonly format: string;
+  readonly what: string;
+  readonly network: string;
+  readonly contractAddress: string;
+  readonly counterBefore: string;
+  readonly counterAfter: string;
+  /** SHA-256 of the exact bytes the signatures cover: the address, the change and the counter. */
+  readonly dataToSignSha256: string;
+  readonly change: string[];
+  readonly checkedAt: string;
+};
+
+const digestOf = (update: { readonly dataToSign: Uint8Array }): string =>
+  createHash('sha256').update(update.dataToSign).digest('hex');
+
+/** Write the record of a dry run that passed. Returns the file. */
+const writeDryRunRecord = (
+  o: Options,
+  req: Request,
+  update: { readonly dataToSign: Uint8Array },
+  current: AuthorityView,
+): string => {
+  const digest = digestOf(update);
+  const record: DryRunRecord = {
+    format: DRY_RUN_FORMAT,
+    what: 'A VeilCore maintenance change, checked against the chain in a dry run. Nothing was sent.',
+    network: o.network,
+    contractAddress: req.contractAddress,
+    counterBefore: String(current.counter),
+    counterAfter: String(current.counter + 1n),
+    dataToSignSha256: digest,
+    change: changeSummary(req),
+    checkedAt: new Date().toISOString(),
+  };
+  if (o.out !== undefined) return writePublic(o.out, record);
+  // The default name holds the counter and the check code, so a file already there is for this same change.
+  const file = path.resolve(`dry-run-${o.network}-counter-${record.counterBefore}-${digest.slice(0, 16)}.json`);
+  if (!existsSync(file)) writePublic(file, record);
+  return file;
+};
+
+/**
+ * On mainnet: the reasons this change must not be sent, or none. It needs --send-on-mainnet
+ * and the record of a dry run of exactly this change, for the counter the chain shows now.
+ */
+export const mainnetSendProblems = (
+  o: Pick<Options, 'network' | 'sendOnMainnet' | 'dryRunRecord'>,
+  req: Request,
+  update: { readonly dataToSign: Uint8Array },
+  current: AuthorityView,
+): string[] => {
+  if (o.network !== 'mainnet') return [];
+  if (!o.sendOnMainnet || o.dryRunRecord === undefined) return [MAINNET_OFF];
+  let r: Partial<DryRunRecord> | null;
+  try {
+    r = JSON.parse(readFileSync(o.dryRunRecord, 'utf8')) as Partial<DryRunRecord> | null;
+  } catch (e) {
+    return [`Could not read the dry-run record ${o.dryRunRecord}: ${e instanceof Error ? e.message : String(e)}`];
+  }
+  const problems: string[] = [];
+  if (r === null || typeof r !== 'object' || r.format !== DRY_RUN_FORMAT)
+    return [`${o.dryRunRecord} is not a dry-run record (${DRY_RUN_FORMAT}).`];
+  if (r.network !== 'mainnet') problems.push(`The dry-run record is for ${String(r.network)}, not mainnet.`);
+  if (r.contractAddress !== req.contractAddress) problems.push('The dry-run record is for a different contract.');
+  if (r.counterBefore !== String(current.counter))
+    problems.push(
+      `The dry run was made at counter ${String(r.counterBefore)}; the chain now shows ${current.counter}. ` +
+        'Something changed the contract since. Start again from a new dry run.',
+    );
+  if (r.dataToSignSha256 !== digestOf(update))
+    problems.push('The dry-run record is for a different change than this one (other keys, or another request).');
+  return problems.length === 0 ? [] : [...problems, 'Nothing was sent.'];
+};
+
+/* **********************************************************************
  * The commands.
  */
 
@@ -427,13 +562,21 @@ const send = async (
   c: Ctx,
   req: Request,
   update: Parameters<typeof sendMaintenanceUpdate>[2],
+  current: AuthorityView,
   word: string,
 ): Promise<boolean> => {
   const { o, prompt, logger } = c;
-  // Past Midnight's Ledger 9 fork a Ledger 8 contract cannot be maintained (submit.mjs): say so
-  // before a wallet is opened, so nobody syncs a wallet for an hour to be refused at the end.
+  // Mainnet is off by default (top of file): the flag and a dry-run record of exactly this
+  // change, for the counter the chain shows now. Checked before a wallet is opened.
+  const blocked = mainnetSendProblems(o, req, update, current);
+  if (blocked.length > 0) {
+    for (const l of blocked) logger.error(l);
+    return false;
+  }
+  // The update is a Ledger 9 one (submit.mjs): say so before a wallet is opened, so nobody
+  // syncs a wallet for an hour to be refused at the end.
   try {
-    await assertMaintenanceAvailable(c.reader);
+    await assertLedger9Network(c.reader);
   } catch (e) {
     logger.error(e instanceof Error ? e.message : String(e));
     return false;
@@ -446,8 +589,10 @@ const send = async (
         ? ' This is MAINNET. Send it only if both founders approved it in writing and it was announced at least ' +
           '14 days ago (docs/maintenance-policy.md).'
         : '';
-    logger.info(`Everything is ready.${mainnetNote}`);
-    if ((await prompt.rli.question(`Type ${word} to send it now, anything else to stop: `)).trim() !== word) {
+    logger.info(`Everything is ready.${mainnetNote} This is exactly what will change:`);
+    for (const l of changeSummary(req)) logger.info(l);
+    const typed = o.network === 'mainnet' ? `${word} ON MAINNET` : word;
+    if ((await prompt.rli.question(`Type ${typed} to send it now, anything else to stop: `)).trim() !== typed) {
       logger.info('Not sent.');
       return false;
     }
@@ -458,6 +603,8 @@ const send = async (
       r = await sendMaintenanceUpdate(sender.providers, address, update, (a) => requestLanded(req, a), {
         log: (l) => logger.info(l),
         ...c.sendOptions,
+        // Reached on mainnet only past mainnetSendProblems above.
+        allowMainnet: o.network === 'mainnet' && o.sendOnMainnet && o.dryRunRecord !== undefined,
       });
     } finally {
       sending = false;
@@ -521,6 +668,14 @@ const install = async (c: Ctx): Promise<boolean> => {
   const rebuilt = rebuildRequest(req);
   if (!rebuilt.ok) throw new UsageError(rebuilt.problems.join(' '));
   for (const l of describeRequest(req, rebuilt, { pinnedMainnetAddress: MAINNET_VEILCORE_ADDRESS })) logger.info(l);
+  // On mainnet, hold the run that sends to its dry run before the paper key is asked for.
+  if (!o.dryRun) {
+    const blocked = mainnetSendProblems(o, req, rebuilt.update, current);
+    if (blocked.length > 0) {
+      for (const l of blocked) logger.error(l);
+      return false;
+    }
+  }
 
   logger.info('The current maintenance key is on paper. It is held in memory for one signature, then dropped.');
   let signature: ReturnType<typeof signRequest> | undefined;
@@ -556,13 +711,17 @@ const install = async (c: Ctx): Promise<boolean> => {
       `${createHash('sha256').update(signed.update.dataToSign).digest('hex').slice(0, 16)}.`,
   );
   if (o.dryRun) {
+    const record = writeDryRunRecord(o, req, signed.update, current);
     logger.info(
       'DRY RUN, nothing sent: the paper key is the one on chain, the three cards are valid and different, and the ' +
-        `change is built for counter ${current.counter}. Run again without --dry-run to send it.`,
+        `change is built for counter ${current.counter}. Dry-run record (public, no secrets): ${record}. ` +
+        (o.network === 'mainnet'
+          ? 'To send on mainnet, run again with --send-on-mainnet --dry-run-record and that file in place of --dry-run.'
+          : 'Run again without --dry-run to send it.'),
     );
     return true;
   }
-  const done = await send(c, req, signed.update, 'INSTALL');
+  const done = await send(c, req, signed.update, current, 'INSTALL');
   if (done)
     logger.info(
       'Installed. The old paper key can no longer change anything: once a second check (show) agrees, destroy ' +
@@ -631,12 +790,16 @@ const submit = async (c: Ctx): Promise<boolean> => {
   for (const w of signed.warnings) logger.warn(`Ignored: ${w}`);
   logger.info(`Signed by ${signed.signers.join(' and ')}: enough for this committee (${current.threshold} needed).`);
   if (o.dryRun) {
+    const record = writeDryRunRecord(o, req, signed.update, current);
     logger.info(
-      'DRY RUN, nothing sent: the signatures are valid for the chain as it is now. Run again without --dry-run to send.',
+      `DRY RUN, nothing sent: the signatures are valid for the chain as it is now. Dry-run record (public, no secrets): ${record}. ` +
+        (o.network === 'mainnet'
+          ? 'To send on mainnet, run again with --send-on-mainnet --dry-run-record and that file in place of --dry-run.'
+          : 'Run again without --dry-run to send.'),
     );
     return true;
   }
-  return send(c, req, signed.update, 'SEND');
+  return send(c, req, signed.update, current, 'SEND');
 };
 
 /* **********************************************************************
