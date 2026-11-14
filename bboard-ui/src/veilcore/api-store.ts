@@ -392,6 +392,7 @@ export const clearSealedState = (): void => {
   lastSealed.clear();
   publicRevs.clear();
   sentHere.clear();
+  unanswered.clear();
   olderCopies.clear();
   datedHere.clear();
   noteSealedRowsSeen(false);
@@ -467,7 +468,7 @@ export const isStoredAsIs = async (key: string, item: Record<string, unknown>): 
   const kind = kindFor(key);
   if (!isString(item.id) || current(kind)?.states.get(item.id) !== 'open') return false;
   const prev = lastSealed.get(revKey(kind, item.id));
-  return !!prev && prev.hash === (await contentHash(kind, item));
+  return !!prev && !sentSince(revKey(kind, item.id), prev.rev) && prev.hash === (await contentHash(kind, item));
 };
 
 // ---- rev: the high-water mark (CONTRACT.md #20) -------------------------------------------
@@ -578,6 +579,25 @@ const noteSent = (rk: string, rev: number, hash: string): void => {
   // Only the latest few matter: a save goes above the highest.
   for (const old of [...m.keys()].sort((a, b) => a - b).slice(0, Math.max(0, m.size - 8))) m.delete(old);
   sentHere.set(rk, m);
+};
+/**
+ * Revs of each row this page sent whose answer hasn't said the registry took them or refused
+ * them: on their way, or lost (offline, an error, an answer that couldn't be read). Each may
+ * end up stored, over the copy last saved here. While one above the last saved copy is out,
+ * that copy says nothing about what the registry will hold, so a row is sent even when it
+ * matches it: a holder who changed a record and changed it back before the first answer came
+ * used to have the change-back skipped, and the registry kept the change.
+ */
+const unanswered = new Map<string, Set<number>>();
+const sentSince = (rk: string, rev: number): boolean => [...(unanswered.get(rk) ?? [])].some((r) => r > rev);
+const answered = (rk: string, rev: number): void => {
+  const s = unanswered.get(rk);
+  if (!s) return;
+  s.delete(rev);
+  // Nothing at or below the copy last saved here can land over it (the registry refuses lower revs).
+  const saved = lastSealed.get(rk)?.rev ?? -1;
+  for (const r of [...s]) if (r <= saved) s.delete(r);
+  if (s.size === 0) unanswered.delete(rk);
 };
 /** The code the registry gives a row it refused as an older copy than the one it holds. */
 export const OLDER_COPY = 'older-copy';
@@ -946,7 +966,7 @@ const sealForSave = async (kind: RowKind, value: readonly unknown[]): Promise<Se
     // highest this browser has seen.
     const hash = await contentHash(kind, item);
     const prev = lastSealed.get(revKey(kind, id));
-    if (prev && prev.hash === hash) continue;
+    if (prev && prev.hash === hash && !sentSince(revKey(kind, id), prev.rev)) continue;
     // One above the rev this page last opened or saved the row at: a tab that loaded it
     // before another tab or device saved a newer copy sends a lower rev than the registry
     // holds, and the registry refuses it as an older copy (round 3, L2) instead of taking it
@@ -989,6 +1009,12 @@ const sealForSave = async (kind: RowKind, value: readonly unknown[]): Promise<Se
   }
   if (held.length) return { done: { ok: false, refused, held, pending: held, accepted: [] } };
   if (wire.length === 0) return { done: { ok: refused.length === 0, refused, pending: [], accepted: [] } };
+  // Out from now, before the next save is sealed: that one sees them (unanswered above).
+  for (const p of pending) {
+    const s = unanswered.get(revKey(kind, p.id)) ?? new Set<number>();
+    s.add(p.rev);
+    unanswered.set(revKey(kind, p.id), s);
+  }
   return { wire, pending, refused, state };
 };
 
@@ -1087,6 +1113,9 @@ const sendSealed = async (
   for (const p of accepted)
     if ((lastSealed.get(revKey(kind, p.id))?.rev ?? -1) < p.rev)
       lastSealed.set(revKey(kind, p.id), { hash: p.hash, rev: p.rev });
+  // Answered, taken or refused by id. A save with no answer for its rows (offline, an error for
+  // the whole save) leaves them unanswered: they may be stored, and the next save sends the row.
+  for (const p of pending) answered(revKey(kind, p.id), p.rev);
   raiseRevs(accepted.map((p) => [kind, p.id, p.rev] as const));
   if (accepted.length) markVaultSealed();
   if (state) {

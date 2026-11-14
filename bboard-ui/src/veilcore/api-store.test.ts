@@ -891,3 +891,125 @@ describe('a name saved in the clear before round 5', () => {
     expect(api.privatePart({ id: 'VEIL-1', strainName: 'Secret' })).toMatchObject({ strainName: 'Secret' });
   });
 });
+
+describe('a change made back before the first save is answered', () => {
+  const RECORDS = 'veilcore.records.v1';
+  const putsOf = () =>
+    sent
+      .filter((s) => s.method === 'PUT' && new URL(s.url).pathname === '/api/records')
+      .map((s) => (JSON.parse(s.body) as Row[])[0]);
+
+  /**
+   * A registry that keeps revs as the real one does (a lower rev is refused as an older copy,
+   * decided when the save arrives). `answer` may hold a save's answer back, or lose it.
+   */
+  const revRegistry = (answer: (n: number) => Promise<void> | 'lost' | undefined) =>
+    vi.stubGlobal('fetch', async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
+      const method = (init?.method ?? 'GET').toUpperCase();
+      if (method !== 'PUT' || new URL(url).pathname !== '/api/records') return registry(input, init);
+      sent.push({ method, url, headers: '', body: init!.body as string });
+      const how = answer(putsOf().length);
+      const rejected: unknown[] = [];
+      for (const r of JSON.parse(init!.body as string) as Row[]) {
+        const held = rows.get(r.id);
+        if (held && (held.rev as number) > (r.rev as number))
+          rejected.push({ id: r.id, reason: 'older', code: 'older-copy', storedRev: held.rev });
+        else rows.set(r.id, r);
+      }
+      if (how === 'lost') throw new TypeError('Failed to fetch');
+      if (how) await how;
+      return new Response(JSON.stringify({ ok: rejected.length === 0, rejected }), {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      });
+    });
+
+  const copies = async (id: string) => {
+    const nonce = randomBytes(16).toString('hex');
+    return {
+      orig: { id, ...(await plantInput({ nonce, notes: 'orig-copy' })) },
+      edit: { id, ...(await plantInput({ nonce, notes: 'edit-copy' })) },
+    };
+  };
+
+  /** What the registry holds for the row, opened. */
+  const notesHeld = async (id: string) => {
+    const vault = await import('./vault');
+    const opened = await vault.openRow('records', id, rows.get(id)!.sealed);
+    return opened.ok ? opened.value.notes : undefined;
+  };
+  /** A page that has loaded the row as saved, so it can say whether the registry holds it as is. */
+  const loadedWith = async (api: Awaited<ReturnType<typeof modules>>['api'], row: Row) => {
+    expect((await api.apiStore.save(RECORDS, [row])).ok).toBe(true);
+    await api.apiStore.load(RECORDS, (v): v is Row => typeof v === 'object' && v !== null);
+    expect(await api.isStoredAsIs(RECORDS, row)).toBe(true);
+  };
+
+  it('the change back is sent, above the change, and the registry keeps it', async () => {
+    let release!: () => void;
+    const hold = new Promise<void>((r) => (release = r));
+    revRegistry((n) => (n === 2 ? hold : undefined));
+    const { api } = await modules();
+    const { orig, edit } = await copies('VEIL-BACK');
+    await loadedWith(api, orig);
+    const a = api.apiStore.save(RECORDS, [edit]); // its answer held
+    await new Promise((r) => setTimeout(r, 50));
+    // Not saved as is while the change is out: the registry may keep the change.
+    expect(await api.isStoredAsIs(RECORDS, orig)).toBe(false);
+    const b = await api.apiStore.save(RECORDS, [orig]);
+    release();
+    expect((await a).ok).toBe(true);
+    expect(b).toMatchObject({ ok: true, accepted: ['VEIL-BACK'] });
+    const revs = putsOf().map((p) => p.rev as number);
+    expect(revs).toHaveLength(3);
+    expect(revs[2]).toBeGreaterThan(revs[1]);
+    expect(await api.isStoredAsIs(RECORDS, orig)).toBe(true);
+    expect(await notesHeld('VEIL-BACK')).toBe('orig-copy');
+  });
+
+  it('a change whose answer was lost: changing it back is sent too', async () => {
+    revRegistry((n) => (n === 2 ? 'lost' : undefined));
+    const { api } = await modules();
+    const { orig, edit } = await copies('VEIL-LOST');
+    await loadedWith(api, orig);
+    expect(await api.apiStore.save(RECORDS, [edit])).toMatchObject({ ok: false, offline: true });
+    // The registry took the change; this page never heard.
+    expect(await api.isStoredAsIs(RECORDS, orig)).toBe(false);
+    expect(await api.apiStore.save(RECORDS, [orig])).toMatchObject({ ok: true, accepted: ['VEIL-LOST'] });
+    expect(putsOf()).toHaveLength(3);
+    expect(await notesHeld('VEIL-LOST')).toBe('orig-copy');
+  });
+
+  it('once answered, an unchanged row is not sent again', async () => {
+    let release!: () => void;
+    const hold = new Promise<void>((r) => (release = r));
+    revRegistry((n) => (n === 2 ? hold : undefined));
+    const { api } = await modules();
+    const { orig, edit } = await copies('VEIL-SAME');
+    await api.apiStore.save(RECORDS, [orig]);
+    const a = api.apiStore.save(RECORDS, [edit]);
+    await new Promise((r) => setTimeout(r, 50));
+    await api.apiStore.save(RECORDS, [orig]);
+    release();
+    await a;
+    // Every save above is answered: the same copy again sends nothing.
+    expect(await api.apiStore.save(RECORDS, [orig])).toMatchObject({ ok: true, accepted: [] });
+    expect(putsOf()).toHaveLength(3);
+  });
+
+  it('a change refused as an older copy is answered: nothing is sent again for it', async () => {
+    revRegistry(() => undefined);
+    const { api } = await modules();
+    const { orig, edit } = await copies('VEIL-OLD');
+    await api.apiStore.save(RECORDS, [orig]);
+    // Another device saved a newer copy meanwhile.
+    rows.set('VEIL-OLD', { ...rows.get('VEIL-OLD')!, rev: 50 });
+    const r = await api.apiStore.save(RECORDS, [edit]);
+    expect(r.ok).toBe(false);
+    expect(r.refused.map((x) => x.id)).toEqual(['VEIL-OLD']);
+    // The copy this page last saved, again: unchanged here, not sent (the next load shows the registry's).
+    expect(await api.apiStore.save(RECORDS, [orig])).toMatchObject({ ok: true, accepted: [] });
+    expect(putsOf()).toHaveLength(2);
+  });
+});
