@@ -25,6 +25,8 @@ import { RangeOp } from '../../../contract/src/managed/veilcore-claims/contract/
 import { claimFromCells } from '../../../contract/src/verify-claims';
 import { claimLink, compareAttested, readClaimLink, type MadeClaim } from './claim-link';
 import { checkClaim } from './chain/claim-check';
+import { labSigningEnabledFor } from '../config/network';
+import { REQUIRED_FEATURES } from '../../../scripts/registry-features.mjs';
 
 /** A laboratory's signing key, as tests need one (the app derives it: claims-key.ts). */
 const labKey = () => {
@@ -243,19 +245,29 @@ describe('on the claims contract', () => {
 });
 
 describe('on veilcore.org', () => {
-  it('laboratory signing and the genetic forms stay off on mainnet until it has been tested', () => {
+  it('laboratory signing and the genetic forms are on on mainnet, behind one switch that can turn them off', () => {
     const src = (f: string) => fs.readFileSync(path.join(dir, f), 'utf8');
-    expect(src('../config/network.ts')).toContain('export const LAB_SIGNING_ENABLED = !IS_MAINNET;');
+    // On in every build since 12 Nov 2026, after lab signatures went private (the registry's
+    // private-lab-signatures-v1, which every site deploy requires).
+    expect(labSigningEnabledFor('mainnet')).toBe(true);
+    expect(labSigningEnabledFor('preprod')).toBe(true);
+    expect(src('../config/network.ts')).toMatch(/const LAB_SIGNING_OFF: readonly string\[\] = \[\];/);
+    expect(src('../config/network.ts')).toContain(
+      'export const LAB_SIGNING_ENABLED: boolean = labSigningEnabledFor(NETWORK);',
+    );
+    expect(REQUIRED_FEATURES).toHaveProperty('private-lab-signatures-v1');
+    // Every place that signs or offers signing still reads the one switch, so listing a network
+    // in LAB_SIGNING_OFF turns all of it off there again.
     expect(src('../components/document/DocumentDetail.tsx')).toContain('LAB_SIGNING_ENABLED && <LabSignaturePanel');
     expect(src('../components/flow/LabResults.tsx')).toContain('LAB_SIGNING_ENABLED && file && kind &&');
     expect(src('../components/flow/LabResults.tsx')).toContain('if (numbersBytes && LAB_SIGNING_ENABLED)');
+    expect(src('../components/flow/AppHome.tsx')).toContain('{LAB_SIGNING_ENABLED && (');
     expect(src('../App.tsx')).not.toContain('/lab"');
     expect(src('../veilcore/field-set.ts')).toMatch(/LAB_SCHEMAS: readonly string\[\] = LAB_SIGNING_ENABLED\s*\?/);
     expect(src('../veilcore/field-set.ts')).toMatch(/RESULT_CALL_SCHEMAS\.includes\(id\)\)\s*: \[\]/);
-    // Lab results v2 (lab-result.ts): the lab's tools sign nothing on mainnet, and the delivery
-    // flow's result box is inside the same switch.
+    // Lab results v2 (lab-result.ts): the lab's tools and the delivery flow's result box.
     expect(src('../components/lab/LabResultsPage.tsx')).toContain('!LAB_SIGNING_ENABLED ? (');
-    // The check page offers adding and publishing a result: not on mainnet either (review, 8 Nov).
+    // The check page offers adding and publishing a result (review, 8 Nov).
     expect(src('../components/lab/LabResultCheck.tsx')).toContain('!LAB_SIGNING_ENABLED ? (');
     expect(src('../components/flow/LabResults.tsx')).toContain('if (LAB_SIGNING_ENABLED && withResult)');
   });

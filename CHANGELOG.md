@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Lab signing on veilcore.org (switched on, not tried on the main network yet)
+
+- Numbers and results a lab signs are switched on for the main network too
+  (`LAB_SIGNING_ENABLED`, now `labSigningEnabledFor(NETWORK)` with an empty `LAB_SIGNING_OFF`):
+  the lab's tools at `/lab/results`, the result check at `/check-lab-result`, numbers and a
+  signed result added with a report, the genetic forms, and the lab-signature panel on a record.
+  It ships after "Lab signatures: private unless the holder shows them" (below), and every site
+  deploy already refuses a registry without `private-lab-signatures-v1`.
+- "What's live where" has a row for it. Its veilcore.org cell says "Built, not yet tried on the
+  main network." until one result has been signed and checked there (`LAB_SIGNING_RUN_ON_MAINNET`
+  in `config/copy.ts`, off). In all five languages.
+
 ### "Records in evidence" claims only what is built (14 Nov 2026, not deployed yet)
 
 - The note for counsel (`/docs/evidence`, `bboard-ui/src/docs/EVIDENCE.md`) says what is live on

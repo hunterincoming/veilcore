@@ -407,6 +407,14 @@ export const en = {
   'm.live.results.t': 'Lab reports locked to you',
   'm.live.results.main': 'Yes. New, and still being tested.',
   'm.live.results.test': 'Yes. New, and still being tested.',
+  // Numbers and results a lab signs (config/network.ts LAB_SIGNING_ENABLED). The veilcore.org cell
+  // says 'main' until it has worked there (config/copy.ts LAB_SIGNING_RUN_ON_MAINNET), then 'live'.
+  'm.live.signed.t': 'Numbers and results a lab signs',
+  'm.live.signed.main': 'Built, not yet tried on the main network.',
+  'm.live.signed.test':
+    'Yes. The lab signs with its own key. Only the record’s holder, the lab and whoever sent it the sample see it, and only the holder can show it to others.',
+  'm.live.signed.live':
+    'Yes. The lab signs with its own key. Only the record’s holder, the lab and whoever sent it the sample see it, and only the holder can show it to others.',
   'm.live.dna.t': 'A date for your DNA report pairing',
   'm.live.dna.main': 'Saved with your record, not dated.',
   'm.live.dna.test': 'Yes, sent from your browser.',

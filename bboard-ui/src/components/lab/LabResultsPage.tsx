@@ -1,7 +1,7 @@
 // The lab's tools for lab results v2 (/lab/results; veilcore/lab-result.ts, lab-result-sign.ts):
 // sign one result, or a spreadsheet's worth, each bound to the record its sample came from.
 // Each is kept as a record the lab holds (dated in the next hourly batch) and handed over as a
-// file. Test network only, like every lab signature (LAB_SIGNING_ENABLED).
+// file. Behind the same switch as every lab signature (LAB_SIGNING_ENABLED, on on mainnet too).
 // SPDX-License-Identifier: Apache-2.0
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
