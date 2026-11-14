@@ -2,23 +2,25 @@
 
 **What a client can establish, how it is proved, and what it does not prove**
 
-Version 0.1 - August 2026, revised October 2026 - draft for comment
+Version 0.1 - August 2026, revised November 2026 - draft for comment
 
 ---
 
 ## Summary
 
-VeilCore is a records system for plant and animal genetics - plant varieties, breeding lines, seed lots, cultures, animal lines. It lets a holder establish four things that are ordinarily difficult or impossible to establish without disclosing the material itself:
+VeilCore is a records system for plant, animal and microbial genetics - plant varieties, breeding lines, seed lots, cultures, animal lines. It lets a holder establish four things that are ordinarily difficult or impossible to establish without disclosing the material itself:
 
 **That a record of it existed by a date.** Provable to a third party, without revealing what "it" is. Who controls that record now can be shown too; who held it in between cannot.
 
-**What it descends from, and what obligations came with it.** Including obligations that carry to offspring declared as descendants later.
+**What it descends from, and what obligations came with it.** Including obligations that are shown on offspring both holders later confirm as descendants.
 
 **What a second party confirmed about it.** A laboratory's receipt, its report, signed by the laboratory and retractable only by them.
 
-**What terms a counterparty agreed to, and whether those terms are still live.** Countersigned, bound to the record, and revocable - with the revocation visible to anyone who checks.
+**What terms a counterparty agreed to, and whether the license is still live.** Countersigned, bound to the record, and revocable - once revoked, it cannot be shown as live to a verifier who applies the published revocation rule (section 1.5).
 
-Each of these is separately disclosable. A holder decides which facts a given recipient sees. **The genetics themselves are never disclosable through the system at all.**
+Each of these is separately disclosable in the record format; section 1.6 says what the website at veilcore.org offers today. **The genetics themselves are never disclosable through the system at all.**
+
+**What is running, and where.** This note describes the record format, the contract and the software together, and they are not all at the same stage. As of November 2026, these are live on veilcore.org, which runs on Midnight's main network: sealing a record, dating it in a batch, check pages, proving control of a record by link, dating a DNA report pairing, a laboratory's code and signed receipt, and licenses with royalty reports. Handing a license on to another holder is built and has not been run on the main network. Numbers a laboratory signs for a claim, and paying a royalty in NIGHT on Midnight, work on the test network only. A third party's challenge to a record (section 5) is in the specification, and there is no screen for it. Anything not on the live list is described here as designed or built, and should not be read as having run on veilcore.org. The current list is the status table in the VeilCore repository's README (https://github.com/hunterincoming/veilcore).
 
 The authors are not lawyers. Corrections are welcome and more useful than agreement.
 
@@ -48,13 +50,15 @@ The consequence is that a claim rests on a specific analysis rather than only on
 
 ### 1.3 Descent, and obligations that travel with it
 
-A record can declare what it descends from. Where a license carried an obligation on offspring - a royalty on descendants, a restriction on further propagation - that obligation is recorded against the record, and reaches descendants that are declared from it, rather than ending with the transaction.
+A record can declare what it descends from. Where a license carried an obligation on offspring - a royalty on descendants, a restriction on further propagation - that obligation is recorded against the licensee's record once the licensee accepts it, and is shown on every descendant both holders confirm, rather than ending with the transaction.
 
 **The practical problem this addresses:** genetic material is self-replicating. A licensee who buys a cutting can produce a thousand more, and the licensor is paid once. Terms that bind only the original transaction bind almost nothing.
 
-**What VeilCore provides:** an obligation recorded against a record propagates to declared descendants. A party holding material descended from an encumbered record cannot demonstrate clean descent while the obligation is outstanding, and the system reports that to anyone who checks.
+**What VeilCore provides:** an obligation recorded against a record is shown on every descendant that both holders have confirmed on chain. A party holding a record confirmed as descended from an encumbered one cannot demonstrate clean descent while the obligation is outstanding, and a verifier who walks the confirmed parent links sees it. A holder who never accepted an obligation is not bound by it; the record shows that it exists upstream.
 
-**What it does not do:** it does not detect undeclared descent. A licensee who propagates quietly and never registers, sells or tests the result is invisible to any records system. The mechanism operates when material surfaces commercially - which is also when a licensor would want to act.
+**What it does not do:** it does not detect undeclared descent, and it does not test descent: a parent link means both holders agreed the child descends from the parent, not that a genetic test showed it. A licensee who propagates quietly and never registers, sells or tests the result is invisible to any records system. The mechanism operates when material surfaces commercially - which is also when a licensor would want to act.
+
+**Where it stands:** parent links and obligations are in the contract on Midnight's main network, and the website at veilcore.org offers them with licenses. The run on veilcore.org on 8 November 2026 covered a license and a royalty report; this note does not claim that a parent link or an obligation has been run there.
 
 ### 1.4 Second-party confirmation
 
@@ -68,21 +72,23 @@ A holder's own record is their own account. A second party confirming it is mate
 
 ### 1.5 Licensing, and revocation as the enforcement mechanism
 
-The system carries an agreement lifecycle: draft, issued, countersigned by both parties, active, expired or revoked. Terms name the record and the hash of any report bound to it, so what was licensed is not a matter of recollection.
+The system carries an agreement from draft, through issue by the licensor and countersignature by the licensee, to active, and it stays active until the licensor revokes it. On chain a license is only pending (issued) or active (countersigned), and revoking removes it; the contract stores no terms and has no expiry. An end date is a term the two parties hold. The VeilCore web app shows a license past its end date as expired on the parties' own screens, and the chain goes on reporting it as live until it is revoked. Each agreement carries a fingerprint: a SHA-256 hash over the agreement type, the terms, the record's fingerprint and a random salt. Anyone given the terms and the salt can recompute it, so what was licensed is not a matter of recollection. It does not cover the hash of a report, and the contract does not store it.
 
-**Royalty obligations are recorded as live obligations** with a running owed amount. The system records what is owed; it does not process payments and does not hold funds.
+**Royalty reports are recorded as each side declared and signed them:** what the licensee reported, the licensor's answer, and each side's statement that a payment was made and received. The record shows what was declared. It does not show that anything is owed, and the system does not process payments and does not hold funds.
 
-**Revocation is the enforcement mechanism, and it is worth understanding why.** Nobody can police an unreported grow - not the licensor, and not any records system. But a licensee whose license is revoked cannot show a live license to the next buyer, the next laboratory, or any scheme that requires a record for entry. The licensor is not policing the plant. They are making the licensee's paper worthless.
+**Revocation is the enforcement mechanism, and it is worth understanding why.** Nobody can police an unreported grow - not the licensor, and not any records system. But a licensee whose license is revoked cannot show a live license to the next buyer, the next laboratory, or any scheme that requires a record for entry. That holds for a verifier who applies the published revocation rule (rule 5 in the VeilCore repository's docs/design.md): a revoked license's old proof path still verifies on chain until the next seal, and the rule refuses it. The licensor is not policing the plant. They are making the licensee's paper worthless.
 
 This is the honest answer to "royalties on genetics are unenforceable." They are unenforceable by pursuit. They are enforceable by making non-compliance visible at the point where the licensee needs to prove something to someone else.
 
 ### 1.6 Selective disclosure
 
-A holder grants specific facts to specific recipients: that a record exists and its date; whether a second party attested and at what strength; whether descent is clean; the terms of an agreement, or merely that one exists.
+In the record format (SPEC section 8), a holder grants specific facts to specific recipients: that a record exists and its date; whether a second party attested and at what strength; whether descent is clean; the terms of an agreement, or merely that one exists.
 
 **Facts not granted are absent from the disclosure, not concealed within it.** A recipient cannot recover an ungranted fact by inspecting what they were given, because it was never assembled.
 
 **The genetics are never disclosable.** There is no grant that reveals them, by design.
+
+**The website at veilcore.org does less than the format allows.** A holder chooses which facts a record's check page shows - among them prior possession once anchored, whether a DNA report is saved, parent names and the record's name. The registry answers the same facts to everyone who has the record's identifier; a check link the holder sends can also carry the record's name. Whether descent is clean, and the terms of an agreement, are not among the facts a holder can choose to show there.
 
 For counsel, the discovery consequence is worth stating to clients plainly: selective disclosure governs what a holder shares voluntarily. It is not a shield in discovery, and producing a record in response to a request or an order is unaffected by any of it.
 
@@ -142,7 +148,7 @@ A record may carry several anchors, because jurisdictions do not agree on what e
 
 **European Union.** eIDAS Regulation 910/2014, Article 41(1): an electronic timestamp cannot be denied legal effect solely for being electronic. Article 41(2) goes further - **a qualified electronic timestamp enjoys a presumption of the accuracy of the date and of the integrity of the data bound to it** - and Article 42 sets the requirements a timestamp must meet to be qualified. The burden shifts: the party disputing the date must prove it wrong.
 
-That presumption attaches to a qualified RFC 3161 timestamp from a Qualified Trust Service Provider on a member state's trusted list - not to a blockchain anchor. Where an EU forum is possible, obtaining one alongside is inexpensive and materially changes the position. Verify a claimed qualified status against the trusted list rather than relying on the record's assertion.
+That presumption attaches to a qualified RFC 3161 timestamp from a Qualified Trust Service Provider on a member state's trusted list - not to a blockchain anchor. VeilCore is not a Qualified Trust Service Provider, and this note does not claim that a record made on veilcore.org carries a qualified timestamp. Where an EU forum is possible, obtaining one alongside is inexpensive and materially changes the position. Verify a claimed qualified status against the trusted list rather than relying on the record's assertion.
 
 **Italy.** Law 12/2019, Article 8-ter gives timestamps on distributed ledgers the effect of an ordinary eIDAS electronic timestamp under Article 41(1) - not denied effect, but carrying no presumption - and makes this subject to technical standards from AgID, which we have not found published. It also defines a distributed ledger as architecturally decentralised, which a federated network may not satisfy.
 
@@ -186,9 +192,9 @@ Stated plainly, because a party who overstates will be corrected in front of the
 
 **An attester may withdraw an attestation they issued**, signed with the same key. Nobody else can, and the original remains on record as retracted.
 
-**A third party may contest a record.** A challenge never alters it - it changes what a verifier is told. The challenger must have sealed a record of their own claim, and must sign the challenge, so an unbacked or anonymous assertion cannot be filed.
+**The specification provides for a third party to contest a record (SPEC section 11.7); veilcore.org does not offer it.** The reference library implements the challenge format, and there is no screen to file, answer or show a challenge, and VeilCore's registry does not store one. As specified, a challenge never alters the record - it changes what a verifier is told. The challenger must have sealed a record of their own claim, and must sign the challenge, so an unbacked or anonymous assertion cannot be filed.
 
-**Nothing is adjudicated within the system.** A record is reported as contested, on what ground, and whether it was answered. Where a matter has been resolved, the system records which outside authority ruled and a reference that can be checked. VeilCore does not decide who is right, and is designed not to be able to.
+**Nothing is adjudicated within the system.** As specified, a record is reported as contested, on what ground, and whether it was answered. Where a matter has been resolved, the challenge records which outside authority ruled and a reference that can be checked. VeilCore does not decide who is right, and is designed not to be able to.
 
 ---
 

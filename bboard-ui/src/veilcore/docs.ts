@@ -8,7 +8,8 @@
 // whose 0.13.0 copies still named a personal address as the contact; the SDK fixed that
 // after the release, so the site now takes the files from that commit instead of waiting
 // for a package. To update: copy the three files from a newer SDK commit and change
-// DOCS_VERSION and DOCS_COMMIT together. The sanitiser is also narrower now: no inline
+// DOCS_VERSION and DOCS_COMMIT together. A file taken from a later commit than the others
+// names it (EVIDENCE_COMMIT), so its "Source" link opens the text shown. The sanitiser is also narrower now: no inline
 // styles, ids, forms or inputs, which together allowed a full-page fake "re-enter your
 // key" overlay on the real origin.
 // SPDX-License-Identifier: Apache-2.0
@@ -24,9 +25,22 @@ export const DOCS_VERSION = '0.18.1';
 
 /** The exact SDK commit the documents were copied from, so "Source" opens the same text. */
 export const DOCS_COMMIT = '3196c68e7b314076e332f7ffa812395fd714c34f';
-export const REPO_VIEW = `https://github.com/hunterincoming/veilcore-sdk/blob/${DOCS_COMMIT}`;
+const REPO_BLOB = 'https://github.com/hunterincoming/veilcore-sdk/blob';
+export const REPO_VIEW = `${REPO_BLOB}/${DOCS_COMMIT}`;
 
-export const DOCS: Record<string, { file: string; md: string; title: string; blurb: string }> = {
+/**
+ * The SDK commit EVIDENCE.md was copied from, when it is newer than DOCS_COMMIT. The November
+ * 2026 revision (what is live where) is not in an SDK release yet, and the SPEC at that commit
+ * has draft sections this site does not show, so only this one file moved. Set both back to one
+ * commit at the next full update.
+ */
+export const EVIDENCE_COMMIT = 'dabb71c99331793947a0db033f16f58e58012445';
+
+/** The commit one document was copied from, and where "Source" opens it. */
+export const commitOf = (d: { commit?: string }): string => d.commit ?? DOCS_COMMIT;
+export const sourceOf = (d: { file: string; commit?: string }): string => `${REPO_BLOB}/${commitOf(d)}/${d.file}`;
+
+export const DOCS: Record<string, { file: string; md: string; title: string; blurb: string; commit?: string }> = {
   spec: {
     file: 'SPEC.md',
     md: specMd,
@@ -37,6 +51,7 @@ export const DOCS: Record<string, { file: string; md: string; title: string; blu
   evidence: {
     file: 'EVIDENCE.md',
     md: evidenceMd,
+    commit: EVIDENCE_COMMIT,
     title: 'Records in evidence',
     blurb:
       'For counsel. What a party can establish, how it is authenticated under US law in detail, a sketch of four other jurisdictions, and — at length — what it does not prove.',

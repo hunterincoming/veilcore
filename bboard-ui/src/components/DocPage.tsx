@@ -14,7 +14,7 @@ import { Link as RouterLink, useParams } from 'react-router-dom';
 import ArrowBackIcon from '@mui/icons-material/ArrowBackOutlined';
 import CodeIcon from '@mui/icons-material/CodeOutlined';
 import { LINK_SX, LINE_COLOR, SHEET } from '../config/theme';
-import { DOCS, DOCS_COMMIT, DOCS_VERSION, REPO_VIEW, docHtml } from '../veilcore/docs';
+import { DOCS, DOCS_VERSION, commitOf, docHtml, sourceOf } from '../veilcore/docs';
 import { InEnglishPage, useT } from '../i18n/app';
 
 /** Phones only. Desktop styles are the ones above, unchanged. */
@@ -81,14 +81,14 @@ export const DocPage: React.FC = () => {
           variant="outlined"
           startIcon={<CodeIcon />}
           sx={{ minHeight: { xs: 44, sm: 0 } }}
-          href={`${REPO_VIEW}/${meta.file}`}
+          href={sourceOf(meta)}
           target="_blank"
           rel="noopener noreferrer"
         >
           Source
         </Button>
         <Typography variant="caption" color="text.secondary" sx={{ alignSelf: 'center', fontSize: { xs: 13, sm: 12 } }}>
-          SDK {DOCS_VERSION}, commit {DOCS_COMMIT.slice(0, 7)}
+          SDK {DOCS_VERSION}, commit {commitOf(meta).slice(0, 7)}
         </Typography>
       </Stack>
 
