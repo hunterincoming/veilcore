@@ -1116,31 +1116,31 @@ describe('the maintenance key', () => {
     en: [
       /either copy alone can use it\./,
       /Moving it to three keys, where two must agree, was planned before Midnight's Ledger 9 upgrade on 6 November 2026 and has not been done\./,
-      /our own tools refuse to use the key, but the network still accepts it, so treat it as live\./,
+      /The network still accepts the key, so treat it as live\./,
       /The contract's change counter was 16 on 13 November 2026\. Anyone can check it, and any change raises it\./,
     ],
     de: [
       /jede Kopie allein genügt/,
       /auf drei Schlüssel zu verlagern, von denen zwei zustimmen müssen, war vor dem Ledger-9-Upgrade von Midnight am 6\. November 2026 geplant und ist nicht umgesetzt\./,
-      /verweigern unsere eigenen Werkzeuge die Verwendung des Schlüssels, aber das Netzwerk akzeptiert ihn weiterhin/,
+      /Das Netzwerk akzeptiert den Schlüssel weiterhin; betrachten Sie ihn also als aktiv\./,
       /Der Änderungszähler des Contracts stand am 13\. November 2026 bei 16\. Jeder kann ihn prüfen, und jede Änderung erhöht ihn\./,
     ],
     es: [
       /cualquiera de las dos copias basta por sí sola/,
       /Pasarla a tres claves, de las que dos deban estar de acuerdo, estaba previsto antes de la actualización de Midnight a Ledger 9 del 6 de noviembre de 2026 y no se ha hecho\./,
-      /nuestras propias herramientas se niegan a usar la clave, pero la red la sigue aceptando, así que debe considerarse activa\./,
+      /La red sigue aceptando la clave, así que debe considerarse activa\./,
       /El contador de cambios del contrato estaba en 16 el 13 de noviembre de 2026\. Cualquiera puede comprobarlo, y cualquier cambio lo aumenta\./,
     ],
     fr: [
       /une seule copie suffit pour l'utiliser/,
       /Le passage à trois clés, dont deux doivent s'accorder, était prévu avant la mise à niveau Ledger 9 de Midnight du 6 novembre 2026 et n'a pas été fait\./,
-      /nos propres outils refusent d'utiliser la clé, mais le réseau l'accepte toujours/,
+      /Le réseau accepte toujours la clé : considérez-la donc comme active\./,
       /Le compteur de modifications du contrat était à 16 le 13 novembre 2026\. Tout le monde peut le vérifier, et toute modification l'augmente\./,
     ],
     ja: [
       /どちらか1部だけで使用できます。/,
       /3本の鍵（うち2本の合意が必要）への移行は、2026年11月6日のMidnightのLedger 9アップグレードより前に計画していましたが、まだ実施していません。/,
-      /私たち自身のツールはこの鍵の使用を拒否しますが、ネットワークは引き続き受け付けるため、鍵は有効なものとして扱ってください。/,
+      /ネットワークは引き続きこの鍵を受け付けるため、鍵は有効なものとして扱ってください。/,
       /コントラクトの変更カウンターは2026年11月13日時点で16でした。誰でも確認でき、変更があるたびに増えます。/,
     ],
   };
