@@ -216,3 +216,47 @@ the wallet adds), `proveOwnership` about 0.20 DUST (0.25 with the margin), the s
 ledger. That is about a tenth of `MAX_FEE_DUST=5`, so no new cap is proposed. If step 9 shows
 a fee over 2.5 DUST, the chain's price has climbed well above the floor: raise `MAX_FEE_DUST`
 to twice the fee seen, and `DAILY_BUDGET_DUST` to match, rather than refusing visitors.
+
+**Known issue in Ledger 9: a fee paid with one DUST spend (checked 14 November 2026).**
+Midnight's Ledger 9 release notes list ledger issue 838: "A contract call whose fee is paid
+with exactly one DUST spend can be rejected with `OutsideTimeToDismiss`. The same call is
+accepted with zero, two, or more DUST spends." Their workaround is to pay with two or more
+spends; the fix is in ledger 9.1.0.2, a release candidate on 14 November, and is on the client
+side only (docs.midnight.network/relnotes/ledger-9,
+github.com/midnightntwrk/midnight-ledger/issues/838).
+
+- **What it is.** Nothing to do with the clock. The node works out how long a transaction
+  takes to check and throw away, and allows the larger of 15 ms and 2 µs for each byte of the
+  transaction. The client fills a call's guaranteed part up to a budget that leaves no room
+  for checking the call's own proof. A call that just fits, with one DUST spend, comes to
+  16.2 ms, so the node refuses it unless the transaction is 8,110 bytes or more. With no spend
+  the figure is 3.8 ms lower. Each further spend adds 2.7 ms and 3,000 bytes (6 ms more
+  allowed). It is the same answer every time for the same call on the same contract state.
+- **How the sponsor pays.** `sponsor/src/wallet.ts` (`payAndSubmit`, `balanceUnbound`) asks
+  the wallet SDK (2.0.0) to add the fee. The SDK takes the smallest DUST coin first and
+  another only when that does not cover the fee, and a wallet has one DUST coin for each
+  piece of NIGHT it holds. So a fee is normally exactly one spend, and nothing at the call
+  chooses that.
+- **How the sponsor stands: not affected, as far as can be worked out offline.** Every call
+  the sponsor pays for (the 18 visitor calls, the 3 claims calls, `anchorBatch`,
+  `sealRevocations`) was built from the compiled contracts and priced with Midnight's own
+  ledger code (the client's 9.1.0.0 and the node's 9.1.0.1, the starting parameters), with
+  one spend, on a new contract, and the heaviest again on one with 400 records. None is
+  refused. The calls that hash have a proof of about 4,500 bytes (measured by proving
+  `anchor` here), so with one spend they are 8,100 to 9,300 bytes and are allowed 16.2 to
+  18.5 ms; they come to 7.8 to 15.9 ms.
+  `anchorBatch` and `sealRevocations` have small proofs, so they are allowed only 15 ms; they
+  come to 10.8 and 13.7 ms. The smallest room measured is 1.3 ms. The issue bites a call
+  whose guaranteed part is nearly full while its transaction is under 8,110 bytes; none of
+  these is.
+- **What this does not show.** Nothing was sent to mainnet for this. The DUST spend's own
+  proof was not made here (its size is the ledger's fixed 2,912 bytes), and mainnet's current
+  parameters were not read. The runs of 8 November (the batch at block 3370721, and a licence
+  end to end) went through on Ledger 9 and fit this; how many spends they used was not read.
+- **What to do: nothing now.** No change to the sponsor, and none to its wallet: do not split
+  its NIGHT to get a second DUST coin (the SDK would still pay from one coin whenever one
+  covers the fee). Take the fix the usual way when Midnight's packages carry ledger 9.1.0.2.
+  If a call is ever refused with `OutsideTimeToDismiss`, sending the same call again gives
+  the same answer: note which call it was and work the figures out again. Work them out
+  again, too, before a new contract version goes live or when Midnight changes its
+  parameters.
