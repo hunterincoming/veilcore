@@ -26,8 +26,9 @@ The off-chain layer built in October 2026, which has had internal review only:
 
 ## Out of scope
 
-- The Compact contract on mainnet (`a04de0a2…2347`). It is frozen, has had two external
-  attacker passes, and is not changed by any of the above.
+- The Compact contract on mainnet (`a04de0a2…2347`). Its source is frozen, it has had two
+  external attacker passes, and it is not changed by any of the above. (Its maintenance key
+  is still live: `docs/maintenance-policy.md`.)
 - Midnight itself, the proof server, wallets.
 - Denial of service by volume beyond the per-client limits documented in each registry module.
 

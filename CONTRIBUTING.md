@@ -43,9 +43,10 @@ CI runs the same suites, plus lint and type checks, on every pull request to `ma
 - **Words are tested too.** What the site and docs say about privacy, dates and status is
   checked by tests against what the code does (for example `bboard-ui/src/i18n/copy-truth.test.ts`).
   A change that makes a sentence false should fail a test.
-- **The deployed contract is frozen.** `contract/src/veilcore.compact` matches the mainnet
+- **The deployed contract's source is frozen.** `contract/src/veilcore.compact` matches the mainnet
   build in [docs/fingerprints.md](docs/fingerprints.md). Changing it means a new deployment
-  under the [maintenance policy](docs/maintenance-policy.md), not a pull request.
+  under the [maintenance policy](docs/maintenance-policy.md), not a pull request. (On chain, the
+  main contract can still be changed by its maintenance key, which is live; the policy says how.)
 - Much of this code was written with an AI coding assistant. The same tests and reviews apply
   to every change, whoever wrote it.
 

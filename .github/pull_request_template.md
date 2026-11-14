@@ -12,7 +12,7 @@
 - [ ] Every new user-facing string is in all five languages (en, de, es, fr, ja)
 - [ ] Wording says what is live precisely: on veilcore.org, on the test network, or not built
 - [ ] No secrets, and no names of people or organisations outside the team
-- [ ] `contract/` unchanged (the deployed contracts are frozen; see CONTRIBUTING.md)
+- [ ] `contract/` unchanged (the deployed contracts' source is frozen; see CONTRIBUTING.md)
 - [ ] README and docs updated if relevant
 
 ## Links

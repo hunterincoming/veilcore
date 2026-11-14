@@ -13,6 +13,15 @@ before that date was known: "before the fork" and "after the fork" below mean be
 [mainnet-sponsor.md](mainnet-sponsor.md), section 8, with a Ledger 9 known issue about fees
 paid with one DUST spend and how the sponsor stands.
 
+The 2-of-3 committee was not installed before the fork, so "before the fork" below did not all
+happen: the main contract still has its single maintenance key, the network still accepts that
+key, and its counter was 16 on 13 November 2026. A local run against Midnight's Ledger 9 code
+(ledger 9.1.0.1) accepted a replace-authority from the single key to a 3-key, threshold-2
+committee on a contract shaped like ours, with no recompile; it has not yet been shown on a
+node (`docs/maintenance-committee.md`, `docs/committee-rehearsal.md`). "Frozen" in this
+document means a version's rules are not changed; it does not mean the contract cannot be
+changed while a key exists.
+
 ---
 
 ## The one-paragraph version
