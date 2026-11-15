@@ -67,7 +67,9 @@ const plant = async (b: Browser, over: Record<string, unknown> = {}) =>
 /** Open a sealed box the way the registry can't: with the vault key. */
 const openBox = (vaultKey: string, kind: string, id: string, box: { kid: string; iv: string; ct: string }) => {
   const ct = Buffer.from(box.ct, 'base64url');
-  const d = createDecipheriv('aes-256-gcm', Buffer.from(vaultKey, 'base64url'), Buffer.from(box.iv, 'base64url'), { authTagLength: 16 });
+  const d = createDecipheriv('aes-256-gcm', Buffer.from(vaultKey, 'base64url'), Buffer.from(box.iv, 'base64url'), {
+    authTagLength: 16,
+  });
   d.setAAD(Buffer.from(`veilcore:sealed:v1\0${kind}\0${id}\0${box.kid}`));
   d.setAuthTag(ct.subarray(ct.length - 16));
   return Buffer.concat([d.update(ct.subarray(0, ct.length - 16)), d.final()]).toString('utf8');
