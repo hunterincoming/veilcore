@@ -65,7 +65,7 @@ export const fr: Strings = {
   'm.help.show.t': "Montrer un enregistrement à quelqu'un",
   'm.help.show.1q': "Comment montrer mon enregistrement à quelqu'un ?",
   'm.help.show.1a':
-    "Ouvrez l'enregistrement et créez un lien à envoyer. La personne qui l'ouvre voit ce que vous avez choisi de partager et peut vérifier la date elle-même, gratuitement et sans compte.",
+    "Ouvrez le certificat de l'enregistrement et copiez son lien pour l'envoyer. La personne qui l'ouvre peut vérifier la date elle-même, gratuitement et sans compte. Le lien n'affiche le nom de l'enregistrement que si vous l'activez.",
   'm.help.show.2q': 'Comment montrer un document ?',
   'm.help.show.2a':
     "Envoyez le lien de vérification avec le fichier. Le navigateur de l'autre personne compare le fichier à l'enregistrement scellé, octet par octet, et indique depuis quand vous l'aviez. Sa copie du fichier n'est pas téléversée.",

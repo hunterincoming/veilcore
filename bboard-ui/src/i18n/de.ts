@@ -65,7 +65,7 @@ export const de: Strings = {
   'm.help.show.t': 'Jemandem einen Datensatz zeigen',
   'm.help.show.1q': 'Wie zeige ich jemandem meinen Datensatz?',
   'm.help.show.1a':
-    'Öffnen Sie den Datensatz und erstellen Sie einen Link zum Versenden. Wer ihn öffnet, sieht, was Sie freigegeben haben, und kann das Datum selbst prüfen, kostenlos und ohne Konto.',
+    'Öffnen Sie das Zertifikat des Datensatzes und kopieren Sie den Link zum Versenden. Wer ihn öffnet, kann das Datum selbst prüfen, kostenlos und ohne Konto. Der Link zeigt den Namen des Datensatzes nur, wenn Sie das einschalten.',
   'm.help.show.2q': 'Wie zeige ich ein Dokument?',
   'm.help.show.2a':
     'Senden Sie den Prüflink zusammen mit der Datei. Der Browser der anderen Person vergleicht die Datei Byte für Byte mit dem versiegelten Datensatz und zeigt, seit wann Sie sie hatten. Deren Kopie der Datei wird nicht hochgeladen.',

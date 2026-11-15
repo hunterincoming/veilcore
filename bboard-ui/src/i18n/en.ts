@@ -69,7 +69,7 @@ export const en = {
   'm.help.show.t': 'Showing a record to someone',
   'm.help.show.1q': 'How do I show someone my record?',
   'm.help.show.1a':
-    'Open the record and make a link to send. Whoever opens it sees what you chose to share and can check the date themselves, free, with no account.',
+    "Open the record's certificate and copy its link to send. Whoever opens it can check the date themselves, free, with no account. The link shows the record's name only if you switch that on.",
   'm.help.show.2q': 'How do I show a document?',
   'm.help.show.2a':
     "Send the check link together with the file. The other person's browser compares the file with the sealed record, byte for byte, and shows when you had it. Their copy of the file is not uploaded.",

@@ -65,7 +65,7 @@ export const es: Strings = {
   'm.help.show.t': 'Mostrar un registro a alguien',
   'm.help.show.1q': '¿Cómo muestro mi registro a alguien?',
   'm.help.show.1a':
-    'Abra el registro y cree un enlace para enviar. Quien lo abra ve lo que usted decidió compartir y puede comprobar la fecha por su cuenta, gratis y sin cuenta.',
+    'Abra el certificado del registro y copie su enlace para enviarlo. Quien lo abra puede comprobar la fecha por su cuenta, gratis y sin cuenta. El enlace muestra el nombre del registro solo si usted lo activa.',
   'm.help.show.2q': '¿Cómo muestro un documento?',
   'm.help.show.2a':
     'Envíe el enlace de comprobación junto con el archivo. El navegador de la otra persona compara el archivo con el registro sellado, byte por byte, y muestra desde cuándo lo tenía usted. Su copia del archivo no se sube.',
