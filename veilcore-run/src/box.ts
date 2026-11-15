@@ -130,7 +130,7 @@ export const sealBox = (
   const plain = Buffer.from(JSON.stringify(payload), 'utf8');
   try {
     return key.use((k) => {
-      const c = createCipheriv('aes-256-gcm', k, Buffer.from(header.iv, 'hex'));
+      const c = createCipheriv('aes-256-gcm', k, Buffer.from(header.iv, 'hex'), { authTagLength: 16 });
       c.setAAD(aadOf(header));
       const ciphertext = Buffer.concat([c.update(plain), c.final()]).toString('base64');
       return { ...header, tag: c.getAuthTag().toString('hex'), ciphertext };
@@ -188,7 +188,7 @@ export const openBox = (key: BoxKey, box: BoxFile): unknown => {
   let plain: Buffer;
   try {
     plain = key.use((k) => {
-      const d = createDecipheriv('aes-256-gcm', k, Buffer.from(box.iv, 'hex'));
+      const d = createDecipheriv('aes-256-gcm', k, Buffer.from(box.iv, 'hex'), { authTagLength: 16 });
       d.setAAD(aadOf(box));
       d.setAuthTag(Buffer.from(box.tag, 'hex'));
       return Buffer.concat([d.update(Buffer.from(box.ciphertext, 'base64')), d.final()]);
@@ -289,7 +289,7 @@ export const sealTo = (
   };
   const plain = Buffer.from(JSON.stringify(payload), 'utf8');
   try {
-    const c = createCipheriv('aes-256-gcm', key, Buffer.from(header.iv, 'hex'));
+    const c = createCipheriv('aes-256-gcm', key, Buffer.from(header.iv, 'hex'), { authTagLength: 16 });
     c.setAAD(sealedAad(header));
     const ciphertext = Buffer.concat([c.update(plain), c.final()]).toString('base64');
     return { ...header, tag: c.getAuthTag().toString('hex'), ciphertext };
@@ -339,7 +339,7 @@ export const openSealed = (privateKey: KeyObject, box: SealedFile): unknown => {
   shared.fill(0);
   let plain: Buffer;
   try {
-    const d = createDecipheriv('aes-256-gcm', key, Buffer.from(box.iv, 'hex'));
+    const d = createDecipheriv('aes-256-gcm', key, Buffer.from(box.iv, 'hex'), { authTagLength: 16 });
     d.setAAD(sealedAad(box));
     d.setAuthTag(Buffer.from(box.tag, 'hex'));
     plain = Buffer.concat([d.update(Buffer.from(box.ciphertext, 'base64')), d.final()]);

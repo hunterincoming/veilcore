@@ -54,7 +54,7 @@ describe('sealing a row', () => {
     expect(box.iv).toMatch(/^[A-Za-z0-9_-]{16}$/);
     expect(box.ct).toMatch(/^[A-Za-z0-9_-]+$/);
     const ct = b64(box.ct);
-    const d = createDecipheriv('aes-256-gcm', b64(key), b64(box.iv));
+    const d = createDecipheriv('aes-256-gcm', b64(key), b64(box.iv), { authTagLength: 16 });
     d.setAAD(Buffer.from(`veilcore:sealed:v1\0records\0VEIL-A\0${box.kid}`, 'utf8'));
     d.setAuthTag(ct.subarray(ct.length - 16));
     const pt = Buffer.concat([d.update(ct.subarray(0, ct.length - 16)), d.final()]).toString('utf8');
@@ -114,7 +114,7 @@ describe('a transfer offer', () => {
     expect(await vault.openOffer(vault.newOfferKey(), 'VEIL-S', fp, box)).toBeNull();
     // node:crypto reads the same AAD.
     const ct = b64(box.ct);
-    const d = createDecipheriv('aes-256-gcm', b64(k), b64(box.iv));
+    const d = createDecipheriv('aes-256-gcm', b64(k), b64(box.iv), { authTagLength: 16 });
     d.setAAD(Buffer.from(`veilcore:offer:v1\0VEIL-S\0${fp}`, 'utf8'));
     d.setAuthTag(ct.subarray(ct.length - 16));
     expect(JSON.parse(Buffer.concat([d.update(ct.subarray(0, ct.length - 16)), d.final()]).toString())).toEqual({

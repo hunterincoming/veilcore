@@ -193,7 +193,7 @@ const PUBLIC_FIELDS = [
 const seal = (kind: 'records' | 'licenses', id: string, value: Record<string, unknown>, key: string) => {
   const kid = vaultKid(key);
   const iv = randomBytes(12);
-  const c = createCipheriv('aes-256-gcm', Buffer.from(key, 'base64url'), iv);
+  const c = createCipheriv('aes-256-gcm', Buffer.from(key, 'base64url'), iv, { authTagLength: 16 });
   c.setAAD(Buffer.from(`veilcore:sealed:v1\0${kind}\0${id}\0${kid}`));
   const ct = Buffer.concat([c.update(JSON.stringify(value), 'utf8'), c.final(), c.getAuthTag()]);
   return { v: 1, alg: 'A256GCM', kid, iv: iv.toString('base64url'), ct: ct.toString('base64url') };
@@ -273,7 +273,7 @@ export const openRecordRow = <T extends { id: string }>(row: T, key: string): T 
   const kid = vaultKid(key);
   if (box.kid !== kid) throw new Error(`${open.id} is sealed under another vault key`);
   const bytes = Buffer.from(box.ct, 'base64url');
-  const d = createDecipheriv('aes-256-gcm', Buffer.from(key, 'base64url'), Buffer.from(box.iv, 'base64url'));
+  const d = createDecipheriv('aes-256-gcm', Buffer.from(key, 'base64url'), Buffer.from(box.iv, 'base64url'), { authTagLength: 16 });
   d.setAAD(Buffer.from(`veilcore:sealed:v1\0records\0${open.id}\0${kid}`));
   d.setAuthTag(bytes.subarray(bytes.length - 16));
   const plain = Buffer.concat([d.update(bytes.subarray(0, bytes.length - 16)), d.final()]).toString('utf8');
