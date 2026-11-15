@@ -74,6 +74,18 @@ the evening of 5 October (kept outside the repo).
   11 Oct: the newest CLI (63.1.2) audits the same, so upgrading changes nothing; the app's own
   lockfile audits clean. Deploy-time tooling run only on Hunter's Mac against our own files,
   not shipped to visitors. No `.github/dependabot.yml`.
+- **Scan exceptions** (15 Nov): the Scan workflow now fails on any finding rated high or
+  above. Two files hold the written exceptions, and nothing else is excepted:
+  - `.gitleaks.toml`: for the one rule `generic-api-key`, the named files that hold public
+    hashes, contract addresses and test vectors. No expiry; a new file needs a new entry.
+  - `tools/vercel/osv-scanner.toml`: known vulnerabilities in seven packages bundled inside the
+    Vercel deploy CLI (`@fastify/busboy`, `js-yaml`, `minimatch`, `path-to-regexp`, `smol-toml`,
+    `undici`, `zod`), for that lockfile only. Reason as in the Dependabot item above:
+    deploy-time tooling run on one machine against our own built files, not shipped to
+    visitors, and a newer CLI did not clear them. **Expires 15 February 2027**, when the
+    findings fail the scan again. Removed sooner when Vercel ships a CLI without them, or when
+    the CLI is replaced by a direct upload script. The lockfile and the pin are unchanged.
+  The app's own lockfile has no exception.
 - **Docker images pinned by digest** (9 October): proof-server 8.0.3, midnight-node 0.22.3
   and indexer-standalone 4.0.1 are named by tag and SHA-256 digest everywhere they are used
   (`bboard-cli/compose.yml`, `partner-kit/local/compose.yml`, the proof-server files, the

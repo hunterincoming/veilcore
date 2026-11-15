@@ -87,14 +87,14 @@ const PUBLIC_FIELDS = [
 ];
 const gcm = (key, aad, value) => {
   const iv = randomBytes(12);
-  const c = createCipheriv('aes-256-gcm', key, iv);
+  const c = createCipheriv('aes-256-gcm', key, iv, { authTagLength: 16 });
   c.setAAD(Buffer.from(aad));
   const ct = Buffer.concat([c.update(JSON.stringify(value), 'utf8'), c.final(), c.getAuthTag()]);
   return { v: 1, alg: 'A256GCM', iv: iv.toString('base64url'), ct: ct.toString('base64url') };
 };
 const ungcm = (key, aad, box) => {
   const raw = Buffer.from(box.ct, 'base64url');
-  const d = createDecipheriv('aes-256-gcm', key, Buffer.from(box.iv, 'base64url'));
+  const d = createDecipheriv('aes-256-gcm', key, Buffer.from(box.iv, 'base64url'), { authTagLength: 16 });
   d.setAAD(Buffer.from(aad));
   d.setAuthTag(raw.subarray(raw.length - 16));
   return JSON.parse(Buffer.concat([d.update(raw.subarray(0, raw.length - 16)), d.final()]).toString('utf8'));
