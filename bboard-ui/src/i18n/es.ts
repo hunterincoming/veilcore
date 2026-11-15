@@ -382,7 +382,7 @@ export const es: Strings = {
     'El laboratorio firma su informe y lo cierra para que solo usted pueda abrirlo. Ningún PDF queda en la bandeja de entrada de nadie. El archivo cerrado espera en el servidor de VeilCore a que usted lo abra, y nosotros no tenemos su clave. VeilCore anota quién firmó; no responde por el resultado. Nuevo, y todavía en pruebas.',
   'm.for.6t': 'Alguien le pide una prueba.',
   'm.for.6p':
-    'Le envían un enlace. Usted toca una vez, y la página de la otra persona comprueba en la red que usted controla la clave propia de su planta. Su registro nombró esa clave al sellarse, así que no se puede cambiar por otra. No dice nada sobre quién es usted ni sobre quién obtuvo la planta. Por ahora esto funciona en una red de pruebas de Midnight.',
+    'Le envían un enlace. Usted toca una vez, y la página de la otra persona comprueba en la red que usted controla la clave propia de su registro. Su registro nombró esa clave al sellarse, así que no se puede cambiar por otra. No dice nada sobre quién es usted ni sobre quién obtuvo la planta. Por ahora esto funciona en una red de pruebas de Midnight.',
   'm.for.5t': 'Líneas animales.',
   'm.for.5p':
     'Los libros genealógicos llevan el pedigrí. Un registro puede dar a cada entrada una fecha que nadie puede antedatar, sin publicar el genotipo. En este sitio puede registrar un animal: su identificación individual, padre y madre, y un informe de ADN.',

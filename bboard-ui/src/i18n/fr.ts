@@ -384,7 +384,7 @@ export const fr: Strings = {
     "Le laboratoire signe votre rapport et le verrouille pour que vous seul puissiez l'ouvrir. Aucun PDF ne traîne dans une boîte de réception. Le fichier verrouillé attend sur le serveur de VeilCore que vous l'ouvriez, et nous n'avons pas sa clé. VeilCore enregistre qui a signé ; il ne se porte pas garant du résultat. Nouveau, encore en test.",
   'm.for.6t': "Quelqu'un demande une preuve.",
   'm.for.6p':
-    "On vous envoie un lien. Vous touchez une fois, et la page de votre interlocuteur vérifie sur le réseau que vous contrôlez la clé propre à votre plante. Votre enregistrement a nommé cette clé au moment où il a été scellé : elle ne peut donc pas être remplacée. Cela ne dit rien de qui vous êtes ni de qui a obtenu la plante. Cela fonctionne pour l'instant sur un réseau de test de Midnight.",
+    "On vous envoie un lien. Vous touchez une fois, et la page de votre interlocuteur vérifie sur le réseau que vous contrôlez la clé propre à votre enregistrement. Votre enregistrement a nommé cette clé au moment où il a été scellé : elle ne peut donc pas être remplacée. Cela ne dit rien de qui vous êtes ni de qui a obtenu la plante. Cela fonctionne pour l'instant sur un réseau de test de Midnight.",
   'm.for.5t': 'Lignées animales.',
   'm.for.5p':
     "Les livres généalogiques tiennent le pedigree. Un enregistrement peut donner à chaque entrée une date que personne ne peut antidater, sans publier le génotype. Sur ce site, vous pouvez enregistrer un animal : son numéro d'identification individuel, son père et sa mère, et un rapport ADN.",
