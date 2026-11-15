@@ -1,0 +1,63 @@
+# osv-scanner exceptions for this lockfile only (tools/vercel/package-lock.json).
+# osv-scanner reads the osv-scanner.toml beside each lockfile, so nothing here applies to the
+# app's own lockfile. The Scan workflow's Scorecard "Vulnerabilities" check reads it too.
+#
+# Why: these seven packages are bundled inside Vercel's deploy CLI (vercel 62.2.0, pinned in
+# package.json here). The CLI runs only on the maintainer's machine, to upload a site that is
+# already built. It is not part of the site, the app or the sponsor, and nothing in it reaches
+# a visitor. Checked 11 October 2026: the newest CLI then (63.1.2) carried the same findings,
+# so upgrading does not clear them (docs/mainnet-completeness.md, "Scan exceptions").
+#
+# Each entry names one package and lapses on 2027-02-15; after that the findings fail the scan
+# again and must be looked at afresh. Remove an entry as soon as a CLI release ships without the
+# finding, and remove the file if the CLI is replaced by a direct upload script.
+# Do not add packages here without a written reason and an expiry date.
+
+[[PackageOverrides]]
+name = "@fastify/busboy"
+ecosystem = "npm"
+vulnerability.ignore = true
+effectiveUntil = 2027-02-15
+reason = "bundled inside the Vercel deploy CLI, which runs only on the maintainer's machine to upload an already-built site; not part of the site, app or sponsor; newer CLI releases carry the same findings (see docs/mainnet-completeness.md, Scan exceptions)"
+
+[[PackageOverrides]]
+name = "js-yaml"
+ecosystem = "npm"
+vulnerability.ignore = true
+effectiveUntil = 2027-02-15
+reason = "bundled inside the Vercel deploy CLI, which runs only on the maintainer's machine to upload an already-built site; not part of the site, app or sponsor; newer CLI releases carry the same findings (see docs/mainnet-completeness.md, Scan exceptions)"
+
+[[PackageOverrides]]
+name = "minimatch"
+ecosystem = "npm"
+vulnerability.ignore = true
+effectiveUntil = 2027-02-15
+reason = "bundled inside the Vercel deploy CLI, which runs only on the maintainer's machine to upload an already-built site; not part of the site, app or sponsor; newer CLI releases carry the same findings (see docs/mainnet-completeness.md, Scan exceptions)"
+
+[[PackageOverrides]]
+name = "path-to-regexp"
+ecosystem = "npm"
+vulnerability.ignore = true
+effectiveUntil = 2027-02-15
+reason = "bundled inside the Vercel deploy CLI, which runs only on the maintainer's machine to upload an already-built site; not part of the site, app or sponsor; newer CLI releases carry the same findings (see docs/mainnet-completeness.md, Scan exceptions)"
+
+[[PackageOverrides]]
+name = "smol-toml"
+ecosystem = "npm"
+vulnerability.ignore = true
+effectiveUntil = 2027-02-15
+reason = "bundled inside the Vercel deploy CLI, which runs only on the maintainer's machine to upload an already-built site; not part of the site, app or sponsor; newer CLI releases carry the same findings (see docs/mainnet-completeness.md, Scan exceptions)"
+
+[[PackageOverrides]]
+name = "undici"
+ecosystem = "npm"
+vulnerability.ignore = true
+effectiveUntil = 2027-02-15
+reason = "bundled inside the Vercel deploy CLI, which runs only on the maintainer's machine to upload an already-built site; not part of the site, app or sponsor; newer CLI releases carry the same findings (see docs/mainnet-completeness.md, Scan exceptions)"
+
+[[PackageOverrides]]
+name = "zod"
+ecosystem = "npm"
+vulnerability.ignore = true
+effectiveUntil = 2027-02-15
+reason = "bundled inside the Vercel deploy CLI, which runs only on the maintainer's machine to upload an already-built site; not part of the site, app or sponsor; newer CLI releases carry the same findings (see docs/mainnet-completeness.md, Scan exceptions)"
