@@ -1,0 +1,44 @@
+# gitleaks configuration for the Scan workflow (read from the repository root).
+# The default rules stay on. Each entry below exempts named files from one rule,
+# generic-api-key, which reads long hex and base64 strings as keys. Every file listed
+# holds public data only. Never add a file that holds a real secret; never list a
+# whole source directory.
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+# Public: the deployed contracts' addresses, transaction ids and SHA-256 artefact hashes.
+description = "deployment records: public contract addresses and artefact hashes"
+targetRules = ["generic-api-key"]
+paths = ['''^deployments/(mainnet|preprod)\.json$''']
+
+[[allowlists]]
+# Public: one file per release, named by its commit, listing the SHA-256 of each published site file.
+description = "release lists: SHA-256 of every published site file"
+targetRules = ["generic-api-key"]
+paths = ['''^releases/(mainnet|preprod)/[0-9a-f]{40}\.json$''']
+
+[[allowlists]]
+# Public: published conformance vectors; their keys are fixed patterns (0x11.., 0xa1..) made up for the tests.
+description = "conformance test vectors: made-up test keys and hashes"
+targetRules = ["generic-api-key"]
+paths = ['''^contract/vectors/(animal-individual|document|key-bound|strain)-v1\.json$''']
+
+[[allowlists]]
+# Public: generated from docs/fingerprints.md, the SHA-256 of every compiled contract artefact.
+description = "contract artefact fingerprints: public SHA-256 hashes"
+targetRules = ["generic-api-key"]
+paths = ['''^partner-kit/src/fingerprints\.ts$''']
+
+[[allowlists]]
+# Public: the W3C vc-di-eddsa test vector key pair, copied from the W3C repository (see SOURCE.txt beside it).
+description = "W3C eddsa-jcs-2022 published test key pair"
+targetRules = ["generic-api-key"]
+paths = ['''^bboard-ui/src/veilcore/fixtures/w3c-eddsa-jcs-2022/keyPair\.json$''']
+
+[[allowlists]]
+# Public: chain-of-custody cross-check vector; its salt and offer key are counting byte patterns, test data only.
+description = "sample custody cross-check vector: test data"
+targetRules = ["generic-api-key"]
+paths = ['''^bboard-ui/src/veilcore/custody-vectors\.ts$''']
