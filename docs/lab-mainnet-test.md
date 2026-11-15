@@ -7,10 +7,14 @@ maintainer does it.
 Do it after the site deploy that carries the switch. Use a computer and Chrome. Everything here
 is real on mainnet, so put "TEST" in every name.
 
-You need two windows:
+You need three windows:
 
-- your normal window, where you play both the lab and the breeder;
-- a private (incognito) window, which is a stranger with no keys.
+- your normal window, where you play the lab, and the breeder for steps 1 to 13;
+- a private (incognito) window, which is a stranger with no keys;
+- a Guest window, which is a second breeder for steps 14 to 17. Click your profile picture at
+  the top right of Chrome and choose **Guest** (or **Open Guest profile**). A lab can't receive
+  a sample it sent to itself from the same window, so this breeder needs its own. Keep the Guest
+  window open until the run is over: closing it throws its records away.
 
 Stop at the first step that fails (see "If a step fails" at the end).
 
@@ -73,7 +77,56 @@ Stop at the first step that fails (see "If a step fails" at the end).
 13. **Show the result to a stranger on purpose.** On the same record, under **Prove one
     number**, prove the result ("not detected"), press **Copy the link that proves this**, and
     open the link in the private window.
-    **Pass if:** the page names `TEST Lab (Hunter)` and shows "not detected".
+    **Pass if:** the page names `TEST Lab (Hunter)` and shows "not detected". Keep this link in
+    your note: step 18 uses it again.
+
+14. **Send a test sample to the lab.** In the Guest window open https://veilcore.org/new, pick
+    **Plants**, name it `TEST lab signing 2`, use made-up details, and finish. Save the backup
+    when it asks. Open the record and press **Send it to a lab or breeder**. Under "Who are you
+    sending it to" type `TEST Lab`. Leave the sample's label and seal out. Press **Make a code
+    for the lab**, copy the code (it starts with `TR-`) into your note, then press **Done**.
+    **Pass if:** the note holds a code that starts with `TR-`.
+
+15. **Sign the lab's receipt.** In your normal window open https://veilcore.org/records. In the
+    box "Someone sent you a code or link?" paste the code, press **Go**, then **Receive it**.
+    (If it says "Save a backup and check it first, then use the code. Nothing was received
+    yet.", save and check a backup as it asks, then enter the code again.) Tick **I physically
+    received this material.** and press **Sign with my key**. If it asks "Seal intact?", choose
+    **No seal**.
+    **Pass if:** a record for the received sample opens, with no "Nothing was signed" and no
+    "was not recorded".
+
+16. **Confirm the receipt's signature is hidden.** In the Guest window open
+    `TEST lab signing 2` and press **Show someone**. Turn on **Whether a DNA report is saved**.
+    Under **Lab signatures** there is a line "Receipt for a sample, signed …" with the switch
+    "Show that a key named “TEST Lab (Hunter)” (name not checked) signed this on your check
+    link". Leave that switch OFF. Press **Get the link** and open the link in the private window.
+    **Pass if:** the page says "The holder hasn't shown any lab signatures here. A lab's
+    receipts and reports are private unless the holder chooses to show them." and
+    `TEST Lab (Hunter)` is nowhere on the page.
+
+17. **Share it, and confirm it shows.** In the Guest window, on the same **Show someone**
+    screen, turn that switch ON and press **Get the link** again. Open the new link in the
+    private window.
+    **Pass if:** the page now says "Lab's receipt for a sample, signature verified in this
+    browser" and names `TEST Lab (Hunter)` (name not checked). The sentence "The holder hasn't
+    shown any lab signatures here" is gone.
+
+18. **Last: withdraw the TEST result.** The result from step 6 is permanent, so mark it. In your
+    normal window open https://veilcore.org/lab/results, tab **One result**. What kind of
+    result: **Withdrawal of an earlier result**. Under **The result to withdraw** pick the line
+    that starts `TEST-1 · TEST-1`. Fill the rest as in step 6: the proof code from step 2,
+    Sample ID `TEST-1`, accession number `TEST-1-W`, Method or SOP `TEST`, Method version `1`,
+    date tested today. Press **Sign this result**. Then check as a stranger, in the private
+    window, both ways: (a) open https://veilcore.org/check-lab-result, choose the file from
+    step 7 and press **Find the lab's name**; (b) open the link from step 13 again.
+    **Pass if:** signing says **Signed and kept** with no "withdrawing it failed", and both
+    (a) and (b) say "This lab no longer stands behind this result." Neither shows
+    `TEST Lab (Hunter)` as standing behind it any more.
+
+What stays on mainnet after the run, all named TEST: the two test records, the result (now
+shown as withdrawn), its withdrawal, the signature published in step 12, and the lab's receipt
+from step 15. Nothing is deleted; the withdrawal is what tells a stranger not to rely on it.
 
 ## If a step fails
 
@@ -81,7 +134,7 @@ Stop. Take a screenshot of the page and note the step number. Do not retry more 
 try is real. Lab signing can be switched off again for mainnet by listing `'mainnet'` in
 `LAB_SIGNING_OFF` (`bboard-ui/src/config/network.ts`) and deploying the site.
 
-## After all 13 steps pass
+## After all 18 steps pass
 
 One reviewed change, then a normal site deploy:
 

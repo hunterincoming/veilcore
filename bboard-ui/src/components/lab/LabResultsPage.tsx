@@ -21,7 +21,7 @@ import {
 } from '@mui/material';
 import { AppHeader } from '../AppHeader';
 import { OPEN_SIGNING_KEY_EVENT } from '../AttesterSetup';
-import { LAB_SIGNING_ENABLED } from '../../config/network';
+import { LAB_SIGNING_ENABLED, viabilityNotRead } from '../../config/network';
 import { loadAttester } from '../../veilcore/attester-keys';
 import { claimsKeyFor } from '../../veilcore/claims-key';
 import { useRecords, type StrainRecord } from '../../veilcore/records';
@@ -529,6 +529,9 @@ export const LabResultsPage: React.FC = () => {
   const mine: MyResult[] = mineRecords.map((r) => {
     const s = r.labResult!.statement;
     const v = s.kind === 'viability' ? (s.result as ViabilityResult) : undefined;
+    // Where viability results are not read (mainnet), the lab's own list names one and says no more.
+    if (viabilityNotRead({ kind: s.kind }))
+      return { code: r.labSignature!.record, label: `${s.accession} · ${s.sampleId} · ${kindWords(s.kind, tr)}` };
     return {
       code: r.labSignature!.record,
       label: `${s.accession} · ${s.sampleId} · ${kindWords(s.kind, tr)}${v ? ` · ${v.batch} · ${t(`app.lr.stage.${v.stage}` as AppKey)}` : ''} · ${callWords(s, tr)}`,

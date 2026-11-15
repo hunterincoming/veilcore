@@ -67,9 +67,9 @@ import {
   type BreederReceipt,
   type ReportSigner,
 } from '../../veilcore/custody';
-import { LAB_RESULTS_ENABLED, LAB_SIGNING_ENABLED } from '../../config/network';
+import { LAB_RESULTS_ENABLED, LAB_SIGNING_ENABLED, viabilityNotRead } from '../../config/network';
 import { ResultForm } from '../lab/ResultForm';
-import { ResultFacts, kindWords } from '../lab/ResultFacts';
+import { ResultFacts, ViabilityNotRead, kindWords } from '../lab/ResultFacts';
 import { emptyDraft, tryDraft, type ResultDraft } from '../../veilcore/lab-result-draft';
 import type { LabResultBundle, ProblemCode } from '../../veilcore/lab-result';
 import type { AppKey } from '../../i18n/app/en';
@@ -505,6 +505,9 @@ const SignedNumbers: React.FC<{ numbers?: LabNumbers | LabResultBundle; problem?
       setBusy(false);
     }
   };
+  // A viability result is not read where those are off (mainnet): not shown, not added here.
+  // The report it came with is untouched.
+  if (numbers.v === 2 && viabilityNotRead({ kind: numbers.statement.kind })) return <ViabilityNotRead />;
   return (
     <Box sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2, p: 1.5 }} data-lab-numbers-in="">
       <Typography variant="body2" sx={{ fontWeight: 700 }}>

@@ -21,7 +21,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - A viability result (a sample before or after a kill step) stays on the test network only, behind
   its own switch (`VIABILITY_RESULTS_ENABLED`, off on mainnet): it was built after this switch and
   has not been reviewed for the main network. On veilcore.org the forms don't offer it, a draft of
-  one is refused, and the check page says it doesn't read one. In all five languages.
+  one is refused, and no page reads one. One signed on the test site can still arrive (in a
+  restored backup, with a report, behind a claim link): the check page, the record's page, the
+  report and the claim's check page each say they don't read it, and offer nothing to publish
+  or prove from it. The record and its file are kept as they are and can still be downloaded.
+  In all five languages.
 - The README and `docs/lab-signing.md` say the same: built, switched on, not yet run on mainnet.
   The steps of the first run on veilcore.org are in `docs/lab-mainnet-test.md`.
 

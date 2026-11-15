@@ -17,6 +17,8 @@ import { keyShort } from '../../veilcore/lab-key-text';
 import { signerLabel, type ResolvedAttestation } from '../../veilcore/attesters';
 import { RESULT_CALL_SCHEMAS } from '../../veilcore/field-set';
 import { ClaimResultFile } from '../lab/ClaimResultFile';
+import { ViabilityNotRead } from '../lab/ResultFacts';
+import { viabilityNotRead } from '../../config/network';
 import { withdrawnWords } from '../lab/signer-words';
 
 export const ClaimCheck: React.FC = () => {
@@ -27,12 +29,14 @@ export const ClaimCheck: React.FC = () => {
   // A claim on a lab result v2's call proves the call only (SPEC 11.12): what was tested for, or
   // compared, is in the lab's result file, which the checker can add beside it.
   const isCall = !!link && RESULT_CALL_SCHEMAS.includes(link.schema);
+  // A claim on a viability result is not read where those are off (mainnet): not shown, not checked.
+  const viabilityOff = !!link && viabilityNotRead({ schema: link.schema });
   const [verdict, setVerdict] = useState<ClaimVerdict>();
   useEffect(() => {
     // A new link starts unchecked: the last link's "Proved on Midnight" must never show under
     // this one's claim while it is being read (security round, 2 Nov 2026).
     setVerdict(undefined);
-    if (!link) return;
+    if (!link || viabilityOff) return;
     let live = true;
     void import('../../veilcore/chain/claim-check')
       .then(({ checkClaim }) => checkClaim(link))
@@ -58,6 +62,8 @@ export const ClaimCheck: React.FC = () => {
           <Alert severity="error" variant="outlined" data-claim-link="bad">
             {t('app.claim.check.bad')}
           </Alert>
+        ) : viabilityOff ? (
+          <ViabilityNotRead />
         ) : (
           <Stack spacing={2.5}>
             <Paper sx={{ p: { xs: 2.5, md: 3 } }}>

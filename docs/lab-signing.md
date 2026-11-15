@@ -133,8 +133,11 @@ showing the rest. Code: `veilcore/lab-result.ts`.
 Status: built, on the test network only. It has its own switch, `VIABILITY_RESULTS_ENABLED` in
 `bboard-ui/src/config/network.ts`, off on mainnet: it was built after lab signing's mainnet switch
 and has not been reviewed for the main network. On veilcore.org the lab's forms don't offer it, a
-draft of one is refused, and `/check-lab-result` says it doesn't read one. SPEC 11.12, "Viability"
-(draft).
+draft of one is refused, and no page reads one (`viabilityNotRead` in the same file). One signed on
+the test site can still arrive on veilcore.org, in a restored backup, with a report or behind a
+claim link: `/check-lab-result`, the record's page, the report and `/check-claim` each say they
+don't read it, and there is nothing to publish or prove from it there. The record and its result
+file are kept as they are and can still be downloaded. SPEC 11.12, "Viability" (draft).
 
 Use case: a producer that grows a production fungus and sells the dried meal heat-treats it (a
 kill step) so no live culture leaves its site, and has a lab test samples before and after it.

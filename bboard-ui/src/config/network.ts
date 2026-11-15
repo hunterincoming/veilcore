@@ -180,14 +180,29 @@ export const LAB_SIGNING_ENABLED: boolean = labSigningEnabledFor(NETWORK);
  * A viability result (a sample before or after a kill step; veilcore/lab-result.ts, SPEC 11.12
  * "Viability", draft). It was built after the mainnet switch above was written and has not been
  * reviewed for the main network, so it stays on test networks: on mainnet the lab's forms don't
- * offer it, a draft of one is refused (lab-result-draft.ts tryDraft), and the check page doesn't
- * read one (it says so: app.lr.check.viabilityTestOnly). To turn it on for mainnet, take
+ * offer it, a draft of one is refused (lab-result-draft.ts tryDraft), and no page reads one (each
+ * says so: app.lr.check.viabilityTestOnly; viabilityNotRead below). To turn it on for mainnet, take
  * 'mainnet' out of VIABILITY_RESULTS_OFF in a reviewed change. Never on where lab signing is off.
  */
 const VIABILITY_RESULTS_OFF: readonly string[] = ['mainnet'];
 export const viabilityResultsEnabledFor = (n: string): boolean =>
   labSigningEnabledFor(n) && !VIABILITY_RESULTS_OFF.includes(n);
 export const VIABILITY_RESULTS_ENABLED: boolean = viabilityResultsEnabledFor(NETWORK);
+
+/** The call schema a viability result is sealed under (lab-result.ts CALL_SCHEMA.viability; a test holds them equal). */
+export const VIABILITY_CALL_SCHEMA = 'veilcore/schema/viability/v1';
+/**
+ * True where a viability result is not read. Off means off for showing one too, not only for
+ * signing: a result signed on the test site can arrive here in a restored backup, with a report,
+ * or behind a claim link. Every screen that would show, publish or prove one asks this, by the
+ * result's kind or by the call schema its record or claim is sealed under, and says so instead
+ * (app.lr.check.viabilityTestOnly). The record and its file are left as they are: still kept,
+ * still downloadable, still in a backup.
+ */
+export const viabilityNotRead = (
+  what: { readonly kind?: string; readonly schema?: string },
+  on: boolean = VIABILITY_RESULTS_ENABLED,
+): boolean => !on && (what.kind === 'viability' || what.schema === VIABILITY_CALL_SCHEMA);
 
 /**
  * Document records (veilcore/document-profile.ts, docs/document-profile.md): a permit, a COA, a

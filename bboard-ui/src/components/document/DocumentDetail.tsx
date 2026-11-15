@@ -17,7 +17,7 @@ import {
 } from '../../veilcore/document-profile';
 import { documentCheckLink } from '../../veilcore/document-link';
 import { REAL_CHAIN } from '../../veilcore/chain/config';
-import { LAB_SIGNING_ENABLED } from '../../config/network';
+import { LAB_SIGNING_ENABLED, viabilityNotRead } from '../../config/network';
 import { AnchorOnChainPanel } from '../chain/AnchorOnChainPanel';
 import { AppHeader } from '../AppHeader';
 import { EvidenceBundle } from '../EvidenceBundle';
@@ -27,7 +27,7 @@ import { DocumentDate, DocumentFacts, Fact, FileCompare } from './DocumentParts'
 import { schemaWords, slotWords } from './NumbersFields';
 import { ProveNumber } from './ProveNumber';
 import { LabSignaturePanel } from './LabSignaturePanel';
-import { ResultFacts } from '../lab/ResultFacts';
+import { ResultFacts, ViabilityNotRead } from '../lab/ResultFacts';
 
 /** The result file again, from the record that holds it: the same bundle the lab handed over. */
 const downloadResult = async (record: StrainRecord) => {
@@ -84,6 +84,10 @@ export const DocumentDetail: React.FC<{ record: StrainRecord }> = ({ record }) =
   const [copied, setCopied] = useState(false);
   const [linkError, setLinkError] = useState<string>();
   const keys = useRecordKeys()[record.id];
+  // A viability result is not read where those are off (mainnet): no facts, no numbers, nothing to
+  // publish or prove from it here. The record stays, and its result file can still be downloaded.
+  const viabilityOff = viabilityNotRead({ kind: record.labResult?.statement.kind, schema: record.fieldSet?.schema });
+  const read = viabilityOff ? undefined : record.fieldSet;
   // A kept laboratory signature is checked again against the record before anything shows it
   // as signed (lab-attest.ts): a record restored or edited by hand may no longer match.
   const [labOk, setLabOk] = useState<boolean>();
@@ -169,7 +173,11 @@ export const DocumentDetail: React.FC<{ record: StrainRecord }> = ({ record }) =
             <Typography variant="h6" component="h2" sx={{ mb: 1 }}>
               {t('app.lr.panelTitle')}
             </Typography>
-            <ResultFacts statement={record.labResult.statement} code={record.labSignature.record} />
+            {viabilityOff ? (
+              <ViabilityNotRead />
+            ) : (
+              <ResultFacts statement={record.labResult.statement} code={record.labSignature.record} />
+            )}
             <Button
               variant="outlined"
               sx={{ mt: 2, minHeight: 44 }}
@@ -180,9 +188,14 @@ export const DocumentDetail: React.FC<{ record: StrainRecord }> = ({ record }) =
             </Button>
           </Paper>
         )}
-        {record.fieldSet && <HeldNumbers held={record.fieldSet} />}
-        {record.fieldSet && LAB_SIGNING_ENABLED && <LabSignaturePanel record={record} signatureOk={labOk} />}
-        {record.fieldSet && <ProveNumber record={record} labSignatureOk={labOk === true} />}
+        {viabilityOff && !(record.labResult && record.labSignature) && (
+          <Paper sx={{ p: { xs: 2.5, md: 3 } }}>
+            <ViabilityNotRead />
+          </Paper>
+        )}
+        {read && <HeldNumbers held={read} />}
+        {read && LAB_SIGNING_ENABLED && <LabSignaturePanel record={record} signatureOk={labOk} />}
+        {read && <ProveNumber record={record} labSignatureOk={labOk === true} />}
         <Paper sx={{ p: { xs: 2.5, md: 3 } }} data-document-share="">
           <Typography variant="h6" component="h2" sx={{ mb: 0.5 }}>
             {t('app.doc.share.title')}
