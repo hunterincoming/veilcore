@@ -9,13 +9,21 @@ import React, { useRef, useState } from 'react';
 import { Alert, Box, Button, Paper, Typography } from '@mui/material';
 import { useT } from '../../i18n/app';
 import type { AppKey } from '../../i18n/app/en';
+import { viabilityNotRead } from '../../config/network';
 import { CALL_SCHEMA, readResultsText, resultCode, type LabResultStatement } from '../../veilcore/lab-result';
-import { ResultFacts } from './ResultFacts';
+import { ResultFacts, ViabilityNotRead } from './ResultFacts';
 
 export const ClaimResultFile: React.FC<{ record: string; schema?: string }> = ({ record, schema }) => {
   const { t } = useT();
   const pick = useRef<HTMLInputElement>(null);
   const [found, setFound] = useState<{ statement: LabResultStatement } | { problem: string }>();
+  // A claim on a viability result where those are not read (mainnet): no file is asked for.
+  if (viabilityNotRead({ schema }))
+    return (
+      <Paper sx={{ p: { xs: 2.5, md: 3 } }} data-claim-result-file="">
+        <ViabilityNotRead />
+      </Paper>
+    );
   return (
     <Paper sx={{ p: { xs: 2.5, md: 3 } }} data-claim-result-file="">
       <Alert severity="info" variant="outlined" sx={{ mb: 1.5 }}>
@@ -45,6 +53,9 @@ export const ClaimResultFile: React.FC<{ record: string; schema?: string }> = ({
             .then(readResultsText)
             .then((all) => {
               const hit = all.find((r) => r.ok && resultCode(r.bundle) === record);
+              // Whatever schema the link names, a viability result file is not shown where those are off.
+              if (hit?.ok && viabilityNotRead({ kind: hit.bundle.statement.kind }))
+                return setFound({ problem: t('app.lr.check.viabilityTestOnly') });
               if (hit?.ok) return setFound({ statement: hit.bundle.statement });
               const bad = all.find((r) => !r.ok);
               setFound({

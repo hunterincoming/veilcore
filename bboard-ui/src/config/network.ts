@@ -162,11 +162,47 @@ export const ANIMAL_RECORDS_ENABLED: boolean = animalRecordsEnabledFor(NETWORK);
 export const STRAIN_RECORDS_ENABLED = true;
 
 /**
- * Numbers a laboratory signs with its report, and the genetic forms (docs/lab-signing.md). Test
- * network only until the whole journey has run once there by hand: lab adds numbers, breeder
- * adds them as a record, the signature goes on Midnight, a claim's check page names the lab.
+ * Numbers and results a laboratory signs, and the genetic forms (docs/lab-signing.md): a lab's
+ * signing tools (/lab/results), the result check (/check-lab-result), numbers added with a
+ * report, and the lab-signature panel on a record. On in every build, mainnet included (on
+ * veilcore.org from the first site deploy that carries this), after lab signatures went private (registry "private-lab-signatures-v1",
+ * which every site deploy requires: scripts/registry-features.mjs). Not called live on
+ * veilcore.org until one has been signed and checked there (config/copy.ts
+ * LAB_SIGNING_RUN_ON_MAINNET). To turn it off on a network again, list the network in
+ * LAB_SIGNING_OFF: the tools then say "test network only" (app.lr.tools.testOnly), and change the
+ * "What's live where" row with it (copy-truth.test.ts).
  */
-export const LAB_SIGNING_ENABLED = !IS_MAINNET;
+const LAB_SIGNING_OFF: readonly string[] = [];
+export const labSigningEnabledFor = (n: string): boolean => !LAB_SIGNING_OFF.includes(n);
+export const LAB_SIGNING_ENABLED: boolean = labSigningEnabledFor(NETWORK);
+
+/**
+ * A viability result (a sample before or after a kill step; veilcore/lab-result.ts, SPEC 11.12
+ * "Viability", draft). It was built after the mainnet switch above was written and has not been
+ * reviewed for the main network, so it stays on test networks: on mainnet the lab's forms don't
+ * offer it, a draft of one is refused (lab-result-draft.ts tryDraft), and no page reads one (each
+ * says so: app.lr.check.viabilityTestOnly; viabilityNotRead below). To turn it on for mainnet, take
+ * 'mainnet' out of VIABILITY_RESULTS_OFF in a reviewed change. Never on where lab signing is off.
+ */
+const VIABILITY_RESULTS_OFF: readonly string[] = ['mainnet'];
+export const viabilityResultsEnabledFor = (n: string): boolean =>
+  labSigningEnabledFor(n) && !VIABILITY_RESULTS_OFF.includes(n);
+export const VIABILITY_RESULTS_ENABLED: boolean = viabilityResultsEnabledFor(NETWORK);
+
+/** The call schema a viability result is sealed under (lab-result.ts CALL_SCHEMA.viability; a test holds them equal). */
+export const VIABILITY_CALL_SCHEMA = 'veilcore/schema/viability/v1';
+/**
+ * True where a viability result is not read. Off means off for showing one too, not only for
+ * signing: a result signed on the test site can arrive here in a restored backup, with a report,
+ * or behind a claim link. Every screen that would show, publish or prove one asks this, by the
+ * result's kind or by the call schema its record or claim is sealed under, and says so instead
+ * (app.lr.check.viabilityTestOnly). The record and its file are left as they are: still kept,
+ * still downloadable, still in a backup.
+ */
+export const viabilityNotRead = (
+  what: { readonly kind?: string; readonly schema?: string },
+  on: boolean = VIABILITY_RESULTS_ENABLED,
+): boolean => !on && (what.kind === 'viability' || what.schema === VIABILITY_CALL_SCHEMA);
 
 /**
  * Document records (veilcore/document-profile.ts, docs/document-profile.md): a permit, a COA, a

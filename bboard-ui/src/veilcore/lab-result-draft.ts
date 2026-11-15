@@ -4,6 +4,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { numbersOf, type TypedNumbers } from './field-set';
+import { VIABILITY_RESULTS_ENABLED } from '../config/network';
 import {
   DECIMAL,
   THOUSANDS_LOOKALIKE,
@@ -333,7 +334,12 @@ export const draftToInput = (d: ResultDraft, labName: string): { input: LabResul
 export const tryDraft = (
   d: ResultDraft,
   labName: string,
+  viabilityOn: boolean = VIABILITY_RESULTS_ENABLED,
 ): { ok: true; input: LabResultInput; opening?: MarkOpening } | { ok: false; code: ProblemCode; message: string } => {
+  // A viability result is signed only where it is switched on (config/network.ts): the forms
+  // don't offer it elsewhere, and nothing else gets one past here.
+  if (d.kind === 'viability' && !viabilityOn)
+    return { ok: false, code: 'kind', message: 'Viability results are on the test network only.' };
   try {
     return { ok: true, ...draftToInput(d, labName) };
   } catch (e) {

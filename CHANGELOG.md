@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Lab signing on veilcore.org (switched on, not tried on the main network yet)
+
+- Numbers and results a lab signs are switched on for the main network too
+  (`LAB_SIGNING_ENABLED`, now `labSigningEnabledFor(NETWORK)` with an empty `LAB_SIGNING_OFF`):
+  the lab's tools at `/lab/results`, the result check at `/check-lab-result`, numbers and a
+  signed result added with a report, the genetic forms, and the lab-signature panel on a record.
+  It ships after "Lab signatures: private unless the holder shows them" (below), and every site
+  deploy already refuses a registry without `private-lab-signatures-v1`.
+- "What's live where" has a row for it. Its veilcore.org cell says "Built, not yet tried on the
+  main network." until one result has been signed and checked there (`LAB_SIGNING_RUN_ON_MAINNET`
+  in `config/copy.ts`, off). In all five languages.
+- A viability result (a sample before or after a kill step) stays on the test network only, behind
+  its own switch (`VIABILITY_RESULTS_ENABLED`, off on mainnet): it was built after this switch and
+  has not been reviewed for the main network. On veilcore.org the forms don't offer it, a draft of
+  one is refused, and no page reads one. One signed on the test site can still arrive (in a
+  restored backup, with a report, behind a claim link): the check page, the record's page, the
+  report and the claim's check page each say they don't read it, and offer nothing to publish
+  or prove from it. The record and its file are kept as they are and can still be downloaded.
+  In all five languages.
+- The README and `docs/lab-signing.md` say the same: built, switched on, not yet run on mainnet.
+  The steps of the first run on veilcore.org are in `docs/lab-mainnet-test.md`.
+
 ### The maintenance key is live; the committee tools move to Ledger 9 (14 Nov 2026, not deployed, nothing sent)
 
 - The site, the maintenance policy and the committee document now say what is true of the main

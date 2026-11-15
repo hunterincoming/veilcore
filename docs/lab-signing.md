@@ -1,8 +1,15 @@
 # Numbers a laboratory signs
 
-Status: built, on the test network only (`LAB_SIGNING_ENABLED` in `bboard-ui/src/config/network.ts`).
-Not on veilcore.org until the whole journey has run once on the test site by hand, and then
-once on mainnet.
+Status: built, and switched on in the site's code for veilcore.org as well as the test network
+(`LAB_SIGNING_ENABLED` in `bboard-ui/src/config/network.ts`; to turn it off on a network, list the
+network in `LAB_SIGNING_OFF`). It is on veilcore.org from the first site deploy that carries the
+switch. A viability result (below) is the exception: test network only
+(`VIABILITY_RESULTS_ENABLED`). It ships after lab signatures went private (registry
+`private-lab-signatures-v1`, which every site deploy requires). Not called live on veilcore.org
+until a lab key has been made there, one result signed and checked, and its signature confirmed
+hidden until the holder shares it; then `LAB_SIGNING_RUN_ON_MAINNET` in
+`bboard-ui/src/config/copy.ts` is turned on in a reviewed commit, and the home page's
+"What's live where" cell says so. The steps of that first run: [lab-mainnet-test.md](lab-mainnet-test.md).
 
 ## What it is for
 
@@ -58,7 +65,7 @@ VeilCore says exactly what it can check and nothing more.
 
 ## Version 2: a result bound to its sample (7 November 2026)
 
-Status: built, on the test network only (the same `LAB_SIGNING_ENABLED` switch). Specified in the
+Status: built, behind the same `LAB_SIGNING_ENABLED` switch (on for veilcore.org too). Specified in the
 SDK's SPEC 11.12 (draft), with 158 vectors computed there from the text alone; this app checks
 them (`lab-result.test.ts`).
 
@@ -113,7 +120,7 @@ showing the rest. Code: `veilcore/lab-result.ts`.
   withdrawal that fails is shown. The lab gets one file per result (per row, or a zip of separate
   files: no file holds two clients' results), an archive for its own records, and a summary CSV for
   its LIMS that also lists the rows not signed.
-- **Checking:** `/check-lab-result` (test network only, like signing) checks a result file in the
+- **Checking:** `/check-lab-result` (behind the same switch as signing) checks a result file in the
   browser (form, binding, call, signature). It looks up the lab's name only when asked, since that
   sends the result's code to the registry, and shows "replaced by" only for a later result signed by
   the same key, about the same record, not tested earlier. A replaced result reads as replaced, not
@@ -123,7 +130,14 @@ showing the rest. Code: `veilcore/lab-result.ts`.
 
 ### A viability result: a sample before or after a kill step (12 November 2026)
 
-Status: built, on the test network only (the same switch). SPEC 11.12, "Viability" (draft).
+Status: built, on the test network only. It has its own switch, `VIABILITY_RESULTS_ENABLED` in
+`bboard-ui/src/config/network.ts`, off on mainnet: it was built after lab signing's mainnet switch
+and has not been reviewed for the main network. On veilcore.org the lab's forms don't offer it, a
+draft of one is refused, and no page reads one (`viabilityNotRead` in the same file). One signed on
+the test site can still arrive on veilcore.org, in a restored backup, with a report or behind a
+claim link: `/check-lab-result`, the record's page, the report and `/check-claim` each say they
+don't read it, and there is nothing to publish or prove from it there. The record and its result
+file are kept as they are and can still be downloaded. SPEC 11.12, "Viability" (draft).
 
 Use case: a producer that grows a production fungus and sells the dried meal heat-treats it (a
 kill step) so no live culture leaves its site, and has a lab test samples before and after it.

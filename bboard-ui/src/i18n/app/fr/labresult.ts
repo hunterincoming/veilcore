@@ -187,6 +187,8 @@ export const labresult = {
   'app.lr.check.intro':
     'Choisissez le fichier de résultat qu’un laboratoire vous a remis. Il est vérifié dans ce navigateur. Rien n’en est envoyé, sauf si vous demandez le nom du laboratoire : seul le code du résultat va alors au registre.',
   'app.lr.check.choose': 'Choisir le fichier de résultat',
+  'app.lr.check.viabilityTestOnly':
+    'Ceci est un résultat de viabilité (un test avant ou après une étape d’inactivation). Pour l’instant, ils n’existent que sur le réseau de test : cette page ne le lit donc pas.',
   'app.lr.check.bad': 'Ce résultat ne peut pas être utilisé : {problem}',
   'app.lr.check.looking': 'Recherche du titulaire de la clé…',
   'app.lr.check.noSalt':

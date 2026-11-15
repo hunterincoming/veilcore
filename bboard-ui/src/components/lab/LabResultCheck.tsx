@@ -4,8 +4,9 @@
 // unless the checker asks: "Find the lab's name" sends the result's code (in the file) to the
 // registry for the lab's own binding naming its key (claims-key.ts findBinding), printed in the
 // wording every page uses for signers; "Find the record…" reads the checker's own records, which
-// sends their holder key. Test network only, like lab signing. Several files can be chosen at
-// once, so a viability result's after-sample is read beside the before-sample it names (the pair).
+// sends their holder key. Behind the same switch as lab signing (LAB_SIGNING_ENABLED). Several
+// files can be chosen at once, so a viability result's after-sample is read beside the
+// before-sample it names (the pair).
 // SPDX-License-Identifier: Apache-2.0
 
 import React, { useEffect, useRef, useState } from 'react';
@@ -33,7 +34,7 @@ import { keyShort } from '../../veilcore/lab-key-text';
 import { ResultFacts, callWords } from './ResultFacts';
 import { seen } from '../document/DocumentParts';
 import { withdrawnWords } from './signer-words';
-import { LAB_SIGNING_ENABLED } from '../../config/network';
+import { LAB_SIGNING_ENABLED, VIABILITY_RESULTS_ENABLED } from '../../config/network';
 
 const short = (h: string) => `${h.slice(0, 8)}…${h.slice(-6)}`;
 
@@ -394,7 +395,12 @@ export const LabResultCheck: React.FC = () => {
             />
             <Stack spacing={2.5}>
               {(read ?? []).map((r, i) =>
-                r.ok ? (
+                r.ok && r.bundle.statement.kind === 'viability' && !VIABILITY_RESULTS_ENABLED ? (
+                  // Not read on a network where viability results are off (config/network.ts).
+                  <Alert key={`off${i}`} severity="info" variant="outlined" data-lab-result-viability-off="">
+                    {t('app.lr.check.viabilityTestOnly')}
+                  </Alert>
+                ) : r.ok ? (
                   <OneChecked
                     key={resultCode(r.bundle)}
                     bundle={r.bundle}

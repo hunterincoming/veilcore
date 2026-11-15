@@ -23,8 +23,8 @@ and a Rust implementation in [veilcore-rs](https://github.com/hunterincoming/vei
 | Status | |
 |---|---|
 | **Live on veilcore.org** | Sealing records, dated in batches on Midnight mainnet; check pages; proving a record by link; dating a DNA report pairing; lab codes and signed receipts; licenses and royalty reports. No wallet needed: VeilCore's fee service pays the network fee. |
-| **Built, not yet run on mainnet** | Handing a license on to another grower, with the breeder's approval. |
-| **Test network only** | Numbers a lab signs for a claim ([docs/lab-signing.md](docs/lab-signing.md)); paying royalties in NIGHT on Midnight. |
+| **Built, not yet run on mainnet** | Handing a license on to another grower, with the breeder's approval. Numbers and results a lab signs ([docs/lab-signing.md](docs/lab-signing.md)): switched on for veilcore.org in the site's code, not yet run there. |
+| **Test network only** | A lab's viability result for a sample before or after a kill step; paying royalties in NIGHT on Midnight. |
 | **Not built** | A paid plan for labs (designed only: [docs/lab-plan.md](docs/lab-plan.md)). |
 
 Details and dates: [Where it stands](#where-it-stands). No formal security audit yet: [the reviews so far](#current-status).
@@ -99,10 +99,13 @@ indexer of your own choosing instead of ours, see [docs/reproduce-build.md](docs
   license on with the breeder's approval, and a pack a lender can check with a free tool.
   Lab hand-overs and breeder shares are built the same way.
   [docs/agreements-live.md](docs/agreements-live.md)
-- **Numbers a lab signs for a claim: test network only** (`LAB_SIGNING_ENABLED` in
-  `bboard-ui/src/config/network.ts`). They come to veilcore.org once the whole journey has run
-  by hand on the test site, and are called live there once it has run on mainnet
-  ([docs/lab-signing.md](docs/lab-signing.md)).
+- **Numbers and results a lab signs: built, not yet run on mainnet.** Switched on for
+  veilcore.org in the site's code (`LAB_SIGNING_ENABLED` in `bboard-ui/src/config/network.ts`),
+  and called live there only once one result has been signed and checked on mainnet
+  (`LAB_SIGNING_RUN_ON_MAINNET` in `bboard-ui/src/config/copy.ts`;
+  [docs/lab-mainnet-test.md](docs/lab-mainnet-test.md)). A viability result (a sample before or
+  after a kill step) is on the test network only (`VIABILITY_RESULTS_ENABLED`).
+  [docs/lab-signing.md](docs/lab-signing.md)
 - **Five languages:** English, plus Spanish, Japanese, German and French as machine-drafted
   translations. veilcore.org and the test site both offer them, under a notice saying each is a
   draft, until a fluent speaker signs it off ([how](docs/translations/README.md)).
@@ -226,7 +229,7 @@ cd ../bboard-ui && npm run build
 (protocol version 1, source frozen) covers records, licenses and lineage. `contract/src/veilcore-claims.compact`
 proves one fact about a sealed record without showing the rest (a value, a bound on a number,
 that two records differ, that a correction changed only some values), optionally on values a
-laboratory signed (from the website, lab-signed values are on the test network only); see [`docs/claims-design.md`](docs/claims-design.md) and SPEC 4.5 in veilcore-sdk.
+laboratory signed (from the website, lab-signed values are built and not yet run on mainnet); see [`docs/claims-design.md`](docs/claims-design.md) and SPEC 4.5 in veilcore-sdk.
 The claims contract has no maintenance authority (an empty committee).
 
 The main contract covers records, licenses and lineage in 24 circuits. The design, the normative

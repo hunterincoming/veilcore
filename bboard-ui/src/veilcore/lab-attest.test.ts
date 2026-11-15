@@ -25,6 +25,15 @@ import { RangeOp } from '../../../contract/src/managed/veilcore-claims/contract/
 import { claimFromCells } from '../../../contract/src/verify-claims';
 import { claimLink, compareAttested, readClaimLink, type MadeClaim } from './claim-link';
 import { checkClaim } from './chain/claim-check';
+import {
+  labSigningEnabledFor,
+  VIABILITY_CALL_SCHEMA,
+  viabilityNotRead,
+  viabilityResultsEnabledFor,
+} from '../config/network';
+import { CALL_SCHEMA, RESULT_KINDS } from './lab-result';
+import { emptyDraft, tryDraft } from './lab-result-draft';
+import { REQUIRED_FEATURES } from '../../../scripts/registry-features.mjs';
 
 /** A laboratory's signing key, as tests need one (the app derives it: claims-key.ts). */
 const labKey = () => {
@@ -243,20 +252,121 @@ describe('on the claims contract', () => {
 });
 
 describe('on veilcore.org', () => {
-  it('laboratory signing and the genetic forms stay off on mainnet until it has been tested', () => {
+  it('laboratory signing and the genetic forms are on on mainnet, behind one switch that can turn them off', () => {
     const src = (f: string) => fs.readFileSync(path.join(dir, f), 'utf8');
-    expect(src('../config/network.ts')).toContain('export const LAB_SIGNING_ENABLED = !IS_MAINNET;');
+    // On in every build, after lab signatures went private (the registry's
+    // private-lab-signatures-v1, which every site deploy requires).
+    expect(labSigningEnabledFor('mainnet')).toBe(true);
+    expect(labSigningEnabledFor('preprod')).toBe(true);
+    expect(src('../config/network.ts')).toMatch(/const LAB_SIGNING_OFF: readonly string\[\] = \[\];/);
+    expect(src('../config/network.ts')).toContain(
+      'export const LAB_SIGNING_ENABLED: boolean = labSigningEnabledFor(NETWORK);',
+    );
+    expect(REQUIRED_FEATURES).toHaveProperty('private-lab-signatures-v1');
+    // Every place that signs or offers signing still reads the one switch, so listing a network
+    // in LAB_SIGNING_OFF turns all of it off there again.
     expect(src('../components/document/DocumentDetail.tsx')).toContain('LAB_SIGNING_ENABLED && <LabSignaturePanel');
     expect(src('../components/flow/LabResults.tsx')).toContain('LAB_SIGNING_ENABLED && file && kind &&');
     expect(src('../components/flow/LabResults.tsx')).toContain('if (numbersBytes && LAB_SIGNING_ENABLED)');
+    expect(src('../components/flow/AppHome.tsx')).toContain('{LAB_SIGNING_ENABLED && (');
     expect(src('../App.tsx')).not.toContain('/lab"');
     expect(src('../veilcore/field-set.ts')).toMatch(/LAB_SCHEMAS: readonly string\[\] = LAB_SIGNING_ENABLED\s*\?/);
     expect(src('../veilcore/field-set.ts')).toMatch(/RESULT_CALL_SCHEMAS\.includes\(id\)\)\s*: \[\]/);
-    // Lab results v2 (lab-result.ts): the lab's tools sign nothing on mainnet, and the delivery
-    // flow's result box is inside the same switch.
+    // Lab results v2 (lab-result.ts): the lab's tools and the delivery flow's result box.
     expect(src('../components/lab/LabResultsPage.tsx')).toContain('!LAB_SIGNING_ENABLED ? (');
-    // The check page offers adding and publishing a result: not on mainnet either (review, 8 Nov).
+    // The check page offers adding and publishing a result (review, 8 Nov).
     expect(src('../components/lab/LabResultCheck.tsx')).toContain('!LAB_SIGNING_ENABLED ? (');
     expect(src('../components/flow/LabResults.tsx')).toContain('if (LAB_SIGNING_ENABLED && withResult)');
+  });
+
+  it('a viability result stays off on mainnet: not offered, not signed, not read', () => {
+    const src = (f: string) => fs.readFileSync(path.join(dir, f), 'utf8');
+    // Built after the mainnet switch and not reviewed for the main network yet.
+    expect(viabilityResultsEnabledFor('mainnet')).toBe(false);
+    expect(viabilityResultsEnabledFor('preprod')).toBe(true);
+    expect(src('../config/network.ts')).toContain("const VIABILITY_RESULTS_OFF: readonly string[] = ['mainnet'];");
+    // Both forms take their kinds through ResultForm, which drops it where it is off.
+    expect(src('../components/lab/ResultForm.tsx')).toContain(
+      "asked.filter((k) => k !== 'viability' || VIABILITY_RESULTS_ENABLED)",
+    );
+    // No draft of one becomes something to sign, whatever the form shows.
+    expect(tryDraft(emptyDraft('viability'), 'A lab', false)).toMatchObject({ ok: false, code: 'kind' });
+    expect(tryDraft(emptyDraft('viability'), 'A lab', true)).not.toMatchObject({ code: 'kind' });
+    // The check page says so instead of reading one, in every language.
+    expect(src('../components/lab/LabResultCheck.tsx')).toContain(
+      "r.ok && r.bundle.statement.kind === 'viability' && !VIABILITY_RESULTS_ENABLED ? (",
+    );
+    for (const l of ['en', 'de', 'es', 'fr', 'ja'])
+      expect(src(`../i18n/app/${l}/labresult.ts`)).toContain("'app.lr.check.viabilityTestOnly':");
+  });
+
+  it('a viability result is not shown, published or proved on mainnet either (review of PR 88)', () => {
+    const src = (f: string) => fs.readFileSync(path.join(dir, f), 'utf8');
+    // One made on the test site can arrive in a restored backup (a backup names no network), with
+    // a report, or behind a claim link. Off is asked by kind or by the schema it is sealed under.
+    expect(VIABILITY_CALL_SCHEMA).toBe(CALL_SCHEMA.viability);
+    expect(viabilityNotRead({ kind: 'viability' }, false)).toBe(true);
+    expect(viabilityNotRead({ schema: CALL_SCHEMA.viability }, false)).toBe(true);
+    expect(viabilityNotRead({ kind: 'viability', schema: CALL_SCHEMA.viability }, true)).toBe(false);
+    for (const kind of RESULT_KINDS.filter((k) => k !== 'viability'))
+      expect(viabilityNotRead({ kind, schema: kind === 'numbers' ? undefined : CALL_SCHEMA[kind] }, false)).toBe(false);
+    expect(viabilityNotRead({}, false)).toBe(false);
+    // The record page: the notice in place of the facts, and no held numbers, nothing to publish
+    // ("Publish it on Midnight" is LabSignaturePanel's) and nothing to prove from it. The download
+    // of the result file stays, outside the switch: the record is kept whole.
+    const page = src('../components/document/DocumentDetail.tsx');
+    expect(page).toContain(
+      'viabilityNotRead({ kind: record.labResult?.statement.kind, schema: record.fieldSet?.schema })',
+    );
+    expect(page).toMatch(/\{viabilityOff \? \(\s*<ViabilityNotRead \/>\s*\) : \(\s*<ResultFacts /);
+    expect(page).toContain('const read = viabilityOff ? undefined : record.fieldSet;');
+    expect(page).toContain('{read && <HeldNumbers held={read} />}');
+    expect(page).toContain('{read && LAB_SIGNING_ENABLED && <LabSignaturePanel ');
+    expect(page).toContain('{read && <ProveNumber ');
+    expect(page.match(/<(HeldNumbers|LabSignaturePanel|ProveNumber) /g)).toHaveLength(3);
+    expect(page).toContain(
+      '{record.labResult && record.labSignature && (\n          <Paper sx={{ p: { xs: 2.5, md: 3 } }} data-lab-result-panel="">',
+    );
+    expect(page).toContain('onClick={() => void downloadResult(record)}');
+    // A result arriving with a report: not shown and not added.
+    const inReport = src('../components/flow/LabResults.tsx');
+    expect(inReport).toContain(
+      'if (numbers.v === 2 && viabilityNotRead({ kind: numbers.statement.kind })) return <ViabilityNotRead />;',
+    );
+    expect(inReport.indexOf('return <ViabilityNotRead />;')).toBeLessThan(inReport.indexOf('data-lab-numbers-in=""'));
+    // A claim's check page: neither the claim nor a result file for it is read.
+    const claimFile = src('../components/lab/ClaimResultFile.tsx');
+    expect(claimFile).toContain('if (viabilityNotRead({ schema }))');
+    expect(claimFile).toContain('if (hit?.ok && viabilityNotRead({ kind: hit.bundle.statement.kind }))');
+    expect(claimFile.indexOf('if (viabilityNotRead({ schema }))')).toBeLessThan(
+      claimFile.indexOf('app.lr.claim.viability'),
+    );
+    const claim = src('../components/document/ClaimCheck.tsx');
+    expect(claim).toContain('viabilityNotRead({ schema: link.schema })');
+    expect(claim).toContain('if (!link || viabilityOff) return;');
+    expect(claim).toMatch(/\) : viabilityOff \? \(\s*<ViabilityNotRead \/>/);
+    // The lab's own list names one and says no more.
+    expect(src('../components/lab/LabResultsPage.tsx')).toContain('if (viabilityNotRead({ kind: s.kind }))');
+    // Every screen that shows a result's facts is behind the switch: a new one must be added here.
+    const shows = [
+      'document/DocumentDetail',
+      'flow/LabResults',
+      'lab/ClaimResultFile',
+      'lab/LabResultCheck',
+      'lab/LabResultsPage',
+    ];
+    const found: string[] = [];
+    const walk = (d: string) => {
+      for (const e of fs.readdirSync(path.join(dir, d), { withFileTypes: true })) {
+        const f = `${d}/${e.name}`;
+        if (e.isDirectory()) walk(f);
+        else if (f.endsWith('.tsx') && !f.endsWith('lab/ResultFacts.tsx') && src(f).includes('<ResultFacts '))
+          found.push(f);
+      }
+    };
+    walk('../components');
+    expect(found.map((f) => f.replace('../components/', '').replace('.tsx', '')).sort()).toEqual(shows);
+    // The notice is the check page's own words.
+    expect(src('../components/lab/ResultFacts.tsx')).toContain("{t('app.lr.check.viabilityTestOnly')}");
   });
 });

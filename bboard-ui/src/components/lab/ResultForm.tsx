@@ -18,6 +18,7 @@ import { NumbersFields } from '../document/NumbersFields';
 import { useT } from '../../i18n/app';
 import type { AppKey } from '../../i18n/app/en';
 import { kindWords } from './ResultFacts';
+import { VIABILITY_RESULTS_ENABLED } from '../../config/network';
 
 /**
  * Targets a cannabis or hop TC lab tests for most, by the name most labs report. Free text stays
@@ -58,7 +59,9 @@ export const ResultForm: React.FC<{
   mine?: readonly MyResult[];
   /** The field the last attempt was refused for. */
   problem?: ProblemCode;
-}> = ({ draft: d, onDraft, kinds, fixedSubject, mine = [], problem }) => {
+}> = ({ draft: d, onDraft, kinds: asked, fixedSubject, mine = [], problem }) => {
+  // A viability result is offered only where it is switched on (config/network.ts).
+  const kinds = asked.filter((k) => k !== 'viability' || VIABILITY_RESULTS_ENABLED);
   const tr = useT();
   const { t } = tr;
   const set = <K extends keyof ResultDraft>(k: K, v: ResultDraft[K]) => onDraft({ ...d, [k]: v });

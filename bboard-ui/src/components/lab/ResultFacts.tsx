@@ -4,7 +4,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import React from 'react';
-import { Stack, Typography } from '@mui/material';
+import { Alert, Stack, Typography } from '@mui/material';
 import type {
   LabResultStatement,
   LineageResult,
@@ -19,6 +19,19 @@ import type { Translator } from '../../i18n/translate';
 import type { AppKey } from '../../i18n/app/en';
 import { Fact, seen } from '../document/DocumentParts';
 import { schemaWords } from '../document/NumbersFields';
+
+/**
+ * Shown in place of a viability result where those are not read (config/network.ts viabilityNotRead):
+ * the same words as the check page. The result itself is left as it is.
+ */
+export const ViabilityNotRead: React.FC = () => {
+  const { t } = useT();
+  return (
+    <Alert severity="info" variant="outlined" data-lab-result-viability-off="">
+      {t('app.lr.check.viabilityTestOnly')}
+    </Alert>
+  );
+};
 
 const short = (h: string) => `${h.slice(0, 10)}…${h.slice(-6)}`;
 
