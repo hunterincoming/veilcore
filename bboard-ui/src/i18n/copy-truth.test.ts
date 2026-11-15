@@ -260,7 +260,7 @@ describe('what to keep if VeilCore is gone', () => {
     // The plant page shows it: once right under the record's date, once in its own panel.
     expect(source('components/RecordDetail.tsx').match(/<EvidenceBundle\b/g)?.length).toBe(2);
     expect(en['m.open.2t']).toBe('Keep one file.');
-    expect(en['m.open.2p']).toMatch(new RegExp(`^From your plant's page: ${label}\\. One \\.zip with `));
+    expect(en['m.open.2p']).toMatch(new RegExp(`^From your record's page: ${label}\\. One \\.zip with `));
     // What the bundle really holds (veilcore/evidence/bundle.ts) and its offline page.
     const bundle = source('veilcore/evidence/bundle.ts');
     for (const f of ['record/sealed-fields.json', 'proof/inclusion-proof.json', 'proof/anchors.json', 'verify.html'])
@@ -415,7 +415,7 @@ describe("what's live where", () => {
     // The record is dated by its batch; the browser's date stamp dates only the plant's key
     // (docs/identity-in-record.md, "Dates").
     expect(e['m.live.stamp.test']).toMatch(/Batches are dated automatically, and that dates your record/);
-    expect(e['m.live.stamp.test']).toMatch(/date stamps your plant's own key, which dates only the key/);
+    expect(e['m.live.stamp.test']).toMatch(/date stamps your record's own key, which dates only the key/);
     expect(e['m.live.claims.main']).toMatch(/no maintenance key.*can’t use it yet/);
     expect(e['m.live.lic.main']).toBe('Switched off until a final test run.');
     // The check page reads Midnight itself on the test site; on veilcore.org only with the

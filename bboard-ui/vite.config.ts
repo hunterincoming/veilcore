@@ -98,7 +98,7 @@ const siteDescription = (mode: string): Plugin => ({
 // in the site's paper and ink for the moment before the app draws.
 const SUMMARY_HEAD = `<main class="static-summary">
 <h1>VeilCore: dated, private records for plant, animal and microbial genetics</h1>
-<p>A breeder or lab logs a record of a cultivar or an animal line in the browser. Everything typed is locked there before it is sent, and VeilCore doesn't have the key. DNA files never leave the device. Only a 32-byte proof code is dated on Midnight. Later a buyer, examiner or court can check what the record said and when it existed: free, with no account. A record shows a description was held by a date. It isn't ownership, and VeilCore doesn't test DNA.</p>`;
+<p>A breeder or lab logs a record of a cultivar, an animal line or a microbial strain in the browser. Everything typed is locked there before it is sent, and VeilCore doesn't have the key. DNA files never leave the device. Only a 32-byte proof code is dated on Midnight. Later a buyer, examiner or court can check what the record said and when it existed: free, with no account. A record shows a description was held by a date. It isn't ownership, and VeilCore doesn't test DNA.</p>`;
 
 const SUMMARY_TAIL = `<h2>Team</h2>
 <ul>

@@ -246,9 +246,9 @@ export const de: Strings = {
     'Eine Elternverknüpfung zählt nur, wenn beide Inhaber sie bestätigen. Auf dieser Website erfasst sie das Register von VeilCore, nicht die Chain.',
   'm.open.2t': 'Bewahren Sie eine Datei auf.',
   'm.open.2p':
-    'Auf der Seite Ihrer Pflanze: „Nachweispaket herunterladen“. Eine .zip-Datei mit dem Datensatz, wie er versiegelt wurde, seinem Einschlussnachweis, dem Prüfcode des Stapels, dem Ort, an dem der Stapel festgehalten wurde, der Bitcoin-Stempeldatei, falls es eine gibt, und einer Seite, die alles offline prüft. Ihre Sicherungsdatei enthält Ihre Schlüssel, nicht diese Dateien. Die einzelnen Dateien gibt es weiterhin unter „Technische Details“: „Datensatz exportieren“, „Inklusionsnachweis herunterladen“, „Bitcoin-Stempeldatei herunterladen“.',
+    'Auf der Seite Ihres Datensatzes: „Nachweispaket herunterladen“. Eine .zip-Datei mit dem Datensatz, wie er versiegelt wurde, seinem Einschlussnachweis, dem Prüfcode des Stapels, dem Ort, an dem der Stapel festgehalten wurde, der Bitcoin-Stempeldatei, falls es eine gibt, und einer Seite, die alles offline prüft. Ihre Sicherungsdatei enthält Ihre Schlüssel, nicht diese Dateien. Die einzelnen Dateien gibt es weiterhin unter „Technische Details“: „Datensatz exportieren“, „Inklusionsnachweis herunterladen“, „Bitcoin-Stempeldatei herunterladen“.',
   'm.faq.1a':
-    'Sobald Datensätze verankert sind, kann jeder prüfen, welcher zuerst verankert wurde. Koppeln Sie Ihren Laborbericht, damit ein späterer Test damit verglichen werden kann. Wenn Sie Material versenden, signiert der Empfänger mit seinem eigenen Schlüssel eine Empfangsbestätigung. Ein Datensatz ist ein Beweismittel, keine Registrierung: Er zeigt, dass Sie diesen Datensatz zu diesem Datum hatten, nicht, dass Sie die Pflanze hatten, und entscheidet einen Streit nicht allein.',
+    'Sobald Datensätze verankert sind, kann jeder prüfen, welcher zuerst verankert wurde. Koppeln Sie Ihren Laborbericht, damit ein späterer Test damit verglichen werden kann. Wenn Sie Material versenden, signiert der Empfänger mit seinem eigenen Schlüssel eine Empfangsbestätigung. Ein Datensatz ist ein Beweismittel, keine Registrierung: Er zeigt, dass Sie diesen Datensatz zu diesem Datum hatten, nicht, dass Sie das Material hatten, und entscheidet einen Streit nicht allein.',
   'm.post0.date': '4. Okt. 2026',
   'm.post0.tag': 'Contract',
   'm.post0.title': 'Eine Tatsache beweisen, den Rest behalten',
@@ -292,7 +292,7 @@ export const de: Strings = {
   'm.live.stamp.t': 'Ein Datumsstempel für Ihren Datensatz',
   'm.live.stamp.main': 'Ja, in Stapeln, auf Midnight datiert. Ihr Browser sendet nichts an die Chain.',
   'm.live.stamp.test':
-    'Ja. Stapel werden automatisch datiert, und das datiert Ihren Datensatz. Ihr Browser versieht außerdem den eigenen Schlüssel Ihrer Pflanze mit einem Datumsstempel; der datiert nur den Schlüssel.',
+    'Ja. Stapel werden automatisch datiert, und das datiert Ihren Datensatz. Ihr Browser versieht außerdem den eigenen Schlüssel Ihres Datensatzes mit einem Datumsstempel; der datiert nur den Schlüssel.',
   'm.live.share.t': 'Wählen, was andere sehen',
   'm.live.share.main':
     'Ja. Sie wählen jede Angabe. Der Name erscheint nur in Links, die Sie senden, oder wenn Sie ihn zeigen möchten.',
@@ -452,7 +452,7 @@ export const de: Strings = {
   'm.faq.label': 'Fragen',
   'm.faq.title1': 'Fragen,',
   'm.faq.title2': 'die man uns stellt.',
-  'm.faq.1q': 'Was hindert jemanden daran, meine Sorte einzutragen?',
+  'm.faq.1q': 'Was hindert jemanden daran, mein Material einzutragen?',
   'm.faq.2q': 'Brauche ich Krypto oder eine Wallet?',
   'm.faq.2a':
     'Nein. Einen Datensatz in der Demo anzulegen und jeden Datensatz zu prüfen, braucht keine Wallet, keine Anmeldung und keinen Kauf. Ihr Browser bewahrt einen Zufallsschlüssel auf, der Ihre Demo-Datensätze auf unserem Server findet. Der Prüfcode kommt auf Midnight, ein Netzwerk, das für Privatsphäre gebaut ist. Sie haben nie direkt damit zu tun.',

@@ -247,9 +247,9 @@ export const fr: Strings = {
     "Un lien de parenté ne compte que si les deux détenteurs le confirment. Sur ce site, c'est le registre de VeilCore qui l'enregistre, pas la chaîne.",
   'm.open.2t': 'Gardez un seul fichier.',
   'm.open.2p':
-    "Sur la page de votre plante : « Télécharger le dossier de preuve ». Un seul .zip avec l'enregistrement tel qu'il a été scellé, sa preuve d'inclusion, le code de preuve du lot, l'endroit où le lot a été inscrit, le fichier d'horodatage Bitcoin s'il y en a un, et une page qui vérifie le tout hors ligne. Votre fichier de sauvegarde contient vos clés, pas ces fichiers. Les fichiers séparés restent sous « Détails techniques » : « Exporter l’enregistrement », « Télécharger la preuve d’inclusion », « Télécharger le fichier d’horodatage Bitcoin ».",
+    "Sur la page de votre enregistrement : « Télécharger le dossier de preuve ». Un seul .zip avec l'enregistrement tel qu'il a été scellé, sa preuve d'inclusion, le code de preuve du lot, l'endroit où le lot a été inscrit, le fichier d'horodatage Bitcoin s'il y en a un, et une page qui vérifie le tout hors ligne. Votre fichier de sauvegarde contient vos clés, pas ces fichiers. Les fichiers séparés restent sous « Détails techniques » : « Exporter l’enregistrement », « Télécharger la preuve d’inclusion », « Télécharger le fichier d’horodatage Bitcoin ».",
   'm.faq.1a':
-    "Une fois les enregistrements ancrés, chacun peut vérifier lequel a été ancré en premier. Associez votre rapport de laboratoire, pour qu'un test ultérieur puisse y être comparé. Quand vous envoyez du matériel, le destinataire signe un accusé de réception avec sa propre clé. Un enregistrement est une preuve, pas une inscription : il montre que vous déteniez cet enregistrement à cette date, pas que vous déteniez la plante, et ne tranche pas un litige à lui seul.",
+    "Une fois les enregistrements ancrés, chacun peut vérifier lequel a été ancré en premier. Associez votre rapport de laboratoire, pour qu'un test ultérieur puisse y être comparé. Quand vous envoyez du matériel, le destinataire signe un accusé de réception avec sa propre clé. Un enregistrement est une preuve, pas une inscription : il montre que vous déteniez cet enregistrement à cette date, pas que vous déteniez le matériel, et ne tranche pas un litige à lui seul.",
   'm.post0.date': '4 oct. 2026',
   'm.post0.tag': 'Contrat',
   'm.post0.title': 'Prouver un fait, garder le reste',
@@ -293,7 +293,7 @@ export const fr: Strings = {
   'm.live.stamp.t': 'Un horodatage pour votre enregistrement',
   'm.live.stamp.main': "Oui, par lots datés sur Midnight. Votre navigateur n'envoie rien à la chaîne.",
   'm.live.stamp.test':
-    'Oui. Les lots sont datés automatiquement, ce qui date votre enregistrement. Votre navigateur horodate aussi la clé propre à votre plante ; cet horodatage ne date que la clé.',
+    'Oui. Les lots sont datés automatiquement, ce qui date votre enregistrement. Votre navigateur horodate aussi la clé propre à votre enregistrement ; cet horodatage ne date que la clé.',
   'm.live.share.t': 'Choisir ce que les autres voient',
   'm.live.share.main':
     "Oui. Vous choisissez chaque information. Le nom n'apparaît que dans les liens que vous envoyez, ou si vous choisissez de l'afficher.",
@@ -454,7 +454,7 @@ export const fr: Strings = {
   'm.faq.label': 'Questions',
   'm.faq.title1': 'Les questions',
   'm.faq.title2': "qu'on nous pose.",
-  'm.faq.1q': "Qu'est-ce qui empêche quelqu'un d'enregistrer mon cultivar ?",
+  'm.faq.1q': "Qu'est-ce qui empêche quelqu'un d'enregistrer mon matériel ?",
   'm.faq.2q': "Ai-je besoin de crypto ou d'un portefeuille ?",
   'm.faq.2a':
     "Non. Créer un enregistrement dans la démo et vérifier n'importe quel enregistrement ne demandent ni portefeuille, ni inscription, ni achat. Votre navigateur garde une clé aléatoire qui retrouve vos enregistrements de démo sur notre serveur. Le code de preuve va sur Midnight, un réseau conçu pour la confidentialité. Vous n'avez jamais affaire à lui directement.",

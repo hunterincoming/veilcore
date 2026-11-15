@@ -134,8 +134,8 @@ describe('counts say "records" when they include records that date a lab report'
 
   it('restoring from a backup', () => {
     expect(restoredKeysLine([], all)).toBe('');
-    expect(restoredKeysLine([plant.id], all)).toBe('Keys for 1 plant restored.');
-    expect(restoredKeysLine([plant.id, other.id], all)).toBe('Keys for 2 plants restored.');
+    expect(restoredKeysLine([plant.id], all)).toBe('Keys for 1 record restored.');
+    expect(restoredKeysLine([plant.id, other.id], all)).toBe('Keys for 2 records restored.');
     expect(restoredKeysLine([plant.id, other.id, dating.id], all)).toBe(
       'Keys for 3 records restored (2 plants, 1 dated lab report).',
     );

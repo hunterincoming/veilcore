@@ -1,6 +1,6 @@
 # VeilCore: Technical Design
 
-**Provenance, licensing and heritable obligations for plant and animal genetics on Midnight**
+**Provenance, licensing and heritable obligations for plant, animal and microbial genetics on Midnight**
 Protocol version 1 · last updated 9 October 2026 (bound DNA pairing)
 
 ---
