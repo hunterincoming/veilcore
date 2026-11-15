@@ -224,7 +224,7 @@ export const en = {
   'm.open.1link': 'All three implementations →',
   'm.open.2t': 'Keep one file.',
   'm.open.2p':
-    "From your plant's page: Download evidence bundle. One .zip with the record as sealed, its inclusion proof, the batch root, where the batch was recorded, the Bitcoin stamp file when there is one, and a page that checks it offline. Your backup file holds your keys, not these. The single files are still under Technical details: Export record, Download inclusion proof, Download Bitcoin stamp file.",
+    "From your record's page: Download evidence bundle. One .zip with the record as sealed, its inclusion proof, the batch root, where the batch was recorded, the Bitcoin stamp file when there is one, and a page that checks it offline. Your backup file holds your keys, not these. The single files are still under Technical details: Export record, Download inclusion proof, Download Bitcoin stamp file.",
   'm.open.3t': "We don't vouch for results.",
   'm.open.3p':
     "A lab's signatures about a record stay private unless the record's holder shows them. Each one shown says which key signed it, the name it was registered under, any accreditation its holder declared (we don't check that), and whether VeilCore's operator has matched that name to a public license or accreditation listing, and on what day. VeilCore doesn't vouch for any lab: whoever checks a record decides what a signature is worth.",
@@ -239,9 +239,9 @@ export const en = {
   'm.faq.label': 'Questions',
   'm.faq.title1': 'Questions',
   'm.faq.title2': 'people ask.',
-  'm.faq.1q': 'What stops someone logging my cultivar?',
+  'm.faq.1q': 'What stops someone logging my material?',
   'm.faq.1a':
-    "Once records are anchored, anyone can check which was anchored first. Pair your lab report, so a later test can be compared with it. When you send material out, the receiver signs a receipt with their own key. A record is evidence, not a registration: it shows you had this record by that date, not that you had the plant, and doesn't settle a dispute on its own.",
+    "Once records are anchored, anyone can check which was anchored first. Pair your lab report, so a later test can be compared with it. When you send material out, the receiver signs a receipt with their own key. A record is evidence, not a registration: it shows you had this record by that date, not that you had the material, and doesn't settle a dispute on its own.",
   'm.faq.2q': 'Do I need crypto or a wallet?',
   'm.faq.2a':
     'No. Making a record in the demo and checking any record need no wallet, no sign-up and nothing to buy. Your browser keeps a random key that finds your demo records on our server. The proof code goes on Midnight, a network built for privacy. You never deal with it directly.',
@@ -394,7 +394,7 @@ export const en = {
   'm.live.stamp.t': 'A date stamp for your record',
   'm.live.stamp.main': 'Yes, in batches dated on Midnight. Your browser sends nothing to the chain.',
   'm.live.stamp.test':
-    "Yes. Batches are dated automatically, and that dates your record. Your browser also date stamps your plant's own key, which dates only the key.",
+    "Yes. Batches are dated automatically, and that dates your record. Your browser also date stamps your record's own key, which dates only the key.",
   'm.live.btc.t': 'A Bitcoin date stamp too',
   'm.live.btc.main':
     'Yes, every sealed batch. The first reached block 971004 on 11 October and was checked against two block explorers on 15 October. A check with the official tool and a full node is still to do.',

@@ -245,9 +245,9 @@ export const es: Strings = {
     'Un vínculo de parentesco cuenta solo cuando ambos titulares lo confirman. En este sitio lo anota el servidor de registros de VeilCore, no la cadena.',
   'm.open.2t': 'Guarde un solo archivo.',
   'm.open.2p':
-    'En la página de su planta: «Descargar el paquete de evidencia». Un solo .zip con el registro tal como se selló, su prueba de inclusión, el código de prueba del lote, dónde se registró el lote, el archivo de sello de Bitcoin si lo hay, y una página que lo comprueba todo sin conexión. Su archivo de respaldo contiene sus claves, no estos archivos. Los archivos sueltos siguen en «Detalles técnicos»: «Exportar el registro», «Descargar la prueba de inclusión», «Descargar el archivo de sello de Bitcoin».',
+    'En la página de su registro: «Descargar el paquete de evidencia». Un solo .zip con el registro tal como se selló, su prueba de inclusión, el código de prueba del lote, dónde se registró el lote, el archivo de sello de Bitcoin si lo hay, y una página que lo comprueba todo sin conexión. Su archivo de respaldo contiene sus claves, no estos archivos. Los archivos sueltos siguen en «Detalles técnicos»: «Exportar el registro», «Descargar la prueba de inclusión», «Descargar el archivo de sello de Bitcoin».',
   'm.faq.1a':
-    'Una vez anclados los registros, cualquiera puede comprobar cuál se ancló primero. Vincule su informe de laboratorio, para que una prueba posterior pueda compararse con él. Cuando envíe material, el receptor firma un acuse de recibo con su propia clave. Un registro es una prueba, no una inscripción: muestra que usted tenía este registro en esa fecha, no que tenía la planta, y por sí solo no resuelve una disputa.',
+    'Una vez anclados los registros, cualquiera puede comprobar cuál se ancló primero. Vincule su informe de laboratorio, para que una prueba posterior pueda compararse con él. Cuando envíe material, el receptor firma un acuse de recibo con su propia clave. Un registro es una prueba, no una inscripción: muestra que usted tenía este registro en esa fecha, no que tenía el material, y por sí solo no resuelve una disputa.',
   'm.post0.date': '4 oct 2026',
   'm.post0.tag': 'Contrato',
   'm.post0.title': 'Probar un hecho, guardar el resto',
@@ -291,7 +291,7 @@ export const es: Strings = {
   'm.live.stamp.t': 'Un sello de fecha para su registro',
   'm.live.stamp.main': 'Sí, por lotes fechados en Midnight. Su navegador no envía nada a la cadena.',
   'm.live.stamp.test':
-    'Sí. Los lotes se fechan automáticamente, y eso fecha su registro. Su navegador también pone un sello de fecha a la clave propia de su planta; ese sello fecha solo la clave.',
+    'Sí. Los lotes se fechan automáticamente, y eso fecha su registro. Su navegador también pone un sello de fecha a la clave propia de su registro; ese sello fecha solo la clave.',
   'm.live.share.t': 'Elegir qué ven los demás',
   'm.live.share.main':
     'Sí. Usted elige cada dato. El nombre solo aparece en los enlaces que envía, o si decide mostrarlo.',
@@ -458,7 +458,7 @@ export const es: Strings = {
   'm.faq.label': 'Preguntas',
   'm.faq.title1': 'Preguntas',
   'm.faq.title2': 'que nos hacen.',
-  'm.faq.1q': '¿Qué impide que alguien registre mi cultivar?',
+  'm.faq.1q': '¿Qué impide que alguien registre mi material?',
   'm.faq.2q': '¿Necesito criptomonedas o una billetera?',
   'm.faq.2a':
     'No. Crear un registro en la demo y comprobar cualquier registro no requieren billetera, ni darse de alta, ni comprar nada. Su navegador guarda una clave aleatoria que encuentra sus registros de demo en nuestro servidor. El código de prueba va a Midnight, una red hecha para la privacidad. Usted nunca trata con ella directamente.',

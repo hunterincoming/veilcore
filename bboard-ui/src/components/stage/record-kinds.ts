@@ -112,7 +112,7 @@ export const keysOnlyHereLine = (ids: readonly string[], kind: 'alert' | 'reset'
 export const backupHoldsLine = (ids: readonly string[], tr: Translator = enT): string =>
   ids.length === 0 ? tr.t('app.backup.holds.none') : tr.tp('app.backup.holds.records', ids.length);
 
-/** "Keys for 3 plants restored." or "Keys for 4 records restored (3 plants, 1 dated lab report)." */
+/** "Keys for 3 records restored." or "Keys for 4 records restored (3 plants, 1 dated lab report)." */
 export const restoredKeysLine = (ids: readonly string[], records: readonly Rec[], tr: Translator = enT): string => {
   if (ids.length === 0) return '';
   const { plants, datings } = countKinds(ids, records);
