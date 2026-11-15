@@ -20,6 +20,104 @@ export const de: Strings = {
   'footer.yourRecords': 'Ihre Datensätze',
   'footer.agreements': 'Vereinbarungen',
   'footer.privacy': 'Datenschutz in der Demo',
+  'title.help': 'Hilfe',
+  'title.status': 'Status des Dienstes',
+  'footer.help': 'Hilfe',
+  'm.help.title': 'Hilfe',
+  'm.help.lede':
+    'Kurze Antworten zum Anlegen, Aufbewahren, Zeigen und Prüfen eines Datensatzes. Jede sagt, was diese Website heute tut.',
+  'm.help.start.t': 'Der Anfang',
+  'm.help.start.1q': 'Was ist ein VeilCore-Datensatz?',
+  'm.help.start.1a':
+    'Eine datierte Beschreibung von etwas, das Sie halten: eine Pflanze, ein Tier, ein Stamm oder eine Zelllinie, oder ein Dokument. Ihr Browser macht daraus einen kurzen Prüfcode, und dieser Code wird zusammen mit anderen in einem Stapel auf Midnight datiert. Er belegt, dass Sie diesen Datensatz zu diesem Datum bereits hatten. Er belegt nicht, wer Rechte an etwas hat, und nicht, dass der Inhalt des Datensatzes stimmt.',
+  'm.help.start.2q': 'Was brauche ich?',
+  'm.help.start.2a':
+    'Ein Telefon oder einen Computer mit aktuellem Browser. Keine Wallet, keine Anmeldung, nichts zu kaufen. Um eine einzelne Zahl aus einem Datensatz zu belegen, brauchen Sie einen Computer: Auf Telefonen wurde das noch nicht ausprobiert.',
+  'm.help.start.3q': 'Was kostet es?',
+  'm.help.start.3a': 'Einen Datensatz auf dieser Website anzulegen und jeden Datensatz zu prüfen ist kostenlos.',
+  'm.help.make.t': 'Einen Datensatz anlegen',
+  'm.help.make.1q': 'Welche Art von Datensatz wähle ich?',
+  'm.help.make.1a':
+    'Wählen Sie, was es ist. Eine Pflanze: eine Sorte oder eine Linie. Ein Tier: ein einzelnes Tier oder eine Linie. Ein Stamm oder eine Linie: Mikroben, Pilze, Zelllinien, Insektenlinien. Ein Dokument: eine Genehmigung, ein Zertifikat, ein Vertrag oder ein Bericht, als Datei versiegelt.',
+  'm.help.make.2q': 'Was lasse ich weg?',
+  'm.help.make.2a':
+    'Persönliche Angaben anderer Menschen. Was Sie eingeben, wird verschlüsselt auf unserem Server gespeichert, und wir haben den Schlüssel nicht. Wem Sie einen Datensatz zeigen, der sieht aber, was Sie freigegeben haben, und der Prüflink eines Dokuments zeigt den Dateinamen und den Halter, den Sie eingetragen haben. Benennen Sie Dateien schlicht, etwa „Genehmigung 2026.pdf“.',
+  'm.help.make.3q': 'Woran erkenne ich, dass mein Datensatz datiert ist?',
+  'm.help.make.3a':
+    'Die Seite des Datensatzes zeigt „Datensatz datiert“ mit dem Datum, sobald sein Stapel auf Midnight ist. Vorher steht dort „im nächsten Stapel“. Gespeichert ist der Datensatz in beiden Fällen. Bis der Stapel auf Midnight ist, stützt sich sein Datum allein auf Ihr Wort.',
+  'm.help.backup.t': 'Ihre Sicherungskopie',
+  'm.help.backup.1q': 'Warum fordert die Website mich immer wieder auf, eine Sicherungskopie zu speichern?',
+  'm.help.backup.1a':
+    'Die Sicherungskopie ist der einzige Weg zu belegen, dass Sie Ihre Datensätze halten, und der einzige Weg, sie auf ein neues Telefon oder einen neuen Computer zu holen. VeilCore kann sie nicht wiederherstellen und keine neue erstellen.',
+  'm.help.backup.2q': 'Wo bewahre ich sie auf?',
+  'm.help.backup.2a':
+    'Auf einem USB-Stick oder in einem Passwortmanager, und zusätzlich an einem zweiten Ort. Wer die Datei hat, kann Ihre Datensätze öffnen und in Ihrem Namen handeln. Geben Sie beim Speichern ein Passwort an: Dann öffnet die Datei allein nichts. Wenn Sie das Passwort vergessen, kann niemand die Datei öffnen, auch wir nicht.',
+  'm.help.backup.3q': 'Ich habe meine Sicherungskopie verloren. Was nun?',
+  'm.help.backup.3a':
+    'Wenn dieser Browser Ihre Datensätze noch hat, speichern Sie jetzt eine neue Sicherungskopie. Wenn nicht, kann niemand die verschlossenen Kopien auf unserem Server öffnen, auch VeilCore nicht. Die Website bietet dann an, sie zu löschen und einen neuen Schlüssel zu beginnen. Bereits datierte Datensätze bleiben datiert, aber Sie können nicht mehr zeigen, dass es Ihre sind.',
+  'm.help.backup.4q': 'Wie wechsle ich auf ein neues Telefon oder einen neuen Computer?',
+  'm.help.backup.4a':
+    'Öffnen Sie auf dem neuen Gerät „Datensätze wiederherstellen“ und wählen Sie Ihre Sicherungskopie.',
+  'm.help.backup.4link': 'Datensätze wiederherstellen →',
+  'm.help.backup.5q': 'Meine Datensätze sind aus dem Browser verschwunden.',
+  'm.help.backup.5a':
+    'Browser können die gespeicherten Daten einer Website löschen. Safari kann das nach 7 Tagen ohne Besuch tun. Ihre Sicherungskopie bringt alles zurück.',
+  'm.help.show.t': 'Jemandem einen Datensatz zeigen',
+  'm.help.show.1q': 'Wie zeige ich jemandem meinen Datensatz?',
+  'm.help.show.1a':
+    'Öffnen Sie den Datensatz und erstellen Sie einen Link zum Versenden. Wer ihn öffnet, sieht, was Sie freigegeben haben, und kann das Datum selbst prüfen, kostenlos und ohne Konto.',
+  'm.help.show.2q': 'Wie zeige ich ein Dokument?',
+  'm.help.show.2a':
+    'Senden Sie den Prüflink zusammen mit der Datei. Der Browser der anderen Person vergleicht die Datei Byte für Byte mit dem versiegelten Datensatz und zeigt, seit wann Sie sie hatten. Deren Kopie der Datei wird nicht hochgeladen.',
+  'm.help.show.3q': 'Kann ich eine Zahl belegen, ohne den Rest zu zeigen?',
+  'm.help.show.3a':
+    'Ja, wenn Sie den Datensatz mit seinen Zahlen versiegelt haben. Sie können belegen, dass eine Zahl höchstens oder mindestens einen Grenzwert erreicht oder genau einem Wert entspricht. Nutzen Sie einen Computer.',
+  'm.help.check.t': 'Einen Datensatz prüfen, den Ihnen jemand geschickt hat',
+  'm.help.check.1q': 'Jemand hat mir einen Datensatz geschickt. Wie prüfe ich ihn?',
+  'm.help.check.1a':
+    'Öffnen Sie den Link, den Sie bekommen haben, oder geben Sie die Kennung des Datensatzes auf der Prüfseite ein. Das ist kostenlos und braucht kein Konto.',
+  'm.help.check.1link': 'Datensatz prüfen →',
+  'm.help.check.2q': 'Was heißt „datiert“?',
+  'm.help.check.2a':
+    'Der Prüfcode des Datensatzes liegt in einem Stapel, und der Code dieses Stapels steht auf Midnight. Das Datum ist der Zeitpunkt, zu dem der Stapel auf Midnight kam. Sie können das prüfen, ohne VeilCore zu vertrauen.',
+  'm.help.check.3q': 'Was belegt ein Datensatz, und was nicht?',
+  'm.help.check.3a':
+    'Er belegt, dass jemand genau diesen Datensatz zu diesem Datum hielt und dass er seitdem unverändert ist. Er belegt nicht, wer Rechte am Material hat, dass die Beschreibung stimmt oder dass ein physischer Gegenstand dazu passt. Die Signatur eines Labors unter einem Ergebnis ist eine eigene Prüfung.',
+  'm.help.check.4q': 'Hält das in einem Streit stand?',
+  'm.help.check.4link': 'Datensätze als Beweismittel →',
+  'm.help.labs.t': 'Labore und Vereinbarungen',
+  'm.help.labs.1q': 'Was funktioniert für Labore und Lizenzvereinbarungen?',
+  'm.help.labs.1a':
+    'Die Startseite listet auf, was auf dieser Website läuft und was gebaut, hier aber noch nicht ausgeführt ist. Diese Liste wird mit jeder Veröffentlichung aktuell gehalten.',
+  'm.help.labs.1link': 'Was heute funktioniert →',
+  'm.help.wrong.t': 'Wenn etwas schiefgeht',
+  'm.help.wrong.1q': 'Bei meinem Datensatz steht schon lange „im nächsten Stapel“.',
+  'm.help.wrong.1a':
+    'Ihr Datensatz ist gespeichert und wartet auf seinen Stapel. Die Statusseite zeigt, ob der Datierungsdienst läuft.',
+  'm.help.wrong.1link': 'Status des Dienstes →',
+  'm.help.wrong.2q': 'Die Prüfseite sagt, meine Datei passt nicht.',
+  'm.help.wrong.2a':
+    'Die Datei ist nicht Byte für Byte die versiegelte. Eine Datei zu öffnen und neu zu speichern, sie zu exportieren oder über eine App zu senden, die sie neu komprimiert, kann sie verändern. Bitten Sie um die Originaldatei.',
+  'm.help.wrong.3q': 'Was, wenn es diese Website nicht mehr gibt?',
+  'm.help.wrong.3a':
+    'Ihre Datensätze lassen sich weiterhin prüfen. Ein kostenloses, offenes Werkzeug öffnet Ihre Sicherungskopie, prüft den Prüfcode jedes Datensatzes und nennt die Midnight-Transaktion, die ihn datiert, ohne diese Website.',
+  'm.help.wrong.3link': 'Das kostenlose Werkzeug →',
+  'm.help.contact.t': 'Kontakt',
+  'm.help.contact.p':
+    'Schreiben Sie an hunter@veilcore.org. Sagen Sie, was Sie getan haben, was Sie gesehen haben, und nennen Sie die Kennung des Datensatzes, falls es eine gibt. Senden Sie niemals Ihre Sicherungskopie oder deren Passwort.',
+  'm.status.page.title': 'Status des Dienstes',
+  'm.status.page.lede': 'Live abgefragt bei dem Dienst, der für diese Website Datensätze auf Midnight datiert.',
+  'm.status.page.loading': 'Wird geprüft…',
+  'm.status.page.none': 'Dieser Build hat keinen Datierungsdienst, der abgefragt werden könnte.',
+  'm.status.page.unreachable':
+    'Der Datierungsdienst hat nicht geantwortet. Datensätze, die Sie anlegen, sind gespeichert und werden datiert, sobald er wieder da ist.',
+  'm.status.page.service': 'Datierungsdienst',
+  'm.status.page.running': 'Läuft',
+  'm.status.page.behind': 'Läuft und holt zu Midnight auf',
+  'm.status.page.failing': 'Läuft, aber die letzten Stapel sind fehlgeschlagen',
+  'm.status.page.lastRun': 'Letzter Lauf',
+  'm.status.page.checked': 'Gerade eben geprüft, aus Ihrem Browser.',
+  'm.status.page.help': 'Hilfe →',
   'footer.terms': 'Nutzungsbedingungen',
   'draft.banner': 'Maschinell erstellter Übersetzungsentwurf, wird noch geprüft. Maßgeblich ist die englische Seite.',
   'draft.showEnglish': 'Englisch anzeigen',

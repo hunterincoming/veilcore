@@ -175,6 +175,7 @@ export const AppFooter: React.FC<{
               </Typography>
               <Item to="/records">{t('footer.yourRecords')}</Item>
               <Item to="/licenses">{t('footer.agreements')}</Item>
+              <Item to="/help">{t('footer.help')}</Item>
               <Item to="/privacy">{t('footer.privacy')}</Item>
               <Item to="/terms">{t('footer.terms')}</Item>
               {children}

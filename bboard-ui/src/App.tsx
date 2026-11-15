@@ -7,6 +7,8 @@ import React, { Suspense, lazy, useEffect, useRef } from 'react';
 import { Home } from './components/site/Home';
 import { Founders, VerifyLookup } from './components/site/Founders';
 import { Privacy } from './components/site/Privacy';
+import { Help } from './components/site/Help';
+import { Status } from './components/site/Status';
 import { NotFound } from './components/site/NotFound';
 import { PageErrorBoundary } from './components/PageErrorBoundary';
 import { SiteHeader } from './components/SiteHeader';
@@ -15,7 +17,7 @@ import { Box, Container, GlobalStyles, ThemeProvider } from '@mui/material';
 import { MotionConfig } from 'framer-motion';
 import { FONT, lightFocusStyles, lightTheme } from './config/theme';
 import { focusScreenHeading } from './components/flow/FlowFrame';
-import { Routes, Route, createRoutesFromChildren, matchRoutes, useLocation } from 'react-router-dom';
+import { Navigate, Routes, Route, createRoutesFromChildren, matchRoutes, useLocation } from 'react-router-dom';
 import { IS_MAINNET } from './config/network';
 import { useI18n } from './i18n';
 import type { StringKey } from './i18n/en';
@@ -260,6 +262,8 @@ const withLayout = (el: React.ReactNode) => (
 const PAGE_TITLES: [RegExp, string][] = [
   [/^\/founders/, 'Founders'],
   [/^\/terms/, 'Terms of use'],
+  [/^\/help/, 'Help'],
+  [/^\/status/, 'Service status'],
   [/^\/check-this-site/, 'Check this site'],
   [/^\/privacy/, IS_MAINNET ? 'Site privacy' : 'Demo privacy'],
   [/^\/verify\/example/, 'Example record'],
@@ -282,6 +286,8 @@ const HOME_TITLE = typeof document === 'undefined' ? '' : document.title;
 const TITLE_KEYS: Record<string, StringKey> = {
   Founders: 'title.founders',
   'Terms of use': 'title.terms',
+  Help: 'title.help',
+  'Service status': 'title.status',
   'Check this site': 'title.checkSite',
   'Site privacy': 'title.privacyMainnet',
   'Demo privacy': 'title.privacy',
@@ -337,6 +343,11 @@ const routes = (
     <Route path="/founders" element={<Founders />} />
     <Route path="/privacy" element={<Privacy />} />
     <Route path="/terms" element={<Terms />} />
+    <Route path="/help" element={<Help />} />
+    <Route path="/status" element={<Status />} />
+    {/* The addresses people try first: both are sections of /help. */}
+    <Route path="/faq" element={<Navigate to="/help" replace />} />
+    <Route path="/contact" element={<Navigate to="/help#contact" replace />} />
     <Route path="/check-this-site" element={<CheckThisSite />} />
     <Route path="/partners" element={<PartnersPage />} />
     <Route path="/verify" element={<VerifyLookup />} />
