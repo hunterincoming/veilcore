@@ -22,7 +22,7 @@ const sendsCommon: Strings = {
   'm.for.1p':
     "Scellez un enregistrement et associez-y son rapport ADN. Si la plante réapparaît sous un autre nom, un laboratoire peut comparer un nouveau test avec votre rapport. Sur ce site, vous pouvez dater l'association depuis votre navigateur, et personne ne peut la copier sur son propre enregistrement. VeilCore ne fait pas de tests ADN.",
   'm.for.6p':
-    'On vous envoie un lien. Vous touchez une fois, et la page de votre interlocuteur vérifie sur le réseau que vous contrôlez la clé propre à votre plante. Votre enregistrement a nommé cette clé au moment où il a été scellé : elle ne peut donc pas être remplacée. Cela ne dit rien de qui vous êtes ni de qui a obtenu la plante.',
+    'On vous envoie un lien. Vous touchez une fois, et la page de votre interlocuteur vérifie sur le réseau que vous contrôlez la clé propre à votre enregistrement. Votre enregistrement a nommé cette clé au moment où il a été scellé : elle ne peut donc pas être remplacée. Cela ne dit rien de qui vous êtes ni de qui a obtenu la plante.',
   'm.live.stamp.main':
     'Oui. Les lots sont datés automatiquement, et cela date votre enregistrement. Votre navigateur appose aussi un horodatage sur la clé propre à votre enregistrement, qui ne date que la clé.',
   'm.live.dna.main': 'Oui, envoyé depuis votre navigateur. VeilCore paie les frais.',
@@ -64,7 +64,7 @@ export const frMainnet = buildMainnet({
     'm.for.3p':
       "Envoyez du matériel avec un code laboratoire. Le laboratoire signe un accusé de réception avec sa propre clé, et l'enregistrement montre ainsi une seconde partie. L'accusé est une vraie signature, conservée par le registre de VeilCore, pas sur la chaîne. Des conditions comme l'interdiction de multiplier ne sont qu'un exercice sur ce site.",
     'm.for.6p':
-      'On vous envoie un lien. Vous touchez une fois, et la page de votre interlocuteur vérifie sur le réseau que vous contrôlez la clé propre à votre plante. Votre enregistrement a nommé cette clé au moment où il a été scellé : elle ne peut donc pas être remplacée. Cela ne dit rien de qui vous êtes ni de qui a obtenu la plante. Ce site ne peut pas encore le faire.',
+      'On vous envoie un lien. Vous touchez une fois, et la page de votre interlocuteur vérifie sur le réseau que vous contrôlez la clé propre à votre enregistrement. Votre enregistrement a nommé cette clé au moment où il a été scellé : elle ne peut donc pas être remplacée. Cela ne dit rien de qui vous êtes ni de qui a obtenu la plante. Ce site ne peut pas encore le faire.',
     'footer.privacy': 'Confidentialité du site',
     'title.privacy': 'Confidentialité du site',
     'm.privacy.label': 'Confidentialité du site',

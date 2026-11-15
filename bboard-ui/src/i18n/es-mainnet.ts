@@ -22,7 +22,7 @@ const sendsCommon: Strings = {
   'm.for.1p':
     'Selle un registro y vincule su informe de ADN. Si la planta aparece con otro nombre, un laboratorio puede comparar una prueba nueva con su informe. En este sitio web puede fechar el vínculo desde su navegador, y nadie puede copiarlo a su propio registro. VeilCore no hace pruebas de ADN.',
   'm.for.6p':
-    'Le envían un enlace. Usted toca una vez, y la página de la otra persona comprueba en la red que usted controla la clave propia de su planta. Su registro nombró esa clave al sellarse, así que no se puede cambiar por otra. No dice nada sobre quién es usted ni sobre quién obtuvo la planta.',
+    'Le envían un enlace. Usted toca una vez, y la página de la otra persona comprueba en la red que usted controla la clave propia de su registro. Su registro nombró esa clave al sellarse, así que no se puede cambiar por otra. No dice nada sobre quién es usted ni sobre quién obtuvo la planta.',
   'm.live.stamp.main':
     'Sí. Los lotes se fechan automáticamente, y eso fecha su registro. Su navegador además pone un sello de fecha a la clave propia de su registro, que solo fecha la clave.',
   'm.live.dna.main': 'Sí, enviado desde su navegador. VeilCore paga la tarifa.',
@@ -64,7 +64,7 @@ export const esMainnet = buildMainnet({
     'm.for.3p':
       'Envíe material con un código de laboratorio. El laboratorio firma un acuse de recibo con su propia clave, así el registro muestra a una segunda parte. El acuse es una firma real, guardada por el registro de VeilCore, no en la cadena. Condiciones como no propagar son solo de práctica en este sitio web.',
     'm.for.6p':
-      'Le envían un enlace. Usted toca una vez, y la página de la otra persona comprueba en la red que usted controla la clave propia de su planta. Su registro nombró esa clave al sellarse, así que no se puede cambiar por otra. No dice nada sobre quién es usted ni sobre quién obtuvo la planta. Este sitio web todavía no puede hacerlo.',
+      'Le envían un enlace. Usted toca una vez, y la página de la otra persona comprueba en la red que usted controla la clave propia de su registro. Su registro nombró esa clave al sellarse, así que no se puede cambiar por otra. No dice nada sobre quién es usted ni sobre quién obtuvo la planta. Este sitio web todavía no puede hacerlo.',
     'footer.privacy': 'Privacidad del sitio',
     'title.privacy': 'Privacidad del sitio',
     'm.privacy.label': 'Privacidad del sitio',

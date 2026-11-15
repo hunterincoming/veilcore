@@ -22,7 +22,7 @@ const sendsCommon: Strings = {
   'm.for.1p':
     'Versiegeln Sie einen Datensatz und koppeln Sie seinen DNA-Bericht. Taucht die Pflanze unter anderem Namen auf, kann ein Labor einen neuen Test mit Ihrem Bericht vergleichen. Auf dieser Website können Sie die Kopplung aus Ihrem Browser datieren, und niemand kann sie in seinen eigenen Datensatz kopieren. VeilCore testet keine DNA.',
   'm.for.6p':
-    'Man schickt Ihnen einen Link. Sie tippen einmal, und die Seite der anderen Person prüft im Netzwerk, dass Sie den eigenen Schlüssel Ihrer Pflanze kontrollieren. Ihr Datensatz hat diesen Schlüssel beim Versiegeln benannt, deshalb lässt er sich nicht austauschen. Wer Sie sind oder wer die Pflanze gezüchtet hat, zeigt es nicht.',
+    'Man schickt Ihnen einen Link. Sie tippen einmal, und die Seite der anderen Person prüft im Netzwerk, dass Sie den eigenen Schlüssel Ihres Datensatzes kontrollieren. Ihr Datensatz hat diesen Schlüssel beim Versiegeln benannt, deshalb lässt er sich nicht austauschen. Wer Sie sind oder wer die Pflanze gezüchtet hat, zeigt es nicht.',
   'm.live.stamp.main':
     'Ja. Stapel werden automatisch datiert, und das datiert Ihren Datensatz. Ihr Browser setzt außerdem einen Datumsstempel auf den eigenen Schlüssel Ihres Datensatzes, der nur den Schlüssel datiert.',
   'm.live.dna.main': 'Ja, aus Ihrem Browser gesendet. VeilCore zahlt die Gebühr.',
@@ -64,7 +64,7 @@ export const deMainnet = buildMainnet({
     'm.for.3p':
       'Senden Sie Material mit einem Laborcode. Das Labor signiert eine Empfangsbestätigung mit seinem eigenen Schlüssel, sodass der Datensatz eine zweite Partei zeigt. Die Bestätigung ist eine echte Signatur, gespeichert im Register von VeilCore, nicht auf der Chain. Bedingungen wie „keine Vermehrung“ sind auf dieser Website nur zum Üben.',
     'm.for.6p':
-      'Man schickt Ihnen einen Link. Sie tippen einmal, und die Seite der anderen Person prüft im Netzwerk, dass Sie den eigenen Schlüssel Ihrer Pflanze kontrollieren. Ihr Datensatz hat diesen Schlüssel beim Versiegeln benannt, deshalb lässt er sich nicht austauschen. Wer Sie sind oder wer die Pflanze gezüchtet hat, zeigt es nicht. Diese Website kann das noch nicht.',
+      'Man schickt Ihnen einen Link. Sie tippen einmal, und die Seite der anderen Person prüft im Netzwerk, dass Sie den eigenen Schlüssel Ihres Datensatzes kontrollieren. Ihr Datensatz hat diesen Schlüssel beim Versiegeln benannt, deshalb lässt er sich nicht austauschen. Wer Sie sind oder wer die Pflanze gezüchtet hat, zeigt es nicht. Diese Website kann das noch nicht.',
     'footer.privacy': 'Datenschutz der Website',
     'title.privacy': 'Datenschutz der Website',
     'm.privacy.label': 'Datenschutz der Website',

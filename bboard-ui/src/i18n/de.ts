@@ -382,7 +382,7 @@ export const de: Strings = {
     'Das Labor signiert Ihren Bericht und verschließt ihn so, dass nur Sie ihn öffnen können. Kein PDF liegt in irgendeinem Posteingang. Die verschlossene Datei wartet auf dem Server von VeilCore darauf, dass Sie sie öffnen, und wir haben ihren Schlüssel nicht. VeilCore erfasst, wer signiert hat; für das Ergebnis bürgt VeilCore nicht. Neu und noch in der Erprobung.',
   'm.for.6t': 'Jemand verlangt einen Nachweis.',
   'm.for.6p':
-    'Man schickt Ihnen einen Link. Sie tippen einmal, und die Seite der anderen Person prüft im Netzwerk, dass Sie den eigenen Schlüssel Ihrer Pflanze kontrollieren. Ihr Datensatz hat diesen Schlüssel beim Versiegeln benannt, deshalb lässt er sich nicht austauschen. Wer Sie sind oder wer die Pflanze gezüchtet hat, zeigt es nicht. Das funktioniert vorerst in einem Testnetz von Midnight.',
+    'Man schickt Ihnen einen Link. Sie tippen einmal, und die Seite der anderen Person prüft im Netzwerk, dass Sie den eigenen Schlüssel Ihres Datensatzes kontrollieren. Ihr Datensatz hat diesen Schlüssel beim Versiegeln benannt, deshalb lässt er sich nicht austauschen. Wer Sie sind oder wer die Pflanze gezüchtet hat, zeigt es nicht. Das funktioniert vorerst in einem Testnetz von Midnight.',
   'm.for.5t': 'Tierlinien.',
   'm.for.5p':
     'Herdbücher führen die Abstammung. Ein Datensatz kann jedem Eintrag ein Datum geben, das niemand zurückdatieren kann, ohne den Genotyp zu veröffentlichen. Auf dieser Website können Sie ein Tier erfassen: seine Einzeltierkennung, Vater und Mutter und einen DNA-Bericht.',

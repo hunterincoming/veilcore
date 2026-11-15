@@ -697,7 +697,7 @@ describe('round 3: what a page may claim', () => {
     for (const [site, s] of Object.entries(SITES)) {
       expect(offenders(s, /that you hold the record|shows you hold it/i), site).toEqual([]);
       expect(s['m.for.6p'], site).toMatch(
-        /you control your plant's own key\. Your record named that key when it was sealed, so it can't be swapped\./,
+        /you control your record's own key\. Your record named that key when it was sealed, so it can't be swapped\./,
       );
       expect(s['m.for.6p'], site).toMatch(/It says nothing about who you are or who bred the plant\./);
       // The old "your statement" wording predates the record naming its key.
