@@ -7,8 +7,6 @@ import React, { Suspense, lazy, useEffect, useRef } from 'react';
 import { Home } from './components/site/Home';
 import { Founders, VerifyLookup } from './components/site/Founders';
 import { Privacy } from './components/site/Privacy';
-import { Help } from './components/site/Help';
-import { Status } from './components/site/Status';
 import { NotFound } from './components/site/NotFound';
 import { PageErrorBoundary } from './components/PageErrorBoundary';
 import { SiteHeader } from './components/SiteHeader';
@@ -98,6 +96,8 @@ const VerifyExample = page(() => import('./components/verify/VerifyExample'), 'V
 // Round 5 (CONTRACT.md #31): this site's files against its release's published list.
 const CheckThisSite = page(() => import('./components/site/CheckThisSite'), 'CheckThisSite');
 const Terms = page(() => import('./components/site/Terms'), 'Terms');
+const Help = page(() => import('./components/site/Help'), 'Help');
+const Status = page(() => import('./components/site/Status'), 'Status');
 // Only in the end-to-end build (package.json e2e:build sets VITE_E2E_FIXTURES=1): a stand-in for
 // a live license's page around the real royalty ledger (e2e-fixtures/RoyaltyPayFixture.tsx). The
 // condition is a constant in every other build, so the page and its route are left out of it.
