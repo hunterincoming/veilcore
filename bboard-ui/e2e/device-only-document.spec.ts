@@ -3,7 +3,8 @@
 // first; a document sealed that way sends the registry its dating row (id, proof code, key
 // binding) and nothing else, through a reload, Home and the sync, in a browser whose vault key
 // is already in a checked backup (where an ordinary record's locked copy goes up at once). Its
-// page says it is kept here only. Its check link, opened as a stranger would, recomputes the
+// page says it is kept here only, and that it is not in a backup until one is saved and checked.
+// Its check link, opened as a stranger would, recomputes the
 // proof code, compares the file, and finds the date by proof code alone once a batch holds it.
 // All files and records are test data.
 // SPDX-License-Identifier: Apache-2.0
@@ -18,6 +19,7 @@ import {
   isolate,
   json,
   newVaultKey,
+  saveAndCheckBackup,
   watch,
   type Handler,
 } from './helpers';
@@ -141,7 +143,9 @@ test('a document kept on this device only: the registry gets its dating row and 
   await expect(box).not.toBeChecked();
   await expect(choice).toContainText('Nothing you type here is sent to VeilCore, locked or not.');
   await expect(choice).toContainText('VeilCore’s server can’t give this record back');
-  await expect(choice).toContainText('Your backup file is the only copy besides this browser.');
+  await expect(choice).toContainText('its ID, its proof code and its key binding');
+  await expect(choice).toContainText('The only copies are this browser’s and a backup file saved after sealing.');
+  await expect(choice).toContainText('A backup saved earlier doesn’t hold this record, and a passkey copy never does.');
   await expect(choice).toContainText('Anyone with its check link and the file can still check it.');
 
   // 2. Seal a document that way.
@@ -157,15 +161,33 @@ test('a document kept on this device only: the registry gets its dating row and 
   await box.check();
   await page.getByRole('button', { name: 'Seal it' }).click();
 
-  // 3. Its page says where it is kept, plainly.
-  await expect(page).toHaveURL(/\/record\/VEIL-[0-9A-F]+$/);
-  const recordId = page.url().split('/record/')[1];
+  // 3. The backup step comes next, before the record's page: until a backup that holds it is
+  //    saved and checked, this browser has the only copy, and every screen says so.
+  await expect(page.locator('[data-device-only-backup-step]')).toContainText(
+    'Sealed. Now save a backup and check it: until you do, this browser holds the only copy of this record.',
+  );
+  const recordId = await page.evaluate((holder) => {
+    const kept = JSON.parse(localStorage.getItem('veilcore.device-only.v1') ?? '{}') as Record<string, object>;
+    return Object.keys(kept[holder] ?? {})[0] ?? '';
+  }, HOLDER);
+  expect(recordId).toMatch(/^VEIL-[0-9A-F]+$/);
+  // They leave without saving it. Home and the record's page say it is not in a backup yet.
+  await page.goto('/records');
+  await expect(page.locator(`[data-home-device-only="${recordId}"]`)).toHaveText(
+    'On this device only · not in a backup yet',
+  );
+  await page.goto(`/record/${recordId}`);
   await expect(page.getByRole('heading', { name: TITLE })).toBeVisible();
   const notice = page.locator('[data-device-only]');
-  await expect(notice).toContainText('Kept on this device only');
-  await expect(notice).toContainText('Nothing typed into this record was sent to VeilCore, locked or not');
-  await expect(notice).toContainText('VeilCore can’t give it back');
-  await expect(notice.getByRole('link', { name: 'Save a backup' })).toBeVisible();
+  await expect(notice).toHaveAttribute('data-device-only', 'not-in-backup');
+  await expect(notice).toContainText('Not in a backup yet. This browser holds the only copy of this record');
+  // What has left the device, said exactly.
+  await expect(page.locator('[data-device-only-sent]')).toContainText(
+    'the record’s ID, its proof code and its key binding, sent to VeilCore to date it',
+  );
+  await expect(page.locator('[data-device-only-conflict]')).toHaveCount(0);
+  // The key's date stamp is not started by anything but its button.
+  await expect(page.locator('[data-device-only-stamp]')).toContainText('nothing starts it but the button below');
   const proofCode = (
     await page
       .locator('[data-document-page]')
@@ -174,6 +196,15 @@ test('a document kept on this device only: the registry gets its dating row and 
       .textContent()
   )?.trim();
   expect(proofCode).toMatch(/^[0-9a-f]{64}$/);
+  // Save the backup and check it: now the page says where the two copies are.
+  await notice.getByRole('link', { name: 'Save a backup' }).click();
+  await expect(page).toHaveURL(/\/backup$/);
+  await saveAndCheckBackup(page);
+  await page.goto(`/record/${recordId}`);
+  await expect(notice).toHaveAttribute('data-device-only', 'in-backup');
+  await expect(notice).toContainText('Kept on this device only');
+  await expect(notice).toContainText('Nothing typed into this record was sent to VeilCore, locked or not');
+  await expect(notice).toContainText('VeilCore can’t give it back');
 
   // 4. The registry was sent the dating row: the id, the proof code and the key binding.
   await expect.poll(() => reg.dating.length, { timeout: 30_000 }).toBe(1);
@@ -248,6 +279,21 @@ test('a document kept on this device only: the registry gets its dating row and 
   }));
   expect(kept.here).toContain(recordId);
   expect(kept.queue).not.toContain(recordId);
+
+  // 9. The holder can delete it from this device, after a warning. Nothing is sent: the registry
+  //    keeps the proof code it was given, and the record is gone from this browser.
+  const sentBefore = reg.seen.length;
+  await page.goto(`/record/${recordId}`);
+  page.once('dialog', (d) => {
+    expect(d.message()).toContain('VeilCore keeps the record’s ID, proof code and key binding, and nothing else');
+    void d.accept();
+  });
+  await page.locator('[data-device-only-delete]').click();
+  await expect(page).toHaveURL(/\/records$/);
+  await expect(page.locator(`[data-home-device-only="${recordId}"]`)).toHaveCount(0);
+  expect(await page.evaluate(() => localStorage.getItem('veilcore.device-only.v1') ?? '')).not.toContain(recordId);
+  expect(reg.seen.slice(sentBefore).filter((r) => r.method !== 'GET')).toEqual([]);
+  expect(reg.rows.find((r) => r.id === recordId)?.bodyPending).toBe(true);
   expectNoErrors(errors);
 });
 

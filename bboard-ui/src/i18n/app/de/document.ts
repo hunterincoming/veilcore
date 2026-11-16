@@ -169,22 +169,41 @@ export const document = {
   'app.doc.local.choice': 'Diesen Datensatz nur auf diesem Gerät und in meiner Sicherung aufbewahren',
   'app.doc.local.before': 'Bevor Sie wählen:',
   'app.doc.local.p1':
-    'Nichts, was Sie hier eingeben, wird an VeilCore gesendet, weder verschlossen noch offen. Gesendet wird nur der Prüfcode, damit der Datensatz sein Datum erhält.',
+    'Nichts, was Sie hier eingeben, wird an VeilCore gesendet, weder verschlossen noch offen. Gesendet wird, damit der Datensatz sein Datum erhält: seine Kennung, sein Prüfcode und seine Schlüsselbindung (ein Code aus dem eigenen Schlüssel des Datensatzes).',
   'app.doc.local.p2':
     'Der Server von VeilCore kann diesen Datensatz nicht zurückgeben: Er hat ihn zu keinem Zeitpunkt.',
   'app.doc.local.p3':
-    'Ihre Sicherungsdatei ist die einzige Kopie neben diesem Browser. Werden die Daten dieses Browsers gelöscht und haben Sie keine Sicherung, ist der Datensatz weg.',
+    'Die einzigen Kopien liegen in diesem Browser und in einer Sicherungsdatei, die nach dem Versiegeln gespeichert wurde. Eine früher gespeicherte Sicherung enthält diesen Datensatz nicht, eine Passkey-Kopie enthält ihn in keinem Fall. Gleich nach dem Versiegeln werden Sie gebeten, eine Sicherung zu speichern und zu prüfen.',
   'app.doc.local.p4': 'Wer den Prüflink und die Datei hat, kann ihn weiterhin prüfen.',
   'app.doc.local.p5': 'Das wird einmal gewählt, beim Versiegeln. Danach lässt es sich nicht ändern.',
   'app.doc.local.title': 'Nur auf diesem Gerät aufbewahrt',
   'app.doc.local.text':
-    'Nichts, was in diesen Datensatz eingegeben wurde, ging an VeilCore, weder verschlossen noch offen: nur sein Prüfcode, um ihn zu datieren. Die einzigen Kopien liegen in diesem Browser und in Ihrer Sicherungsdatei. Werden die Daten dieses Browsers gelöscht und haben Sie keine Sicherung, ist der Datensatz weg, und VeilCore kann ihn nicht zurückgeben.',
+    'Nichts, was in diesen Datensatz eingegeben wurde, ging an VeilCore, weder verschlossen noch offen. Die einzigen Kopien liegen in diesem Browser und in der Sicherungsdatei, die Sie geprüft haben. Gehen beide verloren, ist der Datensatz weg: VeilCore kann ihn nicht zurückgeben. Eine Sicherung von vor dem Versiegeln enthält ihn nicht, eine Passkey-Kopie enthält ihn in keinem Fall.',
+  'app.doc.local.notBacked':
+    'Noch in keiner Sicherung. Die einzige Kopie dieses Datensatzes liegt in diesem Browser: Werden dessen Daten jetzt gelöscht, ist der Datensatz weg, und VeilCore kann ihn nicht zurückgeben. Speichern Sie jetzt Ihre Sicherungsdatei und prüfen Sie sie.',
+  'app.doc.local.sent':
+    'Was dieses Gerät verlassen hat: die Kennung des Datensatzes, sein Prüfcode und seine Schlüsselbindung, an VeilCore gesendet, um ihn zu datieren. Bei jeder Anfrage erfährt VeilCore Ihre Netzwerkadresse und die Uhrzeit. Wenn Sie eine Passkey-Kopie haben, enthält sie die Kennung und die Schlüssel dieses Datensatzes, verschlossen, auf dem Server von VeilCore; in keinem Fall das, was Sie eingegeben haben.',
+  'app.doc.local.stamp':
+    'Ob Sie den Schlüssel dieses Datensatzes mit einem Datum stempeln, entscheiden Sie; gestartet wird das nur über die Schaltfläche unten. Tun Sie es, geht ein Code aus dem Schlüssel über den Gebührendienst von VeilCore an Midnight. Nichts von dem, was Sie eingegeben haben, geht mit.',
+  'app.doc.local.conflict':
+    'Der Server von VeilCore hat mit etwas anderem geantwortet als nur mit dem Prüfcode dieses Datensatzes. Was Sie sehen, ist die eigene Kopie dieses Geräts. Es wird nichts weiter gesendet, und die Antwort des Servers ändert hier nichts.',
+  'app.doc.local.homeNotBacked': 'Nur auf diesem Gerät · noch in keiner Sicherung',
   'app.doc.local.backup': 'Sicherung speichern',
   'app.doc.local.homeLine': 'Nur auf diesem Gerät',
   'app.doc.local.noProve':
     'Der Nachweis einer Zahl sendet Angaben aus diesem Browser. Für einen Datensatz, der nur auf diesem Gerät aufbewahrt wird, gibt es ihn deshalb nicht.',
   'app.doc.local.staysHere':
-    'Dieser Datensatz wird nur auf diesem Gerät aufbewahrt, daher wird nichts daraus an VeilCore gesendet.',
+    'Dieser Datensatz wird nur auf diesem Gerät aufbewahrt, deshalb gibt es das für ihn nicht.',
+  'app.doc.local.delete': 'Von diesem Gerät löschen',
+  'app.doc.local.deleteConfirm':
+    'Diesen Datensatz von diesem Gerät löschen? Das lässt sich hier nicht rückgängig machen. Eine Sicherungsdatei, die ihn enthält, enthält ihn weiterhin. VeilCore behält die Kennung, den Prüfcode und die Schlüsselbindung des Datensatzes und sonst nichts; sein Datum gilt also weiter für alle, die den Prüflink haben.',
+  'app.doc.local.toRecord': 'Zum Datensatz',
+  'app.doc.local.backupNow':
+    'Versiegelt. Speichern Sie jetzt eine Sicherung und prüfen Sie sie: Bis dahin liegt die einzige Kopie dieses Datensatzes in diesem Browser.',
+  'app.doc.local.backupMissing':
+    'Diese Sicherung enthält Ihre Dokumente nicht, die nur auf diesem Gerät aufbewahrt werden. Speichern Sie eine neue und prüfen Sie diese.',
+  'app.doc.local.backupFailed':
+    'Die Sicherung konnte nicht erstellt werden: Ein Dokument, das nur auf diesem Gerät aufbewahrt wird, ließ sich nicht aufnehmen. Es wurde nichts gespeichert. Laden Sie die Seite neu und versuchen Sie es noch einmal.',
   'app.doc.local.noCorrect':
     'Ein Datensatz, der nur auf diesem Gerät aufbewahrt wird, lässt sich nicht korrigieren. Versiegeln Sie das Dokument erneut als neuen Datensatz.',
 } satisfies Partial<AppTranslation>;

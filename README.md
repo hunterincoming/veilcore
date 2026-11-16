@@ -149,8 +149,10 @@ Plant genetics is the first use, not the limit. The record format is domain-blin
 - **A document can be kept on the device only.** On "Seal a document" the holder can choose to
   keep the record on this device and in the backup file only. Then nothing typed is sent,
   locked or not: the registry gets the record's id, proof code and key binding, to date it, and
-  never its locked box. The registry can't give such a record back; the browser and the backup
-  file hold the only copies. Built; not yet tried on the main network
+  never its locked box. The registry can't give such a record back; the only copies are in the
+  browser and in a backup file saved after sealing (the app asks for one straight away, and
+  says so until it is checked). Whatever the registry later answers for that record, the
+  browser keeps its own copy and sends nothing more. Built; not yet tried on the main network
   ([`docs/device-only-records.md`](docs/device-only-records.md)).
 - **What the registry can read:** each record's id, profile, proof code and key binding; a
   code made from its name (useless without the salt in the holder's check link); correction

@@ -174,12 +174,17 @@ export const BackupStep: React.FC<{
         const made = await prepareToReceive().catch(() => undefined);
         setLabKeyMissing(!made || !('ok' in made));
       }
+      setProblem(undefined);
       const now = Date.now();
       const text = await backupFileText(usePassword ? pw : undefined, now);
       savedText.current = text;
       savedAt.current = now;
       setLocked(usePassword);
       setSaved(downloadBackupAll(now, text));
+    } catch (e) {
+      // A file that couldn't be made whole is not saved, and the reason is said (backup.ts: a
+      // document kept on this device only that couldn't be put in it).
+      setProblem(e instanceof Error ? e.message : String(e));
     } finally {
       setLocking(false);
     }

@@ -73,7 +73,7 @@ UK representative go here once VeilCore is incorporated.]*
 | Each record's secret keys (made when you seal a record that names its key, or send it to a lab) | Your browser and the backup file you save. A copy also goes inside the record's locked box, so restoring your vault key brings them back; VeilCore can't open it. Never sent readable. |
 | The vault key that locks your records and licences | Your browser and the backup file you save. Never sent to VeilCore. |
 | A lab's private signing key | The lab's own browser and its backup file. Only the public key is sent to VeilCore. |
-| A document you chose to keep on this device only (a choice when sealing a document) | Your browser and the backup file you save. Nothing you typed into it is sent to VeilCore, locked or not: the server gets its id, proof code and key binding, to date it. VeilCore can't give it back. |
+| A document you chose to keep on this device only (a choice when sealing a document) | Your browser and a backup file you save after sealing it (one saved before doesn't hold it; a passkey copy holds its id and keys, never the record). Nothing you typed into it is sent to VeilCore, locked or not: the server gets its id, proof code and key binding, to date it. VeilCore can't give it back. |
 
 ## What your browser keeps
 
@@ -89,7 +89,7 @@ The site uses your browser's local storage, on this device only. No cookies.
 | Deliveries, codes, opened lab reports (`veilcore.lab-deliveries.v1`, `veilcore.sent-codes.v1`, `veilcore.opened-results.v1`) | Lab codes you made or used and which reports you've opened. |
 | Check requests (`veilcore.prove-asks.v1`, `veilcore.verifier-challenges.v1`, `veilcore.verifier-challenges.lasting.v1`) | Requests you made to someone to prove they control a record's key, and their answers. |
 | A form you haven't finished (`veilcore.log-draft.v1`) | So a half-typed record isn't lost. |
-| Documents kept on this device only (`veilcore.device-only.v1`) | The records themselves. This browser and your backup file hold the only copies. |
+| Documents kept on this device only (`veilcore.device-only.v1`, `veilcore.device-only-backup.v1`) | The records themselves, and which of them are in a backup file you have checked. The only copies are this browser's and that file's. |
 | A random fee-sponsor ticket (`veilcore.sponsor-ticket.v1`) | Made for the date-stamp service only. Not your holder key. |
 | Your role and language (`veilcore.role.v1`, `veilcore.lang`), a "seen this" flag (`veilcore.lab-visibility-seen.v2`) | Settings. |
 

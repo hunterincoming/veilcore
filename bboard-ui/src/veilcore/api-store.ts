@@ -74,7 +74,7 @@ import { readJson, isObject, isString } from './json';
 import { nameCodeOf } from './verify-link';
 import { fingerprintRecord, type CommittedRecordInput } from './commitment';
 import { withTabLock } from './tab-lock';
-import { isDeviceOnly } from './outbox';
+import { neverSend } from './outbox';
 import {
   canStoreVault,
   isSealedRow,
@@ -398,6 +398,7 @@ export const clearSealedState = (): void => {
   unanswered.clear();
   olderCopies.clear();
   datedHere.clear();
+  datingPrints.clear();
   noteSealedRowsSeen(false);
   changed();
 };
@@ -725,6 +726,7 @@ export const apiStore: Store = {
       ...(isString(raw.recordFingerprint) ? { recordFingerprint: raw.recordFingerprint } : {}),
     });
     for (const k of [...olderCopies.keys()]) if (k.startsWith(`${kind}:`)) olderCopies.delete(k);
+    if (kind === 'records') datingPrints.clear();
     for (const raw of rows) {
       if (!isObject(raw) || !isString(raw.id)) {
         unreadable++;
@@ -748,6 +750,7 @@ export const apiStore: Store = {
       // copy this browser keeps (outbox.ts), which records.ts puts back and saves once it can.
       if (kind === 'records' && raw.bodyPending === true && !isSealedRow(raw)) {
         states.set(id, 'dating');
+        if (isString(raw.recordFingerprint)) datingPrints.set(id, raw.recordFingerprint);
         continue;
       }
       if (isSealedRow(raw)) {
@@ -828,6 +831,9 @@ export const apiStore: Store = {
         value = stubRecord(raw);
         state = 'stub';
       }
+      // "Kept on this device only" is this browser's word, never the registry's: a row it sent
+      // doesn't carry the mark into the app (docs/device-only-records.md).
+      if ('deviceOnly' in value) value = withoutKeys(value, ['deviceOnly']);
       // Malformed rows are counted, not silently dropped: one bad row should not blank a
       // holder's records, and the holder is told some could not be read.
       if (!isValid(value)) {
@@ -929,15 +935,18 @@ const sealForSave = async (kind: RowKind, value: readonly unknown[]): Promise<Se
   for (const item of value) {
     if (!isObject(item) || !isString(item.id)) continue;
     const id = item.id;
+    // A record kept on this device only (docs/device-only-records.md) is never sealed for the
+    // registry and never sent: not now, not held for the backup, not queued. Decided first, by
+    // id from this browser's own store and by the record's mark, before anything the registry
+    // said about the row is looked at (an emptied or locked row an import may replace, an older
+    // copy kept): none of that can make it sendable. records.ts takes these out before a save;
+    // this is the last place one could pass.
+    if (kind === 'records' && neverSend(item)) continue;
     const was = state?.states.get(id);
     // A locked row is never sent back: this browser can't know what is in it. Nor is a row
     // the registry sent an older copy of, which this browser has no newer copy of. An import
     // that put the holder's own contents back (L4) is the one exception.
     if ((was === 'locked' && !state?.replace.has(id)) || was === 'older') continue;
-    // A record kept on this device only (docs/device-only-records.md) is never sealed for the
-    // registry and never sent: not now, not held for the backup, not queued. records.ts takes
-    // these out before a save; this is the last place one could pass, so it is checked again.
-    if (kind === 'records' && isDeviceOnly(item)) continue;
     if (was === 'legacy' && backupFirst) {
       // Left as the registry holds it until the backup is checked. A change made to it here
       // can't be kept until then, and is said: for agreements too (L3), whose changes used
@@ -1177,6 +1186,10 @@ export const datingRowOf = (r: Record<string, unknown>): DatingRow | undefined =
 
 /** Proof codes the registry took from this page (id → proof code). */
 const datedHere = new Map<string, string>();
+/** The proof code each dating row carried at the last load (id → proof code), as the registry sent it. */
+const datingPrints = new Map<string, string>();
+/** The proof code the registry's dating row holds for this id, as of the last load. */
+export const datedProofCodeOf = (id: string): string | undefined => datingPrints.get(id);
 
 /**
  * Send records' proof codes to be dated now, before their locked copies (which wait for a

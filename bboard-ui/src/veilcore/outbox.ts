@@ -80,7 +80,7 @@ export const inOutbox = (id: string): boolean => id in outboxRecords();
  * kept on this device only (below): this is the queue of what waits to be sent.
  */
 export const putInOutbox = (records: readonly Record<string, unknown>[]): void => {
-  const sendable = records.filter((r) => !isDeviceOnly(r));
+  const sendable = records.filter((r) => !neverSend(r));
   if (sendable.length === 0) return;
   const here = outboxRecords();
   for (const r of sendable) if (isString(r.id)) here[r.id] = r;
@@ -123,6 +123,40 @@ export const deviceOnlyRecords = (): Record<string, Record<string, unknown>> => 
 };
 
 export const keptOnDeviceOnly = (id: string): boolean => id in deviceOnlyRecords();
+
+/**
+ * Whether this id is a record kept on this device only. This is the test every outgoing path
+ * uses, by id and from this browser's own store: never from what a record object says about
+ * itself (a row the registry sent could say anything), and never from the registry's answer.
+ */
+export const neverSend = (r: unknown): boolean =>
+  isDeviceOnly(r) || (isObject(r) && isString(r.id) && keptOnDeviceOnly(r.id));
+
+/** Take a record off this device (the holder's own choice: records.ts deleteDeviceOnly). */
+export const dropFromDevice = (id: string): void => {
+  const here = deviceOnlyRecords();
+  if (id in here) {
+    delete here[id];
+    setMine(DEVICE_ONLY, here);
+  }
+  const backed = mine<unknown>(DEVICE_ONLY_BACKED);
+  if (id in backed) {
+    delete backed[id];
+    setMine(DEVICE_ONLY_BACKED, backed);
+  }
+};
+
+// Which of them are in a backup file the holder has checked, by id and proof code. Until one
+// is, this browser holds its only copy, and its page says so.
+const DEVICE_ONLY_BACKED = 'veilcore.device-only-backup.v1';
+
+export const deviceOnlyInBackup = (id: string, recordFingerprint: string | undefined): boolean =>
+  !!recordFingerprint && mine<unknown>(DEVICE_ONLY_BACKED)[id] === recordFingerprint;
+
+export const markDeviceOnlyInBackup = (prints: Readonly<Record<string, string>>): void => {
+  if (Object.keys(prints).length === 0) return;
+  setMine(DEVICE_ONLY_BACKED, { ...mine<unknown>(DEVICE_ONLY_BACKED), ...prints });
+};
 
 /** Keep these records on this device (replacing any kept copy). Only records marked `deviceOnly`. */
 export const keepOnDevice = (records: readonly Record<string, unknown>[]): void => {

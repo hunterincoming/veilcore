@@ -517,7 +517,31 @@ describe("what's live where", () => {
     )?.[1];
     expect(localRun).toBe('false');
     expect(e['m.live.local.main']).toBe('Built, not yet tried on the main network.');
-    expect(e['m.live.local.test']).toMatch(/^Yes, for document records\. Only the proof code is sent to VeilCore/);
+    // What leaves is said exactly (the id, the proof code, the key binding), never "only the proof code".
+    expect(e['m.live.local.test']).toBe(
+      'Yes, for document records. Nothing you type is sent to VeilCore: only the record’s ID, its proof code and its key binding.',
+    );
+    for (const dict of [appEn, appDe, appEs, appFr, appJa]) {
+      const a = dict as Record<string, string>;
+      for (const k of ['p1', 'p3', 'text', 'notBacked', 'sent', 'stamp', 'conflict', 'staysHere', 'deleteConfirm'])
+        expect(a[`app.doc.local.${k}`], k).toBeTruthy();
+    }
+    const app = appEn as Record<string, string>;
+    expect(app['app.doc.local.p1']).toMatch(/its ID, its proof code and its key binding/);
+    expect(app['app.doc.local.p1']).not.toMatch(/Only the proof code/);
+    // The backup: never "your backup file holds it" without saying which backup.
+    expect(app['app.doc.local.p3']).toMatch(
+      /A backup saved earlier doesn’t hold this record, and a passkey copy never does/,
+    );
+    expect(app['app.doc.local.text']).toMatch(/the backup file you checked/);
+    expect(app['app.doc.local.notBacked']).toMatch(/^Not in a backup yet\. This browser holds the only copy/);
+    // Everything that leaves, on the record's own page.
+    expect(app['app.doc.local.sent']).toMatch(/the record’s ID, its proof code and its key binding/);
+    expect(app['app.doc.local.sent']).toMatch(/your network address and the time/);
+    expect(app['app.doc.local.sent']).toMatch(
+      /passkey copy, it holds this record’s ID and its keys, locked, on VeilCore’s server/,
+    );
+    expect(app['app.doc.local.stamp']).toMatch(/goes to Midnight through VeilCore’s fee service/);
     for (const l of Object.values(LANGUAGES)) {
       const s = l.strings as Record<string, string>;
       for (const k of ['t', 'main', 'test', 'live']) expect(s[`m.live.local.${k}`], k).toBeTruthy();
@@ -530,10 +554,16 @@ describe("what's live where", () => {
     for (const s of [testSite, ...mainnetVariants]) expect(s['m.live.local.main']).toBe(e['m.live.local.main']);
     // What the privacy note promises is what the code sends (veilcore/device-only.test.ts): the
     // record ID, the proof code and the key binding, and that such a record can't be given back.
+    expect(e['m.privacy.deviceonly.text']).toMatch(/nothing you type into it is sent to our server, locked or not\./);
     expect(e['m.privacy.deviceonly.text']).toMatch(
-      /nothing you type into it is sent to our server, locked or not: we get the record ID, its proof code and its key binding/,
+      /What we do get: the record ID, its proof code and its key binding, so it can be dated; your network address and the time/,
     );
+    expect(e['m.privacy.deviceonly.text']).toMatch(
+      /passkey copy, the record’s ID and its keys inside that locked copy/,
+    );
+    expect(e['m.privacy.deviceonly.text']).toMatch(/goes to Midnight through our fee service/);
     expect(e['m.privacy.deviceonly.text']).toMatch(/We can’t give such a record back/);
+    expect(e['m.privacy.deviceonly.text']).toMatch(/a backup file saved after it was sealed/);
     // Prove-by-link checks a key, not the record.
     // The record names its own key (SPEC 3.6.1, docs/identity-in-record.md).
     expect(e['m.live.prove.test']).toBe(

@@ -5,10 +5,16 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import React, { useEffect, useState } from 'react';
-import { Link as RouterLink } from 'react-router-dom';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { Alert, Box, Button, Chip, Paper, Stack, Typography } from '@mui/material';
 import HomeIcon from '@mui/icons-material/HomeOutlined';
-import { isKeptOnDeviceOnly, type StrainRecord } from '../../veilcore/records';
+import {
+  deleteDeviceOnly,
+  deviceOnlyBackedUp,
+  deviceOnlyConflict,
+  isKeptOnDeviceOnly,
+  type StrainRecord,
+} from '../../veilcore/records';
 import {
   documentFieldsOf,
   type DocumentFile,
@@ -91,6 +97,17 @@ export const DocumentDetail: React.FC<{ record: StrainRecord }> = ({ record }) =
   // Kept on this device and in the backup only (docs/device-only-records.md): said plainly, and
   // nothing on this page that would send its details anywhere is offered.
   const local = isKeptOnDeviceOnly(record);
+  // Whether a backup file the holder has checked holds it: until one does, this browser has
+  // the only copy, and the page says that instead of "this browser and your backup".
+  const backedUp = local && deviceOnlyBackedUp(record);
+  // The registry answered with something other than this record's proof code alone: said, and
+  // nothing is done about it (records.ts mergeDeviceOnly: this device's copy is what is shown).
+  const conflict = local && deviceOnlyConflict(record.id);
+  const navigate = useNavigate();
+  const removeFromDevice = () => {
+    if (!window.confirm(t('app.doc.local.deleteConfirm'))) return;
+    if (deleteDeviceOnly(record.id)) void navigate('/records');
+  };
   // A kept laboratory signature is checked again against the record before anything shows it
   // as signed (lab-attest.ts): a record restored or edited by hand may no longer match.
   const [labOk, setLabOk] = useState<boolean>();
@@ -161,9 +178,9 @@ export const DocumentDetail: React.FC<{ record: StrainRecord }> = ({ record }) =
         </Box>
         {local && (
           <Alert
-            severity="info"
+            severity={backedUp ? 'info' : 'warning'}
             variant="outlined"
-            data-device-only=""
+            data-device-only={backedUp ? 'in-backup' : 'not-in-backup'}
             action={
               <Button
                 component={RouterLink}
@@ -179,7 +196,17 @@ export const DocumentDetail: React.FC<{ record: StrainRecord }> = ({ record }) =
             <Typography variant="subtitle2" component="h2">
               {t('app.doc.local.title')}
             </Typography>
-            <Typography variant="body2">{t('app.doc.local.text')}</Typography>
+            <Typography variant="body2" sx={{ mb: 1 }} data-device-only-copies="">
+              {t(backedUp ? 'app.doc.local.text' : 'app.doc.local.notBacked')}
+            </Typography>
+            <Typography variant="body2" data-device-only-sent="">
+              {t('app.doc.local.sent')}
+            </Typography>
+          </Alert>
+        )}
+        {conflict && (
+          <Alert severity="warning" variant="outlined" data-device-only-conflict="">
+            {t('app.doc.local.conflict')}
           </Alert>
         )}
         <Paper sx={{ p: { xs: 2.5, md: 3 } }}>
@@ -220,8 +247,13 @@ export const DocumentDetail: React.FC<{ record: StrainRecord }> = ({ record }) =
           </Paper>
         )}
         {read && <HeldNumbers held={read} />}
-        {read && !local && LAB_SIGNING_ENABLED && <LabSignaturePanel record={record} signatureOk={labOk} />}
-        {read && !local && <ProveNumber record={record} labSignatureOk={labOk === true} />}
+        {/* Signing and proving send details out of this browser: not for a record kept here only. */}
+        {!local && (
+          <>
+            {read && LAB_SIGNING_ENABLED && <LabSignaturePanel record={record} signatureOk={labOk} />}
+            {read && <ProveNumber record={record} labSignatureOk={labOk === true} />}
+          </>
+        )}
         {read && local && (
           <Typography variant="body2" color="text.secondary" data-device-only-no-prove="">
             {t('app.doc.local.noProve')}
@@ -256,6 +288,13 @@ export const DocumentDetail: React.FC<{ record: StrainRecord }> = ({ record }) =
         </Paper>
         {REAL_CHAIN && (
           <Paper sx={{ p: { xs: 2.5, md: 3 } }}>
+            {/* The key's date stamp is the one thing here that sends anything, and only when the
+                holder presses its button (useKeyStamp: by itself it only tries a failed one again). */}
+            {local && (
+              <Typography variant="body2" sx={{ mb: 1.5 }} data-device-only-stamp="">
+                {t('app.doc.local.stamp')}
+              </Typography>
+            )}
             <AnchorOnChainPanel recordId={record.id} />
           </Paper>
         )}
@@ -265,6 +304,13 @@ export const DocumentDetail: React.FC<{ record: StrainRecord }> = ({ record }) =
           </Typography>
           <EvidenceBundle record={record} keys={keys} />
         </Paper>
+        {local && (
+          <Box>
+            <Button color="error" onClick={removeFromDevice} sx={{ minHeight: 44 }} data-device-only-delete="">
+              {t('app.doc.local.delete')}
+            </Button>
+          </Box>
+        )}
       </Stack>
     </Box>
   );

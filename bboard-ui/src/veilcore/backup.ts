@@ -45,7 +45,15 @@ import { heldLicensesForBackup, heldMissingFrom, markHeldBackedUp, mergeHeldLice
 import { lenderForBackup, lenderHeldBy, markLenderBackedUp, mergeLender } from './lender';
 import { issuerDealsForBackup, issuerDealsMissingFrom, markIssuerDealsBackedUp, mergeIssuerDeals } from './licenses';
 import { enT } from '../i18n/translate';
-import { importRecordRows, recordsForBackup, type ImportResult } from './records';
+import {
+  DEVICE_ONLY_BACKUP_FAILED,
+  deviceOnlyMissingFrom,
+  importRecordRows,
+  markDeviceOnlyBackedUp,
+  recordsForBackup,
+  type ImportResult,
+} from './records';
+import { deviceOnlyRecords } from './outbox';
 import { proofFor } from './proofs';
 import { dealRecordsForBackup } from './deal-backup';
 import { committedRecordFields, type CommittedRecordInput } from './commitment';
@@ -294,7 +302,15 @@ const PROOF_FETCHES = 6;
 export const withRecordsAndProofs = async (contents: BackupContents): Promise<BackupContents> => {
   const dealRecords = await dealRecordsForBackup().catch(() => []);
   const deals = dealRecords.length ? { dealRecords } : {};
-  const recordData = await recordsForBackup().catch(() => []);
+  // A holder with documents kept on this device only has no other copy of them than this file:
+  // a file that can't hold every one of them is not made, and the reason is said, never a file
+  // quietly without them (docs/device-only-records.md).
+  const localOnly = Object.keys(deviceOnlyRecords()).length > 0;
+  const recordData = await recordsForBackup().catch((e: unknown) => {
+    if (localOnly) throw e instanceof Error ? e : new Error(DEVICE_ONLY_BACKUP_FAILED());
+    return [];
+  });
+  if (localOnly && deviceOnlyMissingFrom(recordData).length > 0) throw new Error(DEVICE_ONLY_BACKUP_FAILED());
   if (recordData.length === 0) return { ...contents, ...deals };
   const prints = [...new Set(recordData.map((r) => r.recordFingerprint).filter((f) => HEX64.test(f ?? '')))];
   const proofs: Record<string, unknown> = {};
@@ -388,6 +404,8 @@ export const downloadBackupAll = (now = Date.now(), text?: string): string => {
 };
 
 const NOT_BACKUP = "That file isn't a VeilCore backup. Pick the file you saved from VeilCore.";
+/** A file that doesn't hold the holder's documents kept on this device only (backup-words.ts says it in each language). */
+export const DEVICE_ONLY_NOT_IN_FILE = enT.t('app.doc.local.backupMissing');
 
 const parse = (text: string): Record<string, unknown> => {
   try {
@@ -488,7 +506,14 @@ export const checkBackup = async (
       reason: "That backup doesn't hold your lender key and latest claims. Save a new one and check that.",
     };
   }
+  // Documents kept on this device only: this file is their only other copy, so it must hold
+  // each of them as it is now (docs/device-only-records.md). Not asked of the passkey copy
+  // (mark: false), which holds keys and never records, and never counts as the backup.
+  if (opts.mark !== false && deviceOnlyMissingFrom(v.recordData).length > 0) {
+    return { ok: false, reason: DEVICE_ONLY_NOT_IN_FILE };
+  }
   if (opts.mark !== false) {
+    markDeviceOnlyBackedUp(v.recordData);
     markBackedUp(held.map((k) => k.recordId));
     markHeldBackedUp(v.heldLicenses);
     markIssuerDealsBackedUp(v.issuerDeals);
@@ -619,6 +644,9 @@ export const restoreAny = async (file: File, password?: string, opts: RestoreOpt
     } catch (e) {
       fromFile = { error: e instanceof Error ? e.message : String(e) };
     }
+    // The file just read holds them: documents kept on this device only that it carries are in
+    // a backup the holder has (never for a passkey copy, which carries no records).
+    if (opts.mark !== false && fromFile && !('error' in fromFile)) markDeviceOnlyBackedUp(v.recordData);
   }
   return {
     ...(fromFile ? { fromFile } : {}),

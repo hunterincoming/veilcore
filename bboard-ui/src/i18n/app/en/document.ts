@@ -168,20 +168,39 @@ export const document = {
   'app.doc.local.choice': 'Keep this record on this device and in my backup only',
   'app.doc.local.before': 'Before you choose:',
   'app.doc.local.p1':
-    'Nothing you type here is sent to VeilCore, locked or not. Only the proof code is sent, so the record gets its date.',
+    'Nothing you type here is sent to VeilCore, locked or not. What is sent, so the record gets its date: its ID, its proof code and its key binding (a code made from the record’s own key).',
   'app.doc.local.p2': 'VeilCore’s server can’t give this record back: it never has it.',
   'app.doc.local.p3':
-    'Your backup file is the only copy besides this browser. If this browser’s data is cleared and you have no backup, the record is gone.',
+    'The only copies are this browser’s and a backup file saved after sealing. A backup saved earlier doesn’t hold this record, and a passkey copy never does. You’ll be asked to save and check a backup as soon as it is sealed.',
   'app.doc.local.p4': 'Anyone with its check link and the file can still check it.',
   'app.doc.local.p5': 'This is chosen once, when sealing. It can’t be changed after.',
   'app.doc.local.title': 'Kept on this device only',
   'app.doc.local.text':
-    'Nothing typed into this record was sent to VeilCore, locked or not: only its proof code, to date it. This browser and your backup file hold the only copies. If this browser’s data is cleared and you have no backup, the record is gone, and VeilCore can’t give it back.',
+    'Nothing typed into this record was sent to VeilCore, locked or not. The only copies are in this browser and in the backup file you checked. Lose both and the record is gone: VeilCore can’t give it back. A backup saved before this record was sealed doesn’t hold it, and a passkey copy never does.',
+  'app.doc.local.notBacked':
+    'Not in a backup yet. This browser holds the only copy of this record: if its data is cleared now, the record is gone, and VeilCore can’t give it back. Save your backup file and check it now.',
+  'app.doc.local.sent':
+    'What has left this device: the record’s ID, its proof code and its key binding, sent to VeilCore to date it. Every request shows VeilCore your network address and the time. If you keep a passkey copy, it holds this record’s ID and its keys, locked, on VeilCore’s server; never what you typed.',
+  'app.doc.local.stamp':
+    'Date-stamping this record’s key is your choice, and nothing starts it but the button below. If you do it, a code made from the key goes to Midnight through VeilCore’s fee service. Nothing you typed goes with it.',
+  'app.doc.local.conflict':
+    'VeilCore’s server answered with something other than this record’s proof code alone. What you see is this device’s own copy. Nothing more is sent, and the server’s answer changes nothing here.',
+  'app.doc.local.homeNotBacked': 'On this device only · not in a backup yet',
   'app.doc.local.backup': 'Save a backup',
   'app.doc.local.homeLine': 'On this device only',
   'app.doc.local.noProve':
     'Proving a number sends details from this browser, so it isn’t offered for a record kept on this device only.',
-  'app.doc.local.staysHere': 'This record is kept on this device only, so nothing from it is sent to VeilCore.',
+  'app.doc.local.staysHere': 'This record is kept on this device only, so this isn’t offered for it.',
+  'app.doc.local.delete': 'Delete from this device',
+  'app.doc.local.deleteConfirm':
+    'Delete this record from this device? This can’t be undone here. A backup file that holds it still does. VeilCore keeps the record’s ID, proof code and key binding, and nothing else, so its date still stands for anyone with the check link.',
+  'app.doc.local.toRecord': 'Go to the record',
+  'app.doc.local.backupNow':
+    'Sealed. Now save a backup and check it: until you do, this browser holds the only copy of this record.',
+  'app.doc.local.backupMissing':
+    'That backup doesn’t hold your documents kept on this device only. Save a new one and check that.',
+  'app.doc.local.backupFailed':
+    'The backup couldn’t be made: a document kept on this device only couldn’t be put in it. Nothing was saved. Reload the page and try again.',
   'app.doc.local.noCorrect':
     'A record kept on this device only can’t be corrected. Seal the document again as a new record.',
 };

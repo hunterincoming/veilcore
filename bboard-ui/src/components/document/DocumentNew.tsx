@@ -38,6 +38,8 @@ import { AppHeader } from '../AppHeader';
 import { useT } from '../../i18n/app';
 import { typeWords } from './DocumentParts';
 import { NumbersFields } from './NumbersFields';
+import { BackupStep } from '../flow/BackupStep';
+import { FlowFrame } from '../flow/FlowFrame';
 import { makeFieldSet, numbersOf, type TypedNumbers } from '../../veilcore/field-set';
 
 const MB = Math.floor(MAX_DOCUMENT_BYTES / (1024 * 1024));
@@ -66,6 +68,9 @@ export const DocumentNew: React.FC = () => {
   const [notes, setNotes] = useState('');
   // Keep it on this device and in the backup only (docs/device-only-records.md). Off unless ticked.
   const [deviceOnly, setDeviceOnly] = useState(false);
+  // A document just sealed that way: the backup step comes next, before its page. Until a
+  // backup that holds it is saved and checked, this browser has the only copy.
+  const [sealedLocal, setSealedLocal] = useState<string>();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string>();
   const [tried, setTried] = useState(false);
@@ -146,6 +151,11 @@ export const DocumentNew: React.FC = () => {
       // Chosen here, once: the record is made with the mark, and no save ever sends it.
       const record = createRecord(DEVICE_ONLY_RECORDS_ENABLED && deviceOnly ? { ...sealed, deviceOnly: true } : sealed);
       created = true;
+      if (record.deviceOnly) {
+        setSealedLocal(record.id);
+        setBusy(false);
+        return;
+      }
       void navigate(`/record/${record.id}`);
     } catch (e) {
       if (id && !created) forgetKeys(id);
@@ -153,6 +163,23 @@ export const DocumentNew: React.FC = () => {
       setBusy(false);
     }
   };
+
+  if (sealedLocal)
+    return (
+      <Box data-device-only-backup-step="">
+        <AppHeader />
+        <FlowFrame section="log">
+          <Alert severity="warning" variant="outlined" sx={{ mb: 2 }}>
+            {t('app.doc.local.backupNow')}
+          </Alert>
+          <BackupStep
+            title={t('app.backup.title')}
+            finishLabel={t('app.doc.local.toRecord')}
+            onDone={() => void navigate(`/record/${sealedLocal}`)}
+          />
+        </FlowFrame>
+      </Box>
+    );
 
   return (
     <Box sx={{ maxWidth: 680, mx: 'auto' }} data-document-new="">
