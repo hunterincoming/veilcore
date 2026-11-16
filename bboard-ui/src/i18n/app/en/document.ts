@@ -188,8 +188,6 @@ export const document = {
   'app.doc.local.homeNotBacked': 'On this device only · not in a backup yet',
   'app.doc.local.backup': 'Save a backup',
   'app.doc.local.homeLine': 'On this device only',
-  'app.doc.local.noProve':
-    'Proving a number sends details from this browser, so it isn’t offered for a record kept on this device only.',
   'app.doc.local.staysHere': 'This record is kept on this device only, so this isn’t offered for it.',
   'app.doc.local.delete': 'Delete from this device',
   'app.doc.local.deleteConfirm':
@@ -212,4 +210,91 @@ export const document = {
     'Delete this damaged entry from this device? This can’t be undone here. A backup file that carries it still does.',
   'app.doc.local.unreadable.backupNote':
     'One record kept on this device only couldn’t be read. This backup carries its entry exactly as it is, so nothing is lost with the file. Everything else is in it as usual.',
+  // ---- a production chain, and proving a number from a device-only record (docs/document-chain.md) ----
+  'app.doc.chain.kind.grow-batch': 'Grow batch',
+  'app.doc.chain.kind.harvest-lot': 'Harvest lot',
+  'app.doc.schema.grow-batch': 'Grow batch',
+  'app.doc.schema.harvest-lot': 'Harvest lot',
+  'app.doc.slot.plants': 'Plants in the batch',
+  'app.doc.slot.plantsInFlower': 'Plants in flower',
+  'app.doc.slot.areaSquareMetres': 'Growing area',
+  'app.doc.slot.plantsHarvested': 'Plants harvested',
+  'app.doc.slot.wetWeightGrams': 'Wet weight',
+  'app.doc.slot.dryWeightGrams': 'Dry weight',
+  'app.doc.chain.start.title': 'Recording a production chain?',
+  'app.doc.chain.start.text':
+    'Seal each step as its own record, each about the one before it: the source plant or strain, a grow batch, a harvest lot, the lab report. Each gets its own date.',
+  'app.doc.chain.start.plain': 'Any other document',
+  'app.doc.chain.f.titleHelp': 'Optional. Left empty, it is the kind and the ID. Don’t put counts or weights in it.',
+  'app.doc.chain.f.reference.grow-batch': 'Batch ID',
+  'app.doc.chain.f.reference.harvest-lot': 'Lot ID',
+  'app.doc.chain.f.referenceHelp': 'As you write it in your own records.',
+  'app.doc.chain.f.site': 'Site label (optional)',
+  'app.doc.chain.f.siteHelp': 'Your own label for a room, a field or a facility. It goes in the notes.',
+  'app.doc.chain.f.variety': 'Variety (optional)',
+  'app.doc.chain.f.varietyHelp': 'It goes in the notes.',
+  'app.doc.chain.f.numbers': 'Its numbers',
+  'app.doc.chain.f.numbersHelp':
+    'Counts and weights go here and nowhere else: don’t repeat them in the title or the notes. They are sealed as you type them, not as anyone measured them, so you can later prove one, like “at most 100 plants”, without showing the others.',
+  'app.doc.chain.note.site': 'Site',
+  'app.doc.chain.note.variety': 'Variety',
+  'app.doc.chain.titleFor.grow-batch': 'Grow batch {id}',
+  'app.doc.chain.titleFor.harvest-lot': 'Harvest lot {id}',
+  'app.doc.chain.need.reference': 'Give its batch or lot ID.',
+  'app.doc.chain.need.aNumber': 'Type at least one number.',
+  'app.doc.chain.sheet.title': 'No file for it?',
+  'app.doc.chain.sheet.text':
+    'A record needs a file. Your own batch sheet is the better choice: it dates a working document you already keep. If you have none, this makes a plain-text sheet from the ID, date, site, variety, holder and “About” above, with no counts or weights, and saves it to this device. Fill those in first.',
+  'app.doc.chain.sheet.make': 'Make a sheet from what I typed',
+  'app.doc.chain.sheet.made':
+    'Made and saved as {name}. Keep that file: it is needed to check the record, and it must stay byte for byte the same. If you change what you typed above, the sheet is not changed with it.',
+  'app.doc.chain.aboutHelp':
+    'Records of yours it concerns: a COA with the plant it tested, a harvest lot with its grow batch. This is your statement. Nothing checks it against the record you pick.',
+  'app.doc.chain.aboutNote':
+    '“About” is the holder’s own statement, sealed with this record. Neither VeilCore nor Midnight checks it against the record it names. A chain of records is only as strong as each record’s own date and proof code.',
+  'app.doc.chain.carried':
+    'The records linked here came in this link, from whoever sent it. The sealed record names each one by its ID only, so nothing here shows that a linked record is the one named.',
+  'app.doc.chain.idOnly':
+    'Where this link carries only a record’s ID, its page shows what VeilCore’s registry reports for that ID, with nothing ticked. For a checked date, ask the holder for that record’s own check link.',
+  'app.doc.chain.namedAs':
+    'You opened this from another record, which names it as record {id}. Nothing in the link ties that ID to this record’s proof code.',
+  'app.doc.chain.askRegistry': 'See what VeilCore’s registry reports for record {id}',
+  'app.doc.chain.askRegistrySends':
+    'That page sends the record’s ID to VeilCore’s registry and, in its address, this proof code to the website’s host. Nothing else from this link.',
+  'app.doc.chain.title': 'Its chain, on this device',
+  'app.doc.chain.text':
+    'Worked out here from the records this browser holds, the ones kept on this device only among them. Nothing is asked of VeilCore for it, and a record held elsewhere isn’t listed.',
+  'app.doc.chain.up': 'What this is about',
+  'app.doc.chain.down': 'Records about this one',
+  'app.doc.chain.none': 'None on this device.',
+  'app.doc.chain.notHeld': '{name} (not on this device)',
+  'app.doc.chain.share.title': 'Send it with its chain',
+  'app.doc.chain.share.text':
+    'This link also carries the records this one is about, and the ones those are about, so whoever checks it can open each one and see its date.',
+  'app.doc.chain.share.warn':
+    'Whoever has this link sees everything in each of those document records too, as the link above shows this one: {list}. Of a record that isn’t a document, it carries only the ID and the proof code.',
+  'app.doc.chain.share.copy': 'Copy link with its chain',
+  'app.doc.chain.share.copied': 'Copied.',
+  'app.doc.local.p6':
+    'If it has numbers, you can later choose to prove one. That publishes a fact about the number on Midnight, through VeilCore’s fee service, and only if you turn it on for that record.',
+  'app.doc.local.prove.off': 'Proving a number isn’t switched on for a record kept on this device only.',
+  'app.doc.local.prove.title': 'Prove one number: your choice',
+  'app.doc.local.prove.text':
+    'Off unless you turn it on here. Proving publishes a fact about one number on Midnight, for good, through VeilCore’s fee service. Nothing is sent to VeilCore’s registry. You are shown exactly what would be published before anything is proved.',
+  'app.doc.local.prove.choice': 'Show “Prove one number” for this record',
+  'app.doc.local.prove.publish.title': 'What will be published if you go ahead',
+  'app.doc.local.prove.publish.range':
+    'On Midnight, public and permanent: the form “{schema}”, the field “{label}”, the limit {bound} and the direction ({direction}), with a code that stands for this record. The number itself is not published. Every limit you prove narrows it.',
+  'app.doc.local.prove.publish.exact':
+    'On Midnight, public and permanent: the form “{schema}”, the field “{label}” and the number itself, {value}, with a code that stands for this record.',
+  'app.doc.local.prove.publish.noBound': 'Type a limit to see exactly what would be published.',
+  'app.doc.local.prove.publish.route':
+    'It goes from this browser to Midnight through VeilCore’s fee service, which sees what is published, and your network address. Nothing is sent to VeilCore’s registry. The number is what you typed, not what a lab measured.',
+  'app.doc.local.prove.direction.atMost': 'at most',
+  'app.doc.local.prove.direction.atLeast': 'at least',
+  'app.doc.local.prove.confirmExact': 'Yes, publish the number itself: {value}, on Midnight, for good.',
+  'app.doc.local.textProved':
+    'Nothing typed into this record was sent to VeilCore’s registry, locked or not. What you chose to prove about its numbers is public on Midnight. The only copies of the record are in this browser and in the backup file you checked. Lose both and the record is gone: VeilCore can’t give it back. A backup saved before this record was sealed doesn’t hold it, and a passkey copy never does.',
+  'app.doc.local.proved':
+    'You chose to prove facts about this record’s numbers. They went to Midnight through VeilCore’s fee service and are public for good; they are listed below. Nothing typed into this record was sent to VeilCore’s registry.',
 };

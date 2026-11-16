@@ -154,6 +154,16 @@ Plant genetics is the first use, not the limit. The record format is domain-blin
   says so until it is checked). Whatever the registry later answers for that record, the
   browser keeps its own copy and sends nothing more. Built; not yet tried on the main network
   ([`docs/device-only-records.md`](docs/device-only-records.md)).
+- **Proving a number from such a document is the holder's choice.** Off each time its page is
+  opened; turned on, the page says exactly what would be published (the form, the field, the
+  limit and the direction, or the number itself for "exactly") before anything is proved. The
+  claim goes to Midnight through the fee service; the registry is sent nothing. Built; not yet
+  tried on a network.
+- **A production chain as linked records.** A source record, a grow batch, a harvest lot and a
+  lab report, each a record with its own date, each naming the one before in its sealed "About".
+  The links are the holder's statement, not checked by VeilCore or Midnight: a chain is only as
+  strong as each record's own date and proof code. Built; not yet tried on a network
+  ([`docs/document-chain.md`](docs/document-chain.md)).
 - **What the registry can read:** each record's id, profile, proof code and key binding; a
   code made from its name (useless without the salt in the holder's check link); correction
   links; when it first saw the record; save counts and times; a size bucket; what the holder

@@ -6,9 +6,11 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import React, { useEffect, useState } from 'react';
-import { useLocation } from 'react-router-dom';
-import { Alert, Box, CircularProgress, Container, Paper, Stack, Typography } from '@mui/material';
-import { readDocumentLink, type ReadLink } from '../../veilcore/document-link';
+import { Link as RouterLink, useLocation } from 'react-router-dom';
+import { Alert, Box, CircularProgress, Container, Link, Paper, Stack, Typography } from '@mui/material';
+import { aboutTarget, readDocumentLink, type ReadLink } from '../../veilcore/document-link';
+import { verifyPath } from '../../veilcore/verify-link';
+import { DOCUMENT_CHAIN_ENABLED } from '../../config/network';
 import { useT } from '../../i18n/app';
 import { DocumentDate, DocumentFacts, Fact, FileCompare, seen } from './DocumentParts';
 
@@ -48,7 +50,23 @@ export const DocumentCheck: React.FC = () => {
           </Alert>
         )}
         {read?.ok && (
-          <Stack spacing={2.5}>
+          // Keyed by the record: following a link to another record starts its page blank, so
+          // one record's "same file" answer never shows under another.
+          <Stack spacing={2.5} key={read.fingerprint}>
+            {/* Opened from another record's page (docs/document-chain.md): said, with what it rests on. */}
+            {DOCUMENT_CHAIN_ENABLED && read.namedAs && (
+              <Alert severity="info" variant="outlined" data-document-named-as={read.namedAs}>
+                <Typography variant="body2" sx={{ mb: 0.5 }}>
+                  {t('app.doc.chain.namedAs', { id: read.namedAs })}
+                </Typography>
+                <Link component={RouterLink} to={verifyPath(read.namedAs, read.fingerprint)} data-ask-registry="">
+                  {t('app.doc.chain.askRegistry', { id: read.namedAs })}
+                </Link>
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
+                  {t('app.doc.chain.askRegistrySends')}
+                </Typography>
+              </Alert>
+            )}
             <Paper sx={{ p: { xs: 2.5, md: 3 } }}>
               <Stack spacing={1.5}>
                 <FileCompare files={read.fields.files} />
@@ -65,7 +83,11 @@ export const DocumentCheck: React.FC = () => {
               <Typography variant="h6" component="h2" sx={{ mb: 1.5 }}>
                 {seen(read.fields.title)}
               </Typography>
-              <DocumentFacts fields={read.fields} checker />
+              <DocumentFacts
+                fields={read.fields}
+                checker
+                aboutTarget={DOCUMENT_CHAIN_ENABLED ? (id) => aboutTarget(id, read.chain) : undefined}
+              />
             </Paper>
             <Typography variant="body2" color="text.secondary">
               {t('app.doc.check.what')}

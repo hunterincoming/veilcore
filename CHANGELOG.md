@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### A production chain as document records, and proving a number from a device-only document (built, not tried on a network yet)
+
+- "Seal a document" starts with "Grow batch", "Harvest lot" or any other document. A batch or a
+  lot is a document record of type `other` with its numbers sealed under one of two new forms
+  (`veilcore/schema/grow-batch/v1`, `veilcore/schema/harvest-lot/v1`); its kind is read from the
+  sealed schema id. The document profile, the registry and the contracts are unchanged.
+- A document can be about another document. "About" entries link to the named record's check
+  page, and a record's page lists its chain from the records on this device. A second button,
+  "Copy link with its chain", makes a link that also carries the records it is about.
+- "Prove one number" on a document kept on the device only: the holder's choice, off each time,
+  with what would be published said first and "exactly" asked for twice. Nothing goes to the
+  registry.
+- "What's live where" has a row for each, saying "built, not yet tried"
+  (`DOCUMENT_CHAIN_RUN_ON_MAINNET`, `DEVICE_ONLY_CLAIMS_RUN_ON_MAINNET` in `config/copy.ts`, off).
+  In all five languages. `docs/document-chain.md`, `docs/device-only-records.md`.
+
 ### Lab signing on veilcore.org (switched on, not tried on the main network yet)
 
 - Numbers and results a lab signs are switched on for the main network too

@@ -17,6 +17,7 @@ import { ANIMAL_PROFILE, type AnimalDetails } from './animal-profile';
 import { STRAIN_PROFILE, type StrainDetails } from './strain-profile';
 import { DOCUMENT_PROFILE, type DocumentDetails } from './document-profile';
 import type { HeldFieldSet } from './field-set';
+import { assertNotAboutItself } from './document-chain';
 
 /** What the holder wrote, already tidied by the caller (trimmed, one line where it should be). */
 export type SealInput = {
@@ -168,7 +169,20 @@ export type DocumentSealInput = {
   readonly fieldSet?: { readonly held: HeldFieldSet; readonly fieldSchema: string; readonly fieldSetRoot: string };
 };
 
-export const sealDocumentRecord = (input: DocumentSealInput, now = Date.now()): Promise<SealedRecord> =>
+export const sealDocumentRecord = async (input: DocumentSealInput, now = Date.now()): Promise<SealedRecord> => {
+  const sealed = await sealDocumentFields(input, now);
+  // A record can't be about itself (document-chain.ts). Its id is made here, so this can only
+  // be a caller that named an id it didn't have yet; refused, and its key forgotten.
+  try {
+    assertNotAboutItself(sealed.id, input.about);
+  } catch (e) {
+    forgetKeys(sealed.id);
+    throw e;
+  }
+  return sealed;
+};
+
+const sealDocumentFields = (input: DocumentSealInput, now: number): Promise<SealedRecord> =>
   sealWithKey(now, (keyBinding) => ({
     nonce: newNonce(),
     keyBinding,

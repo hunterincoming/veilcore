@@ -34,6 +34,8 @@ import lineageCheck from '../../public/schemas/lineage-check-v1.json';
 import dnaMark from '../../public/schemas/dna-mark-v1.json';
 import viability from '../../public/schemas/viability-v1.json';
 import labRetraction from '../../public/schemas/lab-retraction-v1.json';
+import growBatch from '../../public/schemas/grow-batch-v1.json';
+import harvestLot from '../../public/schemas/harvest-lot-v1.json';
 
 /** The published schemas this site seals numbers under, by their document id. */
 export const SCHEMAS: Readonly<Record<string, FieldSchema>> = {
@@ -52,6 +54,11 @@ export const SCHEMAS: Readonly<Record<string, FieldSchema>> = {
   [dnaMark.id]: dnaMark as FieldSchema,
   [viability.id]: viability as FieldSchema,
   [labRetraction.id]: labRetraction as FieldSchema,
+  // The links of a production chain (docs/document-chain.md): a grow batch and a harvest lot,
+  // counted and weighed by the holder. Offered from the guided start on "Seal a document", never
+  // in the list of a certificate's numbers.
+  [growBatch.id]: growBatch as FieldSchema,
+  [harvestLot.id]: harvestLot as FieldSchema,
 };
 export type SchemaName = keyof typeof SCHEMAS;
 
@@ -73,12 +80,17 @@ export const LAB_ONLY_SCHEMAS: readonly string[] = [
   ...RESULT_CALL_SCHEMAS,
 ];
 
-/** The forms a holder is offered when sealing their own document's numbers. */
-export const OFFERED_SCHEMAS: readonly string[] = Object.keys(SCHEMAS).filter((id) => !LAB_ONLY_SCHEMAS.includes(id));
+/** The forms of a production chain's links (document-kind.ts): each has its own guided start. */
+export const CHAIN_SCHEMAS: readonly string[] = [growBatch.id, harvestLot.id];
+
+/** The forms a holder is offered when sealing the numbers on a certificate. */
+export const OFFERED_SCHEMAS: readonly string[] = Object.keys(SCHEMAS).filter(
+  (id) => !LAB_ONLY_SCHEMAS.includes(id) && !CHAIN_SCHEMAS.includes(id),
+);
 
 /** The forms a laboratory is offered when it adds numbers to a report (none where LAB_SIGNING_ENABLED is off). */
 export const LAB_SCHEMAS: readonly string[] = LAB_SIGNING_ENABLED
-  ? Object.keys(SCHEMAS).filter((id) => !RESULT_CALL_SCHEMAS.includes(id))
+  ? Object.keys(SCHEMAS).filter((id) => !CHAIN_SCHEMAS.includes(id) && !RESULT_CALL_SCHEMAS.includes(id))
   : [];
 
 export const schemaPath = (id: string): string => `/schemas/${id.split('/').slice(-2).join('-')}.json`;

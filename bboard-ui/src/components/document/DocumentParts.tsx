@@ -4,8 +4,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import React, { useId, useState } from 'react';
+import { Link as RouterLink } from 'react-router-dom';
 import { oneLine } from '../../veilcore/evidence/words';
-import { Alert, Box, Button, Stack, Typography } from '@mui/material';
+import { Alert, Box, Button, Link, Stack, Typography } from '@mui/material';
 import {
   MAX_DOCUMENT_BYTES,
   fingerprintFile,
@@ -13,6 +14,9 @@ import {
   type DocumentFile,
   type DocumentType,
 } from '../../veilcore/document-profile';
+import { documentKindOf, type DocumentKind } from '../../veilcore/document-kind';
+import type { AboutTarget } from '../../veilcore/document-link';
+import { DOCUMENT_CHAIN_ENABLED } from '../../config/network';
 import { recordDateRow } from '../flow/plant-status-words';
 import { useRecordDate } from '../verify/useAnchorCheck';
 import { rich, useT } from '../../i18n/app';
@@ -21,6 +25,22 @@ import type { AppKey } from '../../i18n/app/en';
 
 export const typeWords = (t: DocumentType | undefined, tr: Translator): string =>
   tr.t(`app.doc.type.${t ?? 'other'}` as AppKey);
+
+/** A chain link's kind in words ("Grow batch"): read from the sealed schema id (document-kind.ts). */
+export const kindWords = (k: DocumentKind, tr: Translator): string => tr.t(`app.doc.chain.kind.${k}` as AppKey);
+
+/**
+ * What a document is, in words: its kind when its sealed schema id says it is a link of a
+ * production chain, its type otherwise. Such a record's sealed type is `other`; the kind is
+ * not a field anyone typed.
+ */
+export const kindOrTypeWords = (
+  r: { readonly fieldSchema?: string; readonly document?: { readonly type?: DocumentType } } | undefined,
+  tr: Translator,
+): string => {
+  const kind = DOCUMENT_CHAIN_ENABLED ? documentKindOf(r) : undefined;
+  return kind ? kindWords(kind, tr) : typeWords(r?.document?.type, tr);
+};
 
 const MB = Math.floor(MAX_DOCUMENT_BYTES / (1024 * 1024));
 
@@ -61,14 +81,26 @@ export const DocumentFacts: React.FC<{
     readonly holder: string;
     readonly notes: string;
     readonly files: readonly DocumentFile[];
-    readonly about: readonly { readonly name: string }[];
+    readonly about: readonly { readonly name: string; readonly recordId?: string }[];
+    readonly fieldSchema?: string;
   };
-}> = ({ fields: f, checker }) => {
+  /**
+   * Where the link for a record an "About" entry names goes (document-link.ts aboutTarget, or
+   * the holder's own answer). Without it, or for an entry that names no record, the name alone
+   * is shown, as before.
+   */
+  aboutTarget?: (recordId: string) => AboutTarget | undefined;
+}> = ({ fields: f, checker, aboutTarget }) => {
   const tr = useT();
   const { t } = tr;
+  const kind = DOCUMENT_CHAIN_ENABLED ? documentKindOf(f) : undefined;
+  const targets = f.about.map((a) => (a.recordId && aboutTarget ? aboutTarget(a.recordId) : undefined));
+  const linked = targets.some(Boolean);
   return (
     <Stack spacing={1.5} data-document-facts="">
-      <Fact label={t('app.doc.k.type')}>{typeWords(f.type, tr)}</Fact>
+      <Fact label={t('app.doc.k.type')}>
+        <span data-document-kind={kind ?? ''}>{kind ? kindWords(kind, tr) : typeWords(f.type, tr)}</span>
+      </Fact>
       {f.issuer && <Fact label={t(checker ? 'app.doc.k.issuerHolder' : 'app.doc.k.issuer')}>{seen(f.issuer)}</Fact>}
       {f.reference && <Fact label={t('app.doc.k.reference')}>{seen(f.reference)}</Fact>}
       {f.issued && <Fact label={t('app.doc.k.issued')}>{f.issued}</Fact>}
@@ -82,7 +114,39 @@ export const DocumentFacts: React.FC<{
           </Box>
         ))}
       </Fact>
-      {f.about.length > 0 && <Fact label={t('app.doc.k.about')}>{f.about.map((a) => seen(a.name)).join(' · ')}</Fact>}
+      {f.about.length > 0 && !linked && (
+        <Fact label={t('app.doc.k.about')}>{f.about.map((a) => seen(a.name)).join(' · ')}</Fact>
+      )}
+      {f.about.length > 0 && linked && (
+        <Box data-document-about="">
+          <Typography variant="overline" sx={{ display: 'block' }}>
+            {t('app.doc.k.about')}
+          </Typography>
+          {f.about.map((a, i) => {
+            const target = targets[i];
+            const name = seen(a.name) || a.recordId || '';
+            return (
+              <Typography key={`${a.recordId ?? ''}:${i}`} variant="body2" sx={{ py: 0.5 }}>
+                {target ? (
+                  <Link component={RouterLink} to={target.to} data-about-link={target.kind} data-about-id={a.recordId}>
+                    {name}
+                  </Link>
+                ) : (
+                  name
+                )}
+              </Typography>
+            );
+          })}
+          {/* What a link is worth, said where the links are (docs/document-chain.md). */}
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }} data-about-note="">
+            {t('app.doc.chain.aboutNote')}
+            {checker && targets.some((x) => x?.kind === 'document' || x?.kind === 'record')
+              ? ` ${t('app.doc.chain.carried')}`
+              : ''}
+            {checker && targets.some((x) => x?.kind === 'id-only') ? ` ${t('app.doc.chain.idOnly')}` : ''}
+          </Typography>
+        </Box>
+      )}
       <Fact label={t('app.doc.k.holder')}>{seen(f.holder)}</Fact>
       {f.notes && (
         <Fact label={t('app.doc.k.notes')}>

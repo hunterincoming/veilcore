@@ -34,6 +34,8 @@ describe('a field set on a document', () => {
       'veilcore/schema/animal-parentage/v1',
       'veilcore/schema/dna-mark/v1',
       'veilcore/schema/genetic-match/v1',
+      'veilcore/schema/grow-batch/v1',
+      'veilcore/schema/harvest-lot/v1',
       'veilcore/schema/lab-retraction/v1',
       'veilcore/schema/lineage-check/v1',
       'veilcore/schema/pathogen/v1',

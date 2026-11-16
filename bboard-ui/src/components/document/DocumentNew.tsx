@@ -1,6 +1,12 @@
 // Seal a document (/documents/new; docs/document-profile.md). The files are hashed here, in
 // the browser, and only their SHA-256, name and size are sealed: the bytes never leave the
 // device. One page, not the plant flow's steps: a document has no parents, photos or DNA.
+//
+// "Grow batch" and "Harvest lot" (docs/document-chain.md) are the same record with a guided
+// start: the form of its numbers is chosen for the holder, the reference is its batch or lot ID,
+// and it says what it is about. Its sealed type is `other`; what kind it is is read back from
+// the sealed schema id (veilcore/document-kind.ts). A file is still needed: the holder's own
+// batch sheet, or a plain-text sheet made here from the details that are not counts.
 // SPDX-License-Identifier: Apache-2.0
 
 import React, { useId, useState } from 'react';
@@ -33,10 +39,12 @@ import { sealDocumentRecord } from '../../veilcore/seal-record';
 import { createRecord, tooLargeToSave, useRecords } from '../../veilcore/records';
 import { forgetKeys } from '../../veilcore/record-keys';
 import { isLabReportRecord } from '../stage/lab-report-notes';
-import { DEVICE_ONLY_RECORDS_ENABLED, DOCUMENT_RECORDS_ENABLED } from '../../config/network';
+import { DEVICE_ONLY_RECORDS_ENABLED, DOCUMENT_CHAIN_ENABLED, DOCUMENT_RECORDS_ENABLED } from '../../config/network';
 import { AppHeader } from '../AppHeader';
 import { useT } from '../../i18n/app';
-import { typeWords } from './DocumentParts';
+import { kindOrTypeWords, typeWords } from './DocumentParts';
+import { DOCUMENT_KINDS, KIND_SCHEMA, type DocumentKind } from '../../veilcore/document-kind';
+import { batchSheetFile, batchSheetText, chainNotes } from '../../veilcore/document-chain';
 import { NumbersFields } from './NumbersFields';
 import { BackupStep } from '../flow/BackupStep';
 import { FlowFrame } from '../flow/FlowFrame';
@@ -57,6 +65,11 @@ export const DocumentNew: React.FC = () => {
   const [fileProblem, setFileProblem] = useState<string>();
   const [title, setTitle] = useState('');
   const [type, setType] = useState<DocumentType>('other');
+  // The guided start (docs/document-chain.md): '' is any other document, exactly as before.
+  const [kind, setKind] = useState<DocumentKind | ''>('');
+  const [site, setSite] = useState('');
+  const [variety, setVariety] = useState('');
+  const [sheet, setSheet] = useState<string>();
   // The numbers on it (field-set.ts): a published schema and what was typed into its slots.
   const [schema, setSchema] = useState('');
   const [typed, setTyped] = useState<TypedNumbers>({});
@@ -77,9 +90,55 @@ export const DocumentNew: React.FC = () => {
 
   if (!DOCUMENT_RECORDS_ENABLED) return <Navigate to="/new" replace />;
 
-  // What it can be about: the holder's genetic records, never another document or a record
-  // that dates a lab report.
-  const aboutOptions = records.filter((r) => !isDocument(r) && !isLabReportRecord(r) && !r.supersededBy);
+  // What it can be about: the holder's records, another document among them (a harvest lot is
+  // about its grow batch: docs/document-chain.md), never a record that dates a lab report. A new
+  // record has no id yet, so it can't be picked for itself (and seal-record.ts refuses that).
+  const aboutOptions = records.filter(
+    (r) => (DOCUMENT_CHAIN_ENABLED || !isDocument(r)) && !isLabReportRecord(r) && !r.supersededBy,
+  );
+  const aboutNames = about
+    .map((rid) => records.find((r) => r.id === rid))
+    .filter((r): r is NonNullable<typeof r> => !!r)
+    .map((r) => line(r.strainName) || r.id);
+
+  const startAs = (k: DocumentKind | '') => {
+    setKind(k);
+    setTyped({});
+    setSchema(k ? KIND_SCHEMA[k] : '');
+    if (k) setType('other');
+    setSheet(undefined);
+  };
+  /** The title a batch or lot gets when the holder writes none: its kind and its ID. Never a count. */
+  const sealedTitle = () =>
+    line(title) || (kind && line(reference) ? line(t(`app.doc.chain.titleFor.${kind}`, { id: line(reference) })) : '');
+  const sheetInput = () => ({
+    kind: kind as DocumentKind,
+    reference: line(reference),
+    issued,
+    site: line(site),
+    variety: line(variety),
+    holder: line(holder),
+    about: aboutNames,
+  });
+  /** No file of their own: a plain-text sheet from what was typed, downloaded and added as the file. */
+  const makeSheet = async () => {
+    if (!kind) return;
+    setFileProblem(undefined);
+    const file = batchSheetFile(sheetInput());
+    const f = await fingerprintFile(file);
+    if (files.some((x) => x.sha256 === f.sha256)) {
+      setFileProblem(t('app.doc.f.duplicate', { name: f.name }));
+      return;
+    }
+    if (files.length >= DOCUMENT_FILES_MAX) {
+      setFileProblem(t('app.doc.f.full', { max: String(DOCUMENT_FILES_MAX) }));
+      return;
+    }
+    const { download } = await import('../lab/download');
+    download(batchSheetText(sheetInput()), f.name, 'text/plain');
+    setFiles([...files, f]);
+    setSheet(f.name);
+  };
 
   const addFiles = async (picked: FileList | null) => {
     if (!picked) return;
@@ -102,21 +161,23 @@ export const DocumentNew: React.FC = () => {
     setReading(undefined);
     setFiles(next);
     // The title starts as the first file's name, without its extension, until the holder writes one.
-    if (!title && next[0]) setTitle(line(next[0].name.replace(/\.[^.]{1,8}$/, '')));
+    if (!kind && !title && next[0]) setTitle(line(next[0].name.replace(/\.[^.]{1,8}$/, '')));
   };
 
   const numbers = schema ? numbersOf(schema, typed) : undefined;
   const missing = !files.length
     ? t('app.doc.need.file')
-    : !line(title)
-      ? t('app.doc.need.title')
-      : !line(holder)
-        ? t('app.doc.need.holder')
-        : numbers?.bad.length
-          ? t('app.doc.need.numbers')
-          : schema && !numbers?.any
-            ? t('app.doc.need.aNumber')
-            : undefined;
+    : kind && !line(reference)
+      ? t('app.doc.chain.need.reference')
+      : !sealedTitle()
+        ? t('app.doc.need.title')
+        : !line(holder)
+          ? t('app.doc.need.holder')
+          : numbers?.bad.length
+            ? t('app.doc.need.numbers')
+            : schema && !numbers?.any
+              ? t(kind ? 'app.doc.chain.need.aNumber' : 'app.doc.need.aNumber')
+              : undefined;
 
   const seal = async () => {
     setTried(true);
@@ -127,8 +188,8 @@ export const DocumentNew: React.FC = () => {
     let created = false;
     try {
       const sealed = await sealDocumentRecord({
-        title: line(title),
-        type,
+        title: sealedTitle(),
+        type: kind ? 'other' : type,
         issuer: line(issuer),
         reference: line(reference),
         issued,
@@ -138,7 +199,14 @@ export const DocumentNew: React.FC = () => {
           .filter((r): r is NonNullable<typeof r> => !!r)
           .map((r) => ({ recordId: r.id, name: line(r.strainName) || r.id })),
         holder: line(holder),
-        notes: notes.trim(),
+        notes: kind
+          ? chainNotes(
+              { site: t('app.doc.chain.note.site'), variety: t('app.doc.chain.note.variety') },
+              site,
+              variety,
+              notes,
+            )
+          : notes.trim(),
         ...(numbers?.any ? { fieldSet: await makeFieldSet(schema, numbers.values) } : {}),
       });
       id = sealed.id;
@@ -190,6 +258,41 @@ export const DocumentNew: React.FC = () => {
       <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
         {t('app.doc.new.intro')}
       </Typography>
+      {DOCUMENT_CHAIN_ENABLED && (
+        <Paper sx={{ p: { xs: 2.5, md: 3 }, mb: 2.5 }} data-chain-start={kind || 'plain'}>
+          <Typography variant="subtitle1" component="h2">
+            {t('app.doc.chain.start.title')}
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+            {t('app.doc.chain.start.text')}
+          </Typography>
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
+            {DOCUMENT_KINDS.map((k) => (
+              <Button
+                key={k}
+                variant={kind === k ? 'contained' : 'outlined'}
+                aria-pressed={kind === k}
+                onClick={() => startAs(k)}
+                disabled={busy}
+                sx={{ minHeight: 44 }}
+                data-chain-start-kind={k}
+              >
+                {t(`app.doc.chain.kind.${k}`)}
+              </Button>
+            ))}
+            <Button
+              variant={kind === '' ? 'contained' : 'outlined'}
+              aria-pressed={kind === ''}
+              onClick={() => startAs('')}
+              disabled={busy}
+              sx={{ minHeight: 44 }}
+              data-chain-start-kind="plain"
+            >
+              {t('app.doc.chain.start.plain')}
+            </Button>
+          </Stack>
+        </Paper>
+      )}
       <Paper sx={{ p: { xs: 2.5, md: 3 } }}>
         <Stack spacing={2.5}>
           <Box>
@@ -242,29 +345,74 @@ export const DocumentNew: React.FC = () => {
                 {fileProblem}
               </Alert>
             )}
+            {kind && (
+              <Box sx={{ mt: 2 }} data-chain-sheet="">
+                <Typography variant="subtitle2" component="h3">
+                  {t('app.doc.chain.sheet.title')}
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                  {t('app.doc.chain.sheet.text')}
+                </Typography>
+                <Button
+                  variant="outlined"
+                  onClick={() => void makeSheet()}
+                  disabled={busy || !!reading || !line(reference) || !line(holder)}
+                  sx={{ minHeight: 44 }}
+                  data-chain-sheet-make=""
+                >
+                  {t('app.doc.chain.sheet.make')}
+                </Button>
+                {sheet && (
+                  <Alert severity="info" variant="outlined" sx={{ mt: 1 }} data-chain-sheet-made="">
+                    {t('app.doc.chain.sheet.made', { name: sheet })}
+                  </Alert>
+                )}
+              </Box>
+            )}
           </Box>
           <TextField
             label={t('app.doc.f.title')}
-            helperText={t('app.doc.f.titleHelp')}
+            helperText={t(kind ? 'app.doc.chain.f.titleHelp' : 'app.doc.f.titleHelp')}
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             slotProps={{ htmlInput: { maxLength: 200 } }}
             fullWidth
           />
-          <TextField
-            select
-            label={t('app.doc.f.type')}
-            value={type}
-            onChange={(e) => setType(e.target.value as DocumentType)}
-            fullWidth
-          >
-            {DOCUMENT_TYPES.map((d) => (
-              <MenuItem key={d} value={d}>
-                {typeWords(d, tr)}
-              </MenuItem>
-            ))}
-          </TextField>
-          {(type === 'certificate-of-analysis' || type === 'lab-report' || schema) && (
+          {!kind && (
+            <TextField
+              select
+              label={t('app.doc.f.type')}
+              value={type}
+              onChange={(e) => setType(e.target.value as DocumentType)}
+              fullWidth
+            >
+              {DOCUMENT_TYPES.map((d) => (
+                <MenuItem key={d} value={d}>
+                  {typeWords(d, tr)}
+                </MenuItem>
+              ))}
+            </TextField>
+          )}
+          {kind && (
+            <Box data-chain-numbers="">
+              <Typography variant="overline" sx={{ display: 'block' }}>
+                {t('app.doc.chain.f.numbers')}
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+                {t('app.doc.chain.f.numbersHelp')}
+              </Typography>
+              <NumbersFields
+                schema={schema}
+                onSchema={() => undefined}
+                typed={typed}
+                onTyped={setTyped}
+                bad={tried ? (numbers?.bad ?? []) : []}
+                bare
+                fixed
+              />
+            </Box>
+          )}
+          {!kind && (type === 'certificate-of-analysis' || type === 'lab-report' || schema) && (
             <NumbersFields
               schema={schema}
               onSchema={(id) => {
@@ -276,18 +424,20 @@ export const DocumentNew: React.FC = () => {
               bad={tried ? (numbers?.bad ?? []) : []}
             />
           )}
-          <TextField
-            label={t('app.doc.f.issuer')}
-            helperText={t('app.doc.f.issuerHelp')}
-            value={issuer}
-            onChange={(e) => setIssuer(e.target.value)}
-            slotProps={{ htmlInput: { maxLength: 200 } }}
-            fullWidth
-          />
+          {!kind && (
+            <TextField
+              label={t('app.doc.f.issuer')}
+              helperText={t('app.doc.f.issuerHelp')}
+              value={issuer}
+              onChange={(e) => setIssuer(e.target.value)}
+              slotProps={{ htmlInput: { maxLength: 200 } }}
+              fullWidth
+            />
+          )}
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
             <TextField
-              label={t('app.doc.f.reference')}
-              helperText={t('app.doc.f.referenceHelp')}
+              label={t(kind ? `app.doc.chain.f.reference.${kind}` : 'app.doc.f.reference')}
+              helperText={t(kind ? 'app.doc.chain.f.referenceHelp' : 'app.doc.f.referenceHelp')}
               value={reference}
               onChange={(e) => setReference(e.target.value)}
               slotProps={{ htmlInput: { maxLength: 200 } }}
@@ -302,11 +452,31 @@ export const DocumentNew: React.FC = () => {
               fullWidth
             />
           </Stack>
+          {kind && (
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+              <TextField
+                label={t('app.doc.chain.f.site')}
+                helperText={t('app.doc.chain.f.siteHelp')}
+                value={site}
+                onChange={(e) => setSite(e.target.value)}
+                slotProps={{ htmlInput: { maxLength: 200, 'data-chain-site': '' } }}
+                fullWidth
+              />
+              <TextField
+                label={t('app.doc.chain.f.variety')}
+                helperText={t('app.doc.chain.f.varietyHelp')}
+                value={variety}
+                onChange={(e) => setVariety(e.target.value)}
+                slotProps={{ htmlInput: { maxLength: 200, 'data-chain-variety': '' } }}
+                fullWidth
+              />
+            </Stack>
+          )}
           {aboutOptions.length > 0 && (
             <TextField
               select
               label={t('app.doc.f.about')}
-              helperText={t('app.doc.f.aboutHelp')}
+              helperText={t(DOCUMENT_CHAIN_ENABLED ? 'app.doc.chain.aboutHelp' : 'app.doc.f.aboutHelp')}
               value={about}
               onChange={(e) => {
                 const v = e.target.value as unknown as string[] | string;
@@ -318,6 +488,7 @@ export const DocumentNew: React.FC = () => {
               {aboutOptions.map((r) => (
                 <MenuItem key={r.id} value={r.id}>
                   {r.strainName || r.id}
+                  {isDocument(r) ? ` · ${kindOrTypeWords(r, tr)}` : ''}
                 </MenuItem>
               ))}
             </TextField>
@@ -360,7 +531,7 @@ export const DocumentNew: React.FC = () => {
                   {t('app.doc.local.before')}
                 </Typography>
                 <Box component="ul" sx={{ m: 0, pl: 2.5, color: 'text.secondary' }}>
-                  {(['p1', 'p2', 'p3', 'p4', 'p5'] as const).map((k) => (
+                  {(['p1', 'p2', 'p3', 'p4', 'p5', 'p6'] as const).map((k) => (
                     <Typography key={k} component="li" variant="body2">
                       {t(`app.doc.local.${k}`)}
                     </Typography>

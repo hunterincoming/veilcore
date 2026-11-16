@@ -48,12 +48,14 @@ the device for such a record:
 | The record's id and its keys, inside the passkey copy, locked with a key only the passkey makes | The registry (`/vault`) | Only if the holder keeps a passkey copy (where the build offers one) | The passkey copy is the keys of every record. It never holds a record's contents, so it can't bring this record back |
 | A code made from the record's key (its identity, and a commitment to its recovery secret) | Midnight, through VeilCore's fee service | Only if the holder presses "date stamp" on the record's page | The key's own date. A stamp that failed is tried again by itself; nothing starts the first one but that button: not sealing, not the background, not a "Do it for me" job |
 | The proof code, in a batch's root | Midnight | When the batch is anchored | The date |
+| A claim about one number: the record's commitment (a hash), the form's id, which field, and the limit with its direction, or the number itself for "exactly" | Midnight, through VeilCore's fee service | Only if the holder turns on "Prove one number" on that record's page and proves one (see "Proving a number") | The holder's own choice to make that fact public |
 
 Never sent, by any path:
 
 - the title, type, issuer, reference, date, holder, notes, "about" links;
 - the files' names, sizes and SHA-256 codes (and, as for every document, the files themselves);
-- any numbers typed for a certificate;
+- any numbers typed for a certificate or a batch, to the registry. A number goes to Midnight
+  only if the holder proves it "exactly" (see "Proving a number");
 - a locked copy of any of the above;
 - the mark itself (`deviceOnly`).
 
@@ -110,12 +112,50 @@ How:
 - **Other routes.** Sharing by link (`PUT /api/records/:id/disclosure`), sending to a lab
   (`POST /transfers`), receiving a delivery into it, corrections, taking the registry's "older
   copy", converting a plain row, and licences (`licenses.ts`, for every caller) are refused for
-  such a record by id. "Prove one number" and the lab-signature step are not shown on its page.
+  such a record by id. The lab-signature step is not shown on its page. "Prove one number" is
+  shown only after the holder turns it on there (see "Proving a number").
 - **The dating row** is built field by field from the three fields above (`sendDatingRows`).
 
 One answer of the registry's is believed, because it can't be made up: a locked box under an id
 that this browser's vault key opens. Only the holder's key makes one. A backup file that marks
 such a record is not obeyed for it: its locked copy has left, so it stays an ordinary record.
+
+## Proving a number
+
+Added 16 Nov 2026. Until then "Prove one number" was hidden for such a record, because proving
+sends something out of the browser. That was a cautious default, not a need: the proof is made
+in the browser, and the number and its salt are not sent (`docs/claims-screen.md`).
+
+Now it is the holder's choice, on that record's page:
+
+- **Off every time the page is opened.** The page says what proving would do and shows no way
+  to do it until the holder ticks "Show 'Prove one number' for this record". The choice is not
+  kept.
+- **What would be published is said before the button**, from what is picked: the form, the
+  field, the limit and the direction, public and permanent on Midnight; the number itself is not
+  published for "at most" and "at least", and is for "exactly"; each limit proved narrows the
+  number; the number is what the holder typed, not what a lab measured.
+- **"Exactly" is asked for twice.** It publishes a number that has never left the device, so
+  the button stays off until a second box is ticked, and the claim call refuses without it
+  (`prove-number.ts` `proveNumber`).
+
+Every request a claim makes:
+
+| Request | To whom | What it carries |
+|---|---|---|
+| The claims contract's state | Midnight's indexer (through VeilCore's relay where the build uses one) | The claims contract's address. Nothing of the record |
+| The proving files | This website's own host | The circuit's name |
+| The proved transaction | VeilCore's fee service (the sponsor), which pays the fee and passes it to Midnight | What becomes public: the record's commitment, the form's id, the slot, and the limit with its direction or, for "exactly", the number. Not the other numbers, not the salts, nothing else typed |
+| Waiting for it to be included | Midnight's indexer | The transaction's id |
+| **The registry** | | **Nothing.** The claim is kept on this device's copy of the record, which is never uploaded |
+
+The record's page then says that facts were proved and are public, and no longer says that
+nothing typed was sent to VeilCore: it says none of it went to VeilCore's registry.
+
+Limits: the list of claims made (their links) lives on this device's copy and goes into the next
+backup; a backup saved before a claim doesn't list it, though the claim itself stays on
+Midnight. Not yet tried on a network: `config/copy.ts` `DEVICE_ONLY_CLAIMS_RUN_ON_MAINNET` is
+off, and the "what's live where" row says "built, not yet tried".
 
 ## The backup
 
@@ -185,7 +225,8 @@ still holds it.
   undone, and one wrong click would break the rule the holder chose this for. To have a copy on
   VeilCore, seal the document again without the choice. (It gets a new date.)
 - **No corrections** of such a record, for now: seal a new one.
-- **No "prove one number"** for such a record: proving sends details out of the browser.
+- **"Prove one number" is off unless the holder turns it on** for that record, each time. What
+  is proved is public on Midnight for good and can't be taken back.
 - **A hand-edited backup file** with the mark taken out restores as an ordinary record, which
   is uploaded. The file is the holder's own; the app doesn't edit it.
 - **Another browser with the same holder key and no backup** sees nothing for this record: the
@@ -225,5 +266,14 @@ still holds it.
   seals one with the vault key already backed up, sees "not in a backup yet" until a backup is
   saved and checked, checks the stand-in was sent the dating row and nothing else, that the
   check link verifies in a browser with nothing in it, and deletes it from the device.
+- `bboard-ui/src/veilcore/device-only-claims.test.ts` (the registry deny-by-default: every
+  request kept, an unexpected route refused and counted; the claim call a stand-in that keeps
+  what it is given): the panel is off by default and the page shows no way to prove; turned on,
+  it says what would be published; "exactly" needs its second confirmation, on the page and in
+  the call; a range claim and an exact one are made, and no request to the registry carries
+  anything typed, the numbers' secret, the claim, its commitment or its transaction, and nothing
+  but reads follow; the claims are kept on the device's copy; an ordinary document proves as
+  before. Not covered here: the real claim call, whose own test (`chain/claims-call.test.ts`)
+  shows the number and its salt are not in the transaction.
 - `bboard-ui/src/i18n/copy-truth.test.ts`: the "what's live where" row, the privacy note, and
   the sentences that say what leaves the device.

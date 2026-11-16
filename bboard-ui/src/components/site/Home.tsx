@@ -32,7 +32,9 @@ import { PASTE_ENTRY } from './paste-entry';
 import { IS_MAINNET, MAINNET_CLAIMS_ADDRESS, MAINNET_CONTRACT_ADDRESS, explorerFor } from '../../config/network';
 import {
   AGREEMENTS_LIVE,
+  DEVICE_ONLY_CLAIMS_RUN_ON_MAINNET,
   DEVICE_ONLY_RUN_ON_MAINNET,
+  DOCUMENT_CHAIN_RUN_ON_MAINNET,
   LAB_SIGNING_RUN_ON_MAINNET,
   ROYALTIES_RUN_ON_MAINNET,
   ROYALTIES_RUN_ON_TEST,
@@ -301,6 +303,13 @@ const LIVE_ROWS = [
   // every build. Its veilcore.org cell says "built, not yet tried" until one has been sealed and
   // checked there (config/copy.ts DEVICE_ONLY_RUN_ON_MAINNET, cellKey below).
   ['local', true, true, false],
+  // A production chain as document records (config/network.ts DOCUMENT_CHAIN_ENABLED), and
+  // proving a number from a document kept on the device only (DEVICE_ONLY_CLAIMS_ENABLED): on in
+  // every build. Neither has been tried on a network yet, so both cells say "built", and the
+  // veilcore.org cell keeps saying so until each has worked there (config/copy.ts
+  // DOCUMENT_CHAIN_RUN_ON_MAINNET, DEVICE_ONLY_CLAIMS_RUN_ON_MAINNET, cellKey below).
+  ['docchain', true, true, false],
+  ['localclaims', true, true, false],
   ['dna', true, true, false],
   ['prove', false, true, true],
   ['claims', true, false, true],
@@ -351,7 +360,12 @@ const cellKey = (row: string, col: string) =>
             : // Kept on this device only: "Yes" on veilcore.org only once it has worked there.
               DEVICE_ONLY_RUN_ON_MAINNET && row === 'local' && col === 'main'
               ? 'm.live.local.live'
-              : `m.live.${row}.${col}`) as Parameters<ReturnType<typeof useI18n>['t']>[0];
+              : // A production chain, and a number proved from a device-only document: the same rule.
+                DOCUMENT_CHAIN_RUN_ON_MAINNET && row === 'docchain' && col === 'main'
+                ? 'm.live.docchain.live'
+                : DEVICE_ONLY_CLAIMS_RUN_ON_MAINNET && row === 'localclaims' && col === 'main'
+                  ? 'm.live.localclaims.live'
+                  : `m.live.${row}.${col}`) as Parameters<ReturnType<typeof useI18n>['t']>[0];
 
 const LiveWhere: React.FC<{ phone: boolean }> = ({ phone }) => {
   const { t } = useI18n();

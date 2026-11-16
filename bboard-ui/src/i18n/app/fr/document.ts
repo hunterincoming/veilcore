@@ -188,8 +188,6 @@ export const document = {
   'app.doc.local.homeNotBacked': 'Uniquement sur cet appareil · pas encore sauvegardé',
   'app.doc.local.backup': 'Enregistrer une sauvegarde',
   'app.doc.local.homeLine': 'Uniquement sur cet appareil',
-  'app.doc.local.noProve':
-    'Prouver un chiffre envoie des informations depuis ce navigateur ; ce n’est donc pas proposé pour un enregistrement gardé uniquement sur cet appareil.',
   'app.doc.local.staysHere':
     'Cet enregistrement est gardé uniquement sur cet appareil ; ce n’est donc pas proposé pour lui.',
   'app.doc.local.delete': 'Supprimer de cet appareil',
@@ -213,4 +211,93 @@ export const document = {
     'Supprimer cette entrée endommagée de cet appareil ? Cela ne peut pas être annulé ici. Un fichier de sauvegarde qui la contient la contient toujours.',
   'app.doc.local.unreadable.backupNote':
     'Un enregistrement gardé uniquement sur cet appareil n’a pas pu être lu. Cette sauvegarde contient son entrée telle qu’elle est : rien n’est donc perdu avec le fichier. Tout le reste y figure comme d’habitude.',
+  // ---- a production chain, and proving a number from a device-only record (docs/document-chain.md) ----
+  'app.doc.chain.kind.grow-batch': 'Lot de culture',
+  'app.doc.chain.kind.harvest-lot': 'Lot de récolte',
+  'app.doc.schema.grow-batch': 'Lot de culture',
+  'app.doc.schema.harvest-lot': 'Lot de récolte',
+  'app.doc.slot.plants': 'Plantes dans le lot',
+  'app.doc.slot.plantsInFlower': 'Plantes en floraison',
+  'app.doc.slot.areaSquareMetres': 'Surface de culture',
+  'app.doc.slot.plantsHarvested': 'Plantes récoltées',
+  'app.doc.slot.wetWeightGrams': 'Poids frais',
+  'app.doc.slot.dryWeightGrams': 'Poids sec',
+  'app.doc.chain.start.title': 'Enregistrer une chaîne de production ?',
+  'app.doc.chain.start.text':
+    'Scellez chaque étape comme un enregistrement à part, chacun concernant le précédent : la plante ou la souche d’origine, un lot de culture, un lot de récolte, le rapport de laboratoire. Chacun reçoit sa date.',
+  'app.doc.chain.start.plain': 'Un autre document',
+  'app.doc.chain.f.titleHelp':
+    'Facultatif. Laissé vide, il reprend le type et l’identifiant. N’y mettez ni comptes ni poids.',
+  'app.doc.chain.f.reference.grow-batch': 'Identifiant du lot',
+  'app.doc.chain.f.reference.harvest-lot': 'Identifiant du lot',
+  'app.doc.chain.f.referenceHelp': 'Tel que vous l’écrivez dans vos propres registres.',
+  'app.doc.chain.f.site': 'Nom du site (facultatif)',
+  'app.doc.chain.f.siteHelp': 'Votre propre nom pour une salle, un champ ou une installation. Il va dans les notes.',
+  'app.doc.chain.f.variety': 'Variété (facultatif)',
+  'app.doc.chain.f.varietyHelp': 'Elle va dans les notes.',
+  'app.doc.chain.f.numbers': 'Ses chiffres',
+  'app.doc.chain.f.numbersHelp':
+    'Les comptes et les poids vont ici et nulle part ailleurs : ne les répétez ni dans le titre ni dans les notes. Ils sont scellés tels que vous les saisissez, non tels que quelqu’un les a mesurés, pour que vous puissiez plus tard en prouver un, comme « au plus 100 plantes », sans montrer les autres.',
+  'app.doc.chain.note.site': 'Site',
+  'app.doc.chain.note.variety': 'Variété',
+  'app.doc.chain.titleFor.grow-batch': 'Lot de culture {id}',
+  'app.doc.chain.titleFor.harvest-lot': 'Lot de récolte {id}',
+  'app.doc.chain.need.reference': 'Indiquez l’identifiant du lot.',
+  'app.doc.chain.need.aNumber': 'Saisissez au moins un chiffre.',
+  'app.doc.chain.sheet.title': 'Pas de fichier ?',
+  'app.doc.chain.sheet.text':
+    'Un enregistrement a besoin d’un fichier. Votre propre fiche de lot est le meilleur choix : elle date un document de travail que vous tenez déjà. Si vous n’en avez pas, ceci crée une fiche en texte brut à partir de l’identifiant, de la date, du site, de la variété, du détenteur et de « Concerne » ci-dessus, sans comptes ni poids, et l’enregistre sur cet appareil. Remplissez d’abord ces champs.',
+  'app.doc.chain.sheet.make': 'Créer une fiche avec ma saisie',
+  'app.doc.chain.sheet.made':
+    'Créée et enregistrée sous {name}. Gardez ce fichier : il est nécessaire pour vérifier l’enregistrement et doit rester identique octet pour octet. Si vous modifiez votre saisie ci-dessus, la fiche ne change pas avec elle.',
+  'app.doc.chain.aboutHelp':
+    'Vos enregistrements qu’il concerne : un certificat d’analyse avec la plante testée, un lot de récolte avec son lot de culture. C’est votre déclaration. Rien ne la compare à l’enregistrement choisi.',
+  'app.doc.chain.aboutNote':
+    '« Concerne » est la déclaration du détenteur lui-même, scellée avec cet enregistrement. Ni VeilCore ni Midnight ne la comparent à l’enregistrement qu’elle nomme. Une chaîne d’enregistrements ne vaut que par la date et le code de preuve de chacun.',
+  'app.doc.chain.carried':
+    'Les enregistrements liés ici sont venus dans ce lien, de la personne qui l’a envoyé. L’enregistrement scellé ne nomme chacun que par son identifiant : rien ici ne montre donc qu’un enregistrement lié est bien celui qui est nommé.',
+  'app.doc.chain.idOnly':
+    'Quand ce lien ne porte que l’identifiant d’un enregistrement, sa page montre ce que le registre de VeilCore rapporte pour cet identifiant, sans rien cocher. Pour une date vérifiée, demandez au détenteur le lien de vérification de cet enregistrement.',
+  'app.doc.chain.namedAs':
+    'Vous avez ouvert ceci depuis un autre enregistrement, qui le nomme enregistrement {id}. Rien dans le lien ne rattache cet identifiant au code de preuve de cet enregistrement.',
+  'app.doc.chain.askRegistry': 'Voir ce que le registre de VeilCore rapporte pour l’enregistrement {id}',
+  'app.doc.chain.askRegistrySends':
+    'Cette page envoie l’identifiant de l’enregistrement au registre de VeilCore et, dans son adresse, ce code de preuve à l’hébergeur du site. Rien d’autre de ce lien.',
+  'app.doc.chain.title': 'Sa chaîne, sur cet appareil',
+  'app.doc.chain.text':
+    'Établie ici à partir des enregistrements que ce navigateur détient, y compris ceux gardés uniquement sur cet appareil. Rien n’est demandé à VeilCore pour cela, et un enregistrement détenu ailleurs n’y figure pas.',
+  'app.doc.chain.up': 'Ce que ceci concerne',
+  'app.doc.chain.down': 'Enregistrements qui concernent celui-ci',
+  'app.doc.chain.none': 'Aucun sur cet appareil.',
+  'app.doc.chain.notHeld': '{name} (pas sur cet appareil)',
+  'app.doc.chain.share.title': 'L’envoyer avec sa chaîne',
+  'app.doc.chain.share.text':
+    'Ce lien porte aussi les enregistrements que celui-ci concerne, et ceux que ceux-là concernent, pour que la personne qui vérifie puisse ouvrir chacun et voir sa date.',
+  'app.doc.chain.share.warn':
+    'Quiconque a ce lien voit aussi tout ce que contient chacun de ces enregistrements de document, comme le lien ci-dessus montre celui-ci : {list}. D’un enregistrement qui n’est pas un document, il ne porte que l’identifiant et le code de preuve.',
+  'app.doc.chain.share.copy': 'Copier le lien avec sa chaîne',
+  'app.doc.chain.share.copied': 'Copié.',
+  'app.doc.local.p6':
+    'S’il a des chiffres, vous pourrez plus tard choisir d’en prouver un. Cela publie un fait sur ce chiffre sur Midnight, par le service de frais de VeilCore, et seulement si vous l’activez pour cet enregistrement.',
+  'app.doc.local.prove.off':
+    'Prouver un chiffre n’est pas activé pour un enregistrement gardé uniquement sur cet appareil.',
+  'app.doc.local.prove.title': 'Prouver un chiffre : à vous de choisir',
+  'app.doc.local.prove.text':
+    'Désactivé tant que vous ne l’activez pas ici. Prouver publie pour toujours un fait sur un chiffre sur Midnight, par le service de frais de VeilCore. Rien n’est envoyé au registre de VeilCore. Avant toute preuve, vous voyez exactement ce qui serait publié.',
+  'app.doc.local.prove.choice': 'Afficher « Prouver un chiffre » pour cet enregistrement',
+  'app.doc.local.prove.publish.title': 'Ce qui sera publié si vous continuez',
+  'app.doc.local.prove.publish.range':
+    'Sur Midnight, public et permanent : le formulaire « {schema} », le champ « {label} », le seuil {bound} et le sens ({direction}), avec un code qui représente cet enregistrement. Le chiffre lui-même n’est pas publié. Chaque seuil prouvé le resserre.',
+  'app.doc.local.prove.publish.exact':
+    'Sur Midnight, public et permanent : le formulaire « {schema} », le champ « {label} » et le chiffre lui-même, {value}, avec un code qui représente cet enregistrement.',
+  'app.doc.local.prove.publish.noBound': 'Saisissez un seuil pour voir exactement ce qui serait publié.',
+  'app.doc.local.prove.publish.route':
+    'Cela part de ce navigateur vers Midnight par le service de frais de VeilCore, qui voit ce qui est publié et votre adresse réseau. Rien n’est envoyé au registre de VeilCore. Le chiffre est celui que vous avez saisi, non celui qu’un laboratoire a mesuré.',
+  'app.doc.local.prove.direction.atMost': 'au plus',
+  'app.doc.local.prove.direction.atLeast': 'au moins',
+  'app.doc.local.prove.confirmExact': 'Oui, publier le chiffre lui-même : {value}, sur Midnight, pour toujours.',
+  'app.doc.local.textProved':
+    'Rien de ce qui a été saisi dans cet enregistrement n’a été envoyé au registre de VeilCore, verrouillé ou non. Ce que vous avez choisi de prouver sur ses chiffres est public sur Midnight. Les seules copies de l’enregistrement sont dans ce navigateur et dans le fichier de sauvegarde que vous avez vérifié. Si vous perdez les deux, l’enregistrement est perdu : VeilCore ne peut pas vous le rendre. Une sauvegarde enregistrée avant le scellement ne le contient pas, et une copie avec clé d’accès ne le contient en aucun cas.',
+  'app.doc.local.proved':
+    'Vous avez choisi de prouver des faits sur les chiffres de cet enregistrement. Ils sont partis vers Midnight par le service de frais de VeilCore et sont publics pour toujours ; ils figurent ci-dessous. Rien de ce qui a été saisi dans cet enregistrement n’a été envoyé au registre de VeilCore.',
 } satisfies Partial<AppTranslation>;
