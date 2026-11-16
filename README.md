@@ -152,7 +152,8 @@ Plant genetics is the first use, not the limit. The record format is domain-blin
   never its locked box. The registry can't give such a record back; the only copies are in the
   browser and in a backup file saved after sealing (the app asks for one straight away, and
   says so until it is checked). Whatever the registry later answers for that record, the
-  browser keeps its own copy and sends nothing more. Built; not yet tried on the main network
+  browser keeps its own copy and sends nothing more. Live on veilcore.org: first sealed, dated
+  and checked there on 16 November 2026
   ([`docs/device-only-records.md`](docs/device-only-records.md)).
 - **What the registry can read:** each record's id, profile, proof code and key binding; a
   code made from its name (useless without the salt in the holder's check link); correction

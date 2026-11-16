@@ -132,8 +132,12 @@ export const SCHEDULED_ANCHORING_RUN_ON_MAINNET = true;
  * and not yet tried on the main network (m.live.local.main), never "Yes". Hunter turns it on in a
  * reviewed commit after that first run, never before: then the cell says "Yes" on every build
  * (m.live.local.live), a fact about veilcore.org.
+ *
+ * First run: 16 November 2026, on veilcore.org. A document was sealed with the choice ticked, its
+ * page said it was kept on this device, its check page read the date from Midnight (2026-11-16
+ * UTC) and found the picked file byte for byte the sealed one (proof code 81a559de…c8104f1).
  */
-export const DEVICE_ONLY_RUN_ON_MAINNET = false;
+export const DEVICE_ONLY_RUN_ON_MAINNET = true;
 
 /** The label agreements carry while AGREEMENTS_LIVE is false. */
 export const PRACTICE_LABEL = AGREEMENTS_LIVE ? '' : 'Practice only';

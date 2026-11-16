@@ -515,7 +515,7 @@ describe("what's live where", () => {
     const localRun = /export const DEVICE_ONLY_RUN_ON_MAINNET = (true|false);/.exec(
       fs.readFileSync(path.join(SRC, 'config/copy.ts'), 'utf8'),
     )?.[1];
-    expect(localRun).toBe('false');
+    expect(localRun).toBe('true');
     expect(e['m.live.local.main']).toBe('Built, not yet tried on the main network.');
     // What leaves is said exactly (the id, the proof code, the key binding), never "only the proof code".
     expect(e['m.live.local.test']).toBe(
