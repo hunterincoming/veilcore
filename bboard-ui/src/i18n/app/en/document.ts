@@ -193,14 +193,23 @@ export const document = {
   'app.doc.local.staysHere': 'This record is kept on this device only, so this isn’t offered for it.',
   'app.doc.local.delete': 'Delete from this device',
   'app.doc.local.deleteConfirm':
-    'Delete this record from this device? This can’t be undone here. A backup file that holds it still does. VeilCore keeps the record’s ID, proof code and key binding, and nothing else, so its date still stands for anyone with the check link.',
+    'Delete this record from this device? This can’t be undone here. A backup file that holds it still does. VeilCore keeps what it was already sent: the record’s ID, proof code and key binding. A passkey copy, if you keep one, still holds its ID and keys until you update that copy. If you date-stamped its key, that stays on Midnight. Its date still stands for anyone with the check link.',
   'app.doc.local.toRecord': 'Go to the record',
   'app.doc.local.backupNow':
     'Sealed. Now save a backup and check it: until you do, this browser holds the only copy of this record.',
   'app.doc.local.backupMissing':
     'That backup doesn’t hold your documents kept on this device only. Save a new one and check that.',
   'app.doc.local.backupFailed':
-    'The backup couldn’t be made: a document kept on this device only couldn’t be put in it. Nothing was saved. Reload the page and try again.',
+    'The backup couldn’t be made: a document kept on this device only couldn’t be put in it. Nothing was saved.',
   'app.doc.local.noCorrect':
     'A record kept on this device only can’t be corrected. Seal the document again as a new record.',
+  'app.doc.local.unreadable.title': 'A record on this device couldn’t be read',
+  'app.doc.local.unreadable.text':
+    'Record {id} is kept on this device only, and its entry in this browser is damaged, so it can’t be shown. It is never sent anywhere. Your backup file carries the entry exactly as it is. You can save the entry to a file, or delete it from this device.',
+  'app.doc.local.unreadable.export': 'Save the entry to a file',
+  'app.doc.local.unreadable.delete': 'Delete it from this device',
+  'app.doc.local.unreadable.deleteConfirm':
+    'Delete this damaged entry from this device? This can’t be undone here. A backup file that carries it still does.',
+  'app.doc.local.unreadable.backupNote':
+    'One record kept on this device only couldn’t be read. This backup carries its entry exactly as it is, so nothing is lost with the file. Everything else is in it as usual.',
 };

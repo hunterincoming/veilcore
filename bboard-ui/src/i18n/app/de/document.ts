@@ -196,14 +196,23 @@ export const document = {
     'Dieser Datensatz wird nur auf diesem Gerät aufbewahrt, deshalb gibt es das für ihn nicht.',
   'app.doc.local.delete': 'Von diesem Gerät löschen',
   'app.doc.local.deleteConfirm':
-    'Diesen Datensatz von diesem Gerät löschen? Das lässt sich hier nicht rückgängig machen. Eine Sicherungsdatei, die ihn enthält, enthält ihn weiterhin. VeilCore behält die Kennung, den Prüfcode und die Schlüsselbindung des Datensatzes und sonst nichts; sein Datum gilt also weiter für alle, die den Prüflink haben.',
+    'Diesen Datensatz von diesem Gerät löschen? Das lässt sich hier nicht rückgängig machen. Eine Sicherungsdatei, die ihn enthält, enthält ihn weiterhin. VeilCore behält, was bereits gesendet wurde: die Kennung, den Prüfcode und die Schlüsselbindung des Datensatzes. Eine Passkey-Kopie, falls Sie eine haben, enthält seine Kennung und seine Schlüssel weiter, bis Sie diese Kopie aktualisieren. Haben Sie seinen Schlüssel mit einem Datum gestempelt, bleibt das auf Midnight. Sein Datum gilt weiter für alle, die den Prüflink haben.',
   'app.doc.local.toRecord': 'Zum Datensatz',
   'app.doc.local.backupNow':
     'Versiegelt. Speichern Sie jetzt eine Sicherung und prüfen Sie sie: Bis dahin liegt die einzige Kopie dieses Datensatzes in diesem Browser.',
   'app.doc.local.backupMissing':
     'Diese Sicherung enthält Ihre Dokumente nicht, die nur auf diesem Gerät aufbewahrt werden. Speichern Sie eine neue und prüfen Sie diese.',
   'app.doc.local.backupFailed':
-    'Die Sicherung konnte nicht erstellt werden: Ein Dokument, das nur auf diesem Gerät aufbewahrt wird, ließ sich nicht aufnehmen. Es wurde nichts gespeichert. Laden Sie die Seite neu und versuchen Sie es noch einmal.',
+    'Die Sicherung konnte nicht erstellt werden: Ein Dokument, das nur auf diesem Gerät aufbewahrt wird, ließ sich nicht aufnehmen. Es wurde nichts gespeichert.',
   'app.doc.local.noCorrect':
     'Ein Datensatz, der nur auf diesem Gerät aufbewahrt wird, lässt sich nicht korrigieren. Versiegeln Sie das Dokument erneut als neuen Datensatz.',
+  'app.doc.local.unreadable.title': 'Ein Datensatz auf diesem Gerät konnte nicht gelesen werden',
+  'app.doc.local.unreadable.text':
+    'Der Datensatz {id} wird nur auf diesem Gerät aufbewahrt, und sein Eintrag in diesem Browser ist beschädigt; er kann deshalb nicht angezeigt werden. Er wird nirgendwohin gesendet. Ihre Sicherungsdatei enthält den Eintrag genau so, wie er ist. Sie können den Eintrag in einer Datei speichern oder ihn von diesem Gerät löschen.',
+  'app.doc.local.unreadable.export': 'Eintrag in einer Datei speichern',
+  'app.doc.local.unreadable.delete': 'Von diesem Gerät löschen',
+  'app.doc.local.unreadable.deleteConfirm':
+    'Diesen beschädigten Eintrag von diesem Gerät löschen? Das lässt sich hier nicht rückgängig machen. Eine Sicherungsdatei, die ihn enthält, enthält ihn weiterhin.',
+  'app.doc.local.unreadable.backupNote':
+    'Ein Datensatz, der nur auf diesem Gerät aufbewahrt wird, konnte nicht gelesen werden. Diese Sicherung enthält seinen Eintrag genau so, wie er ist; mit der Datei geht also nichts verloren. Alles andere ist wie gewohnt enthalten.',
 } satisfies Partial<AppTranslation>;

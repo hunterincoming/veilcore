@@ -46,7 +46,7 @@ the device for such a record:
 | The record id or the proof code, in the address of reads (`GET /records/:id/evidence`, `GET /proof/:code`) | The registry | When the holder opens the record or downloads its evidence bundle | To fetch the batch's inclusion proof |
 | The network address and the time of each of those requests | The registry and its host | Always, as with any request | Not kept in a request log (the registry writes none), but seen |
 | The record's id and its keys, inside the passkey copy, locked with a key only the passkey makes | The registry (`/vault`) | Only if the holder keeps a passkey copy (where the build offers one) | The passkey copy is the keys of every record. It never holds a record's contents, so it can't bring this record back |
-| A code made from the record's key (its identity, and a commitment to its recovery secret) | Midnight, through VeilCore's fee service | Only if the holder presses "date stamp" on the record's page | The key's own date. A stamp that failed is tried again by itself; nothing starts the first one but the button |
+| A code made from the record's key (its identity, and a commitment to its recovery secret) | Midnight, through VeilCore's fee service | Only if the holder presses "date stamp" on the record's page | The key's own date. A stamp that failed is tried again by itself; nothing starts the first one but that button: not sealing, not the background, not a "Do it for me" job |
 | The proof code, in a batch's root | Midnight | When the batch is anchored | The date |
 
 Never sent, by any path:
@@ -61,8 +61,11 @@ Never sent, by any path:
 the record's own key. None is made from what was typed in a way that can be turned back.
 
 The key date stamp was left as the holder's own button, not switched off: it sends nothing
-typed, it is never started for a document by sealing it (plants start theirs on the log screen;
-`DocumentNew` does not), and the page says what it sends before the button. A test holds both.
+typed, and the page says what it sends before the button. Nothing else starts it. Sealing a
+document doesn't (plants start theirs on the log screen). The background only tries again a
+stamp that was started and failed. Ask's "Do it for me" jobs leave such a record out
+(`ask-job/prepare.ts` `own`, `ask/plan.ts`), and a job that names one all the same stamps
+nothing (`ask-job/senders.ts` `sendStamp`). A test runs each of these.
 
 ## Fail closed
 
@@ -92,8 +95,15 @@ How:
   not sealed, not sent, not counted as held.
 - **A restore** (`importRecordRows`) puts a marked record into this device's store and nowhere
   else, decided from the file and this browser alone. It is never put back over a registry row
-  and never uploaded, and the mark is never taken off. A marked record that is not a document
-  stops the whole import.
+  and never uploaded, and the mark is never taken off: an unmarked row for a record kept here
+  changes nothing. A marked record that is not a document stops the whole import.
+- **The mark is set when a record is sealed, and by nothing after.** A marked row for a record
+  this browser knows as an ordinary one (it waits in the send queue, or its locked copy was
+  opened or saved here) is refused and counted as not imported. Otherwise a record could be
+  shown as "on this device only" while an unmarked copy of it waited to be sent.
+- **The send queue never holds one.** Keeping a record on the device, showing it and deleting
+  it each take its id out of the queue first; the queue's reader leaves out any id kept on the
+  device every time it is read; and the last gate checks again when a save is built.
 - **The mark is this browser's word.** A row the registry sends never carries it into the app
   (`api-store.ts` load strips it).
 - **Other routes.** Sharing by link (`PUT /api/records/:id/disclosure`), sending to a lab
@@ -116,7 +126,8 @@ The record's only other copy is a backup file saved **after** it was sealed.
   this browser holds the only copy.
 - The backup check (`checkBackup`) refuses a file that doesn't hold every one of them as it is
   now. A backup saved earlier fails it.
-- A backup that can't hold them is not made. The reason is shown; no file is saved without them.
+- A backup that would leave a readable one out is not made. The reason is shown; no file is
+  saved without them. (An entry that can't be read is another matter: see "A damaged entry".)
 - The file carries the record whole (`recordData`), with its document details and the mark,
   and its inclusion proof once it is in a batch. Restoring it on another browser puts the
   record under `veilcore.device-only.v1` there and sends nothing but, if the registry doesn't
@@ -142,12 +153,24 @@ in a backup yet" until it is. Never "locked copy not uploaded yet".
 
 All of it in English, German, Spanish, French and Japanese.
 
+## A damaged entry
+
+If an entry in the device-only store can't be read as a record (damaged storage), it stops
+nothing. The backup is made as usual and carries the entry exactly as stored
+(`deviceOnlyUnreadable`), and the backup step says one record couldn't be read. Other records'
+saves go on. Home lists the entry by its id, with "Save the entry to a file" and "Delete it
+from this device". A restore puts the entry back as it was. It is never sent: its id is still
+kept on the device, readable or not.
+
 ## Deleting one
 
 "Delete from this device", on the record's page, after a warning. The record and its keys go
-from this browser. Nothing is sent. The registry keeps what it was sent when the record was
-sealed (the id, the proof code, the key binding), so the date still stands for anyone holding
-the check link. A backup file that holds the record still holds it.
+from this browser, and anything under its id is taken out of the send queue first. Nothing is
+sent. What stays elsewhere, and the warning says so: the registry keeps what it was sent when
+the record was sealed (the id, the proof code, the key binding), so the date still stands for
+anyone holding the check link; a passkey copy still holds its id and keys until that copy is
+updated; a key stamp, if one was made, stays on Midnight; a backup file that holds the record
+still holds it.
 
 ## Limits
 
@@ -183,11 +206,18 @@ the check link. A backup file that holds the record still holds it.
   `fixtures/dishonest-registry.ts`: the registry empties the row (the purge), then for each of
   six other answers (emptied, a locked box, a plain row, another proof code, a claim's stub,
   nothing): the device copy is shown, is in the next backup, a restore elsewhere keeps it on
-  the device, and no request but the dating row carries anything. Also: a marked record that
-  is not a document stops an import, and the bulk and awaited paths refuse the mark.
+  the device, and no request but the dating row carries anything. Then the same with every
+  route lying at once (rows, the dating answer, proofs, evidence, sharing choices, agreements,
+  deliveries) and any unexpected route refused and counted. Also: a marked record that is not
+  a document stops an import; the bulk and awaited paths refuse the mark; a marked row for a
+  record in the send queue is refused; a copy left in the queue is purged and deleting uploads
+  nothing; an unmarked row never clears the mark.
 - `bboard-ui/src/veilcore/device-only-backup.test.ts`: a backup saved before sealing doesn't
-  count and is refused by the check; a backup that can't hold the record isn't made; what the
-  passkey copy holds; deleting from the device; licences; the key date stamp.
+  count and is refused by the check; a damaged entry doesn't block the backup or another
+  record's upload, and is carried raw, listed, restored and deletable; a passkey copy made and
+  read back for real (what it holds, and that a restore from it brings keys, not the record);
+  deleting from the device; licences; and that neither the background nor a "Do it for me" job
+  stamps the key (each is run, with the stamp itself watched).
 - `bboard-ui/e2e/device-only-document.spec.ts` (a real browser against the stand-in registry):
   seals one with the vault key already backed up, sees "not in a backup yet" until a backup is
   saved and checked, checks the stand-in was sent the dating row and nothing else, that the

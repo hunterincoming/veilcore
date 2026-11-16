@@ -66,12 +66,34 @@ const setMine = <T>(storageKey: string, next: Record<string, T>): void => {
   writeAll(storageKey, all);
 };
 
-/** The records waiting here for this holder, by id. */
+/**
+ * The records waiting here for this holder, by id. Never one whose id is kept on this device
+ * only (below), whatever is stored under it here: the queue's reader checks again each time it
+ * is read, so nothing that got into the queue under such an id is ever handed to a save.
+ */
 export const outboxRecords = (): Record<string, Record<string, unknown>> => {
+  const local = mine<unknown>(DEVICE_ONLY);
   const out: Record<string, Record<string, unknown>> = {};
-  for (const [id, r] of Object.entries(mine<unknown>(OUTBOX))) if (isObject(r) && r.id === id) out[id] = r;
+  for (const [id, r] of Object.entries(mine<unknown>(OUTBOX)))
+    if (isObject(r) && r.id === id && !(id in local) && !isDeviceOnly(r)) out[id] = r;
   return out;
 };
+
+/** Take these ids out of the queue as stored, readable there or not. */
+const purgeFromOutbox = (ids: readonly string[]): void => {
+  const stored = mine<unknown>(OUTBOX);
+  const hit = ids.filter((id) => id in stored);
+  if (hit.length === 0) return;
+  for (const id of hit) delete stored[id];
+  setMine(OUTBOX, stored);
+};
+
+/**
+ * Whatever sits in the send queue under the id of a record kept on this device only is taken
+ * out of it. Run before anything is done with such a record (shown, kept, deleted): a copy left
+ * in the queue would be sent the moment the id stopped being kept here.
+ */
+export const purgeDeviceOnlyFromOutbox = (): void => purgeFromOutbox(Object.keys(mine<unknown>(DEVICE_ONLY)));
 
 export const inOutbox = (id: string): boolean => id in outboxRecords();
 
@@ -122,7 +144,23 @@ export const deviceOnlyRecords = (): Record<string, Record<string, unknown>> => 
   return out;
 };
 
-export const keptOnDeviceOnly = (id: string): boolean => id in deviceOnlyRecords();
+/**
+ * Every entry kept under the device-only key for this holder, as stored: readable as a record
+ * or not (records.ts damagedDeviceOnly). An entry that can't be read is still never sent.
+ */
+export const deviceOnlyRaw = (): Record<string, unknown> => ({ ...mine<unknown>(DEVICE_ONLY) });
+
+/** By id alone, from this browser's own store: so a damaged entry's id is never sendable either. */
+export const keptOnDeviceOnly = (id: string): boolean => id in mine<unknown>(DEVICE_ONLY);
+
+/** Put a stored entry back as it was (a restore of one that couldn't be read): never over one already here. */
+export const keepRawOnDevice = (entries: Readonly<Record<string, unknown>>): void => {
+  const here = mine<unknown>(DEVICE_ONLY);
+  const fresh = Object.entries(entries).filter(([id]) => !(id in here) && !(id in mine<unknown>(OUTBOX)));
+  if (fresh.length === 0) return;
+  for (const [id, raw] of fresh) here[id] = raw;
+  setMine(DEVICE_ONLY, here);
+};
 
 /**
  * Whether this id is a record kept on this device only. This is the test every outgoing path
@@ -134,7 +172,9 @@ export const neverSend = (r: unknown): boolean =>
 
 /** Take a record off this device (the holder's own choice: records.ts deleteDeviceOnly). */
 export const dropFromDevice = (id: string): void => {
-  const here = deviceOnlyRecords();
+  // First, while the id is still kept here: nothing under it stays in the send queue.
+  purgeFromOutbox([id]);
+  const here = mine<unknown>(DEVICE_ONLY);
   if (id in here) {
     delete here[id];
     setMine(DEVICE_ONLY, here);
@@ -162,9 +202,10 @@ export const markDeviceOnlyInBackup = (prints: Readonly<Record<string, string>>)
 export const keepOnDevice = (records: readonly Record<string, unknown>[]): void => {
   const marked = records.filter((r) => isDeviceOnly(r) && isString(r.id));
   if (marked.length === 0) return;
-  const here = deviceOnlyRecords();
+  const here = mine<unknown>(DEVICE_ONLY);
   for (const r of marked) here[r.id as string] = r;
   setMine(DEVICE_ONLY, here);
+  purgeFromOutbox(marked.map((r) => r.id as string));
 };
 
 /** A map per record id of strings per transfer id, as kept under storageKey. */

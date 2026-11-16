@@ -32,7 +32,7 @@ import {
 } from '../veilcore/bulk-import';
 import { vaultKeyIfAny } from '../veilcore/vault';
 import { holderRequestsPaused } from '../veilcore/holder-guard';
-import { allRecords, type StrainRecord } from '../veilcore/records';
+import { allRecords, isKeptOnDeviceOnly, type StrainRecord } from '../veilcore/records';
 import { keysFor, keysWithoutBackup } from '../veilcore/record-keys';
 import { heldLicense, heldLicenses } from '../veilcore/held-licenses';
 import { readAll } from '../veilcore/deal-client';
@@ -120,7 +120,10 @@ export type Question = 'bredBy' | 'taxon' | 'scheme' | 'file' | 'figures' | 'bac
 
 const own = (id: string | undefined): StrainRecord | undefined => {
   const r = id ? allRecords().find((x) => x.id === id) : undefined;
-  return r && !isReceivedRecord(r) ? r : undefined;
+  // Never a record kept on this device only (docs/device-only-records.md): no job stamps its
+  // key, makes young or clones from it, or gets it ready to license. Whatever sends anything
+  // for such a record is started from its own page, by the holder.
+  return r && !isReceivedRecord(r) && !isKeptOnDeviceOnly(r) ? r : undefined;
 };
 
 /** Rows and names already used, this job's own held rows aside (they are what is being changed). */

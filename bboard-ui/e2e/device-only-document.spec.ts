@@ -285,7 +285,9 @@ test('a document kept on this device only: the registry gets its dating row and 
   const sentBefore = reg.seen.length;
   await page.goto(`/record/${recordId}`);
   page.once('dialog', (d) => {
-    expect(d.message()).toContain('VeilCore keeps the record’s ID, proof code and key binding, and nothing else');
+    expect(d.message()).toContain(
+      'VeilCore keeps what it was already sent: the record’s ID, proof code and key binding.',
+    );
     void d.accept();
   });
   await page.locator('[data-device-only-delete]').click();

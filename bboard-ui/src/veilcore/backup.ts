@@ -51,6 +51,9 @@ import {
   importRecordRows,
   markDeviceOnlyBackedUp,
   recordsForBackup,
+  restoreUnreadable,
+  unreadableForBackup,
+  unreadableMissingFrom,
   type ImportResult,
 } from './records';
 import { deviceOnlyRecords } from './outbox';
@@ -102,6 +105,11 @@ export type BackupContents = {
    * files, and passkey copies (which live on the registry anyway), have none.
    */
   readonly recordData?: readonly unknown[];
+  /**
+   * Entries of the device-only store that couldn't be read as records when the file was made
+   * (damaged storage), by record id, exactly as stored: kept so nothing is lost with the file.
+   */
+  readonly deviceOnlyUnreadable?: Readonly<Record<string, unknown>>;
   /**
    * Each record's inclusion proof once its batch is sealed, by proof code: the path from the
    * record to the batch root anchored on Midnight. Public data, kept so the date can be shown
@@ -311,7 +319,12 @@ export const withRecordsAndProofs = async (contents: BackupContents): Promise<Ba
     return [];
   });
   if (localOnly && deviceOnlyMissingFrom(recordData).length > 0) throw new Error(DEVICE_ONLY_BACKUP_FAILED());
-  if (recordData.length === 0) return { ...contents, ...deals };
+  // An entry of theirs this browser can't read as a record (damaged storage) never stops the
+  // backup: it goes in exactly as it is stored, so nothing is lost with the file, and the
+  // backup step says one couldn't be read.
+  const damaged = unreadableForBackup();
+  const unreadable = Object.keys(damaged).length ? { deviceOnlyUnreadable: damaged } : {};
+  if (recordData.length === 0) return { ...contents, ...unreadable, ...deals };
   const prints = [...new Set(recordData.map((r) => r.recordFingerprint).filter((f) => HEX64.test(f ?? '')))];
   const proofs: Record<string, unknown> = {};
   for (let i = 0; i < prints.length; i += PROOF_FETCHES) {
@@ -335,6 +348,7 @@ export const withRecordsAndProofs = async (contents: BackupContents): Promise<Ba
     recordData,
     ...(Object.keys(proofs).length ? { proofs } : {}),
     ...(Object.keys(sealedFields).length ? { sealedFields } : {}),
+    ...unreadable,
     ...deals,
   };
 };
@@ -509,7 +523,10 @@ export const checkBackup = async (
   // Documents kept on this device only: this file is their only other copy, so it must hold
   // each of them as it is now (docs/device-only-records.md). Not asked of the passkey copy
   // (mark: false), which holds keys and never records, and never counts as the backup.
-  if (opts.mark !== false && deviceOnlyMissingFrom(v.recordData).length > 0) {
+  if (
+    opts.mark !== false &&
+    (deviceOnlyMissingFrom(v.recordData).length > 0 || unreadableMissingFrom(v.deviceOnlyUnreadable).length > 0)
+  ) {
     return { ok: false, reason: DEVICE_ONLY_NOT_IN_FILE };
   }
   if (opts.mark !== false) {
@@ -638,6 +655,8 @@ export const restoreAny = async (file: File, password?: string, opts: RestoreOpt
   // its registry don't have (the same rules as an import: each must recompute, none
   // overwrites one already here). A problem here doesn't undo the keys restored above.
   let fromFile: ImportResult | { error: string } | undefined;
+  // Entries the file carries raw (they couldn't be read where it was made): back as they were.
+  restoreUnreadable(v.deviceOnlyUnreadable);
   if (Array.isArray(v.recordData) && v.recordData.length > 0) {
     try {
       fromFile = await importRecordRows(v.recordData as unknown[]);

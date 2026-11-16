@@ -52,6 +52,7 @@ import { labCardLine, useLabCardFacts, useWaitingByRecord } from './LabResults';
 import { quantityPhrase } from '../../veilcore/transfers';
 import { TrustPanel } from '../TrustPanel';
 import { LockedAgreements, LockedRecords, LoadNoticeBar } from '../LockedRecords';
+import { UnreadableDeviceOnly } from '../document/UnreadableDeviceOnly';
 import { useVaultNeedsBackup } from '../../veilcore/vault';
 import { RegistryExportButton } from '../RegistryExportButton';
 import { draftHeading, loadDraft } from './log-flow-state';
@@ -344,6 +345,7 @@ export const AppHome: React.FC = () => {
 
           {!labOnly && <OldLinksNote records={records} />}
           <LockedRecords />
+          <UnreadableDeviceOnly />
           <LockedAgreements />
           {!pasteFirst && <PasteBox />}
           {/* A lab's own links (persona review, 17 Oct): no spreadsheet of plants, no "logging my plant first". */}
@@ -436,6 +438,7 @@ export const AppHome: React.FC = () => {
         )}
 
         <LockedRecords />
+        <UnreadableDeviceOnly />
         <LockedAgreements />
 
         {isLab(role) && labPanel('h2')}

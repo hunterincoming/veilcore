@@ -9,7 +9,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { fakeRegistry, type FakeRegistry } from './fixtures/fake-registry';
 import { browser, fileOf, installStorage, settle } from './fixtures/browsers';
 import { stubWebLocks } from './fixtures/web-locks';
-import { LIES, lieAbout } from './fixtures/dishonest-registry';
+import { LIES, lieAbout, lieEverywhere } from './fixtures/dishonest-registry';
 import {
   DEVICE_ONLY_STORE,
   FILE_SHA,
@@ -19,8 +19,11 @@ import {
   backupText,
   nothingLeft,
   pathOf,
+  sealDoc,
   sealOnDevice,
 } from './fixtures/device-only-doc';
+
+const OUTBOX_STORE = 'veilcore.outbox.v1';
 
 let reg: FakeRegistry;
 
@@ -201,5 +204,147 @@ describe('a backup file that carries the mark', () => {
       await expect(A.m.records.createRecordSaved({ ...sealed, deviceOnly: true })).rejects.toThrow(/this device only/);
     });
     expect(reg.sent.filter((r) => r.method !== 'GET')).toEqual([]);
+  });
+});
+
+describe.each(LIES)(
+  'every route of the registry lies ("%s" for the rows), and anything unexpected is refused',
+  (lie) => {
+    it('the record stays here, whole, and only the three-field dating row is ever sent', async () => {
+      const A = await browser(`all-${lie}`);
+      const record = await sealOnDevice(reg, A);
+      const { text, out } = await backUp(A);
+      expect(out.ok).toBe(true);
+      await settle(150);
+      const { seen, denied } = lieEverywhere(reg, lie, record);
+
+      const B = await browser(`all-${lie}-reload`, {}, `all-${lie}`);
+      await B.run(async () => {
+        for (let i = 0; i < 3; i++) {
+          await B.m.records.hydrate();
+          await settle(120);
+        }
+        // The sharing choices the registry made up are read too, and nothing is shared for it.
+        await B.m.disclosure.listGrants();
+        await B.m.disclosure.loadGrant(record.id);
+        await B.m.records.hydrate();
+        await settle(120);
+        const shown = B.m.records.getRecord(record.id);
+        expect(shown?.deviceOnly).toBe(true);
+        expect(shown?.strainName).toBe(MARKERS[0]);
+        expect(shown?.grant).toBeUndefined();
+        expect(shown?.licenseIds ?? []).toEqual([]);
+        expect(await B.m.records.checkIntegrity(shown!)).toBe('match');
+        // The evidence the registry made up is asked for, and nothing is sent with the asking.
+        const { gatherEvidence } = await import('./evidence/bundle');
+        await gatherEvidence(shown!).catch(() => undefined);
+      });
+      const next = await backUp(B);
+      expect(next.out.ok).toBe(true);
+      expect((JSON.parse(next.text) as { recordData: { id: string }[] }).recordData.map((r) => r.id)).toContain(
+        record.id,
+      );
+      const C = await browser(`all-${lie}-fresh`);
+      await C.run(async () => {
+        try {
+          await C.m.backup.restoreAny(fileOf(text));
+        } catch {
+          /* a registry showing rows locked with another key can stop a restore; it can't make one upload */
+        }
+        await settle(300);
+        await C.m.records.hydrate();
+        await settle(200);
+      });
+
+      // Everything the liar was sent: reads, and the dating row of three fields. Nothing typed.
+      expect(denied).toEqual([]);
+      for (const r of seen) {
+        for (const m of [...MARKERS, 'deviceOnly', FILE_SHA]) expect(r.body, `${r.method} ${r.path}`).not.toContain(m);
+        if (r.method === 'GET') continue;
+        expect(`${r.method} ${r.path}`).toBe('PUT /api/records/dating');
+        for (const row of JSON.parse(r.body) as Record<string, unknown>[])
+          expect(Object.keys(row).every((k) => ['id', 'recordFingerprint', 'keyBinding'].includes(k))).toBe(true);
+      }
+      expect(nothingLeft(reg, record)).toEqual([]);
+    });
+  },
+);
+
+describe('the mark is set when a record is sealed, and by nothing after', () => {
+  it('a marked row for a record waiting in the send queue is refused: it stays an ordinary record, and deleting is not offered', async () => {
+    const A = await browser('q');
+    const sealed = await sealDoc(A, 'Ordinary, waiting for the backup');
+    const record = await A.run(async () => {
+      const r = A.m.records.createRecord(sealed);
+      await settle(150);
+      expect(A.m.records.unsavedReason(r.id)).toBe('backup');
+      return r;
+    });
+    await A.run(async () => {
+      const out = await A.m.records.importRecordRows([{ ...record, deviceOnly: true }]);
+      expect(out).toEqual(expect.objectContaining({ added: 0, notImported: 1 }));
+      await settle(150);
+      await A.m.records.hydrate();
+      const shown = A.m.records.getRecord(record.id);
+      expect(shown?.deviceOnly).toBeUndefined();
+      expect(A.m.records.isKeptOnDeviceOnly(shown)).toBe(false);
+      expect(A.m.records.deleteDeviceOnly(record.id)).toBe(false);
+      expect(A.m.outbox.inOutbox(record.id)).toBe(true);
+    });
+    expect(A.storage.get(DEVICE_ONLY_STORE) ?? '').not.toContain(record.id);
+  });
+
+  it('a record kept on this device only that also sits in the send queue is taken out of the queue, and deleting it uploads nothing', async () => {
+    const A = await browser('q2');
+    const record = await sealOnDevice(reg, A);
+    // As the earlier build of this branch could leave it: an unmarked copy in the send queue.
+    const H = (await A.run(() => A.m.holder.holderKeyIfAny())) as string;
+    const { deviceOnly: _mark, ...unmarked } = record;
+    void _mark;
+    A.storage.set(OUTBOX_STORE, JSON.stringify({ [H.toLowerCase()]: { [record.id]: unmarked } }));
+    const B = await browser('q2-reload', {}, 'q2');
+    await B.run(async () => {
+      expect(B.m.outbox.inOutbox(record.id)).toBe(false);
+      await B.m.records.hydrate();
+      await settle(150);
+      expect(B.m.records.getRecord(record.id)?.deviceOnly).toBe(true);
+    });
+    expect((await backUp(B)).out.ok).toBe(true);
+    await settle(300);
+    expect(B.storage.get(OUTBOX_STORE) ?? '').not.toContain(record.id);
+    await B.run(async () => {
+      expect(B.m.records.deleteDeviceOnly(record.id)).toBe(true);
+      await settle(150);
+      await B.m.records.hydrate();
+      await settle(300);
+      expect(B.m.records.getRecord(record.id)).toBeUndefined();
+    });
+    const C = await browser('q2-again', {}, 'q2');
+    await C.run(async () => {
+      await C.m.records.hydrate();
+      await settle(300);
+    });
+    expect(recordPuts()).toEqual([]);
+    expect(nothingLeft(reg, record)).toEqual([]);
+  });
+
+  it('an unmarked row for a record kept on this device only never clears the mark', async () => {
+    const A = await browser('q3');
+    const record = await sealOnDevice(reg, A);
+    expect((await backUp(A)).out.ok).toBe(true);
+    await A.run(async () => {
+      const { deviceOnly: _mark, ...unmarked } = A.m.records.getRecord(record.id)!;
+      void _mark;
+      const out = await A.m.records.importRecordRows([unmarked]);
+      expect(out).toEqual(expect.objectContaining({ added: 0, alreadyHere: 1 }));
+      await settle(200);
+      await A.m.records.hydrate();
+      await settle(200);
+      expect(A.m.records.getRecord(record.id)?.deviceOnly).toBe(true);
+      expect(A.m.outbox.inOutbox(record.id)).toBe(false);
+    });
+    expect(A.storage.get(DEVICE_ONLY_STORE)).toContain(record.id);
+    expect(recordPuts()).toEqual([]);
+    expect(nothingLeft(reg, record)).toEqual([]);
   });
 });

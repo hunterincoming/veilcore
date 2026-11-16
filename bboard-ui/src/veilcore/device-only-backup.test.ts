@@ -4,8 +4,7 @@
 // Also here: deleting one from the device, licences, and the key date stamp.
 // SPDX-License-Identifier: Apache-2.0
 
-import fs from 'node:fs';
-import path from 'node:path';
+import { randomBytes } from 'node:crypto';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { fakeRegistry, type FakeRegistry } from './fixtures/fake-registry';
 import { browser, fileOf, installStorage, settle } from './fixtures/browsers';
@@ -15,7 +14,6 @@ import {
   MARKERS,
   RECORDS,
   backUp,
-  backupText,
   nothingLeft,
   pathOf,
   sealDoc,
@@ -36,7 +34,6 @@ beforeEach(() => {
   };
 });
 
-const SRC = path.resolve(__dirname, '..');
 const NOT_IN_FILE = /doesn’t hold your documents kept on this device only/;
 
 describe('whether a document kept on this device only is in a backup', () => {
@@ -91,42 +88,145 @@ describe('whether a document kept on this device only is in a backup', () => {
     expect(nothingLeft(reg, record)).toEqual([]);
   });
 
-  it('a backup that cannot hold the record is not made (never a file silently without it)', async () => {
+  it('one entry that cannot be read never blocks the backup or another record’s upload: it is kept raw, listed, exportable and deletable', async () => {
     const A = await browser('f');
     const record = await sealOnDevice(reg, A);
-    // The device's copy can no longer be read as a record (damaged storage).
+    const other = await sealOnDevice(reg, A, 'A second one, still readable');
+    // An ordinary document too, waiting for the backup check before its locked copy goes up.
+    const plain = await sealDoc(A, 'Ordinary, waiting');
+    const waiting = await A.run(async () => {
+      const r = A.m.records.createRecord(plain);
+      await settle(150);
+      return r;
+    });
+    // The device's copy of the first can no longer be read as a record (damaged storage).
     const stored = JSON.parse(A.storage.get(DEVICE_ONLY_STORE)!) as Record<string, Record<string, { notes: unknown }>>;
     for (const h of Object.values(stored)) h[record.id].notes = 42;
     A.storage.set(DEVICE_ONLY_STORE, JSON.stringify(stored));
-    const B = await browser('f-reload', {}, 'f');
-    await expect(B.run(() => B.m.backup.backupFileText())).rejects.toThrow(/kept on this device only/);
-  });
+    const raw = Object.values(stored)[0][record.id];
 
-  it('the passkey copy is the keys only: the record’s id and its keys, never what was typed', async () => {
-    const A = await browser('pk');
-    const record = await sealOnDevice(reg, A);
-    expect((await backUp(A)).out.ok).toBe(true);
-    // What a passkey copy seals (passkey-backup.ts saveAndCheck: backupContents(), never recordData).
-    const source = fs.readFileSync(path.join(SRC, 'veilcore/passkey-backup.ts'), 'utf8');
-    expect(source).toMatch(/const contents = backupContents\(\);/);
-    expect(source).not.toMatch(/withRecordsAndProofs|recordsForBackup|backupFileText/);
-    const contents = await A.run(() => A.m.backup.backupContents());
-    const text = JSON.stringify(contents);
-    for (const m of MARKERS) expect(text).not.toContain(m);
-    expect(text).not.toContain('deviceOnly');
-    expect((contents as { recordData?: unknown }).recordData).toBeUndefined();
-    expect(contents.records.map((k) => k.recordId)).toEqual([record.id]);
-    // Its own check (mark: false) passes without the record, and marks nothing backed up.
-    const checked = await A.run(() => A.m.backup.checkBackup(fileOf(text), undefined, { mark: false }));
-    expect(checked.ok).toBe(true);
-    // A restore from it brings the keys and not the record.
-    const C = await browser('pk-fresh');
+    const B = await browser('f-reload', {}, 'f');
+    await B.run(async () => {
+      await B.m.records.hydrate();
+      await settle(150);
+      // Listed with what is known of it, and its raw entry can be exported.
+      expect(B.m.records.damagedDeviceOnly()).toEqual([{ id: record.id, raw }]);
+      expect(B.m.records.getRecord(record.id)).toBeUndefined();
+      expect(B.m.records.getRecord(other.id)?.deviceOnly).toBe(true);
+    });
+    // The backup is made, with the readable records and the damaged entry verbatim, and checks.
+    const { text, out } = await backUp(B);
+    expect(out.ok).toBe(true);
+    const file = JSON.parse(text) as { recordData: { id: string }[]; deviceOnlyUnreadable?: Record<string, unknown> };
+    expect(file.recordData.map((r) => r.id).sort()).toEqual([other.id, waiting.id].sort());
+    expect(file.deviceOnlyUnreadable).toEqual({ [record.id]: raw });
+    await settle(300);
+    // The ordinary record's locked copy went up; nothing of the damaged entry ever does.
+    const H = (await B.run(() => B.m.holder.holderKeyIfAny())) as string;
+    expect(reg.rowsOf(H).find((r) => r.id === waiting.id)?.sealed).toBeTruthy();
+    for (const p of reg.sent.filter((r) => r.method === 'PUT' && pathOf(r.url) === '/api/records'))
+      expect(p.body).not.toContain(record.id);
+    await B.run(() => {
+      expect(B.m.records.deviceOnlyBackedUp(B.m.records.getRecord(other.id))).toBe(true);
+      // Still never sendable, by id, damaged or not.
+      expect(B.m.records.isKeptOnDeviceOnly({ id: record.id } as never)).toBe(true);
+    });
+    // A restore elsewhere brings the raw entry back as it was: nothing is lost with the file.
+    const C = await browser('f-fresh');
     await C.run(async () => {
       await C.m.backup.restoreAny(fileOf(text));
       await settle(300);
+      expect(C.m.records.damagedDeviceOnly()).toEqual([{ id: record.id, raw }]);
+      expect(C.m.records.getRecord(other.id)?.deviceOnly).toBe(true);
+    });
+    // The holder deletes it: gone from the list, and nothing sent.
+    const before = reg.sent.length;
+    await B.run(async () => {
+      expect(B.m.records.deleteDeviceOnly(record.id)).toBe(true);
+      expect(B.m.records.damagedDeviceOnly()).toEqual([]);
+      await settle(200);
+    });
+    expect(reg.sent.slice(before).filter((r) => r.method !== 'GET')).toEqual([]);
+    expect(nothingLeft(reg, other)).toEqual([]);
+  });
+
+  it('a passkey copy, made and read back for real, holds the record’s id and keys and nothing typed; a restore from it does not bring the record', async () => {
+    // The registry's /vault routes and a synced passkey, as passkey-backup.test.ts stands them in.
+    const vault = new Map<string, { hash: string; iv: string; ct: string }>();
+    const stored: string[] = [];
+    const sha = async (t: string) =>
+      Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(t))), (b) =>
+        b.toString(16).padStart(2, '0'),
+      ).join('');
+    const inner = reg.fetch;
+    vi.stubGlobal('fetch', async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
+      const m = /\/vault\/([0-9a-f]{32})(\/read|\/delete)?$/.exec(new URL(url).pathname);
+      if (!m) return inner(input, init);
+      const body = JSON.parse(init?.body as string) as { token: string; iv?: string; ct?: string };
+      stored.push(init?.body as string);
+      const reply = (status: number, json: unknown) => new Response(JSON.stringify(json), { status });
+      const row = vault.get(m[1]);
+      if (!m[2]) {
+        vault.set(m[1], { hash: await sha(body.token), iv: body.iv!, ct: body.ct! });
+        return reply(200, { saved: true });
+      }
+      if (!row || row.hash !== (await sha(body.token))) return reply(404, { error: 'no such copy' });
+      return reply(200, { iv: row.iv, ct: row.ct });
+    });
+    const passkey = { rawId: randomBytes(16), secret: randomBytes(32) };
+    const prfFor = async (input: Uint8Array<ArrayBuffer>) => {
+      const k = await crypto.subtle.importKey('raw', passkey.secret, { name: 'HMAC', hash: 'SHA-256' }, false, [
+        'sign',
+      ]);
+      return new Uint8Array(await crypto.subtle.sign('HMAC', k, input));
+    };
+    type PrfAsk = { publicKey: { extensions: { prf: { eval: { first: Uint8Array<ArrayBuffer> } } } } };
+    const withResults = async (o: PrfAsk) => {
+      const results = {
+        prf: { enabled: true, results: { first: await prfFor(o.publicKey.extensions.prf.eval.first) } },
+      };
+      return {
+        rawId: passkey.rawId.buffer.slice(passkey.rawId.byteOffset, passkey.rawId.byteOffset + 16),
+        getClientExtensionResults: () => results,
+      };
+    };
+    vi.stubGlobal('navigator', { credentials: { create: withResults, get: withResults } });
+
+    const A = await browser('pk');
+    const record = await sealOnDevice(reg, A);
+    expect((await backUp(A)).out.ok).toBe(true);
+    const copy = await A.run(async () => {
+      const pk = await import('./passkey-backup');
+      const made = await pk.makePasskeyCopy();
+      expect(made.ok).toBe(true);
+      // Its own check marks nothing: the record is in a backup because of the file, not this.
+      const got = await pk.fetchPasskeyCopy();
+      return got.file.text();
+    });
+    // What the registry holds of the copy is a locked box: nothing readable in it.
+    expect(stored.length).toBeGreaterThan(0);
+    for (const b of stored) for (const m of [...MARKERS, record.id]) expect(b).not.toContain(m);
+    // Opened with the passkey: the record's id and its keys, and nothing that was typed.
+    const contents = JSON.parse(copy) as { records: { recordId: string }[]; recordData?: unknown };
+    for (const m of MARKERS) expect(copy).not.toContain(m);
+    expect(copy).not.toContain('deviceOnly');
+    expect(contents.recordData).toBeUndefined();
+    expect(contents.records.map((k) => k.recordId)).toEqual([record.id]);
+    // A restore from it, on a new device: the keys come back, the record does not.
+    const C = await browser('pk-fresh');
+    await C.run(async () => {
+      const pk = await import('./passkey-backup');
+      const got = await pk.fetchPasskeyCopy();
+      await C.m.backup.restoreAny(got.file);
+      await settle(300);
       await C.m.records.hydrate();
+      expect(C.m.keys.keysFor(record.id)).toBeDefined();
       expect(C.m.records.getRecord(record.id)).toBeUndefined();
     });
+    // As a backup file it is refused: it doesn't hold the record.
+    const refused = await A.run(() => A.m.backup.checkBackup(fileOf(copy)));
+    expect(refused.ok ? '' : refused.reason).toMatch(NOT_IN_FILE);
     expect(nothingLeft(reg, record)).toEqual([]);
   });
 });
@@ -185,32 +285,59 @@ describe('what else could send something of a document kept on this device only'
     expect(nothingLeft(reg, record)).toEqual([]);
   });
 
-  it('the key date stamp is never started for one unless the holder starts it', async () => {
+  it('nothing stamps its key, shares it or makes it ready to license without the holder’s own button: not the background, not a "Do it for me" job', async () => {
     const A = await browser('s');
     const record = await sealOnDevice(reg, A);
     expect((await backUp(A)).out.ok).toBe(true);
     const B = await browser('s-reload', {}, 's');
+    const stamped = vi.fn();
     await B.run(async () => {
-      for (let i = 0; i < 2; i++) {
-        await B.m.records.hydrate();
-        await settle(120);
-      }
+      await B.m.records.hydrate();
+      await settle(120);
+      vi.doMock('./chain/key-stamp', async (orig) => ({
+        ...(await orig<typeof import('./chain/key-stamp')>()),
+        stampKey: (id: string) => {
+          stamped(id);
+          return Promise.resolve();
+        },
+      }));
+      // The background's pass over stamps to try again: none was started, so none is tried.
+      const { stampRetryTick, dueStamps } = await import('./chain/stamp-background');
+      expect(dueStamps()).toEqual([]);
+      await stampRetryTick();
+      // "Get this ready to license" (Ask): the job is not made for such a record...
+      const { prepareJob } = await import('../ask-job/prepare');
+      const words = { cloneName: (n: string) => n, youngName: (n: string) => n, scheme: (x: string) => x };
+      const prepared = await prepareJob(
+        { job: 'ready', record: { v: record.id, src: { kind: 'record', id: record.id } } } as never,
+        words,
+        Date.now(),
+        '2026-11-16',
+      );
+      expect(prepared).toEqual({ refused: 'records' });
+      // ...and a job that names one all the same (made by an older build) stamps nothing.
+      const { sendStamp } = await import('../ask-job/senders');
+      const outcome = await sendStamp({ id: 'J-1' } as never, record.id, false);
+      expect(outcome.kind).toBe('failed');
+      // Ask's reading of what was typed doesn't offer it either.
+      const { planJob } = await import('../ask/plan');
+      const read = planJob(`get ${MARKERS[0]} ready to license`, {
+        records: B.m.records.allRecords(),
+        animals: true,
+        lang: 'en',
+      });
+      expect(JSON.stringify(read)).not.toContain(record.id);
+      vi.doUnmock('./chain/key-stamp');
+    });
+    expect(stamped).not.toHaveBeenCalled();
+    await B.run(async () => {
       const { stampRetries } = await import('./chain/key-stamp');
-      // Nothing was started, so nothing is waiting for the background to try again.
       expect(stampRetries()[record.id]).toBeUndefined();
       expect(B.m.keys.keysFor(record.id)?.anchor).toBeUndefined();
     });
-    // Every request went to the registry's record routes: none to the fee service or the network.
+    // Every request went to the registry's own routes: none to the fee service or the network.
     for (const r of reg.sent)
       expect(pathOf(r.url)).toMatch(/^\/(api\/(records|licenses|disclosures)|proof|transfers)\b/);
-    // Sealing a document never starts a stamp (plants do, on their log screen), and the
-    // document's page starts one only from its button.
-    const sealing = fs.readFileSync(path.join(SRC, 'components/document/DocumentNew.tsx'), 'utf8');
-    expect(sealing).not.toMatch(/stampKey|useKeyStamp|AnchorOnChainPanel/);
-    const hook = fs.readFileSync(path.join(SRC, 'components/chain/useKeyStamp.ts'), 'utf8');
-    expect(hook.match(/void run\(\)/g)).toHaveLength(1); // the retry after a failed try, nothing else
-    const page = fs.readFileSync(path.join(SRC, 'components/document/DocumentDetail.tsx'), 'utf8');
-    expect(page).toMatch(/app\.doc\.local\.stamp/);
     expect(RECORDS).toBe('veilcore.records.v1');
     expect(nothingLeft(reg, record)).toEqual([]);
   });

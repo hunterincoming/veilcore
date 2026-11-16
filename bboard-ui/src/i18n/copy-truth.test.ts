@@ -542,6 +542,25 @@ describe("what's live where", () => {
       /passkey copy, it holds this record’s ID and its keys, locked, on VeilCore’s server/,
     );
     expect(app['app.doc.local.stamp']).toMatch(/goes to Midnight through VeilCore’s fee service/);
+    // Deleting: what stays behind is said exactly, never "and nothing else" (a passkey copy
+    // still holds the id and keys until it is updated; a key stamp stays on Midnight).
+    for (const dict of [appEn, appDe, appEs, appFr, appJa]) {
+      const a = dict as Record<string, string>;
+      expect(a['app.doc.local.deleteConfirm']).toMatch(/Midnight/);
+      expect(a['app.doc.local.deleteConfirm']).toMatch(/passkey|Passkey|llave de acceso|clé d’accès|パスキー/);
+      for (const k of ['title', 'text', 'export', 'delete', 'deleteConfirm', 'backupNote'])
+        expect(a[`app.doc.local.unreadable.${k}`], k).toBeTruthy();
+      expect(a['app.doc.local.unreadable.text']).toContain('{id}');
+    }
+    expect(app['app.doc.local.deleteConfirm']).not.toMatch(/nothing else/);
+    expect(app['app.doc.local.deleteConfirm']).toMatch(
+      /VeilCore keeps what it was already sent: the record’s ID, proof code and key binding\. A passkey copy, if you keep one, still holds its ID and keys until you update that copy\. If you date-stamped its key, that stays on Midnight\./,
+    );
+    // The same words for the same things as the rest of the app, in Spanish and French.
+    expect((appEs as Record<string, string>)['app.doc.local.p3']).toMatch(/copia con llave de acceso/);
+    expect((appFr as Record<string, string>)['app.doc.local.p3']).toMatch(/copie avec clé d’accès/);
+    expect((appEs as Record<string, string>)['app.doc.local.stamp']).toMatch(/sello de fecha.*servicio de tarifas/);
+    expect((appFr as Record<string, string>)['app.doc.local.stamp']).toMatch(/Horodater.*service de frais/);
     for (const l of Object.values(LANGUAGES)) {
       const s = l.strings as Record<string, string>;
       for (const k of ['t', 'main', 'test', 'live']) expect(s[`m.live.local.${k}`], k).toBeTruthy();

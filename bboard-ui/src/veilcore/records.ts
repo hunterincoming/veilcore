@@ -36,6 +36,7 @@ import {
   checkRecordIntegrity,
   clearSealedState,
   datedProofCodeOf,
+  revMarks,
   datingRowOf,
   deleteLicenses,
   deleteRecords,
@@ -74,14 +75,17 @@ import {
   dropNames,
   dropOfferKeys,
   deviceOnlyInBackup,
+  deviceOnlyRaw,
   deviceOnlyRecords,
   dropFromDevice,
   inOutbox,
   isDeviceOnly,
   keepOnDevice,
+  keepRawOnDevice,
   keptOnDeviceOnly,
   markDeviceOnlyInBackup,
   neverSend,
+  purgeDeviceOnlyFromOutbox,
   keepName,
   keepOfferKey,
   outboxNames,
@@ -1186,6 +1190,8 @@ const mergeOutbox = async (): Promise<boolean> => {
  * the record's page (deviceOnlyConflict). Nothing here asks for a save.
  */
 const mergeDeviceOnly = (): void => {
+  // Before anything else: nothing stays in the send queue under one of their ids.
+  purgeDeviceOnlyFromOutbox();
   for (const [id, kept] of Object.entries(deviceOnlyRecords())) {
     if (!isStrainRecord(kept)) continue;
     const at = records.findIndex((r) => r.id === id);
@@ -1211,6 +1217,37 @@ export const deviceOnlyConflict = (id: string): boolean => {
   return theirs !== undefined && theirs !== kept.recordFingerprint;
 };
 
+/**
+ * Entries in this browser's device-only store that can't be read as a record (damaged storage).
+ * Never sent (their ids are kept here: outbox.ts keptOnDeviceOnly), never a reason to stop a
+ * backup or another record's save. Home lists them by id, with the raw entry to save to a file
+ * and a way to delete it; the backup file carries each one as it is (backup.ts).
+ */
+export const damagedDeviceOnly = (): { id: string; raw: unknown }[] => {
+  const readable = deviceOnlyRecords();
+  return Object.entries(deviceOnlyRaw())
+    .filter(([id]) => !(id in readable) || !isStrainRecord(readable[id]))
+    .map(([id, raw]) => ({ id, raw }));
+};
+
+/** The damaged entries, by id, as a backup file carries them. */
+export const unreadableForBackup = (): Record<string, unknown> =>
+  Object.fromEntries(damagedDeviceOnly().map((d) => [d.id, d.raw]));
+
+/** The damaged entries a backup file does not carry exactly as they are here. */
+export const unreadableMissingFrom = (inFile: unknown): string[] =>
+  damagedDeviceOnly()
+    .filter((d) => !isObject(inFile) || JSON.stringify(inFile[d.id]) !== JSON.stringify(d.raw))
+    .map((d) => d.id);
+
+/** A restore: the file's damaged entries go back as they were, never over anything already here. */
+export const restoreUnreadable = (inFile: unknown): void => {
+  if (!isObject(inFile) || Object.keys(inFile).length === 0) return;
+  keepRawOnDevice(inFile);
+  records = [...records];
+  notify();
+};
+
 // ---- a device-only record and the backup file ------------------------------------------------
 
 /** The rows of a backup's `recordData` that are these very records: same id, proof code, nonce and mark. */
@@ -1218,6 +1255,7 @@ const heldInFile = (recordData: unknown): Record<string, string> => {
   const rows: unknown[] = Array.isArray(recordData) ? (recordData as unknown[]) : [];
   const out: Record<string, string> = {};
   for (const [id, kept] of Object.entries(deviceOnlyRecords())) {
+    if (!isStrainRecord(kept)) continue; // a damaged entry: carried raw, not as a record
     const row: unknown = rows.find((r) => isObject(r) && r.id === id);
     if (
       isObject(row) &&
@@ -1235,7 +1273,9 @@ const heldInFile = (recordData: unknown): Record<string, string> => {
 /** The records kept on this device only that a backup's `recordData` does not hold (backup.ts). */
 export const deviceOnlyMissingFrom = (recordData: unknown): string[] => {
   const held = heldInFile(recordData);
-  return Object.keys(deviceOnlyRecords()).filter((id) => !(id in held));
+  return Object.entries(deviceOnlyRecords())
+    .filter(([id, r]) => isStrainRecord(r) && !(id in held))
+    .map(([id]) => id);
 };
 
 /** A file holding these records was checked (or restored from): they are in a backup now. */
@@ -1270,6 +1310,8 @@ export const deviceOnlyNeedsBackup = (): boolean =>
  */
 export const deleteDeviceOnly = (id: string): boolean => {
   if (!keptOnDeviceOnly(id)) return false;
+  // dropFromDevice empties the send queue of this id first, so nothing under it is left to send
+  // once the id is no longer kept here. A damaged entry is deleted the same way.
   dropFromDevice(id);
   records = records.filter((r) => r.id !== id);
   forgetKeys(id);
@@ -1798,12 +1840,10 @@ export const recordsForBackup = async (): Promise<StrainRecord[]> => {
   if (records.length === 0) await hydrate();
   // The records kept on this device only, straight from this browser's own store: in the file
   // whatever this page shows and whatever the registry answered. One that can't be read as a
-  // record stops the backup (backup.ts), rather than leave a file without it.
-  const mine = deviceOnlyRecords();
-  const local = Object.values(mine).map((r) => {
-    if (!isStrainRecord(r)) throw new Error(DEVICE_ONLY_BACKUP_FAILED());
-    return r;
-  });
+  // record is not in this list: the file carries it raw instead (unreadableForBackup), and it
+  // never stops the backup of everything else.
+  const mine = deviceOnlyRaw();
+  const local = Object.values(deviceOnlyRecords()).filter(isStrainRecord);
   return [...local, ...records.filter((r) => !(r.id in mine))].map(importable);
 };
 
@@ -1859,6 +1899,13 @@ export const importRecordRows = async (parsed: readonly unknown[]): Promise<Impo
   // otherwise get the record's locked copy). The mark is never taken off here. A record already
   // kept on this device is left as it is.
   //
+  // And the mark is never put ON here for a record this browser knows as an ordinary one: it is
+  // set when a record is sealed, and by nothing after. A marked row for an id that waits in the
+  // send queue, or whose locked copy this browser has opened or saved (a rev mark above zero,
+  // which only a box made with this holder's vault key gives; kept in this browser and its backup), is refused and counted (`notImported`): shown as "on this device
+  // only" while an unmarked copy of it sat in the queue, its locked copy went up later. Judged
+  // from this browser's own storage, never from what the registry says now.
+  //
   // One answer of the registry's is taken, because it can't be made up: a locked box under that
   // id that this browser's vault key opens ('open'). Only this holder's key, which is never
   // sent, makes such a box, so the record's locked copy was saved from one of this holder's
@@ -1866,7 +1913,11 @@ export const importRecordRows = async (parsed: readonly unknown[]): Promise<Impo
   // only" would be false): it stays the ordinary record it is, and nothing new is sent.
   const uploadedAlready = (r: StrainRecord): boolean =>
     !keptOnDeviceOnly(r.id) && rowStateOf(RECORDS_KEY, r.id) === 'open' && have.has(r.id);
-  const local = cleaned.filter((r) => r.deviceOnly && !uploadedAlready(r));
+  const seenLocked = revMarks();
+  const knownOrdinary = (r: StrainRecord): boolean =>
+    !keptOnDeviceOnly(r.id) && (inOutbox(r.id) || (seenLocked[`records:${r.id}`] ?? 0) > 0);
+  const refusedMark = cleaned.filter((r) => r.deviceOnly && !uploadedAlready(r) && knownOrdinary(r));
+  const local = cleaned.filter((r) => r.deviceOnly && !uploadedAlready(r) && !knownOrdinary(r));
   const localNew = local.filter((r) => !keptOnDeviceOnly(r.id));
   // The rest: records saved on VeilCore as always. Never one whose id is kept on this device.
   const sendable = cleaned.filter((r) => !r.deviceOnly && !keptOnDeviceOnly(r.id));
@@ -1907,7 +1958,9 @@ export const importRecordRows = async (parsed: readonly unknown[]): Promise<Impo
       (local.length - localNew.length) +
       cleaned.filter((r) => (r.deviceOnly ? uploadedAlready(r) : keptOnDeviceOnly(r.id))).length,
     ...(lockedRows ? { locked: lockedRows } : {}),
-    ...(mismatched + refusedBack.length ? { notImported: mismatched + refusedBack.length } : {}),
+    ...(mismatched + refusedBack.length + refusedMark.length
+      ? { notImported: mismatched + refusedBack.length + refusedMark.length }
+      : {}),
   };
 };
 

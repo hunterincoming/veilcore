@@ -24,7 +24,7 @@ import {
 import DoneIcon from '@mui/icons-material/CheckCircle';
 import { backupFileName, backupFileText, checkBackup, downloadBackupAll } from '../../veilcore/backup';
 import { isTouch, ScreenHeading, softDisabled } from './FlowFrame';
-import { useRecords } from '../../veilcore/records';
+import { damagedDeviceOnly, useRecords } from '../../veilcore/records';
 import { backupHoldsLine } from '../stage/record-kinds';
 import { rich, useT } from '../../i18n/app';
 import { backupMessageWords } from './backup-words';
@@ -259,6 +259,12 @@ export const BackupStep: React.FC<{
               text={t('app.backup.saved')}
               sub={locked ? t('app.backup.pw.savedSub', { file: saved }) : t('app.backup.savedSub', { file: saved })}
             />
+            {/* Said plainly: an entry that couldn't be read is in the file as it is (backup.ts). */}
+            {damagedDeviceOnly().length > 0 && (
+              <Alert severity="warning" variant="outlined" sx={{ mt: 1 }} data-backup-unreadable="">
+                {t('app.doc.local.unreadable.backupNote')}
+              </Alert>
+            )}
             {labKeyMissing && (
               <Alert severity="warning" variant="outlined" sx={{ mt: 1 }} data-lab-key-missing="">
                 {t('app.backup.labKeyNotMade')}

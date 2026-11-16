@@ -21,7 +21,7 @@ import { buildStatement, ledgerOf, liveReports } from '../veilcore/royalty-ledge
 import { withDealCurrency } from '../veilcore/royalty-terms';
 import type { LicenseTerms } from '../veilcore/licenses';
 import { keysFor } from '../veilcore/record-keys';
-import { allRecords, getRecord } from '../veilcore/records';
+import { allRecords, getRecord, isKeptOnDeviceOnly, type StrainRecord } from '../veilcore/records';
 import { isReceivedRecord } from '../ask/hint';
 import { TabLockUnavailable } from '../veilcore/tab-lock';
 import { SponsorRefusal } from '../veilcore/chain/sponsor-client';
@@ -145,6 +145,10 @@ const fromQueue = (id: string, now: number): StepOutcome | undefined => {
 export const sendStamp: Senders['stamp'] = async (job, recordId, resumed) => {
   const now = Date.now();
   const record = getRecord(recordId);
+  // A record kept on this device only: no job stamps its key, whatever the job says (one made
+  // before this rule, or changed in storage). By id too, should the record not be loaded.
+  if (isKeptOnDeviceOnly(record ?? ({ id: recordId } as StrainRecord)))
+    return { kind: 'failed', why: 'This record is kept on this device only, so nothing is done for it from here.' };
   if (keysFor(recordId)?.anchor) return { kind: 'done' };
   // Dating paused, or this build can't send: wait, never stamp (the stamp background does the same).
   if (DATING_PAUSED || chainNotReady()) return { kind: 'waiting', at: now + 60 * MINUTE, why: 'paused' };
