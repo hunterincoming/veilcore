@@ -13,12 +13,12 @@ hosted.
 
 ## Midnight's Ledger 9 fork
 
-Mainnet moved to Ledger 9 on 6 November 2026; preprod has not yet. The site, sponsor and
-tools (midnight-js 5) work on both: they read the network's protocol version and build a
-Ledger 8 or a Ledger 9 transaction for the same Ledger 8 contract. Until preprod forks, the
-preprod sponsor keeps its 8.1.3 proof server; when it forks, give it a 9.0.1 one
-(`sponsor/README.md`). Nothing else changes for the test site. Contract maintenance on preprod
-stops working when preprod forks (`docs/maintenance-committee.md`).
+Mainnet moved to Ledger 9 on 6 November 2026 and preprod on 9 November 2026. The site,
+sponsor and tools (midnight-js 5) read the network's protocol version and build a Ledger 9
+transaction for the same Ledger 8 contract. Since 9 November the preprod sponsor needs a
+9.0.1 proof server in place of the 8.1.3 one (`sponsor/README.md`). Nothing else changes for
+the test site. Contract maintenance on preprod no longer works, and a contract built with
+compactc 0.31.1 can no longer be deployed there (`docs/maintenance-committee.md`).
 
 ## Deploying it (Hunter's Mac)
 

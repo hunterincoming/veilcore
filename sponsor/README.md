@@ -166,7 +166,8 @@ mainnet sponsor needs proof server 9.0.1 (there is no 9.0.0 image): its own Rail
 `proof-server-9.0.1`; Railway refuses a tag and a digest together; if it refuses the digest form,
 use `midnightntwrk/proof-server:9.0.1`). Create it inside the existing project and environment
 (veilcore-api / production), not with Railway's "New project", or the sponsor can't reach it.
-A sponsor on preprod keeps 8.1.3 until preprod forks. Set the mainnet sponsor's
+Preprod moved to Ledger 9 on 9 November 2026, so a preprod sponsor needs a 9.0.1 proof server
+too, set up the same way. Set the mainnet sponsor's
 `PROOF_SERVER_URL` to `http://proof-server-ledger9.railway.internal:6300`. The sponsor itself
 reads and pays for transactions of either ledger (`src/policy.ts`).
 
