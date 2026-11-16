@@ -301,7 +301,7 @@ test('a chain of records: source, grow batch, harvest lot, lab report, followed 
   await expect(page.locator('[data-chain-view] [data-chain-up] [data-chain-step]')).toHaveCount(1);
 
   // 5. All four proof codes are with the registry; the batch is sealed and dated.
-  await expect.poll(() => reg.dating.length, { timeout: 60_000 }).toBeGreaterThanOrEqual(3);
+  await expect.poll(() => reg.dating.some((r) => r.id === batchId), { timeout: 60_000 }).toBe(true);
   await expect
     .poll(() => reg.rows.filter((r) => typeof r.recordFingerprint === 'string').length, { timeout: 60_000 })
     .toBe(4);
@@ -386,6 +386,7 @@ test('a chain of records: source, grow batch, harvest lot, lab report, followed 
   expect(batchRow?.bodyPending).toBe(true);
   expect(batchRow?.sealed).toBeUndefined();
   // The lot and the lab report are ordinary records: their locked copies were saved.
-  for (const id of [lotId, reportId]) expect(reg.rows.find((r) => r.id === id)?.sealed).toBeTruthy();
+  for (const id of [lotId, reportId])
+    await expect.poll(() => !!reg.rows.find((r) => r.id === id)?.sealed, { timeout: 30_000 }).toBe(true);
   expectNoErrors(errors);
 });
