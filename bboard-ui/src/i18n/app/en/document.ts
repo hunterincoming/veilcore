@@ -215,12 +215,12 @@ export const document = {
   'app.doc.chain.kind.harvest-lot': 'Harvest lot',
   'app.doc.schema.grow-batch': 'Grow batch',
   'app.doc.schema.harvest-lot': 'Harvest lot',
-  'app.doc.slot.plants': 'Plants in the batch',
-  'app.doc.slot.plantsInFlower': 'Plants in flower',
-  'app.doc.slot.areaSquareMetres': 'Growing area',
-  'app.doc.slot.plantsHarvested': 'Plants harvested',
-  'app.doc.slot.wetWeightGrams': 'Wet weight',
-  'app.doc.slot.dryWeightGrams': 'Dry weight',
+  'app.doc.slot.plants': 'Plants in this batch on the record’s date',
+  'app.doc.slot.plantsInFlower': 'Of those, plants in the flowering stage on the record’s date',
+  'app.doc.slot.areaSquareMetres': 'Floor area under cultivation for this batch, in square metres',
+  'app.doc.slot.plantsHarvested': 'Plants harvested into this lot',
+  'app.doc.slot.wetWeightGrams': 'Fresh weight at harvest, whole plants as cut, in grams',
+  'app.doc.slot.dryWeightGrams': 'Dry weight of the lot as stored, in grams',
   'app.doc.chain.start.title': 'Recording a production chain?',
   'app.doc.chain.start.text':
     'Seal each step as its own record, each about the one before it: the source plant or strain, a grow batch, a harvest lot, the lab report. Each gets its own date.',
@@ -297,4 +297,15 @@ export const document = {
     'Nothing typed into this record was sent to VeilCore’s registry, locked or not. What you chose to prove about its numbers is public on Midnight. The only copies of the record are in this browser and in the backup file you checked. Lose both and the record is gone: VeilCore can’t give it back. A backup saved before this record was sealed doesn’t hold it, and a passkey copy never does.',
   'app.doc.local.proved':
     'You chose to prove facts about this record’s numbers. They went to Midnight through VeilCore’s fee service and are public for good; they are listed below. Nothing typed into this record was sent to VeilCore’s registry.',
+  'app.claim.tie':
+    'What you prove is public on Midnight in a way that VeilCore, and anyone who has this record’s check link, can tie to this record. VeilCore can also tie it to the holder key that dated the record.',
+  'app.doc.local.aboutStaysHere':
+    'This record names a record kept on this device only, so it must be kept on this device only too. Otherwise that record’s name and ID would go to VeilCore inside this one’s locked copy. Nothing was saved or sent.',
+  'app.doc.chain.aboutLocalOnly':
+    'A record kept on this device only can be picked only if this record is kept on this device only too (the box below). What a record is about is sealed into its locked copy, so an ordinary record would send that record’s name and ID to VeilCore.',
+  'app.doc.check.tooLarge': 'This link carries more than a check link can. Ask the sender for each record’s own link.',
+  'app.doc.chain.share.warnLocal':
+    'Nothing typed into a record kept on this device only was ever sent to VeilCore. Copying this link hands what was typed into each one it carries (marked above, and this record if it is one) to whoever receives it.',
+  'app.doc.chain.aboutHolderNote':
+    'Opening one of these links asks VeilCore’s registry about that record’s ID, from your network address. For a record kept on this device only, that is one more thing the registry learns: that this browser looked it up.',
 };

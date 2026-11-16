@@ -19,8 +19,8 @@ export const KIND_SCHEMA: Readonly<Record<DocumentKind, string>> = {
 
 /** The schema id (SPEC 4.5), 64 lowercase hex, of each kind's form: what a record seals as `fieldSchema`. */
 export const KIND_SCHEMA_ID: Readonly<Record<DocumentKind, string>> = {
-  'grow-batch': '7097171519711309010fd94b067495aea1daedea497e32dce477b77a6c08f4e6',
-  'harvest-lot': '0646b5804dc25df288b5711689470b0b4e38562189e69562e2d0fe47b97edf19',
+  'grow-batch': 'b7457db62d31e23249459250ea7e1f1f956867abfa02e8337f46f3316cf2293f',
+  'harvest-lot': 'c2bf134ea1761c529f304b390bdc40d1ae25906c990ad0456f93b26bb7b47d62',
 };
 
 /** The kind a document record's sealed schema id says it is; undefined for any other document. */

@@ -5,10 +5,16 @@
 // is hashed here and compared byte for byte. Nothing after the # and no file is ever sent.
 // SPDX-License-Identifier: Apache-2.0
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Link as RouterLink, useLocation } from 'react-router-dom';
 import { Alert, Box, CircularProgress, Container, Link, Paper, Stack, Typography } from '@mui/material';
-import { aboutTarget, readDocumentLink, type ReadLink } from '../../veilcore/document-link';
+import {
+  aboutTarget,
+  openedFrom,
+  readDocumentLink,
+  type AboutTarget,
+  type ReadLink,
+} from '../../veilcore/document-link';
 import { verifyPath } from '../../veilcore/verify-link';
 import { DOCUMENT_CHAIN_ENABLED } from '../../config/network';
 import { useT } from '../../i18n/app';
@@ -16,7 +22,9 @@ import { DocumentDate, DocumentFacts, Fact, FileCompare, seen } from './Document
 
 export const DocumentCheck: React.FC = () => {
   const { t } = useT();
-  const { hash } = useLocation();
+  const location = useLocation();
+  const hash = location.hash;
+  const state: unknown = location.state;
   const [read, setRead] = useState<ReadLink>();
   useEffect(() => {
     let live = true;
@@ -27,6 +35,19 @@ export const DocumentCheck: React.FC = () => {
       live = false;
     };
   }, [hash]);
+
+  // Opened from another record's page by the app's own navigation (never from the address, which
+  // anyone can type): which record ID it was named by, and the rest of that link's chain.
+  const opened = useMemo(() => (DOCUMENT_CHAIN_ENABLED ? openedFrom(state) : undefined), [state]);
+  // Where each "About" entry's link goes, worked out once per link, not on every draw.
+  const targets = useMemo(() => {
+    const out = new Map<string, AboutTarget>();
+    if (!read?.ok || !DOCUMENT_CHAIN_ENABLED) return out;
+    const chain = read.chain.length ? read.chain : (opened?.chain ?? []);
+    for (const a of read.fields.about)
+      if (a.recordId && !out.has(a.recordId)) out.set(a.recordId, aboutTarget(a.recordId, chain, read.fingerprint));
+    return out;
+  }, [read, opened]);
 
   return (
     <Box sx={{ bgcolor: 'background.default' }} data-document-check="">
@@ -45,7 +66,9 @@ export const DocumentCheck: React.FC = () => {
                 ? 'app.doc.check.missing'
                 : read.why === 'unreadable'
                   ? 'app.doc.check.unreadable'
-                  : 'app.doc.check.notDoc',
+                  : read.why === 'too-large'
+                    ? 'app.doc.check.tooLarge'
+                    : 'app.doc.check.notDoc',
             )}
           </Alert>
         )}
@@ -54,13 +77,13 @@ export const DocumentCheck: React.FC = () => {
           // one record's "same file" answer never shows under another.
           <Stack spacing={2.5} key={read.fingerprint}>
             {/* Opened from another record's page (docs/document-chain.md): said, with what it rests on. */}
-            {DOCUMENT_CHAIN_ENABLED && read.namedAs && (
-              <Alert severity="info" variant="outlined" data-document-named-as={read.namedAs}>
+            {opened && (
+              <Alert severity="info" variant="outlined" data-document-named-as={opened.namedAs}>
                 <Typography variant="body2" sx={{ mb: 0.5 }}>
-                  {t('app.doc.chain.namedAs', { id: read.namedAs })}
+                  {t('app.doc.chain.namedAs', { id: opened.namedAs })}
                 </Typography>
-                <Link component={RouterLink} to={verifyPath(read.namedAs, read.fingerprint)} data-ask-registry="">
-                  {t('app.doc.chain.askRegistry', { id: read.namedAs })}
+                <Link component={RouterLink} to={verifyPath(opened.namedAs, read.fingerprint)} data-ask-registry="">
+                  {t('app.doc.chain.askRegistry', { id: opened.namedAs })}
                 </Link>
                 <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
                   {t('app.doc.chain.askRegistrySends')}
@@ -86,7 +109,7 @@ export const DocumentCheck: React.FC = () => {
               <DocumentFacts
                 fields={read.fields}
                 checker
-                aboutTarget={DOCUMENT_CHAIN_ENABLED ? (id) => aboutTarget(id, read.chain) : undefined}
+                aboutTarget={DOCUMENT_CHAIN_ENABLED ? (id) => targets.get(id) : undefined}
               />
             </Paper>
             <Typography variant="body2" color="text.secondary">

@@ -34,8 +34,13 @@ under it; a change is a new file with a new version.
 
 | Form | File | Slots | Schema id |
 |---|---|---|---|
-| `veilcore/schema/grow-batch/v1` | `bboard-ui/public/schemas/grow-batch-v1.json` | 0 `growBatch.plants` (whole number), 1 `growBatch.plantsInFlower` (whole number), 2 `growBatch.areaSquareMetres` (m², two decimals: scale 100) | `7097171519711309010fd94b067495aea1daedea497e32dce477b77a6c08f4e6` |
-| `veilcore/schema/harvest-lot/v1` | `bboard-ui/public/schemas/harvest-lot-v1.json` | 0 `harvestLot.plantsHarvested` (whole number), 1 `harvestLot.wetWeightGrams` (whole grams), 2 `harvestLot.dryWeightGrams` (whole grams) | `0646b5804dc25df288b5711689470b0b4e38562189e69562e2d0fe47b97edf19` |
+| `veilcore/schema/grow-batch/v1` | `bboard-ui/public/schemas/grow-batch-v1.json` | 0 `growBatch.plants`: plants in this batch on the record's date (whole number). 1 `growBatch.plantsInFlower`: of those, plants in the flowering stage on the record's date (whole number). 2 `growBatch.areaSquareMetres`: floor area under cultivation for this batch (m², two decimals: scale 100) | `b7457db62d31e23249459250ea7e1f1f956867abfa02e8337f46f3316cf2293f` |
+| `veilcore/schema/harvest-lot/v1` | `bboard-ui/public/schemas/harvest-lot-v1.json` | 0 `harvestLot.plantsHarvested`: plants harvested into this lot (whole number). 1 `harvestLot.wetWeightGrams`: fresh weight at harvest, whole plants as cut (whole grams). 2 `harvestLot.dryWeightGrams`: dry weight of the lot as stored (whole grams) | `c2bf134ea1761c529f304b390bdc40d1ae25906c990ad0456f93b26bb7b47d62` |
+
+Each form's title says in words what each slot is, and "the record's date" is the date written
+on the record or, when none is written, the day it was sealed. The title is hashed into the
+schema id, so the meaning can't be reread later. (The ids changed once, on 16 Nov, when the
+titles were tightened before any record was sealed under them.)
 
 The numbers are what the holder typed. Nobody measured them for the holder, and each form's
 title says so. They are sealed so that one can be proved later ("at most 100 plants") without
@@ -122,15 +127,17 @@ What happens when a checker follows a link:
 
 | Target | Opens | Sent to a server |
 |---|---|---|
-| A document carried in the link | `/check-document#d=…&as=<record id>`, everything after the `#` | Nothing new. The page then asks the registry for the date by proof code (`GET /proof/<code>`), as any document check does |
+| A document carried in the link | `/check-document#d=…` with that one record's fields after the `#`; the app hands the rest of the chain and the record ID it was named by to the next page itself (the router's state, never the address) | Nothing new. The page then asks the registry for the date by proof code (`GET /proof/<code>`), as any document check does |
 | Another record with a proof code in the link | `/verify/<record id>?fp=<proof code>` | The record ID to the registry (`GET /verify/<id>`), the proof code in the page's address to the website's host, then `GET /proof/<code>` |
 | A record named by ID only | `/verify/<record id>` | The record ID to the registry |
 
 No sealed field is in any of those requests. A test opens the link's target with every request
 refused and reads the record from the fragment alone.
 
-A page opened from another record says so: "which names it as record …. Nothing in the link
-ties that ID to this record's proof code." It offers one more link, to
+A page opened from another record's page says so: "which names it as record …. Nothing in the
+link ties that ID to this record's proof code." It says so only when the app itself navigated
+there from a page it had read; nothing typed into an address makes it appear. (A link out
+opened in a new tab shows the record alone, without the rest of the chain.) It offers one more link, to
 `/verify/<id>?fp=<the proof code recomputed here>`, which asks the registry whether it holds
 that proof code for that ID, and says what that sends.
 
@@ -158,11 +165,24 @@ doesn't hold is listed by the name sealed with the link, marked "not on this dev
 
 - A document names at most 20 records.
 - A chain view follows at most 32 links in one direction; a link's chain carries at most 40
-  records.
+  records, and a link is at most 600,000 characters after `#d=`. A longer one is not made (the
+  holder is told to send each record's own link) and is refused whole when opened.
+- **A record that names a record kept on this device only must be kept on this device only
+  too.** What a record is about is sealed into its locked copy, which an ordinary record sends
+  to the registry; the named record's title and ID would go with it. So everything downstream
+  of a device-only record is device-only. Enforced where a record is made, queued, sent and
+  restored (`device-only-records.md`, "Named by another record"); the picker shows such a
+  record as unavailable and says why.
 - A link with its chain shows every carried document's sealed fields to whoever has it.
-- A record kept on this device only can be in a chain like any other. Its fields are in a
-  chain link only if the holder copies that link.
+- A link with its chain carries the sealed fields of every document in the chain, the ones
+  kept on this device only included, whichever record the link is copied from. The warning
+  before the button marks those records and says that copying the link hands what was typed
+  into them to whoever receives it. An ordinary link carries a named record's name and ID,
+  as sealed in "About".
 - No corrections of `about` yet: a wrong link is fixed by sealing the record again.
+- On the holder's own page, an "About" link opens `/verify/<id>`, which asks the registry about
+  that ID from the holder's address. The page says so beside the links. For a record kept on
+  this device only it is one more thing the registry learns: that this browser looked it up.
 - The registry's `/verify/<id>` answer for a document says "a document", not which kind.
 - The screen can't stop a count being typed into a title or notes.
 
@@ -176,6 +196,9 @@ doesn't hold is listed by the name sealed with the link, marked "not on this dev
   made); the ordinary link byte for byte as before; the link with its chain read back, read by
   the old rules, and followed with every request refused; a malformed chain entry dropped; the
   made sheet's exact bytes.
+- `bboard-ui/src/veilcore/device-only-about.test.ts`: an ordinary record naming a device-only
+  one is refused when sealed, when made, by the last gate before a save, by the send queue and
+  on a restore, with nothing of it sent.
 - `bboard-ui/src/veilcore/device-only-claims.test.ts`: see `device-only-records.md`.
 - `bboard-ui/e2e/document-chain.spec.ts` (a real browser against the stand-in registry): a
   source record, a grow batch about it kept on the device only with a made sheet, a harvest lot

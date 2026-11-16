@@ -332,8 +332,19 @@ export const DocumentDetail: React.FC<{ record: StrainRecord }> = ({ record }) =
               </Typography>
               <Alert severity="warning" variant="outlined" sx={{ mb: 1.5 }}>
                 {t('app.doc.chain.share.warn', {
-                  list: chain.map((c) => seen(records.find((r) => r.id === c.id)?.strainName || c.id)).join(' · '),
+                  list: chain
+                    .map((c) => {
+                      const r = records.find((x) => x.id === c.id);
+                      // A record kept on this device only is marked: this link is how its fields leave.
+                      return `${seen(r?.strainName || c.id)}${isKeptOnDeviceOnly(r) ? ` (${t('app.doc.local.homeLine')})` : ''}`;
+                    })
+                    .join(' · '),
                 })}
+                {chain.some((c) => isKeptOnDeviceOnly(records.find((x) => x.id === c.id))) || local ? (
+                  <Box component="span" sx={{ display: 'block', mt: 1 }} data-chain-share-local="">
+                    {t('app.doc.chain.share.warnLocal')}
+                  </Box>
+                ) : null}
               </Alert>
               <Button variant="outlined" onClick={() => void copyChainLink()} sx={{ minHeight: 44 }}>
                 {t('app.doc.chain.share.copy')}

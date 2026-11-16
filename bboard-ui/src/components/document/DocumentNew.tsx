@@ -36,7 +36,7 @@ import {
   type DocumentType,
 } from '../../veilcore/document-profile';
 import { sealDocumentRecord } from '../../veilcore/seal-record';
-import { createRecord, tooLargeToSave, useRecords } from '../../veilcore/records';
+import { createRecord, isKeptOnDeviceOnly, tooLargeToSave, useRecords } from '../../veilcore/records';
 import { forgetKeys } from '../../veilcore/record-keys';
 import { isLabReportRecord } from '../stage/lab-report-notes';
 import { DEVICE_ONLY_RECORDS_ENABLED, DOCUMENT_CHAIN_ENABLED, DOCUMENT_RECORDS_ENABLED } from '../../config/network';
@@ -96,6 +96,12 @@ export const DocumentNew: React.FC = () => {
   const aboutOptions = records.filter(
     (r) => (DOCUMENT_CHAIN_ENABLED || !isDocument(r)) && !isLabReportRecord(r) && !r.supersededBy,
   );
+  // A record kept on this device only can be picked only for a record that is kept here too:
+  // what a record is about is sealed into its locked copy, which an ordinary record sends
+  // (records.ts createRecord refuses it as well).
+  const keptHere = DEVICE_ONLY_RECORDS_ENABLED && deviceOnly;
+  const blocked = (r: (typeof records)[number]) => !keptHere && isKeptOnDeviceOnly(r);
+  const anyBlocked = aboutOptions.some(blocked);
   const aboutNames = about
     .map((rid) => records.find((r) => r.id === rid))
     .filter((r): r is NonNullable<typeof r> => !!r)
@@ -194,9 +200,10 @@ export const DocumentNew: React.FC = () => {
         reference: line(reference),
         issued,
         files,
+        deviceOnly: keptHere,
         about: about
           .map((rid) => records.find((r) => r.id === rid))
-          .filter((r): r is NonNullable<typeof r> => !!r)
+          .filter((r): r is NonNullable<typeof r> => !!r && !blocked(r))
           .map((r) => ({ recordId: r.id, name: line(r.strainName) || r.id })),
         holder: line(holder),
         notes: kind
@@ -486,12 +493,18 @@ export const DocumentNew: React.FC = () => {
               fullWidth
             >
               {aboutOptions.map((r) => (
-                <MenuItem key={r.id} value={r.id}>
+                <MenuItem key={r.id} value={r.id} disabled={blocked(r)} data-about-option={blocked(r) ? 'blocked' : ''}>
                   {r.strainName || r.id}
                   {isDocument(r) ? ` · ${kindOrTypeWords(r, tr)}` : ''}
+                  {isKeptOnDeviceOnly(r) ? ` · ${t('app.doc.local.homeLine')}` : ''}
                 </MenuItem>
               ))}
             </TextField>
+          )}
+          {anyBlocked && (
+            <Typography variant="body2" color="text.secondary" data-about-local-only="">
+              {t('app.doc.chain.aboutLocalOnly')}
+            </Typography>
           )}
           <TextField
             label={t('app.doc.f.holder')}
@@ -518,7 +531,12 @@ export const DocumentNew: React.FC = () => {
                 control={
                   <Checkbox
                     checked={deviceOnly}
-                    onChange={(e) => setDeviceOnly(e.target.checked)}
+                    onChange={(e) => {
+                      setDeviceOnly(e.target.checked);
+                      // Unticked: a record kept on this device only can no longer be named.
+                      if (!e.target.checked)
+                        setAbout(about.filter((id) => !isKeptOnDeviceOnly(records.find((r) => r.id === id))));
+                    }}
                     disabled={busy}
                     slotProps={{ input: { 'aria-describedby': `${inputId}-device-only` } }}
                   />

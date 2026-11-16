@@ -120,6 +120,43 @@ One answer of the registry's is believed, because it can't be made up: a locked 
 that this browser's vault key opens. Only the holder's key makes one. A backup file that marks
 such a record is not obeyed for it: its locked copy has left, so it stays an ordinary record.
 
+## Named by another record
+
+Added 16 Nov 2026, after a review found the leak. A document's "About" (and a plant's parents)
+is sealed into the record that names it. An ordinary record's sealed fields go to the registry
+in its locked copy. So an ordinary document "about" a record kept on this device only sent that
+record's title and ID to the registry, where a second browser with the holder's keys read them
+back.
+
+The rule: **a record that leaves this device can't name a record kept on this device only.**
+Only a record that is itself kept here may. It is enforced in the data layer, not only on the
+screen (`outbox.ts` `namesDeviceOnly`, by the named record's ID, from this browser's own store):
+
+- `seal-record.ts` `sealDocumentRecord` refuses when told the record will be an ordinary one;
+- `records.ts` `createRecord`, `createRecordSaved` and `createRecords` refuse, whoever sealed it;
+- the send queue (`putInOutbox`) doesn't take it;
+- the last gate (`api-store.ts` `sealForSave`) refuses it and says why;
+- a restore doesn't import an ordinary row that names a record kept here, or one the same file
+  marks as kept here, and counts it as not imported.
+
+On "Seal a document" such a record is shown in the list but can't be picked until "Keep this
+record on this device" is ticked, and the screen says why.
+
+What was looked at beside this, and where a device-only record's name, ID or fields can still go:
+
+- **Licences, lab hand-overs, sharing by link, corrections:** refused for such a record by ID,
+  as before. A record that names one can't exist as an ordinary record, so none carries it there.
+- **Bulk import:** makes plants and animals with parents; a parent that is a record kept here
+  is refused by `createRecords`.
+- **Ask:** reads record names in the browser. Its model runs in the browser, and a "Do it for
+  me" job leaves such a record out. Nothing of it is sent.
+- **A link with its chain:** carries such a record's sealed fields to whoever the holder sends
+  the link to. That is the holder's choice; the warning marks those records.
+- **The holder's own "About" link:** opens `/verify/<id>`, which sends the ID to the registry
+  (which already has it) from the holder's address. Said beside the link.
+- **Not caught:** a name typed by hand into another record's title, notes or an "About" entry
+  without a link. The app can't tell what free text refers to.
+
 ## Proving a number
 
 Added 16 Nov 2026. Until then "Prove one number" was hidden for such a record, because proving
@@ -138,6 +175,22 @@ Now it is the holder's choice, on that record's page:
 - **"Exactly" is asked for twice.** It publishes a number that has never left the device, so
   the button stays off until a second box is ticked, and the claim call refuses without it
   (`prove-number.ts` `proveNumber`).
+
+**What VeilCore can tell from a claim.** A claim names the record's commitment. The record's
+proof code is made from that commitment and its key binding (`claim-link.ts`), and the registry
+holds both the proof code and the key binding, beside the holder key that sent them. So VeilCore
+can match a public claim to the registry's row for this record and to that holder key, and learn,
+say, that this holder's record is a grow batch with at most so many plants (or the number, for
+"exactly"). Anyone who has the record's check link can match the claim to the record too.
+"Nothing is sent to the registry" is true and is not the whole of it, so the page says both,
+before the choice and again before the button: what you prove is public on Midnight in a way
+that VeilCore, and anyone who has this record's check link, can tie to this record, and VeilCore
+can also tie it to the holder key that dated the record. The same is true of a claim from any
+record, and the same sentence is on every "Prove one number" panel.
+
+The call itself (`prove-number.ts` `proveNumber`) refuses a record kept on this device only
+unless proving is switched on for such records and the holder turned it on, and refuses
+"exactly" without its second confirmation. The page is not the only guard.
 
 Every request a claim makes:
 

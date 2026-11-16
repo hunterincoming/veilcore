@@ -212,12 +212,12 @@ export const document = {
   'app.doc.chain.kind.harvest-lot': '収穫ロット',
   'app.doc.schema.grow-batch': '栽培バッチ',
   'app.doc.schema.harvest-lot': '収穫ロット',
-  'app.doc.slot.plants': 'バッチの株数',
-  'app.doc.slot.plantsInFlower': '開花中の株数',
-  'app.doc.slot.areaSquareMetres': '栽培面積',
-  'app.doc.slot.plantsHarvested': '収穫した株数',
-  'app.doc.slot.wetWeightGrams': '湿重量',
-  'app.doc.slot.dryWeightGrams': '乾燥重量',
+  'app.doc.slot.plants': '記録の日付時点でこのバッチにある株数',
+  'app.doc.slot.plantsInFlower': 'そのうち、記録の日付時点で開花期にある株数',
+  'app.doc.slot.areaSquareMetres': 'このバッチの栽培に使っている床面積（平方メートル）',
+  'app.doc.slot.plantsHarvested': 'このロットに収穫した株数',
+  'app.doc.slot.wetWeightGrams': '収穫時の生重量（刈り取ったままの株全体、グラム）',
+  'app.doc.slot.dryWeightGrams': '保管時のロットの乾燥重量（グラム）',
   'app.doc.chain.start.title': '生産の流れを記録しますか？',
   'app.doc.chain.start.text':
     '各段階をそれぞれ別の記録として封印し、1つ前の記録を対象にします：元の植物や株、栽培バッチ、収穫ロット、検査報告書。それぞれに日付が付きます。',
@@ -294,4 +294,16 @@ export const document = {
     'この記録に入力した内容は、鍵をかけた形でもそうでない形でも、VeilCoreのレジストリに送信されていません。数値についてあなたが証明することを選んだ内容は、Midnightで公開されています。記録の写しがあるのは、このブラウザと、あなたが確認したバックアップファイルだけです。両方を失うと記録は失われ、VeilCoreからお返しすることはできません。この記録を封印する前に保存したバックアップには入っておらず、パスキーのコピーには入ることがありません。',
   'app.doc.local.proved':
     'あなたはこの記録の数値についての事実を証明することを選びました。それらはVeilCoreの手数料サービスを通ってMidnightに送られ、永久に公開されています。下に一覧があります。この記録に入力した内容は、VeilCoreのレジストリには送信されていません。',
+  'app.claim.tie':
+    '証明した内容はMidnightで公開され、VeilCoreと、この記録の確認リンクを持つ人は、それをこの記録と結び付けることができます。VeilCoreは、この記録に日付を付けた保有者キーとも結び付けることができます。',
+  'app.doc.local.aboutStaysHere':
+    'この記録は、この端末だけに保管している記録を名指ししているため、この記録もこの端末だけに保管する必要があります。そうしないと、相手の記録の名前とIDが、この記録の鍵をかけたコピーに入ってVeilCoreに送信されます。何も保存も送信もされていません。',
+  'app.doc.chain.aboutLocalOnly':
+    'この端末だけに保管している記録は、この記録もこの端末だけに保管する場合（下のチェックボックス）にだけ選べます。記録の対象は鍵をかけたコピーに封印されるため、通常の記録では、相手の記録の名前とIDがVeilCoreに送信されてしまいます。',
+  'app.doc.check.tooLarge':
+    'このリンクには、確認リンクに入れられる量を超える内容が入っています。送り主に、記録ごとのリンクを求めてください。',
+  'app.doc.chain.share.warnLocal':
+    'この端末だけに保管している記録に入力した内容は、VeilCoreに送信されたことがありません。このリンクをコピーすると、リンクに入るそうした記録（上で印が付いたもの。この記録が該当する場合はこの記録も）に入力した内容が、リンクを受け取った人に渡ります。',
+  'app.doc.chain.aboutHolderNote':
+    'これらのリンクを開くと、あなたのネットワークアドレスから、その記録のIDについてVeilCoreのレジストリに問い合わせが行われます。この端末だけに保管している記録の場合、レジストリが知ることが1つ増えます。このブラウザがその記録を調べたということです。',
 } satisfies Partial<AppTranslation>;

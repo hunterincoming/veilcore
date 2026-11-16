@@ -216,12 +216,12 @@ export const document = {
   'app.doc.chain.kind.harvest-lot': 'Lot de récolte',
   'app.doc.schema.grow-batch': 'Lot de culture',
   'app.doc.schema.harvest-lot': 'Lot de récolte',
-  'app.doc.slot.plants': 'Plantes dans le lot',
-  'app.doc.slot.plantsInFlower': 'Plantes en floraison',
-  'app.doc.slot.areaSquareMetres': 'Surface de culture',
-  'app.doc.slot.plantsHarvested': 'Plantes récoltées',
-  'app.doc.slot.wetWeightGrams': 'Poids frais',
-  'app.doc.slot.dryWeightGrams': 'Poids sec',
+  'app.doc.slot.plants': 'Plantes dans ce lot à la date de l’enregistrement',
+  'app.doc.slot.plantsInFlower': 'Parmi elles, plantes au stade de floraison à la date de l’enregistrement',
+  'app.doc.slot.areaSquareMetres': 'Surface au sol cultivée pour ce lot, en mètres carrés',
+  'app.doc.slot.plantsHarvested': 'Plantes récoltées dans ce lot',
+  'app.doc.slot.wetWeightGrams': 'Poids frais à la récolte, plantes entières telles que coupées, en grammes',
+  'app.doc.slot.dryWeightGrams': 'Poids sec du lot tel que stocké, en grammes',
   'app.doc.chain.start.title': 'Enregistrer une chaîne de production ?',
   'app.doc.chain.start.text':
     'Scellez chaque étape comme un enregistrement à part, chacun concernant le précédent : la plante ou la souche d’origine, un lot de culture, un lot de récolte, le rapport de laboratoire. Chacun reçoit sa date.',
@@ -300,4 +300,16 @@ export const document = {
     'Rien de ce qui a été saisi dans cet enregistrement n’a été envoyé au registre de VeilCore, verrouillé ou non. Ce que vous avez choisi de prouver sur ses chiffres est public sur Midnight. Les seules copies de l’enregistrement sont dans ce navigateur et dans le fichier de sauvegarde que vous avez vérifié. Si vous perdez les deux, l’enregistrement est perdu : VeilCore ne peut pas vous le rendre. Une sauvegarde enregistrée avant le scellement ne le contient pas, et une copie avec clé d’accès ne le contient en aucun cas.',
   'app.doc.local.proved':
     'Vous avez choisi de prouver des faits sur les chiffres de cet enregistrement. Ils sont partis vers Midnight par le service de frais de VeilCore et sont publics pour toujours ; ils figurent ci-dessous. Rien de ce qui a été saisi dans cet enregistrement n’a été envoyé au registre de VeilCore.',
+  'app.claim.tie':
+    'Ce que vous prouvez est public sur Midnight d’une manière que VeilCore, et toute personne ayant le lien de vérification de cet enregistrement, peut rattacher à cet enregistrement. VeilCore peut aussi le rattacher à la clé de détenteur qui a daté l’enregistrement.',
+  'app.doc.local.aboutStaysHere':
+    'Cet enregistrement nomme un enregistrement gardé uniquement sur cet appareil ; il doit donc lui aussi être gardé uniquement sur cet appareil. Sinon, le nom et l’identifiant de cet autre enregistrement partiraient vers VeilCore dans la copie verrouillée de celui-ci. Rien n’a été enregistré ni envoyé.',
+  'app.doc.chain.aboutLocalOnly':
+    'Un enregistrement gardé uniquement sur cet appareil ne peut être choisi que si cet enregistrement est lui aussi gardé uniquement sur cet appareil (la case ci-dessous). Ce qu’un enregistrement concerne est scellé dans sa copie verrouillée : un enregistrement ordinaire enverrait donc à VeilCore le nom et l’identifiant de cet autre enregistrement.',
+  'app.doc.check.tooLarge':
+    'Ce lien porte plus que ce qu’un lien de vérification peut porter. Demandez à l’expéditeur le lien propre à chaque enregistrement.',
+  'app.doc.chain.share.warnLocal':
+    'Rien de ce qui a été saisi dans un enregistrement gardé uniquement sur cet appareil n’a jamais été envoyé à VeilCore. En copiant ce lien, vous remettez ce qui a été saisi dans chacun de ceux qu’il porte (marqués ci-dessus, et cet enregistrement s’il en est un) à quiconque le reçoit.',
+  'app.doc.chain.aboutHolderNote':
+    'Ouvrir l’un de ces liens interroge le registre de VeilCore sur l’identifiant de cet enregistrement, depuis votre adresse réseau. Pour un enregistrement gardé uniquement sur cet appareil, c’est une chose de plus que le registre apprend : que ce navigateur l’a consulté.',
 } satisfies Partial<AppTranslation>;

@@ -99,7 +99,9 @@ export const ProveNumber: React.FC<{
     setMade(undefined);
     setCopied(false);
     try {
-      setMade(await proveNumber(record, s.slot, how, bound, { progress: setProgress, confirmedExact }));
+      setMade(
+        await proveNumber(record, s.slot, how, bound, { progress: setProgress, confirmedExact, optedIn: deviceOnly }),
+      );
       setConfirmedExact(false);
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
@@ -214,6 +216,10 @@ export const ProveNumber: React.FC<{
           <Typography variant="body2" color="text.secondary">
             {t('app.claim.leak')} {t('app.claim.computer')}
           </Typography>
+          {/* Who can tell which record a claim is about: said for every record, before the button. */}
+          <Typography variant="body2" color="text.secondary" data-claim-tie="">
+            {t('app.claim.tie')}
+          </Typography>
           {deviceOnly && (
             <Alert severity="warning" variant="outlined" data-device-only-publish={how}>
               <Typography variant="subtitle2" component="h3">
@@ -239,7 +245,12 @@ export const ProveNumber: React.FC<{
                         ),
                       })}
               </Typography>
-              <Typography variant="body2">{t('app.doc.local.prove.publish.route')}</Typography>
+              <Typography variant="body2" sx={{ mb: 1 }}>
+                {t('app.doc.local.prove.publish.route')}
+              </Typography>
+              <Typography variant="body2" data-device-only-publish-tie="">
+                {t('app.claim.tie')}
+              </Typography>
               {how === 'exactly' && (
                 <FormControlLabel
                   sx={{ mt: 1 }}
@@ -341,6 +352,9 @@ export const DeviceOnlyProve: React.FC<{ record: StrainRecord; initialOn?: boole
         </Typography>
         <Typography variant="body2" sx={{ mb: 1 }}>
           {t('app.doc.local.prove.text')}
+        </Typography>
+        <Typography variant="body2" sx={{ mb: 1 }} data-device-only-prove-tie="">
+          {t('app.claim.tie')}
         </Typography>
         <FormControlLabel
           control={<Checkbox checked={on} onChange={(e) => setOn(e.target.checked)} />}

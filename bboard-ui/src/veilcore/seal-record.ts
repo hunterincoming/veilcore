@@ -18,6 +18,8 @@ import { STRAIN_PROFILE, type StrainDetails } from './strain-profile';
 import { DOCUMENT_PROFILE, type DocumentDetails } from './document-profile';
 import type { HeldFieldSet } from './field-set';
 import { assertNotAboutItself } from './document-chain';
+import { keptOnDeviceOnly } from './outbox';
+import { enT } from '../i18n/translate';
 
 /** What the holder wrote, already tidied by the caller (trimmed, one line where it should be). */
 export type SealInput = {
@@ -155,6 +157,12 @@ export const sealStrainRecord = (input: StrainSealInput, now = Date.now()): Prom
  * files themselves never reach here: only their SHA-256, name and size.
  */
 export type DocumentSealInput = {
+  /**
+   * Whether the record will be kept on this device only (docs/device-only-records.md). Said
+   * here so a record that will leave is refused before it is sealed if it names one that is kept
+   * here; records.ts createRecord refuses it again whatever this says.
+   */
+  readonly deviceOnly?: boolean;
   readonly title: string;
   readonly type: DocumentDetails['type'];
   readonly issuer: string;
@@ -170,6 +178,8 @@ export type DocumentSealInput = {
 };
 
 export const sealDocumentRecord = async (input: DocumentSealInput, now = Date.now()): Promise<SealedRecord> => {
+  if (input.deviceOnly === false && input.about.some((a) => !!a.recordId && keptOnDeviceOnly(a.recordId)))
+    throw new Error(enT.t('app.doc.local.aboutStaysHere'));
   const sealed = await sealDocumentFields(input, now);
   // A record can't be about itself (document-chain.ts). Its id is made here, so this can only
   // be a caller that named an id it didn't have yet; refused, and its key forgotten.

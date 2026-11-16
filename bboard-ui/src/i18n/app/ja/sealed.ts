@@ -8,6 +8,8 @@ export const sealed = {
   'app.sealed.refuse.noKey':
     'このブラウザには記録を開く鍵がないため、何も保存していません。先にバックアップファイルを復元してください。',
   'app.sealed.refuse.mismatch': '証明コードと一致しないため、保存していません',
+  'app.sealed.refuse.namesKept':
+    'この端末だけに保管している記録を名指ししているため、保存していません。鍵をかけたコピーに、その記録の名前とIDが入ってしまいます',
   'app.sealed.mismatch':
     'この記録は証明コードと一致しません。封印後に変更された可能性があります。今後、保存・送付・共有はされません。',
   'app.sealed.alreadyCorrected':

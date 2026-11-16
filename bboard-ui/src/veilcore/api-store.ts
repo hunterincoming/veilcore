@@ -74,7 +74,7 @@ import { readJson, isObject, isString } from './json';
 import { nameCodeOf } from './verify-link';
 import { fingerprintRecord, type CommittedRecordInput } from './commitment';
 import { withTabLock } from './tab-lock';
-import { keptOnDeviceOnly, neverSend } from './outbox';
+import { keptOnDeviceOnly, namesDeviceOnly, neverSend } from './outbox';
 import {
   canStoreVault,
   isSealedRow,
@@ -954,6 +954,12 @@ const sealForSave = async (kind: RowKind, value: readonly unknown[]): Promise<Se
     // copy kept): none of that can make it sendable. records.ts takes these out before a save;
     // this is the last place one could pass.
     if (kind === 'records' && neverSend(item)) continue;
+    // Nor is a record that names one (its "About", its parents): the named record's title and
+    // ID are in what would be sealed and sent. Refused here whoever asks, and said.
+    if (kind === 'records' && namesDeviceOnly(item)) {
+      refused.push({ id, reason: NAMES_KEPT_REASON, words: 'app.sealed.refuse.namesKept' });
+      continue;
+    }
     const was = state?.states.get(id);
     // A locked row is never sent back: this browser can't know what is in it. Nor is a row
     // the registry sent an older copy of, which this browser has no newer copy of. An import
@@ -1382,6 +1388,9 @@ export const CANT_STORE_REASON =
 /** Said when a change to a record saved before locking waits for a checked backup. */
 export const BACKUP_FIRST_REASON =
   'it was saved before records were locked. Save a backup and check it first; then changes to it can be saved';
+/** Said when a record that would leave names a record kept on this device only (outbox.ts namesDeviceOnly). */
+export const NAMES_KEPT_REASON =
+  'it names a record kept on this device only, so it wasn’t saved. Its locked copy would carry that record’s name and ID';
 /** Said when a record is over the size limit. */
 export const TOO_LARGE_REASON = 'it’s too large to save. Shorten its notes and try again';
 

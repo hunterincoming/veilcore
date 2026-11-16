@@ -56,6 +56,14 @@ Status: DESIGN AND BUILD, 29 October 2026. Test networks first. The claims contr
   `VEILCORE_CLAIMS_ADDRESS` names, on mainnet only VeilCore's pinned one (`MAINNET_CLAIMS`, on
   since 2 November), and only for `proveRange`, `proveValue` and `proveAttested`.
 
+## Who can tell which record a claim is about
+
+A claim names the record's commitment, not its name. The record's proof code is made from that
+commitment and the record's key binding, and VeilCore's registry holds both for every record,
+beside the holder key that sent them. So VeilCore can tie any claim to its record and to that
+holder key, and anyone who has the record's check link can tie the claim to the record. "Prove
+one number" says so before the button, for every record, in five languages (`app.claim.tie`).
+
 ## Build order, and where it stands
 
 1. **Done (29 Oct).** Schemas, field-set sealing in the browser, the document profile allowing a

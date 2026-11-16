@@ -8,6 +8,8 @@ export const sealed = {
   'app.sealed.refuse.noKey':
     'dieser Browser hat den Schlüssel für Ihre Datensätze nicht, daher wurde nichts gespeichert. Stellen Sie zuerst Ihre Sicherungsdatei wieder her.',
   'app.sealed.refuse.mismatch': 'er passt nicht zu seinem Prüfcode und wurde daher nicht gespeichert',
+  'app.sealed.refuse.namesKept':
+    'er nennt einen Datensatz, der nur auf diesem Gerät aufbewahrt wird, und wurde daher nicht gespeichert. Seine verschlossene Kopie enthielte Name und Kennung jenes Datensatzes',
   'app.sealed.mismatch':
     'Dieser Datensatz passt nicht zu seinem Prüfcode: Er wurde möglicherweise nach dem Versiegeln geändert. Er wird nicht erneut gespeichert, gesendet oder geteilt.',
   'app.sealed.alreadyCorrected':

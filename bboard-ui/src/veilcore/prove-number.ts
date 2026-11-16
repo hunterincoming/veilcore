@@ -17,6 +17,7 @@ import { claimMaterial, commitmentHex, type ClaimMaterial } from './claims-input
 import type { MadeClaim } from './claim-link';
 import type { DocumentRecordLike } from './document-profile';
 import type { HeldFieldSet } from './field-set';
+import { DEVICE_ONLY_CLAIMS_ENABLED } from '../config/network';
 
 export type How = 'at-most' | 'at-least' | 'exactly';
 
@@ -67,10 +68,28 @@ export const proveNumber = async (
   slot: number,
   how: How,
   bound: bigint,
-  opts: Progress & { readonly calls?: ClaimCalls; readonly confirmedExact?: boolean } = {},
+  opts: Progress & {
+    readonly calls?: ClaimCalls;
+    readonly confirmedExact?: boolean;
+    /** The holder turned proving on for this record, on its page, this visit. Needed for a record kept on this device only. */
+    readonly optedIn?: boolean;
+    /** Tests: whether proving is switched on for such records (config/network.ts DEVICE_ONLY_CLAIMS_ENABLED). */
+    readonly enabled?: boolean;
+  } = {},
 ): Promise<MadeClaim> => {
   const held = record.fieldSet;
   if (!held) throw new Error('This document has no sealed numbers.');
+  // A record kept on this device only: nothing is proved unless proving is switched on for such
+  // records and its holder turned it on. Checked here, in the call, not only by the page.
+  if (
+    isKeptOnDeviceOnly(record) &&
+    !proveShown({
+      deviceOnly: true,
+      optedIn: opts.optedIn === true,
+      enabled: opts.enabled ?? DEVICE_ONLY_CLAIMS_ENABLED,
+    })
+  )
+    throw new Error('Proving is off for this record until you turn it on, on its page. Nothing was sent.');
   if (isKeptOnDeviceOnly(record) && how === 'exactly' && opts.confirmedExact !== true)
     throw new Error('Publishing the number itself needs your confirmation first. Nothing was sent.');
   const calls = opts.calls ?? (await import('./chain/claims-call'));

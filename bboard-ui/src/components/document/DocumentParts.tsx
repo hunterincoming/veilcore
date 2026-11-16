@@ -128,7 +128,13 @@ export const DocumentFacts: React.FC<{
             return (
               <Typography key={`${a.recordId ?? ''}:${i}`} variant="body2" sx={{ py: 0.5 }}>
                 {target ? (
-                  <Link component={RouterLink} to={target.to} data-about-link={target.kind} data-about-id={a.recordId}>
+                  <Link
+                    component={RouterLink}
+                    to={target.to}
+                    state={target.state}
+                    data-about-link={target.kind}
+                    data-about-id={a.recordId}
+                  >
                     {name}
                   </Link>
                 ) : (
@@ -144,6 +150,8 @@ export const DocumentFacts: React.FC<{
               ? ` ${t('app.doc.chain.carried')}`
               : ''}
             {checker && targets.some((x) => x?.kind === 'id-only') ? ` ${t('app.doc.chain.idOnly')}` : ''}
+            {/* The holder's own page: following a link asks the registry about that ID. */}
+            {!checker ? ` ${t('app.doc.chain.aboutHolderNote')}` : ''}
           </Typography>
         </Box>
       )}

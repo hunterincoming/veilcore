@@ -3,8 +3,10 @@
 // sheet made in the browser as its file), a harvest lot about the batch, and a lab report about
 // the lot. Then the lab report's link with its chain, opened as a stranger would: each record's
 // page is reached from the one before, and each shows its own date. The batch's page offers
-// "Prove one number" only after its holder turns it on. The registry is sent nothing typed for
-// the batch. All files and records are test data.
+// "Prove one number" only after its holder turns it on. A record that names one kept on this
+// device only must be kept here too (its "About" would otherwise go to the registry in its
+// locked copy), so the lot and the lab report are kept here as well, and the registry is sent
+// nothing typed for any of the three. All files and records are test data.
 // SPDX-License-Identifier: Apache-2.0
 import { createHash, randomBytes } from 'node:crypto';
 import fs from 'node:fs';
@@ -151,6 +153,23 @@ const standIn = async (
   };
 };
 
+/** The records this browser keeps on this device only, by id. */
+const keptIds = (page: Page) =>
+  page.evaluate((holder) => {
+    const kept = JSON.parse(localStorage.getItem('veilcore.device-only.v1') ?? '{}') as Record<string, object>;
+    return Object.keys(kept[holder] ?? {});
+  }, HOLDER);
+
+/** Seal the document on screen as one kept on this device only, and give its id. */
+const sealOnDevice = async (page: Page): Promise<string> => {
+  const before = await keptIds(page);
+  await page.getByRole('button', { name: 'Seal it' }).click();
+  await expect(page.locator('[data-device-only-backup-step]')).toBeVisible();
+  const id = (await keptIds(page)).find((x) => !before.includes(x)) ?? '';
+  expect(id).toMatch(/^VEIL-[0-9A-F]+$/);
+  return id;
+};
+
 /** Pick one record in "What it’s about" on the sealing screen. */
 const pickAbout = async (page: Page, name: RegExp) => {
   await page.getByLabel('What it’s about (optional)').click();
@@ -221,13 +240,7 @@ test('a chain of records: source, grow batch, harvest lot, lab report, followed 
   await expect(page.locator('[data-chain-sheet-made]')).toContainText('Keep that file');
   await expect(page.locator('[data-picked-file]')).toHaveCount(1);
   await page.getByLabel('Keep this record on this device and in my backup only').check();
-  await page.getByRole('button', { name: 'Seal it' }).click();
-  await expect(page.locator('[data-device-only-backup-step]')).toBeVisible();
-  const batchId = await page.evaluate((holder) => {
-    const kept = JSON.parse(localStorage.getItem('veilcore.device-only.v1') ?? '{}') as Record<string, object>;
-    return Object.keys(kept[holder] ?? {})[0] ?? '';
-  }, HOLDER);
-  expect(batchId).toMatch(/^VEIL-[0-9A-F]+$/);
+  const batchId = await sealOnDevice(page);
   await page.goto(`/record/${batchId}`);
   await expect(page.getByRole('heading', { name: 'Grow batch B-0042' })).toBeVisible();
   await page.locator('[data-device-only]').getByRole('link', { name: 'Save a backup' }).click();
@@ -252,7 +265,9 @@ test('a chain of records: source, grow batch, harvest lot, lab report, followed 
   await expect(choice).toHaveAttribute('data-device-only-prove', 'on');
   await expect(page.locator('[data-prove-number]')).toBeVisible();
 
-  // 2. A harvest lot about the batch, with the holder's own file.
+  // 2. A harvest lot about the batch, with the holder's own file. The batch is kept on this
+  //    device only, so it can be named only by a record that is kept here too: until the box is
+  //    ticked it can't be picked, and the screen says why.
   await page.goto('/documents/new');
   await page.locator('[data-chain-start-kind="harvest-lot"]').click();
   await page
@@ -264,15 +279,23 @@ test('a chain of records: source, grow batch, harvest lot, lab report, followed 
   await lotNumbers.locator('input[data-slot="1"]').fill('51200');
   await lotNumbers.locator('input[data-slot="2"]').fill('10400');
   await page.getByLabel('Lot ID').fill('L-0007');
+  await expect(page.locator('[data-about-local-only]')).toContainText(
+    'an ordinary record would send that record’s name and ID to VeilCore',
+  );
+  await page.getByLabel('What it’s about (optional)').click();
+  await expect(page.getByRole('option', { name: /Grow batch B-0042/ })).toHaveAttribute('aria-disabled', 'true');
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('listbox')).toHaveCount(0);
+  await page.getByLabel('Keep this record on this device and in my backup only').check();
+  await expect(page.locator('[data-about-local-only]')).toHaveCount(0);
   await pickAbout(page, /Grow batch B-0042/);
   await page.getByLabel('Held by').fill(HELD_BY);
-  await page.getByRole('button', { name: 'Seal it' }).click();
-  await expect(page).toHaveURL(/\/record\/VEIL-[0-9A-F]+$/);
-  const lotId = page.url().split('/record/')[1];
+  const lotId = await sealOnDevice(page);
+  await page.goto(`/record/${lotId}`);
   await expect(page.getByRole('heading', { name: 'Harvest lot L-0007' })).toBeVisible();
   await expect(page.locator('[data-document-kind="harvest-lot"]')).toHaveText('Harvest lot');
 
-  // 3. The lab report about the lot: an ordinary document, as before.
+  // 3. The lab report about the lot: an ordinary kind of document, kept here too since the lot is.
   await page.goto('/documents/new');
   await page
     .locator('input[type=file]')
@@ -281,12 +304,12 @@ test('a chain of records: source, grow batch, harvest lot, lab report, followed 
   await page.getByLabel('Title').fill('COA for lot L-0007');
   await page.getByLabel('Type').click();
   await page.getByRole('option', { name: 'Lab report' }).click();
+  await page.getByLabel('Keep this record on this device and in my backup only').check();
   await pickAbout(page, /Harvest lot L-0007/);
   await page.getByLabel('Held by').fill(HELD_BY);
-  await page.getByRole('button', { name: 'Seal it' }).click();
-  await expect(page).toHaveURL(/\/record\/VEIL-[0-9A-F]+$/);
-  const reportId = page.url().split('/record/')[1];
+  const reportId = await sealOnDevice(page);
   expect(reportId).not.toBe(lotId);
+  await page.goto(`/record/${reportId}`);
   await expect(page.getByRole('heading', { name: 'COA for lot L-0007' })).toBeVisible();
 
   // 4. The chain view, on this device: up from the lab report to the source, the batch included.
@@ -301,7 +324,8 @@ test('a chain of records: source, grow batch, harvest lot, lab report, followed 
   await expect(page.locator('[data-chain-view] [data-chain-up] [data-chain-step]')).toHaveCount(1);
 
   // 5. All four proof codes are with the registry; the batch is sealed and dated.
-  await expect.poll(() => reg.dating.some((r) => r.id === batchId), { timeout: 60_000 }).toBe(true);
+  for (const id of [batchId, lotId, reportId])
+    await expect.poll(() => reg.dating.some((r) => r.id === id), { timeout: 60_000 }).toBe(true);
   await expect
     .poll(() => reg.rows.filter((r) => typeof r.recordFingerprint === 'string').length, { timeout: 60_000 })
     .toBe(4);
@@ -311,6 +335,9 @@ test('a chain of records: source, grow batch, harvest lot, lab report, followed 
   await page.goto(`/record/${reportId}`);
   const share = page.locator('[data-document-chain-share]');
   await expect(share).toContainText('Whoever has this link sees everything in each of those document records too');
+  // The records kept on this device only are marked, and what copying the link hands over is said.
+  await expect(share).toContainText('Harvest lot L-0007 (On this device only)');
+  await expect(share.locator('[data-chain-share-local]')).toContainText('to whoever receives it');
   await share.getByRole('button', { name: 'Copy link with its chain' }).click();
   await expect(share.getByText('Copied.')).toBeVisible();
   const link = await page.evaluate(() => navigator.clipboard.readText());
@@ -373,20 +400,20 @@ test('a chain of records: source, grow batch, harvest lot, lab report, followed 
       expect(decodeURIComponent(r.text), `${r.method} ${r.path}`).not.toContain(t);
   await other.close();
 
-  // 8. Everything the holder's browser sent the registry about the batch: its dating row, and
-  //    nothing typed, no file fingerprint and no mark in any address or body.
+  // 8. Everything the holder's browser sent the registry about the three records kept on this
+  //    device: each one's dating row, and nothing typed, no file fingerprint and no mark in any
+  //    address or body. No locked copy of any record was saved by this browser at all.
   for (const r of reg.seen) {
-    for (const t of [SITE_LABEL, VARIETY, sha(SHEET), 'grow-batch-B-0042'])
+    for (const t of [SITE_LABEL, VARIETY, sha(SHEET), sha(LOT_FILE), sha(COA_FILE), 'grow-batch-B-0042', 'COA for lot'])
       expect(r.text, `${r.method} ${r.path}`).not.toContain(t);
     expect(r.text, `${r.method} ${r.path}`).not.toContain('deviceOnly');
   }
-  for (const r of reg.seen.filter((x) => x.method !== 'GET' && x.text.includes(batchId)))
-    expect(r.path).toBe('/api/records/dating');
-  const batchRow = reg.rows.find((r) => r.id === batchId);
-  expect(batchRow?.bodyPending).toBe(true);
-  expect(batchRow?.sealed).toBeUndefined();
-  // The lot and the lab report are ordinary records: their locked copies were saved.
-  for (const id of [lotId, reportId])
-    await expect.poll(() => !!reg.rows.find((r) => r.id === id)?.sealed, { timeout: 30_000 }).toBe(true);
+  for (const id of [batchId, lotId, reportId]) {
+    for (const r of reg.seen.filter((x) => x.method !== 'GET' && x.text.includes(id)))
+      expect(r.path).toBe('/api/records/dating');
+    const row = reg.rows.find((r) => r.id === id);
+    expect(row?.bodyPending).toBe(true);
+    expect(row?.sealed).toBeUndefined();
+  }
   expectNoErrors(errors);
 });

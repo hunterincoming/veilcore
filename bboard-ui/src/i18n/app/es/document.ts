@@ -213,12 +213,12 @@ export const document = {
   'app.doc.chain.kind.harvest-lot': 'Lote de cosecha',
   'app.doc.schema.grow-batch': 'Lote de cultivo',
   'app.doc.schema.harvest-lot': 'Lote de cosecha',
-  'app.doc.slot.plants': 'Plantas en el lote',
-  'app.doc.slot.plantsInFlower': 'Plantas en floración',
-  'app.doc.slot.areaSquareMetres': 'Superficie de cultivo',
-  'app.doc.slot.plantsHarvested': 'Plantas cosechadas',
-  'app.doc.slot.wetWeightGrams': 'Peso en húmedo',
-  'app.doc.slot.dryWeightGrams': 'Peso en seco',
+  'app.doc.slot.plants': 'Plantas en este lote en la fecha del registro',
+  'app.doc.slot.plantsInFlower': 'De ellas, plantas en fase de floración en la fecha del registro',
+  'app.doc.slot.areaSquareMetres': 'Superficie de suelo en cultivo para este lote, en metros cuadrados',
+  'app.doc.slot.plantsHarvested': 'Plantas cosechadas para este lote',
+  'app.doc.slot.wetWeightGrams': 'Peso fresco en la cosecha, plantas enteras tal como se cortaron, en gramos',
+  'app.doc.slot.dryWeightGrams': 'Peso seco del lote tal como se almacena, en gramos',
   'app.doc.chain.start.title': '¿Registrar una cadena de producción?',
   'app.doc.chain.start.text':
     'Selle cada paso como un registro aparte, cada uno sobre el anterior: la planta o cepa de origen, un lote de cultivo, un lote de cosecha, el informe de laboratorio. Cada uno recibe su fecha.',
@@ -296,4 +296,16 @@ export const document = {
     'Nada de lo escrito en este registro se envió al registro de VeilCore, ni bloqueado ni sin bloquear. Lo que usted eligió probar sobre sus números es público en Midnight. Las únicas copias del registro están en este navegador y en el archivo de copia de seguridad que usted comprobó. Si pierde las dos, el registro se pierde: VeilCore no puede devolvérselo. Una copia de seguridad guardada antes de sellar este registro no lo contiene, y una copia con llave de acceso no lo contiene en ningún caso.',
   'app.doc.local.proved':
     'Usted eligió probar hechos sobre los números de este registro. Fueron a Midnight a través del servicio de tarifas de VeilCore y son públicos para siempre; aparecen abajo. Nada de lo escrito en este registro se envió al registro de VeilCore.',
+  'app.claim.tie':
+    'Lo que usted prueba queda público en Midnight de un modo que VeilCore, y cualquiera que tenga el enlace de comprobación de este registro, puede vincular con este registro. VeilCore también puede vincularlo con la clave de titular que fechó el registro.',
+  'app.doc.local.aboutStaysHere':
+    'Este registro nombra un registro guardado solo en este dispositivo, así que también debe guardarse solo en este dispositivo. De lo contrario, el nombre y el identificador de aquel registro irían a VeilCore dentro de la copia bloqueada de este. No se guardó ni se envió nada.',
+  'app.doc.chain.aboutLocalOnly':
+    'Un registro guardado solo en este dispositivo solo puede elegirse si este registro también se guarda solo en este dispositivo (la casilla de abajo). Aquello a lo que se refiere un registro se sella en su copia bloqueada, así que un registro corriente enviaría a VeilCore el nombre y el identificador de aquel registro.',
+  'app.doc.check.tooLarge':
+    'Este enlace lleva más de lo que puede llevar un enlace de comprobación. Pida al remitente el enlace propio de cada registro.',
+  'app.doc.chain.share.warnLocal':
+    'Nada de lo escrito en un registro guardado solo en este dispositivo se envió nunca a VeilCore. Al copiar este enlace, entrega lo escrito en cada uno de los que lleva (marcados arriba, y este registro si lo es) a quien lo reciba.',
+  'app.doc.chain.aboutHolderNote':
+    'Al abrir uno de estos enlaces, se pregunta al registro de VeilCore por el identificador de ese registro desde su dirección de red. Para un registro guardado solo en este dispositivo, es una cosa más que el registro de VeilCore llega a saber: que este navegador lo consultó.',
 } satisfies Partial<AppTranslation>;

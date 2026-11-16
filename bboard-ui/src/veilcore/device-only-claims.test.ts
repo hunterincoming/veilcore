@@ -156,6 +156,11 @@ describe('the choice on a device-only record’s page', () => {
     expect(html.off).toContain('data-device-only-prove="off"');
     expect(html.off).toContain('Off unless you turn it on here.');
     expect(html.off).toContain('Nothing is sent to VeilCore’s registry.');
+    // Who can tie a claim to this record is said before the choice, and again before the button.
+    const TIE =
+      'What you prove is public on Midnight in a way that VeilCore, and anyone who has this record’s check link, can tie to this record. VeilCore can also tie it to the holder key that dated the record.';
+    expect(html.off).toContain(TIE);
+    expect(html.on.split(TIE).length).toBeGreaterThanOrEqual(3);
     expect(html.off).not.toContain('data-prove-number');
     expect(html.off).not.toContain('data-prove-go');
     // On: the panel, and before anything is typed, that the limit decides what is published.
@@ -167,7 +172,7 @@ describe('the choice on a device-only record’s page', () => {
     // "Exactly": the number itself is named, the box is unticked, and the button can't be pressed.
     expect(html.exact).toContain('data-device-only-publish="exactly"');
     expect(html.exact).toContain(
-      'the form “Grow batch”, the field “Plants in the batch” and the number itself, 120, with a code that stands for this record.',
+      'the form “Grow batch”, the field “Plants in this batch on the record’s date” and the number itself, 120, with a code that stands for this record.',
     );
     expect(html.exact).toContain('Yes, publish the number itself: 120, on Midnight, for good.');
     expect(html.exact).toMatch(
@@ -194,14 +199,16 @@ describe('proving from a document kept on this device only', () => {
       const { proveNumber } = await import('./prove-number');
       const now = () => A.m.records.getRecord(record.id)!;
       // At most 150 plants: the limit is published, the number (120) is not.
-      const range = await proveNumber(now(), 0, 'at-most', 150n, { calls: chain });
+      const range = await proveNumber(now(), 0, 'at-most', 150n, { calls: chain, optedIn: true });
       // "Exactly" without the second confirmation: refused before anything is called.
-      await expect(proveNumber(now(), 2, 'exactly', 0n, { calls: chain })).rejects.toThrow(/needs your confirmation/);
-      await expect(proveNumber(now(), 2, 'exactly', 0n, { calls: chain, confirmedExact: false })).rejects.toThrow(
-        /Nothing was sent/,
+      await expect(proveNumber(now(), 2, 'exactly', 0n, { calls: chain, optedIn: true })).rejects.toThrow(
+        /needs your confirmation/,
       );
+      await expect(
+        proveNumber(now(), 2, 'exactly', 0n, { calls: chain, optedIn: true, confirmedExact: false }),
+      ).rejects.toThrow(/Nothing was sent/);
       expect(calls).toHaveLength(1);
-      const exact = await proveNumber(now(), 2, 'exactly', 0n, { calls: chain, confirmedExact: true });
+      const exact = await proveNumber(now(), 2, 'exactly', 0n, { calls: chain, optedIn: true, confirmedExact: true });
       await settle(200);
       await A.m.records.hydrate();
       await settle(200);
@@ -266,6 +273,27 @@ describe('proving from a document kept on this device only', () => {
       expect(shown.deviceOnly).toBe(true);
       expect((shown.claims ?? []).map((c) => c.txId)).toEqual([claims.range.txId, claims.exact.txId]);
     });
+  });
+
+  it('the call itself refuses a device-only record unless its holder turned proving on', async () => {
+    // Review of 16 Nov: only "exactly" was checked in the call; the choice itself was the page's alone.
+    const A = await browser('gate');
+    const record = await sealBatch(A, true);
+    const { calls, chain } = standInChain();
+    await A.run(async () => {
+      const { proveNumber } = await import('./prove-number');
+      const now = A.m.records.getRecord(record.id)!;
+      await expect(proveNumber(now, 0, 'at-most', 150n, { calls: chain })).rejects.toThrow(
+        /turned on|Nothing was sent/,
+      );
+      await expect(proveNumber(now, 0, 'at-most', 150n, { calls: chain, optedIn: false })).rejects.toThrow(
+        /Nothing was sent/,
+      );
+      await expect(
+        proveNumber(now, 0, 'at-most', 150n, { calls: chain, optedIn: true, enabled: false }),
+      ).rejects.toThrow(/Nothing was sent/);
+    });
+    expect(calls).toEqual([]);
   });
 
   it('an ordinary document proves exactly as before: no second confirmation', async () => {

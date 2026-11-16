@@ -65,8 +65,8 @@ describe('the grow batch and harvest lot forms', () => {
     }
     // Pinned: a form is permanent once a record is sealed under it. A change is a new file.
     expect(KIND_SCHEMA_ID).toEqual({
-      'grow-batch': '7097171519711309010fd94b067495aea1daedea497e32dce477b77a6c08f4e6',
-      'harvest-lot': '0646b5804dc25df288b5711689470b0b4e38562189e69562e2d0fe47b97edf19',
+      'grow-batch': 'b7457db62d31e23249459250ea7e1f1f956867abfa02e8337f46f3316cf2293f',
+      'harvest-lot': 'c2bf134ea1761c529f304b390bdc40d1ae25906c990ad0456f93b26bb7b47d62',
     });
     const all = await Promise.all(Object.keys(SCHEMAS).map((id) => schemaIdHex(id)));
     expect(new Set(all).size).toBe(all.length);
@@ -211,9 +211,11 @@ describe('the chain view, from this browser’s records alone', () => {
         ...(await doc('BATCH-1', [source], await makeFieldSet(KIND_SCHEMA['grow-batch'], [120n, null, 1250n]))),
         deviceOnly: true,
       });
-      const lot = A.m.records.createRecord(
-        await doc('LOT-1', [batch], await makeFieldSet(KIND_SCHEMA['harvest-lot'], [118n, 51200n, 10400n])),
-      );
+      // The lot names the batch, so it is kept on this device too (device-only-about.test.ts).
+      const lot = A.m.records.createRecord({
+        ...(await doc('LOT-1', [batch], await makeFieldSet(KIND_SCHEMA['harvest-lot'], [118n, 51200n, 10400n]))),
+        deviceOnly: true,
+      });
       await until(() =>
         reg.sent.some(
           (p) => p.method === 'PUT' && pathOf(p.url) === '/api/records/dating' && p.body.includes(batch.id),
@@ -265,7 +267,6 @@ describe('a link with its chain', () => {
       const read = await readDocumentLink(hashOf(link));
       expect(read.ok && read.fingerprint).toBe(r.fingerprint);
       expect(read.ok && read.chain).toEqual([]);
-      expect(read.ok && read.namedAs).toBeUndefined();
     }
   });
 
@@ -299,7 +300,7 @@ describe('a link with its chain', () => {
       fetched.push(String(u));
       return Promise.reject(new Error('no request is expected'));
     });
-    const target = aboutTarget('VEIL-UP', read.chain);
+    const target = aboutTarget('VEIL-UP', read.chain, read.fingerprint);
     expect(target.kind).toBe('document');
     const url = new URL(target.to, 'https://test.veilcore.org');
     // What a browser sends when it opens it: the path and the query string. Neither holds anything.
@@ -308,9 +309,12 @@ describe('a link with its chain', () => {
     const next = await readDocumentLink(url.hash);
     expect(next.ok && next.fingerprint).toBe(a.fingerprint);
     expect(next.ok && next.fields).toEqual(documentFieldsOf(upstream));
-    expect(next.ok && next.namedAs).toBe('VEIL-UP');
+    // Which record it was named by, and the rest of the chain, are handed on by the app, not the address.
+    expect(url.hash).not.toMatch(/[&#]as=/);
+    expect(target.state).toMatchObject({ namedAs: 'VEIL-UP', from: read.fingerprint });
     // The chain goes along, so the next link up can be followed the same way.
-    expect(next.ok && next.chain.map((e) => e.id)).toEqual(['VEIL-UP', 'VEIL-PLANT']);
+    expect(target.state?.chain.map((e) => e.id)).toEqual(['VEIL-UP', 'VEIL-PLANT']);
+    expect(next.ok && next.chain).toEqual([]);
     expect(fetched).toEqual([]);
   });
 
@@ -328,6 +332,58 @@ describe('a link with its chain', () => {
     for (const id of ['VEIL-PLANT', 'VEIL-ELSEWHERE'])
       for (const typed of [fields.title, fields.holder, 'Clone line 7'])
         expect(decodeURIComponent(aboutTarget(id, read.chain).to)).not.toContain(typed);
+  });
+
+  it('nothing typed into the address makes the page say where it was opened from', async () => {
+    // Review of 16 Nov: "&as=ANY.TEXT" on a plain link made the page state, as fact, that another
+    // record names this one as record ANY.TEXT. A link's text says nothing about that.
+    const plain = documentCheckLink(top, 'https://test.veilcore.org');
+    const read = await readDocumentLink(`${hashOf(plain)}&as=ANY.TEXT`);
+    expect(read.ok).toBe(true);
+    expect(read.ok && 'namedAs' in read).toBe(false);
+    // The page a link in the chain opens is told by the app's own navigation, never by the address.
+    const chained = await readDocumentLink(hashOf(documentChainLink(top, records, 'https://test.veilcore.org')));
+    if (!chained.ok) throw new Error('unreadable');
+    const target = aboutTarget('VEIL-UP', chained.chain, chained.fingerprint);
+    expect(target.to).not.toMatch(/[&#]as=/);
+    expect(target.state).toMatchObject({ namedAs: 'VEIL-UP', from: chained.fingerprint });
+  });
+
+  it('a link stuffed with a long chain costs little to show, and one past the limit is refused whole', async () => {
+    // Review of 16 Nov: 40 carried documents made about 22 MB of link text on every draw, since
+    // each link out repeated the whole chain. A link out now carries its own record only.
+    const big = { ...documentFieldsOf(upstream), notes: 'n'.repeat(8_000) };
+    const chain = Array.from({ length: 40 }, (_, i) => ({ id: `VEIL-${String(i).padStart(4, '0')}`, fields: big }));
+    const about = chain.slice(0, 20).map((c) => ({ name: c.id, recordId: c.id }));
+    const fields = { ...documentFieldsOf(top), about };
+    const d = base64urlnopad.encode(new TextEncoder().encode(JSON.stringify({ v: 1, fields, chain })));
+    const read = await readDocumentLink(`#d=${d}`);
+    expect(read.ok).toBe(true);
+    if (!read.ok) return;
+    const out = about.map((a) => aboutTarget(a.recordId, read.chain, read.fingerprint).to.length);
+    expect(out.reduce((n, x) => n + x, 0)).toBeLessThan(1_000_000);
+    // Past the limit: refused in plain words, nothing shown.
+    const huge = base64urlnopad.encode(
+      new TextEncoder().encode(JSON.stringify({ v: 1, fields, chain: [...chain, ...chain, ...chain] })),
+    );
+    expect(await readDocumentLink(`#d=${huge}`)).toEqual({ ok: false, why: 'too-large' });
+    // And one is never made: the holder is told instead.
+    const heavy = Array.from({ length: 45 }, (_, i) => ({
+      ...upstream,
+      id: `VEIL-H${String(i)}`,
+      notes: 'n'.repeat(19_000),
+    }));
+    const head = held(
+      'VEIL-HEAD',
+      b.appRecord,
+      heavy.slice(0, 20).map((h) => ({ name: 'x', recordId: h.id })),
+    );
+    const linked = heavy.map((h, i) =>
+      i < 20 ? { ...h, document: { ...h.document, about: [{ name: 'y', recordId: `VEIL-H${String(i + 20)}` }] } } : h,
+    );
+    expect(() => documentChainLink(head as never, [head, ...linked] as never[], 'https://test.veilcore.org')).toThrow(
+      /too large for one link/,
+    );
   });
 
   it('a chain entry that is not well formed is dropped, and the record still checks', async () => {
@@ -349,7 +405,6 @@ describe('a link with its chain', () => {
     );
     expect(read.ok).toBe(true);
     expect(read.ok && read.chain).toEqual([{ id: 'VEIL-PLANT', code: 'cd'.repeat(32) }]);
-    expect(read.ok && read.namedAs).toBeUndefined();
   });
 });
 

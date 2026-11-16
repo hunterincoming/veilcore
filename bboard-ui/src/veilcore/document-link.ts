@@ -21,7 +21,10 @@
 // `chain` is outside the sealed fields: it is what the link's sender put there, and nothing
 // seals a record ID to a proof code. Each record in it is checked on its own page, by its own
 // proof code and date. A site build from before this reads `fields` and ignores `chain`.
-// Following a link to a document in the chain stays in the browser: everything is after the #.
+// Following a link to a document in the chain stays in the browser: the link out carries that
+// one record's fields after the #, and the app hands the rest of the chain to the next page
+// itself (the router's own state, never the address). So the address can't be made to say
+// where a page was opened from, and a long chain isn't repeated in every link on the page.
 // SPDX-License-Identifier: Apache-2.0
 
 import { base64urlnopad } from '@scure/base';
@@ -95,6 +98,12 @@ export type ChainEntry =
 
 /** The most records a link's chain may carry. */
 export const CHAIN_ENTRIES_MAX = 40;
+/**
+ * The most a link may carry after `#d=`, in characters. An ordinary document link is far under
+ * it (20,000 characters of notes and 20 files come to about 150,000); a link over it is refused
+ * whole, never read in part, and is never made.
+ */
+export const LINK_CHARS_MAX = 600_000;
 
 const encode = (payload: unknown): string => base64urlnopad.encode(new TextEncoder().encode(JSON.stringify(payload)));
 
@@ -128,11 +137,14 @@ export const documentChainLink = (record: HeldForChain, records: readonly HeldFo
   const problems = validateDocumentFields(fields);
   if (problems.length) throw new Error(`This document record can't be shared: ${problems.join('; ')}.`);
   const chain = chainEntriesFor(record, records);
-  return `${origin}${DOCUMENT_CHECK_PATH}#d=${encode({ v: 1, fields, ...(chain.length ? { chain } : {}) })}`;
+  const d = encode({ v: 1, fields, ...(chain.length ? { chain } : {}) });
+  if (d.length > LINK_CHARS_MAX)
+    throw new Error('This chain is too large for one link. Send each record’s own link instead.');
+  return `${origin}${DOCUMENT_CHECK_PATH}#d=${d}`;
 };
 
 /** The chain a link's payload carries: every well-formed entry, each record once. Anything else is dropped. */
-const readChain = (v: unknown): ChainEntry[] => {
+export const readChain = (v: unknown): ChainEntry[] => {
   if (!Array.isArray(v)) return [];
   const out: ChainEntry[] = [];
   const seen = new Set<string>();
@@ -151,26 +163,45 @@ const readChain = (v: unknown): ChainEntry[] => {
   return out;
 };
 
+/**
+ * What the app hands the page a link in the chain opens, through the router and never through
+ * the address: the record ID it was named by, the proof code of the page it was opened from,
+ * and the rest of the chain, so the next link up can be followed the same way.
+ */
+export type OpenedFrom = { readonly namedAs: string; readonly from: string; readonly chain: readonly ChainEntry[] };
+
+/** What a page was handed by the app's own navigation, checked for form; undefined for anything else. */
+export const openedFrom = (state: unknown): OpenedFrom | undefined => {
+  if (typeof state !== 'object' || state === null) return undefined;
+  const o = state as { namedAs?: unknown; from?: unknown; chain?: unknown };
+  if (typeof o.namedAs !== 'string' || !RECORD_ID.test(o.namedAs)) return undefined;
+  if (typeof o.from !== 'string' || !HEX64.test(o.from)) return undefined;
+  return { namedAs: o.namedAs, from: o.from, chain: readChain(o.chain) };
+};
+
 /** Where an `about` entry's link goes, and what stands behind it. */
 export type AboutTarget =
   /** A document the link carries: its own check page, opened from the link alone (nothing is sent). */
-  | { readonly kind: 'document'; readonly to: string }
-  /** Any other record the link (or this device) has a proof code for: its public check page, checked against that code. */
-  | { readonly kind: 'record'; readonly to: string }
-  /** Only the record's ID is known: its public check page, worded there as the registry's report. */
-  | { readonly kind: 'id-only'; readonly to: string };
+  (
+    | { readonly kind: 'document'; readonly to: string; readonly state: OpenedFrom }
+    /** Any other record the link (or this device) has a proof code for: its public check page, checked against that code. */
+    | { readonly kind: 'record'; readonly to: string }
+    /** Only the record's ID is known: its public check page, worded there as the registry's report. */
+    | { readonly kind: 'id-only'; readonly to: string }
+  ) & { readonly state?: OpenedFrom };
 
 /**
  * Where the link for a record an `about` entry names goes. A document carried in the chain
- * opens on the document check page with the same chain, everything after the #. The record ID
- * it was named by goes along (`as`), so that page can say so.
+ * opens on the document check page: its own fields after the #, and the chain handed on by the
+ * app (`state`). `from` is the proof code of the page the link is on.
  */
-export const aboutTarget = (recordId: string, chain: readonly ChainEntry[]): AboutTarget => {
+export const aboutTarget = (recordId: string, chain: readonly ChainEntry[], from = ''): AboutTarget => {
   const e = chain.find((x) => x.id === recordId);
   if (e && 'fields' in e)
     return {
       kind: 'document',
-      to: `${DOCUMENT_CHECK_PATH}#d=${encode({ v: 1, fields: e.fields, chain })}&as=${encodeURIComponent(recordId)}`,
+      to: `${DOCUMENT_CHECK_PATH}#d=${encode({ v: 1, fields: e.fields })}`,
+      state: { namedAs: recordId, from, chain },
     };
   if (e) return { kind: 'record', to: verifyPath(recordId, e.code) };
   return { kind: 'id-only', to: verifyPath(recordId) };
@@ -183,17 +214,14 @@ export type ReadLink =
       readonly fingerprint: string;
       /** The records the link carries beside this one ([] for a link without a chain). */
       readonly chain: readonly ChainEntry[];
-      /** The record ID another record's page named this document by, when the link was opened from one. */
-      readonly namedAs?: string;
     }
-  | { readonly ok: false; readonly why: 'missing' | 'unreadable' | 'not-a-document' };
+  | { readonly ok: false; readonly why: 'missing' | 'unreadable' | 'not-a-document' | 'too-large' };
 
 /** The link's sealed fields, checked against the profile, and the proof code they recompute to. */
 export const readDocumentLink = async (hash: string): Promise<ReadLink> => {
-  const params = new URLSearchParams(hash.replace(/^#/, ''));
-  const d = params.get('d');
+  const d = new URLSearchParams(hash.replace(/^#/, '')).get('d');
   if (!d) return { ok: false, why: 'missing' };
-  const as = params.get('as');
+  if (d.length > LINK_CHARS_MAX) return { ok: false, why: 'too-large' };
   let parsed: unknown;
   try {
     parsed = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(base64urlnopad.decode(d)));
@@ -211,6 +239,5 @@ export const readDocumentLink = async (hash: string): Promise<ReadLink> => {
     fields: f,
     fingerprint: await fingerprintRecord(appRecordOfFields(f)),
     chain: readChain(o.chain),
-    ...(as && RECORD_ID.test(as) ? { namedAs: as } : {}),
   };
 };

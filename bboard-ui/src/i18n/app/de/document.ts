@@ -218,12 +218,12 @@ export const document = {
   'app.doc.chain.kind.harvest-lot': 'Erntelos',
   'app.doc.schema.grow-batch': 'Anbaucharge',
   'app.doc.schema.harvest-lot': 'Erntelos',
-  'app.doc.slot.plants': 'Pflanzen in der Charge',
-  'app.doc.slot.plantsInFlower': 'Pflanzen in der Blüte',
-  'app.doc.slot.areaSquareMetres': 'Anbaufläche',
-  'app.doc.slot.plantsHarvested': 'Geerntete Pflanzen',
-  'app.doc.slot.wetWeightGrams': 'Nassgewicht',
-  'app.doc.slot.dryWeightGrams': 'Trockengewicht',
+  'app.doc.slot.plants': 'Pflanzen in dieser Charge am Datum des Datensatzes',
+  'app.doc.slot.plantsInFlower': 'Davon Pflanzen in der Blütephase am Datum des Datensatzes',
+  'app.doc.slot.areaSquareMetres': 'Anbaufläche (Bodenfläche) dieser Charge, in Quadratmetern',
+  'app.doc.slot.plantsHarvested': 'In dieses Los geerntete Pflanzen',
+  'app.doc.slot.wetWeightGrams': 'Frischgewicht bei der Ernte, ganze Pflanzen wie geschnitten, in Gramm',
+  'app.doc.slot.dryWeightGrams': 'Trockengewicht des Loses wie eingelagert, in Gramm',
   'app.doc.chain.start.title': 'Eine Produktionskette festhalten?',
   'app.doc.chain.start.text':
     'Versiegeln Sie jeden Schritt als eigenen Datensatz, der den vorherigen nennt: die Ausgangspflanze oder den Stamm, eine Anbaucharge, ein Erntelos, den Laborbericht. Jeder erhält sein eigenes Datum.',
@@ -249,18 +249,18 @@ export const document = {
   'app.doc.chain.need.aNumber': 'Geben Sie mindestens eine Zahl ein.',
   'app.doc.chain.sheet.title': 'Keine Datei dazu?',
   'app.doc.chain.sheet.text':
-    'Ein Datensatz braucht eine Datei. Ihr eigenes Chargenblatt ist die bessere Wahl: Es datiert ein Arbeitsdokument, das Sie ohnehin führen. Wenn Sie keines haben, entsteht hier ein Blatt in reinem Text aus Kennung, Datum, Standort, Sorte, Halter und „Betrifft“ von oben, ohne Stückzahlen und Gewichte, und wird auf diesem Gerät gespeichert. Füllen Sie diese Felder zuerst aus.',
+    'Ein Datensatz braucht eine Datei. Ihr eigenes Chargenblatt ist die bessere Wahl: Es datiert ein Arbeitsdokument, das Sie ohnehin führen. Wenn Sie keines haben, entsteht hier ein Blatt in reinem Text aus Kennung, Datum, Standort, Sorte, Inhaber und „Betrifft“ von oben, ohne Stückzahlen und Gewichte, und wird auf diesem Gerät gespeichert. Füllen Sie diese Felder zuerst aus.',
   'app.doc.chain.sheet.make': 'Blatt aus meinen Eingaben erstellen',
   'app.doc.chain.sheet.made':
     'Erstellt und gespeichert als {name}. Bewahren Sie diese Datei auf: Sie wird gebraucht, um den Datensatz zu prüfen, und muss Byte für Byte gleich bleiben. Wenn Sie Ihre Eingaben oben ändern, ändert sich das Blatt nicht mit.',
   'app.doc.chain.aboutHelp':
     'Ihre Datensätze, die es betrifft: ein Analysezertifikat mit der getesteten Pflanze, ein Erntelos mit seiner Anbaucharge. Das ist Ihre Angabe. Nichts gleicht sie mit dem gewählten Datensatz ab.',
   'app.doc.chain.aboutNote':
-    '„Betrifft“ ist die eigene Angabe des Halters, mit diesem Datensatz versiegelt. Weder VeilCore noch Midnight gleicht sie mit dem genannten Datensatz ab. Eine Kette von Datensätzen ist nur so stark wie das eigene Datum und der eigene Prüfcode jedes Datensatzes.',
+    '„Betrifft“ ist die eigene Angabe des Inhabers, mit diesem Datensatz versiegelt. Weder VeilCore noch Midnight gleicht sie mit dem genannten Datensatz ab. Eine Kette von Datensätzen ist nur so stark wie das eigene Datum und der eigene Prüfcode jedes Datensatzes.',
   'app.doc.chain.carried':
     'Die hier verlinkten Datensätze kamen mit diesem Link, von der Person, die ihn gesendet hat. Der versiegelte Datensatz nennt jeden nur mit seiner Kennung; nichts hier zeigt also, dass ein verlinkter Datensatz der genannte ist.',
   'app.doc.chain.idOnly':
-    'Wo dieser Link nur die Kennung eines Datensatzes enthält, zeigt dessen Seite, was das Register von VeilCore zu dieser Kennung meldet, ohne Häkchen. Für ein geprüftes Datum bitten Sie den Halter um den eigenen Prüflink dieses Datensatzes.',
+    'Wo dieser Link nur die Kennung eines Datensatzes enthält, zeigt dessen Seite, was das Register von VeilCore zu dieser Kennung meldet, ohne Häkchen. Für ein geprüftes Datum bitten Sie den Inhaber um den eigenen Prüflink dieses Datensatzes.',
   'app.doc.chain.namedAs':
     'Sie haben dies von einem anderen Datensatz aus geöffnet, der es als Datensatz {id} nennt. Nichts im Link bindet diese Kennung an den Prüfcode dieses Datensatzes.',
   'app.doc.chain.askRegistry': 'Ansehen, was das Register von VeilCore zu Datensatz {id} meldet',
@@ -303,4 +303,16 @@ export const document = {
     'Nichts, was in diesen Datensatz eingegeben wurde, ging an das Register von VeilCore, weder verschlossen noch offen. Was Sie über seine Zahlen belegt haben, ist auf Midnight öffentlich. Die einzigen Kopien des Datensatzes liegen in diesem Browser und in der Sicherungsdatei, die Sie geprüft haben. Gehen beide verloren, ist der Datensatz weg: VeilCore kann ihn nicht zurückgeben. Eine Sicherung von vor dem Versiegeln enthält ihn nicht, eine Passkey-Kopie enthält ihn in keinem Fall.',
   'app.doc.local.proved':
     'Sie haben gewählt, Tatsachen über die Zahlen dieses Datensatzes zu belegen. Sie gingen über den Gebührendienst von VeilCore an Midnight und sind dauerhaft öffentlich; sie stehen unten. Nichts, was in diesen Datensatz eingegeben wurde, ging an das Register von VeilCore.',
+  'app.claim.tie':
+    'Was Sie belegen, ist auf Midnight so öffentlich, dass VeilCore und jeder, der den Prüflink dieses Datensatzes hat, es diesem Datensatz zuordnen kann. VeilCore kann es außerdem dem Inhaberschlüssel zuordnen, der den Datensatz datiert hat.',
+  'app.doc.local.aboutStaysHere':
+    'Dieser Datensatz nennt einen Datensatz, der nur auf diesem Gerät aufbewahrt wird, und muss deshalb selbst nur auf diesem Gerät aufbewahrt werden. Sonst gingen Name und Kennung jenes Datensatzes in der verschlossenen Kopie dieses Datensatzes an VeilCore. Nichts wurde gespeichert oder gesendet.',
+  'app.doc.chain.aboutLocalOnly':
+    'Ein Datensatz, der nur auf diesem Gerät aufbewahrt wird, lässt sich nur wählen, wenn auch dieser Datensatz nur auf diesem Gerät aufbewahrt wird (das Kästchen unten). Was ein Datensatz betrifft, wird in seiner verschlossenen Kopie versiegelt; ein gewöhnlicher Datensatz würde also Name und Kennung jenes Datensatzes an VeilCore senden.',
+  'app.doc.check.tooLarge':
+    'Dieser Link enthält mehr, als ein Prüflink enthalten kann. Bitten Sie den Absender um den eigenen Link jedes Datensatzes.',
+  'app.doc.chain.share.warnLocal':
+    'Nichts, was in einen nur auf diesem Gerät aufbewahrten Datensatz eingegeben wurde, ging je an VeilCore. Wenn Sie diesen Link kopieren, geben Sie die Eingaben jedes solchen Datensatzes, den er enthält (oben markiert, und dieser Datensatz, falls er einer ist), an jeden weiter, der den Link erhält.',
+  'app.doc.chain.aboutHolderNote':
+    'Wenn Sie einen dieser Links öffnen, wird das Register von VeilCore von Ihrer Netzwerkadresse aus nach der Kennung dieses Datensatzes gefragt. Bei einem Datensatz, der nur auf diesem Gerät aufbewahrt wird, erfährt das Register damit eines mehr: dass dieser Browser ihn nachgeschlagen hat.',
 } satisfies Partial<AppTranslation>;

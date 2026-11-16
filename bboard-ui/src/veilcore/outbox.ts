@@ -102,7 +102,7 @@ export const inOutbox = (id: string): boolean => id in outboxRecords();
  * kept on this device only (below): this is the queue of what waits to be sent.
  */
 export const putInOutbox = (records: readonly Record<string, unknown>[]): void => {
-  const sendable = records.filter((r) => !neverSend(r));
+  const sendable = records.filter((r) => !neverSend(r) && !namesDeviceOnly(r));
   if (sendable.length === 0) return;
   const here = outboxRecords();
   for (const r of sendable) if (isString(r.id)) here[r.id] = r;
@@ -169,6 +169,24 @@ export const keepRawOnDevice = (entries: Readonly<Record<string, unknown>>): voi
  */
 export const neverSend = (r: unknown): boolean =>
   isDeviceOnly(r) || (isObject(r) && isString(r.id) && keptOnDeviceOnly(r.id));
+
+/** The record ids a record names: what a document says it is about, and a plant's or animal's parents. */
+const namedIds = (r: Record<string, unknown>): string[] => {
+  const ids = (list: unknown): unknown[] =>
+    Array.isArray(list) ? list.map((x: unknown) => (isObject(x) ? x.recordId : undefined)) : [];
+  return [...ids(isObject(r.document) ? r.document.about : undefined), ...ids(r.parents)].filter(isString);
+};
+
+/**
+ * Whether a record that leaves this device names a record kept on this device only
+ * (docs/device-only-records.md, "Named by another record"). What a record names is sealed into
+ * its locked copy, which goes to the registry: the named record's title and ID would go with
+ * it. So such a record is never made, queued or sent. A record that is itself kept on this
+ * device may name one: nothing of it leaves. `alsoKept` adds ids about to be kept here (a
+ * restore that brings both records in one file).
+ */
+export const namesDeviceOnly = (r: unknown, alsoKept?: ReadonlySet<string>): boolean =>
+  isObject(r) && !neverSend(r) && namedIds(r).some((id) => keptOnDeviceOnly(id) || alsoKept?.has(id) === true);
 
 /** Take a record off this device (the holder's own choice: records.ts deleteDeviceOnly). */
 export const dropFromDevice = (id: string): void => {

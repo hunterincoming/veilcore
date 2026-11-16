@@ -616,7 +616,7 @@ describe("what's live where", () => {
     expect(e['m.live.docchain.test']).toMatch(/The links are the holder’s statement\.$/);
     expect(e['m.live.docchain.live']).toMatch(/not checked by VeilCore or Midnight\.$/);
     expect(e['m.live.localclaims.test']).toMatch(
-      /Your choice, off until you turn it on\. What you prove is public on Midnight; nothing goes to VeilCore’s registry\.$/,
+      /Your choice, off until you turn it on\. What you prove is public on Midnight; nothing goes to VeilCore’s registry, but VeilCore can tie what you prove to the record\.$/,
     );
     // The same on the record's page and the sealing screen, in every language: what would be
     // published is said before anything is proved, and the wording that said proving is not
@@ -652,6 +652,63 @@ describe("what's live where", () => {
       expect(a['app.doc.chain.aboutNote']).toMatch(/VeilCore/);
       expect(a['app.doc.chain.aboutNote']).toMatch(/Midnight/);
     }
+    // Review of 16 Nov. A claim names the record's commitment, and the proof code is made from
+    // that and the key binding, both of which the registry holds beside the holder key: so
+    // VeilCore can tie a claim to the record and to that key, and so can anyone with the check
+    // link. Said for every record, in every language, before the button (ProveNumber.tsx).
+    for (const dict of [appEn, appDe, appEs, appFr, appJa]) {
+      const a = dict as Record<string, string>;
+      expect(a['app.claim.tie']).toMatch(/VeilCore/);
+      expect(a['app.claim.tie']).toMatch(/Midnight/);
+      expect(a['app.claim.tie']).toMatch(/holder key|Inhaberschlüssel|clave de titular|clé de détenteur|保有者キー/);
+      for (const k of [
+        'local.aboutStaysHere',
+        'chain.aboutLocalOnly',
+        'chain.share.warnLocal',
+        'chain.aboutHolderNote',
+        'check.tooLarge',
+      ])
+        expect(a[`app.doc.${k}`], k).toBeTruthy();
+      expect(a['app.sealed.refuse.namesKept']).toBeTruthy();
+      expect(a['app.doc.chain.aboutHolderNote']).toMatch(/VeilCore/);
+    }
+    const prove = fs.readFileSync(path.join(SRC, 'components/document/ProveNumber.tsx'), 'utf8');
+    expect(prove.match(/t\('app\.claim\.tie'\)/g)).toHaveLength(3);
+    expect(prove.indexOf('data-claim-tie')).toBeLessThan(prove.indexOf('data-prove-go'));
+    expect((appEn as Record<string, string>)['app.claim.tie']).toBe(
+      'What you prove is public on Midnight in a way that VeilCore, and anyone who has this record’s check link, can tie to this record. VeilCore can also tie it to the holder key that dated the record.',
+    );
+    for (const l of Object.values(LANGUAGES)) {
+      const s = l.strings as Record<string, string>;
+      expect(s['m.privacy.deviceonly.text']).toMatch(
+        /holder key|Inhaberschlüssel|clave de titular|clé de détenteur|保有者キー/,
+      );
+      expect(s['m.live.localclaims.test']).toMatch(/can tie|zuordnen|vincular|rattacher|結び付ける/);
+    }
+    // The chain link's warning marks records kept on this device only, and says what copying it hands over.
+    const detail = fs.readFileSync(path.join(SRC, 'components/document/DocumentDetail.tsx'), 'utf8');
+    expect(detail).toMatch(/isKeptOnDeviceOnly\(r\) \? ` \(\$\{t\('app\.doc\.local\.homeLine'\)\}\)`/);
+    expect(detail).toContain("t('app.doc.chain.share.warnLocal')");
+    expect((appEn as Record<string, string>)['app.doc.chain.share.warnLocal']).toMatch(
+      /hands what was typed into each one it carries .* to whoever receives it\.$/,
+    );
+    // The holder's own "About" links: opening one asks the registry about that ID.
+    expect(fs.readFileSync(path.join(SRC, 'components/document/DocumentParts.tsx'), 'utf8')).toMatch(
+      /!checker \? ` \$\{t\('app\.doc\.chain\.aboutHolderNote'\)\}` : ''/,
+    );
+    // The slots' labels say exactly what each number is.
+    expect(
+      ['plants', 'plantsInFlower', 'areaSquareMetres', 'plantsHarvested', 'wetWeightGrams', 'dryWeightGrams'].map(
+        (k) => (appEn as Record<string, string>)[`app.doc.slot.${k}`],
+      ),
+    ).toEqual([
+      'Plants in this batch on the record’s date',
+      'Of those, plants in the flowering stage on the record’s date',
+      'Floor area under cultivation for this batch, in square metres',
+      'Plants harvested into this lot',
+      'Fresh weight at harvest, whole plants as cut, in grams',
+      'Dry weight of the lot as stored, in grams',
+    ]);
     const appE = appEn as Record<string, string>;
     expect(appE['app.doc.local.prove.text']).toMatch(/^Off unless you turn it on here\./);
     expect(appE['app.doc.local.prove.text']).toMatch(/Nothing is sent to VeilCore’s registry\./);
@@ -694,7 +751,7 @@ describe("what's live where", () => {
     // The one exception to "nothing you type is sent", said in the same note, in every language:
     // a number the holder chooses to prove (docs/device-only-records.md, "Proving a number").
     expect(e['m.privacy.deviceonly.text']).toMatch(
-      /One exception, and only if you choose it: if you prove one of its numbers, a fact about that number goes to Midnight through our fee service and is public for good\. That is the limit you set and its direction or, if you prove the number exactly, the number itself\. None of it goes to our registry\./,
+      /One exception, and only if you choose it: if you prove one of its numbers, a fact about that number goes to Midnight through our fee service and is public for good\. That is the limit you set and its direction or, if you prove the number exactly, the number itself\. None of it goes to our registry\. But what you prove is public, and we, and anyone who has the record’s check link, can tie it to the record; we can also tie it to the holder key that dated it\./,
     );
     for (const l of Object.values(LANGUAGES))
       expect((l.strings as Record<string, string>)['m.privacy.deviceonly.text']).toMatch(
