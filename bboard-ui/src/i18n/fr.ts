@@ -20,6 +20,104 @@ export const fr: Strings = {
   'footer.yourRecords': 'Vos enregistrements',
   'footer.agreements': 'Contrats',
   'footer.privacy': 'Confidentialité de la démo',
+  'title.help': 'Aide',
+  'title.status': 'État du service',
+  'footer.help': 'Aide',
+  'm.help.title': 'Aide',
+  'm.help.lede':
+    "Des réponses courtes pour créer, conserver, montrer et vérifier un enregistrement. Chacune dit ce que ce site fait aujourd'hui.",
+  'm.help.start.t': 'Pour commencer',
+  'm.help.start.1q': "Qu'est-ce qu'un enregistrement VeilCore ?",
+  'm.help.start.1a':
+    "Une description datée de quelque chose que vous détenez : une plante, un animal, une souche ou une lignée cellulaire, ou un document. Votre navigateur en tire un court code de preuve, et ce code est daté sur Midnight dans un lot avec d'autres. Il établit la possession antérieure de l'enregistrement à cette date. Il n'établit pas qui a des droits sur quoi que ce soit, ni que ce que dit l'enregistrement est vrai.",
+  'm.help.start.2q': 'De quoi ai-je besoin ?',
+  'm.help.start.2a':
+    "D'un téléphone ou d'un ordinateur avec un navigateur à jour. Ni portefeuille, ni inscription, ni achat. Pour prouver un seul nombre d'un enregistrement, il faut un ordinateur : cela n'a pas encore été essayé sur téléphone.",
+  'm.help.start.3q': 'Combien ça coûte ?',
+  'm.help.start.3a': "Créer un enregistrement sur ce site et vérifier n'importe quel enregistrement sont gratuits.",
+  'm.help.make.t': 'Créer un enregistrement',
+  'm.help.make.1q': "Quel type d'enregistrement choisir ?",
+  'm.help.make.1a':
+    "Choisissez ce que c'est. Une plante : un cultivar ou une lignée. Un animal : un animal ou une lignée. Une souche ou une lignée : microbes, champignons, lignées cellulaires, lignées d'insectes. Un document : un permis, un certificat, un contrat ou un rapport, scellé sous forme de fichier.",
+  'm.help.make.2q': 'Que dois-je laisser de côté ?',
+  'm.help.make.2a':
+    "Les données personnelles d'autres personnes. Ce que vous saisissez est stocké chiffré sur notre serveur, et nous n'avons pas la clé. Mais la personne à qui vous montrez un enregistrement voit ce que vous avez choisi de partager, et le lien de vérification d'un document affiche le nom du fichier et le détenteur que vous avez indiqué. Donnez aux fichiers des noms simples, comme « Permis 2026.pdf ».",
+  'm.help.make.3q': 'Comment savoir que mon enregistrement est daté ?',
+  'm.help.make.3a':
+    "La page de l'enregistrement affiche « Enregistrement daté » avec la date dès que son lot est sur Midnight. Avant cela, elle indique « dans le prochain lot ». Dans les deux cas, l'enregistrement est sauvegardé. Tant que le lot n'est pas sur Midnight, sa date ne repose que sur votre parole.",
+  'm.help.backup.t': 'Votre copie de secours',
+  'm.help.backup.1q': "Pourquoi le site me demande-t-il sans cesse d'enregistrer une copie de secours ?",
+  'm.help.backup.1a':
+    'Le fichier de copie de secours est le seul moyen de prouver que vous détenez vos enregistrements, et le seul moyen de les retrouver sur un nouveau téléphone ou ordinateur. VeilCore ne peut ni le récupérer ni en créer un autre.',
+  'm.help.backup.2q': 'Où dois-je le conserver ?',
+  'm.help.backup.2a':
+    "Sur une clé USB ou dans un gestionnaire de mots de passe, et aussi à un deuxième endroit. Toute personne qui a le fichier peut ouvrir vos enregistrements et agir en votre nom. Ajoutez un mot de passe en l'enregistrant : le fichier seul n'ouvre alors rien. Si vous oubliez le mot de passe, personne ne peut ouvrir le fichier, nous non plus.",
+  'm.help.backup.3q': "J'ai perdu ma copie de secours. Que faire ?",
+  'm.help.backup.3a':
+    "Si ce navigateur a encore vos enregistrements, enregistrez tout de suite une nouvelle copie de secours. Sinon, personne ne peut ouvrir les copies verrouillées sur notre serveur, VeilCore non plus. Le site proposera de les supprimer et de repartir avec une nouvelle clé. Les enregistrements déjà datés restent datés, mais vous ne pouvez plus montrer qu'ils sont les vôtres.",
+  'm.help.backup.4q': 'Comment passer à un nouveau téléphone ou ordinateur ?',
+  'm.help.backup.4a':
+    'Ouvrez « Récupérez vos enregistrements » sur le nouvel appareil et choisissez votre fichier de copie de secours.',
+  'm.help.backup.4link': 'Récupérez vos enregistrements →',
+  'm.help.backup.5q': 'Mes enregistrements ont disparu du navigateur.',
+  'm.help.backup.5a':
+    "Les navigateurs peuvent effacer les données stockées d'un site. Safari peut le faire après 7 jours sans visite. Votre fichier de copie de secours ramène tout.",
+  'm.help.show.t': "Montrer un enregistrement à quelqu'un",
+  'm.help.show.1q': "Comment montrer mon enregistrement à quelqu'un ?",
+  'm.help.show.1a':
+    "Ouvrez le certificat de l'enregistrement et copiez son lien pour l'envoyer. La personne qui l'ouvre peut vérifier la date elle-même, gratuitement et sans compte. Le lien n'affiche le nom de l'enregistrement que si vous l'activez.",
+  'm.help.show.2q': 'Comment montrer un document ?',
+  'm.help.show.2a':
+    "Envoyez le lien de vérification avec le fichier. Le navigateur de l'autre personne compare le fichier à l'enregistrement scellé, octet par octet, et indique depuis quand vous l'aviez. Sa copie du fichier n'est pas téléversée.",
+  'm.help.show.3q': 'Puis-je prouver un nombre sans montrer le reste ?',
+  'm.help.show.3a':
+    "Oui, si vous avez scellé l'enregistrement avec ses nombres. Vous pouvez prouver qu'un nombre est au plus ou au moins égal à une limite, ou exactement égal à une valeur. Utilisez un ordinateur.",
+  'm.help.check.t': "Vérifier un enregistrement qu'on vous a envoyé",
+  'm.help.check.1q': "On m'a envoyé un enregistrement. Comment le vérifier ?",
+  'm.help.check.1a':
+    "Ouvrez le lien reçu, ou saisissez l'identifiant de l'enregistrement sur la page de vérification. C'est gratuit et sans compte.",
+  'm.help.check.1link': 'Vérifier un enregistrement →',
+  'm.help.check.2q': 'Que signifie « daté » ?',
+  'm.help.check.2a':
+    "Le code de preuve de l'enregistrement est dans un lot, et le code de ce lot est sur Midnight. La date est le moment où le lot est arrivé sur Midnight. Vous pouvez le vérifier sans faire confiance à VeilCore.",
+  'm.help.check.3q': 'Que montre un enregistrement, et que ne montre-t-il pas ?',
+  'm.help.check.3a':
+    "Il montre que quelqu'un détenait exactement cet enregistrement à cette date, et qu'il n'a pas changé depuis. Il ne montre pas qui a des droits sur le matériel, que la description est vraie, ni qu'un objet physique y correspond. La signature d'un laboratoire sur un résultat est une vérification distincte.",
+  'm.help.check.4q': 'Est-ce que cela tiendra dans un litige ?',
+  'm.help.check.4link': 'Les enregistrements comme preuve →',
+  'm.help.labs.t': 'Laboratoires et accords',
+  'm.help.labs.1q': "Qu'est-ce qui fonctionne pour les laboratoires et les accords de licence ?",
+  'm.help.labs.1a':
+    "La page d'accueil liste ce qui fonctionne sur ce site et ce qui est construit mais pas encore exécuté ici. Cette liste est tenue à jour à chaque version.",
+  'm.help.labs.1link': "Ce qui fonctionne aujourd'hui →",
+  'm.help.wrong.t': 'Quand quelque chose ne va pas',
+  'm.help.wrong.1q': 'Mon enregistrement indique « dans le prochain lot » depuis longtemps.',
+  'm.help.wrong.1a':
+    "Votre enregistrement est sauvegardé et attend son lot. La page d'état indique si le service de datation fonctionne.",
+  'm.help.wrong.1link': 'État du service →',
+  'm.help.wrong.2q': 'La page de vérification dit que mon fichier ne correspond pas.',
+  'm.help.wrong.2a':
+    "Le fichier n'est pas, octet par octet, celui qui a été scellé. Ouvrir un fichier et l'enregistrer à nouveau, l'exporter ou l'envoyer par une application qui le recompresse peut le modifier. Demandez le fichier d'origine.",
+  'm.help.wrong.3q': 'Et si ce site disparaît ?',
+  'm.help.wrong.3a':
+    'Vos enregistrements restent vérifiables. Un outil libre et gratuit ouvre votre fichier de copie de secours, vérifie le code de preuve de chaque enregistrement et vous indique quelle transaction Midnight le date, sans ce site.',
+  'm.help.wrong.3link': "L'outil gratuit →",
+  'm.help.contact.t': 'Contact',
+  'm.help.contact.p':
+    "Écrivez à hunter@veilcore.org. Dites ce que vous faisiez, ce que vous avez vu, et l'identifiant de l'enregistrement s'il y en a un. N'envoyez jamais votre fichier de copie de secours ni son mot de passe.",
+  'm.status.page.title': 'État du service',
+  'm.status.page.lede': 'Lu en direct auprès du service qui date les enregistrements sur Midnight pour ce site.',
+  'm.status.page.loading': 'Vérification…',
+  'm.status.page.none': "Cette version n'a pas de service de datation à interroger.",
+  'm.status.page.unreachable':
+    "Le service de datation n'a pas répondu. Les enregistrements que vous créez sont sauvegardés et seront datés à son retour.",
+  'm.status.page.service': 'Service de datation',
+  'm.status.page.running': 'En marche',
+  'm.status.page.behind': 'En marche, en train de rattraper Midnight',
+  'm.status.page.failing': 'En marche, mais les derniers lots ont échoué',
+  'm.status.page.lastRun': 'Dernière exécution',
+  'm.status.page.checked': "Vérifié à l'instant, depuis votre navigateur.",
+  'm.status.page.help': 'Aide →',
   'footer.terms': 'Conditions d’utilisation',
   'draft.banner': 'Traduction provisoire faite par machine, en cours de relecture. La page en anglais fait foi.',
   'draft.showEnglish': 'Afficher en anglais',

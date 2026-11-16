@@ -15,7 +15,7 @@ import { Box, Container, GlobalStyles, ThemeProvider } from '@mui/material';
 import { MotionConfig } from 'framer-motion';
 import { FONT, lightFocusStyles, lightTheme } from './config/theme';
 import { focusScreenHeading } from './components/flow/FlowFrame';
-import { Routes, Route, createRoutesFromChildren, matchRoutes, useLocation } from 'react-router-dom';
+import { Navigate, Routes, Route, createRoutesFromChildren, matchRoutes, useLocation } from 'react-router-dom';
 import { IS_MAINNET } from './config/network';
 import { useI18n } from './i18n';
 import type { StringKey } from './i18n/en';
@@ -96,6 +96,8 @@ const VerifyExample = page(() => import('./components/verify/VerifyExample'), 'V
 // Round 5 (CONTRACT.md #31): this site's files against its release's published list.
 const CheckThisSite = page(() => import('./components/site/CheckThisSite'), 'CheckThisSite');
 const Terms = page(() => import('./components/site/Terms'), 'Terms');
+const Help = page(() => import('./components/site/Help'), 'Help');
+const Status = page(() => import('./components/site/Status'), 'Status');
 // Only in the end-to-end build (package.json e2e:build sets VITE_E2E_FIXTURES=1): a stand-in for
 // a live license's page around the real royalty ledger (e2e-fixtures/RoyaltyPayFixture.tsx). The
 // condition is a constant in every other build, so the page and its route are left out of it.
@@ -260,6 +262,8 @@ const withLayout = (el: React.ReactNode) => (
 const PAGE_TITLES: [RegExp, string][] = [
   [/^\/founders/, 'Founders'],
   [/^\/terms/, 'Terms of use'],
+  [/^\/help/, 'Help'],
+  [/^\/status/, 'Service status'],
   [/^\/check-this-site/, 'Check this site'],
   [/^\/privacy/, IS_MAINNET ? 'Site privacy' : 'Demo privacy'],
   [/^\/verify\/example/, 'Example record'],
@@ -282,6 +286,8 @@ const HOME_TITLE = typeof document === 'undefined' ? '' : document.title;
 const TITLE_KEYS: Record<string, StringKey> = {
   Founders: 'title.founders',
   'Terms of use': 'title.terms',
+  Help: 'title.help',
+  'Service status': 'title.status',
   'Check this site': 'title.checkSite',
   'Site privacy': 'title.privacyMainnet',
   'Demo privacy': 'title.privacy',
@@ -337,6 +343,11 @@ const routes = (
     <Route path="/founders" element={<Founders />} />
     <Route path="/privacy" element={<Privacy />} />
     <Route path="/terms" element={<Terms />} />
+    <Route path="/help" element={<Help />} />
+    <Route path="/status" element={<Status />} />
+    {/* The addresses people try first: both are sections of /help. */}
+    <Route path="/faq" element={<Navigate to="/help" replace />} />
+    <Route path="/contact" element={<Navigate to="/help#contact" replace />} />
     <Route path="/check-this-site" element={<CheckThisSite />} />
     <Route path="/partners" element={<PartnersPage />} />
     <Route path="/verify" element={<VerifyLookup />} />

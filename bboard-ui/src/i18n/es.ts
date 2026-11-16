@@ -21,6 +21,103 @@ export const es: Strings = {
   'footer.yourRecords': 'Sus registros',
   'footer.agreements': 'Acuerdos',
   'footer.privacy': 'Privacidad de la demo',
+  'title.help': 'Ayuda',
+  'title.status': 'Estado del servicio',
+  'footer.help': 'Ayuda',
+  'm.help.title': 'Ayuda',
+  'm.help.lede':
+    'Respuestas breves para crear, guardar, mostrar y comprobar un registro. Cada una dice lo que este sitio hace hoy.',
+  'm.help.start.t': 'Para empezar',
+  'm.help.start.1q': '¿Qué es un registro de VeilCore?',
+  'm.help.start.1a':
+    'Una descripción fechada de algo que usted tiene: una planta, un animal, una cepa o línea celular, o un documento. Su navegador la convierte en un código de prueba corto, y ese código se fecha en Midnight en un lote junto con otros. Demuestra la posesión previa del registro en esa fecha. No demuestra quién tiene derechos sobre nada, ni que lo que dice el registro sea cierto.',
+  'm.help.start.2q': '¿Qué necesito?',
+  'm.help.start.2a':
+    'Un teléfono o un ordenador con un navegador actual. Sin billetera, sin darse de alta y sin comprar nada. Para demostrar un solo número de un registro hace falta un ordenador: en teléfonos aún no se ha probado.',
+  'm.help.start.3q': '¿Cuánto cuesta?',
+  'm.help.start.3a': 'Crear un registro en este sitio y comprobar cualquier registro son gratis.',
+  'm.help.make.t': 'Crear un registro',
+  'm.help.make.1q': '¿Qué tipo de registro elijo?',
+  'm.help.make.1a':
+    'Elija lo que es. Una planta: un cultivar o una línea. Un animal: un animal o una línea. Una cepa o línea: microbios, hongos, líneas celulares, líneas de insectos. Un documento: un permiso, un certificado, un contrato o un informe, sellado como archivo.',
+  'm.help.make.2q': '¿Qué debo dejar fuera?',
+  'm.help.make.2a':
+    'Los datos personales de otras personas. Lo que usted escribe se guarda cifrado en nuestro servidor, y no tenemos la clave. Pero la persona con quien comparta un registro ve lo que usted decidió compartir, y el enlace de comprobación de un documento muestra el nombre del archivo y el titular que usted escribió. Ponga nombres sencillos a los archivos, como «Permiso 2026.pdf».',
+  'm.help.make.3q': '¿Cómo sé que mi registro está fechado?',
+  'm.help.make.3a':
+    'La página del registro muestra «Registro fechado» con la fecha cuando su lote está en Midnight. Antes de eso dice «en el próximo lote». En ambos casos el registro está guardado. Hasta que el lote esté en Midnight, su fecha descansa solo en su palabra.',
+  'm.help.backup.t': 'Su copia de seguridad',
+  'm.help.backup.1q': '¿Por qué el sitio insiste en que guarde una copia de seguridad?',
+  'm.help.backup.1a':
+    'El archivo de copia de seguridad es la única forma de demostrar que usted tiene sus registros, y la única forma de recuperarlos en un teléfono u ordenador nuevo. VeilCore no puede recuperarlo ni crear otro.',
+  'm.help.backup.2q': '¿Dónde debo guardarlo?',
+  'm.help.backup.2a':
+    'En una memoria USB o en un gestor de contraseñas, y además en un segundo lugar. Quien tenga el archivo puede abrir sus registros y actuar en su nombre. Añada una contraseña al guardarlo: así el archivo por sí solo no abre nada. Si olvida la contraseña, nadie puede abrir el archivo, tampoco nosotros.',
+  'm.help.backup.3q': 'Perdí mi copia de seguridad. ¿Y ahora?',
+  'm.help.backup.3a':
+    'Si este navegador todavía tiene sus registros, guarde ahora una copia de seguridad nueva. Si no, nadie puede abrir las copias cerradas en nuestro servidor, tampoco VeilCore. El sitio le ofrecerá borrarlas y empezar con una clave nueva. Los registros ya fechados siguen fechados, pero usted ya no puede demostrar que son suyos.',
+  'm.help.backup.4q': '¿Cómo paso a un teléfono u ordenador nuevo?',
+  'm.help.backup.4a': 'Abra «Recupere sus registros» en el dispositivo nuevo y elija su archivo de copia de seguridad.',
+  'm.help.backup.4link': 'Recupere sus registros →',
+  'm.help.backup.5q': 'Mis registros han desaparecido del navegador.',
+  'm.help.backup.5a':
+    'Los navegadores pueden borrar los datos guardados de un sitio. Safari puede hacerlo tras 7 días sin visitas. Su archivo de copia de seguridad lo recupera todo.',
+  'm.help.show.t': 'Mostrar un registro a alguien',
+  'm.help.show.1q': '¿Cómo muestro mi registro a alguien?',
+  'm.help.show.1a':
+    'Abra el certificado del registro y copie su enlace para enviarlo. Quien lo abra puede comprobar la fecha por su cuenta, gratis y sin cuenta. El enlace muestra el nombre del registro solo si usted lo activa.',
+  'm.help.show.2q': '¿Cómo muestro un documento?',
+  'm.help.show.2a':
+    'Envíe el enlace de comprobación junto con el archivo. El navegador de la otra persona compara el archivo con el registro sellado, byte por byte, y muestra desde cuándo lo tenía usted. Su copia del archivo no se sube.',
+  'm.help.show.3q': '¿Puedo demostrar un número sin mostrar el resto?',
+  'm.help.show.3a':
+    'Sí, si selló el registro con sus números. Puede demostrar que un número es como máximo o como mínimo un límite, o exactamente un valor. Use un ordenador.',
+  'm.help.check.t': 'Comprobar un registro que le han enviado',
+  'm.help.check.1q': 'Me han enviado un registro. ¿Cómo lo compruebo?',
+  'm.help.check.1a':
+    'Abra el enlace que le enviaron, o escriba el identificador del registro en la página de comprobación. Es gratis y no requiere cuenta.',
+  'm.help.check.1link': 'Comprobar un registro →',
+  'm.help.check.2q': '¿Qué significa «fechado»?',
+  'm.help.check.2a':
+    'El código de prueba del registro está en un lote, y el código de ese lote está en Midnight. La fecha es el momento en que el lote llegó a Midnight. Puede comprobarlo sin confiar en VeilCore.',
+  'm.help.check.3q': '¿Qué demuestra un registro y qué no?',
+  'm.help.check.3a':
+    'Demuestra que alguien tenía exactamente este registro en esa fecha, y que no ha cambiado desde entonces. No demuestra quién tiene derechos sobre el material, que la descripción sea cierta ni que algún objeto físico coincida con ella. La firma de un laboratorio en un resultado es una comprobación aparte.',
+  'm.help.check.4q': '¿Se sostendrá en una disputa?',
+  'm.help.check.4link': 'Registros como prueba →',
+  'm.help.labs.t': 'Laboratorios y acuerdos',
+  'm.help.labs.1q': '¿Qué funciona para laboratorios y acuerdos de licencia?',
+  'm.help.labs.1a':
+    'La página de inicio enumera lo que está en funcionamiento en este sitio y lo que está construido pero aún no se ha ejecutado aquí. Esa lista se mantiene al día con cada versión.',
+  'm.help.labs.1link': 'Lo que funciona hoy →',
+  'm.help.wrong.t': 'Cuando algo sale mal',
+  'm.help.wrong.1q': 'Mi registro lleva mucho tiempo diciendo «en el próximo lote».',
+  'm.help.wrong.1a':
+    'Su registro está guardado y espera su lote. La página de estado muestra si el servicio de fechado está en marcha.',
+  'm.help.wrong.1link': 'Estado del servicio →',
+  'm.help.wrong.2q': 'La página de comprobación dice que mi archivo no coincide.',
+  'm.help.wrong.2a':
+    'El archivo no es, byte por byte, el que se selló. Abrir un archivo y guardarlo de nuevo, exportarlo o enviarlo por una aplicación que lo recomprime puede cambiarlo. Pida el archivo original.',
+  'm.help.wrong.3q': '¿Y si este sitio web desaparece?',
+  'm.help.wrong.3a':
+    'Sus registros se pueden seguir comprobando. Una herramienta gratuita y abierta abre su archivo de copia de seguridad, comprueba el código de prueba de cada registro y le dice qué transacción de Midnight lo fecha, sin este sitio.',
+  'm.help.wrong.3link': 'La herramienta gratuita →',
+  'm.help.contact.t': 'Contacto',
+  'm.help.contact.p':
+    'Escriba a hunter@veilcore.org. Diga qué estaba haciendo, qué vio y el identificador del registro si lo hay. Nunca envíe su archivo de copia de seguridad ni su contraseña.',
+  'm.status.page.title': 'Estado del servicio',
+  'm.status.page.lede': 'Leído en directo del servicio que fecha registros en Midnight para este sitio.',
+  'm.status.page.loading': 'Comprobando…',
+  'm.status.page.none': 'Esta compilación no tiene un servicio de fechado que consultar.',
+  'm.status.page.unreachable':
+    'El servicio de fechado no respondió. Los registros que cree quedan guardados y se fecharán cuando vuelva.',
+  'm.status.page.service': 'Servicio de fechado',
+  'm.status.page.running': 'En marcha',
+  'm.status.page.behind': 'En marcha, poniéndose al día con Midnight',
+  'm.status.page.failing': 'En marcha, pero los últimos lotes fallaron',
+  'm.status.page.lastRun': 'Última ejecución',
+  'm.status.page.checked': 'Comprobado ahora mismo, desde su navegador.',
+  'm.status.page.help': 'Ayuda →',
   'footer.terms': 'Términos de uso',
   'draft.banner':
     'Traducción preliminar hecha por máquina, en revisión. La página en inglés es la versión de referencia.',

@@ -25,6 +25,103 @@ export const en = {
   'footer.yourRecords': 'Your records',
   'footer.agreements': 'Agreements',
   'footer.privacy': 'Demo privacy',
+  'title.help': 'Help',
+  'title.status': 'Service status',
+  'footer.help': 'Help',
+  'm.help.title': 'Help',
+  'm.help.lede':
+    'Short answers for making, keeping, showing and checking a record. Each one says what this site does today.',
+  'm.help.start.t': 'Starting',
+  'm.help.start.1q': 'What is a VeilCore record?',
+  'm.help.start.1a':
+    "A dated description of something you hold: a plant, an animal, a strain or cell line, or a document. Your browser turns it into a short proof code, and that code is dated on Midnight in a batch with others. It shows prior possession of the record by that date. It doesn't show who has rights in anything, and it doesn't show that what the record says is true.",
+  'm.help.start.2q': 'What do I need?',
+  'm.help.start.2a':
+    "A phone or computer with a current browser. No wallet, no sign-up and nothing to buy. Proving one number from a record needs a computer: phones haven't been tried for that.",
+  'm.help.start.3q': 'What does it cost?',
+  'm.help.start.3a': 'Making a record on this site and checking any record are both free.',
+  'm.help.make.t': 'Making a record',
+  'm.help.make.1q': 'Which kind of record do I pick?',
+  'm.help.make.1a':
+    'Pick what the thing is. A plant: a cultivar or a line. An animal: one animal or a line. A strain or line: microbes, fungi, cell lines, insect lines. A document: a permit, a certificate, a contract or a report, sealed as a file.',
+  'm.help.make.2q': 'What should I leave out?',
+  'm.help.make.2a':
+    "Other people's personal details. What you type is stored on our server encrypted, and we don't hold the key. But whoever you share a record with sees what you chose to share, and a document's check link shows the file's name and the holder you wrote. Name files plainly, like \"Permit 2026.pdf\".",
+  'm.help.make.3q': 'How do I know my record is dated?',
+  'm.help.make.3a':
+    'The record\'s page shows "Record dated" with the date once its batch is on Midnight. Before that it says "in the next batch". The record is saved either way. Until the batch is on Midnight, its date rests on your word alone.',
+  'm.help.backup.t': 'Your backup',
+  'm.help.backup.1q': 'Why does the site keep asking me to save a backup?',
+  'm.help.backup.1a':
+    "The backup file is the only way to prove you hold your records, and the only way to get them back on a new phone or computer. VeilCore can't recover it or make another.",
+  'm.help.backup.2q': 'Where should I keep it?',
+  'm.help.backup.2a':
+    'On a USB stick or in a password manager, and in a second place too. Anyone with the file can open your records and act as you. Add a password when you save it: then the file alone opens nothing. If you forget the password, nobody can open the file, us included.',
+  'm.help.backup.3q': 'I lost my backup. What now?',
+  'm.help.backup.3a':
+    "If this browser still has your records, save a new backup now. If it doesn't, nobody can open the locked copies on our server, VeilCore included. The site will offer to delete them and start a new key. Records that were already dated stay dated, but you can no longer show they are yours.",
+  'm.help.backup.4q': 'How do I move to a new phone or computer?',
+  'm.help.backup.4a': 'Open "Get your records back" on the new device and choose your backup file.',
+  'm.help.backup.4link': 'Get your records back →',
+  'm.help.backup.5q': 'My records disappeared from the browser.',
+  'm.help.backup.5a':
+    "Browsers can clear a site's stored data. Safari can do it after 7 days without a visit. Your backup file brings everything back.",
+  'm.help.show.t': 'Showing a record to someone',
+  'm.help.show.1q': 'How do I show someone my record?',
+  'm.help.show.1a':
+    "Open the record's certificate and copy its link to send. Whoever opens it can check the date themselves, free, with no account. The link shows the record's name only if you switch that on.",
+  'm.help.show.2q': 'How do I show a document?',
+  'm.help.show.2a':
+    "Send the check link together with the file. The other person's browser compares the file with the sealed record, byte for byte, and shows when you had it. Their copy of the file is not uploaded.",
+  'm.help.show.3q': 'Can I prove one number without showing the rest?',
+  'm.help.show.3a':
+    'Yes, if you sealed the record with its numbers. You can prove that one number is at most or at least a limit, or exactly a value. Use a computer.',
+  'm.help.check.t': 'Checking a record someone sent you',
+  'm.help.check.1q': 'Someone sent me a record. How do I check it?',
+  'm.help.check.1a':
+    "Open the link they sent, or enter the record's identifier on the check page. It is free and needs no account.",
+  'm.help.check.1link': 'Check a record →',
+  'm.help.check.2q': 'What does "dated" mean?',
+  'm.help.check.2a':
+    "The record's proof code is in a batch, and that batch's code is on Midnight. The date is when the batch went on Midnight. You can check this without trusting VeilCore.",
+  'm.help.check.3q': "What does a record show, and what doesn't it show?",
+  'm.help.check.3a':
+    "It shows that someone held exactly this record by that date, and that it hasn't changed since. It doesn't show who has rights in the material, that the description is true, or that any physical thing matches it. A lab's signature on a result is a separate check.",
+  'm.help.check.4q': 'Will it stand up in a dispute?',
+  'm.help.check.4link': 'Records in evidence →',
+  'm.help.labs.t': 'Labs and agreements',
+  'm.help.labs.1q': 'What works for labs and license agreements?',
+  'm.help.labs.1a':
+    'The home page lists what is live on this site and what is built but not yet run here. That list is kept current with each release.',
+  'm.help.labs.1link': 'What works today →',
+  'm.help.wrong.t': 'When something goes wrong',
+  'm.help.wrong.1q': 'My record has said "in the next batch" for a long time.',
+  'm.help.wrong.1a':
+    'Your record is saved and is waiting for its batch. The status page shows whether the dating service is running.',
+  'm.help.wrong.1link': 'Service status →',
+  'm.help.wrong.2q': "The check page says my file doesn't match.",
+  'm.help.wrong.2a':
+    "The file isn't byte for byte the one that was sealed. Opening a file and saving it again, exporting it, or sending it through an app that re-compresses it can change it. Ask for the original file.",
+  'm.help.wrong.3q': 'What if this website is gone?',
+  'm.help.wrong.3a':
+    "Your records can still be checked. A free, open tool opens your backup file, checks every record's proof code, and tells you which Midnight transaction dates it, without this site.",
+  'm.help.wrong.3link': 'The free tool →',
+  'm.help.contact.t': 'Contact',
+  'm.help.contact.p':
+    "Email hunter@veilcore.org. Say what you were doing, what you saw, and the record's identifier if there is one. Never send your backup file or its password.",
+  'm.status.page.title': 'Service status',
+  'm.status.page.lede': 'Read live from the service that dates records on Midnight for this site.',
+  'm.status.page.loading': 'Checking…',
+  'm.status.page.none': 'This build has no dating service to read.',
+  'm.status.page.unreachable':
+    'The dating service did not answer. Records you make are saved and will be dated when it is back.',
+  'm.status.page.service': 'Dating service',
+  'm.status.page.running': 'Running',
+  'm.status.page.behind': 'Running, catching up with Midnight',
+  'm.status.page.failing': 'Running, but the last batches failed',
+  'm.status.page.lastRun': 'Last run',
+  'm.status.page.checked': 'Checked just now, from your browser.',
+  'm.status.page.help': 'Help →',
   'footer.terms': 'Terms of use',
   'draft.banner': 'Machine-drafted translation, under review. The English page is the authoritative version.',
   'draft.showEnglish': 'Show English',
