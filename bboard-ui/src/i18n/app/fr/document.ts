@@ -164,4 +164,53 @@ export const document = {
     'Chacun est comparé aux fichiers scellés dans cet enregistrement avant d’être inclus.',
   'app.doc.bundle.filesAria': 'Fichiers du document',
   'app.doc.bundle.chooseOrUntick': 'Choisissez le fichier du document, ou décochez la case.',
+  // ---- kept on this device only (docs/device-only-records.md; DocumentNew.tsx, DocumentDetail.tsx) ----
+  'app.doc.local.choice': 'Garder cet enregistrement uniquement sur cet appareil et dans ma sauvegarde',
+  'app.doc.local.before': 'Avant de choisir :',
+  'app.doc.local.p1':
+    'Rien de ce que vous saisissez ici n’est envoyé à VeilCore, verrouillé ou non. Ce qui est envoyé, pour que l’enregistrement reçoive sa date : son identifiant, son code de preuve et sa liaison de clé (un code tiré de la clé propre à l’enregistrement).',
+  'app.doc.local.p2': 'Le serveur de VeilCore ne peut pas vous rendre cet enregistrement : il ne l’a à aucun moment.',
+  'app.doc.local.p3':
+    'Les seules copies sont celle de ce navigateur et celle d’un fichier de sauvegarde enregistré après le scellement. Une sauvegarde enregistrée avant ne contient pas cet enregistrement, et une copie avec clé d’accès ne le contient en aucun cas. Dès le scellement, il vous sera demandé d’enregistrer une sauvegarde et de la vérifier.',
+  'app.doc.local.p4': 'Toute personne qui a son lien de vérification et le fichier peut toujours le vérifier.',
+  'app.doc.local.p5': 'Ce choix se fait une seule fois, au scellement. Il ne peut pas être modifié ensuite.',
+  'app.doc.local.title': 'Gardé uniquement sur cet appareil',
+  'app.doc.local.text':
+    'Rien de ce qui a été saisi dans cet enregistrement n’a été envoyé à VeilCore, verrouillé ou non. Les seules copies sont dans ce navigateur et dans le fichier de sauvegarde que vous avez vérifié. Si vous perdez les deux, l’enregistrement est perdu : VeilCore ne peut pas vous le rendre. Une sauvegarde enregistrée avant le scellement ne le contient pas, et une copie avec clé d’accès ne le contient en aucun cas.',
+  'app.doc.local.notBacked':
+    'Pas encore dans une sauvegarde. La seule copie de cet enregistrement est dans ce navigateur : si ses données sont effacées maintenant, l’enregistrement est perdu, et VeilCore ne peut pas vous le rendre. Enregistrez votre fichier de sauvegarde et vérifiez-le maintenant.',
+  'app.doc.local.sent':
+    'Ce qui est sorti de cet appareil : l’identifiant de l’enregistrement, son code de preuve et sa liaison de clé, envoyés à VeilCore pour le dater. Chaque requête montre à VeilCore votre adresse réseau et l’heure. Si vous avez une copie avec clé d’accès, elle contient l’identifiant et les clés de cet enregistrement, verrouillés, sur le serveur de VeilCore ; en aucun cas ce que vous avez saisi.',
+  'app.doc.local.stamp':
+    'Horodater la clé de cet enregistrement est votre choix, et seul le bouton ci-dessous le lance. Si vous le faites, un code tiré de la clé part vers Midnight par le service de frais de VeilCore. Rien de ce que vous avez saisi ne l’accompagne.',
+  'app.doc.local.conflict':
+    'Le serveur de VeilCore a répondu par autre chose que le seul code de preuve de cet enregistrement. Ce que vous voyez est la copie propre à cet appareil. Rien de plus n’est envoyé, et la réponse du serveur ne change rien ici.',
+  'app.doc.local.homeNotBacked': 'Uniquement sur cet appareil · pas encore sauvegardé',
+  'app.doc.local.backup': 'Enregistrer une sauvegarde',
+  'app.doc.local.homeLine': 'Uniquement sur cet appareil',
+  'app.doc.local.noProve':
+    'Prouver un chiffre envoie des informations depuis ce navigateur ; ce n’est donc pas proposé pour un enregistrement gardé uniquement sur cet appareil.',
+  'app.doc.local.staysHere':
+    'Cet enregistrement est gardé uniquement sur cet appareil ; ce n’est donc pas proposé pour lui.',
+  'app.doc.local.delete': 'Supprimer de cet appareil',
+  'app.doc.local.deleteConfirm':
+    'Supprimer cet enregistrement de cet appareil ? Cela ne peut pas être annulé ici. Un fichier de sauvegarde qui le contient le contient toujours. VeilCore garde ce qui lui a déjà été envoyé : l’identifiant, le code de preuve et la liaison de clé de l’enregistrement. Une copie avec clé d’accès, si vous en avez une, contient encore son identifiant et ses clés jusqu’à ce que vous mettiez cette copie à jour. Si vous avez horodaté sa clé, cela reste sur Midnight. Sa date reste valable pour quiconque a le lien de vérification.',
+  'app.doc.local.toRecord': 'Aller à l’enregistrement',
+  'app.doc.local.backupNow':
+    'Scellé. Enregistrez maintenant une sauvegarde et vérifiez-la : d’ici là, la seule copie de cet enregistrement est dans ce navigateur.',
+  'app.doc.local.backupMissing':
+    'Cette sauvegarde ne contient pas vos documents gardés uniquement sur cet appareil. Enregistrez-en une nouvelle et vérifiez-la.',
+  'app.doc.local.backupFailed':
+    'La sauvegarde n’a pas pu être créée : un document gardé uniquement sur cet appareil n’a pas pu y être mis. Rien n’a été enregistré.',
+  'app.doc.local.noCorrect':
+    'Un enregistrement gardé uniquement sur cet appareil ne peut pas être corrigé. Scellez de nouveau le document comme un nouvel enregistrement.',
+  'app.doc.local.unreadable.title': 'Un enregistrement de cet appareil n’a pas pu être lu',
+  'app.doc.local.unreadable.text':
+    'L’enregistrement {id} est gardé uniquement sur cet appareil, et son entrée dans ce navigateur est endommagée : il ne peut donc pas être affiché. Il n’est envoyé nulle part. Une sauvegarde enregistrée maintenant contient l’entrée telle qu’elle est. Vous pouvez enregistrer l’entrée dans un fichier, ou la supprimer de cet appareil.',
+  'app.doc.local.unreadable.export': 'Enregistrer l’entrée dans un fichier',
+  'app.doc.local.unreadable.delete': 'La supprimer de cet appareil',
+  'app.doc.local.unreadable.deleteConfirm':
+    'Supprimer cette entrée endommagée de cet appareil ? Cela ne peut pas être annulé ici. Un fichier de sauvegarde qui la contient la contient toujours.',
+  'app.doc.local.unreadable.backupNote':
+    'Un enregistrement gardé uniquement sur cet appareil n’a pas pu être lu. Cette sauvegarde contient son entrée telle qu’elle est : rien n’est donc perdu avec le fichier. Tout le reste y figure comme d’habitude.',
 } satisfies Partial<AppTranslation>;

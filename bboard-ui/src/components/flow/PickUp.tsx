@@ -6,8 +6,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Box, Button, LinearProgress, Paper, Stack, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import { inOutbox, outboxRecords } from '../../veilcore/outbox';
-import { proofCodeSent, unsavedReason, type StrainRecord } from '../../veilcore/records';
+import { outboxRecords } from '../../veilcore/outbox';
+import { proofCodeSent, unsavedReason, waitsToBeSent, type StrainRecord } from '../../veilcore/records';
 import { useRecordKeys } from '../../veilcore/record-keys';
 import { proofFor } from '../../veilcore/proofs';
 import { effectiveState, useLicenses } from '../../veilcore/licenses';
@@ -53,7 +53,7 @@ const useDatingStages = (own: readonly StrainRecord[]): Record<string, DatingSta
             ? 'dated'
             : p.status === 'pending'
               ? 'batched'
-              : proofCodeSent(r.id) || !inOutbox(r.id)
+              : proofCodeSent(r.id) || !waitsToBeSent(r.id)
                 ? 'next-batch'
                 : 'not-sent';
       }

@@ -7,6 +7,7 @@
 import { useSyncExternalStore } from 'react';
 import { encumberWithAnswer, discharge as dischargeRecord } from './lineage';
 import { getRecord } from './records';
+import { keptOnDeviceOnly } from './outbox';
 import { store } from './store';
 import { reportSave } from './save-status';
 import { holderPartyId, holderRequestsPaused } from './holder';
@@ -493,7 +494,18 @@ export const sealAgreement = async (
   return { agreementFingerprint, agreementSalt: salt };
 };
 
+/**
+ * No agreement is made from, or changed for, a record kept on this device only
+ * (docs/device-only-records.md): an agreement's terms go to the registry (locked), and for a
+ * royalty on offspring the record's proof code is tied to it there. Checked here, for every
+ * caller, by the record's id in this browser's own store.
+ */
+const refuseForDeviceOnly = (recordId: string | undefined): void => {
+  if (recordId && keptOnDeviceOnly(recordId)) throw new Error(enT.t('app.doc.local.staysHere'));
+};
+
 export const createLicense = (input: NewLicenseInput): License => {
+  refuseForDeviceOnly(input.recordId);
   refuseBeforeBackup();
   const lic: License = { id: genId(), state: 'draft', createdAt: Date.now(), royaltyLog: [], ...input };
   licenses = [lic, ...licenses];
@@ -502,6 +514,7 @@ export const createLicense = (input: NewLicenseInput): License => {
 };
 
 const update = (id: string, patch: (l: License) => License): License | undefined => {
+  refuseForDeviceOnly(licenses.find((l) => l.id === id)?.recordId);
   refuseBeforeBackup();
   let out: License | undefined;
   licenses = licenses.map((l) => {

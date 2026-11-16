@@ -162,4 +162,52 @@ export const document = {
   'app.doc.bundle.checkedAgainst': 'Cada uno se compara con los archivos sellados en este registro antes de incluirlo.',
   'app.doc.bundle.filesAria': 'Archivos del documento',
   'app.doc.bundle.chooseOrUntick': 'Elija el archivo del documento o desmarque la casilla.',
+  // ---- kept on this device only (docs/device-only-records.md; DocumentNew.tsx, DocumentDetail.tsx) ----
+  'app.doc.local.choice': 'Guardar este registro solo en este dispositivo y en mi copia de seguridad',
+  'app.doc.local.before': 'Antes de elegir:',
+  'app.doc.local.p1':
+    'Nada de lo que escriba aquí se envía a VeilCore, ni bloqueado ni sin bloquear. Lo que se envía, para que el registro reciba su fecha: su identificador, su código de prueba y su vínculo de clave (un código hecho con la clave propia del registro).',
+  'app.doc.local.p2': 'El servidor de VeilCore no puede devolverle este registro: no lo tiene en ningún momento.',
+  'app.doc.local.p3':
+    'Las únicas copias son la de este navegador y la de un archivo de copia de seguridad guardado después de sellar. Una copia de seguridad guardada antes no contiene este registro, y una copia con llave de acceso no lo contiene en ningún caso. En cuanto se selle, se le pedirá guardar y comprobar una copia de seguridad.',
+  'app.doc.local.p4': 'Cualquiera que tenga su enlace de comprobación y el archivo puede seguir comprobándolo.',
+  'app.doc.local.p5': 'Se elige una sola vez, al sellar. Después no se puede cambiar.',
+  'app.doc.local.title': 'Guardado solo en este dispositivo',
+  'app.doc.local.text':
+    'Nada de lo escrito en este registro se envió a VeilCore, ni bloqueado ni sin bloquear. Las únicas copias están en este navegador y en el archivo de copia de seguridad que usted comprobó. Si pierde las dos, el registro se pierde: VeilCore no puede devolvérselo. Una copia de seguridad guardada antes de sellar este registro no lo contiene, y una copia con llave de acceso no lo contiene en ningún caso.',
+  'app.doc.local.notBacked':
+    'Aún no está en ninguna copia de seguridad. La única copia de este registro está en este navegador: si sus datos se borran ahora, el registro se pierde, y VeilCore no puede devolvérselo. Guarde ahora su archivo de copia de seguridad y compruébelo.',
+  'app.doc.local.sent':
+    'Lo que ha salido de este dispositivo: el identificador del registro, su código de prueba y su vínculo de clave, enviados a VeilCore para fecharlo. Cada solicitud muestra a VeilCore su dirección de red y la hora. Si tiene una copia con llave de acceso, esta guarda el identificador y las claves de este registro, bloqueados, en el servidor de VeilCore; en ningún caso lo que usted escribió.',
+  'app.doc.local.stamp':
+    'Poner un sello de fecha a la clave de este registro es decisión suya, y solo lo inicia el botón de abajo. Si lo hace, un código hecho con la clave va a Midnight a través del servicio de tarifas de VeilCore. Nada de lo que usted escribió va con él.',
+  'app.doc.local.conflict':
+    'El servidor de VeilCore respondió con algo que no es únicamente el código de prueba de este registro. Lo que ve es la copia propia de este dispositivo. No se envía nada más, y la respuesta del servidor no cambia nada aquí.',
+  'app.doc.local.homeNotBacked': 'Solo en este dispositivo · aún sin copia de seguridad',
+  'app.doc.local.backup': 'Guardar una copia de seguridad',
+  'app.doc.local.homeLine': 'Solo en este dispositivo',
+  'app.doc.local.noProve':
+    'Demostrar un número envía datos desde este navegador, así que no se ofrece para un registro guardado solo en este dispositivo.',
+  'app.doc.local.staysHere': 'Este registro se guarda solo en este dispositivo, así que esto no se ofrece para él.',
+  'app.doc.local.delete': 'Eliminar de este dispositivo',
+  'app.doc.local.deleteConfirm':
+    '¿Eliminar este registro de este dispositivo? Aquí no se puede deshacer. Un archivo de copia de seguridad que lo contenga lo sigue conteniendo. VeilCore conserva lo que ya se le envió: el identificador, el código de prueba y el vínculo de clave del registro. Una copia con llave de acceso, si tiene una, sigue guardando su identificador y sus claves hasta que usted actualice esa copia. Si puso un sello de fecha a su clave, eso permanece en Midnight. Su fecha sigue valiendo para quien tenga el enlace de comprobación.',
+  'app.doc.local.toRecord': 'Ir al registro',
+  'app.doc.local.backupNow':
+    'Sellado. Ahora guarde una copia de seguridad y compruébela: hasta entonces, la única copia de este registro está en este navegador.',
+  'app.doc.local.backupMissing':
+    'Esa copia de seguridad no contiene sus documentos guardados solo en este dispositivo. Guarde una nueva y compruébela.',
+  'app.doc.local.backupFailed':
+    'No se pudo crear la copia de seguridad: un documento guardado solo en este dispositivo no se pudo incluir. No se guardó nada.',
+  'app.doc.local.noCorrect':
+    'Un registro guardado solo en este dispositivo no se puede corregir. Selle el documento de nuevo como un registro nuevo.',
+  'app.doc.local.unreadable.title': 'No se pudo leer un registro de este dispositivo',
+  'app.doc.local.unreadable.text':
+    'El registro {id} se guarda solo en este dispositivo, y su entrada en este navegador está dañada, así que no se puede mostrar. No se envía a ninguna parte. Una copia de seguridad guardada ahora lleva la entrada tal como está. Puede guardar la entrada en un archivo o eliminarla de este dispositivo.',
+  'app.doc.local.unreadable.export': 'Guardar la entrada en un archivo',
+  'app.doc.local.unreadable.delete': 'Eliminarla de este dispositivo',
+  'app.doc.local.unreadable.deleteConfirm':
+    '¿Eliminar esta entrada dañada de este dispositivo? Aquí no se puede deshacer. Un archivo de copia de seguridad que la lleve la sigue llevando.',
+  'app.doc.local.unreadable.backupNote':
+    'No se pudo leer un registro guardado solo en este dispositivo. Esta copia de seguridad lleva su entrada tal como está, así que con el archivo no se pierde nada. Todo lo demás está incluido como siempre.',
 } satisfies Partial<AppTranslation>;

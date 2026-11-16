@@ -18,6 +18,8 @@ import {
   useRecords,
   exportRecords,
   importRecords,
+  deviceOnlyBackedUp,
+  isKeptOnDeviceOnly,
   unsavedReason,
   startOver,
   useSealedView,
@@ -50,6 +52,7 @@ import { labCardLine, useLabCardFacts, useWaitingByRecord } from './LabResults';
 import { quantityPhrase } from '../../veilcore/transfers';
 import { TrustPanel } from '../TrustPanel';
 import { LockedAgreements, LockedRecords, LoadNoticeBar } from '../LockedRecords';
+import { UnreadableDeviceOnly } from '../document/UnreadableDeviceOnly';
 import { useVaultNeedsBackup } from '../../veilcore/vault';
 import { RegistryExportButton } from '../RegistryExportButton';
 import { draftHeading, loadDraft } from './log-flow-state';
@@ -342,6 +345,7 @@ export const AppHome: React.FC = () => {
 
           {!labOnly && <OldLinksNote records={records} />}
           <LockedRecords />
+          <UnreadableDeviceOnly />
           <LockedAgreements />
           {!pasteFirst && <PasteBox />}
           {/* A lab's own links (persona review, 17 Oct): no spreadsheet of plants, no "logging my plant first". */}
@@ -434,6 +438,7 @@ export const AppHome: React.FC = () => {
         )}
 
         <LockedRecords />
+        <UnreadableDeviceOnly />
         <LockedAgreements />
 
         {isLab(role) && labPanel('h2')}
@@ -528,6 +533,21 @@ export const AppHome: React.FC = () => {
                     >
                       {s.text}
                     </Typography>
+                    {/* Kept on this device and in the backup only: said on its card, never as "not uploaded yet". */}
+                    {isKeptOnDeviceOnly(r) &&
+                      (deviceOnlyBackedUp(r) ? (
+                        <Typography variant="body2" color="text.secondary" data-home-device-only={r.id}>
+                          {t('app.doc.local.homeLine')}
+                        </Typography>
+                      ) : (
+                        <Typography
+                          variant="body2"
+                          sx={{ color: 'warning.main', fontWeight: 700 }}
+                          data-home-device-only={r.id}
+                        >
+                          {t('app.doc.local.homeNotBacked')}
+                        </Typography>
+                      ))}
                     {/* Kept in this browser, not on VeilCore yet (round 3, L1, L12). */}
                     {unsavedReason(r.id) && (
                       <Typography

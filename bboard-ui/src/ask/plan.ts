@@ -162,7 +162,8 @@ const refuse = (
 
 const has = (t: Token | undefined, ...cats: Cat[]) => !!t && cats.some((c) => t.cats.has(c));
 const typed = (t: Token): Source => ({ kind: 'typed', at: t.at, end: t.end });
-const ownRecord = (r: StrainRecord | undefined): boolean => !!r && !isReceivedRecord(r);
+// Never a record kept on this device only (its mark): Ask offers no job for one.
+const ownRecord = (r: StrainRecord | undefined): boolean => !!r && !isReceivedRecord(r) && r.deviceOnly !== true;
 const isPlant = (r: StrainRecord) => !isAnimal(r) && !isStrain(r);
 
 /** What a clause is about. */

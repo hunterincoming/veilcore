@@ -16,6 +16,8 @@
 //   dating  only the record's proof code, sent the moment it was sealed (dating first,
 //           CONTRACT.md #38): the record is the copy this browser keeps until its locked
 //           copy can be saved (a checked backup), and it is in the next batch already.
+//           For a record kept on this device only (docs/device-only-records.md) this is
+//           where it stays: its locked copy is never made or sent.
 //
 // The registry no longer checks a record's fingerprint against its contents (it can't
 // read them), so the browser does: each opened record is fingerprinted again
@@ -72,6 +74,7 @@ import { readJson, isObject, isString } from './json';
 import { nameCodeOf } from './verify-link';
 import { fingerprintRecord, type CommittedRecordInput } from './commitment';
 import { withTabLock } from './tab-lock';
+import { keptOnDeviceOnly, neverSend } from './outbox';
 import {
   canStoreVault,
   isSealedRow,
@@ -395,6 +398,7 @@ export const clearSealedState = (): void => {
   unanswered.clear();
   olderCopies.clear();
   datedHere.clear();
+  datingPrints.clear();
   noteSealedRowsSeen(false);
   changed();
 };
@@ -722,6 +726,7 @@ export const apiStore: Store = {
       ...(isString(raw.recordFingerprint) ? { recordFingerprint: raw.recordFingerprint } : {}),
     });
     for (const k of [...olderCopies.keys()]) if (k.startsWith(`${kind}:`)) olderCopies.delete(k);
+    if (kind === 'records') datingPrints.clear();
     for (const raw of rows) {
       if (!isObject(raw) || !isString(raw.id)) {
         unreadable++;
@@ -730,6 +735,18 @@ export const apiStore: Store = {
       const id = raw.id;
       let value: Record<string, unknown>;
       let state: RowState;
+      // A record kept on this device only (docs/device-only-records.md): the registry's row for
+      // its id is only noted, as of this load. The proof code alone ('dating') is what should be
+      // there; anything else is 'locked' here, which the record's page says (records.ts
+      // deviceOnlyConflict). Nothing of the row is opened, shown, kept, or remembered past this
+      // load (no rev mark, no older copy, no locked row to delete or put back), so the next
+      // answer is judged on its own and a wrong one leaves nothing behind.
+      if (kind === 'records' && keptOnDeviceOnly(id)) {
+        const stub = raw.bodyPending === true && !isSealedRow(raw);
+        states.set(id, stub ? 'dating' : 'locked');
+        if (stub && isString(raw.recordFingerprint)) datingPrints.set(id, raw.recordFingerprint);
+        continue;
+      }
       // A row this browser has seen sealed (it has a high-water mark, from this browser or a
       // restored backup) is never taken in plain text, as a claim's stub or emptied (round 4,
       // F2): that is an older copy from before locking, which the server (or a database
@@ -745,6 +762,7 @@ export const apiStore: Store = {
       // copy this browser keeps (outbox.ts), which records.ts puts back and saves once it can.
       if (kind === 'records' && raw.bodyPending === true && !isSealedRow(raw)) {
         states.set(id, 'dating');
+        if (isString(raw.recordFingerprint)) datingPrints.set(id, raw.recordFingerprint);
         continue;
       }
       if (isSealedRow(raw)) {
@@ -825,6 +843,9 @@ export const apiStore: Store = {
         value = stubRecord(raw);
         state = 'stub';
       }
+      // "Kept on this device only" is this browser's word, never the registry's: a row it sent
+      // doesn't carry the mark into the app (docs/device-only-records.md).
+      if ('deviceOnly' in value) value = withoutKeys(value, ['deviceOnly']);
       // Malformed rows are counted, not silently dropped: one bad row should not blank a
       // holder's records, and the holder is told some could not be read.
       if (!isValid(value)) {
@@ -926,6 +947,13 @@ const sealForSave = async (kind: RowKind, value: readonly unknown[]): Promise<Se
   for (const item of value) {
     if (!isObject(item) || !isString(item.id)) continue;
     const id = item.id;
+    // A record kept on this device only (docs/device-only-records.md) is never sealed for the
+    // registry and never sent: not now, not held for the backup, not queued. Decided first, by
+    // id from this browser's own store and by the record's mark, before anything the registry
+    // said about the row is looked at (an emptied or locked row an import may replace, an older
+    // copy kept): none of that can make it sendable. records.ts takes these out before a save;
+    // this is the last place one could pass.
+    if (kind === 'records' && neverSend(item)) continue;
     const was = state?.states.get(id);
     // A locked row is never sent back: this browser can't know what is in it. Nor is a row
     // the registry sent an older copy of, which this browser has no newer copy of. An import
@@ -1170,6 +1198,10 @@ export const datingRowOf = (r: Record<string, unknown>): DatingRow | undefined =
 
 /** Proof codes the registry took from this page (id → proof code). */
 const datedHere = new Map<string, string>();
+/** The proof code each dating row carried at the last load (id → proof code), as the registry sent it. */
+const datingPrints = new Map<string, string>();
+/** The proof code the registry's dating row holds for this id, as of the last load. */
+export const datedProofCodeOf = (id: string): string | undefined => datingPrints.get(id);
 
 /**
  * Send records' proof codes to be dated now, before their locked copies (which wait for a
