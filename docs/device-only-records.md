@@ -79,7 +79,8 @@ Two rules, applied everywhere:
    plain row, another proof code, a claim's stub, nothing), this device's copy is what is shown
    and what goes in the backup. The registry's row is never merged into it, never shown in its
    place, never a reason to send or to take the mark off. The record's page says the answer was
-   not the expected one (`deviceOnlyConflict`).
+   not the expected one (`deviceOnlyConflict`). Nothing of that answer is kept past the load it
+   came in, so the warning goes when the registry answers as expected again.
 
 How:
 
@@ -159,7 +160,9 @@ If an entry in the device-only store can't be read as a record (damaged storage)
 nothing. The backup is made as usual and carries the entry exactly as stored
 (`deviceOnlyUnreadable`), and the backup step says one record couldn't be read. Other records'
 saves go on. Home lists the entry by its id, with "Save the entry to a file" and "Delete it
-from this device". A restore puts the entry back as it was. It is never sent: its id is still
+from this device". A restore puts the entry back as it was, unless it reads as a record after
+all or its id is a record this browser knows as an ordinary one (a hand-made file can't mark a
+record that way). It is never sent: its id is still
 kept on the device, readable or not.
 
 ## Deleting one

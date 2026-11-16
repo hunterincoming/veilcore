@@ -203,7 +203,7 @@ export const document = {
     'Un registro guardado solo en este dispositivo no se puede corregir. Selle el documento de nuevo como un registro nuevo.',
   'app.doc.local.unreadable.title': 'No se pudo leer un registro de este dispositivo',
   'app.doc.local.unreadable.text':
-    'El registro {id} se guarda solo en este dispositivo, y su entrada en este navegador está dañada, así que no se puede mostrar. No se envía a ninguna parte. Su archivo de copia de seguridad lleva la entrada tal como está. Puede guardar la entrada en un archivo o eliminarla de este dispositivo.',
+    'El registro {id} se guarda solo en este dispositivo, y su entrada en este navegador está dañada, así que no se puede mostrar. No se envía a ninguna parte. Una copia de seguridad guardada ahora lleva la entrada tal como está. Puede guardar la entrada en un archivo o eliminarla de este dispositivo.',
   'app.doc.local.unreadable.export': 'Guardar la entrada en un archivo',
   'app.doc.local.unreadable.delete': 'Eliminarla de este dispositivo',
   'app.doc.local.unreadable.deleteConfirm':

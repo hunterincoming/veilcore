@@ -1243,7 +1243,25 @@ export const unreadableMissingFrom = (inFile: unknown): string[] =>
 /** A restore: the file's damaged entries go back as they were, never over anything already here. */
 export const restoreUnreadable = (inFile: unknown): void => {
   if (!isObject(inFile) || Object.keys(inFile).length === 0) return;
-  keepRawOnDevice(inFile);
+  // Only what really can't be read as a record, and never under the id of a record this
+  // browser knows as an ordinary one. An entry here that reads as a record is not "unreadable":
+  // it is left out (a record comes back through `recordData`, with every check an import makes),
+  // or a hand-made file could mark any record "on this device only" and show its own words for
+  // it. Known as ordinary: in the send queue, locked on the registry by this holder (a rev mark
+  // above zero), or open from the registry now.
+  const seenLocked = revMarks();
+  const entries = Object.fromEntries(
+    Object.entries(inFile).filter(
+      ([id, raw]) =>
+        !(isObject(raw) && raw.id === id && isStrainRecord(raw)) &&
+        !keptOnDeviceOnly(id) &&
+        !inOutbox(id) &&
+        !((seenLocked[`records:${id}`] ?? 0) > 0) &&
+        rowStateOf(RECORDS_KEY, id) !== 'open',
+    ),
+  );
+  if (Object.keys(entries).length === 0) return;
+  keepRawOnDevice(entries);
   records = [...records];
   notify();
 };

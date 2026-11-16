@@ -74,7 +74,7 @@ import { readJson, isObject, isString } from './json';
 import { nameCodeOf } from './verify-link';
 import { fingerprintRecord, type CommittedRecordInput } from './commitment';
 import { withTabLock } from './tab-lock';
-import { neverSend } from './outbox';
+import { keptOnDeviceOnly, neverSend } from './outbox';
 import {
   canStoreVault,
   isSealedRow,
@@ -735,6 +735,18 @@ export const apiStore: Store = {
       const id = raw.id;
       let value: Record<string, unknown>;
       let state: RowState;
+      // A record kept on this device only (docs/device-only-records.md): the registry's row for
+      // its id is only noted, as of this load. The proof code alone ('dating') is what should be
+      // there; anything else is 'locked' here, which the record's page says (records.ts
+      // deviceOnlyConflict). Nothing of the row is opened, shown, kept, or remembered past this
+      // load (no rev mark, no older copy, no locked row to delete or put back), so the next
+      // answer is judged on its own and a wrong one leaves nothing behind.
+      if (kind === 'records' && keptOnDeviceOnly(id)) {
+        const stub = raw.bodyPending === true && !isSealedRow(raw);
+        states.set(id, stub ? 'dating' : 'locked');
+        if (stub && isString(raw.recordFingerprint)) datingPrints.set(id, raw.recordFingerprint);
+        continue;
+      }
       // A row this browser has seen sealed (it has a high-water mark, from this browser or a
       // restored backup) is never taken in plain text, as a claim's stub or emptied (round 4,
       // F2): that is an older copy from before locking, which the server (or a database

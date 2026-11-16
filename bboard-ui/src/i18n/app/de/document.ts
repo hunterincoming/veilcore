@@ -208,7 +208,7 @@ export const document = {
     'Ein Datensatz, der nur auf diesem Gerät aufbewahrt wird, lässt sich nicht korrigieren. Versiegeln Sie das Dokument erneut als neuen Datensatz.',
   'app.doc.local.unreadable.title': 'Ein Datensatz auf diesem Gerät konnte nicht gelesen werden',
   'app.doc.local.unreadable.text':
-    'Der Datensatz {id} wird nur auf diesem Gerät aufbewahrt, und sein Eintrag in diesem Browser ist beschädigt; er kann deshalb nicht angezeigt werden. Er wird nirgendwohin gesendet. Ihre Sicherungsdatei enthält den Eintrag genau so, wie er ist. Sie können den Eintrag in einer Datei speichern oder ihn von diesem Gerät löschen.',
+    'Der Datensatz {id} wird nur auf diesem Gerät aufbewahrt, und sein Eintrag in diesem Browser ist beschädigt; er kann deshalb nicht angezeigt werden. Er wird nirgendwohin gesendet. Eine jetzt gespeicherte Sicherung enthält den Eintrag genau so, wie er ist. Sie können den Eintrag in einer Datei speichern oder ihn von diesem Gerät löschen.',
   'app.doc.local.unreadable.export': 'Eintrag in einer Datei speichern',
   'app.doc.local.unreadable.delete': 'Von diesem Gerät löschen',
   'app.doc.local.unreadable.deleteConfirm':

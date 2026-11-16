@@ -206,7 +206,7 @@ export const document = {
     'Un enregistrement gardé uniquement sur cet appareil ne peut pas être corrigé. Scellez de nouveau le document comme un nouvel enregistrement.',
   'app.doc.local.unreadable.title': 'Un enregistrement de cet appareil n’a pas pu être lu',
   'app.doc.local.unreadable.text':
-    'L’enregistrement {id} est gardé uniquement sur cet appareil, et son entrée dans ce navigateur est endommagée : il ne peut donc pas être affiché. Il n’est envoyé nulle part. Votre fichier de sauvegarde contient l’entrée telle qu’elle est. Vous pouvez enregistrer l’entrée dans un fichier, ou la supprimer de cet appareil.',
+    'L’enregistrement {id} est gardé uniquement sur cet appareil, et son entrée dans ce navigateur est endommagée : il ne peut donc pas être affiché. Il n’est envoyé nulle part. Une sauvegarde enregistrée maintenant contient l’entrée telle qu’elle est. Vous pouvez enregistrer l’entrée dans un fichier, ou la supprimer de cet appareil.',
   'app.doc.local.unreadable.export': 'Enregistrer l’entrée dans un fichier',
   'app.doc.local.unreadable.delete': 'La supprimer de cet appareil',
   'app.doc.local.unreadable.deleteConfirm':

@@ -551,6 +551,10 @@ describe("what's live where", () => {
       for (const k of ['title', 'text', 'export', 'delete', 'deleteConfirm', 'backupNote'])
         expect(a[`app.doc.local.unreadable.${k}`], k).toBeTruthy();
       expect(a['app.doc.local.unreadable.text']).toContain('{id}');
+      // Only a backup saved after the damage carries the entry: said as "saved now".
+      expect(a['app.doc.local.unreadable.text']).toMatch(
+        /saved now|jetzt gespeicherte|guardada ahora|enregistrée maintenant|いまバックアップを保存/,
+      );
     }
     expect(app['app.doc.local.deleteConfirm']).not.toMatch(/nothing else/);
     expect(app['app.doc.local.deleteConfirm']).toMatch(

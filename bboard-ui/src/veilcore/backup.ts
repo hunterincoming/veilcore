@@ -655,8 +655,6 @@ export const restoreAny = async (file: File, password?: string, opts: RestoreOpt
   // its registry don't have (the same rules as an import: each must recompute, none
   // overwrites one already here). A problem here doesn't undo the keys restored above.
   let fromFile: ImportResult | { error: string } | undefined;
-  // Entries the file carries raw (they couldn't be read where it was made): back as they were.
-  restoreUnreadable(v.deviceOnlyUnreadable);
   if (Array.isArray(v.recordData) && v.recordData.length > 0) {
     try {
       fromFile = await importRecordRows(v.recordData as unknown[]);
@@ -667,6 +665,9 @@ export const restoreAny = async (file: File, password?: string, opts: RestoreOpt
     // a backup the holder has (never for a passkey copy, which carries no records).
     if (opts.mark !== false && fromFile && !('error' in fromFile)) markDeviceOnlyBackedUp(v.recordData);
   }
+  // Entries the file carries raw (they couldn't be read where it was made): back as they were,
+  // after the records, so what this browser and the registry hold is known (records.ts).
+  restoreUnreadable(v.deviceOnlyUnreadable);
   return {
     ...(fromFile ? { fromFile } : {}),
     records: entries.length,

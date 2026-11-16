@@ -205,7 +205,7 @@ export const document = {
     'A record kept on this device only can’t be corrected. Seal the document again as a new record.',
   'app.doc.local.unreadable.title': 'A record on this device couldn’t be read',
   'app.doc.local.unreadable.text':
-    'Record {id} is kept on this device only, and its entry in this browser is damaged, so it can’t be shown. It is never sent anywhere. Your backup file carries the entry exactly as it is. You can save the entry to a file, or delete it from this device.',
+    'Record {id} is kept on this device only, and its entry in this browser is damaged, so it can’t be shown. It is never sent anywhere. A backup saved now carries the entry exactly as it is. You can save the entry to a file, or delete it from this device.',
   'app.doc.local.unreadable.export': 'Save the entry to a file',
   'app.doc.local.unreadable.delete': 'Delete it from this device',
   'app.doc.local.unreadable.deleteConfirm':

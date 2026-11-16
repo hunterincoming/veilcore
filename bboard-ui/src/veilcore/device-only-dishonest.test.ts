@@ -348,3 +348,92 @@ describe('the mark is set when a record is sealed, and by nothing after', () => 
     expect(nothingLeft(reg, record)).toEqual([]);
   });
 });
+
+describe('round three of review', () => {
+  it('a crafted backup cannot set the mark through its list of unreadable entries: a readable record there is not taken, nor any entry for a record known as ordinary', async () => {
+    const A = await browser('c');
+    const up = await sealDoc(A, 'Uploaded, ordinary');
+    const queued = await sealDoc(A, 'Second, ordinary');
+    const uploaded = await A.run(async () => {
+      const r = A.m.records.createRecord(up);
+      await settle(150);
+      return r;
+    });
+    const { text, out } = await backUp(A);
+    expect(out.ok).toBe(true);
+    await settle(300);
+    // A third, made after the backup and with the registry refusing saves: it waits in the send queue.
+    reg.misbehave.fault = (method, path) => (method === 'PUT' && path === '/api/records' ? 'fail' : undefined);
+    const waiting = await A.run(async () => {
+      const r = A.m.records.createRecord(queued);
+      await settle(200);
+      expect(A.m.outbox.inOutbox(r.id)).toBe(true);
+      return r;
+    });
+    const file = JSON.parse(text) as Record<string, unknown>;
+    const crafted = JSON.stringify({
+      ...file,
+      deviceOnlyUnreadable: {
+        // Reads as a record, marked, with other words: not "unreadable" at all.
+        [uploaded.id]: { ...uploaded, strainName: 'What the file says', deviceOnly: true },
+        // Really unreadable, under the id of a record waiting to be sent.
+        [waiting.id]: { id: waiting.id, notes: 42 },
+        // A readable marked record under an id nobody holds: it is a record, so not taken from here either.
+        'VEIL-00000000000000000000000000000001': {
+          ...uploaded,
+          id: 'VEIL-00000000000000000000000000000001',
+          deviceOnly: true,
+        },
+      },
+    });
+    await A.run(async () => {
+      await A.m.backup.restoreAny(fileOf(crafted));
+      await settle(300);
+      await A.m.records.hydrate();
+      await settle(200);
+      const shown = A.m.records.getRecord(uploaded.id);
+      expect(shown?.strainName).toBe('Uploaded, ordinary');
+      expect(shown?.deviceOnly).toBeUndefined();
+      expect(A.m.records.isKeptOnDeviceOnly(shown)).toBe(false);
+      expect(A.m.records.isKeptOnDeviceOnly(A.m.records.getRecord(waiting.id))).toBe(false);
+      expect(A.m.outbox.inOutbox(waiting.id)).toBe(true);
+      expect(A.m.records.damagedDeviceOnly()).toEqual([]);
+      expect(A.m.records.getRecord('VEIL-00000000000000000000000000000001')).toBeUndefined();
+    });
+    expect(A.storage.get(DEVICE_ONLY_STORE) ?? '{}').not.toContain('VEIL-');
+  });
+
+  it('the warning follows the registry’s latest answer: a wrong answer, then the right one, and it is gone', async () => {
+    const A = await browser('w');
+    const record = await sealOnDevice(reg, A);
+    expect((await backUp(A)).out.ok).toBe(true);
+    const kept = A.storage.get(DEVICE_ONLY_STORE);
+    for (const lie of ['sealed', 'plain', 'purged'] as const) {
+      lieAbout(reg, lie, record);
+      const B = await browser(`w-${lie}`, {}, 'w');
+      await B.run(async () => {
+        await B.m.records.hydrate();
+        await settle(120);
+        expect(B.m.records.deviceOnlyConflict(record.id)).toBe(true);
+        reg.misbehave.fault = null;
+        await B.m.records.hydrate();
+        await settle(120);
+        expect(B.m.records.deviceOnlyConflict(record.id)).toBe(false);
+        expect(B.m.api.rowStateOf(RECORDS, record.id)).toBe('dating');
+        expect(B.m.records.getRecord(record.id)?.deviceOnly).toBe(true);
+      });
+      // And after a reload, with nothing the wrong answer left behind.
+      const C = await browser(`w-${lie}-reload`, {}, 'w');
+      await C.run(async () => {
+        await C.m.records.hydrate();
+        await settle(120);
+        expect(C.m.records.deviceOnlyConflict(record.id)).toBe(false);
+        expect(Object.keys(C.m.api.revMarks()).filter((k) => k.includes(record.id))).toEqual([]);
+      });
+    }
+    // What is stored of the record never changed, and nothing but the dating row was sent.
+    expect(A.storage.get(DEVICE_ONLY_STORE)).toBe(kept);
+    expect(recordPuts()).toEqual([]);
+    expect(nothingLeft(reg, record)).toEqual([]);
+  });
+});
