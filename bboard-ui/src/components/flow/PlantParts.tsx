@@ -7,8 +7,7 @@ import DoneIcon from '@mui/icons-material/CheckCircle';
 import WaitIcon from '@mui/icons-material/RadioButtonUnchecked';
 import FailIcon from '@mui/icons-material/HighlightOff';
 import ChevronIcon from '@mui/icons-material/ChevronRight';
-import { proofCodeSent, type StrainRecord } from '../../veilcore/records';
-import { inOutbox } from '../../veilcore/outbox';
+import { proofCodeSent, waitsToBeSent, type StrainRecord } from '../../veilcore/records';
 import { nextBatchRow, useAnchorCadence } from './dating-words';
 import { useStampRetries } from '../chain/useKeyStamp';
 import type { RecordKeys } from '../../veilcore/record-keys';
@@ -227,7 +226,9 @@ export const PlantStatus: React.FC<{
     proof,
     anchor,
     tr,
-    proofCodeSent(record.id) || !inOutbox(record.id) ? nextBatchRow(tr, cadence) : { value: t('app.plant.notSentYet') },
+    proofCodeSent(record.id) || !waitsToBeSent(record.id)
+      ? nextBatchRow(tr, cadence)
+      : { value: t('app.plant.notSentYet') },
   );
   // One plain line for the record's date (fresh-eyes review, 12 Nov): "waiting: …" until its
   // batch has a date, "dated …" once it has. The words around the value only; what the value

@@ -9,8 +9,10 @@ import {
   Alert,
   Box,
   Button,
+  Checkbox,
   Chip,
   CircularProgress,
+  FormControlLabel,
   MenuItem,
   Paper,
   Stack,
@@ -31,7 +33,7 @@ import { sealDocumentRecord } from '../../veilcore/seal-record';
 import { createRecord, tooLargeToSave, useRecords } from '../../veilcore/records';
 import { forgetKeys } from '../../veilcore/record-keys';
 import { isLabReportRecord } from '../stage/lab-report-notes';
-import { DOCUMENT_RECORDS_ENABLED } from '../../config/network';
+import { DEVICE_ONLY_RECORDS_ENABLED, DOCUMENT_RECORDS_ENABLED } from '../../config/network';
 import { AppHeader } from '../AppHeader';
 import { useT } from '../../i18n/app';
 import { typeWords } from './DocumentParts';
@@ -62,6 +64,8 @@ export const DocumentNew: React.FC = () => {
   const [about, setAbout] = useState<string[]>([]);
   const [holder, setHolder] = useState('');
   const [notes, setNotes] = useState('');
+  // Keep it on this device and in the backup only (docs/device-only-records.md). Off unless ticked.
+  const [deviceOnly, setDeviceOnly] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string>();
   const [tried, setTried] = useState(false);
@@ -139,7 +143,8 @@ export const DocumentNew: React.FC = () => {
         setBusy(false);
         return;
       }
-      const record = createRecord(sealed);
+      // Chosen here, once: the record is made with the mark, and no save ever sends it.
+      const record = createRecord(DEVICE_ONLY_RECORDS_ENABLED && deviceOnly ? { ...sealed, deviceOnly: true } : sealed);
       created = true;
       void navigate(`/record/${record.id}`);
     } catch (e) {
@@ -309,6 +314,34 @@ export const DocumentNew: React.FC = () => {
           <Typography variant="body2" color="text.secondary">
             {t('app.doc.new.proves')}
           </Typography>
+          {DEVICE_ONLY_RECORDS_ENABLED && (
+            <Box data-device-only-choice="">
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={deviceOnly}
+                    onChange={(e) => setDeviceOnly(e.target.checked)}
+                    disabled={busy}
+                    slotProps={{ input: { 'aria-describedby': `${inputId}-device-only` } }}
+                  />
+                }
+                label={t('app.doc.local.choice')}
+              />
+              {/* The trade-offs, said before the choice is made, whether or not it is ticked. */}
+              <Box id={`${inputId}-device-only`} sx={{ pl: 4 }}>
+                <Typography variant="body2" color="text.secondary">
+                  {t('app.doc.local.before')}
+                </Typography>
+                <Box component="ul" sx={{ m: 0, pl: 2.5, color: 'text.secondary' }}>
+                  {(['p1', 'p2', 'p3', 'p4', 'p5'] as const).map((k) => (
+                    <Typography key={k} component="li" variant="body2">
+                      {t(`app.doc.local.${k}`)}
+                    </Typography>
+                  ))}
+                </Box>
+              </Box>
+            </Box>
+          )}
           {tried && missing && (
             <Alert severity="warning" variant="outlined" data-document-missing="">
               {missing}

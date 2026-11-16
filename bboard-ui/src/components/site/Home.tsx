@@ -32,6 +32,7 @@ import { PASTE_ENTRY } from './paste-entry';
 import { IS_MAINNET, MAINNET_CLAIMS_ADDRESS, MAINNET_CONTRACT_ADDRESS, explorerFor } from '../../config/network';
 import {
   AGREEMENTS_LIVE,
+  DEVICE_ONLY_RUN_ON_MAINNET,
   LAB_SIGNING_RUN_ON_MAINNET,
   ROYALTIES_RUN_ON_MAINNET,
   ROYALTIES_RUN_ON_TEST,
@@ -296,6 +297,10 @@ const LIVE_ROWS = [
   // veilcore.org too (from the first site deploy that carries it). Its cell says "built, not yet tried" until it has worked there
   // (config/copy.ts LAB_SIGNING_RUN_ON_MAINNET, cellKey below).
   ['signed', true, true, false],
+  // A document kept on this device only (config/network.ts DEVICE_ONLY_RECORDS_ENABLED): on in
+  // every build. Its veilcore.org cell says "built, not yet tried" until one has been sealed and
+  // checked there (config/copy.ts DEVICE_ONLY_RUN_ON_MAINNET, cellKey below).
+  ['local', true, true, false],
   ['dna', true, true, false],
   ['prove', false, true, true],
   ['claims', true, false, true],
@@ -343,7 +348,10 @@ const cellKey = (row: string, col: string) =>
           : // Lab signing: "Yes" on veilcore.org only once it has worked there, on every build.
             LAB_SIGNING_RUN_ON_MAINNET && row === 'signed' && col === 'main'
             ? 'm.live.signed.live'
-            : `m.live.${row}.${col}`) as Parameters<ReturnType<typeof useI18n>['t']>[0];
+            : // Kept on this device only: "Yes" on veilcore.org only once it has worked there.
+              DEVICE_ONLY_RUN_ON_MAINNET && row === 'local' && col === 'main'
+              ? 'm.live.local.live'
+              : `m.live.${row}.${col}`) as Parameters<ReturnType<typeof useI18n>['t']>[0];
 
 const LiveWhere: React.FC<{ phone: boolean }> = ({ phone }) => {
   const { t } = useI18n();

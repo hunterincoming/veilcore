@@ -398,6 +398,7 @@ describe("what's live where", () => {
       'lab',
       'results',
       'signed',
+      'local',
       'dna',
       'prove',
       'claims',
@@ -504,6 +505,35 @@ describe("what's live where", () => {
       expect(s['m.live.signed.main']).not.toBe(s['m.live.signed.live']);
     }
     for (const s of [testSite, ...mainnetVariants]) expect(s['m.live.signed.main']).toBe(e['m.live.signed.main']);
+    // A document kept on this device only (config/network.ts DEVICE_ONLY_RECORDS_ENABLED): on in
+    // every build, but not called live on veilcore.org until one has been sealed and checked there
+    // (config/copy.ts DEVICE_ONLY_RUN_ON_MAINNET). Until then its cell says "built, not yet tried".
+    expect(rows.find((r) => r.row === 'local')?.has).toEqual([true, true, false]);
+    expect(home).toMatch(
+      /DEVICE_ONLY_RUN_ON_MAINNET && row === 'local' && col === 'main'\s*\?\s*'m\.live\.local\.live'/,
+    );
+    const localRun = /export const DEVICE_ONLY_RUN_ON_MAINNET = (true|false);/.exec(
+      fs.readFileSync(path.join(SRC, 'config/copy.ts'), 'utf8'),
+    )?.[1];
+    expect(localRun).toBe('false');
+    expect(e['m.live.local.main']).toBe('Built, not yet tried on the main network.');
+    expect(e['m.live.local.test']).toMatch(/^Yes, for document records\. Only the proof code is sent to VeilCore/);
+    for (const l of Object.values(LANGUAGES)) {
+      const s = l.strings as Record<string, string>;
+      for (const k of ['t', 'main', 'test', 'live']) expect(s[`m.live.local.${k}`], k).toBeTruthy();
+      expect(s['m.live.local.not']).toBeUndefined();
+      expect(s['m.live.local.main']).not.toBe(s['m.live.local.live']);
+      // The privacy note says the same thing, in every language.
+      expect(s['m.privacy.deviceonly.title']).toBeTruthy();
+      expect(s['m.privacy.deviceonly.text']).toBeTruthy();
+    }
+    for (const s of [testSite, ...mainnetVariants]) expect(s['m.live.local.main']).toBe(e['m.live.local.main']);
+    // What the privacy note promises is what the code sends (veilcore/device-only.test.ts): the
+    // record ID, the proof code and the key binding, and that such a record can't be given back.
+    expect(e['m.privacy.deviceonly.text']).toMatch(
+      /nothing you type into it is sent to our server, locked or not: we get the record ID, its proof code and its key binding/,
+    );
+    expect(e['m.privacy.deviceonly.text']).toMatch(/We can’t give such a record back/);
     // Prove-by-link checks a key, not the record.
     // The record names its own key (SPEC 3.6.1, docs/identity-in-record.md).
     expect(e['m.live.prove.test']).toBe(

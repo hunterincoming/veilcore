@@ -27,6 +27,7 @@ const SECTIONS = [
   'deals',
   'chain',
   'browser',
+  'deviceonly',
   'helper',
   'hosts',
   'code',

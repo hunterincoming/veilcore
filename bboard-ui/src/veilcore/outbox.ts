@@ -75,11 +75,15 @@ export const outboxRecords = (): Record<string, Record<string, unknown>> => {
 
 export const inOutbox = (id: string): boolean => id in outboxRecords();
 
-/** Keep these records here until the registry has them (replacing any kept copy). */
+/**
+ * Keep these records here until the registry has them (replacing any kept copy). Never a record
+ * kept on this device only (below): this is the queue of what waits to be sent.
+ */
 export const putInOutbox = (records: readonly Record<string, unknown>[]): void => {
-  if (records.length === 0) return;
+  const sendable = records.filter((r) => !isDeviceOnly(r));
+  if (sendable.length === 0) return;
   const here = outboxRecords();
-  for (const r of records) if (isString(r.id)) here[r.id] = r;
+  for (const r of sendable) if (isString(r.id)) here[r.id] = r;
   setMine(OUTBOX, here);
 };
 
@@ -94,6 +98,39 @@ export const takeFromOutbox = (ids: readonly string[]): void => {
     }
   }
   if (changed) setMine(OUTBOX, here);
+};
+
+// ---- records kept on this device only (docs/device-only-records.md) ----------------------------
+//
+// A document record its holder chose to keep here and in the backup file only. Its proof code is
+// dated like any record's (the dating row: id, proof code, key binding); its fields are never
+// sealed for the registry and never sent, by any save. It is NOT kept in the outbox above, on
+// purpose: the outbox is the queue of what waits to be sent, and a tab still running an older
+// build of the site sends whatever it finds there. These live under a key of their own, which
+// only code that knows never to send them reads.
+
+const DEVICE_ONLY = 'veilcore.device-only.v1';
+
+/** Whether a record is marked as kept on this device only (`deviceOnly: true`, set when it is sealed). */
+export const isDeviceOnly = (r: unknown): boolean => isObject(r) && r.deviceOnly === true;
+
+/** The records kept on this device only, for this holder, by id. */
+export const deviceOnlyRecords = (): Record<string, Record<string, unknown>> => {
+  const out: Record<string, Record<string, unknown>> = {};
+  for (const [id, r] of Object.entries(mine<unknown>(DEVICE_ONLY)))
+    if (isObject(r) && r.id === id && isDeviceOnly(r)) out[id] = r;
+  return out;
+};
+
+export const keptOnDeviceOnly = (id: string): boolean => id in deviceOnlyRecords();
+
+/** Keep these records on this device (replacing any kept copy). Only records marked `deviceOnly`. */
+export const keepOnDevice = (records: readonly Record<string, unknown>[]): void => {
+  const marked = records.filter((r) => isDeviceOnly(r) && isString(r.id));
+  if (marked.length === 0) return;
+  const here = deviceOnlyRecords();
+  for (const r of marked) here[r.id as string] = r;
+  setMine(DEVICE_ONLY, here);
 };
 
 /** A map per record id of strings per transfer id, as kept under storageKey. */

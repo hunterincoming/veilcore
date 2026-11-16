@@ -80,6 +80,9 @@ against the same vectors, made without any checker's code.
 - **The file never leaves the device.** Only its SHA-256, name and size are sealed.
 - **The registry never sees them either:** it holds the record sealed, like any record, and its
   check page says only "a document", its proof code and its date.
+- **Or keep the record on the device only.** A choice when sealing: then the registry holds the
+  proof code alone, and nothing typed is sent, locked or not
+  ([device-only-records.md](device-only-records.md)).
 
 ## How someone checks a document
 

@@ -8,7 +8,7 @@ import React, { useEffect, useState } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
 import { Alert, Box, Button, Chip, Paper, Stack, Typography } from '@mui/material';
 import HomeIcon from '@mui/icons-material/HomeOutlined';
-import type { StrainRecord } from '../../veilcore/records';
+import { isKeptOnDeviceOnly, type StrainRecord } from '../../veilcore/records';
 import {
   documentFieldsOf,
   type DocumentFile,
@@ -88,6 +88,9 @@ export const DocumentDetail: React.FC<{ record: StrainRecord }> = ({ record }) =
   // publish or prove from it here. The record stays, and its result file can still be downloaded.
   const viabilityOff = viabilityNotRead({ kind: record.labResult?.statement.kind, schema: record.fieldSet?.schema });
   const read = viabilityOff ? undefined : record.fieldSet;
+  // Kept on this device and in the backup only (docs/device-only-records.md): said plainly, and
+  // nothing on this page that would send its details anywhere is offered.
+  const local = isKeptOnDeviceOnly(record);
   // A kept laboratory signature is checked again against the record before anything shows it
   // as signed (lab-attest.ts): a record restored or edited by hand may no longer match.
   const [labOk, setLabOk] = useState<boolean>();
@@ -156,6 +159,29 @@ export const DocumentDetail: React.FC<{ record: StrainRecord }> = ({ record }) =
             {record.strainName}
           </Typography>
         </Box>
+        {local && (
+          <Alert
+            severity="info"
+            variant="outlined"
+            data-device-only=""
+            action={
+              <Button
+                component={RouterLink}
+                to="/backup"
+                color="inherit"
+                variant="outlined"
+                sx={{ minHeight: 44, whiteSpace: 'nowrap' }}
+              >
+                {t('app.doc.local.backup')}
+              </Button>
+            }
+          >
+            <Typography variant="subtitle2" component="h2">
+              {t('app.doc.local.title')}
+            </Typography>
+            <Typography variant="body2">{t('app.doc.local.text')}</Typography>
+          </Alert>
+        )}
         <Paper sx={{ p: { xs: 2.5, md: 3 } }}>
           <Stack spacing={1.5}>
             <DocumentDate fingerprint={record.recordFingerprint} />
@@ -194,8 +220,13 @@ export const DocumentDetail: React.FC<{ record: StrainRecord }> = ({ record }) =
           </Paper>
         )}
         {read && <HeldNumbers held={read} />}
-        {read && LAB_SIGNING_ENABLED && <LabSignaturePanel record={record} signatureOk={labOk} />}
-        {read && <ProveNumber record={record} labSignatureOk={labOk === true} />}
+        {read && !local && LAB_SIGNING_ENABLED && <LabSignaturePanel record={record} signatureOk={labOk} />}
+        {read && !local && <ProveNumber record={record} labSignatureOk={labOk === true} />}
+        {read && local && (
+          <Typography variant="body2" color="text.secondary" data-device-only-no-prove="">
+            {t('app.doc.local.noProve')}
+          </Typography>
+        )}
         <Paper sx={{ p: { xs: 2.5, md: 3 } }} data-document-share="">
           <Typography variant="h6" component="h2" sx={{ mb: 0.5 }}>
             {t('app.doc.share.title')}

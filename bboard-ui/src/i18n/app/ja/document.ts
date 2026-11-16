@@ -160,4 +160,26 @@ export const document = {
   'app.doc.bundle.checkedAgainst': '含める前に、それぞれこの記録に封印されたファイルと照合されます。',
   'app.doc.bundle.filesAria': '書類のファイル',
   'app.doc.bundle.chooseOrUntick': '書類のファイルを選ぶか、チェックを外してください。',
+  // ---- kept on this device only (docs/device-only-records.md; DocumentNew.tsx, DocumentDetail.tsx) ----
+  'app.doc.local.choice': 'この記録をこの端末と自分のバックアップだけに保管する',
+  'app.doc.local.before': '選ぶ前にご確認ください：',
+  'app.doc.local.p1':
+    'ここに入力した内容は、鍵をかけた形でもそうでない形でも、VeilCoreには送信されません。送信されるのは証明コードだけで、それによって記録に日付が付きます。',
+  'app.doc.local.p2':
+    'VeilCoreのサーバーはこの記録をお返しできません。サーバーがこの記録を持つことは一度もないからです。',
+  'app.doc.local.p3':
+    'このブラウザのほかにある写しは、バックアップファイルだけです。このブラウザのデータが消去され、バックアップもない場合、記録は失われます。',
+  'app.doc.local.p4': '確認リンクとファイルを持っている人は、これまでどおり誰でも確認できます。',
+  'app.doc.local.p5': 'これは封印するときに一度だけ選びます。あとから変更することはできません。',
+  'app.doc.local.title': 'この端末だけに保管',
+  'app.doc.local.text':
+    'この記録に入力した内容は、鍵をかけた形でもそうでない形でも、VeilCoreに送信されていません。送信されたのは、日付を付けるための証明コードだけです。写しがあるのは、このブラウザとバックアップファイルだけです。このブラウザのデータが消去され、バックアップもない場合、記録は失われ、VeilCoreからお返しすることはできません。',
+  'app.doc.local.backup': 'バックアップを保存する',
+  'app.doc.local.homeLine': 'この端末だけに保管',
+  'app.doc.local.noProve':
+    '数値を証明するとこのブラウザから情報が送信されるため、この端末だけに保管する記録では利用できません。',
+  'app.doc.local.staysHere':
+    'この記録はこの端末だけに保管されているため、その内容がVeilCoreに送信されることはありません。',
+  'app.doc.local.noCorrect':
+    'この端末だけに保管する記録は訂正できません。書類を新しい記録としてもう一度封印してください。',
 } satisfies Partial<AppTranslation>;

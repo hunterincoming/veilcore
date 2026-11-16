@@ -164,4 +164,25 @@ export const document = {
     'Chacun est comparé aux fichiers scellés dans cet enregistrement avant d’être inclus.',
   'app.doc.bundle.filesAria': 'Fichiers du document',
   'app.doc.bundle.chooseOrUntick': 'Choisissez le fichier du document, ou décochez la case.',
+  // ---- kept on this device only (docs/device-only-records.md; DocumentNew.tsx, DocumentDetail.tsx) ----
+  'app.doc.local.choice': 'Garder cet enregistrement uniquement sur cet appareil et dans ma sauvegarde',
+  'app.doc.local.before': 'Avant de choisir :',
+  'app.doc.local.p1':
+    'Rien de ce que vous saisissez ici n’est envoyé à VeilCore, verrouillé ou non. Seul le code de preuve est envoyé, pour que l’enregistrement reçoive sa date.',
+  'app.doc.local.p2': 'Le serveur de VeilCore ne peut pas vous rendre cet enregistrement : il ne l’a à aucun moment.',
+  'app.doc.local.p3':
+    'Votre fichier de sauvegarde est la seule copie en dehors de ce navigateur. Si les données de ce navigateur sont effacées et que vous n’avez pas de sauvegarde, l’enregistrement est perdu.',
+  'app.doc.local.p4': 'Toute personne qui a son lien de vérification et le fichier peut toujours le vérifier.',
+  'app.doc.local.p5': 'Ce choix se fait une seule fois, au scellement. Il ne peut pas être modifié ensuite.',
+  'app.doc.local.title': 'Gardé uniquement sur cet appareil',
+  'app.doc.local.text':
+    'Rien de ce qui a été saisi dans cet enregistrement n’a été envoyé à VeilCore, verrouillé ou non : seulement son code de preuve, pour le dater. Les seules copies sont dans ce navigateur et dans votre fichier de sauvegarde. Si les données de ce navigateur sont effacées et que vous n’avez pas de sauvegarde, l’enregistrement est perdu, et VeilCore ne peut pas vous le rendre.',
+  'app.doc.local.backup': 'Enregistrer une sauvegarde',
+  'app.doc.local.homeLine': 'Uniquement sur cet appareil',
+  'app.doc.local.noProve':
+    'Prouver un chiffre envoie des informations depuis ce navigateur ; ce n’est donc pas proposé pour un enregistrement gardé uniquement sur cet appareil.',
+  'app.doc.local.staysHere':
+    'Cet enregistrement est gardé uniquement sur cet appareil ; rien de son contenu n’est donc envoyé à VeilCore.',
+  'app.doc.local.noCorrect':
+    'Un enregistrement gardé uniquement sur cet appareil ne peut pas être corrigé. Scellez de nouveau le document comme un nouvel enregistrement.',
 } satisfies Partial<AppTranslation>;

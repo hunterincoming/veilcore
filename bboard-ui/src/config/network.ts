@@ -211,3 +211,14 @@ export const viabilityNotRead = (
  * /health doesn't list "document-profile-v1" (scripts/registry-features.mjs).
  */
 export const DOCUMENT_RECORDS_ENABLED = true;
+
+/**
+ * "Keep on this device only" for document records (docs/device-only-records.md): a choice on the
+ * document sealing screen, off unless the holder ticks it. Such a record sends VeilCore its proof
+ * code and nothing else, ever: nothing typed, locked or not. On in every build, mainnet included:
+ * it needs nothing new from the registry (a proof code dated first, CONTRACT.md #38, is kept and
+ * batched like any record). Not called live on veilcore.org until one has been sealed and
+ * checked there (config/copy.ts DEVICE_ONLY_RUN_ON_MAINNET). Never offered for other kinds of
+ * record: their check pages, lab hand-overs and licenses read the locked copy VeilCore keeps.
+ */
+export const DEVICE_ONLY_RECORDS_ENABLED = true;

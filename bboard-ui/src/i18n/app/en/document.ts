@@ -164,4 +164,24 @@ export const document = {
   'app.doc.bundle.checkedAgainst': 'Each one is checked against the files sealed in this record before it goes in.',
   'app.doc.bundle.filesAria': 'The document’s files',
   'app.doc.bundle.chooseOrUntick': 'Choose the document’s file, or untick it.',
+  // ---- kept on this device only (docs/device-only-records.md; DocumentNew.tsx, DocumentDetail.tsx) ----
+  'app.doc.local.choice': 'Keep this record on this device and in my backup only',
+  'app.doc.local.before': 'Before you choose:',
+  'app.doc.local.p1':
+    'Nothing you type here is sent to VeilCore, locked or not. Only the proof code is sent, so the record gets its date.',
+  'app.doc.local.p2': 'VeilCore’s server can’t give this record back: it never has it.',
+  'app.doc.local.p3':
+    'Your backup file is the only copy besides this browser. If this browser’s data is cleared and you have no backup, the record is gone.',
+  'app.doc.local.p4': 'Anyone with its check link and the file can still check it.',
+  'app.doc.local.p5': 'This is chosen once, when sealing. It can’t be changed after.',
+  'app.doc.local.title': 'Kept on this device only',
+  'app.doc.local.text':
+    'Nothing typed into this record was sent to VeilCore, locked or not: only its proof code, to date it. This browser and your backup file hold the only copies. If this browser’s data is cleared and you have no backup, the record is gone, and VeilCore can’t give it back.',
+  'app.doc.local.backup': 'Save a backup',
+  'app.doc.local.homeLine': 'On this device only',
+  'app.doc.local.noProve':
+    'Proving a number sends details from this browser, so it isn’t offered for a record kept on this device only.',
+  'app.doc.local.staysHere': 'This record is kept on this device only, so nothing from it is sent to VeilCore.',
+  'app.doc.local.noCorrect':
+    'A record kept on this device only can’t be corrected. Seal the document again as a new record.',
 };

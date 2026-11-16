@@ -162,4 +162,25 @@ export const document = {
   'app.doc.bundle.checkedAgainst': 'Cada uno se compara con los archivos sellados en este registro antes de incluirlo.',
   'app.doc.bundle.filesAria': 'Archivos del documento',
   'app.doc.bundle.chooseOrUntick': 'Elija el archivo del documento o desmarque la casilla.',
+  // ---- kept on this device only (docs/device-only-records.md; DocumentNew.tsx, DocumentDetail.tsx) ----
+  'app.doc.local.choice': 'Guardar este registro solo en este dispositivo y en mi copia de seguridad',
+  'app.doc.local.before': 'Antes de elegir:',
+  'app.doc.local.p1':
+    'Nada de lo que escriba aquí se envía a VeilCore, ni bloqueado ni sin bloquear. Solo se envía el código de prueba, para que el registro reciba su fecha.',
+  'app.doc.local.p2': 'El servidor de VeilCore no puede devolverle este registro: no lo tiene en ningún momento.',
+  'app.doc.local.p3':
+    'Su archivo de copia de seguridad es la única copia aparte de este navegador. Si se borran los datos de este navegador y no tiene copia de seguridad, el registro se pierde.',
+  'app.doc.local.p4': 'Cualquiera que tenga su enlace de comprobación y el archivo puede seguir comprobándolo.',
+  'app.doc.local.p5': 'Se elige una sola vez, al sellar. Después no se puede cambiar.',
+  'app.doc.local.title': 'Guardado solo en este dispositivo',
+  'app.doc.local.text':
+    'Nada de lo escrito en este registro se envió a VeilCore, ni bloqueado ni sin bloquear: solo su código de prueba, para fecharlo. Las únicas copias están en este navegador y en su archivo de copia de seguridad. Si se borran los datos de este navegador y no tiene copia de seguridad, el registro se pierde, y VeilCore no puede devolvérselo.',
+  'app.doc.local.backup': 'Guardar una copia de seguridad',
+  'app.doc.local.homeLine': 'Solo en este dispositivo',
+  'app.doc.local.noProve':
+    'Demostrar un número envía datos desde este navegador, así que no se ofrece para un registro guardado solo en este dispositivo.',
+  'app.doc.local.staysHere':
+    'Este registro se guarda solo en este dispositivo, así que nada de él se envía a VeilCore.',
+  'app.doc.local.noCorrect':
+    'Un registro guardado solo en este dispositivo no se puede corregir. Selle el documento de nuevo como un registro nuevo.',
 } satisfies Partial<AppTranslation>;

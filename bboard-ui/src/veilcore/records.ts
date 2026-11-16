@@ -26,7 +26,7 @@ import { withPairSalt } from './dna-link';
 import { newNameSalt } from './verify-link';
 import { isAnimal, type AnimalDetails, type ParentRole } from './animal-profile';
 import { isStrain, STRAIN_GROUPS, type StrainDetails } from './strain-profile';
-import type { DocumentDetails } from './document-profile';
+import { isDocument, type DocumentDetails } from './document-profile';
 import type { HeldFieldSet } from './field-set';
 import type { MadeClaim } from './claim-link';
 import type { LabSignature } from './lab-attest';
@@ -72,7 +72,11 @@ import {
 import {
   dropNames,
   dropOfferKeys,
+  deviceOnlyRecords,
   inOutbox,
+  isDeviceOnly,
+  keepOnDevice,
+  keptOnDeviceOnly,
   keepName,
   keepOfferKey,
   outboxNames,
@@ -161,6 +165,13 @@ export type StrainRecord = {
    * strainName is the title, refId the reference and dateCreated the date on the document.
    */
   readonly document?: DocumentDetails;
+  /**
+   * Kept on this device and in the backup file only (docs/device-only-records.md): a document
+   * record whose holder chose, when sealing it, that nothing typed leaves the device. Only its
+   * proof code is sent, to be dated. Outside the proof code; never sealed for the registry,
+   * never sent. Set once, when the record is made, and never taken off here.
+   */
+  readonly deviceOnly?: true;
   /** A document's field set (SPEC 4.5), sealed: the schema's id and the set's root (field-set.ts). */
   readonly fieldSchema?: string;
   readonly fieldSetRoot?: string;
@@ -358,7 +369,9 @@ export const isStrainRecord = (v: unknown): v is StrainRecord => {
     (r.parents === undefined || Array.isArray(r.parents)) &&
     (r.animal === undefined || (typeof r.animal === 'object' && r.animal !== null && !Array.isArray(r.animal))) &&
     (r.strain === undefined || (typeof r.strain === 'object' && r.strain !== null && !Array.isArray(r.strain))) &&
-    (r.document === undefined || (typeof r.document === 'object' && r.document !== null && !Array.isArray(r.document)))
+    (r.document === undefined ||
+      (typeof r.document === 'object' && r.document !== null && !Array.isArray(r.document))) &&
+    (r.deviceOnly === undefined || r.deviceOnly === true)
   );
 };
 
@@ -382,6 +395,8 @@ export type NewRecordInput = {
   animal?: AnimalDetails;
   strain?: StrainDetails;
   document?: DocumentDetails;
+  /** Keep it on this device and in the backup only (document records; StrainRecord.deviceOnly). */
+  deviceOnly?: true;
   fieldSchema?: string;
   fieldSetRoot?: string;
   fieldSet?: HeldFieldSet;
@@ -592,8 +607,27 @@ const keepUnsure = (): void => {
   }
 };
 
-/** store.save of the record set, counted while it is on its way (savesSettled). Never an unsure record. */
-const saveRecords = (rows: StrainRecord[]): Promise<SaveResult> => {
+/**
+ * A record kept on this device only (docs/device-only-records.md) is never given to a save: every
+ * save of the record set goes through saveRecords, which takes these out first (api-store.ts
+ * sealForSave skips one too, should any reach it). A change made to one here (its name salt, its
+ * secrets) is kept in this browser instead, where the record lives.
+ */
+const withoutDeviceOnly = (rows: readonly StrainRecord[]): StrainRecord[] => {
+  const mine = rows.filter(isDeviceOnly);
+  if (mine.length === 0) return rows as StrainRecord[];
+  const kept = deviceOnlyRecords();
+  const changed = mine.filter((r) => JSON.stringify(kept[r.id]) !== JSON.stringify(r));
+  if (changed.length) keepOnDevice(changed);
+  return rows.filter((r) => !isDeviceOnly(r));
+};
+
+/**
+ * store.save of the record set, counted while it is on its way (savesSettled). Never an unsure
+ * record, and never one kept on this device only.
+ */
+const saveRecords = (all: StrainRecord[]): Promise<SaveResult> => {
+  const rows = withoutDeviceOnly(all);
   const held = unsureNow();
   if (held.size) {
     // Not sent; this browser keeps the change made to it, for when it is settled.
@@ -738,7 +772,8 @@ export const refresh = async (opts: { resave?: boolean } = {}): Promise<boolean>
     // first load still shows what this browser keeps for the registry (outbox.ts).
     const first = !loadedOnce;
     loadedOnce = true;
-    if (before.length === 0) records = Object.values(outboxRecords()).filter(isStrainRecord);
+    if (before.length === 0)
+      records = [...Object.values(outboxRecords()), ...Object.values(deviceOnlyRecords())].filter(isStrainRecord);
     if (first || (before.length === 0 && records.length)) notify();
     return false;
   }
@@ -763,6 +798,8 @@ export const refresh = async (opts: { resave?: boolean } = {}): Promise<boolean>
   }
   // What this browser keeps for the registry: shown, and sent with the next save (L1, L12).
   const merged = await mergeOutbox();
+  // Records kept on this device only: shown, never sent (docs/device-only-records.md).
+  mergeDeviceOnly();
   // A record whose public rev isn't the one sealed inside it (round 3, L2): sent again, so
   // the registry checks saves against the right number.
   const revFix = (loadNoticeOf(RECORDS_KEY).revMismatch ?? 0) > 0;
@@ -796,7 +833,7 @@ export const refresh = async (opts: { resave?: boolean } = {}): Promise<boolean>
 
 /** disclosure.ts syncGrants over this set: never from a record that doesn't match its fingerprint. */
 const resendGrants = (force: readonly string[] = []): Promise<number> =>
-  syncGrants(getRecord, force, (id) => integrityOf(id) !== 'mismatch');
+  syncGrants(getRecord, force, (id) => integrityOf(id) !== 'mismatch' && !isDeviceOnly(getRecord(id)));
 
 /**
  * Keep the holder's grant choice in the record's sealed copy before anything is published
@@ -813,6 +850,9 @@ const keepGrant = async (
   const r = getRecord(id);
   if (!r) return { error: 'that record isn’t in this browser' };
   if (integrityOf(id) === 'mismatch') return { error: enT.t('app.sealed.mismatch') };
+  // Sharing by link publishes values on VeilCore's server; a record kept on this device only
+  // sends nothing but its proof code. Its own check link carries its fields instead.
+  if (isDeviceOnly(r)) return { error: enT.t('app.doc.local.staysHere') };
   // A choice made on the share screen answers the question about the grant listed before
   // locking too (P2).
   const { grantToConfirm: _ask, sharedAttestations: before, ...rest } = r;
@@ -1120,6 +1160,29 @@ const mergeOutbox = async (): Promise<boolean> => {
   return needsSave;
 };
 
+/**
+ * Put the records kept on this device only (outbox.ts deviceOnlyRecords) into the set just loaded.
+ * The registry holds only a proof code for one (state 'dating'), or nothing yet. Should it hold
+ * anything else under that id (a locked copy saved from somewhere else), that is what is shown:
+ * a record whose locked copy has left is not said to be on this device only. Nothing here asks
+ * for a save.
+ */
+const mergeDeviceOnly = (): void => {
+  for (const [id, kept] of Object.entries(deviceOnlyRecords())) {
+    if (!isStrainRecord(kept)) continue;
+    const state = rowStateOf(RECORDS_KEY, id);
+    if (state !== undefined && state !== 'dating') continue;
+    const at = records.findIndex((r) => r.id === id);
+    records = at >= 0 ? records.map((r, i) => (i === at ? kept : r)) : [kept, ...records];
+  }
+};
+
+/** Whether this record is kept on this device and in the backup only (never sent to VeilCore). */
+export const isKeptOnDeviceOnly = (r: StrainRecord | undefined): boolean => !!r && isDeviceOnly(r);
+
+/** Whether VeilCore has neither this record's locked copy nor (yet) its proof code. */
+export const waitsToBeSent = (id: string): boolean => inOutbox(id) || keptOnDeviceOnly(id);
+
 // ---- dating first (CONTRACT.md #38) ---------------------------------------------------------
 
 /**
@@ -1133,7 +1196,8 @@ const mergeOutbox = async (): Promise<boolean> => {
 let dating: Promise<void> | null = null;
 const dateFirst = (skip: readonly string[] = []): Promise<void> => {
   dating ??= (async () => {
-    const rows = Object.values(outboxRecords())
+    // A record kept on this device only is dated the same way: its proof code is all that is sent.
+    const rows = [...Object.values(outboxRecords()), ...Object.values(deviceOnlyRecords())]
       .filter((r) => isString(r.id) && !skip.includes(r.id) && !registryHasProofCode(r.id))
       .map(datingRowOf)
       .filter((r): r is NonNullable<typeof r> => r !== undefined);
@@ -1318,12 +1382,20 @@ export const createRecord = (input: NewRecordInput): StrainRecord => {
   const record: StrainRecord = withNameSalt({ licenseIds: [], ...input, id: input.id ?? newRecordId() });
   // Refused before it is shown or sent: the caller still has what was typed.
   if (tooLargeToSave(record)) throw new Error(enT.t('app.sealed.tooLarge'));
+  // Only a document can be kept on this device only: its check link carries its fields, so a
+  // check needs nothing from VeilCore but the dated proof code. Other kinds rely on the locked
+  // copy VeilCore keeps (check pages, lab hand-overs, licenses).
+  if (record.deviceOnly && !isDocument(record)) throw new Error('only a document can be kept on this device only');
   keepDataIfFirst(records.length);
   records = [record, ...records];
   // Kept in this browser until the registry has it (L12): a refused or held save never
   // takes away what was typed.
   holderKey();
-  putInOutbox([record]);
+  if (record.deviceOnly) {
+    // Kept here for good, under a key of its own (outbox.ts), and never given to a save: only
+    // its proof code is sent (dateFirst, from saveAll).
+    keepOnDevice([record]);
+  } else putInOutbox([record]);
   persist();
   return record;
 };
@@ -1336,7 +1408,10 @@ export const createRecord = (input: NewRecordInput): StrainRecord => {
 export const createRecordSaved = async (
   input: NewRecordInput,
 ): Promise<{ readonly record: StrainRecord; readonly result: SaveResult }> => {
-  const record: StrainRecord = withNameSalt({ licenseIds: [], ...input, id: input.id ?? newRecordId() });
+  // Never kept on this device only: this caller needs the registry to hold the record.
+  const { deviceOnly: _local, ...sendable } = input;
+  void _local;
+  const record: StrainRecord = withNameSalt({ licenseIds: [], ...sendable, id: input.id ?? newRecordId() });
   keepDataIfFirst(records.length);
   records = [record, ...records];
   holderKey();
@@ -1356,9 +1431,12 @@ export const createRecordSaved = async (
  * could not be reached or refused the whole save, and the caller words what happened.
  */
 export const createRecords = async (inputs: readonly NewRecordInput[]): Promise<SaveResult> => {
-  const batch: StrainRecord[] = inputs.map((input) =>
-    withNameSalt({ licenseIds: [], ...input, id: input.id ?? newRecordId() }),
-  );
+  // Never kept on this device only: a bulk save shows nothing until the registry holds it.
+  const batch: StrainRecord[] = inputs.map((given) => {
+    const { deviceOnly: _local, ...input } = given;
+    void _local;
+    return withNameSalt({ licenseIds: [], ...input, id: input.id ?? newRecordId() });
+  });
   const ids = new Set(batch.map((r) => r.id));
   keepDataIfFirst(records.length);
   const result = await saveRecords([...batch, ...records.filter((r) => !ids.has(r.id))]);
@@ -1552,7 +1630,24 @@ const IMPORTABLE = [
   'nameSalt',
   'supersedes',
   'supersededBy',
+  // A document's own details and its numbers: part of what its proof code is worked out from
+  // (commitment.ts), so a backup without them could not put a document back.
+  'document',
+  'fieldSchema',
+  'fieldSetRoot',
+  'fieldSet',
+  // "Kept on this device only" travels with the record in the backup file, so a restore on
+  // another device keeps it there too (docs/device-only-records.md).
+  'deviceOnly',
 ] as const;
+
+/** The record without the "on this device only" mark: saved as any record. */
+const sendableCopy = (r: StrainRecord): StrainRecord => {
+  if (!r.deviceOnly) return r;
+  const { deviceOnly: _local, ...rest } = r;
+  void _local;
+  return rest;
+};
 
 const importable = (r: StrainRecord): StrainRecord => {
   const src = r as unknown as Record<string, unknown>;
@@ -1647,14 +1742,23 @@ export const importRecordRows = async (parsed: readonly unknown[]): Promise<Impo
   // else for those ids is not imported, and counted, rather than said to be added and then
   // gone on the next load.
   const lockedHere = new Map(lockedRecords().map((l) => [l.id, l]));
-  const fresh = cleaned.filter((r) => !have.has(r.id) && !lockedHere.has(r.id));
-  const replacing = cleaned.filter((r) => lockedHere.has(r.id) && allowReplace(RECORDS_KEY, r.id, r.recordFingerprint));
-  const mismatched = cleaned.filter((r) => lockedHere.has(r.id)).length - replacing.length;
+  const freshRows = cleaned.filter((r) => !have.has(r.id) && !lockedHere.has(r.id));
+  const replacingRows = cleaned.filter(
+    (r) => lockedHere.has(r.id) && allowReplace(RECORDS_KEY, r.id, r.recordFingerprint),
+  );
+  const mismatched = cleaned.filter((r) => lockedHere.has(r.id)).length - replacingRows.length;
   let refusedBack: string[] = [];
+  // "On this device only" can't be switched on for a record VeilCore already holds a locked copy
+  // of (a locked copy has left; saying otherwise would be false): a record put back over such a
+  // row is saved as any record. And only a document can carry it (createRecord).
+  const fresh = freshRows.map((r) => (r.deviceOnly && !isDocument(r) ? sendableCopy(r) : r));
+  const replacing = replacingRows.map(sendableCopy);
   const adding = [...fresh, ...replacing];
   if (adding.length > 0) {
     records = [...adding, ...records.filter((r) => !replacing.some((x) => x.id === r.id))];
     holderKey();
+    // A record kept on this device only goes to this browser's own store, never the send queue.
+    keepOnDevice(adding);
     putInOutbox(adding);
     notify();
     const result = await saveAll();
@@ -2112,6 +2216,9 @@ export const issueCorrection = async (
   if (!getRecord(originalId)) return undefined;
   // Made from the original's fields, so never from ones that don't match its fingerprint.
   if (integrityOf(originalId) === 'mismatch') throw new Error(enT.t('app.sealed.mismatch'));
+  // A correction is linked to its record on the registry, from the two locked copies. A record
+  // kept on this device only has none there: a changed document is sealed as a new one.
+  if (isDeviceOnly(getRecord(originalId))) throw new Error(enT.t('app.doc.local.noCorrect'));
   // A correction is two saves the registry must both take: never of a record saved before
   // locking, nor under a key that isn't in a checked backup yet (round 3, L7, L1). Said up
   // front; it used to leave a correction on the registry while saying nothing had changed.

@@ -31,7 +31,7 @@ import { isAnimal } from './animal-profile';
 import { isStrain } from './strain-profile';
 import { noteSentTo, offerKeyInRecords, sentToName, type StrainRecord } from './records';
 import { registerCustodySummaries, type CustodySummaryEntry } from './disclosure';
-import { inOutbox } from './outbox';
+import { inOutbox, isDeviceOnly } from './outbox';
 import { rowStateOf } from './api-store';
 
 const BASE = import.meta.env.VITE_API_BASE ?? '';
@@ -650,6 +650,8 @@ export const offerTransfer = async (
   const problems = sample ? custodyProblems('sample', sample) : [];
   if (problems.length) return { error: problems.join(' ') };
   const details = sampleDetailsOf(sample);
+  // A record kept on this device only sends nothing but its proof code: never a sealed offer.
+  if (isDeviceOnly(record)) return { error: enT.t('app.doc.local.staysHere') };
   // A record kept only in this browser (round 3, L1) isn't on VeilCore to send from.
   if (inOutbox(record.id) && rowStateOf('veilcore.records.v1', record.id) === undefined) {
     return { error: enT.t('app.sealed.sendNotSaved') };

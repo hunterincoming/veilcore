@@ -5,9 +5,9 @@
 
 import React, { useState } from 'react';
 import { Alert, Box, Button, CircularProgress, Divider, Stack, Typography } from '@mui/material';
-import { useNavigate, useParams, useSearchParams, Link as RouterLink } from 'react-router-dom';
+import { Navigate, useNavigate, useParams, useSearchParams, Link as RouterLink } from 'react-router-dom';
 import ArrowBackIcon from '@mui/icons-material/ArrowBackOutlined';
-import { getRecord, useRecords, useRecordsLoaded, type StrainRecord } from '../../veilcore/records';
+import { getRecord, isKeptOnDeviceOnly, useRecords, useRecordsLoaded, type StrainRecord } from '../../veilcore/records';
 import { isAnimal } from '../../veilcore/animal-profile';
 import { isStrain } from '../../veilcore/strain-profile';
 import { useT } from '../../i18n/app';
@@ -85,6 +85,8 @@ export const TermsBuilder: React.FC = () => {
   const loaded = useRecordsLoaded();
   const record = getRecord(id);
   const tr = forKind(useT(), 'plant');
+  // A record kept on this device only sends nothing but its proof code: no license is made from it.
+  if (record && isKeptOnDeviceOnly(record)) return <Navigate to={`/record/${record.id}`} replace />;
   if (record) return <TermsBuilderFor key={record.id} record={record} />;
   if (!loaded)
     return (

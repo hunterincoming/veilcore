@@ -165,4 +165,26 @@ export const document = {
     'Jede wird vor dem Beilegen mit den in diesem Datensatz versiegelten Dateien abgeglichen.',
   'app.doc.bundle.filesAria': 'Dateien des Dokuments',
   'app.doc.bundle.chooseOrUntick': 'Wählen Sie die Datei des Dokuments aus oder entfernen Sie das Häkchen.',
+  // ---- kept on this device only (docs/device-only-records.md; DocumentNew.tsx, DocumentDetail.tsx) ----
+  'app.doc.local.choice': 'Diesen Datensatz nur auf diesem Gerät und in meiner Sicherung aufbewahren',
+  'app.doc.local.before': 'Bevor Sie wählen:',
+  'app.doc.local.p1':
+    'Nichts, was Sie hier eingeben, wird an VeilCore gesendet, weder verschlossen noch offen. Gesendet wird nur der Prüfcode, damit der Datensatz sein Datum erhält.',
+  'app.doc.local.p2':
+    'Der Server von VeilCore kann diesen Datensatz nicht zurückgeben: Er hat ihn zu keinem Zeitpunkt.',
+  'app.doc.local.p3':
+    'Ihre Sicherungsdatei ist die einzige Kopie neben diesem Browser. Werden die Daten dieses Browsers gelöscht und haben Sie keine Sicherung, ist der Datensatz weg.',
+  'app.doc.local.p4': 'Wer den Prüflink und die Datei hat, kann ihn weiterhin prüfen.',
+  'app.doc.local.p5': 'Das wird einmal gewählt, beim Versiegeln. Danach lässt es sich nicht ändern.',
+  'app.doc.local.title': 'Nur auf diesem Gerät aufbewahrt',
+  'app.doc.local.text':
+    'Nichts, was in diesen Datensatz eingegeben wurde, ging an VeilCore, weder verschlossen noch offen: nur sein Prüfcode, um ihn zu datieren. Die einzigen Kopien liegen in diesem Browser und in Ihrer Sicherungsdatei. Werden die Daten dieses Browsers gelöscht und haben Sie keine Sicherung, ist der Datensatz weg, und VeilCore kann ihn nicht zurückgeben.',
+  'app.doc.local.backup': 'Sicherung speichern',
+  'app.doc.local.homeLine': 'Nur auf diesem Gerät',
+  'app.doc.local.noProve':
+    'Der Nachweis einer Zahl sendet Angaben aus diesem Browser. Für einen Datensatz, der nur auf diesem Gerät aufbewahrt wird, gibt es ihn deshalb nicht.',
+  'app.doc.local.staysHere':
+    'Dieser Datensatz wird nur auf diesem Gerät aufbewahrt, daher wird nichts daraus an VeilCore gesendet.',
+  'app.doc.local.noCorrect':
+    'Ein Datensatz, der nur auf diesem Gerät aufbewahrt wird, lässt sich nicht korrigieren. Versiegeln Sie das Dokument erneut als neuen Datensatz.',
 } satisfies Partial<AppTranslation>;

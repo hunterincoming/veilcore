@@ -125,6 +125,16 @@ export const LAB_SIGNING_RUN_ON_MAINNET = false;
  */
 export const SCHEDULED_ANCHORING_RUN_ON_MAINNET = true;
 
+/**
+ * Whether "keep on this device only" (config/network.ts DEVICE_ONLY_RECORDS_ENABLED) has worked on
+ * veilcore.org: a document sealed that way there, only its proof code sent, dated in a batch, and
+ * checked from its check link. Until it has, the home page's veilcore.org cell says it is built
+ * and not yet tried on the main network (m.live.local.main), never "Yes". Hunter turns it on in a
+ * reviewed commit after that first run, never before: then the cell says "Yes" on every build
+ * (m.live.local.live), a fact about veilcore.org.
+ */
+export const DEVICE_ONLY_RUN_ON_MAINNET = false;
+
 /** The label agreements carry while AGREEMENTS_LIVE is false. */
 export const PRACTICE_LABEL = AGREEMENTS_LIVE ? '' : 'Practice only';
 

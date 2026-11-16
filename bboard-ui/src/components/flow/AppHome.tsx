@@ -18,6 +18,7 @@ import {
   useRecords,
   exportRecords,
   importRecords,
+  isKeptOnDeviceOnly,
   unsavedReason,
   startOver,
   useSealedView,
@@ -528,6 +529,12 @@ export const AppHome: React.FC = () => {
                     >
                       {s.text}
                     </Typography>
+                    {/* Kept on this device and in the backup only: said on its card, never as "not uploaded yet". */}
+                    {isKeptOnDeviceOnly(r) && (
+                      <Typography variant="body2" color="text.secondary" data-home-device-only={r.id}>
+                        {t('app.doc.local.homeLine')}
+                      </Typography>
+                    )}
                     {/* Kept in this browser, not on VeilCore yet (round 3, L1, L12). */}
                     {unsavedReason(r.id) && (
                       <Typography

@@ -16,6 +16,8 @@
 //   dating  only the record's proof code, sent the moment it was sealed (dating first,
 //           CONTRACT.md #38): the record is the copy this browser keeps until its locked
 //           copy can be saved (a checked backup), and it is in the next batch already.
+//           For a record kept on this device only (docs/device-only-records.md) this is
+//           where it stays: its locked copy is never made or sent.
 //
 // The registry no longer checks a record's fingerprint against its contents (it can't
 // read them), so the browser does: each opened record is fingerprinted again
@@ -72,6 +74,7 @@ import { readJson, isObject, isString } from './json';
 import { nameCodeOf } from './verify-link';
 import { fingerprintRecord, type CommittedRecordInput } from './commitment';
 import { withTabLock } from './tab-lock';
+import { isDeviceOnly } from './outbox';
 import {
   canStoreVault,
   isSealedRow,
@@ -931,6 +934,10 @@ const sealForSave = async (kind: RowKind, value: readonly unknown[]): Promise<Se
     // the registry sent an older copy of, which this browser has no newer copy of. An import
     // that put the holder's own contents back (L4) is the one exception.
     if ((was === 'locked' && !state?.replace.has(id)) || was === 'older') continue;
+    // A record kept on this device only (docs/device-only-records.md) is never sealed for the
+    // registry and never sent: not now, not held for the backup, not queued. records.ts takes
+    // these out before a save; this is the last place one could pass, so it is checked again.
+    if (kind === 'records' && isDeviceOnly(item)) continue;
     if (was === 'legacy' && backupFirst) {
       // Left as the registry holds it until the backup is checked. A change made to it here
       // can't be kept until then, and is said: for agreements too (L3), whose changes used
