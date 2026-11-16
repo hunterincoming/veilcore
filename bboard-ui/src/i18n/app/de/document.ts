@@ -312,7 +312,7 @@ export const document = {
   'app.doc.check.tooLarge':
     'Dieser Link enthält mehr, als ein Prüflink enthalten kann. Bitten Sie den Absender um den eigenen Link jedes Datensatzes.',
   'app.doc.chain.share.warnLocal':
-    'Nichts, was in einen nur auf diesem Gerät aufbewahrten Datensatz eingegeben wurde, ging je an VeilCore. Wenn Sie diesen Link kopieren, geben Sie die Eingaben jedes solchen Datensatzes, den er enthält (oben markiert, und dieser Datensatz, falls er einer ist), an jeden weiter, der den Link erhält.',
+    'Nichts, was in einen nur auf diesem Gerät aufbewahrten Datensatz eingegeben wurde, ging je an das Register von VeilCore. Wenn Sie diesen Link kopieren, geben Sie die Eingaben jedes solchen Datensatzes, den er enthält (oben markiert, und dieser Datensatz, falls er einer ist), an jeden weiter, der den Link erhält.',
   'app.doc.chain.aboutHolderNote':
     'Wenn Sie einen dieser Links öffnen, wird das Register von VeilCore von Ihrer Netzwerkadresse aus nach der Kennung dieses Datensatzes gefragt. Bei einem Datensatz, der nur auf diesem Gerät aufbewahrt wird, erfährt das Register damit eines mehr: dass dieser Browser ihn nachgeschlagen hat.',
 } satisfies Partial<AppTranslation>;

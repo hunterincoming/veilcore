@@ -309,7 +309,7 @@ export const document = {
   'app.doc.check.tooLarge':
     'Ce lien porte plus que ce qu’un lien de vérification peut porter. Demandez à l’expéditeur le lien propre à chaque enregistrement.',
   'app.doc.chain.share.warnLocal':
-    'Rien de ce qui a été saisi dans un enregistrement gardé uniquement sur cet appareil n’a jamais été envoyé à VeilCore. En copiant ce lien, vous remettez ce qui a été saisi dans chacun de ceux qu’il porte (marqués ci-dessus, et cet enregistrement s’il en est un) à quiconque le reçoit.',
+    'Rien de ce qui a été saisi dans un enregistrement gardé uniquement sur cet appareil n’a jamais été envoyé au registre de VeilCore. En copiant ce lien, vous remettez ce qui a été saisi dans chacun de ceux qu’il porte (marqués ci-dessus, et cet enregistrement s’il en est un) à quiconque le reçoit.',
   'app.doc.chain.aboutHolderNote':
     'Ouvrir l’un de ces liens interroge le registre de VeilCore sur l’identifiant de cet enregistrement, depuis votre adresse réseau. Pour un enregistrement gardé uniquement sur cet appareil, c’est une chose de plus que le registre apprend : que ce navigateur l’a consulté.',
 } satisfies Partial<AppTranslation>;

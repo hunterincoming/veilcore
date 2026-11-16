@@ -305,7 +305,7 @@ export const document = {
     'A record kept on this device only can be picked only if this record is kept on this device only too (the box below). What a record is about is sealed into its locked copy, so an ordinary record would send that record’s name and ID to VeilCore.',
   'app.doc.check.tooLarge': 'This link carries more than a check link can. Ask the sender for each record’s own link.',
   'app.doc.chain.share.warnLocal':
-    'Nothing typed into a record kept on this device only was ever sent to VeilCore. Copying this link hands what was typed into each one it carries (marked above, and this record if it is one) to whoever receives it.',
+    'Nothing typed into a record kept on this device only was ever sent to VeilCore’s registry. Copying this link hands what was typed into each one it carries (marked above, and this record if it is one) to whoever receives it.',
   'app.doc.chain.aboutHolderNote':
     'Opening one of these links asks VeilCore’s registry about that record’s ID, from your network address. For a record kept on this device only, that is one more thing the registry learns: that this browser looked it up.',
 };

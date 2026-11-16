@@ -689,9 +689,14 @@ describe("what's live where", () => {
     const detail = fs.readFileSync(path.join(SRC, 'components/document/DocumentDetail.tsx'), 'utf8');
     expect(detail).toMatch(/isKeptOnDeviceOnly\(r\) \? ` \(\$\{t\('app\.doc\.local\.homeLine'\)\}\)`/);
     expect(detail).toContain("t('app.doc.chain.share.warnLocal')");
-    expect((appEn as Record<string, string>)['app.doc.chain.share.warnLocal']).toMatch(
-      /hands what was typed into each one it carries .* to whoever receives it\.$/,
+    // "VeilCore's registry", not "VeilCore": a number proved "exactly" went through VeilCore's fee service.
+    expect((appEn as Record<string, string>)['app.doc.chain.share.warnLocal']).toBe(
+      'Nothing typed into a record kept on this device only was ever sent to VeilCore’s registry. Copying this link hands what was typed into each one it carries (marked above, and this record if it is one) to whoever receives it.',
     );
+    for (const dict of [appDe, appEs, appFr, appJa])
+      expect((dict as Record<string, string>)['app.doc.chain.share.warnLocal']).toMatch(
+        /Register von VeilCore|registro de VeilCore|registre de VeilCore|VeilCoreのレジストリ/,
+      );
     // The holder's own "About" links: opening one asks the registry about that ID.
     expect(fs.readFileSync(path.join(SRC, 'components/document/DocumentParts.tsx'), 'utf8')).toMatch(
       /!checker \? ` \$\{t\('app\.doc\.chain\.aboutHolderNote'\)\}` : ''/,

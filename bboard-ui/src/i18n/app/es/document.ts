@@ -305,7 +305,7 @@ export const document = {
   'app.doc.check.tooLarge':
     'Este enlace lleva más de lo que puede llevar un enlace de comprobación. Pida al remitente el enlace propio de cada registro.',
   'app.doc.chain.share.warnLocal':
-    'Nada de lo escrito en un registro guardado solo en este dispositivo se envió nunca a VeilCore. Al copiar este enlace, entrega lo escrito en cada uno de los que lleva (marcados arriba, y este registro si lo es) a quien lo reciba.',
+    'Nada de lo escrito en un registro guardado solo en este dispositivo se envió nunca al registro de VeilCore. Al copiar este enlace, entrega lo escrito en cada uno de los que lleva (marcados arriba, y este registro si lo es) a quien lo reciba.',
   'app.doc.chain.aboutHolderNote':
     'Al abrir uno de estos enlaces, se pregunta al registro de VeilCore por el identificador de ese registro desde su dirección de red. Para un registro guardado solo en este dispositivo, es una cosa más que el registro de VeilCore llega a saber: que este navegador lo consultó.',
 } satisfies Partial<AppTranslation>;
