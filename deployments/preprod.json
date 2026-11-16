@@ -3,8 +3,8 @@
   "format": "veilcore-deployments/v1",
   "network": "preprod",
   "networkLedger": {
-    "version": 8,
-    "since": null
+    "version": 9,
+    "since": "2026-11-09"
   },
   "toolchain": {
     "compiler": "0.31.1",
