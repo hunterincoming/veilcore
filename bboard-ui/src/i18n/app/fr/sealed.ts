@@ -8,6 +8,8 @@ export const sealed = {
   'app.sealed.refuse.noKey':
     'ce navigateur n’a pas la clé de vos enregistrements, donc rien n’a été enregistré. Restaurez d’abord votre fichier de secours.',
   'app.sealed.refuse.mismatch': 'il ne correspond pas à son code de preuve, donc il n’a pas été enregistré',
+  'app.sealed.refuse.namesKept':
+    'il nomme un enregistrement gardé uniquement sur cet appareil, donc il n’a pas été enregistré. Sa copie verrouillée porterait le nom et l’identifiant de cet enregistrement',
   'app.sealed.mismatch':
     'Cet enregistrement ne correspond pas à son code de preuve : il a peut-être été modifié après avoir été scellé. Il ne sera plus enregistré, envoyé ni partagé.',
   'app.sealed.alreadyCorrected':

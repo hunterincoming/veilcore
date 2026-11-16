@@ -132,5 +132,9 @@ check a document for now.
   file", "Is this the same file?", and, for a certificate with numbers, "Prove one number"
   (`docs/claims-screen.md`; on veilcore.org once claims are switched on there).
 - **The check page:** `/check-document#d=…`.
-- **Not yet:** a certificate, an evidence bundle, corrections, and listing a genetic record's
-  documents on its own page.
+- **A chain of records** ([document-chain.md](document-chain.md)): a document can be about
+  another document, "About" entries link to the named record's check page, and a record's page
+  lists what it is about and the records about it, from this device's records. Built; not yet
+  tried on a network.
+- **Not yet:** a certificate, corrections, and a chain view that includes records held on
+  another device.

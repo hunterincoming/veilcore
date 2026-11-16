@@ -185,8 +185,6 @@ export const document = {
   'app.doc.local.homeNotBacked': 'この端末だけに保管 · まだバックアップなし',
   'app.doc.local.backup': 'バックアップを保存する',
   'app.doc.local.homeLine': 'この端末だけに保管',
-  'app.doc.local.noProve':
-    '数値を証明するとこのブラウザから情報が送信されるため、この端末だけに保管する記録では利用できません。',
   'app.doc.local.staysHere': 'この記録はこの端末だけに保管されているため、この操作は利用できません。',
   'app.doc.local.delete': 'この端末から削除する',
   'app.doc.local.deleteConfirm':
@@ -209,4 +207,103 @@ export const document = {
     'この壊れた保存内容をこの端末から削除しますか？ここでは元に戻せません。これが入っているバックアップファイルには、引き続き入っています。',
   'app.doc.local.unreadable.backupNote':
     'この端末だけに保管している記録を1件読み取れませんでした。このバックアップにはその保存内容がそのままの形で入っているため、ファイルがあれば何も失われません。ほかのものは通常どおり入っています。',
+  // ---- a production chain, and proving a number from a device-only record (docs/document-chain.md) ----
+  'app.doc.chain.kind.grow-batch': '栽培バッチ',
+  'app.doc.chain.kind.harvest-lot': '収穫ロット',
+  'app.doc.schema.grow-batch': '栽培バッチ',
+  'app.doc.schema.harvest-lot': '収穫ロット',
+  'app.doc.slot.plants': '記録の日付時点でこのバッチにある株数',
+  'app.doc.slot.plantsInFlower': 'そのうち、記録の日付時点で開花期にある株数',
+  'app.doc.slot.areaSquareMetres': 'このバッチの栽培に使っている床面積（平方メートル）',
+  'app.doc.slot.plantsHarvested': 'このロットに収穫した株数',
+  'app.doc.slot.wetWeightGrams': '収穫時の生重量（刈り取ったままの株全体、グラム）',
+  'app.doc.slot.dryWeightGrams': '保管時のロットの乾燥重量（グラム）',
+  'app.doc.chain.start.title': '生産の流れを記録しますか？',
+  'app.doc.chain.start.text':
+    '各段階をそれぞれ別の記録として封印し、1つ前の記録を対象にします：元の植物や株、栽培バッチ、収穫ロット、検査報告書。それぞれに日付が付きます。',
+  'app.doc.chain.start.plain': 'そのほかの書類',
+  'app.doc.chain.f.titleHelp': '任意。空欄なら種類とIDになります。株数や重量は書かないでください。',
+  'app.doc.chain.f.reference.grow-batch': 'バッチID',
+  'app.doc.chain.f.reference.harvest-lot': 'ロットID',
+  'app.doc.chain.f.referenceHelp': 'ご自身の記録に書いているとおりに。',
+  'app.doc.chain.f.site': '場所の名前（任意）',
+  'app.doc.chain.f.siteHelp': '部屋、畑、施設などの、ご自身の呼び名。メモに入ります。',
+  'app.doc.chain.f.variety': '品種（任意）',
+  'app.doc.chain.f.varietyHelp': 'メモに入ります。',
+  'app.doc.chain.f.numbers': 'その数値',
+  'app.doc.chain.f.numbersHelp':
+    '株数と重量はここだけに入力し、タイトルやメモには書かないでください。入力したとおりに封印されます。誰かが測定した値ではありません。あとで「100株以下」のように1つだけを、ほかを見せずに証明できます。',
+  'app.doc.chain.note.site': '場所',
+  'app.doc.chain.note.variety': '品種',
+  'app.doc.chain.titleFor.grow-batch': '栽培バッチ {id}',
+  'app.doc.chain.titleFor.harvest-lot': '収穫ロット {id}',
+  'app.doc.chain.need.reference': 'バッチIDまたはロットIDを入力してください。',
+  'app.doc.chain.need.aNumber': '数値を1つ以上入力してください。',
+  'app.doc.chain.sheet.title': 'ファイルがない場合',
+  'app.doc.chain.sheet.text':
+    '記録にはファイルが必要です。ご自身のバッチ記録票を使うのが望ましく、すでに付けている作業書類に日付が付きます。ない場合は、上で入力したID、日付、場所、品種、保有者、「対象」から、株数や重量を含まないテキストの記録票を作り、この端末に保存します。先にそれらを入力してください。',
+  'app.doc.chain.sheet.make': '入力した内容から記録票を作る',
+  'app.doc.chain.sheet.made':
+    '作成し、{name}として保存しました。このファイルは保管してください。記録の確認に必要で、1バイトも変えてはいけません。上の入力を変えても、記録票は変わりません。',
+  'app.doc.chain.aboutHelp':
+    '関係するあなたの記録：分析証明書なら検査した植物、収穫ロットならその栽培バッチ。これはあなたの申告です。選んだ記録と照合されることはありません。',
+  'app.doc.chain.aboutNote':
+    '「対象」は保有者自身の申告で、この記録と一緒に封印されています。VeilCoreもMidnightも、名指しされた記録との照合は行いません。記録の連なりの強さは、それぞれの記録の日付と証明コードで決まります。',
+  'app.doc.chain.carried':
+    'ここにリンクされている記録は、このリンクの送り主がリンクに入れたものです。封印された記録は相手をIDだけで名指ししているため、リンク先がその記録であることは、ここでは示されません。',
+  'app.doc.chain.idOnly':
+    'このリンクに記録のIDしか入っていない場合、その記録のページには、VeilCoreのレジストリがそのIDについて報告する内容が、確認済みの印なしで表示されます。確認済みの日付が必要なら、その記録の確認リンクを保有者に求めてください。',
+  'app.doc.chain.namedAs':
+    'これは別の記録から開いたもので、その記録はこれを記録{id}として名指ししています。そのIDとこの記録の証明コードを結び付けるものは、リンクの中にはありません。',
+  'app.doc.chain.askRegistry': 'VeilCoreのレジストリが記録{id}について報告する内容を見る',
+  'app.doc.chain.askRegistrySends':
+    'そのページは、記録のIDをVeilCoreのレジストリに、この証明コードをページのアドレスの一部としてウェブサイトのホストに送信します。このリンクのほかの内容は送信されません。',
+  'app.doc.chain.title': 'この端末で見た記録の連なり',
+  'app.doc.chain.text':
+    'このブラウザにある記録から、この端末だけに保管している記録も含めて、ここで組み立てています。そのためにVeilCoreへ問い合わせることはなく、ほかの場所にある記録は表示されません。',
+  'app.doc.chain.up': 'この記録の対象',
+  'app.doc.chain.down': 'この記録を対象とする記録',
+  'app.doc.chain.none': 'この端末にはありません。',
+  'app.doc.chain.notHeld': '{name}（この端末にはありません）',
+  'app.doc.chain.share.title': '記録の連なりと一緒に送る',
+  'app.doc.chain.share.text':
+    'このリンクには、この記録の対象の記録と、さらにその対象の記録も入ります。確認する人はそれぞれを開いて日付を見ることができます。',
+  'app.doc.chain.share.warn':
+    'このリンクを持つ人には、上のリンクでこの記録が見えるのと同じように、次の書類の記録の内容もすべて見えます：{list}。書類ではない記録については、IDと証明コードだけが入ります。',
+  'app.doc.chain.share.copy': '記録の連なり付きのリンクをコピー',
+  'app.doc.chain.share.copied': 'コピーしました。',
+  'app.doc.local.p6':
+    '数値がある場合、あとで1つを証明することを選べます。その場合、数値についての事実がVeilCoreの手数料サービスを通ってMidnightで公開されます。その記録でオンにしたときだけです。',
+  'app.doc.local.prove.off': 'この端末だけに保管する記録では、数値の証明は有効になっていません。',
+  'app.doc.local.prove.title': '数値を1つ証明する：あなたの選択',
+  'app.doc.local.prove.text':
+    'ここでオンにしない限りオフです。証明すると、1つの数値についての事実が、VeilCoreの手数料サービスを通ってMidnightで永久に公開されます。VeilCoreのレジストリには何も送信されません。証明する前に、何が公開されるかが正確に表示されます。',
+  'app.doc.local.prove.choice': 'この記録で「数値を1つ証明する」を表示する',
+  'app.doc.local.prove.publish.title': '続行した場合に公開される内容',
+  'app.doc.local.prove.publish.range':
+    'Midnightで永久に公開されるもの：フォーム「{schema}」、項目「{label}」、境界値{bound}とその向き（{direction}）、この記録を表すコード。数値そのものは公開されません。境界値を証明するたびに、数値の範囲は狭まります。',
+  'app.doc.local.prove.publish.exact':
+    'Midnightで永久に公開されるもの：フォーム「{schema}」、項目「{label}」、数値そのもの（{value}）、この記録を表すコード。',
+  'app.doc.local.prove.publish.noBound': '境界値を入力すると、公開される内容が正確に表示されます。',
+  'app.doc.local.prove.publish.route':
+    'このブラウザからVeilCoreの手数料サービスを通ってMidnightに送られます。手数料サービスには、公開される内容とあなたのネットワークアドレスが伝わります。VeilCoreのレジストリには何も送信されません。数値はあなたが入力したもので、検査機関が測定したものではありません。',
+  'app.doc.local.prove.direction.atMost': '以下',
+  'app.doc.local.prove.direction.atLeast': '以上',
+  'app.doc.local.prove.confirmExact': 'はい、数値そのもの（{value}）をMidnightで永久に公開します。',
+  'app.doc.local.textProved':
+    'この記録に入力した内容は、鍵をかけた形でもそうでない形でも、VeilCoreのレジストリに送信されていません。数値についてあなたが証明することを選んだ内容は、Midnightで公開されています。記録の写しがあるのは、このブラウザと、あなたが確認したバックアップファイルだけです。両方を失うと記録は失われ、VeilCoreからお返しすることはできません。この記録を封印する前に保存したバックアップには入っておらず、パスキーのコピーには入ることがありません。',
+  'app.doc.local.proved':
+    'あなたはこの記録の数値についての事実を証明することを選びました。それらはVeilCoreの手数料サービスを通ってMidnightに送られ、永久に公開されています。下に一覧があります。この記録に入力した内容は、VeilCoreのレジストリには送信されていません。',
+  'app.claim.tie':
+    '証明した内容はMidnightで公開され、VeilCoreと、この記録の確認リンクを持つ人は、それをこの記録と結び付けることができます。VeilCoreは、この記録に日付を付けた保有者キーとも結び付けることができます。',
+  'app.doc.local.aboutStaysHere':
+    'この記録は、この端末だけに保管している記録を名指ししているため、この記録もこの端末だけに保管する必要があります。そうしないと、相手の記録の名前とIDが、この記録の鍵をかけたコピーに入ってVeilCoreに送信されます。何も保存も送信もされていません。',
+  'app.doc.chain.aboutLocalOnly':
+    'この端末だけに保管している記録は、この記録もこの端末だけに保管する場合（下のチェックボックス）にだけ選べます。記録の対象は鍵をかけたコピーに封印されるため、通常の記録では、相手の記録の名前とIDがVeilCoreに送信されてしまいます。',
+  'app.doc.check.tooLarge':
+    'このリンクには、確認リンクに入れられる量を超える内容が入っています。送り主に、記録ごとのリンクを求めてください。',
+  'app.doc.chain.share.warnLocal':
+    'この端末だけに保管している記録に入力した内容は、VeilCoreのレジストリに送信されたことがありません。このリンクをコピーすると、リンクに入るそうした記録（上で印が付いたもの。この記録が該当する場合はこの記録も）に入力した内容が、リンクを受け取った人に渡ります。',
+  'app.doc.chain.aboutHolderNote':
+    'これらのリンクを開くと、あなたのネットワークアドレスから、その記録のIDについてVeilCoreのレジストリに問い合わせが行われます。この端末だけに保管している記録の場合、レジストリが知ることが1つ増えます。このブラウザがその記録を調べたということです。',
 } satisfies Partial<AppTranslation>;

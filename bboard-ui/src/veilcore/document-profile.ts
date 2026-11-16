@@ -126,7 +126,8 @@ const LINES = ['title', 'issuer', 'reference', 'holder'] as const;
 
 const HEX64 = /^[0-9a-f]{64}$/;
 const NONCE = /^(?:[0-9a-f]{2}){32,64}$/;
-const RECORD_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/;
+/** A record id, as an `about` entry names one. */
+export const RECORD_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/;
 const CONTROL = /\p{Cc}/u;
 
 const lineProblem = (what: string, v: unknown): string | undefined => {

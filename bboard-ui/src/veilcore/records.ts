@@ -93,6 +93,7 @@ import {
   outboxRecords,
   putInOutbox,
   takeFromOutbox,
+  namesDeviceOnly,
 } from './outbox';
 import { holderKey, holderKeyIfAny, holderRequestsPaused } from './holder';
 import { enT, type Translator } from '../i18n/translate';
@@ -1545,6 +1546,9 @@ export const createRecord = (input: NewRecordInput): StrainRecord => {
   // check needs nothing from VeilCore but the dated proof code. Other kinds rely on the locked
   // copy VeilCore keeps (check pages, lab hand-overs, licenses).
   if (record.deviceOnly && !isDocument(record)) throw new Error('only a document can be kept on this device only');
+  // A record that leaves can't name one kept on this device only: what it names is sealed into
+  // its locked copy (outbox.ts namesDeviceOnly). One that is itself kept here may.
+  if (namesDeviceOnly(record)) throw new Error(enT.t('app.doc.local.aboutStaysHere'));
   keepDataIfFirst(records.length);
   records = [record, ...records];
   // Kept in this browser until the registry has it (L12): a refused or held save never
@@ -1570,6 +1574,7 @@ export const createRecordSaved = async (
   // This caller needs the registry to hold the record: refused for one marked to stay on this
   // device, never made without the mark.
   if (neverSend(input)) throw new Error(enT.t('app.doc.local.staysHere'));
+  if (namesDeviceOnly(input)) throw new Error(enT.t('app.doc.local.aboutStaysHere'));
   const record: StrainRecord = withNameSalt({ licenseIds: [], ...input, id: input.id ?? newRecordId() });
   keepDataIfFirst(records.length);
   records = [record, ...records];
@@ -1593,6 +1598,7 @@ export const createRecords = async (inputs: readonly NewRecordInput[]): Promise<
   // A bulk save shows nothing until the registry holds it: refused for a record marked to stay
   // on this device, never made without the mark.
   if (inputs.some(neverSend)) throw new Error(enT.t('app.doc.local.staysHere'));
+  if (inputs.some((r) => namesDeviceOnly(r))) throw new Error(enT.t('app.doc.local.aboutStaysHere'));
   const batch: StrainRecord[] = inputs.map((input) =>
     withNameSalt({ licenseIds: [], ...input, id: input.id ?? newRecordId() }),
   );
@@ -1938,7 +1944,11 @@ export const importRecordRows = async (parsed: readonly unknown[]): Promise<Impo
   const local = cleaned.filter((r) => r.deviceOnly && !uploadedAlready(r) && !knownOrdinary(r));
   const localNew = local.filter((r) => !keptOnDeviceOnly(r.id));
   // The rest: records saved on VeilCore as always. Never one whose id is kept on this device.
-  const sendable = cleaned.filter((r) => !r.deviceOnly && !keptOnDeviceOnly(r.id));
+  // And never one that names a record kept on this device (here already, or by this very file):
+  // its locked copy would carry that record's title and ID. Not imported, and counted.
+  const keptByFile = new Set(local.map((r) => r.id));
+  const namesKept = cleaned.filter((r) => !r.deviceOnly && namesDeviceOnly(r, keptByFile));
+  const sendable = cleaned.filter((r) => !r.deviceOnly && !keptOnDeviceOnly(r.id) && !namesDeviceOnly(r, keptByFile));
   const fresh = sendable.filter((r) => !have.has(r.id) && !lockedHere.has(r.id));
   const replacing = sendable.filter(
     (r) => lockedHere.has(r.id) && allowReplace(RECORDS_KEY, r.id, r.recordFingerprint),
@@ -1976,8 +1986,8 @@ export const importRecordRows = async (parsed: readonly unknown[]): Promise<Impo
       (local.length - localNew.length) +
       cleaned.filter((r) => (r.deviceOnly ? uploadedAlready(r) : keptOnDeviceOnly(r.id))).length,
     ...(lockedRows ? { locked: lockedRows } : {}),
-    ...(mismatched + refusedBack.length + refusedMark.length
-      ? { notImported: mismatched + refusedBack.length + refusedMark.length }
+    ...(mismatched + refusedBack.length + refusedMark.length + namesKept.length
+      ? { notImported: mismatched + refusedBack.length + refusedMark.length + namesKept.length }
       : {}),
   };
 };

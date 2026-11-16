@@ -45,7 +45,7 @@ import { INK_COLOR, GROUND, POLLEN, WASH } from '../../config/theme';
 import { useT, useRecordT, rich } from '../../i18n/app';
 import { recordTitle } from '../../veilcore/animal-profile';
 import { isDocument } from '../../veilcore/document-profile';
-import { typeWords } from '../document/DocumentParts';
+import { kindOrTypeWords } from '../document/DocumentParts';
 import { SECTIONS, focusScreenHeading } from './FlowFrame';
 import { PasteBox } from './PasteBox';
 import { labCardLine, useLabCardFacts, useWaitingByRecord } from './LabResults';
@@ -471,7 +471,7 @@ export const AppHome: React.FC = () => {
                 : homeStatusLine(r, keys[r.id], { realChain: REAL_CHAIN, queued: imported.has(r.id) }, tr);
             // A document says so on its card: its type, then the same status as any record.
             const s = doc
-              ? { ...base, text: `${t('app.doc.homeLine', { type: typeWords(r.document?.type, tr) })} · ${base.text}` }
+              ? { ...base, text: `${t('app.doc.homeLine', { type: kindOrTypeWords(r, tr) })} · ${base.text}` }
               : base;
             const datings = (datingsOf.get(r.id) ?? []).map((d) => ({
               id: d.id,

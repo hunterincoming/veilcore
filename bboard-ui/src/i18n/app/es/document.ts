@@ -186,8 +186,6 @@ export const document = {
   'app.doc.local.homeNotBacked': 'Solo en este dispositivo · aún sin copia de seguridad',
   'app.doc.local.backup': 'Guardar una copia de seguridad',
   'app.doc.local.homeLine': 'Solo en este dispositivo',
-  'app.doc.local.noProve':
-    'Demostrar un número envía datos desde este navegador, así que no se ofrece para un registro guardado solo en este dispositivo.',
   'app.doc.local.staysHere': 'Este registro se guarda solo en este dispositivo, así que esto no se ofrece para él.',
   'app.doc.local.delete': 'Eliminar de este dispositivo',
   'app.doc.local.deleteConfirm':
@@ -210,4 +208,104 @@ export const document = {
     '¿Eliminar esta entrada dañada de este dispositivo? Aquí no se puede deshacer. Un archivo de copia de seguridad que la lleve la sigue llevando.',
   'app.doc.local.unreadable.backupNote':
     'No se pudo leer un registro guardado solo en este dispositivo. Esta copia de seguridad lleva su entrada tal como está, así que con el archivo no se pierde nada. Todo lo demás está incluido como siempre.',
+  // ---- a production chain, and proving a number from a device-only record (docs/document-chain.md) ----
+  'app.doc.chain.kind.grow-batch': 'Lote de cultivo',
+  'app.doc.chain.kind.harvest-lot': 'Lote de cosecha',
+  'app.doc.schema.grow-batch': 'Lote de cultivo',
+  'app.doc.schema.harvest-lot': 'Lote de cosecha',
+  'app.doc.slot.plants': 'Plantas en este lote en la fecha del registro',
+  'app.doc.slot.plantsInFlower': 'De ellas, plantas en fase de floración en la fecha del registro',
+  'app.doc.slot.areaSquareMetres': 'Superficie de suelo en cultivo para este lote, en metros cuadrados',
+  'app.doc.slot.plantsHarvested': 'Plantas cosechadas para este lote',
+  'app.doc.slot.wetWeightGrams': 'Peso fresco en la cosecha, plantas enteras tal como se cortaron, en gramos',
+  'app.doc.slot.dryWeightGrams': 'Peso seco del lote tal como se almacena, en gramos',
+  'app.doc.chain.start.title': '¿Registrar una cadena de producción?',
+  'app.doc.chain.start.text':
+    'Selle cada paso como un registro aparte, cada uno sobre el anterior: la planta o cepa de origen, un lote de cultivo, un lote de cosecha, el informe de laboratorio. Cada uno recibe su fecha.',
+  'app.doc.chain.start.plain': 'Otro documento',
+  'app.doc.chain.f.titleHelp':
+    'Opcional. Si se deja vacío, es el tipo y el identificador. No ponga recuentos ni pesos en él.',
+  'app.doc.chain.f.reference.grow-batch': 'Identificador del lote',
+  'app.doc.chain.f.reference.harvest-lot': 'Identificador del lote',
+  'app.doc.chain.f.referenceHelp': 'Tal como lo escribe en sus propios registros.',
+  'app.doc.chain.f.site': 'Etiqueta del sitio (opcional)',
+  'app.doc.chain.f.siteHelp': 'Su propia etiqueta para una sala, un campo o una instalación. Va en las notas.',
+  'app.doc.chain.f.variety': 'Variedad (opcional)',
+  'app.doc.chain.f.varietyHelp': 'Va en las notas.',
+  'app.doc.chain.f.numbers': 'Sus números',
+  'app.doc.chain.f.numbersHelp':
+    'Los recuentos y los pesos van aquí y en ningún otro sitio: no los repita en el título ni en las notas. Se sellan tal como usted los escribe, no como alguien los midió, para que después pueda probar uno, como «como máximo 100 plantas», sin mostrar los demás.',
+  'app.doc.chain.note.site': 'Sitio',
+  'app.doc.chain.note.variety': 'Variedad',
+  'app.doc.chain.titleFor.grow-batch': 'Lote de cultivo {id}',
+  'app.doc.chain.titleFor.harvest-lot': 'Lote de cosecha {id}',
+  'app.doc.chain.need.reference': 'Indique el identificador del lote.',
+  'app.doc.chain.need.aNumber': 'Escriba al menos un número.',
+  'app.doc.chain.sheet.title': '¿No tiene un archivo?',
+  'app.doc.chain.sheet.text':
+    'Un registro necesita un archivo. Su propia hoja de lote es la mejor opción: fecha un documento de trabajo que usted ya lleva. Si no tiene ninguna, aquí se crea una hoja de texto sin formato con el identificador, la fecha, el sitio, la variedad, el titular y «Sobre» de arriba, sin recuentos ni pesos, y se guarda en este dispositivo. Rellene antes esos campos.',
+  'app.doc.chain.sheet.make': 'Crear una hoja con lo que escribí',
+  'app.doc.chain.sheet.made':
+    'Creada y guardada como {name}. Conserve ese archivo: hace falta para comprobar el registro y debe seguir igual byte por byte. Si cambia lo que escribió arriba, la hoja no cambia con ello.',
+  'app.doc.chain.aboutHelp':
+    'Registros suyos a los que se refiere: un certificado de análisis con la planta analizada, un lote de cosecha con su lote de cultivo. Es su declaración. Nada la coteja con el registro que elija.',
+  'app.doc.chain.aboutNote':
+    '«Sobre» es la declaración del propio titular, sellada con este registro. Ni VeilCore ni Midnight la cotejan con el registro que nombra. Una cadena de registros solo es tan fuerte como la fecha y el código de prueba de cada registro.',
+  'app.doc.chain.carried':
+    'Los registros enlazados aquí venían en este enlace, de quien lo envió. El registro sellado nombra cada uno solo por su identificador, así que nada aquí muestra que un registro enlazado sea el nombrado.',
+  'app.doc.chain.idOnly':
+    'Cuando este enlace solo lleva el identificador de un registro, su página muestra lo que el registro de VeilCore informa sobre ese identificador, sin ninguna marca de comprobación. Para una fecha comprobada, pida al titular el enlace de comprobación de ese registro.',
+  'app.doc.chain.namedAs':
+    'Abrió esto desde otro registro, que lo nombra como registro {id}. Nada en el enlace une ese identificador al código de prueba de este registro.',
+  'app.doc.chain.askRegistry': 'Ver lo que el registro de VeilCore informa sobre el registro {id}',
+  'app.doc.chain.askRegistrySends':
+    'Esa página envía el identificador del registro al registro de VeilCore y, en su dirección, este código de prueba al servidor del sitio web. Nada más de este enlace.',
+  'app.doc.chain.title': 'Su cadena, en este dispositivo',
+  'app.doc.chain.text':
+    'Calculada aquí a partir de los registros que tiene este navegador, incluidos los guardados solo en este dispositivo. No se pregunta nada a VeilCore para ello, y un registro guardado en otro lugar no aparece.',
+  'app.doc.chain.up': 'A qué se refiere',
+  'app.doc.chain.down': 'Registros sobre este',
+  'app.doc.chain.none': 'Ninguno en este dispositivo.',
+  'app.doc.chain.notHeld': '{name} (no está en este dispositivo)',
+  'app.doc.chain.share.title': 'Enviarlo con su cadena',
+  'app.doc.chain.share.text':
+    'Este enlace lleva también los registros a los que se refiere este, y aquellos a los que se refieren esos, para que quien lo compruebe pueda abrir cada uno y ver su fecha.',
+  'app.doc.chain.share.warn':
+    'Quien tenga este enlace ve también todo lo que hay en cada uno de esos registros de documento, igual que el enlace de arriba muestra este: {list}. De un registro que no es un documento, solo lleva el identificador y el código de prueba.',
+  'app.doc.chain.share.copy': 'Copiar enlace con su cadena',
+  'app.doc.chain.share.copied': 'Copiado.',
+  'app.doc.local.p6':
+    'Si tiene números, más adelante puede elegir probar uno. Eso publica un hecho sobre el número en Midnight, a través del servicio de tarifas de VeilCore, y solo si usted lo activa para ese registro.',
+  'app.doc.local.prove.off': 'Probar un número no está activado para un registro guardado solo en este dispositivo.',
+  'app.doc.local.prove.title': 'Probar un número: usted decide',
+  'app.doc.local.prove.text':
+    'Desactivado salvo que usted lo active aquí. Probar publica para siempre un hecho sobre un número en Midnight, a través del servicio de tarifas de VeilCore. No se envía nada al registro de VeilCore. Antes de probar nada, se le muestra exactamente lo que se publicaría.',
+  'app.doc.local.prove.choice': 'Mostrar «Probar un número» para este registro',
+  'app.doc.local.prove.publish.title': 'Qué se publicará si continúa',
+  'app.doc.local.prove.publish.range':
+    'En Midnight, público y permanente: el formulario «{schema}», el campo «{label}», el límite {bound} y el sentido ({direction}), con un código que representa este registro. El número en sí no se publica. Cada límite que pruebe lo acota más.',
+  'app.doc.local.prove.publish.exact':
+    'En Midnight, público y permanente: el formulario «{schema}», el campo «{label}» y el número en sí, {value}, con un código que representa este registro.',
+  'app.doc.local.prove.publish.noBound': 'Escriba un límite para ver exactamente lo que se publicaría.',
+  'app.doc.local.prove.publish.route':
+    'Va de este navegador a Midnight a través del servicio de tarifas de VeilCore, que ve lo que se publica y su dirección de red. No se envía nada al registro de VeilCore. El número es el que usted escribió, no el que midió un laboratorio.',
+  'app.doc.local.prove.direction.atMost': 'como máximo',
+  'app.doc.local.prove.direction.atLeast': 'como mínimo',
+  'app.doc.local.prove.confirmExact': 'Sí, publicar el número en sí: {value}, en Midnight, para siempre.',
+  'app.doc.local.textProved':
+    'Nada de lo escrito en este registro se envió al registro de VeilCore, ni bloqueado ni sin bloquear. Lo que usted eligió probar sobre sus números es público en Midnight. Las únicas copias del registro están en este navegador y en el archivo de copia de seguridad que usted comprobó. Si pierde las dos, el registro se pierde: VeilCore no puede devolvérselo. Una copia de seguridad guardada antes de sellar este registro no lo contiene, y una copia con llave de acceso no lo contiene en ningún caso.',
+  'app.doc.local.proved':
+    'Usted eligió probar hechos sobre los números de este registro. Fueron a Midnight a través del servicio de tarifas de VeilCore y son públicos para siempre; aparecen abajo. Nada de lo escrito en este registro se envió al registro de VeilCore.',
+  'app.claim.tie':
+    'Lo que usted prueba queda público en Midnight de un modo que VeilCore, y cualquiera que tenga el enlace de comprobación de este registro, puede vincular con este registro. VeilCore también puede vincularlo con la clave de titular que fechó el registro.',
+  'app.doc.local.aboutStaysHere':
+    'Este registro nombra un registro guardado solo en este dispositivo, así que también debe guardarse solo en este dispositivo. De lo contrario, el nombre y el identificador de aquel registro irían a VeilCore dentro de la copia bloqueada de este. No se guardó ni se envió nada.',
+  'app.doc.chain.aboutLocalOnly':
+    'Un registro guardado solo en este dispositivo solo puede elegirse si este registro también se guarda solo en este dispositivo (la casilla de abajo). Aquello a lo que se refiere un registro se sella en su copia bloqueada, así que un registro corriente enviaría a VeilCore el nombre y el identificador de aquel registro.',
+  'app.doc.check.tooLarge':
+    'Este enlace lleva más de lo que puede llevar un enlace de comprobación. Pida al remitente el enlace propio de cada registro.',
+  'app.doc.chain.share.warnLocal':
+    'Nada de lo escrito en un registro guardado solo en este dispositivo se envió nunca al registro de VeilCore. Al copiar este enlace, entrega lo escrito en cada uno de los que lleva (marcados arriba, y este registro si lo es) a quien lo reciba.',
+  'app.doc.chain.aboutHolderNote':
+    'Al abrir uno de estos enlaces, se pregunta al registro de VeilCore por el identificador de ese registro desde su dirección de red. Para un registro guardado solo en este dispositivo, es una cosa más que el registro de VeilCore llega a saber: que este navegador lo consultó.',
 } satisfies Partial<AppTranslation>;

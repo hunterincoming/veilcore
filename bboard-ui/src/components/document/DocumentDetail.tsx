@@ -13,6 +13,7 @@ import {
   deviceOnlyBackedUp,
   deviceOnlyConflict,
   isKeptOnDeviceOnly,
+  useRecords,
   type StrainRecord,
 } from '../../veilcore/records';
 import {
@@ -21,17 +22,20 @@ import {
   type DocumentRecordLike,
   type DocumentType,
 } from '../../veilcore/document-profile';
-import { documentCheckLink } from '../../veilcore/document-link';
+import { chainEntriesFor, documentChainLink, documentCheckLink, type AboutTarget } from '../../veilcore/document-link';
+import { verifyPath } from '../../veilcore/verify-link';
+import { documentKindOf } from '../../veilcore/document-kind';
 import { REAL_CHAIN } from '../../veilcore/chain/config';
-import { LAB_SIGNING_ENABLED, viabilityNotRead } from '../../config/network';
+import { DOCUMENT_CHAIN_ENABLED, LAB_SIGNING_ENABLED, viabilityNotRead } from '../../config/network';
 import { AnchorOnChainPanel } from '../chain/AnchorOnChainPanel';
 import { AppHeader } from '../AppHeader';
 import { EvidenceBundle } from '../EvidenceBundle';
 import { useRecordKeys } from '../../veilcore/record-keys';
 import { useT } from '../../i18n/app';
-import { DocumentDate, DocumentFacts, Fact, FileCompare } from './DocumentParts';
+import { DocumentDate, DocumentFacts, Fact, FileCompare, kindOrTypeWords, seen } from './DocumentParts';
+import { ChainView } from './ChainView';
 import { schemaWords, slotWords } from './NumbersFields';
-import { ProveNumber } from './ProveNumber';
+import { DeviceOnlyProve, ProveNumber } from './ProveNumber';
 import { LabSignaturePanel } from './LabSignaturePanel';
 import { ResultFacts, ViabilityNotRead } from '../lab/ResultFacts';
 
@@ -135,6 +139,31 @@ export const DocumentDetail: React.FC<{ record: StrainRecord }> = ({ record }) =
   const d = record.document;
   const files: readonly DocumentFile[] = d?.files ?? [];
 
+  // The same link with the records it is about (document-link.ts documentChainLink): made only
+  // when the holder presses its own button, since it shows those records' details too.
+  const [chainCopied, setChainCopied] = useState(false);
+  const records = useRecords();
+  const chain = DOCUMENT_CHAIN_ENABLED ? chainEntriesFor(record as never, records as never) : [];
+  const copyChainLink = async () => {
+    setLinkError(undefined);
+    try {
+      const link = documentChainLink(record as never, records as never, window.location.origin);
+      await navigator.clipboard.writeText(link);
+      setChainCopied(true);
+    } catch (e) {
+      setLinkError(e instanceof Error ? e.message : String(e));
+    }
+  };
+  // Where an "About" entry's link goes from the holder's own page: the named record's public
+  // check page, with its proof code when this browser holds the record.
+  const aboutTarget = (id: string): AboutTarget => {
+    const held = records.find((r) => r.id === id);
+    return held?.recordFingerprint
+      ? { kind: 'record', to: verifyPath(id, held.recordFingerprint) }
+      : { kind: 'id-only', to: verifyPath(id) };
+  };
+  const hasClaims = (record.claims ?? []).length > 0;
+
   const copyLink = async () => {
     setLinkError(undefined);
     try {
@@ -155,7 +184,8 @@ export const DocumentDetail: React.FC<{ record: StrainRecord }> = ({ record }) =
     holder: string;
     notes: string;
     files: DocumentFile[];
-    about: { name: string }[];
+    about: { name: string; recordId?: string }[];
+    fieldSchema?: string;
   };
 
   return (
@@ -171,7 +201,16 @@ export const DocumentDetail: React.FC<{ record: StrainRecord }> = ({ record }) =
       </Button>
       <Stack spacing={2.5}>
         <Box>
-          <Chip label={t('app.doc.kind')} size="small" sx={{ mb: 1 }} />
+          <Chip
+            label={
+              DOCUMENT_CHAIN_ENABLED && documentKindOf(record)
+                ? `${t('app.doc.kind')} · ${kindOrTypeWords(record, tr)}`
+                : t('app.doc.kind')
+            }
+            size="small"
+            sx={{ mb: 1 }}
+            data-document-chip=""
+          />
           <Typography variant="h4" component="h1" tabIndex={-1} sx={{ wordBreak: 'break-word' }}>
             {record.strainName}
           </Typography>
@@ -197,11 +236,18 @@ export const DocumentDetail: React.FC<{ record: StrainRecord }> = ({ record }) =
               {t('app.doc.local.title')}
             </Typography>
             <Typography variant="body2" sx={{ mb: 1 }} data-device-only-copies="">
-              {t(backedUp ? 'app.doc.local.text' : 'app.doc.local.notBacked')}
+              {t(
+                backedUp ? (hasClaims ? 'app.doc.local.textProved' : 'app.doc.local.text') : 'app.doc.local.notBacked',
+              )}
             </Typography>
             <Typography variant="body2" data-device-only-sent="">
               {t('app.doc.local.sent')}
             </Typography>
+            {hasClaims && (
+              <Typography variant="body2" sx={{ mt: 1 }} data-device-only-proved="">
+                {t('app.doc.local.proved')}
+              </Typography>
+            )}
           </Alert>
         )}
         {conflict && (
@@ -219,7 +265,7 @@ export const DocumentDetail: React.FC<{ record: StrainRecord }> = ({ record }) =
           </Stack>
         </Paper>
         <Paper sx={{ p: { xs: 2.5, md: 3 } }}>
-          <DocumentFacts fields={f} />
+          <DocumentFacts fields={f} aboutTarget={DOCUMENT_CHAIN_ENABLED ? aboutTarget : undefined} />
         </Paper>
         {record.labResult && record.labSignature && (
           <Paper sx={{ p: { xs: 2.5, md: 3 } }} data-lab-result-panel="">
@@ -247,18 +293,17 @@ export const DocumentDetail: React.FC<{ record: StrainRecord }> = ({ record }) =
           </Paper>
         )}
         {read && <HeldNumbers held={read} />}
-        {/* Signing and proving send details out of this browser: not for a record kept here only. */}
+        <ChainView record={record} />
+        {/* Signing sends details out of this browser: not for a record kept here only. Proving a
+            number publishes a fact on Midnight: for such a record it is the holder's own choice,
+            off until they turn it on (ProveNumber.tsx DeviceOnlyProve). */}
         {!local && (
           <>
             {read && LAB_SIGNING_ENABLED && <LabSignaturePanel record={record} signatureOk={labOk} />}
             {read && <ProveNumber record={record} labSignatureOk={labOk === true} />}
           </>
         )}
-        {read && local && (
-          <Typography variant="body2" color="text.secondary" data-device-only-no-prove="">
-            {t('app.doc.local.noProve')}
-          </Typography>
-        )}
+        {read && local && <DeviceOnlyProve record={record} />}
         <Paper sx={{ p: { xs: 2.5, md: 3 } }} data-document-share="">
           <Typography variant="h6" component="h2" sx={{ mb: 0.5 }}>
             {t('app.doc.share.title')}
@@ -276,6 +321,40 @@ export const DocumentDetail: React.FC<{ record: StrainRecord }> = ({ record }) =
             <Typography variant="body2" role="status" sx={{ mt: 1 }}>
               {t('app.doc.share.copied')}
             </Typography>
+          )}
+          {chain.length > 0 && (
+            <Box sx={{ mt: 2.5 }} data-document-chain-share="">
+              <Typography variant="subtitle2" component="h3">
+                {t('app.doc.chain.share.title')}
+              </Typography>
+              <Typography variant="body2" sx={{ mb: 1 }}>
+                {t('app.doc.chain.share.text')}
+              </Typography>
+              <Alert severity="warning" variant="outlined" sx={{ mb: 1.5 }}>
+                {t('app.doc.chain.share.warn', {
+                  list: chain
+                    .map((c) => {
+                      const r = records.find((x) => x.id === c.id);
+                      // A record kept on this device only is marked: this link is how its fields leave.
+                      return `${seen(r?.strainName || c.id)}${isKeptOnDeviceOnly(r) ? ` (${t('app.doc.local.homeLine')})` : ''}`;
+                    })
+                    .join(' · '),
+                })}
+                {chain.some((c) => isKeptOnDeviceOnly(records.find((x) => x.id === c.id))) || local ? (
+                  <Box component="span" sx={{ display: 'block', mt: 1 }} data-chain-share-local="">
+                    {t('app.doc.chain.share.warnLocal')}
+                  </Box>
+                ) : null}
+              </Alert>
+              <Button variant="outlined" onClick={() => void copyChainLink()} sx={{ minHeight: 44 }}>
+                {t('app.doc.chain.share.copy')}
+              </Button>
+              {chainCopied && (
+                <Typography variant="body2" role="status" sx={{ mt: 1 }}>
+                  {t('app.doc.chain.share.copied')}
+                </Typography>
+              )}
+            </Box>
           )}
           {linkError && (
             <Alert severity="error" variant="outlined" sx={{ mt: 1.5 }}>

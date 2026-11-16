@@ -8,6 +8,8 @@ export const sealed = {
   'app.sealed.refuse.noKey':
     'this browser doesn’t have the key for your records, so nothing was saved. Restore your backup file first.',
   'app.sealed.refuse.mismatch': 'it doesn’t match its proof code, so it wasn’t saved',
+  'app.sealed.refuse.namesKept':
+    'it names a record kept on this device only, so it wasn’t saved. Its locked copy would carry that record’s name and ID',
   // RecordDetail.tsx, Step5ProveDisclosure.tsx, SendToLab.tsx
   'app.sealed.mismatch':
     'This record doesn’t match its proof code: it may have been changed since it was sealed. It won’t be saved again, sent or shared.',

@@ -3,26 +3,39 @@
 // prove it on Midnight from this browser. Before proving, the page says what earlier claims on
 // that number already made public (SPEC 4.5, disclosure accounting). After, a link anyone can
 // check (claim-link.ts).
+//
+// On a record kept on this device only (docs/device-only-records.md) the panel is shown only
+// after the holder turns it on (DeviceOnlyProve, below), says exactly what would be published
+// before anything is proved, and asks again before "exactly", which publishes the number itself.
 // SPDX-License-Identifier: Apache-2.0
 
 import React, { useState } from 'react';
-import { Alert, Box, Button, LinearProgress, MenuItem, Paper, Stack, TextField, Typography } from '@mui/material';
+import {
+  Alert,
+  Box,
+  Button,
+  Checkbox,
+  FormControlLabel,
+  LinearProgress,
+  MenuItem,
+  Paper,
+  Stack,
+  TextField,
+  Typography,
+} from '@mui/material';
 import type { StrainRecord } from '../../veilcore/records';
-import { addClaim } from '../../veilcore/records';
 import { SCHEMAS, shownNumber, storedNumber } from '../../veilcore/field-set';
-import { claimMaterial, commitmentHex } from '../../veilcore/claims-input';
 import { claimLink, type MadeClaim } from '../../veilcore/claim-link';
 import { CLAIMS_READY } from '../../veilcore/chain/config';
-import type { DocumentRecordLike } from '../../veilcore/document-profile';
+import { canProve, proveNumber, proveShown, type How } from '../../veilcore/prove-number';
+import { DEVICE_ONLY_CLAIMS_ENABLED } from '../../config/network';
 import { useT } from '../../i18n/app';
 import type { Translator } from '../../i18n/translate';
-import { slotWords } from './NumbersFields';
+import { schemaWords, slotWords } from './NumbersFields';
 import { keyShort } from '../../veilcore/lab-key-text';
 import { DatingPausedNotice } from '../DatingPausedNotice';
 import { DATING_PAUSED } from '../../veilcore/chain/paused';
 import { DisclosureReceipt } from '../chain/DisclosureReceipt';
-
-type How = 'at-most' | 'at-least' | 'exactly';
 
 /** A claim in words: "Total THC is at most 0.300 %". */
 export const claimWords = (c: MadeClaim, tr: Translator): string => {
@@ -40,17 +53,23 @@ export const claimWords = (c: MadeClaim, tr: Translator): string => {
       });
 };
 
-export const ProveNumber: React.FC<{ record: StrainRecord; labSignatureOk?: boolean }> = ({
-  record,
-  labSignatureOk = false,
-}) => {
+export const ProveNumber: React.FC<{
+  record: StrainRecord;
+  labSignatureOk?: boolean;
+  /** The record is kept on this device only: say what would be published, and ask again before "exactly". */
+  deviceOnly?: boolean;
+  /** What to prove when the panel opens (a test starts on "exactly"). */
+  initialHow?: How;
+}> = ({ record, labSignatureOk = false, deviceOnly = false, initialHow = 'at-most' }) => {
   const tr = useT();
   const { t } = tr;
   const held = record.fieldSet;
   const schema = held ? SCHEMAS[held.schema] : undefined;
   const filled = (schema?.slots ?? []).filter((s) => s.type === 'uint' && held?.values[s.slot] != null);
   const [slot, setSlot] = useState<number>(filled[0]?.slot ?? 0);
-  const [how, setHow] = useState<How>('at-most');
+  const [how, setHow] = useState<How>(initialHow);
+  // A record kept on this device only: "exactly" is asked for twice. Cleared by any change of what is proved.
+  const [confirmedExact, setConfirmedExact] = useState(false);
   const [typed, setTyped] = useState('');
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState<string>();
@@ -69,33 +88,21 @@ export const ProveNumber: React.FC<{ record: StrainRecord; labSignatureOk?: bool
   const earlier = (record.claims ?? []).filter((c) => c.schema === held.schema && c.slot === s.slot);
   const label = slotWords(s.path, tr);
 
+  /** A number with its unit, when the slot has one ("12.50 m²", "120"). */
+  const withUnit = (n: string) => (s.unit ? `${n} ${s.unit}` : n);
+  const ready = canProve({ deviceOnly, how, confirmedExact, boundOk: bound !== undefined, meets });
+
   const prove = async () => {
-    if (bound === undefined || !meets || busy) return;
+    if (bound === undefined || !ready || busy) return;
     setBusy(true);
     setError(undefined);
     setMade(undefined);
     setCopied(false);
     try {
-      const { proveRangeOnChain, proveValueOnChain } = await import('../../veilcore/chain/claims-call');
-      const m = await claimMaterial(record as DocumentRecordLike & { fieldSet: typeof held });
-      const receipt =
-        how === 'exactly'
-          ? await proveValueOnChain(m, s.slot, { progress: setProgress })
-          : await proveRangeOnChain(m, s.slot, how, bound, { progress: setProgress });
-      const claim: MadeClaim = {
-        kind: how === 'exactly' ? 'value' : 'range',
-        contract: receipt.contract,
-        txId: receipt.txId,
-        blockHeight: receipt.blockHeight,
-        ...(receipt.blockTime !== undefined ? { blockTime: receipt.blockTime } : {}),
-        record: commitmentHex(m),
-        ...(record.keyBinding ? { keyBinding: record.keyBinding } : {}),
-        schema: held.schema,
-        slot: s.slot,
-        ...(how === 'exactly' ? { value: sealed.toString() } : { op: how, bound: bound.toString() }),
-      };
-      addClaim(record.id, claim);
-      setMade(claim);
+      setMade(
+        await proveNumber(record, s.slot, how, bound, { progress: setProgress, confirmedExact, optedIn: deviceOnly }),
+      );
+      setConfirmedExact(false);
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     } finally {
@@ -151,7 +158,10 @@ export const ProveNumber: React.FC<{ record: StrainRecord; labSignatureOk?: bool
             select
             label={t('app.claim.number')}
             value={s.slot}
-            onChange={(e) => setSlot(Number(e.target.value))}
+            onChange={(e) => {
+              setSlot(Number(e.target.value));
+              setConfirmedExact(false);
+            }}
           >
             {filled.map((f) => (
               <MenuItem key={f.slot} value={f.slot}>
@@ -159,7 +169,15 @@ export const ProveNumber: React.FC<{ record: StrainRecord; labSignatureOk?: bool
               </MenuItem>
             ))}
           </TextField>
-          <TextField select label={t('app.claim.how')} value={how} onChange={(e) => setHow(e.target.value as How)}>
+          <TextField
+            select
+            label={t('app.claim.how')}
+            value={how}
+            onChange={(e) => {
+              setHow(e.target.value as How);
+              setConfirmedExact(false);
+            }}
+          >
             <MenuItem value="at-most">{t('app.claim.atMost')}</MenuItem>
             <MenuItem value="at-least">{t('app.claim.atLeast')}</MenuItem>
             <MenuItem value="exactly">{t('app.claim.exactly')}</MenuItem>
@@ -198,12 +216,64 @@ export const ProveNumber: React.FC<{ record: StrainRecord; labSignatureOk?: bool
           <Typography variant="body2" color="text.secondary">
             {t('app.claim.leak')} {t('app.claim.computer')}
           </Typography>
+          {/* Who can tell which record a claim is about: said for every record, before the button. */}
+          <Typography variant="body2" color="text.secondary" data-claim-tie="">
+            {t('app.claim.tie')}
+          </Typography>
+          {deviceOnly && (
+            <Alert severity="warning" variant="outlined" data-device-only-publish={how}>
+              <Typography variant="subtitle2" component="h3">
+                {t('app.doc.local.prove.publish.title')}
+              </Typography>
+              <Typography variant="body2" sx={{ mb: 1 }} data-device-only-publish-what="">
+                {how === 'exactly'
+                  ? t('app.doc.local.prove.publish.exact', {
+                      schema: schemaWords(held.schema, tr),
+                      label,
+                      value: withUnit(shownNumber(sealed, scale)),
+                    })
+                  : bound === undefined
+                    ? t('app.doc.local.prove.publish.noBound')
+                    : t('app.doc.local.prove.publish.range', {
+                        schema: schemaWords(held.schema, tr),
+                        label,
+                        bound: withUnit(shownNumber(bound, scale)),
+                        direction: t(
+                          how === 'at-most'
+                            ? 'app.doc.local.prove.direction.atMost'
+                            : 'app.doc.local.prove.direction.atLeast',
+                        ),
+                      })}
+              </Typography>
+              <Typography variant="body2" sx={{ mb: 1 }}>
+                {t('app.doc.local.prove.publish.route')}
+              </Typography>
+              <Typography variant="body2" data-device-only-publish-tie="">
+                {t('app.claim.tie')}
+              </Typography>
+              {how === 'exactly' && (
+                <FormControlLabel
+                  sx={{ mt: 1 }}
+                  control={
+                    <Checkbox
+                      checked={confirmedExact}
+                      onChange={(e) => setConfirmedExact(e.target.checked)}
+                      disabled={busy}
+                      slotProps={{ input: { 'data-device-only-confirm-exact': '' } as never }}
+                    />
+                  }
+                  label={t('app.doc.local.prove.confirmExact', { value: withUnit(shownNumber(sealed, scale)) })}
+                />
+              )}
+            </Alert>
+          )}
           <DisclosureReceipt circuits={[how === 'exactly' ? 'proveValue' : 'proveRange']} />
           <DatingPausedNotice on={DATING_PAUSED} />
           <Box>
             <Button
               variant="contained"
-              disabled={busy || bound === undefined || !meets || DATING_PAUSED}
+              disabled={busy || !ready || DATING_PAUSED}
+              data-prove-go=""
               onClick={() => void prove()}
             >
               {busy ? t('app.claim.going') : t('app.claim.go')}
@@ -253,5 +323,47 @@ export const ProveNumber: React.FC<{ record: StrainRecord; labSignatureOk?: bool
         </Box>
       )}
     </Paper>
+  );
+};
+
+/**
+ * "Prove one number" for a record kept on this device only: the holder's choice, off every time
+ * the page is opened. Until it is turned on the page says what proving would do and shows no
+ * way to do it. (`initialOn` is for a test.)
+ */
+export const DeviceOnlyProve: React.FC<{ record: StrainRecord; initialOn?: boolean; initialHow?: How }> = ({
+  record,
+  initialOn = false,
+  initialHow,
+}) => {
+  const { t } = useT();
+  const [on, setOn] = useState(initialOn);
+  if (!DEVICE_ONLY_CLAIMS_ENABLED)
+    return (
+      <Typography variant="body2" color="text.secondary" data-device-only-no-prove="">
+        {t('app.doc.local.prove.off')}
+      </Typography>
+    );
+  return (
+    <>
+      <Paper sx={{ p: { xs: 2.5, md: 3 } }} data-device-only-prove={on ? 'on' : 'off'}>
+        <Typography variant="h6" component="h2" sx={{ mb: 0.5 }}>
+          {t('app.doc.local.prove.title')}
+        </Typography>
+        <Typography variant="body2" sx={{ mb: 1 }}>
+          {t('app.doc.local.prove.text')}
+        </Typography>
+        <Typography variant="body2" sx={{ mb: 1 }} data-device-only-prove-tie="">
+          {t('app.claim.tie')}
+        </Typography>
+        <FormControlLabel
+          control={<Checkbox checked={on} onChange={(e) => setOn(e.target.checked)} />}
+          label={t('app.doc.local.prove.choice')}
+        />
+      </Paper>
+      {proveShown({ deviceOnly: true, optedIn: on, enabled: DEVICE_ONLY_CLAIMS_ENABLED }) && (
+        <ProveNumber record={record} deviceOnly initialHow={initialHow} />
+      )}
+    </>
   );
 };

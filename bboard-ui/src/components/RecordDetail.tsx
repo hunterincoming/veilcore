@@ -69,6 +69,7 @@ import { AgreementTypeChip } from './licensing/AgreementTypeChip';
 import { AppHeader } from './AppHeader';
 import { isDocument } from '../veilcore/document-profile';
 import { DocumentDetail } from './document/DocumentDetail';
+import { ChainView } from './document/ChainView';
 import { linkCard } from './a11y';
 import { Step2PairDna } from './wizard/Step2PairDna';
 import { Step3Certificate } from './wizard/Step3Certificate';
@@ -673,6 +674,8 @@ export const RecordDetail: React.FC = () => {
                     <HeritableRights record={record} />
                   </Paper>
                 )}
+                {/* The documents on this device that say they are about this record (docs/document-chain.md). */}
+                <ChainView record={record} />
                 {/* Everything here in one file, with a page that checks it offline. */}
                 <Paper sx={{ p: { xs: 2.5, md: 3 } }}>
                   <Stack spacing={1}>

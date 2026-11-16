@@ -139,6 +139,26 @@ export const SCHEDULED_ANCHORING_RUN_ON_MAINNET = true;
  */
 export const DEVICE_ONLY_RUN_ON_MAINNET = true;
 
+/**
+ * Whether a production chain as document records (config/network.ts DOCUMENT_CHAIN_ENABLED) has
+ * worked on veilcore.org: a source record, a grow batch, a harvest lot and a lab report sealed
+ * there, each about the one before, and the chain followed from the lab report's check link to
+ * the top with a date on every page. Until it has, the home page's veilcore.org cell says it is
+ * built and not yet tried on the main network (m.live.docchain.main), never "Yes". Hunter turns
+ * it on in a reviewed commit after that first run, never before.
+ */
+export const DOCUMENT_CHAIN_RUN_ON_MAINNET = false;
+
+/**
+ * Whether "Prove one number" for a document kept on this device only (config/network.ts
+ * DEVICE_ONLY_CLAIMS_ENABLED) has worked on veilcore.org: one proved there from such a record,
+ * its claim link checked, and the registry seen to hold nothing more than before. Until it has,
+ * the home page's veilcore.org cell says it is built and not yet tried on the main network
+ * (m.live.localclaims.main), never "Yes". Hunter turns it on in a reviewed commit after that
+ * first run, never before.
+ */
+export const DEVICE_ONLY_CLAIMS_RUN_ON_MAINNET = false;
+
 /** The label agreements carry while AGREEMENTS_LIVE is false. */
 export const PRACTICE_LABEL = AGREEMENTS_LIVE ? '' : 'Practice only';
 

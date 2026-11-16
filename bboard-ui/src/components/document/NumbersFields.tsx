@@ -28,7 +28,9 @@ export const NumbersFields: React.FC<{
   forms?: readonly string[];
   /** Leave out the heading and help (a caller that says it its own way). */
   bare?: boolean;
-}> = ({ schema, onSchema, typed, onTyped, bad, forms = OFFERED_SCHEMAS, bare = false }) => {
+  /** The form is already chosen and can't be changed here (a grow batch, a harvest lot): no list. */
+  fixed?: boolean;
+}> = ({ schema, onSchema, typed, onTyped, bad, forms = OFFERED_SCHEMAS, bare = false, fixed = false }) => {
   const tr = useT();
   const { t } = tr;
   const s = SCHEMAS[schema];
@@ -44,21 +46,23 @@ export const NumbersFields: React.FC<{
           </Typography>
         </>
       )}
-      <TextField
-        select
-        label={t('app.doc.nums.which')}
-        value={schema}
-        onChange={(e) => onSchema(e.target.value)}
-        fullWidth
-        sx={{ mb: s ? 2 : 0 }}
-      >
-        <MenuItem value="">{t('app.doc.nums.none')}</MenuItem>
-        {forms.map((id) => (
-          <MenuItem key={id} value={id}>
-            {schemaWords(id, tr)}
-          </MenuItem>
-        ))}
-      </TextField>
+      {!fixed && (
+        <TextField
+          select
+          label={t('app.doc.nums.which')}
+          value={schema}
+          onChange={(e) => onSchema(e.target.value)}
+          fullWidth
+          sx={{ mb: s ? 2 : 0 }}
+        >
+          <MenuItem value="">{t('app.doc.nums.none')}</MenuItem>
+          {forms.map((id) => (
+            <MenuItem key={id} value={id}>
+              {schemaWords(id, tr)}
+            </MenuItem>
+          ))}
+        </TextField>
+      )}
       {s && (
         <Stack spacing={1.5}>
           {s.slots

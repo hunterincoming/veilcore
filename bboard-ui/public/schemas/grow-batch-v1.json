@@ -1,0 +1,10 @@
+{
+  "id": "veilcore/schema/grow-batch/v1",
+  "title": "A grow batch, as its holder counted it. Slot 0 (growBatch.plants): plants in this batch on the record's date, a whole number. Slot 1 (growBatch.plantsInFlower): of those, plants in the flowering stage on the record's date, a whole number. Slot 2 (growBatch.areaSquareMetres): floor area under cultivation for this batch, in square metres times 100 (12.50 m² is 1250). The record's date is the date written on the record the numbers are sealed with or, when none is written, the day that record was sealed. The numbers are the holder's own statement; nobody measured them for the holder. Which batch, where and of what is in that record, not here. Published by VeilCore (veilcore.org).",
+  "slots": [
+    { "slot": 0, "type": "uint", "path": "growBatch.plants", "scale": 1, "comparable": true },
+    { "slot": 1, "type": "uint", "path": "growBatch.plantsInFlower", "scale": 1, "comparable": true },
+    { "slot": 2, "type": "uint", "path": "growBatch.areaSquareMetres", "unit": "m²", "scale": 100, "comparable": true }
+  ],
+  "k": 1
+}

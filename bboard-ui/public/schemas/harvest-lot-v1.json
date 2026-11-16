@@ -1,0 +1,10 @@
+{
+  "id": "veilcore/schema/harvest-lot/v1",
+  "title": "A harvest lot, as its holder counted and weighed it. Slot 0 (harvestLot.plantsHarvested): plants harvested into this lot, a whole number. Slot 1 (harvestLot.wetWeightGrams): fresh weight at harvest, whole plants as cut, in whole grams. Slot 2 (harvestLot.dryWeightGrams): dry weight of the lot as stored, in whole grams. The numbers are the holder's own statement; nobody measured them for the holder. Which lot, from which batch and of what is in the record the numbers are sealed with, not here. Published by VeilCore (veilcore.org).",
+  "slots": [
+    { "slot": 0, "type": "uint", "path": "harvestLot.plantsHarvested", "scale": 1, "comparable": true },
+    { "slot": 1, "type": "uint", "path": "harvestLot.wetWeightGrams", "unit": "g", "scale": 1, "comparable": true },
+    { "slot": 2, "type": "uint", "path": "harvestLot.dryWeightGrams", "unit": "g", "scale": 1, "comparable": true }
+  ],
+  "k": 1
+}

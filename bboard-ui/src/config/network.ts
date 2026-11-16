@@ -222,3 +222,24 @@ export const DOCUMENT_RECORDS_ENABLED = true;
  * record: their check pages, lab hand-overs and licenses read the locked copy VeilCore keeps.
  */
 export const DEVICE_ONLY_RECORDS_ENABLED = true;
+
+/**
+ * A production chain as document records (docs/document-chain.md): "Grow batch" and "Harvest lot"
+ * on "Seal a document", a document that is about another document, the links between check
+ * pages, and the chain view on a record's page. It adds nothing to the record format, the
+ * registry, the contracts or the sponsor, so it is on in every build, mainnet included. Not
+ * called live on veilcore.org until a chain has been sealed and followed there (config/copy.ts
+ * DOCUMENT_CHAIN_RUN_ON_MAINNET).
+ */
+export const DOCUMENT_CHAIN_ENABLED = true;
+
+/**
+ * "Prove one number" for a document kept on this device only (docs/device-only-records.md,
+ * "Proving a number"): the holder's own choice on that record's page, off each time the page is
+ * opened, with what would be published said first. Proving runs in the browser; the claim goes
+ * to Midnight through the sponsor, and nothing goes to the registry. On in every build where
+ * claims are (veilcore/chain/config.ts CLAIMS_READY decides that, as for any document). Not
+ * called live on veilcore.org until one has been proved and checked there (config/copy.ts
+ * DEVICE_ONLY_CLAIMS_RUN_ON_MAINNET). Off, the record's page says proving isn't offered for it.
+ */
+export const DEVICE_ONLY_CLAIMS_ENABLED = true;
