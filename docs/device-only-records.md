@@ -1,7 +1,10 @@
 # Documents kept on this device only (15 Nov 2026)
 
-Status: built, with unit and browser tests, and reviewed once against a registry that lies. Not yet run on the main network; the site says so
-until it has (`config/copy.ts` `DEVICE_ONLY_RUN_ON_MAINNET`).
+Status: live on veilcore.org. Built with unit and browser tests and reviewed three times against a
+registry that lies. First run on the main network on 16 November 2026: a document sealed with the
+choice ticked, dated in a batch, and checked from its check link, file matched byte for byte
+(`config/copy.ts` `DEVICE_ONLY_RUN_ON_MAINNET`). Not yet tried there: restoring one from a backup
+on a second device, and a passkey copy on a phone.
 
 ## What it is
 
