@@ -38,6 +38,7 @@ export const document = {
   'app.doc.need.file': 'Ajoutez d’abord le fichier.',
   'app.doc.need.title': 'Donnez-lui un titre.',
   'app.doc.need.holder': 'Indiquez qui le détient.',
+  'app.doc.need.heading': 'Il manque encore, avant de pouvoir le sceller :',
   'app.doc.seal': 'Le sceller',
   'app.doc.sealing': 'Scellement…',
   'app.doc.type.permit': 'Permis ou licence',

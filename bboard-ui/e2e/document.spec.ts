@@ -108,7 +108,7 @@ test('seal a document from its files, compare a file, and check it from the link
 
   // 2. Nothing is sealed without a file; two files are hashed here.
   await page.getByRole('button', { name: 'Seal it' }).click();
-  await expect(page.locator('[data-document-missing]')).toHaveText('Add the file first.');
+  await expect(page.locator('[data-document-missing]')).toContainText('Add the file first.');
   await page.locator('input[type=file]').setInputFiles([
     { name: 'permit 0042.pdf', mimeType: 'application/pdf', buffer: PERMIT },
     { name: 'annex.pdf', mimeType: 'application/pdf', buffer: ANNEX },

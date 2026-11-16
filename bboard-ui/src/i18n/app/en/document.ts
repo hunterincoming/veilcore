@@ -39,6 +39,7 @@ export const document = {
   'app.doc.need.file': 'Add the file first.',
   'app.doc.need.title': 'Give it a title.',
   'app.doc.need.holder': 'Say who holds it.',
+  'app.doc.need.heading': 'Still needed before you can seal it:',
   'app.doc.seal': 'Seal it',
   'app.doc.sealing': 'Sealing…',
   'app.doc.type.permit': 'Permit or licence',

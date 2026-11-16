@@ -39,6 +39,7 @@ export const document = {
   'app.doc.need.file': 'Fügen Sie zuerst die Datei hinzu.',
   'app.doc.need.title': 'Geben Sie ihm einen Titel.',
   'app.doc.need.holder': 'Geben Sie an, wer es hält.',
+  'app.doc.need.heading': 'Das fehlt noch vor dem Versiegeln:',
   'app.doc.seal': 'Versiegeln',
   'app.doc.sealing': 'Wird versiegelt…',
   'app.doc.type.permit': 'Genehmigung oder Lizenz',

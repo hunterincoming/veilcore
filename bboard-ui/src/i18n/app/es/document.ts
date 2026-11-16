@@ -38,6 +38,7 @@ export const document = {
   'app.doc.need.file': 'Añada primero el archivo.',
   'app.doc.need.title': 'Póngale un título.',
   'app.doc.need.holder': 'Indique quién lo tiene.',
+  'app.doc.need.heading': 'Falta esto antes de poder sellarlo:',
   'app.doc.seal': 'Sellarlo',
   'app.doc.sealing': 'Sellando…',
   'app.doc.type.permit': 'Permiso o licencia',

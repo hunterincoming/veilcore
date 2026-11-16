@@ -37,6 +37,7 @@ export const document = {
   'app.doc.need.file': 'まずファイルを追加してください。',
   'app.doc.need.title': 'タイトルを付けてください。',
   'app.doc.need.holder': '保有者を入力してください。',
+  'app.doc.need.heading': '封印する前に、まだ必要なもの：',
   'app.doc.seal': '封印する',
   'app.doc.sealing': '封印中…',
   'app.doc.type.permit': '許可証・免許',

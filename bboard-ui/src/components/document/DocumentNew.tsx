@@ -200,19 +200,17 @@ export const DocumentNew: React.FC = () => {
   };
 
   const numbers = schema ? numbersOf(schema, typed) : undefined;
-  const missing = !files.length
-    ? t('app.doc.need.file')
-    : kind && !line(reference)
-      ? t('app.doc.chain.need.reference')
-      : !sealedTitle()
-        ? t('app.doc.need.title')
-        : !line(holder)
-          ? t('app.doc.need.holder')
-          : numbers?.bad.length
-            ? t('app.doc.need.numbers')
-            : schema && !numbers?.any
-              ? t(kind ? 'app.doc.chain.need.aNumber' : 'app.doc.need.aNumber')
-              : undefined;
+  // Everything still needed before sealing, in the order the form asks for it. It shows above the Seal button from
+  // the start, so nobody has to press Seal to find out what is missing.
+  const needs: string[] = [];
+  if (!files.length) needs.push(t('app.doc.need.file'));
+  // A batch or lot takes its title from its ID when none is typed, so the ID is the only one of the two to ask for.
+  if (kind && !line(reference)) needs.push(t('app.doc.chain.need.reference'));
+  else if (!sealedTitle()) needs.push(t('app.doc.need.title'));
+  if (!line(holder)) needs.push(t('app.doc.need.holder'));
+  if (numbers?.bad.length) needs.push(t('app.doc.need.numbers'));
+  else if (schema && !numbers?.any) needs.push(t(kind ? 'app.doc.chain.need.aNumber' : 'app.doc.need.aNumber'));
+  const missing = needs[0];
 
   const seal = async () => {
     setTried(true);
@@ -408,6 +406,8 @@ export const DocumentNew: React.FC = () => {
           </Box>
           <TextField
             label={t('app.doc.f.title')}
+            required={!kind}
+            error={tried && !kind && !sealedTitle()}
             helperText={t(kind ? 'app.doc.chain.f.titleHelp' : 'app.doc.f.titleHelp')}
             value={title}
             onChange={(e) => setTitle(e.target.value)}
@@ -473,6 +473,8 @@ export const DocumentNew: React.FC = () => {
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
             <TextField
               label={t(kind ? `app.doc.chain.f.reference.${kind}` : 'app.doc.f.reference')}
+              required={!!kind}
+              error={tried && !!kind && !line(reference)}
               helperText={t(kind ? 'app.doc.chain.f.referenceHelp' : 'app.doc.f.referenceHelp')}
               value={reference}
               onChange={(e) => setReference(e.target.value)}
@@ -537,6 +539,8 @@ export const DocumentNew: React.FC = () => {
           )}
           <TextField
             label={t('app.doc.f.holder')}
+            required
+            error={tried && !line(holder)}
             helperText={t('app.doc.f.holderHelp')}
             value={holder}
             onChange={(e) => setHolder(e.target.value)}
@@ -587,9 +591,23 @@ export const DocumentNew: React.FC = () => {
               </Box>
             </Box>
           )}
-          {tried && missing && (
-            <Alert severity="warning" variant="outlined" data-document-missing="">
-              {missing}
+          {needs.length > 0 && (
+            <Alert
+              severity={tried ? 'warning' : 'info'}
+              variant="outlined"
+              data-document-needs=""
+              {...(tried ? { 'data-document-missing': '' } : {})}
+            >
+              <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                {t('app.doc.need.heading')}
+              </Typography>
+              <Box component="ul" sx={{ m: 0, pl: 2.5 }}>
+                {needs.map((n) => (
+                  <Typography key={n} component="li" variant="body2">
+                    {n}
+                  </Typography>
+                ))}
+              </Box>
             </Alert>
           )}
           {error && (
