@@ -6,10 +6,13 @@
 
 import React from 'react';
 import { Link as RouterLink } from 'react-router-dom';
-import { Box, Link, Paper, Typography } from '@mui/material';
+import { Box, Button, Link, Paper, Typography } from '@mui/material';
 import { isKeptOnDeviceOnly, useRecords, type StrainRecord } from '../../veilcore/records';
 import { downstreamOf, upstreamOf, type ChainStep } from '../../veilcore/document-chain';
 import { isDocument } from '../../veilcore/document-profile';
+import { isAnimal } from '../../veilcore/animal-profile';
+import { chainNextHref, chainNextOf } from '../../veilcore/document-kind';
+import { isLabReportRecord } from '../stage/record-kinds';
 import { DOCUMENT_CHAIN_ENABLED } from '../../config/network';
 import { useT } from '../../i18n/app';
 import { kindOrTypeWords, seen } from './DocumentParts';
@@ -63,20 +66,43 @@ export const ChainView: React.FC<{ record: StrainRecord }> = ({ record }) => {
   if (!DOCUMENT_CHAIN_ENABLED) return null;
   const up = upstreamOf(record, records);
   const down = downstreamOf(record, records);
-  if (up.length === 0 && down.length === 0) return null;
+  // The next step is offered from the record itself, so nobody has to find it under "Seal a
+  // document": a grow batch from a plant or strain, a harvest lot from a batch, a lab report
+  // from a lot. A corrected (superseded) record offers none: its correction does.
+  const source = !isDocument(record) && !isAnimal(record) && !isLabReportRecord(record);
+  const next = record.supersededBy ? undefined : chainNextOf(record, source);
+  const hasChain = up.length > 0 || down.length > 0;
+  if (!hasChain && !next) return null;
   return (
     <Paper sx={{ p: { xs: 2.5, md: 3 } }} data-chain-view="">
-      <Typography variant="h6" component="h2" sx={{ mb: 0.5 }}>
-        {t('app.doc.chain.title')}
-      </Typography>
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
-        {t('app.doc.chain.text')}
-      </Typography>
-      {isDocument(record) && <Steps title={t('app.doc.chain.up')} steps={up} mark="up" />}
-      <Steps title={t('app.doc.chain.down')} steps={down} mark="down" />
-      <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
-        {t('app.doc.chain.aboutNote')}
-      </Typography>
+      {hasChain && (
+        <>
+          <Typography variant="h6" component="h2" sx={{ mb: 0.5 }}>
+            {t('app.doc.chain.title')}
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+            {t('app.doc.chain.text')}
+          </Typography>
+          {isDocument(record) && <Steps title={t('app.doc.chain.up')} steps={up} mark="up" />}
+          <Steps title={t('app.doc.chain.down')} steps={down} mark="down" />
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+            {t('app.doc.chain.aboutNote')}
+          </Typography>
+        </>
+      )}
+      {next && (
+        <Box sx={{ mt: hasChain ? 2.5 : 0 }} data-chain-next={next}>
+          <Typography variant="h6" component="h2" sx={{ mb: 0.5 }}>
+            {t('app.doc.chain.next.title')}
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+            {t('app.doc.chain.next.text')}
+          </Typography>
+          <Button component={RouterLink} to={chainNextHref(next, record.id)} variant="outlined">
+            {t(`app.doc.chain.next.${next}`)}
+          </Button>
+        </Box>
+      )}
     </Paper>
   );
 };

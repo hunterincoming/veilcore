@@ -26,3 +26,28 @@ export const KIND_SCHEMA_ID: Readonly<Record<DocumentKind, string>> = {
 /** The kind a document record's sealed schema id says it is; undefined for any other document. */
 export const documentKindOf = (r: { readonly fieldSchema?: string } | undefined): DocumentKind | undefined =>
   DOCUMENT_KINDS.find((k) => r?.fieldSchema !== undefined && KIND_SCHEMA_ID[k] === r.fieldSchema);
+
+/** What a holder would seal next in a production chain, from a record's own page. */
+export type ChainNext = DocumentKind | 'report';
+
+/**
+ * The next step after a record (docs/document-chain.md): a grow batch from a plant or a strain,
+ * a harvest lot from a grow batch, a lab report from a harvest lot. Nothing for any other record.
+ * `source` is whether the record is one a grow batch can start from: a plant or a strain, never
+ * an animal, a document or a record that dates a lab report (the caller knows which).
+ */
+export const chainNextOf = (
+  r: { readonly fieldSchema?: string } | undefined,
+  source: boolean,
+): ChainNext | undefined => {
+  if (source) return 'grow-batch';
+  const kind = documentKindOf(r);
+  return kind === 'grow-batch' ? 'harvest-lot' : kind === 'harvest-lot' ? 'report' : undefined;
+};
+
+/** Where "next in its chain" goes: the document form, with its kind and what it is about already set. */
+export const chainNextHref = (next: ChainNext, aboutId: string): string =>
+  `/documents/new?${next === 'report' ? '' : `kind=${next}&`}about=${encodeURIComponent(aboutId)}`;
+
+/** The kind a link to the document form asks for, or none: only the two chain kinds are accepted. */
+export const kindFromQuery = (v: string | null): DocumentKind | undefined => DOCUMENT_KINDS.find((k) => k === v);

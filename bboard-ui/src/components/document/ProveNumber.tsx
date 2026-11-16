@@ -148,6 +148,9 @@ export const ProveNumber: React.FC<{
       <Typography variant="body2" sx={{ mb: 1.5 }}>
         {t('app.claim.text')}
       </Typography>
+      <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }} data-claim-example="">
+        {t('app.claim.example')}
+      </Typography>
       {!CLAIMS_READY ? (
         <Alert severity="info" variant="outlined" data-claims-not-ready="">
           {t('app.claim.notReady')}

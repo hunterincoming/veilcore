@@ -14,6 +14,9 @@ export const start = {
   'app.start.animalText': 'Ein Vatertier, ein Muttertier oder ein anderes Zuchttier.',
   'app.start.strain': 'Mikroorganismen und Zelllinien',
   'app.start.strainText': 'Hefen, Bakterien, Pilze, Zelllinien und Insektenlinien. Für Labore und Stammsammlungen.',
+  'app.start.chain': 'Eine Anbaucharge oder ein Erntelos',
+  'app.start.chainText':
+    'Ein Schritt einer Produktionskette, verknüpft mit dem Datensatz davor: die Pflanze, die Charge, das Los, der Laborbericht.',
   'app.start.document': 'Ein Dokument',
   'app.start.documentText': 'Ein Laborergebnis, eine Genehmigung, ein Vertrag. Die Datei verlässt Ihr Gerät nie.',
   'app.start.change': 'Ändern, was Sie versiegeln',

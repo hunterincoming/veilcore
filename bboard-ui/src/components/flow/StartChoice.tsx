@@ -15,8 +15,9 @@ import type { LogKind } from './animal-draft';
 import { useT } from '../../i18n/app';
 import type { AppKey } from '../../i18n/app/en';
 import { ScreenHeading } from './FlowFrame';
+import { DOCUMENT_CHAIN_ENABLED } from '../../config/network';
 
-type Option = { key: LogKind | 'document'; title: AppKey; text: AppKey };
+type Option = { key: LogKind | 'document' | 'chain'; title: AppKey; text: AppKey };
 
 const Card: React.FC<{ option: Option; onPick?: () => void; to?: string }> = ({ option, onPick, to }) => {
   const { t } = useT();
@@ -57,6 +58,11 @@ export const StartChoice: React.FC<{
     ...(animals ? [{ key: 'animal', title: 'app.start.animal', text: 'app.start.animalText' } as Option] : []),
     ...(strains ? [{ key: 'strain', title: 'app.start.strain', text: 'app.start.strainText' } as Option] : []),
     ...(documents ? [{ key: 'document', title: 'app.start.document', text: 'app.start.documentText' } as Option] : []),
+    // A step in a production chain is a document record (docs/document-chain.md), offered here by
+    // name so nobody has to find it under "A document".
+    ...(documents && DOCUMENT_CHAIN_ENABLED
+      ? [{ key: 'chain', title: 'app.start.chain', text: 'app.start.chainText' } as Option]
+      : []),
   ];
   return (
     <Stack spacing={2} data-start-choice="">
@@ -68,6 +74,8 @@ export const StartChoice: React.FC<{
         {options.map((o) =>
           o.key === 'document' ? (
             <Card key={o.key} option={o} to="/documents/new" />
+          ) : o.key === 'chain' ? (
+            <Card key={o.key} option={o} to="/documents/new?kind=grow-batch" />
           ) : (
             <Card key={o.key} option={o} onPick={() => onPick(o.key as LogKind)} />
           ),

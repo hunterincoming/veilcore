@@ -9,8 +9,8 @@
 // batch sheet, or a plain-text sheet made here from the details that are not counts.
 // SPDX-License-Identifier: Apache-2.0
 
-import React, { useId, useState } from 'react';
-import { Navigate, useNavigate } from 'react-router-dom';
+import React, { useEffect, useId, useRef, useState } from 'react';
+import { Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Alert,
   Box,
@@ -43,7 +43,7 @@ import { DEVICE_ONLY_RECORDS_ENABLED, DOCUMENT_CHAIN_ENABLED, DOCUMENT_RECORDS_E
 import { AppHeader } from '../AppHeader';
 import { useT } from '../../i18n/app';
 import { kindOrTypeWords, typeWords } from './DocumentParts';
-import { DOCUMENT_KINDS, KIND_SCHEMA, type DocumentKind } from '../../veilcore/document-kind';
+import { DOCUMENT_KINDS, KIND_SCHEMA, kindFromQuery, type DocumentKind } from '../../veilcore/document-kind';
 import { batchSheetFile, batchSheetText, chainNotes } from '../../veilcore/document-chain';
 import { NumbersFields } from './NumbersFields';
 import { BackupStep } from '../flow/BackupStep';
@@ -87,6 +87,35 @@ export const DocumentNew: React.FC = () => {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string>();
   const [tried, setTried] = useState(false);
+
+  // Arriving from "A grow batch or a harvest lot" or from a record's "Next in its chain": the
+  // kind and what it is about are already set, once. Only one of this browser's own records that
+  // could be picked by hand is accepted, and a record kept on this device only makes this one
+  // kept here too (it could not name that record otherwise). Nothing in the address is trusted
+  // beyond that, and everything stays editable.
+  const [query] = useSearchParams();
+  const fromLink = useRef(false);
+  const linkKind = kindFromQuery(query.get('kind'));
+  const linkAbout = query.get('about');
+  useEffect(() => {
+    if (fromLink.current || !DOCUMENT_RECORDS_ENABLED || !DOCUMENT_CHAIN_ENABLED) return;
+    if (linkAbout && records.length === 0) return; // the records are still loading
+    fromLink.current = true;
+    if (linkKind) {
+      setKind(linkKind);
+      setSchema(KIND_SCHEMA[linkKind]);
+      setType('other');
+    }
+    const target = linkAbout
+      ? records.find((r) => r.id === linkAbout && !isLabReportRecord(r) && !r.supersededBy)
+      : undefined;
+    if (!target) return;
+    if (isKeptOnDeviceOnly(target)) {
+      if (!DEVICE_ONLY_RECORDS_ENABLED) return;
+      setDeviceOnly(true);
+    }
+    setAbout([target.id]);
+  }, [records, linkKind, linkAbout]);
 
   if (!DOCUMENT_RECORDS_ENABLED) return <Navigate to="/new" replace />;
 

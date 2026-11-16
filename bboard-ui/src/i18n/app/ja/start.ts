@@ -12,6 +12,9 @@ export const start = {
   'app.start.animalText': '父、母、またはその他の繁殖用の動物。',
   'app.start.strain': '微生物・細胞株',
   'app.start.strainText': '酵母、細菌、真菌、細胞株、昆虫系統。ラボやカルチャーコレクション向け。',
+  'app.start.chain': '栽培バッチまたは収穫ロット',
+  'app.start.chainText':
+    '生産の流れの一段階です。一つ前の記録（植物、栽培バッチ、収穫ロット、検査報告書）につなげて記録します。',
   'app.start.document': '書類',
   'app.start.documentText': '検査結果、許可証、契約書など。ファイルがお使いの端末から出ることはありません。',
   'app.start.change': '封印するものを変える',
