@@ -175,13 +175,14 @@ In the Terminal window you will use for every step from here on:
 ```
 export MN_TEST_ENVIRONMENT=env-var-remote
 export MN_TEST_NETWORK_ID=undeployed
+export MN_TEST_WALLET_NETWORK_ID=undeployed
 export MN_TEST_INDEXER=http://127.0.0.1:8088/api/v4/graphql
 export MN_TEST_INDEXER_WS=ws://127.0.0.1:8088/api/v4/graphql/ws
 export MN_TEST_NODE=http://127.0.0.1:9944
 export MN_TEST_NODE_WS=ws://127.0.0.1:9944
 ```
 
-**Pass:** `echo $MN_TEST_NETWORK_ID` prints `undeployed`. These are not secrets. They last
+**Pass:** `echo $MN_TEST_NETWORK_ID $MN_TEST_WALLET_NETWORK_ID` prints `undeployed undeployed`. (Without the second, the wallet's address comes out as `mn_addr_undefined` and it retries every two minutes, forever.) These are not secrets. They last
 until you close the window; step 11 removes them.
 
 ### 4. Before the fork: deploy two practice contracts with the old key
@@ -199,7 +200,7 @@ cd bboard-cli
 npm run standalone
 ```
 
-- Private-state password: any practice password, twice.
+- Private-state password: type it by hand (the clipboard holds the key): 16 or more characters, at least three of capitals, small letters, numbers and symbols, e.g. `Practice-Rehearsal-2026`.
 - Menu: type `1` (Deploy a new VeilCore contract).
 - `Keep a maintenance authority? (Y/n)`: press Enter.
 - `Signing key`: paste (Cmd+V), press Enter. Nothing shows.

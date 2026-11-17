@@ -474,7 +474,8 @@ const openWallet = async (
       return undefined;
     }
     logger.info(`DUST available for fees: ${dust}`);
-    const zk = new NodeZkConfigProvider<string>(config.zkConfigPath);
+    // As in index.ts: the pinned compiler writes no integrity manifest.
+    const zk = new NodeZkConfigProvider<string>(config.zkConfigPath, { verify: 'require-if-present' });
     return {
       providers: {
         publicDataProvider: indexerReader(env.indexer, env.indexerWS),

@@ -1434,7 +1434,13 @@ export const run = async (config: Config, testEnv: TestEnvironment, logger: Logg
       accountId: seed,
     });
     logger.info(`Private state: ${store.dir}`);
-    const zkConfigProvider = new NodeZkConfigProvider<VeilcoreCircuitKeys>(config.zkConfigPath);
+    // compactc 0.31.1 (the pinned compiler) writes no integrity manifest, and midnight-js 5
+    // refuses a bundle without one unless told otherwise: checked if present, as the sponsor
+    // does (sponsor/src/chain.ts). On mainnet the keys are checked against docs/fingerprints.md
+    // first (checkBuild).
+    const zkConfigProvider = new NodeZkConfigProvider<VeilcoreCircuitKeys>(config.zkConfigPath, {
+      verify: 'require-if-present',
+    });
     const publicDataProvider = indexerPublicDataProvider(
       envConfiguration.indexer,
       envConfiguration.indexerWS,
@@ -1453,6 +1459,7 @@ export const run = async (config: Config, testEnv: TestEnvironment, logger: Logg
     // provider holds one contract address at a time and the main client sets it too.
     const claimsZkConfigProvider = new NodeZkConfigProvider<ClaimsCircuitKeys>(
       path.resolve(config.zkConfigPath, '..', 'veilcore-claims'),
+      { verify: 'require-if-present' },
     );
     const claimsProviders: ClaimsProviders = {
       privateStateProvider: stores.claims,
