@@ -58,13 +58,29 @@ export const plant = {
   'app.plant.f.notSavedYet': 'not saved yet',
   'app.plant.delete.title': 'Delete this record',
   'app.plant.delete.text':
-    'Takes it off your list and off VeilCore’s registry, with its locked copy and anything you shared. Its proof code stays in the batch already dated on Midnight: a code that shows nothing, which a blockchain can’t take back. A check link to it will say it isn’t found.',
+    'Takes it off your list and off VeilCore’s registry for good, with its locked copy and anything you shared. Its check links will say it was deleted by its holder. Lab codes and deliveries still open for it stop working. Backup files saved before still contain it, but restoring one won’t bring it back.',
   'app.plant.delete.button': 'Delete this record',
   'app.plant.delete.confirm':
-    'Delete “{name}”? This can’t be undone. Backup files you saved before still hold it until you save a new one, and a lab or buyer you sent it to keeps their copy.{named}',
+    'Delete “{name}”? This can’t be undone. A lab or buyer you sent it to keeps their copy.{named}',
   'app.plant.delete.named': '\n\nThese records name it, and their link to it will lead nowhere: {list}.',
   'app.plant.delete.blocked': 'It has a licence or an agreement, so it can’t be deleted: the other side relies on it.',
-  'app.plant.delete.failed': 'It wasn’t deleted: {reason}',
+  'app.plant.delete.blockedCorrection':
+    'It is part of a correction (it corrects a record, or a record corrects it), so it can’t be deleted: the correction relies on it.',
+  'app.plant.delete.datedYes':
+    'It is already dated on Midnight. That date stays: a proof code that shows nothing, which a blockchain can’t take back.',
+  'app.plant.delete.datedPending':
+    'Its proof code is already in a batch waiting to be dated on Midnight, so it will still be dated: a code that shows nothing.',
+  'app.plant.delete.datedNo': 'It isn’t in a batch yet, so once deleted it won’t be dated on Midnight.',
+  'app.plant.delete.datedChecking': 'Checking whether it is dated on Midnight…',
+  'app.plant.delete.deleting': 'Deleting…',
+  'app.plant.delete.failed': 'It wasn’t deleted. {reason}',
+  'app.plant.delete.why.busy': 'A save is still on its way. Try again in a moment.',
+  'app.plant.delete.why.offline': 'VeilCore couldn’t be reached. Nothing changed; try again when you’re online.',
+  'app.plant.delete.why.refused': 'VeilCore refused it. Nothing changed.',
+  'app.plant.delete.why.notRemoved': 'VeilCore doesn’t hold it under this browser’s key. Nothing changed.',
+  'app.plant.delete.why.deviceOnly': 'It is kept on this device only: delete it from its own page.',
+  'app.plant.delete.why.missing': 'It isn’t in this browser any more.',
+  'app.plant.delete.gone': 'Its holder deleted it, in another tab or on another device, so it was removed here too.',
   'app.plant.f.recordFingerprint': 'Proof code',
   'app.plant.evidenceBundle': 'Evidence bundle',
   'app.plant.evidenceBundleText':

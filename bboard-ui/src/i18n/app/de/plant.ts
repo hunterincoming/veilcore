@@ -60,14 +60,34 @@ export const plant = {
   'app.plant.f.notSavedYet': 'noch nicht gespeichert',
   'app.plant.delete.title': 'Diesen Datensatz löschen',
   'app.plant.delete.text':
-    'Entfernt ihn aus Ihrer Liste und aus dem Register von VeilCore, mit seiner verschlossenen Kopie und allem, was Sie freigegeben haben. Sein Prüfcode bleibt in dem Stapel, der schon auf Midnight datiert ist: ein Code, der nichts zeigt und den eine Blockchain nicht zurücknehmen kann. Ein Prüflink zu ihm meldet dann, dass er nicht gefunden wird.',
+    'Entfernt ihn endgültig aus Ihrer Liste und aus dem Register von VeilCore, mit seiner verschlossenen Kopie und allem, was Sie geteilt haben. Seine Prüflinks sagen dann, dass sein Inhaber ihn gelöscht hat. Noch offene Laborcodes und Lieferungen für ihn funktionieren nicht mehr. Früher gespeicherte Sicherungskopien enthalten ihn noch, aber eine Wiederherstellung bringt ihn nicht zurück.',
   'app.plant.delete.button': 'Diesen Datensatz löschen',
   'app.plant.delete.confirm':
-    '„{name}“ löschen? Das lässt sich nicht rückgängig machen. Früher gespeicherte Sicherungsdateien enthalten ihn noch, bis Sie eine neue speichern, und ein Labor oder Käufer, dem Sie ihn geschickt haben, behält seine Kopie.{named}',
+    '„{name}“ löschen? Das lässt sich nicht rückgängig machen. Ein Labor oder Käufer, dem Sie ihn geschickt haben, behält seine Kopie.{named}',
   'app.plant.delete.named': '\n\nDiese Datensätze nennen ihn, und ihr Verweis auf ihn führt dann ins Leere: {list}.',
   'app.plant.delete.blocked':
-    'Er hat eine Lizenz oder eine Vereinbarung und kann daher nicht gelöscht werden: Die andere Seite verlässt sich darauf.',
-  'app.plant.delete.failed': 'Er wurde nicht gelöscht: {reason}',
+    'Er hat eine Lizenz oder eine Vereinbarung und kann deshalb nicht gelöscht werden: Die andere Seite verlässt sich darauf.',
+  'app.plant.delete.blockedCorrection':
+    'Er gehört zu einer Korrektur (er korrigiert einen Datensatz, oder ein Datensatz korrigiert ihn) und kann deshalb nicht gelöscht werden: Die Korrektur verlässt sich darauf.',
+  'app.plant.delete.datedYes':
+    'Er ist bereits auf Midnight datiert. Dieses Datum bleibt: ein Prüfcode, der nichts zeigt und den eine Blockchain nicht zurücknehmen kann.',
+  'app.plant.delete.datedPending':
+    'Sein Prüfcode ist bereits in einem Stapel, der auf die Datierung auf Midnight wartet, also wird er trotzdem datiert: ein Code, der nichts zeigt.',
+  'app.plant.delete.datedNo': 'Er ist noch in keinem Stapel und wird nach dem Löschen nicht auf Midnight datiert.',
+  'app.plant.delete.datedChecking': 'Es wird geprüft, ob er auf Midnight datiert ist …',
+  'app.plant.delete.deleting': 'Wird gelöscht …',
+  'app.plant.delete.failed': 'Er wurde nicht gelöscht. {reason}',
+  'app.plant.delete.why.busy': 'Eine Speicherung ist noch unterwegs. Versuchen Sie es gleich noch einmal.',
+  'app.plant.delete.why.offline':
+    'VeilCore war nicht erreichbar. Nichts wurde geändert; versuchen Sie es wieder, wenn Sie online sind.',
+  'app.plant.delete.why.refused': 'VeilCore hat es abgelehnt. Nichts wurde geändert.',
+  'app.plant.delete.why.notRemoved':
+    'VeilCore hält ihn nicht unter dem Schlüssel dieses Browsers. Nichts wurde geändert.',
+  'app.plant.delete.why.deviceOnly':
+    'Er wird nur auf diesem Gerät aufbewahrt: Löschen Sie ihn auf seiner eigenen Seite.',
+  'app.plant.delete.why.missing': 'Er ist nicht mehr in diesem Browser.',
+  'app.plant.delete.gone':
+    'Sein Inhaber hat ihn gelöscht, in einem anderen Tab oder auf einem anderen Gerät, deshalb wurde er auch hier entfernt.',
   'app.plant.f.recordFingerprint': 'Prüfcode des Datensatzes',
   'app.plant.evidenceBundle': 'Nachweispaket',
   'app.plant.evidenceBundleText':

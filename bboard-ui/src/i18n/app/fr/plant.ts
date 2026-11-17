@@ -60,14 +60,31 @@ export const plant = {
   'app.plant.f.notSavedYet': 'pas encore enregistré',
   'app.plant.delete.title': 'Supprimer cet enregistrement',
   'app.plant.delete.text':
-    'Le retire de votre liste et du registre de VeilCore, avec sa copie verrouillée et tout ce que vous avez partagé. Son code de preuve reste dans le lot déjà daté sur Midnight : un code qui ne montre rien, qu’une blockchain ne peut pas reprendre. Un lien de vérification vers lui dira qu’il est introuvable.',
+    'Le retire définitivement de votre liste et du registre de VeilCore, avec sa copie verrouillée et tout ce que vous avez partagé. Ses liens de vérification diront que son détenteur l’a supprimé. Les codes de laboratoire et les livraisons encore ouverts pour lui ne fonctionnent plus. Les fichiers de sauvegarde enregistrés avant le contiennent encore, mais en restaurer un ne le fera pas revenir.',
   'app.plant.delete.button': 'Supprimer cet enregistrement',
   'app.plant.delete.confirm':
-    'Supprimer « {name} » ? C’est définitif. Les fichiers de sauvegarde enregistrés avant le contiennent encore jusqu’à ce que vous en enregistriez un nouveau, et un laboratoire ou un acheteur à qui vous l’avez envoyé garde sa copie.{named}',
+    'Supprimer « {name} » ? C’est irréversible. Un laboratoire ou un acheteur à qui vous l’avez envoyé garde sa copie.{named}',
   'app.plant.delete.named': '\n\nCes enregistrements le nomment, et leur lien vers lui ne mènera nulle part : {list}.',
   'app.plant.delete.blocked':
-    'Il a une licence ou un accord, il ne peut donc pas être supprimé : l’autre partie compte dessus.',
-  'app.plant.delete.failed': 'Il n’a pas été supprimé : {reason}',
+    'Il a une licence ou un accord, il ne peut donc pas être supprimé : l’autre partie s’appuie dessus.',
+  'app.plant.delete.blockedCorrection':
+    'Il fait partie d’une correction (il corrige un enregistrement, ou un enregistrement le corrige), il ne peut donc pas être supprimé : la correction s’appuie dessus.',
+  'app.plant.delete.datedYes':
+    'Il est déjà daté sur Midnight. Cette date reste : un code de preuve qui ne montre rien, qu’une blockchain ne peut pas reprendre.',
+  'app.plant.delete.datedPending':
+    'Son code de preuve est déjà dans un lot qui attend d’être daté sur Midnight : il sera donc daté quand même, sous forme d’un code qui ne montre rien.',
+  'app.plant.delete.datedNo': 'Il n’est encore dans aucun lot : une fois supprimé, il ne sera pas daté sur Midnight.',
+  'app.plant.delete.datedChecking': 'Vérification de sa date sur Midnight…',
+  'app.plant.delete.deleting': 'Suppression…',
+  'app.plant.delete.failed': 'Il n’a pas été supprimé. {reason}',
+  'app.plant.delete.why.busy': 'Un enregistrement est encore en cours d’envoi. Réessayez dans un instant.',
+  'app.plant.delete.why.offline': 'VeilCore n’a pas pu être joint. Rien n’a changé ; réessayez une fois en ligne.',
+  'app.plant.delete.why.refused': 'VeilCore l’a refusé. Rien n’a changé.',
+  'app.plant.delete.why.notRemoved': 'VeilCore ne le détient pas sous la clé de ce navigateur. Rien n’a changé.',
+  'app.plant.delete.why.deviceOnly': 'Il est gardé sur cet appareil uniquement : supprimez-le depuis sa propre page.',
+  'app.plant.delete.why.missing': 'Il n’est plus dans ce navigateur.',
+  'app.plant.delete.gone':
+    'Son détenteur l’a supprimé, dans un autre onglet ou sur un autre appareil : il a donc été retiré ici aussi.',
   'app.plant.f.recordFingerprint': 'Code de preuve de l’enregistrement',
   'app.plant.evidenceBundle': 'Dossier de preuve',
   'app.plant.evidenceBundleText':

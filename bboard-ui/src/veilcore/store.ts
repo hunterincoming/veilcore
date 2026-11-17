@@ -16,7 +16,13 @@ import type { AppKey } from '../i18n/app/en';
  * refused it (api-store.ts), so the reason can be said in the visitor's language; the
  * registry's own reasons stay as it gave them.
  */
-export type SaveRefusal = { readonly id: string; readonly reason: string; readonly words?: AppKey };
+export type SaveRefusal = {
+  readonly id: string;
+  readonly reason: string;
+  readonly words?: AppKey;
+  /** The registry says its holder deleted this id (code "deleted"): it is dropped here too. */
+  readonly deleted?: true;
+};
 
 /**
  * What a save actually did. The registry can refuse individual items (an id another

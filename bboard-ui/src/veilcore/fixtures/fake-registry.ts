@@ -46,6 +46,8 @@ const json = (v: unknown, status = 200, headers: Record<string, string> = {}) =>
 
 export const fakeRegistry = () => {
   const records = new Map<string, Row & { holder: string }>();
+  /** Ids their holder deleted: refused afterwards with code "deleted". */
+  const deleted = new Set<string>();
   const licenses = new Map<string, Row & { holder: string }>();
   const grants = new Map<string, Grant & { holder: string }>();
   const transfers = new Map<string, Transfer>();
@@ -145,9 +147,17 @@ export const fakeRegistry = () => {
     // Dating first (CONTRACT.md #38): a proof code alone, before the locked copy.
     if (path === '/api/records/dating' && method === 'PUT') {
       const dated: string[] = [];
-      const rejected: { id: string; reason: string }[] = [];
+      const rejected: { id: string; reason: string; code?: string }[] = [];
       const notWritten: string[] = [];
       for (const r of JSON.parse(body) as Row[]) {
+        if (deleted.has(r.id)) {
+          rejected.push({
+            id: r.id,
+            reason: 'this record was deleted by its holder; it can’t be saved again',
+            code: 'deleted',
+          });
+          continue;
+        }
         const extra = Object.keys(r).filter((k) => !['id', 'recordFingerprint', 'keyBinding'].includes(k));
         if (extra.length || typeof r.recordFingerprint !== 'string' || !/^[0-9a-f]{64}$/.test(r.recordFingerprint)) {
           rejected.push({ id: r.id, reason: `${extra.join(', ') || 'recordFingerprint'} is not part of a dating row` });
@@ -210,7 +220,13 @@ export const fakeRegistry = () => {
           const heldRev = typeof t.get(r.id)?.rev === 'number' ? (t.get(r.id)!.rev as number) : null;
           const rev = typeof r.rev === 'number' && Number.isSafeInteger(r.rev) ? r.rev : null;
           const dating = path === '/api/records' ? t.get(r.id) : undefined;
-          if (misbehave.rejectIds.has(r.id)) rejected.push({ id: r.id, reason: 'refused for this test' });
+          if (path === '/api/records' && deleted.has(r.id))
+            rejected.push({
+              id: r.id,
+              reason: 'this record was deleted by its holder; it can’t be saved again',
+              code: 'deleted',
+            });
+          else if (misbehave.rejectIds.has(r.id)) rejected.push({ id: r.id, reason: 'refused for this test' });
           else if (
             dating?.bodyPending === true &&
             dating.holder === holder &&
@@ -295,7 +311,9 @@ export const fakeRegistry = () => {
       if (method === 'DELETE') {
         const ids = (JSON.parse(body) as { ids: string[] }).ids;
         const removed = ids.filter((id) => t.get(id)?.holder === holder && t.delete(id));
-        return json({ ok: true, removed });
+        // Records stay deleted, as the registry's tombstones keep them (veilcore-api tombstones.js).
+        if (path === '/api/records') for (const id of removed) deleted.add(id);
+        return json({ ok: removed.length === ids.length, removed });
       }
       if (path === '/api/records' && misbehave.refuseGets > 0) {
         misbehave.refuseGets--;

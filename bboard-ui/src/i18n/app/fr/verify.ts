@@ -109,6 +109,13 @@ export const verify = {
   'app.verify.notFoundText':
     'Ce lien de vérification ne correspond à aucun enregistrement du registre. Vérifiez que le lien est complet et non modifié.',
   'app.verify.goHome': 'Aller sur veilcore.org',
+  'app.verify.deleted.title': '{id} a été supprimé par son détenteur',
+  'app.verify.deleted.when': 'Supprimé le {date}. Plus rien n’est affiché à son sujet.',
+  'app.verify.deleted.datedChecked':
+    'Avant cela, il a été daté sur Midnight : bloc {block}, {date}. Cette page l’a vérifié elle-même sur Midnight.',
+  'app.verify.deleted.datedReported':
+    'Le registre de VeilCore indique qu’il a été daté sur Midnight avant d’être supprimé. Un lien qui porte son code de preuve permet à cette page de le vérifier elle-même.',
+  'app.verify.deleted.notDated': 'Le registre de VeilCore n’a aucune date sur Midnight pour lui.',
   'app.verify.mismatch.title':
     'Le code de preuve de ce lien ne correspond pas à l’enregistrement : rien n’a été vérifié',
   'app.verify.mismatch.dontRely': 'Ne vous fiez pas à cette page.',

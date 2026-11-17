@@ -4,6 +4,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { aboutIdsOf } from '../veilcore/document-chain';
+import { useRecordDate } from './verify/useAnchorCheck';
+import type { ProofState } from '../veilcore/proofs';
+import type { AppKey } from '../i18n/app/en';
 import React, { useEffect, useRef, useState } from 'react';
 import { Alert, Box, Button, Collapse, Divider, Link, Paper, Stack, Typography } from '@mui/material';
 import LockIcon from '@mui/icons-material/LockOutlined';
@@ -13,6 +16,7 @@ import CodeIcon from '@mui/icons-material/DataObjectOutlined';
 import {
   useRecords,
   deleteRecord,
+  type DeleteFailure,
   getRecord,
   exportEnvelope,
   childrenOf,
@@ -183,9 +187,30 @@ const StrainFields: React.FC<{ record: NonNullable<ReturnType<typeof getRecord>>
   );
 };
 
+/** What a failed delete says, in the page's language (records.ts DeleteFailure). */
+const DELETE_WHY: Record<DeleteFailure, AppKey> = {
+  busy: 'app.plant.delete.why.busy',
+  offline: 'app.plant.delete.why.offline',
+  refused: 'app.plant.delete.why.refused',
+  'not-removed': 'app.plant.delete.why.notRemoved',
+  'device-only': 'app.plant.delete.why.deviceOnly',
+  missing: 'app.plant.delete.why.missing',
+};
+
+/** What happens to its date, from the record's own proof (useRecordDate): said before asking. */
+const deleteDateKey = (proof: ProofState | 'checking'): AppKey =>
+  proof === 'checking'
+    ? 'app.plant.delete.datedChecking'
+    : proof.status === 'anchor-reported'
+      ? 'app.plant.delete.datedYes'
+      : proof.status === 'pending'
+        ? 'app.plant.delete.datedPending'
+        : 'app.plant.delete.datedNo';
+
 /**
  * Deleting a record (records.ts deleteRecord): what goes and what stays, said before asking.
- * Not offered while a licence or agreement names it: the other side relies on it.
+ * Not offered while a licence, an agreement or a correction relies on it. The record stays on
+ * the page until VeilCore answers, so a failure is said here, under the button.
  */
 const DeleteRecord: React.FC<{
   record: StrainRecord;
@@ -194,8 +219,11 @@ const DeleteRecord: React.FC<{
   onDeleted: () => void;
 }> = ({ record, licensed, namedBy, onDeleted }) => {
   const { t } = useT();
+  const { proof } = useRecordDate(record.recordFingerprint);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const inCorrection = !!record.supersedes?.recordId || !!record.supersededBy;
+  const blocked = licensed ? 'app.plant.delete.blocked' : inCorrection ? 'app.plant.delete.blockedCorrection' : null;
   const go = async () => {
     const named = namedBy.length
       ? t('app.plant.delete.named', { list: namedBy.map((x) => x.strainName || x.id).join(', ') })
@@ -205,7 +233,7 @@ const DeleteRecord: React.FC<{
     setError(null);
     const out = await deleteRecord(record.id);
     setBusy(false);
-    if ('error' in out) setError(t('app.plant.delete.failed', { reason: out.error }));
+    if ('error' in out) setError(t('app.plant.delete.failed', { reason: t(DELETE_WHY[out.error]) }));
     else onDeleted();
   };
   return (
@@ -215,9 +243,14 @@ const DeleteRecord: React.FC<{
           {t('app.plant.delete.title')}
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          {licensed ? t('app.plant.delete.blocked') : t('app.plant.delete.text')}
+          {blocked ? t(blocked) : t('app.plant.delete.text')}
         </Typography>
-        {!licensed && (
+        {!blocked && (
+          <Typography variant="body2" color="text.secondary" data-delete-date="">
+            {t(deleteDateKey(proof))}
+          </Typography>
+        )}
+        {!blocked && (
           <Box>
             <Button
               color="error"
@@ -227,12 +260,12 @@ const DeleteRecord: React.FC<{
               sx={{ minHeight: 44 }}
               data-delete-record-button=""
             >
-              {t('app.plant.delete.button')}
+              {busy ? t('app.plant.delete.deleting') : t('app.plant.delete.button')}
             </Button>
           </Box>
         )}
         {error && (
-          <Alert severity="error" variant="outlined">
+          <Alert severity="error" variant="outlined" role="alert">
             {error}
           </Alert>
         )}

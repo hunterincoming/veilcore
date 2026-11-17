@@ -58,14 +58,32 @@ export const plant = {
   'app.plant.f.notSavedYet': 'todavía no guardado',
   'app.plant.delete.title': 'Eliminar este registro',
   'app.plant.delete.text':
-    'Lo quita de su lista y del registro de VeilCore, con su copia cifrada y todo lo que compartió. Su código de prueba sigue en el lote ya fechado en Midnight: un código que no muestra nada y que una cadena de bloques no puede retirar. Un enlace de comprobación a él dirá que no se encuentra.',
+    'Lo quita para siempre de su lista y del servidor de registros de VeilCore, con su copia cerrada y todo lo que haya compartido. Sus enlaces de verificación dirán que su titular lo eliminó. Los códigos de laboratorio y los envíos aún abiertos para él dejan de funcionar. Los archivos de copia de seguridad guardados antes todavía lo contienen, pero restaurar uno no lo traerá de vuelta.',
   'app.plant.delete.button': 'Eliminar este registro',
   'app.plant.delete.confirm':
-    '¿Eliminar «{name}»? No se puede deshacer. Los archivos de copia de seguridad que guardó antes lo siguen teniendo hasta que guarde uno nuevo, y un laboratorio o comprador al que se lo envió conserva su copia.{named}',
+    '¿Eliminar «{name}»? No se puede deshacer. Un laboratorio o comprador al que se lo envió conserva su copia.{named}',
   'app.plant.delete.named': '\n\nEstos registros lo nombran, y su enlace a él no llevará a ninguna parte: {list}.',
   'app.plant.delete.blocked':
-    'Tiene una licencia o un acuerdo, así que no se puede eliminar: la otra parte cuenta con él.',
-  'app.plant.delete.failed': 'No se eliminó: {reason}',
+    'Tiene una licencia o un acuerdo, así que no se puede eliminar: la otra parte depende de él.',
+  'app.plant.delete.blockedCorrection':
+    'Forma parte de una corrección (corrige un registro, o un registro lo corrige), así que no se puede eliminar: la corrección depende de él.',
+  'app.plant.delete.datedYes':
+    'Ya está fechado en Midnight. Esa fecha permanece: un código de prueba que no muestra nada y que una blockchain no puede deshacer.',
+  'app.plant.delete.datedPending':
+    'Su código de prueba ya está en un lote que espera ser fechado en Midnight, así que se fechará igualmente: un código que no muestra nada.',
+  'app.plant.delete.datedNo': 'Todavía no está en un lote, así que una vez eliminado no se fechará en Midnight.',
+  'app.plant.delete.datedChecking': 'Comprobando si está fechado en Midnight…',
+  'app.plant.delete.deleting': 'Eliminando…',
+  'app.plant.delete.failed': 'No se eliminó. {reason}',
+  'app.plant.delete.why.busy': 'Todavía hay un guardado en camino. Inténtelo de nuevo en un momento.',
+  'app.plant.delete.why.offline':
+    'No se pudo contactar con VeilCore. No cambió nada; inténtelo de nuevo cuando tenga conexión.',
+  'app.plant.delete.why.refused': 'VeilCore lo rechazó. No cambió nada.',
+  'app.plant.delete.why.notRemoved': 'VeilCore no lo tiene bajo la clave de este navegador. No cambió nada.',
+  'app.plant.delete.why.deviceOnly': 'Se guarda solo en este dispositivo: elimínelo desde su propia página.',
+  'app.plant.delete.why.missing': 'Ya no está en este navegador.',
+  'app.plant.delete.gone':
+    'Su titular lo eliminó, en otra pestaña o en otro dispositivo, así que también se quitó aquí.',
   'app.plant.f.recordFingerprint': 'Código de prueba del registro',
   'app.plant.evidenceBundle': 'Paquete de evidencia',
   'app.plant.evidenceBundleText':

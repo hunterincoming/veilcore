@@ -56,13 +56,31 @@ export const plant = {
   'app.plant.f.notSavedYet': 'まだ保存されていません',
   'app.plant.delete.title': 'この記録を削除',
   'app.plant.delete.text':
-    'あなたの一覧とVeilCoreのレジストリから、暗号化されたコピーや共有した内容とともに削除します。証明コードは、すでにMidnightで日付が付いたバッチに残ります。何も示さないコードで、ブロックチェーンからは取り消せません。この記録の確認リンクを開くと「見つかりません」と表示されます。',
+    'リストと VeilCore のレジストリから完全に削除します。鍵のかかったコピーと共有した内容も消えます。確認用リンクには「保有者が削除した」と表示されます。この記録のまだ使われていないラボコードや受け渡しは使えなくなります。以前に保存したバックアップファイルにはまだ含まれていますが、それを復元しても戻りません。',
   'app.plant.delete.button': 'この記録を削除',
   'app.plant.delete.confirm':
-    '「{name}」を削除しますか？元に戻せません。以前に保存したバックアップファイルには、新しく保存するまで残ります。送った検査機関や購入者の手元のコピーも残ります。{named}',
+    '「{name}」を削除しますか？元に戻せません。送付済みのラボや購入者は自分のコピーを持ち続けます。{named}',
   'app.plant.delete.named': '\n\n次の記録がこの記録を指しており、そのつながりは行き先がなくなります：{list}。',
   'app.plant.delete.blocked': 'ライセンスまたは契約があるため削除できません。相手方がこの記録に依拠しています。',
-  'app.plant.delete.failed': '削除されませんでした：{reason}',
+  'app.plant.delete.blockedCorrection':
+    '訂正の一部であるため削除できません（この記録が別の記録を訂正しているか、別の記録がこの記録を訂正しています）。訂正がこの記録に依拠しています。',
+  'app.plant.delete.datedYes':
+    'すでに Midnight で日付が記録されています。その日付は残ります。何も明かさない証明コードで、ブロックチェーンから取り消すことはできません。',
+  'app.plant.delete.datedPending':
+    '証明コードはすでに Midnight での日付記録を待つバッチに入っているため、削除しても日付は記録されます。何も明かさないコードです。',
+  'app.plant.delete.datedNo': 'まだバッチに入っていないため、削除すると Midnight で日付は記録されません。',
+  'app.plant.delete.datedChecking': 'Midnight で日付が記録されているか確認しています…',
+  'app.plant.delete.deleting': '削除しています…',
+  'app.plant.delete.failed': '削除されませんでした。{reason}',
+  'app.plant.delete.why.busy': '保存がまだ送信中です。少ししてからもう一度お試しください。',
+  'app.plant.delete.why.offline':
+    'VeilCore に接続できませんでした。何も変更されていません。オンラインになってから再度お試しください。',
+  'app.plant.delete.why.refused': 'VeilCore が受け付けませんでした。何も変更されていません。',
+  'app.plant.delete.why.notRemoved':
+    'VeilCore はこのブラウザの鍵の下にこの記録を保持していません。何も変更されていません。',
+  'app.plant.delete.why.deviceOnly': 'この端末だけに保管されている記録です。その記録のページから削除してください。',
+  'app.plant.delete.why.missing': 'このブラウザにはもうありません。',
+  'app.plant.delete.gone': '保有者が別のタブまたは別の端末で削除したため、ここからも取り除かれました。',
   'app.plant.f.recordFingerprint': '記録の証明コード',
   'app.plant.evidenceBundle': '証拠バンドル',
   'app.plant.evidenceBundleText':

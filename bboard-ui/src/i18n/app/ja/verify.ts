@@ -97,6 +97,13 @@ export const verify = {
   'app.verify.notFoundText':
     'この確認用リンクは、レジストリのどの記録とも一致しません。リンクが欠けたり変更されたりしていないか確認してください。',
   'app.verify.goHome': 'veilcore.org へ',
+  'app.verify.deleted.title': '{id} は保有者によって削除されました',
+  'app.verify.deleted.when': '{date} に削除されました。この記録についてはもう何も表示されません。',
+  'app.verify.deleted.datedChecked':
+    '削除の前に Midnight で日付が記録されていました：ブロック {block}、{date}。このページが Midnight で直接確認しました。',
+  'app.verify.deleted.datedReported':
+    'VeilCore のレジストリは、削除前に Midnight で日付が記録されたと報告しています。証明コードを含むリンクなら、このページが直接確認できます。',
+  'app.verify.deleted.notDated': 'VeilCore のレジストリには、この記録の Midnight での日付がありません。',
   'app.verify.mismatch.title': 'このリンクの証明コードは記録と一致しません：何も確認していません',
   'app.verify.mismatch.dontRely': 'このページに頼らないでください。',
   'app.verify.mismatch.text':

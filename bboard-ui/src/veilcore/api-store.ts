@@ -620,6 +620,8 @@ export const SUPERSEDED_BY_LOCKED_CODE = 'supersededby-locked';
  * in the same save, was refused: the two are kept together or not at all (veilcore-api PR #8).
  */
 export const RECORD_REFUSED_CODE = 'record-refused';
+/** The registry's refusal of an id its holder deleted (veilcore-api tombstones.js). */
+export const DELETED_CODE = 'deleted';
 
 const hashOf = async (v: Record<string, unknown>): Promise<string> =>
   Array.from(
@@ -1128,6 +1130,10 @@ const sendSealed = async (
         refused.push({ id: r.id, reason: r.reason, words: 'app.sealed.refuse.recordRefused' });
         continue;
       }
+      if (r.code === DELETED_CODE) {
+        refused.push({ id: r.id, reason: r.reason, words: 'app.plant.delete.gone', deleted: true });
+        continue;
+      }
       refused.push({ id: r.id, reason: r.reason });
     }
   }
@@ -1254,7 +1260,12 @@ export const sendDatingRows = async (
   const refused: SaveRefusal[] = [];
   if (Array.isArray(body.rejected))
     for (const r of body.rejected)
-      if (isObject(r) && isString(r.id) && isString(r.reason)) refused.push({ id: r.id, reason: r.reason });
+      if (isObject(r) && isString(r.id) && isString(r.reason))
+        refused.push(
+          r.code === DELETED_CODE
+            ? { id: r.id, reason: r.reason, words: 'app.plant.delete.gone', deleted: true }
+            : { id: r.id, reason: r.reason },
+        );
   if (Array.isArray(body.notWritten))
     for (const id of body.notWritten)
       if (isString(id))
@@ -1402,7 +1413,7 @@ export const TOO_LARGE_REASON = 'it’s too large to save. Shorten its notes and
 const deleteRows = async (
   kind: RowKind,
   ids: readonly string[],
-): Promise<{ removed: string[] } | { error: string }> => {
+): Promise<{ removed: string[] } | { error: string; offline?: true }> => {
   const k = holderKeyIfAny();
   if (!k) return { error: 'this browser has no holder key' };
   try {
@@ -1418,11 +1429,12 @@ const deleteRows = async (
     const removed = isObject(body) && Array.isArray(body.removed) ? body.removed.filter(isString) : [];
     return { removed };
   } catch {
-    return { error: 'could not reach the registry' };
+    return { error: 'could not reach the registry', offline: true };
   }
 };
 
-export const deleteRecords = (ids: readonly string[]): Promise<{ removed: string[] } | { error: string }> =>
-  deleteRows('records', ids);
+export const deleteRecords = (
+  ids: readonly string[],
+): Promise<{ removed: string[] } | { error: string; offline?: true }> => deleteRows('records', ids);
 export const deleteLicenses = (ids: readonly string[]): Promise<{ removed: string[] } | { error: string }> =>
   deleteRows('licenses', ids);

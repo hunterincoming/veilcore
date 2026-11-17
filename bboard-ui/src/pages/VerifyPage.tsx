@@ -102,7 +102,8 @@ import {
   anchorSummary,
   registryDateWords,
 } from '../components/verify/anchor-words';
-import { useAnchorCheck } from '../components/verify/useAnchorCheck';
+import { useAnchorCheck, useRecordDate } from '../components/verify/useAnchorCheck';
+import { utcStamp } from '../veilcore/time';
 import { VerifierChallengePanel } from '../components/chain/VerifierChallengePanel';
 import { LicenseProofPanel } from '../components/licensing/LicenseProof';
 import { LendHere } from '../components/licensing/LendHere';
@@ -186,6 +187,9 @@ const DateSummary: React.FC<{
 
 type VerifyResult = {
   found: boolean;
+  /** Its holder deleted it (registry tombstones): said so, never "not found". */
+  deleted?: boolean;
+  deletedAt?: string;
   id?: string;
   cultivar?: string;
   /** The name's salted code (round 6, CONTRACT.md #33): checks the name in a link with its salt. */
@@ -295,6 +299,43 @@ const isParentLine = (x: unknown): boolean =>
  * The fields this page reads. Anything absent renders as not disclosed, which is
  * the same as the holder choosing not to show it, so only `found` has to be there.
  */
+/**
+ * A record its holder deleted. Its date stays if it was dated first: checked on Midnight here
+ * when the link carries the proof code, otherwise only the registry's report of it.
+ */
+const DeletedRecord: React.FC<{ id: string; deletedAt?: string; anchored: boolean; fp: string | null }> = ({
+  id,
+  deletedAt,
+  anchored,
+  fp,
+}) => {
+  const { t } = useT();
+  const { anchor } = useRecordDate(fp ?? undefined);
+  const checked = anchor !== undefined && anchor !== 'checking' && anchor.status === 'checked' ? anchor : null;
+  return (
+    <Paper sx={{ p: 4, textAlign: 'center' }} data-deleted-record="">
+      <Typography variant="h6" component="h1" sx={{ mb: 1, overflowWrap: 'anywhere' }}>
+        {t('app.verify.deleted.title', { id })}
+      </Typography>
+      {deletedAt && !Number.isNaN(Date.parse(deletedAt)) && (
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+          {t('app.verify.deleted.when', { date: utcStamp(deletedAt) })}
+        </Typography>
+      )}
+      <Typography variant="body2" color="text.secondary">
+        {checked
+          ? t('app.verify.deleted.datedChecked', {
+              block: String(checked.blockHeight),
+              date: utcStamp(checked.blockTime),
+            })
+          : anchored
+            ? t('app.verify.deleted.datedReported')
+            : t('app.verify.deleted.notDated')}
+      </Typography>
+    </Paper>
+  );
+};
+
 const isVerifyResult = (v: unknown): v is VerifyResult => {
   if (typeof v !== 'object' || v === null || Array.isArray(v)) return false;
   const r = v as Record<string, unknown>;
@@ -341,7 +382,9 @@ const isVerifyResult = (v: unknown): v is VerifyResult => {
     str(r.individualId) &&
     str(r.idScheme) &&
     isParentLine(r.sire) &&
-    isParentLine(r.dam)
+    isParentLine(r.dam) &&
+    bool(r.deleted) &&
+    str(r.deletedAt)
   );
 };
 
@@ -602,6 +645,8 @@ export const VerifyPage: React.FC = () => {
           <Paper sx={{ p: 6, textAlign: 'center' }}>
             <CircularProgress size={28} sx={{ color: INK_COLOR }} aria-label={t('app.verify.checkingRecord')} />
           </Paper>
+        ) : !result?.found && result?.deleted ? (
+          <DeletedRecord id={idText(id, tr)} deletedAt={result.deletedAt} anchored={!!result.anchored} fp={fp} />
         ) : !result?.found ? (
           <Paper sx={{ p: 4, textAlign: 'center' }}>
             <Typography variant="h6" component="h1" sx={{ mb: 1, overflowWrap: 'anywhere' }}>

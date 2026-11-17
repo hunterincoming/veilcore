@@ -557,6 +557,23 @@ onVaultChange(() => {
 
 /** This page's saves of the record set still on their way to the registry. */
 const savesOnTheWay = new Set<Promise<SaveResult>>();
+/** Ids being deleted now (deleteRecord): no save or dating row carries them meanwhile. */
+const deleting = new Set<string>();
+
+/**
+ * Records the registry says their holder deleted (another tab or device, or a restored backup
+ * that still had them): gone from here too, and not reported as a save problem.
+ */
+const dropDeleted = (result: SaveResult): SaveResult => {
+  const gone = new Set(result.refused.filter((r) => r.deleted).map((r) => r.id));
+  if (!gone.size) return result;
+  records = records.filter((r) => !gone.has(r.id));
+  takeFromOutbox([...gone]);
+  for (const id of gone) forgetKeys(id);
+  notify();
+  const refused = result.refused.filter((r) => !r.deleted);
+  return { ...result, refused, ok: result.ok || (refused.length === 0 && !result.offline && !result.held?.length) };
+};
 
 /**
  * Records whose correction's save lost its answer (records.ts issueCorrection): the registry may
@@ -647,7 +664,7 @@ const withoutDeviceOnly = (rows: readonly StrainRecord[]): StrainRecord[] => {
  * record, and never one kept on this device only.
  */
 const saveRecords = (all: StrainRecord[]): Promise<SaveResult> => {
-  const rows = withoutDeviceOnly(all);
+  const rows = withoutDeviceOnly(all).filter((r) => !deleting.has(r.id));
   const held = unsureNow();
   if (held.size) {
     // Not sent; this browser keeps the change made to it, for when it is settled.
@@ -662,7 +679,7 @@ const saveRecords = (all: StrainRecord[]): Promise<SaveResult> => {
     }
     if (kept) keepUnsure();
   }
-  const p = store.save(RECORDS_KEY, held.size ? rows.filter((r) => !held.has(r.id)) : rows);
+  const p = store.save(RECORDS_KEY, held.size ? rows.filter((r) => !held.has(r.id)) : rows).then(dropDeleted);
   savesOnTheWay.add(p);
   const done = () => void savesOnTheWay.delete(p);
   p.then(done, done);
@@ -1356,12 +1373,13 @@ const dateFirst = (skip: readonly string[] = []): Promise<void> => {
   dating ??= (async () => {
     // A record kept on this device only is dated the same way: its proof code is all that is sent.
     const rows = [...Object.values(outboxRecords()), ...Object.values(deviceOnlyRecords())]
-      .filter((r) => isString(r.id) && !skip.includes(r.id) && !registryHasProofCode(r.id))
+      .filter((r) => isString(r.id) && !skip.includes(r.id) && !deleting.has(r.id) && !registryHasProofCode(r.id))
       .map(datingRowOf)
       .filter((r): r is NonNullable<typeof r> => r !== undefined);
     if (rows.length === 0) return;
     const out = await sendDatingRows(rows);
     if ('error' in out) return; // offline or refused now: tried again with the next save or sync
+    dropDeleted({ ok: true, refused: out.refused });
     if (out.dated.length) notify();
   })().finally(() => {
     dating = null;
@@ -1402,38 +1420,40 @@ export const discardUnsaved = async (id: string): Promise<void> => {
   await hydrate();
 };
 
+/** Why deleting a record didn't happen; RecordDetail says each in the page's language. */
+export type DeleteFailure = 'busy' | 'offline' | 'refused' | 'not-removed' | 'device-only' | 'missing';
+
 /**
- * Delete one of the holder's records: from this browser and from VeilCore's registry (its row,
- * its locked copy, its grants and notices: the registry's DELETE /api/records). What stays, and
- * the page says so before asking: its proof code in a batch already dated on Midnight (a code,
- * revealing nothing, that a chain can't take back); backup files saved before; a copy a lab or
- * buyer already received. A record kept on this device only has its own delete
- * (deleteDeviceOnly). The caller checks licences first (RecordDetail: a record with any licence
- * or agreement can't be deleted).
+ * Delete one of the holder's records, from this browser and from VeilCore's registry (its row,
+ * locked copy, grants and notices). The registry keeps the id as deleted for good, so a save
+ * from another tab or device, or a restored backup, can't bring it back. The record stays on the
+ * list until the registry answers, so a failure leaves everything as it was. A record kept on
+ * this device only has its own delete (deleteDeviceOnly). RecordDetail checks licences,
+ * corrections and links first.
  */
-export const deleteRecord = async (id: string): Promise<{ ok: true } | { error: string }> => {
+export const deleteRecord = async (id: string): Promise<{ ok: true } | { error: DeleteFailure }> => {
   const r = getRecord(id);
-  if (!r) return { error: 'no such record here' };
-  if (neverSend(r)) return { error: 'a record kept on this device only is deleted from its own page' };
-  // Off the list first, so no save from now on carries it; then every save already on its way
-  // is let finish, so none lands after the delete and puts the row back. Then the registry is
-  // asked, whatever this browser last read of it (one it doesn't hold is answered as not
-  // removed, which is fine). VeilCore out of reach: the record is put back as it was, so the
-  // list never shows a record as gone that the registry still holds.
-  const before = records;
-  const queued = inOutbox(id) ? outboxRecords()[id] : undefined;
-  records = records.filter((x) => x.id !== id);
-  if (queued) takeFromOutbox([id]);
-  notify();
-  await savesSettledInTime();
-  const out = await deleteRecords([id]);
-  if ('error' in out) {
-    records = before;
-    if (queued) putInOutbox([r]);
+  if (!r) return { error: 'missing' };
+  if (neverSend(r)) return { error: 'device-only' };
+  if (deleting.has(id)) return { error: 'busy' };
+  deleting.add(id);
+  try {
+    // A save already on its way that still carries it must land first, or the delete could
+    // overtake it. If they don't finish in time, nothing is deleted.
+    if (!(await savesSettledInTime())) return { error: 'busy' };
+    // Only kept here, never taken by VeilCore (not even its proof code): nothing to delete there.
+    const neverReachedRegistry = inOutbox(id) && rowStateOf(RECORDS_KEY, id) === undefined && !registryHasProofCode(id);
+    const out = await deleteRecords([id]);
+    if ('error' in out) return { error: out.offline ? 'offline' : 'refused' };
+    // Only what the registry says it removed counts; a record it never had is removed here only.
+    if (!out.removed.includes(id) && !neverReachedRegistry) return { error: 'not-removed' };
+    records = records.filter((x) => x.id !== id);
+    takeFromOutbox([id]);
+    forgetKeys(id);
     notify();
-    return out;
+  } finally {
+    deleting.delete(id);
   }
-  forgetKeys(id);
   persist();
   await hydrate();
   return { ok: true };
