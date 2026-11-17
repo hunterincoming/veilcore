@@ -270,6 +270,9 @@ export const verify = {
   'app.verify.who.words': '名前と詳細',
   'app.verify.who.words.holder':
     '保有者自身の言葉です。このページは証明コードと一致することだけを確認し、内容が正しいかは確認しません。',
+  'app.verify.who.date.failed': 'ありません：このページのMidnightでの確認は失敗しました（下記参照）。',
+  'app.verify.who.words.differs': '保有者の言葉ですが、表示された名前は証明コードと一致しません（下記参照）。',
+  'app.verify.who.words.unchecked': '保有者自身の言葉です。何も確認していません。',
   'app.verify.who.lab': '検査機関',
   'app.verify.who.lab.none': 'このページはどの検査機関の署名も確認していません。',
   'app.verify.who.signed': '{who}。このページが署名を確認しました。',

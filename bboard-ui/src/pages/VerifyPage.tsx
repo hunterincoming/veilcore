@@ -731,7 +731,7 @@ export const VerifyPage: React.FC = () => {
                 />
               )}
 
-            {/* Who stands behind each fact, from what this page already worked out
+            {/* What each fact rests on, from what this page already worked out
                 (who-vouches.ts): checked here, signed by a lab, the registry's report, or the
                 holder's own words. */}
             {result.recordFingerprint && proof !== 'checking' && atts !== null && (
@@ -741,6 +741,16 @@ export const VerifyPage: React.FC = () => {
                     bound,
                     proof: proof.status,
                     anchorConfirmed: anchorCheckedOnChain && anchor !== 'checking' && anchor?.status === 'checked',
+                    anchorFailed:
+                      anchorCheckedOnChain &&
+                      anchor !== 'checking' &&
+                      (anchor?.status === 'failed' || anchor?.status === 'unreachable'),
+                    words:
+                      nameCheck.state === 'matches'
+                        ? 'matches'
+                        : nameCheck.state === 'differs'
+                          ? 'differs'
+                          : 'unchecked',
                     testNetwork: isTestNetwork(reportedNetwork ?? NETWORK),
                     signers: signed.map((a) => {
                       const label = signerLabel(a, 'Signed by', undefined, tr);

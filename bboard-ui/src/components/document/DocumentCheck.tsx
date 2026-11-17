@@ -33,6 +33,8 @@ export const DocumentCheck: React.FC = () => {
   const [read, setRead] = useState<ReadLink>();
   // Whether the file picked below is the sealed one (null: none picked, or still reading).
   const [picked, setPicked] = useState<boolean | null>(null);
+  // Another document's link starts with nothing picked, so one file's match never shows under it.
+  useEffect(() => setPicked(null), [hash]);
   // The date, looked up once for the date line and the "what each fact rests on" box alike.
   const date = useRecordDate(read?.ok ? read.fingerprint : undefined);
   useEffect(() => {

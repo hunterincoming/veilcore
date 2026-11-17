@@ -30,6 +30,10 @@ export type WhoInput = {
   readonly proof: 'checking' | 'none' | 'pending' | 'anchor-reported';
   /** This page found the batch's anchor on Midnight itself. */
   readonly anchorConfirmed: boolean;
+  /** This page tried to check the anchor on Midnight and the check failed or couldn't reach it. */
+  readonly anchorFailed?: boolean;
+  /** What the page found for the name and details: they match the proof code, they differ, or neither was checked. */
+  readonly words?: 'matches' | 'differs' | 'unchecked';
   /** The network the anchor is on is a test network. */
   readonly testNetwork: boolean;
   /** The signatures this page verified, each as the page already words it. */
@@ -51,7 +55,9 @@ const t = (tr: Translator, k: string, v?: Record<string, string>) => tr.t(k as A
 export const whoVouches = (i: WhoInput, tr: Translator = enT): WhoRow[] => {
   const rows: WhoRow[] = [];
   const date = t(tr, 'app.verify.who.date');
-  if (i.proof === 'anchor-reported') {
+  if (i.proof === 'anchor-reported' && i.anchorFailed) {
+    rows.push({ fact: date, who: t(tr, 'app.verify.who.date.failed'), basis: 'none' });
+  } else if (i.proof === 'anchor-reported') {
     rows.push(
       i.anchorConfirmed && i.bound
         ? {
@@ -82,7 +88,12 @@ export const whoVouches = (i: WhoInput, tr: Translator = enT): WhoRow[] => {
       ? { fact: t(tr, 'app.verify.who.code'), who: t(tr, 'app.verify.who.code.page'), basis: 'checked' }
       : { fact: t(tr, 'app.verify.who.code'), who: t(tr, 'app.verify.who.code.registry'), basis: 'registry' },
   );
-  rows.push({ fact: t(tr, 'app.verify.who.words'), who: t(tr, 'app.verify.who.words.holder'), basis: 'holder' });
+  const words = i.words ?? 'unchecked';
+  rows.push({
+    fact: t(tr, 'app.verify.who.words'),
+    who: t(tr, words === 'matches' ? 'app.verify.who.words.holder' : `app.verify.who.words.${words}`),
+    basis: words === 'differs' ? 'none' : 'holder',
+  });
   const max = i.max ?? 3;
   if (i.signers.length === 0) {
     rows.push({ fact: t(tr, 'app.verify.who.lab'), who: t(tr, 'app.verify.who.lab.none'), basis: 'none' });

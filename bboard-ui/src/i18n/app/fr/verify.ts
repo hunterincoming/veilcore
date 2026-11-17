@@ -290,6 +290,10 @@ export const verify = {
   'app.verify.who.words': 'Le nom et les détails',
   'app.verify.who.words.holder':
     'Le détenteur, avec ses propres mots. Cette page vérifie seulement qu’ils correspondent au code de preuve, pas qu’ils sont vrais.',
+  'app.verify.who.date.failed': 'Personne : la vérification de cette page sur Midnight a échoué (voir ci-dessous).',
+  'app.verify.who.words.differs':
+    'Les mots du détenteur, mais le nom affiché ne correspond pas au code de preuve (voir ci-dessous).',
+  'app.verify.who.words.unchecked': 'Le détenteur, avec ses propres mots. Rien ne les vérifie.',
   'app.verify.who.lab': 'Un laboratoire',
   'app.verify.who.lab.none': 'Cette page n’a vérifié la signature d’aucun laboratoire.',
   'app.verify.who.signed': '{who}. Cette page a vérifié la signature.',

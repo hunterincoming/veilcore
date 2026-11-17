@@ -42,13 +42,24 @@ describe('what each fact rests on', () => {
     expect(rows({ bound: false }).find((r) => r.fact === 'The proof code')?.basis).toBe('registry');
   });
 
-  it('the name and details are always the holder’s own words', () => {
-    for (const b of [true, false])
-      expect(rows({ bound: b }).find((r) => r.fact === 'The name and details')).toEqual({
-        fact: 'The name and details',
-        who: 'The holder, in their own words. This page checks only that they match the proof code, not that they’re true.',
-        basis: 'holder',
-      });
+  it('the name and details are the holder’s own words, said to match the proof code only when they do', () => {
+    const words = (w: WhoInput['words']) => rows({ words: w }).find((r) => r.fact === 'The name and details');
+    expect(words('matches')).toEqual({
+      fact: 'The name and details',
+      who: 'The holder, in their own words. This page checks only that they match the proof code, not that they’re true.',
+      basis: 'holder',
+    });
+    expect(words(undefined)).toMatchObject({
+      who: 'The holder, in their own words. Nothing checks them.',
+      basis: 'holder',
+    });
+    expect(words('differs')).toMatchObject({ basis: 'none' });
+    expect(words('differs')?.who).toMatch(/doesn’t match the proof code/);
+  });
+
+  it('a failed check on Midnight is said as failed, not as unchecked', () => {
+    expect(rows({ anchorFailed: true, anchorConfirmed: false })[0]).toMatchObject({ fact: 'The date', basis: 'none' });
+    expect(rows({ anchorFailed: true, anchorConfirmed: false })[0].who).toMatch(/failed/);
   });
 
   it('a lab is named as the page names it, and a matched name never reads as VeilCore vouching', () => {
@@ -115,6 +126,8 @@ describe('what each fact rests on', () => {
       const out = [
         ...whoVouches({ ...base, signers: [{ kind: 'K', who: 'W', nameChecked: true }] }, tr),
         ...whoVouches({ ...base, bound: false, signers: [{ kind: 'K', who: 'W', nameChecked: true }] }, tr),
+        ...whoVouches({ ...base, anchorFailed: true, words: 'differs' }, tr),
+        ...whoVouches({ ...base, words: 'matches' }, tr),
         ...(['none', 'waiting', 'match', 'no-match'] as const).flatMap((file) =>
           whoVouches({ ...base, document: true, file }, tr),
         ),

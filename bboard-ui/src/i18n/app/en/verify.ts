@@ -281,6 +281,9 @@ export const verify = {
   'app.verify.who.words': 'The name and details',
   'app.verify.who.words.holder':
     'The holder, in their own words. This page checks only that they match the proof code, not that they’re true.',
+  'app.verify.who.date.failed': 'Nobody: this page’s check on Midnight failed (see below).',
+  'app.verify.who.words.differs': 'The holder’s words, but the name shown doesn’t match the proof code (see below).',
+  'app.verify.who.words.unchecked': 'The holder, in their own words. Nothing checks them.',
   'app.verify.who.lab': 'A laboratory',
   'app.verify.who.lab.none': 'This page hasn’t checked any laboratory’s signature.',
   'app.verify.who.signed': '{who}. This page checked the signature.',

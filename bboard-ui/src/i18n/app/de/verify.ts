@@ -291,6 +291,10 @@ export const verify = {
   'app.verify.who.words': 'Name und Angaben',
   'app.verify.who.words.holder':
     'Der Inhaber, in eigenen Worten. Diese Seite prüft nur, dass sie zum Prüfcode passen, nicht, dass sie stimmen.',
+  'app.verify.who.date.failed': 'Niemand: Die Prüfung dieser Seite auf Midnight ist fehlgeschlagen (siehe unten).',
+  'app.verify.who.words.differs':
+    'Die Worte des Inhabers, aber der gezeigte Name passt nicht zum Prüfcode (siehe unten).',
+  'app.verify.who.words.unchecked': 'Der Inhaber, in eigenen Worten. Nichts prüft sie.',
   'app.verify.who.lab': 'Ein Labor',
   'app.verify.who.lab.none': 'Diese Seite hat keine Signatur eines Labors geprüft.',
   'app.verify.who.signed': '{who}. Diese Seite hat die Signatur geprüft.',

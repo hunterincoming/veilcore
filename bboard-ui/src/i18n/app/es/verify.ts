@@ -288,6 +288,10 @@ export const verify = {
   'app.verify.who.words': 'El nombre y los detalles',
   'app.verify.who.words.holder':
     'El titular, con sus propias palabras. Esta página solo comprueba que coinciden con el código de prueba, no que sean ciertos.',
+  'app.verify.who.date.failed': 'Nadie: la comprobación de esta página en Midnight falló (ver abajo).',
+  'app.verify.who.words.differs':
+    'Las palabras del titular, pero el nombre mostrado no coincide con el código de prueba (ver abajo).',
+  'app.verify.who.words.unchecked': 'El titular, con sus propias palabras. Nada los comprueba.',
   'app.verify.who.lab': 'Un laboratorio',
   'app.verify.who.lab.none': 'Esta página no ha comprobado la firma de ningún laboratorio.',
   'app.verify.who.signed': '{who}. Esta página comprobó la firma.',
