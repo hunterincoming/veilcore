@@ -142,6 +142,8 @@ export const home = {
   // PlanBox.tsx, billing.ts, records.ts: paid plans (off unless VITE_PAID_PLANS=on)
   'app.plan.full':
     'Ihre kostenlosen Datensätze sind aufgebraucht, daher wurde kein neuer Datensatz angelegt. Alles, was Sie schon haben, bleibt prüfbar. Wählen Sie auf Ihrer Datensatzseite einen Tarif, um weitere hinzuzufügen.',
+  'app.plan.unknown':
+    'VeilCore konnte Ihren Tarif gerade nicht prüfen, daher wurde kein neuer Datensatz angelegt. Prüfen Sie Ihre Verbindung und versuchen Sie es erneut.',
   'app.plan.box.free': 'Kostenloser Tarif: {held} von {cap} Datensätzen',
   'app.plan.box.left': 'Noch kostenlos: {n}',
   'app.plan.box.paid': 'Ihr Tarif: {plan}',

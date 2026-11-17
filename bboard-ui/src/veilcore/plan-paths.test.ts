@@ -1,7 +1,9 @@
-// Paid plans on the paths that add a record without the new-record form (billing.ts planBlocks):
-//   - a correction is a new record: past the free number it is refused before anything is sealed;
+// Paid plans on the paths that add a record without the new-record form (billing.ts planGate):
+//   - a record's one correction doesn't count; a correction of a correction past the free
+//     number is refused before anything is sealed;
 //   - an import that would pass the free number is refused whole, nothing stored or sent;
-//   - a plan read for one key never applies after the key changes.
+//   - a plan read for one key never applies after the key changes;
+//   - the plan unknown (unreachable) refuses a new record; plans off at the registry never do.
 // Against the in-memory registry (fixtures/fake-registry.ts), with the plan answered here.
 // SPDX-License-Identifier: Apache-2.0
 
@@ -18,6 +20,7 @@ vi.mock('../config/network', async (importOriginal) => ({
 
 let reg: FakeRegistry;
 let cap = 25;
+let planAnswer: 'ok' | 'off' | 'down' = 'ok';
 const planCalls: string[] = [];
 
 beforeEach(() => {
@@ -25,10 +28,16 @@ beforeEach(() => {
   installStorage();
   reg = fakeRegistry();
   cap = 25;
+  planAnswer = 'ok';
   planCalls.length = 0;
   vi.stubGlobal('fetch', (url: string | URL, init?: RequestInit) => {
     if (String(url).endsWith('/api/billing/plan')) {
       planCalls.push(String((init?.headers as Record<string, string>)['x-holder-key']));
+      if (planAnswer === 'down') return Promise.reject(new TypeError('offline'));
+      if (planAnswer === 'off')
+        return Promise.resolve(
+          new Response(JSON.stringify({ error: 'paid plans are not switched on' }), { status: 404 }),
+        );
       const body = { plan: 'free', status: null, periodEnd: null, recordsHeld: 1, recordsCounted: 1, recordCap: cap };
       return Promise.resolve(
         new Response(JSON.stringify(body), { status: 200, headers: { 'content-type': 'application/json' } }),
@@ -79,14 +88,20 @@ const saved = async () => {
 };
 
 describe('the free number on other ways of adding a record', () => {
-  it('a correction past the free number is refused before anything is sealed or sent', async () => {
+  it("a record's one correction is made at the free number; a correction of it is refused first", async () => {
     const { A, rec } = await saved();
     cap = 1;
     await A.run(() => A.m.billing.refreshPlan());
-    const before = reg.sent.length;
-    const err = await A.run(() => A.m.records.issueCorrection(rec.id, { notes: 'fixed' }, 'typo')).catch(
+    const first = await A.run(() => A.m.records.issueCorrection(rec.id, { notes: 'fixed' }, 'typo')).catch(
       (e: unknown) => e,
     );
+    expect((first as { key?: string })?.key).not.toBe('app.plan.full');
+    const corrected = await A.run(() => A.m.records.getRecord(rec.id)?.supersededBy);
+    expect(corrected).toBeTruthy();
+    const before = reg.sent.length;
+    const err = await A.run(() =>
+      A.m.records.issueCorrection(corrected as string, { notes: 'fixed again' }, 'typo'),
+    ).catch((e: unknown) => e);
     expect(err).toBeInstanceOf(A.m.records.CorrectionRefused);
     expect((err as { key: string }).key).toBe('app.plan.full');
     expect(reg.sent.slice(before).filter((s) => s.method === 'PUT')).toHaveLength(0);
@@ -115,15 +130,47 @@ describe('the free number on other ways of adding a record', () => {
       A.m.holder.holderKey();
       cap = 0;
       await A.m.billing.refreshPlan();
-      expect(A.m.billing.planBlocks(1, 0)).toBe(true);
+      expect(A.m.billing.planGate(1, 0)).toBe('app.plan.full');
       A.m.holder.setHolderKey('ab'.repeat(32));
-      // Another key: what was read no longer applies until read again for it.
+      // Another key: what was read no longer applies; unknown, so a new record waits for it.
       expect(A.m.billing.currentPlan()).toBeNull();
-      expect(A.m.billing.planBlocks(1, 0)).toBe(false);
       cap = 5;
-      await A.m.billing.refreshPlan();
+      expect(A.m.billing.planGate(1, 0)).toBe('app.plan.unknown');
+      await A.m.billing.readPlan();
       expect(A.m.billing.currentPlan()?.recordCap).toBe(5);
+      expect(A.m.billing.planGate(1, 0)).toBeNull();
     });
     expect(planCalls.at(-1)).toBe('ab'.repeat(32));
+  });
+
+  it('the plan unknown (VeilCore unreachable): no new record is made, and it says why', async () => {
+    const A = await browser('U');
+    planAnswer = 'down';
+    const err = await A.run(async () => {
+      A.m.holder.holderKey();
+      A.m.vault.mintVault();
+      return A.m.records.createRecordSaved((await pup(A)) as never).catch((e: unknown) => e);
+    });
+    expect(String(err)).toMatch(/couldn’t check your plan/);
+    expect(await A.run(() => A.m.records.allRecords().length)).toBe(0);
+  });
+
+  it('paid plans off at the registry: never blocks', async () => {
+    const A = await browser('O');
+    planAnswer = 'off';
+    await A.run(async () => {
+      A.m.holder.holderKey();
+      await A.m.billing.readPlan();
+      expect(A.m.billing.planGate(1000, 0)).toBeNull();
+    });
+  });
+
+  it('loading the records reads the plan, so it is known before the first new record', async () => {
+    const { A } = await saved();
+    planCalls.length = 0;
+    await A.run(() => A.m.records.hydrate());
+    await A.run(() => new Promise((r) => setTimeout(r, 20)));
+    expect(planCalls.length).toBeGreaterThan(0);
+    expect(await A.run(() => A.m.billing.currentPlan())).not.toBeNull();
   });
 });

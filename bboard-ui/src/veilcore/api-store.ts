@@ -1132,6 +1132,12 @@ const sendSealed = async (
         refused.push({ id: r.id, reason: r.reason, words: 'app.sealed.refuse.supersededByLocked' });
         continue;
       }
+      // A new record past the free number (the registry refuses only those rows; the rest of the
+      // save, edits included, was stored). Said in the site's words.
+      if (r.code === PLAN_LIMIT) {
+        refused.push({ id: r.id, reason: PLAN_FULL_REASON, words: 'app.plan.full' });
+        continue;
+      }
       // A correction not stored because its record was refused in the same save: nothing was
       // kept, and the set is read again (records.ts issueCorrection), to correct again.
       if (r.code === RECORD_REFUSED_CODE) {

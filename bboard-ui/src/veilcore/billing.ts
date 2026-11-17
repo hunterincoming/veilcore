@@ -5,10 +5,13 @@
 // - Buying opens Paddle's own checkout page in a new tab: the registry opens the checkout and
 //   answers its link (POST /api/billing/checkout). No payment company's script runs on this
 //   site, which holds the holder's keys.
-// - Before a new record is made, corrected or imported (records.ts), planBlocks says whether
-//   the free number is used up, so nothing is sealed that the registry would refuse to date.
-// - The plan read is for one holder key: after any change of key it no longer applies until
-//   read again (planFor).
+// - Before a new record is made, corrected or imported (records.ts), planGate says whether the
+//   free number is used up, so nothing is sealed that the registry would refuse to date. With
+//   the plan unknown (not read, unreachable) a new record is not made: the free number may be
+//   used up, and a record sealed then would sit undated.
+// - The plan is read when the holder's records load (records.ts refresh) and before each async
+//   path that makes records (readPlan). A read is for one holder key: after any change of key
+//   it no longer applies until read again (planFor).
 //
 // Off (config/network.ts PAID_PLANS_ENABLED), every function here does nothing.
 // SPDX-License-Identifier: Apache-2.0
@@ -37,6 +40,8 @@ const PLAN_NAME = /^[a-z]{2,20}$/;
 
 let current: Plan | null = null;
 let currentFor: string | null = null;
+// The registry answered that paid plans are off, for this key: nothing here ever blocks.
+let offFor: string | null = null;
 const listeners = new Set<() => void>();
 const set = (p: Plan | null, key: string | null) => {
   current = p;
@@ -78,6 +83,10 @@ export const refreshPlan = async (fetchImpl: typeof fetch = fetch): Promise<Plan
   if (!k) return null;
   try {
     const res = await fetchImpl(`${BASE}/api/billing/plan`, { headers: { 'x-holder-key': k } });
+    if (res.status === 404) {
+      offFor = k;
+      return null;
+    }
     const plan = asPlan(await readJson(res).catch(() => null));
     if (!res.ok || !plan) return planFor();
     set(plan, k);
@@ -88,6 +97,14 @@ export const refreshPlan = async (fetchImpl: typeof fetch = fetch): Promise<Plan
 };
 
 export const currentPlan = (): Plan | null => planFor();
+
+/** Read the plan unless it is already known for this key (or the registry said plans are off). */
+export const readPlan = async (fetchImpl: typeof fetch = fetch): Promise<void> => {
+  if (!PAID_PLANS_ENABLED) return;
+  const k = holderKeyIfAny();
+  if (!k || offFor === k || planFor()) return;
+  await refreshPlan(fetchImpl);
+};
 
 export const usePlan = (): Plan | null =>
   useSyncExternalStore(
@@ -109,14 +126,27 @@ export const freeLeft = (plan: Plan | null, ownHere: number): number | null => {
   return Math.max(0, plan.recordCap - Math.max(ownHere, plan.recordsCounted));
 };
 
+export type PlanRefusal = 'app.plan.full' | 'app.plan.unknown';
 /**
- * Whether adding `n` new records would pass the free number. Not read yet, read for another
- * key, off, or paid: never blocks (the registry still refuses past its ceiling).
+ * Why `n` new records can't be made on this plan now, or null. Off (here or at the registry),
+ * no holder key yet (a first record), or paid: null. The plan not known for this key: refused,
+ * and read in the background so the next try knows (readPlan before async paths avoids this).
  */
-export const planBlocks = (n: number, ownHere: number): boolean => {
-  const left = freeLeft(planFor(), ownHere);
-  return n > 0 && left !== null && n > left;
+export const planGate = (n: number, ownHere: number): PlanRefusal | null => {
+  if (!PAID_PLANS_ENABLED || n <= 0) return null;
+  const k = holderKeyIfAny();
+  if (!k || offFor === k) return null;
+  const plan = planFor();
+  if (!plan) {
+    void refreshPlan();
+    return 'app.plan.unknown';
+  }
+  const left = freeLeft(plan, ownHere);
+  return left !== null && n > left ? 'app.plan.full' : null;
 };
+
+/** Whether adding `n` new records would be refused on this plan now (planGate). */
+export const planBlocks = (n: number, ownHere: number): boolean => planGate(n, ownHere) !== null;
 
 /** Read the plan again whenever this page comes back into view (after paying on Paddle's tab). */
 export const watchPlanOnReturn = (): (() => void) => {

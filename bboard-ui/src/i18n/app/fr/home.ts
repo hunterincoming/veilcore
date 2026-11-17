@@ -141,6 +141,8 @@ export const home = {
   // PlanBox.tsx, billing.ts, records.ts: paid plans (off unless VITE_PAID_PLANS=on)
   'app.plan.full':
     'Vos enregistrements gratuits sont épuisés : aucun nouvel enregistrement n’a été créé. Tout ce que vous avez déjà reste vérifiable. Choisissez une formule sur votre page d’enregistrements pour en ajouter.',
+  'app.plan.unknown':
+    'VeilCore n’a pas pu vérifier votre formule pour l’instant : aucun nouvel enregistrement n’a été créé. Vérifiez votre connexion et réessayez.',
   'app.plan.box.free': 'Formule gratuite : {held} sur {cap} enregistrements',
   'app.plan.box.left': 'Enregistrements gratuits restants : {n}',
   'app.plan.box.paid': 'Votre formule : {plan}',

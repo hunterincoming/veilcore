@@ -143,6 +143,8 @@ export const home = {
   // PlanBox.tsx, billing.ts, records.ts: paid plans (off unless VITE_PAID_PLANS=on)
   'app.plan.full':
     'Your free records are used up, so no new record was made. Everything you already have keeps verifying. Choose a plan on your records page to add more.',
+  'app.plan.unknown':
+    'VeilCore couldn’t check your plan just now, so no new record was made. Check your connection and try again.',
   'app.plan.box.free': 'Free plan: {held} of {cap} records',
   'app.plan.box.left': 'Free records left: {n}',
   'app.plan.box.paid': 'Your plan: {plan}',

@@ -139,6 +139,8 @@ export const home = {
   // PlanBox.tsx, billing.ts, records.ts: paid plans (off unless VITE_PAID_PLANS=on)
   'app.plan.full':
     'Ya usó sus registros gratuitos, así que no se creó ningún registro nuevo. Todo lo que ya tiene se sigue pudiendo comprobar. Elija un plan en su página de registros para añadir más.',
+  'app.plan.unknown':
+    'VeilCore no pudo comprobar su plan en este momento, así que no se creó ningún registro nuevo. Revise su conexión e inténtelo de nuevo.',
   'app.plan.box.free': 'Plan gratuito: {held} de {cap} registros',
   'app.plan.box.left': 'Registros gratuitos restantes: {n}',
   'app.plan.box.paid': 'Su plan: {plan}',

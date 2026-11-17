@@ -128,6 +128,8 @@ export const home = {
   // PlanBox.tsx, billing.ts, records.ts: paid plans (off unless VITE_PAID_PLANS=on)
   'app.plan.full':
     '無料の記録数を使い切ったため、新しい記録は作成されませんでした。すでにある記録はすべて引き続き確認できます。さらに追加するには、記録のページでプランを選んでください。',
+  'app.plan.unknown':
+    '現在VeilCoreがプランを確認できなかったため、新しい記録は作成されませんでした。接続を確認して、もう一度お試しください。',
   'app.plan.box.free': '無料プラン：{cap}件中{held}件',
   'app.plan.box.left': '残りの無料記録：{n}件',
   'app.plan.box.paid': 'ご利用のプラン：{plan}',

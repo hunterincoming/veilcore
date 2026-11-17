@@ -3,7 +3,7 @@
 // their status. Simulated settlement in demo mode.
 // SPDX-License-Identifier: Apache-2.0
 
-import { currentPlan, freeLeft, ownCount, planBlocks } from './billing';
+import { currentPlan, freeLeft, ownCount, planGate, readPlan, refreshPlan } from './billing';
 import { useSyncExternalStore } from 'react';
 import { store, type SaveResult } from './store';
 import { exportEnvelopeFor, toEnvelope, sealEnvelope } from './envelope';
@@ -786,6 +786,8 @@ export const hydrateAnswered = (): Promise<boolean> => refresh();
  */
 export const refresh = async (opts: { resave?: boolean } = {}): Promise<boolean> => {
   const before = records;
+  // The plan for this key, read alongside (billing.ts): known before the holder makes a record.
+  void refreshPlan();
   try {
     records = await store.load(RECORDS_KEY, isStrainRecord);
   } catch {
@@ -1550,9 +1552,10 @@ export const createRecord = (input: NewRecordInput): StrainRecord => {
   // A record that leaves can't name one kept on this device only: what it names is sealed into
   // its locked copy (outbox.ts namesDeviceOnly). One that is itself kept here may.
   if (namesDeviceOnly(record)) throw new Error(enT.t('app.doc.local.aboutStaysHere'));
-  // The free number used up (paid plans, billing.ts): refused before anything is sealed or
-  // shown, so no record is made that the registry would refuse to date.
-  if (planBlocks(1, ownCount(records))) throw new Error(enT.t('app.plan.full'));
+  // The free number used up, or the plan not known (paid plans, billing.ts): refused before
+  // anything is sealed or shown, so no record is made that the registry would refuse to date.
+  const refusal = planGate(1, ownCount(records));
+  if (refusal) throw new Error(enT.t(refusal));
   keepDataIfFirst(records.length);
   records = [record, ...records];
   // Kept in this browser until the registry has it (L12): a refused or held save never
@@ -1579,7 +1582,9 @@ export const createRecordSaved = async (
   // device, never made without the mark.
   if (neverSend(input)) throw new Error(enT.t('app.doc.local.staysHere'));
   if (namesDeviceOnly(input)) throw new Error(enT.t('app.doc.local.aboutStaysHere'));
-  if (planBlocks(1, ownCount(records))) throw new Error(enT.t('app.plan.full'));
+  await readPlan();
+  const refusal = planGate(1, ownCount(records));
+  if (refusal) throw new Error(enT.t(refusal));
   const record: StrainRecord = withNameSalt({ licenseIds: [], ...input, id: input.id ?? newRecordId() });
   keepDataIfFirst(records.length);
   records = [record, ...records];
@@ -1604,7 +1609,9 @@ export const createRecords = async (inputs: readonly NewRecordInput[]): Promise<
   // on this device, never made without the mark.
   if (inputs.some(neverSend)) throw new Error(enT.t('app.doc.local.staysHere'));
   if (inputs.some((r) => namesDeviceOnly(r))) throw new Error(enT.t('app.doc.local.aboutStaysHere'));
-  if (planBlocks(inputs.length, ownCount(records))) throw new Error(enT.t('app.plan.full'));
+  await readPlan();
+  const refusal = planGate(inputs.length, ownCount(records));
+  if (refusal) throw new Error(enT.t(refusal));
   const batch: StrainRecord[] = inputs.map((input) =>
     withNameSalt({ licenseIds: [], ...input, id: input.id ?? newRecordId() }),
   );
@@ -1963,7 +1970,10 @@ export const importRecordRows = async (parsed: readonly unknown[]): Promise<Impo
   // New to the registry, past the free number (paid plans): the file is refused whole, before
   // anything is stored here, rather than imported in part.
   const newThere = fresh.length + localNew.filter((r) => !have.has(r.id)).length;
-  if (planBlocks(newThere, ownCount(records))) {
+  await readPlan();
+  const refusal = planGate(newThere, ownCount(records));
+  if (refusal === 'app.plan.unknown') throw new Error(enT.t(refusal));
+  if (refusal) {
     const left = freeLeft(currentPlan(), ownCount(records)) ?? 0;
     throw new Error(enT.t('app.plan.importFull', { n: String(newThere), left: String(left) }));
   }
@@ -2454,8 +2464,13 @@ export const issueCorrection = async (
   // locking, nor under a key that isn't in a checked backup yet (round 3, L7, L1). Said up
   // front; it used to leave a correction on the registry while saying nothing had changed.
   if (correctionWaitsForBackup(originalId)) throw new Error(enT.t('app.sealed.backupFirstAction'));
-  // A correction is a new record: past the free number it is refused before anything is sealed.
-  if (planBlocks(1, ownCount(records))) throw new CorrectionRefused('app.plan.full');
+  // A record's one correction doesn't count on the free plan (the registry's billing.js); a
+  // correction of a correction does, so only that is checked before anything is sealed.
+  if (getRecord(originalId)?.supersedes) {
+    await readPlan();
+    const refusal = planGate(1, ownCount(records));
+    if (refusal) throw new CorrectionRefused(refusal);
+  }
   // A record is corrected once. Whether another tab or device corrected it is known only from
   // the registry, so it is asked now, and a correction is made only when it answered: one made
   // from this browser's copy alone, offline, would be the second live correction of a record
