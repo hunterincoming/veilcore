@@ -172,8 +172,17 @@ export const DocumentFacts: React.FC<{
  * gives. For a checker, anything short of a checked date comes with "don't rely on it".
  */
 export const DocumentDate: React.FC<{ fingerprint: string; checker?: boolean }> = ({ fingerprint, checker }) => {
-  const tr = useT();
   const { proof, anchor } = useRecordDate(fingerprint);
+  return <DocumentDateView proof={proof} anchor={anchor} checker={checker} />;
+};
+
+/** DocumentDate, for a page that already looked the date up (the check page: its "who stands behind" box reads the same). */
+export const DocumentDateView: React.FC<{
+  proof: ReturnType<typeof useRecordDate>['proof'];
+  anchor: ReturnType<typeof useRecordDate>['anchor'];
+  checker?: boolean;
+}> = ({ proof, anchor, checker }) => {
+  const tr = useT();
   const row = recordDateRow(proof, anchor, tr);
   return (
     <Box data-document-date={row.mark}>

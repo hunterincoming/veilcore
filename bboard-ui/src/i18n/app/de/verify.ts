@@ -299,4 +299,8 @@ export const verify = {
   'app.verify.who.moreText': '{n} weitere, unten aufgeführt.',
   'app.verify.who.nameMatched': '{who} (Name mit einem öffentlichen Verzeichnis abgeglichen, siehe unten)',
   'app.verify.who.date.none': 'Niemand. Soweit diese Seite sehen kann, ist er in keinem datierten Stapel.',
+  'app.verify.who.code.recomputed': 'Diese Seite: hier aus dem berechnet, was der Link enthält.',
+  'app.verify.who.file': 'Die Datei',
+  'app.verify.who.file.device': 'Ihr eigenes Gerät, sobald Sie unten die Datei wählen. Nichts wird gesendet.',
+  'app.verify.who.typed': 'Was eingegeben wurde (Titel, Halter, Aussteller, Notizen)',
 } satisfies Partial<AppTranslation>;

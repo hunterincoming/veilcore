@@ -277,4 +277,8 @@ export const verify = {
   'app.verify.who.moreText': 'ほかに{n}件、下に表示しています。',
   'app.verify.who.nameMatched': '{who}（名前は公開リストと照合済み、下記参照）',
   'app.verify.who.date.none': 'ありません。このページで確認できる限り、日付の付いたバッチに入っていません。',
+  'app.verify.who.code.recomputed': 'このページ：リンクの内容からここで計算しました。',
+  'app.verify.who.file': 'ファイル',
+  'app.verify.who.file.device': '下でファイルを選ぶと、あなた自身の端末で照合します。何も送信されません。',
+  'app.verify.who.typed': '入力された内容（タイトル、保有者、発行者、メモ）',
 } satisfies Partial<AppTranslation>;

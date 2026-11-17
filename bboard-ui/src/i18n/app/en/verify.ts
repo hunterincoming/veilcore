@@ -289,4 +289,8 @@ export const verify = {
   'app.verify.who.moreText': '{n} more, listed below.',
   'app.verify.who.nameMatched': '{who} (its name matched to a public listing, below)',
   'app.verify.who.date.none': 'Nobody. As far as this page can tell, it isn’t in a dated batch.',
+  'app.verify.who.code.recomputed': 'This page: worked out here from what the link carries.',
+  'app.verify.who.file': 'The file',
+  'app.verify.who.file.device': 'Your own device, once you pick the file below. Nothing is sent.',
+  'app.verify.who.typed': 'What’s typed (title, holder, issuer, notes)',
 };

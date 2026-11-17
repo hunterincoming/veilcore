@@ -87,6 +87,17 @@ describe('who stands behind each fact', () => {
     expect(r.at(-1)).toMatchObject({ fact: 'More signatures', who: '2 more, listed below.' });
   });
 
+  it('a document: the code worked out from the link, the file on the checker’s device, no lab row', () => {
+    const r = rows({ document: true, signers: [{ kind: 'Lab report', who: 'X', nameChecked: true }] });
+    expect(r.map((x) => [x.fact, x.basis])).toEqual([
+      ['The date', 'checked'],
+      ['The proof code', 'checked'],
+      ['The file', 'checked'],
+      ['What’s typed (title, holder, issuer, notes)', 'holder'],
+    ]);
+    expect(r[2].who).toMatch(/Nothing is sent\.$/);
+  });
+
   it('every row is in every language', () => {
     for (const tr of [
       makeTranslator('de', appDe),

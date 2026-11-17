@@ -298,4 +298,8 @@ export const verify = {
   'app.verify.who.moreText': '{n} de plus, ci-dessous.',
   'app.verify.who.nameMatched': '{who} (nom rapproché d’une liste publique, ci-dessous)',
   'app.verify.who.date.none': 'Personne. Pour autant que cette page puisse le voir, il n’est dans aucun lot daté.',
+  'app.verify.who.code.recomputed': 'Cette page : recalculé ici à partir de ce que contient le lien.',
+  'app.verify.who.file': 'Le fichier',
+  'app.verify.who.file.device': 'Votre propre appareil, une fois le fichier choisi ci-dessous. Rien n’est envoyé.',
+  'app.verify.who.typed': 'Ce qui est saisi (titre, détenteur, émetteur, notes)',
 } satisfies Partial<AppTranslation>;

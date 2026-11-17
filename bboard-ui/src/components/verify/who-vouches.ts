@@ -35,6 +35,12 @@ export type WhoInput = {
   readonly signers: readonly { readonly kind: string; readonly who: string; readonly nameChecked: boolean }[];
   /** How many signatures to list before "and N more". */
   readonly max?: number;
+  /**
+   * A document's check page (DocumentCheck.tsx): the proof code is worked out there from what the
+   * link carries, the file is compared on the checker's own device, and lab signatures are not
+   * part of that page, so it has no laboratory row.
+   */
+  readonly document?: boolean;
 };
 
 const t = (tr: Translator, k: string, v?: Record<string, string>) => tr.t(k as AppKey, v);
@@ -56,6 +62,12 @@ export const whoVouches = (i: WhoInput, tr: Translator = enT): WhoRow[] => {
     rows.push({ fact: date, who: t(tr, 'app.verify.who.date.pending'), basis: 'none' });
   } else if (i.proof === 'none') {
     rows.push({ fact: date, who: t(tr, 'app.verify.who.date.none'), basis: 'none' });
+  }
+  if (i.document) {
+    rows.push({ fact: t(tr, 'app.verify.who.code'), who: t(tr, 'app.verify.who.code.recomputed'), basis: 'checked' });
+    rows.push({ fact: t(tr, 'app.verify.who.file'), who: t(tr, 'app.verify.who.file.device'), basis: 'checked' });
+    rows.push({ fact: t(tr, 'app.verify.who.typed'), who: t(tr, 'app.verify.who.words.holder'), basis: 'holder' });
+    return rows;
   }
   rows.push(
     i.bound

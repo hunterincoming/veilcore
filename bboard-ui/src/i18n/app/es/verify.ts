@@ -296,4 +296,8 @@ export const verify = {
   'app.verify.who.moreText': '{n} más, abajo.',
   'app.verify.who.nameMatched': '{who} (nombre cotejado con un listado público, abajo)',
   'app.verify.who.date.none': 'Nadie. Por lo que esta página puede ver, no está en un lote fechado.',
+  'app.verify.who.code.recomputed': 'Esta página: calculado aquí a partir de lo que lleva el enlace.',
+  'app.verify.who.file': 'El archivo',
+  'app.verify.who.file.device': 'Su propio dispositivo, cuando elige el archivo abajo. No se envía nada.',
+  'app.verify.who.typed': 'Lo escrito (título, titular, emisor, notas)',
 } satisfies Partial<AppTranslation>;

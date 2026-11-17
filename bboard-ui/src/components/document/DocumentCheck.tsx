@@ -5,6 +5,10 @@
 // is hashed here and compared byte for byte. Nothing after the # and no file is ever sent.
 // SPDX-License-Identifier: Apache-2.0
 
+import { WhoVouches } from '../verify/WhoVouches';
+import { whoVouches } from '../verify/who-vouches';
+import { useRecordDate } from '../verify/useAnchorCheck';
+import { anchorConfirmed } from '../verify/anchor-words';
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link as RouterLink, useLocation } from 'react-router-dom';
 import { Alert, Box, CircularProgress, Container, Link, Paper, Stack, Typography } from '@mui/material';
@@ -16,16 +20,19 @@ import {
   type ReadLink,
 } from '../../veilcore/document-link';
 import { verifyPath } from '../../veilcore/verify-link';
-import { DOCUMENT_CHAIN_ENABLED } from '../../config/network';
+import { DOCUMENT_CHAIN_ENABLED, NETWORK, isTestNetwork } from '../../config/network';
 import { useT } from '../../i18n/app';
-import { DocumentDate, DocumentFacts, Fact, FileCompare, seen } from './DocumentParts';
+import { DocumentDateView, DocumentFacts, Fact, FileCompare, seen } from './DocumentParts';
 
 export const DocumentCheck: React.FC = () => {
-  const { t } = useT();
+  const tr = useT();
+  const { t } = tr;
   const location = useLocation();
   const hash = location.hash;
   const state: unknown = location.state;
   const [read, setRead] = useState<ReadLink>();
+  // The date, looked up once for the date line and the "who stands behind" box alike.
+  const date = useRecordDate(read?.ok ? read.fingerprint : undefined);
   useEffect(() => {
     let live = true;
     // A new link starts blank: the last link's document must never show under this one's.
@@ -90,10 +97,28 @@ export const DocumentCheck: React.FC = () => {
                 </Typography>
               </Alert>
             )}
+            {/* Who stands behind each fact (who-vouches.ts), from the date this page looked up. */}
+            {date.proof !== 'checking' && (
+              <WhoVouches
+                rows={whoVouches(
+                  {
+                    bound: true,
+                    proof: date.proof.status,
+                    anchorConfirmed: anchorConfirmed(date.anchor),
+                    testNetwork: isTestNetwork(
+                      date.proof.status === 'anchor-reported' ? (date.proof.proof.anchor?.network ?? NETWORK) : NETWORK,
+                    ),
+                    signers: [],
+                    document: true,
+                  },
+                  tr,
+                )}
+              />
+            )}
             <Paper sx={{ p: { xs: 2.5, md: 3 } }}>
               <Stack spacing={1.5}>
                 <FileCompare files={read.fields.files} />
-                <DocumentDate fingerprint={read.fingerprint} checker />
+                <DocumentDateView proof={date.proof} anchor={date.anchor} checker />
                 <Fact label={t('app.doc.check.recomputed')} mono>
                   {read.fingerprint}
                 </Fact>
