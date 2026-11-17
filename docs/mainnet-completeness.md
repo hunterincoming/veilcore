@@ -85,7 +85,9 @@ the evening of 5 October (kept outside the repo).
     visitors, and a newer CLI did not clear them. **Expires 15 February 2027**, when the
     findings fail the scan again. Removed sooner when Vercel ships a CLI without them, or when
     the CLI is replaced by a direct upload script. The lockfile and the pin are unchanged.
-  The app's own lockfile has no exception.
+  - `osv-scanner.toml` (17 Nov): one advisory, GHSA-fc5q-39xc-vjpf (picomatch ReDoS), in both
+    lockfiles. Published with no fixed release; picomatch runs only in build and test tools on
+    our own globs. **Expires 31 December 2026**; removed when a fixed picomatch ships.
 - **Docker images pinned by digest** (9 October): proof-server 8.0.3, midnight-node 0.22.3
   and indexer-standalone 4.0.1 are named by tag and SHA-256 digest everywhere they are used
   (`bboard-cli/compose.yml`, `partner-kit/local/compose.yml`, the proof-server files, the

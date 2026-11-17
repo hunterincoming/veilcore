@@ -61,3 +61,8 @@ ecosystem = "npm"
 vulnerability.ignore = true
 effectiveUntil = 2027-02-15
 reason = "bundled inside the Vercel deploy CLI, which runs only on the maintainer's machine to upload an already-built site; not part of the site, app or sponsor; newer CLI releases carry the same findings (see docs/mainnet-completeness.md, Scan exceptions)"
+
+[[IgnoredVulns]]
+id = "GHSA-fc5q-39xc-vjpf"
+ignoreUntil = 2026-12-31
+reason = "picomatch ReDoS (CVE-2026-112366), published 17 Nov 2026 with no fixed release; bundled inside the Vercel deploy CLI, which runs only on the maintainer's machine on its own globs. Upgrade when a fixed picomatch ships."

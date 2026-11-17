@@ -1,0 +1,8 @@
+# osv-scanner exceptions for the app's own lockfile (package-lock.json). Each entry names one
+# advisory, says why it doesn't reach a visitor, and lapses on its date; after that the scan
+# fails again and it must be looked at afresh. Remove an entry as soon as a fixed release exists.
+
+[[IgnoredVulns]]
+id = "GHSA-fc5q-39xc-vjpf"
+ignoreUntil = 2026-12-31
+reason = "picomatch ReDoS (CVE-2026-112366), published 17 Nov 2026 with no fixed release (4.0.7 is the newest). picomatch is used only by build and test tools (vite, vitest, tinyglobby) on glob patterns written in this repo; it is not in the built site, the app or the sponsor, and no visitor's input reaches it. Upgrade when a fixed picomatch ships."
