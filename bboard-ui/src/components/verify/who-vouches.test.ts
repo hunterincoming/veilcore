@@ -59,6 +59,12 @@ describe('what each fact rests on', () => {
     expect(words('differs')?.who).toMatch(/doesn’t match the proof code/);
   });
 
+  it('an unbound link with a checked batch, and a failed check on an unbound link', () => {
+    expect(rows({ bound: false })[0]).toMatchObject({ basis: 'registry' });
+    expect(rows({ bound: false, anchorConfirmed: false })[0].who).toMatch(/^VeilCore’s registry says so/);
+    expect(rows({ bound: false, anchorConfirmed: false, anchorFailed: true })[0].who).toMatch(/failed/);
+  });
+
   it('a failed check on Midnight is said as failed, not as unchecked', () => {
     expect(rows({ anchorFailed: true, anchorConfirmed: false })[0]).toMatchObject({ fact: 'The date', basis: 'none' });
     expect(rows({ anchorFailed: true, anchorConfirmed: false })[0].who).toMatch(/failed/);
@@ -116,6 +122,8 @@ describe('what each fact rests on', () => {
     expect(file('no-match')).toMatchObject({ basis: 'none' });
     expect(file('no-match')?.who).toMatch(/is not the one sealed/);
     expect(file('none')).toMatchObject({ basis: 'none', who: 'No file was sealed with this document.' });
+    // Every typed field goes into the recomputed code, so the typed row speaks of all of them.
+    expect(r[3].who).toMatch(/they match the proof code/);
   });
 
   it('every row is in every language', () => {

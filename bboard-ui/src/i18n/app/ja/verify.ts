@@ -294,4 +294,6 @@ export const verify = {
   'app.verify.who.signedMatched':
     '{who}として登録された鍵。このページが署名を確認しました。VeilCoreの運営者が名前を公開リストと照合しました（下記）。VeilCoreが検査機関を保証するものではありません。',
   'app.verify.who.typed': '入力された内容（タイトル、保有者、発行者、メモ）',
+  'app.verify.who.typed.holder':
+    '保有者自身の言葉です。このページは証明コードと一致することだけを確認し、内容が正しいかは確認しません。',
 } satisfies Partial<AppTranslation>;

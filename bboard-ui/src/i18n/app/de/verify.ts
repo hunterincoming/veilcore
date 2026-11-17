@@ -317,4 +317,6 @@ export const verify = {
   'app.verify.who.signedMatched':
     'Ein Schlüssel, registriert als {who}. Diese Seite hat die Signatur geprüft. Der Betreiber von VeilCore hat den Namen mit einem öffentlichen Verzeichnis abgeglichen (unten); damit bürgt VeilCore nicht für das Labor.',
   'app.verify.who.typed': 'Was eingegeben wurde (Titel, Inhaber, Aussteller, Notizen)',
+  'app.verify.who.typed.holder':
+    'Der Inhaber, in eigenen Worten. Diese Seite prüft nur, dass sie zum Prüfcode passen, nicht, dass sie stimmen.',
 } satisfies Partial<AppTranslation>;

@@ -305,4 +305,6 @@ export const verify = {
   'app.verify.who.signedMatched':
     'A key registered as {who}. This page checked the signature. VeilCore’s operator matched the name to a public listing (below); that isn’t VeilCore vouching for the lab.',
   'app.verify.who.typed': 'What’s typed (title, holder, issuer, notes)',
+  'app.verify.who.typed.holder':
+    'The holder, in their own words. This page checks only that they match the proof code, not that they’re true.',
 };

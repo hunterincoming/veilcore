@@ -83,7 +83,7 @@ export const whoVouches = (i: WhoInput, tr: Translator = enT): WhoRow[] => {
       who: t(tr, `app.verify.who.file.${file === 'no-match' ? 'noMatch' : file}`),
       basis: file === 'match' ? 'checked' : 'none',
     });
-    rows.push({ fact: t(tr, 'app.verify.who.typed'), who: t(tr, 'app.verify.who.words.holder'), basis: 'holder' });
+    rows.push({ fact: t(tr, 'app.verify.who.typed'), who: t(tr, 'app.verify.who.typed.holder'), basis: 'holder' });
     return rows;
   }
   rows.push(

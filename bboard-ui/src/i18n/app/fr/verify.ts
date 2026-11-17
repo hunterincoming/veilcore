@@ -291,7 +291,7 @@ export const verify = {
     'Le registre de VeilCore. Le lien qu’on vous a envoyé ne contient pas de code de preuve pour le comparer.',
   'app.verify.who.words': 'Le nom et les détails',
   'app.verify.who.words.holder':
-    'Le détenteur, avec ses propres mots. Cette page vérifie seulement que le nom correspond au code de preuve, pas que quoi que ce soit soit vrai.',
+    'Le détenteur, avec ses propres mots. Cette page vérifie seulement que le nom correspond au code de preuve, pas que son contenu est vrai.',
   'app.verify.who.date.failed': 'Personne : la vérification de cette page sur Midnight a échoué (voir ci-dessous).',
   'app.verify.who.words.differs':
     'Les mots du détenteur, mais le nom affiché ne correspond pas au code de preuve (voir ci-dessous).',
@@ -318,4 +318,6 @@ export const verify = {
   'app.verify.who.signedMatched':
     'Une clé enregistrée au nom de {who}. Cette page a vérifié la signature. L’opérateur de VeilCore a rapproché le nom d’une liste publique (ci-dessous) ; VeilCore ne se porte pas garant du laboratoire.',
   'app.verify.who.typed': 'Ce qui est saisi (titre, détenteur, émetteur, notes)',
+  'app.verify.who.typed.holder':
+    'Le détenteur, avec ses propres mots. Cette page vérifie seulement qu’ils correspondent au code de preuve, pas qu’ils sont vrais.',
 } satisfies Partial<AppTranslation>;

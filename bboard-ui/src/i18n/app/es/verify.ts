@@ -313,4 +313,6 @@ export const verify = {
   'app.verify.who.signedMatched':
     'Una clave registrada como {who}. Esta página comprobó la firma. El operador de VeilCore cotejó el nombre con un listado público (abajo); eso no significa que VeilCore avale al laboratorio.',
   'app.verify.who.typed': 'Lo escrito (título, titular, emisor, notas)',
+  'app.verify.who.typed.holder':
+    'El titular, con sus propias palabras. Esta página solo comprueba que coinciden con el código de prueba, no que sean ciertos.',
 } satisfies Partial<AppTranslation>;
