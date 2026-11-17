@@ -1,6 +1,6 @@
-// "Who stands behind each fact" never says more than the check page has: Midnight only once the
-// page found the anchor itself against the link's own proof code; the page's own match only with
-// that code; a lab's name plainly only when its name was matched; the holder's words always.
+// "What each fact rests on" never says more than the check page has: Midnight only once the page
+// found the anchor itself against the link's own proof code; the page's own match only with that
+// code; a matched lab name never as VeilCore vouching; a file only once it matched.
 // SPDX-License-Identifier: Apache-2.0
 
 import { describe, expect, it } from 'vitest';
@@ -20,7 +20,7 @@ const base: WhoInput = {
 };
 const rows = (i: Partial<WhoInput>) => whoVouches({ ...base, ...i });
 
-describe('who stands behind each fact', () => {
+describe('what each fact rests on', () => {
   it('the date is Midnight only when this page found the anchor itself, for the link’s own code', () => {
     expect(rows({})[0]).toEqual({
       fact: 'The date',
@@ -46,15 +46,15 @@ describe('who stands behind each fact', () => {
     for (const b of [true, false])
       expect(rows({ bound: b }).find((r) => r.fact === 'The name and details')).toEqual({
         fact: 'The name and details',
-        who: 'The holder, in their own words. Nothing checks them.',
+        who: 'The holder, in their own words. This page checks only that they match the proof code, not that they’re true.',
         basis: 'holder',
       });
   });
 
-  it('a lab is named as the page names it, and says where a plain name was matched', () => {
+  it('a lab is named as the page names it, and a matched name never reads as VeilCore vouching', () => {
     expect(rows({}).at(-1)).toEqual({
       fact: 'A laboratory',
-      who: 'No laboratory has signed anything shown here.',
+      who: 'This page hasn’t checked any laboratory’s signature.',
       basis: 'none',
     });
     const r = rows({
@@ -69,11 +69,12 @@ describe('who stands behind each fact', () => {
       basis: 'signed',
     });
     expect(r.at(-1)?.who).toBe(
-      'Acme Labs (its name matched to a public listing, below). This page checked the signature.',
+      'A key registered as Acme Labs. This page checked the signature. VeilCore’s operator matched the name to a public listing (below); that isn’t VeilCore vouching for the lab.',
     );
     const unbound = rows({ bound: false, signers: [{ kind: 'Lab report', who: 'Acme Labs', nameChecked: true }] });
     expect(unbound.at(-1)).toMatchObject({ basis: 'registry' });
     expect(unbound.at(-1)?.who).toMatch(/as VeilCore’s registry reports it/);
+    expect(unbound.at(-1)?.who).toMatch(/operator matched the name/);
   });
 
   it('lists a few signatures, then says how many more', () => {
@@ -87,15 +88,21 @@ describe('who stands behind each fact', () => {
     expect(r.at(-1)).toMatchObject({ fact: 'More signatures', who: '2 more, listed below.' });
   });
 
-  it('a document: the code worked out from the link, the file on the checker’s device, no lab row', () => {
+  it('a document: the code worked out from the link, no lab row, and the file checked only once it matched', () => {
     const r = rows({ document: true, signers: [{ kind: 'Lab report', who: 'X', nameChecked: true }] });
     expect(r.map((x) => [x.fact, x.basis])).toEqual([
       ['The date', 'checked'],
       ['The proof code', 'checked'],
-      ['The file', 'checked'],
+      ['The file', 'none'],
       ['What’s typed (title, holder, issuer, notes)', 'holder'],
     ]);
-    expect(r[2].who).toMatch(/Nothing is sent\.$/);
+    expect(r[2].who).toMatch(/once you pick the file/);
+    const file = (f: WhoInput['file']) => rows({ document: true, file: f }).find((x) => x.fact === 'The file');
+    expect(file('match')).toMatchObject({ basis: 'checked' });
+    expect(file('match')?.who).toMatch(/is the one sealed/);
+    expect(file('no-match')).toMatchObject({ basis: 'none' });
+    expect(file('no-match')?.who).toMatch(/is not the one sealed/);
+    expect(file('none')).toMatchObject({ basis: 'none', who: 'No file was sealed with this document.' });
   });
 
   it('every row is in every language', () => {
@@ -105,7 +112,13 @@ describe('who stands behind each fact', () => {
       makeTranslator('fr', appFr),
       makeTranslator('ja', appJa),
     ]) {
-      const out = whoVouches({ ...base, signers: [{ kind: 'K', who: 'W', nameChecked: true }] }, tr);
+      const out = [
+        ...whoVouches({ ...base, signers: [{ kind: 'K', who: 'W', nameChecked: true }] }, tr),
+        ...whoVouches({ ...base, bound: false, signers: [{ kind: 'K', who: 'W', nameChecked: true }] }, tr),
+        ...(['none', 'waiting', 'match', 'no-match'] as const).flatMap((file) =>
+          whoVouches({ ...base, document: true, file }, tr),
+        ),
+      ];
       for (const row of out) {
         expect(row.fact).not.toMatch(/^app\.verify/);
         expect(row.who).not.toMatch(/app\.verify/);

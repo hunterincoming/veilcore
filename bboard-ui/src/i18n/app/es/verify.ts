@@ -274,30 +274,37 @@ export const verify = {
   'app.verify.unnamedReceipt':
     'Un acuse de recibo de laboratorio de una muestra de este registro, según el servidor de registros. El titular no ha mostrado qué laboratorio lo firmó.',
   // who-vouches.ts: who stands behind each fact on a check page
-  'app.verify.who.title': 'Quién respalda cada dato',
+  'app.verify.who.title': 'En qué se basa cada dato',
   'app.verify.who.date': 'La fecha',
   'app.verify.who.date.chain': 'Midnight. Esta página la comprobó allí misma.',
   'app.verify.who.date.chainTest':
     'Una red de prueba de Midnight. Esta página la comprobó allí misma: es una práctica, no una fecha en la que confiar.',
   'app.verify.who.date.registry': 'Lo dice el registro de VeilCore. Esta página no lo ha comprobado en Midnight.',
-  'app.verify.who.date.pending': 'Nadie todavía. Espera a su lote.',
+  'app.verify.who.date.pending': 'Nadie todavía. Su lote espera ser fechado en Midnight.',
   'app.verify.who.code': 'El código de prueba',
   'app.verify.who.code.page': 'Esta página: coincide con el del enlace que le enviaron.',
   'app.verify.who.code.registry':
     'El registro de VeilCore. El enlace que le enviaron no lleva un código de prueba con el que compararlo.',
   'app.verify.who.words': 'El nombre y los detalles',
-  'app.verify.who.words.holder': 'El titular, con sus propias palabras. Nada los comprueba.',
+  'app.verify.who.words.holder':
+    'El titular, con sus propias palabras. Esta página solo comprueba que coinciden con el código de prueba, no que sean ciertos.',
   'app.verify.who.lab': 'Un laboratorio',
-  'app.verify.who.lab.none': 'Ningún laboratorio ha firmado nada de lo que se muestra aquí.',
+  'app.verify.who.lab.none': 'Esta página no ha comprobado la firma de ningún laboratorio.',
   'app.verify.who.signed': '{who}. Esta página comprobó la firma.',
   'app.verify.who.signedUnbound':
     '{who}, según informa el registro de VeilCore. El enlace no lleva un código de prueba para comprobarla.',
   'app.verify.who.more': 'Más firmas',
   'app.verify.who.moreText': '{n} más, abajo.',
-  'app.verify.who.nameMatched': '{who} (nombre cotejado con un listado público, abajo)',
   'app.verify.who.date.none': 'Nadie. Por lo que esta página puede ver, no está en un lote fechado.',
   'app.verify.who.code.recomputed': 'Esta página: calculado aquí a partir de lo que lleva el enlace.',
   'app.verify.who.file': 'El archivo',
-  'app.verify.who.file.device': 'Su propio dispositivo, cuando elige el archivo abajo. No se envía nada.',
+  'app.verify.who.file.noMatch': 'Su propio dispositivo: el archivo que eligió no es el sellado. No se envió nada.',
+  'app.verify.who.file.match': 'Su propio dispositivo: el archivo que eligió es el sellado. No se envió nada.',
+  'app.verify.who.file.none': 'No se selló ningún archivo con este documento.',
+  'app.verify.who.file.waiting': 'Su propio dispositivo, cuando elige el archivo abajo. No se envía nada.',
+  'app.verify.who.signedUnboundMatched':
+    'Una clave registrada como {who}, según informa el registro de VeilCore. El operador de VeilCore cotejó el nombre con un listado público (abajo). El enlace no lleva un código de prueba para comprobar la firma.',
+  'app.verify.who.signedMatched':
+    'Una clave registrada como {who}. Esta página comprobó la firma. El operador de VeilCore cotejó el nombre con un listado público (abajo); eso no significa que VeilCore avale al laboratorio.',
   'app.verify.who.typed': 'Lo escrito (título, titular, emisor, notas)',
 } satisfies Partial<AppTranslation>;

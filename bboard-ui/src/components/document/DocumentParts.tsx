@@ -176,7 +176,7 @@ export const DocumentDate: React.FC<{ fingerprint: string; checker?: boolean }> 
   return <DocumentDateView proof={proof} anchor={anchor} checker={checker} />;
 };
 
-/** DocumentDate, for a page that already looked the date up (the check page: its "who stands behind" box reads the same). */
+/** DocumentDate, for a page that already looked the date up (the check page: its "what each fact rests on" box reads the same). */
 export const DocumentDateView: React.FC<{
   proof: ReturnType<typeof useRecordDate>['proof'];
   anchor: ReturnType<typeof useRecordDate>['anchor'];
@@ -208,21 +208,25 @@ type Compared =
   | { kind: 'too-large' };
 
 /** "Is this the same file?": the picked file is hashed here and never leaves the device. */
-export const FileCompare: React.FC<{ files: readonly DocumentFile[]; title?: string; text?: string }> = ({
-  files,
-  title,
-  text,
-}) => {
+export const FileCompare: React.FC<{
+  files: readonly DocumentFile[];
+  title?: string;
+  text?: string;
+  /** Told whether the picked file is the sealed one (null while reading or unreadable). */
+  onResult?: (matched: boolean | null) => void;
+}> = ({ files, title, text, onResult }) => {
   const { t } = useT();
   const inputId = useId();
   const [result, setResult] = useState<Compared>();
   const onPick = async (file: File | undefined) => {
     if (!file) return;
     setResult({ kind: 'reading' });
+    onResult?.(null);
     try {
       const f = await fingerprintFile(file);
       const m = matchFile(files, f.sha256);
       setResult(m ? { kind: 'match', name: f.name, sealed: m.name } : { kind: 'no-match', name: f.name });
+      onResult?.(!!m);
     } catch {
       setResult({ kind: 'too-large' });
     }

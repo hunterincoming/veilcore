@@ -31,7 +31,9 @@ export const DocumentCheck: React.FC = () => {
   const hash = location.hash;
   const state: unknown = location.state;
   const [read, setRead] = useState<ReadLink>();
-  // The date, looked up once for the date line and the "who stands behind" box alike.
+  // Whether the file picked below is the sealed one (null: none picked, or still reading).
+  const [picked, setPicked] = useState<boolean | null>(null);
+  // The date, looked up once for the date line and the "what each fact rests on" box alike.
   const date = useRecordDate(read?.ok ? read.fingerprint : undefined);
   useEffect(() => {
     let live = true;
@@ -97,7 +99,7 @@ export const DocumentCheck: React.FC = () => {
                 </Typography>
               </Alert>
             )}
-            {/* Who stands behind each fact (who-vouches.ts), from the date this page looked up. */}
+            {/* What each fact rests on (who-vouches.ts), from the date and the file this page checked. */}
             {date.proof !== 'checking' && (
               <WhoVouches
                 rows={whoVouches(
@@ -110,6 +112,13 @@ export const DocumentCheck: React.FC = () => {
                     ),
                     signers: [],
                     document: true,
+                    file: !read.fields.files.length
+                      ? 'none'
+                      : picked === null
+                        ? 'waiting'
+                        : picked
+                          ? 'match'
+                          : 'no-match',
                   },
                   tr,
                 )}
@@ -117,7 +126,7 @@ export const DocumentCheck: React.FC = () => {
             )}
             <Paper sx={{ p: { xs: 2.5, md: 3 } }}>
               <Stack spacing={1.5}>
-                <FileCompare files={read.fields.files} />
+                <FileCompare files={read.fields.files} onResult={setPicked} />
                 <DocumentDateView proof={date.proof} anchor={date.anchor} checker />
                 <Fact label={t('app.doc.check.recomputed')} mono>
                   {read.fingerprint}

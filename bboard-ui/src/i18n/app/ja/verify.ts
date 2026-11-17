@@ -256,29 +256,37 @@ export const verify = {
   'app.verify.unnamedReceipt':
     'この記録のサンプルについてのラボの受領書（レジストリの報告による）。どのラボが署名したかは、保有者が表示していません。',
   // who-vouches.ts: who stands behind each fact on a check page
-  'app.verify.who.title': 'それぞれの事実を裏付けるのは誰か',
+  'app.verify.who.title': 'それぞれの事実の根拠',
   'app.verify.who.date': '日付',
   'app.verify.who.date.chain': 'Midnight。このページがMidnight上で直接確認しました。',
   'app.verify.who.date.chainTest':
     'Midnightのテストネットワーク。このページが直接確認しましたが、練習用で、頼れる日付ではありません。',
   'app.verify.who.date.registry':
     'VeilCoreのレジストリがそう報告しています。このページはMidnight上で確認していません。',
-  'app.verify.who.date.pending': 'まだありません。バッチを待っています。',
+  'app.verify.who.date.pending': 'まだありません。バッチがMidnightで日付を付けられるのを待っています。',
   'app.verify.who.code': '証明コード',
   'app.verify.who.code.page': 'このページ：送られてきたリンクのコードと一致します。',
   'app.verify.who.code.registry': 'VeilCoreのレジストリ。送られてきたリンクには照合できる証明コードがありません。',
   'app.verify.who.words': '名前と詳細',
-  'app.verify.who.words.holder': '保有者自身の言葉です。何も確認していません。',
+  'app.verify.who.words.holder':
+    '保有者自身の言葉です。このページは証明コードと一致することだけを確認し、内容が正しいかは確認しません。',
   'app.verify.who.lab': '検査機関',
-  'app.verify.who.lab.none': 'ここに表示されているものに署名した検査機関はありません。',
+  'app.verify.who.lab.none': 'このページはどの検査機関の署名も確認していません。',
   'app.verify.who.signed': '{who}。このページが署名を確認しました。',
   'app.verify.who.signedUnbound': '{who}（VeilCoreのレジストリの報告）。リンクに証明コードがないため確認できません。',
   'app.verify.who.more': 'その他の署名',
   'app.verify.who.moreText': 'ほかに{n}件、下に表示しています。',
-  'app.verify.who.nameMatched': '{who}（名前は公開リストと照合済み、下記参照）',
   'app.verify.who.date.none': 'ありません。このページで確認できる限り、日付の付いたバッチに入っていません。',
   'app.verify.who.code.recomputed': 'このページ：リンクの内容からここで計算しました。',
   'app.verify.who.file': 'ファイル',
-  'app.verify.who.file.device': '下でファイルを選ぶと、あなた自身の端末で照合します。何も送信されません。',
+  'app.verify.who.file.noMatch':
+    'あなた自身の端末：選んだファイルは封印されたものではありません。何も送信されていません。',
+  'app.verify.who.file.match': 'あなた自身の端末：選んだファイルは封印されたものと同じです。何も送信されていません。',
+  'app.verify.who.file.none': 'この文書にはファイルが封印されていません。',
+  'app.verify.who.file.waiting': '下でファイルを選ぶと、あなた自身の端末で照合します。何も送信されません。',
+  'app.verify.who.signedUnboundMatched':
+    '{who}として登録された鍵（VeilCoreのレジストリの報告）。VeilCoreの運営者が名前を公開リストと照合しました（下記）。リンクに証明コードがないため署名を確認できません。',
+  'app.verify.who.signedMatched':
+    '{who}として登録された鍵。このページが署名を確認しました。VeilCoreの運営者が名前を公開リストと照合しました（下記）。VeilCoreが検査機関を保証するものではありません。',
   'app.verify.who.typed': '入力された内容（タイトル、保有者、発行者、メモ）',
 } satisfies Partial<AppTranslation>;

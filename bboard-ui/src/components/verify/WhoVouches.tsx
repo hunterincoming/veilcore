@@ -1,4 +1,4 @@
-// The box at the top of a check page: who stands behind each fact (who-vouches.ts says what
+// The box at the top of a check page: what each fact rests on (who-vouches.ts says what
 // each row may claim). Plain text rows; the mark beside each is decoration, the words carry it.
 // SPDX-License-Identifier: Apache-2.0
 

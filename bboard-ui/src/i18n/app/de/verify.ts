@@ -277,30 +277,38 @@ export const verify = {
   'app.verify.unnamedReceipt':
     'Eine Empfangsbestätigung eines Labors für eine Probe aus diesem Datensatz, wie das Register meldet. Der Inhaber hat nicht gezeigt, welches Labor sie signiert hat.',
   // who-vouches.ts: who stands behind each fact on a check page
-  'app.verify.who.title': 'Wer hinter jeder Angabe steht',
+  'app.verify.who.title': 'Worauf jede Angabe beruht',
   'app.verify.who.date': 'Das Datum',
   'app.verify.who.date.chain': 'Midnight. Diese Seite hat es dort selbst geprüft.',
   'app.verify.who.date.chainTest':
     'Ein Midnight-Testnetz. Diese Seite hat es dort selbst geprüft: eine Übung, kein Datum, auf das man sich verlassen kann.',
   'app.verify.who.date.registry': 'Das Register von VeilCore sagt es. Diese Seite hat es nicht auf Midnight geprüft.',
-  'app.verify.who.date.pending': 'Noch niemand. Es wartet auf seinen Stapel.',
+  'app.verify.who.date.pending': 'Noch niemand. Sein Stapel wartet darauf, auf Midnight datiert zu werden.',
   'app.verify.who.code': 'Der Prüfcode',
   'app.verify.who.code.page': 'Diese Seite: Er stimmt mit dem im Link überein, den Sie erhalten haben.',
   'app.verify.who.code.registry':
     'Das Register von VeilCore. Der Link, den Sie erhalten haben, enthält keinen Prüfcode zum Abgleich.',
   'app.verify.who.words': 'Name und Angaben',
-  'app.verify.who.words.holder': 'Der Inhaber, in eigenen Worten. Nichts prüft sie.',
+  'app.verify.who.words.holder':
+    'Der Inhaber, in eigenen Worten. Diese Seite prüft nur, dass sie zum Prüfcode passen, nicht, dass sie stimmen.',
   'app.verify.who.lab': 'Ein Labor',
-  'app.verify.who.lab.none': 'Kein Labor hat etwas signiert, das hier gezeigt wird.',
+  'app.verify.who.lab.none': 'Diese Seite hat keine Signatur eines Labors geprüft.',
   'app.verify.who.signed': '{who}. Diese Seite hat die Signatur geprüft.',
   'app.verify.who.signedUnbound':
     '{who}, wie das Register von VeilCore meldet. Der Link enthält keinen Prüfcode, um sie zu prüfen.',
   'app.verify.who.more': 'Weitere Signaturen',
   'app.verify.who.moreText': '{n} weitere, unten aufgeführt.',
-  'app.verify.who.nameMatched': '{who} (Name mit einem öffentlichen Verzeichnis abgeglichen, siehe unten)',
   'app.verify.who.date.none': 'Niemand. Soweit diese Seite sehen kann, ist er in keinem datierten Stapel.',
   'app.verify.who.code.recomputed': 'Diese Seite: hier aus dem berechnet, was der Link enthält.',
   'app.verify.who.file': 'Die Datei',
-  'app.verify.who.file.device': 'Ihr eigenes Gerät, sobald Sie unten die Datei wählen. Nichts wird gesendet.',
-  'app.verify.who.typed': 'Was eingegeben wurde (Titel, Halter, Aussteller, Notizen)',
+  'app.verify.who.file.noMatch':
+    'Ihr eigenes Gerät: Die gewählte Datei ist nicht die versiegelte. Nichts wurde gesendet.',
+  'app.verify.who.file.match': 'Ihr eigenes Gerät: Die gewählte Datei ist die versiegelte. Nichts wurde gesendet.',
+  'app.verify.who.file.none': 'Mit diesem Dokument wurde keine Datei versiegelt.',
+  'app.verify.who.file.waiting': 'Ihr eigenes Gerät, sobald Sie unten die Datei wählen. Nichts wird gesendet.',
+  'app.verify.who.signedUnboundMatched':
+    'Ein Schlüssel, registriert als {who}, wie das Register von VeilCore meldet. Der Betreiber von VeilCore hat den Namen mit einem öffentlichen Verzeichnis abgeglichen (unten). Der Link enthält keinen Prüfcode, um die Signatur zu prüfen.',
+  'app.verify.who.signedMatched':
+    'Ein Schlüssel, registriert als {who}. Diese Seite hat die Signatur geprüft. Der Betreiber von VeilCore hat den Namen mit einem öffentlichen Verzeichnis abgeglichen (unten); damit bürgt VeilCore nicht für das Labor.',
+  'app.verify.who.typed': 'Was eingegeben wurde (Titel, Inhaber, Aussteller, Notizen)',
 } satisfies Partial<AppTranslation>;

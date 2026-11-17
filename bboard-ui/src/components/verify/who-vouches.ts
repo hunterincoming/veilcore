@@ -1,4 +1,4 @@
-// "Who stands behind each fact": one short box at the top of a check page, so a stranger sees
+// "What each fact rests on": one short box at the top of a check page, so a stranger sees
 // at once which facts this page checked itself, which a laboratory signed, which VeilCore's
 // registry reports, and which are the holder's own words (authenticity plan, P1).
 //
@@ -10,7 +10,8 @@
 //     the same one (bound);
 //   - a signature is a laboratory's word only as signerLabel words it ("a key named X (name not
 //     checked)" unless VeilCore's operator matched the name), and only checked against a bound
-//     link;
+//     link; a matched name says who matched it, so it never reads as VeilCore vouching;
+//   - a document's file is checked only once a picked file matched;
 //   - the name and details are always the holder's own words.
 //
 // SPDX-License-Identifier: Apache-2.0
@@ -41,6 +42,8 @@ export type WhoInput = {
    * part of that page, so it has no laboratory row.
    */
   readonly document?: boolean;
+  /** A document's file, as FileCompare found it: none sealed, not picked yet, or the result. */
+  readonly file?: 'none' | 'waiting' | 'match' | 'no-match';
 };
 
 const t = (tr: Translator, k: string, v?: Record<string, string>) => tr.t(k as AppKey, v);
@@ -65,7 +68,12 @@ export const whoVouches = (i: WhoInput, tr: Translator = enT): WhoRow[] => {
   }
   if (i.document) {
     rows.push({ fact: t(tr, 'app.verify.who.code'), who: t(tr, 'app.verify.who.code.recomputed'), basis: 'checked' });
-    rows.push({ fact: t(tr, 'app.verify.who.file'), who: t(tr, 'app.verify.who.file.device'), basis: 'checked' });
+    const file = i.file ?? 'waiting';
+    rows.push({
+      fact: t(tr, 'app.verify.who.file'),
+      who: t(tr, `app.verify.who.file.${file === 'no-match' ? 'noMatch' : file}`),
+      basis: file === 'match' ? 'checked' : 'none',
+    });
     rows.push({ fact: t(tr, 'app.verify.who.typed'), who: t(tr, 'app.verify.who.words.holder'), basis: 'holder' });
     return rows;
   }
@@ -80,14 +88,14 @@ export const whoVouches = (i: WhoInput, tr: Translator = enT): WhoRow[] => {
     rows.push({ fact: t(tr, 'app.verify.who.lab'), who: t(tr, 'app.verify.who.lab.none'), basis: 'none' });
   } else {
     for (const s of i.signers.slice(0, max)) {
-      // signerLabel's words: a checked name plainly, any other as "a key named … (name not
-      // checked)". A plain name says where it was matched, so it never reads as VeilCore's word.
-      const named = s.nameChecked ? t(tr, 'app.verify.who.nameMatched', { who: s.who }) : s.who;
-      const who = named.charAt(0).toLocaleUpperCase(tr.locale) + named.slice(1);
+      // signerLabel's words: any unmatched name as "a key named … (name not checked)". A matched
+      // name says VeilCore's operator matched it and that this isn't VeilCore vouching.
+      const who = s.who.charAt(0).toLocaleUpperCase(tr.locale) + s.who.slice(1);
+      const key = s.nameChecked ? 'Matched' : '';
       rows.push(
         i.bound
-          ? { fact: s.kind, who: t(tr, 'app.verify.who.signed', { who }), basis: 'signed' }
-          : { fact: s.kind, who: t(tr, 'app.verify.who.signedUnbound', { who }), basis: 'registry' },
+          ? { fact: s.kind, who: t(tr, `app.verify.who.signed${key}`, { who }), basis: 'signed' }
+          : { fact: s.kind, who: t(tr, `app.verify.who.signedUnbound${key}`, { who }), basis: 'registry' },
       );
     }
     if (i.signers.length > max) {
