@@ -38,10 +38,10 @@ export const fr: Strings = {
   'm.help.make.t': 'Créer un enregistrement',
   'm.help.make.1q': "Quel type d'enregistrement choisir ?",
   'm.help.make.1a':
-    "Choisissez ce que c'est. Une plante : un cultivar ou une lignée. Un animal : un animal ou une lignée. Une souche ou une lignée : microbes, champignons, lignées cellulaires, lignées d'insectes. Un document : un permis, un certificat, un contrat ou un rapport, scellé sous forme de fichier.",
+    "Choisissez ce que c'est. Une plante : un cultivar ou une lignée. Un animal : un animal ou une lignée. Une souche ou une lignée : microbes, champignons, lignées cellulaires, lignées d'insectes. Un document : un permis, un certificat, un contrat ou un rapport, scellé sous forme de fichier. Un lot de culture ou un lot de récolte : une étape d'une chaîne de production, liée à l'enregistrement précédent.",
   'm.help.make.2q': 'Que dois-je laisser de côté ?',
   'm.help.make.2a':
-    "Les données personnelles d'autres personnes. Ce que vous saisissez est stocké chiffré sur notre serveur, et nous n'avons pas la clé. Mais la personne à qui vous montrez un enregistrement voit ce que vous avez choisi de partager, et le lien de vérification d'un document affiche le nom du fichier et le détenteur que vous avez indiqué. Donnez aux fichiers des noms simples, comme « Permis 2026.pdf ».",
+    "Les données personnelles d'autres personnes. Ce que vous saisissez est stocké chiffré sur notre serveur, et nous n'avons pas la clé. Mais la personne à qui vous montrez un enregistrement voit ce que vous avez choisi de partager, et le lien de vérification d'un document affiche tout ce qui y a été saisi (titre, détenteur, émetteur, référence, notes), le nom du fichier et son SHA-256. Donnez aux fichiers des noms simples, comme « Permis 2026.pdf ». Ou gardez un document sur cet appareil seulement : alors rien de ce que vous saisissez n'est envoyé.",
   'm.help.make.3q': 'Comment savoir que mon enregistrement est daté ?',
   'm.help.make.3a':
     "La page de l'enregistrement affiche « Enregistrement daté » avec la date dès que son lot est sur Midnight. Avant cela, elle indique « dans le prochain lot ». Dans les deux cas, l'enregistrement est sauvegardé. Tant que le lot n'est pas sur Midnight, sa date ne repose que sur votre parole.",
