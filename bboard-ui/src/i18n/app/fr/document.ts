@@ -145,14 +145,14 @@ export const document = {
   'app.claim.holderTyped': 'Les chiffres sont les vôtres, tels que saisis : aucun laboratoire ne les a signés.',
   'app.claim.check.title': 'Vérifier une preuve',
   'app.claim.check.intro':
-    'Quelqu’un vous a envoyé ce lien pour montrer un fait sur un chiffre d’un certificat scellé, sans montrer le chiffre ni le certificat. Cette page lit la preuve sur Midnight et la vérifie.',
+    'Quelqu’un vous a envoyé ce lien pour montrer un fait sur un chiffre d’un document scellé, sans montrer le chiffre ni le document. Cette page lit la preuve sur Midnight et la vérifie.',
   'app.claim.check.bad': 'Ce lien est illisible. Redemandez-le.',
   'app.claim.check.checking': 'Lecture de la preuve sur Midnight…',
   'app.claim.check.okWhen': 'Prouvé sur Midnight dans le bloc {block}{date}.',
   'app.claim.check.failed': 'Non confirmé : {reason} Ne vous y fiez pas.',
   'app.claim.check.record': 'L’enregistrement concerné',
   'app.claim.check.what':
-    'Ce que cela montre : le chiffre scellé dans cet enregistrement respecte le seuil (ou est cette valeur). Ce que cela ne montre pas : qu’un laboratoire l’a mesuré, ni que le certificat est authentique ; le détenteur a saisi les chiffres. Chaque seuil prouvé sur un chiffre est public, et ensemble ils le resserrent.',
+    'Ce que cela montre : le chiffre scellé dans cet enregistrement respecte le seuil (ou est cette valeur). Ce que cela ne montre pas : qu’un laboratoire l’a mesuré, ni que le document est authentique ; le détenteur a saisi les chiffres. Chaque seuil prouvé sur un chiffre est public, et ensemble ils le resserrent.',
   'app.claim.check.schema': 'Selon le formulaire publié « {schema} ».',
   // EvidenceBundle.tsx: what differs for a document record.
   'app.doc.bundle.keyIs':

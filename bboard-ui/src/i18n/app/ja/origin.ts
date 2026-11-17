@@ -45,7 +45,7 @@ export const origin = {
   'app.origin.x.sampStat': '生物学的状態（MCPD）：{v}',
   'app.origin.x.collSrc': '収集源（MCPD）：{v}',
   'app.origin.datedNotOrigin':
-    '日付が示すのは、保有者がその時点でこの記録を持っていたことです。誰が育成したか、どこから来たかは示しません。',
+    '日付が示すのは、保有者がその時点でこの記録を持っていたことです。誰が育成・作成したか、どこから来たか、内容が正しいかは示しません。',
   'app.origin.import.show': '+ 由来（パスポートの列）',
   'app.origin.import.hide': '− パスポートの列を隠す',
   'app.origin.import.title': '由来（パスポートの列）',

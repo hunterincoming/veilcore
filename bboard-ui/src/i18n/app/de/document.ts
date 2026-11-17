@@ -146,14 +146,14 @@ export const document = {
   'app.claim.holderTyped': 'Die Zahlen sind Ihre eigenen Eingaben: Kein Labor hat sie signiert.',
   'app.claim.check.title': 'Einen Beleg prüfen',
   'app.claim.check.intro':
-    'Jemand hat Ihnen diesen Link geschickt, um eine Tatsache über eine Zahl auf einem versiegelten Zertifikat zu zeigen, ohne die Zahl oder das Zertifikat zu zeigen. Diese Seite liest den Beleg auf Midnight und prüft ihn.',
+    'Jemand hat Ihnen diesen Link geschickt, um eine Tatsache über eine Zahl in einem versiegelten Dokument zu zeigen, ohne die Zahl oder das Dokument zu zeigen. Diese Seite liest den Beleg auf Midnight und prüft ihn.',
   'app.claim.check.bad': 'Dieser Link ist nicht lesbar. Bitten Sie erneut darum.',
   'app.claim.check.checking': 'Der Beleg wird auf Midnight gelesen…',
   'app.claim.check.okWhen': 'Auf Midnight belegt in Block {block}{date}.',
   'app.claim.check.failed': 'Nicht bestätigt: {reason} Verlassen Sie sich nicht darauf.',
   'app.claim.check.record': 'Der Datensatz, um den es geht',
   'app.claim.check.what':
-    'Was das zeigt: Die in diesem Datensatz versiegelte Zahl hält die Grenze ein (oder ist dieser Wert). Was nicht: dass ein Labor sie gemessen hat oder dass das Zertifikat echt ist; der Inhaber hat die Zahlen eingegeben. Jede belegte Grenze ist öffentlich, und zusammen grenzen sie die Zahl ein.',
+    'Was das zeigt: Die in diesem Datensatz versiegelte Zahl hält die Grenze ein (oder ist dieser Wert). Was nicht: dass ein Labor sie gemessen hat oder dass das Dokument echt ist; der Inhaber hat die Zahlen eingegeben. Jede belegte Grenze ist öffentlich, und zusammen grenzen sie die Zahl ein.',
   'app.claim.check.schema': 'Unter dem veröffentlichten Formular „{schema}“.',
   // EvidenceBundle.tsx: what differs for a document record.
   'app.doc.bundle.keyIs':

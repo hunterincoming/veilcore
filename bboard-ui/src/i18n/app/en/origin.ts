@@ -48,7 +48,7 @@ export const origin = {
 
   // Every check page (VerifyPage.tsx, VerifyExample.tsx, ClaimCheck.tsx).
   'app.origin.datedNotOrigin':
-    'The date shows the holder had this record by then. It doesn’t show who bred it or where it came from.',
+    'The date shows the holder had this record by then. It doesn’t show who bred or made it, where it came from, or that what it says is true.',
 
   // lab-import/BulkImportPage.tsx: a genebank passport sheet's columns (MCPD).
   'app.origin.import.show': '+ Where it came from (passport columns)',

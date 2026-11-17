@@ -43,7 +43,7 @@ export const origin = {
   'app.origin.x.sampStat': 'Statut biologique (MCPD) : {v}',
   'app.origin.x.collSrc': 'Source de collecte (MCPD) : {v}',
   'app.origin.datedNotOrigin':
-    'La date montre que le détenteur avait cet enregistrement à ce moment-là. Elle ne montre pas qui a obtenu le matériel ni d’où il vient.',
+    'La date montre que le détenteur avait cet enregistrement à ce moment-là. Elle ne montre pas qui l’a obtenu ou fait, d’où il vient, ni que ce qu’il dit est vrai.',
   'app.origin.import.show': '+ D’où elle vient (colonnes de passeport)',
   'app.origin.import.hide': '− Masquer les colonnes de passeport',
   'app.origin.import.title': 'D’où elle vient (colonnes de passeport)',

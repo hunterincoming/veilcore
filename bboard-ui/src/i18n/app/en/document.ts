@@ -146,14 +146,14 @@ export const document = {
   'app.claim.holderTyped': 'The numbers are yours as typed: no laboratory signed them.',
   'app.claim.check.title': 'Check a claim',
   'app.claim.check.intro':
-    'Someone sent you this link to show a fact about one number on a sealed certificate, without showing the number or the certificate. This page reads the claim from Midnight and checks it.',
+    'Someone sent you this link to show a fact about one number in a sealed document, without showing the number or the document. This page reads the claim from Midnight and checks it.',
   'app.claim.check.bad': 'This link can’t be read. Ask for it again.',
   'app.claim.check.checking': 'Reading the claim from Midnight…',
   'app.claim.check.okWhen': 'Proved on Midnight in block {block}{date}.',
   'app.claim.check.failed': 'Not confirmed: {reason} Don’t rely on it.',
   'app.claim.check.record': 'The record it’s about',
   'app.claim.check.what':
-    'What this shows: the number sealed in that record meets the bound (or is that value). What it doesn’t: that a laboratory measured it, or that the certificate is genuine; the holder typed the numbers. Every bound proved about a number is public, and together they narrow it.',
+    'What this shows: the number sealed in that record meets the bound (or is that value). What it doesn’t: that a laboratory measured it, or that the document is genuine; the holder typed the numbers. Every bound proved about a number is public, and together they narrow it.',
   'app.claim.check.schema': 'Under the published form “{schema}”.',
   // EvidenceBundle.tsx: what differs for a document record.
   'app.doc.bundle.keyIs':

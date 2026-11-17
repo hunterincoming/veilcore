@@ -64,7 +64,7 @@ const standIn = async (page: Page, held: { records: Rec[] } = { records: [] }) =
 };
 
 const DATED_NOT_ORIGIN =
-  'The date shows the holder had this record by then. It doesn’t show who bred it or where it came from.';
+  'The date shows the holder had this record by then. It doesn’t show who bred or made it, where it came from, or that what it says is true.';
 
 test('a landrace with no breeder and where it came from, then clones with a lot and a tag each', async ({ page }) => {
   test.setTimeout(240_000);
