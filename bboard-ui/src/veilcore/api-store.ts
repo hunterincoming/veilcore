@@ -1078,6 +1078,16 @@ const sendSealed = async (
     /* not JSON — handled below */
   }
   if (!res.ok) {
+    // The free number used up (the registry's billing.js): said in the site's words, so the
+    // holder reads what to do, not the registry's sentence.
+    if (isObject(body) && body.code === PLAN_LIMIT) {
+      return {
+        ok: false,
+        refused: [...refused, { id: '*', reason: PLAN_FULL_REASON, words: 'app.plan.full' }],
+        pending: sent,
+        accepted: [],
+      };
+    }
     const reason = isObject(body) && isString(body.error) ? body.error : `the registry answered ${String(res.status)}`;
     return { ok: false, refused: [...refused, { id: '*', reason }], pending: sent, accepted: [] };
   }
@@ -1254,7 +1264,12 @@ export const sendDatingRows = async (
   const refused: SaveRefusal[] = [];
   if (Array.isArray(body.rejected))
     for (const r of body.rejected)
-      if (isObject(r) && isString(r.id) && isString(r.reason)) refused.push({ id: r.id, reason: r.reason });
+      if (isObject(r) && isString(r.id) && isString(r.reason))
+        refused.push(
+          r.code === PLAN_LIMIT
+            ? { id: r.id, reason: PLAN_FULL_REASON, words: 'app.plan.full' }
+            : { id: r.id, reason: r.reason },
+        );
   if (Array.isArray(body.notWritten))
     for (const id of body.notWritten)
       if (isString(id))
@@ -1382,6 +1397,11 @@ export const NO_KEY_REASON =
 /** Said when the registry couldn't be asked whether this holder's rows are sealed already. */
 export const UNKNOWN_REASON =
   'VeilCore couldn’t be reached to check your records, so nothing was saved. Try again soon.';
+/** The registry's code for a save past the free number (paid plans, its billing.js). */
+const PLAN_LIMIT = 'plan-limit';
+/** Said when the registry refused a record for the free number. */
+export const PLAN_FULL_REASON =
+  'Your free records are used up, so no new record was made. Everything you already have keeps verifying. Choose a plan on your records page to add more.';
 /** Said when this browser can't keep a vault key (a private window, blocked site data). */
 export const CANT_STORE_REASON =
   'this browser can’t keep the key that locks your records (a private window, or blocked site data), so nothing was saved';

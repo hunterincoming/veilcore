@@ -93,6 +93,16 @@ export const AGREEMENT_FEATURES = Object.freeze({
   "license-notices-v3": "notices signed by the licensor, and only for statements the licensee registered",
 });
 
+/**
+ * Paid plans (bboard-ui config/network.ts PAID_PLANS_ENABLED, the registry's billing.js). Required
+ * only for a build made with VITE_PAID_PLANS=on: such a site asks the registry for the holder's
+ * plan and opens checkouts through it, and the registry lists billing-v1 only while BILLING=on
+ * and fully configured. Without it the plan box would never show and checkouts would 404.
+ */
+export const PAID_PLAN_FEATURES = Object.freeze({
+  "billing-v1": "paid plans (the holder's plan and Paddle checkouts)",
+});
+
 /** Whether the site's source has agreements switched on for mainnet (config/copy.ts). */
 export const agreementsLive = async () => {
   const { readFile } = await import("node:fs/promises");
@@ -140,11 +150,19 @@ export const readHealth = async (api) => {
  * Whether a /health answer lists every feature the site uses.
  * @returns {{ ok: true } | { ok: false, missing: string[], problem: string }}
  */
-export const checkFeatures = (health, api, { agreements = false } = {}) => {
+export const checkFeatures = (
+  health,
+  api,
+  { agreements = false, paidPlans = process.env.VITE_PAID_PLANS === "on" } = {},
+) => {
   const listed = Array.isArray(health?.features)
     ? health.features.filter((f) => typeof f === "string")
     : [];
-  const wanted = { ...REQUIRED_FEATURES, ...(agreements ? AGREEMENT_FEATURES : {}) };
+  const wanted = {
+    ...REQUIRED_FEATURES,
+    ...(agreements ? AGREEMENT_FEATURES : {}),
+    ...(paidPlans ? PAID_PLAN_FEATURES : {}),
+  };
   const missing = Object.keys(wanted).filter((f) => !listed.includes(f));
   if (missing.length === 0) return { ok: true };
   const named = missing.map((f) => `${f} (${wanted[f]})`).join(", ");

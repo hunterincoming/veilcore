@@ -3,6 +3,7 @@
 // their status. Simulated settlement in demo mode.
 // SPDX-License-Identifier: Apache-2.0
 
+import { planBlocks } from './billing';
 import { useSyncExternalStore } from 'react';
 import { store, type SaveResult } from './store';
 import { exportEnvelopeFor, toEnvelope, sealEnvelope } from './envelope';
@@ -1549,6 +1550,9 @@ export const createRecord = (input: NewRecordInput): StrainRecord => {
   // A record that leaves can't name one kept on this device only: what it names is sealed into
   // its locked copy (outbox.ts namesDeviceOnly). One that is itself kept here may.
   if (namesDeviceOnly(record)) throw new Error(enT.t('app.doc.local.aboutStaysHere'));
+  // The free number used up (paid plans, billing.ts): refused before anything is sealed or
+  // shown, so no record is made that the registry would refuse to date.
+  if (planBlocks(1, records.length)) throw new Error(enT.t('app.plan.full'));
   keepDataIfFirst(records.length);
   records = [record, ...records];
   // Kept in this browser until the registry has it (L12): a refused or held save never
@@ -1575,6 +1579,7 @@ export const createRecordSaved = async (
   // device, never made without the mark.
   if (neverSend(input)) throw new Error(enT.t('app.doc.local.staysHere'));
   if (namesDeviceOnly(input)) throw new Error(enT.t('app.doc.local.aboutStaysHere'));
+  if (planBlocks(1, records.length)) throw new Error(enT.t('app.plan.full'));
   const record: StrainRecord = withNameSalt({ licenseIds: [], ...input, id: input.id ?? newRecordId() });
   keepDataIfFirst(records.length);
   records = [record, ...records];
@@ -1599,6 +1604,7 @@ export const createRecords = async (inputs: readonly NewRecordInput[]): Promise<
   // on this device, never made without the mark.
   if (inputs.some(neverSend)) throw new Error(enT.t('app.doc.local.staysHere'));
   if (inputs.some((r) => namesDeviceOnly(r))) throw new Error(enT.t('app.doc.local.aboutStaysHere'));
+  if (planBlocks(inputs.length, records.length)) throw new Error(enT.t('app.plan.full'));
   const batch: StrainRecord[] = inputs.map((input) =>
     withNameSalt({ licenseIds: [], ...input, id: input.id ?? newRecordId() }),
   );

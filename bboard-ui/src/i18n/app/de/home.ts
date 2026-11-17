@@ -137,4 +137,26 @@ export const home = {
   'app.home.export.label': 'Ihre Datensätze und Vereinbarungen von VeilCore herunterladen',
   'app.home.export.done':
     'Heruntergeladen: Ihre Datensätze, Vereinbarungen, Freigabe-Einstellungen und jeder Inklusionsnachweis. Lieferungen, ihre Probenangaben und Laborberichte sind nicht dabei: Öffnen Sie sie bei der Lieferung oder auf der Seite der Pflanze. Ihre Schlüssel stehen in Ihrer Sicherungsdatei, nicht in dieser.',
+  // PlanBox.tsx, billing.ts, records.ts: paid plans (off unless VITE_PAID_PLANS=on)
+  'app.plan.full':
+    'Ihre kostenlosen Datensätze sind aufgebraucht, daher wurde kein neuer Datensatz angelegt. Alles, was Sie schon haben, bleibt prüfbar. Wählen Sie auf Ihrer Datensatzseite einen Tarif, um weitere hinzuzufügen.',
+  'app.plan.box.free': 'Kostenloser Tarif: {held} von {cap} Datensätzen',
+  'app.plan.box.left': 'Noch kostenlos: {n}',
+  'app.plan.box.paid': 'Ihr Tarif: {plan}',
+  'app.plan.name.breeder': 'Züchter',
+  'app.plan.name.lab': 'Labor',
+  'app.plan.name.free': 'Kostenlos',
+  'app.plan.choose': 'Tarif wählen',
+  'app.plan.buy.breeder': 'Tarif Züchter',
+  'app.plan.buy.lab': 'Tarif Labor',
+  'app.plan.opens':
+    'Öffnet die Seite von Paddle in einem neuen Tab. Paddle verkauft die Tarife für VeilCore und nimmt die Zahlung an; VeilCore sieht weder Ihre Karte noch Ihre E-Mail.',
+  'app.plan.keep': 'Was Sie auch wählen: Jeder Datensatz, den Sie schon haben, bleibt prüfbar.',
+  'app.plan.recheck': 'Bezahlt? Erneut prüfen',
+  'app.plan.err.off': 'Tarife können in diesem Browser noch nicht gekauft werden.',
+  'app.plan.err.unreachable':
+    'Die Seite von Paddle ließ sich gerade nicht öffnen. Versuchen Sie es gleich noch einmal.',
+  'app.plan.err.busy': 'Zu viele Versuche in einer Stunde. Versuchen Sie es später noch einmal.',
+  'app.plan.box.full':
+    'Ihre kostenlosen Datensätze sind aufgebraucht. Alles, was Sie schon haben, bleibt prüfbar. Wählen Sie einen Tarif, um weitere hinzuzufügen.',
 } satisfies Partial<AppTranslation>;

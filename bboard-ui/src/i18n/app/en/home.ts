@@ -138,4 +138,25 @@ export const home = {
   'app.home.export.label': 'Download your records and agreements from VeilCore',
   'app.home.export.done':
     "Downloaded: your records, agreements, sharing choices and every inclusion proof. Deliveries, their sample details and lab reports aren't in it: open them from the delivery or the plant's page. Your keys are in your backup file, not in this one.",
+  // PlanBox.tsx, billing.ts, records.ts: paid plans (off unless VITE_PAID_PLANS=on)
+  'app.plan.full':
+    'Your free records are used up, so no new record was made. Everything you already have keeps verifying. Choose a plan on your records page to add more.',
+  'app.plan.box.free': 'Free plan: {held} of {cap} records',
+  'app.plan.box.left': 'Free records left: {n}',
+  'app.plan.box.paid': 'Your plan: {plan}',
+  'app.plan.name.breeder': 'Breeder',
+  'app.plan.name.lab': 'Lab',
+  'app.plan.name.free': 'Free',
+  'app.plan.choose': 'Choose a plan',
+  'app.plan.buy.breeder': 'Breeder plan',
+  'app.plan.buy.lab': 'Lab plan',
+  'app.plan.opens':
+    'Opens Paddle’s page in a new tab. Paddle sells the plans for VeilCore and takes the payment; VeilCore never sees your card or your email.',
+  'app.plan.keep': 'Whatever you choose, every record you already have keeps verifying.',
+  'app.plan.recheck': 'Paid? Check again',
+  'app.plan.err.off': 'Plans can’t be bought from this browser yet.',
+  'app.plan.err.unreachable': 'Paddle’s page couldn’t be opened just now. Try again shortly.',
+  'app.plan.err.busy': 'Too many tries in an hour. Try again later.',
+  'app.plan.box.full':
+    'Your free records are used up. Everything you already have keeps verifying. Choose a plan to add more.',
 };

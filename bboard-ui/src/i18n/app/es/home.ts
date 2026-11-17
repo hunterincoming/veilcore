@@ -134,4 +134,25 @@ export const home = {
   'app.home.export.label': 'Descargar sus registros y acuerdos de VeilCore',
   'app.home.export.done':
     'Descargado: sus registros, acuerdos, opciones de uso compartido y todas las pruebas de inclusión. Los envíos, sus datos de muestra y los informes de laboratorio no están incluidos: ábralos desde el envío o desde la página de la planta. Sus claves están en su archivo de copia de seguridad, no en este.',
+  // PlanBox.tsx, billing.ts, records.ts: paid plans (off unless VITE_PAID_PLANS=on)
+  'app.plan.full':
+    'Ya usó sus registros gratuitos, así que no se creó ningún registro nuevo. Todo lo que ya tiene se sigue pudiendo comprobar. Elija un plan en su página de registros para añadir más.',
+  'app.plan.box.free': 'Plan gratuito: {held} de {cap} registros',
+  'app.plan.box.left': 'Registros gratuitos restantes: {n}',
+  'app.plan.box.paid': 'Su plan: {plan}',
+  'app.plan.name.breeder': 'Obtentor',
+  'app.plan.name.lab': 'Laboratorio',
+  'app.plan.name.free': 'Gratuito',
+  'app.plan.choose': 'Elegir un plan',
+  'app.plan.buy.breeder': 'Plan Obtentor',
+  'app.plan.buy.lab': 'Plan Laboratorio',
+  'app.plan.opens':
+    'Abre la página de Paddle en una pestaña nueva. Paddle vende los planes por cuenta de VeilCore y cobra el pago; VeilCore nunca ve su tarjeta ni su correo.',
+  'app.plan.keep': 'Elija lo que elija, cada registro que ya tiene se sigue pudiendo comprobar.',
+  'app.plan.recheck': '¿Ya pagó? Comprobar de nuevo',
+  'app.plan.err.off': 'Todavía no se pueden comprar planes desde este navegador.',
+  'app.plan.err.unreachable': 'No se pudo abrir la página de Paddle ahora. Inténtelo de nuevo en un momento.',
+  'app.plan.err.busy': 'Demasiados intentos en una hora. Inténtelo más tarde.',
+  'app.plan.box.full':
+    'Ya usó sus registros gratuitos. Todo lo que ya tiene se sigue pudiendo comprobar. Elija un plan para añadir más.',
 } satisfies Partial<AppTranslation>;

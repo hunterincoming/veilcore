@@ -123,4 +123,25 @@ export const home = {
   'app.home.export.label': 'VeilCoreから記録と契約をダウンロード',
   'app.home.export.done':
     'ダウンロードしました：記録、契約、共有の選択、すべての包含証明。送付、そのサンプル情報、検査報告書は入っていません。送付または植物のページから開いてください。鍵はこのファイルではなく、バックアップファイルにあります。',
+  // PlanBox.tsx, billing.ts, records.ts: paid plans (off unless VITE_PAID_PLANS=on)
+  'app.plan.full':
+    '無料の記録数を使い切ったため、新しい記録は作成されませんでした。すでにある記録はすべて引き続き確認できます。さらに追加するには、記録のページでプランを選んでください。',
+  'app.plan.box.free': '無料プラン：{cap}件中{held}件',
+  'app.plan.box.left': '残りの無料記録：{n}件',
+  'app.plan.box.paid': 'ご利用のプラン：{plan}',
+  'app.plan.name.breeder': '育成者',
+  'app.plan.name.lab': '検査機関',
+  'app.plan.name.free': '無料',
+  'app.plan.choose': 'プランを選ぶ',
+  'app.plan.buy.breeder': '育成者プラン',
+  'app.plan.buy.lab': '検査機関プラン',
+  'app.plan.opens':
+    'Paddleのページを新しいタブで開きます。PaddleがVeilCoreに代わってプランを販売し、支払いを受け取ります。VeilCoreがカード情報やメールアドレスを見ることはありません。',
+  'app.plan.keep': 'どれを選んでも、すでにある記録はすべて引き続き確認できます。',
+  'app.plan.recheck': '支払い済みですか？もう一度確認',
+  'app.plan.err.off': 'このブラウザからはまだプランを購入できません。',
+  'app.plan.err.unreachable': 'Paddleのページを開けませんでした。少ししてからもう一度お試しください。',
+  'app.plan.err.busy': '1時間以内の試行回数が多すぎます。後でもう一度お試しください。',
+  'app.plan.box.full':
+    '無料の記録数を使い切りました。すでにある記録はすべて引き続き確認できます。さらに追加するにはプランを選んでください。',
 } satisfies Partial<AppTranslation>;

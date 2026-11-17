@@ -136,4 +136,25 @@ export const home = {
   'app.home.export.label': 'Télécharger vos enregistrements et contrats depuis VeilCore',
   'app.home.export.done':
     'Téléchargé : vos enregistrements, contrats, choix de partage et chaque preuve d’inclusion. Les envois, leurs informations d’échantillon et les rapports de laboratoire n’y sont pas : ouvrez-les depuis l’envoi ou la page de la plante. Vos clés sont dans votre fichier de secours, pas dans celui-ci.',
+  // PlanBox.tsx, billing.ts, records.ts: paid plans (off unless VITE_PAID_PLANS=on)
+  'app.plan.full':
+    'Vos enregistrements gratuits sont épuisés : aucun nouvel enregistrement n’a été créé. Tout ce que vous avez déjà reste vérifiable. Choisissez une formule sur votre page d’enregistrements pour en ajouter.',
+  'app.plan.box.free': 'Formule gratuite : {held} sur {cap} enregistrements',
+  'app.plan.box.left': 'Enregistrements gratuits restants : {n}',
+  'app.plan.box.paid': 'Votre formule : {plan}',
+  'app.plan.name.breeder': 'Obtenteur',
+  'app.plan.name.lab': 'Laboratoire',
+  'app.plan.name.free': 'Gratuite',
+  'app.plan.choose': 'Choisir une formule',
+  'app.plan.buy.breeder': 'Formule Obtenteur',
+  'app.plan.buy.lab': 'Formule Laboratoire',
+  'app.plan.opens':
+    'Ouvre la page de Paddle dans un nouvel onglet. Paddle vend les formules pour VeilCore et encaisse le paiement ; VeilCore ne voit jamais votre carte ni votre e-mail.',
+  'app.plan.keep': 'Quel que soit votre choix, chaque enregistrement que vous avez déjà reste vérifiable.',
+  'app.plan.recheck': 'Payé ? Vérifier à nouveau',
+  'app.plan.err.off': 'Les formules ne peuvent pas encore être achetées depuis ce navigateur.',
+  'app.plan.err.unreachable': 'La page de Paddle n’a pas pu s’ouvrir. Réessayez dans un instant.',
+  'app.plan.err.busy': 'Trop d’essais en une heure. Réessayez plus tard.',
+  'app.plan.box.full':
+    'Vos enregistrements gratuits sont épuisés. Tout ce que vous avez déjà reste vérifiable. Choisissez une formule pour en ajouter.',
 } satisfies Partial<AppTranslation>;

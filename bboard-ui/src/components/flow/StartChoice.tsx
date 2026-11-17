@@ -16,6 +16,8 @@ import { useT } from '../../i18n/app';
 import type { AppKey } from '../../i18n/app/en';
 import { ScreenHeading } from './FlowFrame';
 import { DOCUMENT_CHAIN_ENABLED } from '../../config/network';
+import { PlanBox } from '../PlanBox';
+import { useRecords } from '../../veilcore/records';
 
 type Option = { key: LogKind | 'document' | 'chain'; title: AppKey; text: AppKey };
 
@@ -53,6 +55,7 @@ export const StartChoice: React.FC<{
   documents: boolean;
 }> = ({ onPick, animals, strains, documents }) => {
   const { t } = useT();
+  const records = useRecords();
   const options: Option[] = [
     { key: 'plant', title: 'app.start.plant', text: 'app.start.plantText' },
     ...(animals ? [{ key: 'animal', title: 'app.start.animal', text: 'app.start.animalText' } as Option] : []),
@@ -70,6 +73,8 @@ export const StartChoice: React.FC<{
       <Typography variant="body1" color="text.secondary">
         {t('app.start.intro')}
       </Typography>
+      {/* The free number used up (paid plans): said here, before anything is filled in. */}
+      <PlanBox heldHere={records.length} compact />
       <Stack spacing={1.5}>
         {options.map((o) =>
           o.key === 'document' ? (

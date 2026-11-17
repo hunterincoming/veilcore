@@ -5,6 +5,7 @@
 // and an agreement menu on every card; those are still here, under "More".
 // SPDX-License-Identifier: Apache-2.0
 
+import { PlanBox } from '../PlanBox';
 import React, { useMemo, useRef, useState } from 'react';
 import { Alert, Box, Button, Collapse, Paper, Snackbar, Stack, Typography } from '@mui/material';
 import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
@@ -394,6 +395,9 @@ export const AppHome: React.FC = () => {
         {pasteFirst && <PasteBox focus />}
 
         <LoadNoticeBar />
+
+        {/* Paid plans (billing.ts): off unless the build switches them on. */}
+        {!labOnly && <PlanBox heldHere={records.length} />}
 
         {/* Ask's "Do it for me" jobs: one to check, one being done, a record got ready to license. */}
         <JobsOnHome />
