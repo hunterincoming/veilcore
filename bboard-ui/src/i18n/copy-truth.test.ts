@@ -585,15 +585,17 @@ describe("what's live where", () => {
     // not yet tried on the main network" until each has worked there (config/copy.ts), and the
     // test-site cell says "built, not yet tried", never "Yes".
     const copyTs = fs.readFileSync(path.join(SRC, 'config/copy.ts'), 'utf8');
-    for (const [row, flag] of [
-      ['docchain', 'DOCUMENT_CHAIN_RUN_ON_MAINNET'],
-      ['localclaims', 'DEVICE_ONLY_CLAIMS_RUN_ON_MAINNET'],
+    // The chain first ran on veilcore.org on 16 November 2026; a number proved from a device-only
+    // document has not yet.
+    for (const [row, flag, run] of [
+      ['docchain', 'DOCUMENT_CHAIN_RUN_ON_MAINNET', 'true'],
+      ['localclaims', 'DEVICE_ONLY_CLAIMS_RUN_ON_MAINNET', 'false'],
     ] as const) {
       expect(rows.find((r) => r.row === row)?.has).toEqual([true, true, false]);
       expect(home).toMatch(
         new RegExp(`${flag} && row === '${row}' && col === 'main'\\s*\\?\\s*'m\\.live\\.${row}\\.live'`),
       );
-      expect(new RegExp(`export const ${flag} = (true|false);`).exec(copyTs)?.[1]).toBe('false');
+      expect(new RegExp(`export const ${flag} = (true|false);`).exec(copyTs)?.[1]).toBe(run);
       expect(e[`m.live.${row}.main`]).toBe('Built, not yet tried on the main network.');
       expect(e[`m.live.${row}.test`]).toMatch(/^Built, not yet tried\. /);
       expect(e[`m.live.${row}.live`]).toMatch(/^Yes\./);

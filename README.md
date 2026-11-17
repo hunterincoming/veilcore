@@ -163,8 +163,9 @@ Plant genetics is the first use, not the limit. The record format is domain-blin
 - **A production chain as linked records.** A source record, a grow batch, a harvest lot and a
   lab report, each a record with its own date, each naming the one before in its sealed "About".
   The links are the holder's statement, not checked by VeilCore or Midnight: a chain is only as
-  strong as each record's own date and proof code. Built; not yet tried on a network
-  ([`docs/document-chain.md`](docs/document-chain.md)).
+  strong as each record's own date and proof code. Live on veilcore.org: first run there on
+  16 November 2026, a source record, a grow batch and a harvest lot followed from the lot's
+  chain link ([`docs/document-chain.md`](docs/document-chain.md)).
 - **What the registry can read:** each record's id, profile, proof code and key binding; a
   code made from its name (useless without the salt in the holder's check link); correction
   links; when it first saw the record; save counts and times; a size bucket; what the holder

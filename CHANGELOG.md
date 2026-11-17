@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### A production chain: first run on veilcore.org
+
+- 16 November 2026: a grow batch about a source record and a harvest lot about the batch, each
+  dated on Midnight, followed from the lot's "Copy link with its chain" in a private window.
+  `DOCUMENT_CHAIN_RUN_ON_MAINNET` is on, so "what's live where" says "Yes" for the chain on
+  veilcore.org. A number proved from a document kept on the device only is still "built, not
+  yet tried on the main network".
+
 ### A production chain as document records, and proving a number from a device-only document (built, not tried on a network yet)
 
 - "Seal a document" starts with "Grow batch", "Harvest lot" or any other document. A batch or a

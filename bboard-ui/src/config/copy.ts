@@ -146,8 +146,13 @@ export const DEVICE_ONLY_RUN_ON_MAINNET = true;
  * the top with a date on every page. Until it has, the home page's veilcore.org cell says it is
  * built and not yet tried on the main network (m.live.docchain.main), never "Yes". Hunter turns
  * it on in a reviewed commit after that first run, never before.
+ *
+ * First run: 16 November 2026, on veilcore.org. A grow batch was sealed about a source record and
+ * a harvest lot about the batch, each dated on Midnight; the lot's "Copy link with its chain"
+ * was opened in a private window and followed to the top, with a date on every page. A lab report
+ * on top is the same link one level further, and was not part of that run.
  */
-export const DOCUMENT_CHAIN_RUN_ON_MAINNET = false;
+export const DOCUMENT_CHAIN_RUN_ON_MAINNET = true;
 
 /**
  * Whether "Prove one number" for a document kept on this device only (config/network.ts
