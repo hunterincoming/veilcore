@@ -360,6 +360,16 @@ export const de: Strings = {
   'm.postA.title': 'Live im Hauptnetz von Midnight',
   'm.postA.text':
     'Beide Contracts sind im Hauptnetz von Midnight bereitgestellt. Der Claims-Contract hat keinen Wartungsschlüssel: Niemand, auch wir nicht, kann ihn ändern.',
+  'm.postG.date': '16. Nov. 2026',
+  'm.postG.tag': 'Datensätze',
+  'm.postG.title': 'Eine Produktionskette, Schritt für Schritt',
+  'm.postG.text':
+    'Eine Anbaucharge und eine Erntepartie sind jetzt eigene Datensätze, die jeweils den vorherigen nennen: die Pflanze, die Charge, die Partie, der Laborbericht. Jeder hat sein eigenes Datum. Ein Link kann die Kette mitnehmen, sodass jeder, der ihn prüft, jeden Schritt öffnen kann. Die Verknüpfungen sind die Angabe des Inhabers; das Datum jedes Datensatzes wird auf Midnight geprüft. Am 16. November 2026 zum ersten Mal auf veilcore.org durchgeführt.',
+  'm.postF.date': '16. Nov. 2026',
+  'm.postF.tag': 'Datenschutz',
+  'm.postF.title': 'Ein Dokument nur auf Ihrem Gerät behalten',
+  'm.postF.text':
+    'Beim Versiegeln eines Dokuments können Sie es jetzt nur auf diesem Gerät und in Ihrer Sicherungsdatei behalten. Nichts, was Sie eingeben, wird gesendet, weder verschlossen noch offen: Das Register von VeilCore erhält die ID des Datensatzes, seinen Prüfcode und seine Schlüsselbindung, damit er datiert werden kann. Am 16. November 2026 zum ersten Mal auf veilcore.org versiegelt, datiert und geprüft.',
   'm.postE.date': '2. Nov. 2026',
   'm.postE.tag': 'Nachweis',
   'm.postE.title': 'Eine Nachweisdatei für jedes Dokument',
