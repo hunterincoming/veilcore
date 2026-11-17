@@ -155,7 +155,7 @@ export const plant = {
   'app.plant.next.dates.why':
     '中身は報告書のSHA-256、検査報告書のコード、署名どおりのラボ名だけで、報告書そのものは入っていません。バッチに日付が付くと、その時点で報告書が存在したことを、マーカーを誰にも見せずに示せます。',
   'app.plant.next.stamp.why':
-    '封印済みです。鍵にはまだ日付スタンプが押されておらず、保有していることを証明するにはそれが必要です。これで記録に日付が付くわけではありません。記録の日付は、そのバッチがアンカーされたときに付きます。1分ほどで、無料です。',
+    '記録の日付付けは、Midnight上のバッチで自動的に行われます。そのためにこの手順は必要ありません。この手順は記録の鍵に日付を付けます。鍵が必要なのは、後で記録を保有していることを証明するとき、またはライセンスを出すときだけです。約1分、無料です。いつでも行えます。',
   'app.plant.next.rejected.title': 'このサンプルの受け取りを断りました',
   'app.plant.next.rejected.why':
     '何も署名されていません。VeilCoreは育成者に知らせません。別のものを送ってもらえるよう、ご自身で伝えてください。',
@@ -231,7 +231,7 @@ export const plant = {
   'app.plant.next.noCurrent.title': '{lab}からの現在のDNA報告書はありません',
   'app.plant.next.open.title': '{lab}からの検査報告書を開く',
   'app.plant.next.label': '次のステップ',
-  'app.plant.next.stamp.title': '保有の証明を準備する',
+  'app.plant.next.stamp.title': '任意：保有の証明を準備する',
   'app.plant.next.stamp.action': '保有の証明を準備する',
   'app.plant.next.open.action': '開く',
   'app.plant.chain.sealed': '封印済み',

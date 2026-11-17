@@ -64,7 +64,7 @@ const standIn = async (page: Page, held: { records: Rec[] } = { records: [] }) =
 };
 
 const DATED_NOT_ORIGIN =
-  'The date shows the holder had this record by then. It doesn’t show who bred it or where it came from.';
+  'The date shows the holder had this record by then. It doesn’t show who bred or made it, where it came from, or that what it says is true.';
 
 test('a landrace with no breeder and where it came from, then clones with a lot and a tag each', async ({ page }) => {
   test.setTimeout(240_000);
@@ -222,7 +222,7 @@ test('every check page says a date is not who bred it; the terms say not to regi
   await expect(page.locator('[data-dated-not-origin]')).toHaveText(DATED_NOT_ORIGIN);
   // In the visitor's language.
   await page.goto('/verify/example?lang=ja');
-  await expect(page.locator('[data-dated-not-origin]')).toContainText('誰が育成したか、どこから来たかは示しません');
+  await expect(page.locator('[data-dated-not-origin]')).toContainText('誰が育成・作成したか、どこから来たか、内容が正しいかは示しません');
   await page.goto('/terms');
   await expect(
     page.getByText('Don’t register other people’s traditional varieties, landraces or breeds as your own breeding.', {

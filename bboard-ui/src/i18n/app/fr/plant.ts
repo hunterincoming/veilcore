@@ -160,7 +160,7 @@ export const plant = {
   'app.plant.next.dates.why':
     'Il ne contient que le SHA-256 du rapport, son code de rapport de laboratoire et le nom du laboratoire tel que signé, jamais le rapport. Quand son lot est daté, il montre que le rapport existait à ce moment-là, sans montrer les marqueurs à personne.',
   'app.plant.next.stamp.why':
-    'Il est scellé. Sa clé n’est pas encore horodatée, et il le faut pour prouver que vous le détenez. Cela ne date pas votre enregistrement : il est daté quand son lot est ancré. Cela prend environ une minute et c’est gratuit.',
+    'Votre enregistrement est daté tout seul, dans un lot sur Midnight. Cette étape n’est pas nécessaire pour cela. Elle date la clé de votre enregistrement, dont vous n’avez besoin que pour prouver plus tard que vous le détenez, ou pour le concéder sous licence. Environ une minute, et gratuit. Vous pouvez le faire à tout moment.',
   'app.plant.next.rejected.title': 'Vous avez refusé cet échantillon',
   'app.plant.next.rejected.why':
     'Rien n’a été signé. VeilCore ne prévient pas l’obtenteur : informez-le vous-même, pour qu’il puisse en envoyer un autre.',
@@ -236,7 +236,7 @@ export const plant = {
   'app.plant.next.noCurrent.title': 'Aucun rapport ADN en vigueur de {lab}',
   'app.plant.next.open.title': 'Ouvrir le rapport de laboratoire de {lab}',
   'app.plant.next.label': 'Étape suivante',
-  'app.plant.next.stamp.title': 'Préparer la preuve que vous le détenez',
+  'app.plant.next.stamp.title': 'Facultatif : préparer la preuve que vous le détenez',
   'app.plant.next.stamp.action': 'Préparer la preuve que vous le détenez',
   'app.plant.next.open.action': 'Ouvrir',
   'app.plant.chain.sealed': 'Scellé',

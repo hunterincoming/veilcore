@@ -145,14 +145,14 @@ export const document = {
   'app.claim.holderTyped': '数値はあなたが入力したものです。どの検査機関も署名していません。',
   'app.claim.check.title': '証明を確認する',
   'app.claim.check.intro':
-    '封印された証明書の数値1つについての事実を、数値や証明書を見せずに示すため、このリンクが送られてきました。このページはMidnight上の証明を読み取り、確認します。',
+    '封印された文書の数値1つについての事実を、数値や文書を見せずに示すため、このリンクが送られてきました。このページはMidnight上の証明を読み取り、確認します。',
   'app.claim.check.bad': 'このリンクは読み取れません。もう一度送ってもらってください。',
   'app.claim.check.checking': 'Midnight上の証明を読み取っています…',
   'app.claim.check.okWhen': 'Midnight上のブロック{block}{date}で証明されました。',
   'app.claim.check.failed': '確認できません：{reason}頼らないでください。',
   'app.claim.check.record': '対象の記録',
   'app.claim.check.what':
-    'これで示せること：その記録に封印された数値が境界値を満たしている（またはその値である）こと。示せないこと：検査機関が測定したこと、証明書が本物であること。数値は保有者が入力したものです。数値について証明された境界値はすべて公開され、合わせると範囲が狭まります。',
+    'これで示せること：その記録に封印された数値が境界値を満たしている（またはその値である）こと。示せないこと：検査機関が測定したこと、文書が本物であること。数値は保有者が入力したものです。数値について証明された境界値はすべて公開され、合わせると範囲が狭まります。',
   'app.claim.check.schema': '公開されたフォーム「{schema}」に基づく。',
   // EvidenceBundle.tsx: what differs for a document record.
   'app.doc.bundle.keyIs':

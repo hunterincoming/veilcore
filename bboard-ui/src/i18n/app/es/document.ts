@@ -147,14 +147,14 @@ export const document = {
   'app.claim.holderTyped': 'Los números son suyos tal como los escribió: ningún laboratorio los firmó.',
   'app.claim.check.title': 'Comprobar una prueba',
   'app.claim.check.intro':
-    'Alguien le envió este enlace para mostrar un hecho sobre un número de un certificado sellado, sin mostrar el número ni el certificado. Esta página lee la prueba en Midnight y la comprueba.',
+    'Alguien le envió este enlace para mostrar un hecho sobre un número de un documento sellado, sin mostrar el número ni el documento. Esta página lee la prueba en Midnight y la comprueba.',
   'app.claim.check.bad': 'Este enlace no se puede leer. Pídalo de nuevo.',
   'app.claim.check.checking': 'Leyendo la prueba en Midnight…',
   'app.claim.check.okWhen': 'Probado en Midnight en el bloque {block}{date}.',
   'app.claim.check.failed': 'No confirmado: {reason} No confíe en ello.',
   'app.claim.check.record': 'El registro al que se refiere',
   'app.claim.check.what':
-    'Lo que esto muestra: el número sellado en ese registro cumple el límite (o es ese valor). Lo que no: que un laboratorio lo midiera, ni que el certificado sea auténtico; el titular escribió los números. Cada límite probado sobre un número es público, y juntos lo acotan.',
+    'Lo que esto muestra: el número sellado en ese registro cumple el límite (o es ese valor). Lo que no: que un laboratorio lo midiera, ni que el documento sea auténtico; el titular escribió los números. Cada límite probado sobre un número es público, y juntos lo acotan.',
   'app.claim.check.schema': 'Según el formulario publicado «{schema}».',
   // EvidenceBundle.tsx: what differs for a document record.
   'app.doc.bundle.keyIs':
