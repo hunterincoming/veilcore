@@ -396,6 +396,14 @@ export const en = {
   'm.updates.follow': 'Follow',
   // Dated posts. Facts from docs/mainnet-completeness.md (R4, M2) and
   // docs/deployment-record-revision-4.md ("Mainnet deployment").
+  'm.postG.date': '16 Nov 2026',
+  'm.postG.tag': 'Records',
+  'm.postG.title': 'A production chain, step by step',
+  'm.postG.text': 'A grow batch and a harvest lot are now records of their own, each naming the one before: the plant, the batch, the lot, the lab report. Each has its own date. A link can carry the chain, so whoever checks it can open every step. The links are the holder\'s statement; each record\'s date is checked on Midnight. First run on veilcore.org on 16 November 2026.',
+  'm.postF.date': '16 Nov 2026',
+  'm.postF.tag': 'Privacy',
+  'm.postF.title': 'Keep a document on your device only',
+  'm.postF.text': 'When you seal a document you can now keep it on this device and in your backup file only. Nothing you type is sent, locked or not: VeilCore\'s registry gets the record\'s ID, its proof code and its key binding, so it can be dated. First sealed, dated and checked on veilcore.org on 16 November 2026.',
   'm.postE.date': '2 Nov 2026',
   'm.postE.tag': 'Evidence',
   'm.postE.title': 'An evidence file for any document',
