@@ -143,8 +143,9 @@ export const home = {
     'Vos enregistrements gratuits sont épuisés : aucun nouvel enregistrement n’a été créé. Tout ce que vous avez déjà reste vérifiable. Choisissez une formule sur votre page d’enregistrements pour en ajouter.',
   'app.plan.unknown':
     'VeilCore n’a pas pu vérifier votre formule pour l’instant : aucun nouvel enregistrement n’a été créé. Vérifiez votre connexion et réessayez.',
-  'app.plan.box.free': 'Formule gratuite : {held} sur {cap} enregistrements',
-  'app.plan.box.left': 'Enregistrements gratuits restants : {n}',
+  'app.plan.box.free': 'Formule gratuite : {held} sur {cap} enregistrements datés',
+  'app.plan.box.left': 'Enregistrements gratuits encore à dater : {n}',
+  'app.plan.box.countsDeleted': 'Les enregistrements datés comptent même si vous les supprimez ensuite.',
   'app.plan.box.paid': 'Votre formule : {plan}',
   'app.plan.name.breeder': 'Obtenteur',
   'app.plan.name.lab': 'Laboratoire',
@@ -160,12 +161,12 @@ export const home = {
   'app.plan.err.unreachable': 'La page de Paddle n’a pas pu s’ouvrir. Réessayez dans un instant.',
   'app.plan.err.busy': 'Trop d’essais en une heure. Réessayez plus tard.',
   'app.plan.err.noRecord':
-    'Enregistrez d’abord un enregistrement : une formule concerne les enregistrements que vous gardez.',
+    'Enregistrez d’abord un enregistrement : une formule concerne les enregistrements que vous datez.',
   'app.plan.err.blocked':
     'Votre navigateur a bloqué la page de Paddle. Autorisez les fenêtres pop-up pour ce site, puis réessayez.',
   'app.plan.buy.other': 'Formule {plan}',
   'app.plan.importFull':
-    'Ce fichier contient {n} enregistrements nouveaux pour VeilCore, et votre formule gratuite a de la place pour {left} de plus. Rien n’a été importé. Choisissez une formule sur votre page d’enregistrements pour en garder davantage.',
+    'Ce fichier contient {n} enregistrements nouveaux pour VeilCore, et votre formule gratuite peut encore en dater {left}. Rien n’a été importé. Choisissez une formule sur votre page d’enregistrements pour en dater davantage.',
   'app.plan.box.full':
     'Vos enregistrements gratuits sont épuisés. Tout ce que vous avez déjà reste vérifiable. Choisissez une formule pour en ajouter.',
 } satisfies Partial<AppTranslation>;

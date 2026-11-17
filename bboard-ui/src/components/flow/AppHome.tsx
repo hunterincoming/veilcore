@@ -6,7 +6,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { PlanBox } from '../PlanBox';
-import { ownCount } from '../../veilcore/billing';
 import React, { useMemo, useRef, useState } from 'react';
 import { Alert, Box, Button, Collapse, Paper, Snackbar, Stack, Typography } from '@mui/material';
 import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
@@ -26,6 +25,7 @@ import {
   startOver,
   useSealedView,
   RECORDS_KEY,
+  waitingHere,
 } from '../../veilcore/records';
 import { rowStateOf } from '../../veilcore/api-store';
 import { holderKeyIfAny, downloadHolderKey } from '../../veilcore/holder';
@@ -398,7 +398,7 @@ export const AppHome: React.FC = () => {
         <LoadNoticeBar />
 
         {/* Paid plans (billing.ts): off unless the build switches them on. */}
-        <PlanBox ownHere={ownCount(records)} />
+        <PlanBox waiting={waitingHere(records)} />
 
         {/* Ask's "Do it for me" jobs: one to check, one being done, a record got ready to license. */}
         <JobsOnHome />

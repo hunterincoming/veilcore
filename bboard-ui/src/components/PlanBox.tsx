@@ -1,5 +1,5 @@
 // The holder's plan on the records page (paid plans, billing.ts). Off unless PAID_PLANS_ENABLED.
-// Free: how many records of the free number are used, and the plans to choose from (each opens
+// Free: how many of the free number of dated records are used, and the plans to choose from (each opens
 // Paddle's own page in a new tab). Paid: the plan's name. Either way, the line that every record
 // already held keeps verifying.
 // SPDX-License-Identifier: Apache-2.0
@@ -13,8 +13,8 @@ import type { AppKey } from '../i18n/app/en';
 
 const known = (p: string): p is (typeof KNOWN_PLANS)[number] => (KNOWN_PLANS as readonly string[]).includes(p);
 
-/** `ownHere`: this browser's own records (billing.ts ownCount), not deliveries received. */
-export const PlanBox: React.FC<{ ownHere: number; compact?: boolean }> = ({ ownHere, compact = false }) => {
+/** `waiting`: records here that VeilCore hasn't stored yet and that will count (records.ts waitingHere). */
+export const PlanBox: React.FC<{ waiting: number; compact?: boolean }> = ({ waiting, compact = false }) => {
   const { t } = useT();
   const plan = usePlan();
   const [error, setError] = useState<AppKey | null>(null);
@@ -26,7 +26,7 @@ export const PlanBox: React.FC<{ ownHere: number; compact?: boolean }> = ({ ownH
     return watchPlanOnReturn();
   }, []);
   if (!PAID_PLANS_ENABLED || !plan) return null;
-  const left = freeLeft(plan, ownHere);
+  const left = freeLeft(plan, waiting);
   // Compact (the start screen): only when the free number is used up.
   if (compact && left !== 0) return null;
   // Not async before openCheckout: the tab must open in the click itself.
@@ -39,7 +39,7 @@ export const PlanBox: React.FC<{ ownHere: number; compact?: boolean }> = ({ ownH
   };
   const nameOf = (p: string) => (known(p) ? t(`app.plan.name.${p}`) : p);
   const buyLabel = (p: string) => (known(p) ? t(`app.plan.buy.${p}`) : t('app.plan.buy.other', { plan: p }));
-  const held = Math.max(ownHere, plan.recordsCounted);
+  const held = plan.recordsCounted + waiting;
   return (
     <Paper variant="outlined" sx={{ p: { xs: 2, sm: 2.5 } }} data-plan-box={plan.plan}>
       <Stack spacing={1.25}>
@@ -60,6 +60,9 @@ export const PlanBox: React.FC<{ ownHere: number; compact?: boolean }> = ({ ownH
             />
             <Typography variant="body2" color={left === 0 ? 'error' : 'text.secondary'} data-plan-left={left}>
               {left === 0 ? t('app.plan.box.full') : t('app.plan.box.left', { n: String(left) })}
+            </Typography>
+            <Typography variant="body2" color="text.secondary" data-plan-counts-deleted="">
+              {t('app.plan.box.countsDeleted')}
             </Typography>
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
               {plan.plans.map((p, i) => (

@@ -141,8 +141,9 @@ export const home = {
     'Ya usó sus registros gratuitos, así que no se creó ningún registro nuevo. Todo lo que ya tiene se sigue pudiendo comprobar. Elija un plan en su página de registros para añadir más.',
   'app.plan.unknown':
     'VeilCore no pudo comprobar su plan en este momento, así que no se creó ningún registro nuevo. Revise su conexión e inténtelo de nuevo.',
-  'app.plan.box.free': 'Plan gratuito: {held} de {cap} registros',
-  'app.plan.box.left': 'Registros gratuitos restantes: {n}',
+  'app.plan.box.free': 'Plan gratuito: {held} de {cap} registros fechados',
+  'app.plan.box.left': 'Registros gratuitos por fechar: {n}',
+  'app.plan.box.countsDeleted': 'Los registros fechados cuentan aunque luego los borre.',
   'app.plan.box.paid': 'Su plan: {plan}',
   'app.plan.name.breeder': 'Obtentor',
   'app.plan.name.lab': 'Laboratorio',
@@ -157,12 +158,12 @@ export const home = {
   'app.plan.err.off': 'Todavía no se pueden comprar planes desde este navegador.',
   'app.plan.err.unreachable': 'No se pudo abrir la página de Paddle ahora. Inténtelo de nuevo en un momento.',
   'app.plan.err.busy': 'Demasiados intentos en una hora. Inténtelo más tarde.',
-  'app.plan.err.noRecord': 'Primero guarde un registro: un plan es para los registros que conserva.',
+  'app.plan.err.noRecord': 'Primero guarde un registro: un plan es para los registros que fecha.',
   'app.plan.err.blocked':
     'Su navegador bloqueó la página de Paddle. Permita las ventanas emergentes para este sitio y vuelva a intentarlo.',
   'app.plan.buy.other': 'Plan {plan}',
   'app.plan.importFull':
-    'Este archivo tiene {n} registros nuevos para VeilCore y a su plan gratuito le queda espacio para {left}. No se importó nada. Elija un plan en su página de registros para conservar más.',
+    'Este archivo tiene {n} registros nuevos para VeilCore y su plan gratuito puede fechar {left} más. No se importó nada. Elija un plan en su página de registros para fechar más.',
   'app.plan.box.full':
     'Ya usó sus registros gratuitos. Todo lo que ya tiene se sigue pudiendo comprobar. Elija un plan para añadir más.',
 } satisfies Partial<AppTranslation>;

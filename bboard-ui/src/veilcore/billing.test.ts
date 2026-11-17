@@ -40,27 +40,38 @@ describe('paid plans in the browser', async () => {
     expect(bad?.recordCap).toBe(25);
   });
 
-  it('blocks new records past the free number only on the free plan', async () => {
+  it('blocks new dates past the free number only on the free plan: the registry’s count plus what waits here', async () => {
     const plan = (p: object) =>
       billing.refreshPlan(() => Promise.resolve(json(200, { status: null, periodEnd: null, ...p })));
     await plan({ plan: 'free', recordsHeld: 24, recordsCounted: 24, recordCap: 25 });
-    expect(billing.planBlocks(1, 24)).toBe(false);
-    expect(billing.planBlocks(2, 24)).toBe(true);
-    // A record waiting in this browser counts too.
-    expect(billing.planBlocks(1, 25)).toBe(true);
-    expect(billing.freeLeft(billing.currentPlan(), 10)).toBe(1);
+    expect(billing.planBlocks(1, 0)).toBe(false);
+    expect(billing.planBlocks(2, 0)).toBe(true);
+    // A record waiting in this browser, not stored yet, counts on top.
+    expect(billing.planBlocks(1, 1)).toBe(true);
+    expect(billing.freeLeft(billing.currentPlan(), 0)).toBe(1);
     // Nothing new: never blocked.
     expect(billing.planBlocks(0, 30)).toBe(false);
-    // Deleted on the registry but still counted there: the registry's count wins.
+    // Deleted on the registry but still counted there: the registry's count is what counts.
     await plan({ plan: 'free', recordsHeld: 20, recordsCounted: 25, recordCap: 25 });
-    expect(billing.planBlocks(1, 20)).toBe(true);
+    expect(billing.planBlocks(1, 0)).toBe(true);
     await plan({ plan: 'breeder', status: 'active', recordsHeld: 400, recordCap: 10000 });
-    expect(billing.planBlocks(500, 400)).toBe(false);
-    expect(billing.freeLeft(billing.currentPlan(), 400)).toBeNull();
+    expect(billing.planBlocks(500, 0)).toBe(false);
+    expect(billing.freeLeft(billing.currentPlan(), 0)).toBeNull();
   });
 
-  it('counts the holder’s own records, not deliveries received', () => {
-    expect(billing.ownCount([{}, { receivedFrom: 'VEIL-1' }, {}])).toBe(2);
+  it('counts what waits here as the registry will: dated content not stored yet, the first correction free', () => {
+    const stored = new Set(['A']);
+    const isStored = (id: string) => stored.has(id);
+    const rs = [
+      { id: 'A', recordFingerprint: 'fa' }, // stored: already in the registry's count
+      { id: 'B', recordFingerprint: 'fb' }, // waiting: counts
+      { id: 'C' }, // a stub with no proof code yet: nothing
+      { id: 'D', recordFingerprint: 'fd', receivedFrom: 'VEIL-1' }, // received, sealed: counts
+      { id: 'E', recordFingerprint: 'fe', supersedes: { recordId: 'A' } }, // A's first correction: free
+      { id: 'F', recordFingerprint: 'ff', supersedes: { recordId: 'E' } }, // correction of a correction: counts
+      { id: 'G', recordFingerprint: 'fg', supersedes: { recordId: 'D' } }, // correction of a received record: counts
+    ];
+    expect(billing.waitingCount(rs, isStored)).toBe(4);
   });
 
   it('takes the plan names the registry sells', async () => {

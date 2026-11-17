@@ -17,8 +17,7 @@ import type { AppKey } from '../../i18n/app/en';
 import { ScreenHeading } from './FlowFrame';
 import { DOCUMENT_CHAIN_ENABLED } from '../../config/network';
 import { PlanBox } from '../PlanBox';
-import { ownCount } from '../../veilcore/billing';
-import { useRecords } from '../../veilcore/records';
+import { useRecords, waitingHere } from '../../veilcore/records';
 
 type Option = { key: LogKind | 'document' | 'chain'; title: AppKey; text: AppKey };
 
@@ -75,7 +74,7 @@ export const StartChoice: React.FC<{
         {t('app.start.intro')}
       </Typography>
       {/* The free number used up (paid plans): said here, before anything is filled in. */}
-      <PlanBox ownHere={ownCount(records)} compact />
+      <PlanBox waiting={waitingHere(records)} compact />
       <Stack spacing={1.5}>
         {options.map((o) =>
           o.key === 'document' ? (

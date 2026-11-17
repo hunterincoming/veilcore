@@ -144,8 +144,9 @@ export const home = {
     'Ihre kostenlosen Datensätze sind aufgebraucht, daher wurde kein neuer Datensatz angelegt. Alles, was Sie schon haben, bleibt prüfbar. Wählen Sie auf Ihrer Datensatzseite einen Tarif, um weitere hinzuzufügen.',
   'app.plan.unknown':
     'VeilCore konnte Ihren Tarif gerade nicht prüfen, daher wurde kein neuer Datensatz angelegt. Prüfen Sie Ihre Verbindung und versuchen Sie es erneut.',
-  'app.plan.box.free': 'Kostenloser Tarif: {held} von {cap} Datensätzen',
-  'app.plan.box.left': 'Noch kostenlos: {n}',
+  'app.plan.box.free': 'Kostenloser Tarif: {held} von {cap} datierten Datensätzen',
+  'app.plan.box.left': 'Noch kostenlos zu datieren: {n}',
+  'app.plan.box.countsDeleted': 'Datierte Datensätze zählen auch, wenn Sie sie später löschen.',
   'app.plan.box.paid': 'Ihr Tarif: {plan}',
   'app.plan.name.breeder': 'Züchter',
   'app.plan.name.lab': 'Labor',
@@ -161,12 +162,12 @@ export const home = {
   'app.plan.err.unreachable':
     'Die Seite von Paddle ließ sich gerade nicht öffnen. Versuchen Sie es gleich noch einmal.',
   'app.plan.err.busy': 'Zu viele Versuche in einer Stunde. Versuchen Sie es später noch einmal.',
-  'app.plan.err.noRecord': 'Speichern Sie zuerst einen Datensatz: Ein Tarif gilt für die Datensätze, die Sie behalten.',
+  'app.plan.err.noRecord': 'Speichern Sie zuerst einen Datensatz: Ein Tarif gilt für die Datensätze, die Sie datieren.',
   'app.plan.err.blocked':
     'Ihr Browser hat die Seite von Paddle blockiert. Erlauben Sie Pop-ups für diese Website und versuchen Sie es noch einmal.',
   'app.plan.buy.other': 'Tarif {plan}',
   'app.plan.importFull':
-    'Diese Datei enthält {n} Datensätze, die für VeilCore neu sind, und Ihr kostenloser Tarif hat noch Platz für {left}. Es wurde nichts importiert. Wählen Sie auf Ihrer Datensatzseite einen Tarif, um mehr zu behalten.',
+    'Diese Datei enthält {n} Datensätze, die für VeilCore neu sind, und Ihr kostenloser Tarif kann noch {left} datieren. Es wurde nichts importiert. Wählen Sie auf Ihrer Datensatzseite einen Tarif, um mehr zu datieren.',
   'app.plan.box.full':
     'Ihre kostenlosen Datensätze sind aufgebraucht. Alles, was Sie schon haben, bleibt prüfbar. Wählen Sie einen Tarif, um weitere hinzuzufügen.',
 } satisfies Partial<AppTranslation>;

@@ -51,9 +51,29 @@ const set = (p: Plan | null, key: string | null) => {
 /** The plan read, if it was read for the key this browser uses now. */
 const planFor = (): Plan | null => (current && currentFor === holderKeyIfAny() ? current : null);
 
-/** Records that count on the free plan from this browser: its own, not deliveries received. */
-export const ownCount = (rs: readonly { readonly receivedFrom?: string }[]): number =>
-  rs.filter((r) => !r.receivedFrom).length;
+/** What billing needs of a record here to tell whether it will count on the free plan. */
+export type Countable = {
+  readonly id: string;
+  readonly recordFingerprint?: string;
+  readonly receivedFrom?: string;
+  readonly supersedes?: { readonly recordId: string };
+};
+
+/**
+ * Records here that will count on the free plan once VeilCore stores them: content with a proof
+ * code that VeilCore hasn't stored yet (`stored`). The free plan counts proof codes dated, as the
+ * registry does (its recordsCounted already has everything it stored, deleted records included),
+ * so only what is waiting here is added to it. A record's first correction of the holder's own
+ * record (not itself a correction, not received) is free, as on the registry.
+ */
+export const waitingCount = (rs: readonly Countable[], stored: (id: string) => boolean): number => {
+  const byId = new Map(rs.map((r) => [r.id, r]));
+  const free = (r: Countable) => {
+    const t = r.supersedes ? byId.get(r.supersedes.recordId) : undefined;
+    return !!t && !t.supersedes && !t.receivedFrom;
+  };
+  return rs.filter((r) => !!r.recordFingerprint && !stored(r.id) && !free(r)).length;
+};
 
 type RawPlan = Omit<Plan, 'recordsCounted' | 'plans'> & { readonly recordsCounted?: unknown; readonly plans?: unknown };
 const isPlan = (v: unknown): v is RawPlan =>
@@ -117,13 +137,12 @@ export const usePlan = (): Plan | null =>
   );
 
 /**
- * How many more records the free plan keeps, or null when no limit applies (off, paid, not read
- * yet). `ownHere` is this browser's own records (ownCount): the larger of it and the registry's
- * count is used, so a record waiting to be sent still counts.
+ * How many more records the free plan dates, or null when no limit applies (off, paid, not read
+ * yet). `waiting` is what waits here to be stored (waitingCount), on top of the registry's count.
  */
-export const freeLeft = (plan: Plan | null, ownHere: number): number | null => {
+export const freeLeft = (plan: Plan | null, waiting: number): number | null => {
   if (!PAID_PLANS_ENABLED || !plan || plan.plan !== 'free') return null;
-  return Math.max(0, plan.recordCap - Math.max(ownHere, plan.recordsCounted));
+  return Math.max(0, plan.recordCap - plan.recordsCounted - waiting);
 };
 
 export type PlanRefusal = 'app.plan.full' | 'app.plan.unknown';
@@ -132,7 +151,7 @@ export type PlanRefusal = 'app.plan.full' | 'app.plan.unknown';
  * no holder key yet (a first record), or paid: null. The plan not known for this key: refused,
  * and read in the background so the next try knows (readPlan before async paths avoids this).
  */
-export const planGate = (n: number, ownHere: number): PlanRefusal | null => {
+export const planGate = (n: number, waiting: number): PlanRefusal | null => {
   if (!PAID_PLANS_ENABLED || n <= 0) return null;
   const k = holderKeyIfAny();
   if (!k || offFor === k) return null;
@@ -141,12 +160,12 @@ export const planGate = (n: number, ownHere: number): PlanRefusal | null => {
     void refreshPlan();
     return 'app.plan.unknown';
   }
-  const left = freeLeft(plan, ownHere);
+  const left = freeLeft(plan, waiting);
   return left !== null && n > left ? 'app.plan.full' : null;
 };
 
 /** Whether adding `n` new records would be refused on this plan now (planGate). */
-export const planBlocks = (n: number, ownHere: number): boolean => planGate(n, ownHere) !== null;
+export const planBlocks = (n: number, waiting: number): boolean => planGate(n, waiting) !== null;
 
 /** Read the plan again whenever this page comes back into view (after paying on Paddle's tab). */
 export const watchPlanOnReturn = (): (() => void) => {

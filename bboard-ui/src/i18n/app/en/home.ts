@@ -145,8 +145,9 @@ export const home = {
     'Your free records are used up, so no new record was made. Everything you already have keeps verifying. Choose a plan on your records page to add more.',
   'app.plan.unknown':
     'VeilCore couldn’t check your plan just now, so no new record was made. Check your connection and try again.',
-  'app.plan.box.free': 'Free plan: {held} of {cap} records',
-  'app.plan.box.left': 'Free records left: {n}',
+  'app.plan.box.free': 'Free plan: {held} of {cap} dated records',
+  'app.plan.box.left': 'Free dated records left: {n}',
+  'app.plan.box.countsDeleted': 'Dated records count even if you later delete them.',
   'app.plan.box.paid': 'Your plan: {plan}',
   'app.plan.name.breeder': 'Breeder',
   'app.plan.name.lab': 'Lab',
@@ -161,11 +162,11 @@ export const home = {
   'app.plan.err.off': 'Plans can’t be bought from this browser yet.',
   'app.plan.err.unreachable': 'Paddle’s page couldn’t be opened just now. Try again shortly.',
   'app.plan.err.busy': 'Too many tries in an hour. Try again later.',
-  'app.plan.err.noRecord': 'Save a record first: a plan is for the records you keep.',
+  'app.plan.err.noRecord': 'Save a record first: a plan is for the records you date.',
   'app.plan.err.blocked': 'Your browser blocked Paddle’s page. Allow pop-ups for this site, then try again.',
   'app.plan.buy.other': '{plan} plan',
   'app.plan.importFull':
-    'This file has {n} records new to VeilCore, and your free plan has room for {left} more. Nothing was imported. Choose a plan on your records page to keep more.',
+    'This file has {n} records new to VeilCore, and your free plan can date {left} more. Nothing was imported. Choose a plan on your records page to date more.',
   'app.plan.box.full':
     'Your free records are used up. Everything you already have keeps verifying. Choose a plan to add more.',
 };
