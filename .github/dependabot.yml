@@ -47,6 +47,10 @@ updates:
       # migration (as with ledger 9: docs/log/ledger-9-lockfile.md).
       - dependency-name: "@midnight-ntwrk/*"
       - dependency-name: "@midnightntwrk/*"
+      # WebLLM is pinned exactly to the version the on-device model libraries were built for
+      # (bboard-ui/src/ask-local/ask-local.test.ts), so a bump always fails CI and takes its
+      # whole group down with it. It moves by hand, with the libraries.
+      - dependency-name: "@mlc-ai/web-llm"
 
   # Workflow actions are pinned by commit SHA with the version in a comment; Dependabot
   # updates both.
