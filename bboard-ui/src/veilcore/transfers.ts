@@ -731,7 +731,7 @@ export type ClaimResult = {
  * answer, a server error, an answer that couldn't be read) the claim may have gone through,
  * and the kept code must stay (round 3, L8).
  */
-export type ClaimError = { error: string; definite?: true };
+export type ClaimError = { error: string; definite?: true; planFull?: true };
 
 export const claimTransfer = async (
   transferId: string,
@@ -770,6 +770,9 @@ export const claimTransfer = async (
       if (receivingCodeFor(transferId)) keepClaim(transferId, claim);
       return claim;
     }
+    // No free room to receive it (paid plans): not a refusal of the code, which is kept (it is
+    // the only copy of the offer key) for when there is room.
+    if (body.code === 'plan-limit') return { error: isString(body.error) ? body.error : 'plan-limit', planFull: true };
     if (isString(body.error)) {
       const definite = res.status >= 400 && res.status < 500;
       // "Already claimed" may be this browser's own claim, whose answer was lost: not a

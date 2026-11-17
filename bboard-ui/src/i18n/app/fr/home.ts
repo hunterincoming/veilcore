@@ -146,6 +146,12 @@ export const home = {
   'app.plan.box.free': 'Formule gratuite : {held} sur {cap} enregistrements datés',
   'app.plan.box.left': 'Enregistrements gratuits encore à dater : {n}',
   'app.plan.box.countsDeleted': 'Les enregistrements datés comptent même si vous les supprimez ensuite.',
+  'app.plan.changeFull':
+    'Cette modification daterait une nouvelle version, et vos enregistrements datés gratuits sont épuisés : rien n’a été modifié. Tout ce que vous avez déjà reste vérifiable. Choisissez une offre sur votre page d’enregistrements pour en dater davantage.',
+  'app.plan.receiveFull':
+    'Il ne reste aucun enregistrement daté gratuit pour recevoir cette livraison. Votre code est gardé dans ce navigateur : choisissez une offre sur votre page d’enregistrements, puis saisissez-le à nouveau.',
+  'app.plan.box.rules':
+    'La première correction d’un enregistrement est gratuite. Recevoir une livraison demande un enregistrement daté libre.',
   'app.plan.box.paid': 'Votre formule : {plan}',
   'app.plan.name.breeder': 'Obtenteur',
   'app.plan.name.lab': 'Laboratoire',

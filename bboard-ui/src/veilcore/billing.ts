@@ -28,8 +28,10 @@ export type Plan = {
   readonly status: string | null;
   readonly periodEnd: string | null;
   readonly recordsHeld: number;
-  /** What counts against the free plan: records added, deleted or not. */
+  /** What counts against the free plan: proof codes dated, records deleted or not. */
   readonly recordsCounted: number;
+  /** Received records not sealed yet: each holds a slot on the free plan until sealed. */
+  readonly recordsReserved: number;
   readonly recordCap: number;
   /** The plans the registry sells, by name. */
   readonly plans: readonly string[];
@@ -68,14 +70,25 @@ export type Countable = {
  */
 export const waitingCount = (rs: readonly Countable[], stored: (id: string) => boolean): number => {
   const byId = new Map(rs.map((r) => [r.id, r]));
+  // A record's correction is free only once: a second one here of the same record counts.
+  const correctedHere = new Map<string, number>();
+  for (const r of rs)
+    if (r.supersedes) correctedHere.set(r.supersedes.recordId, (correctedHere.get(r.supersedes.recordId) ?? 0) + 1);
   const free = (r: Countable) => {
     const t = r.supersedes ? byId.get(r.supersedes.recordId) : undefined;
-    return !!t && !t.supersedes && !t.receivedFrom;
+    return !!t && !t.supersedes && !t.receivedFrom && correctedHere.get(t.id) === 1;
   };
-  return rs.filter((r) => !!r.recordFingerprint && !stored(r.id) && !free(r)).length;
+  // One proof code is one date, however many rows carry it.
+  const fps = new Set<string>();
+  for (const r of rs) if (r.recordFingerprint && !stored(r.id) && !free(r)) fps.add(r.recordFingerprint);
+  return fps.size;
 };
 
-type RawPlan = Omit<Plan, 'recordsCounted' | 'plans'> & { readonly recordsCounted?: unknown; readonly plans?: unknown };
+type RawPlan = Omit<Plan, 'recordsCounted' | 'recordsReserved' | 'plans'> & {
+  readonly recordsCounted?: unknown;
+  readonly recordsReserved?: unknown;
+  readonly plans?: unknown;
+};
 const isPlan = (v: unknown): v is RawPlan =>
   isObject(v) &&
   isString(v.plan) &&
@@ -93,7 +106,11 @@ const asPlan = (v: unknown): Plan | null => {
   const counted =
     typeof o.recordsCounted === 'number' && Number.isSafeInteger(o.recordsCounted) ? o.recordsCounted : o.recordsHeld;
   const plans = Array.isArray(o.plans) ? o.plans.filter((p): p is string => isString(p) && PLAN_NAME.test(p)) : [];
-  return { ...o, recordsCounted: counted, plans: plans.length ? plans : [...KNOWN_PLANS] };
+  const reserved =
+    typeof o.recordsReserved === 'number' && Number.isSafeInteger(o.recordsReserved) && o.recordsReserved > 0
+      ? o.recordsReserved
+      : 0;
+  return { ...o, recordsCounted: counted, recordsReserved: reserved, plans: plans.length ? plans : [...KNOWN_PLANS] };
 };
 
 /** Read the holder's plan from the registry. Null when off, with no holder yet, or unreachable. */
@@ -142,7 +159,7 @@ export const usePlan = (): Plan | null =>
  */
 export const freeLeft = (plan: Plan | null, waiting: number): number | null => {
   if (!PAID_PLANS_ENABLED || !plan || plan.plan !== 'free') return null;
-  return Math.max(0, plan.recordCap - plan.recordsCounted - waiting);
+  return Math.max(0, plan.recordCap - plan.recordsCounted - plan.recordsReserved - waiting);
 };
 
 export type PlanRefusal = 'app.plan.full' | 'app.plan.unknown';

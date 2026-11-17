@@ -144,6 +144,12 @@ export const home = {
   'app.plan.box.free': 'Plan gratuito: {held} de {cap} registros fechados',
   'app.plan.box.left': 'Registros gratuitos por fechar: {n}',
   'app.plan.box.countsDeleted': 'Los registros fechados cuentan aunque luego los borre.',
+  'app.plan.changeFull':
+    'Este cambio fecharía una nueva versión y ya usó sus registros fechados gratuitos, así que no se cambió nada. Todo lo que ya tiene se puede seguir comprobando. Elija un plan en su página de registros para fechar más.',
+  'app.plan.receiveFull':
+    'No le queda ningún registro fechado gratuito para recibir esta entrega. Su código se guarda en este navegador: elija un plan en su página de registros y vuelva a ingresarlo.',
+  'app.plan.box.rules':
+    'La primera corrección de un registro es gratuita. Recibir una entrega necesita un registro fechado libre.',
   'app.plan.box.paid': 'Su plan: {plan}',
   'app.plan.name.breeder': 'Obtentor',
   'app.plan.name.lab': 'Laboratorio',

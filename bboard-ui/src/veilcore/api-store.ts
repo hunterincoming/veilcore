@@ -1135,7 +1135,15 @@ const sendSealed = async (
       // A new record past the free number (the registry refuses only those rows; the rest of the
       // save, edits included, was stored). Said in the site's words.
       if (r.code === PLAN_LIMIT) {
-        refused.push({ id: r.id, reason: PLAN_FULL_REASON, words: 'app.plan.full' });
+        // New content under a record VeilCore already holds, or a correction (a new version):
+        // said as a change that wasn't made, not as a new record.
+        const row = wire.find((w) => w.id === r.id);
+        const change = state?.states.has(r.id) || (isObject(row) && isObject(row.supersedes));
+        refused.push(
+          change
+            ? { id: r.id, reason: PLAN_CHANGE_REASON, words: 'app.plan.changeFull' }
+            : { id: r.id, reason: PLAN_FULL_REASON, words: 'app.plan.full' },
+        );
         continue;
       }
       // A correction not stored because its record was refused in the same save: nothing was
@@ -1408,6 +1416,9 @@ const PLAN_LIMIT = 'plan-limit';
 /** Said when the registry refused a record for the free number. */
 export const PLAN_FULL_REASON =
   'Your free records are used up, so no new record was made. Everything you already have keeps verifying. Choose a plan on your records page to add more.';
+/** Said when the registry refused new content under a held record, or a correction, for the free number. */
+export const PLAN_CHANGE_REASON =
+  'This change would date a new version, and your free dated records are used up, so nothing was changed. Choose a plan on your records page to date more.';
 /** Said when this browser can't keep a vault key (a private window, blocked site data). */
 export const CANT_STORE_REASON =
   'this browser can’t keep the key that locks your records (a private window, or blocked site data), so nothing was saved';

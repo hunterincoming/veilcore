@@ -74,6 +74,51 @@ describe('paid plans in the browser', async () => {
     expect(billing.waitingCount(rs, isStored)).toBe(4);
   });
 
+  it('one proof code is one date, and a record corrected twice here has only one free correction', () => {
+    const none = () => false;
+    expect(
+      billing.waitingCount(
+        [
+          { id: 'X', recordFingerprint: 'same' },
+          { id: 'Y', recordFingerprint: 'same' },
+        ],
+        none,
+      ),
+    ).toBe(1);
+    const rs = [
+      { id: 'A', recordFingerprint: 'fa' },
+      { id: 'E1', recordFingerprint: 'e1', supersedes: { recordId: 'A' } },
+      { id: 'E2', recordFingerprint: 'e2', supersedes: { recordId: 'A' } },
+    ];
+    // A stored; two corrections of it here: neither is known to be the free one, both count.
+    expect(billing.waitingCount(rs, (id) => id === 'A')).toBe(2);
+  });
+
+  it('received records not sealed yet hold their slots', async () => {
+    await billing.refreshPlan(() =>
+      Promise.resolve(
+        json(200, {
+          plan: 'free',
+          status: null,
+          periodEnd: null,
+          recordsHeld: 22,
+          recordsCounted: 22,
+          recordsReserved: 2,
+          recordCap: 25,
+        }),
+      ),
+    );
+    expect(billing.freeLeft(billing.currentPlan(), 0)).toBe(1);
+    expect(billing.planBlocks(2, 0)).toBe(true);
+    // An older registry that doesn't say: none reserved.
+    await billing.refreshPlan(() =>
+      Promise.resolve(
+        json(200, { plan: 'free', status: null, periodEnd: null, recordsHeld: 22, recordsCounted: 22, recordCap: 25 }),
+      ),
+    );
+    expect(billing.freeLeft(billing.currentPlan(), 0)).toBe(3);
+  });
+
   it('takes the plan names the registry sells', async () => {
     const p = await billing.refreshPlan(() =>
       Promise.resolve(

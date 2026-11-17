@@ -147,6 +147,12 @@ export const home = {
   'app.plan.box.free': 'Kostenloser Tarif: {held} von {cap} datierten Datensätzen',
   'app.plan.box.left': 'Noch kostenlos zu datieren: {n}',
   'app.plan.box.countsDeleted': 'Datierte Datensätze zählen auch, wenn Sie sie später löschen.',
+  'app.plan.changeFull':
+    'Diese Änderung würde eine neue Version datieren, und Ihre kostenlosen datierten Einträge sind aufgebraucht, daher wurde nichts geändert. Alles, was Sie schon haben, bleibt prüfbar. Wählen Sie auf Ihrer Eintragsseite einen Tarif, um mehr zu datieren.',
+  'app.plan.receiveFull':
+    'Es ist kein kostenloser datierter Eintrag mehr frei, um diese Lieferung anzunehmen. Ihr Code bleibt in diesem Browser gespeichert: Wählen Sie auf Ihrer Eintragsseite einen Tarif und geben Sie ihn dann erneut ein.',
+  'app.plan.box.rules':
+    'Die erste Korrektur eines Eintrags ist kostenlos. Eine Lieferung anzunehmen braucht einen freien datierten Eintrag.',
   'app.plan.box.paid': 'Ihr Tarif: {plan}',
   'app.plan.name.breeder': 'Züchter',
   'app.plan.name.lab': 'Labor',

@@ -174,3 +174,30 @@ describe('the free number on other ways of adding a record', () => {
     expect(await A.run(() => A.m.billing.currentPlan())).not.toBeNull();
   });
 });
+
+describe('receiving with no free room', () => {
+  it('is said as the plan, and the receiving code is kept (it is the only copy of the offer key)', async () => {
+    const L = await browser('plan-recv');
+    reg.misbehave.fault = (method, path) =>
+      method === 'POST' && path.endsWith('/claim')
+        ? new Response(
+            JSON.stringify({
+              error: 'the free plan dates 25 records here; a paid plan dates more',
+              code: 'plan-limit',
+              cap: 25,
+            }),
+            { status: 413, headers: { 'content-type': 'application/json' } },
+          )
+        : undefined;
+    await L.run(async () => {
+      const id = 'TR-' + randomBytes(8).toString('hex').toUpperCase();
+      const code = `${id}.${randomBytes(8).toString('hex')}`;
+      L.m.transfers.keepReceivingCode(code);
+      const res = await L.m.transfers.claimTransfer(id, 'x');
+      expect(res).toMatchObject({ planFull: true });
+      expect('definite' in res).toBe(false);
+      expect(L.m.transfers.receivingCodeFor(id)).toBe(code);
+    });
+    reg.misbehave.fault = null;
+  });
+});

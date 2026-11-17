@@ -148,6 +148,11 @@ export const home = {
   'app.plan.box.free': 'Free plan: {held} of {cap} dated records',
   'app.plan.box.left': 'Free dated records left: {n}',
   'app.plan.box.countsDeleted': 'Dated records count even if you later delete them.',
+  'app.plan.changeFull':
+    'This change would date a new version, and your free dated records are used up, so nothing was changed. Everything you already have keeps verifying. Choose a plan on your records page to date more.',
+  'app.plan.receiveFull':
+    'There’s no free dated record left to receive this delivery. Your code is kept in this browser: choose a plan on your records page, then enter it again.',
+  'app.plan.box.rules': 'A record’s first correction is free. Receiving a delivery needs one free dated record.',
   'app.plan.box.paid': 'Your plan: {plan}',
   'app.plan.name.breeder': 'Breeder',
   'app.plan.name.lab': 'Lab',

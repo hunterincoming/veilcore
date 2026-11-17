@@ -39,7 +39,8 @@ export const PlanBox: React.FC<{ waiting: number; compact?: boolean }> = ({ wait
   };
   const nameOf = (p: string) => (known(p) ? t(`app.plan.name.${p}`) : p);
   const buyLabel = (p: string) => (known(p) ? t(`app.plan.buy.${p}`) : t('app.plan.buy.other', { plan: p }));
-  const held = plan.recordsCounted + waiting;
+  // Received records not sealed yet hold their slot too (the registry's recordsReserved).
+  const held = plan.recordsCounted + plan.recordsReserved + waiting;
   return (
     <Paper variant="outlined" sx={{ p: { xs: 2, sm: 2.5 } }} data-plan-box={plan.plan}>
       <Stack spacing={1.25}>
@@ -62,7 +63,7 @@ export const PlanBox: React.FC<{ waiting: number; compact?: boolean }> = ({ wait
               {left === 0 ? t('app.plan.box.full') : t('app.plan.box.left', { n: String(left) })}
             </Typography>
             <Typography variant="body2" color="text.secondary" data-plan-counts-deleted="">
-              {t('app.plan.box.countsDeleted')}
+              {t('app.plan.box.countsDeleted')} {t('app.plan.box.rules')}
             </Typography>
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
               {plan.plans.map((p, i) => (
