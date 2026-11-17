@@ -276,4 +276,27 @@ export const verify = {
     'Der Inhaber hat einen DNA-Bericht zu diesem Datensatz gespeichert. Welche Datei es ist, lässt sich nur mit dem eigenen Prüflink des Inhabers und der Datei prüfen.',
   'app.verify.unnamedReceipt':
     'Eine Empfangsbestätigung eines Labors für eine Probe aus diesem Datensatz, wie das Register meldet. Der Inhaber hat nicht gezeigt, welches Labor sie signiert hat.',
+  // who-vouches.ts: who stands behind each fact on a check page
+  'app.verify.who.title': 'Wer hinter jeder Angabe steht',
+  'app.verify.who.date': 'Das Datum',
+  'app.verify.who.date.chain': 'Midnight. Diese Seite hat es dort selbst geprüft.',
+  'app.verify.who.date.chainTest':
+    'Ein Midnight-Testnetz. Diese Seite hat es dort selbst geprüft: eine Übung, kein Datum, auf das man sich verlassen kann.',
+  'app.verify.who.date.registry': 'Das Register von VeilCore sagt es. Diese Seite hat es nicht auf Midnight geprüft.',
+  'app.verify.who.date.pending': 'Noch niemand. Es wartet auf seinen Stapel.',
+  'app.verify.who.code': 'Der Prüfcode',
+  'app.verify.who.code.page': 'Diese Seite: Er stimmt mit dem im Link überein, den Sie erhalten haben.',
+  'app.verify.who.code.registry':
+    'Das Register von VeilCore. Der Link, den Sie erhalten haben, enthält keinen Prüfcode zum Abgleich.',
+  'app.verify.who.words': 'Name und Angaben',
+  'app.verify.who.words.holder': 'Der Inhaber, in eigenen Worten. Nichts prüft sie.',
+  'app.verify.who.lab': 'Ein Labor',
+  'app.verify.who.lab.none': 'Kein Labor hat etwas signiert, das hier gezeigt wird.',
+  'app.verify.who.signed': '{who}. Diese Seite hat die Signatur geprüft.',
+  'app.verify.who.signedUnbound':
+    '{who}, wie das Register von VeilCore meldet. Der Link enthält keinen Prüfcode, um sie zu prüfen.',
+  'app.verify.who.more': 'Weitere Signaturen',
+  'app.verify.who.moreText': '{n} weitere, unten aufgeführt.',
+  'app.verify.who.nameMatched': '{who} (Name mit einem öffentlichen Verzeichnis abgeglichen, siehe unten)',
+  'app.verify.who.date.none': 'Niemand. Soweit diese Seite sehen kann, ist er in keinem datierten Stapel.',
 } satisfies Partial<AppTranslation>;

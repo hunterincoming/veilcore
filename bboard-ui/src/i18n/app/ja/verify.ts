@@ -255,4 +255,26 @@ export const verify = {
     '保有者はこの記録にDNAレポートを保存しています。どのファイルかは、保有者自身の確認用リンクとファイルがあるときだけ確かめられます。',
   'app.verify.unnamedReceipt':
     'この記録のサンプルについてのラボの受領書（レジストリの報告による）。どのラボが署名したかは、保有者が表示していません。',
+  // who-vouches.ts: who stands behind each fact on a check page
+  'app.verify.who.title': 'それぞれの事実を裏付けるのは誰か',
+  'app.verify.who.date': '日付',
+  'app.verify.who.date.chain': 'Midnight。このページがMidnight上で直接確認しました。',
+  'app.verify.who.date.chainTest':
+    'Midnightのテストネットワーク。このページが直接確認しましたが、練習用で、頼れる日付ではありません。',
+  'app.verify.who.date.registry':
+    'VeilCoreのレジストリがそう報告しています。このページはMidnight上で確認していません。',
+  'app.verify.who.date.pending': 'まだありません。バッチを待っています。',
+  'app.verify.who.code': '証明コード',
+  'app.verify.who.code.page': 'このページ：送られてきたリンクのコードと一致します。',
+  'app.verify.who.code.registry': 'VeilCoreのレジストリ。送られてきたリンクには照合できる証明コードがありません。',
+  'app.verify.who.words': '名前と詳細',
+  'app.verify.who.words.holder': '保有者自身の言葉です。何も確認していません。',
+  'app.verify.who.lab': '検査機関',
+  'app.verify.who.lab.none': 'ここに表示されているものに署名した検査機関はありません。',
+  'app.verify.who.signed': '{who}。このページが署名を確認しました。',
+  'app.verify.who.signedUnbound': '{who}（VeilCoreのレジストリの報告）。リンクに証明コードがないため確認できません。',
+  'app.verify.who.more': 'その他の署名',
+  'app.verify.who.moreText': 'ほかに{n}件、下に表示しています。',
+  'app.verify.who.nameMatched': '{who}（名前は公開リストと照合済み、下記参照）',
+  'app.verify.who.date.none': 'ありません。このページで確認できる限り、日付の付いたバッチに入っていません。',
 } satisfies Partial<AppTranslation>;

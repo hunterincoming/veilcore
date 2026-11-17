@@ -267,4 +267,26 @@ export const verify = {
     'The holder saved a DNA report to this record. Which file it is can be checked only with the holder’s own check link and the file.',
   'app.verify.unnamedReceipt':
     'A lab’s receipt for a sample from this record, as the registry reports it. The holder hasn’t shown which lab signed it.',
+  // who-vouches.ts: who stands behind each fact on a check page
+  'app.verify.who.title': 'Who stands behind each fact',
+  'app.verify.who.date': 'The date',
+  'app.verify.who.date.chain': 'Midnight. This page checked it there itself.',
+  'app.verify.who.date.chainTest':
+    'A Midnight test network. This page checked it there itself: practice, not a date to rely on.',
+  'app.verify.who.date.registry': 'VeilCore’s registry says so. This page hasn’t checked it on Midnight.',
+  'app.verify.who.date.pending': 'Nobody yet. It is waiting for its batch.',
+  'app.verify.who.code': 'The proof code',
+  'app.verify.who.code.page': 'This page: it matches the one in the link you were sent.',
+  'app.verify.who.code.registry': 'VeilCore’s registry. The link you were sent carries no proof code to match it with.',
+  'app.verify.who.words': 'The name and details',
+  'app.verify.who.words.holder': 'The holder, in their own words. Nothing checks them.',
+  'app.verify.who.lab': 'A laboratory',
+  'app.verify.who.lab.none': 'No laboratory has signed anything shown here.',
+  'app.verify.who.signed': '{who}. This page checked the signature.',
+  'app.verify.who.signedUnbound':
+    '{who}, as VeilCore’s registry reports it. The link carries no proof code to check it with.',
+  'app.verify.who.more': 'More signatures',
+  'app.verify.who.moreText': '{n} more, listed below.',
+  'app.verify.who.nameMatched': '{who} (its name matched to a public listing, below)',
+  'app.verify.who.date.none': 'Nobody. As far as this page can tell, it isn’t in a dated batch.',
 };

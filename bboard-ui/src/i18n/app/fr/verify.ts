@@ -275,4 +275,27 @@ export const verify = {
     'Le détenteur a enregistré un rapport ADN avec cet enregistrement. Quel fichier c’est ne peut se vérifier qu’avec le lien de vérification du détenteur lui-même et le fichier.',
   'app.verify.unnamedReceipt':
     'Un accusé de réception de laboratoire pour un échantillon de cet enregistrement, selon le registre. Le détenteur n’a pas montré quel laboratoire l’a signé.',
+  // who-vouches.ts: who stands behind each fact on a check page
+  'app.verify.who.title': 'Qui se porte garant de chaque fait',
+  'app.verify.who.date': 'La date',
+  'app.verify.who.date.chain': 'Midnight. Cette page l’a vérifiée elle-même sur Midnight.',
+  'app.verify.who.date.chainTest':
+    'Un réseau de test Midnight. Cette page l’a vérifiée elle-même : un exercice, pas une date sur laquelle compter.',
+  'app.verify.who.date.registry': 'Le registre de VeilCore le dit. Cette page ne l’a pas vérifiée sur Midnight.',
+  'app.verify.who.date.pending': 'Personne pour l’instant. Il attend son lot.',
+  'app.verify.who.code': 'Le code de preuve',
+  'app.verify.who.code.page': 'Cette page : il correspond à celui du lien qu’on vous a envoyé.',
+  'app.verify.who.code.registry':
+    'Le registre de VeilCore. Le lien qu’on vous a envoyé ne contient pas de code de preuve pour le comparer.',
+  'app.verify.who.words': 'Le nom et les détails',
+  'app.verify.who.words.holder': 'Le détenteur, avec ses propres mots. Rien ne les vérifie.',
+  'app.verify.who.lab': 'Un laboratoire',
+  'app.verify.who.lab.none': 'Aucun laboratoire n’a signé ce qui est affiché ici.',
+  'app.verify.who.signed': '{who}. Cette page a vérifié la signature.',
+  'app.verify.who.signedUnbound':
+    '{who}, selon le registre de VeilCore. Le lien ne contient pas de code de preuve pour la vérifier.',
+  'app.verify.who.more': 'Autres signatures',
+  'app.verify.who.moreText': '{n} de plus, ci-dessous.',
+  'app.verify.who.nameMatched': '{who} (nom rapproché d’une liste publique, ci-dessous)',
+  'app.verify.who.date.none': 'Personne. Pour autant que cette page puisse le voir, il n’est dans aucun lot daté.',
 } satisfies Partial<AppTranslation>;

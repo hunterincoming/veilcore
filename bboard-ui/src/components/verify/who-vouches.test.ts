@@ -1,0 +1,104 @@
+// "Who stands behind each fact" never says more than the check page has: Midnight only once the
+// page found the anchor itself against the link's own proof code; the page's own match only with
+// that code; a lab's name plainly only when its name was matched; the holder's words always.
+// SPDX-License-Identifier: Apache-2.0
+
+import { describe, expect, it } from 'vitest';
+import { whoVouches, type WhoInput } from './who-vouches';
+import { makeTranslator } from '../../i18n/translate';
+import { appDe } from '../../i18n/app/de';
+import { appEs } from '../../i18n/app/es';
+import { appFr } from '../../i18n/app/fr';
+import { appJa } from '../../i18n/app/ja';
+
+const base: WhoInput = {
+  bound: true,
+  proof: 'anchor-reported',
+  anchorConfirmed: true,
+  testNetwork: false,
+  signers: [],
+};
+const rows = (i: Partial<WhoInput>) => whoVouches({ ...base, ...i });
+
+describe('who stands behind each fact', () => {
+  it('the date is Midnight only when this page found the anchor itself, for the link’s own code', () => {
+    expect(rows({})[0]).toEqual({
+      fact: 'The date',
+      who: 'Midnight. This page checked it there itself.',
+      basis: 'checked',
+    });
+    expect(rows({ anchorConfirmed: false })[0].basis).toBe('registry');
+    expect(rows({ anchorConfirmed: false })[0].who).toMatch(/^VeilCore’s registry says so\./);
+    // Found on Midnight, but the link carried no code: still only the registry's word.
+    expect(rows({ bound: false })[0].basis).toBe('registry');
+    expect(rows({ testNetwork: true })[0].who).toMatch(/practice, not a date to rely on/);
+    expect(rows({ proof: 'pending' })[0]).toMatchObject({ fact: 'The date', basis: 'none' });
+    expect(rows({ proof: 'none' })[0]).toMatchObject({ fact: 'The date', basis: 'none' });
+    expect(rows({ proof: 'none' })[0].who).toMatch(/isn’t in a dated batch/);
+  });
+
+  it('the proof code is the page’s match only when the link carried it', () => {
+    expect(rows({}).find((r) => r.fact === 'The proof code')?.basis).toBe('checked');
+    expect(rows({ bound: false }).find((r) => r.fact === 'The proof code')?.basis).toBe('registry');
+  });
+
+  it('the name and details are always the holder’s own words', () => {
+    for (const b of [true, false])
+      expect(rows({ bound: b }).find((r) => r.fact === 'The name and details')).toEqual({
+        fact: 'The name and details',
+        who: 'The holder, in their own words. Nothing checks them.',
+        basis: 'holder',
+      });
+  });
+
+  it('a lab is named as the page names it, and says where a plain name was matched', () => {
+    expect(rows({}).at(-1)).toEqual({
+      fact: 'A laboratory',
+      who: 'No laboratory has signed anything shown here.',
+      basis: 'none',
+    });
+    const r = rows({
+      signers: [
+        { kind: 'Lab’s receipt for a sample', who: 'a key named “Acme Labs” (name not checked)', nameChecked: false },
+        { kind: 'Lab report', who: 'Acme Labs', nameChecked: true },
+      ],
+    });
+    expect(r.at(-2)).toEqual({
+      fact: 'Lab’s receipt for a sample',
+      who: 'A key named “Acme Labs” (name not checked). This page checked the signature.',
+      basis: 'signed',
+    });
+    expect(r.at(-1)?.who).toBe(
+      'Acme Labs (its name matched to a public listing, below). This page checked the signature.',
+    );
+    const unbound = rows({ bound: false, signers: [{ kind: 'Lab report', who: 'Acme Labs', nameChecked: true }] });
+    expect(unbound.at(-1)).toMatchObject({ basis: 'registry' });
+    expect(unbound.at(-1)?.who).toMatch(/as VeilCore’s registry reports it/);
+  });
+
+  it('lists a few signatures, then says how many more', () => {
+    const signers = Array.from({ length: 7 }, (_, n) => ({
+      kind: `Statement ${String(n)}`,
+      who: 'X',
+      nameChecked: true,
+    }));
+    const r = rows({ signers, max: 5 });
+    expect(r.filter((x) => x.fact.startsWith('Statement'))).toHaveLength(5);
+    expect(r.at(-1)).toMatchObject({ fact: 'More signatures', who: '2 more, listed below.' });
+  });
+
+  it('every row is in every language', () => {
+    for (const tr of [
+      makeTranslator('de', appDe),
+      makeTranslator('es', appEs),
+      makeTranslator('fr', appFr),
+      makeTranslator('ja', appJa),
+    ]) {
+      const out = whoVouches({ ...base, signers: [{ kind: 'K', who: 'W', nameChecked: true }] }, tr);
+      for (const row of out) {
+        expect(row.fact).not.toMatch(/^app\.verify/);
+        expect(row.who).not.toMatch(/app\.verify/);
+      }
+    }
+  });
+});

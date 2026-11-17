@@ -273,4 +273,27 @@ export const verify = {
     'El titular guardó un informe de ADN en este registro. Qué archivo es solo se puede comprobar con el enlace de comprobación del propio titular y el archivo.',
   'app.verify.unnamedReceipt':
     'Un acuse de recibo de laboratorio de una muestra de este registro, según el servidor de registros. El titular no ha mostrado qué laboratorio lo firmó.',
+  // who-vouches.ts: who stands behind each fact on a check page
+  'app.verify.who.title': 'Quién respalda cada dato',
+  'app.verify.who.date': 'La fecha',
+  'app.verify.who.date.chain': 'Midnight. Esta página la comprobó allí misma.',
+  'app.verify.who.date.chainTest':
+    'Una red de prueba de Midnight. Esta página la comprobó allí misma: es una práctica, no una fecha en la que confiar.',
+  'app.verify.who.date.registry': 'Lo dice el registro de VeilCore. Esta página no lo ha comprobado en Midnight.',
+  'app.verify.who.date.pending': 'Nadie todavía. Espera a su lote.',
+  'app.verify.who.code': 'El código de prueba',
+  'app.verify.who.code.page': 'Esta página: coincide con el del enlace que le enviaron.',
+  'app.verify.who.code.registry':
+    'El registro de VeilCore. El enlace que le enviaron no lleva un código de prueba con el que compararlo.',
+  'app.verify.who.words': 'El nombre y los detalles',
+  'app.verify.who.words.holder': 'El titular, con sus propias palabras. Nada los comprueba.',
+  'app.verify.who.lab': 'Un laboratorio',
+  'app.verify.who.lab.none': 'Ningún laboratorio ha firmado nada de lo que se muestra aquí.',
+  'app.verify.who.signed': '{who}. Esta página comprobó la firma.',
+  'app.verify.who.signedUnbound':
+    '{who}, según informa el registro de VeilCore. El enlace no lleva un código de prueba para comprobarla.',
+  'app.verify.who.more': 'Más firmas',
+  'app.verify.who.moreText': '{n} más, abajo.',
+  'app.verify.who.nameMatched': '{who} (nombre cotejado con un listado público, abajo)',
+  'app.verify.who.date.none': 'Nadie. Por lo que esta página puede ver, no está en un lote fechado.',
 } satisfies Partial<AppTranslation>;
