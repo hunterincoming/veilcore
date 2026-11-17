@@ -38,10 +38,10 @@ export const fr: Strings = {
   'm.help.make.t': 'Créer un enregistrement',
   'm.help.make.1q': "Quel type d'enregistrement choisir ?",
   'm.help.make.1a':
-    "Choisissez ce que c'est. Une plante : un cultivar ou une lignée. Un animal : un animal ou une lignée. Une souche ou une lignée : microbes, champignons, lignées cellulaires, lignées d'insectes. Un document : un permis, un certificat, un contrat ou un rapport, scellé sous forme de fichier.",
+    "Choisissez ce que c'est. Une plante : un cultivar ou une lignée. Un animal : un animal ou une lignée. Une souche ou une lignée : microbes, champignons, lignées cellulaires, lignées d'insectes. Un document : un permis, un certificat, un contrat ou un rapport, scellé sous forme de fichier. Un lot de culture ou un lot de récolte : une étape d'une chaîne de production, liée à l'enregistrement précédent.",
   'm.help.make.2q': 'Que dois-je laisser de côté ?',
   'm.help.make.2a':
-    "Les données personnelles d'autres personnes. Ce que vous saisissez est stocké chiffré sur notre serveur, et nous n'avons pas la clé. Mais la personne à qui vous montrez un enregistrement voit ce que vous avez choisi de partager, et le lien de vérification d'un document affiche le nom du fichier et le détenteur que vous avez indiqué. Donnez aux fichiers des noms simples, comme « Permis 2026.pdf ».",
+    "Les données personnelles d'autres personnes. Ce que vous saisissez est stocké chiffré sur notre serveur, et nous n'avons pas la clé. Mais la personne à qui vous montrez un enregistrement voit ce que vous avez choisi de partager, et le lien de vérification d'un document affiche tout ce qui y a été saisi (titre, détenteur, émetteur, référence, notes), le nom du fichier et son SHA-256. Donnez aux fichiers des noms simples, comme « Permis 2026.pdf ». Ou gardez un document sur cet appareil seulement : alors rien de ce que vous saisissez n'est envoyé.",
   'm.help.make.3q': 'Comment savoir que mon enregistrement est daté ?',
   'm.help.make.3a':
     "La page de l'enregistrement affiche « Enregistrement daté » avec la date dès que son lot est sur Midnight. Avant cela, elle indique « dans le prochain lot ». Dans les deux cas, l'enregistrement est sauvegardé. Tant que le lot n'est pas sur Midnight, sa date ne repose que sur votre parole.",
@@ -361,6 +361,16 @@ export const fr: Strings = {
   'm.postA.title': 'En service sur le réseau principal de Midnight',
   'm.postA.text':
     "Les deux contrats sont déployés sur le réseau principal de Midnight. Le contrat des preuves d'un fait n'a pas de clé de maintenance : personne, nous compris, ne peut le modifier.",
+  'm.postG.date': '16 nov. 2026',
+  'm.postG.tag': 'Enregistrements',
+  'm.postG.title': 'Une chaîne de production, étape par étape',
+  'm.postG.text':
+    'Un lot de culture et un lot de récolte sont maintenant des enregistrements à part entière, chacun nommant le précédent : la plante, le lot de culture, le lot de récolte, le rapport de laboratoire. Chacun a sa propre date. Un lien peut transporter la chaîne, pour que la personne qui le vérifie puisse ouvrir chaque étape. Les liens sont la déclaration du détenteur ; la date de chaque enregistrement est vérifiée sur Midnight. Essayé pour la première fois sur veilcore.org le 16 novembre 2026.',
+  'm.postF.date': '16 nov. 2026',
+  'm.postF.tag': 'Confidentialité',
+  'm.postF.title': 'Garder un document sur votre appareil seulement',
+  'm.postF.text':
+    "En scellant un document, vous pouvez maintenant le garder sur cet appareil et dans votre fichier de sauvegarde seulement. Rien de ce que vous saisissez n'est envoyé, chiffré ou non : le registre de VeilCore reçoit l'identifiant de l'enregistrement, son code de preuve et le lien de sa clé, pour pouvoir le dater. Scellé, daté et vérifié pour la première fois sur veilcore.org le 16 novembre 2026.",
   'm.postE.date': '2 nov. 2026',
   'm.postE.tag': 'Preuve',
   'm.postE.title': 'Un dossier de preuve pour tout document',

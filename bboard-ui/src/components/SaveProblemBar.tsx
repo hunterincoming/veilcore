@@ -19,9 +19,22 @@ export const SaveProblemBar: React.FC = () => {
       : problem.what === 'agreements'
         ? tr.t('app.home.saveProblem.agreements')
         : problem.what;
+  // VeilCore couldn't be reached at all: nothing was refused and nothing was put back. Said
+  // as that, with what happens next (the record's own line: app.sealed.unsaved.retry). The
+  // general line read "…have been put back to what it holds: …nothing was saved", which on a
+  // phone with a bad signal sounded like the record just sealed was lost.
+  const unreachable = problem.refused.every((r) => r.words === 'app.sealed.refuse.unknown');
   return (
-    <Alert severity="warning" variant="outlined" onClose={clearSaveProblem} sx={{ mb: 2 }}>
-      {tr.t('app.home.saveProblem.text', { what, list: describeRefusals(problem.refused, tr) })}
+    <Alert
+      severity="warning"
+      variant="outlined"
+      onClose={clearSaveProblem}
+      sx={{ mb: 2 }}
+      data-save-problem={unreachable ? 'unreachable' : 'refused'}
+    >
+      {unreachable
+        ? tr.t('app.home.saveProblem.unreachable', { what })
+        : tr.t('app.home.saveProblem.text', { what, list: describeRefusals(problem.refused, tr) })}
       <SupportDetails
         step={problem.what === 'agreements' ? 'agreement' : 'save to VeilCore'}
         error={describeRefusals(problem.refused)}

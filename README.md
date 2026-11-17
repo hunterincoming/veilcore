@@ -158,8 +158,8 @@ Plant genetics is the first use, not the limit. The record format is domain-blin
 - **Proving a number from such a document is the holder's choice.** Off each time its page is
   opened; turned on, the page says exactly what would be published (the form, the field, the
   limit and the direction, or the number itself for "exactly") before anything is proved. The
-  claim goes to Midnight through the fee service; the registry is sent nothing. Built; not yet
-  tried on a network.
+  claim goes to Midnight through the fee service; the registry is sent nothing. Live on
+  veilcore.org: first proved and checked there by 17 November 2026.
 - **A production chain as linked records.** A source record, a grow batch, a harvest lot and a
   lab report, each a record with its own date, each naming the one before in its sealed "About".
   The links are the holder's statement, not checked by VeilCore or Midnight: a chain is only as

@@ -81,6 +81,9 @@ export const plant = {
   'app.plant.delete.why.deviceOnly': 'この端末だけに保管されている記録です。その記録のページから削除してください。',
   'app.plant.delete.why.missing': 'このブラウザにはもうありません。',
   'app.plant.delete.gone': '保有者が別のタブまたは別の端末で削除したため、ここからも取り除かれました。',
+  'app.plant.f.copyCode': '証明コードをコピー',
+  'app.plant.f.codeCopied': 'コピーしました',
+  'app.plant.f.codeNotCopied': 'コピーできませんでした。コードを選択してコピーしてください',
   'app.plant.f.recordFingerprint': '記録の証明コード',
   'app.plant.evidenceBundle': '証拠バンドル',
   'app.plant.evidenceBundleText':

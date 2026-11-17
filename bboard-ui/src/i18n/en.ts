@@ -43,10 +43,10 @@ export const en = {
   'm.help.make.t': 'Making a record',
   'm.help.make.1q': 'Which kind of record do I pick?',
   'm.help.make.1a':
-    'Pick what the thing is. A plant: a cultivar or a line. An animal: one animal or a line. A strain or line: microbes, fungi, cell lines, insect lines. A document: a permit, a certificate, a contract or a report, sealed as a file.',
+    'Pick what the thing is. A plant: a cultivar or a line. An animal: one animal or a line. A strain or line: microbes, fungi, cell lines, insect lines. A document: a permit, a certificate, a contract or a report, sealed as a file. A grow batch or a harvest lot: a step in a production chain, linked to the record before it.',
   'm.help.make.2q': 'What should I leave out?',
   'm.help.make.2a':
-    "Other people's personal details. What you type is stored on our server encrypted, and we don't hold the key. But whoever you share a record with sees what you chose to share, and a document's check link shows the file's name and the holder you wrote. Name files plainly, like \"Permit 2026.pdf\".",
+    "Other people's personal details. What you type is stored on our server encrypted, and we don't hold the key. But whoever you share a record with sees what you chose to share, and a document's check link shows everything typed into it (title, holder, issuer, reference, notes), the file's name and its SHA-256. Name files plainly, like \"Permit 2026.pdf\". Or keep a document on this device only: then nothing typed is sent at all.",
   'm.help.make.3q': 'How do I know my record is dated?',
   'm.help.make.3a':
     'The record\'s page shows "Record dated" with the date once its batch is on Midnight. Before that it says "in the next batch". The record is saved either way. Until the batch is on Midnight, its date rests on your word alone.',
@@ -396,6 +396,16 @@ export const en = {
   'm.updates.follow': 'Follow',
   // Dated posts. Facts from docs/mainnet-completeness.md (R4, M2) and
   // docs/deployment-record-revision-4.md ("Mainnet deployment").
+  'm.postG.date': '16 Nov 2026',
+  'm.postG.tag': 'Records',
+  'm.postG.title': 'A production chain, step by step',
+  'm.postG.text':
+    "A grow batch and a harvest lot are now records of their own, each naming the one before: the plant, the batch, the lot, the lab report. Each has its own date. A link can carry the chain, so whoever checks it can open every step. The links are the holder's statement; each record's date is checked on Midnight. First run on veilcore.org on 16 November 2026.",
+  'm.postF.date': '16 Nov 2026',
+  'm.postF.tag': 'Privacy',
+  'm.postF.title': 'Keep a document on your device only',
+  'm.postF.text':
+    "When you seal a document you can now keep it on this device and in your backup file only. Nothing you type is sent, locked or not: VeilCore's registry gets the record's ID, its proof code and its key binding, so it can be dated. First sealed, dated and checked on veilcore.org on 16 November 2026.",
   'm.postE.date': '2 Nov 2026',
   'm.postE.tag': 'Evidence',
   'm.postE.title': 'An evidence file for any document',

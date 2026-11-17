@@ -88,6 +88,9 @@ export const plant = {
   'app.plant.delete.why.missing': 'Er ist nicht mehr in diesem Browser.',
   'app.plant.delete.gone':
     'Sein Inhaber hat ihn gelöscht, in einem anderen Tab oder auf einem anderen Gerät, deshalb wurde er auch hier entfernt.',
+  'app.plant.f.copyCode': 'Prüfcode kopieren',
+  'app.plant.f.codeCopied': 'Kopiert',
+  'app.plant.f.codeNotCopied': 'Kopieren nicht möglich: Code markieren und kopieren',
   'app.plant.f.recordFingerprint': 'Prüfcode des Datensatzes',
   'app.plant.evidenceBundle': 'Nachweispaket',
   'app.plant.evidenceBundleText':

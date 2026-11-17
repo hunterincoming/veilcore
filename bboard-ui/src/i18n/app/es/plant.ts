@@ -84,6 +84,9 @@ export const plant = {
   'app.plant.delete.why.missing': 'Ya no está en este navegador.',
   'app.plant.delete.gone':
     'Su titular lo eliminó, en otra pestaña o en otro dispositivo, así que también se quitó aquí.',
+  'app.plant.f.copyCode': 'Copiar el código de prueba',
+  'app.plant.f.codeCopied': 'Copiado',
+  'app.plant.f.codeNotCopied': 'No se pudo copiar: seleccione el código y cópielo',
   'app.plant.f.recordFingerprint': 'Código de prueba del registro',
   'app.plant.evidenceBundle': 'Paquete de evidencia',
   'app.plant.evidenceBundleText':

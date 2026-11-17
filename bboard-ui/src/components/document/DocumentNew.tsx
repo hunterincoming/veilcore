@@ -379,30 +379,6 @@ export const DocumentNew: React.FC = () => {
                 {fileProblem}
               </Alert>
             )}
-            {kind && (
-              <Box sx={{ mt: 2 }} data-chain-sheet="">
-                <Typography variant="subtitle2" component="h3">
-                  {t('app.doc.chain.sheet.title')}
-                </Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                  {t('app.doc.chain.sheet.text')}
-                </Typography>
-                <Button
-                  variant="outlined"
-                  onClick={() => void makeSheet()}
-                  disabled={busy || !!reading || !line(reference) || !line(holder)}
-                  sx={{ minHeight: 44 }}
-                  data-chain-sheet-make=""
-                >
-                  {t('app.doc.chain.sheet.make')}
-                </Button>
-                {sheet && (
-                  <Alert severity="info" variant="outlined" sx={{ mt: 1 }} data-chain-sheet-made="">
-                    {t('app.doc.chain.sheet.made', { name: sheet })}
-                  </Alert>
-                )}
-              </Box>
-            )}
           </Box>
           <TextField
             label={t('app.doc.f.title')}
@@ -555,6 +531,32 @@ export const DocumentNew: React.FC = () => {
             minRows={2}
             fullWidth
           />
+          {/* After the fields it is made from (its text says "above"): it was under the file
+              box, above the ID, date and holder it needs, so it read as done before them. */}
+          {kind && (
+            <Box data-chain-sheet="">
+              <Typography variant="subtitle2" component="h3">
+                {t('app.doc.chain.sheet.title')}
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                {t('app.doc.chain.sheet.text')}
+              </Typography>
+              <Button
+                variant="outlined"
+                onClick={() => void makeSheet()}
+                disabled={busy || !!reading || !line(reference) || !line(holder)}
+                sx={{ minHeight: 44 }}
+                data-chain-sheet-make=""
+              >
+                {t('app.doc.chain.sheet.make')}
+              </Button>
+              {sheet && (
+                <Alert severity="info" variant="outlined" sx={{ mt: 1 }} data-chain-sheet-made="">
+                  {t('app.doc.chain.sheet.made', { name: sheet })}
+                </Alert>
+              )}
+            </Box>
+          )}
           <Typography variant="body2" color="text.secondary">
             {t('app.doc.new.proves')}
           </Typography>

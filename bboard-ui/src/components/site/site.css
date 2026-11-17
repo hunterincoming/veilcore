@@ -1606,6 +1606,13 @@ html:has(.vcm) {
 
 /* ------------------------------------------------------------------ focus, motion */
 
+/* A page's title takes focus by script when the page opens, so a screen reader starts there.
+   It can't be reached with Tab and does nothing, so it draws no ring (browsers drew a black
+   box round it on a fresh load). Same rule as config/theme.ts lightFocusStyles. */
+.vcm :is(h1, h2)[tabindex="-1"]:focus {
+  outline: none;
+}
+
 /* The focus ring: an ink ring hugging the element inside a pollen ring, so it shows on
    paper (ink, 16:1), on a gold button and on the ink band (pollen, 12.7:1). */
 .vcm a:focus-visible,

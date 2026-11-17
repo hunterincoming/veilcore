@@ -81,6 +81,9 @@ export const plant = {
   'app.plant.delete.why.deviceOnly': 'It is kept on this device only: delete it from its own page.',
   'app.plant.delete.why.missing': 'It isn’t in this browser any more.',
   'app.plant.delete.gone': 'Its holder deleted it, in another tab or on another device, so it was removed here too.',
+  'app.plant.f.copyCode': 'Copy the proof code',
+  'app.plant.f.codeCopied': 'Copied',
+  'app.plant.f.codeNotCopied': 'Couldn’t copy: select the code and copy it',
   'app.plant.f.recordFingerprint': 'Proof code',
   'app.plant.evidenceBundle': 'Evidence bundle',
   'app.plant.evidenceBundleText':
