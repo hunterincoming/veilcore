@@ -8,7 +8,7 @@
 import { WhoVouches } from '../verify/WhoVouches';
 import { whoVouches } from '../verify/who-vouches';
 import { useRecordDate } from '../verify/useAnchorCheck';
-import { anchorConfirmed } from '../verify/anchor-words';
+import { anchorCheckFailed, anchorConfirmed } from '../verify/anchor-words';
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link as RouterLink, useLocation } from 'react-router-dom';
 import { Alert, Box, CircularProgress, Container, Link, Paper, Stack, Typography } from '@mui/material';
@@ -109,6 +109,7 @@ export const DocumentCheck: React.FC = () => {
                     bound: true,
                     proof: date.proof.status,
                     anchorConfirmed: anchorConfirmed(date.anchor),
+                    anchorFailed: anchorCheckFailed(date.anchor),
                     testNetwork: isTestNetwork(
                       date.proof.status === 'anchor-reported' ? (date.proof.proof.anchor?.network ?? NETWORK) : NETWORK,
                     ),

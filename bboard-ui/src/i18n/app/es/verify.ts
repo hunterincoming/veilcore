@@ -280,6 +280,8 @@ export const verify = {
   'app.verify.who.date.chainTest':
     'Una red de prueba de Midnight. Esta página la comprobó allí misma: es una práctica, no una fecha en la que confiar.',
   'app.verify.who.date.registry': 'Lo dice el registro de VeilCore. Esta página no lo ha comprobado en Midnight.',
+  'app.verify.who.date.batchOnly':
+    'Midnight fechó el lote, y esta página lo comprobó allí. Solo el registro de VeilCore dice que este registro está en él: el enlace no lleva un código de prueba para comprobarlo.',
   'app.verify.who.date.pending': 'Nadie todavía. Su lote espera ser fechado en Midnight.',
   'app.verify.who.code': 'El código de prueba',
   'app.verify.who.code.page': 'Esta página: coincide con el del enlace que le enviaron.',
@@ -287,7 +289,7 @@ export const verify = {
     'El registro de VeilCore. El enlace que le enviaron no lleva un código de prueba con el que compararlo.',
   'app.verify.who.words': 'El nombre y los detalles',
   'app.verify.who.words.holder':
-    'El titular, con sus propias palabras. Esta página solo comprueba que coinciden con el código de prueba, no que sean ciertos.',
+    'El titular, con sus propias palabras. Esta página solo comprueba que el nombre coincide con el código de prueba, no que nada sea cierto.',
   'app.verify.who.date.failed': 'Nadie: la comprobación de esta página en Midnight falló (ver abajo).',
   'app.verify.who.words.differs':
     'Las palabras del titular, pero el nombre mostrado no coincide con el código de prueba (ver abajo).',

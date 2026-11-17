@@ -263,13 +263,15 @@ export const verify = {
     'Midnightのテストネットワーク。このページが直接確認しましたが、練習用で、頼れる日付ではありません。',
   'app.verify.who.date.registry':
     'VeilCoreのレジストリがそう報告しています。このページはMidnight上で確認していません。',
+  'app.verify.who.date.batchOnly':
+    'Midnightがバッチに日付を付け、このページがMidnight上でそれを確認しました。この記録がそのバッチに含まれることは、VeilCoreのレジストリが述べているだけです（リンクに確認できる証明コードがありません）。',
   'app.verify.who.date.pending': 'まだありません。バッチがMidnightで日付を付けられるのを待っています。',
   'app.verify.who.code': '証明コード',
   'app.verify.who.code.page': 'このページ：送られてきたリンクのコードと一致します。',
   'app.verify.who.code.registry': 'VeilCoreのレジストリ。送られてきたリンクには照合できる証明コードがありません。',
   'app.verify.who.words': '名前と詳細',
   'app.verify.who.words.holder':
-    '保有者自身の言葉です。このページは証明コードと一致することだけを確認し、内容が正しいかは確認しません。',
+    '保有者自身の言葉です。このページは名前が証明コードと一致することだけを確認し、内容が正しいかは確認しません。',
   'app.verify.who.date.failed': 'ありません：このページのMidnightでの確認は失敗しました（下記参照）。',
   'app.verify.who.words.differs': '保有者の言葉ですが、表示された名前は証明コードと一致しません（下記参照）。',
   'app.verify.who.words.unchecked': '保有者自身の言葉です。何も確認していません。',

@@ -31,6 +31,8 @@ describe('what each fact rests on', () => {
     expect(rows({ anchorConfirmed: false })[0].who).toMatch(/^VeilCore’s registry says so\./);
     // Found on Midnight, but the link carried no code: still only the registry's word.
     expect(rows({ bound: false })[0].basis).toBe('registry');
+    // The batch's date was checked, but only the registry puts this record in it.
+    expect(rows({ bound: false })[0].who).toMatch(/^Midnight dated the batch.*Only VeilCore’s registry/);
     expect(rows({ testNetwork: true })[0].who).toMatch(/practice, not a date to rely on/);
     expect(rows({ proof: 'pending' })[0]).toMatchObject({ fact: 'The date', basis: 'none' });
     expect(rows({ proof: 'none' })[0]).toMatchObject({ fact: 'The date', basis: 'none' });
@@ -46,7 +48,7 @@ describe('what each fact rests on', () => {
     const words = (w: WhoInput['words']) => rows({ words: w }).find((r) => r.fact === 'The name and details');
     expect(words('matches')).toEqual({
       fact: 'The name and details',
-      who: 'The holder, in their own words. This page checks only that they match the proof code, not that they’re true.',
+      who: 'The holder, in their own words. This page checks only that the name matches the proof code, not that anything is true.',
       basis: 'holder',
     });
     expect(words(undefined)).toMatchObject({

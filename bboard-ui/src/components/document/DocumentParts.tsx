@@ -3,7 +3,7 @@
 // file in the browser and compares it with the sealed fingerprints. Nothing is uploaded.
 // SPDX-License-Identifier: Apache-2.0
 
-import React, { useId, useState } from 'react';
+import React, { useEffect, useId, useRef, useState } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
 import { oneLine } from '../../veilcore/evidence/words';
 import { Alert, Box, Button, Link, Stack, Typography } from '@mui/material';
@@ -218,16 +218,28 @@ export const FileCompare: React.FC<{
   const { t } = useT();
   const inputId = useId();
   const [result, setResult] = useState<Compared>();
+  // Only the latest pick on this mounted compare may answer: a file still hashing when the page
+  // moves on, or when another file is picked, must not report into what replaced it.
+  const latest = useRef(0);
+  useEffect(
+    () => () => {
+      latest.current = -1;
+    },
+    [],
+  );
   const onPick = async (file: File | undefined) => {
     if (!file) return;
+    const mine = ++latest.current;
     setResult({ kind: 'reading' });
     onResult?.(null);
     try {
       const f = await fingerprintFile(file);
+      if (latest.current !== mine) return;
       const m = matchFile(files, f.sha256);
       setResult(m ? { kind: 'match', name: f.name, sealed: m.name } : { kind: 'no-match', name: f.name });
       onResult?.(!!m);
     } catch {
+      if (latest.current !== mine) return;
       setResult({ kind: 'too-large' });
     }
   };

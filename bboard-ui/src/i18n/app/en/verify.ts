@@ -274,13 +274,15 @@ export const verify = {
   'app.verify.who.date.chainTest':
     'A Midnight test network. This page checked it there itself: practice, not a date to rely on.',
   'app.verify.who.date.registry': 'VeilCore’s registry says so. This page hasn’t checked it on Midnight.',
+  'app.verify.who.date.batchOnly':
+    'Midnight dated the batch, and this page checked that there. Only VeilCore’s registry says this record is in it: the link carries no proof code to check.',
   'app.verify.who.date.pending': 'Nobody yet. Its batch is waiting to be dated on Midnight.',
   'app.verify.who.code': 'The proof code',
   'app.verify.who.code.page': 'This page: it matches the one in the link you were sent.',
   'app.verify.who.code.registry': 'VeilCore’s registry. The link you were sent carries no proof code to match it with.',
   'app.verify.who.words': 'The name and details',
   'app.verify.who.words.holder':
-    'The holder, in their own words. This page checks only that they match the proof code, not that they’re true.',
+    'The holder, in their own words. This page checks only that the name matches the proof code, not that anything is true.',
   'app.verify.who.date.failed': 'Nobody: this page’s check on Midnight failed (see below).',
   'app.verify.who.words.differs': 'The holder’s words, but the name shown doesn’t match the proof code (see below).',
   'app.verify.who.words.unchecked': 'The holder, in their own words. Nothing checks them.',

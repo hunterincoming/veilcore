@@ -98,6 +98,7 @@ import { displayName } from '../veilcore/display-name';
 import { utcStamp as fmt } from '../veilcore/time';
 import { REAL_CHAIN } from '../veilcore/chain/config';
 import {
+  anchorCheckFailed,
   anchorConfirmed,
   anchorHeading,
   anchorLine,
@@ -741,10 +742,7 @@ export const VerifyPage: React.FC = () => {
                     bound,
                     proof: proof.status,
                     anchorConfirmed: anchorCheckedOnChain && anchor !== 'checking' && anchor?.status === 'checked',
-                    anchorFailed:
-                      anchorCheckedOnChain &&
-                      anchor !== 'checking' &&
-                      (anchor?.status === 'failed' || anchor?.status === 'unreachable'),
+                    anchorFailed: anchorCheckFailed(anchor),
                     words:
                       nameCheck.state === 'matches'
                         ? 'matches'

@@ -65,7 +65,10 @@ export const whoVouches = (i: WhoInput, tr: Translator = enT): WhoRow[] => {
             who: t(tr, i.testNetwork ? 'app.verify.who.date.chainTest' : 'app.verify.who.date.chain'),
             basis: 'checked',
           }
-        : { fact: date, who: t(tr, 'app.verify.who.date.registry'), basis: 'registry' },
+        : i.anchorConfirmed
+          ? // The batch's date was checked on Midnight; only the registry ties this record to that batch.
+            { fact: date, who: t(tr, 'app.verify.who.date.batchOnly'), basis: 'registry' }
+          : { fact: date, who: t(tr, 'app.verify.who.date.registry'), basis: 'registry' },
     );
   } else if (i.proof === 'pending') {
     rows.push({ fact: date, who: t(tr, 'app.verify.who.date.pending'), basis: 'none' });
