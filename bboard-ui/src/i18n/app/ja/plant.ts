@@ -54,6 +54,9 @@ export const plant = {
   'app.plant.f.file': 'ファイル',
   'app.plant.f.fileSha': ' · ファイルのSHA-256 {sha}',
   'app.plant.f.notSavedYet': 'まだ保存されていません',
+  'app.plant.f.copyCode': '証明コードをコピー',
+  'app.plant.f.codeCopied': 'コピーしました',
+  'app.plant.f.codeNotCopied': 'コピーできませんでした。コードを選択してコピーしてください',
   'app.plant.f.recordFingerprint': '記録の証明コード',
   'app.plant.evidenceBundle': '証拠バンドル',
   'app.plant.evidenceBundleText':
