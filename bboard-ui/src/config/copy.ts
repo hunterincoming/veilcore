@@ -161,8 +161,12 @@ export const DOCUMENT_CHAIN_RUN_ON_MAINNET = true;
  * the home page's veilcore.org cell says it is built and not yet tried on the main network
  * (m.live.localclaims.main), never "Yes". Hunter turns it on in a reviewed commit after that
  * first run, never before.
+ *
+ * First run: on veilcore.org by 17 November 2026. A number was proved from a device-only grow
+ * batch and its claim link checked in a private window. The registry's rows weren't inspected by
+ * hand; the browser tests hold that nothing is sent to it.
  */
-export const DEVICE_ONLY_CLAIMS_RUN_ON_MAINNET = false;
+export const DEVICE_ONLY_CLAIMS_RUN_ON_MAINNET = true;
 
 /** The label agreements carry while AGREEMENTS_LIVE is false. */
 export const PRACTICE_LABEL = AGREEMENTS_LIVE ? '' : 'Practice only';

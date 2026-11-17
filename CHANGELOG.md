@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Documents kept on the device: restored, and a number proved, on veilcore.org
+
+- 17 November 2026: a device-only grow batch restored from a backup in a second browser, with
+  everything typed in it and its date checked on Midnight.
+- By 17 November 2026: a number proved from a device-only document and its claim link checked.
+  `DEVICE_ONLY_CLAIMS_RUN_ON_MAINNET` is on, so "what's live where" says "Yes" for it.
+
 ### A production chain: first run on veilcore.org
 
 - 16 November 2026: a grow batch about a source record and a harvest lot about the batch, each
