@@ -39,10 +39,10 @@ export const es: Strings = {
   'm.help.make.t': 'Crear un registro',
   'm.help.make.1q': '¿Qué tipo de registro elijo?',
   'm.help.make.1a':
-    'Elija lo que es. Una planta: un cultivar o una línea. Un animal: un animal o una línea. Una cepa o línea: microbios, hongos, líneas celulares, líneas de insectos. Un documento: un permiso, un certificado, un contrato o un informe, sellado como archivo.',
+    'Elija lo que es. Una planta: un cultivar o una línea. Un animal: un animal o una línea. Una cepa o línea: microbios, hongos, líneas celulares, líneas de insectos. Un documento: un permiso, un certificado, un contrato o un informe, sellado como archivo. Un lote de cultivo o un lote de cosecha: un paso de una cadena de producción, vinculado al registro anterior.',
   'm.help.make.2q': '¿Qué debo dejar fuera?',
   'm.help.make.2a':
-    'Los datos personales de otras personas. Lo que usted escribe se guarda cifrado en nuestro servidor, y no tenemos la clave. Pero la persona con quien comparta un registro ve lo que usted decidió compartir, y el enlace de comprobación de un documento muestra el nombre del archivo y el titular que usted escribió. Ponga nombres sencillos a los archivos, como «Permiso 2026.pdf».',
+    'Los datos personales de otras personas. Lo que usted escribe se guarda cifrado en nuestro servidor, y no tenemos la clave. Pero la persona con quien comparta un registro ve lo que usted decidió compartir, y el enlace de comprobación de un documento muestra todo lo que se escribió en él (título, titular, emisor, referencia, notas), el nombre del archivo y su SHA-256. Ponga nombres sencillos a los archivos, como «Permiso 2026.pdf». O guarde un documento solo en este dispositivo: entonces no se envía nada de lo que escribe.',
   'm.help.make.3q': '¿Cómo sé que mi registro está fechado?',
   'm.help.make.3a':
     'La página del registro muestra «Registro fechado» con la fecha cuando su lote está en Midnight. Antes de eso dice «en el próximo lote». En ambos casos el registro está guardado. Hasta que el lote esté en Midnight, su fecha descansa solo en su palabra.',

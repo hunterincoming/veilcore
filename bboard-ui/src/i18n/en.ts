@@ -43,10 +43,10 @@ export const en = {
   'm.help.make.t': 'Making a record',
   'm.help.make.1q': 'Which kind of record do I pick?',
   'm.help.make.1a':
-    'Pick what the thing is. A plant: a cultivar or a line. An animal: one animal or a line. A strain or line: microbes, fungi, cell lines, insect lines. A document: a permit, a certificate, a contract or a report, sealed as a file.',
+    'Pick what the thing is. A plant: a cultivar or a line. An animal: one animal or a line. A strain or line: microbes, fungi, cell lines, insect lines. A document: a permit, a certificate, a contract or a report, sealed as a file. A grow batch or a harvest lot: a step in a production chain, linked to the record before it.',
   'm.help.make.2q': 'What should I leave out?',
   'm.help.make.2a':
-    "Other people's personal details. What you type is stored on our server encrypted, and we don't hold the key. But whoever you share a record with sees what you chose to share, and a document's check link shows the file's name and the holder you wrote. Name files plainly, like \"Permit 2026.pdf\".",
+    "Other people's personal details. What you type is stored on our server encrypted, and we don't hold the key. But whoever you share a record with sees what you chose to share, and a document's check link shows everything typed into it (title, holder, issuer, reference, notes), the file's name and its SHA-256. Name files plainly, like \"Permit 2026.pdf\". Or keep a document on this device only: then nothing typed is sent at all.",
   'm.help.make.3q': 'How do I know my record is dated?',
   'm.help.make.3a':
     'The record\'s page shows "Record dated" with the date once its batch is on Midnight. Before that it says "in the next batch". The record is saved either way. Until the batch is on Midnight, its date rests on your word alone.',

@@ -38,10 +38,10 @@ export const de: Strings = {
   'm.help.make.t': 'Einen Datensatz anlegen',
   'm.help.make.1q': 'Welche Art von Datensatz wähle ich?',
   'm.help.make.1a':
-    'Wählen Sie, was es ist. Eine Pflanze: eine Sorte oder eine Linie. Ein Tier: ein einzelnes Tier oder eine Linie. Ein Stamm oder eine Linie: Mikroben, Pilze, Zelllinien, Insektenlinien. Ein Dokument: eine Genehmigung, ein Zertifikat, ein Vertrag oder ein Bericht, als Datei versiegelt.',
+    'Wählen Sie, was es ist. Eine Pflanze: eine Sorte oder eine Linie. Ein Tier: ein einzelnes Tier oder eine Linie. Ein Stamm oder eine Linie: Mikroben, Pilze, Zelllinien, Insektenlinien. Ein Dokument: eine Genehmigung, ein Zertifikat, ein Vertrag oder ein Bericht, als Datei versiegelt. Eine Anbaucharge oder eine Erntepartie: ein Schritt in einer Produktionskette, verknüpft mit dem Datensatz davor.',
   'm.help.make.2q': 'Was lasse ich weg?',
   'm.help.make.2a':
-    'Persönliche Angaben anderer Menschen. Was Sie eingeben, wird verschlüsselt auf unserem Server gespeichert, und wir haben den Schlüssel nicht. Wem Sie einen Datensatz zeigen, der sieht aber, was Sie freigegeben haben, und der Prüflink eines Dokuments zeigt den Dateinamen und den Halter, den Sie eingetragen haben. Benennen Sie Dateien schlicht, etwa „Genehmigung 2026.pdf“.',
+    'Persönliche Angaben anderer Menschen. Was Sie eingeben, wird verschlüsselt auf unserem Server gespeichert, und wir haben den Schlüssel nicht. Wem Sie einen Datensatz zeigen, der sieht aber, was Sie freigegeben haben, und der Prüflink eines Dokuments zeigt alles, was darin eingegeben wurde (Titel, Halter, Aussteller, Referenz, Notizen), den Dateinamen und den SHA-256 der Datei. Benennen Sie Dateien schlicht, etwa „Genehmigung 2026.pdf“. Oder behalten Sie ein Dokument nur auf diesem Gerät: Dann wird nichts Eingegebenes gesendet.',
   'm.help.make.3q': 'Woran erkenne ich, dass mein Datensatz datiert ist?',
   'm.help.make.3a':
     'Die Seite des Datensatzes zeigt „Datensatz datiert“ mit dem Datum, sobald sein Stapel auf Midnight ist. Vorher steht dort „im nächsten Stapel“. Gespeichert ist der Datensatz in beiden Fällen. Bis der Stapel auf Midnight ist, stützt sich sein Datum allein auf Ihr Wort.',
