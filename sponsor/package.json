@@ -33,11 +33,11 @@
     "@midnightntwrk/wallet-sdk": "2.0.0",
     "@midnightntwrk/wallet-sdk-facade": "5.0.0",
     "rxjs": "^7.8.2",
-    "ws": "^8.21.0"
+    "ws": "^8.22.1"
   },
   "devDependencies": {
     "@midnight-ntwrk/testkit-js": "5.0.0",
     "@midnight-ntwrk/zkir-v2": "2.2.0",
-    "@scure/bip39": "2.2.0"
+    "@scure/bip39": "2.4.0"
   }
 }
