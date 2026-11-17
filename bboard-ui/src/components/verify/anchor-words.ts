@@ -72,6 +72,10 @@ export const anchorLine = (
 export const anchorConfirmed = (check: AnchorState | undefined): boolean =>
   check !== undefined && check !== 'checking' && check.status === 'checked';
 
+/** This page's own check found the anchor wrong. Not reaching an indexer is not a failed check. */
+export const anchorCheckFailed = (check: AnchorState | undefined): boolean =>
+  check !== undefined && check !== 'checking' && check.status === 'failed';
+
 /**
  * The heading, once the anchor is looked up. Only a confirmed anchor against the link's own
  * fingerprint changes "the date is the registry's report"; a failed one says so. A date

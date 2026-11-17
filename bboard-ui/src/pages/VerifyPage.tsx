@@ -62,6 +62,8 @@ import { Link as RouterLink, useLocation, useNavigate, useParams, useSearchParam
 import VerifiedIcon from '@mui/icons-material/VerifiedOutlined';
 import { loadFingerprintCircuit, MAX_FINGERPRINT_BYTES, shortFingerprint } from '../veilcore/commitment';
 import { DatedNotOrigin } from '../components/verify/DatedNotOrigin';
+import { WhoVouches } from '../components/verify/WhoVouches';
+import { whoVouches } from '../components/verify/who-vouches';
 import { DISCLOSURE_FIELDS, LEGACY_NAME, toDisclosureKey, labelOf } from '../veilcore/disclosure';
 import { proofFor, type ProofState } from '../veilcore/proofs';
 import {
@@ -96,6 +98,7 @@ import { displayName } from '../veilcore/display-name';
 import { utcStamp as fmt } from '../veilcore/time';
 import { REAL_CHAIN } from '../veilcore/chain/config';
 import {
+  anchorCheckFailed,
   anchorConfirmed,
   anchorHeading,
   anchorLine,
@@ -728,6 +731,35 @@ export const VerifyPage: React.FC = () => {
                   root={proof.proof.root}
                 />
               )}
+
+            {/* What each fact rests on, from what this page already worked out
+                (who-vouches.ts): checked here, signed by a lab, the registry's report, or the
+                holder's own words. */}
+            {result.recordFingerprint && proof !== 'checking' && atts !== null && (
+              <WhoVouches
+                rows={whoVouches(
+                  {
+                    bound,
+                    proof: proof.status,
+                    anchorConfirmed: anchorCheckedOnChain && anchor !== 'checking' && anchor?.status === 'checked',
+                    anchorFailed: anchorCheckFailed(anchor),
+                    words:
+                      nameCheck.state === 'matches'
+                        ? 'matches'
+                        : nameCheck.state === 'differs'
+                          ? 'differs'
+                          : 'unchecked',
+                    testNetwork: isTestNetwork(reportedNetwork ?? NETWORK),
+                    signers: signed.map((a) => {
+                      const label = signerLabel(a, 'Signed by', undefined, tr);
+                      return { kind: signatureKind(a, tr), who: label.who, nameChecked: label.checked };
+                    }),
+                    max: SIGNATURE_LINES,
+                  },
+                  tr,
+                )}
+              />
+            )}
 
             {/* The holder's own words, labelled as such: never a heading next to the mark,
                 cleaned of symbols and control characters, and capped (display-name.ts). */}

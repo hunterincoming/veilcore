@@ -3,7 +3,7 @@
 // file in the browser and compares it with the sealed fingerprints. Nothing is uploaded.
 // SPDX-License-Identifier: Apache-2.0
 
-import React, { useId, useState } from 'react';
+import React, { useEffect, useId, useRef, useState } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
 import { oneLine } from '../../veilcore/evidence/words';
 import { Alert, Box, Button, Link, Stack, Typography } from '@mui/material';
@@ -172,8 +172,17 @@ export const DocumentFacts: React.FC<{
  * gives. For a checker, anything short of a checked date comes with "don't rely on it".
  */
 export const DocumentDate: React.FC<{ fingerprint: string; checker?: boolean }> = ({ fingerprint, checker }) => {
-  const tr = useT();
   const { proof, anchor } = useRecordDate(fingerprint);
+  return <DocumentDateView proof={proof} anchor={anchor} checker={checker} />;
+};
+
+/** DocumentDate, for a page that already looked the date up (the check page: its "what each fact rests on" box reads the same). */
+export const DocumentDateView: React.FC<{
+  proof: ReturnType<typeof useRecordDate>['proof'];
+  anchor: ReturnType<typeof useRecordDate>['anchor'];
+  checker?: boolean;
+}> = ({ proof, anchor, checker }) => {
+  const tr = useT();
   const row = recordDateRow(proof, anchor, tr);
   return (
     <Box data-document-date={row.mark}>
@@ -199,22 +208,38 @@ type Compared =
   | { kind: 'too-large' };
 
 /** "Is this the same file?": the picked file is hashed here and never leaves the device. */
-export const FileCompare: React.FC<{ files: readonly DocumentFile[]; title?: string; text?: string }> = ({
-  files,
-  title,
-  text,
-}) => {
+export const FileCompare: React.FC<{
+  files: readonly DocumentFile[];
+  title?: string;
+  text?: string;
+  /** Told whether the picked file is the sealed one (null while reading or unreadable). */
+  onResult?: (matched: boolean | null) => void;
+}> = ({ files, title, text, onResult }) => {
   const { t } = useT();
   const inputId = useId();
   const [result, setResult] = useState<Compared>();
+  // Only the latest pick on this mounted compare may answer: a file still hashing when the page
+  // moves on, or when another file is picked, must not report into what replaced it.
+  const latest = useRef(0);
+  useEffect(
+    () => () => {
+      latest.current = -1;
+    },
+    [],
+  );
   const onPick = async (file: File | undefined) => {
     if (!file) return;
+    const mine = ++latest.current;
     setResult({ kind: 'reading' });
+    onResult?.(null);
     try {
       const f = await fingerprintFile(file);
+      if (latest.current !== mine) return;
       const m = matchFile(files, f.sha256);
       setResult(m ? { kind: 'match', name: f.name, sealed: m.name } : { kind: 'no-match', name: f.name });
+      onResult?.(!!m);
     } catch {
+      if (latest.current !== mine) return;
       setResult({ kind: 'too-large' });
     }
   };

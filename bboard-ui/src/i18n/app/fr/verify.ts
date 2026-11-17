@@ -275,4 +275,49 @@ export const verify = {
     'Le détenteur a enregistré un rapport ADN avec cet enregistrement. Quel fichier c’est ne peut se vérifier qu’avec le lien de vérification du détenteur lui-même et le fichier.',
   'app.verify.unnamedReceipt':
     'Un accusé de réception de laboratoire pour un échantillon de cet enregistrement, selon le registre. Le détenteur n’a pas montré quel laboratoire l’a signé.',
+  // who-vouches.ts: who stands behind each fact on a check page
+  'app.verify.who.title': 'Sur quoi repose chaque fait',
+  'app.verify.who.date': 'La date',
+  'app.verify.who.date.chain': 'Midnight. Cette page l’a vérifiée elle-même sur Midnight.',
+  'app.verify.who.date.chainTest':
+    'Un réseau de test Midnight. Cette page l’a vérifiée elle-même : un exercice, pas une date sur laquelle compter.',
+  'app.verify.who.date.registry': 'Le registre de VeilCore le dit. Cette page ne l’a pas vérifiée sur Midnight.',
+  'app.verify.who.date.batchOnly':
+    'Midnight a daté le lot, et cette page l’a vérifié sur Midnight. Seul le registre de VeilCore dit que cet enregistrement en fait partie : le lien ne contient pas de code de preuve à vérifier.',
+  'app.verify.who.date.pending': 'Personne pour l’instant. Son lot attend d’être daté sur Midnight.',
+  'app.verify.who.code': 'Le code de preuve',
+  'app.verify.who.code.page': 'Cette page : il correspond à celui du lien qu’on vous a envoyé.',
+  'app.verify.who.code.registry':
+    'Le registre de VeilCore. Le lien qu’on vous a envoyé ne contient pas de code de preuve pour le comparer.',
+  'app.verify.who.words': 'Le nom et les détails',
+  'app.verify.who.words.holder':
+    'Le détenteur, avec ses propres mots. Cette page vérifie seulement que le nom correspond au code de preuve, pas que son contenu est vrai.',
+  'app.verify.who.date.failed': 'Personne : la vérification de cette page sur Midnight a échoué (voir ci-dessous).',
+  'app.verify.who.words.differs':
+    'Les mots du détenteur, mais le nom affiché ne correspond pas au code de preuve (voir ci-dessous).',
+  'app.verify.who.words.unchecked': 'Le détenteur, avec ses propres mots. Rien ne les vérifie.',
+  'app.verify.who.lab': 'Un laboratoire',
+  'app.verify.who.lab.none': 'Cette page n’a vérifié la signature d’aucun laboratoire.',
+  'app.verify.who.signed': '{who}. Cette page a vérifié la signature.',
+  'app.verify.who.signedUnbound':
+    '{who}, selon le registre de VeilCore. Le lien ne contient pas de code de preuve pour la vérifier.',
+  'app.verify.who.more': 'Autres signatures',
+  'app.verify.who.moreText': '{n} de plus, ci-dessous.',
+  'app.verify.who.date.none':
+    'Personne. Pour autant que cette page puisse le voir, l’enregistrement n’est dans aucun lot daté.',
+  'app.verify.who.code.recomputed': 'Cette page : recalculé ici à partir de ce que contient le lien.',
+  'app.verify.who.file': 'Le fichier',
+  'app.verify.who.file.noMatch':
+    'Votre propre appareil : le fichier choisi n’est pas celui qui a été scellé. Rien n’a été envoyé.',
+  'app.verify.who.file.match':
+    'Votre propre appareil : le fichier choisi est celui qui a été scellé. Rien n’a été envoyé.',
+  'app.verify.who.file.none': 'Aucun fichier n’a été scellé avec ce document.',
+  'app.verify.who.file.waiting': 'Votre propre appareil, une fois le fichier choisi ci-dessous. Rien n’est envoyé.',
+  'app.verify.who.signedUnboundMatched':
+    'Une clé enregistrée au nom de {who}, selon le registre de VeilCore. L’opérateur de VeilCore a rapproché le nom d’une liste publique (ci-dessous). Le lien ne contient pas de code de preuve pour vérifier la signature.',
+  'app.verify.who.signedMatched':
+    'Une clé enregistrée au nom de {who}. Cette page a vérifié la signature. L’opérateur de VeilCore a rapproché le nom d’une liste publique (ci-dessous) ; VeilCore ne se porte pas garant du laboratoire.',
+  'app.verify.who.typed': 'Ce qui est saisi (titre, détenteur, émetteur, notes)',
+  'app.verify.who.typed.holder':
+    'Le détenteur, avec ses propres mots. Cette page vérifie seulement qu’ils correspondent au code de preuve, pas qu’ils sont vrais.',
 } satisfies Partial<AppTranslation>;
