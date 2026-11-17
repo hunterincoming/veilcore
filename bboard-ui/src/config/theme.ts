@@ -210,6 +210,11 @@ export const FOCUS_RING = {
 export const lightFocusStyles = {
   'a:focus-visible, [role="button"]:focus-visible, [role="link"]:focus-visible, summary:focus-visible, [tabindex]:not([tabindex="-1"]):focus-visible':
     FOCUS_RING,
+  // A screen's heading takes focus by script when the screen changes (FlowFrame.tsx
+  // ScreenHeading, tabIndex -1), so a screen reader starts there. It can't be reached with Tab
+  // and does nothing, so it draws no ring: browsers drew their own black box round the title
+  // on a fresh page load, which read as a broken layout. Nothing a keyboard can reach is affected.
+  'h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus, [data-screen-heading]:focus': { outline: 'none' },
 } as const;
 
 /**
