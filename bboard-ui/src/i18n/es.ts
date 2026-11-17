@@ -361,11 +361,13 @@ export const es: Strings = {
   'm.postG.date': '16 nov 2026',
   'm.postG.tag': 'Registros',
   'm.postG.title': 'Una cadena de producción, paso a paso',
-  'm.postG.text': 'Un lote de cultivo y un lote de cosecha son ahora registros propios, y cada uno nombra al anterior: la planta, el lote de cultivo, el lote de cosecha, el informe de laboratorio. Cada uno tiene su propia fecha. Un enlace puede llevar la cadena, para que quien lo compruebe pueda abrir cada paso. Los vínculos son la declaración del titular; la fecha de cada registro se comprueba en Midnight. Probado por primera vez en veilcore.org el 16 de noviembre de 2026.',
+  'm.postG.text':
+    'Un lote de cultivo y un lote de cosecha son ahora registros propios, y cada uno nombra al anterior: la planta, el lote de cultivo, el lote de cosecha, el informe de laboratorio. Cada uno tiene su propia fecha. Un enlace puede llevar la cadena, para que quien lo compruebe pueda abrir cada paso. Los vínculos son la declaración del titular; la fecha de cada registro se comprueba en Midnight. Probado por primera vez en veilcore.org el 16 de noviembre de 2026.',
   'm.postF.date': '16 nov 2026',
   'm.postF.tag': 'Privacidad',
   'm.postF.title': 'Guardar un documento solo en su dispositivo',
-  'm.postF.text': 'Al sellar un documento ahora puede guardarlo solo en este dispositivo y en su archivo de copia de seguridad. No se envía nada de lo que escribe, ni cifrado ni sin cifrar: el registro de VeilCore recibe el ID del registro, su código de prueba y su vínculo de clave, para poder fecharlo. Sellado, fechado y comprobado por primera vez en veilcore.org el 16 de noviembre de 2026.',
+  'm.postF.text':
+    'Al sellar un documento ahora puede guardarlo solo en este dispositivo y en su archivo de copia de seguridad. No se envía nada de lo que escribe, ni cifrado ni sin cifrar: el registro de VeilCore recibe el ID del registro, su código de prueba y su vínculo de clave, para poder fecharlo. Sellado, fechado y comprobado por primera vez en veilcore.org el 16 de noviembre de 2026.',
   'm.postE.date': '2 nov 2026',
   'm.postE.tag': 'Prueba',
   'm.postE.title': 'Un archivo de evidencia para cualquier documento',
