@@ -1415,14 +1415,24 @@ export const deleteRecord = async (id: string): Promise<{ ok: true } | { error: 
   const r = getRecord(id);
   if (!r) return { error: 'no such record here' };
   if (neverSend(r)) return { error: 'a record kept on this device only is deleted from its own page' };
-  // Asked of the registry whatever this browser last read of it (its proof code may have been
-  // dated, or its locked copy saved, since): one it doesn't hold is answered as not removed,
-  // which is fine. VeilCore out of reach: nothing is removed here either, so the list never
-  // shows a record as gone that the registry still holds.
-  const out = await deleteRecords([id]);
-  if ('error' in out) return out;
-  if (inOutbox(id)) takeFromOutbox([id]);
+  // Off the list first, so no save from now on carries it; then every save already on its way
+  // is let finish, so none lands after the delete and puts the row back. Then the registry is
+  // asked, whatever this browser last read of it (one it doesn't hold is answered as not
+  // removed, which is fine). VeilCore out of reach: the record is put back as it was, so the
+  // list never shows a record as gone that the registry still holds.
+  const before = records;
+  const queued = inOutbox(id) ? outboxRecords()[id] : undefined;
   records = records.filter((x) => x.id !== id);
+  if (queued) takeFromOutbox([id]);
+  notify();
+  await savesSettledInTime();
+  const out = await deleteRecords([id]);
+  if ('error' in out) {
+    records = before;
+    if (queued) putInOutbox([r]);
+    notify();
+    return out;
+  }
   forgetKeys(id);
   persist();
   await hydrate();
