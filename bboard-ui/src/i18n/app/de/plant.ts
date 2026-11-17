@@ -160,7 +160,7 @@ export const plant = {
   'app.plant.next.dates.why':
     'Er enthält nur den SHA-256 des Berichts, seinen Laborberichtscode und den Namen des Labors wie signiert, nie den Bericht. Wenn sein Stapel datiert ist, zeigt er, dass der Bericht bis dahin existierte, ohne jemandem die Marker zu zeigen.',
   'app.plant.next.stamp.why':
-    'Er ist versiegelt. Sein Schlüssel hat noch keinen Datumsstempel, und den brauchen Sie, um zu beweisen, dass Sie ihn halten. Das datiert Ihren Datensatz nicht; Ihr Datensatz wird datiert, wenn sein Stapel verankert wird. Es dauert etwa eine Minute und ist kostenlos.',
+    'Ihr Datensatz wird von selbst datiert, in einem Stapel auf Midnight. Dafür brauchen Sie diesen Schritt nicht. Er datiert den Schlüssel Ihres Datensatzes, den Sie nur brauchen, um später zu beweisen, dass Sie den Datensatz halten, oder um ihn zu lizenzieren. Etwa eine Minute, kostenlos. Sie können es jederzeit tun.',
   'app.plant.next.rejected.title': 'Sie haben diese Probe abgelehnt',
   'app.plant.next.rejected.why':
     'Es wurde nichts signiert. VeilCore benachrichtigt den Züchter nicht: Sagen Sie es ihm selbst, damit er eine andere senden kann.',
@@ -237,7 +237,7 @@ export const plant = {
   'app.plant.next.noCurrent.title': 'Kein aktueller DNA-Bericht von {lab}',
   'app.plant.next.open.title': 'Den Laborbericht von {lab} öffnen',
   'app.plant.next.label': 'Nächster Schritt',
-  'app.plant.next.stamp.title': 'Nachweis einrichten, dass Sie ihn halten',
+  'app.plant.next.stamp.title': 'Optional: Nachweis einrichten, dass Sie ihn halten',
   'app.plant.next.stamp.action': 'Nachweis einrichten, dass Sie ihn halten',
   'app.plant.next.open.action': 'Öffnen',
   'app.plant.chain.sealed': 'Versiegelt',

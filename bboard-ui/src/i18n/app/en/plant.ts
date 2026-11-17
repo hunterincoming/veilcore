@@ -161,7 +161,7 @@ export const plant = {
   'app.plant.next.dates.why':
     'It holds only the report’s SHA-256, its lab report code and the lab’s name as signed, never the report. When its batch is dated, it shows the report existed by then, without showing anyone the markers.',
   'app.plant.next.stamp.why':
-    "It's sealed. Its key isn't date stamped yet, and you need that to prove you hold it. This doesn't date your record; your record is dated when its batch is anchored. It takes about a minute and it's free.",
+    'Your record is dated by itself, in a batch on Midnight. You don’t need this step for that. This step dates your record’s key, which you need only to prove later that you hold the record, or to license it. About a minute, and free. You can do it any time.',
   'app.plant.next.rejected.title': 'You turned this sample away',
   'app.plant.next.rejected.why':
     'Nothing was signed. VeilCore doesn’t tell the breeder: let them know yourself, so they can send another.',
@@ -236,7 +236,7 @@ export const plant = {
   'app.plant.next.noCurrent.title': 'No current DNA report from {lab}',
   'app.plant.next.open.title': 'Open the lab report from {lab}',
   'app.plant.next.label': 'Next step',
-  'app.plant.next.stamp.title': 'Set up proof you hold it',
+  'app.plant.next.stamp.title': 'Optional: set up proof you hold it',
   'app.plant.next.stamp.action': 'Set up proof you hold it',
   'app.plant.next.open.action': 'Open',
   'app.plant.chain.sealed': 'Sealed',
