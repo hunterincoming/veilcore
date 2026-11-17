@@ -589,7 +589,7 @@ describe("what's live where", () => {
     // document has not yet.
     for (const [row, flag, run] of [
       ['docchain', 'DOCUMENT_CHAIN_RUN_ON_MAINNET', 'true'],
-      ['localclaims', 'DEVICE_ONLY_CLAIMS_RUN_ON_MAINNET', 'false'],
+      ['localclaims', 'DEVICE_ONLY_CLAIMS_RUN_ON_MAINNET', 'true'],
     ] as const) {
       expect(rows.find((r) => r.row === row)?.has).toEqual([true, true, false]);
       expect(home).toMatch(

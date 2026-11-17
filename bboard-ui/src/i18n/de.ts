@@ -38,10 +38,10 @@ export const de: Strings = {
   'm.help.make.t': 'Einen Datensatz anlegen',
   'm.help.make.1q': 'Welche Art von Datensatz wähle ich?',
   'm.help.make.1a':
-    'Wählen Sie, was es ist. Eine Pflanze: eine Sorte oder eine Linie. Ein Tier: ein einzelnes Tier oder eine Linie. Ein Stamm oder eine Linie: Mikroben, Pilze, Zelllinien, Insektenlinien. Ein Dokument: eine Genehmigung, ein Zertifikat, ein Vertrag oder ein Bericht, als Datei versiegelt.',
+    'Wählen Sie, was es ist. Eine Pflanze: eine Sorte oder eine Linie. Ein Tier: ein einzelnes Tier oder eine Linie. Ein Stamm oder eine Linie: Mikroben, Pilze, Zelllinien, Insektenlinien. Ein Dokument: eine Genehmigung, ein Zertifikat, ein Vertrag oder ein Bericht, als Datei versiegelt. Eine Anbaucharge oder eine Erntepartie: ein Schritt in einer Produktionskette, verknüpft mit dem Datensatz davor.',
   'm.help.make.2q': 'Was lasse ich weg?',
   'm.help.make.2a':
-    'Persönliche Angaben anderer Menschen. Was Sie eingeben, wird verschlüsselt auf unserem Server gespeichert, und wir haben den Schlüssel nicht. Wem Sie einen Datensatz zeigen, der sieht aber, was Sie freigegeben haben, und der Prüflink eines Dokuments zeigt den Dateinamen und den Halter, den Sie eingetragen haben. Benennen Sie Dateien schlicht, etwa „Genehmigung 2026.pdf“.',
+    'Persönliche Angaben anderer Menschen. Was Sie eingeben, wird verschlüsselt auf unserem Server gespeichert, und wir haben den Schlüssel nicht. Wem Sie einen Datensatz zeigen, der sieht aber, was Sie freigegeben haben, und der Prüflink eines Dokuments zeigt alles, was darin eingegeben wurde (Titel, Halter, Aussteller, Referenz, Notizen), den Dateinamen und den SHA-256 der Datei. Benennen Sie Dateien schlicht, etwa „Genehmigung 2026.pdf“. Oder behalten Sie ein Dokument nur auf diesem Gerät: Dann wird nichts Eingegebenes gesendet.',
   'm.help.make.3q': 'Woran erkenne ich, dass mein Datensatz datiert ist?',
   'm.help.make.3a':
     'Die Seite des Datensatzes zeigt „Datensatz datiert“ mit dem Datum, sobald sein Stapel auf Midnight ist. Vorher steht dort „im nächsten Stapel“. Gespeichert ist der Datensatz in beiden Fällen. Bis der Stapel auf Midnight ist, stützt sich sein Datum allein auf Ihr Wort.',
@@ -360,6 +360,16 @@ export const de: Strings = {
   'm.postA.title': 'Live im Hauptnetz von Midnight',
   'm.postA.text':
     'Beide Contracts sind im Hauptnetz von Midnight bereitgestellt. Der Claims-Contract hat keinen Wartungsschlüssel: Niemand, auch wir nicht, kann ihn ändern.',
+  'm.postG.date': '16. Nov. 2026',
+  'm.postG.tag': 'Datensätze',
+  'm.postG.title': 'Eine Produktionskette, Schritt für Schritt',
+  'm.postG.text':
+    'Eine Anbaucharge und eine Erntepartie sind jetzt eigene Datensätze, die jeweils den vorherigen nennen: die Pflanze, die Charge, die Partie, der Laborbericht. Jeder hat sein eigenes Datum. Ein Link kann die Kette mitnehmen, sodass jeder, der ihn prüft, jeden Schritt öffnen kann. Die Verknüpfungen sind die Angabe des Inhabers; das Datum jedes Datensatzes wird auf Midnight geprüft. Am 16. November 2026 zum ersten Mal auf veilcore.org durchgeführt.',
+  'm.postF.date': '16. Nov. 2026',
+  'm.postF.tag': 'Datenschutz',
+  'm.postF.title': 'Ein Dokument nur auf Ihrem Gerät behalten',
+  'm.postF.text':
+    'Beim Versiegeln eines Dokuments können Sie es jetzt nur auf diesem Gerät und in Ihrer Sicherungsdatei behalten. Nichts, was Sie eingeben, wird gesendet, weder verschlossen noch offen: Das Register von VeilCore erhält die ID des Datensatzes, seinen Prüfcode und seine Schlüsselbindung, damit er datiert werden kann. Am 16. November 2026 zum ersten Mal auf veilcore.org versiegelt, datiert und geprüft.',
   'm.postE.date': '2. Nov. 2026',
   'm.postE.tag': 'Nachweis',
   'm.postE.title': 'Eine Nachweisdatei für jedes Dokument',

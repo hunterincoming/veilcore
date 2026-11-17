@@ -519,7 +519,7 @@ export const Home: React.FC = () => {
   }, [hash]);
 
   const post = (
-    k: 'postE' | 'postD' | 'postC' | 'postB' | 'postA' | 'post0' | 'post1' | 'post2',
+    k: 'postG' | 'postF' | 'postE' | 'postD' | 'postC' | 'postB' | 'postA' | 'post0' | 'post1' | 'post2',
     doc: string,
     iso: string,
   ) => (
@@ -535,11 +535,13 @@ export const Home: React.FC = () => {
     />
   );
   const latest = [
-    post('postE', 'evidence-bundle.md', '2026-11-02'),
-    post('postD', 'document-profile.md', '2026-10-31'),
+    post('postG', 'document-chain.md', '2026-11-16'),
+    post('postF', 'device-only-records.md', '2026-11-16'),
   ];
-  const third = post('postC', 'mainnet-sponsor.md', '2026-10-19');
+  const third = post('postE', 'evidence-bundle.md', '2026-11-02');
   const older = [
+    post('postD', 'document-profile.md', '2026-10-31'),
+    post('postC', 'mainnet-sponsor.md', '2026-10-19'),
     post('postB', 'mainnet-completeness.md', '2026-10-11'),
     post('postA', 'deployment-record-revision-4.md', '2026-10-08'),
     post('post0', 'log/preprod-run-4oct.md', '2026-10-04'),

@@ -39,10 +39,10 @@ export const es: Strings = {
   'm.help.make.t': 'Crear un registro',
   'm.help.make.1q': '¿Qué tipo de registro elijo?',
   'm.help.make.1a':
-    'Elija lo que es. Una planta: un cultivar o una línea. Un animal: un animal o una línea. Una cepa o línea: microbios, hongos, líneas celulares, líneas de insectos. Un documento: un permiso, un certificado, un contrato o un informe, sellado como archivo.',
+    'Elija lo que es. Una planta: un cultivar o una línea. Un animal: un animal o una línea. Una cepa o línea: microbios, hongos, líneas celulares, líneas de insectos. Un documento: un permiso, un certificado, un contrato o un informe, sellado como archivo. Un lote de cultivo o un lote de cosecha: un paso de una cadena de producción, vinculado al registro anterior.',
   'm.help.make.2q': '¿Qué debo dejar fuera?',
   'm.help.make.2a':
-    'Los datos personales de otras personas. Lo que usted escribe se guarda cifrado en nuestro servidor, y no tenemos la clave. Pero la persona con quien comparta un registro ve lo que usted decidió compartir, y el enlace de comprobación de un documento muestra el nombre del archivo y el titular que usted escribió. Ponga nombres sencillos a los archivos, como «Permiso 2026.pdf».',
+    'Los datos personales de otras personas. Lo que usted escribe se guarda cifrado en nuestro servidor, y no tenemos la clave. Pero la persona con quien comparta un registro ve lo que usted decidió compartir, y el enlace de comprobación de un documento muestra todo lo que se escribió en él (título, titular, emisor, referencia, notas), el nombre del archivo y su SHA-256. Ponga nombres sencillos a los archivos, como «Permiso 2026.pdf». O guarde un documento solo en este dispositivo: entonces no se envía nada de lo que escribe.',
   'm.help.make.3q': '¿Cómo sé que mi registro está fechado?',
   'm.help.make.3a':
     'La página del registro muestra «Registro fechado» con la fecha cuando su lote está en Midnight. Antes de eso dice «en el próximo lote». En ambos casos el registro está guardado. Hasta que el lote esté en Midnight, su fecha descansa solo en su palabra.',
@@ -358,6 +358,16 @@ export const es: Strings = {
   'm.postA.title': 'En la red principal de Midnight',
   'm.postA.text':
     'Ambos contratos están desplegados en la red principal de Midnight. El contrato de pruebas de un hecho no tiene clave de mantenimiento: nadie, ni siquiera nosotros, puede cambiarlo.',
+  'm.postG.date': '16 nov 2026',
+  'm.postG.tag': 'Registros',
+  'm.postG.title': 'Una cadena de producción, paso a paso',
+  'm.postG.text':
+    'Un lote de cultivo y un lote de cosecha son ahora registros propios, y cada uno nombra al anterior: la planta, el lote de cultivo, el lote de cosecha, el informe de laboratorio. Cada uno tiene su propia fecha. Un enlace puede llevar la cadena, para que quien lo compruebe pueda abrir cada paso. Los vínculos son la declaración del titular; la fecha de cada registro se comprueba en Midnight. Probado por primera vez en veilcore.org el 16 de noviembre de 2026.',
+  'm.postF.date': '16 nov 2026',
+  'm.postF.tag': 'Privacidad',
+  'm.postF.title': 'Guardar un documento solo en su dispositivo',
+  'm.postF.text':
+    'Al sellar un documento ahora puede guardarlo solo en este dispositivo y en su archivo de copia de seguridad. No se envía nada de lo que escribe, ni cifrado ni sin cifrar: el registro de VeilCore recibe el ID del registro, su código de prueba y su vínculo de clave, para poder fecharlo. Sellado, fechado y comprobado por primera vez en veilcore.org el 16 de noviembre de 2026.',
   'm.postE.date': '2 nov 2026',
   'm.postE.tag': 'Prueba',
   'm.postE.title': 'Un archivo de evidencia para cualquier documento',

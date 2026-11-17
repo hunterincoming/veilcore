@@ -18,6 +18,15 @@ export const schemaWords = (id: string, tr: Translator): string =>
 /** A slot's label in words, from its path ("seed.germination" → "Germination"). */
 export const slotWords = (path: string, tr: Translator): string => tr.t(`app.doc.slot.${slotKey(path)}` as AppKey);
 
+/**
+ * Whether a label is too long to sit inside its box. A box's floating label is one line and is
+ * cut off with "…" (and ran under the unit, "bm²", on a phone): "Floor area under cultivation
+ * for this batch, in square metres" was unreadable at 390 px. Such a label goes above the box,
+ * whole. Wide characters (Japanese) count twice.
+ */
+export const labelAbove = (label: string): boolean =>
+  [...label].reduce((n, c) => n + ((c.codePointAt(0) ?? 0) >= 0x2e80 ? 2 : 1), 0) > 28;
+
 export const NumbersFields: React.FC<{
   schema: string;
   onSchema: (id: string) => void;
@@ -34,6 +43,9 @@ export const NumbersFields: React.FC<{
   const tr = useT();
   const { t } = tr;
   const s = SCHEMAS[schema];
+  const ids = React.useId();
+  // One long label puts every label of the form above its box, so the boxes line up alike.
+  const above = !!s && s.slots.some((slot) => slot.type === 'uint' && labelAbove(slotWords(slot.path, tr)));
   return (
     <Box data-document-numbers="">
       {!bare && (
@@ -70,28 +82,43 @@ export const NumbersFields: React.FC<{
             .map((slot) => {
               const places = Math.round(Math.log10(slot.scale ?? 1));
               const wrong = bad.includes(slot.slot);
+              const label = slotWords(slot.path, tr);
+              const id = `${ids}-slot-${String(slot.slot)}`;
               return (
-                <TextField
-                  key={slot.slot}
-                  label={slotWords(slot.path, tr)}
-                  value={typed[slot.slot] ?? ''}
-                  onChange={(e) => onTyped({ ...typed, [slot.slot]: e.target.value })}
-                  error={wrong}
-                  helperText={
-                    wrong
-                      ? places === 0
-                        ? t('app.doc.nums.badWhole')
-                        : t('app.doc.nums.bad', { places: String(places) })
-                      : undefined
-                  }
-                  slotProps={{
-                    htmlInput: { inputMode: places === 0 ? 'numeric' : 'decimal', 'data-slot': slot.slot },
-                    input: slot.unit
-                      ? { endAdornment: <InputAdornment position="end">{slot.unit}</InputAdornment> }
-                      : {},
-                  }}
-                  fullWidth
-                />
+                <Box key={slot.slot}>
+                  {above && (
+                    <Typography
+                      component="label"
+                      htmlFor={id}
+                      variant="body2"
+                      sx={{ display: 'block', mb: 0.75, fontWeight: 600 }}
+                      data-slot-label=""
+                    >
+                      {label}
+                    </Typography>
+                  )}
+                  <TextField
+                    id={id}
+                    label={above ? undefined : label}
+                    value={typed[slot.slot] ?? ''}
+                    onChange={(e) => onTyped({ ...typed, [slot.slot]: e.target.value })}
+                    error={wrong}
+                    helperText={
+                      wrong
+                        ? places === 0
+                          ? t('app.doc.nums.badWhole')
+                          : t('app.doc.nums.bad', { places: String(places) })
+                        : undefined
+                    }
+                    slotProps={{
+                      htmlInput: { inputMode: places === 0 ? 'numeric' : 'decimal', 'data-slot': slot.slot },
+                      input: slot.unit
+                        ? { endAdornment: <InputAdornment position="end">{slot.unit}</InputAdornment> }
+                        : {},
+                    }}
+                    fullWidth
+                  />
+                </Box>
               );
             })}
         </Stack>
