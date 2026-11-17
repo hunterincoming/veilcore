@@ -1403,6 +1403,33 @@ export const discardUnsaved = async (id: string): Promise<void> => {
 };
 
 /**
+ * Delete one of the holder's records: from this browser and from VeilCore's registry (its row,
+ * its locked copy, its grants and notices: the registry's DELETE /api/records). What stays, and
+ * the page says so before asking: its proof code in a batch already dated on Midnight (a code,
+ * revealing nothing, that a chain can't take back); backup files saved before; a copy a lab or
+ * buyer already received. A record kept on this device only has its own delete
+ * (deleteDeviceOnly). The caller checks licences first (RecordDetail: a record with any licence
+ * or agreement can't be deleted).
+ */
+export const deleteRecord = async (id: string): Promise<{ ok: true } | { error: string }> => {
+  const r = getRecord(id);
+  if (!r) return { error: 'no such record here' };
+  if (neverSend(r)) return { error: 'a record kept on this device only is deleted from its own page' };
+  // Asked of the registry whatever this browser last read of it (its proof code may have been
+  // dated, or its locked copy saved, since): one it doesn't hold is answered as not removed,
+  // which is fine. VeilCore out of reach: nothing is removed here either, so the list never
+  // shows a record as gone that the registry still holds.
+  const out = await deleteRecords([id]);
+  if ('error' in out) return out;
+  if (inOutbox(id)) takeFromOutbox([id]);
+  records = records.filter((x) => x.id !== id);
+  forgetKeys(id);
+  persist();
+  await hydrate();
+  return { ok: true };
+};
+
+/**
  * The holder answers the question about keys listed before the record was locked (P2):
  * share them again (they go through saveGrant, read from the record here), or not.
  */

@@ -56,6 +56,16 @@ export const plant = {
   'app.plant.f.file': 'archivo',
   'app.plant.f.fileSha': ' · SHA-256 del archivo {sha}',
   'app.plant.f.notSavedYet': 'todavía no guardado',
+  'app.plant.delete.title': 'Eliminar este registro',
+  'app.plant.delete.text':
+    'Lo quita de su lista y del registro de VeilCore, con su copia cifrada y todo lo que compartió. Su código de prueba sigue en el lote ya fechado en Midnight: un código que no muestra nada y que una cadena de bloques no puede retirar. Un enlace de comprobación a él dirá que no se encuentra.',
+  'app.plant.delete.button': 'Eliminar este registro',
+  'app.plant.delete.confirm':
+    '¿Eliminar «{name}»? No se puede deshacer. Los archivos de copia de seguridad que guardó antes lo siguen teniendo hasta que guarde uno nuevo, y un laboratorio o comprador al que se lo envió conserva su copia.{named}',
+  'app.plant.delete.named': '\n\nEstos registros lo nombran, y su enlace a él no llevará a ninguna parte: {list}.',
+  'app.plant.delete.blocked':
+    'Tiene una licencia o un acuerdo, así que no se puede eliminar: la otra parte cuenta con él.',
+  'app.plant.delete.failed': 'No se eliminó: {reason}',
   'app.plant.f.recordFingerprint': 'Código de prueba del registro',
   'app.plant.evidenceBundle': 'Paquete de evidencia',
   'app.plant.evidenceBundleText':

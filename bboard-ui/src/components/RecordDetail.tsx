@@ -3,6 +3,7 @@
 // pull the evidence summary, or check a report file against an existing record.
 // SPDX-License-Identifier: Apache-2.0
 
+import { aboutIdsOf } from '../veilcore/document-chain';
 import React, { useEffect, useRef, useState } from 'react';
 import { Alert, Box, Button, Collapse, Divider, Link, Paper, Stack, Typography } from '@mui/material';
 import LockIcon from '@mui/icons-material/LockOutlined';
@@ -11,6 +12,7 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBackOutlined';
 import CodeIcon from '@mui/icons-material/DataObjectOutlined';
 import {
   useRecords,
+  deleteRecord,
   getRecord,
   exportEnvelope,
   childrenOf,
@@ -18,6 +20,7 @@ import {
   integrityOf,
   useSealedView,
   latestVersionOf,
+  type StrainRecord,
 } from '../veilcore/records';
 import { LockedRecords } from './LockedRecords';
 import { RecordSaveNotices } from './RecordSaveNotices';
@@ -27,7 +30,7 @@ import { ProveOwnershipPanel } from './chain/ProveOwnershipPanel';
 import { BackupStep } from './flow/BackupStep';
 import { SectionBand, focusScreenHeading, type Section } from './flow/FlowFrame';
 import { ActionRow, PlantStatus } from './flow/PlantParts';
-import { rich, useRecordT } from '../i18n/app';
+import { rich, useRecordT, useT } from '../i18n/app';
 import { damOf, isAnimal, recordTitle, sireOf } from '../veilcore/animal-profile';
 import { isStrain } from '../veilcore/strain-profile';
 import { strainGroupWords, strainParentWords } from './flow/StrainForm';
@@ -180,9 +183,67 @@ const StrainFields: React.FC<{ record: NonNullable<ReturnType<typeof getRecord>>
   );
 };
 
+/**
+ * Deleting a record (records.ts deleteRecord): what goes and what stays, said before asking.
+ * Not offered while a licence or agreement names it: the other side relies on it.
+ */
+const DeleteRecord: React.FC<{
+  record: StrainRecord;
+  licensed: boolean;
+  namedBy: readonly StrainRecord[];
+  onDeleted: () => void;
+}> = ({ record, licensed, namedBy, onDeleted }) => {
+  const { t } = useT();
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const go = async () => {
+    const named = namedBy.length
+      ? t('app.plant.delete.named', { list: namedBy.map((x) => x.strainName || x.id).join(', ') })
+      : '';
+    if (!window.confirm(t('app.plant.delete.confirm', { name: record.strainName || record.id, named }))) return;
+    setBusy(true);
+    setError(null);
+    const out = await deleteRecord(record.id);
+    setBusy(false);
+    if ('error' in out) setError(t('app.plant.delete.failed', { reason: out.error }));
+    else onDeleted();
+  };
+  return (
+    <Paper sx={{ p: { xs: 2.5, md: 3 } }} data-delete-record="">
+      <Stack spacing={1}>
+        <Typography variant="overline" sx={{ display: 'block' }}>
+          {t('app.plant.delete.title')}
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          {licensed ? t('app.plant.delete.blocked') : t('app.plant.delete.text')}
+        </Typography>
+        {!licensed && (
+          <Box>
+            <Button
+              color="error"
+              variant="outlined"
+              disabled={busy}
+              onClick={() => void go()}
+              sx={{ minHeight: 44 }}
+              data-delete-record-button=""
+            >
+              {t('app.plant.delete.button')}
+            </Button>
+          </Box>
+        )}
+        {error && (
+          <Alert severity="error" variant="outlined">
+            {error}
+          </Alert>
+        )}
+      </Stack>
+    </Paper>
+  );
+};
+
 export const RecordDetail: React.FC = () => {
-  useRecords();
-  useLicenses();
+  const heldRecords = useRecords();
+  const heldLicenses = useLicenses();
   const { id = '' } = useParams();
   const navigate = useNavigate();
   // The paste box sends a proof request here as ?prove=<challenge>.
@@ -717,6 +778,18 @@ export const RecordDetail: React.FC = () => {
                     </Alert>
                   )}
                 </Box>
+                {!labOnly && (
+                  <DeleteRecord
+                    record={record}
+                    licensed={heldLicenses.some((l) => l.recordId === record.id)}
+                    namedBy={heldRecords.filter(
+                      (x) =>
+                        x.id !== record.id &&
+                        ((x.parents ?? []).some((p) => p.recordId === record.id) || aboutIdsOf(x).includes(record.id)),
+                    )}
+                    onDeleted={() => void navigate('/records')}
+                  />
+                )}
               </Stack>
             </Collapse>
           </Box>

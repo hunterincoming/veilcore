@@ -54,6 +54,15 @@ export const plant = {
   'app.plant.f.file': 'ファイル',
   'app.plant.f.fileSha': ' · ファイルのSHA-256 {sha}',
   'app.plant.f.notSavedYet': 'まだ保存されていません',
+  'app.plant.delete.title': 'この記録を削除',
+  'app.plant.delete.text':
+    'あなたの一覧とVeilCoreのレジストリから、暗号化されたコピーや共有した内容とともに削除します。証明コードは、すでにMidnightで日付が付いたバッチに残ります。何も示さないコードで、ブロックチェーンからは取り消せません。この記録の確認リンクを開くと「見つかりません」と表示されます。',
+  'app.plant.delete.button': 'この記録を削除',
+  'app.plant.delete.confirm':
+    '「{name}」を削除しますか？元に戻せません。以前に保存したバックアップファイルには、新しく保存するまで残ります。送った検査機関や購入者の手元のコピーも残ります。{named}',
+  'app.plant.delete.named': '\n\n次の記録がこの記録を指しており、そのつながりは行き先がなくなります：{list}。',
+  'app.plant.delete.blocked': 'ライセンスまたは契約があるため削除できません。相手方がこの記録に依拠しています。',
+  'app.plant.delete.failed': '削除されませんでした：{reason}',
   'app.plant.f.recordFingerprint': '記録の証明コード',
   'app.plant.evidenceBundle': '証拠バンドル',
   'app.plant.evidenceBundleText':

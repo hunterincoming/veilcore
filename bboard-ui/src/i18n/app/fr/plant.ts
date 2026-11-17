@@ -58,6 +58,16 @@ export const plant = {
   'app.plant.f.file': 'fichier',
   'app.plant.f.fileSha': ' · SHA-256 du fichier {sha}',
   'app.plant.f.notSavedYet': 'pas encore enregistré',
+  'app.plant.delete.title': 'Supprimer cet enregistrement',
+  'app.plant.delete.text':
+    'Le retire de votre liste et du registre de VeilCore, avec sa copie verrouillée et tout ce que vous avez partagé. Son code de preuve reste dans le lot déjà daté sur Midnight : un code qui ne montre rien, qu’une blockchain ne peut pas reprendre. Un lien de vérification vers lui dira qu’il est introuvable.',
+  'app.plant.delete.button': 'Supprimer cet enregistrement',
+  'app.plant.delete.confirm':
+    'Supprimer « {name} » ? C’est définitif. Les fichiers de sauvegarde enregistrés avant le contiennent encore jusqu’à ce que vous en enregistriez un nouveau, et un laboratoire ou un acheteur à qui vous l’avez envoyé garde sa copie.{named}',
+  'app.plant.delete.named': '\n\nCes enregistrements le nomment, et leur lien vers lui ne mènera nulle part : {list}.',
+  'app.plant.delete.blocked':
+    'Il a une licence ou un accord, il ne peut donc pas être supprimé : l’autre partie compte dessus.',
+  'app.plant.delete.failed': 'Il n’a pas été supprimé : {reason}',
   'app.plant.f.recordFingerprint': 'Code de preuve de l’enregistrement',
   'app.plant.evidenceBundle': 'Dossier de preuve',
   'app.plant.evidenceBundleText':

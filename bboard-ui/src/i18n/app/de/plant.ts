@@ -58,6 +58,16 @@ export const plant = {
   'app.plant.f.file': 'Datei',
   'app.plant.f.fileSha': ' · SHA-256 der Datei {sha}',
   'app.plant.f.notSavedYet': 'noch nicht gespeichert',
+  'app.plant.delete.title': 'Diesen Datensatz löschen',
+  'app.plant.delete.text':
+    'Entfernt ihn aus Ihrer Liste und aus dem Register von VeilCore, mit seiner verschlossenen Kopie und allem, was Sie freigegeben haben. Sein Prüfcode bleibt in dem Stapel, der schon auf Midnight datiert ist: ein Code, der nichts zeigt und den eine Blockchain nicht zurücknehmen kann. Ein Prüflink zu ihm meldet dann, dass er nicht gefunden wird.',
+  'app.plant.delete.button': 'Diesen Datensatz löschen',
+  'app.plant.delete.confirm':
+    '„{name}“ löschen? Das lässt sich nicht rückgängig machen. Früher gespeicherte Sicherungsdateien enthalten ihn noch, bis Sie eine neue speichern, und ein Labor oder Käufer, dem Sie ihn geschickt haben, behält seine Kopie.{named}',
+  'app.plant.delete.named': '\n\nDiese Datensätze nennen ihn, und ihr Verweis auf ihn führt dann ins Leere: {list}.',
+  'app.plant.delete.blocked':
+    'Er hat eine Lizenz oder eine Vereinbarung und kann daher nicht gelöscht werden: Die andere Seite verlässt sich darauf.',
+  'app.plant.delete.failed': 'Er wurde nicht gelöscht: {reason}',
   'app.plant.f.recordFingerprint': 'Prüfcode des Datensatzes',
   'app.plant.evidenceBundle': 'Nachweispaket',
   'app.plant.evidenceBundleText':

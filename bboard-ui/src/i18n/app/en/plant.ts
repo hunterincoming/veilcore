@@ -56,6 +56,15 @@ export const plant = {
   'app.plant.f.file': 'file',
   'app.plant.f.fileSha': ' · file SHA-256 {sha}',
   'app.plant.f.notSavedYet': 'not saved yet',
+  'app.plant.delete.title': 'Delete this record',
+  'app.plant.delete.text':
+    'Takes it off your list and off VeilCore’s registry, with its locked copy and anything you shared. Its proof code stays in the batch already dated on Midnight: a code that shows nothing, which a blockchain can’t take back. A check link to it will say it isn’t found.',
+  'app.plant.delete.button': 'Delete this record',
+  'app.plant.delete.confirm':
+    'Delete “{name}”? This can’t be undone. Backup files you saved before still hold it until you save a new one, and a lab or buyer you sent it to keeps their copy.{named}',
+  'app.plant.delete.named': '\n\nThese records name it, and their link to it will lead nowhere: {list}.',
+  'app.plant.delete.blocked': 'It has a licence or an agreement, so it can’t be deleted: the other side relies on it.',
+  'app.plant.delete.failed': 'It wasn’t deleted: {reason}',
   'app.plant.f.recordFingerprint': 'Proof code',
   'app.plant.evidenceBundle': 'Evidence bundle',
   'app.plant.evidenceBundleText':
