@@ -71,6 +71,8 @@ export const plant = {
   'app.plant.delete.datedNo':
     'まだバッチに入っていないため、削除すると Midnight で日付は記録されません（削除が届く直前の数秒間にバッチが封印された場合を除く）。',
   'app.plant.delete.datedChecking': 'Midnight で日付が記録されているか確認しています…',
+  'app.plant.delete.datedUnknown':
+    '日付が付いているかどうか、VeilCoreは確認できませんでした。証明コードがすでにバッチに入っていれば、Midnightで日付が付きます。入っていなければ付きません。',
   'app.plant.delete.deleting': '削除しています…',
   'app.plant.delete.failed': '削除されませんでした。{reason}',
   'app.plant.delete.why.busy': '保存がまだ送信中です。少ししてからもう一度お試しください。',

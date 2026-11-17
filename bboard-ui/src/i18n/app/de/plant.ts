@@ -76,6 +76,8 @@ export const plant = {
   'app.plant.delete.datedNo':
     'Er ist noch in keinem Stapel und wird nach dem Löschen nicht auf Midnight datiert (außer ein Stapel wird in den Sekunden vor dem Löschen versiegelt).',
   'app.plant.delete.datedChecking': 'Es wird geprüft, ob er auf Midnight datiert ist …',
+  'app.plant.delete.datedUnknown':
+    'VeilCore konnte nicht prüfen, ob er schon datiert ist. Ist sein Prüfcode schon in einem Stapel, wird er trotzdem auf Midnight datiert; sonst nicht.',
   'app.plant.delete.deleting': 'Wird gelöscht …',
   'app.plant.delete.failed': 'Er wurde nicht gelöscht. {reason}',
   'app.plant.delete.why.busy': 'Eine Speicherung ist noch unterwegs. Versuchen Sie es gleich noch einmal.',

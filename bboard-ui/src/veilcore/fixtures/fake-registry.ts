@@ -48,6 +48,8 @@ export const fakeRegistry = () => {
   const records = new Map<string, Row & { holder: string }>();
   /** Ids their holder deleted: refused afterwards with code "deleted". */
   const deleted = new Set<string>();
+  /** A deleted record's proof code, as /verify answers it for the tombstone. */
+  const deletedFp = new Map<string, string>();
   const licenses = new Map<string, Row & { holder: string }>();
   const grants = new Map<string, Grant & { holder: string }>();
   const transfers = new Map<string, Transfer>();
@@ -343,7 +345,9 @@ export const fakeRegistry = () => {
         });
         const removed = removable.filter((id) => {
           const of = correctionOfId(id);
+          const fp = t.get(id)?.recordFingerprint;
           if (!(t.get(id)?.holder === holder && t.delete(id))) return false;
+          if (path === '/api/records' && typeof fp === 'string') deletedFp.set(id, fp);
           // Deleting a correction takes the corrected record's link to it.
           const orig = of ? t.get(of) : undefined;
           if (orig && orig.supersededBy === id) {
@@ -530,6 +534,21 @@ export const fakeRegistry = () => {
     }
     if (path === '/lineage/obligations' && method === 'GET')
       return json({ error: 'the listing of all obligations is no longer published' }, 410);
+    // /verify for a deleted id: said as deleted by its holder, with its proof code (tombstones.js).
+    if (method === 'GET' && path.startsWith('/verify/')) {
+      const id = decodeURIComponent(path.slice('/verify/'.length));
+      if (deleted.has(id))
+        return json(
+          {
+            found: false,
+            deleted: true,
+            deletedBy: 'record-holder',
+            ...(deletedFp.has(id) ? { recordFingerprint: deletedFp.get(id) } : {}),
+            anchored: false,
+          },
+          404,
+        );
+    }
     return json({ error: `no route ${method} ${path}` }, 404);
   };
 

@@ -40,6 +40,7 @@ import {
   datingRowOf,
   deleteLicenses,
   deleteRecords,
+  deletedOnRegistry,
   integrityOf as storedIntegrityOf,
   isStoredAsIs,
   keepNewerCopy,
@@ -592,14 +593,26 @@ const dropDeletedLinks = (result: SaveResult): SaveResult => {
         void _gone;
         return rest;
       });
-    } else if (rowStateOf(RECORDS_KEY, ref.id) === undefined && records.some((r) => r.id === ref.id)) {
+    } else if (
+      rowStateOf(RECORDS_KEY, ref.id) === undefined &&
+      // Its proof code already dated: kept, keys and all, so the holder can still prove it.
+      !registryHasProofCode(ref.id) &&
+      records.some((r) => r.id === ref.id)
+    ) {
       records = records.filter((r) => r.id !== ref.id);
       takeFromOutbox([ref.id]);
       forgetKeys(ref.id);
       changed = true;
+      // Said like any record removed because of a deletion elsewhere (SaveProblemBar).
+      const was = removedAsDeleted.size;
+      removedAsDeleted.add(ref.id);
+      if (removedAsDeleted.size > was) removedListeners.forEach((l) => l());
     }
   }
-  if (changed) persist();
+  if (changed) {
+    notify();
+    persist();
+  }
   const refused = result.refused.filter((r) => !r.linksDeleted);
   return { ...result, refused, ok: result.ok || (refused.length === 0 && !result.offline && !result.held?.length) };
 };
@@ -755,6 +768,27 @@ const savesSettledInTime = async (): Promise<boolean> => {
   });
   try {
     return await Promise.race([savesSettled().then(() => true as const), late]);
+  } finally {
+    clearTimeout(timer);
+  }
+};
+
+/** This page's dating request on its way (dateFirst), settled within SAVES_WAIT; true when there is none. */
+const datingSettledInTime = async (): Promise<boolean> => {
+  const on = dating;
+  if (!on) return true;
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const late = new Promise<false>((r) => {
+    timer = setTimeout(() => r(false), SAVES_WAIT.ms);
+  });
+  try {
+    return await Promise.race([
+      on.then(
+        () => true as const,
+        () => true as const,
+      ),
+      late,
+    ]);
   } finally {
     clearTimeout(timer);
   }
@@ -1493,6 +1527,9 @@ export const deleteRecord = async (id: string): Promise<{ ok: true } | { error: 
     // A save already on its way that still carries it must land first, or the delete could
     // overtake it. If they don't finish in time, nothing is deleted.
     if (!(await savesSettledInTime())) return { error: 'busy' };
+    // Its proof code may be on its way alone (dateFirst, started before this delete): it must land
+    // first, or the delete would find nothing and the dating row would add the record back.
+    if (!(await datingSettledInTime())) return { error: 'busy' };
     // Only kept here, never taken by VeilCore (not even its proof code): nothing to delete there.
     const neverReachedRegistry = inOutbox(id) && rowStateOf(RECORDS_KEY, id) === undefined && !registryHasProofCode(id);
     const out = await deleteRecords([id]);
@@ -1500,7 +1537,10 @@ export const deleteRecord = async (id: string): Promise<{ ok: true } | { error: 
     // A correction of it exists on the registry (perhaps made on another device).
     if (out.refused?.some((x) => x.id === id && x.code === 'linked')) return { error: 'linked' };
     // Only what the registry says it removed counts; a record it never had is removed here only.
-    if (!out.removed.includes(id) && !neverReachedRegistry) return { error: 'not-removed' };
+    // An earlier try whose answer was lost may have deleted it already: the registry then has it
+    // as deleted by its holder, with this record's proof code.
+    if (!out.removed.includes(id) && !neverReachedRegistry && !(await deletedOnRegistry(id, r.recordFingerprint)))
+      return { error: 'not-removed' };
     records = records.filter((x) => x.id !== id);
     takeFromOutbox([id]);
     forgetKeys(id);

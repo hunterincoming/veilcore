@@ -74,6 +74,8 @@ export const plant = {
   'app.plant.delete.datedNo':
     'Todavía no está en un lote, así que una vez eliminado no se fechará en Midnight (salvo que se selle un lote en los segundos antes de que llegue la eliminación).',
   'app.plant.delete.datedChecking': 'Comprobando si está fechado en Midnight…',
+  'app.plant.delete.datedUnknown':
+    'VeilCore no pudo comprobar si ya está fechado. Si su código de prueba ya está en un lote, igual se fechará en Midnight; si no, no.',
   'app.plant.delete.deleting': 'Eliminando…',
   'app.plant.delete.failed': 'No se eliminó. {reason}',
   'app.plant.delete.why.busy': 'Todavía hay un guardado en camino. Inténtelo de nuevo en un momento.',

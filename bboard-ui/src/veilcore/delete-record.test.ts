@@ -202,4 +202,122 @@ describe('deleting a record', () => {
     expect(await A.run(() => A.m.records.deleteRecord(record.id))).toEqual({ error: 'linked' });
     expect(await A.run(() => A.m.records.getRecord(record.id))).toBeDefined();
   });
+  it('a proof code on its way alone lands before the delete, so it can’t add the record back', async () => {
+    const A = await browser('del-dating');
+    const sealed = await seal(A);
+    let release!: () => void;
+    const gate = new Promise<void>((r) => {
+      release = r;
+    });
+    let datingSeen = 0;
+    vi.stubGlobal('fetch', async (url: string, init?: RequestInit) => {
+      if (init?.method === 'PUT' && new URL(url).pathname === '/api/records/dating') {
+        datingSeen++;
+        await gate;
+      }
+      return reg.fetch(url, init);
+    });
+    // No checked backup: the record stays in this browser, and only its proof code is sent.
+    const record = await A.run(() => {
+      A.m.holder.holderKey();
+      return A.m.records.createRecord(sealed);
+    });
+    const H = (await A.run(() => A.m.holder.holderKeyIfAny())) as string;
+    await until(() => datingSeen > 0);
+    const del = A.run(() => A.m.records.deleteRecord(record.id));
+    await settle(30);
+    release();
+    expect(await del).toEqual({ ok: true });
+    await settle(100);
+    expect(reg.rowsOf(H).some((r) => r.id === record.id)).toBe(false);
+    expect(await A.run(() => A.m.records.getRecord(record.id))).toBeUndefined();
+  });
+
+  it('a dating request that never answers: nothing is deleted, and it asks to try again', async () => {
+    const A = await browser('del-dating2');
+    const sealed = await seal(A);
+    A.m.records.SAVES_WAIT.ms = 60;
+    let datingSeen = 0;
+    vi.stubGlobal('fetch', (url: string, init?: RequestInit) => {
+      if (init?.method === 'PUT' && new URL(url).pathname === '/api/records/dating') {
+        datingSeen++;
+        return new Promise(() => {});
+      }
+      return reg.fetch(url, init);
+    });
+    const record = await A.run(() => {
+      A.m.holder.holderKey();
+      return A.m.records.createRecord(sealed);
+    });
+    await until(() => datingSeen > 0);
+    expect(await A.run(() => A.m.records.deleteRecord(record.id))).toEqual({ error: 'busy' });
+    expect(await A.run(() => A.m.records.getRecord(record.id))).toBeDefined();
+  });
+
+  it('an earlier try whose answer was lost: the retry finds it deleted on VeilCore and finishes', async () => {
+    const { A, record, H } = await withRecord('del-lost');
+    let first = true;
+    vi.stubGlobal('fetch', async (url: string, init?: RequestInit) => {
+      if (init?.method === 'DELETE' && first) {
+        first = false;
+        await reg.fetch(url, init); // done on VeilCore, but the answer never arrives
+        throw new TypeError('connection dropped');
+      }
+      return reg.fetch(url, init);
+    });
+    expect(await A.run(() => A.m.records.deleteRecord(record.id))).toEqual({ error: 'offline' });
+    expect(reg.rowsOf(H).some((r) => r.id === record.id)).toBe(false);
+    expect(await A.run(() => A.m.records.deleteRecord(record.id))).toEqual({ ok: true });
+    expect(await A.run(() => A.m.records.getRecord(record.id))).toBeUndefined();
+  });
+
+  it('a retry is never taken as deleted when VeilCore has no tombstone for it', async () => {
+    const { A, record } = await withRecord('del-lost2');
+    vi.stubGlobal('fetch', (url: string, init?: RequestInit) =>
+      init?.method === 'DELETE'
+        ? Promise.resolve(
+            new Response(JSON.stringify({ ok: false, removed: [], notRemoved: [record.id] }), { status: 200 }),
+          )
+        : reg.fetch(url, init),
+    );
+    expect(await A.run(() => A.m.records.deleteRecord(record.id))).toEqual({ error: 'not-removed' });
+    expect(await A.run(() => A.m.records.getRecord(record.id))).toBeDefined();
+  });
+  it('a refused correction link never takes a record whose proof code is dated', async () => {
+    const A = await browser('del-link-dated');
+    const sealed = await seal(A);
+    const record = await A.run(() => {
+      A.m.holder.holderKey();
+      return A.m.records.createRecord(sealed);
+    });
+    await until(() => A.m.api.registryHasProofCode(record.id));
+    // Every save of it is refused for a correction link naming a deleted record.
+    let saves = 0;
+    vi.stubGlobal('fetch', (url: string, init?: RequestInit) =>
+      init?.method === 'PUT' && new URL(url).pathname === '/api/records' && ++saves
+        ? Promise.resolve(
+            new Response(
+              JSON.stringify({
+                ok: false,
+                rejected: [{ id: record.id, code: 'links-deleted', field: 'supersedes', reason: 'x' }],
+                notWritten: [],
+              }),
+              { status: 200 },
+            ),
+          )
+        : reg.fetch(url, init),
+    );
+    // Its backup checked now, so its locked copy is sent: and refused, for the link.
+    await A.run(async () => {
+      A.m.vault.mintVault();
+      A.m.vault.markVaultBackedUp();
+      await A.m.backup.checkBackup(fileOf(JSON.stringify(A.m.backup.backupContents())));
+      A.m.records.noteSentTo(record.id, 'TR-9', 'Lab');
+    });
+    await until(() => saves > 0);
+    await settle(50);
+    // Dated already, so kept with its keys, and nothing said as deleted.
+    expect((await A.run(() => A.m.records.getRecord(record.id)))?.strainName).toBe('TEST delete');
+    expect(await A.run(() => A.m.records.removedAsDeletedCount())).toBe(0);
+  });
 });

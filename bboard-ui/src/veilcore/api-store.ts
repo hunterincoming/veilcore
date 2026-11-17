@@ -1450,6 +1450,22 @@ const deleteRows = async (
   }
 };
 
+/**
+ * Whether the registry has this id as deleted by its holder, with this proof code (its /verify
+ * answer for a tombstone). False when it can't say: never taken as deleted on a guess.
+ */
+export const deletedOnRegistry = async (id: string, fingerprint?: string): Promise<boolean> => {
+  try {
+    const res = await fetch(`${BASE}/verify/${encodeURIComponent(id)}?show=`, { cache: 'no-store' });
+    const body: unknown = await res.json();
+    if (!isObject(body) || body.deleted !== true) return false;
+    // A tombstone with a proof code must be this record's; one without says nothing either way.
+    return isString(body.recordFingerprint) ? body.recordFingerprint === fingerprint : fingerprint === undefined;
+  } catch {
+    return false;
+  }
+};
+
 export const deleteRecords = (
   ids: readonly string[],
 ): Promise<{ removed: string[]; refused?: { id: string; code: string }[] } | { error: string; offline?: true }> =>

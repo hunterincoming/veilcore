@@ -73,6 +73,8 @@ export const plant = {
   'app.plant.delete.datedNo':
     'It isn’t in a batch yet, so once deleted it won’t be dated on Midnight (unless a batch is sealed in the seconds before the delete lands).',
   'app.plant.delete.datedChecking': 'Checking whether it is dated on Midnight…',
+  'app.plant.delete.datedUnknown':
+    'VeilCore couldn’t check whether it’s dated yet. If its proof code is already in a batch, it will still be dated on Midnight; if not, it won’t be.',
   'app.plant.delete.deleting': 'Deleting…',
   'app.plant.delete.failed': 'It wasn’t deleted. {reason}',
   'app.plant.delete.why.busy': 'A save is still on its way. Try again in a moment.',

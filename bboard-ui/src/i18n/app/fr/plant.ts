@@ -76,6 +76,8 @@ export const plant = {
   'app.plant.delete.datedNo':
     'Il n’est encore dans aucun lot : une fois supprimé, il ne sera pas daté sur Midnight (sauf si un lot est scellé dans les secondes avant que la suppression arrive).',
   'app.plant.delete.datedChecking': 'Vérification de sa date sur Midnight…',
+  'app.plant.delete.datedUnknown':
+    'VeilCore n’a pas pu vérifier s’il est déjà daté. Si son code de preuve est déjà dans un lot, il sera quand même daté sur Midnight ; sinon, il ne le sera pas.',
   'app.plant.delete.deleting': 'Suppression…',
   'app.plant.delete.failed': 'Il n’a pas été supprimé. {reason}',
   'app.plant.delete.why.busy': 'Un enregistrement est encore en cours d’envoi. Réessayez dans un instant.',

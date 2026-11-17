@@ -100,6 +100,26 @@ export const proofFor = async (commitment?: string): Promise<ProofState> => {
 };
 
 /**
+ * Where a record's date stands, for the holder deciding to delete it. Unlike proofFor, a failed
+ * or refused lookup is 'unknown', never "not in a batch", and nothing is cached: a batch may
+ * have been sealed a moment ago.
+ */
+export type DateForDelete = 'dated' | 'pending' | 'none' | 'unknown';
+export const dateForDelete = async (commitment?: string): Promise<DateForDelete> => {
+  if (!commitment || !HEX64.test(commitment)) return 'unknown';
+  try {
+    const res = await fetch(`${BASE}/proof/${encodeURIComponent(commitment)}`, { cache: 'no-store' });
+    // The registry's own answer for a proof code it holds but hasn't batched.
+    if (res.status === 404) return 'none';
+    if (!res.ok) return 'unknown';
+    const s = await checkProof(commitment, (await res.json()) as unknown);
+    return s.status === 'anchor-reported' ? 'dated' : s.status === 'pending' ? 'pending' : 'unknown';
+  } catch {
+    return 'unknown';
+  }
+};
+
+/**
  * Download the proof so the holder keeps their own copy. What it shows is said in the
  * file itself: inclusion in a batch, checked; the anchor, the registry's report.
  */

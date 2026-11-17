@@ -4,9 +4,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { aboutIdsOf } from '../veilcore/document-chain';
-import { recordProof, useRecordDate } from './verify/useAnchorCheck';
 import { neverSend } from '../veilcore/outbox';
-import type { ProofState } from '../veilcore/proofs';
+import { dateForDelete, type DateForDelete } from '../veilcore/proofs';
 import type { AppKey } from '../i18n/app/en';
 import React, { useEffect, useRef, useState } from 'react';
 import { Alert, Box, Button, Collapse, Divider, Link, Paper, Stack, Typography } from '@mui/material';
@@ -199,15 +198,17 @@ const DELETE_WHY: Record<DeleteFailure, AppKey> = {
   linked: 'app.plant.delete.blockedCorrection',
 };
 
-/** What happens to its date, from the record's own proof (useRecordDate): said before asking. */
-const deleteDateKey = (proof: ProofState | 'checking'): AppKey =>
-  proof === 'checking'
+/** What happens to its date (proofs.ts dateForDelete): said before asking. */
+const deleteDateKey = (d: DateForDelete | 'checking'): AppKey =>
+  d === 'checking'
     ? 'app.plant.delete.datedChecking'
-    : proof.status === 'anchor-reported'
+    : d === 'dated'
       ? 'app.plant.delete.datedYes'
-      : proof.status === 'pending'
+      : d === 'pending'
         ? 'app.plant.delete.datedPending'
-        : 'app.plant.delete.datedNo';
+        : d === 'none'
+          ? 'app.plant.delete.datedNo'
+          : 'app.plant.delete.datedUnknown';
 
 /**
  * Deleting a record (records.ts deleteRecord): what goes and what stays, said before asking.
@@ -221,7 +222,14 @@ const DeleteRecord: React.FC<{
   onDeleted: () => void;
 }> = ({ record, licensed, namedBy, onDeleted }) => {
   const { t } = useT();
-  const { proof } = useRecordDate(record.recordFingerprint);
+  const [dateNow, setDateNow] = useState<DateForDelete | 'checking'>('checking');
+  useEffect(() => {
+    let live = true;
+    void dateForDelete(record.recordFingerprint).then((d) => live && setDateNow(d));
+    return () => {
+      live = false;
+    };
+  }, [record.recordFingerprint]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const inCorrection = !!record.supersedes?.recordId || !!record.supersededBy;
@@ -230,8 +238,10 @@ const DeleteRecord: React.FC<{
     const named = namedBy.length
       ? t('app.plant.delete.named', { list: namedBy.map((x) => x.strainName || x.id).join(', ') })
       : '';
-    // Its date read again now, not from when the page opened: a batch may have been sealed since.
-    const dated = t(deleteDateKey(await recordProof(record.recordFingerprint)));
+    // Its date read again now, past any cache: a batch may have been sealed since the page opened.
+    const now = await dateForDelete(record.recordFingerprint);
+    setDateNow(now);
+    const dated = t(deleteDateKey(now));
     if (
       !window.confirm(`${t('app.plant.delete.confirm', { name: record.strainName || record.id, named })}\n\n${dated}`)
     )
@@ -254,7 +264,7 @@ const DeleteRecord: React.FC<{
         </Typography>
         {!blocked && (
           <Typography variant="body2" color="text.secondary" data-delete-date="">
-            {t(deleteDateKey(proof))}
+            {t(deleteDateKey(dateNow))}
           </Typography>
         )}
         {!blocked && (
