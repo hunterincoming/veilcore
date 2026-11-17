@@ -203,7 +203,8 @@ npm run standalone
 - Private-state password: type it by hand (the clipboard holds the key): 16 or more characters, at least three of capitals, small letters, numbers and symbols, e.g. `Practice-Rehearsal-2026`.
 - Menu: type `1` (Deploy a new VeilCore contract).
 - `Keep a maintenance authority? (Y/n)`: press Enter.
-- `Signing key`: paste (Cmd+V), press Enter. Nothing shows.
+- `Signing key`: paste (Cmd+V), press Enter. Nothing shows. It must be 64 characters: if it says another number, the clipboard holds something else (typing the password can replace it). In a second tab run the copy command above again and check `pbpaste | wc -c` prints 64. Never leave it blank: that makes a different key, and steps 6 to 10 sign with this one.
+- If it asks you to type `WRITTEN` and then the key back "from your paper": type `WRITTEN`, then paste the key again (the clipboard stands in for paper in a rehearsal).
 - Wait while it deploys and adds the circuit keys. Copy the contract address it prints.
 - Type `0` to exit.
 
