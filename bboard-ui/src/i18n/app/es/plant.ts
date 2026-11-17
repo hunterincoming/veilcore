@@ -58,7 +58,7 @@ export const plant = {
   'app.plant.f.notSavedYet': 'todavía no guardado',
   'app.plant.delete.title': 'Eliminar este registro',
   'app.plant.delete.text':
-    'Lo quita para siempre de su lista y del servidor de registros de VeilCore, con su copia cerrada y todo lo que haya compartido. Sus enlaces de verificación dirán que su titular lo eliminó. Los envíos aún abiertos para él dejan de funcionar; las firmas que un laboratorio ya hizo sobre él siguen siendo válidas. Los archivos de copia de seguridad guardados antes todavía lo contienen, pero restaurar uno no lo traerá de vuelta.',
+    'Lo quita de su lista, y sus datos, su copia cerrada y todo lo que haya compartido, para siempre del servidor de registros de VeilCore. Lo que sigue siendo público: su ID de registro, su código de prueba, el minuto en que se eliminó, cualquier fecha en Midnight y los vínculos de linaje u obligaciones ya registrados. Sus enlaces de verificación dirán que su titular lo eliminó. Los envíos aún abiertos para él dejan de funcionar; las firmas que un laboratorio ya hizo sobre él siguen siendo válidas. Los archivos de copia de seguridad guardados antes todavía lo contienen, pero restaurar uno no lo traerá de vuelta.',
   'app.plant.delete.button': 'Eliminar este registro',
   'app.plant.delete.confirm':
     '¿Eliminar «{name}»? No se puede deshacer. Un laboratorio o comprador al que se lo envió conserva su copia.{named}',
@@ -68,7 +68,7 @@ export const plant = {
   'app.plant.delete.blockedCorrection':
     'Forma parte de una corrección (corrige un registro, o un registro lo corrige), así que no se puede eliminar: la corrección depende de él.',
   'app.plant.delete.datedYes':
-    'Ya está fechado en Midnight. Esa fecha permanece: un código de prueba que no muestra nada y que una blockchain no puede deshacer.',
+    'El servidor de registros de VeilCore informa que ya está fechado en Midnight. Esa fecha permanece: un código de prueba que no muestra nada y que una blockchain no puede deshacer.',
   'app.plant.delete.datedPending':
     'Su código de prueba ya está en un lote que espera ser fechado en Midnight, así que se fechará igualmente: un código que no muestra nada.',
   'app.plant.delete.datedNo':

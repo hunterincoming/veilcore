@@ -112,18 +112,18 @@ export const verify = {
   'app.verify.deleted.title': '{id} a été supprimé par son détenteur',
   'app.verify.deleted.when': 'Supprimé le {date}. Ses détails ne sont plus affichés.',
   'app.verify.deleted.datedChecked':
-    'Avant cela, il a été daté sur Midnight : bloc {block}, {date}. Cette page l’a vérifié elle-même sur Midnight.',
+    'Avant cela, il a été daté sur Midnight : bloc {block}, {date}. Cette page a vérifié la date elle-même sur Midnight.',
   'app.verify.deleted.datedReported':
     'Le registre de VeilCore indique qu’il a été daté sur Midnight avant d’être supprimé. Un lien qui porte son code de preuve permet à cette page de le vérifier elle-même.',
   'app.verify.deleted.notDated': 'Le registre de VeilCore n’a aucune date sur Midnight pour lui.',
   'app.verify.deleted.datedReportedPlain':
     'Le registre de VeilCore indique qu’il a été daté sur Midnight. Un lien qui porte son code de preuve permet à cette page de le vérifier elle-même.',
   'app.verify.deleted.datedReportedAfter':
-    'Le registre de VeilCore indique qu’il a été daté sur Midnight après la suppression, car son lot avait été scellé avant. Un lien qui porte son code de preuve permet à cette page de le vérifier elle-même.',
+    'Le registre de VeilCore indique qu’il a été daté sur Midnight après la suppression. Un lien qui porte son code de preuve permet à cette page de le vérifier elle-même.',
   'app.verify.deleted.datedCheckedPlain':
-    'Il a été daté sur Midnight : bloc {block}, {date}. Cette page l’a vérifié elle-même sur Midnight.',
+    'Il a été daté sur Midnight : bloc {block}, {date}. Cette page a vérifié la date elle-même sur Midnight ; avant ou après la suppression, on ne peut pas le dire à la minute près.',
   'app.verify.deleted.datedCheckedAfter':
-    'Il a été daté sur Midnight après la suppression, car son lot avait été scellé avant : bloc {block}, {date}. Cette page l’a vérifié elle-même sur Midnight.',
+    'Il a été daté sur Midnight après la suppression : bloc {block}, {date}. Cette page a vérifié la date elle-même sur Midnight.',
   'app.verify.mismatch.title':
     'Le code de preuve de ce lien ne correspond pas à l’enregistrement : rien n’a été vérifié',
   'app.verify.mismatch.dontRely': 'Ne vous fiez pas à cette page.',

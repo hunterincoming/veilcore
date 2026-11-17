@@ -100,18 +100,18 @@ export const verify = {
   'app.verify.deleted.title': '{id} は保有者によって削除されました',
   'app.verify.deleted.when': '{date} に削除されました。詳細はもう表示されません。',
   'app.verify.deleted.datedChecked':
-    '削除の前に Midnight で日付が記録されていました：ブロック {block}、{date}。このページが Midnight で直接確認しました。',
+    '削除の前に Midnight で日付が記録されていました：ブロック {block}、{date}。このページが日付を Midnight で直接確認しました。',
   'app.verify.deleted.datedReported':
     'VeilCore のレジストリは、削除前に Midnight で日付が記録されたと報告しています。証明コードを含むリンクなら、このページが直接確認できます。',
   'app.verify.deleted.notDated': 'VeilCore のレジストリには、この記録の Midnight での日付がありません。',
   'app.verify.deleted.datedReportedPlain':
     'VeilCore のレジストリは、Midnight で日付が記録されたと報告しています。証明コードを含むリンクなら、このページが直接確認できます。',
   'app.verify.deleted.datedReportedAfter':
-    'VeilCore のレジストリは、バッチが削除前に封印されていたため、削除後に Midnight で日付が記録されたと報告しています。証明コードを含むリンクなら、このページが直接確認できます。',
+    'VeilCore のレジストリは、削除の後に Midnight で日付が記録されたと報告しています。証明コードを含むリンクなら、このページが直接確認できます。',
   'app.verify.deleted.datedCheckedPlain':
-    'Midnight で日付が記録されました：ブロック {block}、{date}。このページが Midnight で直接確認しました。',
+    'Midnight で日付が記録されました：ブロック {block}、{date}。このページが日付を Midnight で直接確認しました。削除の前か後かは分単位では判断できません。',
   'app.verify.deleted.datedCheckedAfter':
-    'バッチが削除前に封印されていたため、削除後に Midnight で日付が記録されました：ブロック {block}、{date}。このページが Midnight で直接確認しました。',
+    '削除の後に Midnight で日付が記録されました：ブロック {block}、{date}。このページが日付を Midnight で直接確認しました。',
   'app.verify.mismatch.title': 'このリンクの証明コードは記録と一致しません：何も確認していません',
   'app.verify.mismatch.dontRely': 'このページに頼らないでください。',
   'app.verify.mismatch.text':

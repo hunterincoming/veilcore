@@ -58,7 +58,7 @@ export const plant = {
   'app.plant.f.notSavedYet': 'not saved yet',
   'app.plant.delete.title': 'Delete this record',
   'app.plant.delete.text':
-    'Takes it off your list and off VeilCore’s registry for good, with its locked copy and anything you shared. Its check links will say it was deleted by its holder. Deliveries still open for it stop working; signatures a lab already made on it stay valid. Backup files saved before still contain it, but restoring one won’t bring it back.',
+    'Takes it off your list, and its details, locked copy and anything you shared off VeilCore’s registry for good. What stays public: its record ID, its proof code, the minute it was deleted, any date on Midnight, and lineage links or obligations already recorded. Its check links will say it was deleted by its holder. Deliveries still open for it stop working; signatures a lab already made on it stay valid. Backup files saved before still contain it, but restoring one won’t bring it back.',
   'app.plant.delete.button': 'Delete this record',
   'app.plant.delete.confirm':
     'Delete “{name}”? This can’t be undone. A lab or buyer you sent it to keeps their copy.{named}',
@@ -67,7 +67,7 @@ export const plant = {
   'app.plant.delete.blockedCorrection':
     'It is part of a correction (it corrects a record, or a record corrects it), so it can’t be deleted: the correction relies on it.',
   'app.plant.delete.datedYes':
-    'It is already dated on Midnight. That date stays: a proof code that shows nothing, which a blockchain can’t take back.',
+    'VeilCore’s registry reports it already dated on Midnight. That date stays: a proof code that shows nothing, which a blockchain can’t take back.',
   'app.plant.delete.datedPending':
     'Its proof code is already in a batch waiting to be dated on Midnight, so it will still be dated: a code that shows nothing.',
   'app.plant.delete.datedNo':

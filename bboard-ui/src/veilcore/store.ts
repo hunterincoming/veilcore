@@ -22,6 +22,11 @@ export type SaveRefusal = {
   readonly words?: AppKey;
   /** The registry says its holder deleted this id (code "deleted"): it is dropped here too. */
   readonly deleted?: true;
+  /**
+   * The row is live, but its correction link names a deleted record (code "links-deleted"):
+   * which link, so this browser can drop it and save again.
+   */
+  readonly linksDeleted?: 'supersedes' | 'supersededBy';
 };
 
 /**

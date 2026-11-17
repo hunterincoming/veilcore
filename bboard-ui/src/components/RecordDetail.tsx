@@ -196,6 +196,7 @@ const DELETE_WHY: Record<DeleteFailure, AppKey> = {
   'not-removed': 'app.plant.delete.why.notRemoved',
   'device-only': 'app.plant.delete.why.deviceOnly',
   missing: 'app.plant.delete.why.missing',
+  linked: 'app.plant.delete.blockedCorrection',
 };
 
 /** What happens to its date, from the record's own proof (useRecordDate): said before asking. */

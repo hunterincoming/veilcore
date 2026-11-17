@@ -574,10 +574,43 @@ export const clearRemovedAsDeleted = (): void => {
 const deleting = new Set<string>();
 
 /**
+ * A live record whose correction link names a deleted record (code "links-deleted"): a stale
+ * copy from before the correction was taken back. Never dropped, and its keys stay. A record
+ * pointing at a deleted correction loses that link and is saved again; a correction of a
+ * deleted record the registry never took is let go (it can't be saved, ever).
+ */
+const dropDeletedLinks = (result: SaveResult): SaveResult => {
+  const links = result.refused.filter((r) => r.linksDeleted);
+  if (!links.length) return result;
+  let changed = false;
+  for (const ref of links) {
+    if (ref.linksDeleted === 'supersededBy') {
+      records = records.map((r) => {
+        if (r.id !== ref.id || !r.supersededBy) return r;
+        changed = true;
+        const { supersededBy: _gone, ...rest } = r;
+        void _gone;
+        return rest;
+      });
+    } else if (rowStateOf(RECORDS_KEY, ref.id) === undefined && records.some((r) => r.id === ref.id)) {
+      records = records.filter((r) => r.id !== ref.id);
+      takeFromOutbox([ref.id]);
+      forgetKeys(ref.id);
+      changed = true;
+    }
+  }
+  if (changed) persist();
+  const refused = result.refused.filter((r) => !r.linksDeleted);
+  return { ...result, refused, ok: result.ok || (refused.length === 0 && !result.offline && !result.held?.length) };
+};
+
+/**
  * Records the registry says their holder deleted (another tab or device, or a restored backup
- * that still had them): gone from here too, and not reported as a save problem.
+ * that still had them): gone from here too, and not reported as a save problem. Only the
+ * row's own id refused as "deleted"; a refused link never drops a record (dropDeletedLinks).
  */
 const dropDeleted = (result: SaveResult): SaveResult => {
+  result = dropDeletedLinks(result);
   const gone = new Set(result.refused.filter((r) => r.deleted).map((r) => r.id));
   if (!gone.size) return result;
   records = records.filter((r) => !gone.has(r.id));
@@ -1440,7 +1473,7 @@ export const discardUnsaved = async (id: string): Promise<void> => {
 };
 
 /** Why deleting a record didn't happen; RecordDetail says each in the page's language. */
-export type DeleteFailure = 'busy' | 'offline' | 'refused' | 'not-removed' | 'device-only' | 'missing';
+export type DeleteFailure = 'busy' | 'offline' | 'refused' | 'not-removed' | 'device-only' | 'missing' | 'linked';
 
 /**
  * Delete one of the holder's records, from this browser and from VeilCore's registry (its row,
@@ -1464,6 +1497,8 @@ export const deleteRecord = async (id: string): Promise<{ ok: true } | { error: 
     const neverReachedRegistry = inOutbox(id) && rowStateOf(RECORDS_KEY, id) === undefined && !registryHasProofCode(id);
     const out = await deleteRecords([id]);
     if ('error' in out) return { error: out.offline ? 'offline' : 'refused' };
+    // A correction of it exists on the registry (perhaps made on another device).
+    if (out.refused?.some((x) => x.id === id && x.code === 'linked')) return { error: 'linked' };
     // Only what the registry says it removed counts; a record it never had is removed here only.
     if (!out.removed.includes(id) && !neverReachedRegistry) return { error: 'not-removed' };
     records = records.filter((x) => x.id !== id);

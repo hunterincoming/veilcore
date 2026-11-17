@@ -17,11 +17,11 @@ describe('a deleted record’s date', () => {
     );
   });
 
-  it('a block in the deletion’s own minute takes the registry’s answer, or says neither', () => {
+  it('a checked block in the deletion’s own minute says neither, whatever the registry answers', () => {
     const inMinute = { checkedBlockTime: '2026-11-17T15:30:20Z', anchored: true, deletedAt };
     expect(deletedDateKey(inMinute)).toBe('app.verify.deleted.datedCheckedPlain');
-    expect(deletedDateKey({ ...inMinute, relative: 'after' })).toBe('app.verify.deleted.datedCheckedAfter');
-    expect(deletedDateKey({ ...inMinute, relative: 'before' })).toBe('app.verify.deleted.datedChecked');
+    expect(deletedDateKey({ ...inMinute, relative: 'after' })).toBe('app.verify.deleted.datedCheckedPlain');
+    expect(deletedDateKey({ ...inMinute, relative: 'before' })).toBe('app.verify.deleted.datedCheckedPlain');
   });
 
   it('without a check, the registry’s report, never more', () => {

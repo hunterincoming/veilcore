@@ -60,7 +60,7 @@ export const plant = {
   'app.plant.f.notSavedYet': 'noch nicht gespeichert',
   'app.plant.delete.title': 'Diesen Datensatz löschen',
   'app.plant.delete.text':
-    'Entfernt ihn endgültig aus Ihrer Liste und aus dem Register von VeilCore, mit seiner verschlossenen Kopie und allem, was Sie geteilt haben. Seine Prüflinks sagen dann, dass sein Inhaber ihn gelöscht hat. Noch offene Lieferungen für ihn funktionieren nicht mehr; Signaturen, die ein Labor schon darauf gesetzt hat, bleiben gültig. Früher gespeicherte Sicherungskopien enthalten ihn noch, aber eine Wiederherstellung bringt ihn nicht zurück.',
+    'Entfernt ihn aus Ihrer Liste, und seine Angaben, seine verschlossene Kopie und alles, was Sie geteilt haben, endgültig aus dem Register von VeilCore. Öffentlich bleiben: seine Eintrags-ID, sein Prüfcode, die Minute des Löschens, ein Datum auf Midnight und schon erfasste Abstammungsverknüpfungen oder Verpflichtungen. Seine Prüflinks sagen dann, dass sein Inhaber ihn gelöscht hat. Noch offene Lieferungen für ihn funktionieren nicht mehr; Signaturen, die ein Labor schon darauf gesetzt hat, bleiben gültig. Früher gespeicherte Sicherungskopien enthalten ihn noch, aber eine Wiederherstellung bringt ihn nicht zurück.',
   'app.plant.delete.button': 'Diesen Datensatz löschen',
   'app.plant.delete.confirm':
     '„{name}“ löschen? Das lässt sich nicht rückgängig machen. Ein Labor oder Käufer, dem Sie ihn geschickt haben, behält seine Kopie.{named}',
@@ -70,7 +70,7 @@ export const plant = {
   'app.plant.delete.blockedCorrection':
     'Er gehört zu einer Korrektur (er korrigiert einen Datensatz, oder ein Datensatz korrigiert ihn) und kann deshalb nicht gelöscht werden: Die Korrektur verlässt sich darauf.',
   'app.plant.delete.datedYes':
-    'Er ist bereits auf Midnight datiert. Dieses Datum bleibt: ein Prüfcode, der nichts zeigt und den eine Blockchain nicht zurücknehmen kann.',
+    'Das Register von VeilCore meldet, dass er bereits auf Midnight datiert ist. Dieses Datum bleibt: ein Prüfcode, der nichts zeigt und den eine Blockchain nicht zurücknehmen kann.',
   'app.plant.delete.datedPending':
     'Sein Prüfcode ist bereits in einem Stapel, der auf die Datierung auf Midnight wartet, also wird er trotzdem datiert: ein Code, der nichts zeigt.',
   'app.plant.delete.datedNo':

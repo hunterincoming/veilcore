@@ -1,7 +1,8 @@
 // What a deleted record's check page says about its date (VerifyPage DeletedRecord). A date is
-// checked on Midnight only for the link's own proof code, and before/after the deletion is said
-// only when it is known: deletedAt is to the minute, so a block in that minute needs the
-// registry's own answer.
+// checked on Midnight only for the link's own proof code. When this page checked the block, it
+// says before or after the deletion only from its own comparison (deletedAt is to the minute, so
+// a block inside that minute is said plainly); otherwise it repeats the registry's answer as
+// the registry's.
 // SPDX-License-Identifier: Apache-2.0
 
 import type { AppKey } from '../../i18n/app/en';
@@ -11,7 +12,7 @@ export type DeletedDateInput = {
   readonly checkedBlockTime?: string | number;
   /** The registry reports an anchor for it. */
   readonly anchored: boolean;
-  /** The registry's answer: the anchor landed 'before' or 'after' the deletion, or unknown. */
+  /** The registry's answer (outside its clock-skew window): 'before' or 'after' the deletion, or unknown. */
   readonly relative?: string;
   readonly deletedAt?: string;
 };
@@ -28,7 +29,7 @@ export const deletedDateKey = (i: DeletedDateInput): AppKey => {
           ? 'before'
           : block >= deleted + 60_000
             ? 'after'
-            : rel;
+            : undefined;
     return order === 'before'
       ? 'app.verify.deleted.datedChecked'
       : order === 'after'

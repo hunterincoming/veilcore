@@ -193,6 +193,18 @@ export const fakeRegistry = () => {
         const items = JSON.parse(body) as Row[];
         const theirKid = items.map((r) => (r.sealed as { kid?: string } | undefined)?.kid).find(Boolean);
         const correctionOf = (r: Row) => (r.supersedes as { recordId?: string } | undefined)?.recordId;
+        /** Which correction link of this row newly names a deleted id (one already held stays). */
+        const linkToDeleted = (r: Row, held: Row | undefined): 'supersedes' | 'supersededBy' | undefined => {
+          if (
+            typeof r.supersededBy === 'string' &&
+            deleted.has(r.supersededBy) &&
+            held?.supersededBy !== r.supersededBy
+          )
+            return 'supersededBy';
+          const of = correctionOf(r);
+          if (of && deleted.has(of) && (held ? correctionOf(held) : undefined) !== of) return 'supersedes';
+          return undefined;
+        };
         /** Second corrections in this save: id → the record and the correction held already. */
         const second = new Map<string, { recordId: string; correctionId: string }>();
         if (misbehave.oneCorrection && path === '/api/records')
@@ -225,6 +237,14 @@ export const fakeRegistry = () => {
               id: r.id,
               reason: 'this record was deleted by its holder; it can’t be saved again',
               code: 'deleted',
+            });
+          // A correction link newly naming a deleted id: the row is live, only the link is refused.
+          else if (path === '/api/records' && linkToDeleted(r, t.get(r.id)))
+            rejected.push({
+              id: r.id,
+              reason: `${linkToDeleted(r, t.get(r.id))} names a record that was deleted by its holder; nothing was changed`,
+              code: 'links-deleted',
+              field: linkToDeleted(r, t.get(r.id)),
             });
           else if (misbehave.rejectIds.has(r.id)) rejected.push({ id: r.id, reason: 'refused for this test' });
           else if (
@@ -310,10 +330,32 @@ export const fakeRegistry = () => {
       }
       if (method === 'DELETE') {
         const ids = (JSON.parse(body) as { ids: string[] }).ids;
-        const removed = ids.filter((id) => t.get(id)?.holder === holder && t.delete(id));
+        const refused: { id: string; code: string; reason: string }[] = [];
+        const correctionOfId = (id: string) => (t.get(id)?.supersedes as { recordId?: string } | undefined)?.recordId;
+        // As the registry: a record a live correction still corrects is refused unless both go.
+        const removable = ids.filter((id) => {
+          if (path !== '/api/records' || t.get(id)?.holder !== holder) return true;
+          const live = [...t.values()].some(
+            (x) => x.holder === holder && correctionOfId(String(x.id)) === id && !ids.includes(String(x.id)),
+          );
+          if (live) refused.push({ id, code: 'linked', reason: 'a correction of this record still exists' });
+          return !live;
+        });
+        const removed = removable.filter((id) => {
+          const of = correctionOfId(id);
+          if (!(t.get(id)?.holder === holder && t.delete(id))) return false;
+          // Deleting a correction takes the corrected record's link to it.
+          const orig = of ? t.get(of) : undefined;
+          if (orig && orig.supersededBy === id) {
+            const { supersededBy: _l, ...rest } = orig;
+            void _l;
+            t.set(of!, rest);
+          }
+          return true;
+        });
         // Records stay deleted, as the registry's tombstones keep them (veilcore-api tombstones.js).
         if (path === '/api/records') for (const id of removed) deleted.add(id);
-        return json({ ok: removed.length === ids.length, removed });
+        return json({ ok: removed.length === ids.length, removed, ...(refused.length ? { refused } : {}) });
       }
       if (path === '/api/records' && misbehave.refuseGets > 0) {
         misbehave.refuseGets--;

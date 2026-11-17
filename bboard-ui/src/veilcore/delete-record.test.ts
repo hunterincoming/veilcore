@@ -149,4 +149,57 @@ describe('deleting a record', () => {
     await settle(100);
     expect(reg.rowsOf(H).some((r) => r.id === record.id)).toBe(false);
   });
+
+  it('a stale tab still linking to a deleted correction keeps the record, its keys, and drops only the link', async () => {
+    const { A, record, H } = await withRecord('del-h');
+    const fix = await A.run(() => A.m.records.issueCorrection(record.id, { notes: 'fixed' }, 'fix'));
+    if (!fix) throw new Error('no correction');
+    await until(() => reg.rowsOf(H).some((r) => r.id === fix.id && !!r.sealed));
+    const B = await browser('del-h2', {}, 'del-h');
+    await B.run(() => B.m.records.hydrate());
+    expect((await B.run(() => B.m.records.getRecord(record.id)))?.supersededBy).toBe(fix.id);
+
+    // The correction is taken back on A (the registry also drops the record's link to it).
+    const gone = await A.run(() => A.m.api.deleteRecords([fix.id]));
+    expect(gone).toMatchObject({ removed: [fix.id] });
+    expect(reg.rowsOf(H).find((r) => r.id === record.id)?.supersededBy).toBeUndefined();
+
+    // B, still linking to it, saves: the record is refused only for its link, never dropped.
+    await B.run(() => B.m.records.noteSentTo(record.id, 'TR-3', 'Lab'));
+    await until(async () => (await B.run(() => B.m.records.getRecord(record.id)))?.supersededBy === undefined);
+    expect(await B.run(() => B.m.records.getRecord(record.id))).toBeDefined();
+    expect(await B.run(() => B.m.records.getRecord(fix.id))).toBeUndefined();
+    await until(() => reg.rowsOf(H).some((r) => r.id === record.id && r.supersededBy === undefined));
+    expect(reg.rowsOf(H).some((r) => r.id === record.id)).toBe(true);
+    // The record's keys stay: it still opens on B.
+    expect((await B.run(() => B.m.records.getRecord(record.id)))?.strainName).toBe('TEST delete');
+  });
+
+  it('a record a correction still corrects (made on another device) isn’t deleted, and says why', async () => {
+    const { A, record, H } = await withRecord('del-i');
+    const fix = await A.run(() => A.m.records.issueCorrection(record.id, { notes: 'fixed' }, 'fix'));
+    if (!fix) throw new Error('no correction');
+    await until(() => reg.rowsOf(H).some((r) => r.id === fix.id && !!r.sealed));
+    const out = await A.run(() => A.m.api.deleteRecords([record.id]));
+    expect(out).toMatchObject({ removed: [], refused: [{ id: record.id, code: 'linked' }] });
+    expect(reg.rowsOf(H).some((r) => r.id === record.id)).toBe(true);
+  });
+
+  it('VeilCore refusing it as linked is said as the correction it is part of', async () => {
+    const { A, record } = await withRecord('del-j');
+    vi.stubGlobal('fetch', (url: string, init?: RequestInit) =>
+      init?.method === 'DELETE'
+        ? Promise.resolve(
+            new Response(
+              JSON.stringify({ ok: false, removed: [], refused: [{ id: record.id, code: 'linked', reason: 'x' }] }),
+              {
+                status: 200,
+              },
+            ),
+          )
+        : reg.fetch(url, init),
+    );
+    expect(await A.run(() => A.m.records.deleteRecord(record.id))).toEqual({ error: 'linked' });
+    expect(await A.run(() => A.m.records.getRecord(record.id))).toBeDefined();
+  });
 });

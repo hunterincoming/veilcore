@@ -60,7 +60,7 @@ export const plant = {
   'app.plant.f.notSavedYet': 'pas encore enregistré',
   'app.plant.delete.title': 'Supprimer cet enregistrement',
   'app.plant.delete.text':
-    'Le retire définitivement de votre liste et du registre de VeilCore, avec sa copie verrouillée et tout ce que vous avez partagé. Ses liens de vérification diront que son détenteur l’a supprimé. Les livraisons encore ouvertes pour lui ne fonctionnent plus ; les signatures qu’un laboratoire a déjà faites dessus restent valables. Les fichiers de sauvegarde enregistrés avant le contiennent encore, mais en restaurer un ne le fera pas revenir.',
+    'Le retire de votre liste, et retire définitivement du registre de VeilCore ses détails, sa copie verrouillée et tout ce que vous avez partagé. Ce qui reste public : son identifiant, son code de preuve, la minute de sa suppression, toute date sur Midnight, et les liens de lignée ou obligations déjà enregistrés. Ses liens de vérification diront que son détenteur l’a supprimé. Les livraisons encore ouvertes pour lui ne fonctionnent plus ; les signatures qu’un laboratoire a déjà faites dessus restent valables. Les fichiers de sauvegarde enregistrés avant le contiennent encore, mais en restaurer un ne le fera pas revenir.',
   'app.plant.delete.button': 'Supprimer cet enregistrement',
   'app.plant.delete.confirm':
     'Supprimer « {name} » ? C’est irréversible. Un laboratoire ou un acheteur à qui vous l’avez envoyé garde sa copie.{named}',
@@ -70,7 +70,7 @@ export const plant = {
   'app.plant.delete.blockedCorrection':
     'Il fait partie d’une correction (il corrige un enregistrement, ou un enregistrement le corrige), il ne peut donc pas être supprimé : la correction s’appuie dessus.',
   'app.plant.delete.datedYes':
-    'Il est déjà daté sur Midnight. Cette date reste : un code de preuve qui ne montre rien, qu’une blockchain ne peut pas reprendre.',
+    'Le registre de VeilCore indique qu’il est déjà daté sur Midnight. Cette date reste : un code de preuve qui ne montre rien, qu’une blockchain ne peut pas reprendre.',
   'app.plant.delete.datedPending':
     'Son code de preuve est déjà dans un lot qui attend d’être daté sur Midnight : il sera donc daté quand même, sous forme d’un code qui ne montre rien.',
   'app.plant.delete.datedNo':
