@@ -89,6 +89,8 @@ export const home = {
   // SaveProblemBar.tsx
   'app.home.saveProblem.records': 'records',
   'app.home.saveProblem.agreements': 'agreements',
+  'app.home.saveProblem.unreachable':
+    'VeilCore couldn’t be reached, so your latest {what} aren’t saved there yet. They’re kept in this browser and sent again with the next save.',
   'app.home.saveProblem.text':
     'The registry did not store some of your {what}, so they have been put back to what it holds: {list}',
   // RecordFinder.tsx
