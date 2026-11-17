@@ -50,6 +50,7 @@ const ALL = [
   'strain-profile-v1',
   'private-lab-signatures-v1',
   'shared-by-proof-code-v1',
+  'record-tombstones-v1',
 ];
 /** What agreements on chain use: required for a test site, and for mainnet once agreements are live. */
 const AGREEMENTS = [
@@ -118,10 +119,10 @@ const runScript = (script: string, env: Record<string, string>, cwd = ROOT) =>
   });
 
 describe('the features the site needs', () => {
-  it('are exactly sealed records, lab results, animal records, finishing a delivery, locked sample details, the record and agreement rev, locked names, bound DNA reports, sharing who bred it, name codes, bound lab reports, dating first, document records, strain records, private lab signatures and shared ones read by proof code', () => {
+  it('are exactly sealed records, lab results, animal records, finishing a delivery, locked sample details, the record and agreement rev, locked names, bound DNA reports, sharing who bred it, name codes, bound lab reports, dating first, document records, strain records, private lab signatures, shared ones read by proof code, and deleted records kept deleted', () => {
     expect(Object.keys(REQUIRED_FEATURES)).toEqual(ALL);
     expect(featuresLine('https://r.example')).toBe(
-      'Registry https://r.example serves sealed records, lab results, animal records, finishing a received delivery, locked sample details, refusing an older copy of a record, refusing an older copy of an agreement, locked record names, DNA reports shown only as a bound code, sharing who bred it, checking the name in a link, keeping lab report hashes private, dating a record the moment it is sealed, document records, strain and line records, lab signatures kept private and shown only when the holder shares them and shared lab signatures read by proof code, on the claim check page.',
+      'Registry https://r.example serves sealed records, lab results, animal records, finishing a received delivery, locked sample details, refusing an older copy of a record, refusing an older copy of an agreement, locked record names, DNA reports shown only as a bound code, sharing who bred it, checking the name in a link, keeping lab report hashes private, dating a record the moment it is sealed, document records, strain and line records, lab signatures kept private and shown only when the holder shares them, shared lab signatures read by proof code, on the claim check page and keeping a deleted record deleted.',
     );
   });
 
@@ -165,6 +166,7 @@ describe('the features the site needs', () => {
           'strain-profile-v1',
           'private-lab-signatures-v1',
           'shared-by-proof-code-v1',
+          'record-tombstones-v1',
         ],
       },
       'R',
@@ -280,6 +282,7 @@ describe('deploy:test', () => {
           'strain-profile-v1',
           'private-lab-signatures-v1',
           'shared-by-proof-code-v1',
+          'record-tombstones-v1',
         ],
       },
     });
@@ -309,6 +312,7 @@ describe('deploy:test', () => {
           'strain-profile-v1',
           'private-lab-signatures-v1',
           'shared-by-proof-code-v1',
+          'record-tombstones-v1',
         ],
       },
     });
@@ -338,6 +342,7 @@ describe('deploy:test', () => {
           'strain-profile-v1',
           'private-lab-signatures-v1',
           'shared-by-proof-code-v1',
+          'record-tombstones-v1',
         ],
       },
     });
@@ -367,6 +372,7 @@ describe('deploy:test', () => {
           'strain-profile-v1',
           'private-lab-signatures-v1',
           'shared-by-proof-code-v1',
+          'record-tombstones-v1',
         ],
       },
     });
@@ -396,6 +402,7 @@ describe('deploy:test', () => {
           'strain-profile-v1',
           'private-lab-signatures-v1',
           'shared-by-proof-code-v1',
+          'record-tombstones-v1',
         ],
       },
     });

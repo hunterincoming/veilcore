@@ -16,7 +16,18 @@ import type { AppKey } from '../i18n/app/en';
  * refused it (api-store.ts), so the reason can be said in the visitor's language; the
  * registry's own reasons stay as it gave them.
  */
-export type SaveRefusal = { readonly id: string; readonly reason: string; readonly words?: AppKey };
+export type SaveRefusal = {
+  readonly id: string;
+  readonly reason: string;
+  readonly words?: AppKey;
+  /** The registry says its holder deleted this id (code "deleted"): it is dropped here too. */
+  readonly deleted?: true;
+  /**
+   * The row is live, but its correction link names a deleted record (code "links-deleted"):
+   * which link, so this browser can drop it and save again.
+   */
+  readonly linksDeleted?: 'supersedes' | 'supersededBy';
+};
 
 /**
  * What a save actually did. The registry can refuse individual items (an id another

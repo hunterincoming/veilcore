@@ -109,6 +109,21 @@ export const verify = {
   'app.verify.notFoundText':
     'Dieser Prüflink passt zu keinem Datensatz im Register. Prüfen Sie, ob der Link vollständig und unverändert ist.',
   'app.verify.goHome': 'Zu veilcore.org',
+  'app.verify.deleted.title': '{id} wurde von seinem Inhaber gelöscht',
+  'app.verify.deleted.when': 'Gelöscht am {date}. Seine Angaben werden nicht mehr angezeigt.',
+  'app.verify.deleted.datedChecked':
+    'Davor wurde er auf Midnight datiert: Block {block}, {date}. Diese Seite hat das Datum selbst auf Midnight geprüft.',
+  'app.verify.deleted.datedReported':
+    'Das Register von VeilCore meldet, dass er vor dem Löschen auf Midnight datiert wurde. Mit einem Link, der seinen Prüfcode enthält, kann diese Seite das selbst prüfen.',
+  'app.verify.deleted.notDated': 'Das Register von VeilCore hat für ihn kein Datum auf Midnight.',
+  'app.verify.deleted.datedReportedPlain':
+    'Das Register von VeilCore meldet, dass er auf Midnight datiert wurde. Mit einem Link, der seinen Prüfcode enthält, kann diese Seite das selbst prüfen.',
+  'app.verify.deleted.datedReportedAfter':
+    'Das Register von VeilCore meldet, dass er nach dem Löschen auf Midnight datiert wurde. Mit einem Link, der seinen Prüfcode enthält, kann diese Seite das selbst prüfen.',
+  'app.verify.deleted.datedCheckedPlain':
+    'Er wurde auf Midnight datiert: Block {block}, {date}. Diese Seite hat das Datum selbst auf Midnight geprüft; ob vor oder nach dem Löschen, lässt sich nicht auf die Minute sagen.',
+  'app.verify.deleted.datedCheckedAfter':
+    'Er wurde nach dem Löschen auf Midnight datiert: Block {block}, {date}. Diese Seite hat das Datum selbst auf Midnight geprüft.',
   'app.verify.mismatch.title': 'Der Prüfcode dieses Links passt nicht zum Datensatz: nichts geprüft',
   'app.verify.mismatch.dontRely': 'Verlassen Sie sich nicht auf diese Seite.',
   'app.verify.mismatch.text':

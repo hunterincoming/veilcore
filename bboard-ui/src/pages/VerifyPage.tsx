@@ -105,7 +105,9 @@ import {
   anchorSummary,
   registryDateWords,
 } from '../components/verify/anchor-words';
-import { useAnchorCheck } from '../components/verify/useAnchorCheck';
+import { useAnchorCheck, useRecordDate } from '../components/verify/useAnchorCheck';
+import { deletedDateKey } from '../components/verify/deleted-words';
+import { utcStamp } from '../veilcore/time';
 import { VerifierChallengePanel } from '../components/chain/VerifierChallengePanel';
 import { LicenseProofPanel } from '../components/licensing/LicenseProof';
 import { LendHere } from '../components/licensing/LendHere';
@@ -189,6 +191,11 @@ const DateSummary: React.FC<{
 
 type VerifyResult = {
   found: boolean;
+  /** Its holder deleted it (registry tombstones): said so, never "not found". */
+  deleted?: boolean;
+  deletedAt?: string;
+  /** For a deleted record: whether its anchor landed before or after the deletion. */
+  anchoredRelativeToDeletion?: string;
   id?: string;
   cultivar?: string;
   /** The name's salted code (round 6, CONTRACT.md #33): checks the name in a link with its salt. */
@@ -295,6 +302,43 @@ const isParentLine = (x: unknown): boolean =>
     typeof (x as Record<string, unknown>).individualId === 'string');
 
 /**
+ * A record its holder deleted. Its date is checked on Midnight here only when the link carries
+ * the record's own proof code (the registry still reports it); otherwise it is the registry's
+ * word. Whether it was dated before or after the deletion is said only when known.
+ */
+const DeletedRecord: React.FC<{
+  id: string;
+  deletedAt?: string;
+  anchored: boolean;
+  relative?: string;
+  fp: string | null;
+  storedFp?: string | null;
+}> = ({ id, deletedAt, anchored, relative, fp, storedFp }) => {
+  const { t } = useT();
+  const bound = !!fp && !!storedFp && fp === storedFp;
+  const { anchor } = useRecordDate(bound ? fp : undefined);
+  const checked = bound && anchor !== undefined && anchor !== 'checking' && anchor.status === 'checked' ? anchor : null;
+  const deletedMs = deletedAt ? Date.parse(deletedAt) : NaN;
+  const key = deletedDateKey({ checkedBlockTime: checked?.blockTime, anchored, relative, deletedAt });
+  const dated = checked ? t(key, { block: String(checked.blockHeight), date: utcStamp(checked.blockTime) }) : t(key);
+  return (
+    <Paper sx={{ p: 4, textAlign: 'center' }} data-deleted-record="" data-deleted-bound={bound ? 'yes' : 'no'}>
+      <Typography variant="h6" component="h1" sx={{ mb: 1, overflowWrap: 'anywhere' }}>
+        {t('app.verify.deleted.title', { id })}
+      </Typography>
+      {deletedAt && !Number.isNaN(deletedMs) && (
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+          {t('app.verify.deleted.when', { date: utcStamp(deletedAt) })}
+        </Typography>
+      )}
+      <Typography variant="body2" color="text.secondary">
+        {dated}
+      </Typography>
+    </Paper>
+  );
+};
+
+/**
  * The fields this page reads. Anything absent renders as not disclosed, which is
  * the same as the holder choosing not to show it, so only `found` has to be there.
  */
@@ -344,7 +388,10 @@ const isVerifyResult = (v: unknown): v is VerifyResult => {
     str(r.individualId) &&
     str(r.idScheme) &&
     isParentLine(r.sire) &&
-    isParentLine(r.dam)
+    isParentLine(r.dam) &&
+    bool(r.deleted) &&
+    str(r.deletedAt) &&
+    str(r.anchoredRelativeToDeletion)
   );
 };
 
@@ -605,6 +652,15 @@ export const VerifyPage: React.FC = () => {
           <Paper sx={{ p: 6, textAlign: 'center' }}>
             <CircularProgress size={28} sx={{ color: INK_COLOR }} aria-label={t('app.verify.checkingRecord')} />
           </Paper>
+        ) : !result?.found && result?.deleted ? (
+          <DeletedRecord
+            id={idText(id, tr)}
+            deletedAt={result.deletedAt}
+            anchored={!!result.anchored}
+            relative={result.anchoredRelativeToDeletion}
+            fp={fp}
+            storedFp={result.recordFingerprint}
+          />
         ) : !result?.found ? (
           <Paper sx={{ p: 4, textAlign: 'center' }}>
             <Typography variant="h6" component="h1" sx={{ mb: 1, overflowWrap: 'anywhere' }}>

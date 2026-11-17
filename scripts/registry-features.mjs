@@ -65,6 +65,9 @@ export const REQUIRED_FEATURES = Object.freeze({
   // the claim check page names a plant only by its proof code, and reads the lab's shared report
   // on /attestations/subject to name the lab. Without it that page can't name the lab.
   "shared-by-proof-code-v1": "shared lab signatures read by proof code, on the claim check page",
+  // A deleted record stays deleted (veilcore-api tombstones.js, 17 Nov 2026): without it a save
+  // from another tab or a restored backup would put a deleted record back.
+  "record-tombstones-v1": "keeping a deleted record deleted",
 });
 
 /**

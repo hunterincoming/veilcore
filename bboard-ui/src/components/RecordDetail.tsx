@@ -3,6 +3,10 @@
 // pull the evidence summary, or check a report file against an existing record.
 // SPDX-License-Identifier: Apache-2.0
 
+import { aboutIdsOf } from '../veilcore/document-chain';
+import { neverSend } from '../veilcore/outbox';
+import { dateForDelete, type DateForDelete } from '../veilcore/proofs';
+import type { AppKey } from '../i18n/app/en';
 import React, { useEffect, useRef, useState } from 'react';
 import { Alert, Box, Button, Collapse, Divider, Link, Paper, Stack, Typography } from '@mui/material';
 import LockIcon from '@mui/icons-material/LockOutlined';
@@ -11,6 +15,8 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBackOutlined';
 import CodeIcon from '@mui/icons-material/DataObjectOutlined';
 import {
   useRecords,
+  deleteRecord,
+  type DeleteFailure,
   getRecord,
   exportEnvelope,
   childrenOf,
@@ -18,6 +24,7 @@ import {
   integrityOf,
   useSealedView,
   latestVersionOf,
+  type StrainRecord,
 } from '../veilcore/records';
 import { LockedRecords } from './LockedRecords';
 import { RecordSaveNotices } from './RecordSaveNotices';
@@ -180,6 +187,110 @@ const StrainFields: React.FC<{ record: NonNullable<ReturnType<typeof getRecord>>
   );
 };
 
+/** What a failed delete says, in the page's language (records.ts DeleteFailure). */
+const DELETE_WHY: Record<DeleteFailure, AppKey> = {
+  busy: 'app.plant.delete.why.busy',
+  offline: 'app.plant.delete.why.offline',
+  refused: 'app.plant.delete.why.refused',
+  'not-removed': 'app.plant.delete.why.notRemoved',
+  'device-only': 'app.plant.delete.why.deviceOnly',
+  missing: 'app.plant.delete.why.missing',
+  linked: 'app.plant.delete.blockedCorrection',
+};
+
+/** What happens to its date (proofs.ts dateForDelete): said before asking. */
+const deleteDateKey = (d: DateForDelete | 'checking'): AppKey =>
+  d === 'checking'
+    ? 'app.plant.delete.datedChecking'
+    : d === 'dated'
+      ? 'app.plant.delete.datedYes'
+      : d === 'pending'
+        ? 'app.plant.delete.datedPending'
+        : d === 'none'
+          ? 'app.plant.delete.datedNo'
+          : 'app.plant.delete.datedUnknown';
+
+/**
+ * Deleting a record (records.ts deleteRecord): what goes and what stays, said before asking.
+ * Not offered while a licence, an agreement or a correction relies on it. The record stays on
+ * the page until VeilCore answers, so a failure is said here, under the button.
+ */
+const DeleteRecord: React.FC<{
+  record: StrainRecord;
+  licensed: boolean;
+  namedBy: readonly StrainRecord[];
+  onDeleted: () => void;
+}> = ({ record, licensed, namedBy, onDeleted }) => {
+  const { t } = useT();
+  const [dateNow, setDateNow] = useState<DateForDelete | 'checking'>('checking');
+  useEffect(() => {
+    let live = true;
+    void dateForDelete(record.recordFingerprint).then((d) => live && setDateNow(d));
+    return () => {
+      live = false;
+    };
+  }, [record.recordFingerprint]);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const inCorrection = !!record.supersedes?.recordId || !!record.supersededBy;
+  const blocked = licensed ? 'app.plant.delete.blocked' : inCorrection ? 'app.plant.delete.blockedCorrection' : null;
+  const go = async () => {
+    const named = namedBy.length
+      ? t('app.plant.delete.named', { list: namedBy.map((x) => x.strainName || x.id).join(', ') })
+      : '';
+    // Its date read again now, past any cache: a batch may have been sealed since the page opened.
+    const now = await dateForDelete(record.recordFingerprint);
+    setDateNow(now);
+    const dated = t(deleteDateKey(now));
+    if (
+      !window.confirm(`${t('app.plant.delete.confirm', { name: record.strainName || record.id, named })}\n\n${dated}`)
+    )
+      return;
+    setBusy(true);
+    setError(null);
+    const out = await deleteRecord(record.id);
+    setBusy(false);
+    if ('error' in out) setError(t('app.plant.delete.failed', { reason: t(DELETE_WHY[out.error]) }));
+    else onDeleted();
+  };
+  return (
+    <Paper sx={{ p: { xs: 2.5, md: 3 } }} data-delete-record="">
+      <Stack spacing={1}>
+        <Typography variant="overline" sx={{ display: 'block' }}>
+          {t('app.plant.delete.title')}
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          {blocked ? t(blocked) : t('app.plant.delete.text')}
+        </Typography>
+        {!blocked && (
+          <Typography variant="body2" color="text.secondary" data-delete-date="">
+            {t(deleteDateKey(dateNow))}
+          </Typography>
+        )}
+        {!blocked && (
+          <Box>
+            <Button
+              color="error"
+              variant="outlined"
+              disabled={busy}
+              onClick={() => void go()}
+              sx={{ minHeight: 44 }}
+              data-delete-record-button=""
+            >
+              {busy ? t('app.plant.delete.deleting') : t('app.plant.delete.button')}
+            </Button>
+          </Box>
+        )}
+        {error && (
+          <Alert severity="error" variant="outlined" role="alert">
+            {error}
+          </Alert>
+        )}
+      </Stack>
+    </Paper>
+  );
+};
+
 /** Copy a code to the clipboard, and say so where the button is. */
 const CopyCode: React.FC<{ text: string }> = ({ text }) => {
   const { t } = useT();
@@ -207,8 +318,8 @@ const CopyCode: React.FC<{ text: string }> = ({ text }) => {
 };
 
 export const RecordDetail: React.FC = () => {
-  useRecords();
-  useLicenses();
+  const heldRecords = useRecords();
+  const heldLicenses = useLicenses();
   const { id = '' } = useParams();
   const navigate = useNavigate();
   // The paste box sends a proof request here as ?prove=<challenge>.
@@ -748,6 +859,19 @@ export const RecordDetail: React.FC = () => {
                     </Alert>
                   )}
                 </Box>
+                {/* A record kept on this device only has its own delete (deleteDeviceOnly). */}
+                {!labOnly && !neverSend(record) && (
+                  <DeleteRecord
+                    record={record}
+                    licensed={heldLicenses.some((l) => l.recordId === record.id)}
+                    namedBy={heldRecords.filter(
+                      (x) =>
+                        x.id !== record.id &&
+                        ((x.parents ?? []).some((p) => p.recordId === record.id) || aboutIdsOf(x).includes(record.id)),
+                    )}
+                    onDeleted={() => void navigate('/records')}
+                  />
+                )}
               </Stack>
             </Collapse>
           </Box>
