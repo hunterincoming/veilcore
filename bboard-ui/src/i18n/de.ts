@@ -369,7 +369,7 @@ export const de: Strings = {
   'm.postF.tag': 'Datenschutz',
   'm.postF.title': 'Ein Dokument nur auf Ihrem Gerät behalten',
   'm.postF.text':
-    'Beim Versiegeln eines Dokuments können Sie es jetzt nur auf diesem Gerät und in Ihrer Sicherungsdatei behalten. Nichts, was Sie eingeben, wird gesendet, weder verschlossen noch offen: Das Register von VeilCore erhält die ID des Datensatzes, seinen Nachweiscode und seine Schlüsselbindung, damit er datiert werden kann. Am 16. November 2026 zum ersten Mal auf veilcore.org versiegelt, datiert und geprüft.',
+    'Beim Versiegeln eines Dokuments können Sie es jetzt nur auf diesem Gerät und in Ihrer Sicherungsdatei behalten. Nichts, was Sie eingeben, wird gesendet, weder verschlossen noch offen: Das Register von VeilCore erhält die ID des Datensatzes, seinen Prüfcode und seine Schlüsselbindung, damit er datiert werden kann. Am 16. November 2026 zum ersten Mal auf veilcore.org versiegelt, datiert und geprüft.',
   'm.postE.date': '2. Nov. 2026',
   'm.postE.tag': 'Nachweis',
   'm.postE.title': 'Eine Nachweisdatei für jedes Dokument',
