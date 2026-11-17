@@ -39,6 +39,7 @@ export const document = {
   'app.doc.need.file': 'Add the file first.',
   'app.doc.need.title': 'Give it a title.',
   'app.doc.need.holder': 'Say who holds it.',
+  'app.doc.need.heading': 'Still needed before you can seal it:',
   'app.doc.seal': 'Seal it',
   'app.doc.sealing': 'Sealing…',
   'app.doc.type.permit': 'Permit or licence',
@@ -120,13 +121,15 @@ export const document = {
   'app.claim.title': 'Prove one number',
   'app.claim.text':
     'Prove a fact about one number to anyone, without showing it, the other numbers or the certificate. The proof goes on Midnight, where anyone can check it.',
+  'app.claim.example':
+    'For example: show a buyer that total THC is at most 0.3%, or that a batch has at most 9 plants in flower, without giving them the figure or the rest of the record. You pick the number and the limit. They get a link that checks it.',
   'app.claim.notReady': 'Proving isn’t switched on for this site yet.',
   'app.claim.number': 'Which number',
   'app.claim.how': 'What to prove',
   'app.claim.atMost': 'It is at most…',
   'app.claim.atLeast': 'It is at least…',
   'app.claim.exactly': 'It is exactly this (shows the number)',
-  'app.claim.bound': 'Bound',
+  'app.claim.bound': 'The limit',
   'app.claim.boundBad': 'A number with at most {places} decimals.',
   'app.claim.wontMeet': 'Your sealed number doesn’t meet that, so it can’t be proved. Nothing was sent.',
   'app.claim.exactWarn': 'This publishes {label}: {value} {unit}, for anyone to see, for good.',
@@ -261,6 +264,11 @@ export const document = {
   'app.doc.chain.askRegistry': 'See what VeilCore’s registry reports for record {id}',
   'app.doc.chain.askRegistrySends':
     'That page sends the record’s ID to VeilCore’s registry and, in its address, this proof code to the website’s host. Nothing else from this link.',
+  'app.doc.chain.next.title': 'Next in its chain',
+  'app.doc.chain.next.text': 'Seal the next step as its own record, about this one. It gets its own date.',
+  'app.doc.chain.next.grow-batch': 'Record a grow batch from this',
+  'app.doc.chain.next.harvest-lot': 'Record its harvest lot',
+  'app.doc.chain.next.report': 'Seal its lab report',
   'app.doc.chain.title': 'Its chain, on this device',
   'app.doc.chain.text':
     'Worked out here from the records this browser holds, the ones kept on this device only among them. Nothing is asked of VeilCore for it, and a record held elsewhere isn’t listed.',

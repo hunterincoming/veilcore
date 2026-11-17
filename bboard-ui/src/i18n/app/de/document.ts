@@ -39,6 +39,7 @@ export const document = {
   'app.doc.need.file': 'Fügen Sie zuerst die Datei hinzu.',
   'app.doc.need.title': 'Geben Sie ihm einen Titel.',
   'app.doc.need.holder': 'Geben Sie an, wer es hält.',
+  'app.doc.need.heading': 'Das fehlt noch vor dem Versiegeln:',
   'app.doc.seal': 'Versiegeln',
   'app.doc.sealing': 'Wird versiegelt…',
   'app.doc.type.permit': 'Genehmigung oder Lizenz',
@@ -119,6 +120,8 @@ export const document = {
   'app.claim.title': 'Eine Zahl belegen',
   'app.claim.text':
     'Belegen Sie jedem eine Tatsache über eine Zahl, ohne sie, die anderen Zahlen oder das Zertifikat zu zeigen. Der Beleg kommt auf Midnight, wo jeder ihn prüfen kann.',
+  'app.claim.example':
+    'Zum Beispiel: Zeigen Sie einem Käufer, dass der Gesamt-THC-Gehalt höchstens 0,3 % beträgt oder dass eine Charge höchstens 9 blühende Pflanzen hat, ohne ihm die Zahl oder den Rest des Datensatzes zu geben. Sie wählen die Zahl und die Grenze. Er bekommt einen Link, der es prüft.',
   'app.claim.notReady': 'Belege sind auf dieser Website noch nicht eingeschaltet.',
   'app.claim.number': 'Welche Zahl',
   'app.claim.how': 'Was belegt werden soll',
@@ -266,6 +269,12 @@ export const document = {
   'app.doc.chain.askRegistry': 'Ansehen, was das Register von VeilCore zu Datensatz {id} meldet',
   'app.doc.chain.askRegistrySends':
     'Diese Seite sendet die Kennung des Datensatzes an das Register von VeilCore und, in ihrer Adresse, diesen Prüfcode an den Host der Website. Sonst nichts aus diesem Link.',
+  'app.doc.chain.next.title': 'Der nächste Schritt der Kette',
+  'app.doc.chain.next.text':
+    'Versiegeln Sie den nächsten Schritt als eigenen Datensatz, der diesen betrifft. Er erhält sein eigenes Datum.',
+  'app.doc.chain.next.grow-batch': 'Eine Anbaucharge hieraus festhalten',
+  'app.doc.chain.next.harvest-lot': 'Das zugehörige Erntelos festhalten',
+  'app.doc.chain.next.report': 'Den zugehörigen Laborbericht versiegeln',
   'app.doc.chain.title': 'Seine Kette, auf diesem Gerät',
   'app.doc.chain.text':
     'Hier aus den Datensätzen ermittelt, die dieser Browser hält, auch aus denen, die nur auf diesem Gerät aufbewahrt werden. VeilCore wird dafür nichts gefragt, und ein Datensatz, der anderswo liegt, erscheint nicht.',

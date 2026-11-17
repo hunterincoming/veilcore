@@ -217,7 +217,7 @@ test('a chain of records: source, grow batch, harvest lot, lab report, followed 
   await page.getByLabel('Held by').fill(HELD_BY);
   // A file is still needed: nothing is sealed without one.
   await page.getByRole('button', { name: 'Seal it' }).click();
-  await expect(page.locator('[data-document-missing]')).toHaveText('Add the file first.');
+  await expect(page.locator('[data-document-missing]')).toContainText('Add the file first.');
   // No batch sheet of their own: one is made from what was typed, saved, and added as the file.
   const sheetDownload = page.waitForEvent('download');
   await page.locator('[data-chain-sheet-make]').click();

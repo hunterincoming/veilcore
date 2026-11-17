@@ -38,6 +38,7 @@ export const document = {
   'app.doc.need.file': 'Ajoutez d’abord le fichier.',
   'app.doc.need.title': 'Donnez-lui un titre.',
   'app.doc.need.holder': 'Indiquez qui le détient.',
+  'app.doc.need.heading': 'Il manque encore, avant de pouvoir le sceller :',
   'app.doc.seal': 'Le sceller',
   'app.doc.sealing': 'Scellement…',
   'app.doc.type.permit': 'Permis ou licence',
@@ -118,6 +119,8 @@ export const document = {
   'app.claim.title': 'Prouver un chiffre',
   'app.claim.text':
     'Prouvez à quiconque un fait sur un chiffre, sans le montrer, ni les autres chiffres ni le certificat. La preuve va sur Midnight, où chacun peut la vérifier.',
+  'app.claim.example':
+    'Par exemple : montrez à un acheteur que le THC total est au plus de 0,3 %, ou qu’un lot compte au plus 9 plantes en floraison, sans lui donner le chiffre ni le reste de l’enregistrement. Vous choisissez le chiffre et le seuil. Il reçoit un lien qui le vérifie.',
   'app.claim.notReady': 'Les preuves ne sont pas encore activées sur ce site.',
   'app.claim.number': 'Quel chiffre',
   'app.claim.how': 'Que prouver',
@@ -263,6 +266,12 @@ export const document = {
   'app.doc.chain.askRegistry': 'Voir ce que le registre de VeilCore rapporte pour l’enregistrement {id}',
   'app.doc.chain.askRegistrySends':
     'Cette page envoie l’identifiant de l’enregistrement au registre de VeilCore et, dans son adresse, ce code de preuve à l’hébergeur du site. Rien d’autre de ce lien.',
+  'app.doc.chain.next.title': 'L’étape suivante de sa chaîne',
+  'app.doc.chain.next.text':
+    'Scellez l’étape suivante comme un enregistrement à part, qui concerne celui-ci. Elle reçoit sa propre date.',
+  'app.doc.chain.next.grow-batch': 'Enregistrer un lot de culture à partir de celui-ci',
+  'app.doc.chain.next.harvest-lot': 'Enregistrer son lot de récolte',
+  'app.doc.chain.next.report': 'Sceller son rapport de laboratoire',
   'app.doc.chain.title': 'Sa chaîne, sur cet appareil',
   'app.doc.chain.text':
     'Établie ici à partir des enregistrements que ce navigateur détient, y compris ceux gardés uniquement sur cet appareil. Rien n’est demandé à VeilCore pour cela, et un enregistrement détenu ailleurs n’y figure pas.',

@@ -9,8 +9,8 @@
 // batch sheet, or a plain-text sheet made here from the details that are not counts.
 // SPDX-License-Identifier: Apache-2.0
 
-import React, { useId, useState } from 'react';
-import { Navigate, useNavigate } from 'react-router-dom';
+import React, { useEffect, useId, useRef, useState } from 'react';
+import { Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Alert,
   Box,
@@ -43,7 +43,7 @@ import { DEVICE_ONLY_RECORDS_ENABLED, DOCUMENT_CHAIN_ENABLED, DOCUMENT_RECORDS_E
 import { AppHeader } from '../AppHeader';
 import { useT } from '../../i18n/app';
 import { kindOrTypeWords, typeWords } from './DocumentParts';
-import { DOCUMENT_KINDS, KIND_SCHEMA, type DocumentKind } from '../../veilcore/document-kind';
+import { DOCUMENT_KINDS, KIND_SCHEMA, kindFromQuery, type DocumentKind } from '../../veilcore/document-kind';
 import { batchSheetFile, batchSheetText, chainNotes } from '../../veilcore/document-chain';
 import { NumbersFields } from './NumbersFields';
 import { BackupStep } from '../flow/BackupStep';
@@ -87,6 +87,35 @@ export const DocumentNew: React.FC = () => {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string>();
   const [tried, setTried] = useState(false);
+
+  // Arriving from "A grow batch or a harvest lot" or from a record's "Next in its chain": the
+  // kind and what it is about are already set, once. Only one of this browser's own records that
+  // could be picked by hand is accepted, and a record kept on this device only makes this one
+  // kept here too (it could not name that record otherwise). Nothing in the address is trusted
+  // beyond that, and everything stays editable.
+  const [query] = useSearchParams();
+  const fromLink = useRef(false);
+  const linkKind = kindFromQuery(query.get('kind'));
+  const linkAbout = query.get('about');
+  useEffect(() => {
+    if (fromLink.current || !DOCUMENT_RECORDS_ENABLED || !DOCUMENT_CHAIN_ENABLED) return;
+    if (linkAbout && records.length === 0) return; // the records are still loading
+    fromLink.current = true;
+    if (linkKind) {
+      setKind(linkKind);
+      setSchema(KIND_SCHEMA[linkKind]);
+      setType('other');
+    }
+    const target = linkAbout
+      ? records.find((r) => r.id === linkAbout && !isLabReportRecord(r) && !r.supersededBy)
+      : undefined;
+    if (!target) return;
+    if (isKeptOnDeviceOnly(target)) {
+      if (!DEVICE_ONLY_RECORDS_ENABLED) return;
+      setDeviceOnly(true);
+    }
+    setAbout([target.id]);
+  }, [records, linkKind, linkAbout]);
 
   if (!DOCUMENT_RECORDS_ENABLED) return <Navigate to="/new" replace />;
 
@@ -171,19 +200,17 @@ export const DocumentNew: React.FC = () => {
   };
 
   const numbers = schema ? numbersOf(schema, typed) : undefined;
-  const missing = !files.length
-    ? t('app.doc.need.file')
-    : kind && !line(reference)
-      ? t('app.doc.chain.need.reference')
-      : !sealedTitle()
-        ? t('app.doc.need.title')
-        : !line(holder)
-          ? t('app.doc.need.holder')
-          : numbers?.bad.length
-            ? t('app.doc.need.numbers')
-            : schema && !numbers?.any
-              ? t(kind ? 'app.doc.chain.need.aNumber' : 'app.doc.need.aNumber')
-              : undefined;
+  // Everything still needed before sealing, in the order the form asks for it. It shows above the Seal button from
+  // the start, so nobody has to press Seal to find out what is missing.
+  const needs: string[] = [];
+  if (!files.length) needs.push(t('app.doc.need.file'));
+  // A batch or lot takes its title from its ID when none is typed, so the ID is the only one of the two to ask for.
+  if (kind && !line(reference)) needs.push(t('app.doc.chain.need.reference'));
+  else if (!sealedTitle()) needs.push(t('app.doc.need.title'));
+  if (!line(holder)) needs.push(t('app.doc.need.holder'));
+  if (numbers?.bad.length) needs.push(t('app.doc.need.numbers'));
+  else if (schema && !numbers?.any) needs.push(t(kind ? 'app.doc.chain.need.aNumber' : 'app.doc.need.aNumber'));
+  const missing = needs[0];
 
   const seal = async () => {
     setTried(true);
@@ -379,6 +406,8 @@ export const DocumentNew: React.FC = () => {
           </Box>
           <TextField
             label={t('app.doc.f.title')}
+            required={!kind}
+            error={tried && !kind && !sealedTitle()}
             helperText={t(kind ? 'app.doc.chain.f.titleHelp' : 'app.doc.f.titleHelp')}
             value={title}
             onChange={(e) => setTitle(e.target.value)}
@@ -444,6 +473,8 @@ export const DocumentNew: React.FC = () => {
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
             <TextField
               label={t(kind ? `app.doc.chain.f.reference.${kind}` : 'app.doc.f.reference')}
+              required={!!kind}
+              error={tried && !!kind && !line(reference)}
               helperText={t(kind ? 'app.doc.chain.f.referenceHelp' : 'app.doc.f.referenceHelp')}
               value={reference}
               onChange={(e) => setReference(e.target.value)}
@@ -508,6 +539,8 @@ export const DocumentNew: React.FC = () => {
           )}
           <TextField
             label={t('app.doc.f.holder')}
+            required
+            error={tried && !line(holder)}
             helperText={t('app.doc.f.holderHelp')}
             value={holder}
             onChange={(e) => setHolder(e.target.value)}
@@ -558,9 +591,23 @@ export const DocumentNew: React.FC = () => {
               </Box>
             </Box>
           )}
-          {tried && missing && (
-            <Alert severity="warning" variant="outlined" data-document-missing="">
-              {missing}
+          {needs.length > 0 && (
+            <Alert
+              severity={tried ? 'warning' : 'info'}
+              variant="outlined"
+              data-document-needs=""
+              {...(tried ? { 'data-document-missing': '' } : {})}
+            >
+              <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                {t('app.doc.need.heading')}
+              </Typography>
+              <Box component="ul" sx={{ m: 0, pl: 2.5 }}>
+                {needs.map((n) => (
+                  <Typography key={n} component="li" variant="body2">
+                    {n}
+                  </Typography>
+                ))}
+              </Box>
             </Alert>
           )}
           {error && (

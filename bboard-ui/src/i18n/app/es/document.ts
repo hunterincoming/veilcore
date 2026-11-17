@@ -38,6 +38,7 @@ export const document = {
   'app.doc.need.file': 'Añada primero el archivo.',
   'app.doc.need.title': 'Póngale un título.',
   'app.doc.need.holder': 'Indique quién lo tiene.',
+  'app.doc.need.heading': 'Falta esto antes de poder sellarlo:',
   'app.doc.seal': 'Sellarlo',
   'app.doc.sealing': 'Sellando…',
   'app.doc.type.permit': 'Permiso o licencia',
@@ -118,6 +119,8 @@ export const document = {
   'app.claim.title': 'Probar un número',
   'app.claim.text':
     'Pruebe ante cualquiera un hecho sobre un número, sin mostrarlo, ni los demás números ni el certificado. La prueba va a Midnight, donde cualquiera puede comprobarla.',
+  'app.claim.example':
+    'Por ejemplo: muestre a un comprador que el THC total es como máximo 0,3 %, o que un lote tiene como máximo 9 plantas en floración, sin darle la cifra ni el resto del registro. Usted elige el número y el límite. Él recibe un enlace que lo comprueba.',
   'app.claim.notReady': 'Las pruebas aún no están activadas en este sitio.',
   'app.claim.number': 'Qué número',
   'app.claim.how': 'Qué probar',
@@ -260,6 +263,11 @@ export const document = {
   'app.doc.chain.askRegistry': 'Ver lo que el registro de VeilCore informa sobre el registro {id}',
   'app.doc.chain.askRegistrySends':
     'Esa página envía el identificador del registro al registro de VeilCore y, en su dirección, este código de prueba al servidor del sitio web. Nada más de este enlace.',
+  'app.doc.chain.next.title': 'El siguiente paso de su cadena',
+  'app.doc.chain.next.text': 'Selle el siguiente paso como un registro propio, sobre este. Recibe su propia fecha.',
+  'app.doc.chain.next.grow-batch': 'Registrar un lote de cultivo a partir de este',
+  'app.doc.chain.next.harvest-lot': 'Registrar su lote de cosecha',
+  'app.doc.chain.next.report': 'Sellar su informe de laboratorio',
   'app.doc.chain.title': 'Su cadena, en este dispositivo',
   'app.doc.chain.text':
     'Calculada aquí a partir de los registros que tiene este navegador, incluidos los guardados solo en este dispositivo. No se pregunta nada a VeilCore para ello, y un registro guardado en otro lugar no aparece.',

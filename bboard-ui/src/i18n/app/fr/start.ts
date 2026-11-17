@@ -15,6 +15,9 @@ export const start = {
   'app.start.strain': 'Micro-organismes et lignées cellulaires',
   'app.start.strainText':
     'Levures, bactéries, champignons, lignées cellulaires et lignées d’insectes. Pour les laboratoires et les collections de cultures.',
+  'app.start.chain': 'Un lot de culture ou un lot de récolte',
+  'app.start.chainText':
+    'Une étape d’une chaîne de production, reliée à l’enregistrement précédent : la plante, le lot de culture, le lot de récolte, le rapport de laboratoire.',
   'app.start.document': 'Un document',
   'app.start.documentText':
     'Un résultat de laboratoire, un permis, un contrat. Le fichier ne quitte jamais votre appareil.',

@@ -12,6 +12,9 @@ export const start = {
   'app.start.animalText': 'A sire, a dam, or another breeding animal.',
   'app.start.strain': 'Microbes and cell lines',
   'app.start.strainText': 'Yeast, bacteria, fungi, cell lines and insect lines. For labs and culture collections.',
+  'app.start.chain': 'A grow batch or a harvest lot',
+  'app.start.chainText':
+    'A step in a production chain, linked to the record before it: the plant, the batch, the lot, the lab report.',
   'app.start.document': 'A document',
   'app.start.documentText': 'A lab result, a permit, a contract. The file never leaves your device.',
   'app.start.change': 'Change what you’re sealing',

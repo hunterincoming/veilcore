@@ -37,6 +37,7 @@ export const document = {
   'app.doc.need.file': 'まずファイルを追加してください。',
   'app.doc.need.title': 'タイトルを付けてください。',
   'app.doc.need.holder': '保有者を入力してください。',
+  'app.doc.need.heading': '封印する前に、まだ必要なもの：',
   'app.doc.seal': '封印する',
   'app.doc.sealing': '封印中…',
   'app.doc.type.permit': '許可証・免許',
@@ -116,6 +117,8 @@ export const document = {
   'app.claim.title': '数値を1つ証明する',
   'app.claim.text':
     '数値そのもの、ほかの数値、証明書を見せずに、1つの数値についての事実を誰にでも証明できます。証明はMidnight上に置かれ、誰でも確認できます。',
+  'app.claim.example':
+    '例：総THCが0.3%以下であること、または栽培バッチの開花中の株が9株以下であることを、数値そのものや記録の残りを渡さずに買い手に示せます。数値と上限・下限はあなたが選びます。相手は、それを確認できるリンクを受け取ります。',
   'app.claim.notReady': 'このサイトでは、証明はまだ有効になっていません。',
   'app.claim.number': 'どの数値',
   'app.claim.how': '何を証明するか',
@@ -258,6 +261,12 @@ export const document = {
   'app.doc.chain.askRegistry': 'VeilCoreのレジストリが記録{id}について報告する内容を見る',
   'app.doc.chain.askRegistrySends':
     'そのページは、記録のIDをVeilCoreのレジストリに、この証明コードをページのアドレスの一部としてウェブサイトのホストに送信します。このリンクのほかの内容は送信されません。',
+  'app.doc.chain.next.title': 'この流れの次の段階',
+  'app.doc.chain.next.text':
+    '次の段階を、この記録を対象とする別の記録として封印します。その記録には独自の日付が付きます。',
+  'app.doc.chain.next.grow-batch': 'この記録から栽培バッチを記録する',
+  'app.doc.chain.next.harvest-lot': 'その収穫ロットを記録する',
+  'app.doc.chain.next.report': 'その検査報告書を封印する',
   'app.doc.chain.title': 'この端末で見た記録の連なり',
   'app.doc.chain.text':
     'このブラウザにある記録から、この端末だけに保管している記録も含めて、ここで組み立てています。そのためにVeilCoreへ問い合わせることはなく、ほかの場所にある記録は表示されません。',

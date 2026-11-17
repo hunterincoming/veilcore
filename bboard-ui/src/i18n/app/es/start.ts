@@ -14,6 +14,9 @@ export const start = {
   'app.start.strain': 'Microorganismos y líneas celulares',
   'app.start.strainText':
     'Levaduras, bacterias, hongos, líneas celulares y líneas de insectos. Para laboratorios y colecciones de cultivos.',
+  'app.start.chain': 'Un lote de cultivo o un lote de cosecha',
+  'app.start.chainText':
+    'Un paso de una cadena de producción, enlazado con el registro anterior: la planta, el lote de cultivo, el lote de cosecha, el informe de laboratorio.',
   'app.start.document': 'Un documento',
   'app.start.documentText':
     'Un resultado de laboratorio, un permiso, un contrato. El archivo nunca sale de su dispositivo.',
