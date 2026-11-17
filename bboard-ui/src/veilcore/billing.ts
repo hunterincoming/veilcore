@@ -5,8 +5,10 @@
 // - Buying opens Paddle's own checkout page in a new tab: the registry opens the checkout and
 //   answers its link (POST /api/billing/checkout). No payment company's script runs on this
 //   site, which holds the holder's keys.
-// - Before a new record is made (records.ts), planBlocks says whether the free number is used
-//   up, so nothing is sealed that the registry would refuse to date.
+// - Before a new record is made, corrected or imported (records.ts), planBlocks says whether
+//   the free number is used up, so nothing is sealed that the registry would refuse to date.
+// - The plan read is for one holder key: after any change of key it no longer applies until
+//   read again (planFor).
 //
 // Off (config/network.ts PAID_PLANS_ENABLED), every function here does nothing.
 // SPDX-License-Identifier: Apache-2.0
@@ -23,20 +25,33 @@ export type Plan = {
   readonly status: string | null;
   readonly periodEnd: string | null;
   readonly recordsHeld: number;
+  /** What counts against the free plan: records added, deleted or not. */
+  readonly recordsCounted: number;
   readonly recordCap: number;
+  /** The plans the registry sells, by name. */
+  readonly plans: readonly string[];
 };
-/** The plans a holder can choose here. Their prices are on Paddle's page. */
-export const PLANS = ['breeder', 'lab'] as const;
-export type PlanName = (typeof PLANS)[number];
+/** Plans with words of their own in every language; any other the registry sells shows its name. */
+export const KNOWN_PLANS = ['breeder', 'lab'] as const;
+const PLAN_NAME = /^[a-z]{2,20}$/;
 
 let current: Plan | null = null;
+let currentFor: string | null = null;
 const listeners = new Set<() => void>();
-const set = (p: Plan | null) => {
+const set = (p: Plan | null, key: string | null) => {
   current = p;
+  currentFor = key;
   for (const l of listeners) l();
 };
+/** The plan read, if it was read for the key this browser uses now. */
+const planFor = (): Plan | null => (current && currentFor === holderKeyIfAny() ? current : null);
 
-const isPlan = (v: unknown): v is Plan =>
+/** Records that count on the free plan from this browser: its own, not deliveries received. */
+export const ownCount = (rs: readonly { readonly receivedFrom?: string }[]): number =>
+  rs.filter((r) => !r.receivedFrom).length;
+
+type RawPlan = Omit<Plan, 'recordsCounted' | 'plans'> & { readonly recordsCounted?: unknown; readonly plans?: unknown };
+const isPlan = (v: unknown): v is RawPlan =>
   isObject(v) &&
   isString(v.plan) &&
   (v.status === null || isString(v.status)) &&
@@ -46,6 +61,16 @@ const isPlan = (v: unknown): v is Plan =>
   typeof v.recordCap === 'number' &&
   Number.isSafeInteger(v.recordCap);
 
+/** The registry's answer as this page uses it; fields an older registry leaves out are filled in. */
+const asPlan = (v: unknown): Plan | null => {
+  if (!isPlan(v)) return null;
+  const o = v;
+  const counted =
+    typeof o.recordsCounted === 'number' && Number.isSafeInteger(o.recordsCounted) ? o.recordsCounted : o.recordsHeld;
+  const plans = Array.isArray(o.plans) ? o.plans.filter((p): p is string => isString(p) && PLAN_NAME.test(p)) : [];
+  return { ...o, recordsCounted: counted, plans: plans.length ? plans : [...KNOWN_PLANS] };
+};
+
 /** Read the holder's plan from the registry. Null when off, with no holder yet, or unreachable. */
 export const refreshPlan = async (fetchImpl: typeof fetch = fetch): Promise<Plan | null> => {
   if (!PAID_PLANS_ENABLED) return null;
@@ -53,16 +78,16 @@ export const refreshPlan = async (fetchImpl: typeof fetch = fetch): Promise<Plan
   if (!k) return null;
   try {
     const res = await fetchImpl(`${BASE}/api/billing/plan`, { headers: { 'x-holder-key': k } });
-    const body = await readJson(res).catch(() => null);
-    if (!res.ok || !isPlan(body)) return current;
-    set(body);
-    return body;
+    const plan = asPlan(await readJson(res).catch(() => null));
+    if (!res.ok || !plan) return planFor();
+    set(plan, k);
+    return plan;
   } catch {
-    return current;
+    return planFor();
   }
 };
 
-export const currentPlan = (): Plan | null => current;
+export const currentPlan = (): Plan | null => planFor();
 
 export const usePlan = (): Plan | null =>
   useSyncExternalStore(
@@ -70,24 +95,68 @@ export const usePlan = (): Plan | null =>
       listeners.add(l);
       return () => listeners.delete(l);
     },
-    () => current,
+    planFor,
     () => null,
   );
 
-/** How many more records the free plan keeps, or null when no limit applies (off, paid, not read yet). */
-export const freeLeft = (plan: Plan | null, heldHere: number): number | null => {
+/**
+ * How many more records the free plan keeps, or null when no limit applies (off, paid, not read
+ * yet). `ownHere` is this browser's own records (ownCount): the larger of it and the registry's
+ * count is used, so a record waiting to be sent still counts.
+ */
+export const freeLeft = (plan: Plan | null, ownHere: number): number | null => {
   if (!PAID_PLANS_ENABLED || !plan || plan.plan !== 'free') return null;
-  return Math.max(0, plan.recordCap - Math.max(heldHere, plan.recordsHeld));
+  return Math.max(0, plan.recordCap - Math.max(ownHere, plan.recordsCounted));
 };
 
 /**
- * Whether adding `n` new records would pass the free number. Uses the larger of what this
- * browser holds and what the registry last said, so a record waiting to be sent still counts.
- * Not read yet, off, or paid: never blocks (the registry still refuses past its ceiling).
+ * Whether adding `n` new records would pass the free number. Not read yet, read for another
+ * key, off, or paid: never blocks (the registry still refuses past its ceiling).
  */
-export const planBlocks = (n: number, heldHere: number): boolean => {
-  const left = freeLeft(current, heldHere);
-  return left !== null && n > left;
+export const planBlocks = (n: number, ownHere: number): boolean => {
+  const left = freeLeft(planFor(), ownHere);
+  return n > 0 && left !== null && n > left;
+};
+
+/** Read the plan again whenever this page comes back into view (after paying on Paddle's tab). */
+export const watchPlanOnReturn = (): (() => void) => {
+  if (!PAID_PLANS_ENABLED || typeof window === 'undefined') return () => undefined;
+  const again = () => {
+    if (document.visibilityState !== 'hidden') void refreshPlan();
+  };
+  window.addEventListener('focus', again);
+  document.addEventListener('visibilitychange', again);
+  return () => {
+    window.removeEventListener('focus', again);
+    document.removeEventListener('visibilitychange', again);
+  };
+};
+
+export type CheckoutError =
+  | 'app.plan.err.off'
+  | 'app.plan.err.unreachable'
+  | 'app.plan.err.busy'
+  | 'app.plan.err.noRecord'
+  | 'app.plan.err.blocked';
+
+/** A tab opened now, while the click still counts (Safari blocks one opened after a wait). */
+type Tab = { go: (url: string) => void; close: () => void } | null;
+const openTabNow = (): Tab => {
+  const w = window.open('', '_blank');
+  if (!w) return null;
+  try {
+    w.opener = null;
+  } catch {
+    /* already cut off */
+  }
+  return {
+    go: (url) => {
+      w.location.replace(url);
+    },
+    close: () => {
+      w.close();
+    },
+  };
 };
 
 /**
@@ -96,27 +165,35 @@ export const planBlocks = (n: number, heldHere: number): boolean => {
  * for the page to say, or null.
  */
 export const openCheckout = async (
-  plan: PlanName,
+  plan: string,
   fetchImpl: typeof fetch = fetch,
-  open: (url: string) => void = (url) => void window.open(url, '_blank', 'noopener,noreferrer'),
-): Promise<'app.plan.err.off' | 'app.plan.err.unreachable' | 'app.plan.err.busy' | null> => {
+  tab: () => Tab = openTabNow,
+): Promise<CheckoutError | null> => {
   if (!PAID_PLANS_ENABLED) return 'app.plan.err.off';
   const k = holderKeyIfAny();
-  if (!k) return 'app.plan.err.off';
+  if (!k || !PLAN_NAME.test(plan)) return 'app.plan.err.off';
+  // Opened first, synchronously, then sent to Paddle's page once the registry answers.
+  const w = tab();
+  if (!w) return 'app.plan.err.blocked';
+  const fail = (e: CheckoutError): CheckoutError => {
+    w.close();
+    return e;
+  };
   try {
     const res = await fetchImpl(`${BASE}/api/billing/checkout`, {
       method: 'POST',
       headers: { 'content-type': 'application/json', 'x-holder-key': k },
       body: JSON.stringify({ plan }),
     });
-    if (res.status === 429) return 'app.plan.err.busy';
+    if (res.status === 429) return fail('app.plan.err.busy');
+    if (res.status === 409) return fail('app.plan.err.noRecord');
     const body = await readJson(res).catch(() => null);
     const url = res.ok && isObject(body) && isString(body.url) ? body.url : '';
     if (!/^https:\/\/([a-z-]+\.)?paddle\.io\/checkout\/hsc_[0-9a-z]+\?transaction_id=txn_[0-9a-z]+$/.test(url))
-      return 'app.plan.err.unreachable';
-    open(url);
+      return fail('app.plan.err.unreachable');
+    w.go(url);
     return null;
   } catch {
-    return 'app.plan.err.unreachable';
+    return fail('app.plan.err.unreachable');
   }
 };

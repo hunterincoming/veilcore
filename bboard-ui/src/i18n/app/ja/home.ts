@@ -142,6 +142,12 @@ export const home = {
   'app.plan.err.off': 'このブラウザからはまだプランを購入できません。',
   'app.plan.err.unreachable': 'Paddleのページを開けませんでした。少ししてからもう一度お試しください。',
   'app.plan.err.busy': '1時間以内の試行回数が多すぎます。後でもう一度お試しください。',
+  'app.plan.err.noRecord': '先に記録を1件保存してください。プランは保管する記録のためのものです。',
+  'app.plan.err.blocked':
+    'ブラウザがPaddleのページをブロックしました。このサイトのポップアップを許可して、もう一度お試しください。',
+  'app.plan.buy.other': '{plan}プラン',
+  'app.plan.importFull':
+    'このファイルにはVeilCoreにとって新しい記録が{n}件ありますが、無料プランで追加できるのはあと{left}件です。何も取り込まれませんでした。さらに保管するには、記録のページでプランを選んでください。',
   'app.plan.box.full':
     '無料の記録数を使い切りました。すでにある記録はすべて引き続き確認できます。さらに追加するにはプランを選んでください。',
 } satisfies Partial<AppTranslation>;

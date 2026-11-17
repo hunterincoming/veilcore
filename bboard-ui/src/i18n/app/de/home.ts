@@ -157,6 +157,12 @@ export const home = {
   'app.plan.err.unreachable':
     'Die Seite von Paddle ließ sich gerade nicht öffnen. Versuchen Sie es gleich noch einmal.',
   'app.plan.err.busy': 'Zu viele Versuche in einer Stunde. Versuchen Sie es später noch einmal.',
+  'app.plan.err.noRecord': 'Speichern Sie zuerst einen Datensatz: Ein Tarif gilt für die Datensätze, die Sie behalten.',
+  'app.plan.err.blocked':
+    'Ihr Browser hat die Seite von Paddle blockiert. Erlauben Sie Pop-ups für diese Website und versuchen Sie es noch einmal.',
+  'app.plan.buy.other': 'Tarif {plan}',
+  'app.plan.importFull':
+    'Diese Datei enthält {n} Datensätze, die für VeilCore neu sind, und Ihr kostenloser Tarif hat noch Platz für {left}. Es wurde nichts importiert. Wählen Sie auf Ihrer Datensatzseite einen Tarif, um mehr zu behalten.',
   'app.plan.box.full':
     'Ihre kostenlosen Datensätze sind aufgebraucht. Alles, was Sie schon haben, bleibt prüfbar. Wählen Sie einen Tarif, um weitere hinzuzufügen.',
 } satisfies Partial<AppTranslation>;

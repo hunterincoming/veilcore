@@ -61,6 +61,7 @@ const MODULES = {
   outbox: () => import('../outbox'),
   saveStatus: () => import('../save-status'),
   keys: () => import('../record-keys'),
+  billing: () => import('../billing'),
 };
 type Mods = { [K in keyof typeof MODULES]: Awaited<ReturnType<(typeof MODULES)[K]>> };
 

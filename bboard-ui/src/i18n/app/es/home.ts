@@ -153,6 +153,12 @@ export const home = {
   'app.plan.err.off': 'Todavía no se pueden comprar planes desde este navegador.',
   'app.plan.err.unreachable': 'No se pudo abrir la página de Paddle ahora. Inténtelo de nuevo en un momento.',
   'app.plan.err.busy': 'Demasiados intentos en una hora. Inténtelo más tarde.',
+  'app.plan.err.noRecord': 'Primero guarde un registro: un plan es para los registros que conserva.',
+  'app.plan.err.blocked':
+    'Su navegador bloqueó la página de Paddle. Permita las ventanas emergentes para este sitio y vuelva a intentarlo.',
+  'app.plan.buy.other': 'Plan {plan}',
+  'app.plan.importFull':
+    'Este archivo tiene {n} registros nuevos para VeilCore y a su plan gratuito le queda espacio para {left}. No se importó nada. Elija un plan en su página de registros para conservar más.',
   'app.plan.box.full':
     'Ya usó sus registros gratuitos. Todo lo que ya tiene se sigue pudiendo comprobar. Elija un plan para añadir más.',
 } satisfies Partial<AppTranslation>;

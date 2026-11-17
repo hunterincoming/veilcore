@@ -155,6 +155,13 @@ export const home = {
   'app.plan.err.off': 'Les formules ne peuvent pas encore être achetées depuis ce navigateur.',
   'app.plan.err.unreachable': 'La page de Paddle n’a pas pu s’ouvrir. Réessayez dans un instant.',
   'app.plan.err.busy': 'Trop d’essais en une heure. Réessayez plus tard.',
+  'app.plan.err.noRecord':
+    'Enregistrez d’abord un enregistrement : une formule concerne les enregistrements que vous gardez.',
+  'app.plan.err.blocked':
+    'Votre navigateur a bloqué la page de Paddle. Autorisez les fenêtres pop-up pour ce site, puis réessayez.',
+  'app.plan.buy.other': 'Formule {plan}',
+  'app.plan.importFull':
+    'Ce fichier contient {n} enregistrements nouveaux pour VeilCore, et votre formule gratuite a de la place pour {left} de plus. Rien n’a été importé. Choisissez une formule sur votre page d’enregistrements pour en garder davantage.',
   'app.plan.box.full':
     'Vos enregistrements gratuits sont épuisés. Tout ce que vous avez déjà reste vérifiable. Choisissez une formule pour en ajouter.',
 } satisfies Partial<AppTranslation>;

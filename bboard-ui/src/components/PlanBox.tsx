@@ -7,34 +7,45 @@
 import React, { useEffect, useState } from 'react';
 import { Alert, Box, Button, LinearProgress, Paper, Stack, Typography } from '@mui/material';
 import { PAID_PLANS_ENABLED } from '../config/network';
-import { PLANS, freeLeft, openCheckout, refreshPlan, usePlan, type PlanName } from '../veilcore/billing';
+import { KNOWN_PLANS, freeLeft, openCheckout, refreshPlan, usePlan, watchPlanOnReturn } from '../veilcore/billing';
 import { useT } from '../i18n/app';
 import type { AppKey } from '../i18n/app/en';
 
-export const PlanBox: React.FC<{ heldHere: number; compact?: boolean }> = ({ heldHere, compact = false }) => {
+const known = (p: string): p is (typeof KNOWN_PLANS)[number] => (KNOWN_PLANS as readonly string[]).includes(p);
+
+/** `ownHere`: this browser's own records (billing.ts ownCount), not deliveries received. */
+export const PlanBox: React.FC<{ ownHere: number; compact?: boolean }> = ({ ownHere, compact = false }) => {
   const { t } = useT();
   const plan = usePlan();
   const [error, setError] = useState<AppKey | null>(null);
   const [busy, setBusy] = useState(false);
   useEffect(() => {
-    if (PAID_PLANS_ENABLED) void refreshPlan();
+    if (!PAID_PLANS_ENABLED) return undefined;
+    void refreshPlan();
+    // Back from Paddle's tab: read again, so a plan just bought shows at once.
+    return watchPlanOnReturn();
   }, []);
   if (!PAID_PLANS_ENABLED || !plan) return null;
-  const left = freeLeft(plan, heldHere);
+  const left = freeLeft(plan, ownHere);
   // Compact (the start screen): only when the free number is used up.
   if (compact && left !== 0) return null;
-  const choose = async (p: PlanName) => {
+  // Not async before openCheckout: the tab must open in the click itself.
+  const choose = (p: string) => {
     setBusy(true);
-    setError(await openCheckout(p));
-    setBusy(false);
+    void openCheckout(p).then((e) => {
+      setError(e);
+      setBusy(false);
+    });
   };
-  const held = Math.max(heldHere, plan.recordsHeld);
+  const nameOf = (p: string) => (known(p) ? t(`app.plan.name.${p}`) : p);
+  const buyLabel = (p: string) => (known(p) ? t(`app.plan.buy.${p}`) : t('app.plan.buy.other', { plan: p }));
+  const held = Math.max(ownHere, plan.recordsCounted);
   return (
     <Paper variant="outlined" sx={{ p: { xs: 2, sm: 2.5 } }} data-plan-box={plan.plan}>
       <Stack spacing={1.25}>
         {left === null ? (
           <Typography variant="subtitle2" component="h2">
-            {t('app.plan.box.paid', { plan: t(`app.plan.name.${plan.plan}` as AppKey) })}
+            {t('app.plan.box.paid', { plan: nameOf(plan.plan) })}
           </Typography>
         ) : (
           <>
@@ -51,16 +62,16 @@ export const PlanBox: React.FC<{ heldHere: number; compact?: boolean }> = ({ hel
               {left === 0 ? t('app.plan.box.full') : t('app.plan.box.left', { n: String(left) })}
             </Typography>
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-              {PLANS.map((p) => (
+              {plan.plans.map((p, i) => (
                 <Button
                   key={p}
-                  variant={left === 0 && p === 'breeder' ? 'contained' : 'outlined'}
+                  variant={left === 0 && i === 0 ? 'contained' : 'outlined'}
                   disabled={busy}
-                  onClick={() => void choose(p)}
+                  onClick={() => choose(p)}
                   sx={{ minHeight: 44 }}
                   data-plan-choose={p}
                 >
-                  {t(`app.plan.buy.${p}`)}
+                  {buyLabel(p)}
                 </Button>
               ))}
               <Button color="inherit" disabled={busy} onClick={() => void refreshPlan()} sx={{ minHeight: 44 }}>
