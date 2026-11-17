@@ -1,8 +1,11 @@
 # A production chain as document records (16 Nov 2026)
 
-Status: built, with unit tests and a browser test against the stand-in registry. Not yet run on
-the test network or the main network; the site says so until it has (`config/copy.ts`
-`DOCUMENT_CHAIN_RUN_ON_MAINNET`, and the "what's live where" row).
+Status: live on veilcore.org. Built with unit tests and a browser test against the stand-in
+registry. First run on the main network on 16 November 2026: a grow batch sealed about a source
+record and a harvest lot about the batch, each dated on Midnight, and the lot's "Copy link with
+its chain" followed from a private window to the top with a date on every page (`config/copy.ts`
+`DOCUMENT_CHAIN_RUN_ON_MAINNET`, and the "what's live where" row). A lab report on top uses the
+same link one level further and was not part of that run. Not run on the test network.
 
 ## What it is
 
