@@ -2,13 +2,39 @@
 // actually holds, so what is on screen matches it; this says what did not go through.
 // SPDX-License-Identifier: Apache-2.0
 
-import React from 'react';
+import React, { useSyncExternalStore } from 'react';
 import { Alert } from '@mui/material';
 import { clearSaveProblem, describeRefusals, useSaveProblem } from '../veilcore/save-status';
 import { useT } from '../i18n/app';
 import { SupportDetails } from './SupportDetails';
+import { clearRemovedAsDeleted, onRemovedAsDeleted, removedAsDeletedCount } from '../veilcore/records';
 
-export const SaveProblemBar: React.FC = () => {
+/** Records removed here because their holder deleted them elsewhere, or a restore still had them. */
+const RemovedAsDeleted: React.FC = () => {
+  const n = useSyncExternalStore(onRemovedAsDeleted, removedAsDeletedCount);
+  const tr = useT();
+  if (!n) return null;
+  return (
+    <Alert
+      severity="info"
+      variant="outlined"
+      onClose={clearRemovedAsDeleted}
+      sx={{ mb: 2 }}
+      data-removed-as-deleted={n}
+    >
+      {tr.tp('app.plant.delete.goneHere', n)}
+    </Alert>
+  );
+};
+
+export const SaveProblemBar: React.FC = () => (
+  <>
+    <RemovedAsDeleted />
+    <SaveProblem />
+  </>
+);
+
+const SaveProblem: React.FC = () => {
   const problem = useSaveProblem();
   const tr = useT();
   if (!problem) return null;

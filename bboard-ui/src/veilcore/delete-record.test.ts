@@ -128,6 +128,13 @@ describe('deleting a record', () => {
     await B.run(() => B.m.records.noteSentTo(record.id, 'TR-2', 'Lab'));
     await until(async () => (await B.run(() => B.m.records.getRecord(record.id))) === undefined);
     expect(reg.rowsOf(H).some((r) => r.id === record.id)).toBe(false);
+    // Said once, so the record doesn't just vanish.
+    expect(await B.run(() => B.m.records.removedAsDeletedCount())).toBe(1);
+    // And kept that way: a reload with VeilCore out of reach doesn't show it again.
+    vi.stubGlobal('fetch', () => Promise.reject(new TypeError('offline')));
+    const E = await browser('del-f3', {}, 'del-f');
+    await E.run(() => E.m.records.hydrate());
+    expect(await E.run(() => E.m.records.getRecord(record.id))).toBeUndefined();
   });
 
   it('a backup saved before doesn’t bring it back', async () => {

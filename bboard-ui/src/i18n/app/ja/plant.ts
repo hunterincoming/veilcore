@@ -56,7 +56,7 @@ export const plant = {
   'app.plant.f.notSavedYet': 'まだ保存されていません',
   'app.plant.delete.title': 'この記録を削除',
   'app.plant.delete.text':
-    'リストと VeilCore のレジストリから完全に削除します。鍵のかかったコピーと共有した内容も消えます。確認用リンクには「保有者が削除した」と表示されます。この記録のまだ使われていないラボコードや受け渡しは使えなくなります。以前に保存したバックアップファイルにはまだ含まれていますが、それを復元しても戻りません。',
+    'リストと VeilCore のレジストリから完全に削除します。鍵のかかったコピーと共有した内容も消えます。確認用リンクには「保有者が削除した」と表示されます。この記録のまだ完了していない受け渡しは使えなくなります。ラボがすでに付けた署名は有効なままです。以前に保存したバックアップファイルにはまだ含まれていますが、それを復元しても戻りません。',
   'app.plant.delete.button': 'この記録を削除',
   'app.plant.delete.confirm':
     '「{name}」を削除しますか？元に戻せません。送付済みのラボや購入者は自分のコピーを持ち続けます。{named}',
@@ -68,7 +68,8 @@ export const plant = {
     'すでに Midnight で日付が記録されています。その日付は残ります。何も明かさない証明コードで、ブロックチェーンから取り消すことはできません。',
   'app.plant.delete.datedPending':
     '証明コードはすでに Midnight での日付記録を待つバッチに入っているため、削除しても日付は記録されます。何も明かさないコードです。',
-  'app.plant.delete.datedNo': 'まだバッチに入っていないため、削除すると Midnight で日付は記録されません。',
+  'app.plant.delete.datedNo':
+    'まだバッチに入っていないため、削除すると Midnight で日付は記録されません（削除が届く直前の数秒間にバッチが封印された場合を除く）。',
   'app.plant.delete.datedChecking': 'Midnight で日付が記録されているか確認しています…',
   'app.plant.delete.deleting': '削除しています…',
   'app.plant.delete.failed': '削除されませんでした。{reason}',
@@ -81,6 +82,8 @@ export const plant = {
   'app.plant.delete.why.deviceOnly': 'この端末だけに保管されている記録です。その記録のページから削除してください。',
   'app.plant.delete.why.missing': 'このブラウザにはもうありません。',
   'app.plant.delete.gone': '保有者が別のタブまたは別の端末で削除したため、ここからも取り除かれました。',
+  'app.plant.delete.goneHere.other':
+    '{count} 件の記録が保有者によって削除されたため（別のタブ、別の端末、またはバックアップの復元前）、ここからも取り除かれました。',
   'app.plant.f.copyCode': '証明コードをコピー',
   'app.plant.f.codeCopied': 'コピーしました',
   'app.plant.f.codeNotCopied': 'コピーできませんでした。コードを選択してコピーしてください',

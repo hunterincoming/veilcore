@@ -60,7 +60,7 @@ export const plant = {
   'app.plant.f.notSavedYet': 'pas encore enregistré',
   'app.plant.delete.title': 'Supprimer cet enregistrement',
   'app.plant.delete.text':
-    'Le retire définitivement de votre liste et du registre de VeilCore, avec sa copie verrouillée et tout ce que vous avez partagé. Ses liens de vérification diront que son détenteur l’a supprimé. Les codes de laboratoire et les livraisons encore ouverts pour lui ne fonctionnent plus. Les fichiers de sauvegarde enregistrés avant le contiennent encore, mais en restaurer un ne le fera pas revenir.',
+    'Le retire définitivement de votre liste et du registre de VeilCore, avec sa copie verrouillée et tout ce que vous avez partagé. Ses liens de vérification diront que son détenteur l’a supprimé. Les livraisons encore ouvertes pour lui ne fonctionnent plus ; les signatures qu’un laboratoire a déjà faites dessus restent valables. Les fichiers de sauvegarde enregistrés avant le contiennent encore, mais en restaurer un ne le fera pas revenir.',
   'app.plant.delete.button': 'Supprimer cet enregistrement',
   'app.plant.delete.confirm':
     'Supprimer « {name} » ? C’est irréversible. Un laboratoire ou un acheteur à qui vous l’avez envoyé garde sa copie.{named}',
@@ -73,7 +73,8 @@ export const plant = {
     'Il est déjà daté sur Midnight. Cette date reste : un code de preuve qui ne montre rien, qu’une blockchain ne peut pas reprendre.',
   'app.plant.delete.datedPending':
     'Son code de preuve est déjà dans un lot qui attend d’être daté sur Midnight : il sera donc daté quand même, sous forme d’un code qui ne montre rien.',
-  'app.plant.delete.datedNo': 'Il n’est encore dans aucun lot : une fois supprimé, il ne sera pas daté sur Midnight.',
+  'app.plant.delete.datedNo':
+    'Il n’est encore dans aucun lot : une fois supprimé, il ne sera pas daté sur Midnight (sauf si un lot est scellé dans les secondes avant que la suppression arrive).',
   'app.plant.delete.datedChecking': 'Vérification de sa date sur Midnight…',
   'app.plant.delete.deleting': 'Suppression…',
   'app.plant.delete.failed': 'Il n’a pas été supprimé. {reason}',
@@ -85,6 +86,10 @@ export const plant = {
   'app.plant.delete.why.missing': 'Il n’est plus dans ce navigateur.',
   'app.plant.delete.gone':
     'Son détenteur l’a supprimé, dans un autre onglet ou sur un autre appareil : il a donc été retiré ici aussi.',
+  'app.plant.delete.goneHere.other':
+    '{count} enregistrements ont été supprimés par leur détenteur (dans un autre onglet, sur un autre appareil ou avant la restauration d’une sauvegarde) : ils ont donc été retirés ici aussi.',
+  'app.plant.delete.goneHere.one':
+    '{count} enregistrement a été supprimé par son détenteur (dans un autre onglet, sur un autre appareil ou avant la restauration d’une sauvegarde) : il a donc été retiré ici aussi.',
   'app.plant.f.copyCode': 'Copier le code de preuve',
   'app.plant.f.codeCopied': 'Copié',
   'app.plant.f.codeNotCopied': 'Copie impossible : sélectionnez le code et copiez-le',

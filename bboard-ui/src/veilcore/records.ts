@@ -557,6 +557,19 @@ onVaultChange(() => {
 
 /** This page's saves of the record set still on their way to the registry. */
 const savesOnTheWay = new Set<Promise<SaveResult>>();
+/** How many records were removed here because their holder deleted them elsewhere (said once). */
+const removedAsDeleted = new Set<string>();
+const removedListeners = new Set<() => void>();
+export const removedAsDeletedCount = (): number => removedAsDeleted.size;
+export const onRemovedAsDeleted = (l: () => void): (() => void) => {
+  removedListeners.add(l);
+  return () => removedListeners.delete(l);
+};
+export const clearRemovedAsDeleted = (): void => {
+  removedAsDeleted.clear();
+  removedListeners.forEach((l) => l());
+};
+
 /** Ids being deleted now (deleteRecord): no save or dating row carries them meanwhile. */
 const deleting = new Set<string>();
 
@@ -571,6 +584,12 @@ const dropDeleted = (result: SaveResult): SaveResult => {
   takeFromOutbox([...gone]);
   for (const id of gone) forgetKeys(id);
   notify();
+  // Saved here too, or the copy came back on every reload until the next refused save.
+  persist();
+  // Counted by id: a restore can lose the row through a reload before its refusal arrives.
+  const was = removedAsDeleted.size;
+  for (const id of gone) removedAsDeleted.add(id);
+  if (removedAsDeleted.size > was) removedListeners.forEach((l) => l());
   const refused = result.refused.filter((r) => !r.deleted);
   return { ...result, refused, ok: result.ok || (refused.length === 0 && !result.offline && !result.held?.length) };
 };

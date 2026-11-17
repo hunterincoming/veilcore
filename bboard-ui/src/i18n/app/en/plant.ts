@@ -58,7 +58,7 @@ export const plant = {
   'app.plant.f.notSavedYet': 'not saved yet',
   'app.plant.delete.title': 'Delete this record',
   'app.plant.delete.text':
-    'Takes it off your list and off VeilCore’s registry for good, with its locked copy and anything you shared. Its check links will say it was deleted by its holder. Lab codes and deliveries still open for it stop working. Backup files saved before still contain it, but restoring one won’t bring it back.',
+    'Takes it off your list and off VeilCore’s registry for good, with its locked copy and anything you shared. Its check links will say it was deleted by its holder. Deliveries still open for it stop working; signatures a lab already made on it stay valid. Backup files saved before still contain it, but restoring one won’t bring it back.',
   'app.plant.delete.button': 'Delete this record',
   'app.plant.delete.confirm':
     'Delete “{name}”? This can’t be undone. A lab or buyer you sent it to keeps their copy.{named}',
@@ -70,7 +70,8 @@ export const plant = {
     'It is already dated on Midnight. That date stays: a proof code that shows nothing, which a blockchain can’t take back.',
   'app.plant.delete.datedPending':
     'Its proof code is already in a batch waiting to be dated on Midnight, so it will still be dated: a code that shows nothing.',
-  'app.plant.delete.datedNo': 'It isn’t in a batch yet, so once deleted it won’t be dated on Midnight.',
+  'app.plant.delete.datedNo':
+    'It isn’t in a batch yet, so once deleted it won’t be dated on Midnight (unless a batch is sealed in the seconds before the delete lands).',
   'app.plant.delete.datedChecking': 'Checking whether it is dated on Midnight…',
   'app.plant.delete.deleting': 'Deleting…',
   'app.plant.delete.failed': 'It wasn’t deleted. {reason}',
@@ -81,6 +82,10 @@ export const plant = {
   'app.plant.delete.why.deviceOnly': 'It is kept on this device only: delete it from its own page.',
   'app.plant.delete.why.missing': 'It isn’t in this browser any more.',
   'app.plant.delete.gone': 'Its holder deleted it, in another tab or on another device, so it was removed here too.',
+  'app.plant.delete.goneHere.other':
+    '{count} records were deleted by their holder (in another tab, on another device, or before a backup was restored), so they were removed here too.',
+  'app.plant.delete.goneHere.one':
+    '{count} record was deleted by its holder (in another tab, on another device, or before a backup was restored), so it was removed here too.',
   'app.plant.f.copyCode': 'Copy the proof code',
   'app.plant.f.codeCopied': 'Copied',
   'app.plant.f.codeNotCopied': 'Couldn’t copy: select the code and copy it',

@@ -112,12 +112,20 @@ export const verify = {
     'Este enlace de verificación no coincide con ningún registro del servidor de registros. Compruebe que el enlace esté completo y sin cambios.',
   'app.verify.goHome': 'Ir a veilcore.org',
   'app.verify.deleted.title': '{id} fue eliminado por su titular',
-  'app.verify.deleted.when': 'Eliminado el {date}. Ya no se muestra nada sobre él.',
+  'app.verify.deleted.when': 'Eliminado el {date}. Sus detalles ya no se muestran.',
   'app.verify.deleted.datedChecked':
     'Antes de eso, se fechó en Midnight: bloque {block}, {date}. Esta página lo comprobó en Midnight por sí misma.',
   'app.verify.deleted.datedReported':
     'El servidor de registros de VeilCore informa que se fechó en Midnight antes de eliminarse. Un enlace que lleve su código de prueba permite que esta página lo compruebe por sí misma.',
   'app.verify.deleted.notDated': 'El servidor de registros de VeilCore no tiene fecha en Midnight para él.',
+  'app.verify.deleted.datedReportedPlain':
+    'El servidor de registros de VeilCore informa que se fechó en Midnight. Un enlace que lleve su código de prueba permite que esta página lo compruebe por sí misma.',
+  'app.verify.deleted.datedReportedAfter':
+    'El servidor de registros de VeilCore informa que se fechó en Midnight después de eliminarse, porque su lote se había sellado antes. Un enlace que lleve su código de prueba permite que esta página lo compruebe por sí misma.',
+  'app.verify.deleted.datedCheckedPlain':
+    'Se fechó en Midnight: bloque {block}, {date}. Esta página lo comprobó en Midnight por sí misma.',
+  'app.verify.deleted.datedCheckedAfter':
+    'Se fechó en Midnight después de eliminarse, porque su lote se había sellado antes: bloque {block}, {date}. Esta página lo comprobó en Midnight por sí misma.',
   'app.verify.mismatch.title': 'El código de prueba de este enlace no coincide con el registro: no se comprobó nada',
   'app.verify.mismatch.dontRely': 'No confíe en esta página.',
   'app.verify.mismatch.text':

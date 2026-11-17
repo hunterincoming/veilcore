@@ -4,7 +4,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { aboutIdsOf } from '../veilcore/document-chain';
-import { useRecordDate } from './verify/useAnchorCheck';
+import { recordProof, useRecordDate } from './verify/useAnchorCheck';
+import { neverSend } from '../veilcore/outbox';
 import type { ProofState } from '../veilcore/proofs';
 import type { AppKey } from '../i18n/app/en';
 import React, { useEffect, useRef, useState } from 'react';
@@ -228,7 +229,12 @@ const DeleteRecord: React.FC<{
     const named = namedBy.length
       ? t('app.plant.delete.named', { list: namedBy.map((x) => x.strainName || x.id).join(', ') })
       : '';
-    if (!window.confirm(t('app.plant.delete.confirm', { name: record.strainName || record.id, named }))) return;
+    // Its date read again now, not from when the page opened: a batch may have been sealed since.
+    const dated = t(deleteDateKey(await recordProof(record.recordFingerprint)));
+    if (
+      !window.confirm(`${t('app.plant.delete.confirm', { name: record.strainName || record.id, named })}\n\n${dated}`)
+    )
+      return;
     setBusy(true);
     setError(null);
     const out = await deleteRecord(record.id);
@@ -842,7 +848,8 @@ export const RecordDetail: React.FC = () => {
                     </Alert>
                   )}
                 </Box>
-                {!labOnly && (
+                {/* A record kept on this device only has its own delete (deleteDeviceOnly). */}
+                {!labOnly && !neverSend(record) && (
                   <DeleteRecord
                     record={record}
                     licensed={heldLicenses.some((l) => l.recordId === record.id)}

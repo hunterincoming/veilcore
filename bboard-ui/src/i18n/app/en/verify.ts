@@ -110,12 +110,20 @@ export const verify = {
     "This verification link doesn't match any record in the registry. Check the link is complete and unmodified.",
   'app.verify.goHome': 'Go to veilcore.org',
   'app.verify.deleted.title': '{id} was deleted by its holder',
-  'app.verify.deleted.when': 'Deleted on {date}. Nothing about it is shown any more.',
+  'app.verify.deleted.when': 'Deleted on {date}. Its details are no longer shown.',
   'app.verify.deleted.datedChecked':
     'Before that, it was dated on Midnight: block {block}, {date}. This page checked that on Midnight itself.',
   'app.verify.deleted.datedReported':
     'VeilCore’s registry reports it was dated on Midnight before it was deleted. A link that carries its proof code lets this page check that itself.',
   'app.verify.deleted.notDated': 'VeilCore’s registry has no date on Midnight for it.',
+  'app.verify.deleted.datedReportedPlain':
+    'VeilCore’s registry reports it was dated on Midnight. A link that carries its proof code lets this page check that itself.',
+  'app.verify.deleted.datedReportedAfter':
+    'VeilCore’s registry reports it was dated on Midnight after the deletion, because its batch was sealed before it. A link that carries its proof code lets this page check that itself.',
+  'app.verify.deleted.datedCheckedPlain':
+    'It was dated on Midnight: block {block}, {date}. This page checked that on Midnight itself.',
+  'app.verify.deleted.datedCheckedAfter':
+    'It was dated on Midnight after the deletion, because its batch was sealed before it: block {block}, {date}. This page checked that on Midnight itself.',
   'app.verify.mismatch.title': "This link's proof code doesn't match the record: nothing checked",
   'app.verify.mismatch.dontRely': 'Do not rely on this page.',
   'app.verify.mismatch.text':

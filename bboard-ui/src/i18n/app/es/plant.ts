@@ -58,7 +58,7 @@ export const plant = {
   'app.plant.f.notSavedYet': 'todavía no guardado',
   'app.plant.delete.title': 'Eliminar este registro',
   'app.plant.delete.text':
-    'Lo quita para siempre de su lista y del servidor de registros de VeilCore, con su copia cerrada y todo lo que haya compartido. Sus enlaces de verificación dirán que su titular lo eliminó. Los códigos de laboratorio y los envíos aún abiertos para él dejan de funcionar. Los archivos de copia de seguridad guardados antes todavía lo contienen, pero restaurar uno no lo traerá de vuelta.',
+    'Lo quita para siempre de su lista y del servidor de registros de VeilCore, con su copia cerrada y todo lo que haya compartido. Sus enlaces de verificación dirán que su titular lo eliminó. Los envíos aún abiertos para él dejan de funcionar; las firmas que un laboratorio ya hizo sobre él siguen siendo válidas. Los archivos de copia de seguridad guardados antes todavía lo contienen, pero restaurar uno no lo traerá de vuelta.',
   'app.plant.delete.button': 'Eliminar este registro',
   'app.plant.delete.confirm':
     '¿Eliminar «{name}»? No se puede deshacer. Un laboratorio o comprador al que se lo envió conserva su copia.{named}',
@@ -71,7 +71,8 @@ export const plant = {
     'Ya está fechado en Midnight. Esa fecha permanece: un código de prueba que no muestra nada y que una blockchain no puede deshacer.',
   'app.plant.delete.datedPending':
     'Su código de prueba ya está en un lote que espera ser fechado en Midnight, así que se fechará igualmente: un código que no muestra nada.',
-  'app.plant.delete.datedNo': 'Todavía no está en un lote, así que una vez eliminado no se fechará en Midnight.',
+  'app.plant.delete.datedNo':
+    'Todavía no está en un lote, así que una vez eliminado no se fechará en Midnight (salvo que se selle un lote en los segundos antes de que llegue la eliminación).',
   'app.plant.delete.datedChecking': 'Comprobando si está fechado en Midnight…',
   'app.plant.delete.deleting': 'Eliminando…',
   'app.plant.delete.failed': 'No se eliminó. {reason}',
@@ -84,6 +85,10 @@ export const plant = {
   'app.plant.delete.why.missing': 'Ya no está en este navegador.',
   'app.plant.delete.gone':
     'Su titular lo eliminó, en otra pestaña o en otro dispositivo, así que también se quitó aquí.',
+  'app.plant.delete.goneHere.other':
+    '{count} registros fueron eliminados por su titular (en otra pestaña, en otro dispositivo o antes de restaurar una copia de seguridad), así que también se quitaron aquí.',
+  'app.plant.delete.goneHere.one':
+    '{count} registro fue eliminado por su titular (en otra pestaña, en otro dispositivo o antes de restaurar una copia de seguridad), así que también se quitó aquí.',
   'app.plant.f.copyCode': 'Copiar el código de prueba',
   'app.plant.f.codeCopied': 'Copiado',
   'app.plant.f.codeNotCopied': 'No se pudo copiar: seleccione el código y cópielo',
