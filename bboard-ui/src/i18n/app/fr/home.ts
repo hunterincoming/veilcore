@@ -90,6 +90,8 @@ export const home = {
   'app.home.chooseView': 'Obtenteur ou laboratoire ? Choisissez votre vue',
   'app.home.saveProblem.records': 'enregistrements',
   'app.home.saveProblem.agreements': 'contrats',
+  'app.home.saveProblem.unreachable':
+    'VeilCore n’a pas pu être joint : vos derniers {what} n’y sont pas encore enregistrés. Ils sont gardés dans ce navigateur et renvoyés au prochain enregistrement.',
   'app.home.saveProblem.text':
     'Le registre n’a pas conservé certains de vos {what} ; ils ont donc été remis à ce qu’il détient : {list}',
   'app.home.sort.recent': 'Plus récents d’abord',

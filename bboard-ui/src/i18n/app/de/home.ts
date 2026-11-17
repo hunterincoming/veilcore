@@ -90,6 +90,8 @@ export const home = {
   'app.home.chooseView': 'Züchter oder Labor? Ansicht wählen',
   'app.home.saveProblem.records': 'Datensätze',
   'app.home.saveProblem.agreements': 'Vereinbarungen',
+  'app.home.saveProblem.unreachable':
+    'VeilCore war nicht erreichbar, daher sind Ihre neuesten {what} dort noch nicht gespeichert. Sie bleiben in diesem Browser und werden mit dem nächsten Speichern erneut gesendet.',
   'app.home.saveProblem.text':
     'Das Register hat einige Ihrer {what} nicht gespeichert, daher wurden sie auf den dort gespeicherten Stand zurückgesetzt: {list}',
   'app.home.sort.recent': 'Neueste zuerst',

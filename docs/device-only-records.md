@@ -3,8 +3,10 @@
 Status: live on veilcore.org. Built with unit and browser tests and reviewed three times against a
 registry that lies. First run on the main network on 16 November 2026: a document sealed with the
 choice ticked, dated in a batch, and checked from its check link, file matched byte for byte
-(`config/copy.ts` `DEVICE_ONLY_RUN_ON_MAINNET`). Not yet tried there: restoring one from a backup
-on a second device, and a passkey copy on a phone.
+(`config/copy.ts` `DEVICE_ONLY_RUN_ON_MAINNET`). Restored from a backup in a second browser on 17
+November 2026: the restore said "Records put back from the file itself: 2", and the grow batch
+opened with everything typed in it, "Kept on this device only", and its date checked on Midnight.
+Not yet tried there: a passkey copy on a phone.
 
 ## What it is
 
@@ -210,8 +212,8 @@ nothing typed was sent to VeilCore: it says none of it went to VeilCore's regist
 
 Limits: the list of claims made (their links) lives on this device's copy and goes into the next
 backup; a backup saved before a claim doesn't list it, though the claim itself stays on
-Midnight. Not yet tried on a network: `config/copy.ts` `DEVICE_ONLY_CLAIMS_RUN_ON_MAINNET` is
-off, and the "what's live where" row says "built, not yet tried".
+Midnight. Live on veilcore.org: a number proved from a device-only grow batch and its claim link
+checked, by 17 November 2026 (`config/copy.ts` `DEVICE_ONLY_CLAIMS_RUN_ON_MAINNET`).
 
 ## The backup
 

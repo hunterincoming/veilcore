@@ -89,6 +89,8 @@ export const home = {
   'app.home.chooseView': '¿Obtentor o laboratorio? Elija su vista',
   'app.home.saveProblem.records': 'registros',
   'app.home.saveProblem.agreements': 'acuerdos',
+  'app.home.saveProblem.unreachable':
+    'No se pudo contactar con VeilCore, así que sus últimos {what} aún no están guardados allí. Se conservan en este navegador y se vuelven a enviar con el siguiente guardado.',
   'app.home.saveProblem.text':
     'El servidor de registros no guardó algunos de sus {what}, así que se devolvieron a lo que tiene guardado: {list}',
   'app.home.sort.recent': 'Más recientes primero',

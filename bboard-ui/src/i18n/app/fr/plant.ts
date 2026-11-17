@@ -58,6 +58,9 @@ export const plant = {
   'app.plant.f.file': 'fichier',
   'app.plant.f.fileSha': ' · SHA-256 du fichier {sha}',
   'app.plant.f.notSavedYet': 'pas encore enregistré',
+  'app.plant.f.copyCode': 'Copier le code de preuve',
+  'app.plant.f.codeCopied': 'Copié',
+  'app.plant.f.codeNotCopied': 'Copie impossible : sélectionnez le code et copiez-le',
   'app.plant.f.recordFingerprint': 'Code de preuve de l’enregistrement',
   'app.plant.evidenceBundle': 'Dossier de preuve',
   'app.plant.evidenceBundleText':

@@ -81,6 +81,8 @@ export const home = {
   'app.home.chooseView': '育成者ですか、ラボですか？表示を選ぶ',
   'app.home.saveProblem.records': '記録',
   'app.home.saveProblem.agreements': '契約',
+  'app.home.saveProblem.unreachable':
+    'VeilCoreに接続できなかったため、最新の{what}はまだそこに保存されていません。このブラウザに保管され、次の保存時にもう一度送信されます。',
   'app.home.saveProblem.text': 'レジストリが{what}の一部を保存しなかったため、レジストリにある内容に戻しました：{list}',
   'app.home.sort.recent': '新しい順',
   'app.home.sort.oldest': '古い順',
