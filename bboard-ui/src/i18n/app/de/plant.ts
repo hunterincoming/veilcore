@@ -58,6 +58,9 @@ export const plant = {
   'app.plant.f.file': 'Datei',
   'app.plant.f.fileSha': ' · SHA-256 der Datei {sha}',
   'app.plant.f.notSavedYet': 'noch nicht gespeichert',
+  'app.plant.f.copyCode': 'Prüfcode kopieren',
+  'app.plant.f.codeCopied': 'Kopiert',
+  'app.plant.f.codeNotCopied': 'Kopieren nicht möglich: Code markieren und kopieren',
   'app.plant.f.recordFingerprint': 'Prüfcode des Datensatzes',
   'app.plant.evidenceBundle': 'Nachweispaket',
   'app.plant.evidenceBundleText':
