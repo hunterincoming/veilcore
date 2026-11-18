@@ -319,5 +319,14 @@ describe('deleting a record', () => {
     // Dated already, so kept with its keys, and nothing said as deleted.
     expect((await A.run(() => A.m.records.getRecord(record.id)))?.strainName).toBe('TEST delete');
     expect(await A.run(() => A.m.records.removedAsDeletedCount())).toBe(0);
+    // Never resent in silence: the save bar and the record's page say why, with the way out.
+    expect(await A.run(() => A.m.records.unsavedReason(record.id))).toBe('linksDeleted');
+    expect(await A.run(() => A.m.records.linksDeletedFirst())).toBe(record.id);
+    // Let go here: gone from this browser, its dated proof code taken off VeilCore with it.
+    vi.stubGlobal('fetch', reg.fetch);
+    await A.run(() => A.m.records.discardUnsaved(record.id));
+    expect(await A.run(() => A.m.records.getRecord(record.id))).toBeUndefined();
+    expect(await A.run(() => A.m.records.unsavedReason(record.id))).toBeUndefined();
+    expect(await A.run(() => A.m.records.linksDeletedFirst())).toBeUndefined();
   });
 });

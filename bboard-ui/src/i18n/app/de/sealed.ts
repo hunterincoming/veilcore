@@ -183,6 +183,11 @@ export const sealed = {
     'Noch nicht gespeichert. Dieser Browser hat den Schlüssel für Ihre Datensätze bei VeilCore nicht. Stellen Sie Ihre Sicherungskopie wieder her oder, wenn Sie sie nicht haben, nutzen Sie „Ich habe diese Sicherungskopie nicht“ auf der Seite Ihrer Datensätze.',
   'app.sealed.unsaved.retry':
     'Noch nicht bei VeilCore gespeichert. Es bleibt in diesem Browser und wird beim nächsten Speichern erneut gesendet.',
+  'app.sealed.linksDeletedBar':
+    'Eine in diesem Browser gespeicherte Korrektur nennt einen Eintrag, den sein Inhaber gelöscht hat, daher speichert VeilCore sie nicht. Öffnen Sie sie, um sie zu verwerfen.',
+  'app.sealed.linksDeletedOpen': 'Öffnen',
+  'app.sealed.unsaved.linksDeleted':
+    'Diese Korrektur nennt einen Eintrag, den sein Inhaber gelöscht hat, daher speichert VeilCore sie nicht. Sie ist nur in diesem Browser gespeichert. Verwerfen Sie sie hier.',
   'app.sealed.unsaved.short': 'Verschlossene Kopie noch nicht hochgeladen – Sicherungskopie speichern und prüfen',
   'app.sealed.unsaved.shortRetry': 'Noch nicht gespeichert',
   'app.sealed.unsaved.discardConfirm':

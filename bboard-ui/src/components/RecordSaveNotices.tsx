@@ -35,7 +35,8 @@ export const RecordSaveNotices: React.FC<{ record: StrainRecord; onShare?: () =>
   const unsaved = unsavedReason(record.id);
   const differs = useGrantDifference(record.id);
   const ask = record.grantToConfirm ?? [];
-  const isNew = rowStateOf(RECORDS_KEY, record.id) === undefined;
+  // A correction VeilCore will never take goes as a whole, like a new record (linksDeleted).
+  const isNew = rowStateOf(RECORDS_KEY, record.id) === undefined || unsaved === 'linksDeleted';
 
   const answer = async (share: boolean) => {
     setBusy(true);

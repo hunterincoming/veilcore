@@ -177,6 +177,11 @@ export const sealed = {
     'Aún no se guardó. Este navegador no tiene la clave de sus registros en VeilCore. Restaure su copia de seguridad o, si no la tiene, use «No tengo esa copia de seguridad» en la página de sus registros.',
   'app.sealed.unsaved.retry':
     'Aún no se guardó en VeilCore. Se conserva en este navegador y se vuelve a enviar en el próximo guardado.',
+  'app.sealed.linksDeletedBar':
+    'Una corrección guardada en este navegador nombra un registro que su titular eliminó, así que VeilCore no la guardará. Ábrala para descartarla.',
+  'app.sealed.linksDeletedOpen': 'Abrirla',
+  'app.sealed.unsaved.linksDeleted':
+    'Esta corrección nombra un registro que su titular eliminó, así que VeilCore no la guardará. Solo se guarda en este navegador. Descártela aquí.',
   'app.sealed.unsaved.short': 'Copia bloqueada aún sin subir: guarde y compruebe su copia de seguridad',
   'app.sealed.unsaved.shortRetry': 'Aún no se guardó',
   'app.sealed.unsaved.discardConfirm':

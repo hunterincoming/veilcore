@@ -183,6 +183,11 @@ export const sealed = {
   'app.sealed.unsaved.key':
     'Not saved yet. This browser doesn’t have the key for your records on VeilCore. Restore your backup, or, if you don’t have it, use “I don’t have that backup” on your records page.',
   'app.sealed.unsaved.retry': 'Not saved on VeilCore yet. It’s kept in this browser and sent again with the next save.',
+  'app.sealed.linksDeletedBar':
+    'A correction kept in this browser names a record its holder deleted, so VeilCore won’t save it. Open it to let it go.',
+  'app.sealed.linksDeletedOpen': 'Open it',
+  'app.sealed.unsaved.linksDeleted':
+    'This correction names a record its holder deleted, so VeilCore won’t save it. It’s kept only in this browser. Let it go here.',
   'app.sealed.unsaved.short': 'Locked copy not uploaded yet — save and check your backup',
   'app.sealed.unsaved.shortRetry': 'Not saved yet',
   'app.sealed.unsaved.discardConfirm':

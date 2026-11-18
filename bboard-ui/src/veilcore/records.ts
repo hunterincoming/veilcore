@@ -571,6 +571,22 @@ export const clearRemovedAsDeleted = (): void => {
   removedListeners.forEach((l) => l());
 };
 
+/**
+ * Corrections kept here whose link names a record its holder deleted (dropDeletedLinks): the
+ * registry will never take them, so they are said as that, with the way to let them go.
+ */
+const linksDeletedHere = new Set<string>();
+const linksDeletedListeners = new Set<() => void>();
+/** The first such correction kept here, if any (SaveProblemBar links to its page). */
+export const linksDeletedFirst = (): string | undefined => {
+  for (const id of linksDeletedHere) if (records.some((r) => r.id === id)) return id;
+  return undefined;
+};
+export const onLinksDeleted = (l: () => void): (() => void) => {
+  linksDeletedListeners.add(l);
+  return () => linksDeletedListeners.delete(l);
+};
+
 /** Ids being deleted now (deleteRecord): no save or dating row carries them meanwhile. */
 const deleting = new Set<string>();
 
@@ -607,12 +623,21 @@ const dropDeletedLinks = (result: SaveResult): SaveResult => {
       const was = removedAsDeleted.size;
       removedAsDeleted.add(ref.id);
       if (removedAsDeleted.size > was) removedListeners.forEach((l) => l());
+    } else if (records.some((r) => r.id === ref.id)) {
+      // Kept (its proof code is dated, or VeilCore holds an earlier copy): the registry will
+      // refuse it every time, so it is said, never resent in silence (unsavedReason).
+      if (!linksDeletedHere.has(ref.id)) {
+        linksDeletedHere.add(ref.id);
+        linksDeletedListeners.forEach((l) => l());
+      }
     }
   }
   if (changed) {
     notify();
     persist();
   }
+  // Out of the save's own refusals either way: a dropped link is saved again, and a kept
+  // correction stays kept (its page and the save bar say why: unsavedReason, linksDeletedFirst).
   const refused = result.refused.filter((r) => !r.linksDeleted);
   return { ...result, refused, ok: result.ok || (refused.length === 0 && !result.offline && !result.held?.length) };
 };
@@ -1477,8 +1502,10 @@ const dateFirst = (skip: readonly string[] = []): Promise<void> => {
 export const proofCodeSent = (id: string): boolean => registryHasProofCode(id);
 
 /** Why a record is shown but not on the registry yet, or undefined when it is. */
-export type UnsavedReason = 'backup' | 'key' | 'retry';
+export type UnsavedReason = 'backup' | 'key' | 'retry' | 'linksDeleted';
 export const unsavedReason = (id: string): UnsavedReason | undefined => {
+  // A correction of a record its holder deleted: VeilCore will never take it.
+  if (linksDeletedHere.has(id) && records.some((r) => r.id === id)) return 'linksDeleted';
   // A record left unsure by a correction whose answer was lost: kept here, sent once the
   // registry is read again (settleUnsure).
   if (unsureNow().has(id)) return 'retry';
@@ -1493,7 +1520,9 @@ export const unsavedReason = (id: string): UnsavedReason | undefined => {
  * change to one it has (the registry's copy is shown again).
  */
 export const discardUnsaved = async (id: string): Promise<void> => {
-  if (!inOutbox(id)) return;
+  const deadLink = linksDeletedHere.delete(id);
+  if (deadLink) linksDeletedListeners.forEach((l) => l());
+  if (!inOutbox(id) && !deadLink) return;
   takeFromOutbox([id]);
   // Its proof code alone was dated (CONTRACT.md #38): taken off VeilCore too, since the record
   // it dates is gone.

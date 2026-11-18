@@ -160,6 +160,11 @@ export const sealed = {
     'まだ保存されていません。このブラウザには、VeilCore上のあなたの記録の鍵がありません。バックアップを復元するか、持っていなければ記録のページの「そのバックアップを持っていない」を使ってください。',
   'app.sealed.unsaved.retry':
     'まだVeilCoreに保存されていません。このブラウザに残し、次に保存するときにもう一度送ります。',
+  'app.sealed.linksDeletedBar':
+    'このブラウザに保管された訂正は保有者が削除した記録を指しているため、VeilCoreは保存しません。開いて破棄してください。',
+  'app.sealed.linksDeletedOpen': '開く',
+  'app.sealed.unsaved.linksDeleted':
+    'この訂正は保有者が削除した記録を指しているため、VeilCoreは保存しません。このブラウザにのみ保管されています。ここで破棄してください。',
   'app.sealed.unsaved.short':
     'ロックしたコピーはまだアップロードされていません。バックアップを保存して確認してください',
   'app.sealed.unsaved.shortRetry': 'まだ保存されていません',

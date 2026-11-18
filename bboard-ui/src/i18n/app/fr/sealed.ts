@@ -183,6 +183,11 @@ export const sealed = {
     'Pas encore enregistré. Ce navigateur n’a pas la clé de vos enregistrements sur VeilCore. Restaurez votre copie de secours ou, si vous ne l’avez pas, utilisez « Je n’ai pas cette copie de secours » sur la page de vos enregistrements.',
   'app.sealed.unsaved.retry':
     'Pas encore enregistré sur VeilCore. C’est gardé dans ce navigateur et renvoyé au prochain enregistrement.',
+  'app.sealed.linksDeletedBar':
+    'Une correction gardée dans ce navigateur nomme un enregistrement que son détenteur a supprimé, donc VeilCore ne l’enregistrera pas. Ouvrez-la pour l’abandonner.',
+  'app.sealed.linksDeletedOpen': 'L’ouvrir',
+  'app.sealed.unsaved.linksDeleted':
+    'Cette correction nomme un enregistrement que son détenteur a supprimé, donc VeilCore ne l’enregistrera pas. Elle n’est gardée que dans ce navigateur. Abandonnez-la ici.',
   'app.sealed.unsaved.short': 'Copie verrouillée pas encore envoyée — enregistrez et vérifiez votre copie de secours',
   'app.sealed.unsaved.shortRetry': 'Pas encore enregistré',
   'app.sealed.unsaved.discardConfirm':

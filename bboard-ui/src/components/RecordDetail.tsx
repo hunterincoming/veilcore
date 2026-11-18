@@ -223,17 +223,36 @@ const DeleteRecord: React.FC<{
 }> = ({ record, licensed, namedBy, onDeleted }) => {
   const { t } = useT();
   const [dateNow, setDateNow] = useState<DateForDelete | 'checking'>('checking');
-  useEffect(() => {
-    let live = true;
-    void dateForDelete(record.recordFingerprint).then((d) => live && setDateNow(d));
-    return () => {
-      live = false;
-    };
-  }, [record.recordFingerprint]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const inCorrection = !!record.supersedes?.recordId || !!record.supersededBy;
   const blocked = licensed ? 'app.plant.delete.blocked' : inCorrection ? 'app.plant.delete.blockedCorrection' : null;
+  // Its date is asked for only when deleting is possible and the panel is on screen, not on every
+  // view of the record's page; pressing Delete reads it again anyway.
+  const panel = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (blocked) return;
+    let live = true;
+    const ask = () => void dateForDelete(record.recordFingerprint).then((d) => live && setDateNow(d));
+    const el = panel.current;
+    if (!el || typeof IntersectionObserver === 'undefined') {
+      ask();
+      return () => {
+        live = false;
+      };
+    }
+    const seen = new IntersectionObserver((entries) => {
+      if (entries.some((e) => e.isIntersecting)) {
+        seen.disconnect();
+        ask();
+      }
+    });
+    seen.observe(el);
+    return () => {
+      live = false;
+      seen.disconnect();
+    };
+  }, [record.recordFingerprint, blocked]);
   const go = async () => {
     const named = namedBy.length
       ? t('app.plant.delete.named', { list: namedBy.map((x) => x.strainName || x.id).join(', ') })
@@ -254,7 +273,7 @@ const DeleteRecord: React.FC<{
     else onDeleted();
   };
   return (
-    <Paper sx={{ p: { xs: 2.5, md: 3 } }} data-delete-record="">
+    <Paper ref={panel} sx={{ p: { xs: 2.5, md: 3 } }} data-delete-record="">
       <Stack spacing={1}>
         <Typography variant="overline" sx={{ display: 'block' }}>
           {t('app.plant.delete.title')}
