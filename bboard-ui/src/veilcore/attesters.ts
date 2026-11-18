@@ -24,6 +24,7 @@ import type { SignedAttestation, AttestationStrength, Retraction } from 'veilcor
 import { verifyAttestation, verifyRetraction } from 'veilcore-records';
 import { readJson, isObject, isString } from './json';
 import { isClaimsKeyBinding } from './lab-key-text';
+import { domainClaimValid } from './lab-domain';
 import { holderKeyIfAny, holderRequestsPaused } from './holder';
 import { enT, type Translator } from '../i18n/translate';
 import type { AppKey } from '../i18n/app/en';
@@ -52,13 +53,37 @@ export type NameCheck = {
   checkedName: string;
 };
 
-/** What the registry saw at a lab's own domain: the file at /.well-known/veilcore-lab.json, or a TXT record. */
+/** The key's own signature naming its website (lab-domain.ts domainClaimPayload). */
+export type DomainClaim = { issuedAt: number; signature: string };
+
+/**
+ * What the registry saw at a lab's own domain: the file at /.well-known/veilcore-lab.json, a
+ * did:web document at /.well-known/did.json, or a TXT record.
+ */
 export type DomainCheck = {
   domain: string;
-  method: 'file' | 'dns';
+  method: 'file' | 'did' | 'dns';
   checkedAt: string;
   listedName?: string;
   fileSha256?: string;
+  /** did:web only: the DID and the verification method holding the key. Optional, never required. */
+  did?: string;
+  didKeyId?: string;
+  claim?: DomainClaim;
+  /** Set only by checkAttestations, when this browser verified `claim`. Never read from the registry. */
+  claimChecked?: true;
+};
+
+/** The website the key named stopped listing it (registry `domainWithdrawn`). */
+export type DomainWithdrawn = {
+  domain: string;
+  /** Where the key was listed before. */
+  method?: 'file' | 'did' | 'dns';
+  withdrawnAt: string;
+  checkedAt?: string;
+  claim?: DomainClaim;
+  /** Set only by checkAttestations, when this browser verified `claim`. */
+  claimChecked?: true;
 };
 
 export type ResolvedAttestation = SignedAttestation & {
@@ -81,6 +106,8 @@ export type ResolvedAttestation = SignedAttestation & {
      * as the registry last saw it. Absent from older registries.
      */
     domainCheck?: DomainCheck | null;
+    /** The website the key named stopped listing it. Absent from older registries. */
+    domainWithdrawn?: DomainWithdrawn | null;
   } | null;
   /** A retraction, present only when its signature verified against this attestation. */
   retraction: Retraction | null;
@@ -149,6 +176,33 @@ const checkRetraction = async (r: unknown, a: SignedAttestation): Promise<Retrac
   }
 };
 
+const LAB_DOMAIN = /^(?=.{4,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/;
+
+/**
+ * The registry's domain records, kept only when this browser verified the key's own signature
+ * naming that domain (docs/lab-key-on-website.md). `claimChecked` is set here and nowhere else:
+ * whatever the registry sent in that field is dropped. A row with no claim, or one that doesn't
+ * verify, loses the line: the key never named that website as far as anyone can check.
+ */
+const checkDomainRecords = async (
+  publicKey: string,
+  registeredAs: unknown,
+): Promise<{ domainCheck?: DomainCheck | null; domainWithdrawn?: DomainWithdrawn | null }> => {
+  if (!isObject(registeredAs)) return {};
+  const one = async <T extends { domain: string; claim?: DomainClaim; claimChecked?: true }>(v: unknown) => {
+    if (!isObject(v) || !isString(v.domain) || !LAB_DOMAIN.test(v.domain)) return null;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars -- dropped: only this browser sets it
+    const { claimChecked: _fromRegistry, ...rest } = v as unknown as T;
+    return (await domainClaimValid(publicKey, rest.domain, rest.claim)) ? ({ ...rest, claimChecked: true } as T) : null;
+  };
+  return {
+    ...('domainCheck' in registeredAs ? { domainCheck: await one<DomainCheck>(registeredAs.domainCheck) } : {}),
+    ...('domainWithdrawn' in registeredAs
+      ? { domainWithdrawn: await one<DomainWithdrawn>(registeredAs.domainWithdrawn) }
+      : {}),
+  };
+};
+
 /**
  * Rows as the registry sends them, checked here before being shown: the signature and any
  * retraction verified in this browser, and only rows about `commitment` kept. Used for the
@@ -181,8 +235,10 @@ export const checkAttestations = async (
         signatureValid = false;
       }
       const retraction = reported === null || reported === undefined ? null : await checkRetraction(reported, rest);
+      const domains = await checkDomainRecords(rest.attester.publicKey, rest.registeredAs);
       return {
         ...rest,
+        ...(rest.registeredAs ? { registeredAs: { ...rest.registeredAs, ...domains } } : {}),
         signatureValid,
         ...(withheld ? { documentWithheld: true } : {}),
         retraction,
@@ -370,28 +426,60 @@ export const currentNameCheck = (
 
 /** How long a look at a lab's domain counts (the registry looks daily; lab-domain.mjs). */
 const DOMAIN_CHECK_MS = 7 * 86_400_000;
-const LAB_DOMAIN = /^(?=.{4,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/;
 
 /**
- * The lab's own domain listing this key, if the registry's last look found it and is recent.
- * Where anyone can look for themselves: the file's address, or the TXT record's name.
+ * Where anyone can look for themselves, without VeilCore: the file, the DID document, or (for a
+ * TXT record, which a browser can't open) a public DNS lookup page for the record's name.
+ */
+const lookHref = (domain: string, method: 'file' | 'did' | 'dns'): string =>
+  method === 'file'
+    ? `https://${domain}/.well-known/veilcore-lab.json`
+    : method === 'did'
+      ? `https://${domain}/.well-known/did.json`
+      : `https://dns.google/query?name=_veilcore-lab.${domain}&rr_type=TXT`;
+
+/**
+ * The lab's own domain listing this key, if the registry's last look found it and is recent,
+ * and the key's own signature naming that domain verified in this browser.
  */
 export const currentDomainCheck = (
   a: ResolvedAttestation,
   now: number = Date.now(),
-): { domain: string; method: 'file' | 'dns'; href: string; where: string; date: string } | null => {
+): { domain: string; method: 'file' | 'did' | 'dns'; href: string; where: string; date: string } | null => {
   if (!countsAsSigned(a)) return null;
   const c: unknown = a.registeredAs?.domainCheck;
-  if (!isObject(c) || !isString(c.domain) || !LAB_DOMAIN.test(c.domain)) return null;
-  if (c.method !== 'file' && c.method !== 'dns') return null;
+  if (!isObject(c) || !isString(c.domain) || !LAB_DOMAIN.test(c.domain) || c.claimChecked !== true) return null;
+  if (c.method !== 'file' && c.method !== 'dns' && c.method !== 'did') return null;
   const at = isString(c.checkedAt) ? Date.parse(c.checkedAt) : NaN;
   if (!Number.isFinite(at) || at > now + 60_000 || now - at > DOMAIN_CHECK_MS) return null;
-  const href = `https://${c.domain}/.well-known/veilcore-lab.json`;
   return {
     domain: c.domain,
     method: c.method,
-    href,
-    where: c.method === 'file' ? href : `_veilcore-lab.${c.domain}`,
+    href: lookHref(c.domain, c.method),
+    where: c.method === 'dns' ? `_veilcore-lab.${c.domain}` : lookHref(c.domain, c.method),
+    date: new Date(at).toISOString().slice(0, 10),
+  };
+};
+
+/**
+ * The website the key named stopped listing it (registry `domainWithdrawn`), when the key's
+ * signature naming it verified here. No freshness limit: it is a dated fact about the past,
+ * and the registry drops it as soon as the website lists the key again. Shown on withdrawn
+ * signatures too (a retraction doesn't make a lab's disowning of its key less worth knowing).
+ */
+export const currentDomainWithdrawal = (
+  a: ResolvedAttestation,
+  now: number = Date.now(),
+): { domain: string; href: string; date: string } | null => {
+  if (!a.signatureValid) return null;
+  if (currentDomainCheck(a, now)) return null;
+  const w: unknown = a.registeredAs?.domainWithdrawn;
+  if (!isObject(w) || !isString(w.domain) || !LAB_DOMAIN.test(w.domain) || w.claimChecked !== true) return null;
+  const at = isString(w.withdrawnAt) ? Date.parse(w.withdrawnAt) : NaN;
+  if (!Number.isFinite(at) || at > now + 60_000) return null;
+  return {
+    domain: w.domain,
+    href: lookHref(w.domain, w.method === 'did' || w.method === 'dns' ? w.method : 'file'),
     date: new Date(at).toISOString().slice(0, 10),
   };
 };
@@ -413,8 +501,11 @@ export type SignerLabel = {
   match: { before: string; host: string; href: string; after: string } | null;
   /** Only when checked. */
   disclaimer: string | null;
-  /** When the lab's own domain lists the key: in pieces so a page can link the domain. */
-  published: { before: string; host: string; href: string; after: string } | null;
+  /**
+   * When the key names a website (its signature checked here) and that website lists it
+   * ('listed') or has stopped listing it ('withdrawn'): in pieces so a page can link it.
+   */
+  published: { before: string; host: string; href: string; after: string; state: 'listed' | 'withdrawn' } | null;
   /** What follows the lead's full stop: '' or " VeilCore’s operator matched … VeilCore doesn’t vouch …". */
   rest: string;
   /** The whole label as plain text. */
@@ -448,14 +539,24 @@ export const signerLabel = (
 ): SignerLabel => {
   const check = countsAsSigned(a) ? currentNameCheck(a, now) : null;
   const dc = currentDomainCheck(a, now);
+  const dw = dc ? null : currentDomainWithdrawal(a, now);
   const published = dc
     ? {
         before: tr.t('app.signer.domainBefore'),
         host: dc.domain,
-        href: dc.method === 'dns' ? `https://${dc.domain}` : dc.href,
+        href: dc.href,
         after: tr.t('app.signer.domainAfter', { date: dc.date }),
+        state: 'listed' as const,
       }
-    : null;
+    : dw
+      ? {
+          before: tr.t('app.signer.domainBefore'),
+          host: dw.domain,
+          href: dw.href,
+          after: tr.t('app.signer.domainWithdrawn', { date: dw.date }),
+          state: 'withdrawn' as const,
+        }
+      : null;
   const publishedText = published
     ? `${tr.t('app.signer.sep')}${published.before}${published.host}${published.after}`
     : '';

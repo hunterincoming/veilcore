@@ -17,8 +17,10 @@ export const lab = {
   'app.signer.text': '{lead}。{rest}',
   'app.signer.keyNamed': '「{name}」という名前の鍵（名前は未確認）',
   'app.signer.keyUnnamed': '誰も名前を付けていない鍵',
-  'app.signer.domainBefore': 'ウェブサイト',
-  'app.signer.domainAfter': 'はこの鍵を掲載しており、この鍵もそのサイトを指定しています（{date}に確認）。',
+  'app.signer.domainBefore': 'この鍵はウェブサイト',
+  'app.signer.domainAfter': 'を指定しており、VeilCoreは{date}にそこでこの鍵が掲載されていることを確認しました。',
+  'app.signer.domainWithdrawn':
+    'を指定していますが、VeilCoreは{date}にそこでこの鍵が掲載されなくなったことを確認しました。',
   'app.lab.saved.lab': '保存済み · ラボが署名した報告書と一致',
   'app.lab.saved.self': '保存済み · 一致するラボの署名なし',
   'app.lab.saved.replacedNewer': 'ラボが差し替えました。訂正版を保存してください',
@@ -256,7 +258,7 @@ export const lab = {
   'app.lab.key.optional.step1':
     '公開されているライセンスまたは認定の登録情報を<mail>hunter@veilcore.org</mail>までメールでお送りください。',
   'app.lab.key.optional.step2':
-    'または、ラボのウェブサイトを管理している場合：このファイルを /.well-known/veilcore-lab.json に置き、ドメインを入力して「今すぐ確認」を押してください。VeilCoreに問い合わせなくても、鍵とサイトが対応していることを誰でも確認できます。鍵を使わなくなったら、ファイルから削除してください。',
+    'または、ラボのウェブサイトを管理している場合：このファイルを /.well-known/veilcore-lab.json に置き、ドメインを入力して「今すぐ確認」を押してください。VeilCoreに問い合わせなくても、鍵とサイトが対応していることを誰でも確認できます。鍵を使わなくなっても、ファイルには残してください。削除するのは鍵を否認するとき（漏えいした場合など）だけです。削除すると、各ページにサイトがこの鍵の掲載をやめたと表示され、この鍵は別のサイトを指定できなくなります。',
   'app.lab.key.optional.otherWays': 'その他の方法',
   'app.lab.key.showKey': '鍵を表示',
   'app.lab.key.hideKey': '鍵を隠す',
@@ -271,6 +273,11 @@ export const lab = {
   'app.lab.key.domain.notFound':
     'まだ見つかりません（{why}）。ファイルの場所を確認し、10分後にもう一度確認してください。',
   'app.lab.key.domain.couldNot': '確認できませんでした：{error}',
+  'app.lab.key.domain.orDid':
+    'または、ウェブサイトにW3C did:web文書（/.well-known/did.json）がある場合は、そこに鍵を掲載できます。次の項目をverificationMethodに、そのidをassertionMethodに追加してください。did.jsonがまだない場合は、下で保存できます。先に上でドメインを入力してください。',
+  'app.lab.key.domain.saveDid': 'did.json を保存',
+  'app.lab.key.domain.withdrawn':
+    '{domain} はこの鍵の掲載をやめたため、この鍵は別のサイトを指定できません。そのサイトのファイルに鍵を戻すか、新しい鍵を作成してください。',
   'app.lab.key.privateWarning':
     '秘密鍵は暗号化されずにこのブラウザの保存領域に保管され、他の場所にはありません。試すだけなら問題ありません。このサイトで動くもの、またはこのサイトにアクセスできるブラウザ拡張機能なら、読み取れる可能性があります。なくすと新しく署名できなくなります。以前に署名したものは有効なままなので、安全な場所にバックアップしてください。実際に使うラボは、自社のシステム内で署名します。<link>連携ガイド</link>をご覧ください。',
   'app.lab.key.downloadBackup': '鍵のバックアップをダウンロード',

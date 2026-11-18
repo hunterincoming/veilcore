@@ -142,7 +142,14 @@ describe('signerLabel', () => {
 });
 
 describe('a lab key published on the lab’s own domain (docs/lab-domain-keys.md)', () => {
-  const dc: DomainCheck = { domain: 'acmelabs.example', method: 'file', checkedAt: '2026-10-14T03:00:00.000Z' };
+  // claimChecked: what checkAttestations sets once the key's signature naming the domain verified
+  // (lab-key-on-website.test.ts checks that part with real keys).
+  const dc: DomainCheck = {
+    domain: 'acmelabs.example',
+    method: 'file',
+    checkedAt: '2026-10-14T03:00:00.000Z',
+    claimChecked: true,
+  };
   const withDomain = (nameCheck: NameCheck | null, over: Partial<typeof dc> = {}) =>
     att(
       {
@@ -152,11 +159,11 @@ describe('a lab key published on the lab’s own domain (docs/lab-domain-keys.md
       nameCheck,
     );
 
-  it('a name not checked, but listed on its domain: says which website lists it and when, links the file', () => {
+  it('a name not checked, but the key names a website that lists it: says which, who looked and when, links the file', () => {
     const s = signerLabel(withDomain(null), 'Receipt signed by', NOW);
     expect(s.checked).toBe(false);
     expect(s.text).toBe(
-      `${NOT_CHECKED}. The website acmelabs.example lists this key, and the key names that website (looked up on 2026-10-14).`,
+      `${NOT_CHECKED}. The key names the website acmelabs.example, and VeilCore found it listed there on 2026-10-14.`,
     );
     expect(s.published?.href).toBe('https://acmelabs.example/.well-known/veilcore-lab.json');
     expect(`${s.lead}.${s.rest}`).toBe(s.text);
@@ -165,7 +172,7 @@ describe('a lab key published on the lab’s own domain (docs/lab-domain-keys.md
   it('a checked name and a domain: both, the operator’s match first', () => {
     const s = signerLabel(withDomain(check()), 'Receipt signed by', NOW);
     expect(s.text).toBe(
-      `${CHECKED} The website acmelabs.example lists this key, and the key names that website (looked up on 2026-10-14).`,
+      `${CHECKED} The key names the website acmelabs.example, and VeilCore found it listed there on 2026-10-14.`,
     );
   });
 
@@ -181,9 +188,21 @@ describe('a lab key published on the lab’s own domain (docs/lab-domain-keys.md
     expect(signerLabel(unsigned, 'Receipt signed by', NOW).published).toBeNull();
   });
 
-  it('a TXT record links the domain itself', () => {
+  it('a TXT record links a public DNS lookup of the record; did:web links did.json', () => {
     expect(signerLabel(withDomain(null, { method: 'dns' }), 'Receipt signed by', NOW).published?.href).toBe(
-      'https://acmelabs.example',
+      'https://dns.google/query?name=_veilcore-lab.acmelabs.example&rr_type=TXT',
     );
+    expect(signerLabel(withDomain(null, { method: 'did' }), 'Receipt signed by', NOW).published?.href).toBe(
+      'https://acmelabs.example/.well-known/did.json',
+    );
+  });
+
+  it('nothing when the key’s claim wasn’t checked here, whatever the registry says', () => {
+    const { claimChecked: _c, ...unchecked } = dc;
+    const a = att(
+      { vettedAttester: false, registeredAs: { displayName: 'Acme Labs', nameCheck: null, domainCheck: unchecked } },
+      null,
+    );
+    expect(signerLabel(a, 'Receipt signed by', NOW).text).toBe(NOT_CHECKED);
   });
 });

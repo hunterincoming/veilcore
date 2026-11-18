@@ -13,6 +13,7 @@
 
 import { canonicalise, generateKeypair, signAttestation, signRetraction, type Keypair } from 'veilcore-records';
 import { readJson, isObject, isString, isBoolean, optional } from './json';
+import { domainClaimPayload } from './lab-domain';
 
 const KEY = 'veilcore.attester.v1';
 const BASE = import.meta.env.VITE_API_BASE ?? '';
@@ -122,20 +123,24 @@ export const labFileFor = (p: AttesterProfile): string =>
 /** The same, as a DNS TXT record at _veilcore-lab.<domain>, for a lab that can't add a file. */
 export const labTxtFor = (p: AttesterProfile): string => `veilcore-lab=v1 key=${p.keypair.publicKey}`;
 
+export { domainClaimPayload };
+
+/** The registry's cleanDomain, so the signed text and the stored domain are the same. */
+export const cleanTypedDomain = (typed: string): string => typed.trim().toLowerCase().replace(/\.$/, '');
+
 /**
  * Name the lab's website, signed by its key (so nobody else can name one for it), and ask the
- * registry to look now. What it saw, or why it couldn't look.
+ * registry to look now. What it saw, or why it couldn't look. `code: 'withdrawn'`: the website
+ * the key named before stopped listing it, so the key can't name another (lab-key-on-website.md).
  */
-/** What the key signs to name its website (registry lineage/lab-domain.mjs domainClaimPayload). */
-export const domainClaimPayload = (publicKey: string, domain: string, issuedAt: number): string =>
-  `veilcore:lab-domain:v1\n${publicKey}\n${domain}\n${issuedAt}`;
-
 export const lookAtLabDomain = async (
   p: AttesterProfile,
   typed: string,
-): Promise<{ listed: boolean; method?: 'file' | 'dns'; why?: string } | { error: string }> => {
-  // The registry's cleanDomain, so the signed text and the stored domain are the same.
-  const domain = typed.trim().toLowerCase().replace(/\.$/, '');
+): Promise<
+  | { listed: boolean; method?: 'file' | 'did' | 'dns'; why?: string }
+  | { error: string; code?: 'withdrawn'; domain?: string }
+> => {
+  const domain = cleanTypedDomain(typed);
   try {
     const issuedAt = Date.now();
     const key = await crypto.subtle.importKey(
@@ -157,11 +162,17 @@ export const lookAtLabDomain = async (
     });
     const body = await readJson(res);
     if (!isObject(body)) return { error: 'unexpected response from the registry' };
-    if (isString(body.error)) return { error: body.error };
+    if (isString(body.error))
+      return {
+        error: body.error,
+        ...(body.code === 'withdrawn' && isString(body.domain)
+          ? { code: 'withdrawn' as const, domain: body.domain }
+          : {}),
+      };
     if (typeof body.listed !== 'boolean') return { error: 'unexpected response from the registry' };
     return {
       listed: body.listed,
-      ...(body.method === 'file' || body.method === 'dns' ? { method: body.method } : {}),
+      ...(body.method === 'file' || body.method === 'dns' || body.method === 'did' ? { method: body.method } : {}),
       ...(isString(body.why) ? { why: body.why } : {}),
     };
   } catch {

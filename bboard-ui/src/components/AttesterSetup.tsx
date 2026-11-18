@@ -31,6 +31,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import {
   createAttester,
+  cleanTypedDomain,
   labFileFor,
   labTxtFor,
   lookAtLabDomain,
@@ -40,6 +41,7 @@ import {
   type AttesterProfile,
 } from '../veilcore/attester-keys';
 import { prepareToReceive } from '../veilcore/receive';
+import { didDocumentFor, didVerificationMethod } from '../veilcore/lab-domain';
 import { labChanged } from '../veilcore/lab-results';
 import { BackupStep } from './flow/BackupStep';
 import { Link as RouterLink } from 'react-router-dom';
@@ -136,19 +138,32 @@ export const AttesterSetup: React.FC<{
     const out = await lookAtLabDomain(p, domain);
     setBusy(false);
     if ('error' in out)
-      setLooked({ severity: 'warning', text: t('app.lab.key.domain.couldNot', { error: out.error }) });
+      setLooked({
+        severity: 'warning',
+        text:
+          out.code === 'withdrawn' && out.domain
+            ? t('app.lab.key.domain.withdrawn', { domain: out.domain })
+            : t('app.lab.key.domain.couldNot', { error: out.error }),
+      });
     else if (out.listed)
       setLooked({ severity: 'success', text: t('app.lab.key.domain.found', { domain: domain.trim().toLowerCase() }) });
     else setLooked({ severity: 'warning', text: t('app.lab.key.domain.notFound', { why: out.why ?? '' }) });
   };
-  const saveLabFile = (p: AttesterProfile) => {
-    const url = URL.createObjectURL(new Blob([labFileFor(p)], { type: 'application/json' }));
+  const saveFile = (text: string, name: string) => {
+    const url = URL.createObjectURL(new Blob([text], { type: 'application/json' }));
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'veilcore-lab.json';
+    a.download = name;
     a.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
+  const saveLabFile = (p: AttesterProfile) => saveFile(labFileFor(p), 'veilcore-lab.json');
+  // did:web (docs/lab-key-on-website.md): the DID is the domain, so it needs one typed.
+  const didDomain = /^(?=.{4,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/.test(
+    cleanTypedDomain(domain),
+  )
+    ? cleanTypedDomain(domain)
+    : null;
 
   useEffect(() => {
     const show = () => setOpen(true);
@@ -347,6 +362,32 @@ export const AttesterSetup: React.FC<{
                       <Typography sx={{ fontFamily: 'monospace', fontSize: 12, wordBreak: 'break-all', mt: 0.5 }}>
                         {labTxtFor(profile)}
                       </Typography>
+                      <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+                        {t('app.lab.key.domain.orDid')}
+                      </Typography>
+                      {didDomain && (
+                        <Stack spacing={1} sx={{ mt: 0.5 }} data-lab-did="">
+                          <Typography
+                            component="pre"
+                            sx={{
+                              fontFamily: 'monospace',
+                              fontSize: 12,
+                              whiteSpace: 'pre-wrap',
+                              wordBreak: 'break-all',
+                              m: 0,
+                            }}
+                          >
+                            {JSON.stringify(didVerificationMethod(didDomain, profile.keypair.publicKey), null, 2)}
+                          </Typography>
+                          <Button
+                            variant="outlined"
+                            onClick={() => saveFile(didDocumentFor(didDomain, profile.keypair.publicKey), 'did.json')}
+                            sx={{ alignSelf: 'flex-start' }}
+                          >
+                            {t('app.lab.key.domain.saveDid')}
+                          </Button>
+                        </Stack>
+                      )}
                     </Fold>
                   )}
                 </Stack>

@@ -18,8 +18,9 @@ export const lab = {
   'app.signer.text': '{lead}.{rest}',
   'app.signer.keyNamed': 'a key named “{name}” (name not checked)',
   'app.signer.keyUnnamed': 'a key nobody has named',
-  'app.signer.domainBefore': 'The website ',
-  'app.signer.domainAfter': ' lists this key, and the key names that website (looked up on {date}).',
+  'app.signer.domainBefore': 'The key names the website ',
+  'app.signer.domainAfter': ', and VeilCore found it listed there on {date}.',
+  'app.signer.domainWithdrawn': ', but VeilCore found it no longer listed there on {date}.',
   // saved-report.ts
   'app.lab.saved.lab': 'saved · matches the lab’s signed report',
   'app.lab.saved.self': 'saved · no lab signature matches it',
@@ -263,7 +264,7 @@ export const lab = {
   'app.lab.key.optional.step1':
     'Email us your public license or accreditation listing at <mail>hunter@veilcore.org</mail>.',
   'app.lab.key.optional.step2':
-    "Or, if you run your lab's website: put this file on it at /.well-known/veilcore-lab.json, then type your domain and press Look now. Anyone can then see the key and the website go together without asking VeilCore. To retire the key, take it out of the file.",
+    "Or, if you run your lab's website: put this file on it at /.well-known/veilcore-lab.json, then type your domain and press Look now. Anyone can then see the key and the website go together without asking VeilCore. If you stop using the key, leave it in the file. Take it out only to disown it (if it leaked): pages then say your website stopped listing it, and the key can't name another website.",
   'app.lab.key.optional.otherWays': 'Other ways',
   'app.lab.key.showKey': 'Show key',
   'app.lab.key.hideKey': 'Hide key',
@@ -277,6 +278,11 @@ export const lab = {
   'app.lab.key.domain.found': 'Found: {domain} lists this key. VeilCore looks again every day.',
   'app.lab.key.domain.notFound': 'Not found yet ({why}). Check the file’s address, then look again in ten minutes.',
   'app.lab.key.domain.couldNot': 'Couldn’t look: {error}',
+  'app.lab.key.domain.orDid':
+    'Or, if your website has a W3C did:web document (/.well-known/did.json), list the key there: add this entry to verificationMethod and its id to assertionMethod. No did.json yet? Save one below. Type your domain above first.',
+  'app.lab.key.domain.saveDid': 'Save did.json',
+  'app.lab.key.domain.withdrawn':
+    '{domain} stopped listing this key, so it can’t name another website. Put it back in that website’s file, or make a new key.',
   'app.lab.key.privateWarning':
     "Your private key is stored in this browser's storage, unencrypted, and nowhere else. That's fine for trying it out. Anything that can run in this site, or a browser extension with access to it, could read it. If you lose it you can't sign anything new; what you signed before stays valid, so back it up somewhere safe. A lab using it for real would sign inside its own systems: see the <link>integration guide</link>.",
   'app.lab.key.downloadBackup': 'Download key backup',
