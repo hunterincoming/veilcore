@@ -44,6 +44,8 @@ import { AppHeader } from '../AppHeader';
 import { EvidenceBundle } from '../EvidenceBundle';
 import { useRecordKeys } from '../../veilcore/record-keys';
 import { useVaultNeedsBackup } from '../../veilcore/vault';
+import { keysOnlyHere } from '../flow/keys-only-here';
+import { useStampRetries } from '../chain/useKeyStamp';
 import { useT } from '../../i18n/app';
 import { useI18n } from '../../i18n';
 import { useRecordDate } from '../verify/useAnchorCheck';
@@ -118,6 +120,7 @@ export const DocumentDetail: React.FC<{ record: StrainRecord }> = ({ record }) =
   const [copied, setCopied] = useState(false);
   const [linkError, setLinkError] = useState<string>();
   const keys = useRecordKeys()[record.id];
+  const records = useRecords();
   // A viability result is not read where those are off (mainnet): no facts, no numbers, nothing to
   // publish or prove from it here. The record stays, and its result file can still be downloaded.
   const viabilityOff = viabilityNotRead({ kind: record.labResult?.statement.kind, schema: record.fieldSet?.schema });
@@ -131,7 +134,17 @@ export const DocumentDetail: React.FC<{ record: StrainRecord }> = ({ record }) =
   // The registry answered with something other than this record's proof code alone: said, and
   // nothing is done about it (records.ts mergeDeviceOnly: this device's copy is what is shown).
   const conflict = local && deviceOnlyConflict(record.id);
-  const vaultNeedsBackup = useVaultNeedsBackup();
+  // The records list's own test (AppHome.tsx, keys-only-here.ts): no checked backup holds this
+  // record's keys, and VeilCore doesn't hold its locked copy under a backed-up vault key yet.
+  // Read again whenever the records, their keys or the vault's backup state change.
+  useVaultNeedsBackup();
+  const keysNotBacked = REAL_CHAIN && !local && keysOnlyHere(records).includes(record.id);
+  // A key stamp that stopped ("may have been sent", "can't be made here") is not left folded away.
+  const stampStopped = !!useStampRetries()[record.id]?.stopped;
+  const [techOpen, setTechOpen] = useState(false);
+  useEffect(() => {
+    if (stampStopped) setTechOpen(true);
+  }, [stampStopped]);
   const navigate = useNavigate();
   const removeFromDevice = () => {
     if (!window.confirm(t('app.doc.local.deleteConfirm'))) return;
@@ -167,7 +180,6 @@ export const DocumentDetail: React.FC<{ record: StrainRecord }> = ({ record }) =
   // The same link with the records it is about (document-link.ts documentChainLink): made only
   // when the holder presses its own button, since it shows those records' details too.
   const [chainCopied, setChainCopied] = useState(false);
-  const records = useRecords();
   const chain = DOCUMENT_CHAIN_ENABLED ? chainEntriesFor(record as never, records as never) : [];
   const copyChainLink = async () => {
     setLinkError(undefined);
@@ -275,9 +287,9 @@ export const DocumentDetail: React.FC<{ record: StrainRecord }> = ({ record }) =
             )}
           </Alert>
         )}
-        {/* Not kept on this device only, and this browser's vault key is in no checked backup:
-            said at the top, since the key stamp's own "back up first" is folded away below. */}
-        {!local && vaultNeedsBackup && (
+        {/* Not kept on this device only, and its keys are in no checked backup (the records list's
+            test): said at the top, since the key stamp's own "back up first" is folded away below. */}
+        {keysNotBacked && (
           <Alert
             severity="warning"
             variant="outlined"
@@ -428,7 +440,13 @@ export const DocumentDetail: React.FC<{ record: StrainRecord }> = ({ record }) =
             it; answering "prove you hold this record" later does, so it stays one tap away. The
             panel stays mounted while folded, so a stamp that failed is still tried again. */}
         {REAL_CHAIN && (
-          <Accordion disableGutters variant="outlined" data-document-technical="">
+          <Accordion
+            disableGutters
+            variant="outlined"
+            expanded={techOpen}
+            onChange={(_e, open) => setTechOpen(open)}
+            data-document-technical=""
+          >
             <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ minHeight: 48 }}>
               <Typography variant="subtitle1" component="h2">
                 {t('app.doc.tech.title')}

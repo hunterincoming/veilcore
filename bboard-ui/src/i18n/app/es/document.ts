@@ -81,7 +81,7 @@ export const document = {
     '<b>No coincide.</b> {name} no es el archivo sellado. Volver a guardarlo, imprimirlo como PDF o enviarlo por algunas aplicaciones cambia el archivo: pida el archivo original.',
   'app.doc.new.introTech': 'Dato técnico: el código es el SHA-256 del archivo.',
   'app.doc.backupFirst':
-    'Sellado. Ahora guarde una copia de seguridad y compruébela. Hasta entonces, las claves de este registro están solo en este navegador, y VeilCore aún no guarda una copia del registro para usted. Esto se pide una sola vez, con el primer registro de este navegador.',
+    'Sellado. Ahora guarde una copia de seguridad y compruébela. Hasta entonces, las claves de este registro están solo en este navegador, y VeilCore aún no guarda una copia del registro para usted. Se le pedirá hasta que se compruebe una copia de seguridad con la clave de este navegador.',
   'app.doc.notBacked':
     'Aún no está en una copia de seguridad comprobada. Hasta entonces, las claves de este registro están solo en este navegador.',
   'app.doc.tech.title': 'Detalles técnicos',
@@ -90,6 +90,9 @@ export const document = {
   'app.doc.home.sealedOn': 'Sellado el {date}',
   'app.doc.home.dated': 'Fechado el {date}',
   'app.doc.home.waiting': 'esperando su fecha',
+  'app.doc.home.datedReported': 'Fechado el {date} (según VeilCore)',
+  'app.doc.home.checkingDate': 'fecha informada, en comprobación',
+  'app.doc.home.notConfirmed': 'fecha no confirmada en Midnight',
   'app.doc.compare.tooLarge': 'Ese archivo pesa más de {mb} MB, así que no se puede leer aquí.',
   'app.doc.check.title': 'Comprobar un documento',
   'app.doc.check.intro':

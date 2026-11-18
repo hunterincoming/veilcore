@@ -43,9 +43,9 @@ export const dating = {
   'app.pickup.dating.notSent': '{name}: versiegelt. Sein Prüfcode geht an VeilCore, sobald VeilCore erreichbar ist.',
   'app.pickup.dating.next': '{name} erhält sein Datum mit dem nächsten Stapel.',
   'app.pickup.dating.nextEvery.one':
-    '{name} erhält sein Datum mit dem nächsten Stapel (etwa jede {count} Minute einer).',
+    '{name} erhält sein Datum mit dem nächsten Stapel (ein Stapel etwa jede {count} Minute).',
   'app.pickup.dating.nextEvery.other':
-    '{name} erhält sein Datum mit dem nächsten Stapel (etwa alle {count} Minuten einer).',
+    '{name} erhält sein Datum mit dem nächsten Stapel (ein Stapel etwa alle {count} Minuten).',
   'app.pickup.dating.batched': '{name} ist in einem Stapel und wartet auf sein Datum.',
   'app.pickup.dating.progress': 'Schritt {n} von {total} zu seinem Datum',
   'app.pickup.more.one': 'und {count} weiterer auf dem Weg zu seinem Datum',

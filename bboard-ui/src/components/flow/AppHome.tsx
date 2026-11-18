@@ -6,7 +6,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { PlanBox } from '../PlanBox';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import { Alert, Box, Button, Collapse, Paper, Snackbar, Stack, Typography } from '@mui/material';
 import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
 import AddIcon from '@mui/icons-material/Add';
@@ -60,8 +60,7 @@ import { RegistryExportButton } from '../RegistryExportButton';
 import { draftHeading, loadDraft } from './log-flow-state';
 import { homeStatusLine } from './plant-status-words';
 import { documentHomeDate } from '../document/document-home-words';
-import { recordProof } from '../verify/useAnchorCheck';
-import type { ProofState } from '../../veilcore/proofs';
+import { useRecordDate } from '../verify/useAnchorCheck';
 import { datingCardLine, datingHomeStatus, homeList, isLabReportRecord, keysOnlyHereLine } from '../stage/record-kinds';
 import { useDnaTie, useSavedReports } from './useDnaTie';
 import { dnaTieSentence } from '../../veilcore/dna-tie';
@@ -150,29 +149,19 @@ const OldLinksNote: React.FC<{ records: readonly StrainRecord[] }> = ({ records 
 };
 
 /**
- * A document's status on its card, after its type: dated, or waiting for its date. Read from the
- * record's inclusion proof (shared with its page and cached briefly: useAnchorCheck.ts), the way
- * "Pick up where you left off" reads it. The key's date stamp is not here (document-home-words.ts).
+ * A document's status on its card, after its type: dated (checked on Midnight), the registry's
+ * report, or waiting for its date (document-home-words.ts). The proof is shared with its page
+ * and cached briefly, and the Midnight look-up is one per batch, kept for the visit
+ * (useAnchorCheck.ts, anchor-lookup.ts), so a long list doesn't ask the indexer once per row.
  */
 const DocumentDateLine: React.FC<{ fingerprint?: string; loggedAt: number }> = ({ fingerprint, loggedAt }) => {
   const tr = useT();
-  const [proof, setProof] = useState<ProofState | 'checking'>('checking');
-  useEffect(() => {
-    let live = true;
-    setProof('checking');
-    void recordProof(fingerprint).then((p) => live && setProof(p));
-    return () => {
-      live = false;
-    };
-  }, [fingerprint]);
+  const { proof, anchor } = useRecordDate(fingerprint);
+  const line = documentHomeDate(proof, anchor, loggedAt, tr);
   return (
-    <span
-      data-home-document-date={
-        proof === 'checking' ? 'checking' : proof.status === 'anchor-reported' ? 'dated' : 'waiting'
-      }
-    >
+    <span data-home-document-date={line.mark}>
       {' · '}
-      {documentHomeDate(proof, loggedAt, tr)}
+      {line.text}
     </span>
   );
 };

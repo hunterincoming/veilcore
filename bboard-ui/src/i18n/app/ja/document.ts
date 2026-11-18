@@ -80,15 +80,18 @@ export const document = {
     '<b>一致しません。</b>{name}は封印されたファイルではありません。保存し直す、PDFとして印刷する、一部のアプリで送ると、ファイルは変わります。元のファイルを送ってもらってください。',
   'app.doc.new.introTech': '技術的には、このコードはファイルのSHA-256です。',
   'app.doc.backupFirst':
-    '封印しました。続けてバックアップを保存し、確認してください。それまでは、この記録の鍵はこのブラウザにしかなく、VeilCoreもまだこの記録の写しを預かっていません。これを求めるのは、このブラウザで最初の記録のときだけです。',
+    '封印しました。続けてバックアップを保存し、確認してください。それまでは、この記録の鍵はこのブラウザにしかなく、VeilCoreもまだこの記録の写しを預かっていません。このブラウザの鍵を含むバックアップを確認するまで、毎回表示されます。',
   'app.doc.notBacked':
     'まだ確認済みのバックアップに入っていません。それまでは、この記録の鍵はこのブラウザにしかありません。',
   'app.doc.tech.title': '技術的な詳細',
   'app.doc.tech.text':
     'この書類の日付には必要ありません。この記録の鍵にMidnightで日付スタンプを付けておくと、求められたときに、この記録を今も保有していることを後から示せます。',
   'app.doc.home.sealedOn': '{date} に封印',
-  'app.doc.home.dated': '{date} に日付付与',
+  'app.doc.home.dated': '{date}付',
   'app.doc.home.waiting': '日付待ち',
+  'app.doc.home.datedReported': '{date}付（VeilCoreの報告）',
+  'app.doc.home.checkingDate': '日付の報告あり・確認中',
+  'app.doc.home.notConfirmed': 'Midnightで日付を確認できません',
   'app.doc.compare.tooLarge': 'そのファイルは{mb}MBを超えるため、ここでは読み込めません。',
   'app.doc.check.title': '書類を確認する',
   'app.doc.check.intro':

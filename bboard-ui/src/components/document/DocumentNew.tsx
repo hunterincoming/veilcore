@@ -87,7 +87,7 @@ export const DocumentNew: React.FC = () => {
   // backup that holds it is saved and checked, this browser has the only copy. Also the first
   // document sealed in a browser whose vault key is in no checked backup yet (vault.ts
   // vaultNeedsBackup): its locked copy waits for that backup (records.ts), and without it a
-  // cleared browser loses the record's keys. Not again once a backup is checked.
+  // cleared browser loses the record's keys. Asked after every seal until a backup holding the vault key is checked; not after that.
   const [backupFor, setBackupFor] = useState<{ readonly id: string; readonly local: boolean }>();
   const formRef = useRef<HTMLDivElement>(null);
   const [busy, setBusy] = useState(false);

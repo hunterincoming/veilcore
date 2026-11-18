@@ -49,7 +49,7 @@ export const document = {
   'app.doc.type.protocol': 'Protokoll oder SOP',
   'app.doc.type.transport': 'Transport- oder Versanddokument',
   'app.doc.type.invoice': 'Rechnung oder Beleg',
-  'app.doc.type.other': 'Protokoll, Beschluss oder Sonstiges',
+  'app.doc.type.other': 'Sitzungsprotokoll, Beschluss oder Sonstiges',
   'app.doc.kind': 'Dokument',
   'app.doc.homeLine': 'Dokument · {type}',
   'app.doc.k.type': 'Art',
@@ -83,15 +83,18 @@ export const document = {
     '<b>Keine Übereinstimmung.</b> {name} ist nicht die versiegelte Datei. Erneutes Speichern, Drucken als PDF oder Versenden über manche Apps verändert die Datei: Bitten Sie um die Originaldatei.',
   'app.doc.new.introTech': 'Technisch gesagt: Der Code ist der SHA-256 der Datei.',
   'app.doc.backupFirst':
-    'Versiegelt. Speichern Sie jetzt eine Sicherung und prüfen Sie sie. Bis dahin liegen die Schlüssel dieses Datensatzes nur in diesem Browser, und VeilCore bewahrt noch keine Kopie des Datensatzes für Sie auf. Das wird nur einmal gefragt, beim ersten Datensatz in diesem Browser.',
+    'Versiegelt. Speichern Sie jetzt eine Sicherungskopie und prüfen Sie sie. Bis dahin liegen die Schlüssel dieses Datensatzes nur in diesem Browser, und VeilCore bewahrt noch keine Kopie des Datensatzes für Sie auf. Das wird gefragt, bis eine geprüfte Sicherungskopie den Schlüssel dieses Browsers enthält.',
   'app.doc.notBacked':
-    'Noch in keiner geprüften Sicherung. Bis dahin liegen die Schlüssel dieses Datensatzes nur in diesem Browser.',
+    'Noch in keiner geprüften Sicherungskopie. Bis dahin liegen die Schlüssel dieses Datensatzes nur in diesem Browser.',
   'app.doc.tech.title': 'Technische Details',
   'app.doc.tech.text':
     'Für das Datum dieses Dokuments nicht nötig. Wenn Sie den Schlüssel dieses Datensatzes auf Midnight datieren lassen, können Sie später auf Nachfrage zeigen, dass Sie diesen Datensatz noch halten.',
   'app.doc.home.sealedOn': 'Versiegelt am {date}',
   'app.doc.home.dated': 'Datiert am {date}',
   'app.doc.home.waiting': 'wartet auf sein Datum',
+  'app.doc.home.datedReported': 'Datiert am {date} (laut VeilCore)',
+  'app.doc.home.checkingDate': 'Datum gemeldet, wird geprüft',
+  'app.doc.home.notConfirmed': 'Datum auf Midnight nicht bestätigt',
   'app.doc.compare.tooLarge': 'Diese Datei ist größer als {mb} MB und kann hier nicht gelesen werden.',
   'app.doc.check.title': 'Ein Dokument prüfen',
   'app.doc.check.intro':

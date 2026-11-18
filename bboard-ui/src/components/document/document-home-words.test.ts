@@ -18,19 +18,37 @@ const proof = (anchoredAt?: string) => ({ root: 'ab', anchor: anchoredAt ? { anc
 
 describe('a document on the records list', () => {
   const sealed = `Sealed ${enT.date(loggedAt)}`;
+  const at = '2026-11-19T03:00:00.000Z';
+  const reported = { status: 'anchor-reported', proof: proof(at) } as ProofState;
+  const line = (p: ProofState | 'checking', a?: Parameters<typeof documentHomeDate>[1]) =>
+    documentHomeDate(p, a, loggedAt);
 
   it('says when it was sealed while its date is being looked up', () => {
-    expect(documentHomeDate('checking', loggedAt)).toBe(sealed);
+    expect(line('checking')).toEqual({ mark: 'checking', text: sealed });
   });
 
   it('waits for its date until its batch is reported on Midnight', () => {
     for (const p of [{ status: 'none' }, { status: 'pending', proof: proof() }] as ProofState[])
-      expect(documentHomeDate(p, loggedAt)).toBe(`${sealed} · waiting for its date`);
+      expect(line(p)).toEqual({ mark: 'waiting', text: `${sealed} · waiting for its date` });
   });
 
-  it('is dated by its batch, with the date the registry reports', () => {
-    const at = '2026-11-19T03:00:00.000Z';
-    expect(documentHomeDate({ status: 'anchor-reported', proof: proof(at) }, loggedAt)).toBe(`Dated ${enT.date(at)}`);
+  it('says "Dated" only once the date is checked on Midnight, with the block’s time', () => {
+    const blockTime = Date.parse('2026-11-19T04:00:00.000Z');
+    const checked = { status: 'checked', txHash: 'c3', blockHeight: 1, blockTime, indexers: 1 } as const;
+    expect(line(reported, checked)).toEqual({ mark: 'dated', text: `Dated ${enT.date(blockTime)}` });
+  });
+
+  it('a report not yet checked is never "Dated" alone', () => {
+    expect(line(reported, 'checking')).toEqual({ mark: 'checking', text: `${sealed} · date reported, being checked` });
+    expect(line(reported, undefined).mark).toBe('checking');
+    expect(line(reported, { status: 'unreachable' } as never)).toEqual({
+      mark: 'reported',
+      text: `Dated ${enT.date(at)} (VeilCore’s report)`,
+    });
+    expect(line(reported, { status: 'failed', reason: 'x' } as never)).toEqual({
+      mark: 'failed',
+      text: `${sealed} · date not confirmed on Midnight`,
+    });
   });
 
   it('never mentions the key stamp, in any language', () => {
@@ -42,10 +60,15 @@ describe('a document on the records list', () => {
       ['ja', appJa],
     ] as const) {
       const tr = makeTranslator(lang, dict);
-      for (const p of ['checking', { status: 'none' }] as const) {
-        const line = documentHomeDate(p, loggedAt, tr);
-        expect(line, lang).not.toContain(tr.t('app.home.keyNotStamped'));
-        expect(line, lang).not.toMatch(/\{|\}/);
+      for (const [p, a] of [
+        ['checking', undefined],
+        [{ status: 'none' }, undefined],
+        [reported, { status: 'unreachable' }],
+        [reported, { status: 'failed', reason: 'x' }],
+      ] as const) {
+        const { text } = documentHomeDate(p, a as never, loggedAt, tr);
+        expect(text, lang).not.toContain(tr.t('app.home.keyNotStamped'));
+        expect(text, lang).not.toMatch(/\{|\}/);
       }
     }
   });

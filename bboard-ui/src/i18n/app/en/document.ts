@@ -83,7 +83,7 @@ export const document = {
     '<b>No match.</b> {name} isn’t the sealed file. Saving it again, printing it to PDF or sending it through some apps changes the file: ask for the original file.',
   'app.doc.new.introTech': 'For the technically minded: the code is the file’s SHA-256.',
   'app.doc.backupFirst':
-    'Sealed. Now save a backup and check it. Until you do, this browser holds the only copy of this record’s keys, and VeilCore keeps no copy of the record for you yet. You’re asked this once, for your first record in this browser.',
+    'Sealed. Now save a backup and check it. Until you do, this browser holds the only copy of this record’s keys, and VeilCore keeps no copy of the record for you yet. You’re asked this until a backup holding this browser’s key has been checked.',
   'app.doc.notBacked':
     'Not in a checked backup yet. Until it is, this browser holds the only copy of this record’s keys.',
   'app.doc.tech.title': 'Technical details',
@@ -92,6 +92,9 @@ export const document = {
   'app.doc.home.sealedOn': 'Sealed {date}',
   'app.doc.home.dated': 'Dated {date}',
   'app.doc.home.waiting': 'waiting for its date',
+  'app.doc.home.datedReported': 'Dated {date} (VeilCore’s report)',
+  'app.doc.home.checkingDate': 'date reported, being checked',
+  'app.doc.home.notConfirmed': 'date not confirmed on Midnight',
   'app.doc.compare.tooLarge': 'That file is larger than {mb} MB, so it can’t be read here.',
   // ---- the check page (DocumentCheck.tsx) ----
   'app.doc.check.title': 'Check a document',

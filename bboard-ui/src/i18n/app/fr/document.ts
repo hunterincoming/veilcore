@@ -81,7 +81,7 @@ export const document = {
     '<b>Pas de correspondance.</b> {name} n’est pas le fichier scellé. L’enregistrer à nouveau, l’imprimer en PDF ou l’envoyer par certaines applications modifie le fichier : demandez le fichier d’origine.',
   'app.doc.new.introTech': 'Pour les spécialistes : ce code est le SHA-256 du fichier.',
   'app.doc.backupFirst':
-    'Scellé. Enregistrez maintenant une sauvegarde et vérifiez-la. D’ici là, les clés de cet enregistrement ne sont que dans ce navigateur, et VeilCore ne conserve pas encore de copie de l’enregistrement pour vous. Cela n’est demandé qu’une fois, pour le premier enregistrement de ce navigateur.',
+    'Scellé. Enregistrez maintenant une sauvegarde et vérifiez-la. D’ici là, les clés de cet enregistrement ne sont que dans ce navigateur, et VeilCore ne conserve pas encore de copie de l’enregistrement pour vous. Cela vous sera demandé jusqu’à ce qu’une copie de secours contenant la clé de ce navigateur soit vérifiée.',
   'app.doc.notBacked':
     'Pas encore dans une sauvegarde vérifiée. D’ici là, les clés de cet enregistrement ne sont que dans ce navigateur.',
   'app.doc.tech.title': 'Détails techniques',
@@ -90,6 +90,9 @@ export const document = {
   'app.doc.home.sealedOn': 'Scellé le {date}',
   'app.doc.home.dated': 'Daté le {date}',
   'app.doc.home.waiting': 'en attente de sa date',
+  'app.doc.home.datedReported': 'Daté le {date} (selon VeilCore)',
+  'app.doc.home.checkingDate': 'date annoncée, en cours de vérification',
+  'app.doc.home.notConfirmed': 'date non confirmée sur Midnight',
   'app.doc.compare.tooLarge': 'Ce fichier dépasse {mb} Mo, il ne peut donc pas être lu ici.',
   'app.doc.check.title': 'Vérifier un document',
   'app.doc.check.intro':
