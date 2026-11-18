@@ -323,7 +323,7 @@ export const es: Strings = {
     'Midnight es una red pública: lo que va allí no puede cambiarlo ni borrarlo nadie, nosotros incluidos, y cualquiera puede leerlo. Su genética, sus condiciones, su nombre y sus archivos nunca van allí. Lo que sí va: el código de prueba de cada lote de registros; la clave propia de un registro y su sello de fecha; un código hecho a partir de un informe de ADN, cuando fecha su vínculo; qué registros están enlazados como progenitor y descendiente, una vez que ambos titulares lo confirman (un enlace no se puede deshacer); que un registro tiene una licencia, una obligación o una anotación de prestamista registrada, y cuándo cambió; la clave pública de un laboratorio cuando firma allí un certificado; un valor que usted elige probar con exactitud, completo; y, donde este sitio permite pagar una regalía en NIGHT, el importe y las dos direcciones. Antes de cada uno de estos pasos, la aplicación muestra un recibo que enumera exactamente qué hace público ese paso. Un código o una clave por sí solos no dicen nada de usted, pero cualquiera a quien dé un enlace de comprobación puede seguir desde entonces lo que le ocurre a ese registro en la red.',
   'm.privacy.helper.title': 'El asistente y su modelo opcional',
   'm.privacy.helper.text':
-    'Ask, el asistente de la aplicación, donde este sitio lo ofrece, funciona en su dispositivo. Nada de lo que escriba en él se envía a ninguna parte; solo el botón Guardar de la aplicación envía algo, y eso va cerrado a nuestro servidor, como se explica arriba. Donde este sitio ofrece el modelo de lenguaje opcional, se descarga una vez desde Hugging Face, una empresa aparte: Hugging Face ve su dirección IP, la hora, qué archivos del modelo y que la petición viene de este sitio; nosotros vemos que empezó una descarga. El modelo se ejecuta en su dispositivo, en una parte de la página que no puede acceder a la red, así que nada de lo que escriba llega a Hugging Face ni a nosotros, ni entonces ni después. Puede borrar el modelo desde el panel del asistente. Su «Hazlo por mí» guarda un registro de cada trabajo solo en su dispositivo, nunca en una copia de seguridad: los pasos y hasta dónde llegaron, referencias a los registros y acuerdos implicados, y las cifras que escribe para un informe hasta que se envía; nunca lo que escribió para pedirlo. Se borra 7 días después de que termine el trabajo. Mientras un trabajo espera su aprobación, sus registros nuevos se guardan cerrados en su navegador, con sus claves; una copia de seguridad hecha mientras tanto también tiene esas claves. Preparar los informes lee los mensajes de cada uno de sus acuerdos desde nuestro servidor, uno tras otro, así que nuestro servidor puede ver que esos acuerdos se leyeron juntos; no se envía nada hasta que usted lo apruebe.',
+    'Ask, el asistente de la aplicación, donde este sitio lo ofrece, funciona en su dispositivo. Nada de lo que escriba en él se envía a ninguna parte; solo el botón Guardar de la aplicación envía algo, y eso va cerrado a nuestro servidor, como se explica arriba. Donde este sitio ofrece el modelo de lenguaje opcional, se descarga una vez desde Hugging Face, una empresa aparte: Hugging Face ve su dirección IP, la hora, qué archivos del modelo y que la petición viene de este sitio; nosotros vemos que empezó una descarga. El modelo se ejecuta en su dispositivo, en una parte de la página que no puede acceder a la red, así que nada de lo que escriba llega a Hugging Face ni a nosotros, ni entonces ni después. Puede borrar el modelo desde el panel del asistente. Su «Hágalo por mí» guarda un registro de cada trabajo solo en su dispositivo, nunca en una copia de seguridad: los pasos y hasta dónde llegaron, referencias a los registros y acuerdos implicados, y las cifras que escribe para un informe hasta que se envía; nunca lo que escribió para pedirlo. Se borra 7 días después de que termine el trabajo. Mientras un trabajo espera su aprobación, sus registros nuevos se guardan cerrados en su navegador, con sus claves; una copia de seguridad hecha mientras tanto también tiene esas claves. Preparar los informes lee los mensajes de cada uno de sus acuerdos desde nuestro servidor, uno tras otro, así que nuestro servidor puede ver que esos acuerdos se leyeron juntos; no se envía nada hasta que usted lo apruebe.',
   'm.privacy.hosts.title': 'Alojamiento',
   'm.privacy.hosts.text':
     'Este sitio web está alojado en Vercel, que registra direcciones IP y solicitudes. Nuestro servidor de registro funciona en Railway, que registra solicitudes.',
@@ -337,7 +337,7 @@ export const es: Strings = {
   'm.privacy.contact': 'Preguntas: hunter@veilcore.org',
   // Round 2 truth pass (14 Oct 2026): keys added or newly translated.
   'm.hero.lede':
-    'Para obtentores, empresas de semillas y laboratorios que trabajan con genética vegetal, animal y microbiana: dé a sus registros una fecha que nadie puede antedatar. Sus datos genéticos se quedan cerrados: los archivos de ADN nunca salen de su computadora, y lo que escribe llega cerrado a nuestro servidor. Solo un código de prueba va a Midnight, que lo fecha.',
+    'Para obtentores, empresas de semillas y laboratorios que trabajan con genética vegetal, animal y microbiana: dé a sus registros una fecha que nadie puede antedatar. Sus datos genéticos se quedan cerrados: los archivos de ADN nunca salen de su computadora, y lo que escribe llega cerrado a nuestro servidor. Solo los códigos de prueba van a Midnight, que los fecha.',
   'm.for.3p':
     'Envíe material con un código de laboratorio. El laboratorio firma un acuse de recibo con su propia clave, así el registro muestra a una segunda parte. El acuse es una firma real, guardada por el registro de VeilCore, no en la cadena. Condiciones como no propagar son solo de práctica en la demo web.',
   'm.get.1b': 'para un registro de lo que usted tiene, sin mostrar su genética.',
@@ -451,7 +451,7 @@ export const es: Strings = {
   'm.live.claims.main': 'En la red principal, sin clave de mantenimiento. El sitio aún no puede usarlo.',
   'm.live.claims.not': 'Usarlo desde el sitio web.',
   'm.live.claims.live':
-    'Sí, desde una computadora: probar un número de un certificado sellado sin mostrar el resto. En teléfonos todavía no se ha probado.',
+    'Sí, desde una computadora: probar un número de un certificado o un resultado de laboratorio sellado sin mostrar el resto. En teléfonos todavía no se ha probado.',
   'm.live.lic.t': 'Licencias y regalías',
   'm.live.lic.main': 'Desactivado hasta una última prueba completa.',
   'm.live.lic.test': 'Sí, con transacciones reales: regalías, pagos, traspaso de una licencia.',
@@ -494,6 +494,56 @@ export const es: Strings = {
   'm.hero.noteShort': 'Solo la franja dorada va a Midnight.',
   'm.hero.stampWord': 'Fechado',
   'm.hero.stampLine': 'en Midnight',
+  'm.home.try': 'Pruébelo. No se envía nada.',
+  'm.home.tryNote':
+    'La figura de arriba se dibuja a partir de este código de prueba. Nadie puede deducir a partir de él lo que usted escribió.',
+  'm.home.audLabel': 'Para quién es',
+  'm.home.audience':
+    'Obtentores|Empresas de semillas|Laboratorios de cultivo de tejidos|Certificadores|Examinadores|Libros genealógicos|Oficinas de variedades vegetales',
+  'm.home.keep.t': 'Su genética se queda con usted.',
+  'm.home.keep.p':
+    'Solo van a Midnight códigos de prueba, nunca lo que usted escribió ni sus archivos. El código de un registro son 64 caracteres que su computadora calcula a partir de él, y nadie puede deducir a partir de él la planta, los marcadores ni el nombre.',
+  'm.home.tlDated': 'Registro fechado',
+  'm.home.tlAsks': 'Alguien pregunta',
+  'm.home.matters': 'Dónde importa.',
+  'm.home.prev': 'Anterior',
+  'm.home.next': 'Siguiente',
+  'm.home.custody.t': 'No podemos leer sus registros: nos llegan cerrados.',
+  'm.home.custody.p1':
+    'Registrar el material en sí significa entregarlo. Con VeilCore, sus archivos de ADN nunca salen de su computadora.',
+  'm.home.custody.p2':
+    'Los datos del registro llegan cerrados a nuestro servidor, el nombre incluido, y no tenemos la clave.',
+  'm.home.ex.label': 'Un registro de ejemplo, no uno real.',
+  'm.home.ex.dna': 'Informe de ADN',
+  'm.home.l2': 'Su código de prueba: 64 caracteres, calculados en su computadora.',
+  'm.home.l3': 'Su código se une a un lote con otros. El bloque en el que queda es la fecha.',
+  'm.home.l3b': 'Un lote, muchos registros',
+  'm.home.l4v': 'El registro existía en esa fecha.',
+  'm.home.l4': 'Cualquiera puede comprobarlo, gratis y sin cuenta.',
+  'm.home.more': 'Más que una fecha.',
+  'm.home.f1t': 'Plantas, animales y cepas.',
+  'm.home.f1p': 'Cultivares y líneas, animales individuales y linajes, microbios, hongos y líneas celulares.',
+  'm.home.f2t': 'Documentos.',
+  'm.home.f2p':
+    'Selle un permiso, un certificado, un contrato o un informe de laboratorio. El archivo en sí se queda en su dispositivo.',
+  'm.home.ask.t': '«Preguntar», en palabras sencillas.',
+  'm.home.ask.p':
+    'En las páginas de registros, «Preguntar» rellena un registro, o un lote de esquejes o crías, para que usted lo revise. Nunca firma ni envía nada. Eso lo hace usted.',
+  'm.home.trustLabel': 'Lo que le aporta',
+  'm.home.trust':
+    'Prueba de que usted tenía un registro en una fecha|Una fecha que nadie puede antedatar|Comprobar es gratis|Un formato abierto|Sin billetera, sin registro',
+  'm.home.pause': 'Pausar los nombres en movimiento',
+  'm.home.play': 'Reanudar los nombres en movimiento',
+  'm.home.fails': 'Díganos dónde falla.',
+  'm.home.closeLede':
+    'Obtentores, laboratorios, certificadores y desarrolladores: cree un registro y díganos qué le falta para su trabajo.',
+  'm.home.photos': 'Fotos en Unsplash:',
+  'm.home.alt.jar': 'Una semilla que brota sobre un frasco de vidrio con agua, con las raíces en el agua',
+  'm.home.alt.cutting': 'Una plántula joven que crece en tierra oscura',
+  'm.home.alt.greenhouse': 'Hileras de plantas jóvenes en un invernadero largo',
+  'm.home.alt.lab': 'Una mesa de laboratorio con pipetas y tubos de muestra',
+  'm.home.alt.hand': 'Dos manos que sostienen una plántula en un puñado de tierra',
+  'm.home.alt.cattle': 'Vacas lecheras con crotales en un prado al atardecer',
   'm.for.label': 'Para qué sirve',
   'm.for.title1': 'Muchas disputas sobre genética se reducen a una pregunta:',
   'm.for.title2': '¿qué tenía usted, y cuándo?',

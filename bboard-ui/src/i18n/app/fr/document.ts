@@ -9,7 +9,7 @@ export const document = {
   'app.doc.orDocumentAction': 'Sceller un document',
   'app.doc.new.title': 'Sceller un document',
   'app.doc.new.intro':
-    'Choisissez le fichier. Il reste sur cet appareil : seuls son SHA-256 (un code calculé à partir de ses octets), son nom et sa taille sont scellés, avec une date que personne ne peut antidater.',
+    'Choisissez le fichier. Il reste sur cet appareil. Seuls un code calculé à partir de son contenu, son nom et sa taille sont scellés, avec une date que personne ne peut antidater. Si un seul caractère du fichier change, le code ne correspond plus.',
   'app.doc.new.proves':
     'Ce que cela montrera : un fichier avec exactement ces octets était entre vos mains à la date où il est scellé. Pas que le document est authentique, que l’émetteur l’a émis, ni que ce qu’il dit est vrai.',
   'app.doc.f.files': 'Fichiers',
@@ -48,7 +48,7 @@ export const document = {
   'app.doc.type.protocol': 'Protocole ou procédure',
   'app.doc.type.transport': 'Document de transport ou d’expédition',
   'app.doc.type.invoice': 'Facture ou reçu',
-  'app.doc.type.other': 'Autre chose',
+  'app.doc.type.other': 'Procès-verbal, résolution ou autre',
   'app.doc.kind': 'Document',
   'app.doc.homeLine': 'Document · {type}',
   'app.doc.k.type': 'Type',
@@ -70,21 +70,42 @@ export const document = {
   'app.doc.share.warn':
     'Le lien montre à quiconque l’a tout ce que contient cet enregistrement de document : titre, type, émetteur, référence, date, le nom et le SHA-256 de chaque fichier, les noms des enregistrements qu’il concerne et vos notes. Jamais le fichier lui-même.',
   'app.doc.share.copy': 'Copier le lien : prouve que vous aviez ce fichier',
+  'app.doc.share.notDatedYet':
+    'Pas encore daté. Toute personne qui ouvre le lien maintenant lira qu’il ne faut pas s’y fier. Envoyez-le une fois que cette page affiche une date.',
   'app.doc.share.copied': 'Copié.',
   'app.doc.compare.title': 'Est-ce le même fichier ?',
   'app.doc.compare.text': 'Choisissez un fichier à comparer avec ceux scellés ici. Il n’est pas envoyé.',
   'app.doc.compare.pick': 'Choisir un fichier',
   'app.doc.compare.match': '<b>{name}</b> est, octet pour octet, {sealed}, scellé ici.',
-  'app.doc.compare.noMatch': '<b>{name}</b> n’est aucun des fichiers scellés ici. Pas un octet ne peut différer.',
+  'app.doc.compare.noMatch':
+    '<b>Pas de correspondance.</b> {name} n’est pas le fichier scellé. L’enregistrer à nouveau, l’imprimer en PDF ou l’envoyer par certaines applications modifie le fichier : demandez le fichier d’origine.',
+  'app.doc.new.introTech': 'Pour les spécialistes : ce code est le SHA-256 du fichier.',
+  'app.doc.backupFirst':
+    'Scellé. Enregistrez maintenant une sauvegarde et vérifiez-la. D’ici là, les clés de cet enregistrement ne sont que dans ce navigateur, et VeilCore ne conserve pas encore de copie de l’enregistrement pour vous. Cela vous sera demandé jusqu’à ce qu’une copie de secours contenant la clé de ce navigateur soit vérifiée.',
+  'app.doc.notBacked':
+    'Pas encore dans une sauvegarde vérifiée. D’ici là, les clés de cet enregistrement ne sont que dans ce navigateur.',
+  'app.doc.tech.title': 'Détails techniques',
+  'app.doc.tech.text':
+    'Inutile pour la date de ce document. Horodater la clé de cet enregistrement sur Midnight vous permet de montrer plus tard, si on vous le demande, que vous détenez toujours cet enregistrement.',
+  'app.doc.home.sealedOn': 'Scellé le {date}',
+  'app.doc.home.dated': 'Daté le {date}',
+  'app.doc.home.waiting': 'en attente de sa date',
+  'app.doc.home.datedReported': 'Daté le {date} (selon VeilCore)',
+  'app.doc.home.checkingDate': 'date annoncée, en cours de vérification',
+  'app.doc.home.notConfirmed': 'date non confirmée sur Midnight',
   'app.doc.compare.tooLarge': 'Ce fichier dépasse {mb} Mo, il ne peut donc pas être lu ici.',
   'app.doc.check.title': 'Vérifier un document',
   'app.doc.check.intro':
-    'Quelqu’un vous a envoyé un document et ce lien. Choisissez le fichier reçu : votre navigateur calcule son SHA-256 (rien n’est envoyé) et le vérifie par rapport à l’enregistrement scellé du lien et à sa date sur Midnight.',
+    'Quelqu’un vous a envoyé un document et ce lien. Choisissez le fichier reçu : votre navigateur vérifie que c’est le même fichier, octet pour octet (rien n’est envoyé), et affiche sa date sur Midnight, une blockchain publique, en la vérifiant lui-même quand il le peut.',
   'app.doc.check.missing':
     'Ce lien ne contient aucun enregistrement de document. Demandez le lien complet à la personne qui l’a envoyé.',
   'app.doc.check.unreadable': 'Ce lien est endommagé. Redemandez-le.',
   'app.doc.check.notDoc': 'Ce que contient ce lien n’est pas un enregistrement de document vérifiable ici.',
   'app.doc.check.recomputed': 'Code de preuve, recalculé ici à partir du lien',
+  'app.doc.check.registryOnly':
+    'Le registre de VeilCore donne cette date. Cette page ne peut pas la vérifier sur Midnight : pour l’instant, elle repose sur la parole de VeilCore.',
+  'app.doc.check.notConfirmed':
+    'Le registre de VeilCore donne cette date, mais cette page n’a pas pu la confirmer sur Midnight pour l’instant. Réessayez dans quelques minutes avant de vous y fier.',
   'app.doc.check.notDated':
     'Rien ne date encore cet enregistrement, ou le lien a été modifié. Ne vous y fiez pas avant qu’il affiche une date.',
   'app.doc.check.what':

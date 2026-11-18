@@ -9,7 +9,8 @@ import { Box } from '@mui/material';
 import { TagMark } from './site/TagMark';
 import { DISPLAY_FONT, INK_COLOR, POLLEN } from '../config/theme';
 
-export const Wordmark: React.FC = () => (
+/** `tone`: 'dark' on a dark ground (the home page's header), where the mark takes its lighter gold. */
+export const Wordmark: React.FC<{ tone?: 'light' | 'dark' }> = ({ tone = 'light' }) => (
   <Box
     component="span"
     sx={{
@@ -26,7 +27,7 @@ export const Wordmark: React.FC = () => (
       '& svg': { color: INK_COLOR, '--tm-stub': POLLEN, '--tm-edge': INK_COLOR },
     }}
   >
-    <TagMark />
+    <TagMark tone={tone} />
     VeilCore
   </Box>
 );

@@ -1086,6 +1086,16 @@ const sendSealed = async (
     /* not JSON — handled below */
   }
   if (!res.ok) {
+    // The free number used up (the registry's billing.js): said in the site's words, so the
+    // holder reads what to do, not the registry's sentence.
+    if (isObject(body) && body.code === PLAN_LIMIT) {
+      return {
+        ok: false,
+        refused: [...refused, { id: '*', reason: PLAN_FULL_REASON, words: 'app.plan.full' }],
+        pending: sent,
+        accepted: [],
+      };
+    }
     const reason = isObject(body) && isString(body.error) ? body.error : `the registry answered ${String(res.status)}`;
     return { ok: false, refused: [...refused, { id: '*', reason }], pending: sent, accepted: [] };
   }
@@ -1128,6 +1138,20 @@ const sendSealed = async (
       // saveAll), which shows the record corrected, with its latest version.
       if (r.code === SUPERSEDED_BY_LOCKED_CODE) {
         refused.push({ id: r.id, reason: r.reason, words: 'app.sealed.refuse.supersededByLocked' });
+        continue;
+      }
+      // A new record past the free number (the registry refuses only those rows; the rest of the
+      // save, edits included, was stored). Said in the site's words.
+      if (r.code === PLAN_LIMIT) {
+        // New content under a record VeilCore already holds, or a correction (a new version):
+        // said as a change that wasn't made, not as a new record.
+        const row = wire.find((w) => w.id === r.id);
+        const change = state?.states.has(r.id) || (isObject(row) && isObject(row.supersedes));
+        refused.push(
+          change
+            ? { id: r.id, reason: PLAN_CHANGE_REASON, words: 'app.plan.changeFull' }
+            : { id: r.id, reason: PLAN_FULL_REASON, words: 'app.plan.full' },
+        );
         continue;
       }
       // A correction not stored because its record was refused in the same save: nothing was
@@ -1272,11 +1296,13 @@ export const sendDatingRows = async (
     for (const r of body.rejected)
       if (isObject(r) && isString(r.id) && isString(r.reason))
         refused.push(
-          r.code === DELETED_CODE
-            ? { id: r.id, reason: r.reason, words: 'app.plant.delete.gone', deleted: true }
-            : r.code === LINKS_DELETED_CODE && linkField(r.field)
-              ? { id: r.id, reason: r.reason, linksDeleted: linkField(r.field) }
-              : { id: r.id, reason: r.reason },
+          r.code === PLAN_LIMIT
+            ? { id: r.id, reason: PLAN_FULL_REASON, words: 'app.plan.full' }
+            : r.code === DELETED_CODE
+              ? { id: r.id, reason: r.reason, words: 'app.plant.delete.gone', deleted: true }
+              : r.code === LINKS_DELETED_CODE && linkField(r.field)
+                ? { id: r.id, reason: r.reason, linksDeleted: linkField(r.field) }
+                : { id: r.id, reason: r.reason },
         );
   if (Array.isArray(body.notWritten))
     for (const id of body.notWritten)
@@ -1405,6 +1431,14 @@ export const NO_KEY_REASON =
 /** Said when the registry couldn't be asked whether this holder's rows are sealed already. */
 export const UNKNOWN_REASON =
   'VeilCore couldn’t be reached to check your records, so nothing was saved. Try again soon.';
+/** The registry's code for a save past the free number (paid plans, its billing.js). */
+const PLAN_LIMIT = 'plan-limit';
+/** Said when the registry refused a record for the free number. */
+export const PLAN_FULL_REASON =
+  'Your free records are used up, so no new record was made. Everything you already have keeps verifying. Choose a plan on your records page to add more.';
+/** Said when the registry refused new content under a held record, or a correction, for the free number. */
+export const PLAN_CHANGE_REASON =
+  'This change would date a new version, and your free dated records are used up, so nothing was changed. Choose a plan on your records page to date more.';
 /** Said when this browser can't keep a vault key (a private window, blocked site data). */
 export const CANT_STORE_REASON =
   'this browser can’t keep the key that locks your records (a private window, or blocked site data), so nothing was saved';

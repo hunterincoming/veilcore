@@ -138,4 +138,41 @@ export const home = {
   'app.home.export.label': 'Télécharger vos enregistrements et contrats depuis VeilCore',
   'app.home.export.done':
     'Téléchargé : vos enregistrements, contrats, choix de partage et chaque preuve d’inclusion. Les envois, leurs informations d’échantillon et les rapports de laboratoire n’y sont pas : ouvrez-les depuis l’envoi ou la page de la plante. Vos clés sont dans votre fichier de secours, pas dans celui-ci.',
+  // PlanBox.tsx, billing.ts, records.ts: paid plans (off unless VITE_PAID_PLANS=on)
+  'app.plan.full':
+    'Vos enregistrements gratuits sont épuisés : aucun nouvel enregistrement n’a été créé. Tout ce que vous avez déjà reste vérifiable. Choisissez une formule sur votre page d’enregistrements pour en ajouter.',
+  'app.plan.unknown':
+    'VeilCore n’a pas pu vérifier votre formule pour l’instant : aucun nouvel enregistrement n’a été créé. Vérifiez votre connexion et réessayez.',
+  'app.plan.box.free': 'Formule gratuite : {held} sur {cap} enregistrements datés',
+  'app.plan.box.left': 'Enregistrements gratuits encore à dater : {n}',
+  'app.plan.box.countsDeleted': 'Les enregistrements datés comptent même si vous les supprimez ensuite.',
+  'app.plan.changeFull':
+    'Cette modification daterait une nouvelle version, et vos enregistrements datés gratuits sont épuisés : rien n’a été modifié. Tout ce que vous avez déjà reste vérifiable. Choisissez une offre sur votre page d’enregistrements pour en dater davantage.',
+  'app.plan.receiveFull':
+    'Il ne reste aucun enregistrement daté gratuit pour recevoir cette livraison. Votre code est gardé dans ce navigateur : choisissez une offre sur votre page d’enregistrements, puis saisissez-le à nouveau.',
+  'app.plan.box.rules':
+    'La première correction d’un enregistrement est gratuite. Recevoir une livraison demande un enregistrement daté libre.',
+  'app.plan.box.paid': 'Votre formule : {plan}',
+  'app.plan.name.breeder': 'Obtenteur',
+  'app.plan.name.lab': 'Laboratoire',
+  'app.plan.name.free': 'Gratuite',
+  'app.plan.choose': 'Choisir une formule',
+  'app.plan.buy.breeder': 'Formule Obtenteur',
+  'app.plan.buy.lab': 'Formule Laboratoire',
+  'app.plan.opens':
+    'Ouvre la page de Paddle dans un nouvel onglet. Paddle vend les formules pour VeilCore et encaisse le paiement ; VeilCore ne voit jamais votre carte ni votre e-mail.',
+  'app.plan.keep': 'Quel que soit votre choix, chaque enregistrement que vous avez déjà reste vérifiable.',
+  'app.plan.recheck': 'Payé ? Vérifier à nouveau',
+  'app.plan.err.off': 'Les formules ne peuvent pas encore être achetées depuis ce navigateur.',
+  'app.plan.err.unreachable': 'La page de Paddle n’a pas pu s’ouvrir. Réessayez dans un instant.',
+  'app.plan.err.busy': 'Trop d’essais en une heure. Réessayez plus tard.',
+  'app.plan.err.noRecord':
+    'Enregistrez d’abord un enregistrement : une formule concerne les enregistrements que vous datez.',
+  'app.plan.err.blocked':
+    'Votre navigateur a bloqué la page de Paddle. Autorisez les fenêtres pop-up pour ce site, puis réessayez.',
+  'app.plan.buy.other': 'Formule {plan}',
+  'app.plan.importFull':
+    'Ce fichier contient {n} enregistrements nouveaux pour VeilCore, et votre formule gratuite peut encore en dater {left}. Rien n’a été importé. Choisissez une formule sur votre page d’enregistrements pour en dater davantage.',
+  'app.plan.box.full':
+    'Vos enregistrements gratuits sont épuisés. Tout ce que vous avez déjà reste vérifiable. Choisissez une formule pour en ajouter.',
 } satisfies Partial<AppTranslation>;

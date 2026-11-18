@@ -327,7 +327,7 @@ export const verify = {
   'app.verify.who.file.match':
     'Votre propre appareil : le fichier choisi est celui qui a été scellé. Rien n’a été envoyé.',
   'app.verify.who.file.none': 'Aucun fichier n’a été scellé avec ce document.',
-  'app.verify.who.file.waiting': 'Votre propre appareil, une fois le fichier choisi ci-dessous. Rien n’est envoyé.',
+  'app.verify.who.file.waiting': 'Votre propre appareil, une fois le fichier choisi ci-dessus. Rien n’est envoyé.',
   'app.verify.who.signedUnboundMatched':
     'Une clé enregistrée au nom de {who}, selon le registre de VeilCore. L’opérateur de VeilCore a rapproché le nom d’une liste publique (ci-dessous). Le lien ne contient pas de code de preuve pour vérifier la signature.',
   'app.verify.who.signedMatched':

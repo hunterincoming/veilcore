@@ -27,6 +27,7 @@
 // where a page was opened from, and a long chain isn't repeated in every link on the page.
 // SPDX-License-Identifier: Apache-2.0
 
+import { LANGUAGE_CODES } from '../config/languages';
 import { base64urlnopad } from '@scure/base';
 import { fingerprintRecord } from './commitment';
 import { verifyPath } from './verify-link';
@@ -82,11 +83,16 @@ export const appRecordOfFields = (f: DocumentFields): DocumentRecordLike & { par
 });
 
 /** The link for a document record the holder has: its sealed fields after the #. */
-export const documentCheckLink = (record: DocumentRecordLike, origin: string): string => {
+/** `?lang=xx` for a language other than English, so the link opens in the sender's language. */
+// A draft language goes too: the holder chose it, and the page shows the same draft notice.
+const langQuery = (lang?: string): string =>
+  lang && (LANGUAGE_CODES as readonly string[]).includes(lang) && lang !== 'en' ? `?lang=${lang}` : '';
+
+export const documentCheckLink = (record: DocumentRecordLike, origin: string, lang?: string): string => {
   const fields = documentFieldsOf(record);
   const problems = validateDocumentFields(fields);
   if (problems.length) throw new Error(`This document record can't be shared: ${problems.join('; ')}.`);
-  return `${origin}${DOCUMENT_CHECK_PATH}#d=${encode({ v: 1, fields })}`;
+  return `${origin}${DOCUMENT_CHECK_PATH}${langQuery(lang)}#d=${encode({ v: 1, fields })}`;
 };
 
 const HEX64 = /^[0-9a-f]{64}$/;
@@ -132,7 +138,12 @@ export const chainEntriesFor = (record: HeldForChain, records: readonly HeldForC
  * about that this browser holds. Whoever has the link sees every one of those documents'
  * fields too, so it is made only when the holder asks for it.
  */
-export const documentChainLink = (record: HeldForChain, records: readonly HeldForChain[], origin: string): string => {
+export const documentChainLink = (
+  record: HeldForChain,
+  records: readonly HeldForChain[],
+  origin: string,
+  lang?: string,
+): string => {
   const fields = documentFieldsOf(record);
   const problems = validateDocumentFields(fields);
   if (problems.length) throw new Error(`This document record can't be shared: ${problems.join('; ')}.`);
@@ -140,7 +151,7 @@ export const documentChainLink = (record: HeldForChain, records: readonly HeldFo
   const d = encode({ v: 1, fields, ...(chain.length ? { chain } : {}) });
   if (d.length > LINK_CHARS_MAX)
     throw new Error('This chain is too large for one link. Send each record’s own link instead.');
-  return `${origin}${DOCUMENT_CHECK_PATH}#d=${d}`;
+  return `${origin}${DOCUMENT_CHECK_PATH}${langQuery(lang)}#d=${d}`;
 };
 
 /** The chain a link's payload carries: every well-formed entry, each record once. Anything else is dropped. */

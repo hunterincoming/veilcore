@@ -28,6 +28,16 @@ describe('a document check link', () => {
       expect(read.ok && read.fields).toEqual(r.fields);
     });
 
+  it('carries the holder’s language before the #, never English or an unknown code', () => {
+    const r = v.records[0];
+    const es = documentCheckLink(r.appRecord, 'https://veilcore.org', 'es');
+    expect(es.startsWith('https://veilcore.org/check-document?lang=es#d=')).toBe(true);
+    expect(hashOf(es)).toBe(hashOf(documentCheckLink(r.appRecord, 'https://veilcore.org')));
+    expect(documentCheckLink(r.appRecord, 'https://veilcore.org', 'en')).toMatch(/\/check-document#d=/);
+    expect(documentCheckLink(r.appRecord, 'https://veilcore.org', 'xx')).toMatch(/\/check-document#d=/);
+    expect(documentCheckLink(r.appRecord, 'https://veilcore.org', 'es&x=1')).toMatch(/\/check-document#d=/);
+  });
+
   it('a changed file fingerprint recomputes to another proof code', async () => {
     const f = v.records[0].fields as { files: { sha256: string }[] };
     const changed = { ...f, files: [{ ...f.files[0], sha256: 'e'.repeat(64) }, ...f.files.slice(1)] };

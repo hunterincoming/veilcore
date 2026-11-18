@@ -53,13 +53,22 @@ import {
   quantityPhrase,
   sameDetails,
   sampleDetailsOf,
+  keepReceivingCode,
   setArrival,
   signReceiptWith,
   type ArrivalDetails,
   type CustodySubject,
   type SampleDetails,
 } from '../veilcore/transfers';
-import { allRecords, hydrateAnswered, RECORDS_KEY, updateReceivedNotes, type StrainRecord } from '../veilcore/records';
+import {
+  allRecords,
+  hydrateAnswered,
+  RECORDS_KEY,
+  updateReceivedNotes,
+  waitingHere,
+  type StrainRecord,
+} from '../veilcore/records';
+import { planGate, readPlan } from '../veilcore/billing';
 import { getRole, roleAfterReceiving, setRole } from '../veilcore/role';
 import { rowStateOf } from '../veilcore/api-store';
 import { claimWithCode, finishReceiving, readyToReceive, receiptBlocker } from '../veilcore/receive';
@@ -754,14 +763,29 @@ export const ClaimTransfer: React.FC<{
         return;
       }
       setNeedsBackup(false);
+      // On the free plan a received record is a dated record: no claim without room for it.
+      // The code is kept first, so "Your code is kept in this browser" is true when we refuse.
+      await readPlan();
+      const gate = planGate(1, waitingHere());
+      if (gate) {
+        try {
+          keepReceivingCode(code);
+        } catch {
+          /* not a share code: claiming it would refuse it anyway */
+        }
+        setError(t(gate === 'app.plan.full' ? 'app.plan.receiveFull' : gate));
+        return;
+      }
       // Kept until the received record is sealed and accepted: the offer key and the lock
       // are only in the code. Let go only on a definite refusal (round 3, L8).
       const res = await claimWithCode(code);
       if ('error' in res) {
         setError(
-          res.definite
-            ? labErrorWords(res.error, tr)
-            : t('app.sealed.recv.noAnswer', { error: labErrorWords(res.error, tr) }),
+          res.planFull
+            ? t('app.plan.receiveFull')
+            : res.definite
+              ? labErrorWords(res.error, tr)
+              : t('app.sealed.recv.noAnswer', { error: labErrorWords(res.error, tr) }),
         );
         return;
       }

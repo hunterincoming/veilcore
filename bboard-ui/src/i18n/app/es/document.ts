@@ -9,7 +9,7 @@ export const document = {
   'app.doc.orDocumentAction': 'Sellar un documento',
   'app.doc.new.title': 'Sellar un documento',
   'app.doc.new.intro':
-    'Elija el archivo. Se queda en este dispositivo: solo se sellan su SHA-256 (un código calculado a partir de sus bytes), su nombre y su tamaño, con una fecha que nadie puede antedatar.',
+    'Elija el archivo. Se queda en este dispositivo. Solo se sellan un código calculado a partir de su contenido, su nombre y su tamaño, con una fecha que nadie puede antedatar. Si cambia un solo carácter del archivo, el código deja de coincidir.',
   'app.doc.new.proves':
     'Lo que esto mostrará: un archivo con exactamente estos bytes estaba en sus manos en la fecha en que se sella. No que el documento sea auténtico, que el emisor lo haya emitido ni que lo que dice sea cierto.',
   'app.doc.f.files': 'Archivos',
@@ -48,7 +48,7 @@ export const document = {
   'app.doc.type.protocol': 'Protocolo o procedimiento',
   'app.doc.type.transport': 'Documento de transporte o envío',
   'app.doc.type.invoice': 'Factura o recibo',
-  'app.doc.type.other': 'Otra cosa',
+  'app.doc.type.other': 'Acta, resolución u otro',
   'app.doc.kind': 'Documento',
   'app.doc.homeLine': 'Documento · {type}',
   'app.doc.k.type': 'Tipo',
@@ -70,21 +70,42 @@ export const document = {
   'app.doc.share.warn':
     'El enlace muestra a quien lo tenga todo lo que hay en este registro de documento: título, tipo, emisor, referencia, fecha, el nombre y el SHA-256 de cada archivo, los nombres de los registros a los que se refiere y sus notas. Nunca el archivo en sí.',
   'app.doc.share.copy': 'Copiar enlace: demuestra que tenía este archivo',
+  'app.doc.share.notDatedYet':
+    'Aún sin fecha. Quien abra el enlace ahora verá que no debe confiar en él. Envíelo cuando esta página muestre una fecha.',
   'app.doc.share.copied': 'Copiado.',
   'app.doc.compare.title': '¿Es el mismo archivo?',
   'app.doc.compare.text': 'Elija un archivo para compararlo con los sellados aquí. No se sube.',
   'app.doc.compare.pick': 'Elegir un archivo',
   'app.doc.compare.match': '<b>{name}</b> es, byte a byte, {sealed}, sellado aquí.',
-  'app.doc.compare.noMatch': '<b>{name}</b> no es ninguno de los archivos sellados aquí. No puede diferir ni un byte.',
+  'app.doc.compare.noMatch':
+    '<b>No coincide.</b> {name} no es el archivo sellado. Volver a guardarlo, imprimirlo como PDF o enviarlo por algunas aplicaciones cambia el archivo: pida el archivo original.',
+  'app.doc.new.introTech': 'Dato técnico: el código es el SHA-256 del archivo.',
+  'app.doc.backupFirst':
+    'Sellado. Ahora guarde una copia de seguridad y compruébela. Hasta entonces, las claves de este registro están solo en este navegador, y VeilCore aún no guarda una copia del registro para usted. Se le pedirá hasta que se compruebe una copia de seguridad con la clave de este navegador.',
+  'app.doc.notBacked':
+    'Aún no está en una copia de seguridad comprobada. Hasta entonces, las claves de este registro están solo en este navegador.',
+  'app.doc.tech.title': 'Detalles técnicos',
+  'app.doc.tech.text':
+    'No hace falta para la fecha de este documento. Poner un sello de fecha a la clave de este registro en Midnight le permite demostrar más adelante, si alguien se lo pide, que sigue teniendo este registro.',
+  'app.doc.home.sealedOn': 'Sellado el {date}',
+  'app.doc.home.dated': 'Fechado el {date}',
+  'app.doc.home.waiting': 'esperando su fecha',
+  'app.doc.home.datedReported': 'Fechado el {date} (según VeilCore)',
+  'app.doc.home.checkingDate': 'fecha informada, en comprobación',
+  'app.doc.home.notConfirmed': 'fecha no confirmada en Midnight',
   'app.doc.compare.tooLarge': 'Ese archivo pesa más de {mb} MB, así que no se puede leer aquí.',
   'app.doc.check.title': 'Comprobar un documento',
   'app.doc.check.intro':
-    'Alguien le envió un documento y este enlace. Elija el archivo que le enviaron: su navegador calcula su SHA-256 (no se sube nada) y lo comprueba con el registro sellado del enlace y su fecha en Midnight.',
+    'Alguien le envió un documento y este enlace. Elija el archivo que le enviaron: su navegador comprueba que es el mismo archivo, byte por byte (no se sube nada), y muestra su fecha en Midnight, una cadena de bloques pública, comprobándola allí mismo cuando puede.',
   'app.doc.check.missing':
     'Este enlace no contiene un registro de documento. Pida el enlace completo a quien se lo envió.',
   'app.doc.check.unreadable': 'Este enlace está dañado. Pídalo de nuevo.',
   'app.doc.check.notDoc': 'Lo que hay en este enlace no es un registro de documento que se pueda comprobar aquí.',
   'app.doc.check.recomputed': 'Código de prueba, recalculado aquí a partir del enlace',
+  'app.doc.check.registryOnly':
+    'El registro de VeilCore da esta fecha. Esta página no puede comprobarla en Midnight, así que por ahora se basa solo en lo que dice VeilCore.',
+  'app.doc.check.notConfirmed':
+    'El registro de VeilCore da esta fecha, pero esta página no pudo confirmarla en Midnight en este momento. Vuelva a intentarlo en unos minutos antes de confiar en ella.',
   'app.doc.check.notDated':
     'Todavía nada fecha este registro, o el enlace se modificó. No confíe en él hasta que muestre una fecha.',
   'app.doc.check.what':

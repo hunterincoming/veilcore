@@ -10,7 +10,7 @@ export const document = {
   // ---- sealing one (DocumentNew.tsx) ----
   'app.doc.new.title': 'Seal a document',
   'app.doc.new.intro':
-    'Pick the file. It stays on this device: only its SHA-256 (a code worked out from its bytes), its name and its size are sealed, with a date nobody can backdate.',
+    'Pick the file. It stays on this device. Only a code worked out from its contents, its name and its size are sealed, with a date nobody can backdate. Change one character of the file and the code no longer matches.',
   'app.doc.new.proves':
     'What this will show: a file with exactly these bytes was in your hands by the date it is sealed on. Not that the document is genuine, that the issuer issued it, or that what it says is true.',
   'app.doc.f.files': 'Files',
@@ -49,7 +49,7 @@ export const document = {
   'app.doc.type.protocol': 'Protocol or SOP',
   'app.doc.type.transport': 'Transport or shipping document',
   'app.doc.type.invoice': 'Invoice or receipt',
-  'app.doc.type.other': 'Something else',
+  'app.doc.type.other': 'Minutes, resolution or other',
   // ---- its page (DocumentDetail.tsx) ----
   'app.doc.kind': 'Document',
   'app.doc.homeLine': 'Document · {type}',
@@ -72,21 +72,42 @@ export const document = {
   'app.doc.share.warn':
     'The link shows whoever has it everything in this document record: its title, type, issuer, reference, date, each file’s name and SHA-256, the names of the records it’s about, and your notes. Never the file itself.',
   'app.doc.share.copy': 'Copy link: proves you had this file',
+  'app.doc.share.notDatedYet':
+    'Not dated yet. Whoever opens the link now will be told not to rely on it. Send it once this page shows a date.',
   'app.doc.share.copied': 'Copied.',
   'app.doc.compare.title': 'Is this the same file?',
   'app.doc.compare.text': 'Pick a file to compare with the ones sealed here. It isn’t uploaded.',
   'app.doc.compare.pick': 'Pick a file',
   'app.doc.compare.match': '<b>{name}</b> is byte for byte {sealed}, sealed here.',
-  'app.doc.compare.noMatch': '<b>{name}</b> is not any of the files sealed here. Not one byte may differ.',
+  'app.doc.compare.noMatch':
+    '<b>No match.</b> {name} isn’t the sealed file. Saving it again, printing it to PDF or sending it through some apps changes the file: ask for the original file.',
+  'app.doc.new.introTech': 'For the technically minded: the code is the file’s SHA-256.',
+  'app.doc.backupFirst':
+    'Sealed. Now save a backup and check it. Until you do, this browser holds the only copy of this record’s keys, and VeilCore keeps no copy of the record for you yet. You’re asked this until a backup holding this browser’s key has been checked.',
+  'app.doc.notBacked':
+    'Not in a checked backup yet. Until it is, this browser holds the only copy of this record’s keys.',
+  'app.doc.tech.title': 'Technical details',
+  'app.doc.tech.text':
+    'Not needed for this document’s date. Date-stamping this record’s key on Midnight lets you prove later, if someone asks, that you still hold this record.',
+  'app.doc.home.sealedOn': 'Sealed {date}',
+  'app.doc.home.dated': 'Dated {date}',
+  'app.doc.home.waiting': 'waiting for its date',
+  'app.doc.home.datedReported': 'Dated {date} (VeilCore’s report)',
+  'app.doc.home.checkingDate': 'date reported, being checked',
+  'app.doc.home.notConfirmed': 'date not confirmed on Midnight',
   'app.doc.compare.tooLarge': 'That file is larger than {mb} MB, so it can’t be read here.',
   // ---- the check page (DocumentCheck.tsx) ----
   'app.doc.check.title': 'Check a document',
   'app.doc.check.intro':
-    'Someone sent you a document and this link. Pick the file they sent: your browser works out its SHA-256 (nothing is uploaded) and checks it against the sealed record in the link and its date on Midnight.',
+    'Someone sent you a document and this link. Pick the file they sent: your browser checks it is the same file, byte for byte (nothing is uploaded), and shows its date on Midnight, a public blockchain, checking it there itself when it can.',
   'app.doc.check.missing': 'This link has no document record in it. Ask whoever sent it for the whole link.',
   'app.doc.check.unreadable': 'This link is damaged. Ask for it again.',
   'app.doc.check.notDoc': 'What’s in this link isn’t a document record that can be checked here.',
   'app.doc.check.recomputed': 'Proof code, recomputed here from the link',
+  'app.doc.check.registryOnly':
+    'VeilCore’s registry gives this date. This page can’t check it on Midnight, so for now it rests on VeilCore’s word.',
+  'app.doc.check.notConfirmed':
+    'VeilCore’s registry gives this date, but this page couldn’t confirm it on Midnight just now. Try again in a few minutes before relying on it.',
   'app.doc.check.notDated':
     'Nothing dates this record yet, or the link was changed. Don’t rely on it until it shows a date.',
   'app.doc.check.what':

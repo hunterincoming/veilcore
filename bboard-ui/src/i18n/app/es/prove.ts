@@ -184,4 +184,13 @@ export const prove = {
   'app.prove.share.labSigs.suggestButton': 'Mostrarlo',
   'app.prove.share.labSigs.plainHash':
     'Esta firma más antigua indica el SHA-256 del archivo del informe: una vez mostrada, cualquiera con una copia del archivo podría saber que está guardado en este registro.',
+  // A claim on a yes/no call (claim-call.ts): the prove screen's preview, and the slot and number on the claim page.
+  'app.claim.preview': 'Esto demuestra: {claim}.',
+  'app.claim.check.raw': 'Tal como se demostró en Midnight: {raw}.',
+  // ClaimCheck.tsx: the footer for a claim whose lab signature checks but whose result the lab withdrew.
+  'app.claim.check.whatLabWithdrawn':
+    'Qué muestra: el número sellado en ese registro cumple el límite (o es ese valor), y la clave de arriba firmó los números de ese registro. El laboratorio ha retirado después este resultado, así que no confíe en él: pida al laboratorio o al titular el resultado más reciente para esta muestra. Cada límite demostrado sobre un número es público, y juntos lo acotan.',
+  // ClaimCheck.tsx: the footer when a key signs the numbers but no single lab is tied to it (unidentified, conflicting).
+  'app.claim.check.whatLabUnnamed':
+    'Qué muestra: el número sellado en ese registro cumple el límite (o es ese valor), y la clave de arriba firmó los números de ese registro. Aquí ningún laboratorio único está vinculado a esa clave, así que tome los números como del propio titular. Cada límite demostrado sobre un número es público, y juntos lo acotan.',
 } satisfies Partial<AppTranslation>;

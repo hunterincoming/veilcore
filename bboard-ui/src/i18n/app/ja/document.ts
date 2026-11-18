@@ -8,7 +8,7 @@ export const document = {
   'app.doc.orDocumentAction': '書類を封印する',
   'app.doc.new.title': '書類を封印する',
   'app.doc.new.intro':
-    'ファイルを選んでください。ファイルはこの端末から出ません。封印されるのはそのSHA-256（バイトから計算したコード）、名前、サイズだけで、誰にもさかのぼって変えられない日付が付きます。',
+    'ファイルを選んでください。ファイルはこの端末から出ません。封印されるのは、内容から計算したコード、名前、サイズだけで、誰にもさかのぼって変えられない日付が付きます。ファイルが1文字でも変わると、コードは一致しなくなります。',
   'app.doc.new.proves':
     'これで示せること：まったく同じバイトのファイルが、封印された日付までにあなたの手元にあったこと。書類が本物であること、発行者が発行したこと、内容が正しいことは示しません。',
   'app.doc.f.files': 'ファイル',
@@ -47,7 +47,7 @@ export const document = {
   'app.doc.type.protocol': '手順書・SOP',
   'app.doc.type.transport': '輸送・出荷書類',
   'app.doc.type.invoice': '請求書・領収書',
-  'app.doc.type.other': 'その他',
+  'app.doc.type.other': '議事録・決議書・その他',
   'app.doc.kind': '書類',
   'app.doc.homeLine': '書類 · {type}',
   'app.doc.k.type': '種類',
@@ -69,20 +69,41 @@ export const document = {
   'app.doc.share.warn':
     'リンクを持つ人には、この書類の記録の内容がすべて見えます：タイトル、種類、発行者、参照番号、日付、各ファイルの名前とSHA-256、対象の記録の名前、メモ。ファイルそのものは含まれません。',
   'app.doc.share.copy': 'リンクをコピー：このファイルを保有していたことの証明',
+  'app.doc.share.notDatedYet':
+    'まだ日付がありません。今このリンクを開いた人には、まだ頼らないよう注意が表示されます。このページに日付が表示されてから送ってください。',
   'app.doc.share.copied': 'コピーしました。',
   'app.doc.compare.title': '同じファイルですか？',
   'app.doc.compare.text': 'ここで封印したファイルと比べるファイルを選んでください。アップロードはされません。',
   'app.doc.compare.pick': 'ファイルを選ぶ',
   'app.doc.compare.match': '<b>{name}</b>は、ここで封印した{sealed}とバイト単位で同じです。',
-  'app.doc.compare.noMatch': '<b>{name}</b>は、ここで封印したどのファイルとも違います。1バイトでも違えば一致しません。',
+  'app.doc.compare.noMatch':
+    '<b>一致しません。</b>{name}は封印されたファイルではありません。保存し直す、PDFとして印刷する、一部のアプリで送ると、ファイルは変わります。元のファイルを送ってもらってください。',
+  'app.doc.new.introTech': '技術的には、このコードはファイルのSHA-256です。',
+  'app.doc.backupFirst':
+    '封印しました。続けてバックアップを保存し、確認してください。それまでは、この記録の鍵はこのブラウザにしかなく、VeilCoreもまだこの記録の写しを預かっていません。このブラウザの鍵を含むバックアップを確認するまで、毎回表示されます。',
+  'app.doc.notBacked':
+    'まだ確認済みのバックアップに入っていません。それまでは、この記録の鍵はこのブラウザにしかありません。',
+  'app.doc.tech.title': '技術的な詳細',
+  'app.doc.tech.text':
+    'この書類の日付には必要ありません。この記録の鍵にMidnightで日付スタンプを付けておくと、求められたときに、この記録を今も保有していることを後から示せます。',
+  'app.doc.home.sealedOn': '{date} に封印',
+  'app.doc.home.dated': '{date}付',
+  'app.doc.home.waiting': '日付待ち',
+  'app.doc.home.datedReported': '{date}付（VeilCoreの報告）',
+  'app.doc.home.checkingDate': '日付の報告あり・確認中',
+  'app.doc.home.notConfirmed': 'Midnightで日付を確認できません',
   'app.doc.compare.tooLarge': 'そのファイルは{mb}MBを超えるため、ここでは読み込めません。',
   'app.doc.check.title': '書類を確認する',
   'app.doc.check.intro':
-    '誰かから書類とこのリンクが届きました。届いたファイルを選んでください。あなたのブラウザがそのSHA-256を計算し（何もアップロードされません）、リンク内の封印された記録とMidnight上の日付と照らし合わせます。',
+    '誰かから書類とこのリンクが届きました。届いたファイルを選んでください。あなたのブラウザが1バイト単位で同じファイルかを確かめ（何もアップロードされません）、公開ブロックチェーンであるMidnight上の日付を表示し、可能な場合はその場で確認します。',
   'app.doc.check.missing': 'このリンクには書類の記録が入っていません。送った人にリンク全体を頼んでください。',
   'app.doc.check.unreadable': 'このリンクは壊れています。もう一度送ってもらってください。',
   'app.doc.check.notDoc': 'このリンクの中身は、ここで確認できる書類の記録ではありません。',
   'app.doc.check.recomputed': '証明コード（リンクからここで計算し直したもの）',
+  'app.doc.check.registryOnly':
+    'VeilCoreの登録簿はこの日付を示しています。このページではMidnight上で確認できないため、現時点ではVeilCoreの報告のみに基づいています。',
+  'app.doc.check.notConfirmed':
+    'VeilCoreの登録簿はこの日付を示していますが、このページでは現時点でMidnight上で確認できませんでした。数分後にもう一度確認してから頼るようにしてください。',
   'app.doc.check.notDated':
     'この記録にはまだ日付がないか、リンクが変えられています。日付が表示されるまでは頼らないでください。',
   'app.doc.check.what':

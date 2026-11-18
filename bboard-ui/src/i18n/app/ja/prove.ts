@@ -180,4 +180,13 @@ export const prove = {
   'app.prove.share.labSigs.suggestButton': '表示する',
   'app.prove.share.labSigs.plainHash':
     'この古い署名には報告書ファイルのSHA-256が含まれます。表示すると、そのファイルのコピーを持つ人は誰でも、この記録に保存されていることがわかります。',
+  // A claim on a yes/no call (claim-call.ts): the prove screen's preview, and the slot and number on the claim page.
+  'app.claim.preview': '証明する内容：{claim}。',
+  'app.claim.check.raw': 'Midnight上で証明された内容：{raw}。',
+  // ClaimCheck.tsx: the footer for a claim whose lab signature checks but whose result the lab withdrew.
+  'app.claim.check.whatLabWithdrawn':
+    'これが示すこと：その記録に封印された数値が限度を満たす（またはその値である）こと、そして上の鍵がその記録の数値に署名したこと。ラボはその後この結果を取り下げたため、この結果に頼らないでください。このサンプルの最新の結果をラボか保有者に確認してください。数値について証明された限度はすべて公開され、合わせると数値の範囲が狭まります。',
+  // ClaimCheck.tsx: the footer when a key signs the numbers but no single lab is tied to it (unidentified, conflicting).
+  'app.claim.check.whatLabUnnamed':
+    'これが示すこと：その記録に封印された数値が限度を満たす（またはその値である）こと、そして上の鍵がその記録の数値に署名したこと。ここではこの鍵に結びついた検査機関が一つに定まらないため、数値は保有者自身が入力したものとして扱ってください。数値について証明された限度はすべて公開され、合わせると数値の範囲が狭まります。',
 } satisfies Partial<AppTranslation>;

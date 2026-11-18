@@ -97,7 +97,7 @@ export const AppFooter: React.FC<{
                 '& svg': { color: ON_DARK, '--tm-stub': POLLEN },
               }}
             >
-              <TagMark />
+              <TagMark tone="dark" />
               VeilCore
             </Box>
             <Typography

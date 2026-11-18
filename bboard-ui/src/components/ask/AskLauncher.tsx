@@ -37,6 +37,7 @@ import ChatIcon from '@mui/icons-material/ChatBubbleOutlineOutlined';
 import CloseIcon from '@mui/icons-material/Close';
 import { useT } from '../../i18n/app';
 import { useRecords } from '../../veilcore/records';
+import { isDocument } from '../../veilcore/document-profile';
 import { agreementScreen, formScreen, hintExample, hintPage, jobScreen } from '../../ask/hint';
 import { useLocation } from 'react-router-dom';
 import { ANIMAL_RECORDS_ENABLED } from '../../config/network';
@@ -124,7 +125,20 @@ export const AskLauncher: React.FC = () => {
   // nor over a form being filled in there (hint.ts formScreen); on a phone not offered there.
   const offered = !jobScreen(pathname) && !(narrow && (agreementScreen(pathname) || formScreen(pathname)));
   const bubbleHere = offered && !typing && !inHeader;
-  const hint = !hintDoneAtLoad && !dismissed && !!example && hintPage(pathname);
+  // A document's own page: Ask offers that page's actions, and the hint (always about cutting
+  // clones or recording calves) isn't shown there (secretary walkthrough, 18 Nov).
+  const onDocumentPage = useMemo(() => {
+    const m = /^\/record\/([^/]+)\/?$/.exec(pathname);
+    if (!m) return false;
+    let id: string;
+    try {
+      id = decodeURIComponent(m[1]);
+    } catch {
+      return false;
+    }
+    return isDocument(records.find((r) => r.id === id));
+  }, [pathname, records]);
+  const hint = !hintDoneAtLoad && !dismissed && !!example && hintPage(pathname) && !onDocumentPage;
 
   // Counted once per visit, the first time the hint shows.
   const [counted, setCounted] = useState(false);
@@ -266,7 +280,13 @@ export const AskLauncher: React.FC = () => {
         )}
       {wanted && (
         <Suspense fallback={null}>
-          <AskSheet open={open} onClose={close} firstOpen={!openedAtLoad} prefill={prefill} />
+          <AskSheet
+            open={open}
+            onClose={close}
+            firstOpen={!openedAtLoad}
+            prefill={prefill}
+            onDocumentPage={onDocumentPage}
+          />
         </Suspense>
       )}
     </>

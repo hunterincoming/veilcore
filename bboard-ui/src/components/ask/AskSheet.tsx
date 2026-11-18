@@ -76,6 +76,15 @@ let kept: Turn[] = [];
 let nextId = 1;
 
 const CHIPS: readonly AskAction[] = ['record', 'clones', 'offspring', 'cross', 'due', 'explain', 'search'];
+/**
+ * On a document's own page (secretary walkthrough, 18 Nov): what that page is for first, as
+ * chips that take the person to its section, then the backup; no plant actions.
+ */
+const DOCUMENT_CHIPS: readonly AskAction[] = ['backup', 'explain', 'search', 'due'];
+const DOCUMENT_SECTIONS = [
+  { id: 'check-link', label: 'app.doc.share.title' },
+  { id: 'compare-file', label: 'app.doc.compare.title' },
+] as const;
 
 /** What Ask can do, as a list (the first item without offspring where animals are off). */
 const CAN: readonly AppKey[] = [
@@ -98,9 +107,12 @@ export default function AskSheet({
   onClose,
   firstOpen = false,
   prefill,
+  onDocumentPage = false,
 }: {
   open: boolean;
   onClose: () => void;
+  /** Opened on a document record's own page: its actions are offered, not plant ones. */
+  onDocumentPage?: boolean;
   /** Ask was never opened in this browser: what it can do is shown, then folded away. */
   firstOpen?: boolean;
   /** Text to put in the box (the hint's example), and a number that changes each time it is asked for. */
@@ -255,7 +267,39 @@ export default function AskSheet({
                 : t('app.ask.engine.failed', { why: t(`app.ask.model.why.${engine.why}` as AppKey) })}
           </Typography>
         )}
-        {chips(CHIPS)}
+        {onDocumentPage ? (
+          <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 1 }} data-ask-document-chips="">
+            {DOCUMENT_SECTIONS.map((sec) => (
+              <Chip
+                key={sec.id}
+                label={t(sec.label)}
+                color="primary"
+                variant="outlined"
+                data-ask-chip={sec.id}
+                onClick={() => {
+                  onClose();
+                  // After the sheet has gone, so the page can scroll under it.
+                  setTimeout(() => {
+                    const el = document.getElementById(sec.id);
+                    el?.scrollIntoView({ block: 'start', behavior: 'smooth' });
+                    el?.querySelector<HTMLElement>('button, label[for]')?.focus({ preventScroll: true });
+                  }, 300);
+                }}
+              />
+            ))}
+            {DOCUMENT_CHIPS.map((a) => (
+              <Chip
+                key={a}
+                label={t(`app.ask.chip.${a}` as AppKey)}
+                onClick={() => add({ result: chipResult(a, ctx) })}
+                variant="outlined"
+                data-ask-chip={a}
+              />
+            ))}
+          </Stack>
+        ) : (
+          chips(CHIPS)
+        )}
         {/* Never on a check or prove page: a job isn't got ready there (holder-guard.ts). */}
         {!holderRequestsPaused() && (
           <Box>
@@ -292,7 +336,7 @@ export default function AskSheet({
             size="small"
             fullWidth
             inputRef={input}
-            placeholder={t('app.ask.inputPlaceholder')}
+            placeholder={t(onDocumentPage ? 'app.ask.inputPlaceholderDoc' : 'app.ask.inputPlaceholder')}
             value={text}
             onChange={(e) => setText(e.target.value.slice(0, ASK_MAX_CHARS))}
             slotProps={{

@@ -162,7 +162,7 @@ test('a document: the file row waits for a file, then says whether the picked on
   await expect(box).toBeVisible();
   await expect(row(page, 'The proof code')).toContainText('worked out here from what the link carries');
   await expect(row(page, 'The file')).toHaveAttribute('data-who-row', 'none');
-  await expect(row(page, 'The file')).toContainText('once you pick the file below');
+  await expect(row(page, 'The file')).toContainText('once you pick the file above');
   await expect(row(page, 'A laboratory')).toHaveCount(0);
 
   const picker = page.locator('[data-document-check] input[type=file]');

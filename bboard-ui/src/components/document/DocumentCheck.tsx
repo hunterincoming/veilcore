@@ -101,6 +101,26 @@ export const DocumentCheck: React.FC = () => {
                 </Typography>
               </Alert>
             )}
+            {/* First, what an inspector needs: which document, its date, the file button, and
+                what a match does and doesn't show. The detail follows. */}
+            <Paper sx={{ p: { xs: 2.5, md: 3 }, borderWidth: 2 }} variant="outlined" data-document-verdict="">
+              <Stack spacing={1.5}>
+                {/* The title is the holder's own words, like every field in the link: said so. */}
+                <Box>
+                  <Typography variant="overline" sx={{ display: 'block' }}>
+                    {t('app.doc.check.inLink')}
+                  </Typography>
+                  <Typography variant="h6" component="h2">
+                    {seen(read.fields.title)}
+                  </Typography>
+                </Box>
+                <DocumentDateView proof={date.proof} anchor={date.anchor} checker />
+                <FileCompare files={read.fields.files} onResult={setPicked} />
+                <Typography variant="body2" color="text.secondary">
+                  {t('app.doc.check.what')}
+                </Typography>
+              </Stack>
+            </Paper>
             {/* What each fact rests on (who-vouches.ts), from the date and the file this page checked. */}
             {date.proof !== 'checking' && (
               <WhoVouches
@@ -128,30 +148,20 @@ export const DocumentCheck: React.FC = () => {
               />
             )}
             <Paper sx={{ p: { xs: 2.5, md: 3 } }}>
-              <Stack spacing={1.5}>
-                <FileCompare files={read.fields.files} onResult={setPicked} />
-                <DocumentDateView proof={date.proof} anchor={date.anchor} checker />
-                <Fact label={t('app.doc.check.recomputed')} mono>
-                  {read.fingerprint}
-                </Fact>
-              </Stack>
-            </Paper>
-            <Paper sx={{ p: { xs: 2.5, md: 3 } }}>
               <Typography variant="overline" sx={{ display: 'block', mb: 1 }}>
                 {t('app.doc.check.inLink')}
-              </Typography>
-              <Typography variant="h6" component="h2" sx={{ mb: 1.5 }}>
-                {seen(read.fields.title)}
               </Typography>
               <DocumentFacts
                 fields={read.fields}
                 checker
                 aboutTarget={DOCUMENT_CHAIN_ENABLED ? (id) => targets.get(id) : undefined}
               />
+              <Box sx={{ mt: 1.5 }}>
+                <Fact label={t('app.doc.check.recomputed')} mono>
+                  {read.fingerprint}
+                </Fact>
+              </Box>
             </Paper>
-            <Typography variant="body2" color="text.secondary">
-              {t('app.doc.check.what')}
-            </Typography>
           </Stack>
         )}
       </Container>
