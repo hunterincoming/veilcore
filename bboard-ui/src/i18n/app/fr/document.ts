@@ -9,7 +9,7 @@ export const document = {
   'app.doc.orDocumentAction': 'Sceller un document',
   'app.doc.new.title': 'Sceller un document',
   'app.doc.new.intro':
-    'Choisissez le fichier. Il reste sur cet appareil : seuls son SHA-256 (un code calculé à partir de ses octets), son nom et sa taille sont scellés, avec une date que personne ne peut antidater.',
+    'Choisissez le fichier. Il reste sur cet appareil. Seuls un code calculé à partir de son contenu, son nom et sa taille sont scellés, avec une date que personne ne peut antidater. Si un seul caractère du fichier change, le code ne correspond plus.',
   'app.doc.new.proves':
     'Ce que cela montrera : un fichier avec exactement ces octets était entre vos mains à la date où il est scellé. Pas que le document est authentique, que l’émetteur l’a émis, ni que ce qu’il dit est vrai.',
   'app.doc.f.files': 'Fichiers',
@@ -48,7 +48,7 @@ export const document = {
   'app.doc.type.protocol': 'Protocole ou procédure',
   'app.doc.type.transport': 'Document de transport ou d’expédition',
   'app.doc.type.invoice': 'Facture ou reçu',
-  'app.doc.type.other': 'Autre chose',
+  'app.doc.type.other': 'Procès-verbal, résolution ou autre',
   'app.doc.kind': 'Document',
   'app.doc.homeLine': 'Document · {type}',
   'app.doc.k.type': 'Type',
@@ -77,7 +77,19 @@ export const document = {
   'app.doc.compare.text': 'Choisissez un fichier à comparer avec ceux scellés ici. Il n’est pas envoyé.',
   'app.doc.compare.pick': 'Choisir un fichier',
   'app.doc.compare.match': '<b>{name}</b> est, octet pour octet, {sealed}, scellé ici.',
-  'app.doc.compare.noMatch': '<b>{name}</b> n’est aucun des fichiers scellés ici. Pas un octet ne peut différer.',
+  'app.doc.compare.noMatch':
+    '<b>Pas de correspondance.</b> {name} n’est pas le fichier scellé. L’enregistrer à nouveau, l’imprimer en PDF ou l’envoyer par certaines applications modifie le fichier : demandez le fichier d’origine.',
+  'app.doc.new.introTech': 'Pour les spécialistes : ce code est le SHA-256 du fichier.',
+  'app.doc.backupFirst':
+    'Scellé. Enregistrez maintenant une sauvegarde et vérifiez-la. D’ici là, les clés de cet enregistrement ne sont que dans ce navigateur, et VeilCore ne conserve pas encore de copie de l’enregistrement pour vous. Cela n’est demandé qu’une fois, pour le premier enregistrement de ce navigateur.',
+  'app.doc.notBacked':
+    'Pas encore dans une sauvegarde vérifiée. D’ici là, les clés de cet enregistrement ne sont que dans ce navigateur.',
+  'app.doc.tech.title': 'Détails techniques',
+  'app.doc.tech.text':
+    'Inutile pour la date de ce document. Horodater la clé de cet enregistrement sur Midnight vous permet de montrer plus tard, si on vous le demande, que vous détenez toujours cet enregistrement.',
+  'app.doc.home.sealedOn': 'Scellé le {date}',
+  'app.doc.home.dated': 'Daté le {date}',
+  'app.doc.home.waiting': 'en attente de sa date',
   'app.doc.compare.tooLarge': 'Ce fichier dépasse {mb} Mo, il ne peut donc pas être lu ici.',
   'app.doc.check.title': 'Vérifier un document',
   'app.doc.check.intro':

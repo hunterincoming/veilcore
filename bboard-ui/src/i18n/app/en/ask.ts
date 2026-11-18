@@ -12,6 +12,7 @@ export const ask = {
   'app.ask.engine': 'Works offline.',
   'app.ask.inputLabel': 'What do you want to do?',
   'app.ask.inputPlaceholder': 'e.g. cut 12 clones from Blue Dream',
+  'app.ask.inputPlaceholderDoc': 'e.g. what is a proof code?',
   'app.ask.go': 'Go',
   'app.ask.close': 'Close',
   'app.ask.clear': 'Clear',

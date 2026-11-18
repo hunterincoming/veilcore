@@ -37,6 +37,8 @@ import {
 } from '../../veilcore/document-profile';
 import { sealDocumentRecord } from '../../veilcore/seal-record';
 import { createRecord, isKeptOnDeviceOnly, tooLargeToSave, useRecords } from '../../veilcore/records';
+import { makeVaultIfSafe } from '../../veilcore/api-store';
+import { vaultNeedsBackup } from '../../veilcore/vault';
 import { forgetKeys } from '../../veilcore/record-keys';
 import { isLabReportRecord } from '../stage/lab-report-notes';
 import { DEVICE_ONLY_RECORDS_ENABLED, DOCUMENT_CHAIN_ENABLED, DOCUMENT_RECORDS_ENABLED } from '../../config/network';
@@ -82,8 +84,12 @@ export const DocumentNew: React.FC = () => {
   // Keep it on this device and in the backup only (docs/device-only-records.md). Off unless ticked.
   const [deviceOnly, setDeviceOnly] = useState(false);
   // A document just sealed that way: the backup step comes next, before its page. Until a
-  // backup that holds it is saved and checked, this browser has the only copy.
-  const [sealedLocal, setSealedLocal] = useState<string>();
+  // backup that holds it is saved and checked, this browser has the only copy. Also the first
+  // document sealed in a browser whose vault key is in no checked backup yet (vault.ts
+  // vaultNeedsBackup): its locked copy waits for that backup (records.ts), and without it a
+  // cleared browser loses the record's keys. Not again once a backup is checked.
+  const [backupFor, setBackupFor] = useState<{ readonly id: string; readonly local: boolean }>();
+  const formRef = useRef<HTMLDivElement>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string>();
   const [tried, setTried] = useState(false);
@@ -136,8 +142,10 @@ export const DocumentNew: React.FC = () => {
     .filter((r): r is NonNullable<typeof r> => !!r)
     .map((r) => line(r.strainName) || r.id);
 
-  const startAs = (k: DocumentKind | '') => {
+  const startAs = (k: DocumentKind | '', fromBox = false) => {
     setKind(k);
+    // The choice sits under the form, so the form it changes is brought back into view.
+    if (fromBox) formRef.current?.scrollIntoView?.({ block: 'start', behavior: 'smooth' });
     setTyped({});
     setSchema(k ? KIND_SCHEMA[k] : '');
     if (k) setType('other');
@@ -254,7 +262,16 @@ export const DocumentNew: React.FC = () => {
       const record = createRecord(DEVICE_ONLY_RECORDS_ENABLED && deviceOnly ? { ...sealed, deviceOnly: true } : sealed);
       created = true;
       if (record.deviceOnly) {
-        setSealedLocal(record.id);
+        setBackupFor({ id: record.id, local: true });
+        setBusy(false);
+        return;
+      }
+      // The vault key is made with the first save (records.ts convertLegacy, api-store.ts
+      // makeVaultIfSafe): made here first, so whether it needs a backup is known now. Not waited
+      // on for long: a registry that doesn't answer leaves it to the records list's reminder.
+      await Promise.race([makeVaultIfSafe().catch(() => undefined), new Promise((r) => setTimeout(r, 5000))]);
+      if (vaultNeedsBackup()) {
+        setBackupFor({ id: record.id, local: false });
         setBusy(false);
         return;
       }
@@ -266,18 +283,18 @@ export const DocumentNew: React.FC = () => {
     }
   };
 
-  if (sealedLocal)
+  if (backupFor)
     return (
-      <Box data-device-only-backup-step="">
+      <Box {...(backupFor.local ? { 'data-device-only-backup-step': '' } : { 'data-document-backup-step': '' })}>
         <AppHeader />
         <FlowFrame section="log">
           <Alert severity="warning" variant="outlined" sx={{ mb: 2 }}>
-            {t('app.doc.local.backupNow')}
+            {t(backupFor.local ? 'app.doc.local.backupNow' : 'app.doc.backupFirst')}
           </Alert>
           <BackupStep
             title={t('app.backup.title')}
             finishLabel={t('app.doc.local.toRecord')}
-            onDone={() => void navigate(`/record/${sealedLocal}`)}
+            onDone={() => void navigate(`/record/${backupFor.id}`)}
           />
         </FlowFrame>
       </Box>
@@ -289,45 +306,13 @@ export const DocumentNew: React.FC = () => {
       <Typography variant="h4" component="h1" sx={{ mb: 1 }}>
         {t('app.doc.new.title')}
       </Typography>
-      <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+      <Typography variant="body1" color="text.secondary" sx={{ mb: 0.5 }} data-document-intro="">
         {t('app.doc.new.intro')}
       </Typography>
-      {DOCUMENT_CHAIN_ENABLED && (
-        <Paper sx={{ p: { xs: 2.5, md: 3 }, mb: 2.5 }} data-chain-start={kind || 'plain'}>
-          <Typography variant="subtitle1" component="h2">
-            {t('app.doc.chain.start.title')}
-          </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
-            {t('app.doc.chain.start.text')}
-          </Typography>
-          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
-            {DOCUMENT_KINDS.map((k) => (
-              <Button
-                key={k}
-                variant={kind === k ? 'contained' : 'outlined'}
-                aria-pressed={kind === k}
-                onClick={() => startAs(k)}
-                disabled={busy}
-                sx={{ minHeight: 44 }}
-                data-chain-start-kind={k}
-              >
-                {t(`app.doc.chain.kind.${k}`)}
-              </Button>
-            ))}
-            <Button
-              variant={kind === '' ? 'contained' : 'outlined'}
-              aria-pressed={kind === ''}
-              onClick={() => startAs('')}
-              disabled={busy}
-              sx={{ minHeight: 44 }}
-              data-chain-start-kind="plain"
-            >
-              {t('app.doc.chain.start.plain')}
-            </Button>
-          </Stack>
-        </Paper>
-      )}
-      <Paper sx={{ p: { xs: 2.5, md: 3 } }}>
+      <Typography variant="caption" color="text.secondary" component="p" sx={{ mb: 3 }}>
+        {t('app.doc.new.introTech')}
+      </Typography>
+      <Paper sx={{ p: { xs: 2.5, md: 3 } }} ref={formRef}>
         <Stack spacing={2.5}>
           <Box>
             <Typography variant="overline" sx={{ display: 'block' }}>
@@ -624,6 +609,43 @@ export const DocumentNew: React.FC = () => {
           </Box>
         </Stack>
       </Paper>
+      {/* Below the form (secretary walkthrough, 18 Nov): above the file picker it was the first
+          thing on the page and pulled attention from the file, for anyone not recording a crop. */}
+      {DOCUMENT_CHAIN_ENABLED && (
+        <Paper sx={{ p: { xs: 2.5, md: 3 }, mt: 2.5 }} data-chain-start={kind || 'plain'}>
+          <Typography variant="subtitle1" component="h2">
+            {t('app.doc.chain.start.title')}
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+            {t('app.doc.chain.start.text')}
+          </Typography>
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
+            {DOCUMENT_KINDS.map((k) => (
+              <Button
+                key={k}
+                variant={kind === k ? 'contained' : 'outlined'}
+                aria-pressed={kind === k}
+                onClick={() => startAs(k, true)}
+                disabled={busy}
+                sx={{ minHeight: 44 }}
+                data-chain-start-kind={k}
+              >
+                {t(`app.doc.chain.kind.${k}`)}
+              </Button>
+            ))}
+            <Button
+              variant={kind === '' ? 'contained' : 'outlined'}
+              aria-pressed={kind === ''}
+              onClick={() => startAs('', true)}
+              disabled={busy}
+              sx={{ minHeight: 44 }}
+              data-chain-start-kind="plain"
+            >
+              {t('app.doc.chain.start.plain')}
+            </Button>
+          </Stack>
+        </Paper>
+      )}
     </Box>
   );
 };

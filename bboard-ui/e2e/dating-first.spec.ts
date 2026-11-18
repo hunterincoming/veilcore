@@ -183,8 +183,10 @@ test('a plant logged with no backup is still dated in the next batch, and Home p
   await page.goto('/records');
   await page.reload();
   const pickup = page.locator('[data-pickup]');
-  await expect(pickup).toContainText('Pick up where you left off');
-  await expect(pickup.locator('[data-pickup-item="dating"]')).toContainText(`${name}: in the next batch to be dated`);
+  await expect(pickup).toContainText('Still in progress');
+  await expect(pickup.locator('[data-pickup-item="dating"]')).toContainText(
+    `${name} will get its date in the next batch`,
+  );
   await expect(pickup.locator('[data-pickup-item="locked-copies"]')).toContainText(
     'locked copy not uploaded yet — save and check your backup. Your record’s date isn’t waiting on this.',
   );

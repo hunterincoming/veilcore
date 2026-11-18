@@ -180,7 +180,7 @@ export const BackupStep: React.FC<{
       savedText.current = text;
       savedAt.current = now;
       setLocked(usePassword);
-      setSaved(downloadBackupAll(now, text));
+      setSaved(downloadBackupAll(now, text, t('app.backup.shareTitle')));
     } catch (e) {
       // A file that couldn't be made whole is not saved, and the reason is said (backup.ts: a
       // document kept on this device only that couldn't be put in it).
@@ -191,7 +191,9 @@ export const BackupStep: React.FC<{
   };
 
   const fileForSharing = (): File =>
-    new File([savedText.current ?? ''], saved ?? backupFileName(), { type: 'application/json' });
+    new File([savedText.current ?? ''], saved ?? backupFileName(Date.now(), t('app.backup.shareTitle')), {
+      type: 'application/json',
+    });
   // Only phones and tablets get the share sheet. Desktop Chrome on a Mac says it can share a
   // file (canShare) and then throws on share(), so a computer gets the by-hand way at once.
   const canShare = (() => {
@@ -199,7 +201,11 @@ export const BackupStep: React.FC<{
       return (
         isTouch() &&
         typeof navigator !== 'undefined' &&
-        !!navigator.canShare?.({ files: [new File(['{}'], backupFileName(), { type: 'application/json' })] })
+        !!navigator.canShare?.({
+          files: [
+            new File(['{}'], backupFileName(Date.now(), t('app.backup.shareTitle')), { type: 'application/json' }),
+          ],
+        })
       );
     } catch {
       return false;
@@ -222,7 +228,7 @@ export const BackupStep: React.FC<{
   const [savedAgain, setSavedAgain] = useState(false);
   const saveAgain = () => {
     if (!saved || savedText.current === undefined) return;
-    downloadBackupAll(savedAt.current, savedText.current);
+    downloadBackupAll(savedAt.current, savedText.current, t('app.backup.shareTitle'));
     setSavedAgain(true);
     setCopied(true);
   };

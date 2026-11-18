@@ -6,7 +6,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { PlanBox } from '../PlanBox';
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, Box, Button, Collapse, Paper, Snackbar, Stack, Typography } from '@mui/material';
 import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
 import AddIcon from '@mui/icons-material/Add';
@@ -59,6 +59,9 @@ import { useVaultNeedsBackup } from '../../veilcore/vault';
 import { RegistryExportButton } from '../RegistryExportButton';
 import { draftHeading, loadDraft } from './log-flow-state';
 import { homeStatusLine } from './plant-status-words';
+import { documentHomeDate } from '../document/document-home-words';
+import { recordProof } from '../verify/useAnchorCheck';
+import type { ProofState } from '../../veilcore/proofs';
 import { datingCardLine, datingHomeStatus, homeList, isLabReportRecord, keysOnlyHereLine } from '../stage/record-kinds';
 import { useDnaTie, useSavedReports } from './useDnaTie';
 import { dnaTieSentence } from '../../veilcore/dna-tie';
@@ -143,6 +146,34 @@ const OldLinksNote: React.FC<{ records: readonly StrainRecord[] }> = ({ records 
     >
       {t('app.home.oldLinks')}
     </Alert>
+  );
+};
+
+/**
+ * A document's status on its card, after its type: dated, or waiting for its date. Read from the
+ * record's inclusion proof (shared with its page and cached briefly: useAnchorCheck.ts), the way
+ * "Pick up where you left off" reads it. The key's date stamp is not here (document-home-words.ts).
+ */
+const DocumentDateLine: React.FC<{ fingerprint?: string; loggedAt: number }> = ({ fingerprint, loggedAt }) => {
+  const tr = useT();
+  const [proof, setProof] = useState<ProofState | 'checking'>('checking');
+  useEffect(() => {
+    let live = true;
+    setProof('checking');
+    void recordProof(fingerprint).then((p) => live && setProof(p));
+    return () => {
+      live = false;
+    };
+  }, [fingerprint]);
+  return (
+    <span
+      data-home-document-date={
+        proof === 'checking' ? 'checking' : proof.status === 'anchor-reported' ? 'dated' : 'waiting'
+      }
+    >
+      {' · '}
+      {documentHomeDate(proof, loggedAt, tr)}
+    </span>
   );
 };
 
@@ -473,10 +504,26 @@ export const AppHome: React.FC = () => {
                 })()
               : lab && r.receivedFrom
                 ? { text: labCardLine(r, labFacts[r.id], tr), unfinished: false }
-                : homeStatusLine(r, keys[r.id], { realChain: REAL_CHAIN, queued: imported.has(r.id) }, tr);
-            // A document says so on its card: its type, then the same status as any record.
+                : doc
+                  ? // A document's keys are safe once a checked backup holds them, or its locked copy
+                    // on VeilCore does under a backed-up vault key (keys-only-here.ts): a document's
+                    // flow has no backup step of its own after the first, so its key's own
+                    // "backed up" mark alone would call every later document unfinished.
+                    REAL_CHAIN && unbackedIds.includes(r.id)
+                    ? { text: t('app.home.notFinished'), unfinished: true }
+                    : { text: '', unfinished: false }
+                  : homeStatusLine(r, keys[r.id], { realChain: REAL_CHAIN, queued: imported.has(r.id) }, tr);
+            // A document says so on its card: its type, then one plain status, dated or waiting for
+            // its date (DocumentDateLine), never its key's date stamp (that is under "Technical
+            // details" on its page). Not finished (no checked backup) still says so first.
+            const docDated = doc && !base.unfinished;
             const s = doc
-              ? { ...base, text: `${t('app.doc.homeLine', { type: kindOrTypeWords(r, tr) })} · ${base.text}` }
+              ? {
+                  ...base,
+                  text: docDated
+                    ? t('app.doc.homeLine', { type: kindOrTypeWords(r, tr) })
+                    : `${t('app.doc.homeLine', { type: kindOrTypeWords(r, tr) })} · ${base.text}`,
+                }
               : base;
             const datings = (datingsOf.get(r.id) ?? []).map((d) => ({
               id: d.id,
@@ -537,6 +584,7 @@ export const AppHome: React.FC = () => {
                       }}
                     >
                       {s.text}
+                      {docDated && <DocumentDateLine fingerprint={r.recordFingerprint} loggedAt={r.loggedAt} />}
                     </Typography>
                     {/* Kept on this device and in the backup only: said on its card, never as "not uploaded yet". */}
                     {isKeptOnDeviceOnly(r) &&

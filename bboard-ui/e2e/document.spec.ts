@@ -15,11 +15,13 @@ import { buildBatch } from 'veilcore-records';
 import {
   REAL_REGISTRY,
   expectNoErrors,
+  clickAsk,
   holdVaultKey,
   isolate,
   json,
   newVaultKey,
   plainRowRefusal,
+  saveAndCheckBackup,
   watch,
 } from './helpers';
 
@@ -33,13 +35,13 @@ const ANNEX = Buffer.from(`Practice annex (test data) ${Date.now()}\n`);
 const OTHER = Buffer.from(`Not the permit (test data) ${Date.now()}\n`);
 const sha = (b: Buffer) => createHash('sha256').update(b).digest('hex');
 
-const standIn = async (page: Page) => {
+const standIn = async (page: Page, { vault = true }: { vault?: boolean } = {}) => {
   const held: { records: Rec[] } = { records: [] };
   await page.addInitScript((holder) => {
     localStorage.setItem('veilcore.holder.v1', holder);
     localStorage.setItem('veilcore.role.v1', 'breeder');
   }, HOLDER);
-  await holdVaultKey(page, VAULT);
+  if (vault) await holdVaultKey(page, VAULT);
   await isolate(page, {
     'GET /api/records': (route) => json(route, 200, held.records),
     'PUT /api/records': (route, _url, body) => {
@@ -105,6 +107,16 @@ test('seal a document from its files, compare a file, and check it from the link
   await page.getByRole('link', { name: /^A document/ }).click();
   await expect(page).toHaveURL(/\/documents\/new$/);
   await expect(page.getByRole('heading', { name: 'Seal a document' })).toBeVisible();
+  // In plain words: "SHA-256" only in the small print under the intro.
+  await expect(page.locator('[data-document-intro]')).toContainText('a code worked out from its contents');
+  await expect(page.locator('[data-document-intro]')).not.toContainText('SHA-256');
+  await expect(page.getByText('For the technically minded: the code is the file’s SHA-256.')).toBeVisible();
+  // The production-chain choice is under the form, below the file and the Seal button.
+  const addFileBox = await page.getByText('Add a file', { exact: true }).boundingBox();
+  const sealBox = await page.getByRole('button', { name: 'Seal it' }).boundingBox();
+  const chainBox = await page.locator('[data-chain-start]').boundingBox();
+  expect(chainBox!.y).toBeGreaterThan(addFileBox!.y);
+  expect(chainBox!.y).toBeGreaterThan(sealBox!.y);
 
   // 2. Nothing is sealed without a file; two files are hashed here.
   await page.getByRole('button', { name: 'Seal it' }).click();
@@ -118,6 +130,8 @@ test('seal a document from its files, compare a file, and check it from the link
   await expect(page.getByLabel('Title')).toHaveValue('permit 0042');
   await page.getByLabel('Title').fill('Practice permit 0042');
   await page.getByLabel('Type').click();
+  // Assembly minutes and resolutions have a type of their own in words (sealed as `other`).
+  await expect(page.getByRole('option', { name: 'Minutes, resolution or other' })).toBeVisible();
   await page.getByRole('option', { name: 'Permit or licence' }).click();
   await page.getByLabel('Issued by (optional)').fill('Practice Authority (test data)');
   await page.getByLabel('Reference number (optional)').fill('P-0042');
@@ -135,6 +149,24 @@ test('seal a document from its files, compare a file, and check it from the link
   await expect(facts).toContainText(`SHA-256 ${sha(ANNEX)}`);
   await expect(page.getByText('License it')).toHaveCount(0);
   await expect(page.getByText(/DNA report/)).toHaveCount(0);
+  // The vault key is in a checked backup here: no backup step came first, and no warning.
+  await expect(page.locator('[data-document-not-backed]')).toHaveCount(0);
+  // The key's date stamp is folded under "Technical details", and one tap opens it.
+  const tech = page.locator('[data-document-technical]');
+  await expect(tech).toBeVisible();
+  await expect(tech.getByText(/^Anchor this record on/)).toBeHidden();
+  await tech.getByRole('button', { name: 'Technical details' }).click();
+  await expect(tech.getByText(/^Anchor this record on/)).toBeVisible();
+  await expect(tech).toContainText('Not needed for this document’s date');
+  // Ask offers this page's own actions, not plant ones.
+  await clickAsk(page);
+  const sheet = page.locator('[data-ask-sheet]');
+  await expect(sheet.locator('[data-ask-document-chips]')).toBeVisible();
+  await expect(sheet.locator('[data-ask-chip="clones"]')).toHaveCount(0);
+  await expect(sheet.locator('[data-ask-input]')).toHaveAttribute('placeholder', 'e.g. what is a proof code?');
+  await sheet.locator('[data-ask-chip="compare-file"]').click();
+  await expect(sheet).toBeHidden();
+  await expect(page.locator('#compare-file')).toBeInViewport();
 
   // 4. Is this the same file? The annex is; another file is not.
   const compare = page.locator('[data-file-compare]');
@@ -145,7 +177,9 @@ test('seal a document from its files, compare a file, and check it from the link
   await compare
     .locator('input[type=file]')
     .setInputFiles({ name: 'other.pdf', mimeType: 'application/pdf', buffer: OTHER });
-  await expect(page.locator('[data-compare="no-match"]')).toBeVisible();
+  // A different file is a plain "No match", with the likely cause and what to do.
+  await expect(page.locator('[data-compare="no-match"]')).toContainText('No match.');
+  await expect(page.locator('[data-compare="no-match"]')).toContainText('ask for the original file');
 
   // 4b. The evidence bundle with a copy of the annex: a file the record doesn't seal is refused,
   //     the annex goes in, and verify.html checks it all from disk with the network off.
@@ -235,6 +269,52 @@ test('seal a document from its files, compare a file, and check it from the link
   // 8. A link with nothing in it says so.
   await page.goto('/check-document');
   await expect(page.locator('[data-document-link="missing"]')).toBeVisible();
+
+  // 9. The records list: one plain status for the document, never the key stamp.
+  await page.goto('/records');
+  const card = page.getByRole('link', { name: /Practice permit 0042/ });
+  await expect(card).toContainText('Document · Permit or licence · ');
+  await expect(card.locator('[data-home-document-date]')).not.toHaveAttribute('data-home-document-date', 'checking');
+  await expect(card).not.toContainText('key not date stamped');
+  expectNoErrors(errors);
+});
+
+test('the first document in a browser asks for a checked backup before its page; the next one doesn’t', async ({
+  page,
+}) => {
+  const errors = watch(page);
+  await standIn(page, { vault: false });
+  await page.goto('/documents/new');
+  await page
+    .locator('input[type=file]')
+    .first()
+    .setInputFiles({ name: 'minutes 12.pdf', mimeType: 'application/pdf', buffer: PERMIT });
+  await page.getByLabel('Type').click();
+  await page.getByRole('option', { name: 'Minutes, resolution or other' }).click();
+  await page.getByLabel('Held by').fill('E2E association (test data)');
+  await page.getByRole('button', { name: 'Seal it' }).click();
+
+  // No vault key in a checked backup yet: the backup step comes first, as for a record kept here only.
+  const step = page.locator('[data-document-backup-step]');
+  await expect(step).toBeVisible();
+  await expect(step).toContainText('Now save a backup and check it');
+  await expect(page.locator('[data-document-page]')).toHaveCount(0);
+  await saveAndCheckBackup(page);
+  await page.getByRole('button', { name: 'Go to the record' }).click();
+  await expect(page.locator('[data-document-page]')).toBeVisible();
+  await expect(page.locator('[data-document-facts]')).toContainText('Minutes, resolution or other');
+  await expect(page.locator('[data-document-not-backed]')).toHaveCount(0);
+
+  // Backed up now: the next document goes straight to its page.
+  await page.goto('/documents/new');
+  await page
+    .locator('input[type=file]')
+    .first()
+    .setInputFiles({ name: 'resolution 3.pdf', mimeType: 'application/pdf', buffer: ANNEX });
+  await page.getByLabel('Held by').fill('E2E association (test data)');
+  await page.getByRole('button', { name: 'Seal it' }).click();
+  await expect(page.locator('[data-document-page]')).toBeVisible();
+  await expect(page.locator('[data-document-backup-step]')).toHaveCount(0);
   expectNoErrors(errors);
 });
 

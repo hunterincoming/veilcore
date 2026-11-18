@@ -1,14 +1,14 @@
-// La app de registros en español: «Hazlo por mí» en Preguntar a VeilCore (../en/job.ts).
+// La app de registros en español: «Hágalo por mí» en Preguntar a VeilCore (../en/job.ts).
 // «tarea» para cada trabajo; «dar en licencia» en vez de «licenciar» (users' review, 8 Nov 2026).
 // DRAFT: machine-assisted, to be checked by a fluent speaker before publishing (docs/translations/README.md).
 // SPDX-License-Identifier: Apache-2.0
 import type { AppTranslation } from '../../translate';
 
 export const job = {
-  'app.job.mode': 'Hazlo por mí',
+  'app.job.mode': 'Hágalo por mí',
   'app.job.modeHelp':
     'Lo preparo todo en este dispositivo y le muestro un resultado. No se envía nada hasta que usted lo apruebe.',
-  'app.job.can': 'Hazlo por mí: preparo una tarea completa y usted la aprueba una vez.',
+  'app.job.can': 'Hágalo por mí: preparo una tarea completa y usted la aprueba una vez.',
   'app.job.working': 'Preparándolo. No se envía nada hasta que usted lo apruebe.',
   'app.job.privacy':
     'La tarea se guarda solo en este dispositivo, nunca en una copia de seguridad, y se borra 7 días después de terminar.',
@@ -244,7 +244,7 @@ export const job = {
   'app.job.openAgreement': 'Abrir el acuerdo',
   'app.job.toRecords': 'Ir a sus registros',
 
-  'app.job.home.title': 'Hazlo por mí',
+  'app.job.home.title': 'Hágalo por mí',
   'app.job.home.check': 'Revisar: {what}',
   'app.job.home.needs': 'Necesita su atención: {what}',
   'app.job.home.running': 'En curso: {what}',

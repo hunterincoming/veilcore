@@ -12,6 +12,7 @@ export const ask = {
   'app.ask.engine': 'オフラインでも使えます。',
   'app.ask.inputLabel': '何をしますか？',
   'app.ask.inputPlaceholder': '例：Blue Dreamからクローンを12本取る',
+  'app.ask.inputPlaceholderDoc': '例：証明コードとは',
   'app.ask.go': '実行',
   'app.ask.close': '閉じる',
   'app.ask.clear': '消去',

@@ -382,12 +382,22 @@ export const backupContents = (now = Date.now()): BackupContents => {
   };
 };
 
-/** The file's name: readable, dated, and the same shape whatever is in it. */
-export const backupFileName = (now = Date.now()): string => {
+/**
+ * The file's name: readable, dated, and the same shape whatever is in it. `label` is "VeilCore
+ * backup" in the person's language (app.backup.shareTitle). Restoring reads the file's contents,
+ * never its name, so any name restores the same.
+ */
+export const backupFileName = (now = Date.now(), label = 'VeilCore backup'): string => {
   // The person's own date, not UTC: a backup saved at 9pm in New Jersey is that day's.
   const d = new Date(now);
   const pad = (n: number) => String(n).padStart(2, '0');
-  return `VeilCore backup ${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}.json`;
+  // Nothing a file system refuses in a name, on any of them.
+  const name =
+    label
+      .replace(/[\\/:*?"<>|\p{Cc}]+/gu, ' ')
+      .replace(/\s+/g, ' ')
+      .trim() || 'VeilCore backup';
+  return `${name} ${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}.json`;
 };
 
 /** True when there is anything worth backing up. */
@@ -405,8 +415,8 @@ export const hasAnythingToBackUp = (): boolean =>
  * Save the file. Deliberately does not mark anything as backed up: only checkBackup
  * does, once the saved copy has been opened and read back.
  */
-export const downloadBackupAll = (now = Date.now(), text?: string): string => {
-  const name = backupFileName(now);
+export const downloadBackupAll = (now = Date.now(), text?: string, label?: string): string => {
+  const name = backupFileName(now, label);
   const blob = new Blob([text ?? JSON.stringify(backupContents(now), null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');

@@ -9,7 +9,7 @@ export const document = {
   'app.doc.orDocumentAction': 'Sellar un documento',
   'app.doc.new.title': 'Sellar un documento',
   'app.doc.new.intro':
-    'Elija el archivo. Se queda en este dispositivo: solo se sellan su SHA-256 (un código calculado a partir de sus bytes), su nombre y su tamaño, con una fecha que nadie puede antedatar.',
+    'Elija el archivo. Se queda en este dispositivo. Solo se sellan un código calculado a partir de su contenido, su nombre y su tamaño, con una fecha que nadie puede antedatar. Si cambia un solo carácter del archivo, el código deja de coincidir.',
   'app.doc.new.proves':
     'Lo que esto mostrará: un archivo con exactamente estos bytes estaba en sus manos en la fecha en que se sella. No que el documento sea auténtico, que el emisor lo haya emitido ni que lo que dice sea cierto.',
   'app.doc.f.files': 'Archivos',
@@ -48,7 +48,7 @@ export const document = {
   'app.doc.type.protocol': 'Protocolo o procedimiento',
   'app.doc.type.transport': 'Documento de transporte o envío',
   'app.doc.type.invoice': 'Factura o recibo',
-  'app.doc.type.other': 'Otra cosa',
+  'app.doc.type.other': 'Acta, resolución u otro',
   'app.doc.kind': 'Documento',
   'app.doc.homeLine': 'Documento · {type}',
   'app.doc.k.type': 'Tipo',
@@ -77,7 +77,19 @@ export const document = {
   'app.doc.compare.text': 'Elija un archivo para compararlo con los sellados aquí. No se sube.',
   'app.doc.compare.pick': 'Elegir un archivo',
   'app.doc.compare.match': '<b>{name}</b> es, byte a byte, {sealed}, sellado aquí.',
-  'app.doc.compare.noMatch': '<b>{name}</b> no es ninguno de los archivos sellados aquí. No puede diferir ni un byte.',
+  'app.doc.compare.noMatch':
+    '<b>No coincide.</b> {name} no es el archivo sellado. Volver a guardarlo, imprimirlo como PDF o enviarlo por algunas aplicaciones cambia el archivo: pida el archivo original.',
+  'app.doc.new.introTech': 'Dato técnico: el código es el SHA-256 del archivo.',
+  'app.doc.backupFirst':
+    'Sellado. Ahora guarde una copia de seguridad y compruébela. Hasta entonces, las claves de este registro están solo en este navegador, y VeilCore aún no guarda una copia del registro para usted. Esto se pide una sola vez, con el primer registro de este navegador.',
+  'app.doc.notBacked':
+    'Aún no está en una copia de seguridad comprobada. Hasta entonces, las claves de este registro están solo en este navegador.',
+  'app.doc.tech.title': 'Detalles técnicos',
+  'app.doc.tech.text':
+    'No hace falta para la fecha de este documento. Poner un sello de fecha a la clave de este registro en Midnight le permite demostrar más adelante, si alguien se lo pide, que sigue teniendo este registro.',
+  'app.doc.home.sealedOn': 'Sellado el {date}',
+  'app.doc.home.dated': 'Fechado el {date}',
+  'app.doc.home.waiting': 'esperando su fecha',
   'app.doc.compare.tooLarge': 'Ese archivo pesa más de {mb} MB, así que no se puede leer aquí.',
   'app.doc.check.title': 'Comprobar un documento',
   'app.doc.check.intro':

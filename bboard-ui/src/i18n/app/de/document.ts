@@ -9,7 +9,7 @@ export const document = {
   'app.doc.orDocumentAction': 'Ein Dokument versiegeln',
   'app.doc.new.title': 'Ein Dokument versiegeln',
   'app.doc.new.intro':
-    'Wählen Sie die Datei. Sie bleibt auf diesem Gerät: versiegelt werden nur ihr SHA-256 (ein aus ihren Bytes berechneter Code), ihr Name und ihre Größe, mit einem Datum, das niemand zurückdatieren kann.',
+    'Wählen Sie die Datei. Sie bleibt auf diesem Gerät. Versiegelt werden nur ein aus ihrem Inhalt berechneter Code, ihr Name und ihre Größe, mit einem Datum, das niemand zurückdatieren kann. Ändert sich auch nur ein Zeichen der Datei, passt der Code nicht mehr.',
   'app.doc.new.proves':
     'Was das zeigen wird: Eine Datei mit genau diesen Bytes war zu dem Datum, an dem sie versiegelt wird, in Ihren Händen. Nicht, dass das Dokument echt ist, dass der Aussteller es ausgestellt hat oder dass stimmt, was darin steht.',
   'app.doc.f.files': 'Dateien',
@@ -49,7 +49,7 @@ export const document = {
   'app.doc.type.protocol': 'Protokoll oder SOP',
   'app.doc.type.transport': 'Transport- oder Versanddokument',
   'app.doc.type.invoice': 'Rechnung oder Beleg',
-  'app.doc.type.other': 'Etwas anderes',
+  'app.doc.type.other': 'Protokoll, Beschluss oder Sonstiges',
   'app.doc.kind': 'Dokument',
   'app.doc.homeLine': 'Dokument · {type}',
   'app.doc.k.type': 'Art',
@@ -79,7 +79,19 @@ export const document = {
     'Wählen Sie eine Datei, um sie mit den hier versiegelten zu vergleichen. Sie wird nicht hochgeladen.',
   'app.doc.compare.pick': 'Eine Datei wählen',
   'app.doc.compare.match': '<b>{name}</b> ist Byte für Byte {sealed}, hier versiegelt.',
-  'app.doc.compare.noMatch': '<b>{name}</b> ist keine der hier versiegelten Dateien. Nicht ein Byte darf abweichen.',
+  'app.doc.compare.noMatch':
+    '<b>Keine Übereinstimmung.</b> {name} ist nicht die versiegelte Datei. Erneutes Speichern, Drucken als PDF oder Versenden über manche Apps verändert die Datei: Bitten Sie um die Originaldatei.',
+  'app.doc.new.introTech': 'Technisch gesagt: Der Code ist der SHA-256 der Datei.',
+  'app.doc.backupFirst':
+    'Versiegelt. Speichern Sie jetzt eine Sicherung und prüfen Sie sie. Bis dahin liegen die Schlüssel dieses Datensatzes nur in diesem Browser, und VeilCore bewahrt noch keine Kopie des Datensatzes für Sie auf. Das wird nur einmal gefragt, beim ersten Datensatz in diesem Browser.',
+  'app.doc.notBacked':
+    'Noch in keiner geprüften Sicherung. Bis dahin liegen die Schlüssel dieses Datensatzes nur in diesem Browser.',
+  'app.doc.tech.title': 'Technische Details',
+  'app.doc.tech.text':
+    'Für das Datum dieses Dokuments nicht nötig. Wenn Sie den Schlüssel dieses Datensatzes auf Midnight datieren lassen, können Sie später auf Nachfrage zeigen, dass Sie diesen Datensatz noch halten.',
+  'app.doc.home.sealedOn': 'Versiegelt am {date}',
+  'app.doc.home.dated': 'Datiert am {date}',
+  'app.doc.home.waiting': 'wartet auf sein Datum',
   'app.doc.compare.tooLarge': 'Diese Datei ist größer als {mb} MB und kann hier nicht gelesen werden.',
   'app.doc.check.title': 'Ein Dokument prüfen',
   'app.doc.check.intro':
