@@ -340,7 +340,7 @@ export const fr: Strings = {
   'm.privacy.contact': 'Questions : hunter@veilcore.org',
   // Round 2 truth pass (14 Oct 2026): keys added or newly translated.
   'm.hero.lede':
-    'Pour les sélectionneurs, les semenciers et les laboratoires qui travaillent sur la génétique végétale, animale et microbienne : donnez à vos enregistrements une date que personne ne peut antidater. Vos données génétiques restent verrouillées : les fichiers ADN ne quittent jamais votre ordinateur, et ce que vous saisissez arrive verrouillé sur notre serveur. Seul un code de preuve va sur Midnight, qui le date.',
+    'Pour les sélectionneurs, les semenciers et les laboratoires qui travaillent sur la génétique végétale, animale et microbienne : donnez à vos enregistrements une date que personne ne peut antidater. Vos données génétiques restent verrouillées : les fichiers ADN ne quittent jamais votre ordinateur, et ce que vous saisissez arrive verrouillé sur notre serveur. Seuls des codes de preuve vont sur Midnight, qui les date.',
   'm.for.3p':
     "Envoyez du matériel avec un code laboratoire. Le laboratoire signe un accusé de réception avec sa propre clé, et l'enregistrement montre ainsi une seconde partie. L'accusé est une vraie signature, conservée par le registre de VeilCore, pas sur la chaîne. Des conditions comme l'interdiction de multiplier ne sont qu'un exercice dans la démo web.",
   'm.get.1b': 'pour un enregistrement de ce que vous détenez, sans montrer votre génétique.',
@@ -500,18 +500,18 @@ export const fr: Strings = {
   'm.home.try': "Essayez. Rien n'est envoyé.",
   'm.home.tryNote':
     'Le dessin ci-dessus est tracé à partir de ce code de preuve. Personne ne peut remonter de celui-ci à ce que vous avez saisi.',
-  'm.home.audLabel': "Pour qui c'est",
+  'm.home.audLabel': 'Pour qui',
   'm.home.audience':
-    'Obtenteurs|Semenciers|Laboratoires de culture in vitro|Certificateurs|Examinateurs|Livres généalogiques|Organismes de droits',
+    'Obtenteurs|Semenciers|Laboratoires de culture in vitro|Certificateurs|Examinateurs|Livres généalogiques|Offices des variétés végétales',
   'm.home.keep.t': 'Votre génétique reste chez vous.',
   'm.home.keep.p':
-    "Seul un code de preuve va sur Midnight : 64 caractères que votre ordinateur calcule à partir de l'enregistrement. Personne ne peut remonter de celui-ci à la plante, aux marqueurs ou au nom.",
+    "Seuls des codes de preuve vont sur Midnight, jamais ce que vous avez saisi ni vos fichiers. Le code d'un enregistrement fait 64 caractères que votre ordinateur calcule à partir de celui-ci, et personne ne peut en remonter à la plante, aux marqueurs ou au nom.",
   'm.home.tlDated': 'Enregistrement daté',
   'm.home.tlAsks': "Quelqu'un demande",
   'm.home.matters': 'Là où ça compte.',
   'm.home.prev': 'Précédent',
   'm.home.next': 'Suivant',
-  'm.home.custody.t': "Nous n'avons pas vos clés.",
+  'm.home.custody.t': 'Nous ne pouvons pas lire vos enregistrements : ils nous arrivent verrouillés.',
   'm.home.custody.p1':
     "Enregistrer le matériel lui-même, c'est le remettre. Avec VeilCore, vos fichiers ADN ne quittent jamais votre ordinateur.",
   'm.home.custody.p2':
@@ -525,7 +525,7 @@ export const fr: Strings = {
   'm.home.l4': 'Tout le monde peut le vérifier, gratuitement et sans compte.',
   'm.home.more': "Plus qu'une date.",
   'm.home.f1t': 'Plantes, animaux et souches.',
-  'm.home.f1p': 'Cultivars et lignées, animaux et lignées animales, microbes, champignons et lignées cellulaires.',
+  'm.home.f1p': 'Cultivars et lignées, animaux individuels et lignées, microbes, champignons et lignées cellulaires.',
   'm.home.f2t': 'Documents.',
   'm.home.f2p':
     'Scellez un permis, un certificat, un contrat ou un rapport de laboratoire. Le fichier lui-même reste sur votre appareil.',
@@ -534,7 +534,7 @@ export const fr: Strings = {
     "Sur les pages des enregistrements, « Demander » remplit un enregistrement, ou un lot de boutures ou de descendants, que vous vérifiez ensuite. Il ne signe et n'envoie jamais rien. C'est vous qui le faites.",
   'm.home.trustLabel': 'Ce que cela vous apporte',
   'm.home.trust':
-    'Preuve de détention antérieure|Une date que personne ne peut antidater|Vérifier est gratuit|Un format ouvert|Sans portefeuille, sans inscription',
+    'Preuve que vous déteniez un enregistrement à une date|Une date que personne ne peut antidater|Vérifier est gratuit|Un format ouvert|Sans portefeuille, sans inscription',
   'm.home.pause': 'Mettre en pause le défilement',
   'm.home.play': 'Reprendre le défilement',
   'm.home.fails': 'Dites-nous où ça ne va pas.',

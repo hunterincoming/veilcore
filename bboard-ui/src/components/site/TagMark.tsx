@@ -10,6 +10,12 @@
 import React from 'react';
 
 export const MARK_GOLD = '#B8860B';
+/**
+ * The same gold on a dark ground (the footer, the home page's header): the site's one accent
+ * there (home.css --yellow), 9.5:1 on the home page's night and 8.8:1 on the footer's ink.
+ * The darker #B8860B is for paper, where it reads at 3.2:1 on white.
+ */
+export const MARK_GOLD_ON_DARK = '#E3AE2A';
 
 /** The left stroke of the V. */
 const LEFT = 'M4 10 H30 L52 92 H40 Z';
@@ -26,19 +32,26 @@ const BARS: readonly (readonly [number, number, number, number, number])[] = [
 ];
 
 /** `size` is the mark's height; it is a little narrower than tall. */
-export const TagMark: React.FC<{ size?: number; className?: string }> = ({ size = 30, className }) => (
-  <svg
-    className={className}
-    width={Math.round(size * 0.88)}
-    height={size}
-    viewBox="0 0 88 100"
-    aria-hidden="true"
-    focusable="false"
-    style={{ flex: 'none', display: 'block' }}
-  >
-    <path d={LEFT} fill={MARK_GOLD} />
-    {BARS.map(([x, y, w, h, o]) => (
-      <rect key={x} x={x} y={y} width={w} height={h} fill={MARK_GOLD} fillOpacity={o} />
-    ))}
-  </svg>
-);
+export const TagMark: React.FC<{ size?: number; className?: string; tone?: 'light' | 'dark' }> = ({
+  size = 30,
+  className,
+  tone = 'light',
+}) => {
+  const gold = tone === 'dark' ? MARK_GOLD_ON_DARK : MARK_GOLD;
+  return (
+    <svg
+      className={className}
+      width={Math.round(size * 0.88)}
+      height={size}
+      viewBox="0 0 88 100"
+      aria-hidden="true"
+      focusable="false"
+      style={{ flex: 'none', display: 'block' }}
+    >
+      <path d={LEFT} fill={gold} />
+      {BARS.map(([x, y, w, h, o]) => (
+        <rect key={x} x={x} y={y} width={w} height={h} fill={gold} fillOpacity={o} />
+      ))}
+    </svg>
+  );
+};

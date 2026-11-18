@@ -214,6 +214,8 @@ export const SiteHeader: React.FC<{
   badge?: React.ReactNode;
 }> = ({ badge }) => {
   const { t } = useI18n();
+  // The home page draws this header on its night ground (home.css): the mark takes its dark-ground gold.
+  const onHome = useLocation().pathname === '/';
   // Someone coming back to this browser gets their records one click away.
   const [returning] = useState(hasRecordsHere);
   const wide = { display: { xs: 'none', md: 'inline-flex' } } as const;
@@ -234,7 +236,7 @@ export const SiteHeader: React.FC<{
             direction="row"
             sx={{ alignItems: 'center', textDecoration: 'none', minHeight: 44, mr: 'auto' }}
           >
-            <Wordmark />
+            <Wordmark tone={onHome ? 'dark' : 'light'} />
           </Stack>
           <Stack
             component="nav"

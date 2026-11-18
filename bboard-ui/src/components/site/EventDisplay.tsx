@@ -11,7 +11,7 @@
 
 import React, { useEffect, useRef } from 'react';
 
-const COLOURS = { ring: '#5A7BA6', rule: '#1A2331', yellow: '#F5C518', cyan: '#5FD3DF', ink: '#C9D2DE' };
+const COLOURS = { ring: '#5A7BA6', rule: '#1A2331', yellow: '#E3AE2A', cyan: '#5FD3DF', ink: '#C9D2DE' };
 const DURATION = 1100;
 const MAX_DPR = 1.5;
 

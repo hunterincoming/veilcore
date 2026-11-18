@@ -4,7 +4,7 @@
    founders) turn dark with it because the page re-sets the shared tokens for its own ground.
 
    Mako's tokens:
-     Void     #0B0E14  the ground                 Ink 17.0:1, Ink-2 8.8:1, Ink-3 5.3:1, Yellow 11.6:1
+     Void     #0B0E14  the ground                 Ink 16.6:1, Ink-2 8.7:1, Ink-3 5.4:1, Gold 9.5:1
      Fill     #141B26  cards, quiet buttons       Ink 15.4:1, Ink-2 7.9:1, Ink-3 4.8:1
      Fill-2   #1C2738  raised fills
      Rule     #1A2331  the timeline's axis, the batch's cells (drawings, not dividers)
@@ -12,9 +12,12 @@
      Ink      #ECEEF1  text
      Ink-2    #A4AFBF  secondary text
      Ink-3    #7A889C  labels, fine print (5.3:1 on Void; never on Fill-2)
-     Yellow   #F5C518  the main button (Void on it 11.6:1), the second line of the headline, the
-                       drenched sections; Yellow-hi #FFD43A under the pointer
-     Cyan     #5FD3DF  the proof code, one card of "Where it stops" (Void on it 11.4:1)
+     Gold     #E3AE2A  the site's one gold on a dark ground (review, 18 Nov): the main button (Void
+                       on it 9.5:1), the headline's second line, the drenched sections, and the
+                       logo mark on night (TagMark MARK_GOLD_ON_DARK). Mako's #F5C518 sat too
+                       close to Binance yellow. On paper the mark keeps #B8860B. Under the
+                       pointer #EDBD47 (Void on it 11.0:1). The token keeps Mako's name, --yellow
+     Cyan     #5FD3DF  the proof code, one card of "Where it stops" (Void on it 10.9:1)
    Type: Archivo (variable, 400-700) and JetBrains Mono for proof codes, both OFL, self-hosted
    and subset (public/fonts, LICENSE-*.txt): 25 KB and 8 KB. Japanese falls back to the system's
    Japanese face, as on the rest of the site.
@@ -61,8 +64,8 @@ html:has(.vcm .home) body {
   --ink-1: #eceef1;
   --ink-2: #a4afbf;
   --ink-3: #7a889c;
-  --yellow: #f5c518;
-  --yellow-hi: #ffd43a;
+  --yellow: #e3ae2a;
+  --yellow-hi: #edbd47;
   --cyan: #5fd3df;
   --sans:
     'VeilCore Archivo', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', 'Noto Sans JP', system-ui,
@@ -617,7 +620,7 @@ html:has(.vcm .home) body {
 }
 .vcm .home .k-tl-pin.a b {
   background: var(--yellow);
-  box-shadow: 0 0 0 6px rgba(245, 197, 24, 0.18);
+  box-shadow: 0 0 0 6px rgba(227, 174, 42, 0.18);
 }
 .vcm .home .k-tl-pin.b {
   left: calc(var(--from) + (var(--to) - var(--from)) * var(--p));
@@ -718,11 +721,13 @@ html:has(.vcm .home) body {
   gap: clamp(20px, 3vw, 48px);
   width: min(76vw, 1180px);
   scroll-snap-align: start;
-  opacity: 0.5;
+}
+.vcm .home .k-hpanel-img {
   transition: opacity 0.6s var(--ease-out);
 }
-.vcm .home .k-hpanel.is-near {
-  opacity: 1;
+/* The panels not in view are quieter by their photo only: their words keep full contrast. */
+.vcm .home .k-hpanel:not(.is-near) .k-hpanel-img {
+  opacity: 0.5;
 }
 .vcm .home .k-hpanel-img {
   height: min(60svh, 640px);
@@ -1171,7 +1176,7 @@ html:has(.vcm .home) body {
   height: 0;
   opacity: 0;
   transition: opacity 0.3s;
-  background-image: linear-gradient(90deg, rgba(245, 197, 24, 0.7) 50%, transparent 0);
+  background-image: linear-gradient(90deg, rgba(227, 174, 42, 0.7) 50%, transparent 0);
   background-size: 8px 1px;
   background-repeat: repeat-x;
   padding-top: 1px;
@@ -1344,7 +1349,7 @@ html:has(.vcm .home) body {
   a:not(.k-btn):hover,
 .vcm .home a.x-link:hover,
 .vcm .home .more:hover {
-  background: rgba(245, 197, 24, 0.16);
+  background: rgba(227, 174, 42, 0.16);
 }
 .vcm .home .post time {
   background: none;
@@ -1418,13 +1423,13 @@ html:has(.vcm .home) [data-site-menu-button] {
 html:has(.vcm .home) [data-site-header] nav > a[data-cta] {
   border-radius: 999px;
   padding-inline: 16px;
-  background: #f5c518;
+  background: #e3ae2a;
   color: #0b0e14;
   font-size: 14px;
   font-weight: 500;
 }
 html:has(.vcm .home) [data-site-header] nav > a[data-cta]:hover {
-  background: #ffd43a;
+  background: #edbd47;
 }
 html:has(.vcm .home)
   [data-site-header]
@@ -1638,4 +1643,47 @@ html:has(.vcm .home) [data-site-header] [data-language-picker] .MuiOutlinedInput
    on the home page's night they keep their paper, so they read as they do everywhere else. */
 html:has(.vcm .home) [data-site-header] :is(.MuiAlert-root, [data-draft-notice]) {
   background: #fffdf7;
+}
+
+/* A link's closing arrow, drawn: Archivo has no arrow glyph. The character stays in the text. */
+.vcm .home .k-gl {
+  display: inline-block;
+  width: 0.95em;
+  margin-left: 0.15em;
+  -webkit-text-fill-color: transparent;
+  background: currentColor;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M4 12h15M13 6l6 6-6 6' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
+    center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M4 12h15M13 6l6 6-6 6' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
+    center / contain no-repeat;
+  user-select: none;
+}
+.vcm .home .k-drench-grid b {
+  font-weight: 600;
+}
+
+/* The demo's ways in: how long each takes. */
+.vcm .home .k-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: auto;
+  padding-top: 8px;
+}
+.vcm .home .k-chip {
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: var(--fill-2);
+  color: var(--ink-2);
+  font-size: 13px;
+}
+.vcm .home .k-chip.live {
+  background: var(--ink-1);
+  color: var(--void);
+}
+
+/* Japanese dates in the updates: the body face, not the code face. */
+.vcm:lang(ja) .home .post time {
+  font-family: var(--sans);
+  font-weight: 700;
 }

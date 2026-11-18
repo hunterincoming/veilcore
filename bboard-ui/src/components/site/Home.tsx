@@ -87,6 +87,23 @@ const SR_ONLY: React.CSSProperties = {
   border: 0,
 };
 
+/**
+ * A link's closing arrow ("Read the spec →"). Archivo has no arrow, so the character stays in
+ * the text (screen readers and find-in-page see it) but is drawn as a small SVG in the text's
+ * colour (home.css .k-gl), not borrowed from another font.
+ */
+const arrowed = (s: string): React.ReactNode => {
+  const m = /\s*→\s*$/.exec(s);
+  if (!m) return s;
+  return (
+    <>
+      {s.slice(0, m.index)}
+      {s.slice(m.index, m.index + m[0].indexOf('→'))}
+      <span className="k-gl">→</span>
+    </>
+  );
+};
+
 /** A heading written in two halves, read as one sentence: the second half quieter. */
 const Two: React.FC<{ a: string; b: string }> = ({ a, b }) => {
   const { sp } = useI18n();
@@ -234,7 +251,7 @@ const Contracts: React.FC = () => {
         </div>
       </dl>
       <a className="more" href={explorerFor('mainnet')} rel="noopener noreferrer" target="_blank">
-        {t('m.addr.explorer')}
+        {arrowed(t('m.addr.explorer'))}
       </a>
     </div>
   );
@@ -258,7 +275,7 @@ const Post: React.FC<{
     <div className="what">
       <h3>{p.title}</h3>
       <p>{p.text}</p>
-      <span className="go">{p.go}</span>
+      <span className="go">{arrowed(p.go)}</span>
     </div>
   </a>
 );
@@ -444,7 +461,7 @@ const Technical: React.FC = () => {
               <p>
                 {t('m.tech.check.p')}
                 {sp}
-                <RouterLink to="/docs/spec">{t('m.open.6link')}</RouterLink>
+                <RouterLink to="/docs/spec">{arrowed(t('m.open.6link'))}</RouterLink>
               </p>
             </div>
             <div className="pt">
@@ -452,7 +469,7 @@ const Technical: React.FC = () => {
               <p>
                 {t('m.tech.impl.p')}
                 {sp}
-                <RouterLink to="/implementations">{t('m.open.1link')}</RouterLink>
+                <RouterLink to="/implementations">{arrowed(t('m.open.1link'))}</RouterLink>
               </p>
             </div>
             <div className="pt">
@@ -472,7 +489,7 @@ const Technical: React.FC = () => {
               <p>
                 {t('m.open.6p')}
                 {sp}
-                <RouterLink to="/docs/spec">{t('m.open.6link')}</RouterLink>
+                <RouterLink to="/docs/spec">{arrowed(t('m.open.6link'))}</RouterLink>
               </p>
             </div>
             <div className="pt">
@@ -489,7 +506,7 @@ const Technical: React.FC = () => {
                 {t('m.status.keyText')}
                 {sp}
                 <a href={`${APP_REPO}/blob/main/docs/maintenance-policy.md`} rel="noopener noreferrer" target="_blank">
-                  {t('m.status.keyLink')}
+                  {arrowed(t('m.status.keyLink'))}
                 </a>
               </p>
             </div>
@@ -891,7 +908,7 @@ const Claims: React.FC = () => {
           {sp}
           {t('m.claims.limits')}
           {sp}
-          <RouterLink to="/docs/spec">{t('m.claims.link')}</RouterLink>
+          <RouterLink to="/docs/spec">{arrowed(t('m.claims.link'))}</RouterLink>
         </p>
       </div>
     </>
@@ -908,7 +925,7 @@ const StackMark: React.FC<{ r: number }> = ({ r }) => (
 );
 
 const Arrow: React.FC = () => (
-  <span className="k-arr" aria-hidden="true">
+  <span className="k-arr k-gl" aria-hidden="true">
     →
   </span>
 );
@@ -970,7 +987,7 @@ export const Home: React.FC = () => {
         <>
           {t('m.for.2p')}
           {sp}
-          <a href="#claims">{t('m.for.2link')}</a>
+          <a href="#claims">{arrowed(t('m.for.2link'))}</a>
         </>
       ),
     },
@@ -1045,7 +1062,7 @@ export const Home: React.FC = () => {
                 {t('m.hero.pasteQ')}
                 {sp}
                 <RouterLink to={PASTE_ENTRY} data-paste-entry="hero">
-                  {t('m.hero.pasteGo')}
+                  {arrowed(t('m.hero.pasteGo'))}
                 </RouterLink>
               </p>
               <p className="k-fine k-status-line">{t('m.hero.status')}</p>
@@ -1147,6 +1164,12 @@ export const Home: React.FC = () => {
                 {t('m.home.custody.p2')}
               </p>
               <p data-reveal="" style={{ '--d': 4 } as React.CSSProperties}>
+                <b>
+                  {t('m.open.title1')}
+                  {sp}
+                  {t('m.open.title2')}
+                </b>
+                {sp}
                 {t('m.open.1t')}
                 {sp}
                 {t('m.open.1p')}
@@ -1167,20 +1190,32 @@ export const Home: React.FC = () => {
             <p className="k-lead" data-reveal="" style={{ '--d': 1 } as React.CSSProperties}>
               {t('m.demo.lede')}
               {sp}
-              <RouterLink to="/privacy">{t('m.demo.privacy')}</RouterLink>
+              <RouterLink to="/privacy">{arrowed(t('m.demo.privacy'))}</RouterLink>
             </p>
             <div className="k-grid4 k-ways">
               <RouterLink className="k-way" to="/new">
                 <h3>{t('m.demo.create.title')}</h3>
                 <p>{t('m.demo.create.text')}</p>
+                <span className="k-chips">
+                  <span className="k-chip live">{t('m.chip.interactive')}</span>
+                  <span className="k-chip">{t('m.chip.3min')}</span>
+                </span>
               </RouterLink>
               <RouterLink className="k-way" to="/verify">
                 <h3>{t('m.demo.verify.title')}</h3>
                 <p>{t('m.demo.verify.text')}</p>
+                <span className="k-chips">
+                  <span className="k-chip live">{t('m.chip.interactive')}</span>
+                  <span className="k-chip">{t('m.chip.1min')}</span>
+                </span>
               </RouterLink>
               <RouterLink className="k-way" to={PASTE_ENTRY} data-paste-entry="demo">
                 <h3>{t('m.demo.paste.title')}</h3>
                 <p>{t('m.demo.paste.text')}</p>
+                <span className="k-chips">
+                  <span className="k-chip live">{t('m.chip.interactive')}</span>
+                  <span className="k-chip">{t('m.chip.1min')}</span>
+                </span>
               </RouterLink>
               <button
                 type="button"
@@ -1191,6 +1226,10 @@ export const Home: React.FC = () => {
               >
                 <h3>{t('m.demo.video.title')}</h3>
                 <p>{t('m.demo.video.text')}</p>
+                <span className="k-chips">
+                  <span className="k-chip">{t('m.chip.video')}</span>
+                  <span className="k-chip">{t('m.chip.60s')}</span>
+                </span>
               </button>
             </div>
             {showVideo && (
@@ -1265,7 +1304,7 @@ export const Home: React.FC = () => {
                 {sp}
                 {/* Where the reviews really are: the public repository's audit pack, section 8. */}
                 <a href={REVIEWS_URL} rel="noopener noreferrer" target="_blank">
-                  {t('m.stat3.link')}
+                  {arrowed(t('m.stat3.link'))}
                 </a>
               </li>
               <li>
@@ -1308,7 +1347,7 @@ export const Home: React.FC = () => {
             )}
             <div className="subscribe">
               <a className="more" href={`${SDK_REPO}/commits/main`} rel="noopener noreferrer" target="_blank">
-                {t('m.updates.all')}
+                {arrowed(t('m.updates.all'))}
               </a>
               <span>
                 {t('m.updates.follow')}{' '}
@@ -1339,7 +1378,7 @@ export const Home: React.FC = () => {
                 <p>
                   {t('m.faq.3a')}
                   {sp}
-                  <RouterLink to="/docs/evidence">{t('m.faq.3link')}</RouterLink>
+                  <RouterLink to="/docs/evidence">{arrowed(t('m.faq.3link'))}</RouterLink>
                 </p>
               </details>
               <details>
@@ -1347,8 +1386,8 @@ export const Home: React.FC = () => {
                 <p>
                   {t('m.faq.4a')}
                   {sp}
-                  <RouterLink to="/privacy">{t('m.faq.4link1')}</RouterLink>{' '}
-                  <RouterLink to="/docs/integrate">{t('m.faq.4link2')}</RouterLink>
+                  <RouterLink to="/privacy">{arrowed(t('m.faq.4link1'))}</RouterLink>{' '}
+                  <RouterLink to="/docs/integrate">{arrowed(t('m.faq.4link2'))}</RouterLink>
                 </p>
               </details>
               <details>
@@ -1434,7 +1473,7 @@ export const Home: React.FC = () => {
                 ))}
               </div>
               <RouterLink className="more" to="/founders">
-                {t('m.team.more')}
+                {arrowed(t('m.team.more'))}
               </RouterLink>
             </div>
           </div>

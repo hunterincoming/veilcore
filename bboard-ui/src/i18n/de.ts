@@ -339,7 +339,7 @@ export const de: Strings = {
   'm.privacy.contact': 'Fragen: hunter@veilcore.org',
   // Round 2 truth pass (14 Oct 2026): keys added or newly translated.
   'm.hero.lede':
-    'Für Züchter, Saatgutunternehmen und Labore, die mit pflanzlicher, tierischer und mikrobieller Genetik arbeiten: Geben Sie Ihren Datensätzen ein Datum, das niemand zurückdatieren kann. Ihre genetischen Daten bleiben verschlossen: DNA-Dateien verlassen Ihren Computer nie, und was Sie eingeben, erreicht unseren Server verschlossen. Nur ein Prüfcode kommt auf Midnight, das ihn datiert.',
+    'Für Züchter, Saatgutunternehmen und Labore, die mit pflanzlicher, tierischer und mikrobieller Genetik arbeiten: Geben Sie Ihren Datensätzen ein Datum, das niemand zurückdatieren kann. Ihre genetischen Daten bleiben verschlossen: DNA-Dateien verlassen Ihren Computer nie, und was Sie eingeben, erreicht unseren Server verschlossen. Nur Prüfcodes kommen auf Midnight, das sie datiert.',
   'm.for.3p':
     'Senden Sie Material mit einem Laborcode. Das Labor signiert eine Empfangsbestätigung mit seinem eigenen Schlüssel, sodass der Datensatz eine zweite Partei zeigt. Die Bestätigung ist eine echte Signatur, gespeichert im Register von VeilCore, nicht auf der Chain. Bedingungen wie „keine Vermehrung“ sind in der Web-Demo nur zum Üben.',
   'm.get.1b': 'für einen Datensatz dessen, was Sie haben, ohne Ihre Genetik zu zeigen.',
@@ -498,18 +498,17 @@ export const de: Strings = {
   'm.home.try': 'Probieren Sie es aus. Nichts wird gesendet.',
   'm.home.tryNote':
     'Das Bild oben wird aus diesem Prüfcode gezeichnet. Niemand kann daraus zurückrechnen, was Sie eingegeben haben.',
-  'm.home.audLabel': 'Für wen es ist',
-  'm.home.audience':
-    'Züchter|Saatgutunternehmen|Gewebekulturlabore|Zertifizierer|Prüfer|Herdbücher|Rechteorganisationen',
+  'm.home.audLabel': 'Für wen',
+  'm.home.audience': 'Züchter|Saatgutunternehmen|Gewebekulturlabore|Zertifizierer|Prüfer|Herdbücher|Sortenämter',
   'm.home.keep.t': 'Ihre Genetik bleibt bei Ihnen.',
   'm.home.keep.p':
-    'Nur ein Prüfcode kommt auf Midnight: 64 Zeichen, die Ihr Computer aus dem Datensatz berechnet. Niemand kann daraus auf die Pflanze, die Marker oder den Namen zurückschließen.',
+    'Auf Midnight kommen nur Prüfcodes, nie das, was Sie eingegeben haben, und nie Ihre Dateien. Der Code eines Datensatzes sind 64 Zeichen, die Ihr Computer daraus berechnet, und niemand kann daraus auf die Pflanze, die Marker oder den Namen zurückschließen.',
   'm.home.tlDated': 'Datensatz datiert',
   'm.home.tlAsks': 'Jemand fragt nach',
   'm.home.matters': 'Wo es zählt.',
   'm.home.prev': 'Zurück',
   'm.home.next': 'Weiter',
-  'm.home.custody.t': 'Ihre Schlüssel haben wir nicht.',
+  'm.home.custody.t': 'Wir können Ihre Datensätze nicht lesen: Sie erreichen uns verschlossen.',
   'm.home.custody.p1':
     'Das Material selbst zu registrieren heißt, es herzugeben. Mit VeilCore verlassen Ihre DNA-Dateien Ihren Computer nie.',
   'm.home.custody.p2':
@@ -532,7 +531,7 @@ export const de: Strings = {
     'Auf den Seiten Ihrer Datensätze füllt „Fragen“ einen Datensatz oder eine Reihe von Stecklingen oder Nachkommen aus, damit Sie ihn prüfen. Es unterschreibt und sendet nie etwas. Das tun Sie.',
   'm.home.trustLabel': 'Was es Ihnen gibt',
   'm.home.trust':
-    'Nachweis, dass Sie einen Datensatz hatten|Ein Datum, das niemand zurückdatieren kann|Prüfen ist kostenlos|Ein offenes Format|Keine Wallet, keine Anmeldung',
+    'Nachweis, dass Sie einen Datensatz bis zu einem Datum hatten|Ein Datum, das niemand zurückdatieren kann|Prüfen ist kostenlos|Ein offenes Format|Keine Wallet, keine Anmeldung',
   'm.home.pause': 'Laufende Namen anhalten',
   'm.home.play': 'Laufende Namen fortsetzen',
   'm.home.fails': 'Sagen Sie uns, wo es scheitert.',

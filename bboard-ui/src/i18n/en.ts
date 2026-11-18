@@ -201,7 +201,7 @@ export const en = {
   'm.hero.title1': 'Date your record.',
   'm.hero.title2': 'Keep your genetics private.',
   'm.hero.lede':
-    'For breeders, seed companies and labs working with plant, animal and microbial genetics: give your records a date nobody can backdate. Your genetic data stays locked: DNA files never leave your computer, and what you type reaches our server locked. Only a proof code goes on Midnight, which dates it.',
+    'For breeders, seed companies and labs working with plant, animal and microbial genetics: give your records a date nobody can backdate. Your genetic data stays locked: DNA files never leave your computer, and what you type reaches our server locked. Only proof codes go on Midnight, which dates them.',
   'm.hero.how': 'How it works',
   'm.hero.pasteQ': 'Got a lab code or a link from someone?',
   'm.hero.pasteGo': 'Paste it here →',
@@ -228,16 +228,17 @@ export const en = {
   'm.home.try': 'Try it. Nothing is sent.',
   'm.home.tryNote': 'The display above is drawn from this proof code. Nobody can work back from it to what you typed.',
   'm.home.audLabel': 'Who it is for',
-  'm.home.audience': 'Breeders|Seed companies|Tissue culture labs|Certifiers|Examiners|Herd books|Rights bodies',
+  'm.home.audience':
+    'Breeders|Seed companies|Tissue culture labs|Certifiers|Examiners|Herd books|Plant variety offices',
   'm.home.keep.t': 'Your genetics stay with you.',
   'm.home.keep.p':
-    'Only a proof code goes on Midnight: 64 characters your computer works out from the record. Nobody can work back from it to the plant, the markers or the name.',
+    "Only proof codes go on Midnight, never what you typed or your files. A record's code is 64 characters your computer works out from it, and nobody can work back from it to the plant, the markers or the name.",
   'm.home.tlDated': 'Record dated',
   'm.home.tlAsks': 'Someone asks',
   'm.home.matters': 'Where it matters.',
   'm.home.prev': 'Previous',
   'm.home.next': 'Next',
-  'm.home.custody.t': "We don't hold your keys.",
+  'm.home.custody.t': "We can't read your records: they reach us locked.",
   'm.home.custody.p1':
     'Registering the material itself means handing it over. With VeilCore, your DNA files never leave your computer.',
   'm.home.custody.p2': "The record's details reach our server locked, the name included, and we don't have the key.",

@@ -14,7 +14,7 @@
 // Run: npx vitest run src/components/site/design.test.ts
 // SPDX-License-Identifier: Apache-2.0
 
-import { MARK_GOLD } from './TagMark';
+import { MARK_GOLD, MARK_GOLD_ON_DARK } from './TagMark';
 import { describe, it, expect } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -380,6 +380,42 @@ describe('no lines between things on the public pages', () => {
   it('every token the partners page uses is one site.css defines', () => {
     const used = new Set([...rules(partnersCss).matchAll(/var\(--([\w-]+)\)/g)].map((m) => m[1]));
     for (const name of used) if (!name.startsWith('vc-')) expect(siteCss).toContain(`--${name}:`);
+  });
+});
+
+describe("the home page's night (home.css, Mako's design, 18 Nov 2026)", () => {
+  const homeToken = (name: string) => new RegExp(`--${name}:\\s*(#[0-9a-f]{6})`, 'i').exec(homeCss)?.[1] ?? '';
+  const [VOID, FILL, INK1, INK2, INK3, GOLD] = ['void', 'fill', 'ink-1', 'ink-2', 'ink-3', 'yellow'].map(homeToken);
+
+  it('every text colour reads at 4.5:1 or more on the night and on a card', () => {
+    for (const c of [VOID, FILL, INK1, INK2, INK3, GOLD]) expect(c).toMatch(/^#/);
+    for (const text of [INK1, INK2, INK3, GOLD]) {
+      expect(contrast(text, VOID), `${text} on ${VOID}`).toBeGreaterThanOrEqual(4.5);
+      expect(contrast(text, FILL), `${text} on ${FILL}`).toBeGreaterThanOrEqual(4.5);
+    }
+    // The main button and the drenched sections: night text on gold.
+    expect(contrast(VOID, GOLD)).toBeGreaterThanOrEqual(4.5);
+  });
+
+  it("one gold on a dark ground: the page accent is the mark's dark-ground gold", () => {
+    // CTO decision (review of the redesign, 18 Nov): Mako's #F5C518 sat too close to Binance
+    // yellow, and two golds on one page read as a mistake. #E3AE2A is the accent and the mark on
+    // night; #B8860B stays the mark on paper.
+    expect(GOLD.toUpperCase()).toBe(MARK_GOLD_ON_DARK);
+    // Measured, not asserted: this gold is CIEDE2000 3.4 from Binance yellow (Mako's #F5C518 was
+    // 4.4). Pollen, the paper pages' gold, keeps its 10-or-more rule above. Whether the night's
+    // gold should move further from Binance is a brand decision for the founders; this pins the
+    // number so a change to it is seen.
+    expect(de2000(lab(GOLD), lab(BINANCE_YELLOW))).toBeCloseTo(3.43, 1);
+    // A graphic needs 3:1 (WCAG 1.4.11): on the night, and on the footer's ink.
+    for (const ground of [VOID, INK_COLOR]) expect(contrast(MARK_GOLD_ON_DARK, ground)).toBeGreaterThanOrEqual(3);
+    expect(rules(homeCss)).not.toMatch(/#f5c518|#ffd43a/i);
+  });
+
+  it('a gallery panel out of view is quieter by its photo only, never its words', () => {
+    // Dimming the whole panel took its text to 3.0:1 (review, 18 Nov).
+    for (const m of rules(homeCss).matchAll(/([^{};]+)\{([^{}]*)\}/g))
+      if (/opacity:\s*0?\.\d/.test(m[2]) && /k-hpanel/.test(m[1])) expect(m[1].trim()).toMatch(/k-hpanel-img$/);
   });
 });
 
