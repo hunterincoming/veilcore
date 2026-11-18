@@ -449,6 +449,34 @@ describe('deleting a record', () => {
     expect(await A.run(() => A.m.records.getRecord(record.id))).toBeDefined();
   });
 
+  it('letting go holds the record: the registry read inside sends nothing for it', async () => {
+    const A = await browser('del-letgo-held');
+    const sealed = await seal(A);
+    // Nothing this browser sends gets there at first, so the record is never sent.
+    vi.stubGlobal('fetch', (url: string, init?: RequestInit) =>
+      init?.method === 'PUT' ? Promise.reject(new TypeError('offline')) : reg.fetch(url, init),
+    );
+    const record = await A.run(() => {
+      A.m.holder.holderKey();
+      return A.m.records.createRecord(sealed);
+    });
+    const H = (await A.run(() => A.m.holder.holderKeyIfAny())) as string;
+    await A.run(() => A.m.records.hydrate());
+    await settle(50);
+    // Now sends would land: the read made while letting go (which saves or dates what is kept
+    // here) must send nothing for this record.
+    let sentForIt = 0;
+    vi.stubGlobal('fetch', async (url: string, init?: RequestInit) => {
+      if (init?.method === 'PUT' && String(init.body).includes(record.id)) sentForIt++;
+      return reg.fetch(url, init);
+    });
+    expect(await A.run(() => A.m.records.discardUnsaved(record.id, 'discard'))).toBe('ok');
+    await settle(50);
+    expect(sentForIt).toBe(0);
+    expect(reg.rowsOf(H).some((r) => r.id === record.id)).toBe(false);
+    expect(await A.run(() => A.m.records.getRecord(record.id))).toBeUndefined();
+  });
+
   it('a dating request whose answer was lost after it landed: nothing is discarded, keys kept', async () => {
     const A = await browser('del-letgo-lost-answer');
     const sealed = await seal(A);

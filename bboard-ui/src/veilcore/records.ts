@@ -1547,6 +1547,12 @@ export const letGoOf = (id: string): LetGo => {
  */
 export const letGoNow = async (id: string): Promise<LetGo | 'busy'> => {
   if (deleting.has(id)) return 'busy';
+  return letGoSettled(id);
+};
+
+// The decision itself, once nothing for this id may still be on its way. A caller about to act on
+// it holds the id in `deleting` first, so the read below can't start a new dating request for it.
+const letGoSettled = async (id: string): Promise<LetGo | 'busy'> => {
   if (!(await savesSettledInTime())) return 'busy';
   if (!(await datingSettledInTime())) return 'busy';
   const how = letGoOf(id);
@@ -1562,7 +1568,20 @@ export type DiscardOutcome = 'ok' | 'busy' | 'unknown' | 'changed' | 'reload-fai
 
 /** `confirmed`: what the holder agreed to; anything else now and nothing is done ('changed'). */
 export const discardUnsaved = async (id: string, confirmed: 'undo' | 'discard'): Promise<DiscardOutcome> => {
-  const how = await letGoNow(id);
+  if (deleting.has(id)) return 'busy';
+  // Held for the whole let-go: the registry read inside starts dateFirst for records still waiting,
+  // and dateFirst and saves skip ids in `deleting`, so nothing for this id is sent while its keys
+  // may be about to go.
+  deleting.add(id);
+  try {
+    return await discardHeld(id, confirmed);
+  } finally {
+    deleting.delete(id);
+  }
+};
+
+const discardHeld = async (id: string, confirmed: 'undo' | 'discard'): Promise<DiscardOutcome> => {
+  const how = await letGoSettled(id);
   if (how === 'busy' || how === 'unknown') return how;
   if (how !== confirmed) return 'changed';
   const queued = outboxRecords()[id];
