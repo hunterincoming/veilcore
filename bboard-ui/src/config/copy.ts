@@ -4,7 +4,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { CLAIMS_ON_MAINNET, IS_MAINNET } from './network';
-import { CLAIMS_READY } from '../veilcore/chain/config';
+import { CHAIN_READY, CLAIMS_READY } from '../veilcore/chain/config';
 import { claimsWhere } from '../i18n/app/claims-where';
 
 /** What this site is called in app sentences: a demo on a test network; on mainnet the records are real. */
@@ -25,12 +25,19 @@ export const DATED_ON = IS_MAINNET ? 'Midnight’s main network' : 'a Midnight t
 /**
  * Where the claims contract stands, for the line under the disclosure choice ("Show someone").
  * The same facts as the landing page (i18n en-testchain.ts / en-mainnet.ts): on Midnight's main
- * network since 8 October 2026. A build that proves one number (CLAIMS_READY: veilcore.org, with
- * VeilCore's pinned claims contract and the sponsor live) says so; one that can't says it can't
+ * network since 8 October 2026. veilcore.org, which proves one number (CLAIMS_ON_THIS_SITE, below),
+ * says so; one that can't says it can't
  * be used here yet; a mainnet build whose claims address isn't pinned says it follows. Every
  * language's sentences are in i18n/app/claims-where.ts.
  */
-export const CLAIMS_WHERE = claimsWhere('en', { onSite: CLAIMS_READY, live: CLAIMS_ON_MAINNET || !IS_MAINNET });
+/**
+ * veilcore.org offers "prove one number": a mainnet build that sends transactions, with VeilCore's
+ * pinned claims contract. The home page (i18n/index.tsx THIS_BUILD.claimsOnSite) and "Show
+ * someone" (CLAIMS_WHERE) read this one switch, so they can't disagree.
+ */
+export const CLAIMS_ON_THIS_SITE = IS_MAINNET && CHAIN_READY && CLAIMS_READY;
+
+export const CLAIMS_WHERE = claimsWhere('en', { onSite: CLAIMS_ON_THIS_SITE, live: CLAIMS_ON_MAINNET || !IS_MAINNET });
 
 /** What the contract can do for licenses that this website cannot. */
 export const LICENSE_PROOF_NOTE = `Proving that a license is live, without showing its terms, is done by VeilCore’s contract on ${

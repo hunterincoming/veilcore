@@ -42,11 +42,12 @@ import { DisclosureReceipt } from '../chain/DisclosureReceipt';
 type ClaimLine = Pick<MadeClaim, 'schema' | 'slot' | 'kind' | 'op' | 'bound' | 'value'>;
 
 /** A claim in words: "Total THC is at most 0.300 %". */
-export const claimWords = (c: ClaimLine, tr: Translator): string => {
+export const claimWords = (c: ClaimLine, tr: Translator, labStands = false): string => {
   const s = SCHEMAS[c.schema]?.slots.find((x) => x.slot === c.slot);
   if (!s) return '';
-  // A lab result's yes/no call says the result ("Not detected"), not the slot (claim-call.ts).
-  const call = callWordKey(s.path, c);
+  // A lab result's yes/no call says the result ("Not detected"), not the slot, only where a lab
+  // stands behind the numbers (claim-call.ts); otherwise the slot and the number.
+  const call = labStands ? callWordKey(s.path, c) : undefined;
   return call ? tr.t(call) : claimRawWords(c, tr);
 };
 
@@ -229,7 +230,7 @@ export const ProveNumber: React.FC<{
           )}
           {earlier.length > 0 && (
             <Alert severity="info" variant="outlined" data-claim-earlier="">
-              {t('app.claim.already', { label, list: earlier.map((c) => claimWords(c, tr)).join('; ') })}
+              {t('app.claim.already', { label, list: earlier.map((c) => claimWords(c, tr, !!lab)).join('; ') })}
             </Alert>
           )}
           <Typography variant="body2" color="text.secondary">
@@ -294,6 +295,7 @@ export const ProveNumber: React.FC<{
                     ? { schema: held.schema, slot: s.slot, kind: 'value', value: String(bound) }
                     : { schema: held.schema, slot: s.slot, kind: 'range', op: how, bound: String(bound) },
                   tr,
+                  !!lab,
                 ),
               })}
             </Typography>
@@ -323,7 +325,7 @@ export const ProveNumber: React.FC<{
           )}
           {made && (
             <Alert severity="success" variant="outlined" data-claim-made="">
-              {t('app.claim.done')} {claimWords(made, tr)}.
+              {t('app.claim.done')} {claimWords(made, tr, !!lab)}.
             </Alert>
           )}
         </Stack>
@@ -336,7 +338,7 @@ export const ProveNumber: React.FC<{
           <Stack spacing={0.75}>
             {(record.claims ?? []).map((c) => (
               <Stack key={c.txId} direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
-                <Typography variant="body2">{claimWords(c, tr)}</Typography>
+                <Typography variant="body2">{claimWords(c, tr, !!lab)}</Typography>
                 <Button size="small" onClick={() => void copy(c)}>
                   {t('app.claim.copy')}
                 </Button>

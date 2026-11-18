@@ -18,6 +18,7 @@ import {
 } from '../claim-link';
 import { findBinding, type BindingCandidate } from '../claims-key';
 import { attestationsFor } from '../attesters';
+import { e2eChain } from './e2e-chain';
 
 export type ClaimReader = (
   contract: string,
@@ -56,6 +57,12 @@ export const checkClaim = async (
     attestations?: (record: string) => Promise<readonly BindingCandidate[]>;
   } = {},
 ): Promise<ClaimVerdict> => {
+  // The end-to-end build's stand-in for Midnight (e2e-chain.ts); undefined in every other build.
+  const stub = e2eChain()?.claim;
+  if (stub) {
+    const v = stub(link);
+    return v === 'checking' ? new Promise<ClaimVerdict>(() => undefined) : v;
+  }
   const contract = deps.contract ?? CLAIMS_CONTRACT;
   if (!contract) return { ok: false, reason: 'This site can’t read claims: no claims contract is configured.' };
   if (link.contract !== contract)

@@ -3,8 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import type { AppTranslation } from '../../translate';
 import { CLAIMS_ON_MAINNET, IS_MAINNET } from '../../../config/network';
-import { AGREEMENTS_LIVE } from '../../../config/copy';
-import { CLAIMS_READY } from '../../../veilcore/chain/config';
+import { AGREEMENTS_LIVE, CLAIMS_ON_THIS_SITE } from '../../../config/copy';
 import { claimsWhere } from '../claims-where';
 
 export const copy = {
@@ -13,7 +12,7 @@ export const copy = {
   'app.copy.agreementRecorded': IS_MAINNET ? 'ここに保存（シミュレーション）' : 'このデモで記録済み',
   'app.copy.ourServer': IS_MAINNET ? 'VeilCoreのサーバー' : 'VeilCoreのテスト用サーバー',
   'app.copy.datedOn': IS_MAINNET ? 'Midnightのメインネットワーク' : 'Midnightのテストネットワーク',
-  'app.copy.claimsWhere': claimsWhere('ja', { onSite: CLAIMS_READY, live: CLAIMS_ON_MAINNET || !IS_MAINNET }),
+  'app.copy.claimsWhere': claimsWhere('ja', { onSite: CLAIMS_ON_THIS_SITE, live: CLAIMS_ON_MAINNET || !IS_MAINNET }),
   'app.copy.licenseProofNote': `ライセンスが有効であることを、条件を見せずに証明するのは、${
     IS_MAINNET ? 'Midnightのメインネットワーク' : 'Midnight'
   }上のVeilCoreのコントラクトです。それにはウォレットが必要ですが、このウェブサイトはウォレットを使わないため、この機能はありません。`,

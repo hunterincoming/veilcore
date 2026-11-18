@@ -3,8 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import type { AppTranslation } from '../../translate';
 import { CLAIMS_ON_MAINNET, IS_MAINNET } from '../../../config/network';
-import { AGREEMENTS_LIVE } from '../../../config/copy';
-import { CLAIMS_READY } from '../../../veilcore/chain/config';
+import { AGREEMENTS_LIVE, CLAIMS_ON_THIS_SITE } from '../../../config/copy';
 import { claimsWhere } from '../claims-where';
 
 export const copy = {
@@ -13,7 +12,7 @@ export const copy = {
   'app.copy.agreementRecorded': IS_MAINNET ? 'Enregistré ici, simulé' : 'Enregistré dans cette démo',
   'app.copy.ourServer': IS_MAINNET ? 'le serveur de VeilCore' : 'le serveur de test de VeilCore',
   'app.copy.datedOn': IS_MAINNET ? 'le réseau principal de Midnight' : 'un réseau de test de Midnight',
-  'app.copy.claimsWhere': claimsWhere('fr', { onSite: CLAIMS_READY, live: CLAIMS_ON_MAINNET || !IS_MAINNET }),
+  'app.copy.claimsWhere': claimsWhere('fr', { onSite: CLAIMS_ON_THIS_SITE, live: CLAIMS_ON_MAINNET || !IS_MAINNET }),
   'app.copy.licenseProofNote': `Prouver qu’une licence est en vigueur, sans montrer ses conditions, se fait avec le contrat de VeilCore sur ${
     IS_MAINNET ? 'le réseau principal de Midnight' : 'Midnight'
   }. Il faut pour cela un portefeuille, que ce site web n’utilise pas ; il ne le propose donc pas.`,

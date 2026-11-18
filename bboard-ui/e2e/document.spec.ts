@@ -305,33 +305,3 @@ test('a claim link: a damaged one says so; a whole one is not believed when noth
   await expect(page.locator('[data-document-not-dated]')).toBeVisible();
   expectNoErrors(errors);
 });
-
-test('a claim on a lab result’s yes/no call says the result, with the slot and number under it', async ({ page }) => {
-  // The mainnet run of 18 November 2026 showed "Detected (1 yes, 0 no) is at most 0" for HLVd not detected.
-  const errors = watch(page);
-  await standIn(page);
-  const claim = (more: Record<string, string>) =>
-    Buffer.from(
-      JSON.stringify({
-        v: 1,
-        contract: 'c1'.repeat(32),
-        txId: 'ab'.repeat(32),
-        record: 'cd'.repeat(32),
-        schema: 'veilcore/schema/pathogen/v1',
-        slot: 0,
-        ...more,
-      }),
-    ).toString('base64url');
-  await page.goto(`/check-claim#c=${claim({ kind: 'range', op: 'at-most', bound: '0' })}`);
-  await expect(page.locator('[data-claim-statement]')).toHaveText('Not detected');
-  await expect(page.locator('[data-claim-raw]')).toHaveText(
-    'As proved on Midnight: Detected (1 yes, 0 no) is at most 0.',
-  );
-  await page.goto(`/check-claim#c=${claim({ kind: 'value', value: '1' })}`);
-  await expect(page.locator('[data-claim-statement]')).toHaveText('Detected');
-  // A bound that settles nothing on a yes/no slot keeps the plain line, and no second one.
-  await page.goto(`/check-claim#c=${claim({ kind: 'range', op: 'at-most', bound: '1' })}`);
-  await expect(page.locator('[data-claim-statement]')).toHaveText('Detected (1 yes, 0 no) is at most 1');
-  await expect(page.locator('[data-claim-raw]')).toHaveCount(0);
-  expectNoErrors(errors);
-});

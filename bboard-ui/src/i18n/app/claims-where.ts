@@ -1,7 +1,7 @@
 // Where the claims contract stands, in each language, for the line under "Show someone"
 // (Step5ProveDisclosure.tsx, app.copy.claimsWhere). Three facts, one per build:
-//   - onSite: this build proves one number (veilcore/chain/config.ts CLAIMS_READY: on veilcore.org,
-//     VeilCore's pinned claims contract with the sponsor live). Proving a marker or that two
+//   - onSite: veilcore.org proves one number (config/copy.ts CLAIMS_ON_THIS_SITE, the same switch
+//     as the home page's: a mainnet build sending transactions, with VeilCore's claims contract). Proving a marker or that two
 //     varieties differ is still not offered here.
 //   - live: the contract is on Midnight's main network (since 8 October 2026), not usable here.
 //   - pending: a mainnet build whose claims address isn't pinned.
@@ -12,7 +12,7 @@
 import type { Lang } from '../../config/languages';
 
 export type ClaimsWhereFlags = {
-  /** This build can prove one number (CLAIMS_READY). */
+  /** veilcore.org proves one number (config/copy.ts CLAIMS_ON_THIS_SITE). */
   readonly onSite: boolean;
   /** The claims contract is pinned on mainnet, or this is a test-network build (CLAIMS_ON_MAINNET || !IS_MAINNET). */
   readonly live: boolean;

@@ -195,4 +195,7 @@ export const prove = {
   // ClaimCheck.tsx: the footer for a claim whose lab signature checks but whose result the lab withdrew.
   'app.claim.check.whatLabWithdrawn':
     'Ce que cela montre : le nombre scellé dans cet enregistrement respecte la limite (ou est cette valeur), et la clé ci-dessus a signé les nombres de cet enregistrement. Le laboratoire a depuis retiré ce résultat, ne vous y fiez donc pas : demandez au laboratoire ou au détenteur le dernier résultat pour cet échantillon. Chaque limite prouvée sur un nombre est publique, et ensemble elles le resserrent.',
+  // ClaimCheck.tsx: the footer when a key signs the numbers but no single lab is tied to it (unidentified, conflicting).
+  'app.claim.check.whatLabUnnamed':
+    'Ce que cela montre : le nombre scellé dans cet enregistrement respecte la limite (ou est cette valeur), et la clé ci-dessus a signé les nombres de cet enregistrement. Aucun laboratoire unique n’est lié à cette clé ici : considérez les chiffres comme ceux du titulaire. Chaque limite prouvée sur un nombre est publique, et ensemble elles le resserrent.',
 } satisfies Partial<AppTranslation>;

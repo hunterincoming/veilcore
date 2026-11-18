@@ -2,10 +2,15 @@
 // the sample's stage) in the words of the result, not of the slot. "Detected (1 yes, 0 no) is at
 // most 0" is true, and nobody reads it as "not detected"; the claim page says "Not detected".
 //
-// Each word is said only when the claim forces it for a slot that holds 0 or 1 (the schemas in
-// public/schemas/ say so): exactly v gives v's word, at most 0 gives the 0 word, at least 1 the
-// 1 word. Any other bound says nothing about a 0/1 slot ("at most 1" holds either way), so it
-// keeps the plain wording, and so does any slot not listed here.
+// Each word is said only when the claim forces it: exactly 0 or 1 gives that value's word, and at
+// most 0 gives the 0 word (0 is the floor). The slots are plain whole numbers on chain, so "at
+// least 1" does not force a 1, and any other bound keeps the plain wording, as does any slot not
+// listed here.
+//
+// And only when a laboratory stands behind the numbers (labStands): the call is the lab's word.
+// While the claim is being checked, when the check fails, with no lab signature, with a key no
+// lab is tied to, or with a result the lab withdrew, the page keeps the plain slot and number:
+// anyone can seal a record under these forms with numbers they typed themselves.
 // SPDX-License-Identifier: Apache-2.0
 
 import type { AppKey } from '../i18n/app/en';
@@ -36,7 +41,6 @@ export const forcedCall = (c: ClaimShape): 0 | 1 | undefined => {
   const v = BigInt(n);
   if (c.kind === 'value') return v === 0n ? 0 : v === 1n ? 1 : undefined;
   if (c.op === 'at-most') return v === 0n ? 0 : undefined;
-  if (c.op === 'at-least') return v === 1n ? 1 : undefined;
   return undefined;
 };
 
@@ -48,19 +52,25 @@ export const callWordKey = (path: string, c: ClaimShape): AppKey | undefined => 
   return v === undefined ? undefined : words[v];
 };
 
+type Verdict =
+  | {
+      readonly ok: boolean;
+      readonly lab?: { readonly ok: boolean; readonly signer?: { readonly kind: string } };
+    }
+  | undefined;
+
+/** A laboratory whose signature checks, tied to its key for this record, and not withdrawn. */
+export const labStands = (v: Verdict): boolean => !!v?.ok && !!v.lab?.ok && v.lab.signer?.kind === 'bound';
+
 /**
  * The claim page's closing line (ClaimCheck.tsx). A lab whose signature checks signed the
- * numbers: the line says so, and says the lab withdrew the result when it did, never that the
- * holder typed them. A claim with no lab signature that checks, or none tied to a named lab
- * (unidentified, conflicting), keeps the plain line.
+ * numbers: the line says so, and says the lab withdrew the result when it did. A key that signs
+ * but that no lab (or more than one) is tied to says to read the numbers as the holder's own, as
+ * the lab panel does. Only a claim with no lab signature that checks says the holder typed them.
  */
-export const claimFooterKey = (
-  v:
-    | { readonly ok: boolean; readonly lab?: { readonly ok: boolean; readonly signer?: { readonly kind: string } } }
-    | undefined,
-): AppKey => {
+export const claimFooterKey = (v: Verdict): AppKey => {
   if (!v?.ok || !v.lab?.ok) return 'app.claim.check.what';
   if (v.lab.signer?.kind === 'bound') return 'app.claim.check.whatLab';
   if (v.lab.signer?.kind === 'retracted') return 'app.claim.check.whatLabWithdrawn';
-  return 'app.claim.check.what';
+  return 'app.claim.check.whatLabUnnamed';
 };

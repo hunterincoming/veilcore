@@ -196,4 +196,7 @@ export const prove = {
   // ClaimCheck.tsx: the footer for a claim whose lab signature checks but whose result the lab withdrew.
   'app.claim.check.whatLabWithdrawn':
     'Was das zeigt: Die im Datensatz versiegelte Zahl erfüllt die Grenze (oder ist dieser Wert), und der Schlüssel oben hat die Zahlen dieses Datensatzes signiert. Das Labor hat dieses Ergebnis inzwischen zurückgezogen, verlassen Sie sich also nicht darauf: Fragen Sie das Labor oder den Inhaber nach dem neuesten Ergebnis für diese Probe. Jede belegte Grenze ist öffentlich, und zusammen grenzen sie die Zahl ein.',
+  // ClaimCheck.tsx: the footer when a key signs the numbers but no single lab is tied to it (unidentified, conflicting).
+  'app.claim.check.whatLabUnnamed':
+    'Was das zeigt: Die im Datensatz versiegelte Zahl erfüllt die Grenze (oder ist dieser Wert), und der Schlüssel oben hat die Zahlen dieses Datensatzes signiert. Hier ist kein einzelnes Labor mit diesem Schlüssel verbunden, lesen Sie die Zahlen also als Eingaben des Inhabers. Jede belegte Grenze ist öffentlich, und zusammen grenzen sie die Zahl ein.',
 } satisfies Partial<AppTranslation>;
