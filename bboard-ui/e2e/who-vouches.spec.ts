@@ -78,7 +78,9 @@ const openCheck = async (page: Page, query: string) => {
 };
 
 /** One row of the box, by the fact it is about. */
-const row = (page: Page, fact: string) => page.locator('[data-who-vouches] [data-who-row]').filter({ hasText: fact });
+// Matched at the start of the row: another row's words can mention the same fact.
+const row = (page: Page, fact: string) =>
+  page.locator('[data-who-vouches] [data-who-row]').filter({ hasText: new RegExp(`^${fact}`) });
 
 test('a link with its proof code: the date and the code rest on this page’s own checks', async ({ page }) => {
   const errors = watch(page);

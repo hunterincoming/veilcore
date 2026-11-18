@@ -219,40 +219,26 @@ const DeleteRecord: React.FC<{
   record: StrainRecord;
   licensed: boolean;
   namedBy: readonly StrainRecord[];
+  /** Whether the panel is showing (its "Technical details" are open). */
+  open: boolean;
   onDeleted: () => void;
-}> = ({ record, licensed, namedBy, onDeleted }) => {
+}> = ({ record, licensed, namedBy, open, onDeleted }) => {
   const { t } = useT();
   const [dateNow, setDateNow] = useState<DateForDelete | 'checking'>('checking');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const inCorrection = !!record.supersedes?.recordId || !!record.supersededBy;
   const blocked = licensed ? 'app.plant.delete.blocked' : inCorrection ? 'app.plant.delete.blockedCorrection' : null;
-  // Its date is asked for only when deleting is possible and the panel is on screen, not on every
-  // view of the record's page; pressing Delete reads it again anyway.
-  const panel = useRef<HTMLDivElement>(null);
+  // Its date is asked for only when deleting is possible and the panel is open (it sits under
+  // "Technical details"), not on every view of the record's page; Delete reads it again anyway.
   useEffect(() => {
-    if (blocked) return;
+    if (blocked || !open) return;
     let live = true;
-    const ask = () => void dateForDelete(record.recordFingerprint).then((d) => live && setDateNow(d));
-    const el = panel.current;
-    if (!el || typeof IntersectionObserver === 'undefined') {
-      ask();
-      return () => {
-        live = false;
-      };
-    }
-    const seen = new IntersectionObserver((entries) => {
-      if (entries.some((e) => e.isIntersecting)) {
-        seen.disconnect();
-        ask();
-      }
-    });
-    seen.observe(el);
+    void dateForDelete(record.recordFingerprint).then((d) => live && setDateNow(d));
     return () => {
       live = false;
-      seen.disconnect();
     };
-  }, [record.recordFingerprint, blocked]);
+  }, [record.recordFingerprint, blocked, open]);
   const go = async () => {
     const named = namedBy.length
       ? t('app.plant.delete.named', { list: namedBy.map((x) => x.strainName || x.id).join(', ') })
@@ -273,7 +259,7 @@ const DeleteRecord: React.FC<{
     else onDeleted();
   };
   return (
-    <Paper ref={panel} sx={{ p: { xs: 2.5, md: 3 } }} data-delete-record="">
+    <Paper sx={{ p: { xs: 2.5, md: 3 } }} data-delete-record="">
       <Stack spacing={1}>
         <Typography variant="overline" sx={{ display: 'block' }}>
           {t('app.plant.delete.title')}
@@ -888,6 +874,7 @@ export const RecordDetail: React.FC = () => {
                         x.id !== record.id &&
                         ((x.parents ?? []).some((p) => p.recordId === record.id) || aboutIdsOf(x).includes(record.id)),
                     )}
+                    open={details}
                     onDeleted={() => void navigate('/records')}
                   />
                 )}
