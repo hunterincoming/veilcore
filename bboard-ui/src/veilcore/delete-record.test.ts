@@ -467,7 +467,7 @@ describe('deleting a record', () => {
     // here) must send nothing for this record.
     let sentForIt = 0;
     vi.stubGlobal('fetch', async (url: string, init?: RequestInit) => {
-      if (init?.method === 'PUT' && String(init.body).includes(record.id)) sentForIt++;
+      if (init?.method === 'PUT' && typeof init.body === 'string' && init.body.includes(record.id)) sentForIt++;
       return reg.fetch(url, init);
     });
     expect(await A.run(() => A.m.records.discardUnsaved(record.id, 'discard'))).toBe('ok');
