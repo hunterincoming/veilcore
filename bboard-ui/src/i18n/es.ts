@@ -337,7 +337,7 @@ export const es: Strings = {
   'm.privacy.contact': 'Preguntas: hunter@veilcore.org',
   // Round 2 truth pass (14 Oct 2026): keys added or newly translated.
   'm.hero.lede':
-    'Para obtentores, empresas de semillas y laboratorios que trabajan con genética vegetal, animal y microbiana: dé a sus registros una fecha que nadie puede antedatar. Sus datos genéticos se quedan cerrados: los archivos de ADN nunca salen de su computadora, y lo que escribe llega cerrado a nuestro servidor. Solo un código de prueba va a Midnight, que lo fecha.',
+    'Para obtentores, empresas de semillas y laboratorios que trabajan con genética vegetal, animal y microbiana: dé a sus registros una fecha que nadie puede antedatar. Sus datos genéticos se quedan cerrados: los archivos de ADN nunca salen de su computadora, y lo que escribe llega cerrado a nuestro servidor. Solo los códigos de prueba van a Midnight, que los fecha.',
   'm.for.3p':
     'Envíe material con un código de laboratorio. El laboratorio firma un acuse de recibo con su propia clave, así el registro muestra a una segunda parte. El acuse es una firma real, guardada por el registro de VeilCore, no en la cadena. Condiciones como no propagar son solo de práctica en la demo web.',
   'm.get.1b': 'para un registro de lo que usted tiene, sin mostrar su genética.',
@@ -494,6 +494,56 @@ export const es: Strings = {
   'm.hero.noteShort': 'Solo la franja dorada va a Midnight.',
   'm.hero.stampWord': 'Fechado',
   'm.hero.stampLine': 'en Midnight',
+  'm.home.try': 'Pruébelo. No se envía nada.',
+  'm.home.tryNote':
+    'La figura de arriba se dibuja a partir de este código de prueba. Nadie puede deducir a partir de él lo que usted escribió.',
+  'm.home.audLabel': 'Para quién es',
+  'm.home.audience':
+    'Obtentores|Empresas de semillas|Laboratorios de cultivo de tejidos|Certificadores|Examinadores|Libros genealógicos|Oficinas de variedades vegetales',
+  'm.home.keep.t': 'Su genética se queda con usted.',
+  'm.home.keep.p':
+    'Solo van a Midnight códigos de prueba, nunca lo que usted escribió ni sus archivos. El código de un registro son 64 caracteres que su computadora calcula a partir de él, y nadie puede deducir a partir de él la planta, los marcadores ni el nombre.',
+  'm.home.tlDated': 'Registro fechado',
+  'm.home.tlAsks': 'Alguien pregunta',
+  'm.home.matters': 'Dónde importa.',
+  'm.home.prev': 'Anterior',
+  'm.home.next': 'Siguiente',
+  'm.home.custody.t': 'No podemos leer sus registros: nos llegan cerrados.',
+  'm.home.custody.p1':
+    'Registrar el material en sí significa entregarlo. Con VeilCore, sus archivos de ADN nunca salen de su computadora.',
+  'm.home.custody.p2':
+    'Los datos del registro llegan cerrados a nuestro servidor, el nombre incluido, y no tenemos la clave.',
+  'm.home.ex.label': 'Un registro de ejemplo, no uno real.',
+  'm.home.ex.dna': 'Informe de ADN',
+  'm.home.l2': 'Su código de prueba: 64 caracteres, calculados en su computadora.',
+  'm.home.l3': 'Su código se une a un lote con otros. El bloque en el que queda es la fecha.',
+  'm.home.l3b': 'Un lote, muchos registros',
+  'm.home.l4v': 'El registro existía en esa fecha.',
+  'm.home.l4': 'Cualquiera puede comprobarlo, gratis y sin cuenta.',
+  'm.home.more': 'Más que una fecha.',
+  'm.home.f1t': 'Plantas, animales y cepas.',
+  'm.home.f1p': 'Cultivares y líneas, animales individuales y linajes, microbios, hongos y líneas celulares.',
+  'm.home.f2t': 'Documentos.',
+  'm.home.f2p':
+    'Selle un permiso, un certificado, un contrato o un informe de laboratorio. El archivo en sí se queda en su dispositivo.',
+  'm.home.ask.t': '«Preguntar», en palabras sencillas.',
+  'm.home.ask.p':
+    'En las páginas de registros, «Preguntar» rellena un registro, o un lote de esquejes o crías, para que usted lo revise. Nunca firma ni envía nada. Eso lo hace usted.',
+  'm.home.trustLabel': 'Lo que le aporta',
+  'm.home.trust':
+    'Prueba de que usted tenía un registro en una fecha|Una fecha que nadie puede antedatar|Comprobar es gratis|Un formato abierto|Sin billetera, sin registro',
+  'm.home.pause': 'Pausar los nombres en movimiento',
+  'm.home.play': 'Reanudar los nombres en movimiento',
+  'm.home.fails': 'Díganos dónde falla.',
+  'm.home.closeLede':
+    'Obtentores, laboratorios, certificadores y desarrolladores: cree un registro y díganos qué le falta para su trabajo.',
+  'm.home.photos': 'Fotos en Unsplash:',
+  'm.home.alt.jar': 'Una semilla que brota sobre un frasco de vidrio con agua, con las raíces en el agua',
+  'm.home.alt.cutting': 'Una plántula joven que crece en tierra oscura',
+  'm.home.alt.greenhouse': 'Hileras de plantas jóvenes en un invernadero largo',
+  'm.home.alt.lab': 'Una mesa de laboratorio con pipetas y tubos de muestra',
+  'm.home.alt.hand': 'Dos manos que sostienen una plántula en un puñado de tierra',
+  'm.home.alt.cattle': 'Vacas lecheras con crotales en un prado al atardecer',
   'm.for.label': 'Para qué sirve',
   'm.for.title1': 'Muchas disputas sobre genética se reducen a una pregunta:',
   'm.for.title2': '¿qué tenía usted, y cuándo?',

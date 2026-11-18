@@ -14,6 +14,7 @@
 // Run: npx vitest run src/components/site/design.test.ts
 // SPDX-License-Identifier: Apache-2.0
 
+import { MARK_GOLD, MARK_GOLD_ON_DARK } from './TagMark';
 import { describe, it, expect } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -26,6 +27,8 @@ import { fr } from '../../i18n/fr';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const siteCss = fs.readFileSync(path.join(here, 'site.css'), 'utf8');
+// The home page's own styles (Mako's design, 18 Nov 2026): held to the same rules as site.css.
+const homeCss = fs.readFileSync(path.join(here, 'home.css'), 'utf8');
 const partnersCss = fs.readFileSync(path.join(here, '../partners/partners.css'), 'utf8');
 // Read as text, like load-split.test.ts: importing theme.ts or SiteShell.tsx would load MUI.
 const themeTs = fs.readFileSync(path.join(here, '../../config/theme.ts'), 'utf8');
@@ -181,7 +184,7 @@ describe('the palette: pollen and ink; red only for errors; no green brand', () 
   });
 
   it('nothing is left of the blue, the red brand or the cool greys', () => {
-    for (const src of [siteCss, partnersCss, themeTs, flowFrameTsx, faviconSvg, partnerKit])
+    for (const src of [siteCss, homeCss, partnersCss, themeTs, flowFrameTsx, faviconSvg, partnerKit])
       for (const old of ['#1C3BB0', '#152C86', '#A3B5F8', '#B3173B', '#F3F5F7', '#1E2227', '#575E66'])
         expect(hexes(src)).not.toContain(old);
     expect(themeTs).not.toMatch(/NOTARY/);
@@ -225,7 +228,7 @@ describe('the palette: pollen and ink; red only for errors; no green brand', () 
   it('pollen is never text on paper (1.3:1): only a fill, a mark or text on the ink band', () => {
     expect(contrast(POLLEN, GROUND)).toBeLessThan(1.5);
     // In the CSS, a pollen text colour only under the ink band, the dark section or the footer.
-    for (const css of [siteCss, partnersCss])
+    for (const css of [siteCss, homeCss, partnersCss])
       for (const m of rules(css).matchAll(/([^{};]+)\{([^{}]*)\}/g))
         if (/(^|[^-])color:\s*var\(--pollen\)/.test(m[2]))
           expect(m[1], m[1].trim()).toMatch(/hero|\.dark|\.demo|footer/);
@@ -242,6 +245,7 @@ describe('the palette: pollen and ink; red only for errors; no green brand', () 
     expect(err < 30 || err > 330).toBe(true);
     const reds = [
       ...hexes(siteCss),
+      ...hexes(homeCss),
       ...hexes(themeTs),
       ...hexes(partnersCss),
       ...hexes(flowFrameTsx),
@@ -287,7 +291,13 @@ describe('the palette: pollen and ink; red only for errors; no green brand', () 
   });
 
   it('no colour in the shared tokens is green, except the ✓ of a check that passed', () => {
-    const greens = [...hexes(siteCss), ...hexes(themeTs), ...hexes(partnersCss), ...hexes(flowFrameTsx)].filter((h) => {
+    const greens = [
+      ...hexes(siteCss),
+      ...hexes(homeCss),
+      ...hexes(themeTs),
+      ...hexes(partnersCss),
+      ...hexes(flowFrameTsx),
+    ].filter((h) => {
       const { hue, sat } = hueSat(h);
       return hue > 75 && hue < 175 && sat > 0.15;
     });
@@ -327,11 +337,12 @@ describe('the palette: pollen and ink; red only for errors; no green brand', () 
     expect(/<meta name="theme-color" content="(#[0-9A-F]{6})"/.exec(indexHtml)?.[1]).toBe(GROUND);
     // A version on the links, so browsers drop the old tab icon they cached (18-19 Oct: tag -> ring).
     expect(indexHtml).toMatch(/href="\/favicon\.svg\?v=\w+"/);
-    expect(faviconSvg.toLowerCase()).toContain(INK_COLOR.toLowerCase());
-    expect(faviconSvg.toLowerCase()).toContain(POLLEN.toLowerCase());
-    // The mark is a badge with its own colours (ink disc, paper ring, pollen V), so it reads on a
-    // light or dark tab bar alike and needs no dark-mode variant.
+    // The simple V from Mako's logo set (18 Nov), in the mark's gold on a paper tile, so it reads
+    // on a light or dark tab bar alike and needs no dark-mode variant.
+    expect(faviconSvg.toLowerCase()).toContain(MARK_GOLD.toLowerCase());
     expect(faviconSvg.toLowerCase()).toContain('#f6f3ec');
+    // Gold on white is at least 3:1, the floor for a graphic (WCAG 1.4.11).
+    expect(contrast(MARK_GOLD, '#FFFFFF')).toBeGreaterThanOrEqual(3);
   });
 
   it('the hero note points at the strip in the brand colour: gold, never blue, green or red', () => {
@@ -355,18 +366,60 @@ describe('the palette: pollen and ink; red only for errors; no green brand', () 
 
 describe('no lines between things on the public pages', () => {
   it('no rules: nothing draws a top, bottom, left or right border', () => {
-    for (const css of [siteCss, partnersCss]) expect(rules(css)).not.toMatch(/border-(top|bottom|left|right)\s*:/);
+    for (const css of [siteCss, homeCss, partnersCss])
+      expect(rules(css)).not.toMatch(/border-(top|bottom|left|right)\s*:/);
   });
 
   it('no outlined boxes: the only solid border is the text field edge', () => {
     const solid = [...rules(siteCss).matchAll(/border:\s*[^;]*solid[^;]*;/g)].map((m) => m[0]);
     expect(solid).toEqual(['border: 1.5px solid var(--edge);']);
     expect(rules(partnersCss)).not.toMatch(/border:\s*[^;]*solid/);
+    expect(rules(homeCss)).not.toMatch(/border:\s*[^;]*solid/);
   });
 
   it('every token the partners page uses is one site.css defines', () => {
     const used = new Set([...rules(partnersCss).matchAll(/var\(--([\w-]+)\)/g)].map((m) => m[1]));
     for (const name of used) if (!name.startsWith('vc-')) expect(siteCss).toContain(`--${name}:`);
+  });
+});
+
+describe("the home page's night (home.css, Mako's design, 18 Nov 2026)", () => {
+  const homeToken = (name: string) => new RegExp(`--${name}:\\s*(#[0-9a-f]{6})`, 'i').exec(homeCss)?.[1] ?? '';
+  const [VOID, FILL, INK1, INK2, INK3, GOLD] = ['void', 'fill', 'ink-1', 'ink-2', 'ink-3', 'yellow'].map(homeToken);
+
+  it('every text colour reads at 4.5:1 or more on the night and on a card', () => {
+    for (const c of [VOID, FILL, INK1, INK2, INK3, GOLD]) expect(c).toMatch(/^#/);
+    for (const text of [INK1, INK2, INK3, GOLD]) {
+      expect(contrast(text, VOID), `${text} on ${VOID}`).toBeGreaterThanOrEqual(4.5);
+      expect(contrast(text, FILL), `${text} on ${FILL}`).toBeGreaterThanOrEqual(4.5);
+    }
+    // The main button and the drenched sections: night text on gold.
+    expect(contrast(VOID, GOLD)).toBeGreaterThanOrEqual(4.5);
+  });
+
+  it("one gold on a dark ground, clear of other brands' yellows", () => {
+    // CTO decision (review of the redesign, 18 Nov): one gold for the accent and the mark on
+    // night; #B8860B stays the mark on paper. Mako's draft used IMDb's exact #F5C518, and the
+    // first replacement, #E3AE2A, was 3.8 from Binance's: this keeps it 10 or more from all three.
+    expect(GOLD.toUpperCase()).toBe(MARK_GOLD_ON_DARK);
+    for (const brand of ['#F0B90B', '#FCD535', '#F5C518', BINANCE_YELLOW, BITCOIN_ORANGE])
+      expect(de2000(lab(GOLD), lab(brand)), brand).toBeGreaterThanOrEqual(10);
+    // The mark's two golds read as one family.
+    expect(de2000(lab(MARK_GOLD_ON_DARK), lab(MARK_GOLD))).toBeLessThan(10);
+    // A graphic needs 3:1 (WCAG 1.4.11): on the night, and on the footer's ink.
+    for (const ground of [VOID, INK_COLOR]) expect(contrast(MARK_GOLD_ON_DARK, ground)).toBeGreaterThanOrEqual(3);
+    // The brighter gold under the pointer stays clear of the brands too, and dark text on it reads.
+    const HI = homeToken('yellow-hi');
+    for (const brand of ['#F0B90B', '#FCD535', '#F5C518'])
+      expect(de2000(lab(HI), lab(brand)), brand).toBeGreaterThanOrEqual(10);
+    expect(contrast(VOID, HI)).toBeGreaterThanOrEqual(4.5);
+    expect(rules(homeCss)).not.toMatch(/#f5c518|#ffd43a|#e3ae2a|#edbd47/i);
+  });
+
+  it('a gallery panel out of view is quieter by its photo only, never its words', () => {
+    // Dimming the whole panel took its text to 3.0:1 (review, 18 Nov).
+    for (const m of rules(homeCss).matchAll(/([^{};]+)\{([^{}]*)\}/g))
+      if (/opacity:\s*0?\.\d/.test(m[2]) && /k-hpanel/.test(m[1])) expect(m[1].trim()).toMatch(/k-hpanel-img$/);
   });
 });
 

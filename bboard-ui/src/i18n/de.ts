@@ -339,7 +339,7 @@ export const de: Strings = {
   'm.privacy.contact': 'Fragen: hunter@veilcore.org',
   // Round 2 truth pass (14 Oct 2026): keys added or newly translated.
   'm.hero.lede':
-    'Für Züchter, Saatgutunternehmen und Labore, die mit pflanzlicher, tierischer und mikrobieller Genetik arbeiten: Geben Sie Ihren Datensätzen ein Datum, das niemand zurückdatieren kann. Ihre genetischen Daten bleiben verschlossen: DNA-Dateien verlassen Ihren Computer nie, und was Sie eingeben, erreicht unseren Server verschlossen. Nur ein Prüfcode kommt auf Midnight, das ihn datiert.',
+    'Für Züchter, Saatgutunternehmen und Labore, die mit pflanzlicher, tierischer und mikrobieller Genetik arbeiten: Geben Sie Ihren Datensätzen ein Datum, das niemand zurückdatieren kann. Ihre genetischen Daten bleiben verschlossen: DNA-Dateien verlassen Ihren Computer nie, und was Sie eingeben, erreicht unseren Server verschlossen. Nur Prüfcodes kommen auf Midnight, das sie datiert.',
   'm.for.3p':
     'Senden Sie Material mit einem Laborcode. Das Labor signiert eine Empfangsbestätigung mit seinem eigenen Schlüssel, sodass der Datensatz eine zweite Partei zeigt. Die Bestätigung ist eine echte Signatur, gespeichert im Register von VeilCore, nicht auf der Chain. Bedingungen wie „keine Vermehrung“ sind in der Web-Demo nur zum Üben.',
   'm.get.1b': 'für einen Datensatz dessen, was Sie haben, ohne Ihre Genetik zu zeigen.',
@@ -495,6 +495,55 @@ export const de: Strings = {
   'm.hero.noteShort': 'Nur der goldene Streifen kommt auf Midnight.',
   'm.hero.stampWord': 'Datiert',
   'm.hero.stampLine': 'auf Midnight',
+  'm.home.try': 'Probieren Sie es aus. Nichts wird gesendet.',
+  'm.home.tryNote':
+    'Das Bild oben wird aus diesem Prüfcode gezeichnet. Niemand kann daraus zurückrechnen, was Sie eingegeben haben.',
+  'm.home.audLabel': 'Für wen',
+  'm.home.audience': 'Züchter|Saatgutunternehmen|Gewebekulturlabore|Zertifizierer|Prüfer|Herdbücher|Sortenämter',
+  'm.home.keep.t': 'Ihre Genetik bleibt bei Ihnen.',
+  'm.home.keep.p':
+    'Auf Midnight kommen nur Prüfcodes, nie das, was Sie eingegeben haben, und nie Ihre Dateien. Der Code eines Datensatzes sind 64 Zeichen, die Ihr Computer daraus berechnet, und niemand kann daraus auf die Pflanze, die Marker oder den Namen zurückschließen.',
+  'm.home.tlDated': 'Datensatz datiert',
+  'm.home.tlAsks': 'Jemand fragt nach',
+  'm.home.matters': 'Wo es zählt.',
+  'm.home.prev': 'Zurück',
+  'm.home.next': 'Weiter',
+  'm.home.custody.t': 'Wir können Ihre Datensätze nicht lesen: Sie erreichen uns verschlossen.',
+  'm.home.custody.p1':
+    'Das Material selbst zu registrieren heißt, es herzugeben. Mit VeilCore verlassen Ihre DNA-Dateien Ihren Computer nie.',
+  'm.home.custody.p2':
+    'Die Angaben des Datensatzes erreichen unseren Server verschlossen, der Name eingeschlossen, und wir haben den Schlüssel nicht.',
+  'm.home.ex.label': 'Ein Beispieldatensatz, kein echter.',
+  'm.home.ex.dna': 'DNA-Bericht',
+  'm.home.l2': 'Sein Prüfcode: 64 Zeichen, auf Ihrem Computer berechnet.',
+  'm.home.l3': 'Ihr Code kommt mit anderen in einen Stapel. Der Block, in dem er landet, ist das Datum.',
+  'm.home.l3b': 'Ein Stapel, viele Datensätze',
+  'm.home.l4v': 'Der Datensatz bestand zu diesem Datum.',
+  'm.home.l4': 'Jeder kann es prüfen, kostenlos und ohne Konto.',
+  'm.home.more': 'Mehr als ein Datum.',
+  'm.home.f1t': 'Pflanzen, Tiere und Stämme.',
+  'm.home.f1p': 'Sorten und Linien, einzelne Tiere und Blutlinien, Mikroben, Pilze und Zelllinien.',
+  'm.home.f2t': 'Dokumente.',
+  'm.home.f2p':
+    'Versiegeln Sie eine Genehmigung, ein Zertifikat, einen Vertrag oder einen Laborbericht. Die Datei selbst bleibt auf Ihrem Gerät.',
+  'm.home.ask.t': '„Fragen“, in einfachen Worten.',
+  'm.home.ask.p':
+    'Auf den Seiten Ihrer Datensätze füllt „Fragen“ einen Datensatz oder eine Reihe von Stecklingen oder Nachkommen aus, damit Sie ihn prüfen. Es unterschreibt und sendet nie etwas. Das tun Sie.',
+  'm.home.trustLabel': 'Was es Ihnen gibt',
+  'm.home.trust':
+    'Nachweis, dass Sie einen Datensatz bis zu einem Datum hatten|Ein Datum, das niemand zurückdatieren kann|Prüfen ist kostenlos|Ein offenes Format|Keine Wallet, keine Anmeldung',
+  'm.home.pause': 'Laufende Namen anhalten',
+  'm.home.play': 'Laufende Namen fortsetzen',
+  'm.home.fails': 'Sagen Sie uns, wo es scheitert.',
+  'm.home.closeLede':
+    'Züchter, Labore, Zertifizierer und Entwickler: Legen Sie einen Datensatz an und sagen Sie uns dann, was für Ihre Arbeit fehlt.',
+  'm.home.photos': 'Fotos auf Unsplash:',
+  'm.home.alt.jar': 'Ein Samen keimt über einem Glas mit Wasser, die Wurzeln im Wasser',
+  'm.home.alt.cutting': 'Ein junger Sämling wächst aus dunkler Erde',
+  'm.home.alt.greenhouse': 'Reihen junger Pflanzen in einem langen Gewächshaus',
+  'm.home.alt.lab': 'Ein Labortisch mit Pipetten und Probenröhrchen',
+  'm.home.alt.hand': 'Zwei Hände halten einen Sämling in einem Klumpen Erde',
+  'm.home.alt.cattle': 'Milchkühe mit Ohrmarken auf einer Weide bei Sonnenuntergang',
   'm.for.label': 'Wofür es da ist',
   'm.for.title1': 'Viele Streitigkeiten um Genetik laufen auf eine Frage hinaus:',
   'm.for.title2': 'Was hatten Sie, und wann?',

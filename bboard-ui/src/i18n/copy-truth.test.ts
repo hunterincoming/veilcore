@@ -213,9 +213,11 @@ describe('privacy, said plainly', () => {
     const lede = en['m.hero.lede'];
     // Who it's for and what it does, then the privacy line: genetic data, not "everything".
     // "Stays locked", not "stays on your computer": the description does reach the server,
-    // locked (panel review). What goes on Midnight is the proof code.
+    // locked (panel review). What goes on Midnight is proof codes, plural (review of the home
+    // redesign, 18 Nov): on veilcore.org a key's date stamp, a DNA pairing, a license and a
+    // claim's proof go there too, never what was typed or a file.
     expect(lede).toMatch(
-      /Your genetic data stays locked: DNA files never leave your computer, and what you type reaches our server locked\. Only a proof code goes on Midnight, which dates it\.$/,
+      /Your genetic data stays locked: DNA files never leave your computer, and what you type reaches our server locked\. Only proof codes go on Midnight, which dates them\.$/,
     );
     expect(lede.split(/(?<=\.)\s+/).length).toBeLessThanOrEqual(4);
     // No lab-report sentence next to "stays on your computer" (it read as a contradiction):

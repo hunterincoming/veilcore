@@ -201,7 +201,7 @@ export const en = {
   'm.hero.title1': 'Date your record.',
   'm.hero.title2': 'Keep your genetics private.',
   'm.hero.lede':
-    'For breeders, seed companies and labs working with plant, animal and microbial genetics: give your records a date nobody can backdate. Your genetic data stays locked: DNA files never leave your computer, and what you type reaches our server locked. Only a proof code goes on Midnight, which dates it.',
+    'For breeders, seed companies and labs working with plant, animal and microbial genetics: give your records a date nobody can backdate. Your genetic data stays locked: DNA files never leave your computer, and what you type reaches our server locked. Only proof codes go on Midnight, which dates them.',
   'm.hero.how': 'How it works',
   'm.hero.pasteQ': 'Got a lab code or a link from someone?',
   'm.hero.pasteGo': 'Paste it here →',
@@ -221,6 +221,57 @@ export const en = {
   // The stamp pressed on the hero's specimen sheet: what happens to the gold strip.
   'm.hero.stampWord': 'Dated',
   'm.hero.stampLine': 'on Midnight',
+
+  // The home page in the layout of Mako's dark design (18 November 2026). Only strings the
+  // page had no words for; everything else on it reuses the keys above and below.
+  // Pipe-separated lists are shown as a row of names (m.mako.leads does the same).
+  'm.home.try': 'Try it. Nothing is sent.',
+  'm.home.tryNote': 'The display above is drawn from this proof code. Nobody can work back from it to what you typed.',
+  'm.home.audLabel': 'Who it is for',
+  'm.home.audience':
+    'Breeders|Seed companies|Tissue culture labs|Certifiers|Examiners|Herd books|Plant variety offices',
+  'm.home.keep.t': 'Your genetics stay with you.',
+  'm.home.keep.p':
+    "Only proof codes go on Midnight, never what you typed or your files. A record's code is 64 characters your computer works out from it, and nobody can work back from it to the plant, the markers or the name.",
+  'm.home.tlDated': 'Record dated',
+  'm.home.tlAsks': 'Someone asks',
+  'm.home.matters': 'Where it matters.',
+  'm.home.prev': 'Previous',
+  'm.home.next': 'Next',
+  'm.home.custody.t': "We can't read your records: they reach us locked.",
+  'm.home.custody.p1':
+    'Registering the material itself means handing it over. With VeilCore, your DNA files never leave your computer.',
+  'm.home.custody.p2': "The record's details reach our server locked, the name included, and we don't have the key.",
+  'm.home.ex.label': 'An example record, not a real one.',
+  'm.home.ex.dna': 'DNA report',
+  'm.home.l2': 'Its proof code: 64 characters, worked out on your computer.',
+  'm.home.l3': 'Your code joins a batch with others. The block it lands in is the date.',
+  'm.home.l3b': 'One batch, many records',
+  'm.home.l4v': 'The record existed by that date.',
+  'm.home.l4': 'Anyone can check it, free, with no account.',
+  'm.home.more': 'More than a date.',
+  'm.home.f1t': 'Plants, animals and strains.',
+  'm.home.f1p': 'Cultivars and lines, single animals and bloodlines, microbes, fungi and cell lines.',
+  'm.home.f2t': 'Documents.',
+  'm.home.f2p': 'Seal a permit, certificate, contract or lab report. The file itself stays on your device.',
+  'm.home.ask.t': 'Ask, in plain words.',
+  'm.home.ask.p':
+    'On the record pages, Ask fills in a record, or a batch of clones or offspring, for you to check. It never signs or sends anything. You do.',
+  'm.home.trustLabel': 'What it gives you',
+  'm.home.trust':
+    'Proof you held a record by a date|A date nobody can backdate|Free to check|An open format|No wallet, no sign-up',
+  'm.home.pause': 'Pause the moving names',
+  'm.home.play': 'Play the moving names',
+  'm.home.fails': 'Tell us where it fails.',
+  'm.home.closeLede':
+    "Breeders, labs, certifiers and developers: make a record, then tell us what's missing for your work.",
+  'm.home.photos': 'Photos on Unsplash:',
+  'm.home.alt.jar': 'A seed sprouting over a glass jar of water, its roots in the water',
+  'm.home.alt.cutting': 'A young seedling growing from dark soil',
+  'm.home.alt.greenhouse': 'Rows of young plants in a long greenhouse',
+  'm.home.alt.lab': 'A laboratory bench with pipettes and sample tubes',
+  'm.home.alt.hand': 'Two hands holding a seedling in a clump of soil',
+  'm.home.alt.cattle': 'Dairy cows with ear tags in a field at sunset',
 
   'm.for.label': "What it's for",
   'm.for.title1': 'Many genetics disputes come down to one question:',
