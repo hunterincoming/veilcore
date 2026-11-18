@@ -107,8 +107,11 @@ test('a document link: not ready until dated, opens in the holder’s language, 
   const inspector = page;
   await inspector.goto(link.replace(/^https?:\/\/[^/]+/, ''));
   await expect(inspector.getByRole('heading', { name: 'Comprobar un documento' })).toBeVisible();
-  // Midnight is out of reach here: the date rests on VeilCore's word, and the page says so.
-  await expect(inspector.locator('[data-document-not-confirmed]')).toBeVisible();
+  // This build can't check the stand-in's anchor on Midnight: the date rests on VeilCore's word, and the page says so.
+  await expect(inspector.locator('[data-document-not-confirmed]')).toHaveAttribute(
+    'data-document-not-confirmed',
+    'registry-only',
+  );
   await expect(inspector.locator('[data-document-not-confirmed]')).toContainText(
     'El registro de VeilCore da esta fecha',
   );

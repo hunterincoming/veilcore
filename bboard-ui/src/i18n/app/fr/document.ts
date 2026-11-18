@@ -81,7 +81,7 @@ export const document = {
   'app.doc.compare.tooLarge': 'Ce fichier dépasse {mb} Mo, il ne peut donc pas être lu ici.',
   'app.doc.check.title': 'Vérifier un document',
   'app.doc.check.intro':
-    'Quelqu’un vous a envoyé un document et ce lien. Choisissez le fichier reçu : votre navigateur vérifie que c’est le même fichier, octet pour octet (rien n’est envoyé), et lit sa date sur Midnight, une blockchain publique.',
+    'Quelqu’un vous a envoyé un document et ce lien. Choisissez le fichier reçu : votre navigateur vérifie que c’est le même fichier, octet pour octet (rien n’est envoyé), et affiche sa date sur Midnight, une blockchain publique, en la vérifiant lui-même quand il le peut.',
   'app.doc.check.missing':
     'Ce lien ne contient aucun enregistrement de document. Demandez le lien complet à la personne qui l’a envoyé.',
   'app.doc.check.unreadable': 'Ce lien est endommagé. Redemandez-le.',

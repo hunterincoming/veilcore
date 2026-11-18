@@ -184,6 +184,14 @@ export const DocumentDateView: React.FC<{
 }> = ({ proof, anchor, checker }) => {
   const tr = useT();
   const row = recordDateRow(proof, anchor, tr);
+  // A lookup that hasn't started yet (the first render after the proof arrives) counts as
+  // running: no "rests on VeilCore's word" flash before Midnight is even asked.
+  const anchorLookupPending =
+    anchor === 'checking' ||
+    (anchor === undefined &&
+      proof !== 'checking' &&
+      proof.status === 'anchor-reported' &&
+      !!proof.proof.anchor?.txHash);
   return (
     <Box data-document-date={row.mark}>
       <Fact label={tr.t('app.doc.k.dated')}>{row.value}</Fact>
@@ -194,7 +202,7 @@ export const DocumentDateView: React.FC<{
       )}
       {/* Dated by VeilCore's word, not confirmed on Midnight from here: never "nothing dates it".
           Nothing while the lookup runs; "try again" only when Midnight couldn't be reached. */}
-      {checker && row.mark === 'reported' && anchor !== 'checking' && (
+      {checker && row.mark === 'reported' && !anchorLookupPending && (
         <Alert
           severity="warning"
           variant="outlined"

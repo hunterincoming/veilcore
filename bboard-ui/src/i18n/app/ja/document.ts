@@ -80,13 +80,13 @@ export const document = {
   'app.doc.compare.tooLarge': 'そのファイルは{mb}MBを超えるため、ここでは読み込めません。',
   'app.doc.check.title': '書類を確認する',
   'app.doc.check.intro':
-    '誰かから書類とこのリンクが届きました。届いたファイルを選んでください。あなたのブラウザが1バイト単位で同じファイルかを確かめ（何もアップロードされません）、公開ブロックチェーンであるMidnight上の日付を読み取ります。',
+    '誰かから書類とこのリンクが届きました。届いたファイルを選んでください。あなたのブラウザが1バイト単位で同じファイルかを確かめ（何もアップロードされません）、公開ブロックチェーンであるMidnight上の日付を表示し、可能な場合はその場で確認します。',
   'app.doc.check.missing': 'このリンクには書類の記録が入っていません。送った人にリンク全体を頼んでください。',
   'app.doc.check.unreadable': 'このリンクは壊れています。もう一度送ってもらってください。',
   'app.doc.check.notDoc': 'このリンクの中身は、ここで確認できる書類の記録ではありません。',
   'app.doc.check.recomputed': '証明コード（リンクからここで計算し直したもの）',
   'app.doc.check.registryOnly':
-    'VeilCoreの登録簿はこの日付を示しています。このページではMidnight上で確認できないため、現時点ではVeilCoreの言葉に基づいています。',
+    'VeilCoreの登録簿はこの日付を示しています。このページではMidnight上で確認できないため、現時点ではVeilCoreの報告のみに基づいています。',
   'app.doc.check.notConfirmed':
     'VeilCoreの登録簿はこの日付を示していますが、このページでは現時点でMidnight上で確認できませんでした。数分後にもう一度確認してから頼るようにしてください。',
   'app.doc.check.notDated':

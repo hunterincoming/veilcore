@@ -84,7 +84,7 @@ export const document = {
   // ---- the check page (DocumentCheck.tsx) ----
   'app.doc.check.title': 'Check a document',
   'app.doc.check.intro':
-    'Someone sent you a document and this link. Pick the file they sent: your browser checks it is the same file, byte for byte (nothing is uploaded), and reads its date on Midnight, a public blockchain.',
+    'Someone sent you a document and this link. Pick the file they sent: your browser checks it is the same file, byte for byte (nothing is uploaded), and shows its date on Midnight, a public blockchain, checking it there itself when it can.',
   'app.doc.check.missing': 'This link has no document record in it. Ask whoever sent it for the whole link.',
   'app.doc.check.unreadable': 'This link is damaged. Ask for it again.',
   'app.doc.check.notDoc': 'What’s in this link isn’t a document record that can be checked here.',
