@@ -14,6 +14,7 @@
 // Run: npx vitest run src/components/site/design.test.ts
 // SPDX-License-Identifier: Apache-2.0
 
+import { MARK_GOLD } from './TagMark';
 import { describe, it, expect } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -327,11 +328,12 @@ describe('the palette: pollen and ink; red only for errors; no green brand', () 
     expect(/<meta name="theme-color" content="(#[0-9A-F]{6})"/.exec(indexHtml)?.[1]).toBe(GROUND);
     // A version on the links, so browsers drop the old tab icon they cached (18-19 Oct: tag -> ring).
     expect(indexHtml).toMatch(/href="\/favicon\.svg\?v=\w+"/);
-    expect(faviconSvg.toLowerCase()).toContain(INK_COLOR.toLowerCase());
-    expect(faviconSvg.toLowerCase()).toContain(POLLEN.toLowerCase());
-    // The mark is a badge with its own colours (ink disc, paper ring, pollen V), so it reads on a
-    // light or dark tab bar alike and needs no dark-mode variant.
+    // The simple V from Mako's logo set (18 Nov), in the mark's gold on a paper tile, so it reads
+    // on a light or dark tab bar alike and needs no dark-mode variant.
+    expect(faviconSvg.toLowerCase()).toContain(MARK_GOLD.toLowerCase());
     expect(faviconSvg.toLowerCase()).toContain('#f6f3ec');
+    // Gold on white is at least 3:1, the floor for a graphic (WCAG 1.4.11).
+    expect(contrast(MARK_GOLD, '#FFFFFF')).toBeGreaterThanOrEqual(3);
   });
 
   it('the hero note points at the strip in the brand colour: gold, never blue, green or red', () => {
