@@ -5,6 +5,7 @@
 // and an agreement menu on every card; those are still here, under "More".
 // SPDX-License-Identifier: Apache-2.0
 
+import { PlanBox } from '../PlanBox';
 import React, { useMemo, useRef, useState } from 'react';
 import { Alert, Box, Button, Collapse, Paper, Snackbar, Stack, Typography } from '@mui/material';
 import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
@@ -24,6 +25,7 @@ import {
   startOver,
   useSealedView,
   RECORDS_KEY,
+  waitingHere,
 } from '../../veilcore/records';
 import { rowStateOf } from '../../veilcore/api-store';
 import { holderKeyIfAny, downloadHolderKey } from '../../veilcore/holder';
@@ -35,7 +37,7 @@ import { importedRecordIds } from '../../veilcore/bulk-import-ledger';
 import { importStampsOn } from '../../veilcore/bulk-import';
 import { useRole, isBreeder, isLab, requestRoleChange } from '../../veilcore/role';
 import { loadAttester } from '../../veilcore/attester-keys';
-import { LAB_SIGNING_ENABLED } from '../../config/network';
+import { LAB_SIGNING_ENABLED, PAID_PLANS_ENABLED } from '../../config/network';
 import { RecordFinder, matchesQuery, sortRecords, type SortKey } from '../RecordFinder';
 import { AppHeader } from '../AppHeader';
 import { OPEN_RECEIVE_EVENT } from '../ClaimTransfer';
@@ -394,6 +396,9 @@ export const AppHome: React.FC = () => {
         {pasteFirst && <PasteBox focus />}
 
         <LoadNoticeBar />
+
+        {/* Paid plans (billing.ts): off unless the build switches them on. */}
+        <PlanBox waiting={PAID_PLANS_ENABLED ? waitingHere(records) : 0} />
 
         {/* Ask's "Do it for me" jobs: one to check, one being done, a record got ready to license. */}
         <JobsOnHome />

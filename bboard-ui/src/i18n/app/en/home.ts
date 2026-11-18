@@ -140,4 +140,38 @@ export const home = {
   'app.home.export.label': 'Download your records and agreements from VeilCore',
   'app.home.export.done':
     "Downloaded: your records, agreements, sharing choices and every inclusion proof. Deliveries, their sample details and lab reports aren't in it: open them from the delivery or the plant's page. Your keys are in your backup file, not in this one.",
+  // PlanBox.tsx, billing.ts, records.ts: paid plans (off unless VITE_PAID_PLANS=on)
+  'app.plan.full':
+    'Your free records are used up, so no new record was made. Everything you already have keeps verifying. Choose a plan on your records page to add more.',
+  'app.plan.unknown':
+    'VeilCore couldn’t check your plan just now, so no new record was made. Check your connection and try again.',
+  'app.plan.box.free': 'Free plan: {held} of {cap} dated records',
+  'app.plan.box.left': 'Free dated records left: {n}',
+  'app.plan.box.countsDeleted': 'Dated records count even if you later delete them.',
+  'app.plan.changeFull':
+    'This change would date a new version, and your free dated records are used up, so nothing was changed. Everything you already have keeps verifying. Choose a plan on your records page to date more.',
+  'app.plan.receiveFull':
+    'There’s no free dated record left to receive this delivery. Your code is kept in this browser: choose a plan on your records page, then enter it again.',
+  'app.plan.box.rules': 'A record’s first correction is free. Receiving a delivery needs one free dated record.',
+  'app.plan.box.paid': 'Your plan: {plan}',
+  'app.plan.name.breeder': 'Breeder',
+  'app.plan.name.lab': 'Lab',
+  'app.plan.name.free': 'Free',
+  'app.plan.choose': 'Choose a plan',
+  'app.plan.buy.breeder': 'Breeder plan',
+  'app.plan.buy.lab': 'Lab plan',
+  'app.plan.opens':
+    'Opens Paddle’s page in a new tab. Paddle sells the plans for VeilCore and takes the payment; VeilCore never sees your card or your email.',
+  'app.plan.keep': 'Whatever you choose, every record you already have keeps verifying.',
+  'app.plan.recheck': 'Paid? Check again',
+  'app.plan.err.off': 'Plans can’t be bought from this browser yet.',
+  'app.plan.err.unreachable': 'Paddle’s page couldn’t be opened just now. Try again shortly.',
+  'app.plan.err.busy': 'Too many tries in an hour. Try again later.',
+  'app.plan.err.noRecord': 'Save a record first: a plan is for the records you date.',
+  'app.plan.err.blocked': 'Your browser blocked Paddle’s page. Allow pop-ups for this site, then try again.',
+  'app.plan.buy.other': '{plan} plan',
+  'app.plan.importFull':
+    'This file has {n} records new to VeilCore, and your free plan can date {left} more. Nothing was imported. Choose a plan on your records page to date more.',
+  'app.plan.box.full':
+    'Your free records are used up. Everything you already have keeps verifying. Choose a plan to add more.',
 };

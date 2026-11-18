@@ -243,3 +243,13 @@ export const DOCUMENT_CHAIN_ENABLED = true;
  * DEVICE_ONLY_CLAIMS_RUN_ON_MAINNET). Off, the record's page says proving isn't offered for it.
  */
 export const DEVICE_ONLY_CLAIMS_ENABLED = true;
+
+/**
+ * Paid plans (docs/billing.md; the registry's billing.js). Off unless the build says
+ * VITE_PAID_PLANS=on, and the registry it talks to has BILLING=on. Off, nothing here shows and
+ * nothing is checked: the registry's ceiling is the same for everyone. On, a holder without a
+ * paid plan keeps the free number of records; adding past it stops (nothing held is touched,
+ * every record keeps verifying), and a plan is bought on Paddle's own page, opened by the
+ * registry: no payment company's code runs on this site.
+ */
+export const PAID_PLANS_ENABLED: boolean = import.meta.env.VITE_PAID_PLANS === 'on';

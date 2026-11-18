@@ -125,4 +125,39 @@ export const home = {
   'app.home.export.label': 'VeilCoreから記録と契約をダウンロード',
   'app.home.export.done':
     'ダウンロードしました：記録、契約、共有の選択、すべての包含証明。送付、そのサンプル情報、検査報告書は入っていません。送付または植物のページから開いてください。鍵はこのファイルではなく、バックアップファイルにあります。',
+  // PlanBox.tsx, billing.ts, records.ts: paid plans (off unless VITE_PAID_PLANS=on)
+  'app.plan.full':
+    '無料の記録数を使い切ったため、新しい記録は作成されませんでした。すでにある記録はすべて引き続き確認できます。さらに追加するには、記録のページでプランを選んでください。',
+  'app.plan.unknown':
+    '現在VeilCoreがプランを確認できなかったため、新しい記録は作成されませんでした。接続を確認して、もう一度お試しください。',
+  'app.plan.box.free': '無料プラン：日付を付けた記録 {cap}件中{held}件',
+  'app.plan.box.left': '無料で日付を付けられる残り：{n}件',
+  'app.plan.box.countsDeleted': '日付を付けた記録は、後で削除しても数に含まれます。',
+  'app.plan.changeFull':
+    'この変更は新しい版に日付を付けることになりますが、無料の日付付き記録を使い切っているため、何も変更されていません。お持ちの記録はすべて引き続き確認できます。さらに日付を付けるには、記録ページでプランを選んでください。',
+  'app.plan.receiveFull':
+    'この受け渡しを受け取るための無料の日付付き記録が残っていません。コードはこのブラウザに保存されています。記録ページでプランを選んでから、もう一度入力してください。',
+  'app.plan.box.rules': '記録の最初の訂正は無料です。受け渡しを受け取るには、空きのある日付付き記録が1つ必要です。',
+  'app.plan.box.paid': 'ご利用のプラン：{plan}',
+  'app.plan.name.breeder': '育成者',
+  'app.plan.name.lab': '検査機関',
+  'app.plan.name.free': '無料',
+  'app.plan.choose': 'プランを選ぶ',
+  'app.plan.buy.breeder': '育成者プラン',
+  'app.plan.buy.lab': '検査機関プラン',
+  'app.plan.opens':
+    'Paddleのページを新しいタブで開きます。PaddleがVeilCoreに代わってプランを販売し、支払いを受け取ります。VeilCoreがカード情報やメールアドレスを見ることはありません。',
+  'app.plan.keep': 'どれを選んでも、すでにある記録はすべて引き続き確認できます。',
+  'app.plan.recheck': '支払い済みですか？もう一度確認',
+  'app.plan.err.off': 'このブラウザからはまだプランを購入できません。',
+  'app.plan.err.unreachable': 'Paddleのページを開けませんでした。少ししてからもう一度お試しください。',
+  'app.plan.err.busy': '1時間以内の試行回数が多すぎます。後でもう一度お試しください。',
+  'app.plan.err.noRecord': '先に記録を1件保存してください。プランは日付を付ける記録のためのものです。',
+  'app.plan.err.blocked':
+    'ブラウザがPaddleのページをブロックしました。このサイトのポップアップを許可して、もう一度お試しください。',
+  'app.plan.buy.other': '{plan}プラン',
+  'app.plan.importFull':
+    'このファイルにはVeilCoreにとって新しい記録が{n}件ありますが、無料プランで日付を付けられるのはあと{left}件です。何も取り込まれませんでした。さらに日付を付けるには、記録のページでプランを選んでください。',
+  'app.plan.box.full':
+    '無料の記録数を使い切りました。すでにある記録はすべて引き続き確認できます。さらに追加するにはプランを選んでください。',
 } satisfies Partial<AppTranslation>;
