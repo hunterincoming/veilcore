@@ -120,8 +120,9 @@ export const ROYALTIES_RUN_ON_MAINNET = true;
  * cell says it is built and not yet tried on the main network (m.live.signed.main), never "Yes".
  * Hunter turns it on in a reviewed commit after that first run, never before: then the
  * veilcore.org cell says "Yes" on every build (m.live.signed.live), a fact about veilcore.org.
- * On since RUN_DATE: all 18 steps of docs/lab-mainnet-test.md passed on veilcore.org; the
- * signature from step 12 was published at block RUN_BLOCK.
+ * On since 18 November 2026: all 18 steps of docs/lab-mainnet-test.md passed on veilcore.org
+ * (step 13 on a second run that day, after a wording fix); the signature from step 12 of the
+ * first run was published at block 3514926.
  */
 export const LAB_SIGNING_RUN_ON_MAINNET = true;
 

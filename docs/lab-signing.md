@@ -6,8 +6,8 @@ network in `LAB_SIGNING_OFF`). It is on veilcore.org from the first site deploy 
 switch. A viability result (below) is the exception: test network only
 (`VIABILITY_RESULTS_ENABLED`). It ships after lab signatures went private (registry
 `private-lab-signatures-v1`, which every site deploy requires). Live on veilcore.org since
-RUN_DATE: a lab key was made there, one result signed and checked, its signature confirmed hidden
-until the holder shared it, and the result withdrawn (`LAB_SIGNING_RUN_ON_MAINNET` in
+18 November 2026: a lab key was made there, one result signed and checked, its signature
+confirmed hidden until the holder shared it, and the result withdrawn (`LAB_SIGNING_RUN_ON_MAINNET` in
 `bboard-ui/src/config/copy.ts`; the steps: [lab-mainnet-test.md](lab-mainnet-test.md)).
 
 ## What it is for
