@@ -33,8 +33,7 @@ import { EvidenceBundle } from '../EvidenceBundle';
 import { useRecordKeys } from '../../veilcore/record-keys';
 import { useT } from '../../i18n/app';
 import { useI18n } from '../../i18n';
-import { recordProof } from '../verify/useAnchorCheck';
-import type { ProofState } from '../../veilcore/proofs';
+import { useRecordDate } from '../verify/useAnchorCheck';
 import { DocumentDate, DocumentFacts, Fact, FileCompare, kindOrTypeWords, seen } from './DocumentParts';
 import { ChainView } from './ChainView';
 import { schemaWords, slotWords } from './NumbersFields';
@@ -97,16 +96,12 @@ export const DocumentDetail: React.FC<{ record: StrainRecord }> = ({ record }) =
   // The links open in the holder's language (?lang=), so an inspector reads it as they do.
   const { lang } = useI18n();
   // Until VeilCore reports the batch on Midnight, a checker is told not to rely on the link.
-  // Only the registry's proof is read here: the date row below does the Midnight check.
-  const [dateProof, setDateProof] = useState<ProofState | 'checking'>('checking');
-  useEffect(() => {
-    let live = true;
-    void recordProof(record.recordFingerprint).then((p) => live && setDateProof(p));
-    return () => {
-      live = false;
-    };
-  }, [record.recordFingerprint]);
-  const notDatedYet = dateProof !== 'checking' && dateProof.status !== 'anchor-reported';
+  // The same date answer the check page reads (shared and cached, so no extra lookups): the
+  // link isn't ready while it has no batch reported on Midnight, or Midnight disagrees with it.
+  const { proof: dateProof, anchor: dateAnchor } = useRecordDate(record.recordFingerprint);
+  const notDatedYet =
+    dateProof !== 'checking' &&
+    (dateProof.status !== 'anchor-reported' || (dateAnchor !== 'checking' && dateAnchor?.status === 'failed'));
   const [copied, setCopied] = useState(false);
   const [linkError, setLinkError] = useState<string>();
   const keys = useRecordKeys()[record.id];

@@ -84,11 +84,13 @@ export const document = {
   // ---- the check page (DocumentCheck.tsx) ----
   'app.doc.check.title': 'Check a document',
   'app.doc.check.intro':
-    'Someone sent you a document and this link. Pick the file they sent: your browser works out its SHA-256 (nothing is uploaded) and checks it against the sealed record in the link and its date on Midnight.',
+    'Someone sent you a document and this link. Pick the file they sent: your browser checks it is the same file, byte for byte (nothing is uploaded), and reads its date on Midnight, a public blockchain.',
   'app.doc.check.missing': 'This link has no document record in it. Ask whoever sent it for the whole link.',
   'app.doc.check.unreadable': 'This link is damaged. Ask for it again.',
   'app.doc.check.notDoc': 'What’s in this link isn’t a document record that can be checked here.',
   'app.doc.check.recomputed': 'Proof code, recomputed here from the link',
+  'app.doc.check.registryOnly':
+    'VeilCore’s registry gives this date. This page can’t check it on Midnight, so for now it rests on VeilCore’s word.',
   'app.doc.check.notConfirmed':
     'VeilCore’s registry gives this date, but this page couldn’t confirm it on Midnight just now. Try again in a few minutes before relying on it.',
   'app.doc.check.notDated':

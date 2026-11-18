@@ -81,12 +81,14 @@ export const document = {
   'app.doc.compare.tooLarge': 'Ese archivo pesa más de {mb} MB, así que no se puede leer aquí.',
   'app.doc.check.title': 'Comprobar un documento',
   'app.doc.check.intro':
-    'Alguien le envió un documento y este enlace. Elija el archivo que le enviaron: su navegador calcula su SHA-256 (no se sube nada) y lo comprueba con el registro sellado del enlace y su fecha en Midnight.',
+    'Alguien le envió un documento y este enlace. Elija el archivo que le enviaron: su navegador comprueba que es el mismo archivo, byte por byte (no se sube nada), y lee su fecha en Midnight, una cadena de bloques pública.',
   'app.doc.check.missing':
     'Este enlace no contiene un registro de documento. Pida el enlace completo a quien se lo envió.',
   'app.doc.check.unreadable': 'Este enlace está dañado. Pídalo de nuevo.',
   'app.doc.check.notDoc': 'Lo que hay en este enlace no es un registro de documento que se pueda comprobar aquí.',
   'app.doc.check.recomputed': 'Código de prueba, recalculado aquí a partir del enlace',
+  'app.doc.check.registryOnly':
+    'El registro de VeilCore da esta fecha. Esta página no puede comprobarla en Midnight, así que por ahora depende de la palabra de VeilCore.',
   'app.doc.check.notConfirmed':
     'El registro de VeilCore da esta fecha, pero esta página no pudo confirmarla en Midnight en este momento. Vuelva a intentarlo en unos minutos antes de confiar en ella.',
   'app.doc.check.notDated':

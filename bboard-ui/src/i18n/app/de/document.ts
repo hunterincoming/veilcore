@@ -83,11 +83,13 @@ export const document = {
   'app.doc.compare.tooLarge': 'Diese Datei ist größer als {mb} MB und kann hier nicht gelesen werden.',
   'app.doc.check.title': 'Ein Dokument prüfen',
   'app.doc.check.intro':
-    'Jemand hat Ihnen ein Dokument und diesen Link geschickt. Wählen Sie die Datei, die Sie bekommen haben: Ihr Browser berechnet ihren SHA-256 (nichts wird hochgeladen) und prüft sie gegen den versiegelten Datensatz im Link und sein Datum auf Midnight.',
+    'Jemand hat Ihnen ein Dokument und diesen Link geschickt. Wählen Sie die Datei, die Sie bekommen haben: Ihr Browser prüft, ob es Byte für Byte dieselbe Datei ist (nichts wird hochgeladen), und liest ihr Datum auf Midnight, einer öffentlichen Blockchain.',
   'app.doc.check.missing': 'In diesem Link ist kein Dokument-Datensatz. Bitten Sie den Absender um den ganzen Link.',
   'app.doc.check.unreadable': 'Dieser Link ist beschädigt. Bitten Sie erneut darum.',
   'app.doc.check.notDoc': 'Was in diesem Link steht, ist kein Dokument-Datensatz, der hier geprüft werden kann.',
   'app.doc.check.recomputed': 'Prüfcode, hier aus dem Link neu berechnet',
+  'app.doc.check.registryOnly':
+    'Das Register von VeilCore nennt dieses Datum. Diese Seite kann es nicht auf Midnight prüfen; vorerst beruht es auf VeilCores Wort.',
   'app.doc.check.notConfirmed':
     'Das Register von VeilCore nennt dieses Datum, aber diese Seite konnte es gerade nicht auf Midnight bestätigen. Versuchen Sie es in ein paar Minuten erneut, bevor Sie sich darauf verlassen.',
   'app.doc.check.notDated':

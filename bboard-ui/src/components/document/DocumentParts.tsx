@@ -192,10 +192,16 @@ export const DocumentDateView: React.FC<{
           {row.sub}
         </Typography>
       )}
-      {/* Dated by VeilCore's word, not confirmed on Midnight from here: never "nothing dates it". */}
-      {checker && row.mark === 'reported' && (
-        <Alert severity="warning" variant="outlined" sx={{ mt: 1 }} data-document-not-confirmed="">
-          {tr.t('app.doc.check.notConfirmed')}
+      {/* Dated by VeilCore's word, not confirmed on Midnight from here: never "nothing dates it".
+          Nothing while the lookup runs; "try again" only when Midnight couldn't be reached. */}
+      {checker && row.mark === 'reported' && anchor !== 'checking' && (
+        <Alert
+          severity="warning"
+          variant="outlined"
+          sx={{ mt: 1 }}
+          data-document-not-confirmed={anchor?.status === 'unreachable' ? 'unreachable' : 'registry-only'}
+        >
+          {tr.t(anchor?.status === 'unreachable' ? 'app.doc.check.notConfirmed' : 'app.doc.check.registryOnly')}
         </Alert>
       )}
       {checker && row.mark !== 'done' && row.mark !== 'reported' && proof !== 'checking' && (

@@ -30,7 +30,8 @@ test('a document link: not ready until dated, opens in the holder’s language, 
 }) => {
   const errors = watch(page);
   const held: { records: Rec[] } = { records: [] };
-  let dated = false;
+  // none: not in a batch; pending: in a batch with no anchor; anchored: the registry reports it on Midnight.
+  let stage: 'none' | 'pending' | 'anchored' = 'none';
   await page.addInitScript((holder) => {
     localStorage.setItem('veilcore.holder.v1', holder);
     localStorage.setItem('veilcore.role.v1', 'breeder');
@@ -56,8 +57,9 @@ test('a document link: not ready until dated, opens in the holder’s language, 
     const url = new URL(route.request().url());
 
     const fp = decodeURIComponent(url.pathname.split('/').pop() ?? '');
-    if (!dated) return json(route, 404, { error: 'not in a batch yet' });
+    if (stage === 'none') return json(route, 404, { error: 'not in a batch yet' });
     const batch = await buildBatch([fp], 'B-20261118-INSP');
+    if (stage === 'pending') return json(route, 200, batch.proofs[fp]);
     const anchor = {
       chain: 'midnight',
       network: 'preprod',
@@ -86,8 +88,13 @@ test('a document link: not ready until dated, opens in the holder’s language, 
   await page.getByRole('button', { name: 'Copy link: proves you had this file' }).click();
   expect(await page.evaluate(() => navigator.clipboard.readText())).toMatch(/\/check-document#d=/);
 
+  // In a batch, but nothing reported on Midnight yet: still not ready.
+  stage = 'pending';
+  await page.reload();
+  await expect(page.locator('[data-share-not-dated]')).toContainText('Not dated yet');
+
   // Dated: the warning goes, and in Spanish the link opens in Spanish.
-  dated = true;
+  stage = 'anchored';
   await page.goto(`${recordUrl}?lang=es`);
   await expect(page.locator('[data-document-page]')).toBeVisible();
   await page.getByRole('button', { name: 'Copiar enlace: demuestra que tenía este archivo' }).click();
@@ -100,7 +107,11 @@ test('a document link: not ready until dated, opens in the holder’s language, 
   const inspector = page;
   await inspector.goto(link.replace(/^https?:\/\/[^/]+/, ''));
   await expect(inspector.getByRole('heading', { name: 'Comprobar un documento' })).toBeVisible();
-  await expect(inspector.locator('[data-document-not-confirmed]')).toContainText('no pudo confirmarla en Midnight');
+  // Midnight is out of reach here: the date rests on VeilCore's word, and the page says so.
+  await expect(inspector.locator('[data-document-not-confirmed]')).toBeVisible();
+  await expect(inspector.locator('[data-document-not-confirmed]')).toContainText(
+    'El registro de VeilCore da esta fecha',
+  );
   await expect(inspector.locator('[data-document-not-dated]')).toHaveCount(0);
   expectNoErrors(errors);
 });

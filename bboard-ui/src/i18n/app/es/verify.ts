@@ -322,7 +322,7 @@ export const verify = {
   'app.verify.who.file.noMatch': 'Su propio dispositivo: el archivo que eligió no es el sellado. No se envió nada.',
   'app.verify.who.file.match': 'Su propio dispositivo: el archivo que eligió es el sellado. No se envió nada.',
   'app.verify.who.file.none': 'No se selló ningún archivo con este documento.',
-  'app.verify.who.file.waiting': 'Su propio dispositivo, cuando elige el archivo abajo. No se envía nada.',
+  'app.verify.who.file.waiting': 'Su propio dispositivo, cuando elige el archivo arriba. No se envía nada.',
   'app.verify.who.signedUnboundMatched':
     'Una clave registrada como {who}, según informa el registro de VeilCore. El operador de VeilCore cotejó el nombre con un listado público (abajo). El enlace no lleva un código de prueba para comprobar la firma.',
   'app.verify.who.signedMatched':

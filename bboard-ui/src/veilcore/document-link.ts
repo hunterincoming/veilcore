@@ -27,6 +27,7 @@
 // where a page was opened from, and a long chain isn't repeated in every link on the page.
 // SPDX-License-Identifier: Apache-2.0
 
+import { LANGUAGE_CODES } from '../config/languages';
 import { base64urlnopad } from '@scure/base';
 import { fingerprintRecord } from './commitment';
 import { verifyPath } from './verify-link';
@@ -83,7 +84,9 @@ export const appRecordOfFields = (f: DocumentFields): DocumentRecordLike & { par
 
 /** The link for a document record the holder has: its sealed fields after the #. */
 /** `?lang=xx` for a language other than English, so the link opens in the sender's language. */
-const langQuery = (lang?: string): string => (lang && /^[a-z]{2}$/.test(lang) && lang !== 'en' ? `?lang=${lang}` : '');
+// A draft language goes too: the holder chose it, and the page shows the same draft notice.
+const langQuery = (lang?: string): string =>
+  lang && (LANGUAGE_CODES as readonly string[]).includes(lang) && lang !== 'en' ? `?lang=${lang}` : '';
 
 export const documentCheckLink = (record: DocumentRecordLike, origin: string, lang?: string): string => {
   const fields = documentFieldsOf(record);

@@ -71,7 +71,7 @@ export const document = {
     'Le lien montre à quiconque l’a tout ce que contient cet enregistrement de document : titre, type, émetteur, référence, date, le nom et le SHA-256 de chaque fichier, les noms des enregistrements qu’il concerne et vos notes. Jamais le fichier lui-même.',
   'app.doc.share.copy': 'Copier le lien : prouve que vous aviez ce fichier',
   'app.doc.share.notDatedYet':
-    'Pas encore daté. Qui ouvre le lien maintenant lira qu’il ne faut pas s’y fier. Envoyez-le quand cette page affiche une date.',
+    'Pas encore daté. Toute personne qui ouvre le lien maintenant lira qu’il ne faut pas s’y fier. Envoyez-le une fois que cette page affiche une date.',
   'app.doc.share.copied': 'Copié.',
   'app.doc.compare.title': 'Est-ce le même fichier ?',
   'app.doc.compare.text': 'Choisissez un fichier à comparer avec ceux scellés ici. Il n’est pas envoyé.',
@@ -81,12 +81,14 @@ export const document = {
   'app.doc.compare.tooLarge': 'Ce fichier dépasse {mb} Mo, il ne peut donc pas être lu ici.',
   'app.doc.check.title': 'Vérifier un document',
   'app.doc.check.intro':
-    'Quelqu’un vous a envoyé un document et ce lien. Choisissez le fichier reçu : votre navigateur calcule son SHA-256 (rien n’est envoyé) et le vérifie par rapport à l’enregistrement scellé du lien et à sa date sur Midnight.',
+    'Quelqu’un vous a envoyé un document et ce lien. Choisissez le fichier reçu : votre navigateur vérifie que c’est le même fichier, octet pour octet (rien n’est envoyé), et lit sa date sur Midnight, une blockchain publique.',
   'app.doc.check.missing':
     'Ce lien ne contient aucun enregistrement de document. Demandez le lien complet à la personne qui l’a envoyé.',
   'app.doc.check.unreadable': 'Ce lien est endommagé. Redemandez-le.',
   'app.doc.check.notDoc': 'Ce que contient ce lien n’est pas un enregistrement de document vérifiable ici.',
   'app.doc.check.recomputed': 'Code de preuve, recalculé ici à partir du lien',
+  'app.doc.check.registryOnly':
+    'Le registre de VeilCore donne cette date. Cette page ne peut pas la vérifier sur Midnight : pour l’instant, elle repose sur la parole de VeilCore.',
   'app.doc.check.notConfirmed':
     'Le registre de VeilCore donne cette date, mais cette page n’a pas pu la confirmer sur Midnight pour l’instant. Réessayez dans quelques minutes avant de vous y fier.',
   'app.doc.check.notDated':
