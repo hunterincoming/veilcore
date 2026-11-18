@@ -489,7 +489,7 @@ describe("what's live where", () => {
     const signedRun = /export const LAB_SIGNING_RUN_ON_MAINNET = (true|false);/.exec(
       fs.readFileSync(path.join(SRC, 'config/copy.ts'), 'utf8'),
     )?.[1];
-    expect(signedRun).toBe('false');
+    expect(signedRun).toBe('true');
     expect(e['m.live.signed.main']).toBe('Built, not yet tried on the main network.');
     expect(e['m.live.signed.main']).not.toMatch(/^Yes/);
     expect(e['m.live.signed.test']).toMatch(/^Yes\. The lab signs with its own key\./);

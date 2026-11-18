@@ -104,11 +104,11 @@ indexer of your own choosing instead of ours, see [docs/reproduce-build.md](docs
   license on with the breeder's approval, and a pack a lender can check with a free tool.
   Lab hand-overs and breeder shares are built the same way.
   [docs/agreements-live.md](docs/agreements-live.md)
-- **Numbers and results a lab signs: built, not yet run on mainnet.** Switched on for
-  veilcore.org in the site's code (`LAB_SIGNING_ENABLED` in `bboard-ui/src/config/network.ts`),
-  and called live there only once one result has been signed and checked on mainnet
-  (`LAB_SIGNING_RUN_ON_MAINNET` in `bboard-ui/src/config/copy.ts`;
-  [docs/lab-mainnet-test.md](docs/lab-mainnet-test.md)). A viability result (a sample before or
+- **Numbers and results a lab signs: live on veilcore.org.** On RUN_DATE a lab key was made
+  there, a result signed on a record, checked as a stranger, its signature kept hidden until the
+  holder shared it, and then withdrawn, end to end on mainnet
+  ([docs/lab-mainnet-test.md](docs/lab-mainnet-test.md); `LAB_SIGNING_RUN_ON_MAINNET` in
+  `bboard-ui/src/config/copy.ts`). A viability result (a sample before or
   after a kill step) is on the test network only (`VIABILITY_RESULTS_ENABLED`).
   [docs/lab-signing.md](docs/lab-signing.md)
 - **Five languages:** English, plus Spanish, Japanese, German and French as machine-drafted

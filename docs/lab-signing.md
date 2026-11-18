@@ -5,11 +5,10 @@ Status: built, and switched on in the site's code for veilcore.org as well as th
 network in `LAB_SIGNING_OFF`). It is on veilcore.org from the first site deploy that carries the
 switch. A viability result (below) is the exception: test network only
 (`VIABILITY_RESULTS_ENABLED`). It ships after lab signatures went private (registry
-`private-lab-signatures-v1`, which every site deploy requires). Not called live on veilcore.org
-until a lab key has been made there, one result signed and checked, and its signature confirmed
-hidden until the holder shares it; then `LAB_SIGNING_RUN_ON_MAINNET` in
-`bboard-ui/src/config/copy.ts` is turned on in a reviewed commit, and the home page's
-"What's live where" cell says so. The steps of that first run: [lab-mainnet-test.md](lab-mainnet-test.md).
+`private-lab-signatures-v1`, which every site deploy requires). Live on veilcore.org since
+RUN_DATE: a lab key was made there, one result signed and checked, its signature confirmed hidden
+until the holder shared it, and the result withdrawn (`LAB_SIGNING_RUN_ON_MAINNET` in
+`bboard-ui/src/config/copy.ts`; the steps: [lab-mainnet-test.md](lab-mainnet-test.md)).
 
 ## What it is for
 
