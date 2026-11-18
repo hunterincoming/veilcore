@@ -75,12 +75,12 @@ export const RecordSaveNotices: React.FC<{ record: StrainRecord; onShare?: () =>
     if (!window.confirm(t(how === 'undo' ? 'app.sealed.unsaved.undoConfirm' : 'app.sealed.unsaved.discardConfirm')))
       return;
     setBusy(true);
-    const out = await discardUnsaved(record.id);
+    const out = await discardUnsaved(record.id, how);
     setBusy(false);
     if (out === 'busy') setLetGoProblem(t('app.sealed.unsaved.letGoBusy'));
     else if (out === 'unknown') setLetGoProblem(t('app.sealed.unsaved.letGoUnknown'));
     else if (out === 'reload-failed') setLetGoProblem(t('app.sealed.unsaved.undoReloadFailed'));
-    else if (out === 'delete') setLetGoProblem(t('app.sealed.unsaved.letGoChanged'));
+    else if (out === 'changed') setLetGoProblem(t('app.sealed.unsaved.letGoChanged'));
     else if (how === 'discard') void navigate('/records');
   };
 

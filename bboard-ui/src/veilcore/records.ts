@@ -1549,15 +1549,22 @@ export const letGoNow = async (id: string): Promise<LetGo | 'busy'> => {
   if (deleting.has(id)) return 'busy';
   if (!(await savesSettledInTime())) return 'busy';
   if (!(await datingSettledInTime())) return 'busy';
+  const how = letGoOf(id);
+  if (how !== 'discard') return how;
+  // A send whose answer was lost may still have landed, and the read behind letGoOf can be older
+  // than it: nothing is discarded on anything but a read made now.
+  if (!(await hydrateAnswered())) return 'unknown';
   return letGoOf(id);
 };
 
 /** What discardUnsaved did: let it go, or why nothing changed. */
-export type DiscardOutcome = 'ok' | 'busy' | 'unknown' | 'delete' | 'reload-failed';
+export type DiscardOutcome = 'ok' | 'busy' | 'unknown' | 'changed' | 'reload-failed';
 
-export const discardUnsaved = async (id: string): Promise<DiscardOutcome> => {
+/** `confirmed`: what the holder agreed to; anything else now and nothing is done ('changed'). */
+export const discardUnsaved = async (id: string, confirmed: 'undo' | 'discard'): Promise<DiscardOutcome> => {
   const how = await letGoNow(id);
-  if (how === 'busy' || how === 'unknown' || how === 'delete') return how;
+  if (how === 'busy' || how === 'unknown') return how;
+  if (how !== confirmed) return 'changed';
   const queued = outboxRecords()[id];
   const deadLink = linksDeletedHere.delete(id);
   if (deadLink) linksDeletedListeners.forEach((l) => l());

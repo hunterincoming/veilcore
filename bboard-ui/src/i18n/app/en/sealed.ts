@@ -205,8 +205,7 @@ export const sealed = {
   'app.sealed.unsaved.letGoUnknown': 'VeilCore couldn’t be reached, so nothing was removed. Try again.',
   'app.sealed.unsaved.undoReloadFailed':
     'VeilCore couldn’t be reached to show its copy again. Your change is still kept in this browser and isn’t saved.',
-  'app.sealed.unsaved.letGoChanged':
-    'This record has reached VeilCore since the page opened. Nothing was removed; press the button again to delete it.',
+  'app.sealed.unsaved.letGoChanged': 'Something changed; nothing was done. Look again and choose.',
   'app.sealed.sendNotSaved':
     'This record isn’t saved on VeilCore yet, so it can’t be sent. Save a backup and check it first.',
 };

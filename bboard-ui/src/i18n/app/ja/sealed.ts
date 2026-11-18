@@ -183,8 +183,7 @@ export const sealed = {
   'app.sealed.unsaved.letGoUnknown': 'VeilCoreに接続できなかったため、何も削除していません。もう一度お試しください。',
   'app.sealed.unsaved.undoReloadFailed':
     'VeilCoreに接続できず、そのコピーを再表示できませんでした。変更はこのブラウザに残っており、保存されていません。',
-  'app.sealed.unsaved.letGoChanged':
-    'ページを開いた後にこの記録がVeilCoreに届きました。何も削除していません。削除するにはもう一度ボタンを押してください。',
+  'app.sealed.unsaved.letGoChanged': '状況が変わったため、何も行われていません。もう一度確認して選んでください。',
   'app.sealed.sendNotSaved':
     'この記録はまだVeilCoreに保存されていないため、送れません。先にバックアップを保存して確認してください。',
 } satisfies Partial<AppTranslation>;

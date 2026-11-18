@@ -200,8 +200,7 @@ export const sealed = {
     'No se pudo contactar con VeilCore, así que no se eliminó nada. Inténtelo de nuevo.',
   'app.sealed.unsaved.undoReloadFailed':
     'No se pudo contactar con VeilCore para volver a mostrar su copia. Su cambio sigue guardado en este navegador y no está guardado en VeilCore.',
-  'app.sealed.unsaved.letGoChanged':
-    'Este registro llegó a VeilCore después de abrir la página. No se eliminó nada; pulse el botón otra vez para eliminarlo.',
+  'app.sealed.unsaved.letGoChanged': 'Algo cambió; no se hizo nada. Vuelva a mirar y elija.',
   'app.sealed.sendNotSaved':
     'Este registro aún no está guardado en VeilCore, así que no se puede enviar. Guarde una copia de seguridad y compruébela primero.',
 } satisfies Partial<AppTranslation>;

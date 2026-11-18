@@ -205,8 +205,7 @@ export const sealed = {
   'app.sealed.unsaved.letGoUnknown': 'VeilCore n’a pas pu être joint, donc rien n’a été supprimé. Réessayez.',
   'app.sealed.unsaved.undoReloadFailed':
     'VeilCore n’a pas pu être joint pour réafficher sa copie. Votre modification reste dans ce navigateur et n’est pas enregistrée.',
-  'app.sealed.unsaved.letGoChanged':
-    'Cet enregistrement a atteint VeilCore depuis l’ouverture de la page. Rien n’a été supprimé ; appuyez de nouveau sur le bouton pour le supprimer.',
+  'app.sealed.unsaved.letGoChanged': 'Quelque chose a changé ; rien n’a été fait. Regardez à nouveau et choisissez.',
   'app.sealed.sendNotSaved':
     'Cet enregistrement n’est pas encore enregistré sur VeilCore, il ne peut donc pas être envoyé. Enregistrez d’abord une copie de secours et vérifiez-la.',
 } satisfies Partial<AppTranslation>;

@@ -207,7 +207,7 @@ export const sealed = {
   'app.sealed.unsaved.undoReloadFailed':
     'VeilCore war nicht erreichbar, um seine Kopie wieder anzuzeigen. Ihre Änderung bleibt in diesem Browser und ist nicht gespeichert.',
   'app.sealed.unsaved.letGoChanged':
-    'Dieser Eintrag hat VeilCore erreicht, seit die Seite geöffnet wurde. Nichts wurde entfernt; drücken Sie die Schaltfläche erneut, um ihn zu löschen.',
+    'Etwas hat sich geändert; es wurde nichts getan. Sehen Sie noch einmal nach und wählen Sie erneut.',
   'app.sealed.sendNotSaved':
     'Dieser Datensatz ist noch nicht bei VeilCore gespeichert und kann daher nicht gesendet werden. Speichern und prüfen Sie zuerst eine Sicherungskopie.',
 } satisfies Partial<AppTranslation>;

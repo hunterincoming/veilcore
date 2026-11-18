@@ -163,7 +163,7 @@ describe('dating first (CONTRACT.md #38)', () => {
     const H = (await A.run(() => A.m.holder.holderKeyIfAny())) as string;
     await A.run(async () => {
       await A.m.records.hydrate();
-      await A.m.records.discardUnsaved(record.id);
+      await A.m.records.discardUnsaved(record.id, 'discard');
     });
     // Discarding never takes a dated proof code (its keys are what prove the date).
     expect(reg.rowsOf(H).some((r) => r.id === record.id)).toBe(true);
