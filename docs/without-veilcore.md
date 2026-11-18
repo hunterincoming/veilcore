@@ -1,4 +1,4 @@
-# If VeilCore disappears (23 Oct 2026, updated 14 Nov 2026)
+# If VeilCore disappears (23 Oct 2026, updated 18 Nov 2026)
 
 A standard people can rely on has to keep working if the company behind it stops: shut down,
 bought, or just offline for a week. This page says, piece by piece, what a holder can still
@@ -20,6 +20,11 @@ and from 14 November the registry (`veilcore-api`). That closes the gap in code,
 in practice: nobody but us runs a registry or a fee service, so if ours stop, there is nowhere
 to save or date a new record until someone sets both up.
 
+The files that check each batch's dates (its root, Bitcoin proof and RFC 3161 token) were
+only on our registry. From 18 November anyone can keep their own copy and check it with no
+VeilCore server ([run a witness](https://github.com/hunterincoming/veilcore-api/blob/main/docs/run-a-witness.md)).
+Nobody outside VeilCore does yet.
+
 ## Piece by piece
 
 | What | Where it lives | Without VeilCore |
@@ -27,7 +32,8 @@ to save or date a new record until someone sets both up.
 | The record (name, breeder, notes, salts) | Sealed on our registry; **and, from 23 Oct, in the backup file** (`recordData`) | ✅ In the file. Restoring it puts the records back, each checked against its proof code |
 | The keys (record keys, vault key, holder key) | The browser and the backup file | ✅ In the file |
 | The inclusion proof (record → batch root) | Our registry; **and, from 23 Oct, in the backup file** (`proofs`), once the batch is sealed | ✅ In the file, for every record batched before the file was saved. A record saved after its last backup has to wait for the next one |
-| The batch root's date | On Midnight mainnet (public), in the anchor transaction. The first batch is also stamped on Bitcoin | ✅ Public. Any Midnight indexer or explorer shows it |
+| The batch root's date | On Midnight mainnet (public), in the anchor transaction. Every batch is also stamped on Bitcoin (OpenTimestamps) and, from 6 Nov, by an RFC 3161 time-stamping authority | ✅ Public. Any Midnight indexer or explorer shows it |
+| The batch roots and the files that check their dates (root, Bitcoin `.ots`, RFC 3161 token) | Our registry; and, from 18 Nov, any copy made with `scripts/mirror` in [veilcore-api](https://github.com/hunterincoming/veilcore-api) | ⚠️ Anyone can copy every batch and check it with Node alone. The copy is append-only: if our registry ever serves a changed root, anchor, token or proof, it keeps both and raises the alarm. Our own scheduled copy (a public repository GitHub updates) is ready but not switched on. A copy we run only shows what we served and when; it is independent only when someone else runs it, and nobody outside VeilCore does yet |
 | Checking a record | `npx veilcore-records verify` (open source, on npm), the evidence bundle's `verify.html` and `verify.py`, the Python and Rust implementations | ✅ No server, no account. Three implementations, all written by us so far |
 | The format itself | SPEC.md in veilcore-sdk, Apache-2.0 | ✅ Anyone can implement it from the text and the 181 vectors |
 | The website | This repository, Apache-2.0; every release has a manifest and can be rebuilt | ⚠️ Anyone can host it, but it needs a registry and a fee service to save and date records |
@@ -75,3 +81,9 @@ is gone, and leaving them out keeps it small. The backup file is the thing to ke
    vectors and the runner (`conformance/run-cli.mjs`) test any program that reads a JSON job
    on standard input and writes its answer on standard output. What's missing is a person outside VeilCore doing it.
 6. **A home for the spec that isn't us.** See [spec-handover.md](spec-handover.md).
+7. **A witness outside VeilCore.** The mirror and its checker are public (veilcore-api
+   `scripts/mirror`, with a one-page
+   [how to run your own witness](https://github.com/hunterincoming/veilcore-api/blob/main/docs/run-a-witness.md)).
+   Still open: switching on our own scheduled copy (a public repository, archived weekly by
+   Software Heritage; a Zenodo deposit later), and a university or lab running the checker.
+   The second is the one that makes the copy independent.
