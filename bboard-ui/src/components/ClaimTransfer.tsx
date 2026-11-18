@@ -53,6 +53,7 @@ import {
   quantityPhrase,
   sameDetails,
   sampleDetailsOf,
+  keepReceivingCode,
   setArrival,
   signReceiptWith,
   type ArrivalDetails,
@@ -763,9 +764,15 @@ export const ClaimTransfer: React.FC<{
       }
       setNeedsBackup(false);
       // On the free plan a received record is a dated record: no claim without room for it.
+      // The code is kept first, so "Your code is kept in this browser" is true when we refuse.
       await readPlan();
       const gate = planGate(1, waitingHere());
       if (gate) {
+        try {
+          keepReceivingCode(code);
+        } catch {
+          /* not a share code: claiming it would refuse it anyway */
+        }
         setError(t(gate === 'app.plan.full' ? 'app.plan.receiveFull' : gate));
         return;
       }
