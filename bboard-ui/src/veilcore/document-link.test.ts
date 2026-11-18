@@ -28,7 +28,7 @@ describe('a document check link', () => {
       expect(read.ok && read.fields).toEqual(r.fields);
     });
 
-  it('carries the holder’s language before the #, never English or an unknown code', async () => {
+  it('carries the holder’s language before the #, never English or an unknown code', () => {
     const r = v.records[0];
     const es = documentCheckLink(r.appRecord, 'https://veilcore.org', 'es');
     expect(es.startsWith('https://veilcore.org/check-document?lang=es#d=')).toBe(true);
