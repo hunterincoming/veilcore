@@ -145,6 +145,7 @@ export const es: Strings = {
   'title.evidence': 'Registros como prueba',
   'title.integrate': 'Integrar VeilCore',
   'title.implementations': 'Implementaciones',
+  'title.partners': 'Exigir un registro',
   'title.new': 'Crear un registro',
   'title.record': 'Registro',
   'title.agreements': 'Acuerdos',
@@ -394,7 +395,7 @@ export const es: Strings = {
   'm.live.title1': 'Qué funciona,',
   'm.live.title2': 'y dónde.',
   'm.live.lede':
-    'veilcore.org funciona en la red principal de Midnight, y los registros hechos allí son reales. El sitio de prueba es para practicar: allí funciona más, y sus registros no tienen valor probatorio.',
+    'veilcore.org funciona en la red principal de Midnight, y los registros hechos allí son reales. El sitio de prueba es para practicar, y sus registros no tienen valor probatorio. Algunas funciones se prueban allí primero.',
   'm.live.colMain': 'veilcore.org (red principal)',
   'm.live.colTest': 'test.veilcore.org',
   'm.live.colNot': 'Todavía no',
@@ -461,13 +462,13 @@ export const es: Strings = {
     'Las licencias se activan con el despliegue que las enciende, cuando una licencia real haya funcionado de principio a fin en la red principal. Declaraciones de regalías y pagos: construidos, aún no activos.',
   // The test-site cell until royalties v2 has run there (config/copy.ts ROYALTIES_RUN_ON_TEST).
   'm.live.lic.testNext':
-    'Sí para las licencias, con transacciones reales. Declaraciones de regalías y pagos: construidos, y activos aquí cuando hayan funcionado de principio a fin en esta red.',
+    'Sí para las licencias, con transacciones reales. Informes de regalías y pagar regalías en Midnight mismo: construidos y ofrecidos aquí; en esta red aún no han funcionado de principio a fin.',
   // Licenses on in code, on a build that isn't veilcore.org's (the test site, the demo): the main-network cell.
   'm.live.lic.next':
     'Construido. Se activa con el próximo despliegue de veilcore.org, cuando una licencia real haya funcionado de principio a fin en la red principal.',
   // Licenses on, on veilcore.org's own build (AGREEMENTS_LIVE, mainnet sponsor live): the main-network cell (components/site/Home.tsx).
   'm.live.lic.live':
-    'Sí: licencias, con transacciones reales, e informes de regalías con su respuesta, «Ya pagué» y «Recepción confirmada». El traspaso de una licencia está construido, pero aún no se ha probado en la red principal. Pagar regalías en Midnight mismo solo está en el sitio de pruebas.',
+    'Sí: licencias, con transacciones reales, e informes de regalías con su respuesta, «Ya pagué» y «Recepción confirmada». El traspaso de una licencia está construido, pero aún no se ha probado en la red principal. Pagar regalías en Midnight mismo solo se ofrece en el sitio de pruebas, y allí aún no ha funcionado de principio a fin.',
   'm.live.chain.t': 'La página de comprobación lee Midnight por sí misma',
   'm.live.chain.main': 'Todavía no: necesita nuestro relé de solo lectura.',
   'm.live.chain.test': 'Sí.',

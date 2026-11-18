@@ -370,8 +370,8 @@ export const plant = {
     'La clave de esta planta no está en este navegador. Recupérela desde su archivo de copia de seguridad: una clave nueva no coincidiría con el registro sellado.',
   'app.plant.anchor.onlyNew':
     'Solo para un registro que nunca tuvo claves: si ya lo ancló, o creó sus claves en otro navegador, restáurelas desde su copia de seguridad arriba. Unas claves nuevas serían otra identidad.',
-  'app.plant.anchor.makeKeys': '1. Crear las claves de este registro (en este navegador)',
-  'app.plant.anchor.anchorTest': '2. Anclar en la red de pruebas',
+  'app.plant.anchor.makeKeys': 'Crear las claves de este registro (en este navegador)',
+  'app.plant.anchor.anchorTest': 'Anclar en la red de pruebas',
   'app.plant.anchor.backupFirst': 'Descargue primero la copia de seguridad',
   'app.plant.keys.restoredFor': 'Claves restauradas para {id}.',
   'app.plant.keys.notNamed':
@@ -386,6 +386,8 @@ export const plant = {
   'app.plant.keys.title': 'Claves del registro',
   'app.plant.keys.holds':
     'Este navegador guarda los dos secretos que demuestran que usted tiene este registro en la cadena. Una copia va también dentro de la caja bloqueada del registro en VeilCore, que solo abre la clave que bloquea sus registros. Borrar este navegador los elimina aquí; restaurar su copia de seguridad los recupera.',
+  'app.plant.keys.holdsDeviceOnly':
+    'Este navegador guarda los dos secretos que demuestran que usted tiene este registro en la cadena. Este registro se guarda solo en este dispositivo, así que no va ninguna copia de ellos a VeilCore en una caja bloqueada. Solo este navegador y su copia comprobada los tienen, y su copia con llave de acceso si la conserva (guarda solo claves, nunca el registro). Borrar este navegador los elimina aquí; restaurar su copia de seguridad los recupera.',
   'app.plant.keys.noBackup': 'Todavía no hay copia de seguridad. Descárguela y guárdela sin conexión.',
   'app.plant.keys.downloadAgain': 'Descargar de nuevo la copia de seguridad',
   'app.plant.keys.download': 'Descargar la copia de seguridad (secreta)',

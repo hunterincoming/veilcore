@@ -15,7 +15,7 @@ import {
   useRecordKeys,
 } from '../../veilcore/record-keys';
 import { identityOf } from '../../veilcore/chain/identity';
-import type { StrainRecord } from '../../veilcore/records';
+import { isKeptOnDeviceOnly, type StrainRecord } from '../../veilcore/records';
 import { NETWORK } from '../../config/network';
 import { CHAIN_CONTRACT } from '../../veilcore/chain/config';
 import { useT } from '../../i18n/app';
@@ -27,6 +27,7 @@ export const RecordKeysPanel: React.FC<{ record: StrainRecord }> = ({ record }) 
   const [msg, setMsg] = useState<string>();
   const tr = useT();
   const { t } = tr;
+  const deviceOnly = isKeptOnDeviceOnly(record);
 
   const extra = {
     cultivar: record.strainName,
@@ -60,8 +61,10 @@ export const RecordKeysPanel: React.FC<{ record: StrainRecord }> = ({ record }) 
       <Typography variant="overline">{t('app.plant.keys.title')}</Typography>
       {keys ? (
         <>
-          <Typography variant="body2" color="text.secondary">
-            {t('app.plant.keys.holds')}
+          {/* A record kept on this device only never has a locked box on VeilCore, so it
+              isn't told a copy of its keys goes there (docs/device-only-records.md). */}
+          <Typography variant="body2" color="text.secondary" data-record-keys-holds={deviceOnly ? 'device-only' : ''}>
+            {t(deviceOnly ? 'app.plant.keys.holdsDeviceOnly' : 'app.plant.keys.holds')}
           </Typography>
           {!keys.backedUpAt && (
             <Alert severity="warning" variant="outlined">

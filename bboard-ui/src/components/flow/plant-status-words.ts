@@ -4,7 +4,7 @@
 
 import type { LabReceipt } from '../../veilcore/custody';
 import type { RecordKeys } from '../../veilcore/record-keys';
-import type { StrainRecord } from '../../veilcore/records';
+import type { StrainRecord, UnsavedReason } from '../../veilcore/records';
 import type { ProofState } from '../../veilcore/proofs';
 import type { AnchorState } from '../verify/anchor-words';
 import { isTestNetwork } from '../../config/network';
@@ -189,3 +189,21 @@ export const recordDateRow = (
     sub: withTest(why),
   };
 };
+
+/**
+ * The red line under a record on Home when its locked copy is still in this browser: which one,
+ * or none. Not "save and check your backup" when the card's own status already says it isn't in
+ * a backup with "next: save your backup" (live walk, 18 Nov: one record said it three times,
+ * counting the "Still in progress" box at the top). A copy waiting to be sent again still says so.
+ */
+export const unsavedLineKey = (
+  reason: UnsavedReason | undefined,
+  cardSaysNotInBackup: boolean,
+): 'app.sealed.unsaved.short' | 'app.sealed.unsaved.shortRetry' | undefined =>
+  !reason
+    ? undefined
+    : reason === 'backup'
+      ? cardSaysNotInBackup
+        ? undefined
+        : 'app.sealed.unsaved.short'
+      : 'app.sealed.unsaved.shortRetry';

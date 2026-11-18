@@ -372,8 +372,8 @@ export const plant = {
     'This plant’s key isn’t in this browser. Get it back from your backup file: a new key wouldn’t match the sealed record.',
   'app.plant.anchor.onlyNew':
     'Only for a record that has never had keys: if you anchored it before, or made its keys in another browser, restore them from your backup above instead. New keys would be a different identity.',
-  'app.plant.anchor.makeKeys': '1. Make this record’s keys (in this browser)',
-  'app.plant.anchor.anchorTest': '2. Anchor on the test network',
+  'app.plant.anchor.makeKeys': 'Make this record’s keys (in this browser)',
+  'app.plant.anchor.anchorTest': 'Anchor on the test network',
   'app.plant.anchor.backupFirst': 'Download the backup first',
   // chain/RecordKeysPanel.tsx
   'app.plant.keys.restoredFor': 'Restored keys for {id}.',
@@ -388,6 +388,8 @@ export const plant = {
   'app.plant.keys.title': 'Record keys',
   'app.plant.keys.holds':
     'This browser holds the two secrets that prove you hold this record on chain. A copy also goes inside the record’s locked box on VeilCore, which only the key that locks your records opens. Clearing this browser deletes them here; restoring your backup brings them back.',
+  'app.plant.keys.holdsDeviceOnly':
+    'This browser holds the two secrets that prove you hold this record on chain. This record is kept on this device only, so no copy of them goes to VeilCore in a locked box. Only this browser and your checked backup hold them, and your passkey copy if you keep one (it holds keys only, never the record). Clearing this browser deletes them here; restoring your backup brings them back.',
   'app.plant.keys.noBackup': 'No backup yet. Download it and keep it offline.',
   'app.plant.keys.downloadAgain': 'Download the backup again',
   'app.plant.keys.download': 'Download the backup (secret)',

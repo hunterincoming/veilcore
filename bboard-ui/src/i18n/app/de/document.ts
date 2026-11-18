@@ -79,6 +79,7 @@ export const document = {
     'Wählen Sie eine Datei, um sie mit den hier versiegelten zu vergleichen. Sie wird nicht hochgeladen.',
   'app.doc.compare.pick': 'Eine Datei wählen',
   'app.doc.compare.match': '<b>{name}</b> ist Byte für Byte {sealed}, hier versiegelt.',
+  'app.doc.compare.matchSame': '<b>{name}</b> ist Byte für Byte die hier versiegelte Datei.',
   'app.doc.compare.noMatch':
     '<b>Keine Übereinstimmung.</b> {name} ist nicht die versiegelte Datei. Erneutes Speichern, Drucken als PDF oder Versenden über manche Apps verändert die Datei: Bitten Sie um die Originaldatei.',
   'app.doc.new.introTech': 'Technisch gesagt: Der Code ist der SHA-256 der Datei.',
@@ -111,6 +112,8 @@ export const document = {
     'Noch datiert nichts diesen Datensatz, oder der Link wurde verändert. Verlassen Sie sich nicht darauf, bevor ein Datum angezeigt wird.',
   'app.doc.check.what':
     'Was das zeigt: Eine Datei mit genau diesen Bytes war zu diesem Datum in den Händen des Inhabers. Was nicht: dass das Dokument echt ist, dass der Aussteller es ausgestellt hat oder dass stimmt, was darin steht. „Ausgestellt von“ ist die Angabe des Inhabers.',
+  'app.doc.check.whatUndated':
+    'Was das zeigen wird, sobald er datiert ist: Eine Datei mit genau diesen Bytes war spätestens zu seinem Datum in den Händen des Inhabers. Was nicht: dass das Dokument echt ist, dass der Aussteller es ausgestellt hat oder dass stimmt, was darin steht. „Ausgestellt von“ ist die Angabe des Inhabers.',
   'app.doc.check.inLink': 'Im Link (die eigenen Worte des Inhabers)',
   'app.doc.nums.title': 'Die Zahlen darauf (optional)',
   'app.doc.nums.help':
@@ -209,6 +212,8 @@ export const document = {
     'Was dieses Gerät verlassen hat: die Kennung des Datensatzes, sein Prüfcode und seine Schlüsselbindung, an VeilCore gesendet, um ihn zu datieren. Bei jeder Anfrage erfährt VeilCore Ihre Netzwerkadresse und die Uhrzeit. Wenn Sie eine Passkey-Kopie haben, enthält sie die Kennung und die Schlüssel dieses Datensatzes, verschlossen, auf dem Server von VeilCore; in keinem Fall das, was Sie eingegeben haben.',
   'app.doc.local.stamp':
     'Ob Sie den Schlüssel dieses Datensatzes mit einem Datum stempeln, entscheiden Sie; gestartet wird das nur über die Schaltfläche unten. Tun Sie es, geht ein Code aus dem Schlüssel über den Gebührendienst von VeilCore an Midnight. Nichts von dem, was Sie eingegeben haben, geht mit.',
+  'app.doc.stamp.title': 'Den Schlüssel dieses Datensatzes auf {network} mit einem Datum stempeln',
+  'app.doc.stamp.button': 'Den Schlüssel mit einem Datum stempeln',
   'app.doc.local.conflict':
     'Der Server von VeilCore hat mit etwas anderem geantwortet als nur mit dem Prüfcode dieses Datensatzes. Was Sie sehen, ist die eigene Kopie dieses Geräts. Es wird nichts weiter gesendet, und die Antwort des Servers ändert hier nichts.',
   'app.doc.local.homeNotBacked': 'Nur auf diesem Gerät · noch in keiner Sicherung',

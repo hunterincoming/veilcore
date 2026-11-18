@@ -446,7 +446,10 @@ describe("what's live where", () => {
     // The test-site cell doesn't say "Yes" for royalties until v2 has run there.
     expect(home).toMatch(/row === 'lic' && col === 'test' && !ROYALTIES_RUN_ON_TEST\s*\?\s*'m\.live\.lic\.testNext'/);
     expect(e['m.live.lic.testNext']).toMatch(/^Yes for licenses/);
-    expect(e['m.live.lic.testNext']).toMatch(/Royalty statements and payments: built/);
+    // Built and offered there, and not called working until it has run end to end there.
+    expect(e['m.live.lic.testNext']).toMatch(
+      /Royalty reports, and paying royalties on Midnight itself: built and offered here; they have not yet worked end to end on this network\.$/,
+    );
     // The veilcore.org cell: no "Yes" for royalties until v2 has worked on mainnet, on any build.
     // It has (8 Nov 2026: license accepted, report sent, answered, paid, received).
     expect(home).toMatch(/!ROYALTIES_RUN_ON_MAINNET\s*\?\s*'m\.live\.lic\.mainNext'/);
@@ -457,7 +460,11 @@ describe("what's live where", () => {
     // license on hasn't been tried there, and paying on Midnight itself is test-only.
     expect(e['m.live.lic.live']).toMatch(/^Yes: licenses, with real transactions, and royalty reports/);
     expect(e['m.live.lic.live']).toMatch(/Handing a license on is built, not yet tried on the main network\./);
-    expect(e['m.live.lic.live']).toMatch(/Paying royalties on Midnight itself is on the test site only\.$/);
+    // The same fact as the test-site cell (live walk, 18 Nov): offered there only, and not yet
+    // worked end to end there (ROYALTIES_RUN_ON_TEST is off), never "works there".
+    expect(e['m.live.lic.live']).toMatch(
+      /Paying royalties on Midnight itself is offered on the test site only, and has not yet worked end to end there\.$/,
+    );
     // The cell names the royalty screen's own words, in each language: the licensee's button
     // (app.roy.pay.iPaid) and the licensor's status (app.roy.st.received).
     for (const [lang, app] of [
@@ -1537,5 +1544,109 @@ describe('the mainnet run of 18 November 2026: what veilcore.org says about itse
       expect(CLAIMS_WHERE_WORDS[lang].onSite, `${lang} Show someone`).toMatch(LAB_RESULT[lang]);
       expect(home, `${lang} home`).not.toMatch(/certificate you sealed|Sie mit seinen Zahlen versiegelt|que selló/);
     }
+  });
+});
+
+describe('what a walk of the live veilcore.org found (18 Nov 2026)', () => {
+  const copy = fs.readFileSync(path.join(SRC, 'config/copy.ts'), 'utf8');
+  const allApp = { en: appEn, ...APP } as Record<Lang, Record<string, string>>;
+  const site = (lang: Lang) => LANGUAGES[lang].strings as Record<string, string>;
+
+  it('the lede does not say more works on the test site: veilcore.org is ahead on several rows', () => {
+    expect(en['m.live.lede']).not.toMatch(/more of it works there/);
+    expect(en['m.live.lede']).toMatch(/Some features are tried there first\.$/);
+    expect(site('es')['m.live.lede']).toMatch(/Algunas funciones se prueban allí primero\.$/);
+    for (const lang of ['de', 'es', 'fr', 'ja'] as Lang[])
+      expect(site(lang)['m.live.lede'], lang).not.toMatch(
+        /funktioniert mehr|funciona más|davantage y fonctionne|より多い/,
+      );
+  });
+
+  it('both license cells say the same about paying on Midnight, and the flags back them', () => {
+    expect(copy).toMatch(/export const ROYALTIES_RUN_ON_TEST = false;/);
+    expect(copy).toMatch(/export const ONCHAIN_PAYMENTS = !IS_MAINNET;/);
+    for (const lang of ['en', 'de', 'es', 'fr', 'ja'] as Lang[]) {
+      const live = site(lang)['m.live.lic.live'];
+      const test = site(lang)['m.live.lic.testNext'];
+      const NOT_YET =
+        /has not yet worked end to end|have not yet worked end to end|noch nicht vollständig funktioniert|aún no ha(n)? funcionado de principio a fin|pas encore fonctionné de bout en bout|まだ最初から最後まで動いたことはありません/;
+      expect(live, lang).toMatch(NOT_YET);
+      expect(test, lang).toMatch(NOT_YET);
+    }
+  });
+
+  it('the home card does not say a live license is proved from this website (that needs a wallet)', () => {
+    const live = mainnetStrings({ ...BUILD, chainSends: true, agreementsLive: true });
+    expect(live['m.get.2b']).not.toMatch(/made from this website\.$/);
+    expect(live['m.get.2b']).toMatch(/needs a wallet, which this website doesn[’']t use\.$/);
+    expect(copy).toMatch(/That needs a wallet, which this website doesn[’']t use, so it doesn[’']t offer it\./);
+  });
+
+  it('a record kept on this device only is never told a copy of its keys goes to VeilCore', () => {
+    for (const [lang, a] of Object.entries(allApp)) {
+      expect(a['app.plant.keys.holdsDeviceOnly'], lang).toBeTruthy();
+      expect(a['app.plant.keys.holdsDeviceOnly'], lang).not.toBe(a['app.plant.keys.holds']);
+    }
+    expect(appEn['app.plant.keys.holdsDeviceOnly']).toMatch(/no copy of them goes to VeilCore in a locked box/);
+    expect(appEn['app.plant.keys.holdsDeviceOnly']).toMatch(/Only this browser and your checked backup hold them/);
+    expect(appEs['app.plant.keys.holdsDeviceOnly']).toMatch(/Solo este navegador y su copia comprobada los tienen/);
+    const panel = fs.readFileSync(path.join(SRC, 'components/chain/RecordKeysPanel.tsx'), 'utf8');
+    expect(panel).toMatch(/deviceOnly \? 'app\.plant\.keys\.holdsDeviceOnly' : 'app\.plant\.keys\.holds'/);
+  });
+
+  it('every passkey-copy promise leaves out records kept only on the device', () => {
+    const EXCEPT: Record<Lang, RegExp> = {
+      en: /except records kept only on this device/,
+      de: /außer Datensätzen, die nur auf diesem Gerät aufbewahrt werden/,
+      es: /salvo los registros guardados solo en este dispositivo/,
+      fr: /sauf les enregistrements gardés uniquement sur cet appareil/,
+      ja: /この端末だけに保管している記録を除き/,
+    };
+    for (const [lang, a] of Object.entries(allApp) as [Lang, Record<string, string>][]) {
+      expect(a['app.backup.passkey.why'], lang).toMatch(EXCEPT[lang]);
+      expect(a['app.backup.passkey.restoreHint'], lang).toMatch(
+        /backup file|Sicherungsdatei|copia de seguridad|fichier de sauvegarde|バックアップファイル/,
+      );
+    }
+    // No other English string promises a passkey brings "everything" back.
+    for (const [k, v] of Object.entries(appEn))
+      if (/passkey/i.test(v) && /everything/i.test(v)) expect(v, k).toMatch(/except records kept only on this device/);
+  });
+
+  it('the backup screen says where to keep the file once, and "the file you just saved" only after saving', () => {
+    for (const a of Object.values(allApp)) expect(a['app.backup.byHand']).not.toMatch(/USB/);
+    const step = fs.readFileSync(path.join(SRC, 'components/flow/BackupStep.tsx'), 'utf8');
+    expect(step).toMatch(/\{saved && \(\s*<Typography variant="body1" data-backup-saved-where="">/);
+    expect(step).toMatch(/\{thisBrowserClearsAfterSevenDays\(\) && \(/);
+  });
+
+  it('a document’s key stamp is a plain choice named for what it does, with no step number', () => {
+    for (const a of Object.values(allApp)) {
+      expect(a['app.plant.anchor.anchorTest']).not.toMatch(/^\d\./);
+      expect(a['app.plant.anchor.makeKeys']).not.toMatch(/^\d\./);
+      expect(a['app.doc.stamp.button']).toBeTruthy();
+    }
+    expect(appEn['app.doc.stamp.button']).toBe('Put a date stamp on this record’s key');
+    expect(appEs['app.doc.stamp.button']).toBe('Poner un sello de fecha a la clave');
+    expect(appEn['app.doc.stamp.title']).not.toMatch(/anchor/i);
+    const panel = fs.readFileSync(path.join(SRC, 'components/chain/AnchorOnChainPanel.tsx'), 'utf8');
+    expect(panel).toMatch(/variant=\{forDocument \? 'outlined' : 'contained'\}/);
+    expect(panel).toMatch(/t\(forDocument \? 'app\.doc\.stamp\.button' : 'app\.plant\.anchor\.anchorTest'\)/);
+    expect(panel).toMatch(/t\(forDocument \? 'app\.doc\.stamp\.title' : 'app\.plant\.anchor\.title'/);
+    expect(fs.readFileSync(path.join(SRC, 'components/document/DocumentDetail.tsx'), 'utf8')).toMatch(
+      /<AnchorOnChainPanel recordId=\{record\.id\} forDocument \/>/,
+    );
+  });
+
+  it('the inspector names a file once, says "once dated" before a date, and "nothing yet", not "nobody"', () => {
+    expect(appEn['app.doc.compare.matchSame']).toBe('<b>{name}</b> is byte for byte the file sealed here.');
+    expect(appEs['app.doc.compare.matchSame']).not.toMatch(/\{sealed\}/);
+    for (const a of Object.values(allApp)) expect(a['app.doc.compare.matchSame']).not.toMatch(/\{sealed\}/);
+    expect(appEn['app.doc.check.whatUndated']).toMatch(/^What this will show, once it is dated: .* by its date\./);
+    expect(appEs['app.verify.who.date.none']).toMatch(/^Nada todavía\./);
+    expect(appEs['app.verify.who.date.pending']).toMatch(/^Nada todavía\./);
+    for (const a of [appEn, appDe, appEs, appFr])
+      for (const k of ['app.verify.who.date.none', 'app.verify.who.date.pending', 'app.verify.who.date.failed'])
+        expect(a[k as keyof typeof a], k).not.toMatch(/^(Nobody|Niemand|Noch niemand|Nadie|Personne)/);
   });
 });

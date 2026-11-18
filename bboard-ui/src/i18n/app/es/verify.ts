@@ -297,7 +297,7 @@ export const verify = {
   'app.verify.who.date.registry': 'Lo dice el registro de VeilCore. Esta página no lo ha comprobado en Midnight.',
   'app.verify.who.date.batchOnly':
     'Midnight fechó el lote, y esta página lo comprobó allí. Solo el registro de VeilCore dice que este registro está en él: el enlace no lleva un código de prueba para comprobarlo.',
-  'app.verify.who.date.pending': 'Nadie todavía. Su lote espera ser fechado en Midnight.',
+  'app.verify.who.date.pending': 'Nada todavía. Su lote espera ser fechado en Midnight.',
   'app.verify.who.code': 'El código de prueba',
   'app.verify.who.code.page': 'Esta página: coincide con el del enlace que le enviaron.',
   'app.verify.who.code.registry':
@@ -305,7 +305,7 @@ export const verify = {
   'app.verify.who.words': 'El nombre y los detalles',
   'app.verify.who.words.holder':
     'El titular, con sus propias palabras. Esta página solo comprueba que el nombre coincide con el código de prueba, no que nada sea cierto.',
-  'app.verify.who.date.failed': 'Nadie: la comprobación de esta página en Midnight falló (ver abajo).',
+  'app.verify.who.date.failed': 'Nada: la comprobación de esta página en Midnight falló (ver abajo).',
   'app.verify.who.words.differs':
     'Las palabras del titular, pero el nombre mostrado no coincide con el código de prueba (ver abajo).',
   'app.verify.who.words.unchecked': 'El titular, con sus propias palabras. Nada los comprueba.',
@@ -316,7 +316,7 @@ export const verify = {
     '{who}, según informa el registro de VeilCore. El enlace no lleva un código de prueba para comprobarla.',
   'app.verify.who.more': 'Más firmas',
   'app.verify.who.moreText': '{n} más, abajo.',
-  'app.verify.who.date.none': 'Nadie. Por lo que esta página puede ver, no está en un lote fechado.',
+  'app.verify.who.date.none': 'Nada todavía. Por lo que esta página puede ver, no está en un lote fechado.',
   'app.verify.who.code.recomputed': 'Esta página: calculado aquí a partir de lo que lleva el enlace.',
   'app.verify.who.file': 'El archivo',
   'app.verify.who.file.noMatch': 'Su propio dispositivo: el archivo que eligió no es el sellado. No se envió nada.',

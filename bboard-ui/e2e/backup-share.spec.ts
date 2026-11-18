@@ -24,11 +24,21 @@ test('on a computer: no share button, the by-hand way and "Save another copy" (t
   await openBackup(page);
   await expect(page.getByRole('heading', { name: /Put a copy somewhere else \(recommended\)/ })).toBeVisible();
   await expect(page.getByRole('button', { name: /Send a copy/ })).toHaveCount(0);
-  await expect(page.getByText(/Put it on a USB stick or in a password manager/)).toBeVisible();
+  // Where to keep it is said once (live walk, 18 Nov); where the saved file is, only once saved;
+  // and Safari's 7-day warning only in Safari or on iOS, not in this Chromium.
+  await expect(page.getByText(/USB stick/)).toHaveCount(1);
+  await expect(page.getByText(/Best: a USB stick or a password manager\./)).toBeVisible();
+  await expect(page.locator('[data-backup-saved-where]')).toHaveCount(0);
+  await expect(page.getByText(/the file you just saved/)).toHaveCount(0);
+  await expect(page.locator('[data-backup-safari]')).toHaveCount(0);
 
   const first = page.waitForEvent('download');
   await page.getByRole('button', { name: /Save backup file/ }).click();
   const firstFile = await first;
+  await expect(page.locator('[data-backup-saved-where]')).toHaveText(
+    'It’s the file you just saved, in your Downloads folder.',
+  );
+  await expect(page.getByText(/USB stick/)).toHaveCount(1);
   // Step 3's button is now the filled (contained) one: the next thing to do.
   await expect(page.getByRole('button', { name: /Open my saved copy/ })).toHaveClass(/MuiButton-contained/);
 
@@ -39,6 +49,18 @@ test('on a computer: no share button, the by-hand way and "Save another copy" (t
   expect(readFileSync(await againFile.path(), 'utf8')).toBe(readFileSync(await firstFile.path(), 'utf8'));
   await expect(page.getByRole('button', { name: /Saved another copy/ })).toBeVisible();
   expectNoErrors(errors);
+});
+
+test('on an iPhone: Safari’s 7-day warning is shown', async ({ browser }) => {
+  const ctx = await browser.newContext({
+    userAgent:
+      'Mozilla/5.0 (iPhone; CPU iPhone OS 18_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.1 Mobile/15E148 Safari/604.1',
+  });
+  const page = await ctx.newPage();
+  await isolate(page);
+  await openBackup(page);
+  await expect(page.locator('[data-backup-safari]')).toContainText('Safari can clear a site’s data after 7 days');
+  await ctx.close();
 });
 
 test.describe('on a phone', () => {
@@ -61,7 +83,9 @@ test.describe('on a phone', () => {
     await download;
     await page.getByRole('button', { name: /Send a copy/ }).click();
     await expect(page.getByText(/couldn.t open its share menu/)).toBeVisible();
-    await expect(page.getByText(/Put it on a USB stick or in a password manager/)).toBeVisible();
+    await expect(page.locator('[data-backup-saved-where]')).toHaveText(
+      'It’s the file you just saved, in your Downloads folder.',
+    );
     await expect(page.getByRole('button', { name: /Save another copy/ })).toBeVisible();
   });
 });

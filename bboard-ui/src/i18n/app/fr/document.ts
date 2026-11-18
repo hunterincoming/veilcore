@@ -77,6 +77,7 @@ export const document = {
   'app.doc.compare.text': 'Choisissez un fichier à comparer avec ceux scellés ici. Il n’est pas envoyé.',
   'app.doc.compare.pick': 'Choisir un fichier',
   'app.doc.compare.match': '<b>{name}</b> est, octet pour octet, {sealed}, scellé ici.',
+  'app.doc.compare.matchSame': '<b>{name}</b> est, octet pour octet, le fichier scellé ici.',
   'app.doc.compare.noMatch':
     '<b>Pas de correspondance.</b> {name} n’est pas le fichier scellé. L’enregistrer à nouveau, l’imprimer en PDF ou l’envoyer par certaines applications modifie le fichier : demandez le fichier d’origine.',
   'app.doc.new.introTech': 'Pour les spécialistes : ce code est le SHA-256 du fichier.',
@@ -110,6 +111,8 @@ export const document = {
     'Rien ne date encore cet enregistrement, ou le lien a été modifié. Ne vous y fiez pas avant qu’il affiche une date.',
   'app.doc.check.what':
     'Ce que cela montre : un fichier avec exactement ces octets était entre les mains du détenteur à cette date. Ce que cela ne montre pas : que le document est authentique, que l’émetteur l’a émis, ni que ce qu’il dit est vrai. « Émis par » est la déclaration du détenteur.',
+  'app.doc.check.whatUndated':
+    'Ce que cela montrera, une fois daté : un fichier avec exactement ces octets était entre les mains du détenteur au plus tard à sa date. Ce que cela ne montre pas : que le document est authentique, que l’émetteur l’a émis, ni que ce qu’il dit est vrai. « Émis par » est la déclaration du détenteur.',
   'app.doc.check.inLink': 'Dans le lien (les propres mots du détenteur)',
   'app.doc.nums.title': 'Les chiffres qui y figurent (facultatif)',
   'app.doc.nums.help':
@@ -207,6 +210,8 @@ export const document = {
     'Ce qui est sorti de cet appareil : l’identifiant de l’enregistrement, son code de preuve et sa liaison de clé, envoyés à VeilCore pour le dater. Chaque requête montre à VeilCore votre adresse réseau et l’heure. Si vous avez une copie avec clé d’accès, elle contient l’identifiant et les clés de cet enregistrement, verrouillés, sur le serveur de VeilCore ; en aucun cas ce que vous avez saisi.',
   'app.doc.local.stamp':
     'Horodater la clé de cet enregistrement est votre choix, et seul le bouton ci-dessous le lance. Si vous le faites, un code tiré de la clé part vers Midnight par le service de frais de VeilCore. Rien de ce que vous avez saisi ne l’accompagne.',
+  'app.doc.stamp.title': 'Horodater la clé de cet enregistrement sur {network}',
+  'app.doc.stamp.button': 'Horodater la clé de cet enregistrement',
   'app.doc.local.conflict':
     'Le serveur de VeilCore a répondu par autre chose que le seul code de preuve de cet enregistrement. Ce que vous voyez est la copie propre à cet appareil. Rien de plus n’est envoyé, et la réponse du serveur ne change rien ici.',
   'app.doc.local.homeNotBacked': 'Uniquement sur cet appareil · pas encore sauvegardé',

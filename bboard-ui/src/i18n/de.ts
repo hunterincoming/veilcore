@@ -144,6 +144,7 @@ export const de: Strings = {
   'title.evidence': 'Datensätze als Beweismittel',
   'title.integrate': 'VeilCore einbinden',
   'title.implementations': 'Implementierungen',
+  'title.partners': 'Einen Nachweis verlangen',
   'title.new': 'Einen Datensatz anlegen',
   'title.record': 'Datensatz',
   'title.agreements': 'Vereinbarungen',
@@ -396,7 +397,7 @@ export const de: Strings = {
   'm.live.title1': 'Was funktioniert,',
   'm.live.title2': 'und wo.',
   'm.live.lede':
-    'veilcore.org läuft im Hauptnetz von Midnight, und Datensätze dort sind echt. Die Test-Website ist zum Üben: Dort funktioniert mehr, und ihre Datensätze haben kein Gewicht.',
+    'veilcore.org läuft im Hauptnetz von Midnight, und Datensätze dort sind echt. Die Test-Website ist zum Üben, und ihre Datensätze haben kein Gewicht. Manche Funktionen werden dort zuerst ausprobiert.',
   'm.live.colMain': 'veilcore.org (Hauptnetz)',
   'm.live.colTest': 'test.veilcore.org',
   'm.live.colNot': 'Noch nicht',
@@ -463,13 +464,13 @@ export const de: Strings = {
     'Lizenzen gehen mit dem Deployment live, das sie einschaltet, sobald eine echte Lizenz im Hauptnetz einmal vollständig funktioniert hat. Abrechnungen von Lizenzgebühren und Zahlungen: gebaut, noch nicht live.',
   // The test-site cell until royalties v2 has run there (config/copy.ts ROYALTIES_RUN_ON_TEST).
   'm.live.lic.testNext':
-    'Ja für Lizenzen, mit echten Transaktionen. Abrechnungen von Lizenzgebühren und Zahlungen: gebaut, und hier erst live, sobald sie in diesem Netz einmal vollständig funktioniert haben.',
+    'Ja für Lizenzen, mit echten Transaktionen. Berichte über Lizenzgebühren und das Zahlen direkt auf Midnight: gebaut und hier angeboten; in diesem Netz haben sie noch nicht vollständig funktioniert.',
   // Licenses on in code, on a build that isn't veilcore.org's (the test site, the demo): the main-network cell.
   'm.live.lic.next':
     'Gebaut. Geht mit dem nächsten Deployment von veilcore.org live, sobald eine echte Lizenz im Hauptnetz einmal vollständig funktioniert hat.',
   // Licenses on, on veilcore.org's own build (AGREEMENTS_LIVE, mainnet sponsor live): the main-network cell (components/site/Home.tsx).
   'm.live.lic.live':
-    'Ja: Lizenzen, mit echten Transaktionen, und Berichte über Lizenzgebühren mit Antwort, „Ich habe bezahlt“ und „Eingang bestätigt“. Die Weitergabe einer Lizenz ist gebaut, im Hauptnetz aber noch nicht ausprobiert. Lizenzgebühren direkt auf Midnight zahlen gibt es nur auf der Testseite.',
+    'Ja: Lizenzen, mit echten Transaktionen, und Berichte über Lizenzgebühren mit Antwort, „Ich habe bezahlt“ und „Eingang bestätigt“. Die Weitergabe einer Lizenz ist gebaut, im Hauptnetz aber noch nicht ausprobiert. Lizenzgebühren direkt auf Midnight zahlen gibt es nur auf der Testseite, und dort hat es noch nicht vollständig funktioniert.',
   'm.live.chain.t': 'Die Prüfseite liest Midnight selbst',
   'm.live.chain.main': 'Noch nicht: Dafür braucht es unseren Relaisdienst, der nur liest.',
   'm.live.chain.test': 'Ja.',

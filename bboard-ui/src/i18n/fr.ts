@@ -144,6 +144,7 @@ export const fr: Strings = {
   'title.evidence': 'Les enregistrements comme preuve',
   'title.integrate': 'Intégrer VeilCore',
   'title.implementations': 'Implémentations',
+  'title.partners': 'Exiger un enregistrement',
   'title.new': 'Créer un enregistrement',
   'title.record': 'Enregistrement',
   'title.agreements': 'Contrats',
@@ -397,7 +398,7 @@ export const fr: Strings = {
   'm.live.title1': 'Ce qui fonctionne,',
   'm.live.title2': 'et où.',
   'm.live.lede':
-    "veilcore.org fonctionne sur le réseau principal de Midnight, et les enregistrements qui y sont faits sont réels. Le site de test sert à s'entraîner : davantage y fonctionne, et ses enregistrements n'ont aucune valeur probante.",
+    "veilcore.org fonctionne sur le réseau principal de Midnight, et les enregistrements qui y sont faits sont réels. Le site de test sert à s'entraîner, et ses enregistrements n'ont aucune valeur probante. Certaines fonctions y sont essayées d'abord.",
   'm.live.colMain': 'veilcore.org (réseau principal)',
   'm.live.colTest': 'test.veilcore.org',
   'm.live.colNot': 'Pas encore',
@@ -464,13 +465,13 @@ export const fr: Strings = {
     'Les licences sont mises en service avec le déploiement qui les active, une fois qu’une vraie licence aura fonctionné de bout en bout sur le réseau principal. Relevés de redevances et paiements : construits, pas encore en service.',
   // The test-site cell until royalties v2 has run there (config/copy.ts ROYALTIES_RUN_ON_TEST).
   'm.live.lic.testNext':
-    'Oui pour les licences, avec de vraies transactions. Relevés de redevances et paiements : construits, et en service ici une fois qu’ils auront fonctionné de bout en bout sur ce réseau.',
+    'Oui pour les licences, avec de vraies transactions. Rapports de redevances et paiement des redevances sur Midnight même : construits et proposés ici ; sur ce réseau, ils n’ont pas encore fonctionné de bout en bout.',
   // Licenses on in code, on a build that isn't veilcore.org's (the test site, the demo): the main-network cell.
   'm.live.lic.next':
     'Construit. Mis en service avec le prochain déploiement de veilcore.org, une fois qu’une vraie licence aura fonctionné de bout en bout sur le réseau principal.',
   // Licenses on, on veilcore.org's own build (AGREEMENTS_LIVE, mainnet sponsor live): the main-network cell (components/site/Home.tsx).
   'm.live.lic.live':
-    'Oui : licences, avec de vraies transactions, et rapports de redevances avec leur réponse, « J’ai payé » et « Réception confirmée ». La transmission d’une licence est construite, mais pas encore essayée sur le réseau principal. Payer les redevances sur Midnight même n’existe que sur le site de test.',
+    'Oui : licences, avec de vraies transactions, et rapports de redevances avec leur réponse, « J’ai payé » et « Réception confirmée ». La transmission d’une licence est construite, mais pas encore essayée sur le réseau principal. Payer les redevances sur Midnight même n’est proposé que sur le site de test, et n’y a pas encore fonctionné de bout en bout.',
   'm.live.chain.t': 'La page de vérification lit Midnight elle-même',
   'm.live.chain.main': 'Pas encore : il faut notre relais en lecture seule.',
   'm.live.chain.test': 'Oui.',

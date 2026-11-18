@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### What a walk of the live veilcore.org found (18 Nov 2026, not deployed yet)
+
+- A record kept on this device only no longer says a copy of its keys goes to VeilCore in a
+  locked box (Technical details, Record keys). The passkey copy says it brings back everything
+  except records kept only on this device, and the restore hint says those come back only from a
+  backup file.
+- The backup screen says where to keep the file once, says "the file you just saved" only after
+  it is saved, and shows Safari's 7-day warning only in Safari and on iPhone and iPad.
+- "What works, and where": the test site no longer said to have more working. Both license cells
+  say paying royalties on Midnight is offered on the test site only and hasn't yet worked end to
+  end there. The home card no longer says a live license is proved from this website (that needs
+  a wallet).
+- The note for counsel's live list adds documents kept on the device only, proving one number
+  and production chains. Taken from SDK commit `a32d8f5` (`EVIDENCE_COMMIT`), on the SDK's
+  branch `evidence-device-only-chains` until that is merged; the README's status table says the
+  same.
+- A document's key date stamp is a plain button, "Put a date stamp on this record's key", with no
+  step number. Plant pages lose the "1." and "2." too: the two never show together.
+- The check page names a file once when it has the sealed file's name, says what a match will
+  show "once it is dated" before there is a date, and "Nothing yet" for the date, not "Nobody".
+- Home says "save and check your backup" once per record. Phones at 3x get 1200 wide photos
+  instead of 1600. /partners has its own tab title.
+
 ### Documents kept on the device: restored, and a number proved, on veilcore.org
 
 - 17 November 2026: a device-only grow batch restored from a backup in a second browser, with

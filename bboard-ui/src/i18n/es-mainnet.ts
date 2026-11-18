@@ -127,7 +127,7 @@ export const esMainnet = buildMainnet({
     ],
     'm.get.2b': [
       'Incorporado al contrato en la red principal de Midnight; simulado en este sitio web.',
-      'Incorporado al contrato en la red principal de Midnight, y se usa desde este sitio web.',
+      'Las licencias se hacen desde este sitio web, en la red principal de Midnight. Probar que una está vigente sin mostrarla lo hace el contrato y requiere una billetera, que este sitio web no usa.',
     ],
     'm.demo.lede': [
       'Las licencias y los acuerdos con laboratorios son simulados.',

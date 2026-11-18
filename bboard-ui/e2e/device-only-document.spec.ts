@@ -188,6 +188,13 @@ test('a document kept on this device only: the registry gets its dating row and 
   await expect(page.locator('[data-device-only-conflict]')).toHaveCount(0);
   // The key's date stamp is not started by anything but its button.
   await expect(page.locator('[data-device-only-stamp]')).toContainText('nothing starts it but the button below');
+  // Technical details › Record keys: no copy of this record's keys goes to VeilCore in a locked
+  // box, and the page doesn't say one does (live walk, 18 Nov).
+  await page.locator('[data-document-technical]').getByRole('button', { name: 'Technical details' }).click();
+  const holds = page.locator('[data-record-keys-holds]');
+  await expect(holds).toHaveAttribute('data-record-keys-holds', 'device-only');
+  await expect(holds).toContainText('Only this browser and your checked backup hold them');
+  await expect(holds).not.toContainText('A copy also goes inside');
   const proofCode = (
     await page
       .locator('[data-document-page]')
@@ -318,6 +325,9 @@ test('an ordinary document, sealed without the choice, still has its locked copy
   await expect(page).toHaveURL(/\/record\/VEIL-[0-9A-F]+$/);
   const recordId = page.url().split('/record/')[1];
   await expect(page.locator('[data-device-only]')).toHaveCount(0);
+  // Its keys do go in its locked box on VeilCore, and the page says so.
+  await page.locator('[data-document-technical]').getByRole('button', { name: 'Technical details' }).click();
+  await expect(page.locator('[data-record-keys-holds]')).toContainText('A copy also goes inside');
   await expect.poll(() => reg.uploads.some((r) => r.id === recordId), { timeout: 30_000 }).toBe(true);
   const sent = reg.uploads.find((r) => r.id === recordId)!;
   expect(sent.sealed).toBeTruthy();

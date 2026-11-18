@@ -23,8 +23,7 @@ export const backup = {
   'app.backup.sentCopy': 'Sent a copy ✓',
   'app.backup.sendCopy': 'Send a copy (email, Drive, Files…)',
   'app.backup.shareFailed': "This browser couldn't open its share menu.",
-  'app.backup.byHand':
-    "Put it on a USB stick or in a password manager. It's the file you just saved, in your Downloads folder.",
+  'app.backup.byHand': 'It’s the file you just saved, in your Downloads folder.',
   'app.backup.saveAgain': 'Save another copy',
   'app.backup.savedAgain': 'Saved another copy ✓',
   'app.backup.checkTitle': 'Check it works',
@@ -107,7 +106,7 @@ export const backup = {
   // The passkey copy (veilcore/passkey-backup.ts, flow/PasskeyCopy.tsx).
   'app.backup.passkey.title': 'Also keep a copy that opens with a passkey',
   'app.backup.passkey.why':
-    "If you lose this phone, your passkey gets everything back: it syncs to your new phone through your Apple or Google account. The copy is locked with a key only your passkey can make. VeilCore can't open it.",
+    "If you lose this phone, your passkey gets everything back except records kept only on this device: it syncs to your new phone through your Apple or Google account. The copy is locked with a key only your passkey can make. VeilCore can't open it.",
   'app.backup.passkey.keepFile': 'Keep the file too. Deleting the passkey deletes the only key to this copy.',
   'app.backup.passkey.make': 'Make a passkey copy',
   'app.backup.passkey.current': 'Passkey copy up to date, saved {date}',
@@ -117,7 +116,8 @@ export const backup = {
   'app.backup.passkey.removed':
     'Passkey copy deleted. To delete the passkey itself, use your phone’s password settings.',
   'app.backup.passkey.restore': 'Use my passkey',
-  'app.backup.passkey.restoreHint': 'Made a passkey copy before? Use your passkey instead of a file.',
+  'app.backup.passkey.restoreHint':
+    'Made a passkey copy before? Use your passkey instead of a file. Records kept only on a device come back only from a backup file.',
   'app.backup.passkey.found': 'Found your passkey copy, saved {date}. Restore it here?',
   'app.backup.passkey.restoreIt': 'Restore it',
   'app.backup.passkey.notThis': 'Not this one',

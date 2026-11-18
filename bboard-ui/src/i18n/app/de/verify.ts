@@ -300,7 +300,7 @@ export const verify = {
   'app.verify.who.date.registry': 'Das Register von VeilCore sagt es. Diese Seite hat es nicht auf Midnight geprüft.',
   'app.verify.who.date.batchOnly':
     'Midnight hat den Stapel datiert, und diese Seite hat das dort geprüft. Dass dieser Eintrag darin ist, sagt nur das Register von VeilCore: Der Link enthält keinen Prüfcode zum Abgleich.',
-  'app.verify.who.date.pending': 'Noch niemand. Sein Stapel wartet darauf, auf Midnight datiert zu werden.',
+  'app.verify.who.date.pending': 'Noch nichts. Sein Stapel wartet darauf, auf Midnight datiert zu werden.',
   'app.verify.who.code': 'Der Prüfcode',
   'app.verify.who.code.page': 'Diese Seite: Er stimmt mit dem im Link überein, den Sie erhalten haben.',
   'app.verify.who.code.registry':
@@ -308,7 +308,7 @@ export const verify = {
   'app.verify.who.words': 'Name und Angaben',
   'app.verify.who.words.holder':
     'Der Inhaber, in eigenen Worten. Diese Seite prüft nur, dass der Name zum Prüfcode passt, nicht, dass etwas davon stimmt.',
-  'app.verify.who.date.failed': 'Niemand: Die Prüfung dieser Seite auf Midnight ist fehlgeschlagen (siehe unten).',
+  'app.verify.who.date.failed': 'Nichts: Die Prüfung dieser Seite auf Midnight ist fehlgeschlagen (siehe unten).',
   'app.verify.who.words.differs':
     'Die Worte des Inhabers, aber der gezeigte Name passt nicht zum Prüfcode (siehe unten).',
   'app.verify.who.words.unchecked': 'Der Inhaber, in eigenen Worten. Nichts prüft sie.',
@@ -319,7 +319,7 @@ export const verify = {
     '{who}, wie das Register von VeilCore meldet. Der Link enthält keinen Prüfcode, um sie zu prüfen.',
   'app.verify.who.more': 'Weitere Signaturen',
   'app.verify.who.moreText': '{n} weitere, unten aufgeführt.',
-  'app.verify.who.date.none': 'Niemand. Soweit diese Seite sehen kann, ist der Eintrag in keinem datierten Stapel.',
+  'app.verify.who.date.none': 'Noch nichts. Soweit diese Seite sehen kann, ist der Eintrag in keinem datierten Stapel.',
   'app.verify.who.code.recomputed': 'Diese Seite: hier aus dem berechnet, was der Link enthält.',
   'app.verify.who.file': 'Die Datei',
   'app.verify.who.file.noMatch':

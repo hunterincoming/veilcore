@@ -77,6 +77,7 @@ export const document = {
   'app.doc.compare.text': 'Elija un archivo para compararlo con los sellados aquí. No se sube.',
   'app.doc.compare.pick': 'Elegir un archivo',
   'app.doc.compare.match': '<b>{name}</b> es, byte a byte, {sealed}, sellado aquí.',
+  'app.doc.compare.matchSame': '<b>{name}</b> es, byte a byte, el archivo sellado aquí.',
   'app.doc.compare.noMatch':
     '<b>No coincide.</b> {name} no es el archivo sellado. Volver a guardarlo, imprimirlo como PDF o enviarlo por algunas aplicaciones cambia el archivo: pida el archivo original.',
   'app.doc.new.introTech': 'Dato técnico: el código es el SHA-256 del archivo.',
@@ -109,7 +110,9 @@ export const document = {
   'app.doc.check.notDated':
     'Todavía nada fecha este registro, o el enlace se modificó. No confíe en él hasta que muestre una fecha.',
   'app.doc.check.what':
-    'Lo que esto muestra: un archivo con exactamente estos bytes estaba en manos del titular en esa fecha. Lo que no: que el documento sea auténtico, que el emisor lo haya emitido ni que lo que dice sea cierto. «Emitido por» es la declaración del titular.',
+    'Lo que esto muestra: un archivo con exactamente estos bytes estaba en manos del titular a más tardar en esa fecha. Lo que no: que el documento sea auténtico, que el emisor lo haya emitido ni que lo que dice sea cierto. «Emitido por» es la declaración del titular.',
+  'app.doc.check.whatUndated':
+    'Lo que esto mostrará, una vez fechado: un archivo con exactamente estos bytes estaba en manos del titular a más tardar en su fecha. Lo que no: que el documento sea auténtico, que el emisor lo haya emitido ni que lo que dice sea cierto. «Emitido por» es la declaración del titular.',
   'app.doc.check.inLink': 'En el enlace (las palabras del propio titular)',
   'app.doc.nums.title': 'Los números que figuran (opcional)',
   'app.doc.nums.help':
@@ -205,6 +208,8 @@ export const document = {
     'Lo que ha salido de este dispositivo: el identificador del registro, su código de prueba y su vínculo de clave, enviados a VeilCore para fecharlo. Cada solicitud muestra a VeilCore su dirección de red y la hora. Si tiene una copia con llave de acceso, esta guarda el identificador y las claves de este registro, bloqueados, en el servidor de VeilCore; en ningún caso lo que usted escribió.',
   'app.doc.local.stamp':
     'Poner un sello de fecha a la clave de este registro es decisión suya, y solo lo inicia el botón de abajo. Si lo hace, un código hecho con la clave va a Midnight a través del servicio de tarifas de VeilCore. Nada de lo que usted escribió va con él.',
+  'app.doc.stamp.title': 'Poner un sello de fecha a la clave de este registro en {network}',
+  'app.doc.stamp.button': 'Poner un sello de fecha a la clave',
   'app.doc.local.conflict':
     'El servidor de VeilCore respondió con algo que no es únicamente el código de prueba de este registro. Lo que ve es la copia propia de este dispositivo. No se envía nada más, y la respuesta del servidor no cambia nada aquí.',
   'app.doc.local.homeNotBacked': 'Solo en este dispositivo · aún sin copia de seguridad',
