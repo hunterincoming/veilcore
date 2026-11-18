@@ -1,8 +1,11 @@
 // The one header, on every page: the public pages, the app and the check pages (fresh-eyes
 // review, 12 Nov: there were three, the app had no way back to the site, and "Home" meant two
 // different pages). The mark always goes to veilcore.org's home page; the same links follow it
-// everywhere (About, Updates, Team, Verify, and the demo or your records); then the language,
-// and on the app's pages which network this is. Under it, the notices every page carries
+// everywhere (How it works, About, your records, Verify, and "Make a record" or your records);
+// then the language, and on the app's pages which network this is. Since the dark home page
+// (18 Nov) the links are Mako's: Updates and Team are in the footer, and the button goes
+// straight to making a record (/new). On the home page the same header is drawn on the night
+// ground (home.css, "the header on the home page"); the markup is the same everywhere. Under it, the notices every page carries
 // (dating paused, a draft translation).
 //
 // The parts come in the page in the order they are drawn, so the keyboard meets them in the
@@ -77,9 +80,8 @@ export const ASK_SLOT_ID = 'veilcore-ask-slot';
 
 /** The section links, inline from md up; on a phone in the menu. */
 const sections = [
+  { id: 'how', key: 'm.hero.how' },
   { id: 'about', key: 'm.nav.about' },
-  { id: 'updates', key: 'm.nav.updates' },
-  { id: 'team', key: 'm.nav.team' },
 ] as const;
 
 /**
@@ -178,6 +180,13 @@ const PhoneMenu: React.FC<{ ask: boolean; returning: boolean }> = ({ ask, return
             </SectionLink>
           </li>
         ))}
+        {!returning && (
+          <li>
+            <Link component={RouterLink} to="/records" sx={item}>
+              {t('m.nav.yours')}
+            </Link>
+          </li>
+        )}
         <li>
           <Link component={RouterLink} to="/verify" sx={item}>
             {t('m.foot.verify')}
@@ -190,9 +199,9 @@ const PhoneMenu: React.FC<{ ask: boolean; returning: boolean }> = ({ ask, return
               {t('m.nav.yours')}
             </Link>
           ) : (
-            <SectionLink id="demo" sx={{ ...item, ...menuCtaSx }}>
+            <Link component={RouterLink} to="/new" sx={{ ...item, ...menuCtaSx }} data-cta="">
               {t('m.nav.demo')}
-            </SectionLink>
+            </Link>
           )}
         </Box>
       </Box>
@@ -239,17 +248,29 @@ export const SiteHeader: React.FC<{
                 {t(s.key)}
               </SectionLink>
             ))}
+            {/* Your records: the button says it for someone coming back, so the link is for the rest. */}
+            {!returning && (
+              <Link component={RouterLink} to="/records" sx={{ ...linkSx, ...wide }}>
+                {t('m.nav.yours')}
+              </Link>
+            )}
             <Link component={RouterLink} to="/verify" sx={{ ...linkSx, ...wide }}>
               {t('m.foot.verify')}
             </Link>
             {returning ? (
-              <Link component={RouterLink} to="/records" sx={{ ...linkSx, ...ctaSx, ...cta }} data-your-records="">
+              <Link
+                component={RouterLink}
+                to="/records"
+                sx={{ ...linkSx, ...ctaSx, ...cta }}
+                data-your-records=""
+                data-cta=""
+              >
                 {t('m.nav.yours')}
               </Link>
             ) : (
-              <SectionLink id="demo" sx={{ ...ctaSx, ...cta }}>
+              <Link component={RouterLink} to="/new" sx={{ ...linkSx, ...ctaSx, ...cta }} data-cta="">
                 {t('m.nav.demo')}
-              </SectionLink>
+              </Link>
             )}
             <PhoneMenu ask={!!badge} returning={returning} />
           </Stack>

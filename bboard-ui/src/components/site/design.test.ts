@@ -27,6 +27,8 @@ import { fr } from '../../i18n/fr';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const siteCss = fs.readFileSync(path.join(here, 'site.css'), 'utf8');
+// The home page's own styles (Mako's design, 18 Nov 2026): held to the same rules as site.css.
+const homeCss = fs.readFileSync(path.join(here, 'home.css'), 'utf8');
 const partnersCss = fs.readFileSync(path.join(here, '../partners/partners.css'), 'utf8');
 // Read as text, like load-split.test.ts: importing theme.ts or SiteShell.tsx would load MUI.
 const themeTs = fs.readFileSync(path.join(here, '../../config/theme.ts'), 'utf8');
@@ -182,7 +184,7 @@ describe('the palette: pollen and ink; red only for errors; no green brand', () 
   });
 
   it('nothing is left of the blue, the red brand or the cool greys', () => {
-    for (const src of [siteCss, partnersCss, themeTs, flowFrameTsx, faviconSvg, partnerKit])
+    for (const src of [siteCss, homeCss, partnersCss, themeTs, flowFrameTsx, faviconSvg, partnerKit])
       for (const old of ['#1C3BB0', '#152C86', '#A3B5F8', '#B3173B', '#F3F5F7', '#1E2227', '#575E66'])
         expect(hexes(src)).not.toContain(old);
     expect(themeTs).not.toMatch(/NOTARY/);
@@ -226,7 +228,7 @@ describe('the palette: pollen and ink; red only for errors; no green brand', () 
   it('pollen is never text on paper (1.3:1): only a fill, a mark or text on the ink band', () => {
     expect(contrast(POLLEN, GROUND)).toBeLessThan(1.5);
     // In the CSS, a pollen text colour only under the ink band, the dark section or the footer.
-    for (const css of [siteCss, partnersCss])
+    for (const css of [siteCss, homeCss, partnersCss])
       for (const m of rules(css).matchAll(/([^{};]+)\{([^{}]*)\}/g))
         if (/(^|[^-])color:\s*var\(--pollen\)/.test(m[2]))
           expect(m[1], m[1].trim()).toMatch(/hero|\.dark|\.demo|footer/);
@@ -243,6 +245,7 @@ describe('the palette: pollen and ink; red only for errors; no green brand', () 
     expect(err < 30 || err > 330).toBe(true);
     const reds = [
       ...hexes(siteCss),
+      ...hexes(homeCss),
       ...hexes(themeTs),
       ...hexes(partnersCss),
       ...hexes(flowFrameTsx),
@@ -288,7 +291,13 @@ describe('the palette: pollen and ink; red only for errors; no green brand', () 
   });
 
   it('no colour in the shared tokens is green, except the ✓ of a check that passed', () => {
-    const greens = [...hexes(siteCss), ...hexes(themeTs), ...hexes(partnersCss), ...hexes(flowFrameTsx)].filter((h) => {
+    const greens = [
+      ...hexes(siteCss),
+      ...hexes(homeCss),
+      ...hexes(themeTs),
+      ...hexes(partnersCss),
+      ...hexes(flowFrameTsx),
+    ].filter((h) => {
       const { hue, sat } = hueSat(h);
       return hue > 75 && hue < 175 && sat > 0.15;
     });
@@ -357,13 +366,15 @@ describe('the palette: pollen and ink; red only for errors; no green brand', () 
 
 describe('no lines between things on the public pages', () => {
   it('no rules: nothing draws a top, bottom, left or right border', () => {
-    for (const css of [siteCss, partnersCss]) expect(rules(css)).not.toMatch(/border-(top|bottom|left|right)\s*:/);
+    for (const css of [siteCss, homeCss, partnersCss])
+      expect(rules(css)).not.toMatch(/border-(top|bottom|left|right)\s*:/);
   });
 
   it('no outlined boxes: the only solid border is the text field edge', () => {
     const solid = [...rules(siteCss).matchAll(/border:\s*[^;]*solid[^;]*;/g)].map((m) => m[0]);
     expect(solid).toEqual(['border: 1.5px solid var(--edge);']);
     expect(rules(partnersCss)).not.toMatch(/border:\s*[^;]*solid/);
+    expect(rules(homeCss)).not.toMatch(/border:\s*[^;]*solid/);
   });
 
   it('every token the partners page uses is one site.css defines', () => {
