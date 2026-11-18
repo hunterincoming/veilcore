@@ -1369,7 +1369,8 @@ describe.skipIf(!haveBrowser)('browser: built site under the production headers'
         expect(
           await pg
             .locator(
-              `a[href="/verify/VEIL-A?fp=${record.recordFingerprint}#n=${Buffer.from('Grant Test').toString('base64url')}"]`,
+              // The share panel's own link, not the page's "Open check page" button at the top.
+              `a[href="/verify/VEIL-A?fp=${record.recordFingerprint}#n=${Buffer.from('Grant Test').toString('base64url')}"]:not([data-open-check-page])`,
             )
             .count(),
           'Open what they’ll see',

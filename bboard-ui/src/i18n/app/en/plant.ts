@@ -10,6 +10,7 @@ export const plant = {
   'app.plant.yourRecords': 'Your records',
   'app.plant.checkARecord': 'Check a record',
   'app.plant.home': 'Your records',
+  'app.plant.openCheckPage': 'Open check page',
   'app.plant.bredByName': 'Bred by {name}',
   'app.plant.corrected':
     'This record was corrected. A correction never edits or deletes it: it remains on file unchanged, and a later record supersedes it. <link>See the correction</link>',

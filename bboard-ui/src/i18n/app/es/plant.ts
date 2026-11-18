@@ -10,6 +10,7 @@ export const plant = {
   'app.plant.yourRecords': 'Sus registros',
   'app.plant.checkARecord': 'Comprobar un registro',
   'app.plant.home': 'Sus registros',
+  'app.plant.openCheckPage': 'Abrir la página de comprobación',
   'app.plant.bredByName': 'Obtenida por {name}',
   'app.plant.corrected':
     'Este registro fue corregido. Una corrección nunca lo edita ni lo borra: sigue archivado sin cambios, y un registro posterior lo sustituye. <link>Ver la corrección</link>',

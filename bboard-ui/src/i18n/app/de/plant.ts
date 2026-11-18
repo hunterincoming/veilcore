@@ -10,6 +10,7 @@ export const plant = {
   'app.plant.yourRecords': 'Ihre Datensätze',
   'app.plant.checkARecord': 'Einen Datensatz prüfen',
   'app.plant.home': 'Ihre Datensätze',
+  'app.plant.openCheckPage': 'Prüfseite öffnen',
   'app.plant.bredByName': 'Gezüchtet von {name}',
   'app.plant.corrected':
     'Dieser Datensatz wurde korrigiert. Eine Korrektur bearbeitet oder löscht ihn nie: Er bleibt unverändert gespeichert, und ein späterer Datensatz ersetzt ihn. <link>Korrektur ansehen</link>',
