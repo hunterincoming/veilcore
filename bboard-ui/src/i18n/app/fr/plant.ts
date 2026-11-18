@@ -10,6 +10,7 @@ export const plant = {
   'app.plant.yourRecords': 'Vos enregistrements',
   'app.plant.checkARecord': 'Vérifier un enregistrement',
   'app.plant.home': 'Vos enregistrements',
+  'app.plant.openCheckPage': 'Ouvrir la page de vérification',
   'app.plant.bredByName': 'Obtenue par {name}',
   'app.plant.corrected':
     'Cet enregistrement a été corrigé. Une correction ne le modifie ni ne le supprime jamais : il reste conservé tel quel, et un enregistrement ultérieur le remplace. <link>Voir la correction</link>',

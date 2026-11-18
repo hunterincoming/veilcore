@@ -10,6 +10,7 @@ export const plant = {
   'app.plant.yourRecords': 'あなたの記録',
   'app.plant.checkARecord': '記録を確認する',
   'app.plant.home': 'あなたの記録',
+  'app.plant.openCheckPage': '確認ページを開く',
   'app.plant.bredByName': '育成者：{name}',
   'app.plant.corrected':
     'この記録は訂正されました。訂正は記録を編集も削除もしません。記録はそのまま残り、後の記録がそれに代わります。<link>訂正を見る</link>',

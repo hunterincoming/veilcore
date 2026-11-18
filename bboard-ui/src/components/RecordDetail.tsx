@@ -13,6 +13,7 @@ import LockIcon from '@mui/icons-material/LockOutlined';
 import { Link as RouterLink, useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import ArrowBackIcon from '@mui/icons-material/ArrowBackOutlined';
 import CodeIcon from '@mui/icons-material/DataObjectOutlined';
+import FactCheckIcon from '@mui/icons-material/FactCheckOutlined';
 import {
   useRecords,
   deleteRecord,
@@ -23,8 +24,10 @@ import {
   integrityOf,
   useSealedView,
   latestVersionOf,
+  unsavedReason,
   type StrainRecord,
 } from '../veilcore/records';
+import { nameLinkParams, verifyPath } from '../veilcore/verify-link';
 import { LockedRecords } from './LockedRecords';
 import { RecordSaveNotices } from './RecordSaveNotices';
 import { FinishReceiving } from './FinishReceiving';
@@ -443,6 +446,21 @@ export const RecordDetail: React.FC = () => {
         <Typography variant="body2" color="text.secondary" sx={{ ...CODE_TEXT, overflowWrap: 'anywhere' }}>
           {record.id}
         </Typography>
+        {/* The public check page, one click from the top (18 Nov: the holder couldn't find it
+            from here). The same link the certificate copies, so it checks the fingerprint and
+            the name; shown only once VeilCore has the record, as the page has nothing before. */}
+        {record.recordFingerprint && !unsavedReason(record.id) && (
+          <Button
+            component={RouterLink}
+            to={verifyPath(record.id, record.recordFingerprint, nameLinkParams(record))}
+            variant="outlined"
+            startIcon={<FactCheckIcon />}
+            sx={{ mt: 1.5, minHeight: 44 }}
+            data-open-check-page=""
+          >
+            {t('app.plant.openCheckPage')}
+          </Button>
+        )}
       </Box>
 
       {/* Worked out in this browser (api-store.ts): the registry can't read the record to check it. */}
