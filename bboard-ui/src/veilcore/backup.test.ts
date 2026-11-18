@@ -37,6 +37,13 @@ describe('one backup file', () => {
     expect(text).toContain(h.toLowerCase());
     for (const id of ['VEIL-1', 'VEIL-2']) expect(text).toContain(keys.keysFor(id)!.recordSecret);
     expect(backup.backupFileName(new Date(2026, 9, 13, 21, 30).getTime())).toBe('VeilCore backup 2026-10-13.json');
+    // In the person's language (restore reads the contents, never the name), with nothing a file system refuses.
+    const oct13 = new Date(2026, 9, 13, 21, 30).getTime();
+    expect(backup.backupFileName(oct13, 'Copia de seguridad de VeilCore')).toBe(
+      'Copia de seguridad de VeilCore 2026-10-13.json',
+    );
+    expect(backup.backupFileName(oct13, 'a/b:c')).toBe('a b c 2026-10-13.json');
+    expect(backup.backupFileName(oct13, '  ')).toBe('VeilCore backup 2026-10-13.json');
 
     vi.stubGlobal('URL', { ...URL, createObjectURL: () => 'blob:x', revokeObjectURL: () => undefined });
     vi.stubGlobal('document', { createElement: () => ({ click: () => undefined }) });

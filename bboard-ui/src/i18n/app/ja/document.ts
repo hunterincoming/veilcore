@@ -8,7 +8,7 @@ export const document = {
   'app.doc.orDocumentAction': '書類を封印する',
   'app.doc.new.title': '書類を封印する',
   'app.doc.new.intro':
-    'ファイルを選んでください。ファイルはこの端末から出ません。封印されるのはそのSHA-256（バイトから計算したコード）、名前、サイズだけで、誰にもさかのぼって変えられない日付が付きます。',
+    'ファイルを選んでください。ファイルはこの端末から出ません。封印されるのは、内容から計算したコード、名前、サイズだけで、誰にもさかのぼって変えられない日付が付きます。ファイルが1文字でも変わると、コードは一致しなくなります。',
   'app.doc.new.proves':
     'これで示せること：まったく同じバイトのファイルが、封印された日付までにあなたの手元にあったこと。書類が本物であること、発行者が発行したこと、内容が正しいことは示しません。',
   'app.doc.f.files': 'ファイル',
@@ -47,7 +47,7 @@ export const document = {
   'app.doc.type.protocol': '手順書・SOP',
   'app.doc.type.transport': '輸送・出荷書類',
   'app.doc.type.invoice': '請求書・領収書',
-  'app.doc.type.other': 'その他',
+  'app.doc.type.other': '議事録・決議書・その他',
   'app.doc.kind': '書類',
   'app.doc.homeLine': '書類 · {type}',
   'app.doc.k.type': '種類',
@@ -76,7 +76,22 @@ export const document = {
   'app.doc.compare.text': 'ここで封印したファイルと比べるファイルを選んでください。アップロードはされません。',
   'app.doc.compare.pick': 'ファイルを選ぶ',
   'app.doc.compare.match': '<b>{name}</b>は、ここで封印した{sealed}とバイト単位で同じです。',
-  'app.doc.compare.noMatch': '<b>{name}</b>は、ここで封印したどのファイルとも違います。1バイトでも違えば一致しません。',
+  'app.doc.compare.noMatch':
+    '<b>一致しません。</b>{name}は封印されたファイルではありません。保存し直す、PDFとして印刷する、一部のアプリで送ると、ファイルは変わります。元のファイルを送ってもらってください。',
+  'app.doc.new.introTech': '技術的には、このコードはファイルのSHA-256です。',
+  'app.doc.backupFirst':
+    '封印しました。続けてバックアップを保存し、確認してください。それまでは、この記録の鍵はこのブラウザにしかなく、VeilCoreもまだこの記録の写しを預かっていません。このブラウザの鍵を含むバックアップを確認するまで、毎回表示されます。',
+  'app.doc.notBacked':
+    'まだ確認済みのバックアップに入っていません。それまでは、この記録の鍵はこのブラウザにしかありません。',
+  'app.doc.tech.title': '技術的な詳細',
+  'app.doc.tech.text':
+    'この書類の日付には必要ありません。この記録の鍵にMidnightで日付スタンプを付けておくと、求められたときに、この記録を今も保有していることを後から示せます。',
+  'app.doc.home.sealedOn': '{date} に封印',
+  'app.doc.home.dated': '{date}付',
+  'app.doc.home.waiting': '日付待ち',
+  'app.doc.home.datedReported': '{date}付（VeilCoreの報告）',
+  'app.doc.home.checkingDate': '日付の報告あり・確認中',
+  'app.doc.home.notConfirmed': 'Midnightで日付を確認できません',
   'app.doc.compare.tooLarge': 'そのファイルは{mb}MBを超えるため、ここでは読み込めません。',
   'app.doc.check.title': '書類を確認する',
   'app.doc.check.intro':

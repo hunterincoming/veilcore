@@ -12,6 +12,7 @@ export const ask = {
   'app.ask.engine': 'Funktioniert offline.',
   'app.ask.inputLabel': 'Was möchten Sie tun?',
   'app.ask.inputPlaceholder': 'z. B. 12 Stecklinge von Blue Dream schneiden',
+  'app.ask.inputPlaceholderDoc': 'z. B. Was ist ein Prüfcode?',
   'app.ask.go': 'Los',
   'app.ask.close': 'Schließen',
   'app.ask.clear': 'Leeren',

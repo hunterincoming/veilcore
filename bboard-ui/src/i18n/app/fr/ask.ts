@@ -12,6 +12,7 @@ export const ask = {
   'app.ask.engine': 'Marche hors ligne.',
   'app.ask.inputLabel': 'Que voulez-vous faire ?',
   'app.ask.inputPlaceholder': 'ex. couper 12 boutures de Blue Dream',
+  'app.ask.inputPlaceholderDoc': 'ex. qu’est-ce qu’un code de preuve ?',
   'app.ask.go': 'Aller',
   'app.ask.close': 'Fermer',
   'app.ask.clear': 'Effacer',

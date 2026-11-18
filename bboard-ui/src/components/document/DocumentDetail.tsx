@@ -6,8 +6,20 @@
 
 import React, { useEffect, useState } from 'react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
-import { Alert, Box, Button, Chip, Paper, Stack, Typography } from '@mui/material';
+import {
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
+  Alert,
+  Box,
+  Button,
+  Chip,
+  Paper,
+  Stack,
+  Typography,
+} from '@mui/material';
 import HomeIcon from '@mui/icons-material/HomeOutlined';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import {
   deleteDeviceOnly,
   deviceOnlyBackedUp,
@@ -31,6 +43,9 @@ import { AnchorOnChainPanel } from '../chain/AnchorOnChainPanel';
 import { AppHeader } from '../AppHeader';
 import { EvidenceBundle } from '../EvidenceBundle';
 import { useRecordKeys } from '../../veilcore/record-keys';
+import { useVaultNeedsBackup } from '../../veilcore/vault';
+import { keysOnlyHere } from '../flow/keys-only-here';
+import { useStampRetries } from '../chain/useKeyStamp';
 import { useT } from '../../i18n/app';
 import { useI18n } from '../../i18n';
 import { useRecordDate } from '../verify/useAnchorCheck';
@@ -105,6 +120,7 @@ export const DocumentDetail: React.FC<{ record: StrainRecord }> = ({ record }) =
   const [copied, setCopied] = useState(false);
   const [linkError, setLinkError] = useState<string>();
   const keys = useRecordKeys()[record.id];
+  const records = useRecords();
   // A viability result is not read where those are off (mainnet): no facts, no numbers, nothing to
   // publish or prove from it here. The record stays, and its result file can still be downloaded.
   const viabilityOff = viabilityNotRead({ kind: record.labResult?.statement.kind, schema: record.fieldSet?.schema });
@@ -118,6 +134,17 @@ export const DocumentDetail: React.FC<{ record: StrainRecord }> = ({ record }) =
   // The registry answered with something other than this record's proof code alone: said, and
   // nothing is done about it (records.ts mergeDeviceOnly: this device's copy is what is shown).
   const conflict = local && deviceOnlyConflict(record.id);
+  // The records list's own test (AppHome.tsx, keys-only-here.ts): no checked backup holds this
+  // record's keys, and VeilCore doesn't hold its locked copy under a backed-up vault key yet.
+  // Read again whenever the records, their keys or the vault's backup state change.
+  useVaultNeedsBackup();
+  const keysNotBacked = REAL_CHAIN && !local && keysOnlyHere(records).includes(record.id);
+  // A key stamp that stopped ("may have been sent", "can't be made here") is not left folded away.
+  const stampStopped = !!useStampRetries()[record.id]?.stopped;
+  const [techOpen, setTechOpen] = useState(false);
+  useEffect(() => {
+    if (stampStopped) setTechOpen(true);
+  }, [stampStopped]);
   const navigate = useNavigate();
   const removeFromDevice = () => {
     if (!window.confirm(t('app.doc.local.deleteConfirm'))) return;
@@ -153,7 +180,6 @@ export const DocumentDetail: React.FC<{ record: StrainRecord }> = ({ record }) =
   // The same link with the records it is about (document-link.ts documentChainLink): made only
   // when the holder presses its own button, since it shows those records' details too.
   const [chainCopied, setChainCopied] = useState(false);
-  const records = useRecords();
   const chain = DOCUMENT_CHAIN_ENABLED ? chainEntriesFor(record as never, records as never) : [];
   const copyChainLink = async () => {
     setLinkError(undefined);
@@ -261,6 +287,28 @@ export const DocumentDetail: React.FC<{ record: StrainRecord }> = ({ record }) =
             )}
           </Alert>
         )}
+        {/* Not kept on this device only, and its keys are in no checked backup (the records list's
+            test): said at the top, since the key stamp's own "back up first" is folded away below. */}
+        {keysNotBacked && (
+          <Alert
+            severity="warning"
+            variant="outlined"
+            data-document-not-backed=""
+            action={
+              <Button
+                component={RouterLink}
+                to="/backup"
+                color="inherit"
+                variant="outlined"
+                sx={{ minHeight: 44, whiteSpace: 'nowrap' }}
+              >
+                {t('app.doc.local.backup')}
+              </Button>
+            }
+          >
+            {t('app.doc.notBacked')}
+          </Alert>
+        )}
         {conflict && (
           <Alert severity="warning" variant="outlined" data-device-only-conflict="">
             {t('app.doc.local.conflict')}
@@ -315,7 +363,7 @@ export const DocumentDetail: React.FC<{ record: StrainRecord }> = ({ record }) =
           </>
         )}
         {read && local && <DeviceOnlyProve record={record} />}
-        <Paper sx={{ p: { xs: 2.5, md: 3 } }} data-document-share="">
+        <Paper sx={{ p: { xs: 2.5, md: 3 }, scrollMarginTop: 16 }} data-document-share="" id="check-link">
           <Typography variant="h6" component="h2" sx={{ mb: 0.5 }}>
             {t('app.doc.share.title')}
           </Typography>
@@ -378,27 +426,47 @@ export const DocumentDetail: React.FC<{ record: StrainRecord }> = ({ record }) =
             </Alert>
           )}
         </Paper>
-        <Paper sx={{ p: { xs: 2.5, md: 3 } }}>
+        <Paper sx={{ p: { xs: 2.5, md: 3 }, scrollMarginTop: 16 }} id="compare-file">
           <FileCompare files={files} title={t('app.doc.compare.title')} text={t('app.doc.compare.text')} />
         </Paper>
-        {REAL_CHAIN && (
-          <Paper sx={{ p: { xs: 2.5, md: 3 } }}>
-            {/* The key's date stamp is the one thing here that sends anything, and only when the
-                holder presses its button (useKeyStamp: by itself it only tries a failed one again). */}
-            {local && (
-              <Typography variant="body2" sx={{ mb: 1.5 }} data-device-only-stamp="">
-                {t('app.doc.local.stamp')}
-              </Typography>
-            )}
-            <AnchorOnChainPanel recordId={record.id} />
-          </Paper>
-        )}
         <Paper sx={{ p: { xs: 2.5, md: 3 } }} data-document-bundle="">
           <Typography variant="body2" sx={{ mb: 1.5 }}>
             {t('app.plant.bundle.intro')}
           </Typography>
           <EvidenceBundle record={record} keys={keys} />
         </Paper>
+        {/* The key's date stamp, folded under "Technical details" (secretary walkthrough, 18 Nov):
+            open, it made a finished document look unfinished. The document's date doesn't need
+            it; answering "prove you hold this record" later does, so it stays one tap away. The
+            panel stays mounted while folded, so a stamp that failed is still tried again. */}
+        {REAL_CHAIN && (
+          <Accordion
+            disableGutters
+            variant="outlined"
+            expanded={techOpen}
+            onChange={(_e, open) => setTechOpen(open)}
+            data-document-technical=""
+          >
+            <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ minHeight: 48 }}>
+              <Typography variant="subtitle1" component="h2">
+                {t('app.doc.tech.title')}
+              </Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+                {t('app.doc.tech.text')}
+              </Typography>
+              {/* The key's date stamp is the one thing here that sends anything, and only when the
+                  holder presses its button (useKeyStamp: by itself it only tries a failed one again). */}
+              {local && (
+                <Typography variant="body2" sx={{ mb: 1.5 }} data-device-only-stamp="">
+                  {t('app.doc.local.stamp')}
+                </Typography>
+              )}
+              <AnchorOnChainPanel recordId={record.id} />
+            </AccordionDetails>
+          </Accordion>
+        )}
         {local && (
           <Box>
             <Button color="error" onClick={removeFromDevice} sx={{ minHeight: 44 }} data-device-only-delete="">
