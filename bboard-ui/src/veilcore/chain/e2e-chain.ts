@@ -4,6 +4,8 @@
 // `window.__veilcoreE2EChain` before the site's scripts run (e2e/royalty-revoke.spec.ts):
 //   status  what licenseStatusNow reads for a license (license-invites.ts);
 //   revoke  what revokeLicenseOnChain answers, in place of a proof and a transaction;
+//   prove   what a range or value claim's call answers (prove-number.ts), in place of a proof
+//           and a transaction, so the "Prove one number" panel can be used (e2e/marker-claims.spec.ts);
 //   claim   what checkClaim answers for a claim link (claim-check.ts), or 'checking' to stay
 //           unanswered, so the check page can be opened in each state (e2e/claim-words.spec.ts).
 // In every other build the condition below is a constant false, so this returns undefined and
@@ -16,6 +18,12 @@ export type E2EChain = {
   readonly status?: (commitment: string, issuerRecord: string) => 'PENDING' | 'ACTIVE' | 'none';
   readonly revoke?: (commitment: string, issuerRecord: string) => { txId: string; blockTime?: number };
   readonly claim?: (link: unknown) => ClaimVerdict | 'checking';
+  readonly prove?: (call: { circuit: 'proveRange' | 'proveValue'; slot: number; op?: string; bound?: string }) => {
+    contract: string;
+    txId: string;
+    blockHeight: number;
+    blockTime?: number;
+  };
 };
 
 export const e2eChain = (): E2EChain | undefined =>

@@ -378,4 +378,55 @@ export const labresult = {
   'app.lr.check.pairSelfAfter':
     'Dieses Ergebnis wurde durch das Ergebnis der Probe vor dem Abtötungsschritt {code} selbst ersetzt, mit demselben Schlüssel signiert. Die beiden gelten daher nicht mehr als Paar.',
   'app.lr.f.noCount': 'Lebensfähige Organismen nachgewiesen (keine Anzahl berichtet)',
+
+  // ---- claims on a genotype comparison or parentage check (veilcore/marker-claims.ts) ----
+  'app.marker.offer.differing': 'Abweichende Marker: mindestens …',
+  'app.marker.offer.compared': 'Verglichene Marker: mindestens …',
+  'app.marker.offer.conflictsFirst': 'Konflikte mit Elternteil 1: höchstens …',
+  'app.marker.offer.conflictsSecond': 'Konflikte mit Elternteil 2: höchstens …',
+  'app.marker.offer.call': 'Das Ergebnis des Labors: {call}',
+  'app.marker.callPublish': 'Dies veröffentlicht das Ergebnis des Labors, wie es ist: {call}.',
+  'app.marker.rounded.down':
+    'Abgerundet aus der Zählung des Labors ({sealed}) eingetragen, damit die genaue Zahl privat bleibt. Sie können sie ändern.',
+  'app.marker.rounded.up':
+    'Aufgerundet aus der Zählung des Labors ({sealed}) eingetragen, damit die genaue Zahl privat bleibt. Sie können sie ändern.',
+  'app.marker.exactWarn':
+    'Dies ist die genaue Zahl. Genaue Zahlen gegenüber bekannten Referenzen können zusammen den Genotyp eingrenzen. Eine gerundete Zahl zeigt weniger.',
+  'app.marker.exactRepeat': 'Auf diesem Markerpanel bereits öffentliche genaue Zahlen: {n}.',
+  'app.marker.panelAlready': 'Zu dieser Probe auf diesem Markerpanel bereits öffentlich: {list}.',
+  'app.marker.panelItem': '{claim} ({result})',
+  'app.marker.thisResult': 'dieses Ergebnis',
+  'app.marker.resultNamed': 'Ergebnis {accession}',
+  'app.marker.copyAll': 'Einen Link mit allen {n} Nachweisen kopieren',
+  'app.marker.line.differing': 'Abweichende Marker: mindestens {n}',
+  'app.marker.line.compared': 'Verglichene Marker: mindestens {n}',
+  'app.marker.line.conflictsFirst': 'Konflikte mit Elternteil 1: höchstens {n}',
+  'app.marker.line.conflictsSecond': 'Konflikte mit Elternteil 2: höchstens {n}',
+  'app.marker.joined.differing': 'Abweichende Marker: mindestens {m} von mindestens {n} verglichenen',
+  'app.marker.joined.conflictsFirst':
+    'Konflikte mit Elternteil 1: höchstens {m} von mindestens {n} verglichenen Markern',
+  'app.marker.joined.conflictsSecond':
+    'Konflikte mit Elternteil 2: höchstens {m} von mindestens {n} verglichenen Markern',
+  'app.marker.source.lab':
+    'Die Zählung des Labors, aus dem Ergebnis, das es signiert hat. Es ist eine Zählung, keine Entscheidung über die Sorte.',
+  'app.marker.source.holder':
+    'Keine Laborsignatur auf diesem Datensatz wurde hier geprüft. Lesen Sie diese Zahlen daher als die eigenen des Inhabers.',
+  'app.marker.more.title': 'Ebenfalls in diesem Link, zum selben Datensatz',
+  'app.marker.limits.title': 'Was diese Nachweise nicht zeigen',
+  'app.marker.limits.examine':
+    'Es sind Zählungen, die ein Labor signiert hat. Ob zwei Sorten unterscheidbar sind, entscheidet die Prüfstelle anhand der Markerdaten selbst. Dies ersetzt diese Prüfung nicht.',
+  'app.marker.limits.oneParty':
+    'Sie brauchen eine Stelle, die beide Proben untersucht hat: hier das Labor. Sie lassen nicht zu, dass zwei Parteien Markerdaten vergleichen, die keine von beiden zeigen will.',
+  'app.marker.limits.labWord':
+    'Die Signatur eines Labors macht diese Zahlen zu denen des Labors. Sie macht sie nicht richtig und die Methode nicht zuverlässig.',
+  'app.marker.limits.meaning':
+    'Eine Übereinstimmung sagt nichts über nicht verglichene Marker und nicht, dass die beiden Proben dieselbe Pflanze, dasselbe Tier oder dieselbe Sorte sind. „Vereinbar mit den genannten Eltern“ bedeutet nicht, dass die Abstammung feststeht.',
+  'app.marker.limits.which':
+    'Welche Datensätze verglichen wurden, die Methode und das Panel stehen in der Ergebnisdatei des Labors, nicht im Nachweis.',
+  'app.marker.limits.later':
+    'Sie betreffen das Ergebnis, wie es signiert wurde. Das Labor kann es seitdem berichtigt oder neu untersucht haben.',
+  'app.marker.limits.size':
+    'Ein Datensatz enthält höchstens 16 Zahlen. Ein großer SNP-Vergleich ist eine eigene Berechnung des Labors: Hier werden nur seine Zählungen nachgewiesen.',
+  'app.marker.limits.opening':
+    'Wer die Zahlen des Datensatzes und sein Feldgeheimnis hat, kann sie veröffentlichen: der Inhaber und auch das Labor.',
 } satisfies Partial<AppTranslation>;

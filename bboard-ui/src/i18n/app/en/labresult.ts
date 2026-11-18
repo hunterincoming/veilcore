@@ -384,4 +384,53 @@ export const labresult = {
   'app.lr.check.pairSelfAfter':
     'This result was replaced by before-sample result {code} itself, signed by the same key, so the two are no longer read as a pair.',
   'app.lr.f.noCount': 'Viable organisms recovered (no count reported)',
+
+  // ---- claims on a genotype comparison or parentage check (veilcore/marker-claims.ts) ----
+  'app.marker.offer.differing': 'Markers differing: at least …',
+  'app.marker.offer.compared': 'Markers compared: at least …',
+  'app.marker.offer.conflictsFirst': 'Conflicts with parent 1: at most …',
+  'app.marker.offer.conflictsSecond': 'Conflicts with parent 2: at most …',
+  'app.marker.offer.call': 'The lab’s call: {call}',
+  'app.marker.callPublish': 'This publishes the lab’s call as it is: {call}.',
+  'app.marker.rounded.down':
+    'Filled in rounded down from the lab’s count of {sealed}, so the exact count stays private. You can change it.',
+  'app.marker.rounded.up':
+    'Filled in rounded up from the lab’s count of {sealed}, so the exact count stays private. You can change it.',
+  'app.marker.exactWarn':
+    'This is the exact count. Exact counts against known references, taken together, can narrow down the genotype. A rounded number shows less.',
+  'app.marker.exactRepeat': 'Exact counts on this marker panel already public: {n}.',
+  'app.marker.panelAlready': 'Already public about this sample on this marker panel: {list}.',
+  'app.marker.panelItem': '{claim} ({result})',
+  'app.marker.thisResult': 'this result',
+  'app.marker.resultNamed': 'result {accession}',
+  'app.marker.copyAll': 'Copy one link with all {n} claims',
+  'app.marker.line.differing': 'Markers differing: at least {n}',
+  'app.marker.line.compared': 'Markers compared: at least {n}',
+  'app.marker.line.conflictsFirst': 'Conflicts with parent 1: at most {n}',
+  'app.marker.line.conflictsSecond': 'Conflicts with parent 2: at most {n}',
+  'app.marker.joined.differing': 'Markers differing: at least {m} of at least {n} compared',
+  'app.marker.joined.conflictsFirst': 'Conflicts with parent 1: at most {m} of at least {n} markers compared',
+  'app.marker.joined.conflictsSecond': 'Conflicts with parent 2: at most {m} of at least {n} markers compared',
+  'app.marker.source.lab':
+    'The laboratory’s count, from the result it signed. It is a count, not a decision about the variety.',
+  'app.marker.source.holder':
+    'No laboratory signature on this record has checked here, so read these numbers as the holder’s own.',
+  'app.marker.more.title': 'Also in this link, on the same record',
+  'app.marker.limits.title': 'What these claims don’t show',
+  'app.marker.limits.examine':
+    'They are counts a laboratory signed. Whether two varieties are distinct is for the examining office to decide, from the marker data itself. This doesn’t replace that examination.',
+  'app.marker.limits.oneParty':
+    'They need one party that tested both samples: here, the laboratory. They don’t let two parties compare marker data that neither will show.',
+  'app.marker.limits.labWord':
+    'A laboratory’s signature makes these the laboratory’s numbers. It doesn’t make them correct, or the method sound.',
+  'app.marker.limits.meaning':
+    'A match says nothing about markers not compared, and doesn’t say the two samples are the same plant, animal or variety. “Consistent with the parents named” isn’t proof of descent.',
+  'app.marker.limits.which':
+    'Which records were compared, the method and the panel are in the laboratory’s result file, not in the claim.',
+  'app.marker.limits.later':
+    'They are about the result as signed. The laboratory may have corrected it or tested again since.',
+  'app.marker.limits.size':
+    'A record holds at most 16 numbers. A large SNP comparison is the laboratory’s own computation: only its counts go into a claim here.',
+  'app.marker.limits.opening':
+    'Anyone holding the record’s numbers and its field secret can publish them: the holder, and the laboratory too.',
 };

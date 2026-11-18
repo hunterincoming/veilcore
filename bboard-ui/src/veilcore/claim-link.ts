@@ -16,6 +16,11 @@
 // What it can't show is said on the page: the holder typed the numbers (no laboratory signed
 // them, unless an attested claim says so), and each bound published narrows the number.
 //
+// A link on a lab's genotype comparison or parentage check may carry more than one claim on the
+// same record (`more`: "markers differing: at least 6" and "markers compared: at least 40",
+// marker-claims.ts). Each is read and compared on its own; they share the record, the schema and
+// the contract by construction, so "6 of 40" can only be said of one record.
+//
 // A link may also name the laboratory signature on the same record (lab-attest.ts): the
 // proveAttested transaction and the key. That call is read and compared the same way, and the
 // page then says which key signed the numbers. Whose key it is, the page can't say.
@@ -28,6 +33,7 @@ import { fieldSchemaId, type FieldSchema } from '../../../contract/src/field-sch
 import { numberFrom } from '../../../contract/src/fields';
 import { SCHEMAS } from './field-set';
 import { keyBoundFingerprint } from './key-binding';
+import { isMarkerSchema } from './marker-claims';
 
 export const CLAIM_CHECK_PATH = '/check-claim';
 
@@ -52,6 +58,11 @@ export type MadeClaim = {
   /** value: the number published, as stored. */
   readonly value?: string;
   /**
+   * Other claims on the same record, under the same schema, on the same claims contract: only in
+   * a link, only on a lab's genotype comparison or parentage check (marker-claims.ts), at most 4.
+   */
+  readonly more?: readonly MoreClaim[];
+  /**
    * The laboratory's signature on the same record, as published by a proveAttested call
    * (lab-attest.ts): that transaction and the key the holder says signed. Checked like the
    * claim itself; never believed from the link.
@@ -72,6 +83,14 @@ export type MadeClaim = {
     readonly bindingSalt?: string;
   };
 };
+
+/** One more claim in a link: what differs from the first; the record, schema and contract are the first's. */
+export type MoreClaim = Pick<
+  MadeClaim,
+  'kind' | 'txId' | 'slot' | 'op' | 'bound' | 'value' | 'blockHeight' | 'blockTime'
+>;
+
+export const MAX_MORE = 4;
 
 const HEX64 = /^[0-9a-f]{64}$/;
 const DEC = /^(0|[1-9]\d{0,19})$/;
@@ -135,6 +154,20 @@ export const readClaimLink = (hash: string): MadeClaim | undefined => {
   const value = str('value');
   if (kind === 'range' && (!op || !bound || !DEC.test(bound))) return undefined;
   if (kind === 'value' && (!value || !DEC.test(value))) return undefined;
+  let more: MoreClaim[] | undefined;
+  if (o.more !== undefined) {
+    // Only on a lab's comparison or parentage check, a few, each a claim this schema can carry, each its own call.
+    if (!isMarkerSchema(schema) || !Array.isArray(o.more) || o.more.length < 1 || o.more.length > MAX_MORE)
+      return undefined;
+    more = [];
+    const seen = new Set([txId]);
+    for (const m of o.more as unknown[]) {
+      const one = readMore(m, schema);
+      if (!one || seen.has(one.txId)) return undefined;
+      seen.add(one.txId);
+      more.push(one);
+    }
+  }
   return {
     kind,
     contract,
@@ -144,9 +177,78 @@ export const readClaimLink = (hash: string): MadeClaim | undefined => {
     slot,
     ...(keyBinding ? { keyBinding } : {}),
     ...(attested ? { attested } : {}),
+    ...(more ? { more } : {}),
     ...(kind === 'range' ? { op, bound } : { value }),
     ...(typeof o.blockHeight === 'number' ? { blockHeight: o.blockHeight } : {}),
     ...(typeof o.blockTime === 'number' ? { blockTime: o.blockTime } : {}),
+  };
+};
+
+/** One entry of a link's `more`, checked for form only. */
+const readMore = (m: unknown, schema: string): MoreClaim | undefined => {
+  if (typeof m !== 'object' || m === null || Array.isArray(m)) return undefined;
+  const o = m as Record<string, unknown>;
+  const kind = o.kind === 'range' || o.kind === 'value' ? o.kind : undefined;
+  const txId = typeof o.txId === 'string' && /^[0-9a-f]{2,256}$/.test(o.txId) ? o.txId : undefined;
+  const slot =
+    typeof o.slot === 'number' && Number.isInteger(o.slot) && o.slot >= 0 && o.slot < 16 ? o.slot : undefined;
+  if (!kind || !txId || slot === undefined) return undefined;
+  if (!SCHEMAS[schema].slots.some((s) => s.slot === slot && s.type === 'uint')) return undefined;
+  const op = o.op === 'at-most' || o.op === 'at-least' ? o.op : undefined;
+  const bound = typeof o.bound === 'string' && DEC.test(o.bound) ? o.bound : undefined;
+  const value = typeof o.value === 'string' && DEC.test(o.value) ? o.value : undefined;
+  if (kind === 'range' && (!op || !bound)) return undefined;
+  if (kind === 'value' && !value) return undefined;
+  return {
+    kind,
+    txId,
+    slot,
+    ...(kind === 'range' ? { op, bound } : { value }),
+    ...(typeof o.blockHeight === 'number' ? { blockHeight: o.blockHeight } : {}),
+    ...(typeof o.blockTime === 'number' ? { blockTime: o.blockTime } : {}),
+  };
+};
+
+/**
+ * Every claim a link carries, each as a whole claim to check on its own: the first with the
+ * laboratory signature it names, the others with the first's record, schema and contract and no
+ * signature of their own (the signature is on the record, and is checked once, with the first).
+ */
+export const claimsOf = (link: MadeClaim): readonly MadeClaim[] => {
+  const { more, ...first } = link;
+  const base = first;
+  return [
+    first,
+    ...(more ?? []).map(
+      (m): MadeClaim => ({
+        contract: base.contract,
+        record: base.record,
+        schema: base.schema,
+        ...(base.keyBinding ? { keyBinding: base.keyBinding } : {}),
+        ...m,
+      }),
+    ),
+  ];
+};
+
+/** One link for several claims on the same record: the first, with the rest as its `more`. */
+export const withMore = (first: MadeClaim, rest: readonly MadeClaim[]): MadeClaim => {
+  if (rest.length === 0) return first;
+  if (rest.length > MAX_MORE) throw new Error('Too many claims for one link.');
+  return {
+    ...first,
+    more: rest.map((c) => {
+      if (c.record !== first.record || c.schema !== first.schema || c.contract !== first.contract)
+        throw new Error('Claims in one link must be on the same record, form and contract.');
+      return {
+        kind: c.kind,
+        txId: c.txId,
+        slot: c.slot,
+        ...(c.kind === 'range' ? { op: c.op, bound: c.bound } : { value: c.value }),
+        ...(c.blockHeight !== undefined ? { blockHeight: c.blockHeight } : {}),
+        ...(c.blockTime !== undefined ? { blockTime: c.blockTime } : {}),
+      };
+    }),
   };
 };
 
