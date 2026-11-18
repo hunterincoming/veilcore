@@ -52,6 +52,7 @@ import {
   onSealedStateChange,
   recordSealedBytes,
   registryHasProofCode,
+  registryReadFor,
   rowStateOf,
   SEALED_MAX_BYTES,
   sendDatingRows,
@@ -571,6 +572,22 @@ export const clearRemovedAsDeleted = (): void => {
   removedListeners.forEach((l) => l());
 };
 
+/**
+ * Corrections kept here whose link names a record its holder deleted (dropDeletedLinks): the
+ * registry will never take them, so they are said as that, with the way to let them go.
+ */
+const linksDeletedHere = new Set<string>();
+const linksDeletedListeners = new Set<() => void>();
+/** The first such correction kept here, if any (SaveProblemBar links to its page). */
+export const linksDeletedFirst = (): string | undefined => {
+  for (const id of linksDeletedHere) if (records.some((r) => r.id === id)) return id;
+  return undefined;
+};
+export const onLinksDeleted = (l: () => void): (() => void) => {
+  linksDeletedListeners.add(l);
+  return () => linksDeletedListeners.delete(l);
+};
+
 /** Ids being deleted now (deleteRecord): no save or dating row carries them meanwhile. */
 const deleting = new Set<string>();
 
@@ -607,12 +624,21 @@ const dropDeletedLinks = (result: SaveResult): SaveResult => {
       const was = removedAsDeleted.size;
       removedAsDeleted.add(ref.id);
       if (removedAsDeleted.size > was) removedListeners.forEach((l) => l());
+    } else if (records.some((r) => r.id === ref.id)) {
+      // Kept (its proof code is dated, or VeilCore holds an earlier copy): the registry will
+      // refuse it every time, so it is said, never resent in silence (unsavedReason).
+      if (!linksDeletedHere.has(ref.id)) {
+        linksDeletedHere.add(ref.id);
+        linksDeletedListeners.forEach((l) => l());
+      }
     }
   }
   if (changed) {
     notify();
     persist();
   }
+  // Out of the save's own refusals either way: a dropped link is saved again, and a kept
+  // correction stays kept (its page and the save bar say why: unsavedReason, linksDeletedFirst).
   const refused = result.refused.filter((r) => !r.linksDeleted);
   return { ...result, refused, ok: result.ok || (refused.length === 0 && !result.offline && !result.held?.length) };
 };
@@ -1477,8 +1503,10 @@ const dateFirst = (skip: readonly string[] = []): Promise<void> => {
 export const proofCodeSent = (id: string): boolean => registryHasProofCode(id);
 
 /** Why a record is shown but not on the registry yet, or undefined when it is. */
-export type UnsavedReason = 'backup' | 'key' | 'retry';
+export type UnsavedReason = 'backup' | 'key' | 'retry' | 'linksDeleted';
 export const unsavedReason = (id: string): UnsavedReason | undefined => {
+  // A correction of a record its holder deleted: VeilCore will never take it.
+  if (linksDeletedHere.has(id) && records.some((r) => r.id === id)) return 'linksDeleted';
   // A record left unsure by a correction whose answer was lost: kept here, sent once the
   // registry is read again (settleUnsure).
   if (unsureNow().has(id)) return 'retry';
@@ -1489,21 +1517,95 @@ export const unsavedReason = (id: string): UnsavedReason | undefined => {
 };
 
 /**
- * Let go of a record kept in this browser that the registry never took (a new one), or of a
- * change to one it has (the registry's copy is shown again).
+ * How a record kept here but not saved on VeilCore is let go:
+ *   - 'undo': VeilCore holds an earlier copy; the change here is dropped and that copy shown again.
+ *   - 'delete': its proof code reached VeilCore (dated, or waiting to be); only deleteRecord, with
+ *     its waits and a fresh date read, may take it, because its keys are what prove that date.
+ *   - 'discard': VeilCore never held it and its proof code never left this browser.
+ *   - 'unknown': the registry hasn't been read for this holder key and this page didn't see the
+ *     proof code reach it, so 'undo' and 'discard' can't be told apart; nothing is let go.
  */
-export const discardUnsaved = async (id: string): Promise<void> => {
-  if (!inOutbox(id)) return;
+export type LetGo = 'undo' | 'delete' | 'discard' | 'unknown';
+export const letGoOf = (id: string): LetGo => {
+  const row = rowStateOf(RECORDS_KEY, id);
+  if (row !== undefined && row !== 'dating') return 'undo';
+  // A proof code this page saw reach VeilCore needs no read to know it must not be discarded.
+  if (row === 'dating' || registryHasProofCode(id)) return 'delete';
+  if (!registryReadFor(RECORDS_KEY)) return 'unknown';
+  return 'discard';
+};
+
+/**
+ * Let go of a change kept here to a record VeilCore holds (its copy is shown again), or of a
+ * record VeilCore never held whose proof code never left this browser. A record whose proof code
+ * reached VeilCore is never let go here (letGoOf 'delete': deleteRecord).
+ */
+/**
+ * letGoOf once this page's saves and dating requests on their way have their answers (a record
+ * still being sent or dated is neither "never sent" nor settled yet); 'busy' when they don't
+ * settle in time. Worked out when the holder clicks, not when the page drew the button.
+ */
+export const letGoNow = async (id: string): Promise<LetGo | 'busy'> => {
+  if (deleting.has(id)) return 'busy';
+  return letGoSettled(id);
+};
+
+// The decision itself, once nothing for this id may still be on its way. A caller about to act on
+// it holds the id in `deleting` first, so the read below can't start a new dating request for it.
+const letGoSettled = async (id: string): Promise<LetGo | 'busy'> => {
+  if (!(await savesSettledInTime())) return 'busy';
+  if (!(await datingSettledInTime())) return 'busy';
+  const how = letGoOf(id);
+  if (how !== 'discard') return how;
+  // A send whose answer was lost may still have landed, and the read behind letGoOf can be older
+  // than it: nothing is discarded on anything but a read made now.
+  if (!(await hydrateAnswered())) return 'unknown';
+  return letGoOf(id);
+};
+
+/** What discardUnsaved did: let it go, or why nothing changed. */
+export type DiscardOutcome = 'ok' | 'busy' | 'unknown' | 'changed' | 'reload-failed';
+
+/** `confirmed`: what the holder agreed to; anything else now and nothing is done ('changed'). */
+export const discardUnsaved = async (id: string, confirmed: 'undo' | 'discard'): Promise<DiscardOutcome> => {
+  if (deleting.has(id)) return 'busy';
+  // Held for the whole let-go: the registry read inside starts dateFirst for records still waiting,
+  // and dateFirst and saves skip ids in `deleting`, so nothing for this id is sent while its keys
+  // may be about to go.
+  deleting.add(id);
+  try {
+    return await discardHeld(id, confirmed);
+  } finally {
+    deleting.delete(id);
+  }
+};
+
+const discardHeld = async (id: string, confirmed: 'undo' | 'discard'): Promise<DiscardOutcome> => {
+  const how = await letGoSettled(id);
+  if (how === 'busy' || how === 'unknown') return how;
+  if (how !== confirmed) return 'changed';
+  const queued = outboxRecords()[id];
+  const deadLink = linksDeletedHere.delete(id);
+  if (deadLink) linksDeletedListeners.forEach((l) => l());
+  if (!queued && !deadLink) return 'ok';
   takeFromOutbox([id]);
-  // Its proof code alone was dated (CONTRACT.md #38): taken off VeilCore too, since the record
-  // it dates is gone.
-  if (rowStateOf(RECORDS_KEY, id) === 'dating') await deleteRecords([id]);
-  if (rowStateOf(RECORDS_KEY, id) === undefined) {
+  if (how === 'discard') {
     records = records.filter((r) => r.id !== id);
     forgetKeys(id);
     notify();
+    await hydrate();
+    return 'ok';
   }
-  await hydrate();
+  // Undo: VeilCore's copy has to be read back to be shown. If it can't be, the change goes back
+  // in the outbox so it never looks saved when it isn't.
+  if (await hydrateAnswered()) return 'ok';
+  if (queued) putInOutbox([queued]);
+  if (deadLink) {
+    linksDeletedHere.add(id);
+    linksDeletedListeners.forEach((l) => l());
+  }
+  notify();
+  return 'reload-failed';
 };
 
 /** Why deleting a record didn't happen; RecordDetail says each in the page's language. */
@@ -1544,6 +1646,7 @@ export const deleteRecord = async (id: string): Promise<{ ok: true } | { error: 
     records = records.filter((x) => x.id !== id);
     takeFromOutbox([id]);
     forgetKeys(id);
+    if (linksDeletedHere.delete(id)) linksDeletedListeners.forEach((l) => l());
     notify();
   } finally {
     deleting.delete(id);

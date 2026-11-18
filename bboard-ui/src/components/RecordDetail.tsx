@@ -6,7 +6,7 @@
 import { aboutIdsOf } from '../veilcore/document-chain';
 import { neverSend } from '../veilcore/outbox';
 import { dateForDelete, type DateForDelete } from '../veilcore/proofs';
-import type { AppKey } from '../i18n/app/en';
+import { DELETE_WHY, deleteDateKey } from './delete-words';
 import React, { useEffect, useRef, useState } from 'react';
 import { Alert, Box, Button, Collapse, Divider, Link, Paper, Stack, Typography } from '@mui/material';
 import LockIcon from '@mui/icons-material/LockOutlined';
@@ -16,7 +16,6 @@ import CodeIcon from '@mui/icons-material/DataObjectOutlined';
 import {
   useRecords,
   deleteRecord,
-  type DeleteFailure,
   getRecord,
   exportEnvelope,
   childrenOf,
@@ -187,29 +186,6 @@ const StrainFields: React.FC<{ record: NonNullable<ReturnType<typeof getRecord>>
   );
 };
 
-/** What a failed delete says, in the page's language (records.ts DeleteFailure). */
-const DELETE_WHY: Record<DeleteFailure, AppKey> = {
-  busy: 'app.plant.delete.why.busy',
-  offline: 'app.plant.delete.why.offline',
-  refused: 'app.plant.delete.why.refused',
-  'not-removed': 'app.plant.delete.why.notRemoved',
-  'device-only': 'app.plant.delete.why.deviceOnly',
-  missing: 'app.plant.delete.why.missing',
-  linked: 'app.plant.delete.blockedCorrection',
-};
-
-/** What happens to its date (proofs.ts dateForDelete): said before asking. */
-const deleteDateKey = (d: DateForDelete | 'checking'): AppKey =>
-  d === 'checking'
-    ? 'app.plant.delete.datedChecking'
-    : d === 'dated'
-      ? 'app.plant.delete.datedYes'
-      : d === 'pending'
-        ? 'app.plant.delete.datedPending'
-        : d === 'none'
-          ? 'app.plant.delete.datedNo'
-          : 'app.plant.delete.datedUnknown';
-
 /**
  * Deleting a record (records.ts deleteRecord): what goes and what stays, said before asking.
  * Not offered while a licence, an agreement or a correction relies on it. The record stays on
@@ -219,21 +195,26 @@ const DeleteRecord: React.FC<{
   record: StrainRecord;
   licensed: boolean;
   namedBy: readonly StrainRecord[];
+  /** Whether the panel is showing (its "Technical details" are open). */
+  open: boolean;
   onDeleted: () => void;
-}> = ({ record, licensed, namedBy, onDeleted }) => {
+}> = ({ record, licensed, namedBy, open, onDeleted }) => {
   const { t } = useT();
   const [dateNow, setDateNow] = useState<DateForDelete | 'checking'>('checking');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const inCorrection = !!record.supersedes?.recordId || !!record.supersededBy;
+  const blocked = licensed ? 'app.plant.delete.blocked' : inCorrection ? 'app.plant.delete.blockedCorrection' : null;
+  // Its date is asked for only when deleting is possible and the panel is open (it sits under
+  // "Technical details"), not on every view of the record's page; Delete reads it again anyway.
   useEffect(() => {
+    if (blocked || !open) return;
     let live = true;
     void dateForDelete(record.recordFingerprint).then((d) => live && setDateNow(d));
     return () => {
       live = false;
     };
-  }, [record.recordFingerprint]);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const inCorrection = !!record.supersedes?.recordId || !!record.supersededBy;
-  const blocked = licensed ? 'app.plant.delete.blocked' : inCorrection ? 'app.plant.delete.blockedCorrection' : null;
+  }, [record.recordFingerprint, blocked, open]);
   const go = async () => {
     const named = namedBy.length
       ? t('app.plant.delete.named', { list: namedBy.map((x) => x.strainName || x.id).join(', ') })
@@ -869,6 +850,7 @@ export const RecordDetail: React.FC = () => {
                         x.id !== record.id &&
                         ((x.parents ?? []).some((p) => p.recordId === record.id) || aboutIdsOf(x).includes(record.id)),
                     )}
+                    open={details}
                     onDeleted={() => void navigate('/records')}
                   />
                 )}

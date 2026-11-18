@@ -291,6 +291,7 @@ describe('deleting a record', () => {
       return A.m.records.createRecord(sealed);
     });
     await until(() => A.m.api.registryHasProofCode(record.id));
+    const H = (await A.run(() => A.m.holder.holderKeyIfAny())) as string;
     // Every save of it is refused for a correction link naming a deleted record.
     let saves = 0;
     vi.stubGlobal('fetch', (url: string, init?: RequestInit) =>
@@ -319,5 +320,192 @@ describe('deleting a record', () => {
     // Dated already, so kept with its keys, and nothing said as deleted.
     expect((await A.run(() => A.m.records.getRecord(record.id)))?.strainName).toBe('TEST delete');
     expect(await A.run(() => A.m.records.removedAsDeletedCount())).toBe(0);
+    // Never resent in silence: the save bar and the record's page say why, with the way out.
+    expect(await A.run(() => A.m.records.unsavedReason(record.id))).toBe('linksDeleted');
+    expect(await A.run(() => A.m.records.linksDeletedFirst())).toBe(record.id);
+    // Its proof code reached VeilCore, so only the guarded delete may take it: letting go here
+    // does nothing, and its keys stay.
+    vi.stubGlobal('fetch', reg.fetch);
+    expect(await A.run(() => A.m.records.letGoOf(record.id))).toBe('delete');
+    expect(await A.run(() => A.m.records.discardUnsaved(record.id, 'discard'))).toBe('changed');
+    expect(await A.run(() => A.m.records.getRecord(record.id))).toBeDefined();
+    expect(await A.run(() => A.m.records.unsavedReason(record.id))).toBe('linksDeleted');
+    // Deleted the guarded way: gone here and on VeilCore, and no longer said as stuck.
+    expect(await A.run(() => A.m.records.deleteRecord(record.id))).toEqual({ ok: true });
+    expect(await A.run(() => A.m.records.getRecord(record.id))).toBeUndefined();
+    expect(reg.rowsOf(H).some((r) => r.id === record.id)).toBe(false);
+    expect(await A.run(() => A.m.records.linksDeletedFirst())).toBeUndefined();
+  });
+
+  it('a proof code VeilCore holds is never let go by discarding, even with no row read here', async () => {
+    const A = await browser('del-letgo-dated-here');
+    const sealed = await seal(A);
+    const record = await A.run(() => {
+      A.m.holder.holderKey();
+      return A.m.records.createRecord(sealed);
+    });
+    await until(() => A.m.api.registryHasProofCode(record.id));
+    // As if its row hadn't been read yet: only this browser's own note says the code was dated.
+    expect(await A.run(() => A.m.records.letGoOf(record.id))).toBe('delete');
+    await A.run(() => A.m.records.discardUnsaved(record.id, 'discard'));
+    expect(await A.run(() => A.m.records.getRecord(record.id))).toBeDefined();
+  });
+
+  it('a change to a record VeilCore holds is undone, never deleted', async () => {
+    const A = await browser('del-letgo-undo');
+    const sealed = await seal(A);
+    const record = await A.run(() => {
+      A.m.holder.holderKey();
+      return A.m.records.createRecord(sealed);
+    });
+    const H = (await A.run(() => A.m.holder.holderKeyIfAny())) as string;
+    await A.run(async () => {
+      A.m.vault.mintVault();
+      A.m.vault.markVaultBackedUp();
+      await A.m.backup.checkBackup(fileOf(JSON.stringify(A.m.backup.backupContents())));
+    });
+    await until(() => !!reg.rowsOf(H).find((r) => r.id === record.id)?.sealed);
+    await A.run(() => A.m.records.hydrate());
+    // A later change VeilCore refuses: the registry still holds the earlier copy.
+    vi.stubGlobal('fetch', (url: string, init?: RequestInit) =>
+      init?.method === 'PUT' && new URL(url).pathname === '/api/records'
+        ? Promise.resolve(
+            new Response(
+              JSON.stringify({
+                ok: false,
+                rejected: [{ id: record.id, code: 'links-deleted', field: 'supersedes', reason: 'x' }],
+                notWritten: [],
+              }),
+              { status: 200 },
+            ),
+          )
+        : reg.fetch(url, init),
+    );
+    await A.run(() => A.m.records.noteSentTo(record.id, 'TR-9', 'Lab'));
+    await until(() => A.run(() => A.m.records.unsavedReason(record.id) === 'linksDeleted'));
+    expect(await A.run(() => A.m.records.letGoOf(record.id))).toBe('undo');
+    // VeilCore can't be read to show its copy again: the change stays queued, never looks saved.
+    vi.stubGlobal('fetch', (url: string, init?: RequestInit) =>
+      (init?.method ?? 'GET') === 'GET' ? Promise.reject(new TypeError('offline')) : reg.fetch(url, init),
+    );
+    expect(await A.run(() => A.m.records.discardUnsaved(record.id, 'undo'))).toBe('reload-failed');
+    expect(await A.run(() => A.m.records.unsavedReason(record.id))).toBe('linksDeleted');
+    vi.stubGlobal('fetch', reg.fetch);
+    expect(await A.run(() => A.m.records.discardUnsaved(record.id, 'undo'))).toBe('ok');
+    // The record stays, as VeilCore holds it; nothing was deleted anywhere.
+    expect(await A.run(() => A.m.records.getRecord(record.id))).toBeDefined();
+    expect(reg.rowsOf(H).some((r) => r.id === record.id)).toBe(true);
+    expect(await A.run(() => A.m.records.unsavedReason(record.id))).toBeUndefined();
+  });
+
+  it('a record VeilCore never held, its proof code never sent, is let go here', async () => {
+    const A = await browser('del-letgo-never');
+    const sealed = await seal(A);
+    // VeilCore answers reads, but nothing this browser sends gets there.
+    vi.stubGlobal('fetch', (url: string, init?: RequestInit) =>
+      init?.method === 'PUT' ? Promise.reject(new TypeError('offline')) : reg.fetch(url, init),
+    );
+    const record = await A.run(() => {
+      A.m.holder.holderKey();
+      return A.m.records.createRecord(sealed);
+    });
+    await A.run(() => A.m.records.hydrate());
+    await settle(50);
+    expect(await A.run(() => A.m.records.letGoOf(record.id))).toBe('discard');
+    expect(await A.run(() => A.m.records.discardUnsaved(record.id, 'discard'))).toBe('ok');
+    expect(await A.run(() => A.m.records.getRecord(record.id))).toBeUndefined();
+  });
+
+  it('with the registry never read, nothing is let go: it may hold the record or its proof code', async () => {
+    const A = await browser('del-letgo-unread');
+    const sealed = await seal(A);
+    vi.stubGlobal('fetch', () => Promise.reject(new TypeError('offline')));
+    const record = await A.run(() => A.m.records.createRecord(sealed));
+    await settle(50);
+    expect(await A.run(() => A.m.records.letGoOf(record.id))).toBe('unknown');
+    expect(await A.run(() => A.m.records.discardUnsaved(record.id, 'discard'))).toBe('unknown');
+    expect(await A.run(() => A.m.records.getRecord(record.id))).toBeDefined();
+  });
+
+  it('a dating request still on its way: nothing is let go, and it asks to try again', async () => {
+    const A = await browser('del-letgo-busy');
+    const sealed = await seal(A);
+    A.m.records.SAVES_WAIT.ms = 60;
+    let datingSeen = 0;
+    vi.stubGlobal('fetch', (url: string, init?: RequestInit) => {
+      if (init?.method === 'PUT' && new URL(url).pathname === '/api/records/dating') {
+        datingSeen++;
+        return new Promise(() => {});
+      }
+      if (init?.method === 'PUT') return Promise.reject(new TypeError('offline'));
+      return reg.fetch(url, init);
+    });
+    const record = await A.run(() => {
+      A.m.holder.holderKey();
+      return A.m.records.createRecord(sealed);
+    });
+    await until(() => datingSeen > 0);
+    expect(await A.run(() => A.m.records.discardUnsaved(record.id, 'discard'))).toBe('busy');
+    expect(await A.run(() => A.m.records.getRecord(record.id))).toBeDefined();
+  });
+
+  it('letting go holds the record: the registry read inside sends nothing for it', async () => {
+    const A = await browser('del-letgo-held');
+    const sealed = await seal(A);
+    // Nothing this browser sends gets there at first, so the record is never sent.
+    vi.stubGlobal('fetch', (url: string, init?: RequestInit) =>
+      init?.method === 'PUT' ? Promise.reject(new TypeError('offline')) : reg.fetch(url, init),
+    );
+    const record = await A.run(() => {
+      A.m.holder.holderKey();
+      return A.m.records.createRecord(sealed);
+    });
+    const H = (await A.run(() => A.m.holder.holderKeyIfAny())) as string;
+    await A.run(() => A.m.records.hydrate());
+    await settle(50);
+    // Now sends would land: the read made while letting go (which saves or dates what is kept
+    // here) must send nothing for this record.
+    let sentForIt = 0;
+    vi.stubGlobal('fetch', async (url: string, init?: RequestInit) => {
+      if (init?.method === 'PUT' && typeof init.body === 'string' && init.body.includes(record.id)) sentForIt++;
+      return reg.fetch(url, init);
+    });
+    expect(await A.run(() => A.m.records.discardUnsaved(record.id, 'discard'))).toBe('ok');
+    await settle(50);
+    expect(sentForIt).toBe(0);
+    expect(reg.rowsOf(H).some((r) => r.id === record.id)).toBe(false);
+    expect(await A.run(() => A.m.records.getRecord(record.id))).toBeUndefined();
+  });
+
+  it('a dating request whose answer was lost after it landed: nothing is discarded, keys kept', async () => {
+    const A = await browser('del-letgo-lost-answer');
+    const sealed = await seal(A);
+    let datingLanded = 0;
+    // The registry was read before (an old read with nothing for this record), then the dating
+    // row lands but its answer never comes back; every other send fails.
+    await A.run(() => {
+      A.m.holder.holderKey();
+      return A.m.records.hydrate();
+    });
+    vi.stubGlobal('fetch', async (url: string, init?: RequestInit) => {
+      if (init?.method === 'PUT' && new URL(url).pathname === '/api/records/dating') {
+        await reg.fetch(url, init);
+        datingLanded++;
+        throw new TypeError('connection reset');
+      }
+      if (init?.method === 'PUT') throw new TypeError('offline');
+      return reg.fetch(url, init);
+    });
+    const record = await A.run(() => A.m.records.createRecord(sealed));
+    await until(() => datingLanded > 0);
+    await settle(50);
+    // From the old read alone it looks never sent; the read made now shows VeilCore has it.
+    expect(await A.run(() => A.m.records.discardUnsaved(record.id, 'discard'))).toBe('changed');
+    expect(await A.run(() => A.m.records.getRecord(record.id))).toBeDefined();
+    expect(await A.run(() => A.m.records.letGoOf(record.id))).toBe('delete');
+    // And with VeilCore unreachable for the read made now, nothing is discarded either.
+    vi.stubGlobal('fetch', () => Promise.reject(new TypeError('offline')));
+    expect(await A.run(() => A.m.records.discardUnsaved(record.id, 'discard'))).not.toBe('ok');
+    expect(await A.run(() => A.m.records.getRecord(record.id))).toBeDefined();
   });
 });

@@ -3,11 +3,18 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import React, { useSyncExternalStore } from 'react';
-import { Alert } from '@mui/material';
+import { Alert, Button } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
 import { clearSaveProblem, describeRefusals, useSaveProblem } from '../veilcore/save-status';
 import { useT } from '../i18n/app';
 import { SupportDetails } from './SupportDetails';
-import { clearRemovedAsDeleted, onRemovedAsDeleted, removedAsDeletedCount } from '../veilcore/records';
+import {
+  clearRemovedAsDeleted,
+  linksDeletedFirst,
+  onLinksDeleted,
+  onRemovedAsDeleted,
+  removedAsDeletedCount,
+} from '../veilcore/records';
 
 /** Records removed here because their holder deleted them elsewhere, or a restore still had them. */
 const RemovedAsDeleted: React.FC = () => {
@@ -27,9 +34,36 @@ const RemovedAsDeleted: React.FC = () => {
   );
 };
 
+/**
+ * A correction kept here that VeilCore will never take: its link names a record its holder
+ * deleted. Said, with the way to its page, where it can be let go (RecordSaveNotices).
+ */
+const LinksDeleted: React.FC = () => {
+  const id = useSyncExternalStore(onLinksDeleted, linksDeletedFirst);
+  const tr = useT();
+  const navigate = useNavigate();
+  if (!id) return null;
+  return (
+    <Alert
+      severity="warning"
+      variant="outlined"
+      sx={{ mb: 2 }}
+      data-links-deleted={id}
+      action={
+        <Button color="inherit" onClick={() => void navigate(`/record/${id}`)} sx={{ minHeight: 44 }}>
+          {tr.t('app.sealed.linksDeletedOpen')}
+        </Button>
+      }
+    >
+      {tr.t('app.sealed.linksDeletedBar')}
+    </Alert>
+  );
+};
+
 export const SaveProblemBar: React.FC = () => (
   <>
     <RemovedAsDeleted />
+    <LinksDeleted />
     <SaveProblem />
   </>
 );

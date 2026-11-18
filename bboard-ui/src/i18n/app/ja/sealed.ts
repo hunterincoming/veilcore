@@ -160,6 +160,11 @@ export const sealed = {
     'まだ保存されていません。このブラウザには、VeilCore上のあなたの記録の鍵がありません。バックアップを復元するか、持っていなければ記録のページの「そのバックアップを持っていない」を使ってください。',
   'app.sealed.unsaved.retry':
     'まだVeilCoreに保存されていません。このブラウザに残し、次に保存するときにもう一度送ります。',
+  'app.sealed.linksDeletedBar':
+    'このブラウザに保管された訂正は保有者が削除した記録を指しているため、VeilCoreは保存しません。開いて破棄してください。',
+  'app.sealed.linksDeletedOpen': '開く',
+  'app.sealed.unsaved.linksDeleted':
+    'この訂正は保有者が削除した記録を指しているため、VeilCoreは保存しません。このブラウザにのみ保管されています。ここで破棄してください。',
   'app.sealed.unsaved.short':
     'ロックしたコピーはまだアップロードされていません。バックアップを保存して確認してください',
   'app.sealed.unsaved.shortRetry': 'まだ保存されていません',
@@ -167,6 +172,18 @@ export const sealed = {
     'この記録のためにこのブラウザが残しているものを破棄しますか？VeilCoreにはないため、元に戻せません。',
   'app.sealed.unsaved.discardNew': '削除する',
   'app.sealed.unsaved.discardChange': '変更を取り消す',
+  'app.sealed.unsaved.undoConfirm':
+    'このブラウザに保存された変更を取り消しますか？この記録のVeilCore上のコピーが再び表示されます。何も削除されません。',
+  'app.sealed.unsaved.deleteConfirm':
+    '「{name}」を削除しますか？証明コードはVeilCoreに届いているため、VeilCoreのレジストリからも削除されます。元に戻せません。',
+  'app.sealed.unsaved.deleteDatedLoss':
+    '削除すると、この証明コードの元になったものはこのブラウザに残らず、その日付が何を示していたかを証明できなくなります。',
+  'app.sealed.unsaved.letGoBusy':
+    'この記録に関するデータがまだVeilCoreへ送信中です。何も削除していません。少し待ってからもう一度お試しください。',
+  'app.sealed.unsaved.letGoUnknown': 'VeilCoreに接続できなかったため、何も削除していません。もう一度お試しください。',
+  'app.sealed.unsaved.undoReloadFailed':
+    'VeilCoreに接続できず、そのコピーを再表示できませんでした。変更はこのブラウザに残っており、保存されていません。',
+  'app.sealed.unsaved.letGoChanged': '状況が変わったため、何も行われていません。もう一度確認して選んでください。',
   'app.sealed.sendNotSaved':
     'この記録はまだVeilCoreに保存されていないため、送れません。先にバックアップを保存して確認してください。',
 } satisfies Partial<AppTranslation>;

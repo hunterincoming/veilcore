@@ -183,12 +183,29 @@ export const sealed = {
   'app.sealed.unsaved.key':
     'Not saved yet. This browser doesn’t have the key for your records on VeilCore. Restore your backup, or, if you don’t have it, use “I don’t have that backup” on your records page.',
   'app.sealed.unsaved.retry': 'Not saved on VeilCore yet. It’s kept in this browser and sent again with the next save.',
+  'app.sealed.linksDeletedBar':
+    'A correction kept in this browser names a record its holder deleted, so VeilCore won’t save it. Open it to let it go.',
+  'app.sealed.linksDeletedOpen': 'Open it',
+  'app.sealed.unsaved.linksDeleted':
+    'This correction names a record its holder deleted, so VeilCore won’t save it. It’s kept only in this browser. Let it go here.',
   'app.sealed.unsaved.short': 'Locked copy not uploaded yet — save and check your backup',
   'app.sealed.unsaved.shortRetry': 'Not saved yet',
   'app.sealed.unsaved.discardConfirm':
     'Let go of what this browser keeps for this record? It isn’t on VeilCore, so it can’t be brought back.',
   'app.sealed.unsaved.discardNew': 'Delete it',
   'app.sealed.unsaved.discardChange': 'Undo the change',
+  'app.sealed.unsaved.undoConfirm':
+    'Undo the change kept in this browser? VeilCore’s copy of this record is shown again. Nothing is deleted.',
+  'app.sealed.unsaved.deleteConfirm':
+    'Delete “{name}”? Its proof code reached VeilCore, so it is deleted from VeilCore’s registry too. This can’t be undone.',
+  'app.sealed.unsaved.deleteDatedLoss':
+    'Once it’s deleted, this browser no longer holds what that proof code was made from, so you can’t prove what it dated.',
+  'app.sealed.unsaved.letGoBusy':
+    'Something for this record is still on its way to VeilCore. Nothing was removed; try again in a moment.',
+  'app.sealed.unsaved.letGoUnknown': 'VeilCore couldn’t be reached, so nothing was removed. Try again.',
+  'app.sealed.unsaved.undoReloadFailed':
+    'VeilCore couldn’t be reached to show its copy again. Your change is still kept in this browser and isn’t saved.',
+  'app.sealed.unsaved.letGoChanged': 'Something changed; nothing was done. Look again and choose.',
   'app.sealed.sendNotSaved':
     'This record isn’t saved on VeilCore yet, so it can’t be sent. Save a backup and check it first.',
 };

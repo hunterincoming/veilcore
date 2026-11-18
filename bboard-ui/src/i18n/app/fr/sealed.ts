@@ -183,12 +183,29 @@ export const sealed = {
     'Pas encore enregistré. Ce navigateur n’a pas la clé de vos enregistrements sur VeilCore. Restaurez votre copie de secours ou, si vous ne l’avez pas, utilisez « Je n’ai pas cette copie de secours » sur la page de vos enregistrements.',
   'app.sealed.unsaved.retry':
     'Pas encore enregistré sur VeilCore. C’est gardé dans ce navigateur et renvoyé au prochain enregistrement.',
+  'app.sealed.linksDeletedBar':
+    'Une correction gardée dans ce navigateur nomme un enregistrement que son détenteur a supprimé, donc VeilCore ne l’enregistrera pas. Ouvrez-la pour l’abandonner.',
+  'app.sealed.linksDeletedOpen': 'L’ouvrir',
+  'app.sealed.unsaved.linksDeleted':
+    'Cette correction nomme un enregistrement que son détenteur a supprimé, donc VeilCore ne l’enregistrera pas. Elle n’est gardée que dans ce navigateur. Abandonnez-la ici.',
   'app.sealed.unsaved.short': 'Copie verrouillée pas encore envoyée — enregistrez et vérifiez votre copie de secours',
   'app.sealed.unsaved.shortRetry': 'Pas encore enregistré',
   'app.sealed.unsaved.discardConfirm':
     'Abandonner ce que ce navigateur garde pour cet enregistrement ? Ce n’est pas sur VeilCore, donc impossible à récupérer.',
   'app.sealed.unsaved.discardNew': 'Le supprimer',
   'app.sealed.unsaved.discardChange': 'Annuler la modification',
+  'app.sealed.unsaved.undoConfirm':
+    'Annuler la modification gardée dans ce navigateur ? La copie de VeilCore de cet enregistrement s’affiche de nouveau. Rien n’est supprimé.',
+  'app.sealed.unsaved.deleteConfirm':
+    'Supprimer « {name} » ? Son code de preuve a atteint VeilCore, il est donc supprimé aussi du registre de VeilCore. C’est définitif.',
+  'app.sealed.unsaved.deleteDatedLoss':
+    'Une fois supprimé, ce navigateur n’a plus ce à partir de quoi ce code de preuve a été fait : vous ne pourrez plus prouver ce qu’il a daté.',
+  'app.sealed.unsaved.letGoBusy':
+    'Quelque chose pour cet enregistrement est encore en route vers VeilCore. Rien n’a été supprimé ; réessayez dans un instant.',
+  'app.sealed.unsaved.letGoUnknown': 'VeilCore n’a pas pu être joint, donc rien n’a été supprimé. Réessayez.',
+  'app.sealed.unsaved.undoReloadFailed':
+    'VeilCore n’a pas pu être joint pour réafficher sa copie. Votre modification reste dans ce navigateur et n’est pas enregistrée.',
+  'app.sealed.unsaved.letGoChanged': 'Quelque chose a changé ; rien n’a été fait. Regardez à nouveau et choisissez.',
   'app.sealed.sendNotSaved':
     'Cet enregistrement n’est pas encore enregistré sur VeilCore, il ne peut donc pas être envoyé. Enregistrez d’abord une copie de secours et vérifiez-la.',
 } satisfies Partial<AppTranslation>;
