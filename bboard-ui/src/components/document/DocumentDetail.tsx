@@ -32,6 +32,8 @@ import { AppHeader } from '../AppHeader';
 import { EvidenceBundle } from '../EvidenceBundle';
 import { useRecordKeys } from '../../veilcore/record-keys';
 import { useT } from '../../i18n/app';
+import { useI18n } from '../../i18n';
+import { useRecordDate } from '../verify/useAnchorCheck';
 import { DocumentDate, DocumentFacts, Fact, FileCompare, kindOrTypeWords, seen } from './DocumentParts';
 import { ChainView } from './ChainView';
 import { schemaWords, slotWords } from './NumbersFields';
@@ -91,6 +93,15 @@ const HeldNumbers: React.FC<{ held: HeldFieldSet }> = ({ held }) => {
 export const DocumentDetail: React.FC<{ record: StrainRecord }> = ({ record }) => {
   const tr = useT();
   const { t } = tr;
+  // The links open in the holder's language (?lang=), so an inspector reads it as they do.
+  const { lang } = useI18n();
+  // Until VeilCore reports the batch on Midnight, a checker is told not to rely on the link.
+  // The same date answer the check page reads (shared and cached, so no extra lookups): the
+  // link isn't ready while it has no batch reported on Midnight, or Midnight disagrees with it.
+  const { proof: dateProof, anchor: dateAnchor } = useRecordDate(record.recordFingerprint);
+  const notDatedYet =
+    dateProof !== 'checking' &&
+    (dateProof.status !== 'anchor-reported' || (dateAnchor !== 'checking' && dateAnchor?.status === 'failed'));
   const [copied, setCopied] = useState(false);
   const [linkError, setLinkError] = useState<string>();
   const keys = useRecordKeys()[record.id];
@@ -147,7 +158,7 @@ export const DocumentDetail: React.FC<{ record: StrainRecord }> = ({ record }) =
   const copyChainLink = async () => {
     setLinkError(undefined);
     try {
-      const link = documentChainLink(record as never, records as never, window.location.origin);
+      const link = documentChainLink(record as never, records as never, window.location.origin, lang);
       await navigator.clipboard.writeText(link);
       setChainCopied(true);
     } catch (e) {
@@ -167,7 +178,7 @@ export const DocumentDetail: React.FC<{ record: StrainRecord }> = ({ record }) =
   const copyLink = async () => {
     setLinkError(undefined);
     try {
-      const link = documentCheckLink(record as DocumentRecordLike, window.location.origin);
+      const link = documentCheckLink(record as DocumentRecordLike, window.location.origin, lang);
       await navigator.clipboard.writeText(link);
       setCopied(true);
     } catch (e) {
@@ -314,6 +325,11 @@ export const DocumentDetail: React.FC<{ record: StrainRecord }> = ({ record }) =
           <Alert severity="info" variant="outlined" sx={{ mb: 1.5 }}>
             {t('app.doc.share.warn')}
           </Alert>
+          {notDatedYet && (
+            <Alert severity="warning" variant="outlined" sx={{ mb: 1.5 }} data-share-not-dated="">
+              {t('app.doc.share.notDatedYet')}
+            </Alert>
+          )}
           <Button variant="contained" onClick={() => void copyLink()} sx={{ minHeight: 44 }}>
             {t('app.doc.share.copy')}
           </Button>

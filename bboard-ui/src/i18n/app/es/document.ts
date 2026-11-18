@@ -70,6 +70,8 @@ export const document = {
   'app.doc.share.warn':
     'El enlace muestra a quien lo tenga todo lo que hay en este registro de documento: título, tipo, emisor, referencia, fecha, el nombre y el SHA-256 de cada archivo, los nombres de los registros a los que se refiere y sus notas. Nunca el archivo en sí.',
   'app.doc.share.copy': 'Copiar enlace: demuestra que tenía este archivo',
+  'app.doc.share.notDatedYet':
+    'Aún sin fecha. Quien abra el enlace ahora verá que no debe confiar en él. Envíelo cuando esta página muestre una fecha.',
   'app.doc.share.copied': 'Copiado.',
   'app.doc.compare.title': '¿Es el mismo archivo?',
   'app.doc.compare.text': 'Elija un archivo para compararlo con los sellados aquí. No se sube.',
@@ -79,12 +81,16 @@ export const document = {
   'app.doc.compare.tooLarge': 'Ese archivo pesa más de {mb} MB, así que no se puede leer aquí.',
   'app.doc.check.title': 'Comprobar un documento',
   'app.doc.check.intro':
-    'Alguien le envió un documento y este enlace. Elija el archivo que le enviaron: su navegador calcula su SHA-256 (no se sube nada) y lo comprueba con el registro sellado del enlace y su fecha en Midnight.',
+    'Alguien le envió un documento y este enlace. Elija el archivo que le enviaron: su navegador comprueba que es el mismo archivo, byte por byte (no se sube nada), y muestra su fecha en Midnight, una cadena de bloques pública, comprobándola allí mismo cuando puede.',
   'app.doc.check.missing':
     'Este enlace no contiene un registro de documento. Pida el enlace completo a quien se lo envió.',
   'app.doc.check.unreadable': 'Este enlace está dañado. Pídalo de nuevo.',
   'app.doc.check.notDoc': 'Lo que hay en este enlace no es un registro de documento que se pueda comprobar aquí.',
   'app.doc.check.recomputed': 'Código de prueba, recalculado aquí a partir del enlace',
+  'app.doc.check.registryOnly':
+    'El registro de VeilCore da esta fecha. Esta página no puede comprobarla en Midnight, así que por ahora se basa solo en lo que dice VeilCore.',
+  'app.doc.check.notConfirmed':
+    'El registro de VeilCore da esta fecha, pero esta página no pudo confirmarla en Midnight en este momento. Vuelva a intentarlo en unos minutos antes de confiar en ella.',
   'app.doc.check.notDated':
     'Todavía nada fecha este registro, o el enlace se modificó. No confíe en él hasta que muestre una fecha.',
   'app.doc.check.what':

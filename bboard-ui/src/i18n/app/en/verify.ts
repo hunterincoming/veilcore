@@ -314,7 +314,7 @@ export const verify = {
   'app.verify.who.file.noMatch': 'Your own device: the file you picked is not the one sealed. Nothing was sent.',
   'app.verify.who.file.match': 'Your own device: the file you picked is the one sealed. Nothing was sent.',
   'app.verify.who.file.none': 'No file was sealed with this document.',
-  'app.verify.who.file.waiting': 'Your own device, once you pick the file below. Nothing is sent.',
+  'app.verify.who.file.waiting': 'Your own device, once you pick the file above. Nothing is sent.',
   'app.verify.who.signedUnboundMatched':
     'A key registered as {who}, as VeilCore’s registry reports it. VeilCore’s operator matched the name to a public listing (below). The link carries no proof code to check the signature with.',
   'app.verify.who.signedMatched':

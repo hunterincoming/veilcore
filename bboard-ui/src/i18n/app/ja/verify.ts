@@ -303,7 +303,7 @@ export const verify = {
     'あなた自身の端末：選んだファイルは封印されたものではありません。何も送信されていません。',
   'app.verify.who.file.match': 'あなた自身の端末：選んだファイルは封印されたものと同じです。何も送信されていません。',
   'app.verify.who.file.none': 'この文書にはファイルが封印されていません。',
-  'app.verify.who.file.waiting': '下でファイルを選ぶと、あなた自身の端末で照合します。何も送信されません。',
+  'app.verify.who.file.waiting': '上でファイルを選ぶと、あなた自身の端末で照合します。何も送信されません。',
   'app.verify.who.signedUnboundMatched':
     '{who}として登録された鍵（VeilCoreのレジストリの報告）。VeilCoreの運営者が名前を公開リストと照合しました（下記）。リンクに証明コードがないため署名を確認できません。',
   'app.verify.who.signedMatched':

@@ -326,7 +326,7 @@ export const verify = {
     'Ihr eigenes Gerät: Die gewählte Datei ist nicht die versiegelte. Nichts wurde gesendet.',
   'app.verify.who.file.match': 'Ihr eigenes Gerät: Die gewählte Datei ist die versiegelte. Nichts wurde gesendet.',
   'app.verify.who.file.none': 'Mit diesem Dokument wurde keine Datei versiegelt.',
-  'app.verify.who.file.waiting': 'Ihr eigenes Gerät, sobald Sie unten die Datei wählen. Nichts wird gesendet.',
+  'app.verify.who.file.waiting': 'Ihr eigenes Gerät, sobald Sie oben die Datei wählen. Nichts wird gesendet.',
   'app.verify.who.signedUnboundMatched':
     'Ein Schlüssel, registriert als {who}, wie das Register von VeilCore meldet. Der Betreiber von VeilCore hat den Namen mit einem öffentlichen Verzeichnis abgeglichen (unten). Der Link enthält keinen Prüfcode, um die Signatur zu prüfen.',
   'app.verify.who.signedMatched':
