@@ -60,6 +60,7 @@ import { ja, jaMainnet, jaTestchain } from './ja';
 import { animalRecordsEnabledFor, labResultsEnabledFor, labSigningEnabledFor } from '../config/network';
 import { readIndexersFor } from '../veilcore/chain/config';
 import { brokenPromises } from './promise-rule';
+import { CLAIMS_WHERE_WORDS, claimsWhere } from './app/claims-where';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const SRC = path.resolve(HERE, '..');
@@ -1461,5 +1462,48 @@ describe('the maintenance key', () => {
         );
       }
     }
+  });
+});
+
+describe('the mainnet run of 18 November 2026: what veilcore.org says about itself', () => {
+  const APPS = { en: appEn, de: appDe, es: appEs, fr: appFr, ja: appJa } as Record<Lang, Record<string, string>>;
+  const TEST_NET = /test network|Testnetzwerk|red de pruebas|réseau de test|テストネットワーク/;
+
+  it('a mainnet anchor never says it is on a test network; a test-network anchor still does', () => {
+    for (const [lang, app] of Object.entries(APPS)) {
+      expect(app['app.plant.anchor.anchored'], lang).not.toMatch(TEST_NET);
+      expect(app['app.plant.anchor.testNet'], lang).toMatch(TEST_NET);
+    }
+    const panel = fs.readFileSync(path.join(SRC, 'components/chain/AnchorOnChainPanel.tsx'), 'utf8');
+    // The warning is added only for an anchor whose network isn't the main one.
+    expect(panel).toMatch(
+      /anchored\.network !== 'mainnet' && t\('app\.common\.sentenceSep'\) \+ t\('app\.plant\.anchor\.testNet'\)/,
+    );
+    expect(panel.match(/app\.plant\.anchor\.testNet/g)).toHaveLength(1);
+  });
+
+  it('"Show someone" says proving one number works where this build can prove it', () => {
+    // veilcore.org: VeilCore's claims contract pinned, the sponsor live (CLAIMS_READY).
+    expect(claimsWhere('en', { onSite: true, live: true })).toBe(
+      'It has been on Midnight’s main network since 8 October 2026. On this website you can prove one number from a certificate or lab result sealed with its numbers: that it is at most or at least a limit, or exactly a value. Proving a marker, or that two varieties differ, isn’t on this website yet.',
+    );
+    for (const [lang, w] of Object.entries(CLAIMS_WHERE_WORDS)) {
+      const onSite = claimsWhere(lang as Lang, { onSite: true, live: true });
+      expect(onSite, lang).toBe(w.onSite);
+      expect(onSite, lang).not.toBe(w.live);
+      expect(onSite, lang).not.toMatch(
+        /can’t be used|nicht genutzt|no se puede usar|ne peut pas encore être utilisé|まだ使えません/,
+      );
+      expect(claimsWhere(lang as Lang, { onSite: false, live: true }), lang).toBe(w.live);
+      expect(claimsWhere(lang as Lang, { onSite: false, live: false }), lang).toBe(w.pending);
+    }
+    // Every language's line reads the build's own CLAIMS_READY.
+    expect(fs.readFileSync(path.join(SRC, 'config/copy.ts'), 'utf8')).toMatch(
+      /CLAIMS_WHERE = claimsWhere\('en', \{ onSite: CLAIMS_READY, live: CLAIMS_ON_MAINNET \|\| !IS_MAINNET \}\)/,
+    );
+    for (const lang of ['de', 'es', 'fr', 'ja'])
+      expect(fs.readFileSync(path.join(SRC, `i18n/app/${lang}/copy.ts`), 'utf8'), lang).toContain(
+        `'app.copy.claimsWhere': claimsWhere('${lang}', { onSite: CLAIMS_READY, live: CLAIMS_ON_MAINNET || !IS_MAINNET }),`,
+      );
   });
 });

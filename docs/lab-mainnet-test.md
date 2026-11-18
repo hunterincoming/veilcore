@@ -29,9 +29,12 @@ Stop at the first step that fails (see "If a step fails" at the end).
    **Pass if:** the note holds 64 characters.
 
 3. **Make the lab's key.** On https://veilcore.org/records press **Set up your lab's
-   signature**. (If you don't see that button, press **I'm a lab**, then **I run a lab** first.)
-   Name: `TEST Lab (Hunter)`. Role: **Laboratory**. Leave the accreditation fields
-   empty. Press **Create my key**, then save the new backup it asks for.
+   signature**. (If you don't see that button, press **Breeder or lab? Choose your view**, then
+   **I run a lab or receive material** first.)
+   Name: `TEST Lab (Hunter)`. Role: **Laboratory**. The form fills **Scheme** with
+   "ISO/IEC 17025": clear it, and leave the other accreditation fields empty. Press **Create my
+   key**. It then asks you to save your backup: press **Save backup file** in the panel that
+   opens.
    **Pass if:** the box shows your key and closes with **Continue** or **Done**, with no error.
 
 4. **Open the lab's tools.** Open https://veilcore.org/lab/results (or press **Sign lab
@@ -46,7 +49,8 @@ Stop at the first step that fails (see "If a step fails" at the end).
 6. **Sign one result.** Tab **One result**. What kind of result: **Pathogen or viroid test**.
    **Proof code the sender gave for this sample**: paste the code from step 2. Sample ID
    `TEST-1`. Your accession number `TEST-1`. Method or SOP `TEST`. Method version `1`. Tested
-   for `HLVd`. Result **Not detected**. Date tested: today. Press **Sign this result**.
+   for `HLVd`. Sample type `TEST` (the form won't sign without one). Result **Not detected**.
+   Date tested: today. Press **Sign this result**.
    **Pass if:** it says **Signed and kept** and **Your lab's name is on it.**
 
 7. **Keep the file.** Press **Download the result file**.
@@ -65,20 +69,27 @@ Stop at the first step that fails (see "If a step fails" at the end).
     **Pass if:** the page shows no lab name, no result and no "HLVd". If it has a lab line at
     all, it is only "The holder hasn't shown any lab signatures here."
 
-11. **Add the result to the breeder's records.** In your normal window open
-    https://veilcore.org/check-lab-result, choose the same file, press **Find the record this
-    sample was sent under**, then **Add it as a record you hold**, then **Open the record**.
-    **Pass if:** the record opens and shows the lab's signature.
+11. **Open the result's record.** In your normal window open
+    https://veilcore.org/check-lab-result and choose the same file. You signed it in this
+    window, so the page doesn't offer **Add it as a record you hold**: it says "You signed this
+    result: it is in your records." Press **Open the record**.
+    **Pass if:** the page says "You signed this result: it is in your records.", and the record
+    opens and shows the lab's signature.
 
 12. **Publish the signature.** On that record press **Publish it on Midnight**. This is a real
     mainnet transaction; VeilCore's fee service pays. It can take a few minutes.
     **Pass if:** it says "Published on Midnight in block …". Write the block number down.
 
 13. **Show the result to a stranger on purpose.** On the same record, under **Prove one
-    number**, prove the result ("not detected"), press **Copy the link that proves this**, and
-    open the link in the private window.
-    **Pass if:** the page names `TEST Lab (Hunter)` and shows "not detected". Keep this link in
-    your note: step 18 uses it again.
+    number**, pick **Detected (1 yes, 0 no)**, **It is at most…** and the limit `0`. Before you
+    press the button, the screen says "This proves: Not detected." Prove it, press **Copy the
+    link that proves this**, and open the link in the private window.
+    A result signed minutes ago shows "waiting for a batch" and "Don't rely on it" until its
+    batch is dated on Midnight (minutes, up to about an hour). Wait until the page shows the
+    batch's date before you judge this step; reload the link to look again.
+    **Pass if:** the page's claim reads "Not detected" (with "As proved on Midnight: Detected
+    (1 yes, 0 no) is at most 0" under it), it says "Proved on Midnight", and it names
+    `TEST Lab (Hunter)`. Keep this link in your note: step 18 uses it again.
 
 14. **Send a test sample to the lab.** In the Guest window open https://veilcore.org/new, pick
     **Plants**, name it `TEST lab signing 2`, use made-up details, and finish. Save the backup
@@ -91,8 +102,8 @@ Stop at the first step that fails (see "If a step fails" at the end).
     box "Someone sent you a code or link?" paste the code, press **Go**, then **Receive it**.
     (If it says "Save a backup and check it first, then use the code. Nothing was received
     yet.", save and check a backup as it asks, then enter the code again.) Tick **I physically
-    received this material.** and press **Sign with my key**. If it asks "Seal intact?", choose
-    **No seal**.
+    received this material.** The page then asks **Seal intact?**: choose **No seal** (this test
+    sample has none). Press **Sign with my key**.
     **Pass if:** a record for the received sample opens, with no "Nothing was signed" and no
     "was not recorded".
 
@@ -101,6 +112,10 @@ Stop at the first step that fails (see "If a step fails" at the end).
     Under **Lab signatures** there is a line "Receipt for a sample, signed …" with the switch
     "Show that a key named “TEST Lab (Hunter)” (name not checked) signed this on your check
     link". Leave that switch OFF. Press **Get the link** and open the link in the private window.
+    Even with the switch off, the page says that a lab received a sample from this record and
+    whether what arrived matches what was sent ("A lab's receipt for a sample from this record,
+    as the registry reports it. The holder hasn't shown which lab signed it."). That is expected:
+    it doesn't name the lab.
     **Pass if:** the page says "The holder hasn't shown any lab signatures here. A lab's
     receipts and reports are private unless the holder chooses to show them." and
     `TEST Lab (Hunter)` is nowhere on the page.

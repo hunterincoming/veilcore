@@ -11,7 +11,8 @@ import { anchoredFingerprintOf, readClaimLink, type ClaimVerdict } from '../../v
 import { DatedNotOrigin } from '../verify/DatedNotOrigin';
 import { useT } from '../../i18n/app';
 import { DocumentDate, Fact } from './DocumentParts';
-import { claimWords } from './ProveNumber';
+import { claimRawWords, claimWords } from './ProveNumber';
+import { claimFooterKey } from '../../veilcore/claim-call';
 import { schemaWords } from './NumbersFields';
 import { keyShort } from '../../veilcore/lab-key-text';
 import { signerLabel, type ResolvedAttestation } from '../../veilcore/attesters';
@@ -80,6 +81,12 @@ export const ClaimCheck: React.FC = () => {
               <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
                 {t('app.claim.check.schema', { schema: schemaWords(link.schema, tr) })}
               </Typography>
+              {/* A yes/no call is said as the result ("Not detected"); the slot and number it proves stay here. */}
+              {claimWords(link, tr) !== claimRawWords(link, tr) && (
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }} data-claim-raw="">
+                  {t('app.claim.check.raw', { raw: claimRawWords(link, tr) })}
+                </Typography>
+              )}
               {!verdict && (
                 <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
                   <CircularProgress size={18} />
@@ -165,9 +172,7 @@ export const ClaimCheck: React.FC = () => {
               </Stack>
             </Paper>
             <Typography variant="body2" color="text.secondary">
-              {verdict?.ok && verdict.lab?.ok && verdict.lab.signer?.kind === 'bound'
-                ? t('app.claim.check.whatLab')
-                : t('app.claim.check.what')}
+              {t(claimFooterKey(verdict))}
             </Typography>
           </Stack>
         )}

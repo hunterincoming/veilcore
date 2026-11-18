@@ -362,7 +362,10 @@ export const plant = {
     'Der Datensatz wie versiegelt, sein Inklusionsnachweis, die Stapelwurzel und wo der Stapel festgehalten wurde, in einer .zip-Datei. Ihre verify.html prüft ihn ohne Internet und ohne etwas von VeilCore.',
   'app.plant.anchor.title': 'Diesen Datensatz auf {network} verankern',
   'app.plant.anchor.anchored':
-    'Verankert. Seine On-Chain-Identität ist {id}…, festgehalten in Block {block}{when}. Die Identität wird in diesem Browser und in Ihrer Sicherungskopie aufbewahrt, nicht auf dem Server von VeilCore: Sie teilen sie, indem Sie jemandem einen Prüflink senden. Das ist ein Testnetzwerk: Es kann zurückgesetzt werden, und seine Daten haben keine Beweiskraft.',
+    'Verankert. Seine On-Chain-Identität ist {id}…, festgehalten in Block {block}{when}. Die Identität wird in diesem Browser und in Ihrer Sicherungskopie aufbewahrt, nicht auf dem Server von VeilCore: Sie teilen sie, indem Sie jemandem einen Prüflink senden.',
+  // Only for an anchor on a test network (AnchorOnChainPanel.tsx), never on Midnight's main network.
+  'app.plant.anchor.testNet':
+    'Das ist ein Testnetzwerk: Es kann zurückgesetzt werden, und seine Daten haben keine Beweiskraft.',
   'app.plant.anchor.chainClock': ' ({when}, nach der Uhr der Chain)',
   'app.plant.anchor.label': 'Verankerung',
   'app.plant.anchor.notAvailable': 'In diesem Build nicht verfügbar: {why}',

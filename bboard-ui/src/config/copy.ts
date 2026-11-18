@@ -4,6 +4,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { CLAIMS_ON_MAINNET, IS_MAINNET } from './network';
+import { CLAIMS_READY } from '../veilcore/chain/config';
+import { claimsWhere } from '../i18n/app/claims-where';
 
 /** What this site is called in app sentences: a demo on a test network; on mainnet the records are real. */
 export const THIS_SITE = IS_MAINNET ? 'this web app' : 'this web demo';
@@ -21,15 +23,14 @@ export const OUR_SERVER = IS_MAINNET ? 'VeilCore’s server' : 'VeilCore’s tes
 export const DATED_ON = IS_MAINNET ? 'Midnight’s main network' : 'a Midnight test network';
 
 /**
- * Where the claims contract stands, for the line under the disclosure choice. The same
- * facts as the landing page (i18n en-testchain.ts / en-mainnet.ts): on Midnight's main
- * network since 8 October 2026, not usable from this website yet. A mainnet build whose
- * claims address isn't pinned says what its landing page says: the claims contract follows.
+ * Where the claims contract stands, for the line under the disclosure choice ("Show someone").
+ * The same facts as the landing page (i18n en-testchain.ts / en-mainnet.ts): on Midnight's main
+ * network since 8 October 2026. A build that proves one number (CLAIMS_READY: veilcore.org, with
+ * VeilCore's pinned claims contract and the sponsor live) says so; one that can't says it can't
+ * be used here yet; a mainnet build whose claims address isn't pinned says it follows. Every
+ * language's sentences are in i18n/app/claims-where.ts.
  */
-export const CLAIMS_WHERE =
-  CLAIMS_ON_MAINNET || !IS_MAINNET
-    ? 'It has been on Midnight’s main network since 8 October 2026, but it can’t be used from this website yet.'
-    : 'It isn’t on Midnight’s main network yet, and can’t be used from this website.';
+export const CLAIMS_WHERE = claimsWhere('en', { onSite: CLAIMS_READY, live: CLAIMS_ON_MAINNET || !IS_MAINNET });
 
 /** What the contract can do for licenses that this website cannot. */
 export const LICENSE_PROOF_NOTE = `Proving that a license is live, without showing its terms, is done by VeilCore’s contract on ${

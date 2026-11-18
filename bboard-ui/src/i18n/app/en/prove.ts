@@ -186,4 +186,10 @@ export const prove = {
   'app.prove.share.labSigs.suggestButton': 'Show it',
   'app.prove.share.labSigs.plainHash':
     'This older signature names the report file’s SHA-256: once shown, anyone with a copy of the file could tell it is saved to this record.',
+  // A claim on a yes/no call (claim-call.ts): the prove screen's preview, and the slot and number on the claim page.
+  'app.claim.preview': 'This proves: {claim}.',
+  'app.claim.check.raw': 'As proved on Midnight: {raw}.',
+  // ClaimCheck.tsx: the footer for a claim whose lab signature checks but whose result the lab withdrew.
+  'app.claim.check.whatLabWithdrawn':
+    'What this shows: the number sealed in that record meets the bound (or is that value), and the key above signed that record’s numbers. The lab has since withdrawn this result, so don’t rely on it: ask the lab or the holder for the latest result for this sample. Every bound proved about a number is public, and together they narrow it.',
 };

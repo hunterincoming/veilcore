@@ -357,7 +357,9 @@ export const plant = {
   // chain/AnchorOnChainPanel.tsx: the plant's key, date stamped on the network.
   'app.plant.anchor.title': 'Anchor this record on {network}',
   'app.plant.anchor.anchored':
-    'Anchored. Its on-chain identity is {id}…, recorded at block {block}{when}. The identity is kept in this browser and in your backup, not on VeilCore’s server: you share it by sending someone a checker’s link. This is a test network: it can be reset, and its dates carry no evidential weight.',
+    'Anchored. Its on-chain identity is {id}…, recorded at block {block}{when}. The identity is kept in this browser and in your backup, not on VeilCore’s server: you share it by sending someone a checker’s link.',
+  // Only for an anchor on a test network (AnchorOnChainPanel.tsx), never on Midnight's main network.
+  'app.plant.anchor.testNet': 'This is a test network: it can be reset, and its dates carry no evidential weight.',
   'app.plant.anchor.chainClock': ' ({when}, the chain’s clock)',
   'app.plant.anchor.label': 'Anchor',
   'app.plant.anchor.notAvailable': 'Not available in this build: {why}',

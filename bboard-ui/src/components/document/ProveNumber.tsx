@@ -26,6 +26,7 @@ import {
 import type { StrainRecord } from '../../veilcore/records';
 import { SCHEMAS, shownNumber, storedNumber } from '../../veilcore/field-set';
 import { claimLink, type MadeClaim } from '../../veilcore/claim-link';
+import { callWordKey } from '../../veilcore/claim-call';
 import { CLAIMS_READY } from '../../veilcore/chain/config';
 import { canProve, proveNumber, proveShown, type How } from '../../veilcore/prove-number';
 import { DEVICE_ONLY_CLAIMS_ENABLED } from '../../config/network';
@@ -37,20 +38,35 @@ import { DatingPausedNotice } from '../DatingPausedNotice';
 import { DATING_PAUSED } from '../../veilcore/chain/paused';
 import { DisclosureReceipt } from '../chain/DisclosureReceipt';
 
+/** What a claim's words need: the slot and what it says about it. */
+type ClaimLine = Pick<MadeClaim, 'schema' | 'slot' | 'kind' | 'op' | 'bound' | 'value'>;
+
 /** A claim in words: "Total THC is at most 0.300 %". */
-export const claimWords = (c: MadeClaim, tr: Translator): string => {
+export const claimWords = (c: ClaimLine, tr: Translator): string => {
+  const s = SCHEMAS[c.schema]?.slots.find((x) => x.slot === c.slot);
+  if (!s) return '';
+  // A lab result's yes/no call says the result ("Not detected"), not the slot (claim-call.ts).
+  const call = callWordKey(s.path, c);
+  return call ? tr.t(call) : claimRawWords(c, tr);
+};
+
+/** A claim as the slot and the number: "Detected (1 yes, 0 no) is at most 0". */
+export const claimRawWords = (c: ClaimLine, tr: Translator): string => {
   const s = SCHEMAS[c.schema]?.slots.find((x) => x.slot === c.slot);
   if (!s) return '';
   const label = slotWords(s.path, tr);
   const unit = s.unit ?? '';
   const scale = s.scale ?? 1;
-  return c.kind === 'value'
-    ? tr.t('app.claim.line.value', { label, value: shownNumber(c.value ?? '0', scale), unit })
-    : tr.t(c.op === 'at-most' ? 'app.claim.line.atMost' : 'app.claim.line.atLeast', {
-        label,
-        bound: shownNumber(c.bound ?? '0', scale),
-        unit,
-      });
+  // No trailing space where the slot has no unit ("… is at most 0", not "… is at most 0 ").
+  return (
+    c.kind === 'value'
+      ? tr.t('app.claim.line.value', { label, value: shownNumber(c.value ?? '0', scale), unit })
+      : tr.t(c.op === 'at-most' ? 'app.claim.line.atMost' : 'app.claim.line.atLeast', {
+          label,
+          bound: shownNumber(c.bound ?? '0', scale),
+          unit,
+        })
+  ).trimEnd();
 };
 
 export const ProveNumber: React.FC<{
@@ -269,6 +285,18 @@ export const ProveNumber: React.FC<{
                 />
               )}
             </Alert>
+          )}
+          {bound !== undefined && meets && (
+            <Typography variant="body2" data-claim-preview="">
+              {t('app.claim.preview', {
+                claim: claimWords(
+                  how === 'exactly'
+                    ? { schema: held.schema, slot: s.slot, kind: 'value', value: String(bound) }
+                    : { schema: held.schema, slot: s.slot, kind: 'range', op: how, bound: String(bound) },
+                  tr,
+                ),
+              })}
+            </Typography>
           )}
           <DisclosureReceipt circuits={[how === 'exactly' ? 'proveValue' : 'proveRange']} />
           <DatingPausedNotice on={DATING_PAUSED} />

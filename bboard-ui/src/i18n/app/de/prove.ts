@@ -190,4 +190,10 @@ export const prove = {
   'app.prove.share.labSigs.suggestButton': 'Zeigen',
   'app.prove.share.labSigs.plainHash':
     'Diese ältere Signatur nennt den SHA-256 der Berichtsdatei: Einmal gezeigt, könnte jeder mit einer Kopie der Datei erkennen, dass sie zu diesem Datensatz gespeichert ist.',
+  // A claim on a yes/no call (claim-call.ts): the prove screen's preview, and the slot and number on the claim page.
+  'app.claim.preview': 'Das beweist: {claim}.',
+  'app.claim.check.raw': 'Wie auf Midnight bewiesen: {raw}.',
+  // ClaimCheck.tsx: the footer for a claim whose lab signature checks but whose result the lab withdrew.
+  'app.claim.check.whatLabWithdrawn':
+    'Was das zeigt: Die im Datensatz versiegelte Zahl erfüllt die Grenze (oder ist dieser Wert), und der Schlüssel oben hat die Zahlen dieses Datensatzes signiert. Das Labor hat dieses Ergebnis inzwischen zurückgezogen, verlassen Sie sich also nicht darauf: Fragen Sie das Labor oder den Inhaber nach dem neuesten Ergebnis für diese Probe. Jede belegte Grenze ist öffentlich, und zusammen grenzen sie die Zahl ein.',
 } satisfies Partial<AppTranslation>;
