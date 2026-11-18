@@ -200,6 +200,13 @@ export const sealed = {
     'Supprimer « {name} » ? Son code de preuve a atteint VeilCore, il est donc supprimé aussi du registre de VeilCore. C’est définitif.',
   'app.sealed.unsaved.deleteDatedLoss':
     'Une fois supprimé, ce navigateur n’a plus ce à partir de quoi ce code de preuve a été fait : vous ne pourrez plus prouver ce qu’il a daté.',
+  'app.sealed.unsaved.letGoBusy':
+    'Quelque chose pour cet enregistrement est encore en route vers VeilCore. Rien n’a été supprimé ; réessayez dans un instant.',
+  'app.sealed.unsaved.letGoUnknown': 'VeilCore n’a pas pu être joint, donc rien n’a été supprimé. Réessayez.',
+  'app.sealed.unsaved.undoReloadFailed':
+    'VeilCore n’a pas pu être joint pour réafficher sa copie. Votre modification reste dans ce navigateur et n’est pas enregistrée.',
+  'app.sealed.unsaved.letGoChanged':
+    'Cet enregistrement a atteint VeilCore depuis l’ouverture de la page. Rien n’a été supprimé ; appuyez de nouveau sur le bouton pour le supprimer.',
   'app.sealed.sendNotSaved':
     'Cet enregistrement n’est pas encore enregistré sur VeilCore, il ne peut donc pas être envoyé. Enregistrez d’abord une copie de secours et vérifiez-la.',
 } satisfies Partial<AppTranslation>;

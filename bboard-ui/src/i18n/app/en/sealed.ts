@@ -200,6 +200,13 @@ export const sealed = {
     'Delete “{name}”? Its proof code reached VeilCore, so it is deleted from VeilCore’s registry too. This can’t be undone.',
   'app.sealed.unsaved.deleteDatedLoss':
     'Once it’s deleted, this browser no longer holds what that proof code was made from, so you can’t prove what it dated.',
+  'app.sealed.unsaved.letGoBusy':
+    'Something for this record is still on its way to VeilCore. Nothing was removed; try again in a moment.',
+  'app.sealed.unsaved.letGoUnknown': 'VeilCore couldn’t be reached, so nothing was removed. Try again.',
+  'app.sealed.unsaved.undoReloadFailed':
+    'VeilCore couldn’t be reached to show its copy again. Your change is still kept in this browser and isn’t saved.',
+  'app.sealed.unsaved.letGoChanged':
+    'This record has reached VeilCore since the page opened. Nothing was removed; press the button again to delete it.',
   'app.sealed.sendNotSaved':
     'This record isn’t saved on VeilCore yet, so it can’t be sent. Save a backup and check it first.',
 };

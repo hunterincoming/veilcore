@@ -52,6 +52,7 @@ import {
   onSealedStateChange,
   recordSealedBytes,
   registryHasProofCode,
+  registryReadFor,
   rowStateOf,
   SEALED_MAX_BYTES,
   sendDatingRows,
@@ -1521,12 +1522,16 @@ export const unsavedReason = (id: string): UnsavedReason | undefined => {
  *   - 'delete': its proof code reached VeilCore (dated, or waiting to be); only deleteRecord, with
  *     its waits and a fresh date read, may take it, because its keys are what prove that date.
  *   - 'discard': VeilCore never held it and its proof code never left this browser.
+ *   - 'unknown': the registry hasn't been read for this holder key and this page didn't see the
+ *     proof code reach it, so 'undo' and 'discard' can't be told apart; nothing is let go.
  */
-export type LetGo = 'undo' | 'delete' | 'discard';
+export type LetGo = 'undo' | 'delete' | 'discard' | 'unknown';
 export const letGoOf = (id: string): LetGo => {
   const row = rowStateOf(RECORDS_KEY, id);
   if (row !== undefined && row !== 'dating') return 'undo';
+  // A proof code this page saw reach VeilCore needs no read to know it must not be discarded.
   if (row === 'dating' || registryHasProofCode(id)) return 'delete';
+  if (!registryReadFor(RECORDS_KEY)) return 'unknown';
   return 'discard';
 };
 
@@ -1535,19 +1540,46 @@ export const letGoOf = (id: string): LetGo => {
  * record VeilCore never held whose proof code never left this browser. A record whose proof code
  * reached VeilCore is never let go here (letGoOf 'delete': deleteRecord).
  */
-export const discardUnsaved = async (id: string): Promise<void> => {
-  const how = letGoOf(id);
-  if (how === 'delete') return;
+/**
+ * letGoOf once this page's saves and dating requests on their way have their answers (a record
+ * still being sent or dated is neither "never sent" nor settled yet); 'busy' when they don't
+ * settle in time. Worked out when the holder clicks, not when the page drew the button.
+ */
+export const letGoNow = async (id: string): Promise<LetGo | 'busy'> => {
+  if (deleting.has(id)) return 'busy';
+  if (!(await savesSettledInTime())) return 'busy';
+  if (!(await datingSettledInTime())) return 'busy';
+  return letGoOf(id);
+};
+
+/** What discardUnsaved did: let it go, or why nothing changed. */
+export type DiscardOutcome = 'ok' | 'busy' | 'unknown' | 'delete' | 'reload-failed';
+
+export const discardUnsaved = async (id: string): Promise<DiscardOutcome> => {
+  const how = await letGoNow(id);
+  if (how === 'busy' || how === 'unknown' || how === 'delete') return how;
+  const queued = outboxRecords()[id];
   const deadLink = linksDeletedHere.delete(id);
   if (deadLink) linksDeletedListeners.forEach((l) => l());
-  if (!inOutbox(id) && !deadLink) return;
+  if (!queued && !deadLink) return 'ok';
   takeFromOutbox([id]);
   if (how === 'discard') {
     records = records.filter((r) => r.id !== id);
     forgetKeys(id);
     notify();
+    await hydrate();
+    return 'ok';
   }
-  await hydrate();
+  // Undo: VeilCore's copy has to be read back to be shown. If it can't be, the change goes back
+  // in the outbox so it never looks saved when it isn't.
+  if (await hydrateAnswered()) return 'ok';
+  if (queued) putInOutbox([queued]);
+  if (deadLink) {
+    linksDeletedHere.add(id);
+    linksDeletedListeners.forEach((l) => l());
+  }
+  notify();
+  return 'reload-failed';
 };
 
 /** Why deleting a record didn't happen; RecordDetail says each in the page's language. */

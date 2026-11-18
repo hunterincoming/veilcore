@@ -200,6 +200,14 @@ export const sealed = {
     '„{name}“ löschen? Sein Prüfcode hat VeilCore erreicht, daher wird er auch aus dem Register von VeilCore gelöscht. Das lässt sich nicht rückgängig machen.',
   'app.sealed.unsaved.deleteDatedLoss':
     'Nach dem Löschen hat dieser Browser nicht mehr, woraus dieser Prüfcode gebildet wurde, und Sie können nicht mehr nachweisen, was er datiert hat.',
+  'app.sealed.unsaved.letGoBusy':
+    'Für diesen Eintrag ist noch etwas auf dem Weg zu VeilCore. Nichts wurde entfernt; versuchen Sie es gleich noch einmal.',
+  'app.sealed.unsaved.letGoUnknown':
+    'VeilCore war nicht erreichbar, daher wurde nichts entfernt. Versuchen Sie es erneut.',
+  'app.sealed.unsaved.undoReloadFailed':
+    'VeilCore war nicht erreichbar, um seine Kopie wieder anzuzeigen. Ihre Änderung bleibt in diesem Browser und ist nicht gespeichert.',
+  'app.sealed.unsaved.letGoChanged':
+    'Dieser Eintrag hat VeilCore erreicht, seit die Seite geöffnet wurde. Nichts wurde entfernt; drücken Sie die Schaltfläche erneut, um ihn zu löschen.',
   'app.sealed.sendNotSaved':
     'Dieser Datensatz ist noch nicht bei VeilCore gespeichert und kann daher nicht gesendet werden. Speichern und prüfen Sie zuerst eine Sicherungskopie.',
 } satisfies Partial<AppTranslation>;

@@ -13,6 +13,7 @@ import {
   confirmGrant,
   deleteRecord,
   discardUnsaved,
+  letGoNow,
   letGoOf,
   unsavedReason,
   useRecords,
@@ -37,9 +38,9 @@ export const RecordSaveNotices: React.FC<{ record: StrainRecord; onShare?: () =>
   const unsaved = unsavedReason(record.id);
   const differs = useGrantDifference(record.id);
   const ask = record.grantToConfirm ?? [];
-  // How it is let go (records.ts letGoOf): VeilCore's earlier copy shown again ('undo'), the
-  // guarded delete for a proof code that reached VeilCore ('delete'), or dropped here ('discard').
-  const how = letGoOf(record.id);
+  // The button's label only (records.ts letGoOf): VeilCore's earlier copy shown again ('undo'),
+  // or delete. What actually happens is worked out again on click (letGoNow).
+  const label = letGoOf(record.id);
   const [letGoProblem, setLetGoProblem] = useState<string>();
 
   const answer = async (share: boolean) => {
@@ -52,11 +53,16 @@ export const RecordSaveNotices: React.FC<{ record: StrainRecord; onShare?: () =>
 
   const letGo = async () => {
     setLetGoProblem(undefined);
+    setBusy(true);
+    const how = await letGoNow(record.id);
+    setBusy(false);
+    if (how === 'busy') return setLetGoProblem(t('app.sealed.unsaved.letGoBusy'));
+    if (how === 'unknown') return setLetGoProblem(t('app.sealed.unsaved.letGoUnknown'));
     if (how === 'delete') {
       // Its proof code reached VeilCore: deleted the way the delete panel deletes, its date read
       // fresh and said first, because once its keys go nobody can prove what that code dated.
       const now = await dateForDelete(record.recordFingerprint);
-      const loss = now === 'dated' || now === 'pending' ? `\n\n${t('app.sealed.unsaved.deleteDatedLoss')}` : '';
+      const loss = now === 'none' ? '' : `\n\n${t('app.sealed.unsaved.deleteDatedLoss')}`;
       const ask = `${t('app.sealed.unsaved.deleteConfirm', { name: record.strainName || record.id })}\n\n${t(deleteDateKey(now))}${loss}`;
       if (!window.confirm(ask)) return;
       setBusy(true);
@@ -68,8 +74,14 @@ export const RecordSaveNotices: React.FC<{ record: StrainRecord; onShare?: () =>
     }
     if (!window.confirm(t(how === 'undo' ? 'app.sealed.unsaved.undoConfirm' : 'app.sealed.unsaved.discardConfirm')))
       return;
-    await discardUnsaved(record.id);
-    if (how === 'discard') void navigate('/records');
+    setBusy(true);
+    const out = await discardUnsaved(record.id);
+    setBusy(false);
+    if (out === 'busy') setLetGoProblem(t('app.sealed.unsaved.letGoBusy'));
+    else if (out === 'unknown') setLetGoProblem(t('app.sealed.unsaved.letGoUnknown'));
+    else if (out === 'reload-failed') setLetGoProblem(t('app.sealed.unsaved.undoReloadFailed'));
+    else if (out === 'delete') setLetGoProblem(t('app.sealed.unsaved.letGoChanged'));
+    else if (how === 'discard') void navigate('/records');
   };
 
   if (!unsaved && !ask.length && !differs) return null;
@@ -92,7 +104,7 @@ export const RecordSaveNotices: React.FC<{ record: StrainRecord; onShare?: () =>
               </Button>
             ) : (
               <Button color="inherit" disabled={busy} onClick={() => void letGo()} sx={{ minHeight: 44 }}>
-                {t(how === 'undo' ? 'app.sealed.unsaved.discardChange' : 'app.sealed.unsaved.discardNew')}
+                {t(label === 'undo' ? 'app.sealed.unsaved.discardChange' : 'app.sealed.unsaved.discardNew')}
               </Button>
             )
           }

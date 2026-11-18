@@ -360,6 +360,8 @@ const current = (kind: RowKind): Loaded | undefined => {
 };
 
 export const rowStateOf = (key: string, id: string): RowState | undefined => current(kindFor(key))?.states.get(id);
+/** Whether this browser has read the registry's rows of this kind for the current holder key. */
+export const registryReadFor = (key: string): boolean => current(kindFor(key)) !== undefined;
 export const lockedRowsOf = (key: string): readonly LockedRow[] => current(kindFor(key))?.locked ?? [];
 export const loadNoticeOf = (key: string): LoadNotice =>
   current(kindFor(key))?.notice ?? { truncated: false, unreadable: 0 };
