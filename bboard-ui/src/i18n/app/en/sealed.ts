@@ -194,6 +194,12 @@ export const sealed = {
     'Let go of what this browser keeps for this record? It isn’t on VeilCore, so it can’t be brought back.',
   'app.sealed.unsaved.discardNew': 'Delete it',
   'app.sealed.unsaved.discardChange': 'Undo the change',
+  'app.sealed.unsaved.undoConfirm':
+    'Undo the change kept in this browser? VeilCore’s copy of this record is shown again. Nothing is deleted.',
+  'app.sealed.unsaved.deleteConfirm':
+    'Delete “{name}”? Its proof code reached VeilCore, so it is deleted from VeilCore’s registry too. This can’t be undone.',
+  'app.sealed.unsaved.deleteDatedLoss':
+    'Once it’s deleted, this browser no longer holds what that proof code was made from, so you can’t prove what it dated.',
   'app.sealed.sendNotSaved':
     'This record isn’t saved on VeilCore yet, so it can’t be sent. Save a backup and check it first.',
 };

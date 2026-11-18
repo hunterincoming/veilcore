@@ -1516,18 +1516,33 @@ export const unsavedReason = (id: string): UnsavedReason | undefined => {
 };
 
 /**
- * Let go of a record kept in this browser that the registry never took (a new one), or of a
- * change to one it has (the registry's copy is shown again).
+ * How a record kept here but not saved on VeilCore is let go:
+ *   - 'undo': VeilCore holds an earlier copy; the change here is dropped and that copy shown again.
+ *   - 'delete': its proof code reached VeilCore (dated, or waiting to be); only deleteRecord, with
+ *     its waits and a fresh date read, may take it, because its keys are what prove that date.
+ *   - 'discard': VeilCore never held it and its proof code never left this browser.
+ */
+export type LetGo = 'undo' | 'delete' | 'discard';
+export const letGoOf = (id: string): LetGo => {
+  const row = rowStateOf(RECORDS_KEY, id);
+  if (row !== undefined && row !== 'dating') return 'undo';
+  if (row === 'dating' || registryHasProofCode(id)) return 'delete';
+  return 'discard';
+};
+
+/**
+ * Let go of a change kept here to a record VeilCore holds (its copy is shown again), or of a
+ * record VeilCore never held whose proof code never left this browser. A record whose proof code
+ * reached VeilCore is never let go here (letGoOf 'delete': deleteRecord).
  */
 export const discardUnsaved = async (id: string): Promise<void> => {
+  const how = letGoOf(id);
+  if (how === 'delete') return;
   const deadLink = linksDeletedHere.delete(id);
   if (deadLink) linksDeletedListeners.forEach((l) => l());
   if (!inOutbox(id) && !deadLink) return;
   takeFromOutbox([id]);
-  // Its proof code alone was dated (CONTRACT.md #38): taken off VeilCore too, since the record
-  // it dates is gone.
-  if (rowStateOf(RECORDS_KEY, id) === 'dating') await deleteRecords([id]);
-  if (rowStateOf(RECORDS_KEY, id) === undefined) {
+  if (how === 'discard') {
     records = records.filter((r) => r.id !== id);
     forgetKeys(id);
     notify();
@@ -1573,6 +1588,7 @@ export const deleteRecord = async (id: string): Promise<{ ok: true } | { error: 
     records = records.filter((x) => x.id !== id);
     takeFromOutbox([id]);
     forgetKeys(id);
+    if (linksDeletedHere.delete(id)) linksDeletedListeners.forEach((l) => l());
     notify();
   } finally {
     deleting.delete(id);

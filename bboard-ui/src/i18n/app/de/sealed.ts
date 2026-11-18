@@ -194,6 +194,12 @@ export const sealed = {
     'Das, was dieser Browser für diesen Datensatz aufbewahrt, verwerfen? Es ist nicht bei VeilCore und lässt sich nicht zurückholen.',
   'app.sealed.unsaved.discardNew': 'Löschen',
   'app.sealed.unsaved.discardChange': 'Änderung verwerfen',
+  'app.sealed.unsaved.undoConfirm':
+    'Die in diesem Browser gespeicherte Änderung verwerfen? VeilCores Kopie dieses Eintrags wird wieder angezeigt. Nichts wird gelöscht.',
+  'app.sealed.unsaved.deleteConfirm':
+    '„{name}“ löschen? Sein Prüfcode hat VeilCore erreicht, daher wird er auch aus dem Register von VeilCore gelöscht. Das lässt sich nicht rückgängig machen.',
+  'app.sealed.unsaved.deleteDatedLoss':
+    'Nach dem Löschen hat dieser Browser nicht mehr, woraus dieser Prüfcode gebildet wurde, und Sie können nicht mehr nachweisen, was er datiert hat.',
   'app.sealed.sendNotSaved':
     'Dieser Datensatz ist noch nicht bei VeilCore gespeichert und kann daher nicht gesendet werden. Speichern und prüfen Sie zuerst eine Sicherungskopie.',
 } satisfies Partial<AppTranslation>;

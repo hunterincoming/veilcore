@@ -152,7 +152,7 @@ describe('dating first (CONTRACT.md #38)', () => {
     expect((reg.rowsOf(H).find((r) => r.id === made.id)?.sealed as { kid: string }).kid).toBe(kid);
   });
 
-  it('letting a kept record go takes its dating row off VeilCore too', async () => {
+  it('a kept record whose proof code was dated alone is taken only by the guarded delete', async () => {
     const A = await browser('a3');
     const sealed = await seal(A);
     const record = await A.run(async () => {
@@ -165,6 +165,10 @@ describe('dating first (CONTRACT.md #38)', () => {
       await A.m.records.hydrate();
       await A.m.records.discardUnsaved(record.id);
     });
+    // Discarding never takes a dated proof code (its keys are what prove the date).
+    expect(reg.rowsOf(H).some((r) => r.id === record.id)).toBe(true);
+    expect(await A.run(() => A.m.records.letGoOf(record.id))).toBe('delete');
+    expect(await A.run(() => A.m.records.deleteRecord(record.id))).toEqual({ ok: true });
     expect(reg.rowsOf(H).some((r) => r.id === record.id)).toBe(false);
   });
 

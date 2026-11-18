@@ -188,6 +188,12 @@ export const sealed = {
     '¿Descartar lo que este navegador conserva para este registro? No está en VeilCore, así que no se puede recuperar.',
   'app.sealed.unsaved.discardNew': 'Borrarlo',
   'app.sealed.unsaved.discardChange': 'Deshacer el cambio',
+  'app.sealed.unsaved.undoConfirm':
+    '¿Deshacer el cambio guardado en este navegador? Se vuelve a mostrar la copia de VeilCore de este registro. No se borra nada.',
+  'app.sealed.unsaved.deleteConfirm':
+    '¿Borrar «{name}»? Su código de prueba llegó a VeilCore, así que también se borra del registro de VeilCore. No se puede deshacer.',
+  'app.sealed.unsaved.deleteDatedLoss':
+    'Una vez borrado, este navegador ya no tiene aquello a partir de lo cual se hizo ese código de prueba, así que no podrá probar qué fechó.',
   'app.sealed.sendNotSaved':
     'Este registro aún no está guardado en VeilCore, así que no se puede enviar. Guarde una copia de seguridad y compruébela primero.',
 } satisfies Partial<AppTranslation>;

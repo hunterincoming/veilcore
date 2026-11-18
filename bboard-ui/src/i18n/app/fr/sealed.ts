@@ -194,6 +194,12 @@ export const sealed = {
     'Abandonner ce que ce navigateur garde pour cet enregistrement ? Ce n’est pas sur VeilCore, donc impossible à récupérer.',
   'app.sealed.unsaved.discardNew': 'Le supprimer',
   'app.sealed.unsaved.discardChange': 'Annuler la modification',
+  'app.sealed.unsaved.undoConfirm':
+    'Annuler la modification gardée dans ce navigateur ? La copie de VeilCore de cet enregistrement s’affiche de nouveau. Rien n’est supprimé.',
+  'app.sealed.unsaved.deleteConfirm':
+    'Supprimer « {name} » ? Son code de preuve a atteint VeilCore, il est donc supprimé aussi du registre de VeilCore. C’est définitif.',
+  'app.sealed.unsaved.deleteDatedLoss':
+    'Une fois supprimé, ce navigateur n’a plus ce à partir de quoi ce code de preuve a été fait : vous ne pourrez plus prouver ce qu’il a daté.',
   'app.sealed.sendNotSaved':
     'Cet enregistrement n’est pas encore enregistré sur VeilCore, il ne peut donc pas être envoyé. Enregistrez d’abord une copie de secours et vérifiez-la.',
 } satisfies Partial<AppTranslation>;

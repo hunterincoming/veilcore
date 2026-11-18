@@ -11,13 +11,15 @@ import { Alert, Button, Stack, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import {
   confirmGrant,
+  deleteRecord,
   discardUnsaved,
-  RECORDS_KEY,
+  letGoOf,
   unsavedReason,
   useRecords,
   type StrainRecord,
 } from '../veilcore/records';
-import { rowStateOf } from '../veilcore/api-store';
+import { dateForDelete } from '../veilcore/proofs';
+import { DELETE_WHY, deleteDateKey } from './delete-words';
 import { labelOf, useGrantDifference } from '../veilcore/disclosure';
 import { useVaultNeedsBackup } from '../veilcore/vault';
 import { useRecordT } from '../i18n/app';
@@ -35,8 +37,10 @@ export const RecordSaveNotices: React.FC<{ record: StrainRecord; onShare?: () =>
   const unsaved = unsavedReason(record.id);
   const differs = useGrantDifference(record.id);
   const ask = record.grantToConfirm ?? [];
-  // A correction VeilCore will never take goes as a whole, like a new record (linksDeleted).
-  const isNew = rowStateOf(RECORDS_KEY, record.id) === undefined || unsaved === 'linksDeleted';
+  // How it is let go (records.ts letGoOf): VeilCore's earlier copy shown again ('undo'), the
+  // guarded delete for a proof code that reached VeilCore ('delete'), or dropped here ('discard').
+  const how = letGoOf(record.id);
+  const [letGoProblem, setLetGoProblem] = useState<string>();
 
   const answer = async (share: boolean) => {
     setBusy(true);
@@ -47,9 +51,25 @@ export const RecordSaveNotices: React.FC<{ record: StrainRecord; onShare?: () =>
   };
 
   const letGo = async () => {
-    if (!window.confirm(t('app.sealed.unsaved.discardConfirm'))) return;
+    setLetGoProblem(undefined);
+    if (how === 'delete') {
+      // Its proof code reached VeilCore: deleted the way the delete panel deletes, its date read
+      // fresh and said first, because once its keys go nobody can prove what that code dated.
+      const now = await dateForDelete(record.recordFingerprint);
+      const loss = now === 'dated' || now === 'pending' ? `\n\n${t('app.sealed.unsaved.deleteDatedLoss')}` : '';
+      const ask = `${t('app.sealed.unsaved.deleteConfirm', { name: record.strainName || record.id })}\n\n${t(deleteDateKey(now))}${loss}`;
+      if (!window.confirm(ask)) return;
+      setBusy(true);
+      const out = await deleteRecord(record.id);
+      setBusy(false);
+      if ('error' in out) setLetGoProblem(t('app.plant.delete.failed', { reason: t(DELETE_WHY[out.error]) }));
+      else void navigate('/records');
+      return;
+    }
+    if (!window.confirm(t(how === 'undo' ? 'app.sealed.unsaved.undoConfirm' : 'app.sealed.unsaved.discardConfirm')))
+      return;
     await discardUnsaved(record.id);
-    if (isNew) void navigate('/records');
+    if (how === 'discard') void navigate('/records');
   };
 
   if (!unsaved && !ask.length && !differs) return null;
@@ -71,13 +91,18 @@ export const RecordSaveNotices: React.FC<{ record: StrainRecord; onShare?: () =>
                 {t('app.home.saveIt')}
               </Button>
             ) : (
-              <Button color="inherit" onClick={() => void letGo()} sx={{ minHeight: 44 }}>
-                {t(isNew ? 'app.sealed.unsaved.discardNew' : 'app.sealed.unsaved.discardChange')}
+              <Button color="inherit" disabled={busy} onClick={() => void letGo()} sx={{ minHeight: 44 }}>
+                {t(how === 'undo' ? 'app.sealed.unsaved.discardChange' : 'app.sealed.unsaved.discardNew')}
               </Button>
             )
           }
         >
           {t(`app.sealed.unsaved.${unsaved}`)}
+          {letGoProblem && (
+            <Typography variant="body2" sx={{ mt: 1 }} role="status" data-let-go-problem="">
+              {letGoProblem}
+            </Typography>
+          )}
           {/* Waiting for the backup is not a failure; the other two are. */}
           {unsaved !== 'backup' && (
             <SupportDetails step="save to VeilCore" error={enT.t(`app.sealed.unsaved.${unsaved}`)} />

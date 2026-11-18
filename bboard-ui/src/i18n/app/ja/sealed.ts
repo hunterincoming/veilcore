@@ -172,6 +172,12 @@ export const sealed = {
     'この記録のためにこのブラウザが残しているものを破棄しますか？VeilCoreにはないため、元に戻せません。',
   'app.sealed.unsaved.discardNew': '削除する',
   'app.sealed.unsaved.discardChange': '変更を取り消す',
+  'app.sealed.unsaved.undoConfirm':
+    'このブラウザに保存された変更を取り消しますか？この記録のVeilCore上のコピーが再び表示されます。何も削除されません。',
+  'app.sealed.unsaved.deleteConfirm':
+    '「{name}」を削除しますか？証明コードはVeilCoreに届いているため、VeilCoreのレジストリからも削除されます。元に戻せません。',
+  'app.sealed.unsaved.deleteDatedLoss':
+    '削除すると、この証明コードの元になったものはこのブラウザに残らず、その日付が何を示していたかを証明できなくなります。',
   'app.sealed.sendNotSaved':
     'この記録はまだVeilCoreに保存されていないため、送れません。先にバックアップを保存して確認してください。',
 } satisfies Partial<AppTranslation>;
