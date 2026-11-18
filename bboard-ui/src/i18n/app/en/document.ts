@@ -72,6 +72,8 @@ export const document = {
   'app.doc.share.warn':
     'The link shows whoever has it everything in this document record: its title, type, issuer, reference, date, each file’s name and SHA-256, the names of the records it’s about, and your notes. Never the file itself.',
   'app.doc.share.copy': 'Copy link: proves you had this file',
+  'app.doc.share.notDatedYet':
+    'Not dated yet. Whoever opens the link now will be told not to rely on it. Send it once this page shows a date.',
   'app.doc.share.copied': 'Copied.',
   'app.doc.compare.title': 'Is this the same file?',
   'app.doc.compare.text': 'Pick a file to compare with the ones sealed here. It isn’t uploaded.',
@@ -87,6 +89,8 @@ export const document = {
   'app.doc.check.unreadable': 'This link is damaged. Ask for it again.',
   'app.doc.check.notDoc': 'What’s in this link isn’t a document record that can be checked here.',
   'app.doc.check.recomputed': 'Proof code, recomputed here from the link',
+  'app.doc.check.notConfirmed':
+    'VeilCore’s registry gives this date, but this page couldn’t confirm it on Midnight just now. Try again in a few minutes before relying on it.',
   'app.doc.check.notDated':
     'Nothing dates this record yet, or the link was changed. Don’t rely on it until it shows a date.',
   'app.doc.check.what':

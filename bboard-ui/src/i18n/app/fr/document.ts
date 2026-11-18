@@ -70,6 +70,8 @@ export const document = {
   'app.doc.share.warn':
     'Le lien montre à quiconque l’a tout ce que contient cet enregistrement de document : titre, type, émetteur, référence, date, le nom et le SHA-256 de chaque fichier, les noms des enregistrements qu’il concerne et vos notes. Jamais le fichier lui-même.',
   'app.doc.share.copy': 'Copier le lien : prouve que vous aviez ce fichier',
+  'app.doc.share.notDatedYet':
+    'Pas encore daté. Qui ouvre le lien maintenant lira qu’il ne faut pas s’y fier. Envoyez-le quand cette page affiche une date.',
   'app.doc.share.copied': 'Copié.',
   'app.doc.compare.title': 'Est-ce le même fichier ?',
   'app.doc.compare.text': 'Choisissez un fichier à comparer avec ceux scellés ici. Il n’est pas envoyé.',
@@ -85,6 +87,8 @@ export const document = {
   'app.doc.check.unreadable': 'Ce lien est endommagé. Redemandez-le.',
   'app.doc.check.notDoc': 'Ce que contient ce lien n’est pas un enregistrement de document vérifiable ici.',
   'app.doc.check.recomputed': 'Code de preuve, recalculé ici à partir du lien',
+  'app.doc.check.notConfirmed':
+    'Le registre de VeilCore donne cette date, mais cette page n’a pas pu la confirmer sur Midnight pour l’instant. Réessayez dans quelques minutes avant de vous y fier.',
   'app.doc.check.notDated':
     'Rien ne date encore cet enregistrement, ou le lien a été modifié. Ne vous y fiez pas avant qu’il affiche une date.',
   'app.doc.check.what':

@@ -71,6 +71,8 @@ export const document = {
   'app.doc.share.warn':
     'Der Link zeigt jedem, der ihn hat, alles in diesem Dokument-Datensatz: Titel, Art, Aussteller, Referenz, Datum, Name und SHA-256 jeder Datei, die Namen der Datensätze, die es betrifft, und Ihre Notizen. Nie die Datei selbst.',
   'app.doc.share.copy': 'Link kopieren: belegt, dass Sie diese Datei hatten',
+  'app.doc.share.notDatedYet':
+    'Noch nicht datiert. Wer den Link jetzt öffnet, liest, dass er sich nicht darauf verlassen soll. Senden Sie ihn, sobald diese Seite ein Datum zeigt.',
   'app.doc.share.copied': 'Kopiert.',
   'app.doc.compare.title': 'Ist das dieselbe Datei?',
   'app.doc.compare.text':
@@ -86,6 +88,8 @@ export const document = {
   'app.doc.check.unreadable': 'Dieser Link ist beschädigt. Bitten Sie erneut darum.',
   'app.doc.check.notDoc': 'Was in diesem Link steht, ist kein Dokument-Datensatz, der hier geprüft werden kann.',
   'app.doc.check.recomputed': 'Prüfcode, hier aus dem Link neu berechnet',
+  'app.doc.check.notConfirmed':
+    'Das Register von VeilCore nennt dieses Datum, aber diese Seite konnte es gerade nicht auf Midnight bestätigen. Versuchen Sie es in ein paar Minuten erneut, bevor Sie sich darauf verlassen.',
   'app.doc.check.notDated':
     'Noch datiert nichts diesen Datensatz, oder der Link wurde verändert. Verlassen Sie sich nicht darauf, bevor ein Datum angezeigt wird.',
   'app.doc.check.what':

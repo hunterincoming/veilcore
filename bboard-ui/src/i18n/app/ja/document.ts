@@ -69,6 +69,8 @@ export const document = {
   'app.doc.share.warn':
     'リンクを持つ人には、この書類の記録の内容がすべて見えます：タイトル、種類、発行者、参照番号、日付、各ファイルの名前とSHA-256、対象の記録の名前、メモ。ファイルそのものは含まれません。',
   'app.doc.share.copy': 'リンクをコピー：このファイルを保有していたことの証明',
+  'app.doc.share.notDatedYet':
+    'まだ日付がありません。今リンクを開いた人には、頼らないよう表示されます。このページに日付が表示されてから送ってください。',
   'app.doc.share.copied': 'コピーしました。',
   'app.doc.compare.title': '同じファイルですか？',
   'app.doc.compare.text': 'ここで封印したファイルと比べるファイルを選んでください。アップロードはされません。',
@@ -83,6 +85,8 @@ export const document = {
   'app.doc.check.unreadable': 'このリンクは壊れています。もう一度送ってもらってください。',
   'app.doc.check.notDoc': 'このリンクの中身は、ここで確認できる書類の記録ではありません。',
   'app.doc.check.recomputed': '証明コード（リンクからここで計算し直したもの）',
+  'app.doc.check.notConfirmed':
+    'VeilCoreの登録簿はこの日付を示していますが、このページでは今Midnight上で確認できませんでした。頼る前に数分後にもう一度お試しください。',
   'app.doc.check.notDated':
     'この記録にはまだ日付がないか、リンクが変えられています。日付が表示されるまでは頼らないでください。',
   'app.doc.check.what':

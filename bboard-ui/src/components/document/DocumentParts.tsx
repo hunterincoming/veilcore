@@ -192,7 +192,13 @@ export const DocumentDateView: React.FC<{
           {row.sub}
         </Typography>
       )}
-      {checker && row.mark !== 'done' && proof !== 'checking' && (
+      {/* Dated by VeilCore's word, not confirmed on Midnight from here: never "nothing dates it". */}
+      {checker && row.mark === 'reported' && (
+        <Alert severity="warning" variant="outlined" sx={{ mt: 1 }} data-document-not-confirmed="">
+          {tr.t('app.doc.check.notConfirmed')}
+        </Alert>
+      )}
+      {checker && row.mark !== 'done' && row.mark !== 'reported' && proof !== 'checking' && (
         <Alert severity="warning" variant="outlined" sx={{ mt: 1 }} data-document-not-dated="">
           {tr.t('app.doc.check.notDated')}
         </Alert>

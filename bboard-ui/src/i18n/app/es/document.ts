@@ -70,6 +70,8 @@ export const document = {
   'app.doc.share.warn':
     'El enlace muestra a quien lo tenga todo lo que hay en este registro de documento: título, tipo, emisor, referencia, fecha, el nombre y el SHA-256 de cada archivo, los nombres de los registros a los que se refiere y sus notas. Nunca el archivo en sí.',
   'app.doc.share.copy': 'Copiar enlace: demuestra que tenía este archivo',
+  'app.doc.share.notDatedYet':
+    'Aún sin fecha. Quien abra el enlace ahora verá que no debe confiar en él. Envíelo cuando esta página muestre una fecha.',
   'app.doc.share.copied': 'Copiado.',
   'app.doc.compare.title': '¿Es el mismo archivo?',
   'app.doc.compare.text': 'Elija un archivo para compararlo con los sellados aquí. No se sube.',
@@ -85,6 +87,8 @@ export const document = {
   'app.doc.check.unreadable': 'Este enlace está dañado. Pídalo de nuevo.',
   'app.doc.check.notDoc': 'Lo que hay en este enlace no es un registro de documento que se pueda comprobar aquí.',
   'app.doc.check.recomputed': 'Código de prueba, recalculado aquí a partir del enlace',
+  'app.doc.check.notConfirmed':
+    'El registro de VeilCore da esta fecha, pero esta página no pudo confirmarla en Midnight en este momento. Vuelva a intentarlo en unos minutos antes de confiar en ella.',
   'app.doc.check.notDated':
     'Todavía nada fecha este registro, o el enlace se modificó. No confíe en él hasta que muestre una fecha.',
   'app.doc.check.what':
