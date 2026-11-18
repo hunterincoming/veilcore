@@ -32,8 +32,8 @@ import { en, type StringKey, type Strings } from './en';
 import { mainnetStrings } from './en-mainnet';
 import { testchainStrings } from './en-testchain';
 import { IS_MAINNET, CLAIMS_ON_MAINNET, MAINTENANCE_POLICY_APPROVED } from '../config/network';
-import { CHAIN_READY, CHAIN_READS, CLAIMS_READY, REAL_CHAIN } from '../veilcore/chain/config';
-import { AGREEMENTS_LIVE } from '../config/copy';
+import { CHAIN_READY, CHAIN_READS, REAL_CHAIN } from '../veilcore/chain/config';
+import { AGREEMENTS_LIVE, CLAIMS_ON_THIS_SITE } from '../config/copy';
 import { LANGUAGE_CODES, MAINNET_DRAFTS, PUBLISHED_LANGUAGES, type Lang } from '../config/languages';
 
 export type { Lang };
@@ -175,7 +175,7 @@ export const THIS_BUILD: BuildKind = {
   chainReads: CHAIN_READS,
   chainSends: IS_MAINNET && CHAIN_READY,
   agreementsLive: IS_MAINNET && AGREEMENTS_LIVE,
-  claimsOnSite: IS_MAINNET && CHAIN_READY && CLAIMS_READY,
+  claimsOnSite: CLAIMS_ON_THIS_SITE,
 };
 
 /** veilcore.org sends real transactions (the mainnet sponsor is live in this build). */

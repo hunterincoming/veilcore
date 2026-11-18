@@ -345,7 +345,10 @@ export const plant = {
     '封印したままの記録、その包含証明、バッチのルート、バッチが記録された場所を、1つの.zipにまとめたものです。中のverify.htmlは、インターネットもVeilCoreも使わずに確認します。',
   'app.plant.anchor.title': 'この記録を{network}にアンカーする',
   'app.plant.anchor.anchored':
-    'アンカーしました。チェーン上のIDは {id}… で、ブロック {block} に記録されました{when}。IDはこのブラウザとバックアップに保管され、VeilCoreのサーバーにはありません。確認用リンクを送ることで共有します。これはテストネットワークです。リセットされることがあり、その日付に証拠としての重みはありません。',
+    'アンカーしました。チェーン上のIDは {id}… で、ブロック {block} に記録されました{when}。IDはこのブラウザとバックアップに保管され、VeilCoreのサーバーにはありません。確認用リンクを送ることで共有します。',
+  // Only for an anchor on a test network (AnchorOnChainPanel.tsx), never on Midnight's main network.
+  'app.plant.anchor.testNet':
+    'これはテストネットワークです。リセットされることがあり、その日付に証拠としての重みはありません。',
   'app.plant.anchor.chainClock': '（{when}、チェーンの時計による）',
   'app.plant.anchor.label': 'アンカー',
   'app.plant.anchor.notAvailable': 'このビルドでは使えません：{why}',

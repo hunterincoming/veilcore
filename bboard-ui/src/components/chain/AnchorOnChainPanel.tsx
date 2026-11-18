@@ -1,5 +1,5 @@
-// After sealing: anchor the record's identity on Midnight's test network, from this
-// browser, with VeilCore paying the fee. Real-chain builds only (VITE_REAL_CHAIN=1).
+// After sealing: anchor the record's identity on Midnight (the main network on veilcore.org, a
+// test network on the test site), from this browser, with VeilCore paying the fee.
 //
 // In order: make the record's keys here, download the backup, then anchor. The anchor
 // publishes the identity, commit(record secret), and a commitment to the recovery
@@ -59,6 +59,8 @@ export const AnchorOnChainPanel: React.FC<{ recordId: string }> = ({ recordId })
                   ? t('app.plant.anchor.chainClock', { when: localStamp(anchored.anchoredAt, tr.locale) })
                   : '',
               })}
+              {/* Said of a test-network anchor only: on Midnight's main network its date is the evidence. */}
+              {anchored.network !== 'mainnet' && t('app.common.sentenceSep') + t('app.plant.anchor.testNet')}
             </Alert>
             <TxLine label={t('app.plant.anchor.label')} txHash={anchored.txHash} blockHeight={anchored.blockHeight} />
             <RecordKeysPanel record={record} />

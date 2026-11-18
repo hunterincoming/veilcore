@@ -60,6 +60,7 @@ import { ja, jaMainnet, jaTestchain } from './ja';
 import { animalRecordsEnabledFor, labResultsEnabledFor, labSigningEnabledFor } from '../config/network';
 import { readIndexersFor } from '../veilcore/chain/config';
 import { brokenPromises } from './promise-rule';
+import { CLAIMS_WHERE_WORDS, claimsWhere } from './app/claims-where';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const SRC = path.resolve(HERE, '..');
@@ -1460,6 +1461,79 @@ describe('the maintenance key', () => {
           /planned, not done|a group of keys|aber noch nicht umgesetzt|pero aún no está hecho|mais pas encore fait|計画中|frozen|eingefroren|congelad|gelée|凍結/,
         );
       }
+    }
+  });
+});
+
+describe('the mainnet run of 18 November 2026: what veilcore.org says about itself', () => {
+  const APPS = { en: appEn, de: appDe, es: appEs, fr: appFr, ja: appJa } as Record<Lang, Record<string, string>>;
+  const TEST_NET = /test network|Testnetzwerk|red de pruebas|réseau de test|テストネットワーク/;
+
+  it('a mainnet anchor never says it is on a test network; a test-network anchor still does', () => {
+    for (const [lang, app] of Object.entries(APPS)) {
+      expect(app['app.plant.anchor.anchored'], lang).not.toMatch(TEST_NET);
+      expect(app['app.plant.anchor.testNet'], lang).toMatch(TEST_NET);
+    }
+    const panel = fs.readFileSync(path.join(SRC, 'components/chain/AnchorOnChainPanel.tsx'), 'utf8');
+    // The warning is added only for an anchor whose network isn't the main one.
+    expect(panel).toMatch(
+      /anchored\.network !== 'mainnet' && t\('app\.common\.sentenceSep'\) \+ t\('app\.plant\.anchor\.testNet'\)/,
+    );
+    expect(panel.match(/app\.plant\.anchor\.testNet/g)).toHaveLength(1);
+  });
+
+  it('"Show someone" says proving one number works where this build can prove it', () => {
+    // veilcore.org: VeilCore's claims contract pinned, the sponsor live (CLAIMS_ON_THIS_SITE).
+    expect(claimsWhere('en', { onSite: true, live: true })).toBe(
+      'It has been on Midnight’s main network since 8 October 2026. On this website you can prove one number from a certificate or lab result sealed with its numbers: that it is at most or at least a limit, or exactly a value. Proving a marker, or that two varieties differ, isn’t on this website yet.',
+    );
+    for (const [lang, w] of Object.entries(CLAIMS_WHERE_WORDS)) {
+      const onSite = claimsWhere(lang as Lang, { onSite: true, live: true });
+      expect(onSite, lang).toBe(w.onSite);
+      expect(onSite, lang).not.toBe(w.live);
+      expect(onSite, lang).not.toMatch(
+        /can’t be used|nicht genutzt|no se puede usar|ne peut pas encore être utilisé|まだ使えません/,
+      );
+      expect(claimsWhere(lang as Lang, { onSite: false, live: true }), lang).toBe(w.live);
+      expect(claimsWhere(lang as Lang, { onSite: false, live: false }), lang).toBe(w.pending);
+    }
+    // Every language's line reads the same switch as the home page (i18n/index.tsx claimsOnSite).
+    expect(fs.readFileSync(path.join(SRC, 'config/copy.ts'), 'utf8')).toMatch(
+      /CLAIMS_WHERE = claimsWhere\('en', \{ onSite: CLAIMS_ON_THIS_SITE, live: CLAIMS_ON_MAINNET \|\| !IS_MAINNET \}\)/,
+    );
+    for (const lang of ['de', 'es', 'fr', 'ja'])
+      expect(fs.readFileSync(path.join(SRC, `i18n/app/${lang}/copy.ts`), 'utf8'), lang).toContain(
+        `'app.copy.claimsWhere': claimsWhere('${lang}', { onSite: CLAIMS_ON_THIS_SITE, live: CLAIMS_ON_MAINNET || !IS_MAINNET }),`,
+      );
+  });
+
+  it('the home page and "Show someone" read one switch for "prove one number" on this website', () => {
+    expect(fs.readFileSync(path.join(SRC, 'config/copy.ts'), 'utf8')).toContain(
+      'export const CLAIMS_ON_THIS_SITE = IS_MAINNET && CHAIN_READY && CLAIMS_READY;',
+    );
+    expect(fs.readFileSync(path.join(SRC, 'i18n/index.tsx'), 'utf8')).toContain('  claimsOnSite: CLAIMS_ON_THIS_SITE,');
+  });
+
+  it('both say what can be proved here the same way: a number from a certificate or lab result', () => {
+    const LAB_RESULT: Record<Lang, RegExp> = {
+      en: /certificate or lab result sealed with its numbers/,
+      de: /Zertifikat oder Laborergebnis/,
+      es: /certificado o un resultado de laboratorio sellado con sus números/,
+      fr: /certificat ou d.un résultat de laboratoire scellé avec ses/,
+      ja: /数値ごと封印した証明書やラボ結果/,
+    };
+    const VEILCORE_ORG = {
+      ...MAINNET,
+      chainReads: true,
+      chainSends: true,
+      agreementsLive: true,
+      claimsOnSite: true,
+    };
+    for (const lang of Object.keys(LAB_RESULT) as Lang[]) {
+      const home = networkOverlay(VEILCORE_ORG, lang)['m.claims.status'] ?? '';
+      expect(home, `${lang} home`).toMatch(LAB_RESULT[lang]);
+      expect(CLAIMS_WHERE_WORDS[lang].onSite, `${lang} Show someone`).toMatch(LAB_RESULT[lang]);
+      expect(home, `${lang} home`).not.toMatch(/certificate you sealed|Sie mit seinen Zahlen versiegelt|que selló/);
     }
   });
 });

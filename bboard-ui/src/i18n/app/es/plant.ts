@@ -354,7 +354,10 @@ export const plant = {
     'El registro tal como se selló, su prueba de inclusión, la raíz del lote y dónde se registró el lote, en un solo .zip. Su verify.html lo comprueba sin internet y sin nada de VeilCore.',
   'app.plant.anchor.title': 'Anclar este registro en {network}',
   'app.plant.anchor.anchored':
-    'Anclado. Su identidad en la cadena es {id}…, registrada en el bloque {block}{when}. La identidad se guarda en este navegador y en su copia de seguridad, no en el servidor de VeilCore: se comparte enviando a alguien un enlace de verificación. Esta es una red de pruebas: puede reiniciarse y sus fechas no tienen valor como evidencia.',
+    'Anclado. Su identidad en la cadena es {id}…, registrada en el bloque {block}{when}. La identidad se guarda en este navegador y en su copia de seguridad, no en el servidor de VeilCore: se comparte enviando a alguien un enlace de verificación.',
+  // Only for an anchor on a test network (AnchorOnChainPanel.tsx), never on Midnight's main network.
+  'app.plant.anchor.testNet':
+    'Esta es una red de pruebas: puede reiniciarse y sus fechas no tienen valor como evidencia.',
   'app.plant.anchor.chainClock': ' ({when}, según el reloj de la cadena)',
   'app.plant.anchor.label': 'Anclaje',
   'app.plant.anchor.notAvailable': 'No disponible en esta versión: {why}',

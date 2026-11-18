@@ -110,7 +110,7 @@ const claimsLive: Overlay = {
 /** "Prove one number" is on this website (the sponsor pays for VeilCore's claims contract). */
 export const CLAIMS_ON_SITE: Overlay = {
   'm.claims.status':
-    "A second Midnight contract, on Midnight's main network. On this website you can use it to prove one number from a certificate you sealed with its numbers: that it is at most or at least a limit, or exactly a value, without showing the rest. Use a computer; phones haven't been tried. The other kinds of proof above aren't on this website yet.",
+    "A second Midnight contract, on Midnight's main network. On this website you can use it to prove one number from a certificate or lab result sealed with its numbers: that it is at most or at least a limit, or exactly a value, without showing the rest. Use a computer; phones haven't been tried. The other kinds of proof above aren't on this website yet.",
 };
 
 /** Not pinned yet: the main contract is live, the claims contract is still to follow. */
