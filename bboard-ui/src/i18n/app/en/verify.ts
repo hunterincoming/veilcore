@@ -109,6 +109,21 @@ export const verify = {
   'app.verify.notFoundText':
     "This verification link doesn't match any record in the registry. Check the link is complete and unmodified.",
   'app.verify.goHome': 'Go to veilcore.org',
+  'app.verify.deleted.title': '{id} was deleted by its holder',
+  'app.verify.deleted.when': 'Deleted on {date}. Its details are no longer shown.',
+  'app.verify.deleted.datedChecked':
+    'Before that, it was dated on Midnight: block {block}, {date}. This page checked the date on Midnight itself.',
+  'app.verify.deleted.datedReported':
+    'VeilCore’s registry reports it was dated on Midnight before it was deleted. A link that carries its proof code lets this page check that itself.',
+  'app.verify.deleted.notDated': 'VeilCore’s registry has no date on Midnight for it.',
+  'app.verify.deleted.datedReportedPlain':
+    'VeilCore’s registry reports it was dated on Midnight. A link that carries its proof code lets this page check that itself.',
+  'app.verify.deleted.datedReportedAfter':
+    'VeilCore’s registry reports it was dated on Midnight after the deletion. A link that carries its proof code lets this page check that itself.',
+  'app.verify.deleted.datedCheckedPlain':
+    'It was dated on Midnight: block {block}, {date}. This page checked the date on Midnight itself; whether that was before or after the deletion can’t be told to the minute.',
+  'app.verify.deleted.datedCheckedAfter':
+    'It was dated on Midnight after the deletion: block {block}, {date}. This page checked the date on Midnight itself.',
   'app.verify.mismatch.title': "This link's proof code doesn't match the record: nothing checked",
   'app.verify.mismatch.dontRely': 'Do not rely on this page.',
   'app.verify.mismatch.text':
@@ -267,4 +282,44 @@ export const verify = {
     'The holder saved a DNA report to this record. Which file it is can be checked only with the holder’s own check link and the file.',
   'app.verify.unnamedReceipt':
     'A lab’s receipt for a sample from this record, as the registry reports it. The holder hasn’t shown which lab signed it.',
+  // who-vouches.ts: who stands behind each fact on a check page
+  'app.verify.who.title': 'What each fact rests on',
+  'app.verify.who.date': 'The date',
+  'app.verify.who.date.chain': 'Midnight. This page checked it there itself.',
+  'app.verify.who.date.chainTest':
+    'A Midnight test network. This page checked it there itself: practice, not a date to rely on.',
+  'app.verify.who.date.registry': 'VeilCore’s registry says so. This page hasn’t checked it on Midnight.',
+  'app.verify.who.date.batchOnly':
+    'Midnight dated the batch, and this page checked that there. Only VeilCore’s registry says this record is in it: the link carries no proof code to check.',
+  'app.verify.who.date.pending': 'Nobody yet. Its batch is waiting to be dated on Midnight.',
+  'app.verify.who.code': 'The proof code',
+  'app.verify.who.code.page': 'This page: it matches the one in the link you were sent.',
+  'app.verify.who.code.registry': 'VeilCore’s registry. The link you were sent carries no proof code to match it with.',
+  'app.verify.who.words': 'The name and details',
+  'app.verify.who.words.holder':
+    'The holder, in their own words. This page checks only that the name matches the proof code, not that anything is true.',
+  'app.verify.who.date.failed': 'Nobody: this page’s check on Midnight failed (see below).',
+  'app.verify.who.words.differs': 'The holder’s words, but the name shown doesn’t match the proof code (see below).',
+  'app.verify.who.words.unchecked': 'The holder, in their own words. Nothing checks them.',
+  'app.verify.who.lab': 'A laboratory',
+  'app.verify.who.lab.none': 'This page hasn’t checked any laboratory’s signature.',
+  'app.verify.who.signed': '{who}. This page checked the signature.',
+  'app.verify.who.signedUnbound':
+    '{who}, as VeilCore’s registry reports it. The link carries no proof code to check it with.',
+  'app.verify.who.more': 'More signatures',
+  'app.verify.who.moreText': '{n} more, listed below.',
+  'app.verify.who.date.none': 'Nobody. As far as this page can tell, it isn’t in a dated batch.',
+  'app.verify.who.code.recomputed': 'This page: worked out here from what the link carries.',
+  'app.verify.who.file': 'The file',
+  'app.verify.who.file.noMatch': 'Your own device: the file you picked is not the one sealed. Nothing was sent.',
+  'app.verify.who.file.match': 'Your own device: the file you picked is the one sealed. Nothing was sent.',
+  'app.verify.who.file.none': 'No file was sealed with this document.',
+  'app.verify.who.file.waiting': 'Your own device, once you pick the file below. Nothing is sent.',
+  'app.verify.who.signedUnboundMatched':
+    'A key registered as {who}, as VeilCore’s registry reports it. VeilCore’s operator matched the name to a public listing (below). The link carries no proof code to check the signature with.',
+  'app.verify.who.signedMatched':
+    'A key registered as {who}. This page checked the signature. VeilCore’s operator matched the name to a public listing (below); that isn’t VeilCore vouching for the lab.',
+  'app.verify.who.typed': 'What’s typed (title, holder, issuer, notes)',
+  'app.verify.who.typed.holder':
+    'The holder, in their own words. This page checks only that they match the proof code, not that they’re true.',
 };

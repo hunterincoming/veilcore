@@ -97,6 +97,21 @@ export const verify = {
   'app.verify.notFoundText':
     'この確認用リンクは、レジストリのどの記録とも一致しません。リンクが欠けたり変更されたりしていないか確認してください。',
   'app.verify.goHome': 'veilcore.org へ',
+  'app.verify.deleted.title': '{id} は保有者によって削除されました',
+  'app.verify.deleted.when': '{date} に削除されました。詳細はもう表示されません。',
+  'app.verify.deleted.datedChecked':
+    '削除の前に Midnight で日付が記録されていました：ブロック {block}、{date}。このページが日付を Midnight で直接確認しました。',
+  'app.verify.deleted.datedReported':
+    'VeilCore のレジストリは、削除前に Midnight で日付が記録されたと報告しています。証明コードを含むリンクなら、このページが直接確認できます。',
+  'app.verify.deleted.notDated': 'VeilCore のレジストリには、この記録の Midnight での日付がありません。',
+  'app.verify.deleted.datedReportedPlain':
+    'VeilCore のレジストリは、Midnight で日付が記録されたと報告しています。証明コードを含むリンクなら、このページが直接確認できます。',
+  'app.verify.deleted.datedReportedAfter':
+    'VeilCore のレジストリは、削除の後に Midnight で日付が記録されたと報告しています。証明コードを含むリンクなら、このページが直接確認できます。',
+  'app.verify.deleted.datedCheckedPlain':
+    'Midnight で日付が記録されました：ブロック {block}、{date}。このページが日付を Midnight で直接確認しました。削除の前か後かは分単位では判断できません。',
+  'app.verify.deleted.datedCheckedAfter':
+    '削除の後に Midnight で日付が記録されました：ブロック {block}、{date}。このページが日付を Midnight で直接確認しました。',
   'app.verify.mismatch.title': 'このリンクの証明コードは記録と一致しません：何も確認していません',
   'app.verify.mismatch.dontRely': 'このページに頼らないでください。',
   'app.verify.mismatch.text':
@@ -255,4 +270,45 @@ export const verify = {
     '保有者はこの記録にDNAレポートを保存しています。どのファイルかは、保有者自身の確認用リンクとファイルがあるときだけ確かめられます。',
   'app.verify.unnamedReceipt':
     'この記録のサンプルについてのラボの受領書（レジストリの報告による）。どのラボが署名したかは、保有者が表示していません。',
+  // who-vouches.ts: who stands behind each fact on a check page
+  'app.verify.who.title': 'それぞれの事実の根拠',
+  'app.verify.who.date': '日付',
+  'app.verify.who.date.chain': 'Midnight。このページがMidnight上で直接確認しました。',
+  'app.verify.who.date.chainTest':
+    'Midnightのテストネットワーク。このページが直接確認しましたが、練習用で、頼れる日付ではありません。',
+  'app.verify.who.date.registry':
+    'VeilCoreのレジストリがそう報告しています。このページはMidnight上で確認していません。',
+  'app.verify.who.date.batchOnly':
+    'Midnightがバッチに日付を付け、このページがMidnight上でそれを確認しました。この記録がそのバッチに含まれることは、VeilCoreのレジストリが述べているだけです（リンクに確認できる証明コードがありません）。',
+  'app.verify.who.date.pending': 'まだありません。バッチがMidnightで日付を付けられるのを待っています。',
+  'app.verify.who.code': '証明コード',
+  'app.verify.who.code.page': 'このページ：送られてきたリンクのコードと一致します。',
+  'app.verify.who.code.registry': 'VeilCoreのレジストリ。送られてきたリンクには照合できる証明コードがありません。',
+  'app.verify.who.words': '名前と詳細',
+  'app.verify.who.words.holder':
+    '保有者自身の言葉です。このページは名前が証明コードと一致することだけを確認し、内容が正しいかは確認しません。',
+  'app.verify.who.date.failed': 'ありません：このページのMidnightでの確認は失敗しました（下記参照）。',
+  'app.verify.who.words.differs': '保有者の言葉ですが、表示された名前は証明コードと一致しません（下記参照）。',
+  'app.verify.who.words.unchecked': '保有者自身の言葉です。何も確認していません。',
+  'app.verify.who.lab': '検査機関',
+  'app.verify.who.lab.none': 'このページはどの検査機関の署名も確認していません。',
+  'app.verify.who.signed': '{who}。このページが署名を確認しました。',
+  'app.verify.who.signedUnbound': '{who}（VeilCoreのレジストリの報告）。リンクに証明コードがないため確認できません。',
+  'app.verify.who.more': 'その他の署名',
+  'app.verify.who.moreText': 'ほかに{n}件、下に表示しています。',
+  'app.verify.who.date.none': 'ありません。このページで確認できる限り、日付の付いたバッチに入っていません。',
+  'app.verify.who.code.recomputed': 'このページ：リンクの内容からここで計算しました。',
+  'app.verify.who.file': 'ファイル',
+  'app.verify.who.file.noMatch':
+    'あなた自身の端末：選んだファイルは封印されたものではありません。何も送信されていません。',
+  'app.verify.who.file.match': 'あなた自身の端末：選んだファイルは封印されたものと同じです。何も送信されていません。',
+  'app.verify.who.file.none': 'この文書にはファイルが封印されていません。',
+  'app.verify.who.file.waiting': '下でファイルを選ぶと、あなた自身の端末で照合します。何も送信されません。',
+  'app.verify.who.signedUnboundMatched':
+    '{who}として登録された鍵（VeilCoreのレジストリの報告）。VeilCoreの運営者が名前を公開リストと照合しました（下記）。リンクに証明コードがないため署名を確認できません。',
+  'app.verify.who.signedMatched':
+    '{who}として登録された鍵。このページが署名を確認しました。VeilCoreの運営者が名前を公開リストと照合しました（下記）。VeilCoreが検査機関を保証するものではありません。',
+  'app.verify.who.typed': '入力された内容（タイトル、保有者、発行者、メモ）',
+  'app.verify.who.typed.holder':
+    '保有者自身の言葉です。このページは証明コードと一致することだけを確認し、内容が正しいかは確認しません。',
 } satisfies Partial<AppTranslation>;

@@ -177,12 +177,30 @@ export const sealed = {
     'Aún no se guardó. Este navegador no tiene la clave de sus registros en VeilCore. Restaure su copia de seguridad o, si no la tiene, use «No tengo esa copia de seguridad» en la página de sus registros.',
   'app.sealed.unsaved.retry':
     'Aún no se guardó en VeilCore. Se conserva en este navegador y se vuelve a enviar en el próximo guardado.',
+  'app.sealed.linksDeletedBar':
+    'Una corrección guardada en este navegador nombra un registro que su titular eliminó, así que VeilCore no la guardará. Ábrala para descartarla.',
+  'app.sealed.linksDeletedOpen': 'Abrirla',
+  'app.sealed.unsaved.linksDeleted':
+    'Esta corrección nombra un registro que su titular eliminó, así que VeilCore no la guardará. Solo se guarda en este navegador. Descártela aquí.',
   'app.sealed.unsaved.short': 'Copia bloqueada aún sin subir: guarde y compruebe su copia de seguridad',
   'app.sealed.unsaved.shortRetry': 'Aún no se guardó',
   'app.sealed.unsaved.discardConfirm':
     '¿Descartar lo que este navegador conserva para este registro? No está en VeilCore, así que no se puede recuperar.',
   'app.sealed.unsaved.discardNew': 'Borrarlo',
   'app.sealed.unsaved.discardChange': 'Deshacer el cambio',
+  'app.sealed.unsaved.undoConfirm':
+    '¿Deshacer el cambio guardado en este navegador? Se vuelve a mostrar la copia de VeilCore de este registro. No se borra nada.',
+  'app.sealed.unsaved.deleteConfirm':
+    '¿Borrar «{name}»? Su código de prueba llegó a VeilCore, así que también se borra del registro de VeilCore. No se puede deshacer.',
+  'app.sealed.unsaved.deleteDatedLoss':
+    'Una vez borrado, este navegador ya no tiene aquello a partir de lo cual se hizo ese código de prueba, así que no podrá probar qué fechó.',
+  'app.sealed.unsaved.letGoBusy':
+    'Algo de este registro todavía va camino a VeilCore. No se eliminó nada; inténtelo de nuevo en un momento.',
+  'app.sealed.unsaved.letGoUnknown':
+    'No se pudo contactar con VeilCore, así que no se eliminó nada. Inténtelo de nuevo.',
+  'app.sealed.unsaved.undoReloadFailed':
+    'No se pudo contactar con VeilCore para volver a mostrar su copia. Su cambio sigue guardado en este navegador y no está guardado en VeilCore.',
+  'app.sealed.unsaved.letGoChanged': 'Algo cambió; no se hizo nada. Vuelva a mirar y elija.',
   'app.sealed.sendNotSaved':
     'Este registro aún no está guardado en VeilCore, así que no se puede enviar. Guarde una copia de seguridad y compruébela primero.',
 } satisfies Partial<AppTranslation>;

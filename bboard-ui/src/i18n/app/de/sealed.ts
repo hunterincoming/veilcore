@@ -183,12 +183,31 @@ export const sealed = {
     'Noch nicht gespeichert. Dieser Browser hat den Schlüssel für Ihre Datensätze bei VeilCore nicht. Stellen Sie Ihre Sicherungskopie wieder her oder, wenn Sie sie nicht haben, nutzen Sie „Ich habe diese Sicherungskopie nicht“ auf der Seite Ihrer Datensätze.',
   'app.sealed.unsaved.retry':
     'Noch nicht bei VeilCore gespeichert. Es bleibt in diesem Browser und wird beim nächsten Speichern erneut gesendet.',
+  'app.sealed.linksDeletedBar':
+    'Eine in diesem Browser gespeicherte Korrektur nennt einen Eintrag, den sein Inhaber gelöscht hat, daher speichert VeilCore sie nicht. Öffnen Sie sie, um sie zu verwerfen.',
+  'app.sealed.linksDeletedOpen': 'Öffnen',
+  'app.sealed.unsaved.linksDeleted':
+    'Diese Korrektur nennt einen Eintrag, den sein Inhaber gelöscht hat, daher speichert VeilCore sie nicht. Sie ist nur in diesem Browser gespeichert. Verwerfen Sie sie hier.',
   'app.sealed.unsaved.short': 'Verschlossene Kopie noch nicht hochgeladen – Sicherungskopie speichern und prüfen',
   'app.sealed.unsaved.shortRetry': 'Noch nicht gespeichert',
   'app.sealed.unsaved.discardConfirm':
     'Das, was dieser Browser für diesen Datensatz aufbewahrt, verwerfen? Es ist nicht bei VeilCore und lässt sich nicht zurückholen.',
   'app.sealed.unsaved.discardNew': 'Löschen',
   'app.sealed.unsaved.discardChange': 'Änderung verwerfen',
+  'app.sealed.unsaved.undoConfirm':
+    'Die in diesem Browser gespeicherte Änderung verwerfen? VeilCores Kopie dieses Eintrags wird wieder angezeigt. Nichts wird gelöscht.',
+  'app.sealed.unsaved.deleteConfirm':
+    '„{name}“ löschen? Sein Prüfcode hat VeilCore erreicht, daher wird er auch aus dem Register von VeilCore gelöscht. Das lässt sich nicht rückgängig machen.',
+  'app.sealed.unsaved.deleteDatedLoss':
+    'Nach dem Löschen hat dieser Browser nicht mehr, woraus dieser Prüfcode gebildet wurde, und Sie können nicht mehr nachweisen, was er datiert hat.',
+  'app.sealed.unsaved.letGoBusy':
+    'Für diesen Eintrag ist noch etwas auf dem Weg zu VeilCore. Nichts wurde entfernt; versuchen Sie es gleich noch einmal.',
+  'app.sealed.unsaved.letGoUnknown':
+    'VeilCore war nicht erreichbar, daher wurde nichts entfernt. Versuchen Sie es erneut.',
+  'app.sealed.unsaved.undoReloadFailed':
+    'VeilCore war nicht erreichbar, um seine Kopie wieder anzuzeigen. Ihre Änderung bleibt in diesem Browser und ist nicht gespeichert.',
+  'app.sealed.unsaved.letGoChanged':
+    'Etwas hat sich geändert; es wurde nichts getan. Sehen Sie noch einmal nach und wählen Sie erneut.',
   'app.sealed.sendNotSaved':
     'Dieser Datensatz ist noch nicht bei VeilCore gespeichert und kann daher nicht gesendet werden. Speichern und prüfen Sie zuerst eine Sicherungskopie.',
 } satisfies Partial<AppTranslation>;

@@ -109,6 +109,21 @@ export const verify = {
   'app.verify.notFoundText':
     'Dieser Prüflink passt zu keinem Datensatz im Register. Prüfen Sie, ob der Link vollständig und unverändert ist.',
   'app.verify.goHome': 'Zu veilcore.org',
+  'app.verify.deleted.title': '{id} wurde von seinem Inhaber gelöscht',
+  'app.verify.deleted.when': 'Gelöscht am {date}. Seine Angaben werden nicht mehr angezeigt.',
+  'app.verify.deleted.datedChecked':
+    'Davor wurde er auf Midnight datiert: Block {block}, {date}. Diese Seite hat das Datum selbst auf Midnight geprüft.',
+  'app.verify.deleted.datedReported':
+    'Das Register von VeilCore meldet, dass er vor dem Löschen auf Midnight datiert wurde. Mit einem Link, der seinen Prüfcode enthält, kann diese Seite das selbst prüfen.',
+  'app.verify.deleted.notDated': 'Das Register von VeilCore hat für ihn kein Datum auf Midnight.',
+  'app.verify.deleted.datedReportedPlain':
+    'Das Register von VeilCore meldet, dass er auf Midnight datiert wurde. Mit einem Link, der seinen Prüfcode enthält, kann diese Seite das selbst prüfen.',
+  'app.verify.deleted.datedReportedAfter':
+    'Das Register von VeilCore meldet, dass er nach dem Löschen auf Midnight datiert wurde. Mit einem Link, der seinen Prüfcode enthält, kann diese Seite das selbst prüfen.',
+  'app.verify.deleted.datedCheckedPlain':
+    'Er wurde auf Midnight datiert: Block {block}, {date}. Diese Seite hat das Datum selbst auf Midnight geprüft; ob vor oder nach dem Löschen, lässt sich nicht auf die Minute sagen.',
+  'app.verify.deleted.datedCheckedAfter':
+    'Er wurde nach dem Löschen auf Midnight datiert: Block {block}, {date}. Diese Seite hat das Datum selbst auf Midnight geprüft.',
   'app.verify.mismatch.title': 'Der Prüfcode dieses Links passt nicht zum Datensatz: nichts geprüft',
   'app.verify.mismatch.dontRely': 'Verlassen Sie sich nicht auf diese Seite.',
   'app.verify.mismatch.text':
@@ -276,4 +291,47 @@ export const verify = {
     'Der Inhaber hat einen DNA-Bericht zu diesem Datensatz gespeichert. Welche Datei es ist, lässt sich nur mit dem eigenen Prüflink des Inhabers und der Datei prüfen.',
   'app.verify.unnamedReceipt':
     'Eine Empfangsbestätigung eines Labors für eine Probe aus diesem Datensatz, wie das Register meldet. Der Inhaber hat nicht gezeigt, welches Labor sie signiert hat.',
+  // who-vouches.ts: who stands behind each fact on a check page
+  'app.verify.who.title': 'Worauf jede Angabe beruht',
+  'app.verify.who.date': 'Das Datum',
+  'app.verify.who.date.chain': 'Midnight. Diese Seite hat es dort selbst geprüft.',
+  'app.verify.who.date.chainTest':
+    'Ein Midnight-Testnetz. Diese Seite hat es dort selbst geprüft: eine Übung, kein Datum, auf das man sich verlassen kann.',
+  'app.verify.who.date.registry': 'Das Register von VeilCore sagt es. Diese Seite hat es nicht auf Midnight geprüft.',
+  'app.verify.who.date.batchOnly':
+    'Midnight hat den Stapel datiert, und diese Seite hat das dort geprüft. Dass dieser Eintrag darin ist, sagt nur das Register von VeilCore: Der Link enthält keinen Prüfcode zum Abgleich.',
+  'app.verify.who.date.pending': 'Noch niemand. Sein Stapel wartet darauf, auf Midnight datiert zu werden.',
+  'app.verify.who.code': 'Der Prüfcode',
+  'app.verify.who.code.page': 'Diese Seite: Er stimmt mit dem im Link überein, den Sie erhalten haben.',
+  'app.verify.who.code.registry':
+    'Das Register von VeilCore. Der Link, den Sie erhalten haben, enthält keinen Prüfcode zum Abgleich.',
+  'app.verify.who.words': 'Name und Angaben',
+  'app.verify.who.words.holder':
+    'Der Inhaber, in eigenen Worten. Diese Seite prüft nur, dass der Name zum Prüfcode passt, nicht, dass etwas davon stimmt.',
+  'app.verify.who.date.failed': 'Niemand: Die Prüfung dieser Seite auf Midnight ist fehlgeschlagen (siehe unten).',
+  'app.verify.who.words.differs':
+    'Die Worte des Inhabers, aber der gezeigte Name passt nicht zum Prüfcode (siehe unten).',
+  'app.verify.who.words.unchecked': 'Der Inhaber, in eigenen Worten. Nichts prüft sie.',
+  'app.verify.who.lab': 'Ein Labor',
+  'app.verify.who.lab.none': 'Diese Seite hat keine Signatur eines Labors geprüft.',
+  'app.verify.who.signed': '{who}. Diese Seite hat die Signatur geprüft.',
+  'app.verify.who.signedUnbound':
+    '{who}, wie das Register von VeilCore meldet. Der Link enthält keinen Prüfcode, um sie zu prüfen.',
+  'app.verify.who.more': 'Weitere Signaturen',
+  'app.verify.who.moreText': '{n} weitere, unten aufgeführt.',
+  'app.verify.who.date.none': 'Niemand. Soweit diese Seite sehen kann, ist der Eintrag in keinem datierten Stapel.',
+  'app.verify.who.code.recomputed': 'Diese Seite: hier aus dem berechnet, was der Link enthält.',
+  'app.verify.who.file': 'Die Datei',
+  'app.verify.who.file.noMatch':
+    'Ihr eigenes Gerät: Die gewählte Datei ist nicht die versiegelte. Nichts wurde gesendet.',
+  'app.verify.who.file.match': 'Ihr eigenes Gerät: Die gewählte Datei ist die versiegelte. Nichts wurde gesendet.',
+  'app.verify.who.file.none': 'Mit diesem Dokument wurde keine Datei versiegelt.',
+  'app.verify.who.file.waiting': 'Ihr eigenes Gerät, sobald Sie unten die Datei wählen. Nichts wird gesendet.',
+  'app.verify.who.signedUnboundMatched':
+    'Ein Schlüssel, registriert als {who}, wie das Register von VeilCore meldet. Der Betreiber von VeilCore hat den Namen mit einem öffentlichen Verzeichnis abgeglichen (unten). Der Link enthält keinen Prüfcode, um die Signatur zu prüfen.',
+  'app.verify.who.signedMatched':
+    'Ein Schlüssel, registriert als {who}. Diese Seite hat die Signatur geprüft. Der Betreiber von VeilCore hat den Namen mit einem öffentlichen Verzeichnis abgeglichen (unten); damit bürgt VeilCore nicht für das Labor.',
+  'app.verify.who.typed': 'Was eingegeben wurde (Titel, Inhaber, Aussteller, Notizen)',
+  'app.verify.who.typed.holder':
+    'Der Inhaber, in eigenen Worten. Diese Seite prüft nur, dass sie zum Prüfcode passen, nicht, dass sie stimmen.',
 } satisfies Partial<AppTranslation>;

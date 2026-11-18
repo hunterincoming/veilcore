@@ -109,6 +109,21 @@ export const verify = {
   'app.verify.notFoundText':
     'Ce lien de vérification ne correspond à aucun enregistrement du registre. Vérifiez que le lien est complet et non modifié.',
   'app.verify.goHome': 'Aller sur veilcore.org',
+  'app.verify.deleted.title': '{id} a été supprimé par son détenteur',
+  'app.verify.deleted.when': 'Supprimé le {date}. Ses détails ne sont plus affichés.',
+  'app.verify.deleted.datedChecked':
+    'Avant cela, il a été daté sur Midnight : bloc {block}, {date}. Cette page a vérifié la date elle-même sur Midnight.',
+  'app.verify.deleted.datedReported':
+    'Le registre de VeilCore indique qu’il a été daté sur Midnight avant d’être supprimé. Un lien qui porte son code de preuve permet à cette page de le vérifier elle-même.',
+  'app.verify.deleted.notDated': 'Le registre de VeilCore n’a aucune date sur Midnight pour lui.',
+  'app.verify.deleted.datedReportedPlain':
+    'Le registre de VeilCore indique qu’il a été daté sur Midnight. Un lien qui porte son code de preuve permet à cette page de le vérifier elle-même.',
+  'app.verify.deleted.datedReportedAfter':
+    'Le registre de VeilCore indique qu’il a été daté sur Midnight après la suppression. Un lien qui porte son code de preuve permet à cette page de le vérifier elle-même.',
+  'app.verify.deleted.datedCheckedPlain':
+    'Il a été daté sur Midnight : bloc {block}, {date}. Cette page a vérifié la date elle-même sur Midnight ; avant ou après la suppression, on ne peut pas le dire à la minute près.',
+  'app.verify.deleted.datedCheckedAfter':
+    'Il a été daté sur Midnight après la suppression : bloc {block}, {date}. Cette page a vérifié la date elle-même sur Midnight.',
   'app.verify.mismatch.title':
     'Le code de preuve de ce lien ne correspond pas à l’enregistrement : rien n’a été vérifié',
   'app.verify.mismatch.dontRely': 'Ne vous fiez pas à cette page.',
@@ -275,4 +290,49 @@ export const verify = {
     'Le détenteur a enregistré un rapport ADN avec cet enregistrement. Quel fichier c’est ne peut se vérifier qu’avec le lien de vérification du détenteur lui-même et le fichier.',
   'app.verify.unnamedReceipt':
     'Un accusé de réception de laboratoire pour un échantillon de cet enregistrement, selon le registre. Le détenteur n’a pas montré quel laboratoire l’a signé.',
+  // who-vouches.ts: who stands behind each fact on a check page
+  'app.verify.who.title': 'Sur quoi repose chaque fait',
+  'app.verify.who.date': 'La date',
+  'app.verify.who.date.chain': 'Midnight. Cette page l’a vérifiée elle-même sur Midnight.',
+  'app.verify.who.date.chainTest':
+    'Un réseau de test Midnight. Cette page l’a vérifiée elle-même : un exercice, pas une date sur laquelle compter.',
+  'app.verify.who.date.registry': 'Le registre de VeilCore le dit. Cette page ne l’a pas vérifiée sur Midnight.',
+  'app.verify.who.date.batchOnly':
+    'Midnight a daté le lot, et cette page l’a vérifié sur Midnight. Seul le registre de VeilCore dit que cet enregistrement en fait partie : le lien ne contient pas de code de preuve à vérifier.',
+  'app.verify.who.date.pending': 'Personne pour l’instant. Son lot attend d’être daté sur Midnight.',
+  'app.verify.who.code': 'Le code de preuve',
+  'app.verify.who.code.page': 'Cette page : il correspond à celui du lien qu’on vous a envoyé.',
+  'app.verify.who.code.registry':
+    'Le registre de VeilCore. Le lien qu’on vous a envoyé ne contient pas de code de preuve pour le comparer.',
+  'app.verify.who.words': 'Le nom et les détails',
+  'app.verify.who.words.holder':
+    'Le détenteur, avec ses propres mots. Cette page vérifie seulement que le nom correspond au code de preuve, pas que son contenu est vrai.',
+  'app.verify.who.date.failed': 'Personne : la vérification de cette page sur Midnight a échoué (voir ci-dessous).',
+  'app.verify.who.words.differs':
+    'Les mots du détenteur, mais le nom affiché ne correspond pas au code de preuve (voir ci-dessous).',
+  'app.verify.who.words.unchecked': 'Le détenteur, avec ses propres mots. Rien ne les vérifie.',
+  'app.verify.who.lab': 'Un laboratoire',
+  'app.verify.who.lab.none': 'Cette page n’a vérifié la signature d’aucun laboratoire.',
+  'app.verify.who.signed': '{who}. Cette page a vérifié la signature.',
+  'app.verify.who.signedUnbound':
+    '{who}, selon le registre de VeilCore. Le lien ne contient pas de code de preuve pour la vérifier.',
+  'app.verify.who.more': 'Autres signatures',
+  'app.verify.who.moreText': '{n} de plus, ci-dessous.',
+  'app.verify.who.date.none':
+    'Personne. Pour autant que cette page puisse le voir, l’enregistrement n’est dans aucun lot daté.',
+  'app.verify.who.code.recomputed': 'Cette page : recalculé ici à partir de ce que contient le lien.',
+  'app.verify.who.file': 'Le fichier',
+  'app.verify.who.file.noMatch':
+    'Votre propre appareil : le fichier choisi n’est pas celui qui a été scellé. Rien n’a été envoyé.',
+  'app.verify.who.file.match':
+    'Votre propre appareil : le fichier choisi est celui qui a été scellé. Rien n’a été envoyé.',
+  'app.verify.who.file.none': 'Aucun fichier n’a été scellé avec ce document.',
+  'app.verify.who.file.waiting': 'Votre propre appareil, une fois le fichier choisi ci-dessous. Rien n’est envoyé.',
+  'app.verify.who.signedUnboundMatched':
+    'Une clé enregistrée au nom de {who}, selon le registre de VeilCore. L’opérateur de VeilCore a rapproché le nom d’une liste publique (ci-dessous). Le lien ne contient pas de code de preuve pour vérifier la signature.',
+  'app.verify.who.signedMatched':
+    'Une clé enregistrée au nom de {who}. Cette page a vérifié la signature. L’opérateur de VeilCore a rapproché le nom d’une liste publique (ci-dessous) ; VeilCore ne se porte pas garant du laboratoire.',
+  'app.verify.who.typed': 'Ce qui est saisi (titre, détenteur, émetteur, notes)',
+  'app.verify.who.typed.holder':
+    'Le détenteur, avec ses propres mots. Cette page vérifie seulement qu’ils correspondent au code de preuve, pas qu’ils sont vrais.',
 } satisfies Partial<AppTranslation>;

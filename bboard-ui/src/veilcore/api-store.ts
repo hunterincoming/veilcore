@@ -360,6 +360,8 @@ const current = (kind: RowKind): Loaded | undefined => {
 };
 
 export const rowStateOf = (key: string, id: string): RowState | undefined => current(kindFor(key))?.states.get(id);
+/** Whether this browser has read the registry's rows of this kind for the current holder key. */
+export const registryReadFor = (key: string): boolean => current(kindFor(key)) !== undefined;
 export const lockedRowsOf = (key: string): readonly LockedRow[] => current(kindFor(key))?.locked ?? [];
 export const loadNoticeOf = (key: string): LoadNotice =>
   current(kindFor(key))?.notice ?? { truncated: false, unreadable: 0 };
@@ -620,6 +622,12 @@ export const SUPERSEDED_BY_LOCKED_CODE = 'supersededby-locked';
  * in the same save, was refused: the two are kept together or not at all (veilcore-api PR #8).
  */
 export const RECORD_REFUSED_CODE = 'record-refused';
+/** The registry's refusal of an id its holder deleted (veilcore-api tombstones.js). */
+export const DELETED_CODE = 'deleted';
+/** A live row whose correction link names a deleted id (veilcore-api tombstones.js). */
+export const LINKS_DELETED_CODE = 'links-deleted';
+const linkField = (f: unknown): 'supersedes' | 'supersededBy' | undefined =>
+  f === 'supersedes' || f === 'supersededBy' ? f : undefined;
 
 const hashOf = async (v: Record<string, unknown>): Promise<string> =>
   Array.from(
@@ -1152,6 +1160,14 @@ const sendSealed = async (
         refused.push({ id: r.id, reason: r.reason, words: 'app.sealed.refuse.recordRefused' });
         continue;
       }
+      if (r.code === DELETED_CODE) {
+        refused.push({ id: r.id, reason: r.reason, words: 'app.plant.delete.gone', deleted: true });
+        continue;
+      }
+      if (r.code === LINKS_DELETED_CODE && linkField(r.field)) {
+        refused.push({ id: r.id, reason: r.reason, linksDeleted: linkField(r.field) });
+        continue;
+      }
       refused.push({ id: r.id, reason: r.reason });
     }
   }
@@ -1282,7 +1298,11 @@ export const sendDatingRows = async (
         refused.push(
           r.code === PLAN_LIMIT
             ? { id: r.id, reason: PLAN_FULL_REASON, words: 'app.plan.full' }
-            : { id: r.id, reason: r.reason },
+            : r.code === DELETED_CODE
+              ? { id: r.id, reason: r.reason, words: 'app.plant.delete.gone', deleted: true }
+              : r.code === LINKS_DELETED_CODE && linkField(r.field)
+                ? { id: r.id, reason: r.reason, linksDeleted: linkField(r.field) }
+                : { id: r.id, reason: r.reason },
         );
   if (Array.isArray(body.notWritten))
     for (const id of body.notWritten)
@@ -1439,7 +1459,7 @@ export const TOO_LARGE_REASON = 'it’s too large to save. Shorten its notes and
 const deleteRows = async (
   kind: RowKind,
   ids: readonly string[],
-): Promise<{ removed: string[] } | { error: string }> => {
+): Promise<{ removed: string[]; refused?: { id: string; code: string }[] } | { error: string; offline?: true }> => {
   const k = holderKeyIfAny();
   if (!k) return { error: 'this browser has no holder key' };
   try {
@@ -1453,13 +1473,38 @@ const deleteRows = async (
       return { error: isObject(body) && isString(body.error) ? body.error : `the registry answered ${res.status}` };
     }
     const removed = isObject(body) && Array.isArray(body.removed) ? body.removed.filter(isString) : [];
-    return { removed };
+    // A refusal by code (e.g. "linked": a correction of it still exists).
+    const refused =
+      isObject(body) && Array.isArray(body.refused)
+        ? body.refused.flatMap((r) =>
+            isObject(r) && isString(r.id) && isString(r.code) ? [{ id: r.id, code: r.code }] : [],
+          )
+        : [];
+    return refused.length ? { removed, refused } : { removed };
   } catch {
-    return { error: 'could not reach the registry' };
+    return { error: 'could not reach the registry', offline: true };
   }
 };
 
-export const deleteRecords = (ids: readonly string[]): Promise<{ removed: string[] } | { error: string }> =>
+/**
+ * Whether the registry has this id as deleted by its holder, with this proof code (its /verify
+ * answer for a tombstone). False when it can't say: never taken as deleted on a guess.
+ */
+export const deletedOnRegistry = async (id: string, fingerprint?: string): Promise<boolean> => {
+  try {
+    const res = await fetch(`${BASE}/verify/${encodeURIComponent(id)}?show=`, { cache: 'no-store' });
+    const body: unknown = await res.json();
+    if (!isObject(body) || body.deleted !== true) return false;
+    // A tombstone with a proof code must be this record's; one without says nothing either way.
+    return isString(body.recordFingerprint) ? body.recordFingerprint === fingerprint : fingerprint === undefined;
+  } catch {
+    return false;
+  }
+};
+
+export const deleteRecords = (
+  ids: readonly string[],
+): Promise<{ removed: string[]; refused?: { id: string; code: string }[] } | { error: string; offline?: true }> =>
   deleteRows('records', ids);
 export const deleteLicenses = (ids: readonly string[]): Promise<{ removed: string[] } | { error: string }> =>
   deleteRows('licenses', ids);

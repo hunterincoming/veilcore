@@ -84,10 +84,15 @@ indexer of your own choosing instead of ours, see [docs/reproduce-build.md](docs
 
 - **Works on veilcore.org:** sealing records; batches anchored on Midnight's main network automatically (the
   first batches were anchored by hand; the scheduled job first dated one on its own on
-  8 November 2026: `SCHEDULED_ANCHORING_RUN_ON_MAINNET` in `bboard-ui/src/config/copy.ts`; the
-  first batch, `B-20261011-FE71`, is also stamped on Bitcoin, blocks 971004 and 971005); proving a record by link; dating a DNA report pairing from the browser; lab receipts
+  8 November 2026: `SCHEDULED_ANCHORING_RUN_ON_MAINNET` in `bboard-ui/src/config/copy.ts`); each
+  batch also stamped on Bitcoin with OpenTimestamps (the first batch, `B-20261011-FE71`, in blocks
+  971004 and 971005) and given an RFC 3161 timestamp by a timestamp authority (a batch sealed
+  before the authority was set gets one dated when it is made); proving a record by link; dating a DNA report pairing from the browser; lab receipts
   and reports signed with the lab's own key; choosing what a record's check page shows; check
-  pages that read the date from Midnight themselves. No wallet needed: VeilCore's fee service
+  pages that read the date from Midnight themselves, with a "What each fact rests on" box
+  saying which facts the page checked and which only the registry reports; deleting a record,
+  after which its old check link says its holder deleted it (both since 17 November 2026).
+  No wallet needed: VeilCore's fee service
   pays the network fee for what the browser sends.
 - **Licenses and royalties: live on veilcore.org.** On 8 November 2026 a license was accepted
   and a royalty report sent, answered, marked paid and confirmed received, end to end on
