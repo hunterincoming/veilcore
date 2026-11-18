@@ -397,19 +397,23 @@ describe("the home page's night (home.css, Mako's design, 18 Nov 2026)", () => {
     expect(contrast(VOID, GOLD)).toBeGreaterThanOrEqual(4.5);
   });
 
-  it("one gold on a dark ground: the page accent is the mark's dark-ground gold", () => {
-    // CTO decision (review of the redesign, 18 Nov): Mako's #F5C518 sat too close to Binance
-    // yellow, and two golds on one page read as a mistake. #E3AE2A is the accent and the mark on
-    // night; #B8860B stays the mark on paper.
+  it("one gold on a dark ground, clear of other brands' yellows", () => {
+    // CTO decision (review of the redesign, 18 Nov): one gold for the accent and the mark on
+    // night; #B8860B stays the mark on paper. Mako's draft used IMDb's exact #F5C518, and the
+    // first replacement, #E3AE2A, was 3.8 from Binance's: this keeps it 10 or more from all three.
     expect(GOLD.toUpperCase()).toBe(MARK_GOLD_ON_DARK);
-    // Measured, not asserted: this gold is CIEDE2000 3.4 from Binance yellow (Mako's #F5C518 was
-    // 4.4). Pollen, the paper pages' gold, keeps its 10-or-more rule above. Whether the night's
-    // gold should move further from Binance is a brand decision for the founders; this pins the
-    // number so a change to it is seen.
-    expect(de2000(lab(GOLD), lab(BINANCE_YELLOW))).toBeCloseTo(3.43, 1);
+    for (const brand of ['#F0B90B', '#FCD535', '#F5C518', BINANCE_YELLOW, BITCOIN_ORANGE])
+      expect(de2000(lab(GOLD), lab(brand)), brand).toBeGreaterThanOrEqual(10);
+    // The mark's two golds read as one family.
+    expect(de2000(lab(MARK_GOLD_ON_DARK), lab(MARK_GOLD))).toBeLessThan(10);
     // A graphic needs 3:1 (WCAG 1.4.11): on the night, and on the footer's ink.
     for (const ground of [VOID, INK_COLOR]) expect(contrast(MARK_GOLD_ON_DARK, ground)).toBeGreaterThanOrEqual(3);
-    expect(rules(homeCss)).not.toMatch(/#f5c518|#ffd43a/i);
+    // The brighter gold under the pointer stays clear of the brands too, and dark text on it reads.
+    const HI = homeToken('yellow-hi');
+    for (const brand of ['#F0B90B', '#FCD535', '#F5C518'])
+      expect(de2000(lab(HI), lab(brand)), brand).toBeGreaterThanOrEqual(10);
+    expect(contrast(VOID, HI)).toBeGreaterThanOrEqual(4.5);
+    expect(rules(homeCss)).not.toMatch(/#f5c518|#ffd43a|#e3ae2a|#edbd47/i);
   });
 
   it('a gallery panel out of view is quieter by its photo only, never its words', () => {

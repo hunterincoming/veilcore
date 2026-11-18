@@ -12,10 +12,11 @@ import React from 'react';
 export const MARK_GOLD = '#B8860B';
 /**
  * The same gold on a dark ground (the footer, the home page's header): the site's one accent
- * there (home.css --yellow), 9.5:1 on the home page's night and 8.8:1 on the footer's ink.
+ * there (home.css --yellow), 7.5:1 on the home page's night and 6.9:1 on the footer's ink; a brass gold, CIEDE2000 6.5 from
+ * #B8860B so the two read as one family, and 10 or more from Binance's and IMDb's yellows.
  * The darker #B8860B is for paper, where it reads at 3.2:1 on white.
  */
-export const MARK_GOLD_ON_DARK = '#E3AE2A';
+export const MARK_GOLD_ON_DARK = '#C99A3A';
 
 /** The left stroke of the V. */
 const LEFT = 'M4 10 H30 L52 92 H40 Z';

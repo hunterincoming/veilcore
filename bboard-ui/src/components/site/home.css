@@ -4,7 +4,7 @@
    founders) turn dark with it because the page re-sets the shared tokens for its own ground.
 
    Mako's tokens:
-     Void     #0B0E14  the ground                 Ink 16.6:1, Ink-2 8.7:1, Ink-3 5.4:1, Gold 9.5:1
+     Void     #0B0E14  the ground                 Ink 16.6:1, Ink-2 8.7:1, Ink-3 5.4:1, Gold 7.5:1
      Fill     #141B26  cards, quiet buttons       Ink 15.4:1, Ink-2 7.9:1, Ink-3 4.8:1
      Fill-2   #1C2738  raised fills
      Rule     #1A2331  the timeline's axis, the batch's cells (drawings, not dividers)
@@ -12,11 +12,13 @@
      Ink      #ECEEF1  text
      Ink-2    #A4AFBF  secondary text
      Ink-3    #7A889C  labels, fine print (5.3:1 on Void; never on Fill-2)
-     Gold     #E3AE2A  the site's one gold on a dark ground (review, 18 Nov): the main button (Void
-                       on it 9.5:1), the headline's second line, the drenched sections, and the
-                       logo mark on night (TagMark MARK_GOLD_ON_DARK). Mako's #F5C518 sat too
-                       close to Binance yellow. On paper the mark keeps #B8860B. Under the
-                       pointer #EDBD47 (Void on it 11.0:1). The token keeps Mako's name, --yellow
+     Gold     #C99A3A  the site's one gold on a dark ground (review, 18 Nov): a brass gold for the
+                       main button (Void on it 7.5:1), the headline's second line, the drenched
+                       sections, and the logo mark on night (TagMark MARK_GOLD_ON_DARK).
+                       CIEDE2000 10 or more from Binance's #F0B90B and #FCD535 and IMDb's
+                       #F5C518 (Mako's draft used IMDb's exact yellow), 6.5 from the mark's
+                       #B8860B on paper. Under the pointer #D8A657 (Void on it 8.8:1). The
+                       token keeps Mako's name, --yellow
      Cyan     #5FD3DF  the proof code, one card of "Where it stops" (Void on it 10.9:1)
    Type: Archivo (variable, 400-700) and JetBrains Mono for proof codes, both OFL, self-hosted
    and subset (public/fonts, LICENSE-*.txt): 25 KB and 8 KB. Japanese falls back to the system's
@@ -64,8 +66,8 @@ html:has(.vcm .home) body {
   --ink-1: #eceef1;
   --ink-2: #a4afbf;
   --ink-3: #7a889c;
-  --yellow: #e3ae2a;
-  --yellow-hi: #edbd47;
+  --yellow: #c99a3a;
+  --yellow-hi: #d8a657;
   --cyan: #5fd3df;
   --sans:
     'VeilCore Archivo', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', 'Noto Sans JP', system-ui,
@@ -620,7 +622,7 @@ html:has(.vcm .home) body {
 }
 .vcm .home .k-tl-pin.a b {
   background: var(--yellow);
-  box-shadow: 0 0 0 6px rgba(227, 174, 42, 0.18);
+  box-shadow: 0 0 0 6px rgba(201, 154, 58, 0.18);
 }
 .vcm .home .k-tl-pin.b {
   left: calc(var(--from) + (var(--to) - var(--from)) * var(--p));
@@ -1176,7 +1178,7 @@ html:has(.vcm .home) body {
   height: 0;
   opacity: 0;
   transition: opacity 0.3s;
-  background-image: linear-gradient(90deg, rgba(227, 174, 42, 0.7) 50%, transparent 0);
+  background-image: linear-gradient(90deg, rgba(201, 154, 58, 0.7) 50%, transparent 0);
   background-size: 8px 1px;
   background-repeat: repeat-x;
   padding-top: 1px;
@@ -1349,7 +1351,7 @@ html:has(.vcm .home) body {
   a:not(.k-btn):hover,
 .vcm .home a.x-link:hover,
 .vcm .home .more:hover {
-  background: rgba(227, 174, 42, 0.16);
+  background: rgba(201, 154, 58, 0.16);
 }
 .vcm .home .post time {
   background: none;
@@ -1423,13 +1425,13 @@ html:has(.vcm .home) [data-site-menu-button] {
 html:has(.vcm .home) [data-site-header] nav > a[data-cta] {
   border-radius: 999px;
   padding-inline: 16px;
-  background: #e3ae2a;
+  background: #c99a3a;
   color: #0b0e14;
   font-size: 14px;
   font-weight: 500;
 }
 html:has(.vcm .home) [data-site-header] nav > a[data-cta]:hover {
-  background: #edbd47;
+  background: #d8a657;
 }
 html:has(.vcm .home)
   [data-site-header]
