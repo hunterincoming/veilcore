@@ -41,6 +41,12 @@ lowercase hex characters.
   why `record-keys.ts` kept it off the record). The salt hides it: `keyBinding` says nothing
   about the key without `keySalt`. The salt comes from the record secret, so the backup
   file already brings it back; nothing new to keep. The salt never goes on the record.
+  What the salt does not hide is timing. The registry sees when a record is first saved, and a
+  new record's key is stamped on chain within minutes of sealing; while few keys are stamped a
+  day, matching those times can link a holder's account to the identity stamped just after.
+  VeilCore's fee service, which sends the stamp, also sees it. So the registry can't read the
+  link from the record, but VeilCore could infer it from timing. A random delay before the stamp
+  would narrow that; it isn't built.
 - **Why two layers, not just a field:** a checker has only the fingerprint, not the plant's
   details. With the key folded in at the top, the link can carry `contentHash` (a hash; it
   shows nothing) and the checker recomputes the fingerprint without seeing anything private.
