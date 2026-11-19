@@ -59,7 +59,7 @@ test('on an iPhone: Safari’s 7-day warning is shown', async ({ browser }) => {
   const page = await ctx.newPage();
   await isolate(page);
   await openBackup(page);
-  await expect(page.locator('[data-backup-safari]')).toContainText('Safari can clear a site’s data after 7 days');
+  await expect(page.locator('[data-backup-safari]')).toContainText('This browser can clear a site’s data after 7 days');
   await ctx.close();
 });
 
