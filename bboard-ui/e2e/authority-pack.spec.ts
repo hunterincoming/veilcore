@@ -26,6 +26,7 @@ import {
   sealedRecordRow,
   watch,
   type Handler,
+  standaloneNumber,
 } from './helpers';
 
 test.skip(REAL_REGISTRY, 'this uses the stand-in registry');
@@ -293,9 +294,10 @@ test('a pack for the authority in Spanish: the missing chromatography first, and
   const reportLink = (await reportItem.locator('a[data-check-link]').getAttribute('href')) ?? '';
   expect(reportLink).toMatch(/\/check-document\?lang=es#d=[A-Za-z0-9_-]+$/);
 
-  // Nothing sent after the patient count was typed carries it (proof codes aside, which are hex).
+  // Nothing sent after the patient count was typed carries it as a value (digits inside a hash,
+  // a key or an ID aside).
   expect(sent.length).toBeGreaterThan(0);
-  for (const s of sent) expect(s.replace(/[0-9a-f]{64}/g, ''), s).not.toContain(PATIENTS);
+  for (const s of sent) expect(s, s).not.toMatch(standaloneNumber(PATIENTS));
 
   const shots = process.env.E2E_SHOTS;
   if (shots) {

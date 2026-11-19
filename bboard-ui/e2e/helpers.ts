@@ -49,6 +49,14 @@ export const expectAskOffered = async (page: Page) => {
   }
 };
 
+/**
+ * A number as a value of its own in sent text, never as digits inside a hash, a base64 or hex
+ * key or an ID: "11400" matches `"n":11400` or `"11400"`, but not `…c51c1140092cc…`. A raw
+ * `not.toContain('11400')` fails whenever a random hash happens to hold those digits.
+ */
+export const standaloneNumber = (n: string): RegExp =>
+  new RegExp(`(?<![0-9A-Za-z+/_.-])${n.replace(/\./g, '\\.')}(?![0-9A-Za-z+/_-]|\\.[0-9])`);
+
 export type Handler = (route: Route, url: URL, body: unknown) => Promise<void> | void;
 export const json = (route: Route, status: number, body: unknown) =>
   route.fulfill({ status, contentType: 'application/json', body: JSON.stringify(body) });
