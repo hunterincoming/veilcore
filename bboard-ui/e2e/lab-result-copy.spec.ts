@@ -147,7 +147,7 @@ test('the breeder adds the lab’s signed result: VeilCore keeps the copy, and i
   // A reload reads the copy back from VeilCore: the result, its proof code and the lab's signature.
   await breeder.reload();
   await expect(breeder.locator('[data-lab-result-panel]')).toContainText('Not detected', { timeout: 20_000 });
-  await expect(breeder.getByText(resultCode)).toBeVisible();
+  await expect(breeder.getByText(resultCode).first()).toBeVisible();
   await expect(breeder.locator('[data-lab-signature] [data-lab-signed="bound"]')).toBeVisible({ timeout: 20_000 });
   // And the check page knows it is held here now.
   await breeder.goto('/check-lab-result');
