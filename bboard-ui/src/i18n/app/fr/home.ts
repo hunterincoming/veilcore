@@ -12,7 +12,7 @@ export const home = {
   'app.home.draftKept':
     'Ce que vous avez saisi est conservé dans ce navigateur. Reprenez là où vous vous étiez arrêté.',
   'app.home.aboutThreeMinutes':
-    'Environ 3 minutes. À la fin, elle a un horodatage public, et vous êtes seul à détenir la clé.',
+    'Environ 3 minutes. À la fin, il a un horodatage public, et vous êtes seul à détenir la clé.',
   'app.home.aboutThreeMinutesByHand':
     'Environ 3 minutes. À la fin, il est scellé ; sa date publique vient quand nous ancrons son lot (à la main pour l’instant). Vous êtes seul à détenir la clé.',
   'app.home.continue': 'Reprendre',
@@ -28,7 +28,7 @@ export const home = {
   'app.home.whatStops': 'Qu’est-ce qui empêche quelqu’un d’enregistrer mon matériel génétique en premier ?',
   'app.home.samplesReceived': 'Échantillons reçus',
   'app.home.yourRecords': 'Vos enregistrements',
-  'app.home.logNew': 'Enregistrer',
+  'app.home.logNew': 'Nouveau',
   'app.home.saveIt': 'L’enregistrer',
   'app.home.finishBackupLine': '<b>Pour finir : enregistrez votre sauvegarde.</b> {line}',
   'app.home.keysOnlyHereRecords.one': '{count} enregistrement a des clés uniquement sur cet appareil.',
@@ -55,8 +55,8 @@ export const home = {
   'app.home.openPlant': 'Ouvrir {name}',
   'app.home.quoted': '« {v} »',
   'app.home.labReportWaiting': 'Rapport de laboratoire en attente',
-  'app.home.openAgreements': 'Ouvrir mes contrats',
-  'app.home.myAgreements': 'Mes contrats ({n})',
+  'app.home.openAgreements': 'Ouvrir mes accords',
+  'app.home.myAgreements': 'Mes accords ({n})',
   'app.home.more': 'Plus',
   'app.home.saveABackup': 'Enregistrer une sauvegarde',
   'app.home.exportAll': 'Exporter tous les enregistrements',
@@ -65,10 +65,10 @@ export const home = {
   'app.home.trust.lede': 'Trois choses rendent un enregistrement VeilCore difficile à falsifier :',
   'app.home.trust.1t': 'Un enregistrement antérieur apparaît comme antérieur',
   'app.home.trust.1b':
-    'Une fois les enregistrements ancrés, chacun peut vérifier lequel a été ancré en premier. Avant cela, l’heure d’un enregistrement est l’horloge de son appareil. Un enregistrement est une preuve, pas un enregistrement officiel : il montre ce que vous aviez et quand, mais ne tranche pas un litige à lui seul.',
+    'Une fois les enregistrements ancrés, chacun peut vérifier lequel a été ancré en premier. Avant cela, l’heure d’un enregistrement est l’horloge de son appareil. Un enregistrement est une preuve, pas une inscription : il montre ce que vous aviez et quand, mais ne tranche pas un litige à lui seul.',
   'app.home.trust.2t': 'Un rapport associé peut être comparé plus tard',
   'app.home.trust.2b':
-    'L’association conserve le code de votre rapport ADN avec l’enregistrement, comme votre déclaration, pour qu’un nouveau test du matériel puisse ensuite y être comparé. Quand vous associez via le contrat de VeilCore sur Midnight, l’association est aussi datée : elle montre que l’enregistrement était associé à ce rapport à cette date, pas qui a eu le rapport en premier. Dans {thisSite}, les associations ne sont pas encore datées.',
+    'L’association conserve le code de votre rapport ADN avec l’enregistrement, comme votre déclaration, pour qu’un nouveau test du matériel puisse ensuite y être comparé. Quand vous associez via le smart contract de VeilCore sur Midnight, l’association est aussi datée : elle montre que l’enregistrement était associé à ce rapport au plus tard à cette date, pas qui a eu le rapport en premier. Dans {thisSite}, les associations ne sont pas encore datées.',
   'app.home.trust.3t': 'Une seconde partie prend livraison',
   'app.home.trust.3b':
     'Quand du matériel est transféré, la personne qui le reçoit confirme la réception avec sa propre clé. Cela place une seconde partie dans l’enregistrement, pas seulement vous. Cela montre que quelqu’un a pris livraison, pas qui il est.',
@@ -89,7 +89,7 @@ export const home = {
   'app.home.roleChange': '{view} · changer',
   'app.home.chooseView': 'Obtenteur ou laboratoire ? Choisissez votre vue',
   'app.home.saveProblem.records': 'enregistrements',
-  'app.home.saveProblem.agreements': 'contrats',
+  'app.home.saveProblem.agreements': 'accords',
   'app.home.saveProblem.unreachable':
     'VeilCore n’a pas pu être joint : vos derniers {what} n’y sont pas encore enregistrés. Ils sont gardés dans ce navigateur et renvoyés au prochain enregistrement.',
   'app.home.saveProblem.text':
@@ -115,14 +115,14 @@ export const home = {
   'app.home.paste.go': 'Ouvrir',
   'app.home.paste.orMake': 'Rien à coller ? Créez un enregistrement',
   'app.home.paste.hint':
-    'Un code laboratoire, un lien vers un enregistrement, une demande de prouver que vous détenez un enregistrement ou un contrat à signer. Nous reconnaissons lequel.',
+    'Un code laboratoire, un lien vers un enregistrement, une demande de prouver que vous détenez un enregistrement ou un accord à signer. Nous reconnaissons lequel.',
   'app.home.paste.whichRecord':
     'C’est une demande de prouver que vous détenez un enregistrement. Lequel vous a-t-on demandé ?',
   'app.home.notFinished': 'Pas encore dans votre sauvegarde · ensuite : enregistrez votre sauvegarde',
   'app.home.receivedFrom': 'Reçue de {name}',
   'app.home.receivedFromNamed': 'De {name} · leur enregistrement {id}',
   'app.home.receivedFromName': 'De {name}',
-  'app.home.sealedOn': 'Scellée le {date}',
+  'app.home.sealedOn': 'Scellé le {date}',
   'app.home.labReportSaved': 'rapport de laboratoire enregistré',
   'app.home.keyStampQueued': 'horodatage de la clé en file d’attente',
   'app.home.keyNotStamped': 'clé pas encore horodatée',
@@ -134,9 +134,9 @@ export const home = {
   'app.home.aPlant': 'une plante',
   'app.home.datingUnfinished': '{dated} · pas encore dans votre sauvegarde · ensuite : enregistrez votre sauvegarde',
   'app.home.datingSealed': '{dated} · scellé le {date}',
-  'app.home.export.label': 'Télécharger vos enregistrements et contrats depuis VeilCore',
+  'app.home.export.label': 'Télécharger vos enregistrements et accords depuis VeilCore',
   'app.home.export.done':
-    'Téléchargé : vos enregistrements, contrats, choix de partage et chaque preuve d’inclusion. Les envois, leurs informations d’échantillon et les rapports de laboratoire n’y sont pas : ouvrez-les depuis l’envoi ou la page de la plante. Vos clés sont dans votre fichier de sauvegarde, pas dans celui-ci.',
+    'Téléchargé : vos enregistrements, accords, choix de partage et chaque preuve d’inclusion. Les envois, leurs informations d’échantillon et les rapports de laboratoire n’y sont pas : ouvrez-les depuis l’envoi ou la page de la plante. Vos clés sont dans votre fichier de sauvegarde, pas dans celui-ci.',
   // PlanBox.tsx, billing.ts, records.ts: paid plans (off unless VITE_PAID_PLANS=on)
   'app.plan.full':
     'Vos enregistrements gratuits sont épuisés : aucun nouvel enregistrement n’a été créé. Tout ce que vous avez déjà reste vérifiable. Choisissez une formule sur votre page d’enregistrements pour en ajouter.',
@@ -146,9 +146,9 @@ export const home = {
   'app.plan.box.left': 'Enregistrements gratuits encore à dater : {n}',
   'app.plan.box.countsDeleted': 'Les enregistrements datés comptent même si vous les supprimez ensuite.',
   'app.plan.changeFull':
-    'Cette modification daterait une nouvelle version, et vos enregistrements datés gratuits sont épuisés : rien n’a été modifié. Tout ce que vous avez déjà reste vérifiable. Choisissez une offre sur votre page d’enregistrements pour en dater davantage.',
+    'Cette modification daterait une nouvelle version, et vos enregistrements datés gratuits sont épuisés : rien n’a été modifié. Tout ce que vous avez déjà reste vérifiable. Choisissez une formule sur votre page d’enregistrements pour en dater davantage.',
   'app.plan.receiveFull':
-    'Il ne reste aucun enregistrement daté gratuit pour recevoir cette livraison. Votre code est gardé dans ce navigateur : choisissez une offre sur votre page d’enregistrements, puis saisissez-le à nouveau.',
+    'Il ne reste aucun enregistrement daté gratuit pour recevoir cette livraison. Votre code est gardé dans ce navigateur : choisissez une formule sur votre page d’enregistrements, puis saisissez-le à nouveau.',
   'app.plan.box.rules':
     'La première correction d’un enregistrement est gratuite. Recevoir une livraison demande un enregistrement daté libre.',
   'app.plan.box.paid': 'Votre formule : {plan}',
@@ -165,8 +165,7 @@ export const home = {
   'app.plan.err.off': 'Les formules ne peuvent pas encore être achetées depuis ce navigateur.',
   'app.plan.err.unreachable': 'La page de Paddle n’a pas pu s’ouvrir. Réessayez dans un instant.',
   'app.plan.err.busy': 'Trop d’essais en une heure. Réessayez plus tard.',
-  'app.plan.err.noRecord':
-    'Enregistrez d’abord un enregistrement : une formule concerne les enregistrements que vous datez.',
+  'app.plan.err.noRecord': 'Créez d’abord un enregistrement : une formule concerne les enregistrements que vous datez.',
   'app.plan.err.blocked':
     'Votre navigateur a bloqué la page de Paddle. Autorisez les fenêtres pop-up pour ce site, puis réessayez.',
   'app.plan.buy.other': 'Formule {plan}',

@@ -41,7 +41,7 @@ export const dating = {
   'app.pickup.tryNow': 'Essayer maintenant',
   'app.pickup.saveBackup': 'Enregistrer ma sauvegarde',
   'app.pickup.freshBackupButton': 'Enregistrer une nouvelle sauvegarde',
-  'app.pickup.openAgreements': 'Ouvrir les contrats',
+  'app.pickup.openAgreements': 'Ouvrir les accords',
   'app.pickup.dating.notSent': '{name} : scellé. Son code de preuve part chez VeilCore dès que VeilCore répond.',
   'app.pickup.dating.next': '{name} recevra sa date avec le prochain lot.',
   'app.pickup.dating.nextEvery.one':
@@ -77,8 +77,8 @@ export const dating = {
   'app.pickup.labUnsigned.other': '{count} échantillons reçus, accusés de réception pas encore signés.',
   'app.pickup.results.one': '{count} rapport de laboratoire attend d’être ouvert.',
   'app.pickup.results.other': '{count} rapports de laboratoire attendent d’être ouverts.',
-  'app.pickup.agreements.one': '{count} contrat attend la contresignature de l’autre partie.',
-  'app.pickup.agreements.other': '{count} contrats attendent la contresignature de l’autre partie.',
+  'app.pickup.agreements.one': '{count} accord attend la contresignature de l’autre partie.',
+  'app.pickup.agreements.other': '{count} accords attendent la contresignature de l’autre partie.',
 
   'app.support.copy': 'Copier les détails pour l’assistance',
   'app.support.copied': 'Copié. Collez-le dans un e-mail à VeilCore.',

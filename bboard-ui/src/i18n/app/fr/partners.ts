@@ -66,7 +66,7 @@ export const partners = {
   'app.partners.facts.cost.d':
     'La vérification est gratuite, pour vous comme pour tout le monde. Pas de compte, pas de clé, pas de contrat.',
   'app.partners.facts.support': 'Assistance',
-  'app.partners.facts.support.d': 'E-mail : <link></link>. Il n’y a ni contrat d’assistance ni délai de réponse.',
+  'app.partners.facts.support.d': 'E-mail : <link></link>. Il n’y a ni accord d’assistance ni délai de réponse.',
   'app.partners.facts.data': 'Données',
   'app.partners.facts.data.d':
     'Une vérification envoie au registre l’identifiant et le code de preuve de l’enregistrement, rien sur le candidat ni sur votre formulaire. Comme tout site web, le registre reçoit l’adresse réseau du visiteur à chaque requête, pour limiter le débit. Ce que VeilCore conserve figure sur la <link>page de confidentialité</link>. Des conditions plus complètes sur les données sont un projet en cours de relecture ; jusqu’à leur publication, c’est la page de confidentialité qui s’applique.',
@@ -91,7 +91,7 @@ export const partners = {
     'checkRecord(link), dans Node ou un navigateur, renvoie du JSON simple : recordExists, fingerprintMatches, dated (network, batch, transaction, block time, checkedOnChain), keyBound, labReceipts avec la vérification de chaque nom, et whatThisDoesNotShow.',
   'app.partners.dev.2': 'Sur Midnight',
   'app.partners.dev.2.d':
-    'Dans Node, avec @veilcore/contracts installé, l’horodatage est consulté sur la chaîne : le contrat épinglé de VeilCore, le build épinglé, exactement cette racine de lot.',
+    'Dans Node, avec @veilcore/contracts installé, l’horodatage est consulté sur la chaîne : le smart contract épinglé de VeilCore, le build épinglé, exactement cette racine de lot.',
   'app.partners.dev.3': 'Ligne de commande',
   'app.partners.dev.3.d':
     'partner-kit check <link> affiche la même réponse. Code 0 : l’enregistrement existe, le lien correspond et rien ne le contredit. Code 1 : quelque chose ne tient pas, y compris une date sur un réseau de test (sauf avec --allow-test-network) ou une preuve d’inclusion qui ne se vérifie pas. Code 2 : rien n’a pu être vérifié.',

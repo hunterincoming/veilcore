@@ -59,7 +59,7 @@ export const royalties = {
   'app.roy.rights.breed+sell': 'damit züchten und Sperma, Embryonen oder Zuchttiere gewinnen und verkaufen',
   'app.roy.rights.breed+collect': 'damit züchten und Sperma oder Embryonen für den eigenen Bedarf gewinnen',
   'app.roy.rights.breed': 'damit züchten, nur mit den eigenen Tieren',
-  'app.roy.rights.full-transfer': 'alle Rechte übernehmen, die der Inhaber daran hat',
+  'app.roy.rights.full-transfer': 'alle Rechte übernehmen, die der Inhaber des Datensatzes daran hat',
   'app.roy.rights.cultivate+propagate': 'es anbauen und vermehren',
   'app.roy.rights.cultivate': 'es anbauen',
   'app.roy.s.anywhere': 'jedem Gebiet',

@@ -12,7 +12,7 @@ export const job = {
   'app.job.can': 'Für mich erledigen: Ich bereite einen ganzen Auftrag vor, Sie geben ihn einmal frei.',
   'app.job.working': 'Wird vorbereitet. Gesendet wird erst, wenn Sie freigeben.',
   'app.job.privacy':
-    'Der Auftrag bleibt nur auf diesem Gerät, kommt in keine Sicherung und wird 7 Tage nach seinem Ende gelöscht.',
+    'Der Auftrag bleibt nur auf diesem Gerät, kommt in keine Sicherungskopie und wird 7 Tage nach seinem Ende gelöscht.',
 
   'app.job.understood': 'Verstanden: „{text}“.',
   'app.job.use': '„{text}“ verwenden',
@@ -55,7 +55,7 @@ export const job = {
     'Die neuesten Nachrichten Ihrer Vereinbarungen lassen sich ohne Verbindung nicht lesen. Versuchen Sie es wieder, wenn Sie online sind.',
   'app.job.no.noChain': 'Diese Website kann gerade keine Datumsstempel setzen.',
   'app.job.no.noKey':
-    'Der Schlüssel dieses Datensatzes ist nicht in diesem Browser. Stellen Sie zuerst Ihre Sicherung wieder her.',
+    'Der Schlüssel dieses Datensatzes ist nicht in diesem Browser. Stellen Sie zuerst Ihre Sicherungskopie wieder her.',
   'app.job.no.readyNow': 'Dieser Datensatz ist schon lizenzbereit.',
   'app.job.no.file': 'Diese Datei ließ sich nicht verwenden.',
   'app.job.no.changed': 'Dieser Auftrag wurde in einem anderen Tab geändert. Prüfen Sie ihn noch einmal.',
@@ -90,7 +90,7 @@ export const job = {
   'app.job.answer.filePick': 'Datei wählen',
   'app.job.answer.use': 'Übernehmen',
   'app.job.answer.backup':
-    'Speichern und prüfen Sie Ihre Sicherung: Sie enthält die Schlüssel zu dem, was dieser Auftrag anlegt.',
+    'Speichern und prüfen Sie Ihre Sicherungskopie: Sie enthält die Schlüssel zu dem, was dieser Auftrag anlegt.',
 
   'app.job.made.title': 'Was ich vorbereitet habe',
   'app.job.made.records.one': '{count} Datensatz, hier bereit und noch nicht gesendet: {first}',
@@ -152,12 +152,12 @@ export const job = {
     'Kein Netz? Kein Problem. Es geht hinaus, sobald Sie wieder online sind und VeilCore offen ist. Ist es bis {when} nicht hinausgegangen, wird nichts gesendet: Fragen Sie mich dann erneut.',
 
   'app.job.backup.records.one':
-    'Speichern Sie zuerst Ihre Sicherung. Ohne sie ist dieser Datensatz weg, wenn Sie dieses Handy verlieren.',
+    'Speichern Sie zuerst Ihre Sicherungskopie. Ohne sie ist dieser Datensatz weg, wenn Sie dieses Handy verlieren.',
   'app.job.backup.records.other':
-    'Speichern Sie zuerst Ihre Sicherung. Ohne sie sind diese {count} Datensätze weg, wenn Sie dieses Handy verlieren.',
+    'Speichern Sie zuerst Ihre Sicherungskopie. Ohne sie sind diese {count} Datensätze weg, wenn Sie dieses Handy verlieren.',
   'app.job.backup.ready':
-    'Speichern Sie zuerst Ihre Sicherung. Eine Vereinbarung kann erst gespeichert werden, wenn eine geprüfte Sicherung ihren Schlüssel enthält.',
-  'app.job.backup.done': 'Sicherung geprüft.',
+    'Speichern Sie zuerst Ihre Sicherungskopie. Eine Vereinbarung kann erst gespeichert werden, wenn eine geprüfte Sicherungskopie ihren Schlüssel enthält.',
+  'app.job.backup.done': 'Sicherungskopie geprüft.',
   'app.job.backup.finish': 'Zurück zum Auftrag',
 
   'app.job.btn.records.one': 'Freigeben: {count} Datensatz speichern',
@@ -166,14 +166,14 @@ export const job = {
   'app.job.btn.reports.other': 'Freigeben: {count} Berichte senden, insgesamt {total} fällig',
   'app.job.btn.stamp': 'Freigeben: {name} stempeln',
   'app.job.btn.ready': 'Freigeben',
-  'app.job.btn.backup': 'Sicherung speichern',
+  'app.job.btn.backup': 'Sicherungskopie speichern',
   'app.job.btn.change': 'Etwas ändern',
   'app.job.btn.discard': 'Verwerfen',
   'app.job.changeConfirm':
     'Das öffnet das vollständige Formular mit allem, was hier steht. Dieser Auftrag wird verworfen: Gesendet wurde nichts.',
   'app.job.left.questions.one': 'Beantworten Sie {count} Frage, um freizugeben',
   'app.job.left.questions.other': 'Beantworten Sie {count} Fragen, um freizugeben',
-  'app.job.left.backup': 'Speichern Sie Ihre Sicherung, um freizugeben',
+  'app.job.left.backup': 'Speichern Sie Ihre Sicherungskopie, um freizugeben',
   'app.job.left.idsUnused':
     'Sie haben Kennnummern eingegeben, aber noch nicht verwendet. Verwenden Sie diese Kennnummern oder leeren Sie die Felder.',
   'app.job.left.idsBlocked':
@@ -328,7 +328,7 @@ export const job = {
   'app.job.ids.no.invisible':
     'Hier stehen unsichtbare Zeichen. Leeren Sie das Feld und geben oder scannen Sie die Kennnummer erneut.',
   'app.job.wait.noKey':
-    'Ihre Datensätze sind hier gespeichert, aber diesem Browser fehlt der Schlüssel, unter dem der Server von VeilCore sie kennt, also wurde nichts erneut gesendet. Stellen Sie Ihre Sicherung wieder her, um fortzufahren.',
+    'Ihre Datensätze sind hier gespeichert, aber diesem Browser fehlt der Schlüssel, unter dem der Server von VeilCore sie kennt, also wurde nichts erneut gesendet. Stellen Sie Ihre Sicherungskopie wieder her, um fortzufahren.',
   'app.job.wait.full':
     'Nichts geht verloren: Ihre Datensätze sind hier gespeichert. Der Speicher dieses Geräts ist voll, also wurde nichts gesendet. Schaffen Sie etwas Platz; ich versuche es erneut.',
   'app.job.wait.local':

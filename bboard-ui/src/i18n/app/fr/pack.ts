@@ -105,7 +105,7 @@ export const pack = {
     'Manquant : aucun rapport chromatographique concernant ce lot dans ces enregistrements VeilCore.',
   'app.pack.doc.proofs': '6. Codes de preuve, liens de vérification et dates',
   'app.pack.doc.proofsHelp':
-    'Chacun peut ouvrir chaque lien de vérification gratuitement et sans compte. Un enregistrement VeilCore montre la détention antérieure de son fichier et de ses données à sa date. Il ne montre pas que ce qu’il dit est vrai.',
+    'Chacun peut ouvrir chaque lien de vérification gratuitement et sans compte. Un enregistrement VeilCore montre que celui qui l’a scellé détenait déjà son fichier et ses données à sa date. Il ne montre pas que ce qu’il dit est vrai.',
   'app.pack.doc.recordId': 'ID VeilCore {id}',
   'app.pack.doc.proofCode': 'Code de preuve',
   'app.pack.doc.checkLink': 'Lien de vérification',

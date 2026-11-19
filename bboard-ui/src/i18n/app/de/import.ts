@@ -95,7 +95,7 @@ export const importing = {
   'app.import.check.onceSealed':
     '<b>Einmal versiegelt, lassen sie sich nicht mehr ändern.</b> Sie können später Berichte und Korrekturen hinzufügen; eine Korrektur ist ein neuer Datensatz, der auf den alten verweist.',
   'app.import.check.savedOn':
-    'Die Angaben oben werden auf {server} gespeichert, ein Datensatz pro Zeile, verschlossen, auch die Pflanzennamen, und wir haben den Schlüssel nicht. Die Prüflinks in Ihrer Ergebnisdatei tragen jeden Namen, für die Menschen, denen Sie sie schicken. Nur ein Prüfcode von jedem wird auf {dated} datiert. Ein Datumsstempel zeigt, dass die Angaben zu diesem Datum existierten; er bestätigt nicht, dass sie stimmen.',
+    'Die Angaben oben werden auf {server} gespeichert, ein Datensatz pro Zeile, verschlossen, auch die Pflanzennamen, und wir haben den Schlüssel nicht. Die Prüflinks in Ihrer Ergebnisdatei tragen jeden Namen, für die Menschen, denen Sie sie schicken. Nur ein Prüfcode von jedem wird auf {dated} datiert. Ein Datumsstempel zeigt, dass die Angaben spätestens zu diesem Datum existierten; er bestätigt nicht, dass sie stimmen.',
   'app.import.check.sealN.one': '{count} Datensatz versiegeln',
   'app.import.check.sealN.other': '{count} Datensätze versiegeln',
   'app.import.check.nothing': 'Nichts zu versiegeln',
@@ -171,7 +171,7 @@ export const importing = {
   'app.import.done.byBatch':
     'Ihr öffentlicher Datumsstempel kommt, wenn ihr Stapel auf {dated} datiert wird. Die Seite jeder Pflanze zeigt, wann das geschehen ist. Sie müssen nichts tun.',
   'app.import.done.dateStamp':
-    'Ein Datumsstempel zeigt, dass die Angaben zu diesem Datum existierten. Er bestätigt nicht, dass sie stimmen.',
+    'Ein Datumsstempel zeigt, dass die Angaben spätestens zu diesem Datum existierten. Er bestätigt nicht, dass sie stimmen.',
   'app.import.done.toRecords': 'Zu Ihren Datensätzen',
   'app.import.done.another': 'Eine weitere Datei importieren',
 } satisfies Partial<AppTranslation>;

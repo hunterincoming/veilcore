@@ -13,7 +13,7 @@ export const copy = {
   'app.copy.ourServer': IS_MAINNET ? 'dem Server von VeilCore' : 'dem Testserver von VeilCore',
   'app.copy.datedOn': IS_MAINNET ? 'dem Hauptnetz von Midnight' : 'einem Testnetz von Midnight',
   'app.copy.claimsWhere': claimsWhere('de', { onSite: CLAIMS_ON_THIS_SITE, live: CLAIMS_ON_MAINNET || !IS_MAINNET }),
-  'app.copy.licenseProofNote': `Den Nachweis, dass eine Lizenz gültig ist, ohne ihre Bedingungen zu zeigen, erbringt der Vertrag von VeilCore auf ${
+  'app.copy.licenseProofNote': `Den Nachweis, dass eine Lizenz gültig ist, ohne ihre Bedingungen zu zeigen, erbringt der Smart Contract von VeilCore auf ${
     IS_MAINNET ? 'dem Hauptnetz von Midnight' : 'Midnight'
   }. Dafür braucht es eine Wallet, die diese Website nicht nutzt, daher bietet sie ihn nicht an.`,
   'app.copy.agreementsSimulated': `In ${IS_MAINNET ? 'dieser Web-App' : 'dieser Web-Demo'} simuliert: Die andere Partei unterschreibt hier nichts, und nichts wird an Midnight gesendet.`,

@@ -149,7 +149,7 @@ export const prove = {
   'app.prove.share.yourLink': 'Votre lien',
   'app.prove.share.savedOn': 'Enregistré dans le registre',
   'app.prove.share.savedText':
-    'Quiconque ouvre ce lien, ou a l’identifiant de cet enregistrement d’une autre façon, voit les informations de l’aperçu et rien d’autre ; le registre n’envoie pas le reste, et modifier le lien ne peut rien y ajouter. La génétique n’est jamais divulguée. Ce choix détermine ce qu’affiche la page de vérification. Prouver une valeur cachée (un marqueur, une plage, ou que deux variétés diffèrent) sans montrer le reste est le rôle du contrat de revendications de VeilCore.',
+    'Quiconque ouvre ce lien, ou a l’identifiant de cet enregistrement d’une autre façon, voit les informations de l’aperçu et rien d’autre ; le registre n’envoie pas le reste, et modifier le lien ne peut rien y ajouter. La génétique n’est jamais divulguée. Ce choix détermine ce qu’affiche la page de vérification. Prouver une valeur cachée (un marqueur, une plage, ou que deux variétés diffèrent) sans montrer le reste est le rôle du contrat des preuves de VeilCore.',
   'app.prove.share.letThemAsk':
     'Leur permettre de vérifier l’horodatage et de me demander de prouver que je la détiens',
   'app.prove.share.theLink': 'Le lien',

@@ -247,7 +247,7 @@ export const lab = {
   'app.lab.recv.onlyConfirm':
     'Bestätigen Sie nur, was Sie tatsächlich erhalten haben. Das ist eine Erklärung, auf die sich andere verlassen.',
   'app.lab.recv.receiveIt': 'Empfangen',
-  'app.lab.recv.saveBackup': 'Meine Sicherung speichern',
+  'app.lab.recv.saveBackup': 'Meine Sicherungskopie speichern',
   'app.lab.recv.backToCode': 'Zurück zum Code',
   'app.lab.recv.goToRecord': 'Zum Datensatz',
   'app.lab.key.role.laboratory': 'Labor',
@@ -297,8 +297,8 @@ export const lab = {
     'Ihr privater Schlüssel liegt unverschlüsselt im Speicher dieses Browsers und nirgendwo sonst. Zum Ausprobieren ist das in Ordnung. Alles, was auf dieser Website laufen kann, oder eine Browsererweiterung mit Zugriff darauf, könnte ihn lesen. Wenn Sie ihn verlieren, können Sie nichts Neues signieren; was Sie zuvor signiert haben, bleibt gültig, also sichern Sie ihn an einem sicheren Ort. Ein Labor, das ihn wirklich nutzt, würde in seinen eigenen Systemen signieren: siehe den <link>Integrationsleitfaden</link>.',
   'app.lab.key.downloadBackup': 'Schlüsselsicherung herunterladen',
   'app.lab.key.backupNow':
-    'Der Schlüssel Ihres Labors liegt nur in diesem Browser, und keine frühere Sicherung enthält ihn. Speichern Sie jetzt eine neue Sicherung, damit er mit einem verlorenen Handy oder Computer nicht verloren geht.',
-  'app.lab.key.backedUp': 'Sicherung gespeichert und geprüft.',
+    'Der Schlüssel Ihres Labors liegt nur in diesem Browser, und keine frühere Sicherungskopie enthält ihn. Speichern Sie jetzt eine neue Sicherungskopie, damit er mit einem verlorenen Handy oder Computer nicht verloren geht.',
+  'app.lab.key.backedUp': 'Sicherungskopie gespeichert und geprüft.',
   'app.lab.key.matchHow':
     'Damit Ihr Name als abgeglichen erscheint, schicken Sie uns Ihren öffentlichen Lizenz- oder Akkreditierungseintrag an <mail>hunter@veilcore.org</mail>. Wir gleichen den Namen ab; für Ihre Arbeit bürgen wir nicht.',
   'app.lab.key.intro':

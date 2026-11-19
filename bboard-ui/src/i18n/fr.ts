@@ -18,7 +18,7 @@ export const fr: Strings = {
   'footer.siteCode': 'Code de ce site',
   'footer.thisSite': 'Ce site',
   'footer.yourRecords': 'Vos enregistrements',
-  'footer.agreements': 'Contrats',
+  'footer.agreements': 'Accords',
   'footer.privacy': 'Confidentialité de la démo',
   'title.help': 'Aide',
   'title.status': 'État du service',
@@ -29,11 +29,11 @@ export const fr: Strings = {
   'm.help.start.t': 'Pour commencer',
   'm.help.start.1q': 'Qu’est-ce qu’un enregistrement VeilCore ?',
   'm.help.start.1a':
-    'Une description datée de quelque chose que vous détenez : une plante, un animal, une souche ou une lignée cellulaire, ou un document. Votre navigateur en tire un court code de preuve, et ce code est daté sur Midnight dans un lot avec d’autres. Il établit la possession antérieure de l’enregistrement à cette date. Il n’établit pas qui a des droits sur quoi que ce soit, ni que ce que dit l’enregistrement est vrai.',
+    'Une description datée de quelque chose que vous détenez : une plante, un animal, une souche ou une lignée cellulaire, ou un document. Votre navigateur en tire un court code de preuve, et ce code est daté sur Midnight dans un lot avec d’autres. Il montre que vous déteniez déjà cet enregistrement à cette date. Il n’établit pas qui a des droits sur quoi que ce soit, ni que ce que dit l’enregistrement est vrai.',
   'm.help.start.2q': 'De quoi ai-je besoin ?',
   'm.help.start.2a':
     'D’un téléphone ou d’un ordinateur avec un navigateur à jour. Ni portefeuille, ni inscription, ni achat. Pour prouver un seul nombre d’un enregistrement, il faut un ordinateur : cela n’a pas encore été essayé sur téléphone.',
-  'm.help.start.3q': 'Combien ça coûte ?',
+  'm.help.start.3q': 'Combien cela coûte-t-il ?',
   'm.help.start.3a': 'Créer un enregistrement sur ce site et vérifier n’importe quel enregistrement sont gratuits.',
   'm.help.make.t': 'Créer un enregistrement',
   'm.help.make.1q': 'Quel type d’enregistrement choisir ?',
@@ -82,7 +82,7 @@ export const fr: Strings = {
     'Le code de preuve de l’enregistrement est dans un lot, et le code de ce lot est sur Midnight. La date est le moment où le lot est arrivé sur Midnight. Vous pouvez le vérifier sans faire confiance à VeilCore.',
   'm.help.check.3q': 'Que montre un enregistrement, et que ne montre-t-il pas ?',
   'm.help.check.3a':
-    'Il montre que quelqu’un détenait exactement cet enregistrement à cette date, et qu’il n’a pas changé depuis. Il ne montre pas qui a des droits sur le matériel, que la description est vraie, ni qu’un objet physique y correspond. La signature d’un laboratoire sur un résultat est une vérification distincte.',
+    'Il montre que quelqu’un détenait déjà exactement cet enregistrement à cette date, et qu’il n’a pas changé depuis. Il ne montre pas qui a des droits sur le matériel, que la description est vraie, ni qu’un objet physique y correspond. La signature d’un laboratoire sur un résultat est une vérification distincte.',
   'm.help.check.4q': 'Est-ce que cela tiendra dans un litige ?',
   'm.help.check.4link': 'Les enregistrements comme preuve →',
   'm.help.labs.t': 'Laboratoires et accords',
@@ -139,7 +139,7 @@ export const fr: Strings = {
   'title.import': 'Datez votre collection',
   'title.records': 'Vos enregistrements',
   'title.restore': 'Récupérez vos enregistrements',
-  'title.backup': 'Sauvegardez votre sauvegarde',
+  'title.backup': 'Enregistrez votre sauvegarde',
   'title.spec': 'Le format d’enregistrement',
   'title.evidence': 'Les enregistrements comme preuve',
   'title.integrate': 'Intégrer VeilCore',
@@ -147,7 +147,7 @@ export const fr: Strings = {
   'title.partners': 'Exiger un enregistrement',
   'title.new': 'Créer un enregistrement',
   'title.record': 'Enregistrement',
-  'title.agreements': 'Contrats',
+  'title.agreements': 'Accords',
   // PageErrorBoundary.tsx: a page that failed to draw (round 3)
   'error.page.title': 'Cette page n’a pas pu être affichée',
   'error.page.text':
@@ -160,7 +160,7 @@ export const fr: Strings = {
   'm.nav.updates': 'Actualités',
   'm.nav.spec': 'Spécification',
   'm.nav.demo': 'Essayer la démo',
-  'm.nav.yours': 'Vos fiches',
+  'm.nav.yours': 'Vos enregistrements',
   'm.nav.menu': 'Menu',
   'm.hero.label': 'La preuve de ce que vous détenez',
   'm.hero.title1': 'Datez votre enregistrement.',
@@ -186,13 +186,13 @@ export const fr: Strings = {
   'm.demo.title2': 'la démo.',
   'm.demo.create.title': 'Créer un enregistrement',
   'm.demo.create.text':
-    'Une plante, un animal ou un document fictif : scellez-le, sauvegardez votre sauvegarde, puis découvrez sa page.',
+    'Une plante, un animal ou un document fictif : scellez-le, gardez votre sauvegarde, puis découvrez sa page.',
   'm.demo.verify.title': 'Vérifier un enregistrement',
   'm.demo.verify.text':
     'Saisissez l’identifiant d’un enregistrement et voyez ce que son détenteur a divulgué et s’il est ancré.',
   'm.demo.paste.title': 'Vous avez reçu un code ou un lien ?',
   'm.demo.paste.text':
-    'Un laboratoire avec le code laboratoire d’un obtenteur, ou toute personne qui a reçu un lien vers un enregistrement ou un contrat à signer : collez-le et le bon écran s’ouvre.',
+    'Un laboratoire avec le code laboratoire d’un obtenteur, ou toute personne qui a reçu un lien vers un enregistrement ou un accord à signer : collez-le et le bon écran s’ouvre.',
   'm.demo.video.title': 'Voir comment cela fonctionne',
   'm.demo.video.text':
     'Une animation de 60 secondes sur l’idée : ce qui reste chez vous, ce qui va sur Midnight, et comment quelqu’un le vérifie.',
@@ -210,7 +210,7 @@ export const fr: Strings = {
   'm.mako.short':
     'Responsable commercial : organismes de normalisation et de protection des obtentions végétales au Japon et dans l’UE.',
   'm.hunter.role': 'Cofondateur et COO · New Jersey',
-  'm.hunter.short': 'Développe le contrat, le site et l’API. Mène les prises de contact aux États-Unis.',
+  'm.hunter.short': 'Développe le smart contract, le site et l’API. Mène les prises de contact aux États-Unis.',
   'm.updates.label': 'Actualités',
   'm.updates.title1': 'Les dernières nouvelles',
   'm.updates.title2': 'du développement.',
@@ -223,18 +223,18 @@ export const fr: Strings = {
   'm.post1.text':
     'Un test différentiel a révélé que nos implémentations TypeScript, Python et Rust divergeaient sur certains nombres. Corrigé : elles concordent désormais sur chacune des 81 000 entrées, et les vecteurs de test partagés le vérifient.',
   'm.post2.date': '2 oct. 2026',
-  'm.post2.tag': 'Contrat',
+  'm.post2.tag': 'Smart contract',
   'm.post2.title': 'Une exécution complète sur le réseau de test de Midnight',
   'm.post2.text':
-    'Le contrat a été déployé sur le réseau de test de Midnight et a passé les 26 vérifications de bout en bout, en utilisant 16 de ses 24 opérations avec de vraies preuves.',
+    'Le smart contract a été déployé sur le réseau de test de Midnight et a passé les 26 vérifications de bout en bout, en utilisant 16 de ses 24 opérations avec de vraies preuves.',
   'm.status.label': 'Où nous en sommes',
   'm.status.title1': 'Où en sont',
   'm.status.title2': 'les choses.',
   'm.status.lede': 'Ce qui fonctionne aujourd’hui, et jusqu’où cela a été vérifié.',
   'm.stat3.b': 'Aucun audit',
-  'm.status.keyTitle': 'Qui peut modifier le contrat.',
+  'm.status.keyTitle': 'Qui peut modifier le smart contract.',
   'm.status.keyText':
-    'Une clé de maintenance peut modifier le fonctionnement du contrat de VeilCore sur Midnight. Son détenteur peut ajouter ou remplacer des opérations du contrat, ce qui pourrait lui permettre de prendre le contrôle de l’identité de n’importe quel enregistrement, d’ajouter des licences au nom de n’importe quel émetteur, d’ajouter ou de retirer des obligations et des liens de parenté, ou de désactiver des opérations. Elle ne peut pas antidater les heures de bloc du réseau, et chaque modification est visible sur la chaîne. Elle ne peut ni modifier ni retirer un lot déjà ancré, ni la date qu’il donne à un enregistrement : elle se trouve dans la transaction qui l’a ancré, que personne ne peut modifier. Aujourd’hui, la clé est sur papier, une copie chez chaque fondateur, et une seule copie suffit pour l’utiliser. Le passage à trois clés, dont deux doivent s’accorder, était prévu avant la mise à niveau Ledger 9 de Midnight du 6 novembre 2026 et n’a pas été fait. Le réseau accepte toujours la clé : considérez-la donc comme active. Le compteur de modifications du contrat était à 16 le 13 novembre 2026. Tout le monde peut le vérifier, et toute modification l’augmente. Chaque utilisation est annoncée publiquement, selon une politique de maintenance écrite.',
+    'Une clé de maintenance peut modifier le fonctionnement du smart contract de VeilCore sur Midnight. Son détenteur peut ajouter ou remplacer des opérations du contrat, ce qui pourrait lui permettre de prendre le contrôle de l’identité de n’importe quel enregistrement, d’ajouter des licences au nom de n’importe quel émetteur, d’ajouter ou de retirer des obligations et des liens de parenté, ou de désactiver des opérations. Elle ne peut pas antidater les heures de bloc du réseau, et chaque modification est visible sur la chaîne. Elle ne peut ni modifier ni retirer un lot déjà ancré, ni la date qu’il donne à un enregistrement : elle se trouve dans la transaction qui l’a ancré, que personne ne peut modifier. Aujourd’hui, la clé est sur papier, une copie chez chaque fondateur, et une seule copie suffit pour l’utiliser. Le passage à trois clés, dont deux doivent s’accorder, était prévu avant la mise à niveau Ledger 9 de Midnight du 6 novembre 2026 et n’a pas été fait. Le réseau accepte toujours la clé : considérez-la donc comme active. Le compteur de modifications du contrat était à 16 le 13 novembre 2026. Tout le monde peut le vérifier, et toute modification l’augmente. Chaque utilisation est annoncée publiquement, selon une politique de maintenance écrite.',
   'm.status.keyLink': 'Lire la politique de maintenance →',
   'm.contact.label': 'Nous contacter',
   'm.contact.title1': 'Parlez',
@@ -244,7 +244,8 @@ export const fr: Strings = {
   'm.foot.explore': 'Explorer',
   'm.foot.contact': 'Contact',
   'm.foot.verify': 'Vérifier un enregistrement',
-  'm.foot.fine': 'La preuve que vous déteniez un enregistrement à une date. Pas un titre sur ce qu’il décrit.',
+  'm.foot.fine':
+    'La preuve que vous déteniez déjà un enregistrement à une date donnée. Pas un titre sur ce qu’il décrit.',
   'm.foot.terms': 'Conditions d’utilisation',
   'm.terms.inEnglish': 'Ces conditions sont en anglais, et le texte anglais fait foi.',
   'm.verify.label': 'Vérifier',
@@ -269,7 +270,7 @@ export const fr: Strings = {
   'm.mako.also': 'Midnight Nightforce Leader (Japon) · Build Club, cohorte 1',
   'm.mako.languages': 'Anglais · Japonais',
   'm.hunter.bio1':
-    'Hunter Roberts est cofondateur et COO de VeilCore. Il dirige le produit et le protocole VeilCore, du format d’enregistrement au contrat sur Midnight. Il mène les prises de contact de VeilCore avec les institutions américaines, notamment les organismes de certification des semences, de normalisation et des variétés végétales.',
+    'Hunter Roberts est cofondateur et COO de VeilCore. Il dirige le produit et le protocole VeilCore, du format d’enregistrement au smart contract sur Midnight. Il mène les prises de contact de VeilCore avec les institutions américaines, notamment les organismes de certification des semences, de normalisation et des variétés végétales.',
   'm.hunter.bio2':
     'Il vient du travail de terrain sur les plantes, notamment la sélection et la culture de tissus, et construit Chunk’s Trees, une installation de culture dans le New Jersey.',
   'm.hunter.leads': 'États-Unis|Protocole et spécification|Ingénierie',
@@ -309,7 +310,7 @@ export const fr: Strings = {
     'Merci de ne saisir ni vrais noms, ni vraies variétés, ni rien de confidentiel. La démo sert à essayer le format.',
   'm.privacy.export.title': 'Export',
   'm.privacy.export.text':
-    'Sur votre page d’enregistrements, sous « Plus » : « Exporter tous les enregistrements » télécharge les enregistrements que ce navigateur détient. « Télécharger vos enregistrements et contrats depuis VeilCore » télécharge ce que notre serveur conserve pour eux, ouvert dans votre navigateur : vos enregistrements, contrats, choix de partage et, pour chaque enregistrement, sa preuve et son lot. Il laisse de côté vos envois avec leurs informations d’échantillon, les rapports de laboratoire verrouillés, les redevances sur la descendance et les demandes de prouver la clé d’un enregistrement. Les envois, leurs informations d’échantillon et les rapports de laboratoire s’ouvrent depuis l’envoi dans l’application. La vérification de lignée répond pour les redevances, un enregistrement à la fois. Les demandes de preuve sont supprimées après 7 jours. Aucun des deux fichiers ne contient vos clés ni les clés secrètes de vos enregistrements : elles sont dans votre fichier de sauvegarde.',
+    'Sur votre page d’enregistrements, sous « Plus » : « Exporter tous les enregistrements » télécharge les enregistrements que ce navigateur détient. « Télécharger vos enregistrements et accords depuis VeilCore » télécharge ce que notre serveur conserve pour eux, ouvert dans votre navigateur : vos enregistrements, accords, choix de partage et, pour chaque enregistrement, sa preuve et son lot. Il laisse de côté vos envois avec leurs informations d’échantillon, les rapports de laboratoire verrouillés, les redevances sur la descendance et les demandes de prouver la clé d’un enregistrement. Les envois, leurs informations d’échantillon et les rapports de laboratoire s’ouvrent depuis l’envoi dans l’application. La vérification de lignée répond pour les redevances, un enregistrement à la fois. Les demandes de preuve sont supprimées après 7 jours. Aucun des deux fichiers ne contient vos clés ni les clés secrètes de vos enregistrements : elles sont dans votre fichier de sauvegarde.',
   'm.privacy.delete.title': 'Suppression',
   'm.privacy.delete.text':
     'Pour faire supprimer vos données de démo de notre serveur, écrivez à hunter@veilcore.org en indiquant les identifiants de vos enregistrements.',
@@ -341,7 +342,7 @@ export const fr: Strings = {
   'm.privacy.contact': 'Questions : hunter@veilcore.org',
   // Round 2 truth pass (14 Oct 2026): keys added or newly translated.
   'm.hero.lede':
-    'Pour les sélectionneurs, les semenciers et les laboratoires qui travaillent sur la génétique végétale, animale et microbienne : donnez à vos enregistrements une date que personne ne peut antidater. Vos données génétiques restent verrouillées : les fichiers ADN ne quittent jamais votre ordinateur, et ce que vous saisissez arrive verrouillé sur notre serveur. Seuls des codes de preuve vont sur Midnight, qui les date.',
+    'Pour les obtenteurs, les éleveurs, les semenciers et les laboratoires qui travaillent sur la génétique végétale, animale et microbienne : donnez à vos enregistrements une date que personne ne peut antidater. Vos données génétiques restent verrouillées : les fichiers ADN ne quittent jamais votre ordinateur, et ce que vous saisissez arrive verrouillé sur notre serveur. Seuls des codes de preuve vont sur Midnight, qui les date.',
   'm.for.3p':
     'Envoyez du matériel avec un code laboratoire. Le laboratoire signe un accusé de réception avec sa propre clé, et l’enregistrement montre ainsi une seconde partie. L’accusé est une vraie signature, conservée par le registre de VeilCore, pas sur la chaîne. Des conditions comme l’interdiction de multiplier ne sont qu’un exercice dans la démo web.',
   'm.get.1b': 'pour un enregistrement de ce que vous détenez, sans montrer votre génétique.',
@@ -351,17 +352,17 @@ export const fr: Strings = {
   'm.open.2p':
     'Sur la page de votre enregistrement : « Télécharger le dossier de preuve ». Un seul .zip avec l’enregistrement tel qu’il a été scellé, sa preuve d’inclusion, le code de preuve du lot, l’endroit où le lot a été inscrit, le fichier d’horodatage Bitcoin s’il y en a un, et une page qui vérifie le tout hors ligne. Votre fichier de sauvegarde contient vos clés, pas ces fichiers. Les fichiers séparés restent sous « Détails techniques » : « Exporter l’enregistrement », « Télécharger la preuve d’inclusion », « Télécharger le fichier d’horodatage Bitcoin ».',
   'm.faq.1a':
-    'Une fois les enregistrements ancrés, chacun peut vérifier lequel a été ancré en premier. Associez votre rapport de laboratoire, pour qu’un test ultérieur puisse y être comparé. Quand vous envoyez du matériel, le destinataire signe un accusé de réception avec sa propre clé. Un enregistrement est une preuve, pas une inscription : il montre que vous déteniez cet enregistrement à cette date, pas que vous déteniez le matériel, et ne tranche pas un litige à lui seul.',
+    'Une fois les enregistrements ancrés, chacun peut vérifier lequel a été ancré en premier. Associez votre rapport de laboratoire, pour qu’un test ultérieur puisse y être comparé. Quand vous envoyez du matériel, le destinataire signe un accusé de réception avec sa propre clé. Un enregistrement est une preuve, pas une inscription : il montre que vous déteniez déjà cet enregistrement à cette date, pas que vous déteniez le matériel, et ne tranche pas un litige à lui seul.',
   'm.post0.date': '4 oct. 2026',
-  'm.post0.tag': 'Contrat',
+  'm.post0.tag': 'Smart contract',
   'm.post0.title': 'Prouver un fait, garder le reste',
   'm.post0.text':
-    'Les deux contrats ont passé les 37 vérifications de bout en bout sur le réseau de test preprod de Midnight, y compris les nouvelles preuves d’un fait : une valeur, une plage, une différence, une correction qui laisse le reste inchangé et une signature d’une clé de laboratoire de test. Données de marqueurs fictives.',
+    'Les deux smart contracts ont passé les 37 vérifications de bout en bout sur le réseau de test preprod de Midnight, y compris les nouvelles preuves d’un fait : une valeur, une plage, une différence, une correction qui laisse le reste inchangé et une signature d’une clé de laboratoire de test. Données de marqueurs fictives.',
   'm.postA.date': '8 oct. 2026',
   'm.postA.tag': 'Lancement',
   'm.postA.title': 'En service sur le réseau principal de Midnight',
   'm.postA.text':
-    'Les deux contrats sont déployés sur le réseau principal de Midnight. Le contrat des preuves d’un fait n’a pas de clé de maintenance : personne, nous compris, ne peut le modifier.',
+    'Les deux smart contracts sont déployés sur le réseau principal de Midnight. Le contrat des preuves d’un fait n’a pas de clé de maintenance : personne, nous compris, ne peut le modifier.',
   'm.postG.date': '16 nov. 2026',
   'm.postG.tag': 'Enregistrements',
   'm.postG.title': 'Une chaîne de production, étape par étape',
@@ -393,7 +394,7 @@ export const fr: Strings = {
   'm.postB.text':
     'Les premiers lots du registre ont été ancrés à la main sur le réseau principal de Midnight. L’un d’eux, cinq de nos propres enregistrements de test, a aussi sa racine horodatée sur Bitcoin, dans le bloc 971004. Vérifié le 15 octobre avec deux explorateurs de blocs : l’horodatage mène aux blocs Bitcoin 971004 et 971005. Une vérification avec l’outil officiel OpenTimestamps et un nœud Bitcoin complet reste à faire.',
   'm.founders.lede':
-    'VeilCore est un format d’enregistrement probatoire pour la génétique végétale, animale et microbienne. Il prouve que vous déteniez un enregistrement de votre matériel à une date donnée, sans remettre vos données génétiques.',
+    'VeilCore est un format d’enregistrement probatoire pour la génétique végétale, animale et microbienne. Il prouve que vous déteniez déjà un enregistrement de votre matériel à une date donnée, sans remettre vos données génétiques.',
   'm.live.label': 'Ce qui marche où',
   'm.live.title1': 'Ce qui fonctionne,',
   'm.live.title2': 'et où.',
@@ -477,22 +478,22 @@ export const fr: Strings = {
   'm.live.chain.test': 'Oui.',
   // Round 3 (14 Oct 2026): the rest of the landing page, so no English shows through.
   'nav.newCultivar': 'Nouvel enregistrement',
-  'nav.licenses': 'Contrats',
+  'nav.licenses': 'Accords',
   'footer.about': 'Un format d’enregistrement ouvert pour la génétique végétale, animale et microbienne.',
   'footer.howCheck': 'Comment fonctionne la vérification →',
   'm.hero.status':
     'Lancement sur le réseau principal de Midnight. Aujourd’hui, les enregistrements sont datés sur un réseau de test de Midnight, ce qui ne prouve encore rien.',
   'm.claims.status':
-    'Un second contrat Midnight, testé de bout en bout sur le réseau de test preprod de Midnight le 4 octobre 2026 avec des données de marqueurs fictives. Il n’est encore ni dans cette démo web ni sur le réseau principal.',
+    'Un second smart contract Midnight, testé de bout en bout sur le réseau de test preprod de Midnight le 4 octobre 2026 avec des données de marqueurs fictives. Il n’est encore ni dans cette démo web ni sur le réseau principal.',
   'm.faq.3a':
     'Il est conçu pour servir de preuve, et notre note pour les juristes dit ce qu’il prouve et ce qu’il ne prouve pas. Aujourd’hui, les enregistrements sont datés sur un réseau de test de Midnight, et une date sur un réseau de test n’a aucune valeur probante. Le lancement sur le réseau principal est proche.',
   'm.stat2.b': 'Réseau de test',
   'm.stat2.s':
-    'Les deux contrats testés de bout en bout sur un réseau de test de Midnight. Pas encore sur le réseau principal.',
+    'Les deux smart contracts testés de bout en bout sur un réseau de test de Midnight. Pas encore sur le réseau principal.',
   'm.foot.about':
     'Un format d’enregistrement ouvert pour la génétique végétale, animale et microbienne. Conçu pour s’ancrer sur Midnight ; en test sur un réseau de test de Midnight.',
   'm.for.2p':
-    'Les sélectionneurs veulent utiliser leurs marqueurs pour montrer qu’une variété est distincte, et les gardent comme secrets d’affaires. Une revendication VeilCore prouve un fait à leur sujet sans montrer le reste. Aucun office d’examen ni organisme de certification ne l’accepte encore.',
+    'Les obtenteurs veulent utiliser leurs marqueurs pour montrer qu’une variété est distincte, et les gardent comme secrets d’affaires. Une preuve VeilCore démontre un fait à leur sujet sans montrer le reste. Aucun office d’examen ni organisme de certification ne l’accepte encore.',
   'm.hero.note':
     'Tapez dans l’un ou l’autre champ ; rien n’est envoyé. La bande dorée en bas est le code de preuve, la partie qui va sur Midnight. Personne ne peut remonter de celle-ci à ce que vous avez saisi.',
   'm.hero.noteShort': 'Seule la bande dorée va sur Midnight.',
@@ -503,7 +504,7 @@ export const fr: Strings = {
     'Le dessin ci-dessus est tracé à partir de ce code de preuve. Personne ne peut remonter de celui-ci à ce que vous avez saisi.',
   'm.home.audLabel': 'Pour qui',
   'm.home.audience':
-    'Obtenteurs|Semenciers|Laboratoires de culture in vitro|Certificateurs|Examinateurs|Livres généalogiques|Offices des variétés végétales',
+    'Obtenteurs et éleveurs|Semenciers|Laboratoires de culture in vitro|Certificateurs|Examinateurs|Livres généalogiques|Offices des variétés végétales',
   'm.home.keep.t': 'Votre génétique reste chez vous.',
   'm.home.keep.p':
     'Seuls des codes de preuve vont sur Midnight, jamais ce que vous avez saisi ni vos fichiers. Le code d’un enregistrement fait 64 caractères que votre ordinateur calcule à partir de celui-ci, et personne ne peut en remonter à la plante, aux marqueurs ou au nom.',
@@ -541,7 +542,7 @@ export const fr: Strings = {
   'm.home.play': 'Reprendre le défilement',
   'm.home.fails': 'Dites-nous où ça ne va pas.',
   'm.home.closeLede':
-    'Obtenteurs, laboratoires, certificateurs et développeurs : créez un enregistrement, puis dites-nous ce qui manque pour votre travail.',
+    'Obtenteurs, éleveurs, laboratoires, certificateurs et développeurs : créez un enregistrement, puis dites-nous ce qui manque pour votre travail.',
   'm.home.photos': 'Photos sur Unsplash :',
   'm.home.alt.jar': 'Une graine qui germe au-dessus d’un bocal d’eau, racines dans l’eau',
   'm.home.alt.cutting': 'Un jeune semis qui sort d’une terre sombre',
@@ -604,7 +605,7 @@ export const fr: Strings = {
   'm.claims.limitsTitle': 'Limites.',
   'm.claims.limits':
     'Seize valeurs par enregistrement. Comparer deux variétés demande une partie qui détient les deux séries, comme l’obtenteur ou un laboratoire qui a testé les deux. Toute personne à qui vous donnez une valeur scellée peut aussi faire des preuves à son sujet. Ce n’est pas adapté aux comparaisons sur des milliers de valeurs. Sans la signature d’un laboratoire, les valeurs ne sont que la parole du détenteur.',
-  'm.claims.statusTitle': 'Le contrat de revendications',
+  'm.claims.statusTitle': 'Le contrat des preuves',
   'm.claims.link': 'Comment fonctionnent les preuves, dans la spécification →',
   'm.get.label': 'Ce que ça fait',
   'm.get.title1': 'Ce que vous obtenez,',
@@ -616,9 +617,9 @@ export const fr: Strings = {
     'Ils sont attachés à l’enregistrement. Un licencié peut prouver qu’il détient une licence en vigueur sans montrer laquelle. Une redevance ou autre obligation sur un parent apparaît sur chaque descendant confirmé par les deux détenteurs ; VeilCore l’enregistre et ne la perçoit pas. Testé sur un réseau de test de Midnight ; simulé dans la démo web.',
   'm.get.3a': 'Une lignée acceptée des deux côtés.',
   'm.stops.title': 'Où ça s’arrête, et ce qui couvre le reste',
-  'm.stops.1a': 'C’est une preuve, pas un titre.',
+  'm.stops.1a': 'C’est une preuve, pas un titre juridique.',
   'm.stops.1b': 'Cela ne crée aucun droit nouveau. Cela appuie les droits et les contrats que vous avez déjà.',
-  'm.stops.2a': 'Cela fixe le quand, pas le si.',
+  'm.stops.2a': 'Cela établit la date, pas la véracité.',
   'm.stops.2b':
     'Un enregistrement prouve ce qui a été écrit, et quand. Un rapport de laboratoire associé ou la signature d’un laboratoire donne du poids au contenu.',
   'm.stops.3a': 'Cela accompagne les tests ADN, sans les remplacer.',
@@ -654,25 +655,25 @@ export const fr: Strings = {
     'De vos données génétiques déverrouillées : rien. Votre ordinateur lit les fichiers que vous ajoutez pour faire un code de chacun, et ils ne sont pas téléversés. Un rapport de laboratoire n’arrive sur notre serveur que lorsqu’un laboratoire vous le renvoie : il est verrouillé pour que vous seul puissiez l’ouvrir, et supprimé après 180 jours. Les détails que vous saisissez (le nom de l’enregistrement, obtenteur, dates, notes, conditions des accords) et les noms de vos fichiers sont conservés verrouillés sur notre serveur, et nous n’avons pas la clé. Nous pouvons lire le code de preuve de chaque enregistrement et tout ce que vous choisissez de montrer. Les informations d’échantillon que vous et un laboratoire écrivez pour un envoi sont elles aussi conservées verrouillées, avec une clé qui se trouve dans le code de laboratoire et que nous n’avons pas. Les laboratoires et les développeurs peuvent sceller des enregistrements dans leurs propres systèmes, pour que seul le code de preuve sorte.',
   'm.faq.4link1': 'Ce que la démo conserve →',
   'm.faq.4link2': 'Guide d’intégration →',
-  'm.faq.6q': 'Combien ça coûte ?',
+  'm.faq.6q': 'Combien cela coûte-t-il ?',
   'm.faq.6a': 'Gratuit. Créer un enregistrement sur ce site et vérifier n’importe quel enregistrement sont gratuits.',
   'm.demo.lede':
     'Sans inscription, sans portefeuille. C’est une version de test : utilisez des informations fictives. Les enregistrements sont datés par lots sur Midnight ; les licences et les accords de laboratoire sont simulés, et les associations de rapports ADN ne sont pas encore datées.',
   'm.demo.privacy': 'Ce que la démo conserve →',
   'm.updates.more': 'Toutes les actualités',
-  'm.stat3.s': 'Pas encore d’audit de sécurité indépendant. Nos propres revues des contrats sont publiques.',
+  'm.stat3.s': 'Pas encore d’audit de sécurité indépendant. Nos propres revues des smart contracts sont publiques.',
   'm.stat3.link': 'Les lire sur GitHub →',
   'm.stat4.b': 'Sans inscription, sans portefeuille',
   'm.stat4.s': 'Créez un enregistrement maintenant. En vérifier un est gratuit et ne demande aucun compte.',
-  'm.addr.title': 'Les contrats, pour qui veut les vérifier.',
-  'm.addr.main': 'Contrat principal',
+  'm.addr.title': 'Les smart contracts, pour qui veut les vérifier.',
+  'm.addr.main': 'Smart contract principal',
   'm.addr.claims': 'Contrat des preuves d’un fait',
   'm.addr.claimsPending': 'Pas encore sur le réseau principal.',
   'm.addr.explorer': 'Les consulter sur midnightexplorer.com (géré par TexLabs) →',
   'm.live.btc.t': 'Un horodatage sur Bitcoin, en plus',
   'm.live.btc.main':
     'Oui, chaque lot scellé. Le premier est arrivé dans le bloc 971004 le 11 octobre et a été vérifié avec deux explorateurs de blocs le 15 octobre. La vérification avec l’outil officiel et un nœud complet reste à faire.',
-  'm.contact.1t': 'Obtenteurs et laboratoires',
+  'm.contact.1t': 'Obtenteurs, éleveurs et laboratoires',
   'm.contact.1p':
     'Essayez-le sur des enregistrements fictifs, puis dites-nous ce qu’il lui faudrait pour vos vrais enregistrements.',
   'm.contact.2t': 'Certificateurs de semences, examinateurs et organismes de gestion de droits',
@@ -696,7 +697,7 @@ export const fr: Strings = {
   'm.live.feature': 'Fonction',
   'm.live.show': 'Afficher la liste',
   'm.tech.title': 'Pour les lecteurs techniques',
-  'm.tech.lede': 'Comment vérifier à la main, le code, l’horodatage Bitcoin et qui peut modifier les contrats.',
+  'm.tech.lede': 'Comment vérifier à la main, le code, l’horodatage Bitcoin et qui peut modifier les smart contracts.',
   'm.tech.show': 'Afficher le détail',
   'm.tech.check.t': 'Vérifier un enregistrement à la main',
   'm.tech.check.p':
@@ -709,7 +710,7 @@ export const fr: Strings = {
     'Notre registre horodate sur Bitcoin le code de chaque lot scellé, avec OpenTimestamps. Le premier est arrivé dans le bloc Bitcoin 971004 le 11 octobre. Vérifié le 15 octobre avec deux explorateurs de blocs : l’horodatage mène aux blocs Bitcoin 971004 et 971005. Une vérification avec l’outil officiel OpenTimestamps et un nœud Bitcoin complet reste à faire. Le fichier d’horodatage est le fichier .ots du lot : « Télécharger le fichier d’horodatage Bitcoin », sur la page de la plante. Le registre du site de test n’horodate pas sur Bitcoin.',
   'm.tech.dna.t': 'Association de rapports et signatures de laboratoire',
   'm.tech.dna.p':
-    'Quand l’association d’un rapport ADN passe par le contrat VeilCore sur Midnight, elle est datée : elle montre que la personne qui contrôlait l’enregistrement à cette date avait ce rapport, ou son SHA-256, à ce moment-là. Ce qui va sur la chaîne est lié à l’enregistrement et cache le rapport, de sorte que personne ne peut copier l’association sur son propre enregistrement. La signature d’un laboratoire sur un rapport verrouillé couvre exactement ce fichier et l’enregistrement concerné.',
+    'Quand l’association d’un rapport ADN passe par le smart contract de VeilCore sur Midnight, elle est datée : elle montre que la personne qui contrôlait l’enregistrement à cette date avait déjà ce rapport, ou son SHA-256, à ce moment-là. Ce qui va sur la chaîne est lié à l’enregistrement et cache le rapport, de sorte que personne ne peut copier l’association sur son propre enregistrement. La signature d’un laboratoire sur un rapport verrouillé couvre exactement ce fichier et l’enregistrement concerné.',
   'title.checkSite': 'Vérifier ce site',
   'm.privacy.code.title': 'Le code de l’application',
   'm.privacy.code.text':
@@ -755,12 +756,12 @@ export const frTestchain: Strings = {
   'm.hero.status':
     'Ceci est le site de test : horodatages, codes de laboratoire et liens de preuve fonctionnent pour de vrai, sur le réseau de test de Midnight. Les enregistrements ici servent à s’entraîner, ce ne sont pas des preuves.',
   'm.claims.status':
-    'Un second contrat Midnight. Il a passé toutes les vérifications de bout en bout sur le réseau de test preprod de Midnight le 4 octobre 2026, avec des données de marqueurs fictives, et il est sur le réseau principal de Midnight depuis le 8 octobre 2026. Il n’est pas encore sur ce site.',
+    'Un second smart contract Midnight. Il a passé toutes les vérifications de bout en bout sur le réseau de test preprod de Midnight le 4 octobre 2026, avec des données de marqueurs fictives, et il est sur le réseau principal de Midnight depuis le 8 octobre 2026. Il n’est pas encore sur ce site.',
   'm.faq.3a':
     'Il est conçu pour servir de preuve, et notre note pour les juristes dit ce qu’il prouve et ce qu’il ne prouve pas. Ce site de test date les enregistrements sur le réseau de test de Midnight, et une date sur un réseau de test n’a aucune valeur probante. Les vrais enregistrements vont sur veilcore.org, qui fonctionne sur le réseau principal de Midnight.',
   'm.stat2.b': 'Site de test',
   'm.stat2.s':
-    'Ce site fonctionne sur un réseau de test de Midnight, pour s’exercer. Les deux contrats sont sur le réseau principal de Midnight depuis le 8 octobre 2026.',
+    'Ce site fonctionne sur un réseau de test de Midnight, pour s’exercer. Les deux smart contracts sont sur le réseau principal de Midnight depuis le 8 octobre 2026.',
   'm.foot.about':
     'Un format d’enregistrement ouvert pour la génétique végétale, animale et microbienne. Ceci est le site de test, sur un réseau de test de Midnight ; veilcore.org fonctionne sur le réseau principal de Midnight.',
   'm.for.1p':

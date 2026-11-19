@@ -152,7 +152,7 @@ export const backup = {
     'Cet enregistrement n’a pas été choisi pour cette demande. Choisissez celui que vous voulez envoyer.',
   'app.intake.title': 'Enregistrer un échantillon pour {host}',
   'app.intake.intro':
-    '<b>{host}</b> vous a demandé d’enregistrer cet échantillon avec VeilCore. Vous créez l’enregistrement ici, sur VeilCore, et il reste le vôtre. À la fin, vous choisissez de leur envoyer ou non son identifiant, son code de preuve et son lien de vérification. Rien d’autre ne leur parvient.',
+    '<b>{host}</b> vous a demandé d’enregistrer cet échantillon avec VeilCore. Vous créez l’enregistrement ici, sur VeilCore, et il reste chez vous. À la fin, vous choisissez de leur envoyer ou non son identifiant, son code de preuve et son lien de vérification. Rien d’autre ne leur parvient.',
   'app.intake.ref': 'Leur référence, telle qu’ils l’ont écrite :',
   'app.intake.new': 'En enregistrer un nouveau',
   'app.intake.pick': 'Ou envoyer un enregistrement déjà fait',

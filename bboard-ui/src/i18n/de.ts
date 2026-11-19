@@ -82,7 +82,7 @@ export const de: Strings = {
     'Der Prüfcode des Datensatzes liegt in einem Stapel, und der Code dieses Stapels steht auf Midnight. Das Datum ist der Zeitpunkt, zu dem der Stapel auf Midnight kam. Sie können das prüfen, ohne VeilCore zu vertrauen.',
   'm.help.check.3q': 'Was belegt ein Datensatz, und was nicht?',
   'm.help.check.3a':
-    'Er belegt, dass jemand genau diesen Datensatz zu diesem Datum hielt und dass er seitdem unverändert ist. Er belegt nicht, wer Rechte am Material hat, dass die Beschreibung stimmt oder dass ein physischer Gegenstand dazu passt. Die Signatur eines Labors unter einem Ergebnis ist eine eigene Prüfung.',
+    'Er belegt, dass jemand genau diesen Datensatz spätestens zu diesem Datum hielt und dass er seitdem unverändert ist. Er belegt nicht, wer Rechte am Material hat, dass die Beschreibung stimmt oder dass ein physischer Gegenstand dazu passt. Die Signatur eines Labors unter einem Ergebnis ist eine eigene Prüfung.',
   'm.help.check.4q': 'Hält das in einem Streit stand?',
   'm.help.check.4link': 'Datensätze als Beweismittel →',
   'm.help.labs.t': 'Labore und Vereinbarungen',
@@ -162,7 +162,7 @@ export const de: Strings = {
   'm.nav.demo': 'Demo testen',
   'm.nav.yours': 'Ihre Datensätze',
   'm.nav.menu': 'Menü',
-  'm.hero.label': 'Nachweis dessen, was Sie in Händen halten',
+  'm.hero.label': 'Nachweis dessen, was Sie haben',
   'm.hero.title1': 'Datieren Sie Ihren Datensatz.',
   'm.hero.title2': 'Ihre Genetik bleibt privat.',
   'm.hero.how': 'So funktioniert es',
@@ -209,7 +209,7 @@ export const de: Strings = {
   'm.mako.role': 'Mitgründer & CEO · Tokio',
   'm.mako.short': 'Kommerzielle Leitung: Normungs- und Sortenschutzgremien in Japan und der EU.',
   'm.hunter.role': 'Mitgründer & COO · New Jersey',
-  'm.hunter.short': 'Entwickelt den Contract, die Website und die API. Leitet die Kontaktarbeit in den USA.',
+  'm.hunter.short': 'Entwickelt den Smart Contract, die Website und die API. Leitet die Kontaktarbeit in den USA.',
   'm.updates.label': 'Neuigkeiten',
   'm.updates.title1': 'Neues aus',
   'm.updates.title2': 'der Entwicklung.',
@@ -222,18 +222,18 @@ export const de: Strings = {
   'm.post1.text':
     'Ein Differenztest ergab, dass unsere Implementierungen in TypeScript, Python und Rust bei einigen Zahlen voneinander abwichen. Behoben: Sie stimmen jetzt bei jeder einzelnen von 81.000 Eingaben überein, und die gemeinsamen Testvektoren prüfen das.',
   'm.post2.date': '2. Okt. 2026',
-  'm.post2.tag': 'Contract',
+  'm.post2.tag': 'Smart Contract',
   'm.post2.title': 'Ein vollständiger Durchlauf im Testnetz von Midnight',
   'm.post2.text':
-    'Der Contract wurde im Testnetz von Midnight bereitgestellt und hat alle 26 End-to-End-Prüfungen bestanden, wobei 16 seiner 24 Operationen mit echten Beweisen genutzt wurden.',
+    'Der Smart Contract wurde im Testnetz von Midnight bereitgestellt und hat alle 26 End-to-End-Prüfungen bestanden, wobei 16 seiner 24 Operationen mit echten Beweisen genutzt wurden.',
   'm.status.label': 'Wo wir stehen',
   'm.status.title1': 'Wo die Dinge',
   'm.status.title2': 'stehen.',
   'm.status.lede': 'Was heute läuft und wie weit es geprüft ist.',
   'm.stat3.b': 'Kein Audit',
-  'm.status.keyTitle': 'Wer den Contract ändern kann.',
+  'm.status.keyTitle': 'Wer den Smart Contract ändern kann.',
   'm.status.keyText':
-    'Ein Wartungsschlüssel kann ändern, wie der VeilCore-Contract auf Midnight funktioniert. Wer ihn hält, kann Operationen des Contracts hinzufügen oder ersetzen und damit die Identität jedes Datensatzes übernehmen, Lizenzen für jeden Aussteller anlegen, Verpflichtungen und Elternverknüpfungen hinzufügen oder entfernen oder Operationen abschalten. Die Blockzeiten des Netzwerks kann er nicht zurückdatieren, und jede Änderung ist on-chain sichtbar. Einen bereits verankerten Stapel und das Datum, das er einem Datensatz gibt, kann er weder ändern noch entfernen: Das steht in der Transaktion, die ihn verankert hat, und die kann niemand ändern. Heute liegt der Schlüssel auf Papier vor, je eine Kopie bei jedem Gründer, und jede Kopie allein genügt, um ihn zu verwenden. Ihn auf drei Schlüssel zu verlagern, von denen zwei zustimmen müssen, war vor dem Ledger-9-Upgrade von Midnight am 6. November 2026 geplant und ist nicht umgesetzt. Das Netzwerk akzeptiert den Schlüssel weiterhin; betrachten Sie ihn also als aktiv. Der Änderungszähler des Contracts stand am 13. November 2026 bei 16. Jeder kann ihn prüfen, und jede Änderung erhöht ihn. Jede Verwendung wird öffentlich angekündigt, nach einer schriftlichen Wartungsrichtlinie.',
+    'Ein Wartungsschlüssel kann ändern, wie der VeilCore-Smart-Contract auf Midnight funktioniert. Wer ihn hält, kann Operationen des Smart Contracts hinzufügen oder ersetzen und damit die Identität jedes Datensatzes übernehmen, Lizenzen für jeden Aussteller anlegen, Verpflichtungen und Elternverknüpfungen hinzufügen oder entfernen oder Operationen abschalten. Die Blockzeiten des Netzwerks kann er nicht zurückdatieren, und jede Änderung ist on-chain sichtbar. Einen bereits verankerten Stapel und das Datum, das er einem Datensatz gibt, kann er weder ändern noch entfernen: Das steht in der Transaktion, die ihn verankert hat, und die kann niemand ändern. Heute liegt der Schlüssel auf Papier vor, je eine Kopie bei jedem Gründer, und jede Kopie allein genügt, um ihn zu verwenden. Ihn auf drei Schlüssel zu verlagern, von denen zwei zustimmen müssen, war vor dem Ledger-9-Upgrade von Midnight am 6. November 2026 geplant und ist nicht umgesetzt. Das Netzwerk akzeptiert den Schlüssel weiterhin; betrachten Sie ihn also als aktiv. Der Änderungszähler des Smart Contracts stand am 13. November 2026 bei 16. Jeder kann ihn prüfen, und jede Änderung erhöht ihn. Jede Verwendung wird öffentlich angekündigt, nach einer schriftlichen Wartungsrichtlinie.',
   'm.status.keyLink': 'Wartungsrichtlinie lesen →',
   'm.contact.label': 'Kontakt aufnehmen',
   'm.contact.title1': 'Sprechen Sie',
@@ -244,13 +244,13 @@ export const de: Strings = {
   'm.foot.contact': 'Kontakt',
   'm.foot.verify': 'Datensatz prüfen',
   'm.foot.fine':
-    'Nachweis, dass Sie einen Datensatz zu einem Datum hatten. Kein Rechtstitel an dem, was er beschreibt.',
+    'Nachweis, dass Sie einen Datensatz spätestens zu einem Datum hatten. Kein Rechtstitel an dem, was er beschreibt.',
   'm.foot.terms': 'Nutzungsbedingungen',
   'm.terms.inEnglish': 'Diese Bedingungen sind auf Englisch; es gilt der englische Text.',
   'm.verify.label': 'Prüfen',
   'm.verify.title': 'Einen Datensatz prüfen',
   'm.verify.lede':
-    'Geben Sie die Datensatzkennung ein, die auf einem Zertifikat aufgedruckt ist oder Ihnen mitgeteilt wurde. Sie sehen, was der Inhaber teilen wollte, und was diese Seite selbst prüfen konnte: ob der Datensatz in einem versiegelten Stapel ist und ob Laborsignaturen gültig sind.',
+    'Geben Sie die Datensatzkennung ein, die auf einem Zertifikat aufgedruckt ist oder Ihnen mitgeteilt wurde. Sie sehen, was der Inhaber freigegeben hat, und was diese Seite selbst prüfen konnte: ob der Datensatz in einem versiegelten Stapel ist und ob Laborsignaturen gültig sind.',
   'm.verify.field': 'Datensatzkennung',
   'm.verify.go': 'Prüfen',
   'm.verify.fpField': 'Prüfcode (auf dem Zertifikat, optional)',
@@ -269,7 +269,7 @@ export const de: Strings = {
   'm.mako.also': 'Midnight Nightforce Leader (Japan) · Build Club, Kohorte 1',
   'm.mako.languages': 'Englisch · Japanisch',
   'm.hunter.bio1':
-    'Hunter Roberts ist Mitgründer und COO von VeilCore. Er leitet das Produkt und das VeilCore-Protokoll, vom Datensatzformat bis zum Contract auf Midnight. Er leitet die Kontaktarbeit von VeilCore mit US-Institutionen, darunter Saatgutanerkennungs-, Normungs- und Sortenstellen.',
+    'Hunter Roberts ist Mitgründer und COO von VeilCore. Er leitet das Produkt und das VeilCore-Protokoll, vom Datensatzformat bis zum Smart Contract auf Midnight. Er leitet die Kontaktarbeit von VeilCore mit US-Institutionen, darunter Saatgutanerkennungs-, Normungs- und Sortenstellen.',
   'm.hunter.bio2':
     "Er kommt aus der praktischen Arbeit mit Pflanzen, einschließlich Züchtung und Gewebekultur, und baut Chunk's Trees auf, eine Anbauanlage in New Jersey.",
   'm.hunter.leads': 'USA|Protokoll & Spezifikation|Engineering',
@@ -296,7 +296,7 @@ export const de: Strings = {
   'm.privacy.full': 'Die vollständige Liste',
   'm.privacy.stored.title': 'Auf unserem Testserver gespeichert',
   'm.privacy.stored.text':
-    'Ihre Datensätze und Vereinbarungen, von Ihrem Browser verschlossen, bevor sie gesendet werden: der Name jedes Datensatzes, Züchter, Art, Daten, Notizen, Referenznummern, Eltern, die Prüfcodes und Dateinamen der Fotos und Laborberichte, die Sie hinzufügen, Vertragsbedingungen und Vertragspartner, Menge und Notiz, die Sie einem Labor schicken, die Probenangaben, die Sie und das Labor schreiben (Proben-ID, Siegelnummer, wo und wann die Probe genommen wurde, ein Zeuge, wie sie ankam), die Namen, die Sie Empfängern geben, und die geheimen Schlüssel jedes Datensatzes. Unser Server speichert sie verschlossen, und wir haben den Schlüssel nicht: Er liegt in Ihrem Browser und in Ihrer Sicherungsdatei. Der Schlüssel der Probenangaben steckt auch im Laborcode, damit das Labor sie öffnen kann. Wenn Sie es wählen, steckt der Name eines Datensatzes außerdem in einem Prüflink, den Sie erstellen, nach dem #. Diesen Teil sendet ein Browser nicht, wenn er den Link öffnet, aber der Link geht vollständig an jeden, dem Sie ihn schicken, und an jede Website, in die Sie ihn einfügen, auch an das Formular eines Partners. Lesen kann unser Server: die ID jedes Datensatzes; seinen Prüfcode, seine Schlüsselbindung und seine Profilart; einen Code aus seinem Namen, der ohne den Schlüssel in Ihrem Prüflink nichts über den Namen verrät; seine Korrekturverweise (welchen Datensatz eine Korrektur ersetzt, welche Felder sie geändert hat und wann); wann der Server ihn zuerst gesehen hat; wie oft er gespeichert wurde und wann zuletzt; ungefähr wie groß er ist (seine Größenstufe); was Sie auf seiner Prüfseite zeigen möchten (seinen Namen, wenn Sie ihn zeigen möchten, und ob ein DNA-Bericht gespeichert ist, als Code, der ohne den Schlüssel in Ihrem Prüflink nichts über die Datei verrät); die Elternverknüpfungen, die Sie registrieren; und seinen Stapel mit dessen Datumsstempel. Hat eine Vereinbarung eine Lizenzgebühr auf Nachkommen, kann unser Server lesen, welchen Datensatz sie betrifft und seit wann sie gilt, und jeder kann fragen, ob dieser Datensatz eine trägt: Die Abstammungsprüfung braucht das. Bei einer Lieferung: aus welchem Datensatz sie stammt, welches Inhaberkonto sie empfangen hat, wann sie empfangen wurde und ein Kennzeichen anstelle des Empfängernamens. Bei einer Lieferung von vor den Kennzeichen steht der Name so da, wie er eingegeben wurde, bis die Bereinigung des Registers ihn ersetzt. Bei Laboren: der öffentliche Signaturschlüssel und die Signaturen, die sie erstellen. Empfangsbestätigungen und Berichte eines Labors zu Ihrem Datensatz sind privat: Unser Server zeigt sie nur Ihnen, dem Labor und demjenigen, der ihm die Probe geschickt hat, außer Sie zeigen sie auf Ihrem Prüflink. Wenn Sie zeigen, ob ein DNA-Bericht gespeichert ist, sagt Ihre Prüfseite außerdem für jede Empfangsbestätigung, dass ein Labor eine Probe erhalten hat und ob das Angekommene dem Gesendeten entspricht, ohne den Namen des Labors. Die Signatur eines Labors über einen Bericht nennt den Bericht gebunden an Ihren Datensatz, mit einem Schlüssel, den nur Sie und das Labor haben; eine vor dem 17. Oktober 2026 erstellte nennt den SHA-256 der Berichtsdatei, den unser Server nur Ihnen, dem Labor und demjenigen zeigt, der ihm die Probe geschickt hat. Anfragen, den Schlüssel eines Datensatzes nachzuweisen, mit dem Namen, den der Fragende eingegeben hat, 7 Tage lang: Unser Server erfährt, welchen On-Chain-Schlüssel jede Anfrage nennt. Die Nachweis- und Prüfseiten senden Ihren Inhaberschlüssel nie. Ihr Inhaberschlüssel, den Ihr Browser bei jedem Speichern mitsendet, damit der Server Ihre Datensätze findet; der Server behält davon nur einen Einweg-Hash. Datensätze, die vor dem Verschließen gespeichert wurden, bleiben für uns lesbar, bis Ihr Browser sie verschließt, und der Name eines Datensatzes, der gespeichert wurde, bevor Namen verschlossen wurden, bleibt für uns lesbar, bis Ihr Browser den Datensatz erneut speichert. Probenangaben, die vor dem Verschließen geschrieben wurden, bleiben für uns lesbar, bis das Register sie entfernt. Unsere externen Sicherungen von davor behalten eine lesbare Kopie von alledem, bis wir den Schlüssel vernichten, der sie öffnet. Verschlossene Laborberichte, die ein Labor Ihnen schickt: verschlossen gespeichert, ohne den Schlüssel, und nach 180 Tagen gelöscht. Der Server ist das Testregister von VeilCore, gehostet bei Railway.',
+    'Ihre Datensätze und Vereinbarungen, von Ihrem Browser verschlossen, bevor sie gesendet werden: der Name jedes Datensatzes, Züchter, Art, Daten, Notizen, Referenznummern, Eltern, die Prüfcodes und Dateinamen der Fotos und Laborberichte, die Sie hinzufügen, Vertragsbedingungen und Vertragspartner, Menge und Notiz, die Sie einem Labor schicken, die Probenangaben, die Sie und das Labor schreiben (Proben-ID, Siegelnummer, wo und wann die Probe genommen wurde, ein Zeuge, wie sie ankam), die Namen, die Sie Empfängern geben, und die geheimen Schlüssel jedes Datensatzes. Unser Server speichert sie verschlossen, und wir haben den Schlüssel nicht: Er liegt in Ihrem Browser und in Ihrer Sicherungsdatei. Der Schlüssel der Probenangaben steckt auch im Laborcode, damit das Labor sie öffnen kann. Wenn Sie es wählen, steckt der Name eines Datensatzes außerdem in einem Prüflink, den Sie erstellen, nach dem #. Diesen Teil sendet ein Browser nicht, wenn er den Link öffnet, aber der Link geht vollständig an jeden, dem Sie ihn schicken, und an jede Website, in die Sie ihn einfügen, auch an das Formular eines Partners. Lesen kann unser Server: die ID jedes Datensatzes; seinen Prüfcode, seine Schlüsselbindung und seine Profilart; einen Code aus seinem Namen, der ohne den Schlüssel in Ihrem Prüflink nichts über den Namen verrät; seine Korrekturverweise (welchen Datensatz eine Korrektur ersetzt, welche Felder sie geändert hat und wann); wann der Server ihn zuerst gesehen hat; wie oft er gespeichert wurde und wann zuletzt; ungefähr wie groß er ist (seine Größenstufe); was Sie auf seiner Prüfseite zeigen möchten (seinen Namen, wenn Sie ihn zeigen möchten, und ob ein DNA-Bericht gespeichert ist, als Code, der ohne den Schlüssel in Ihrem Prüflink nichts über die Datei verrät); die Elternverknüpfungen, die Sie registrieren; und seinen Stapel mit dessen Datumsstempel. Hat eine Vereinbarung eine Lizenzgebühr auf Nachkommen, kann unser Server lesen, welchen Datensatz sie betrifft und seit wann sie gilt, und jeder kann fragen, ob dieser Datensatz eine trägt: Die Abstammungsprüfung braucht das. Bei einer Lieferung: aus welchem Datensatz sie stammt, welches Inhaberkonto sie empfangen hat, wann sie empfangen wurde und ein Kennzeichen anstelle des Empfängernamens. Bei einer Lieferung von vor den Kennzeichen steht der Name so da, wie er eingegeben wurde, bis die Bereinigung des Registers ihn ersetzt. Bei Laboren: der öffentliche Signaturschlüssel und die Signaturen, die sie erstellen. Empfangsbestätigungen und Berichte eines Labors zu Ihrem Datensatz sind privat: Unser Server zeigt sie nur Ihnen, dem Labor und demjenigen, der ihm die Probe geschickt hat, außer Sie zeigen sie auf Ihrem Prüflink. Wenn Sie zeigen, ob ein DNA-Bericht gespeichert ist, sagt Ihre Prüfseite außerdem für jede Empfangsbestätigung, dass ein Labor eine Probe erhalten hat und ob das Angekommene dem Gesendeten entspricht, ohne den Namen des Labors. Die Signatur eines Labors über einen Bericht nennt den Bericht gebunden an Ihren Datensatz, mit einem Schlüssel, den nur Sie und das Labor haben; eine vor dem 17. Oktober 2026 erstellte nennt den SHA-256 der Berichtsdatei, den unser Server nur Ihnen, dem Labor und demjenigen zeigt, der ihm die Probe geschickt hat. Anfragen, den Schlüssel eines Datensatzes nachzuweisen, mit dem Namen, den der Fragende eingegeben hat, 7 Tage lang: Unser Server erfährt, welchen On-Chain-Schlüssel jede Anfrage nennt. Die Nachweis- und Prüfseiten senden Ihren Inhaberschlüssel nie. Ihr Inhaberschlüssel, den Ihr Browser bei jedem Speichern mitsendet, damit der Server Ihre Datensätze findet; der Server behält davon nur einen Einweg-Hash. Datensätze, die vor dem Verschließen gespeichert wurden, bleiben für uns lesbar, bis Ihr Browser sie verschließt, und der Name eines Datensatzes, der gespeichert wurde, bevor Namen verschlossen wurden, bleibt für uns lesbar, bis Ihr Browser den Datensatz erneut speichert. Probenangaben, die vor dem Verschließen geschrieben wurden, bleiben für uns lesbar, bis das Register sie entfernt. Unsere externen Sicherungskopien von davor behalten eine lesbare Kopie von alledem, bis wir den Schlüssel vernichten, der sie öffnet. Verschlossene Laborberichte, die ein Labor Ihnen schickt: verschlossen gespeichert, ohne den Schlüssel, und nach 180 Tagen gelöscht. Der Server ist das Testregister von VeilCore, gehostet bei Railway.',
   'm.privacy.local.title': 'Verlässt Ihren Browser nie unverschlossen',
   'm.privacy.local.text':
     'Ihre DNA-Dateien verlassen nie Ihr Gerät. Laborberichte reisen verschlossen. Ihr Browser liest die DNA-Berichte, Laborberichte und Fotos, die Sie hinzufügen, um aus jeder einen Code zu machen; die Dateien selbst werden nie hochgeladen. Ein Laborbericht erreicht unseren Server nur, wenn ein Labor ihn an Sie zurückschickt, verschlossen, sodass nur Sie ihn öffnen können.',
@@ -323,10 +323,10 @@ export const de: Strings = {
     'Die Nachrichten eines Lizenzgeschäfts (die Bedingungen, jeder Bericht über Lizenzgebühren, die Antwort darauf, „Ich habe gezahlt“, „Erhalten“, Erinnerungen und Mitteilungen sowie die Auszahlungs- und Geschäftsangaben des Lizenzgebers) sind mit einem Schlüssel verschlossen, den nur die beiden Seiten teilen; er entsteht, wenn sie sich den 6-stelligen Code vorlesen. Unser Server speichert sie verschlossen und reicht sie weiter: Er kann sie weder lesen noch ändern noch fälschen. Er sieht, zu welcher Lizenz ein Geschäft gehört, wie viele Nachrichten es hat und wann jede ankam. Auszahlungsangaben (ein Bankkonto, ein Zahlungslink oder eine Midnight-Adresse) und Geschäftsangaben (rechtlicher Name, Anschrift und Steuernummer) reisen in diesen verschlossenen Nachrichten: Die andere Seite kann sie lesen, wir nicht. Jede Kopie, die Sie herunterladen oder sichern (der signierte Verlauf eines Geschäfts, Ihre Sicherungsdatei), enthält sie im Klartext; behandeln Sie diese Dateien also wie einen Kontoauszug. Die Quittung eines Zahlungspartners kann lesen, wer den Prüfcode der Abrechnung hat; den haben nur die beiden Seiten und ihr Partner. Wir bewahren die Nachrichten eines Geschäfts auf, bis eine Seite uns bittet, sie zu löschen; die andere Seite behält ihre eigene Kopie. Die Lizenz selbst liegt auf Midnight: siehe „Was auf Midnight landet“.',
   'm.privacy.chain.title': 'Was auf Midnight landet, dauerhaft',
   'm.privacy.chain.text':
-    'Midnight ist ein öffentliches Netzwerk: Was dort landet, kann niemand ändern oder entfernen, auch wir nicht, und jeder kann es lesen. Ihre Genetik, Ihre Bedingungen, Ihr Name und Ihre Dateien landen dort nie. Was dort landet: der Prüfcode jedes Stapels von Datensätzen; der eigene Schlüssel eines Datensatzes und sein Datumsstempel; ein Code aus einem DNA-Bericht, wenn Sie dessen Kopplung datieren; welche Datensätze als Eltern und Nachkommen verknüpft sind, sobald beide Inhaber bestätigen (eine Verknüpfung lässt sich nicht zurücknehmen); dass auf einem Datensatz eine Lizenz, eine Verpflichtung oder der Anspruch eines Kreditgebers vermerkt ist, und wann sich das geändert hat; der öffentliche Schlüssel eines Labors, wenn es dort ein Zertifikat signiert; ein Wert, den Sie exakt nachweisen wollen, vollständig; und, wo diese Website Lizenzgebühren in NIGHT zahlen lässt, der Betrag und die beiden Adressen. Vor jedem dieser Schritte zeigt die App eine Quittung, die genau auflistet, was der Schritt öffentlich macht. Ein Code oder Schlüssel allein sagt nichts über Sie, aber wer von Ihnen einen Prüflink bekommt, kann von da an verfolgen, was mit diesem Datensatz im Netzwerk geschieht.',
+    'Midnight ist ein öffentliches Netzwerk: Was dort landet, kann niemand ändern oder entfernen, auch wir nicht, und jeder kann es lesen. Ihre Genetik, Ihre Bedingungen, Ihr Name und Ihre Dateien landen dort nie. Was dort landet: der Prüfcode jedes Stapels von Datensätzen; der eigene Schlüssel eines Datensatzes und sein Datumsstempel; ein Code aus einem DNA-Bericht, wenn Sie dessen Kopplung datieren; welche Datensätze als Eltern und Nachkommen verknüpft sind, sobald beide Datensatzinhaber bestätigen (eine Verknüpfung lässt sich nicht zurücknehmen); dass auf einem Datensatz eine Lizenz, eine Verpflichtung oder der Anspruch eines Kreditgebers vermerkt ist, und wann sich das geändert hat; der öffentliche Schlüssel eines Labors, wenn es dort ein Zertifikat signiert; ein Wert, den Sie exakt nachweisen wollen, vollständig; und, wo diese Website Lizenzgebühren in NIGHT zahlen lässt, der Betrag und die beiden Adressen. Vor jedem dieser Schritte zeigt die App eine Quittung, die genau auflistet, was der Schritt öffentlich macht. Ein Code oder Schlüssel allein sagt nichts über Sie, aber wer von Ihnen einen Prüflink bekommt, kann von da an verfolgen, was mit diesem Datensatz im Netzwerk geschieht.',
   'm.privacy.helper.title': 'Der Helfer und sein optionales Modell',
   'm.privacy.helper.text':
-    '„Fragen“, der Helfer in der App, arbeitet dort, wo diese Website ihn anbietet, auf Ihrem Gerät. Nichts, was Sie dort eingeben, wird irgendwohin gesendet; nur das Speichern der App selbst sendet etwas, und das geht verschlossen an unseren Server, wie oben beschrieben. Wo diese Website das optionale Sprachmodell anbietet, wird es einmal von Hugging Face heruntergeladen, einem eigenen Unternehmen: Hugging Face sieht Ihre IP-Adresse, die Uhrzeit, welche Modelldateien und dass die Anfrage von dieser Website kommt; wir sehen, dass ein Download begonnen hat. Das Modell läuft auf Ihrem Gerät, in einem Teil der Seite, der das Netzwerk nicht erreichen kann; nichts, was Sie eingeben, gelangt zu Hugging Face oder zu uns, weder dann noch später. Sie können das Modell im Bereich des Helfers löschen. Sein „Für mich erledigen“ führt zu jedem Auftrag eine Aufzeichnung nur auf Ihrem Gerät, nie in einer Sicherung: die Schritte und wie weit sie sind, Verweise auf die beteiligten Datensätze und Vereinbarungen und die Zahlen, die Sie für einen Bericht eingeben, bis er gesendet ist; nie, was Sie zum Fragen geschrieben haben. Sie wird 7 Tage nach dem Ende des Auftrags gelöscht. Solange ein Auftrag auf Ihre Zustimmung wartet, bleiben seine neuen Datensätze verschlossen mit ihren Schlüsseln in Ihrem Browser; eine Sicherung aus dieser Zeit enthält diese Schlüssel ebenfalls. Um Berichte vorzubereiten, werden die Nachrichten Ihrer Vereinbarungen nacheinander von unserem Server gelesen, sodass unser Server sehen kann, dass diese Vereinbarungen zusammen gelesen wurden; gesendet wird erst, wenn Sie freigeben.',
+    '„Fragen“, der Helfer in der App, arbeitet dort, wo diese Website ihn anbietet, auf Ihrem Gerät. Nichts, was Sie dort eingeben, wird irgendwohin gesendet; nur das Speichern der App selbst sendet etwas, und das geht verschlossen an unseren Server, wie oben beschrieben. Wo diese Website das optionale Sprachmodell anbietet, wird es einmal von Hugging Face heruntergeladen, einem eigenen Unternehmen: Hugging Face sieht Ihre IP-Adresse, die Uhrzeit, welche Modelldateien und dass die Anfrage von dieser Website kommt; wir sehen, dass ein Download begonnen hat. Das Modell läuft auf Ihrem Gerät, in einem Teil der Seite, der das Netzwerk nicht erreichen kann; nichts, was Sie eingeben, gelangt zu Hugging Face oder zu uns, weder dann noch später. Sie können das Modell im Bereich des Helfers löschen. Sein „Für mich erledigen“ führt zu jedem Auftrag eine Aufzeichnung nur auf Ihrem Gerät, nie in einer Sicherungskopie: die Schritte und wie weit sie sind, Verweise auf die beteiligten Datensätze und Vereinbarungen und die Zahlen, die Sie für einen Bericht eingeben, bis er gesendet ist; nie, was Sie zum Fragen geschrieben haben. Sie wird 7 Tage nach dem Ende des Auftrags gelöscht. Solange ein Auftrag auf Ihre Zustimmung wartet, bleiben seine neuen Datensätze verschlossen mit ihren Schlüsseln in Ihrem Browser; eine Sicherungskopie aus dieser Zeit enthält diese Schlüssel ebenfalls. Um Berichte vorzubereiten, werden die Nachrichten Ihrer Vereinbarungen nacheinander von unserem Server gelesen, sodass unser Server sehen kann, dass diese Vereinbarungen zusammen gelesen wurden; gesendet wird erst, wenn Sie freigeben.',
   'm.privacy.hosts.title': 'Hosting',
   'm.privacy.hosts.text':
     'Diese Website wird bei Vercel gehostet, das IP-Adressen und Anfragen protokolliert. Unser Registerserver läuft bei Railway, das Anfragen protokolliert.',
@@ -345,22 +345,22 @@ export const de: Strings = {
     'Senden Sie Material mit einem Laborcode. Das Labor signiert eine Empfangsbestätigung mit seinem eigenen Schlüssel, sodass der Datensatz eine zweite Partei zeigt. Die Bestätigung ist eine echte Signatur, gespeichert im Register von VeilCore, nicht auf der Chain. Bedingungen wie „keine Vermehrung“ sind in der Web-Demo nur zum Üben.',
   'm.get.1b': 'für einen Datensatz dessen, was Sie haben, ohne Ihre Genetik zu zeigen.',
   'm.get.3b':
-    'Eine Elternverknüpfung zählt nur, wenn beide Inhaber sie bestätigen. Auf dieser Website erfasst sie das Register von VeilCore, nicht die Chain.',
+    'Eine Elternverknüpfung zählt nur, wenn beide Datensatzinhaber sie bestätigen. Auf dieser Website erfasst sie das Register von VeilCore, nicht die Chain.',
   'm.open.2t': 'Bewahren Sie eine Datei auf.',
   'm.open.2p':
     'Auf der Seite Ihres Datensatzes: „Nachweispaket herunterladen“. Eine .zip-Datei mit dem Datensatz, wie er versiegelt wurde, seinem Einschlussnachweis, dem Prüfcode des Stapels, dem Ort, an dem der Stapel festgehalten wurde, der Bitcoin-Stempeldatei, falls es eine gibt, und einer Seite, die alles offline prüft. Ihre Sicherungsdatei enthält Ihre Schlüssel, nicht diese Dateien. Die einzelnen Dateien gibt es weiterhin unter „Technische Details“: „Datensatz exportieren“, „Inklusionsnachweis herunterladen“, „Bitcoin-Stempeldatei herunterladen“.',
   'm.faq.1a':
-    'Sobald Datensätze verankert sind, kann jeder prüfen, welcher zuerst verankert wurde. Koppeln Sie Ihren Laborbericht, damit ein späterer Test damit verglichen werden kann. Wenn Sie Material versenden, signiert der Empfänger mit seinem eigenen Schlüssel eine Empfangsbestätigung. Ein Datensatz ist ein Beweismittel, keine Registrierung: Er zeigt, dass Sie diesen Datensatz zu diesem Datum hatten, nicht, dass Sie das Material hatten, und entscheidet einen Streit nicht allein.',
+    'Sobald Datensätze verankert sind, kann jeder prüfen, welcher zuerst verankert wurde. Koppeln Sie Ihren Laborbericht, damit ein späterer Test damit verglichen werden kann. Wenn Sie Material versenden, signiert der Empfänger mit seinem eigenen Schlüssel eine Empfangsbestätigung. Ein Datensatz ist ein Beweismittel, keine Registrierung: Er zeigt, dass Sie diesen Datensatz spätestens an diesem Datum hatten, nicht, dass Sie das Material hatten, und entscheidet einen Streit nicht allein.',
   'm.post0.date': '4. Okt. 2026',
-  'm.post0.tag': 'Contract',
+  'm.post0.tag': 'Smart Contract',
   'm.post0.title': 'Eine Tatsache beweisen, den Rest behalten',
   'm.post0.text':
-    'Beide Contracts haben alle 37 End-to-End-Prüfungen im Preprod-Testnetz von Midnight bestanden, einschließlich der neuen Claims: ein Wert, ein Bereich, ein Unterschied, eine unveränderte Korrektur und eine Signatur von einem Test-Laborschlüssel. Erfundene Markerdaten.',
+    'Beide Smart Contracts haben alle 37 End-to-End-Prüfungen im Preprod-Testnetz von Midnight bestanden, einschließlich der neuen Belege: ein Wert, ein Bereich, ein Unterschied, eine unveränderte Korrektur und eine Signatur von einem Test-Laborschlüssel. Erfundene Markerdaten.',
   'm.postA.date': '8. Okt. 2026',
   'm.postA.tag': 'Start',
   'm.postA.title': 'Live im Hauptnetz von Midnight',
   'm.postA.text':
-    'Beide Contracts sind im Hauptnetz von Midnight bereitgestellt. Der Claims-Contract hat keinen Wartungsschlüssel: Niemand, auch wir nicht, kann ihn ändern.',
+    'Beide Smart Contracts sind im Hauptnetz von Midnight bereitgestellt. Der Beleg-Smart-Contract hat keinen Wartungsschlüssel: Niemand, auch wir nicht, kann ihn ändern.',
   'm.postG.date': '16. Nov. 2026',
   'm.postG.tag': 'Datensätze',
   'm.postG.title': 'Eine Produktionskette, Schritt für Schritt',
@@ -392,7 +392,7 @@ export const de: Strings = {
   'm.postB.text':
     'Die ersten Stapel des Registers wurden von Hand im Hauptnetz von Midnight verankert. Bei einem davon, mit fünf unserer eigenen Testdatensätze, ist die Wurzel zusätzlich auf Bitcoin gestempelt, in Block 971004. Am 15. Oktober mit zwei Block-Explorern geprüft: Der Stempel führt zu den Bitcoin-Blöcken 971004 und 971005. Eine Prüfung mit dem offiziellen OpenTimestamps-Werkzeug und einem vollständigen Bitcoin-Knoten steht noch aus.',
   'm.founders.lede':
-    'VeilCore ist ein Datensatzformat für Beweiszwecke, für pflanzliche, tierische und mikrobielle Genetik. Es belegt, dass Sie einen Datensatz Ihres Materials zu einem bestimmten Datum hatten, ohne dass Sie Ihre genetischen Daten herausgeben.',
+    'VeilCore ist ein Datensatzformat für Beweiszwecke, für pflanzliche, tierische und mikrobielle Genetik. Es belegt, dass Sie einen Datensatz Ihres Materials spätestens zu einem bestimmten Datum hatten, ohne dass Sie Ihre genetischen Daten herausgeben.',
   'm.live.label': 'Was wo läuft',
   'm.live.title1': 'Was funktioniert,',
   'm.live.title2': 'und wo.',
@@ -450,7 +450,7 @@ export const de: Strings = {
   'm.live.prove.test':
     'Ja. Die Seite der anderen Person prüft im Netzwerk, dass Sie den eigenen Schlüssel des Datensatzes kontrollieren. Der Datensatz hat diesen Schlüssel beim Versiegeln benannt, deshalb lässt er sich nicht austauschen.',
   'm.live.prove.not': 'Auf veilcore.org: Dafür muss Ihr Browser eine Transaktion senden.',
-  'm.live.claims.t': 'Eine Tatsache beweisen (Claims)',
+  'm.live.claims.t': 'Eine Tatsache beweisen (Belege)',
   'm.live.claims.main': 'Im Hauptnetz, ohne Wartungsschlüssel. Die Website kann ihn noch nicht nutzen.',
   'm.live.claims.not': 'Ihn über die Website nutzen.',
   'm.live.claims.live':
@@ -482,15 +482,15 @@ export const de: Strings = {
   'm.hero.status':
     'Start im Hauptnetz von Midnight. Heute werden Datensätze in einem Testnetz von Midnight datiert, und das beweist noch nichts.',
   'm.claims.status':
-    'Ein zweiter Midnight-Contract, am 4. Oktober 2026 im Preprod-Testnetz von Midnight durchgängig getestet, mit erfundenen Markerdaten. Er ist noch nicht in dieser Web-Demo und noch nicht im Hauptnetz.',
+    'Ein zweiter Midnight-Smart-Contract, am 4. Oktober 2026 im Preprod-Testnetz von Midnight durchgängig getestet, mit erfundenen Markerdaten. Er ist noch nicht in dieser Web-Demo und noch nicht im Hauptnetz.',
   'm.faq.3a':
     'Es ist als Beweismittel gebaut, und unser Hinweis für Juristen sagt, was es beweist und was nicht. Heute werden Datensätze in einem Testnetz von Midnight datiert, und ein Datum aus einem Testnetz hat keine Beweiskraft. Der Start im Hauptnetz steht kurz bevor.',
   'm.stat2.b': 'Testnetz',
-  'm.stat2.s': 'Beide Contracts in einem Testnetz von Midnight durchgehend getestet. Noch nicht im Hauptnetz.',
+  'm.stat2.s': 'Beide Smart Contracts in einem Testnetz von Midnight durchgehend getestet. Noch nicht im Hauptnetz.',
   'm.foot.about':
     'Ein offenes Datensatzformat für pflanzliche, tierische und mikrobielle Genetik. Gebaut für die Verankerung auf Midnight; getestet in einem Testnetz von Midnight.',
   'm.for.2p':
-    'Züchter möchten mit ihren Markern zeigen, dass eine Sorte unterscheidbar ist, und behandeln diese Marker als Geschäftsgeheimnis. Ein VeilCore-Claim beweist eine Tatsache über sie, ohne den Rest zu zeigen. Noch akzeptiert keine Prüfstelle und keine Anerkennungsstelle ihn.',
+    'Züchter möchten mit ihren Markern zeigen, dass eine Sorte unterscheidbar ist, und behandeln diese Marker als Geschäftsgeheimnis. Ein VeilCore-Beleg beweist eine Tatsache über sie, ohne den Rest zu zeigen. Noch akzeptiert keine Prüfstelle und keine Anerkennungsstelle ihn.',
   'm.hero.note':
     'Tippen Sie in eines der beiden Felder; nichts wird gesendet. Der goldene Streifen unten ist der Prüfcode, der Teil, der auf Midnight kommt. Niemand kann daraus zurückrechnen, was Sie eingegeben haben.',
   'm.hero.noteShort': 'Nur der goldene Streifen kommt auf Midnight.',
@@ -500,7 +500,8 @@ export const de: Strings = {
   'm.home.tryNote':
     'Das Bild oben wird aus diesem Prüfcode gezeichnet. Niemand kann daraus zurückrechnen, was Sie eingegeben haben.',
   'm.home.audLabel': 'Für wen',
-  'm.home.audience': 'Züchter|Saatgutunternehmen|Gewebekulturlabore|Zertifizierer|Prüfer|Herdbücher|Sortenämter',
+  'm.home.audience':
+    'Züchter|Saatgutunternehmen|Gewebekulturlabore|Anerkennungsstellen|Prüfer|Zuchtverbände|Sortenämter',
   'm.home.keep.t': 'Ihre Genetik bleibt bei Ihnen.',
   'm.home.keep.p':
     'Auf Midnight kommen nur Prüfcodes, nie das, was Sie eingegeben haben, und nie Ihre Dateien. Der Code eines Datensatzes sind 64 Zeichen, die Ihr Computer daraus berechnet, und niemand kann daraus auf die Pflanze, die Marker oder den Namen zurückschließen.',
@@ -554,7 +555,7 @@ export const de: Strings = {
   'm.for.1p':
     'Versiegeln Sie einen Datensatz und koppeln Sie seinen DNA-Bericht. Taucht die Pflanze unter anderem Namen auf, kann ein Labor einen neuen Test mit Ihrem Bericht vergleichen. In der Web-Demo wird die Kopplung mit Ihrem Datensatz gespeichert, aber noch nicht datiert. VeilCore führt keine DNA-Tests durch.',
   'm.for.2t': 'Sortenschutz und Anerkennung.',
-  'm.for.2link': 'So funktioniert ein Claim →',
+  'm.for.2link': 'So funktioniert ein Beleg →',
   'm.for.3t': 'Material in den Händen eines Labors.',
   'm.for.4t': 'Laborergebnisse, zurück zu Ihnen.',
   'm.for.4p':
@@ -596,12 +597,12 @@ export const de: Strings = {
     'Nachdem Sie einen Datensatz korrigiert haben, beweisen Sie, dass die Werte, die Sie nicht angefasst haben, unverändert sind.',
   'm.claims.5t': 'Ein Labor hat die Werte signiert.',
   'm.claims.5p':
-    'Der Claim nennt den Schlüssel, der den Datensatz signiert hat. Es geht also um Werte, die dieser Schlüssel signiert hat, nicht nur um Zahlen, die Sie eingegeben haben. Ob der Schlüssel zu einem Labor gehört, dem Sie vertrauen, entscheiden Sie.',
+    'Der Beleg nennt den Schlüssel, der den Datensatz signiert hat. Es geht also um Werte, die dieser Schlüssel signiert hat, nicht nur um Zahlen, die Sie eingegeben haben. Ob der Schlüssel zu einem Labor gehört, dem Sie vertrauen, entscheiden Sie.',
   'm.claims.limitsTitle': 'Grenzen.',
   'm.claims.limits':
-    'Sechzehn Werte pro Datensatz. Um zwei Sorten zu vergleichen, braucht es eine Partei, die beide Wertesätze hat, etwa den Züchter oder ein Labor, das beide getestet hat. Wem Sie einen versiegelten Wert geben, der kann ebenfalls Claims darüber machen. Für Vergleiche über Tausende von Werten ist es nicht gemacht. Ohne Signatur eines Labors sind die Werte nur das Wort des Inhabers.',
-  'm.claims.statusTitle': 'Der Claims-Contract',
-  'm.claims.link': 'Wie Claims funktionieren, in der Spezifikation →',
+    'Sechzehn Werte pro Datensatz. Um zwei Sorten zu vergleichen, braucht es eine Partei, die beide Wertesätze hat, etwa den Züchter oder ein Labor, das beide getestet hat. Wem Sie einen versiegelten Wert geben, der kann ebenfalls Belege darüber erstellen. Für Vergleiche über Tausende von Werten ist es nicht gemacht. Ohne Signatur eines Labors sind die Werte nur das Wort des Inhabers.',
+  'm.claims.statusTitle': 'Der Beleg-Smart-Contract',
+  'm.claims.link': 'Wie Belege funktionieren, in der Spezifikation →',
   'm.get.label': 'Was es leistet',
   'm.get.title1': 'Was Sie bekommen,',
   'm.get.title2': 'und wo es endet.',
@@ -609,17 +610,17 @@ export const de: Strings = {
   'm.get.1a': 'Ein Datum, das niemand zurückdatieren kann,',
   'm.get.2a': 'Lizenzen und Laborvereinbarungen.',
   'm.get.2b':
-    'Sie hängen am Datensatz. Ein Lizenznehmer kann beweisen, dass er eine gültige Lizenz hält, ohne zu zeigen, welche. Eine Lizenzgebühr oder andere Verpflichtung auf einem Elternteil erscheint bei jedem Nachkommen, den beide Inhaber bestätigt haben; VeilCore erfasst sie und zieht sie nicht ein. Getestet in einem Testnetz von Midnight; in der Web-Demo simuliert.',
+    'Sie hängen am Datensatz. Ein Lizenznehmer kann beweisen, dass er eine gültige Lizenz hält, ohne zu zeigen, welche. Eine Lizenzgebühr oder andere Verpflichtung auf einem Elternteil erscheint bei jedem Nachkommen, den beide Datensatzinhaber bestätigt haben; VeilCore erfasst sie und zieht sie nicht ein. Getestet in einem Testnetz von Midnight; in der Web-Demo simuliert.',
   'm.get.3a': 'Abstammung, der beide Seiten zugestimmt haben.',
   'm.stops.title': 'Wo es endet, und was den Rest abdeckt',
   'm.stops.1a': 'Es ist ein Beweismittel, kein Rechtstitel.',
   'm.stops.1b': 'Es schafft kein neues Recht. Es stützt die Rechte und Verträge, die Sie schon haben.',
-  'm.stops.2a': 'Es legt fest, wann, nicht ob.',
+  'm.stops.2a': 'Es belegt das Wann, nicht das Ob.',
   'm.stops.2b':
     'Ein Datensatz beweist, was wann aufgeschrieben wurde. Ein gekoppelter Laborbericht oder die Signatur eines Labors gibt dem Inhalt Gewicht.',
   'm.stops.3a': 'Es ergänzt DNA-Tests, statt sie zu ersetzen.',
   'm.stops.3b':
-    'Es datiert einen DNA-Bericht, den Sie schon haben, damit ein späterer Test damit verglichen werden kann. Eine Elternverknüpfung heißt, dass beide Inhaber zugestimmt haben; die Abstammung beweist die DNA.',
+    'Es datiert einen DNA-Bericht, den Sie schon haben, damit ein späterer Test damit verglichen werden kann. Eine Elternverknüpfung heißt, dass beide Datensatzinhaber zugestimmt haben; die Abstammung beweist die DNA.',
   'm.stops.4a': 'Was niemand angibt, sieht es nicht.',
   'm.stops.4b':
     'Stille Vermehrung wird nicht erkannt. Aber sobald Sie eine Lizenz widerrufen, akzeptiert ein Käufer oder Labor, das richtig prüft, sie nicht mehr als gültig.',
@@ -657,13 +658,13 @@ export const de: Strings = {
     'Keine Anmeldung, keine Wallet. Es ist eine Testversion, verwenden Sie also erfundene Angaben. Datensätze werden in Stapeln auf Midnight datiert; Lizenzen und Laborvereinbarungen sind simuliert, und Kopplungen von DNA-Berichten werden noch nicht datiert.',
   'm.demo.privacy': 'Was die Demo speichert →',
   'm.updates.more': 'Alle Neuigkeiten',
-  'm.stat3.s': 'Noch kein unabhängiges Sicherheitsaudit. Unsere eigenen Prüfungen der Contracts sind öffentlich.',
+  'm.stat3.s': 'Noch kein unabhängiges Sicherheitsaudit. Unsere eigenen Prüfungen der Smart Contracts sind öffentlich.',
   'm.stat3.link': 'Auf GitHub lesen →',
   'm.stat4.b': 'Keine Anmeldung, keine Wallet',
   'm.stat4.s': 'Legen Sie jetzt einen Datensatz an. Das Prüfen ist kostenlos und braucht kein Konto.',
-  'm.addr.title': 'Die Contracts, für alle, die sie prüfen wollen.',
-  'm.addr.main': 'Haupt-Contract',
-  'm.addr.claims': 'Claims-Contract',
+  'm.addr.title': 'Die Smart Contracts, für alle, die sie prüfen wollen.',
+  'm.addr.main': 'Haupt-Smart-Contract',
+  'm.addr.claims': 'Beleg-Smart-Contract',
   'm.addr.claimsPending': 'Noch nicht im Hauptnetz.',
   'm.addr.explorer': 'Auf midnightexplorer.com nachschlagen (betrieben von TexLabs) →',
   'm.live.btc.t': 'Auch ein Datumsstempel auf Bitcoin',
@@ -694,7 +695,7 @@ export const de: Strings = {
   'm.live.show': 'Liste anzeigen',
   'm.tech.title': 'Für technisch Interessierte',
   'm.tech.lede':
-    'Wie die Prüfung von Hand funktioniert, der Code, der Bitcoin-Stempel und wer die Contracts ändern kann.',
+    'Wie die Prüfung von Hand funktioniert, der Code, der Bitcoin-Stempel und wer die Smart Contracts ändern kann.',
   'm.tech.show': 'Details anzeigen',
   'm.tech.check.t': 'Einen Datensatz von Hand prüfen',
   'm.tech.check.p':
@@ -707,7 +708,7 @@ export const de: Strings = {
     'Unser Register stempelt den Code jedes versiegelten Stapels mit OpenTimestamps auf Bitcoin. Der erste kam am 11. Oktober in Bitcoin-Block 971004. Am 15. Oktober mit zwei Block-Explorern geprüft: Der Stempel führt zu den Bitcoin-Blöcken 971004 und 971005. Eine Prüfung mit dem offiziellen OpenTimestamps-Werkzeug und einem vollständigen Bitcoin-Knoten steht noch aus. Die Stempeldatei ist die .ots-Datei des Stapels: „Bitcoin-Stempeldatei herunterladen“ auf der Seite der Pflanze. Das Register der Test-Website stempelt nicht auf Bitcoin.',
   'm.tech.dna.t': 'Kopplung von Berichten und Laborsignaturen',
   'm.tech.dna.p':
-    'Läuft die Kopplung eines DNA-Berichts über den VeilCore-Contract auf Midnight, wird sie datiert: Sie zeigt, dass, wer den Datensatz zu diesem Datum kontrollierte, diesen Bericht oder seinen SHA-256 bis dahin hatte. Was auf die Chain kommt, ist an den Datensatz gebunden und verbirgt den Bericht, sodass niemand die Kopplung auf seinen eigenen Datensatz kopieren kann. Die Signatur eines Labors auf einem verschlossenen Bericht umfasst genau diese Datei und den Datensatz, um den es geht.',
+    'Läuft die Kopplung eines DNA-Berichts über den VeilCore-Smart-Contract auf Midnight, wird sie datiert: Sie zeigt, dass, wer den Datensatz zu diesem Datum kontrollierte, diesen Bericht oder seinen SHA-256 bis dahin hatte. Was auf die Chain kommt, ist an den Datensatz gebunden und verbirgt den Bericht, sodass niemand die Kopplung auf seinen eigenen Datensatz kopieren kann. Die Signatur eines Labors auf einem verschlossenen Bericht umfasst genau diese Datei und den Datensatz, um den es geht.',
   'title.checkSite': 'Diese Website prüfen',
   'm.privacy.code.title': 'Der Code der App',
   'm.privacy.code.text':
@@ -754,12 +755,12 @@ export const deTestchain: Strings = {
   'm.hero.status':
     'Dies ist die Test-Website: Datumsstempel, Laborcodes und Nachweis-Links funktionieren wirklich, im Testnetz von Midnight. Datensätze hier sind Übung, kein Beweismittel.',
   'm.claims.status':
-    'Ein zweiter Midnight-Contract. Er hat am 4. Oktober 2026 jede End-to-End-Prüfung im Preprod-Testnetz von Midnight bestanden, mit erfundenen Markerdaten, und ist seit dem 8. Oktober 2026 im Hauptnetz von Midnight. Auf dieser Website ist er noch nicht.',
+    'Ein zweiter Midnight-Smart-Contract. Er hat am 4. Oktober 2026 jede End-to-End-Prüfung im Preprod-Testnetz von Midnight bestanden, mit erfundenen Markerdaten, und ist seit dem 8. Oktober 2026 im Hauptnetz von Midnight. Auf dieser Website ist er noch nicht.',
   'm.faq.3a':
     'Es ist als Beweismittel gebaut, und unser Hinweis für Juristen sagt, was es beweist und was nicht. Diese Test-Website datiert Datensätze im Testnetz von Midnight, und ein Datum aus einem Testnetz hat keine Beweiskraft. Echte Datensätze gehören auf veilcore.org, das im Hauptnetz von Midnight läuft.',
   'm.stat2.b': 'Test-Website',
   'm.stat2.s':
-    'Diese Website läuft in einem Testnetz von Midnight, zum Üben. Beide Contracts sind seit dem 8. Oktober 2026 im Hauptnetz von Midnight.',
+    'Diese Website läuft in einem Testnetz von Midnight, zum Üben. Beide Smart Contracts sind seit dem 8. Oktober 2026 im Hauptnetz von Midnight.',
   'm.foot.about':
     'Ein offenes Datensatzformat für pflanzliche, tierische und mikrobielle Genetik. Dies ist die Test-Website, in einem Testnetz von Midnight; veilcore.org läuft im Hauptnetz von Midnight.',
   'm.for.1p':
@@ -774,7 +775,7 @@ export const deTestchain: Strings = {
     'Um den Prüfcode eines Datensatzes neu zu berechnen, braucht es nur SHA-256 und die offene Spezifikation. Sein Einschlussnachweis verbindet diesen Prüfcode mit einem Code des Stapels, der auf Midnight verankert ist, und die Transaktion, die ihn verankert hat, liefert das Datum des Stapels. Die verify.html im Beweispaket rechnet das offline nach und nennt die Transaktion und den Code des Stapels, die nachzuschlagen sind. Die Prüfseite schlägt diese Transaktion selbst auf Midnight nach, wenn sie Midnight erreicht. Datensätze, die seit dem 14. Oktober versiegelt wurden, benennen ihren eigenen Schlüssel; ihre Prüfung braucht deshalb auch Abschnitt 3.6.1, in der Spezifikation auf dieser Website und im SDK ab 0.16.0. Wer auf dieser Website einen Datensatz über seine Kennung nachschlägt, nutzt dafür unseren Server.',
   // Agreements are real on the test site: every type, on Midnight's test network.
   'm.get.2b':
-    'Sie hängen am Datensatz. Ein Lizenznehmer kann beweisen, dass er eine gültige Lizenz hält, ohne zu zeigen, welche. Eine Lizenzgebühr oder andere Verpflichtung auf einem Elternteil erscheint bei jedem Nachkommen, den beide Inhaber bestätigt haben; VeilCore erfasst sie und zieht sie nicht ein. Auf dieser Test-Website mit echten Transaktionen im Testnetz von Midnight nutzbar.',
+    'Sie hängen am Datensatz. Ein Lizenznehmer kann beweisen, dass er eine gültige Lizenz hält, ohne zu zeigen, welche. Eine Lizenzgebühr oder andere Verpflichtung auf einem Elternteil erscheint bei jedem Nachkommen, den beide Datensatzinhaber bestätigt haben; VeilCore erfasst sie und zieht sie nicht ein. Auf dieser Test-Website mit echten Transaktionen im Testnetz von Midnight nutzbar.',
   // Agreements are real on the test site: every type, on Midnight's test network.
   'm.for.3p':
     'Senden Sie Material mit einem Laborcode. Das Labor signiert eine Empfangsbestätigung mit seinem eigenen Schlüssel, sodass der Datensatz eine zweite Partei zeigt. Die Bestätigung ist eine echte Signatur, gespeichert im Register von VeilCore, nicht auf der Chain. Bedingungen wie „keine Vermehrung“ stehen in einer Laborvereinbarung, die Sie und das Labor hier im Testnetz von Midnight schließen.',

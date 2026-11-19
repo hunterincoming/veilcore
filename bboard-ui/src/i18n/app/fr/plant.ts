@@ -45,8 +45,8 @@ export const plant = {
   'app.plant.action.fix': 'Corriger une erreur',
   'app.plant.action.seeLatest': 'Déjà corrigé : ouvrir la dernière version',
   'app.plant.fix.openLatest': 'Ouvrir la dernière version',
-  'app.plant.agreements': 'Contrats',
-  'app.plant.openAgreement': 'Ouvrir le contrat {id}',
+  'app.plant.agreements': 'Accords',
+  'app.plant.openAgreement': 'Ouvrir l’accord {id}',
   'app.plant.unnamedCounterparty': 'cocontractant sans nom',
   'app.plant.technicalDetails': 'Détails techniques',
   'app.plant.f.method': 'Méthode de sélection',
@@ -196,7 +196,7 @@ export const plant = {
   'app.plant.next.backup.action': 'Enregistrer ma sauvegarde',
   'app.plant.next.dates.title': 'Cet enregistrement date un rapport ADN',
   'app.plant.next.dates.why':
-    'Il ne contient que le SHA-256 du rapport, son code de rapport de laboratoire et le nom du laboratoire tel que signé, jamais le rapport. Quand son lot est daté, il montre que le rapport existait à ce moment-là, sans montrer les marqueurs à personne.',
+    'Il ne contient que le SHA-256 du rapport, son code de rapport de laboratoire et le nom du laboratoire tel que signé, jamais le rapport. Quand son lot est daté, il montre que le rapport existait déjà à ce moment-là, sans montrer les marqueurs à personne.',
   'app.plant.next.stamp.why':
     'Votre enregistrement est daté tout seul, dans un lot sur Midnight. Cette étape n’est pas nécessaire pour cela. Elle date la clé de votre enregistrement, dont vous n’avez besoin que pour prouver plus tard que vous le détenez, ou pour le concéder sous licence. Environ une minute, et gratuit. Vous pouvez le faire à tout moment.',
   'app.plant.next.rejected.title': 'Vous avez refusé cet échantillon',
@@ -261,7 +261,7 @@ export const plant = {
   'app.plant.next.dna.haveAction': 'Enregistrer un rapport ADN',
   'app.plant.next.date.title': 'Datez ce rapport ADN',
   'app.plant.next.date.why':
-    'Il est enregistré sur cette plante, mais rien ne le date encore. Le dater montre que le rapport existait à cette date, sans montrer les marqueurs à personne.',
+    'Il est enregistré sur cette plante, mais rien ne le date encore. Le dater montre que le rapport existait déjà à cette date, sans montrer les marqueurs à personne.',
   'app.plant.next.save.title': 'Enregistrez le rapport ADN sur cette plante',
   'app.plant.next.save.why':
     'Un laboratoire a signé avoir reçu un échantillon. Quand son rapport ADN reviendra, enregistrez-le sur cette plante : c’est ce qui lie votre enregistrement à la plante, pour pouvoir le comparer à un test ultérieur.',
@@ -269,7 +269,7 @@ export const plant = {
   'app.plant.next.ready.title': 'Cet enregistrement est prêt à servir',
   'app.plant.next.ready.why':
     'Un laboratoire a signé avoir reçu un échantillon, et un rapport ADN est enregistré sur cette plante. Vous pouvez transmettre du matériel ou accorder une licence, avec des conditions qui s’appliquent à la descendance déclarée à partir de cet enregistrement.',
-  'app.plant.next.ready.action': 'Commencer un contrat',
+  'app.plant.next.ready.action': 'Commencer un accord',
   'app.plant.next.backTo': 'Retour à {name}',
   'app.plant.next.noCurrent.title': 'Aucun rapport ADN en vigueur de {lab}',
   'app.plant.next.open.title': 'Ouvrir le rapport de laboratoire de {lab}',
@@ -337,7 +337,7 @@ export const plant = {
   'app.plant.dated.dated': 'daté {value}',
   'app.plant.dated.action': 'Dater ce rapport ADN',
   'app.plant.dated.why':
-    'Pour pouvoir montrer que ce rapport existait à cette date sans montrer les marqueurs à personne.',
+    'Pour pouvoir montrer que ce rapport existait déjà à cette date sans montrer les marqueurs à personne.',
   'app.plant.dated.seals':
     'Scelle un petit enregistrement contenant seulement le SHA-256 du rapport, son code de rapport de laboratoire et le nom du laboratoire tel que signé. Le rapport reste chez vous. Sa date vient quand son lot est daté.',
   'app.plant.dated.nameLabel': 'Nom du nouvel enregistrement',
@@ -347,7 +347,7 @@ export const plant = {
     'Ce rapport ADN est en train d’être daté dans un autre onglet ou une autre fenêtre. Attendez une minute, puis regardez de nouveau : il apparaîtra ici.',
   'app.plant.datingPage.title': 'Cet enregistrement date un rapport ADN pour <plant></plant>',
   'app.plant.datingPage.holds':
-    'Il ne contient que le SHA-256 du rapport, son code de rapport de laboratoire et le nom du laboratoire tel que signé, jamais le rapport. Quand son lot est daté, il montre que le rapport existait à ce moment-là, sans montrer les marqueurs à personne.',
+    'Il ne contient que le SHA-256 du rapport, son code de rapport de laboratoire et le nom du laboratoire tel que signé, jamais le rapport. Quand son lot est daté, il montre que le rapport existait déjà à ce moment-là, sans montrer les marqueurs à personne.',
   'app.plant.datingPage.recordDated': 'Enregistrement daté : {value}',
   'app.plant.datingPage.backup':
     '<b>Enregistrez votre sauvegarde.</b> La clé de cet enregistrement n’est que sur cet appareil.',
@@ -463,13 +463,13 @@ export const plant = {
   'app.plant.fix.field.breed': 'race',
   'app.plant.fix.field.herd': 'troupeau ou élevage',
   'app.plant.fix.c.cosmetic.cosmetic':
-    'Rien en aval n’est affecté. La descendance garde ses vérifications d’ascendance, et les contrats restent valables.',
+    'Rien en aval n’est affecté. La descendance garde ses vérifications d’ascendance, et les accords restent valables.',
   'app.plant.fix.c.cosmetic.material':
-    'La descendance n’est pas affectée : le matériel n’a pas changé. Mais toute personne ayant un contrat sur cet enregistrement doit le savoir, car les conditions peuvent porter sur ce que vous avez modifié.',
+    'La descendance n’est pas affectée : le matériel n’a pas changé. Mais toute personne ayant un accord sur cet enregistrement doit le savoir, car les conditions peuvent porter sur ce que vous avez modifié.',
   'app.plant.fix.c.material.cosmetic':
-    'Quiconque s’appuie sur la descendance de cet enregistrement doit vérifier de nouveau. Les contrats existants ne sont pas affectés.',
+    'Quiconque s’appuie sur la descendance de cet enregistrement doit vérifier de nouveau. Les accords existants ne sont pas affectés.',
   'app.plant.fix.c.material.material':
-    'La descendance et les contrats existants sont tous deux affectés. L’ascendance de la descendance devra être vérifiée de nouveau, et les autres parties à vos contrats devront être prévenues.',
+    'La descendance et les accords existants sont tous deux affectés. L’ascendance de la descendance devra être vérifiée de nouveau, et les autres parties à vos accords devront être prévenues.',
   'app.plant.fix.open': 'Corriger cet enregistrement',
   'app.plant.fix.title': 'Corriger {id}',
   'app.plant.fix.intro':

@@ -254,10 +254,10 @@ export const labresult = {
   'app.lr.check.withdrawn':
     'Dieses Labor steht nicht mehr hinter diesem Ergebnis. Die Signatur stimmt weiterhin. Es wurde vielleicht durch ein späteres Ergebnis ersetzt: Fragen Sie das Labor oder den Inhaber nach dem neuesten Ergebnis für diese Probe.',
   'app.lr.claim.onlyCall':
-    'Dieser Nachweis umfasst nur das Ergebnis. Worauf geprüft oder was verglichen wurde, steht in der Ergebnisdatei des Labors, nicht in diesem Nachweis. Wenn Sie die Datei haben, wählen Sie sie: Sie wird hier gegen diesen Nachweis geprüft und nicht gesendet.',
+    'Dieser Beleg umfasst nur das Ergebnis. Worauf geprüft oder was verglichen wurde, steht in der Ergebnisdatei des Labors, nicht in diesem Beleg. Wenn Sie die Datei haben, wählen Sie sie: Sie wird hier gegen diesen Beleg geprüft und nicht gesendet.',
   'app.lr.claim.choose': 'Ergebnisdatei des Labors auswählen',
-  'app.lr.claim.same': 'Die Ergebnisdatei gehört zu demselben signierten Ergebnis wie dieser Nachweis:',
-  'app.lr.claim.otherResult': 'Diese Datei gehört zu einem anderen Ergebnis, nicht zu dem dieses Nachweises.',
+  'app.lr.claim.same': 'Die Ergebnisdatei gehört zu demselben signierten Ergebnis wie dieser Beleg:',
+  'app.lr.claim.otherResult': 'Diese Datei gehört zu einem anderen Ergebnis, nicht zu dem dieses Belegs.',
   'app.lr.tools.markLeave':
     'Die Sequenzdatei der Markierung ist nicht gespeichert. Wenn Sie jetzt gehen, ist sie endgültig verloren, und das Siegel lässt sich in keinem Streitfall mehr öffnen. Trotzdem gehen?',
   'app.lr.problem.ctMissing':
@@ -312,7 +312,7 @@ export const labresult = {
     'Vom Absender: 64 Zeichen. Nur der Code kommt in das Ergebnis, nichts aus dem Datensatz. Er kann derselbe wie der der Probe sein.',
   'app.lr.form.sampled': 'Datum der Probenahme',
   'app.lr.form.recovers': 'Was der Test erfasst (der Produktionsstamm, Hefen und Schimmelpilze gesamt …)',
-  'app.lr.form.portion': 'Geprüfte Teilmenge und ihre Menge (25 g Futtermehl in 225 mL Bouillon …)',
+  'app.lr.form.portion': 'Geprüfte Teilmenge und ihre Menge (25 g Futtermehl in 225 ml Bouillon …)',
   'app.lr.form.cultures': 'Nährmedien und Bebrütung',
   'app.lr.form.culture.medium': 'Nährmedium',
   'app.lr.form.culture.time': 'Dauer',
@@ -397,7 +397,7 @@ export const labresult = {
   'app.marker.panelItem': '{claim} ({result})',
   'app.marker.thisResult': 'dieses Ergebnis',
   'app.marker.resultNamed': 'Ergebnis {accession}, {panel}',
-  'app.marker.copyAll': 'Einen Link mit allen {n} Nachweisen kopieren',
+  'app.marker.copyAll': 'Einen Link mit allen {n} Belegen kopieren',
   'app.marker.exactWarn.atLeast':
     'Dies ist die höchste Untergrenze, die noch gilt: Mit jeder Obergrenze für dieselbe Zahl legt sie die Zählung fest. Genaue Zahlen gegenüber bekannten Referenzen können zusammen den Genotyp eingrenzen. Eine gerundete Zahl zeigt weniger.',
   'app.marker.exactWarn.atMost':
@@ -426,7 +426,7 @@ export const labresult = {
   'app.marker.source.holder':
     'Keine Laborsignatur auf diesen Zahlen wird hier bestätigt. Lesen Sie sie daher als die eigenen des Inhabers.',
   'app.marker.more.title': 'Ebenfalls in diesem Link, zum selben Datensatz',
-  'app.marker.limits.title': 'Was diese Nachweise nicht zeigen',
+  'app.marker.limits.title': 'Was diese Belege nicht zeigen',
   'app.marker.limits.examine':
     'Es sind Zählungen, die ein Labor signiert hat. Ob zwei Sorten unterscheidbar sind, entscheidet die Prüfstelle anhand der Markerdaten selbst. Dies ersetzt diese Prüfung nicht.',
   'app.marker.limits.oneParty':
@@ -436,7 +436,7 @@ export const labresult = {
   'app.marker.limits.meaning':
     'Eine Übereinstimmung sagt nichts über nicht verglichene Marker und nicht, dass die beiden Proben dieselbe Pflanze, dasselbe Tier oder dieselbe Sorte sind. „Vereinbar mit den genannten Eltern“ bedeutet nicht, dass die Abstammung feststeht.',
   'app.marker.limits.which':
-    'Welche Datensätze verglichen wurden, die Methode und das Panel stehen in der Ergebnisdatei des Labors, nicht im Nachweis.',
+    'Welche Datensätze verglichen wurden, die Methode und das Panel stehen in der Ergebnisdatei des Labors, nicht im Beleg.',
   'app.marker.limits.later':
     'Sie betreffen das Ergebnis, wie es signiert wurde. Das Labor kann es seitdem berichtigt oder neu untersucht haben.',
   'app.marker.limits.size':

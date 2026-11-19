@@ -95,7 +95,7 @@ export const importing = {
   'app.import.check.onceSealed':
     '<b>Une fois scellés, ils ne peuvent plus changer.</b> Vous pourrez ajouter des rapports et des corrections plus tard ; une correction est un nouvel enregistrement qui renvoie à l’ancien.',
   'app.import.check.savedOn':
-    'Les informations ci-dessus sont conservées sur {server}, un enregistrement par ligne, verrouillées, les noms des plantes compris, et nous n’avons pas la clé. Les liens de vérification de votre fichier de résultats portent chaque nom, pour les personnes à qui vous les envoyez. Seul un code de preuve de chacun est daté sur {dated}. Un horodatage montre que les informations existaient à cette date ; il ne confirme pas qu’elles sont exactes.',
+    'Les informations ci-dessus sont conservées sur {server}, un enregistrement par ligne, verrouillées, les noms des plantes compris, et nous n’avons pas la clé. Les liens de vérification de votre fichier de résultats portent chaque nom, pour les personnes à qui vous les envoyez. Seul un code de preuve de chacun est daté sur {dated}. Un horodatage montre que les informations existaient déjà à cette date ; il ne confirme pas qu’elles sont exactes.',
   'app.import.check.sealN.one': 'Sceller {count} enregistrement',
   'app.import.check.sealN.other': 'Sceller {count} enregistrements',
   'app.import.check.nothing': 'Rien à sceller',
@@ -170,7 +170,7 @@ export const importing = {
   'app.import.done.byBatch':
     'Leur horodatage public arrive quand leur lot est daté sur {dated}. La page de chaque plante montre quand c’est fait. Vous n’avez rien à faire.',
   'app.import.done.dateStamp':
-    'Un horodatage montre que les informations existaient à cette date. Il ne confirme pas qu’elles sont exactes.',
+    'Un horodatage montre que les informations existaient déjà à cette date. Il ne confirme pas qu’elles sont exactes.',
   'app.import.done.toRecords': 'Aller à vos enregistrements',
   'app.import.done.another': 'Importer un autre fichier',
 } satisfies Partial<AppTranslation>;

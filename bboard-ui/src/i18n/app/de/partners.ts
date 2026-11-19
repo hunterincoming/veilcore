@@ -90,7 +90,7 @@ export const partners = {
     'checkRecord(link) liefert in Node oder im Browser einfaches JSON: recordExists, fingerprintMatches, dated (network, batch, transaction, block time, checkedOnChain), keyBound, labReceipts mit der Prüfung jedes Namens und whatThisDoesNotShow.',
   'app.partners.dev.2': 'Auf Midnight',
   'app.partners.dev.2.d':
-    'In Node, mit installiertem @veilcore/contracts, wird der Datumsstempel auf der Chain nachgesehen: der festgelegte Vertrag von VeilCore, der festgelegte Build, genau diese Stapelwurzel.',
+    'In Node, mit installiertem @veilcore/contracts, wird der Datumsstempel auf der Chain nachgesehen: der festgelegte Smart Contract von VeilCore, der festgelegte Build, genau diese Stapelwurzel.',
   'app.partners.dev.3': 'Kommandozeile',
   'app.partners.dev.3.d':
     'partner-kit check <link> gibt dieselbe Antwort aus. Exit 0: Der Datensatz existiert, der Link passt und nichts spricht dagegen. Exit 1: Etwas trifft nicht zu, auch ein Datum auf einem Testnetz (außer mit --allow-test-network) oder ein Inklusionsnachweis, der nicht aufgeht. Exit 2: Nichts konnte geprüft werden.',

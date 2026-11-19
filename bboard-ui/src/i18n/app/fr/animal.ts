@@ -172,7 +172,7 @@ export const animal = {
   'app.animal.v.app.plant.next.dna.haveText':
     'Enregistrez-le sur cet animal. Il est lu sur votre appareil ; le fichier n’est jamais envoyé.',
   'app.animal.v.app.plant.next.date.why':
-    'Il est enregistré sur cet animal, mais rien ne le date encore. Le dater montre que le rapport existait à cette date, sans montrer les marqueurs à personne.',
+    'Il est enregistré sur cet animal, mais rien ne le date encore. Le dater montre que le rapport existait déjà à cette date, sans montrer les marqueurs à personne.',
   'app.animal.v.app.plant.next.save.title': 'Enregistrez le rapport ADN sur cet animal',
   'app.animal.v.app.plant.next.save.why':
     'Un laboratoire a signé avoir reçu un échantillon. Quand son rapport ADN reviendra, enregistrez-le sur cet animal : c’est ce qui lie votre enregistrement à l’animal, pour pouvoir le comparer à un test ultérieur.',
@@ -253,7 +253,7 @@ export const animal = {
     'Tout ce qui fait aussi partie de l’accord, avec vos propres mots. Par exemple : au plus deux portées ou vêlages, pas de revente des paillettes, descendants inscrits auprès d’une association de race nommée.',
   'app.animal.v.app.lic.detail.thisCultivar': 'cet animal',
   'app.animal.v.app.lic.detail.lineage':
-    'Si un animal est enregistré plus tard avec {name} comme père ou mère et que les deux détenteurs le confirment, le lien vers ce contrat apparaît dans son enregistrement. Une descendance que personne n’enregistre n’est pas détectée.',
+    'Si un animal est enregistré plus tard avec {name} comme père ou mère et que les deux détenteurs le confirment, le lien vers cet accord apparaît dans son enregistrement. Une descendance que personne n’enregistre n’est pas détectée.',
   'app.animal.v.app.lic.detail.derivatives.one': '{count} animal déjà enregistré en descend.',
   'app.animal.v.app.lic.detail.derivatives.other': '{count} animaux déjà enregistrés en descendent.',
   'app.animal.v.app.lic.off.intro':

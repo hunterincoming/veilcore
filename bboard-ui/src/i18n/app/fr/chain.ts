@@ -21,8 +21,8 @@ export const chain = {
     'Impossible de joindre le réseau. Votre plante est enregistrée. Réessayez {when}, ou faites l’horodatage plus tard.',
   'app.chain.stampDidntGoThrough':
     'L’horodatage n’a pas abouti. Votre plante est enregistrée. Réessayez {when}, ou faites l’horodatage plus tard.',
-  'app.chain.progress.reading': 'Lecture du contrat sur le réseau…',
-  'app.chain.progress.checkingFiles': 'Vérification des fichiers de preuve de ce site par rapport au contrat…',
+  'app.chain.progress.reading': 'Lecture du smart contract sur le réseau…',
+  'app.chain.progress.checkingFiles': 'Vérification des fichiers de preuve de ce site par rapport au smart contract…',
   'app.chain.progress.preparing': 'Préparation de la transaction sur votre appareil…',
   'app.chain.progress.provingPhone':
     'Calcul de la preuve sur votre appareil. Sur un téléphone, cela peut prendre une minute…',

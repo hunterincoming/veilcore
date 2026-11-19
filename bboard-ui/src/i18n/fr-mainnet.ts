@@ -7,9 +7,9 @@ import { buildMainnet } from './mainnet-overlay';
 
 const sendsCommon: Strings = {
   'm.hero.status':
-    'Le contrat de VeilCore est sur le réseau principal de Midnight. Les enregistrements scellés sur ce site sont de vrais enregistrements : ils vont dans des lots qui y sont ancrés automatiquement. Prouver un enregistrement par un lien et dater un rapport ADN fonctionnent aussi ici, et VeilCore paie les frais du réseau. Les licences et les accords avec les laboratoires sont encore simulés ici.',
+    'Le smart contract de VeilCore est sur le réseau principal de Midnight. Les enregistrements scellés sur ce site sont de vrais enregistrements : ils vont dans des lots qui y sont ancrés automatiquement. Prouver un enregistrement par un lien et dater un rapport ADN fonctionnent aussi ici, et VeilCore paie les frais du réseau. Les licences et les accords avec les laboratoires sont encore simulés ici.',
   'm.faq.3a':
-    'Il est conçu pour servir de preuve, et notre note pour les juristes dit ce qu’un enregistrement prouve et ce qu’il ne prouve pas. Les enregistrements scellés ici vont dans des lots ancrés automatiquement sur le réseau principal de Midnight. Une fois le lot d’un enregistrement ancré, la date montre que l’enregistrement existait à ce moment-là ; ce que cela vaut dans un litige, c’est au tribunal d’en juger.',
+    'Il est conçu pour servir de preuve, et notre note pour les juristes dit ce qu’un enregistrement prouve et ce qu’il ne prouve pas. Les enregistrements scellés ici vont dans des lots ancrés automatiquement sur le réseau principal de Midnight. Une fois le lot d’un enregistrement ancré, la date montre que l’enregistrement existait déjà à ce moment-là ; ce que cela vaut dans un litige, c’est au tribunal d’en juger.',
   'm.demo.lede':
     'Pas d’inscription, pas de portefeuille. Les enregistrements que vous scellez ici sont de vrais enregistrements : chacun va dans un lot ancré automatiquement sur le réseau principal de Midnight ; sa page de vérification indique quand son lot est ancré. La vérification est gratuite, et VeilCore paie les frais du réseau pour ce que votre navigateur envoie. Les licences et les accords avec les laboratoires sont simulés. Le nom d’un enregistrement est verrouillé comme le reste ; un lien de vérification ne le contient que si vous l’activez.',
   'm.privacy.lede':
@@ -30,21 +30,21 @@ const sendsCommon: Strings = {
 export const frMainnet = buildMainnet({
   common: {
     'm.hero.status':
-      'Le contrat de VeilCore est sur le réseau principal de Midnight. Les enregistrements scellés sur ce site sont de vrais enregistrements : ils vont dans des lots que nous y ancrons à la main pour l’instant. Les licences et les accords avec les laboratoires sont encore simulés ici.',
+      'Le smart contract de VeilCore est sur le réseau principal de Midnight. Les enregistrements scellés sur ce site sont de vrais enregistrements : ils vont dans des lots que nous y ancrons à la main pour l’instant. Les licences et les accords avec les laboratoires sont encore simulés ici.',
     'm.faq.3a':
-      'Il est conçu pour servir de preuve, et notre note pour les juristes dit ce qu’un enregistrement prouve et ce qu’il ne prouve pas. Les enregistrements scellés ici vont dans des lots que nous ancrons à la main sur le réseau principal de Midnight. Une fois le lot d’un enregistrement ancré, la date montre que l’enregistrement existait à ce moment-là ; ce que cela vaut dans un litige, c’est au tribunal d’en juger.',
+      'Il est conçu pour servir de preuve, et notre note pour les juristes dit ce qu’un enregistrement prouve et ce qu’il ne prouve pas. Les enregistrements scellés ici vont dans des lots que nous ancrons à la main sur le réseau principal de Midnight. Une fois le lot d’un enregistrement ancré, la date montre que l’enregistrement existait déjà à ce moment-là ; ce que cela vaut dans un litige, c’est au tribunal d’en juger.',
     'm.stat2.b': 'Réseau principal',
     'm.foot.about':
       'Un format d’enregistrement ouvert pour la génétique végétale, animale et microbienne. Les enregistrements sont datés par ancrage sur le réseau principal de Midnight.',
     'm.get.2b':
-      'Ils sont attachés à l’enregistrement. Un licencié peut prouver qu’il détient une licence en vigueur sans montrer laquelle. Une redevance ou autre obligation sur un parent apparaît sur chaque descendant confirmé par les deux détenteurs ; VeilCore l’enregistre et ne la perçoit pas. Intégré au contrat sur le réseau principal de Midnight ; simulé sur ce site.',
+      'Ils sont attachés à l’enregistrement. Un licencié peut prouver qu’il détient une licence en vigueur sans montrer laquelle. Une redevance ou autre obligation sur un parent apparaît sur chaque descendant confirmé par les deux détenteurs ; VeilCore l’enregistre et ne la perçoit pas. Intégré au smart contract sur le réseau principal de Midnight ; simulé sur ce site.',
     'm.demo.lede':
       'Pas d’inscription, pas de portefeuille. Les enregistrements que vous scellez ici sont de vrais enregistrements : chacun va dans un lot que nous ancrons à la main pour l’instant sur le réseau principal de Midnight, donc un nouvel enregistrement peut attendre un moment ; sa page de vérification indique quand son lot est ancré. La vérification est gratuite. Les licences et les accords avec les laboratoires sont simulés, et les associations de rapports ADN ne sont pas datées. Le nom d’un enregistrement est verrouillé comme le reste ; un lien de vérification ne le contient que si vous l’activez.',
     'm.post0.text':
-      'Les deux contrats ont passé les 37 vérifications de bout en bout sur le réseau de test preprod de Midnight, y compris les nouvelles preuves d’un fait : une valeur, une plage, une différence, une correction qui laisse le reste inchangé et une signature d’une clé de laboratoire de test. Données de marqueurs fictives.',
-    'm.post2.title': 'Une exécution complète sur le réseau de test de Midnight',
+      'Les deux smart contracts ont passé les 37 vérifications de bout en bout sur le réseau de test preprod de Midnight, y compris les nouvelles preuves d’un fait : une valeur, une plage, une différence, une correction qui laisse le reste inchangé et une signature d’une clé de laboratoire de test. Données de marqueurs fictives.',
+    'm.post2.title': 'Une exécution complète sur le réseau de test preprod de Midnight',
     'm.post2.text':
-      'Le contrat a été déployé sur le réseau de test de Midnight et a passé les 26 vérifications de bout en bout, en utilisant 16 de ses 24 opérations avec de vraies preuves.',
+      'Le smart contract a été déployé sur le réseau de test preprod de Midnight et a passé les 26 vérifications de bout en bout, en utilisant 16 de ses 24 opérations avec de vraies preuves.',
     'm.contact.1p': 'Créez un enregistrement aujourd’hui. Écrivez-nous pour l’adapter à votre façon de travailler.',
     'm.nav.demo': 'Créer un enregistrement',
     'm.foot.demo': 'Créer un enregistrement',
@@ -84,27 +84,26 @@ export const frMainnet = buildMainnet({
   },
   claimsLive: {
     'm.claims.status':
-      'Un second contrat Midnight, sur le réseau principal de Midnight. Avant le lancement, il a réussi toutes les vérifications de bout en bout, avec des données de marqueurs inventées. Il n’est pas encore sur ce site.',
+      'Un second smart contract Midnight, sur le réseau principal de Midnight. Avant le lancement, il a réussi toutes les vérifications de bout en bout, avec des données de marqueurs inventées. Il n’est pas encore sur ce site.',
     'm.stat2.s':
-      'Les deux contrats sont sur le réseau principal de Midnight. Les enregistrements scellés sur ce site vont dans des lots que nous y ancrons à la main pour l’instant.',
+      'Les deux smart contracts sont sur le réseau principal de Midnight. Les enregistrements scellés sur ce site vont dans des lots que nous y ancrons à la main pour l’instant.',
   },
   claimsOnSite: {
     'm.claims.status':
-      'Un second contrat Midnight, sur le réseau principal de Midnight. Sur ce site, vous pouvez l’utiliser pour prouver un chiffre d’un certificat ou d’un résultat de laboratoire scellé avec ses chiffres : qu’il est au plus ou au moins une limite, ou exactement une valeur, sans montrer le reste. Utilisez un ordinateur ; les téléphones n’ont pas encore été essayés. Les autres preuves ci-dessus ne sont pas encore sur ce site.',
+      'Un second smart contract Midnight, sur le réseau principal de Midnight. Sur ce site, vous pouvez l’utiliser pour prouver un chiffre d’un certificat ou d’un résultat de laboratoire scellé avec ses chiffres : qu’il est au plus ou au moins une limite, ou exactement une valeur, sans montrer le reste. Utilisez un ordinateur ; les téléphones n’ont pas encore été essayés. Les autres preuves ci-dessus ne sont pas encore sur ce site.',
   },
   claimsPending: {
     'm.claims.status':
-      'Un second contrat Midnight. Lors des tests avant le lancement, il a réussi toutes les vérifications de bout en bout, avec des données de marqueurs inventées. Il n’est pas encore sur le réseau principal de Midnight, ni sur ce site.',
+      'Un second smart contract Midnight. Lors des tests avant le lancement, il a réussi toutes les vérifications de bout en bout, avec des données de marqueurs inventées. Il n’est pas encore sur le réseau principal de Midnight, ni sur ce site.',
     'm.stat2.s':
-      'Le contrat principal est sur le réseau principal de Midnight. Les enregistrements scellés sur ce site vont dans des lots que nous y ancrons à la main pour l’instant. Le contrat de revendications suivra.',
+      'Le smart contract principal est sur le réseau principal de Midnight. Les enregistrements scellés sur ce site vont dans des lots que nous y ancrons à la main pour l’instant. Le contrat des preuves suivra.',
   },
   keyHolders:
     'Une clé de maintenance peut modifier le fonctionnement du contrat principal de VeilCore sur Midnight. Son détenteur peut ajouter ou remplacer des opérations du contrat, ce qui pourrait lui permettre de prendre le contrôle de l’identité de n’importe quel enregistrement, d’ajouter des licences au nom de n’importe quel émetteur, d’ajouter ou de retirer des obligations et des liens de parenté, ou de désactiver des opérations. Elle ne peut pas antidater les heures de bloc du réseau, et chaque modification est visible sur la chaîne. Elle ne peut ni modifier ni retirer un lot déjà ancré, ni la date qu’il donne à un enregistrement : elle se trouve dans la transaction qui l’a ancré, que personne ne peut modifier. Aujourd’hui, la clé est sur papier, une copie chez chaque fondateur, et une seule copie suffit pour l’utiliser. Le passage à trois clés, dont deux doivent s’accorder, était prévu avant la mise à niveau Ledger 9 de Midnight du 6 novembre 2026 et n’a pas été fait. Le réseau accepte toujours la clé : considérez-la donc comme active. Le compteur de modifications du contrat était à 16 le 13 novembre 2026. Tout le monde peut le vérifier, et toute modification l’augmente.',
   policyApproved: ' Chaque utilisation est annoncée publiquement, selon une politique de maintenance écrite.',
   policyProposed: ' Une politique pour son utilisation est proposée, pas encore décidée.',
-  claimsNoKey:
-    ' Le contrat de revendications n’a pas de clé de maintenance : personne, pas même nous, ne peut le modifier.',
-  keyTitlePlural: 'Qui peut modifier les contrats.',
+  claimsNoKey: ' Le contrat des preuves n’a pas de clé de maintenance : personne, pas même nous, ne peut le modifier.',
+  keyTitlePlural: 'Qui peut modifier les smart contracts.',
   keyLinkApproved: 'Lire la politique de maintenance →',
   keyLinkProposed: 'Lire la politique proposée →',
   reads: {
@@ -125,8 +124,8 @@ export const frMainnet = buildMainnet({
       'Les licences et les accords avec les laboratoires se font aussi ici, entre les navigateurs des deux parties.',
     ],
     'm.get.2b': [
-      'Intégré au contrat sur le réseau principal de Midnight ; simulé sur ce site.',
-      'Les licences se font depuis ce site, sur le réseau principal de Midnight. Le contrat peut prouver qu’une licence est en vigueur sans la montrer ; il faut pour cela un portefeuille, que ce site n’utilise pas.',
+      'Intégré au smart contract sur le réseau principal de Midnight ; simulé sur ce site.',
+      'Les licences se font depuis ce site, sur le réseau principal de Midnight. Le smart contract peut prouver qu’une licence est en vigueur sans la montrer ; il faut pour cela un portefeuille, que ce site n’utilise pas.',
     ],
     'm.demo.lede': [
       'Les licences et les accords avec les laboratoires sont simulés.',
@@ -140,7 +139,7 @@ export const frMainnet = buildMainnet({
   sends: (claimsOnMainnet) => ({
     ...sendsCommon,
     'm.stat2.s': claimsOnMainnet
-      ? 'Les deux contrats sont sur le réseau principal de Midnight. Les enregistrements scellés sur ce site vont dans des lots qui y sont ancrés automatiquement.'
-      : 'Le contrat principal est sur le réseau principal de Midnight. Les enregistrements scellés sur ce site vont dans des lots qui y sont ancrés automatiquement. Le contrat de revendications suivra.',
+      ? 'Les deux smart contracts sont sur le réseau principal de Midnight. Les enregistrements scellés sur ce site vont dans des lots qui y sont ancrés automatiquement.'
+      : 'Le smart contract principal est sur le réseau principal de Midnight. Les enregistrements scellés sur ce site vont dans des lots qui y sont ancrés automatiquement. Le contrat des preuves suivra.',
   }),
 });

@@ -95,13 +95,13 @@ export const strain = {
   'app.strain.v.app.plant.next.dna.haveText':
     'Speichern Sie ihn bei dieser Linie. Er wird auf Ihrem Gerät gelesen; die Datei wird nie hochgeladen.',
   'app.strain.v.app.plant.next.date.why':
-    'Er ist bei dieser Linie gespeichert, aber noch datiert ihn nichts. Ihn zu datieren zeigt, dass der Bericht zu diesem Datum existierte, ohne jemandem die Marker zu zeigen.',
+    'Er ist bei dieser Linie gespeichert, aber noch datiert ihn nichts. Ihn zu datieren zeigt, dass der Bericht spätestens zu diesem Datum existierte, ohne jemandem die Marker zu zeigen.',
   'app.strain.v.app.plant.next.save.title': 'Den DNA-Bericht bei dieser Linie speichern',
   'app.strain.v.app.plant.next.save.why':
     'Ein Labor hat signiert, dass es eine Probe erhalten hat. Wenn sein DNA-Bericht zurückkommt, speichern Sie ihn bei dieser Linie: Das verknüpft Ihren Datensatz mit der Linie, damit ein späterer Test damit verglichen werden kann.',
   'app.strain.v.app.plant.next.save.action': 'Bei dieser Linie speichern',
   'app.strain.v.app.plant.next.ready.why':
-    'Ein Labor hat signiert, dass es eine Probe erhalten hat, und ein DNA-Bericht ist bei diesem Stamm gespeichert. Sie können Material weitergeben oder es lizenzieren, mit Bedingungen, die für als von diesem Datensatz abgeleitet angemeldete Stämme gelten.',
+    'Ein Labor hat signiert, dass es eine Probe erhalten hat, und ein DNA-Bericht ist bei diesem Stamm gespeichert. Sie können Material weitergeben oder es lizenzieren, mit Bedingungen, die für als von diesem Datensatz abgeleitet angegebene Stämme gelten.',
   'app.strain.v.app.plant.tree.none':
     'Noch keine Abstammung erfasst. Fügen Sie beim Erfassen Elternstämme hinzu, um den Stammbaum aufzubauen.',
   'app.strain.v.app.plant.anchor.keysNotHere':
@@ -183,7 +183,7 @@ export const strain = {
   'app.strain.v.app.verify.bredByShared': 'Hergestellt oder isoliert von, wie vom Inhaber angegeben: {name}',
   'app.strain.v.app.verify.noBredBy': 'Nicht erfasst, wer ihn hergestellt oder isoliert hat.',
   'app.strain.v.app.lic.row.offspring': 'Lizenzgebühr auf abgeleitete Stämme',
-  'app.strain.v.app.lic.row.offspringValue': '{pct} %, auf Stämme, die als von diesem abgeleitet angemeldet werden',
+  'app.strain.v.app.lic.row.offspringValue': '{pct} %, auf Stämme, die als von diesem abgeleitet angegeben werden',
   'app.strain.v.app.lic.f.offspring': 'Lizenzgebühr auf abgeleitete Stämme (%)',
   'app.strain.v.app.lic.f.offspringHelp':
     'Zählt nur Stämme, die in VeilCore als von diesem abgeleitet erfasst sind. Leer lassen, wenn keine.',
@@ -191,12 +191,12 @@ export const strain = {
     'Alles, was sonst zum Geschäft gehört, in Ihren eigenen Worten. Zum Beispiel: keine Weitergabe an Dritte, Quelle in Veröffentlichungen nennen, Restbestände am Ende vernichten.',
   'app.strain.v.app.lic.detail.thisCultivar': 'diesem Stamm',
   'app.strain.v.app.lic.detail.lineage':
-    'Wird später ein Stamm mit {name} als Elternteil erfasst und bestätigen beide Inhaber dies, erscheint die Verbindung zu dieser Vereinbarung in seinem Datensatz. Abgeleitete Stämme, die niemand erfasst, werden nicht erkannt.',
+    'Wird später ein Stamm mit {name} als Elternteil erfasst und bestätigen beide Datensatzinhaber dies, erscheint die Verbindung zu dieser Vereinbarung in seinem Datensatz. Abgeleitete Stämme, die niemand erfasst, werden nicht erkannt.',
   'app.strain.v.app.lic.detail.derivatives.one': '{count} bereits erfasster Stamm stammt davon ab.',
   'app.strain.v.app.lic.detail.derivatives.other': '{count} bereits erfasste Stämme stammen davon ab.',
   'app.strain.v.app.lic.off.title': 'Lizenzgebühr auf abgeleitete Stämme: {pct}',
   'app.strain.v.app.lic.off.intro':
-    'Auf Midnight liegt sie auf dem eigenen Datensatz des Lizenznehmers zu diesem Stamm, sodass jeder abgeleitete Stamm, den beide Inhaber bestätigen, sie zeigt, wenn jemand die Linie prüft. Der Lizenznehmer nimmt sie an; nur der Lizenzgeber kann sie aufheben.',
+    'Auf Midnight liegt sie auf dem eigenen Datensatz des Lizenznehmers zu diesem Stamm, sodass jeder abgeleitete Stamm, den beide Datensatzinhaber bestätigen, sie zeigt, wenn jemand die Linie prüft. Der Lizenznehmer nimmt sie an; nur der Lizenzgeber kann sie aufheben.',
   'app.strain.v.app.lic.off.dateFirst':
     'Datieren Sie zuerst Ihren eigenen Datensatz zu diesem Stamm und nennen Sie ihn dann hier.',
   'app.strain.v.app.lic.off.datePlant': 'Einen Datensatz datieren',
@@ -204,7 +204,7 @@ export const strain = {
   'app.strain.v.app.lic.off.waitName': 'Warten, bis die andere Seite ihren Datensatz zu diesem Stamm nennt.',
   // components/chain/FamilyOnChain.tsx
   'app.strain.v.app.family.intro':
-    'Abstammung, der beide Inhaber zugestimmt haben, auf der Chain. Sie erlaubt jedem, die Linie eines Stammes zu prüfen, und trägt die Nachkommen-Lizenzgebühr eines Elternteils zu dessen Nachkommen. Eine bestätigte Verknüpfung ist öffentlich und dauerhaft: Sie lässt sich nicht zurücknehmen, und Lizenzgebühren, die der Inhaber des Elternteils später übernimmt, erscheinen ebenfalls in der Linie dieses Datensatzes.',
+    'Abstammung, der beide Datensatzinhaber zugestimmt haben, auf der Chain. Sie erlaubt jedem, die Linie eines Stammes zu prüfen, und trägt die Nachkommen-Lizenzgebühr eines Elternteils zu dessen Nachkommen. Eine bestätigte Verknüpfung ist öffentlich und dauerhaft: Sie lässt sich nicht zurücknehmen, und Lizenzgebühren, die der Inhaber des Elternteils später übernimmt, erscheinen ebenfalls in der Linie dieses Datensatzes.',
   'app.strain.v.app.family.namesParent':
     '{who} benennt diesen Datensatz als Elternteil. Bestätigen Sie nur, wenn er wirklich von diesem Stamm stammt. Die Bestätigung ist öffentlich und dauerhaft, und alles, was auf diesem Stamm geschuldet ist, jetzt oder später, erscheint in seiner Linie.',
   'app.strain.v.app.family.confirmQ':

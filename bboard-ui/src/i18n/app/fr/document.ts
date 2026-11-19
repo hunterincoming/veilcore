@@ -11,7 +11,7 @@ export const document = {
   'app.doc.new.intro':
     'Choisissez le fichier. Il reste sur cet appareil. Seuls un code calculé à partir de son contenu, son nom et sa taille sont scellés, avec une date que personne ne peut antidater. Si un seul caractère du fichier change, le code ne correspond plus.',
   'app.doc.new.proves':
-    'Ce que cela montrera : un fichier avec exactement ces octets était entre vos mains à la date où il est scellé. Pas que le document est authentique, que l’émetteur l’a émis, ni que ce qu’il dit est vrai.',
+    'Ce que cela montrera : un fichier avec exactement ces octets était entre vos mains au plus tard à la date où il est scellé. Pas que le document est authentique, que l’émetteur l’a émis, ni que ce qu’il dit est vrai.',
   'app.doc.f.files': 'Fichiers',
   'app.doc.f.filesHelp': 'Jusqu’à {max} : un contrat et ses annexes, un certificat d’analyse et ses chromatogrammes.',
   'app.doc.f.add': 'Ajouter un fichier',
@@ -110,7 +110,7 @@ export const document = {
   'app.doc.check.notDated':
     'Rien ne date encore cet enregistrement, ou le lien a été modifié. Ne vous y fiez pas avant qu’il affiche une date.',
   'app.doc.check.what':
-    'Ce que cela montre : un fichier avec exactement ces octets était entre les mains du détenteur à cette date. Ce que cela ne montre pas : que le document est authentique, que l’émetteur l’a émis, ni que ce qu’il dit est vrai. « Émis par » est la déclaration du détenteur.',
+    'Ce que cela montre : un fichier avec exactement ces octets était entre les mains du détenteur au plus tard à cette date. Ce que cela ne montre pas : que le document est authentique, que l’émetteur l’a émis, ni que ce qu’il dit est vrai. « Émis par » est la déclaration du détenteur.',
   'app.doc.check.whatUndated':
     'Ce que cela montrera, une fois daté : un fichier avec exactement ces octets était entre les mains du détenteur au plus tard à sa date. Ce que cela ne montre pas : que le document est authentique, que l’émetteur l’a émis, ni que ce qu’il dit est vrai. « Émis par » est la déclaration du détenteur.',
   'app.doc.check.inLink': 'Dans le lien (les propres mots du détenteur)',

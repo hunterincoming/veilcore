@@ -21,8 +21,8 @@ export const chain = {
     'Das Netzwerk war nicht erreichbar. Ihre Pflanze ist gespeichert. Versuchen Sie es {when} erneut oder setzen Sie den Datumsstempel später.',
   'app.chain.stampDidntGoThrough':
     'Der Datumsstempel hat nicht geklappt. Ihre Pflanze ist gespeichert. Versuchen Sie es {when} erneut oder setzen Sie den Datumsstempel später.',
-  'app.chain.progress.reading': 'Vertrag wird aus dem Netzwerk gelesen…',
-  'app.chain.progress.checkingFiles': 'Die Beweisdateien dieser Website werden mit dem Vertrag abgeglichen…',
+  'app.chain.progress.reading': 'Smart Contract wird aus dem Netzwerk gelesen…',
+  'app.chain.progress.checkingFiles': 'Die Beweisdateien dieser Website werden mit dem Smart Contract abgeglichen…',
   'app.chain.progress.preparing': 'Die Transaktion wird auf Ihrem Gerät vorbereitet…',
   'app.chain.progress.provingPhone':
     'Der Beweis wird auf Ihrem Gerät erstellt. Auf einem Handy kann das eine Minute dauern…',
@@ -39,7 +39,7 @@ export const chain = {
   // components/chain/FamilyOnChain.tsx: a record's parents and offspring on Midnight.
   'app.family.title': 'Familie auf Midnight',
   'app.family.intro':
-    'Abstammung, der beide Inhaber zugestimmt haben, auf der Chain. Sie erlaubt jedem, die Linie einer Pflanze zu prüfen, und trägt die Nachkommen-Lizenzgebühr eines Elternteils zu dessen Nachkommen. Eine bestätigte Verknüpfung ist öffentlich und dauerhaft: Sie lässt sich nicht zurücknehmen, und Lizenzgebühren, die der Inhaber des Elternteils später übernimmt, erscheinen ebenfalls in der Linie dieses Datensatzes.',
+    'Abstammung, der beide Datensatzinhaber zugestimmt haben, auf der Chain. Sie erlaubt jedem, die Linie einer Pflanze zu prüfen, und trägt die Nachkommen-Lizenzgebühr eines Elternteils zu dessen Nachkommen. Eine bestätigte Verknüpfung ist öffentlich und dauerhaft: Sie lässt sich nicht zurücknehmen, und Lizenzgebühren, die der Inhaber des Elternteils später übernimmt, erscheinen ebenfalls in der Linie dieses Datensatzes.',
   'app.family.reading': 'Die Chain wird gelesen…',
   'app.family.parents': 'Eltern:',
   'app.family.noneConfirmed': 'keine bestätigt',

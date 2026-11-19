@@ -265,7 +265,7 @@ export const plant = {
   'app.plant.next.dna.haveAction': 'Einen DNA-Bericht speichern',
   'app.plant.next.date.title': 'Diesen DNA-Bericht datieren',
   'app.plant.next.date.why':
-    'Er ist bei dieser Pflanze gespeichert, aber noch datiert ihn nichts. Ihn zu datieren zeigt, dass der Bericht zu diesem Datum existierte, ohne jemandem die Marker zu zeigen.',
+    'Er ist bei dieser Pflanze gespeichert, aber noch datiert ihn nichts. Ihn zu datieren zeigt, dass der Bericht spätestens zu diesem Datum existierte, ohne jemandem die Marker zu zeigen.',
   'app.plant.next.save.title': 'Den DNA-Bericht bei dieser Pflanze speichern',
   'app.plant.next.save.why':
     'Ein Labor hat signiert, dass es eine Probe erhalten hat. Wenn sein DNA-Bericht zurückkommt, speichern Sie ihn bei dieser Pflanze: Das verknüpft Ihren Datensatz mit der Pflanze, damit ein späterer Test damit verglichen werden kann.',
@@ -342,7 +342,7 @@ export const plant = {
   'app.plant.dated.dated': 'datiert {value}',
   'app.plant.dated.action': 'Diesen DNA-Bericht datieren',
   'app.plant.dated.why':
-    'Damit Sie zeigen können, dass dieser Bericht zu diesem Datum existierte, ohne jemandem die Marker zu zeigen.',
+    'Damit Sie zeigen können, dass dieser Bericht spätestens zu diesem Datum existierte, ohne jemandem die Marker zu zeigen.',
   'app.plant.dated.seals':
     'Versiegelt einen kleinen Datensatz mit nur dem SHA-256 des Berichts, seinem Laborberichtscode und dem Namen des Labors wie signiert. Der Bericht bleibt bei Ihnen. Sein Datum kommt, wenn sein Stapel datiert wird.',
   'app.plant.dated.nameLabel': 'Name des neuen Datensatzes',
@@ -390,13 +390,13 @@ export const plant = {
   'app.plant.keys.removeBacked':
     'Die Schlüssel dieses Datensatzes aus diesem Browser entfernen? Sie können sie aus Ihrer Sicherungsdatei wiederherstellen.',
   'app.plant.keys.removeUnbacked':
-    'Sie haben KEINE Sicherung dieser Schlüssel heruntergeladen. Wenn Sie sie entfernen, holt dieser Browser sie nicht zurück, und nur Ihre Sicherungsdatei, in einem neuen Browser wiederhergestellt, kann sie zurückbringen. Trotzdem entfernen?',
+    'Sie haben KEINE Sicherungskopie dieser Schlüssel heruntergeladen. Wenn Sie sie entfernen, holt dieser Browser sie nicht zurück, und nur Ihre Sicherungsdatei, in einem neuen Browser wiederhergestellt, kann sie zurückbringen. Trotzdem entfernen?',
   'app.plant.keys.title': 'Datensatzschlüssel',
   'app.plant.keys.holds':
-    'Dieser Browser enthält die zwei Geheimnisse, die beweisen, dass Sie diesen Datensatz auf der Chain halten. Eine Kopie steckt auch im verschlossenen Datensatz bei VeilCore, den nur der Schlüssel öffnet, der Ihre Datensätze verschließt. Das Leeren dieses Browsers löscht sie hier; das Wiederherstellen Ihrer Sicherung bringt sie zurück.',
+    'Dieser Browser enthält die zwei Geheimnisse, die beweisen, dass Sie diesen Datensatz auf der Chain halten. Eine Kopie steckt auch im verschlossenen Datensatz bei VeilCore, den nur der Schlüssel öffnet, der Ihre Datensätze verschließt. Das Leeren dieses Browsers löscht sie hier; das Wiederherstellen Ihrer Sicherungskopie bringt sie zurück.',
   'app.plant.keys.holdsDeviceOnly':
-    'Dieser Browser enthält die zwei Geheimnisse, die beweisen, dass Sie diesen Datensatz auf der Chain halten. Dieser Datensatz wird nur auf diesem Gerät aufbewahrt, deshalb geht keine Kopie davon verschlossen an VeilCore. Nur dieser Browser und Ihre geprüfte Sicherung enthalten sie, dazu Ihre Passkey-Kopie, falls Sie eine haben, verschlossen auf dem Server von VeilCore (sie enthält nur Schlüssel, nie den Datensatz). Das Leeren dieses Browsers löscht sie hier; das Wiederherstellen Ihrer Sicherung bringt sie zurück.',
-  'app.plant.keys.noBackup': 'Noch keine Sicherung. Laden Sie sie herunter und bewahren Sie sie offline auf.',
+    'Dieser Browser enthält die zwei Geheimnisse, die beweisen, dass Sie diesen Datensatz auf der Chain halten. Dieser Datensatz wird nur auf diesem Gerät aufbewahrt, deshalb geht keine Kopie davon verschlossen an VeilCore. Nur dieser Browser und Ihre geprüfte Sicherungskopie enthalten sie, dazu Ihre Passkey-Kopie, falls Sie eine haben, verschlossen auf dem Server von VeilCore (sie enthält nur Schlüssel, nie den Datensatz). Das Leeren dieses Browsers löscht sie hier; das Wiederherstellen Ihrer Sicherungskopie bringt sie zurück.',
+  'app.plant.keys.noBackup': 'Noch keine Sicherungskopie. Laden Sie sie herunter und bewahren Sie sie offline auf.',
   'app.plant.keys.downloadAgain': 'Sicherungskopie erneut herunterladen',
   'app.plant.keys.download': 'Sicherungskopie herunterladen (geheim)',
   'app.plant.keys.remove': 'Aus diesem Browser entfernen',

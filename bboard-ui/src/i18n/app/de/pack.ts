@@ -102,7 +102,7 @@ export const pack = {
   'app.pack.doc.missing': 'Fehlt: In diesen VeilCore-Einträgen gibt es keinen Chromatographiebericht zu diesem Los.',
   'app.pack.doc.proofs': '6. Prüfcodes, Prüflinks und Daten',
   'app.pack.doc.proofsHelp':
-    'Jeder kann jeden Prüflink kostenlos und ohne Konto öffnen. Ein VeilCore-Eintrag zeigt die frühere Inhaberschaft seiner Datei und Angaben zu seinem Datum. Er zeigt nicht, dass stimmt, was er sagt.',
+    'Jeder kann jeden Prüflink kostenlos und ohne Konto öffnen. Ein VeilCore-Datensatz zeigt das frühere Vorliegen seiner Datei und Angaben spätestens zu seinem Datum. Er zeigt nicht, dass stimmt, was er sagt.',
   'app.pack.doc.recordId': 'VeilCore-ID {id}',
   'app.pack.doc.proofCode': 'Prüfcode',
   'app.pack.doc.checkLink': 'Prüflink',
@@ -118,7 +118,7 @@ export const pack = {
   'app.pack.doc.notForm':
     'Uns ist kein veröffentlichtes amtliches Formular für diese Erklärung bekannt. VeilCore reicht nichts für den Verein ein. Der Verein prüft diese Unterlagen, unterschreibt sie und sendet sie selbst.',
   'app.pack.doc.handover':
-    'Nur aus den VeilCore-Einträgen in diesem Browser erstellt. VeilCore-Einträge, die auf dem Gerät einer anderen verantwortlichen Person versiegelt wurden, sind nur enthalten, wenn sie hier aus deren Sicherung wiederhergestellt wurden.',
+    'Nur aus den VeilCore-Einträgen in diesem Browser erstellt. VeilCore-Einträge, die auf dem Gerät einer anderen verantwortlichen Person versiegelt wurden, sind nur enthalten, wenn sie hier aus deren Sicherungskopie wiederhergestellt wurden.',
   'app.pack.doc.signSign': 'Unterschrift',
   'app.pack.doc.signName': 'Name in Druckbuchstaben',
   'app.pack.doc.signRole': 'Funktion (gesetzliche Vertretung / technisch verantwortliche Person)',

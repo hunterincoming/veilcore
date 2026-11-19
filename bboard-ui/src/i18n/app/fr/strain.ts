@@ -96,7 +96,7 @@ export const strain = {
   'app.strain.v.app.plant.next.dna.haveText':
     'Enregistrez-le sur cette souche. Il est lu sur votre appareil ; le fichier n’est jamais envoyé.',
   'app.strain.v.app.plant.next.date.why':
-    'Il est enregistré sur cette souche, mais rien ne le date encore. Le dater montre que le rapport existait à cette date, sans montrer les marqueurs à personne.',
+    'Il est enregistré sur cette souche, mais rien ne le date encore. Le dater montre que le rapport existait déjà à cette date, sans montrer les marqueurs à personne.',
   'app.strain.v.app.plant.next.save.title': 'Enregistrez le rapport ADN sur cette souche',
   'app.strain.v.app.plant.next.save.why':
     'Un laboratoire a signé avoir reçu un échantillon. Quand son rapport ADN reviendra, enregistrez-le sur cette souche : c’est ce qui lie votre enregistrement à la souche, pour pouvoir le comparer à un test ultérieur.',
@@ -191,7 +191,7 @@ export const strain = {
     'Tout ce qui fait aussi partie de l’accord, avec vos propres mots. Par exemple : pas de cession à des tiers, citer la source dans les publications, détruire le stock restant à la fin.',
   'app.strain.v.app.lic.detail.thisCultivar': 'cette souche',
   'app.strain.v.app.lic.detail.lineage':
-    'Si une souche est enregistrée plus tard avec {name} comme parent et que les deux détenteurs le confirment, le lien vers ce contrat apparaît dans son enregistrement. Les souches dérivées que personne n’enregistre ne sont pas détectées.',
+    'Si une souche est enregistrée plus tard avec {name} comme parent et que les deux détenteurs le confirment, le lien vers cet accord apparaît dans son enregistrement. Les souches dérivées que personne n’enregistre ne sont pas détectées.',
   'app.strain.v.app.lic.detail.derivatives.one': '{count} souche déjà enregistrée en descend.',
   'app.strain.v.app.lic.detail.derivatives.other': '{count} souches déjà enregistrées en descendent.',
   'app.strain.v.app.lic.off.title': 'Redevance sur les souches dérivées : {pct}',

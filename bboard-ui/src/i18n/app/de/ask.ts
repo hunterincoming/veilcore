@@ -136,9 +136,9 @@ export const ask = {
   'app.ask.due.calName': 'VeilCore: {what}',
   'app.ask.explain.title': 'Erklären',
   'app.ask.explain.pick': 'Wählen Sie ein Wort:',
-  'app.ask.term.priorPossession': 'Früheres Halten',
+  'app.ask.term.priorPossession': 'Früheres Vorliegen',
   'app.ask.def.priorPossession':
-    'Ein Datensatz zeigt, dass Sie diesen Datensatz zu einem Datum gehalten haben: Er wurde damals versiegelt, und sein Prüfcode wurde auf Midnight datiert. Er zeigt nicht, dass Sie das Material hatten oder wer es gezüchtet hat. Mehr behauptet er nicht.',
+    'Ein Datensatz zeigt, dass Sie diesen Datensatz spätestens zu einem Datum gehalten haben: Er wurde damals versiegelt, und sein Prüfcode wurde auf Midnight datiert. Er zeigt nicht, dass Sie das Material hatten oder wer es gezüchtet hat. Mehr behauptet er nicht.',
   'app.ask.term.proofCode': 'Prüfcode',
   'app.ask.def.proofCode':
     'Ein kurzer Code, der aus einem versiegelten Datensatz entsteht. Jeder kann einen Datensatz damit prüfen, und er zeigt nichts von seinem Inhalt.',
@@ -200,7 +200,7 @@ export const ask = {
   'app.ask.batch.saved.other': '{count} Datensätze gespeichert',
   'app.ask.batch.chainTitle': 'Freiwillig: Abstammung auf Midnight prüfbar machen',
   'app.ask.batch.chainText':
-    'Dieser Teil ist öffentlich. Jeder Datensatz braucht zwei Schritte: Sie nennen die Eltern auf Midnight, dann bestätigt der Inhaber der Eltern. Das geht auf der Seite jedes Datensatzes unter „Family on Midnight“.',
+    'Dieser Teil ist öffentlich. Jeder Datensatz braucht zwei Schritte: Sie nennen den Elternteil auf Midnight, dann bestätigt der Inhaber des Elternteils. Das geht auf der Seite jedes Datensatzes unter „Familie auf Midnight“.',
   'app.ask.batch.chainOpen': 'Den ersten öffnen',
   'app.ask.batch.toRecords': 'Zu Ihren Datensätzen',
   'app.ask.batch.cutClones': 'Stecklinge davon schneiden',

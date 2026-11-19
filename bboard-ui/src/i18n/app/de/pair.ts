@@ -48,7 +48,7 @@ export const pair = {
   'app.pair.noDna':
     'VeilCore testet keine DNA: Sie speichern den DNA-Bericht, den Ihr Testlabor Ihnen gegeben hat. Er wird auf Ihrem Gerät gelesen und mit einem Code versehen; die Datei wird nie hochgeladen. Ihr Code und ihr Dateiname werden mit Ihrem Datensatz gespeichert. {after}',
   'app.pair.afterChain': 'Danach können Sie die Kopplung auch im Netzwerk datieren.',
-  'app.pair.afterDemo': 'In {thisSite} wird die Kopplung noch nicht datiert; mit dem VeilCore-Vertrag schon.',
+  'app.pair.afterDemo': 'In {thisSite} wird die Kopplung noch nicht datiert; mit dem VeilCore-Smart-Contract schon.',
   'app.pair.tap': 'Tippen, um Ihren DNA-Bericht zu wählen',
   'app.pair.drag': 'Ziehen Sie Ihren DNA-Bericht hierher oder klicken Sie, um ihn zu wählen',
   'app.pair.dropHint': 'Die Berichtsdatei, die Ihr Testlabor geschickt hat: lokal gelesen, nie hochgeladen.',
@@ -79,11 +79,11 @@ export const pair = {
   'app.pair.chain.download': 'Nachweisdatei herunterladen',
   'app.pair.chain.title': 'Diese Kopplung auch im Testnetz datieren (optional)',
   'app.pair.chain.intro':
-    'Damit kommt ein Code dauerhaft auf die Chain, neben die Identität dieses Datensatzes. Der Code wird aus dem SHA-256 des Berichts und einer Zufallszahl gebildet, die in diesem Browser bleibt. Er verrät also nichts über den Bericht, und niemand kann ihn in seinen eigenen Datensatz kopieren. Danach laden Sie eine Nachweisdatei herunter: Mit ihr und dem Bericht kann jeder prüfen, dass der Inhaber dieses Datensatzes den Bericht zu diesem Datum hatte.',
+    'Damit kommt ein Code dauerhaft auf die Chain, neben die Identität dieses Datensatzes. Der Code wird aus dem SHA-256 des Berichts und einer Zufallszahl gebildet, die in diesem Browser bleibt. Er verrät also nichts über den Bericht, und niemand kann ihn in seinen eigenen Datensatz kopieren. Danach laden Sie eine Nachweisdatei herunter: Mit ihr und dem Bericht kann jeder prüfen, dass der Inhaber dieses Datensatzes den Bericht spätestens zu diesem Datum hatte.',
   'app.pair.chain.earlier':
     'Ein früherer Versuch wurde gesendet, aber nicht bestätigt. Er ist vielleicht angekommen. Erneutes Senden verwendet denselben Code, daher kann keine zweite, andere Kopplung entstehen.',
   'app.pair.chain.sendAgain': 'Erneut senden',
   'app.pair.chain.date': 'Kopplung datieren',
   'app.pair.chain.testOnly':
-    'Nur Testnetz. Das zeigt, dass, wer die Identität dieses Datensatzes kontrollierte, den Bericht oder seinen SHA-256 zu dem Datum hatte, an dem er ankommt. Das ist keine Prüfung der Genetik.',
+    'Nur Testnetz. Das zeigt, dass, wer die Identität dieses Datensatzes kontrollierte, den Bericht oder seinen SHA-256 spätestens zu dem Datum hatte, an dem er ankommt. Das ist keine Prüfung der Genetik.',
 } satisfies Partial<AppTranslation>;

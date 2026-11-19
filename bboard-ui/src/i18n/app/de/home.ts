@@ -12,7 +12,7 @@ export const home = {
   'app.home.draftKept':
     'Was Sie eingegeben haben, ist in diesem Browser gespeichert. Machen Sie dort weiter, wo Sie aufgehört haben.',
   'app.home.aboutThreeMinutes':
-    'Etwa 3 Minuten. Danach hat sie einen öffentlichen Datumsstempel, und nur Sie halten den Schlüssel.',
+    'Etwa 3 Minuten. Danach hat er einen öffentlichen Datumsstempel, und nur Sie halten den Schlüssel.',
   'app.home.aboutThreeMinutesByHand':
     'Etwa 3 Minuten. Danach ist der Datensatz versiegelt; sein öffentliches Datum kommt, wenn wir seinen Stapel verankern (vorerst von Hand). Nur Sie halten den Schlüssel.',
   'app.home.continue': 'Fortsetzen',
@@ -43,8 +43,8 @@ export const home = {
     'Neu begonnen. Ihre alten Datensätze können Sie jederzeit aus der Datei mit dem Inhaberschlüssel wiederherstellen.',
   'app.home.imported.one': '{count} Datensatz importiert.',
   'app.home.imported.other': '{count} Datensätze importiert.',
-  'app.home.alreadyHere.one': ' {count} schon vorhandener wurde unverändert gelassen.',
-  'app.home.alreadyHere.other': ' {count} schon vorhandene wurden unverändert gelassen.',
+  'app.home.alreadyHere.one': ' {count} bereits vorhandener Datensatz blieb unverändert.',
+  'app.home.alreadyHere.other': ' {count} bereits vorhandene blieben unverändert.',
   'app.home.importFailed': 'Import fehlgeschlagen.',
   'app.home.labJobs': 'Die Aufgaben Ihres Labors',
   'app.home.labJobsText':
@@ -68,7 +68,7 @@ export const home = {
     'Sobald Datensätze verankert sind, kann jeder prüfen, welcher zuerst verankert wurde. Davor ist die Zeit eines Datensatzes die Uhr seines Geräts. Ein Datensatz ist ein Beweismittel, keine Eintragung: Er zeigt, was Sie wann hatten, entscheidet aber für sich allein keinen Streit.',
   'app.home.trust.2t': 'Ein gekoppelter Bericht lässt sich später vergleichen',
   'app.home.trust.2b':
-    'Beim Koppeln wird der Code Ihres DNA-Berichts als Ihre Erklärung mit dem Datensatz gespeichert, damit ein neuer Test des Materials später damit verglichen werden kann. Wenn Sie über den Vertrag von VeilCore auf Midnight koppeln, wird auch die Kopplung datiert: Sie zeigt, dass der Datensatz bis dahin mit diesem Bericht gekoppelt war, nicht, wer den Bericht zuerst hatte. In {thisSite} werden Kopplungen noch nicht datiert.',
+    'Beim Koppeln wird der Code Ihres DNA-Berichts als Ihre Erklärung mit dem Datensatz gespeichert, damit ein neuer Test des Materials später damit verglichen werden kann. Wenn Sie über den Smart Contract von VeilCore auf Midnight koppeln, wird auch die Kopplung datiert: Sie zeigt, dass der Datensatz bis dahin mit diesem Bericht gekoppelt war, nicht, wer den Bericht zuerst hatte. In {thisSite} werden Kopplungen noch nicht datiert.',
   'app.home.trust.3t': 'Eine zweite Partei nimmt die Lieferung an',
   'app.home.trust.3b':
     'Wenn Material übergeben wird, bestätigt der Empfänger den Erhalt mit seinem eigenen Schlüssel. So steht eine zweite Partei im Datensatz, nicht nur Sie. Es zeigt, dass jemand die Lieferung angenommen hat, nicht, wer es ist.',
@@ -148,11 +148,11 @@ export const home = {
   'app.plan.box.left': 'Noch kostenlos zu datieren: {n}',
   'app.plan.box.countsDeleted': 'Datierte Datensätze zählen auch, wenn Sie sie später löschen.',
   'app.plan.changeFull':
-    'Diese Änderung würde eine neue Version datieren, und Ihre kostenlosen datierten Einträge sind aufgebraucht, daher wurde nichts geändert. Alles, was Sie schon haben, bleibt prüfbar. Wählen Sie auf Ihrer Eintragsseite einen Tarif, um mehr zu datieren.',
+    'Diese Änderung würde eine neue Version datieren, und Ihre kostenlosen datierten Datensätze sind aufgebraucht, daher wurde nichts geändert. Alles, was Sie schon haben, bleibt prüfbar. Wählen Sie auf Ihrer Datensatzseite einen Tarif, um mehr zu datieren.',
   'app.plan.receiveFull':
-    'Es ist kein kostenloser datierter Eintrag mehr frei, um diese Lieferung anzunehmen. Ihr Code bleibt in diesem Browser gespeichert: Wählen Sie auf Ihrer Eintragsseite einen Tarif und geben Sie ihn dann erneut ein.',
+    'Es ist kein kostenloser datierter Datensatz mehr frei, um diese Lieferung anzunehmen. Ihr Code bleibt in diesem Browser gespeichert: Wählen Sie auf Ihrer Datensatzseite einen Tarif und geben Sie ihn dann erneut ein.',
   'app.plan.box.rules':
-    'Die erste Korrektur eines Eintrags ist kostenlos. Eine Lieferung anzunehmen braucht einen freien datierten Eintrag.',
+    'Die erste Korrektur eines Datensatzes ist kostenlos. Eine Lieferung anzunehmen braucht einen freien datierten Datensatz.',
   'app.plan.box.paid': 'Ihr Tarif: {plan}',
   'app.plan.name.breeder': 'Züchter',
   'app.plan.name.lab': 'Labor',

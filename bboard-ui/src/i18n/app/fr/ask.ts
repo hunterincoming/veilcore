@@ -141,7 +141,7 @@ export const ask = {
   'app.ask.explain.pick': 'Choisissez un mot :',
   'app.ask.term.priorPossession': 'Détention antérieure',
   'app.ask.def.priorPossession':
-    'Un enregistrement montre que vous déteniez cet enregistrement à une date : il a été scellé alors, et son code de preuve a été daté sur Midnight. Il ne montre pas que vous aviez le matériel, ni qui l’a sélectionné. C’est tout ce qu’il affirme.',
+    'Un enregistrement montre que vous déteniez déjà cet enregistrement à une date : il a été scellé alors, et son code de preuve a été daté sur Midnight. Il ne montre pas que vous aviez le matériel, ni qui l’a sélectionné. C’est tout ce qu’il affirme.',
   'app.ask.term.proofCode': 'Code de preuve',
   'app.ask.def.proofCode':
     'Un code court tiré d’un enregistrement scellé. Chacun peut vérifier un enregistrement avec, et il ne montre rien de son contenu.',
@@ -204,7 +204,7 @@ export const ask = {
   'app.ask.batch.saved.other': '{count} enregistrements sauvegardés',
   'app.ask.batch.chainTitle': 'Facultatif : rendre la filiation vérifiable sur Midnight',
   'app.ask.batch.chainText':
-    'Cette partie est publique. Chaque enregistrement demande deux étapes : vous nommez son parent sur Midnight, puis le détenteur du parent confirme. Faites-le depuis la page de chaque enregistrement, sous « Family on Midnight ».',
+    'Cette partie est publique. Chaque enregistrement demande deux étapes : vous nommez son parent sur Midnight, puis le détenteur du parent confirme. Faites-le depuis la page de chaque enregistrement, sous « Famille sur Midnight ».',
   'app.ask.batch.chainOpen': 'Ouvrir le premier',
   'app.ask.batch.toRecords': 'Aller à vos enregistrements',
   'app.ask.batch.cutClones': 'Couper des boutures de celle-ci',

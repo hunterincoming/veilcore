@@ -11,7 +11,7 @@ export const document = {
   'app.doc.new.intro':
     'Wählen Sie die Datei. Sie bleibt auf diesem Gerät. Versiegelt werden nur ein aus ihrem Inhalt berechneter Code, ihr Name und ihre Größe, mit einem Datum, das niemand zurückdatieren kann. Ändert sich auch nur ein Zeichen der Datei, passt der Code nicht mehr.',
   'app.doc.new.proves':
-    'Was das zeigen wird: Eine Datei mit genau diesen Bytes war zu dem Datum, an dem sie versiegelt wird, in Ihren Händen. Nicht, dass das Dokument echt ist, dass der Aussteller es ausgestellt hat oder dass stimmt, was darin steht.',
+    'Was das zeigen wird: Eine Datei mit genau diesen Bytes war spätestens zu dem Datum, an dem sie versiegelt wird, in Ihren Händen. Nicht, dass das Dokument echt ist, dass der Aussteller es ausgestellt hat oder dass stimmt, was darin steht.',
   'app.doc.f.files': 'Dateien',
   'app.doc.f.filesHelp': 'Bis zu {max}: ein Vertrag und seine Anlagen, ein Analysezertifikat und seine Chromatogramme.',
   'app.doc.f.add': 'Eine Datei hinzufügen',
@@ -111,7 +111,7 @@ export const document = {
   'app.doc.check.notDated':
     'Noch datiert nichts diesen Datensatz, oder der Link wurde verändert. Verlassen Sie sich nicht darauf, bevor ein Datum angezeigt wird.',
   'app.doc.check.what':
-    'Was das zeigt: Eine Datei mit genau diesen Bytes war zu diesem Datum in den Händen des Inhabers. Was nicht: dass das Dokument echt ist, dass der Aussteller es ausgestellt hat oder dass stimmt, was darin steht. „Ausgestellt von“ ist die Angabe des Inhabers.',
+    'Was das zeigt: Eine Datei mit genau diesen Bytes war spätestens zu diesem Datum in den Händen des Inhabers. Was nicht: dass das Dokument echt ist, dass der Aussteller es ausgestellt hat oder dass stimmt, was darin steht. „Ausgestellt von“ ist die Angabe des Inhabers.',
   'app.doc.check.whatUndated':
     'Was das zeigen wird, sobald er datiert ist: Eine Datei mit genau diesen Bytes war spätestens zu seinem Datum in den Händen des Inhabers. Was nicht: dass das Dokument echt ist, dass der Aussteller es ausgestellt hat oder dass stimmt, was darin steht. „Ausgestellt von“ ist die Angabe des Inhabers.',
   'app.doc.check.inLink': 'Im Link (die eigenen Worte des Inhabers)',
@@ -184,7 +184,7 @@ export const document = {
   'app.claim.check.schema': 'Unter dem veröffentlichten Formular „{schema}“.',
   // EvidenceBundle.tsx: what differs for a document record.
   'app.doc.bundle.keyIs':
-    '(Der Schlüssel des Datensatzes ist die öffentliche Kennung des Schlüssels, der beim Versiegeln für dieses Dokument erstellt wurde. Sein geheimer Teil bleibt in Ihrer Sicherung und kommt nie in das Paket.)',
+    '(Der Schlüssel des Datensatzes ist die öffentliche Kennung des Schlüssels, der beim Versiegeln für dieses Dokument erstellt wurde. Sein geheimer Teil bleibt in Ihrer Sicherungskopie und kommt nie in das Paket.)',
   'app.doc.bundle.includeFiles':
     'Eine Kopie des Dokuments beilegen. Ohne sie enthält das Paket nur den Code jeder Datei, und wer es prüft, braucht die Datei gesondert von Ihnen.',
   'app.doc.bundle.chooseFiles': 'Datei(en) des Dokuments auswählen',
@@ -193,21 +193,21 @@ export const document = {
   'app.doc.bundle.filesAria': 'Dateien des Dokuments',
   'app.doc.bundle.chooseOrUntick': 'Wählen Sie die Datei des Dokuments aus oder entfernen Sie das Häkchen.',
   // ---- kept on this device only (docs/device-only-records.md; DocumentNew.tsx, DocumentDetail.tsx) ----
-  'app.doc.local.choice': 'Diesen Datensatz nur auf diesem Gerät und in meiner Sicherung aufbewahren',
+  'app.doc.local.choice': 'Diesen Datensatz nur auf diesem Gerät und in meiner Sicherungskopie aufbewahren',
   'app.doc.local.before': 'Bevor Sie wählen:',
   'app.doc.local.p1':
     'Nichts, was Sie hier eingeben, wird an VeilCore gesendet, weder verschlossen noch offen. Gesendet wird, damit der Datensatz sein Datum erhält: seine Kennung, sein Prüfcode und seine Schlüsselbindung (ein Code aus dem eigenen Schlüssel des Datensatzes).',
   'app.doc.local.p2':
     'Der Server von VeilCore kann diesen Datensatz nicht zurückgeben: Er hat ihn zu keinem Zeitpunkt.',
   'app.doc.local.p3':
-    'Die einzigen Kopien liegen in diesem Browser und in einer Sicherungsdatei, die nach dem Versiegeln gespeichert wurde. Eine früher gespeicherte Sicherung enthält diesen Datensatz nicht, eine Passkey-Kopie enthält ihn in keinem Fall. Gleich nach dem Versiegeln werden Sie gebeten, eine Sicherung zu speichern und zu prüfen.',
+    'Die einzigen Kopien liegen in diesem Browser und in einer Sicherungsdatei, die nach dem Versiegeln gespeichert wurde. Eine früher gespeicherte Sicherungskopie enthält diesen Datensatz nicht, eine Passkey-Kopie enthält ihn in keinem Fall. Gleich nach dem Versiegeln werden Sie gebeten, eine Sicherungskopie zu speichern und zu prüfen.',
   'app.doc.local.p4': 'Wer den Prüflink und die Datei hat, kann ihn weiterhin prüfen.',
   'app.doc.local.p5': 'Das wird einmal gewählt, beim Versiegeln. Danach lässt es sich nicht ändern.',
   'app.doc.local.title': 'Nur auf diesem Gerät aufbewahrt',
   'app.doc.local.text':
-    'Nichts, was in diesen Datensatz eingegeben wurde, ging an VeilCore, weder verschlossen noch offen. Die einzigen Kopien liegen in diesem Browser und in der Sicherungsdatei, die Sie geprüft haben. Gehen beide verloren, ist der Datensatz weg: VeilCore kann ihn nicht zurückgeben. Eine Sicherung von vor dem Versiegeln enthält ihn nicht, eine Passkey-Kopie enthält ihn in keinem Fall.',
+    'Nichts, was in diesen Datensatz eingegeben wurde, ging an VeilCore, weder verschlossen noch offen. Die einzigen Kopien liegen in diesem Browser und in der Sicherungsdatei, die Sie geprüft haben. Gehen beide verloren, ist der Datensatz weg: VeilCore kann ihn nicht zurückgeben. Eine Sicherungskopie von vor dem Versiegeln enthält ihn nicht, eine Passkey-Kopie enthält ihn in keinem Fall.',
   'app.doc.local.notBacked':
-    'Noch in keiner Sicherung. Die einzige Kopie dieses Datensatzes liegt in diesem Browser: Werden dessen Daten jetzt gelöscht, ist der Datensatz weg, und VeilCore kann ihn nicht zurückgeben. Speichern Sie jetzt Ihre Sicherungsdatei und prüfen Sie sie.',
+    'Noch in keiner Sicherungskopie. Die einzige Kopie dieses Datensatzes liegt in diesem Browser: Werden dessen Daten jetzt gelöscht, ist der Datensatz weg, und VeilCore kann ihn nicht zurückgeben. Speichern Sie jetzt Ihre Sicherungsdatei und prüfen Sie sie.',
   'app.doc.local.sent':
     'Was dieses Gerät verlassen hat: die Kennung des Datensatzes, sein Prüfcode und seine Schlüsselbindung, an VeilCore gesendet, um ihn zu datieren. Bei jeder Anfrage erfährt VeilCore Ihre Netzwerkadresse und die Uhrzeit. Wenn Sie eine Passkey-Kopie haben, enthält sie die Kennung und die Schlüssel dieses Datensatzes, verschlossen, auf dem Server von VeilCore; in keinem Fall das, was Sie eingegeben haben.',
   'app.doc.local.stamp':
@@ -216,8 +216,8 @@ export const document = {
   'app.doc.stamp.button': 'Den Schlüssel mit einem Datum stempeln',
   'app.doc.local.conflict':
     'Der Server von VeilCore hat mit etwas anderem geantwortet als nur mit dem Prüfcode dieses Datensatzes. Was Sie sehen, ist die eigene Kopie dieses Geräts. Es wird nichts weiter gesendet, und die Antwort des Servers ändert hier nichts.',
-  'app.doc.local.homeNotBacked': 'Nur auf diesem Gerät · noch in keiner Sicherung',
-  'app.doc.local.backup': 'Sicherung speichern',
+  'app.doc.local.homeNotBacked': 'Nur auf diesem Gerät · noch in keiner Sicherungskopie',
+  'app.doc.local.backup': 'Sicherungskopie speichern',
   'app.doc.local.homeLine': 'Nur auf diesem Gerät',
   'app.doc.local.staysHere':
     'Dieser Datensatz wird nur auf diesem Gerät aufbewahrt, deshalb gibt es das für ihn nicht.',
@@ -226,22 +226,22 @@ export const document = {
     'Diesen Datensatz von diesem Gerät löschen? Das lässt sich hier nicht rückgängig machen. Eine Sicherungsdatei, die ihn enthält, enthält ihn weiterhin. VeilCore behält, was bereits gesendet wurde: die Kennung, den Prüfcode und die Schlüsselbindung des Datensatzes. Eine Passkey-Kopie, falls Sie eine haben, enthält seine Kennung und seine Schlüssel weiter, bis Sie diese Kopie aktualisieren. Haben Sie seinen Schlüssel mit einem Datum gestempelt, bleibt das auf Midnight. Sein Datum gilt weiter für alle, die den Prüflink haben.',
   'app.doc.local.toRecord': 'Zum Datensatz',
   'app.doc.local.backupNow':
-    'Versiegelt. Speichern Sie jetzt eine Sicherung und prüfen Sie sie: Bis dahin liegt die einzige Kopie dieses Datensatzes in diesem Browser.',
+    'Versiegelt. Speichern Sie jetzt eine Sicherungskopie und prüfen Sie sie: Bis dahin liegt die einzige Kopie dieses Datensatzes in diesem Browser.',
   'app.doc.local.backupMissing':
-    'Diese Sicherung enthält Ihre Dokumente nicht, die nur auf diesem Gerät aufbewahrt werden. Speichern Sie eine neue und prüfen Sie diese.',
+    'Diese Sicherungskopie enthält Ihre Dokumente nicht, die nur auf diesem Gerät aufbewahrt werden. Speichern Sie eine neue und prüfen Sie diese.',
   'app.doc.local.backupFailed':
-    'Die Sicherung konnte nicht erstellt werden: Ein Dokument, das nur auf diesem Gerät aufbewahrt wird, ließ sich nicht aufnehmen. Es wurde nichts gespeichert.',
+    'Die Sicherungskopie konnte nicht erstellt werden: Ein Dokument, das nur auf diesem Gerät aufbewahrt wird, ließ sich nicht aufnehmen. Es wurde nichts gespeichert.',
   'app.doc.local.noCorrect':
     'Ein Datensatz, der nur auf diesem Gerät aufbewahrt wird, lässt sich nicht korrigieren. Versiegeln Sie das Dokument erneut als neuen Datensatz.',
   'app.doc.local.unreadable.title': 'Ein Datensatz auf diesem Gerät konnte nicht gelesen werden',
   'app.doc.local.unreadable.text':
-    'Der Datensatz {id} wird nur auf diesem Gerät aufbewahrt, und sein Eintrag in diesem Browser ist beschädigt; er kann deshalb nicht angezeigt werden. Er wird nirgendwohin gesendet. Eine jetzt gespeicherte Sicherung enthält den Eintrag genau so, wie er ist. Sie können den Eintrag in einer Datei speichern oder ihn von diesem Gerät löschen.',
+    'Der Datensatz {id} wird nur auf diesem Gerät aufbewahrt, und sein Eintrag in diesem Browser ist beschädigt; er kann deshalb nicht angezeigt werden. Er wird nirgendwohin gesendet. Eine jetzt gespeicherte Sicherungskopie enthält den Eintrag genau so, wie er ist. Sie können den Eintrag in einer Datei speichern oder ihn von diesem Gerät löschen.',
   'app.doc.local.unreadable.export': 'Eintrag in einer Datei speichern',
   'app.doc.local.unreadable.delete': 'Von diesem Gerät löschen',
   'app.doc.local.unreadable.deleteConfirm':
     'Diesen beschädigten Eintrag von diesem Gerät löschen? Das lässt sich hier nicht rückgängig machen. Eine Sicherungsdatei, die ihn enthält, enthält ihn weiterhin.',
   'app.doc.local.unreadable.backupNote':
-    'Ein Datensatz, der nur auf diesem Gerät aufbewahrt wird, konnte nicht gelesen werden. Diese Sicherung enthält seinen Eintrag genau so, wie er ist; mit der Datei geht also nichts verloren. Alles andere ist wie gewohnt enthalten.',
+    'Ein Datensatz, der nur auf diesem Gerät aufbewahrt wird, konnte nicht gelesen werden. Diese Sicherungskopie enthält seinen Eintrag genau so, wie er ist; mit der Datei geht also nichts verloren. Alles andere ist wie gewohnt enthalten.',
   // ---- a production chain, and proving a number from a device-only record (docs/document-chain.md) ----
   'app.doc.chain.kind.grow-batch': 'Anbaucharge',
   'app.doc.chain.kind.harvest-lot': 'Erntelos',
@@ -335,7 +335,7 @@ export const document = {
   'app.doc.local.prove.direction.atLeast': 'mindestens',
   'app.doc.local.prove.confirmExact': 'Ja, die Zahl selbst veröffentlichen: {value}, auf Midnight, dauerhaft.',
   'app.doc.local.textProved':
-    'Nichts, was in diesen Datensatz eingegeben wurde, ging an das Register von VeilCore, weder verschlossen noch offen. Was Sie über seine Zahlen belegt haben, ist auf Midnight öffentlich. Die einzigen Kopien des Datensatzes liegen in diesem Browser und in der Sicherungsdatei, die Sie geprüft haben. Gehen beide verloren, ist der Datensatz weg: VeilCore kann ihn nicht zurückgeben. Eine Sicherung von vor dem Versiegeln enthält ihn nicht, eine Passkey-Kopie enthält ihn in keinem Fall.',
+    'Nichts, was in diesen Datensatz eingegeben wurde, ging an das Register von VeilCore, weder verschlossen noch offen. Was Sie über seine Zahlen belegt haben, ist auf Midnight öffentlich. Die einzigen Kopien des Datensatzes liegen in diesem Browser und in der Sicherungsdatei, die Sie geprüft haben. Gehen beide verloren, ist der Datensatz weg: VeilCore kann ihn nicht zurückgeben. Eine Sicherungskopie von vor dem Versiegeln enthält ihn nicht, eine Passkey-Kopie enthält ihn in keinem Fall.',
   'app.doc.local.proved':
     'Sie haben gewählt, Tatsachen über die Zahlen dieses Datensatzes zu belegen. Sie gingen über den Gebührendienst von VeilCore an Midnight und sind dauerhaft öffentlich; sie stehen unten. Nichts, was in diesen Datensatz eingegeben wurde, ging an das Register von VeilCore.',
   'app.claim.tie':

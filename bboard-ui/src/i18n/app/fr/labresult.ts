@@ -65,7 +65,7 @@ export const labresult = {
   'app.lr.note.mark':
     'La séquence de la marque est scellée : le résultat ne contient qu’un SHA-256 salé de celle-ci. Le laboratoire qui l’a consignée détient la séquence, qui peut être vérifiée contre ce sceau en cas de litige. VeilCore ne marque ni ne teste l’ADN.',
   'app.lr.note.never':
-    'VeilCore n’a ni prélevé ni testé cet échantillon et ne se porte pas garant du résultat. Il montre que la clé de ce laboratoire a signé ce résultat, et la date du lot montre qu’il existait à cette date. Que l’échantillon vienne de l’enregistrement nommé est la parole de l’expéditeur, sauf si un suivi de la chaîne de traçabilité en montre davantage.',
+    'VeilCore n’a ni prélevé ni testé cet échantillon et ne se porte pas garant du résultat. Il montre que la clé de ce laboratoire a signé ce résultat, et la date du lot montre qu’il existait déjà à cette date. Que l’échantillon vienne de l’enregistrement nommé est la parole de l’expéditeur, sauf si un suivi de la chaîne de traçabilité en montre davantage.',
   'app.lr.tools.title': 'Signer des résultats de laboratoire',
   'app.lr.tools.intro':
     'Pour les laboratoires : signez chaque résultat avec l’enregistrement que l’expéditeur a indiqué pour l’échantillon, la méthode, l’ID de l’échantillon et votre numéro d’enregistrement. Chaque résultat est gardé comme un enregistrement que vous détenez et daté dans le prochain lot. Remettez chaque résultat, dans son propre fichier, à qui a envoyé cet échantillon.',
