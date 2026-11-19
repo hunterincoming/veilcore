@@ -378,14 +378,25 @@ export const labresult = {
     '正確な数を非公開にするため、検査機関の数（{sealed}）を切り下げて入力しています。変更できます。',
   'app.marker.rounded.up':
     '正確な数を非公開にするため、検査機関の数（{sealed}）を切り上げて入力しています。変更できます。',
-  'app.marker.exactWarn':
-    'これは正確な数です。既知の参照との正確な数を複数合わせると、遺伝子型を絞り込めることがあります。丸めた数のほうが示す情報は少なくなります。',
-  'app.marker.exactRepeat': 'このマーカーパネルで既に公開されている正確な数：{n}件。',
-  'app.marker.panelAlready': 'このマーカーパネルでこの試料について既に公開されている内容：{list}。',
+  'app.marker.exactRepeat': 'これらの試料について既に公開されている正確な数：{n}件。',
+  'app.marker.panelAlready': 'この結果が示す試料について既に公開されている内容：{list}。',
   'app.marker.panelItem': '{claim}（{result}）',
   'app.marker.thisResult': 'この結果',
-  'app.marker.resultNamed': '結果 {accession}',
+  'app.marker.resultNamed': '結果 {accession}、{panel}',
   'app.marker.copyAll': '{n}件の証明をまとめたリンクをコピー',
+  'app.marker.exactWarn.atLeast':
+    'これは成り立つ下限のうち最も高いものです。同じ数への上限と合わせると、数が確定します。既知の参照との正確な数を複数合わせると、遺伝子型を絞り込めることがあります。丸めた数のほうが示す情報は少なくなります。',
+  'app.marker.exactWarn.atMost':
+    'これは成り立つ上限のうち最も低いものです。同じ数への下限と合わせると、数が確定します。既知の参照との正確な数を複数合わせると、遺伝子型を絞り込めることがあります。丸めた数のほうが示す情報は少なくなります。',
+  'app.marker.pairWarn':
+    'この結果について、検査機関の判定と数の両方が公開されることになります。検査機関自身の判定基準を通じて、両者で数が両側から絞り込まれます。',
+  'app.marker.pairsPublic': '検査機関の判定と数の両方が公開されている結果：{n}件。',
+  'app.marker.source.checking': '検査機関がこれらの数に署名したか確認しています…',
+  'app.marker.source.unnamed':
+    'ある鍵がこれらの数に署名していますが、特定の一つの検査機関とは結び付いていません。保有者自身の数としてお読みください。',
+  'app.marker.source.withdrawn':
+    'これらの数に署名した検査機関は、その後この結果を取り下げています。保有者自身の数としてお読みください。',
+  'app.marker.source.labCall': '検査機関が署名した結果による、検査機関の判定です。品種についての判断ではありません。',
   'app.marker.line.differing': '異なるマーカー数：少なくとも{n}',
   'app.marker.line.compared': '比較したマーカー数：少なくとも{n}',
   'app.marker.line.conflictsFirst': '親1との矛盾：多くとも{n}',
@@ -396,7 +407,7 @@ export const labresult = {
   'app.marker.source.lab':
     '検査機関が署名した結果による、検査機関の数です。数であって、品種についての判断ではありません。',
   'app.marker.source.holder':
-    'この記録への検査機関の署名はここで確認されていません。これらの数は保有者自身のものとしてお読みください。',
+    'これらの数への検査機関の署名はここで確認できません。保有者自身の数としてお読みください。',
   'app.marker.more.title': '同じ記録についての、このリンクに含まれる他の証明',
   'app.marker.limits.title': 'これらの証明が示さないこと',
   'app.marker.limits.examine':

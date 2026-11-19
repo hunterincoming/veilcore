@@ -391,14 +391,26 @@ export const labresult = {
     'Rempli en arrondissant vers le bas le comptage du laboratoire ({sealed}), afin que le comptage exact reste privé. Vous pouvez le modifier.',
   'app.marker.rounded.up':
     'Rempli en arrondissant vers le haut le comptage du laboratoire ({sealed}), afin que le comptage exact reste privé. Vous pouvez le modifier.',
-  'app.marker.exactWarn':
-    'C’est le comptage exact. Des comptages exacts par rapport à des références connues, pris ensemble, peuvent cerner le génotype. Un nombre arrondi en montre moins.',
-  'app.marker.exactRepeat': 'Comptages exacts déjà publics sur ce panel de marqueurs : {n}.',
-  'app.marker.panelAlready': 'Déjà public sur cet échantillon pour ce panel de marqueurs : {list}.',
+  'app.marker.exactRepeat': 'Comptages exacts déjà publics sur ces échantillons : {n}.',
+  'app.marker.panelAlready': 'Déjà public sur les échantillons que nomme ce résultat : {list}.',
   'app.marker.panelItem': '{claim} ({result})',
   'app.marker.thisResult': 'ce résultat',
-  'app.marker.resultNamed': 'résultat {accession}',
+  'app.marker.resultNamed': 'résultat {accession}, {panel}',
   'app.marker.copyAll': 'Copier un lien avec les {n} preuves',
+  'app.marker.exactWarn.atLeast':
+    'C’est la borne inférieure la plus haute qui tient encore : avec n’importe quelle borne supérieure sur le même nombre, elle fixe le comptage. Des comptages exacts par rapport à des références connues, pris ensemble, peuvent cerner le génotype. Un nombre arrondi en montre moins.',
+  'app.marker.exactWarn.atMost':
+    'C’est la borne supérieure la plus basse qui tient encore : avec n’importe quelle borne inférieure sur le même nombre, elle fixe le comptage. Des comptages exacts par rapport à des références connues, pris ensemble, peuvent cerner le génotype. Un nombre arrondi en montre moins.',
+  'app.marker.pairWarn':
+    'Le résultat du laboratoire et un comptage sur ce résultat seraient tous deux publics. Ensemble, par le seuil propre au laboratoire pour son résultat, ils encadrent le comptage des deux côtés.',
+  'app.marker.pairsPublic': 'Résultats dont le résultat du laboratoire et un comptage sont publics : {n}.',
+  'app.marker.source.checking': 'Vérification qu’un laboratoire a signé ces nombres…',
+  'app.marker.source.unnamed':
+    'Une clé a signé ces nombres, mais aucun laboratoire précis n’y est rattaché : lisez-les donc comme ceux du détenteur.',
+  'app.marker.source.withdrawn':
+    'Le laboratoire qui a signé ces nombres a depuis retiré le résultat : lisez-les donc comme ceux du détenteur.',
+  'app.marker.source.labCall':
+    'Le résultat du laboratoire, issu du résultat qu’il a signé. Ce n’est pas une décision sur la variété.',
   'app.marker.line.differing': 'Marqueurs qui diffèrent : au moins {n}',
   'app.marker.line.compared': 'Marqueurs comparés : au moins {n}',
   'app.marker.line.conflictsFirst': 'Conflits avec le parent 1 : au plus {n}',
@@ -409,7 +421,7 @@ export const labresult = {
   'app.marker.source.lab':
     'Le comptage du laboratoire, issu du résultat qu’il a signé. C’est un comptage, pas une décision sur la variété.',
   'app.marker.source.holder':
-    'Aucune signature de laboratoire sur cet enregistrement n’a été vérifiée ici : lisez donc ces nombres comme ceux du détenteur.',
+    'Aucune signature de laboratoire sur ces nombres n’est vérifiée ici : lisez-les donc comme ceux du détenteur.',
   'app.marker.more.title': 'Aussi dans ce lien, sur le même enregistrement',
   'app.marker.limits.title': 'Ce que ces preuves ne montrent pas',
   'app.marker.limits.examine':

@@ -6,20 +6,26 @@
 // with the existing range and value claims (no new circuit, no contract change). What is offered
 // is a fixed list per form, so a slot can't be proved in a direction that reads wrongly ("markers
 // differing: at most 40" says nothing an examiner asked), and the call is proved only as itself.
+// The list is this site's policy, checked by the page and by prove-number.ts: the claims contract
+// has no such rule, and another client could prove any slot in any direction.
 //
-// Four rules from the review of 17 Nov 2026:
-//   1. The bound offered is rounded away from the exact count (down for "at least", up for "at
-//      most"), and an exact count is warned about: exact distances to known references, taken
-//      together, narrow down the genotype.
-//   2. What is already public is counted per marker panel, not per number: every claim on any
-//      result about the same sample by the same method and panel, since each one narrows the same
-//      genotype (SPEC 4.5, disclosure accounting).
-//   3. "Differs in at least k values" (proveDistinct) is offered only under a form made for it:
-//      an allowlist, empty today. genetic-match/v1 and variety-similarity/v1 mark their call slot
-//      comparable with k = 1, so a distinct claim over two of them would publish only that the two
-//      calls differ. The ids are fixed, so the guard is the list, not the forms.
-//   4. "M of N compared" is said as one line only when both claims checked and are on the same
-//      record (a link carries claims on one record only: claim-link.ts `more`).
+// Rules from the reviews of 17 and 18 Nov 2026:
+//   1. The bound offered is rounded strictly away from the exact count (down for "at least", up
+//      for "at most"), and an exact bound is warned about: exact distances to known references,
+//      taken together, narrow down the genotype. "At least 0" says nothing and is refused.
+//   2. What is already public is counted per sample, not per number or per panel: every claim on
+//      any result that names the sample (as the one tested, the other compared, or a parent), by
+//      any method or panel, since each one narrows the same genotype (SPEC 4.5, disclosure
+//      accounting). Claims are matched by record commitment, not by this browser's record id.
+//   3. The lab's call and a count on the same result together bound the count from both sides
+//      (through the lab's own threshold): warned before it happens, and counted once it has.
+//   4. "Differs in at least k values" (proveDistinct) is not offered anywhere on this site. The
+//      list below is a placeholder for a later decision, wired to nothing: genetic-match/v1 and
+//      variety-similarity/v1 mark their call slot comparable with k = 1, so a distinct claim over
+//      two of them would publish only that the two calls differ.
+//   5. "M of N compared" is said as one line only when both claims checked and are on the same
+//      record (a link carries claims on one record only: claim-link.ts `more`), and in the
+//      headline only when the link's first claim is one of the two.
 // SPDX-License-Identifier: Apache-2.0
 
 import type { AppKey } from '../i18n/app/en';
@@ -78,16 +84,22 @@ export const offerOf = (c: Pick<MadeClaim, 'schema' | 'slot' | 'kind' | 'op'>): 
     (o) => o.slot === c.slot && (o.how === 'exactly' ? c.kind === 'value' : c.kind === 'range' && c.op === o.how),
   );
 
-/** Whether a claim may be proved on this form: on a marker form, only what is offered. */
-export const offerAllowed = (schema: string, slot: number, how: How): boolean => {
+/**
+ * Whether a claim may be proved on this form: on a marker form, only what is offered, and never
+ * "at least 0" (it says nothing). Site policy, not a contract rule (see the header).
+ */
+export const offerAllowed = (schema: string, slot: number, how: How, bound?: bigint): boolean => {
   const offers = MARKER_OFFERS[schema];
-  return !offers || offers.some((o) => o.slot === slot && o.how === how);
+  if (!offers) return true;
+  if (how === 'at-least' && bound === 0n) return false;
+  return offers.some((o) => o.slot === slot && o.how === how);
 };
 
 /**
- * The forms a "differs in at least k values" claim (proveDistinct) may be offered under. Empty:
- * no published form has comparable marker slots and a k someone other than VeilCore set (design,
- * section 5). Adding one is a decision, not a code change: see the test.
+ * PLACEHOLDER, wired to nothing: the site has no "differs in at least k values" (proveDistinct)
+ * claim, and nothing calls this. It records the decision that, if one is ever offered, it is
+ * offered only under a form listed here, and today no form qualifies (no published form has
+ * comparable marker slots and a k someone other than VeilCore set: design, section 5).
  */
 export const DISTINCT_SCHEMAS: readonly string[] = [];
 export const distinctOffered = (schema: string): boolean => DISTINCT_SCHEMAS.includes(schema);
@@ -96,30 +108,42 @@ export const distinctOffered = (schema: string): boolean => DISTINCT_SCHEMAS.inc
 const stepFor = (n: bigint): bigint => (n >= 100n ? 10n : 5n);
 
 /**
- * The bound filled in for a count: rounded away from the exact count so the claim still holds
- * ("at least 37" is filled as 35, "at most 3" as 5). A count of 0 stays 0 for "at most" (that is
- * the claim worth making); "at least" a small count is filled as 1, never 0.
+ * The bound filled in for a count: strictly away from the exact count, so the exact count is not
+ * the one published ("at least 37" is filled as 35, "at least 35" as 30, "at most 3" as 5, "at
+ * most 5" as 10). "At least" never goes below 1: a count of 1 can only be filled as itself.
  */
 export const roundedBound = (sealed: bigint, how: 'at-least' | 'at-most'): bigint => {
   const step = stepFor(sealed);
   if (how === 'at-least') {
-    const r = (sealed / step) * step;
-    return r === 0n && sealed > 0n ? 1n : r;
+    if (sealed <= 0n) return 0n;
+    const r = ((sealed - 1n) / step) * step;
+    return r < 1n ? 1n : r;
   }
-  return ((sealed + step - 1n) / step) * step;
+  return (sealed / step + 1n) * step;
 };
 
-/** The marker panel a result was read on: the sample, the method and the panel, with versions. */
-export const panelKey = (s: Pick<LabResultStatement, 'kind' | 'subject' | 'method' | 'panel'>): string | undefined =>
-  s.kind === 'match' || s.kind === 'lineage'
-    ? JSON.stringify([s.subject, s.method.id, s.method.version, s.panel?.id ?? '', s.panel?.version ?? ''])
-    : undefined;
+/** The samples a result names, by proof code: the one tested, the other compared, the parents. */
+export const samplesOf = (s: Pick<LabResultStatement, 'kind' | 'subject' | 'result'>): readonly string[] => {
+  if (s.kind !== 'match' && s.kind !== 'lineage') return [];
+  const r = s.result as { other?: unknown; parents?: unknown } | undefined;
+  return [
+    s.subject,
+    ...(typeof r?.other === 'string' ? [r.other] : []),
+    ...(Array.isArray(r?.parents) ? r.parents.filter((p): p is string => typeof p === 'string') : []),
+  ];
+};
+
+/** The panel a result was read on, as shown beside it ("CannSNP90 2.1", or the method when no panel). */
+export const panelLabel = (s: Pick<LabResultStatement, 'method' | 'panel'>): string =>
+  s.panel ? `${s.panel.id} ${s.panel.version}` : `${s.method.id} ${s.method.version}`;
 
 type Held = {
   readonly id: string;
   readonly claims?: readonly MadeClaim[];
   readonly labResult?: { readonly statement: LabResultStatement };
   readonly fieldSet?: Pick<HeldFieldSet, 'values'>;
+  /** The lab's signature: its `record` is the result's record commitment. */
+  readonly labSignature?: { readonly record: string };
 };
 
 /** A claim already public, and which result it is on (`here`: the result being proved from). */
@@ -127,6 +151,8 @@ export type PanelClaim = {
   readonly claim: MadeClaim;
   readonly here: boolean;
   readonly accession?: string;
+  /** The panel (or method) the result was read on, shown as detail. */
+  readonly panel?: string;
   /** It published a count exactly: "exactly", or a bound equal to the lab's number. */
   readonly exact: boolean;
 };
@@ -143,26 +169,52 @@ export const isExactCount = (
 };
 
 /**
- * What is already public about this sample on this marker panel: every claim on this result
- * (any number), and on every other result this browser holds about the same sample, method and
- * panel. A result without a statement counts its own claims only.
+ * What is already public about the samples this result names: every claim on this result (any
+ * number), and on every other result this browser holds that names one of the same samples (as
+ * tested, compared or parent), whatever the method or panel. A claim is this result's when it
+ * names this result's record commitment. Each claim (by transaction) is counted once.
  */
 export const panelClaims = (record: Held, all: readonly Held[]): readonly PanelClaim[] => {
-  const key = record.labResult ? panelKey(record.labResult.statement) : undefined;
-  const same = key
-    ? all.filter((r) => r.id === record.id || (r.labResult && panelKey(r.labResult.statement) === key))
-    : [record];
-  if (!same.some((r) => r.id === record.id)) same.unshift(record);
-  return same.flatMap((r) =>
+  const mine = record.labSignature?.record;
+  const isHere = (r: Held, c: MadeClaim) => (mine ? c.record === mine : r.id === record.id);
+  const samples = new Set(record.labResult ? samplesOf(record.labResult.statement) : []);
+  const related = all.filter(
+    (r) =>
+      r.id !== record.id &&
+      ((mine !== undefined && r.labSignature?.record === mine) ||
+        (r.labResult && samplesOf(r.labResult.statement).some((x) => samples.has(x)))),
+  );
+  const seen = new Set<string>();
+  return [record, ...related].flatMap((r) =>
     (r.claims ?? [])
-      .filter((c) => isMarkerSchema(c.schema))
+      .filter((c) => isMarkerSchema(c.schema) && !seen.has(c.txId) && (seen.add(c.txId), true))
       .map((claim) => ({
         claim,
-        here: r.id === record.id,
-        ...(r.labResult ? { accession: r.labResult.statement.accession } : {}),
+        here: isHere(r, claim),
+        ...(r.labResult
+          ? { accession: r.labResult.statement.accession, panel: panelLabel(r.labResult.statement) }
+          : {}),
         exact: isExactCount(claim, r.fieldSet?.values),
       })),
   );
+};
+
+/**
+ * Results on which the lab's call and a count are both public, by record commitment. With the
+ * lab's own threshold the call bounds the count from the other side: "no match" with "differing
+ * at least 30" says the count is above the lab's cut-off and at least 30.
+ */
+export const callPairs = (claims: readonly Pick<MadeClaim, 'schema' | 'slot' | 'kind' | 'op' | 'record'>[]): number => {
+  const by = new Map<string, { call: boolean; count: boolean }>();
+  for (const c of claims) {
+    const o = offerOf(c);
+    if (!o) continue;
+    const e = by.get(c.record) ?? { call: false, count: false };
+    if (o.count) e.count = true;
+    else e.call = true;
+    by.set(c.record, e);
+  }
+  return [...by.values()].filter((e) => e.call && e.count).length;
 };
 
 /** The words of an offered claim with its number: "Markers differing: at least 6". */
@@ -188,31 +240,74 @@ export type CheckedClaim = Pick<MadeClaim, 'schema' | 'slot' | 'kind' | 'op' | '
 
 /**
  * "M of N compared" as one line: a count and "markers compared: at least N", both checked, on
- * the same record. Undefined otherwise, and the claims are said one by one.
+ * the same record. Undefined otherwise, and the claims are said one by one. `parts` are the
+ * indexes, in `claims`, of the two joined: only those two decide it.
  */
 export const joinedCounts = (
   claims: readonly CheckedClaim[],
-): { readonly key: AppKey; readonly m: string; readonly n: string } | undefined => {
-  const ok = claims.filter((c) => c.ok);
-  const compared = ok.find((c) => offerOf(c)?.id === 'compared');
-  if (!compared?.bound) return undefined;
-  const main = ok.find((c) => {
+):
+  | { readonly key: AppKey; readonly m: string; readonly n: string; readonly parts: readonly [number, number] }
+  | undefined => {
+  const compared = claims.findIndex((c) => c.ok && offerOf(c)?.id === 'compared' && !!c.bound);
+  if (compared < 0) return undefined;
+  const k = claims[compared];
+  const main = claims.findIndex((c) => {
     const id = offerOf(c)?.id;
     return (
-      c.schema === compared.schema &&
-      c.record === compared.record &&
+      c.ok &&
+      !!c.bound &&
+      c.schema === k.schema &&
+      c.record === k.record &&
       (id === 'differing' || id === 'conflictsFirst' || id === 'conflictsSecond')
     );
   });
-  if (!main?.bound) return undefined;
-  const id = offerOf(main)?.id;
+  if (main < 0) return undefined;
+  const id = offerOf(claims[main])?.id;
   const key: AppKey =
     id === 'differing'
       ? 'app.marker.joined.differing'
       : id === 'conflictsFirst'
         ? 'app.marker.joined.conflictsFirst'
         : 'app.marker.joined.conflictsSecond';
-  return { key, m: main.bound, n: compared.bound };
+  return { key, m: claims[main].bound ?? '', n: k.bound ?? '', parts: [main, compared] };
+};
+
+type SourceVerdict =
+  | {
+      readonly ok: boolean;
+      readonly lab?: { readonly ok: boolean; readonly signer?: { readonly kind: string } };
+    }
+  | undefined;
+
+/**
+ * Whose numbers the check page says these are, in the same states as claim-call.ts
+ * claimFooterKey: still checking; no laboratory signature that checks (or the claim itself
+ * failed); a key that signs but no single lab is tied to it; a lab that withdrew the result; a
+ * lab standing behind it, said as its count or as its call.
+ */
+export const markerSourceKey = (v: SourceVerdict, isCount: boolean): AppKey => {
+  if (!v) return 'app.marker.source.checking';
+  if (!v.ok || !v.lab?.ok) return 'app.marker.source.holder';
+  if (v.lab.signer?.kind === 'bound') return isCount ? 'app.marker.source.lab' : 'app.marker.source.labCall';
+  if (v.lab.signer?.kind === 'retracted') return 'app.marker.source.withdrawn';
+  return 'app.marker.source.unnamed';
+};
+
+/**
+ * Where the joined "M of N" line goes on the check page: as the headline when the link's first
+ * claim is one of the two joined, else in "Also in this link"; nowhere unless a lab stands
+ * behind the numbers and both checked.
+ */
+export const joinedPlacement = (
+  claims: readonly CheckedClaim[],
+  stands: boolean,
+):
+  | { readonly where: 'headline' | 'more'; readonly key: AppKey; readonly m: string; readonly n: string }
+  | undefined => {
+  if (!stands) return undefined;
+  const j = joinedCounts(claims);
+  if (!j) return undefined;
+  return { where: j.parts.includes(0) ? 'headline' : 'more', key: j.key, m: j.m, n: j.n };
 };
 
 /**

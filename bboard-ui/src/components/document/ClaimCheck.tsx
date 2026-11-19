@@ -6,15 +6,17 @@
 // A link on a lab's genotype comparison or parentage check may carry more claims on the same
 // record (claim-link.ts `more`). Each is checked on its own and shown with its own answer.
 // "Markers differing: at least 6 of at least 40 compared" is said as one line only when both
-// claims checked and a laboratory stands behind the numbers (marker-claims.ts joinedCounts);
-// otherwise each is said alone, in the holder's words. The limits are always said.
+// claims checked and a laboratory stands behind the numbers (marker-claims.ts joinedPlacement):
+// as the headline when the link's first claim is one of the two, else under "Also in this
+// link"; otherwise each is said alone, in the holder's words. Whose numbers they are is said in
+// the same states as the footer (markerSourceKey). The limits are always said.
 // SPDX-License-Identifier: Apache-2.0
 
 import React, { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Alert, Box, CircularProgress, Container, Paper, Stack, Typography } from '@mui/material';
 import { anchoredFingerprintOf, claimsOf, readClaimLink, type ClaimVerdict } from '../../veilcore/claim-link';
-import { isMarkerSchema, joinedCounts } from '../../veilcore/marker-claims';
+import { isMarkerSchema, joinedPlacement, markerSourceKey, offerOf } from '../../veilcore/marker-claims';
 import { DatedNotOrigin } from '../verify/DatedNotOrigin';
 import { useT } from '../../i18n/app';
 import { DocumentDate, Fact } from './DocumentParts';
@@ -79,10 +81,18 @@ export const ClaimCheck: React.FC = () => {
   const stands = labStands(verdict);
   // "M of N compared": both checked, on the same record (one link is one record), a lab standing behind them.
   const joined =
-    link && isMarker && stands
-      ? joinedCounts([{ ...link, ok: !!verdict?.ok }, ...more.map((m, i) => ({ ...m, ok: !!moreVerdicts[i]?.ok }))])
+    link && isMarker
+      ? joinedPlacement(
+          [{ ...link, ok: !!verdict?.ok }, ...more.map((m, i) => ({ ...m, ok: !!moreVerdicts[i]?.ok }))],
+          stands,
+        )
       : undefined;
-  const headline = link ? (joined ? t(joined.key, { m: joined.m, n: joined.n }) : claimWords(link, tr, stands)) : '';
+  const headline = link
+    ? joined?.where === 'headline'
+      ? t(joined.key, { m: joined.m, n: joined.n })
+      : claimWords(link, tr, stands)
+    : '';
+  const sourceKey = link ? markerSourceKey(verdict, !!offerOf(link)?.count) : undefined;
 
   return (
     <Box sx={{ bgcolor: 'background.default' }} data-claim-check="">
@@ -110,7 +120,7 @@ export const ClaimCheck: React.FC = () => {
                 color={verdict?.ok ? 'text.primary' : 'text.secondary'}
                 sx={{ mb: 1, textDecoration: verdict && !verdict.ok ? 'line-through' : 'none' }}
                 data-claim-statement=""
-                data-marker-joined={joined ? '' : undefined}
+                data-marker-joined={joined?.where === 'headline' ? '' : undefined}
               >
                 {headline}
               </Typography>
@@ -142,10 +152,10 @@ export const ClaimCheck: React.FC = () => {
                   {t('app.claim.check.failed', { reason: verdict.reason })}
                 </Alert>
               )}
-              {/* Whose numbers these are: the lab's only where its signature stands, else the holder's. */}
-              {isMarker && (
-                <Typography variant="body2" sx={{ mt: 1.5 }} data-marker-source={stands ? 'lab' : 'holder'}>
-                  {t(stands ? 'app.marker.source.lab' : 'app.marker.source.holder')}
+              {/* Whose numbers these are, in the footer's states: the lab's (count or call) only where it stands behind them. */}
+              {isMarker && sourceKey && (
+                <Typography variant="body2" sx={{ mt: 1.5 }} data-marker-source={sourceKey.split('.').pop()}>
+                  {t(sourceKey)}
                 </Typography>
               )}
             </Paper>
@@ -155,6 +165,12 @@ export const ClaimCheck: React.FC = () => {
                   {t('app.marker.more.title')}
                 </Typography>
                 <Stack spacing={1.5}>
+                  {/* The joined line, when the link's first claim isn't one of the two: both checked. */}
+                  {joined?.where === 'more' && (
+                    <Typography variant="body1" sx={{ fontWeight: 700 }} data-marker-joined="more">
+                      {t(joined.key, { m: joined.m, n: joined.n })}
+                    </Typography>
+                  )}
                   {more.map((m, i) => {
                     const v = moreVerdicts[i];
                     return (

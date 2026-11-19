@@ -160,11 +160,14 @@ export const readClaimLink = (hash: string): MadeClaim | undefined => {
     if (!isMarkerSchema(schema) || !Array.isArray(o.more) || o.more.length < 1 || o.more.length > MAX_MORE)
       return undefined;
     more = [];
+    // One claim per call and per number: a second claim on the same number adds nothing to say.
     const seen = new Set([txId]);
+    const slots = new Set([slot]);
     for (const m of o.more as unknown[]) {
       const one = readMore(m, schema);
-      if (!one || seen.has(one.txId)) return undefined;
+      if (!one || seen.has(one.txId) || slots.has(one.slot)) return undefined;
       seen.add(one.txId);
+      slots.add(one.slot);
       more.push(one);
     }
   }
@@ -235,6 +238,8 @@ export const claimsOf = (link: MadeClaim): readonly MadeClaim[] => {
 export const withMore = (first: MadeClaim, rest: readonly MadeClaim[]): MadeClaim => {
   if (rest.length === 0) return first;
   if (rest.length > MAX_MORE) throw new Error('Too many claims for one link.');
+  if (new Set([first.slot, ...rest.map((c) => c.slot)]).size !== rest.length + 1)
+    throw new Error('One claim per number in a link.');
   return {
     ...first,
     more: rest.map((c) => {

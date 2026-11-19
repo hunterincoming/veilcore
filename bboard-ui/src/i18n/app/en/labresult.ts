@@ -396,14 +396,26 @@ export const labresult = {
     'Filled in rounded down from the lab’s count of {sealed}, so the exact count stays private. You can change it.',
   'app.marker.rounded.up':
     'Filled in rounded up from the lab’s count of {sealed}, so the exact count stays private. You can change it.',
-  'app.marker.exactWarn':
-    'This is the exact count. Exact counts against known references, taken together, can narrow down the genotype. A rounded number shows less.',
-  'app.marker.exactRepeat': 'Exact counts on this marker panel already public: {n}.',
-  'app.marker.panelAlready': 'Already public about this sample on this marker panel: {list}.',
+  'app.marker.exactRepeat': 'Exact counts about these samples already public: {n}.',
+  'app.marker.panelAlready': 'Already public about the samples this result names: {list}.',
   'app.marker.panelItem': '{claim} ({result})',
   'app.marker.thisResult': 'this result',
-  'app.marker.resultNamed': 'result {accession}',
+  'app.marker.resultNamed': 'result {accession}, {panel}',
   'app.marker.copyAll': 'Copy one link with all {n} claims',
+  'app.marker.exactWarn.atLeast':
+    'This is the lowest bound that still holds: with any upper bound on the same number, it fixes the count. Exact counts against known references, taken together, can narrow down the genotype. A rounded number shows less.',
+  'app.marker.exactWarn.atMost':
+    'This is the highest bound that still holds: with any lower bound on the same number, it fixes the count. Exact counts against known references, taken together, can narrow down the genotype. A rounded number shows less.',
+  'app.marker.pairWarn':
+    'The lab’s call and a count on this result would both be public. Together, through the lab’s own threshold for its call, they bound the count from both sides.',
+  'app.marker.pairsPublic': 'Results with both the lab’s call and a count public: {n}.',
+  'app.marker.source.checking': 'Checking whether a laboratory signed these numbers…',
+  'app.marker.source.unnamed':
+    'A key signed these numbers, but no single laboratory is tied to it, so read them as the holder’s own.',
+  'app.marker.source.withdrawn':
+    'The laboratory that signed these numbers has since withdrawn the result, so read them as the holder’s own.',
+  'app.marker.source.labCall':
+    'The laboratory’s call, from the result it signed. It is not a decision about the variety.',
   'app.marker.line.differing': 'Markers differing: at least {n}',
   'app.marker.line.compared': 'Markers compared: at least {n}',
   'app.marker.line.conflictsFirst': 'Conflicts with parent 1: at most {n}',
@@ -413,8 +425,7 @@ export const labresult = {
   'app.marker.joined.conflictsSecond': 'Conflicts with parent 2: at most {m} of at least {n} markers compared',
   'app.marker.source.lab':
     'The laboratory’s count, from the result it signed. It is a count, not a decision about the variety.',
-  'app.marker.source.holder':
-    'No laboratory signature on this record has checked here, so read these numbers as the holder’s own.',
+  'app.marker.source.holder': 'No laboratory signature on these numbers checks here, so read them as the holder’s own.',
   'app.marker.more.title': 'Also in this link, on the same record',
   'app.marker.limits.title': 'What these claims don’t show',
   'app.marker.limits.examine':

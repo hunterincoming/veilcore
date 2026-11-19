@@ -2,7 +2,7 @@
 //
 //   1. With a real registry: a lab signs a comparison bound to the breeder's record, the breeder
 //      adds it, and its "Prove one number" panel offers the comparison's own claims, fills a
-//      rounded bound, warns before an exact count, counts what is public on the marker panel, and
+//      rounded bound, warns before an exact count, counts what is public about the sample, and
 //      states the limits. The two claims are proved through the e2e build's stand-in for Midnight
 //      (chain/e2e-chain.ts `prove`), and one link carries both.
 //   2. With the stand-in registry: the check page for such a link in each state of the lab's
@@ -168,7 +168,7 @@ test.describe('the prove panel on a lab’s comparison', () => {
     await expect(panel.getByText('It is at most…')).toHaveCount(0);
     // The exact count is warned about.
     await panel.getByLabel('The limit').fill('31');
-    await expect(panel.locator('[data-marker-exact]')).toContainText('This is the exact count.');
+    await expect(panel.locator('[data-marker-exact]')).toContainText('This is the lowest bound that still holds');
     await panel.getByLabel('The limit').fill('30');
     await expect(panel.locator('[data-marker-exact]')).toHaveCount(0);
     await shot(breeder, 'marker-panel-en', '[data-prove-number]');
@@ -204,8 +204,11 @@ const provePart = async (breeder: Page, panel: ReturnType<Page['locator']>) => {
     await expect(panel.locator('[data-claim-made]')).toContainText('Markers that differ is at least 30');
     await panel.getByLabel('What to prove').click();
     await breeder.getByRole('option', { name: 'Markers compared: at least …' }).click();
-    await expect(panel.getByLabel('The limit')).toHaveValue('90');
-    await expect(panel.locator('[data-marker-exact]')).toBeVisible();
+    // 90 is a multiple of the step: filled as 85, never as the count itself.
+    await expect(panel.getByLabel('The limit')).toHaveValue('85');
+    await expect(panel.locator('[data-marker-exact]')).toHaveCount(0);
+    await panel.getByLabel('The limit').fill('90');
+    await expect(panel.locator('[data-marker-exact]')).toContainText('This is the lowest bound that still holds');
     // What is already public on this panel, before the second claim.
     await expect(panel.locator('[data-marker-panel="1"]')).toContainText(
       'Markers that differ is at least 30 (this result)',
@@ -218,7 +221,7 @@ const provePart = async (breeder: Page, panel: ReturnType<Page['locator']>) => {
       'Markers compared is at least 90 (this result)',
     );
     await expect(panel.locator('[data-marker-exact]')).toContainText(
-      'Exact counts on this marker panel already public: 1.',
+      'Exact counts about these samples already public: 1.',
     );
 
     // One link with both claims on the record.
@@ -306,6 +309,49 @@ test.describe('the check page for a link with two claims on a lab’s comparison
     expectNoErrors(errors);
   });
 
+  test('the lab’s call first: the call stays the headline, the joined line goes under it', async ({ page }) => {
+    const errors = watch(page);
+    const callFirst = Buffer.from(
+      JSON.stringify({
+        v: 1,
+        kind: 'value',
+        contract: 'c1'.repeat(32),
+        txId: 'ad'.repeat(32),
+        record: 'cd'.repeat(32),
+        schema: 'veilcore/schema/genetic-match/v1',
+        slot: 0,
+        value: '0',
+        attested: { txId: 'ef'.repeat(32), attester: KEY, about: '7e'.repeat(32) },
+        more: [
+          { kind: 'range', txId: DIFFERING, slot: 2, op: 'at-least', bound: '6' },
+          { kind: 'range', txId: COMPARED, slot: 1, op: 'at-least', bound: '40' },
+        ],
+      }),
+    ).toString('base64url');
+    await page.addInitScript(
+      ({ first, other }) => {
+        (window as unknown as { __veilcoreE2EChain: unknown }).__veilcoreE2EChain = {
+          claim: (l: { txId: string }) => (l.txId === 'ad'.repeat(32) ? first : other),
+        };
+      },
+      { first: ok(BOUND), other: { ok: true, blockHeight: 3514960 } },
+    );
+    await isolate(page);
+    await page.goto(`/check-claim#c=${callFirst}`);
+    await expect(page.locator('[data-claim-statement]')).toHaveText('Different genotype at the markers compared');
+    await expect(page.locator('[data-claim-statement]')).not.toHaveAttribute('data-marker-joined');
+    await expect(page.locator('[data-claim-raw]')).toHaveText('As proved on Midnight: Match (1 yes, 0 no) is 0.');
+    // Under the call: the lab's call, never "the laboratory's count".
+    await expect(page.locator('[data-marker-source="labCall"]')).toHaveText(
+      'The laboratory’s call, from the result it signed. It is not a decision about the variety.',
+    );
+    await expect(page.locator('[data-marker-joined="more"]')).toHaveText(
+      'Markers differing: at least 6 of at least 40 compared',
+    );
+    await expect(page.locator('[data-marker-more-claim="ok"]')).toHaveCount(2);
+    expectNoErrors(errors);
+  });
+
   test('the second claim fails: no joined line; the first in the lab’s words, the second struck out', async ({
     page,
   }) => {
@@ -316,14 +362,21 @@ test.describe('the check page for a link with two claims on a lab’s comparison
     await expect(page.locator('[data-marker-more-claim="failed"]')).toContainText('Don’t rely on it');
   });
 
-  for (const [state, first] of [
-    ['while it is being checked', 'checking'],
-    ['when the check fails', { ok: false, reason: 'That transaction is not a claim.' }],
-    ['with no lab signature', { ok: true, blockHeight: 1 }],
-    ['with a key no lab is tied to', ok({ kind: 'none' })],
+  for (const [state, first, source, says] of [
+    ['while it is being checked', 'checking', 'checking', 'Checking whether a laboratory signed these numbers'],
+    [
+      'when the check fails',
+      { ok: false, reason: 'That transaction is not a claim.' },
+      'holder',
+      'No laboratory signature on these numbers checks here',
+    ],
+    ['with no lab signature', { ok: true, blockHeight: 1 }, 'holder', 'No laboratory signature on these numbers'],
+    ['with a key no lab is tied to', ok({ kind: 'none' }), 'unnamed', 'A key signed these numbers, but no single'],
     [
       'when the lab withdrew the result',
       ok({ kind: 'retracted', attestation: { retraction: { reason: 'retraction' } } }),
+      'withdrawn',
+      'has since withdrawn the result',
     ],
   ] as const)
     test(`the holder’s words, never the lab’s count or one line, ${state}`, async ({ page }) => {
@@ -331,9 +384,7 @@ test.describe('the check page for a link with two claims on a lab’s comparison
       await open(page, first, { ok: true, blockHeight: 3514960 });
       await expect(page.locator('[data-claim-statement]')).toHaveText('Markers that differ is at least 6');
       await expect(page.locator('[data-marker-joined]')).toHaveCount(0);
-      await expect(page.locator('[data-marker-source="holder"]')).toContainText(
-        'read these numbers as the holder’s own',
-      );
+      await expect(page.locator(`[data-marker-source="${source}"]`)).toContainText(says);
       await expect(page.getByText(/Markers differing: at least/)).toHaveCount(0);
       await expect(page.locator('[data-marker-limits]')).toBeVisible();
       expectNoErrors(errors);

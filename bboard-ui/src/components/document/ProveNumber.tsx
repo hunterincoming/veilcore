@@ -6,7 +6,7 @@
 //
 // On a lab's genotype comparison or parentage check (veilcore/marker-claims.ts) the panel offers a
 // fixed list instead ("Markers differing: at least …"), fills a bound rounded away from the exact
-// count, warns before an exact count, counts what is public per marker panel, and states the limits.
+// count, warns before an exact bound, counts what is public per sample, and states the limits.
 //
 // On a record kept on this device only (docs/device-only-records.md) the panel is shown only
 // after the holder turns it on (DeviceOnlyProve, below), says exactly what would be published
@@ -36,7 +36,9 @@ import { canProve, claimsReadyHere, proveNumber, proveShown, type How } from '..
 import {
   LINE_KEYS,
   OFFER_KEYS,
+  callPairs,
   linkClaims,
+  offerAllowed,
   offerOf,
   offersFor,
   panelClaims,
@@ -170,6 +172,10 @@ export const ProveNumber: React.FC<{
   // On a marker panel, everything already public about this sample on that panel, any number, any result.
   const onPanel = offers ? panelClaims(record, all) : [];
   const exactOnPanel = onPanel.filter((p) => p.exact).length;
+  const pairsOnPanel = callPairs(onPanel.map((p) => p.claim));
+  // The lab's call and a count on this result, both public once this is proved (rule 3).
+  const hereClaims = onPanel.filter((p) => p.here).map((p) => offerOf(p.claim));
+  const pairWould = !!offer && (offer.count ? hereClaims.some((o) => o && !o.count) : hereClaims.some((o) => o?.count));
   const exactCount = !!offer?.count && bound !== undefined && bound === sealed;
   const rounded = !!offer?.count && typed !== '' && typed === filledFor(offer) && bound !== sealed;
   const callKey = offer && !offer.count ? callWordKey(s.path, { kind: 'value', value: sealed.toString() }) : undefined;
@@ -177,7 +183,9 @@ export const ProveNumber: React.FC<{
 
   /** A number with its unit, when the slot has one ("12.50 m²", "120"). */
   const withUnit = (n: string) => (s.unit ? `${n} ${s.unit}` : n);
-  const ready = canProve({ deviceOnly, how, confirmedExact, boundOk: bound !== undefined, meets });
+  // On a marker form, only what is offered and never "at least 0" (marker-claims.ts offerAllowed).
+  const allowed = bound !== undefined && offerAllowed(held.schema, s.slot, how, how === 'exactly' ? undefined : bound);
+  const ready = canProve({ deviceOnly, how, confirmedExact, boundOk: allowed, meets });
 
   const prove = async () => {
     if (bound === undefined || !ready || busy) return;
@@ -332,8 +340,13 @@ export const ProveNumber: React.FC<{
           )}
           {exactCount && (
             <Alert severity="warning" variant="outlined" data-marker-exact="">
-              {t('app.marker.exactWarn')}
+              {t(how === 'at-most' ? 'app.marker.exactWarn.atMost' : 'app.marker.exactWarn.atLeast')}
               {exactOnPanel > 0 && ` ${t('app.marker.exactRepeat', { n: String(exactOnPanel) })}`}
+            </Alert>
+          )}
+          {pairWould && (
+            <Alert severity="warning" variant="outlined" data-marker-pair="">
+              {t('app.marker.pairWarn')}
             </Alert>
           )}
           {how === 'exactly' && callKey && (
@@ -357,21 +370,22 @@ export const ProveNumber: React.FC<{
                 list: onPanel
                   .map((p) =>
                     t('app.marker.panelItem', {
-                      claim: claimWords(p.claim, tr, !!lab),
+                      claim: claimWords(p.claim, tr),
                       result: p.here
                         ? t('app.marker.thisResult')
-                        : t('app.marker.resultNamed', { accession: p.accession ?? '' }),
+                        : t('app.marker.resultNamed', { accession: p.accession ?? '', panel: p.panel ?? '' }),
                     }),
                   )
                   .join('; '),
               })}
               {exactOnPanel > 0 && !exactCount && ` ${t('app.marker.exactRepeat', { n: String(exactOnPanel) })}`}
+              {pairsOnPanel > 0 && ` ${t('app.marker.pairsPublic', { n: String(pairsOnPanel) })}`}
             </Alert>
           )}
           {offers && <MarkerLimits />}
           {earlier.length > 0 && (
             <Alert severity="info" variant="outlined" data-claim-earlier="">
-              {t('app.claim.already', { label, list: earlier.map((c) => claimWords(c, tr, !!lab)).join('; ') })}
+              {t('app.claim.already', { label, list: earlier.map((c) => claimWords(c, tr)).join('; ') })}
             </Alert>
           )}
           <Typography variant="body2" color="text.secondary">
@@ -436,7 +450,6 @@ export const ProveNumber: React.FC<{
                     ? { schema: held.schema, slot: s.slot, kind: 'value', value: String(bound) }
                     : { schema: held.schema, slot: s.slot, kind: 'range', op: how, bound: String(bound) },
                   tr,
-                  !!lab,
                 ),
               })}
             </Typography>
@@ -466,7 +479,7 @@ export const ProveNumber: React.FC<{
           )}
           {made && (
             <Alert severity="success" variant="outlined" data-claim-made="">
-              {t('app.claim.done')} {claimWords(made, tr, !!lab)}.
+              {t('app.claim.done')} {claimWords(made, tr)}.
             </Alert>
           )}
         </Stack>
@@ -479,7 +492,7 @@ export const ProveNumber: React.FC<{
           <Stack spacing={0.75}>
             {(record.claims ?? []).map((c) => (
               <Stack key={c.txId} direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
-                <Typography variant="body2">{claimWords(c, tr, !!lab)}</Typography>
+                <Typography variant="body2">{claimWords(c, tr)}</Typography>
                 <Button size="small" onClick={() => void copy(c)}>
                   {t('app.claim.copy')}
                 </Button>

@@ -95,8 +95,8 @@ export const proveNumber = async (
   if (isKeptOnDeviceOnly(record) && how === 'exactly' && opts.confirmedExact !== true)
     throw new Error('Publishing the number itself needs your confirmation first. Nothing was sent.');
   // On a lab's genotype comparison or parentage check, only the claims its panel offers
-  // (marker-claims.ts): checked here too, not only by the page.
-  if (!offerAllowed(held.schema, slot, how))
+  // (marker-claims.ts), and never "at least 0": checked here too, not only by the page.
+  if (!offerAllowed(held.schema, slot, how, how === 'exactly' ? undefined : bound))
     throw new Error('That claim isn’t offered on this kind of result. Nothing was sent.');
   const calls = opts.calls ?? e2eCalls() ?? (await import('./chain/claims-call'));
   const m = await claimMaterial(record as DocumentRecordLike & { fieldSet: HeldFieldSet });

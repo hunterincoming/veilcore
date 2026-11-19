@@ -390,14 +390,26 @@ export const labresult = {
     'Abgerundet aus der Zählung des Labors ({sealed}) eingetragen, damit die genaue Zahl privat bleibt. Sie können sie ändern.',
   'app.marker.rounded.up':
     'Aufgerundet aus der Zählung des Labors ({sealed}) eingetragen, damit die genaue Zahl privat bleibt. Sie können sie ändern.',
-  'app.marker.exactWarn':
-    'Dies ist die genaue Zahl. Genaue Zahlen gegenüber bekannten Referenzen können zusammen den Genotyp eingrenzen. Eine gerundete Zahl zeigt weniger.',
-  'app.marker.exactRepeat': 'Auf diesem Markerpanel bereits öffentliche genaue Zahlen: {n}.',
-  'app.marker.panelAlready': 'Zu dieser Probe auf diesem Markerpanel bereits öffentlich: {list}.',
+  'app.marker.exactRepeat': 'Zu diesen Proben bereits öffentliche genaue Zahlen: {n}.',
+  'app.marker.panelAlready': 'Zu den Proben, die dieses Ergebnis nennt, bereits öffentlich: {list}.',
   'app.marker.panelItem': '{claim} ({result})',
   'app.marker.thisResult': 'dieses Ergebnis',
-  'app.marker.resultNamed': 'Ergebnis {accession}',
+  'app.marker.resultNamed': 'Ergebnis {accession}, {panel}',
   'app.marker.copyAll': 'Einen Link mit allen {n} Nachweisen kopieren',
+  'app.marker.exactWarn.atLeast':
+    'Dies ist die höchste Untergrenze, die noch gilt: Mit jeder Obergrenze für dieselbe Zahl legt sie die Zählung fest. Genaue Zahlen gegenüber bekannten Referenzen können zusammen den Genotyp eingrenzen. Eine gerundete Zahl zeigt weniger.',
+  'app.marker.exactWarn.atMost':
+    'Dies ist die niedrigste Obergrenze, die noch gilt: Mit jeder Untergrenze für dieselbe Zahl legt sie die Zählung fest. Genaue Zahlen gegenüber bekannten Referenzen können zusammen den Genotyp eingrenzen. Eine gerundete Zahl zeigt weniger.',
+  'app.marker.pairWarn':
+    'Das Ergebnis des Labors und eine Zählung zu diesem Ergebnis wären beide öffentlich. Zusammen grenzen sie die Zählung über die eigene Schwelle des Labors von beiden Seiten ein.',
+  'app.marker.pairsPublic': 'Ergebnisse, bei denen das Ergebnis des Labors und eine Zählung öffentlich sind: {n}.',
+  'app.marker.source.checking': 'Es wird geprüft, ob ein Labor diese Zahlen signiert hat…',
+  'app.marker.source.unnamed':
+    'Ein Schlüssel hat diese Zahlen signiert, aber kein einzelnes Labor ist mit ihm verbunden. Lesen Sie sie daher als die eigenen des Inhabers.',
+  'app.marker.source.withdrawn':
+    'Das Labor, das diese Zahlen signiert hat, hat das Ergebnis inzwischen zurückgezogen. Lesen Sie sie daher als die eigenen des Inhabers.',
+  'app.marker.source.labCall':
+    'Das Ergebnis des Labors, aus dem Ergebnis, das es signiert hat. Es ist keine Entscheidung über die Sorte.',
   'app.marker.line.differing': 'Abweichende Marker: mindestens {n}',
   'app.marker.line.compared': 'Verglichene Marker: mindestens {n}',
   'app.marker.line.conflictsFirst': 'Konflikte mit Elternteil 1: höchstens {n}',
@@ -410,7 +422,7 @@ export const labresult = {
   'app.marker.source.lab':
     'Die Zählung des Labors, aus dem Ergebnis, das es signiert hat. Es ist eine Zählung, keine Entscheidung über die Sorte.',
   'app.marker.source.holder':
-    'Keine Laborsignatur auf diesem Datensatz wurde hier geprüft. Lesen Sie diese Zahlen daher als die eigenen des Inhabers.',
+    'Keine Laborsignatur auf diesen Zahlen wird hier bestätigt. Lesen Sie sie daher als die eigenen des Inhabers.',
   'app.marker.more.title': 'Ebenfalls in diesem Link, zum selben Datensatz',
   'app.marker.limits.title': 'Was diese Nachweise nicht zeigen',
   'app.marker.limits.examine':

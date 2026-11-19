@@ -387,14 +387,26 @@ export const labresult = {
     'Rellenado redondeando a la baja el recuento del laboratorio ({sealed}), para que el recuento exacto siga siendo privado. Puede cambiarlo.',
   'app.marker.rounded.up':
     'Rellenado redondeando al alza el recuento del laboratorio ({sealed}), para que el recuento exacto siga siendo privado. Puede cambiarlo.',
-  'app.marker.exactWarn':
-    'Este es el recuento exacto. Los recuentos exactos frente a referencias conocidas, tomados en conjunto, pueden acotar el genotipo. Un número redondeado muestra menos.',
-  'app.marker.exactRepeat': 'Recuentos exactos ya públicos en este panel de marcadores: {n}.',
-  'app.marker.panelAlready': 'Ya es público sobre esta muestra en este panel de marcadores: {list}.',
+  'app.marker.exactRepeat': 'Recuentos exactos ya públicos sobre estas muestras: {n}.',
+  'app.marker.panelAlready': 'Ya es público sobre las muestras que nombra este resultado: {list}.',
   'app.marker.panelItem': '{claim} ({result})',
   'app.marker.thisResult': 'este resultado',
-  'app.marker.resultNamed': 'resultado {accession}',
+  'app.marker.resultNamed': 'resultado {accession}, {panel}',
   'app.marker.copyAll': 'Copiar un enlace con las {n} pruebas',
+  'app.marker.exactWarn.atLeast':
+    'Este es el límite inferior más alto que aún se cumple: con cualquier límite superior sobre el mismo número, fija el recuento. Los recuentos exactos frente a referencias conocidas, tomados en conjunto, pueden acotar el genotipo. Un número redondeado muestra menos.',
+  'app.marker.exactWarn.atMost':
+    'Este es el límite superior más bajo que aún se cumple: con cualquier límite inferior sobre el mismo número, fija el recuento. Los recuentos exactos frente a referencias conocidas, tomados en conjunto, pueden acotar el genotipo. Un número redondeado muestra menos.',
+  'app.marker.pairWarn':
+    'El resultado del laboratorio y un recuento de este resultado serían ambos públicos. Juntos, mediante el propio umbral del laboratorio para su resultado, acotan el recuento por ambos lados.',
+  'app.marker.pairsPublic': 'Resultados con el resultado del laboratorio y un recuento públicos: {n}.',
+  'app.marker.source.checking': 'Comprobando si un laboratorio firmó estos números…',
+  'app.marker.source.unnamed':
+    'Una clave firmó estos números, pero ningún laboratorio concreto está vinculado a ella, así que léalos como del propio titular.',
+  'app.marker.source.withdrawn':
+    'El laboratorio que firmó estos números ha retirado después el resultado, así que léalos como del propio titular.',
+  'app.marker.source.labCall':
+    'El resultado del laboratorio, del resultado que firmó. No es una decisión sobre la variedad.',
   'app.marker.line.differing': 'Marcadores que difieren: al menos {n}',
   'app.marker.line.compared': 'Marcadores comparados: al menos {n}',
   'app.marker.line.conflictsFirst': 'Conflictos con el progenitor 1: como máximo {n}',
@@ -407,7 +419,7 @@ export const labresult = {
   'app.marker.source.lab':
     'El recuento del laboratorio, del resultado que firmó. Es un recuento, no una decisión sobre la variedad.',
   'app.marker.source.holder':
-    'Ninguna firma de laboratorio sobre este registro se ha comprobado aquí, así que lea estos números como del propio titular.',
+    'Ninguna firma de laboratorio sobre estos números se comprueba aquí, así que léalos como del propio titular.',
   'app.marker.more.title': 'También en este enlace, sobre el mismo registro',
   'app.marker.limits.title': 'Lo que estas pruebas no muestran',
   'app.marker.limits.examine':
