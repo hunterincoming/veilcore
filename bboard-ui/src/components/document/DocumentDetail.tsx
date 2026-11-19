@@ -54,7 +54,8 @@ import { DocumentDate, DocumentFacts, Fact, FileCompare, kindOrTypeWords, seen }
 import { ChainView } from './ChainView';
 import { schemaWords, slotWords } from './NumbersFields';
 import { DeviceOnlyProve, ProveNumber } from './ProveNumber';
-import { LabSignaturePanel } from './LabSignaturePanel';
+import { LabSignaturePanel, useLabSigner } from './LabSignaturePanel';
+import { labStandsOnRecord } from '../../veilcore/claim-call';
 import { ResultFacts, ViabilityNotRead } from '../lab/ResultFacts';
 
 /** The result file again, from the record that holds it: the same bundle the lab handed over. */
@@ -158,6 +159,11 @@ export const DocumentDetail: React.FC<{ record: StrainRecord }> = ({ record }) =
   // A kept laboratory signature is checked again against the record before anything shows it
   // as signed (lab-attest.ts): a record restored or edited by hand may no longer match.
   const [labOk, setLabOk] = useState<boolean>();
+  // Whose key signed it, from the lab's binding (looked up only for a record with a lab signature).
+  const labSigner = useLabSigner(record);
+  const labState = { signatureOk: labOk, signer: labSigner };
+  // A lab stands behind this record: the same rule as the check page (claim-call.ts labStands).
+  const labHere = labStandsOnRecord(labOk, labSigner);
   useEffect(() => {
     setLabOk(undefined);
     const sig = record.labSignature;
@@ -374,8 +380,8 @@ export const DocumentDetail: React.FC<{ record: StrainRecord }> = ({ record }) =
             off until they turn it on (ProveNumber.tsx DeviceOnlyProve). */}
         {!local && (
           <>
-            {read && LAB_SIGNING_ENABLED && <LabSignaturePanel record={record} signatureOk={labOk} />}
-            {read && <ProveNumber record={record} labSignatureOk={labOk === true} />}
+            {read && LAB_SIGNING_ENABLED && <LabSignaturePanel record={record} {...labState} />}
+            {read && <ProveNumber record={record} labSignatureOk={labOk === true} labStands={labHere} />}
           </>
         )}
         {read && local && <DeviceOnlyProve record={record} />}

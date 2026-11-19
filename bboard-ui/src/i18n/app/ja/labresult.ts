@@ -366,4 +366,63 @@ export const labresult = {
   'app.lr.check.pairSelfAfter':
     'この結果は、同じ鍵で署名された工程前サンプルの結果{code}自身によって置き換えられているため、両者はもう組として扱われません。',
   'app.lr.f.noCount': '生存微生物を検出（数の報告なし）',
+
+  // ---- claims on a genotype comparison or parentage check (veilcore/marker-claims.ts) ----
+  'app.marker.offer.differing': '異なるマーカー数：少なくとも…',
+  'app.marker.offer.compared': '比較したマーカー数：少なくとも…',
+  'app.marker.offer.conflictsFirst': '親1との矛盾：多くとも…',
+  'app.marker.offer.conflictsSecond': '親2との矛盾：多くとも…',
+  'app.marker.offer.call': '検査機関の判定：{call}',
+  'app.marker.callPublish': '検査機関の判定をそのまま公開します：{call}。',
+  'app.marker.rounded.down':
+    '正確な数を非公開にするため、検査機関の数（{sealed}）を切り下げて入力しています。変更できます。',
+  'app.marker.rounded.up':
+    '正確な数を非公開にするため、検査機関の数（{sealed}）を切り上げて入力しています。変更できます。',
+  'app.marker.exactRepeat': 'これらの試料について既に公開されている正確な数：{n}件。',
+  'app.marker.panelAlready': 'この結果が示す試料について既に公開されている内容：{list}。',
+  'app.marker.panelItem': '{claim}（{result}）',
+  'app.marker.thisResult': 'この結果',
+  'app.marker.resultNamed': '結果 {accession}、{panel}',
+  'app.marker.copyAll': '{n}件の証明をまとめたリンクをコピー',
+  'app.marker.exactWarn.atLeast':
+    'これは成り立つ下限のうち最も高いものです。同じ数への上限と合わせると、数が確定します。既知の参照との正確な数を複数合わせると、遺伝子型を絞り込めることがあります。丸めた数のほうが示す情報は少なくなります。',
+  'app.marker.exactWarn.atMost':
+    'これは成り立つ上限のうち最も低いものです。同じ数への下限と合わせると、数が確定します。既知の参照との正確な数を複数合わせると、遺伝子型を絞り込めることがあります。丸めた数のほうが示す情報は少なくなります。',
+  'app.marker.pairWarn':
+    'この結果について、検査機関の判定と数の両方が公開されることになります。検査機関自身の判定基準を通じて、両者で数が両側から絞り込まれます。',
+  'app.marker.pairsPublic': '検査機関の判定と数の両方が公開されている結果：{n}件。',
+  'app.marker.source.checking': '検査機関がこれらの数に署名したか確認しています…',
+  'app.marker.source.unnamed':
+    'ある鍵がこれらの数に署名していますが、特定の一つの検査機関とは結び付いていません。保有者自身の数としてお読みください。',
+  'app.marker.source.withdrawn':
+    'これらの数に署名した検査機関は、その後この結果を取り下げています。保有者自身の数としてお読みください。',
+  'app.marker.source.labCall': '検査機関が署名した結果による、検査機関の判定です。品種についての判断ではありません。',
+  'app.marker.line.differing': '異なるマーカー数：少なくとも{n}',
+  'app.marker.line.compared': '比較したマーカー数：少なくとも{n}',
+  'app.marker.line.conflictsFirst': '親1との矛盾：多くとも{n}',
+  'app.marker.line.conflictsSecond': '親2との矛盾：多くとも{n}',
+  'app.marker.joined.differing': '異なるマーカー数：比較した少なくとも{n}のうち少なくとも{m}',
+  'app.marker.joined.conflictsFirst': '親1との矛盾：比較した少なくとも{n}マーカーのうち多くとも{m}',
+  'app.marker.joined.conflictsSecond': '親2との矛盾：比較した少なくとも{n}マーカーのうち多くとも{m}',
+  'app.marker.source.lab':
+    '検査機関が署名した結果による、検査機関の数です。数であって、品種についての判断ではありません。',
+  'app.marker.source.holder':
+    'これらの数への検査機関の署名はここで確認できません。保有者自身の数としてお読みください。',
+  'app.marker.more.title': '同じ記録についての、このリンクに含まれる他の証明',
+  'app.marker.limits.title': 'これらの証明が示さないこと',
+  'app.marker.limits.examine':
+    'これらは検査機関が署名した数です。二つの品種が区別できるかどうかは、審査機関がマーカーデータそのものから判断します。これはその審査に代わるものではありません。',
+  'app.marker.limits.oneParty':
+    '両方の試料を検査した一者が必要です（ここでは検査機関）。どちらも見せないマーカーデータを二者で比べることはできません。',
+  'app.marker.limits.labWord':
+    '検査機関の署名により、これらは検査機関の数になります。数が正しいことや、方法が適切であることを示すものではありません。',
+  'app.marker.limits.meaning':
+    '一致は、比較していないマーカーについて何も示さず、二つの試料が同じ植物・動物・品種であることも示しません。「示された親と矛盾なし」は、由来の証明ではありません。',
+  'app.marker.limits.which': 'どの記録を比較したか、方法、パネルは検査機関の結果ファイルにあり、証明には含まれません。',
+  'app.marker.limits.later':
+    '署名された時点の結果についてのものです。検査機関がその後訂正したり、再検査したりしている可能性があります。',
+  'app.marker.limits.size':
+    '一つの記録が持てる数は16までです。大規模なSNP比較は検査機関自身の計算であり、ここで扱うのはその数だけです。',
+  'app.marker.limits.opening':
+    '記録の数とそのフィールド秘密を持つ人は、それらを公開できます。保有者だけでなく検査機関も同様です。',
 } satisfies Partial<AppTranslation>;

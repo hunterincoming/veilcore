@@ -375,4 +375,67 @@ export const labresult = {
   'app.lr.check.pairSelfAfter':
     'Este resultado fue sustituido por el propio resultado de la muestra anterior {code}, firmado con la misma clave, así que ya no se leen como par.',
   'app.lr.f.noCount': 'Se recuperaron organismos viables (sin recuento informado)',
+
+  // ---- claims on a genotype comparison or parentage check (veilcore/marker-claims.ts) ----
+  'app.marker.offer.differing': 'Marcadores que difieren: al menos …',
+  'app.marker.offer.compared': 'Marcadores comparados: al menos …',
+  'app.marker.offer.conflictsFirst': 'Conflictos con el progenitor 1: como máximo …',
+  'app.marker.offer.conflictsSecond': 'Conflictos con el progenitor 2: como máximo …',
+  'app.marker.offer.call': 'El resultado del laboratorio: {call}',
+  'app.marker.callPublish': 'Esto publica el resultado del laboratorio tal cual: {call}.',
+  'app.marker.rounded.down':
+    'Rellenado redondeando a la baja el recuento del laboratorio ({sealed}), para que el recuento exacto siga siendo privado. Puede cambiarlo.',
+  'app.marker.rounded.up':
+    'Rellenado redondeando al alza el recuento del laboratorio ({sealed}), para que el recuento exacto siga siendo privado. Puede cambiarlo.',
+  'app.marker.exactRepeat': 'Recuentos exactos ya públicos sobre estas muestras: {n}.',
+  'app.marker.panelAlready': 'Ya es público sobre las muestras que nombra este resultado: {list}.',
+  'app.marker.panelItem': '{claim} ({result})',
+  'app.marker.thisResult': 'este resultado',
+  'app.marker.resultNamed': 'resultado {accession}, {panel}',
+  'app.marker.copyAll': 'Copiar un enlace con las {n} pruebas',
+  'app.marker.exactWarn.atLeast':
+    'Este es el límite inferior más alto que aún se cumple: con cualquier límite superior sobre el mismo número, fija el recuento. Los recuentos exactos frente a referencias conocidas, tomados en conjunto, pueden acotar el genotipo. Un número redondeado muestra menos.',
+  'app.marker.exactWarn.atMost':
+    'Este es el límite superior más bajo que aún se cumple: con cualquier límite inferior sobre el mismo número, fija el recuento. Los recuentos exactos frente a referencias conocidas, tomados en conjunto, pueden acotar el genotipo. Un número redondeado muestra menos.',
+  'app.marker.pairWarn':
+    'El resultado del laboratorio y un recuento de este resultado serían ambos públicos. Juntos, mediante el propio umbral del laboratorio para su resultado, acotan el recuento por ambos lados.',
+  'app.marker.pairsPublic': 'Resultados con el resultado del laboratorio y un recuento públicos: {n}.',
+  'app.marker.source.checking': 'Comprobando si un laboratorio firmó estos números…',
+  'app.marker.source.unnamed':
+    'Una clave firmó estos números, pero ningún laboratorio concreto está vinculado a ella, así que léalos como del propio titular.',
+  'app.marker.source.withdrawn':
+    'El laboratorio que firmó estos números ha retirado después el resultado, así que léalos como del propio titular.',
+  'app.marker.source.labCall':
+    'El resultado del laboratorio, del resultado que firmó. No es una decisión sobre la variedad.',
+  'app.marker.line.differing': 'Marcadores que difieren: al menos {n}',
+  'app.marker.line.compared': 'Marcadores comparados: al menos {n}',
+  'app.marker.line.conflictsFirst': 'Conflictos con el progenitor 1: como máximo {n}',
+  'app.marker.line.conflictsSecond': 'Conflictos con el progenitor 2: como máximo {n}',
+  'app.marker.joined.differing': 'Marcadores que difieren: al menos {m} de al menos {n} comparados',
+  'app.marker.joined.conflictsFirst':
+    'Conflictos con el progenitor 1: como máximo {m} de al menos {n} marcadores comparados',
+  'app.marker.joined.conflictsSecond':
+    'Conflictos con el progenitor 2: como máximo {m} de al menos {n} marcadores comparados',
+  'app.marker.source.lab':
+    'El recuento del laboratorio, del resultado que firmó. Es un recuento, no una decisión sobre la variedad.',
+  'app.marker.source.holder':
+    'Ninguna firma de laboratorio sobre estos números se comprueba aquí, así que léalos como del propio titular.',
+  'app.marker.more.title': 'También en este enlace, sobre el mismo registro',
+  'app.marker.limits.title': 'Lo que estas pruebas no muestran',
+  'app.marker.limits.examine':
+    'Son recuentos que firmó un laboratorio. Si dos variedades son distintas lo decide la oficina examinadora, a partir de los propios datos de marcadores. Esto no sustituye ese examen.',
+  'app.marker.limits.oneParty':
+    'Necesitan una parte que haya analizado ambas muestras: aquí, el laboratorio. No permiten que dos partes comparen datos de marcadores que ninguna quiere mostrar.',
+  'app.marker.limits.labWord':
+    'La firma de un laboratorio hace de estos los números del laboratorio. No los hace correctos, ni el método fiable.',
+  'app.marker.limits.meaning':
+    'Una coincidencia no dice nada de los marcadores no comparados, ni que las dos muestras sean la misma planta, animal o variedad. «Compatible con los progenitores indicados» no prueba la descendencia.',
+  'app.marker.limits.which':
+    'Qué registros se compararon, el método y el panel están en el archivo de resultado del laboratorio, no en la prueba.',
+  'app.marker.limits.later':
+    'Se refieren al resultado tal como se firmó. El laboratorio puede haberlo corregido o haber vuelto a analizar desde entonces.',
+  'app.marker.limits.size':
+    'Un registro contiene como máximo 16 números. Una comparación grande de SNP es un cálculo del propio laboratorio: aquí solo se prueban sus recuentos.',
+  'app.marker.limits.opening':
+    'Cualquiera que tenga los números del registro y su secreto de campos puede publicarlos: el titular, y también el laboratorio.',
 } satisfies Partial<AppTranslation>;

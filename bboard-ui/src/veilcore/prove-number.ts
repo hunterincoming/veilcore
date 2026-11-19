@@ -18,6 +18,8 @@ import type { MadeClaim } from './claim-link';
 import type { DocumentRecordLike } from './document-profile';
 import type { HeldFieldSet } from './field-set';
 import { DEVICE_ONLY_CLAIMS_ENABLED } from '../config/network';
+import { offerAllowed } from './marker-claims';
+import { e2eChain } from './chain/e2e-chain';
 
 export type How = 'at-most' | 'at-least' | 'exactly';
 
@@ -92,7 +94,11 @@ export const proveNumber = async (
     throw new Error('Proving is off for this record until you turn it on, on its page. Nothing was sent.');
   if (isKeptOnDeviceOnly(record) && how === 'exactly' && opts.confirmedExact !== true)
     throw new Error('Publishing the number itself needs your confirmation first. Nothing was sent.');
-  const calls = opts.calls ?? (await import('./chain/claims-call'));
+  // On a lab's genotype comparison or parentage check, only the claims its panel offers
+  // (marker-claims.ts), and never "at least 0": checked here too, not only by the page.
+  if (!offerAllowed(held.schema, slot, how, how === 'exactly' ? undefined : bound))
+    throw new Error('That claim isn’t offered on this kind of result. Nothing was sent.');
+  const calls = opts.calls ?? e2eCalls() ?? (await import('./chain/claims-call'));
   const m = await claimMaterial(record as DocumentRecordLike & { fieldSet: HeldFieldSet });
   const sealed = BigInt(held.values[slot] ?? '0');
   const receipt =
@@ -114,3 +120,17 @@ export const proveNumber = async (
   addClaim(record.id, claim);
   return claim;
 };
+
+/** The end-to-end build's stand-in for the two claim calls (chain/e2e-chain.ts); undefined in every other build. */
+const e2eCalls = (): ClaimCalls | undefined => {
+  const prove = e2eChain()?.prove;
+  if (!prove) return undefined;
+  return {
+    proveRangeOnChain: (_m, slot, direction, bound) =>
+      Promise.resolve(prove({ circuit: 'proveRange', slot, op: direction, bound: bound.toString() })),
+    proveValueOnChain: (_m, slot) => Promise.resolve(prove({ circuit: 'proveValue', slot })),
+  };
+};
+
+/** Whether this build can prove claims: a claims contract, or the end-to-end build's stand-in. */
+export const claimsReadyHere = (configured: boolean): boolean => configured || !!e2eChain()?.prove;

@@ -2,16 +2,25 @@
 // from the claims contract's state for that one call and must match the link exactly; the
 // record it is about is dated by its own proof code, recomputed from the claim and the key
 // binding. What the claim can't show is said every time.
+//
+// A link on a lab's genotype comparison or parentage check may carry more claims on the same
+// record (claim-link.ts `more`). Each is checked on its own and shown with its own answer.
+// "Markers differing: at least 6 of at least 40 compared" is said as one line only when both
+// claims checked and a laboratory stands behind the numbers (marker-claims.ts joinedPlacement):
+// as the headline when the link's first claim is one of the two, else under "Also in this
+// link"; otherwise each is said alone, in the holder's words. Whose numbers they are is said in
+// the same states as the footer (markerSourceKey). The limits are always said.
 // SPDX-License-Identifier: Apache-2.0
 
 import React, { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Alert, Box, CircularProgress, Container, Paper, Stack, Typography } from '@mui/material';
-import { anchoredFingerprintOf, readClaimLink, type ClaimVerdict } from '../../veilcore/claim-link';
+import { anchoredFingerprintOf, claimsOf, readClaimLink, type ClaimVerdict } from '../../veilcore/claim-link';
+import { isMarkerSchema, joinedPlacement, markerSourceKey, offerOf } from '../../veilcore/marker-claims';
 import { DatedNotOrigin } from '../verify/DatedNotOrigin';
 import { useT } from '../../i18n/app';
 import { DocumentDate, Fact } from './DocumentParts';
-import { claimRawWords, claimWords } from './ProveNumber';
+import { claimRawWords, claimWords, MarkerLimits } from './ProveNumber';
 import { claimFooterKey, labStands } from '../../veilcore/claim-call';
 import { schemaWords } from './NumbersFields';
 import { keyShort } from '../../veilcore/lab-key-text';
@@ -32,22 +41,58 @@ export const ClaimCheck: React.FC = () => {
   const isCall = !!link && RESULT_CALL_SCHEMAS.includes(link.schema);
   // A claim on a viability result is not read where those are off (mainnet): not shown, not checked.
   const viabilityOff = !!link && viabilityNotRead({ schema: link.schema });
+  const isMarker = !!link && isMarkerSchema(link.schema);
+  const more = link ? claimsOf(link).slice(1) : [];
   const [verdict, setVerdict] = useState<ClaimVerdict>();
+  const [moreVerdicts, setMoreVerdicts] = useState<readonly (ClaimVerdict | undefined)[]>([]);
   useEffect(() => {
     // A new link starts unchecked: the last link's "Proved on Midnight" must never show under
     // this one's claim while it is being read (security round, 2 Nov 2026).
     setVerdict(undefined);
+    setMoreVerdicts([]);
     if (!link || viabilityOff) return;
     let live = true;
-    void import('../../veilcore/chain/claim-check')
+    const failed = (e: unknown) => ({ ok: false as const, reason: e instanceof Error ? e.message : String(e) });
+    const checker = import('../../veilcore/chain/claim-check');
+    void checker
       .then(({ checkClaim }) => checkClaim(link))
-      .catch((e: unknown) => ({ ok: false as const, reason: e instanceof Error ? e.message : String(e) }))
+      .catch(failed)
       .then((v) => live && setVerdict(v));
+    // Each further claim on the same record, read and compared on its own.
+    more.forEach((m, i) => {
+      void checker
+        .then(({ checkClaim }) => checkClaim(m))
+        .catch(failed)
+        .then((v) => {
+          if (live)
+            setMoreVerdicts((all) => {
+              const next = [...all];
+              next[i] = v;
+              return next;
+            });
+        });
+    });
     return () => {
       live = false;
     };
     // The link is read from the hash; check again only when it changes.
   }, [hash]);
+
+  const stands = labStands(verdict);
+  // "M of N compared": both checked, on the same record (one link is one record), a lab standing behind them.
+  const joined =
+    link && isMarker
+      ? joinedPlacement(
+          [{ ...link, ok: !!verdict?.ok }, ...more.map((m, i) => ({ ...m, ok: !!moreVerdicts[i]?.ok }))],
+          stands,
+        )
+      : undefined;
+  const headline = link
+    ? joined?.where === 'headline'
+      ? t(joined.key, { m: joined.m, n: joined.n })
+      : claimWords(link, tr, stands)
+    : '';
+  const sourceKey = link ? markerSourceKey(verdict, !!offerOf(link)?.count) : undefined;
 
   return (
     <Box sx={{ bgcolor: 'background.default' }} data-claim-check="">
@@ -75,14 +120,15 @@ export const ClaimCheck: React.FC = () => {
                 color={verdict?.ok ? 'text.primary' : 'text.secondary'}
                 sx={{ mb: 1, textDecoration: verdict && !verdict.ok ? 'line-through' : 'none' }}
                 data-claim-statement=""
+                data-marker-joined={joined?.where === 'headline' ? '' : undefined}
               >
-                {claimWords(link, tr, labStands(verdict))}
+                {headline}
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
                 {t('app.claim.check.schema', { schema: schemaWords(link.schema, tr) })}
               </Typography>
               {/* A yes/no call a lab stands behind is said as the result ("Not detected"); the slot and number it proves stay here. */}
-              {claimWords(link, tr, labStands(verdict)) !== claimRawWords(link, tr) && (
+              {headline !== claimRawWords(link, tr) && (
                 <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }} data-claim-raw="">
                   {t('app.claim.check.raw', { raw: claimRawWords(link, tr) })}
                 </Typography>
@@ -106,7 +152,52 @@ export const ClaimCheck: React.FC = () => {
                   {t('app.claim.check.failed', { reason: verdict.reason })}
                 </Alert>
               )}
+              {/* Whose numbers these are, in the footer's states: the lab's (count or call) only where it stands behind them. */}
+              {isMarker && sourceKey && (
+                <Typography variant="body2" sx={{ mt: 1.5 }} data-marker-source={sourceKey.split('.').pop()}>
+                  {t(sourceKey)}
+                </Typography>
+              )}
             </Paper>
+            {more.length > 0 && (
+              <Paper sx={{ p: { xs: 2.5, md: 3 } }} data-marker-more={String(more.length)}>
+                <Typography variant="overline" sx={{ display: 'block', mb: 1 }}>
+                  {t('app.marker.more.title')}
+                </Typography>
+                <Stack spacing={1.5}>
+                  {/* The joined line, when the link's first claim isn't one of the two: both checked. */}
+                  {joined?.where === 'more' && (
+                    <Typography variant="body1" sx={{ fontWeight: 700 }} data-marker-joined="more">
+                      {t(joined.key, { m: joined.m, n: joined.n })}
+                    </Typography>
+                  )}
+                  {more.map((m, i) => {
+                    const v = moreVerdicts[i];
+                    return (
+                      <Box key={m.txId} data-marker-more-claim={v ? (v.ok ? 'ok' : 'failed') : 'checking'}>
+                        <Typography
+                          variant="body1"
+                          color={v?.ok ? 'text.primary' : 'text.secondary'}
+                          sx={{ textDecoration: v && !v.ok ? 'line-through' : 'none' }}
+                        >
+                          {claimWords(m, tr, stands && !!v?.ok)}
+                        </Typography>
+                        <Typography variant="body2" color={v && !v.ok ? 'error' : 'text.secondary'}>
+                          {!v
+                            ? t('app.claim.check.checking')
+                            : v.ok
+                              ? t('app.claim.check.okWhen', {
+                                  block: String(v.blockHeight ?? '?'),
+                                  date: v.blockTime ? ` (${tr.date(v.blockTime)})` : '',
+                                })
+                              : t('app.claim.check.failed', { reason: v.reason })}
+                        </Typography>
+                      </Box>
+                    );
+                  })}
+                </Stack>
+              </Paper>
+            )}
             {verdict?.ok && verdict.lab && (
               <Paper sx={{ p: { xs: 2.5, md: 3 } }} data-claim-lab={verdict.lab.ok ? 'ok' : 'failed'}>
                 {verdict.lab.ok ? (
@@ -171,6 +262,11 @@ export const ClaimCheck: React.FC = () => {
                 </Fact>
               </Stack>
             </Paper>
+            {isMarker && (
+              <Paper sx={{ p: { xs: 2.5, md: 3 } }}>
+                <MarkerLimits />
+              </Paper>
+            )}
             <Typography variant="body2" color="text.secondary">
               {t(claimFooterKey(verdict))}
             </Typography>
