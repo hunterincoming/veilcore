@@ -189,6 +189,16 @@ test('a lab signs results bound to a record; the breeder checks them, adds one, 
   expect(readFileSync(summary, 'utf8')).toContain('not signed: line 4');
   // The lab's own list now holds all four, each a record it holds.
   await expect(lab.locator('[data-my-results]')).toContainText('LAB-C-2');
+  // The lab checks a result it signed, on a fresh page (mainnet lab run, step 11): it is told at
+  // once that it signed it, and its record opens with no "find" or "add" button in between.
+  await lab.goto('/check-lab-result');
+  await lab.locator('[data-result-input]').setInputFiles(pathogenFile);
+  const own = lab.locator('[data-lab-result-checked]');
+  await expect(own.locator('[data-lab-result-yours]')).toContainText('You signed this result: it is in your records.');
+  await expect(own.locator('[data-lab-result-add]')).toHaveCount(0);
+  await expect(own.locator('[data-lab-result-find]')).toHaveCount(0);
+  await own.getByRole('link', { name: 'Open the record' }).click({ timeout: 20_000 });
+  await expect(lab).toHaveURL(/\/record\//);
   expectNoErrors(labErrors);
 
   // The breeder checks the pathogen result: bound, the lab named, the call; then adds it.
@@ -197,6 +207,8 @@ test('a lab signs results bound to a record; the breeder checks them, adds one, 
   const checked = breeder.locator('[data-lab-result-checked]');
   // Nothing is looked up until the checker asks: the lookup sends the result's code.
   await expect(checked).toHaveAttribute('data-signer', 'not-asked');
+  // Not the lab: never told it signed it.
+  await expect(checked.locator('[data-lab-result-yours]')).toHaveCount(0);
   await checked.locator('[data-lab-name-find]').click();
   await expect(checked).toHaveAttribute('data-signer', 'bound', { timeout: 20_000 });
   await expect(checked).toContainText('Signed by a key named “E2E Lab” (name not checked)');
@@ -224,7 +236,9 @@ test('a lab signs results bound to a record; the breeder checks them, adds one, 
   await breeder.goto('/check-lab-result');
   await breeder.locator('[data-result-input]').setInputFiles(resultsFile);
   await expect(breeder.locator('[data-lab-result-checked]')).toHaveCount(2);
-  await expect(breeder.locator('[data-lab-result-checked]').nth(1)).toContainText('Different genotype at the markers compared');
+  await expect(breeder.locator('[data-lab-result-checked]').nth(1)).toContainText(
+    'Different genotype at the markers compared',
+  );
   await expect(breeder.locator('[data-lab-result-checked]').nth(1)).toContainText('(90 markers compared, 31 differ)');
   // The second row's own file holds that one result only.
   await breeder.goto('/check-lab-result');

@@ -201,6 +201,22 @@ const OneChecked: React.FC<{
   const loaded = useRecordsLoaded();
   const [asked, setAsked] = useState(false);
   const have = all.find((r) => r.labSignature?.record === code);
+  // Signed with the lab key this browser holds (mainnet lab run, step 11): said at once, from
+  // the key alone, and its record is looked up without a button. Records aren't loaded on this
+  // page until asked, and a record's binding id is there only once its name was posted, so the
+  // line used to wait on both. The lookup sends the holder key, which here is the lab's own.
+  const [signedHere, setSignedHere] = useState(false);
+  useEffect(() => {
+    let live = true;
+    void import('../../veilcore/signed-here')
+      .then(({ signedInThisBrowser }) => signedInThisBrowser(b.signature.key))
+      .then((mine) => {
+        if (live) setSignedHere(mine);
+      });
+    return () => {
+      live = false;
+    };
+  }, [b]);
   const mineSubject = all.find((r) => r.recordFingerprint === b.statement.subject && !r.labResult);
   const [busy, setBusy] = useState(false);
   // This page doesn't read the person's records by itself: that sends the holder key, which
@@ -210,6 +226,9 @@ const OneChecked: React.FC<{
     const { startRecordSync } = await import('../../veilcore/records');
     startRecordSync();
   };
+  useEffect(() => {
+    if (signedHere && !loaded && !asked) void find();
+  }, [signedHere, loaded, asked]);
   const who = !lookUp
     ? ''
     : signer === undefined
@@ -288,7 +307,24 @@ const OneChecked: React.FC<{
           <Dispute seal={(b.statement.result as MarkResult).seal} />
         </Box>
       )}
-      {have ? (
+      {signedHere ? (
+        <Box sx={{ mt: 2 }} data-lab-result-yours="">
+          <Typography variant="body2" sx={{ mb: 0.5 }}>
+            {t('app.lr.check.yours')}
+          </Typography>
+          {have ? (
+            <Button component={RouterLink} to={`/record/${have.id}`} sx={{ minHeight: 44 }}>
+              {t('app.lr.check.open')}
+            </Button>
+          ) : (
+            !loaded && (
+              <Typography variant="body2" color="text.secondary">
+                {t('app.lr.check.finding')}
+              </Typography>
+            )
+          )}
+        </Box>
+      ) : have ? (
         <Box sx={{ mt: 2 }}>
           {have.labResult?.bindingId && (
             <Typography variant="body2" sx={{ mb: 0.5 }}>
