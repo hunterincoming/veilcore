@@ -61,17 +61,17 @@ export const attest = {
   'app.claim.check.labOk':
     'Les chiffres de cet enregistrement ont été signés avec la clé {key}, publiée sur Midnight dans le bloc {block}{date}.',
   'app.claim.check.labWithdrawn':
-    'Le laboratoire a retiré cette signature. Considérez les chiffres comme ceux du titulaire.',
+    'Le laboratoire a retiré cette signature. Considérez les chiffres comme ceux du détenteur.',
   'app.claim.check.labConflict':
-    'Plus d’un laboratoire revendique cette clé, aucun nom n’est donc affiché. Considérez les chiffres comme ceux du titulaire.',
+    'Plus d’un laboratoire revendique cette clé, aucun nom n’est donc affiché. Considérez les chiffres comme ceux du détenteur.',
   'app.claim.check.labUnidentified':
-    'Cette page n’a trouvé aucun laboratoire déclarant que cette clé est la sienne pour cet enregistrement (les signatures de rapports d’un laboratoire sont privées, sauf si le détenteur les montre). Considérez les chiffres comme ceux du titulaire.',
+    'Cette page n’a trouvé aucun laboratoire déclarant que cette clé est la sienne pour cet enregistrement (les signatures de rapports d’un laboratoire sont privées, sauf si le détenteur les montre). Considérez les chiffres comme ceux du détenteur.',
   'app.claim.check.labAbout': 'Les résultats portent sur l’enregistrement au code de preuve',
   'app.claim.check.labFieldSecret':
     'Le laboratoire connaît aussi ces chiffres et pourrait lui-même prouver des choses à leur sujet.',
   'app.claim.check.labKey': 'Clé de signature',
   'app.claim.check.labFailed':
-    'La signature du laboratoire n’est pas confirmée : {reason} Considérez les chiffres comme ceux du titulaire.',
+    'La signature du laboratoire n’est pas confirmée : {reason} Considérez les chiffres comme ceux du détenteur.',
   'app.claim.check.whatLab':
     'Ce que cela montre : le chiffre scellé dans cet enregistrement respecte la limite (ou est cette valeur), et la clé ci-dessus a signé les chiffres de cet enregistrement. Ce que cela ne montre pas : à qui est cette clé, ni que le certificat est authentique. Chaque limite prouvée sur un chiffre est publique, et ensemble elles le resserrent.',
 } satisfies Partial<AppTranslation>;

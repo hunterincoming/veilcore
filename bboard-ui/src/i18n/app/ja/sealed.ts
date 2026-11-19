@@ -1,6 +1,6 @@
 // Japanese. DRAFT: machine-assisted, to be checked by a fluent speaker before publishing
 // (docs/translations/README.md). Terms as in ../../ja.ts, plus the app's: see ./index.ts.
-// "Locked" is ロック, as for lab reports.
+// "Locked" is 鍵をかける / 鍵のかかった (docs/i18n-glossary.md), as for lab reports.
 // SPDX-License-Identifier: Apache-2.0
 import type { AppTranslation } from '../../translate';
 
@@ -22,34 +22,32 @@ export const sealed = {
     'この訂正の保存中に接続が切れたため、後で送るためにここには保存していません。訂正が届いたかどうかをVeilCoreで確認できるまで、この記録は保存しません。オンラインになると、届いていた場合は記録に表示されます。',
   'app.sealed.correctionNotStored':
     '訂正の保存中に、別のタブまたは別の端末でこの記録が変更されたため、訂正は保存されませんでした。何も変更していません。記録を現在の状態で表示しています。確認してから、もう一度訂正してください。',
-  'app.sealed.locked.title.other': 'ロックされた記録 {count}件',
-  'app.sealed.locked.pageTitle': 'この記録はロックされています',
+  'app.sealed.locked.title.other': '鍵のかかった記録 {count}件',
+  'app.sealed.locked.pageTitle': 'この記録には鍵がかかっています',
   'app.sealed.locked.text':
     'このブラウザにはこれらの記録を開く鍵がありません。{date}より後に保存したバックアップファイルを復元してください。VeilCoreが代わりに開くことはできません。',
   'app.sealed.locked.textNoDate':
     'このブラウザにはこれらの記録を開く鍵がありません。最新のバックアップファイルを復元してください。VeilCoreが代わりに開くことはできません。',
-  'app.sealed.locked.cantChange': 'ロックされた記録は変更も送付もできません。削除はできます。',
+  'app.sealed.locked.cantChange': '鍵のかかった記録は変更も送付もできません。削除はできます。',
   'app.sealed.locked.restore': 'バックアップを復元する',
-  'app.sealed.locked.unnamed': '名前はロック中',
+  'app.sealed.locked.unnamed': '名前には鍵がかかっています',
   'app.sealed.locked.delete': '削除',
   'app.sealed.locked.deleteConfirm':
     '{name}をVeilCoreから削除しますか？このブラウザでは開けず、削除すると誰も元に戻せません。',
   'app.sealed.locked.deleted': '削除しました。',
   'app.sealed.locked.deleteFailed': '削除できませんでした：{error}',
-  'app.sealed.lockedAgreements.title.other': 'ロックされた契約 {count}件',
+  'app.sealed.lockedAgreements.title.other': '鍵のかかった契約 {count}件',
   'app.sealed.lockedAgreements.text':
-    'このブラウザにはこれらの契約（ライセンス、ラボへの送付、ブリーダーとの共有）を開く鍵がありません。最新のバックアップファイルを復元してください。VeilCoreが代わりに開くことはできません。',
-  'app.sealed.lockedAgreements.cantChange': 'ロックされた契約は変更も送付もできません。削除はできます。',
-  'app.sealed.lockedAgreements.name': 'ロックされた契約',
+    'このブラウザにはこれらの契約（ライセンス、ラボへの送付、育成者との共有）を開く鍵がありません。最新のバックアップファイルを復元してください。VeilCoreが代わりに開くことはできません。',
+  'app.sealed.lockedAgreements.cantChange': '鍵のかかった契約は変更も送付もできません。削除はできます。',
+  'app.sealed.lockedAgreements.name': '鍵のかかった契約',
   'app.sealed.lockedAgreements.deleteConfirm':
     '契約{id}をVeilCoreから削除しますか？このブラウザでは開けず、削除すると誰も元に戻せません。',
   'app.sealed.truncated':
     'VeilCoreから届いたのは記録の一部だけなので、ここに表示されていないものがあるかもしれません。ページを再読み込みして、もう一度試してください。',
   'app.sealed.unreadable.other': '{count}件の記録はこのバージョンで読めない形式で届いたため、表示していません。',
-  'app.sealed.backupNeeded':
-    '<b>新しいバックアップを保存してください。</b>記録は今、鍵でロックされています。バックアップを保存するまで、その鍵はこのブラウザにしかありません。バックアップファイルがなければ、ほかの場所では開けません。',
   'app.sealed.err.newCode':
-    'このコードは送付がロックされる前に作られたもので、もう使えません。送り主に新しいコードを依頼してください。',
+    'このコードは送付に鍵がかけられるようになる前に作られたもので、もう使えません。送り主に新しいコードを依頼してください。',
   'app.sealed.recv.missingKey':
     'このコードは最後の部分が欠けています。受け取ることはできますが、送り主の情報（誰がいつ育成したか）は届きません。先に完全なコードを依頼してください。',
   'app.sealed.recv.notOpened': 'このコードでは送り主の情報を開けなかったため、名前だけが届きました。',
@@ -57,14 +55,14 @@ export const sealed = {
     'そのバックアップには記録を開く鍵が入っていません。新しく保存して、それを確認してください。',
   'app.sealed.backup.differentVault': 'このブラウザはすでに別の鍵で記録を開いています。何も変更していません。',
   'app.sealed.backup.olderFile':
-    'このファイルは記録がロックされる前のものなので、その鍵が入っていません。それ以降にロックされた記録は、新しいバックアップファイルを開くまでロックされたままです。',
+    'このファイルは記録に鍵がかけられるようになる前のものなので、その鍵が入っていません。それ以降に鍵がかけられた記録は、新しいバックアップファイルを開くまで鍵がかかったままです。',
   'app.sealed.refuse.backupFirst':
-    '記録がロックされる前に保存されたものです。先にバックアップを保存して確認してください。その後なら変更を保存できます',
+    '記録に鍵がかけられるようになる前に保存されたものです。先にバックアップを保存して確認してください。その後なら変更を保存できます',
   'app.sealed.refuse.tooLarge': '大きすぎて保存できません。メモを短くしてもう一度お試しください',
   'app.sealed.refuse.unknown':
     '記録を確認するためにVeilCoreに接続できなかったため、何も保存していません。少し後でもう一度お試しください。',
   'app.sealed.refuse.cantStore':
-    'このブラウザは記録をロックする鍵を保管できない（プライベートウィンドウ、またはサイトデータがブロックされている）ため、何も保存していません',
+    'このブラウザは記録に鍵をかけるための鍵を保管できない（プライベートウィンドウ、またはサイトデータがブロックされている）ため、何も保存していません',
   'app.sealed.tooLarge':
     'この記録は大きすぎて保存できません。メモを短くしてもう一度お試しください。入力した内容は失われていません。',
   'app.sealed.size.near': '{max} KB中{used} KBを使用しています。',
@@ -73,21 +71,21 @@ export const sealed = {
   'app.sealed.older':
     'サーバーが、このブラウザが最後に保存したものより古いこの記録のコピーを送ってきました。必要なコピーなら使い、そうでなければ削除してください。',
   'app.sealed.older.beforeLocking':
-    'VeilCoreのサーバーが、ロックされる前のこの記録のコピーを送ってきました。このブラウザが最後に保存したものより古いコピーです。このブラウザはこれを使わず、再びロックもしません。削除はできます。',
+    'VeilCoreのサーバーが、鍵がかけられる前のこの記録のコピーを送ってきました。このブラウザが最後に保存したものより古いコピーです。このブラウザはこれを使わず、再び鍵をかけることもしません。削除はできます。',
   'app.sealed.older.agreement':
     'VeilCoreのサーバーが、このブラウザが最後に保存したものより古いこの契約のコピーを送ってきました。必要なコピーなら使い、そうでなければ削除してください。',
   'app.sealed.older.agreementBeforeLocking':
-    'VeilCoreのサーバーが、ロックされる前のこの契約のコピーを送ってきました。このブラウザが最後に保存したものより古いコピーです。このブラウザはこれを使わず、再びロックもしません。削除はできます。',
+    'VeilCoreのサーバーが、鍵がかけられる前のこの契約のコピーを送ってきました。このブラウザが最後に保存したものより古いコピーです。このブラウザはこれを使わず、再び鍵をかけることもしません。削除はできます。',
   'app.sealed.olderKept.other':
     'サーバーが{count}件の記録の古いコピーを送ってきました。このブラウザは新しいコピーを残し、もう一度保存します。',
   'app.sealed.revMismatch.other':
     'サーバー上の{count}件の記録の版番号が、記録の中に鍵をかけて保存された番号と一致しませんでした。このブラウザは鍵のかかった番号に従い、記録をもう一度保存します。',
-  'app.sealed.importLocked.other': 'ロックされた記録{count}件は、このブラウザに鍵がないため飛ばしました。',
+  'app.sealed.importLocked.other': '鍵のかかった記録{count}件は、このブラウザに鍵がないため飛ばしました。',
   'app.sealed.backupBeforeLocking':
-    '<b>バックアップを保存してください。</b>古い記録は、それを開く鍵がバックアップファイルに入った時点でロックされます。それまでは保存したときのままVeilCoreのサーバーにあり、VeilCoreが読める状態で、変更は保存できません。',
+    '<b>バックアップを保存してください。</b>古い記録は、それを開く鍵がバックアップファイルに入った時点で鍵がかけられます。それまでは保存したときのままVeilCoreのサーバーにあり、VeilCoreが読める状態で、変更は保存できません。',
   'app.sealed.cantStore':
-    'このブラウザは記録をロックする鍵を保管できません（プライベートウィンドウ、またはサイトデータがブロックされています）。そのため古い記録はロックされておらず、ここでは新しいものを保存できません。通常のウィンドウでVeilCoreを開いてください。',
-  'app.sealed.lockedParents.other': '親の記録{count}件はこのブラウザでロックされているため、含めていません。',
+    'このブラウザは記録に鍵をかけるための鍵を保管できません（プライベートウィンドウ、またはサイトデータがブロックされています）。そのため古い記録には鍵がかかっておらず、ここでは新しいものを保存できません。通常のウィンドウでVeilCoreを開いてください。',
+  'app.sealed.lockedParents.other': '親の記録{count}件はこのブラウザでは鍵がかかっているため、含めていません。',
   'app.sealed.backup.cantCheck':
     '記録がどの鍵を使っているか確認するためにVeilCoreに接続できなかったため、何も変更していません。オンラインのときにもう一度お試しください。',
   'app.sealed.err.handleTag':
@@ -97,7 +95,7 @@ export const sealed = {
   'app.sealed.recv.cantCheck':
     '記録を確認するためにVeilCoreに接続できなかったため、何も受け取っていません。少し後でもう一度お試しください。',
   'app.sealed.recv.cantStore':
-    'このブラウザは記録をロックする鍵を保管できない（プライベートウィンドウ、またはサイトデータがブロックされている）ため、何も受け取っていません。通常のウィンドウでVeilCoreを開いてください。',
+    'このブラウザは記録に鍵をかけるための鍵を保管できない（プライベートウィンドウ、またはサイトデータがブロックされている）ため、何も受け取っていません。通常のウィンドウでVeilCoreを開いてください。',
   'app.sealed.recv.notFinished':
     '受け取りはしましたが、記録を保存できなかったため、何も署名していません：{error}。記録のページの「受け取りを完了」でもう一度お試しください。',
   'app.sealed.recv.failed': '受け取り中に問題が起きました：{error}',
@@ -111,7 +109,7 @@ export const sealed = {
   'app.sealed.recv.noRecord': 'その記録はこのブラウザにありません。',
   'app.sealed.recv.otherCode': 'そのコードは別の配送のものです。',
   'app.sealed.recv.offerMissing':
-    'このコードについて、VeilCoreが送り主のロックされた情報を送ってこなかったため、記録は完了していません。後で記録のページの「受け取りを完了」をもう一度試すか、送り主に確認してください。',
+    'このコードについて、VeilCoreが送り主の鍵のかかった情報を送ってこなかったため、記録は完了していません。後で記録のページの「受け取りを完了」をもう一度試すか、送り主に確認してください。',
   // Round 3: held saves, the lost-key path, older copies, grants listed before locking
   'app.sealed.agreementsBackupFirst':
     '先にバックアップを保存して確認してください。それまでは、ここで契約を作成・変更できません。',
@@ -122,7 +120,7 @@ export const sealed = {
   'app.sealed.correctionLeft':
     '訂正{id}をVeilCoreから取り消せませんでした。ページを再読み込みして、記録を確認してください。',
   'app.sealed.grantAsk.text':
-    '記録がロックされる前、この記録は次を共有していました：{keys}。あなたが許可するまで、再び共有されることはありません。',
+    '記録に鍵がかけられるようになる前、この記録は次を共有していました：{keys}。あなたが許可するまで、再び共有されることはありません。',
   'app.sealed.grantAsk.yes': 'もう一度共有する',
   'app.sealed.grantAsk.no': '共有しない',
   'app.sealed.grantAsk.failed': '保存されませんでした：{error}',
@@ -130,19 +128,19 @@ export const sealed = {
     'VeilCoreのサーバーには、この記録と一緒に保管している共有設定とは別の設定が表示されています。何も変更していません。第三者に見せる方を選んでください。',
   'app.sealed.grantDiffers.open': '選ぶ',
   'app.sealed.importNotImported.other':
-    'VeilCore上の{count}件の記録はロックされているか空になっており、ファイルから戻せなかったため、インポートしませんでした。',
+    'VeilCore上の{count}件の記録は鍵がかかっているか空になっており、ファイルから戻せなかったため、インポートしませんでした。',
   'app.sealed.lost.button': 'そのバックアップを持っていない',
   'app.sealed.lost.confirm':
-    'そのバックアップファイルがなければ、これらのロックされた記録と契約は誰にも開けません。VeilCoreにも開けません。これらがVeilCoreにある間は、新しいものを何も保存できません。VeilCoreから削除して、新しい鍵を始めますか？元に戻せません。',
+    'そのバックアップファイルがなければ、これらの鍵のかかった記録と契約は誰にも開けません。VeilCoreにも開けません。これらがVeilCoreにある間は、新しいものを何も保存できません。VeilCoreから削除して、新しい鍵を始めますか？元に戻せません。',
   'app.sealed.lost.done':
     '削除しました。新しい鍵の準備ができました。バックアップを保存して確認すると、新しい記録が保存されます。',
   'app.sealed.lost.failed': '何も削除していません：{error}',
-  'app.sealed.lost.nothing': 'なくした鍵でロックされたものはここにありません',
+  'app.sealed.lost.nothing': 'なくした鍵で鍵がかけられたものはここにありません',
   'app.sealed.older.use': 'このコピーを使う',
   'app.sealed.older.deleteConfirm':
     '{name}をVeilCoreから削除しますか？この古いコピーは、VeilCoreのサーバーにある唯一のコピーです。削除すると誰も元に戻せません。',
   'app.sealed.recv.backupFirst':
-    'この記録は、記録がロックされる前に保存されたものです。先にバックアップを保存して確認してください。その後なら署名できます。',
+    'この記録は、記録に鍵がかけられるようになる前に保存されたものです。先にバックアップを保存して確認してください。その後なら署名できます。',
   'app.sealed.recv.backupFirstClaim':
     '先にバックアップを保存して確認してから、コードを使ってください。まだ何も受け取っていません。',
   'app.sealed.recv.noAnswer':
@@ -155,7 +153,7 @@ export const sealed = {
   'app.sealed.refuse.recordRefused':
     '元の記録を一緒に保存できなかったため、訂正も保存されませんでした。何も変更していません。VeilCoreから読み直したので、もう一度訂正してください',
   'app.sealed.unsaved.backup':
-    'ロックしたコピーはまだアップロードされていません。バックアップを保存して確認してください。記録の日付はこれを待ちません。',
+    '鍵をかけたコピーはまだアップロードされていません。バックアップを保存して確認してください。記録の日付はこれを待ちません。',
   'app.sealed.unsaved.key':
     'まだ保存されていません。このブラウザには、VeilCore上のあなたの記録の鍵がありません。バックアップを復元するか、持っていなければ記録のページの「そのバックアップを持っていない」を使ってください。',
   'app.sealed.unsaved.retry':
@@ -165,8 +163,6 @@ export const sealed = {
   'app.sealed.linksDeletedOpen': '開く',
   'app.sealed.unsaved.linksDeleted':
     'この訂正は保有者が削除した記録を指しているため、VeilCoreは保存しません。このブラウザにのみ保管されています。ここで破棄してください。',
-  'app.sealed.unsaved.short':
-    'ロックしたコピーはまだアップロードされていません。バックアップを保存して確認してください',
   'app.sealed.unsaved.shortRetry': 'まだ保存されていません',
   'app.sealed.unsaved.discardConfirm':
     'この記録のためにこのブラウザが残しているものを破棄しますか？VeilCoreにはないため、元に戻せません。',

@@ -7,8 +7,8 @@
 // SPDX-License-Identifier: Apache-2.0
 import { readFileSync } from 'node:fs';
 import { expect, test, type Page, type Route } from '@playwright/test';
-import { generateKeypair, signAttestation } from 'veilcore-records';
-import { REAL_REGISTRY, expectNoErrors, isolate, json, watch } from './helpers';
+import { generateKeypair, signAttestation, signRetraction } from 'veilcore-records';
+import { REAL_REGISTRY, expectNoErrors, isolate, json, seeChecks, watch } from './helpers';
 
 test.skip(REAL_REGISTRY, 'these use the stand-in registry');
 
@@ -63,6 +63,7 @@ const openCheck = async (
   page: Page,
   registeredAs: Record<string, unknown>,
   lab: { publicKey: string; privateKey: string },
+  opts: { withdrawn?: boolean } = {},
 ) => {
   const receipt = await signAttestation(
     {
@@ -76,6 +77,18 @@ const openCheck = async (
     },
     lab.privateKey,
   );
+  // A receipt its lab withdrew, signed by the lab's own key (attester-keys.ts retract).
+  const retraction = opts.withdrawn
+    ? await signRetraction(
+        {
+          attestationId: receipt.attestationId,
+          attesterPublicKey: lab.publicKey,
+          reason: 'other',
+          retractedAt: '2026-11-18T10:00:00Z',
+        },
+        lab.privateKey,
+      )
+    : null;
   await isolate(page, {
     'GET /verify/:record': (route) =>
       json(route, 200, {
@@ -95,7 +108,7 @@ const openCheck = async (
             strength: 'signed',
             vettedAttester: false,
             registeredAs: { displayName: 'Stand-in Lab', ...registeredAs },
-            retraction: null,
+            retraction,
           },
         ],
         total: 1,
@@ -103,6 +116,11 @@ const openCheck = async (
   });
   await page.route('https://indexer.preview.midnight.network/**', indexer);
   await page.goto(`/verify/${RECORD}?fp=${fixture.fingerprint}`);
+  await expect(page.locator('[data-verdict]')).not.toHaveAttribute('data-verdict', 'wait', { timeout: 30_000 });
+  // A withdrawn signature opens the checks by itself, never folded under a green line.
+  if (opts.withdrawn) await expect(page.locator('[data-see-checks]')).toHaveAttribute('aria-expanded', 'true');
+  // The signature lines are among the checks folded under "See the checks".
+  await seeChecks(page);
 };
 
 const today = () => new Date().toISOString().slice(0, 10);
@@ -179,5 +197,16 @@ test('a claim another key signed: no website named, whatever the registry says',
   );
   await expect(page.getByText('a key named “Stand-in Lab” (name not checked)').first()).toBeVisible();
   await expect(page.locator('[data-lab-domain]')).toHaveCount(0);
+  expectNoErrors(errors);
+});
+
+test('a receipt its lab withdrew: an amber top line that says so, and the checks open', async ({ page }) => {
+  const errors = watch(page);
+  await openCheck(page, {}, await generateKeypair(), { withdrawn: true });
+  const verdict = page.locator('[data-verdict]');
+  await expect(verdict).toHaveAttribute('data-verdict', 'warn');
+  // The e2e build reads a test network, but a withdrawal is said before "practice".
+  await expect(verdict).toContainText('but a lab withdrew its signature. See the checks below.');
+  await expect(verdict).not.toContainText('All checks passed');
   expectNoErrors(errors);
 });

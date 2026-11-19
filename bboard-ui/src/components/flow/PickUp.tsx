@@ -6,8 +6,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Box, Button, LinearProgress, Paper, Stack, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import { outboxRecords } from '../../veilcore/outbox';
-import { proofCodeSent, unsavedReason, waitsToBeSent, type StrainRecord } from '../../veilcore/records';
+import { proofCodeSent, waitsToBeSent, type StrainRecord } from '../../veilcore/records';
 import { useRecordKeys } from '../../veilcore/record-keys';
 import { proofFor } from '../../veilcore/proofs';
 import { effectiveState, useLicenses } from '../../veilcore/licenses';
@@ -21,8 +20,6 @@ import { useT, type Translator } from '../../i18n/app';
 import { localStamp } from '../../veilcore/time';
 import { useAnchorCadence } from './dating-words';
 import { DATING_STEPS, datingStep, pickUpItems, type DatingStage, type PickUpItem } from './pickup-items';
-import { keysOnlyHere } from './keys-only-here';
-import { useAccountState } from '../../veilcore/account-copy';
 
 /** How often Home looks again while it is open, so a record's progress moves on its own. */
 const REFRESH_MS = 60_000;
@@ -116,16 +113,11 @@ export const PickUp: React.FC<{
       ([id]) => REAL_CHAIN && keys[id] && !keys[id].anchor && records.some((r) => r.id === id),
     ),
   );
-  // Records saved with VeilCore on (easy mode step 2): the backup is said once, on the account
-  // line above (KeepSafe.tsx AccountStatusLine), not again here.
-  const accountOn = useAccountState().kind !== 'off';
   const { items, moreDating } = pickUpItems({
     own: own.map((r) => ({ id: r.id, name: recordTitle(r), loggedAt: r.loggedAt })),
     dating,
     stamps,
     stampingNow: stampInProgress(),
-    waitingForBackup: accountOn ? [] : Object.keys(outboxRecords()).filter((id) => unsavedReason(id) === 'backup'),
-    keysOnlyHere: REAL_CHAIN && !accountOn ? keysOnlyHere(records) : [],
     sent,
     resultsWaiting: Object.fromEntries(Object.entries(waiting).map(([id, list]) => [id, list.length])),
     labUnsigned,
@@ -221,10 +213,6 @@ const ItemRow: React.FC<{ item: PickUpItem; tr: Translator; cadence?: number; go
         });
       return line(words, t('app.pickup.open'), open(item.recordId));
     }
-    case 'locked-copies':
-      return line(tp('app.pickup.lockedCopies', item.count), t('app.pickup.saveBackup'), () => go('/backup'));
-    case 'fresh-backup':
-      return line(tp('app.pickup.freshBackup', item.count), t('app.pickup.freshBackupButton'), () => go('/backup'));
     case 'deliveries-sent':
       return line(tp('app.pickup.deliveriesSent', item.count), t('app.pickup.open'), open(item.recordId));
     case 'deliveries-unsigned':

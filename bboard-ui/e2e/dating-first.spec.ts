@@ -127,11 +127,16 @@ const operatorSealAndAnchor = async () => {
   expect(res.ok).toBe(true);
 };
 
-test('a plant logged with no backup is still dated in the next batch, and Home picks up where they left off', async ({
-  page,
-}) => {
+// Twice: with passkeys, so saving with VeilCore is offered and Home's one line is the account
+// line (easy mode step 2); and without, where Home's one line is the backup line (step 1).
+const datingFirst = async (page: Page, passkeys: boolean) => {
   test.setTimeout(240_000);
   const errors = watch(page);
+  if (!passkeys)
+    await page.addInitScript(() =>
+      Object.defineProperty(window, 'PublicKeyCredential', { value: undefined, configurable: true }),
+    );
+  const v = passkeys ? '' : 'no-passkeys-';
   // A first visit: no holder key, no vault key, nothing backed up. The role question is answered.
   await page.addInitScript(() => localStorage.setItem('veilcore.role.v1', 'breeder'));
   const reg = REAL_REGISTRY ? undefined : await standIn(page);
@@ -141,7 +146,7 @@ test('a plant logged with no backup is still dated in the next batch, and Home p
   await page.goto('/records');
   await expect(page.locator('[data-restore-first]')).toContainText('Used VeilCore on another device?');
   await expect(page.locator('[data-restore-first]').getByRole('link', { name: 'Get my records back' })).toBeVisible();
-  await shot(page, '1-new-device-home');
+  await shot(page, v + '1-new-device-home');
 
   const name = `Dating first (practice) ${Date.now()}`;
   await page.goto('/new');
@@ -156,7 +161,7 @@ test('a plant logged with no backup is still dated in the next batch, and Home p
   await expect(page.locator('[data-error]')).toBeVisible({ timeout: 90_000 });
   await expect(page.getByRole('button', { name: /Copy details for support/ })).toBeVisible();
   await expect(page.locator('[data-stamp-retry-in]')).toContainText(/Trying again by itself/);
-  await shot(page, '2-stamp-failed-retrying');
+  await shot(page, v + '2-stamp-failed-retrying');
   await page.getByRole('button', { name: /Do the date stamp later/ }).click();
   await page.getByRole('button', { name: /No report yet: skip/ }).click();
   // The backup screen: they leave without saving it.
@@ -188,32 +193,51 @@ test('a plant logged with no backup is still dated in the next batch, and Home p
     `${name} will get its date in the next batch`,
   );
   await expect(pickup.locator('[data-pickup-item="stamp"]')).toContainText(`Key date stamp for ${name}`);
-  // Whether records are kept safe is said once, on the account line (easy mode step 2): never
-  // on the record's card, and not again in "Still in progress".
+  // Whether records are kept safe is said once, for the whole account: never on the record's
+  // card, not again in "Still in progress", not in a line under it. With saving with VeilCore
+  // (easy mode step 2) that is the account line; without passkeys it is the backup line (easy
+  // mode step 1). Never both.
   const accountLine = page.locator('[data-account-line="none"]');
-  await expect(accountLine).toContainText('Not saved to your account yet.');
-  await expect(accountLine.getByRole('button', { name: 'Fix it' })).toBeVisible();
-  await expect(pickup.locator('[data-pickup-item="locked-copies"]')).toHaveCount(0);
-  await expect(page.getByText(/Not in your backup yet/)).toHaveCount(0);
+  const backupLine = page.locator('[data-backup-needed="line"]');
+  if (passkeys) {
+    await expect(accountLine).toContainText('Not saved to your account yet.');
+    await expect(accountLine.getByRole('button', { name: 'Fix it' })).toBeVisible();
+    await expect(page.locator('[data-backup-needed]')).toHaveCount(0);
+    await expect(page.getByText(/Not in your backup yet/)).toHaveCount(0);
+  } else {
+    await expect(backupLine).toHaveCount(1);
+    await expect(backupLine).toContainText(
+      'Not in your backup yet. Until you save it, what you’ve recorded is kept only in this browser.',
+    );
+    await expect(page.locator('[data-account-line]')).toHaveCount(0);
+  }
+  await expect(pickup).not.toContainText(/backup/i);
+  await expect(page.getByText(/Not in your backup yet · next/)).toHaveCount(0);
   await expect(page.locator(`[data-home-unsaved="${recordId}"]`)).toHaveCount(0);
-  await shot(page, '3-home-pick-up-where-you-left-off');
+  await shot(page, v + '3-home-pick-up-where-you-left-off');
 
   // The anchoring job's next run: the batch with this proof code is sealed and dated.
   if (REAL_REGISTRY) await operatorSealAndAnchor();
   else await reg!.sealAndAnchor();
   await page.goto(`/record/${recordId}`);
   await expect(page.getByText('(VeilCore’s registry’s report)').first()).toBeVisible({ timeout: 30_000 });
-  await shot(page, '4-record-dated-without-backup');
+  await shot(page, v + '4-record-dated-without-backup');
 
-  // Home again: the record is dated, so it is no longer listed; the backup and the stamp still are.
+  // Home again: the record is dated, so it is no longer listed; Home's one line and the stamp still are.
   await page.goto('/records');
-  await expect(accountLine).toBeVisible();
+  await expect(passkeys ? accountLine : backupLine).toBeVisible();
   await expect(pickup.locator('[data-pickup-item="dating"]')).toHaveCount(0);
 
-  // They keep a file themselves ("Other ways" on the sheet; Settings, "Download a copy"): the
-  // locked copy goes up with the same proof code, and after a reload nothing asks again.
-  await page.goto('/settings');
-  await page.locator('[data-settings-file]').getByRole('button', { name: 'Download a copy' }).click();
+  if (passkeys) {
+    // They keep a file themselves ("Other ways" on the sheet; Settings, "Download a copy"): the
+    // locked copy goes up with the same proof code, and after a reload nothing asks again.
+    await page.goto('/settings');
+    await page.locator('[data-settings-file]').getByRole('button', { name: 'Download a copy' }).click();
+  } else {
+    // They save the backup from the backup line and check it: the locked copy goes up with the
+    // same proof code, and after a reload nothing asks for the backup again.
+    await backupLine.getByRole('button', { name: 'Save my backup' }).click();
+  }
   await saveAndCheckBackup(page);
   await expect
     .poll(async () => !!(await rows()).find((r) => r.id === recordId)?.sealed, { timeout: 30_000 })
@@ -223,11 +247,16 @@ test('a plant logged with no backup is still dated in the next batch, and Home p
   await page.reload();
   await expect(page.getByRole('heading', { name: 'Your records' })).toBeVisible();
   await expect(page.locator(`[data-home-unsaved="${recordId}"]`)).toHaveCount(0);
-  await expect(page.locator('[data-pickup-item="locked-copies"]')).toHaveCount(0);
-  await expect(page.locator('[data-pickup-item="fresh-backup"]')).toHaveCount(0);
-  await expect(page.locator('[data-vault-backup]')).toHaveCount(0);
+  await expect(page.locator('[data-backup-needed]')).toHaveCount(0);
   await expect(page.locator('[data-account-line]')).toHaveCount(0);
   await expect(page.getByRole('dialog')).toHaveCount(0);
-  await shot(page, '5-home-after-backup');
+  await shot(page, v + '5-home-after-backup');
   expectNoErrors(errors);
-});
+};
+
+test('a plant logged with no backup is still dated in the next batch, and Home picks up where they left off', async ({
+  page,
+}) => datingFirst(page, true));
+
+test('the same, without passkeys: Home’s one line is the backup line (easy mode step 1)', async ({ page }) =>
+  datingFirst(page, false));

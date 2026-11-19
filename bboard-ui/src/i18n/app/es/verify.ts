@@ -17,15 +17,15 @@ export const verify = {
     '{which} fue reemplazado por su laboratorio el {on} por uno corregido. {tail}{staleNote}',
   'app.verify.report.withdrawn': '{which} fue retirado por su laboratorio el {on}. {tail}{staleNote}',
   'app.verify.report.ownSha':
-    'El titular guardó un archivo de informe de ADN en este registro{asOf} (SHA-256 {sha}). Ninguna firma de laboratorio mostrada aquí coincide con él, así que, tal como se muestra, es la propia declaración del titular. Las firmas de un laboratorio son privadas, salvo que el titular decida mostrarlas.{staleNote}',
+    'El titular guardó un archivo de informe de ADN en este registro{asOf} (SHA-256 {sha}). Ninguna firma de laboratorio mostrada aquí coincide con él, así que, tal como se muestra, es la propia declaración de quien lo selló. Las firmas de un laboratorio son privadas, salvo que el titular decida mostrarlas.{staleNote}',
   'app.verify.report.own':
-    'El titular guardó un archivo de informe de ADN en este registro. Ninguna firma de laboratorio mostrada aquí coincide con él, así que, tal como se muestra, es la propia declaración del titular. Las firmas de un laboratorio son privadas, salvo que el titular decida mostrarlas.{staleNote}',
+    'El titular guardó un archivo de informe de ADN en este registro. Ninguna firma de laboratorio mostrada aquí coincide con él, así que, tal como se muestra, es la propia declaración de quien lo selló. Las firmas de un laboratorio son privadas, salvo que el titular decida mostrarlas.{staleNote}',
   'app.verify.report.unnamedSigned':
     'El titular guardó un informe de ADN en este registro. Este enlace no nombra el archivo, así que esta página no puede saber si es el informe firmado que aparece arriba.',
   'app.verify.report.unnamedWithdrawn':
-    'El titular guardó un informe de ADN en este registro. Este enlace no nombra el archivo, y todos los informes firmados que se muestran aquí fueron retirados por su laboratorio, así que es la propia declaración del titular.',
+    'El titular guardó un informe de ADN en este registro. Este enlace no nombra el archivo, y todos los informes firmados que se muestran aquí fueron retirados por su laboratorio, así que es la propia declaración de quien lo selló.',
   'app.verify.report.unnamedNone':
-    'El titular guardó un informe de ADN en este registro. Aquí no se muestra ninguna firma de un informe de laboratorio, así que, tal como se muestra, es la propia declaración del titular. Las firmas de un laboratorio son privadas, salvo que el titular decida mostrarlas.',
+    'El titular guardó un informe de ADN en este registro. Aquí no se muestra ninguna firma de un informe de laboratorio, así que, tal como se muestra, es la propia declaración de quien lo selló. Las firmas de un laboratorio son privadas, salvo que el titular decida mostrarlas.',
   'app.verify.kind.receipts.one': 'un acuse de recibo de laboratorio',
   'app.verify.kind.receipts.other': '{count} acuses de recibo de laboratorio',
   'app.verify.kind.reports.one': 'un informe de laboratorio',
@@ -65,7 +65,7 @@ export const verify = {
   'app.verify.anchor.eventReported':
     'Lote {batch}: el servidor de registros informa que la raíz del lote se registró en {where}{tx}. La fecha es {date}. {why} No confíe en la fecha hasta que se compruebe.{test}',
   'app.verify.anchor.summaryAdd': '{summary} Comprobado en Midnight: el sello de fecha de la raíz del lote.',
-  'app.verify.field.existence': 'Tenencia previa (solo se muestra una vez anclado)',
+  'app.verify.field.existence': 'Constancia de que ya lo tenía a una fecha (solo se muestra una vez anclado)',
   'app.verify.field.attestation-status': 'Si hay un informe de ADN guardado',
   'app.verify.field.descent-clean': 'Estado del linaje, según el servidor de registros',
   'app.verify.field.sealed-at': 'Cuándo se selló (reloj del dispositivo del titular)',
@@ -109,8 +109,45 @@ export const verify = {
   'app.verify.checkingRecord': 'Comprobando el registro',
   'app.verify.notFound': 'No se encontró ningún registro para {id}',
   'app.verify.notFoundText':
-    'Este enlace de verificación no coincide con ningún registro del servidor de registros. Compruebe que el enlace esté completo y sin cambios.',
+    'Este enlace de comprobación no coincide con ningún registro del servidor de registros. Compruebe que el enlace esté completo y sin cambios.',
   'app.verify.goHome': 'Ir a veilcore.org',
+  'app.verify.verdict.checking': 'Comprobando este registro en su navegador…',
+  'app.verify.verdict.dated': 'Fechado el {date}. Todas las comprobaciones se superaron en su navegador.',
+  'app.verify.verdict.datedTest':
+    'Fecha de práctica, {date}, en una red de pruebas: no es una fecha real. Todas las comprobaciones se superaron en su navegador.',
+  'app.verify.verdict.datedButFailed':
+    'Fechado el {date}, pero algunas comprobaciones fallaron. Vea las comprobaciones más abajo.',
+  'app.verify.verdict.reported':
+    'El servidor de VeilCore informa de que se fechó el {date}. Su navegador aún no ha confirmado esa fecha por sí mismo.',
+  'app.verify.verdict.reportedNoDate':
+    'El servidor de VeilCore informa de que está fechado, pero no da la fecha. Su navegador aún no lo ha confirmado por sí mismo.',
+  'app.verify.verdict.dateFailed': 'La comprobación de la fecha falló en su navegador. No confíe en esta fecha.',
+  'app.verify.verdict.notYet': 'Todavía sin fecha. Está esperando su sello de fecha.',
+  'app.verify.verdict.reportedNoDateButFailed':
+    'El servidor de VeilCore informa de que está fechado, pero no da la fecha, y no todas las comprobaciones se superaron. Vea las comprobaciones más abajo.',
+  'app.verify.verdict.reportedButFailed':
+    'El servidor de VeilCore informa de que se fechó el {date}, pero no todas las comprobaciones se superaron. Vea las comprobaciones más abajo.',
+  'app.verify.verdict.datedWithdrawn':
+    'Fechado el {date}, pero un laboratorio retiró su firma. Vea las comprobaciones más abajo.',
+  'app.verify.verdict.dateUnchecked':
+    'No se pudo comprobar la fecha ahora. El servidor de VeilCore dice que este registro está fechado, pero esta página no pudo confirmarlo. Inténtelo de nuevo en un minuto.',
+  'app.verify.verdict.notYetFailed':
+    'Todavía sin fecha, y no todas las comprobaciones se superaron. Vea las comprobaciones más abajo.',
+  'app.verify.verdict.unbound':
+    'Este enlace no lleva el código de prueba del registro, así que su navegador no puede saber si el servidor de VeilCore respondió sobre este registro. Pida un enlace nuevo a quien se lo envió.',
+  'app.verify.verdict.nothing': 'No se puede comprobar nada de este registro: no tiene código de prueba.',
+  'app.verify.checks.see': 'Ver las comprobaciones',
+  'app.verify.checks.hide': 'Ocultar las comprobaciones',
+  'app.verify.cta': '¿Quiere una fecha así para sus propias plantas o animales?',
+  'app.verify.ctaButton': 'Crear un registro, gratis',
+  'app.verify.notFoundAsk': 'Pida a quien se lo envió que le mande el enlace de nuevo.',
+  'app.verify.another.label': 'Otro ID de registro o enlace de comprobación',
+  'app.verify.another.go': 'Comprobar',
+  'app.verify.another.bad': 'Eso no es un ID de registro ni un enlace de comprobación.',
+  'app.verify.unreachable.title': 'No se pudo comprobar este registro ahora',
+  'app.verify.unreachable.text':
+    'El servidor de VeilCore no respondió, o envió una respuesta que esta página no puede leer. Inténtelo de nuevo en un minuto.',
+  'app.verify.unreachable.retry': 'Intentar de nuevo',
   'app.verify.deleted.title': '{id} fue eliminado por su titular',
   'app.verify.deleted.when': 'Eliminado el {date}. Sus detalles ya no se muestran.',
   'app.verify.deleted.datedChecked':
@@ -178,7 +215,7 @@ export const verify = {
   'app.verify.sampleDetails': 'Detalles de la muestra, según el servidor de registros:',
   'app.verify.moreSigs': '{forWhom}Y {n} firmas más, cada una verificada en este navegador.',
   'app.verify.noneVerified':
-    'El servidor de registros informa una atestación firmada, pero no se pudo verificar ninguna en este navegador.',
+    'El servidor de registros informa una declaración firmada, pero no se pudo verificar ninguna en este navegador.',
   'app.verify.noneSigned':
     'El titular no ha mostrado aquí ninguna firma de laboratorio. Los acuses de recibo y los informes de un laboratorio son privados, salvo que el titular decida mostrarlos.',
   'app.verify.badSigs.one':
@@ -198,30 +235,30 @@ export const verify = {
   'app.verify.mark.failed': 'Fallido o retirado',
   'app.verify.mark.key': 'Qué significan las marcas',
   'app.verify.own.preview':
-    'Tenencia previa: solo se muestra cuando el servidor de registros informa que el lote de este registro está anclado, y entonces como lo que informa el servidor de registros.',
+    'Constancia de que ya lo tenía a una fecha: solo se muestra cuando el servidor de registros informa que el lote de este registro está anclado, y entonces como lo que informa el servidor de registros.',
   'app.verify.own.anchored':
-    'Tenencia previa: el servidor de registros informa que el lote de este registro se ancló en {network}.{found}{test}',
+    'Constancia de que ya lo tenía a una fecha: el servidor de registros informa que el lote de este registro se ancló en {network}.{found}{test}',
   'app.verify.own.found':
     ' Esta página encontró ese sello de fecha en Midnight por sí misma (arriba). Fecha el registro, no quién lo tenía.',
   'app.verify.own.notConfirmed': ' Esta página no lo ha confirmado en la cadena.',
   'app.verify.own.notAnchored':
-    'Tenencia previa: todavía sin anclar, así que su fecha se basa en los registros de este servidor.',
+    'Constancia de que ya lo tenía a una fecha: todavía sin anclar, así que su fecha se basa en los registros de este servidor.',
   'app.verify.dna.saved': 'El titular guardó un informe de ADN en este registro.',
   'app.verify.lineage.intact':
-    'El servidor de registros informa el linaje intacto: una cadena sin cortes hasta el registro sellado. Esta página no lo ha comprobado.',
+    'El servidor de registros informa que el linaje está intacto: una cadena sin cortes hasta el registro sellado. Esta página no lo ha comprobado.',
   'app.verify.lineage.notChecked':
     'Linaje: no comprobado en esta página. El servidor de registros no recorre la descendencia para un enlace compartido.',
   'app.verify.sealedAt':
-    'Sellado, según el reloj del dispositivo del titular: {date}. Es la propia declaración del titular.{first}',
+    'Sellado, según el reloj del dispositivo del titular: {date}. Es la propia declaración de quien lo selló.{first}',
   'app.verify.firstStoredBy': ' Guardado por primera vez en este servidor de registros: {date}.',
-  'app.verify.parents': 'Padres, según el titular: {list}',
-  'app.verify.noParents': 'No hay padres registrados.',
-  'app.verify.method': 'Método de mejoramiento, según el titular: {method}',
+  'app.verify.parents': 'Progenitores, según quien lo selló: {list}',
+  'app.verify.noParents': 'No hay progenitores registrados.',
+  'app.verify.method': 'Método de mejoramiento, según quien lo selló: {method}',
   'app.verify.noMethod': 'No hay método de mejoramiento registrado.',
   'app.verify.sharedNothing': 'El titular no compartió nada más allá de lo básico de arriba.',
   'app.verify.notShared': 'No compartido por el titular: {list}.',
   'app.verify.alwaysShown':
-    'Siempre se muestra: el ID del registro, su código de prueba ({fp}), cuándo lo guardó por primera vez el servidor de registros y lo que esta página pudo comprobar sobre su lote y las atestaciones firmadas mostradas (un acuse de recibo o un informe de laboratorio solo si usted decide mostrarlo). El nombre, solo cuando el enlace lo lleva (los suyos lo llevan solo si usted lo activa) o usted decide mostrarlo.',
+    'Siempre se muestra: el ID del registro, su código de prueba ({fp}), cuándo lo guardó por primera vez el servidor de registros y lo que esta página pudo comprobar sobre su lote y las declaraciones firmadas mostradas (un acuse de recibo o un informe de laboratorio solo si usted decide mostrarlo). El nombre, solo cuando el enlace lo lleva (los suyos lo llevan solo si usted lo activa) o usted decide mostrarlo.',
   'app.verify.ex.title': 'Ejemplo: un registro inventado.',
   'app.verify.ex.intro':
     'Esto muestra cómo es la página de comprobación de un registro, con una nota bajo cada línea. Aquí no se consultó ni comprobó nada.',
@@ -255,13 +292,13 @@ export const verify = {
   'app.verify.nameShared': 'Su nombre, mostrado por el titular a cualquiera con el ID: {name}',
   'app.verify.noNameShared': 'No hay nombre registrado.',
   'app.verify.field.bred-by': 'Obtenido por',
-  'app.verify.bredByShared': 'Obtenido por, según lo escribió el titular: {name}',
+  'app.verify.bredByShared': 'Obtenido por, según lo escribió quien lo selló: {name}',
   'app.verify.noBredBy': 'No hay obtentor registrado.',
   'app.verify.mark.anyName':
-    'El nombre de un firmante es el nombre con el que se registró su clave. Cualquiera puede registrar una clave con cualquier nombre, así que un nombre muestra quién firmó solo cuando dice que se comprobó con un registro público.',
-  'app.verify.summary.checked': 'El registro existía el {date}: esta página lo comprobó en Midnight.{test}',
+    'El nombre de un firmante es el nombre con el que se registró su clave. Cualquiera puede registrar una clave con cualquier nombre, así que un nombre muestra quién firmó solo cuando dice que se cotejó con un listado público.',
+  'app.verify.summary.checked': 'El registro ya existía el {date}: esta página lo comprobó en Midnight.{test}',
   'app.verify.summary.reported':
-    'El registro existía el {date}. Lo dice el servidor de registros de VeilCore; esta página aún no lo ha comprobado en Midnight.{test}',
+    'El registro ya existía el {date}. Lo dice el servidor de registros de VeilCore; esta página aún no lo ha comprobado en Midnight.{test}',
   'app.verify.summary.yourself': 'Compruébelo usted mismo',
   'app.verify.self.explorer':
     'Abra un explorador de Midnight para {network}, como {url} (escriba la dirección usted mismo).',
@@ -270,7 +307,7 @@ export const verify = {
   'app.verify.self.contract': 'Compruebe que tuvo éxito y que llamó al contrato de VeilCore {contract}.',
   'app.verify.self.noContract': '(el servidor de registros no lo indicó)',
   'app.verify.self.root':
-    'Compruebe que escribió el código del lote {root}. Puede que un explorador no lo muestre: el paquete de evidencia del registro, que tiene su titular, dice cómo leerlo de otra forma.',
+    'Compruebe que escribió la raíz del lote {root}. Puede que un explorador no lo muestre: el paquete de evidencia del registro, que tiene su titular, dice cómo leerlo de otra forma.',
   'app.verify.dnaCheck.help':
     '¿Tiene el archivo del informe de ADN que le envió el titular? Elíjalo para comprobar que es el guardado con este registro. El archivo se lee en este navegador y no se envía a ninguna parte.',
   'app.verify.dnaCheck.button': 'Comprobar un archivo de informe de ADN',
@@ -291,30 +328,31 @@ export const verify = {
   // who-vouches.ts: who stands behind each fact on a check page
   'app.verify.who.title': 'En qué se basa cada dato',
   'app.verify.who.date': 'La fecha',
-  'app.verify.who.date.chain': 'Midnight. Esta página la comprobó allí misma.',
+  'app.verify.who.date.chain': 'Midnight. Esta página la comprobó allí, por sí misma.',
   'app.verify.who.date.chainTest':
-    'Una red de prueba de Midnight. Esta página la comprobó allí misma: es una práctica, no una fecha en la que confiar.',
-  'app.verify.who.date.registry': 'Lo dice el registro de VeilCore. Esta página no lo ha comprobado en Midnight.',
+    'Una red de pruebas de Midnight. Esta página la comprobó allí, por sí misma: son datos de práctica, no una fecha en la que confiar.',
+  'app.verify.who.date.registry':
+    'Lo dice el servidor de registros de VeilCore. Esta página no lo ha comprobado en Midnight.',
   'app.verify.who.date.batchOnly':
-    'Midnight fechó el lote, y esta página lo comprobó allí. Solo el registro de VeilCore dice que este registro está en él: el enlace no lleva un código de prueba para comprobarlo.',
+    'Midnight fechó el lote, y esta página lo comprobó allí. Solo el servidor de registros de VeilCore dice que este registro está en él: el enlace no lleva un código de prueba para comprobarlo.',
   'app.verify.who.date.pending': 'Nada todavía. Su lote espera ser fechado en Midnight.',
   'app.verify.who.code': 'El código de prueba',
   'app.verify.who.code.page': 'Esta página: coincide con el del enlace que le enviaron.',
   'app.verify.who.code.registry':
-    'El registro de VeilCore. El enlace que le enviaron no lleva un código de prueba con el que compararlo.',
+    'El servidor de registros de VeilCore. El enlace que le enviaron no lleva un código de prueba con el que compararlo.',
   'app.verify.who.words': 'El nombre y los detalles',
   'app.verify.who.words.holder':
     'El titular, con sus propias palabras. Esta página solo comprueba que el nombre coincide con el código de prueba, no que nada sea cierto.',
   'app.verify.who.date.failed': 'Nada: la comprobación de esta página en Midnight falló (ver abajo).',
   'app.verify.who.words.differs':
     'Las palabras del titular, pero el nombre mostrado no coincide con el código de prueba (ver abajo).',
-  'app.verify.who.words.unchecked': 'El titular, con sus propias palabras. Nada los comprueba.',
+  'app.verify.who.words.unchecked': 'El titular, con sus propias palabras. Nada las comprueba.',
   'app.verify.who.lab': 'Un laboratorio',
   'app.verify.who.lab.none': 'Esta página no ha comprobado la firma de ningún laboratorio.',
   'app.verify.who.signed': '{who}. Esta página comprobó la firma.',
   'app.verify.who.withdrawn': 'Su sitio web ha dejado de publicar esta clave (abajo).',
   'app.verify.who.signedUnbound':
-    '{who}, según informa el registro de VeilCore. El enlace no lleva un código de prueba para comprobarla.',
+    '{who}, según informa el servidor de registros de VeilCore. El enlace no lleva un código de prueba para comprobarla.',
   'app.verify.who.more': 'Más firmas',
   'app.verify.who.moreText': '{n} más, abajo.',
   'app.verify.who.date.none': 'Nada todavía. Por lo que esta página puede ver, no está en un lote fechado.',
@@ -325,7 +363,7 @@ export const verify = {
   'app.verify.who.file.none': 'No se selló ningún archivo con este documento.',
   'app.verify.who.file.waiting': 'Su propio dispositivo, cuando elige el archivo arriba. No se envía nada.',
   'app.verify.who.signedUnboundMatched':
-    'Una clave registrada como {who}, según informa el registro de VeilCore. El operador de VeilCore cotejó el nombre con un listado público (abajo). El enlace no lleva un código de prueba para comprobar la firma.',
+    'Una clave registrada como {who}, según informa el servidor de registros de VeilCore. El operador de VeilCore cotejó el nombre con un listado público (abajo). El enlace no lleva un código de prueba para comprobar la firma.',
   'app.verify.who.signedMatched':
     'Una clave registrada como {who}. Esta página comprobó la firma. El operador de VeilCore cotejó el nombre con un listado público (abajo); eso no significa que VeilCore avale al laboratorio.',
   'app.verify.who.typed': 'Lo escrito (título, titular, emisor, notas)',

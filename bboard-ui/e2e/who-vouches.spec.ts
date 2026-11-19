@@ -17,6 +17,7 @@ import {
   json,
   newVaultKey,
   plainRowRefusal,
+  seeChecks,
   watch,
 } from './helpers';
 
@@ -75,6 +76,8 @@ const openCheck = async (page: Page, query: string) => {
   });
   await page.route('https://indexer.preview.midnight.network/**', indexer);
   await page.goto(`/verify/${RECORD}${query}`);
+  // "What each fact rests on" is among the checks folded under "See the checks".
+  await seeChecks(page);
 };
 
 /** One row of the box, by the fact it is about. */

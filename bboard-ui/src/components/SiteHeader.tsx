@@ -210,9 +210,11 @@ const PhoneMenu: React.FC<{ ask: boolean; returning: boolean }> = ({ ask, return
 };
 
 export const SiteHeader: React.FC<{
-  /** The app's pages: which network this build is about, beside the language. */
+  /** The app's pages: which network this build is about, beside the language (test builds only). */
   badge?: React.ReactNode;
-}> = ({ badge }) => {
+  /** The app's pages (Ask in the phone menu), whether or not they carry a badge. */
+  app?: boolean;
+}> = ({ badge, app = !!badge }) => {
   const { t } = useI18n();
   // The home page draws this header on its night ground (home.css): the mark takes its dark-ground gold.
   const onHome = useLocation().pathname === '/';
@@ -274,7 +276,7 @@ export const SiteHeader: React.FC<{
                 {t('m.nav.demo')}
               </Link>
             )}
-            <PhoneMenu ask={!!badge} returning={returning} />
+            <PhoneMenu ask={app} returning={returning} />
           </Stack>
           <LanguagePicker />
           {/* On the app's pages, after the language: on a phone the line under the mark. */}

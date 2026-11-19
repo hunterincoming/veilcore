@@ -1,9 +1,11 @@
 # Translations
 
 VeilCore's pages and its record app come in English, Spanish, Japanese, German and French.
-English is the source text. The other four are **drafts**: machine-assisted, and not yet
-checked by a fluent speaker. This page says where the text lives, how a fluent speaker checks
-a language and signs it off, and how a signed-off language is switched on.
+English is the source text. The other four are machine-assisted translations. On
+19 November 2026 they were reviewed against native official and industry sources (the terms
+and sources are in [../i18n-glossary.md](../i18n-glossary.md)) and switched on by the founder's
+decision, without a fluent human reviewer. A fluent speaker's check is still welcome: this page
+says where the text lives, how to check a language, and how a language is switched on or off.
 
 ## Where each language shows
 
@@ -11,14 +13,19 @@ One switch decides it: `PUBLISHED_LANGUAGES` in
 [`bboard-ui/src/config/languages.ts`](../../bboard-ui/src/config/languages.ts), one flag per
 language. English is always on.
 
+All five flags are `true`: every build offers all five languages in the picker, with no draft
+banner, and a visitor whose browser (or phone) asks for Japanese, Spanish, German or French
+gets it on the first visit. A language they pick in the picker is kept on that browser.
+
+If a flag is set back to `false`, that language becomes a draft again:
+
 | Build | Language picker offers | Draft banner |
 | --- | --- | --- |
 | Test site (test.veilcore.org) and the demo build | every language | on every page in a language whose flag is `false` |
-| veilcore.org (mainnet build) | English, plus each language whose flag is `true` | never, because only published languages are offered |
+| veilcore.org (mainnet build) | each language whose flag is `true`, plus the drafts in `MAINNET_DRAFTS` | on a draft |
 
-On veilcore.org a draft can still be opened for checking with a link such as
-`https://veilcore.org/?lang=ja`. It shows under the draft banner and is never picked for a
-visitor on its own. The browser's own language only ever picks a published language.
+A draft can always be opened with a link such as `https://veilcore.org/?lang=ja`, and the
+browser's own language never picks one.
 
 The picker is on every page, site and app. The banner says the translation is a draft and
 offers the English.
@@ -71,6 +78,7 @@ network can also show in English.
 These hold in every language, and the tests check them (`bboard-ui/src/i18n/copy-truth.test.ts`
 for the site, `bboard-ui/src/i18n/translations.test.ts` for the app):
 
+- **One word per idea**, as listed in [../i18n-glossary.md](../i18n-glossary.md).
 - **Hold, never own.** A record shows what someone held. Never write "own" or "ownership":
   no 所有 (use 保有), no Besitz, besitzen or Eigentum (use halten, Inhaber), no posséder or
   propriété (use détenir, détenteur), no poseer, propiedad or dueño (use tener, titular).
@@ -80,7 +88,7 @@ for the site, `bboard-ui/src/i18n/translations.test.ts` for the app):
   backup, link.
 - Every key that the English has, with the same placeholders and the same tags.
 
-## How a fluent speaker checks a language
+## How to check a language
 
 1. Open the test site (test.veilcore.org) and choose the language in the picker. Go through
    the whole product in it: the home page, logging a plant, saving the backup, the plant page,
@@ -97,8 +105,8 @@ for the site, `bboard-ui/src/i18n/translations.test.ts` for the app):
 
 ## How to switch a language on
 
-1. A fluent speaker has signed it off: the language has a line in the table below, with
-   "site and app", their name and the date.
+1. The language has a sign-off line in the table below, with "site and app", who checked it
+   (and how, if not a fluent speaker) and the date.
 2. In `bboard-ui/src/config/languages.ts`, set the language's flag in `PUBLISHED_LANGUAGES` to
    `true`.
 3. Run `npx vitest run src/i18n` in `bboard-ui`. `translations.test.ts` fails if a language
@@ -113,8 +121,11 @@ next release. Say which keys changed in the pull request that changes them.
 
 ## Sign-off
 
-One line per language, added by the fluent speaker who checked it. A language is switched on
-only with a line here.
+One line per language. A language is switched on only with a line here.
 
 | Language | Checked | Checked by | Date |
 | --- | --- | --- | --- |
+| ja | site and app | Founder's decision (Hunter Roberts): review against native official sources, no fluent human reviewer ([glossary](../i18n-glossary.md)) | 2026-11-19 |
+| es | site and app | Founder's decision (Hunter Roberts): review against native official sources, no fluent human reviewer ([glossary](../i18n-glossary.md)) | 2026-11-19 |
+| de | site and app | Founder's decision (Hunter Roberts): review against native official sources, no fluent human reviewer ([glossary](../i18n-glossary.md)) | 2026-11-19 |
+| fr | site and app | Founder's decision (Hunter Roberts): review against native official sources, no fluent human reviewer ([glossary](../i18n-glossary.md)) | 2026-11-19 |

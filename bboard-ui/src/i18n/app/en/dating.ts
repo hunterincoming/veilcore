@@ -33,7 +33,6 @@ export const dating = {
   'app.pickup.open': 'Open',
   'app.pickup.tryNow': 'Try now',
   'app.pickup.saveBackup': 'Save my backup',
-  'app.pickup.freshBackupButton': 'Save a fresh backup',
   'app.pickup.openAgreements': 'Open agreements',
   'app.pickup.dating.notSent': '{name}: sealed. Its proof code goes to VeilCore as soon as VeilCore can be reached.',
   'app.pickup.dating.next': '{name} will get its date in the next batch.',
@@ -52,13 +51,6 @@ export const dating = {
   'app.pickup.stamp.sent':
     'Key date stamp for {name} may already have gone out. Check it on its page before trying again.',
   'app.pickup.stamp.cannot': 'Key date stamp for {name} can’t be made from this site now. Its page says why.',
-  'app.pickup.lockedCopies.one':
-    '{count} locked copy not uploaded yet — save and check your backup. Your record’s date isn’t waiting on this.',
-  'app.pickup.lockedCopies.other':
-    '{count} locked copies not uploaded yet — save and check your backup. Your records’ dates aren’t waiting on this.',
-  'app.pickup.freshBackup.one': 'Your last backup doesn’t have the keys of {count} newer record. Save a fresh backup.',
-  'app.pickup.freshBackup.other':
-    'Your last backup doesn’t have the keys of {count} newer records. Save a fresh backup.',
   'app.pickup.deliveriesSent.one': '{count} lab delivery sent, not received yet.',
   'app.pickup.deliveriesSent.other': '{count} lab deliveries sent, not received yet.',
   'app.pickup.deliveriesUnsigned.one': '{count} delivery received by the lab, receipt not signed yet.',

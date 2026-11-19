@@ -11,7 +11,7 @@ export const document = {
   'app.doc.new.intro':
     'Choisissez le fichier. Il reste sur cet appareil. Seuls un code calculé à partir de son contenu, son nom et sa taille sont scellés, avec une date que personne ne peut antidater. Si un seul caractère du fichier change, le code ne correspond plus.',
   'app.doc.new.proves':
-    'Ce que cela montrera : un fichier avec exactement ces octets était entre vos mains à la date où il est scellé. Pas que le document est authentique, que l’émetteur l’a émis, ni que ce qu’il dit est vrai.',
+    'Ce que cela montrera : un fichier avec exactement ces octets était entre vos mains au plus tard à la date où il est scellé. Pas que le document est authentique, que l’émetteur l’a émis, ni que ce qu’il dit est vrai.',
   'app.doc.f.files': 'Fichiers',
   'app.doc.f.filesHelp': 'Jusqu’à {max} : un contrat et ses annexes, un certificat d’analyse et ses chromatogrammes.',
   'app.doc.f.add': 'Ajouter un fichier',
@@ -82,7 +82,7 @@ export const document = {
     '<b>Pas de correspondance.</b> {name} n’est pas le fichier scellé. L’enregistrer à nouveau, l’imprimer en PDF ou l’envoyer par certaines applications modifie le fichier : demandez le fichier d’origine.',
   'app.doc.new.introTech': 'Pour les spécialistes : ce code est le SHA-256 du fichier.',
   'app.doc.backupFirst':
-    'Scellé. Enregistrez maintenant une sauvegarde et vérifiez-la. D’ici là, les clés de cet enregistrement ne sont que dans ce navigateur, et VeilCore ne conserve pas encore de copie de l’enregistrement pour vous. Cela vous sera demandé jusqu’à ce qu’une copie de secours contenant la clé de ce navigateur soit vérifiée.',
+    'Scellé. Enregistrez maintenant une sauvegarde et vérifiez-la. D’ici là, les clés de cet enregistrement ne sont que dans ce navigateur, et VeilCore ne conserve pas encore de copie de l’enregistrement pour vous. Cela vous sera demandé jusqu’à ce qu’une sauvegarde contenant la clé de ce navigateur soit vérifiée.',
   'app.doc.notBacked':
     'Pas encore dans une sauvegarde vérifiée. D’ici là, les clés de cet enregistrement ne sont que dans ce navigateur.',
   'app.doc.tech.title': 'Détails techniques',
@@ -110,7 +110,7 @@ export const document = {
   'app.doc.check.notDated':
     'Rien ne date encore cet enregistrement, ou le lien a été modifié. Ne vous y fiez pas avant qu’il affiche une date.',
   'app.doc.check.what':
-    'Ce que cela montre : un fichier avec exactement ces octets était entre les mains du détenteur à cette date. Ce que cela ne montre pas : que le document est authentique, que l’émetteur l’a émis, ni que ce qu’il dit est vrai. « Émis par » est la déclaration du détenteur.',
+    'Ce que cela montre : un fichier avec exactement ces octets était entre les mains du détenteur au plus tard à cette date. Ce que cela ne montre pas : que le document est authentique, que l’émetteur l’a émis, ni que ce qu’il dit est vrai. « Émis par » est la déclaration du détenteur.',
   'app.doc.check.whatUndated':
     'Ce que cela montrera, une fois daté : un fichier avec exactement ces octets était entre les mains du détenteur au plus tard à sa date. Ce que cela ne montre pas : que le document est authentique, que l’émetteur l’a émis, ni que ce qu’il dit est vrai. « Émis par » est la déclaration du détenteur.',
   'app.doc.check.inLink': 'Dans le lien (les propres mots du détenteur)',
@@ -171,6 +171,28 @@ export const document = {
   'app.claim.line.value': '{label} est {value} {unit}',
   'app.claim.holderTyped': 'Les chiffres sont les vôtres, tels que saisis : aucun laboratoire ne les a signés.',
   'app.claim.check.title': 'Vérifier une preuve',
+  'app.claim.verdict.bad': 'Ce lien est illisible : rien n’a été vérifié.',
+  'app.claim.verdict.checking': 'Vérification de cette preuve dans votre navigateur…',
+  'app.claim.verdict.failed': 'Cette preuve n’a pas passé la vérification. Ne vous y fiez pas.',
+  'app.claim.verdict.labFailed':
+    'Cette preuve a passé la vérification, mais pas la signature du laboratoire. Voir ci-dessous.',
+  'app.claim.verdict.someFailed':
+    'Cette preuve a passé la vérification, mais pas une autre de ce lien. Voir ci-dessous.',
+  'app.claim.verdict.okWhen': 'Prouvé le {date}. Vérifié dans votre navigateur.',
+  'app.claim.verdict.ok': 'Cette preuve a passé la vérification dans votre navigateur.',
+  'app.claim.verdict.labConflict':
+    'Cette preuve a passé la vérification, mais plusieurs laboratoires disent détenir la clé qui l’a signée : lisez les chiffres comme la déclaration du détenteur. Voir ci-dessous.',
+  'app.claim.verdict.labWithdrawn':
+    'Cette preuve a passé la vérification, mais le laboratoire a retiré sa signature : lisez les chiffres comme la déclaration du détenteur. Voir ci-dessous.',
+  'app.doc.verdict.noDate':
+    'VeilCore n’a pas encore de date pour ce document exact. Un document tout juste scellé reçoit sa date avec le prochain lot ; un lien modifié ne correspondra pas.',
+  'app.doc.verdict.bad': 'Ce lien est illisible : rien n’a été vérifié.',
+  'app.doc.verdict.dated': 'Daté du {date}. Vérifié dans votre navigateur.',
+  'app.doc.verdict.datedChooseFile':
+    'Daté du {date}. Vérifié dans votre navigateur. Choisissez le fichier ci-dessous pour vérifier que c’est le même.',
+  'app.doc.verdict.datedSameFile':
+    'Daté du {date}, et le fichier choisi est bien celui qui a été scellé. Vérifié dans votre navigateur.',
+  'app.doc.verdict.datedOtherFile': 'Daté du {date}, mais le fichier choisi n’est pas celui qui a été scellé.',
   'app.claim.check.intro':
     'Quelqu’un vous a envoyé ce lien pour montrer un fait sur un chiffre d’un document scellé, sans montrer le chiffre ni le document. Cette page lit la preuve sur Midnight et la vérifie.',
   'app.claim.check.bad': 'Ce lien est illisible. Redemandez-le.',

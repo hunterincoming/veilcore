@@ -136,19 +136,13 @@ export const labReportPageLines = (r: Pick<Rec, 'notes' | 'parents'>, tr: Transl
 
 /**
  * A dating record's line on Home. Its key isn't date stamped and doesn't need to be: its batch
- * is what dates the report. A missing backup is said once, on the account line, not here (easy
- * mode step 2).
+ * is what dates the report. A missing backup is said once for the whole account (BackupNeeded.tsx,
+ * or the account line when saving with VeilCore is on).
  */
 export const datingHomeStatus = (
   d: Pick<StrainRecord, 'loggedAt'>,
-  keys: { backedUpAt?: number } | undefined,
-  realChain: boolean,
   tr: Translator = enT,
-): { text: string; unfinished: boolean } => {
-  void keys;
-  void realChain;
-  return {
-    text: tr.t('app.home.datingSealed', { dated: tr.t('app.home.labReportDated'), date: tr.date(d.loggedAt) }),
-    unfinished: false,
-  };
-};
+): { text: string; unfinished: boolean } => ({
+  text: tr.t('app.home.datingSealed', { dated: tr.t('app.home.labReportDated'), date: tr.date(d.loggedAt) }),
+  unfinished: false,
+});

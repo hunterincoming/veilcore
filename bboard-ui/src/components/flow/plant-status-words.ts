@@ -47,11 +47,12 @@ export const labReceiptRow = (receipt: LabReceipt | null | undefined, tr: Transl
 };
 
 /**
- * Home's one line for a plant. No backup words: whether records are kept safe is said once, on
- * the account line (KeepSafe.tsx AccountStatusLine, easy mode step 2), never per record. Before,
- * only a missing backup was "Not finished":
- * the record is sealed and its date comes from its batch, so a key not yet date stamped
- * is a quiet note, not a step left undone. A collection import queues its key stamps at
+ * Home's one line for a plant. A missing backup isn't said here: Home says it once, for the
+ * whole account, and only while one is needed: the backup line (BackupNeeded.tsx; easy-mode
+ * review, 19 Nov: "Not in your backup yet · next: save your backup" on every new record was the
+ * hassle), or the account line when saving with VeilCore is on (KeepSafe.tsx AccountStatusLine,
+ * easy mode step 2). The record is sealed and its date comes from its batch, so a key not yet
+ * date stamped is a quiet note, not a step left undone. A collection import queues its key stamps at
  * about 3 a day, and 120 plants all marked "Not finished" for 40 days said something false
  * (round 2). Nothing here says a lab confirmed anything: that needs a signature checked on
  * the plant's page, and a used code (record.attestation) is not one.
@@ -192,19 +193,9 @@ export const recordDateRow = (
 };
 
 /**
- * The red line under a record on Home when its locked copy is still in this browser: which one,
- * or none. Not "save and check your backup" when the card's own status already says it isn't in
- * a backup with "next: save your backup" (live walk, 18 Nov: one record said it three times,
- * counting the "Still in progress" box at the top). A copy waiting to be sent again still says so.
+ * The red line under a record on Home when its locked copy is still in this browser: only for a
+ * copy waiting to be sent again. One waiting for a checked backup isn't said per record: Home's
+ * one backup line says it (BackupNeeded.tsx; easy-mode review, 19 Nov).
  */
-export const unsavedLineKey = (
-  reason: UnsavedReason | undefined,
-  cardSaysNotInBackup: boolean,
-): 'app.sealed.unsaved.short' | 'app.sealed.unsaved.shortRetry' | undefined =>
-  !reason
-    ? undefined
-    : reason === 'backup'
-      ? cardSaysNotInBackup
-        ? undefined
-        : 'app.sealed.unsaved.short'
-      : 'app.sealed.unsaved.shortRetry';
+export const unsavedLineKey = (reason: UnsavedReason | undefined): 'app.sealed.unsaved.shortRetry' | undefined =>
+  reason && reason !== 'backup' ? 'app.sealed.unsaved.shortRetry' : undefined;

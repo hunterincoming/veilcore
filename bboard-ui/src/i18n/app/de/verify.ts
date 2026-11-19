@@ -48,10 +48,10 @@ export const verify = {
   'app.verify.anchor.dateNotChecked': 'Das Datum ist {date}; hier nicht geprüft.',
   'app.verify.anchor.oneIndexer': 'Nur einer der zwei Midnight-Indexer hat geantwortet, und beide müssen es. {date}',
   'app.verify.anchor.noIndexer': 'Kein Midnight-Indexer war erreichbar. {date}',
-  'app.verify.anchor.headingTest': 'Datumsstempel in einem Testnetzwerk geprüft: Übungsdaten, kein echtes Datum',
+  'app.verify.anchor.headingTest': 'Datumsstempel in einem Testnetz geprüft: Übungsdaten, kein echtes Datum',
   'app.verify.anchor.headingChecked': 'Datumsstempel auf Midnight geprüft',
   'app.verify.anchor.headingFailed': 'Datumsstempel auf Midnight nicht bestätigt',
-  'app.verify.anchor.eventTestTitle': 'Datumsstempel in einem Testnetzwerk geprüft',
+  'app.verify.anchor.eventTestTitle': 'Datumsstempel in einem Testnetz geprüft',
   'app.verify.anchor.eventChecked':
     'Stapel {batch}: Diese Seite hat die Stapelwurzel in Transaktion {tx}, Block {block}, auf {where} gefunden.{test}',
   'app.verify.anchor.eventFailed':
@@ -64,10 +64,10 @@ export const verify = {
   'app.verify.anchor.eventReported':
     'Stapel {batch}: Das Register meldet, dass die Stapelwurzel auf {where}{tx} festgehalten wurde. Das Datum ist {date}. {why} Verlassen Sie sich nicht auf das Datum, bis es geprüft ist.{test}',
   'app.verify.anchor.summaryAdd': '{summary} Auf Midnight geprüft: der Datumsstempel der Stapelwurzel.',
-  'app.verify.field.existence': 'Frühere Inhaberschaft (erst nach der Verankerung angezeigt)',
+  'app.verify.field.existence': 'Früheres Vorliegen (erst nach der Verankerung angezeigt)',
   'app.verify.field.attestation-status': 'Ob ein DNA-Bericht gespeichert ist',
   'app.verify.field.descent-clean': 'Status der Abstammung, wie das Register meldet',
-  'app.verify.field.sealed-at': 'Wann versiegelt wurde (Uhr des Geräts des Inhabers)',
+  'app.verify.field.sealed-at': 'Wann er versiegelt wurde (Uhr des Geräts des Inhabers)',
   'app.verify.field.parent-names': 'Namen der Elternsorten',
   'app.verify.field.breeding-method': 'Zuchtmethode',
   'app.verify.field.individual-id': 'Einzeltierkennung und ihr Kennzeichnungssystem',
@@ -109,6 +109,44 @@ export const verify = {
   'app.verify.notFoundText':
     'Dieser Prüflink passt zu keinem Datensatz im Register. Prüfen Sie, ob der Link vollständig und unverändert ist.',
   'app.verify.goHome': 'Zu veilcore.org',
+  'app.verify.verdict.checking': 'Dieser Datensatz wird in Ihrem Browser geprüft…',
+  'app.verify.verdict.dated': 'Datiert am {date}. Alle Prüfungen in Ihrem Browser bestanden.',
+  'app.verify.verdict.datedTest':
+    'Übungsdatum {date}, auf einem Testnetz: kein echtes Datum. Alle Prüfungen in Ihrem Browser bestanden.',
+  'app.verify.verdict.datedButFailed':
+    'Datiert am {date}, aber einige Prüfungen sind fehlgeschlagen. Siehe die Prüfungen unten.',
+  'app.verify.verdict.reported':
+    'Laut dem Server von VeilCore wurde er am {date} datiert. Ihr Browser hat dieses Datum noch nicht selbst bestätigt.',
+  'app.verify.verdict.reportedNoDate':
+    'Laut dem Server von VeilCore ist er datiert, ein Datum nennt er aber nicht. Ihr Browser hat das noch nicht selbst bestätigt.',
+  'app.verify.verdict.dateFailed':
+    'Die Prüfung des Datums ist in Ihrem Browser fehlgeschlagen. Verlassen Sie sich nicht auf dieses Datum.',
+  'app.verify.verdict.notYet': 'Noch nicht datiert. Er wartet auf seinen Datumsstempel.',
+  'app.verify.verdict.reportedNoDateButFailed':
+    'Laut dem Server von VeilCore ist er datiert, ein Datum nennt er aber nicht, und nicht alle Prüfungen sind bestanden. Siehe die Prüfungen unten.',
+  'app.verify.verdict.reportedButFailed':
+    'Laut dem Server von VeilCore wurde er am {date} datiert, aber nicht alle Prüfungen sind bestanden. Siehe die Prüfungen unten.',
+  'app.verify.verdict.datedWithdrawn':
+    'Datiert am {date}, aber ein Labor hat seine Signatur zurückgezogen. Siehe die Prüfungen unten.',
+  'app.verify.verdict.dateUnchecked':
+    'Das Datum ließ sich gerade nicht prüfen. Laut dem Server von VeilCore ist dieser Datensatz datiert, aber diese Seite konnte das nicht bestätigen. Versuchen Sie es in einer Minute noch einmal.',
+  'app.verify.verdict.notYetFailed':
+    'Noch nicht datiert, und nicht alle Prüfungen sind bestanden. Siehe die Prüfungen unten.',
+  'app.verify.verdict.unbound':
+    'Dieser Link enthält den Prüfcode des Datensatzes nicht. Ihr Browser kann daher nicht feststellen, ob der Server von VeilCore zu diesem Datensatz geantwortet hat. Bitten Sie den Absender um einen neuen Link.',
+  'app.verify.verdict.nothing': 'An diesem Datensatz lässt sich nichts prüfen: Er hat keinen Prüfcode.',
+  'app.verify.checks.see': 'Prüfungen ansehen',
+  'app.verify.checks.hide': 'Prüfungen ausblenden',
+  'app.verify.cta': 'Möchten Sie so ein Datum für Ihre eigenen Pflanzen oder Tiere?',
+  'app.verify.ctaButton': 'Datensatz anlegen, kostenlos',
+  'app.verify.notFoundAsk': 'Bitten Sie den Absender, Ihnen den Link noch einmal zu schicken.',
+  'app.verify.another.label': 'Andere Datensatz-ID oder anderer Prüflink',
+  'app.verify.another.go': 'Prüfen',
+  'app.verify.another.bad': 'Das ist weder eine Datensatz-ID noch ein Prüflink.',
+  'app.verify.unreachable.title': 'Dieser Datensatz konnte gerade nicht geprüft werden',
+  'app.verify.unreachable.text':
+    'Der Server von VeilCore hat nicht geantwortet oder eine Antwort geschickt, die diese Seite nicht lesen kann. Versuchen Sie es in einer Minute noch einmal.',
+  'app.verify.unreachable.retry': 'Erneut versuchen',
   'app.verify.deleted.title': '{id} wurde von seinem Inhaber gelöscht',
   'app.verify.deleted.when': 'Gelöscht am {date}. Seine Angaben werden nicht mehr angezeigt.',
   'app.verify.deleted.datedChecked':
@@ -189,7 +227,7 @@ export const verify = {
   'app.verify.ownReceiptTail':
     ' Sie sehen das, weil die Pflanze in diesem Browser ist; wer Ihren Link erhält, sieht nur die Signaturzeile oben.',
   'app.verify.sharedTitle': 'Vom Inhaber geteilt · vom Register gemeldet',
-  'app.verify.notGranted': 'Dieser Link fragte nach {list}, was der Inhaber nicht teilen wollte.',
+  'app.verify.notGranted': 'Dieser Link fragte nach {list}, was der Inhaber nicht freigegeben hat.',
   'app.verify.unavailable':
     'Dieser Link fragte nach Angaben über den Inhaber statt über diesen Datensatz ({list}). Darauf antwortet das Register nie.',
   'app.verify.footer': 'Prüfcode {fp} · nur die Angaben oben wurden gesendet · keine Genetik offengelegt',
@@ -198,14 +236,14 @@ export const verify = {
   'app.verify.mark.failed': 'Fehlgeschlagen oder zurückgezogen',
   'app.verify.mark.key': 'Was die Zeichen bedeuten',
   'app.verify.own.preview':
-    'Frühere Inhaberschaft: erst angezeigt, wenn das Register den Stapel dieses Datensatzes als verankert meldet, und dann als Meldung des Registers.',
+    'Früheres Vorliegen: erst angezeigt, wenn das Register den Stapel dieses Datensatzes als verankert meldet, und dann als Meldung des Registers.',
   'app.verify.own.anchored':
-    'Frühere Inhaberschaft: Das Register meldet den Stapel dieses Datensatzes als auf {network} verankert.{found}{test}',
+    'Früheres Vorliegen: Das Register meldet den Stapel dieses Datensatzes als auf {network} verankert.{found}{test}',
   'app.verify.own.found':
     ' Diese Seite hat diesen Datumsstempel selbst auf Midnight gefunden (oben). Er datiert den Datensatz, nicht, wer ihn hielt.',
   'app.verify.own.notConfirmed': ' Diese Seite hat das nicht auf der Chain bestätigt.',
   'app.verify.own.notAnchored':
-    'Frühere Inhaberschaft: noch nicht verankert, daher beruht sein Datum auf den Aufzeichnungen dieses Registers.',
+    'Früheres Vorliegen: noch nicht verankert, daher beruht sein Datum auf den Aufzeichnungen dieses Registers.',
   'app.verify.dna.saved': 'Der Inhaber hat einen DNA-Bericht zu diesem Datensatz gespeichert.',
   'app.verify.lineage.intact':
     'Das Register meldet die Abstammung als lückenlos – eine ununterbrochene Kette zurück zum versiegelten Datensatz. Diese Seite hat das nicht geprüft.',
@@ -238,7 +276,7 @@ export const verify = {
   'app.verify.ex.fact3':
     'Auf Midnight geprüft: Diese Stapelwurzel wurde durch die Transaktion 9c41e0…b27d in Block 2973563 am 2026-10-11 14:03 UTC geschrieben.{test}',
   'app.verify.ex.note3':
-    'Diese Transaktion auf {network} datiert den Datensatz. Bei einem echten Datensatz fragt Ihr Browser einen Midnight-Indexer danach und prüft, dass sie diese Stapelwurzel in den VeilCore-Vertrag geschrieben hat. Antwortet kein Indexer, sagt die Zeile das, und das Datum ist nur die Meldung des Registers: Schlagen Sie die Transaktion in einem Midnight-Explorer wie midnightexplorer.com nach, bevor Sie sich darauf verlassen.',
+    'Diese Transaktion auf {network} datiert den Datensatz. Bei einem echten Datensatz fragt Ihr Browser einen Midnight-Indexer danach und prüft, dass sie diese Stapelwurzel in den VeilCore-Smart-Contract geschrieben hat. Antwortet kein Indexer, sagt die Zeile das, und das Datum ist nur die Meldung des Registers: Schlagen Sie die Transaktion in einem Midnight-Explorer wie midnightexplorer.com nach, bevor Sie sich darauf verlassen.',
   'app.verify.ex.fact4':
     'Laborbericht (SHA-256 der Datei 7c1e04d2…9b3a51), Signatur in diesem Browser geprüft. Signiert von einem Schlüssel namens „Example Lab“ (Name nicht geprüft).',
   'app.verify.ex.note4':
@@ -270,10 +308,10 @@ export const verify = {
   'app.verify.self.anyExplorer': 'Öffnen Sie einen Midnight-Explorer für {network}.',
   'app.verify.self.tx': 'Suchen Sie nach der Transaktion {tx}. Ihre Blockzeit ist das Datum.',
   'app.verify.self.contract':
-    'Prüfen Sie, dass sie erfolgreich war und den Contract von VeilCore {contract} aufgerufen hat.',
+    'Prüfen Sie, dass sie erfolgreich war und den Smart Contract von VeilCore {contract} aufgerufen hat.',
   'app.verify.self.noContract': '(das Register hat ihn nicht genannt)',
   'app.verify.self.root':
-    'Prüfen Sie, dass sie den Code des Stapels {root} geschrieben hat. Ein Explorer zeigt ihn vielleicht nicht an: Das Beweispaket des Datensatzes, vom Inhaber, sagt, wie man ihn anders liest.',
+    'Prüfen Sie, dass sie die Stapelwurzel {root} geschrieben hat. Ein Explorer zeigt ihn vielleicht nicht an: Das Beweispaket des Datensatzes, vom Inhaber, sagt, wie man ihn anders liest.',
   'app.verify.dnaCheck.help':
     'Haben Sie die Datei des DNA-Berichts, die der Inhaber Ihnen geschickt hat? Wählen Sie sie aus, um zu prüfen, ob es die mit diesem Datensatz gespeicherte ist. Die Datei wird in diesem Browser gelesen und nirgendwohin gesendet.',
   'app.verify.dnaCheck.button': 'Datei eines DNA-Berichts prüfen',
@@ -299,7 +337,7 @@ export const verify = {
     'Ein Midnight-Testnetz. Diese Seite hat es dort selbst geprüft: eine Übung, kein Datum, auf das man sich verlassen kann.',
   'app.verify.who.date.registry': 'Das Register von VeilCore sagt es. Diese Seite hat es nicht auf Midnight geprüft.',
   'app.verify.who.date.batchOnly':
-    'Midnight hat den Stapel datiert, und diese Seite hat das dort geprüft. Dass dieser Eintrag darin ist, sagt nur das Register von VeilCore: Der Link enthält keinen Prüfcode zum Abgleich.',
+    'Midnight hat den Stapel datiert, und diese Seite hat das dort geprüft. Dass dieser Datensatz darin ist, sagt nur das Register von VeilCore: Der Link enthält keinen Prüfcode zum Abgleich.',
   'app.verify.who.date.pending': 'Noch nichts. Sein Stapel wartet darauf, auf Midnight datiert zu werden.',
   'app.verify.who.code': 'Der Prüfcode',
   'app.verify.who.code.page': 'Diese Seite: Er stimmt mit dem im Link überein, den Sie erhalten haben.',
@@ -320,7 +358,8 @@ export const verify = {
     '{who}, wie das Register von VeilCore meldet. Der Link enthält keinen Prüfcode, um sie zu prüfen.',
   'app.verify.who.more': 'Weitere Signaturen',
   'app.verify.who.moreText': '{n} weitere, unten aufgeführt.',
-  'app.verify.who.date.none': 'Noch nichts. Soweit diese Seite sehen kann, ist der Eintrag in keinem datierten Stapel.',
+  'app.verify.who.date.none':
+    'Noch nichts. Soweit diese Seite sehen kann, ist der Datensatz in keinem datierten Stapel.',
   'app.verify.who.code.recomputed': 'Diese Seite: hier aus dem berechnet, was der Link enthält.',
   'app.verify.who.file': 'Die Datei',
   'app.verify.who.file.noMatch':

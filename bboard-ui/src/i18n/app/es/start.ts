@@ -8,7 +8,7 @@ export const start = {
   'app.start.title': '¿Qué quiere demostrar?',
   'app.start.intro': 'Elija uno. Puede sellar los demás después.',
   'app.start.plant': 'Plantas',
-  'app.start.plantText': 'Una madre, una selección, un esqueje o una línea que usted crió a partir de semillas.',
+  'app.start.plantText': 'Una madre, una selección, un esqueje o una línea que usted obtuvo a partir de semillas.',
   'app.start.animal': 'Animales',
   'app.start.animalText': 'Un padre, una madre u otro animal reproductor.',
   'app.start.strain': 'Microorganismos y líneas celulares',

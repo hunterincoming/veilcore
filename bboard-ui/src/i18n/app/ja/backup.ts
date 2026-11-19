@@ -13,7 +13,7 @@ export const backup = {
   'app.backup.saved': '保存しました',
   'app.backup.savedSub': '{file} · すべてが入った1つのファイル',
   'app.backup.labKeyNotMade':
-    '検査機関の受け取り用の鍵を今は作れなかったため、このバックアップにはまだ入っていません。ほかのものはこのバックアップで大丈夫です。最初の記録が届いたら、新しいバックアップを保存してください。',
+    'ラボの受け取り用の鍵を今は作れなかったため、このバックアップにはまだ入っていません。ほかのものはこのバックアップで大丈夫です。最初の記録が届いたら、新しいバックアップを保存してください。',
   'app.backup.saveFile': 'バックアップファイルを保存',
   'app.backup.copyTitle': 'コピーを別の場所にも置く（おすすめ）',
   'app.backup.wayBack': 'このスマートフォンやコンピューターが壊れたとき、そのコピーが取り戻す手段になります。',
@@ -69,7 +69,7 @@ export const backup = {
   'app.backup.keyLabel': '保有者キー（64文字）',
   'app.backup.useIt': '使う',
   'app.backup.olderVersion':
-    '以前のバージョンのこのサイトでコピーした場合のみです。現在はどこにも表示されません。これで記録は見つかりますが、バックアップファイルを開くまでロックされたままです。記録の日付スタンプ用の鍵も、そのファイルにしかありません。',
+    '以前のバージョンのこのサイトでコピーした場合のみです。現在はどこにも表示されません。これで記録は見つかりますが、バックアップファイルを開くまで鍵がかかったままです。記録の日付スタンプ用の鍵も、そのファイルにしかありません。',
   'app.backup.cantFind':
     '<b>ファイルが見つかりませんか？</b>その場合、記録は誰にも取り戻せません。私たちにもできません。あなたの鍵を持ったことがないからです。だからこそ、あなたが保有していることを証明できるのです。以前の端末がまだ動くなら、そこでVeilCoreを開いて新しいバックアップを保存してください。',
   'app.backup.holds.none': 'あなたの記録が入っています。',
@@ -99,7 +99,7 @@ export const backup = {
     'そのバックアップには、記録{count}件の最新の状態が入っていません。新しく保存して、それを確認してください。',
   // A passkey, and records saved with VeilCore (veilcore/passkey-backup.ts, account-copy.ts).
   'app.backup.passkey.err.unsupported':
-    'この電話またはブラウザでは、バックアップを開けるパスキーを作れません。バックアップファイルを使うか、iPhone（iOS 18.4以降）のSafariかChromeでお試しください。',
+    'このスマートフォンまたはブラウザでは、バックアップを開けるパスキーを作れません。バックアップファイルを使うか、iPhone（iOS 18.4以降）のSafariかChromeでお試しください。',
   'app.backup.passkey.err.cancelled': 'キャンセルしました。何も変更していません。',
   'app.backup.passkey.err.noCopy':
     'そのパスキーでVeilCoreに保存した記録は見つかりませんでした。代わりにバックアップファイルを開いてください。',
@@ -110,14 +110,14 @@ export const backup = {
   'app.backup.passkey.err.damaged':
     'そのコピーは開けませんでした。変更された可能性があります。代わりにバックアップファイルを開いてください。',
   // A partner's intake (flow/IntakePage.tsx, veilcore/intake.ts).
-  'app.intake.stay': '今はやめて VeilCore に残る',
+  'app.intake.stay': '今はやめてVeilCore に残る',
   'app.intake.pickAgain': '相手に送る記録を選ぶ',
   'app.intake.oddHost':
     'このアドレスをよく確認してください。{host} は数字、符号化された名前、またはポート付きなので、想定した相手ではないかもしれません。',
   'app.intake.err.notPicked': 'その記録はこの依頼のために選ばれていません。送りたい記録を選んでください。',
   'app.intake.title': '{host} のためにサンプルを記録する',
   'app.intake.intro':
-    '<b>{host}</b> から、このサンプルを VeilCore で記録するよう頼まれています。記録はここ VeilCore で作り、あなたのものとして残ります。最後に、記録ID・証明コード・確認リンクを相手に送るかどうかを選べます。それ以外は送られません。',
+    '<b>{host}</b> から、このサンプルをVeilCore で記録するよう頼まれています。記録はここVeilCoreで作り、あなたの手元に残ります。最後に、記録ID・証明コード・確認リンクを相手に送るかどうかを選べます。それ以外は送られません。',
   'app.intake.ref': '相手の参照番号（相手が書いたまま）：',
   'app.intake.new': '新しく記録する',
   'app.intake.pick': 'または、記録済みのものを送る',
@@ -125,13 +125,16 @@ export const backup = {
   'app.intake.banner': '{host} のために記録中です。最後に何を送るかを選べます。',
   'app.intake.send.title': 'この記録を {host} に送りますか？',
   'app.intake.send.what':
-    '相手が受け取るのは、記録ID {id}（{name}）、その証明コードと確認リンクです。これで VeilCore 上で確認できます。',
-  'app.intake.send.not': 'あなたの詳細、写真、DNAレポート、鍵、バックアップは送られません。',
+    '相手が受け取るのは、記録ID {id}（{name}）、その証明コードと確認リンクです。これでVeilCore 上で確認できます。',
+  'app.intake.send.not': 'あなたの詳細、写真、DNA報告書、鍵、バックアップは送られません。',
   'app.intake.send.button': '{host} に送る',
   'app.intake.send.opening': '{id} を開いています…',
-  'app.intake.send.kept': 'どちらを選んでも、記録はあなたの VeilCore に残ります。',
+  'app.intake.send.kept': 'どちらを選んでも、記録はあなたのVeilCore に残ります。',
   'app.intake.err.title': 'このリンクは使えません',
   'app.intake.err.help': '送ってきた相手に新しいリンクを頼んでください。何も記録・送信していません。',
+  'app.intake.err.paste': 'コードやリンクを貼り付ける',
+  'app.intake.err.records': '自分の記録へ',
+  'app.intake.err.lab': 'ラボの方：検査結果へ',
   'app.intake.err.gone':
     '相手のサイトからの依頼はもうありません（このタブが閉じられたか、開き直されました）。相手のリンクをもう一度開いてください。',
   'app.intake.err.noReturn': '戻り先が書かれていません。',

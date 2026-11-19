@@ -11,7 +11,7 @@ export const pair = {
   'app.pair.openedHere': 'Abierto y guardado aquí, en su dispositivo.',
   'app.pair.stayed': 'El archivo del informe se quedó en su dispositivo.',
   'app.pair.openedHereSub':
-    'El laboratorio lo envió bloqueado para que solo usted pudiera abrirlo. Solo su código y su nombre de archivo se guardaron con su registro.',
+    'El laboratorio lo envió cifrado para que solo usted pudiera abrirlo. Solo su código y su nombre de archivo se guardaron con su registro.',
   'app.pair.stayedSub':
     'Se leyó y se le sacó el código aquí, en su navegador. Su código y su nombre de archivo se guardaron con su registro.',
   'app.pair.fileSha':
@@ -77,11 +77,11 @@ export const pair = {
   'app.pair.chain.download': 'Descargar el archivo de evidencia',
   'app.pair.chain.title': 'Fechar también este vínculo en la red de pruebas (opcional)',
   'app.pair.chain.intro':
-    'Esto pone un código en la cadena, de forma permanente, junto a la identidad de este registro. El código se hace con el SHA-256 del informe y un número aleatorio guardado en este navegador, así que no dice nada del informe y nadie puede copiarlo a su propio registro. Después descarga un archivo de evidencia: con él y el informe, cualquiera puede comprobar que el titular de este registro tenía el informe en esa fecha.',
+    'Esto pone un código en la cadena, de forma permanente, junto a la identidad de este registro. El código se hace con el SHA-256 del informe y un número aleatorio guardado en este navegador, así que no dice nada del informe y nadie puede copiarlo a su propio registro. Después descarga un archivo de evidencia: con él y el informe, cualquiera puede comprobar que el titular de este registro ya tenía el informe a esa fecha.',
   'app.pair.chain.earlier':
     'Un intento anterior se envió pero no se confirmó. Puede que haya llegado. Volver a enviar usa el mismo código, así que no puede vincular un segundo distinto.',
   'app.pair.chain.sendAgain': 'Enviar de nuevo',
   'app.pair.chain.date': 'Fechar el vínculo',
   'app.pair.chain.testOnly':
-    'Solo red de pruebas. Esto muestra que quien controlaba la identidad de este registro tenía el informe, o su SHA-256, en la fecha en que llegue. No es una comprobación de la genética.',
+    'Solo red de pruebas. Esto muestra que quien controlaba la identidad de este registro tenía el informe, o su SHA-256, a más tardar en la fecha en que llegue. No es una comprobación de la genética.',
 } satisfies Partial<AppTranslation>;

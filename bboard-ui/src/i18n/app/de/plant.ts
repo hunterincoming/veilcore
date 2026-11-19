@@ -180,7 +180,7 @@ export const plant = {
   'app.plant.withdrawnSendNew': 'zurückgezogen (Sie können einen neuen senden)',
   'app.plant.waitingBatch': 'wartet auf einen Stapel',
   'app.plant.inBatchWaiting': 'in einem Stapel, wartet auf seinen Datumsstempel',
-  'app.plant.onTestNetwork': ' In einem Testnetzwerk: Übungsdaten, kein echtes Datum.',
+  'app.plant.onTestNetwork': ' In einem Testnetz: Übungsdaten, kein echtes Datum.',
   'app.plant.checkedOnMidnight': '{date} – auf Midnight geprüft',
   'app.plant.notConfirmed': 'Datumsstempel auf Midnight nicht bestätigt',
   'app.plant.dontRely': '{reason}. Verlassen Sie sich nicht auf das Datum, das das Register meldet.',
@@ -265,7 +265,7 @@ export const plant = {
   'app.plant.next.dna.haveAction': 'Einen DNA-Bericht speichern',
   'app.plant.next.date.title': 'Diesen DNA-Bericht datieren',
   'app.plant.next.date.why':
-    'Er ist bei dieser Pflanze gespeichert, aber noch datiert ihn nichts. Ihn zu datieren zeigt, dass der Bericht zu diesem Datum existierte, ohne jemandem die Marker zu zeigen.',
+    'Er ist bei dieser Pflanze gespeichert, aber noch datiert ihn nichts. Ihn zu datieren zeigt, dass der Bericht spätestens zu diesem Datum existierte, ohne jemandem die Marker zu zeigen.',
   'app.plant.next.save.title': 'Den DNA-Bericht bei dieser Pflanze speichern',
   'app.plant.next.save.why':
     'Ein Labor hat signiert, dass es eine Probe erhalten hat. Wenn sein DNA-Bericht zurückkommt, speichern Sie ihn bei dieser Pflanze: Das verknüpft Ihren Datensatz mit der Pflanze, damit ein späterer Test damit verglichen werden kann.',
@@ -290,7 +290,7 @@ export const plant = {
   'app.plant.date.chipChecked': 'In einem Stapel · Datum auf {network} geprüft',
   'app.plant.date.chipFailed': 'In einem Stapel · Datumsstempel nicht bestätigt',
   'app.plant.date.chipReported': 'In einem Stapel · Verankerung auf {network} gemeldet',
-  'app.plant.date.testNote': ' Ein Testnetzwerk kann zurückgesetzt werden, und seine Daten haben keine Beweiskraft.',
+  'app.plant.date.testNote': ' Ein Testnetz kann zurückgesetzt werden, und seine Daten haben keine Beweiskraft.',
   'app.plant.date.head':
     'In diesem Browser geprüft: Der Prüfcode Ihres Datensatzes ist in Stapel {batch}, und der Pfad von ihm führt zur Stapelwurzel.',
   'app.plant.date.looked': '{head} Das Register meldet, dass diese Wurzel auf {network} festgehalten wurde.{test}',
@@ -342,7 +342,7 @@ export const plant = {
   'app.plant.dated.dated': 'datiert {value}',
   'app.plant.dated.action': 'Diesen DNA-Bericht datieren',
   'app.plant.dated.why':
-    'Damit Sie zeigen können, dass dieser Bericht zu diesem Datum existierte, ohne jemandem die Marker zu zeigen.',
+    'Damit Sie zeigen können, dass dieser Bericht spätestens zu diesem Datum existierte, ohne jemandem die Marker zu zeigen.',
   'app.plant.dated.seals':
     'Versiegelt einen kleinen Datensatz mit nur dem SHA-256 des Berichts, seinem Laborberichtscode und dem Namen des Labors wie signiert. Der Bericht bleibt bei Ihnen. Sein Datum kommt, wenn sein Stapel datiert wird.',
   'app.plant.dated.nameLabel': 'Name des neuen Datensatzes',
@@ -365,7 +365,7 @@ export const plant = {
     'Verankert. Seine On-Chain-Identität ist {id}…, festgehalten in Block {block}{when}. Die Identität wird in diesem Browser und in Ihrer Sicherungskopie aufbewahrt, nicht auf dem Server von VeilCore: Sie teilen sie, indem Sie jemandem einen Prüflink senden.',
   // Only for an anchor on a test network (AnchorOnChainPanel.tsx), never on Midnight's main network.
   'app.plant.anchor.testNet':
-    'Das ist ein Testnetzwerk: Es kann zurückgesetzt werden, und seine Daten haben keine Beweiskraft.',
+    'Das ist ein Testnetz: Es kann zurückgesetzt werden, und seine Daten haben keine Beweiskraft.',
   'app.plant.anchor.chainClock': ' ({when}, nach der Uhr der Chain)',
   'app.plant.anchor.label': 'Verankerung',
   'app.plant.anchor.notAvailable': 'In diesem Build nicht verfügbar: {why}',
@@ -379,7 +379,7 @@ export const plant = {
   'app.plant.anchor.onlyNew':
     'Nur für einen Datensatz, der nie Schlüssel hatte: Wenn Sie ihn schon verankert oder seine Schlüssel in einem anderen Browser erstellt haben, stellen Sie sie stattdessen oben aus Ihrer Sicherungskopie wieder her. Neue Schlüssel wären eine andere Identität.',
   'app.plant.anchor.makeKeys': 'Die Schlüssel dieses Datensatzes erstellen (in diesem Browser)',
-  'app.plant.anchor.anchorTest': 'Im Testnetzwerk verankern',
+  'app.plant.anchor.anchorTest': 'Im Testnetz verankern',
   'app.plant.anchor.backupFirst': 'Zuerst die Sicherungskopie herunterladen',
   'app.plant.keys.restoredFor': 'Schlüssel für {id} wiederhergestellt.',
   'app.plant.keys.notNamed':
@@ -390,13 +390,13 @@ export const plant = {
   'app.plant.keys.removeBacked':
     'Die Schlüssel dieses Datensatzes aus diesem Browser entfernen? Sie können sie aus Ihrer Sicherungsdatei wiederherstellen.',
   'app.plant.keys.removeUnbacked':
-    'Sie haben KEINE Sicherung dieser Schlüssel heruntergeladen. Wenn Sie sie entfernen, holt dieser Browser sie nicht zurück, und nur Ihre Sicherungsdatei, in einem neuen Browser wiederhergestellt, kann sie zurückbringen. Trotzdem entfernen?',
+    'Sie haben KEINE Sicherungskopie dieser Schlüssel heruntergeladen. Wenn Sie sie entfernen, holt dieser Browser sie nicht zurück, und nur Ihre Sicherungsdatei, in einem neuen Browser wiederhergestellt, kann sie zurückbringen. Trotzdem entfernen?',
   'app.plant.keys.title': 'Datensatzschlüssel',
   'app.plant.keys.holds':
-    'Dieser Browser enthält die zwei Geheimnisse, die beweisen, dass Sie diesen Datensatz auf der Chain halten. Eine Kopie steckt auch im verschlossenen Datensatz bei VeilCore, den nur der Schlüssel öffnet, der Ihre Datensätze verschließt. Das Leeren dieses Browsers löscht sie hier; das Wiederherstellen Ihrer Sicherung bringt sie zurück.',
+    'Dieser Browser enthält die zwei Geheimnisse, die beweisen, dass Sie diesen Datensatz auf der Chain halten. Eine Kopie steckt auch im verschlossenen Datensatz bei VeilCore, den nur der Schlüssel öffnet, der Ihre Datensätze verschließt. Das Leeren dieses Browsers löscht sie hier; das Wiederherstellen Ihrer Sicherungskopie bringt sie zurück.',
   'app.plant.keys.holdsDeviceOnly':
-    'Dieser Browser enthält die zwei Geheimnisse, die beweisen, dass Sie diesen Datensatz auf der Chain halten. Dieser Datensatz wird nur auf diesem Gerät aufbewahrt, deshalb geht keine Kopie davon verschlossen an VeilCore. Nur dieser Browser und Ihre geprüfte Sicherung enthalten sie, dazu Ihre Passkey-Kopie, falls Sie eine haben, verschlossen auf dem Server von VeilCore (sie enthält nur Schlüssel, nie den Datensatz). Das Leeren dieses Browsers löscht sie hier; das Wiederherstellen Ihrer Sicherung bringt sie zurück.',
-  'app.plant.keys.noBackup': 'Noch keine Sicherung. Laden Sie sie herunter und bewahren Sie sie offline auf.',
+    'Dieser Browser enthält die zwei Geheimnisse, die beweisen, dass Sie diesen Datensatz auf der Chain halten. Dieser Datensatz wird nur auf diesem Gerät aufbewahrt, deshalb geht keine Kopie davon verschlossen an VeilCore. Nur dieser Browser und Ihre geprüfte Sicherungskopie enthalten sie, dazu Ihre Passkey-Kopie, falls Sie eine haben, verschlossen auf dem Server von VeilCore (sie enthält nur Schlüssel, nie den Datensatz). Das Leeren dieses Browsers löscht sie hier; das Wiederherstellen Ihrer Sicherungskopie bringt sie zurück.',
+  'app.plant.keys.noBackup': 'Noch keine Sicherungskopie. Laden Sie sie herunter und bewahren Sie sie offline auf.',
   'app.plant.keys.downloadAgain': 'Sicherungskopie erneut herunterladen',
   'app.plant.keys.download': 'Sicherungskopie herunterladen (geheim)',
   'app.plant.keys.remove': 'Aus diesem Browser entfernen',

@@ -22,12 +22,10 @@ export const strain = {
     "Key date stamped: {when}. Your strain's key is dated too, so you can prove you hold it later.{bound} Nothing about the strain went out.",
   'app.strain.v.app.log.keyStamped':
     "Key date stamped. Your strain's key is dated too, so you can prove you hold it later.{bound} Nothing about the strain went out.",
-  'app.strain.v.app.log.stampingTitle': 'Sealed. Date stamping your strain’s key…',
   'app.strain.v.app.log.onlyFingerprint':
     "Only a code made from your strain's key goes out, nothing about the strain. Free: VeilCore pays the network fee.",
-  'app.strain.v.app.log.stampingAria': 'Date stamping your strain’s key',
   'app.strain.v.app.log.keepOpen':
-    'Keep this screen open, about a minute. If it closes, nothing is lost: your strain is saved, and its page will offer the date stamp again.',
+    'This takes about a minute. Keep this screen open until it’s done: on a phone, switching apps or locking the screen can stop it. If it stops, nothing is lost: your strain is saved, and its page will offer the date stamp again.',
   'app.strain.v.app.chain.stampMayHaveGoneOut':
     "Your date stamp may already have gone out{tx}. Your strain is saved. Don't try again until that transaction has been checked on the network.",
   'app.strain.v.app.chain.stampUnreachable':

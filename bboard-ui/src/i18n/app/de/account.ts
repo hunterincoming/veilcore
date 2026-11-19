@@ -55,7 +55,7 @@ export const account = {
   'app.account.line.deviceOnly.other':
     '<b>{count} Dokumente sind nur auf diesem Gerät.</b> Laden Sie eine Kopie herunter, um sie zu sichern.',
   'app.account.line.stale':
-    'Ihr {device} hat seit dem {date} nicht gespeichert. Wenn Sie es noch nutzen, öffnen Sie VeilCore darauf.',
+    'Ihr {device} hat seit dem {date} nicht gespeichert. Wenn Sie das Gerät noch nutzen, öffnen Sie VeilCore darauf.',
   'app.account.line.gone': 'Dieses Gerät entfernen',
   'app.account.line.unknownSlot':
     '<b>Etwas, das Sie nicht hinzugefügt haben, kann Ihre gespeicherten Datensätze öffnen.</b>',
@@ -117,7 +117,7 @@ export const account = {
     'Eine Datei, die Sie selbst aufbewahren. Sie funktioniert ohne VeilCore und ist der einzige andere Ort, an dem nur auf diesem Gerät aufbewahrte Dokumente gespeichert sind.',
   'app.settings.file.button': 'Kopie herunterladen',
   'app.settings.devices.removeConfirm':
-    'Ihr {device} von dieser Liste entfernen? Speichert es wieder, erscheint es wieder.',
+    'Ihr Gerät „{device}“ von dieser Liste entfernen? Speichert es wieder, erscheint es wieder.',
   'app.account.line.healed':
     'Auf dem Server von VeilCore stimmte etwas nicht. Ihre neueste Kopie wurde wieder gespeichert, und nichts ging verloren.',
   'app.account.line.ok': 'OK',

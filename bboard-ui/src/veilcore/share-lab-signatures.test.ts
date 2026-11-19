@@ -451,8 +451,8 @@ describe('the privacy pages name everyone who sees a lab’s signatures, as the 
     ],
     [
       ['fr.ts', 'fr-mainnet.ts'],
-      /la personne qui lui a envoyé l'échantillon/,
-      [/qu'à vous et au laboratoire\b/, /seuls vous et le laboratoire les voyez/],
+      /la personne qui lui a envoyé l’échantillon/,
+      [/qu’à vous et au laboratoire\b/, /seuls vous et le laboratoire les voyez/],
     ],
     [['ja.ts'], /ラボにサンプルを送った人/, [/あなたとラボにだけ見せます/, /あなたとラボだけが見られます/]],
   ];

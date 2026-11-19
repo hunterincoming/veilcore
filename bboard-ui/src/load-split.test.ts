@@ -35,6 +35,8 @@ describe('the first download, in the source', () => {
         './components/SiteHeader',
         './components/site/Founders',
         './components/site/Home',
+        // An empty iPhone Home Screen launch: a few lines, on any page (site/home-screen.ts).
+        './components/site/HomeScreenStart',
         './components/site/NotFound',
         './components/site/Privacy',
         './config/network',

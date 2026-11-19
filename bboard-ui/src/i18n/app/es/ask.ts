@@ -38,7 +38,7 @@ export const ask = {
   'app.ask.can.2': 'Mostrar lo que vence',
   'app.ask.can.3': 'Explicar palabras como «código de prueba»',
   'app.ask.can.4': 'Encontrar sus registros',
-  'app.ask.can.5': 'Rellenar un registro nuevo para que usted lo revise y guarde',
+  'app.ask.can.5': 'Completar un registro nuevo para que usted lo revise y guarde',
   'app.ask.can.never': 'Nunca firmo ni envío nada. Eso lo hace usted.',
   'app.ask.can.toggle': '¿Qué se puede hacer aquí?',
   // ---- la pista junto al botón, cuando ya hay un registro (el ejemplo lo nombra) ----
@@ -57,7 +57,7 @@ export const ask = {
     'El modelo de lenguaje de este dispositivo no se inició. {why} Sin el modelo, todo funciona como siempre.',
   'app.ask.model.title': 'Modelo de lenguaje en este dispositivo (opcional)',
   'app.ask.model.what':
-    '«Preguntar a VeilCore» ya funciona sin esto, también sin conexión. Puede añadir un modelo de lenguaje pequeño (Qwen3) que funciona solo en este navegador. Quizá entienda más formas de decir las cosas. No puede hacer nada que «Preguntar a VeilCore» no haga ya, y sus respuestas pasan los mismos controles.',
+    '«Preguntar a VeilCore» ya funciona sin esto, también sin conexión. Puede agregar un modelo de lenguaje pequeño (Qwen3) que funciona solo en este navegador. Quizá entienda más formas de decir las cosas. No puede hacer nada que «Preguntar a VeilCore» no haga ya, y sus respuestas pasan los mismos controles.',
   'app.ask.model.pick': 'Qué modelo',
   'app.ask.model.option': '{name}: unos {size}',
   'app.ask.model.size': 'Descarga: {size}, guardada en este navegador hasta que la borre.',
@@ -66,7 +66,7 @@ export const ask = {
   'app.ask.model.check': 'Antes de usarlo, se comprueba que cada archivo sea exactamente el que espera este sitio.',
   'app.ask.model.needsConnection':
     'Cada vez que se inicia, este navegador carga el programa del modelo desde veilcore.org, así que hace falta conexión. Nada de lo que escribe se envía.',
-  'app.ask.model.folded': 'Opcional: un modelo de lenguaje en este ordenador',
+  'app.ask.model.folded': 'Opcional: un modelo de lenguaje en esta computadora',
   'app.ask.model.download': 'Descargar ({size})',
   'app.ask.model.resume': 'Reanudar la descarga',
   'app.ask.model.cancel': 'Cancelar',
@@ -89,16 +89,16 @@ export const ask = {
     'Un archivo guardado no es el que espera este sitio. Borre el modelo y descárguelo de nuevo.',
   'app.ask.model.why.notStored': 'Falta parte del modelo; reanude la descarga.',
   'app.ask.model.why.noGpu': 'Este navegador no puede ejecutarlo. Un Chrome o Edge actualizado normalmente sí puede.',
-  'app.ask.model.why.noF16': 'Los gráficos de este ordenador no pueden ejecutar este modelo.',
+  'app.ask.model.why.noF16': 'Los gráficos de esta computadora no pueden ejecutar este modelo.',
   'app.ask.model.why.selfTest': 'Falló la respuesta de prueba en este dispositivo.',
   'app.ask.model.why.failed': 'Se detuvo al cargar.',
   'app.ask.model.notHere.narrow': 'Haga esta ventana más ancha para ver el modelo de lenguaje opcional.',
   'app.ask.model.notHere.noWebgpu':
     'Este navegador no puede ejecutar el modelo de lenguaje. Un Chrome o Edge actualizado normalmente sí puede. Sin el modelo, todo funciona como siempre.',
   'app.ask.model.notHere.noF16':
-    'Los gráficos de este ordenador no pueden ejecutar el modelo de lenguaje. Sin el modelo, todo funciona como siempre.',
+    'Los gráficos de esta computadora no pueden ejecutar el modelo de lenguaje. Sin el modelo, todo funciona como siempre.',
   'app.ask.model.notHere.memory':
-    'Este ordenador tiene muy poca memoria para el modelo de lenguaje. Sin el modelo, todo funciona como siempre.',
+    'Esta computadora tiene muy poca memoria para el modelo de lenguaje. Sin el modelo, todo funciona como siempre.',
   'app.ask.draft.opens': 'Abre: {screen}',
   'app.ask.screen.record': 'Crear un registro ({kind})',
   'app.ask.screen.cross': 'Crear un registro: un cruce ({kind})',
@@ -111,7 +111,7 @@ export const ask = {
   'app.ask.draft.notFound': 'Ninguno de sus registros se llama «{name}». Elíjalo en esa pantalla.',
   'app.ask.draft.nothingSaved': 'No se guarda nada hasta que toque Guardar en esa pantalla.',
   'app.ask.draft.open': 'Abrir',
-  'app.ask.banner.ask': 'Rellenado por Preguntar. Revise cada campo resaltado.',
+  'app.ask.banner.ask': 'Completado por Preguntar. Revise cada campo resaltado.',
   'app.ask.banner.link':
     'Abierto desde un enlace. Solo fijó el tipo de registro y cuántos. Revise cada campo resaltado.',
   'app.ask.replace.title': 'Tiene un registro a medio escribir',
@@ -127,7 +127,7 @@ export const ask = {
   'app.ask.due.ends': 'Fin del acuerdo: {name}',
   'app.ask.due.line': '{date}: {what}',
   'app.ask.due.overdue': 'Atrasado',
-  'app.ask.due.ics': 'Añadir a mi calendario (.ics)',
+  'app.ask.due.ics': 'Agregar a mi calendario (.ics)',
   'app.ask.due.share': 'Compartir un recordatorio',
   'app.ask.due.copied': 'Recordatorio copiado.',
   'app.ask.due.shareText.one': '{count} asunto vence en VeilCore',
@@ -136,9 +136,9 @@ export const ask = {
   'app.ask.due.calName': 'VeilCore: {what}',
   'app.ask.explain.title': 'Explicar',
   'app.ask.explain.pick': 'Elija una palabra:',
-  'app.ask.term.priorPossession': 'Tenencia previa',
+  'app.ask.term.priorPossession': 'Constancia de que ya lo tenía a una fecha',
   'app.ask.def.priorPossession':
-    'Un registro muestra que usted tenía este registro en una fecha: se selló entonces, y su código de prueba se fechó en Midnight. No muestra que tuviera el material ni quién lo obtuvo. Es todo lo que afirma.',
+    'Un registro muestra que usted ya tenía este registro a una fecha: se selló entonces, y su código de prueba se fechó en Midnight. No muestra que tuviera el material ni quién lo obtuvo. Es todo lo que afirma.',
   'app.ask.term.proofCode': 'Código de prueba',
   'app.ask.def.proofCode':
     'Un código corto hecho a partir de un registro sellado. Cualquiera puede comprobar un registro con él, y no muestra nada de su contenido.',
@@ -181,12 +181,12 @@ export const ask = {
   'app.ask.batch.bornOn': 'Nacidos el',
   'app.ask.batch.willMake.one': '{count} registro nuevo',
   'app.ask.batch.willMake.other': '{count} registros nuevos',
-  'app.ask.batch.private': 'Cada registro guarda cerrado dentro el nombre de su progenitor. Nadie más ve el vínculo.',
+  'app.ask.batch.private': 'Cada registro guarda cifrado dentro el nombre de su progenitor. Nadie más ve el vínculo.',
   'app.ask.batch.offline': 'No tiene conexión. Puede revisar todo aquí; guardar necesita conexión.',
   'app.ask.batch.needsConnection': 'Guardar necesita conexión. Primero va su copia de seguridad.',
   'app.ask.batch.needParent': 'Elija la planta de la que se cortaron.',
   'app.ask.batch.needParents': 'Elija el padre, la madre o ambos.',
-  'app.ask.batch.needAll': 'Rellene cada campo de arriba.',
+  'app.ask.batch.needAll': 'Complete cada campo de arriba.',
   'app.ask.batch.sealing': 'Sellando…',
   'app.ask.batch.backupTitle': 'Guarde primero su copia de seguridad',
   'app.ask.batch.saveThem.one': 'Guardar {count} registro',
@@ -205,5 +205,5 @@ export const ask = {
   'app.ask.batch.recordOffspringHint': 'Un registro nuevo por cría, cada uno vinculado a este animal.',
   'app.ask.batch.already': 'Algunos ya son registros suyos. Cambie el nombre o la fecha e inténtelo de nuevo.',
   'app.ask.batch.receivedNote':
-    'Aquí no se rellena nada a partir de un registro que alguien le envió: escríbalo usted.',
+    'Aquí no se completa nada a partir de un registro que alguien le envió: escríbalo usted.',
 } satisfies Partial<AppTranslation>;

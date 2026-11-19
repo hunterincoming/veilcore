@@ -7,6 +7,9 @@
 //     French, and Japanese never puts a space between two Japanese words;
 //   - no ownership words in any language: a record shows what you held, not what you own
 //     (所有, Besitz/besitzen/Eigentum, posséder/propriété, poseer/propiedad/dueño);
+//   - the glossary's settled terms (docs/i18n-glossary.md) stay settled, on the site and in the
+//     app: no legal terms of art for "prior possession", Spanish says "servidor de registros"
+//     for the registry, never a bare "registro", and the other words the reviews took out;
 //   - the English the app showed before translation is the English it shows now: the stage
 //     questions are stage-notes.ts's own words, English numbers are String(n) and English
 //     dates the browser's own format;
@@ -23,6 +26,8 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
+import { en } from './en';
+import { LANGUAGES } from './catalogs';
 import { appEn } from './app/en';
 import { appJa } from './app/ja';
 import { appEs } from './app/es';
@@ -318,5 +323,117 @@ describe('which languages each build shows', () => {
       expect(line.test(signOff), `${lang} is published without a sign-off line`).toBe(true);
     }
     expect(PUBLISHED_LANGUAGES.en).toBe(true);
+  });
+});
+
+// The terms the 19 November 2026 reviews settled (docs/i18n-glossary.md), so they can't come
+// back: on the site (its own words, the test-site overlay and every mainnet overlay) and in
+// the app.
+describe('the glossary terms stay settled', () => {
+  const FLAGS = [false, true];
+  const siteStrings = (lang: Exclude<Lang, 'en'>): [string, string][] => {
+    const pack = LANGUAGES[lang];
+    const out: [string, string][] = [
+      ...Object.entries(pack.strings as Record<string, string>),
+      ...Object.entries(pack.testchain as Record<string, string>),
+    ];
+    for (const claimsOnMainnet of FLAGS)
+      for (const policyApproved of FLAGS)
+        for (const chainReads of FLAGS)
+          for (const chainSends of FLAGS)
+            for (const claimsOnSite of FLAGS)
+              out.push(
+                ...Object.entries(
+                  (pack.mainnet?.({ claimsOnMainnet, policyApproved, chainReads, chainSends, claimsOnSite }) ??
+                    {}) as Record<string, string>,
+                ),
+              );
+    return out.filter(([, v]) => typeof v === 'string');
+  };
+  const everything = (lang: Exclude<Lang, 'en'>): [string, string][] => [
+    ...siteStrings(lang),
+    ...Object.entries(TRANSLATIONS[lang]),
+  ];
+
+  /** Words a review took out, with the reason. */
+  const BANNED: Record<Exclude<Lang, 'en'>, [RegExp, string][]> = {
+    es: [
+      // CCyC arts. 1909-1910: legal terms of art; "tenencia" also echoes Ley 23.737.
+      [/posesi[oó]n|tenencia|tenedor/i, '"prior possession" is said in plain words'],
+      [/titular de la variedad|t[ií]tulo de propiedad/i, 'INASE ownership wording'],
+      // The registry is "servidor de registros"; "registro" is a record.
+      [/\bnuestro (propio )?registro\b/i, 'our registry: servidor de registros'],
+      [/\bregistro de pruebas de VeilCore\b|\blimpieza del registro\b/i, 'registry: servidor de registros'],
+      [/\b(al|por el) registro de VeilCore\b/i, 'registry: servidor de registros'],
+      [
+        /(^|[.;:!?] )El registro (ve|recibe|ofreci[oó]|llama|sella|archiva|comprob[oó]|se rige)\b/,
+        'registry: servidor de registros',
+      ],
+      [
+        /sin billetera, sin registro\b|\bsin registro, sin billetera/i,
+        '"sin registro" reads as "no record": say no account',
+      ],
+      [/\bregistro p[uú]blico\b/i, 'an official registry in Argentina: say "listado público"'],
+      [/atestaci|atestigu/i, 'attestation: "declaración firmada"'],
+      [/\bañad/i, 'Argentina says "agregar"'],
+    ],
+    de: [
+      [/Inhaberschaft|Erfindungsbesitz/i, 'prior possession is "Früheres Vorliegen"'],
+      [/angemeldet|\banmeldet\b/i, 'Anmeldung is the variety-right application: say "angegeben"'],
+      [/\bClaims?\b|Claims-/, 'the claims feature is "Beleg"'],
+      [
+        /VeilCore-Vertrag|Vertrag von VeilCore|Claims-Vertrag|Vertrag wird aus|mit dem Vertrag abgeglichen/,
+        'the on-chain contract is "Smart Contract"',
+      ],
+      [/(?<![-\w])Contracts?\b(?<!Smart Contracts?)/, 'the on-chain contract is "Smart Contract"'],
+      [/Prüfauftrag/, 'the challenge is a "Abfragecode"'],
+      [/Family on Midnight/, 'the section has a German name'],
+    ],
+    fr: [
+      // CPI art. L613-7, "possession personnelle antérieure": a prior-user right.
+      [/possession ant[ée]rieure/i, 'prior possession: "vous déteniez déjà…"'],
+      [/revendication/i, 'a claim is a "preuve"; the claims contract is "contrat des preuves"'],
+      [/s[ée]lectionneu/i, 'breeder is "obtenteur"'],
+      [/\b(le|du|au) contrat (de )?VeilCore\b/i, 'the on-chain contract is "smart contract"'],
+      [/Family on Midnight/, 'the section has a French name'],
+    ],
+    ja: [
+      [/第三者が加わ/, '"second party" is もう一方の当事者, not 第三者'],
+      [/それ以前からの保有/, 'prior possession: ある日付までに保有していたこと'],
+      [/あなたのもの(として|だと)/, 'a record is held, not "yours"'],
+      [/日付記録/, 'say 日付を付ける'],
+      [/検査機関/, 'lab is ラボ'],
+      [/(?<!ブ)ロック/, 'locked is 鍵をかける in body text'],
+      [
+        /DNAレポート|ラボレポート|証拠パッケージ|バッチの証明コード/,
+        'glossary: DNA報告書, 検査報告書, 証拠バンドル, バッチのルート',
+      ],
+    ],
+  };
+
+  for (const lang of ['es', 'de', 'fr', 'ja'] as const)
+    it(`${lang} uses none of the words the reviews took out`, () => {
+      const hits: string[] = [];
+      for (const [k, v] of everything(lang))
+        for (const [re, why] of BANNED[lang]) if (re.test(v)) hits.push(`${k}: ${why}: ${v.slice(0, 120)}`);
+      expect(hits).toEqual([]);
+    });
+
+  it('es says "servidor de registros" at least as often as the English says "registry"', () => {
+    // Where the English names an outside registry rather than ours ("your registry"), or names
+    // ours twice in one possessive ("VeilCore's registry's clock").
+    const OUTSIDE = new Set(['app.partners.lede', 'app.rpay.revoke.what']);
+    const count = (s: string, re: RegExp) => (s.match(re) ?? []).length;
+    const short: string[] = [];
+    const pairs: [Record<string, string>, Record<string, string>][] = [
+      [en, LANGUAGES.es.strings],
+      [EN, TRANSLATIONS.es],
+    ];
+    for (const [enDict, esDict] of pairs)
+      for (const [k, v] of Object.entries(esDict)) {
+        if (OUTSIDE.has(k) || !enDict[k]) continue;
+        if (count(enDict[k], /registr(y|ies)/gi) > count(v, /servidor/gi)) short.push(`${k}: ${v.slice(0, 120)}`);
+      }
+    expect(short).toEqual([]);
   });
 });

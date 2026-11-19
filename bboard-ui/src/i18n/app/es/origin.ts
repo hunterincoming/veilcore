@@ -11,13 +11,13 @@ export const origin = {
   'app.origin.breederIfKnown': 'Obtentor (quien la desarrolló), si se conoce',
   'app.origin.breederHelp':
     'Déjelo en blanco si no sabe quién la desarrolló. No ponga su nombre salvo que la haya desarrollado usted.',
-  'app.origin.needName': 'Añada un nombre. El obtentor es opcional aquí.',
-  'app.origin.needNameAndBreeder': 'Añada un nombre y quién la obtuvo.',
+  'app.origin.needName': 'Agregue un nombre. El obtentor es opcional aquí.',
+  'app.origin.needNameAndBreeder': 'Agregue un nombre y quién la obtuvo.',
   'app.origin.notStated': 'No indicado',
   'app.origin.breederNotStated': 'Obtentor no indicado',
   'app.origin.title': 'De dónde viene',
   'app.origin.intro':
-    'Todo es opcional. Escriba lo que sepa con sus propias palabras. Se sella en las notas del registro, bloqueado como el resto.',
+    'Todo es opcional. Escriba lo que sepa con sus propias palabras. Se sella en las notas del registro, cifrado como el resto.',
   'app.origin.from': 'De dónde viene',
   'app.origin.fromHelp': 'Una comunidad, un lugar, un banco de semillas o la persona que se la dio.',
   'app.origin.collection': 'Nombre de la colección o comunidad',
@@ -44,7 +44,7 @@ export const origin = {
   'app.origin.x.sampStat': 'Estado biológico (MCPD): {v}',
   'app.origin.x.collSrc': 'Fuente de recolección (MCPD): {v}',
   'app.origin.datedNotOrigin':
-    'La fecha muestra que el titular tenía este registro en ese momento. No muestra quién lo obtuvo o lo hizo, de dónde viene, ni que lo que dice sea cierto.',
+    'La fecha muestra que quien lo selló ya tenía este registro a esa fecha. No muestra quién lo obtuvo o lo hizo, de dónde viene, ni que lo que dice sea cierto.',
   'app.origin.import.show': '+ De dónde viene (columnas de pasaporte)',
   'app.origin.import.hide': '− Ocultar las columnas de pasaporte',
   'app.origin.import.title': 'De dónde viene (columnas de pasaporte)',
@@ -72,7 +72,7 @@ export const origin = {
   'app.batch.schemeHelp': 'A qué numeración pertenecen las identificaciones. Elija una o escriba la suya.',
   'app.batch.dupId': 'Dos crías tienen la misma identificación: {id}.',
   'app.batch.tooManyToEdit':
-    'Más de {max} a la vez: el sexo y la identificación de cada una se pueden añadir después corrigiendo su registro, o importe una hoja de cálculo.',
+    'Más de {max} a la vez: el sexo y la identificación de cada una se pueden agregar después corrigiendo su registro, o importe una hoja de cálculo.',
   'app.batch.x.sex': 'Sexo: {v}',
   'app.batch.lot.title': 'Lote',
   'app.batch.lot.name': 'Nombre del lote',

@@ -14,7 +14,7 @@ export const licensing = {
   'app.lic.fee.note': 'Tarifa de VeilCore ({pct}% del valor del trato): calculada, no cobrada.',
   'app.lic.rights.cultivate': 'Solo cultivo',
   'app.lic.rights.cultivate+propagate': 'Cultivo y propagación',
-  'app.lic.rights.full-transfer': 'Cesión de los derechos que tenga el titular',
+  'app.lic.rights.full-transfer': 'Cesión de los derechos que tenga el licenciante',
   'app.lic.rights.breed': 'Solo cría',
   'app.lic.rights.breed+collect': 'Cría + recolección',
   'app.lic.rights.breed+sell': 'Cría, recolección + venta',
@@ -24,7 +24,7 @@ export const licensing = {
   'app.lic.state.draft': 'Borrador',
   'app.lic.state.sent': 'Enviado, a la espera de la contrafirma',
   'app.lic.state.active': 'Marcado como activo',
-  'app.lic.state.activeOffChain': 'Marcada activa aquí, no en Midnight',
+  'app.lic.state.activeOffChain': 'Marcado como activo aquí, no en Midnight',
   'app.lic.state.expired': 'Vencido',
   'app.lic.state.revoked': 'Revocado',
   'app.lic.type.license': 'Acuerdo de licencia',
@@ -98,7 +98,7 @@ export const licensing = {
   'app.lic.detail.noReason': 'Sin motivo indicado',
   'app.lic.detail.revoked': 'Licencia revocada.',
   'app.lic.detail.royaltyRecorded': 'Regalía adeudada registrada.',
-  'app.lic.detail.salesInput': 'Ventas declaradas ($)',
+  'app.lic.detail.salesInput': 'Ventas declaradas (en la moneda del acuerdo)',
   'app.lic.detail.unitsInput': 'Unidades ({basis})',
   'app.lic.detail.all': 'Todos los acuerdos',
   'app.lic.detail.amends': '· modifica {id}',
@@ -171,7 +171,7 @@ export const licensing = {
   'app.lic.f.r.cultivate': 'Solo cultivo',
   'app.lic.f.r.propagate': 'Cultivo y propagación (esquejes o semilla)',
   'app.lic.f.r.full':
-    'Cesión de los derechos que tenga el titular (un derecho registrado se cede ante su propia oficina)',
+    'Cesión de los derechos que tenga el licenciante (un derecho registrado se cede ante su propia oficina)',
   'app.lic.f.r.breed': 'Cría solo con sus propios animales',
   'app.lic.f.r.breed+collect': 'Cría + recolección de semen o embriones para uso propio',
   'app.lic.f.r.breed+sell': 'Cría, recolección + venta de semen, embriones o reproductores',
@@ -179,14 +179,14 @@ export const licensing = {
   'app.lic.f.r.use+subculture': 'Uso + subcultivo para su propia producción',
   'app.lic.f.r.use+derive': 'Uso, subcultivo + creación de cepas derivadas',
   'app.lic.f.territory': 'Territorio',
-  'app.lic.f.territoryPh': 'p. ej., California, o en todo el mundo',
+  'app.lic.f.territoryPh': 'p. ej., Argentina, o todo el mundo',
   'app.lic.f.territoryHelp': 'Dónde aplican estos derechos.',
   'app.lic.f.endHelp': 'Se muestra como vencido después de esta fecha.',
   'app.lic.f.royaltyType': 'Tipo de regalía',
   'app.lic.f.percent': 'Porcentaje',
   'app.lic.f.flat': 'Tarifa fija',
   'app.lic.f.royaltyPct': 'Regalía %',
-  'app.lic.f.flatFee': 'Tarifa fija ($)',
+  'app.lic.f.flatFee': 'Tarifa fija (US$)',
   'app.lic.f.pctHelp': 'p. ej., 8 (por ciento)',
   'app.lic.f.flatHelp': 'p. ej., 25 (por unidad)',
   'app.lic.f.basis': 'Base',
@@ -276,9 +276,9 @@ export const licensing = {
   'app.lic.sign.mayBreed':
     'Puede cruzar este material. Un cultivar registrado con él como progenitor queda vinculado a este acuerdo en el grafo del linaje. La descendencia que nadie registra no se detecta.',
   'app.lic.sign.issuerHere':
-    'Este navegador tiene la clave que emitió este acuerdo, así que pulsar el botón de abajo registra que el emisor lo marcó como activo, no que la otra parte aceptó. La otra parte todavía no puede abrirlo ni firmarlo desde su propio navegador.',
+    'Este navegador tiene la clave que emitió este acuerdo, así que presionar el botón de abajo registra que el emisor lo marcó como activo, no que la otra parte aceptó. La otra parte todavía no puede abrirlo ni firmarlo desde su propio navegador.',
   'app.lic.sign.whatItRecords':
-    'Esto registra una hora y la clave de titular que lo pulsó en el servidor de registros de VeilCore. No es una firma criptográfica ni una firma electrónica cualificada (eIDAS).',
+    'Esto registra una hora y la clave de titular que lo presionó en el servidor de registros de VeilCore. No es una firma criptográfica ni una firma electrónica calificada (eIDAS).',
   'app.lic.sign.accept': 'Revisión completa: firmar y aceptar',
   'app.lic.sign.markActive': 'Marcar como activo como emisor {tag}',
   'app.lic.sign.notIssued': 'Esta licencia aún no se ha emitido. Pídale al obtentor que la emita.',
@@ -308,15 +308,15 @@ export const licensing = {
   'app.lic.ledger.setIt': 'Indicarlo',
   'app.lic.ledger.noPayout': 'Todavía no ha indicado cómo quiere cobrar.',
   'app.lic.ledger.howPaid': 'Cómo cobra',
-  'app.lic.ledger.bank': 'Banco o socio de pagos',
+  'app.lic.ledger.bank': 'Banco o proveedor de pagos',
   'app.lic.ledger.onMidnight': 'En Midnight (NIGHT)',
   'app.lic.ledger.file': 'Presentar un estado de cuenta',
   'app.lic.ledger.none': 'Aún no hay estados de cuenta.',
   'app.lic.ledger.fewer': 'Menos opciones',
   'app.lic.ledger.more': 'Registros y credenciales',
   'app.lic.ledger.download': 'Descargar el registro firmado de este trato',
-  'app.lic.ledger.keyStarts': 'Si un socio de pagos lo pregunta, su clave para este trato empieza por {key}.',
-  'app.lic.ledger.pf.how': 'Cómo se paga (un socio de pagos, transferencia bancaria, …)',
+  'app.lic.ledger.keyStarts': 'Si un proveedor de pagos lo pregunta, su clave para este trato empieza por {key}.',
+  'app.lic.ledger.pf.how': 'Cómo se paga (un proveedor de pagos, transferencia bancaria, …)',
   'app.lic.ledger.pf.where': 'Dónde (la cuenta o billetera a la que le pagan)',
   'app.lic.ledger.pf.currency': 'Moneda',
   'app.lic.ledger.send': 'Enviar',
@@ -348,7 +348,7 @@ export const licensing = {
   'app.lic.ledger.l.currencyMismatch':
     'Cobra en Midnight en {token}, y este estado de cuenta está en {currency}. VeilCore no convierte monedas: acuerden el monto y páguelo de otra forma abajo, o preséntelo en {token}.',
   'app.lic.ledger.l.payThen': 'Pague {amount} {currency} por {method} a {account} y luego regístrelo aquí.',
-  'app.lic.ledger.l.request': 'Solicitud de pago para un socio',
+  'app.lic.ledger.l.request': 'Solicitud de pago para un proveedor de pagos',
   'app.lic.ledger.l.paidOn': 'Pagado el',
   'app.lic.ledger.l.ref': 'Referencia del pago',
   'app.lic.ledger.l.iPaid': 'Ya lo pagué',
@@ -364,11 +364,11 @@ export const licensing = {
   'app.lic.ledger.l.acceptedOn': 'Aceptado el {date}',
   'app.lic.ledger.l.disputedOn': 'Disputado el {date}',
   'app.lic.ledger.l.unknownAmount': 'un monto que esta página no puede calcular',
-  'app.lic.ledger.r.aPartner': 'un socio de pagos',
+  'app.lic.ledger.r.aPartner': 'un proveedor de pagos',
   'app.lic.ledger.r.checked':
-    'Pagado a través de {partner} (una clave de socio que usted nombró): {amount} {currency} a {to} el {date}, referencia {ref}. Firmado con esa clave y comprobado aquí.',
+    'Pagado a través de {partner} (una clave de proveedor que usted nombró): {amount} {currency} a {to} el {date}, referencia {ref}. Firmado con esa clave y comprobado aquí.',
   'app.lic.ledger.r.unchecked':
-    'Un recibo firmado con la clave {key}, que el registro llama {partner}; nadie lo ha comprobado, tampoco VeilCore: {amount} {currency} a {to} el {date}, referencia {ref}. La firma se comprueba aquí. Compruebe usted la clave con el socio, y que el dinero llegó, antes de confiar en ello.',
+    'Un recibo firmado con la clave {key}, que el servidor de registros llama {partner}; nadie lo ha comprobado, tampoco VeilCore: {amount} {currency} a {to} el {date}, referencia {ref}. La firma se comprueba aquí. Compruebe usted la clave con el proveedor, y que el dinero llegó, antes de confiar en ello.',
   'app.lic.ledger.r.trust': 'Comprobé esta clave: confiar',
   'app.lic.ledger.r.forget': 'Dejar de confiar en esta clave',
   'app.lic.ledger.r.mismatch': 'No coincide: {what}.',
@@ -476,7 +476,7 @@ export const licensing = {
   'app.lic.proof.someoneWants':
     'Alguien quiere comprobar que usted tiene una licencia vigente del registro con clave {key}.',
   'app.lic.proof.learn':
-    'Lo que sabrán: que tenía una licencia vigente de ese registro cuando respondió. No qué licencia, ni sus condiciones, ni nada sobre usted. VeilCore paga la comisión de la red.',
+    'Lo que sabrán: que tenía una licencia vigente de ese registro cuando respondió. No qué licencia, ni sus condiciones, ni nada sobre usted. VeilCore paga la tarifa de la red.',
   'app.lic.proof.proving': 'Demostrando…',
   'app.lic.proof.proveIt': 'Demostrarlo',
   'app.lic.proof.minutes': 'Tarda unos minutos. Mantenga esta página abierta.',
@@ -510,7 +510,7 @@ export const licensing = {
   'app.lic.real.them': 'la otra parte',
   'app.lic.real.whoFor': '¿Para quién es? (lo verá)',
   'app.lic.real.how':
-    'Una licencia real requiere a los dos. Usted envía un enlace; la otra parte lo acepta en su propio teléfono o computadora, y allí se crea su propia clave. Se leen mutuamente un código de 6 dígitos, usted la emite, la otra parte acepta y la activa, y queda en Midnight con ambas claves. VeilCore paga la comisión de la red y nunca ve las condiciones.',
+    'Una licencia real requiere a los dos. Usted envía un enlace; la otra parte lo acepta en su propio teléfono o computadora, y allí se crea su propia clave. Se leen mutuamente un código de 6 dígitos, usted la emite, la otra parte acepta y la activa, y queda en Midnight con ambas claves. VeilCore paga la tarifa de la red y nunca ve las condiciones.',
   'app.lic.real.accepted':
     '{who} aceptó. Terminando en su dispositivo: tarda unos segundos mientras su página esté abierta.',
   'app.lic.real.sendLink': 'Envíe este enlace a {who}: por mensaje o correo. Esta página avanza sola cuando lo acepte.',
@@ -575,7 +575,7 @@ export const licensing = {
     'Este enlace ya se aceptó en otro dispositivo. Si no fue usted, avísele a quien se lo envió: debe crear un enlace nuevo y no emitir este.',
   'app.lic.inv.accepting': 'Aceptando…',
   'app.lic.inv.howHandOn':
-    'Alguien tiene una licencia vigente de este registro y se la está traspasando, con el acuerdo del licenciante. Al aceptar se crea su propia clave de licencia en este dispositivo; nunca sale de él. Usted le lee un código al licenciante, lee y acepta las condiciones, y cuando el titular actual la traspase y el licenciante lo apruebe, es suya en Midnight. VeilCore paga la comisión de la red y nunca ve las condiciones.',
+    'Alguien tiene una licencia vigente de este registro y se la está traspasando, con el acuerdo del licenciante. Al aceptar se crea su propia clave de licencia en este dispositivo; nunca sale de él. Usted le lee un código al licenciante, lee y acepta las condiciones, y cuando el titular actual la traspase y el licenciante lo apruebe, es suya en Midnight. VeilCore paga la tarifa de la red y nunca ve las condiciones.',
   'app.lic.inv.backupHandOn':
     'Su clave de licencia está solo en este dispositivo. Guarde su copia de seguridad ahora: sin ella no podrá mostrar esta licencia desde otro dispositivo.',
   'app.lic.inv.readToLicensor': 'Léale este código al licenciante, por teléfono o en persona:',
@@ -606,7 +606,7 @@ export const licensing = {
   'app.lic.inv.waitHandOn':
     'Esperando a que el titular actual la traspase y el licenciante lo apruebe. Esta página lee la cadena por sí misma y avanza cuando lo hagan. Puede cerrarla y volver a abrir el enlace más tarde.',
   'app.lic.inv.how':
-    'Al aceptar se crea su propia clave de licencia en este dispositivo. Nunca sale de él: quien le envió esto recibe solo un código hecho a partir de ella. Cuando emitan la licencia, usted la activa con su clave, y queda en Midnight con las claves de ambos. Las condiciones son entre usted y la otra parte: VeilCore registra que la licencia existe y está vigente, y no redacta, ve ni hace cumplir las condiciones. VeilCore paga la comisión de la red.',
+    'Al aceptar se crea su propia clave de licencia en este dispositivo. Nunca sale de él: quien le envió esto recibe solo un código hecho a partir de ella. Cuando emitan la licencia, usted la activa con su clave, y queda en Midnight con las claves de ambos. Las condiciones son entre usted y la otra parte: VeilCore registra que la licencia existe y está vigente, y no redacta, ve ni hace cumplir las condiciones. VeilCore paga la tarifa de la red.',
   'app.lic.inv.backup':
     'Su clave de licencia está solo en este dispositivo. Guarde su copia de seguridad ahora: la necesita para activarla y para mostrar esta licencia desde otro dispositivo.',
   'app.lic.inv.readCode': 'Léale este código a quien le envió el enlace, por teléfono o en persona:',
@@ -708,7 +708,7 @@ export const licensing = {
     '¿Rechazar la anotación de prestamista de {name}? Se borra de Midnight. Pueden volver a pedirla.',
   'app.lic.claim.rejectYes': 'Sí, rechazarla',
   'app.lic.claim.how':
-    'Los prestamistas usan una anotación de prestamista para que cualquiera que compruebe este registro vea que hay una registrada sobre él. No impide que el mismo material se pignore en otra parte, y no es una inscripción legal: el prestamista presenta igualmente su propia documentación. Las condiciones quedan entre ustedes; Midnight solo muestra que existe una anotación de prestamista y quién puede liberarla. VeilCore paga la comisión de la red.',
+    'Los prestamistas usan una anotación de prestamista para que cualquiera que compruebe este registro vea que hay una registrada sobre él. No impide que el mismo material se pignore en otra parte, y no es una inscripción legal: el prestamista presenta igualmente su propia documentación. Las condiciones quedan entre ustedes; Midnight solo muestra que existe una anotación de prestamista y quién puede liberarla. VeilCore paga la tarifa de la red.',
   'app.lic.claim.inForce':
     'Anotado en Midnight. Solo {name} puede liberarla. Cualquiera que compruebe {record} ve que hay una anotación de prestamista registrada.',
   'app.lic.claim.readError': 'No se pudo leer Midnight en este momento: {error}',
@@ -747,21 +747,21 @@ export const licensing = {
   'app.lic.next.l.file': 'Envíe su informe cuando termine el período.',
   'app.lic.lend.title': 'Registrar una anotación como prestamista',
   'app.lic.lend.intro':
-    '¿Presta con el registro o la licencia de un obtentor como respaldo? Registre en Midnight que tiene una anotación de prestamista sobre el registro, para que cualquiera que lo compruebe la vea. No impide que el mismo material se pignore en otra parte, y no es una inscripción legal: presente su propia documentación como siempre. El titular la acepta desde su propio dispositivo, y solo usted puede liberarla.',
-  'app.lic.lend.name': 'Su nombre, tal como lo verán los titulares',
+    '¿Presta con el registro o la licencia de un obtentor como respaldo? Registre en Midnight que tiene una anotación de prestamista sobre el registro, para que cualquiera que lo compruebe la vea. No impide que el mismo material se pignore en otra parte, y no es una inscripción legal: presente su propia documentación como siempre. El titular del registro la acepta desde su propio dispositivo, y solo usted puede liberarla.',
+  'app.lic.lend.name': 'Su nombre, tal como lo verán los titulares del registro',
   'app.lic.lend.nameHelp':
     'El nombre de su institución. Los titulares lo ven junto a su clave y comprueban quién es usted como lo harían para cualquier préstamo.',
   'app.lic.lend.make': 'Crear mi clave de prestamista',
   'app.lic.lend.backupKey':
     'Su clave de prestamista se creó en este dispositivo y solo existe aquí. Guarde ahora su copia de seguridad: sin ella, nadie podrá liberar nunca una anotación que usted haga.',
   'app.lic.lend.anchorWhy':
-    'Ahora, ponga en Midnight la clave de {name}. Tarda unos minutos, y VeilCore paga la comisión de la red.',
+    'Ahora, ponga en Midnight la clave de {name}. Tarda unos minutos, y VeilCore paga la tarifa de la red.',
   'app.lic.lend.anchor': 'Poner mi clave en Midnight',
   'app.lic.lend.yourKey': 'Su clave en Midnight, para {name}:',
   'app.lic.lend.newTitle': 'Una nueva anotación',
-  'app.lic.lend.record': 'El registro del titular',
+  'app.lic.lend.record': 'El registro de su titular',
   'app.lic.lend.recordHelp':
-    'Pegue el enlace de comprobación que el titular le envió para el registro, o su clave en la cadena.',
+    'Pegue el enlace de comprobación que el titular del registro le envió para el registro, o su clave en la cadena.',
   'app.lic.lend.recordFromCheck': 'Desde la página de comprobación de {id}.',
   'app.lic.lend.words': 'Sus palabras para el préstamo',
   'app.lic.lend.wordsHelp':
@@ -771,13 +771,14 @@ export const licensing = {
   'app.lic.lend.onRecord': 'Sobre el registro {record}',
   'app.lic.lend.backupClaim':
     'Primero guarde una nueva copia de seguridad: conserva de qué se hizo esta anotación, para que siempre pueda liberarla.',
-  'app.lic.lend.readyToSend': 'Listo. Envíe la anotación a Midnight y después envíe el enlace al titular.',
+  'app.lic.lend.readyToSend': 'Listo. Envíe la anotación a Midnight y después envíe el enlace al titular del registro.',
   'app.lic.lend.send': 'Enviar la anotación',
   'app.lic.lend.proposed':
-    'En Midnight, a la espera del titular. Envíele este enlace: la acepta o la rechaza desde el dispositivo que tiene el registro.',
-  'app.lic.lend.holderLink': 'Enlace para el titular',
+    'En Midnight, a la espera del titular del registro. Envíele este enlace: la acepta o la rechaza desde el dispositivo que tiene el registro.',
+  'app.lic.lend.holderLink': 'Enlace para el titular del registro',
   'app.lic.lend.withdraw': 'Retirarla',
-  'app.lic.lend.withdrawQ': '¿Retirar esta anotación antes de que el titular responda? Esto queda en Midnight.',
+  'app.lic.lend.withdrawQ':
+    '¿Retirar esta anotación antes de que el titular del registro responda? Esto queda en Midnight.',
   'app.lic.lend.withdrawYes': 'Sí, retirarla',
   'app.lic.lend.inForce':
     'Anotado en Midnight. Cualquiera que compruebe el registro ve que hay una anotación registrada hasta que usted la libere.',
@@ -787,14 +788,14 @@ export const licensing = {
   'app.lic.lend.releaseYes': 'Sí, liberarla',
   'app.lic.lend.released': 'Liberada.',
   'app.lic.lend.withdrawn': 'Retirada.',
-  'app.lic.lend.gone': 'No está en Midnight: el titular la rechazó, o aún no ha llegado.',
+  'app.lic.lend.gone': 'No está en Midnight: el titular del registro la rechazó, o aún no ha llegado.',
   'app.lic.lend.notWaiting': 'La anotación ya no está pendiente. No se envió nada.',
   'app.lic.lend.notInForce': 'La anotación no está registrada en Midnight. No se envió nada.',
   'app.lic.lend.badRecord':
-    'Eso no es un enlace de comprobación ni una clave en la cadena. Pida al titular el enlace de comprobación de su registro.',
+    'Eso no es un enlace de comprobación ni una clave en la cadena. Pida al titular del registro el enlace de comprobación de su registro.',
   'app.lic.lend.ownRecord': 'Esa es su propia clave de prestamista, no un registro.',
   'app.lic.lend.fromCheck.title': '¿Presta con este registro como respaldo?',
   'app.lic.lend.fromCheck.text':
-    'Registre una anotación sobre él como prestamista. El titular la acepta desde su propio dispositivo, y solo usted puede liberarla.',
+    'Registre una anotación sobre él como prestamista. El titular del registro la acepta desde su propio dispositivo, y solo usted puede liberarla.',
   'app.lic.lend.fromCheck.button': 'Registrar una anotación',
 };

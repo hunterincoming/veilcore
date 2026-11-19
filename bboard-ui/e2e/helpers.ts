@@ -25,6 +25,24 @@ export const watch = (page: Page): string[] => {
 export const expectNoErrors = (errors: string[]) => expect(errors, errors.join('\n')).toEqual([]);
 
 /**
+ * A record's check page folds its checks under "See the checks" (easy-mode review, 19 Nov): open
+ * them, as a reader would, before reading a check line. Already open (a failed check opens them by
+ * itself) stays open.
+ */
+export const seeChecks = async (page: Page) => {
+  const toggle = page.locator('[data-see-checks]');
+  await expect(toggle).toBeVisible();
+  if ((await toggle.getAttribute('aria-expanded')) !== 'true') await toggle.click();
+  await expect(page.locator('[data-checks="open"]')).toHaveCount(1);
+};
+
+/** The review screen folds what sealing publishes under "What gets published?": open it. */
+export const seeWhatsPublished = async (page: Page) => {
+  const link = page.locator('[data-what-published]');
+  if ((await link.getAttribute('aria-expanded')) !== 'true') await link.click();
+};
+
+/**
  * Ask's button: the bubble on a tablet or computer, the first item under the header's "Menu" on
  * a phone (docs/ask-veilcore.md). On a phone the menu is opened first, so the button is on screen.
  */
@@ -48,6 +66,14 @@ export const expectAskOffered = async (page: Page) => {
     await expect(ask).toBeHidden();
   }
 };
+
+/**
+ * A number as a value of its own in sent text, never as digits inside a hash, a base64 or hex
+ * key or an ID: "11400" matches `"n":11400` or `"11400"`, but not `…c51c1140092cc…`. A raw
+ * `not.toContain('11400')` fails whenever a random hash happens to hold those digits.
+ */
+export const standaloneNumber = (n: string): RegExp =>
+  new RegExp(`(?<![0-9A-Za-z+/_.-])${n.replace(/\./g, '\\.')}(?![0-9A-Za-z+/_-]|\\.[0-9])`);
 
 export type Handler = (route: Route, url: URL, body: unknown) => Promise<void> | void;
 export const json = (route: Route, status: number, body: unknown) =>
@@ -273,7 +299,9 @@ export const openRecordRow = <T extends { id: string }>(row: T, key: string): T 
   const kid = vaultKid(key);
   if (box.kid !== kid) throw new Error(`${open.id} is sealed under another vault key`);
   const bytes = Buffer.from(box.ct, 'base64url');
-  const d = createDecipheriv('aes-256-gcm', Buffer.from(key, 'base64url'), Buffer.from(box.iv, 'base64url'), { authTagLength: 16 });
+  const d = createDecipheriv('aes-256-gcm', Buffer.from(key, 'base64url'), Buffer.from(box.iv, 'base64url'), {
+    authTagLength: 16,
+  });
   d.setAAD(Buffer.from(`veilcore:sealed:v1\0records\0${open.id}\0${kid}`));
   d.setAuthTag(bytes.subarray(bytes.length - 16));
   const plain = Buffer.concat([d.update(bytes.subarray(0, bytes.length - 16)), d.final()]).toString('utf8');

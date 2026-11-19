@@ -16,14 +16,14 @@ export const home = {
   'app.home.continue': '続ける',
   'app.home.start': '始める',
   'app.home.spreadsheet': 'スプレッドシートがありますか？コレクション全体に日付を付ける',
-  'app.home.newPhone': '新しいスマートフォンですか？記録を取り戻す',
-  'app.home.newPhoneLab': '新しいスマートフォンですか？ラボの鍵とサンプルを取り戻す',
+  'app.home.newPhone': '機種変更しましたか？記録を取り戻す',
+  'app.home.newPhoneLab': '機種変更しましたか？ラボの鍵とサンプルを取り戻す',
   'app.home.labWhatShows': '署名で何がわかるのか',
   'app.home.labShows':
     'あなたの鍵が署名したこと、つまりサンプルが届いたことや、どの報告書を送ったかがわかります。誰がその鍵を持っているかはわかりません。誰でも、どんな名前でも鍵を登録できるからです。',
   'app.home.breederToo': '育成者でもあります',
   'app.home.imALab': 'ラボです',
-  'app.home.whatStops': '誰かが先に私の素材を記録するのを、何が防ぐのですか？',
+  'app.home.whatStops': '他の人が先に私の素材を記録してしまったら、どうなりますか？',
   'app.home.samplesReceived': '受け取ったサンプル',
   'app.home.yourRecords': 'あなたの記録',
   'app.home.logNew': '新しく記録',
@@ -33,14 +33,14 @@ export const home = {
   'app.home.resetWarningRecords.other':
     '記録{count}件に、確認済みのバックアップがない鍵があります。先にバックアップを保存してください。後でブラウザのデータを消去すると、それらは永久に失われます。',
   'app.home.resetConfirm':
-    'このブラウザで、新しい空の一式からやり直しますか？\n\n何も削除されません。現在の記録は、ロックされたままVeilCoreのレジストリに残ります。取り戻せるのは現在の鍵があるときだけです。鍵は今、1つのファイルでダウンロードされます。ファイルを保管してください。',
+    'このブラウザで、新しい空の一式からやり直しますか？\n\n何も削除されません。現在の記録は、鍵がかかったままVeilCoreのレジストリに残ります。取り戻せるのは現在の鍵があるときだけです。鍵は今、1つのファイルでダウンロードされます。ファイルを保管してください。',
   'app.home.startedOver': 'やり直しました。以前の記録は、保有者キーのファイルからいつでも復元できます。',
   'app.home.imported.other': '記録を{count}件インポートしました。',
   'app.home.alreadyHere.other': 'すでにあった{count}件はそのままにしました。',
   'app.home.importFailed': 'インポートに失敗しました。',
   'app.home.labJobs': 'ラボの作業',
   'app.home.labJobsText':
-    '届いたものを確認し、記録のページから結果を送り返します。どちらも私たちではなくラボ自身の鍵で署名され、結果は育成者だけが開けるようにロックされます。',
+    '届いたものを確認し、記録のページから結果を送り返します。どちらも私たちではなくラボ自身の鍵で署名され、結果は育成者だけが開けるように鍵がかけられます。',
   'app.home.confirmDelivery': '届いたものを確認する',
   'app.home.labSignature': 'ラボの署名',
   'app.home.setUpLabSignature': 'ラボの署名を設定する',
@@ -53,15 +53,15 @@ export const home = {
   'app.home.saveABackup': 'バックアップを保存',
   'app.home.exportAll': 'すべての記録をエクスポート',
   'app.home.importRecords': '記録をインポート',
-  'app.home.trust.title': '「<em>あなたの</em>素材を私が先に記録するのを、何が防ぐのですか？」',
+  'app.home.trust.title': '「私が<em>あなたの</em>素材を先に記録してしまったら？」',
   'app.home.trust.lede': 'VeilCoreの記録を偽造しにくくしているのは、次の3つです。',
-  'app.home.trust.1t': '早い記録は早いものとして示される',
+  'app.home.trust.1t': '先に作った記録は、先のものとして示されます',
   'app.home.trust.1b':
     '記録がアンカーされると、どちらが先にアンカーされたかを誰でも確認できます。それまでは、記録の時刻は端末の時計です。記録は証拠であって登録ではありません。何をいつ持っていたかは示しますが、それだけで争いを決着させるものではありません。',
   'app.home.trust.2t': '紐付けた報告書は後で照合できる',
   'app.home.trust.2b':
     '紐付けでは、DNA報告書のコードを、あなたの陳述として記録と一緒に保存します。後で素材を新たに検査したとき、それと照合できます。MidnightのVeilCoreコントラクトを通じて紐付けると、紐付けにも日付が付きます。それはその時点までに記録がその報告書と紐付けられていたことを示し、誰が先に報告書を持っていたかは示しません。{thisSite}では、紐付けにはまだ日付が付きません。',
-  'app.home.trust.3t': '受け取りに第三者が関わる',
+  'app.home.trust.3t': '受け取った相手方も記録に残る',
   'app.home.trust.3b':
     '素材を引き渡すと、受け取った人が自分の鍵で受領を確認します。これで記録にはあなただけでなく、もう一方の当事者が残ります。誰かが受け取ったことは示しますが、それが誰かは示しません。',
   'app.home.role.title': 'どれに当てはまりますか？',
@@ -105,9 +105,8 @@ export const home = {
   'app.home.paste.go': '開く',
   'app.home.paste.orMake': '貼り付けるものがない場合は、記録を作る',
   'app.home.paste.hint':
-    'ラボコード、記録のリンク、記録の保有の証明リクエスト、署名する契約。どれかはこちらで判断します。',
+    'ラボコード、記録のリンク、記録を保有していることの証明の依頼、署名する契約。どれかはこちらで判断します。',
   'app.home.paste.whichRecord': '保有の証明を求めるリクエストです。どの記録について聞かれましたか？',
-  'app.home.notFinished': 'バックアップに未保存 · 次：バックアップを保存',
   'app.home.receivedFrom': '{name} から受け取り',
   'app.home.receivedFromNamed': '{name}から · 相手の記録 {id}',
   'app.home.receivedFromName': '{name}から',
@@ -120,8 +119,9 @@ export const home = {
   'app.home.labReportDated': 'DNA報告書に日付を付けました',
   'app.home.datesReportFor': '{name} のDNA報告書に日付を付ける記録',
   'app.home.aPlant': 'ある植物',
-  'app.home.datingUnfinished': '{dated} · バックアップに未保存 · 次：バックアップを保存',
   'app.home.datingSealed': '{dated} · {date} に封印',
+  'app.home.backupLine':
+    '<b>まだバックアップされていません。</b>保存するまで、記録した内容はこのブラウザの中にしかありません。',
   'app.home.export.label': 'VeilCoreから記録と契約をダウンロード',
   'app.home.export.done':
     'ダウンロードしました：記録、契約、共有の選択、すべての包含証明。送付、そのサンプル情報、検査報告書は入っていません。送付または植物のページから開いてください。鍵はこのファイルではなく、バックアップファイルにあります。',
@@ -136,15 +136,15 @@ export const home = {
   'app.plan.changeFull':
     'この変更は新しい版に日付を付けることになりますが、無料の日付付き記録を使い切っているため、何も変更されていません。お持ちの記録はすべて引き続き確認できます。さらに日付を付けるには、記録ページでプランを選んでください。',
   'app.plan.receiveFull':
-    'この受け渡しを受け取るための無料の日付付き記録が残っていません。コードはこのブラウザに保存されています。記録ページでプランを選んでから、もう一度入力してください。',
-  'app.plan.box.rules': '記録の最初の訂正は無料です。受け渡しを受け取るには、空きのある日付付き記録が1つ必要です。',
+    'この送付を受け取るための無料の日付付き記録が残っていません。コードはこのブラウザに保存されています。記録ページでプランを選んでから、もう一度入力してください。',
+  'app.plan.box.rules': '記録の最初の訂正は無料です。送付を受け取るには、無料で日付を付けられる枠が1件必要です。',
   'app.plan.box.paid': 'ご利用のプラン：{plan}',
   'app.plan.name.breeder': '育成者',
-  'app.plan.name.lab': '検査機関',
+  'app.plan.name.lab': 'ラボ',
   'app.plan.name.free': '無料',
   'app.plan.choose': 'プランを選ぶ',
   'app.plan.buy.breeder': '育成者プラン',
-  'app.plan.buy.lab': '検査機関プラン',
+  'app.plan.buy.lab': 'ラボプラン',
   'app.plan.opens':
     'Paddleのページを新しいタブで開きます。PaddleがVeilCoreに代わってプランを販売し、支払いを受け取ります。VeilCoreがカード情報やメールアドレスを見ることはありません。',
   'app.plan.keep': 'どれを選んでも、すでにある記録はすべて引き続き確認できます。',

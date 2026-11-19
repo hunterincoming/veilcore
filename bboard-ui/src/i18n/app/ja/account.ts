@@ -6,7 +6,7 @@ import type { AppTranslation } from '../../translate';
 export const account = {
   'app.account.use.faceId': 'Face IDを使う',
   'app.account.use.touchId': 'Touch IDを使う',
-  'app.account.use.screenLock': '画面ロックを使う',
+  'app.account.use.screenLock': '端末のPIN・パターン・パスワードを使う',
   'app.account.use.windowsHello': 'Windows Helloを使う',
   'app.account.use.passkey': 'パスキーを使う',
 

@@ -97,12 +97,10 @@ export const animal = {
     'Schlüssel mit Datumsstempel: {when}. Auch der Schlüssel Ihres Tieres ist datiert, damit Sie später nachweisen können, dass Sie seinen Datensatz halten.{bound} Über das Tier wurde nichts gesendet.',
   'app.animal.v.app.log.keyStamped':
     'Schlüssel mit Datumsstempel versehen. Auch der Schlüssel Ihres Tieres ist datiert, damit Sie später nachweisen können, dass Sie seinen Datensatz halten.{bound} Über das Tier wurde nichts gesendet.',
-  'app.animal.v.app.log.stampingTitle': 'Versiegelt. Der Schlüssel Ihres Tieres bekommt den Datumsstempel…',
   'app.animal.v.app.log.onlyFingerprint':
     'Gesendet wird nur ein Code des Schlüssels Ihres Tieres, nichts über das Tier. Kostenlos: VeilCore zahlt die Netzwerkgebühr.',
-  'app.animal.v.app.log.stampingAria': 'Der Schlüssel Ihres Tieres bekommt den Datumsstempel',
   'app.animal.v.app.log.keepOpen':
-    'Lassen Sie diese Seite etwa eine Minute offen. Wenn sie sich schließt, geht nichts verloren: Ihr Tier ist gespeichert, und seine Seite bietet den Datumsstempel erneut an.',
+    'Das dauert etwa eine Minute. Lassen Sie diese Seite offen, bis es fertig ist: Auf einem Handy kann der Wechsel in eine andere App oder das Sperren des Bildschirms es anhalten. Wenn es anhält, geht nichts verloren: Ihr Tier ist gespeichert, und seine Seite bietet den Datumsstempel erneut an.',
   'app.animal.v.app.chain.stampMayHaveGoneOut':
     'Ihr Datumsstempel wurde möglicherweise schon gesendet{tx}. Ihr Tier ist gespeichert. Versuchen Sie es erst wieder, wenn diese Transaktion im Netzwerk geprüft wurde.',
   'app.animal.v.app.chain.stampUnreachable':
@@ -168,13 +166,13 @@ export const animal = {
   'app.animal.v.app.plant.next.dna.haveText':
     'Speichern Sie ihn bei diesem Tier. Er wird auf Ihrem Gerät gelesen; die Datei wird nie hochgeladen.',
   'app.animal.v.app.plant.next.date.why':
-    'Er ist bei diesem Tier gespeichert, aber noch datiert ihn nichts. Ihn zu datieren zeigt, dass der Bericht zu diesem Datum existierte, ohne jemandem die Marker zu zeigen.',
+    'Er ist bei diesem Tier gespeichert, aber noch datiert ihn nichts. Ihn zu datieren zeigt, dass der Bericht spätestens zu diesem Datum existierte, ohne jemandem die Marker zu zeigen.',
   'app.animal.v.app.plant.next.save.title': 'Den DNA-Bericht bei diesem Tier speichern',
   'app.animal.v.app.plant.next.save.why':
     'Ein Labor hat signiert, dass es eine Probe erhalten hat. Wenn sein DNA-Bericht zurückkommt, speichern Sie ihn bei diesem Tier: Das verknüpft Ihren Datensatz mit dem Tier, damit ein späterer Test damit verglichen werden kann.',
   'app.animal.v.app.plant.next.save.action': 'Bei diesem Tier speichern',
   'app.animal.v.app.plant.next.ready.why':
-    'Ein Labor hat signiert, dass es eine Probe erhalten hat, und ein DNA-Bericht ist bei diesem Tier gespeichert. Sie können Material weitergeben oder es lizenzieren, mit Bedingungen, die für von diesem Datensatz angemeldete Nachkommen gelten.',
+    'Ein Labor hat signiert, dass es eine Probe erhalten hat, und ein DNA-Bericht ist bei diesem Tier gespeichert. Sie können Material weitergeben oder es lizenzieren, mit Bedingungen, die für von diesem Datensatz angegebene Nachkommen gelten.',
   'app.animal.v.app.plant.tree.none': 'Noch kein Vater und keine Mutter erfasst.',
   'app.animal.v.app.plant.anchor.keysNotHere':
     'Der Schlüssel dieses Tieres ist nicht in diesem Browser. Holen Sie ihn aus Ihrer Sicherungsdatei zurück: Ein neuer Schlüssel würde nicht zum versiegelten Datensatz passen.',
@@ -197,7 +195,7 @@ export const animal = {
   'app.animal.v.app.prove.thePlant': 'das Tier',
   'app.animal.v.app.prove.thisPlant': 'dieses Tier',
   'app.animal.v.app.prove.whatSends':
-    '<b>Was gesendet wird:</b> nur der Beweis, dass Sie den Datensatz dieses Tieres halten, im Testnetzwerk. Kein Name, keine Genetik, nichts über Ihre anderen Datensätze.',
+    '<b>Was gesendet wird:</b> nur der Beweis, dass Sie den Datensatz dieses Tieres halten, im Testnetz. Kein Name, keine Genetik, nichts über Ihre anderen Datensätze.',
   'app.animal.v.app.prove.answering':
     'Wenn Sie antworten, erfährt die Person, die Ihnen diesen Link gesendet hat, dass Sie den Datensatz dieses Tieres halten.',
   'app.animal.v.app.prove.watch.notWho': 'Es zeigt nicht, wer die Person ist oder wer das Tier gezüchtet hat.',
@@ -207,7 +205,7 @@ export const animal = {
     'Der Schlüssel Ihres Tieres erhielt am {when} einen Datumsstempel. Das datiert den Schlüssel, nicht den Datensatz.',
   'app.animal.v.app.prove.watch.stampedThisEarlier':
     'Der Schlüssel dieses Tieres erhielt schon früher einen Datumsstempel im Netzwerk. Das datiert den Schlüssel, nicht den Datensatz.',
-  'app.animal.v.app.prove.own.title': 'Beweisen Sie, dass Sie den Schlüssel dieses Tieres halten (Testnetzwerk)',
+  'app.animal.v.app.prove.own.title': 'Beweisen Sie, dass Sie den Schlüssel dieses Tieres halten (Testnetz)',
   'app.animal.v.app.prove.own.stampFirst':
     'Richten Sie zuerst den Nachweis ein: Tippen Sie auf der Seite des Tieres auf „Nachweis einrichten, dass Sie ihn halten“. Der Beweis betrifft die On-Chain-Identität des Tierdatensatzes, die dieser Schritt erzeugt.',
   // The lab report panels, a delivery and the saved report's sentence, for an animal.
@@ -241,18 +239,18 @@ export const animal = {
   'app.animal.v.app.lab.send.nothingYet':
     'Noch hat sich nichts geändert. Die Seite Ihres Tieres zeigt „wartet“, bis der Code eingegeben wird, und kann diesen Code erneut anzeigen. Er wird in das Feld auf der Startseite von VeilCore eingefügt.',
   'app.animal.v.app.lab.send.takenFromHelp': 'Die Einzeltierkennung des Tieres oder wo die Probe genommen wurde.',
-  'app.animal.v.app.lic.row.offspringValue': '{pct} %, auf Nachkommen, die von diesem Tier angemeldet werden',
+  'app.animal.v.app.lic.row.offspringValue': '{pct} %, auf Nachkommen, die von diesem Tier angegeben werden',
   'app.animal.v.app.lic.f.offspringHelp':
     'Zählt nur Nachkommen, die in VeilCore mit diesem Tier als Vater oder Mutter erfasst sind. Leer lassen, wenn keine.',
   'app.animal.v.app.lic.f.extraHelpDeal':
     'Alles, was sonst zum Geschäft gehört, in Ihren eigenen Worten. Zum Beispiel: höchstens zwei Würfe oder Abkalbungen, kein Weiterverkauf von Pailletten, Nachkommen bei einem genannten Zuchtverband eingetragen.',
   'app.animal.v.app.lic.detail.thisCultivar': 'diesem Tier',
   'app.animal.v.app.lic.detail.lineage':
-    'Wird später ein Tier mit {name} als Vater oder Mutter erfasst und bestätigen beide Inhaber dies, erscheint die Verbindung zu dieser Vereinbarung in seinem Datensatz. Nachkommen, die niemand erfasst, werden nicht erkannt.',
+    'Wird später ein Tier mit {name} als Vater oder Mutter erfasst und bestätigen beide Datensatzinhaber dies, erscheint die Verbindung zu dieser Vereinbarung in seinem Datensatz. Nachkommen, die niemand erfasst, werden nicht erkannt.',
   'app.animal.v.app.lic.detail.derivatives.one': '{count} bereits erfasstes Tier stammt davon ab.',
   'app.animal.v.app.lic.detail.derivatives.other': '{count} bereits erfasste Tiere stammen davon ab.',
   'app.animal.v.app.lic.off.intro':
-    'Auf Midnight liegt sie auf dem eigenen Datensatz des Lizenznehmers zu dieser Genetik, sodass jeder Nachkomme, den beide Inhaber bestätigen, sie zeigt, wenn jemand die Linie prüft. Der Lizenznehmer nimmt sie an; nur der Züchter kann sie aufheben.',
+    'Auf Midnight liegt sie auf dem eigenen Datensatz des Lizenznehmers zu dieser Genetik, sodass jeder Nachkomme, den beide Datensatzinhaber bestätigen, sie zeigt, wenn jemand die Linie prüft. Der Lizenznehmer nimmt sie an; nur der Züchter kann sie aufheben.',
   'app.animal.v.app.lic.off.dateFirst':
     'Datieren Sie zuerst Ihren eigenen Datensatz zu dieser Genetik (das Tier oder das erhaltene Sperma bzw. die Embryonen) und nennen Sie ihn dann hier.',
   'app.animal.v.app.lic.off.datePlant': 'Einen Datensatz datieren',
@@ -260,7 +258,7 @@ export const animal = {
   'app.animal.v.app.lic.off.waitName': 'Warten, bis die andere Seite ihren Datensatz zu dieser Genetik nennt.',
   // components/chain/FamilyOnChain.tsx
   'app.animal.v.app.family.intro':
-    'Abstammung, der beide Inhaber zugestimmt haben, auf der Chain. Sie erlaubt jedem, die Linie eines Tieres zu prüfen, und trägt die Nachkommen-Lizenzgebühr eines Elternteils zu dessen Nachkommen. Eine bestätigte Verknüpfung ist öffentlich und dauerhaft: Sie lässt sich nicht zurücknehmen, und Lizenzgebühren, die der Inhaber des Elternteils später übernimmt, erscheinen ebenfalls in der Linie dieses Datensatzes.',
+    'Abstammung, der beide Datensatzinhaber zugestimmt haben, auf der Chain. Sie erlaubt jedem, die Linie eines Tieres zu prüfen, und trägt die Nachkommen-Lizenzgebühr eines Elternteils zu dessen Nachkommen. Eine bestätigte Verknüpfung ist öffentlich und dauerhaft: Sie lässt sich nicht zurücknehmen, und Lizenzgebühren, die der Inhaber des Elternteils später übernimmt, erscheinen ebenfalls in der Linie dieses Datensatzes.',
   'app.animal.v.app.family.namesParent':
     '{who} benennt diesen Datensatz als Elternteil. Bestätigen Sie nur, wenn er wirklich von diesem Tier stammt. Die Bestätigung ist öffentlich und dauerhaft, und alles, was auf diesem Tier geschuldet ist, jetzt oder später, erscheint in seiner Linie.',
   'app.animal.v.app.family.confirmQ':

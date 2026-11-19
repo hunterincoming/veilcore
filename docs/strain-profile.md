@@ -98,6 +98,6 @@ checked.
 ## Translations
 
 The form and every strain sentence are in English, Japanese, Spanish, German and French. The
-non-English text is machine-assisted and needs a fluent speaker's check before veilcore.org
-offers strains (`docs/translations/README.md`). `src/i18n/strain-words.test.ts` checks that no
+non-English text is machine-assisted and was reviewed against native official sources
+(`docs/i18n-glossary.md`). `src/i18n/strain-words.test.ts` checks that no
 strain sentence says plant, cultivar, variety or "bred" in any language.

@@ -378,7 +378,7 @@ describe('the mainnet strings', () => {
     const { LANGUAGES } = await import('./i18n/catalogs');
     const { MAINNET_DRAFTS } = await import('./config/languages');
     const PRACTICE =
-      /simulat|practice only|simuliert|nur zum Üben|simulad|solo de práctica|simulé|qu'un exercice|シミュレーション|練習用/i;
+      /simulat|practice only|simuliert|nur zum Üben|simulad|solo de práctica|simulé|qu[’']un exercice|シミュレーション|練習用/i;
     const LICENSE_KEYS = ['m.hero.status', 'm.get.2b', 'm.demo.lede', 'm.for.3p'] as const;
     for (const claimsOnMainnet of [true, false])
       for (const chainReads of [true, false]) {
@@ -669,7 +669,7 @@ describe('builds', () => {
       pickers[p] = await pg.evaluate(() => document.querySelectorAll('[data-language-picker]').length);
       await pg.close();
     }
-    // A draft opened by link, as a fluent speaker checking it would.
+    // Japanese opened by link: published, so no draft banner.
     const ja = await ctx.newPage();
     await ja.goto(`${origin}/?lang=ja`, { waitUntil: 'networkidle' });
     await ja.waitForTimeout(400);
@@ -758,10 +758,10 @@ describe('builds', () => {
       expect(mainnet['/verify/example']).toMatch(/Midnight’s main network/);
     });
 
-    it('veilcore.org offers English and the ready drafts (Japanese) in a picker on every page; a draft is under its banner', () => {
+    it('veilcore.org offers English and the published languages in a picker on every page; a published language has no draft banner', () => {
       const main = languageSeen[mainDist];
       for (const p of PAGES) expect(main.pickers[p], p).toBeGreaterThan(0);
-      expect(main.jaLink).toEqual({ lang: 'ja', banner: true });
+      expect(main.jaLink).toEqual({ lang: 'ja', banner: false });
       // The test-network builds offer every language, on every page.
       const pre = languageSeen[preDist];
       for (const p of PAGES) expect(pre.pickers[p], p).toBeGreaterThan(0);

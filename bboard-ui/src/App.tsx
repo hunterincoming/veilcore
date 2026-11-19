@@ -8,6 +8,7 @@ import { Home } from './components/site/Home';
 import { Founders, VerifyLookup } from './components/site/Founders';
 import { Privacy } from './components/site/Privacy';
 import { NotFound } from './components/site/NotFound';
+import { HomeScreenStart } from './components/site/HomeScreenStart';
 import { PageErrorBoundary } from './components/PageErrorBoundary';
 import { SiteHeader } from './components/SiteHeader';
 import { AppFooter } from './components/AppFooter';
@@ -157,7 +158,10 @@ const AppLayout: React.FC<React.PropsWithChildren> = ({ children }) => {
         sheet (flow/KeepSafe.tsx, veilcore/account-copy.ts). */}
       <AccountKeeper />
       {/* The one header, as on every page (fresh-eyes review, 12 Nov). */}
-      <SiteHeader badge={<NetworkBadge />} />
+      {/* The network badge only where it warns: a test or demo build, whose records are practice
+        data. veilcore.org says it runs on the main network on its landing page (What's live where);
+        on every app page the chips were noise ("Web app", "Main network": easy-mode review, 19 Nov). */}
+      <SiteHeader app badge={IS_MAINNET ? undefined : <NetworkBadge />} />
       {/* The one main landmark: the header, the page and its notices. The footer stays outside. */}
       <Container component="main" maxWidth="md" sx={{ pt: { xs: 2, md: 4 }, pb: { xs: 3, md: 6 } }}>
         <SaveProblemBar />
@@ -522,7 +526,11 @@ const App: React.FC = () => (
     <PageTitle />
     <NewPageFocus />
     <Suspense fallback={null}>
-      <Routes>{routes}</Routes>
+      {/* An iPhone Home Screen launch with nothing in its own storage: says nothing is lost, first
+        (site/home-screen.ts). Any other visit gets the page it asked for. */}
+      <HomeScreenStart>
+        <Routes>{routes}</Routes>
+      </HomeScreenStart>
     </Suspense>
   </MotionConfig>
 );

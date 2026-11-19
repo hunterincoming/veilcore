@@ -28,7 +28,7 @@ export const labresult = {
   'app.lr.f.kind': 'Tipo de resultado',
   'app.lr.f.subject': 'Registro con el que se envió la muestra (código de prueba)',
   'app.lr.f.sampleId': 'ID de la muestra',
-  'app.lr.f.accession': 'Número de entrada del laboratorio',
+  'app.lr.f.accession': 'N.º de accesión del laboratorio',
   'app.lr.f.method': 'Método',
   'app.lr.f.panel': 'Panel de marcadores',
   'app.lr.f.version': '{id}, versión {version}',
@@ -38,7 +38,7 @@ export const labresult = {
   'app.lr.f.target': 'Analizado para',
   'app.lr.f.sampleType': 'Tipo de muestra',
   'app.lr.f.call': 'Resultado',
-  'app.lr.f.ct': 'Ct de la diana',
+  'app.lr.f.ct': 'Ct del blanco',
   'app.lr.f.other': 'Comparado con una muestra enviada con (código de prueba)',
   'app.lr.f.compared': 'Marcadores comparados',
   'app.lr.f.differing': 'Marcadores que difieren',
@@ -68,7 +68,7 @@ export const labresult = {
     'VeilCore no tomó ni analizó esta muestra y no avala el resultado. Muestra que la clave de este laboratorio firmó este resultado, y la fecha del lote muestra que existía para entonces. Que la muestra venga del registro nombrado es palabra del remitente, salvo que un registro de cadena de custodia muestre más.',
   'app.lr.tools.title': 'Firmar resultados de laboratorio',
   'app.lr.tools.intro':
-    'Para laboratorios: firme cada resultado junto con el registro que el remitente indicó para la muestra, el método, el ID de la muestra y su número de registro de laboratorio. Cada resultado se guarda como un registro que usted tiene y se fecha en el siguiente lote. Entregue cada resultado, como archivo propio, a quien envió esa muestra.',
+    'Para laboratorios: firme cada resultado junto con el registro que el remitente indicó para la muestra, el método, el ID de la muestra y su n.º de accesión del laboratorio. Cada resultado se guarda como un registro que usted tiene y se fecha en el siguiente lote. Entregue cada resultado, como archivo propio, a quien envió esa muestra.',
   'app.lr.tools.testOnly':
     'Los resultados de laboratorio están solo en la red de pruebas. Todavía no están en veilcore.org.',
   'app.lr.tools.setUp': 'Primero configure la clave de firma de su laboratorio.',
@@ -79,13 +79,13 @@ export const labresult = {
   'app.lr.tools.signedOne': 'Firmado y guardado',
   'app.lr.tools.signedMany': 'Firmados y guardados: {n}',
   'app.lr.tools.signedText':
-    'Cada uno es un registro que usted tiene, fechado en el siguiente lote. Entregue cada archivo a quien envió la muestra: puede comprobarlo y añadirlo a sus propios registros.',
+    'Cada uno es un registro que usted tiene, fechado en el siguiente lote. Entregue cada archivo a quien envió la muestra: puede comprobarlo y agregarlo a sus propios registros.',
   'app.lr.tools.download': 'Descargar el archivo del resultado',
   'app.lr.tools.downloadAll': 'Descargar cada resultado como archivo propio (zip)',
   'app.lr.tools.summary': 'Descargar un resumen para su LIMS (CSV)',
   'app.lr.tools.bound': 'El nombre de su laboratorio figura en él.',
   'app.lr.tools.notBound':
-    'Firmados y guardados, pero el nombre de su laboratorio aún no figura en {n} de ellos ({error}). Hasta entonces, quien compruebe solo ve su clave: use “Añadir el nombre de su laboratorio” abajo.',
+    'Firmados y guardados, pero el nombre de su laboratorio aún no figura en {n} de ellos ({error}). Hasta entonces, quien compruebe solo ve su clave: use “Agregar el nombre de su laboratorio” abajo.',
   'app.lr.tools.markKeep':
     'Descargue el archivo de secuencia de la marca y guárdelo en lugar seguro. Sin él, la secuencia no puede mostrarse en una disputa, y VeilCore no guarda copia.',
   'app.lr.tools.markDownload': 'Descargar el archivo de secuencia de la marca',
@@ -98,8 +98,8 @@ export const labresult = {
   'app.lr.form.subject': 'Código de prueba que el remitente indicó para esta muestra',
   'app.lr.form.subjectHelp': 'Del registro de la muestra o de su enlace de comprobación: 64 caracteres.',
   'app.lr.form.sampleId': 'ID de la muestra (el del remitente)',
-  'app.lr.form.accession': 'Su número de registro de laboratorio',
-  'app.lr.form.method': 'Método o PNT (SOP)',
+  'app.lr.form.accession': 'Su n.º de accesión del laboratorio',
+  'app.lr.form.method': 'Método o POE (SOP)',
   'app.lr.form.methodVersion': 'Versión del método',
   'app.lr.form.panel': 'Panel de marcadores (opcional)',
   'app.lr.form.panelVersion': 'Versión del panel',
@@ -109,12 +109,12 @@ export const labresult = {
   'app.lr.form.qc': 'Datos del análisis y de control de calidad (opcional)',
   'app.lr.form.qcName': 'Cifra de control',
   'app.lr.form.qcValue': 'Valor',
-  'app.lr.form.qcAdd': 'Añadir una cifra de control',
+  'app.lr.form.qcAdd': 'Agregar una cifra de control',
   'app.lr.form.qcRemove': 'Quitar',
   'app.lr.form.target': 'Analizado para (elija o escriba, por ejemplo HLVd)',
   'app.lr.form.sampleType': 'Tipo de muestra (hoja, raíz, pecíolo, plántula de cultivo de tejidos, mezcla…)',
   'app.lr.form.call': 'Resultado',
-  'app.lr.form.ct': 'Ct de la diana (opcional)',
+  'app.lr.form.ct': 'Ct del blanco (opcional)',
   'app.lr.form.other': 'Código de prueba con el que se envió la otra muestra',
   'app.lr.form.compared': 'Marcadores comparados (opcional)',
   'app.lr.form.differing': 'Marcadores que difieren (opcional)',
@@ -124,7 +124,7 @@ export const labresult = {
   'app.lr.form.conflicts2': 'Conflictos con el segundo progenitor (opcional)',
   'app.lr.form.sequence': 'La secuencia de la marca (A, C, G, T)',
   'app.lr.form.sequenceHelp':
-    'Pegue la secuencia o una entrada FASTA: las líneas de cabecera y los espacios se ignoran. Se sella en este navegador y nunca se envía. Solo un SHA-256 con sal de ella entra en el resultado.',
+    'Pegue la secuencia o una entrada FASTA: las líneas de encabezado y los espacios se ignoran. Se sella en este navegador y nunca se envía. Solo un SHA-256 con sal de ella entra en el resultado.',
   'app.lr.form.markLabel': 'Su nombre para la marca (opcional)',
   'app.lr.form.markIntro':
     'La marca es una secuencia de ADN que su laboratorio registró para esta línea: una que ya está en su genoma, o una etiqueta aplicada al material. VeilCore no marca ni analiza ADN: fecha el registro firmado de su laboratorio.',
@@ -143,7 +143,7 @@ export const labresult = {
   'app.lr.csv.template': 'Descargar una plantilla',
   'app.lr.csv.choose': 'Elegir el archivo CSV',
   'app.lr.csv.intro':
-    'Una fila por muestra y diana. Cada fila se convierte en su propio resultado firmado. Columnas necesarias: subject (el código de prueba que dio el remitente), sample id, accession, result. La plantilla tiene el resto, incluidos los datos del análisis y de control de calidad.',
+    'Una fila por muestra y blanco. Cada fila se convierte en su propio resultado firmado. Columnas necesarias: subject (el código de prueba que dio el remitente), sample id, accession, result. La plantilla tiene el resto, incluidos los datos del análisis y de control de calidad.',
   'app.lr.csv.ready': '{ok} listos para firmar. {bad} no se firmarán: corríjalos y fírmelos de nuevo.',
   'app.lr.csv.tooMany':
     'Este archivo tiene {rows} filas, y una tanda firma como mucho {n}. No se leyó nada: divídalo y empiece el siguiente archivo en la línea {next}.',
@@ -157,7 +157,7 @@ export const labresult = {
   'app.lr.problem.kind': 'Ese tipo de resultado no existe en este formato.',
   'app.lr.problem.subject': 'El código de prueba del registro analizado tiene 64 caracteres hexadecimales.',
   'app.lr.problem.sampleId': 'Escriba el ID de la muestra: una línea.',
-  'app.lr.problem.accession': 'Escriba su número de registro de laboratorio: una línea.',
+  'app.lr.problem.accession': 'Escriba su n.º de accesión del laboratorio: una línea.',
   'app.lr.problem.method': 'Nombre el método y su versión.',
   'app.lr.problem.panel': 'Nombre el panel y su versión, o ninguno de los dos.',
   'app.lr.problem.tested':
@@ -183,7 +183,7 @@ export const labresult = {
   'app.lr.problem.signature': 'La firma no se verifica: esa clave no la hizo para este resultado.',
   'app.lr.check.title': 'Comprobar un resultado de laboratorio',
   'app.lr.check.intro':
-    'Elija el archivo de resultado que le dio un laboratorio. Se comprueba en este navegador. No se envía nada de él salvo que pida el nombre del laboratorio: entonces solo el código del resultado va al registro.',
+    'Elija el archivo de resultado que le dio un laboratorio. Se comprueba en este navegador. No se envía nada de él salvo que pida el nombre del laboratorio: entonces solo el código del resultado va al servidor de registros.',
   'app.lr.check.choose': 'Elegir el archivo de resultado',
   'app.lr.check.viabilityTestOnly':
     'Este es un resultado de viabilidad (una prueba antes o después de un paso de inactivación). Por ahora solo están en la red de pruebas, así que esta página no lo lee.',
@@ -199,17 +199,17 @@ export const labresult = {
     'El laboratorio que registró la marca guarda un archivo con la secuencia. Elíjalo para ver si es la secuencia sellada en este resultado. Se comprueba aquí y no se envía.',
   'app.lr.check.disputeChoose': 'Elegir el archivo de secuencia',
   'app.lr.check.disputeYes':
-    'Coincide: es la secuencia que el laboratorio selló ({n} letras) para la fecha de este resultado. Si una planta en disputa la lleva requiere un nuevo análisis de esa planta.',
+    'Coincide: es la secuencia que el laboratorio selló ({n} letras) para la fecha de este resultado. Para saber si una planta en disputa la lleva, hace falta un nuevo análisis de esa planta.',
   'app.lr.check.disputeNo': 'No coincide con el sello de este resultado.',
   'app.lr.check.disputeBad': 'Ese archivo no es un archivo de secuencia de una marca.',
-  'app.lr.check.add': 'Añadirlo como un registro que usted tiene',
+  'app.lr.check.add': 'Agregarlo como un registro que usted tiene',
   'app.lr.check.addText':
-    'Esta muestra se envió con uno de sus registros. Añada el resultado a ese registro para publicar la firma del laboratorio en Midnight. Después podrá mostrar el resultado (por ejemplo “no detectado”) sin mostrar el resto.',
+    'Esta muestra se envió con uno de sus registros. Agregue el resultado a ese registro para publicar la firma del laboratorio en Midnight. Después podrá mostrar el resultado (por ejemplo “no detectado”) sin mostrar el resto.',
   'app.lr.check.open': 'Abrir el registro',
   'app.lr.check.find': 'Buscar el registro con el que se envió esta muestra',
   'app.lr.check.finding': 'Buscando en sus registros…',
   'app.lr.check.notYours':
-    'La muestra no viene de ninguno de los registros de este navegador, así que no hay dónde añadirla.',
+    'La muestra no viene de ninguno de los registros de este navegador, así que no hay dónde agregarla.',
   'app.lr.check.yours': 'Usted firmó este resultado: está en sus registros.',
   'app.lr.check.signedHere': 'Usted firmó este resultado.',
   'app.lr.check.autoFinding': 'Buscándolo en sus registros…',
@@ -217,7 +217,7 @@ export const labresult = {
   'app.lr.inReport': 'El resultado firmado del laboratorio con este informe ({kind}):',
   'app.lr.out.title': 'Un resultado firmado con este informe (opcional)',
   'app.lr.out.text':
-    'Vinculado al registro de este envío, con el método y la muestra. Se sella en un registro que usted firma y se envía cerrado con el informe. El obtentor puede mostrar el resultado sin mostrar el resto.',
+    'Vinculado al registro de este envío, con el método y la muestra. Se sella en un registro que usted firma y se envía cifrado con el informe. El obtentor puede mostrar el resultado sin mostrar el resto.',
   'app.lr.f.otherSampleId': 'ID de la otra muestra',
   'app.lr.f.counts': '({compared} marcadores comparados, {differing} difieren)',
   'app.lr.note.match':
@@ -231,26 +231,26 @@ export const labresult = {
   'app.lr.tools.unsigned':
     'Filas sin firmar: {n}. El resumen las lista como no firmadas: corríjalas y fírmelas de nuevo.',
   'app.lr.tools.markFirst': 'Guarde el archivo de secuencia de la marca antes de firmar otro.',
-  'app.lr.tools.nameRetry': 'Añadir el nombre de su laboratorio a {n} resultados',
-  'app.lr.tools.nameLeft': 'Añadido a {named}. Faltan {left} ({error}): inténtelo de nuevo en un minuto.',
+  'app.lr.tools.nameRetry': 'Agregar el nombre de su laboratorio a {n} resultados',
+  'app.lr.tools.nameLeft': 'Agregado a {named}. Faltan {left} ({error}): inténtelo de nuevo en un minuto.',
   'app.lr.tools.nameDone': 'El nombre de su laboratorio figura ahora en {named} resultados más.',
-  'app.lr.form.qcUsual': 'Añadir los datos habituales de un análisis qPCR',
+  'app.lr.form.qcUsual': 'Agregar los datos habituales de un análisis qPCR',
   'app.lr.form.otherSampleId': 'ID de la otra muestra (opcional)',
   'app.lr.problem.csvResult':
     'La celda del resultado no es una que acepte este tipo de resultado (en un análisis de patógenos: detectado o no detectado).',
   'app.lr.problem.inconclusive':
     'Solo se puede firmar detectado o no detectado. Un resultado no concluyente o no válido no se firma: repita el análisis y firme la repetición.',
   'app.lr.problem.future': 'La fecha del análisis es posterior a mañana. Revísela.',
-  'app.lr.problem.duplicate': 'El mismo número de registro, muestra y diana ya están en otra línea de este archivo.',
+  'app.lr.problem.duplicate': 'El mismo n.º de accesión, muestra y blanco ya están en otra línea de este archivo.',
   'app.lr.check.nameText':
-    'Para mostrar el nombre del laboratorio, el código del resultado se envía al registro, que busca la vinculación del propio laboratorio. No se envía nada más del archivo.',
+    'Para mostrar el nombre del laboratorio, el código del resultado se envía al servidor de registros, que busca la vinculación del propio laboratorio. No se envía nada más del archivo.',
   'app.lr.check.nameFind': 'Buscar el nombre del laboratorio',
   'app.lr.check.replaced':
     'El laboratorio sustituyó este resultado por uno posterior. Su firma sigue verificándose: esto es lo que firmó el laboratorio, pero pida al laboratorio o al titular el último resultado de esta muestra.',
   'app.lr.check.withdrawn':
     'Este laboratorio ya no respalda este resultado. La firma sigue verificándose. Puede haberse sustituido por un resultado posterior: pida al laboratorio o al titular el último resultado de esta muestra.',
   'app.lr.claim.onlyCall':
-    'Esta prueba solo cubre el resultado. Qué se analizó, o qué registros se compararon, está en el archivo de resultado del laboratorio, no en esta prueba. Si tiene ese archivo, elíjalo: se comprueba aquí, contra esta prueba, y no se envía.',
+    'Esta afirmación solo cubre el resultado. Qué se analizó, o qué registros se compararon, está en el archivo de resultado del laboratorio, no en esta afirmación. Si tiene ese archivo, elíjalo: se comprueba aquí, contra esta afirmación, y no se envía.',
   'app.lr.claim.choose': 'Elegir el archivo de resultado del laboratorio',
   'app.lr.claim.same': 'El archivo de resultado es del mismo resultado firmado que esta prueba:',
   'app.lr.claim.otherResult': 'Ese archivo es de otro resultado, no del que trata esta prueba.',
@@ -313,7 +313,7 @@ export const labresult = {
   'app.lr.form.culture.medium': 'Medio',
   'app.lr.form.culture.time': 'Tiempo',
   'app.lr.form.culture.temperature': 'Temperatura',
-  'app.lr.form.cultureAdd': 'Añadir un medio',
+  'app.lr.form.cultureAdd': 'Agregar un medio',
   'app.lr.form.lodValue': 'Límite de detección',
   'app.lr.form.unit': 'Unidad (UFC/g, UFC por 25 g…)',
   'app.lr.form.countValue': 'Recuento según el informe (opcional: déjelo vacío si el método no da ninguno)',
@@ -323,7 +323,7 @@ export const labresult = {
   'app.lr.control.grew': 'Creció',
   'app.lr.control.noGrowth': 'Sin crecimiento',
   'app.lr.control.notRun': 'No se hizo',
-  'app.lr.form.qcUsualViability': 'Añadir los datos habituales de la serie',
+  'app.lr.form.qcUsualViability': 'Agregar los datos habituales de la serie',
   'app.lr.problem.batch': 'Escriba el ID del lote: una línea.',
   'app.lr.problem.stage': 'Indique si la muestra se tomó antes o después del paso de inactivación.',
   'app.lr.problem.killStep': 'Una muestra posterior nombra su paso de inactivación: método y parámetros, una línea.',
@@ -386,9 +386,9 @@ export const labresult = {
   'app.marker.offer.call': 'El resultado del laboratorio: {call}',
   'app.marker.callPublish': 'Esto publica el resultado del laboratorio tal cual: {call}.',
   'app.marker.rounded.down':
-    'Rellenado redondeando a la baja el recuento del laboratorio ({sealed}), para que el recuento exacto siga siendo privado. Puede cambiarlo.',
+    'Completado redondeando a la baja el recuento del laboratorio ({sealed}), para que el recuento exacto siga siendo privado. Puede cambiarlo.',
   'app.marker.rounded.up':
-    'Rellenado redondeando al alza el recuento del laboratorio ({sealed}), para que el recuento exacto siga siendo privado. Puede cambiarlo.',
+    'Completado redondeando al alza el recuento del laboratorio ({sealed}), para que el recuento exacto siga siendo privado. Puede cambiarlo.',
   'app.marker.exactRepeat': 'Recuentos exactos ya públicos sobre estas muestras: {n}.',
   'app.marker.panelAlready': 'Ya es público sobre las muestras que nombra este resultado: {list}.',
   'app.marker.panelItem': '{claim} ({result})',
@@ -404,9 +404,9 @@ export const labresult = {
   'app.marker.pairsPublic': 'Resultados con el resultado del laboratorio y un recuento públicos: {n}.',
   'app.marker.source.checking': 'Comprobando si un laboratorio firmó estos números…',
   'app.marker.source.unnamed':
-    'Una clave firmó estos números, pero ningún laboratorio concreto está vinculado a ella, así que léalos como del propio titular.',
+    'Una clave firmó estos números, pero ningún laboratorio concreto está vinculado a ella, así que léalos como de quien selló el registro.',
   'app.marker.source.withdrawn':
-    'El laboratorio que firmó estos números ha retirado después el resultado, así que léalos como del propio titular.',
+    'El laboratorio que firmó estos números ha retirado después el resultado, así que léalos como de quien selló el registro.',
   'app.marker.source.labCall':
     'El resultado del laboratorio, del resultado que firmó. No es una decisión sobre la variedad.',
   'app.marker.line.differing': 'Marcadores que difieren: al menos {n}',
@@ -421,7 +421,7 @@ export const labresult = {
   'app.marker.source.lab':
     'El recuento del laboratorio, del resultado que firmó. Es un recuento, no una decisión sobre la variedad.',
   'app.marker.source.holder':
-    'Ninguna firma de laboratorio sobre estos números se comprueba aquí, así que léalos como del propio titular.',
+    'Ninguna firma de laboratorio sobre estos números se comprueba aquí, así que léalos como de quien selló el registro.',
   'app.marker.more.title': 'También en este enlace, sobre el mismo registro',
   'app.marker.limits.title': 'Lo que estas pruebas no muestran',
   'app.marker.limits.examine':

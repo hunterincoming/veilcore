@@ -13,7 +13,7 @@ export const backup = {
   'app.backup.saved': 'Gespeichert',
   'app.backup.savedSub': '{file} · eine Datei für alles',
   'app.backup.labKeyNotMade':
-    'Der Empfangsschlüssel Ihres Labors konnte gerade nicht erstellt werden, deshalb ist er noch nicht in dieser Sicherung. Für alles andere taugt die Sicherung. Speichern Sie eine neue, wenn Ihr erster Datensatz angekommen ist.',
+    'Der Empfangsschlüssel Ihres Labors konnte gerade nicht erstellt werden, deshalb ist er noch nicht in dieser Sicherungskopie. Für alles andere taugt die Sicherungskopie. Speichern Sie eine neue, wenn Ihr erster Datensatz angekommen ist.',
   'app.backup.saveFile': 'Sicherungsdatei speichern',
   'app.backup.copyTitle': 'Eine Kopie woanders ablegen (empfohlen)',
   'app.backup.wayBack': 'Wenn dieses Handy oder dieser Computer kaputtgeht, ist diese Kopie Ihr Weg zurück.',
@@ -44,9 +44,9 @@ export const backup = {
   'app.backup.pw.keep': 'Bewahren Sie es in einem Passwort-Manager oder aufgeschrieben auf, getrennt von der Datei.',
   'app.backup.pw.locking': 'Datei wird verschlossen…',
   'app.backup.pw.savedSub': '{file} · eine Datei für alles, mit Ihrem Passwort verschlossen',
-  'app.backup.pw.needed': 'Diese Sicherung hat ein Passwort. Geben Sie es ein, um die Datei zu öffnen.',
-  'app.backup.pw.wrong': 'Dieses Passwort öffnet diese Sicherung nicht. Es wurde nichts geändert.',
-  'app.backup.pw.checkLabel': 'Das Passwort der Sicherung',
+  'app.backup.pw.needed': 'Diese Sicherungskopie hat ein Passwort. Geben Sie es ein, um die Datei zu öffnen.',
+  'app.backup.pw.wrong': 'Dieses Passwort öffnet diese Sicherungskopie nicht. Es wurde nichts geändert.',
+  'app.backup.pw.checkLabel': 'Das Passwort der Sicherungskopie',
   'app.backup.pw.open': 'Öffnen',
   'app.backup.restoreTitle': 'Datensätze wiederherstellen',
   'app.backup.restoreIntro':
@@ -111,7 +111,7 @@ export const backup = {
     'Dieser Sicherungskopie fehlt der neueste Stand von {count} Ihrer Datensätze. Speichern Sie eine neue und prüfen Sie diese.',
   // A passkey, and records saved with VeilCore (veilcore/passkey-backup.ts, account-copy.ts).
   'app.backup.passkey.err.unsupported':
-    'Dieses Handy oder dieser Browser kann keinen Passkey erzeugen, der eine Sicherung öffnet. Verwenden Sie die Sicherungsdatei, oder versuchen Sie es mit Safari auf einem iPhone (iOS 18.4 oder neuer) oder mit Chrome.',
+    'Dieses Handy oder dieser Browser kann keinen Passkey erzeugen, der eine Sicherungskopie öffnet. Verwenden Sie die Sicherungsdatei, oder versuchen Sie es mit Safari auf einem iPhone (iOS 18.4 oder neuer) oder mit Chrome.',
   'app.backup.passkey.err.cancelled': 'Abgebrochen. Es wurde nichts geändert.',
   'app.backup.passkey.err.noCopy':
     'Für diesen Passkey wurden keine bei VeilCore gespeicherten Datensätze gefunden. Öffnen Sie stattdessen Ihre Sicherungsdatei.',
@@ -130,7 +130,7 @@ export const backup = {
     'Dieser Datensatz wurde für diese Anfrage nicht ausgewählt. Wählen Sie den Datensatz, den Sie senden möchten.',
   'app.intake.title': 'Eine Probe für {host} erfassen',
   'app.intake.intro':
-    '<b>{host}</b> hat Sie gebeten, diese Probe bei VeilCore zu erfassen. Sie legen den Datensatz hier an, bei VeilCore, und er bleibt Ihrer. Am Ende entscheiden Sie, ob Sie ihnen Datensatz-ID, Prüfcode und Prüflink senden. Sonst geht nichts an sie.',
+    '<b>{host}</b> hat Sie gebeten, diese Probe bei VeilCore zu erfassen. Sie legen den Datensatz hier an, bei VeilCore, und er bleibt bei Ihnen. Am Ende entscheiden Sie, ob Sie ihnen Datensatz-ID, Prüfcode und Prüflink senden. Sonst geht nichts an sie.',
   'app.intake.ref': 'Ihre Referenz, so wie sie sie geschrieben haben:',
   'app.intake.new': 'Neu erfassen',
   'app.intake.pick': 'Oder einen bereits erfassten senden',
@@ -139,12 +139,15 @@ export const backup = {
   'app.intake.send.title': 'Diesen Datensatz an {host} senden?',
   'app.intake.send.what':
     'Sie erhalten die Datensatz-ID {id} ({name}), den Prüfcode und den Prüflink, damit sie ihn bei VeilCore prüfen können.',
-  'app.intake.send.not': 'Ihre Angaben, Fotos, DNA-Berichte, Schlüssel und Sicherung erhalten sie nicht.',
+  'app.intake.send.not': 'Ihre Angaben, Fotos, DNA-Berichte, Schlüssel und Sicherungskopie erhalten sie nicht.',
   'app.intake.send.button': 'An {host} senden',
   'app.intake.send.opening': '{id} wird geöffnet …',
   'app.intake.send.kept': 'Der Datensatz bleibt in jedem Fall in Ihrem VeilCore.',
   'app.intake.err.title': 'Dieser Link kann nicht verwendet werden',
   'app.intake.err.help': 'Bitten Sie den Absender um einen neuen. Es wurde nichts erfasst oder gesendet.',
+  'app.intake.err.paste': 'Code oder Link einfügen',
+  'app.intake.err.records': 'Zu Ihren Datensätzen',
+  'app.intake.err.lab': 'Ich bin ein Labor: Laborergebnisse',
   'app.intake.err.gone':
     'Die Anfrage der anderen Seite ist nicht mehr da (dieser Tab wurde geschlossen oder neu geöffnet). Öffnen Sie deren Link erneut.',
   'app.intake.err.noReturn': 'Er gibt nicht an, wohin Sie zurückgeschickt werden.',

@@ -140,7 +140,9 @@ list changed, and how many licenses, obligations or key moves a record has. The 
 writes against the sources too, and that every ledger field of both contracts has its words.
 
 The receipt is shown just before the confirm button of every screen that sends a step: sealing
-(the key's date stamp), the bulk import's key stamps, prove you hold it, DNA pairing, family on
+(the key's date stamp: on the "Is this right?" screen it is folded under "What gets published?",
+the link right above the button, so a first-time reader isn't met by it all at once), the bulk
+import's key stamps, prove you hold it, DNA pairing, family on
 Midnight, number and lab-signature claims, license issue, activate, prove, revoke and hand-on,
 offspring obligations and lender claims. Every receipt also lists the date: a transaction lands
 in a block, and the block has a time.

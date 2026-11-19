@@ -17,7 +17,7 @@ export const receipt = {
   'app.receipt.fact.challenge': 'Le code de défi à usage unique du vérificateur',
   'app.receipt.fact.dnaReport': 'Un code tiré du rapport ADN (pas le rapport)',
   'app.receipt.fact.license': 'Un code tiré de la licence (pas ses conditions)',
-  'app.receipt.fact.newLicense': 'Un code tiré de la licence du nouveau titulaire',
+  'app.receipt.fact.newLicense': 'Un code tiré de la licence du nouveau détenteur',
   'app.receipt.fact.licenseEntry': 'Le code d’entrée de la licence dans la liste publique des licences',
   'app.receipt.fact.slot': 'Le numéro de place de la licence dans cette liste',
   'app.receipt.fact.presentation': 'Un code à usage unique que seule la personne qui vérifie peut rapprocher',

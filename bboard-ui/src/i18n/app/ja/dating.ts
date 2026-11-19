@@ -11,7 +11,7 @@ export const dating = {
   'app.log.recordDatedNextPlain': '記録の日付：次のバッチに入ります',
   'app.log.inSeconds': '{n}秒後に',
   'app.log.retryingIn': '{when}自動でもう一度試します（{n}回目）。',
-  'app.log.retriesUsed': '何度か試しました。いつでももう一度試せます。記録自体の日付はこれを待ちません。',
+  'app.log.retriesUsed': '何度か試しました。いつでももう一度試せます。記録自体の日付は、これとは関係なく付いています。',
   'app.log.tryNow': '今すぐもう一度試す',
   'app.log.keepsTrying': 'VeilCoreを開いている間は自動で試し続け、完了するまでホームに表示します。',
 
@@ -32,7 +32,6 @@ export const dating = {
   'app.pickup.open': '開く',
   'app.pickup.tryNow': '今すぐ試す',
   'app.pickup.saveBackup': 'バックアップを保存',
-  'app.pickup.freshBackupButton': '新しいバックアップを保存',
   'app.pickup.openAgreements': '契約を開く',
   'app.pickup.dating.notSent': '{name}：封印済みです。VeilCoreにつながり次第、証明コードを送ります。',
   'app.pickup.dating.next': '{name}：次のバッチで日付が付きます。',
@@ -47,10 +46,6 @@ export const dating = {
   'app.pickup.stamp.sent':
     '{name}の鍵の日付スタンプはすでに送られた可能性があります。もう一度試す前に、そのページで確認してください。',
   'app.pickup.stamp.cannot': '{name}の鍵の日付スタンプは、今はこのサイトから行えません。理由はそのページにあります。',
-  'app.pickup.lockedCopies.other':
-    'ロックしたコピー{count}件がまだアップロードされていません。バックアップを保存して確認してください。記録の日付はこれを待ちません。',
-  'app.pickup.freshBackup.other':
-    '前回のバックアップには、新しい記録{count}件の鍵が入っていません。新しいバックアップを保存してください。',
   'app.pickup.deliveriesSent.other': 'ラボへの送付{count}件が、まだ受け取られていません。',
   'app.pickup.deliveriesUnsigned.other': 'ラボが受け取った送付{count}件の受領書に、まだ署名がありません。',
   'app.pickup.labUnsigned.other': '受け取ったサンプル{count}件の受領書に、まだ署名していません。',

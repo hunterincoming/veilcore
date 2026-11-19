@@ -1,5 +1,5 @@
-// The record app in Japanese: every key of ../en, screen by screen. DRAFT: machine-assisted, to
-// be checked by a fluent speaker before publishing (docs/translations/README.md).
+// The record app in Japanese: every key of ../en, screen by screen. Machine-assisted,
+// reviewed against native official sources (docs/i18n-glossary.md).
 //
 // Terms are the site's (../../ja.ts: 育成者, ブラウザ, 受領書, 検査報告書, ラボコード, 日付スタンプ,
 // アンカー, 保有者 and 保有 (never 所有), 記録, 証明コード, テストネットワーク), plus the app's:

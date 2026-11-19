@@ -30,10 +30,10 @@ export const prove = {
     'La réponse ne peut repartir qu’avec le lien complet. Ouvrez le lien exactement tel qu’il vous a été envoyé, ou demandez qu’on vous le renvoie.',
   'app.prove.someoneWants': 'Quelqu’un veut que vous prouviez que vous détenez un enregistrement',
   'app.prove.noRecordsHere':
-    'Vos enregistrements ne sont pas sur ce téléphone ou cet ordinateur. Ouvrez ce lien là où vous les gardez, ou récupérez-les ici depuis votre fichier de copie de secours, puis ouvrez de nouveau le lien.',
+    'Vos enregistrements ne sont pas sur ce téléphone ou cet ordinateur. Ouvrez ce lien là où vous les gardez, ou récupérez-les ici depuis votre fichier de sauvegarde, puis ouvrez de nouveau le lien.',
   'app.prove.notThisRecord':
-    'Aucun des enregistrements présents ici n’est celui demandé. Si vous le gardez sur un autre téléphone ou ordinateur, ouvrez-y ce lien. Si vous ne l’avez que dans un fichier de copie de secours, restaurez-le ici, puis ouvrez de nouveau le lien.',
-  'app.prove.getBack': 'Récupérer mes enregistrements depuis une copie de secours',
+    'Aucun des enregistrements présents ici n’est celui demandé. Si vous le gardez sur un autre téléphone ou ordinateur, ouvrez-y ce lien. Si vous ne l’avez que dans un fichier de sauvegarde, restaurez-le ici, puis ouvrez de nouveau le lien.',
+  'app.prove.getBack': 'Récupérer mes enregistrements depuis une sauvegarde',
   'app.prove.done': 'Terminé',
   'app.prove.doneText':
     'La réponse s’affichera sur sa page. Rien n’a été envoyé sur la plante : seulement la preuve que vous détenez son enregistrement.',
@@ -149,7 +149,7 @@ export const prove = {
   'app.prove.share.yourLink': 'Votre lien',
   'app.prove.share.savedOn': 'Enregistré dans le registre',
   'app.prove.share.savedText':
-    'Quiconque ouvre ce lien, ou a l’identifiant de cet enregistrement d’une autre façon, voit les informations de l’aperçu et rien d’autre ; le registre n’envoie pas le reste, et modifier le lien ne peut rien y ajouter. La génétique n’est jamais divulguée. Ce choix détermine ce qu’affiche la page de vérification. Prouver une valeur cachée (un marqueur, une plage, ou que deux variétés diffèrent) sans montrer le reste est le rôle du contrat de revendications de VeilCore.',
+    'Quiconque ouvre ce lien, ou a l’identifiant de cet enregistrement d’une autre façon, voit les informations de l’aperçu et rien d’autre ; le registre n’envoie pas le reste, et modifier le lien ne peut rien y ajouter. La génétique n’est jamais divulguée. Ce choix détermine ce qu’affiche la page de vérification. Prouver une valeur cachée (un marqueur, une plage, ou que deux variétés diffèrent) sans montrer le reste est le rôle du contrat des preuves de VeilCore.',
   'app.prove.share.letThemAsk':
     'Leur permettre de vérifier l’horodatage et de me demander de prouver que je la détiens',
   'app.prove.share.theLink': 'Le lien',
@@ -197,5 +197,5 @@ export const prove = {
     'Ce que cela montre : le nombre scellé dans cet enregistrement respecte la limite (ou est cette valeur), et la clé ci-dessus a signé les nombres de cet enregistrement. Le laboratoire a depuis retiré ce résultat, ne vous y fiez donc pas : demandez au laboratoire ou au détenteur le dernier résultat pour cet échantillon. Chaque limite prouvée sur un nombre est publique, et ensemble elles le resserrent.',
   // ClaimCheck.tsx: the footer when a key signs the numbers but no single lab is tied to it (unidentified, conflicting).
   'app.claim.check.whatLabUnnamed':
-    'Ce que cela montre : le nombre scellé dans cet enregistrement respecte la limite (ou est cette valeur), et la clé ci-dessus a signé les nombres de cet enregistrement. Aucun laboratoire unique n’est lié à cette clé ici : considérez les chiffres comme ceux du titulaire. Chaque limite prouvée sur un nombre est publique, et ensemble elles le resserrent.',
+    'Ce que cela montre : le nombre scellé dans cet enregistrement respecte la limite (ou est cette valeur), et la clé ci-dessus a signé les nombres de cet enregistrement. Aucun laboratoire unique n’est lié à cette clé ici : considérez les chiffres comme ceux du détenteur. Chaque limite prouvée sur un nombre est publique, et ensemble elles le resserrent.',
 } satisfies Partial<AppTranslation>;

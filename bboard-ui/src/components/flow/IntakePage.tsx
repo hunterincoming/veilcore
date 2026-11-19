@@ -4,7 +4,8 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import { Alert, Box, Button, Stack, Typography } from '@mui/material';
-import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link as RouterLink, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { PASTE_ENTRY } from '../site/paste-entry';
 import { AppHeader } from '../AppHeader';
 import { FlowFrame, ScreenHeading } from './FlowFrame';
 import { rich, useT } from '../../i18n/app';
@@ -62,6 +63,18 @@ export const IntakePage: React.FC = () => {
         <Alert severity="warning" variant="outlined" data-intake-refused="">
           {t(`app.intake.err.${parsed.problem}`)} {t('app.intake.err.help')}
         </Alert>
+        {/* Never a dead end (easy-mode review, 19 Nov): the paste box, your records, or a lab's page. */}
+        <Stack spacing={1} data-intake-ways="">
+          <Button component={RouterLink} to={PASTE_ENTRY} variant="contained" sx={{ minHeight: 48 }}>
+            {t('app.intake.err.paste')}
+          </Button>
+          <Button component={RouterLink} to="/records" variant="outlined" sx={{ minHeight: 48 }}>
+            {t('app.intake.err.records')}
+          </Button>
+          <Button component={RouterLink} to="/lab/results" color="inherit" sx={{ minHeight: 44 }}>
+            {t('app.intake.err.lab')}
+          </Button>
+        </Stack>
       </Frame>
     );
   const r = parsed.request;

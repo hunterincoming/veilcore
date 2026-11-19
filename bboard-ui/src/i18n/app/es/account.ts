@@ -12,7 +12,7 @@ export const account = {
   'app.account.sheet.title': 'Mantenga sus registros a salvo',
   'app.account.sheet.lead': 'Para que pueda recuperarlos, aunque pierda este dispositivo.',
   'app.account.sheet.how':
-    'Sus registros se guardan con VeilCore, cerrados para que solo usted pueda abrirlos: VeilCore no tiene la llave. Sus otros teléfonos y computadoras con la misma cuenta de Apple o Google también los abren. Los documentos que guarda solo en este dispositivo no se incluyen.',
+    'Sus registros se guardan con VeilCore, cifrados para que solo usted pueda abrirlos: VeilCore no tiene la clave. Sus otros teléfonos y computadoras con la misma cuenta de Apple o Google también los abren. Los documentos que guarda solo en este dispositivo no se incluyen.',
   'app.account.sheet.usePhone':
     'Esta computadora no puede desbloquear una llave de acceso por sí sola. Su navegador ofrecerá «Usar un teléfono»: escanee el código con su teléfono.',
   'app.account.sheet.twice':
@@ -36,8 +36,7 @@ export const account = {
   'app.account.line.locked':
     '<b>El guardado está en pausa en este dispositivo.</b> Abra sus registros una vez para continuar.',
   'app.account.line.continue': 'Continuar',
-  'app.account.line.missing':
-    '<b>Sus registros guardados con VeilCore ya no están en su servidor.</b> Guárdelos de nuevo.',
+  'app.account.line.missing': '<b>El servidor de VeilCore ya no tiene sus registros guardados.</b> Guárdelos de nuevo.',
   'app.account.line.saveAgain': 'Guardar de nuevo',
   'app.account.line.slotMissing':
     '<b>Falta en el servidor de VeilCore una forma de abrir sus registros guardados.</b> Configúrelo de nuevo.',
@@ -92,7 +91,7 @@ export const account = {
   'app.settings.account.off':
     'Sin configurar. Guarde sus registros con VeilCore para recuperarlos en un teléfono nuevo.',
   'app.settings.account.why':
-    'Sus registros se guardan cerrados en el servidor de VeilCore, y solo usted puede abrirlos. Vuelven de allí, así que esto funciona mientras VeilCore esté en marcha. Una copia descargada funciona sin VeilCore.',
+    'Sus registros se guardan cifrados en el servidor de VeilCore, y solo usted puede abrirlos. Vuelven de allí, así que esto funciona mientras VeilCore esté en marcha. Una copia descargada funciona sin VeilCore.',
   'app.settings.ways.title': 'Formas de abrirlos',
   'app.settings.ways.synced':
     'Llave de acceso en sus dispositivos con la misma cuenta de Apple o Google · agregada el {date}',

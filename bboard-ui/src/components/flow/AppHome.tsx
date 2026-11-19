@@ -69,6 +69,7 @@ import { dnaTieSentence } from '../../veilcore/dna-tie';
 import type { StrainRecord } from '../../veilcore/records';
 import type { SavedReport } from '../../veilcore/saved-report';
 import { PickUp } from './PickUp';
+import { BackupNeeded, backupNeed } from './BackupNeeded';
 import { AccountStatusLine } from './KeepSafe';
 import { useAccountState } from '../../veilcore/account-copy';
 import { JobsOnHome } from '../ask/JobsOnHome';
@@ -429,9 +430,22 @@ export const AppHome: React.FC = () => {
         {/* Ask's "Do it for me" jobs: one to check, one being done, a record got ready to license. */}
         <JobsOnHome />
 
+        {/* A backup, when one is needed: one line for the whole account, never one per record
+            (BackupNeeded.tsx; easy-mode review, 19 Nov). When saving with VeilCore is on, the
+            account line below says it instead (easy mode step 2). */}
+        {!accountOn && (
+          <BackupNeeded
+            need={backupNeed({
+              keysOnlyHere: unbackedIds.length,
+              waitingForBackup,
+              vaultUnbacked,
+              legacyWaiting,
+            })}
+          />
+        )}
+
         {/* What is open since last time, one line and one button each (PickUp.tsx). Nothing open,
-            nothing shown. It asks for the backup when records wait for one, so the alert below
-            doesn't say it again. */}
+            nothing shown. */}
         <PickUp
           records={records}
           waiting={waiting}
@@ -440,29 +454,9 @@ export const AppHome: React.FC = () => {
           }
         />
 
+        {/* Saving with VeilCore on (easy mode step 2): the account line says whether records are
+            kept safe, in place of the backup line above. */}
         {accountOn && <AccountStatusLine />}
-
-        {!accountOn && vaultUnbacked && unbackedIds.length === 0 && !waitingForBackup && (
-          <Alert
-            severity="warning"
-            variant="outlined"
-            data-vault-backup=""
-            action={
-              <Button
-                color="inherit"
-                variant="outlined"
-                onClick={() => void navigate('/backup')}
-                sx={{ minHeight: 44 }}
-              >
-                {t('app.home.saveIt')}
-              </Button>
-            }
-          >
-            {rich(t(legacyWaiting ? 'app.sealed.backupBeforeLocking' : 'app.sealed.backupNeeded'), {
-              b: (c) => <b>{c}</b>,
-            })}
-          </Alert>
-        )}
 
         {vaultProblem === 'cant-store' && (
           <Alert severity="warning" variant="outlined" data-vault-cant-store="">
@@ -496,18 +490,20 @@ export const AppHome: React.FC = () => {
             const doc = isDocument(r);
             const base = own
               ? (() => {
-                  const d = datingHomeStatus(r, keys[r.id], REAL_CHAIN, tr);
+                  const d = datingHomeStatus(r, tr);
                   return { text: `${datingCardLine(r, tr)} · ${d.text}`, unfinished: d.unfinished };
                 })()
               : lab && r.receivedFrom
                 ? { text: labCardLine(r, labFacts[r.id], tr), unfinished: false }
                 : doc
-                  ? // Whether it is in a backup is said once, on the account line (easy mode step 2).
+                  ? // A document's card says its type and its date; whether it is in a backup is said
+                    // once, for the whole account: the backup line (BackupNeeded.tsx, which counts its
+                    // keys too, keys-only-here.ts), or the account line when saving with VeilCore is on.
                     { text: '', unfinished: false }
                   : homeStatusLine(r, keys[r.id], { realChain: REAL_CHAIN, queued: imported.has(r.id) }, tr);
             // A document says so on its card: its type, then one plain status, dated or waiting for
             // its date (DocumentDateLine), never its key's date stamp (that is under "Technical
-            // details" on its page). Not finished (no checked backup) still says so first.
+            // details" on its page).
             // A copy of a result a lab keeps (records.ts StrainRecord.copy): the date is the lab's,
             // never shown as this holder's.
             const copy = r.copy === true && !!r.labSignature;
@@ -524,7 +520,7 @@ export const AppHome: React.FC = () => {
               : base;
             const datings = (datingsOf.get(r.id) ?? []).map((d) => ({
               id: d.id,
-              ...datingHomeStatus(d, keys[d.id], REAL_CHAIN, tr),
+              ...datingHomeStatus(d, tr),
             }));
             const unfinished = s.unfinished || datings.some((d) => d.unfinished);
             const reportWaiting = (waiting[r.id]?.length ?? 0) > 0;
@@ -600,10 +596,9 @@ export const AppHome: React.FC = () => {
                         </Typography>
                       ))}
                     {/* Kept in this browser, not on VeilCore yet (round 3, L1, L12). */}
-                    {/* Not when the card already says it isn't in a backup (unsavedLineKey). */}
+                    {/* Not for a backup: Home's one backup line says that (unsavedLineKey). */}
                     {(() => {
-                      // Waiting for a backup is said once, on the account line; a save to retry still is here.
-                      const k = unsavedLineKey(unsavedReason(r.id), true);
+                      const k = unsavedLineKey(unsavedReason(r.id));
                       return k ? (
                         <Typography
                           variant="body2"

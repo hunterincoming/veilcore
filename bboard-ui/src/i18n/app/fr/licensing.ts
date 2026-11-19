@@ -14,7 +14,7 @@ export const licensing = {
   'app.lic.fee.note': 'Frais VeilCore ({pct} % de la valeur de l’accord) : calculés, non prélevés.',
   'app.lic.rights.cultivate': 'Culture uniquement',
   'app.lic.rights.cultivate+propagate': 'Culture et multiplication',
-  'app.lic.rights.full-transfer': 'Cession des droits que détient le détenteur',
+  'app.lic.rights.full-transfer': 'Cession des droits que détient le détenteur de l’enregistrement',
   'app.lic.rights.breed': 'Reproduction uniquement',
   'app.lic.rights.breed+collect': 'Reproduction + collecte',
   'app.lic.rights.breed+sell': 'Reproduction, collecte + vente',
@@ -27,7 +27,7 @@ export const licensing = {
   'app.lic.state.activeOffChain': 'Marquée active ici, pas sur Midnight',
   'app.lic.state.expired': 'Expiré',
   'app.lic.state.revoked': 'Révoqué',
-  'app.lic.type.license': 'Contrat de licence',
+  'app.lic.type.license': 'Accord de licence',
   'app.lic.type.lab-transfer': 'Envoi à un laboratoire',
   'app.lic.type.breeder-share': 'Partage entre obtenteurs',
   'app.lic.action.license': 'Concéder une licence',
@@ -79,37 +79,37 @@ export const licensing = {
   // A practice agreement on a site where agreements are now real (veilcore/agreements-real.ts).
   'app.lic.practice.chip': 'Exercice',
   'app.lic.practice.text':
-    'Un contrat d’exercice, conclu quand les contrats ici servaient seulement à s’exercer. L’autre partie ne l’a jamais signé, et il n’est pas sur Midnight. Pour un vrai contrat, commencez-en un nouveau depuis l’enregistrement.',
+    'Un accord d’essai, conclu quand les accords ici servaient seulement d’essai. L’autre partie ne l’a jamais signé, et il n’est pas sur Midnight. Pour un vrai accord, commencez-en un nouveau depuis l’enregistrement.',
   'app.lic.royaltyPending.label': 'Protection de la redevance en attente',
   'app.lic.royaltyPending.text':
     'Protection de la redevance en attente. VeilCore n’a pas encore confirmé la redevance sur la descendance, donc la vérification publique de la lignée ne l’affiche pas. Ce navigateur la renvoie à chaque synchronisation. Laissez VeilCore ouvert ou revenez bientôt.',
-  'app.lic.hub.title': 'Contrats',
+  'app.lic.hub.title': 'Accords',
   'app.lic.hub.intro':
-    'Tous les contrats que vous avez conclus (licences, envois à un laboratoire et partages entre obtenteurs), sur tous vos enregistrements.',
+    'Tous les accords que vous avez conclus (licences, envois à un laboratoire et partages entre obtenteurs), sur tous vos enregistrements.',
   'app.lic.hub.empty':
-    'Aucun contrat pour l’instant. Ouvrez un de vos enregistrements et choisissez Concéder une licence, Envoyer à un laboratoire ou Partager avec un obtenteur.',
+    'Aucun accord pour l’instant. Ouvrez un de vos enregistrements et choisissez Concéder une licence, Envoyer à un laboratoire ou Partager avec un obtenteur.',
   'app.lic.hub.toRecords': 'Aller à vos enregistrements',
-  'app.lic.hub.open': 'Ouvrir le contrat {id}',
+  'app.lic.hub.open': 'Ouvrir l’accord {id}',
   'app.lic.hub.unnamed': 'cocontractant sans nom',
-  'app.lic.detail.notHere': 'Ce contrat n’est pas dans ce navigateur.',
+  'app.lic.detail.notHere': 'Cet accord n’est pas dans ce navigateur.',
   'app.lic.detail.notHereWhy':
-    'Les contrats ne s’ouvrent que dans le navigateur qui les a créés, ou dans un navigateur où vous avez restauré la même clé de détenteur.',
-  'app.lic.detail.yours': 'Vos contrats',
+    'Les accords ne s’ouvrent que dans le navigateur qui les a créés, ou dans un navigateur où vous avez restauré la même clé de détenteur.',
+  'app.lic.detail.yours': 'Vos accords',
   'app.lic.detail.noReason': 'Aucun motif indiqué',
   'app.lic.detail.revoked': 'Licence révoquée.',
   'app.lic.detail.royaltyRecorded': 'Redevance due enregistrée.',
   'app.lic.detail.salesInput': 'Ventes déclarées ($)',
   'app.lic.detail.unitsInput': 'Unités ({basis})',
-  'app.lic.detail.all': 'Tous les contrats',
+  'app.lic.detail.all': 'Tous les accords',
   'app.lic.detail.amends': '· modifie {id}',
-  'app.lic.detail.terms': 'Conditions du contrat',
+  'app.lic.detail.terms': 'Conditions de l’accord',
   'app.lic.detail.attached':
     'Ces conditions sont attachées à l’enregistrement scellé et au code de son rapport associé.',
   'app.lic.detail.attachedCode':
     'Ces conditions sont attachées à l’enregistrement scellé et au code de son rapport associé ({code}).',
   'app.lic.detail.thisCultivar': 'ce cultivar',
   'app.lic.detail.lineage':
-    'Si un cultivar est enregistré plus tard avec {name} comme parent et que les deux détenteurs le confirment, le lien vers ce contrat apparaît dans son enregistrement. Une descendance que personne n’enregistre n’est pas détectée.',
+    'Si un cultivar est enregistré plus tard avec {name} comme parent et que les deux détenteurs le confirment, le lien vers cet accord apparaît dans son enregistrement. Une descendance que personne n’enregistre n’est pas détectée.',
   'app.lic.detail.derivatives.one': '{count} cultivar déjà enregistré en descend.',
   'app.lic.detail.derivatives.other': '{count} cultivars déjà enregistrés en descendent.',
   'app.lic.detail.status': 'État et actions',
@@ -124,7 +124,7 @@ export const licensing = {
   'app.lic.detail.copyLink': 'Copier le lien',
   'app.lic.detail.openSign': 'Ouvrir la page de contresignature',
   'app.lic.detail.revoke': 'Révoquer',
-  'app.lic.detail.revokeQ': 'Révoquer ce contrat ?',
+  'app.lic.detail.revokeQ': 'Révoquer cet accord ?',
   'app.lic.detail.revokeYes': 'Oui, le révoquer',
   'app.lic.detail.revokeReason': 'Motif (conservé avec votre copie)',
   'app.lic.detail.activeTwo':
@@ -156,15 +156,15 @@ export const licensing = {
   'app.lic.basis.per-batch': 'par lot',
   'app.lic.builder.loading': 'Chargement de vos fiches…',
   'app.lic.builder.notHere':
-    'Cet enregistrement n’est pas dans ce navigateur, on ne peut donc pas y attacher de contrat ici.',
+    'Cet enregistrement n’est pas dans ce navigateur, on ne peut donc pas y attacher d’accord ici.',
   'app.lic.builder.records': 'Vos enregistrements',
   'app.lic.builder.renewHeading': 'Renouveler ou modifier : {type}',
   'app.lic.builder.saving': 'Enregistrement…',
-  'app.lic.builder.saveAmended': 'Enregistrer le contrat modifié',
+  'app.lic.builder.saveAmended': 'Enregistrer l’accord modifié',
   'app.lic.builder.saveDraft': 'Enregistrer comme brouillon',
   'app.lic.builder.back': 'Retour à {name}',
   'app.lic.builder.intro':
-    'Fixez les conditions en langage simple. À l’enregistrement, le contrat est scellé et attaché à l’enregistrement de {name}.',
+    'Fixez les conditions en langage simple. À l’enregistrement, l’accord est scellé et attaché à l’enregistrement de {name}.',
   'app.lic.f.licensee': 'Licencié (nom ou entreprise)',
   'app.lic.f.licenseeHelp': 'À qui vous accordez les droits.',
   'app.lic.f.rights': 'Droits accordés',
@@ -172,7 +172,7 @@ export const licensing = {
   'app.lic.f.r.cultivate': 'Culture uniquement',
   'app.lic.f.r.propagate': 'Culture et multiplication (boutures ou graines)',
   'app.lic.f.r.full':
-    'Cession des droits que détient le détenteur (un droit enregistré se cède auprès de son propre office)',
+    'Cession des droits que détient le détenteur de l’enregistrement (un droit enregistré se cède auprès de son propre office)',
   'app.lic.f.r.breed': 'Reproduction avec ses propres animaux uniquement',
   'app.lic.f.r.breed+collect': 'Reproduction + collecte de semence ou d’embryons pour son propre usage',
   'app.lic.f.r.breed+sell': 'Reproduction, collecte + vente de semence, d’embryons ou de reproducteurs',
@@ -234,7 +234,7 @@ export const licensing = {
   'app.lic.terms.title': 'Les conditions',
   'app.lic.terms.titleAgreed': 'Les conditions, acceptées le {date}',
   'app.lic.terms.signed':
-    'Signées par l’expéditeur et vérifiées par rapport à le code de preuve du contrat {fp}. Les conditions sont entre vous : VeilCore enregistre sur Midnight que le contrat existe et son état, et ne le fait pas appliquer.',
+    'Signées par l’expéditeur et vérifiées par rapport au code de preuve de l’accord {fp}. Les conditions sont entre vous : VeilCore enregistre sur Midnight que l’accord existe et son état, et ne le fait pas appliquer.',
   'app.lic.vc.license': 'Attestation de licence',
   'app.lic.vc.payment': 'Attestation de paiement',
   'app.lic.vc.paymentFor': 'Attestation de paiement : du {from} au {to}',
@@ -269,15 +269,15 @@ export const licensing = {
     'Ce que vous laissez décoché n’est pas du tout dans le fichier : pas caché, absent. Personne ne peut le lire, quelle que soit la façon de l’ouvrir.',
   'app.lic.share.cancel': 'Annuler',
   'app.lic.share.download': 'Télécharger le certificat',
-  'app.lic.sign.notHere': 'Ce contrat ne peut pas être ouvert dans ce navigateur.',
+  'app.lic.sign.notHere': 'Cet accord ne peut pas être ouvert dans ce navigateur.',
   'app.lic.sign.notHereWhy':
-    'Pour l’instant, un contrat ne s’ouvre que dans le navigateur qui l’a créé : la contresignature depuis le navigateur de l’autre partie n’existe pas encore. Si quelqu’un vous a envoyé ce lien, demandez-lui directement les conditions.',
-  'app.lic.sign.title': 'On vous a envoyé un contrat à examiner',
+    'Pour l’instant, un accord ne s’ouvre que dans le navigateur qui l’a créé : la contresignature depuis le navigateur de l’autre partie n’existe pas encore. Si quelqu’un vous a envoyé ce lien, demandez-lui directement les conditions.',
+  'app.lic.sign.title': 'On vous a envoyé un accord à examiner',
   'app.lic.sign.intro': 'Lisez les conditions ci-dessous. Dans {site}, il devient actif une fois contresigné ici.',
   'app.lic.sign.mayBreed':
-    'Vous pouvez utiliser ce matériel en sélection. Un cultivar enregistré avec lui comme parent renvoie à ce contrat dans le graphe de lignée. Une descendance que personne n’enregistre n’est pas détectée.',
+    'Vous pouvez utiliser ce matériel en sélection. Un cultivar enregistré avec lui comme parent renvoie à cet accord dans le graphe de lignée. Une descendance que personne n’enregistre n’est pas détectée.',
   'app.lic.sign.issuerHere':
-    'Ce navigateur détient la clé qui a émis ce contrat, donc le bouton ci-dessous enregistre que l’émetteur l’a marqué actif — pas que l’autre partie a accepté. Elle ne peut pas encore l’ouvrir ni le signer depuis son propre navigateur.',
+    'Ce navigateur détient la clé qui a émis cet accord, donc le bouton ci-dessous enregistre que l’émetteur l’a marqué actif — pas que l’autre partie a accepté. Elle ne peut pas encore l’ouvrir ni le signer depuis son propre navigateur.',
   'app.lic.sign.whatItRecords':
     'Ceci enregistre une date et la clé de détenteur qui a appuyé, dans le registre de VeilCore. Ce n’est ni une signature cryptographique ni une signature électronique qualifiée (eIDAS).',
   'app.lic.sign.accept': 'Examen terminé — signer et accepter',
@@ -464,8 +464,8 @@ export const licensing = {
     'Il manque la dernière partie de ce lien. Rouvrez-le exactement tel que vous l’avez reçu, y compris ce qui suit le #.',
   'app.lic.proof.someoneChecks': 'Quelqu’un veut vérifier votre licence',
   'app.lic.proof.noneHere':
-    'Cet appareil ne détient aucune licence issue de l’enregistrement demandé (clé {key}). Ouvrez le lien sur l’appareil où vous avez accepté la licence, ou restaurez d’abord votre copie de secours ici.',
-  'app.lic.proof.restore': 'Restaurer une copie de secours',
+    'Cet appareil ne détient aucune licence issue de l’enregistrement demandé (clé {key}). Ouvrez le lien sur l’appareil où vous avez accepté la licence, ou restaurez d’abord votre sauvegarde ici.',
+  'app.lic.proof.restore': 'Restaurer une sauvegarde',
   'app.lic.proof.revoked':
     'Votre licence issue de cet enregistrement n’est plus valide sur la chaîne : elle a été révoquée.',
   'app.lic.proof.sendingBack': 'Renvoi de la réponse…',
@@ -502,7 +502,7 @@ export const licensing = {
   'app.lic.real.keyChanged':
     'La clé de cet enregistrement a changé depuis l’acceptation. Rien n’a été envoyé : recommencez avec un nouveau lien.',
   'app.lic.real.oldLink': 'Ce lien a été créé avant les messages privés. Recommencez avec un nouveau lien.',
-  'app.lic.real.noSalt': 'Ce contrat a été établi avant que les contrats aient un sel. Créez-en un nouveau.',
+  'app.lic.real.noSalt': 'Cet accord a été établi avant que les accords aient un sel. Créez-en un nouveau.',
   'app.lic.real.sendingTerms': 'Envoi des conditions…',
   'app.lic.real.nothingToRevoke': 'Rien à révoquer sur la chaîne.',
   'app.lic.real.justActivated':
@@ -536,9 +536,9 @@ export const licensing = {
   'app.lic.real.cancelQ':
     'Annuler cette licence ? L’autre partie ne pourra pas l’activer. Ceci est inscrit sur Midnight et irréversible.',
   'app.lic.real.cancelYes': 'Oui, l’annuler',
-  'app.lic.real.saveBackup': 'Enregistrer la copie de secours',
+  'app.lic.real.saveBackup': 'Enregistrer la sauvegarde',
   'app.lic.real.backupNow':
-    'Enregistrez une nouvelle copie de secours : elle contient maintenant la clé de cette licence. Sans elle, vous ne pourrez pas lire leurs relevés sur un autre appareil.',
+    'Enregistrez une nouvelle sauvegarde : elle contient maintenant la clé de cette licence. Sans elle, vous ne pourrez pas lire leurs relevés sur un autre appareil.',
   'app.lic.real.liveSince': 'Valide sur Midnight depuis le {date}.',
   'app.lic.real.agreedOn': 'L’autre partie a accepté ces conditions le {date}.',
   'app.lic.real.liveMeans': 'Ce que « valide » veut dire',
@@ -581,7 +581,7 @@ export const licensing = {
   'app.lic.inv.howHandOn':
     'Quelqu’un détient une licence valide issue de cet enregistrement et vous la transmet, avec l’accord du concédant. Accepter crée votre propre clé de licence sur cet appareil ; elle ne le quitte jamais. Vous lisez un code au concédant, vous lisez et acceptez les conditions, et une fois que le détenteur actuel la transmet et que le concédant approuve, vous la détenez sur Midnight. VeilCore paie les frais de réseau et ne voit jamais les conditions.',
   'app.lic.inv.backupHandOn':
-    'Votre clé de licence n’est que sur cet appareil. Enregistrez votre copie de secours maintenant : sans elle, vous ne pourrez pas présenter cette licence depuis un autre appareil.',
+    'Votre clé de licence n’est que sur cet appareil. Enregistrez votre sauvegarde maintenant : sans elle, vous ne pourrez pas présenter cette licence depuis un autre appareil.',
   'app.lic.inv.readToLicensor': 'Lisez ce code au concédant, par téléphone ou en personne :',
   'app.lic.inv.whenMatches':
     'Quand il correspond au sien, il vous envoie les conditions et cette page avance d’elle-même.',
@@ -614,7 +614,7 @@ export const licensing = {
   'app.lic.inv.how':
     'Accepter crée votre propre clé de licence sur cet appareil. Elle ne le quitte jamais : l’expéditeur ne reçoit qu’un code dérivé de celle-ci. Une fois la licence émise, vous l’activez avec votre clé, et elle est sur Midnight avec vos deux clés. Les conditions sont entre vous : VeilCore enregistre que la licence existe et qu’elle est valide, et n’écrit, ne voit ni ne fait appliquer les conditions. VeilCore paie les frais de réseau.',
   'app.lic.inv.backup':
-    'Votre clé de licence n’est que sur cet appareil. Enregistrez votre copie de secours maintenant : il vous la faut pour l’activer, et pour présenter cette licence depuis un autre appareil.',
+    'Votre clé de licence n’est que sur cet appareil. Enregistrez votre sauvegarde maintenant : il vous la faut pour l’activer, et pour présenter cette licence depuis un autre appareil.',
   'app.lic.inv.readCode': 'Lisez ce code à la personne qui vous a envoyé le lien, par téléphone ou en personne :',
   'app.lic.inv.theirsToo':
     'Son écran en affiche un aussi. S’ils correspondent, elle émet la licence et cette page avance d’elle-même. Vous pouvez la fermer et rouvrir le lien plus tard.',
@@ -623,13 +623,13 @@ export const licensing = {
   'app.lic.inv.issuedRead': 'La licence a été émise sur Midnight (vérifié sur la chaîne). Lisez les conditions :',
   'app.lic.inv.agreeActivate': 'Accepter et activer',
   'app.lic.inv.handedOn':
-    'Le concédant a approuvé : cette licence est désormais détenue par {name}, plus par vous. Votre historique de redevances est conservé dans votre copie de secours.',
+    'Le concédant a approuvé : cette licence est désormais détenue par {name}, plus par vous. Votre historique de redevances est conservé dans votre sauvegarde.',
   'app.lic.inv.gone':
     'Elle n’est plus sur Midnight : l’expéditeur l’a annulée ou révoquée. Demandez-lui si vous pensez que c’est une erreur.',
   'app.lic.inv.liveSince':
-    'Valide sur Midnight depuis le {date}. Gardez votre copie de secours : c’est ainsi que vous prouverez cette licence plus tard.',
+    'Valide sur Midnight depuis le {date}. Gardez votre sauvegarde : c’est ainsi que vous prouverez cette licence plus tard.',
   'app.lic.inv.live':
-    'Valide sur Midnight. Gardez votre copie de secours : c’est ainsi que vous prouverez cette licence plus tard.',
+    'Valide sur Midnight. Gardez votre sauvegarde : c’est ainsi que vous prouverez cette licence plus tard.',
   'app.lic.inv.newHolder': 'le nouveau détenteur',
   'app.lic.hi.errNonce':
     'Le registre affiche une réponse différente de celle donnée par cette page. Annulez cette transmission et recommencez.',
@@ -704,7 +704,7 @@ export const licensing = {
   'app.lic.claim.from':
     'De : <b>{name}</b> (selon ses propres dires ; vérifiez son identité comme pour tout prêt) · sa clé on-chain {key}',
   'app.lic.claim.noRecord':
-    'Cet appareil ne détient pas l’enregistrement visé par cette mention de prêteur (clé {key}). Ouvrez le lien sur l’appareil qui le détient, ou restaurez d’abord votre copie de secours ici.',
+    'Cet appareil ne détient pas l’enregistrement visé par cette mention de prêteur (clé {key}). Ouvrez le lien sur l’appareil qui le détient, ou restaurez d’abord votre sauvegarde ici.',
   'app.lic.claim.reading': 'Lecture de la mention de prêteur sur Midnight…',
   'app.lic.claim.none':
     'Midnight n’affiche aucune mention de prêteur de ce type en attente sur <b>{record}</b> : elle a été retirée, refusée ou jamais créée. Rien à faire.',
@@ -728,7 +728,7 @@ export const licensing = {
   'app.lic.steps.i.code': 'Se lire mutuellement le code à 6 chiffres, puis émettre',
   'app.lic.steps.i.activate': 'L’autre partie lit les conditions, accepte et active',
   'app.lic.steps.l.accept': 'Accepter',
-  'app.lic.steps.l.backup': 'Enregistrer votre copie de secours (elle contient votre clé de licence)',
+  'app.lic.steps.l.backup': 'Enregistrer votre sauvegarde (elle contient votre clé de licence)',
   'app.lic.steps.l.code': 'Lire votre code à 6 chiffres, puis attendre l’émission',
   'app.lic.steps.l.activate': 'Lire les conditions, accepter et activer',
   'app.lic.handon.steps.i.link': 'Créer un lien pour le nouveau détenteur',
@@ -764,7 +764,7 @@ export const licensing = {
     'Le nom de votre établissement. Les détenteurs le voient à côté de votre clé et vérifient votre identité comme pour tout prêt.',
   'app.lic.lend.make': 'Créer ma clé de prêteur',
   'app.lic.lend.backupKey':
-    'Votre clé de prêteur a été créée sur cet appareil et n’existe qu’ici. Enregistrez votre copie de secours maintenant : sans elle, personne ne pourra jamais lever une mention que vous inscrivez.',
+    'Votre clé de prêteur a été créée sur cet appareil et n’existe qu’ici. Enregistrez votre sauvegarde maintenant : sans elle, personne ne pourra jamais lever une mention que vous inscrivez.',
   'app.lic.lend.anchorWhy':
     'Ensuite, placez la clé de {name} sur Midnight. Cela prend quelques minutes, et VeilCore paie les frais de réseau.',
   'app.lic.lend.anchor': 'Placer ma clé sur Midnight',
@@ -776,12 +776,12 @@ export const licensing = {
   'app.lic.lend.recordFromCheck': 'Depuis la page de vérification de {id}.',
   'app.lic.lend.words': 'Vos mots pour le prêt',
   'app.lic.lend.wordsHelp':
-    'Un numéro de prêt, par exemple. Seul un code tiré de ces mots va sur Midnight ; les mots restent chez vous et dans votre copie de secours.',
+    'Un numéro de prêt, par exemple. Seul un code tiré de ces mots va sur Midnight ; les mots restent chez vous et dans votre sauvegarde.',
   'app.lic.lend.start': 'Préparer la mention',
   'app.lic.lend.yours': 'Vos mentions',
   'app.lic.lend.onRecord': 'Sur l’enregistrement {record}',
   'app.lic.lend.backupClaim':
-    'Enregistrez d’abord une nouvelle copie de secours : elle garde ce à partir de quoi cette mention a été faite, pour que vous puissiez toujours la lever.',
+    'Enregistrez d’abord une nouvelle sauvegarde : elle garde ce à partir de quoi cette mention a été faite, pour que vous puissiez toujours la lever.',
   'app.lic.lend.readyToSend': 'Prêt. Envoyez la mention sur Midnight, puis envoyez le lien au détenteur.',
   'app.lic.lend.send': 'Envoyer la mention',
   'app.lic.lend.proposed':

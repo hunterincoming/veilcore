@@ -11,14 +11,14 @@ export const document = {
   'app.doc.new.intro':
     'Elija el archivo. Se queda en este dispositivo. Solo se sellan un código calculado a partir de su contenido, su nombre y su tamaño, con una fecha que nadie puede antedatar. Si cambia un solo carácter del archivo, el código deja de coincidir.',
   'app.doc.new.proves':
-    'Lo que esto mostrará: un archivo con exactamente estos bytes estaba en sus manos en la fecha en que se sella. No que el documento sea auténtico, que el emisor lo haya emitido ni que lo que dice sea cierto.',
+    'Lo que esto mostrará: un archivo con exactamente estos bytes estaba en sus manos a más tardar en la fecha en que se sella. No que el documento sea auténtico, que el emisor lo haya emitido ni que lo que dice sea cierto.',
   'app.doc.f.files': 'Archivos',
   'app.doc.f.filesHelp': 'Hasta {max}: un contrato y sus anexos, un certificado de análisis y sus cromatogramas.',
-  'app.doc.f.add': 'Añadir un archivo',
-  'app.doc.f.addMore': 'Añadir otro archivo',
+  'app.doc.f.add': 'Agregar un archivo',
+  'app.doc.f.addMore': 'Agregar otro archivo',
   'app.doc.f.reading': 'Leyendo {name}…',
   'app.doc.f.tooLarge': '{name} pesa más de {mb} MB, así que no se puede leer aquí.',
-  'app.doc.f.duplicate': '{name} es el mismo archivo que uno ya añadido.',
+  'app.doc.f.duplicate': '{name} es el mismo archivo que uno ya agregado.',
   'app.doc.f.full': 'Son {max} archivos, el máximo que puede tener un documento.',
   'app.doc.f.remove': 'Quitar {name}',
   'app.doc.f.title': 'Título',
@@ -35,7 +35,7 @@ export const document = {
   'app.doc.f.holder': 'En poder de',
   'app.doc.f.holderHelp': 'Usted, o su organización.',
   'app.doc.f.notes': 'Notas (opcional)',
-  'app.doc.need.file': 'Añada primero el archivo.',
+  'app.doc.need.file': 'Agregue primero el archivo.',
   'app.doc.need.title': 'Póngale un título.',
   'app.doc.need.holder': 'Indique quién lo tiene.',
   'app.doc.need.heading': 'Falta esto antes de poder sellarlo:',
@@ -53,7 +53,7 @@ export const document = {
   'app.doc.homeLine': 'Documento · {type}',
   'app.doc.k.type': 'Tipo',
   'app.doc.k.issuer': 'Emitido por (su declaración)',
-  'app.doc.k.issuerHolder': 'Emitido por (declaración del titular)',
+  'app.doc.k.issuerHolder': 'Emitido por (declaración de quien lo selló)',
   'app.doc.k.reference': 'Referencia',
   'app.doc.k.issued': 'Fecha del documento',
   'app.doc.k.files': 'Archivos',
@@ -66,7 +66,7 @@ export const document = {
   'app.doc.fileSize': '{size} bytes',
   'app.doc.share.title': 'Demostrar que tenía este archivo',
   'app.doc.share.text':
-    'Envíele el archivo y este enlace. Su navegador comprueba que el archivo es, byte a byte, uno de los sellados aquí, y cuándo se fechó: no se sube nada, y la respuesta no depende de la palabra de VeilCore.',
+    'Envíele el archivo y este enlace. Su navegador comprueba que el archivo es, byte por byte, uno de los sellados aquí, y cuándo se fechó: no se sube nada, y la respuesta no depende de la palabra de VeilCore.',
   'app.doc.share.warn':
     'El enlace muestra a quien lo tenga todo lo que hay en este registro de documento: título, tipo, emisor, referencia, fecha, el nombre y el SHA-256 de cada archivo, los nombres de los registros a los que se refiere y sus notas. Nunca el archivo en sí.',
   'app.doc.share.copy': 'Copiar enlace: demuestra que tenía este archivo',
@@ -76,8 +76,8 @@ export const document = {
   'app.doc.compare.title': '¿Es el mismo archivo?',
   'app.doc.compare.text': 'Elija un archivo para compararlo con los sellados aquí. No se sube.',
   'app.doc.compare.pick': 'Elegir un archivo',
-  'app.doc.compare.match': '<b>{name}</b> es, byte a byte, {sealed}, sellado aquí.',
-  'app.doc.compare.matchSame': '<b>{name}</b> es, byte a byte, el archivo sellado aquí.',
+  'app.doc.compare.match': '<b>{name}</b> es, byte por byte, {sealed}, sellado aquí.',
+  'app.doc.compare.matchSame': '<b>{name}</b> es, byte por byte, el archivo sellado aquí.',
   'app.doc.compare.noMatch':
     '<b>No coincide.</b> {name} no es el archivo sellado. Volver a guardarlo, imprimirlo como PDF o enviarlo por algunas aplicaciones cambia el archivo: pida el archivo original.',
   'app.doc.new.introTech': 'Dato técnico: el código es el SHA-256 del archivo.',
@@ -104,16 +104,16 @@ export const document = {
   'app.doc.check.notDoc': 'Lo que hay en este enlace no es un registro de documento que se pueda comprobar aquí.',
   'app.doc.check.recomputed': 'Código de prueba, recalculado aquí a partir del enlace',
   'app.doc.check.registryOnly':
-    'El registro de VeilCore da esta fecha. Esta página no puede comprobarla en Midnight, así que por ahora se basa solo en lo que dice VeilCore.',
+    'El servidor de registros de VeilCore da esta fecha. Esta página no puede comprobarla en Midnight, así que por ahora se basa solo en lo que dice VeilCore.',
   'app.doc.check.notConfirmed':
-    'El registro de VeilCore da esta fecha, pero esta página no pudo confirmarla en Midnight en este momento. Vuelva a intentarlo en unos minutos antes de confiar en ella.',
+    'El servidor de registros de VeilCore da esta fecha, pero esta página no pudo confirmarla en Midnight en este momento. Vuelva a intentarlo en unos minutos antes de confiar en ella.',
   'app.doc.check.notDated':
     'Todavía nada fecha este registro, o el enlace se modificó. No confíe en él hasta que muestre una fecha.',
   'app.doc.check.what':
-    'Lo que esto muestra: un archivo con exactamente estos bytes estaba en manos del titular a más tardar en esa fecha. Lo que no: que el documento sea auténtico, que el emisor lo haya emitido ni que lo que dice sea cierto. «Emitido por» es la declaración del titular.',
+    'Lo que esto muestra: un archivo con exactamente estos bytes estaba en manos de quien lo selló a más tardar en esa fecha. Lo que no: que el documento sea auténtico, que el emisor lo haya emitido ni que lo que dice sea cierto. «Emitido por» es la declaración de quien lo selló.',
   'app.doc.check.whatUndated':
-    'Lo que esto mostrará, una vez fechado: un archivo con exactamente estos bytes estaba en manos del titular a más tardar en su fecha. Lo que no: que el documento sea auténtico, que el emisor lo haya emitido ni que lo que dice sea cierto. «Emitido por» es la declaración del titular.',
-  'app.doc.check.inLink': 'En el enlace (las palabras del propio titular)',
+    'Lo que esto mostrará, una vez fechado: un archivo con exactamente estos bytes estaba en manos de quien lo selló a más tardar en su fecha. Lo que no: que el documento sea auténtico, que el emisor lo haya emitido ni que lo que dice sea cierto. «Emitido por» es la declaración de quien lo selló.',
+  'app.doc.check.inLink': 'En el enlace (las palabras de quien lo selló)',
   'app.doc.nums.title': 'Los números que figuran (opcional)',
   'app.doc.nums.help':
     'Escríbalos tal como están impresos. Se sellan con el documento para que más adelante pueda probar uno, como «THC total como máximo 0,3 %», sin mostrar los demás ni el certificado.',
@@ -158,7 +158,7 @@ export const document = {
   'app.claim.already': 'Ya es público sobre {label}: {list}.',
   'app.claim.leak': 'Cada límite que prueba es público para siempre, y juntos acotan el número.',
   'app.claim.computer':
-    'Probarlo lleva uno o dos minutos en un portátil y mucha memoria: use un ordenador. Los teléfonos aún no se han probado.',
+    'Probarlo lleva uno o dos minutos en una computadora portátil y mucha memoria: use una computadora. Los teléfonos aún no se han probado.',
   'app.claim.go': 'Probarlo en Midnight',
   'app.claim.going': 'Probando…',
   'app.claim.done': 'Probado en Midnight:',
@@ -169,11 +169,32 @@ export const document = {
   'app.claim.line.atLeast': '{label} es como mínimo {bound} {unit}',
   'app.claim.line.value': '{label} es {value} {unit}',
   'app.claim.holderTyped': 'Los números son suyos tal como los escribió: ningún laboratorio los firmó.',
-  'app.claim.check.title': 'Comprobar una prueba',
+  'app.claim.check.title': 'Comprobar una afirmación',
+  'app.claim.verdict.bad': 'Este enlace no se puede leer, así que no se comprobó nada.',
+  'app.claim.verdict.checking': 'Comprobando esta afirmación en su navegador…',
+  'app.claim.verdict.failed': 'Esta afirmación no superó la comprobación. No confíe en ella.',
+  'app.claim.verdict.labFailed':
+    'Esta afirmación superó la comprobación, pero la firma del laboratorio no. Vea más abajo.',
+  'app.claim.verdict.someFailed': 'Esta afirmación superó la comprobación, pero otra de este enlace no. Vea más abajo.',
+  'app.claim.verdict.okWhen': 'Probada el {date}. Comprobada en su navegador.',
+  'app.claim.verdict.ok': 'Esta afirmación superó la comprobación en su navegador.',
+  'app.claim.verdict.labConflict':
+    'Esta afirmación superó la comprobación, pero más de un laboratorio reclama la clave que la firmó, así que tome los números como propios de quien hizo la afirmación. Vea más abajo.',
+  'app.claim.verdict.labWithdrawn':
+    'Esta afirmación superó la comprobación, pero el laboratorio retiró su firma, así que tome los números como propios de quien hizo la afirmación. Vea más abajo.',
+  'app.doc.verdict.noDate':
+    'VeilCore aún no tiene fecha para este documento exacto. Uno recién sellado recibe su fecha con el próximo lote; un enlace modificado no coincidirá.',
+  'app.doc.verdict.bad': 'Este enlace no se puede leer, así que no se comprobó nada.',
+  'app.doc.verdict.dated': 'Fechado el {date}. Comprobado en su navegador.',
+  'app.doc.verdict.datedChooseFile':
+    'Fechado el {date}. Comprobado en su navegador. Elija el archivo más abajo para comprobar que es el mismo.',
+  'app.doc.verdict.datedSameFile':
+    'Fechado el {date}, y el archivo que eligió es el que se selló. Comprobado en su navegador.',
+  'app.doc.verdict.datedOtherFile': 'Fechado el {date}, pero el archivo que eligió no es el que se selló.',
   'app.claim.check.intro':
-    'Alguien le envió este enlace para mostrar un hecho sobre un número de un documento sellado, sin mostrar el número ni el documento. Esta página lee la prueba en Midnight y la comprueba.',
+    'Alguien le envió este enlace para mostrar un hecho sobre un número de un documento sellado, sin mostrar el número ni el documento. Esta página lee la afirmación en Midnight y la comprueba.',
   'app.claim.check.bad': 'Este enlace no se puede leer. Pídalo de nuevo.',
-  'app.claim.check.checking': 'Leyendo la prueba en Midnight…',
+  'app.claim.check.checking': 'Leyendo la afirmación en Midnight…',
   'app.claim.check.okWhen': 'Probado en Midnight en el bloque {block}{date}.',
   'app.claim.check.failed': 'No confirmado: {reason} No confíe en ello.',
   'app.claim.check.record': 'El registro al que se refiere',
@@ -193,7 +214,7 @@ export const document = {
   'app.doc.local.choice': 'Guardar este registro solo en este dispositivo y en mi copia de seguridad',
   'app.doc.local.before': 'Antes de elegir:',
   'app.doc.local.p1':
-    'Nada de lo que escriba aquí se envía a VeilCore, ni bloqueado ni sin bloquear. Lo que se envía, para que el registro reciba su fecha: su identificador, su código de prueba y su vínculo de clave (un código hecho con la clave propia del registro).',
+    'Nada de lo que escriba aquí se envía a VeilCore, ni cifrado ni sin cifrar. Lo que se envía, para que el registro reciba su fecha: su identificador, su código de prueba y su vínculo de clave (un código hecho con la clave propia del registro).',
   'app.doc.local.p2': 'El servidor de VeilCore no puede devolverle este registro: no lo tiene en ningún momento.',
   'app.doc.local.p3':
     'Las únicas copias son la de este navegador y la de un archivo de copia de seguridad guardado después de sellar. Una copia de seguridad guardada antes no contiene este registro, y una copia con llave de acceso no lo contiene en ningún caso. En cuanto se selle, se le pedirá guardar y comprobar una copia de seguridad.',
@@ -201,11 +222,11 @@ export const document = {
   'app.doc.local.p5': 'Se elige una sola vez, al sellar. Después no se puede cambiar.',
   'app.doc.local.title': 'Guardado solo en este dispositivo',
   'app.doc.local.text':
-    'Nada de lo escrito en este registro se envió a VeilCore, ni bloqueado ni sin bloquear. Las únicas copias están en este navegador y en el archivo de copia de seguridad que usted comprobó. Si pierde las dos, el registro se pierde: VeilCore no puede devolvérselo. Una copia de seguridad guardada antes de sellar este registro no lo contiene, y una copia con llave de acceso no lo contiene en ningún caso.',
+    'Nada de lo escrito en este registro se envió a VeilCore, ni cifrado ni sin cifrar. Las únicas copias están en este navegador y en el archivo de copia de seguridad que usted comprobó. Si pierde las dos, el registro se pierde: VeilCore no puede devolvérselo. Una copia de seguridad guardada antes de sellar este registro no lo contiene, y una copia con llave de acceso no lo contiene en ningún caso.',
   'app.doc.local.notBacked':
     'Aún no está en ninguna copia de seguridad. La única copia de este registro está en este navegador: si sus datos se borran ahora, el registro se pierde, y VeilCore no puede devolvérselo. Guarde ahora su archivo de copia de seguridad y compruébelo.',
   'app.doc.local.sent':
-    'Lo que ha salido de este dispositivo: el identificador del registro, su código de prueba y su vínculo de clave, enviados a VeilCore para fecharlo. Cada solicitud muestra a VeilCore su dirección de red y la hora. Si tiene una copia con llave de acceso, esta guarda el identificador y las claves de este registro, bloqueados, en el servidor de VeilCore; en ningún caso lo que usted escribió.',
+    'Lo que ha salido de este dispositivo: el identificador del registro, su código de prueba y su vínculo de clave, enviados a VeilCore para fecharlo. Cada solicitud muestra a VeilCore su dirección de red y la hora. Si tiene una copia con llave de acceso, esta guarda el identificador y las claves de este registro, cifrados, en el servidor de VeilCore; en ningún caso lo que usted escribió.',
   'app.doc.local.stamp':
     'Poner un sello de fecha a la clave de este registro es decisión suya, y solo lo inicia el botón de abajo. Si lo hace, un código hecho con la clave va a Midnight a través del servicio de tarifas de VeilCore. Nada de lo que usted escribió va con él.',
   'app.doc.stamp.title': 'Poner un sello de fecha a la clave de este registro en {network}',
@@ -272,7 +293,7 @@ export const document = {
   'app.doc.chain.need.aNumber': 'Escriba al menos un número.',
   'app.doc.chain.sheet.title': '¿No tiene un archivo?',
   'app.doc.chain.sheet.text':
-    'Un registro necesita un archivo. Su propia hoja de lote es la mejor opción: fecha un documento de trabajo que usted ya lleva. Si no tiene ninguna, aquí se crea una hoja de texto sin formato con el identificador, la fecha, el sitio, la variedad, el titular y «Sobre» de arriba, sin recuentos ni pesos, y se guarda en este dispositivo. Rellene antes esos campos.',
+    'Un registro necesita un archivo. Su propia hoja de lote es la mejor opción: fecha un documento de trabajo que usted ya lleva. Si no tiene ninguna, aquí se crea una hoja de texto sin formato con el identificador, la fecha, el sitio, la variedad, el titular y «Sobre» de arriba, sin recuentos ni pesos, y se guarda en este dispositivo. Complete antes esos campos.',
   'app.doc.chain.sheet.make': 'Crear una hoja con lo que escribí',
   'app.doc.chain.sheet.made':
     'Creada y guardada como {name}. Conserve ese archivo: hace falta para comprobar el registro y debe seguir igual byte por byte. Si cambia lo que escribió arriba, la hoja no cambia con ello.',
@@ -283,12 +304,12 @@ export const document = {
   'app.doc.chain.carried':
     'Los registros enlazados aquí venían en este enlace, de quien lo envió. El registro sellado nombra cada uno solo por su identificador, así que nada aquí muestra que un registro enlazado sea el nombrado.',
   'app.doc.chain.idOnly':
-    'Cuando este enlace solo lleva el identificador de un registro, su página muestra lo que el registro de VeilCore informa sobre ese identificador, sin ninguna marca de comprobación. Para una fecha comprobada, pida al titular el enlace de comprobación de ese registro.',
+    'Cuando este enlace solo lleva el identificador de un registro, su página muestra lo que el servidor de registros de VeilCore informa sobre ese identificador, sin ninguna marca de comprobación. Para una fecha comprobada, pida al titular el enlace de comprobación de ese registro.',
   'app.doc.chain.namedAs':
     'Abrió esto desde otro registro, que lo nombra como registro {id}. Nada en el enlace une ese identificador al código de prueba de este registro.',
-  'app.doc.chain.askRegistry': 'Ver lo que el registro de VeilCore informa sobre el registro {id}',
+  'app.doc.chain.askRegistry': 'Ver lo que el servidor de registros de VeilCore informa sobre el registro {id}',
   'app.doc.chain.askRegistrySends':
-    'Esa página envía el identificador del registro al registro de VeilCore y, en su dirección, este código de prueba al servidor del sitio web. Nada más de este enlace.',
+    'Esa página envía el identificador del registro al servidor de registros de VeilCore y, en su dirección, este código de prueba al servidor del sitio web. Nada más de este enlace.',
   'app.doc.chain.next.title': 'El siguiente paso de su cadena',
   'app.doc.chain.next.text': 'Selle el siguiente paso como un registro propio, sobre este. Recibe su propia fecha.',
   'app.doc.chain.next.grow-batch': 'Registrar un lote de cultivo a partir de este',
@@ -313,7 +334,7 @@ export const document = {
   'app.doc.local.prove.off': 'Probar un número no está activado para un registro guardado solo en este dispositivo.',
   'app.doc.local.prove.title': 'Probar un número: usted decide',
   'app.doc.local.prove.text':
-    'Desactivado salvo que usted lo active aquí. Probar publica para siempre un hecho sobre un número en Midnight, a través del servicio de tarifas de VeilCore. No se envía nada al registro de VeilCore. Antes de probar nada, se le muestra exactamente lo que se publicaría.',
+    'Desactivado salvo que usted lo active aquí. Probar publica para siempre un hecho sobre un número en Midnight, a través del servicio de tarifas de VeilCore. No se envía nada al servidor de registros de VeilCore. Antes de probar nada, se le muestra exactamente lo que se publicaría.',
   'app.doc.local.prove.choice': 'Mostrar «Probar un número» para este registro',
   'app.doc.local.prove.publish.title': 'Qué se publicará si continúa',
   'app.doc.local.prove.publish.range':
@@ -322,26 +343,26 @@ export const document = {
     'En Midnight, público y permanente: el formulario «{schema}», el campo «{label}» y el número en sí, {value}, con un código que representa este registro.',
   'app.doc.local.prove.publish.noBound': 'Escriba un límite para ver exactamente lo que se publicaría.',
   'app.doc.local.prove.publish.route':
-    'Va de este navegador a Midnight a través del servicio de tarifas de VeilCore, que ve lo que se publica y su dirección de red. No se envía nada al registro de VeilCore. El número es el que usted escribió, no el que midió un laboratorio.',
+    'Va de este navegador a Midnight a través del servicio de tarifas de VeilCore, que ve lo que se publica y su dirección de red. No se envía nada al servidor de registros de VeilCore. El número es el que usted escribió, no el que midió un laboratorio.',
   'app.doc.local.prove.direction.atMost': 'como máximo',
   'app.doc.local.prove.direction.atLeast': 'como mínimo',
   'app.doc.local.prove.confirmExact': 'Sí, publicar el número en sí: {value}, en Midnight, para siempre.',
   'app.doc.local.textProved':
-    'Nada de lo escrito en este registro se envió al registro de VeilCore, ni bloqueado ni sin bloquear. Lo que usted eligió probar sobre sus números es público en Midnight. Las únicas copias del registro están en este navegador y en el archivo de copia de seguridad que usted comprobó. Si pierde las dos, el registro se pierde: VeilCore no puede devolvérselo. Una copia de seguridad guardada antes de sellar este registro no lo contiene, y una copia con llave de acceso no lo contiene en ningún caso.',
+    'Nada de lo escrito en este registro se envió al servidor de registros de VeilCore, ni cifrado ni sin cifrar. Lo que usted eligió probar sobre sus números es público en Midnight. Las únicas copias del registro están en este navegador y en el archivo de copia de seguridad que usted comprobó. Si pierde las dos, el registro se pierde: VeilCore no puede devolvérselo. Una copia de seguridad guardada antes de sellar este registro no lo contiene, y una copia con llave de acceso no lo contiene en ningún caso.',
   'app.doc.local.proved':
-    'Usted eligió probar hechos sobre los números de este registro. Fueron a Midnight a través del servicio de tarifas de VeilCore y son públicos para siempre; aparecen abajo. Nada de lo escrito en este registro se envió al registro de VeilCore.',
+    'Usted eligió probar hechos sobre los números de este registro. Fueron a Midnight a través del servicio de tarifas de VeilCore y son públicos para siempre; aparecen abajo. Nada de lo escrito en este registro se envió al servidor de registros de VeilCore.',
   'app.claim.tie':
     'Lo que usted prueba queda público en Midnight de un modo que VeilCore, y cualquiera que tenga el enlace de comprobación de este registro, puede vincular con este registro. VeilCore también puede vincularlo con la clave de titular que fechó el registro.',
   'app.doc.local.aboutStaysHere':
-    'Este registro nombra un registro guardado solo en este dispositivo, así que también debe guardarse solo en este dispositivo. De lo contrario, el nombre y el identificador de aquel registro irían a VeilCore dentro de la copia bloqueada de este. No se guardó ni se envió nada.',
+    'Este registro nombra un registro guardado solo en este dispositivo, así que también debe guardarse solo en este dispositivo. De lo contrario, el nombre y el identificador de aquel registro irían a VeilCore dentro de la copia cifrada de este. No se guardó ni se envió nada.',
   'app.doc.chain.aboutLocalOnly':
-    'Un registro guardado solo en este dispositivo solo puede elegirse si este registro también se guarda solo en este dispositivo (la casilla de abajo). Aquello a lo que se refiere un registro se sella en su copia bloqueada, así que un registro corriente enviaría a VeilCore el nombre y el identificador de aquel registro.',
+    'Un registro guardado solo en este dispositivo solo puede elegirse si este registro también se guarda solo en este dispositivo (la casilla de abajo). Aquello a lo que se refiere un registro se sella en su copia cifrada, así que un registro corriente enviaría a VeilCore el nombre y el identificador de aquel registro.',
   'app.doc.check.tooLarge':
     'Este enlace lleva más de lo que puede llevar un enlace de comprobación. Pida al remitente el enlace propio de cada registro.',
   'app.doc.chain.share.warnLocal':
-    'Nada de lo escrito en un registro guardado solo en este dispositivo se envió nunca al registro de VeilCore. Al copiar este enlace, entrega lo escrito en cada uno de los que lleva (marcados arriba, y este registro si lo es) a quien lo reciba.',
+    'Nada de lo escrito en un registro guardado solo en este dispositivo se envió nunca al servidor de registros de VeilCore. Al copiar este enlace, entrega lo escrito en cada uno de los que lleva (marcados arriba, y este registro si lo es) a quien lo reciba.',
   'app.doc.chain.aboutHolderNote':
-    'Al abrir uno de estos enlaces, se pregunta al registro de VeilCore por el identificador de ese registro desde su dirección de red. Para un registro guardado solo en este dispositivo, es una cosa más que el registro de VeilCore llega a saber: que este navegador lo consultó.',
+    'Al abrir uno de estos enlaces, se pregunta al servidor de registros de VeilCore por el identificador de ese registro desde su dirección de red. Para un registro guardado solo en este dispositivo, es una cosa más que el servidor de registros de VeilCore llega a saber: que este navegador lo consultó.',
   'app.doc.copy.title': 'Su copia de un resultado de laboratorio',
   'app.doc.copy.text':
     'Una copia de un resultado que guarda {lab}. La fecha es la del laboratorio, no la suya. VeilCore guarda esta copia, pero no puede fecharla para usted.',

@@ -71,7 +71,7 @@ export const verify = {
   'app.verify.field.parent-names': 'Noms des cultivars parents',
   'app.verify.field.breeding-method': 'Méthode de sélection',
   'app.verify.field.individual-id': 'Numéro d’identification individuel et son système',
-  'app.verify.field.genetics': 'La génétique elle-même — jamais divulguée, par conception',
+  'app.verify.field.genetics': 'La génétique elle-même — jamais divulguée, par principe',
   'app.verify.sum.reports.one': 'un rapport de laboratoire',
   'app.verify.sum.reports.other': '{count} × rapport de laboratoire',
   'app.verify.sum.receipts.one': 'un accusé de réception de laboratoire',
@@ -109,6 +109,44 @@ export const verify = {
   'app.verify.notFoundText':
     'Ce lien de vérification ne correspond à aucun enregistrement du registre. Vérifiez que le lien est complet et non modifié.',
   'app.verify.goHome': 'Aller sur veilcore.org',
+  'app.verify.verdict.checking': 'Vérification de cet enregistrement dans votre navigateur…',
+  'app.verify.verdict.dated': 'Daté du {date}. Toutes les vérifications ont réussi dans votre navigateur.',
+  'app.verify.verdict.datedTest':
+    'Date d’essai, {date}, sur un réseau de test : ce n’est pas une vraie date. Toutes les vérifications ont réussi dans votre navigateur.',
+  'app.verify.verdict.datedButFailed':
+    'Daté du {date}, mais certaines vérifications ont échoué. Voir les vérifications ci-dessous.',
+  'app.verify.verdict.reported':
+    'Le serveur de VeilCore indique qu’il a été daté le {date}. Votre navigateur n’a pas encore confirmé cette date lui-même.',
+  'app.verify.verdict.reportedNoDate':
+    'Le serveur de VeilCore indique qu’il est daté, sans donner de date. Votre navigateur ne l’a pas encore confirmé lui-même.',
+  'app.verify.verdict.dateFailed':
+    'La vérification de la date a échoué dans votre navigateur. Ne vous fiez pas à cette date.',
+  'app.verify.verdict.notYet': 'Pas encore daté. Il attend son horodatage.',
+  'app.verify.verdict.reportedNoDateButFailed':
+    'Le serveur de VeilCore indique qu’il est daté, sans donner de date, et toutes les vérifications n’ont pas réussi. Voir les vérifications ci-dessous.',
+  'app.verify.verdict.reportedButFailed':
+    'Le serveur de VeilCore indique qu’il a été daté le {date}, mais toutes les vérifications n’ont pas réussi. Voir les vérifications ci-dessous.',
+  'app.verify.verdict.datedWithdrawn':
+    'Daté du {date}, mais un laboratoire a retiré sa signature. Voir les vérifications ci-dessous.',
+  'app.verify.verdict.dateUnchecked':
+    'Impossible de vérifier la date pour le moment. Le serveur de VeilCore indique que cet enregistrement est daté, mais cette page n’a pas pu le confirmer. Réessayez dans une minute.',
+  'app.verify.verdict.notYetFailed':
+    'Pas encore daté, et toutes les vérifications n’ont pas réussi. Voir les vérifications ci-dessous.',
+  'app.verify.verdict.unbound':
+    'Ce lien ne contient pas le code de preuve de l’enregistrement : votre navigateur ne peut donc pas savoir si le serveur de VeilCore a répondu au sujet de cet enregistrement. Demandez un nouveau lien à la personne qui vous l’a envoyé.',
+  'app.verify.verdict.nothing': 'Rien ne peut être vérifié pour cet enregistrement : il n’a pas de code de preuve.',
+  'app.verify.checks.see': 'Voir les vérifications',
+  'app.verify.checks.hide': 'Masquer les vérifications',
+  'app.verify.cta': 'Vous voulez une date comme celle-ci pour vos propres plantes ou animaux ?',
+  'app.verify.ctaButton': 'Créer un enregistrement, gratuit',
+  'app.verify.notFoundAsk': 'Demandez à la personne qui vous l’a envoyé de vous renvoyer le lien.',
+  'app.verify.another.label': 'Autre identifiant d’enregistrement ou lien de vérification',
+  'app.verify.another.go': 'Vérifier',
+  'app.verify.another.bad': 'Ce n’est ni un identifiant d’enregistrement ni un lien de vérification.',
+  'app.verify.unreachable.title': 'Impossible de vérifier cet enregistrement pour le moment',
+  'app.verify.unreachable.text':
+    'Le serveur de VeilCore n’a pas répondu, ou a envoyé une réponse que cette page ne peut pas lire. Réessayez dans une minute.',
+  'app.verify.unreachable.retry': 'Réessayer',
   'app.verify.deleted.title': '{id} a été supprimé par son détenteur',
   'app.verify.deleted.when': 'Supprimé le {date}. Ses détails ne sont plus affichés.',
   'app.verify.deleted.datedChecked':
@@ -238,7 +276,7 @@ export const verify = {
   'app.verify.ex.fact3':
     'Vérifié sur Midnight : cette racine de lot a été écrite par la transaction 9c41e0…b27d dans le bloc 2973563 le 2026-10-11 14:03 UTC.{test}',
   'app.verify.ex.note3':
-    'Cette transaction, sur {network}, est ce qui date l’enregistrement. Sur un vrai enregistrement, votre navigateur la demande à un indexeur Midnight et vérifie qu’elle a écrit cette racine de lot dans le contrat de VeilCore. Si aucun indexeur ne répond, la ligne le dit et la date n’est que ce que signale le registre : consultez la transaction sur un explorateur Midnight, comme midnightexplorer.com, avant de vous y fier.',
+    'Cette transaction, sur {network}, est ce qui date l’enregistrement. Sur un vrai enregistrement, votre navigateur la demande à un indexeur Midnight et vérifie qu’elle a écrit cette racine de lot dans le smart contract de VeilCore. Si aucun indexeur ne répond, la ligne le dit et la date n’est que ce que signale le registre : consultez la transaction sur un explorateur Midnight, comme midnightexplorer.com, avant de vous y fier.',
   'app.verify.ex.fact4':
     'Rapport de laboratoire (SHA-256 du fichier 7c1e04d2…9b3a51), signature vérifiée dans ce navigateur. Signé par une clé nommée « Example Lab » (nom non vérifié).',
   'app.verify.ex.note4':
@@ -269,10 +307,10 @@ export const verify = {
     'Ouvrez un explorateur Midnight pour {network}, par exemple {url} (saisissez l’adresse vous-même).',
   'app.verify.self.anyExplorer': 'Ouvrez un explorateur Midnight pour {network}.',
   'app.verify.self.tx': 'Cherchez la transaction {tx}. L’heure de son bloc est la date.',
-  'app.verify.self.contract': 'Vérifiez qu’elle a réussi et qu’elle a appelé le contrat de VeilCore {contract}.',
+  'app.verify.self.contract': 'Vérifiez qu’elle a réussi et qu’elle a appelé le smart contract de VeilCore {contract}.',
   'app.verify.self.noContract': '(le registre ne l’a pas nommé)',
   'app.verify.self.root':
-    'Vérifiez qu’elle a écrit le code de preuve de lot {root}. Un explorateur peut ne pas l’afficher : le dossier de preuve de l’enregistrement, que détient son détenteur, explique comment le lire autrement.',
+    'Vérifiez qu’elle a écrit la racine du lot {root}. Un explorateur peut ne pas l’afficher : le dossier de preuve de l’enregistrement, fourni par son détenteur, explique comment le lire autrement.',
   'app.verify.dnaCheck.help':
     'Vous avez le fichier du rapport ADN que le détenteur vous a envoyé ? Choisissez-le pour vérifier que c’est celui enregistré avec cet enregistrement. Le fichier est lu dans ce navigateur et n’est envoyé nulle part.',
   'app.verify.dnaCheck.button': 'Vérifier un fichier de rapport ADN',

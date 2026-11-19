@@ -112,9 +112,10 @@ indexer of your own choosing instead of ours, see [docs/reproduce-build.md](docs
   built, not yet run on mainnet. A viability result (a sample before or
   after a kill step) is on the test network only (`VIABILITY_RESULTS_ENABLED`).
   [docs/lab-signing.md](docs/lab-signing.md)
-- **Five languages:** English, plus Spanish, Japanese, German and French as machine-drafted
-  translations. veilcore.org and the test site both offer them, under a notice saying each is a
-  draft, until a fluent speaker signs it off ([how](docs/translations/README.md)).
+- **Five languages:** English, plus Spanish, Japanese, German and French. The four translations
+  are machine-assisted and were reviewed against native official sources, not by a fluent
+  speaker ([how](docs/translations/README.md)). A visitor's browser or phone language picks one;
+  the picker is on every page, and the English terms of use govern.
 - **No audit.** Twelve rounds of adversarial review are public, with the attacks kept as tests
   ([docs/security-pass-30sep.md](docs/security-pass-30sep.md)). They are not a formal audit.
 - **Open to first users** since 20 October 2026. Every record so far is our own test data.

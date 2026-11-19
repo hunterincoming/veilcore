@@ -59,7 +59,7 @@ export const royalties = {
   'app.roy.rights.breed+sell': 'criar con él y obtener y vender semen, embriones o reproductores',
   'app.roy.rights.breed+collect': 'criar con él y obtener semen o embriones para su uso',
   'app.roy.rights.breed': 'criar con él, solo con sus propios animales',
-  'app.roy.rights.full-transfer': 'asumir los derechos que el titular tenga sobre ella',
+  'app.roy.rights.full-transfer': 'asumir los derechos que el licenciante tenga sobre ella',
   'app.roy.rights.cultivate+propagate': 'cultivarla y propagarla',
   'app.roy.rights.cultivate': 'cultivarla',
   'app.roy.s.anywhere': 'cualquier territorio',
@@ -172,9 +172,9 @@ export const royalties = {
   'app.roy.noLock':
     'Este navegador no guarda lo que VeilCore necesita para enviar desde una sola pestaña a la vez, así que no se envió nada.',
   'app.roy.alreadyThereOn':
-    'Este informe ya está: uno con exactamente las mismas cifras para este periodo se envió el {date}, así que no se envió nada nuevo. Para enviar otro del mismo periodo, añada una nota que diga para qué es.',
+    'Este informe ya está: uno con exactamente las mismas cifras para este periodo se envió el {date}, así que no se envió nada nuevo. Para enviar otro del mismo periodo, agregue una nota que diga para qué es.',
   'app.roy.alreadyThere':
-    'Este informe ya está: uno con exactamente las mismas cifras para este periodo ya se envió, así que no se envió nada nuevo. Para enviar otro del mismo periodo, añada una nota que diga para qué es.',
+    'Este informe ya está: uno con exactamente las mismas cifras para este periodo ya se envió, así que no se envió nada nuevo. Para enviar otro del mismo periodo, agregue una nota que diga para qué es.',
   'app.roy.sendsSame': 'Si lo intenta de nuevo, se envía el mismo mensaje firmado, así que no puede contar dos veces.',
   'app.roy.home.l.running': 'Este período termina pronto. Su informe de {period} vencerá el',
   'app.roy.home.l.report': 'Su informe de {period} vence el',
@@ -212,7 +212,7 @@ export const royalties = {
   'app.roy.home.correct': 'Enviar un informe corregido',
   'app.roy.remind': 'Enviar un recordatorio',
   'app.roy.remindSent': 'Recordatorio enviado hoy',
-  'app.roy.cal.add': 'Añadir los vencimientos a su calendario',
+  'app.roy.cal.add': 'Agregar los vencimientos a su calendario',
   'app.roy.cal.report': 'Vence el informe de regalías ({period})',
   'app.roy.cal.payment': 'Vence el pago de regalías ({period})',
   'app.roy.breach.open': 'Enviar un aviso de incumplimiento',
@@ -314,7 +314,7 @@ export const royalties = {
   'app.roy.payout.openLink': 'Abrir la página de pago de {who}',
   'app.roy.payout.privacy':
     'Sus datos de pago van cifrados en los servidores de VeilCore, que no pueden leerlos. Las copias que usted descargue los incluyen.',
-  'app.roy.inv.add': 'Añadir datos de empresa para las declaraciones',
+  'app.roy.inv.add': 'Agregar datos de empresa para las declaraciones',
   'app.roy.inv.change': 'Cambiar datos de empresa',
   'app.roy.inv.set': 'Las declaraciones llevan los datos de empresa de {name}.',
   'app.roy.inv.why':

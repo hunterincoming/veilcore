@@ -1,5 +1,5 @@
-// The record app in German (Sie): every key of ../en, screen by screen. DRAFT: machine-assisted,
-// to be checked by a fluent speaker before publishing (docs/translations/README.md). Terms are
+// The record app in German (Sie): every key of ../en, screen by screen. Machine-assisted,
+// reviewed against native official sources (docs/i18n-glossary.md). Terms are
 // the site's (../../de.ts), plus the app's: Züchter (breeder), Inhaber and halten (holder, hold;
 // never Besitz or Eigentum), Datensatz (record), Register (registry), Prüfcode (proof code; DNA-Fingerabdruck only for genetic data),
 // Datumsstempel, Laborcode, Empfangsbestätigung, Sicherungskopie, Laborbericht, Stapel (batch),

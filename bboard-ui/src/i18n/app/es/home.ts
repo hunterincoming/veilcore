@@ -6,12 +6,12 @@ import type { AppTranslation } from '../../translate';
 export const home = {
   'app.home.firstRecord': 'Creemos su primer registro',
   'app.home.oldLinks':
-    'Los enlaces de comprobación y códigos QR hechos antes del 17 de octubre de 2026 ya no muestran el nombre de sus registros: VeilCore ahora guarda los nombres cerrados, así que el servidor de registros no tiene ninguno que mostrar. Para compartir un nombre, abra el registro, elija Mostrar a alguien, active el nombre y envíe el enlace nuevo. Un certificado nuevo tiene un código QR nuevo.',
+    'Los enlaces de comprobación y códigos QR hechos antes del 17 de octubre de 2026 ya no muestran el nombre de sus registros: VeilCore ahora guarda los nombres cifrados, así que el servidor de registros no tiene ninguno que mostrar. Para compartir un nombre, abra el registro, elija Mostrar a alguien, active el nombre y envíe el enlace nuevo. Un certificado nuevo tiene un código QR nuevo.',
   'app.home.continueDraftNamed': 'Continúe su borrador: {name}',
   'app.home.continueDraft': 'Continúe su borrador',
   'app.home.draftKept': 'Lo que escribió se guarda en este navegador. Siga donde lo dejó.',
   'app.home.aboutThreeMinutes':
-    'Unos 3 minutos. Al terminar tendrá un sello de fecha público, y usted tiene la única clave.',
+    'Unos 3 minutos. Al terminar, su registro tendrá un sello de fecha público y usted tendrá la única clave.',
   'app.home.aboutThreeMinutesByHand':
     'Unos 3 minutos. Al terminar queda sellado; su fecha pública llega cuando anclamos su lote (a mano por ahora). Usted tiene la única clave.',
   'app.home.continue': 'Continuar',
@@ -37,7 +37,7 @@ export const home = {
   'app.home.resetWarningRecords.other':
     '{count} registros tienen claves sin una copia de seguridad comprobada. Guarde primero su copia de seguridad: si borra el navegador más tarde, se perderían para siempre.',
   'app.home.resetConfirm':
-    '¿Empezar de nuevo en este navegador con un conjunto nuevo y vacío?\n\nNo se borra nada. Sus registros actuales siguen bloqueados en el servidor de registros de VeilCore. Solo puede recuperarlos con sus claves actuales, que se descargarán ahora en un archivo. Consérvelo.',
+    '¿Empezar de nuevo en este navegador con un conjunto nuevo y vacío?\n\nNo se borra nada. Sus registros actuales siguen cifrados en el servidor de registros de VeilCore. Solo puede recuperarlos con sus claves actuales, que se descargarán ahora en un archivo. Consérvelo.',
   'app.home.startedOver':
     'Empezó de nuevo. Restaure sus registros anteriores cuando quiera desde el archivo de la clave de titular.',
   'app.home.imported.one': 'Se importó {count} registro.',
@@ -47,7 +47,7 @@ export const home = {
   'app.home.importFailed': 'La importación falló.',
   'app.home.labJobs': 'Las tareas de su laboratorio',
   'app.home.labJobsText':
-    'Confirme lo que llega y luego envíe los resultados desde la página del registro. Ambas cosas se firman con la propia clave de su laboratorio, no con la nuestra, y los resultados se bloquean para que solo el obtentor pueda abrirlos.',
+    'Confirme lo que llega y luego envíe los resultados desde la página del registro. Ambas cosas se firman con la propia clave de su laboratorio, no con la nuestra, y los resultados se cifran para que solo el obtentor pueda abrirlos.',
   'app.home.confirmDelivery': 'Confirmar una entrega',
   'app.home.labSignature': 'La firma de su laboratorio',
   'app.home.setUpLabSignature': 'Configurar la firma de su laboratorio',
@@ -67,21 +67,21 @@ export const home = {
     'Una vez anclados los registros, cualquiera puede comprobar cuál se ancló primero. Antes de eso, la hora de un registro es el reloj de su dispositivo. Un registro es una prueba, no una inscripción: muestra qué tenía usted y cuándo, pero no resuelve una disputa por sí solo.',
   'app.home.trust.2t': 'Un informe vinculado se puede comparar después',
   'app.home.trust.2b':
-    'Al vincular, el código de su informe de ADN se guarda con el registro, como declaración suya, para que más adelante se pueda comparar con él una prueba nueva del material. Cuando vincula a través del contrato de VeilCore en Midnight, el vínculo también queda fechado: muestra que el registro estaba vinculado a ese informe para entonces, no quién tuvo el informe primero. En {thisSite}, los vínculos todavía no se fechan.',
+    'Al vincular, el código de su informe de ADN se guarda con el registro, como declaración suya, para que más adelante se pueda comparar con él un análisis nuevo del material. Cuando vincula a través del contrato de VeilCore en Midnight, el vínculo también queda fechado: muestra que el registro estaba vinculado a ese informe para entonces, no quién tuvo el informe primero. En {thisSite}, los vínculos todavía no se fechan.',
   'app.home.trust.3t': 'Una segunda parte recibe la entrega',
   'app.home.trust.3b':
     'Cuando se transfiere material, quien lo recibe confirma la recepción con su propia clave. Eso pone a una segunda parte en el registro, no solo a usted. Muestra que alguien recibió la entrega, no quién es.',
-  'app.home.role.title': '¿Qué le describe mejor?',
+  'app.home.role.title': '¿Qué opción lo describe mejor?',
   'app.home.role.intro':
     'Esto solo cambia lo que le mostramos primero. No limita lo que puede hacer, y puede cambiarlo al pie de cualquier página.',
-  'app.home.role.breeder.label': 'Obtengo variedades o tengo genética',
+  'app.home.role.breeder.label': 'Soy obtentor o tengo material genético',
   'app.home.role.breeder.blurb':
     'Selle registros de lo que tiene, envíe muestras a laboratorios y otorgue licencias de lo que ha obtenido.',
   'app.home.role.lab.label': 'Tengo un laboratorio o recibo material',
   'app.home.role.lab.blurb':
     'Reciba material de clientes, confirme lo que llegó y firme sus informes con su propia clave.',
   'app.home.role.both.label': 'Ambos',
-  'app.home.role.both.blurb': 'Usted obtiene variedades y también recibe material de otros.',
+  'app.home.role.both.blurb': 'Usted hace mejoramiento genético y también recibe material de otros.',
   'app.home.roleView.breeder': 'Vista de obtentor',
   'app.home.roleView.lab': 'Vista de laboratorio',
   'app.home.roleView.both': 'Vista de obtentor y laboratorio',
@@ -97,7 +97,7 @@ export const home = {
   'app.home.sort.oldest': 'Más antiguos primero',
   'app.home.sort.name': 'Nombre',
   'app.home.sort.breeder': 'Obtentor',
-  'app.home.search.lab': 'Nombre, obtentor, código TR, nota o su n.º de registro interno',
+  'app.home.search.lab': 'Nombre, obtentor, código TR, nota o su n.º de accesión',
   'app.home.search.breeder': 'Nombre, obtentor o su propia referencia',
   'app.home.search.aria': 'Buscar',
   'app.home.search.nothing':
@@ -116,7 +116,6 @@ export const home = {
   'app.home.paste.hint':
     'Un código de laboratorio, un enlace a un registro, una solicitud para demostrar que tiene un registro o un acuerdo para firmar. Nosotros averiguamos cuál es.',
   'app.home.paste.whichRecord': 'Es una solicitud para demostrar que tiene un registro. ¿Por cuál le preguntaron?',
-  'app.home.notFinished': 'Aún no está en su copia de seguridad · siguiente: guarde su copia de seguridad',
   'app.home.receivedFrom': 'Recibida de {name}',
   'app.home.receivedFromNamed': 'De {name} · su registro {id}',
   'app.home.receivedFromName': 'De {name}',
@@ -130,15 +129,15 @@ export const home = {
   'app.home.labReportDated': 'Informe de ADN fechado',
   'app.home.datesReportFor': 'Fecha un informe de ADN de {name}',
   'app.home.aPlant': 'una planta',
-  'app.home.datingUnfinished':
-    '{dated} · aún no está en su copia de seguridad · siguiente: guarde su copia de seguridad',
   'app.home.datingSealed': '{dated} · sellado el {date}',
+  'app.home.backupLine':
+    '<b>Todavía no está en su copia de seguridad.</b> Hasta que la guarde, lo que ha registrado se conserva solo en este navegador.',
   'app.home.export.label': 'Descargar sus registros y acuerdos de VeilCore',
   'app.home.export.done':
     'Descargado: sus registros, acuerdos, opciones de uso compartido y todas las pruebas de inclusión. Los envíos, sus datos de muestra y los informes de laboratorio no están incluidos: ábralos desde el envío o desde la página de la planta. Sus claves están en su archivo de copia de seguridad, no en este.',
   // PlanBox.tsx, billing.ts, records.ts: paid plans (off unless VITE_PAID_PLANS=on)
   'app.plan.full':
-    'Ya usó sus registros gratuitos, así que no se creó ningún registro nuevo. Todo lo que ya tiene se sigue pudiendo comprobar. Elija un plan en su página de registros para añadir más.',
+    'Ya usó sus registros gratuitos, así que no se creó ningún registro nuevo. Todo lo que ya tiene se sigue pudiendo comprobar. Elija un plan en su página de registros para agregar más.',
   'app.plan.unknown':
     'VeilCore no pudo comprobar su plan en este momento, así que no se creó ningún registro nuevo. Revise su conexión e inténtelo de nuevo.',
   'app.plan.box.free': 'Plan gratuito: {held} de {cap} registros fechados',
@@ -149,7 +148,7 @@ export const home = {
   'app.plan.receiveFull':
     'No le queda ningún registro fechado gratuito para recibir esta entrega. Su código se guarda en este navegador: elija un plan en su página de registros y vuelva a ingresarlo.',
   'app.plan.box.rules':
-    'La primera corrección de un registro es gratuita. Recibir una entrega necesita un registro fechado libre.',
+    'La primera corrección de un registro es gratuita. Recibir una entrega necesita un registro fechado gratuito.',
   'app.plan.box.paid': 'Su plan: {plan}',
   'app.plan.name.breeder': 'Obtentor',
   'app.plan.name.lab': 'Laboratorio',
@@ -171,5 +170,5 @@ export const home = {
   'app.plan.importFull':
     'Este archivo tiene {n} registros nuevos para VeilCore y su plan gratuito puede fechar {left} más. No se importó nada. Elija un plan en su página de registros para fechar más.',
   'app.plan.box.full':
-    'Ya usó sus registros gratuitos. Todo lo que ya tiene se sigue pudiendo comprobar. Elija un plan para añadir más.',
+    'Ya usó sus registros gratuitos. Todo lo que ya tiene se sigue pudiendo comprobar. Elija un plan para agregar más.',
 } satisfies Partial<AppTranslation>;

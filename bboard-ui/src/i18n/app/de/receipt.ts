@@ -5,7 +5,7 @@
 import type { AppTranslation } from '../../translate';
 
 export const receipt = {
-  'app.receipt.title': 'Was dies auf Midnight stellt',
+  'app.receipt.title': 'Was dabei auf Midnight landet',
   'app.receipt.public': 'Wird auf Midnight öffentlich, dauerhaft (niemand, auch VeilCore nicht, kann es entfernen):',
   'app.receipt.private': 'Bleibt privat:',
   'app.receipt.when': 'Datum und Uhrzeit, zu der es auf Midnight eingeht. Alles oben bleibt dort dauerhaft.',
@@ -14,7 +14,7 @@ export const receipt = {
   'app.receipt.fact.newKey': 'Ein Code aus dem neuen Schlüssel des Datensatzes',
   'app.receipt.fact.otherRecord': 'Ein Code aus dem Schlüssel des anderen Datensatzes',
   'app.receipt.fact.issuerRecord': 'Ein Code aus dem Schlüssel des lizenzierten Datensatzes',
-  'app.receipt.fact.challenge': 'Der einmalige Prüfauftrag der prüfenden Person',
+  'app.receipt.fact.challenge': 'Der einmalige Abfragecode der prüfenden Person',
   'app.receipt.fact.dnaReport': 'Ein Code aus dem DNA-Bericht (nicht der Bericht)',
   'app.receipt.fact.license': 'Ein Code aus der Lizenz (nicht ihre Bedingungen)',
   'app.receipt.fact.newLicense': 'Ein Code aus der Lizenz des neuen Inhabers',
