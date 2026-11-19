@@ -225,7 +225,7 @@ const DeleteRecord: React.FC<{
     // Its date read again now, past any cache: a batch may have been sealed since the page opened.
     const now = await dateForDelete(record.recordFingerprint);
     setDateNow(now);
-    const dated = t(deleteDateKey(now));
+    const dated = t(deleteDateKey(now, record.copy === true && !!record.labSignature));
     if (
       !window.confirm(`${t('app.plant.delete.confirm', { name: record.strainName || record.id, named })}\n\n${dated}`)
     )
@@ -248,7 +248,7 @@ const DeleteRecord: React.FC<{
         </Typography>
         {!blocked && (
           <Typography variant="body2" color="text.secondary" data-delete-date="">
-            {t(deleteDateKey(dateNow))}
+            {t(deleteDateKey(dateNow, record.copy === true && !!record.labSignature))}
           </Typography>
         )}
         {!blocked && (

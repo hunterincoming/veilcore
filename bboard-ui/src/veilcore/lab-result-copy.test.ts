@@ -102,6 +102,7 @@ describe('a copy of a record another holder dated', () => {
   it('on the wire: its proof code only inside the locked copy, no name code, never sent to be dated', () => {
     const r = {
       id: 'VEIL-1',
+      labSignature: { key: 'k' },
       recordFingerprint: 'ab'.repeat(32),
       strainName: 'x',
       nameSalt: 'cd'.repeat(16),
@@ -116,6 +117,11 @@ describe('a copy of a record another holder dated', () => {
     expect(publicPart(plain)).toEqual({ id: 'VEIL-1', recordFingerprint: 'ab'.repeat(32) });
     expect(privatePart(plain).recordFingerprint).toBeUndefined();
     expect(datingRowOf(plain)).toEqual({ id: 'VEIL-1', recordFingerprint: 'ab'.repeat(32) });
+    // The mark alone, without a lab's signature, makes nothing a copy.
+    const { labSignature: _l, ...unsigned } = r;
+    void _l;
+    expect(publicPart(unsigned)).toEqual({ id: 'VEIL-1', recordFingerprint: 'ab'.repeat(32) });
+    expect(datingRowOf(unsigned)).toEqual({ id: 'VEIL-1', recordFingerprint: 'ab'.repeat(32) });
   });
 
   it('the breeder adds the lab’s result as a copy: VeilCore keeps it, and a claim on it survives a reload', async () => {
@@ -179,6 +185,61 @@ describe('a copy of a record another holder dated', () => {
       expect(back?.copy).toBe(true);
       expect(back?.claims).toEqual([claim(result.recordFingerprint)]);
       expect(B2.m.outbox.inOutbox(copyId)).toBe(false);
+    });
+    // Said once, in the browser that made it a copy, and gone when dismissed.
+    expect(await B.run(() => B.m.records.copiesMadeNow())).toEqual([
+      { id: copyId, name: 'LAB-COPY-1', lab: 'Practice Lab' },
+    ]);
+    await B.run(() => B.m.records.clearCopiesMade());
+    expect(await B.run(() => B.m.records.copiesMadeNow())).toEqual([]);
+  });
+
+  it('a result signed by this browser’s own lab key is never made a copy', async () => {
+    const { result } = await labKeeps();
+    const B = await browser('other-lab-browser');
+    const id = 'VEIL-OWN-' + Date.now().toString(16).toUpperCase();
+    await B.run(async () => {
+      const { createAttester } = await import('./attester-keys');
+      const { claimsKeyFor } = await import('./claims-key');
+      const a = await createAttester('Practice Lab', 'laboratory');
+      const key = claimsKeyFor(a.keypair.privateKey).keyText;
+      B.m.records.createRecord({ ...result, id, labSignature: { ...(result.labSignature as object), key } as never });
+      await settle(150);
+    });
+    expect((await backUp(B)).ok).toBe(true);
+    await settle(400);
+    const H = await holderOf(B);
+    expect(reg.rowsOf(H).find((r) => r.id === id)).toBeUndefined();
+    expect(await B.run(() => B.m.records.getRecord(id)?.copy)).toBeUndefined();
+    expect(await B.run(() => B.m.records.copiesMadeNow())).toEqual([]);
+  });
+
+  it('a correction of a copy is the holder’s own record: not a copy, dated as theirs', async () => {
+    const { result } = await labKeeps();
+    const B = await browser('corrector');
+    const copyId = 'VEIL-FIX-' + Date.now().toString(16).toUpperCase();
+    await B.run(async () => {
+      B.m.records.createRecord({ ...result, id: copyId, copy: true });
+      await settle(150);
+    });
+    expect((await backUp(B)).ok).toBe(true);
+    const H = await holderOf(B);
+    await until(() => !!reg.rowsOf(H).find((r) => r.id === copyId)?.sealed);
+    const fixed = await B.run(() => B.m.records.issueCorrection(copyId, { refId: 'MY-REF' }, 'my reference'));
+    expect(fixed?.copy).toBeUndefined();
+    await until(() => !!reg.rowsOf(H).find((r) => r.id === fixed!.id)?.sealed);
+    const row = reg.rowsOf(H).find((r) => r.id === fixed!.id)!;
+    expect(row.recordFingerprint).toBe(fixed!.recordFingerprint);
+    expect(row.recordFingerprint).not.toBe(result.recordFingerprint);
+  });
+
+  it('a copy is never exported as the holder’s record', async () => {
+    const { result } = await labKeeps();
+    const B = await browser('exporter');
+    const copyId = 'VEIL-EXP-' + Date.now().toString(16).toUpperCase();
+    await B.run(async () => {
+      B.m.records.createRecord({ ...result, id: copyId, copy: true });
+      await expect(B.m.records.exportEnvelope(copyId)).rejects.toThrow(/copy of a result a lab keeps/);
     });
   });
 

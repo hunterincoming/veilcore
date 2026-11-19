@@ -149,6 +149,21 @@ test('the breeder adds the lab’s signed result: VeilCore keeps the copy, and i
   await expect(breeder.locator('[data-lab-result-panel]')).toContainText('Not detected', { timeout: 20_000 });
   await expect(breeder.getByText(resultCode).first()).toBeVisible();
   await expect(breeder.locator('[data-lab-signature] [data-lab-signed="bound"]')).toBeVisible({ timeout: 20_000 });
+  // It says it is a copy and that the date is the lab's, and offers nothing that would present it
+  // as dated by the breeder: no date of its own, no check link, no evidence bundle, no key stamp.
+  await expect(breeder.locator('[data-document-copy]')).toContainText(
+    'A copy of a result E2E Lab keeps. The date is the lab’s, not yours. VeilCore keeps this copy but can’t date it for you.',
+  );
+  await expect(breeder.locator('[data-document-date]')).toHaveCount(0);
+  await expect(breeder.locator('[data-document-share]')).toHaveCount(0);
+  await expect(breeder.getByText('proves you had this file')).toHaveCount(0);
+  await expect(breeder.locator('[data-document-bundle]')).toHaveCount(0);
+  await expect(breeder.locator('[data-document-technical]')).toHaveCount(0);
+  // Its card on the records page says the same.
+  await breeder.goto('/records');
+  await expect(breeder.getByText('Copy of a result E2E Lab keeps: the date is the lab’s')).toBeVisible({
+    timeout: 20_000,
+  });
   // And the check page knows it is held here now.
   await breeder.goto('/check-lab-result');
   await breeder.locator('[data-result-input]').setInputFiles(file);

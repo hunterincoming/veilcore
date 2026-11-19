@@ -173,11 +173,12 @@ export const fakeRegistry = () => {
           continue;
         }
         const have = records.get(r.id);
-        if (heldElsewhere(r.recordFingerprint, holder)) rejected.push({ id: r.id, reason: HELD_ELSEWHERE });
-        else if (have && have.holder !== holder) notWritten.push(r.id);
+        // The real registry's order: the id's holder first, then the proof code's.
+        if (have && have.holder !== holder) notWritten.push(r.id);
         else if (have)
           if (have.recordFingerprint === r.recordFingerprint) dated.push(r.id);
           else rejected.push({ id: r.id, reason: 'this id was dated with a different proof code' });
+        else if (heldElsewhere(r.recordFingerprint, holder)) rejected.push({ id: r.id, reason: HELD_ELSEWHERE });
         else {
           records.set(r.id, {
             id: r.id,
@@ -258,6 +259,9 @@ export const fakeRegistry = () => {
               field: linkToDeleted(r, t.get(r.id)),
             });
           else if (misbehave.rejectIds.has(r.id)) rejected.push({ id: r.id, reason: 'refused for this test' });
+          // As the real registry plans a save: the proof code's first holder before the dated proof code and the rev.
+          else if (path === '/api/records' && heldElsewhere(r.recordFingerprint, holder))
+            rejected.push({ id: r.id, reason: HELD_ELSEWHERE });
           else if (
             dating?.bodyPending === true &&
             dating.holder === holder &&
@@ -300,8 +304,6 @@ export const fakeRegistry = () => {
               status: 409,
             });
           else if (refusedCorrection) rejected.push(alreadyCorrected(r.id, refusedCorrection));
-          else if (path === '/api/records' && heldElsewhere(r.recordFingerprint, holder))
-            rejected.push({ id: r.id, reason: HELD_ELSEWHERE });
           else if (!s) rejected.push({ id: r.id, reason: 'new rows must be sealed' });
           else if ((kid ?? theirKid) !== s.kid)
             rejected.push({ id: r.id, reason: "sealed with a different vault key than this holder's other records" });

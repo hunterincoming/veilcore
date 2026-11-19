@@ -198,14 +198,15 @@ const withoutKeys = (r: Record<string, unknown>, keys: readonly string[]): Recor
 };
 
 /**
- * A copy of a record another holder dated (records.ts StrainRecord.copy): its proof code is that
- * holder's on VeilCore, so the copy carries it inside its sealed part only. Never in the clear,
- * never sent to be dated, never in a name code: VeilCore keeps the copy and ties nothing of the
- * proof code to this holder. Only the `copy` mark inside the sealed part says so, which only
- * this holder's vault key can write: a row can't be made a copy, or stop being one, by the
- * registry.
+ * A copy of a lab's signed result the lab keeps (records.ts StrainRecord.copy): its proof code is
+ * the lab's on VeilCore, so the copy carries it inside its sealed part only. It is kept out of the
+ * clear, out of a name code and away from dating, so the first-holder rule is untouched. Only a
+ * record with a lab's signature is taken as a copy, and only the `copy` mark inside the sealed
+ * part says so, which only this holder's vault key can write: the registry can't make a row a
+ * copy, or stop it being one.
  */
-const isCopy = (r: Record<string, unknown>): boolean => r.copy === true;
+const isCopy = (r: Record<string, unknown>): boolean =>
+  r.copy === true && typeof r.labSignature === 'object' && r.labSignature !== null;
 
 /** A record's sealed part: every field but the public ones, the full `supersedes` included; a copy's proof code too. */
 export const privatePart = (r: Record<string, unknown>): Record<string, unknown> => {

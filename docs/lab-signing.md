@@ -129,11 +129,16 @@ showing the rest. Code: `veilcore/lab-result.ts`.
 - **The breeder's copy** (18 November 2026): the lab keeps every result it signs as a record it
   holds, so the result's proof code is the lab's on VeilCore, and VeilCore gives a proof code to
   one holder only (the first to store it). A result added from its file is kept as a copy
-  (`StrainRecord.copy`): its proof code goes inside the locked copy, never in the clear and never
-  to be dated, so VeilCore keeps it for the breeder, with any claim made on it, and ties nothing of
-  the lab's proof code to the breeder. Its date is the lab's, read by the proof code. Before this,
-  the copy was refused at every save and stayed in the breeder's browser only, and a claim made on
-  it was put back at the next read; a copy added then is made a copy at its next save.
+  (`StrainRecord.copy`): its proof code goes inside the locked copy, kept out of the clear and away
+  from dating, so the first-holder rule is untouched and VeilCore keeps the copy, with any claim
+  made on it. The breeder's browser still looks up the lab's proof code (its date, the lab's
+  signatures on it) with the breeder's own requests. The copy's page says it is a copy and that
+  the date is the lab's, not the breeder's; it offers no check link, evidence bundle or record
+  export, which would present it as dated by the breeder. A correction of a copy is the
+  breeder's own record and is dated as theirs. Before this, the copy was refused at every save
+  and stayed in the breeder's browser only, and a claim made on it was put back at the next read;
+  a copy added then is made a copy when the registry refuses it for that reason (never one signed
+  by this browser's own lab key), and the app says so once.
 - Version 1 results keep checking exactly as before.
 
 ### A viability result: a sample before or after a kill step (12 November 2026)

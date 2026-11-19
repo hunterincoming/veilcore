@@ -7,6 +7,8 @@ import { PAID_PLANS_ENABLED } from '../config/network';
 import { currentPlan, freeLeft, planGate, readPlan, refreshPlan, waitingCount } from './billing';
 import { useSyncExternalStore } from 'react';
 import { store, type SaveRefusal, type SaveResult } from './store';
+import { loadAttester } from './attester-keys';
+import { claimsKeyFor } from './claims-key';
 import { exportEnvelopeFor, toEnvelope, sealEnvelope } from './envelope';
 import { holderPartyId, forgetHolderKey } from './holder';
 import { proofFor } from './proofs';
@@ -187,14 +189,15 @@ export type StrainRecord = {
    */
   readonly deviceOnly?: true;
   /**
-   * A copy of a record another holder keeps and dated: a lab's signed result, added from the
-   * lab's file (LabResultCheck.tsx). The lab keeps every result it signs, so its proof code is
-   * the lab's on VeilCore, and VeilCore refuses it from anyone else ("already registered by
-   * another holder"). This copy keeps the proof code inside its locked copy, never in the clear
-   * and never sent to be dated (api-store.ts publicPart, datingRowOf), so VeilCore keeps it for
-   * this holder, with the claims made on it, and ties nothing of that proof code to them. Its
-   * date is the lab's, read by the proof code like any record's. Sealed; set once and never
-   * taken off (a record whose proof code VeilCore holds for this holder never gets it).
+   * A copy of a lab's signed result that the lab keeps and dated, added from the lab's file
+   * (LabResultCheck.tsx). The lab keeps every result it signs, so its proof code is the lab's on
+   * VeilCore, and VeilCore refuses it from anyone else ("already registered by another holder").
+   * This copy keeps the proof code out of the clear and away from dating (api-store.ts
+   * publicPart, datingRowOf), so the first-holder rule is untouched and VeilCore keeps the copy,
+   * with the claims made on it. Its date is the lab's, not this holder's: its page says so, and
+   * offers nothing that would present it as dated by this holder (DocumentDetail.tsx). Sealed;
+   * set when it is added (or by asCopies), never taken off; a correction of it is the holder's
+   * own record and isn't a copy (issueCorrection).
    */
   readonly copy?: true;
   /** A document's field set (SPEC 4.5), sealed: the schema's id and the set's root (field-set.ts). */
@@ -1149,7 +1152,7 @@ const saveAll = async (grantsToResend: readonly string[] = []): Promise<SaveResu
   const result = await saveRecords(records);
   settleOutbox(result);
   // A lab's result added before copies were kept as copies: refused only because the lab holds
-  // its proof code. Saved again at once as a copy, so the refusal isn't shown (asCopies).
+  // its proof code. Made a copy, said once (copiesMade), and saved again (asCopies).
   if (asCopies(result.refused)) return saveAll(grantsToResend);
   reportSave('records', result);
   // Whatever waits in this browser for its locked copy is dated now (CONTRACT.md #38).
@@ -1534,26 +1537,65 @@ const HELD_ELSEWHERE = /already registered by another holder/;
 /**
  * A lab's signed result this holder added before such results were kept as copies (StrainRecord
  * copy): the lab holds its proof code, so every save of it was refused, and anything kept on it
- * was put back at the next read. Made a copy once the registry has said so, and kept here to be
- * sent again. Only a record that carries a lab's result and signature, and that VeilCore has
- * never held for this holder (no row for its id as of the last read): a record VeilCore holds
- * for this holder never loses its proof code from the clear, and any other record refused so is
- * left as it was. True when any was made a copy.
+ * was put back at the next read. Made a copy once the registry has refused it for exactly that,
+ * and said so once (copiesMade, SaveProblemBar). Only a record that:
+ *   - carries a lab's result and signature;
+ *   - VeilCore has never held under its id for this holder (no row as of the last read), so a
+ *     record whose proof code VeilCore holds for this holder never loses it from the clear;
+ *   - isn't signed by this browser's own lab key: a lab's own result is never made a copy.
+ * Any other record refused so is left as it was, and the refusal shown as before. True when any
+ * was made a copy.
  */
 const asCopies = (refused: readonly SaveRefusal[]): boolean => {
   const ids = new Set(refused.filter((r) => HELD_ELSEWHERE.test(r.reason)).map((r) => r.id));
   if (ids.size === 0) return false;
+  const own = ownLabKey();
   const made: StrainRecord[] = [];
   records = records.map((r) => {
     if (!ids.has(r.id) || r.copy || !r.labResult || !r.labSignature || rowStateOf(RECORDS_KEY, r.id) !== undefined)
       return r;
+    if (own !== undefined && r.labSignature.key === own) return r;
     const copy: StrainRecord = { ...r, copy: true };
     made.push(copy);
     return copy;
   });
   if (made.length === 0) return false;
   putInOutbox(made);
+  for (const r of made) copiesMade.set(r.id, { name: r.strainName || r.id, lab: labNameOf(r) });
+  copiesMadeListeners.forEach((l) => l());
   return true;
+};
+
+/** The claims key text of this browser's own lab key (attester-keys.ts), or undefined when it has none. */
+const ownLabKey = (): string | undefined => {
+  try {
+    const a = loadAttester();
+    return a ? claimsKeyFor(a.keypair.privateKey).keyText : undefined;
+  } catch {
+    return undefined;
+  }
+};
+
+/** The lab's name as the lab wrote it into its result (not checked: a checked name is on the record's page). */
+export const labNameOf = (r: Pick<StrainRecord, 'document' | 'bredBy'>): string =>
+  r.document?.issuer.trim() || r.bredBy.trim() || '';
+
+/** Records just made copies by asCopies, said once (SaveProblemBar) until dismissed. */
+const copiesMade = new Map<string, { readonly name: string; readonly lab: string }>();
+const copiesMadeListeners = new Set<() => void>();
+let copiesMadeList: readonly { readonly id: string; readonly name: string; readonly lab: string }[] = [];
+export const copiesMadeNow = (): readonly { readonly id: string; readonly name: string; readonly lab: string }[] => {
+  if (copiesMadeList.length !== copiesMade.size) copiesMadeList = [...copiesMade].map(([id, v]) => ({ id, ...v }));
+  return copiesMadeList;
+};
+export const onCopiesMade = (l: () => void): (() => void) => {
+  copiesMadeListeners.add(l);
+  return () => copiesMadeListeners.delete(l);
+};
+export const clearCopiesMade = (): void => {
+  copiesMade.clear();
+  copiesMadeList = [];
+  copiesMadeListeners.forEach((l) => l());
 };
 
 /** Whether VeilCore has this record's proof code, so it is in the next batch (CONTRACT.md #38). */
@@ -2026,6 +2068,8 @@ export const conflictsFor = (dnaFingerprint: string, exceptId: string): StrainRe
 export const exportEnvelope = async (id: string): Promise<void> => {
   const r = getRecord(id);
   if (!r) return;
+  // A copy of a lab's result: the envelope would name this holder beside the lab's date.
+  if (r.copy) throw new Error(enT.t('app.doc.copy.noExport'));
   const env = await exportEnvelopeFor(
     r,
     await holderPartyId(),
@@ -2819,6 +2863,9 @@ export const issueCorrection = async (
     sharedAttestations: undefined,
     // Its own secrets go in with its first save (round 4, F5), never the original's.
     secrets: undefined,
+    // A correction of a copy of a lab's result (StrainRecord.copy) is the holder's own record, with
+    // its own proof code: dated as theirs, never kept as a copy.
+    copy: undefined,
   } as StrainRecord;
 
   const holder = await holderPartyId();

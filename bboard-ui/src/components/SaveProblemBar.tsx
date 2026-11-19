@@ -9,6 +9,9 @@ import { clearSaveProblem, describeRefusals, useSaveProblem } from '../veilcore/
 import { useT } from '../i18n/app';
 import { SupportDetails } from './SupportDetails';
 import {
+  clearCopiesMade,
+  copiesMadeNow,
+  onCopiesMade,
   clearRemovedAsDeleted,
   linksDeletedFirst,
   onLinksDeleted,
@@ -60,8 +63,28 @@ const LinksDeleted: React.FC = () => {
   );
 };
 
+/**
+ * A lab's result added before such results were kept as copies, made a copy at its next save
+ * (records.ts asCopies): said once, until dismissed, since it can't be dated for this holder.
+ */
+const CopiesMade: React.FC = () => {
+  const made = useSyncExternalStore(onCopiesMade, copiesMadeNow);
+  const tr = useT();
+  if (made.length === 0) return null;
+  return (
+    <Alert severity="info" variant="outlined" onClose={clearCopiesMade} sx={{ mb: 2 }} data-copies-made={made.length}>
+      {made.map((m) => (
+        <span key={m.id} style={{ display: 'block' }}>
+          {tr.t('app.doc.copy.made', { name: m.name, lab: m.lab || tr.t('app.doc.copy.aLab') })}
+        </span>
+      ))}
+    </Alert>
+  );
+};
+
 export const SaveProblemBar: React.FC = () => (
   <>
+    <CopiesMade />
     <RemovedAsDeleted />
     <LinksDeleted />
     <SaveProblem />
