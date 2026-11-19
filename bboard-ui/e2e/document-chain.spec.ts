@@ -24,6 +24,7 @@ import {
   sealedRecordRow,
   watch,
   type Handler,
+  seeChecks,
 } from './helpers';
 
 test.skip(REAL_REGISTRY, 'this uses the stand-in registry');
@@ -393,6 +394,8 @@ test('a chain of records: source, grow batch, harvest lot, lab report, followed 
   // The top: the source record's public check page, by its ID, checked against the proof code in the link.
   await stranger.locator(`[data-about-link="record"][data-about-id="${SOURCE_ID}"]`).click();
   await expect(stranger).toHaveURL(new RegExp(`/verify/${SOURCE_ID}\\?fp=[0-9a-f]{64}`));
+  // The checks behind the page's one-line answer are folded under "See the checks".
+  await seeChecks(stranger);
   await expect(stranger.getByText(new RegExp(`is in batch ${BATCH}`)).first()).toBeVisible({ timeout: 30_000 });
   // Nothing the holder typed was in any request the stranger's browser made.
   for (const r of theirs.seen)

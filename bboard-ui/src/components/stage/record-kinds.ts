@@ -135,18 +135,13 @@ export const labReportPageLines = (r: Pick<Rec, 'notes' | 'parents'>, tr: Transl
 };
 
 /**
- * A dating record's line on Home: only a missing backup is "not finished". Its key isn't
- * date stamped and doesn't need to be: its batch is what dates the report.
+ * A dating record's line on Home. Its key isn't date stamped and doesn't need to be: its batch
+ * is what dates the report. A missing backup is said once for the whole account (BackupNeeded.tsx).
  */
 export const datingHomeStatus = (
   d: Pick<StrainRecord, 'loggedAt'>,
-  keys: { backedUpAt?: number } | undefined,
-  realChain: boolean,
   tr: Translator = enT,
-): { text: string; unfinished: boolean } =>
-  realChain && keys && keys.backedUpAt === undefined
-    ? { text: tr.t('app.home.datingUnfinished', { dated: tr.t('app.home.labReportDated') }), unfinished: true }
-    : {
-        text: tr.t('app.home.datingSealed', { dated: tr.t('app.home.labReportDated'), date: tr.date(d.loggedAt) }),
-        unfinished: false,
-      };
+): { text: string; unfinished: boolean } => ({
+  text: tr.t('app.home.datingSealed', { dated: tr.t('app.home.labReportDated'), date: tr.date(d.loggedAt) }),
+  unfinished: false,
+});

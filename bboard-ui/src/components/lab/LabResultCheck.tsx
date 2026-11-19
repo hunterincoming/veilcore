@@ -14,6 +14,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
 import { Alert, Box, Button, Container, Paper, Stack, Typography } from '@mui/material';
 import { useT } from '../../i18n/app';
+import { MakeYourOwn } from '../verify/CheckParts';
 import type { AppKey } from '../../i18n/app/en';
 import {
   openingMatches,
@@ -459,6 +460,7 @@ export const LabResultCheck: React.FC = () => {
             </Stack>
           </>
         )}
+        <MakeYourOwn />
       </Container>
     </Box>
   );

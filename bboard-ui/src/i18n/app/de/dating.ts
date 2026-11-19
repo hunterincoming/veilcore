@@ -38,7 +38,6 @@ export const dating = {
   'app.pickup.open': 'Öffnen',
   'app.pickup.tryNow': 'Jetzt versuchen',
   'app.pickup.saveBackup': 'Sicherungskopie speichern',
-  'app.pickup.freshBackupButton': 'Neue Sicherungskopie speichern',
   'app.pickup.openAgreements': 'Vereinbarungen öffnen',
   'app.pickup.dating.notSent': '{name}: versiegelt. Sein Prüfcode geht an VeilCore, sobald VeilCore erreichbar ist.',
   'app.pickup.dating.next': '{name} erhält sein Datum mit dem nächsten Stapel.',
@@ -59,14 +58,6 @@ export const dating = {
     'Der Datumsstempel des Schlüssels für {name} könnte schon gesendet sein. Prüfen Sie ihn auf seiner Seite, bevor Sie es erneut versuchen.',
   'app.pickup.stamp.cannot':
     'Der Datumsstempel des Schlüssels für {name} kann von dieser Website gerade nicht gesetzt werden. Seine Seite sagt, warum.',
-  'app.pickup.lockedCopies.one':
-    '{count} verschlossene Kopie noch nicht hochgeladen – Sicherungskopie speichern und prüfen. Das Datum Ihres Datensatzes wartet nicht darauf.',
-  'app.pickup.lockedCopies.other':
-    '{count} verschlossene Kopien noch nicht hochgeladen – Sicherungskopie speichern und prüfen. Die Daten Ihrer Datensätze warten nicht darauf.',
-  'app.pickup.freshBackup.one':
-    'Ihrer letzten Sicherungskopie fehlen die Schlüssel von {count} neueren Datensatz. Speichern Sie eine neue Sicherungskopie.',
-  'app.pickup.freshBackup.other':
-    'Ihrer letzten Sicherungskopie fehlen die Schlüssel von {count} neueren Datensätzen. Speichern Sie eine neue Sicherungskopie.',
   'app.pickup.deliveriesSent.one': '{count} Lieferung ans Labor gesendet, noch nicht angenommen.',
   'app.pickup.deliveriesSent.other': '{count} Lieferungen ans Labor gesendet, noch nicht angenommen.',
   'app.pickup.deliveriesUnsigned.one':

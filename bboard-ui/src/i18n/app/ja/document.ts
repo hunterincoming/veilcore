@@ -168,6 +168,27 @@ export const document = {
   'app.claim.line.value': '{label}は{value} {unit}',
   'app.claim.holderTyped': '数値はあなたが入力したものです。どの検査機関も署名していません。',
   'app.claim.check.title': '証明を確認する',
+  'app.claim.verdict.bad': 'このリンクは読み取れないため、何も確認していません。',
+  'app.claim.verdict.checking': 'この証明をこのブラウザで確認しています…',
+  'app.claim.verdict.failed': 'この証明は確認で通りませんでした。当てにしないでください。',
+  'app.claim.verdict.labFailed': 'この証明は確認できましたが、ラボの署名は確認で通りませんでした。下を見てください。',
+  'app.claim.verdict.someFailed':
+    'この証明は確認できましたが、このリンクにある別の証明は通りませんでした。下を見てください。',
+  'app.claim.verdict.okWhen': '{date}に証明されています。このブラウザで確認しました。',
+  'app.claim.verdict.ok': 'この証明はこのブラウザで確認できました。',
+  'app.claim.verdict.labConflict':
+    'この証明は確認できましたが、署名した鍵を複数のラボが自分のものとしているため、数値は保有者自身の申告として読んでください。下を見てください。',
+  'app.claim.verdict.labWithdrawn':
+    'この証明は確認できましたが、ラボが署名を取り下げているため、数値は保有者自身の申告として読んでください。下を見てください。',
+  'app.doc.verdict.noDate':
+    'VeilCoreには、この書類そのものの日付はまだありません。封印したばかりなら次のバッチで日付が付きます。リンクが変更されていると一致しません。',
+  'app.doc.verdict.bad': 'このリンクは読み取れないため、何も確認していません。',
+  'app.doc.verdict.dated': '{date}に日付が付いています。このブラウザで確認しました。',
+  'app.doc.verdict.datedChooseFile':
+    '{date}に日付が付いています。このブラウザで確認しました。同じファイルかどうかは、下でファイルを選んで確かめられます。',
+  'app.doc.verdict.datedSameFile':
+    '{date}に日付が付いており、選んだファイルは封印されたものと同じです。このブラウザで確認しました。',
+  'app.doc.verdict.datedOtherFile': '{date}に日付が付いていますが、選んだファイルは封印されたものではありません。',
   'app.claim.check.intro':
     '封印された文書の数値1つについての事実を、数値や文書を見せずに示すため、このリンクが送られてきました。このページはMidnight上の証明を読み取り、確認します。',
   'app.claim.check.bad': 'このリンクは読み取れません。もう一度送ってもらってください。',

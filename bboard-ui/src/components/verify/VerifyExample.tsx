@@ -20,6 +20,7 @@ import { geneticsLabel } from '../../veilcore/disclosure';
 import { useT } from '../../i18n/app';
 import { networkWords } from '../../i18n/network-words';
 import { DatedNotOrigin } from './DatedNotOrigin';
+import { MakeYourOwn } from './CheckParts';
 
 const Note: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   <Typography
@@ -103,6 +104,7 @@ export const VerifyExample: React.FC = () => {
             {t('app.verify.ex.what')}
           </Box>
         </Stack>
+        <MakeYourOwn />
       </Container>
     </Box>
   );

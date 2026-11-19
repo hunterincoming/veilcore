@@ -46,8 +46,6 @@ export const sealed = {
   'app.sealed.truncated':
     'VeilCoreから届いたのは記録の一部だけなので、ここに表示されていないものがあるかもしれません。ページを再読み込みして、もう一度試してください。',
   'app.sealed.unreadable.other': '{count}件の記録はこのバージョンで読めない形式で届いたため、表示していません。',
-  'app.sealed.backupNeeded':
-    '<b>新しいバックアップを保存してください。</b>記録は今、鍵でロックされています。バックアップを保存するまで、その鍵はこのブラウザにしかありません。バックアップファイルがなければ、ほかの場所では開けません。',
   'app.sealed.err.newCode':
     'このコードは送付がロックされる前に作られたもので、もう使えません。送り主に新しいコードを依頼してください。',
   'app.sealed.recv.missingKey':
@@ -165,8 +163,6 @@ export const sealed = {
   'app.sealed.linksDeletedOpen': '開く',
   'app.sealed.unsaved.linksDeleted':
     'この訂正は保有者が削除した記録を指しているため、VeilCoreは保存しません。このブラウザにのみ保管されています。ここで破棄してください。',
-  'app.sealed.unsaved.short':
-    'ロックしたコピーはまだアップロードされていません。バックアップを保存して確認してください',
   'app.sealed.unsaved.shortRetry': 'まだ保存されていません',
   'app.sealed.unsaved.discardConfirm':
     'この記録のためにこのブラウザが残しているものを破棄しますか？VeilCoreにはないため、元に戻せません。',

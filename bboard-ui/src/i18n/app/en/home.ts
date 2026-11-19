@@ -119,7 +119,6 @@ export const home = {
     "A lab code, a record link, a request to prove you hold a record, or an agreement to sign. We'll work out which.",
   'app.home.paste.whichRecord': "That's a request to prove you hold a record. Which one did they ask about?",
   // plant-status-words.ts: a plant's line on Home.
-  'app.home.notFinished': 'Not in your backup yet · next: save your backup',
   'app.home.receivedFrom': 'Received from {name}',
   'app.home.receivedFromNamed': 'From {name} · their record {id}',
   'app.home.receivedFromName': 'From {name}',
@@ -134,8 +133,10 @@ export const home = {
   'app.home.labReportDated': 'DNA report dated',
   'app.home.datesReportFor': 'Dates a DNA report for {name}',
   'app.home.aPlant': 'a plant',
-  'app.home.datingUnfinished': '{dated} · not in your backup yet · next: save your backup',
   'app.home.datingSealed': '{dated} · sealed {date}',
+  // flow/BackupNeeded.tsx: Home's one backup line, for the whole account, only while one is needed.
+  'app.home.backupLine':
+    '<b>Not in your backup yet.</b> Until you save it, what you’ve recorded is kept only in this browser.',
   // RegistryExportButton.tsx
   'app.home.export.label': 'Download your records and agreements from VeilCore',
   'app.home.export.done':

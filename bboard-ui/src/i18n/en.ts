@@ -745,6 +745,14 @@ export const en = {
   'm.notfound.text':
     'There is no page at this address. If someone gave you a link to a record, check that it is complete.',
   'm.notfound.home': 'VeilCore home →',
+  // VeilCore opened from an iPhone Home Screen with nothing in it (site/HomeScreenStart.tsx).
+  'm.homescreen.title': 'Open your records',
+  'm.homescreen.text': 'This is VeilCore on your Home Screen. It keeps its own storage, separate from Safari.',
+  'm.homescreen.lost': 'Nothing has been lost. Bring your records in with your backup file.',
+  'm.homescreen.restore': 'Bring in my records',
+  'm.homescreen.fresh': 'New to VeilCore? Start here',
+  'm.homescreen.safari':
+    'No backup file with you? If you used VeilCore in Safari on this device, your records are still there.',
   'm.privacy.contact': 'Questions: hunter@veilcore.org',
   'title.checkSite': 'Check this site',
   'm.privacy.code.title': "The app's code",

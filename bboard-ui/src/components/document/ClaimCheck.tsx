@@ -18,6 +18,8 @@ import { Alert, Box, CircularProgress, Container, Paper, Stack, Typography } fro
 import { anchoredFingerprintOf, claimsOf, readClaimLink, type ClaimVerdict } from '../../veilcore/claim-link';
 import { isMarkerSchema, joinedPlacement, markerSourceKey, offerOf } from '../../veilcore/marker-claims';
 import { DatedNotOrigin } from '../verify/DatedNotOrigin';
+import { CheckVerdict, MakeYourOwn } from '../verify/CheckParts';
+import { claimVerdict, VERDICT_DATE } from '../verify/verdict';
 import { useT } from '../../i18n/app';
 import { DocumentDate, Fact } from './DocumentParts';
 import { claimRawWords, claimWords, MarkerLimits } from './ProveNumber';
@@ -93,10 +95,23 @@ export const ClaimCheck: React.FC = () => {
       : claimWords(link, tr, stands)
     : '';
   const sourceKey = link ? markerSourceKey(verdict, !!offerOf(link)?.count) : undefined;
+  // The one plain line at the top (easy-mode review, 19 Nov), never kinder than the answers below:
+  // every claim in the link and the lab's signature on it count.
+  const top = claimVerdict({
+    readable: !!link,
+    off: viabilityOff,
+    verdict,
+    more: more.map((_, i) => moreVerdicts[i]),
+  });
 
   return (
     <Box sx={{ bgcolor: 'background.default' }} data-claim-check="">
       <Container component="main" maxWidth="sm" sx={{ py: { xs: 5, md: 8 }, overflowWrap: 'anywhere' }}>
+        {top && (
+          <CheckVerdict tone={top.tone}>
+            {t(top.key, { date: top.date !== undefined ? tr.date(top.date, VERDICT_DATE) : '' })}
+          </CheckVerdict>
+        )}
         <Typography variant="h4" component="h1" sx={{ mb: 1 }}>
           {t('app.claim.check.title')}
         </Typography>
@@ -272,6 +287,7 @@ export const ClaimCheck: React.FC = () => {
             </Typography>
           </Stack>
         )}
+        <MakeYourOwn />
       </Container>
     </Box>
   );

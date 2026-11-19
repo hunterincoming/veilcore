@@ -169,14 +169,18 @@ test('the receipt before the key date stamp, then 3 clones from Ask saved with t
   await page.getByLabel(/Bred by/).fill('E2E');
   await page.getByRole('button', { name: /Next: check it/ }).click();
   const receipt = page.locator('[data-receipt="anchor"]');
-  // In view without asking, just before the button (docs/ask-veilcore.md); only the lock
-  // warning and where the details are stored fold under one plain line (review, 13 Nov).
+  // One tap away, just before the button (docs/ask-veilcore.md): the lock warning, where the
+  // details are stored and the receipt fold under "What gets published?" (easy-mode review,
+  // 19 Nov). In the page, folded, until then.
+  await expect(receipt).toHaveCount(1);
+  await expect(receipt).toBeHidden();
+  await page.getByRole('button', { name: 'What gets published?' }).click();
   await expect(receipt).toBeVisible();
-  await expect(page.locator('[data-seal-details]')).toHaveCount(0);
+  // Measured once the fold has finished opening.
+  await expect(page.locator('[data-seal-details]')).toHaveClass(/MuiCollapse-entered/);
   const sealBox = await page.getByRole('button', { name: /Seal it/ }).boundingBox();
   const receiptBox = await receipt.boundingBox();
   expect(sealBox && receiptBox && receiptBox.y + receiptBox.height <= sealBox.y).toBe(true);
-  await page.getByRole('button', { name: 'What can’t change, and where it’s stored' }).click();
   await expect(page.locator('[data-seal-details]')).toContainText("Once sealed, this part can't change.");
   await expect(receipt.locator('[data-receipt-public]')).toContainText(
     'A code made from your record’s key (not the record)',

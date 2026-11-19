@@ -89,13 +89,10 @@ describe('Home: a dated lab report shows under its plant, not as a plant', () =>
     expect(datingCardLine(orphan)).toBe('Dates a DNA report for Gone');
   });
 
-  it('the line under the plant: "DNA report dated", and only a missing backup is unfinished', () => {
-    expect(datingHomeStatus(dating, { backedUpAt: undefined }, true)).toEqual({
-      text: 'DNA report dated · not in your backup yet · next: save your backup',
-      unfinished: true,
-    });
-    expect(datingHomeStatus(dating, { backedUpAt: 1 }, true).text).toMatch(/^DNA report dated · sealed /);
-    expect(datingHomeStatus(dating, undefined, false).unfinished).toBe(false);
+  it('the line under the plant: "DNA report dated" and when it was sealed, never a backup label', () => {
+    // A missing backup is Home's one account-level line (BackupNeeded.tsx), not a label per record.
+    expect(datingHomeStatus(dating).text).toMatch(/^DNA report dated · sealed /);
+    expect(datingHomeStatus(dating).unfinished).toBe(false);
   });
 
   it('Home uses the list and the words', () => {

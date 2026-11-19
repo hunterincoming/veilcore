@@ -70,7 +70,8 @@ export const log = {
   'app.log.nextCheck': 'Weiter: prüfen',
   'app.log.readingYourPhotos': 'Ihre Fotos werden gelesen…',
   'app.log.reviewTitle': 'Stimmt das so?',
-  'app.log.fixNow': 'Korrigieren Sie jetzt, was nicht passt.',
+  'app.log.fixNow':
+    'Prüfen Sie alles. Einmal versiegelt, lässt es sich nicht mehr ändern. Eine Korrektur können Sie später hinzufügen.',
   'app.log.k.plant': 'Pflanze oder Linie',
   'app.log.k.made': 'Entstanden (Ihre Notiz)',
   'app.log.k.more': 'Weitere Details',
@@ -89,8 +90,8 @@ export const log = {
     'Die Angaben werden verschlossen auf {server} gespeichert, damit Sie darauf zurückkommen können, und wir haben den Schlüssel nicht. Auch der Name ist verschlossen; ein Prüflink trägt ihn nach dem # nur, wenn Sie das einschalten. Nur ein Prüfcode wird datiert, auf {datedOn}.',
   'app.log.sealing': 'Wird versiegelt…',
   'app.log.sealPlain':
-    'Einmal versiegelt, lässt sich das nicht mehr ändern (Korrekturen kommen später als neue Datensätze). Nur Codes gehen auf Midnight; Ihre Angaben bleiben verschlossen.',
-  'app.log.sealDetails': 'Was sich nicht mehr ändern lässt und wo es gespeichert wird',
+    'Dauerhaft veröffentlicht werden nur Codes, die daraus erzeugt werden, auf Midnight. Nie Ihre Texte oder Fotos: Die bleiben privat, und nur Sie können sie öffnen.',
+  'app.log.sealDetails': 'Was wird veröffentlicht?',
   'app.log.seal': 'Versiegeln',
   'app.log.sealingPlant': 'Ihre Pflanze wird versiegelt…',
   'app.log.sealStampsKey':
@@ -110,12 +111,12 @@ export const log = {
   'app.log.keyStamped':
     'Schlüssel mit Datumsstempel versehen. Auch der Schlüssel Ihrer Pflanze ist datiert, damit Sie später nachweisen können, dass Sie ihn halten.{bound} Über die Pflanze wurde nichts gesendet.',
   'app.log.keyBound': ' Der versiegelte Datensatz nennt diesen Schlüssel, also kann niemand einen anderen einsetzen.',
-  'app.log.stampFailedTitle': 'Versiegelt. Schlüssel noch ohne Datumsstempel',
-  'app.log.stampingTitle': 'Versiegelt. Der Schlüssel Ihrer Pflanze bekommt den Datumsstempel…',
+  'app.log.stampFailedTitle': 'Versiegelt. Noch ohne Datumsstempel',
+  'app.log.stampingTitle': 'Versiegelt. Der heutige Datumsstempel wird geholt…',
   'app.log.onlyFingerprint':
     'Gesendet wird nur ein Code des Schlüssels Ihrer Pflanze, nichts über die Pflanze. Kostenlos: VeilCore zahlt die Netzwerkgebühr.',
-  'app.log.stampingAria': 'Der Schlüssel Ihrer Pflanze bekommt den Datumsstempel',
+  'app.log.stampingAria': 'Der heutige Datumsstempel wird geholt',
   'app.log.stampLater': 'Datumsstempel später setzen',
   'app.log.keepOpen':
-    'Lassen Sie diese Seite etwa eine Minute offen. Wenn sie sich schließt, geht nichts verloren: Ihre Pflanze ist gespeichert, und ihre Seite bietet den Datumsstempel erneut an.',
+    'Das dauert etwa eine Minute. Lassen Sie diese Seite offen, bis es fertig ist: Auf einem Handy kann der Wechsel in eine andere App oder das Sperren des Bildschirms es anhalten. Wenn es anhält, geht nichts verloren: Ihre Pflanze ist gespeichert, und ihre Seite bietet den Datumsstempel erneut an.',
 } satisfies Partial<AppTranslation>;

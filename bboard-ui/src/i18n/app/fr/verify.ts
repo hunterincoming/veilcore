@@ -109,6 +109,44 @@ export const verify = {
   'app.verify.notFoundText':
     'Ce lien de vérification ne correspond à aucun enregistrement du registre. Vérifiez que le lien est complet et non modifié.',
   'app.verify.goHome': 'Aller sur veilcore.org',
+  'app.verify.verdict.checking': 'Vérification de cet enregistrement dans votre navigateur…',
+  'app.verify.verdict.dated': 'Daté du {date}. Toutes les vérifications ont réussi dans votre navigateur.',
+  'app.verify.verdict.datedTest':
+    'Date d’essai, {date}, sur un réseau de test : ce n’est pas une vraie date. Toutes les vérifications ont réussi dans votre navigateur.',
+  'app.verify.verdict.datedButFailed':
+    'Daté du {date}, mais certaines vérifications ont échoué. Voir les vérifications ci-dessous.',
+  'app.verify.verdict.reported':
+    'Le serveur de VeilCore indique qu’il a été daté le {date}. Votre navigateur n’a pas encore confirmé cette date lui-même.',
+  'app.verify.verdict.reportedNoDate':
+    'Le serveur de VeilCore indique qu’il est daté, sans donner de date. Votre navigateur ne l’a pas encore confirmé lui-même.',
+  'app.verify.verdict.dateFailed':
+    'La vérification de la date a échoué dans votre navigateur. Ne vous fiez pas à cette date.',
+  'app.verify.verdict.notYet': 'Pas encore daté. Il attend son horodatage.',
+  'app.verify.verdict.reportedNoDateButFailed':
+    'Le serveur de VeilCore indique qu’il est daté, sans donner de date, et toutes les vérifications n’ont pas réussi. Voir les vérifications ci-dessous.',
+  'app.verify.verdict.reportedButFailed':
+    'Le serveur de VeilCore indique qu’il a été daté le {date}, mais toutes les vérifications n’ont pas réussi. Voir les vérifications ci-dessous.',
+  'app.verify.verdict.datedWithdrawn':
+    'Daté du {date}, mais un laboratoire a retiré sa signature. Voir les vérifications ci-dessous.',
+  'app.verify.verdict.dateUnchecked':
+    'Impossible de vérifier la date pour le moment. Le serveur de VeilCore indique que cet enregistrement est daté, mais cette page n’a pas pu le confirmer. Réessayez dans une minute.',
+  'app.verify.verdict.notYetFailed':
+    'Pas encore daté, et toutes les vérifications n’ont pas réussi. Voir les vérifications ci-dessous.',
+  'app.verify.verdict.unbound':
+    'Ce lien ne contient pas le code de preuve de l’enregistrement : votre navigateur ne peut donc pas savoir si le serveur de VeilCore a répondu au sujet de cet enregistrement. Demandez un nouveau lien à la personne qui vous l’a envoyé.',
+  'app.verify.verdict.nothing': 'Rien ne peut être vérifié pour cet enregistrement : il n’a pas de code de preuve.',
+  'app.verify.checks.see': 'Voir les vérifications',
+  'app.verify.checks.hide': 'Masquer les vérifications',
+  'app.verify.cta': 'Vous voulez une date comme celle-ci pour vos propres plantes ou animaux ?',
+  'app.verify.ctaButton': 'Créer un enregistrement, gratuit',
+  'app.verify.notFoundAsk': 'Demandez à la personne qui vous l’a envoyé de vous renvoyer le lien.',
+  'app.verify.another.label': 'Autre identifiant d’enregistrement ou lien de vérification',
+  'app.verify.another.go': 'Vérifier',
+  'app.verify.another.bad': 'Ce n’est ni un identifiant d’enregistrement ni un lien de vérification.',
+  'app.verify.unreachable.title': 'Impossible de vérifier cet enregistrement pour le moment',
+  'app.verify.unreachable.text':
+    'Le serveur de VeilCore n’a pas répondu, ou a envoyé une réponse que cette page ne peut pas lire. Réessayez dans une minute.',
+  'app.verify.unreachable.retry': 'Réessayer',
   'app.verify.deleted.title': '{id} a été supprimé par son détenteur',
   'app.verify.deleted.when': 'Supprimé le {date}. Ses détails ne sont plus affichés.',
   'app.verify.deleted.datedChecked':

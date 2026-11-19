@@ -69,7 +69,7 @@ export const log = {
   'app.log.nextCheck': 'Siguiente: revisarlo',
   'app.log.readingYourPhotos': 'Leyendo sus fotos…',
   'app.log.reviewTitle': '¿Es correcto?',
-  'app.log.fixNow': 'Corrija lo que haga falta ahora.',
+  'app.log.fixNow': 'Revíselo. Una vez sellado, no se puede cambiar. Puede añadir una corrección más tarde.',
   'app.log.k.plant': 'Planta o línea',
   'app.log.k.made': 'Obtenida (su nota)',
   'app.log.k.more': 'Más detalles',
@@ -88,8 +88,8 @@ export const log = {
     'Los detalles se guardan bloqueados en {server} para que pueda volver a ellos, y nosotros no tenemos la clave. El nombre también está bloqueado; un enlace de comprobación lo lleva después del # solo si usted lo activa. Solo se fecha un código de prueba, en {datedOn}.',
   'app.log.sealing': 'Sellando…',
   'app.log.sealPlain':
-    'Una vez sellado, esto no puede cambiar (las correcciones se añaden después, como registros nuevos). Solo van códigos a Midnight; sus detalles siguen bloqueados.',
-  'app.log.sealDetails': 'Qué ya no puede cambiar y dónde se guarda',
+    'Se publica, de forma permanente: solo códigos hechos a partir de él, en Midnight. Nunca sus textos ni sus fotos: eso sigue siendo privado, y solo usted puede abrirlo.',
+  'app.log.sealDetails': '¿Qué se publica?',
   'app.log.seal': 'Sellarlo',
   'app.log.sealingPlant': 'Sellando su planta…',
   'app.log.sealStampsKey':
@@ -109,12 +109,12 @@ export const log = {
   'app.log.keyStamped':
     'Clave con sello de fecha. La clave de su planta también queda fechada, para que más adelante pueda demostrar que la tiene.{bound} No salió nada sobre la planta.',
   'app.log.keyBound': ' El registro sellado nombra esta clave, así que nadie puede cambiarla por otra.',
-  'app.log.stampFailedTitle': 'Sellada. La clave aún no tiene sello de fecha',
-  'app.log.stampingTitle': 'Sellada. Poniendo el sello de fecha a la clave de su planta…',
+  'app.log.stampFailedTitle': 'Registro sellado. Aún sin sello de fecha',
+  'app.log.stampingTitle': 'Registro sellado. Obteniendo el sello de fecha de hoy…',
   'app.log.onlyFingerprint':
     'Solo sale un código de la clave de su planta, nada sobre la planta. Gratis: VeilCore paga la tarifa de la red.',
-  'app.log.stampingAria': 'Poniendo el sello de fecha a la clave de su planta',
+  'app.log.stampingAria': 'Obteniendo el sello de fecha de hoy',
   'app.log.stampLater': 'Hacer el sello de fecha más tarde',
   'app.log.keepOpen':
-    'Mantenga esta pantalla abierta, alrededor de un minuto. Si se cierra, no se pierde nada: su planta está guardada y su página le ofrecerá el sello de fecha de nuevo.',
+    'Tarda alrededor de un minuto. Mantenga esta pantalla abierta hasta que termine: en un teléfono, cambiar de aplicación o bloquear la pantalla puede detenerlo. Si se detiene, no se pierde nada: su planta está guardada y su página le ofrecerá el sello de fecha de nuevo.',
 } satisfies Partial<AppTranslation>;

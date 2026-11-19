@@ -70,7 +70,8 @@ export const log = {
   'app.log.nextCheck': 'Suivant : vérifier',
   'app.log.readingYourPhotos': 'Lecture de vos photos…',
   'app.log.reviewTitle': 'Est-ce correct ?',
-  'app.log.fixNow': 'Corrigez ce qu’il faut maintenant.',
+  'app.log.fixNow':
+    'Vérifiez-le. Une fois scellé, il ne peut plus changer. Vous pourrez ajouter une correction plus tard.',
   'app.log.k.plant': 'Plante ou lignée',
   'app.log.k.made': 'Obtenue (votre note)',
   'app.log.k.more': 'Plus de détails',
@@ -89,8 +90,8 @@ export const log = {
     'Les détails sont conservés verrouillés sur {server} pour que vous puissiez y revenir, et nous n’avons pas la clé. Le nom est verrouillé lui aussi ; un lien de vérification ne le porte après le # que si vous l’activez. Seul un code de preuve est daté, sur {datedOn}.',
   'app.log.sealing': 'Scellement…',
   'app.log.sealPlain':
-    'Une fois scellé, ceci ne peut plus changer (les corrections s’ajoutent ensuite, comme nouveaux enregistrements). Seuls des codes vont sur Midnight ; vos détails restent verrouillés.',
-  'app.log.sealDetails': 'Ce qui ne pourra plus changer, et où c’est conservé',
+    'Est publié, de façon permanente : seulement des codes tirés de cet enregistrement, sur Midnight. Jamais vos textes ni vos photos : ceux-ci restent privés, et vous seul pouvez les ouvrir.',
+  'app.log.sealDetails': 'Qu’est-ce qui est publié ?',
   'app.log.seal': 'Sceller',
   'app.log.sealingPlant': 'Scellement de votre plante…',
   'app.log.sealStampsKey':
@@ -110,12 +111,12 @@ export const log = {
   'app.log.keyStamped':
     'Clé horodatée. La clé de votre plante est datée elle aussi, pour que vous puissiez prouver plus tard que vous la détenez.{bound} Rien sur la plante n’a été envoyé.',
   'app.log.keyBound': ' L’enregistrement scellé désigne cette clé, donc personne ne peut la remplacer par une autre.',
-  'app.log.stampFailedTitle': 'Scellée. Clé pas encore horodatée',
-  'app.log.stampingTitle': 'Scellée. Horodatage de la clé de votre plante…',
+  'app.log.stampFailedTitle': 'Enregistrement scellé. Pas encore horodaté',
+  'app.log.stampingTitle': 'Enregistrement scellé. Horodatage du jour en cours…',
   'app.log.onlyFingerprint':
     'Seul un code de la clé de votre plante est envoyé, rien sur la plante. Gratuit : VeilCore paie les frais du réseau.',
-  'app.log.stampingAria': 'Horodatage de la clé de votre plante',
+  'app.log.stampingAria': 'Horodatage du jour en cours',
   'app.log.stampLater': 'Faire l’horodatage plus tard',
   'app.log.keepOpen':
-    'Gardez cet écran ouvert, environ une minute. S’il se ferme, rien n’est perdu : votre plante est enregistrée, et sa page vous proposera à nouveau l’horodatage.',
+    'Cela prend environ une minute. Gardez cet écran ouvert jusqu’à la fin : sur un téléphone, changer d’application ou verrouiller l’écran peut l’interrompre. S’il s’interrompt, rien n’est perdu : votre plante est enregistrée, et sa page vous proposera à nouveau l’horodatage.',
 } satisfies Partial<AppTranslation>;
