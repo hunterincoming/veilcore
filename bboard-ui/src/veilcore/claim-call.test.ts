@@ -112,7 +112,7 @@ describe('the claim page’s closing line', () => {
         /holder typed|Inhaber hat die Zahlen eingegeben|titular escribió|détenteur a saisi/,
       );
       expect(text, lang).toMatch(
-        /holder’s own|Eingaben des Inhabers|propio titular|ceux du titulaire|保有者自身が入力したものとして扱って/,
+        /holder’s own|Eingaben des Inhabers|propio titular|de quien selló el registro|ceux du détenteur|保有者自身が入力したものとして扱って/,
       );
     }
   });

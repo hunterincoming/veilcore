@@ -13,7 +13,7 @@ export const backup = {
   'app.backup.saved': 'Gespeichert',
   'app.backup.savedSub': '{file} · eine Datei für alles',
   'app.backup.labKeyNotMade':
-    'Der Empfangsschlüssel Ihres Labors konnte gerade nicht erstellt werden, deshalb ist er noch nicht in dieser Sicherung. Für alles andere taugt die Sicherung. Speichern Sie eine neue, wenn Ihr erster Datensatz angekommen ist.',
+    'Der Empfangsschlüssel Ihres Labors konnte gerade nicht erstellt werden, deshalb ist er noch nicht in dieser Sicherungskopie. Für alles andere taugt die Sicherungskopie. Speichern Sie eine neue, wenn Ihr erster Datensatz angekommen ist.',
   'app.backup.saveFile': 'Sicherungsdatei speichern',
   'app.backup.copyTitle': 'Eine Kopie woanders ablegen (empfohlen)',
   'app.backup.wayBack': 'Wenn dieses Handy oder dieser Computer kaputtgeht, ist diese Kopie Ihr Weg zurück.',
@@ -44,9 +44,9 @@ export const backup = {
   'app.backup.pw.keep': 'Bewahren Sie es in einem Passwort-Manager oder aufgeschrieben auf, getrennt von der Datei.',
   'app.backup.pw.locking': 'Datei wird verschlossen…',
   'app.backup.pw.savedSub': '{file} · eine Datei für alles, mit Ihrem Passwort verschlossen',
-  'app.backup.pw.needed': 'Diese Sicherung hat ein Passwort. Geben Sie es ein, um die Datei zu öffnen.',
-  'app.backup.pw.wrong': 'Dieses Passwort öffnet diese Sicherung nicht. Es wurde nichts geändert.',
-  'app.backup.pw.checkLabel': 'Das Passwort der Sicherung',
+  'app.backup.pw.needed': 'Diese Sicherungskopie hat ein Passwort. Geben Sie es ein, um die Datei zu öffnen.',
+  'app.backup.pw.wrong': 'Dieses Passwort öffnet diese Sicherungskopie nicht. Es wurde nichts geändert.',
+  'app.backup.pw.checkLabel': 'Das Passwort der Sicherungskopie',
   'app.backup.pw.open': 'Öffnen',
   'app.backup.restoreTitle': 'Datensätze wiederherstellen',
   'app.backup.restoreIntro':
@@ -112,7 +112,7 @@ export const backup = {
   // The passkey copy (veilcore/passkey-backup.ts, flow/PasskeyCopy.tsx).
   'app.backup.passkey.title': 'Zusätzlich eine Kopie, die sich mit einem Passkey öffnet',
   'app.backup.passkey.why':
-    'Wenn Sie dieses Handy verlieren, holt Ihr Passkey alles zurück außer Datensätzen, die nur auf diesem Gerät aufbewahrt werden: Er wird über Ihr Apple- oder Google-Konto auf Ihr neues Handy übertragen. Die Kopie ist mit einem Schlüssel gesperrt, den nur Ihr Passkey erzeugen kann. VeilCore kann sie nicht öffnen.',
+    'Wenn Sie dieses Handy verlieren, holt Ihr Passkey alles zurück außer Datensätzen, die nur auf diesem Gerät aufbewahrt werden: Er wird über Ihr Apple- oder Google-Konto auf Ihr neues Handy übertragen. Die Kopie ist mit einem Schlüssel verschlossen, den nur Ihr Passkey erzeugen kann. VeilCore kann sie nicht öffnen.',
   'app.backup.passkey.keepFile':
     'Behalten Sie auch die Datei. Wer den Passkey löscht, löscht den einzigen Schlüssel zu dieser Kopie.',
   'app.backup.passkey.make': 'Passkey-Kopie anlegen',
@@ -130,7 +130,7 @@ export const backup = {
   'app.backup.passkey.notThis': 'Nicht diese',
   'app.backup.passkey.from': 'Aus Ihrer Passkey-Kopie vom {date}.',
   'app.backup.passkey.err.unsupported':
-    'Dieses Handy oder dieser Browser kann keinen Passkey erzeugen, der eine Sicherung öffnet. Verwenden Sie die Sicherungsdatei, oder versuchen Sie es mit Safari auf einem iPhone (iOS 18.4 oder neuer) oder mit Chrome.',
+    'Dieses Handy oder dieser Browser kann keinen Passkey erzeugen, der eine Sicherungskopie öffnet. Verwenden Sie die Sicherungsdatei, oder versuchen Sie es mit Safari auf einem iPhone (iOS 18.4 oder neuer) oder mit Chrome.',
   'app.backup.passkey.err.cancelled': 'Abgebrochen. Es wurde nichts geändert.',
   'app.backup.passkey.err.noCopy':
     'Für diesen Passkey wurde keine Kopie gefunden. Öffnen Sie stattdessen Ihre Sicherungsdatei.',
@@ -149,7 +149,7 @@ export const backup = {
     'Dieser Datensatz wurde für diese Anfrage nicht ausgewählt. Wählen Sie den Datensatz, den Sie senden möchten.',
   'app.intake.title': 'Eine Probe für {host} erfassen',
   'app.intake.intro':
-    '<b>{host}</b> hat Sie gebeten, diese Probe bei VeilCore zu erfassen. Sie legen den Datensatz hier an, bei VeilCore, und er bleibt Ihrer. Am Ende entscheiden Sie, ob Sie ihnen Datensatz-ID, Prüfcode und Prüflink senden. Sonst geht nichts an sie.',
+    '<b>{host}</b> hat Sie gebeten, diese Probe bei VeilCore zu erfassen. Sie legen den Datensatz hier an, bei VeilCore, und er bleibt bei Ihnen. Am Ende entscheiden Sie, ob Sie ihnen Datensatz-ID, Prüfcode und Prüflink senden. Sonst geht nichts an sie.',
   'app.intake.ref': 'Ihre Referenz, so wie sie sie geschrieben haben:',
   'app.intake.new': 'Neu erfassen',
   'app.intake.pick': 'Oder einen bereits erfassten senden',
@@ -158,7 +158,7 @@ export const backup = {
   'app.intake.send.title': 'Diesen Datensatz an {host} senden?',
   'app.intake.send.what':
     'Sie erhalten die Datensatz-ID {id} ({name}), den Prüfcode und den Prüflink, damit sie ihn bei VeilCore prüfen können.',
-  'app.intake.send.not': 'Ihre Angaben, Fotos, DNA-Berichte, Schlüssel und Sicherung erhalten sie nicht.',
+  'app.intake.send.not': 'Ihre Angaben, Fotos, DNA-Berichte, Schlüssel und Sicherungskopie erhalten sie nicht.',
   'app.intake.send.button': 'An {host} senden',
   'app.intake.send.opening': '{id} wird geöffnet …',
   'app.intake.send.kept': 'Der Datensatz bleibt in jedem Fall in Ihrem VeilCore.',

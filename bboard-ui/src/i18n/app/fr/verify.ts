@@ -71,7 +71,7 @@ export const verify = {
   'app.verify.field.parent-names': 'Noms des cultivars parents',
   'app.verify.field.breeding-method': 'Méthode de sélection',
   'app.verify.field.individual-id': 'Numéro d’identification individuel et son système',
-  'app.verify.field.genetics': 'La génétique elle-même — jamais divulguée, par conception',
+  'app.verify.field.genetics': 'La génétique elle-même — jamais divulguée, par principe',
   'app.verify.sum.reports.one': 'un rapport de laboratoire',
   'app.verify.sum.reports.other': '{count} × rapport de laboratoire',
   'app.verify.sum.receipts.one': 'un accusé de réception de laboratoire',
@@ -276,7 +276,7 @@ export const verify = {
   'app.verify.ex.fact3':
     'Vérifié sur Midnight : cette racine de lot a été écrite par la transaction 9c41e0…b27d dans le bloc 2973563 le 2026-10-11 14:03 UTC.{test}',
   'app.verify.ex.note3':
-    'Cette transaction, sur {network}, est ce qui date l’enregistrement. Sur un vrai enregistrement, votre navigateur la demande à un indexeur Midnight et vérifie qu’elle a écrit cette racine de lot dans le contrat de VeilCore. Si aucun indexeur ne répond, la ligne le dit et la date n’est que ce que signale le registre : consultez la transaction sur un explorateur Midnight, comme midnightexplorer.com, avant de vous y fier.',
+    'Cette transaction, sur {network}, est ce qui date l’enregistrement. Sur un vrai enregistrement, votre navigateur la demande à un indexeur Midnight et vérifie qu’elle a écrit cette racine de lot dans le smart contract de VeilCore. Si aucun indexeur ne répond, la ligne le dit et la date n’est que ce que signale le registre : consultez la transaction sur un explorateur Midnight, comme midnightexplorer.com, avant de vous y fier.',
   'app.verify.ex.fact4':
     'Rapport de laboratoire (SHA-256 du fichier 7c1e04d2…9b3a51), signature vérifiée dans ce navigateur. Signé par une clé nommée « Example Lab » (nom non vérifié).',
   'app.verify.ex.note4':
@@ -307,10 +307,10 @@ export const verify = {
     'Ouvrez un explorateur Midnight pour {network}, par exemple {url} (saisissez l’adresse vous-même).',
   'app.verify.self.anyExplorer': 'Ouvrez un explorateur Midnight pour {network}.',
   'app.verify.self.tx': 'Cherchez la transaction {tx}. L’heure de son bloc est la date.',
-  'app.verify.self.contract': 'Vérifiez qu’elle a réussi et qu’elle a appelé le contrat de VeilCore {contract}.',
+  'app.verify.self.contract': 'Vérifiez qu’elle a réussi et qu’elle a appelé le smart contract de VeilCore {contract}.',
   'app.verify.self.noContract': '(le registre ne l’a pas nommé)',
   'app.verify.self.root':
-    'Vérifiez qu’elle a écrit le code de preuve de lot {root}. Un explorateur peut ne pas l’afficher : le dossier de preuve de l’enregistrement, que détient son détenteur, explique comment le lire autrement.',
+    'Vérifiez qu’elle a écrit la racine du lot {root}. Un explorateur peut ne pas l’afficher : le dossier de preuve de l’enregistrement, fourni par son détenteur, explique comment le lire autrement.',
   'app.verify.dnaCheck.help':
     'Vous avez le fichier du rapport ADN que le détenteur vous a envoyé ? Choisissez-le pour vérifier que c’est celui enregistré avec cet enregistrement. Le fichier est lu dans ce navigateur et n’est envoyé nulle part.',
   'app.verify.dnaCheck.button': 'Vérifier un fichier de rapport ADN',

@@ -11,7 +11,7 @@ export const document = {
   'app.doc.new.intro':
     'Choisissez le fichier. Il reste sur cet appareil. Seuls un code calculé à partir de son contenu, son nom et sa taille sont scellés, avec une date que personne ne peut antidater. Si un seul caractère du fichier change, le code ne correspond plus.',
   'app.doc.new.proves':
-    'Ce que cela montrera : un fichier avec exactement ces octets était entre vos mains à la date où il est scellé. Pas que le document est authentique, que l’émetteur l’a émis, ni que ce qu’il dit est vrai.',
+    'Ce que cela montrera : un fichier avec exactement ces octets était entre vos mains au plus tard à la date où il est scellé. Pas que le document est authentique, que l’émetteur l’a émis, ni que ce qu’il dit est vrai.',
   'app.doc.f.files': 'Fichiers',
   'app.doc.f.filesHelp': 'Jusqu’à {max} : un contrat et ses annexes, un certificat d’analyse et ses chromatogrammes.',
   'app.doc.f.add': 'Ajouter un fichier',
@@ -82,7 +82,7 @@ export const document = {
     '<b>Pas de correspondance.</b> {name} n’est pas le fichier scellé. L’enregistrer à nouveau, l’imprimer en PDF ou l’envoyer par certaines applications modifie le fichier : demandez le fichier d’origine.',
   'app.doc.new.introTech': 'Pour les spécialistes : ce code est le SHA-256 du fichier.',
   'app.doc.backupFirst':
-    'Scellé. Enregistrez maintenant une sauvegarde et vérifiez-la. D’ici là, les clés de cet enregistrement ne sont que dans ce navigateur, et VeilCore ne conserve pas encore de copie de l’enregistrement pour vous. Cela vous sera demandé jusqu’à ce qu’une copie de secours contenant la clé de ce navigateur soit vérifiée.',
+    'Scellé. Enregistrez maintenant une sauvegarde et vérifiez-la. D’ici là, les clés de cet enregistrement ne sont que dans ce navigateur, et VeilCore ne conserve pas encore de copie de l’enregistrement pour vous. Cela vous sera demandé jusqu’à ce qu’une sauvegarde contenant la clé de ce navigateur soit vérifiée.',
   'app.doc.notBacked':
     'Pas encore dans une sauvegarde vérifiée. D’ici là, les clés de cet enregistrement ne sont que dans ce navigateur.',
   'app.doc.tech.title': 'Détails techniques',
@@ -110,7 +110,7 @@ export const document = {
   'app.doc.check.notDated':
     'Rien ne date encore cet enregistrement, ou le lien a été modifié. Ne vous y fiez pas avant qu’il affiche une date.',
   'app.doc.check.what':
-    'Ce que cela montre : un fichier avec exactement ces octets était entre les mains du détenteur à cette date. Ce que cela ne montre pas : que le document est authentique, que l’émetteur l’a émis, ni que ce qu’il dit est vrai. « Émis par » est la déclaration du détenteur.',
+    'Ce que cela montre : un fichier avec exactement ces octets était entre les mains du détenteur au plus tard à cette date. Ce que cela ne montre pas : que le document est authentique, que l’émetteur l’a émis, ni que ce qu’il dit est vrai. « Émis par » est la déclaration du détenteur.',
   'app.doc.check.whatUndated':
     'Ce que cela montrera, une fois daté : un fichier avec exactement ces octets était entre les mains du détenteur au plus tard à sa date. Ce que cela ne montre pas : que le document est authentique, que l’émetteur l’a émis, ni que ce qu’il dit est vrai. « Émis par » est la déclaration du détenteur.',
   'app.doc.check.inLink': 'Dans le lien (les propres mots du détenteur)',
@@ -181,7 +181,7 @@ export const document = {
   'app.claim.verdict.okWhen': 'Prouvé le {date}. Vérifié dans votre navigateur.',
   'app.claim.verdict.ok': 'Cette preuve a passé la vérification dans votre navigateur.',
   'app.claim.verdict.labConflict':
-    'Cette preuve a passé la vérification, mais plusieurs laboratoires revendiquent la clé qui l’a signée : lisez les chiffres comme la déclaration du détenteur. Voir ci-dessous.',
+    'Cette preuve a passé la vérification, mais plusieurs laboratoires disent détenir la clé qui l’a signée : lisez les chiffres comme la déclaration du détenteur. Voir ci-dessous.',
   'app.claim.verdict.labWithdrawn':
     'Cette preuve a passé la vérification, mais le laboratoire a retiré sa signature : lisez les chiffres comme la déclaration du détenteur. Voir ci-dessous.',
   'app.doc.verdict.noDate':

@@ -127,7 +127,7 @@ export const animal = {
   'app.animal.v.app.pair.chain.stampFirst':
     'Ajoutez d’abord l’horodatage de votre animal (depuis sa page) si vous voulez aussi dater ce rapport de laboratoire sur le réseau.',
   'app.animal.v.app.plant.notHereText':
-    'Si vous l’avez scellé dans un autre navigateur, enregistrez-y une copie de secours et ouvrez-la ici (Récupérer vos enregistrements). Si c’est l’enregistrement de quelqu’un d’autre, ouvrez plutôt le lien de vérification qu’il vous a donné.',
+    'Si vous l’avez scellé dans un autre navigateur, enregistrez-y une sauvegarde et ouvrez-la ici (Récupérer vos enregistrements). Si c’est l’enregistrement de quelqu’un d’autre, ouvrez plutôt le lien de vérification qu’il vous a donné.',
   'app.animal.v.app.plant.bredByName': 'Éleveur ou détenteur : {name}',
   'app.animal.v.app.plant.action.saveReport': 'Enregistrer un rapport ADN sur cet animal',
   'app.animal.v.app.plant.f.reportSaved': 'enregistré sur cet animal ({file}) · code de l’association {fp}{sha}',
@@ -170,7 +170,7 @@ export const animal = {
   'app.animal.v.app.plant.next.dna.haveText':
     'Enregistrez-le sur cet animal. Il est lu sur votre appareil ; le fichier n’est jamais envoyé.',
   'app.animal.v.app.plant.next.date.why':
-    'Il est enregistré sur cet animal, mais rien ne le date encore. Le dater montre que le rapport existait à cette date, sans montrer les marqueurs à personne.',
+    'Il est enregistré sur cet animal, mais rien ne le date encore. Le dater montre que le rapport existait déjà à cette date, sans montrer les marqueurs à personne.',
   'app.animal.v.app.plant.next.save.title': 'Enregistrez le rapport ADN sur cet animal',
   'app.animal.v.app.plant.next.save.why':
     'Un laboratoire a signé avoir reçu un échantillon. Quand son rapport ADN reviendra, enregistrez-le sur cet animal : c’est ce qui lie votre enregistrement à l’animal, pour pouvoir le comparer à un test ultérieur.',
@@ -179,9 +179,9 @@ export const animal = {
     'Un laboratoire a signé avoir reçu un échantillon, et un rapport ADN est enregistré sur cet animal. Vous pouvez transmettre du matériel ou le concéder sous licence, avec des conditions qui s’appliquent à la descendance déclarée à partir de cet enregistrement.',
   'app.animal.v.app.plant.tree.none': 'Ni père ni mère enregistrés pour l’instant.',
   'app.animal.v.app.plant.anchor.keysNotHere':
-    'La clé de cet animal n’est pas dans ce navigateur. Récupérez-la depuis votre fichier de copie de secours : une nouvelle clé ne correspondrait pas à l’enregistrement scellé.',
+    'La clé de cet animal n’est pas dans ce navigateur. Récupérez-la depuis votre fichier de sauvegarde : une nouvelle clé ne correspondrait pas à l’enregistrement scellé.',
   'app.animal.v.app.plant.bundle.keyIs':
-    '(La clé de l’enregistrement est l’identifiant public de la clé créée pour cet animal quand vous l’avez scellé. Sa partie secrète reste dans votre copie de secours et ne va jamais dans le dossier.)',
+    '(La clé de l’enregistrement est l’identifiant public de la clé créée pour cet animal quand vous l’avez scellé. Sa partie secrète reste dans votre sauvegarde et ne va jamais dans le dossier.)',
   'app.animal.v.app.plant.bundle.checkedAgainst':
     'Il est comparé à celui enregistré sur cet animal avant d’être ajouté.',
   'app.animal.v.app.plant.cert.intro':
@@ -229,9 +229,9 @@ export const animal = {
   'app.animal.v.app.lab.results.withdrawnNewer':
     '<b>Le rapport de laboratoire enregistré sur cet animal a été retiré par le laboratoire.</b> Il reste enregistré jusqu’à ce que vous en enregistriez un autre, et votre certificat et vos liens indiquent qu’il a été retiré. Un rapport plus récent est arrivé : ouvrez-le, puis enregistrez-le sur cet animal.',
   'app.animal.v.app.lab.results.locked':
-    'Verrouillés pour que vous seul puissiez les ouvrir, avec la clé de cet animal tirée de votre copie de secours. VeilCore les conserve verrouillés et n’a pas la clé.',
+    'Verrouillés pour que vous seul puissiez les ouvrir, avec la clé de cet animal tirée de votre sauvegarde. VeilCore les conserve verrouillés et n’a pas la clé.',
   'app.animal.v.app.lab.results.noKey':
-    'La clé de cet animal n’est pas sur cet appareil : ses rapports de laboratoire ne peuvent donc pas être ouverts ici. <link>Récupérez d’abord vos enregistrements depuis votre copie de secours</link>.',
+    'La clé de cet animal n’est pas sur cet appareil : ses rapports de laboratoire ne peuvent donc pas être ouverts ici. <link>Récupérez d’abord vos enregistrements depuis votre sauvegarde</link>.',
   'app.animal.v.app.lab.results.whatOthersSee':
     '<b>Ce que les autres peuvent voir.</b> La signature du laboratoire sur ce rapport est privée, comme le rapport : seuls vous et le laboratoire la voyez. Pour la montrer, choisissez Montrer à quelqu’un et activez-la sous « Signatures de laboratoire ». Quiconque a ce lien voit alors que le laboratoire a signé un rapport sur cet animal, et le nom sous lequel la clé du laboratoire est enregistrée : marqué « nom non vérifié » sauf si l’opérateur de VeilCore l’a rapproché d’une liste publique de licences ou d’accréditations. S’il s’agit d’un rapport ADN et que vous l’enregistrez sur cet animal, la page peut aussi dire que le laboratoire a signé ce fichier.',
   'app.animal.v.app.lab.results.nothingYet':
@@ -251,7 +251,7 @@ export const animal = {
     'Tout ce qui fait aussi partie de l’accord, avec vos propres mots. Par exemple : au plus deux portées ou vêlages, pas de revente des paillettes, descendants inscrits auprès d’une association de race nommée.',
   'app.animal.v.app.lic.detail.thisCultivar': 'cet animal',
   'app.animal.v.app.lic.detail.lineage':
-    'Si un animal est enregistré plus tard avec {name} comme père ou mère et que les deux détenteurs le confirment, le lien vers ce contrat apparaît dans son enregistrement. Une descendance que personne n’enregistre n’est pas détectée.',
+    'Si un animal est enregistré plus tard avec {name} comme père ou mère et que les deux détenteurs le confirment, le lien vers cet accord apparaît dans son enregistrement. Une descendance que personne n’enregistre n’est pas détectée.',
   'app.animal.v.app.lic.detail.derivatives.one': '{count} animal déjà enregistré en descend.',
   'app.animal.v.app.lic.detail.derivatives.other': '{count} animaux déjà enregistrés en descendent.',
   'app.animal.v.app.lic.off.intro':

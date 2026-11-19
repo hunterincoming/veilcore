@@ -1,8 +1,8 @@
-// The record app in French (vous): every key of ../en, screen by screen. DRAFT: machine-assisted,
-// to be checked by a fluent speaker before publishing (docs/translations/README.md). Terms are
+// The record app in French (vous): every key of ../en, screen by screen. Machine-assisted,
+// reviewed against native official sources (docs/i18n-glossary.md). Terms are
 // the site's (../../fr.ts), plus the app's: obtenteur (breeder), détenteur and détenir (holder,
 // hold; never propriétaire or posséder), enregistrement (record), registre (registry),
-// code de preuve (proof code; empreinte ADN only for genetic data), horodatage (date stamp), code laboratoire, accusé de réception, copie de secours,
+// code de preuve (proof code; empreinte ADN only for genetic data), horodatage (date stamp), code laboratoire, accusé de réception, sauvegarde,
 // rapport de laboratoire, lot (batch), ancrer, association (pairing), livraison (delivery),
 // scellé (seal on a sample bag), contrat (agreement).
 // SPDX-License-Identifier: Apache-2.0

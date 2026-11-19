@@ -60,7 +60,7 @@ export const royalties = {
     's’en servir pour la reproduction, prélever et vendre semence, embryons ou reproducteurs',
   'app.roy.rights.breed+collect': 's’en servir pour la reproduction et prélever semence ou embryons pour son usage',
   'app.roy.rights.breed': 's’en servir pour la reproduction, avec ses seuls animaux',
-  'app.roy.rights.full-transfer': 'reprendre les droits que le détenteur a sur elle',
+  'app.roy.rights.full-transfer': 'reprendre les droits que le détenteur de l’enregistrement a sur elle',
   'app.roy.rights.cultivate+propagate': 'la cultiver et la multiplier',
   'app.roy.rights.cultivate': 'la cultiver',
   'app.roy.s.anywhere': 'tout territoire',

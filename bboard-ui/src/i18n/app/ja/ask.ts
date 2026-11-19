@@ -175,7 +175,7 @@ export const ask = {
   'app.ask.batch.cutOn': '取った日',
   'app.ask.batch.bornOn': '生まれた日',
   'app.ask.batch.willMake.other': '新しい記録{count}件',
-  'app.ask.batch.private': 'それぞれの記録は親の名前をロックして中に持ちます。つながりはほかの誰にも見えません。',
+  'app.ask.batch.private': 'それぞれの記録は親の名前に鍵をかけて中に持ちます。つながりはほかの誰にも見えません。',
   'app.ask.batch.offline': 'オフラインです。ここで全部確認できます。保存には接続が必要です。',
   'app.ask.batch.needsConnection': '保存には接続が必要です。先にバックアップを行います。',
   'app.ask.batch.needParent': '取った元の植物を選んでください。',

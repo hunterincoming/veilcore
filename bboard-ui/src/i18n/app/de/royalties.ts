@@ -59,7 +59,7 @@ export const royalties = {
   'app.roy.rights.breed+sell': 'damit züchten und Sperma, Embryonen oder Zuchttiere gewinnen und verkaufen',
   'app.roy.rights.breed+collect': 'damit züchten und Sperma oder Embryonen für den eigenen Bedarf gewinnen',
   'app.roy.rights.breed': 'damit züchten, nur mit den eigenen Tieren',
-  'app.roy.rights.full-transfer': 'alle Rechte übernehmen, die der Inhaber daran hat',
+  'app.roy.rights.full-transfer': 'alle Rechte übernehmen, die der Inhaber des Datensatzes daran hat',
   'app.roy.rights.cultivate+propagate': 'es anbauen und vermehren',
   'app.roy.rights.cultivate': 'es anbauen',
   'app.roy.s.anywhere': 'jedem Gebiet',
@@ -235,7 +235,7 @@ export const royalties = {
   'app.roy.r.cap': 'Abzüge zählen bis {cap} % vom Bruttoumsatz.',
   'app.roy.r.total': 'Bisherige Summe',
   'app.roy.r.reportHelp':
-    'Optional. Die Datei bleibt auf Ihrem Telefon. Nur ein Code, der belegt, welche Datei es war, geht mit dem Bericht.',
+    'Optional. Die Datei bleibt auf Ihrem Handy. Nur ein Code, der belegt, welche Datei es war, geht mit dem Bericht.',
   'app.roy.r.note': 'Eine Notiz an {who} (optional)',
   'app.roy.r.privacy':
     'Ihre Zahlen sind zwischen Ihnen und {who} verschlüsselt: Die Server von VeilCore können sie nicht lesen. Nur ein Code, der belegt, dass es diesen Bericht gab, kommt auf Midnight.',

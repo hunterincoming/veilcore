@@ -23,6 +23,7 @@ import {
   plainRowRefusal,
   saveAndCheckBackup,
   watch,
+  standaloneNumber,
 } from './helpers';
 
 test.skip(REAL_REGISTRY, 'this uses the stand-in registry');
@@ -370,7 +371,7 @@ test('seal a certificate with its numbers: refused until each one fits, then kep
   await expect(page.locator('[data-claims-not-ready]')).toBeVisible();
   // What reached the registry is sealed: neither the numbers nor the field secret are readable.
   const sent = JSON.stringify(held.records);
-  expect(sent).not.toContain('11400');
+  expect(sent).not.toMatch(standaloneNumber('11400'));
   expect(sent).not.toContain('fieldSecret');
   expectNoErrors(errors);
 });

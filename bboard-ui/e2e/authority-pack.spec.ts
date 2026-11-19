@@ -26,6 +26,7 @@ import {
   sealedRecordRow,
   watch,
   type Handler,
+  standaloneNumber,
 } from './helpers';
 
 test.skip(REAL_REGISTRY, 'this uses the stand-in registry');
@@ -193,9 +194,11 @@ test('a pack for the authority in Spanish: the missing chromatography first, and
 
   // Home offers the pack once there is a chain to make it from.
   await page.goto('/records?lang=es');
-  await expect(page.locator('[data-pack-link]')).toHaveText('Paquete para REPROCANN / SEDRONAR');
+  await expect(page.locator('[data-pack-link]')).toHaveText('Documentación de respaldo para REPROCANN / SEDRONAR');
   await page.locator('[data-pack-link]').click();
-  await expect(page.getByRole('heading', { name: 'Paquete para REPROCANN / SEDRONAR' })).toBeVisible();
+  await expect(
+    page.getByRole('heading', { name: 'Documentación de respaldo para REPROCANN / SEDRONAR' }),
+  ).toBeVisible();
 
   // The form, in Spanish, for May to November.
   await page.getByLabel('Otras fechas').check();
@@ -278,22 +281,23 @@ test('a pack for the authority in Spanish: the missing chromatography first, and
   const reportItem = pack.locator(`[data-pack-item="${reportId}"]`);
   // On paper a link can't be clicked: where to type the ID instead.
   await expect(reportItem.locator('[data-on-paper]')).toHaveText(
-    `En papel: abra 127.0.0.1:${process.env.E2E_PORT ?? 4317}/verify e introduzca el ID VeilCore ${reportId} y el código de prueba de arriba.`,
+    `En papel: abra 127.0.0.1:${process.env.E2E_PORT ?? 4317}/verify e ingrese el ID VeilCore ${reportId} y el código de prueba de arriba.`,
   );
   await expect(reportItem.locator('[data-date-lines]')).toContainText(
     'según informa el servidor de registros de VeilCore. No comprobado por este navegador',
   );
   await expect(reportItem.locator('[data-date-lines]')).toContainText('Una red de pruebas');
-  await expect(pack).not.toContainText('comprobado por este navegador al armar el paquete');
+  await expect(pack).not.toContainText('comprobado por este navegador al armar la documentación');
   const sourceLink = await pack.locator(`[data-pack-item="${SOURCE_ID}"] a[data-check-link]`).getAttribute('href');
   expect(sourceLink).toMatch(new RegExp(`/verify/${SOURCE_ID}\\?(.+&)?fp=[0-9a-f]{64}`));
   expect(sourceLink).toContain('lang=es');
   const reportLink = (await reportItem.locator('a[data-check-link]').getAttribute('href')) ?? '';
   expect(reportLink).toMatch(/\/check-document\?lang=es#d=[A-Za-z0-9_-]+$/);
 
-  // Nothing sent after the patient count was typed carries it (proof codes aside, which are hex).
+  // Nothing sent after the patient count was typed carries it as a value (digits inside a hash,
+  // a key or an ID aside).
   expect(sent.length).toBeGreaterThan(0);
-  for (const s of sent) expect(s.replace(/[0-9a-f]{64}/g, ''), s).not.toContain(PATIENTS);
+  for (const s of sent) expect(s, s).not.toMatch(standaloneNumber(PATIENTS));
 
   const shots = process.env.E2E_SHOTS;
   if (shots) {
@@ -321,7 +325,7 @@ test('a pack for the authority in Spanish: the missing chromatography first, and
   const notConfirmed = page.locator('[data-document-not-confirmed]');
   await expect(notConfirmed).toHaveAttribute('data-document-not-confirmed', 'unreachable');
   await expect(notConfirmed).toHaveText(
-    'El registro de VeilCore da esta fecha, pero esta página no pudo confirmarla en Midnight en este momento. Vuelva a intentarlo en unos minutos antes de confiar en ella.',
+    'El servidor de registros de VeilCore da esta fecha, pero esta página no pudo confirmarla en Midnight en este momento. Vuelva a intentarlo en unos minutos antes de confiar en ella.',
   );
   await expect(page.locator('[data-document-not-dated]')).toHaveCount(0);
   expectNoErrors(errors);

@@ -17,7 +17,7 @@ export const importing = {
   'app.import.choose': 'Elegir un archivo',
   'app.import.normalWindow': 'Abra esta página en una ventana normal del navegador para usarla.',
   'app.import.readHere':
-    'Su archivo se lee aquí, en este navegador, y no se sube. De cada fila, solo se guardan los datos que elija en la siguiente pantalla, los mismos datos que al registrar una planta. Se guardan bloqueados en {server}, el nombre de la planta incluido, y nosotros no tenemos la clave. Solo un código de prueba se fecha en {dated}.',
+    'Su archivo se lee aquí, en este navegador, y no se sube. De cada fila, solo se guardan los datos que elija en la siguiente pantalla, los mismos datos que al registrar una planta. Se guardan cifrados en {server}, el nombre de la planta incluido, y nosotros no tenemos la clave. Solo un código de prueba se fecha en {dated}.',
   'app.import.testSite': 'Este es un sitio de pruebas: los registros que se hacen aquí son datos de prueba.',
   'app.import.earlierStamps': 'Sellos de fecha de claves de importaciones anteriores',
   'app.import.rowLine': 'Fila {line}: {text}',
@@ -49,14 +49,14 @@ export const importing = {
   'app.import.header.back': 'Elegir otro archivo',
   'app.import.cols.title': '¿Qué columna es cuál?',
   'app.import.cols.intro':
-    'Lo adivinamos a partir de los nombres de columna. Revise cada una. Solo hace falta el nombre de la planta; las columnas que deje fuera nunca se envían. El nombre de la planta se bloquea como el resto: los enlaces de comprobación de su archivo de resultados lo llevan, así que lo ve quien reciba un enlace. Si los nombres son secretos, elija una columna de nombres en clave.',
+    'Lo adivinamos a partir de los nombres de columna. Revise cada una. Solo hace falta el nombre de la planta; las columnas que deje fuera nunca se envían. El nombre de la planta se cifra como el resto: los enlaces de comprobación de su archivo de resultados lo llevan, así que lo ve quien reciba un enlace. Si los nombres son secretos, elija una columna de nombres en clave.',
   'app.import.cols.example': 'Por ejemplo: {v}',
   'app.import.cols.twoParents': 'Dos padres en una celda está bien, como “Madre x Padre”.',
   'app.import.cols.pick': 'Elegir una columna',
   'app.import.cols.notInFile': 'No está en mi archivo',
   'app.import.cols.bredBy': 'Obtenida por, cuando una fila no lo dice',
   'app.import.cols.bredByHelp':
-    'Rellena las filas sin obtentor. Déjelo vacío para material recolectado, donado o tradicional.',
+    'Se aplica a las filas sin obtentor. Déjelo vacío para material recolectado, donado o tradicional.',
   'app.import.cols.dates': '¿Cómo se escriben las fechas?',
   'app.import.cols.datesHelp':
     'Algunas fechas, como 03/04/2021, pueden leerse de las dos formas. Elija cómo las escribe su archivo, o se conservan tal como están.',
@@ -95,7 +95,7 @@ export const importing = {
   'app.import.check.onceSealed':
     '<b>Una vez sellados, no se pueden cambiar.</b> Puede agregar informes y correcciones después; una corrección es un registro nuevo que apunta al anterior.',
   'app.import.check.savedOn':
-    'Los datos de arriba se guardan en {server}, un registro por fila, bloqueados, los nombres de las plantas incluidos, y nosotros no tenemos la clave. Los enlaces de comprobación de su archivo de resultados llevan cada nombre, para las personas a las que se los envía. Solo un código de prueba de cada uno se fecha en {dated}. Un sello de fecha muestra que los datos existían en esa fecha; no confirma que sean correctos.',
+    'Los datos de arriba se guardan en {server}, un registro por fila, cifrados, los nombres de las plantas incluidos, y nosotros no tenemos la clave. Los enlaces de comprobación de su archivo de resultados llevan cada nombre, para las personas a las que se los envía. Solo un código de prueba de cada uno se fecha en {dated}. Un sello de fecha muestra que los datos ya existían a esa fecha; no confirma que sean correctos.',
   'app.import.check.sealN.one': 'Sellar {count} registro',
   'app.import.check.sealN.other': 'Sellar {count} registros',
   'app.import.check.nothing': 'Nada que sellar',
@@ -132,9 +132,9 @@ export const importing = {
   'app.import.sum.untilSaved':
     'Hasta que la guarde y la compruebe, las claves de los registros nuevos están solo en este navegador.',
   'app.import.sum.noDna.one':
-    '{count} de estas plantas aún no tiene informe de ADN, así que no está vinculada con la planta misma. Para añadir uno, abra la página de la planta y siga “Obtenga un informe de ADN de esta planta”: envíe una muestra a un laboratorio con un código de laboratorio, o guarde un informe que ya tenga.',
+    '{count} de estas plantas aún no tiene informe de ADN, así que no está vinculada con la planta misma. Para agregar uno, abra la página de la planta y siga “Obtenga un informe de ADN de esta planta”: envíe una muestra a un laboratorio con un código de laboratorio, o guarde un informe que ya tenga.',
   'app.import.sum.noDna.other':
-    '{count} de estas plantas aún no tienen informe de ADN, así que no están vinculadas con las plantas mismas. Para añadir uno, abra la página de una planta y siga “Obtenga un informe de ADN de esta planta”: envíe una muestra a un laboratorio con un código de laboratorio, o guarde un informe que ya tenga.',
+    '{count} de estas plantas aún no tienen informe de ADN, así que no están vinculadas con las plantas mismas. Para agregar uno, abra la página de una planta y siga “Obtenga un informe de ADN de esta planta”: envíe una muestra a un laboratorio con un código de laboratorio, o guarde un informe que ya tenga.',
   'app.import.days.one': '{count} día',
   'app.import.days.other': '{count} días',
   'app.import.stamps.heading': 'Sellos de fecha de las claves',
@@ -168,7 +168,7 @@ export const importing = {
   'app.import.done.byBatch':
     'Su sello de fecha público llega cuando su lote se fecha en {dated}. La página de cada planta muestra cuándo ocurrió. No tiene que hacer nada.',
   'app.import.done.dateStamp':
-    'Un sello de fecha muestra que los datos existían en esa fecha. No confirma que sean correctos.',
+    'Un sello de fecha muestra que los datos ya existían a esa fecha. No confirma que sean correctos.',
   'app.import.done.toRecords': 'Ir a sus registros',
   'app.import.done.another': 'Importar otro archivo',
 } satisfies Partial<AppTranslation>;

@@ -16,7 +16,7 @@ export const animal = {
   'app.animal.individualId': '個体識別番号',
   'app.animal.individualIdHelp': '耳標や登録に書かれている番号を、そのとおりに入力してください。',
   'app.animal.idScheme': '番号の体系',
-  'app.animal.idSchemeHelp': 'その番号がどの番号付けのものか。選ぶか、自分で入力してください。',
+  'app.animal.idSchemeHelp': 'どの種類の番号か、選ぶか入力してください。',
   'app.animal.scheme.jp': '牛の個体識別番号（10桁）',
   'app.animal.idShape.jp': '牛の個体識別番号は10桁です。耳標の番号を確認してください。',
   'app.animal.idShape.usda840': 'USDA 840 の番号は840で始まる15桁です。耳標を確認してください。',
@@ -25,7 +25,7 @@ export const animal = {
   'app.animal.scheme.microchip': 'マイクロチップ',
   'app.animal.scheme.herdBook': '登録番号（血統登録）',
   'app.animal.scheme.usda840': 'USDA 840 / AIN耳標',
-  'app.animal.scheme.breedReg': '品種協会の登録番号',
+  'app.animal.scheme.breedReg': '登録団体（家畜登録機関）の登録番号',
   'app.animal.species': '動物種',
   'app.animal.speciesPlaceholder': '例：牛（Bos taurus）',
   'app.animal.breed': '品種',
@@ -87,7 +87,7 @@ export const animal = {
   'app.animal.v.app.log.sealStampsKey':
     '封印すると、動物の鍵にも日付スタンプが押されるので、後でその記録を保有していることを証明できます。送信されるのは鍵のコードだけです。',
   'app.animal.v.app.log.publicStampLater':
-    '公開の日付スタンプは、バッチに{datedOn}上で日付が付いたときに付きます。それがいつかは動物のページに表示されます。あなたがすることはありません。',
+    '公開の日付スタンプは、{datedOn}でバッチに日付が付いたときに付きます。それがいつかは動物のページに表示されます。あなたがすることはありません。',
   'app.animal.v.app.log.publicDateLater':
     '公開の日付は、バッチに{datedOn}上で日付が付いたときに付きます。そのとき動物のページに表示されます。',
   'app.animal.v.app.log.keyStampedAt':
@@ -97,7 +97,7 @@ export const animal = {
   'app.animal.v.app.log.onlyFingerprint':
     '送信されるのは動物の鍵のコードだけで、動物については何も送信されません。無料です。ネットワーク手数料はVeilCoreが支払います。',
   'app.animal.v.app.log.keepOpen':
-    '約1分かかります。終わるまでこの画面を開いたままにしてください。スマートフォンでは、ほかのアプリに切り替えたり画面をロックしたりすると止まることがあります。止まっても失われるものはありません。動物は保存されており、ページでもう一度日付スタンプを押せます。',
+    '約1分かかります。終わるまでこの画面を開いたままにしてください。スマートフォンでは、ほかのアプリに切り替えたり画面をスリープにしたりすると止まることがあります。止まっても失われるものはありません。動物は保存されており、ページでもう一度日付スタンプを押せます。',
   'app.animal.v.app.chain.stampMayHaveGoneOut':
     '日付スタンプはすでに送信されている可能性があります{tx}。動物は保存されています。そのトランザクションをネットワーク上で確認するまで、もう一度試さないでください。',
   'app.animal.v.app.chain.stampUnreachable':
@@ -151,9 +151,9 @@ export const animal = {
   'app.animal.v.app.plant.next.labWithdrew.why':
     'この動物には保存されたままで、証明書とリンクには撤回されたと表示されます。新しいものをラボに依頼してください。',
   'app.animal.v.app.plant.next.open.why':
-    'この動物の鍵で、あなただけが開けるようにロックされています。開くと、ここでラボの署名を確認します。',
+    'この動物の鍵で、あなただけが開けるように鍵がかかっています。開くと、ここでラボの署名を確認します。',
   'app.animal.v.app.plant.next.sample.whySaved':
-    'この動物にDNA報告書を保存しました。これはあなた自身の陳述です。ラボがサンプルを受け取ったことに署名すると第三者が加わり、あなたの陳述だけよりも強い証拠になります。',
+    'この動物にDNA報告書を保存しました。これはあなた自身の陳述です。ラボがサンプルを受け取ったことに署名すると、もう一方の当事者（ラボ）が加わり、あなたの陳述だけよりも強い証拠になります。',
   'app.animal.v.app.plant.next.sample.why':
     '今のところ、この記録はあなた自身による動物の説明です。ラボがサンプルを受け取ったことに署名し、検査報告書を送り返すと、あなたの説明だけよりも強い証拠になります。',
   'app.animal.v.app.plant.next.dna.title': 'この動物のDNA報告書を取得する',
@@ -181,7 +181,7 @@ export const animal = {
     'この動物の受領書に署名したラボはまだありません。あなただけが裏付ける記録は、ラボが署名した記録より弱い証拠です。サンプルをラボに送ってください。受領書はあなたではなくラボの鍵で署名されます。',
   'app.animal.v.app.verify.field.parent-names': '父と母（名前と番号）',
   'app.animal.v.app.verify.alwaysShown':
-    '常に表示されるもの：記録ID、その証明コード（{fp}）、レジストリが最初に保存した日時、そしてバッチと表示された署名付きの証明（ラボの受領書や検査報告書は、表示を選んだときだけ）についてこのページが確認できたこと。動物の名前は、リンクに含まれている場合（あなたのリンクに含まれるのは、そう選んだときだけです）か、表示を選んだ場合だけ表示されます。',
+    '常に表示されるもの：記録ID、その証明コード（{fp}）、レジストリが最初に保存した日時、そしてバッチと表示された署名付きの陳述（ラボの受領書や検査報告書は、表示を選んだときだけ）についてこのページが確認できたこと。動物の名前は、リンクに含まれている場合（あなたのリンクに含まれるのは、そう選んだときだけです）か、表示を選んだ場合だけ表示されます。',
   'app.animal.v.app.verify.ownReceiptTail':
     'これが見えるのは、動物がこのブラウザにあるからです。リンクを送った相手には、上の署名の行だけが見えます。',
   'app.animal.v.app.prove.openCheckPage': '動物の確認ページを開く',
@@ -219,7 +219,7 @@ export const animal = {
   'app.animal.v.app.lab.results.withdrawnNewer':
     '<b>この動物に保存された検査報告書は、ラボにより撤回されました。</b>別のものを保存するまで保存されたままで、証明書とリンクには撤回されたと表示されます。新しい検査報告書が届いています。開いて、この動物に保存してください。',
   'app.animal.v.app.lab.results.locked':
-    'バックアップにあるこの動物の鍵で、あなただけが開けるようにロックされています。VeilCoreはロックしたまま保存し、鍵を持っていません。',
+    'バックアップにあるこの動物の鍵で、あなただけが開けるように鍵がかかっています。VeilCoreは鍵がかかったまま保存し、鍵を持っていません。',
   'app.animal.v.app.lab.results.noKey':
     'この動物の鍵はこの端末にないため、ここでは検査報告書を開けません。先に<link>バックアップから記録を取り戻してください</link>。',
   'app.animal.v.app.lab.results.whatOthersSee':
@@ -237,23 +237,23 @@ export const animal = {
   'app.animal.v.app.lic.f.offspringHelp':
     'この動物を父または母としてVeilCoreに記録された子だけを数えます。なければ空欄にしてください。',
   'app.animal.v.app.lic.f.extraHelpDeal':
-    '取引に含まれるその他のことを、あなた自身の言葉で。例: 産子は2回まで、ストローの転売禁止、指定の登録団体に子を登録。',
+    '取引に含まれるその他のことを、あなた自身の言葉で。例：産子は2回まで、ストローの転売禁止、指定の登録団体に子を登録。',
   'app.animal.v.app.lic.detail.thisCultivar': 'この動物',
   'app.animal.v.app.lic.detail.lineage':
     'のちに{name}を父または母として動物が記録され、双方の保有者が確認すると、その記録にこの契約へのつながりが表示されます。誰も記録しない子は検出されません。',
   'app.animal.v.app.lic.detail.derivatives.other': '記録済みの{count}頭がこの動物の子孫です。',
   'app.animal.v.app.lic.off.intro':
-    'Midnight上では、この遺伝資源についてのライセンシー自身の記録に付きます。そのため、双方の保有者が確認した子はすべて、誰かが系譜を確認するときにこれを表示します。ライセンシーが受け入れ、解除できるのは育種者だけです。',
+    'Midnight上では、この遺伝資源についてのライセンシー自身の記録に付きます。そのため、双方の保有者が確認した子はすべて、誰かが系譜を確認するときにこれを表示します。ライセンシーがこれを受け入れます。解除できるのは生産者だけです。',
   'app.animal.v.app.lic.off.dateFirst':
-    'まずこの遺伝資源についてのあなた自身の記録（動物、または受け取った精液・胚）を日付記録し、それからここで指定してください。',
-  'app.animal.v.app.lic.off.datePlant': '記録を日付記録する',
+    'まずこの遺伝資源についてのあなた自身の記録（動物、または受け取った精液・胚）に日付を付け、それからここで指定してください。',
+  'app.animal.v.app.lic.off.datePlant': '記録に日付を付ける',
   'app.animal.v.app.lic.off.yourRecord': 'この遺伝資源についてのあなたの記録',
   'app.animal.v.app.lic.off.waitName': '相手がこの遺伝資源の記録を指定するのを待っています。',
   // components/chain/FamilyOnChain.tsx
   'app.animal.v.app.family.intro':
     '両方の保有者が同意した親子関係を、チェーン上に記録します。これにより誰でも動物の系統を確認でき、親の子孫ロイヤリティがその子孫に引き継がれます。確認済みのつながりは公開かつ永久で、取り消せません。親の保有者が後から引き受けるロイヤリティも、この記録の系統に表示されます。',
   'app.animal.v.app.family.namesParent':
-    '{who}がこの記録を親として指定しています。本当にこの動物から来たものである場合だけ確認してください。確認は公開かつ永久で、この動物に今後も含めて課されるものはその系統に表示されます。',
+    '{who}がこの記録を親として指定しています。本当にこの動物の子である場合だけ確認してください。確認は公開され、永久に残ります。この動物について現在または今後課される義務は、その系統に表示されます。',
   'app.animal.v.app.family.confirmQ':
-    'この動物が{who}の親であることを確認しますか？この動物から来たと分かっている記録だけを確認してください。これは公開かつ永久です。その系統と、この動物に今後も含めて課されるものが、その記録に表示されます。{fixes}',
+    'この動物が{who}の親であることを確認しますか？この動物の子だと分かっている記録だけを確認してください。確認は公開され、永久に残ります。その系統と、この動物について現在または今後課される義務が、その記録に表示されます。{fixes}',
 } satisfies Partial<AppTranslation>;

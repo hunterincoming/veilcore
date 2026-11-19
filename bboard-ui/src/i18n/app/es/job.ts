@@ -31,7 +31,7 @@ export const job = {
     'Solo sello un registro que va a dar en licencia. Diga «prepara», su nombre y «para licenciar».',
   'app.job.no.received': 'Ese registro vino de otra persona, así que no lo uso aquí.',
   'app.job.no.noRecord': 'Nombre uno de sus registros: la planta de la que corta, o la madre o el padre.',
-  'app.job.no.notFound': 'No encuentro «{words}» en sus registros. Añádalo primero y vuelva a pedirlo.',
+  'app.job.no.notFound': 'No encuentro «{words}» en sus registros. Agréguelo primero y vuelva a pedirlo.',
   'app.job.no.twoRecords':
     'Dos de sus registros se llaman «{words}». Cambie el nombre de uno, o empiece desde la página del registro.',
   'app.job.no.wrongKind':
@@ -94,7 +94,7 @@ export const job = {
   'app.job.made.dam': 'Madre: {name}',
   'app.job.made.sire': 'Padre: {name}',
   'app.job.made.sireTyped': 'Padre fuera de VeilCore: {code}',
-  'app.job.made.noSire': 'Padre: sin indicar (añádalo después)',
+  'app.job.made.noSire': 'Padre: sin indicar (agréguelo después)',
   'app.job.made.semen': 'Código de semen: {code}',
   'app.job.made.sexes': 'Machos: {m} · Hembras: {f}',
   'app.job.made.unstated': 'Sexo sin indicar: {u}',
@@ -218,8 +218,8 @@ export const job = {
     'No se pierde nada: sus registros se guardan aquí. Este navegador no pudo anotar cuáles tiene ya el servidor de VeilCore, así que no se volvió a enviar nada. Lo volveré a intentar pronto.',
   'app.job.done.records.one': '{count} registro guardado.',
   'app.job.done.records.other': '{count} registros guardados.',
-  'app.job.done.ids.one': 'La página de inicio le recordará añadir {count} identificación.',
-  'app.job.done.ids.other': 'La página de inicio le recordará añadir {count} identificaciones.',
+  'app.job.done.ids.one': 'La página de inicio le recordará agregar {count} identificación.',
+  'app.job.done.ids.other': 'La página de inicio le recordará agregar {count} identificaciones.',
   'app.job.done.reports': 'Informes enviados. El licenciante responde en la página de cada acuerdo.',
   'app.job.done.ready': '{name}: listo para dar en licencia.',
   'app.job.done.already': 'Ya estaba: no se envió nada nuevo.',
@@ -250,17 +250,17 @@ export const job = {
   'app.job.home.running': 'En curso: {what}',
   'app.job.home.ready': '{name}: listo para dar en licencia',
   'app.job.home.tomorrow': '{name}: listo mañana',
-  'app.job.home.ids.one': 'Cría de {dam} ({count}): añadir su identificación',
-  'app.job.home.ids.other': 'Camada de {dam} ({count}): añadir identificaciones',
+  'app.job.home.ids.one': 'Cría de {dam} ({count}): agregar su identificación',
+  'app.job.home.ids.other': 'Camada de {dam} ({count}): agregar identificaciones',
   'app.job.home.open': 'Abrir',
 
-  'app.job.ids.title.one': 'Añadir identificación: cría de {dam}',
-  'app.job.ids.title.other': 'Añadir identificaciones: {count} crías de {dam}',
+  'app.job.ids.title.one': 'Agregar identificación: cría de {dam}',
+  'app.job.ids.title.other': 'Agregar identificaciones: {count} crías de {dam}',
   'app.job.ids.permanent':
     'Cada identificación se guarda como corrección: un registro nuevo que sustituye al anterior, que queda archivado. No se puede deshacer.',
   'app.job.ids.save.one': 'Guardar {count} identificación',
   'app.job.ids.save.other': 'Guardar {count} identificaciones',
-  'app.job.ids.reason': 'Identificación añadida',
+  'app.job.ids.reason': 'Identificación agregada',
   'app.job.ids.already': 'ya {id}',
   'app.job.ids.no.twice': '{id} está en dos casillas.',
   'app.job.ids.no.taken': '{id} ya es la identificación de {name}.',
@@ -280,7 +280,7 @@ export const job = {
   'app.job.ids.changed':
     'Algo cambió en otro dispositivo o en otra pestaña desde que se mostró esto, así que no se guardó nada más. Revise las casillas y guarde de nuevo.',
   'app.job.ids.paste.spaces':
-    'Parecen varias identificaciones de formas distintas separadas por espacios, así que no se puede saber cuál es cuál. No se rellenó nada. Péguelas como columna o escriba cada una en su casilla.',
+    'Parecen varias identificaciones de formas distintas separadas por espacios, así que no se puede saber cuál es cuál. No se completó nada. Péguelas como columna o escriba cada una en su casilla.',
   'app.job.ids.paste.doubleScan':
     'Un escaneo entró en una casilla que ya tiene identificación, así que no se usó. Para volver a escanear esta cría, vacíe antes su casilla.',
   'app.job.ids.gone': 'El registro de {name} ya no está aquí. Cierre esto y vuelva a abrirlo.',
@@ -290,16 +290,16 @@ export const job = {
   'app.job.ids.use': 'Usar estas identificaciones',
   'app.job.ids.clear': 'Borrarlas',
   'app.job.ids.paste.over':
-    'Son {n} líneas para {count} casillas desde aquí hacia abajo, así que no encaja. No se rellenó nada. Copie solo las identificaciones de estas crías o pegue en una casilla más arriba.',
+    'Son {n} líneas para {count} casillas desde aquí hacia abajo, así que no encaja. No se completó nada. Copie solo las identificaciones de estas crías o pegue en una casilla más arriba.',
   'app.job.ids.paste.startsAt':
-    '«{id}» ya es la identificación de {name}, así que esta columna empieza más arriba. No se rellenó nada. Copie solo las identificaciones de las crías que aún no tienen.',
+    '«{id}» ya es la identificación de {name}, así que esta columna empieza más arriba. No se completó nada. Copie solo las identificaciones de las crías que aún no tienen.',
   'app.job.ids.paste.comma':
-    'La línea {line} tiene una coma o un punto y coma: una identificación por línea. No se rellenó nada.',
+    'La línea {line} tiene una coma o un punto y coma: una identificación por línea. No se completó nada.',
   'app.job.ids.no.comma': 'Una identificación por casilla: esta tiene una coma o un punto y coma.',
   'app.job.wait.refused':
     'No se pierde nada: sus registros se guardan aquí. El servidor de VeilCore rechazó este guardado, así que aún no se guardó nada. Lo volveré a intentar.',
   'app.job.ids.help':
-    'Escriba o escanee la identificación de cada cría en su propia casilla. El Intro o el Tab de un escáner pasa a la siguiente casilla vacía. También puede pegar una columna en una casilla: rellena esa casilla y las de debajo.',
+    'Escriba o escanee la identificación de cada cría en su propia casilla. El Intro o el Tab de un escáner pasa a la siguiente casilla vacía. También puede pegar una columna en una casilla: completa esa casilla y las de debajo.',
   'app.job.ids.schemeNeeded': 'Indique a qué numeración pertenecen estas identificaciones.',
   'app.job.ids.preview': 'Lo que se guardará',
   'app.job.ids.previewNone': 'Nada todavía: escriba, escanee o pegue una identificación en una casilla.',
@@ -307,11 +307,11 @@ export const job = {
   'app.job.ids.fix.one': 'Corrija primero la casilla marcada en rojo.',
   'app.job.ids.fix.other': 'Corrija primero las {count} casillas marcadas en rojo.',
   'app.job.ids.paste.columns':
-    'Eso es más de una columna. Copie solo la columna de identificaciones y péguela de nuevo. No se rellenó nada.',
+    'Eso es más de una columna. Copie solo la columna de identificaciones y péguela de nuevo. No se completó nada.',
   'app.job.ids.paste.header':
-    '«{id}» parece un encabezado de columna, no una identificación. Copie las identificaciones sin el encabezado y péguelas de nuevo. No se rellenó nada.',
+    '«{id}» parece un encabezado de columna, no una identificación. Copie las identificaciones sin el encabezado y péguelas de nuevo. No se completó nada.',
   'app.job.ids.paste.invisible':
-    'La línea {line} tiene caracteres invisibles. Copie de nuevo las identificaciones o escríbalas. No se rellenó nada.',
+    'La línea {line} tiene caracteres invisibles. Copie de nuevo las identificaciones o escríbalas. No se completó nada.',
   'app.job.ids.paste.stopped.one': 'Se detuvo en {name}: ya tiene identificación, así que 1 línea no se usó.',
   'app.job.ids.paste.stopped.other':
     'Se detuvo en {name}: ya tiene identificación, así que {count} líneas no se usaron.',

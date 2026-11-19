@@ -29,7 +29,7 @@ export const strainForm = {
   'app.strain.deposits': 'Números de depósito (opcional)',
   'app.strain.depositsHelp':
     'Números de colección de cultivos o de depósito de patente, uno por línea, tal como los escribe la colección (p. ej., NBRC 10217). Hasta 8.',
-  'app.strain.more': '+ Añadir cómo se obtuvo, progenitores, fecha o notas',
+  'app.strain.more': '+ Agregar cómo se obtuvo, progenitores, fecha o notas',
   'app.strain.method': 'Cómo se obtuvo',
   'app.strain.methodHelp': 'Elija uno o escriba el suyo.',
   'app.strain.m.wild': 'Aislado silvestre',
@@ -54,8 +54,8 @@ export const strainForm = {
   'app.strain.linkedDeposit': 'Del registro que eligió.',
   'app.strain.need.nameOrDesignation':
     'Solo necesita un nombre o una designación, la especie y quién la obtuvo o aisló.',
-  'app.strain.need.species': 'Añada la especie.',
-  'app.strain.need.maker': 'Añada quién la obtuvo o aisló.',
+  'app.strain.need.species': 'Agregue la especie.',
+  'app.strain.need.maker': 'Agregue quién la obtuvo o aisló.',
   'app.strain.need.deposits': 'Como máximo 8 números de depósito, de hasta 200 caracteres cada uno.',
   'app.strain.unsaved': 'Tiene una cepa sin guardar: {name}.',
   'app.strain.k.strain': 'Cepa',
@@ -68,6 +68,6 @@ export const strainForm = {
   'app.strain.x.parents': 'Progenitores: {v}',
   'app.strain.f.generation': 'Generación o pase',
   'app.strain.f.parents': 'Cepas progenitoras',
-  'app.strain.verify.parentsLine': 'Cepas progenitoras, según el titular: {v}',
+  'app.strain.verify.parentsLine': 'Cepas progenitoras, según quien lo selló: {v}',
   'app.strain.need.tooLong': 'Cada línea puede tener como máximo 200 caracteres. Las notas pueden ser más largas.',
 } satisfies Partial<AppTranslation>;

@@ -6,7 +6,7 @@ import type { AppTranslation } from '../../translate';
 export const plant = {
   'app.plant.notHere': 'Cet enregistrement n’est pas dans ce navigateur',
   'app.plant.notHereText':
-    'Si vous l’avez scellé dans un autre navigateur, enregistrez-y une copie de secours et ouvrez-la ici (Récupérer vos plantes). Si c’est l’enregistrement de quelqu’un d’autre, ouvrez plutôt le lien de vérification qu’il vous a donné.',
+    'Si vous l’avez scellé dans un autre navigateur, enregistrez-y une sauvegarde et ouvrez-la ici (Récupérer vos plantes). Si c’est l’enregistrement de quelqu’un d’autre, ouvrez plutôt le lien de vérification qu’il vous a donné.',
   'app.plant.yourRecords': 'Vos enregistrements',
   'app.plant.checkARecord': 'Vérifier un enregistrement',
   'app.plant.home': 'Vos enregistrements',
@@ -41,12 +41,12 @@ export const plant = {
   'app.plant.action.saveReport': 'Enregistrer un rapport ADN sur cette plante',
   'app.plant.action.checkReport': 'Vérifier qu’un rapport correspond',
   'app.plant.action.familyTree': 'Arbre généalogique',
-  'app.plant.action.freshBackup': 'Enregistrer une nouvelle copie de secours',
+  'app.plant.action.freshBackup': 'Enregistrer une nouvelle sauvegarde',
   'app.plant.action.fix': 'Corriger une erreur',
   'app.plant.action.seeLatest': 'Déjà corrigé : ouvrir la dernière version',
   'app.plant.fix.openLatest': 'Ouvrir la dernière version',
-  'app.plant.agreements': 'Contrats',
-  'app.plant.openAgreement': 'Ouvrir le contrat {id}',
+  'app.plant.agreements': 'Accords',
+  'app.plant.openAgreement': 'Ouvrir l’accord {id}',
   'app.plant.unnamedCounterparty': 'cocontractant sans nom',
   'app.plant.technicalDetails': 'Détails techniques',
   'app.plant.f.method': 'Méthode de sélection',
@@ -151,7 +151,7 @@ export const plant = {
     'Un rapport ADN permet à un laboratoire de comparer avec lui un nouveau test d’une plante. À lui seul, il ne montre pas qu’une plante correspond.',
   'app.plant.tie.sub': 'Rapport {date}. Un laboratoire peut comparer avec lui un nouveau test de la plante.',
   'app.plant.tie.why': 'Un rapport ADN de votre laboratoire est ce qui lie un enregistrement à la plante elle-même.',
-  'app.plant.backupChecked': 'Copie de secours vérifiée',
+  'app.plant.backupChecked': 'Sauvegarde vérifiée',
   'app.plant.checking': 'vérification…',
   'app.plant.savedToPlant': 'enregistré sur cette plante',
   'app.plant.arrivedNotOpened': 'arrivé, pas ouvert',
@@ -190,13 +190,13 @@ export const plant = {
   'app.plant.labReportCode': 'Code du rapport de laboratoire : {code}',
   'app.plant.labAsSigned': 'Laboratoire, tel que signé : {lab}',
   'app.plant.noLabMatched': 'aucune signature de laboratoire ne correspond au fichier enregistré',
-  'app.plant.next.backup.title': 'Enregistrez votre copie de secours',
+  'app.plant.next.backup.title': 'Enregistrez votre sauvegarde',
   'app.plant.next.backup.why':
     'Les clés de cette plante ne sont pour l’instant que sur cet appareil. S’il casse ou si le navigateur est effacé, personne ne pourra prouver que vous la détenez. L’enregistrement prend une minute.',
-  'app.plant.next.backup.action': 'Enregistrer ma copie de secours',
+  'app.plant.next.backup.action': 'Enregistrer ma sauvegarde',
   'app.plant.next.dates.title': 'Cet enregistrement date un rapport ADN',
   'app.plant.next.dates.why':
-    'Il ne contient que le SHA-256 du rapport, son code de rapport de laboratoire et le nom du laboratoire tel que signé, jamais le rapport. Quand son lot est daté, il montre que le rapport existait à ce moment-là, sans montrer les marqueurs à personne.',
+    'Il ne contient que le SHA-256 du rapport, son code de rapport de laboratoire et le nom du laboratoire tel que signé, jamais le rapport. Quand son lot est daté, il montre que le rapport existait déjà à ce moment-là, sans montrer les marqueurs à personne.',
   'app.plant.next.stamp.why':
     'Votre enregistrement est daté tout seul, dans un lot sur Midnight. Cette étape n’est pas nécessaire pour cela. Elle date la clé de votre enregistrement, dont vous n’avez besoin que pour prouver plus tard que vous le détenez, ou pour le concéder sous licence. Environ une minute, et gratuit. Vous pouvez le faire à tout moment.',
   'app.plant.next.rejected.title': 'Vous avez refusé cet échantillon',
@@ -261,7 +261,7 @@ export const plant = {
   'app.plant.next.dna.haveAction': 'Enregistrer un rapport ADN',
   'app.plant.next.date.title': 'Datez ce rapport ADN',
   'app.plant.next.date.why':
-    'Il est enregistré sur cette plante, mais rien ne le date encore. Le dater montre que le rapport existait à cette date, sans montrer les marqueurs à personne.',
+    'Il est enregistré sur cette plante, mais rien ne le date encore. Le dater montre que le rapport existait déjà à cette date, sans montrer les marqueurs à personne.',
   'app.plant.next.save.title': 'Enregistrez le rapport ADN sur cette plante',
   'app.plant.next.save.why':
     'Un laboratoire a signé avoir reçu un échantillon. Quand son rapport ADN reviendra, enregistrez-le sur cette plante : c’est ce qui lie votre enregistrement à la plante, pour pouvoir le comparer à un test ultérieur.',
@@ -269,7 +269,7 @@ export const plant = {
   'app.plant.next.ready.title': 'Cet enregistrement est prêt à servir',
   'app.plant.next.ready.why':
     'Un laboratoire a signé avoir reçu un échantillon, et un rapport ADN est enregistré sur cette plante. Vous pouvez transmettre du matériel ou accorder une licence, avec des conditions qui s’appliquent à la descendance déclarée à partir de cet enregistrement.',
-  'app.plant.next.ready.action': 'Commencer un contrat',
+  'app.plant.next.ready.action': 'Commencer un accord',
   'app.plant.next.backTo': 'Retour à {name}',
   'app.plant.next.noCurrent.title': 'Aucun rapport ADN en vigueur de {lab}',
   'app.plant.next.open.title': 'Ouvrir le rapport de laboratoire de {lab}',
@@ -337,7 +337,7 @@ export const plant = {
   'app.plant.dated.dated': 'daté {value}',
   'app.plant.dated.action': 'Dater ce rapport ADN',
   'app.plant.dated.why':
-    'Pour pouvoir montrer que ce rapport existait à cette date sans montrer les marqueurs à personne.',
+    'Pour pouvoir montrer que ce rapport existait déjà à cette date sans montrer les marqueurs à personne.',
   'app.plant.dated.seals':
     'Scelle un petit enregistrement contenant seulement le SHA-256 du rapport, son code de rapport de laboratoire et le nom du laboratoire tel que signé. Le rapport reste chez vous. Sa date vient quand son lot est daté.',
   'app.plant.dated.nameLabel': 'Nom du nouvel enregistrement',
@@ -347,17 +347,17 @@ export const plant = {
     'Ce rapport ADN est en train d’être daté dans un autre onglet ou une autre fenêtre. Attendez une minute, puis regardez de nouveau : il apparaîtra ici.',
   'app.plant.datingPage.title': 'Cet enregistrement date un rapport ADN pour <plant></plant>',
   'app.plant.datingPage.holds':
-    'Il ne contient que le SHA-256 du rapport, son code de rapport de laboratoire et le nom du laboratoire tel que signé, jamais le rapport. Quand son lot est daté, il montre que le rapport existait à ce moment-là, sans montrer les marqueurs à personne.',
+    'Il ne contient que le SHA-256 du rapport, son code de rapport de laboratoire et le nom du laboratoire tel que signé, jamais le rapport. Quand son lot est daté, il montre que le rapport existait déjà à ce moment-là, sans montrer les marqueurs à personne.',
   'app.plant.datingPage.recordDated': 'Enregistrement daté : {value}',
   'app.plant.datingPage.backup':
-    '<b>Enregistrez votre copie de secours.</b> La clé de cet enregistrement n’est que sur cet appareil.',
+    '<b>Enregistrez votre sauvegarde.</b> La clé de cet enregistrement n’est que sur cet appareil.',
   'app.plant.datingPage.sealedBy': 'Scellé par',
   'app.plant.datingPage.notesAsSealed': 'Notes, telles que scellées',
   'app.plant.datingPage.bundleText':
     'L’enregistrement tel que scellé, sa preuve d’inclusion, la racine du lot et l’endroit où le lot a été inscrit, dans un seul .zip. Son verify.html le vérifie sans internet et sans rien de VeilCore.',
   'app.plant.anchor.title': 'Ancrer cet enregistrement sur {network}',
   'app.plant.anchor.anchored':
-    'Ancré. Son identité sur la chaîne est {id}…, inscrite au bloc {block}{when}. L’identité est gardée dans ce navigateur et dans votre copie de secours, pas sur le serveur de VeilCore : vous la partagez en envoyant à quelqu’un un lien de vérification.',
+    'Ancré. Son identité sur la chaîne est {id}…, inscrite au bloc {block}{when}. L’identité est gardée dans ce navigateur et dans votre sauvegarde, pas sur le serveur de VeilCore : vous la partagez en envoyant à quelqu’un un lien de vérification.',
   // Only for an anchor on a test network (AnchorOnChainPanel.tsx), never on Midnight's main network.
   'app.plant.anchor.testNet':
     'C’est un réseau de test : il peut être réinitialisé, et ses dates n’ont aucune valeur de preuve.',
@@ -367,15 +367,15 @@ export const plant = {
   'app.plant.anchor.intro':
     'Cela donne à l’enregistrement une identité sur le réseau au nom de laquelle seul ce navigateur peut agir. Votre navigateur construit et prouve lui-même la transaction ; VeilCore paie les frais du réseau et ne voit que ce que le réseau publie. Vous n’avez besoin ni de portefeuille ni de cryptomonnaie. Plus tard, vous pourrez montrer à qui vous le demande que votre clé existait à ce bloc et que vous la contrôlez toujours.',
   'app.plant.anchor.notKeeping':
-    'Ce navigateur ne conserve pas ce qu’il enregistre (fenêtre privée, ou données du site bloquées). Les clés de l’enregistrement seraient perdues à la fermeture de cet onglet, sauf si vous téléchargez la copie de secours.',
-  'app.plant.anchor.understand': 'Je comprends, et je téléchargerai la copie de secours',
+    'Ce navigateur ne conserve pas ce qu’il enregistre (fenêtre privée, ou données du site bloquées). Les clés de l’enregistrement seraient perdues à la fermeture de cet onglet, sauf si vous téléchargez la sauvegarde.',
+  'app.plant.anchor.understand': 'Je comprends, et je téléchargerai la sauvegarde',
   'app.plant.anchor.keysNotHere':
-    'La clé de cette plante n’est pas dans ce navigateur. Récupérez-la depuis votre fichier de copie de secours : une nouvelle clé ne correspondrait pas à l’enregistrement scellé.',
+    'La clé de cette plante n’est pas dans ce navigateur. Récupérez-la depuis votre fichier de sauvegarde : une nouvelle clé ne correspondrait pas à l’enregistrement scellé.',
   'app.plant.anchor.onlyNew':
-    'Uniquement pour un enregistrement qui n’a jamais eu de clés : si vous l’avez déjà ancré, ou créé ses clés dans un autre navigateur, restaurez-les plutôt depuis votre copie de secours ci-dessus. De nouvelles clés seraient une autre identité.',
+    'Uniquement pour un enregistrement qui n’a jamais eu de clés : si vous l’avez déjà ancré, ou créé ses clés dans un autre navigateur, restaurez-les plutôt depuis votre sauvegarde ci-dessus. De nouvelles clés seraient une autre identité.',
   'app.plant.anchor.makeKeys': 'Créer les clés de cet enregistrement (dans ce navigateur)',
   'app.plant.anchor.anchorTest': 'Ancrer sur le réseau de test',
-  'app.plant.anchor.backupFirst': 'Télécharger d’abord la copie de secours',
+  'app.plant.anchor.backupFirst': 'Télécharger d’abord la sauvegarde',
   'app.plant.keys.restoredFor': 'Clés restaurées pour {id}.',
   'app.plant.keys.notNamed':
     'Restaurées, mais ce ne sont pas les clés que nomme cet enregistrement. Vérifiez que vous avez choisi le bon fichier.',
@@ -383,21 +383,21 @@ export const plant = {
     'Restaurées, mais ces clés ne sont pas l’identité sur la chaîne de cet enregistrement. Vérifiez que vous avez choisi le bon fichier.',
   'app.plant.keys.restored': 'Clés restaurées dans ce navigateur.',
   'app.plant.keys.removeBacked':
-    'Retirer les clés de cet enregistrement de ce navigateur ? Vous pourrez les restaurer depuis votre fichier de copie de secours.',
+    'Retirer les clés de cet enregistrement de ce navigateur ? Vous pourrez les restaurer depuis votre fichier de sauvegarde.',
   'app.plant.keys.removeUnbacked':
-    'Vous n’avez PAS téléchargé de sauvegarde de ces clés. Si vous les retirez, ce navigateur ne les reprendra pas, et seul votre fichier de secours, restauré dans un nouveau navigateur, peut les ramener. Les retirer quand même ?',
+    'Vous n’avez PAS téléchargé de sauvegarde de ces clés. Si vous les retirez, ce navigateur ne les reprendra pas, et seul votre fichier de sauvegarde, restauré dans un nouveau navigateur, peut les ramener. Les retirer quand même ?',
   'app.plant.keys.title': 'Clés de l’enregistrement',
   'app.plant.keys.holds':
     'Ce navigateur contient les deux secrets qui prouvent que vous détenez cet enregistrement sur la chaîne. Une copie part aussi dans la boîte verrouillée de l’enregistrement sur VeilCore, que seule la clé qui verrouille vos enregistrements ouvre. Effacer ce navigateur les supprime ici ; restaurer votre sauvegarde les ramène.',
   'app.plant.keys.holdsDeviceOnly':
     'Ce navigateur contient les deux secrets qui prouvent que vous détenez cet enregistrement sur la chaîne. Cet enregistrement est gardé uniquement sur cet appareil : aucune copie ne part donc vers VeilCore dans une boîte verrouillée. Seuls ce navigateur et votre sauvegarde vérifiée les contiennent, ainsi que votre copie avec clé d’accès si vous en avez une, gardée verrouillée sur le serveur de VeilCore (elle ne contient que des clés, jamais l’enregistrement). Effacer ce navigateur les supprime ici ; restaurer votre sauvegarde les ramène.',
   'app.plant.keys.noBackup': 'Pas encore de sauvegarde. Téléchargez-la et gardez-la hors ligne.',
-  'app.plant.keys.downloadAgain': 'Télécharger de nouveau la copie de secours',
-  'app.plant.keys.download': 'Télécharger la copie de secours (secrète)',
+  'app.plant.keys.downloadAgain': 'Télécharger de nouveau la sauvegarde',
+  'app.plant.keys.download': 'Télécharger la sauvegarde (secrète)',
   'app.plant.keys.remove': 'Retirer de ce navigateur',
   'app.plant.keys.notHeld':
-    'Ce navigateur n’a pas les clés de cet enregistrement. Si vous les avez créées ailleurs, restaurez-les depuis votre fichier de copie de secours.',
-  'app.plant.keys.restore': 'Restaurer les clés depuis une copie de secours',
+    'Ce navigateur n’a pas les clés de cet enregistrement. Si vous les avez créées ailleurs, restaurez-les depuis votre fichier de sauvegarde.',
+  'app.plant.keys.restore': 'Restaurer les clés depuis une sauvegarde',
   'app.plant.bundle.download': 'Télécharger le dossier de preuve',
   'app.plant.bundle.chooseOrUntick': 'Choisissez le fichier du rapport ADN, ou décochez la case.',
   'app.plant.bundle.tooBig': '{name} dépasse 200 Mo : il n’a donc pas été lu.',
@@ -407,11 +407,10 @@ export const plant = {
     'Cet enregistrement a été scellé avant que ses détails soient conservés sous une forme vérifiable par tous : aucun dossier ne peut donc être créé pour lui.',
   'app.plant.bundle.includeKey': 'Inclure la clé de l’enregistrement.',
   'app.plant.bundle.keyIs':
-    '(La clé de l’enregistrement est l’identifiant public de la clé créée pour cette plante quand vous l’avez scellée. Sa partie secrète reste dans votre copie de secours et ne va jamais dans le dossier.)',
+    '(La clé de l’enregistrement est l’identifiant public de la clé créée pour cette plante quand vous l’avez scellée. Sa partie secrète reste dans votre sauvegarde et ne va jamais dans le dossier.)',
   'app.plant.bundle.keyWith':
     'Avec elle, quiconque a le dossier peut relier cet enregistrement à sa clé, et à tout ce que fait cette clé sur le réseau. Ne l’incluez pas sauf si on en a besoin.',
-  'app.plant.bundle.keyNotHere':
-    'La clé n’est pas dans ce navigateur. Ouvrez ici votre copie de secours pour l’inclure.',
+  'app.plant.bundle.keyNotHere': 'La clé n’est pas dans ce navigateur. Ouvrez ici votre sauvegarde pour l’inclure.',
   'app.plant.bundle.includeLab':
     'Inclure le fichier du rapport ADN. Sans lui, le dossier ne contient que le code du rapport, pas ce qu’il dit.',
   'app.plant.bundle.chooseLab': 'Choisir le fichier du rapport ADN',
@@ -464,13 +463,13 @@ export const plant = {
   'app.plant.fix.field.breed': 'race',
   'app.plant.fix.field.herd': 'troupeau ou élevage',
   'app.plant.fix.c.cosmetic.cosmetic':
-    'Rien en aval n’est affecté. La descendance garde ses vérifications d’ascendance, et les contrats restent valables.',
+    'Rien en aval n’est affecté. La descendance garde ses vérifications d’ascendance, et les accords restent valables.',
   'app.plant.fix.c.cosmetic.material':
-    'La descendance n’est pas affectée : le matériel n’a pas changé. Mais toute personne ayant un contrat sur cet enregistrement doit le savoir, car les conditions peuvent porter sur ce que vous avez modifié.',
+    'La descendance n’est pas affectée : le matériel n’a pas changé. Mais toute personne ayant un accord sur cet enregistrement doit le savoir, car les conditions peuvent porter sur ce que vous avez modifié.',
   'app.plant.fix.c.material.cosmetic':
-    'Quiconque s’appuie sur la descendance de cet enregistrement doit vérifier de nouveau. Les contrats existants ne sont pas affectés.',
+    'Quiconque s’appuie sur la descendance de cet enregistrement doit vérifier de nouveau. Les accords existants ne sont pas affectés.',
   'app.plant.fix.c.material.material':
-    'La descendance et les contrats existants sont tous deux affectés. L’ascendance de la descendance devra être vérifiée de nouveau, et les autres parties à vos contrats devront être prévenues.',
+    'La descendance et les accords existants sont tous deux affectés. L’ascendance de la descendance devra être vérifiée de nouveau, et les autres parties à vos accords devront être prévenues.',
   'app.plant.fix.open': 'Corriger cet enregistrement',
   'app.plant.fix.title': 'Corriger {id}',
   'app.plant.fix.intro':

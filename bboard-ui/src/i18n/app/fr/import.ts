@@ -12,7 +12,7 @@ export const importing = {
   'app.import.fileKind':
     'Un fichier CSV ou Excel (.xlsx), première feuille seulement, avec une ligne qui nomme les colonnes (un titre au-dessus ne gêne pas). Jusqu’à {max} lignes à la fois.',
   'app.import.notKept':
-    'Ce navigateur ne gardera rien après sa fermeture (fenêtre privée, ou données du site bloquées). La clé de chaque enregistrement reste dans ce navigateur jusqu’à ce que vous enregistriez votre copie de secours : ouvrez donc cette page dans une fenêtre normale.',
+    'Ce navigateur ne gardera rien après sa fermeture (fenêtre privée, ou données du site bloquées). La clé de chaque enregistrement reste dans ce navigateur jusqu’à ce que vous enregistriez votre sauvegarde : ouvrez donc cette page dans une fenêtre normale.',
   'app.import.reading': 'Lecture de votre fichier…',
   'app.import.choose': 'Choisir un fichier',
   'app.import.normalWindow': 'Ouvrez cette page dans une fenêtre de navigateur normale pour l’utiliser.',
@@ -95,7 +95,7 @@ export const importing = {
   'app.import.check.onceSealed':
     '<b>Une fois scellés, ils ne peuvent plus changer.</b> Vous pourrez ajouter des rapports et des corrections plus tard ; une correction est un nouvel enregistrement qui renvoie à l’ancien.',
   'app.import.check.savedOn':
-    'Les informations ci-dessus sont conservées sur {server}, un enregistrement par ligne, verrouillées, les noms des plantes compris, et nous n’avons pas la clé. Les liens de vérification de votre fichier de résultats portent chaque nom, pour les personnes à qui vous les envoyez. Seul un code de preuve de chacun est daté sur {dated}. Un horodatage montre que les informations existaient à cette date ; il ne confirme pas qu’elles sont exactes.',
+    'Les informations ci-dessus sont conservées sur {server}, un enregistrement par ligne, verrouillées, les noms des plantes compris, et nous n’avons pas la clé. Les liens de vérification de votre fichier de résultats portent chaque nom, pour les personnes à qui vous les envoyez. Seul un code de preuve de chacun est daté sur {dated}. Un horodatage montre que les informations existaient déjà à cette date ; il ne confirme pas qu’elles sont exactes.',
   'app.import.check.sealN.one': 'Sceller {count} enregistrement',
   'app.import.check.sealN.other': 'Sceller {count} enregistrements',
   'app.import.check.nothing': 'Rien à sceller',
@@ -126,11 +126,11 @@ export const importing = {
   'app.import.sum.waiting.other':
     '{count} lignes pas encore scellées. Importez de nouveau le fichier pour les sceller.',
   'app.import.sum.stampsHere':
-    'Vos enregistrements sont déjà scellés et seront datés par leur lot sur {dated} ; cela ne dépend pas des horodatages de leurs clés. La clé de chaque plante reçoit aussi son propre horodatage depuis ce navigateur, environ {perDay} par jour : les {n} en attente prennent donc environ {days}. Ils commencent après votre copie de secours.',
+    'Vos enregistrements sont déjà scellés et seront datés par leur lot sur {dated} ; cela ne dépend pas des horodatages de leurs clés. La clé de chaque plante reçoit aussi son propre horodatage depuis ce navigateur, environ {perDay} par jour : les {n} en attente prennent donc environ {days}. Ils commencent après votre sauvegarde.',
   'app.import.sum.byBatch':
     'Leur horodatage public arrive quand leur lot est daté sur {dated}. Vous n’avez rien à faire.',
   'app.import.sum.stampsLater':
-    "Vos fiches sont déjà scellées et seront datées avec leur lot sur {dated}. L'horodatage de la clé de chaque plante attend que vous en ayez besoin : avant de prouver que vous détenez une plante ou de la licencier, sa page le fait en une ou deux minutes.",
+    'Vos fiches sont déjà scellées et seront datées avec leur lot sur {dated}. L’horodatage de la clé de chaque plante attend que vous en ayez besoin : avant de prouver que vous détenez une plante ou de la licencier, sa page le fait en une ou deux minutes.',
   'app.import.sum.untilSaved':
     'Tant qu’elle n’est pas enregistrée et vérifiée, les clés des nouveaux enregistrements ne sont que dans ce navigateur.',
   'app.import.sum.noDna.one':
@@ -150,14 +150,14 @@ export const importing = {
   'app.import.stamps.allDone': 'Tout est fait.',
   'app.import.stamps.goOn': 'Continuer',
   'app.import.stamps.notNeeded':
-    "Vous n'en avez pas encore besoin. Vos fiches sont datées avec leur lot sur {dated}. L'horodatage de la clé d'une plante ne compte qu'avant de prouver que vous la détenez ou de la licencier, et la page de cette plante le fait alors en une ou deux minutes. Pas des semaines d'attente.",
+    'Vous n’en avez pas encore besoin. Vos fiches sont datées avec leur lot sur {dated}. L’horodatage de la clé d’une plante ne compte qu’avant de prouver que vous la détenez ou de la licencier, et la page de cette plante le fait alors en une ou deux minutes. Pas des semaines d’attente.',
   'app.import.stamps.startAll': 'Les horodater toutes maintenant',
   'app.import.stamps.stopAll': 'Arrêter, et horodater chacune quand il le faut',
   'app.import.stamps.saveIt': 'L’enregistrer',
   'app.import.stamps.newSince.one':
-    '{count} horodatage de clé est arrivé après votre copie de secours. Enregistrez-en une nouvelle pour le garder.',
+    '{count} horodatage de clé est arrivé après votre sauvegarde. Enregistrez-en une nouvelle pour le garder.',
   'app.import.stamps.newSince.other':
-    '{count} horodatages de clés sont arrivés après votre copie de secours. Enregistrez-en une nouvelle pour les garder.',
+    '{count} horodatages de clés sont arrivés après votre sauvegarde. Enregistrez-en une nouvelle pour les garder.',
   'app.import.done.title': 'Votre collection est scellée',
   'app.import.done.new.one': '{count} nouvel enregistrement',
   'app.import.done.new.other': '{count} nouveaux enregistrements',
@@ -170,7 +170,7 @@ export const importing = {
   'app.import.done.byBatch':
     'Leur horodatage public arrive quand leur lot est daté sur {dated}. La page de chaque plante montre quand c’est fait. Vous n’avez rien à faire.',
   'app.import.done.dateStamp':
-    'Un horodatage montre que les informations existaient à cette date. Il ne confirme pas qu’elles sont exactes.',
+    'Un horodatage montre que les informations existaient déjà à cette date. Il ne confirme pas qu’elles sont exactes.',
   'app.import.done.toRecords': 'Aller à vos enregistrements',
   'app.import.done.another': 'Importer un autre fichier',
 } satisfies Partial<AppTranslation>;

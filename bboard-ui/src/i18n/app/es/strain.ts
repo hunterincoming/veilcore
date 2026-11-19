@@ -5,7 +5,7 @@
 import type { AppTranslation } from '../../translate';
 
 export const strain = {
-  'app.strain.v.app.verify.noParents': 'No hay padres registrados.',
+  'app.strain.v.app.verify.noParents': 'No hay progenitores registrados.',
   'app.strain.v.app.plant.fix.name': 'Nombre de la cepa',
   'app.strain.v.app.plant.fix.bredBy': 'Obtenida o aislada por',
   'app.strain.v.app.verify.namePublished': 'Nombre que el titular muestra: ',
@@ -51,7 +51,7 @@ export const strain = {
   'app.strain.v.app.pair.chain.stampFirst':
     'Ponga primero el sello de fecha de su cepa (desde su página) si también quiere fechar este informe en la red.',
   'app.strain.v.app.plant.notHereText':
-    'Si lo selló en otro navegador, guarde allí una copia de seguridad y ábrala aquí (Recuperar sus cepas). Si es el registro de otra persona, abra el enlace de verificación que le dio.',
+    'Si lo selló en otro navegador, guarde allí una copia de seguridad y ábrala aquí (Recuperar sus cepas). Si es el registro de otra persona, abra el enlace de comprobación que le dio.',
   'app.strain.v.app.plant.bredByName': 'Obtenida o aislada por {name}',
   'app.strain.v.app.plant.action.saveReport': 'Guardar un informe de ADN en esta cepa',
   'app.strain.v.app.plant.f.reportSaved': 'guardado en esta cepa ({file}) · código del vínculo {fp}{sha}',
@@ -65,7 +65,7 @@ export const strain = {
   'app.strain.v.app.plant.tie.sentenceNone': 'Aún no vinculado a la cepa: {what}.',
   'app.strain.v.app.plant.tie.sentenceNot': 'Ya no vinculado a la cepa: {what}.',
   'app.strain.v.app.plant.tie.means':
-    'Un informe de ADN permite que un laboratorio compare con él una prueba nueva de una cepa. Por sí solo no demuestra que una cepa coincida.',
+    'Un informe de ADN permite que un laboratorio compare con él un análisis nuevo de una cepa. Por sí solo no demuestra que una cepa coincida.',
   'app.strain.v.app.plant.tie.sub': 'Informe {date}. Un laboratorio puede comparar con él una prueba nueva de la cepa.',
   'app.strain.v.app.plant.tie.why':
     'Un informe de ADN de su laboratorio es lo que vincula un registro con la cepa misma.',
@@ -82,7 +82,7 @@ export const strain = {
   'app.strain.v.app.plant.next.labWithdrew.why':
     'Sigue guardado en esta cepa, y su certificado y sus enlaces dicen que fue retirado. Pida uno nuevo al laboratorio.',
   'app.strain.v.app.plant.next.open.why':
-    'Está bloqueado para que solo usted pueda abrirlo, con la clave de esta cepa. Al abrirlo se comprueba aquí la firma del laboratorio.',
+    'Está cifrado para que solo usted pueda abrirlo, con la clave de esta cepa. Al abrirlo se comprueba aquí la firma del laboratorio.',
   'app.strain.v.app.plant.next.sample.whySaved':
     'Guardó un informe de ADN en esta cepa, y eso es su propia declaración. Que un laboratorio firme que recibió una muestra suma una segunda parte, lo que es una evidencia más sólida que su declaración sola.',
   'app.strain.v.app.plant.next.sample.why':
@@ -93,7 +93,7 @@ export const strain = {
   'app.strain.v.app.plant.next.dna.haveText':
     'Guárdelo en esta cepa. Se lee en su dispositivo; el archivo nunca se sube.',
   'app.strain.v.app.plant.next.date.why':
-    'Está guardado en esta cepa, pero todavía nada lo fecha. Fecharlo muestra que el informe existía en esa fecha, sin mostrarle a nadie los marcadores.',
+    'Está guardado en esta cepa, pero todavía nada lo fecha. Fecharlo muestra que el informe ya existía a esa fecha, sin mostrarle a nadie los marcadores.',
   'app.strain.v.app.plant.next.save.title': 'Guarde el informe de ADN en esta cepa',
   'app.strain.v.app.plant.next.save.why':
     'Un laboratorio firmó que recibió una muestra. Cuando llegue su informe de ADN, guárdelo en esta cepa: eso es lo que vincula su registro con la cepa, para poder compararlo con una prueba posterior.',
@@ -113,7 +113,7 @@ export const strain = {
     'Ningún laboratorio ha firmado todavía un acuse de recibo para esta cepa. Un registro que solo usted respalda es una evidencia más débil que uno que firma un laboratorio. Envíe una muestra a un laboratorio: su acuse de recibo se firma con su clave, no con la suya.',
   'app.strain.v.app.verify.field.parent-names': 'Cepas parentales (nombres y números de depósito)',
   'app.strain.v.app.verify.alwaysShown':
-    'Siempre se muestra: el ID del registro, su código de prueba ({fp}), cuándo lo guardó por primera vez el servidor de registros y lo que esta página pudo comprobar sobre su lote y las atestaciones firmadas mostradas (un acuse de recibo o un informe de laboratorio solo si usted decide mostrarlo). El nombre, solo cuando el enlace lo lleva (los suyos lo llevan solo si usted lo activa) o usted decide mostrarlo.',
+    'Siempre se muestra: el ID del registro, su código de prueba ({fp}), cuándo lo guardó por primera vez el servidor de registros y lo que esta página pudo comprobar sobre su lote y las declaraciones firmadas mostradas (un acuse de recibo o un informe de laboratorio solo si usted decide mostrarlo). El nombre, solo cuando el enlace lo lleva (los suyos lo llevan solo si usted lo activa) o usted decide mostrarlo.',
   'app.strain.v.app.verify.ownReceiptTail':
     ' Usted lo ve porque la cepa está en este navegador; quien reciba el enlace solo ve la línea de firma de arriba.',
   'app.strain.v.app.prove.openCheckPage': 'Abrir la página de comprobación de la cepa',
@@ -127,7 +127,7 @@ export const strain = {
     'Responder le dice a quien le envió este enlace que usted tiene el registro de esta cepa.',
   'app.strain.v.app.prove.watch.notWho': 'No muestra quién es esa persona ni quién obtuvo la cepa.',
   'app.strain.v.app.prove.watch.holderStatement':
-    'Que esta clave corresponda al registro de esta cepa es, por ahora, la declaración del titular. No muestra quién es esa persona ni quién obtuvo la cepa.',
+    'Que esta clave corresponda al registro de esta cepa es, por ahora, la declaración de quien lo selló. No muestra quién es esa persona ni quién obtuvo la cepa.',
   'app.strain.v.app.prove.watch.stampedYour':
     'La clave de su cepa recibió el sello de fecha el {when}. Eso fecha la clave, no el registro.',
   'app.strain.v.app.prove.watch.stampedThisEarlier':
@@ -137,7 +137,7 @@ export const strain = {
     'Prepare primero la prueba: toque “Preparar la prueba de que lo tiene” en la página de la cepa. La prueba trata de la identidad de la cepa en la cadena, que crea ese paso.',
   'app.strain.v.app.lab.sentence.none': 'No hay ningún informe de ADN guardado en esta cepa.',
   'app.strain.v.app.lab.sentence.self':
-    'Hay un archivo de informe de ADN guardado en esta cepa. Ninguna firma de laboratorio coincide con él, así que es la propia declaración del titular.',
+    'Hay un archivo de informe de ADN guardado en esta cepa. Ninguna firma de laboratorio coincide con él, así que es la propia declaración de quien lo selló.',
   'app.strain.v.app.lab.sentence.replaced':
     'El laboratorio reemplazó{on} el informe de ADN guardado en esta cepa por uno corregido. {tail}',
   'app.strain.v.app.lab.sentence.withdrawn':
@@ -151,7 +151,7 @@ export const strain = {
   'app.strain.v.app.lab.results.withdrawnNewer':
     '<b>El laboratorio retiró el informe guardado en esta cepa.</b> Sigue guardado hasta que guarde otro, y su certificado y sus enlaces dicen que fue retirado. Hay un informe de laboratorio más reciente: ábralo y guárdelo en esta cepa.',
   'app.strain.v.app.lab.results.locked':
-    'Bloqueados para que solo usted pueda abrirlos, con la clave de esta cepa de su copia de seguridad. VeilCore los guarda bloqueados y no tiene la clave.',
+    'Bloqueados para que solo usted pueda abrirlos, con la clave de esta cepa de su copia de seguridad. VeilCore los guarda cifrados y no tiene la clave.',
   'app.strain.v.app.lab.results.noKey':
     'La clave de esta cepa no está en este dispositivo, así que aquí no se pueden abrir sus informes de laboratorio. Primero <link>recupere sus cepas desde su copia de seguridad</link>.',
   'app.strain.v.app.lab.results.whatOthersSee':
@@ -167,16 +167,16 @@ export const strain = {
   'app.strain.v.app.lab.send.takenFromHelp': 'La cepa madre o la etiqueta de su ubicación.',
   // What a strain is made by, not bred by (strain-words.test).
   'app.strain.v.app.plant.f.method': 'Cómo se obtuvo',
-  'app.strain.v.app.plant.f.statedDate': 'Fecha declarada de obtención o aislamiento (declaración del titular)',
+  'app.strain.v.app.plant.f.statedDate': 'Fecha declarada de obtención o aislamiento (declaración de quien lo selló)',
   'app.strain.v.app.plant.fix.field.cultivarName': 'nombre de la cepa',
   'app.strain.v.app.plant.fix.field.name': 'nombre de la cepa',
   'app.strain.v.app.plant.fix.field.breederName': 'obtenida o aislada por',
   'app.strain.v.app.plant.fix.field.breedingMethod': 'cómo se obtuvo',
   'app.strain.v.app.verify.field.breeding-method': 'Cómo se obtuvo',
   'app.strain.v.app.verify.field.bred-by': 'Obtenida o aislada por',
-  'app.strain.v.app.verify.method': 'Cómo se obtuvo, según el titular: {method}',
+  'app.strain.v.app.verify.method': 'Cómo se obtuvo, según quien lo selló: {method}',
   'app.strain.v.app.verify.noMethod': 'No se registró cómo se obtuvo.',
-  'app.strain.v.app.verify.bredByShared': 'Obtenida o aislada por, según lo escribió el titular: {name}',
+  'app.strain.v.app.verify.bredByShared': 'Obtenida o aislada por, según lo escribió quien lo selló: {name}',
   'app.strain.v.app.verify.noBredBy': 'No se registró quién la obtuvo o aisló.',
   'app.strain.v.app.lic.row.offspring': 'Regalía sobre cepas derivadas',
   'app.strain.v.app.lic.row.offspringValue': '{pct}%, sobre las cepas declaradas como derivadas de esta',

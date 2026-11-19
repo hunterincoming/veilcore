@@ -73,7 +73,7 @@ export const prove = {
   'app.prove.hand.bound':
     'El registro nombró esta clave al sellarse, y esta página lo comprobó con su código de prueba.',
   'app.prove.hand.older':
-    'Registro antiguo: clave no vinculada a este registro. Que esta identidad le corresponda es la declaración del titular.',
+    'Registro antiguo: clave no vinculada a este registro. Que esta identidad le corresponda es la declaración de quien lo selló.',
   'app.prove.hand.make': 'Crear un desafío',
   'app.prove.hand.yourChallenge': 'Su desafío (envíelo al titular; funciona una vez, en esta pestaña):',
   'app.prove.hand.txId': 'El ID de transacción del titular',
@@ -104,7 +104,7 @@ export const prove = {
   'app.prove.watch.notWho': 'No muestra quién es esa persona ni quién obtuvo la planta.',
   'app.prove.watch.olderRecord': 'Registro antiguo: clave no vinculada a este registro.',
   'app.prove.watch.holderStatement':
-    'Que esta clave corresponda al registro de esta planta es, por ahora, la declaración del titular. No muestra quién es esa persona ni quién obtuvo la planta.',
+    'Que esta clave corresponda al registro de esta planta es, por ahora, la declaración de quien lo selló. No muestra quién es esa persona ni quién obtuvo la planta.',
   'app.prove.watch.checkedAt':
     'Comprobado {when} en la red de pruebas, que puede reiniciarse: solo práctica, sin valor como evidencia.',
   'app.prove.watch.expired': 'Esta solicitud venció sin respuesta. Haga una nueva.',
@@ -136,7 +136,7 @@ export const prove = {
   'app.prove.share.notSaved': 'Su elección no se guardó, así que no se hizo ningún enlace: {error}.',
   'app.prove.share.title': 'Elija lo que ve un desconocido',
   'app.prove.share.intro':
-    'Cualquiera que tenga el ID de este registro (por un enlace que usted envíe, el código QR de su certificado o un mensaje que alguien reenvíe) puede abrir su página de verificación. Elija qué datos muestra esa página. Lo que elija se envía sin bloquear al servidor de registros de VeilCore, para que la página pueda mostrarlo. La elección se guarda con el registro en el servidor de registros de VeilCore y se aplica a todos los que tengan el ID; puede cambiarla aquí cuando quiera, y los enlaces ya enviados muestran entonces la nueva elección.',
+    'Cualquiera que tenga el ID de este registro (por un enlace que usted envíe, el código QR de su certificado o un mensaje que alguien reenvíe) puede abrir su página de verificación. Elija qué datos muestra esa página. Lo que elija se envía sin cifrar al servidor de registros de VeilCore, para que la página pueda mostrarlo. La elección se guarda con el registro en el servidor de registros de VeilCore y se aplica a todos los que tengan el ID; puede cambiarla aquí cuando quiera, y los enlaces ya enviados muestran entonces la nueva elección.',
   'app.prove.share.shownOn': 'Se muestra en la página de verificación',
   'app.prove.share.strangerSees': 'Lo que verá un desconocido con el ID',
   'app.prove.share.reportOn': 'Con “Si hay un informe de ADN guardado” activado, la página de comprobación lo dice.',
@@ -192,5 +192,5 @@ export const prove = {
     'Qué muestra: el número sellado en ese registro cumple el límite (o es ese valor), y la clave de arriba firmó los números de ese registro. El laboratorio ha retirado después este resultado, así que no confíe en él: pida al laboratorio o al titular el resultado más reciente para esta muestra. Cada límite demostrado sobre un número es público, y juntos lo acotan.',
   // ClaimCheck.tsx: the footer when a key signs the numbers but no single lab is tied to it (unidentified, conflicting).
   'app.claim.check.whatLabUnnamed':
-    'Qué muestra: el número sellado en ese registro cumple el límite (o es ese valor), y la clave de arriba firmó los números de ese registro. Aquí ningún laboratorio único está vinculado a esa clave, así que tome los números como del propio titular. Cada límite demostrado sobre un número es público, y juntos lo acotan.',
+    'Qué muestra: el número sellado en ese registro cumple el límite (o es ese valor), y la clave de arriba firmó los números de ese registro. Aquí ningún laboratorio único está vinculado a esa clave, así que tome los números como de quien selló el registro. Cada límite demostrado sobre un número es público, y juntos lo acotan.',
 } satisfies Partial<AppTranslation>;

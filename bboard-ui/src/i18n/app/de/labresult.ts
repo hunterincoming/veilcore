@@ -254,10 +254,10 @@ export const labresult = {
   'app.lr.check.withdrawn':
     'Dieses Labor steht nicht mehr hinter diesem Ergebnis. Die Signatur stimmt weiterhin. Es wurde vielleicht durch ein späteres Ergebnis ersetzt: Fragen Sie das Labor oder den Inhaber nach dem neuesten Ergebnis für diese Probe.',
   'app.lr.claim.onlyCall':
-    'Dieser Nachweis umfasst nur das Ergebnis. Worauf geprüft oder was verglichen wurde, steht in der Ergebnisdatei des Labors, nicht in diesem Nachweis. Wenn Sie die Datei haben, wählen Sie sie: Sie wird hier gegen diesen Nachweis geprüft und nicht gesendet.',
+    'Dieser Beleg umfasst nur das Ergebnis. Worauf geprüft oder was verglichen wurde, steht in der Ergebnisdatei des Labors, nicht in diesem Beleg. Wenn Sie die Datei haben, wählen Sie sie: Sie wird hier gegen diesen Beleg geprüft und nicht gesendet.',
   'app.lr.claim.choose': 'Ergebnisdatei des Labors auswählen',
-  'app.lr.claim.same': 'Die Ergebnisdatei gehört zu demselben signierten Ergebnis wie dieser Nachweis:',
-  'app.lr.claim.otherResult': 'Diese Datei gehört zu einem anderen Ergebnis, nicht zu dem dieses Nachweises.',
+  'app.lr.claim.same': 'Die Ergebnisdatei gehört zu demselben signierten Ergebnis wie dieser Beleg:',
+  'app.lr.claim.otherResult': 'Diese Datei gehört zu einem anderen Ergebnis, nicht zu dem dieses Belegs.',
   'app.lr.tools.markLeave':
     'Die Sequenzdatei der Markierung ist nicht gespeichert. Wenn Sie jetzt gehen, ist sie endgültig verloren, und das Siegel lässt sich in keinem Streitfall mehr öffnen. Trotzdem gehen?',
   'app.lr.problem.ctMissing':
@@ -282,7 +282,7 @@ export const labresult = {
   'app.lr.f.positiveGrew': 'Positivkontrolle ({control}) gewachsen',
   'app.lr.f.negativeClean': 'Negativkontrolle ohne Wachstum',
   'app.lr.f.sampled': 'Datum der Probenahme',
-  'app.lr.f.strain': 'Stammdatensatz, aus dem die Charge hergestellt wurde (Nachweiscode)',
+  'app.lr.f.strain': 'Stammdatensatz, aus dem die Charge hergestellt wurde (Prüfcode)',
   'app.lr.f.before': 'Genanntes Ergebnis der Probe vor dem Abtötungsschritt (Code)',
   'app.lr.stage.before': 'Vor dem Abtötungsschritt',
   'app.lr.stage.after': 'Nach dem Abtötungsschritt',
@@ -294,7 +294,7 @@ export const labresult = {
   'app.lr.note.viabilityLimits':
     'Das ist, was das Labor in der geprüften Teilmenge unter diesen Bedingungen nachgewiesen hat, und nicht mehr. Ein Test erfasst nur, was auf seinen Nährmedien, in seiner Zeit und bei seiner Temperatur oberhalb seiner Nachweisgrenze wächst: Geschädigte, ruhende (Sporen) oder anders anspruchsvolle Organismen wachsen womöglich nicht, und eine Teilmenge steht nicht unbedingt für die ganze Charge. Dass die Probe aus dieser Charge und die Charge aus diesem Stamm stammt, ist die Angabe des Absenders.',
   'app.lr.note.strain':
-    'Der Stammdatensatz ist nur mit seinem Nachweiscode genannt: Nichts aus diesem Datensatz steht in diesem Ergebnis.',
+    'Der Stammdatensatz ist nur mit seinem Prüfcode genannt: Nichts aus diesem Datensatz steht in diesem Ergebnis.',
   'app.lr.form.viabilityIntro':
     'Für eine Probe, die vor oder nach einem Abtötungsschritt genommen wurde, etwa einer Wärmebehandlung oder einer Inaktivierung. Tragen Sie ein, was in Ihrem Bericht steht. Signieren Sie nur einen gültigen Lauf: Die Positivkontrolle ist gewachsen und, falls Sie eine angesetzt haben, die Negativkontrolle nicht.',
   'app.lr.form.read': 'Datum abgelesen (Ende der Bebrütung)',
@@ -307,12 +307,12 @@ export const labresult = {
   'app.lr.form.before': 'Code des Ergebnisses der Probe vor dem Abtötungsschritt (optional)',
   'app.lr.form.beforeHelp':
     'Verknüpft dieses Ergebnis mit dem Ergebnis der Probe vor dem Abtötungsschritt aus derselben Charge, von Ihrem Labor signiert.',
-  'app.lr.form.strain': 'Nachweiscode des Stammdatensatzes, aus dem die Charge hergestellt wurde',
+  'app.lr.form.strain': 'Prüfcode des Stammdatensatzes, aus dem die Charge hergestellt wurde',
   'app.lr.form.strainHelp':
     'Vom Absender: 64 Zeichen. Nur der Code kommt in das Ergebnis, nichts aus dem Datensatz. Er kann derselbe wie der der Probe sein.',
   'app.lr.form.sampled': 'Datum der Probenahme',
   'app.lr.form.recovers': 'Was der Test erfasst (der Produktionsstamm, Hefen und Schimmelpilze gesamt …)',
-  'app.lr.form.portion': 'Geprüfte Teilmenge und ihre Menge (25 g Futtermehl in 225 mL Bouillon …)',
+  'app.lr.form.portion': 'Geprüfte Teilmenge und ihre Menge (25 g Futtermehl in 225 ml Bouillon …)',
   'app.lr.form.cultures': 'Nährmedien und Bebrütung',
   'app.lr.form.culture.medium': 'Nährmedium',
   'app.lr.form.culture.time': 'Dauer',
@@ -334,7 +334,7 @@ export const labresult = {
     'Eine Probe nach dem Abtötungsschritt nennt diesen Schritt: Verfahren und Parameter, eine Zeile.',
   'app.lr.problem.before':
     'Nennen Sie das Ergebnis der Probe vor dem Abtötungsschritt mit seinem 64-stelligen Code. Nur eine Probe nach dem Abtötungsschritt nennt eines.',
-  'app.lr.problem.strain': 'Geben Sie den Nachweiscode des Stammdatensatzes an: 64 Zeichen.',
+  'app.lr.problem.strain': 'Geben Sie den Prüfcode des Stammdatensatzes an: 64 Zeichen.',
   'app.lr.problem.sampled': 'Das Datum der Probenahme ist ein echtes Datum, nicht nach dem Eingangs- oder Ablesedatum.',
   'app.lr.problem.portion': 'Nennen Sie die geprüfte Teilmenge und ihre Menge.',
   'app.lr.problem.cultures': 'Geben Sie jedes Nährmedium mit Dauer und Temperatur an: 1 bis 4, keines doppelt.',
@@ -397,7 +397,7 @@ export const labresult = {
   'app.marker.panelItem': '{claim} ({result})',
   'app.marker.thisResult': 'dieses Ergebnis',
   'app.marker.resultNamed': 'Ergebnis {accession}, {panel}',
-  'app.marker.copyAll': 'Einen Link mit allen {n} Nachweisen kopieren',
+  'app.marker.copyAll': 'Einen Link mit allen {n} Belegen kopieren',
   'app.marker.exactWarn.atLeast':
     'Dies ist die höchste Untergrenze, die noch gilt: Mit jeder Obergrenze für dieselbe Zahl legt sie die Zählung fest. Genaue Zahlen gegenüber bekannten Referenzen können zusammen den Genotyp eingrenzen. Eine gerundete Zahl zeigt weniger.',
   'app.marker.exactWarn.atMost':
@@ -426,7 +426,7 @@ export const labresult = {
   'app.marker.source.holder':
     'Keine Laborsignatur auf diesen Zahlen wird hier bestätigt. Lesen Sie sie daher als die eigenen des Inhabers.',
   'app.marker.more.title': 'Ebenfalls in diesem Link, zum selben Datensatz',
-  'app.marker.limits.title': 'Was diese Nachweise nicht zeigen',
+  'app.marker.limits.title': 'Was diese Belege nicht zeigen',
   'app.marker.limits.examine':
     'Es sind Zählungen, die ein Labor signiert hat. Ob zwei Sorten unterscheidbar sind, entscheidet die Prüfstelle anhand der Markerdaten selbst. Dies ersetzt diese Prüfung nicht.',
   'app.marker.limits.oneParty':
@@ -436,7 +436,7 @@ export const labresult = {
   'app.marker.limits.meaning':
     'Eine Übereinstimmung sagt nichts über nicht verglichene Marker und nicht, dass die beiden Proben dieselbe Pflanze, dasselbe Tier oder dieselbe Sorte sind. „Vereinbar mit den genannten Eltern“ bedeutet nicht, dass die Abstammung feststeht.',
   'app.marker.limits.which':
-    'Welche Datensätze verglichen wurden, die Methode und das Panel stehen in der Ergebnisdatei des Labors, nicht im Nachweis.',
+    'Welche Datensätze verglichen wurden, die Methode und das Panel stehen in der Ergebnisdatei des Labors, nicht im Beleg.',
   'app.marker.limits.later':
     'Sie betreffen das Ergebnis, wie es signiert wurde. Das Labor kann es seitdem berichtigt oder neu untersucht haben.',
   'app.marker.limits.size':

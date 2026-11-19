@@ -11,7 +11,7 @@ export const dating = {
   'app.log.recordDatedNextPlain': '記録の日付：次のバッチに入ります',
   'app.log.inSeconds': '{n}秒後に',
   'app.log.retryingIn': '{when}自動でもう一度試します（{n}回目）。',
-  'app.log.retriesUsed': '何度か試しました。いつでももう一度試せます。記録自体の日付はこれを待ちません。',
+  'app.log.retriesUsed': '何度か試しました。いつでももう一度試せます。記録自体の日付は、これとは関係なく付いています。',
   'app.log.tryNow': '今すぐもう一度試す',
   'app.log.keepsTrying': 'VeilCoreを開いている間は自動で試し続け、完了するまでホームに表示します。',
 

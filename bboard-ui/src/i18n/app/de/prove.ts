@@ -29,9 +29,9 @@ export const prove = {
     'Die Antwort kann nur mit dem ganzen Link zurückgehen. Öffnen Sie den Link genau so, wie er gesendet wurde, oder bitten Sie darum, ihn erneut zu senden.',
   'app.prove.someoneWants': 'Jemand möchte, dass Sie beweisen, dass Sie einen Datensatz halten',
   'app.prove.noRecordsHere':
-    'Ihre Datensätze sind nicht auf diesem Telefon oder Computer. Öffnen Sie diesen Link dort, wo Sie sie aufbewahren, oder holen Sie sie hier aus Ihrer Sicherungsdatei zurück und öffnen Sie den Link dann erneut.',
+    'Ihre Datensätze sind nicht auf diesem Handy oder Computer. Öffnen Sie diesen Link dort, wo Sie sie aufbewahren, oder holen Sie sie hier aus Ihrer Sicherungsdatei zurück und öffnen Sie den Link dann erneut.',
   'app.prove.notThisRecord':
-    'Keiner der Datensätze hier ist der, nach dem gefragt wurde. Wenn Sie ihn auf einem anderen Telefon oder Computer aufbewahren, öffnen Sie diesen Link dort. Wenn Sie ihn nur in einer Sicherungsdatei haben, stellen Sie ihn hier wieder her und öffnen Sie den Link dann erneut.',
+    'Keiner der Datensätze hier ist der, nach dem gefragt wurde. Wenn Sie ihn auf einem anderen Handy oder Computer aufbewahren, öffnen Sie diesen Link dort. Wenn Sie ihn nur in einer Sicherungsdatei haben, stellen Sie ihn hier wieder her und öffnen Sie den Link dann erneut.',
   'app.prove.getBack': 'Meine Datensätze aus einer Sicherungskopie zurückholen',
   'app.prove.done': 'Fertig',
   'app.prove.doneText':
@@ -46,19 +46,19 @@ export const prove = {
     'Angefragt von jemandem, der angibt, <b>„{asker}“</b> zu sein. <muted>VeilCore hat das nicht geprüft.</muted>',
   'app.prove.askedAnon': 'Jemand hat Sie gebeten, es zu beweisen, ohne einen Namen zu nennen.',
   'app.prove.whatSends':
-    '<b>Was gesendet wird:</b> nur der Beweis, dass Sie den Datensatz dieser Pflanze halten, im Testnetzwerk. Kein Name, keine Genetik, nichts über Ihre anderen Pflanzen.',
+    '<b>Was gesendet wird:</b> nur der Beweis, dass Sie den Datensatz dieser Pflanze halten, im Testnetz. Kein Name, keine Genetik, nichts über Ihre anderen Pflanzen.',
   'app.prove.testOnly': 'Beweisen funktioniert derzeit nur in der Testversion.',
   'app.prove.answering':
     'Wenn Sie antworten, erfährt die Person, die Ihnen diesen Link gesendet hat, dass Sie den Datensatz dieser Pflanze halten.',
   'app.prove.proving': 'Wird bewiesen…',
   'app.prove.proveIt': 'Beweisen',
-  'app.prove.fewMinutes': 'Das kann einige Minuten dauern. Testnetzwerk: nur zum Üben.',
+  'app.prove.fewMinutes': 'Das kann einige Minuten dauern. Testnetz: nur zum Üben.',
   'app.prove.ask.cantAsk': 'Mit diesem Link kann kein Beweis angefragt werden',
   'app.prove.ask.refused': '{reason}. Ein damit erstellter Beweis würde nichts über diesen Datensatz aussagen.',
   'app.prove.ask.noLink': 'Es wurde kein Link erstellt: {error}.',
   'app.prove.ask.title': 'Bitten Sie um den Beweis, dass sie gehalten wird',
   'app.prove.ask.intro':
-    'Sie senden einen Link. Die Person öffnet ihn und tippt auf „Beweisen“. Die Antwort erscheint hier. Diese Seite prüft die Antwort selbst im Netzwerk, über einen Midnight-Indexer (auf der Testseite über das Relais von VeilCore). Prüfen Sie die Transaktion für eine wichtige Entscheidung bei einem zweiten Indexer. Nur Testnetzwerk.',
+    'Sie senden einen Link. Die Person öffnet ihn und tippt auf „Beweisen“. Die Antwort erscheint hier. Diese Seite prüft die Antwort selbst im Netzwerk, über einen Midnight-Indexer (auf der Testseite über das Relais von VeilCore). Prüfen Sie die Transaktion für eine wichtige Entscheidung bei einem zweiten Indexer. Nur Testnetz.',
   'app.prove.ask.bound':
     'Dieser Datensatz hat beim Versiegeln seinen eigenen Schlüssel genannt. Diese Seite hat geprüft, dass der Schlüssel in Ihrem Link dieser ist.',
   'app.prove.ask.older':
@@ -109,7 +109,7 @@ export const prove = {
   'app.prove.watch.holderStatement':
     'Dass dieser Schlüssel zum Datensatz dieser Pflanze gehört, ist vorerst die Angabe des Inhabers. Es zeigt nicht, wer die Person ist oder wer die Pflanze gezüchtet hat.',
   'app.prove.watch.checkedAt':
-    'Geprüft {when} im Testnetzwerk, das zurückgesetzt werden kann: nur zum Üben, keine Beweiskraft.',
+    'Geprüft {when} im Testnetz, das zurückgesetzt werden kann: nur zum Üben, keine Beweiskraft.',
   'app.prove.watch.expired': 'Diese Anfrage ist ohne Antwort abgelaufen. Erstellen Sie eine neue.',
   'app.prove.watch.checking': 'Eine Antwort ist eingegangen. Sie wird im Netzwerk geprüft…',
   'app.prove.watch.pending':
@@ -127,7 +127,7 @@ export const prove = {
     'Der Schlüssel dieser Pflanze erhielt schon früher einen Datumsstempel im Netzwerk. Das datiert den Schlüssel, nicht den Datensatz.',
   'app.prove.watch.stampedThatEarlier':
     'Dieser Schlüssel erhielt schon früher einen Datumsstempel im Netzwerk. Das datiert den Schlüssel, nicht den Datensatz.',
-  'app.prove.own.title': 'Beweisen Sie, dass Sie den Schlüssel dieser Pflanze halten (Testnetzwerk)',
+  'app.prove.own.title': 'Beweisen Sie, dass Sie den Schlüssel dieser Pflanze halten (Testnetz)',
   'app.prove.own.stampFirst':
     'Richten Sie zuerst den Nachweis ein: Tippen Sie auf der Seite der Pflanze auf „Nachweis einrichten, dass Sie ihn halten“. Der Beweis betrifft die On-Chain-Identität der Pflanze, die dieser Schritt erzeugt.',
   'app.prove.own.intro':
@@ -150,7 +150,7 @@ export const prove = {
   'app.prove.share.yourLink': 'Ihr Link',
   'app.prove.share.savedOn': 'Im Register gespeichert',
   'app.prove.share.savedText':
-    'Wer diesen Link öffnet oder die ID dieses Datensatzes auf anderem Weg hat, sieht die Angaben in der Vorschau und nichts sonst; das Register sendet den Rest nicht, und durch Bearbeiten des Links kommt nichts hinzu. Die Genetik wird nie offengelegt. Diese Auswahl steuert, was die Prüfseite zeigt. Einen verborgenen Wert (einen Marker, einen Bereich oder dass sich zwei Sorten unterscheiden) zu beweisen, ohne den Rest zu zeigen, übernimmt der Claims-Vertrag von VeilCore.',
+    'Wer diesen Link öffnet oder die ID dieses Datensatzes auf anderem Weg hat, sieht die Angaben in der Vorschau und nichts sonst; das Register sendet den Rest nicht, und durch Bearbeiten des Links kommt nichts hinzu. Die Genetik wird nie offengelegt. Diese Auswahl steuert, was die Prüfseite zeigt. Einen verborgenen Wert (einen Marker, einen Bereich oder dass sich zwei Sorten unterscheiden) zu beweisen, ohne den Rest zu zeigen, übernimmt der Beleg-Smart-Contract von VeilCore.',
   'app.prove.share.letThemAsk':
     'Den Datumsstempel prüfen lassen und mich bitten lassen zu beweisen, dass ich sie halte',
   'app.prove.share.theLink': 'Der Link',

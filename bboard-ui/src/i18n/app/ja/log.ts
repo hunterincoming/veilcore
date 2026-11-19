@@ -37,7 +37,7 @@ export const log = {
   'app.log.nameLabel': '植物名または系統名',
   'app.log.namePlaceholder': '例：Harbour Mist',
   'app.log.nameHelp':
-    'ほかの詳細と同じくロックされます。確認リンクの#の後ろに名前が入るのは、そうすると選んだときだけです。その場合、リンクを送った相手と、その相手がリンクを転送した人には見えます。',
+    'ほかの詳細と同じく鍵がかけられます。確認リンクの#の後ろに名前が入るのは、そうすると選んだときだけです。その場合、リンクを送った相手と、その相手がリンクを転送した人には見えます。',
   'app.log.eg': '例：{v}',
   'app.log.egNextSelection': '例：{name}、次の選抜',
   'app.log.bredBy': '育成者',
@@ -49,14 +49,14 @@ export const log = {
   'app.log.selectedPrompt': '何を目的に選抜しましたか？',
   'app.log.selectedHelp': 'メモに「Selected for: …」として封印されます。',
   'app.log.fewer': '− 詳細を閉じる',
-  'app.log.more': '+ 親、種、写真、メモを追加',
+  'app.log.more': '+ 親、種名、写真、メモを追加',
   'app.log.parents': '親',
   'app.log.parentsHelp': '記録済みの植物を選ぶか、名前を入力してEnterを押してください。',
-  'app.log.species': '種',
+  'app.log.species': '種名（学名）',
   'app.log.speciesPlaceholder': '例：Solanum lycopersicum',
   'app.log.howMade': '作出方法',
   'app.log.howMadeStageHelp': 'この段階はどのように作出しましたか？親からは引き継がれません。',
-  'app.log.notSaying': '答えない',
+  'app.log.notSaying': '回答しない',
   'app.log.readingPhotos': '写真を読み込んでいます…',
   'app.log.addPhotos': '写真を追加',
   'app.log.photos.other': '写真 {count}枚',
@@ -64,7 +64,7 @@ export const log = {
   'app.log.refId': 'あなた自身のロット番号または管理番号',
   'app.log.registration': '品種の登録番号（登録されている場合）',
   'app.log.registrationHelp':
-    '登録簿の表記どおりに入力してください（例：INASE RNC 12345）。記録のメモに封印されます。これはあなたの申告であり、誰も確認しません。',
+    '登録簿の表記どおりに入力してください（例：品種登録第12345号）。記録のメモに封印されます。これはあなたの申告であり、誰も確認しません。',
   'app.log.notes': 'メモ',
   'app.log.nextCheck': '次へ：確認する',
   'app.log.readingYourPhotos': '写真を読み込んでいます…',
@@ -74,10 +74,10 @@ export const log = {
   'app.log.k.made': '作出日（あなたのメモ）',
   'app.log.k.more': 'その他の詳細',
   'app.log.noneAdded': '追加なし',
-  'app.log.x.stage': '段階：{v}',
-  'app.log.x.selectedFor': '選抜の目的：{v}',
+  'app.log.x.stage': '段階（メモに「Stage: {v}」として封印）',
+  'app.log.x.selectedFor': '選抜の目的（メモに「Selected for: {v}」として封印）',
   'app.log.x.parents': '親：{v}',
-  'app.log.x.species': '種：{v}',
+  'app.log.x.species': '種名：{v}',
   'app.log.x.madeBy': '作出方法：{v}',
   'app.log.x.ref': '管理番号：{v}',
   'app.log.x.registration': '品種登録：{v}',
@@ -85,7 +85,7 @@ export const log = {
   'app.log.sealedWarn':
     '<b>封印すると、この部分は変更できません。</b>報告書や訂正は後から追加できます。訂正は、この記録を指し示す新しい記録になります。だからこそ日付スタンプに価値があります。',
   'app.log.savedOn':
-    '詳細は、後で見返せるように{server}にロックした状態で保存され、私たちはその鍵を持っていません。名前もロックされます。確認リンクの#の後ろに名前が入るのは、そうすると選んだときだけです。日付が付くのは、{datedOn}上の証明コードだけです。',
+    '詳細は、後で見返せるように{server}に鍵をかけた状態で保存され、私たちはその鍵を持っていません。名前にも鍵がかけられます。確認リンクの#の後ろに名前が入るのは、そうすると選んだときだけです。日付が付くのは、{datedOn}上の証明コードだけです。',
   'app.log.sealing': '封印しています…',
   'app.log.sealPlain':
     '公開されるのは、この記録から作ったコードだけで、Midnight上に永久に残ります。書いた内容や写真は公開されません。それらは非公開のままで、開けるのはあなただけです。',
@@ -96,7 +96,7 @@ export const log = {
     '封印すると、植物の鍵にも日付スタンプが押されるので、後で保有していることを証明できます。送信されるのは鍵のコードだけです。',
   'app.log.sealed': '封印しました',
   'app.log.publicStampLater':
-    '公開の日付スタンプは、バッチに{datedOn}上で日付が付いたときに付きます。それがいつかは植物のページに表示されます。あなたがすることはありません。',
+    '公開の日付スタンプは、{datedOn}でバッチに日付が付いたときに付きます。それがいつかは植物のページに表示されます。あなたがすることはありません。',
   'app.log.privateWindow':
     'このブラウザは、閉じると何も残しません（プライベートウィンドウか、サイトデータがブロックされています）。先にバックアップを保存してください。その後で日付スタンプを押します。',
   'app.log.backupFirstTitle': '先にバックアップを保存する',
@@ -116,5 +116,5 @@ export const log = {
   'app.log.stampingAria': '今日の日付スタンプを取得しています',
   'app.log.stampLater': '日付スタンプは後で行う',
   'app.log.keepOpen':
-    '約1分かかります。終わるまでこの画面を開いたままにしてください。スマートフォンでは、ほかのアプリに切り替えたり画面をロックしたりすると止まることがあります。止まっても失われるものはありません。植物は保存されており、ページでもう一度日付スタンプを押せます。',
+    '約1分かかります。終わるまでこの画面を開いたままにしてください。スマートフォンでは、ほかのアプリに切り替えたり画面をスリープにしたりすると止まることがあります。止まっても失われるものはありません。植物は保存されており、ページでもう一度日付スタンプを押せます。',
 } satisfies Partial<AppTranslation>;

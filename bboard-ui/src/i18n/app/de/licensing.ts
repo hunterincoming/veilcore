@@ -14,7 +14,7 @@ export const licensing = {
   'app.lic.fee.note': 'VeilCore-Gebühr ({pct} % des Geschäftswerts): berechnet, nicht eingezogen.',
   'app.lic.rights.cultivate': 'Nur Anbau',
   'app.lic.rights.cultivate+propagate': 'Anbau und Vermehrung',
-  'app.lic.rights.full-transfer': 'Abtretung aller Rechte, die der Inhaber hat',
+  'app.lic.rights.full-transfer': 'Abtretung aller Rechte, die der Inhaber des Datensatzes hat',
   'app.lic.rights.breed': 'Nur Zucht',
   'app.lic.rights.breed+collect': 'Zucht + Gewinnung',
   'app.lic.rights.breed+sell': 'Zucht, Gewinnung + Verkauf',
@@ -65,7 +65,7 @@ export const licensing = {
   'app.lic.row.fee': 'VeilCore-Gebühr ({pct} % des Geschäftswerts)',
   'app.lic.row.feeValue': 'berechnet, nicht eingezogen',
   'app.lic.row.offspring': 'Lizenzgebühr auf Nachkommen',
-  'app.lic.row.offspringValue': '{pct} %, auf Nachkommen, die von dieser Sorte angemeldet werden',
+  'app.lic.row.offspringValue': '{pct} %, auf Nachkommen, die von dieser Sorte angegeben werden',
   'app.lic.row.exclusivity': 'Exklusivität',
   'app.lic.row.sublicensing': 'Unterlizenzen',
   'app.lic.row.purpose': 'Zweck',
@@ -109,7 +109,7 @@ export const licensing = {
     'Diese Bedingungen sind am versiegelten Datensatz und am Code seines gekoppelten Berichts ({code}) angehängt.',
   'app.lic.detail.thisCultivar': 'diese Sorte',
   'app.lic.detail.lineage':
-    'Wird später eine Sorte mit {name} als Elternteil erfasst und bestätigen beide Inhaber dies, erscheint die Verbindung zu dieser Vereinbarung in ihrem Datensatz. Nachkommen, die niemand erfasst, werden nicht erkannt.',
+    'Wird später eine Sorte mit {name} als Elternteil erfasst und bestätigen beide Datensatzinhaber dies, erscheint die Verbindung zu dieser Vereinbarung in ihrem Datensatz. Nachkommen, die niemand erfasst, werden nicht erkannt.',
   'app.lic.detail.derivatives.one': '{count} bereits erfasste Sorte stammt davon ab.',
   'app.lic.detail.derivatives.other': '{count} bereits erfasste Sorten stammen davon ab.',
   'app.lic.detail.status': 'Status und Aktionen',
@@ -172,7 +172,7 @@ export const licensing = {
   'app.lic.f.r.cultivate': 'Nur Anbau',
   'app.lic.f.r.propagate': 'Anbau und Vermehrung (Stecklinge oder Saatgut)',
   'app.lic.f.r.full':
-    'Abtretung aller Rechte, die der Inhaber hat (ein eingetragenes Recht wird bei seiner eigenen Behörde übertragen)',
+    'Abtretung aller Rechte, die der Inhaber des Datensatzes hat (ein eingetragenes Recht wird bei seiner eigenen Behörde übertragen)',
   'app.lic.f.r.breed': 'Zucht nur mit eigenen Tieren',
   'app.lic.f.r.breed+collect': 'Zucht + Gewinnung von Sperma oder Embryonen für den eigenen Gebrauch',
   'app.lic.f.r.breed+sell': 'Zucht, Gewinnung + Verkauf von Sperma, Embryonen oder Zuchttieren',
@@ -221,7 +221,7 @@ export const licensing = {
   'app.lic.f.mayDistribute': 'Darf es weitergeben oder verkaufen',
   'app.lic.f.attribution': 'Namensnennung erforderlich',
   'app.lic.f.shareOffspringHelp':
-    'Ihr Anteil an den Einnahmen aus Nachkommen, die die andere Seite davon anmeldet. Nicht angemeldete Nachkommen werden nicht erkannt. Leer lassen, wenn keiner.',
+    'Ihr Anteil an den Einnahmen aus Nachkommen, die die andere Seite davon angibt. Nicht angegebene Nachkommen werden nicht erkannt. Leer lassen, wenn keiner.',
   'app.lic.f.extraHelpShare': 'Alles, was sonst zur Absprache gehört, in Ihren eigenen Worten.',
   'app.lic.f.start': 'Beginn',
   'app.lic.f.end': 'Ende',
@@ -251,7 +251,7 @@ export const licensing = {
   'app.lic.share.title': '{id} teilen',
   'app.lic.share.always': 'Immer enthalten',
   'app.lic.share.alwaysText':
-    'Dass diese Lizenz besteht, ihr aktueller Zustand, der Datensatz, für den sie ausgestellt wurde, und ob sie eine Pflicht für angemeldete Nachkommen enthält: die öffentliche Seite der Lizenz. In {site} ist die Lizenz selbst simuliert, diese Datei dient also zum Ausprobieren des Formats.',
+    'Dass diese Lizenz besteht, ihr aktueller Zustand, der Datensatz, für den sie ausgestellt wurde, und ob sie eine Pflicht für angegebene Nachkommen enthält: die öffentliche Seite der Lizenz. In {site} ist die Lizenz selbst simuliert, diese Datei dient also zum Ausprobieren des Formats.',
   'app.lic.share.choose': 'Wählen Sie, was die andere Seite sonst noch sieht',
   'app.lic.share.g.scope': 'Was sie tun darf',
   'app.lic.share.g.scope.why': 'Eingeräumte Rechte, ob Unterlizenzen erlaubt sind, Exklusivität',
@@ -418,7 +418,7 @@ export const licensing = {
     'Auf Midnight geprüft: {amount} {code} sind in Transaktion {tx} an Ihre Adresse gegangen. Gelesen vom Midnight-Indexer, nicht von der anderen Seite oder von VeilCore.',
   'app.lic.off.title': 'Lizenzgebühr auf Nachkommen: {pct}',
   'app.lic.off.intro':
-    'Auf Midnight liegt sie auf dem eigenen Datensatz des Lizenznehmers für diese Pflanze, sodass jeder Nachkomme, den beide Inhaber bestätigen, sie zeigt, wenn jemand die Linie prüft. Der Lizenznehmer nimmt sie an; nur der Züchter kann sie aufheben.',
+    'Auf Midnight liegt sie auf dem eigenen Datensatz des Lizenznehmers für diese Pflanze, sodass jeder Nachkomme, den beide Datensatzinhaber bestätigen, sie zeigt, wenn jemand die Linie prüft. Der Lizenznehmer nimmt sie an; nur der Züchter kann sie aufheben.',
   'app.lic.off.dateFirst': 'Datieren Sie zuerst Ihre Pflanze mit dieser Genetik und nennen Sie sie dann hier.',
   'app.lic.off.datePlant': 'Eine Pflanze datieren',
   'app.lic.off.yourRecord': 'Ihr Datensatz zu dieser Pflanze',
@@ -538,7 +538,7 @@ export const licensing = {
   'app.lic.real.resendFailed': 'Die Ausstellungsmitteilung konnte nicht gesendet werden: {error}',
   'app.lic.code.making': 'Ihr Code wird erstellt, das dauert ein paar Sekunden.',
   'app.lic.inv.notThisDevice':
-    'Dieses Telefon oder dieser Browser hat nicht die Kopie, die diesen Link angenommen hat. Wenn Sie ihn hier schon angenommen haben, stellen Sie Ihre Sicherungskopie wieder her und öffnen Sie den Link dann erneut.',
+    'Dieses Handy oder dieser Browser hat nicht die Kopie, die diesen Link angenommen hat. Wenn Sie ihn hier schon angenommen haben, stellen Sie Ihre Sicherungskopie wieder her und öffnen Sie den Link dann erneut.',
   'app.lic.inv.restore': 'Sicherungskopie wiederherstellen',
   'app.lic.real.cancel': 'Stornieren',
   'app.lic.real.cancelQ':

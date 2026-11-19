@@ -10,7 +10,7 @@ export const receipt = {
   'app.receipt.private': 'Queda privado:',
   'app.receipt.when': 'La fecha y la hora en que llega a Midnight. Todo lo anterior se queda allí para siempre.',
   'app.receipt.fact.yourRecord': 'Un código hecho con la clave de su registro (no el registro)',
-  'app.receipt.fact.recovery': 'Un código hecho con su secreto de respaldo (no el secreto)',
+  'app.receipt.fact.recovery': 'Un código hecho con el secreto de su copia de seguridad (no el secreto)',
   'app.receipt.fact.newKey': 'Un código hecho con la nueva clave del registro',
   'app.receipt.fact.otherRecord': 'Un código hecho con la clave del otro registro',
   'app.receipt.fact.issuerRecord': 'Un código hecho con la clave del registro licenciado',
@@ -39,7 +39,8 @@ export const receipt = {
   'app.receipt.fact.batch': 'Un código para todo un lote de registros',
   'app.receipt.fact.timeLimit': 'Un límite de tiempo para la lista de licencias',
   'app.receipt.fact.step': 'Qué paso fue este, y que une los códigos de arriba',
-  'app.receipt.fact.keyLink': 'Que la clave de este registro, su clave nueva y su secreto de respaldo están unidos',
+  'app.receipt.fact.keyLink':
+    'Que la clave de este registro, su clave nueva y el secreto de su copia de seguridad están vinculados',
   'app.receipt.fact.moveCount': 'Cuántas veces se cambió o recuperó la clave de este registro',
   'app.receipt.fact.licenseLink': 'Que esta licencia está unida al registro licenciado, y si está vigente',
   'app.receipt.fact.licenseList': 'Que la lista pública de licencias cambió',
@@ -48,8 +49,9 @@ export const receipt = {
     'Que estos dos registros están unidos como progenitor y descendiente, para siempre: un enlace no se puede deshacer, y los propios progenitores del progenitor quedan fijados.',
   'app.receipt.fact.obligationLink': 'Que esta obligación está unida a ese registro',
   'app.receipt.fact.obligationCount': 'Cuántas obligaciones tiene este registro',
-  'app.receipt.stay.genetics': 'La genética y los archivos de ADN nunca salen de este dispositivo sin cerrar.',
-  'app.receipt.stay.locked': 'El nombre y las notas van al registro cerrados con su clave. No puede leerlos.',
+  'app.receipt.stay.genetics': 'La genética y los archivos de ADN nunca salen de este dispositivo sin cifrar.',
+  'app.receipt.stay.locked':
+    'El nombre y las notas van cifrados con su clave al servidor de registros. Este no puede leerlos.',
   'app.receipt.stay.kind':
-    'El registro ve el tipo de registro, su código de prueba y los códigos unidos a él, y los vínculos entre registros (de dónde vino uno, qué lo sustituyó). Cuando un registro se corrige, también ve qué campos cambiaron y desde cuándo.',
+    'El servidor de registros ve el tipo de registro, su código de prueba y los códigos unidos a él, y los vínculos entre registros (de dónde vino uno, qué lo sustituyó). Cuando un registro se corrige, también ve qué campos cambiaron y desde cuándo.',
 } satisfies Partial<AppTranslation>;

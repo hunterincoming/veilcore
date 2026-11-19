@@ -15,7 +15,7 @@ export const dating = {
   'app.log.inSeconds': 'dans {n} s',
   'app.log.retryingIn': 'Nouvel essai automatique {when} (essai {n}).',
   'app.log.retriesUsed':
-    'Plusieurs essais ont été faits. Réessayez quand vous voulez : la date de votre enregistrement n’attend pas cela.',
+    'Plusieurs essais ont été faits. Réessayez quand vous voulez : la date de votre enregistrement n’en dépend pas.',
   'app.log.tryNow': 'Réessayer maintenant',
   'app.log.keepsTrying':
     'Les essais continuent tout seuls tant que VeilCore est ouvert, et l’accueil l’affiche jusqu’à ce que cela passe.',
@@ -33,14 +33,14 @@ export const dating = {
 
   'app.home.restoreFirstTitle': 'Vous avez utilisé VeilCore sur un autre appareil ?',
   'app.home.restoreFirstText':
-    'Restaurez d’abord votre copie de secours. Vos enregistrements, leurs clés et la clé qui les ouvre reviennent dans ce navigateur.',
-  'app.home.restoreFirstButton': 'Restaurer votre copie de secours',
+    'Restaurez d’abord votre sauvegarde. Vos enregistrements, leurs clés et la clé qui les ouvre reviennent dans ce navigateur.',
+  'app.home.restoreFirstButton': 'Restaurer votre sauvegarde',
 
   'app.pickup.title': 'En cours',
   'app.pickup.open': 'Ouvrir',
   'app.pickup.tryNow': 'Essayer maintenant',
-  'app.pickup.saveBackup': 'Enregistrer ma copie de secours',
-  'app.pickup.openAgreements': 'Ouvrir les contrats',
+  'app.pickup.saveBackup': 'Enregistrer ma sauvegarde',
+  'app.pickup.openAgreements': 'Ouvrir les accords',
   'app.pickup.dating.notSent': '{name} : scellé. Son code de preuve part chez VeilCore dès que VeilCore répond.',
   'app.pickup.dating.next': '{name} recevra sa date avec le prochain lot.',
   'app.pickup.dating.nextEvery.one':
@@ -68,8 +68,8 @@ export const dating = {
   'app.pickup.labUnsigned.other': '{count} échantillons reçus, accusés de réception pas encore signés.',
   'app.pickup.results.one': '{count} rapport de laboratoire attend d’être ouvert.',
   'app.pickup.results.other': '{count} rapports de laboratoire attendent d’être ouverts.',
-  'app.pickup.agreements.one': '{count} contrat attend la contresignature de l’autre partie.',
-  'app.pickup.agreements.other': '{count} contrats attendent la contresignature de l’autre partie.',
+  'app.pickup.agreements.one': '{count} accord attend la contresignature de l’autre partie.',
+  'app.pickup.agreements.other': '{count} accords attendent la contresignature de l’autre partie.',
 
   'app.support.copy': 'Copier les détails pour l’assistance',
   'app.support.copied': 'Copié. Collez-le dans un e-mail à VeilCore.',

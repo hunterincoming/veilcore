@@ -15,7 +15,7 @@ export const log = {
   'app.log.method.selection': 'Sélection',
   'app.log.method.landrace': 'Variété locale / ancienne',
   'app.log.method.other': 'Autre',
-  'app.log.nextSaveBackup': 'Suivant : enregistrer votre copie de secours',
+  'app.log.nextSaveBackup': 'Suivant : enregistrer votre sauvegarde',
   'app.log.reportIntro':
     '<b>Facultatif.</b> Vous avez déjà un rapport ADN pour cette plante ? C’est ce qui lie votre enregistrement à la plante elle-même. Ajoutez-le maintenant, il sera conservé avec l’enregistrement. Pas encore de rapport ? Passez : la page de la plante indique comment en obtenir un.',
   'app.log.finish': 'Terminer',
@@ -90,7 +90,7 @@ export const log = {
     'Les détails sont conservés verrouillés sur {server} pour que vous puissiez y revenir, et nous n’avons pas la clé. Le nom est verrouillé lui aussi ; un lien de vérification ne le porte après le # que si vous l’activez. Seul un code de preuve est daté, sur {datedOn}.',
   'app.log.sealing': 'Scellement…',
   'app.log.sealPlain':
-    'Est publié, de façon permanente : seulement des codes tirés de cet enregistrement, sur Midnight. Jamais vos textes ni vos photos : ceux-ci restent privés, et vous seul pouvez les ouvrir.',
+    'Publié de façon permanente sur Midnight : uniquement des codes tirés de cet enregistrement. Jamais vos textes ni vos photos : ils restent privés, et vous seul pouvez les ouvrir.',
   'app.log.sealDetails': 'Qu’est-ce qui est publié ?',
   'app.log.seal': 'Sceller',
   'app.log.sealingPlant': 'Scellement de votre plante…',
@@ -100,8 +100,8 @@ export const log = {
   'app.log.publicStampLater':
     'Son horodatage public arrive quand son lot est daté sur {datedOn}. La page de votre plante indique quand cela a eu lieu. Vous n’avez rien à faire.',
   'app.log.privateWindow':
-    'Ce navigateur ne gardera rien une fois fermé (une fenêtre privée, ou les données du site sont bloquées). Enregistrez d’abord votre copie de secours, puis nous ajouterons l’horodatage.',
-  'app.log.backupFirstTitle': 'Enregistrez d’abord votre copie de secours',
+    'Ce navigateur ne gardera rien une fois fermé (une fenêtre privée, ou les données du site sont bloquées). Enregistrez d’abord votre sauvegarde, puis nous ajouterons l’horodatage.',
+  'app.log.backupFirstTitle': 'Enregistrez d’abord votre sauvegarde',
   'app.log.nowStamp': 'Ajouter maintenant l’horodatage',
   'app.log.recordDatedWaiting': 'Enregistrement daté : en attente d’un lot',
   'app.log.publicDateLater':

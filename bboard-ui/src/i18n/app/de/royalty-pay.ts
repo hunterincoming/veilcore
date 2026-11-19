@@ -109,7 +109,7 @@ export const royaltyPay = {
     'Die öffentliche Prüfseite Ihres Datensatzes sagt, als Ihre Angabe, dass eine Lizenzgebührenabrechnung seit dem {date} überfällig ist, und dass Sie dem Register von VeilCore am {breach} mitgeteilt haben, eine Mitteilung über die Vertragsverletzung gesendet zu haben. Die Frist zum Zahlen zählt ab diesem Tag. Keine Beträge, Bedingungen oder Namen.',
   'app.rpay.i.publicAnswers': 'Daneben, im eigenen Namen der Lizenznehmerseite: {answers}',
   'app.rpay.i.publicNoRecord':
-    'Dieser Datensatz ist im Register von VeilCore nicht unter dem Inhaberschlüssel dieses Browsers gespeichert, daher kann von hier nichts auf seine öffentliche Prüfseite. Öffnen Sie die Lizenz auf dem Gerät, das den Datensatz gespeichert hat, oder stellen Sie hier Ihre Sicherung wieder her.',
+    'Dieser Datensatz ist im Register von VeilCore nicht unter dem Inhaberschlüssel dieses Browsers gespeichert, daher kann von hier nichts auf seine öffentliche Prüfseite. Öffnen Sie die Lizenz auf dem Gerät, das den Datensatz gespeichert hat, oder stellen Sie hier Ihre Sicherungskopie wieder her.',
   'app.rpay.revoke.what':
     'Damit endet die Lizenz auf Midnight, und das lässt sich nicht rückgängig machen. Ihre Mitteilung über die Vertragsverletzung ist gesendet, und die Frist zum Zahlen ist nach der Uhr des Registers von VeilCore abgelaufen, ohne dass etwas als bezahlt markiert wurde. {licensee} erhält dann einen signierten Hinweis, dass sie wegen Nichtzahlung widerrufen wurde. Die öffentliche Prüfseite Ihres Datensatzes sagt das mit Datum, wenn das Register bestätigt, dass die Frist ohne vermerkte Zahlung abgelaufen ist; sonst sagt sie nichts zur Zahlung.',
   'app.rpay.revoke.done': 'Am {date} wegen Nichtzahlung widerrufen.',

@@ -19,7 +19,7 @@ export const common = {
   'app.common.sentenceSep': ' ',
   'app.common.period': '.',
   'app.common.pageInEnglish': 'Cette page est en anglais.',
-  'app.common.sectionInEnglish': 'Cette section est en anglais, comme les contrats dont elle provient.',
+  'app.common.sectionInEnglish': 'Cette section est en anglais, comme les accords dont elle provient.',
   'app.common.noDoc': 'Ce document n’existe pas',
   'app.common.badge.webApp': 'Application web',
   'app.common.badge.demo': 'Démo',

@@ -149,7 +149,7 @@ export const CADENCE_SWAPS: readonly (readonly [string, string])[] = [
   ],
   // Français
   [
-    "un lot que nous ancrons à la main pour l'instant sur le réseau principal de Midnight, donc un nouvel enregistrement peut attendre un moment ;",
+    'un lot que nous ancrons à la main pour l’instant sur le réseau principal de Midnight, donc un nouvel enregistrement peut attendre un moment ;',
     'un lot daté sur le réseau principal de Midnight ;',
   ],
   [
@@ -162,7 +162,7 @@ export const CADENCE_SWAPS: readonly (readonly [string, string])[] = [
   ],
   ['que nous ancrons à la main sur le réseau principal de Midnight', 'datés sur le réseau principal de Midnight'],
   ['ancrés automatiquement sur le réseau principal de Midnight', 'datés sur le réseau principal de Midnight'],
-  ["que nous y ancrons à la main pour l'instant", 'qui y sont datés'],
+  ['que nous y ancrons à la main pour l’instant', 'qui y sont datés'],
   ['qui y sont ancrés automatiquement', 'qui y sont datés'],
   [
     'Les lots sont datés automatiquement, et cela date votre enregistrement.',

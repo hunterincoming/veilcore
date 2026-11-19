@@ -49,7 +49,7 @@ export const pair = {
     'VeilCore ne fait pas de tests ADN : vous enregistrez le rapport ADN que votre laboratoire vous a remis. Il est lu et son code calculé sur votre appareil ; le fichier n’est jamais envoyé. Son code et son nom de fichier sont enregistrés avec votre enregistrement. {after}',
   'app.pair.afterChain': 'Ensuite, vous pouvez aussi dater l’association sur le réseau.',
   'app.pair.afterDemo':
-    'Dans {thisSite}, l’association n’est pas encore datée ; avec le contrat de VeilCore, elle l’est.',
+    'Dans {thisSite}, l’association n’est pas encore datée ; avec le smart contract de VeilCore, elle l’est.',
   'app.pair.tap': 'Touchez pour choisir votre rapport ADN',
   'app.pair.drag': 'Glissez votre rapport ADN ici, ou cliquez pour le choisir',
   'app.pair.dropHint': 'Le fichier du rapport que votre laboratoire vous a renvoyé — lu localement, jamais envoyé.',
@@ -66,25 +66,25 @@ export const pair = {
   'app.pair.chosen': '{title}. Choisi : {name}',
   'app.pair.ready': '{kb} Ko · prêt pour le calcul du code sur cet appareil · choisissez de nouveau pour le remplacer',
   'app.pair.chain.noKeys':
-    'Ce navigateur ne détient pas les clés de l’enregistrement : il ne peut donc pas dater l’association. Restaurez-les depuis votre copie de secours.',
+    'Ce navigateur ne détient pas les clés de l’enregistrement : il ne peut donc pas dater l’association. Restaurez-les depuis votre sauvegarde.',
   'app.pair.chain.stampFirst':
     'Ajoutez d’abord l’horodatage de votre plante (depuis sa page) si vous voulez aussi dater ce rapport de laboratoire sur le réseau.',
   'app.pair.chain.other':
-    'Cet enregistrement a déjà une association datée d’un autre rapport. Dater une seconde association n’est pas encore possible : ce rapport n’est donc pas daté. Conservez le fichier de preuve et la copie de secours de la première.',
+    'Cet enregistrement a déjà une association datée d’un autre rapport. Dater une seconde association n’est pas encore possible : ce rapport n’est donc pas daté. Conservez le fichier de preuve et la sauvegarde de la première.',
   'app.pair.chain.dated': 'Cette association est datée sur le réseau de test, pour cet enregistrement.',
   'app.pair.chain.label': 'Association',
   'app.pair.chain.toShow':
     'Pour la montrer, donnez à quelqu’un le rapport et ce fichier de preuve. Gardez-en une copie avec le rapport : sans son sel, l’association ne pourra jamais être montrée.',
   'app.pair.chain.backupAgain':
-    'Téléchargez de nouveau la copie de secours des clés de l’enregistrement : celle que vous avez ne contient pas cette association.',
+    'Téléchargez de nouveau la sauvegarde des clés de l’enregistrement : celle que vous avez ne contient pas cette association.',
   'app.pair.chain.download': 'Télécharger le fichier de preuve',
   'app.pair.chain.title': 'Dater aussi cette association sur le réseau de test (facultatif)',
   'app.pair.chain.intro':
-    'Cela inscrit un code sur la chaîne, de façon permanente, à côté de l’identité de cet enregistrement. Le code est tiré du SHA-256 du rapport et d’un nombre aléatoire gardé dans ce navigateur : il ne dit rien du rapport, et personne ne peut le copier sur son propre enregistrement. Ensuite, vous téléchargez un fichier de preuve : avec lui et le rapport, chacun peut vérifier que le détenteur de cet enregistrement avait le rapport à cette date.',
+    'Cela inscrit un code sur la chaîne, de façon permanente, à côté de l’identité de cet enregistrement. Le code est tiré du SHA-256 du rapport et d’un nombre aléatoire gardé dans ce navigateur : il ne dit rien du rapport, et personne ne peut le copier sur son propre enregistrement. Ensuite, vous téléchargez un fichier de preuve : avec lui et le rapport, chacun peut vérifier que le détenteur de cet enregistrement avait déjà le rapport à cette date.',
   'app.pair.chain.earlier':
     'Une tentative précédente a été envoyée mais pas confirmée. Elle a peut-être abouti. Renvoyer utilise le même code : cela ne peut pas associer un second rapport différent.',
   'app.pair.chain.sendAgain': 'Renvoyer',
   'app.pair.chain.date': 'Dater l’association',
   'app.pair.chain.testOnly':
-    'Réseau de test uniquement. Cela montre que la personne qui contrôlait l’identité de cet enregistrement avait le rapport, ou son SHA-256, à la date où il arrive. Ce n’est pas une vérification de la génétique.',
+    'Réseau de test uniquement. Cela montre que la personne qui contrôlait l’identité de cet enregistrement avait le rapport, ou son SHA-256, au plus tard à la date où il arrive. Ce n’est pas une vérification de la génétique.',
 } satisfies Partial<AppTranslation>;

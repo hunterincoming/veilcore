@@ -19,14 +19,14 @@ export const plant = {
   'app.plant.evidenceLine':
     '<link>証拠バンドルをダウンロード</link><muted>（VeilCoreなしでこの記録の日付を確認できます）</muted>',
   'app.plant.open': '開く',
-  'app.plant.reportsCameBack.other': '検査報告書が{count}件届きました。あなただけが開けるようにロックされています。',
+  'app.plant.reportsCameBack.other': '検査報告書が{count}件届きました。あなただけが開けるように鍵がかかっています。',
   'app.plant.moreYouCanDo': 'ほかにできること',
   'app.plant.action.show': '誰かに見せる',
   'app.plant.action.showHint': '見せる内容を選ぶ',
   'app.plant.action.askedToProve': '保有していることの証明を求められた',
   'app.plant.action.certificate': '証明書',
   'app.plant.action.sendResults': '結果を育成者に送り返す',
-  'app.plant.action.sendResultsHint': 'あなたが署名し、相手だけが開けるようにロック',
+  'app.plant.action.sendResultsHint': 'あなたが署名し、相手だけが開けるように鍵をかけます',
   'app.plant.action.signReceipt': '受領書に署名する',
   'app.plant.action.signReceiptHint': 'このサンプルが届いたことに署名する、または受け取りを断る',
   'app.plant.action.linkReceipt': '受領書を紐付ける',
@@ -57,31 +57,31 @@ export const plant = {
   'app.plant.f.notSavedYet': 'まだ保存されていません',
   'app.plant.delete.title': 'この記録を削除',
   'app.plant.delete.text':
-    'リストから外し、詳細、鍵のかかったコピー、共有した内容を VeilCore のレジストリから完全に削除します。公開のまま残るもの：記録 ID、証明コード、削除した分、Midnight での日付、すでに記録された系統のつながりや義務。確認用リンクには「保有者が削除した」と表示されます。この記録のまだ完了していない受け渡しは使えなくなります。ラボがすでに付けた署名は有効なままです。以前に保存したバックアップファイルにはまだ含まれていますが、それを復元しても戻りません。',
+    'リストから外し、詳細、鍵のかかったコピー、共有した内容をVeilCore のレジストリから完全に削除します。公開のまま残るもの：記録ID、証明コード、削除した日時（分単位）、Midnightでの日付、すでに記録された系統のつながりや義務。確認用リンクには「保有者が削除した」と表示されます。この記録のまだ完了していない送付は使えなくなります。ラボがすでに付けた署名は有効なままです。以前に保存したバックアップファイルにはまだ含まれていますが、それを復元しても戻りません。',
   'app.plant.delete.button': 'この記録を削除',
   'app.plant.delete.confirm':
-    '「{name}」を削除しますか？元に戻せません。送付済みのラボや購入者は自分のコピーを持ち続けます。{named}',
+    '「{name}」を削除しますか？元に戻せません。送付済みのラボや買い手は自分のコピーを持ち続けます。{named}',
   'app.plant.delete.named': '\n\n次の記録がこの記録を指しており、そのつながりは行き先がなくなります：{list}。',
   'app.plant.delete.blocked': 'ライセンスまたは契約があるため削除できません。相手方がこの記録に依拠しています。',
   'app.plant.delete.blockedCorrection':
     '訂正の一部であるため削除できません（この記録が別の記録を訂正しているか、別の記録がこの記録を訂正しています）。訂正がこの記録に依拠しています。',
   'app.plant.delete.datedYes':
-    'VeilCore のレジストリは、すでに Midnight で日付が記録されていると報告しています。その日付は残ります。何も明かさない証明コードで、ブロックチェーンから取り消すことはできません。',
+    'VeilCoreのレジストリは、すでにMidnight で日付が記録されていると報告しています。その日付は残ります。何も明かさない証明コードで、ブロックチェーンから取り消すことはできません。',
   'app.plant.delete.datedPending':
-    '証明コードはすでに Midnight での日付記録を待つバッチに入っているため、削除しても日付は記録されます。何も明かさないコードです。',
+    '証明コードはすでに Midnightで日付が付くのを待つバッチに入っているため、削除しても日付は記録されます。何も明かさないコードです。',
   'app.plant.delete.datedNo':
-    'まだバッチに入っていないため、削除すると Midnight で日付は記録されません（削除が届く直前の数秒間にバッチが封印された場合を除く）。',
-  'app.plant.delete.datedChecking': 'Midnight で日付が記録されているか確認しています…',
+    'まだバッチに入っていないため、削除するとMidnight で日付は記録されません（削除が届く直前の数秒間にバッチが封印された場合を除く）。',
+  'app.plant.delete.datedChecking': 'Midnightで日付が記録されているか確認しています…',
   'app.plant.delete.datedUnknown':
     '日付が付いているかどうか、VeilCoreは確認できませんでした。証明コードがすでにバッチに入っていれば、Midnightで日付が付きます。入っていなければ付きません。',
   'app.plant.delete.deleting': '削除しています…',
   'app.plant.delete.failed': '削除されませんでした。{reason}',
   'app.plant.delete.why.busy': '保存がまだ送信中です。少ししてからもう一度お試しください。',
   'app.plant.delete.why.offline':
-    'VeilCore に接続できませんでした。何も変更されていません。オンラインになってから再度お試しください。',
-  'app.plant.delete.why.refused': 'VeilCore が受け付けませんでした。何も変更されていません。',
+    'VeilCoreに接続できませんでした。何も変更されていません。オンラインになってから再度お試しください。',
+  'app.plant.delete.why.refused': 'VeilCoreが受け付けませんでした。何も変更されていません。',
   'app.plant.delete.why.notRemoved':
-    'VeilCore はこのブラウザの鍵の下にこの記録を保持していません。何も変更されていません。',
+    'VeilCoreはこのブラウザの鍵の下にこの記録を保持していません。何も変更されていません。',
   'app.plant.delete.why.deviceOnly': 'この端末だけに保管されている記録です。その記録のページから削除してください。',
   'app.plant.delete.why.missing': 'このブラウザにはもうありません。',
   'app.plant.delete.gone': '保有者が別のタブまたは別の端末で削除したため、ここからも取り除かれました。',
@@ -113,7 +113,7 @@ export const plant = {
   'app.plant.hold.retrying': '待機中：自動でもう一度試します',
   'app.plant.hold.maySent': '待機中：もう一度試す前に下で確認してください',
   'app.plant.hold.cannot': '待機中：今はここで行えません（下を参照）',
-  'app.plant.stamp.dated': '日付済み',
+  'app.plant.stamp.dated': '日付あり',
   'app.plant.stamp.practice': '練習',
   'app.plant.labReport': '検査報告書',
   'app.plant.dnaReport': 'DNA報告書',
@@ -189,7 +189,7 @@ export const plant = {
   'app.plant.next.backup.action': 'バックアップを保存する',
   'app.plant.next.dates.title': 'この記録はDNA報告書に日付を付けます',
   'app.plant.next.dates.why':
-    '中身は報告書のSHA-256、検査報告書のコード、署名どおりのラボ名だけで、報告書そのものは入っていません。バッチに日付が付くと、その時点で報告書が存在したことを、マーカーを誰にも見せずに示せます。',
+    '中身は報告書のSHA-256、検査報告書のコード、署名どおりのラボ名だけで、報告書そのものは入っていません。バッチに日付が付くと、その時点までに報告書が存在したことを、マーカーを誰にも見せずに示せます。',
   'app.plant.next.stamp.why':
     '記録の日付付けは、Midnight上のバッチで自動的に行われます。そのためにこの手順は必要ありません。この手順は記録の鍵に日付を付けます。鍵が必要なのは、後で記録を保有していることを証明するとき、またはライセンスを出すときだけです。約1分、無料です。いつでも行えます。',
   'app.plant.next.rejected.title': 'このサンプルの受け取りを断りました',
@@ -217,7 +217,7 @@ export const plant = {
   'app.plant.next.withdrawn.why':
     '送ったものを撤回したので、育成者の手元にはあなたからの現在の検査報告書がありません。新しく送ることができます。',
   'app.plant.next.send.why':
-    'ラボの鍵で署名し、育成者だけが開けるようにロックします。VeilCoreはその鍵を持っていません。',
+    'ラボの鍵で署名し、育成者だけが開けるように鍵をかけます。VeilCoreはその鍵を持っていません。',
   'app.plant.next.sent.action': '送ったものを見る',
   'app.plant.next.send.action': '結果を送り返す',
   'app.plant.next.corrected.title': '訂正されたDNA報告書を保存する',
@@ -233,10 +233,10 @@ export const plant = {
     'この植物には保存されたままで、証明書とリンクには撤回されたと表示されます。新しいものをラボに依頼してください。',
   'app.plant.next.labWithdrew.action': '新しいものを開く',
   'app.plant.next.open.why':
-    'この植物の鍵で、あなただけが開けるようにロックされています。開くと、ここでラボの署名を確認します。',
+    'この植物の鍵で、あなただけが開けるように鍵がかかっています。開くと、ここでラボの署名を確認します。',
   'app.plant.next.sample.title': 'サンプルをラボに送る',
   'app.plant.next.sample.whySaved':
-    'この植物にDNA報告書を保存しました。これはあなた自身の陳述です。ラボがサンプルを受け取ったことに署名すると第三者が加わり、あなたの陳述だけよりも強い証拠になります。',
+    'この植物にDNA報告書を保存しました。これはあなた自身の陳述です。ラボがサンプルを受け取ったことに署名すると、もう一方の当事者（ラボ）が加わり、あなたの陳述だけよりも強い証拠になります。',
   'app.plant.next.sample.why':
     '今のところ、この記録はあなた自身による植物の説明です。ラボがサンプルを受け取ったことに署名し、検査報告書を送り返すと、あなたの説明だけよりも強い証拠になります。',
   'app.plant.next.sample.action': 'ラボに送る',
@@ -245,9 +245,9 @@ export const plant = {
     '日付の付いた記録は、説明が存在したことを示します。記録を実際の植物に結び付けるのは、DNA報告書（ラボが作る植物のDNAフィンガープリント）です。入手する方法は2つあります：',
   'app.plant.next.dna.labTitle': 'サンプルをラボに送る',
   'app.plant.next.dna.labText':
-    'ラボコードを作り、サンプルと一緒に送ります。ラボのDNA報告書は、あなただけが開けるようにロックされてここに届きます。',
+    'ラボコードを作り、サンプルと一緒に送ります。ラボのDNA報告書は、あなただけが開けるように鍵がかかった状態でここに届きます。',
   'app.plant.next.dna.labSoon':
-    'ラボのDNA報告書を、あなただけが開けるようにロックしてここで受け取る機能は、このサイトに近日追加されます。今のところは、ラボから報告書を受け取ってここに保存してください。',
+    'ラボのDNA報告書を、あなただけが開けるように鍵をかけてここで受け取る機能は、このサイトに近日追加されます。今のところは、ラボから報告書を受け取ってここに保存してください。',
   'app.plant.next.dna.haveTitle': 'DNA報告書がすでにありますか？',
   'app.plant.next.dna.haveText':
     'この植物に保存してください。お使いの端末で読み込み、ファイルはアップロードされません。',
@@ -309,11 +309,11 @@ export const plant = {
   'app.plant.history.correctionOf': '{id} の訂正として発行されました。理由：{reason}。',
   'app.plant.history.sealed': '保有者がこの素材の説明を確定しました。日付は封印した端末の時計によります。',
   'app.plant.history.received': '受け取り',
-  'app.plant.history.arrived': '{from}からの移転で届きました。',
-  'app.plant.history.arrivedQty': '{from}からの移転で届きました（{qty}）。',
-  'app.plant.history.retracted': '証明が撤回されました',
+  'app.plant.history.arrived': '{from}から送付されて届きました。',
+  'app.plant.history.arrivedQty': '{from}から送付されて届きました（{qty}）。',
+  'app.plant.history.retracted': '署名付きの陳述が撤回されました',
   'app.plant.history.retractedDetail':
-    '証明者が、自分の鍵で署名した撤回によって取り下げました。理由：{reason}。証明は記録に残ります。撤回は削除ではありません。',
+    '署名者が、自分の鍵で署名した撤回によって取り下げました。理由：{reason}。陳述は記録に残ります。撤回は削除ではありません。',
   'app.plant.history.corrected': '訂正済み',
   'app.plant.history.correctedDetail': '後の記録がこれに代わります。この記録は変更されず、残ります。',
   'app.plant.tree.none': 'まだ系統が記録されていません。記録するときに親の品種を加えると、系統図ができます。',
@@ -331,12 +331,12 @@ export const plant = {
     '報告書のSHA-256、検査報告書のコード、署名どおりのラボ名だけを入れた小さな記録を封印します。報告書はあなたの手元に残ります。日付は、そのバッチに日付が付いたときに付きます。',
   'app.plant.dated.nameLabel': '新しい記録の名前',
   'app.plant.dated.nameHelp':
-    'ほかと同じくロックされます。確認リンクに名前が入るのは、そうすると選んだときだけです。必要なら変更してください。',
+    'ほかと同じく鍵がかけられます。確認リンクに名前が入るのは、そうすると選んだときだけです。必要なら変更してください。',
   'app.plant.dated.elsewhere':
     'このDNA報告書は、別のタブかウィンドウで日付を付けているところです。1分待ってからもう一度見てください。ここに表示されます。',
   'app.plant.datingPage.title': 'この記録は<plant></plant>のDNA報告書に日付を付けます',
   'app.plant.datingPage.holds':
-    '中身は報告書のSHA-256、検査報告書のコード、署名どおりのラボ名だけで、報告書そのものは入っていません。バッチに日付が付くと、その時点で報告書が存在したことを、マーカーを誰にも見せずに示せます。',
+    '中身は報告書のSHA-256、検査報告書のコード、署名どおりのラボ名だけで、報告書そのものは入っていません。バッチに日付が付くと、その時点までに報告書が存在したことを、マーカーを誰にも見せずに示せます。',
   'app.plant.datingPage.recordDated': '記録の日付：{value}',
   'app.plant.datingPage.backup': '<b>バックアップを保存してください。</b>この記録の鍵は、この端末にしかありません。',
   'app.plant.datingPage.sealedBy': '封印した人',
@@ -438,13 +438,13 @@ export const plant = {
   'app.plant.fix.field.breedingMethod': '育種方法',
   'app.plant.fix.field.claimedCreationDate': '申告された作出日',
   'app.plant.fix.field.notes': 'メモ',
-  'app.plant.fix.field.internalReference': '社内参照番号',
+  'app.plant.fix.field.internalReference': '管理番号',
   'app.plant.fix.field.parents': '親',
-  'app.plant.fix.field.attestations': '証明',
+  'app.plant.fix.field.attestations': '署名付きの陳述',
   'app.plant.fix.field.sealedAt': '封印日',
   'app.plant.fix.field.holder': '保有者',
   'app.plant.fix.field.name': '名前',
-  'app.plant.fix.field.taxon': '種',
+  'app.plant.fix.field.taxon': '種名',
   'app.plant.fix.field.designation': '株番号',
   'app.plant.fix.field.breed': '品種',
   'app.plant.fix.field.herd': '牧場・農場',
@@ -465,7 +465,7 @@ export const plant = {
   'app.plant.fix.does': 'この訂正で起きること',
   'app.plant.fix.workedOut':
     'これは、変更した項目から自動的に判断されます。あなたも私たちも設定できません。そうでなければ、どの訂正も無害に見えてしまうからです。',
-  'app.plant.fix.why': 'なぜ訂正するのですか？',
+  'app.plant.fix.why': '訂正の理由',
   'app.plant.fix.whyHelp':
     '訂正と一緒にあなたの記録に保存されます。公開画面には、変更された項目は表示されますが、この理由は表示されません。',
   'app.plant.fix.check': '影響を確認する',
@@ -482,8 +482,8 @@ export const plant = {
     'ほかに{n}件の署名がこの記録を指していますが、あなたの送付には結び付いていません。公開の証明コードについては誰でも陳述に署名できるため、受領書としては数えません。',
   'app.plant.att.title': 'この記録についての署名',
   'app.plant.att.nobody':
-    'まだ誰もこの記録を確認していません。あなただけが裏付ける記録は、第三者が確認した記録より弱い証拠です。素材をラボに送ってください。確認はあなたではなくラボの鍵で記録されます。',
+    'まだ誰もこの記録を確認していません。あなただけが裏付ける記録は、相手方が確認した記録より弱い証拠です。素材をラボに送ってください。確認はあなたではなくラボの鍵で記録されます。',
   'app.plant.att.legacy':
-    '{date}に、送り手が発行したコードを持つ人が受け取りました{addressed}。署名の仕組みができる前の記録なので、第三者が受け取ったことは示しますが、それが誰かは証明しません。',
+    '{date}に、送り手が発行したコードを持つ人が受け取りました{addressed}。署名の仕組みができる前の記録なので、あなた以外の当事者が受け取ったことは示しますが、それが誰かは証明しません。',
   'app.plant.att.addressed': '（宛先：{who}）',
 } satisfies Partial<AppTranslation>;
