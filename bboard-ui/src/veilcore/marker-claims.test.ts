@@ -569,7 +569,8 @@ describe('the words, in each state of the lab’s signature', () => {
 });
 
 describe('the prove panel on a lab’s comparison', () => {
-  const render = async (r: Partial<StrainRecord>) => {
+  const render = (r: Partial<StrainRecord>) => renderWith(r, {});
+  const renderWith = async (r: Partial<StrainRecord>, props: Record<string, unknown>) => {
     const { LanguageProvider } = await import('../i18n');
     const { ProveNumber } = await import('../components/document/ProveNumber');
     vi.stubGlobal('window', {
@@ -578,7 +579,11 @@ describe('the prove panel on a lab’s comparison', () => {
     });
     try {
       return renderToStaticMarkup(
-        React.createElement(LanguageProvider, null, React.createElement(ProveNumber, { record: r as StrainRecord })),
+        React.createElement(
+          LanguageProvider,
+          null,
+          React.createElement(ProveNumber, { record: r as StrainRecord, ...props }),
+        ),
       );
     } finally {
       vi.unstubAllGlobals();
@@ -617,11 +622,52 @@ describe('the prove panel on a lab’s comparison', () => {
     expect(both).toContain('Results with both the lab’s call and a count public: 1.');
   });
 
-  it('says claims in the holder’s words, whatever signature the record carries', async () => {
-    const call = claim({ txId: '03'.repeat(32), slot: 0, kind: 'value', value: '0', op: undefined, bound: undefined });
-    const html = await render({ ...record, claims: [call] });
+  // A record whose lab signature is published on Midnight and goes in its links.
+  const signed: Partial<StrainRecord> = {
+    ...record,
+    labSignature: {
+      kind: 'veilcore-lab-signature',
+      v: 1,
+      record: REC,
+      key: '6f'.repeat(64),
+      about: '7e'.repeat(32),
+    } as never,
+    labOnChain: { contract: CONTRACT, txId: 'ef'.repeat(32), blockHeight: 1 },
+  };
+  const call = claim({ txId: '03'.repeat(32), slot: 0, kind: 'value', value: '0', op: undefined, bound: undefined });
+
+  it('a lab standing behind this record: claims on it in the lab’s words', async () => {
+    const html = await renderWith({ ...signed, claims: [call] }, { labSignatureOk: true, labStands: true });
+    expect(html).toContain('Different genotype at the markers compared (this result)');
+    expect(html).toContain('This proves: Markers differing: at least 30.');
+  });
+
+  it('an unbound key, a withdrawn result, still checking, or no signature on Midnight: the holder’s words', async () => {
+    for (const props of [{ labSignatureOk: true, labStands: false }, { labSignatureOk: false, labStands: false }, {}]) {
+      const html = await renderWith({ ...signed, claims: [call] }, props);
+      expect(html).toContain('Match (1 yes, 0 no) is 0 (this result)');
+      expect(html).toContain('This proves: Markers that differ is at least 30.');
+    }
+    // Standing, but the signature isn't on Midnight yet, so links can't carry it: holder's words.
+    const html = await renderWith({ ...record, claims: [call] }, { labSignatureOk: true, labStands: true });
     expect(html).toContain('Match (1 yes, 0 no) is 0 (this result)');
-    expect(html).not.toContain('Different genotype at the markers compared (this result)');
+  });
+
+  it('a claim on another record is said by that record’s own state, never this one’s', async () => {
+    const elsewhere = claim({
+      txId: '0c'.repeat(32),
+      record: 'cd'.repeat(32),
+      slot: 0,
+      kind: 'value',
+      value: '0',
+      op: undefined,
+      bound: undefined,
+    });
+    const html = await renderWith({ ...signed, claims: [call, elsewhere] }, { labSignatureOk: true, labStands: true });
+    expect(html).toContain('Different genotype at the markers compared (this result)');
+    // The claim on the other record: the holder's words, under that result's name.
+    expect(html).toContain('Match (1 yes, 0 no) is 0 (result LAB-C-1');
+    expect(html).not.toContain('Different genotype at the markers compared (result');
   });
 
   it('a potency certificate keeps the plain panel, with no marker words or limits', async () => {

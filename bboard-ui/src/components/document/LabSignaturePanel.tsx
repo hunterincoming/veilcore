@@ -23,8 +23,11 @@ import { withdrawnWords } from '../lab/signer-words';
 
 type Held = DocumentRecordLike & { readonly fieldSet: HeldFieldSet };
 
-/** Who the lab's binding names for this record's signature, checked here (claims-key.ts). */
-const useSigner = (record: StrainRecord): LabSigner | undefined => {
+/**
+ * Who the lab's binding names for this record's signature, checked here (claims-key.ts). Used by
+ * the record's page (DocumentDetail), which hands it to this panel and to "Prove one number".
+ */
+export const useLabSigner = (record: StrainRecord): LabSigner | undefined => {
   const [signer, setSigner] = useState<LabSigner>();
   const sig = record.labSignature;
   const salt = record.labResult?.statement.bindingSalt;
@@ -66,7 +69,9 @@ export const LabSignaturePanel: React.FC<{
   record: StrainRecord;
   /** The stored signature still checks against this record (DocumentDetail checks it). */
   signatureOk: boolean | undefined;
-}> = ({ record, signatureOk }) => {
+  /** Who the lab's binding names (useLabSigner, called by the page); undefined while checking. */
+  signer: LabSigner | undefined;
+}> = ({ record, signatureOk, signer }) => {
   const tr = useT();
   const { t } = tr;
   const [busy, setBusy] = useState(false);
@@ -74,7 +79,6 @@ export const LabSignaturePanel: React.FC<{
   const [error, setError] = useState<string>();
   const sig = record.labSignature;
   const on = record.labOnChain;
-  const signer = useSigner(record);
   if (!record.fieldSet || !sig) return null;
   const held = record as unknown as Held;
 

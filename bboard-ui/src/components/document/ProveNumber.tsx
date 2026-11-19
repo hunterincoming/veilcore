@@ -30,7 +30,7 @@ import {
 import { allRecords, type StrainRecord } from '../../veilcore/records';
 import { SCHEMAS, shownNumber, storedNumber } from '../../veilcore/field-set';
 import { claimLink, withMore, type MadeClaim } from '../../veilcore/claim-link';
-import { callWordKey } from '../../veilcore/claim-call';
+import { callWordKey, labWordsFor } from '../../veilcore/claim-call';
 import { CLAIMS_READY } from '../../veilcore/chain/config';
 import { canProve, claimsReadyHere, proveNumber, proveShown, type How } from '../../veilcore/prove-number';
 import {
@@ -128,11 +128,17 @@ export const claimRawWords = (c: ClaimLine, tr: Translator): string => {
 export const ProveNumber: React.FC<{
   record: StrainRecord;
   labSignatureOk?: boolean;
+  /**
+   * A laboratory stands behind this record (claim-call.ts labStandsOnRecord: its signature checks,
+   * one lab is tied to the key, not withdrawn). Only then, and only for claims on this record whose
+   * links carry the signature, are claims said in the lab's words ("Not detected").
+   */
+  labStands?: boolean;
   /** The record is kept on this device only: say what would be published, and ask again before "exactly". */
   deviceOnly?: boolean;
   /** What to prove when the panel opens (a test starts on "exactly"). */
   initialHow?: How;
-}> = ({ record, labSignatureOk = false, deviceOnly = false, initialHow = 'at-most' }) => {
+}> = ({ record, labSignatureOk = false, labStands = false, deviceOnly = false, initialHow = 'at-most' }) => {
   const tr = useT();
   const { t } = tr;
   const held = record.fieldSet;
@@ -218,6 +224,10 @@ export const ProveNumber: React.FC<{
           bindingSalt: record.labResult?.statement.bindingSalt,
         }
       : undefined;
+  // The lab's words ("Not detected") only for claims on this record, only where a lab stands
+  // behind it and its signature goes in the links (so the check page can say the same); the
+  // holder's words for everything else, and while it is being checked.
+  const here = { commitment: record.labSignature?.record, stands: labStands && !!lab };
   const copy = async (c: MadeClaim, together: readonly MadeClaim[] = [c]) => {
     const one = withMore(together[0] ?? c, together.slice(1));
     const withLab: MadeClaim =
@@ -370,7 +380,7 @@ export const ProveNumber: React.FC<{
                 list: onPanel
                   .map((p) =>
                     t('app.marker.panelItem', {
-                      claim: claimWords(p.claim, tr),
+                      claim: claimWords(p.claim, tr, labWordsFor(p.claim, here)),
                       result: p.here
                         ? t('app.marker.thisResult')
                         : t('app.marker.resultNamed', { accession: p.accession ?? '', panel: p.panel ?? '' }),
@@ -385,7 +395,10 @@ export const ProveNumber: React.FC<{
           {offers && <MarkerLimits />}
           {earlier.length > 0 && (
             <Alert severity="info" variant="outlined" data-claim-earlier="">
-              {t('app.claim.already', { label, list: earlier.map((c) => claimWords(c, tr)).join('; ') })}
+              {t('app.claim.already', {
+                label,
+                list: earlier.map((c) => claimWords(c, tr, labWordsFor(c, here))).join('; '),
+              })}
             </Alert>
           )}
           <Typography variant="body2" color="text.secondary">
@@ -450,6 +463,7 @@ export const ProveNumber: React.FC<{
                     ? { schema: held.schema, slot: s.slot, kind: 'value', value: String(bound) }
                     : { schema: held.schema, slot: s.slot, kind: 'range', op: how, bound: String(bound) },
                   tr,
+                  here.stands && here.commitment !== undefined,
                 ),
               })}
             </Typography>
@@ -479,7 +493,7 @@ export const ProveNumber: React.FC<{
           )}
           {made && (
             <Alert severity="success" variant="outlined" data-claim-made="">
-              {t('app.claim.done')} {claimWords(made, tr)}.
+              {t('app.claim.done')} {claimWords(made, tr, labWordsFor(made, here))}.
             </Alert>
           )}
         </Stack>
@@ -492,7 +506,7 @@ export const ProveNumber: React.FC<{
           <Stack spacing={0.75}>
             {(record.claims ?? []).map((c) => (
               <Stack key={c.txId} direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
-                <Typography variant="body2">{claimWords(c, tr)}</Typography>
+                <Typography variant="body2">{claimWords(c, tr, labWordsFor(c, here))}</Typography>
                 <Button size="small" onClick={() => void copy(c)}>
                   {t('app.claim.copy')}
                 </Button>

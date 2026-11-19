@@ -63,6 +63,27 @@ type Verdict =
 export const labStands = (v: Verdict): boolean => !!v?.ok && !!v.lab?.ok && v.lab.signer?.kind === 'bound';
 
 /**
+ * The same rule on a record's own page ("Prove one number"): its kept lab signature checks
+ * against the record (`signatureOk`, lab-attest.ts labSignatureChecks), and the lab's binding names
+ * one lab for the key and isn't withdrawn (`signer`, LabSignaturePanel useLabSigner). Undefined
+ * either way while it is being checked: not yet.
+ */
+export const labStandsOnRecord = (
+  signatureOk: boolean | undefined,
+  signer: { readonly kind: string } | undefined,
+): boolean => labStands({ ok: true, lab: signatureOk === true && signer ? { ok: true, signer } : { ok: false } });
+
+/**
+ * Whether a claim on a record's page may be said in the lab's words: only a claim on this very
+ * record (by its commitment), and only where the lab stands behind this record. A claim on any
+ * other record is said in the holder's words: that record's own signature isn't checked here.
+ */
+export const labWordsFor = (
+  claim: { readonly record: string },
+  here: { readonly commitment: string | undefined; readonly stands: boolean },
+): boolean => here.stands && here.commitment !== undefined && claim.record === here.commitment;
+
+/**
  * The claim page's closing line (ClaimCheck.tsx). A lab whose signature checks signed the
  * numbers: the line says so, and says the lab withdrew the result when it did. A key that signs
  * but that no lab (or more than one) is tied to says to read the numbers as the holder's own, as

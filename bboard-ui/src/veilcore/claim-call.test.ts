@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { CALL_WORDS, callWordKey, claimFooterKey, forcedCall, labStands } from './claim-call';
+import {
+  CALL_WORDS,
+  callWordKey,
+  claimFooterKey,
+  forcedCall,
+  labStands,
+  labStandsOnRecord,
+  labWordsFor,
+} from './claim-call';
 import { SCHEMAS } from './field-set';
 import { enT, makeTranslator } from '../i18n/translate';
 import { appDe } from '../i18n/app/de';
@@ -131,5 +139,33 @@ describe('when the claim page may say the result word', () => {
     for (const kind of ['none', 'conflict', 'retracted'])
       expect(labStands(v({ ok: true, signer: { kind } })), kind).toBe(false);
     expect(labStands(v({ ok: true }))).toBe(false);
+  });
+});
+
+describe('on a record’s own page, the lab’s words only where its lab stands', () => {
+  it('the same rule as the check page: signature checks, one lab tied to the key, not withdrawn', () => {
+    expect(labStandsOnRecord(true, { kind: 'bound' })).toBe(true);
+    expect(labStandsOnRecord(true, { kind: 'none' })).toBe(false);
+    expect(labStandsOnRecord(true, { kind: 'conflict' })).toBe(false);
+    expect(labStandsOnRecord(true, { kind: 'retracted' })).toBe(false);
+    expect(labStandsOnRecord(false, { kind: 'bound' })).toBe(false);
+    // Still checking, either part: not yet.
+    expect(labStandsOnRecord(undefined, { kind: 'bound' })).toBe(false);
+    expect(labStandsOnRecord(true, undefined)).toBe(false);
+  });
+
+  it('only for a claim on this very record', () => {
+    const here = { commitment: 'ab'.repeat(32), stands: true };
+    expect(labWordsFor({ record: 'ab'.repeat(32) }, here)).toBe(true);
+    expect(labWordsFor({ record: 'cd'.repeat(32) }, here)).toBe(false);
+    expect(labWordsFor({ record: 'ab'.repeat(32) }, { ...here, stands: false })).toBe(false);
+    expect(labWordsFor({ record: 'ab'.repeat(32) }, { commitment: undefined, stands: true })).toBe(false);
+  });
+
+  it('the mainnet test run’s line: "This proves: Not detected" before proving, with a lab standing behind it', () => {
+    // docs/lab-mainnet-test.md step 7.
+    expect(
+      enT.t('app.claim.preview', { claim: claimWords({ schema: PATHOGEN, slot: 0, ...exactly('0') }, enT, true) }),
+    ).toBe('This proves: Not detected.');
   });
 });
