@@ -51,8 +51,6 @@ export const sealed = {
     '{count} registro llegó en un formato que esta versión no puede leer, así que no se muestra.',
   'app.sealed.unreadable.other':
     '{count} registros llegaron en un formato que esta versión no puede leer, así que no se muestran.',
-  'app.sealed.backupNeeded':
-    '<b>Guarde una copia de seguridad nueva.</b> Sus registros ahora están bloqueados con una clave que solo tiene este navegador hasta que guarde una copia de seguridad. Sin el archivo de copia de seguridad no podrá abrirlos en ningún otro lugar.',
   'app.sealed.err.newCode':
     'Este código se hizo antes de que los envíos se bloquearan, y ya no funciona. Pida al remitente un código nuevo.',
   'app.sealed.recv.missingKey':
@@ -182,7 +180,6 @@ export const sealed = {
   'app.sealed.linksDeletedOpen': 'Abrirla',
   'app.sealed.unsaved.linksDeleted':
     'Esta corrección nombra un registro que su titular eliminó, así que VeilCore no la guardará. Solo se guarda en este navegador. Descártela aquí.',
-  'app.sealed.unsaved.short': 'Copia bloqueada aún sin subir: guarde y compruebe su copia de seguridad',
   'app.sealed.unsaved.shortRetry': 'Aún no se guardó',
   'app.sealed.unsaved.discardConfirm':
     '¿Descartar lo que este navegador conserva para este registro? No está en VeilCore, así que no se puede recuperar.',

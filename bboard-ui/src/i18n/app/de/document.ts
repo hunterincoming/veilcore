@@ -172,6 +172,22 @@ export const document = {
   'app.claim.line.value': '{label} ist {value} {unit}',
   'app.claim.holderTyped': 'Die Zahlen sind Ihre eigenen Eingaben: Kein Labor hat sie signiert.',
   'app.claim.check.title': 'Einen Beleg prüfen',
+  'app.claim.verdict.bad': 'Dieser Link lässt sich nicht lesen, daher wurde nichts geprüft.',
+  'app.claim.verdict.checking': 'Dieser Beleg wird in Ihrem Browser geprüft…',
+  'app.claim.verdict.failed': 'Dieser Beleg hat die Prüfung nicht bestanden. Verlassen Sie sich nicht darauf.',
+  'app.claim.verdict.labFailed':
+    'Dieser Beleg hat die Prüfung bestanden, die Signatur des Labors aber nicht. Siehe unten.',
+  'app.claim.verdict.someFailed':
+    'Dieser Beleg hat die Prüfung bestanden, ein anderer in diesem Link aber nicht. Siehe unten.',
+  'app.claim.verdict.okWhen': 'Belegt am {date}. In Ihrem Browser geprüft.',
+  'app.claim.verdict.ok': 'Dieser Beleg hat die Prüfung in Ihrem Browser bestanden.',
+  'app.doc.verdict.bad': 'Dieser Link lässt sich nicht lesen, daher wurde nichts geprüft.',
+  'app.doc.verdict.dated': 'Datiert am {date}. In Ihrem Browser geprüft.',
+  'app.doc.verdict.datedChooseFile':
+    'Datiert am {date}. In Ihrem Browser geprüft. Wählen Sie unten die Datei, um zu prüfen, ob es dieselbe ist.',
+  'app.doc.verdict.datedSameFile':
+    'Datiert am {date}, und die gewählte Datei ist die versiegelte. In Ihrem Browser geprüft.',
+  'app.doc.verdict.datedOtherFile': 'Datiert am {date}, aber die gewählte Datei ist nicht die versiegelte.',
   'app.claim.check.intro':
     'Jemand hat Ihnen diesen Link geschickt, um eine Tatsache über eine Zahl in einem versiegelten Dokument zu zeigen, ohne die Zahl oder das Dokument zu zeigen. Diese Seite liest den Beleg auf Midnight und prüft ihn.',
   'app.claim.check.bad': 'Dieser Link ist nicht lesbar. Bitten Sie erneut darum.',

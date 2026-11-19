@@ -338,6 +338,13 @@ export const fr: Strings = {
   'm.notfound.text':
     "Il n'y a pas de page à cette adresse. Si quelqu'un vous a donné un lien vers un enregistrement, vérifiez qu'il est complet.",
   'm.notfound.home': 'Accueil de VeilCore →',
+  'm.homescreen.title': 'Ouvrir vos enregistrements',
+  'm.homescreen.text': 'Voici VeilCore sur votre écran d’accueil. Il a son propre stockage, séparé de Safari.',
+  'm.homescreen.lost': 'Rien n’a été perdu. Récupérez ici vos enregistrements avec votre copie de secours.',
+  'm.homescreen.restore': 'Récupérer mes enregistrements',
+  'm.homescreen.fresh': 'Nouveau sur VeilCore ? Commencer ici',
+  'm.homescreen.safari':
+    'Pas de copie de secours sous la main ? Si vous avez utilisé VeilCore dans Safari sur cet appareil, vos enregistrements y sont toujours.',
   'm.privacy.contact': 'Questions : hunter@veilcore.org',
   // Round 2 truth pass (14 Oct 2026): keys added or newly translated.
   'm.hero.lede':

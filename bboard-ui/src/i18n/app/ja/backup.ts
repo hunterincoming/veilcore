@@ -151,6 +151,9 @@ export const backup = {
   'app.intake.send.kept': 'どちらを選んでも、記録はあなたの VeilCore に残ります。',
   'app.intake.err.title': 'このリンクは使えません',
   'app.intake.err.help': '送ってきた相手に新しいリンクを頼んでください。何も記録・送信していません。',
+  'app.intake.err.paste': 'コードやリンクを貼り付ける',
+  'app.intake.err.records': '自分の記録へ',
+  'app.intake.err.lab': 'ラボの方：検査結果へ',
   'app.intake.err.gone':
     '相手のサイトからの依頼はもうありません（このタブが閉じられたか、開き直されました）。相手のリンクをもう一度開いてください。',
   'app.intake.err.noReturn': '戻り先が書かれていません。',

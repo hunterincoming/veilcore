@@ -172,6 +172,20 @@ export const document = {
   'app.claim.line.value': '{label} is {value} {unit}',
   'app.claim.holderTyped': 'The numbers are yours as typed: no laboratory signed them.',
   'app.claim.check.title': 'Check a claim',
+  // The one plain line at the top of the claim and document check pages (verify/CheckParts.tsx).
+  'app.claim.verdict.bad': 'This link can’t be read, so nothing was checked.',
+  'app.claim.verdict.checking': 'Checking this claim in your browser…',
+  'app.claim.verdict.failed': 'This claim didn’t check out. Don’t rely on it.',
+  'app.claim.verdict.labFailed': 'This claim checked out, but the lab’s signature on it didn’t. See below.',
+  'app.claim.verdict.someFailed': 'This claim checked out, but another one in this link didn’t. See below.',
+  'app.claim.verdict.okWhen': 'Proved on {date}. Checked in your browser.',
+  'app.claim.verdict.ok': 'This claim checked out in your browser.',
+  'app.doc.verdict.bad': 'This link can’t be read, so nothing was checked.',
+  'app.doc.verdict.dated': 'Dated {date}. Checked in your browser.',
+  'app.doc.verdict.datedChooseFile':
+    'Dated {date}. Checked in your browser. Choose the file below to check it’s the same one.',
+  'app.doc.verdict.datedSameFile': 'Dated {date}, and the file you chose is the one sealed. Checked in your browser.',
+  'app.doc.verdict.datedOtherFile': 'Dated {date}, but the file you chose isn’t the one sealed.',
   'app.claim.check.intro':
     'Someone sent you this link to show a fact about one number in a sealed document, without showing the number or the document. This page reads the claim from Midnight and checks it.',
   'app.claim.check.bad': 'This link can’t be read. Ask for it again.',

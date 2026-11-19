@@ -168,6 +168,9 @@ export const backup = {
   'app.intake.send.kept': 'L’enregistrement reste dans votre VeilCore dans tous les cas.',
   'app.intake.err.title': 'Ce lien ne peut pas être utilisé',
   'app.intake.err.help': 'Demandez-en un nouveau à la personne qui l’a envoyé. Rien n’a été enregistré ni envoyé.',
+  'app.intake.err.paste': 'Coller un code ou un lien',
+  'app.intake.err.records': 'Aller à vos enregistrements',
+  'app.intake.err.lab': 'Je suis un laboratoire : résultats',
   'app.intake.err.gone':
     'La demande de l’autre site n’est plus là (cet onglet a été fermé ou rouvert). Rouvrez leur lien.',
   'app.intake.err.noReturn': 'Il n’indique pas où vous renvoyer.',

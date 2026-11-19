@@ -69,7 +69,7 @@ export const log = {
   'app.log.nextCheck': '次へ：確認する',
   'app.log.readingYourPhotos': '写真を読み込んでいます…',
   'app.log.reviewTitle': 'これで合っていますか？',
-  'app.log.fixNow': '直すなら今です。',
+  'app.log.fixNow': '内容を確認してください。封印すると変更できません。訂正は後から追加できます。',
   'app.log.k.plant': '植物または系統',
   'app.log.k.made': '作出日（あなたのメモ）',
   'app.log.k.more': 'その他の詳細',
@@ -88,8 +88,8 @@ export const log = {
     '詳細は、後で見返せるように{server}にロックした状態で保存され、私たちはその鍵を持っていません。名前もロックされます。確認リンクの#の後ろに名前が入るのは、そうすると選んだときだけです。日付が付くのは、{datedOn}上の証明コードだけです。',
   'app.log.sealing': '封印しています…',
   'app.log.sealPlain':
-    '封印すると、この内容は変更できません（訂正は後から新しい記録として追加します）。Midnightに載るのはコードだけで、詳細はロックされたままです。',
-  'app.log.sealDetails': '変更できなくなる部分と保存場所',
+    '公開されるのはこの記録から作ったコードだけで、書いた内容や写真は公開されません。それらは非公開のままで、開けるのはあなただけです。',
+  'app.log.sealDetails': '何が公開されますか？',
   'app.log.seal': '封印する',
   'app.log.sealingPlant': '植物を封印しています…',
   'app.log.sealStampsKey':
@@ -109,12 +109,12 @@ export const log = {
   'app.log.keyStamped':
     '鍵に日付スタンプを押しました。植物の鍵にも日付が付いたので、後で保有していることを証明できます。{bound}植物については何も送信されていません。',
   'app.log.keyBound': '封印した記録がこの鍵を指定しているので、誰も別の鍵に差し替えられません。',
-  'app.log.stampFailedTitle': '封印しました。鍵の日付スタンプはまだです',
-  'app.log.stampingTitle': '封印しました。植物の鍵に日付スタンプを押しています…',
+  'app.log.stampFailedTitle': '封印しました。日付スタンプはまだです',
+  'app.log.stampingTitle': '封印しました。今日の日付スタンプを取得しています…',
   'app.log.onlyFingerprint':
     '送信されるのは植物の鍵のコードだけで、植物については何も送信されません。無料です。ネットワーク手数料はVeilCoreが支払います。',
-  'app.log.stampingAria': '植物の鍵に日付スタンプを押しています',
+  'app.log.stampingAria': '今日の日付スタンプを取得しています',
   'app.log.stampLater': '日付スタンプは後で行う',
   'app.log.keepOpen':
-    'この画面を開いたままにしてください（約1分）。閉じても失われるものはありません。植物は保存されており、ページでもう一度日付スタンプを押せます。',
+    '約1分かかります。終わるまでこの画面を開いたままにしてください。スマートフォンでは、ほかのアプリに切り替えたり画面をロックしたりすると止まることがあります。止まっても失われるものはありません。植物は保存されており、ページでもう一度日付スタンプを押せます。',
 } satisfies Partial<AppTranslation>;

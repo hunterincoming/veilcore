@@ -53,8 +53,6 @@ export const sealed = {
     '{count} Datensatz kam in einer Form zurück, die diese Version nicht lesen kann, und wird nicht angezeigt.',
   'app.sealed.unreadable.other':
     '{count} Datensätze kamen in einer Form zurück, die diese Version nicht lesen kann, und werden nicht angezeigt.',
-  'app.sealed.backupNeeded':
-    '<b>Speichern Sie eine neue Sicherungskopie.</b> Ihre Datensätze sind jetzt mit einem Schlüssel verschlossen, den nur dieser Browser hat, bis Sie eine Sicherungskopie speichern. Ohne die Sicherungsdatei können Sie sie nirgendwo sonst öffnen.',
   'app.sealed.err.newCode':
     'Dieser Code wurde erstellt, bevor Lieferungen verschlossen wurden, und funktioniert nicht mehr. Bitten Sie den Absender um einen neuen Code.',
   'app.sealed.recv.missingKey':
@@ -188,7 +186,6 @@ export const sealed = {
   'app.sealed.linksDeletedOpen': 'Öffnen',
   'app.sealed.unsaved.linksDeleted':
     'Diese Korrektur nennt einen Eintrag, den sein Inhaber gelöscht hat, daher speichert VeilCore sie nicht. Sie ist nur in diesem Browser gespeichert. Verwerfen Sie sie hier.',
-  'app.sealed.unsaved.short': 'Verschlossene Kopie noch nicht hochgeladen – Sicherungskopie speichern und prüfen',
   'app.sealed.unsaved.shortRetry': 'Noch nicht gespeichert',
   'app.sealed.unsaved.discardConfirm':
     'Das, was dieser Browser für diesen Datensatz aufbewahrt, verwerfen? Es ist nicht bei VeilCore und lässt sich nicht zurückholen.',

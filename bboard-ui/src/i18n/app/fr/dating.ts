@@ -40,7 +40,6 @@ export const dating = {
   'app.pickup.open': 'Ouvrir',
   'app.pickup.tryNow': 'Essayer maintenant',
   'app.pickup.saveBackup': 'Enregistrer ma copie de secours',
-  'app.pickup.freshBackupButton': 'Enregistrer une nouvelle copie de secours',
   'app.pickup.openAgreements': 'Ouvrir les contrats',
   'app.pickup.dating.notSent': '{name} : scellé. Son code de preuve part chez VeilCore dès que VeilCore répond.',
   'app.pickup.dating.next': '{name} recevra sa date avec le prochain lot.',
@@ -60,14 +59,6 @@ export const dating = {
     'L’horodatage de la clé de {name} est peut-être déjà parti. Vérifiez-le sur sa page avant de réessayer.',
   'app.pickup.stamp.cannot':
     'L’horodatage de la clé de {name} ne peut pas être fait depuis ce site pour l’instant. Sa page dit pourquoi.',
-  'app.pickup.lockedCopies.one':
-    '{count} copie verrouillée pas encore envoyée — enregistrez et vérifiez votre copie de secours. La date de votre enregistrement n’attend pas cela.',
-  'app.pickup.lockedCopies.other':
-    '{count} copies verrouillées pas encore envoyées — enregistrez et vérifiez votre copie de secours. Les dates de vos enregistrements n’attendent pas cela.',
-  'app.pickup.freshBackup.one':
-    'Votre dernière copie de secours n’a pas les clés de {count} enregistrement plus récent. Enregistrez une nouvelle copie de secours.',
-  'app.pickup.freshBackup.other':
-    'Votre dernière copie de secours n’a pas les clés de {count} enregistrements plus récents. Enregistrez une nouvelle copie de secours.',
   'app.pickup.deliveriesSent.one': '{count} envoi au laboratoire, pas encore reçu.',
   'app.pickup.deliveriesSent.other': '{count} envois au laboratoire, pas encore reçus.',
   'app.pickup.deliveriesUnsigned.one': '{count} envoi reçu par le laboratoire, accusé de réception pas encore signé.',

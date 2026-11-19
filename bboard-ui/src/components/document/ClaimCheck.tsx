@@ -18,6 +18,9 @@ import { Alert, Box, CircularProgress, Container, Paper, Stack, Typography } fro
 import { anchoredFingerprintOf, claimsOf, readClaimLink, type ClaimVerdict } from '../../veilcore/claim-link';
 import { isMarkerSchema, joinedPlacement, markerSourceKey, offerOf } from '../../veilcore/marker-claims';
 import { DatedNotOrigin } from '../verify/DatedNotOrigin';
+import { CheckVerdict, MakeYourOwn } from '../verify/CheckParts';
+import { VERDICT_DATE, type VerdictTone } from '../verify/verdict';
+import type { AppKey } from '../../i18n/app/en';
 import { useT } from '../../i18n/app';
 import { DocumentDate, Fact } from './DocumentParts';
 import { claimRawWords, claimWords, MarkerLimits } from './ProveNumber';
@@ -93,10 +96,32 @@ export const ClaimCheck: React.FC = () => {
       : claimWords(link, tr, stands)
     : '';
   const sourceKey = link ? markerSourceKey(verdict, !!offerOf(link)?.count) : undefined;
+  // The one plain line at the top (easy-mode review, 19 Nov), never kinder than the answers below:
+  // every claim in the link and the lab's signature on it count.
+  const top: { tone: VerdictTone; key: AppKey; date?: number } | undefined = !link
+    ? { tone: 'fail', key: 'app.claim.verdict.bad' }
+    : viabilityOff
+      ? undefined
+      : !verdict || more.some((_, i) => !moreVerdicts[i])
+        ? { tone: 'wait', key: 'app.claim.verdict.checking' }
+        : !verdict.ok
+          ? { tone: 'fail', key: 'app.claim.verdict.failed' }
+          : verdict.lab && !verdict.lab.ok
+            ? { tone: 'warn', key: 'app.claim.verdict.labFailed' }
+            : more.some((_, i) => moreVerdicts[i]?.ok === false)
+              ? { tone: 'warn', key: 'app.claim.verdict.someFailed' }
+              : verdict.blockTime
+                ? { tone: 'ok', key: 'app.claim.verdict.okWhen', date: verdict.blockTime }
+                : { tone: 'ok', key: 'app.claim.verdict.ok' };
 
   return (
     <Box sx={{ bgcolor: 'background.default' }} data-claim-check="">
       <Container component="main" maxWidth="sm" sx={{ py: { xs: 5, md: 8 }, overflowWrap: 'anywhere' }}>
+        {top && (
+          <CheckVerdict tone={top.tone}>
+            {t(top.key, { date: top.date !== undefined ? tr.date(top.date, VERDICT_DATE) : '' })}
+          </CheckVerdict>
+        )}
         <Typography variant="h4" component="h1" sx={{ mb: 1 }}>
           {t('app.claim.check.title')}
         </Typography>
@@ -272,6 +297,7 @@ export const ClaimCheck: React.FC = () => {
             </Typography>
           </Stack>
         )}
+        <MakeYourOwn />
       </Container>
     </Box>
   );

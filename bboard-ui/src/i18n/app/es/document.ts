@@ -170,6 +170,20 @@ export const document = {
   'app.claim.line.value': '{label} es {value} {unit}',
   'app.claim.holderTyped': 'Los números son suyos tal como los escribió: ningún laboratorio los firmó.',
   'app.claim.check.title': 'Comprobar una prueba',
+  'app.claim.verdict.bad': 'Este enlace no se puede leer, así que no se comprobó nada.',
+  'app.claim.verdict.checking': 'Comprobando esta prueba en su navegador…',
+  'app.claim.verdict.failed': 'Esta prueba no superó la comprobación. No confíe en ella.',
+  'app.claim.verdict.labFailed': 'Esta prueba superó la comprobación, pero la firma del laboratorio no. Vea más abajo.',
+  'app.claim.verdict.someFailed': 'Esta prueba superó la comprobación, pero otra de este enlace no. Vea más abajo.',
+  'app.claim.verdict.okWhen': 'Probado el {date}. Comprobado en su navegador.',
+  'app.claim.verdict.ok': 'Esta prueba superó la comprobación en su navegador.',
+  'app.doc.verdict.bad': 'Este enlace no se puede leer, así que no se comprobó nada.',
+  'app.doc.verdict.dated': 'Fechado el {date}. Comprobado en su navegador.',
+  'app.doc.verdict.datedChooseFile':
+    'Fechado el {date}. Comprobado en su navegador. Elija el archivo más abajo para comprobar que es el mismo.',
+  'app.doc.verdict.datedSameFile':
+    'Fechado el {date}, y el archivo que eligió es el que se selló. Comprobado en su navegador.',
+  'app.doc.verdict.datedOtherFile': 'Fechado el {date}, pero el archivo que eligió no es el que se selló.',
   'app.claim.check.intro':
     'Alguien le envió este enlace para mostrar un hecho sobre un número de un documento sellado, sin mostrar el número ni el documento. Esta página lee la prueba en Midnight y la comprueba.',
   'app.claim.check.bad': 'Este enlace no se puede leer. Pídalo de nuevo.',

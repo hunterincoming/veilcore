@@ -109,6 +109,36 @@ export const verify = {
   'app.verify.notFoundText':
     'Dieser Prüflink passt zu keinem Datensatz im Register. Prüfen Sie, ob der Link vollständig und unverändert ist.',
   'app.verify.goHome': 'Zu veilcore.org',
+  'app.verify.verdict.checking': 'Dieser Datensatz wird in Ihrem Browser geprüft…',
+  'app.verify.verdict.dated': 'Datiert am {date}. Alle Prüfungen in Ihrem Browser bestanden.',
+  'app.verify.verdict.datedTest':
+    'Übungsdatum {date}, auf einem Testnetz: kein echtes Datum. Alle Prüfungen in Ihrem Browser bestanden.',
+  'app.verify.verdict.datedButFailed':
+    'Datiert am {date}, aber einige Prüfungen sind fehlgeschlagen. Siehe die Prüfungen unten.',
+  'app.verify.verdict.reported':
+    'Laut dem Server von VeilCore wurde er am {date} datiert. Ihr Browser hat dieses Datum noch nicht selbst bestätigt.',
+  'app.verify.verdict.reportedNoDate':
+    'Laut dem Server von VeilCore ist er datiert, ein Datum nennt er aber nicht. Ihr Browser hat das noch nicht selbst bestätigt.',
+  'app.verify.verdict.dateFailed':
+    'Die Prüfung des Datums ist in Ihrem Browser fehlgeschlagen. Verlassen Sie sich nicht auf dieses Datum.',
+  'app.verify.verdict.notYet': 'Noch nicht datiert. Er wartet auf seinen Datumsstempel.',
+  'app.verify.verdict.notYetFailed':
+    'Noch nicht datiert, und einige Prüfungen sind fehlgeschlagen. Siehe die Prüfungen unten.',
+  'app.verify.verdict.unbound':
+    'Dieser Link enthält den Prüfcode des Datensatzes nicht. Ihr Browser kann daher nicht feststellen, ob der Server von VeilCore zu diesem Datensatz geantwortet hat. Bitten Sie den Absender um einen neuen Link.',
+  'app.verify.verdict.nothing': 'An diesem Datensatz lässt sich nichts prüfen: Er hat keinen Prüfcode.',
+  'app.verify.checks.see': 'Prüfungen ansehen',
+  'app.verify.checks.hide': 'Prüfungen ausblenden',
+  'app.verify.cta': 'Möchten Sie so ein Datum für Ihre eigenen Pflanzen oder Tiere?',
+  'app.verify.ctaButton': 'Datensatz anlegen, kostenlos',
+  'app.verify.notFoundAsk': 'Bitten Sie den Absender, Ihnen den Link noch einmal zu schicken.',
+  'app.verify.another.label': 'Andere Datensatz-ID oder anderer Prüflink',
+  'app.verify.another.go': 'Prüfen',
+  'app.verify.another.bad': 'Das ist weder eine Datensatz-ID noch ein Prüflink.',
+  'app.verify.unreachable.title': 'Dieser Datensatz konnte gerade nicht geprüft werden',
+  'app.verify.unreachable.text':
+    'Der Server von VeilCore hat nicht geantwortet oder eine Antwort geschickt, die diese Seite nicht lesen kann. Versuchen Sie es in einer Minute noch einmal.',
+  'app.verify.unreachable.retry': 'Erneut versuchen',
   'app.verify.deleted.title': '{id} wurde von seinem Inhaber gelöscht',
   'app.verify.deleted.when': 'Gelöscht am {date}. Seine Angaben werden nicht mehr angezeigt.',
   'app.verify.deleted.datedChecked':

@@ -17,7 +17,7 @@ export const importing = {
   'app.import.choose': 'Elegir un archivo',
   'app.import.normalWindow': 'Abra esta página en una ventana normal del navegador para usarla.',
   'app.import.readHere':
-    'Su archivo se lee aquí, en este navegador, y no se sube. De cada fila, solo se guardan los datos que elija en la siguiente pantalla, los mismos datos que al registrar una planta. {server} los guarda bloqueados, el nombre de la planta incluido, y nosotros no tenemos la clave. Solo un código de prueba se fecha en {dated}.',
+    'Su archivo se lee aquí, en este navegador, y no se sube. De cada fila, solo se guardan los datos que elija en la siguiente pantalla, los mismos datos que al registrar una planta. Se guardan bloqueados en {server}, el nombre de la planta incluido, y nosotros no tenemos la clave. Solo un código de prueba se fecha en {dated}.',
   'app.import.testSite': 'Este es un sitio de pruebas: los registros que se hacen aquí son datos de prueba.',
   'app.import.earlierStamps': 'Sellos de fecha de claves de importaciones anteriores',
   'app.import.rowLine': 'Fila {line}: {text}',

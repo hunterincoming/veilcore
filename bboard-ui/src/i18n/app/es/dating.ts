@@ -39,7 +39,6 @@ export const dating = {
   'app.pickup.open': 'Abrir',
   'app.pickup.tryNow': 'Intentar ahora',
   'app.pickup.saveBackup': 'Guardar mi copia de seguridad',
-  'app.pickup.freshBackupButton': 'Guardar una copia de seguridad nueva',
   'app.pickup.openAgreements': 'Abrir acuerdos',
   'app.pickup.dating.notSent': '{name}: sellado. Su código de prueba se envía a VeilCore en cuanto VeilCore responda.',
   'app.pickup.dating.next': '{name} recibirá su fecha en el próximo lote.',
@@ -59,14 +58,6 @@ export const dating = {
     'Puede que el sello de fecha de la clave de {name} ya se haya enviado. Compruébelo en su página antes de intentarlo de nuevo.',
   'app.pickup.stamp.cannot':
     'El sello de fecha de la clave de {name} no se puede hacer desde este sitio ahora. Su página explica por qué.',
-  'app.pickup.lockedCopies.one':
-    '{count} copia bloqueada aún sin subir: guarde y compruebe su copia de seguridad. La fecha de su registro no espera por esto.',
-  'app.pickup.lockedCopies.other':
-    '{count} copias bloqueadas aún sin subir: guarde y compruebe su copia de seguridad. Las fechas de sus registros no esperan por esto.',
-  'app.pickup.freshBackup.one':
-    'Su última copia de seguridad no tiene las claves de {count} registro más reciente. Guarde una copia de seguridad nueva.',
-  'app.pickup.freshBackup.other':
-    'Su última copia de seguridad no tiene las claves de {count} registros más recientes. Guarde una copia de seguridad nueva.',
   'app.pickup.deliveriesSent.one': '{count} entrega enviada al laboratorio, aún no recibida.',
   'app.pickup.deliveriesSent.other': '{count} entregas enviadas al laboratorio, aún no recibidas.',
   'app.pickup.deliveriesUnsigned.one': '{count} entrega recibida por el laboratorio, acuse de recibo aún sin firmar.',

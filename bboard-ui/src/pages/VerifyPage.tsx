@@ -62,6 +62,8 @@ import { Link as RouterLink, useLocation, useNavigate, useParams, useSearchParam
 import VerifiedIcon from '@mui/icons-material/VerifiedOutlined';
 import { loadFingerprintCircuit, MAX_FINGERPRINT_BYTES, shortFingerprint } from '../veilcore/commitment';
 import { DatedNotOrigin } from '../components/verify/DatedNotOrigin';
+import { AnotherRecord, CheckVerdict, MakeYourOwn, SeeTheChecks } from '../components/verify/CheckParts';
+import { recordVerdict, VERDICT_DATE } from '../components/verify/verdict';
 import { WhoVouches } from '../components/verify/WhoVouches';
 import { whoVouches } from '../components/verify/who-vouches';
 import { DISCLOSURE_FIELDS, LEGACY_NAME, toDisclosureKey, labelOf } from '../veilcore/disclosure';
@@ -459,6 +461,10 @@ export const VerifyPage: React.FC = () => {
 
   const [result, setResult] = useState<VerifyResult | null>(null);
   const [loading, setLoading] = useState(true);
+  // No answer from the registry, or not one this page can read: "couldn't check", never "no record".
+  const [unreachable, setUnreachable] = useState(false);
+  // "Try again" asks once more.
+  const [attempt, setAttempt] = useState(0);
   const [proof, setProof] = useState<ProofState | 'checking'>('checking');
   const [atts, setAtts] = useState<ResolvedAttestation[] | null>(null);
   // A DNA report file the visitor chose to check against the record (round 5): read here only.
@@ -469,6 +475,8 @@ export const VerifyPage: React.FC = () => {
 
   useEffect(() => {
     let cancelled = false;
+    setLoading(true);
+    setUnreachable(false);
     // ?show= is passed on so a link made to show less still shows less. It cannot add
     // anything: the registry answers only what the holder granted.
     const url = `${API}/verify/${encodeURIComponent(id)}${show !== null ? `?show=${encodeURIComponent(show)}` : ''}`;
@@ -481,23 +489,26 @@ export const VerifyPage: React.FC = () => {
         if (isVerifyResult(data) && (data.dnaPairingFingerprint || data.dnaPairBinding)) await loadFingerprintCircuit();
         if (!cancelled) {
           // A shareable link is opened by someone who has no other way to check what
-          // they are being shown. A body that is not a verdict is treated as no
-          // record rather than rendered with blank fields, because a page that looks
-          // like a verification and is not one is worse than an error.
+          // they are being shown. A body that is not a verdict is never rendered with blank
+          // fields, because a page that looks like a verification and is not one is worse than
+          // an error; and it isn't called "no record" either (easy-mode review, 19 Nov): this
+          // page couldn't check, and says so.
           setResult(isVerifyResult(data) ? data : null);
+          setUnreachable(!isVerifyResult(data));
           setLoading(false);
         }
       })
       .catch(() => {
         if (!cancelled) {
-          setResult({ found: false });
+          setResult(null);
+          setUnreachable(true);
           setLoading(false);
         }
       });
     return () => {
       cancelled = true;
     };
-  }, [id, show]);
+  }, [id, show, attempt]);
 
   // The two things this page can check for itself. With a fingerprint in the link they
   // are checked against it (and the registry must report the same one); an old link is
@@ -628,29 +639,58 @@ export const VerifyPage: React.FC = () => {
   });
   const name = nameCheck.state === 'none' ? undefined : displayName(nameCheck.name);
 
+  // The one line at the top (verdict.ts): never kinder than the checks under it.
+  const noneVerified =
+    atts !== null &&
+    signed.length === 0 &&
+    withheld.length === 0 &&
+    (result?.signedAttestation === true || result?.attestedByVettedLab === true || result?.attested === true);
+  const someFailed = badSigs > 0 || noneVerified || nameCheck.state === 'differs';
+  const verdict =
+    result?.found && binding.kind !== 'mismatch'
+      ? recordVerdict({
+          sealed: !!result.recordFingerprint,
+          bound,
+          proof,
+          anchor,
+          signaturesChecking: atts === null,
+          failed: someFailed,
+          testNetwork: isTestNetwork(reportedNetwork ?? NETWORK),
+          reportedAt,
+        })
+      : undefined;
+  // "See the checks": closed for a new record, open by itself when a check failed or the link
+  // can't be checked against its own proof code, so a failure is never folded away.
+  const [checksOpen, setChecksOpen] = useState(false);
+  const mustOpen = someFailed || anchorCheckFailed(anchor) || (!!result?.found && !!result.recordFingerprint && !bound);
+  useEffect(() => setChecksOpen(false), [id]);
+  useEffect(() => {
+    if (mustOpen) setChecksOpen(true);
+  }, [mustOpen]);
+
   return (
     <Box sx={{ bgcolor: 'background.default' }}>
       {/* IDs, fingerprints and hashes are long unbroken strings: they wrap, the page never scrolls sideways. */}
       <Container component="main" maxWidth="sm" sx={{ py: { xs: 5, md: 8 }, overflowWrap: 'anywhere' }}>
-        {/* One line for a stranger who arrived from a QR code or a shared link. */}
-        <Typography
-          variant="body2"
-          color="text.secondary"
-          sx={{ textAlign: 'center', mb: 4, maxWidth: 460, mx: 'auto' }}
-        >
-          {rich(t('app.verify.intro'), {
-            link: (c) => (
-              <Box component={RouterLink} to="/" sx={{ ...LINK_SX, whiteSpace: 'nowrap' }}>
-                {c}
-              </Box>
-            ),
-          })}
-        </Typography>
-        <DatedNotOrigin center />
-
+        {/* The answer first, before anything else (easy-mode review, 19 Nov): while loading, the
+            spinner; a record that can't be shown, its own card (it is the answer); a record, the
+            one plain line, then what a date doesn't show, then the record. */}
         {loading ? (
           <Paper sx={{ p: 6, textAlign: 'center' }}>
             <CircularProgress size={28} sx={{ color: INK_COLOR }} aria-label={t('app.verify.checkingRecord')} />
+          </Paper>
+        ) : unreachable ? (
+          // No answer, or not one this page can read: said as that, never as "no record".
+          <Paper sx={{ p: 4, textAlign: 'center' }} data-verify-unreachable="">
+            <Typography variant="h6" component="h1" sx={{ mb: 1 }}>
+              {t('app.verify.unreachable.title')}
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              {t('app.verify.unreachable.text')}
+            </Typography>
+            <Button variant="outlined" onClick={() => setAttempt((n) => n + 1)} sx={{ minHeight: 44 }}>
+              {t('app.verify.unreachable.retry')}
+            </Button>
           </Paper>
         ) : !result?.found && result?.deleted ? (
           <DeletedRecord
@@ -662,13 +702,18 @@ export const VerifyPage: React.FC = () => {
             storedFp={result.recordFingerprint}
           />
         ) : !result?.found ? (
-          <Paper sx={{ p: 4, textAlign: 'center' }}>
+          <Paper sx={{ p: 4, textAlign: 'center' }} data-verify-not-found="">
             <Typography variant="h6" component="h1" sx={{ mb: 1, overflowWrap: 'anywhere' }}>
               {t('app.verify.notFound', { id: idText(id, tr) })}
             </Typography>
             <Typography variant="body2" color="text.secondary">
               {t('app.verify.notFoundText')}
             </Typography>
+            {/* A way forward (easy-mode review, 19 Nov): ask the sender again, or try another. */}
+            <Typography variant="body2" sx={{ mt: 1.5, fontWeight: 600 }}>
+              {t('app.verify.notFoundAsk')}
+            </Typography>
+            <AnotherRecord />
             <Box component={RouterLink} to="/" sx={{ ...LINK_SX, display: 'inline-block', mt: 2, py: 1 }}>
               {t('app.verify.goHome')}
             </Box>
@@ -717,450 +762,481 @@ export const VerifyPage: React.FC = () => {
             </Box>
           </Paper>
         ) : (
-          <Paper sx={{ p: { xs: 3, md: 4 }, position: 'relative' }} data-specimen-sheet="">
-            {/* Stamped only when this page found the batch root's anchor on Midnight itself
+          <>
+            {verdict && (
+              <CheckVerdict tone={verdict.tone}>
+                {t(verdict.key, {
+                  date: verdict.date !== undefined ? tr.date(verdict.date, VERDICT_DATE) : '',
+                })}
+              </CheckVerdict>
+            )}
+            <DatedNotOrigin />
+            <Paper sx={{ p: { xs: 3, md: 4 }, position: 'relative' }} data-specimen-sheet="">
+              {/* Stamped only when this page found the batch root's anchor on Midnight itself
                 (anchorCheckedOnChain): gold DATED on the main network, a dashed PRACTICE
                 stamp on a test network. */}
-            {seal && sealedAt !== undefined && (
-              <DatedStamp
-                state={testSeal ? 'practice' : 'dated'}
-                word={testSeal ? t('app.plant.stamp.practice') : t('app.plant.stamp.dated')}
-                date={tr.date(sealedAt, { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' })}
-                pressKey={`check:${result.id ?? ''}`}
-                size={{ xs: 72, sm: 88 }}
-                sx={{ position: 'absolute', top: { xs: -24, sm: -30 }, right: { xs: 12, sm: 20 } }}
-              />
-            )}
-            <Stack
-              direction="row"
-              spacing={1.5}
-              sx={{ alignItems: 'center', mb: 2, pr: seal && sealedAt !== undefined ? { xs: 7, sm: 9 } : 0 }}
-            >
-              {/* The mark: an ink tick on gold once dated on the main network, amber on a test
-                  network, grey until then; the lines below still tick what this browser did check. */}
-              <VerifiedIcon
-                aria-hidden="true"
-                data-checked={seal ? 'yes' : 'no'}
-                data-test-network={testSeal ? 'yes' : 'no'}
-                sx={{
-                  color: seal ? sealColor : 'text.disabled',
-                  fontSize: 30,
-                  ...(seal && !testSeal ? { bgcolor: POLLEN, borderRadius: '50%', p: 0.375, fontSize: 34 } : {}),
-                }}
-              />
-              <Box>
-                <Typography
-                  variant="h6"
-                  component="h1"
-                  sx={{ color: seal ? sealColor : 'text.primary', lineHeight: 1.4, display: 'block' }}
-                >
-                  {anchorHeading(
-                    verifyHeading(
-                      {
-                        sealed: !!result.recordFingerprint,
-                        bound,
-                        proof: proof === 'checking' ? 'checking' : proof.status,
-                      },
-                      tr,
-                    ),
-                    anchor,
-                    bound,
-                    reportedNetwork ?? NETWORK,
-                    tr,
-                  )}
-                </Typography>
-              </Box>
-            </Stack>
-
-            {/* The date first, in one line, and whose word it is (persona review, 17 Oct). */}
-            {result.recordFingerprint &&
-              proof !== 'checking' &&
-              proof.status === 'anchor-reported' &&
-              anchor !== 'checking' &&
-              anchor?.status !== 'failed' &&
-              (anchorCheckedOnChain && anchor?.status === 'checked' ? anchor.blockTime : reportedAt) !== undefined && (
-                <DateSummary
-                  at={(anchorCheckedOnChain && anchor?.status === 'checked' ? anchor.blockTime : reportedAt) ?? ''}
-                  checked={anchorCheckedOnChain && anchor?.status === 'checked'}
-                  network={reportedNetwork ?? NETWORK}
-                  anchor={proof.proof.anchor ?? {}}
-                  root={proof.proof.root}
+              {seal && sealedAt !== undefined && (
+                <DatedStamp
+                  state={testSeal ? 'practice' : 'dated'}
+                  word={testSeal ? t('app.plant.stamp.practice') : t('app.plant.stamp.dated')}
+                  date={tr.date(sealedAt, { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' })}
+                  pressKey={`check:${result.id ?? ''}`}
+                  size={{ xs: 72, sm: 88 }}
+                  sx={{ position: 'absolute', top: { xs: -24, sm: -30 }, right: { xs: 12, sm: 20 } }}
                 />
               )}
+              <Stack
+                direction="row"
+                spacing={1.5}
+                sx={{ alignItems: 'center', mb: 2, pr: seal && sealedAt !== undefined ? { xs: 7, sm: 9 } : 0 }}
+              >
+                {/* The mark: an ink tick on gold once dated on the main network, amber on a test
+                  network, grey until then; the lines below still tick what this browser did check. */}
+                <VerifiedIcon
+                  aria-hidden="true"
+                  data-checked={seal ? 'yes' : 'no'}
+                  data-test-network={testSeal ? 'yes' : 'no'}
+                  sx={{
+                    color: seal ? sealColor : 'text.disabled',
+                    fontSize: 30,
+                    ...(seal && !testSeal ? { bgcolor: POLLEN, borderRadius: '50%', p: 0.375, fontSize: 34 } : {}),
+                  }}
+                />
+                <Box>
+                  <Typography
+                    variant="h6"
+                    component="h1"
+                    sx={{ color: seal ? sealColor : 'text.primary', lineHeight: 1.4, display: 'block' }}
+                  >
+                    {anchorHeading(
+                      verifyHeading(
+                        {
+                          sealed: !!result.recordFingerprint,
+                          bound,
+                          proof: proof === 'checking' ? 'checking' : proof.status,
+                        },
+                        tr,
+                      ),
+                      anchor,
+                      bound,
+                      reportedNetwork ?? NETWORK,
+                      tr,
+                    )}
+                  </Typography>
+                </Box>
+              </Stack>
 
-            {/* What each fact rests on, from what this page already worked out
-                (who-vouches.ts): checked here, signed by a lab, the registry's report, or the
-                holder's own words. */}
-            {result.recordFingerprint && proof !== 'checking' && atts !== null && (
-              <WhoVouches
-                rows={whoVouches(
-                  {
-                    bound,
-                    proof: proof.status,
-                    anchorConfirmed: anchorCheckedOnChain && anchor !== 'checking' && anchor?.status === 'checked',
-                    anchorFailed: anchorCheckFailed(anchor),
-                    words:
-                      nameCheck.state === 'matches'
-                        ? 'matches'
-                        : nameCheck.state === 'differs'
-                          ? 'differs'
-                          : 'unchecked',
-                    testNetwork: isTestNetwork(reportedNetwork ?? NETWORK),
-                    signers: signed.map((a) => {
-                      const label = signerLabel(a, 'Signed by', undefined, tr);
-                      return {
-                        kind: signatureKind(a, tr),
-                        who: label.who,
-                        nameChecked: label.checked,
-                        withdrawn: label.published?.state === 'withdrawn',
-                      };
-                    }),
-                    max: SIGNATURE_LINES,
-                  },
-                  tr,
-                )}
-              />
-            )}
-
-            {/* The holder's own words, labelled as such: never a heading next to the mark,
+              {/* The holder's own words, labelled as such: never a heading next to the mark,
                 cleaned of symbols and control characters, and capped (display-name.ts). */}
-            {name && nameCheck.state === 'differs' ? (
-              // Not the record's name: said first, and never shown as the holder's.
-              <Alert
-                severity="error"
-                variant="outlined"
-                sx={{ mb: RECORD_ID.test(result.id ?? '') ? 0.5 : 2, overflowWrap: 'anywhere' }}
-                data-name-check="differs"
-              >
-                {t('app.verify.nameDiffers', { name })}
-              </Alert>
-            ) : name && nameCheck.state !== 'none' ? (
-              <Box sx={{ mb: RECORD_ID.test(result.id ?? '') ? 0.5 : 2 }}>
-                <Typography
-                  variant="body1"
-                  sx={{ overflowWrap: 'anywhere' }}
-                  data-holder-name=""
-                  data-name-check={nameCheck.state}
-                  data-name-from={nameCheck.state === 'published' ? 'registry' : 'link'}
+              {name && nameCheck.state === 'differs' ? (
+                // Not the record's name: said first, and never shown as the holder's.
+                <Alert
+                  severity="error"
+                  variant="outlined"
+                  sx={{ mb: RECORD_ID.test(result.id ?? '') ? 0.5 : 2, overflowWrap: 'anywhere' }}
+                  data-name-check="differs"
                 >
-                  <Box component="span" sx={{ color: 'text.secondary' }}>
-                    {nameCheck.state === 'published'
-                      ? t('app.verify.namePublished')
-                      : nameCheck.state === 'matches'
-                        ? t('app.verify.nameMatches')
-                        : t('app.verify.nameUnchecked')}
-                  </Box>
-                  {name}
-                </Typography>
-                {nameCheck.state === 'published' && nameCheck.conflict && (
-                  <Alert severity="warning" variant="outlined" sx={{ mt: 1 }} data-name-conflict="">
-                    {t('app.verify.nameConflict', { name: displayName(nameCheck.conflict) ?? '' })}
-                  </Alert>
-                )}
-              </Box>
-            ) : (
-              <Typography
-                variant="body2"
-                color="text.secondary"
-                sx={{ mb: RECORD_ID.test(result.id ?? '') ? 0.5 : 2 }}
-                data-no-name=""
-              >
-                {t('app.verify.noNameInLink')}
-              </Typography>
-            )}
-            {RECORD_ID.test(result.id ?? '') && (
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 2, overflowWrap: 'anywhere' }}>
-                {t('app.verify.recordId', { id: result.id ?? '' })}
-              </Typography>
-            )}
-
-            <Divider sx={{ mb: 2 }} />
-
-            <Stack spacing={1.25}>
-              {/* Signers' names: said once, in the key (persona review, 17 Oct). */}
-              <FactKey anyName={signed.some((a) => !signerLabel(a, 'Signed by', undefined, tr).checked)} />
-              {!result.recordFingerprint ? (
-                <Fact ok={false}>{t('app.verify.noCommitment')}</Fact>
-              ) : bound ? (
-                <Fact ok={false}>
-                  {t('app.verify.boundFact', {
-                    fp: shortFingerprint(result.recordFingerprint),
-                    firstSeen: result.registryFirstSeen
-                      ? t('app.verify.firstStored', { date: fmt(result.registryFirstSeen) })
-                      : '',
-                  })}
-                </Fact>
+                  {t('app.verify.nameDiffers', { name })}
+                </Alert>
+              ) : name && nameCheck.state !== 'none' ? (
+                <Box sx={{ mb: RECORD_ID.test(result.id ?? '') ? 0.5 : 2 }}>
+                  <Typography
+                    variant="body1"
+                    sx={{ overflowWrap: 'anywhere' }}
+                    data-holder-name=""
+                    data-name-check={nameCheck.state}
+                    data-name-from={nameCheck.state === 'published' ? 'registry' : 'link'}
+                  >
+                    <Box component="span" sx={{ color: 'text.secondary' }}>
+                      {nameCheck.state === 'published'
+                        ? t('app.verify.namePublished')
+                        : nameCheck.state === 'matches'
+                          ? t('app.verify.nameMatches')
+                          : t('app.verify.nameUnchecked')}
+                    </Box>
+                    {name}
+                  </Typography>
+                  {nameCheck.state === 'published' && nameCheck.conflict && (
+                    <Alert severity="warning" variant="outlined" sx={{ mt: 1 }} data-name-conflict="">
+                      {t('app.verify.nameConflict', { name: displayName(nameCheck.conflict) ?? '' })}
+                    </Alert>
+                  )}
+                </Box>
               ) : (
-                <>
-                  <Fact ok={false}>
-                    {t('app.verify.unboundFact', {
-                      fp: shortFingerprint(result.recordFingerprint),
-                      firstSeen: result.registryFirstSeen
-                        ? t('app.verify.firstStored', { date: fmt(result.registryFirstSeen) })
-                        : '',
-                    })}
-                  </Fact>
-                  <Fact ok={false}>{t('app.verify.noFpInLink')}</Fact>
-                </>
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{ mb: RECORD_ID.test(result.id ?? '') ? 0.5 : 2 }}
+                  data-no-name=""
+                >
+                  {t('app.verify.noNameInLink')}
+                </Typography>
+              )}
+              {RECORD_ID.test(result.id ?? '') && (
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 2, overflowWrap: 'anywhere' }}>
+                  {t('app.verify.recordId', { id: result.id ?? '' })}
+                </Typography>
               )}
 
-              {result.recordFingerprint &&
-                (proof === 'checking' ? null : proof.status === 'none' ? (
-                  <Fact ok={false}>{t('app.verify.noStampYet')}</Fact>
-                ) : (
-                  <>
-                    {bound ? (
-                      <Fact>
-                        {t('app.verify.batchBound', {
-                          batch: proof.proof.batchId,
-                          root: proof.proof.root.slice(0, 16),
-                        })}
-                      </Fact>
-                    ) : (
-                      <Fact ok={false}>
-                        {t('app.verify.batchUnbound', {
-                          forWhom,
-                          batch: proof.proof.batchId,
-                          root: proof.proof.root.slice(0, 16),
-                        })}
-                      </Fact>
-                    )}
-                    {proof.status === 'anchor-reported' ? (
+              <Divider sx={{ mb: 2 }} />
+
+              {/* What the holder shared, as the registry reports it, stays in view. The checks behind the
+                answer at the top are folded under "See the checks" (easy-mode review, 19 Nov): every
+                line the page showed before is there, and the fold opens by itself when a check failed
+                or the link can't be checked against its own proof code. */}
+              <Stack spacing={1.25}>
+                <Typography variant="overline" color="text.secondary" sx={{ display: 'block' }}>
+                  {t('app.verify.sharedTitle')}
+                </Typography>
+                <SharedFacts
+                  data={{
+                    disclosed: sharedOf(result),
+                    anchored: result.anchored,
+                    priorPossession: result.priorPossession,
+                    anchorNetwork: reportedNetwork,
+                    anchorCheckedOnChain,
+                    dnaPairedByHolder: result.dnaPairedByHolder,
+                    lineageIntact: result.lineageIntact,
+                    sealedAt: result.sealedAt ?? result.loggedAtClaimedByHolder ?? undefined,
+                    registryFirstSeen: result.registryFirstSeen,
+                    parents: result.parents,
+                    breedingMethod: result.breedingMethod,
+                    name: result.cultivar ?? undefined,
+                    nameInLink: nameCheck.state !== 'none' && nameCheck.state !== 'published',
+                    bredBy: result.bredBy,
+                    ...(result.subjectKind === 'animal'
+                      ? {
+                          subjectKind: 'animal',
+                          ...(result.sire ? { sire: result.sire } : {}),
+                          ...(result.dam ? { dam: result.dam } : {}),
+                          ...(result.individualId !== undefined ? { individualId: result.individualId } : {}),
+                          ...(result.idScheme !== undefined ? { idScheme: result.idScheme } : {}),
+                        }
+                      : result.subjectKind === 'strain'
+                        ? { subjectKind: 'strain', parentStrains: parentStrainsOf(result.parentStrains) }
+                        : {}),
+                    labReport,
+                  }}
+                />
+
+                {/* Round 5: the saved DNA report is checked here with the file the holder sent,
+                  using the pairing salt in their link; nothing leaves this browser. */}
+                {sharedOf(result).includes('dna') && result.dnaPairBinding && (
+                  <Box data-dna-check={linkDna ? 'ready' : 'no-salt'} sx={{ pl: 3.25 }}>
+                    {linkDna ? (
                       <>
-                        {/* What the registry claims, until this browser has confirmed it. */}
-                        {!anchorCheckedOnChain && (
-                          <Fact ok={false}>
-                            {t('app.verify.rootReported', {
-                              network: networkWords(reportedNetwork ?? NETWORK, tr),
-                              tx: proof.proof.anchor?.txHash
-                                ? t('app.verify.anchor.inTx', { tx: proof.proof.anchor.txHash })
-                                : '',
-                              date: registryDateWords(reportedAt, tr),
-                              notLooked: anchorLooked ? '' : t('app.verify.notLooked'),
-                              test: isTestNetwork(reportedNetwork ?? NETWORK) ? t('app.plant.date.testNote') : '',
-                            })}
-                          </Fact>
+                        <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+                          {t('app.verify.dnaCheck.help')}
+                        </Typography>
+                        <Button variant="outlined" component="label" size="small" sx={{ minHeight: 44 }}>
+                          {t('app.verify.dnaCheck.button')}
+                          <input
+                            hidden
+                            type="file"
+                            data-dna-file=""
+                            onChange={(e) => void chooseFile(e.target.files?.[0])}
+                          />
+                        </Button>
+                        {chosenFile === 'reading' && (
+                          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
+                            {t('app.verify.dnaCheck.reading')}
+                          </Typography>
                         )}
-                        {anchorText && (
-                          <Box data-anchor-check={anchor === 'checking' ? 'checking' : anchor?.status}>
-                            <Fact status={anchorText.status}>
-                              {anchor === 'checking' ? '' : forWhom}
-                              {anchorText.text}
-                            </Fact>
-                          </Box>
+                        {chosenFile === 'too-big' && (
+                          <Typography variant="caption" color="error.main" sx={{ display: 'block', mt: 0.5 }}>
+                            {t('app.verify.dnaCheck.tooBig')}
+                          </Typography>
+                        )}
+                        {chosenFile && typeof chosenFile === 'object' && (
+                          <Typography
+                            variant="caption"
+                            sx={{
+                              display: 'block',
+                              mt: 0.5,
+                              color: chosenResult === 'matches' ? 'text.primary' : 'error.main',
+                            }}
+                            data-dna-file-result={chosenResult ?? ''}
+                          >
+                            {chosenResult === 'matches'
+                              ? t('app.verify.dnaCheck.matches', { file: displayName(chosenFile.name) })
+                              : t('app.verify.dnaCheck.differs', { file: displayName(chosenFile.name) })}
+                          </Typography>
                         )}
                       </>
                     ) : (
-                      <Fact ok={false}>{t('app.verify.batchNoStamp')}</Fact>
+                      <Typography variant="caption" color="text.secondary">
+                        {t('app.verify.dnaCheck.noSalt')}
+                      </Typography>
                     )}
-                  </>
-                ))}
+                  </Box>
+                )}
+                {result.notGranted && result.notGranted.length > 0 && (
+                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                    {t('app.verify.notGranted', { list: labelsOf(result.notGranted, tr) })}
+                  </Typography>
+                )}
+                {result.unavailable && result.unavailable.length > 0 && (
+                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                    {t('app.verify.unavailable', { list: result.unavailable.join(', ') })}
+                  </Typography>
+                )}
+              </Stack>
 
-              {/* Base data: shown whatever the holder shared. Signatures are checked here;
+              <Divider sx={{ my: 2 }} />
+              <SeeTheChecks open={checksOpen} onToggle={() => setChecksOpen((v) => !v)} controls="verify-checks" />
+              <Collapse in={checksOpen} id="verify-checks" data-checks={checksOpen ? 'open' : 'closed'}>
+                <Box sx={{ pt: 2 }}>
+                  {/* The date first, in one line, and whose word it is (persona review, 17 Oct). */}
+                  {result.recordFingerprint &&
+                    proof !== 'checking' &&
+                    proof.status === 'anchor-reported' &&
+                    anchor !== 'checking' &&
+                    anchor?.status !== 'failed' &&
+                    (anchorCheckedOnChain && anchor?.status === 'checked' ? anchor.blockTime : reportedAt) !==
+                      undefined && (
+                      <DateSummary
+                        at={
+                          (anchorCheckedOnChain && anchor?.status === 'checked' ? anchor.blockTime : reportedAt) ?? ''
+                        }
+                        checked={anchorCheckedOnChain && anchor?.status === 'checked'}
+                        network={reportedNetwork ?? NETWORK}
+                        anchor={proof.proof.anchor ?? {}}
+                        root={proof.proof.root}
+                      />
+                    )}
+
+                  {/* What each fact rests on, from what this page already worked out
+                (who-vouches.ts): checked here, signed by a lab, the registry's report, or the
+                holder's own words. */}
+                  {result.recordFingerprint && proof !== 'checking' && atts !== null && (
+                    <WhoVouches
+                      rows={whoVouches(
+                        {
+                          bound,
+                          proof: proof.status,
+                          anchorConfirmed:
+                            anchorCheckedOnChain && anchor !== 'checking' && anchor?.status === 'checked',
+                          anchorFailed: anchorCheckFailed(anchor),
+                          words:
+                            nameCheck.state === 'matches'
+                              ? 'matches'
+                              : nameCheck.state === 'differs'
+                                ? 'differs'
+                                : 'unchecked',
+                          testNetwork: isTestNetwork(reportedNetwork ?? NETWORK),
+                          signers: signed.map((a) => {
+                            const label = signerLabel(a, 'Signed by', undefined, tr);
+                            return {
+                              kind: signatureKind(a, tr),
+                              who: label.who,
+                              nameChecked: label.checked,
+                              withdrawn: label.published?.state === 'withdrawn',
+                            };
+                          }),
+                          max: SIGNATURE_LINES,
+                        },
+                        tr,
+                      )}
+                    />
+                  )}
+
+                  <Stack spacing={1.25}>
+                    {/* Signers' names: said once, in the key (persona review, 17 Oct). */}
+                    <FactKey anyName={signed.some((a) => !signerLabel(a, 'Signed by', undefined, tr).checked)} />
+                    {!result.recordFingerprint ? (
+                      <Fact ok={false}>{t('app.verify.noCommitment')}</Fact>
+                    ) : bound ? (
+                      <Fact ok={false}>
+                        {t('app.verify.boundFact', {
+                          fp: shortFingerprint(result.recordFingerprint),
+                          firstSeen: result.registryFirstSeen
+                            ? t('app.verify.firstStored', { date: fmt(result.registryFirstSeen) })
+                            : '',
+                        })}
+                      </Fact>
+                    ) : (
+                      <>
+                        <Fact ok={false}>
+                          {t('app.verify.unboundFact', {
+                            fp: shortFingerprint(result.recordFingerprint),
+                            firstSeen: result.registryFirstSeen
+                              ? t('app.verify.firstStored', { date: fmt(result.registryFirstSeen) })
+                              : '',
+                          })}
+                        </Fact>
+                        <Fact ok={false}>{t('app.verify.noFpInLink')}</Fact>
+                      </>
+                    )}
+
+                    {result.recordFingerprint &&
+                      (proof === 'checking' ? null : proof.status === 'none' ? (
+                        <Fact ok={false}>{t('app.verify.noStampYet')}</Fact>
+                      ) : (
+                        <>
+                          {bound ? (
+                            <Fact>
+                              {t('app.verify.batchBound', {
+                                batch: proof.proof.batchId,
+                                root: proof.proof.root.slice(0, 16),
+                              })}
+                            </Fact>
+                          ) : (
+                            <Fact ok={false}>
+                              {t('app.verify.batchUnbound', {
+                                forWhom,
+                                batch: proof.proof.batchId,
+                                root: proof.proof.root.slice(0, 16),
+                              })}
+                            </Fact>
+                          )}
+                          {proof.status === 'anchor-reported' ? (
+                            <>
+                              {/* What the registry claims, until this browser has confirmed it. */}
+                              {!anchorCheckedOnChain && (
+                                <Fact ok={false}>
+                                  {t('app.verify.rootReported', {
+                                    network: networkWords(reportedNetwork ?? NETWORK, tr),
+                                    tx: proof.proof.anchor?.txHash
+                                      ? t('app.verify.anchor.inTx', { tx: proof.proof.anchor.txHash })
+                                      : '',
+                                    date: registryDateWords(reportedAt, tr),
+                                    notLooked: anchorLooked ? '' : t('app.verify.notLooked'),
+                                    test: isTestNetwork(reportedNetwork ?? NETWORK) ? t('app.plant.date.testNote') : '',
+                                  })}
+                                </Fact>
+                              )}
+                              {anchorText && (
+                                <Box data-anchor-check={anchor === 'checking' ? 'checking' : anchor?.status}>
+                                  <Fact status={anchorText.status}>
+                                    {anchor === 'checking' ? '' : forWhom}
+                                    {anchorText.text}
+                                  </Fact>
+                                </Box>
+                              )}
+                            </>
+                          ) : (
+                            <Fact ok={false}>{t('app.verify.batchNoStamp')}</Fact>
+                          )}
+                        </>
+                      ))}
+
+                    {/* Base data: shown whatever the holder shared. Signatures are checked here;
                   who holds a key is the registry operator's word. Ticked only against the
                   link's own fingerprint. One line per signature, saying what it is. */}
-              {result.recordFingerprint && atts !== null && (
-                <>
-                  {signed.slice(0, SIGNATURE_LINES).map((a) => {
-                    const label = signerLabel(a, 'Signed by', undefined, tr);
-                    return (
-                      <Fact key={a.attestationId} status={bound ? 'checked' : 'reported'}>
-                        {t('app.verify.sigLine', { forWhom, kind: signatureKind(a, tr), lead: label.lead })}
-                        <NameCheckText label={label} />
-                        {a.type === 'chain-of-custody' && publicCustody.has(a.attestationId) && (
-                          <Box component="span" sx={{ display: 'block', mt: 0.5 }} data-public-custody="">
-                            <Box component="span" sx={{ display: 'block', color: 'text.secondary' }}>
-                              {t('app.verify.sampleDetails')}
-                            </Box>
-                            {publicCustodyLines(publicCustody.get(a.attestationId), tr).map((l) => (
-                              <Box component="span" key={l} sx={{ display: 'block' }} data-custody-line="">
-                                {l}
-                              </Box>
-                            ))}
-                          </Box>
-                        )}
-                      </Fact>
-                    );
-                  })}
-                  {unnamedCustody.map((c, i) => (
-                    <Fact key={`unnamed-${String(i)}`} status="reported">
-                      <Box component="span" data-unnamed-custody="">
-                        {t('app.verify.unnamedReceipt')}
-                      </Box>
-                      <Box component="span" sx={{ display: 'block', mt: 0.5 }} data-public-custody="">
-                        <Box component="span" sx={{ display: 'block', color: 'text.secondary' }}>
-                          {t('app.verify.sampleDetails')}
-                        </Box>
-                        {publicCustodyLines(c, tr).map((l) => (
-                          <Box component="span" key={l} sx={{ display: 'block' }} data-custody-line="">
-                            {l}
-                          </Box>
-                        ))}
-                      </Box>
-                    </Fact>
-                  ))}
-                  {signed.length > SIGNATURE_LINES && (
-                    <Fact status={bound ? 'checked' : 'reported'}>
-                      {t('app.verify.moreSigs', { forWhom, n: signed.length - SIGNATURE_LINES })}
-                    </Fact>
-                  )}
-                  {withheld.length > 0 && (
-                    <Fact ok={false}>
-                      <Box component="span" data-withheld-reports={String(withheld.length)}>
-                        {tp('app.verify.withheldReports', withheld.length, {
-                          dates: withheld
-                            .map((a) => `${a.issuedAt.slice(0, 10)} (UTC)`)
-                            .join(t('app.verify.sum.comma')),
+                    {result.recordFingerprint && atts !== null && (
+                      <>
+                        {signed.slice(0, SIGNATURE_LINES).map((a) => {
+                          const label = signerLabel(a, 'Signed by', undefined, tr);
+                          return (
+                            <Fact key={a.attestationId} status={bound ? 'checked' : 'reported'}>
+                              {t('app.verify.sigLine', { forWhom, kind: signatureKind(a, tr), lead: label.lead })}
+                              <NameCheckText label={label} />
+                              {a.type === 'chain-of-custody' && publicCustody.has(a.attestationId) && (
+                                <Box component="span" sx={{ display: 'block', mt: 0.5 }} data-public-custody="">
+                                  <Box component="span" sx={{ display: 'block', color: 'text.secondary' }}>
+                                    {t('app.verify.sampleDetails')}
+                                  </Box>
+                                  {publicCustodyLines(publicCustody.get(a.attestationId), tr).map((l) => (
+                                    <Box component="span" key={l} sx={{ display: 'block' }} data-custody-line="">
+                                      {l}
+                                    </Box>
+                                  ))}
+                                </Box>
+                              )}
+                            </Fact>
+                          );
                         })}
-                      </Box>
-                    </Fact>
-                  )}
-                  {signed.length === 0 &&
-                    withheld.length === 0 &&
-                    (result.signedAttestation === true ||
-                    result.attestedByVettedLab === true ||
-                    result.attested === true ? (
-                      <Fact status="failed">{t('app.verify.noneVerified')}</Fact>
-                    ) : (
-                      // The registry keeps lab signatures private unless the holder shows them
-                      // (8 Nov 2026): "none shown", never "none signed".
-                      <Fact ok={false}>
-                        <Box component="span" data-none-shown="">
-                          {t('app.verify.noneSigned')}
-                        </Box>
-                      </Fact>
-                    ))}
-                  {withdrawnLine && <Fact ok={false}>{withdrawnLine}</Fact>}
-                  {badSigs > 0 && <Fact status="failed">{tp('app.verify.badSigs', badSigs)}</Fact>}
-                </>
-              )}
+                        {unnamedCustody.map((c, i) => (
+                          <Fact key={`unnamed-${String(i)}`} status="reported">
+                            <Box component="span" data-unnamed-custody="">
+                              {t('app.verify.unnamedReceipt')}
+                            </Box>
+                            <Box component="span" sx={{ display: 'block', mt: 0.5 }} data-public-custody="">
+                              <Box component="span" sx={{ display: 'block', color: 'text.secondary' }}>
+                                {t('app.verify.sampleDetails')}
+                              </Box>
+                              {publicCustodyLines(c, tr).map((l) => (
+                                <Box component="span" key={l} sx={{ display: 'block' }} data-custody-line="">
+                                  {l}
+                                </Box>
+                              ))}
+                            </Box>
+                          </Fact>
+                        ))}
+                        {signed.length > SIGNATURE_LINES && (
+                          <Fact status={bound ? 'checked' : 'reported'}>
+                            {t('app.verify.moreSigs', { forWhom, n: signed.length - SIGNATURE_LINES })}
+                          </Fact>
+                        )}
+                        {withheld.length > 0 && (
+                          <Fact ok={false}>
+                            <Box component="span" data-withheld-reports={String(withheld.length)}>
+                              {tp('app.verify.withheldReports', withheld.length, {
+                                dates: withheld
+                                  .map((a) => `${a.issuedAt.slice(0, 10)} (UTC)`)
+                                  .join(t('app.verify.sum.comma')),
+                              })}
+                            </Box>
+                          </Fact>
+                        )}
+                        {signed.length === 0 &&
+                          withheld.length === 0 &&
+                          (result.signedAttestation === true ||
+                          result.attestedByVettedLab === true ||
+                          result.attested === true ? (
+                            <Fact status="failed">{t('app.verify.noneVerified')}</Fact>
+                          ) : (
+                            // The registry keeps lab signatures private unless the holder shows them
+                            // (8 Nov 2026): "none shown", never "none signed".
+                            <Fact ok={false}>
+                              <Box component="span" data-none-shown="">
+                                {t('app.verify.noneSigned')}
+                              </Box>
+                            </Fact>
+                          ))}
+                        {withdrawnLine && <Fact ok={false}>{withdrawnLine}</Fact>}
+                        {badSigs > 0 && <Fact status="failed">{tp('app.verify.badSigs', badSigs)}</Fact>}
+                      </>
+                    )}
+                  </Stack>
 
-              <Divider sx={{ my: 0.5 }} />
-              <Typography variant="overline" color="text.secondary" sx={{ display: 'block' }}>
-                {t('app.verify.sharedTitle')}
-              </Typography>
-              <SharedFacts
-                data={{
-                  disclosed: sharedOf(result),
-                  anchored: result.anchored,
-                  priorPossession: result.priorPossession,
-                  anchorNetwork: reportedNetwork,
-                  anchorCheckedOnChain,
-                  dnaPairedByHolder: result.dnaPairedByHolder,
-                  lineageIntact: result.lineageIntact,
-                  sealedAt: result.sealedAt ?? result.loggedAtClaimedByHolder ?? undefined,
-                  registryFirstSeen: result.registryFirstSeen,
-                  parents: result.parents,
-                  breedingMethod: result.breedingMethod,
-                  name: result.cultivar ?? undefined,
-                  nameInLink: nameCheck.state !== 'none' && nameCheck.state !== 'published',
-                  bredBy: result.bredBy,
-                  ...(result.subjectKind === 'animal'
-                    ? {
-                        subjectKind: 'animal',
-                        ...(result.sire ? { sire: result.sire } : {}),
-                        ...(result.dam ? { dam: result.dam } : {}),
-                        ...(result.individualId !== undefined ? { individualId: result.individualId } : {}),
-                        ...(result.idScheme !== undefined ? { idScheme: result.idScheme } : {}),
-                      }
-                    : result.subjectKind === 'strain'
-                      ? { subjectKind: 'strain', parentStrains: parentStrainsOf(result.parentStrains) }
-                      : {}),
-                  labReport,
-                }}
-              />
+                  <Divider sx={{ my: 2 }} />
+                  <Typography variant="caption" color="text.secondary">
+                    {t('app.verify.footer', { fp: shortFingerprint(result.recordFingerprint ?? '') })}
+                  </Typography>
 
-              {/* Round 5: the saved DNA report is checked here with the file the holder sent,
-                  using the pairing salt in their link; nothing leaves this browser. */}
-              {sharedOf(result).includes('dna') && result.dnaPairBinding && (
-                <Box data-dna-check={linkDna ? 'ready' : 'no-salt'} sx={{ pl: 3.25 }}>
-                  {linkDna ? (
-                    <>
-                      <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
-                        {t('app.verify.dnaCheck.help')}
-                      </Typography>
-                      <Button variant="outlined" component="label" size="small" sx={{ minHeight: 44 }}>
-                        {t('app.verify.dnaCheck.button')}
-                        <input
-                          hidden
-                          type="file"
-                          data-dna-file=""
-                          onChange={(e) => void chooseFile(e.target.files?.[0])}
-                        />
-                      </Button>
-                      {chosenFile === 'reading' && (
-                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
-                          {t('app.verify.dnaCheck.reading')}
-                        </Typography>
+                  <Box sx={{ mt: 2, textAlign: 'right' }}>
+                    <Chip
+                      size="small"
+                      variant="outlined"
+                      data-ticked={ticked ? 'yes' : 'no'}
+                      data-anchor-checked={anchorCheckedOnChain ? 'yes' : 'no'}
+                      label={anchorSummary(
+                        checkedSummary(
+                          {
+                            bound,
+                            proofChecked: proof !== 'checking' && proof.status !== 'none',
+                            signaturesChecked: signed.length,
+                            signatureKinds: signed.map((a) => signatureKind(a)),
+                          },
+                          tr,
+                        ),
+                        anchor,
+                        tr,
                       )}
-                      {chosenFile === 'too-big' && (
-                        <Typography variant="caption" color="error.main" sx={{ display: 'block', mt: 0.5 }}>
-                          {t('app.verify.dnaCheck.tooBig')}
-                        </Typography>
-                      )}
-                      {chosenFile && typeof chosenFile === 'object' && (
-                        <Typography
-                          variant="caption"
-                          sx={{
-                            display: 'block',
-                            mt: 0.5,
-                            color: chosenResult === 'matches' ? 'text.primary' : 'error.main',
-                          }}
-                          data-dna-file-result={chosenResult ?? ''}
-                        >
-                          {chosenResult === 'matches'
-                            ? t('app.verify.dnaCheck.matches', { file: displayName(chosenFile.name) })
-                            : t('app.verify.dnaCheck.differs', { file: displayName(chosenFile.name) })}
-                        </Typography>
-                      )}
-                    </>
-                  ) : (
-                    <Typography variant="caption" color="text.secondary">
-                      {t('app.verify.dnaCheck.noSalt')}
-                    </Typography>
-                  )}
+                      sx={{ height: 'auto', '& .MuiChip-label': { whiteSpace: 'normal', py: 0.5 } }}
+                    />
+                  </Box>
                 </Box>
-              )}
-              {result.notGranted && result.notGranted.length > 0 && (
-                <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
-                  {t('app.verify.notGranted', { list: labelsOf(result.notGranted, tr) })}
-                </Typography>
-              )}
-              {result.unavailable && result.unavailable.length > 0 && (
-                <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
-                  {t('app.verify.unavailable', { list: result.unavailable.join(', ') })}
-                </Typography>
-              )}
-            </Stack>
-
-            <Divider sx={{ my: 2 }} />
-            <Typography variant="caption" color="text.secondary">
-              {t('app.verify.footer', { fp: shortFingerprint(result.recordFingerprint ?? '') })}
-            </Typography>
-
-            <Box sx={{ mt: 2, textAlign: 'right' }}>
-              <Chip
-                size="small"
-                variant="outlined"
-                data-ticked={ticked ? 'yes' : 'no'}
-                data-anchor-checked={anchorCheckedOnChain ? 'yes' : 'no'}
-                label={anchorSummary(
-                  checkedSummary(
-                    {
-                      bound,
-                      proofChecked: proof !== 'checking' && proof.status !== 'none',
-                      signaturesChecked: signed.length,
-                      signatureKinds: signed.map((a) => signatureKind(a)),
-                    },
-                    tr,
-                  ),
-                  anchor,
-                  tr,
-                )}
-                sx={{ height: 'auto', '& .MuiChip-label': { whiteSpace: 'normal', py: 0.5 } }}
-              />
-            </Box>
-          </Paper>
+              </Collapse>
+            </Paper>
+          </>
+        )}
+        {/* What a date doesn't show, said under a record that can't be shown too. */}
+        {!loading && !(result?.found && binding.kind !== 'mismatch') && (
+          <Box sx={{ mt: 3 }}>
+            <DatedNotOrigin center />
+          </Box>
         )}
         {/* Real-chain builds: the holder's link may name the record's on-chain identity
             (#chain=…&anchorTx=…, in the fragment since round 4), and for a record that names
@@ -1190,6 +1266,21 @@ export const VerifyPage: React.FC = () => {
         {REAL_CHAIN && AGREEMENTS_ON_CHAIN && result?.found && linked('chain') && (
           <LendHere identity={linked('chain') ?? ''} recordId={id} />
         )}
+        {/* One line for a stranger who arrived from a QR code or a shared link: what this page is. */}
+        <Typography
+          variant="body2"
+          color="text.secondary"
+          sx={{ textAlign: 'center', mt: 4, maxWidth: 460, mx: 'auto' }}
+        >
+          {rich(t('app.verify.intro'), {
+            link: (c) => (
+              <Box component={RouterLink} to="/" sx={{ ...LINK_SX, whiteSpace: 'nowrap' }}>
+                {c}
+              </Box>
+            ),
+          })}
+        </Typography>
+        {!loading && <MakeYourOwn />}
       </Container>
     </Box>
   );

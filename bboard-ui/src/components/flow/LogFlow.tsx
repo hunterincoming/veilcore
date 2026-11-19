@@ -957,12 +957,11 @@ const Review: React.FC<{
           {originApplies(draft) && <OriginReviewLine origin={draft.origin} onChange={onChangeOrigin} />}
         </Box>
       )}
-      {/* Fresh-eyes review, 12 Nov: "Seal it" sat about 1,800px down on a phone, under the lock
-          warning, where the details are stored and the whole receipt. Now one plain line, with
-          the lock warning and where the details are stored folded under "What can't change, and
-          where it's stored" (it was "See exactly what's sealed", which is the receipt's job: re-review,
-          13 Nov). The receipt stays in view just before the button, as docs/ask-veilcore.md
-          requires (review of ux-polish, 13 Nov), set compactly. */}
+      {/* Easy-mode review, 19 Nov: a first-time user met eight bullets of protocol here before the
+          button. Now two plain sentences (above and here), and one "What gets published?" link that
+          opens what used to be shown: the lock warning, where the details are stored, and the
+          receipt of what the seal's key date stamp puts on Midnight, unchanged. They stay in the
+          page, folded, just before the button; the button names the lead sentence and the receipt's. */}
       <Stack direction="row" spacing={1} sx={{ alignItems: 'flex-start' }}>
         <LockIcon fontSize="small" sx={{ mt: '2px', color: 'text.secondary' }} aria-hidden="true" />
         <Typography variant="body2" data-seal-plain="">
@@ -974,12 +973,13 @@ const Review: React.FC<{
             aria-expanded={showSealed}
             aria-controls="seal-details"
             sx={{ fontWeight: 700, verticalAlign: 'baseline', fontSize: 'inherit' }}
+            data-what-published=""
           >
             {t('app.log.sealDetails')}
           </Link>
         </Typography>
       </Stack>
-      <Collapse in={showSealed} id="seal-details" data-seal-details="" unmountOnExit>
+      <Collapse in={showSealed} id="seal-details" data-seal-details="">
         <Stack spacing={1.5} sx={{ pt: 1 }}>
           <Alert icon={<LockIcon />} severity="info" variant="outlined">
             {rich(t('app.log.sealedWarn'), { b: (c) => <b>{c}</b> })}
@@ -987,13 +987,13 @@ const Review: React.FC<{
           <Typography variant="body2" color="text.secondary">
             {t('app.log.savedOn', { server: t('app.copy.ourServer'), datedOn: t('app.copy.datedOn') })}
           </Typography>
+          {/* What the seal's key date stamp puts on Midnight. Round 5: one button, one name; dating
+              the key is part of sealing, said here as the receipt's lead. */}
+          {REAL_CHAIN && (
+            <DisclosureReceipt circuits={['anchor']} dense lead={t('app.log.sealStampsKey')} leadId="seal-stamps-key" />
+          )}
         </Stack>
       </Collapse>
-      {/* What the seal's key date stamp puts on Midnight, before the button that starts it. Round 5:
-          one button, one name; dating the key is part of sealing, said here as the receipt's lead. */}
-      {REAL_CHAIN && (
-        <DisclosureReceipt circuits={['anchor']} dense lead={t('app.log.sealStampsKey')} leadId="seal-stamps-key" />
-      )}
       {error && (
         <Alert severity="error" variant="outlined">
           {error}

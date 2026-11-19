@@ -27,10 +27,11 @@ const anchor = {
 describe('Home’s line for a plant (test builds, where keys are date stamped from the browser)', () => {
   const on = { realChain: true };
 
-  it('a missing backup is still "Not finished": the keys are only on this device', () => {
+  it('a missing backup is not a label on the record: Home says it once, above the list', () => {
+    // BackupNeeded.tsx (easy-mode review, 19 Nov). The line is the record's own: sealed, key note.
     expect(homeStatusLine({ loggedAt }, keys(), on)).toEqual({
-      text: 'Not in your backup yet · next: save your backup',
-      unfinished: true,
+      text: `${sealed} · key not date stamped yet`,
+      unfinished: false,
     });
   });
 
@@ -67,13 +68,26 @@ describe('Home’s line for a plant (test builds, where keys are date stamped fr
   });
 });
 
-describe('Home says "save and check your backup" once per record (live walk, 18 Nov)', () => {
-  it('no locked-copy line when the card already says the record is not in a backup', async () => {
+describe('Home says "save your backup" once, for the account, not per record (easy-mode review, 19 Nov)', () => {
+  it('no per-record line for a copy waiting for a backup; a copy waiting to be sent again is still said', async () => {
     const { unsavedLineKey } = await import('./plant-status-words');
-    expect(unsavedLineKey('backup', true)).toBeUndefined();
-    expect(unsavedLineKey('backup', false)).toBe('app.sealed.unsaved.short');
+    expect(unsavedLineKey('backup')).toBeUndefined();
     // A copy waiting to be sent again is a different thing, and still said.
-    expect(unsavedLineKey('retry', true)).toBe('app.sealed.unsaved.shortRetry');
-    expect(unsavedLineKey(undefined, true)).toBeUndefined();
+    expect(unsavedLineKey('retry')).toBe('app.sealed.unsaved.shortRetry');
+    expect(unsavedLineKey(undefined)).toBeUndefined();
+  });
+
+  it('the backup line: shown while anything needs a backup, in the older records’ own words when they wait', async () => {
+    const { backupNeed } = await import('./BackupNeeded');
+    const none = { keysOnlyHere: 0, waitingForBackup: false, vaultUnbacked: false, legacyWaiting: false };
+    expect(backupNeed(none)).toBe('none');
+    expect(backupNeed({ ...none, keysOnlyHere: 2 })).toBe('line');
+    expect(backupNeed({ ...none, waitingForBackup: true })).toBe('line');
+    expect(backupNeed({ ...none, vaultUnbacked: true })).toBe('line');
+    expect(backupNeed({ ...none, vaultUnbacked: true, legacyWaiting: true, waitingForBackup: true })).toBe(
+      'before-locking',
+    );
+    // Records saved before locking with a vault key already backed up: nothing to ask for.
+    expect(backupNeed({ ...none, legacyWaiting: true })).toBe('none');
   });
 });

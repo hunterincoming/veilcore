@@ -17,7 +17,7 @@ export const importing = {
   'app.import.choose': 'Choisir un fichier',
   'app.import.normalWindow': 'Ouvrez cette page dans une fenêtre de navigateur normale pour l’utiliser.',
   'app.import.readHere':
-    'Votre fichier est lu ici, dans ce navigateur, et n’est pas envoyé. Pour chaque ligne, seules les informations que vous choisissez à l’écran suivant sont conservées, les mêmes que pour l’enregistrement d’une plante. {server} les conserve verrouillées, le nom de la plante compris, et nous n’avons pas la clé. Seul un code de preuve est daté sur {dated}.',
+    'Votre fichier est lu ici, dans ce navigateur, et n’est pas envoyé. Pour chaque ligne, seules les informations que vous choisissez à l’écran suivant sont conservées, les mêmes que pour l’enregistrement d’une plante. Elles sont conservées verrouillées sur {server}, le nom de la plante compris, et nous n’avons pas la clé. Seul un code de preuve est daté sur {dated}.',
   'app.import.testSite': 'Ceci est un site de test : les enregistrements faits ici sont des données de test.',
   'app.import.earlierStamps': 'Horodatages des clés des importations précédentes',
   'app.import.rowLine': 'Ligne {line} : {text}',

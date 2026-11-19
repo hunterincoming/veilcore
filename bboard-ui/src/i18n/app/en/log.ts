@@ -75,7 +75,7 @@ export const log = {
   'app.log.nextCheck': 'Next: check it',
   'app.log.readingYourPhotos': 'Reading your photos…',
   'app.log.reviewTitle': 'Is this right?',
-  'app.log.fixNow': 'Fix anything now.',
+  'app.log.fixNow': 'Check it. Once sealed, it can’t be changed. You can add a correction later.',
   'app.log.k.plant': 'Plant or line',
   'app.log.k.made': 'Made (your note)',
   'app.log.k.more': 'More details',
@@ -94,8 +94,8 @@ export const log = {
     'The details are stored locked on {server}, so you can come back to them, and we don’t have the key. The name is locked too; a check link carries it after the # only if you switch that on. Only a proof code is dated on {datedOn}.',
   'app.log.sealing': 'Sealing…',
   'app.log.sealPlain':
-    'Once sealed, this can’t change (corrections come later, as new records). Only codes go on Midnight; your details stay locked.',
-  'app.log.sealDetails': 'What can’t change, and where it’s stored',
+    'Only codes made from it are published, never your words or photos. Those stay private: only you can open them.',
+  'app.log.sealDetails': 'What gets published?',
   'app.log.seal': 'Seal it',
   'app.log.sealingPlant': 'Sealing your plant…',
   'app.log.sealStampsKey':
@@ -115,12 +115,12 @@ export const log = {
   'app.log.keyStamped':
     "Key date stamped. Your plant's key is dated too, so you can prove you hold it later.{bound} Nothing about the plant went out.",
   'app.log.keyBound': ' The sealed record names this key, so nobody can swap in another.',
-  'app.log.stampFailedTitle': 'Sealed. Key not date stamped yet',
-  'app.log.stampingTitle': 'Sealed. Date stamping your plant’s key…',
+  'app.log.stampFailedTitle': 'Sealed. Date stamp not done yet',
+  'app.log.stampingTitle': 'Sealed. Getting today’s date stamp…',
   'app.log.onlyFingerprint':
     "Only a code made from your plant's key goes out, nothing about the plant. Free: VeilCore pays the network fee.",
-  'app.log.stampingAria': 'Date stamping your plant’s key',
+  'app.log.stampingAria': 'Getting today’s date stamp',
   'app.log.stampLater': 'Do the date stamp later',
   'app.log.keepOpen':
-    'Keep this screen open, about a minute. If it closes, nothing is lost: your plant is saved, and its page will offer the date stamp again.',
+    'This takes about a minute. Keep this screen open until it’s done: on a phone, switching apps or locking the screen can stop it. If it stops, nothing is lost: your plant is saved, and its page will offer the date stamp again.',
 };

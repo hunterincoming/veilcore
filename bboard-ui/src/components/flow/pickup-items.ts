@@ -3,10 +3,9 @@
 //
 // Someone who logs off for the day and comes back should see at once what is still moving and
 // what, if anything, needs them: records on their way to a date (and how far along), key date
-// stamps being tried again, locked copies waiting for a checked backup, lab deliveries and
-// reports, agreements waiting for the other party, and a backup older than the newest record.
-// Nothing open, nothing shown. Never something already done: a key that a checked backup or
-// the record's own locked copy holds is not "only in this browser" (keysOnlyHere).
+// stamps being tried again, lab deliveries and reports, and agreements waiting for the other
+// party. Nothing open, nothing shown. A backup, when one is needed, isn't here: Home says it once,
+// above this box (BackupNeeded.tsx; easy-mode review, 19 Nov).
 // SPDX-License-Identifier: Apache-2.0
 
 import type { StampRetryEntry } from '../../veilcore/chain/key-stamp';
@@ -36,8 +35,6 @@ export type PickUpItem =
       readonly state: 'retrying' | 'now' | 'sent' | 'cannot' | 'paused';
       readonly nextAt?: number;
     }
-  | { readonly kind: 'locked-copies'; readonly count: number }
-  | { readonly kind: 'fresh-backup'; readonly count: number }
   | { readonly kind: 'deliveries-sent'; readonly count: number; readonly recordId?: string }
   | { readonly kind: 'deliveries-unsigned'; readonly count: number; readonly recordId?: string }
   | { readonly kind: 'lab-unsigned'; readonly count: number; readonly recordId?: string }
@@ -52,10 +49,6 @@ export type PickUpFacts = {
   /** Records whose key date stamp is being tried again (key-stamp.ts), with their keys here and unstamped. */
   readonly stamps: Readonly<Record<string, StampRetryEntry>>;
   readonly stampingNow?: string;
-  /** Records kept here whose locked copy waits for a checked backup. */
-  readonly waitingForBackup: readonly string[];
-  /** Records whose keys are only in this browser: no checked backup or sealed copy holds them. */
-  readonly keysOnlyHere: readonly string[];
   /** The holder's lab deliveries, newest first (null while loading or not asked). */
   readonly sent?:
     | readonly {
@@ -98,11 +91,6 @@ export const pickUpItems = (f: PickUpFacts): { items: PickUpItem[]; moreDating: 
   });
   for (const r of undated.slice(0, PICKUP_MAX_RECORDS))
     items.push({ kind: 'dating', recordId: r.id, name: r.name, stage: f.dating[r.id] as DatingStage });
-
-  if (f.waitingForBackup.length) items.push({ kind: 'locked-copies', count: f.waitingForBackup.length });
-  // A backup older than the newest record: said once, and not on top of "locked copies",
-  // which already asks for the backup.
-  else if (f.keysOnlyHere.length) items.push({ kind: 'fresh-backup', count: f.keysOnlyHere.length });
 
   const sent = f.sent ?? [];
   const unclaimed = sent.filter((t) => !t.claimed_at);

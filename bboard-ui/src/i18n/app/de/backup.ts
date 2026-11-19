@@ -164,6 +164,9 @@ export const backup = {
   'app.intake.send.kept': 'Der Datensatz bleibt in jedem Fall in Ihrem VeilCore.',
   'app.intake.err.title': 'Dieser Link kann nicht verwendet werden',
   'app.intake.err.help': 'Bitten Sie den Absender um einen neuen. Es wurde nichts erfasst oder gesendet.',
+  'app.intake.err.paste': 'Code oder Link einfügen',
+  'app.intake.err.records': 'Zu Ihren Datensätzen',
+  'app.intake.err.lab': 'Ich bin ein Labor: Laborergebnisse',
   'app.intake.err.gone':
     'Die Anfrage der anderen Seite ist nicht mehr da (dieser Tab wurde geschlossen oder neu geöffnet). Öffnen Sie deren Link erneut.',
   'app.intake.err.noReturn': 'Er gibt nicht an, wohin Sie zurückgeschickt werden.',

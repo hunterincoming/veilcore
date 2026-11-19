@@ -8,7 +8,7 @@
 import { readFileSync } from 'node:fs';
 import { expect, test, type Page, type Route } from '@playwright/test';
 import { generateKeypair, signAttestation } from 'veilcore-records';
-import { REAL_REGISTRY, expectNoErrors, isolate, json, watch } from './helpers';
+import { REAL_REGISTRY, expectNoErrors, isolate, json, seeChecks, watch } from './helpers';
 
 test.skip(REAL_REGISTRY, 'these use the stand-in registry');
 
@@ -103,6 +103,8 @@ const openCheck = async (
   });
   await page.route('https://indexer.preview.midnight.network/**', indexer);
   await page.goto(`/verify/${RECORD}?fp=${fixture.fingerprint}`);
+  // The signature lines are among the checks folded under "See the checks".
+  await seeChecks(page);
 };
 
 const today = () => new Date().toISOString().slice(0, 10);

@@ -109,6 +109,35 @@ export const verify = {
   'app.verify.notFoundText':
     "This verification link doesn't match any record in the registry. Check the link is complete and unmodified.",
   'app.verify.goHome': 'Go to veilcore.org',
+  // The one plain line at the top of a check page (components/verify/verdict.ts) and the parts
+  // around it (CheckParts.tsx; easy-mode review, 19 Nov).
+  'app.verify.verdict.checking': 'Checking this record in your browser…',
+  'app.verify.verdict.dated': 'Dated {date}. All checks passed in your browser.',
+  'app.verify.verdict.datedTest':
+    'Practice date {date}, on a test network: not a real date. All checks passed in your browser.',
+  'app.verify.verdict.datedButFailed': 'Dated {date}, but some checks failed. See the checks below.',
+  'app.verify.verdict.reported':
+    'VeilCore’s server reports it was dated {date}. Your browser hasn’t confirmed that date itself.',
+  'app.verify.verdict.reportedNoDate':
+    'VeilCore’s server reports it was dated, but gives no date. Your browser hasn’t confirmed it itself.',
+  'app.verify.verdict.dateFailed': 'The date didn’t check out in your browser. Don’t rely on this date.',
+  'app.verify.verdict.notYet': 'Not dated yet. It’s waiting for its date stamp.',
+  'app.verify.verdict.notYetFailed': 'Not dated yet, and some checks failed. See the checks below.',
+  'app.verify.verdict.unbound':
+    'This link doesn’t carry the record’s proof code, so your browser can’t tell whether VeilCore’s server answered about this record. Ask the sender for a new link.',
+  'app.verify.verdict.nothing': 'Nothing about this record can be checked: it has no proof code.',
+  'app.verify.checks.see': 'See the checks',
+  'app.verify.checks.hide': 'Hide the checks',
+  'app.verify.cta': 'Want a date like this for your own plants or animals?',
+  'app.verify.ctaButton': 'Make a record, free',
+  'app.verify.notFoundAsk': 'Ask the person who sent it to send the link again.',
+  'app.verify.another.label': 'Another record ID or check link',
+  'app.verify.another.go': 'Check',
+  'app.verify.another.bad': 'That isn’t a record ID or a check link.',
+  'app.verify.unreachable.title': 'Couldn’t check this record right now',
+  'app.verify.unreachable.text':
+    'VeilCore’s server didn’t answer, or sent an answer this page can’t read. Try again in a minute.',
+  'app.verify.unreachable.retry': 'Try again',
   'app.verify.deleted.title': '{id} was deleted by its holder',
   'app.verify.deleted.when': 'Deleted on {date}. Its details are no longer shown.',
   'app.verify.deleted.datedChecked':

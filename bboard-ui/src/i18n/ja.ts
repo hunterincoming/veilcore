@@ -340,6 +340,13 @@ export const ja: Strings = {
   'm.notfound.text':
     'このアドレスにページはありません。記録へのリンクを受け取った場合は、リンクが途中で切れていないか確認してください。',
   'm.notfound.home': 'VeilCoreのホーム →',
+  'm.homescreen.title': '記録を開く',
+  'm.homescreen.text': 'これはホーム画面に追加したVeilCoreです。Safariとは別の、専用の保存場所を使います。',
+  'm.homescreen.lost': '何も失われていません。バックアップファイルで記録を取り込んでください。',
+  'm.homescreen.restore': '記録を取り込む',
+  'm.homescreen.fresh': 'VeilCoreは初めてですか？ここから始める',
+  'm.homescreen.safari':
+    'バックアップファイルが手元にない場合：この端末のSafariでVeilCoreを使っていたなら、記録はそちらに残っています。',
   'm.privacy.contact': 'お問い合わせ：hunter@veilcore.org',
   // Round 2 truth pass (14 Oct 2026): keys added or newly translated.
   'm.hero.lede':

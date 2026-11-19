@@ -100,12 +100,10 @@ export const animal = {
     'Clé horodatée : {when}. La clé de votre animal est datée elle aussi, pour que vous puissiez prouver plus tard que vous détenez son enregistrement.{bound} Rien sur l’animal n’a été envoyé.',
   'app.animal.v.app.log.keyStamped':
     'Clé horodatée. La clé de votre animal est datée elle aussi, pour que vous puissiez prouver plus tard que vous détenez son enregistrement.{bound} Rien sur l’animal n’a été envoyé.',
-  'app.animal.v.app.log.stampingTitle': 'Scellé. Horodatage de la clé de votre animal…',
   'app.animal.v.app.log.onlyFingerprint':
     'Seul un code de la clé de votre animal est envoyé, rien sur l’animal. Gratuit : VeilCore paie les frais du réseau.',
-  'app.animal.v.app.log.stampingAria': 'Horodatage de la clé de votre animal',
   'app.animal.v.app.log.keepOpen':
-    'Gardez cet écran ouvert, environ une minute. S’il se ferme, rien n’est perdu : votre animal est enregistré, et sa page vous proposera à nouveau l’horodatage.',
+    'Cela prend environ une minute. Gardez cet écran ouvert jusqu’à la fin : sur un téléphone, changer d’application ou verrouiller l’écran peut l’interrompre. S’il s’interrompt, rien n’est perdu : votre animal est enregistré, et sa page vous proposera à nouveau l’horodatage.',
   'app.animal.v.app.chain.stampMayHaveGoneOut':
     'Votre horodatage est peut-être déjà parti{tx}. Votre animal est enregistré. Ne réessayez pas tant que cette transaction n’a pas été vérifiée sur le réseau.',
   'app.animal.v.app.chain.stampUnreachable':

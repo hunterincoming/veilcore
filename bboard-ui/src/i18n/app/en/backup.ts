@@ -153,6 +153,10 @@ export const backup = {
   'app.intake.send.kept': 'The record stays in your VeilCore either way.',
   'app.intake.err.title': 'This link can’t be used',
   'app.intake.err.help': 'Ask whoever sent it for a new one. Nothing was recorded or sent.',
+  // Ways on from a link that can't be used: never a dead end (easy-mode review, 19 Nov).
+  'app.intake.err.paste': 'Paste a code or link',
+  'app.intake.err.records': 'Go to your records',
+  'app.intake.err.lab': 'I run a lab: lab results',
   'app.intake.err.gone':
     'The request from the other site is no longer here (this tab was closed or reopened). Open their link again.',
   'app.intake.err.noReturn': 'It doesn’t say where to send you back.',

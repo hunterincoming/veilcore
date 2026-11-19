@@ -6,6 +6,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { WhoVouches } from '../verify/WhoVouches';
+import { CheckVerdict, MakeYourOwn } from '../verify/CheckParts';
+import { recordVerdict, VERDICT_DATE, type Verdict } from '../verify/verdict';
 import { whoVouches } from '../verify/who-vouches';
 import { useRecordDate } from '../verify/useAnchorCheck';
 import { anchorCheckFailed, anchorConfirmed } from '../verify/anchor-words';
@@ -64,10 +66,47 @@ export const DocumentCheck: React.FC = () => {
   // Dated: by Midnight, or by VeilCore's word (the page says which); the same marks DocumentDateView uses.
   const dateMark = date.proof === 'checking' ? undefined : recordDateRow(date.proof, date.anchor, tr).mark;
   const dated = dateMark === 'done' || dateMark === 'reported';
+  // The one plain line at the top (easy-mode review, 19 Nov): the record's own check words
+  // (verify/verdict.ts), with the document's file answer when one was chosen. The proof code is
+  // recomputed here from the link, so it is always checked against the link's own fields.
+  const reportedAnchor =
+    date.proof !== 'checking' && date.proof.status === 'anchor-reported' ? date.proof.proof.anchor : undefined;
+  const base =
+    !read || (read.ok && date.proof === 'checking')
+      ? ({ tone: 'wait', key: 'app.verify.verdict.checking' } as Verdict)
+      : !read.ok
+        ? ({ tone: 'fail', key: 'app.doc.verdict.bad' } as Verdict)
+        : recordVerdict({
+            sealed: true,
+            bound: true,
+            proof: date.proof,
+            anchor: date.anchor,
+            signaturesChecking: false,
+            failed: picked === false,
+            testNetwork: isTestNetwork(reportedAnchor?.network ?? NETWORK),
+            reportedAt: reportedAnchor?.anchoredAt,
+          });
+  // "All checks passed" isn't said for a document: its file is a check of its own, the reader's to make.
+  const top: Verdict =
+    base.key === 'app.verify.verdict.dated'
+      ? {
+          ...base,
+          key: picked
+            ? 'app.doc.verdict.datedSameFile'
+            : read?.ok && read.fields.files.length
+              ? 'app.doc.verdict.datedChooseFile'
+              : 'app.doc.verdict.dated',
+        }
+      : base.key === 'app.verify.verdict.datedButFailed'
+        ? { ...base, key: 'app.doc.verdict.datedOtherFile' }
+        : base;
 
   return (
     <Box sx={{ bgcolor: 'background.default' }} data-document-check="">
       <Container component="main" maxWidth="sm" sx={{ py: { xs: 5, md: 8 }, overflowWrap: 'anywhere' }}>
+        <CheckVerdict tone={top.tone}>
+          {t(top.key, { date: top.date !== undefined ? tr.date(top.date, VERDICT_DATE) : '' })}
+        </CheckVerdict>
         <Typography variant="h4" component="h1" sx={{ mb: 1 }}>
           {t('app.doc.check.title')}
         </Typography>
@@ -170,6 +209,7 @@ export const DocumentCheck: React.FC = () => {
             </Paper>
           </Stack>
         )}
+        <MakeYourOwn />
       </Container>
     </Box>
   );

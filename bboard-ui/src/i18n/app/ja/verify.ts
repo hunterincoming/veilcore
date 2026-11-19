@@ -97,6 +97,34 @@ export const verify = {
   'app.verify.notFoundText':
     'この確認用リンクは、レジストリのどの記録とも一致しません。リンクが欠けたり変更されたりしていないか確認してください。',
   'app.verify.goHome': 'veilcore.org へ',
+  'app.verify.verdict.checking': 'このブラウザで記録を確認しています…',
+  'app.verify.verdict.dated': '{date}に日付が付いています。すべての確認がこのブラウザで通りました。',
+  'app.verify.verdict.datedTest':
+    '{date}の練習用の日付です（テストネットワーク上のもので、実際の日付ではありません）。すべての確認がこのブラウザで通りました。',
+  'app.verify.verdict.datedButFailed':
+    '{date}に日付が付いていますが、通らなかった確認があります。下の確認内容を見てください。',
+  'app.verify.verdict.reported':
+    'VeilCoreのサーバーによると、{date}に日付が付いています。このブラウザではまだその日付を確かめていません。',
+  'app.verify.verdict.reportedNoDate':
+    'VeilCoreのサーバーによると日付は付いていますが、日時は示されていません。このブラウザではまだ確かめていません。',
+  'app.verify.verdict.dateFailed': '日付の確認がこのブラウザで通りませんでした。この日付を当てにしないでください。',
+  'app.verify.verdict.notYet': 'まだ日付は付いていません。日付スタンプを待っています。',
+  'app.verify.verdict.notYetFailed': 'まだ日付は付いておらず、通らなかった確認もあります。下の確認内容を見てください。',
+  'app.verify.verdict.unbound':
+    'このリンクには記録の証明コードが入っていないため、VeilCoreのサーバーがこの記録について答えたかどうかを、このブラウザでは確かめられません。送ってきた相手に新しいリンクを頼んでください。',
+  'app.verify.verdict.nothing': 'この記録には証明コードがないため、何も確かめられません。',
+  'app.verify.checks.see': '確認内容を見る',
+  'app.verify.checks.hide': '確認内容を閉じる',
+  'app.verify.cta': '自分の植物や動物にも、このような日付を付けませんか？',
+  'app.verify.ctaButton': '無料で記録を作る',
+  'app.verify.notFoundAsk': '送ってきた相手に、リンクをもう一度送ってもらってください。',
+  'app.verify.another.label': 'ほかの記録IDまたは確認用リンク',
+  'app.verify.another.go': '確認する',
+  'app.verify.another.bad': '記録IDでも確認用リンクでもありません。',
+  'app.verify.unreachable.title': '今はこの記録を確認できませんでした',
+  'app.verify.unreachable.text':
+    'VeilCoreのサーバーから応答がないか、このページで読めない応答が返ってきました。1分ほどしてからもう一度試してください。',
+  'app.verify.unreachable.retry': 'もう一度試す',
   'app.verify.deleted.title': '{id} は保有者によって削除されました',
   'app.verify.deleted.when': '{date} に削除されました。詳細はもう表示されません。',
   'app.verify.deleted.datedChecked':
