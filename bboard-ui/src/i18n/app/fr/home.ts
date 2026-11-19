@@ -118,7 +118,6 @@ export const home = {
     'Un code laboratoire, un lien vers un enregistrement, une demande de prouver que vous détenez un enregistrement ou un accord à signer. Nous reconnaissons lequel.',
   'app.home.paste.whichRecord':
     'C’est une demande de prouver que vous détenez un enregistrement. Lequel vous a-t-on demandé ?',
-  'app.home.notFinished': 'Pas encore dans votre sauvegarde · ensuite : enregistrez votre sauvegarde',
   'app.home.receivedFrom': 'Reçue de {name}',
   'app.home.receivedFromNamed': 'De {name} · leur enregistrement {id}',
   'app.home.receivedFromName': 'De {name}',
@@ -132,8 +131,9 @@ export const home = {
   'app.home.labReportDated': 'Rapport ADN daté',
   'app.home.datesReportFor': 'Date un rapport ADN pour {name}',
   'app.home.aPlant': 'une plante',
-  'app.home.datingUnfinished': '{dated} · pas encore dans votre sauvegarde · ensuite : enregistrez votre sauvegarde',
   'app.home.datingSealed': '{dated} · scellé le {date}',
+  'app.home.backupLine':
+    '<b>Pas encore dans votre sauvegarde.</b> Tant que vous ne l’avez pas enregistrée, ce que vous avez consigné n’est conservé que dans ce navigateur.',
   'app.home.export.label': 'Télécharger vos enregistrements et accords depuis VeilCore',
   'app.home.export.done':
     'Téléchargé : vos enregistrements, accords, choix de partage et chaque preuve d’inclusion. Les envois, leurs informations d’échantillon et les rapports de laboratoire n’y sont pas : ouvrez-les depuis l’envoi ou la page de la plante. Vos clés sont dans votre fichier de sauvegarde, pas dans celui-ci.',

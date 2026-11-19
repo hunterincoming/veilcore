@@ -715,6 +715,19 @@ type PwContext = { newPage(): Promise<PwPage>; close(): Promise<void> };
 type PwBrowser = { newContext(o?: object): Promise<PwContext>; close(): Promise<void> };
 
 const DIST = path.resolve(HERE, '../dist');
+
+/**
+ * A record's check page folds its checks under "See the checks" (easy-mode review, 19 Nov): open
+ * them, as a reader would, before reading a check line. Already open (a failed check, or a link
+ * with no proof code, opens them by itself) stays open. Waits until the fold has finished opening,
+ * so innerText holds its lines.
+ */
+const openChecks = async (pg: PwPage) => {
+  await pg.waitForSelector('[data-see-checks]', { timeout: 15_000 });
+  if ((await pg.evaluate(() => document.querySelector('[data-see-checks]')?.getAttribute('aria-expanded'))) !== 'true')
+    await pg.locator('[data-see-checks]').click();
+  await pg.waitForSelector('#verify-checks.MuiCollapse-entered', { timeout: 15_000 });
+};
 const API = 'https://veilcore-api-production.up.railway.app';
 // The repository's own Playwright (@playwright/test brings it), so this runs in CI too, with
 // the browser `npx playwright install chromium` put in place. Older machine-wide installs
@@ -1071,6 +1084,7 @@ describe.skipIf(!haveBrowser)('browser: built site under the production headers'
     await pg.waitForSelector('text=Date stamp reported by the registry, not checked here', {
       timeout: 15_000,
     });
+    await openChecks(pg);
     const text = await pg.evaluate(() => document.body.innerText);
     expect(text).toMatch(/Checked in this browser: this proof code is in batch real/);
     expect(text).toMatch(/This page has not looked it up/);
@@ -1293,6 +1307,7 @@ describe.skipIf(!haveBrowser)('browser: built site under the production headers'
     await pg.waitForSelector('text=Date stamp reported by the registry, not checked here', {
       timeout: 15_000,
     });
+    await openChecks(pg);
     await pg.waitForSelector('text=VeilCore doesn’t vouch for the lab’s work', { timeout: 15_000 });
     const text = await pg.evaluate(() => document.body.innerText);
     expect(text).toMatch(/This link was made for proof code dddd.*and the registry\s+reports the same proof code/s);

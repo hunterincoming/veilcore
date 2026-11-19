@@ -24,12 +24,10 @@ export const strain = {
     'Clave con sello de fecha: {when}. La clave de su cepa también queda fechada, para que más adelante pueda demostrar que la tiene.{bound} No salió nada sobre la cepa.',
   'app.strain.v.app.log.keyStamped':
     'Clave con sello de fecha. La clave de su cepa también queda fechada, para que más adelante pueda demostrar que la tiene.{bound} No salió nada sobre la cepa.',
-  'app.strain.v.app.log.stampingTitle': 'Sellada. Poniendo el sello de fecha a la clave de su cepa…',
   'app.strain.v.app.log.onlyFingerprint':
     'Solo sale un código de la clave de su cepa, nada sobre la cepa. Gratis: VeilCore paga la tarifa de la red.',
-  'app.strain.v.app.log.stampingAria': 'Poniendo el sello de fecha a la clave de su cepa',
   'app.strain.v.app.log.keepOpen':
-    'Mantenga esta pantalla abierta, alrededor de un minuto. Si se cierra, no se pierde nada: su cepa está guardada y su página le ofrecerá el sello de fecha de nuevo.',
+    'Tarda alrededor de un minuto. Mantenga esta pantalla abierta hasta que termine: en un teléfono, cambiar de aplicación o bloquear la pantalla puede detenerlo. Si se detiene, no se pierde nada: su cepa está guardada y su página le ofrecerá el sello de fecha de nuevo.',
   'app.strain.v.app.chain.stampMayHaveGoneOut':
     'Puede que su sello de fecha ya se haya enviado{tx}. Su cepa está guardada. No lo intente de nuevo hasta que esa transacción se haya comprobado en la red.',
   'app.strain.v.app.chain.stampUnreachable':

@@ -171,6 +171,28 @@ export const document = {
   'app.claim.line.value': '{label} est {value} {unit}',
   'app.claim.holderTyped': 'Les chiffres sont les vôtres, tels que saisis : aucun laboratoire ne les a signés.',
   'app.claim.check.title': 'Vérifier une preuve',
+  'app.claim.verdict.bad': 'Ce lien est illisible : rien n’a été vérifié.',
+  'app.claim.verdict.checking': 'Vérification de cette preuve dans votre navigateur…',
+  'app.claim.verdict.failed': 'Cette preuve n’a pas passé la vérification. Ne vous y fiez pas.',
+  'app.claim.verdict.labFailed':
+    'Cette preuve a passé la vérification, mais pas la signature du laboratoire. Voir ci-dessous.',
+  'app.claim.verdict.someFailed':
+    'Cette preuve a passé la vérification, mais pas une autre de ce lien. Voir ci-dessous.',
+  'app.claim.verdict.okWhen': 'Prouvé le {date}. Vérifié dans votre navigateur.',
+  'app.claim.verdict.ok': 'Cette preuve a passé la vérification dans votre navigateur.',
+  'app.claim.verdict.labConflict':
+    'Cette preuve a passé la vérification, mais plusieurs laboratoires disent détenir la clé qui l’a signée : lisez les chiffres comme la déclaration du détenteur. Voir ci-dessous.',
+  'app.claim.verdict.labWithdrawn':
+    'Cette preuve a passé la vérification, mais le laboratoire a retiré sa signature : lisez les chiffres comme la déclaration du détenteur. Voir ci-dessous.',
+  'app.doc.verdict.noDate':
+    'VeilCore n’a pas encore de date pour ce document exact. Un document tout juste scellé reçoit sa date avec le prochain lot ; un lien modifié ne correspondra pas.',
+  'app.doc.verdict.bad': 'Ce lien est illisible : rien n’a été vérifié.',
+  'app.doc.verdict.dated': 'Daté du {date}. Vérifié dans votre navigateur.',
+  'app.doc.verdict.datedChooseFile':
+    'Daté du {date}. Vérifié dans votre navigateur. Choisissez le fichier ci-dessous pour vérifier que c’est le même.',
+  'app.doc.verdict.datedSameFile':
+    'Daté du {date}, et le fichier choisi est bien celui qui a été scellé. Vérifié dans votre navigateur.',
+  'app.doc.verdict.datedOtherFile': 'Daté du {date}, mais le fichier choisi n’est pas celui qui a été scellé.',
   'app.claim.check.intro':
     'Quelqu’un vous a envoyé ce lien pour montrer un fait sur un chiffre d’un document scellé, sans montrer le chiffre ni le document. Cette page lit la preuve sur Midnight et la vérifie.',
   'app.claim.check.bad': 'Ce lien est illisible. Redemandez-le.',

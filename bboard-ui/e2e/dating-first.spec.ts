@@ -187,13 +187,16 @@ test('a plant logged with no backup is still dated in the next batch, and Home p
   await expect(pickup.locator('[data-pickup-item="dating"]')).toContainText(
     `${name} will get its date in the next batch`,
   );
-  await expect(pickup.locator('[data-pickup-item="locked-copies"]')).toContainText(
-    'locked copy not uploaded yet — save and check your backup. Your record’s date isn’t waiting on this.',
-  );
   await expect(pickup.locator('[data-pickup-item="stamp"]')).toContainText(`Key date stamp for ${name}`);
-  // The record's own card says it isn't in a backup, so the locked-copy line under it isn't
-  // said again (live walk, 18 Nov): once at the top, once on the card.
-  await expect(page.getByText('Not in your backup yet · next: save your backup')).toHaveCount(1);
+  // The backup is asked for once, for the whole account, above the list (easy-mode review,
+  // 19 Nov): not in "Still in progress", not on the record's card, not in a line under it.
+  const backupLine = page.locator('[data-backup-needed="line"]');
+  await expect(backupLine).toHaveCount(1);
+  await expect(backupLine).toContainText(
+    'Not in your backup yet. Until you save it, what you’ve recorded is kept only in this browser.',
+  );
+  await expect(pickup).not.toContainText(/backup/i);
+  await expect(page.getByText(/Not in your backup yet · next/)).toHaveCount(0);
   await expect(page.locator(`[data-home-unsaved="${recordId}"]`)).toHaveCount(0);
   await shot(page, '3-home-pick-up-where-you-left-off');
 
@@ -204,14 +207,14 @@ test('a plant logged with no backup is still dated in the next batch, and Home p
   await expect(page.getByText('(VeilCore’s registry’s report)').first()).toBeVisible({ timeout: 30_000 });
   await shot(page, '4-record-dated-without-backup');
 
-  // Home again: the record is dated, so it is no longer listed; the backup and the stamp still are.
+  // Home again: the record is dated, so it is no longer listed; the backup line and the stamp still are.
   await page.goto('/records');
-  await expect(pickup.locator('[data-pickup-item="locked-copies"]')).toBeVisible();
+  await expect(backupLine).toBeVisible();
   await expect(pickup.locator('[data-pickup-item="dating"]')).toHaveCount(0);
 
   // They save the backup and check it: the locked copy goes up with the same proof code, and
   // after a reload nothing asks for the backup again.
-  await pickup.getByRole('button', { name: 'Save my backup' }).click();
+  await backupLine.getByRole('button', { name: 'Save my backup' }).click();
   await saveAndCheckBackup(page);
   await expect
     .poll(async () => !!(await rows()).find((r) => r.id === recordId)?.sealed, { timeout: 30_000 })
@@ -221,9 +224,7 @@ test('a plant logged with no backup is still dated in the next batch, and Home p
   await page.reload();
   await expect(page.getByRole('heading', { name: 'Your records' })).toBeVisible();
   await expect(page.locator(`[data-home-unsaved="${recordId}"]`)).toHaveCount(0);
-  await expect(page.locator('[data-pickup-item="locked-copies"]')).toHaveCount(0);
-  await expect(page.locator('[data-pickup-item="fresh-backup"]')).toHaveCount(0);
-  await expect(page.locator('[data-vault-backup]')).toHaveCount(0);
+  await expect(page.locator('[data-backup-needed]')).toHaveCount(0);
   await expect(page.getByRole('dialog')).toHaveCount(0);
   await shot(page, '5-home-after-backup');
   expectNoErrors(errors);

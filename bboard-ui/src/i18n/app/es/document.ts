@@ -169,11 +169,32 @@ export const document = {
   'app.claim.line.atLeast': '{label} es como mínimo {bound} {unit}',
   'app.claim.line.value': '{label} es {value} {unit}',
   'app.claim.holderTyped': 'Los números son suyos tal como los escribió: ningún laboratorio los firmó.',
-  'app.claim.check.title': 'Comprobar una prueba',
+  'app.claim.check.title': 'Comprobar una afirmación',
+  'app.claim.verdict.bad': 'Este enlace no se puede leer, así que no se comprobó nada.',
+  'app.claim.verdict.checking': 'Comprobando esta afirmación en su navegador…',
+  'app.claim.verdict.failed': 'Esta afirmación no superó la comprobación. No confíe en ella.',
+  'app.claim.verdict.labFailed':
+    'Esta afirmación superó la comprobación, pero la firma del laboratorio no. Vea más abajo.',
+  'app.claim.verdict.someFailed': 'Esta afirmación superó la comprobación, pero otra de este enlace no. Vea más abajo.',
+  'app.claim.verdict.okWhen': 'Probada el {date}. Comprobada en su navegador.',
+  'app.claim.verdict.ok': 'Esta afirmación superó la comprobación en su navegador.',
+  'app.claim.verdict.labConflict':
+    'Esta afirmación superó la comprobación, pero más de un laboratorio reclama la clave que la firmó, así que tome los números como propios de quien hizo la afirmación. Vea más abajo.',
+  'app.claim.verdict.labWithdrawn':
+    'Esta afirmación superó la comprobación, pero el laboratorio retiró su firma, así que tome los números como propios de quien hizo la afirmación. Vea más abajo.',
+  'app.doc.verdict.noDate':
+    'VeilCore aún no tiene fecha para este documento exacto. Uno recién sellado recibe su fecha con el próximo lote; un enlace modificado no coincidirá.',
+  'app.doc.verdict.bad': 'Este enlace no se puede leer, así que no se comprobó nada.',
+  'app.doc.verdict.dated': 'Fechado el {date}. Comprobado en su navegador.',
+  'app.doc.verdict.datedChooseFile':
+    'Fechado el {date}. Comprobado en su navegador. Elija el archivo más abajo para comprobar que es el mismo.',
+  'app.doc.verdict.datedSameFile':
+    'Fechado el {date}, y el archivo que eligió es el que se selló. Comprobado en su navegador.',
+  'app.doc.verdict.datedOtherFile': 'Fechado el {date}, pero el archivo que eligió no es el que se selló.',
   'app.claim.check.intro':
-    'Alguien le envió este enlace para mostrar un hecho sobre un número de un documento sellado, sin mostrar el número ni el documento. Esta página lee la prueba en Midnight y la comprueba.',
+    'Alguien le envió este enlace para mostrar un hecho sobre un número de un documento sellado, sin mostrar el número ni el documento. Esta página lee la afirmación en Midnight y la comprueba.',
   'app.claim.check.bad': 'Este enlace no se puede leer. Pídalo de nuevo.',
-  'app.claim.check.checking': 'Leyendo la prueba en Midnight…',
+  'app.claim.check.checking': 'Leyendo la afirmación en Midnight…',
   'app.claim.check.okWhen': 'Probado en Midnight en el bloque {block}{date}.',
   'app.claim.check.failed': 'No confirmado: {reason} No confíe en ello.',
   'app.claim.check.record': 'El registro al que se refiere',

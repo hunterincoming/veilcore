@@ -12,8 +12,6 @@ const none: PickUpFacts = {
   own: [],
   dating: {},
   stamps: {},
-  waitingForBackup: [],
-  keysOnlyHere: [],
   sent: [],
   resultsWaiting: {},
   labUnsigned: [],
@@ -44,8 +42,6 @@ describe('Pick up where you left off', () => {
       ],
       dating: { A: 'not-sent', B: 'next-batch', C: 'batched' },
       stamps: { A: { tries: 2, nextAt: 99, lastError: 'x', lastAt: 1 } },
-      waitingForBackup: ['A'],
-      keysOnlyHere: ['A'],
       sent: [
         { source_record: 'B' },
         { source_record: 'C', claimed_at: 5 },
@@ -59,8 +55,7 @@ describe('Pick up where you left off', () => {
       'dating',
       'dating',
       'dating',
-      // The backup is asked for once: locked copies waiting say it, so no "fresh backup" too.
-      'locked-copies',
+      // No backup line here: Home says it once, for the whole account (BackupNeeded.tsx).
       'deliveries-sent',
       'deliveries-unsigned',
       'results',
@@ -79,17 +74,16 @@ describe('Pick up where you left off', () => {
     expect(one({ tries: 30, lastError: '', lastAt: 0 })).toMatchObject({ state: 'paused' });
   });
 
-  it('a fresh backup only when keys are only here; at most five records on their way, the rest counted', () => {
+  it('at most five records on their way, the rest counted', () => {
     const own = Array.from({ length: 8 }, (_, i) => ({ id: `R${i}`, name: `R${i}` }));
     const r = pickUpItems({
       ...none,
       own,
       dating: Object.fromEntries(own.map((o) => [o.id, 'next-batch' as const])),
-      keysOnlyHere: ['R7'],
     });
     expect(r.items.filter((i) => i.kind === 'dating')).toHaveLength(5);
     expect(r.moreDating).toBe(3);
-    expect(r.items.at(-1)).toEqual({ kind: 'fresh-backup', count: 1 });
+    expect(r.items).toHaveLength(5);
     expect(datingStep('not-sent')).toBe(1);
     expect(datingStep('batched')).toBe(3);
   });

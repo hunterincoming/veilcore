@@ -3,10 +3,11 @@
 // per record, from what the registry reports (an old record can sit on a test network
 // even on the mainnet site).
 //
-// Test builds: "Demo" and "Test network". A mainnet build: "Web demo" and "Main network":
-// the contract is live, but this app is still the web demo (it sends no transactions, and
-// licenses and lab agreements are simulated), and the header should not be the one place
-// that suggests otherwise. The screens that simulate something say so where it happens.
+// Test builds: "Demo" and "Test network", the warning that records there are practice data.
+// A mainnet build shows no badge in the header (App.tsx, easy-mode review 19 Nov): "Web app"
+// and "Main network" meant nothing to a first-time user, and the landing page's "What's live
+// where" says what runs on the main network. The mainnet words stay here for any other use.
+// The screens that simulate something say so where it happens.
 // SPDX-License-Identifier: Apache-2.0
 
 import React from 'react';

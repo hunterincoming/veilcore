@@ -111,6 +111,43 @@ export const verify = {
   'app.verify.notFoundText':
     'Este enlace de comprobación no coincide con ningún registro del servidor de registros. Compruebe que el enlace esté completo y sin cambios.',
   'app.verify.goHome': 'Ir a veilcore.org',
+  'app.verify.verdict.checking': 'Comprobando este registro en su navegador…',
+  'app.verify.verdict.dated': 'Fechado el {date}. Todas las comprobaciones se superaron en su navegador.',
+  'app.verify.verdict.datedTest':
+    'Fecha de práctica, {date}, en una red de pruebas: no es una fecha real. Todas las comprobaciones se superaron en su navegador.',
+  'app.verify.verdict.datedButFailed':
+    'Fechado el {date}, pero algunas comprobaciones fallaron. Vea las comprobaciones más abajo.',
+  'app.verify.verdict.reported':
+    'El servidor de VeilCore informa de que se fechó el {date}. Su navegador aún no ha confirmado esa fecha por sí mismo.',
+  'app.verify.verdict.reportedNoDate':
+    'El servidor de VeilCore informa de que está fechado, pero no da la fecha. Su navegador aún no lo ha confirmado por sí mismo.',
+  'app.verify.verdict.dateFailed': 'La comprobación de la fecha falló en su navegador. No confíe en esta fecha.',
+  'app.verify.verdict.notYet': 'Todavía sin fecha. Está esperando su sello de fecha.',
+  'app.verify.verdict.reportedNoDateButFailed':
+    'El servidor de VeilCore informa de que está fechado, pero no da la fecha, y no todas las comprobaciones se superaron. Vea las comprobaciones más abajo.',
+  'app.verify.verdict.reportedButFailed':
+    'El servidor de VeilCore informa de que se fechó el {date}, pero no todas las comprobaciones se superaron. Vea las comprobaciones más abajo.',
+  'app.verify.verdict.datedWithdrawn':
+    'Fechado el {date}, pero un laboratorio retiró su firma. Vea las comprobaciones más abajo.',
+  'app.verify.verdict.dateUnchecked':
+    'No se pudo comprobar la fecha ahora. El servidor de VeilCore dice que este registro está fechado, pero esta página no pudo confirmarlo. Inténtelo de nuevo en un minuto.',
+  'app.verify.verdict.notYetFailed':
+    'Todavía sin fecha, y no todas las comprobaciones se superaron. Vea las comprobaciones más abajo.',
+  'app.verify.verdict.unbound':
+    'Este enlace no lleva el código de prueba del registro, así que su navegador no puede saber si el servidor de VeilCore respondió sobre este registro. Pida un enlace nuevo a quien se lo envió.',
+  'app.verify.verdict.nothing': 'No se puede comprobar nada de este registro: no tiene código de prueba.',
+  'app.verify.checks.see': 'Ver las comprobaciones',
+  'app.verify.checks.hide': 'Ocultar las comprobaciones',
+  'app.verify.cta': '¿Quiere una fecha así para sus propias plantas o animales?',
+  'app.verify.ctaButton': 'Crear un registro, gratis',
+  'app.verify.notFoundAsk': 'Pida a quien se lo envió que le mande el enlace de nuevo.',
+  'app.verify.another.label': 'Otro ID de registro o enlace de comprobación',
+  'app.verify.another.go': 'Comprobar',
+  'app.verify.another.bad': 'Eso no es un ID de registro ni un enlace de comprobación.',
+  'app.verify.unreachable.title': 'No se pudo comprobar este registro ahora',
+  'app.verify.unreachable.text':
+    'El servidor de VeilCore no respondió, o envió una respuesta que esta página no puede leer. Inténtelo de nuevo en un minuto.',
+  'app.verify.unreachable.retry': 'Intentar de nuevo',
   'app.verify.deleted.title': '{id} fue eliminado por su titular',
   'app.verify.deleted.when': 'Eliminado el {date}. Sus detalles ya no se muestran.',
   'app.verify.deleted.datedChecked':

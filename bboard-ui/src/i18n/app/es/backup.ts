@@ -160,6 +160,9 @@ export const backup = {
   'app.intake.send.kept': 'El registro se queda en su VeilCore en cualquier caso.',
   'app.intake.err.title': 'Este enlace no se puede usar',
   'app.intake.err.help': 'Pida uno nuevo a quien se lo envió. No se registró ni se envió nada.',
+  'app.intake.err.paste': 'Pegar un código o enlace',
+  'app.intake.err.records': 'Ir a sus registros',
+  'app.intake.err.lab': 'Soy un laboratorio: resultados de laboratorio',
   'app.intake.err.gone':
     'La solicitud del otro sitio ya no está (esta pestaña se cerró o se volvió a abrir). Abra su enlace otra vez.',
   'app.intake.err.noReturn': 'No indica a qué dirección volver.',

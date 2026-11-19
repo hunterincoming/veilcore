@@ -337,6 +337,14 @@ export const de: Strings = {
   'm.notfound.text':
     'Unter dieser Adresse gibt es keine Seite. Wenn Ihnen jemand einen Link zu einem Datensatz gegeben hat, prüfen Sie, ob er vollständig ist.',
   'm.notfound.home': 'Startseite von VeilCore →',
+  'm.homescreen.title': 'Ihre Datensätze öffnen',
+  'm.homescreen.text':
+    'Das ist VeilCore auf Ihrem Home-Bildschirm. Es hat einen eigenen Speicher, getrennt von Safari.',
+  'm.homescreen.lost': 'Es ist nichts verloren gegangen. Holen Sie Ihre Datensätze mit Ihrer Sicherungsdatei hierher.',
+  'm.homescreen.restore': 'Meine Datensätze holen',
+  'm.homescreen.fresh': 'Neu bei VeilCore? Hier anfangen',
+  'm.homescreen.safari':
+    'Keine Sicherungsdatei zur Hand? Wenn Sie VeilCore auf diesem Gerät in Safari genutzt haben, sind Ihre Datensätze noch dort.',
   'm.privacy.contact': 'Fragen: hunter@veilcore.org',
   // Round 2 truth pass (14 Oct 2026): keys added or newly translated.
   'm.hero.lede':

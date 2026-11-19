@@ -53,8 +53,6 @@ export const sealed = {
     '{count} enregistrement est revenu sous une forme que cette version ne sait pas lire ; il n’est donc pas affiché.',
   'app.sealed.unreadable.other':
     '{count} enregistrements sont revenus sous une forme que cette version ne sait pas lire ; ils ne sont donc pas affichés.',
-  'app.sealed.backupNeeded':
-    '<b>Enregistrez une nouvelle sauvegarde.</b> Vos enregistrements sont maintenant verrouillés avec une clé que ce navigateur est le seul à avoir, tant que vous n’avez pas enregistré de sauvegarde. Sans le fichier de sauvegarde, vous ne pourrez les ouvrir nulle part ailleurs.',
   'app.sealed.err.newCode':
     'Ce code a été créé avant que les livraisons soient verrouillées, et il ne fonctionne plus. Demandez un nouveau code à l’expéditeur.',
   'app.sealed.recv.missingKey':
@@ -187,7 +185,6 @@ export const sealed = {
   'app.sealed.linksDeletedOpen': 'L’ouvrir',
   'app.sealed.unsaved.linksDeleted':
     'Cette correction nomme un enregistrement que son détenteur a supprimé, donc VeilCore ne l’enregistrera pas. Elle n’est gardée que dans ce navigateur. Abandonnez-la ici.',
-  'app.sealed.unsaved.short': 'Copie verrouillée pas encore envoyée — enregistrez et vérifiez votre sauvegarde',
   'app.sealed.unsaved.shortRetry': 'Pas encore enregistré',
   'app.sealed.unsaved.discardConfirm':
     'Abandonner ce que ce navigateur garde pour cet enregistrement ? Ce n’est pas sur VeilCore, donc impossible à récupérer.',

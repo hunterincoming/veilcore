@@ -107,7 +107,6 @@ export const home = {
   'app.home.paste.hint':
     'ラボコード、記録のリンク、記録を保有していることの証明の依頼、署名する契約。どれかはこちらで判断します。',
   'app.home.paste.whichRecord': '保有の証明を求めるリクエストです。どの記録について聞かれましたか？',
-  'app.home.notFinished': 'バックアップに未保存 · 次：バックアップを保存',
   'app.home.receivedFrom': '{name} から受け取り',
   'app.home.receivedFromNamed': '{name}から · 相手の記録 {id}',
   'app.home.receivedFromName': '{name}から',
@@ -120,8 +119,9 @@ export const home = {
   'app.home.labReportDated': 'DNA報告書に日付を付けました',
   'app.home.datesReportFor': '{name} のDNA報告書に日付を付ける記録',
   'app.home.aPlant': 'ある植物',
-  'app.home.datingUnfinished': '{dated} · バックアップに未保存 · 次：バックアップを保存',
   'app.home.datingSealed': '{dated} · {date} に封印',
+  'app.home.backupLine':
+    '<b>まだバックアップされていません。</b>保存するまで、記録した内容はこのブラウザの中にしかありません。',
   'app.home.export.label': 'VeilCoreから記録と契約をダウンロード',
   'app.home.export.done':
     'ダウンロードしました：記録、契約、共有の選択、すべての包含証明。送付、そのサンプル情報、検査報告書は入っていません。送付または植物のページから開いてください。鍵はこのファイルではなく、バックアップファイルにあります。',

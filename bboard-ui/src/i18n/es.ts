@@ -335,6 +335,14 @@ export const es: Strings = {
   'm.notfound.text':
     'No hay ninguna página en esta dirección. Si alguien le dio un enlace a un registro, compruebe que esté completo.',
   'm.notfound.home': 'Inicio de VeilCore →',
+  'm.homescreen.title': 'Abra sus registros',
+  'm.homescreen.text':
+    'Esto es VeilCore en su pantalla de inicio. Guarda sus datos en un espacio propio, separado de Safari.',
+  'm.homescreen.lost': 'No se ha perdido nada. Traiga aquí sus registros con su archivo de copia de seguridad.',
+  'm.homescreen.restore': 'Traer mis registros',
+  'm.homescreen.fresh': '¿Es nuevo en VeilCore? Empiece aquí',
+  'm.homescreen.safari':
+    '¿No tiene a mano su archivo de copia de seguridad? Si usó VeilCore en Safari en este dispositivo, sus registros siguen ahí.',
   'm.privacy.contact': 'Preguntas: hunter@veilcore.org',
   // Round 2 truth pass (14 Oct 2026): keys added or newly translated.
   'm.hero.lede':

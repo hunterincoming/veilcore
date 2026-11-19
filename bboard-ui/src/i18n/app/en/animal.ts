@@ -109,12 +109,10 @@ export const animal = {
     "Key date stamped: {when}. Your animal's key is dated too, so you can prove you hold its record later.{bound} Nothing about the animal went out.",
   'app.animal.v.app.log.keyStamped':
     "Key date stamped. Your animal's key is dated too, so you can prove you hold its record later.{bound} Nothing about the animal went out.",
-  'app.animal.v.app.log.stampingTitle': 'Sealed. Date stamping your animal’s key…',
   'app.animal.v.app.log.onlyFingerprint':
     "Only a code made from your animal's key goes out, nothing about the animal. Free: VeilCore pays the network fee.",
-  'app.animal.v.app.log.stampingAria': 'Date stamping your animal’s key',
   'app.animal.v.app.log.keepOpen':
-    'Keep this screen open, about a minute. If it closes, nothing is lost: your animal is saved, and its page will offer the date stamp again.',
+    'This takes about a minute. Keep this screen open until it’s done: on a phone, switching apps or locking the screen can stop it. If it stops, nothing is lost: your animal is saved, and its page will offer the date stamp again.',
   'app.animal.v.app.chain.stampMayHaveGoneOut':
     "Your date stamp may already have gone out{tx}. Your animal is saved. Don't try again until that transaction has been checked on the network.",
   'app.animal.v.app.chain.stampUnreachable':

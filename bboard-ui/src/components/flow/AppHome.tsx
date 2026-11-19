@@ -69,6 +69,7 @@ import { dnaTieSentence } from '../../veilcore/dna-tie';
 import type { StrainRecord } from '../../veilcore/records';
 import type { SavedReport } from '../../veilcore/saved-report';
 import { PickUp } from './PickUp';
+import { BackupNeeded, backupNeed } from './BackupNeeded';
 import { JobsOnHome } from '../ask/JobsOnHome';
 import { keysOnlyHere } from './keys-only-here';
 import { wantsPasteFirst } from '../site/paste-entry';
@@ -425,9 +426,19 @@ export const AppHome: React.FC = () => {
         {/* Ask's "Do it for me" jobs: one to check, one being done, a record got ready to license. */}
         <JobsOnHome />
 
+        {/* A backup, when one is needed: one line for the whole account, never one per record
+            (BackupNeeded.tsx; easy-mode review, 19 Nov). */}
+        <BackupNeeded
+          need={backupNeed({
+            keysOnlyHere: unbackedIds.length,
+            waitingForBackup,
+            vaultUnbacked,
+            legacyWaiting,
+          })}
+        />
+
         {/* What is open since last time, one line and one button each (PickUp.tsx). Nothing open,
-            nothing shown. It asks for the backup when records wait for one, so the alert below
-            doesn't say it again. */}
+            nothing shown. */}
         <PickUp
           records={records}
           waiting={waiting}
@@ -435,28 +446,6 @@ export const AppHome: React.FC = () => {
             lab ? records.filter((r) => r.receivedFrom && labFacts[r.id]?.signed === false).map((r) => r.id) : []
           }
         />
-
-        {vaultUnbacked && unbackedIds.length === 0 && !waitingForBackup && (
-          <Alert
-            severity="warning"
-            variant="outlined"
-            data-vault-backup=""
-            action={
-              <Button
-                color="inherit"
-                variant="outlined"
-                onClick={() => void navigate('/backup')}
-                sx={{ minHeight: 44 }}
-              >
-                {t('app.home.saveIt')}
-              </Button>
-            }
-          >
-            {rich(t(legacyWaiting ? 'app.sealed.backupBeforeLocking' : 'app.sealed.backupNeeded'), {
-              b: (c) => <b>{c}</b>,
-            })}
-          </Alert>
-        )}
 
         {vaultProblem === 'cant-store' && (
           <Alert severity="warning" variant="outlined" data-vault-cant-store="">
@@ -490,23 +479,19 @@ export const AppHome: React.FC = () => {
             const doc = isDocument(r);
             const base = own
               ? (() => {
-                  const d = datingHomeStatus(r, keys[r.id], REAL_CHAIN, tr);
+                  const d = datingHomeStatus(r, tr);
                   return { text: `${datingCardLine(r, tr)} · ${d.text}`, unfinished: d.unfinished };
                 })()
               : lab && r.receivedFrom
                 ? { text: labCardLine(r, labFacts[r.id], tr), unfinished: false }
                 : doc
-                  ? // A document's keys are safe once a checked backup holds them, or its locked copy
-                    // on VeilCore does under a backed-up vault key (keys-only-here.ts): a document's
-                    // flow has no backup step of its own after the first, so its key's own
-                    // "backed up" mark alone would call every later document unfinished.
-                    REAL_CHAIN && unbackedIds.includes(r.id)
-                    ? { text: t('app.home.notFinished'), unfinished: true }
-                    : { text: '', unfinished: false }
+                  ? // A document's card says its type and its date; a missing backup is Home's one
+                    // backup line (BackupNeeded.tsx), which counts its keys too (keys-only-here.ts).
+                    { text: '', unfinished: false }
                   : homeStatusLine(r, keys[r.id], { realChain: REAL_CHAIN, queued: imported.has(r.id) }, tr);
             // A document says so on its card: its type, then one plain status, dated or waiting for
             // its date (DocumentDateLine), never its key's date stamp (that is under "Technical
-            // details" on its page). Not finished (no checked backup) still says so first.
+            // details" on its page).
             // A copy of a result a lab keeps (records.ts StrainRecord.copy): the date is the lab's,
             // never shown as this holder's.
             const copy = r.copy === true && !!r.labSignature;
@@ -523,7 +508,7 @@ export const AppHome: React.FC = () => {
               : base;
             const datings = (datingsOf.get(r.id) ?? []).map((d) => ({
               id: d.id,
-              ...datingHomeStatus(d, keys[d.id], REAL_CHAIN, tr),
+              ...datingHomeStatus(d, tr),
             }));
             const unfinished = s.unfinished || datings.some((d) => d.unfinished);
             const reportWaiting = (waiting[r.id]?.length ?? 0) > 0;
@@ -598,9 +583,9 @@ export const AppHome: React.FC = () => {
                         </Typography>
                       ))}
                     {/* Kept in this browser, not on VeilCore yet (round 3, L1, L12). */}
-                    {/* Not when the card already says it isn't in a backup (unsavedLineKey). */}
+                    {/* Not for a backup: Home's one backup line says that (unsavedLineKey). */}
                     {(() => {
-                      const k = unsavedLineKey(unsavedReason(r.id), base.text.includes(t('app.home.notFinished')));
+                      const k = unsavedLineKey(unsavedReason(r.id));
                       return k ? (
                         <Typography
                           variant="body2"
