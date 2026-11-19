@@ -62,6 +62,9 @@ export const log = {
   'app.log.photos.other': '{count} fotos',
   'app.log.photosStay': 'Las fotos se quedan en su dispositivo. Solo se guardan sus códigos.',
   'app.log.refId': 'Su propio número de lote o referencia',
+  'app.log.registration': 'Número de registro de la variedad, si está registrada',
+  'app.log.registrationHelp':
+    'Tal como lo escribe el registro, por ejemplo INASE RNC 12345. Se sella en las notas del registro. Es su declaración: nadie la comprueba.',
   'app.log.notes': 'Notas',
   'app.log.nextCheck': 'Siguiente: revisarlo',
   'app.log.readingYourPhotos': 'Leyendo sus fotos…',
@@ -77,6 +80,7 @@ export const log = {
   'app.log.x.species': 'Especie: {v}',
   'app.log.x.madeBy': 'Método: {v}',
   'app.log.x.ref': 'Su referencia: {v}',
+  'app.log.x.registration': 'Registro de la variedad: {v}',
   'app.log.x.notes': 'Notas añadidas',
   'app.log.sealedWarn':
     '<b>Una vez sellada, esta parte no puede cambiar.</b> Puede añadir informes y correcciones más tarde; una corrección es un registro nuevo que remite a este. Eso es lo que da valor al sello de fecha.',

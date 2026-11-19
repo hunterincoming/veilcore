@@ -68,6 +68,9 @@ export const log = {
   'app.log.photos.other': '{count} photos',
   'app.log.photosStay': 'Photos stay on your device. Only a code made from each is kept.',
   'app.log.refId': 'Your own lot or reference number',
+  'app.log.registration': 'Variety registration number, if the variety is registered',
+  'app.log.registrationHelp':
+    'As the register writes it, for example INASE RNC 12345. Sealed in the record’s notes. It is your statement: nobody checks it.',
   'app.log.notes': 'Notes',
   'app.log.nextCheck': 'Next: check it',
   'app.log.readingYourPhotos': 'Reading your photos…',
@@ -83,6 +86,7 @@ export const log = {
   'app.log.x.species': 'Species: {v}',
   'app.log.x.madeBy': 'How it was made: {v}',
   'app.log.x.ref': 'Your reference: {v}',
+  'app.log.x.registration': 'Variety registration: {v}',
   'app.log.x.notes': 'Notes added',
   'app.log.sealedWarn':
     "<b>Once sealed, this part can't change.</b> You can add reports and corrections later; a correction is a new record that points back to this one. That's what makes the date stamp worth something.",

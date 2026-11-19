@@ -14,7 +14,7 @@ import { animalDraftHasContent, parseAnimalDraft, type AnimalDraft, type LogKind
 import { parseStrainDraft, strainDraftHasContent, type StrainDraft } from './strain-draft';
 import {
   LANDRACE_METHOD,
-  guardNotes,
+  ORIGIN_MAX,
   originHasContent,
   originNotes,
   parseOrigin,
@@ -59,6 +59,11 @@ export type Draft = {
   source?: OriginSource;
   /** What the "Where it came from" step holds (veilcore/origin-notes.ts): sealed in the notes. */
   origin?: Origin;
+  /**
+   * The variety's registration number (origin-notes.ts `registration`), typed on the first
+   * screen under "More details" whoever bred it: sealed in the notes' labelled block.
+   */
+  registration?: string;
 };
 
 /** Where the plant is from: as chosen, else a landrace when "How it was made" says so, else bred. */
@@ -105,6 +110,7 @@ export const draftHasContent = (d: Draft): boolean =>
     d.taxon.trim() ||
     d.breedingMethod ||
     d.refId.trim() ||
+    d.registration?.trim() ||
     d.notes.trim() ||
     d.stage?.trim() ||
     d.selectedFor?.trim() ||
@@ -171,6 +177,7 @@ export const parseDraft = (raw: string | null): Draft | undefined => {
       ...(v.strain !== undefined && parseStrainDraft(v.strain) ? { strain: parseStrainDraft(v.strain) } : {}),
       ...(v.source === 'bred' || v.source === 'received' || v.source === 'landrace' ? { source: v.source } : {}),
       ...(parseOrigin(v.origin) ? { origin: parseOrigin(v.origin) } : {}),
+      ...(typeof v.registration === 'string' ? { registration: str(v.registration, ORIGIN_MAX) } : {}),
     };
     return draftHasContent(d) ? d : undefined;
   } catch {
@@ -183,6 +190,7 @@ export const parseDraft = (raw: string | null): Draft | undefined => {
  * A next stage's two answers go first in the notes, one line each (stage-notes.ts); for a
  * landrace or received material, the "Where it came from" lines next (origin-notes.ts). What the
  * step held is sealed only while the step is offered: switching back to "I bred it" drops it.
+ * The variety registration number is sealed in that block whoever bred it.
  */
 export const sealInputOf = (draft: Draft): SealInput => ({
   strainName: draft.strainName.trim(),
@@ -191,7 +199,7 @@ export const sealInputOf = (draft: Draft): SealInput => ({
   notes: stageNotes(
     draft.stage,
     draft.selectedFor,
-    originApplies(draft) ? originNotes(draft.origin, draft.notes) : guardNotes(draft.notes),
+    originNotes({ ...(originApplies(draft) ? draft.origin : {}), registration: draft.registration ?? '' }, draft.notes),
   ),
   parents: draft.parents,
   breedingMethod: draft.breedingMethod,

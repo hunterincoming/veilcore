@@ -204,6 +204,7 @@ export const APP_ROUTES = Object.freeze([
   '/verify/:record?fp=:hex',
   '/records',
   '/records/import',
+  '/records/authority-pack',
   '/restore',
   '/backup',
   '/docs/spec',

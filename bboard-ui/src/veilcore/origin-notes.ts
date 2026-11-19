@@ -76,6 +76,13 @@ export type Origin = {
   readonly mlsStat: string;
   /** MCPD ANCEST: the pedigree as the sheet wrote it, from an import. */
   readonly ancest: string;
+  /**
+   * The variety's registration number where a national register lists it, as the holder wrote
+   * it ("INASE RNC 12345"): typed on the plant's first screen, for a variety the holder bred or
+   * received alike (an Argentine association's six-monthly statement names "la variedad genética
+   * registrada utilizada": authority-pack.ts). The holder's statement; nobody checked it.
+   */
+  readonly registration: string;
 };
 export type OriginField = keyof Origin;
 
@@ -96,6 +103,7 @@ export const ORIGIN_LABELS: readonly (readonly [OriginField, string])[] = [
   ['collSite', 'Collecting site: '],
   ['mlsStat', 'MCPD MLSSTAT: '],
   ['ancest', 'Pedigree (ANCEST): '],
+  ['registration', 'Variety registration: '],
 ];
 
 /**
@@ -137,6 +145,7 @@ export const emptyOrigin = (): Origin => ({
   collSite: '',
   mlsStat: '',
   ancest: '',
+  registration: '',
 });
 
 export const originHasContent = (o: Partial<Origin> | undefined): boolean =>

@@ -47,6 +47,7 @@ import { INK_COLOR, GROUND, POLLEN, WASH } from '../../config/theme';
 import { useT, useRecordT, rich } from '../../i18n/app';
 import { recordTitle } from '../../veilcore/animal-profile';
 import { isDocument } from '../../veilcore/document-profile';
+import { documentKindOf } from '../../veilcore/document-kind';
 import { kindOrTypeWords } from '../document/DocumentParts';
 import { SECTIONS, focusScreenHeading } from './FlowFrame';
 import { PasteBox } from './PasteBox';
@@ -684,6 +685,13 @@ export const AppHome: React.FC = () => {
           {!labOnly && (
             <Button component={RouterLink} to="/records/import" sx={{ minHeight: 44 }}>
               {t('app.home.spreadsheet')}
+            </Button>
+          )}
+          {/* The pack for the authority (authority-pack.ts): offered once there is a production
+              chain to make it from, a grow batch or a harvest lot. */}
+          {!labOnly && records.some((r) => documentKindOf(r) !== undefined) && (
+            <Button component={RouterLink} to="/records/authority-pack" sx={{ minHeight: 44 }} data-pack-link="">
+              {t('app.pack.home')}
             </Button>
           )}
           <Button component={RouterLink} to="/restore" sx={{ minHeight: 44 }}>

@@ -63,6 +63,9 @@ export const log = {
   'app.log.photos.other': '{count} Fotos',
   'app.log.photosStay': 'Die Fotos bleiben auf Ihrem Gerät. Nur ihre Codes werden gespeichert.',
   'app.log.refId': 'Ihre eigene Chargen- oder Referenznummer',
+  'app.log.registration': 'Registernummer der Sorte, falls die Sorte eingetragen ist',
+  'app.log.registrationHelp':
+    'So, wie das Register sie schreibt, zum Beispiel INASE RNC 12345. Wird in den Notizen des Eintrags versiegelt. Es ist Ihre Angabe: Niemand prüft sie.',
   'app.log.notes': 'Notizen',
   'app.log.nextCheck': 'Weiter: prüfen',
   'app.log.readingYourPhotos': 'Ihre Fotos werden gelesen…',
@@ -78,6 +81,7 @@ export const log = {
   'app.log.x.species': 'Art: {v}',
   'app.log.x.madeBy': 'Wie entstanden: {v}',
   'app.log.x.ref': 'Ihre Referenz: {v}',
+  'app.log.x.registration': 'Sortenregister: {v}',
   'app.log.x.notes': 'Notizen hinzugefügt',
   'app.log.sealedWarn':
     '<b>Einmal versiegelt, lässt sich dieser Teil nicht mehr ändern.</b> Berichte und Korrekturen können Sie später hinzufügen; eine Korrektur ist ein neuer Datensatz, der auf diesen verweist. Genau das macht den Datumsstempel wertvoll.',

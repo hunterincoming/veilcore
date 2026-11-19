@@ -63,6 +63,9 @@ export const log = {
   'app.log.photos.other': '{count} photos',
   'app.log.photosStay': 'Les photos restent sur votre appareil. Seuls leurs codes sont conservés.',
   'app.log.refId': 'Votre propre numéro de lot ou de référence',
+  'app.log.registration': 'Numéro d’inscription de la variété, si elle est inscrite',
+  'app.log.registrationHelp':
+    'Tel que le registre l’écrit, par exemple INASE RNC 12345. Scellé dans les notes de l’enregistrement. C’est votre déclaration : personne ne la vérifie.',
   'app.log.notes': 'Notes',
   'app.log.nextCheck': 'Suivant : vérifier',
   'app.log.readingYourPhotos': 'Lecture de vos photos…',
@@ -78,6 +81,7 @@ export const log = {
   'app.log.x.species': 'Espèce : {v}',
   'app.log.x.madeBy': 'Méthode : {v}',
   'app.log.x.ref': 'Votre référence : {v}',
+  'app.log.x.registration': 'Inscription de la variété : {v}',
   'app.log.x.notes': 'Notes ajoutées',
   'app.log.sealedWarn':
     '<b>Une fois scellée, cette partie ne peut plus changer.</b> Vous pourrez ajouter des rapports et des corrections plus tard ; une correction est un nouvel enregistrement qui renvoie à celui-ci. C’est ce qui donne sa valeur à l’horodatage.',

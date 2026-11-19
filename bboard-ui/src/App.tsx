@@ -74,6 +74,7 @@ const ClaimCheck = page(() => import('./components/document/ClaimCheck'), 'Claim
 const LabResultsPage = page(() => import('./components/lab/LabResultsPage'), 'LabResultsPage');
 const LabResultCheck = page(() => import('./components/lab/LabResultCheck'), 'LabResultCheck');
 const BulkImportPage = page(() => import('./components/lab-import/BulkImportPage'), 'BulkImportPage');
+const AuthorityPackPage = page(() => import('./components/authority-pack/AuthorityPackPage'), 'AuthorityPackPage');
 const RestorePage = page(() => import('./components/flow/RestorePage'), 'RestorePage');
 const BackupPage = page(() => import('./components/flow/BackupPage'), 'BackupPage');
 const IntakePage = page(() => import('./components/flow/IntakePage'), 'IntakePage');
@@ -353,6 +354,7 @@ const routes = (
     <Route path="/verify" element={<VerifyLookup />} />
     <Route path="/records" element={withLayout(<AppHome />)} />
     <Route path="/records/import" element={withLayout(<BulkImportPage />)} />
+    <Route path="/records/authority-pack" element={withLayout(<AuthorityPackPage />)} />
     <Route path="/restore" element={withLayout(<RestorePage />)} />
     <Route path="/backup" element={withLayout(<BackupPage />)} />
     {/* Documents read here rather than in a code repository. */}

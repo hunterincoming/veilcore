@@ -62,6 +62,9 @@ export const log = {
   'app.log.photos.other': '写真 {count}枚',
   'app.log.photosStay': '写真はお使いの端末に残ります。保存されるのはコードだけです。',
   'app.log.refId': 'あなた自身のロット番号または管理番号',
+  'app.log.registration': '品種の登録番号（登録されている場合）',
+  'app.log.registrationHelp':
+    '登録簿の表記どおりに入力してください（例：INASE RNC 12345）。記録のメモに封印されます。これはあなたの申告であり、誰も確認しません。',
   'app.log.notes': 'メモ',
   'app.log.nextCheck': '次へ：確認する',
   'app.log.readingYourPhotos': '写真を読み込んでいます…',
@@ -77,6 +80,7 @@ export const log = {
   'app.log.x.species': '種：{v}',
   'app.log.x.madeBy': '作出方法：{v}',
   'app.log.x.ref': '管理番号：{v}',
+  'app.log.x.registration': '品種登録：{v}',
   'app.log.x.notes': 'メモあり',
   'app.log.sealedWarn':
     '<b>封印すると、この部分は変更できません。</b>報告書や訂正は後から追加できます。訂正は、この記録を指し示す新しい記録になります。だからこそ日付スタンプに価値があります。',

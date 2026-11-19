@@ -92,6 +92,7 @@ export const origin = {
   'app.origin.x.collSite': 'Lieu de collecte : {v}',
   'app.origin.x.mlsStat': 'Système multilatéral (MCPD) : {v}',
   'app.origin.x.ancest': 'Pedigree : {v}',
+  'app.origin.x.registration': 'Inscription de la variété : {v}',
   'app.origin.mcpdExample': 'Par exemple : {v} ({meaning})',
   'app.origin.mcpd.sampStat.wild': 'sauvage',
   'app.origin.mcpd.sampStat.weedy': 'adventice',
