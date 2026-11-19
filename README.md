@@ -22,9 +22,8 @@ and a Rust implementation in [veilcore-rs](https://github.com/hunterincoming/vei
 
 | Status | |
 |---|---|
-| **Live on veilcore.org** | Sealing records, dated in batches on Midnight mainnet; check pages; proving a record by link; dating a DNA report pairing; lab codes and signed receipts; licenses and royalty reports; documents kept on the device only; proving one number from a sealed document; production chains of linked document records. No wallet needed: VeilCore's fee service pays the network fee. |
-| **Run once on mainnet, not called live yet** | Numbers and results a lab signs ([docs/lab-signing.md](docs/lab-signing.md)): switched on for veilcore.org, and worked on Midnight's main network in a test run on 18 November 2026 ([docs/lab-mainnet-test.md](docs/lab-mainnet-test.md)). |
-| **Built, not yet run on mainnet** | Handing a license on to another grower, with the breeder's approval. |
+| **Live on veilcore.org** | Sealing records, dated in batches on Midnight mainnet; check pages; proving a record by link; dating a DNA report pairing; lab codes and signed receipts; licenses and royalty reports; documents kept on the device only; proving one number from a sealed document; production chains of linked document records; numbers and results a lab signs, since a run on 18 November 2026 ([docs/lab-signing.md](docs/lab-signing.md), [docs/lab-mainnet-test.md](docs/lab-mainnet-test.md)). No wallet needed: VeilCore's fee service pays the network fee. |
+| **Built, not yet run on mainnet** | Handing a license on to another grower, with the breeder's approval. Adding a lab's result file to another breeder's records. |
 | **Test network only** | A lab's viability result for a sample before or after a kill step; paying royalties in NIGHT on Midnight. |
 | **Not built** | A paid plan for labs (designed only: [docs/lab-plan.md](docs/lab-plan.md)). |
 
@@ -256,7 +255,7 @@ cd ../bboard-ui && npm run build
 (protocol version 1, source frozen) covers records, licenses and lineage. `contract/src/veilcore-claims.compact`
 proves one fact about a sealed record without showing the rest (a value, a bound on a number,
 that two records differ, that a correction changed only some values), optionally on values a
-laboratory signed (from the website, lab-signed values are built and not yet run on mainnet); see [`docs/claims-design.md`](docs/claims-design.md) and SPEC 4.5 in veilcore-sdk.
+laboratory signed (from the website, a number was proved from a lab-signed result on mainnet on 18 November 2026); see [`docs/claims-design.md`](docs/claims-design.md) and SPEC 4.5 in veilcore-sdk.
 The claims contract has no maintenance authority (an empty committee).
 
 The main contract covers records, licenses and lineage in 24 circuits. The design, the normative

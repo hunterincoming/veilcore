@@ -22,8 +22,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The note for counsel's live list adds documents kept on the device only, proving one number
   and production chains, and says lab-signed numbers worked on the main network in a test run
   on 18 November 2026. Taken from SDK commit `b5c63e5` (`EVIDENCE_COMMIT`), on the SDK's
-  branch `evidence-device-only-chains` until that is merged; the README's status table says the
-  same.
+  branch `evidence-device-only-chains` until that is merged. The README's status table lists
+  lab-signed numbers as live on veilcore.org since that run, and adding a lab's result file to
+  another breeder's records as built, not yet run on mainnet.
 - A document's key date stamp is a plain button, "Put a date stamp on this record's key", with no
   step number. Plant pages lose the "1." and "2." too: the two never show together.
 - The check page names a file once when it has the sealed file's name, says what a match will
