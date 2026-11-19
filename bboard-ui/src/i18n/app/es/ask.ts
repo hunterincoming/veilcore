@@ -38,7 +38,7 @@ export const ask = {
   'app.ask.can.2': 'Mostrar lo que vence',
   'app.ask.can.3': 'Explicar palabras como «código de prueba»',
   'app.ask.can.4': 'Encontrar sus registros',
-  'app.ask.can.5': 'Rellenar un registro nuevo para que usted lo revise y guarde',
+  'app.ask.can.5': 'Completar un registro nuevo para que usted lo revise y guarde',
   'app.ask.can.never': 'Nunca firmo ni envío nada. Eso lo hace usted.',
   'app.ask.can.toggle': '¿Qué se puede hacer aquí?',
   // ---- la pista junto al botón, cuando ya hay un registro (el ejemplo lo nombra) ----
@@ -66,7 +66,7 @@ export const ask = {
   'app.ask.model.check': 'Antes de usarlo, se comprueba que cada archivo sea exactamente el que espera este sitio.',
   'app.ask.model.needsConnection':
     'Cada vez que se inicia, este navegador carga el programa del modelo desde veilcore.org, así que hace falta conexión. Nada de lo que escribe se envía.',
-  'app.ask.model.folded': 'Opcional: un modelo de lenguaje en este ordenador',
+  'app.ask.model.folded': 'Opcional: un modelo de lenguaje en esta computadora',
   'app.ask.model.download': 'Descargar ({size})',
   'app.ask.model.resume': 'Reanudar la descarga',
   'app.ask.model.cancel': 'Cancelar',
@@ -89,16 +89,16 @@ export const ask = {
     'Un archivo guardado no es el que espera este sitio. Borre el modelo y descárguelo de nuevo.',
   'app.ask.model.why.notStored': 'Falta parte del modelo; reanude la descarga.',
   'app.ask.model.why.noGpu': 'Este navegador no puede ejecutarlo. Un Chrome o Edge actualizado normalmente sí puede.',
-  'app.ask.model.why.noF16': 'Los gráficos de este ordenador no pueden ejecutar este modelo.',
+  'app.ask.model.why.noF16': 'Los gráficos de esta computadora no pueden ejecutar este modelo.',
   'app.ask.model.why.selfTest': 'Falló la respuesta de prueba en este dispositivo.',
   'app.ask.model.why.failed': 'Se detuvo al cargar.',
   'app.ask.model.notHere.narrow': 'Haga esta ventana más ancha para ver el modelo de lenguaje opcional.',
   'app.ask.model.notHere.noWebgpu':
     'Este navegador no puede ejecutar el modelo de lenguaje. Un Chrome o Edge actualizado normalmente sí puede. Sin el modelo, todo funciona como siempre.',
   'app.ask.model.notHere.noF16':
-    'Los gráficos de este ordenador no pueden ejecutar el modelo de lenguaje. Sin el modelo, todo funciona como siempre.',
+    'Los gráficos de esta computadora no pueden ejecutar el modelo de lenguaje. Sin el modelo, todo funciona como siempre.',
   'app.ask.model.notHere.memory':
-    'Este ordenador tiene muy poca memoria para el modelo de lenguaje. Sin el modelo, todo funciona como siempre.',
+    'Esta computadora tiene muy poca memoria para el modelo de lenguaje. Sin el modelo, todo funciona como siempre.',
   'app.ask.draft.opens': 'Abre: {screen}',
   'app.ask.screen.record': 'Crear un registro ({kind})',
   'app.ask.screen.cross': 'Crear un registro: un cruce ({kind})',
@@ -111,7 +111,7 @@ export const ask = {
   'app.ask.draft.notFound': 'Ninguno de sus registros se llama «{name}». Elíjalo en esa pantalla.',
   'app.ask.draft.nothingSaved': 'No se guarda nada hasta que toque Guardar en esa pantalla.',
   'app.ask.draft.open': 'Abrir',
-  'app.ask.banner.ask': 'Rellenado por Preguntar. Revise cada campo resaltado.',
+  'app.ask.banner.ask': 'Completado por Preguntar. Revise cada campo resaltado.',
   'app.ask.banner.link':
     'Abierto desde un enlace. Solo fijó el tipo de registro y cuántos. Revise cada campo resaltado.',
   'app.ask.replace.title': 'Tiene un registro a medio escribir',
@@ -186,7 +186,7 @@ export const ask = {
   'app.ask.batch.needsConnection': 'Guardar necesita conexión. Primero va su copia de seguridad.',
   'app.ask.batch.needParent': 'Elija la planta de la que se cortaron.',
   'app.ask.batch.needParents': 'Elija el padre, la madre o ambos.',
-  'app.ask.batch.needAll': 'Rellene cada campo de arriba.',
+  'app.ask.batch.needAll': 'Complete cada campo de arriba.',
   'app.ask.batch.sealing': 'Sellando…',
   'app.ask.batch.backupTitle': 'Guarde primero su copia de seguridad',
   'app.ask.batch.saveThem.one': 'Guardar {count} registro',
@@ -205,5 +205,5 @@ export const ask = {
   'app.ask.batch.recordOffspringHint': 'Un registro nuevo por cría, cada uno vinculado a este animal.',
   'app.ask.batch.already': 'Algunos ya son registros suyos. Cambie el nombre o la fecha e inténtelo de nuevo.',
   'app.ask.batch.receivedNote':
-    'Aquí no se rellena nada a partir de un registro que alguien le envió: escríbalo usted.',
+    'Aquí no se completa nada a partir de un registro que alguien le envió: escríbalo usted.',
 } satisfies Partial<AppTranslation>;

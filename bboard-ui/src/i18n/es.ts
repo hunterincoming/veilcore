@@ -1,4 +1,4 @@
-// Spanish (Latin American neutral). DRAFT: machine-assisted, to be checked by a fluent speaker before publishing.
+// Spanish (Latin American neutral). Published: machine-assisted, reviewed against native official sources (docs/i18n-glossary.md).
 // SPDX-License-Identifier: Apache-2.0
 import type { Strings } from './en';
 
@@ -33,7 +33,7 @@ export const es: Strings = {
     'Una descripción fechada de algo que usted tiene: una planta, un animal, una cepa o línea celular, o un documento. Su navegador la convierte en un código de prueba corto, y ese código se fecha en Midnight en un lote junto con otros. Demuestra la posesión previa del registro en esa fecha. No demuestra quién tiene derechos sobre nada, ni que lo que dice el registro sea cierto.',
   'm.help.start.2q': '¿Qué necesito?',
   'm.help.start.2a':
-    'Un teléfono o un ordenador con un navegador actual. Sin billetera, sin darse de alta y sin comprar nada. Para demostrar un solo número de un registro hace falta un ordenador: en teléfonos aún no se ha probado.',
+    'Un teléfono o una computadora con un navegador actual. Sin billetera, sin darse de alta y sin comprar nada. Para demostrar un solo número de un registro hace falta una computadora: en teléfonos aún no se ha probado.',
   'm.help.start.3q': '¿Cuánto cuesta?',
   'm.help.start.3a': 'Crear un registro en este sitio y comprobar cualquier registro son gratis.',
   'm.help.make.t': 'Crear un registro',
@@ -49,14 +49,14 @@ export const es: Strings = {
   'm.help.backup.t': 'Su copia de seguridad',
   'm.help.backup.1q': '¿Por qué el sitio insiste en que guarde una copia de seguridad?',
   'm.help.backup.1a':
-    'El archivo de copia de seguridad es la única forma de demostrar que usted tiene sus registros, y la única forma de recuperarlos en un teléfono u ordenador nuevo. VeilCore no puede recuperarlo ni crear otro.',
+    'El archivo de copia de seguridad es la única forma de demostrar que usted tiene sus registros, y la única forma de recuperarlos en un teléfono o una computadora nuevos. VeilCore no puede recuperarlo ni crear otro.',
   'm.help.backup.2q': '¿Dónde debo guardarlo?',
   'm.help.backup.2a':
     'En una memoria USB o en un gestor de contraseñas, y además en un segundo lugar. Quien tenga el archivo puede abrir sus registros y actuar en su nombre. Añada una contraseña al guardarlo: así el archivo por sí solo no abre nada. Si olvida la contraseña, nadie puede abrir el archivo, tampoco nosotros.',
   'm.help.backup.3q': 'Perdí mi copia de seguridad. ¿Y ahora?',
   'm.help.backup.3a':
-    'Si este navegador todavía tiene sus registros, guarde ahora una copia de seguridad nueva. Si no, nadie puede abrir las copias cerradas en nuestro servidor, tampoco VeilCore. El sitio le ofrecerá borrarlas y empezar con una clave nueva. Los registros ya fechados siguen fechados, pero usted ya no puede demostrar que son suyos.',
-  'm.help.backup.4q': '¿Cómo paso a un teléfono u ordenador nuevo?',
+    'Si este navegador todavía tiene sus registros, guarde ahora una copia de seguridad nueva. Si no, nadie puede abrir las copias bloqueadas en nuestro servidor, tampoco VeilCore. El sitio le ofrecerá borrarlas y empezar con una clave nueva. Los registros ya fechados siguen fechados, pero usted ya no puede demostrar que son suyos.',
+  'm.help.backup.4q': '¿Cómo paso a un teléfono o una computadora nuevos?',
   'm.help.backup.4a': 'Abra «Recupere sus registros» en el dispositivo nuevo y elija su archivo de copia de seguridad.',
   'm.help.backup.4link': 'Recupere sus registros →',
   'm.help.backup.5q': 'Mis registros han desaparecido del navegador.',
@@ -71,7 +71,7 @@ export const es: Strings = {
     'Envíe el enlace de comprobación junto con el archivo. El navegador de la otra persona compara el archivo con el registro sellado, byte por byte, y muestra desde cuándo lo tenía usted. Su copia del archivo no se sube.',
   'm.help.show.3q': '¿Puedo demostrar un número sin mostrar el resto?',
   'm.help.show.3a':
-    'Sí, si selló el registro con sus números. Puede demostrar que un número es como máximo o como mínimo un límite, o exactamente un valor. Use un ordenador.',
+    'Sí, si selló el registro con sus números. Puede demostrar que un número es como máximo o como mínimo un límite, o exactamente un valor. Use una computadora.',
   'm.help.check.t': 'Comprobar un registro que le han enviado',
   'm.help.check.1q': 'Me han enviado un registro. ¿Cómo lo compruebo?',
   'm.help.check.1a':
@@ -285,7 +285,7 @@ export const es: Strings = {
     'Esta nota se refiere a la demo de este sitio. Es una prueba, en la red de pruebas de Midnight. Por favor, use datos inventados.',
   'm.privacy.sum.local.t': 'Nunca sale de su dispositivo sin cerrar',
   'm.privacy.sum.local.p':
-    'Sus archivos de ADN y sus fotos nunca salen de su dispositivo. Los informes de laboratorio viajan cerrados.',
+    'Sus archivos de ADN y sus fotos nunca salen de su dispositivo. Los informes de laboratorio viajan bloqueados.',
   'm.privacy.sum.locked.t': 'Guardado bloqueado, no podemos leerlo',
   'm.privacy.sum.locked.p': 'Todo lo que escribe en un registro, y los informes que un laboratorio le envía.',
   'm.privacy.sum.read.t': 'Podemos leer',
@@ -297,7 +297,7 @@ export const es: Strings = {
     'Sus registros y acuerdos, bloqueados por su navegador antes de enviarse: el nombre de cada registro, obtentor, especie, fechas, notas, números de referencia, progenitores, los códigos de prueba y los nombres de archivo de las fotos e informes de laboratorio que añade, términos y contrapartes de los acuerdos, la cantidad y la nota que envía a un laboratorio, los datos de muestra que usted y el laboratorio escriben (ID de muestra, número de precinto, dónde y cuándo se tomó, un testigo, cómo llegó), los nombres que da a los destinatarios y las claves secretas de cada registro. Nuestro servidor los guarda bloqueados, y nosotros no tenemos la clave: está en su navegador y en su archivo de copia de seguridad. La clave de los datos de muestra también va en el código de laboratorio, para que el laboratorio pueda abrirlos. Si usted lo elige, el nombre de un registro también va en un enlace de comprobación que crea, después del #. Un navegador no envía esa parte al abrir el enlace, pero el enlace va completo a cualquiera a quien se lo envíe y a cualquier sitio donde lo pegue, incluido el formulario de un socio. Nuestro servidor puede leer: el ID de cada registro; su código de prueba, su vínculo de clave y su tipo de perfil; un código hecho a partir de su nombre, que no dice nada del nombre sin la clave de su enlace de comprobación; sus vínculos de corrección (qué registro sustituye una corrección, qué campos cambió y cuándo); cuándo lo vio el servidor por primera vez; cuántas veces se guardó y cuándo fue la última; más o menos qué tamaño tiene (su franja de tamaño); lo que usted decida mostrar en su página de comprobación (su nombre, si decide mostrarlo, y si hay un informe de ADN guardado, como un código que no dice nada del archivo sin la clave de su enlace de comprobación); los vínculos con progenitores que registre; y su lote con su sello de fecha. Si un acuerdo tiene regalías sobre la descendencia, nuestro servidor puede leer a qué registro se aplica y desde cuándo rige, y cualquiera puede preguntar si ese registro tiene una: la comprobación de linaje lo necesita. De un envío: de qué registro procede, qué cuenta de titular lo recibió, cuándo se recibió y una etiqueta en lugar del nombre del destinatario. En un envío anterior a las etiquetas, el nombre está tal como se escribió, hasta que la limpieza del registro lo sustituya. De los laboratorios: la clave pública de firma y las firmas que hacen. Los acuses de recibo y los informes de un laboratorio sobre su registro son privados: nuestro servidor los muestra solo a usted, al laboratorio y a quien le envió la muestra, salvo que usted decida mostrarlos en su enlace de comprobación. Si muestra si hay un informe de ADN guardado, su página de comprobación también dice, para cada acuse de recibo, que un laboratorio recibió una muestra y si lo que llegó coincide con lo enviado, sin el nombre del laboratorio. La firma de un laboratorio sobre un informe nombra el informe ligado a su registro con una clave que solo usted y el laboratorio tienen; una hecha antes del 17 de octubre de 2026 nombra el SHA-256 del archivo del informe, que nuestro servidor muestra solo a usted, al laboratorio y a quien le envió la muestra. Las solicitudes de demostrar la clave de un registro, con el nombre que escribió quien la pide, durante 7 días: nuestro servidor sabe qué clave en la cadena nombra cada solicitud. Las páginas de demostración y de comprobación nunca envían su clave de titular. Su clave de titular, que su navegador envía cada vez que guarda para que el servidor encuentre sus registros; el servidor solo conserva un hash de un solo sentido de ella. Los registros guardados antes del bloqueo siguen siendo legibles para nosotros hasta que su navegador los bloquee, y el nombre de un registro guardado antes de que se bloquearan los nombres sigue siendo legible para nosotros hasta que su navegador vuelva a guardar el registro. Los datos de muestra escritos antes del bloqueo siguen siendo legibles para nosotros hasta que el registro los elimine. Nuestras copias de seguridad externas de antes conservan una copia legible de todo esto hasta que destruyamos la clave que las abre. Informes de laboratorio cerrados que un laboratorio le envía: se guardan cerrados, sin la clave, y se borran a los 180 días. El servidor es el registro de pruebas de VeilCore, alojado en Railway.',
   'm.privacy.local.title': 'Nunca sale de su navegador sin cerrar',
   'm.privacy.local.text':
-    'Sus archivos de ADN nunca salen de su dispositivo. Los informes de laboratorio viajan cerrados. Su navegador lee los informes de ADN, informes de laboratorio y fotos que usted añade para hacer un código de cada uno; los archivos en sí nunca se suben. Un informe de laboratorio llega a nuestro servidor solo cuando un laboratorio se lo devuelve, cerrado para que solo usted pueda abrirlo.',
+    'Sus archivos de ADN nunca salen de su dispositivo. Los informes de laboratorio viajan bloqueados. Su navegador lee los informes de ADN, informes de laboratorio y fotos que usted añade para hacer un código de cada uno; los archivos en sí nunca se suben. Un informe de laboratorio llega a nuestro servidor solo cuando un laboratorio se lo devuelve, cerrado para que solo usted pueda abrirlo.',
   'm.privacy.test.title': 'Una red de pruebas',
   'm.privacy.test.text':
     'La demo usa la red de pruebas de Midnight, no la red en producción. Los datos de la demo pueden borrarse cuando se reinicie la red de pruebas.',
@@ -318,19 +318,19 @@ export const es: Strings = {
     'Al sellar un documento, puede elegir guardar su registro solo en este dispositivo y en su archivo de copia de seguridad. Entonces nada de lo que escriba en él se envía a nuestro servidor, ni bloqueado ni sin bloquear. Lo que sí recibimos: el identificador del registro, su código de prueba y su vínculo de clave, para poder fecharlo; su dirección de red y la hora, como en cualquier solicitud; y, si tiene una copia con llave de acceso, el identificador y las claves del registro dentro de esa copia bloqueada. Si decide poner un sello de fecha a la clave del registro, un código hecho con la clave va a Midnight a través de nuestro servicio de tarifas. Una excepción, y solo si usted la elige: si prueba uno de sus números, un hecho sobre ese número va a Midnight a través de nuestro servicio de tarifas y es público para siempre. Es el límite que usted fija y su sentido o, si prueba el número exacto, el número en sí. Nada de ello va a nuestro registro. Pero lo que usted prueba es público, y nosotros, y cualquiera que tenga el enlace de comprobación del registro, podemos vincularlo con el registro; también podemos vincularlo con la clave de titular que lo fechó. No podemos devolverle un registro así: las únicas copias están en su navegador y en un archivo de copia de seguridad guardado después de sellarlo, y la aplicación le pide guardar y comprobar uno enseguida. Cualquiera a quien envíe su enlace de comprobación y el archivo puede seguir comprobándolo. La elección se hace al sellar y después no se puede cambiar.',
   'm.privacy.deals.title': 'Acuerdos y regalías',
   'm.privacy.deals.text':
-    'Los mensajes de un acuerdo de licencia (las condiciones, cada informe de regalías, su respuesta, «pagué», «recibido», recordatorios y avisos, y los datos de cobro y de empresa del licenciante) van cerrados con una clave que solo comparten las dos partes, creada cuando se leen el código de 6 cifras. Nuestro servidor los guarda cerrados y los transmite: no puede leerlos, cambiarlos ni falsificarlos. Sí ve a qué licencia pertenece un acuerdo, cuántos mensajes tiene y cuándo llegó cada uno. Los datos de cobro (una cuenta bancaria, un enlace de pago o una dirección de Midnight) y los datos de empresa (nombre legal, dirección y número fiscal) viajan dentro de esos mensajes cerrados: la otra parte puede leerlos, nosotros no. Toda copia que descargue o respalde (el registro firmado de un acuerdo, su archivo de respaldo) los contiene en claro, así que trate esos archivos como un extracto bancario. El recibo de un socio de pagos puede leerlo quien tenga el código de prueba de la declaración; solo la tienen las dos partes y su socio. Guardamos los mensajes de un acuerdo hasta que una parte nos pida borrarlos; la otra parte conserva su propia copia. La licencia en sí está en Midnight: véase «Qué va a Midnight».',
+    'Los mensajes de un acuerdo de licencia (las condiciones, cada informe de regalías, su respuesta, «pagué», «recibido», recordatorios y avisos, y los datos de cobro y de empresa del licenciante) van cerrados con una clave que solo comparten las dos partes, creada cuando se leen el código de 6 cifras. Nuestro servidor los guarda cerrados y los transmite: no puede leerlos, cambiarlos ni falsificarlos. Sí ve a qué licencia pertenece un acuerdo, cuántos mensajes tiene y cuándo llegó cada uno. Los datos de cobro (una cuenta bancaria, un enlace de pago o una dirección de Midnight) y los datos de empresa (nombre legal, dirección y número fiscal) viajan dentro de esos mensajes cerrados: la otra parte puede leerlos, nosotros no. Toda copia que descargue o respalde (el registro firmado de un acuerdo, su archivo de copia de seguridad) los contiene en claro, así que trate esos archivos como un extracto bancario. El recibo de un socio de pagos puede leerlo quien tenga el código de prueba de la declaración; solo la tienen las dos partes y su socio. Guardamos los mensajes de un acuerdo hasta que una parte nos pida borrarlos; la otra parte conserva su propia copia. La licencia en sí está en Midnight: véase «Qué va a Midnight».',
   'm.privacy.chain.title': 'Qué va a Midnight, para siempre',
   'm.privacy.chain.text':
     'Midnight es una red pública: lo que va allí no puede cambiarlo ni borrarlo nadie, nosotros incluidos, y cualquiera puede leerlo. Su genética, sus condiciones, su nombre y sus archivos nunca van allí. Lo que sí va: el código de prueba de cada lote de registros; la clave propia de un registro y su sello de fecha; un código hecho a partir de un informe de ADN, cuando fecha su vínculo; qué registros están enlazados como progenitor y descendiente, una vez que ambos titulares lo confirman (un enlace no se puede deshacer); que un registro tiene una licencia, una obligación o una anotación de prestamista registrada, y cuándo cambió; la clave pública de un laboratorio cuando firma allí un certificado; un valor que usted elige probar con exactitud, completo; y, donde este sitio permite pagar una regalía en NIGHT, el importe y las dos direcciones. Antes de cada uno de estos pasos, la aplicación muestra un recibo que enumera exactamente qué hace público ese paso. Un código o una clave por sí solos no dicen nada de usted, pero cualquiera a quien dé un enlace de comprobación puede seguir desde entonces lo que le ocurre a ese registro en la red.',
   'm.privacy.helper.title': 'El asistente y su modelo opcional',
   'm.privacy.helper.text':
-    'Ask, el asistente de la aplicación, donde este sitio lo ofrece, funciona en su dispositivo. Nada de lo que escriba en él se envía a ninguna parte; solo el botón Guardar de la aplicación envía algo, y eso va cerrado a nuestro servidor, como se explica arriba. Donde este sitio ofrece el modelo de lenguaje opcional, se descarga una vez desde Hugging Face, una empresa aparte: Hugging Face ve su dirección IP, la hora, qué archivos del modelo y que la petición viene de este sitio; nosotros vemos que empezó una descarga. El modelo se ejecuta en su dispositivo, en una parte de la página que no puede acceder a la red, así que nada de lo que escriba llega a Hugging Face ni a nosotros, ni entonces ni después. Puede borrar el modelo desde el panel del asistente. Su «Hágalo por mí» guarda un registro de cada trabajo solo en su dispositivo, nunca en una copia de seguridad: los pasos y hasta dónde llegaron, referencias a los registros y acuerdos implicados, y las cifras que escribe para un informe hasta que se envía; nunca lo que escribió para pedirlo. Se borra 7 días después de que termine el trabajo. Mientras un trabajo espera su aprobación, sus registros nuevos se guardan cerrados en su navegador, con sus claves; una copia de seguridad hecha mientras tanto también tiene esas claves. Preparar los informes lee los mensajes de cada uno de sus acuerdos desde nuestro servidor, uno tras otro, así que nuestro servidor puede ver que esos acuerdos se leyeron juntos; no se envía nada hasta que usted lo apruebe.',
+    '«Preguntar», el asistente de la aplicación, donde este sitio lo ofrece, funciona en su dispositivo. Nada de lo que escriba en él se envía a ninguna parte; solo el botón Guardar de la aplicación envía algo, y eso va cerrado a nuestro servidor, como se explica arriba. Donde este sitio ofrece el modelo de lenguaje opcional, se descarga una vez desde Hugging Face, una empresa aparte: Hugging Face ve su dirección IP, la hora, qué archivos del modelo y que la petición viene de este sitio; nosotros vemos que empezó una descarga. El modelo se ejecuta en su dispositivo, en una parte de la página que no puede acceder a la red, así que nada de lo que escriba llega a Hugging Face ni a nosotros, ni entonces ni después. Puede borrar el modelo desde el panel del asistente. Su «Hágalo por mí» guarda un registro de cada trabajo solo en su dispositivo, nunca en una copia de seguridad: los pasos y hasta dónde llegaron, referencias a los registros y acuerdos implicados, y las cifras que escribe para un informe hasta que se envía; nunca lo que escribió para pedirlo. Se borra 7 días después de que termine el trabajo. Mientras un trabajo espera su aprobación, sus registros nuevos se guardan cerrados en su navegador, con sus claves; una copia de seguridad hecha mientras tanto también tiene esas claves. Preparar los informes lee los mensajes de cada uno de sus acuerdos desde nuestro servidor, uno tras otro, así que nuestro servidor puede ver que esos acuerdos se leyeron juntos; no se envía nada hasta que usted lo apruebe.',
   'm.privacy.hosts.title': 'Alojamiento',
   'm.privacy.hosts.text':
     'Este sitio web está alojado en Vercel, que registra direcciones IP y solicitudes. Nuestro servidor de registro funciona en Railway, que registra solicitudes.',
   'm.privacy.who.title': 'Quién lo guarda y durante cuánto tiempo',
   'm.privacy.who.text':
-    'VeilCore aún no está constituida como empresa; sus fundadores gestionan este sitio y el registro. Los informes de laboratorio cerrados se borran 180 días después de llegar. Las solicitudes de demostrar la clave de un registro se borran a los 7 días. Nada más tiene un plazo de conservación fijado: se queda hasta que nos pida que lo eliminemos. Contacto: hunter@veilcore.org.',
+    'VeilCore aún no está constituida como empresa; sus fundadores gestionan este sitio y el registro. Los informes de laboratorio bloqueados se borran 180 días después de llegar. Las solicitudes de demostrar la clave de un registro se borran a los 7 días. Nada más tiene un plazo de conservación fijado: se queda hasta que nos pida que lo eliminemos. Contacto: hunter@veilcore.org.',
   'm.notfound.title': 'Página no encontrada.',
   'm.notfound.text':
     'No hay ninguna página en esta dirección. Si alguien le dio un enlace a un registro, compruebe que esté completo.',
@@ -338,7 +338,7 @@ export const es: Strings = {
   'm.privacy.contact': 'Preguntas: hunter@veilcore.org',
   // Round 2 truth pass (14 Oct 2026): keys added or newly translated.
   'm.hero.lede':
-    'Para obtentores, empresas de semillas y laboratorios que trabajan con genética vegetal, animal y microbiana: dé a sus registros una fecha que nadie puede antedatar. Sus datos genéticos se quedan cerrados: los archivos de ADN nunca salen de su computadora, y lo que escribe llega cerrado a nuestro servidor. Solo los códigos de prueba van a Midnight, que los fecha.',
+    'Para obtentores, empresas de semillas y laboratorios que trabajan con genética vegetal, animal y microbiana: dé a sus registros una fecha que nadie puede antedatar. Sus datos genéticos se quedan bloqueados: los archivos de ADN nunca salen de su computadora, y lo que escribe llega bloqueado a nuestro servidor. Solo los códigos de prueba van a Midnight, que los fecha.',
   'm.for.3p':
     'Envíe material con un código de laboratorio. El laboratorio firma un acuse de recibo con su propia clave, así el registro muestra a una segunda parte. El acuse es una firma real, guardada por el registro de VeilCore, no en la cadena. Condiciones como no propagar son solo de práctica en la demo web.',
   'm.get.1b': 'para un registro de lo que usted tiene, sin mostrar su genética.',
@@ -346,7 +346,7 @@ export const es: Strings = {
     'Un vínculo de parentesco cuenta solo cuando ambos titulares lo confirman. En este sitio lo anota el servidor de registros de VeilCore, no la cadena.',
   'm.open.2t': 'Guarde un solo archivo.',
   'm.open.2p':
-    'En la página de su registro: «Descargar el paquete de evidencia». Un solo .zip con el registro tal como se selló, su prueba de inclusión, el código de prueba del lote, dónde se registró el lote, el archivo de sello de Bitcoin si lo hay, y una página que lo comprueba todo sin conexión. Su archivo de respaldo contiene sus claves, no estos archivos. Los archivos sueltos siguen en «Detalles técnicos»: «Exportar el registro», «Descargar la prueba de inclusión», «Descargar el archivo de sello de Bitcoin».',
+    'En la página de su registro: «Descargar el paquete de evidencia». Un solo .zip con el registro tal como se selló, su prueba de inclusión, el código de prueba del lote, dónde se registró el lote, el archivo de sello de Bitcoin si lo hay, y una página que lo comprueba todo sin conexión. Su archivo de copia de seguridad contiene sus claves, no estos archivos. Los archivos sueltos siguen en «Detalles técnicos»: «Exportar el registro», «Descargar la prueba de inclusión», «Descargar el archivo de sello de Bitcoin».',
   'm.faq.1a':
     'Una vez anclados los registros, cualquiera puede comprobar cuál se ancló primero. Vincule su informe de laboratorio, para que una prueba posterior pueda compararse con él. Cuando envíe material, el receptor firma un acuse de recibo con su propia clave. Un registro es una prueba, no una inscripción: muestra que usted tenía este registro en esa fecha, no que tenía el material, y por sí solo no resuelve una disputa.',
   'm.post0.date': '4 oct 2026',
@@ -509,17 +509,17 @@ export const es: Strings = {
   'm.home.matters': 'Dónde importa.',
   'm.home.prev': 'Anterior',
   'm.home.next': 'Siguiente',
-  'm.home.custody.t': 'No podemos leer sus registros: nos llegan cerrados.',
+  'm.home.custody.t': 'No podemos leer sus registros: nos llegan bloqueados.',
   'm.home.custody.p1':
     'Registrar el material en sí significa entregarlo. Con VeilCore, sus archivos de ADN nunca salen de su computadora.',
   'm.home.custody.p2':
-    'Los datos del registro llegan cerrados a nuestro servidor, el nombre incluido, y no tenemos la clave.',
+    'Los datos del registro llegan bloqueados a nuestro servidor, el nombre incluido, y no tenemos la clave.',
   'm.home.ex.label': 'Un registro de ejemplo, no uno real.',
   'm.home.ex.dna': 'Informe de ADN',
   'm.home.l2': 'Su código de prueba: 64 caracteres, calculados en su computadora.',
   'm.home.l3': 'Su código se une a un lote con otros. El bloque en el que queda es la fecha.',
   'm.home.l3b': 'Un lote, muchos registros',
-  'm.home.l4v': 'El registro existía en esa fecha.',
+  'm.home.l4v': 'El registro ya existía en esa fecha.',
   'm.home.l4': 'Cualquiera puede comprobarlo, gratis y sin cuenta.',
   'm.home.more': 'Más que una fecha.',
   'm.home.f1t': 'Plantas, animales y cepas.',
@@ -529,7 +529,7 @@ export const es: Strings = {
     'Selle un permiso, un certificado, un contrato o un informe de laboratorio. El archivo en sí se queda en su dispositivo.',
   'm.home.ask.t': '«Preguntar», en palabras sencillas.',
   'm.home.ask.p':
-    'En las páginas de registros, «Preguntar» rellena un registro, o un lote de esquejes o crías, para que usted lo revise. Nunca firma ni envía nada. Eso lo hace usted.',
+    'En las páginas de registros, «Preguntar» completa un registro, o un lote de esquejes o crías, para que usted lo revise. Nunca firma ni envía nada. Eso lo hace usted.',
   'm.home.trustLabel': 'Lo que le aporta',
   'm.home.trust':
     'Prueba de que usted tenía un registro en una fecha|Una fecha que nadie puede antedatar|Comprobar es gratis|Un formato abierto|Sin billetera, sin registro',
@@ -573,7 +573,7 @@ export const es: Strings = {
   'm.step1.text':
     'Qué es y de dónde viene. El servidor de VeilCore guarda los detalles bloqueados, el nombre incluido, y nosotros no tenemos la clave. Un enlace de comprobación lleva el nombre solo si usted lo activa, para las personas a las que se lo envía.',
   'm.step2.title': 'Saque su código de prueba',
-  'm.step2.text': 'En su computadora. Los datos genéticos nunca salen de ella sin cerrar.',
+  'm.step2.text': 'En su computadora. Los datos genéticos nunca salen de ella sin bloquear.',
   'm.step3.title': 'Obtenga una fecha',
   'm.step3.text':
     'Solo el código de prueba va a Midnight, en un lote con otros. La fecha es el bloque en el que entra el lote: muestra que el registro existía para entonces.',
@@ -645,7 +645,7 @@ export const es: Strings = {
   'm.faq.3link': 'Los registros como prueba →',
   'm.faq.4q': '¿Qué ven ustedes de mis datos?',
   'm.faq.4a':
-    'De sus datos genéticos sin cerrar: nada. Su computadora lee los archivos que usted añade para hacer un código de cada uno, y no se suben. Un informe de laboratorio llega a nuestro servidor solo cuando un laboratorio se lo devuelve: va cerrado para que solo usted pueda abrirlo, y se borra a los 180 días. Los detalles que escribe (el nombre del registro, obtentor, fechas, notas, términos de acuerdos) y los nombres de sus archivos se guardan bloqueados en nuestro servidor, y nosotros no tenemos la clave. Podemos leer el código de prueba de cada registro y todo lo que usted decida mostrar. Los datos de muestra que usted y un laboratorio escriben para un envío también se guardan bloqueados, con una clave que va en el código de laboratorio y que nosotros no tenemos. Los laboratorios y desarrolladores pueden sellar registros dentro de sus propios sistemas, de modo que solo sale el código de prueba.',
+    'De sus datos genéticos sin bloquear: nada. Su computadora lee los archivos que usted añade para hacer un código de cada uno, y no se suben. Un informe de laboratorio llega a nuestro servidor solo cuando un laboratorio se lo devuelve: va cerrado para que solo usted pueda abrirlo, y se borra a los 180 días. Los detalles que escribe (el nombre del registro, obtentor, fechas, notas, términos de acuerdos) y los nombres de sus archivos se guardan bloqueados en nuestro servidor, y nosotros no tenemos la clave. Podemos leer el código de prueba de cada registro y todo lo que usted decida mostrar. Los datos de muestra que usted y un laboratorio escriben para un envío también se guardan bloqueados, con una clave que va en el código de laboratorio y que nosotros no tenemos. Los laboratorios y desarrolladores pueden sellar registros dentro de sus propios sistemas, de modo que solo sale el código de prueba.',
   'm.faq.4link1': 'Lo que guarda la demo →',
   'm.faq.4link2': 'Guía de integración →',
   'm.faq.6q': '¿Cuánto cuesta?',

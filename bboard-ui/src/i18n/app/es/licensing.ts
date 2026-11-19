@@ -276,9 +276,9 @@ export const licensing = {
   'app.lic.sign.mayBreed':
     'Puede cruzar este material. Un cultivar registrado con él como progenitor queda vinculado a este acuerdo en el grafo del linaje. La descendencia que nadie registra no se detecta.',
   'app.lic.sign.issuerHere':
-    'Este navegador tiene la clave que emitió este acuerdo, así que pulsar el botón de abajo registra que el emisor lo marcó como activo, no que la otra parte aceptó. La otra parte todavía no puede abrirlo ni firmarlo desde su propio navegador.',
+    'Este navegador tiene la clave que emitió este acuerdo, así que presionar el botón de abajo registra que el emisor lo marcó como activo, no que la otra parte aceptó. La otra parte todavía no puede abrirlo ni firmarlo desde su propio navegador.',
   'app.lic.sign.whatItRecords':
-    'Esto registra una hora y la clave de titular que lo pulsó en el servidor de registros de VeilCore. No es una firma criptográfica ni una firma electrónica cualificada (eIDAS).',
+    'Esto registra una hora y la clave de titular que lo presionó en el servidor de registros de VeilCore. No es una firma criptográfica ni una firma electrónica cualificada (eIDAS).',
   'app.lic.sign.accept': 'Revisión completa: firmar y aceptar',
   'app.lic.sign.markActive': 'Marcar como activo como emisor {tag}',
   'app.lic.sign.notIssued': 'Esta licencia aún no se ha emitido. Pídale al obtentor que la emita.',

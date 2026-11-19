@@ -25,7 +25,7 @@ export const common = {
   'app.common.badge.demo': 'Demo',
   'app.common.badge.main': 'Hauptnetzwerk',
   'app.common.badge.local': 'Lokal',
-  'app.common.badge.test': 'Testnetzwerk',
+  'app.common.badge.test': 'Testnetz',
   'app.common.doc.published': 'Veröffentlichtes Dokument',
   'app.common.doc.jump': 'Zu einem Abschnitt springen',
 } satisfies Partial<AppTranslation>;

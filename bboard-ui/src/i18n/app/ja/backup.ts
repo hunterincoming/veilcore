@@ -100,7 +100,7 @@ export const backup = {
   // The passkey copy (veilcore/passkey-backup.ts, flow/PasskeyCopy.tsx).
   'app.backup.passkey.title': 'パスキーで開けるコピーも置いておく',
   'app.backup.passkey.why':
-    'この電話をなくしても、この端末だけに保管している記録を除き、パスキーですべて取り戻せます。パスキーはAppleまたはGoogleのアカウントを通じて新しい電話に同期されます。コピーは、あなたのパスキーだけが作れる鍵でロックされています。VeilCoreには開けません。',
+    'このスマートフォンをなくしても、この端末だけに保管している記録を除き、パスキーですべて取り戻せます。パスキーはAppleまたはGoogleのアカウントを通じて新しい電話に同期されます。コピーは、あなたのパスキーだけが作れる鍵でロックされています。VeilCoreには開けません。',
   'app.backup.passkey.keepFile':
     'ファイルも残しておいてください。パスキーを削除すると、このコピーの唯一の鍵も消えます。',
   'app.backup.passkey.make': 'パスキーのコピーを作る',
@@ -118,7 +118,7 @@ export const backup = {
   'app.backup.passkey.notThis': 'これではない',
   'app.backup.passkey.from': '{date}に保存したパスキーのコピーからです。',
   'app.backup.passkey.err.unsupported':
-    'この電話またはブラウザでは、バックアップを開けるパスキーを作れません。バックアップファイルを使うか、iPhone（iOS 18.4以降）のSafariかChromeでお試しください。',
+    'このスマートフォンまたはブラウザでは、バックアップを開けるパスキーを作れません。バックアップファイルを使うか、iPhone（iOS 18.4以降）のSafariかChromeでお試しください。',
   'app.backup.passkey.err.cancelled': 'キャンセルしました。何も変更していません。',
   'app.backup.passkey.err.noCopy':
     'そのパスキーのコピーは見つかりませんでした。代わりにバックアップファイルを開いてください。',

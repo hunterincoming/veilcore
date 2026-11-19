@@ -188,7 +188,7 @@ describe('the English privacy copy (sealed records round 2)', () => {
     expect(t['de:m.privacy.stored.text']).toContain('die Probenangaben, die Sie und das Labor schreiben');
     expect(t['es:m.privacy.stored.text']).toContain('los datos de muestra que usted y el laboratorio escriben');
     expect(t['fr:m.privacy.stored.text']).toContain(
-      "les informations d'échantillon que vous et le laboratoire écrivez",
+      'les informations d’échantillon que vous et le laboratoire écrivez',
     );
     expect(t['ja:m.privacy.stored.text']).toContain('あなたとラボが書くサンプル情報');
     expect(en['m.privacy.stored.text']).toMatch(
@@ -213,7 +213,7 @@ describe('the English privacy copy (sealed records round 2)', () => {
     for (const [lang, old] of [
       ['de', 'Probenangaben, die Sie für ein Labor schreiben, sind noch nicht verschlossen.'],
       ['es', 'Los datos de muestra que escribe para un laboratorio todavía no se bloquean.'],
-      ['fr', "Les informations d'échantillon que vous écrivez pour un laboratoire ne sont pas encore verrouillées."],
+      ['fr', 'Les informations d’échantillon que vous écrivez pour un laboratoire ne sont pas encore verrouillées.'],
       ['ja', 'ラボ向けに書くサンプル情報には、まだ鍵がかかりません。'],
     ])
       expect(
@@ -488,14 +488,14 @@ describe('round 4: the privacy sentences the fourth review found false', () => {
       [
         'fr',
         [
-          /quel compte de détenteur l'a reçu/,
+          /quel compte de détenteur l’a reçu/,
           /combien de fois il a été enregistré/,
           /tranche de taille/,
           /lien de clé/,
-          /Pour un envoi d'avant les étiquettes/,
+          /Pour un envoi d’avant les étiquettes/,
           /sauvegardes externes/,
           /le nom de chaque enregistrement, obtenteur/,
-          /après le #\. Un navigateur n'envoie pas cette partie quand il ouvre le lien, mais le lien va entier/,
+          /après le #\. Un navigateur n’envoie pas cette partie quand il ouvre le lien, mais le lien va entier/,
         ],
       ],
       [
@@ -520,7 +520,7 @@ describe('round 4: the privacy sentences the fourth review found false', () => {
       const PURGED: Record<string, [RegExp, RegExp]> = {
         de: [/Bei einer Lieferung von vor den Kennzeichen/, /am 18\. Oktober 2026 von unserem Server entfernt/],
         es: [/En un envío anterior a las etiquetas/, /se eliminó de nuestro servidor el 18 de octubre de 2026/],
-        fr: [/Pour un envoi d'avant les étiquettes/, /a été supprimé de notre serveur le 18 octobre 2026/],
+        fr: [/Pour un envoi d’avant les étiquettes/, /a été supprimé de notre serveur le 18 octobre 2026/],
         ja: [/タグ導入前の送付/, /2026年10月18日に私たちのサーバーから削除しました/],
       };
       for (const k of keys)
@@ -703,7 +703,7 @@ describe('round 6: the sentences the fifth review found false', () => {
     /which no server receives/,
     /das ein Browser nie an einen Server sendet/,
     /que un navegador nunca envía a ningún servidor/,
-    /qu'un navigateur n'envoie jamais à aucun serveur/,
+    /qu’un navigateur n’envoie jamais à aucun serveur/,
     /#の後ろは、ブラウザがどのサーバーにも送りません/,
     // Finding 2: a name in a link was shown as the holder's.
     /Name, as the holder typed it/,
@@ -716,7 +716,7 @@ describe('round 6: the sentences the fifth review found false', () => {
     /The holder didn[’']t include the name in this link/,
     /Der Inhaber hat den Namen nicht in diesen Link aufgenommen/,
     /El titular no incluyó el nombre en este enlace/,
-    /Le détenteur n'a pas mis le nom dans ce lien/,
+    /Le détenteur n’a pas mis le nom dans ce lien/,
     /保有者はこのリンクに名前を入れていません/,
     // "DNA files never leave your device": a lab's report leaves the lab's device, locked.
     /Genetic data never leaves your computer\./,
@@ -836,7 +836,7 @@ describe('round 6: the sentences the fifth review found false', () => {
       /^Ihre DNA-Dateien verlassen nie Ihr Gerät\. Laborberichte reisen verschlossen\./,
     );
     expect(t['es:m.privacy.local.text']).toMatch(
-      /^Sus archivos de ADN nunca salen de su dispositivo\. Los informes de laboratorio viajan cerrados\./,
+      /^Sus archivos de ADN nunca salen de su dispositivo\. Los informes de laboratorio viajan bloqueados\./,
     );
     expect(t['fr:m.privacy.local.text']).toMatch(
       /^Vos fichiers ADN ne quittent jamais votre appareil\. Les rapports de laboratoire voyagent verrouillés\./,

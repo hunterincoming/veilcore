@@ -214,8 +214,8 @@ export const verify = {
   'app.verify.sealedAt':
     'Sellado, según el reloj del dispositivo del titular: {date}. Es la propia declaración del titular.{first}',
   'app.verify.firstStoredBy': ' Guardado por primera vez en este servidor de registros: {date}.',
-  'app.verify.parents': 'Padres, según el titular: {list}',
-  'app.verify.noParents': 'No hay padres registrados.',
+  'app.verify.parents': 'Progenitores, según el titular: {list}',
+  'app.verify.noParents': 'No hay progenitores registrados.',
   'app.verify.method': 'Método de mejoramiento, según el titular: {method}',
   'app.verify.noMethod': 'No hay método de mejoramiento registrado.',
   'app.verify.sharedNothing': 'El titular no compartió nada más allá de lo básico de arriba.',
@@ -293,15 +293,16 @@ export const verify = {
   'app.verify.who.date': 'La fecha',
   'app.verify.who.date.chain': 'Midnight. Esta página la comprobó allí misma.',
   'app.verify.who.date.chainTest':
-    'Una red de prueba de Midnight. Esta página la comprobó allí misma: es una práctica, no una fecha en la que confiar.',
-  'app.verify.who.date.registry': 'Lo dice el registro de VeilCore. Esta página no lo ha comprobado en Midnight.',
+    'Una red de pruebas de Midnight. Esta página la comprobó allí misma: es una práctica, no una fecha en la que confiar.',
+  'app.verify.who.date.registry':
+    'Lo dice el servidor de registros de VeilCore. Esta página no lo ha comprobado en Midnight.',
   'app.verify.who.date.batchOnly':
-    'Midnight fechó el lote, y esta página lo comprobó allí. Solo el registro de VeilCore dice que este registro está en él: el enlace no lleva un código de prueba para comprobarlo.',
+    'Midnight fechó el lote, y esta página lo comprobó allí. Solo el servidor de registros de VeilCore dice que este registro está en él: el enlace no lleva un código de prueba para comprobarlo.',
   'app.verify.who.date.pending': 'Nada todavía. Su lote espera ser fechado en Midnight.',
   'app.verify.who.code': 'El código de prueba',
   'app.verify.who.code.page': 'Esta página: coincide con el del enlace que le enviaron.',
   'app.verify.who.code.registry':
-    'El registro de VeilCore. El enlace que le enviaron no lleva un código de prueba con el que compararlo.',
+    'El servidor de registros de VeilCore. El enlace que le enviaron no lleva un código de prueba con el que compararlo.',
   'app.verify.who.words': 'El nombre y los detalles',
   'app.verify.who.words.holder':
     'El titular, con sus propias palabras. Esta página solo comprueba que el nombre coincide con el código de prueba, no que nada sea cierto.',
@@ -314,7 +315,7 @@ export const verify = {
   'app.verify.who.signed': '{who}. Esta página comprobó la firma.',
   'app.verify.who.withdrawn': 'Su sitio web ha dejado de publicar esta clave (abajo).',
   'app.verify.who.signedUnbound':
-    '{who}, según informa el registro de VeilCore. El enlace no lleva un código de prueba para comprobarla.',
+    '{who}, según informa el servidor de registros de VeilCore. El enlace no lleva un código de prueba para comprobarla.',
   'app.verify.who.more': 'Más firmas',
   'app.verify.who.moreText': '{n} más, abajo.',
   'app.verify.who.date.none': 'Nada todavía. Por lo que esta página puede ver, no está en un lote fechado.',
@@ -325,7 +326,7 @@ export const verify = {
   'app.verify.who.file.none': 'No se selló ningún archivo con este documento.',
   'app.verify.who.file.waiting': 'Su propio dispositivo, cuando elige el archivo arriba. No se envía nada.',
   'app.verify.who.signedUnboundMatched':
-    'Una clave registrada como {who}, según informa el registro de VeilCore. El operador de VeilCore cotejó el nombre con un listado público (abajo). El enlace no lleva un código de prueba para comprobar la firma.',
+    'Una clave registrada como {who}, según informa el servidor de registros de VeilCore. El operador de VeilCore cotejó el nombre con un listado público (abajo). El enlace no lleva un código de prueba para comprobar la firma.',
   'app.verify.who.signedMatched':
     'Una clave registrada como {who}. Esta página comprobó la firma. El operador de VeilCore cotejó el nombre con un listado público (abajo); eso no significa que VeilCore avale al laboratorio.',
   'app.verify.who.typed': 'Lo escrito (título, titular, emisor, notas)',

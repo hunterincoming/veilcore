@@ -6,7 +6,7 @@ import type { AppTranslation } from '../../translate';
 export const home = {
   'app.home.firstRecord': 'Creemos su primer registro',
   'app.home.oldLinks':
-    'Los enlaces de comprobación y códigos QR hechos antes del 17 de octubre de 2026 ya no muestran el nombre de sus registros: VeilCore ahora guarda los nombres cerrados, así que el servidor de registros no tiene ninguno que mostrar. Para compartir un nombre, abra el registro, elija Mostrar a alguien, active el nombre y envíe el enlace nuevo. Un certificado nuevo tiene un código QR nuevo.',
+    'Los enlaces de comprobación y códigos QR hechos antes del 17 de octubre de 2026 ya no muestran el nombre de sus registros: VeilCore ahora guarda los nombres bloqueados, así que el servidor de registros no tiene ninguno que mostrar. Para compartir un nombre, abra el registro, elija Mostrar a alguien, active el nombre y envíe el enlace nuevo. Un certificado nuevo tiene un código QR nuevo.',
   'app.home.continueDraftNamed': 'Continúe su borrador: {name}',
   'app.home.continueDraft': 'Continúe su borrador',
   'app.home.draftKept': 'Lo que escribió se guarda en este navegador. Siga donde lo dejó.',
@@ -97,7 +97,7 @@ export const home = {
   'app.home.sort.oldest': 'Más antiguos primero',
   'app.home.sort.name': 'Nombre',
   'app.home.sort.breeder': 'Obtentor',
-  'app.home.search.lab': 'Nombre, obtentor, código TR, nota o su n.º de registro interno',
+  'app.home.search.lab': 'Nombre, obtentor, código TR, nota o su n.º de accesión',
   'app.home.search.breeder': 'Nombre, obtentor o su propia referencia',
   'app.home.search.aria': 'Buscar',
   'app.home.search.nothing':

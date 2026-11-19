@@ -66,17 +66,17 @@ export const pair = {
   'app.pair.chosen': '{title}. Choisi : {name}',
   'app.pair.ready': '{kb} Ko · prêt pour le calcul du code sur cet appareil · choisissez de nouveau pour le remplacer',
   'app.pair.chain.noKeys':
-    'Ce navigateur ne détient pas les clés de l’enregistrement : il ne peut donc pas dater l’association. Restaurez-les depuis votre copie de secours.',
+    'Ce navigateur ne détient pas les clés de l’enregistrement : il ne peut donc pas dater l’association. Restaurez-les depuis votre sauvegarde.',
   'app.pair.chain.stampFirst':
     'Ajoutez d’abord l’horodatage de votre plante (depuis sa page) si vous voulez aussi dater ce rapport de laboratoire sur le réseau.',
   'app.pair.chain.other':
-    'Cet enregistrement a déjà une association datée d’un autre rapport. Dater une seconde association n’est pas encore possible : ce rapport n’est donc pas daté. Conservez le fichier de preuve et la copie de secours de la première.',
+    'Cet enregistrement a déjà une association datée d’un autre rapport. Dater une seconde association n’est pas encore possible : ce rapport n’est donc pas daté. Conservez le fichier de preuve et la sauvegarde de la première.',
   'app.pair.chain.dated': 'Cette association est datée sur le réseau de test, pour cet enregistrement.',
   'app.pair.chain.label': 'Association',
   'app.pair.chain.toShow':
     'Pour la montrer, donnez à quelqu’un le rapport et ce fichier de preuve. Gardez-en une copie avec le rapport : sans son sel, l’association ne pourra jamais être montrée.',
   'app.pair.chain.backupAgain':
-    'Téléchargez de nouveau la copie de secours des clés de l’enregistrement : celle que vous avez ne contient pas cette association.',
+    'Téléchargez de nouveau la sauvegarde des clés de l’enregistrement : celle que vous avez ne contient pas cette association.',
   'app.pair.chain.download': 'Télécharger le fichier de preuve',
   'app.pair.chain.title': 'Dater aussi cette association sur le réseau de test (facultatif)',
   'app.pair.chain.intro':

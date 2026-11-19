@@ -1,6 +1,5 @@
 // The mainnet overlay in Español (Spanish): the same flags and the same facts as en-mainnet.ts,
-// built by mainnet-overlay.ts. Draft, like the rest of this language; shown under the draft
-// banner. The dated posts keep the network they ran on.
+// built by mainnet-overlay.ts. The dated posts keep the network they ran on.
 // SPDX-License-Identifier: Apache-2.0
 
 import type { Strings } from './en';

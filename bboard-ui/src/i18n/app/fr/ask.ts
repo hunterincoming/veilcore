@@ -204,7 +204,7 @@ export const ask = {
   'app.ask.batch.saved.other': '{count} enregistrements sauvegardés',
   'app.ask.batch.chainTitle': 'Facultatif : rendre la filiation vérifiable sur Midnight',
   'app.ask.batch.chainText':
-    'Cette partie est publique. Chaque enregistrement demande deux étapes : vous nommez son parent sur Midnight, puis le titulaire du parent confirme. Faites-le depuis la page de chaque enregistrement, sous « Family on Midnight ».',
+    'Cette partie est publique. Chaque enregistrement demande deux étapes : vous nommez son parent sur Midnight, puis le détenteur du parent confirme. Faites-le depuis la page de chaque enregistrement, sous « Family on Midnight ».',
   'app.ask.batch.chainOpen': 'Ouvrir le premier',
   'app.ask.batch.toRecords': 'Aller à vos enregistrements',
   'app.ask.batch.cutClones': 'Couper des boutures de celle-ci',

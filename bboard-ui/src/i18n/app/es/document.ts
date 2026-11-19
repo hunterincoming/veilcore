@@ -104,9 +104,9 @@ export const document = {
   'app.doc.check.notDoc': 'Lo que hay en este enlace no es un registro de documento que se pueda comprobar aquí.',
   'app.doc.check.recomputed': 'Código de prueba, recalculado aquí a partir del enlace',
   'app.doc.check.registryOnly':
-    'El registro de VeilCore da esta fecha. Esta página no puede comprobarla en Midnight, así que por ahora se basa solo en lo que dice VeilCore.',
+    'El servidor de registros de VeilCore da esta fecha. Esta página no puede comprobarla en Midnight, así que por ahora se basa solo en lo que dice VeilCore.',
   'app.doc.check.notConfirmed':
-    'El registro de VeilCore da esta fecha, pero esta página no pudo confirmarla en Midnight en este momento. Vuelva a intentarlo en unos minutos antes de confiar en ella.',
+    'El servidor de registros de VeilCore da esta fecha, pero esta página no pudo confirmarla en Midnight en este momento. Vuelva a intentarlo en unos minutos antes de confiar en ella.',
   'app.doc.check.notDated':
     'Todavía nada fecha este registro, o el enlace se modificó. No confíe en él hasta que muestre una fecha.',
   'app.doc.check.what':
@@ -158,7 +158,7 @@ export const document = {
   'app.claim.already': 'Ya es público sobre {label}: {list}.',
   'app.claim.leak': 'Cada límite que prueba es público para siempre, y juntos acotan el número.',
   'app.claim.computer':
-    'Probarlo lleva uno o dos minutos en un portátil y mucha memoria: use un ordenador. Los teléfonos aún no se han probado.',
+    'Probarlo lleva uno o dos minutos en una computadora portátil y mucha memoria: use una computadora. Los teléfonos aún no se han probado.',
   'app.claim.go': 'Probarlo en Midnight',
   'app.claim.going': 'Probando…',
   'app.claim.done': 'Probado en Midnight:',
@@ -272,7 +272,7 @@ export const document = {
   'app.doc.chain.need.aNumber': 'Escriba al menos un número.',
   'app.doc.chain.sheet.title': '¿No tiene un archivo?',
   'app.doc.chain.sheet.text':
-    'Un registro necesita un archivo. Su propia hoja de lote es la mejor opción: fecha un documento de trabajo que usted ya lleva. Si no tiene ninguna, aquí se crea una hoja de texto sin formato con el identificador, la fecha, el sitio, la variedad, el titular y «Sobre» de arriba, sin recuentos ni pesos, y se guarda en este dispositivo. Rellene antes esos campos.',
+    'Un registro necesita un archivo. Su propia hoja de lote es la mejor opción: fecha un documento de trabajo que usted ya lleva. Si no tiene ninguna, aquí se crea una hoja de texto sin formato con el identificador, la fecha, el sitio, la variedad, el titular y «Sobre» de arriba, sin recuentos ni pesos, y se guarda en este dispositivo. Complete antes esos campos.',
   'app.doc.chain.sheet.make': 'Crear una hoja con lo que escribí',
   'app.doc.chain.sheet.made':
     'Creada y guardada como {name}. Conserve ese archivo: hace falta para comprobar el registro y debe seguir igual byte por byte. Si cambia lo que escribió arriba, la hoja no cambia con ello.',
@@ -283,12 +283,12 @@ export const document = {
   'app.doc.chain.carried':
     'Los registros enlazados aquí venían en este enlace, de quien lo envió. El registro sellado nombra cada uno solo por su identificador, así que nada aquí muestra que un registro enlazado sea el nombrado.',
   'app.doc.chain.idOnly':
-    'Cuando este enlace solo lleva el identificador de un registro, su página muestra lo que el registro de VeilCore informa sobre ese identificador, sin ninguna marca de comprobación. Para una fecha comprobada, pida al titular el enlace de comprobación de ese registro.',
+    'Cuando este enlace solo lleva el identificador de un registro, su página muestra lo que el servidor de registros de VeilCore informa sobre ese identificador, sin ninguna marca de comprobación. Para una fecha comprobada, pida al titular el enlace de comprobación de ese registro.',
   'app.doc.chain.namedAs':
     'Abrió esto desde otro registro, que lo nombra como registro {id}. Nada en el enlace une ese identificador al código de prueba de este registro.',
-  'app.doc.chain.askRegistry': 'Ver lo que el registro de VeilCore informa sobre el registro {id}',
+  'app.doc.chain.askRegistry': 'Ver lo que el servidor de registros de VeilCore informa sobre el registro {id}',
   'app.doc.chain.askRegistrySends':
-    'Esa página envía el identificador del registro al registro de VeilCore y, en su dirección, este código de prueba al servidor del sitio web. Nada más de este enlace.',
+    'Esa página envía el identificador del registro al servidor de registros de VeilCore y, en su dirección, este código de prueba al servidor del sitio web. Nada más de este enlace.',
   'app.doc.chain.next.title': 'El siguiente paso de su cadena',
   'app.doc.chain.next.text': 'Selle el siguiente paso como un registro propio, sobre este. Recibe su propia fecha.',
   'app.doc.chain.next.grow-batch': 'Registrar un lote de cultivo a partir de este',
@@ -313,7 +313,7 @@ export const document = {
   'app.doc.local.prove.off': 'Probar un número no está activado para un registro guardado solo en este dispositivo.',
   'app.doc.local.prove.title': 'Probar un número: usted decide',
   'app.doc.local.prove.text':
-    'Desactivado salvo que usted lo active aquí. Probar publica para siempre un hecho sobre un número en Midnight, a través del servicio de tarifas de VeilCore. No se envía nada al registro de VeilCore. Antes de probar nada, se le muestra exactamente lo que se publicaría.',
+    'Desactivado salvo que usted lo active aquí. Probar publica para siempre un hecho sobre un número en Midnight, a través del servicio de tarifas de VeilCore. No se envía nada al servidor de registros de VeilCore. Antes de probar nada, se le muestra exactamente lo que se publicaría.',
   'app.doc.local.prove.choice': 'Mostrar «Probar un número» para este registro',
   'app.doc.local.prove.publish.title': 'Qué se publicará si continúa',
   'app.doc.local.prove.publish.range':
@@ -322,14 +322,14 @@ export const document = {
     'En Midnight, público y permanente: el formulario «{schema}», el campo «{label}» y el número en sí, {value}, con un código que representa este registro.',
   'app.doc.local.prove.publish.noBound': 'Escriba un límite para ver exactamente lo que se publicaría.',
   'app.doc.local.prove.publish.route':
-    'Va de este navegador a Midnight a través del servicio de tarifas de VeilCore, que ve lo que se publica y su dirección de red. No se envía nada al registro de VeilCore. El número es el que usted escribió, no el que midió un laboratorio.',
+    'Va de este navegador a Midnight a través del servicio de tarifas de VeilCore, que ve lo que se publica y su dirección de red. No se envía nada al servidor de registros de VeilCore. El número es el que usted escribió, no el que midió un laboratorio.',
   'app.doc.local.prove.direction.atMost': 'como máximo',
   'app.doc.local.prove.direction.atLeast': 'como mínimo',
   'app.doc.local.prove.confirmExact': 'Sí, publicar el número en sí: {value}, en Midnight, para siempre.',
   'app.doc.local.textProved':
-    'Nada de lo escrito en este registro se envió al registro de VeilCore, ni bloqueado ni sin bloquear. Lo que usted eligió probar sobre sus números es público en Midnight. Las únicas copias del registro están en este navegador y en el archivo de copia de seguridad que usted comprobó. Si pierde las dos, el registro se pierde: VeilCore no puede devolvérselo. Una copia de seguridad guardada antes de sellar este registro no lo contiene, y una copia con llave de acceso no lo contiene en ningún caso.',
+    'Nada de lo escrito en este registro se envió al servidor de registros de VeilCore, ni bloqueado ni sin bloquear. Lo que usted eligió probar sobre sus números es público en Midnight. Las únicas copias del registro están en este navegador y en el archivo de copia de seguridad que usted comprobó. Si pierde las dos, el registro se pierde: VeilCore no puede devolvérselo. Una copia de seguridad guardada antes de sellar este registro no lo contiene, y una copia con llave de acceso no lo contiene en ningún caso.',
   'app.doc.local.proved':
-    'Usted eligió probar hechos sobre los números de este registro. Fueron a Midnight a través del servicio de tarifas de VeilCore y son públicos para siempre; aparecen abajo. Nada de lo escrito en este registro se envió al registro de VeilCore.',
+    'Usted eligió probar hechos sobre los números de este registro. Fueron a Midnight a través del servicio de tarifas de VeilCore y son públicos para siempre; aparecen abajo. Nada de lo escrito en este registro se envió al servidor de registros de VeilCore.',
   'app.claim.tie':
     'Lo que usted prueba queda público en Midnight de un modo que VeilCore, y cualquiera que tenga el enlace de comprobación de este registro, puede vincular con este registro. VeilCore también puede vincularlo con la clave de titular que fechó el registro.',
   'app.doc.local.aboutStaysHere':
@@ -339,9 +339,9 @@ export const document = {
   'app.doc.check.tooLarge':
     'Este enlace lleva más de lo que puede llevar un enlace de comprobación. Pida al remitente el enlace propio de cada registro.',
   'app.doc.chain.share.warnLocal':
-    'Nada de lo escrito en un registro guardado solo en este dispositivo se envió nunca al registro de VeilCore. Al copiar este enlace, entrega lo escrito en cada uno de los que lleva (marcados arriba, y este registro si lo es) a quien lo reciba.',
+    'Nada de lo escrito en un registro guardado solo en este dispositivo se envió nunca al servidor de registros de VeilCore. Al copiar este enlace, entrega lo escrito en cada uno de los que lleva (marcados arriba, y este registro si lo es) a quien lo reciba.',
   'app.doc.chain.aboutHolderNote':
-    'Al abrir uno de estos enlaces, se pregunta al registro de VeilCore por el identificador de ese registro desde su dirección de red. Para un registro guardado solo en este dispositivo, es una cosa más que el registro de VeilCore llega a saber: que este navegador lo consultó.',
+    'Al abrir uno de estos enlaces, se pregunta al servidor de registros de VeilCore por el identificador de ese registro desde su dirección de red. Para un registro guardado solo en este dispositivo, es una cosa más que el servidor de registros de VeilCore llega a saber: que este navegador lo consultó.',
   'app.doc.copy.title': 'Su copia de un resultado de laboratorio',
   'app.doc.copy.text':
     'Una copia de un resultado que guarda {lab}. La fecha es la del laboratorio, no la suya. VeilCore guarda esta copia, pero no puede fecharla para usted.',

@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Japanese, Spanish, German and French switched on (19 Nov 2026, not deployed yet)
+
+- The four translations are published: a visitor whose browser or phone asks for one of them
+  gets it, with no draft banner. The picker stays on every page. The founder decided this
+  after a review against native official sources, without a fluent human reviewer; the sign-off
+  lines say so (`docs/translations/README.md`), and the English terms of use govern.
+- New `docs/i18n-glossary.md`: one word per idea in each language, with its source.
+- Spanish reads naturally in Argentina: computadora (not ordenador), completar (not rellenar),
+  presionar (not pulsar), bloqueado for "locked" everywhere.
+- One term per idea: Japanese 端末, ロイヤリティ, 育成者 and 私たち; German Prüfcode, Handy and
+  Inhaber; French sauvegarde (not copie de secours), détenteur (not titulaire) and the
+  typographic apostrophe.
+- Fixed: the bulk import screen no longer starts a Spanish or French sentence with a lowercase
+  "el servidor" or "le serveur"; Spanish "Selected for" no longer reads as "selected by";
+  "existed by that date" is exact in German, Spanish and French; the privacy page names the Ask
+  helper in each language.
+
 ### What a walk of the live veilcore.org found (18 Nov 2026, not deployed yet)
 
 - A record kept on this device only no longer says a copy of its keys goes to VeilCore in a

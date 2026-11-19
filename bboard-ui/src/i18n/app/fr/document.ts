@@ -82,7 +82,7 @@ export const document = {
     '<b>Pas de correspondance.</b> {name} n’est pas le fichier scellé. L’enregistrer à nouveau, l’imprimer en PDF ou l’envoyer par certaines applications modifie le fichier : demandez le fichier d’origine.',
   'app.doc.new.introTech': 'Pour les spécialistes : ce code est le SHA-256 du fichier.',
   'app.doc.backupFirst':
-    'Scellé. Enregistrez maintenant une sauvegarde et vérifiez-la. D’ici là, les clés de cet enregistrement ne sont que dans ce navigateur, et VeilCore ne conserve pas encore de copie de l’enregistrement pour vous. Cela vous sera demandé jusqu’à ce qu’une copie de secours contenant la clé de ce navigateur soit vérifiée.',
+    'Scellé. Enregistrez maintenant une sauvegarde et vérifiez-la. D’ici là, les clés de cet enregistrement ne sont que dans ce navigateur, et VeilCore ne conserve pas encore de copie de l’enregistrement pour vous. Cela vous sera demandé jusqu’à ce qu’une sauvegarde contenant la clé de ce navigateur soit vérifiée.',
   'app.doc.notBacked':
     'Pas encore dans une sauvegarde vérifiée. D’ici là, les clés de cet enregistrement ne sont que dans ce navigateur.',
   'app.doc.tech.title': 'Détails techniques',

@@ -56,7 +56,7 @@ export const log = {
   'app.log.speciesPlaceholder': '例：Solanum lycopersicum',
   'app.log.howMade': '作出方法',
   'app.log.howMadeStageHelp': 'この段階はどのように作出しましたか？親からは引き継がれません。',
-  'app.log.notSaying': '答えない',
+  'app.log.notSaying': '回答しない',
   'app.log.readingPhotos': '写真を読み込んでいます…',
   'app.log.addPhotos': '写真を追加',
   'app.log.photos.other': '写真 {count}枚',

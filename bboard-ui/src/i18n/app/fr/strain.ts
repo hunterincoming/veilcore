@@ -53,7 +53,7 @@ export const strain = {
   'app.strain.v.app.pair.chain.stampFirst':
     'Ajoutez d’abord l’horodatage de votre souche (depuis sa page) si vous voulez aussi dater ce rapport de laboratoire sur le réseau.',
   'app.strain.v.app.plant.notHereText':
-    'Si vous l’avez scellé dans un autre navigateur, enregistrez-y une copie de secours et ouvrez-la ici (Récupérer vos souches). Si c’est l’enregistrement de quelqu’un d’autre, ouvrez plutôt le lien de vérification qu’il vous a donné.',
+    'Si vous l’avez scellé dans un autre navigateur, enregistrez-y une sauvegarde et ouvrez-la ici (Récupérer vos souches). Si c’est l’enregistrement de quelqu’un d’autre, ouvrez plutôt le lien de vérification qu’il vous a donné.',
   'app.strain.v.app.plant.bredByName': 'Obtenue ou isolée par {name}',
   'app.strain.v.app.plant.action.saveReport': 'Enregistrer un rapport ADN sur cette souche',
   'app.strain.v.app.plant.f.reportSaved': 'enregistré sur cette souche ({file}) · code de l’association {fp}{sha}',
@@ -106,9 +106,9 @@ export const strain = {
   'app.strain.v.app.plant.tree.none':
     'Aucune lignée enregistrée pour l’instant. Ajoutez les souches parentes lors de l’enregistrement pour construire l’arbre généalogique.',
   'app.strain.v.app.plant.anchor.keysNotHere':
-    'La clé de cette souche n’est pas dans ce navigateur. Récupérez-la depuis votre fichier de copie de secours : une nouvelle clé ne correspondrait pas à l’enregistrement scellé.',
+    'La clé de cette souche n’est pas dans ce navigateur. Récupérez-la depuis votre fichier de sauvegarde : une nouvelle clé ne correspondrait pas à l’enregistrement scellé.',
   'app.strain.v.app.plant.bundle.keyIs':
-    '(La clé de l’enregistrement est l’identifiant public de la clé créée pour cette souche quand vous l’avez scellée. Sa partie secrète reste dans votre copie de secours et ne va jamais dans le dossier.)',
+    '(La clé de l’enregistrement est l’identifiant public de la clé créée pour cette souche quand vous l’avez scellée. Sa partie secrète reste dans votre sauvegarde et ne va jamais dans le dossier.)',
   'app.strain.v.app.plant.bundle.checkedAgainst':
     'Il est comparé à celui enregistré sur cette souche avant d’être ajouté.',
   'app.strain.v.app.plant.cert.intro':
@@ -155,9 +155,9 @@ export const strain = {
   'app.strain.v.app.lab.results.withdrawnNewer':
     '<b>Le rapport de laboratoire enregistré sur cette souche a été retiré par le laboratoire.</b> Il reste enregistré jusqu’à ce que vous en enregistriez un autre, et votre certificat et vos liens indiquent qu’il a été retiré. Un rapport plus récent est arrivé : ouvrez-le, puis enregistrez-le sur cette souche.',
   'app.strain.v.app.lab.results.locked':
-    'Verrouillés pour que vous seul puissiez les ouvrir, avec la clé de cette souche tirée de votre copie de secours. VeilCore les conserve verrouillés et n’a pas la clé.',
+    'Verrouillés pour que vous seul puissiez les ouvrir, avec la clé de cette souche tirée de votre sauvegarde. VeilCore les conserve verrouillés et n’a pas la clé.',
   'app.strain.v.app.lab.results.noKey':
-    'La clé de cette souche n’est pas sur cet appareil : ses rapports de laboratoire ne peuvent donc pas être ouverts ici. <link>Récupérez d’abord vos souches depuis votre copie de secours</link>.',
+    'La clé de cette souche n’est pas sur cet appareil : ses rapports de laboratoire ne peuvent donc pas être ouverts ici. <link>Récupérez d’abord vos souches depuis votre sauvegarde</link>.',
   'app.strain.v.app.lab.results.whatOthersSee':
     '<b>Ce que les autres peuvent voir.</b> La signature du laboratoire sur ce rapport est privée, comme le rapport : seuls vous et le laboratoire la voyez. Pour la montrer, choisissez Montrer à quelqu’un et activez-la sous « Signatures de laboratoire ». Quiconque a ce lien voit alors que le laboratoire a signé un rapport sur cette souche, et le nom sous lequel la clé du laboratoire est enregistrée : marqué « nom non vérifié » sauf si l’opérateur de VeilCore l’a rapproché d’une liste publique de licences ou d’accréditations. S’il s’agit d’un rapport ADN et que vous l’enregistrez sur cette souche, la page peut aussi dire que le laboratoire a signé ce fichier.',
   'app.strain.v.app.lab.results.nothingYet':

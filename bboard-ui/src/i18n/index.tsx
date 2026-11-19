@@ -10,9 +10,9 @@
 // before the first page is drawn in it (main.tsx, preloadLanguage) or when the picker
 // switches to it: a visitor reading English never downloads the drafts.
 //
-// A translation goes live only when a fluent speaker has checked it and its flag in
-// config/languages.ts (PUBLISHED_LANGUAGES) is switched on; docs/translations/README.md
-// says how. Until then it is a draft: veilcore.org (a mainnet build) doesn't offer it, the
+// A translation goes live only when it has a sign-off line in docs/translations/README.md and
+// its flag in config/languages.ts (PUBLISHED_LANGUAGES) is switched on. Japanese, Spanish,
+// German and French are on. A language that is off is a draft: veilcore.org (a mainnet build) doesn't offer it, the
 // test site and the demo offer it in the picker under a banner saying it is a draft, a
 // ?lang=xx link opens it anywhere for checking, and it is never picked automatically.
 //
@@ -186,7 +186,7 @@ export const IS_TEST_SITE = THIS_BUILD.realChain;
 
 const isLang = (x: string): x is Lang => Object.prototype.hasOwnProperty.call(LANGUAGE_NAMES, x);
 
-/** Languages a fluent speaker has checked (config/languages.ts). English always. */
+/** Languages switched on (config/languages.ts), each with a sign-off. English always. */
 export const publishedLanguages = (flags: Record<Lang, boolean> = PUBLISHED_LANGUAGES): Lang[] =>
   LANGUAGE_CODES.filter((l) => l === 'en' || flags[l]);
 
@@ -256,7 +256,7 @@ type Ctx = {
   t: (key: StringKey, vars?: Record<string, string>) => string;
   /** Languages the picker offers. */
   choices: Lang[];
-  /** The current language is a draft nobody fluent has checked yet. */
+  /** The current language is a draft, not switched on yet. */
   isDraft: boolean;
   /** What goes between the two halves of a heading: a space, or nothing in Japanese. */
   sp: string;

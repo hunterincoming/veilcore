@@ -197,7 +197,7 @@ export const animal = {
   'app.animal.v.app.prove.thePlant': 'das Tier',
   'app.animal.v.app.prove.thisPlant': 'dieses Tier',
   'app.animal.v.app.prove.whatSends':
-    '<b>Was gesendet wird:</b> nur der Beweis, dass Sie den Datensatz dieses Tieres halten, im Testnetzwerk. Kein Name, keine Genetik, nichts über Ihre anderen Datensätze.',
+    '<b>Was gesendet wird:</b> nur der Beweis, dass Sie den Datensatz dieses Tieres halten, im Testnetz. Kein Name, keine Genetik, nichts über Ihre anderen Datensätze.',
   'app.animal.v.app.prove.answering':
     'Wenn Sie antworten, erfährt die Person, die Ihnen diesen Link gesendet hat, dass Sie den Datensatz dieses Tieres halten.',
   'app.animal.v.app.prove.watch.notWho': 'Es zeigt nicht, wer die Person ist oder wer das Tier gezüchtet hat.',
@@ -207,7 +207,7 @@ export const animal = {
     'Der Schlüssel Ihres Tieres erhielt am {when} einen Datumsstempel. Das datiert den Schlüssel, nicht den Datensatz.',
   'app.animal.v.app.prove.watch.stampedThisEarlier':
     'Der Schlüssel dieses Tieres erhielt schon früher einen Datumsstempel im Netzwerk. Das datiert den Schlüssel, nicht den Datensatz.',
-  'app.animal.v.app.prove.own.title': 'Beweisen Sie, dass Sie den Schlüssel dieses Tieres halten (Testnetzwerk)',
+  'app.animal.v.app.prove.own.title': 'Beweisen Sie, dass Sie den Schlüssel dieses Tieres halten (Testnetz)',
   'app.animal.v.app.prove.own.stampFirst':
     'Richten Sie zuerst den Nachweis ein: Tippen Sie auf der Seite des Tieres auf „Nachweis einrichten, dass Sie ihn halten“. Der Beweis betrifft die On-Chain-Identität des Tierdatensatzes, die dieser Schritt erzeugt.',
   // The lab report panels, a delivery and the saved report's sentence, for an animal.

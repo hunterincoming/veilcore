@@ -80,3 +80,4 @@ These are adversarial reviews and run records, not a formal security audit.
 | [ops/filing-revision-4.md](ops/filing-revision-4.md) | How deployment record revision 4 was filed |
 | [test-site.md](test-site.md) | The public test site, test.veilcore.org |
 | [translations/README.md](translations/README.md) | How translations are made and signed off |
+| [i18n-glossary.md](i18n-glossary.md) | One word per idea in each language, with the source for each |

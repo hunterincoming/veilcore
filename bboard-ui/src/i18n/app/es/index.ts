@@ -1,7 +1,8 @@
 // The record app in Spanish (neutral Latin American, usted): every key of ../en, screen by
-// screen. DRAFT: machine-assisted, to be checked by a fluent speaker before publishing
-// (docs/translations/README.md). Terms are the site's (../../es.ts), plus the app's: obtentor
-// (breeder), titular (holder; never dueño or propietario), registro (record), servidor de
+// screen. Machine-assisted, reviewed against native official sources
+// (docs/i18n-glossary.md). Terms are the site's (../../es.ts), plus the app's: obtentor
+// (breeder), titular (holder; never dueño or propietario), computadora and celular or teléfono (never
+// ordenador or móvil), registro (record), servidor de
 // registros (the registry), código de prueba (proof code; huella de ADN only for genetic data), sello de fecha, código de laboratorio, acuse de
 // recibo, copia de seguridad, informe de laboratorio, lote (batch), anclar, vínculo (pairing),
 // envío (delivery), precinto (seal on a sample bag), acuerdo (agreement).

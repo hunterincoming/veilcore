@@ -71,7 +71,7 @@ export const lab = {
     'Aucune différence entre les détails de l’échantillon envoyés et ceux que le laboratoire a notés à l’arrivée.',
   'app.lab.custody.joinSentences': ' ',
   'app.lab.custody.locked':
-    'Les détails de l’échantillon sont verrouillés, et ce navigateur n’a pas leur clé. Restaurez ici votre fichier de secours pour les voir.',
+    'Les détails de l’échantillon sont verrouillés, et ce navigateur n’a pas leur clé. Restaurez ici votre fichier de sauvegarde pour les voir.',
   'app.lab.custody.sealedSigned':
     'L’accusé de réception du laboratoire mentionne des détails d’échantillon. Ils sont conservés verrouillés, et VeilCore n’a pas la clé : cette page ne peut donc pas les vérifier ; l’application du détenteur le peut.',
   'app.lab.custody.holderMatch':
@@ -249,7 +249,7 @@ export const lab = {
   'app.lab.recv.onlyConfirm':
     'Ne confirmez que ce que vous avez réellement reçu. C’est une déclaration sur laquelle d’autres s’appuieront.',
   'app.lab.recv.receiveIt': 'Le recevoir',
-  'app.lab.recv.saveBackup': 'Enregistrer ma copie de secours',
+  'app.lab.recv.saveBackup': 'Enregistrer ma sauvegarde',
   'app.lab.recv.backToCode': 'Revenir au code',
   'app.lab.recv.goToRecord': 'Aller à l’enregistrement',
   'app.lab.key.role.laboratory': 'Laboratoire',
@@ -297,10 +297,10 @@ export const lab = {
     '{domain} a cessé de publier cette clé, elle ne peut donc pas désigner un autre site. Republiez-la là où ce site la publiait, ou créez une nouvelle clé.',
   'app.lab.key.privateWarning':
     'Votre clé privée est stockée dans l’espace de stockage de ce navigateur, non chiffrée, et nulle part ailleurs. C’est suffisant pour essayer. Tout ce qui peut s’exécuter sur ce site, ou une extension de navigateur qui y a accès, pourrait la lire. Si vous la perdez, vous ne pourrez plus rien signer de nouveau ; ce que vous avez signé reste valide, alors sauvegardez-la en lieu sûr. Un laboratoire qui l’utiliserait réellement signerait dans ses propres systèmes : voir le <link>guide d’intégration</link>.',
-  'app.lab.key.downloadBackup': 'Télécharger la copie de secours de la clé',
+  'app.lab.key.downloadBackup': 'Télécharger la sauvegarde de la clé',
   'app.lab.key.backupNow':
-    'La clé de votre laboratoire n’est que dans ce navigateur, et aucune copie de secours enregistrée avant ne la contient. Enregistrez maintenant une nouvelle copie, pour ne pas perdre votre clé avec un téléphone ou un ordinateur perdu.',
-  'app.lab.key.backedUp': 'Copie de secours enregistrée et vérifiée.',
+    'La clé de votre laboratoire n’est que dans ce navigateur, et aucune sauvegarde enregistrée avant ne la contient. Enregistrez maintenant une nouvelle copie, pour ne pas perdre votre clé avec un téléphone ou un ordinateur perdu.',
+  'app.lab.key.backedUp': 'Sauvegarde enregistrée et vérifiée.',
   'app.lab.key.matchHow':
     'Pour apparaître comme vérifié, envoyez-nous votre inscription publique de licence ou d’accréditation à <mail>hunter@veilcore.org</mail>. Nous vérifions le nom ; nous ne nous portons pas garants de votre travail.',
   'app.lab.key.intro':
@@ -337,9 +337,9 @@ export const lab = {
   'app.lab.results.anyName':
     ' N’importe qui peut enregistrer une clé sous n’importe quel nom : le nom ne montre donc pas qui a signé.',
   'app.lab.results.locked':
-    'Verrouillés pour que vous seul puissiez les ouvrir, avec la clé de cette plante tirée de votre copie de secours. VeilCore les conserve verrouillés et n’a pas la clé.',
+    'Verrouillés pour que vous seul puissiez les ouvrir, avec la clé de cette plante tirée de votre sauvegarde. VeilCore les conserve verrouillés et n’a pas la clé.',
   'app.lab.results.noKey':
-    'La clé de cette plante n’est pas sur cet appareil : ses rapports de laboratoire ne peuvent donc pas être ouverts ici. <link>Récupérez d’abord vos plantes depuis votre copie de secours</link>.',
+    'La clé de cette plante n’est pas sur cet appareil : ses rapports de laboratoire ne peuvent donc pas être ouverts ici. <link>Récupérez d’abord vos plantes depuis votre sauvegarde</link>.',
   'app.lab.results.gotIt': 'Compris',
   'app.lab.results.whatOthersSee':
     '<b>Ce que les autres peuvent voir.</b> La signature du laboratoire sur ce rapport est privée, comme le rapport : seuls vous et le laboratoire la voyez. Pour la montrer, choisissez Montrer à quelqu’un et activez-la sous « Signatures de laboratoire ». Quiconque a ce lien voit alors que le laboratoire a signé un rapport sur cette plante, et le nom sous lequel la clé du laboratoire est enregistrée : marqué « nom non vérifié » sauf si l’opérateur de VeilCore l’a rapproché d’une liste publique de licences ou d’accréditations. S’il s’agit d’un rapport ADN et que vous l’enregistrez sur cette plante, la page peut aussi dire que le laboratoire a signé ce fichier.',

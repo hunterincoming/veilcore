@@ -190,7 +190,7 @@ export const labresult = {
   'app.lr.check.viabilityTestOnly':
     'Ceci est un résultat de viabilité (un test avant ou après une étape d’inactivation). Pour l’instant, ils n’existent que sur le réseau de test : cette page ne le lit donc pas.',
   'app.lr.check.bad': 'Ce résultat ne peut pas être utilisé : {problem}',
-  'app.lr.check.looking': 'Recherche du titulaire de la clé…',
+  'app.lr.check.looking': 'Recherche du détenteur de la clé…',
   'app.lr.check.noSalt':
     'Ce résultat a été signé avant que les noms des laboratoires sur les résultats soient salés : le nom de son laboratoire n’est donc pas recherché, car l’ancien type de lien de nom pouvait montrer quel enregistrement un laboratoire a analysé. La signature reste valable. Pour que le nom du laboratoire s’affiche, demandez au laboratoire de signer à nouveau le résultat.',
   'app.lr.check.replacedBy': 'Remplacé par le résultat {code}, signé avec la même clé ({reason}).',
@@ -225,7 +225,7 @@ export const labresult = {
   'app.lr.note.match':
     'Une correspondance dit que les deux échantillons ont donné les mêmes résultats aux marqueurs comparés par le laboratoire, selon sa propre règle. Elle ne dit pas qu’il s’agit de la même plante ou de la même variété, et ne dit rien des marqueurs non comparés.',
   'app.lr.note.current':
-    'Voici ce que le laboratoire a signé, testé le {tested}. Un résultat ultérieur peut le remplacer : demandez au laboratoire ou au titulaire le dernier résultat pour cet échantillon.',
+    'Voici ce que le laboratoire a signé, testé le {tested}. Un résultat ultérieur peut le remplacer : demandez au laboratoire ou au détenteur le dernier résultat pour cet échantillon.',
   'app.lr.tools.downloadOne': 'Télécharger',
   'app.lr.tools.archive': 'Télécharger tous les résultats dans un fichier (pour vos archives, pas à envoyer)',
   'app.lr.tools.withdrawFailed':
@@ -249,9 +249,9 @@ export const labresult = {
     'Pour afficher le nom du laboratoire, le code du résultat est envoyé au registre, qui cherche le lien publié par le laboratoire lui-même. Rien d’autre du fichier n’est envoyé.',
   'app.lr.check.nameFind': 'Trouver le nom du laboratoire',
   'app.lr.check.replaced':
-    'Le laboratoire a remplacé ce résultat par un résultat ultérieur. Sa signature se vérifie toujours : c’est ce que le laboratoire a signé, mais demandez au laboratoire ou au titulaire le dernier résultat pour cet échantillon.',
+    'Le laboratoire a remplacé ce résultat par un résultat ultérieur. Sa signature se vérifie toujours : c’est ce que le laboratoire a signé, mais demandez au laboratoire ou au détenteur le dernier résultat pour cet échantillon.',
   'app.lr.check.withdrawn':
-    'Ce laboratoire ne soutient plus ce résultat. La signature se vérifie toujours. Il a peut-être été remplacé par un résultat ultérieur : demandez au laboratoire ou au titulaire le dernier résultat pour cet échantillon.',
+    'Ce laboratoire ne soutient plus ce résultat. La signature se vérifie toujours. Il a peut-être été remplacé par un résultat ultérieur : demandez au laboratoire ou au détenteur le dernier résultat pour cet échantillon.',
   'app.lr.claim.onlyCall':
     'Cette preuve ne porte que sur le résultat. Ce qui a été recherché, ou les enregistrements comparés, figure dans le fichier de résultat du laboratoire, pas dans cette preuve. Si vous avez ce fichier, choisissez-le : il est vérifié ici, contre cette preuve, et n’est pas envoyé.',
   'app.lr.claim.choose': 'Choisir le fichier de résultat du laboratoire',

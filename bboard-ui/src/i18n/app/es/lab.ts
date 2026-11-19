@@ -270,7 +270,7 @@ export const lab = {
   'app.lab.key.optional.step1':
     'Envíenos su registro público de licencia o acreditación a <mail>hunter@veilcore.org</mail>.',
   'app.lab.key.optional.step2':
-    'O, si gestiona el sitio web de su laboratorio: ponga este archivo en /.well-known/veilcore-lab.json, escriba su dominio y pulse «Consultar ahora». Así cualquiera puede ver que la clave y el sitio van juntos sin preguntar a VeilCore. Si deja de usar la clave, déjela publicada. Quítela solo para desautorizarla: cuando las consultas diarias de VeilCore no la encuentren dos veces, con un día aproximado de diferencia, las páginas dirán que su sitio dejó de publicarla y la clave no podrá nombrar otro sitio. Si la clave se filtró, escriba también a hunter@veilcore.org para que se retire cualquier comprobación del nombre.',
+    'O, si gestiona el sitio web de su laboratorio: ponga este archivo en /.well-known/veilcore-lab.json, escriba su dominio y presione «Consultar ahora». Así cualquiera puede ver que la clave y el sitio van juntos sin preguntar a VeilCore. Si deja de usar la clave, déjela publicada. Quítela solo para desautorizarla: cuando las consultas diarias de VeilCore no la encuentren dos veces, con un día aproximado de diferencia, las páginas dirán que su sitio dejó de publicarla y la clave no podrá nombrar otro sitio. Si la clave se filtró, escriba también a hunter@veilcore.org para que se retire cualquier comprobación del nombre.',
   'app.lab.key.optional.otherWays': 'Otras formas',
   'app.lab.key.showKey': 'Mostrar clave',
   'app.lab.key.hideKey': 'Ocultar clave',

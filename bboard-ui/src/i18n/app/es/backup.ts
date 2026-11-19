@@ -132,7 +132,7 @@ export const backup = {
   'app.backup.passkey.err.noCopy':
     'No se encontró ninguna copia para esa llave de acceso. Abra su archivo de copia de seguridad.',
   'app.backup.passkey.err.unreachable':
-    'No se pudo conectar con el registro de VeilCore. Revise su conexión e inténtelo de nuevo.',
+    'No se pudo conectar con el servidor de registros de VeilCore. Revise su conexión e inténtelo de nuevo.',
   'app.backup.passkey.err.older':
     'El registro ofreció una copia más antigua que la que este dispositivo ya conoce. No se cambió nada. Inténtelo más tarde y conserve su archivo de copia de seguridad.',
   'app.backup.passkey.err.damaged':

@@ -4,17 +4,17 @@
 import type { AppTranslation } from '../../translate';
 
 export const backup = {
-  'app.backup.title': 'Enregistrez votre copie de secours',
+  'app.backup.title': 'Enregistrez votre sauvegarde',
   'app.backup.done': 'Terminé',
-  'app.backup.shareTitle': 'Copie de secours VeilCore',
+  'app.backup.shareTitle': 'Sauvegarde VeilCore',
   'app.backup.onlyWay':
     '<b>Ce fichier est le seul moyen de prouver que vous détenez vos enregistrements</b>, et de les récupérer sur un nouveau téléphone ou ordinateur. VeilCore ne peut ni le récupérer ni en refaire un.',
   'app.backup.saveIt': 'L’enregistrer',
   'app.backup.saved': 'Enregistrée',
   'app.backup.savedSub': '{file} · un seul fichier pour tout',
   'app.backup.labKeyNotMade':
-    'La clé de réception de votre laboratoire n’a pas pu être créée pour l’instant : ce fichier de secours ne la contient donc pas encore. Pour tout le reste, il est valable. Enregistrez-en un nouveau après l’arrivée de votre premier enregistrement.',
-  'app.backup.saveFile': 'Enregistrer le fichier de secours',
+    'La clé de réception de votre laboratoire n’a pas pu être créée pour l’instant : ce fichier de sauvegarde ne la contient donc pas encore. Pour tout le reste, il est valable. Enregistrez-en un nouveau après l’arrivée de votre premier enregistrement.',
+  'app.backup.saveFile': 'Enregistrer le fichier de sauvegarde',
   'app.backup.copyTitle': 'En mettre une copie ailleurs (recommandé)',
   'app.backup.wayBack':
     'Si ce téléphone ou cet ordinateur tombe en panne, cette copie vous permettra de tout récupérer.',
@@ -33,25 +33,25 @@ export const backup = {
   'app.backup.openIntro':
     'Ouvrez la copie que vous venez d’enregistrer. Nous vérifierons qu’elle s’ouvre et qu’elle contient tout. Rien n’est envoyé.',
   'app.backup.openCopy': 'Ouvrir ma copie enregistrée',
-  'app.backup.saveFirst': 'Enregistrez d’abord le fichier de secours.',
+  'app.backup.saveFirst': 'Enregistrez d’abord le fichier de sauvegarde.',
   'app.backup.turnsOn': 'S’active une fois la vérification réussie.',
   'app.backup.pw.add': 'Ajouter un mot de passe (conseillé)',
   'app.backup.pw.why':
     'Le fichier seul n’ouvre alors rien : qui l’a doit aussi avoir le mot de passe. Si vous l’oubliez, personne ne peut ouvrir le fichier, pas même nous.',
-  'app.backup.pw.label': 'Mot de passe du fichier de secours',
+  'app.backup.pw.label': 'Mot de passe du fichier de sauvegarde',
   'app.backup.pw.again': 'Saisissez-le de nouveau',
   'app.backup.pw.short': 'Au moins {n} caractères.',
   'app.backup.pw.mismatch': 'Les deux ne correspondent pas.',
   'app.backup.pw.keep': 'Gardez-le dans un gestionnaire de mots de passe, ou noté, à part du fichier.',
   'app.backup.pw.locking': 'Verrouillage du fichier…',
   'app.backup.pw.savedSub': '{file} · un seul fichier pour tout, verrouillé par votre mot de passe',
-  'app.backup.pw.needed': 'Cette copie de secours a un mot de passe. Saisissez-le pour ouvrir le fichier.',
-  'app.backup.pw.wrong': 'Ce mot de passe n’ouvre pas cette copie de secours. Rien n’a été modifié.',
-  'app.backup.pw.checkLabel': 'Le mot de passe de la copie de secours',
+  'app.backup.pw.needed': 'Cette sauvegarde a un mot de passe. Saisissez-le pour ouvrir le fichier.',
+  'app.backup.pw.wrong': 'Ce mot de passe n’ouvre pas cette sauvegarde. Rien n’a été modifié.',
+  'app.backup.pw.checkLabel': 'Le mot de passe de la sauvegarde',
   'app.backup.pw.open': 'L’ouvrir',
   'app.backup.restoreTitle': 'Récupérez vos enregistrements',
   'app.backup.restoreIntro':
-    'Nouveau téléphone ou ordinateur, ou navigateur vidé ? Ouvrez le fichier de secours que vous avez enregistré.',
+    'Nouveau téléphone ou ordinateur, ou navigateur vidé ? Ouvrez le fichier de sauvegarde que vous avez enregistré.',
   'app.backup.plantsBack': 'Vos enregistrements sont de retour.',
   'app.backup.restored': 'Restauré.',
   'app.backup.nothingNew': 'Rien de nouveau dans ce fichier.',
@@ -67,14 +67,14 @@ export const backup = {
   'app.backup.seeMyPlants': 'Voir mes enregistrements',
   'app.backup.lookIn':
     'Cherchez sur votre clé USB, dans votre gestionnaire de mots de passe, ou dans vos e-mails, Drive ou iCloud. N’importe quel nom de fichier convient. Rien n’est envoyé.',
-  'app.backup.openFile': 'Ouvrir mon fichier de secours',
+  'app.backup.openFile': 'Ouvrir mon fichier de sauvegarde',
   'app.backup.onlyKey': 'Vous n’avez que votre clé de détenteur (64 caractères) ?',
   'app.backup.keyLabel': 'Votre clé de détenteur (64 caractères)',
   'app.backup.useIt': 'L’utiliser',
   'app.backup.olderVersion':
-    'Seulement si vous l’avez copiée depuis une ancienne version de ce site : elle n’est plus affichée nulle part. Elle retrouve vos enregistrements, mais ils restent verrouillés jusqu’à ce que vous ouvriez votre fichier de secours. Les clés d’horodatage d’un enregistrement ne sont, elles aussi, que dans ce fichier.',
+    'Seulement si vous l’avez copiée depuis une ancienne version de ce site : elle n’est plus affichée nulle part. Elle retrouve vos enregistrements, mais ils restent verrouillés jusqu’à ce que vous ouvriez votre fichier de sauvegarde. Les clés d’horodatage d’un enregistrement ne sont, elles aussi, que dans ce fichier.',
   'app.backup.cantFind':
-    '<b>Vous ne trouvez pas le fichier ?</b> Alors personne ne peut récupérer les enregistrements, pas même nous : nous n’avons jamais eu votre clé. C’est ce qui vous permet de prouver que vous les détenez. Si votre ancien appareil fonctionne encore, ouvrez-y VeilCore et enregistrez une nouvelle copie de secours.',
+    '<b>Vous ne trouvez pas le fichier ?</b> Alors personne ne peut récupérer les enregistrements, pas même nous : nous n’avons jamais eu votre clé. C’est ce qui vous permet de prouver que vous les détenez. Si votre ancien appareil fonctionne encore, ouvrez-y VeilCore et enregistrez une nouvelle sauvegarde.',
   'app.backup.holds.none': 'Vos enregistrements y sont.',
   'app.backup.holds.records.one': 'Votre enregistrement y est.',
   'app.backup.holds.records.other': 'Vos {count} enregistrements y sont tous.',
@@ -87,30 +87,30 @@ export const backup = {
   'app.backup.nDatedReports.one': '{count} rapport de laboratoire daté',
   'app.backup.nDatedReports.other': '{count} rapports de laboratoire datés',
   'app.backup.err.notBackup':
-    'Ce fichier n’est pas une copie de secours VeilCore. Choisissez le fichier que vous avez enregistré depuis VeilCore.',
+    'Ce fichier n’est pas une sauvegarde VeilCore. Choisissez le fichier que vous avez enregistré depuis VeilCore.',
   'app.backup.err.olderFile':
-    'C’est un fichier plus ancien ou différent. Choisissez la copie de secours que vous venez d’enregistrer.',
+    'C’est un fichier plus ancien ou différent. Choisissez la sauvegarde que vous venez d’enregistrer.',
   'app.backup.err.otherSet':
-    'Cette copie de secours appartient à un autre ensemble d’enregistrements. Choisissez celle que vous venez d’enregistrer.',
+    'Cette sauvegarde appartient à un autre ensemble d’enregistrements. Choisissez celle que vous venez d’enregistrer.',
   'app.backup.err.notNow':
-    'Cette copie de secours ne contient pas vos enregistrements dans leur état actuel. Enregistrez-en une nouvelle et vérifiez-la.',
+    'Cette sauvegarde ne contient pas vos enregistrements dans leur état actuel. Enregistrez-en une nouvelle et vérifiez-la.',
   'app.backup.err.noLabSignature':
-    'Cette copie de secours ne contient pas la signature de votre laboratoire. Enregistrez-en une nouvelle et vérifiez-la.',
+    'Cette sauvegarde ne contient pas la signature de votre laboratoire. Enregistrez-en une nouvelle et vérifiez-la.',
   'app.backup.err.noLicenses':
-    'Cette copie de secours ne contient pas vos dernières licences. Enregistrez-en une nouvelle et vérifiez-la.',
+    'Cette sauvegarde ne contient pas vos dernières licences. Enregistrez-en une nouvelle et vérifiez-la.',
   'app.backup.err.noLender':
-    'Cette copie de secours ne contient pas votre clé de prêteur ni vos dernières mentions de prêteur. Enregistrez-en une nouvelle et vérifiez-la.',
+    'Cette sauvegarde ne contient pas votre clé de prêteur ni vos dernières mentions de prêteur. Enregistrez-en une nouvelle et vérifiez-la.',
   'app.backup.err.noDeliveries':
-    'Cette copie de secours ne contient pas vos dernières livraisons. Enregistrez-en une nouvelle et vérifiez-la.',
+    'Cette sauvegarde ne contient pas vos dernières livraisons. Enregistrez-en une nouvelle et vérifiez-la.',
   'app.backup.err.differentKeys':
     'Ce navigateur a déjà d’autres clés pour l’un de ces enregistrements. Rien n’a été modifié.',
   'app.backup.err.differentSet':
     'Ce navigateur utilise déjà un autre ensemble d’enregistrements. Rien n’a été modifié.',
   'app.backup.err.differentLab': 'Ce navigateur a déjà une autre signature de laboratoire. Rien n’a été modifié.',
   'app.backup.err.missingLatest.one':
-    'Il manque à cette copie de secours l’état le plus récent de {count} de vos enregistrements. Enregistrez-en une nouvelle et vérifiez-la.',
+    'Il manque à cette sauvegarde l’état le plus récent de {count} de vos enregistrements. Enregistrez-en une nouvelle et vérifiez-la.',
   'app.backup.err.missingLatest.other':
-    'Il manque à cette copie de secours l’état le plus récent de {count} de vos enregistrements. Enregistrez-en une nouvelle et vérifiez-la.',
+    'Il manque à cette sauvegarde l’état le plus récent de {count} de vos enregistrements. Enregistrez-en une nouvelle et vérifiez-la.',
   // The passkey copy (veilcore/passkey-backup.ts, flow/PasskeyCopy.tsx).
   'app.backup.passkey.title': 'Gardez aussi une copie qui s’ouvre avec une clé d’accès',
   'app.backup.passkey.why':
@@ -133,16 +133,16 @@ export const backup = {
   'app.backup.passkey.notThis': 'Pas celle-ci',
   'app.backup.passkey.from': 'Depuis votre copie avec clé d’accès enregistrée le {date}.',
   'app.backup.passkey.err.unsupported':
-    'Ce téléphone ou ce navigateur ne peut pas créer de clé d’accès qui ouvre une copie de secours. Utilisez le fichier de secours, ou essayez Safari sur un iPhone (iOS 18.4 ou plus récent) ou Chrome.',
+    'Ce téléphone ou ce navigateur ne peut pas créer de clé d’accès qui ouvre une sauvegarde. Utilisez le fichier de sauvegarde, ou essayez Safari sur un iPhone (iOS 18.4 ou plus récent) ou Chrome.',
   'app.backup.passkey.err.cancelled': 'Annulé. Rien n’a été modifié.',
   'app.backup.passkey.err.noCopy':
-    'Aucune copie trouvée pour cette clé d’accès. Ouvrez plutôt votre fichier de secours.',
+    'Aucune copie trouvée pour cette clé d’accès. Ouvrez plutôt votre fichier de sauvegarde.',
   'app.backup.passkey.err.unreachable':
     'Impossible de joindre le registre VeilCore. Vérifiez votre connexion et réessayez.',
   'app.backup.passkey.err.older':
-    'Le registre a proposé une copie plus ancienne que celle que cet appareil connaît déjà. Rien n’a été modifié. Réessayez plus tard, et gardez votre fichier de secours.',
+    'Le registre a proposé une copie plus ancienne que celle que cet appareil connaît déjà. Rien n’a été modifié. Réessayez plus tard, et gardez votre fichier de sauvegarde.',
   'app.backup.passkey.err.damaged':
-    'Cette copie ne s’est pas ouverte. Elle a peut-être été modifiée. Ouvrez plutôt votre fichier de secours.',
+    'Cette copie ne s’est pas ouverte. Elle a peut-être été modifiée. Ouvrez plutôt votre fichier de sauvegarde.',
   // A partner's intake (flow/IntakePage.tsx, veilcore/intake.ts).
   'app.intake.stay': 'Pas maintenant, rester sur VeilCore',
   'app.intake.pickAgain': 'Choisir un enregistrement pour eux',
@@ -162,7 +162,7 @@ export const backup = {
   'app.intake.send.what':
     'Ils reçoivent l’identifiant {id} ({name}), son code de preuve et son lien de vérification, pour le vérifier sur VeilCore.',
   'app.intake.send.not':
-    'Ils ne reçoivent ni vos détails, ni vos photos, ni votre rapport ADN, ni vos clés, ni votre copie de secours.',
+    'Ils ne reçoivent ni vos détails, ni vos photos, ni votre rapport ADN, ni vos clés, ni votre sauvegarde.',
   'app.intake.send.button': 'Envoyer à {host}',
   'app.intake.send.opening': 'Ouverture de {id}…',
   'app.intake.send.kept': 'L’enregistrement reste dans votre VeilCore dans tous les cas.',

@@ -71,7 +71,7 @@ export const verify = {
   'app.verify.field.parent-names': 'Noms des cultivars parents',
   'app.verify.field.breeding-method': 'Méthode de sélection',
   'app.verify.field.individual-id': 'Numéro d’identification individuel et son système',
-  'app.verify.field.genetics': 'La génétique elle-même — jamais divulguée, par conception',
+  'app.verify.field.genetics': 'La génétique elle-même — jamais divulguée, par principe',
   'app.verify.sum.reports.one': 'un rapport de laboratoire',
   'app.verify.sum.reports.other': '{count} × rapport de laboratoire',
   'app.verify.sum.receipts.one': 'un accusé de réception de laboratoire',

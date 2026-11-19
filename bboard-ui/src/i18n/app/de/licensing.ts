@@ -538,7 +538,7 @@ export const licensing = {
   'app.lic.real.resendFailed': 'Die Ausstellungsmitteilung konnte nicht gesendet werden: {error}',
   'app.lic.code.making': 'Ihr Code wird erstellt, das dauert ein paar Sekunden.',
   'app.lic.inv.notThisDevice':
-    'Dieses Telefon oder dieser Browser hat nicht die Kopie, die diesen Link angenommen hat. Wenn Sie ihn hier schon angenommen haben, stellen Sie Ihre Sicherungskopie wieder her und öffnen Sie den Link dann erneut.',
+    'Dieses Handy oder dieser Browser hat nicht die Kopie, die diesen Link angenommen hat. Wenn Sie ihn hier schon angenommen haben, stellen Sie Ihre Sicherungskopie wieder her und öffnen Sie den Link dann erneut.',
   'app.lic.inv.restore': 'Sicherungskopie wiederherstellen',
   'app.lic.real.cancel': 'Stornieren',
   'app.lic.real.cancelQ':

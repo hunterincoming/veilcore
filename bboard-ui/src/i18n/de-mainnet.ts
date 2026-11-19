@@ -1,6 +1,5 @@
 // The mainnet overlay in Deutsch (German): the same flags and the same facts as en-mainnet.ts,
-// built by mainnet-overlay.ts. Draft, like the rest of this language; shown under the draft
-// banner. The dated posts keep the network they ran on.
+// built by mainnet-overlay.ts. The dated posts keep the network they ran on.
 // SPDX-License-Identifier: Apache-2.0
 
 import type { Strings } from './en';
@@ -91,7 +90,7 @@ export const deMainnet = buildMainnet({
   },
   claimsOnSite: {
     'm.claims.status':
-      'Ein zweiter Midnight-Contract, im Hauptnetz von Midnight. Auf dieser Website können Sie damit eine Zahl aus einem Zertifikat oder Laborergebnis belegen, das mit seinen Zahlen versiegelt wurde: dass sie höchstens oder mindestens einen Grenzwert erreicht oder genau einen Wert hat, ohne den Rest zu zeigen. Nutzen Sie dafür einen Computer; auf Telefonen ist es noch nicht ausprobiert. Die anderen Belege oben gibt es auf dieser Website noch nicht.',
+      'Ein zweiter Midnight-Contract, im Hauptnetz von Midnight. Auf dieser Website können Sie damit eine Zahl aus einem Zertifikat oder Laborergebnis belegen, das mit seinen Zahlen versiegelt wurde: dass sie höchstens oder mindestens einen Grenzwert erreicht oder genau einen Wert hat, ohne den Rest zu zeigen. Nutzen Sie dafür einen Computer; auf Handys ist es noch nicht ausprobiert. Die anderen Belege oben gibt es auf dieser Website noch nicht.',
   },
   claimsPending: {
     'm.claims.status':

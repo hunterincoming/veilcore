@@ -7,20 +7,20 @@ import type { AppTranslation } from '../../translate';
 export const dating = {
   'app.chain.progress.starting': 'Der Beweiser wird auf Ihrem Gerät gestartet…',
 
-  'app.log.recordDatedNext.one': 'Datensatz datiert: im nächsten Stapel (etwa jede {count} Minute im Testnetzwerk)',
-  'app.log.recordDatedNext.other': 'Datensatz datiert: im nächsten Stapel (etwa alle {count} Minuten im Testnetzwerk)',
+  'app.log.recordDatedNext.one': 'Datensatz datiert: im nächsten Stapel (etwa jede {count} Minute im Testnetz)',
+  'app.log.recordDatedNext.other': 'Datensatz datiert: im nächsten Stapel (etwa alle {count} Minuten im Testnetz)',
   'app.log.recordDatedNextPlain': 'Datensatz datiert: im nächsten Stapel',
   'app.log.inSeconds': 'in {n} s',
   'app.log.retryingIn': 'Neuer Versuch von selbst {when} (Versuch {n}).',
   'app.log.retriesUsed':
-    'Es wurde mehrmals versucht. Versuchen Sie es, wann Sie möchten: Das Datum Ihres Datensatzes wartet nicht darauf.',
+    'Es wurde mehrmals versucht. Versuchen Sie es, wann Sie möchten: Das Datum Ihres Datensatzes hängt nicht davon ab.',
   'app.log.tryNow': 'Jetzt erneut versuchen',
   'app.log.keepsTrying':
     'Es wird von selbst weiter versucht, solange VeilCore geöffnet ist, und die Startseite zeigt es, bis es durchgeht.',
 
   'app.plant.nextBatch': 'im nächsten Stapel',
-  'app.plant.nextBatchEvery.one': 'etwa jede {count} Minute im Testnetzwerk',
-  'app.plant.nextBatchEvery.other': 'etwa alle {count} Minuten im Testnetzwerk',
+  'app.plant.nextBatchEvery.one': 'etwa jede {count} Minute im Testnetz',
+  'app.plant.nextBatchEvery.other': 'etwa alle {count} Minuten im Testnetz',
   'app.plant.notSentYet': 'noch nicht an VeilCore gesendet; wird von selbst erneut versucht',
   'app.plant.keyStampRetrying':
     'Schlüssel mit Datumsstempel: noch nicht. Es ging nicht durch und wird von selbst erneut versucht.',
@@ -60,7 +60,7 @@ export const dating = {
   'app.pickup.stamp.cannot':
     'Der Datumsstempel des Schlüssels für {name} kann von dieser Website gerade nicht gesetzt werden. Seine Seite sagt, warum.',
   'app.pickup.lockedCopies.one':
-    '{count} verschlossene Kopie noch nicht hochgeladen – Sicherungskopie speichern und prüfen. Das Datum Ihres Datensatzes wartet nicht darauf.',
+    '{count} verschlossene Kopie noch nicht hochgeladen – Sicherungskopie speichern und prüfen. Das Datum Ihres Datensatzes hängt nicht davon ab.',
   'app.pickup.lockedCopies.other':
     '{count} verschlossene Kopien noch nicht hochgeladen – Sicherungskopie speichern und prüfen. Die Daten Ihrer Datensätze warten nicht darauf.',
   'app.pickup.freshBackup.one':

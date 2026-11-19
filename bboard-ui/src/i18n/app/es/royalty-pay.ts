@@ -14,7 +14,7 @@ export const royaltyPay = {
   'app.rpay.i.publicFailed':
     'No se pudo poner esto en la página de comprobación pública de su registro ahora. La página lo vuelve a intentar la próxima vez que se abra.',
   'app.rpay.i.publicUnsupported':
-    'El registro de VeilCore todavía no acepta avisos públicos, así que esto no está en la página de comprobación pública de su registro.',
+    'El servidor de registros de VeilCore todavía no acepta avisos públicos, así que esto no está en la página de comprobación pública de su registro.',
   'app.rpay.revoke.open': 'Revocar por falta de pago',
   'app.rpay.revoke.yes': 'Revocar la licencia',
   'app.rpay.revoke.note': 'Licencia revocada por falta de pago del informe {n}.',
@@ -96,7 +96,7 @@ export const royaltyPay = {
   'app.rpay.breach.note':
     'El pago del informe {n}, que vencía el {due}, no se ha hecho. Tiene {days} días desde este aviso para pagar. Después, si sigue sin pagarse, la licencia se puede revocar por falta de pago.',
   'app.rpay.revoke.registryDown':
-    'No se pudo contactar con el registro de VeilCore en este momento, así que no se revocó nada. Vuelva a intentarlo en un momento.',
+    'No se pudo contactar con el servidor de registros de VeilCore en este momento, así que no se revocó nada. Vuelva a intentarlo en un momento.',
   'app.rpay.revoke.notYet':
     'Todavía no: revocar por falta de pago solo es posible cuando el plazo para pagar tras su aviso de incumplimiento ha terminado sin nada marcado como pagado.',
   'app.rpay.notice.answer': '{who} disputó el pago de {period} el {date}: «{note}»',
@@ -106,55 +106,55 @@ export const royaltyPay = {
   'app.rpay.i.public':
     'La página de comprobación pública de su registro dice: “Quien tiene este registro dice que un estado de regalías está vencido desde el {date}.” Sin montos, condiciones ni nombres. Se quita la próxima vez que esta página compruebe, una vez anotado el pago.',
   'app.rpay.i.publicBreach':
-    'La página de comprobación pública de su registro dice, como palabra suya, que un estado de regalías está vencido desde el {date}, y que usted comunicó al registro de VeilCore el {breach} que había enviado un aviso de incumplimiento. El plazo para pagar cuenta desde ese día. Sin montos, condiciones ni nombres.',
+    'La página de comprobación pública de su registro dice, como palabra suya, que un estado de regalías está vencido desde el {date}, y que usted comunicó al servidor de registros de VeilCore el {breach} que había enviado un aviso de incumplimiento. El plazo para pagar cuenta desde ese día. Sin montos, condiciones ni nombres.',
   'app.rpay.i.publicAnswers': 'Al lado, en nombre propio del licenciatario: {answers}',
   'app.rpay.i.publicNoRecord':
-    'Este registro no está guardado en el registro de VeilCore con la clave de titular de este navegador, así que desde aquí no se puede poner nada en su página de comprobación pública. Abra la licencia en el dispositivo que guardó el registro, o restaure aquí su copia de seguridad.',
+    'Este registro no está guardado en el servidor de registros de VeilCore con la clave de titular de este navegador, así que desde aquí no se puede poner nada en su página de comprobación pública. Abra la licencia en el dispositivo que guardó el registro, o restaure aquí su copia de seguridad.',
   'app.rpay.revoke.what':
-    'Esto termina la licencia en Midnight y no se puede deshacer. Su aviso de incumplimiento se envió y el plazo para pagar terminó según el reloj del registro de VeilCore, sin nada marcado como pagado. Luego {licensee} recibe un aviso firmado de que se revocó por falta de pago. La página de comprobación pública de su registro lo dice, con la fecha, si el registro confirma que el plazo terminó sin ningún pago anotado; si no, no dice nada sobre el pago.',
+    'Esto termina la licencia en Midnight y no se puede deshacer. Su aviso de incumplimiento se envió y el plazo para pagar terminó según el reloj del servidor de registros de VeilCore, sin nada marcado como pagado. Luego {licensee} recibe un aviso firmado de que se revocó por falta de pago. La página de comprobación pública de su registro lo dice, con la fecha, si el registro confirma que el plazo terminó sin ningún pago anotado; si no, no dice nada sobre el pago.',
   'app.rpay.revoke.done': 'Revocada por falta de pago el {date}.',
   'app.rpay.revoke.public': 'La página de comprobación pública de su registro lo dice.',
   'app.rpay.revoke.notPublic':
-    'El registro de VeilCore no aceptó una línea pública sobre falta de pago (el plazo no había terminado según su reloj, o hay un pago anotado), así que la página de comprobación pública no dice nada sobre el pago.',
+    'El servidor de registros de VeilCore no aceptó una línea pública sobre falta de pago (el plazo no había terminado según su reloj, o hay un pago anotado), así que la página de comprobación pública no dice nada sobre el pago.',
   'app.rpay.pub.overdue': 'Quien tiene este registro dice que un estado de regalías está vencido desde el {date}.',
   'app.rpay.pub.breach':
-    'Quien tiene este registro comunicó al registro de VeilCore el {date} que había enviado un aviso de incumplimiento.',
+    'Quien tiene este registro comunicó al servidor de registros de VeilCore el {date} que había enviado un aviso de incumplimiento.',
   'app.rpay.pub.revoked':
     'Quien tiene este registro dice que una licencia de este registro se revocó el {date} por falta de pago.',
   'app.rpay.pub.revokedChecked':
-    'Quien tiene este registro comunicó al registro de VeilCore el {date} que había enviado un aviso de incumplimiento, y pasaron {days} días sin ningún pago anotado allí antes de que se aceptara esta línea. El registro comprobó esas fechas, no quién es el licenciatario.',
+    'Quien tiene este registro comunicó al servidor de registros de VeilCore el {date} que había enviado un aviso de incumplimiento, y pasaron {days} días sin ningún pago anotado allí antes de que se aceptara esta línea. El registro comprobó esas fechas, no quién es el licenciatario.',
   'app.rpay.pub.answerPaid': 'El licenciatario dice que se pagó ({date}).',
   'app.rpay.pub.who':
-    'Si un pago se debía es la palabra de quien tiene el registro; VeilCore no lo comprueba. La fecha junto a un aviso de incumplimiento es el día en que quien tiene el registro lo comunicó al registro de VeilCore, según el reloj del propio registro. Las respuestas del licenciatario están firmadas por él, y quien tiene el registro no puede quitarlas. No se nombra a nadie ni se muestran montos o condiciones.',
+    'Si un pago se debía es la palabra de quien tiene el registro; VeilCore no lo comprueba. La fecha junto a un aviso de incumplimiento es el día en que quien tiene el registro lo comunicó al servidor de registros de VeilCore, según el reloj del propio registro. Las respuestas del licenciatario están firmadas por él, y quien tiene el registro no puede quitarlas. No se nombra a nadie ni se muestran montos o condiciones.',
   'app.rpay.l.answered':
-    'Lo disputó el {date}: «{note}». {licensor} lo ve. Su respuesta está archivada en el registro de VeilCore con su propia clave (el {filed}). Toda línea sobre este pago en la página de comprobación pública del registro de {licensor} muestra que usted lo disputa, con esa fecha, y {licensor} no puede quitarla.',
+    'Lo disputó el {date}: «{note}». {licensor} lo ve. Su respuesta está archivada en el servidor de registros de VeilCore con su propia clave (el {filed}). Toda línea sobre este pago en la página de comprobación pública del registro de {licensor} muestra que usted lo disputa, con esa fecha, y {licensor} no puede quitarla.',
   // Before a full read of the registry: nothing said about filing either way.
   'app.rpay.l.answerSeen': 'Lo disputó el {date}: «{note}». {licensor} lo ve.',
   'app.rpay.l.answerPending':
-    'Lo disputó el {date}: «{note}». {licensor} lo ve. Aún no se pudo archivar su respuesta en el registro de VeilCore, donde la muestra la página de comprobación pública del registro de {licensor}. Esta página lo vuelve a intentar cada vez que se abre.',
+    'Lo disputó el {date}: «{note}». {licensor} lo ve. Aún no se pudo archivar su respuesta en el servidor de registros de VeilCore, donde la muestra la página de comprobación pública del registro de {licensor}. Esta página lo vuelve a intentar cada vez que se abre.',
   'app.rpay.l.disputeShows':
-    '{licensor} lo ve, firmado por usted. También se archiva en su nombre en el registro de VeilCore: la página de comprobación pública solo muestra que lo disputa y la fecha, nunca lo que escribió.',
+    '{licensor} lo ve, firmado por usted. También se archiva en su nombre en el servidor de registros de VeilCore: la página de comprobación pública solo muestra que lo disputa y la fecha, nunca lo que escribió.',
   'app.rpay.pay.otherWay':
     '{licensor} pidió cobrar en {code} en Cardano, y esta página no puede pagar así. Pida a {licensor} otros datos de pago, pague de esa forma y luego regístrelo abajo con «Pagué».',
   'app.rpay.l.revoked':
     '{licensor} revocó la licencia por falta de pago del informe {n}, en un aviso firmado con fecha {date}.',
   'app.rpay.l.revokedPublic':
-    'La página de comprobación pública del registro de {licensor} dice que se revocó el {date} por falta de pago. El registro de VeilCore solo lo aceptó después de que terminara el plazo para pagar según su reloj, sin ningún pago anotado.',
+    'La página de comprobación pública del registro de {licensor} dice que se revocó el {date} por falta de pago. El servidor de registros de VeilCore solo lo aceptó después de que terminara el plazo para pagar según su reloj, sin ningún pago anotado.',
   'app.rpay.l.revokedNotPublic':
-    'La página de comprobación pública del registro de {licensor} no dice nada sobre falta de pago: el registro de VeilCore no lo ha aceptado.',
+    'La página de comprobación pública del registro de {licensor} no dice nada sobre falta de pago: el servidor de registros de VeilCore no lo ha aceptado.',
   'app.rpay.l.revokedDisputed':
-    'Lo disputó el {date}. Su respuesta está archivada en su propio nombre en el registro de VeilCore, y {licensor} no puede quitarla: toda línea sobre este pago en la página de comprobación pública del registro de {licensor} muestra que usted lo disputa.',
+    'Lo disputó el {date}. Su respuesta está archivada en su propio nombre en el servidor de registros de VeilCore, y {licensor} no puede quitarla: toda línea sobre este pago en la página de comprobación pública del registro de {licensor} muestra que usted lo disputa.',
   'app.rpay.notice.early': 'Se envió antes de que el pago estuviera vencido, así que no abre ningún plazo para pagar.',
   'app.rpay.notice.notThisOne':
     'El plazo para pagar cuenta desde el primer aviso de incumplimiento después de que el pago venciera.',
   'app.rpay.predates':
-    'Esta licencia se hizo antes de que el registro de VeilCore guardara las claves que necesitan los avisos públicos, así que nada sobre sus pagos puede ir a la página de comprobación pública ni responderse allí. Los recordatorios, los avisos de incumplimiento, el plazo para pagar y las respuestas siguen funcionando entre ustedes dos, firmados.',
+    'Esta licencia se hizo antes de que el servidor de registros de VeilCore guardara las claves que necesitan los avisos públicos, así que nada sobre sus pagos puede ir a la página de comprobación pública ni responderse allí. Los recordatorios, los avisos de incumplimiento, el plazo para pagar y las respuestas siguen funcionando entre ustedes dos, firmados.',
   'app.rpay.i.breachNotRegistered':
-    'La página de comprobación pública dice que este pago está vencido, pero todavía no que usted envió un aviso de incumplimiento: la página de {licensee} aún no ha registrado este informe en el registro de VeilCore. Normalmente lo hace sola la próxima vez que abran la licencia. Hasta entonces el plazo para pagar no puede empezar allí. Su aviso firmado está en el acuerdo de todos modos.',
+    'La página de comprobación pública dice que este pago está vencido, pero todavía no que usted envió un aviso de incumplimiento: la página de {licensee} aún no ha registrado este informe en el servidor de registros de VeilCore. Normalmente lo hace sola la próxima vez que abran la licencia. Hasta entonces el plazo para pagar no puede empezar allí. Su aviso firmado está en el acuerdo de todos modos.',
   'app.rpay.i.breachNotDue':
-    '{licensee} registró este informe en el registro de VeilCore con vencimiento el {due}. El registro solo archiva un aviso de incumplimiento a partir del día siguiente a esa fecha, así que la página de comprobación pública de su registro todavía no dice que usted envió uno. Esta página vuelve a preguntar cuando se abra después del {due}. Su aviso firmado está en el acuerdo de todos modos.',
+    '{licensee} registró este informe en el servidor de registros de VeilCore con vencimiento el {due}. El registro solo archiva un aviso de incumplimiento a partir del día siguiente a esa fecha, así que la página de comprobación pública de su registro todavía no dice que usted envió uno. Esta página vuelve a preguntar cuando se abra después del {due}. Su aviso firmado está en el acuerdo de todos modos.',
   'app.rpay.l.answerPredates':
-    'Lo disputó el {date}: «{note}». {licensor} lo ve, firmado por usted. Esta licencia se hizo antes de que el registro de VeilCore guardara las claves que necesitan las respuestas, así que no se puede archivar allí.',
+    'Lo disputó el {date}: «{note}». {licensor} lo ve, firmado por usted. Esta licencia se hizo antes de que el servidor de registros de VeilCore guardara las claves que necesitan las respuestas, así que no se puede archivar allí.',
   'app.rpay.l.pubOverdue':
     'La página de comprobación pública del registro de {licensor} dice, como palabra suya, que un estado de regalías está vencido desde el {date} (informe {n}).',
   'app.rpay.l.pubOverdueOther':
@@ -164,12 +164,12 @@ export const royaltyPay = {
   'app.rpay.l.pubRevoked':
     'La página de comprobación pública del registro de {licensor} dice, como palabra suya, que una licencia de ese registro se revocó el {date} por falta de pago.',
   'app.rpay.l.pubBreach':
-    '{licensor} comunicó al registro de VeilCore el {date} que había enviado un aviso de incumplimiento. El plazo para pagar corre hasta el {cureBy}.',
+    '{licensor} comunicó al servidor de registros de VeilCore el {date} que había enviado un aviso de incumplimiento. El plazo para pagar corre hasta el {cureBy}.',
   'app.rpay.l.pubAnswers': 'Al lado, en su propio nombre: {answers}',
   'app.rpay.l.pubDisputeFailed': 'No se pudo archivar su respuesta ahora. Vuelva a intentarlo en un momento.',
   'app.rpay.i.dueDiffers':
-    'La página de {licensee} registró este informe en el registro de VeilCore con vencimiento el {registered}, más tarde que el {due} que indican sus términos firmados. El registro se rige por la fecha registrada: solo archiva un aviso de incumplimiento a partir del día siguiente a esa fecha y, una vez pasada, la página de comprobación pública de su registro solo puede decir que el pago está vencido a partir de ese día siguiente. Los términos firmados del acuerdo siguen indicando el {due}.',
+    'La página de {licensee} registró este informe en el servidor de registros de VeilCore con vencimiento el {registered}, más tarde que el {due} que indican sus términos firmados. El registro se rige por la fecha registrada: solo archiva un aviso de incumplimiento a partir del día siguiente a esa fecha y, una vez pasada, la página de comprobación pública de su registro solo puede decir que el pago está vencido a partir de ese día siguiente. Los términos firmados del acuerdo siguen indicando el {due}.',
   'app.rpay.l.pubLookupFailed':
-    'Ahora no se pudo comprobar cada mensaje de este acuerdo en el registro de VeilCore, así que aquí podría faltar una línea que la página de comprobación pública del registro de {licensor} muestra sobre alguno de ellos. Vuelva a comprobarlo en un momento.',
+    'Ahora no se pudo comprobar cada mensaje de este acuerdo en el servidor de registros de VeilCore, así que aquí podría faltar una línea que la página de comprobación pública del registro de {licensor} muestra sobre alguno de ellos. Vuelva a comprobarlo en un momento.',
   'app.rpay.l.pubLookupAgain': 'Comprobar de nuevo',
 };

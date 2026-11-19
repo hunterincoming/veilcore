@@ -38,7 +38,7 @@ export const partners = {
   'app.partners.steps.title': 'Quién hace qué',
   'app.partners.steps.applicant': 'El solicitante',
   'app.partners.steps.applicant.1': 'Crea un registro para cada accesión, en veilcore.org o en su propio software.',
-  'app.partners.steps.applicant.2': 'Abre el registro, elige “Mostrar a alguien” y pulsa “Copiar el enlace”.',
+  'app.partners.steps.applicant.2': 'Abre el registro, elige “Mostrar a alguien” y presiona “Copiar el enlace”.',
   'app.partners.steps.applicant.3':
     'Pega el enlace en su formulario. Si sus reglas lo piden, envía también el paquete de evidencia del registro.',
   'app.partners.steps.you': 'Usted',
@@ -52,7 +52,7 @@ export const partners = {
     'Un archivo, de unos 40 KB, servido desde su sitio. Con “required”, el formulario no se envía hasta que el enlace lleve a un registro que coincida y nada lo contradiga. Si el solicitante cambia el enlace, hay que verificarlo de nuevo.',
   'app.partners.form.example': 'Ejemplo en HTML',
   'app.partners.form.allowTest':
-    'Acepta también registros fechados en una red de prueba. Sirve para probar: las fechas de prueba no tienen valor, así que por defecto se rechazan.',
+    'Acepta también registros fechados en una red de pruebas. Sirve para probar: las fechas de prueba no tienen valor, así que por defecto se rechazan.',
   'app.partners.form.unreachable':
     'Si no se puede llegar al servidor de registros de VeilCore, deja pasar el formulario con el enlace marcado como no verificado (el formulario envía también <name>-unchecked). Sin esto, un campo obligatorio bloquea todo el formulario mientras el servidor de registros no responde.',
   'app.partners.form.csp':

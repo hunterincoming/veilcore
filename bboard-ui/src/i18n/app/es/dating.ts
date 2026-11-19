@@ -15,7 +15,7 @@ export const dating = {
   'app.log.inSeconds': 'en {n} s',
   'app.log.retryingIn': 'Se volverá a intentar solo {when} (intento {n}).',
   'app.log.retriesUsed':
-    'Se intentó varias veces. Vuelva a intentarlo cuando quiera: la fecha de su registro no espera por esto.',
+    'Se intentó varias veces. Vuelva a intentarlo cuando quiera: la fecha de su registro no depende de esto.',
   'app.log.tryNow': 'Intentar de nuevo ahora',
   'app.log.keepsTrying':
     'Se sigue intentando solo mientras VeilCore esté abierto, y la página de inicio lo muestra hasta que se complete.',

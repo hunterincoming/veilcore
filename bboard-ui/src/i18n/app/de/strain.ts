@@ -125,7 +125,7 @@ export const strain = {
   'app.strain.v.app.prove.thePlant': 'die Linie',
   'app.strain.v.app.prove.thisPlant': 'diese Linie',
   'app.strain.v.app.prove.whatSends':
-    '<b>Was gesendet wird:</b> nur der Beweis, dass Sie den Datensatz dieser Linie halten, im Testnetzwerk. Kein Name, keine Genetik, nichts über Ihre anderen Linien.',
+    '<b>Was gesendet wird:</b> nur der Beweis, dass Sie den Datensatz dieser Linie halten, im Testnetz. Kein Name, keine Genetik, nichts über Ihre anderen Linien.',
   'app.strain.v.app.prove.answering':
     'Wenn Sie antworten, erfährt die Person, die Ihnen diesen Link gesendet hat, dass Sie den Datensatz dieser Linie halten.',
   'app.strain.v.app.prove.watch.notWho':
@@ -136,7 +136,7 @@ export const strain = {
     'Der Schlüssel Ihrer Linie erhielt am {when} einen Datumsstempel. Das datiert den Schlüssel, nicht den Datensatz.',
   'app.strain.v.app.prove.watch.stampedThisEarlier':
     'Der Schlüssel dieser Linie erhielt schon früher einen Datumsstempel im Netzwerk. Das datiert den Schlüssel, nicht den Datensatz.',
-  'app.strain.v.app.prove.own.title': 'Beweisen Sie, dass Sie den Schlüssel dieser Linie halten (Testnetzwerk)',
+  'app.strain.v.app.prove.own.title': 'Beweisen Sie, dass Sie den Schlüssel dieser Linie halten (Testnetz)',
   'app.strain.v.app.prove.own.stampFirst':
     'Richten Sie zuerst den Nachweis ein: Tippen Sie auf der Seite der Linie auf „Nachweis einrichten, dass Sie ihn halten“. Der Beweis betrifft die On-Chain-Identität der Linie, die dieser Schritt erzeugt.',
   'app.strain.v.app.lab.sentence.none': 'Bei dieser Linie ist kein DNA-Bericht gespeichert.',

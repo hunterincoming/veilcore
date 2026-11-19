@@ -38,7 +38,7 @@ export const sealed = {
   'app.sealed.locked.deleteFailed': '削除できませんでした：{error}',
   'app.sealed.lockedAgreements.title.other': 'ロックされた契約 {count}件',
   'app.sealed.lockedAgreements.text':
-    'このブラウザにはこれらの契約（ライセンス、ラボへの送付、ブリーダーとの共有）を開く鍵がありません。最新のバックアップファイルを復元してください。VeilCoreが代わりに開くことはできません。',
+    'このブラウザにはこれらの契約（ライセンス、ラボへの送付、育成者との共有）を開く鍵がありません。最新のバックアップファイルを復元してください。VeilCoreが代わりに開くことはできません。',
   'app.sealed.lockedAgreements.cantChange': 'ロックされた契約は変更も送付もできません。削除はできます。',
   'app.sealed.lockedAgreements.name': 'ロックされた契約',
   'app.sealed.lockedAgreements.deleteConfirm':

@@ -5,7 +5,7 @@
 import type { AppTranslation } from '../../translate';
 
 export const strain = {
-  'app.strain.v.app.verify.noParents': 'No hay padres registrados.',
+  'app.strain.v.app.verify.noParents': 'No hay progenitores registrados.',
   'app.strain.v.app.plant.fix.name': 'Nombre de la cepa',
   'app.strain.v.app.plant.fix.bredBy': 'Obtenida o aislada por',
   'app.strain.v.app.verify.namePublished': 'Nombre que el titular muestra: ',

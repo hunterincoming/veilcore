@@ -198,7 +198,7 @@ describe('privacy, said plainly', () => {
     }
     const OLD_TITLE1: Record<string, string> = {
       de: 'Beweisen Sie, dass Sie es zuerst hatten.',
-      fr: "Prouvez que vous l'aviez en premier.",
+      fr: 'Prouvez que vous l’aviez en premier.',
       es: 'Demuestre que lo tuvo primero.',
       ja: '先に持っていたことを証明する。',
     };
@@ -713,7 +713,7 @@ describe("what's live where", () => {
     );
     for (const dict of [appDe, appEs, appFr, appJa])
       expect((dict as Record<string, string>)['app.doc.chain.share.warnLocal']).toMatch(
-        /Register von VeilCore|registro de VeilCore|registre de VeilCore|VeilCoreのレジストリ/,
+        /Register von VeilCore|registros? de VeilCore|registre de VeilCore|VeilCoreのレジストリ/,
       );
     // The holder's own "About" links: opening one asks the registry about that ID.
     expect(fs.readFileSync(path.join(SRC, 'components/document/DocumentParts.tsx'), 'utf8')).toMatch(
@@ -1051,7 +1051,7 @@ describe('round 3: what a page may claim', () => {
     };
     const cantRead: Record<Exclude<Lang, 'en'>, RegExp> = {
       de: /wir haben ihren Schlüssel nicht/,
-      fr: /nous n'avons pas sa clé/,
+      fr: /nous n’avons pas sa clé/,
       es: /nosotros no tenemos su clave/,
       ja: /私たちはその鍵を持っていません/,
     };
@@ -1337,7 +1337,7 @@ describe('translations', () => {
       expect(strings['m.hero.title2']).not.toBe(
         {
           de: 'Ohne jemandem zu zeigen, was es ist.',
-          fr: "Sans montrer à personne ce que c'est.",
+          fr: 'Sans montrer à personne ce que c’est.',
           es: 'Sin mostrarle a nadie qué es.',
           ja: 'それが何かは誰にも見せずに。',
         }[lang as 'de'],
@@ -1444,10 +1444,10 @@ describe('the maintenance key', () => {
       /El contador de cambios del contrato estaba en 16 el 13 de noviembre de 2026\. Cualquiera puede comprobarlo, y cualquier cambio lo aumenta\./,
     ],
     fr: [
-      /une seule copie suffit pour l'utiliser/,
-      /Le passage à trois clés, dont deux doivent s'accorder, était prévu avant la mise à niveau Ledger 9 de Midnight du 6 novembre 2026 et n'a pas été fait\./,
+      /une seule copie suffit pour l’utiliser/,
+      /Le passage à trois clés, dont deux doivent s’accorder, était prévu avant la mise à niveau Ledger 9 de Midnight du 6 novembre 2026 et n’a pas été fait\./,
       /Le réseau accepte toujours la clé : considérez-la donc comme active\./,
-      /Le compteur de modifications du contrat était à 16 le 13 novembre 2026\. Tout le monde peut le vérifier, et toute modification l'augmente\./,
+      /Le compteur de modifications du contrat était à 16 le 13 novembre 2026\. Tout le monde peut le vérifier, et toute modification l’augmente\./,
     ],
     ja: [
       /どちらか1部だけで使用できます。/,
@@ -1482,7 +1482,7 @@ describe('the maintenance key', () => {
 
 describe('the mainnet run of 18 November 2026: what veilcore.org says about itself', () => {
   const APPS = { en: appEn, de: appDe, es: appEs, fr: appFr, ja: appJa } as Record<Lang, Record<string, string>>;
-  const TEST_NET = /test network|Testnetzwerk|red de pruebas|réseau de test|テストネットワーク/;
+  const TEST_NET = /test network|Testnetz|red de pruebas|réseau de test|テストネットワーク/;
 
   it('a mainnet anchor never says it is on a test network; a test-network anchor still does', () => {
     for (const [lang, app] of Object.entries(APPS)) {

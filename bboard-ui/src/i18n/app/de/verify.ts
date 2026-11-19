@@ -48,10 +48,10 @@ export const verify = {
   'app.verify.anchor.dateNotChecked': 'Das Datum ist {date}; hier nicht geprüft.',
   'app.verify.anchor.oneIndexer': 'Nur einer der zwei Midnight-Indexer hat geantwortet, und beide müssen es. {date}',
   'app.verify.anchor.noIndexer': 'Kein Midnight-Indexer war erreichbar. {date}',
-  'app.verify.anchor.headingTest': 'Datumsstempel in einem Testnetzwerk geprüft: Übungsdaten, kein echtes Datum',
+  'app.verify.anchor.headingTest': 'Datumsstempel in einem Testnetz geprüft: Übungsdaten, kein echtes Datum',
   'app.verify.anchor.headingChecked': 'Datumsstempel auf Midnight geprüft',
   'app.verify.anchor.headingFailed': 'Datumsstempel auf Midnight nicht bestätigt',
-  'app.verify.anchor.eventTestTitle': 'Datumsstempel in einem Testnetzwerk geprüft',
+  'app.verify.anchor.eventTestTitle': 'Datumsstempel in einem Testnetz geprüft',
   'app.verify.anchor.eventChecked':
     'Stapel {batch}: Diese Seite hat die Stapelwurzel in Transaktion {tx}, Block {block}, auf {where} gefunden.{test}',
   'app.verify.anchor.eventFailed':
@@ -299,7 +299,7 @@ export const verify = {
     'Ein Midnight-Testnetz. Diese Seite hat es dort selbst geprüft: eine Übung, kein Datum, auf das man sich verlassen kann.',
   'app.verify.who.date.registry': 'Das Register von VeilCore sagt es. Diese Seite hat es nicht auf Midnight geprüft.',
   'app.verify.who.date.batchOnly':
-    'Midnight hat den Stapel datiert, und diese Seite hat das dort geprüft. Dass dieser Eintrag darin ist, sagt nur das Register von VeilCore: Der Link enthält keinen Prüfcode zum Abgleich.',
+    'Midnight hat den Stapel datiert, und diese Seite hat das dort geprüft. Dass dieser Datensatz darin ist, sagt nur das Register von VeilCore: Der Link enthält keinen Prüfcode zum Abgleich.',
   'app.verify.who.date.pending': 'Noch nichts. Sein Stapel wartet darauf, auf Midnight datiert zu werden.',
   'app.verify.who.code': 'Der Prüfcode',
   'app.verify.who.code.page': 'Diese Seite: Er stimmt mit dem im Link überein, den Sie erhalten haben.',
@@ -320,7 +320,8 @@ export const verify = {
     '{who}, wie das Register von VeilCore meldet. Der Link enthält keinen Prüfcode, um sie zu prüfen.',
   'app.verify.who.more': 'Weitere Signaturen',
   'app.verify.who.moreText': '{n} weitere, unten aufgeführt.',
-  'app.verify.who.date.none': 'Noch nichts. Soweit diese Seite sehen kann, ist der Eintrag in keinem datierten Stapel.',
+  'app.verify.who.date.none':
+    'Noch nichts. Soweit diese Seite sehen kann, ist der Datensatz in keinem datierten Stapel.',
   'app.verify.who.code.recomputed': 'Diese Seite: hier aus dem berechnet, was der Link enthält.',
   'app.verify.who.file': 'Die Datei',
   'app.verify.who.file.noMatch':

@@ -30,13 +30,13 @@ export const home = {
   'app.home.yourRecords': 'Vos enregistrements',
   'app.home.logNew': 'Enregistrer',
   'app.home.saveIt': 'L’enregistrer',
-  'app.home.finishBackupLine': '<b>Pour finir : enregistrez votre copie de secours.</b> {line}',
+  'app.home.finishBackupLine': '<b>Pour finir : enregistrez votre sauvegarde.</b> {line}',
   'app.home.keysOnlyHereRecords.one': '{count} enregistrement a des clés uniquement sur cet appareil.',
   'app.home.keysOnlyHereRecords.other': '{count} enregistrements ont des clés uniquement sur cet appareil.',
   'app.home.resetWarningRecords.one':
-    '{count} enregistrement a des clés sans copie de secours vérifiée. Enregistrez d’abord votre copie de secours : si vous videz le navigateur plus tard, elles seraient perdues pour de bon.',
+    '{count} enregistrement a des clés sans sauvegarde vérifiée. Enregistrez d’abord votre sauvegarde : si vous videz le navigateur plus tard, elles seraient perdues pour de bon.',
   'app.home.resetWarningRecords.other':
-    '{count} enregistrements ont des clés sans copie de secours vérifiée. Enregistrez d’abord votre copie de secours : si vous videz le navigateur plus tard, elles seraient perdues pour de bon.',
+    '{count} enregistrements ont des clés sans sauvegarde vérifiée. Enregistrez d’abord votre sauvegarde : si vous videz le navigateur plus tard, elles seraient perdues pour de bon.',
   'app.home.resetConfirm':
     'Recommencer dans ce navigateur avec un nouvel ensemble vide ?\n\nRien n’est supprimé. Vos enregistrements actuels restent verrouillés dans le registre de VeilCore. Vous ne pouvez les récupérer qu’avec vos clés actuelles, qui vont être téléchargées maintenant dans un seul fichier. Gardez-le.',
   'app.home.startedOver':
@@ -58,7 +58,7 @@ export const home = {
   'app.home.openAgreements': 'Ouvrir mes contrats',
   'app.home.myAgreements': 'Mes contrats ({n})',
   'app.home.more': 'Plus',
-  'app.home.saveABackup': 'Enregistrer une copie de secours',
+  'app.home.saveABackup': 'Enregistrer une sauvegarde',
   'app.home.exportAll': 'Exporter tous les enregistrements',
   'app.home.importRecords': 'Importer des enregistrements',
   'app.home.trust.title': '« Qu’est-ce qui m’empêche d’enregistrer <em>votre</em> matériel génétique ? »',
@@ -98,7 +98,7 @@ export const home = {
   'app.home.sort.oldest': 'Plus anciens d’abord',
   'app.home.sort.name': 'Nom',
   'app.home.sort.breeder': 'Obtenteur',
-  'app.home.search.lab': 'Nom, obtenteur, code TR, note ou votre n° d’enregistrement',
+  'app.home.search.lab': 'Nom, obtenteur, code TR, note ou votre n° d’accession',
   'app.home.search.breeder': 'Nom, obtenteur ou votre propre référence',
   'app.home.search.aria': 'Rechercher',
   'app.home.search.nothing':
@@ -107,7 +107,7 @@ export const home = {
   'app.home.paste.ownCode': 'C’est votre propre code. Envoyez-le au laboratoire ; ne le recevez pas ici.',
   'app.home.paste.cutOff': 'Ce code semble coupé. Copiez le code laboratoire complet qu’on vous a envoyé.',
   'app.home.paste.noneStamped':
-    'C’est une demande de prouver que vous détenez un enregistrement, mais aucun enregistrement de cet appareil n’a encore d’horodatage. Sur un nouvel appareil ? Récupérez d’abord vos enregistrements depuis votre copie de secours.',
+    'C’est une demande de prouver que vous détenez un enregistrement, mais aucun enregistrement de cet appareil n’a encore d’horodatage. Sur un nouvel appareil ? Récupérez d’abord vos enregistrements depuis votre sauvegarde.',
   'app.home.paste.unknown':
     'Cela ne ressemble pas à un code ou un lien VeilCore. Copiez tout ce qu’on vous a envoyé et réessayez.',
   'app.home.paste.label': 'Quelqu’un vous a envoyé un code ou un lien ?',
@@ -118,7 +118,7 @@ export const home = {
     'Un code laboratoire, un lien vers un enregistrement, une demande de prouver que vous détenez un enregistrement ou un contrat à signer. Nous reconnaissons lequel.',
   'app.home.paste.whichRecord':
     'C’est une demande de prouver que vous détenez un enregistrement. Lequel vous a-t-on demandé ?',
-  'app.home.notFinished': 'Pas encore dans votre copie de secours · ensuite : enregistrez votre copie de secours',
+  'app.home.notFinished': 'Pas encore dans votre sauvegarde · ensuite : enregistrez votre sauvegarde',
   'app.home.receivedFrom': 'Reçue de {name}',
   'app.home.receivedFromNamed': 'De {name} · leur enregistrement {id}',
   'app.home.receivedFromName': 'De {name}',
@@ -132,12 +132,11 @@ export const home = {
   'app.home.labReportDated': 'Rapport ADN daté',
   'app.home.datesReportFor': 'Date un rapport ADN pour {name}',
   'app.home.aPlant': 'une plante',
-  'app.home.datingUnfinished':
-    '{dated} · pas encore dans votre copie de secours · ensuite : enregistrez votre copie de secours',
+  'app.home.datingUnfinished': '{dated} · pas encore dans votre sauvegarde · ensuite : enregistrez votre sauvegarde',
   'app.home.datingSealed': '{dated} · scellé le {date}',
   'app.home.export.label': 'Télécharger vos enregistrements et contrats depuis VeilCore',
   'app.home.export.done':
-    'Téléchargé : vos enregistrements, contrats, choix de partage et chaque preuve d’inclusion. Les envois, leurs informations d’échantillon et les rapports de laboratoire n’y sont pas : ouvrez-les depuis l’envoi ou la page de la plante. Vos clés sont dans votre fichier de secours, pas dans celui-ci.',
+    'Téléchargé : vos enregistrements, contrats, choix de partage et chaque preuve d’inclusion. Les envois, leurs informations d’échantillon et les rapports de laboratoire n’y sont pas : ouvrez-les depuis l’envoi ou la page de la plante. Vos clés sont dans votre fichier de sauvegarde, pas dans celui-ci.',
   // PlanBox.tsx, billing.ts, records.ts: paid plans (off unless VITE_PAID_PLANS=on)
   'app.plan.full':
     'Vos enregistrements gratuits sont épuisés : aucun nouvel enregistrement n’a été créé. Tout ce que vous avez déjà reste vérifiable. Choisissez une formule sur votre page d’enregistrements pour en ajouter.',

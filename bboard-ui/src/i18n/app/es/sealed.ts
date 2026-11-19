@@ -40,7 +40,7 @@ export const sealed = {
   'app.sealed.lockedAgreements.title.one': '{count} acuerdo bloqueado',
   'app.sealed.lockedAgreements.title.other': '{count} acuerdos bloqueados',
   'app.sealed.lockedAgreements.text':
-    'Este navegador no tiene la clave de estos acuerdos (licencias, envíos a laboratorio o material compartido con criadores). Restaure su archivo de copia de seguridad más reciente. VeilCore no puede abrirlos por usted.',
+    'Este navegador no tiene la clave de estos acuerdos (licencias, envíos a laboratorio o material compartido con obtentores). Restaure su archivo de copia de seguridad más reciente. VeilCore no puede abrirlos por usted.',
   'app.sealed.lockedAgreements.cantChange': 'Un acuerdo bloqueado no se puede cambiar ni enviar. Puede borrarlo.',
   'app.sealed.lockedAgreements.name': 'Acuerdo bloqueado',
   'app.sealed.lockedAgreements.deleteConfirm':
@@ -191,7 +191,7 @@ export const sealed = {
   'app.sealed.unsaved.undoConfirm':
     '¿Deshacer el cambio guardado en este navegador? Se vuelve a mostrar la copia de VeilCore de este registro. No se borra nada.',
   'app.sealed.unsaved.deleteConfirm':
-    '¿Borrar «{name}»? Su código de prueba llegó a VeilCore, así que también se borra del registro de VeilCore. No se puede deshacer.',
+    '¿Borrar «{name}»? Su código de prueba llegó a VeilCore, así que también se borra del servidor de registros de VeilCore. No se puede deshacer.',
   'app.sealed.unsaved.deleteDatedLoss':
     'Una vez borrado, este navegador ya no tiene aquello a partir de lo cual se hizo ese código de prueba, así que no podrá probar qué fechó.',
   'app.sealed.unsaved.letGoBusy':

@@ -23,7 +23,7 @@ const SUBJECT =
 
 /** Said locked: the qualifier that makes the sentence true. */
 const QUALIFIED =
-  /encrypted|verschlüsselt|cifrad|chiffr|暗号化|\bunlocked\b|\blocked\b|\block(?:s|ed)? it\b|unverschlossen|verschlossen|sin cerrar|cerrad[oa]s?|déverrouill|verrouill|鍵/i;
+  /encrypted|verschlüsselt|cifrad|chiffr|暗号化|\bunlocked\b|\blocked\b|\block(?:s|ed)? it\b|unverschlossen|verschlossen|sin cerrar|cerrad[oa]s?|sin bloquear|bloquead[oa]s?|déverrouill|verrouill|鍵/i;
 
 /** Sentences, by the language's own full stops. */
 export const sentences = (text: string): string[] =>

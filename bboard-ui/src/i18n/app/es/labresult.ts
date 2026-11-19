@@ -386,9 +386,9 @@ export const labresult = {
   'app.marker.offer.call': 'El resultado del laboratorio: {call}',
   'app.marker.callPublish': 'Esto publica el resultado del laboratorio tal cual: {call}.',
   'app.marker.rounded.down':
-    'Rellenado redondeando a la baja el recuento del laboratorio ({sealed}), para que el recuento exacto siga siendo privado. Puede cambiarlo.',
+    'Completado redondeando a la baja el recuento del laboratorio ({sealed}), para que el recuento exacto siga siendo privado. Puede cambiarlo.',
   'app.marker.rounded.up':
-    'Rellenado redondeando al alza el recuento del laboratorio ({sealed}), para que el recuento exacto siga siendo privado. Puede cambiarlo.',
+    'Completado redondeando al alza el recuento del laboratorio ({sealed}), para que el recuento exacto siga siendo privado. Puede cambiarlo.',
   'app.marker.exactRepeat': 'Recuentos exactos ya públicos sobre estas muestras: {n}.',
   'app.marker.panelAlready': 'Ya es público sobre las muestras que nombra este resultado: {list}.',
   'app.marker.panelItem': '{claim} ({result})',

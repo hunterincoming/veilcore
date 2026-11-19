@@ -160,7 +160,7 @@ export const document = {
   'app.claim.already': 'Über {label} bereits öffentlich: {list}.',
   'app.claim.leak': 'Jede belegte Grenze ist dauerhaft öffentlich, und zusammen grenzen sie die Zahl ein.',
   'app.claim.computer':
-    'Der Beleg dauert auf einem Laptop ein bis zwei Minuten und braucht viel Speicher: Nutzen Sie einen Computer. Telefone wurden noch nicht getestet.',
+    'Der Beleg dauert auf einem Laptop ein bis zwei Minuten und braucht viel Speicher: Nutzen Sie einen Computer. Handys wurden noch nicht getestet.',
   'app.claim.go': 'Auf Midnight belegen',
   'app.claim.going': 'Wird belegt…',
   'app.claim.done': 'Auf Midnight belegt:',

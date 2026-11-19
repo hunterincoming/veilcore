@@ -280,7 +280,7 @@ export const job = {
   'app.job.ids.changed':
     'Algo cambió en otro dispositivo o en otra pestaña desde que se mostró esto, así que no se guardó nada más. Revise las casillas y guarde de nuevo.',
   'app.job.ids.paste.spaces':
-    'Parecen varias identificaciones de formas distintas separadas por espacios, así que no se puede saber cuál es cuál. No se rellenó nada. Péguelas como columna o escriba cada una en su casilla.',
+    'Parecen varias identificaciones de formas distintas separadas por espacios, así que no se puede saber cuál es cuál. No se completó nada. Péguelas como columna o escriba cada una en su casilla.',
   'app.job.ids.paste.doubleScan':
     'Un escaneo entró en una casilla que ya tiene identificación, así que no se usó. Para volver a escanear esta cría, vacíe antes su casilla.',
   'app.job.ids.gone': 'El registro de {name} ya no está aquí. Cierre esto y vuelva a abrirlo.',
@@ -290,16 +290,16 @@ export const job = {
   'app.job.ids.use': 'Usar estas identificaciones',
   'app.job.ids.clear': 'Borrarlas',
   'app.job.ids.paste.over':
-    'Son {n} líneas para {count} casillas desde aquí hacia abajo, así que no encaja. No se rellenó nada. Copie solo las identificaciones de estas crías o pegue en una casilla más arriba.',
+    'Son {n} líneas para {count} casillas desde aquí hacia abajo, así que no encaja. No se completó nada. Copie solo las identificaciones de estas crías o pegue en una casilla más arriba.',
   'app.job.ids.paste.startsAt':
-    '«{id}» ya es la identificación de {name}, así que esta columna empieza más arriba. No se rellenó nada. Copie solo las identificaciones de las crías que aún no tienen.',
+    '«{id}» ya es la identificación de {name}, así que esta columna empieza más arriba. No se completó nada. Copie solo las identificaciones de las crías que aún no tienen.',
   'app.job.ids.paste.comma':
-    'La línea {line} tiene una coma o un punto y coma: una identificación por línea. No se rellenó nada.',
+    'La línea {line} tiene una coma o un punto y coma: una identificación por línea. No se completó nada.',
   'app.job.ids.no.comma': 'Una identificación por casilla: esta tiene una coma o un punto y coma.',
   'app.job.wait.refused':
     'No se pierde nada: sus registros se guardan aquí. El servidor de VeilCore rechazó este guardado, así que aún no se guardó nada. Lo volveré a intentar.',
   'app.job.ids.help':
-    'Escriba o escanee la identificación de cada cría en su propia casilla. El Intro o el Tab de un escáner pasa a la siguiente casilla vacía. También puede pegar una columna en una casilla: rellena esa casilla y las de debajo.',
+    'Escriba o escanee la identificación de cada cría en su propia casilla. El Intro o el Tab de un escáner pasa a la siguiente casilla vacía. También puede pegar una columna en una casilla: completa esa casilla y las de debajo.',
   'app.job.ids.schemeNeeded': 'Indique a qué numeración pertenecen estas identificaciones.',
   'app.job.ids.preview': 'Lo que se guardará',
   'app.job.ids.previewNone': 'Nada todavía: escriba, escanee o pegue una identificación en una casilla.',
@@ -307,11 +307,11 @@ export const job = {
   'app.job.ids.fix.one': 'Corrija primero la casilla marcada en rojo.',
   'app.job.ids.fix.other': 'Corrija primero las {count} casillas marcadas en rojo.',
   'app.job.ids.paste.columns':
-    'Eso es más de una columna. Copie solo la columna de identificaciones y péguela de nuevo. No se rellenó nada.',
+    'Eso es más de una columna. Copie solo la columna de identificaciones y péguela de nuevo. No se completó nada.',
   'app.job.ids.paste.header':
-    '«{id}» parece un encabezado de columna, no una identificación. Copie las identificaciones sin el encabezado y péguelas de nuevo. No se rellenó nada.',
+    '«{id}» parece un encabezado de columna, no una identificación. Copie las identificaciones sin el encabezado y péguelas de nuevo. No se completó nada.',
   'app.job.ids.paste.invisible':
-    'La línea {line} tiene caracteres invisibles. Copie de nuevo las identificaciones o escríbalas. No se rellenó nada.',
+    'La línea {line} tiene caracteres invisibles. Copie de nuevo las identificaciones o escríbalas. No se completó nada.',
   'app.job.ids.paste.stopped.one': 'Se detuvo en {name}: ya tiene identificación, así que 1 línea no se usó.',
   'app.job.ids.paste.stopped.other':
     'Se detuvo en {name}: ya tiene identificación, así que {count} líneas no se usaron.',

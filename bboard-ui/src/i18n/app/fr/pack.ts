@@ -61,7 +61,7 @@ export const pack = {
   'app.pack.doc.gapsNone': 'Rien ne manque, d’après ces enregistrements VeilCore.',
   'app.pack.doc.variety': '1. Variété génétique inscrite utilisée',
   'app.pack.doc.varietyHelp':
-    'Les plantes ou souches que nomment les lots de culture. Le numéro d’inscription est celui que le titulaire a saisi et scellé dans l’enregistrement VeilCore ; personne ne l’a comparé au registre officiel.',
+    'Les plantes ou souches que nomment les lots de culture. Le numéro d’inscription est celui que le détenteur a saisi et scellé dans l’enregistrement VeilCore ; personne ne l’a comparé au registre officiel.',
   'app.pack.doc.col.variety': 'Variété',
   'app.pack.doc.col.registration': 'Numéro d’inscription de la variété',
   'app.pack.doc.col.record': 'ID VeilCore',
@@ -82,7 +82,7 @@ export const pack = {
     'Un nombre seulement, saisi par le responsable en établissant ce dossier. Il ne figure dans aucun enregistrement VeilCore et n’a pas été envoyé à VeilCore.',
   'app.pack.doc.production': '4. Registre de production',
   'app.pack.doc.productionHelp':
-    'Chaque étape est un enregistrement VeilCore scellé par l’association, qui nomme le précédent. Ce lien est la déclaration du titulaire lui-même : personne ne le compare à l’enregistrement VeilCore qu’il nomme.',
+    'Chaque étape est un enregistrement VeilCore scellé par l’association, qui nomme le précédent. Ce lien est la déclaration du détenteur lui-même : personne ne le compare à l’enregistrement VeilCore qu’il nomme.',
   'app.pack.doc.col.step': 'Étape',
   'app.pack.doc.col.name': 'Nom et ID VeilCore',
   'app.pack.doc.col.date': 'Date',

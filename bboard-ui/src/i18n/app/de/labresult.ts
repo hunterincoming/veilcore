@@ -282,7 +282,7 @@ export const labresult = {
   'app.lr.f.positiveGrew': 'Positivkontrolle ({control}) gewachsen',
   'app.lr.f.negativeClean': 'Negativkontrolle ohne Wachstum',
   'app.lr.f.sampled': 'Datum der Probenahme',
-  'app.lr.f.strain': 'Stammdatensatz, aus dem die Charge hergestellt wurde (Nachweiscode)',
+  'app.lr.f.strain': 'Stammdatensatz, aus dem die Charge hergestellt wurde (Prüfcode)',
   'app.lr.f.before': 'Genanntes Ergebnis der Probe vor dem Abtötungsschritt (Code)',
   'app.lr.stage.before': 'Vor dem Abtötungsschritt',
   'app.lr.stage.after': 'Nach dem Abtötungsschritt',
@@ -294,7 +294,7 @@ export const labresult = {
   'app.lr.note.viabilityLimits':
     'Das ist, was das Labor in der geprüften Teilmenge unter diesen Bedingungen nachgewiesen hat, und nicht mehr. Ein Test erfasst nur, was auf seinen Nährmedien, in seiner Zeit und bei seiner Temperatur oberhalb seiner Nachweisgrenze wächst: Geschädigte, ruhende (Sporen) oder anders anspruchsvolle Organismen wachsen womöglich nicht, und eine Teilmenge steht nicht unbedingt für die ganze Charge. Dass die Probe aus dieser Charge und die Charge aus diesem Stamm stammt, ist die Angabe des Absenders.',
   'app.lr.note.strain':
-    'Der Stammdatensatz ist nur mit seinem Nachweiscode genannt: Nichts aus diesem Datensatz steht in diesem Ergebnis.',
+    'Der Stammdatensatz ist nur mit seinem Prüfcode genannt: Nichts aus diesem Datensatz steht in diesem Ergebnis.',
   'app.lr.form.viabilityIntro':
     'Für eine Probe, die vor oder nach einem Abtötungsschritt genommen wurde, etwa einer Wärmebehandlung oder einer Inaktivierung. Tragen Sie ein, was in Ihrem Bericht steht. Signieren Sie nur einen gültigen Lauf: Die Positivkontrolle ist gewachsen und, falls Sie eine angesetzt haben, die Negativkontrolle nicht.',
   'app.lr.form.read': 'Datum abgelesen (Ende der Bebrütung)',
@@ -307,7 +307,7 @@ export const labresult = {
   'app.lr.form.before': 'Code des Ergebnisses der Probe vor dem Abtötungsschritt (optional)',
   'app.lr.form.beforeHelp':
     'Verknüpft dieses Ergebnis mit dem Ergebnis der Probe vor dem Abtötungsschritt aus derselben Charge, von Ihrem Labor signiert.',
-  'app.lr.form.strain': 'Nachweiscode des Stammdatensatzes, aus dem die Charge hergestellt wurde',
+  'app.lr.form.strain': 'Prüfcode des Stammdatensatzes, aus dem die Charge hergestellt wurde',
   'app.lr.form.strainHelp':
     'Vom Absender: 64 Zeichen. Nur der Code kommt in das Ergebnis, nichts aus dem Datensatz. Er kann derselbe wie der der Probe sein.',
   'app.lr.form.sampled': 'Datum der Probenahme',
@@ -334,7 +334,7 @@ export const labresult = {
     'Eine Probe nach dem Abtötungsschritt nennt diesen Schritt: Verfahren und Parameter, eine Zeile.',
   'app.lr.problem.before':
     'Nennen Sie das Ergebnis der Probe vor dem Abtötungsschritt mit seinem 64-stelligen Code. Nur eine Probe nach dem Abtötungsschritt nennt eines.',
-  'app.lr.problem.strain': 'Geben Sie den Nachweiscode des Stammdatensatzes an: 64 Zeichen.',
+  'app.lr.problem.strain': 'Geben Sie den Prüfcode des Stammdatensatzes an: 64 Zeichen.',
   'app.lr.problem.sampled': 'Das Datum der Probenahme ist ein echtes Datum, nicht nach dem Eingangs- oder Ablesedatum.',
   'app.lr.problem.portion': 'Nennen Sie die geprüfte Teilmenge und ihre Menge.',
   'app.lr.problem.cultures': 'Geben Sie jedes Nährmedium mit Dauer und Temperatur an: 1 bis 4, keines doppelt.',

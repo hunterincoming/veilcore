@@ -1,4 +1,4 @@
-// German. DRAFT: machine-assisted, to be checked by a fluent speaker before publishing.
+// German. Published: machine-assisted, reviewed against native official sources (docs/i18n-glossary.md).
 // SPDX-License-Identifier: Apache-2.0
 import type { Strings } from './en';
 export const de: Strings = {
@@ -32,7 +32,7 @@ export const de: Strings = {
     'Eine datierte Beschreibung von etwas, das Sie halten: eine Pflanze, ein Tier, ein Stamm oder eine Zelllinie, oder ein Dokument. Ihr Browser macht daraus einen kurzen Prüfcode, und dieser Code wird zusammen mit anderen in einem Stapel auf Midnight datiert. Er belegt, dass Sie diesen Datensatz zu diesem Datum bereits hatten. Er belegt nicht, wer Rechte an etwas hat, und nicht, dass der Inhalt des Datensatzes stimmt.',
   'm.help.start.2q': 'Was brauche ich?',
   'm.help.start.2a':
-    'Ein Telefon oder einen Computer mit aktuellem Browser. Keine Wallet, keine Anmeldung, nichts zu kaufen. Um eine einzelne Zahl aus einem Datensatz zu belegen, brauchen Sie einen Computer: Auf Telefonen wurde das noch nicht ausprobiert.',
+    'Ein Handy oder einen Computer mit aktuellem Browser. Keine Wallet, keine Anmeldung, nichts zu kaufen. Um eine einzelne Zahl aus einem Datensatz zu belegen, brauchen Sie einen Computer: Auf Handys wurde das noch nicht ausprobiert.',
   'm.help.start.3q': 'Was kostet es?',
   'm.help.start.3a': 'Einen Datensatz auf dieser Website anzulegen und jeden Datensatz zu prüfen ist kostenlos.',
   'm.help.make.t': 'Einen Datensatz anlegen',
@@ -41,21 +41,21 @@ export const de: Strings = {
     'Wählen Sie, was es ist. Eine Pflanze: eine Sorte oder eine Linie. Ein Tier: ein einzelnes Tier oder eine Linie. Ein Stamm oder eine Linie: Mikroben, Pilze, Zelllinien, Insektenlinien. Ein Dokument: eine Genehmigung, ein Zertifikat, ein Vertrag oder ein Bericht, als Datei versiegelt. Eine Anbaucharge oder eine Erntepartie: ein Schritt in einer Produktionskette, verknüpft mit dem Datensatz davor.',
   'm.help.make.2q': 'Was lasse ich weg?',
   'm.help.make.2a':
-    'Persönliche Angaben anderer Menschen. Was Sie eingeben, wird verschlüsselt auf unserem Server gespeichert, und wir haben den Schlüssel nicht. Wem Sie einen Datensatz zeigen, der sieht aber, was Sie freigegeben haben, und der Prüflink eines Dokuments zeigt alles, was darin eingegeben wurde (Titel, Halter, Aussteller, Referenz, Notizen), den Dateinamen und den SHA-256 der Datei. Benennen Sie Dateien schlicht, etwa „Genehmigung 2026.pdf“. Oder behalten Sie ein Dokument nur auf diesem Gerät: Dann wird nichts Eingegebenes gesendet.',
+    'Persönliche Angaben anderer Menschen. Was Sie eingeben, wird verschlüsselt auf unserem Server gespeichert, und wir haben den Schlüssel nicht. Wem Sie einen Datensatz zeigen, der sieht aber, was Sie freigegeben haben, und der Prüflink eines Dokuments zeigt alles, was darin eingegeben wurde (Titel, Inhaber, Aussteller, Referenz, Notizen), den Dateinamen und den SHA-256 der Datei. Benennen Sie Dateien schlicht, etwa „Genehmigung 2026.pdf“. Oder behalten Sie ein Dokument nur auf diesem Gerät: Dann wird nichts Eingegebenes gesendet.',
   'm.help.make.3q': 'Woran erkenne ich, dass mein Datensatz datiert ist?',
   'm.help.make.3a':
     'Die Seite des Datensatzes zeigt „Datensatz datiert“ mit dem Datum, sobald sein Stapel auf Midnight ist. Vorher steht dort „im nächsten Stapel“. Gespeichert ist der Datensatz in beiden Fällen. Bis der Stapel auf Midnight ist, stützt sich sein Datum allein auf Ihr Wort.',
   'm.help.backup.t': 'Ihre Sicherungskopie',
   'm.help.backup.1q': 'Warum fordert die Website mich immer wieder auf, eine Sicherungskopie zu speichern?',
   'm.help.backup.1a':
-    'Die Sicherungskopie ist der einzige Weg zu belegen, dass Sie Ihre Datensätze halten, und der einzige Weg, sie auf ein neues Telefon oder einen neuen Computer zu holen. VeilCore kann sie nicht wiederherstellen und keine neue erstellen.',
+    'Die Sicherungskopie ist der einzige Weg zu belegen, dass Sie Ihre Datensätze halten, und der einzige Weg, sie auf ein neues Handy oder einen neuen Computer zu holen. VeilCore kann sie nicht wiederherstellen und keine neue erstellen.',
   'm.help.backup.2q': 'Wo bewahre ich sie auf?',
   'm.help.backup.2a':
     'Auf einem USB-Stick oder in einem Passwortmanager, und zusätzlich an einem zweiten Ort. Wer die Datei hat, kann Ihre Datensätze öffnen und in Ihrem Namen handeln. Geben Sie beim Speichern ein Passwort an: Dann öffnet die Datei allein nichts. Wenn Sie das Passwort vergessen, kann niemand die Datei öffnen, auch wir nicht.',
   'm.help.backup.3q': 'Ich habe meine Sicherungskopie verloren. Was nun?',
   'm.help.backup.3a':
     'Wenn dieser Browser Ihre Datensätze noch hat, speichern Sie jetzt eine neue Sicherungskopie. Wenn nicht, kann niemand die verschlossenen Kopien auf unserem Server öffnen, auch VeilCore nicht. Die Website bietet dann an, sie zu löschen und einen neuen Schlüssel zu beginnen. Bereits datierte Datensätze bleiben datiert, aber Sie können nicht mehr zeigen, dass es Ihre sind.',
-  'm.help.backup.4q': 'Wie wechsle ich auf ein neues Telefon oder einen neuen Computer?',
+  'm.help.backup.4q': 'Wie wechsle ich auf ein neues Handy oder einen neuen Computer?',
   'm.help.backup.4a':
     'Öffnen Sie auf dem neuen Gerät „Datensätze wiederherstellen“ und wählen Sie Ihre Sicherungskopie.',
   'm.help.backup.4link': 'Datensätze wiederherstellen →',
@@ -284,7 +284,7 @@ export const de: Strings = {
   'm.privacy.label': 'Datenschutz in der Demo',
   'm.privacy.title': 'Was die Demo speichert.',
   'm.privacy.lede':
-    'Dieser Hinweis gilt für die Demo auf dieser Website. Sie ist ein Test, auf dem Testnetzwerk von Midnight. Bitte verwenden Sie erfundene Daten.',
+    'Dieser Hinweis gilt für die Demo auf dieser Website. Sie ist ein Test, auf dem Testnetz von Midnight. Bitte verwenden Sie erfundene Daten.',
   'm.privacy.sum.local.t': 'Verlässt Ihr Gerät nie unverschlossen',
   'm.privacy.sum.local.p': 'Ihre DNA-Dateien und Fotos verlassen nie Ihr Gerät. Laborberichte reisen verschlossen.',
   'm.privacy.sum.locked.t': 'Verschlossen gespeichert, wir können es nicht lesen',
@@ -300,9 +300,9 @@ export const de: Strings = {
   'm.privacy.local.title': 'Verlässt Ihren Browser nie unverschlossen',
   'm.privacy.local.text':
     'Ihre DNA-Dateien verlassen nie Ihr Gerät. Laborberichte reisen verschlossen. Ihr Browser liest die DNA-Berichte, Laborberichte und Fotos, die Sie hinzufügen, um aus jeder einen Code zu machen; die Dateien selbst werden nie hochgeladen. Ein Laborbericht erreicht unseren Server nur, wenn ein Labor ihn an Sie zurückschickt, verschlossen, sodass nur Sie ihn öffnen können.',
-  'm.privacy.test.title': 'Ein Testnetzwerk',
+  'm.privacy.test.title': 'Ein Testnetz',
   'm.privacy.test.text':
-    'Die Demo nutzt das Testnetzwerk von Midnight, nicht das Live-Netzwerk. Demodaten können gelöscht werden, wenn das Testnetzwerk zurückgesetzt wird.',
+    'Die Demo nutzt das Testnetz von Midnight, nicht das Live-Netzwerk. Demodaten können gelöscht werden, wenn das Testnetz zurückgesetzt wird.',
   'm.privacy.madeup.title': 'Verwenden Sie erfundene Daten',
   'm.privacy.madeup.text':
     'Bitte geben Sie keine echten Namen, echten Sorten oder vertraulichen Angaben ein. Die Demo dient dazu, das Format auszuprobieren.',
@@ -326,7 +326,7 @@ export const de: Strings = {
     'Midnight ist ein öffentliches Netzwerk: Was dort landet, kann niemand ändern oder entfernen, auch wir nicht, und jeder kann es lesen. Ihre Genetik, Ihre Bedingungen, Ihr Name und Ihre Dateien landen dort nie. Was dort landet: der Prüfcode jedes Stapels von Datensätzen; der eigene Schlüssel eines Datensatzes und sein Datumsstempel; ein Code aus einem DNA-Bericht, wenn Sie dessen Kopplung datieren; welche Datensätze als Eltern und Nachkommen verknüpft sind, sobald beide Inhaber bestätigen (eine Verknüpfung lässt sich nicht zurücknehmen); dass auf einem Datensatz eine Lizenz, eine Verpflichtung oder der Anspruch eines Kreditgebers vermerkt ist, und wann sich das geändert hat; der öffentliche Schlüssel eines Labors, wenn es dort ein Zertifikat signiert; ein Wert, den Sie exakt nachweisen wollen, vollständig; und, wo diese Website Lizenzgebühren in NIGHT zahlen lässt, der Betrag und die beiden Adressen. Vor jedem dieser Schritte zeigt die App eine Quittung, die genau auflistet, was der Schritt öffentlich macht. Ein Code oder Schlüssel allein sagt nichts über Sie, aber wer von Ihnen einen Prüflink bekommt, kann von da an verfolgen, was mit diesem Datensatz im Netzwerk geschieht.',
   'm.privacy.helper.title': 'Der Helfer und sein optionales Modell',
   'm.privacy.helper.text':
-    'Ask, der Helfer in der App, arbeitet dort, wo diese Website ihn anbietet, auf Ihrem Gerät. Nichts, was Sie dort eingeben, wird irgendwohin gesendet; nur das Speichern der App selbst sendet etwas, und das geht verschlossen an unseren Server, wie oben beschrieben. Wo diese Website das optionale Sprachmodell anbietet, wird es einmal von Hugging Face heruntergeladen, einem eigenen Unternehmen: Hugging Face sieht Ihre IP-Adresse, die Uhrzeit, welche Modelldateien und dass die Anfrage von dieser Website kommt; wir sehen, dass ein Download begonnen hat. Das Modell läuft auf Ihrem Gerät, in einem Teil der Seite, der das Netzwerk nicht erreichen kann; nichts, was Sie eingeben, gelangt zu Hugging Face oder zu uns, weder dann noch später. Sie können das Modell im Bereich des Helfers löschen. Sein „Für mich erledigen“ führt zu jedem Auftrag eine Aufzeichnung nur auf Ihrem Gerät, nie in einer Sicherung: die Schritte und wie weit sie sind, Verweise auf die beteiligten Datensätze und Vereinbarungen und die Zahlen, die Sie für einen Bericht eingeben, bis er gesendet ist; nie, was Sie zum Fragen geschrieben haben. Sie wird 7 Tage nach dem Ende des Auftrags gelöscht. Solange ein Auftrag auf Ihre Zustimmung wartet, bleiben seine neuen Datensätze verschlossen mit ihren Schlüsseln in Ihrem Browser; eine Sicherung aus dieser Zeit enthält diese Schlüssel ebenfalls. Um Berichte vorzubereiten, werden die Nachrichten Ihrer Vereinbarungen nacheinander von unserem Server gelesen, sodass unser Server sehen kann, dass diese Vereinbarungen zusammen gelesen wurden; gesendet wird erst, wenn Sie freigeben.',
+    '„Fragen“, der Helfer in der App, arbeitet dort, wo diese Website ihn anbietet, auf Ihrem Gerät. Nichts, was Sie dort eingeben, wird irgendwohin gesendet; nur das Speichern der App selbst sendet etwas, und das geht verschlossen an unseren Server, wie oben beschrieben. Wo diese Website das optionale Sprachmodell anbietet, wird es einmal von Hugging Face heruntergeladen, einem eigenen Unternehmen: Hugging Face sieht Ihre IP-Adresse, die Uhrzeit, welche Modelldateien und dass die Anfrage von dieser Website kommt; wir sehen, dass ein Download begonnen hat. Das Modell läuft auf Ihrem Gerät, in einem Teil der Seite, der das Netzwerk nicht erreichen kann; nichts, was Sie eingeben, gelangt zu Hugging Face oder zu uns, weder dann noch später. Sie können das Modell im Bereich des Helfers löschen. Sein „Für mich erledigen“ führt zu jedem Auftrag eine Aufzeichnung nur auf Ihrem Gerät, nie in einer Sicherung: die Schritte und wie weit sie sind, Verweise auf die beteiligten Datensätze und Vereinbarungen und die Zahlen, die Sie für einen Bericht eingeben, bis er gesendet ist; nie, was Sie zum Fragen geschrieben haben. Sie wird 7 Tage nach dem Ende des Auftrags gelöscht. Solange ein Auftrag auf Ihre Zustimmung wartet, bleiben seine neuen Datensätze verschlossen mit ihren Schlüsseln in Ihrem Browser; eine Sicherung aus dieser Zeit enthält diese Schlüssel ebenfalls. Um Berichte vorzubereiten, werden die Nachrichten Ihrer Vereinbarungen nacheinander von unserem Server gelesen, sodass unser Server sehen kann, dass diese Vereinbarungen zusammen gelesen wurden; gesendet wird erst, wenn Sie freigeben.',
   'm.privacy.hosts.title': 'Hosting',
   'm.privacy.hosts.text':
     'Diese Website wird bei Vercel gehostet, das IP-Adressen und Anfragen protokolliert. Unser Registerserver läuft bei Railway, das Anfragen protokolliert.',
@@ -380,7 +380,7 @@ export const de: Strings = {
   'm.postD.tag': 'Website',
   'm.postD.title': 'Ein Dokument versiegeln',
   'm.postD.text':
-    'Genehmigungen, Zertifikate, Verträge: Ihr Computer berechnet den Code der Datei, und nur der Nachweiscode des Datensatzes wird auf Midnight datiert. Die Datei verlässt Ihr Gerät nie. Schicken Sie einen Prüflink mit der Datei, und wer sie bekommt, sieht, dass es Byte für Byte dieselbe Datei ist und wann Sie sie hatten.',
+    'Genehmigungen, Zertifikate, Verträge: Ihr Computer berechnet den Code der Datei, und nur der Prüfcode des Datensatzes wird auf Midnight datiert. Die Datei verlässt Ihr Gerät nie. Schicken Sie einen Prüflink mit der Datei, und wer sie bekommt, sieht, dass es Byte für Byte dieselbe Datei ist und wann Sie sie hatten.',
   'm.postC.date': '19. Okt. 2026',
   'm.postC.tag': 'Website',
   'm.postC.title': 'Ihr Browser sendet seine eigenen Transaktionen',
@@ -454,7 +454,7 @@ export const de: Strings = {
   'm.live.claims.main': 'Im Hauptnetz, ohne Wartungsschlüssel. Die Website kann ihn noch nicht nutzen.',
   'm.live.claims.not': 'Ihn über die Website nutzen.',
   'm.live.claims.live':
-    'Ja, an einem Computer: eine Zahl aus einem versiegelten Zertifikat oder Laborergebnis belegen, ohne den Rest zu zeigen. Auf Telefonen noch nicht ausprobiert.',
+    'Ja, an einem Computer: eine Zahl aus einem versiegelten Zertifikat oder Laborergebnis belegen, ohne den Rest zu zeigen. Auf Handys noch nicht ausprobiert.',
   'm.live.lic.t': 'Lizenzen und Lizenzgebühren',
   'm.live.lic.main': 'Abgeschaltet bis zu einem letzten Testlauf.',
   'm.live.lic.test': 'Ja, mit echten Transaktionen: Lizenzgebühren, Zahlungen, Weitergabe einer Lizenz.',
@@ -519,7 +519,7 @@ export const de: Strings = {
   'm.home.l2': 'Sein Prüfcode: 64 Zeichen, auf Ihrem Computer berechnet.',
   'm.home.l3': 'Ihr Code kommt mit anderen in einen Stapel. Der Block, in dem er landet, ist das Datum.',
   'm.home.l3b': 'Ein Stapel, viele Datensätze',
-  'm.home.l4v': 'Der Datensatz bestand zu diesem Datum.',
+  'm.home.l4v': 'Der Datensatz existierte spätestens an diesem Datum.',
   'm.home.l4': 'Jeder kann es prüfen, kostenlos und ohne Konto.',
   'm.home.more': 'Mehr als ein Datum.',
   'm.home.f1t': 'Pflanzen, Tiere und Stämme.',
@@ -532,7 +532,7 @@ export const de: Strings = {
     'Auf den Seiten Ihrer Datensätze füllt „Fragen“ einen Datensatz oder eine Reihe von Stecklingen oder Nachkommen aus, damit Sie ihn prüfen. Es unterschreibt und sendet nie etwas. Das tun Sie.',
   'm.home.trustLabel': 'Was es Ihnen gibt',
   'm.home.trust':
-    'Nachweis, dass Sie einen Datensatz bis zu einem Datum hatten|Ein Datum, das niemand zurückdatieren kann|Prüfen ist kostenlos|Ein offenes Format|Keine Wallet, keine Anmeldung',
+    'Nachweis, dass Sie einen Datensatz spätestens zu einem Datum hatten|Ein Datum, das niemand zurückdatieren kann|Prüfen ist kostenlos|Ein offenes Format|Keine Wallet, keine Anmeldung',
   'm.home.pause': 'Laufende Namen anhalten',
   'm.home.play': 'Laufende Namen fortsetzen',
   'm.home.fails': 'Sagen Sie uns, wo es scheitert.',
@@ -576,7 +576,7 @@ export const de: Strings = {
   'm.step2.text': 'Auf Ihrem Computer. Genetische Daten verlassen ihn nie unverschlossen.',
   'm.step3.title': 'Ein Datum bekommen',
   'm.step3.text':
-    'Nur der Prüfcode kommt auf Midnight, in einem Stapel mit anderen. Das Datum ist der Block, in dem der Stapel landet: Er zeigt, dass der Datensatz bis dahin existierte.',
+    'Nur der Prüfcode kommt auf Midnight, in einem Stapel mit anderen. Das Datum ist der Block, in dem der Stapel landet: Er zeigt, dass der Datensatz spätestens dann existierte.',
   'm.step4.text':
     'Geben Sie ihn einem Käufer, einer Prüfstelle oder einem Gericht. Dort kann man ihn kostenlos prüfen, ohne Konto.',
   'm.claims.label': 'Eine Tatsache beweisen',

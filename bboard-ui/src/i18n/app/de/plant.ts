@@ -180,7 +180,7 @@ export const plant = {
   'app.plant.withdrawnSendNew': 'zurückgezogen (Sie können einen neuen senden)',
   'app.plant.waitingBatch': 'wartet auf einen Stapel',
   'app.plant.inBatchWaiting': 'in einem Stapel, wartet auf seinen Datumsstempel',
-  'app.plant.onTestNetwork': ' In einem Testnetzwerk: Übungsdaten, kein echtes Datum.',
+  'app.plant.onTestNetwork': ' In einem Testnetz: Übungsdaten, kein echtes Datum.',
   'app.plant.checkedOnMidnight': '{date} – auf Midnight geprüft',
   'app.plant.notConfirmed': 'Datumsstempel auf Midnight nicht bestätigt',
   'app.plant.dontRely': '{reason}. Verlassen Sie sich nicht auf das Datum, das das Register meldet.',
@@ -290,7 +290,7 @@ export const plant = {
   'app.plant.date.chipChecked': 'In einem Stapel · Datum auf {network} geprüft',
   'app.plant.date.chipFailed': 'In einem Stapel · Datumsstempel nicht bestätigt',
   'app.plant.date.chipReported': 'In einem Stapel · Verankerung auf {network} gemeldet',
-  'app.plant.date.testNote': ' Ein Testnetzwerk kann zurückgesetzt werden, und seine Daten haben keine Beweiskraft.',
+  'app.plant.date.testNote': ' Ein Testnetz kann zurückgesetzt werden, und seine Daten haben keine Beweiskraft.',
   'app.plant.date.head':
     'In diesem Browser geprüft: Der Prüfcode Ihres Datensatzes ist in Stapel {batch}, und der Pfad von ihm führt zur Stapelwurzel.',
   'app.plant.date.looked': '{head} Das Register meldet, dass diese Wurzel auf {network} festgehalten wurde.{test}',
@@ -365,7 +365,7 @@ export const plant = {
     'Verankert. Seine On-Chain-Identität ist {id}…, festgehalten in Block {block}{when}. Die Identität wird in diesem Browser und in Ihrer Sicherungskopie aufbewahrt, nicht auf dem Server von VeilCore: Sie teilen sie, indem Sie jemandem einen Prüflink senden.',
   // Only for an anchor on a test network (AnchorOnChainPanel.tsx), never on Midnight's main network.
   'app.plant.anchor.testNet':
-    'Das ist ein Testnetzwerk: Es kann zurückgesetzt werden, und seine Daten haben keine Beweiskraft.',
+    'Das ist ein Testnetz: Es kann zurückgesetzt werden, und seine Daten haben keine Beweiskraft.',
   'app.plant.anchor.chainClock': ' ({when}, nach der Uhr der Chain)',
   'app.plant.anchor.label': 'Verankerung',
   'app.plant.anchor.notAvailable': 'In diesem Build nicht verfügbar: {why}',
@@ -379,7 +379,7 @@ export const plant = {
   'app.plant.anchor.onlyNew':
     'Nur für einen Datensatz, der nie Schlüssel hatte: Wenn Sie ihn schon verankert oder seine Schlüssel in einem anderen Browser erstellt haben, stellen Sie sie stattdessen oben aus Ihrer Sicherungskopie wieder her. Neue Schlüssel wären eine andere Identität.',
   'app.plant.anchor.makeKeys': 'Die Schlüssel dieses Datensatzes erstellen (in diesem Browser)',
-  'app.plant.anchor.anchorTest': 'Im Testnetzwerk verankern',
+  'app.plant.anchor.anchorTest': 'Im Testnetz verankern',
   'app.plant.anchor.backupFirst': 'Zuerst die Sicherungskopie herunterladen',
   'app.plant.keys.restoredFor': 'Schlüssel für {id} wiederhergestellt.',
   'app.plant.keys.notNamed':

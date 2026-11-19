@@ -152,9 +152,9 @@ export const job = {
     'Kein Netz? Kein Problem. Es geht hinaus, sobald Sie wieder online sind und VeilCore offen ist. Ist es bis {when} nicht hinausgegangen, wird nichts gesendet: Fragen Sie mich dann erneut.',
 
   'app.job.backup.records.one':
-    'Speichern Sie zuerst Ihre Sicherung. Ohne sie ist dieser Datensatz weg, wenn Sie dieses Telefon verlieren.',
+    'Speichern Sie zuerst Ihre Sicherung. Ohne sie ist dieser Datensatz weg, wenn Sie dieses Handy verlieren.',
   'app.job.backup.records.other':
-    'Speichern Sie zuerst Ihre Sicherung. Ohne sie sind diese {count} Datensätze weg, wenn Sie dieses Telefon verlieren.',
+    'Speichern Sie zuerst Ihre Sicherung. Ohne sie sind diese {count} Datensätze weg, wenn Sie dieses Handy verlieren.',
   'app.job.backup.ready':
     'Speichern Sie zuerst Ihre Sicherung. Eine Vereinbarung kann erst gespeichert werden, wenn eine geprüfte Sicherung ihren Schlüssel enthält.',
   'app.job.backup.done': 'Sicherung geprüft.',
