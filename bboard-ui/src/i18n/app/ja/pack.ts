@@ -103,7 +103,7 @@ export const pack = {
   'app.pack.doc.recordId': 'VeilCore ID {id}',
   'app.pack.doc.proofCode': '証明コード',
   'app.pack.doc.checkLink': '確認リンク',
-  'app.pack.doc.onPaper': '紙で確認する場合：{site}/verify を開き、VeilCore ID {id} を入力してください。',
+  'app.pack.doc.onPaper': '紙で確認する場合：{site}/verify を開き、VeilCore ID {id} と上記の証明コードを入力してください。',
   'app.pack.doc.noLink': '確認リンクなし：このVeilCoreの記録はまだ封印されていません。',
   'app.pack.doc.local': '団体の端末だけに保管。',
   'app.pack.doc.dateRests': '日付の根拠',

@@ -278,7 +278,7 @@ test('a pack for the authority in Spanish: the missing chromatography first, and
   const reportItem = pack.locator(`[data-pack-item="${reportId}"]`);
   // On paper a link can't be clicked: where to type the ID instead.
   await expect(reportItem.locator('[data-on-paper]')).toHaveText(
-    `En papel: abra 127.0.0.1:${process.env.E2E_PORT ?? 4317}/verify e introduzca el ID VeilCore ${reportId}.`,
+    `En papel: abra 127.0.0.1:${process.env.E2E_PORT ?? 4317}/verify e introduzca el ID VeilCore ${reportId} y el código de prueba de arriba.`,
   );
   await expect(reportItem.locator('[data-date-lines]')).toContainText(
     'según informa el servidor de registros de VeilCore. No comprobado por este navegador',
