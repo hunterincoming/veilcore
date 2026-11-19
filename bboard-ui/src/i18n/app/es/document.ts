@@ -177,6 +177,12 @@ export const document = {
   'app.claim.verdict.someFailed': 'Esta prueba superó la comprobación, pero otra de este enlace no. Vea más abajo.',
   'app.claim.verdict.okWhen': 'Probado el {date}. Comprobado en su navegador.',
   'app.claim.verdict.ok': 'Esta prueba superó la comprobación en su navegador.',
+  'app.claim.verdict.labConflict':
+    'Esta prueba superó la comprobación, pero más de un laboratorio reclama la clave que la firmó, así que lea los números como declaración del titular. Vea más abajo.',
+  'app.claim.verdict.labWithdrawn':
+    'Esta prueba superó la comprobación, pero el laboratorio retiró su firma, así que lea los números como declaración del titular. Vea más abajo.',
+  'app.doc.verdict.noDate':
+    'VeilCore aún no tiene fecha para este documento exacto. Uno recién sellado recibe su fecha con el próximo lote; un enlace modificado no coincidirá.',
   'app.doc.verdict.bad': 'Este enlace no se puede leer, así que no se comprobó nada.',
   'app.doc.verdict.dated': 'Fechado el {date}. Comprobado en su navegador.',
   'app.doc.verdict.datedChooseFile':

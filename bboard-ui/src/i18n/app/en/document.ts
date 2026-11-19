@@ -180,6 +180,12 @@ export const document = {
   'app.claim.verdict.someFailed': 'This claim checked out, but another one in this link didn’t. See below.',
   'app.claim.verdict.okWhen': 'Proved on {date}. Checked in your browser.',
   'app.claim.verdict.ok': 'This claim checked out in your browser.',
+  'app.claim.verdict.labConflict':
+    'This claim checked out, but more than one lab claims the key that signed it, so read the numbers as the holder’s own. See below.',
+  'app.claim.verdict.labWithdrawn':
+    'This claim checked out, but the lab withdrew its signature, so read the numbers as the holder’s own. See below.',
+  'app.doc.verdict.noDate':
+    'VeilCore has no date for this exact document yet. A just-sealed one gets its date with the next batch; a link that was changed won’t match.',
   'app.doc.verdict.bad': 'This link can’t be read, so nothing was checked.',
   'app.doc.verdict.dated': 'Dated {date}. Checked in your browser.',
   'app.doc.verdict.datedChooseFile':

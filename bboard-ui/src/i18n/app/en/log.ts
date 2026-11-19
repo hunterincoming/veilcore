@@ -94,7 +94,7 @@ export const log = {
     'The details are stored locked on {server}, so you can come back to them, and we don’t have the key. The name is locked too; a check link carries it after the # only if you switch that on. Only a proof code is dated on {datedOn}.',
   'app.log.sealing': 'Sealing…',
   'app.log.sealPlain':
-    'Only codes made from it are published, never your words or photos. Those stay private: only you can open them.',
+    'Published, permanently: only codes made from it, on Midnight. Never your words or photos: those stay private, and only you can open them.',
   'app.log.sealDetails': 'What gets published?',
   'app.log.seal': 'Seal it',
   'app.log.sealingPlant': 'Sealing your plant…',

@@ -8,7 +8,7 @@ import { Link as RouterLink, useLocation } from 'react-router-dom';
 import { useI18n } from '../../i18n';
 import { SiteShell } from './SiteShell';
 import { hasRecordsHere } from './returning';
-import { HOME_SCREEN_DISMISSED, isIosHomeScreenApp, showHomeScreenStart } from './home-screen';
+import { HOME_SCREEN_DISMISSED, isIosHomeScreenApp, keepsAnything, showHomeScreenStart } from './home-screen';
 
 const dismissedThisLaunch = (): boolean => {
   try {
@@ -25,7 +25,7 @@ export const HomeScreenStart: React.FC<{ children: React.ReactNode }> = ({ child
   const [dismissed, setDismissed] = useState(dismissedThisLaunch);
   const show = showHomeScreenStart({
     standalone: isIosHomeScreenApp(),
-    hasRecords: hasRecordsHere(),
+    hasRecords: hasRecordsHere() || keepsAnything(),
     pathname,
     dismissed,
   });

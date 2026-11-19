@@ -84,9 +84,10 @@ describe('Home says "save your backup" once, for the account, not per record (ea
     expect(backupNeed({ ...none, keysOnlyHere: 2 })).toBe('line');
     expect(backupNeed({ ...none, waitingForBackup: true })).toBe('line');
     expect(backupNeed({ ...none, vaultUnbacked: true })).toBe('line');
-    expect(backupNeed({ ...none, vaultUnbacked: true, legacyWaiting: true, waitingForBackup: true })).toBe(
-      'before-locking',
-    );
+    expect(backupNeed({ ...none, vaultUnbacked: true, legacyWaiting: true })).toBe('before-locking');
+    // The loss warning is never replaced by the older records' sentence (review of PR #140).
+    expect(backupNeed({ ...none, vaultUnbacked: true, legacyWaiting: true, waitingForBackup: true })).toBe('both');
+    expect(backupNeed({ ...none, vaultUnbacked: true, legacyWaiting: true, keysOnlyHere: 1 })).toBe('both');
     // Records saved before locking with a vault key already backed up: nothing to ask for.
     expect(backupNeed({ ...none, legacyWaiting: true })).toBe('none');
   });

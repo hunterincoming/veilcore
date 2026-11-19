@@ -176,6 +176,12 @@ export const document = {
     'この証明は確認できましたが、このリンクにある別の証明は通りませんでした。下を見てください。',
   'app.claim.verdict.okWhen': '{date}に証明されています。このブラウザで確認しました。',
   'app.claim.verdict.ok': 'この証明はこのブラウザで確認できました。',
+  'app.claim.verdict.labConflict':
+    'この証明は確認できましたが、署名した鍵を複数のラボが自分のものとしているため、数値は保有者自身の申告として読んでください。下を見てください。',
+  'app.claim.verdict.labWithdrawn':
+    'この証明は確認できましたが、ラボが署名を取り下げているため、数値は保有者自身の申告として読んでください。下を見てください。',
+  'app.doc.verdict.noDate':
+    'VeilCoreには、この書類そのものの日付はまだありません。封印したばかりなら次のバッチで日付が付きます。リンクが変更されていると一致しません。',
   'app.doc.verdict.bad': 'このリンクは読み取れないため、何も確認していません。',
   'app.doc.verdict.dated': '{date}に日付が付いています。このブラウザで確認しました。',
   'app.doc.verdict.datedChooseFile':

@@ -1,10 +1,10 @@
 // The one line at the top of a check page (verdict.ts): never kinder than the checks under it.
 // SPDX-License-Identifier: Apache-2.0
 import { describe, expect, it } from 'vitest';
-import { recordVerdict } from './verdict';
+import { checkProblems, claimVerdict, recordVerdict } from './verdict';
+import type { ClaimVerdict } from '../../veilcore/claim-link';
 import type { ProofState } from '../../veilcore/proofs';
 import type { AnchorState } from './anchor-words';
-import { isIosHomeScreenApp, showHomeScreenStart } from '../site/home-screen';
 
 const reported = { status: 'anchor-reported', proof: { anchor: { anchoredAt: '2026-10-11T14:03:00Z' } } } as ProofState;
 const checked = { status: 'checked', blockTime: Date.UTC(2026, 9, 11), blockHeight: 1 } as unknown as AnchorState;
@@ -57,21 +57,125 @@ describe('the check page’s one line', () => {
     expect(recordVerdict({ ...base, proof: { status: 'none' }, failed: true }).key).toBe(
       'app.verify.verdict.notYetFailed',
     );
+    // "none" is also a failed proof request: when the registry says the batch is dated, it can't
+    // be "waiting" (review of PR #140). A document's page says it has no date for that document.
+    expect(recordVerdict({ ...base, proof: { status: 'none' }, anchoredReported: true })).toMatchObject({
+      tone: 'warn',
+      key: 'app.verify.verdict.dateUnchecked',
+    });
+    expect(recordVerdict({ ...base, proof: { status: 'none' }, document: true }).key).toBe('app.doc.verdict.noDate');
+    expect(recordVerdict({ ...base, proof: { status: 'pending' } as ProofState, anchoredReported: true }).key).toBe(
+      'app.verify.verdict.notYet',
+    );
   });
 });
 
-describe('the iPhone Home Screen start screen', () => {
-  it('only for an iOS Home Screen app with nothing stored, on the pages it opens on', () => {
-    expect(isIosHomeScreenApp({ standalone: true })).toBe(true);
-    expect(isIosHomeScreenApp({})).toBe(false);
-    expect(isIosHomeScreenApp(undefined)).toBe(false);
-    const f = { standalone: true, hasRecords: false, pathname: '/records', dismissed: false };
-    expect(showHomeScreenStart(f)).toBe(true);
-    expect(showHomeScreenStart({ ...f, hasRecords: true })).toBe(false);
-    expect(showHomeScreenStart({ ...f, standalone: false })).toBe(false);
-    expect(showHomeScreenStart({ ...f, dismissed: true })).toBe(false);
-    // Never over the restore page it points to, or a check page.
-    expect(showHomeScreenStart({ ...f, pathname: '/restore' })).toBe(false);
-    expect(showHomeScreenStart({ ...f, pathname: '/verify/VEIL-1' })).toBe(false);
+describe('the green line never stands over something that didn’t pass (review of PR #140)', () => {
+  const none = {
+    badSignatures: 0,
+    noneVerified: false,
+    nameState: 'none',
+    savedReport: 'reported',
+    withdrawnSignatures: false,
+  };
+  it('every failure source on the page counts', () => {
+    expect(checkProblems(none)).toEqual({ failed: false, withdrawn: false });
+    expect(checkProblems({ ...none, badSignatures: 1 }).failed).toBe(true);
+    expect(checkProblems({ ...none, noneVerified: true }).failed).toBe(true);
+    expect(checkProblems({ ...none, nameState: 'differs' }).failed).toBe(true);
+    expect(checkProblems({ ...none, nameState: 'published', nameConflict: true }).failed).toBe(true);
+    // The saved DNA report: its signature withdrawn or replaced, or a chosen file that differs.
+    expect(checkProblems({ ...none, savedReport: 'failed' }).failed).toBe(true);
+    expect(checkProblems({ ...none, withdrawnSignatures: true })).toEqual({ failed: false, withdrawn: true });
+  });
+
+  it('a withdrawn lab signature gets its own amber line', () => {
+    expect(recordVerdict({ ...base, withdrawn: true })).toMatchObject({
+      tone: 'warn',
+      key: 'app.verify.verdict.datedWithdrawn',
+    });
+    expect(recordVerdict({ ...base, anchor: undefined, withdrawn: true }).key).toBe(
+      'app.verify.verdict.reportedButFailed',
+    );
+  });
+
+  it('a failure with only the server’s date says so', () => {
+    expect(recordVerdict({ ...base, anchor: undefined, failed: true }).key).toBe(
+      'app.verify.verdict.reportedButFailed',
+    );
+    expect(recordVerdict({ ...base, anchor: undefined, reportedAt: undefined, failed: true }).key).toBe(
+      'app.verify.verdict.reportedNoDateButFailed',
+    );
+  });
+
+  it('every failing or unchecked state, in every combination, is never "ok"', () => {
+    const proofs: (ProofState | 'checking')[] = [
+      'checking',
+      { status: 'none' },
+      { status: 'pending' } as ProofState,
+      reported,
+    ];
+    const anchors: (AnchorState | undefined)[] = [
+      undefined,
+      'checking',
+      checked,
+      { status: 'failed', reason: 'x' },
+      { status: 'unreachable', reason: 'x' },
+      { status: 'not-checked' } as AnchorState,
+    ];
+    const sources = [
+      { badSignatures: 1 },
+      { noneVerified: true },
+      { nameState: 'differs' },
+      { nameState: 'published', nameConflict: true },
+      { savedReport: 'failed' },
+      { withdrawnSignatures: true },
+    ];
+    let seen = 0;
+    for (const src of sources)
+      for (const proof of proofs)
+        for (const anchor of anchors)
+          for (const sealed of [true, false])
+            for (const bound of [true, false])
+              for (const testNetwork of [true, false])
+                for (const signaturesChecking of [true, false]) {
+                  const p = checkProblems({ ...none, ...src });
+                  const v = recordVerdict({
+                    ...base,
+                    ...p,
+                    proof,
+                    anchor,
+                    sealed,
+                    bound,
+                    testNetwork,
+                    signaturesChecking,
+                  });
+                  expect(v.tone).not.toBe('ok');
+                  seen++;
+                }
+    expect(seen).toBe(6 * 4 * 6 * 2 * 2 * 2 * 2);
+    // And the green line needs all of: bound, sealed, checked on Midnight, the main network, no problem.
+    expect(recordVerdict({ ...base, bound: false }).tone).not.toBe('ok');
+    expect(recordVerdict({ ...base, testNetwork: true }).tone).not.toBe('ok');
+    expect(recordVerdict({ ...base, anchor: undefined }).tone).not.toBe('ok');
+  });
+
+  it('the claim page: never green over a withdrawn or disputed lab key, or another claim that failed', () => {
+    const ok = { ok: true, blockTime: Date.UTC(2026, 9, 11) } as ClaimVerdict;
+    const lab = (signer: object) => ({ ...ok, lab: { ok: true, attester: 'k', signer } }) as unknown as ClaimVerdict;
+    const one = (verdict: ClaimVerdict | undefined, more: (ClaimVerdict | undefined)[] = []) =>
+      claimVerdict({ readable: true, off: false, verdict, more });
+    expect(one(ok)?.tone).toBe('ok');
+    expect(one(lab({ kind: 'bound', attestation: {} }))?.tone).toBe('ok');
+    expect(one(lab({ kind: 'retracted', attestation: {} }))).toMatchObject({
+      tone: 'warn',
+      key: 'app.claim.verdict.labWithdrawn',
+    });
+    expect(one(lab({ kind: 'conflict' }))).toMatchObject({ tone: 'warn', key: 'app.claim.verdict.labConflict' });
+    expect(one({ ...ok, lab: { ok: false, reason: 'x' } } as ClaimVerdict)?.key).toBe('app.claim.verdict.labFailed');
+    expect(one(ok, [{ ok: false, reason: 'x' }])?.key).toBe('app.claim.verdict.someFailed');
+    expect(one(ok, [undefined])?.tone).toBe('wait');
+    expect(one({ ok: false, reason: 'x' })?.tone).toBe('fail');
+    expect(claimVerdict({ readable: false, off: false, verdict: undefined, more: [] })?.tone).toBe('fail');
   });
 });

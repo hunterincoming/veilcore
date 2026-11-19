@@ -123,8 +123,16 @@ export const verify = {
     'El servidor de VeilCore informa de que está fechado, pero no da la fecha. Su navegador aún no lo ha confirmado por sí mismo.',
   'app.verify.verdict.dateFailed': 'La comprobación de la fecha falló en su navegador. No confíe en esta fecha.',
   'app.verify.verdict.notYet': 'Todavía sin fecha. Está esperando su sello de fecha.',
+  'app.verify.verdict.reportedNoDateButFailed':
+    'El servidor de VeilCore informa de que está fechado, pero no da la fecha, y no todas las comprobaciones se superaron. Vea las comprobaciones más abajo.',
+  'app.verify.verdict.reportedButFailed':
+    'El servidor de VeilCore informa de que se fechó el {date}, pero no todas las comprobaciones se superaron. Vea las comprobaciones más abajo.',
+  'app.verify.verdict.datedWithdrawn':
+    'Fechado el {date}, pero un laboratorio retiró su firma. Vea las comprobaciones más abajo.',
+  'app.verify.verdict.dateUnchecked':
+    'No se pudo comprobar la fecha ahora. El servidor de VeilCore dice que este registro está fechado, pero esta página no pudo confirmarlo. Inténtelo de nuevo en un minuto.',
   'app.verify.verdict.notYetFailed':
-    'Todavía sin fecha, y algunas comprobaciones fallaron. Vea las comprobaciones más abajo.',
+    'Todavía sin fecha, y no todas las comprobaciones se superaron. Vea las comprobaciones más abajo.',
   'app.verify.verdict.unbound':
     'Este enlace no lleva el código de prueba del registro, así que su navegador no puede saber si el servidor de VeilCore respondió sobre este registro. Pida un enlace nuevo a quien se lo envió.',
   'app.verify.verdict.nothing': 'No se puede comprobar nada de este registro: no tiene código de prueba.',

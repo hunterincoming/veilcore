@@ -14,20 +14,25 @@ import { Alert, Box, Button } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { rich, useT } from '../../i18n/app';
 
-/** Whether Home should ask for a backup, and in which words. */
+export type BackupNeed = 'none' | 'line' | 'before-locking' | 'both';
+
+/**
+ * Whether Home should ask for a backup, and in which words. The loss warning ("kept only in this
+ * browser") is said whenever something is only here; records saved before locking add their own
+ * sentence, and never replace it (review of PR #140).
+ */
 export const backupNeed = (f: {
   keysOnlyHere: number;
   waitingForBackup: boolean;
   vaultUnbacked: boolean;
   legacyWaiting: boolean;
-}): 'none' | 'line' | 'before-locking' =>
-  f.vaultUnbacked && f.legacyWaiting
-    ? 'before-locking'
-    : f.keysOnlyHere > 0 || f.waitingForBackup || f.vaultUnbacked
-      ? 'line'
-      : 'none';
+}): BackupNeed => {
+  const onlyHere = f.keysOnlyHere > 0 || f.waitingForBackup;
+  if (f.vaultUnbacked && f.legacyWaiting) return onlyHere ? 'both' : 'before-locking';
+  return onlyHere || f.vaultUnbacked ? 'line' : 'none';
+};
 
-export const BackupNeeded: React.FC<{ need: 'none' | 'line' | 'before-locking' }> = ({ need }) => {
+export const BackupNeeded: React.FC<{ need: BackupNeed }> = ({ need }) => {
   const { t } = useT();
   const navigate = useNavigate();
   if (need === 'none') return null;
@@ -35,9 +40,16 @@ export const BackupNeeded: React.FC<{ need: 'none' | 'line' | 'before-locking' }
     // The button under the sentence, not beside it: on a phone a side button squeezed the line
     // into one word per row.
     <Alert severity="warning" variant="outlined" data-backup-needed={need}>
-      {rich(t(need === 'before-locking' ? 'app.sealed.backupBeforeLocking' : 'app.home.backupLine'), {
-        b: (c) => <b>{c}</b>,
-      })}
+      {(need === 'before-locking'
+        ? ['app.sealed.backupBeforeLocking' as const]
+        : need === 'both'
+          ? ['app.home.backupLine' as const, 'app.sealed.backupBeforeLocking' as const]
+          : ['app.home.backupLine' as const]
+      ).map((k, i) => (
+        <Box component="p" key={k} sx={{ m: 0, mt: i ? 1 : 0 }}>
+          {rich(t(k), { b: (c) => <b>{c}</b> })}
+        </Box>
+      ))}
       <Box sx={{ mt: 1.25 }}>
         <Button color="inherit" variant="outlined" onClick={() => void navigate('/backup')} sx={{ minHeight: 44 }}>
           {t('app.pickup.saveBackup')}

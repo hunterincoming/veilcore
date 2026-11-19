@@ -180,6 +180,12 @@ export const document = {
     'Cette preuve a passé la vérification, mais pas une autre de ce lien. Voir ci-dessous.',
   'app.claim.verdict.okWhen': 'Prouvé le {date}. Vérifié dans votre navigateur.',
   'app.claim.verdict.ok': 'Cette preuve a passé la vérification dans votre navigateur.',
+  'app.claim.verdict.labConflict':
+    'Cette preuve a passé la vérification, mais plusieurs laboratoires revendiquent la clé qui l’a signée : lisez les chiffres comme la déclaration du détenteur. Voir ci-dessous.',
+  'app.claim.verdict.labWithdrawn':
+    'Cette preuve a passé la vérification, mais le laboratoire a retiré sa signature : lisez les chiffres comme la déclaration du détenteur. Voir ci-dessous.',
+  'app.doc.verdict.noDate':
+    'VeilCore n’a pas encore de date pour ce document exact. Un document tout juste scellé reçoit sa date avec le prochain lot ; un lien modifié ne correspondra pas.',
   'app.doc.verdict.bad': 'Ce lien est illisible : rien n’a été vérifié.',
   'app.doc.verdict.dated': 'Daté du {date}. Vérifié dans votre navigateur.',
   'app.doc.verdict.datedChooseFile':

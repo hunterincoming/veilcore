@@ -109,6 +109,18 @@ test('a link without its proof code says it can’t be checked, and its checks o
   );
   await expect(page.locator('[data-checks="open"]')).toHaveCount(1);
   await expect(page.locator('[data-see-checks]')).toHaveAttribute('aria-expanded', 'true');
+  // Closed by hand, then on to another record that can't be checked either, inside the app:
+  // its checks open by themselves again (review of PR #140).
+  await page.locator('[data-see-checks]').click();
+  await expect(page.locator('[data-checks="closed"]')).toHaveCount(1);
+  const other = `VEIL-${'7E'.repeat(16)}`;
+  await page.evaluate((path) => {
+    history.pushState({}, '', path);
+    dispatchEvent(new PopStateEvent('popstate'));
+  }, `/verify/${other}`);
+  await expect(page).toHaveURL(new RegExp(`/verify/${other}$`));
+  await expect(page.locator('[data-verdict]')).toHaveAttribute('data-verdict', 'warn');
+  await expect(page.locator('[data-checks="open"]')).toHaveCount(1);
 });
 
 test('not found: a way forward; no answer: "couldn’t check", never "no record"', async ({ page }) => {
@@ -128,6 +140,11 @@ test('not found: a way forward; no answer: "couldn’t check", never "no record"
   await card.getByRole('button', { name: 'Check' }).click();
   await expect(page).toHaveURL(new RegExp(`/verify/${RECORD}\\?fp=${fixture.fingerprint}$`));
   await expect(page.locator('[data-specimen-sheet]')).toBeVisible();
+  // A document's check link opens that page here, its # part kept (nothing in it is sent).
+  await page.goto(`/verify/${MISSING}`);
+  await page.locator('[data-another-record] input').fill('https://elsewhere.example/check-document#d=abc');
+  await page.locator('[data-another-record]').getByRole('button', { name: 'Check' }).click();
+  await expect(page).toHaveURL(/\/check-document#d=abc$/);
 
   await page.goto(`/verify/${DOWN}`);
   await expect(page.locator('[data-verify-unreachable]')).toContainText('Couldn’t check this record right now');
@@ -157,6 +174,19 @@ test('an iPhone Home Screen launch with nothing stored: nothing is lost, and how
   await page.locator('[data-home-screen-start]').getByRole('button', { name: 'New to VeilCore? Start here' }).click();
   await expect(page.locator('[data-home-screen-start]')).toHaveCount(0);
   await expect(page.locator('main h1')).toBeVisible();
+});
+
+test('a Home Screen app that keeps a lab’s key, and no records, opens its page, not the restore screen', async ({
+  page,
+}) => {
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, 'standalone', { value: true });
+    localStorage.setItem('veilcore.attester.v1', '{}');
+  });
+  await isolate(page);
+  await page.goto('/lab/results');
+  await expect(page.locator('main h1')).toBeVisible();
+  await expect(page.locator('[data-home-screen-start]')).toHaveCount(0);
 });
 
 test('the same page in a browser tab, or with records here, is the page itself', async ({ page }) => {

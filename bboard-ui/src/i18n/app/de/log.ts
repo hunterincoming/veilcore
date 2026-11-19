@@ -90,7 +90,7 @@ export const log = {
     'Die Angaben werden verschlossen auf {server} gespeichert, damit Sie darauf zurückkommen können, und wir haben den Schlüssel nicht. Auch der Name ist verschlossen; ein Prüflink trägt ihn nach dem # nur, wenn Sie das einschalten. Nur ein Prüfcode wird datiert, auf {datedOn}.',
   'app.log.sealing': 'Wird versiegelt…',
   'app.log.sealPlain':
-    'Veröffentlicht werden nur Codes, die daraus erzeugt werden, nie Ihre Texte oder Fotos. Die bleiben privat: Nur Sie können sie öffnen.',
+    'Dauerhaft veröffentlicht werden nur Codes, die daraus erzeugt werden, auf Midnight. Nie Ihre Texte oder Fotos: Die bleiben privat, und nur Sie können sie öffnen.',
   'app.log.sealDetails': 'Was wird veröffentlicht?',
   'app.log.seal': 'Versiegeln',
   'app.log.sealingPlant': 'Ihre Pflanze wird versiegelt…',

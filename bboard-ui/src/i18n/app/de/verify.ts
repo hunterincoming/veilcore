@@ -122,8 +122,16 @@ export const verify = {
   'app.verify.verdict.dateFailed':
     'Die Prüfung des Datums ist in Ihrem Browser fehlgeschlagen. Verlassen Sie sich nicht auf dieses Datum.',
   'app.verify.verdict.notYet': 'Noch nicht datiert. Er wartet auf seinen Datumsstempel.',
+  'app.verify.verdict.reportedNoDateButFailed':
+    'Laut dem Server von VeilCore ist er datiert, ein Datum nennt er aber nicht, und nicht alle Prüfungen sind bestanden. Siehe die Prüfungen unten.',
+  'app.verify.verdict.reportedButFailed':
+    'Laut dem Server von VeilCore wurde er am {date} datiert, aber nicht alle Prüfungen sind bestanden. Siehe die Prüfungen unten.',
+  'app.verify.verdict.datedWithdrawn':
+    'Datiert am {date}, aber ein Labor hat seine Signatur zurückgezogen. Siehe die Prüfungen unten.',
+  'app.verify.verdict.dateUnchecked':
+    'Das Datum ließ sich gerade nicht prüfen. Laut dem Server von VeilCore ist dieser Datensatz datiert, aber diese Seite konnte das nicht bestätigen. Versuchen Sie es in einer Minute noch einmal.',
   'app.verify.verdict.notYetFailed':
-    'Noch nicht datiert, und einige Prüfungen sind fehlgeschlagen. Siehe die Prüfungen unten.',
+    'Noch nicht datiert, und nicht alle Prüfungen sind bestanden. Siehe die Prüfungen unten.',
   'app.verify.verdict.unbound':
     'Dieser Link enthält den Prüfcode des Datensatzes nicht. Ihr Browser kann daher nicht feststellen, ob der Server von VeilCore zu diesem Datensatz geantwortet hat. Bitten Sie den Absender um einen neuen Link.',
   'app.verify.verdict.nothing': 'An diesem Datensatz lässt sich nichts prüfen: Er hat keinen Prüfcode.',

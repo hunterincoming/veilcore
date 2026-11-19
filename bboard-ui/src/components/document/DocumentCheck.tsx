@@ -85,6 +85,7 @@ export const DocumentCheck: React.FC = () => {
             failed: picked === false,
             testNetwork: isTestNetwork(reportedAnchor?.network ?? NETWORK),
             reportedAt: reportedAnchor?.anchoredAt,
+            document: true,
           });
   // "All checks passed" isn't said for a document: its file is a check of its own, the reader's to make.
   const top: Verdict =

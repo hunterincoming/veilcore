@@ -63,7 +63,7 @@ import VerifiedIcon from '@mui/icons-material/VerifiedOutlined';
 import { loadFingerprintCircuit, MAX_FINGERPRINT_BYTES, shortFingerprint } from '../veilcore/commitment';
 import { DatedNotOrigin } from '../components/verify/DatedNotOrigin';
 import { AnotherRecord, CheckVerdict, MakeYourOwn, SeeTheChecks } from '../components/verify/CheckParts';
-import { recordVerdict, VERDICT_DATE } from '../components/verify/verdict';
+import { checkProblems, recordVerdict, VERDICT_DATE } from '../components/verify/verdict';
 import { WhoVouches } from '../components/verify/WhoVouches';
 import { whoVouches } from '../components/verify/who-vouches';
 import { DISCLOSURE_FIELDS, LEGACY_NAME, toDisclosureKey, labelOf } from '../veilcore/disclosure';
@@ -645,7 +645,17 @@ export const VerifyPage: React.FC = () => {
     signed.length === 0 &&
     withheld.length === 0 &&
     (result?.signedAttestation === true || result?.attestedByVettedLab === true || result?.attested === true);
-  const someFailed = badSigs > 0 || noneVerified || nameCheck.state === 'differs';
+  // Everything on this page that didn't pass: a signature, the link's name (or a different name
+  // beside the published one), the saved DNA report (its signature withdrawn or replaced, or a
+  // chosen file that differs). A withdrawn signature is said on its own (review of PR #140).
+  const { failed: someFailed, withdrawn } = checkProblems({
+    badSignatures: badSigs,
+    noneVerified,
+    nameState: nameCheck.state,
+    nameConflict: nameCheck.state === 'published' && !!nameCheck.conflict,
+    savedReport: labReport.status,
+    withdrawnSignatures: withdrawnLine !== null,
+  });
   const verdict =
     result?.found && binding.kind !== 'mismatch'
       ? recordVerdict({
@@ -655,18 +665,22 @@ export const VerifyPage: React.FC = () => {
           anchor,
           signaturesChecking: atts === null,
           failed: someFailed,
+          withdrawn,
+          anchoredReported: result.anchored === true,
           testNetwork: isTestNetwork(reportedNetwork ?? NETWORK),
           reportedAt,
         })
       : undefined;
   // "See the checks": closed for a new record, open by itself when a check failed or the link
   // can't be checked against its own proof code, so a failure is never folded away.
-  const [checksOpen, setChecksOpen] = useState(false);
-  const mustOpen = someFailed || anchorCheckFailed(anchor) || (!!result?.found && !!result.recordFingerprint && !bound);
-  useEffect(() => setChecksOpen(false), [id]);
-  useEffect(() => {
-    if (mustOpen) setChecksOpen(true);
-  }, [mustOpen]);
+  // The visitor's own choice wins once made; until then the fold follows mustOpen as the page
+  // learns more, and a new record starts from its own mustOpen (review of PR #140).
+  const [userOpen, setUserOpen] = useState<boolean | null>(null);
+  useEffect(() => setUserOpen(null), [id]);
+  const mustOpen =
+    someFailed || withdrawn || anchorCheckFailed(anchor) || (!!result?.found && !!result.recordFingerprint && !bound);
+  const checksOpen = userOpen ?? mustOpen;
+  const setChecksOpen = (f: (v: boolean) => boolean) => setUserOpen(f(checksOpen));
 
   return (
     <Box sx={{ bgcolor: 'background.default' }}>

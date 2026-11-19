@@ -88,7 +88,7 @@ export const log = {
     'Los detalles se guardan bloqueados en {server} para que pueda volver a ellos, y nosotros no tenemos la clave. El nombre también está bloqueado; un enlace de comprobación lo lleva después del # solo si usted lo activa. Solo se fecha un código de prueba, en {datedOn}.',
   'app.log.sealing': 'Sellando…',
   'app.log.sealPlain':
-    'Solo se publican códigos hechos a partir de él, nunca sus textos ni sus fotos. Eso sigue siendo privado: solo usted puede abrirlo.',
+    'Se publica, de forma permanente: solo códigos hechos a partir de él, en Midnight. Nunca sus textos ni sus fotos: eso sigue siendo privado, y solo usted puede abrirlo.',
   'app.log.sealDetails': '¿Qué se publica?',
   'app.log.seal': 'Sellarlo',
   'app.log.sealingPlant': 'Sellando su planta…',

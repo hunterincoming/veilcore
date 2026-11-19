@@ -181,6 +181,12 @@ export const document = {
     'Dieser Beleg hat die Prüfung bestanden, ein anderer in diesem Link aber nicht. Siehe unten.',
   'app.claim.verdict.okWhen': 'Belegt am {date}. In Ihrem Browser geprüft.',
   'app.claim.verdict.ok': 'Dieser Beleg hat die Prüfung in Ihrem Browser bestanden.',
+  'app.claim.verdict.labConflict':
+    'Dieser Beleg hat die Prüfung bestanden, aber mehr als ein Labor beansprucht den Schlüssel, der ihn signiert hat. Lesen Sie die Zahlen daher als Angabe des Inhabers. Siehe unten.',
+  'app.claim.verdict.labWithdrawn':
+    'Dieser Beleg hat die Prüfung bestanden, aber das Labor hat seine Signatur zurückgezogen. Lesen Sie die Zahlen daher als Angabe des Inhabers. Siehe unten.',
+  'app.doc.verdict.noDate':
+    'VeilCore hat für genau dieses Dokument noch kein Datum. Ein gerade versiegeltes bekommt sein Datum mit dem nächsten Stapel; ein veränderter Link passt nicht.',
   'app.doc.verdict.bad': 'Dieser Link lässt sich nicht lesen, daher wurde nichts geprüft.',
   'app.doc.verdict.dated': 'Datiert am {date}. In Ihrem Browser geprüft.',
   'app.doc.verdict.datedChooseFile':

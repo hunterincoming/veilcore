@@ -81,6 +81,25 @@ export const MakeYourOwn: React.FC = () => {
   );
 };
 
+/** The other check pages a link can name (their own words travel after the #). */
+const CHECK_PAGES = ['/check-document', '/check-claim', '/check-lab-result'];
+
+/**
+ * A document, claim or lab-result check link: its path on this site, with its query and its #
+ * part, whatever host it was written with, so a pasted link never leads off this site.
+ */
+export const checkPagePath = (raw: string): string | undefined => {
+  const v = raw.replace(/\s+/g, '');
+  if (!v.includes('/')) return undefined;
+  const withScheme = /^[a-z0-9.-]+\.[a-z]{2,}(:\d+)?\//i.test(v) ? `https://${v}` : v;
+  try {
+    const u = new URL(withScheme, 'https://paste.invalid');
+    return CHECK_PAGES.includes(u.pathname) ? `${u.pathname}${u.search}${u.hash}` : undefined;
+  } catch {
+    return undefined;
+  }
+};
+
 /**
  * "Have another ID or link?" on a check page that found nothing. Only a record ID or a check link
  * opens anything (veilcore/paste.ts recognise: a link keeps only its path, so a pasted link never
@@ -94,9 +113,10 @@ export const AnotherRecord: React.FC = () => {
   const go = (e: React.FormEvent) => {
     e.preventDefault();
     const p = recognise(value);
-    if (p.kind !== 'record-link') return setBad(true);
+    const to = p.kind === 'record-link' ? p.path : checkPagePath(value);
+    if (!to) return setBad(true);
     setValue('');
-    void navigate(p.path);
+    void navigate(to);
   };
   return (
     <Box component="form" onSubmit={go} sx={{ mt: 2, textAlign: 'left' }} data-another-record="">

@@ -90,7 +90,7 @@ export const log = {
     'Les détails sont conservés verrouillés sur {server} pour que vous puissiez y revenir, et nous n’avons pas la clé. Le nom est verrouillé lui aussi ; un lien de vérification ne le porte après le # que si vous l’activez. Seul un code de preuve est daté, sur {datedOn}.',
   'app.log.sealing': 'Scellement…',
   'app.log.sealPlain':
-    'Seuls des codes tirés de cet enregistrement sont publiés, jamais vos textes ni vos photos. Ceux-ci restent privés : vous seul pouvez les ouvrir.',
+    'Est publié, de façon permanente : seulement des codes tirés de cet enregistrement, sur Midnight. Jamais vos textes ni vos photos : ceux-ci restent privés, et vous seul pouvez les ouvrir.',
   'app.log.sealDetails': 'Qu’est-ce qui est publié ?',
   'app.log.seal': 'Sceller',
   'app.log.sealingPlant': 'Scellement de votre plante…',

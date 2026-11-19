@@ -122,8 +122,16 @@ export const verify = {
   'app.verify.verdict.dateFailed':
     'La vérification de la date a échoué dans votre navigateur. Ne vous fiez pas à cette date.',
   'app.verify.verdict.notYet': 'Pas encore daté. Il attend son horodatage.',
+  'app.verify.verdict.reportedNoDateButFailed':
+    'Le serveur de VeilCore indique qu’il est daté, sans donner de date, et toutes les vérifications n’ont pas réussi. Voir les vérifications ci-dessous.',
+  'app.verify.verdict.reportedButFailed':
+    'Le serveur de VeilCore indique qu’il a été daté le {date}, mais toutes les vérifications n’ont pas réussi. Voir les vérifications ci-dessous.',
+  'app.verify.verdict.datedWithdrawn':
+    'Daté du {date}, mais un laboratoire a retiré sa signature. Voir les vérifications ci-dessous.',
+  'app.verify.verdict.dateUnchecked':
+    'Impossible de vérifier la date pour le moment. Le serveur de VeilCore indique que cet enregistrement est daté, mais cette page n’a pas pu le confirmer. Réessayez dans une minute.',
   'app.verify.verdict.notYetFailed':
-    'Pas encore daté, et certaines vérifications ont échoué. Voir les vérifications ci-dessous.',
+    'Pas encore daté, et toutes les vérifications n’ont pas réussi. Voir les vérifications ci-dessous.',
   'app.verify.verdict.unbound':
     'Ce lien ne contient pas le code de preuve de l’enregistrement : votre navigateur ne peut donc pas savoir si le serveur de VeilCore a répondu au sujet de cet enregistrement. Demandez un nouveau lien à la personne qui vous l’a envoyé.',
   'app.verify.verdict.nothing': 'Rien ne peut être vérifié pour cet enregistrement : il n’a pas de code de preuve.',

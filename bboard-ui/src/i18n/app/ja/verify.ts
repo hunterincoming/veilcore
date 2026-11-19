@@ -109,6 +109,14 @@ export const verify = {
     'VeilCoreのサーバーによると日付は付いていますが、日時は示されていません。このブラウザではまだ確かめていません。',
   'app.verify.verdict.dateFailed': '日付の確認がこのブラウザで通りませんでした。この日付を当てにしないでください。',
   'app.verify.verdict.notYet': 'まだ日付は付いていません。日付スタンプを待っています。',
+  'app.verify.verdict.reportedNoDateButFailed':
+    'VeilCoreのサーバーによると日付は付いていますが、日時は示されておらず、通らなかった確認もあります。下の確認内容を見てください。',
+  'app.verify.verdict.reportedButFailed':
+    'VeilCoreのサーバーによると{date}に日付が付いていますが、通らなかった確認があります。下の確認内容を見てください。',
+  'app.verify.verdict.datedWithdrawn':
+    '{date}に日付が付いていますが、ラボが署名を取り下げています。下の確認内容を見てください。',
+  'app.verify.verdict.dateUnchecked':
+    '今は日付を確認できませんでした。VeilCoreのサーバーは日付が付いているとしていますが、このページでは確かめられませんでした。1分ほどしてからもう一度試してください。',
   'app.verify.verdict.notYetFailed': 'まだ日付は付いておらず、通らなかった確認もあります。下の確認内容を見てください。',
   'app.verify.verdict.unbound':
     'このリンクには記録の証明コードが入っていないため、VeilCoreのサーバーがこの記録について答えたかどうかを、このブラウザでは確かめられません。送ってきた相手に新しいリンクを頼んでください。',

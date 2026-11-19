@@ -39,8 +39,45 @@ export const HOME_SCREEN_START_PATHS: readonly string[] = [
 /** The key that says "start without records" was chosen in this launch (sessionStorage). */
 export const HOME_SCREEN_DISMISSED = 'veilcore.homescreen.fresh';
 
+/**
+ * VeilCore's keys that hold only a display choice (a language, a role, a notice seen), never
+ * anything of the person's. Every other `veilcore.` key counts as something kept here: a lab's
+ * signing key, licences held, deliveries, a half-typed draft, and any key added later. Unknown
+ * means kept, so a new kind of data can never be met with "Nothing has been lost" (review of
+ * PR #140: a lab or a licence holder with no records saw it at every launch).
+ */
+export const PREFERENCE_KEYS: ReadonlySet<string> = new Set([
+  'veilcore.lang',
+  'veilcore.role.v1',
+  'veilcore.draft-notice-closed.v1',
+  'veilcore.ask.seen.v1',
+  'veilcore.note.old-links.v1',
+  'veilcore.lab-visibility-seen.v2',
+  'veilcore.log-kind.v1',
+  'veilcore.stamp-pressed.v1',
+  HOME_SCREEN_DISMISSED,
+]);
+
+/** Whether this storage holds anything of the person's (see PREFERENCE_KEYS). Never throws. */
+export const keepsAnything = (
+  store: Pick<Storage, 'length' | 'key'> | undefined = globalThis.localStorage,
+): boolean => {
+  try {
+    if (!store) return false;
+    for (let i = 0; i < store.length; i++) {
+      const k = store.key(i);
+      if (k && k.startsWith('veilcore.') && !PREFERENCE_KEYS.has(k)) return true;
+    }
+    return false;
+  } catch {
+    // Storage can't be read: say nothing rather than claim it is empty.
+    return true;
+  }
+};
+
 export const showHomeScreenStart = (f: {
   standalone: boolean;
+  /** Anything of the person's kept here (keepsAnything), not only records. */
   hasRecords: boolean;
   pathname: string;
   dismissed: boolean;

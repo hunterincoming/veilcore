@@ -122,7 +122,14 @@ export const verify = {
     'VeilCore’s server reports it was dated, but gives no date. Your browser hasn’t confirmed it itself.',
   'app.verify.verdict.dateFailed': 'The date didn’t check out in your browser. Don’t rely on this date.',
   'app.verify.verdict.notYet': 'Not dated yet. It’s waiting for its date stamp.',
-  'app.verify.verdict.notYetFailed': 'Not dated yet, and some checks failed. See the checks below.',
+  'app.verify.verdict.reportedNoDateButFailed':
+    'VeilCore’s server reports it was dated, but gives no date, and not every check passed. See the checks below.',
+  'app.verify.verdict.reportedButFailed':
+    'VeilCore’s server reports it was dated {date}, but not every check passed. See the checks below.',
+  'app.verify.verdict.datedWithdrawn': 'Dated {date}, but a lab withdrew its signature. See the checks below.',
+  'app.verify.verdict.dateUnchecked':
+    'Couldn’t check the date right now. VeilCore’s server says this record is dated, but this page couldn’t confirm it. Try again in a minute.',
+  'app.verify.verdict.notYetFailed': 'Not dated yet, and not every check passed. See the checks below.',
   'app.verify.verdict.unbound':
     'This link doesn’t carry the record’s proof code, so your browser can’t tell whether VeilCore’s server answered about this record. Ask the sender for a new link.',
   'app.verify.verdict.nothing': 'Nothing about this record can be checked: it has no proof code.',
