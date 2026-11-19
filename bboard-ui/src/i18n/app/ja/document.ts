@@ -117,7 +117,7 @@ export const document = {
     '印刷されているとおりに入力してください。書類と一緒に封印されるので、あとで「総THCは0.3 %以下」のように1つだけを、ほかの数値や証明書を見せずに証明できます。',
   'app.doc.nums.which': 'どの数値',
   'app.doc.nums.none': 'なし',
-  'app.doc.nums.bad': '小数点以下{places}桁までの数値（例: 0.21）。',
+  'app.doc.nums.bad': '小数点以下{places}桁までの数値（例：0.21）。',
   'app.doc.need.numbers': 'この欄に入れられない数値があります。直すか、消してください。',
   'app.doc.need.aNumber': '少なくとも1つ数値を入力するか、「なし」を選んでください。',
   'app.doc.schema.potency': 'カンナビノイド含有量',
@@ -166,7 +166,7 @@ export const document = {
   'app.claim.line.atMost': '{label}は{bound} {unit}以下',
   'app.claim.line.atLeast': '{label}は{bound} {unit}以上',
   'app.claim.line.value': '{label}は{value} {unit}',
-  'app.claim.holderTyped': '数値はあなたが入力したものです。どの検査機関も署名していません。',
+  'app.claim.holderTyped': '数値はあなたが入力したものです。どのラボも署名していません。',
   'app.claim.check.title': '証明を確認する',
   'app.claim.check.intro':
     '封印された文書の数値1つについての事実を、数値や文書を見せずに示すため、このリンクが送られてきました。このページはMidnight上の証明を読み取り、確認します。',
@@ -176,7 +176,7 @@ export const document = {
   'app.claim.check.failed': '確認できません：{reason}頼らないでください。',
   'app.claim.check.record': '対象の記録',
   'app.claim.check.what':
-    'これで示せること：その記録に封印された数値が境界値を満たしている（またはその値である）こと。示せないこと：検査機関が測定したこと、文書が本物であること。数値は保有者が入力したものです。数値について証明された境界値はすべて公開され、合わせると範囲が狭まります。',
+    'これで示せること：その記録に封印された数値が境界値を満たしている（またはその値である）こと。示せないこと：ラボが測定したこと、文書が本物であること。数値は保有者が入力したものです。数値について証明された境界値はすべて公開され、合わせると範囲が狭まります。',
   'app.claim.check.schema': '公開されたフォーム「{schema}」に基づく。',
   // EvidenceBundle.tsx: what differs for a document record.
   'app.doc.bundle.keyIs':
@@ -321,7 +321,7 @@ export const document = {
     'Midnightで永久に公開されるもの：フォーム「{schema}」、項目「{label}」、数値そのもの（{value}）、この記録を表すコード。',
   'app.doc.local.prove.publish.noBound': '境界値を入力すると、公開される内容が正確に表示されます。',
   'app.doc.local.prove.publish.route':
-    'このブラウザからVeilCoreの手数料サービスを通ってMidnightに送られます。手数料サービスには、公開される内容とあなたのネットワークアドレスが伝わります。VeilCoreのレジストリには何も送信されません。数値はあなたが入力したもので、検査機関が測定したものではありません。',
+    'このブラウザからVeilCoreの手数料サービスを通ってMidnightに送られます。手数料サービスには、公開される内容とあなたのネットワークアドレスが伝わります。VeilCoreのレジストリには何も送信されません。数値はあなたが入力したもので、ラボが測定したものではありません。',
   'app.doc.local.prove.direction.atMost': '以下',
   'app.doc.local.prove.direction.atLeast': '以上',
   'app.doc.local.prove.confirmExact': 'はい、数値そのもの（{value}）をMidnightで永久に公開します。',

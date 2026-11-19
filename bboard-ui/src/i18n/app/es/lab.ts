@@ -33,7 +33,7 @@ export const lab = {
   'app.lab.sentence.lab':
     'El informe de ADN guardado coincide con un informe de laboratorio {lead}, por su SHA-256 (firma comprobada en este navegador).{rest}',
   'app.lab.sentence.self':
-    'Hay un archivo de informe de ADN guardado en esta planta. Ninguna firma de laboratorio coincide con él, así que es la propia declaración del titular.',
+    'Hay un archivo de informe de ADN guardado en esta planta. Ninguna firma de laboratorio coincide con él, así que es la propia declaración de quien lo selló.',
   'app.lab.sentence.replaced':
     'El laboratorio reemplazó{on} el informe de ADN guardado en esta planta por uno corregido. {tail}',
   'app.lab.sentence.withdrawn': 'El laboratorio retiró{on} el informe de ADN guardado en esta planta. {tail}',
@@ -69,9 +69,9 @@ export const lab = {
     'No hay diferencias entre los detalles de la muestra enviados y los que escribió el laboratorio al recibirla.',
   'app.lab.custody.joinSentences': ' ',
   'app.lab.custody.locked':
-    'Los detalles de la muestra están bloqueados y este navegador no tiene su clave. Restaure aquí su archivo de copia de seguridad para verlos.',
+    'Los detalles de la muestra están cifrados y este navegador no tiene su clave. Restaure aquí su archivo de copia de seguridad para verlos.',
   'app.lab.custody.sealedSigned':
-    'El acuse de recibo del laboratorio menciona detalles de la muestra. Se guardan bloqueados y VeilCore no tiene la clave, así que esta página no puede comprobarlos; la aplicación del titular sí puede.',
+    'El acuse de recibo del laboratorio menciona detalles de la muestra. Se guardan cifrados y VeilCore no tiene la clave, así que esta página no puede comprobarlos; la aplicación del titular sí puede.',
   'app.lab.custody.holderMatch':
     'La aplicación del remitente los comparó: lo que llegó coincide con lo que se envió. Es la palabra del remitente.',
   'app.lab.custody.holderDiffers':
@@ -79,9 +79,9 @@ export const lab = {
   'app.lab.custody.holderChanged':
     'La aplicación del remitente los comparó: el laboratorio cambió sus detalles de llegada después de firmar, así que su acuse no los cubre. Es la palabra del remitente.',
   'app.lab.custody.removed':
-    'Los detalles de la muestra de este envío se escribieron antes del bloqueo y ya se eliminaron, así que este acuse no se puede comparar con ellos.',
+    'Los detalles de la muestra de este envío se escribieron antes del cifrado y ya se eliminaron, así que este acuse no se puede comparar con ellos.',
   'app.lab.send.secretNotSaved':
-    'La clave de esta planta aún no está guardada en VeilCore, así que no se creó ningún código de laboratorio: {error}. Los informes de laboratorio se bloquean con esa clave, y primero hay que guardarla con la planta. Inténtelo de nuevo.',
+    'La clave de esta planta aún no está guardada en VeilCore, así que no se creó ningún código de laboratorio: {error}. Los informes de laboratorio se cifran con esa clave, y primero hay que guardarla con la planta. Inténtelo de nuevo.',
   'app.lab.send.sampleNotSaved':
     'El código de laboratorio funciona, pero los detalles de la muestra no se guardaron: {error}',
   'app.signer.sep': ' ',
@@ -93,12 +93,12 @@ export const lab = {
     'Registrado pero sin firmar. Es una afirmación sobre una segunda parte, no una declaración de ella.',
   'app.lab.strength.invalid': 'La firma no se verifica',
   'app.lab.strength.invalidWhy':
-    'No se puede demostrar que esta atestación provenga de la clave que indica. Trátela como no atestiguada.',
+    'No se puede demostrar que esta declaración firmada provenga de la clave que indica. Trátela como no firmada.',
   'app.lab.strength.retracted': 'Retractada',
   'app.lab.strength.retractedWhy':
-    'Quien la atestiguó la retiró el {date}, con una retractación firmada con su clave. Sigue en el registro: retractar no es borrar.',
+    'Quien la firmó la retiró el {date}, con una retractación firmada con su clave. Sigue en el registro: retractar no es borrar.',
   'app.lab.strength.unverifiedRetraction':
-    ' El servidor de registros también informa una retractación que no firmó quien atestiguó, así que aquí se ignora.',
+    ' El servidor de registros también informa una retractación que no firmó quien firmó la declaración, así que aquí se ignora.',
   'app.lab.strength.matched': 'Firmado · nombre cotejado con un listado público',
   'app.lab.strength.matchedWhy': '{text} La firma se verificó en este navegador.{acc}{unverified}',
   'app.lab.strength.accreditation': ' Indican una acreditación {scheme} de {by}; confírmela con {by}.',
@@ -156,7 +156,7 @@ export const lab = {
   'app.lab.send.who': '¿A quién se lo envía?',
   'app.lab.send.whoHelp': 'Un nombre o alias, para que ambos sepan de qué envío se trata.',
   'app.lab.send.from': 'Su nombre o empresa (lo verán)',
-  'app.lab.send.fromHelp': 'Se les muestra como remitente. Se guarda bloqueado, y nosotros no tenemos la clave.',
+  'app.lab.send.fromHelp': 'Se les muestra como remitente. Se guarda cifrado, y nosotros no tenemos la clave.',
   'app.lab.send.quantity': 'Cantidad (opcional)',
   'app.lab.send.quantityPlaceholder': 'p. ej., 10 esquejes',
   'app.lab.send.note': 'Nota para el laboratorio (opcional)',
@@ -217,7 +217,7 @@ export const lab = {
   'app.lab.recv.rejected': 'Recibida pero rechazada (dañada o muestra equivocada)',
   'app.lab.recv.nothingSigned': '{problems} No se firmó nada',
   'app.lab.recv.askNewCode':
-    'Sus datos de llegada no se pueden bloquear para esta entrega: al código le falta su última parte, o los datos de la muestra del remitente nunca llegaron a VeilCore. No se envió ni se firmó nada. Pida al remitente un código nuevo.',
+    'Sus datos de llegada no se pueden cifrar para esta entrega: al código le falta su última parte, o los datos de la muestra del remitente nunca llegaron a VeilCore. No se envió ni se firmó nada. Pida al remitente un código nuevo.',
   'app.lab.recv.notSaved': 'sus detalles de llegada no se guardaron ({error}), así que no se firmó nada',
   'app.lab.recv.savedDifferent':
     'los detalles de la muestra volvieron del servidor de registros distintos de los de esta pantalla, así que no se firmó nada. Recargue la página y vuelva a revisarlos',
@@ -249,7 +249,7 @@ export const lab = {
   'app.lab.recv.goToRecord': 'Ir al registro',
   'app.lab.key.role.laboratory': 'Laboratorio',
   'app.lab.key.role.inspector': 'Inspector',
-  'app.lab.key.role.registry': 'Registro',
+  'app.lab.key.role.registry': 'Servidor de registros',
   'app.lab.key.role.breeder': 'Obtentor',
   'app.lab.key.role.other': 'Otro',
   'app.lab.key.couldNotCreate': 'No se pudo crear una clave.',
@@ -268,7 +268,7 @@ export const lab = {
   'app.lab.key.optional.intro':
     'No lo necesita para recibir muestras ni para firmar. Permite que quien compruebe su firma vea que el nombre es de su laboratorio. Comprobamos el nombre; no respondemos por su trabajo.',
   'app.lab.key.optional.step1':
-    'Envíenos su registro público de licencia o acreditación a <mail>hunter@veilcore.org</mail>.',
+    'Envíenos su listado público de licencia o acreditación a <mail>hunter@veilcore.org</mail>.',
   'app.lab.key.optional.step2':
     'O, si gestiona el sitio web de su laboratorio: ponga este archivo en /.well-known/veilcore-lab.json, escriba su dominio y presione «Consultar ahora». Así cualquiera puede ver que la clave y el sitio van juntos sin preguntar a VeilCore. Si deja de usar la clave, déjela publicada. Quítela solo para desautorizarla: cuando las consultas diarias de VeilCore no la encuentren dos veces, con un día aproximado de diferencia, las páginas dirán que su sitio dejó de publicarla y la clave no podrá nombrar otro sitio. Si la clave se filtró, escriba también a hunter@veilcore.org para que se retire cualquier comprobación del nombre.',
   'app.lab.key.optional.otherWays': 'Otras formas',
@@ -277,7 +277,8 @@ export const lab = {
   'app.lab.key.copyKey': 'Copiar clave',
   'app.lab.key.copied': 'Copiada',
   'app.lab.key.domain.saveFile': 'Guardar veilcore-lab.json',
-  'app.lab.key.domain.orTxt': 'O, si solo puede cambiar su DNS, añada este registro TXT en _veilcore-lab.<su dominio>:',
+  'app.lab.key.domain.orTxt':
+    'O, si solo puede cambiar su DNS, agregue este registro TXT en _veilcore-lab.<su dominio>:',
   'app.lab.key.domain.field': 'Dominio de su sitio web',
   'app.lab.key.domain.look': 'Consultar ahora',
   'app.lab.key.domain.found': 'Encontrada: {domain} publica esta clave. VeilCore vuelve a consultar cada día.',
@@ -285,7 +286,7 @@ export const lab = {
     'Aún no se encuentra ({why}). Revise la dirección del archivo y vuelva a consultar en diez minutos.',
   'app.lab.key.domain.couldNot': 'No se pudo consultar: {error}',
   'app.lab.key.domain.orDid':
-    'O, si su sitio tiene un documento W3C did:web (/.well-known/did.json), publique la clave allí: añada esta entrada a verificationMethod y su id a assertionMethod. ¿Aún no tiene did.json? Guarde uno abajo. Escriba antes su dominio arriba.',
+    'O, si su sitio tiene un documento W3C did:web (/.well-known/did.json), publique la clave allí: agregue esta entrada a verificationMethod y su id a assertionMethod. ¿Aún no tiene did.json? Guarde uno abajo. Escriba antes su dominio arriba.',
   'app.lab.key.domain.saveDid': 'Guardar did.json',
   'app.lab.key.domain.withdrawn':
     '{domain} dejó de publicar esta clave, así que no puede nombrar otro sitio. Vuelva a publicarla donde ese sitio la publicaba, o cree una clave nueva.',
@@ -296,7 +297,7 @@ export const lab = {
     'La clave de su laboratorio solo está en este navegador, y ninguna copia de seguridad anterior la contiene. Guarde ahora una copia nueva, para no perder la clave si pierde el teléfono o la computadora.',
   'app.lab.key.backedUp': 'Copia de seguridad guardada y comprobada.',
   'app.lab.key.matchHow':
-    'Para aparecer como verificado, envíenos su registro público de licencia o acreditación a <mail>hunter@veilcore.org</mail>. Comprobamos el nombre; no respondemos por su trabajo.',
+    'Para aparecer como verificado, envíenos su listado público de licencia o acreditación a <mail>hunter@veilcore.org</mail>. Comprobamos el nombre; no respondemos por su trabajo.',
   'app.lab.key.intro':
     'Cuando confirma que recibió material, o firma un informe, se firma con una clave que solo usted tiene. Se convierte en su declaración, no en algo que registramos en su nombre. La clave se crea en este navegador; solo se publican su mitad pública, su nombre y la acreditación que indique.',
   'app.lab.key.name': 'Nombre',
@@ -331,7 +332,7 @@ export const lab = {
   'app.lab.results.anyName':
     ' Cualquiera puede registrar una clave con cualquier nombre, así que el nombre no muestra quién firmó.',
   'app.lab.results.locked':
-    'Bloqueados para que solo usted pueda abrirlos, con la clave de esta planta de su copia de seguridad. VeilCore los guarda bloqueados y no tiene la clave.',
+    'Bloqueados para que solo usted pueda abrirlos, con la clave de esta planta de su copia de seguridad. VeilCore los guarda cifrados y no tiene la clave.',
   'app.lab.results.noKey':
     'La clave de esta planta no está en este dispositivo, así que aquí no se pueden abrir sus informes de laboratorio. Primero <link>recupere sus plantas desde su copia de seguridad</link>.',
   'app.lab.results.gotIt': 'Entendido',
@@ -418,7 +419,7 @@ export const lab = {
   'app.lab.out.replacesIntro':
     'Reemplaza a {id}, el informe de laboratorio que envió {when}. El anterior se retira: su archivo se elimina y su firma queda marcada como reemplazada.',
   'app.lab.out.intro':
-    'Su navegador firma el código del informe con la clave de su laboratorio y bloquea el archivo para que solo el obtentor pueda abrirlo. El archivo bloqueado espera en el servidor de VeilCore a que el obtentor lo abra, y VeilCore no tiene su clave.',
+    'Su navegador firma el código del informe con la clave de su laboratorio y cifra el archivo para que solo el obtentor pueda abrirlo. El archivo cifrado espera en el servidor de VeilCore a que el obtentor lo abra, y VeilCore no tiene su clave.',
   'app.lab.out.cancelCorrection': 'Cancelar la corrección',
   'app.lab.out.turnedAway': 'Usted rechazó esta muestra, así que no hay informe de laboratorio que enviar.',
   'app.lab.out.setUpFirst':
@@ -440,8 +441,8 @@ export const lab = {
   'app.lab.kind.dna': 'Informe de ADN',
   'app.lab.kind.pathogen': 'Prueba de patógenos o virus',
   'app.lab.kind.other': 'Otro informe de laboratorio',
-  'app.lab.out.signing': 'Firmando y bloqueando…',
-  'app.lab.out.signLockSend': 'Firmar, bloquear y enviar',
+  'app.lab.out.signing': 'Firmando y cifrando…',
+  'app.lab.out.signLockSend': 'Firmar, cifrar y enviar',
   'app.lab.out.alreadyGone': 'El informe de laboratorio que está corrigiendo ya fue retirado o reemplazado.',
   'app.lab.out.sameFile': 'Ya envió exactamente este archivo en este envío. No se firmó nada.',
   'app.lab.out.cap':

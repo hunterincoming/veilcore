@@ -88,18 +88,18 @@ export const pack = {
   'app.pack.doc.lotFigures': '収穫 {plants} 株',
   'app.pack.doc.chromatography': '5. 収穫ロットごとのクロマトグラフィー報告',
   'app.pack.doc.chromatographyHelp':
-    'ロットを対象とするVeilCoreの記録として封印された検査報告書または分析証明書です。数値は、検査機関の署名が確認でき、その検査機関が特定できる場合にだけ表示します。',
+    'ロットを対象とするVeilCoreの記録として封印された検査報告書または分析証明書です。数値は、ラボの署名が確認でき、そのラボが特定できる場合にだけ表示します。',
   'app.pack.doc.lot': 'ロット {lot}',
-  'app.pack.doc.labSigned': '検査機関が署名した結果です。{signer}',
+  'app.pack.doc.labSigned': 'ラボが署名した結果です。{signer}',
   'app.pack.doc.document':
-    '封印済みの文書：「{title}」。報告書は検査機関のファイルで、その内容はこの資料ではなく、そのファイルにあります。',
+    '封印済みの文書：「{title}」。報告書はラボのファイルで、その内容はこの資料ではなく、そのファイルにあります。',
   'app.pack.doc.labUnnamed':
-    '検査機関の署名が付いていますが、ここではその背後の検査機関を特定できないため、数値は表示しません。',
+    'ラボの署名が付いていますが、ここではその背後のラボを特定できないため、数値は表示しません。',
   'app.pack.doc.missing':
     '不足：これらのVeilCoreの記録には、このロットを対象とするクロマトグラフィー報告がありません。',
   'app.pack.doc.proofs': '6. 証明コード、確認リンク、日付',
   'app.pack.doc.proofsHelp':
-    '各確認リンクは、誰でも無料で、アカウントなしで開けます。VeilCoreの記録は、その日付の時点でファイルと内容を以前から保有していたことを示します。記録の内容が正しいことは示しません。',
+    '各確認リンクは、誰でも無料で、アカウントなしで開けます。VeilCoreの記録は、遅くともその日付までにファイルと内容を保有していたことを示します。記録の内容が正しいことは示しません。',
   'app.pack.doc.recordId': 'VeilCore ID {id}',
   'app.pack.doc.proofCode': '証明コード',
   'app.pack.doc.checkLink': '確認リンク',
@@ -153,5 +153,5 @@ export const pack = {
   'app.pack.gap.unchecked.other':
     '{count} 件の日付はVeilCoreの登録サーバーによるもので、このブラウザはMidnightのメインネットワークで確認していません。',
   'app.pack.gap.locked.other':
-    'このブラウザのVeilCoreの記録 {count} 件はロックされており（このブラウザにない鍵で封印）、除外されています。',
+    'このブラウザのVeilCoreの記録 {count} 件は鍵がかかっており（このブラウザにない鍵で封印）、除外されています。',
 } satisfies Partial<AppTranslation>;

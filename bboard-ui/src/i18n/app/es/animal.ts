@@ -62,12 +62,12 @@ export const animal = {
   'app.animal.x.sire': 'Padre: {v}',
   'app.animal.x.dam': 'Madre: {v}',
   'app.animal.x.herd': 'Rebaño: {v}',
-  'app.animal.f.statedBirth': 'Fecha de nacimiento (declaración del titular)',
+  'app.animal.f.statedBirth': 'Fecha de nacimiento (declaración de quien lo selló)',
   'app.animal.tree.sire': 'Padre',
   'app.animal.tree.dam': 'Madre',
-  'app.animal.verify.sireLine': 'Padre, según el titular: {v}',
-  'app.animal.verify.damLine': 'Madre, según el titular: {v}',
-  'app.animal.verify.idLine': 'Identificación individual, según el titular: {id} ({scheme})',
+  'app.animal.verify.sireLine': 'Padre, según quien lo selló: {v}',
+  'app.animal.verify.damLine': 'Madre, según quien lo selló: {v}',
+  'app.animal.verify.idLine': 'Identificación individual, según quien lo selló: {id} ({scheme})',
   'app.animal.verify.noId': 'No hay identificación individual registrada.',
   'app.animal.v.app.verify.noParents': 'No hay padre ni madre registrados.',
   'app.animal.v.app.plant.fix.name': 'Nombre del animal',
@@ -125,7 +125,7 @@ export const animal = {
   'app.animal.v.app.pair.chain.stampFirst':
     'Ponga primero el sello de fecha de su animal (desde su página) si también quiere fechar este informe en la red.',
   'app.animal.v.app.plant.notHereText':
-    'Si lo selló en otro navegador, guarde allí una copia de seguridad y ábrala aquí (Recuperar sus registros). Si es el registro de otra persona, abra el enlace de verificación que le dio.',
+    'Si lo selló en otro navegador, guarde allí una copia de seguridad y ábrala aquí (Recuperar sus registros). Si es el registro de otra persona, abra el enlace de comprobación que le dio.',
   'app.animal.v.app.plant.bredByName': 'Criador o titular: {name}',
   'app.animal.v.app.plant.action.saveReport': 'Guardar un informe de ADN en este animal',
   'app.animal.v.app.plant.f.reportSaved': 'guardado en este animal ({file}) · código del vínculo {fp}{sha}',
@@ -139,7 +139,7 @@ export const animal = {
   'app.animal.v.app.plant.tie.sentenceNone': 'Aún no vinculado al animal: {what}.',
   'app.animal.v.app.plant.tie.sentenceNot': 'Ya no vinculado al animal: {what}.',
   'app.animal.v.app.plant.tie.means':
-    'Un informe de ADN permite que un laboratorio compare con él una prueba nueva de un animal. Por sí solo no demuestra que un animal coincida.',
+    'Un informe de ADN permite que un laboratorio compare con él un análisis nuevo de un animal. Por sí solo no demuestra que un animal coincida.',
   'app.animal.v.app.plant.tie.sub': 'Informe {date}. Un laboratorio puede comparar con él una prueba nueva del animal.',
   'app.animal.v.app.plant.tie.why':
     'Un informe de ADN de su laboratorio es lo que vincula un registro con el animal mismo.',
@@ -156,7 +156,7 @@ export const animal = {
   'app.animal.v.app.plant.next.labWithdrew.why':
     'Sigue guardado en este animal, y su certificado y sus enlaces dicen que fue retirado. Pida uno nuevo al laboratorio.',
   'app.animal.v.app.plant.next.open.why':
-    'Está bloqueado para que solo usted pueda abrirlo, con la clave de este animal. Al abrirlo se comprueba aquí la firma del laboratorio.',
+    'Está cifrado para que solo usted pueda abrirlo, con la clave de este animal. Al abrirlo se comprueba aquí la firma del laboratorio.',
   'app.animal.v.app.plant.next.sample.whySaved':
     'Guardó un informe de ADN en este animal, y eso es su propia declaración. Que un laboratorio firme que recibió una muestra suma una segunda parte, lo que es una evidencia más sólida que su declaración sola.',
   'app.animal.v.app.plant.next.sample.why':
@@ -167,7 +167,7 @@ export const animal = {
   'app.animal.v.app.plant.next.dna.haveText':
     'Guárdelo en este animal. Se lee en su dispositivo; el archivo nunca se sube.',
   'app.animal.v.app.plant.next.date.why':
-    'Está guardado en este animal, pero todavía nada lo fecha. Fecharlo muestra que el informe existía en esa fecha, sin mostrarle a nadie los marcadores.',
+    'Está guardado en este animal, pero todavía nada lo fecha. Fecharlo muestra que el informe ya existía a esa fecha, sin mostrarle a nadie los marcadores.',
   'app.animal.v.app.plant.next.save.title': 'Guarde el informe de ADN en este animal',
   'app.animal.v.app.plant.next.save.why':
     'Un laboratorio firmó que recibió una muestra. Cuando llegue su informe de ADN, guárdelo en este animal: eso es lo que vincula su registro con el animal, para poder compararlo con una prueba posterior.',
@@ -186,7 +186,7 @@ export const animal = {
     'Ningún laboratorio ha firmado todavía un acuse de recibo para este animal. Un registro que solo usted respalda es una evidencia más débil que uno que firma un laboratorio. Envíe una muestra a un laboratorio: su acuse de recibo se firma con su clave, no con la suya.',
   'app.animal.v.app.verify.field.parent-names': 'Padre y madre (nombres e identificaciones)',
   'app.animal.v.app.verify.alwaysShown':
-    'Siempre se muestra: el ID del registro, su código de prueba ({fp}), cuándo lo guardó por primera vez el servidor de registros y lo que esta página pudo comprobar sobre su lote y las atestaciones firmadas mostradas (un acuse de recibo o un informe de laboratorio solo si usted decide mostrarlo). El nombre del animal, solo cuando el enlace lo lleva (los suyos lo llevan solo si usted lo activa) o usted decide mostrarlo.',
+    'Siempre se muestra: el ID del registro, su código de prueba ({fp}), cuándo lo guardó por primera vez el servidor de registros y lo que esta página pudo comprobar sobre su lote y las declaraciones firmadas mostradas (un acuse de recibo o un informe de laboratorio solo si usted decide mostrarlo). El nombre del animal, solo cuando el enlace lo lleva (los suyos lo llevan solo si usted lo activa) o usted decide mostrarlo.',
   'app.animal.v.app.verify.ownReceiptTail':
     ' Usted lo ve porque el animal está en este navegador; quien reciba el enlace solo ve la línea de firma de arriba.',
   'app.animal.v.app.prove.openCheckPage': 'Abrir la página de comprobación del animal',
@@ -200,7 +200,7 @@ export const animal = {
     'Responder le dice a quien le envió este enlace que usted tiene el registro de este animal.',
   'app.animal.v.app.prove.watch.notWho': 'No muestra quién es esa persona ni quién crió el animal.',
   'app.animal.v.app.prove.watch.holderStatement':
-    'Que esta clave corresponda al registro de este animal es, por ahora, la declaración del titular. No muestra quién es esa persona ni quién crió el animal.',
+    'Que esta clave corresponda al registro de este animal es, por ahora, la declaración de quien lo selló. No muestra quién es esa persona ni quién crió el animal.',
   'app.animal.v.app.prove.watch.stampedYour':
     'La clave de su animal recibió el sello de fecha el {when}. Eso fecha la clave, no el registro.',
   'app.animal.v.app.prove.watch.stampedThisEarlier':
@@ -211,7 +211,7 @@ export const animal = {
   // The lab report panels, a delivery and the saved report's sentence, for an animal.
   'app.animal.v.app.lab.sentence.none': 'No hay ningún informe de ADN guardado en este animal.',
   'app.animal.v.app.lab.sentence.self':
-    'Hay un archivo de informe de ADN guardado en este animal. Ninguna firma de laboratorio coincide con él, así que es la propia declaración del titular.',
+    'Hay un archivo de informe de ADN guardado en este animal. Ninguna firma de laboratorio coincide con él, así que es la propia declaración de quien lo selló.',
   'app.animal.v.app.lab.sentence.replaced':
     'El laboratorio reemplazó{on} el informe de ADN guardado en este animal por uno corregido. {tail}',
   'app.animal.v.app.lab.sentence.withdrawn':
@@ -225,7 +225,7 @@ export const animal = {
   'app.animal.v.app.lab.results.withdrawnNewer':
     '<b>El laboratorio retiró el informe guardado en este animal.</b> Sigue guardado hasta que guarde otro, y su certificado y sus enlaces dicen que fue retirado. Hay un informe de laboratorio más reciente: ábralo y guárdelo en este animal.',
   'app.animal.v.app.lab.results.locked':
-    'Bloqueados para que solo usted pueda abrirlos, con la clave de este animal de su copia de seguridad. VeilCore los guarda bloqueados y no tiene la clave.',
+    'Bloqueados para que solo usted pueda abrirlos, con la clave de este animal de su copia de seguridad. VeilCore los guarda cifrados y no tiene la clave.',
   'app.animal.v.app.lab.results.noKey':
     'La clave de este animal no está en este dispositivo, así que aquí no se pueden abrir sus informes de laboratorio. Primero <link>recupere sus registros desde su copia de seguridad</link>.',
   'app.animal.v.app.lab.results.whatOthersSee':

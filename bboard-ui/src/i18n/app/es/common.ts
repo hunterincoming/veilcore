@@ -6,7 +6,7 @@ import type { AppTranslation } from '../../translate';
 export const common = {
   'app.common.next': 'Siguiente',
   'app.common.change': 'Cambiar',
-  'app.common.add': 'Añadir',
+  'app.common.add': 'Agregar',
   'app.common.tryAgain': 'Intentar de nuevo',
   'app.common.fileInEnglish': 'Este archivo está en inglés.',
   'app.common.network.mainnet': 'la red principal de Midnight',

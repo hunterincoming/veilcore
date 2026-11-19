@@ -9,7 +9,7 @@ export const start = {
   'app.start.plant': '植物',
   'app.start.plantText': '母株、選抜株、クローン、または種子から育成した系統。',
   'app.start.animal': '動物',
-  'app.start.animalText': '父、母、またはその他の繁殖用の動物。',
+  'app.start.animalText': '種雄（父）、繁殖雌（母）、またはその他の繁殖用の動物。',
   'app.start.strain': '微生物・細胞株',
   'app.start.strainText': '酵母、細菌、真菌、細胞株、昆虫系統。ラボやカルチャーコレクション向け。',
   'app.start.chain': '栽培バッチまたは収穫ロット',

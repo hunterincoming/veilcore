@@ -57,7 +57,7 @@ export const ask = {
     'El modelo de lenguaje de este dispositivo no se inició. {why} Sin el modelo, todo funciona como siempre.',
   'app.ask.model.title': 'Modelo de lenguaje en este dispositivo (opcional)',
   'app.ask.model.what':
-    '«Preguntar a VeilCore» ya funciona sin esto, también sin conexión. Puede añadir un modelo de lenguaje pequeño (Qwen3) que funciona solo en este navegador. Quizá entienda más formas de decir las cosas. No puede hacer nada que «Preguntar a VeilCore» no haga ya, y sus respuestas pasan los mismos controles.',
+    '«Preguntar a VeilCore» ya funciona sin esto, también sin conexión. Puede agregar un modelo de lenguaje pequeño (Qwen3) que funciona solo en este navegador. Quizá entienda más formas de decir las cosas. No puede hacer nada que «Preguntar a VeilCore» no haga ya, y sus respuestas pasan los mismos controles.',
   'app.ask.model.pick': 'Qué modelo',
   'app.ask.model.option': '{name}: unos {size}',
   'app.ask.model.size': 'Descarga: {size}, guardada en este navegador hasta que la borre.',
@@ -127,7 +127,7 @@ export const ask = {
   'app.ask.due.ends': 'Fin del acuerdo: {name}',
   'app.ask.due.line': '{date}: {what}',
   'app.ask.due.overdue': 'Atrasado',
-  'app.ask.due.ics': 'Añadir a mi calendario (.ics)',
+  'app.ask.due.ics': 'Agregar a mi calendario (.ics)',
   'app.ask.due.share': 'Compartir un recordatorio',
   'app.ask.due.copied': 'Recordatorio copiado.',
   'app.ask.due.shareText.one': '{count} asunto vence en VeilCore',
@@ -136,9 +136,9 @@ export const ask = {
   'app.ask.due.calName': 'VeilCore: {what}',
   'app.ask.explain.title': 'Explicar',
   'app.ask.explain.pick': 'Elija una palabra:',
-  'app.ask.term.priorPossession': 'Tenencia previa',
+  'app.ask.term.priorPossession': 'Constancia de que ya lo tenía a una fecha',
   'app.ask.def.priorPossession':
-    'Un registro muestra que usted tenía este registro en una fecha: se selló entonces, y su código de prueba se fechó en Midnight. No muestra que tuviera el material ni quién lo obtuvo. Es todo lo que afirma.',
+    'Un registro muestra que usted ya tenía este registro a una fecha: se selló entonces, y su código de prueba se fechó en Midnight. No muestra que tuviera el material ni quién lo obtuvo. Es todo lo que afirma.',
   'app.ask.term.proofCode': 'Código de prueba',
   'app.ask.def.proofCode':
     'Un código corto hecho a partir de un registro sellado. Cualquiera puede comprobar un registro con él, y no muestra nada de su contenido.',
@@ -181,7 +181,7 @@ export const ask = {
   'app.ask.batch.bornOn': 'Nacidos el',
   'app.ask.batch.willMake.one': '{count} registro nuevo',
   'app.ask.batch.willMake.other': '{count} registros nuevos',
-  'app.ask.batch.private': 'Cada registro guarda cerrado dentro el nombre de su progenitor. Nadie más ve el vínculo.',
+  'app.ask.batch.private': 'Cada registro guarda cifrado dentro el nombre de su progenitor. Nadie más ve el vínculo.',
   'app.ask.batch.offline': 'No tiene conexión. Puede revisar todo aquí; guardar necesita conexión.',
   'app.ask.batch.needsConnection': 'Guardar necesita conexión. Primero va su copia de seguridad.',
   'app.ask.batch.needParent': 'Elija la planta de la que se cortaron.',

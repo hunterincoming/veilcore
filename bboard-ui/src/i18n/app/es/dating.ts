@@ -60,9 +60,9 @@ export const dating = {
   'app.pickup.stamp.cannot':
     'El sello de fecha de la clave de {name} no se puede hacer desde este sitio ahora. Su página explica por qué.',
   'app.pickup.lockedCopies.one':
-    '{count} copia bloqueada aún sin subir: guarde y compruebe su copia de seguridad. La fecha de su registro no espera por esto.',
+    '{count} copia cifrada aún sin subir: guarde y compruebe su copia de seguridad. La fecha de su registro no depende de esto.',
   'app.pickup.lockedCopies.other':
-    '{count} copias bloqueadas aún sin subir: guarde y compruebe su copia de seguridad. Las fechas de sus registros no esperan por esto.',
+    '{count} copias cifradas aún sin subir: guarde y compruebe su copia de seguridad. Las fechas de sus registros no dependen de esto.',
   'app.pickup.freshBackup.one':
     'Su última copia de seguridad no tiene las claves de {count} registro más reciente. Guarde una copia de seguridad nueva.',
   'app.pickup.freshBackup.other':

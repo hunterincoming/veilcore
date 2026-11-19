@@ -6,7 +6,7 @@ import type { AppTranslation } from '../../translate';
 export const plant = {
   'app.plant.notHere': 'Este registro no está en este navegador',
   'app.plant.notHereText':
-    'Si lo selló en otro navegador, guarde allí una copia de seguridad y ábrala aquí (Recuperar sus plantas). Si es el registro de otra persona, abra el enlace de verificación que le dio.',
+    'Si lo selló en otro navegador, guarde allí una copia de seguridad y ábrala aquí (Recuperar sus plantas). Si es el registro de otra persona, abra el enlace de comprobación que le dio.',
   'app.plant.yourRecords': 'Sus registros',
   'app.plant.checkARecord': 'Comprobar un registro',
   'app.plant.home': 'Sus registros',
@@ -19,16 +19,16 @@ export const plant = {
   'app.plant.evidenceLine':
     '<link>Descargar el paquete de evidencia</link> <muted>para comprobar la fecha de este registro sin VeilCore</muted>',
   'app.plant.open': 'Abrir',
-  'app.plant.reportsCameBack.one': 'Llegó un informe de laboratorio, bloqueado para que solo usted pueda abrirlo.',
+  'app.plant.reportsCameBack.one': 'Llegó un informe de laboratorio, cifrado para que solo usted pueda abrirlo.',
   'app.plant.reportsCameBack.other':
-    'Llegaron {count} informes de laboratorio, bloqueados para que solo usted pueda abrirlos.',
+    'Llegaron {count} informes de laboratorio, cifrados para que solo usted pueda abrirlos.',
   'app.plant.moreYouCanDo': 'Más cosas que puede hacer',
   'app.plant.action.show': 'Mostrar a alguien',
   'app.plant.action.showHint': 'Elija lo que ve',
   'app.plant.action.askedToProve': 'Alguien me pidió demostrar que la tengo',
   'app.plant.action.certificate': 'Certificado',
   'app.plant.action.sendResults': 'Enviar los resultados al obtentor',
-  'app.plant.action.sendResultsHint': 'Firmados por usted, bloqueados para él',
+  'app.plant.action.sendResultsHint': 'Firmados por usted, cifrados para él',
   'app.plant.action.signReceipt': 'Firmar el acuse de recibo',
   'app.plant.action.signReceiptHint': 'Firme que esta muestra llegó, o recházela',
   'app.plant.action.linkReceipt': 'Vincular su acuse de recibo',
@@ -59,7 +59,7 @@ export const plant = {
   'app.plant.f.notSavedYet': 'todavía no guardado',
   'app.plant.delete.title': 'Eliminar este registro',
   'app.plant.delete.text':
-    'Lo quita de su lista, y sus datos, su copia cerrada y todo lo que haya compartido, para siempre del servidor de registros de VeilCore. Lo que sigue siendo público: su ID de registro, su código de prueba, el minuto en que se eliminó, cualquier fecha en Midnight y los vínculos de linaje u obligaciones ya registrados. Sus enlaces de verificación dirán que su titular lo eliminó. Los envíos aún abiertos para él dejan de funcionar; las firmas que un laboratorio ya hizo sobre él siguen siendo válidas. Los archivos de copia de seguridad guardados antes todavía lo contienen, pero restaurar uno no lo traerá de vuelta.',
+    'Lo quita de su lista, y sus datos, su copia cifrada y todo lo que haya compartido, para siempre del servidor de registros de VeilCore. Lo que sigue siendo público: su ID de registro, su código de prueba, el minuto en que se eliminó, cualquier fecha en Midnight y los vínculos de linaje u obligaciones ya registrados. Sus enlaces de comprobación dirán que su titular lo eliminó. Los envíos aún abiertos para él dejan de funcionar; las firmas que un laboratorio ya hizo sobre él siguen siendo válidas. Los archivos de copia de seguridad guardados antes todavía lo contienen, pero restaurar uno no lo traerá de vuelta.',
   'app.plant.delete.button': 'Eliminar este registro',
   'app.plant.delete.confirm':
     '¿Eliminar «{name}»? No se puede deshacer. Un laboratorio o comprador al que se lo envió conserva su copia.{named}',
@@ -133,7 +133,7 @@ export const plant = {
   'app.plant.tie.savedPublic': 'Informe de ADN que guardó el titular',
   'app.plant.tie.replaced': 'el laboratorio reemplazó el informe de ADN guardado aquí',
   'app.plant.tie.withdrawn': 'el laboratorio retiró el informe de ADN guardado aquí',
-  'app.plant.tie.add': 'añada un informe de ADN',
+  'app.plant.tie.add': 'agregue un informe de ADN',
   'app.plant.tie.noneSaved': 'no hay ningún informe de ADN guardado en este registro',
   'app.plant.tie.cameBack': 'llegó un informe de laboratorio: ábralo aquí',
   'app.plant.tie.openedNotSaved': 'hay un informe de laboratorio abierto, sin guardar en esta planta',
@@ -147,7 +147,7 @@ export const plant = {
   'app.plant.tie.sentenceNone': 'Aún no vinculado a la planta: {what}.',
   'app.plant.tie.sentenceNot': 'Ya no vinculado a la planta: {what}.',
   'app.plant.tie.means':
-    'Un informe de ADN permite que un laboratorio compare con él una prueba nueva de una planta. Por sí solo no demuestra que una planta coincida.',
+    'Un informe de ADN permite que un laboratorio compare con él un análisis nuevo de una planta. Por sí solo no demuestra que una planta coincida.',
   'app.plant.tie.sub': 'Informe {date}. Un laboratorio puede comparar con él una prueba nueva de la planta.',
   'app.plant.tie.why': 'Un informe de ADN de su laboratorio es lo que vincula un registro con la planta misma.',
   'app.plant.backupChecked': 'Copia de seguridad comprobada',
@@ -223,7 +223,7 @@ export const plant = {
   'app.plant.next.withdrawn.why':
     'Retiró lo que envió, así que el obtentor no tiene un informe de laboratorio vigente de usted. Puede enviar uno nuevo.',
   'app.plant.next.send.why':
-    'Firmado con la clave de su laboratorio y bloqueado para que solo el obtentor pueda abrirlo. VeilCore no tiene su clave.',
+    'Firmado con la clave de su laboratorio y cifrado para que solo el obtentor pueda abrirlo. VeilCore no tiene su clave.',
   'app.plant.next.sent.action': 'Ver lo que envió',
   'app.plant.next.send.action': 'Enviar los resultados',
   'app.plant.next.corrected.title': 'Guarde el informe de ADN corregido',
@@ -239,7 +239,7 @@ export const plant = {
     'Sigue guardado en esta planta, y su certificado y sus enlaces dicen que fue retirado. Pida uno nuevo al laboratorio.',
   'app.plant.next.labWithdrew.action': 'Abrir el más reciente',
   'app.plant.next.open.why':
-    'Está bloqueado para que solo usted pueda abrirlo, con la clave de esta planta. Al abrirlo se comprueba aquí la firma del laboratorio.',
+    'Está cifrado para que solo usted pueda abrirlo, con la clave de esta planta. Al abrirlo se comprueba aquí la firma del laboratorio.',
   'app.plant.next.sample.title': 'Envíe una muestra a un laboratorio',
   'app.plant.next.sample.whySaved':
     'Guardó un informe de ADN en esta planta, y eso es su propia declaración. Que un laboratorio firme que recibió una muestra suma una segunda parte, lo que es una evidencia más sólida que su declaración sola.',
@@ -251,15 +251,15 @@ export const plant = {
     'Un registro fechado muestra que existía una descripción. Un informe de ADN (la huella de ADN de la planta que hace un laboratorio) es lo que vincula su registro con la planta real. Hay dos formas de conseguirlo:',
   'app.plant.next.dna.labTitle': 'Enviar una muestra a un laboratorio',
   'app.plant.next.dna.labText':
-    'Cree un código de laboratorio y envíe una muestra con él. El informe de ADN del laboratorio vuelve aquí, cerrado para que solo usted pueda abrirlo.',
+    'Cree un código de laboratorio y envíe una muestra con él. El informe de ADN del laboratorio vuelve aquí, cifrado para que solo usted pueda abrirlo.',
   'app.plant.next.dna.labSoon':
-    'Recibir aquí el informe de ADN del laboratorio, cerrado para que solo usted pueda abrirlo, llegará pronto a este sitio. Por ahora, pida el informe a su laboratorio y guárdelo aquí.',
+    'Recibir aquí el informe de ADN del laboratorio, cifrado para que solo usted pueda abrirlo, llegará pronto a este sitio. Por ahora, pida el informe a su laboratorio y guárdelo aquí.',
   'app.plant.next.dna.haveTitle': '¿Ya tiene un informe de ADN?',
   'app.plant.next.dna.haveText': 'Guárdelo en esta planta. Se lee en su dispositivo; el archivo nunca se sube.',
   'app.plant.next.dna.haveAction': 'Guardar un informe de ADN',
   'app.plant.next.date.title': 'Feche este informe de ADN',
   'app.plant.next.date.why':
-    'Está guardado en esta planta, pero todavía nada lo fecha. Fecharlo muestra que el informe existía en esa fecha, sin mostrarle a nadie los marcadores.',
+    'Está guardado en esta planta, pero todavía nada lo fecha. Fecharlo muestra que el informe ya existía a esa fecha, sin mostrarle a nadie los marcadores.',
   'app.plant.next.save.title': 'Guarde el informe de ADN en esta planta',
   'app.plant.next.save.why':
     'Un laboratorio firmó que recibió una muestra. Cuando llegue su informe de ADN, guárdelo en esta planta: eso es lo que vincula su registro con la planta, para poder compararlo con una prueba posterior.',
@@ -317,9 +317,9 @@ export const plant = {
   'app.plant.history.received': 'Recibido',
   'app.plant.history.arrived': 'Llegó por una transferencia de {from}.',
   'app.plant.history.arrivedQty': 'Llegó por una transferencia de {from}, {qty}.',
-  'app.plant.history.retracted': 'Atestación retractada',
+  'app.plant.history.retracted': 'Declaración firmada retirada',
   'app.plant.history.retractedDetail':
-    'Quien la atestiguó la retiró con una retractación firmada con su clave. Motivo: {reason}. La atestación sigue en el registro: retractar no es borrar.',
+    'Quien la firmó la retiró con una retractación firmada con su clave. Motivo: {reason}. La declaración firmada sigue en el registro: retractar no es borrar.',
   'app.plant.history.corrected': 'Corregido',
   'app.plant.history.correctedDetail':
     'Un registro posterior sustituye a este. Este registro no cambia y sigue archivado.',
@@ -334,7 +334,7 @@ export const plant = {
   'app.plant.dated.dated': 'fechado {value}',
   'app.plant.dated.action': 'Fechar este informe de ADN',
   'app.plant.dated.why':
-    'Para que pueda mostrar que este informe existía en esa fecha sin mostrarle a nadie los marcadores.',
+    'Para que pueda mostrar que este informe ya existía a esa fecha sin mostrarle a nadie los marcadores.',
   'app.plant.dated.seals':
     'Sella un pequeño registro con solo el SHA-256 del informe, su código de informe de laboratorio y el nombre del laboratorio según su firma. El informe se queda con usted. Su fecha llega cuando se fecha su lote.',
   'app.plant.dated.nameLabel': 'Nombre del nuevo registro',
@@ -354,7 +354,7 @@ export const plant = {
     'El registro tal como se selló, su prueba de inclusión, la raíz del lote y dónde se registró el lote, en un solo .zip. Su verify.html lo comprueba sin internet y sin nada de VeilCore.',
   'app.plant.anchor.title': 'Anclar este registro en {network}',
   'app.plant.anchor.anchored':
-    'Anclado. Su identidad en la cadena es {id}…, registrada en el bloque {block}{when}. La identidad se guarda en este navegador y en su copia de seguridad, no en el servidor de VeilCore: se comparte enviando a alguien un enlace de verificación.',
+    'Anclado. Su identidad en la cadena es {id}…, registrada en el bloque {block}{when}. La identidad se guarda en este navegador y en su copia de seguridad, no en el servidor de VeilCore: se comparte enviando a alguien un enlace de comprobación.',
   // Only for an anchor on a test network (AnchorOnChainPanel.tsx), never on Midnight's main network.
   'app.plant.anchor.testNet':
     'Esta es una red de pruebas: puede reiniciarse y sus fechas no tienen valor como evidencia.',
@@ -385,9 +385,9 @@ export const plant = {
     'NO ha descargado una copia de seguridad de estas claves. Si las quita, este navegador no las recuperará, y solo su archivo de copia de seguridad, restaurado en un navegador nuevo, puede recuperarlas. ¿Quitarlas de todos modos?',
   'app.plant.keys.title': 'Claves del registro',
   'app.plant.keys.holds':
-    'Este navegador guarda los dos secretos que demuestran que usted tiene este registro en la cadena. Una copia va también dentro de la caja bloqueada del registro en VeilCore, que solo abre la clave que bloquea sus registros. Borrar este navegador los elimina aquí; restaurar su copia de seguridad los recupera.',
+    'Este navegador guarda los dos secretos que demuestran que usted tiene este registro en la cadena. Una copia va también dentro de la caja cifrada del registro en VeilCore, que solo abre la clave que cifra sus registros. Borrar este navegador los elimina aquí; restaurar su copia de seguridad los recupera.',
   'app.plant.keys.holdsDeviceOnly':
-    'Este navegador guarda los dos secretos que demuestran que usted tiene este registro en la cadena. Este registro se guarda solo en este dispositivo, así que no va ninguna copia de ellos a VeilCore en una caja bloqueada. Solo este navegador y su copia comprobada los tienen, y su copia con llave de acceso si la conserva, guardada bloqueada en el servidor de VeilCore (guarda solo claves, nunca el registro). Borrar este navegador los elimina aquí; restaurar su copia de seguridad los recupera.',
+    'Este navegador guarda los dos secretos que demuestran que usted tiene este registro en la cadena. Este registro se guarda solo en este dispositivo, así que no va ninguna copia de ellos a VeilCore en una caja cifrada. Solo este navegador y su copia comprobada los tienen, y su copia con llave de acceso si la conserva, guardada cifrada en el servidor de VeilCore (guarda solo claves, nunca el registro). Borrar este navegador los elimina aquí; restaurar su copia de seguridad los recupera.',
   'app.plant.keys.noBackup': 'Todavía no hay copia de seguridad. Descárguela y guárdela sin conexión.',
   'app.plant.keys.downloadAgain': 'Descargar de nuevo la copia de seguridad',
   'app.plant.keys.download': 'Descargar la copia de seguridad (secreta)',
@@ -422,8 +422,8 @@ export const plant = {
   'app.plant.cert.jsonDone': 'Resumen (JSON) descargado.',
   'app.plant.cert.pngDone': 'Certificado descargado.',
   'app.plant.cert.pngFailed': 'No se pudo generar la imagen del certificado.',
-  'app.plant.cert.linkCopied': 'Enlace de verificación copiado.',
-  'app.plant.cert.copyLink': 'Copiar el enlace de verificación',
+  'app.plant.cert.linkCopied': 'Enlace de comprobación copiado.',
+  'app.plant.cert.copyLink': 'Copiar el enlace de comprobación',
   'app.plant.cert.downloadPng': 'Descargar (PNG)',
   'app.plant.cert.downloadJson': 'Descargar el resumen (JSON)',
   'app.plant.cert.continue': 'Continuar: elegir lo que ven otros',
@@ -451,7 +451,7 @@ export const plant = {
   'app.plant.fix.field.notes': 'notas',
   'app.plant.fix.field.internalReference': 'referencia interna',
   'app.plant.fix.field.parents': 'padres',
-  'app.plant.fix.field.attestations': 'atestaciones',
+  'app.plant.fix.field.attestations': 'declaraciones firmadas',
   'app.plant.fix.field.sealedAt': 'fecha de sellado',
   'app.plant.fix.field.holder': 'titular',
   'app.plant.fix.field.name': 'nombre',

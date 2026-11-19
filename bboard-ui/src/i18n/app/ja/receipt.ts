@@ -14,7 +14,7 @@ export const receipt = {
   'app.receipt.fact.otherRecord': 'もう一方の記録の鍵から作ったコード',
   'app.receipt.fact.issuerRecord': 'ライセンス対象の記録の鍵から作ったコード',
   'app.receipt.fact.challenge': '確認する人の一回限りのチャレンジコード',
-  'app.receipt.fact.dnaReport': 'DNAレポートから作ったコード（レポートそのものではありません）',
+  'app.receipt.fact.dnaReport': 'DNA報告書から作ったコード（報告書そのものではありません）',
   'app.receipt.fact.license': 'ライセンスから作ったコード（条件ではありません）',
   'app.receipt.fact.newLicense': '新しい保有者のライセンスから作ったコード',
   'app.receipt.fact.licenseEntry': '公開ライセンス一覧でのライセンスの登録コード',
@@ -33,8 +33,8 @@ export const receipt = {
   'app.receipt.fact.comparison': 'その基準値以上か以下か',
   'app.receipt.fact.mask': '変更してよい行',
   'app.receipt.fact.labKey':
-    '検査機関の公開鍵：どの検査機関が署名したか。検査機関はこの鍵を自身のウェブサイトに掲載するため、検査機関名が公になります。',
-  'app.receipt.fact.signatureCheck': '検査機関が本当に発行したことを示す数値',
+    'ラボの公開鍵：どのラボが署名したか。ラボはこの鍵を自身のウェブサイトに掲載するため、ラボ名が公になります。',
+  'app.receipt.fact.signatureCheck': 'ラボが本当に発行したことを示す数値',
   'app.receipt.fact.batch': '記録のまとまり全体のコード1つ',
   'app.receipt.fact.timeLimit': 'ライセンス一覧の期限時刻',
   'app.receipt.fact.step': 'どの操作だったか、そして上のコード同士を結び付けること',
@@ -48,7 +48,7 @@ export const receipt = {
   'app.receipt.fact.obligationLink': 'この義務があの記録に結び付いていること',
   'app.receipt.fact.obligationCount': 'この記録の義務の数',
   'app.receipt.stay.genetics': '遺伝情報とDNAファイルが鍵のかからない形でこの端末から出ることはありません。',
-  'app.receipt.stay.locked': '名前とメモはあなたの鍵でロックされてレジストリに送られます。レジストリは読めません。',
+  'app.receipt.stay.locked': '名前とメモはあなたの鍵で鍵がかけられてレジストリに送られます。レジストリは読めません。',
   'app.receipt.stay.kind':
     'レジストリに見えるのは、記録の種類、証明コードとそれに結び付いたコード、そして記録同士のつながり（どこから来たか、何に置き換えられたか）です。記録を訂正したときは、どの欄がいつから変わったかも見えます。',
 } satisfies Partial<AppTranslation>;

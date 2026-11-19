@@ -8,7 +8,7 @@ export const partners = {
   'app.partners.title': 'Exija un registro de VeilCore.',
   'app.partners.titleEm': 'Verificarlo es gratis. Sin cuenta.',
   'app.partners.lede':
-    'Si su membresía, biblioteca, registro o mercado pide a los solicitantes un registro de VeilCore, puede verificar cada uno en segundos, en su propio formulario, sin hablar con nosotros.',
+    'Si su asociación, biblioteca, registro oficial o mercado pide a los solicitantes un registro de VeilCore, puede verificar cada uno en segundos, en su propio formulario, sin hablar con nosotros.',
   'app.partners.gives.title': 'Lo que le da exigir un registro',
   'app.partners.gives.1.t': 'Una descripción fija',
   'app.partners.gives.1.d':
@@ -32,8 +32,8 @@ export const partners = {
   'app.partners.not.5': 'Parentesco, derechos, licencias ni situación legal.',
   'app.partners.demo.title': 'Pruébelo',
   'app.partners.demo.lede':
-    'Pegue el enlace de verificación de un registro. Se verifica en este navegador, contra el servidor de registros que usa este sitio. No se envía nada a ningún otro lugar y no se guarda nada.',
-  'app.partners.demo.label': 'Enlace de verificación del registro de VeilCore',
+    'Pegue el enlace de comprobación de un registro. Se verifica en este navegador, contra el servidor de registros que usa este sitio. No se envía nada a ningún otro lugar y no se guarda nada.',
+  'app.partners.demo.label': 'Enlace de comprobación del registro de VeilCore',
   'app.partners.demo.loading': 'Cargando el campo…',
   'app.partners.steps.title': 'Quién hace qué',
   'app.partners.steps.applicant': 'El solicitante',
@@ -80,7 +80,7 @@ export const partners = {
   'app.partners.policy.title': 'Texto de ejemplo para sus reglas',
   'app.partners.policy.note': 'Texto de ejemplo, no es asesoría legal. Adáptelo a sus propias reglas.',
   'app.partners.policy.1':
-    'Los solicitantes deben entregar un enlace de verificación de un registro de VeilCore por cada accesión que depositen. El registro debe existir y el enlace debe coincidir con él. [Programa] verifica cada enlace al recibir la solicitud y guarda el resultado con la solicitud.',
+    'Los solicitantes deben entregar un enlace de comprobación de un registro de VeilCore por cada accesión que depositen. El registro debe existir y el enlace debe coincidir con él. [Programa] verifica cada enlace al recibir la solicitud y guarda el resultado con la solicitud.',
   'app.partners.policy.2':
     'Un registro de VeilCore es la declaración del solicitante sobre su material, con código de prueba y fecha. Aceptar un registro no significa que [Programa] o VeilCore confirmen qué es el material, quién lo tiene ni ningún derecho sobre él.',
   'app.partners.dev.title': 'Para desarrolladores',

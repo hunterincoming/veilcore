@@ -35,12 +35,12 @@ export const attest = {
 
   'app.labnums.title': 'Números de este informe, firmados por usted (opcional)',
   'app.labnums.text':
-    'Elija el formulario y escriba los números exactamente como en su informe. Se sellan en un registro que usted firma y se envían bloqueados con el informe. El obtentor podrá demostrar un número sin mostrar los demás, como un número que su laboratorio firmó.',
+    'Elija el formulario y escriba los números exactamente como en su informe. Se sellan en un registro que usted firma y se envían cifrados con el informe. El obtentor podrá demostrar un número sin mostrar los demás, como un número que su laboratorio firmó.',
   'app.labnums.resultTitle': 'Nombre de este resultado (la referencia de su informe)',
   'app.labnums.inReport': 'Números que el laboratorio firmó con este informe ({form}):',
   'app.labnums.addText':
-    'Añádalos como un registro suyo. Después podrá publicar la firma del laboratorio en Midnight y demostrar un número cada vez.',
-  'app.labnums.add': 'Añadir los números firmados como registro',
+    'Agréguelos como un registro suyo. Después podrá publicar la firma del laboratorio en Midnight y demostrar un número cada vez.',
+  'app.labnums.add': 'Agregar los números firmados como registro',
   'app.labnums.openRecord': 'Abrir el registro con estos números',
   'app.labnums.cantUse': 'Este informe trae números que no se pueden usar: {reason}',
   'app.labnums.otherPlant': 'se refieren a otra planta.',
@@ -60,17 +60,18 @@ export const attest = {
 
   'app.claim.check.labOk':
     'Los números de ese registro se firmaron con la clave {key}, publicada en Midnight en el bloque {block}{date}.',
-  'app.claim.check.labWithdrawn': 'El laboratorio ha retirado esta firma. Tome los números como del propio titular.',
+  'app.claim.check.labWithdrawn':
+    'El laboratorio ha retirado esta firma. Tome los números como de quien selló el registro.',
   'app.claim.check.labConflict':
-    'Más de un laboratorio reclama esta clave, así que no se muestra ningún nombre. Tome los números como del propio titular.',
+    'Más de un laboratorio reclama esta clave, así que no se muestra ningún nombre. Tome los números como de quien selló el registro.',
   'app.claim.check.labUnidentified':
-    'Esta página no encontró ningún laboratorio que diga que esta clave es suya para este registro (las firmas de informes de un laboratorio son privadas, salvo que el titular las muestre). Tome los números como del propio titular.',
+    'Esta página no encontró ningún laboratorio que diga que esta clave es suya para este registro (las firmas de informes de un laboratorio son privadas, salvo que el titular las muestre). Tome los números como de quien selló el registro.',
   'app.claim.check.labAbout': 'Los resultados se refieren al registro con el código de prueba',
   'app.claim.check.labFieldSecret':
     'El laboratorio también conoce estos números y podría demostrar cosas sobre ellos por su cuenta.',
   'app.claim.check.labKey': 'Clave de firma',
   'app.claim.check.labFailed':
-    'La firma del laboratorio no está confirmada: {reason} Tome los números como del propio titular.',
+    'La firma del laboratorio no está confirmada: {reason} Tome los números como de quien selló el registro.',
   'app.claim.check.whatLab':
     'Lo que muestra: el número sellado en ese registro cumple el límite (o es ese valor), y la clave de arriba firmó los números de ese registro. Lo que no: de quién es esa clave, ni que el certificado sea auténtico. Cada límite demostrado sobre un número es público, y juntos lo acotan.',
 } satisfies Partial<AppTranslation>;

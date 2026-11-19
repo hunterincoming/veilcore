@@ -6,7 +6,7 @@ import type { AppTranslation } from '../../translate';
 export const verify = {
   'app.verify.report.notSaved': '保有者はこの記録にDNA報告書を保存していません。',
   'app.verify.report.pending':
-    '保存されているDNAレポートは現在表示されていません。保有者が共有を選んだ後に記録が変更され、保有者のアプリがまだ更新を送っていません。',
+    '保存されているDNA報告書は現在表示されていません。保有者が共有を選んだ後に記録が変更され、保有者のアプリがまだ更新を送っていません。',
   'app.verify.report.asOf': '（このリンクが作られた時点）',
   'app.verify.report.staleNote':
     'このリンクは別のファイルが保存されていたときに作られました。この行は、今保存されているファイルについてのものです。',
@@ -57,7 +57,7 @@ export const verify = {
   'app.verify.anchor.eventReported':
     'バッチ {batch}：レジストリの報告では、バッチのルートは{where}に記録されました{tx}。日付は{date}です。{why}確認されるまで、日付に頼らないでください。{test}',
   'app.verify.anchor.summaryAdd': '{summary}Midnightで確認済み：バッチのルートの日付スタンプ。',
-  'app.verify.field.existence': 'それ以前からの保有（アンカー後にのみ表示）',
+  'app.verify.field.existence': 'ある日付までに保有していたこと（アンカー後にのみ表示）',
   'app.verify.field.attestation-status': 'DNA報告書が保存されているか',
   'app.verify.field.descent-clean': '系統の状態（レジストリの報告による）',
   'app.verify.field.sealed-at': '封印した日時（保有者の端末の時計）',
@@ -91,7 +91,7 @@ export const verify = {
   'app.verify.kindStatement': '署名付きの陳述',
   'app.verify.forWhom': 'レジストリが報告する証明コードについて：',
   'app.verify.intro':
-    'このページはVeilCoreの記録を確認します。記録とは、遺伝素材の説明の証明コードで、アンカーされると日付が付き、遺伝情報なしで公開されます。確認は無料で、アカウントも不要です。<link>VeilCoreとは？</link>',
+    'このページはVeilCoreの記録を確認します。記録とは、遺伝資源の説明から作った証明コードで、アンカーされると日付が付き、遺伝情報なしで公開されます。確認は無料で、アカウントも不要です。<link>VeilCoreとは？</link>',
   'app.verify.checkingRecord': '記録を確認しています',
   'app.verify.notFound': '{id} の記録は見つかりません',
   'app.verify.notFoundText':
@@ -100,18 +100,18 @@ export const verify = {
   'app.verify.deleted.title': '{id} は保有者によって削除されました',
   'app.verify.deleted.when': '{date} に削除されました。詳細はもう表示されません。',
   'app.verify.deleted.datedChecked':
-    '削除の前に Midnight で日付が記録されていました：ブロック {block}、{date}。このページが日付を Midnight で直接確認しました。',
+    '削除の前にMidnight で日付が記録されていました：ブロック {block}、{date}。このページが日付をMidnight で直接確認しました。',
   'app.verify.deleted.datedReported':
-    'VeilCore のレジストリは、削除前に Midnight で日付が記録されたと報告しています。証明コードを含むリンクなら、このページが直接確認できます。',
-  'app.verify.deleted.notDated': 'VeilCore のレジストリには、この記録の Midnight での日付がありません。',
+    'VeilCoreのレジストリは、削除前にMidnight で日付が記録されたと報告しています。証明コードを含むリンクなら、このページが直接確認できます。',
+  'app.verify.deleted.notDated': 'VeilCoreのレジストリには、この記録のMidnight での日付がありません。',
   'app.verify.deleted.datedReportedPlain':
-    'VeilCore のレジストリは、Midnight で日付が記録されたと報告しています。証明コードを含むリンクなら、このページが直接確認できます。',
+    'VeilCoreのレジストリは、Midnightで日付が記録されたと報告しています。証明コードを含むリンクなら、このページが直接確認できます。',
   'app.verify.deleted.datedReportedAfter':
-    'VeilCore のレジストリは、削除の後に Midnight で日付が記録されたと報告しています。証明コードを含むリンクなら、このページが直接確認できます。',
+    'VeilCoreのレジストリは、削除の後にMidnight で日付が記録されたと報告しています。証明コードを含むリンクなら、このページが直接確認できます。',
   'app.verify.deleted.datedCheckedPlain':
-    'Midnight で日付が記録されました：ブロック {block}、{date}。このページが日付を Midnight で直接確認しました。削除の前か後かは分単位では判断できません。',
+    'Midnightで日付が記録されました：ブロック {block}、{date}。このページが日付をMidnight で直接確認しました。削除の前か後かは分単位では判断できません。',
   'app.verify.deleted.datedCheckedAfter':
-    '削除の後に Midnight で日付が記録されました：ブロック {block}、{date}。このページが日付を Midnight で直接確認しました。',
+    '削除の後にMidnight で日付が記録されました：ブロック {block}、{date}。このページが日付をMidnight で直接確認しました。',
   'app.verify.mismatch.title': 'このリンクの証明コードは記録と一致しません：何も確認していません',
   'app.verify.mismatch.dontRely': 'このページに頼らないでください。',
   'app.verify.mismatch.text':
@@ -162,7 +162,7 @@ export const verify = {
   'app.verify.sampleDetails': 'サンプルの詳細（レジストリの報告による）：',
   'app.verify.moreSigs': '{forWhom}ほかに署名が{n}件あり、それぞれこのブラウザで確認しました。',
   'app.verify.noneVerified':
-    'レジストリは署名付きの証明を報告していますが、このブラウザではどれも確認できませんでした。',
+    'レジストリは署名付きの陳述を報告していますが、このブラウザではどれも確認できませんでした。',
   'app.verify.noneSigned':
     '保有者はここにラボの署名を表示していません。ラボの受領書と検査報告書は、保有者が表示を選ばない限り非公開です。',
   'app.verify.badSigs.other':
@@ -180,14 +180,14 @@ export const verify = {
   'app.verify.mark.failed': '失敗または撤回',
   'app.verify.mark.key': '記号の意味',
   'app.verify.own.preview':
-    'それ以前からの保有：レジストリがこの記録のバッチのアンカーを報告して初めて、レジストリの報告として表示されます。',
+    '日付までの保有：レジストリがこの記録のバッチのアンカーを報告して初めて、レジストリの報告として表示されます。',
   'app.verify.own.anchored':
-    'それ以前からの保有：レジストリの報告では、この記録のバッチは{network}にアンカーされました。{found}{test}',
+    '日付までの保有：レジストリの報告では、この記録のバッチは{network}にアンカーされました。{found}{test}',
   'app.verify.own.found':
-    'このページは、その日付スタンプをMidnight上で直接見つけました（上記）。日付が付くのは記録であり、誰が保有していたかではありません。',
+    'このページは、その日付スタンプをMidnight上で直接見つけました（上記）。日付が示すのは記録が存在したことで、誰が保有していたかは示しません。',
   'app.verify.own.notConfirmed': 'このページはチェーン上で確認していません。',
   'app.verify.own.notAnchored':
-    'それ以前からの保有：まだアンカーされていないため、日付はこのレジストリの記録に基づきます。',
+    '日付までの保有：まだアンカーされていないため、日付はこのレジストリの記録に基づきます。',
   'app.verify.dna.saved': '保有者はこの記録にDNA報告書を保存しました。',
   'app.verify.lineage.intact':
     'レジストリの報告では、系統は途切れていません。封印された記録まで、途切れずにさかのぼれます。このページでは確認していません。',
@@ -202,7 +202,7 @@ export const verify = {
   'app.verify.sharedNothing': '保有者は、上の基本情報以外は何も共有していません。',
   'app.verify.notShared': '保有者が共有していないもの：{list}。',
   'app.verify.alwaysShown':
-    '常に表示されるもの：記録ID、その証明コード（{fp}）、レジストリが最初に保存した日時、そしてバッチと表示された署名付きの証明（ラボの受領書や検査報告書は、表示を選んだときだけ）についてこのページが確認できたこと。名前は、リンクに含まれている場合（あなたのリンクに含まれるのは、そう選んだときだけです）か、表示を選んだ場合だけ表示されます。',
+    '常に表示されるもの：記録ID、その証明コード（{fp}）、レジストリが最初に保存した日時、そしてバッチと表示された署名付きの陳述（ラボの受領書や検査報告書は、表示を選んだときだけ）についてこのページが確認できたこと。名前は、リンクに含まれている場合（あなたのリンクに含まれるのは、そう選んだときだけです）か、表示を選んだ場合だけ表示されます。',
   'app.verify.ex.title': '例：架空の記録です。',
   'app.verify.ex.intro':
     '記録の確認ページがどのように見えるかを、各行の下に説明を付けて示します。ここでは何も照会も確認もしていません。',
@@ -252,22 +252,22 @@ export const verify = {
   'app.verify.self.contract': '成功していて、VeilCoreのコントラクト{contract}を呼び出していることを確認します。',
   'app.verify.self.noContract': '（レジストリは示していません）',
   'app.verify.self.root':
-    'バッチの証明コード{root}を書き込んだことを確認します。エクスプローラーには表示されない場合があります。その場合の読み方は、保有者が持つ記録の証拠パッケージに書かれています。',
+    'バッチのルート{root}を書き込んだことを確認します。エクスプローラーには表示されない場合があります。その場合の読み方は、保有者が持つ記録の証拠バンドルに書かれています。',
   'app.verify.dnaCheck.help':
-    '保有者から送られたDNAレポートのファイルをお持ちですか。選ぶと、この記録とともに保存されたものかを確かめられます。ファイルはこのブラウザで読まれ、どこにも送られません。',
-  'app.verify.dnaCheck.button': 'DNAレポートのファイルを確かめる',
+    '保有者から送られたDNA報告書のファイルをお持ちですか。選ぶと、この記録とともに保存されたものかを確かめられます。ファイルはこのブラウザで読まれ、どこにも送られません。',
+  'app.verify.dnaCheck.button': 'DNA報告書のファイルを確かめる',
   'app.verify.dnaCheck.reading': 'ファイルを読み込んでいます…',
   'app.verify.dnaCheck.tooBig': 'このファイルは大きすぎて、ここでは確かめられません。',
-  'app.verify.dnaCheck.matches': '{file}は、保有者がこの記録とともに保存したDNAレポートです。',
-  'app.verify.dnaCheck.differs': '{file}は、この記録とともに保存されたDNAレポートではありません。',
+  'app.verify.dnaCheck.matches': '{file}は、保有者がこの記録とともに保存したDNA報告書です。',
+  'app.verify.dnaCheck.differs': '{file}は、この記録とともに保存されたDNA報告書ではありません。',
   'app.verify.dnaCheck.noSalt':
-    'このリンクには、DNAレポートのファイルを確かめるのに必要なものが入っていません。保有者に確認用リンクとファイルを頼んでください。',
+    'このリンクには、DNA報告書のファイルを確かめるのに必要なものが入っていません。保有者に確認用リンクとファイルを頼んでください。',
   'app.verify.report.fileMatches': '選んだファイルは保存されたものです。',
   'app.verify.report.fileDiffers': '選んだファイルは保存されたものではありません。',
   'app.verify.report.chooseFile':
-    '保有者はこの記録にDNAレポートを保存しています。どれかを知るには、保有者から送られたファイルを選んでください。このページが、このリンクの内容を使って記録と照らし合わせます。',
+    '保有者はこの記録にDNA報告書を保存しています。どれかを知るには、保有者から送られたファイルを選んでください。このページが、このリンクの内容を使って記録と照らし合わせます。',
   'app.verify.report.noSaltInLink':
-    '保有者はこの記録にDNAレポートを保存しています。どのファイルかは、保有者自身の確認用リンクとファイルがあるときだけ確かめられます。',
+    '保有者はこの記録にDNA報告書を保存しています。どのファイルかは、保有者自身の確認用リンクとファイルがあるときだけ確かめられます。',
   'app.verify.unnamedReceipt':
     'この記録のサンプルについてのラボの受領書（レジストリの報告による）。どのラボが署名したかは、保有者が表示していません。',
   // who-vouches.ts: who stands behind each fact on a check page
@@ -290,8 +290,8 @@ export const verify = {
   'app.verify.who.date.failed': 'ありません：このページのMidnightでの確認は失敗しました（下記参照）。',
   'app.verify.who.words.differs': '保有者の言葉ですが、表示された名前は証明コードと一致しません（下記参照）。',
   'app.verify.who.words.unchecked': '保有者自身の言葉です。何も確認していません。',
-  'app.verify.who.lab': '検査機関',
-  'app.verify.who.lab.none': 'このページはどの検査機関の署名も確認していません。',
+  'app.verify.who.lab': 'ラボ',
+  'app.verify.who.lab.none': 'このページはどのラボの署名も確認していません。',
   'app.verify.who.signed': '{who}。このページが署名を確認しました。',
   'app.verify.who.withdrawn': 'そのウェブサイトは、その後この鍵の掲載をやめています（下記）。',
   'app.verify.who.signedUnbound': '{who}（VeilCoreのレジストリの報告）。リンクに証明コードがないため確認できません。',
@@ -308,7 +308,7 @@ export const verify = {
   'app.verify.who.signedUnboundMatched':
     '{who}として登録された鍵（VeilCoreのレジストリの報告）。VeilCoreの運営者が名前を公開リストと照合しました（下記）。リンクに証明コードがないため署名を確認できません。',
   'app.verify.who.signedMatched':
-    '{who}として登録された鍵。このページが署名を確認しました。VeilCoreの運営者が名前を公開リストと照合しました（下記）。VeilCoreが検査機関を保証するものではありません。',
+    '{who}として登録された鍵。このページが署名を確認しました。VeilCoreの運営者が名前を公開リストと照合しました（下記）。VeilCoreがラボを保証するものではありません。',
   'app.verify.who.typed': '入力された内容（タイトル、保有者、発行者、メモ）',
   'app.verify.who.typed.holder':
     '保有者自身の言葉です。このページは証明コードと一致することだけを確認し、内容が正しいかは確認しません。',

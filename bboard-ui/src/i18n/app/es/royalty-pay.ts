@@ -38,7 +38,7 @@ export const royaltyPay = {
   'app.rpay.pay.noWallet':
     'Este navegador no tiene una billetera de Cardano. Abra esta página donde tenga una (Lace, Eternl u otra billetera CIP-30).',
   'app.rpay.pay.shows':
-    'Su billetera lo muestra antes de que firme: {amount} {code} a {to}, un poco de ada que Cardano exige junto con un token, la comisión de la red y la referencia {ref}.',
+    'Su billetera lo muestra antes de que firme: {amount} {code} a {to}, un poco de ada que Cardano exige junto con un token, la tarifa de la red y la referencia {ref}.',
   'app.rpay.pay.screened':
     'Las dos direcciones se cotejan con la lista de sanciones de EE. UU. (OFAC, direcciones de Cardano, lista del {date}) antes de crear nada.',
   'app.rpay.pay.howTitle': 'Cómo funciona',
@@ -92,7 +92,7 @@ export const royaltyPay = {
   'app.rpay.breach.what':
     'Un aviso firmado y fechado a {licensee} de que este pago está vencido. Luego tiene {days} días para pagar. Solo después, si no hay nada marcado como pagado, puede revocar la licencia por falta de pago.',
   'app.rpay.breach.send': 'Enviar el aviso',
-  'app.rpay.breach.extra': 'Algo que añadir (opcional; la otra parte lo verá)',
+  'app.rpay.breach.extra': 'Algo que agregar (opcional; la otra parte lo verá)',
   'app.rpay.breach.note':
     'El pago del informe {n}, que vencía el {due}, no se ha hecho. Tiene {days} días desde este aviso para pagar. Después, si sigue sin pagarse, la licencia se puede revocar por falta de pago.',
   'app.rpay.revoke.registryDown':
@@ -122,10 +122,10 @@ export const royaltyPay = {
   'app.rpay.pub.revoked':
     'Quien tiene este registro dice que una licencia de este registro se revocó el {date} por falta de pago.',
   'app.rpay.pub.revokedChecked':
-    'Quien tiene este registro comunicó al servidor de registros de VeilCore el {date} que había enviado un aviso de incumplimiento, y pasaron {days} días sin ningún pago anotado allí antes de que se aceptara esta línea. El registro comprobó esas fechas, no quién es el licenciatario.',
+    'Quien tiene este registro comunicó al servidor de registros de VeilCore el {date} que había enviado un aviso de incumplimiento, y pasaron {days} días sin ningún pago anotado allí antes de que se aceptara esta línea. El servidor de registros comprobó esas fechas, no quién es el licenciatario.',
   'app.rpay.pub.answerPaid': 'El licenciatario dice que se pagó ({date}).',
   'app.rpay.pub.who':
-    'Si un pago se debía es la palabra de quien tiene el registro; VeilCore no lo comprueba. La fecha junto a un aviso de incumplimiento es el día en que quien tiene el registro lo comunicó al servidor de registros de VeilCore, según el reloj del propio registro. Las respuestas del licenciatario están firmadas por él, y quien tiene el registro no puede quitarlas. No se nombra a nadie ni se muestran montos o condiciones.',
+    'Si un pago se debía es la palabra de quien tiene el registro; VeilCore no lo comprueba. La fecha junto a un aviso de incumplimiento es el día en que quien tiene el registro lo comunicó al servidor de registros de VeilCore, según el reloj del propio servidor de registros. Las respuestas del licenciatario están firmadas por él, y quien tiene el registro no puede quitarlas. No se nombra a nadie ni se muestran montos o condiciones.',
   'app.rpay.l.answered':
     'Lo disputó el {date}: «{note}». {licensor} lo ve. Su respuesta está archivada en el servidor de registros de VeilCore con su propia clave (el {filed}). Toda línea sobre este pago en la página de comprobación pública del registro de {licensor} muestra que usted lo disputa, con esa fecha, y {licensor} no puede quitarla.',
   // Before a full read of the registry: nothing said about filing either way.
@@ -152,7 +152,7 @@ export const royaltyPay = {
   'app.rpay.i.breachNotRegistered':
     'La página de comprobación pública dice que este pago está vencido, pero todavía no que usted envió un aviso de incumplimiento: la página de {licensee} aún no ha registrado este informe en el servidor de registros de VeilCore. Normalmente lo hace sola la próxima vez que abran la licencia. Hasta entonces el plazo para pagar no puede empezar allí. Su aviso firmado está en el acuerdo de todos modos.',
   'app.rpay.i.breachNotDue':
-    '{licensee} registró este informe en el servidor de registros de VeilCore con vencimiento el {due}. El registro solo archiva un aviso de incumplimiento a partir del día siguiente a esa fecha, así que la página de comprobación pública de su registro todavía no dice que usted envió uno. Esta página vuelve a preguntar cuando se abra después del {due}. Su aviso firmado está en el acuerdo de todos modos.',
+    '{licensee} registró este informe en el servidor de registros de VeilCore con vencimiento el {due}. El servidor de registros solo archiva un aviso de incumplimiento a partir del día siguiente a esa fecha, así que la página de comprobación pública de su registro todavía no dice que usted envió uno. Esta página vuelve a preguntar cuando se abra después del {due}. Su aviso firmado está en el acuerdo de todos modos.',
   'app.rpay.l.answerPredates':
     'Lo disputó el {date}: «{note}». {licensor} lo ve, firmado por usted. Esta licencia se hizo antes de que el servidor de registros de VeilCore guardara las claves que necesitan las respuestas, así que no se puede archivar allí.',
   'app.rpay.l.pubOverdue':
@@ -168,7 +168,7 @@ export const royaltyPay = {
   'app.rpay.l.pubAnswers': 'Al lado, en su propio nombre: {answers}',
   'app.rpay.l.pubDisputeFailed': 'No se pudo archivar su respuesta ahora. Vuelva a intentarlo en un momento.',
   'app.rpay.i.dueDiffers':
-    'La página de {licensee} registró este informe en el servidor de registros de VeilCore con vencimiento el {registered}, más tarde que el {due} que indican sus términos firmados. El registro se rige por la fecha registrada: solo archiva un aviso de incumplimiento a partir del día siguiente a esa fecha y, una vez pasada, la página de comprobación pública de su registro solo puede decir que el pago está vencido a partir de ese día siguiente. Los términos firmados del acuerdo siguen indicando el {due}.',
+    'La página de {licensee} registró este informe en el servidor de registros de VeilCore con vencimiento el {registered}, más tarde que el {due} que indican sus términos firmados. El servidor de registros se rige por la fecha registrada: solo archiva un aviso de incumplimiento a partir del día siguiente a esa fecha y, una vez pasada, la página de comprobación pública de su registro solo puede decir que el pago está vencido a partir de ese día siguiente. Los términos firmados del acuerdo siguen indicando el {due}.',
   'app.rpay.l.pubLookupFailed':
     'Ahora no se pudo comprobar cada mensaje de este acuerdo en el servidor de registros de VeilCore, así que aquí podría faltar una línea que la página de comprobación pública del registro de {licensor} muestra sobre alguno de ellos. Vuelva a comprobarlo en un momento.',
   'app.rpay.l.pubLookupAgain': 'Comprobar de nuevo',

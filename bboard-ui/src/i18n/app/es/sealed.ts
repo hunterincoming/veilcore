@@ -9,7 +9,7 @@ export const sealed = {
     'este navegador no tiene la clave de sus registros, así que no se guardó nada. Restaure primero su archivo de copia de seguridad.',
   'app.sealed.refuse.mismatch': 'no coincide con su código de prueba, así que no se guardó',
   'app.sealed.refuse.namesKept':
-    'nombra un registro guardado solo en este dispositivo, así que no se guardó. Su copia bloqueada llevaría el nombre y el identificador de ese registro',
+    'nombra un registro guardado solo en este dispositivo, así que no se guardó. Su copia cifrada llevaría el nombre y el identificador de ese registro',
   'app.sealed.mismatch':
     'Este registro no coincide con su código de prueba: puede haberse cambiado después de sellarlo. No se volverá a guardar, enviar ni compartir.',
   'app.sealed.alreadyCorrected':
@@ -52,9 +52,9 @@ export const sealed = {
   'app.sealed.unreadable.other':
     '{count} registros llegaron en un formato que esta versión no puede leer, así que no se muestran.',
   'app.sealed.backupNeeded':
-    '<b>Guarde una copia de seguridad nueva.</b> Sus registros ahora están bloqueados con una clave que solo tiene este navegador hasta que guarde una copia de seguridad. Sin el archivo de copia de seguridad no podrá abrirlos en ningún otro lugar.',
+    '<b>Guarde una copia de seguridad nueva.</b> Sus registros ahora están cifrados con una clave que solo tiene este navegador hasta que guarde una copia de seguridad. Sin el archivo de copia de seguridad no podrá abrirlos en ningún otro lugar.',
   'app.sealed.err.newCode':
-    'Este código se hizo antes de que los envíos se bloquearan, y ya no funciona. Pida al remitente un código nuevo.',
+    'Este código se hizo antes de que los envíos se cifraran, y ya no funciona. Pida al remitente un código nuevo.',
   'app.sealed.recv.missingKey':
     'A este código le falta la última parte. Puede recibirlo igualmente, pero los datos del remitente (quién lo obtuvo y cuándo) no vendrán con él. Pida primero el código completo.',
   'app.sealed.recv.notOpened':
@@ -63,14 +63,14 @@ export const sealed = {
     'Esa copia de seguridad no tiene la clave que abre sus registros. Guarde una nueva y compruébela.',
   'app.sealed.backup.differentVault': 'Este navegador ya abre sus registros con otra clave. No se cambió nada.',
   'app.sealed.backup.olderFile':
-    'Este archivo es de antes de que los registros se bloquearan, así que no tiene su clave. Los registros bloqueados desde entonces seguirán bloqueados hasta que abra un archivo de copia de seguridad más reciente.',
+    'Este archivo es de antes de que los registros se cifraran, así que no tiene su clave. Los registros cifrados desde entonces seguirán cifrados hasta que abra un archivo de copia de seguridad más reciente.',
   'app.sealed.refuse.backupFirst':
-    'se guardó antes de que los registros se bloquearan. Guarde una copia de seguridad y compruébela primero; después se podrán guardar los cambios',
+    'se guardó antes de que los registros se cifraran. Guarde una copia de seguridad y compruébela primero; después se podrán guardar los cambios',
   'app.sealed.refuse.tooLarge': 'es demasiado grande para guardarlo. Acorte sus notas e inténtelo de nuevo',
   'app.sealed.refuse.unknown':
     'No se pudo contactar con VeilCore para comprobar sus registros, así que no se guardó nada. Inténtelo de nuevo en un momento.',
   'app.sealed.refuse.cantStore':
-    'este navegador no puede conservar la clave que bloquea sus registros (una ventana privada o datos del sitio bloqueados), así que no se guardó nada',
+    'este navegador no puede conservar la clave que cifra sus registros (una ventana privada o datos del sitio bloqueados), así que no se guardó nada',
   'app.sealed.tooLarge':
     'Este registro es demasiado grande para guardarlo. Acorte sus notas e inténtelo de nuevo. No se perdió nada de lo que escribió.',
   'app.sealed.size.near': '{used} KB de {max} KB usados.',
@@ -79,25 +79,25 @@ export const sealed = {
   'app.sealed.older':
     'El servidor envió una copia de este registro anterior a la que este navegador guardó por última vez. Si es la copia que quiere, úsela; si no, bórrela.',
   'app.sealed.older.beforeLocking':
-    'El servidor de VeilCore envió una copia de este registro de antes de bloquearlo, anterior a la que este navegador guardó por última vez. Este navegador no la usará ni la volverá a bloquear. Puede borrarla.',
+    'El servidor de VeilCore envió una copia de este registro de antes de cifrarlo, anterior a la que este navegador guardó por última vez. Este navegador no la usará ni la volverá a cifrar. Puede borrarla.',
   'app.sealed.older.agreement':
     'El servidor de VeilCore envió una copia de este acuerdo anterior a la que este navegador guardó por última vez. Si es la copia que quiere, úsela; si no, bórrela.',
   'app.sealed.older.agreementBeforeLocking':
-    'El servidor de VeilCore envió una copia de este acuerdo de antes de bloquearlo, anterior a la que este navegador guardó por última vez. Este navegador no la usará ni la volverá a bloquear. Puede borrarla.',
+    'El servidor de VeilCore envió una copia de este acuerdo de antes de cifrarlo, anterior a la que este navegador guardó por última vez. Este navegador no la usará ni la volverá a cifrar. Puede borrarla.',
   'app.sealed.olderKept.one':
     'El servidor envió una copia anterior de {count} registro. Este navegador conservó la copia más reciente y la vuelve a guardar.',
   'app.sealed.olderKept.other':
     'El servidor envió copias anteriores de {count} registros. Este navegador conservó las copias más recientes y las vuelve a guardar.',
   'app.sealed.revMismatch.one':
-    'El número de versión del servidor para {count} registro no coincidía con el que lleva cerrado dentro. Este navegador se guía por el cerrado y vuelve a guardar el registro.',
+    'El número de versión del servidor para {count} registro no coincidía con el que lleva cifrado dentro. Este navegador se guía por el cifrado y vuelve a guardar el registro.',
   'app.sealed.revMismatch.other':
-    'Los números de versión del servidor para {count} registros no coincidían con los que llevan cerrados dentro. Este navegador se guía por los cerrados y vuelve a guardar los registros.',
+    'Los números de versión del servidor para {count} registros no coincidían con los que llevan cifrados dentro. Este navegador se guía por los cifrados y vuelve a guardar los registros.',
   'app.sealed.importLocked.one': ' Se omitió {count} registro bloqueado: este navegador no tiene su clave.',
   'app.sealed.importLocked.other': ' Se omitieron {count} registros bloqueados: este navegador no tiene su clave.',
   'app.sealed.backupBeforeLocking':
-    '<b>Guarde una copia de seguridad.</b> Sus registros anteriores se bloquearán cuando un archivo de copia de seguridad tenga la clave que los abre. Hasta entonces seguirán en el servidor de VeilCore tal como se guardaron, legibles para VeilCore, y no se podrán guardar cambios en ellos.',
+    '<b>Guarde una copia de seguridad.</b> Sus registros anteriores se cifrarán cuando un archivo de copia de seguridad tenga la clave que los abre. Hasta entonces seguirán en el servidor de VeilCore tal como se guardaron, legibles para VeilCore, y no se podrán guardar cambios en ellos.',
   'app.sealed.cantStore':
-    'Este navegador no puede conservar la clave que bloquea sus registros (una ventana privada o datos del sitio bloqueados). Por eso sus registros anteriores no se bloquearon y aquí no se puede guardar nada nuevo. Abra VeilCore en una ventana normal.',
+    'Este navegador no puede conservar la clave que cifra sus registros (una ventana privada o datos del sitio bloqueados). Por eso sus registros anteriores no se cifraron y aquí no se puede guardar nada nuevo. Abra VeilCore en una ventana normal.',
   'app.sealed.lockedParents.one':
     '{count} registro de un progenitor está bloqueado en este navegador, así que se deja fuera.',
   'app.sealed.lockedParents.other':
@@ -111,7 +111,7 @@ export const sealed = {
   'app.sealed.recv.cantCheck':
     'No se pudo contactar con VeilCore para comprobar sus registros, así que no se recibió nada. Inténtelo de nuevo en un momento.',
   'app.sealed.recv.cantStore':
-    'Este navegador no puede conservar la clave que bloquea sus registros (una ventana privada o datos del sitio bloqueados), así que no se recibió nada. Abra VeilCore en una ventana normal.',
+    'Este navegador no puede conservar la clave que cifra sus registros (una ventana privada o datos del sitio bloqueados), así que no se recibió nada. Abra VeilCore en una ventana normal.',
   'app.sealed.recv.notFinished':
     'Se recibió, pero su registro no se guardó, así que no se firmó nada: {error}. Use «Terminar de recibir» en el registro para volver a intentarlo.',
   'app.sealed.recv.failed': 'Algo salió mal al recibir: {error}',
@@ -125,7 +125,7 @@ export const sealed = {
   'app.sealed.recv.noRecord': 'Ese registro no está en este navegador.',
   'app.sealed.recv.otherCode': 'Ese código es de otra entrega.',
   'app.sealed.recv.offerMissing':
-    'VeilCore no envió los datos bloqueados del remitente para este código, así que el registro no se terminó. Pruebe «Terminar de recibir» en el registro más tarde, o pregunte al remitente.',
+    'VeilCore no envió los datos cifrados del remitente para este código, así que el registro no se terminó. Pruebe «Terminar de recibir» en el registro más tarde, o pregunte al remitente.',
   // Round 3: held saves, the lost-key path, older copies, grants listed before locking
   'app.sealed.agreementsBackupFirst':
     'Guarde una copia de seguridad y compruébela primero. Hasta entonces no se pueden crear ni cambiar acuerdos aquí.',
@@ -137,7 +137,7 @@ export const sealed = {
   'app.sealed.correctionLeft':
     'No se pudo quitar de VeilCore la corrección {id}. Recargue la página y revise sus registros.',
   'app.sealed.grantAsk.text':
-    'Antes de que se bloquearan sus registros, este registro compartía: {keys}. No se vuelve a compartir hasta que usted lo diga.',
+    'Antes de que se cifraran sus registros, este registro compartía: {keys}. No se vuelve a compartir hasta que usted lo diga.',
   'app.sealed.grantAsk.yes': 'Volver a compartir',
   'app.sealed.grantAsk.no': 'No compartir',
   'app.sealed.grantAsk.failed': 'No se guardó: {error}',
@@ -154,12 +154,12 @@ export const sealed = {
   'app.sealed.lost.done':
     'Borrados. Hay una clave nueva: guarde una copia de seguridad y compruébela, y sus registros nuevos se guardarán.',
   'app.sealed.lost.failed': 'No se borró nada: {error}',
-  'app.sealed.lost.nothing': 'aquí no hay nada bloqueado con una clave perdida',
+  'app.sealed.lost.nothing': 'aquí no hay nada cifrado con una clave perdida',
   'app.sealed.older.use': 'Usar esta copia',
   'app.sealed.older.deleteConfirm':
     '¿Borrar {name} de VeilCore? Esta copia anterior es la única copia en el servidor de VeilCore. Una vez borrada, nadie podrá recuperarla.',
   'app.sealed.recv.backupFirst':
-    'Este registro se guardó antes de que los registros se bloquearan. Guarde una copia de seguridad y compruébela primero; después podrá firmar.',
+    'Este registro se guardó antes de que los registros se cifraran. Guarde una copia de seguridad y compruébela primero; después podrá firmar.',
   'app.sealed.recv.backupFirstClaim':
     'Guarde una copia de seguridad y compruébela primero; luego use el código. Todavía no se recibió nada.',
   'app.sealed.recv.noAnswer':
@@ -172,7 +172,7 @@ export const sealed = {
   'app.sealed.refuse.recordRefused':
     'su registro no se pudo guardar con ella, así que la corrección tampoco se guardó. No se cambió nada; se volvió a leer desde VeilCore, así que vuelva a intentar la corrección',
   'app.sealed.unsaved.backup':
-    'Copia bloqueada aún sin subir: guarde y compruebe su copia de seguridad. La fecha de su registro no espera por esto.',
+    'Copia cifrada aún sin subir: guarde y compruebe su copia de seguridad. La fecha de su registro no depende de esto.',
   'app.sealed.unsaved.key':
     'Aún no se guardó. Este navegador no tiene la clave de sus registros en VeilCore. Restaure su copia de seguridad o, si no la tiene, use «No tengo esa copia de seguridad» en la página de sus registros.',
   'app.sealed.unsaved.retry':
@@ -182,7 +182,7 @@ export const sealed = {
   'app.sealed.linksDeletedOpen': 'Abrirla',
   'app.sealed.unsaved.linksDeleted':
     'Esta corrección nombra un registro que su titular eliminó, así que VeilCore no la guardará. Solo se guarda en este navegador. Descártela aquí.',
-  'app.sealed.unsaved.short': 'Copia bloqueada aún sin subir: guarde y compruebe su copia de seguridad',
+  'app.sealed.unsaved.short': 'Copia cifrada aún sin subir: guarde y compruebe su copia de seguridad',
   'app.sealed.unsaved.shortRetry': 'Aún no se guardó',
   'app.sealed.unsaved.discardConfirm':
     '¿Descartar lo que este navegador conserva para este registro? No está en VeilCore, así que no se puede recuperar.',
