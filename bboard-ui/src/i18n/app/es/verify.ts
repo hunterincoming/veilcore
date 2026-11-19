@@ -312,6 +312,7 @@ export const verify = {
   'app.verify.who.lab': 'Un laboratorio',
   'app.verify.who.lab.none': 'Esta página no ha comprobado la firma de ningún laboratorio.',
   'app.verify.who.signed': '{who}. Esta página comprobó la firma.',
+  'app.verify.who.withdrawn': 'Su sitio web ha dejado de publicar esta clave (abajo).',
   'app.verify.who.signedUnbound':
     '{who}, según informa el registro de VeilCore. El enlace no lleva un código de prueba para comprobarla.',
   'app.verify.who.more': 'Más firmas',

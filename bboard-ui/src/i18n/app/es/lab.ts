@@ -17,8 +17,9 @@ export const lab = {
   'app.signer.text': '{lead}.{rest}',
   'app.signer.keyNamed': 'una clave llamada “{name}” (nombre no comprobado)',
   'app.signer.keyUnnamed': 'una clave a la que nadie ha puesto nombre',
-  'app.signer.domainBefore': 'El sitio web ',
-  'app.signer.domainAfter': ' publica esta clave, y la clave nombra ese sitio (consultado el {date}).',
+  'app.signer.domainBefore': 'La clave nombra el sitio web ',
+  'app.signer.domainAfter': ', y VeilCore la encontró publicada allí el {date}.',
+  'app.signer.domainWithdrawn': ', pero VeilCore vio el {date} que ya no está publicada allí.',
   'app.lab.saved.lab': 'guardado · coincide con el informe firmado por el laboratorio',
   'app.lab.saved.self': 'guardado · ninguna firma de laboratorio coincide',
   'app.lab.saved.replacedNewer': 'reemplazado por el laboratorio: guarde el corregido',
@@ -269,7 +270,7 @@ export const lab = {
   'app.lab.key.optional.step1':
     'Envíenos su registro público de licencia o acreditación a <mail>hunter@veilcore.org</mail>.',
   'app.lab.key.optional.step2':
-    'O, si gestiona el sitio web de su laboratorio: ponga este archivo en /.well-known/veilcore-lab.json, escriba su dominio y pulse «Consultar ahora». Así cualquiera puede ver que la clave y el sitio van juntos sin preguntar a VeilCore. Para retirar la clave, quítela del archivo.',
+    'O, si gestiona el sitio web de su laboratorio: ponga este archivo en /.well-known/veilcore-lab.json, escriba su dominio y pulse «Consultar ahora». Así cualquiera puede ver que la clave y el sitio van juntos sin preguntar a VeilCore. Si deja de usar la clave, déjela publicada. Quítela solo para desautorizarla: cuando las consultas diarias de VeilCore no la encuentren dos veces, con un día aproximado de diferencia, las páginas dirán que su sitio dejó de publicarla y la clave no podrá nombrar otro sitio. Si la clave se filtró, escriba también a hunter@veilcore.org para que se retire cualquier comprobación del nombre.',
   'app.lab.key.optional.otherWays': 'Otras formas',
   'app.lab.key.showKey': 'Mostrar clave',
   'app.lab.key.hideKey': 'Ocultar clave',
@@ -283,6 +284,11 @@ export const lab = {
   'app.lab.key.domain.notFound':
     'Aún no se encuentra ({why}). Revise la dirección del archivo y vuelva a consultar en diez minutos.',
   'app.lab.key.domain.couldNot': 'No se pudo consultar: {error}',
+  'app.lab.key.domain.orDid':
+    'O, si su sitio tiene un documento W3C did:web (/.well-known/did.json), publique la clave allí: añada esta entrada a verificationMethod y su id a assertionMethod. ¿Aún no tiene did.json? Guarde uno abajo. Escriba antes su dominio arriba.',
+  'app.lab.key.domain.saveDid': 'Guardar did.json',
+  'app.lab.key.domain.withdrawn':
+    '{domain} dejó de publicar esta clave, así que no puede nombrar otro sitio. Vuelva a publicarla donde ese sitio la publicaba, o cree una clave nueva.',
   'app.lab.key.privateWarning':
     'Su clave privada se guarda en el almacenamiento de este navegador, sin cifrar, y en ningún otro lugar. Para probar está bien. Cualquier cosa que pueda ejecutarse en este sitio, o una extensión del navegador con acceso a él, podría leerla. Si la pierde, no podrá firmar nada nuevo; lo que firmó antes sigue siendo válido, así que guarde una copia en un lugar seguro. Un laboratorio que la use de verdad firmaría dentro de sus propios sistemas: consulte la <link>guía de integración</link>.',
   'app.lab.key.downloadBackup': 'Descargar la copia de seguridad de la clave',

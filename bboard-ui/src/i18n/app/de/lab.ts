@@ -17,8 +17,9 @@ export const lab = {
   'app.signer.text': '{lead}.{rest}',
   'app.signer.keyNamed': 'einem Schlüssel namens „{name}“ (Name nicht geprüft)',
   'app.signer.keyUnnamed': 'einem Schlüssel, den niemand benannt hat',
-  'app.signer.domainBefore': 'Die Website ',
-  'app.signer.domainAfter': ' listet diesen Schlüssel, und der Schlüssel nennt diese Website (abgerufen am {date}).',
+  'app.signer.domainBefore': 'Der Schlüssel nennt die Website ',
+  'app.signer.domainAfter': ', und VeilCore fand ihn dort am {date} aufgeführt.',
+  'app.signer.domainWithdrawn': ', aber VeilCore fand ihn dort am {date} nicht mehr aufgeführt.',
   'app.lab.saved.lab': 'gespeichert · passt zum signierten Bericht des Labors',
   'app.lab.saved.self': 'gespeichert · keine Laborsignatur passt dazu',
   'app.lab.saved.replacedNewer': 'vom Labor ersetzt – speichern Sie den korrigierten',
@@ -272,7 +273,7 @@ export const lab = {
   'app.lab.key.optional.step1':
     'Schicken Sie uns Ihren öffentlichen Lizenz- oder Akkreditierungseintrag an <mail>hunter@veilcore.org</mail>.',
   'app.lab.key.optional.step2':
-    'Oder, wenn Sie die Website Ihres Labors betreiben: Legen Sie diese Datei unter /.well-known/veilcore-lab.json ab, geben Sie Ihre Domain ein und drücken Sie „Jetzt nachsehen“. Dann kann jeder ohne VeilCore sehen, dass Schlüssel und Website zusammengehören. Um den Schlüssel stillzulegen, entfernen Sie ihn aus der Datei.',
+    'Oder, wenn Sie die Website Ihres Labors betreiben: Legen Sie diese Datei unter /.well-known/veilcore-lab.json ab, geben Sie Ihre Domain ein und drücken Sie „Jetzt nachsehen“. Dann kann jeder ohne VeilCore sehen, dass Schlüssel und Website zusammengehören. Wenn Sie den Schlüssel nicht mehr verwenden, lassen Sie ihn aufgeführt. Entfernen Sie ihn nur, um sich von ihm loszusagen: Sobald die täglichen Abrufe von VeilCore ihn zweimal im Abstand von etwa einem Tag nicht mehr gefunden haben, zeigen die Seiten, dass Ihre Website ihn nicht mehr aufführt, und der Schlüssel kann keine andere Website nennen. Ist der Schlüssel in fremde Hände geraten, schreiben Sie außerdem an hunter@veilcore.org, damit eine Namensprüfung entfernt wird.',
   'app.lab.key.optional.otherWays': 'Andere Wege',
   'app.lab.key.showKey': 'Schlüssel anzeigen',
   'app.lab.key.hideKey': 'Schlüssel ausblenden',
@@ -287,6 +288,11 @@ export const lab = {
   'app.lab.key.domain.notFound':
     'Noch nicht gefunden ({why}). Prüfen Sie die Adresse der Datei und sehen Sie in zehn Minuten erneut nach.',
   'app.lab.key.domain.couldNot': 'Konnte nicht nachsehen: {error}',
+  'app.lab.key.domain.orDid':
+    'Oder, wenn Ihre Website ein W3C-did:web-Dokument hat (/.well-known/did.json), führen Sie den Schlüssel dort auf: Fügen Sie diesen Eintrag unter verificationMethod und seine id unter assertionMethod hinzu. Noch keine did.json? Speichern Sie unten eine. Geben Sie zuerst oben Ihre Domain ein.',
+  'app.lab.key.domain.saveDid': 'did.json speichern',
+  'app.lab.key.domain.withdrawn':
+    '{domain} führt diesen Schlüssel nicht mehr auf, daher kann er keine andere Website nennen. Führen Sie ihn dort wieder auf, wo diese Website ihn aufgeführt hat, oder erstellen Sie einen neuen Schlüssel.',
   'app.lab.key.privateWarning':
     'Ihr privater Schlüssel liegt unverschlüsselt im Speicher dieses Browsers und nirgendwo sonst. Zum Ausprobieren ist das in Ordnung. Alles, was auf dieser Website laufen kann, oder eine Browsererweiterung mit Zugriff darauf, könnte ihn lesen. Wenn Sie ihn verlieren, können Sie nichts Neues signieren; was Sie zuvor signiert haben, bleibt gültig, also sichern Sie ihn an einem sicheren Ort. Ein Labor, das ihn wirklich nutzt, würde in seinen eigenen Systemen signieren: siehe den <link>Integrationsleitfaden</link>.',
   'app.lab.key.downloadBackup': 'Schlüsselsicherung herunterladen',

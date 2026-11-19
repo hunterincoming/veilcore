@@ -1,7 +1,9 @@
 # A lab's key on the lab's own website
 
 Status: built (registry `lineage/lab-domain.mjs`, site `attesters.ts` and the lab's key
-screen), November 2026.
+screen), November 2026. Since 18 November 2026 also a did:web document, a website taking a key
+down shown as such, and the key's claim checked on the page itself; the reasoning and the
+threats are in [lab-key-on-website.md](lab-key-on-website.md).
 
 ## Why
 
@@ -17,7 +19,7 @@ VeilCore. It is the same pattern as Nostr's NIP-05
 (`/.well-known/nostr.json`), Bluesky handles (`/.well-known/atproto-did` or a `_atproto` TXT
 record) and `security.txt` (RFC 9116).
 
-## The two ways
+## The three ways
 
 **A file** at `https://<domain>/.well-known/veilcore-lab.json`:
 
@@ -30,6 +32,26 @@ record) and `security.txt` (RFC 9116).
 ```
 
 At most 64 keys and 16 KiB. Served over https on port 443, with no redirect.
+
+**Or a W3C did:web document** at `https://<domain>/.well-known/did.json`, with the key as a
+verification method listed under `assertionMethod` (the key screen shows the entry and saves a
+whole file):
+
+```json
+{
+  "@context": ["https://www.w3.org/ns/did/v1", "https://w3id.org/security/multikey/v1"],
+  "id": "did:web:acme-labs.com",
+  "verificationMethod": [{
+    "id": "did:web:acme-labs.com#veilcore-<first 16 of the key>",
+    "type": "Multikey",
+    "controller": "did:web:acme-labs.com",
+    "publicKeyMultibase": "z6Mk…"
+  }],
+  "assertionMethod": ["did:web:acme-labs.com#veilcore-<first 16 of the key>"]
+}
+```
+
+`Ed25519VerificationKey2020` and `JsonWebKey2020` (an OKP Ed25519 JWK) are read too.
 
 **Or a DNS TXT record** at `_veilcore-lab.<domain>`, one per key:
 
@@ -49,12 +71,19 @@ a domain that lists nothing.
 
 - `POST /attesters/<public key>/domain` with `{ domain, issuedAt, signature }`: only a
   claim the key signed counts, never one older than the claim on record, at most one look
-  per key per ten minutes. The registry fetches the file, then tries the TXT record, and
+  per key per ten minutes. The registry fetches the file, then did.json, then tries the TXT record, and
   records what it saw: the domain, the way, the time and the file's SHA-256. It adds no
   judgement.
 - It looks again at every domain whose last look is a day old (hourly, from the stored
   times, eight at a time). A key the lab takes out of its file stops being shown at the
-  next look; a domain not found for 30 days is forgotten.
+  next look; a domain that never listed the key, or stopped answering, is forgotten after
+  30 days.
+- A key a website had listed and then answered without twice, at least 20 hours apart (a file
+  without it or a 404, and a DNS answer; never a timeout, an error page or a broken file), is
+  served as `domainWithdrawn` and kept until that website lists it again. The registry keeps
+  watching the websites a key moved away from, so a thief moving a leaked key to a lookalike
+  first doesn't stop the lab withdrawing it; while withdrawn, the key can't name another
+  website. Details and limits: [lab-key-on-website.md](lab-key-on-website.md).
 - The fetch only goes to public addresses (global IPv4 and IPv6 unicast, checked when
   connecting, so a name can't be switched to a private one in between), with no redirects,
   5 seconds for the file (body included), 5 for the DNS record, and 16 KiB at most.
@@ -65,10 +94,16 @@ a domain that lists nothing.
 
 ## What pages say
 
-> Receipt signed by a key named "Acme Labs" (name not checked). The website acme-labs.com
-> lists this key, and the key names that website (looked up on 2026-11-05).
+> Receipt signed by a key named "Acme Labs" (name not checked). The key names the website
+> acme-labs.com, and VeilCore found it listed there on 2026-11-05.
 
-The domain is a link to the file, so the reader can look for themselves. A listing does
+> … The key names the website acme-labs.com, but VeilCore found it no longer listed there on
+> 2026-11-10.
+
+The page checks the key's signature naming the website itself; without it, no website is shown.
+That the website lists the key is VeilCore's look, and says so. The domain is a link to the
+file (or did.json, or a public DNS lookup of the TXT record), so the reader can look for themselves.
+A lab that stops using a key leaves it listed; removing it is how a lab disowns it. A listing does
 **not** turn the name green: it shows the key's holder and whoever controls that domain
 name each other, not that the domain belongs to a licensed or accredited lab, nor that the
 domain isn't a lookalike. Matching the domain to a public

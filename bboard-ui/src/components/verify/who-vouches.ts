@@ -37,7 +37,13 @@ export type WhoInput = {
   /** The network the anchor is on is a test network. */
   readonly testNetwork: boolean;
   /** The signatures this page verified, each as the page already words it. */
-  readonly signers: readonly { readonly kind: string; readonly who: string; readonly nameChecked: boolean }[];
+  readonly signers: readonly {
+    readonly kind: string;
+    readonly who: string;
+    readonly nameChecked: boolean;
+    /** The website the key named has since stopped listing it (signerLabel `published.state`). */
+    readonly withdrawn?: boolean;
+  }[];
   /** How many signatures to list before "and N more". */
   readonly max?: number;
   /**
@@ -106,10 +112,13 @@ export const whoVouches = (i: WhoInput, tr: Translator = enT): WhoRow[] => {
       // name says VeilCore's operator matched it and that this isn't VeilCore vouching.
       const who = s.who.charAt(0).toLocaleUpperCase(tr.locale) + s.who.slice(1);
       const key = s.nameChecked ? 'Matched' : '';
+      // A lab disowning its key on its website is said here too, briefly; the line below has it
+      // in full (docs/lab-key-on-website.md). The row's mark doesn't change.
+      const gone = s.withdrawn ? `${t(tr, 'app.signer.sep')}${t(tr, 'app.verify.who.withdrawn')}` : '';
       rows.push(
         i.bound
-          ? { fact: s.kind, who: t(tr, `app.verify.who.signed${key}`, { who }), basis: 'signed' }
-          : { fact: s.kind, who: t(tr, `app.verify.who.signedUnbound${key}`, { who }), basis: 'registry' },
+          ? { fact: s.kind, who: t(tr, `app.verify.who.signed${key}`, { who }) + gone, basis: 'signed' }
+          : { fact: s.kind, who: t(tr, `app.verify.who.signedUnbound${key}`, { who }) + gone, basis: 'registry' },
       );
     }
     if (i.signers.length > max) {

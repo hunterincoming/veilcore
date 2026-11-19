@@ -293,6 +293,7 @@ export const verify = {
   'app.verify.who.lab': '検査機関',
   'app.verify.who.lab.none': 'このページはどの検査機関の署名も確認していません。',
   'app.verify.who.signed': '{who}。このページが署名を確認しました。',
+  'app.verify.who.withdrawn': 'そのウェブサイトは、その後この鍵の掲載をやめています（下記）。',
   'app.verify.who.signedUnbound': '{who}（VeilCoreのレジストリの報告）。リンクに証明コードがないため確認できません。',
   'app.verify.who.more': 'その他の署名',
   'app.verify.who.moreText': 'ほかに{n}件、下に表示しています。',

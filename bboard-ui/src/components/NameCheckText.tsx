@@ -36,7 +36,12 @@ export const NameCheckText: React.FC<{ label: SignerLabel; english?: boolean }> 
     <>
       {sep}
       {label.published.before}
-      <Link href={label.published.href} target="_blank" rel="noopener noreferrer" data-lab-domain="">
+      <Link
+        href={label.published.href}
+        target="_blank"
+        rel="noopener noreferrer"
+        data-lab-domain={label.published.state}
+      >
         {label.published.host}
       </Link>
       {label.published.after}
