@@ -50,6 +50,8 @@ type Stored = {
   readonly sealedAt?: number;
   /** When a backup file holding it was opened and checked (backup.ts checkBackup). */
   readonly backedUpAt?: number;
+  /** 'copy': that check was of the account copy, not a file (security review S1). */
+  readonly backedUpVia?: 'copy';
 };
 
 const B64URL = /^[A-Za-z0-9_-]+$/;
@@ -97,6 +99,7 @@ const read = (): Stored | null => {
         ...(num(v.createdAt) !== undefined ? { createdAt: num(v.createdAt) } : {}),
         ...(num(v.sealedAt) !== undefined ? { sealedAt: num(v.sealedAt) } : {}),
         ...(num(v.backedUpAt) !== undefined ? { backedUpAt: num(v.backedUpAt) } : {}),
+        ...(num(v.backedUpAt) !== undefined && v.backedUpVia === 'copy' ? { backedUpVia: 'copy' as const } : {}),
       };
     }
   } catch {
@@ -210,12 +213,16 @@ export const mintVault = (now = Date.now()): string | null => {
   return key;
 };
 
-/** Adopt a vault key from a backup file (backup.ts). It counts as backed up: it came from one. */
-export const setVaultKey = (key: string, now = Date.now()): void => {
+/**
+ * Adopt a vault key from a backup file (backup.ts). It counts as backed up: it came from one.
+ * `marked: false` for a key from the account copy, which marks nothing on its own: the copy's
+ * check does, once it passes (account-copy.ts).
+ */
+export const setVaultKey = (key: string, now = Date.now(), marked = true): void => {
   if (!isVaultKey(key)) throw new Error('A vault key is 32 bytes, written as 43 base64url characters.');
   keys.clear();
   cache.clear();
-  write({ key, createdAt: now, sealedAt: now, backedUpAt: now });
+  write({ key, createdAt: now, sealedAt: now, ...(marked ? { backedUpAt: now } : {}) });
 };
 
 /**
@@ -251,10 +258,34 @@ export const sealedRowsSeen = (): boolean => seen;
 /** Whether this browser's vault key has sealed anything (so replacing it would lock rows). */
 export const vaultHasSealed = (): boolean => read()?.sealedAt !== undefined;
 
-/** A backup holding this key was opened and checked. */
-export const markVaultBackedUp = (at = Date.now()): void => {
+/**
+ * A backup holding this key was opened and checked: a file, or with `via: 'copy'` the account
+ * copy (a copy's mark never replaces a file's).
+ */
+export const markVaultBackedUp = (at = Date.now(), via?: 'copy'): void => {
   const s = read();
-  if (s) write({ ...s, backedUpAt: at });
+  if (!s) return;
+  if (via === 'copy' && s.backedUpAt !== undefined && s.backedUpVia === undefined) return;
+  const { backedUpVia: _v, ...rest } = s;
+  void _v;
+  write(via === 'copy' ? { ...rest, backedUpAt: at, backedUpVia: 'copy' } : { ...rest, backedUpAt: at });
+};
+
+/** Where this key's backup mark came from: a checked file, the account copy, or none. */
+export const vaultBackedUpVia = (): 'file' | 'copy' | undefined => {
+  const s = read();
+  if (!s || s.backedUpAt === undefined) return undefined;
+  return s.backedUpVia === 'copy' ? 'copy' : 'file';
+};
+
+/** The account copy is gone (security review S1): its mark goes, so records wait for a backup again. */
+export const clearVaultCopyMark = (): void => {
+  const s = read();
+  if (!s || s.backedUpVia !== 'copy') return;
+  const { backedUpAt: _a, backedUpVia: _v, ...rest } = s;
+  void _a;
+  void _v;
+  write(rest);
 };
 
 /** True when this browser's vault key is in no checked backup yet. */

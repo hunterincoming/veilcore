@@ -77,6 +77,8 @@ const BulkImportPage = page(() => import('./components/lab-import/BulkImportPage
 const AuthorityPackPage = page(() => import('./components/authority-pack/AuthorityPackPage'), 'AuthorityPackPage');
 const RestorePage = page(() => import('./components/flow/RestorePage'), 'RestorePage');
 const BackupPage = page(() => import('./components/flow/BackupPage'), 'BackupPage');
+// Records saved with VeilCore and the downloaded copy (easy mode step 2).
+const SettingsPage = page(() => import('./components/flow/SettingsPage'), 'SettingsPage');
 const IntakePage = page(() => import('./components/flow/IntakePage'), 'IntakePage');
 const IntakeSendPage = page(() => import('./components/flow/IntakePage'), 'IntakeSendPage');
 const ProvePage = page(() => import('./components/flow/ProvePage'), 'ProvePage');
@@ -113,6 +115,7 @@ const SaveProblemBar = page(layoutParts, 'SaveProblemBar');
 const RoleChangeLink = page(layoutParts, 'RoleChangeLink');
 const AskLauncher = page(layoutParts, 'AskLauncher');
 const NetworkBadge = page(layoutParts, 'NetworkBadge');
+const AccountKeeper = page(layoutParts, 'AccountKeeper');
 
 const AppLayout: React.FC<React.PropsWithChildren> = ({ children }) => {
   // The role question belongs to the app: making records, holding them, licensing them.
@@ -150,6 +153,9 @@ const AppLayout: React.FC<React.PropsWithChildren> = ({ children }) => {
         A lab says so with "I'm a lab" on its home screen or the footer's "change" link,
         which open this. */}
       <RolePicker ask={false} />
+      {/* Records saved with VeilCore, kept up to date by themselves; the "Keep your records safe"
+        sheet (flow/KeepSafe.tsx, veilcore/account-copy.ts). */}
+      <AccountKeeper />
       {/* The one header, as on every page (fresh-eyes review, 12 Nov). */}
       <SiteHeader badge={<NetworkBadge />} />
       {/* The one main landmark: the header, the page and its notices. The footer stays outside. */}
@@ -179,6 +185,7 @@ const layoutPreload: Preloadable = {
       AskLauncher.preload(),
       RoleChangeLink.preload(),
       NetworkBadge.preload(),
+      AccountKeeper.preload(),
     ]),
 };
 
@@ -359,6 +366,7 @@ const routes = (
     <Route path="/records/authority-pack" element={withLayout(<AuthorityPackPage />)} />
     <Route path="/restore" element={withLayout(<RestorePage />)} />
     <Route path="/backup" element={withLayout(<BackupPage />)} />
+    <Route path="/settings" element={withLayout(<SettingsPage />)} />
     {/* Documents read here rather than in a code repository. */}
     <Route path="/docs/:doc" element={withLayout(<DocPage />)} />
     <Route path="/implementations" element={withLayout(<Implementations />)} />

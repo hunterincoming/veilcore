@@ -312,21 +312,39 @@ export const retract = async (
 // taken as backed up.
 const BACKED_UP = 'veilcore.attester.backed-up.v1';
 
-/** Note that a checked backup holds the lab key `publicKey` (backup.ts checkBackup, a restore). */
-export const markLabKeyBackedUp = (publicKey: string): void => {
+// The same for the account copy (account-copy.ts), kept apart so it goes when the copy does (S1).
+const BACKED_UP_COPY = 'veilcore.attester.backed-up.copy.v1';
+
+/**
+ * Note that a checked backup holds the lab key `publicKey` (backup.ts checkBackup, a restore):
+ * a file, or with `via: 'copy'` the account copy.
+ */
+export const markLabKeyBackedUp = (publicKey: string, via?: 'copy'): void => {
   try {
-    localStorage.setItem(BACKED_UP, publicKey);
+    localStorage.setItem(via === 'copy' ? BACKED_UP_COPY : BACKED_UP, publicKey);
   } catch {
     /* asked again next time */
   }
 };
 
-/** Whether a checked backup holds this browser's lab key. False with no key. */
+/** The account copy is gone (S1): its mark goes. */
+export const clearLabKeyCopyMark = (): void => {
+  try {
+    localStorage.removeItem(BACKED_UP_COPY);
+  } catch {
+    /* nothing kept */
+  }
+};
+
+/** Whether a checked backup (a file or the account copy) holds this browser's lab key. False with no key. */
 export const labKeyBackedUp = (): boolean => {
   const lab = loadAttester();
   if (!lab) return false;
   try {
-    return localStorage.getItem(BACKED_UP) === lab.keypair.publicKey;
+    return (
+      localStorage.getItem(BACKED_UP) === lab.keypair.publicKey ||
+      localStorage.getItem(BACKED_UP_COPY) === lab.keypair.publicKey
+    );
   } catch {
     return false;
   }

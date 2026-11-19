@@ -22,6 +22,7 @@ import { localStamp } from '../../veilcore/time';
 import { useAnchorCadence } from './dating-words';
 import { DATING_STEPS, datingStep, pickUpItems, type DatingStage, type PickUpItem } from './pickup-items';
 import { keysOnlyHere } from './keys-only-here';
+import { useAccountState } from '../../veilcore/account-copy';
 
 /** How often Home looks again while it is open, so a record's progress moves on its own. */
 const REFRESH_MS = 60_000;
@@ -115,13 +116,16 @@ export const PickUp: React.FC<{
       ([id]) => REAL_CHAIN && keys[id] && !keys[id].anchor && records.some((r) => r.id === id),
     ),
   );
+  // Records saved with VeilCore on (easy mode step 2): the backup is said once, on the account
+  // line above (KeepSafe.tsx AccountStatusLine), not again here.
+  const accountOn = useAccountState().kind !== 'off';
   const { items, moreDating } = pickUpItems({
     own: own.map((r) => ({ id: r.id, name: recordTitle(r), loggedAt: r.loggedAt })),
     dating,
     stamps,
     stampingNow: stampInProgress(),
-    waitingForBackup: Object.keys(outboxRecords()).filter((id) => unsavedReason(id) === 'backup'),
-    keysOnlyHere: REAL_CHAIN ? keysOnlyHere(records) : [],
+    waitingForBackup: accountOn ? [] : Object.keys(outboxRecords()).filter((id) => unsavedReason(id) === 'backup'),
+    keysOnlyHere: REAL_CHAIN && !accountOn ? keysOnlyHere(records) : [],
     sent,
     resultsWaiting: Object.fromEntries(Object.entries(waiting).map(([id, list]) => [id, list.length])),
     labUnsigned,

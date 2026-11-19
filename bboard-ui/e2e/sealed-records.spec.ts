@@ -168,6 +168,9 @@ test('(b) the backup file, restored in a fresh browser: the records open, none l
   const fresh = await newPage(browser);
   await fresh.page.addInitScript(() => localStorage.setItem('veilcore.role.v1', 'breeder'));
   await fresh.page.goto('/restore');
+  // Face ID first (easy mode step 2); the file is under "Other ways".
+  const otherWays = fresh.page.locator('[data-restore-other-ways]');
+  if (await otherWays.isVisible()) await otherWays.click();
   const chooser = fresh.page.waitForEvent('filechooser');
   await fresh.page.getByRole('button', { name: /Open my backup file/ }).click();
   await (await chooser).setFiles(file);

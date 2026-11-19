@@ -49,6 +49,8 @@ export type Lender = {
   readonly anchoredAt?: number;
   /** When a checked backup was seen to hold these secrets and every claim's salt. */
   readonly backedUpAt?: number;
+  /** 'copy': that backup was the account copy (security review S1); it goes when the copy does. */
+  readonly backedUpVia?: 'copy';
   readonly claims: readonly LenderClaim[];
 };
 
@@ -195,7 +197,7 @@ export const startClaim = async (
   };
   // The words the commitment was made from are the ones kept: trimmed and capped above match.
   if (c.words !== words.trim()) throw new Error('Keep the words for the loan under 200 characters.');
-  updateLender((x) => ({ ...x, claims: [c, ...x.claims], backedUpAt: undefined }));
+  updateLender((x) => ({ ...x, claims: [c, ...x.claims], backedUpAt: undefined, backedUpVia: undefined }));
   return c;
 };
 
@@ -216,11 +218,13 @@ export const MAX_WAITING = 8;
 
 // ---- the backup file ---------------------------------------------------------------------
 
-export const lenderForBackup = (): Omit<Lender, 'backedUpAt'> | undefined => {
+export const lenderForBackup = (): Omit<Lender, 'backedUpAt' | 'backedUpVia'> | undefined => {
   const l = read();
   if (!l) return undefined;
-  const { backedUpAt: _b, ...rest } = l;
-  return rest;
+  const rest: Record<string, unknown> = { ...l };
+  delete rest.backedUpAt;
+  delete rest.backedUpVia;
+  return rest as Omit<Lender, 'backedUpAt' | 'backedUpVia'>;
 };
 
 /** True when the file holds this lender's secrets and the salt of every claim made here. */
@@ -233,8 +237,17 @@ export const lenderHeldBy = (fromFile: unknown): boolean => {
   return l.claims.every((c) => salts.get(c.claim) === c.salt);
 };
 
-export const markLenderBackedUp = (fromFile: unknown, now = Date.now()): void => {
-  if (read() && lenderHeldBy(fromFile)) updateLender((l) => ({ ...l, backedUpAt: now }));
+/** `via: 'copy'` for the account copy, whose mark never replaces a file's. */
+export const markLenderBackedUp = (fromFile: unknown, now = Date.now(), via?: 'copy'): void => {
+  const l = read();
+  if (!l || !lenderHeldBy(fromFile)) return;
+  if (via === 'copy' && l.backedUpAt !== undefined && l.backedUpVia === undefined) return;
+  updateLender((x) => ({ ...x, backedUpAt: now, backedUpVia: via }));
+};
+
+/** The account copy is gone (S1): its mark goes. */
+export const clearLenderCopyMark = (): void => {
+  if (read()?.backedUpVia === 'copy') updateLender((x) => ({ ...x, backedUpAt: undefined, backedUpVia: undefined }));
 };
 
 /**
@@ -246,8 +259,10 @@ export const mergeLender = (fromFile: unknown, opts: { mark?: boolean } = {}): v
   const here = read();
   const stamp = opts.mark !== false ? { backedUpAt: Date.now() } : {};
   if (!here) {
-    const { backedUpAt: _b, ...rest } = fromFile;
-    write({ ...rest, ...stamp });
+    const rest: Record<string, unknown> = { ...fromFile };
+    delete rest.backedUpAt;
+    delete rest.backedUpVia;
+    write({ ...(rest as Lender), ...stamp });
     return;
   }
   if (here.secret !== fromFile.secret) return;

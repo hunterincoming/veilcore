@@ -109,31 +109,12 @@ export const backup = {
     'Dieser Sicherungskopie fehlt der neueste Stand von {count} Ihrer Datensätze. Speichern Sie eine neue und prüfen Sie diese.',
   'app.backup.err.missingLatest.other':
     'Dieser Sicherungskopie fehlt der neueste Stand von {count} Ihrer Datensätze. Speichern Sie eine neue und prüfen Sie diese.',
-  // The passkey copy (veilcore/passkey-backup.ts, flow/PasskeyCopy.tsx).
-  'app.backup.passkey.title': 'Zusätzlich eine Kopie, die sich mit einem Passkey öffnet',
-  'app.backup.passkey.why':
-    'Wenn Sie dieses Handy verlieren, holt Ihr Passkey alles zurück außer Datensätzen, die nur auf diesem Gerät aufbewahrt werden: Er wird über Ihr Apple- oder Google-Konto auf Ihr neues Handy übertragen. Die Kopie ist mit einem Schlüssel gesperrt, den nur Ihr Passkey erzeugen kann. VeilCore kann sie nicht öffnen.',
-  'app.backup.passkey.keepFile':
-    'Behalten Sie auch die Datei. Wer den Passkey löscht, löscht den einzigen Schlüssel zu dieser Kopie.',
-  'app.backup.passkey.make': 'Passkey-Kopie anlegen',
-  'app.backup.passkey.current': 'Passkey-Kopie aktuell, gespeichert am {date}',
-  'app.backup.passkey.behind': 'Ihre Passkey-Kopie ist vom {date} und enthält neuere Änderungen nicht.',
-  'app.backup.passkey.update': 'Passkey-Kopie aktualisieren',
-  'app.backup.passkey.remove': 'Passkey-Kopie löschen',
-  'app.backup.passkey.removed':
-    'Passkey-Kopie gelöscht. Den Passkey selbst löschen Sie in den Passwort-Einstellungen Ihres Handys.',
-  'app.backup.passkey.restore': 'Meinen Passkey verwenden',
-  'app.backup.passkey.restoreHint':
-    'Schon einmal eine Passkey-Kopie angelegt? Verwenden Sie Ihren Passkey statt einer Datei. Datensätze, die nur auf einem Gerät aufbewahrt wurden, kommen nur aus einer Sicherungsdatei zurück.',
-  'app.backup.passkey.found': 'Ihre Passkey-Kopie vom {date} wurde gefunden. Hier wiederherstellen?',
-  'app.backup.passkey.restoreIt': 'Wiederherstellen',
-  'app.backup.passkey.notThis': 'Nicht diese',
-  'app.backup.passkey.from': 'Aus Ihrer Passkey-Kopie vom {date}.',
+  // A passkey, and records saved with VeilCore (veilcore/passkey-backup.ts, account-copy.ts).
   'app.backup.passkey.err.unsupported':
     'Dieses Handy oder dieser Browser kann keinen Passkey erzeugen, der eine Sicherung öffnet. Verwenden Sie die Sicherungsdatei, oder versuchen Sie es mit Safari auf einem iPhone (iOS 18.4 oder neuer) oder mit Chrome.',
   'app.backup.passkey.err.cancelled': 'Abgebrochen. Es wurde nichts geändert.',
   'app.backup.passkey.err.noCopy':
-    'Für diesen Passkey wurde keine Kopie gefunden. Öffnen Sie stattdessen Ihre Sicherungsdatei.',
+    'Für diesen Passkey wurden keine bei VeilCore gespeicherten Datensätze gefunden. Öffnen Sie stattdessen Ihre Sicherungsdatei.',
   'app.backup.passkey.err.unreachable':
     'Das VeilCore-Register war nicht erreichbar. Prüfen Sie Ihre Verbindung und versuchen Sie es erneut.',
   'app.backup.passkey.err.older':

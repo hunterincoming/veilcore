@@ -69,6 +69,8 @@ import { dnaTieSentence } from '../../veilcore/dna-tie';
 import type { StrainRecord } from '../../veilcore/records';
 import type { SavedReport } from '../../veilcore/saved-report';
 import { PickUp } from './PickUp';
+import { AccountStatusLine } from './KeepSafe';
+import { useAccountState } from '../../veilcore/account-copy';
 import { JobsOnHome } from '../ask/JobsOnHome';
 import { keysOnlyHere } from './keys-only-here';
 import { wantsPasteFirst } from '../site/paste-entry';
@@ -193,6 +195,8 @@ export const AppHome: React.FC = () => {
   const unbackedIds = REAL_CHAIN ? keysOnlyHere(records) : [];
   // Records are sealed with a key only this browser has until a backup holding it is checked.
   const vaultUnbacked = useVaultNeedsBackup();
+  // Records saved with VeilCore (easy mode step 2): one account line says whether they are safe.
+  const accountOn = useAccountState().kind !== 'off';
   // Records saved before locking wait for that backup before they are locked (CONTRACT.md #23).
   const legacyWaiting = records.some((r) => rowStateOf(RECORDS_KEY, r.id) === 'legacy');
   const { vaultProblem } = useSealedView();
@@ -436,7 +440,9 @@ export const AppHome: React.FC = () => {
           }
         />
 
-        {vaultUnbacked && unbackedIds.length === 0 && !waitingForBackup && (
+        {accountOn && <AccountStatusLine />}
+
+        {!accountOn && vaultUnbacked && unbackedIds.length === 0 && !waitingForBackup && (
           <Alert
             severity="warning"
             variant="outlined"
@@ -496,13 +502,8 @@ export const AppHome: React.FC = () => {
               : lab && r.receivedFrom
                 ? { text: labCardLine(r, labFacts[r.id], tr), unfinished: false }
                 : doc
-                  ? // A document's keys are safe once a checked backup holds them, or its locked copy
-                    // on VeilCore does under a backed-up vault key (keys-only-here.ts): a document's
-                    // flow has no backup step of its own after the first, so its key's own
-                    // "backed up" mark alone would call every later document unfinished.
-                    REAL_CHAIN && unbackedIds.includes(r.id)
-                    ? { text: t('app.home.notFinished'), unfinished: true }
-                    : { text: '', unfinished: false }
+                  ? // Whether it is in a backup is said once, on the account line (easy mode step 2).
+                    { text: '', unfinished: false }
                   : homeStatusLine(r, keys[r.id], { realChain: REAL_CHAIN, queued: imported.has(r.id) }, tr);
             // A document says so on its card: its type, then one plain status, dated or waiting for
             // its date (DocumentDateLine), never its key's date stamp (that is under "Technical
@@ -582,9 +583,10 @@ export const AppHome: React.FC = () => {
                       {s.text}
                       {docDated && <DocumentDateLine fingerprint={r.recordFingerprint} loggedAt={r.loggedAt} />}
                     </Typography>
-                    {/* Kept on this device and in the backup only: said on its card, never as "not uploaded yet". */}
+                    {/* Kept on this device only: said on its card. Whether a downloaded copy holds it
+                        is said once, on the account line (easy mode step 2). */}
                     {isKeptOnDeviceOnly(r) &&
-                      (deviceOnlyBackedUp(r) ? (
+                      (deviceOnlyBackedUp(r) || accountOn ? (
                         <Typography variant="body2" color="text.secondary" data-home-device-only={r.id}>
                           {t('app.doc.local.homeLine')}
                         </Typography>
@@ -600,7 +602,8 @@ export const AppHome: React.FC = () => {
                     {/* Kept in this browser, not on VeilCore yet (round 3, L1, L12). */}
                     {/* Not when the card already says it isn't in a backup (unsavedLineKey). */}
                     {(() => {
-                      const k = unsavedLineKey(unsavedReason(r.id), base.text.includes(t('app.home.notFinished')));
+                      // Waiting for a backup is said once, on the account line; a save to retry still is here.
+                      const k = unsavedLineKey(unsavedReason(r.id), true);
                       return k ? (
                         <Typography
                           variant="body2"
@@ -713,8 +716,8 @@ export const AppHome: React.FC = () => {
           </Button>
           <Collapse in={more}>
             <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', justifyContent: 'center', gap: 1 }}>
-              <Button variant="text" onClick={() => void navigate('/backup')}>
-                {t('app.home.saveABackup')}
+              <Button variant="text" onClick={() => void navigate('/settings')} data-settings-link="">
+                {t('app.settings.link')}
               </Button>
               <Button variant="text" onClick={exportRecords}>
                 {t('app.home.exportAll')}

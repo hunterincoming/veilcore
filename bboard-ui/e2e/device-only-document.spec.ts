@@ -173,8 +173,10 @@ test('a document kept on this device only: the registry gets its dating row and 
   expect(recordId).toMatch(/^VEIL-[0-9A-F]+$/);
   // They leave without saving it. Home and the record's page say it is not in a backup yet.
   await page.goto('/records');
-  await expect(page.locator(`[data-home-device-only="${recordId}"]`)).toHaveText(
-    'On this device only · not in a backup yet',
+  // Its card says where it is; that no downloaded copy holds it is said once, on the account line.
+  await expect(page.locator(`[data-home-device-only="${recordId}"]`)).toHaveText('On this device only');
+  await expect(page.locator('[data-account-line="device-only"]')).toContainText(
+    '1 document kept only on this device isn’t in a downloaded copy yet.',
   );
   await page.goto(`/record/${recordId}`);
   await expect(page.getByRole('heading', { name: TITLE })).toBeVisible();

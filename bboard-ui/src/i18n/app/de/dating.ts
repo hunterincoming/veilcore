@@ -31,8 +31,8 @@ export const dating = {
 
   'app.home.restoreFirstTitle': 'VeilCore schon auf einem anderen Gerät genutzt?',
   'app.home.restoreFirstText':
-    'Stellen Sie zuerst Ihre Sicherungskopie wieder her. Ihre Datensätze, ihre Schlüssel und der Schlüssel, der sie öffnet, kommen in diesen Browser zurück.',
-  'app.home.restoreFirstButton': 'Sicherungskopie wiederherstellen',
+    'Holen Sie zuerst Ihre Datensätze hierher zurück: mit Face ID oder mit der gespeicherten Sicherungsdatei.',
+  'app.home.restoreFirstButton': 'Meine Datensätze zurückholen',
 
   'app.pickup.title': 'Noch in Arbeit',
   'app.pickup.open': 'Öffnen',

@@ -140,7 +140,7 @@ test('a plant logged with no backup is still dated in the next batch, and Home p
   // A new device: Home offers the backup first, before anything is logged.
   await page.goto('/records');
   await expect(page.locator('[data-restore-first]')).toContainText('Used VeilCore on another device?');
-  await expect(page.locator('[data-restore-first]').getByRole('link', { name: 'Restore your backup' })).toBeVisible();
+  await expect(page.locator('[data-restore-first]').getByRole('link', { name: 'Get my records back' })).toBeVisible();
   await shot(page, '1-new-device-home');
 
   const name = `Dating first (practice) ${Date.now()}`;
@@ -187,13 +187,14 @@ test('a plant logged with no backup is still dated in the next batch, and Home p
   await expect(pickup.locator('[data-pickup-item="dating"]')).toContainText(
     `${name} will get its date in the next batch`,
   );
-  await expect(pickup.locator('[data-pickup-item="locked-copies"]')).toContainText(
-    'locked copy not uploaded yet — save and check your backup. Your record’s date isn’t waiting on this.',
-  );
   await expect(pickup.locator('[data-pickup-item="stamp"]')).toContainText(`Key date stamp for ${name}`);
-  // The record's own card says it isn't in a backup, so the locked-copy line under it isn't
-  // said again (live walk, 18 Nov): once at the top, once on the card.
-  await expect(page.getByText('Not in your backup yet · next: save your backup')).toHaveCount(1);
+  // Whether records are kept safe is said once, on the account line (easy mode step 2): never
+  // on the record's card, and not again in "Still in progress".
+  const accountLine = page.locator('[data-account-line="none"]');
+  await expect(accountLine).toContainText('Not saved to your account yet.');
+  await expect(accountLine.getByRole('button', { name: 'Fix it' })).toBeVisible();
+  await expect(pickup.locator('[data-pickup-item="locked-copies"]')).toHaveCount(0);
+  await expect(page.getByText(/Not in your backup yet/)).toHaveCount(0);
   await expect(page.locator(`[data-home-unsaved="${recordId}"]`)).toHaveCount(0);
   await shot(page, '3-home-pick-up-where-you-left-off');
 
@@ -206,12 +207,13 @@ test('a plant logged with no backup is still dated in the next batch, and Home p
 
   // Home again: the record is dated, so it is no longer listed; the backup and the stamp still are.
   await page.goto('/records');
-  await expect(pickup.locator('[data-pickup-item="locked-copies"]')).toBeVisible();
+  await expect(accountLine).toBeVisible();
   await expect(pickup.locator('[data-pickup-item="dating"]')).toHaveCount(0);
 
-  // They save the backup and check it: the locked copy goes up with the same proof code, and
-  // after a reload nothing asks for the backup again.
-  await pickup.getByRole('button', { name: 'Save my backup' }).click();
+  // They keep a file themselves ("Other ways" on the sheet; Settings, "Download a copy"): the
+  // locked copy goes up with the same proof code, and after a reload nothing asks again.
+  await page.goto('/settings');
+  await page.locator('[data-settings-file]').getByRole('button', { name: 'Download a copy' }).click();
   await saveAndCheckBackup(page);
   await expect
     .poll(async () => !!(await rows()).find((r) => r.id === recordId)?.sealed, { timeout: 30_000 })
@@ -224,6 +226,7 @@ test('a plant logged with no backup is still dated in the next batch, and Home p
   await expect(page.locator('[data-pickup-item="locked-copies"]')).toHaveCount(0);
   await expect(page.locator('[data-pickup-item="fresh-backup"]')).toHaveCount(0);
   await expect(page.locator('[data-vault-backup]')).toHaveCount(0);
+  await expect(page.locator('[data-account-line]')).toHaveCount(0);
   await expect(page.getByRole('dialog')).toHaveCount(0);
   await shot(page, '5-home-after-backup');
   expectNoErrors(errors);

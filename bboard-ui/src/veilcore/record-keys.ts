@@ -23,6 +23,7 @@
 
 import { useSyncExternalStore } from 'react';
 import { bindingForSecret } from './key-binding';
+import { vaultBackedUpVia } from './vault';
 
 const KEY = 'veilcore.record-keys.v1';
 
@@ -82,6 +83,12 @@ export type RecordKeys = {
   readonly createdAt: number;
   /** When the backup file was last downloaded (or the keys were restored from one). */
   readonly backedUpAt?: number;
+  /**
+   * 'copy' when that mark came from the account copy (account-copy.ts), not a checked file
+   * (security review S1): such a mark goes away when the copy or its way in does. A file's
+   * mark has none, and a copy's mark never replaces it.
+   */
+  readonly backedUpVia?: 'copy';
   readonly anchor?: ChainAnchor;
   readonly dnaOnChain?: DnaOnChain;
 };
@@ -273,7 +280,11 @@ export const downloadBackup = (keys: RecordKeys, extra: Parameters<typeof backup
   a.download = `${keys.recordId}.record-keys.SECRET.json`;
   a.click();
   URL.revokeObjectURL(url);
-  update(keys.recordId, (k) => ({ ...k, backedUpAt: Date.now() }));
+  update(keys.recordId, (k) => {
+    const { backedUpVia: _v, ...rest } = k;
+    void _v;
+    return { ...rest, backedUpAt: Date.now() };
+  });
 };
 
 /** Restore keys from a backup file (another device, or after clearing the browser). */
@@ -332,7 +343,7 @@ export const restoreKeysEntry = (
     ...(dna ? { dnaOnChain: dna } : {}),
     ...(opts.mark === false
       ? existing?.backedUpAt !== undefined
-        ? { backedUpAt: existing.backedUpAt }
+        ? { backedUpAt: existing.backedUpAt, ...(existing.backedUpVia ? { backedUpVia: existing.backedUpVia } : {}) }
         : {}
       : sameAsFile
         ? { backedUpAt: Date.now() }
@@ -388,8 +399,10 @@ export const adoptSealedSecrets = (record: { id: string; keyBinding?: string }, 
     recordSecret: s.recordSecret,
     recoverySecret: s.recoverySecret,
     createdAt: s.createdAt,
-    // Held in the sealed record, which the vault key in the checked backup opens.
+    // Held in the sealed record, which the vault key in the checked backup opens: as safe as
+    // that key, so a mark from the account copy (S1) goes when the vault key's does.
     backedUpAt: Date.now(),
+    ...(vaultBackedUpVia() === 'copy' ? { backedUpVia: 'copy' as const } : {}),
   };
   const all = readAll();
   if (!writeAll({ ...all, [record.id]: keys })) sessionOnly = { ...sessionOnly, [record.id]: keys };
@@ -411,12 +424,41 @@ export const keysEntry = (keys: RecordKeys) => ({
   createdAt: new Date(keys.createdAt).toISOString(),
 });
 
-/** Mark these records as held in a backup that was checked to open (backup.ts). */
-export const markBackedUp = (recordIds: readonly string[], at = Date.now()): void => {
+/**
+ * Mark these records as held in a backup that was checked to open (backup.ts): a file, or with
+ * `via: 'copy'` the account copy (account-copy.ts). A copy's mark never replaces a file's.
+ */
+export const markBackedUp = (recordIds: readonly string[], at = Date.now(), via?: 'copy'): void => {
   const all = readAll();
   const next = { ...all };
-  for (const id of recordIds) if (next[id]) next[id] = { ...next[id], backedUpAt: at };
+  for (const id of recordIds) {
+    const k = next[id];
+    if (!k) continue;
+    if (via === 'copy' && k.backedUpAt !== undefined && k.backedUpVia === undefined) continue;
+    const { backedUpVia: _v, ...rest } = k;
+    void _v;
+    next[id] = via === 'copy' ? { ...rest, backedUpAt: at, backedUpVia: 'copy' } : { ...rest, backedUpAt: at };
+  }
   if (!writeAll(next)) for (const id of recordIds) if (next[id]) sessionOnly = { ...sessionOnly, [id]: next[id] };
+  changed();
+};
+
+/**
+ * The account copy, or its last way in, is gone (security review S1): every mark it made goes,
+ * so those records ask for a backup again. A file's marks stay.
+ */
+export const clearCopyBackedUp = (): void => {
+  const all = readAll();
+  const ids = Object.keys(all).filter((id) => all[id].backedUpVia === 'copy');
+  if (ids.length === 0) return;
+  const next = { ...all };
+  for (const id of ids) {
+    const { backedUpAt: _a, backedUpVia: _v, ...rest } = next[id];
+    void _a;
+    void _v;
+    next[id] = rest;
+  }
+  if (!writeAll(next)) for (const id of ids) sessionOnly = { ...sessionOnly, [id]: next[id] };
   changed();
 };
 
@@ -429,8 +471,10 @@ export const setDnaOnChain = (recordId: string, dnaOnChain: DnaOnChain): void =>
     // A backup made before this change does not hold it (a new salt, or the transaction
     // of a pairing that has now landed): ask for a fresh one.
     const changed = k.dnaOnChain?.salt !== dnaOnChain.salt || k.dnaOnChain?.status !== dnaOnChain.status;
-    const { backedUpAt, ...rest } = k;
-    return changed ? { ...rest, dnaOnChain } : { ...rest, backedUpAt, dnaOnChain };
+    const { backedUpAt, backedUpVia, ...rest } = k;
+    return changed
+      ? { ...rest, dnaOnChain }
+      : { ...rest, backedUpAt, ...(backedUpVia ? { backedUpVia } : {}), dnaOnChain };
   });
 
 /** Forget a pairing that was never sent (the call failed before anything left the browser). */
@@ -467,6 +511,8 @@ const writeForgotten = (ids: readonly string[]): void => {
   }
 };
 export const wasForgotten = (recordId: string): boolean => readForgotten().includes(recordId);
+/** Every record removed from this browser on purpose (the account copy carries them: review S13). */
+export const forgottenIds = (): string[] => readForgotten();
 
 /** Delete a record's keys from this browser. The UI asks first, and says what is lost. */
 export const forgetKeys = (recordId: string): void => {

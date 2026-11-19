@@ -27,11 +27,10 @@ const anchor = {
 describe('Home’s line for a plant (test builds, where keys are date stamped from the browser)', () => {
   const on = { realChain: true };
 
-  it('a missing backup is still "Not finished": the keys are only on this device', () => {
-    expect(homeStatusLine({ loggedAt }, keys(), on)).toEqual({
-      text: 'Not in your backup yet · next: save your backup',
-      unfinished: true,
-    });
+  it('a missing backup is not said on the card: Home’s one account line says it (easy mode step 2)', () => {
+    const line = homeStatusLine({ loggedAt }, keys(), on);
+    expect(line.text).not.toMatch(/backup/i);
+    expect(line.unfinished).toBe(false);
   });
 
   it('an imported plant waiting for its key stamp reads as done, with "key date stamp queued"', () => {

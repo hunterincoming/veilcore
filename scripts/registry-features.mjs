@@ -79,8 +79,13 @@ export const AGREEMENT_FEATURES = Object.freeze({
   "license-invites-v1": "making a license between two people",
   "deals-v1": "the private channel for terms and royalties",
   "payment-receipts-v1": "receipts from payment partners",
-  // Ships with agreements (config/copy.ts PASSKEY_BACKUP): the lost-phone way back.
+  // Ships with agreements (config/copy.ts PASSKEY_BACKUP): the lost-phone way back. Since easy
+  // mode step 2 only read and deleted, to move an older copy over.
   "passkey-vault-v1": "the backup copy that opens with a passkey",
+  // Records saved with VeilCore (bboard-ui veilcore/account-copy.ts, the registry's
+  // lineage/account-copy.mjs): one locked copy, opened by Face ID, saved by itself. An older
+  // registry answers 404 and nothing would be saved: deploy the registry first.
+  "account-copy-v1": "records saved with VeilCore (one locked copy, opened by Face ID)",
   // A licensor's record's public check page says a royalty statement is overdue, or a license
   // was revoked for non-payment (bboard-ui veilcore/license-notices.ts, docs/royalty-pay.md).
   "license-notices-v1": "overdue and revoked-for-non-payment notices on a record's check page",

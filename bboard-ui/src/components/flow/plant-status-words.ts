@@ -47,7 +47,9 @@ export const labReceiptRow = (receipt: LabReceipt | null | undefined, tr: Transl
 };
 
 /**
- * Home's one line for a plant, worst news first. Only a missing backup is "Not finished":
+ * Home's one line for a plant. No backup words: whether records are kept safe is said once, on
+ * the account line (KeepSafe.tsx AccountStatusLine, easy mode step 2), never per record. Before,
+ * only a missing backup was "Not finished":
  * the record is sealed and its date comes from its batch, so a key not yet date stamped
  * is a quiet note, not a step left undone. A collection import queues its key stamps at
  * about 3 a day, and 120 plants all marked "Not finished" for 40 days said something false
@@ -60,7 +62,6 @@ export const homeStatusLine = (
   opts: { realChain: boolean; queued?: boolean },
   tr: Translator = enT,
 ): { text: string; unfinished: boolean } => {
-  if (opts.realChain && keys && !keys.backedUpAt) return { text: tr.t('app.home.notFinished'), unfinished: true };
   const bits = [
     r.receivedFrom
       ? r.senderName
