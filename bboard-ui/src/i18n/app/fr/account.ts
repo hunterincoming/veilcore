@@ -10,7 +10,7 @@ export const account = {
   'app.account.use.passkey': 'Utiliser une clé d’accès',
 
   'app.account.sheet.title': 'Gardez vos enregistrements en sécurité',
-  'app.account.sheet.lead': 'Pour ne jamais les perdre, même si vous perdez cet appareil.',
+  'app.account.sheet.lead': 'Pour pouvoir les récupérer, même si vous perdez cet appareil.',
   'app.account.sheet.how':
     'Vos enregistrements sont sauvegardés chez VeilCore, verrouillés pour que vous seul puissiez les ouvrir : VeilCore n’a pas la clé. Vos autres téléphones et ordinateurs sur le même compte Apple ou Google les ouvrent aussi. Les documents que vous gardez sur cet appareil seulement n’en font pas partie.',
   'app.account.sheet.usePhone':
@@ -34,7 +34,7 @@ export const account = {
   'app.account.line.none': '<b>Pas encore sauvegardé dans votre compte.</b>',
   'app.account.line.fix': 'Corriger',
   'app.account.line.older':
-    '<b>Vos enregistrements sauvegardés ont besoin d’un Face ID pour continuer à se sauvegarder.</b>',
+    '<b>Déverrouillez une fois vos enregistrements sauvegardés pour continuer à sauvegarder.</b>',
   'app.account.line.locked':
     '<b>La sauvegarde est en pause sur cet appareil.</b> Ouvrez vos enregistrements une fois pour continuer.',
   'app.account.line.continue': 'Continuer',
@@ -44,7 +44,7 @@ export const account = {
   'app.account.line.slotMissing':
     '<b>Un moyen d’ouvrir vos enregistrements sauvegardés manque sur le serveur de VeilCore.</b> Configurez-le à nouveau.',
   'app.account.line.serverOlder':
-    '<b>Le serveur de VeilCore montre une copie de vos enregistrements plus ancienne que celle que cet appareil a vue.</b> Rien n’a été modifié. Téléchargez une copie par sécurité.',
+    '<b>Quelque chose ne va pas sur le serveur de VeilCore.</b> Vos enregistrements sur cet appareil vont bien, et rien n’a été modifié. Téléchargez une copie par sécurité.',
   'app.account.line.failing':
     '<b>La sauvegarde dans votre compte n’a pas marché.</b> {why} Elle sera réessayée toute seule.',
   'app.account.line.tryNow': 'Réessayer maintenant',
@@ -52,12 +52,12 @@ export const account = {
     '<b>Sauvegardé chez VeilCore, mais seul cet appareil peut l’ouvrir.</b> Téléchargez une copie que vous gardez vous-même.',
   'app.account.line.download': 'Télécharger une copie',
   'app.account.line.deviceOnly.one':
-    '<b>{count} document gardé sur cet appareil seulement n’est encore dans aucune copie téléchargée.</b>',
+    '<b>{count} document est seulement sur cet appareil.</b> Téléchargez une copie pour le garder en sécurité.',
   'app.account.line.deviceOnly.other':
-    '<b>{count} documents gardés sur cet appareil seulement ne sont encore dans aucune copie téléchargée.</b>',
+    '<b>{count} documents sont seulement sur cet appareil.</b> Téléchargez une copie pour les garder en sécurité.',
   'app.account.line.stale':
     'Votre {device} n’a rien sauvegardé depuis le {date}. Si vous l’utilisez encore, ouvrez VeilCore dessus.',
-  'app.account.line.gone': 'Il n’existe plus',
+  'app.account.line.gone': 'Retirer cet appareil',
   'app.account.line.unknownSlot':
     '<b>Quelque chose que vous n’avez pas ajouté peut ouvrir vos enregistrements sauvegardés.</b>',
   'app.account.line.seeSettings': 'Voir les Réglages',
@@ -97,7 +97,7 @@ export const account = {
   'app.settings.account.off':
     'Pas configuré. Sauvegardez vos enregistrements chez VeilCore pour les retrouver sur un nouveau téléphone.',
   'app.settings.account.why':
-    'Les clés de vos enregistrements sont stockées verrouillées sur le serveur de VeilCore, et VeilCore n’a pas la clé pour les ouvrir. Vos enregistrements reviennent aussi de là : cela marche tant que VeilCore fonctionne. Une copie téléchargée marche sans VeilCore.',
+    'Vos enregistrements sont gardés verrouillés sur le serveur de VeilCore, et vous seul pouvez les ouvrir. Ils reviennent de là : cela marche tant que VeilCore fonctionne. Une copie téléchargée marche sans VeilCore.',
   'app.settings.ways.title': 'Moyens de les ouvrir',
   'app.settings.ways.synced': 'Clé d’accès sur vos appareils du même compte Apple ou Google · ajoutée le {date}',
   'app.settings.ways.bound': 'Clé d’accès sur un seul appareil · ajoutée le {date}',
@@ -116,4 +116,6 @@ export const account = {
   'app.settings.file.text':
     'Un fichier que vous gardez vous-même. Il marche sans VeilCore, et c’est le seul autre endroit où sont sauvegardés les documents que vous gardez sur cet appareil seulement.',
   'app.settings.file.button': 'Télécharger une copie',
+  'app.settings.devices.removeConfirm':
+    'Retirer votre {device} de cette liste ? S’il sauvegarde à nouveau, il revient.',
 } satisfies Partial<AppTranslation>;

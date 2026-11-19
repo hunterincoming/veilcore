@@ -98,11 +98,19 @@ export const SettingsPage: React.FC = () => {
                                 date: tr.date(d.at),
                               })}
                             </Typography>
-                            {!d.here && (
+                            {!d.here && s.staleDevices.some((x) => x.id === d.id) && (
                               <Button
                                 size="small"
                                 color="inherit"
-                                onClick={() => forgetDevice(d.id)}
+                                variant="outlined"
+                                onClick={() => {
+                                  if (
+                                    window.confirm(
+                                      t('app.settings.devices.removeConfirm', { device: deviceWords(d.kind, tr) }),
+                                    )
+                                  )
+                                    forgetDevice(d.id);
+                                }}
                                 sx={{ minHeight: 36 }}
                               >
                                 {t('app.account.line.gone')}

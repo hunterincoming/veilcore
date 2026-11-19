@@ -11,7 +11,7 @@ export const account = {
   'app.account.use.passkey': 'パスキーを使う',
 
   'app.account.sheet.title': '記録を安全に保管する',
-  'app.account.sheet.lead': 'この端末をなくしても、記録をなくさないために。',
+  'app.account.sheet.lead': 'この端末をなくしても、記録を取り戻せるように。',
   'app.account.sheet.how':
     '記録はVeilCoreに保存され、あなただけが開けるように鍵がかかります。VeilCoreはその鍵を持っていません。同じAppleまたはGoogleアカウントのほかのスマートフォンやパソコンでも開けます。この端末だけに保管している書類は含まれません。',
   'app.account.sheet.usePhone':
@@ -32,7 +32,7 @@ export const account = {
 
   'app.account.line.none': '<b>まだアカウントに保存されていません。</b>',
   'app.account.line.fix': '直す',
-  'app.account.line.older': '<b>保存した記録の保存を続けるには、Face IDが1回必要です。</b>',
+  'app.account.line.older': '<b>保存を続けるには、保存した記録を一度開いてください。</b>',
   'app.account.line.locked': '<b>この端末では保存が止まっています。</b>続けるには、記録を一度開いてください。',
   'app.account.line.continue': '続ける',
   'app.account.line.missing': '<b>VeilCoreに保存した記録がサーバーにありません。</b>もう一度保存してください。',
@@ -40,17 +40,17 @@ export const account = {
   'app.account.line.slotMissing':
     '<b>保存した記録を開く方法の一つが、VeilCoreのサーバーから消えています。</b>もう一度設定してください。',
   'app.account.line.serverOlder':
-    '<b>VeilCoreのサーバーが、この端末が見たものより古い記録のコピーを示しています。</b>何も変更していません。念のためコピーをダウンロードしてください。',
+    '<b>VeilCoreのサーバーに問題があるようです。</b>この端末の記録は無事で、何も変更していません。念のためコピーをダウンロードしてください。',
   'app.account.line.failing': '<b>アカウントに保存できませんでした。</b>{why}自動でもう一度試します。',
   'app.account.line.tryNow': '今すぐ試す',
   'app.account.line.bound':
     '<b>VeilCoreに保存しましたが、開けるのはこの端末だけです。</b>自分で保管するコピーをダウンロードしてください。',
   'app.account.line.download': 'コピーをダウンロード',
   'app.account.line.deviceOnly.other':
-    '<b>この端末だけに保管している書類{count}件が、まだダウンロードしたコピーに入っていません。</b>',
+    '<b>書類{count}件がこの端末にしかありません。</b>安全のためコピーをダウンロードしてください。',
   'app.account.line.stale':
     'お使いの{device}は{date}から保存していません。まだ使っている場合は、そちらでVeilCoreを開いてください。',
-  'app.account.line.gone': 'もう使っていない',
+  'app.account.line.gone': 'この端末を外す',
   'app.account.line.unknownSlot': '<b>あなたが追加していないものが、保存した記録を開ける状態です。</b>',
   'app.account.line.seeSettings': '設定を見る',
 
@@ -84,7 +84,7 @@ export const account = {
   'app.settings.account.bound': '{date}に保存しましたが、開けるのはこの端末だけです。',
   'app.settings.account.off': '未設定です。新しいスマートフォンでも記録を取り戻せるよう、VeilCoreに保存してください。',
   'app.settings.account.why':
-    '記録の鍵は、鍵をかけたままVeilCoreのサーバーに保存され、VeilCoreはそれを開ける鍵を持っていません。記録もそこから戻るため、これはVeilCoreが動いている間だけ使えます。ダウンロードしたコピーはVeilCoreなしでも使えます。',
+    '記録は鍵をかけたままVeilCoreのサーバーに保管され、開けるのはあなただけです。記録はそこから戻るため、これはVeilCoreが動いている間だけ使えます。ダウンロードしたコピーはVeilCoreなしでも使えます。',
   'app.settings.ways.title': '開く方法',
   'app.settings.ways.synced': '同じAppleまたはGoogleアカウントの端末にあるパスキー・{date}に追加',
   'app.settings.ways.bound': '一台の端末だけにあるパスキー・{date}に追加',
@@ -101,4 +101,6 @@ export const account = {
   'app.settings.file.text':
     '自分で保管するファイルです。VeilCoreなしでも使え、この端末だけに保管している書類が保存される唯一のほかの場所です。',
   'app.settings.file.button': 'コピーをダウンロード',
+  'app.settings.devices.removeConfirm':
+    'お使いの{device}をこの一覧から外しますか？もう一度保存すると、また表示されます。',
 } satisfies Partial<AppTranslation>;

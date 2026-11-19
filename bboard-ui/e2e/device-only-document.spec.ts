@@ -176,7 +176,7 @@ test('a document kept on this device only: the registry gets its dating row and 
   // Its card says where it is; that no downloaded copy holds it is said once, on the account line.
   await expect(page.locator(`[data-home-device-only="${recordId}"]`)).toHaveText('On this device only');
   await expect(page.locator('[data-account-line="device-only"]')).toContainText(
-    '1 document kept only on this device isn’t in a downloaded copy yet.',
+    '1 document is only on this device. Download a copy to keep it safe.',
   );
   await page.goto(`/record/${recordId}`);
   await expect(page.getByRole('heading', { name: TITLE })).toBeVisible();

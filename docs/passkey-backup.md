@@ -107,6 +107,33 @@ The two reviews disagreed. Decided:
   come back from the registry's sealed rows. The downloaded copy holds the records themselves and
   works without VeilCore, so it stays, in Settings.
 
+## Found in the attack pass on this step (19 Nov 2026), and what was done
+
+- **The list of deleted records only grew** (high). A record restored from a file after being
+  deleted is now listed as restored, with its date, and the later of the two wins; a record the
+  copy lists as deleted is never counted as in the copy (its copy mark goes). Still open: a script
+  running in the page (XSS) could, for that visit, save a copy listing every record as deleted. A
+  new device would then leave them out (the records stay on every device that holds them). A cap
+  on how many deletions one save may add, and asking before a restore skips more than a few, is
+  the follow-up.
+- **"Save again" deleted the copy when this passkey's slot was missing** (medium). It now
+  deletes the old copy only when that passkey was its one way in.
+- **Two tabs could lower the counter this browser remembers** (medium). Saves now take a browser
+  lock (Web Locks) where there is one, and the remembered counter never goes down.
+- **A copy shown back older than the one just saved** was reported as "damaged". It is now
+  refused as older, and Home says so.
+- **Not done:** a slot is verified once, at setup or on a new device; nothing re-verifies it later,
+  so a registry that keeps a slot listed but corrupts its sealed key is found only at a restore
+  (re-verify after 90 days, with step 3). A passkey whose sync is turned off later keeps counting
+  until it is next opened. The save when the page is hidden goes at once, without the random wait.
+
+## Restoring the registry from a backup (operators)
+
+Every device refuses a copy older than one it has seen. After the registry's database is restored
+from a backup (`backup.mjs`), each person's devices show "Something looks wrong on VeilCore's
+server" and stop saving until the person deletes the copy in Settings ("Stop saving with
+VeilCore") and sets it up again. Say so in the notice about the restore.
+
 ## Moving the older passkey copy over
 
 A browser that kept a passkey copy before this asks for that passkey once ("Your saved records

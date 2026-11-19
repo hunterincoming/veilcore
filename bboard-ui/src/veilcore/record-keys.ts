@@ -351,7 +351,10 @@ export const restoreKeysEntry = (
   };
   const all = readAll();
   if (!writeAll({ ...all, [keys.recordId]: merged })) sessionOnly = { ...sessionOnly, [keys.recordId]: merged };
-  if (wasForgotten(keys.recordId)) writeForgotten(readForgotten().filter((id) => id !== keys.recordId));
+  if (wasForgotten(keys.recordId)) {
+    writeForgotten(readForgotten().filter((id) => id !== keys.recordId));
+    noteRestored(keys.recordId);
+  }
   changed();
   return merged;
 };
@@ -447,9 +450,9 @@ export const markBackedUp = (recordIds: readonly string[], at = Date.now(), via?
  * The account copy, or its last way in, is gone (security review S1): every mark it made goes,
  * so those records ask for a backup again. A file's marks stay.
  */
-export const clearCopyBackedUp = (): void => {
+export const clearCopyBackedUp = (only?: ReadonlySet<string>): void => {
   const all = readAll();
-  const ids = Object.keys(all).filter((id) => all[id].backedUpVia === 'copy');
+  const ids = Object.keys(all).filter((id) => all[id].backedUpVia === 'copy' && (!only || only.has(id)));
   if (ids.length === 0) return;
   const next = { ...all };
   for (const id of ids) {
@@ -513,6 +516,26 @@ const writeForgotten = (ids: readonly string[]): void => {
 export const wasForgotten = (recordId: string): boolean => readForgotten().includes(recordId);
 /** Every record removed from this browser on purpose (the account copy carries them: review S13). */
 export const forgottenIds = (): string[] => readForgotten();
+
+/** Records brought back from a file after being removed, and when (the account copy carries them too). */
+const RESTORED = 'veilcore.record-keys.restored.v1';
+export const restoredIds = (): Record<string, string> => {
+  try {
+    const v: unknown = JSON.parse(localStorage.getItem(RESTORED) ?? '{}');
+    return typeof v === 'object' && v !== null && !Array.isArray(v)
+      ? Object.fromEntries(Object.entries(v).filter((e): e is [string, string] => typeof e[1] === 'string'))
+      : {};
+  } catch {
+    return {};
+  }
+};
+const noteRestored = (recordId: string): void => {
+  try {
+    localStorage.setItem(RESTORED, JSON.stringify({ ...restoredIds(), [recordId]: new Date().toISOString() }));
+  } catch {
+    /* the copy keeps the deletion; the record stays here */
+  }
+};
 
 /** Delete a record's keys from this browser. The UI asks first, and says what is lost. */
 export const forgetKeys = (recordId: string): void => {

@@ -220,7 +220,7 @@ test('Face ID keeps records safe, a second browser gets them back, saving runs b
   await expect(stamp).toBeDisabled();
   await A.page.goto('/records');
   await expect(A.page.locator('[data-account-line="device-only"]')).toContainText(
-    '1 document kept only on this device isn’t in a downloaded copy yet.',
+    '1 document is only on this device. Download a copy to keep it safe.',
   );
   await shots(A.page, '06-home-device-only-line');
   // Saved by itself (the end-to-end build waits seconds, not a minute): the copy now knows of it.
@@ -287,7 +287,7 @@ test('Face ID keeps records safe, a second browser gets them back, saving runs b
   const before = (await recordIds(A.page)).sort();
   await A.page.goto('/records');
   await expect(A.page.locator('[data-account-line="server-older"]')).toContainText(
-    'VeilCore’s server is showing an older copy of your records than this device has seen.',
+    'Something looks wrong on VeilCore’s server. Your records on this device are fine, and nothing was changed.',
     { timeout: 30_000 },
   );
   expect((await recordIds(A.page)).sort()).toEqual(before);
@@ -381,7 +381,7 @@ test('a passkey copy from before moves over with one Face ID, and the older copy
   // Home asks for one Face ID; the sheet does it.
   await C.page.goto('/records');
   const line = C.page.locator('[data-account-line="older"]');
-  await expect(line).toContainText('Your saved records need one Face ID to keep saving.');
+  await expect(line).toContainText('Unlock your saved records once to keep saving.');
   await shots(C.page, '12-home-older-copy');
   await line.getByRole('button', { name: 'Continue' }).click();
   await C.page.locator('[data-keep-safe-go]').click();

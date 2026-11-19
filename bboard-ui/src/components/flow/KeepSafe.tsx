@@ -382,8 +382,8 @@ export const accountLine = (
   if (stale)
     return {
       words: t('app.account.line.stale', { device: deviceWords(stale.kind, tr), date: tr.date(stale.at) }),
-      button: t('app.account.line.gone'),
-      act: () => act.gone(stale.id),
+      button: t('app.account.line.seeSettings'),
+      act: act.settings,
       mark: 'stale',
       severity: 'info',
     };
@@ -405,7 +405,9 @@ export const AccountStatusLine: React.FC = () => {
   const records = useRecords();
   useRecordKeys();
   const vaultUnbacked = useVaultNeedsBackup();
-  const unbacked = vaultUnbacked || keysOnlyHere(records).length > 0;
+  // Documents kept on this device only have their own line (they need the file, whatever else is safe).
+  const localOnly = new Set(records.filter((r) => isKeptOnDeviceOnly(r)).map((r) => r.id));
+  const unbacked = vaultUnbacked || keysOnlyHere(records).some((id) => !localOnly.has(id));
   const deviceOnly = deviceOnlyWaiting(records);
   const [busy, setBusy] = useState(false);
   const line = accountLine(state, { unbacked, deviceOnly }, tr, {
@@ -424,6 +426,11 @@ export const AccountStatusLine: React.FC = () => {
       severity={line.severity}
       variant="outlined"
       data-account-line={line.mark}
+      // On a phone the button goes under the words, not beside them in a narrow column.
+      sx={{
+        flexWrap: { xs: 'wrap', sm: 'nowrap' },
+        '& .MuiAlert-action': { ml: { xs: 0, sm: 'auto' }, pl: { xs: 4.5, sm: 2 }, pt: { xs: 0, sm: 0.5 } },
+      }}
       action={
         line.button ? (
           <Button color="inherit" variant="outlined" disabled={busy} onClick={line.act} sx={{ minHeight: 44 }}>

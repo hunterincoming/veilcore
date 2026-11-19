@@ -14,7 +14,7 @@ export const account = {
 
   // The sheet after the first record is saved.
   'app.account.sheet.title': 'Keep your records safe',
-  'app.account.sheet.lead': 'So you never lose them, even if you lose this device.',
+  'app.account.sheet.lead': 'So you can get them back, even if you lose this device.',
   'app.account.sheet.how':
     'Your records are saved with VeilCore, locked so only you can open them: VeilCore doesn’t have the key. Your other phones and computers on the same Apple or Google account open them too. Documents you keep on this device only aren’t included.',
   'app.account.sheet.usePhone':
@@ -35,7 +35,7 @@ export const account = {
   // The one line on Home, shown only when something is wrong.
   'app.account.line.none': '<b>Not saved to your account yet.</b>',
   'app.account.line.fix': 'Fix it',
-  'app.account.line.older': '<b>Your saved records need one Face ID to keep saving.</b>',
+  'app.account.line.older': '<b>Unlock your saved records once to keep saving.</b>',
   'app.account.line.locked': '<b>Saving is paused on this device.</b> Open your records once to carry on.',
   'app.account.line.continue': 'Continue',
   'app.account.line.missing': '<b>Your records saved with VeilCore are gone from its server.</b> Save them again.',
@@ -43,17 +43,17 @@ export const account = {
   'app.account.line.slotMissing':
     '<b>A way to open your saved records is missing on VeilCore’s server.</b> Set it up again.',
   'app.account.line.serverOlder':
-    '<b>VeilCore’s server is showing an older copy of your records than this device has seen.</b> Nothing was changed. Download a copy to be safe.',
+    '<b>Something looks wrong on VeilCore’s server.</b> Your records on this device are fine, and nothing was changed. Download a copy to be safe.',
   'app.account.line.failing': '<b>Couldn’t save to your account.</b> {why} It tries again by itself.',
   'app.account.line.tryNow': 'Try now',
   'app.account.line.bound':
     '<b>Saved with VeilCore, but only this device can open it.</b> Download a copy you keep yourself.',
   'app.account.line.download': 'Download a copy',
-  'app.account.line.deviceOnly.one': '<b>{count} document kept only on this device isn’t in a downloaded copy yet.</b>',
+  'app.account.line.deviceOnly.one': '<b>{count} document is only on this device.</b> Download a copy to keep it safe.',
   'app.account.line.deviceOnly.other':
-    '<b>{count} documents kept only on this device aren’t in a downloaded copy yet.</b>',
+    '<b>{count} documents are only on this device.</b> Download a copy to keep them safe.',
   'app.account.line.stale': 'Your {device} hasn’t saved since {date}. If you still use it, open VeilCore on it.',
-  'app.account.line.gone': 'It’s gone',
+  'app.account.line.gone': 'Remove this device',
   'app.account.line.unknownSlot': '<b>Something you didn’t add can open your saved records.</b>',
   'app.account.line.seeSettings': 'See Settings',
 
@@ -92,7 +92,7 @@ export const account = {
   'app.settings.account.bound': 'Saved {date}, but only this device can open it.',
   'app.settings.account.off': 'Not set up. Save your records with VeilCore so you can get them back on a new phone.',
   'app.settings.account.why':
-    'Your records’ keys are stored on VeilCore’s server, locked, and VeilCore doesn’t have the key to them. Your records come back from there too, so this works while VeilCore is running. A copy you download works without VeilCore.',
+    'Your records are kept locked on VeilCore’s server, and only you can open them. They come back from there, so this works while VeilCore is running. A copy you download works without VeilCore.',
   'app.settings.ways.title': 'Ways to open them',
   'app.settings.ways.synced': 'Passkey on your devices with the same Apple or Google account · added {date}',
   'app.settings.ways.bound': 'Passkey on one device only · added {date}',
@@ -111,4 +111,5 @@ export const account = {
   'app.settings.file.text':
     'A file you keep yourself. It works without VeilCore, and it is the only other place documents you keep on this device only are saved.',
   'app.settings.file.button': 'Download a copy',
+  'app.settings.devices.removeConfirm': 'Remove your {device} from this list? If it saves again, it comes back.',
 };

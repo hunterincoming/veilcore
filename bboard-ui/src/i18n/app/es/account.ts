@@ -10,7 +10,7 @@ export const account = {
   'app.account.use.passkey': 'Usar una llave de acceso',
 
   'app.account.sheet.title': 'Mantenga sus registros a salvo',
-  'app.account.sheet.lead': 'Para que nunca los pierda, aunque pierda este dispositivo.',
+  'app.account.sheet.lead': 'Para que pueda recuperarlos, aunque pierda este dispositivo.',
   'app.account.sheet.how':
     'Sus registros se guardan con VeilCore, cerrados para que solo usted pueda abrirlos: VeilCore no tiene la llave. Sus otros teléfonos y computadoras con la misma cuenta de Apple o Google también los abren. Los documentos que guarda solo en este dispositivo no se incluyen.',
   'app.account.sheet.usePhone':
@@ -32,7 +32,7 @@ export const account = {
 
   'app.account.line.none': '<b>Aún no está guardado en su cuenta.</b>',
   'app.account.line.fix': 'Arreglarlo',
-  'app.account.line.older': '<b>Sus registros guardados necesitan un Face ID para seguir guardándose.</b>',
+  'app.account.line.older': '<b>Desbloquee sus registros guardados una vez para seguir guardando.</b>',
   'app.account.line.locked':
     '<b>El guardado está en pausa en este dispositivo.</b> Abra sus registros una vez para continuar.',
   'app.account.line.continue': 'Continuar',
@@ -42,18 +42,18 @@ export const account = {
   'app.account.line.slotMissing':
     '<b>Falta en el servidor de VeilCore una forma de abrir sus registros guardados.</b> Configúrelo de nuevo.',
   'app.account.line.serverOlder':
-    '<b>El servidor de VeilCore muestra una copia de sus registros más antigua que la que este dispositivo ya vio.</b> No se cambió nada. Descargue una copia por seguridad.',
+    '<b>Algo no está bien en el servidor de VeilCore.</b> Sus registros en este dispositivo están bien y no se cambió nada. Descargue una copia por seguridad.',
   'app.account.line.failing': '<b>No se pudo guardar en su cuenta.</b> {why} Se vuelve a intentar solo.',
   'app.account.line.tryNow': 'Intentar ahora',
   'app.account.line.bound':
     '<b>Guardado con VeilCore, pero solo este dispositivo puede abrirlo.</b> Descargue una copia que guarde usted.',
   'app.account.line.download': 'Descargar una copia',
   'app.account.line.deviceOnly.one':
-    '<b>{count} documento guardado solo en este dispositivo aún no está en ninguna copia descargada.</b>',
+    '<b>{count} documento está solo en este dispositivo.</b> Descargue una copia para mantenerlo a salvo.',
   'app.account.line.deviceOnly.other':
-    '<b>{count} documentos guardados solo en este dispositivo aún no están en ninguna copia descargada.</b>',
+    '<b>{count} documentos están solo en este dispositivo.</b> Descargue una copia para mantenerlos a salvo.',
   'app.account.line.stale': 'Su {device} no guarda desde el {date}. Si aún lo usa, abra VeilCore en él.',
-  'app.account.line.gone': 'Ya no existe',
+  'app.account.line.gone': 'Quitar este dispositivo',
   'app.account.line.unknownSlot': '<b>Algo que usted no agregó puede abrir sus registros guardados.</b>',
   'app.account.line.seeSettings': 'Ver Ajustes',
 
@@ -92,7 +92,7 @@ export const account = {
   'app.settings.account.off':
     'Sin configurar. Guarde sus registros con VeilCore para recuperarlos en un teléfono nuevo.',
   'app.settings.account.why':
-    'Las llaves de sus registros se guardan cerradas en el servidor de VeilCore, y VeilCore no tiene la llave para abrirlas. Sus registros también vuelven de allí, así que esto funciona mientras VeilCore esté en marcha. Una copia descargada funciona sin VeilCore.',
+    'Sus registros se guardan cerrados en el servidor de VeilCore, y solo usted puede abrirlos. Vuelven de allí, así que esto funciona mientras VeilCore esté en marcha. Una copia descargada funciona sin VeilCore.',
   'app.settings.ways.title': 'Formas de abrirlos',
   'app.settings.ways.synced':
     'Llave de acceso en sus dispositivos con la misma cuenta de Apple o Google · agregada el {date}',
@@ -112,4 +112,5 @@ export const account = {
   'app.settings.file.text':
     'Un archivo que guarda usted. Funciona sin VeilCore y es el único otro lugar donde se guardan los documentos que tiene solo en este dispositivo.',
   'app.settings.file.button': 'Descargar una copia',
+  'app.settings.devices.removeConfirm': '¿Quitar su {device} de esta lista? Si vuelve a guardar, vuelve a aparecer.',
 } satisfies Partial<AppTranslation>;

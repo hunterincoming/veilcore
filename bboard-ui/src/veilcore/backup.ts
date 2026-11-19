@@ -498,7 +498,7 @@ export const checkBackup = async (
    * copy as the source (security review S1), and never a document kept on this device only
    * (B3): those aren't in it, and still need the file.
    */
-  opts: { mark?: boolean | 'copy' } = {},
+  opts: { mark?: boolean | 'copy'; exclude?: ReadonlySet<string> } = {},
 ): Promise<CheckResult> => {
   const copyMode = opts.mark === 'copy';
   let v: Record<string, unknown>;
@@ -527,7 +527,7 @@ export const checkBackup = async (
     }
   }
   const localOnly = copyMode ? deviceOnlyRecords() : {};
-  const held: RecordKeys[] = allKeys().filter((k) => !(k.recordId in localOnly));
+  const held: RecordKeys[] = allKeys().filter((k) => !(k.recordId in localOnly) && !opts.exclude?.has(k.recordId));
   const missing = held.filter((k) => {
     const e = inFile.get(k.recordId);
     return (
@@ -579,6 +579,8 @@ export const checkBackup = async (
   }
   if (copyMode) {
     const at = Date.now();
+    // What the copy says was deleted isn't in it for a new device: a mark it gave before goes.
+    if (opts.exclude?.size) clearCopyBackedUp(opts.exclude);
     markBackedUp(
       held.map((k) => k.recordId),
       at,

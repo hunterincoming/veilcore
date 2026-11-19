@@ -317,6 +317,68 @@ describe('two devices on one synced passkey (the reviewed machinery, unchanged)'
     expect(m.rk.allKeys().map((k) => k.recordId)).toEqual(['R-1']);
   });
 
+  it('attack pass on step 2, finding 1: a record deleted elsewhere is not counted here; one restored from a file comes back', async () => {
+    const m = await load();
+    withRecords(m, ['R-1', 'R-2']);
+    await m.ac.setUpAccount();
+    const deviceA = store;
+    const heldA = await m.keyStore.heldAccountKeys();
+    // Device B deletes R-2.
+    await switchTo(m, new Map());
+    const found = await m.ac.findAccountCopy();
+    await m.backup.restoreAny(found.file, undefined, found.restore);
+    await m.ac.adoptFound();
+    m.rk.forgetKeys('R-2');
+    await m.ac.syncNow({ force: true });
+    // Device A still holds R-2: its next save takes the deletion in, and R-2 is no longer "in" the copy.
+    const deviceB = store;
+    const heldB = await m.keyStore.heldAccountKeys();
+    await switchTo(m, deviceA, heldA);
+    m.rk.ensureKeys('R-3');
+    await m.ac.syncNow();
+    expect(m.rk.keysFor('R-2')?.backedUpAt).toBeUndefined();
+    expect(m.rk.keysFor('R-1')?.backedUpVia).toBe('copy');
+    // B restores R-2 from a file: the later restore wins, and a new device gets it back.
+    const fileWithR2 = JSON.stringify(m.backup.backupContents());
+    await switchTo(m, deviceB, heldB);
+    await m.ac.checkAccount();
+    await m.backup.restoreAny(new File([fileWithR2], 'f.json'), undefined, { skipForgotten: false });
+    expect(m.rk.keysFor('R-2')).toBeDefined();
+    await m.ac.syncNow({ force: true });
+    await switchTo(m, new Map());
+    const again = await m.ac.findAccountCopy();
+    await m.backup.restoreAny(again.file, undefined, again.restore);
+    expect(
+      m.rk
+        .allKeys()
+        .map((k) => k.recordId)
+        .sort(),
+    ).toEqual(['R-1', 'R-2', 'R-3']);
+  });
+
+  it('a registry that shows back an older copy right after a save is refused as older, not as damaged', async () => {
+    const m = await load();
+    withRecords(m, ['R-1']);
+    await m.ac.setUpAccount();
+    const [id] = [...reg.copies.keys()];
+    const old = { ...reg.copies.get(id)! };
+    const inner = reg.fetch;
+    vi.stubGlobal('fetch', async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
+      const res = await inner(input, init);
+      if (/account-copy\/[0-9a-f]{32}\/read$/.test(url)) {
+        const real = (await res.json()) as Record<string, unknown>;
+        return new Response(JSON.stringify({ ...real, iv: old.iv, ct: old.ct }), { status: 200 });
+      }
+      return res;
+    });
+    m.rk.ensureKeys('R-2');
+    const out = await m.ac.syncNow();
+    expect(out?.ok).toBe(false);
+    const st = m.ac.accountState();
+    expect(st.kind === 'saved' && st.problem).toBe('older');
+  });
+
   it('finding B: a registry that puts back an older copy is refused, and says so', async () => {
     const m = await load();
     withRecords(m, ['R-1']);

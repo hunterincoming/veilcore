@@ -66,7 +66,7 @@ import {
   type PasskeyAnswer,
 } from './passkey-backup';
 import { forgetAccountKeys, heldAccountKeys, keepAccountKeys, type HeldAccount } from './account-key-store';
-import { forgottenIds } from './record-keys';
+import { forgottenIds, restoredIds } from './record-keys';
 import { deviceOnlyRecords } from './outbox';
 import { isObject, isString } from './json';
 import { PASSKEY_BACKUP } from '../config/copy';
@@ -210,6 +210,11 @@ export type Manifest = {
   readonly devices: Readonly<Record<string, DeviceEntry>>;
   /** Record id → when it was deleted on purpose. */
   readonly forgotten: Readonly<Record<string, string>>;
+  /**
+   * Record id → when it was brought back from a file after being deleted. The later of the two
+   * wins (attack pass on step 2, finding 1): a deletion never hides a record restored since.
+   */
+  readonly restored?: Readonly<Record<string, string>>;
 };
 
 type Body = {
@@ -270,7 +275,10 @@ const asManifest = (v: unknown): Manifest | undefined => {
   const forgotten = isObject(v.forgotten)
     ? Object.fromEntries(Object.entries(v.forgotten).filter((e): e is [string, string] => isString(e[1])))
     : {};
-  return { kcv: v.kcv, slots: v.slots.filter(isSlot), devices, forgotten };
+  const restored = isObject(v.restored)
+    ? Object.fromEntries(Object.entries(v.restored).filter((e): e is [string, string] => isString(e[1])))
+    : {};
+  return { kcv: v.kcv, slots: v.slots.filter(isSlot), devices, forgotten, restored };
 };
 
 export type OpenedCopy = {
@@ -364,7 +372,21 @@ const withThisDevice = (m: Manifest, seq: number, at: string): Manifest => ({
     ...Object.fromEntries(forgottenIds().map((id) => [id, m.forgotten[id] ?? at])),
     ...m.forgotten,
   },
+  restored: latest(m.restored ?? {}, restoredIds()),
 });
+
+/** Two id → date lists, the later date of each id kept. */
+const latest = (a: Readonly<Record<string, string>>, b: Readonly<Record<string, string>>): Record<string, string> => {
+  const out: Record<string, string> = { ...a };
+  for (const [id, at] of Object.entries(b)) if (!out[id] || out[id] < at) out[id] = at;
+  return out;
+};
+
+/** The records the copy says were deleted, and not restored since. */
+export const deletedIds = (m: Manifest): string[] =>
+  Object.entries(m.forgotten)
+    .filter(([id, at]) => !((m.restored ?? {})[id] && (m.restored ?? {})[id] > at))
+    .map(([id]) => id);
 
 /** Two devices' lists, merged: every slot (the newer facts of each), each device's latest, every deletion. */
 export const mergeManifests = (mine: Manifest, theirs: Manifest): Manifest => {
@@ -383,7 +405,13 @@ export const mergeManifests = (mine: Manifest, theirs: Manifest): Manifest => {
   const forgotten: Record<string, string> = { ...theirs.forgotten };
   for (const [id, at] of Object.entries(mine.forgotten)) if (!forgotten[id] || at < forgotten[id]) forgotten[id] = at;
   // The same AK makes the same key-check value: mine stays.
-  return { kcv: mine.kcv, slots: [...slots.values()], devices, forgotten };
+  return {
+    kcv: mine.kcv,
+    slots: [...slots.values()],
+    devices,
+    forgotten,
+    restored: latest(mine.restored ?? {}, theirs.restored ?? {}),
+  };
 };
 
 // ---- what this browser remembers (no secrets: ids, the last copy seen, the sealed list) -----
@@ -449,7 +477,14 @@ const notify = () => {
   listeners.forEach((l) => l());
 };
 
-const remember = (r: Remembered | undefined): void => {
+const remember = (given: Remembered | undefined): void => {
+  // Never lower the counter seen (finding 4): another tab may have saved a newer copy since this
+  // one read what it remembers. Its newer counter, fingerprint and list stay.
+  const cur = given ? remembered() : undefined;
+  const r =
+    given && cur && cur.copyId === given.copyId && cur.seq > given.seq
+      ? { ...given, seq: cur.seq, prev: cur.prev, savedAt: cur.savedAt, manifest: cur.manifest, sameAs: '' }
+      : given;
   try {
     if (r) localStorage.setItem(STORE, JSON.stringify(r));
     else localStorage.removeItem(STORE);
@@ -531,7 +566,7 @@ const readSlot = async (
 const tokenHashOf = (token: string) => hex(sha256(utf8(token)));
 
 /** The deleted records a copy carries, for a restore or merge that must not bring them back. */
-const skipOf = (m: Manifest): ReadonlySet<string> => new Set(Object.keys(m.forgotten));
+const skipOf = (m: Manifest): ReadonlySet<string> => new Set(deletedIds(m));
 
 // ---- saving (the reviewed machinery, as it was for the passkey copy) ------------------------
 
@@ -580,12 +615,21 @@ const saveAndCheck = async (
     }
     seen = seq;
     const back = await fetchCopy(held);
-    if (back.fingerprint !== prev) continue; // another device saved in between: merge and save again
+    if (back.fingerprint !== prev) {
+      // The registry shows back a copy older than the one just saved: refused, said as such.
+      if (back.seq < seq) throw new PasskeyProblem(PASSKEY_WORDS.older);
+      continue; // another device saved in between: merge and save again
+    }
     if (back.manifest.kcv !== (await keyCheck(held))) throw new PasskeyProblem(PASSKEY_WORDS.damaged);
     // S4: the ways in it counts on must still be at the registry.
     const present = back.manifest.slots.filter((s) => back.slots.includes(s.slotId));
     const counts = countsAsBackup({ ...back.manifest, slots: present });
-    const checked = await checkBackup(fileOf(back.text), undefined, { mark: counts ? 'copy' : false });
+    // A record the copy says was deleted is not counted as in it (finding 1): a new device restored
+    // from it would leave it out.
+    const checked = await checkBackup(fileOf(back.text), undefined, {
+      mark: counts ? 'copy' : false,
+      exclude: skipOf(back.manifest),
+    });
     if (!counts) clearCopyMarks();
     if (checked.ok) {
       const base = remembered();
@@ -609,10 +653,17 @@ const saveAndCheck = async (
 
 let chain: Promise<unknown> = Promise.resolve();
 let busy = 0;
-/** One save or check at a time in this page, in the order asked. */
+type Locks = { request: <T>(name: string, f: () => Promise<T>) => Promise<T> };
+const locks = (): Locks | undefined => {
+  const l = (typeof navigator !== 'undefined' ? (navigator as { locks?: Locks }).locks : undefined) ?? undefined;
+  return typeof l?.request === 'function' ? l : undefined;
+};
+/** One save or check at a time in this page, in the order asked, and across tabs where the browser can (finding 4). */
 const exclusive = <T>(f: () => Promise<T>): Promise<T> => {
   busy++;
-  const run = chain.then(f, f).finally(() => {
+  const l = locks();
+  const g = l ? () => l.request('veilcore-account-copy', f) : f;
+  const run = chain.then(g, g).finally(() => {
     busy--;
     notify();
   });
@@ -723,9 +774,12 @@ export const setUpAccount = (): Promise<SetUpResult> =>
         const checked = await saveAndCheck(held, remembered()!);
         return { ...checked, counted: remembered()?.counted === true };
       }
-      // Its way in is gone; the copy may not be: deleted, so nothing is left that the person can't see.
+      // Its way in is gone; the copy may not be. Deleted only when this was its one way in, so
+      // nothing is left that the person can't see, and never a copy another way in still opens
+      // (finding 2: a registry's 404 for one slot must not cost the others).
       const held = await heldAccountKeys();
-      if (held && held.copyId === before.copyId)
+      const others = before.manifest.slots.filter((x) => x.slotId !== before.slotId);
+      if (held && held.copyId === before.copyId && others.length === 0)
         await registryCall('POST', `/account-copy/${before.copyId}/delete`, { token: await writeToken(held) }).catch(
           () => undefined,
         );

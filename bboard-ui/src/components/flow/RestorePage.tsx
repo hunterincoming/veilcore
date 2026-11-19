@@ -86,7 +86,11 @@ export const RestorePage: React.FC = () => {
       on = false;
     };
   }, []);
-  const word = unlockWordFor(navigator.userAgent, deviceUnlock === true);
+  // On a computer that isn't a Mac, the passkey is most often on the person's phone: the button
+  // says "Use a passkey" and the browser offers "Use a phone" (first-time-user pass on step 2).
+  const ua = navigator.userAgent;
+  const appleOrAndroid = /iPhone|iPad|iPod|Macintosh|Mac OS X|Android/.test(ua);
+  const word = appleOrAndroid ? unlockWordFor(ua, deviceUnlock === true) : 'passkey';
   const find = (hostName = false) => {
     setAsking(true);
     setProblem(undefined);
@@ -202,7 +206,12 @@ export const RestorePage: React.FC = () => {
                   {/* The copy's date first, and nothing changes until they say so (attack pass 21 Oct, finding 6). */}
                   {found ? (
                     <Alert severity="info" variant="outlined" data-passkey-found="">
-                      {t('app.account.restore.found', { date: new Date(found.savedAt).toLocaleString(tr.locale) })}
+                      {t('app.account.restore.found', {
+                        date: new Date(found.savedAt).toLocaleString(tr.locale, {
+                          dateStyle: 'medium',
+                          timeStyle: 'short',
+                        }),
+                      })}
                       <Stack direction="row" spacing={1} sx={{ mt: 1, flexWrap: 'wrap', gap: 1 }}>
                         <Button
                           variant="contained"
@@ -234,9 +243,11 @@ export const RestorePage: React.FC = () => {
                       {t(`app.account.use.${word}` as AppKey)}
                     </Button>
                   )}
-                  <Typography variant="body2" color="text.secondary">
-                    {t('app.account.restore.sameAccount')}
-                  </Typography>
+                  {appleOrAndroid && (
+                    <Typography variant="body2" color="text.secondary">
+                      {t('app.account.restore.sameAccount')}
+                    </Typography>
+                  )}
                   <Typography variant="body2" color="text.secondary" data-restore-use-phone="">
                     {t('app.account.restore.usePhone')}
                   </Typography>
