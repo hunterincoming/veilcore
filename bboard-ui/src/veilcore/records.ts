@@ -6,7 +6,7 @@
 import { PAID_PLANS_ENABLED } from '../config/network';
 import { currentPlan, freeLeft, planGate, readPlan, refreshPlan, waitingCount } from './billing';
 import { useSyncExternalStore } from 'react';
-import { store, type SaveResult } from './store';
+import { store, type SaveRefusal, type SaveResult } from './store';
 import { exportEnvelopeFor, toEnvelope, sealEnvelope } from './envelope';
 import { holderPartyId, forgetHolderKey } from './holder';
 import { proofFor } from './proofs';
@@ -186,6 +186,17 @@ export type StrainRecord = {
    * never sent. Set once, when the record is made, and never taken off here.
    */
   readonly deviceOnly?: true;
+  /**
+   * A copy of a record another holder keeps and dated: a lab's signed result, added from the
+   * lab's file (LabResultCheck.tsx). The lab keeps every result it signs, so its proof code is
+   * the lab's on VeilCore, and VeilCore refuses it from anyone else ("already registered by
+   * another holder"). This copy keeps the proof code inside its locked copy, never in the clear
+   * and never sent to be dated (api-store.ts publicPart, datingRowOf), so VeilCore keeps it for
+   * this holder, with the claims made on it, and ties nothing of that proof code to them. Its
+   * date is the lab's, read by the proof code like any record's. Sealed; set once and never
+   * taken off (a record whose proof code VeilCore holds for this holder never gets it).
+   */
+  readonly copy?: true;
   /** A document's field set (SPEC 4.5), sealed: the schema's id and the set's root (field-set.ts). */
   readonly fieldSchema?: string;
   readonly fieldSetRoot?: string;
@@ -385,7 +396,8 @@ export const isStrainRecord = (v: unknown): v is StrainRecord => {
     (r.strain === undefined || (typeof r.strain === 'object' && r.strain !== null && !Array.isArray(r.strain))) &&
     (r.document === undefined ||
       (typeof r.document === 'object' && r.document !== null && !Array.isArray(r.document))) &&
-    (r.deviceOnly === undefined || r.deviceOnly === true)
+    (r.deviceOnly === undefined || r.deviceOnly === true) &&
+    (r.copy === undefined || r.copy === true)
   );
 };
 
@@ -411,6 +423,8 @@ export type NewRecordInput = {
   document?: DocumentDetails;
   /** Keep it on this device and in the backup only (document records; StrainRecord.deviceOnly). */
   deviceOnly?: true;
+  /** A copy of a record another holder dated (StrainRecord.copy). */
+  copy?: true;
   fieldSchema?: string;
   fieldSetRoot?: string;
   fieldSet?: HeldFieldSet;
@@ -1134,6 +1148,9 @@ const saveAll = async (grantsToResend: readonly string[] = []): Promise<SaveResu
   withSealedSecrets();
   const result = await saveRecords(records);
   settleOutbox(result);
+  // A lab's result added before copies were kept as copies: refused only because the lab holds
+  // its proof code. Saved again at once as a copy, so the refusal isn't shown (asCopies).
+  if (asCopies(result.refused)) return saveAll(grantsToResend);
   reportSave('records', result);
   // Whatever waits in this browser for its locked copy is dated now (CONTRACT.md #38).
   void dateFirst(result.accepted ?? []);
@@ -1503,11 +1520,40 @@ const dateFirst = (skip: readonly string[] = []): Promise<void> => {
     const out = await sendDatingRows(rows);
     if ('error' in out) return; // offline or refused now: tried again with the next save or sync
     dropDeleted({ ok: true, refused: out.refused });
+    if (asCopies(out.refused)) notify();
     if (out.dated.length) notify();
   })().finally(() => {
     dating = null;
   });
   return dating;
+};
+
+/** The registry's words when a proof code belongs to another holder (PUT /api/records and /api/records/dating). */
+const HELD_ELSEWHERE = /already registered by another holder/;
+
+/**
+ * A lab's signed result this holder added before such results were kept as copies (StrainRecord
+ * copy): the lab holds its proof code, so every save of it was refused, and anything kept on it
+ * was put back at the next read. Made a copy once the registry has said so, and kept here to be
+ * sent again. Only a record that carries a lab's result and signature, and that VeilCore has
+ * never held for this holder (no row for its id as of the last read): a record VeilCore holds
+ * for this holder never loses its proof code from the clear, and any other record refused so is
+ * left as it was. True when any was made a copy.
+ */
+const asCopies = (refused: readonly SaveRefusal[]): boolean => {
+  const ids = new Set(refused.filter((r) => HELD_ELSEWHERE.test(r.reason)).map((r) => r.id));
+  if (ids.size === 0) return false;
+  const made: StrainRecord[] = [];
+  records = records.map((r) => {
+    if (!ids.has(r.id) || r.copy || !r.labResult || !r.labSignature || rowStateOf(RECORDS_KEY, r.id) !== undefined)
+      return r;
+    const copy: StrainRecord = { ...r, copy: true };
+    made.push(copy);
+    return copy;
+  });
+  if (made.length === 0) return false;
+  putInOutbox(made);
+  return true;
 };
 
 /** Whether VeilCore has this record's proof code, so it is in the next batch (CONTRACT.md #38). */
@@ -1652,7 +1698,12 @@ export const deleteRecord = async (id: string): Promise<{ ok: true } | { error: 
     // Only what the registry says it removed counts; a record it never had is removed here only.
     // An earlier try whose answer was lost may have deleted it already: the registry then has it
     // as deleted by its holder, with this record's proof code.
-    if (!out.removed.includes(id) && !neverReachedRegistry && !(await deletedOnRegistry(id, r.recordFingerprint)))
+    // A copy's row never had the proof code in the clear (StrainRecord.copy), so its tombstone has none.
+    if (
+      !out.removed.includes(id) &&
+      !neverReachedRegistry &&
+      !(await deletedOnRegistry(id, r.copy ? undefined : r.recordFingerprint))
+    )
       return { error: 'not-removed' };
     records = records.filter((x) => x.id !== id);
     takeFromOutbox([id]);

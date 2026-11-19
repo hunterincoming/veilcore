@@ -3,6 +3,8 @@
 //   - rows are kept per holder key; a PUT is refused for a plain-text row, and for a row
 //     sealed with another vault key than the holder's rows already use;
 //   - an id another holder owns is not written (notWritten);
+//   - a proof code stays with the first holder who stored it: another holder's row or dating row
+//     carrying it in the clear is refused ("already registered by another holder");
 //   - a claim leaves only a stub for the claimant and returns the sealed offer byte for byte;
 //     a second claim is refused; GET /transfers/:id/offer answers only the claimant;
 //   - `toHandle` must be a tag (64 lowercase hex);
@@ -53,6 +55,11 @@ export const fakeRegistry = () => {
   const licenses = new Map<string, Row & { holder: string }>();
   const grants = new Map<string, Grant & { holder: string }>();
   const transfers = new Map<string, Transfer>();
+  /** Each proof code ever stored in the clear, with the holder who stored it first (the registry's fingerprint_holders). */
+  const firstHolder = new Map<string, string>();
+  const HELD_ELSEWHERE = 'this fingerprint is already registered by another holder';
+  const heldElsewhere = (fp: unknown, holder: string): boolean =>
+    typeof fp === 'string' && firstHolder.has(fp) && firstHolder.get(fp) !== holder;
   const sent: Sent[] = [];
   const graph = new Map<string, string[]>();
   const misbehave = {
@@ -166,7 +173,8 @@ export const fakeRegistry = () => {
           continue;
         }
         const have = records.get(r.id);
-        if (have && have.holder !== holder) notWritten.push(r.id);
+        if (heldElsewhere(r.recordFingerprint, holder)) rejected.push({ id: r.id, reason: HELD_ELSEWHERE });
+        else if (have && have.holder !== holder) notWritten.push(r.id);
         else if (have)
           if (have.recordFingerprint === r.recordFingerprint) dated.push(r.id);
           else rejected.push({ id: r.id, reason: 'this id was dated with a different proof code' });
@@ -178,6 +186,7 @@ export const fakeRegistry = () => {
             bodyPending: true,
             holder,
           });
+          if (!firstHolder.has(r.recordFingerprint)) firstHolder.set(r.recordFingerprint, holder);
           dated.push(r.id);
         }
       }
@@ -291,6 +300,8 @@ export const fakeRegistry = () => {
               status: 409,
             });
           else if (refusedCorrection) rejected.push(alreadyCorrected(r.id, refusedCorrection));
+          else if (path === '/api/records' && heldElsewhere(r.recordFingerprint, holder))
+            rejected.push({ id: r.id, reason: HELD_ELSEWHERE });
           else if (!s) rejected.push({ id: r.id, reason: 'new rows must be sealed' });
           else if ((kid ?? theirKid) !== s.kid)
             rejected.push({ id: r.id, reason: "sealed with a different vault key than this holder's other records" });
@@ -327,7 +338,11 @@ export const fakeRegistry = () => {
             });
           }
         }
-        for (const [id, row] of writes) t.set(id, row);
+        for (const [id, row] of writes) {
+          t.set(id, row);
+          const fp = path === '/api/records' ? row.recordFingerprint : undefined;
+          if (typeof fp === 'string' && !firstHolder.has(fp)) firstHolder.set(fp, row.holder);
+        }
         return json({ ok: rejected.length === 0, rejected, notWritten });
       }
       if (method === 'DELETE') {

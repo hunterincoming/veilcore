@@ -126,6 +126,14 @@ showing the rest. Code: `veilcore/lab-result.ts`.
   the same key, about the same record, not tested earlier. A replaced result reads as replaced, not
   as unsigned. The page reads the holder's own records only when asked (that sends the holder key),
   and then offers to add the result to the record it was sent under.
+- **The breeder's copy** (18 November 2026): the lab keeps every result it signs as a record it
+  holds, so the result's proof code is the lab's on VeilCore, and VeilCore gives a proof code to
+  one holder only (the first to store it). A result added from its file is kept as a copy
+  (`StrainRecord.copy`): its proof code goes inside the locked copy, never in the clear and never
+  to be dated, so VeilCore keeps it for the breeder, with any claim made on it, and ties nothing of
+  the lab's proof code to the breeder. Its date is the lab's, read by the proof code. Before this,
+  the copy was refused at every save and stayed in the breeder's browser only, and a claim made on
+  it was put back at the next read; a copy added then is made a copy at its next save.
 - Version 1 results keep checking exactly as before.
 
 ### A viability result: a sample before or after a kill step (12 November 2026)

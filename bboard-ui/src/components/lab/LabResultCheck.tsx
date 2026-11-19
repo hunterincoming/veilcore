@@ -226,7 +226,9 @@ const OneChecked: React.FC<{
     setBusy(true);
     try {
       const { recordInputFor } = await import('../../veilcore/lab-result-sign');
-      createRecord(await recordInputFor(b));
+      // A copy (records.ts StrainRecord.copy): the lab that signed it keeps this result as a
+      // record it holds, so the proof code is the lab's on VeilCore and stays inside this copy.
+      createRecord({ ...(await recordInputFor(b)), copy: true });
     } finally {
       setBusy(false);
     }
