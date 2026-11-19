@@ -7,8 +7,6 @@ import { PAID_PLANS_ENABLED } from '../config/network';
 import { currentPlan, freeLeft, planGate, readPlan, refreshPlan, waitingCount } from './billing';
 import { useSyncExternalStore } from 'react';
 import { store, type SaveRefusal, type SaveResult } from './store';
-import { loadAttester } from './attester-keys';
-import { claimsKeyFor } from './claims-key';
 import { exportEnvelopeFor, toEnvelope, sealEnvelope } from './envelope';
 import { holderPartyId, forgetHolderKey } from './holder';
 import { proofFor } from './proofs';
@@ -1153,7 +1151,7 @@ const saveAll = async (grantsToResend: readonly string[] = []): Promise<SaveResu
   settleOutbox(result);
   // A lab's result added before copies were kept as copies: refused only because the lab holds
   // its proof code. Made a copy, said once (copiesMade), and saved again (asCopies).
-  if (asCopies(result.refused)) return saveAll(grantsToResend);
+  if (await asCopies(result.refused)) return saveAll(grantsToResend);
   reportSave('records', result);
   // Whatever waits in this browser for its locked copy is dated now (CONTRACT.md #38).
   void dateFirst(result.accepted ?? []);
@@ -1523,7 +1521,7 @@ const dateFirst = (skip: readonly string[] = []): Promise<void> => {
     const out = await sendDatingRows(rows);
     if ('error' in out) return; // offline or refused now: tried again with the next save or sync
     dropDeleted({ ok: true, refused: out.refused });
-    if (asCopies(out.refused)) notify();
+    if (await asCopies(out.refused)) notify();
     if (out.dated.length) notify();
   })().finally(() => {
     dating = null;
@@ -1546,10 +1544,10 @@ const HELD_ELSEWHERE = /already registered by another holder/;
  * Any other record refused so is left as it was, and the refusal shown as before. True when any
  * was made a copy.
  */
-const asCopies = (refused: readonly SaveRefusal[]): boolean => {
+const asCopies = async (refused: readonly SaveRefusal[]): Promise<boolean> => {
   const ids = new Set(refused.filter((r) => HELD_ELSEWHERE.test(r.reason)).map((r) => r.id));
   if (ids.size === 0) return false;
-  const own = ownLabKey();
+  const own = await ownLabKey();
   const made: StrainRecord[] = [];
   records = records.map((r) => {
     if (!ids.has(r.id) || r.copy || !r.labResult || !r.labSignature || rowStateOf(RECORDS_KEY, r.id) !== undefined)
@@ -1567,8 +1565,11 @@ const asCopies = (refused: readonly SaveRefusal[]): boolean => {
 };
 
 /** The claims key text of this browser's own lab key (attester-keys.ts), or undefined when it has none. */
-const ownLabKey = (): string | undefined => {
+// Loaded only when needed: claims-key brings the claims contract's WebAssembly, which the check
+// page (and everything else that imports this file) must not download (load-split.test.ts).
+const ownLabKey = async (): Promise<string | undefined> => {
   try {
+    const [{ loadAttester }, { claimsKeyFor }] = await Promise.all([import('./attester-keys'), import('./claims-key')]);
     const a = loadAttester();
     return a ? claimsKeyFor(a.keypair.privateKey).keyText : undefined;
   } catch {
