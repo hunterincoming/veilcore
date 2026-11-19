@@ -48,10 +48,11 @@ export const labReceiptRow = (receipt: LabReceipt | null | undefined, tr: Transl
 
 /**
  * Home's one line for a plant. A missing backup isn't said here: Home says it once, for the
- * whole account, above the list and only while one is needed (BackupNeeded.tsx; easy-mode
+ * whole account, and only while one is needed: the backup line (BackupNeeded.tsx; easy-mode
  * review, 19 Nov: "Not in your backup yet · next: save your backup" on every new record was the
- * hassle). The record is sealed and its date comes from its batch, so a key not yet date stamped
- * is a quiet note, not a step left undone. A collection import queues its key stamps at
+ * hassle), or the account line when saving with VeilCore is on (KeepSafe.tsx AccountStatusLine,
+ * easy mode step 2). The record is sealed and its date comes from its batch, so a key not yet
+ * date stamped is a quiet note, not a step left undone. A collection import queues its key stamps at
  * about 3 a day, and 120 plants all marked "Not finished" for 40 days said something false
  * (round 2). Nothing here says a lab confirmed anything: that needs a signature checked on
  * the plant's page, and a used code (record.attestation) is not one.

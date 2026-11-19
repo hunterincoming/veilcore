@@ -111,32 +111,12 @@ export const backup = {
     'Il manque à cette sauvegarde l’état le plus récent de {count} de vos enregistrements. Enregistrez-en une nouvelle et vérifiez-la.',
   'app.backup.err.missingLatest.other':
     'Il manque à cette sauvegarde l’état le plus récent de {count} de vos enregistrements. Enregistrez-en une nouvelle et vérifiez-la.',
-  // The passkey copy (veilcore/passkey-backup.ts, flow/PasskeyCopy.tsx).
-  'app.backup.passkey.title': 'Gardez aussi une copie qui s’ouvre avec une clé d’accès',
-  'app.backup.passkey.why':
-    'Si vous perdez ce téléphone, votre clé d’accès récupère tout, sauf les enregistrements gardés uniquement sur cet appareil : elle se synchronise avec votre nouveau téléphone via votre compte Apple ou Google. La copie est verrouillée par une clé que seule votre clé d’accès peut produire. VeilCore ne peut pas l’ouvrir.',
-  'app.backup.passkey.keepFile':
-    'Gardez aussi le fichier. Supprimer la clé d’accès supprime la seule clé de cette copie.',
-  'app.backup.passkey.make': 'Créer une copie avec clé d’accès',
-  'app.backup.passkey.current': 'Copie avec clé d’accès à jour, enregistrée le {date}',
-  'app.backup.passkey.behind':
-    'Votre copie avec clé d’accès date du {date} et il lui manque des changements plus récents.',
-  'app.backup.passkey.update': 'Mettre à jour la copie avec clé d’accès',
-  'app.backup.passkey.remove': 'Supprimer la copie avec clé d’accès',
-  'app.backup.passkey.removed':
-    'Copie supprimée. Pour supprimer la clé d’accès elle-même, passez par les réglages des mots de passe de votre téléphone.',
-  'app.backup.passkey.restore': 'Utiliser ma clé d’accès',
-  'app.backup.passkey.restoreHint':
-    'Vous avez déjà créé une copie avec clé d’accès ? Utilisez votre clé d’accès au lieu d’un fichier. Les enregistrements gardés uniquement sur un appareil ne reviennent que depuis un fichier de sauvegarde.',
-  'app.backup.passkey.found': 'Votre copie avec clé d’accès, enregistrée le {date}, a été trouvée. La restaurer ici ?',
-  'app.backup.passkey.restoreIt': 'La restaurer',
-  'app.backup.passkey.notThis': 'Pas celle-ci',
-  'app.backup.passkey.from': 'Depuis votre copie avec clé d’accès enregistrée le {date}.',
+  // A passkey, and records saved with VeilCore (veilcore/passkey-backup.ts, account-copy.ts).
   'app.backup.passkey.err.unsupported':
     'Ce téléphone ou ce navigateur ne peut pas créer de clé d’accès qui ouvre une sauvegarde. Utilisez le fichier de sauvegarde, ou essayez Safari sur un iPhone (iOS 18.4 ou plus récent) ou Chrome.',
   'app.backup.passkey.err.cancelled': 'Annulé. Rien n’a été modifié.',
   'app.backup.passkey.err.noCopy':
-    'Aucune copie trouvée pour cette clé d’accès. Ouvrez plutôt votre fichier de sauvegarde.',
+    'Aucun enregistrement sauvegardé chez VeilCore trouvé pour cette clé d’accès. Ouvrez plutôt votre fichier de sauvegarde.',
   'app.backup.passkey.err.unreachable':
     'Impossible de joindre le registre VeilCore. Vérifiez votre connexion et réessayez.',
   'app.backup.passkey.err.older':
@@ -183,4 +163,5 @@ export const backup = {
   'app.backup.fromFileAdded': 'Enregistrements récupérés depuis le fichier lui-même : {n}.',
   'app.backup.fromFileProblem':
     'Les enregistrements du fichier n’ont pas pu être récupérés : {why} Vos clés sont restaurées.',
+  'app.backup.passkey.err.busy': 'Votre autre appareil a sauvegardé au même moment. Cela sera réessayé tout seul.',
 } satisfies Partial<AppTranslation>;

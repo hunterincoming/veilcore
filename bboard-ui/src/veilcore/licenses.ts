@@ -1012,30 +1012,46 @@ const applyIssuerDeals = (): void => {
 
 // Which licenses' deal keys a checked backup holds (review round 3, N5): a new key prompts a new backup.
 const DEALS_BACKED_UP = 'veilcore.issuer-deals-backed-up.v1';
-const backedUpDeals = (): Record<string, string> => {
+const backedUpDeals = (key = DEALS_BACKED_UP): Record<string, string> => {
   try {
-    const v: unknown = JSON.parse(localStorage.getItem(DEALS_BACKED_UP) ?? '{}');
+    const v: unknown = JSON.parse(localStorage.getItem(key) ?? '{}');
     return typeof v === 'object' && v !== null ? (v as Record<string, string>) : {};
   } catch {
     return {};
   }
 };
 
-/** Backup check: remember which deal keys the checked file holds. */
-export const markIssuerDealsBackedUp = (fromFile: unknown): void => {
+// The same, for the account copy (account-copy.ts): kept apart so it can go when the copy does
+// (security review S1) without touching what a checked file holds.
+const DEALS_BACKED_UP_COPY = 'veilcore.issuer-deals-backed-up.copy.v1';
+
+/** Backup check: remember which deal keys the checked file (or, `via: 'copy'`, the account copy) holds. */
+export const markIssuerDealsBackedUp = (fromFile: unknown, via?: 'copy'): void => {
   const file = typeof fromFile === 'object' && fromFile !== null ? (fromFile as Record<string, unknown>) : {};
-  const marks = backedUpDeals();
+  const key = via === 'copy' ? DEALS_BACKED_UP_COPY : DEALS_BACKED_UP;
+  const marks = backedUpDeals(key);
   for (const [id, d] of Object.entries(file)) if (isDealEntry(d)) marks[id] = d.partySecret!;
   try {
-    localStorage.setItem(DEALS_BACKED_UP, JSON.stringify(marks));
+    localStorage.setItem(key, JSON.stringify(marks));
   } catch {
     /* private window */
   }
 };
 
-/** Whether a checked backup holds this license's current deal key. */
+/** The account copy is gone (S1): the deal keys only it held ask for a backup again. */
+export const clearIssuerDealsCopyMarks = (): void => {
+  try {
+    localStorage.removeItem(DEALS_BACKED_UP_COPY);
+  } catch {
+    /* nothing kept */
+  }
+};
+
+/** Whether a checked backup (a file or the account copy) holds this license's current deal key. */
 export const issuerDealBackedUp = (l: License): boolean =>
-  !l.onChain?.partySecret || backedUpDeals()[l.id] === l.onChain.partySecret;
+  !l.onChain?.partySecret ||
+  backedUpDeals()[l.id] === l.onChain.partySecret ||
+  backedUpDeals(DEALS_BACKED_UP_COPY)[l.id] === l.onChain.partySecret;
 
 /** Restore: keep the file's deal keys (never replacing any already here), then put them back. */
 export const mergeIssuerDeals = (fromFile: unknown): number => {

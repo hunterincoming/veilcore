@@ -1610,18 +1610,19 @@ describe('what a walk of the live veilcore.org found (18 Nov 2026)', () => {
     expect(panel).toMatch(/deviceOnly \? 'app\.plant\.keys\.holdsDeviceOnly' : 'app\.plant\.keys\.holds'/);
   });
 
-  it('every passkey-copy promise leaves out records kept only on the device', () => {
+  it('every promise of records saved with VeilCore leaves out documents kept only on the device', () => {
     const EXCEPT: Record<Lang, RegExp> = {
-      en: /except records kept only on this device/,
-      de: /außer Datensätzen, die nur auf diesem Gerät aufbewahrt werden/,
-      es: /salvo los registros guardados solo en este dispositivo/,
-      fr: /sauf les enregistrements gardés uniquement sur cet appareil/,
-      ja: /この端末だけに保管している記録を除き/,
+      en: /Documents you keep on this device only aren’t included\./,
+      de: /Dokumente, die Sie nur auf diesem Gerät aufbewahren, sind nicht dabei\./,
+      es: /Los documentos que guarda solo en este dispositivo no se incluyen\./,
+      fr: /Les documents que vous gardez sur cet appareil seulement n’en font pas partie\./,
+      ja: /この端末だけに保管している書類は含まれません。/,
     };
     for (const [lang, a] of Object.entries(allApp) as [Lang, Record<string, string>][]) {
-      expect(a['app.backup.passkey.why'], lang).toMatch(EXCEPT[lang]);
-      expect(a['app.backup.passkey.restoreHint'], lang).toMatch(
-        /backup file|Sicherungsdatei|copia de seguridad|fichier de sauvegarde|バックアップファイル/,
+      // The sheet that sets it up says so, and Settings says the downloaded copy is their only other place.
+      expect(a['app.account.sheet.how'], lang).toMatch(EXCEPT[lang]);
+      expect(a['app.settings.file.text'], lang).toMatch(
+        /device only|nur auf diesem Gerät|solo en este dispositivo|cet appareil seulement|この端末だけ/,
       );
     }
     // No other English string promises a passkey brings "everything" back.

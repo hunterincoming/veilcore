@@ -207,6 +207,7 @@ export const APP_ROUTES = Object.freeze([
   '/records/authority-pack',
   '/restore',
   '/backup',
+  '/settings',
   '/docs/spec',
   '/implementations',
   '/new',

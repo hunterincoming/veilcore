@@ -28,7 +28,6 @@ import { damagedDeviceOnly, useRecords } from '../../veilcore/records';
 import { backupHoldsLine } from '../stage/record-kinds';
 import { rich, useT } from '../../i18n/app';
 import { backupMessageWords } from './backup-words';
-import { PasskeyCopyMaker } from './PasskeyCopy';
 import { loadAttester } from '../../veilcore/attester-keys';
 import { getRole, isLab } from '../../veilcore/role';
 import { prepareToReceive } from '../../veilcore/receive';
@@ -385,7 +384,6 @@ export const BackupStep: React.FC<{
             </Button>
           </Stack>
         )}
-        <PasskeyCopyMaker />
       </Part>
 
       <Part n={3} level={partLevel} title={t('app.backup.checkTitle')} active={!!saved && checked === undefined}>

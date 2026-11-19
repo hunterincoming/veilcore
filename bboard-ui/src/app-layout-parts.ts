@@ -9,3 +9,5 @@ export { AskLauncher } from './components/ask/AskLauncher';
 // footer's "change view".
 export { NetworkBadge } from './components/veilcore/WalletBadge';
 export { RoleChangeLink } from './components/RoleChangeLink';
+// Records saved with VeilCore: saved by themselves, and the first-run sheet (easy mode step 2).
+export { AccountKeeper } from './components/flow/KeepSafe';

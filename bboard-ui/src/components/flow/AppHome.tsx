@@ -70,6 +70,8 @@ import type { StrainRecord } from '../../veilcore/records';
 import type { SavedReport } from '../../veilcore/saved-report';
 import { PickUp } from './PickUp';
 import { BackupNeeded, backupNeed } from './BackupNeeded';
+import { AccountStatusLine } from './KeepSafe';
+import { useAccountState } from '../../veilcore/account-copy';
 import { JobsOnHome } from '../ask/JobsOnHome';
 import { keysOnlyHere } from './keys-only-here';
 import { wantsPasteFirst } from '../site/paste-entry';
@@ -194,6 +196,8 @@ export const AppHome: React.FC = () => {
   const unbackedIds = REAL_CHAIN ? keysOnlyHere(records) : [];
   // Records are sealed with a key only this browser has until a backup holding it is checked.
   const vaultUnbacked = useVaultNeedsBackup();
+  // Records saved with VeilCore (easy mode step 2): one account line says whether they are safe.
+  const accountOn = useAccountState().kind !== 'off';
   // Records saved before locking wait for that backup before they are locked (CONTRACT.md #23).
   const legacyWaiting = records.some((r) => rowStateOf(RECORDS_KEY, r.id) === 'legacy');
   const { vaultProblem } = useSealedView();
@@ -427,15 +431,18 @@ export const AppHome: React.FC = () => {
         <JobsOnHome />
 
         {/* A backup, when one is needed: one line for the whole account, never one per record
-            (BackupNeeded.tsx; easy-mode review, 19 Nov). */}
-        <BackupNeeded
-          need={backupNeed({
-            keysOnlyHere: unbackedIds.length,
-            waitingForBackup,
-            vaultUnbacked,
-            legacyWaiting,
-          })}
-        />
+            (BackupNeeded.tsx; easy-mode review, 19 Nov). When saving with VeilCore is on, the
+            account line below says it instead (easy mode step 2). */}
+        {!accountOn && (
+          <BackupNeeded
+            need={backupNeed({
+              keysOnlyHere: unbackedIds.length,
+              waitingForBackup,
+              vaultUnbacked,
+              legacyWaiting,
+            })}
+          />
+        )}
 
         {/* What is open since last time, one line and one button each (PickUp.tsx). Nothing open,
             nothing shown. */}
@@ -446,6 +453,10 @@ export const AppHome: React.FC = () => {
             lab ? records.filter((r) => r.receivedFrom && labFacts[r.id]?.signed === false).map((r) => r.id) : []
           }
         />
+
+        {/* Saving with VeilCore on (easy mode step 2): the account line says whether records are
+            kept safe, in place of the backup line above. */}
+        {accountOn && <AccountStatusLine />}
 
         {vaultProblem === 'cant-store' && (
           <Alert severity="warning" variant="outlined" data-vault-cant-store="">
@@ -485,8 +496,9 @@ export const AppHome: React.FC = () => {
               : lab && r.receivedFrom
                 ? { text: labCardLine(r, labFacts[r.id], tr), unfinished: false }
                 : doc
-                  ? // A document's card says its type and its date; a missing backup is Home's one
-                    // backup line (BackupNeeded.tsx), which counts its keys too (keys-only-here.ts).
+                  ? // A document's card says its type and its date; whether it is in a backup is said
+                    // once, for the whole account: the backup line (BackupNeeded.tsx, which counts its
+                    // keys too, keys-only-here.ts), or the account line when saving with VeilCore is on.
                     { text: '', unfinished: false }
                   : homeStatusLine(r, keys[r.id], { realChain: REAL_CHAIN, queued: imported.has(r.id) }, tr);
             // A document says so on its card: its type, then one plain status, dated or waiting for
@@ -567,9 +579,10 @@ export const AppHome: React.FC = () => {
                       {s.text}
                       {docDated && <DocumentDateLine fingerprint={r.recordFingerprint} loggedAt={r.loggedAt} />}
                     </Typography>
-                    {/* Kept on this device and in the backup only: said on its card, never as "not uploaded yet". */}
+                    {/* Kept on this device only: said on its card. Whether a downloaded copy holds it
+                        is said once, on the account line (easy mode step 2). */}
                     {isKeptOnDeviceOnly(r) &&
-                      (deviceOnlyBackedUp(r) ? (
+                      (deviceOnlyBackedUp(r) || accountOn ? (
                         <Typography variant="body2" color="text.secondary" data-home-device-only={r.id}>
                           {t('app.doc.local.homeLine')}
                         </Typography>
@@ -698,8 +711,8 @@ export const AppHome: React.FC = () => {
           </Button>
           <Collapse in={more}>
             <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', justifyContent: 'center', gap: 1 }}>
-              <Button variant="text" onClick={() => void navigate('/backup')}>
-                {t('app.home.saveABackup')}
+              <Button variant="text" onClick={() => void navigate('/settings')} data-settings-link="">
+                {t('app.settings.link')}
               </Button>
               <Button variant="text" onClick={exportRecords}>
                 {t('app.home.exportAll')}

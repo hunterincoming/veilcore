@@ -25,8 +25,8 @@ export const dating = {
 
   'app.home.restoreFirstTitle': 'ほかの端末でVeilCoreを使っていましたか？',
   'app.home.restoreFirstText':
-    'まずバックアップファイルから元に戻してください。記録とその鍵、記録を開く鍵がこのブラウザに戻ります。',
-  'app.home.restoreFirstButton': 'バックアップから元に戻す',
+    'まずここで記録を取り戻してください。Face IDか、保存したバックアップファイルを使います。',
+  'app.home.restoreFirstButton': '記録を取り戻す',
 
   'app.pickup.title': '進行中',
   'app.pickup.open': '開く',

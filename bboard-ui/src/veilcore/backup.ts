@@ -29,6 +29,7 @@
 import { holderKeyIfAny, setHolderKey } from './holder';
 import {
   allKeys,
+  clearCopyBackedUp,
   keysEntry,
   keysFor,
   markBackedUp,
@@ -36,14 +37,34 @@ import {
   wasForgotten,
   type RecordKeys,
 } from './record-keys';
-import { adoptAttester, loadAttester, markLabKeyBackedUp } from './attester-keys';
+import { adoptAttester, clearLabKeyCopyMark, loadAttester, markLabKeyBackedUp } from './attester-keys';
 import { allDeliveries, deliveriesMissingFrom, mergeDeliveries } from './lab-results';
 import { allSentCodes, mergeSentCodes } from './transfers';
-import { isVaultKey, markVaultBackedUp, setVaultKey, vaultHasSealed, vaultKeyIfAny, vaultKid } from './vault';
+import {
+  clearVaultCopyMark,
+  isVaultKey,
+  markVaultBackedUp,
+  setVaultKey,
+  vaultHasSealed,
+  vaultKeyIfAny,
+  vaultKid,
+} from './vault';
 import { raiseRevMarks, registryKids, revMarks } from './api-store';
-import { heldLicensesForBackup, heldMissingFrom, markHeldBackedUp, mergeHeldLicenses } from './held-licenses';
-import { lenderForBackup, lenderHeldBy, markLenderBackedUp, mergeLender } from './lender';
-import { issuerDealsForBackup, issuerDealsMissingFrom, markIssuerDealsBackedUp, mergeIssuerDeals } from './licenses';
+import {
+  clearHeldCopyMarks,
+  heldLicensesForBackup,
+  heldMissingFrom,
+  markHeldBackedUp,
+  mergeHeldLicenses,
+} from './held-licenses';
+import { clearLenderCopyMark, lenderForBackup, lenderHeldBy, markLenderBackedUp, mergeLender } from './lender';
+import {
+  clearIssuerDealsCopyMarks,
+  issuerDealsForBackup,
+  issuerDealsMissingFrom,
+  markIssuerDealsBackedUp,
+  mergeIssuerDeals,
+} from './licenses';
 import { enT } from '../i18n/translate';
 import {
   DEVICE_ONLY_BACKUP_FAILED,
@@ -400,6 +421,15 @@ export const backupFileName = (now = Date.now(), label = 'VeilCore backup'): str
   return `${name} ${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}.json`;
 };
 
+/**
+ * What goes in the account copy (account-copy.ts): the file's keys, never the records themselves
+ * (`recordData` is never in it, as with the passkey copy before it). A document kept on this
+ * device only never syncs: what it says is never in the copy. Its ID and keys are, locked, as the
+ * privacy page and the document's page say (docs/device-only-records.md), and the copy's check
+ * never counts them as backed up (security review B3): the file stays its only other copy.
+ */
+export const accountContents = (now = Date.now()): BackupContents => backupContents(now);
+
 /** True when there is anything worth backing up. */
 export const hasAnythingToBackUp = (): boolean =>
   holderKeyIfAny() !== null ||
@@ -462,9 +492,15 @@ export type CheckResult =
 export const checkBackup = async (
   file: File,
   password?: string,
-  /** `mark: false` checks without marking anything backed up (the passkey copy, passkey-backup.ts). */
-  opts: { mark?: boolean } = {},
+  /**
+   * `mark: false` checks without marking anything backed up. `mark: 'copy'` is the account copy
+   * (account-copy.ts) once its way back has been checked: it marks what it holds with the
+   * copy as the source (security review S1), and never a document kept on this device only
+   * (B3): those aren't in it, and still need the file.
+   */
+  opts: { mark?: boolean | 'copy'; exclude?: ReadonlySet<string> } = {},
 ): Promise<CheckResult> => {
+  const copyMode = opts.mark === 'copy';
   let v: Record<string, unknown>;
   try {
     v = await opened(parse(await file.text()), password);
@@ -490,7 +526,8 @@ export const checkBackup = async (
       inFile.set((e as { recordId: string }).recordId, e as Record<string, unknown>);
     }
   }
-  const held: RecordKeys[] = allKeys();
+  const localOnly = copyMode ? deviceOnlyRecords() : {};
+  const held: RecordKeys[] = allKeys().filter((k) => !(k.recordId in localOnly) && !opts.exclude?.has(k.recordId));
   const missing = held.filter((k) => {
     const e = inFile.get(k.recordId);
     return (
@@ -531,15 +568,30 @@ export const checkBackup = async (
     };
   }
   // Documents kept on this device only: this file is their only other copy, so it must hold
-  // each of them as it is now (docs/device-only-records.md). Not asked of the passkey copy
-  // (mark: false), which holds keys and never records, and never counts as the backup.
+  // each of them as it is now (docs/device-only-records.md). Not asked of the account copy,
+  // which holds keys and never records, and never holds theirs.
   if (
-    opts.mark !== false &&
-    (deviceOnlyMissingFrom(v.recordData).length > 0 || unreadableMissingFrom(v.deviceOnlyUnreadable).length > 0)
+    opts.mark === true || opts.mark === undefined
+      ? deviceOnlyMissingFrom(v.recordData).length > 0 || unreadableMissingFrom(v.deviceOnlyUnreadable).length > 0
+      : false
   ) {
     return { ok: false, reason: DEVICE_ONLY_NOT_IN_FILE };
   }
-  if (opts.mark !== false) {
+  if (copyMode) {
+    const at = Date.now();
+    // What the copy says was deleted isn't in it for a new device: a mark it gave before goes.
+    if (opts.exclude?.size) clearCopyBackedUp(opts.exclude);
+    markBackedUp(
+      held.map((k) => k.recordId),
+      at,
+      'copy',
+    );
+    markHeldBackedUp(v.heldLicenses, at, 'copy');
+    markIssuerDealsBackedUp(v.issuerDeals, 'copy');
+    markLenderBackedUp(v.lender, at, 'copy');
+    if (vault) markVaultBackedUp(at, 'copy');
+    if (lab) markLabKeyBackedUp(lab.keypair.publicKey, 'copy');
+  } else if (opts.mark !== false) {
     markDeviceOnlyBackedUp(v.recordData);
     markBackedUp(held.map((k) => k.recordId));
     markHeldBackedUp(v.heldLicenses);
@@ -550,6 +602,20 @@ export const checkBackup = async (
     if (lab) markLabKeyBackedUp(lab.keypair.publicKey);
   }
   return { ok: true, records: held.length, recordIds: held.map((k) => k.recordId) };
+};
+
+/**
+ * The account copy, or the way back that let it count, is gone (security review S1): every
+ * "backed up" mark it made goes, so what only it held waits for a backup again. What a checked
+ * file marked stays.
+ */
+export const clearCopyMarks = (): void => {
+  clearCopyBackedUp();
+  clearVaultCopyMark();
+  clearHeldCopyMarks();
+  clearIssuerDealsCopyMarks();
+  clearLenderCopyMark();
+  clearLabKeyCopyMark();
 };
 
 export type RestoreResult = {
@@ -584,6 +650,11 @@ export type RestoreOptions = {
   readonly mark?: boolean;
   readonly skipForgotten?: boolean;
   readonly keepVault?: boolean;
+  /**
+   * Records deleted on another device (the account copy's list, security review S13): never
+   * brought back by this restore.
+   */
+  readonly skipIds?: ReadonlySet<string>;
 };
 
 export const restoreAny = async (file: File, password?: string, opts: RestoreOptions = {}): Promise<RestoreResult> => {
@@ -619,7 +690,8 @@ export const restoreAny = async (file: File, password?: string, opts: RestoreOpt
   // Check everything before changing anything, so a refused file changes nothing.
   const entries = (Array.isArray(v.records) ? (v.records as unknown[]) : [])
     .filter((e): e is Record<string, unknown> => typeof e === 'object' && e !== null)
-    .filter((e) => !(opts.skipForgotten && typeof e.recordId === 'string' && wasForgotten(e.recordId)));
+    .filter((e) => !(opts.skipForgotten && typeof e.recordId === 'string' && wasForgotten(e.recordId)))
+    .filter((e) => !(opts.skipIds && typeof e.recordId === 'string' && opts.skipIds.has(e.recordId)));
   for (const e of entries) {
     const existing = typeof e.recordId === 'string' ? keysFor(e.recordId) : undefined;
     if (existing && existing.recordSecret !== str(e.recordSecret).toLowerCase()) {
@@ -728,6 +800,8 @@ const adoptVaultKey = (key: string, mark = true): 'restored' | 'already' => {
     if (mark) markVaultBackedUp();
     return 'already';
   }
-  setVaultKey(key);
+  // From a copy that marks nothing (the account copy), the key isn't marked either: the copy's
+  // own check marks it, once that passes (it used to be marked as from a file).
+  setVaultKey(key, Date.now(), mark);
   return 'restored';
 };

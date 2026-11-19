@@ -39,6 +39,7 @@ import { ask } from './ask';
 import { origin } from './origin';
 import { job } from './job';
 import { pack } from './pack';
+import { account } from './account';
 
 export const appEs: AppTranslation = {
   ...common,
@@ -72,4 +73,5 @@ export const appEs: AppTranslation = {
   ...origin,
   ...job,
   ...pack,
+  ...account,
 };

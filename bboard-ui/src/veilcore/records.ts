@@ -2383,6 +2383,9 @@ export const importRecordRows = async (parsed: readonly unknown[]): Promise<Impo
  */
 export const startOver = (): void => {
   forgetHolderKey();
+  // The keys kept to save the copy with VeilCore go too (account-copy.ts, review S5): this
+  // device stops saving it. The copy itself stays at the registry for the person's other devices.
+  void import('./account-copy').then((m) => m.forgetAccountOnThisDevice());
   // A vault key no accepted save used goes too (CONTRACT.md #23): kept, it would stop the
   // right backup from being restored here.
   clearUnusedVault();

@@ -103,29 +103,12 @@ export const backup = {
     'That backup is missing the latest for {count} of your records. Save a new one and check that.',
   'app.backup.err.missingLatest.other':
     'That backup is missing the latest for {count} of your records. Save a new one and check that.',
-  // The passkey copy (veilcore/passkey-backup.ts, flow/PasskeyCopy.tsx).
-  'app.backup.passkey.title': 'Also keep a copy that opens with a passkey',
-  'app.backup.passkey.why':
-    "If you lose this phone, your passkey gets everything back except records kept only on this device: it syncs to your new phone through your Apple or Google account. The copy is locked with a key only your passkey can make. VeilCore can't open it.",
-  'app.backup.passkey.keepFile': 'Keep the file too. Deleting the passkey deletes the only key to this copy.',
-  'app.backup.passkey.make': 'Make a passkey copy',
-  'app.backup.passkey.current': 'Passkey copy up to date, saved {date}',
-  'app.backup.passkey.behind': 'Your passkey copy is from {date} and is missing newer changes.',
-  'app.backup.passkey.update': 'Update passkey copy',
-  'app.backup.passkey.remove': 'Delete passkey copy',
-  'app.backup.passkey.removed':
-    'Passkey copy deleted. To delete the passkey itself, use your phone’s password settings.',
-  'app.backup.passkey.restore': 'Use my passkey',
-  'app.backup.passkey.restoreHint':
-    'Made a passkey copy before? Use your passkey instead of a file. Records kept only on a device come back only from a backup file.',
-  'app.backup.passkey.found': 'Found your passkey copy, saved {date}. Restore it here?',
-  'app.backup.passkey.restoreIt': 'Restore it',
-  'app.backup.passkey.notThis': 'Not this one',
-  'app.backup.passkey.from': 'From your passkey copy saved {date}.',
+  // A passkey, and records saved with VeilCore (veilcore/passkey-backup.ts, account-copy.ts).
   'app.backup.passkey.err.unsupported':
     "This phone or browser can't make a passkey that opens a backup. Use the backup file, or try Safari on an iPhone (iOS 18.4 or newer) or Chrome.",
   'app.backup.passkey.err.cancelled': 'Cancelled. Nothing was changed.',
-  'app.backup.passkey.err.noCopy': 'No backup copy was found for that passkey. Open your backup file instead.',
+  'app.backup.passkey.err.noCopy':
+    'No records saved with VeilCore were found for that passkey. Open your backup file instead.',
   'app.backup.passkey.err.unreachable': 'Could not reach the VeilCore registry. Check your connection and try again.',
   'app.backup.passkey.err.older':
     'The registry offered an older copy than this device has already seen. Nothing was changed. Try again later, and keep your backup file.',
@@ -168,4 +151,5 @@ export const backup = {
   'app.intake.err.badState': 'Its security value (state) is missing or malformed.',
   'app.backup.fromFileAdded': 'Records put back from the file itself: {n}.',
   'app.backup.fromFileProblem': "The records inside the file couldn't be put back: {why} Your keys are restored.",
+  'app.backup.passkey.err.busy': 'Your other device kept saving at the same moment. It tries again by itself.',
 };

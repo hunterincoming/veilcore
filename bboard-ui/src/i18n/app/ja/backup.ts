@@ -97,31 +97,12 @@ export const backup = {
   'app.backup.err.differentLab': 'このブラウザにはすでに別のラボの署名があります。何も変更していません。',
   'app.backup.err.missingLatest.other':
     'そのバックアップには、記録{count}件の最新の状態が入っていません。新しく保存して、それを確認してください。',
-  // The passkey copy (veilcore/passkey-backup.ts, flow/PasskeyCopy.tsx).
-  'app.backup.passkey.title': 'パスキーで開けるコピーも置いておく',
-  'app.backup.passkey.why':
-    'このスマートフォンをなくしても、この端末だけに保管している記録を除き、パスキーですべて取り戻せます。パスキーはAppleまたはGoogleのアカウントを通じて新しいスマートフォンに同期されます。コピーは、あなたのパスキーだけが作れる鍵で鍵がかけられています。VeilCoreには開けません。',
-  'app.backup.passkey.keepFile':
-    'ファイルも残しておいてください。パスキーを削除すると、このコピーの唯一の鍵も消えます。',
-  'app.backup.passkey.make': 'パスキーのコピーを作る',
-  'app.backup.passkey.current': 'パスキーのコピーは最新です（{date}に保存）',
-  'app.backup.passkey.behind': 'パスキーのコピーは{date}のもので、その後の変更が入っていません。',
-  'app.backup.passkey.update': 'パスキーのコピーを更新する',
-  'app.backup.passkey.remove': 'パスキーのコピーを削除する',
-  'app.backup.passkey.removed':
-    'パスキーのコピーを削除しました。パスキー自体は、スマートフォンのパスワード設定から削除してください。',
-  'app.backup.passkey.restore': 'パスキーを使う',
-  'app.backup.passkey.restoreHint':
-    '前にパスキーのコピーを作りましたか？ファイルの代わりにパスキーを使えます。端末だけに保管していた記録は、バックアップファイルからしか戻せません。',
-  'app.backup.passkey.found': '{date}に保存したパスキーのコピーが見つかりました。ここに復元しますか？',
-  'app.backup.passkey.restoreIt': '復元する',
-  'app.backup.passkey.notThis': 'これではない',
-  'app.backup.passkey.from': '{date}に保存したパスキーのコピーからです。',
+  // A passkey, and records saved with VeilCore (veilcore/passkey-backup.ts, account-copy.ts).
   'app.backup.passkey.err.unsupported':
     'このスマートフォンまたはブラウザでは、バックアップを開けるパスキーを作れません。バックアップファイルを使うか、iPhone（iOS 18.4以降）のSafariかChromeでお試しください。',
   'app.backup.passkey.err.cancelled': 'キャンセルしました。何も変更していません。',
   'app.backup.passkey.err.noCopy':
-    'そのパスキーのコピーは見つかりませんでした。代わりにバックアップファイルを開いてください。',
+    'そのパスキーでVeilCoreに保存した記録は見つかりませんでした。代わりにバックアップファイルを開いてください。',
   'app.backup.passkey.err.unreachable':
     'VeilCoreのレジストリに接続できませんでした。接続を確認して、もう一度お試しください。',
   'app.backup.passkey.err.older':
@@ -165,4 +146,5 @@ export const backup = {
   'app.intake.err.badState': 'セキュリティ値（state）がないか、形式が正しくありません。',
   'app.backup.fromFileAdded': 'ファイル自体から戻した記録：{n}件。',
   'app.backup.fromFileProblem': 'ファイル内の記録は戻せませんでした：{why} 鍵は復元されています。',
+  'app.backup.passkey.err.busy': 'もう一台の端末が同時に保存していました。自動でもう一度試します。',
 } satisfies Partial<AppTranslation>;

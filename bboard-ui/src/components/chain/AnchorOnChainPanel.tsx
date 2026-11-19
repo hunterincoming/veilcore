@@ -10,7 +10,7 @@ import React, { useState } from 'react';
 import { Alert, Button, Checkbox, FormControlLabel, Paper, Stack, Typography } from '@mui/material';
 import LinkIcon from '@mui/icons-material/LinkOutlined';
 import { ensureKeys, storageKeeps, useRecordKeys } from '../../veilcore/record-keys';
-import { getRecord, useRecords } from '../../veilcore/records';
+import { deviceOnlyBackedUp, getRecord, isKeptOnDeviceOnly, useRecords } from '../../veilcore/records';
 import { localStamp } from '../../veilcore/time';
 import { chainNotReady } from '../../veilcore/chain/config';
 import { useRecordT } from '../../i18n/app';
@@ -18,6 +18,7 @@ import { networkWords } from '../../i18n/network-words';
 import { useKeyStamp } from './useKeyStamp';
 import { ChainStatusLine, TxLine } from './ChainStatusLine';
 import { RecordKeysPanel } from './RecordKeysPanel';
+import { keyStampAllowed } from './stamp-gate';
 import { DatingPausedNotice } from '../DatingPausedNotice';
 
 /**
@@ -40,6 +41,12 @@ export const AnchorOnChainPanel: React.FC<{ recordId: string; forDocument?: bool
   const tr = useRecordT(record);
   const { t } = tr;
   if (!record) return null;
+  // The key's date stamp waits for a backup that holds it; for a document kept on this device
+  // only, a checked file holding the document itself (stamp-gate.ts, security review B3).
+  const keysSafe = keyStampAllowed(keys, {
+    deviceOnly: isKeptOnDeviceOnly(record),
+    inCheckedFile: deviceOnlyBackedUp(record),
+  });
 
   const notReady = chainNotReady();
   const keeps = storageKeeps();
@@ -127,12 +134,12 @@ export const AnchorOnChainPanel: React.FC<{ recordId: string; forDocument?: bool
                 <DatingPausedNotice on={stamp.paused} />
                 <Button
                   variant={forDocument ? 'outlined' : 'contained'}
-                  disabled={stamp.busy || !keys.backedUpAt || stamp.paused}
+                  disabled={stamp.busy || !keysSafe || stamp.paused}
                   onClick={() => void anchor()}
                   sx={{ alignSelf: 'flex-start' }}
                   data-key-stamp-button=""
                 >
-                  {!keys.backedUpAt
+                  {!keysSafe
                     ? t('app.plant.anchor.backupFirst')
                     : t(forDocument ? 'app.doc.stamp.button' : 'app.plant.anchor.anchorTest')}
                 </Button>

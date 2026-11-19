@@ -42,6 +42,8 @@ export type HeldLicense = {
   readonly activatedAt?: number;
   /** When a checked backup was seen to hold this license's secret. */
   readonly backedUpAt?: number;
+  /** 'copy': that backup was the account copy (security review S1); it goes when the copy does. */
+  readonly backedUpVia?: 'copy';
   /**
    * Taken over from its previous holder (hand-on.ts), not issued new: it goes live when the
    * licensor approves the move, with no activation from this side.
@@ -162,10 +164,19 @@ export const updateHeldLicense = (
 };
 
 /** Backup: what goes in the file. */
-export const heldLicensesForBackup = (): HeldLicense[] => read().map(({ backedUpAt: _b, ...h }) => h);
+export const heldLicensesForBackup = (): HeldLicense[] =>
+  read().map((h) => {
+    const rest: Record<string, unknown> = { ...h };
+    delete rest.backedUpAt;
+    delete rest.backedUpVia;
+    return rest as HeldLicense;
+  });
 
-/** Backup check: the licenses in a checked file that hold the same secret as here are marked backed up. */
-export const markHeldBackedUp = (fromFile: unknown, now = Date.now()): void => {
+/**
+ * Backup check: the licenses in a checked file that hold the same secret as here are marked
+ * backed up. `via: 'copy'` for the account copy, whose mark never replaces a file's.
+ */
+export const markHeldBackedUp = (fromFile: unknown, now = Date.now(), via?: 'copy'): void => {
   const inFile = new Map(
     (Array.isArray(fromFile) ? fromFile : [])
       .filter(isHeldLicense)
@@ -174,7 +185,30 @@ export const markHeldBackedUp = (fromFile: unknown, now = Date.now()): void => {
   const both = (h: HeldLicense) => `${h.secret}:${h.partySecret ?? ''}`;
   const all = read();
   if (!all.some((h) => inFile.get(h.inviteId) === both(h))) return;
-  write(all.map((h) => (inFile.get(h.inviteId) === both(h) ? { ...h, backedUpAt: now } : h)));
+  write(
+    all.map((h) => {
+      if (inFile.get(h.inviteId) !== both(h)) return h;
+      if (via === 'copy' && h.backedUpAt !== undefined && h.backedUpVia === undefined) return h;
+      const { backedUpVia: _v, ...rest } = h;
+      void _v;
+      return via === 'copy' ? { ...rest, backedUpAt: now, backedUpVia: 'copy' as const } : { ...rest, backedUpAt: now };
+    }),
+  );
+};
+
+/** The account copy is gone (S1): the marks it made go. */
+export const clearHeldCopyMarks = (): void => {
+  const all = read();
+  if (!all.some((h) => h.backedUpVia === 'copy')) return;
+  write(
+    all.map((h) => {
+      if (h.backedUpVia !== 'copy') return h;
+      const { backedUpAt: _a, backedUpVia: _v, ...rest } = h;
+      void _a;
+      void _v;
+      return rest;
+    }),
+  );
 };
 
 /** Backup check: the licenses here that the file doesn't hold (same secret). */
@@ -193,6 +227,7 @@ export const mergeHeldLicenses = (fromFile: unknown, opts: { mark?: boolean } = 
     if (opts.mark !== false) return { ...h, backedUpAt: Date.now() };
     const rest: Record<string, unknown> = { ...h };
     delete rest.backedUpAt;
+    delete rest.backedUpVia;
     return rest as HeldLicense;
   };
   if (add.length) write([...add.map(stamp), ...read()]);

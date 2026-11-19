@@ -136,7 +136,8 @@ export const labReportPageLines = (r: Pick<Rec, 'notes' | 'parents'>, tr: Transl
 
 /**
  * A dating record's line on Home. Its key isn't date stamped and doesn't need to be: its batch
- * is what dates the report. A missing backup is said once for the whole account (BackupNeeded.tsx).
+ * is what dates the report. A missing backup is said once for the whole account (BackupNeeded.tsx,
+ * or the account line when saving with VeilCore is on).
  */
 export const datingHomeStatus = (
   d: Pick<StrainRecord, 'loggedAt'>,
