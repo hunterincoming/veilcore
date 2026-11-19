@@ -33,8 +33,9 @@ import { makeTranslator, type AppDict, type Translator } from '../../i18n/transl
 import { LANGUAGE_CODES, type Lang } from '../../config/languages';
 import { isKeptOnDeviceOnly, lockedRecords, useRecords, type StrainRecord } from '../../veilcore/records';
 import {
+  batchSums,
   buildPack,
-  countsOf,
+  localDay,
   isDay,
   lastSixMonths,
   packRecords,
@@ -48,11 +49,8 @@ import { PackDocument, PACK_PRINT_STYLES } from './PackDocument';
 
 type PeriodKind = 'six' | 'permit' | 'other';
 
-/** Today on the officer's own calendar. */
-const today = (): string => {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-};
+/** Today on the officer's own calendar: the same calendar a record's day is read on (authority-pack.ts dayOf). */
+const today = (): string => localDay(Date.now());
 
 /** A typed whole number, undefined when empty, NaN when it isn't one. */
 const typedNumber = (s: string): number | undefined => {
@@ -145,7 +143,7 @@ const gather = async (selection: ReturnType<typeof selectPack>, packLang: Lang, 
 };
 
 export const AuthorityPackPage: React.FC = () => {
-  const { t, tp } = useT();
+  const { t } = useT();
   const records = useRecords();
   const [kind, setKind] = useState<PeriodKind>('six');
   const [permitStart, setPermitStart] = useState('');
@@ -185,10 +183,11 @@ export const AuthorityPackPage: React.FC = () => {
     () => (pFrom && pTo ? selectPack(records, { from: pFrom, to: pTo }) : undefined),
     [records, pFrom, pTo],
   );
-  const preview = selection ? countsOf(selection, {}) : undefined;
+  const sums = selection ? batchSums(selection) : undefined;
   const numbers = { plants: typedNumber(plants), inFlower: typedNumber(inFlower), patients: typedNumber(patients) };
   const bad = (n: number | undefined) => n !== undefined && Number.isNaN(n);
   const ready = !!period && !!packT && !bad(numbers.plants) && !bad(numbers.inFlower) && !bad(numbers.patients);
+  // Only the VeilCore records the pack covers: what it names, what its links carry, what it counts.
   const inPack = selection ? packRecords(selection) : [];
 
   // The PDF's file name is the page's title: the period, not "Your records".
@@ -215,9 +214,7 @@ export const AuthorityPackPage: React.FC = () => {
         ...(association.trim() ? { association: association.trim() } : {}),
         ...(preparedBy.trim() ? { preparedBy: preparedBy.trim() } : {}),
       };
-      setPack(
-        buildPack(selection, facts, form, { madeAt: new Date(), held: records.length, locked: lockedRecords().length }),
-      );
+      setPack(buildPack(selection, facts, form, { madeAt: new Date(), locked: lockedRecords().length }));
     } catch (e) {
       setError(t('app.pack.form.failed', { reason: e instanceof Error ? e.message : String(e) }));
     } finally {
@@ -309,16 +306,40 @@ export const AuthorityPackPage: React.FC = () => {
                 <Typography variant="subtitle1" component="h2" sx={{ fontWeight: 700, mb: 0.5 }}>
                   {t('app.pack.form.countsTitle')}
                 </Typography>
-                {preview && (
-                  <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }} data-pack-counts-preview="">
-                    {preview.source === 'batches'
-                      ? t('app.pack.form.countsFromBatches', {
-                          plants: preview.plants ?? 0,
-                          inFlower: preview.inFlower ?? 0,
-                          batches: tp('app.pack.form.batches', preview.batches - preview.batchesWithout),
-                        })
-                      : t('app.pack.form.countsNone')}
-                  </Typography>
+                {/* The officer declares both figures. The batches' sums are a hint beside the boxes,
+                    never put in them: a sum of sealed batches is not an inventory. */}
+                <Typography variant="body2" sx={{ mb: 0.5 }}>
+                  {t('app.pack.form.countsHelp')}
+                </Typography>
+                {sums && (
+                  <Box sx={{ mb: 1.5 }} data-pack-counts-preview="">
+                    {sums.plants === undefined && sums.inFlower === undefined ? (
+                      <Typography variant="body2" color="text.secondary">
+                        {t('app.pack.form.sumsNone')}
+                      </Typography>
+                    ) : (
+                      <>
+                        {sums.plants !== undefined && (
+                          <Typography variant="body2" color="text.secondary" data-pack-sum="plants">
+                            {t('app.pack.form.sumsPlants', {
+                              plants: sums.plants,
+                              counted: sums.plantsCounted,
+                              batches: sums.batches,
+                            })}
+                          </Typography>
+                        )}
+                        {sums.inFlower !== undefined && (
+                          <Typography variant="body2" color="text.secondary" data-pack-sum="inFlower">
+                            {t('app.pack.form.sumsFlower', {
+                              inFlower: sums.inFlower,
+                              counted: sums.inFlowerCounted,
+                              batches: sums.batches,
+                            })}
+                          </Typography>
+                        )}
+                      </>
+                    )}
+                  </Box>
                 )}
                 <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
                   <TextField

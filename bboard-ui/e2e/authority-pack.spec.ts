@@ -3,7 +3,8 @@
 // a grow batch about it, two harvest lots about the batch and a lab report about one of them, all
 // sealed on screen. The pack is made in Spanish for a chosen period:
 //   - the lot with no chromatography report is the gap at the top, and the other isn't;
-//   - the plant counts come from the grow batch, and the patient count shows as typed;
+//   - the plant counts are the ones the officer typed, the batch's sums shown only as a hint;
+//   - the header says it is not an official form, every printed page has a running footer;
 //   - each record has its check link, and the lab report's opens, in Spanish, as a stranger sees it;
 //   - the dates are VeilCore's registry's report, said so, never "checked";
 //   - the number of linked patients is in no request made after it was typed.
@@ -45,7 +46,8 @@ const sourceRow = (): Row => {
     breedingMethod: '',
     bredBy: HELD_BY,
     dateCreated: '2026-01-01',
-    loggedAt: Date.now() - 86_400_000,
+    // Sealed after the plant form started writing registration lines (authority-pack.ts).
+    loggedAt: Date.now(),
     nonce: randomBytes(16).toString('hex'),
     notes: `Variety registration: ${REGISTRATION}\n\nMother room.`,
     parents: [],
@@ -138,8 +140,9 @@ test('a pack for the authority in Spanish: the missing chromatography first, and
     },
   };
   await isolate(page, handlers);
-  // Every proof code is in a batch the registry reports on Midnight (a test network). This build
-  // can't reach an indexer, so no date is checked here: the pack must say it is the registry's word.
+  // Every proof code is in a batch the registry reports on Midnight (a test network). The site
+  // does try to look each anchor up on Midnight, but this test refuses every request outside the
+  // site and the stand-in registry, so no date is checked: the pack must say it is the registry's word.
   await page.route('**/proof/*', async (route) => {
     const fp = decodeURIComponent(new URL(route.request().url()).pathname.split('/').pop() ?? '');
     const batch = await buildBatch([fp], 'B-20261118-PACK');
@@ -198,9 +201,14 @@ test('a pack for the authority in Spanish: the missing chromatography first, and
   await page.getByLabel('Otras fechas').check();
   await page.locator('[data-period-from]').fill('2026-05-19');
   await page.locator('[data-period-to]').fill('2026-11-18');
-  await expect(page.locator('[data-pack-counts-preview]')).toContainText(
-    'suman 120 plantas, 80 en floración (un lote)',
+  // The batch's sums are a hint beside the boxes, never put in them.
+  await expect(page.locator('[data-pack-sum="plants"]')).toHaveText(
+    'Sus lotes de cultivo fechados en este período suman 120 plantas (lotes con este recuento: 1 de 1).',
   );
+  await expect(page.locator('[data-pack-sum="inFlower"]')).toContainText('Suman 80 plantas en floración');
+  await expect(page.locator('[data-pack-plants]')).toHaveValue('');
+  await page.locator('[data-pack-plants]').fill('118');
+  await page.locator('[data-pack-in-flower]').fill('76');
   await expect(page.locator('[data-pack-links-warn]')).toContainText('COA for lot L-0007');
 
   if (process.env.E2E_SHOTS)
@@ -214,7 +222,15 @@ test('a pack for the authority in Spanish: the missing chromatography first, and
   const pack = page.locator('[data-authority-pack]');
   await expect(pack).toBeVisible({ timeout: 60_000 });
   await expect(pack).toHaveAttribute('data-pack-lang', 'es');
-  await expect(pack.locator('h1')).toHaveText('Informe semestral y registro de producción');
+  await expect(pack.locator('h1')).toHaveText(
+    'Material de respaldo para el informe semestral y el registro de producción',
+  );
+  await expect(pack.locator('[data-pack-not-form]')).toHaveText('No es un formulario oficial.');
+  // A running footer on every printed page: the period and "página X de Y".
+  const pageCss = (await pack.locator('style[data-pack-page]').textContent()) ?? '';
+  expect(pageCss).toContain('@bottom-left');
+  expect(pageCss).toContain('"Período: del 2026-05-19 al 2026-11-18"');
+  expect(pageCss).toMatch(/"página " counter\(page\) " de " counter\(pages\)/);
   await expect(pack.locator('[data-pack-doc-period]')).toHaveText('Período: del 2026-05-19 al 2026-11-18');
 
   // The gaps, first: the lot with no report is named, the one with a report isn't.
@@ -234,20 +250,36 @@ test('a pack for the authority in Spanish: the missing chromatography first, and
 
   // The parts.
   await expect(pack.locator(`[data-variety="${SOURCE_ID}"] [data-registration]`)).toHaveText(REGISTRATION);
-  await expect(pack.locator('[data-pack-plants-total]')).toHaveText('120');
-  await expect(pack.locator('[data-pack-plants-flower]')).toHaveText('80');
-  await expect(pack.locator('[data-pack-counts-source]')).toHaveAttribute('data-pack-counts-source', 'batches');
+  await expect(pack.locator('[data-pack-plants-total]')).toHaveText('118');
+  await expect(pack.locator('[data-pack-plants-flower]')).toHaveText('76');
+  await expect(pack.locator('[data-pack-sums]')).toContainText(
+    'suman 120 plantas y 80 en floración. La suma de lotes sellados no es un inventario.',
+  );
   await expect(pack.locator('[data-pack-patients]')).toHaveText(PATIENTS);
   await expect(pack.locator(`[data-production="${batchId}"]`)).toContainText('120 plantas, 80 en floración');
   await expect(pack.locator(`[data-lot="${lotWithReport}"]`)).toHaveAttribute('data-chromatography', 'document');
   await expect(pack.locator(`[data-lot="${lotWithReport}"]`)).toContainText('Documento sellado: «COA for lot L-0007»');
   await expect(pack.locator(`[data-lot="${lotWithout}"]`)).toHaveAttribute('data-chromatography', 'missing');
-  await expect(pack.locator('[data-pack-footer]')).toContainText('Este no es un formulario oficial');
+  await expect(pack.locator('[data-pack-footer]')).toContainText(
+    'No conocemos un formulario oficial publicado para esta declaración.',
+  );
+  await expect(pack.locator('[data-pack-sign] > div')).toHaveText([
+    'Firma',
+    'Aclaración',
+    'Carácter (representante legal / Responsable Técnico)',
+    'Fecha',
+  ]);
+  // "Registro" never alone for one of ours.
+  await expect(pack).not.toContainText('No figura en el registro');
 
   // Each record: its proof code, its check link, and its date as the registry's report.
   for (const id of [SOURCE_ID, batchId, lotWithReport, lotWithout, reportId])
     await expect(pack.locator(`[data-pack-item="${id}"] a[data-check-link]`)).toHaveCount(1);
   const reportItem = pack.locator(`[data-pack-item="${reportId}"]`);
+  // On paper a link can't be clicked: where to type the ID instead.
+  await expect(reportItem.locator('[data-on-paper]')).toHaveText(
+    `En papel: abra 127.0.0.1:${process.env.E2E_PORT ?? 4317}/verify e introduzca el ID VeilCore ${reportId}.`,
+  );
   await expect(reportItem.locator('[data-date-lines]')).toContainText(
     'según informa el servidor de registros de VeilCore. No comprobado por este navegador',
   );
@@ -285,10 +317,11 @@ test('a pack for the authority in Spanish: the missing chromatography first, and
   // registry's word, never "nothing dates this record".
   await page.goto(reportLink.replace(/^https?:\/\/[^/]+/, ''));
   await expect(page.getByRole('heading', { name: 'Comprobar un documento' })).toBeVisible();
-  // Not confirmed here: the registry's word, or Midnight out of reach, as this build words it.
-  await expect(page.locator('[data-document-not-confirmed]')).toHaveAttribute(
-    'data-document-not-confirmed',
-    /^(registry-only|unreachable)$/,
+  // The page tried Midnight and every request out was refused: unreachable, and it says so.
+  const notConfirmed = page.locator('[data-document-not-confirmed]');
+  await expect(notConfirmed).toHaveAttribute('data-document-not-confirmed', 'unreachable');
+  await expect(notConfirmed).toHaveText(
+    'El registro de VeilCore da esta fecha, pero esta página no pudo confirmarla en Midnight en este momento. Vuelva a intentarlo en unos minutos antes de confiar en ella.',
   );
   await expect(page.locator('[data-document-not-dated]')).toHaveCount(0);
   expectNoErrors(errors);

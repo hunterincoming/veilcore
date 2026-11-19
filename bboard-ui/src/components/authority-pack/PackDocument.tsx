@@ -21,12 +21,41 @@ import {
 import { isKeptOnDeviceOnly, type StrainRecord } from '../../veilcore/records';
 import { documentKindOf } from '../../veilcore/document-kind';
 
+/** A string as a CSS string literal: quotes, backslashes, line breaks and "<" escaped. */
+export const cssString = (v: string): string =>
+  `"${v
+    .replace(/\\/g, '\\\\')
+    .replace(/"/g, '\\"')
+    .replace(/</g, '\\3C ')
+    .replace(/[\n\r\u2028\u2029]+/g, ' ')}"`;
+
+/**
+ * The page on A4, and a running footer on every printed page (CSS margin boxes): the association
+ * and the period on the left, "page X of Y" on the right, in the pack's language. Made per pack,
+ * since it carries what the officer typed (escaped as a CSS string, never as markup).
+ */
+export const pageCss = (left: string, pageOf: string): string => {
+  const [before = '', rest = ''] = pageOf.split('\u0001');
+  const [middle = '', after = ''] = rest.split('\u0002');
+  const right = [
+    before && cssString(before),
+    'counter(page)',
+    middle && cssString(middle),
+    'counter(pages)',
+    after && cssString(after),
+  ]
+    .filter(Boolean)
+    .join(' ');
+  const box =
+    'font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; font-size: 7.5pt; color: #4b4f57;';
+  return `@page { size: A4; margin: 14mm 12mm 17mm; @bottom-left { content: ${cssString(left)}; ${box} } @bottom-right { content: ${right}; ${box} } }`;
+};
+
 /**
  * In print, only the pack: the site's header and footer, the form, and Ask's button are left out,
  * on A4 with plain margins. Rows and record blocks don't break across pages.
  */
 export const PACK_PRINT_STYLES = {
-  '@page': { size: 'A4', margin: '14mm 12mm' },
   '@media print': {
     'header[data-site-header], footer:not(.pack-footer), [data-no-print], .MuiFab-root': { display: 'none !important' },
     // The app's cream page colour would show round the pack's edge: everything prints on white.
@@ -105,8 +134,16 @@ const sx = {
   '& .lot': { borderLeft: `3px solid ${LINE}`, pl: 1.5, my: 1, breakInside: 'avoid' },
   '& .lot[data-chromatography="missing"]': { borderLeftColor: WARN },
   '& a': { color: '#0b4fa8' },
-  '& .sign': { display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '2fr 2fr 1fr' }, gap: 3, mt: 5 },
+  '& .sign': {
+    display: 'grid',
+    gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' },
+    columnGap: 4,
+    rowGap: 5,
+    mt: 5,
+    breakInside: 'avoid',
+  },
   '& .sign div': { borderTop: `1px solid ${INK}`, pt: 0.5, fontSize: '0.86em', color: MUTED },
+  '& .not-form': { fontWeight: 700, mt: 0.5 },
   '& footer.pack-footer': { mt: 3, pt: 1, borderTop: `1px solid ${LINE}`, fontSize: '0.9em', breakInside: 'avoid' },
   // A phone: the production table's rows become stacked blocks, each value under its label.
   '@media (max-width: 600px)': {
@@ -129,6 +166,15 @@ const linkText = (href: string): string => {
     return `${u.host}${path}${u.search || u.hash ? '…' : ''}`;
   } catch {
     return href.slice(0, 48);
+  }
+};
+
+/** The site a check link is on, as a person types it: its host (veilcore.org). */
+const siteOf = (href: string): string => {
+  try {
+    return new URL(href).host;
+  } catch {
+    return 'veilcore.org';
   }
 };
 
@@ -218,6 +264,12 @@ const ProofBlock: React.FC<{ item: PackItem; tr: Translator }> = ({ item, tr }) 
           <span className="missing">{tr.t('app.pack.doc.noLink')}</span>
         )}
       </p>
+      {item.link && (
+        // A printed link can't be clicked: say where to type the ID on paper.
+        <p className="small muted" data-on-paper="">
+          {tr.t('app.pack.doc.onPaper', { site: siteOf(item.link), id: r.id })}
+        </p>
+      )}
       <p className="small muted">{tr.t('app.pack.doc.dateRests')}:</p>
       <ul className="small" style={{ margin: 0, paddingLeft: '1.2em' }} data-date-lines="">
         {dateLines(item.date, tr).map((l, i) => (
@@ -242,6 +294,8 @@ export const PackDocument: React.FC<{ pack: AuthorityPack; tr: Translator }> = (
     ...s.batches.map((b) => ({ r: b.record, role: 'grow-batch' as const, outside: b.outside })),
     ...s.lots.map((r) => ({ r, role: 'harvest-lot' as const })),
   ];
+  const periodText = tr.t('app.pack.doc.period', { from: s.period.from, to: s.period.to });
+  const running = [form.association, periodText].filter(Boolean).join(' · ');
   const col = {
     step: tr.t('app.pack.doc.col.step'),
     name: tr.t('app.pack.doc.col.name'),
@@ -252,9 +306,15 @@ export const PackDocument: React.FC<{ pack: AuthorityPack; tr: Translator }> = (
 
   return (
     <Box component="article" sx={sx} data-authority-pack="" data-pack-lang={tr.lang}>
+      <style data-pack-page="">
+        {pageCss(running, tr.t('app.pack.doc.pageOf', { page: '\u0001', pages: '\u0002' }))}
+      </style>
       <header>
         <h1>{tr.t('app.pack.doc.title')}</h1>
         <p className="muted">{tr.t('app.pack.doc.sub')}</p>
+        <p className="not-form" data-pack-not-form="">
+          {tr.t('app.pack.doc.notFormShort')}
+        </p>
         <p className="small">{tr.t('app.pack.doc.rules')}</p>
         <div className="meta small">
           {form.association && <span>{tr.t('app.pack.doc.association', { name: form.association })}</span>}
@@ -321,13 +381,15 @@ export const PackDocument: React.FC<{ pack: AuthorityPack; tr: Translator }> = (
             </div>
           </div>
         </div>
-        <p className="small muted" data-pack-counts-source={counts.source}>
-          {counts.source === 'batches'
-            ? tr.tp('app.pack.doc.fromBatches', counts.batches - counts.batchesWithout)
-            : counts.source === 'typed'
-              ? tr.t('app.pack.doc.typed')
-              : tr.t('app.pack.doc.countsNone')}
-        </p>
+        <p className="small muted">{tr.t('app.pack.doc.typed')}</p>
+        {(counts.sums.plants !== undefined || counts.sums.inFlower !== undefined) && (
+          <p className="small muted" data-pack-sums="">
+            {tr.t('app.pack.doc.sums', {
+              plants: counts.sums.plants !== undefined ? tr.num(counts.sums.plants) : '—',
+              inFlower: counts.sums.inFlower !== undefined ? tr.num(counts.sums.inFlower) : '—',
+            })}
+          </p>
+        )}
       </section>
 
       <section data-pack-section="patients">
@@ -417,9 +479,10 @@ export const PackDocument: React.FC<{ pack: AuthorityPack; tr: Translator }> = (
       <footer className="pack-footer" data-pack-footer="">
         <p>{tr.t('app.pack.doc.notForm')}</p>
         <p className="small muted">{tr.t('app.pack.doc.handover')}</p>
-        <div className="sign">
-          <div>{tr.t('app.pack.doc.sign')}</div>
+        <div className="sign" data-pack-sign="">
+          <div>{tr.t('app.pack.doc.signSign')}</div>
           <div>{tr.t('app.pack.doc.signName')}</div>
+          <div>{tr.t('app.pack.doc.signRole')}</div>
           <div>{tr.t('app.pack.doc.signDate')}</div>
         </div>
       </footer>

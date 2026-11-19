@@ -1,8 +1,9 @@
 // The pack for the authority (Argentina, medical-cannabis associations): one printable document
 // an association's officer makes from the records it already keeps here, for a chosen period.
 //
-// What the rules ask an association for (Ministerio de Salud Res. 1780/2025, which amends
-// Res. 800/2021; oversight delegated to SEDRONAR by Res. 376/2026 art. 17):
+// What the rules ask an association for (Ministerio de Salud Res. 800/2021, art. 4 ter and art. 10
+// as incorporated or replaced by Res. 1780/2025; oversight delegated to SEDRONAR by Res. 376/2026
+// art. 17):
 //   - a six-monthly sworn statement with the total plants, plants in flower, the number of linked
 //     patients and the registered variety used (art. 4 ter, inc. f);
 //   - a chromatography report for each batch (art. 4 ter, inc. f);
@@ -15,8 +16,8 @@
 // Where each part comes from:
 //   variety         the source records the grow batches are about: the name, and the variety
 //                   registration number sealed in the record's notes (origin-notes.ts), if any.
-//   plant counts    the grow batches dated in the period (their sealed numbers, as the holder
-//                   counted them), or what the officer types; the pack says which.
+//   plant counts    typed by the officer. The grow batches' sealed numbers in the period are
+//                   summed as a hint only: a sum of batches is not an inventory.
 //   linked patients typed by the officer when making the pack. A number only. It is used to
 //                   draw the page and nothing else: never saved, never sent (gatherPackFacts
 //                   is given the records, never the form).
@@ -63,7 +64,10 @@ export const monthsBefore = (day: string, months: number): string => {
 /** The last six months up to `today`, both days included. */
 export const lastSixMonths = (today: string): PackPeriod => ({ from: monthsBefore(today, 6), to: today });
 
-/** A one-year permit's year from its start day (Res. 1780/2025 art. 10): start to the day before the anniversary. */
+/**
+ * A one-year permit's year from its start day (art. 10 of Res. MS 800/2021, as replaced by
+ * Res. MS 1780/2025): start to the day before the anniversary.
+ */
 export const permitYear = (start: string): PackPeriod => {
   const d = new Date(`${start}T00:00:00Z`);
   // The anniversary (29 February rolls to 1 March), less one day.
@@ -71,9 +75,19 @@ export const permitYear = (start: string): PackPeriod => {
   return { from: start, to: end.toISOString().slice(0, 10) };
 };
 
-/** A record's day: the date written on it, or else the day it was sealed (UTC). */
+/** A moment's day on this device's own calendar, YYYY-MM-DD: the calendar the period is chosen on. */
+export const localDay = (t: number | Date): string => {
+  const d = new Date(t);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+};
+
+/**
+ * A record's day: the date written on it, or else the day it was sealed on this device's
+ * calendar. Not UTC: a record sealed at 22:00 in Buenos Aires (01:00 UTC the next day) belongs
+ * to the day the officer saw, the same calendar "today" and the period come from.
+ */
 export const dayOf = (r: Pick<StrainRecord, 'dateCreated' | 'loggedAt'>): string =>
-  isDay(r.dateCreated ?? '') ? r.dateCreated : new Date(r.loggedAt).toISOString().slice(0, 10);
+  isDay(r.dateCreated ?? '') ? r.dateCreated : localDay(r.loggedAt);
 
 const inPeriod = (day: string, p: PackPeriod): boolean => day >= p.from && day <= p.to;
 
@@ -94,9 +108,19 @@ export const isChromatographyReport = (r: StrainRecord): boolean =>
   !r.labResult &&
   (r.fieldSchema === undefined || r.fieldSet?.schema === POTENCY_SCHEMA);
 
+/**
+ * When the plant form started writing "Variety registration:" lines (origin-notes.ts). A record
+ * sealed before then can't hold one the app wrote: notes of the holder's own that happen to start
+ * with those words were sealed unguarded, so they are never read as a registration. Read from the
+ * record's sealed loggedAt, so no fingerprint changes.
+ */
+export const REGISTRATION_SEALED_FROM = Date.parse('2026-11-19T00:00:00Z');
+
 /** The variety registration number sealed in a source record's notes, or ''. */
-export const registrationOf = (r: Pick<StrainRecord, 'notes'>): string =>
-  (parseOriginBlock(parseStageHeader(r.notes).rest).origin.registration ?? '').trim();
+export const registrationOf = (r: Pick<StrainRecord, 'notes' | 'loggedAt'>): string =>
+  typeof r.loggedAt === 'number' && r.loggedAt >= REGISTRATION_SEALED_FROM
+    ? (parseOriginBlock(parseStageHeader(r.notes).rest).origin.registration ?? '').trim()
+    : '';
 
 /** The records a pack covers. Worked out from the records this browser holds; nothing is sent. */
 export type PackSelection = {
@@ -220,7 +244,8 @@ export const dateLines = (d: DateFacts | undefined, tr: Translator): string[] =>
           test,
         }),
       );
-    else if (c?.status === 'failed') out.push(tr.t('app.pack.date.failed', { where, reason: c.reason }));
+    // The look-up's reason is English and technical: the check link shows it; the pack says what it means.
+    else if (c?.status === 'failed') out.push(tr.t('app.pack.date.failed', { where }));
     else
       out.push(
         tr.t('app.pack.date.reported', {
@@ -316,7 +341,7 @@ export const reportLine = (r: StrainRecord, verdict: LabVerdict, signer: string)
 
 /** What the officer types when making the pack. Kept in the page only: never saved, never sent. */
 export type PackForm = {
-  /** Total plants and plants in flower, typed: used instead of the batches' numbers when given. */
+  /** Total plants and plants in flower, as the officer declares them. The batches' sums are a hint only. */
   readonly plants?: number;
   readonly inFlower?: number;
   /** The number of linked patients. A number only. */
@@ -332,21 +357,33 @@ export type Gap =
   | { readonly kind: 'source'; readonly name: string }
   | { readonly kind: 'noBatches' }
   | { readonly kind: 'noLots' }
-  | { readonly kind: 'counts' }
-  | { readonly kind: 'countsPartial'; readonly n: number }
+  | { readonly kind: 'plants' }
+  | { readonly kind: 'inFlower' }
+  | { readonly kind: 'plantsPartial'; readonly n: number }
+  | { readonly kind: 'inFlowerPartial'; readonly n: number }
   | { readonly kind: 'patients' }
   | { readonly kind: 'undated'; readonly n: number }
   | { readonly kind: 'unchecked'; readonly n: number }
   | { readonly kind: 'locked'; readonly n: number };
 
+/**
+ * The grow batches dated in the period, summed: a hint for the officer, never the declared figure.
+ * Each number is summed over the batches that have it, and how many do is kept for each, so a
+ * batch with plants but no in-flower count is never counted as 0 in flower.
+ */
+export type BatchSums = {
+  readonly batches: number;
+  readonly plants?: number;
+  readonly plantsCounted: number;
+  readonly inFlower?: number;
+  readonly inFlowerCounted: number;
+};
+
 export type PackCounts = {
-  /** Where the numbers come from: the grow batches, the officer, or nowhere. */
-  readonly source: 'batches' | 'typed' | 'none';
+  /** As the officer typed them; undefined when not given. */
   readonly plants?: number;
   readonly inFlower?: number;
-  /** Grow batches dated in the period, and how many of them have no sealed numbers here. */
-  readonly batches: number;
-  readonly batchesWithout: number;
+  readonly sums: BatchSums;
 };
 
 export type PackItem = {
@@ -365,7 +402,7 @@ export type AuthorityPack = {
   readonly reports: ReadonlyMap<string, readonly ReportLine[]>;
   readonly items: readonly PackItem[];
   readonly gaps: readonly Gap[];
-  /** Records in this browser, and those locked here (sealed with a key this browser doesn't have). */
+  /** The records the pack is made from, and those locked here (sealed with a key this browser doesn't have). */
   readonly held: number;
   readonly locked: number;
 };
@@ -379,30 +416,30 @@ export const batchCounts = (r: StrainRecord): { plants?: number; inFlower?: numb
 
 const whole = (n: number | undefined): n is number => n !== undefined && Number.isSafeInteger(n) && n >= 0;
 
-/** Total plants and plants in flower: as typed when the officer typed them, else the batches' sum. */
-export const countsOf = (s: PackSelection, form: PackForm): PackCounts => {
-  const inside = s.batches.filter((b) => !b.outside).map((b) => b.record);
-  const counted = inside.map(batchCounts);
-  const without = counted.filter((c) => c.plants === undefined).length;
-  const base = { batches: inside.length, batchesWithout: without };
-  if (whole(form.plants) || whole(form.inFlower))
-    return {
-      source: 'typed',
-      ...(whole(form.plants) ? { plants: form.plants } : {}),
-      ...(whole(form.inFlower) ? { inFlower: form.inFlower } : {}),
-      ...base,
-    };
-  const with_ = counted.filter((c) => c.plants !== undefined);
-  if (!with_.length) return { source: 'none', ...base };
+/** The grow batches dated in the period, summed number by number (a hint: see BatchSums). */
+export const batchSums = (s: PackSelection): BatchSums => {
+  const counted = s.batches.filter((b) => !b.outside).map((b) => batchCounts(b.record));
+  const sum = (k: 'plants' | 'inFlower') => {
+    const have = counted.flatMap((c) => (c[k] === undefined ? [] : [c[k]]));
+    return { total: have.length ? have.reduce((a, n) => a + n, 0) : undefined, n: have.length };
+  };
+  const p = sum('plants');
+  const f = sum('inFlower');
   return {
-    source: 'batches',
-    plants: with_.reduce((a, c) => a + (c.plants ?? 0), 0),
-    ...(with_.some((c) => c.inFlower !== undefined)
-      ? { inFlower: with_.reduce((a, c) => a + (c.inFlower ?? 0), 0) }
-      : {}),
-    ...base,
+    batches: counted.length,
+    ...(p.total !== undefined ? { plants: p.total } : {}),
+    plantsCounted: p.n,
+    ...(f.total !== undefined ? { inFlower: f.total } : {}),
+    inFlowerCounted: f.n,
   };
 };
+
+/** Total plants and plants in flower: only what the officer typed, beside the batches' sums. */
+export const countsOf = (s: PackSelection, form: PackForm): PackCounts => ({
+  ...(whole(form.plants) ? { plants: form.plants } : {}),
+  ...(whole(form.inFlower) ? { inFlower: form.inFlower } : {}),
+  sums: batchSums(s),
+});
 
 /** Facts looked up for the pack, by record ID. */
 export type PackFacts = {
@@ -418,7 +455,7 @@ export const buildPack = (
   selection: PackSelection,
   facts: PackFacts,
   form: PackForm,
-  ctx: { readonly madeAt: Date; readonly held: number; readonly locked: number },
+  ctx: { readonly madeAt: Date; readonly locked: number },
 ): AuthorityPack => {
   const reports = new Map<string, ReportLine[]>();
   for (const lot of selection.lots)
@@ -453,10 +490,12 @@ export const buildPack = (
   if (!selection.batches.some((b) => !b.outside)) gaps.push({ kind: 'noBatches' });
   for (const s of selection.sources) if (!registrationOf(s)) gaps.push({ kind: 'registration', source: s.strainName });
   for (const m of selection.missingSources) gaps.push({ kind: 'source', name: m.name });
-  if (counts.source === 'none' || (counts.source === 'typed' && (!whole(counts.plants) || !whole(counts.inFlower))))
-    gaps.push({ kind: 'counts' });
-  else if (counts.source === 'batches' && counts.batchesWithout)
-    gaps.push({ kind: 'countsPartial', n: counts.batchesWithout });
+  if (!whole(counts.plants)) gaps.push({ kind: 'plants' });
+  if (!whole(counts.inFlower)) gaps.push({ kind: 'inFlower' });
+  const { sums } = counts;
+  if (sums.batches > sums.plantsCounted) gaps.push({ kind: 'plantsPartial', n: sums.batches - sums.plantsCounted });
+  if (sums.batches > sums.inFlowerCounted)
+    gaps.push({ kind: 'inFlowerPartial', n: sums.batches - sums.inFlowerCounted });
   if (!whole(form.patients)) gaps.push({ kind: 'patients' });
   const undated = items.filter((i) => !i.date || i.date.state !== 'anchored').length;
   if (undated) gaps.push({ kind: 'undated', n: undated });
@@ -464,7 +503,7 @@ export const buildPack = (
   if (unchecked) gaps.push({ kind: 'unchecked', n: unchecked });
   if (ctx.locked) gaps.push({ kind: 'locked', n: ctx.locked });
 
-  return { selection, madeAt: ctx.madeAt, form, counts, reports, items, gaps, held: ctx.held, locked: ctx.locked };
+  return { selection, madeAt: ctx.madeAt, form, counts, reports, items, gaps, held: items.length, locked: ctx.locked };
 };
 
 /** A gap in the pack's language, one line. */
@@ -480,10 +519,14 @@ export const gapWords = (g: Gap, tr: Translator): string => {
       return tr.t('app.pack.gap.noBatches');
     case 'noLots':
       return tr.t('app.pack.gap.noLots');
-    case 'counts':
-      return tr.t('app.pack.gap.counts');
-    case 'countsPartial':
-      return tr.tp('app.pack.gap.countsPartial', g.n);
+    case 'plants':
+      return tr.t('app.pack.gap.plants');
+    case 'inFlower':
+      return tr.t('app.pack.gap.inFlower');
+    case 'plantsPartial':
+      return tr.tp('app.pack.gap.plantsPartial', g.n);
+    case 'inFlowerPartial':
+      return tr.tp('app.pack.gap.inFlowerPartial', g.n);
     case 'patients':
       return tr.t('app.pack.gap.patients');
     case 'undated':

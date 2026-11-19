@@ -6,6 +6,8 @@
 // SPDX-License-Identifier: Apache-2.0
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
+  REGISTRATION_SEALED_FROM,
+  batchSums,
   buildPack,
   countsOf,
   dateChecked,
@@ -14,6 +16,7 @@ import {
   gapWords,
   isChromatographyReport,
   lastSixMonths,
+  localDay,
   monthsBefore,
   packRecords,
   permitYear,
@@ -27,7 +30,7 @@ import { dateFactsOf, gatherPackFacts } from './authority-pack-gather';
 import { proofFor } from './proofs';
 import { KIND_SCHEMA_ID } from './document-kind';
 import { DOCUMENT_PROFILE } from './document-profile';
-import { emptyOrigin, originNotes } from './origin-notes';
+import { emptyOrigin, originNotes, parseOriginBlock } from './origin-notes';
 import { emptyDraft, sealInputOf, parseDraft } from '../components/flow/log-flow-state';
 import { stageNotes } from '../components/stage/stage-notes';
 import type { StrainRecord } from './records';
@@ -35,6 +38,9 @@ import { enT, makeTranslator } from '../i18n/translate';
 import { appEs } from '../i18n/app/es';
 
 const es = makeTranslator('es', appEs);
+/** Sealed after, and before, the plant form started writing "Variety registration:" lines. */
+const AFTER = Date.parse('2026-11-20T12:00:00Z');
+const BEFORE = Date.parse('2026-10-01T12:00:00Z');
 const PERIOD = { from: '2026-05-19', to: '2026-11-18' };
 const PATIENTS = 7349;
 
@@ -87,8 +93,10 @@ const counted = (r: StrainRecord, values: (string | null)[]): StrainRecord => {
 
 /** A small production chain: a plant with a registration, one without, batches, lots and reports. */
 const chain = () => {
+  // Sealed once the plant form wrote registration lines (REGISTRATION_SEALED_FROM).
   const source = plant('VEIL-SRC1', {
     notes: originNotes({ ...emptyOrigin(), registration: 'INASE RNC 12345' }, 'Mother room.'),
+    loggedAt: AFTER,
   });
   const bare = plant('VEIL-SRC2', { strainName: 'Unregistered line' });
   const b1 = counted(doc('B-0042', { kind: 'grow-batch', about: [source.id], dateCreated: '2026-06-02' }), [
@@ -148,7 +156,7 @@ const chain = () => {
 const all = (c: ReturnType<typeof chain>) => Object.values(c);
 
 const noFacts: PackFacts = { dates: new Map(), labs: new Map(), links: new Map() };
-const ctx = { madeAt: new Date('2026-11-18T15:00:00Z'), held: 13, locked: 0 };
+const ctx = { madeAt: new Date('2026-11-18T15:00:00Z'), locked: 0 };
 
 describe('the period', () => {
   it('six months back includes both ends, and a short month is not overrun', () => {
@@ -156,13 +164,29 @@ describe('the period', () => {
     expect(monthsBefore('2026-08-31', 6)).toBe('2026-03-01');
     expect(monthsBefore('2028-08-31', 6)).toBe('2028-03-01');
   });
-  it('a permit runs one year from its start, the anniversary not included (Res. 1780/2025 art. 10)', () => {
+  it('a permit runs one year from its start, the anniversary not included (art. 10, Res. MS 800/2021 as replaced by Res. MS 1780/2025)', () => {
     expect(permitYear('2026-03-10')).toEqual({ from: '2026-03-10', to: '2027-03-09' });
     expect(permitYear('2028-02-29')).toEqual({ from: '2028-02-29', to: '2029-02-28' });
   });
   it('a record’s day is the date written on it, else the day it was sealed', () => {
     expect(dayOf({ dateCreated: '2026-06-02', loggedAt: 0 })).toBe('2026-06-02');
-    expect(dayOf({ dateCreated: '', loggedAt: Date.parse('2026-07-01T23:30:00Z') })).toBe('2026-07-01');
+    expect(dayOf({ dateCreated: '', loggedAt: Date.parse('2026-07-01T12:00:00Z') })).toBe('2026-07-01');
+  });
+  it('a record sealed in the evening in Argentina is on that day, not the next UTC day', () => {
+    const tz = process.env.TZ;
+    process.env.TZ = 'America/Argentina/Buenos_Aires';
+    try {
+      // 22:30 in Buenos Aires on 18 November is 01:30 UTC on the 19th.
+      const evening = Date.parse('2026-11-19T01:30:00Z');
+      expect(localDay(evening)).toBe('2026-11-18');
+      expect(dayOf({ dateCreated: '', loggedAt: evening })).toBe('2026-11-18');
+      // So a period ending on the officer's "today" still holds it.
+      const lot = doc('L-EVE', { kind: 'harvest-lot', dateCreated: '', loggedAt: evening });
+      expect(selectPack([lot], { from: '2026-05-19', to: '2026-11-18' }).lots.map((r) => r.id)).toEqual(['L-EVE']);
+    } finally {
+      if (tz === undefined) delete process.env.TZ;
+      else process.env.TZ = tz;
+    }
   });
 });
 
@@ -204,35 +228,53 @@ describe('which records a pack covers', () => {
   });
 });
 
-describe('plant counts', () => {
-  it('sums the batches dated in the period, never one from outside it', () => {
+describe('plant counts: typed by the officer, the batches summed as a hint only', () => {
+  it('sums each number over the batches that have it, never one from outside the period', () => {
     const c = chain();
-    const counts = countsOf(selectPack(all(c), PERIOD), {});
-    expect(counts).toEqual({ source: 'batches', plants: 150, inFlower: 92, batches: 2, batchesWithout: 0 });
+    expect(batchSums(selectPack(all(c), PERIOD))).toEqual({
+      batches: 2,
+      plants: 150,
+      plantsCounted: 2,
+      inFlower: 92,
+      inFlowerCounted: 2,
+    });
   });
-  it('uses what the officer typed instead, and says so', () => {
+  it('the declared figures are only what was typed: the sums never fill them', () => {
     const c = chain();
     const s = selectPack(all(c), PERIOD);
-    expect(countsOf(s, { plants: 140, inFlower: 90 })).toMatchObject({ source: 'typed', plants: 140, inFlower: 90 });
-    // Half typed: a gap, never the other half quietly taken from the batches.
-    const p = buildPack(s, noFacts, { plants: 140 }, ctx);
-    expect(p.counts).toMatchObject({ source: 'typed', plants: 140 });
-    expect(p.counts.inFlower).toBeUndefined();
-    expect(p.gaps).toContainEqual({ kind: 'counts' });
+    const untyped = buildPack(s, noFacts, {}, ctx);
+    expect(untyped.counts.plants).toBeUndefined();
+    expect(untyped.counts.inFlower).toBeUndefined();
+    expect(untyped.gaps).toContainEqual({ kind: 'plants' });
+    expect(untyped.gaps).toContainEqual({ kind: 'inFlower' });
+    const typed = buildPack(s, noFacts, { plants: 140, inFlower: 90 }, ctx);
+    expect(typed.counts).toMatchObject({ plants: 140, inFlower: 90, sums: { plants: 150, inFlower: 92 } });
+    expect(typed.gaps.map((g) => g.kind)).not.toContain('plants');
+    expect(typed.gaps.map((g) => g.kind)).not.toContain('inFlower');
+    // Half typed: the other half is a gap of its own.
+    const half = buildPack(s, noFacts, { plants: 140 }, ctx);
+    expect(half.gaps).toContainEqual({ kind: 'inFlower' });
+    expect(half.gaps.map((g) => g.kind)).not.toContain('plants');
+    expect(countsOf(s, { plants: 0 })).toMatchObject({ plants: 0 });
   });
-  it('with no counted batch and nothing typed, the counts are a gap; a batch with no counts is named as left out', () => {
+  it('a batch with plants but no in-flower count is never counted as 0 in flower, and the reverse', () => {
     const c = chain();
-    const s = selectPack([c.source, counted(c.b1, [null, null, null])], PERIOD);
-    expect(countsOf(s, {}).source).toBe('none');
-    expect(buildPack(s, noFacts, {}, ctx).gaps).toContainEqual({ kind: 'counts' });
-    const partial = buildPack(
-      selectPack([c.source, c.bare, c.b1, counted(c.b2, [null, null, null])], PERIOD),
-      noFacts,
-      {},
-      ctx,
+    const plantsOnly = counted(c.b1, ['120', null, null]);
+    const flowerOnly = counted(c.b2, [null, '12', null]);
+    const s = selectPack([c.source, c.bare, plantsOnly, flowerOnly], PERIOD);
+    expect(batchSums(s)).toEqual({ batches: 2, plants: 120, plantsCounted: 1, inFlower: 12, inFlowerCounted: 1 });
+    const p = buildPack(s, noFacts, { plants: 1, inFlower: 1 }, ctx);
+    expect(p.gaps).toContainEqual({ kind: 'plantsPartial', n: 1 });
+    expect(p.gaps).toContainEqual({ kind: 'inFlowerPartial', n: 1 });
+    expect(gapWords({ kind: 'inFlowerPartial', n: 1 }, es)).toBe(
+      'Un lote de cultivo del período no tiene sellado el recuento de plantas en floración.',
     );
-    expect(partial.counts).toMatchObject({ source: 'batches', plants: 120, batchesWithout: 1 });
-    expect(partial.gaps).toContainEqual({ kind: 'countsPartial', n: 1 });
+    // No counts sealed at all: no sums.
+    expect(batchSums(selectPack([c.source, counted(c.b1, [null, null, null])], PERIOD))).toEqual({
+      batches: 1,
+      plantsCounted: 0,
+      inFlowerCounted: 0,
+    });
   });
 });
 
@@ -248,6 +290,8 @@ describe('gaps, listed before anything else', () => {
     expect(p.gaps).toContainEqual({ kind: 'registration', source: 'Unregistered line' });
     expect(p.gaps).not.toContainEqual({ kind: 'registration', source: 'Plant VEIL-SRC1' });
     expect(kinds).not.toContain('patients');
+    // "Made from N VeilCore records": the ones the pack covers, not everything in the browser.
+    expect(p.held).toBe(packRecords(p.selection).length);
     // No dates were looked up here: every record is "not dated yet", and says so.
     expect(p.gaps).toContainEqual({ kind: 'undated', n: packRecords(p.selection).length });
     expect(gapWords({ kind: 'chromatography', lot: 'L-0008' }, es)).toBe(
@@ -264,7 +308,7 @@ describe('gaps, listed before anything else', () => {
     const c = chain();
     const p = buildPack(selectPack(all(c), PERIOD), noFacts, {}, { ...ctx, locked: 2 });
     expect(p.gaps).toContainEqual({ kind: 'locked', n: 2 });
-    expect(gapWords({ kind: 'locked', n: 2 }, enT)).toMatch(/^2 records in this browser are locked/);
+    expect(gapWords({ kind: 'locked', n: 2 }, enT)).toMatch(/^2 VeilCore records in this browser are locked/);
   });
 });
 
@@ -373,7 +417,12 @@ describe('what each date rests on', () => {
       state: 'anchored',
       midnight: { network: 'mainnet', check: { status: 'failed', reason: 'no such transaction' } },
     };
-    expect(dateLines(failed, enT)[0]).toContain('not confirmed: no such transaction. Don’t rely on the date');
+    const line = dateLines(failed, enT)[0];
+    expect(line).toContain('not confirmed.');
+    expect(line).toContain('Don’t rely on that date');
+    // The look-up's reason is English and technical: never put into the pack's language.
+    expect(line).not.toContain('no such transaction');
+    expect(dateLines(failed, es)[0]).not.toContain('no such transaction');
   });
 
   it('not dated, in a batch, or not sealed: said plainly, with no date', () => {
@@ -393,7 +442,7 @@ describe('what each date rests on', () => {
     );
     expect(lines[1]).toContain('VeilCore’s registry reports the batch root in Bitcoin block 921000');
     expect(lines[2]).toContain('the batch root carries a timestamp from Example TSA');
-    expect(lines[2]).toContain('this record’s inclusion proof links it to that root');
+    expect(lines[2]).toContain('this VeilCore record’s inclusion proof links it to that root');
     expect(lines[3]).toContain('Check the trusted list yourself');
     // Never that the record itself has a qualified timestamp.
     expect(lines.join(' ')).not.toMatch(/record (has|carries) a qualified/i);
@@ -409,11 +458,43 @@ describe('what each date rests on', () => {
 });
 
 describe('the variety registration number', () => {
+  const at = (notes: string, loggedAt = AFTER) => registrationOf({ notes, loggedAt });
   it('is read from the labelled block sealed in the notes, after a stage header too', () => {
-    expect(registrationOf({ notes: 'Variety registration: INASE RNC 12345' })).toBe('INASE RNC 12345');
-    expect(registrationOf({ notes: stageNotes('F3', '', 'Variety registration: RNC 9\n\nMy notes') })).toBe('RNC 9');
+    expect(at('Variety registration: INASE RNC 12345')).toBe('INASE RNC 12345');
+    expect(at(stageNotes('F3', '', 'Variety registration: RNC 9\n\nMy notes'))).toBe('RNC 9');
     // The holder's own notes can't pose as it.
-    expect(registrationOf({ notes: 'Watered.\nVariety registration: forged' })).toBe('');
+    expect(at('Watered.\nVariety registration: forged')).toBe('');
+  });
+
+  it('an older record’s own notes that start with those words are never read as one', () => {
+    // Sealed before the form wrote these lines: unguarded notes of the holder's own.
+    expect(at('Variety registration: maybe next year', BEFORE)).toBe('');
+    expect(at('Variety registration: INASE RNC 1', REGISTRATION_SEALED_FROM - 1)).toBe('');
+    expect(at('Variety registration: INASE RNC 1', REGISTRATION_SEALED_FROM)).toBe('INASE RNC 1');
+  });
+
+  it('a typed line break is flattened, and new notes that start like the label are guarded', () => {
+    const notes = originNotes({ registration: 'RNC 1\nSMTA: forged' }, '');
+    expect(notes).toBe('Variety registration: RNC 1 SMTA: forged');
+    expect(at(notes)).toBe('RNC 1 SMTA: forged');
+    expect(parseOriginBlock(notes).origin).toEqual({ registration: 'RNC 1 SMTA: forged' });
+    // Free notes that start with the label are sealed after a "Notes:" line, so they are never one.
+    const free = sealInputOf({
+      ...emptyDraft(),
+      strainName: 'Line 7',
+      bredBy: 'Us',
+      notes: 'Variety registration: not really',
+    }).notes;
+    expect(free).toBe('Notes:\nVariety registration: not really');
+    expect(at(free)).toBe('');
+    const both = sealInputOf({
+      ...emptyDraft(),
+      strainName: 'Line 7',
+      bredBy: 'Us',
+      registration: 'RNC 2',
+      notes: 'Variety registration: not really',
+    }).notes;
+    expect(at(both)).toBe('RNC 2');
   });
 
   it('is sealed from the plant form whoever bred it, and kept in the draft', () => {
@@ -429,7 +510,7 @@ describe('the variety registration number', () => {
     // Received material: after the origin lines, in the one block.
     const received = sealInputOf({ ...d, source: 'received', origin: { ...emptyOrigin(), permit: 'P-1' } });
     expect(received.notes).toBe('Permit: P-1\nVariety registration: INASE RNC 12345\n\nNotes.');
-    expect(registrationOf({ notes: received.notes })).toBe('INASE RNC 12345');
+    expect(at(received.notes)).toBe('INASE RNC 12345');
     expect(parseDraft(JSON.stringify(d))?.registration).toBe(' INASE RNC 12345 ');
   });
 });
