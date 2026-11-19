@@ -162,3 +162,33 @@ One reviewed change, then a normal site deploy:
 
 After that deploy the home page's "What works, and where" row says "Yes" for veilcore.org, in
 all five languages.
+
+## The first run
+
+Two runs on veilcore.org on 18 November 2026, both by the maintainer's lab key
+`TEST Lab (Hunter)` (signing key `6f41e434…d750f231`).
+
+**First run.** Steps 1 to 12 and 14 to 18 passed. The step 12 signature was published at
+block 3514926. Records: `VEIL-108D8AA913EA64837DFD5FA5A5318274` (`TEST lab signing 1`),
+`VEIL-F2D4EA528C4F6E29519B370B8F65BE53` (the signed result, `TEST-1`) and
+`VEIL-735B0AEB0963EE0A9D716150893CA512` (`TEST lab signing 2`, the sample sent to the lab).
+Step 13 failed on wording only: the proof was made and checked on Midnight, but the claim page
+read "Detected (1 yes, 0 no) is at most 0" instead of "Not detected". That result was withdrawn
+in step 18, so it could not be reused for step 13.
+
+**Second run, after the fix** (release `31461fe`). The lab key was restored from its backup. A
+new record `VEIL-F1EFAD5DDAB613504F42C96B89ABFB91` (`TEST lab signing 3`), a new HLVd
+"Not detected" result on it (`TEST-2`, record `VEIL-089D6BBFAAF2361A38D5048C3DADCE18`), its
+signature published at block 3517043. Once the result's batch was dated (about an hour after
+signing), step 13 passed: the claim, proved at block 3517671, headlines "Not detected", names
+`TEST Lab (Hunter)`, and shows "As proved on Midnight: Detected (1 yes, 0 no) is at most 0"
+under it. The result was then withdrawn as in step 18, and both stranger checks say "This lab
+no longer stands behind this result."
+
+**What this run covers, and what it doesn't.** Live means what ran here: the lab signs, the
+holder checks, shares and proves a number, the lab withdraws. In steps 1 to 13 the lab and the
+holder were the same window (step 11 opens the lab's own record; the check page doesn't offer
+"Add it as a record you hold"), and the second breeder in steps 14 to 17 only sent a sample and
+saw the lab's receipt. So adding a lab's result file to another breeder's records has never run
+on mainnet: it stays described as built, not yet run, until a run where a second breeder adds a
+lab's result, proves a number on it and reloads.
