@@ -112,7 +112,8 @@ export const pack = {
   'app.pack.doc.recordId': 'ID VeilCore {id}',
   'app.pack.doc.proofCode': 'Código de prueba',
   'app.pack.doc.checkLink': 'Enlace de comprobación',
-  'app.pack.doc.onPaper': 'En papel: abra {site}/verify e introduzca el ID VeilCore {id} y el código de prueba de arriba.',
+  'app.pack.doc.onPaper':
+    'En papel: abra {site}/verify e introduzca el ID VeilCore {id} y el código de prueba de arriba.',
   'app.pack.doc.noLink': 'Sin enlace de comprobación: este registro VeilCore aún no está sellado.',
   'app.pack.doc.local': 'Se guarda solo en el dispositivo de la asociación.',
   'app.pack.doc.dateRests': 'En qué se apoya la fecha',
