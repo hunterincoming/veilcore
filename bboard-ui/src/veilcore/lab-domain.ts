@@ -15,6 +15,9 @@
 export const domainClaimPayload = (publicKey: string, domain: string, issuedAt: number): string =>
   `veilcore:lab-domain:v1\n${publicKey}\n${domain}\n${issuedAt}`;
 
+/** A plain public domain name, lower case: the registry's cleanDomain (lineage/lab-domain.mjs). */
+export const LAB_DOMAIN = /^(?=.{4,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/;
+
 const HEX64 = /^[0-9a-f]{64}$/;
 const HEX128 = /^[0-9a-f]{128}$/i;
 const fromHex = (hex: string): Uint8Array => new Uint8Array((hex.match(/.{1,2}/g) ?? []).map((b) => parseInt(b, 16)));

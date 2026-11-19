@@ -41,7 +41,7 @@ import {
   type AttesterProfile,
 } from '../veilcore/attester-keys';
 import { prepareToReceive } from '../veilcore/receive';
-import { didDocumentFor, didVerificationMethod } from '../veilcore/lab-domain';
+import { didDocumentFor, didVerificationMethod, LAB_DOMAIN } from '../veilcore/lab-domain';
 import { labChanged } from '../veilcore/lab-results';
 import { BackupStep } from './flow/BackupStep';
 import { Link as RouterLink } from 'react-router-dom';
@@ -159,11 +159,7 @@ export const AttesterSetup: React.FC<{
   };
   const saveLabFile = (p: AttesterProfile) => saveFile(labFileFor(p), 'veilcore-lab.json');
   // did:web (docs/lab-key-on-website.md): the DID is the domain, so it needs one typed.
-  const didDomain = /^(?=.{4,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/.test(
-    cleanTypedDomain(domain),
-  )
-    ? cleanTypedDomain(domain)
-    : null;
+  const didDomain = LAB_DOMAIN.test(cleanTypedDomain(domain)) ? cleanTypedDomain(domain) : null;
 
   useEffect(() => {
     const show = () => setOpen(true);

@@ -24,7 +24,7 @@ import type { SignedAttestation, AttestationStrength, Retraction } from 'veilcor
 import { verifyAttestation, verifyRetraction } from 'veilcore-records';
 import { readJson, isObject, isString } from './json';
 import { isClaimsKeyBinding } from './lab-key-text';
-import { domainClaimValid } from './lab-domain';
+import { domainClaimValid, LAB_DOMAIN } from './lab-domain';
 import { holderKeyIfAny, holderRequestsPaused } from './holder';
 import { enT, type Translator } from '../i18n/translate';
 import type { AppKey } from '../i18n/app/en';
@@ -175,8 +175,6 @@ const checkRetraction = async (r: unknown, a: SignedAttestation): Promise<Retrac
     return null;
   }
 };
-
-const LAB_DOMAIN = /^(?=.{4,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/;
 
 /**
  * The registry's domain records, kept only when this browser verified the key's own signature
@@ -462,17 +460,16 @@ export const currentDomainCheck = (
 };
 
 /**
- * The website the key named stopped listing it (registry `domainWithdrawn`), when the key's
- * signature naming it verified here. No freshness limit: it is a dated fact about the past,
- * and the registry drops it as soon as the website lists the key again. Shown on withdrawn
- * signatures too (a retraction doesn't make a lab's disowning of its key less worth knowing).
+ * A website the key named stopped listing it (registry `domainWithdrawn`: two real "not here"
+ * answers about a day apart), when the key's signature naming it verified here. No freshness
+ * limit: it is a dated fact, and the registry drops it as soon as that website lists the key
+ * again. Shown on retracted signatures too.
  */
 export const currentDomainWithdrawal = (
   a: ResolvedAttestation,
   now: number = Date.now(),
 ): { domain: string; href: string; date: string } | null => {
   if (!a.signatureValid) return null;
-  if (currentDomainCheck(a, now)) return null;
   const w: unknown = a.registeredAs?.domainWithdrawn;
   if (!isObject(w) || !isString(w.domain) || !LAB_DOMAIN.test(w.domain) || w.claimChecked !== true) return null;
   const at = isString(w.withdrawnAt) ? Date.parse(w.withdrawnAt) : NaN;
@@ -538,8 +535,10 @@ export const signerLabel = (
   tr: Translator = enT,
 ): SignerLabel => {
   const check = countsAsSigned(a) ? currentNameCheck(a, now) : null;
-  const dc = currentDomainCheck(a, now);
-  const dw = dc ? null : currentDomainWithdrawal(a, now);
+  // A withdrawal wins: a website the key named disowning it matters more than another listing
+  // it (the registry serves no listing while one stands; this holds for an older answer too).
+  const dw = currentDomainWithdrawal(a, now);
+  const dc = dw ? null : currentDomainCheck(a, now);
   const published = dc
     ? {
         before: tr.t('app.signer.domainBefore'),

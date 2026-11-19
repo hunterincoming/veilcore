@@ -275,7 +275,7 @@ export const lab = {
   'app.lab.key.optional.step1':
     'Envoyez-nous votre inscription publique de licence ou d’accréditation à <mail>hunter@veilcore.org</mail>.',
   'app.lab.key.optional.step2':
-    'Ou, si vous gérez le site de votre laboratoire : placez ce fichier à /.well-known/veilcore-lab.json, saisissez votre domaine et appuyez sur « Vérifier maintenant ». Chacun peut alors voir que la clé et le site vont ensemble sans demander à VeilCore. Si vous cessez d’utiliser la clé, laissez-la dans le fichier. Ne l’enlevez que pour la désavouer (si elle a fuité) : les pages diront alors que votre site a cessé de la publier, et la clé ne pourra plus désigner un autre site.',
+    'Ou, si vous gérez le site de votre laboratoire : placez ce fichier à /.well-known/veilcore-lab.json, saisissez votre domaine et appuyez sur « Vérifier maintenant ». Chacun peut alors voir que la clé et le site vont ensemble sans demander à VeilCore. Si vous cessez d’utiliser la clé, laissez-la publiée. Ne l’enlevez que pour la désavouer : une fois que les consultations quotidiennes de VeilCore ne l’auront plus trouvée deux fois, à environ un jour d’intervalle, les pages diront que votre site a cessé de la publier et la clé ne pourra plus désigner un autre site. Si la clé a fuité, écrivez aussi à hunter@veilcore.org pour faire retirer toute vérification du nom.',
   'app.lab.key.optional.otherWays': 'Autres moyens',
   'app.lab.key.showKey': 'Afficher la clé',
   'app.lab.key.hideKey': 'Masquer la clé',
@@ -294,7 +294,7 @@ export const lab = {
     'Ou, si votre site a un document W3C did:web (/.well-known/did.json), publiez-y la clé : ajoutez cette entrée à verificationMethod et son id à assertionMethod. Pas encore de did.json ? Enregistrez-en un ci-dessous. Saisissez d’abord votre domaine plus haut.',
   'app.lab.key.domain.saveDid': 'Enregistrer did.json',
   'app.lab.key.domain.withdrawn':
-    '{domain} a cessé de publier cette clé, elle ne peut donc pas désigner un autre site. Remettez-la dans le fichier de ce site, ou créez une nouvelle clé.',
+    '{domain} a cessé de publier cette clé, elle ne peut donc pas désigner un autre site. Republiez-la là où ce site la publiait, ou créez une nouvelle clé.',
   'app.lab.key.privateWarning':
     'Votre clé privée est stockée dans l’espace de stockage de ce navigateur, non chiffrée, et nulle part ailleurs. C’est suffisant pour essayer. Tout ce qui peut s’exécuter sur ce site, ou une extension de navigateur qui y a accès, pourrait la lire. Si vous la perdez, vous ne pourrez plus rien signer de nouveau ; ce que vous avez signé reste valide, alors sauvegardez-la en lieu sûr. Un laboratoire qui l’utiliserait réellement signerait dans ses propres systèmes : voir le <link>guide d’intégration</link>.',
   'app.lab.key.downloadBackup': 'Télécharger la copie de secours de la clé',

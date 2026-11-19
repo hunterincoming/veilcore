@@ -126,6 +126,20 @@ describe('what each fact rests on', () => {
     expect(r[3].who).toMatch(/they match the proof code/);
   });
 
+  it('a key its website stopped listing says so on its own row, with the same mark; a listing adds nothing', () => {
+    const lab = { kind: 'Lab report', who: 'a key named “Acme” (name not checked)', nameChecked: false };
+    const [plain] = rows({ signers: [lab] }).filter((r) => r.fact === 'Lab report');
+    const [gone] = rows({ signers: [{ ...lab, withdrawn: true }] }).filter((r) => r.fact === 'Lab report');
+    expect(gone.basis).toBe(plain.basis);
+    expect(gone.who).toBe(`${plain.who} Its website has since stopped listing this key (below).`);
+    expect(rows({ signers: [lab] }).length).toBe(rows({ signers: [{ ...lab, withdrawn: true }] }).length);
+    const [unbound] = rows({ bound: false, signers: [{ ...lab, withdrawn: true }] }).filter(
+      (r) => r.fact === 'Lab report',
+    );
+    expect(unbound.basis).toBe('registry');
+    expect(unbound.who).toMatch(/stopped listing this key/);
+  });
+
   it('every row is in every language', () => {
     for (const tr of [
       makeTranslator('de', appDe),
@@ -134,7 +148,7 @@ describe('what each fact rests on', () => {
       makeTranslator('ja', appJa),
     ]) {
       const out = [
-        ...whoVouches({ ...base, signers: [{ kind: 'K', who: 'W', nameChecked: true }] }, tr),
+        ...whoVouches({ ...base, signers: [{ kind: 'K', who: 'W', nameChecked: true, withdrawn: true }] }, tr),
         ...whoVouches({ ...base, bound: false, signers: [{ kind: 'K', who: 'W', nameChecked: true }] }, tr),
         ...whoVouches({ ...base, anchorFailed: true, words: 'differs' }, tr),
         ...whoVouches({ ...base, words: 'matches' }, tr),

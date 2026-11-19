@@ -78,10 +78,12 @@ a domain that lists nothing.
   times, eight at a time). A key the lab takes out of its file stops being shown at the
   next look; a domain that never listed the key, or stopped answering, is forgotten after
   30 days.
-- A key the website had listed and then answered without (a file without it or a 404, and a
-  DNS answer; never a timeout, an error page or a broken file) is served as
-  `domainWithdrawn` and kept until the website lists it again. Until then the key can't name
-  another website, so whoever took a leaked key can't move it to a lookalike to hide that.
+- A key a website had listed and then answered without twice, at least 20 hours apart (a file
+  without it or a 404, and a DNS answer; never a timeout, an error page or a broken file), is
+  served as `domainWithdrawn` and kept until that website lists it again. The registry keeps
+  watching the websites a key moved away from, so a thief moving a leaked key to a lookalike
+  first doesn't stop the lab withdrawing it; while withdrawn, the key can't name another
+  website. Details and limits: [lab-key-on-website.md](lab-key-on-website.md).
 - The fetch only goes to public addresses (global IPv4 and IPv6 unicast, checked when
   connecting, so a name can't be switched to a private one in between), with no redirects,
   5 seconds for the file (body included), 5 for the DNS record, and 16 KiB at most.

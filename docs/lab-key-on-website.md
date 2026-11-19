@@ -71,9 +71,11 @@ anywhere; most lab websites also wouldn't send CORS headers. So:
   `curl https://acme-labs.com/.well-known/veilcore-lab.json`, `dig +short TXT _veilcore-lab.acme-labs.com`.
 
 **Caching.** The registry keeps one record per key: the domain, the way it was found, the time,
-the file's SHA-256, the signed claim. Pages show "listed" only while the last look that found the
-key is under 7 days old. The page caches claim checks per claim, so a lab with many signatures
-costs one check.
+the file's SHA-256, the signed claim, the websites the key named before (up to four) and any
+withdrawal. Pages show "listed" only while the last look that found the key is under 7 days old.
+A look that gets no answer (timeout, 5xx, a broken file) changes nothing but the time it was
+tried: one bad look never hides a listing. The page caches claim checks per claim, so a lab
+with many signatures costs one check.
 
 ## What the check page says
 
@@ -91,13 +93,25 @@ After the signer's name (checked or not, unchanged):
 outage, is not something a reader of a signature should be alarmed by, and the line simply isn't
 there. "Withdrawn" is different: the website answered and the key wasn't there.
 
-**Withdrawn** is recorded only when the website and DNS both gave a real answer: a file without
-the key or a 404/410 for each file, and a DNS answer (none, or one without the key). A timeout, a
-5xx, a file that isn't JSON or DNS failing is never read as a withdrawal. It is kept, not forgotten
-after 30 days, until the website lists the key again. And until then the key can't name another
-website (409, `withdrawn`): otherwise whoever took a leaked key could point it at a lookalike and
-wipe the lab's withdrawal off every page. The lab's key screen says so, and tells a lab that stops
-using a key to leave it in the file: only remove it to disown it.
+**Withdrawn** needs two real "not here" answers at least 20 hours apart, from a website this
+version saw listing the key. A real answer is: the lab file answers without the key or with a
+404/410; did.json the same, or a 200 that isn't a DID document at all (a single-page host's HTML
+for any path); and DNS answers (no record, or one without the key). A timeout, a 5xx, a 403, a
+lab file that isn't the format, or DNS failing is not an answer. Two answers a day apart keep a
+host that serves 404 for everything for an afternoon (a paused project, a broken deploy) from
+reading as a withdrawal. A host that answers 403 for missing files (S3, CloudFront) never gives a
+real answer, so a withdrawal can't be recorded there: its listing just ages out after 7 days.
+
+A withdrawal is kept, not forgotten after 30 days, until that website lists the key again. Until
+then the key can't name any other website (409, `withdrawn`). The claim is checked again right
+before the registry writes a look, so a slow look started earlier can't overwrite a withdrawal or
+a newer claim recorded while it ran. The lab's key screen tells a lab that stops using a key to
+leave it listed, and to take it off only to disown it.
+
+**Deploy day.** Before this version, the key screen said "to retire the key, take it out of the
+file". So a website only counts for a withdrawal once this version has seen it list the key
+(`seenListed`): a key taken down before the deploy is never marked withdrawn with the deploy's
+date; it is forgotten after 30 days as before.
 
 The words never say the lab is real, licensed, accredited or "verified", and never "owns": the
 unit tests check that in all five languages. It shows the key's holder and whoever controls that
@@ -122,12 +136,13 @@ prints a name plainly; the website line sits after it, never instead of it.
   never turns the name green. Matching a domain to a licence listing is the operator's name check.
 - **A lab copying another's key.** It can list the other lab's public key on its own site, but the
   key never signed a claim naming that site, so no page shows it.
-- **A leaked key.** The lab removes it from its website: every page shows the withdrawal, and the
-  thief can't move the key to another website. If the thief names a lookalike _before_ the lab
-  removes it, the registry stops looking at the lab's site; the lab then also asks the operator to
-  take any name-check mark off (`key-compromised`). Watching the old domain after a move was
-  weighed and not done: a lab moving websites removes the key from the old one, which would read as
-  a withdrawal.
+- **A leaked key.** The lab removes it from its website: after the second daily look every page
+  shows the withdrawal, and the key can't name another website. If the thief names a lookalike
+  _first_, the registry keeps watching the lab's real website (the key's earlier websites, up to
+  four), so the lab removing it there still withdraws the key, and pages then show the withdrawal,
+  not the lookalike. The lab also emails to have any name-check mark taken off
+  (`key-compromised`). The cost: a lab that moves websites and takes the key off the old one
+  withdraws it too. To move, keep the key listed on the old website, or make a new key.
 - **The registry lying.** It could claim a website lists a key it doesn't: the link lets anyone see.
   It can't claim the key named a website it didn't: the page checks that signature itself.
 

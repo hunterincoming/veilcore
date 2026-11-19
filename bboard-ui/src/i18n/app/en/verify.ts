@@ -304,6 +304,7 @@ export const verify = {
   'app.verify.who.lab': 'A laboratory',
   'app.verify.who.lab.none': 'This page hasn’t checked any laboratory’s signature.',
   'app.verify.who.signed': '{who}. This page checked the signature.',
+  'app.verify.who.withdrawn': 'Its website has since stopped listing this key (below).',
   'app.verify.who.signedUnbound':
     '{who}, as VeilCore’s registry reports it. The link carries no proof code to check it with.',
   'app.verify.who.more': 'More signatures',

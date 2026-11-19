@@ -808,7 +808,12 @@ export const VerifyPage: React.FC = () => {
                     testNetwork: isTestNetwork(reportedNetwork ?? NETWORK),
                     signers: signed.map((a) => {
                       const label = signerLabel(a, 'Signed by', undefined, tr);
-                      return { kind: signatureKind(a, tr), who: label.who, nameChecked: label.checked };
+                      return {
+                        kind: signatureKind(a, tr),
+                        who: label.who,
+                        nameChecked: label.checked,
+                        withdrawn: label.published?.state === 'withdrawn',
+                      };
                     }),
                     max: SIGNATURE_LINES,
                   },

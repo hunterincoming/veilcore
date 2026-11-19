@@ -131,12 +131,12 @@ describe('the key names its website: checked here, not taken from the registry',
       domainWithdrawn: { ...withdrawn, claim: await claimBy(other, lab.publicKey, 'acme-labs.com') },
     });
     expect(forged.published).toBeNull();
-    // Listed wins (the registry drops the withdrawal when the key is listed again anyway).
+    // A withdrawal wins over a listing elsewhere (a thief's lookalike, say).
     const both = await label({
       domainCheck: { domain: 'acme-labs.com', method: 'file', checkedAt: LOOKED, claim },
       domainWithdrawn: withdrawn,
     });
-    expect(both.published?.state).toBe('listed');
+    expect(both.published?.state).toBe('withdrawn');
     // A look older than 7 days: no "listed"; and no withdrawal either, unless one was recorded.
     const stale = await label({
       domainCheck: { domain: 'acme-labs.com', method: 'file', checkedAt: '2026-11-01T00:00:00Z', claim },

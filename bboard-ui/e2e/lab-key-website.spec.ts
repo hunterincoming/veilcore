@@ -127,6 +127,8 @@ test('listed on the lab’s website: the line says so, who looked and when, and 
   await expect(link).toHaveAttribute('href', 'https://stand-in-lab.example/.well-known/veilcore-lab.json');
   await expect(page.getByText(`and VeilCore found it listed there on ${today()}.`)).toBeVisible();
   await expect(page.getByText('a key named “Stand-in Lab” (name not checked)').first()).toBeVisible();
+  // The box doesn't repeat a listing.
+  await expect(page.locator('[data-who-vouches]')).not.toContainText('stand-in-lab.example');
   // Never more than what was seen.
   await expect(page.locator('main')).not.toContainText(/real lab|verified lab|owns this key/i);
   expectNoErrors(errors);
@@ -151,6 +153,10 @@ test('the website stopped listing the key: said plainly, with the date', async (
   await expect(page.locator('[data-lab-domain="withdrawn"]')).toHaveText('stand-in-lab.example');
   await expect(page.getByText(`but VeilCore found it no longer listed there on ${today()}.`)).toBeVisible();
   await expect(page.locator('[data-lab-domain="listed"]')).toHaveCount(0);
+  // Said briefly in "What each fact rests on" too, on the signer's own row.
+  await expect(page.locator('[data-who-vouches]')).toContainText(
+    'Its website has since stopped listing this key (below).',
+  );
   expectNoErrors(errors);
 });
 

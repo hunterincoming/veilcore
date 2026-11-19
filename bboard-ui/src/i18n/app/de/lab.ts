@@ -273,7 +273,7 @@ export const lab = {
   'app.lab.key.optional.step1':
     'Schicken Sie uns Ihren öffentlichen Lizenz- oder Akkreditierungseintrag an <mail>hunter@veilcore.org</mail>.',
   'app.lab.key.optional.step2':
-    'Oder, wenn Sie die Website Ihres Labors betreiben: Legen Sie diese Datei unter /.well-known/veilcore-lab.json ab, geben Sie Ihre Domain ein und drücken Sie „Jetzt nachsehen“. Dann kann jeder ohne VeilCore sehen, dass Schlüssel und Website zusammengehören. Wenn Sie den Schlüssel nicht mehr verwenden, lassen Sie ihn in der Datei. Entfernen Sie ihn nur, um sich von ihm loszusagen (etwa wenn er in fremde Hände geraten ist): Dann zeigen die Seiten, dass Ihre Website ihn nicht mehr aufführt, und der Schlüssel kann keine andere Website nennen.',
+    'Oder, wenn Sie die Website Ihres Labors betreiben: Legen Sie diese Datei unter /.well-known/veilcore-lab.json ab, geben Sie Ihre Domain ein und drücken Sie „Jetzt nachsehen“. Dann kann jeder ohne VeilCore sehen, dass Schlüssel und Website zusammengehören. Wenn Sie den Schlüssel nicht mehr verwenden, lassen Sie ihn aufgeführt. Entfernen Sie ihn nur, um sich von ihm loszusagen: Sobald die täglichen Abrufe von VeilCore ihn zweimal im Abstand von etwa einem Tag nicht mehr gefunden haben, zeigen die Seiten, dass Ihre Website ihn nicht mehr aufführt, und der Schlüssel kann keine andere Website nennen. Ist der Schlüssel in fremde Hände geraten, schreiben Sie außerdem an hunter@veilcore.org, damit eine Namensprüfung entfernt wird.',
   'app.lab.key.optional.otherWays': 'Andere Wege',
   'app.lab.key.showKey': 'Schlüssel anzeigen',
   'app.lab.key.hideKey': 'Schlüssel ausblenden',
@@ -292,7 +292,7 @@ export const lab = {
     'Oder, wenn Ihre Website ein W3C-did:web-Dokument hat (/.well-known/did.json), führen Sie den Schlüssel dort auf: Fügen Sie diesen Eintrag unter verificationMethod und seine id unter assertionMethod hinzu. Noch keine did.json? Speichern Sie unten eine. Geben Sie zuerst oben Ihre Domain ein.',
   'app.lab.key.domain.saveDid': 'did.json speichern',
   'app.lab.key.domain.withdrawn':
-    '{domain} führt diesen Schlüssel nicht mehr auf, daher kann er keine andere Website nennen. Nehmen Sie ihn wieder in die Datei dieser Website auf oder erstellen Sie einen neuen Schlüssel.',
+    '{domain} führt diesen Schlüssel nicht mehr auf, daher kann er keine andere Website nennen. Führen Sie ihn dort wieder auf, wo diese Website ihn aufgeführt hat, oder erstellen Sie einen neuen Schlüssel.',
   'app.lab.key.privateWarning':
     'Ihr privater Schlüssel liegt unverschlüsselt im Speicher dieses Browsers und nirgendwo sonst. Zum Ausprobieren ist das in Ordnung. Alles, was auf dieser Website laufen kann, oder eine Browsererweiterung mit Zugriff darauf, könnte ihn lesen. Wenn Sie ihn verlieren, können Sie nichts Neues signieren; was Sie zuvor signiert haben, bleibt gültig, also sichern Sie ihn an einem sicheren Ort. Ein Labor, das ihn wirklich nutzt, würde in seinen eigenen Systemen signieren: siehe den <link>Integrationsleitfaden</link>.',
   'app.lab.key.downloadBackup': 'Schlüsselsicherung herunterladen',
