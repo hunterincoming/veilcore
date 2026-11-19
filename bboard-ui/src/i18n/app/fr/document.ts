@@ -342,4 +342,14 @@ export const document = {
     'Rien de ce qui a été saisi dans un enregistrement gardé uniquement sur cet appareil n’a jamais été envoyé au registre de VeilCore. En copiant ce lien, vous remettez ce qui a été saisi dans chacun de ceux qu’il porte (marqués ci-dessus, et cet enregistrement s’il en est un) à quiconque le reçoit.',
   'app.doc.chain.aboutHolderNote':
     'Ouvrir l’un de ces liens interroge le registre de VeilCore sur l’identifiant de cet enregistrement, depuis votre adresse réseau. Pour un enregistrement gardé uniquement sur cet appareil, c’est une chose de plus que le registre apprend : que ce navigateur l’a consulté.',
+  'app.doc.copy.title': 'Votre copie d’un résultat de laboratoire',
+  'app.doc.copy.text':
+    'Une copie d’un résultat que {lab} conserve. La date est celle du laboratoire, pas la vôtre. VeilCore conserve cette copie, mais ne peut pas la dater pour vous.',
+  'app.doc.copy.aLab': 'un laboratoire',
+  'app.doc.copy.homeLine': 'Copie d’un résultat que {lab} conserve : la date est celle du laboratoire',
+  'app.doc.copy.noExport':
+    'Ceci est une copie d’un résultat qu’un laboratoire conserve : elle ne peut pas être exportée comme votre enregistrement.',
+  'app.doc.copy.delete':
+    'Ceci est votre copie d’un résultat que le laboratoire conserve : la supprimer ne retire que votre copie. L’enregistrement du laboratoire et sa date restent.',
+  'app.doc.copy.made': '« {name} » est conservé comme copie du résultat de {lab} : il ne peut pas être daté pour vous.',
 } satisfies Partial<AppTranslation>;

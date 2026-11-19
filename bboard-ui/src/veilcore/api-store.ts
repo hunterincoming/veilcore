@@ -197,11 +197,24 @@ const withoutKeys = (r: Record<string, unknown>, keys: readonly string[]): Recor
   return out;
 };
 
-/** A record's sealed part: every field but the public ones, the full `supersedes` included. */
+/**
+ * A copy of a lab's signed result the lab keeps (records.ts StrainRecord.copy): its proof code is
+ * the lab's on VeilCore, so the copy carries it inside its sealed part only. It is kept out of the
+ * clear, out of a name code and away from dating, so the first-holder rule is untouched. Only a
+ * record with a lab's signature is taken as a copy, and only the `copy` mark inside the sealed
+ * part says so, which only this holder's vault key can write: the registry can't make a row a
+ * copy, or stop it being one.
+ */
+const isCopy = (r: Record<string, unknown>): boolean =>
+  r.copy === true && typeof r.labSignature === 'object' && r.labSignature !== null;
+
+/** A record's sealed part: every field but the public ones, the full `supersedes` included; a copy's proof code too. */
 export const privatePart = (r: Record<string, unknown>): Record<string, unknown> => {
   const out: Record<string, unknown> = {};
+  const copy = isCopy(r);
   for (const [k, v] of Object.entries(r))
-    if (!PUBLIC.has(k) && k !== 'sealed' && k !== 'rev' && v !== undefined) out[k] = v;
+    if ((!PUBLIC.has(k) || (copy && k === 'recordFingerprint')) && k !== 'sealed' && k !== 'rev' && v !== undefined)
+      out[k] = v;
   return out;
 };
 
@@ -224,7 +237,8 @@ export { SEALED_MAX_BYTES };
 /** A record's clear part: the public fields, and of `supersedes` only the pointer and public facts. */
 export const publicPart = (r: Record<string, unknown>): Record<string, unknown> => {
   const out: Record<string, unknown> = {};
-  for (const k of PUBLIC_FIELDS) if (r[k] !== undefined) out[k] = r[k];
+  const copy = isCopy(r);
+  for (const k of PUBLIC_FIELDS) if (r[k] !== undefined && !(copy && k === 'recordFingerprint')) out[k] = r[k];
   const s = r.supersedes;
   if (isObject(s)) {
     out.supersedes = {
@@ -242,7 +256,7 @@ export const publicPart = (r: Record<string, unknown>): Record<string, unknown> 
  */
 const nameCodeField = (r: Record<string, unknown>): { nameCode?: string } => {
   const code =
-    isString(r.strainName) && isString(r.recordFingerprint) && isString(r.nameSalt)
+    !isCopy(r) && isString(r.strainName) && isString(r.recordFingerprint) && isString(r.nameSalt)
       ? nameCodeOf(r.strainName, r.recordFingerprint, r.nameSalt)
       : undefined;
   return code ? { nameCode: code } : {};
@@ -258,7 +272,10 @@ const nameOnlyInClear = (row: Record<string, unknown>, sealed: Record<string, un
 /** The record a row stands for, once opened: the sealed fields, with the registry's public ones on top. */
 const merged = (row: Record<string, unknown>, sealed: Record<string, unknown>): Record<string, unknown> => {
   const out: Record<string, unknown> = { ...sealed };
+  // A copy's proof code is the sealed one, whatever the row says (isCopy).
+  const copy = isCopy(sealed);
   for (const k of READ_FIELDS) {
+    if (copy && k === 'recordFingerprint') continue;
     if (row[k] !== undefined) out[k] = row[k];
     else if (k !== 'id') delete out[k];
   }
@@ -1232,9 +1249,9 @@ export type DatingRow = { readonly id: string; readonly recordFingerprint: strin
 
 const HEX64 = /^[0-9a-f]{64}$/;
 
-/** A record's dating row, or undefined when it has no proof code to date. */
+/** A record's dating row, or undefined when it has no proof code to date (or it is a copy: isCopy). */
 export const datingRowOf = (r: Record<string, unknown>): DatingRow | undefined =>
-  isString(r.id) && isString(r.recordFingerprint) && HEX64.test(r.recordFingerprint)
+  !isCopy(r) && isString(r.id) && isString(r.recordFingerprint) && HEX64.test(r.recordFingerprint)
     ? {
         id: r.id,
         recordFingerprint: r.recordFingerprint,

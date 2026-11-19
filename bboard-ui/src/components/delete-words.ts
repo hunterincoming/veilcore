@@ -17,14 +17,19 @@ export const DELETE_WHY: Record<DeleteFailure, AppKey> = {
   linked: 'app.plant.delete.blockedCorrection',
 };
 
-/** What happens to its date (proofs.ts dateForDelete): said before asking. */
-export const deleteDateKey = (d: DateForDelete | 'checking'): AppKey =>
-  d === 'checking'
-    ? 'app.plant.delete.datedChecking'
-    : d === 'dated'
-      ? 'app.plant.delete.datedYes'
-      : d === 'pending'
-        ? 'app.plant.delete.datedPending'
-        : d === 'none'
-          ? 'app.plant.delete.datedNo'
-          : 'app.plant.delete.datedUnknown';
+/**
+ * What happens to its date (proofs.ts dateForDelete): said before asking. A copy of a result a lab
+ * keeps (records.ts StrainRecord.copy) has no date of this holder's: deleting it takes the copy only.
+ */
+export const deleteDateKey = (d: DateForDelete | 'checking', copy = false): AppKey =>
+  copy
+    ? 'app.doc.copy.delete'
+    : d === 'checking'
+      ? 'app.plant.delete.datedChecking'
+      : d === 'dated'
+        ? 'app.plant.delete.datedYes'
+        : d === 'pending'
+          ? 'app.plant.delete.datedPending'
+          : d === 'none'
+            ? 'app.plant.delete.datedNo'
+            : 'app.plant.delete.datedUnknown';

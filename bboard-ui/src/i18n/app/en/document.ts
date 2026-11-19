@@ -337,4 +337,13 @@ export const document = {
     'Nothing typed into a record kept on this device only was ever sent to VeilCore’s registry. Copying this link hands what was typed into each one it carries (marked above, and this record if it is one) to whoever receives it.',
   'app.doc.chain.aboutHolderNote':
     'Opening one of these links asks VeilCore’s registry about that record’s ID, from your network address. For a record kept on this device only, that is one more thing the registry learns: that this browser looked it up.',
+  'app.doc.copy.title': 'Your copy of a lab’s result',
+  'app.doc.copy.text':
+    'A copy of a result {lab} keeps. The date is the lab’s, not yours. VeilCore keeps this copy but can’t date it for you.',
+  'app.doc.copy.aLab': 'a lab',
+  'app.doc.copy.homeLine': 'Copy of a result {lab} keeps: the date is the lab’s',
+  'app.doc.copy.noExport': 'This is a copy of a result a lab keeps, so it can’t be exported as your record.',
+  'app.doc.copy.delete':
+    'This is your copy of a result the lab keeps: deleting it removes your copy only. The lab’s record and its date stay.',
+  'app.doc.copy.made': '“{name}” is kept as a copy of {lab}’s result: it can’t be dated for you.',
 };

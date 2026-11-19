@@ -93,7 +93,11 @@ export const PickUp: React.FC<{
   const licenses = useLicenses();
   const cadence = useAnchorCadence();
   const own = useMemo(
-    () => records.filter((r) => !r.receivedFrom).sort((a, b) => (b.loggedAt ?? 0) - (a.loggedAt ?? 0)),
+    // Not a copy of a result a lab keeps (records.ts StrainRecord.copy): its date is the lab's, never this holder's to wait for.
+    () =>
+      records
+        .filter((r) => !r.receivedFrom && !(r.copy === true && !!r.labSignature))
+        .sort((a, b) => (b.loggedAt ?? 0) - (a.loggedAt ?? 0)),
     [records],
   );
   const dating = useDatingStages(own);

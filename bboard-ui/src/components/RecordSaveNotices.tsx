@@ -63,7 +63,7 @@ export const RecordSaveNotices: React.FC<{ record: StrainRecord; onShare?: () =>
       // fresh and said first, because once its keys go nobody can prove what that code dated.
       const now = await dateForDelete(record.recordFingerprint);
       const loss = now === 'none' ? '' : `\n\n${t('app.sealed.unsaved.deleteDatedLoss')}`;
-      const ask = `${t('app.sealed.unsaved.deleteConfirm', { name: record.strainName || record.id })}\n\n${t(deleteDateKey(now))}${loss}`;
+      const ask = `${t('app.sealed.unsaved.deleteConfirm', { name: record.strainName || record.id })}\n\n${t(deleteDateKey(now, record.copy === true && !!record.labSignature))}${loss}`;
       if (!window.confirm(ask)) return;
       setBusy(true);
       const out = await deleteRecord(record.id);

@@ -337,4 +337,14 @@ export const document = {
     'Nada de lo escrito en un registro guardado solo en este dispositivo se envió nunca al registro de VeilCore. Al copiar este enlace, entrega lo escrito en cada uno de los que lleva (marcados arriba, y este registro si lo es) a quien lo reciba.',
   'app.doc.chain.aboutHolderNote':
     'Al abrir uno de estos enlaces, se pregunta al registro de VeilCore por el identificador de ese registro desde su dirección de red. Para un registro guardado solo en este dispositivo, es una cosa más que el registro de VeilCore llega a saber: que este navegador lo consultó.',
+  'app.doc.copy.title': 'Su copia de un resultado de laboratorio',
+  'app.doc.copy.text':
+    'Una copia de un resultado que guarda {lab}. La fecha es la del laboratorio, no la suya. VeilCore guarda esta copia, pero no puede fecharla para usted.',
+  'app.doc.copy.aLab': 'un laboratorio',
+  'app.doc.copy.homeLine': 'Copia de un resultado que guarda {lab}: la fecha es la del laboratorio',
+  'app.doc.copy.noExport':
+    'Esta es una copia de un resultado que guarda un laboratorio, así que no se puede exportar como su registro.',
+  'app.doc.copy.delete':
+    'Esta es su copia de un resultado que guarda el laboratorio: al eliminarla solo se quita su copia. El registro del laboratorio y su fecha se mantienen.',
+  'app.doc.copy.made': '«{name}» se guarda como copia del resultado de {lab}: no se puede fechar para usted.',
 } satisfies Partial<AppTranslation>;

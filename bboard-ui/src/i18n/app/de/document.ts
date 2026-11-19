@@ -345,4 +345,15 @@ export const document = {
     'Nichts, was in einen nur auf diesem Gerät aufbewahrten Datensatz eingegeben wurde, ging je an das Register von VeilCore. Wenn Sie diesen Link kopieren, geben Sie die Eingaben jedes solchen Datensatzes, den er enthält (oben markiert, und dieser Datensatz, falls er einer ist), an jeden weiter, der den Link erhält.',
   'app.doc.chain.aboutHolderNote':
     'Wenn Sie einen dieser Links öffnen, wird das Register von VeilCore von Ihrer Netzwerkadresse aus nach der Kennung dieses Datensatzes gefragt. Bei einem Datensatz, der nur auf diesem Gerät aufbewahrt wird, erfährt das Register damit eines mehr: dass dieser Browser ihn nachgeschlagen hat.',
+  'app.doc.copy.title': 'Ihre Kopie eines Laborergebnisses',
+  'app.doc.copy.text':
+    'Eine Kopie eines Ergebnisses, das {lab} aufbewahrt. Das Datum ist das des Labors, nicht Ihres. VeilCore bewahrt diese Kopie auf, kann sie aber nicht für Sie datieren.',
+  'app.doc.copy.aLab': 'ein Labor',
+  'app.doc.copy.homeLine': 'Kopie eines Ergebnisses, das {lab} aufbewahrt: Das Datum ist das des Labors',
+  'app.doc.copy.noExport':
+    'Dies ist eine Kopie eines Ergebnisses, das ein Labor aufbewahrt. Sie kann nicht als Ihr Datensatz exportiert werden.',
+  'app.doc.copy.delete':
+    'Dies ist Ihre Kopie eines Ergebnisses, das das Labor aufbewahrt: Beim Löschen wird nur Ihre Kopie entfernt. Der Datensatz des Labors und sein Datum bleiben.',
+  'app.doc.copy.made':
+    '„{name}“ wird als Kopie des Ergebnisses von {lab} aufbewahrt: Sie kann nicht für Sie datiert werden.',
 } satisfies Partial<AppTranslation>;
