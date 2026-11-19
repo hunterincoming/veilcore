@@ -21,6 +21,7 @@ import {
   importRecords,
   deviceOnlyBackedUp,
   isKeptOnDeviceOnly,
+  labNameOf,
   unsavedReason,
   startOver,
   useSealedView,
@@ -505,13 +506,18 @@ export const AppHome: React.FC = () => {
             // A document says so on its card: its type, then one plain status, dated or waiting for
             // its date (DocumentDateLine), never its key's date stamp (that is under "Technical
             // details" on its page). Not finished (no checked backup) still says so first.
-            const docDated = doc && !base.unfinished;
+            // A copy of a result a lab keeps (records.ts StrainRecord.copy): the date is the lab's,
+            // never shown as this holder's.
+            const copy = r.copy === true && !!r.labSignature;
+            const docDated = doc && !base.unfinished && !copy;
             const s = doc
               ? {
                   ...base,
-                  text: docDated
-                    ? t('app.doc.homeLine', { type: kindOrTypeWords(r, tr) })
-                    : `${t('app.doc.homeLine', { type: kindOrTypeWords(r, tr) })} · ${base.text}`,
+                  text: copy
+                    ? `${t('app.doc.homeLine', { type: kindOrTypeWords(r, tr) })} · ${t('app.doc.copy.homeLine', { lab: labNameOf(r) || t('app.doc.copy.aLab') })}`
+                    : docDated
+                      ? t('app.doc.homeLine', { type: kindOrTypeWords(r, tr) })
+                      : `${t('app.doc.homeLine', { type: kindOrTypeWords(r, tr) })} · ${base.text}`,
                 }
               : base;
             const datings = (datingsOf.get(r.id) ?? []).map((d) => ({

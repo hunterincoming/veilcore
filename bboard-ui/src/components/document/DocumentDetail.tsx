@@ -25,6 +25,7 @@ import {
   deviceOnlyBackedUp,
   deviceOnlyConflict,
   isKeptOnDeviceOnly,
+  labNameOf,
   useRecords,
   type StrainRecord,
 } from '../../veilcore/records';
@@ -129,6 +130,10 @@ export const DocumentDetail: React.FC<{ record: StrainRecord }> = ({ record }) =
   // Kept on this device and in the backup only (docs/device-only-records.md): said plainly, and
   // nothing on this page that would send its details anywhere is offered.
   const local = isKeptOnDeviceOnly(record);
+  // A copy of a result a lab keeps (records.ts StrainRecord.copy): its date is the lab's, not this
+  // holder's. Said plainly, and nothing that would present it as dated by this holder is offered:
+  // no check link ("proves you had this file"), no evidence bundle or declaration, no key stamp.
+  const copy = record.copy === true && !!record.labSignature;
   // Whether a backup file the holder has checked holds it: until one does, this browser has
   // the only copy, and the page says that instead of "this browser and your backup".
   const backedUp = local && deviceOnlyBackedUp(record);
@@ -322,7 +327,18 @@ export const DocumentDetail: React.FC<{ record: StrainRecord }> = ({ record }) =
         )}
         <Paper sx={{ p: { xs: 2.5, md: 3 } }}>
           <Stack spacing={1.5}>
-            <DocumentDate fingerprint={record.recordFingerprint} />
+            {copy ? (
+              <Alert severity="info" variant="outlined" data-document-copy="">
+                <Typography variant="subtitle2" component="h2">
+                  {t('app.doc.copy.title')}
+                </Typography>
+                <Typography variant="body2">
+                  {t('app.doc.copy.text', { lab: labNameOf(record) || t('app.doc.copy.aLab') })}
+                </Typography>
+              </Alert>
+            ) : (
+              <DocumentDate fingerprint={record.recordFingerprint} />
+            )}
             <Fact label={t('app.doc.k.sealed')}>{tr.date(record.loggedAt)}</Fact>
             <Fact label={t('app.doc.k.proofCode')} mono>
               {record.recordFingerprint}
@@ -369,83 +385,87 @@ export const DocumentDetail: React.FC<{ record: StrainRecord }> = ({ record }) =
           </>
         )}
         {read && local && <DeviceOnlyProve record={record} />}
-        <Paper sx={{ p: { xs: 2.5, md: 3 }, scrollMarginTop: 16 }} data-document-share="" id="check-link">
-          <Typography variant="h6" component="h2" sx={{ mb: 0.5 }}>
-            {t('app.doc.share.title')}
-          </Typography>
-          <Typography variant="body2" sx={{ mb: 1 }}>
-            {t('app.doc.share.text')}
-          </Typography>
-          <Alert severity="info" variant="outlined" sx={{ mb: 1.5 }}>
-            {t('app.doc.share.warn')}
-          </Alert>
-          {notDatedYet && (
-            <Alert severity="warning" variant="outlined" sx={{ mb: 1.5 }} data-share-not-dated="">
-              {t('app.doc.share.notDatedYet')}
-            </Alert>
-          )}
-          <Button variant="contained" onClick={() => void copyLink()} sx={{ minHeight: 44 }}>
-            {t('app.doc.share.copy')}
-          </Button>
-          {copied && (
-            <Typography variant="body2" role="status" sx={{ mt: 1 }}>
-              {t('app.doc.share.copied')}
+        {!copy && (
+          <Paper sx={{ p: { xs: 2.5, md: 3 }, scrollMarginTop: 16 }} data-document-share="" id="check-link">
+            <Typography variant="h6" component="h2" sx={{ mb: 0.5 }}>
+              {t('app.doc.share.title')}
             </Typography>
-          )}
-          {chain.length > 0 && (
-            <Box sx={{ mt: 2.5 }} data-document-chain-share="">
-              <Typography variant="subtitle2" component="h3">
-                {t('app.doc.chain.share.title')}
-              </Typography>
-              <Typography variant="body2" sx={{ mb: 1 }}>
-                {t('app.doc.chain.share.text')}
-              </Typography>
-              <Alert severity="warning" variant="outlined" sx={{ mb: 1.5 }}>
-                {t('app.doc.chain.share.warn', {
-                  list: chain
-                    .map((c) => {
-                      const r = records.find((x) => x.id === c.id);
-                      // A record kept on this device only is marked: this link is how its fields leave.
-                      return `${seen(r?.strainName || c.id)}${isKeptOnDeviceOnly(r) ? ` (${t('app.doc.local.homeLine')})` : ''}`;
-                    })
-                    .join(' · '),
-                })}
-                {chain.some((c) => isKeptOnDeviceOnly(records.find((x) => x.id === c.id))) || local ? (
-                  <Box component="span" sx={{ display: 'block', mt: 1 }} data-chain-share-local="">
-                    {t('app.doc.chain.share.warnLocal')}
-                  </Box>
-                ) : null}
-              </Alert>
-              <Button variant="outlined" onClick={() => void copyChainLink()} sx={{ minHeight: 44 }}>
-                {t('app.doc.chain.share.copy')}
-              </Button>
-              {chainCopied && (
-                <Typography variant="body2" role="status" sx={{ mt: 1 }}>
-                  {t('app.doc.chain.share.copied')}
-                </Typography>
-              )}
-            </Box>
-          )}
-          {linkError && (
-            <Alert severity="error" variant="outlined" sx={{ mt: 1.5 }}>
-              {linkError}
+            <Typography variant="body2" sx={{ mb: 1 }}>
+              {t('app.doc.share.text')}
+            </Typography>
+            <Alert severity="info" variant="outlined" sx={{ mb: 1.5 }}>
+              {t('app.doc.share.warn')}
             </Alert>
-          )}
-        </Paper>
+            {notDatedYet && (
+              <Alert severity="warning" variant="outlined" sx={{ mb: 1.5 }} data-share-not-dated="">
+                {t('app.doc.share.notDatedYet')}
+              </Alert>
+            )}
+            <Button variant="contained" onClick={() => void copyLink()} sx={{ minHeight: 44 }}>
+              {t('app.doc.share.copy')}
+            </Button>
+            {copied && (
+              <Typography variant="body2" role="status" sx={{ mt: 1 }}>
+                {t('app.doc.share.copied')}
+              </Typography>
+            )}
+            {chain.length > 0 && (
+              <Box sx={{ mt: 2.5 }} data-document-chain-share="">
+                <Typography variant="subtitle2" component="h3">
+                  {t('app.doc.chain.share.title')}
+                </Typography>
+                <Typography variant="body2" sx={{ mb: 1 }}>
+                  {t('app.doc.chain.share.text')}
+                </Typography>
+                <Alert severity="warning" variant="outlined" sx={{ mb: 1.5 }}>
+                  {t('app.doc.chain.share.warn', {
+                    list: chain
+                      .map((c) => {
+                        const r = records.find((x) => x.id === c.id);
+                        // A record kept on this device only is marked: this link is how its fields leave.
+                        return `${seen(r?.strainName || c.id)}${isKeptOnDeviceOnly(r) ? ` (${t('app.doc.local.homeLine')})` : ''}`;
+                      })
+                      .join(' · '),
+                  })}
+                  {chain.some((c) => isKeptOnDeviceOnly(records.find((x) => x.id === c.id))) || local ? (
+                    <Box component="span" sx={{ display: 'block', mt: 1 }} data-chain-share-local="">
+                      {t('app.doc.chain.share.warnLocal')}
+                    </Box>
+                  ) : null}
+                </Alert>
+                <Button variant="outlined" onClick={() => void copyChainLink()} sx={{ minHeight: 44 }}>
+                  {t('app.doc.chain.share.copy')}
+                </Button>
+                {chainCopied && (
+                  <Typography variant="body2" role="status" sx={{ mt: 1 }}>
+                    {t('app.doc.chain.share.copied')}
+                  </Typography>
+                )}
+              </Box>
+            )}
+            {linkError && (
+              <Alert severity="error" variant="outlined" sx={{ mt: 1.5 }}>
+                {linkError}
+              </Alert>
+            )}
+          </Paper>
+        )}
         <Paper sx={{ p: { xs: 2.5, md: 3 }, scrollMarginTop: 16 }} id="compare-file">
           <FileCompare files={files} title={t('app.doc.compare.title')} text={t('app.doc.compare.text')} />
         </Paper>
-        <Paper sx={{ p: { xs: 2.5, md: 3 } }} data-document-bundle="">
-          <Typography variant="body2" sx={{ mb: 1.5 }}>
-            {t('app.plant.bundle.intro')}
-          </Typography>
-          <EvidenceBundle record={record} keys={keys} />
-        </Paper>
+        {!copy && (
+          <Paper sx={{ p: { xs: 2.5, md: 3 } }} data-document-bundle="">
+            <Typography variant="body2" sx={{ mb: 1.5 }}>
+              {t('app.plant.bundle.intro')}
+            </Typography>
+            <EvidenceBundle record={record} keys={keys} />
+          </Paper>
+        )}
         {/* The key's date stamp, folded under "Technical details" (secretary walkthrough, 18 Nov):
             open, it made a finished document look unfinished. The document's date doesn't need
             it; answering "prove you hold this record" later does, so it stays one tap away. The
             panel stays mounted while folded, so a stamp that failed is still tried again. */}
-        {REAL_CHAIN && (
+        {REAL_CHAIN && !copy && (
           <Accordion
             disableGutters
             variant="outlined"
