@@ -421,7 +421,7 @@ export const es: Strings = {
   'm.live.signed.test':
     'Sí. El laboratorio firma con su propia clave. Solo el titular del registro, el laboratorio y quien le envió la muestra lo ven, y solo el titular puede mostrarlo a otros.',
   'm.live.signed.live':
-    'Sí. El laboratorio firma con su propia clave. Solo el titular del registro, el laboratorio y quien le envió la muestra lo ven, y solo el titular puede mostrarlo a otros.',
+    'Sí. El laboratorio firma con su propia clave. Solo el titular del registro, el laboratorio y quien le envió la muestra lo ven, y solo el titular puede mostrarlo a otros. Añadir el archivo de resultado de un laboratorio a los registros de otro obtentor está construido, pero aún no se ha probado en la red principal.',
   'm.live.local.t': 'Un documento guardado solo en su dispositivo',
   'm.live.local.main': 'Construido, pero aún no se ha probado en la red principal.',
   'm.live.local.test':

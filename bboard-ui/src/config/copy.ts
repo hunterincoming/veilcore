@@ -122,7 +122,11 @@ export const ROYALTIES_RUN_ON_MAINNET = true;
  * veilcore.org cell says "Yes" on every build (m.live.signed.live), a fact about veilcore.org.
  * On since 18 November 2026: all 18 steps of docs/lab-mainnet-test.md passed on veilcore.org
  * (step 13 on a second run that day, after a wording fix); the signature from step 12 of the
- * first run was published at block 3514926.
+ * first run was published at block 3514926. "Live" covers only what ran there: a lab signed a
+ * result, the holder checked it, shared it and proved a number from it, and the lab withdrew it.
+ * In that run the lab and the holder were the same window, so adding a lab's result file to
+ * another breeder's records (check page, "Add it as a record you hold") never ran on mainnet:
+ * the cell says it is built, not yet tried (m.live.signed.live).
  */
 export const LAB_SIGNING_RUN_ON_MAINNET = true;
 

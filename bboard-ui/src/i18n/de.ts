@@ -423,7 +423,7 @@ export const de: Strings = {
   'm.live.signed.test':
     'Ja. Das Labor signiert mit seinem eigenen Schlüssel. Nur der Inhaber des Datensatzes, das Labor und wer ihm die Probe geschickt hat, sehen es, und nur der Inhaber kann es anderen zeigen.',
   'm.live.signed.live':
-    'Ja. Das Labor signiert mit seinem eigenen Schlüssel. Nur der Inhaber des Datensatzes, das Labor und wer ihm die Probe geschickt hat, sehen es, und nur der Inhaber kann es anderen zeigen.',
+    'Ja. Das Labor signiert mit seinem eigenen Schlüssel. Nur der Inhaber des Datensatzes, das Labor und wer ihm die Probe geschickt hat, sehen es, und nur der Inhaber kann es anderen zeigen. Die Ergebnisdatei eines Labors zu den Datensätzen eines anderen Züchters hinzuzufügen ist gebaut, aber noch nicht im Hauptnetz erprobt.',
   'm.live.local.t': 'Ein Dokument, das nur auf Ihrem Gerät aufbewahrt wird',
   'm.live.local.main': 'Gebaut, im Hauptnetz aber noch nicht ausprobiert.',
   'm.live.local.test':

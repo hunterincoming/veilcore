@@ -7,8 +7,11 @@ switch. A viability result (below) is the exception: test network only
 (`VIABILITY_RESULTS_ENABLED`). It ships after lab signatures went private (registry
 `private-lab-signatures-v1`, which every site deploy requires). Live on veilcore.org since
 18 November 2026: a lab key was made there, one result signed and checked, its signature
-confirmed hidden until the holder shared it, and the result withdrawn (`LAB_SIGNING_RUN_ON_MAINNET` in
-`bboard-ui/src/config/copy.ts`; the steps: [lab-mainnet-test.md](lab-mainnet-test.md)).
+confirmed hidden until the holder shared it, a number proved from it, and the result withdrawn
+(`LAB_SIGNING_RUN_ON_MAINNET` in `bboard-ui/src/config/copy.ts`; the steps:
+[lab-mainnet-test.md](lab-mainnet-test.md)). In that run the lab and the holder were the same
+window, so adding a lab's result file to another breeder's records ("Add it as a record you hold"
+on `/check-lab-result`) is built, not yet run on mainnet.
 
 ## What it is for
 

@@ -106,9 +106,10 @@ indexer of your own choosing instead of ours, see [docs/reproduce-build.md](docs
   [docs/agreements-live.md](docs/agreements-live.md)
 - **Numbers and results a lab signs: live on veilcore.org.** On 18 November 2026 a lab key was
   made there, a result signed on a record, checked as a stranger, its signature kept hidden until
-  the holder shared it, and then withdrawn, end to end on mainnet
+  the holder shared it, a number proved from it, and then withdrawn, end to end on mainnet
   ([docs/lab-mainnet-test.md](docs/lab-mainnet-test.md); `LAB_SIGNING_RUN_ON_MAINNET` in
-  `bboard-ui/src/config/copy.ts`). A viability result (a sample before or
+  `bboard-ui/src/config/copy.ts`). Adding a lab's result file to another breeder's records is
+  built, not yet run on mainnet. A viability result (a sample before or
   after a kill step) is on the test network only (`VIABILITY_RESULTS_ENABLED`).
   [docs/lab-signing.md](docs/lab-signing.md)
 - **Five languages:** English, plus Spanish, Japanese, German and French as machine-drafted

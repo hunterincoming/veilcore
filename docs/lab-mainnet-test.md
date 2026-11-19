@@ -184,3 +184,11 @@ signing), step 13 passed: the claim, proved at block 3517671, headlines "Not det
 `TEST Lab (Hunter)`, and shows "As proved on Midnight: Detected (1 yes, 0 no) is at most 0"
 under it. The result was then withdrawn as in step 18, and both stranger checks say "This lab
 no longer stands behind this result."
+
+**What this run covers, and what it doesn't.** Live means what ran here: the lab signs, the
+holder checks, shares and proves a number, the lab withdraws. In steps 1 to 13 the lab and the
+holder were the same window (step 11 opens the lab's own record; the check page doesn't offer
+"Add it as a record you hold"), and the second breeder in steps 14 to 17 only sent a sample and
+saw the lab's receipt. So adding a lab's result file to another breeder's records has never run
+on mainnet: it stays described as built, not yet run, until a run where a second breeder adds a
+lab's result, proves a number on it and reloads.
