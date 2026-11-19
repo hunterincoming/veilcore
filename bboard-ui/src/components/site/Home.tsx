@@ -54,7 +54,7 @@ import {
   ROYALTIES_RUN_ON_TEST,
 } from '../../config/copy';
 import { EventDisplay } from './EventDisplay';
-import { photoSrcSet, type PhotoName } from './photo-src';
+import { GALLERY_SIZES, photoSrcSet, type PhotoName } from './photo-src';
 import './home.css';
 
 const APP_REPO = 'https://github.com/hunterincoming/veilcore';
@@ -732,7 +732,7 @@ const Gallery: React.FC<{ labelledBy: string; slides: Slide[]; heading: React.Re
         {slides.map((s, i) => (
           <li className={`k-hpanel${i === current ? ' is-near' : ''}`} key={s.key}>
             <div className="k-hpanel-img">
-              <Photo name={s.photo} alt={s.alt} sizes="(max-width: 1080px) 84vw, 680px" />
+              <Photo name={s.photo} alt={s.alt} sizes={GALLERY_SIZES} />
             </div>
             <div className="k-hpanel-copy">
               <h3>{s.title}</h3>

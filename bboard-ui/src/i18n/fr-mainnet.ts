@@ -127,7 +127,7 @@ export const frMainnet = buildMainnet({
     ],
     'm.get.2b': [
       'Intégré au contrat sur le réseau principal de Midnight ; simulé sur ce site.',
-      'Les licences se font depuis ce site, sur le réseau principal de Midnight. Prouver qu’une licence est en vigueur sans la montrer relève du contrat et demande un portefeuille, que ce site n’utilise pas.',
+      'Les licences se font depuis ce site, sur le réseau principal de Midnight. Le contrat peut prouver qu’une licence est en vigueur sans la montrer ; il faut pour cela un portefeuille, que ce site n’utilise pas.',
     ],
     'm.demo.lede': [
       'Les licences et les accords avec les laboratoires sont simulés.',

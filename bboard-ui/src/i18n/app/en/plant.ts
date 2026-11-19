@@ -389,7 +389,7 @@ export const plant = {
   'app.plant.keys.holds':
     'This browser holds the two secrets that prove you hold this record on chain. A copy also goes inside the record’s locked box on VeilCore, which only the key that locks your records opens. Clearing this browser deletes them here; restoring your backup brings them back.',
   'app.plant.keys.holdsDeviceOnly':
-    'This browser holds the two secrets that prove you hold this record on chain. This record is kept on this device only, so no copy of them goes to VeilCore in a locked box. Only this browser and your checked backup hold them, and your passkey copy if you keep one (it holds keys only, never the record). Clearing this browser deletes them here; restoring your backup brings them back.',
+    'This browser holds the two secrets that prove you hold this record on chain. This record is kept on this device only, so no copy of them goes to VeilCore in a locked box. Only this browser and your checked backup hold them, and your passkey copy if you keep one, kept locked on VeilCore’s server (it holds keys only, never the record). Clearing this browser deletes them here; restoring your backup brings them back.',
   'app.plant.keys.noBackup': 'No backup yet. Download it and keep it offline.',
   'app.plant.keys.downloadAgain': 'Download the backup again',
   'app.plant.keys.download': 'Download the backup (secret)',

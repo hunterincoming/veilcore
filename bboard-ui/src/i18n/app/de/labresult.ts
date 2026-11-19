@@ -213,6 +213,8 @@ export const labresult = {
   'app.lr.check.notYours':
     'Die Probe stammt aus keinem Datensatz in diesem Browser, also gibt es nichts, dem sie hinzugefügt werden kann.',
   'app.lr.check.yours': 'Sie haben dieses Ergebnis signiert: Es ist in Ihren Datensätzen.',
+  'app.lr.check.signedHere': 'Sie haben dieses Ergebnis signiert.',
+  'app.lr.check.autoFinding': 'Es wird in Ihren Datensätzen gesucht…',
   'app.lr.panelTitle': 'Laborergebnis',
   'app.lr.inReport': 'Das signierte Ergebnis des Labors zu diesem Bericht ({kind}):',
   'app.lr.out.title': 'Ein signiertes Ergebnis zu diesem Bericht (optional)',

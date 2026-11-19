@@ -390,7 +390,7 @@ export const plant = {
   'app.plant.keys.holds':
     'Ce navigateur contient les deux secrets qui prouvent que vous détenez cet enregistrement sur la chaîne. Une copie part aussi dans la boîte verrouillée de l’enregistrement sur VeilCore, que seule la clé qui verrouille vos enregistrements ouvre. Effacer ce navigateur les supprime ici ; restaurer votre sauvegarde les ramène.',
   'app.plant.keys.holdsDeviceOnly':
-    'Ce navigateur contient les deux secrets qui prouvent que vous détenez cet enregistrement sur la chaîne. Cet enregistrement est gardé uniquement sur cet appareil : aucune copie ne part donc vers VeilCore dans une boîte verrouillée. Seuls ce navigateur et votre sauvegarde vérifiée les contiennent, ainsi que votre copie avec clé d’accès si vous en avez une (elle ne contient que des clés, jamais l’enregistrement). Effacer ce navigateur les supprime ici ; restaurer votre sauvegarde les ramène.',
+    'Ce navigateur contient les deux secrets qui prouvent que vous détenez cet enregistrement sur la chaîne. Cet enregistrement est gardé uniquement sur cet appareil : aucune copie ne part donc vers VeilCore dans une boîte verrouillée. Seuls ce navigateur et votre sauvegarde vérifiée les contiennent, ainsi que votre copie avec clé d’accès si vous en avez une, gardée verrouillée sur le serveur de VeilCore (elle ne contient que des clés, jamais l’enregistrement). Effacer ce navigateur les supprime ici ; restaurer votre sauvegarde les ramène.',
   'app.plant.keys.noBackup': 'Pas encore de sauvegarde. Téléchargez-la et gardez-la hors ligne.',
   'app.plant.keys.downloadAgain': 'Télécharger de nouveau la copie de secours',
   'app.plant.keys.download': 'Télécharger la copie de secours (secrète)',

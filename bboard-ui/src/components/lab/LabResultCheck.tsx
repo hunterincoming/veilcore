@@ -1,12 +1,13 @@
 // The page that checks a lab result file (/check-lab-result; veilcore/lab-result.ts). Everything is
 // checked in this browser: the statement's form, its binding into the record the lab signed, the
-// call in the field set, and the signature the claims contract would accept. Nothing is sent
-// unless the checker asks: "Find the lab's name" sends the result's code (in the file) to the
-// registry for the lab's own binding naming its key (claims-key.ts findBinding), printed in the
-// wording every page uses for signers; "Find the record…" reads the checker's own records, which
-// sends their holder key. Behind the same switch as lab signing (LAB_SIGNING_ENABLED). Several
-// files can be chosen at once, so a viability result's after-sample is read beside the
-// before-sample it names (the pair).
+// call in the field set, and the signature the claims contract would accept. "Find the lab's
+// name" sends the result's code (in the file) to the registry for the lab's own binding naming
+// its key (claims-key.ts findBinding), printed in the wording every page uses for signers.
+// The checker's own records are read only when they press "Find the record…", or by themselves
+// when the lab key in this browser made the signature (signed-here.ts, worked out here with
+// nothing sent): either reads them with the holder key, and the page says it is looking. Behind
+// the same switch as lab signing (LAB_SIGNING_ENABLED). Several files can be chosen at once, so a
+// viability result's after-sample is read beside the before-sample it names (the pair).
 // SPDX-License-Identifier: Apache-2.0
 
 import React, { useEffect, useRef, useState } from 'react';
@@ -208,10 +209,14 @@ const OneChecked: React.FC<{
   const [signedHere, setSignedHere] = useState(false);
   useEffect(() => {
     let live = true;
+    setSignedHere(false);
     void import('../../veilcore/signed-here')
       .then(({ signedInThisBrowser }) => signedInThisBrowser(b.signature.key))
       .then((mine) => {
         if (live) setSignedHere(mine);
+      })
+      .catch(() => {
+        if (live) setSignedHere(false);
       });
     return () => {
       live = false;
@@ -307,27 +312,23 @@ const OneChecked: React.FC<{
           <Dispute seal={(b.statement.result as MarkResult).seal} />
         </Box>
       )}
-      {signedHere ? (
-        <Box sx={{ mt: 2 }} data-lab-result-yours="">
-          <Typography variant="body2" sx={{ mb: 0.5 }}>
-            {t('app.lr.check.yours')}
-          </Typography>
-          {have ? (
-            <Button component={RouterLink} to={`/record/${have.id}`} sx={{ minHeight: 44 }}>
-              {t('app.lr.check.open')}
-            </Button>
-          ) : (
-            !loaded && (
-              <Typography variant="body2" color="text.secondary">
-                {t('app.lr.check.finding')}
-              </Typography>
-            )
-          )}
-        </Box>
-      ) : have ? (
+      {/* Signed with this browser's lab key: said from the key alone. "It is in your records" only
+          once a record here holds it; with none (deleted, or a key restored without its
+          records), the usual answers follow. */}
+      {signedHere && !have && (
+        <Typography variant="body2" sx={{ mt: 2 }} data-lab-result-signed-here="">
+          {t('app.lr.check.signedHere')}
+        </Typography>
+      )}
+      {signedHere && !have && !loaded && (
+        <Typography variant="body2" color="text.secondary" data-lab-result-auto-finding="">
+          {t('app.lr.check.autoFinding')}
+        </Typography>
+      )}
+      {have ? (
         <Box sx={{ mt: 2 }}>
-          {have.labResult?.bindingId && (
-            <Typography variant="body2" sx={{ mb: 0.5 }}>
+          {(signedHere || have.labResult?.bindingId) && (
+            <Typography variant="body2" sx={{ mb: 0.5 }} data-lab-result-yours="">
               {t('app.lr.check.yours')}
             </Typography>
           )}
@@ -351,17 +352,20 @@ const OneChecked: React.FC<{
           </Button>
         </Box>
       ) : !loaded ? (
-        <Box sx={{ mt: 2 }}>
-          <Button
-            variant="outlined"
-            disabled={asked}
-            onClick={() => void find()}
-            sx={{ minHeight: 44 }}
-            data-lab-result-find=""
-          >
-            {asked ? t('app.lr.check.finding') : t('app.lr.check.find')}
-          </Button>
-        </Box>
+        // Already looking by itself when this browser's key signed it (said above).
+        !signedHere && (
+          <Box sx={{ mt: 2 }}>
+            <Button
+              variant="outlined"
+              disabled={asked}
+              onClick={() => void find()}
+              sx={{ minHeight: 44 }}
+              data-lab-result-find=""
+            >
+              {asked ? t('app.lr.check.finding') : t('app.lr.check.find')}
+            </Button>
+          </Box>
+        )
       ) : (
         asked && (
           <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }} data-lab-result-not-yours="">

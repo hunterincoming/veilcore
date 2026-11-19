@@ -20,15 +20,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   end there. The home card no longer says a live license is proved from this website (that needs
   a wallet).
 - The note for counsel's live list adds documents kept on the device only, proving one number
-  and production chains. Taken from SDK commit `a32d8f5` (`EVIDENCE_COMMIT`), on the SDK's
+  and production chains, and says lab-signed numbers worked on the main network in a test run
+  on 18 November 2026. Taken from SDK commit `b5c63e5` (`EVIDENCE_COMMIT`), on the SDK's
   branch `evidence-device-only-chains` until that is merged; the README's status table says the
   same.
 - A document's key date stamp is a plain button, "Put a date stamp on this record's key", with no
   step number. Plant pages lose the "1." and "2." too: the two never show together.
 - The check page names a file once when it has the sealed file's name, says what a match will
   show "once it is dated" before there is a date, and "Nothing yet" for the date, not "Nobody".
-- Home says "save and check your backup" once per record. Phones at 3x get 1200 wide photos
-  instead of 1600. /partners has its own tab title.
+- Home says "save and check your backup" once per record. The gallery's photos are sized by
+  how wide they are drawn on a phone (they cover a frame about 46svh tall), with a 1200 wide
+  copy between the 800 and the 1600. /partners has its own tab title.
+- The lab result check page: a lab checking a result it signed is told so at once, from the key
+  in its browser; "it is in your records" only once a record here holds it; and it says when it
+  is looking in the records by itself.
 
 ### Documents kept on the device: restored, and a number proved, on veilcore.org
 

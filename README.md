@@ -23,7 +23,8 @@ and a Rust implementation in [veilcore-rs](https://github.com/hunterincoming/vei
 | Status | |
 |---|---|
 | **Live on veilcore.org** | Sealing records, dated in batches on Midnight mainnet; check pages; proving a record by link; dating a DNA report pairing; lab codes and signed receipts; licenses and royalty reports; documents kept on the device only; proving one number from a sealed document; production chains of linked document records. No wallet needed: VeilCore's fee service pays the network fee. |
-| **Built, not yet run on mainnet** | Handing a license on to another grower, with the breeder's approval. Numbers and results a lab signs ([docs/lab-signing.md](docs/lab-signing.md)): switched on for veilcore.org in the site's code, not yet run there. |
+| **Run once on mainnet, not called live yet** | Numbers and results a lab signs ([docs/lab-signing.md](docs/lab-signing.md)): switched on for veilcore.org, and worked on Midnight's main network in a test run on 18 November 2026 ([docs/lab-mainnet-test.md](docs/lab-mainnet-test.md)). |
+| **Built, not yet run on mainnet** | Handing a license on to another grower, with the breeder's approval. |
 | **Test network only** | A lab's viability result for a sample before or after a kill step; paying royalties in NIGHT on Midnight. |
 | **Not built** | A paid plan for labs (designed only: [docs/lab-plan.md](docs/lab-plan.md)). |
 

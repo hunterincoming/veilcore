@@ -462,7 +462,7 @@ export const es: Strings = {
     'Las licencias se activan con el despliegue que las enciende, cuando una licencia real haya funcionado de principio a fin en la red principal. Declaraciones de regalías y pagos: construidos, aún no activos.',
   // The test-site cell until royalties v2 has run there (config/copy.ts ROYALTIES_RUN_ON_TEST).
   'm.live.lic.testNext':
-    'Sí para las licencias, con transacciones reales. Informes de regalías y pagar regalías en Midnight mismo: construidos y ofrecidos aquí; en esta red aún no han funcionado de principio a fin.',
+    'Sí para las licencias, con transacciones reales. Informes de regalías (en veilcore.org ya han funcionado) y pagar regalías en Midnight mismo: construidos y ofrecidos aquí; en esta red aún no han funcionado de principio a fin.',
   // Licenses on in code, on a build that isn't veilcore.org's (the test site, the demo): the main-network cell.
   'm.live.lic.next':
     'Construido. Se activa con el próximo despliegue de veilcore.org, cuando una licencia real haya funcionado de principio a fin en la red principal.',

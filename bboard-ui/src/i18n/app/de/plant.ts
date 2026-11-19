@@ -395,7 +395,7 @@ export const plant = {
   'app.plant.keys.holds':
     'Dieser Browser enthält die zwei Geheimnisse, die beweisen, dass Sie diesen Datensatz auf der Chain halten. Eine Kopie steckt auch im verschlossenen Datensatz bei VeilCore, den nur der Schlüssel öffnet, der Ihre Datensätze verschließt. Das Leeren dieses Browsers löscht sie hier; das Wiederherstellen Ihrer Sicherung bringt sie zurück.',
   'app.plant.keys.holdsDeviceOnly':
-    'Dieser Browser enthält die zwei Geheimnisse, die beweisen, dass Sie diesen Datensatz auf der Chain halten. Dieser Datensatz wird nur auf diesem Gerät aufbewahrt, deshalb geht keine Kopie davon verschlossen an VeilCore. Nur dieser Browser und Ihre geprüfte Sicherung enthalten sie, dazu Ihre Passkey-Kopie, falls Sie eine haben (sie enthält nur Schlüssel, nie den Datensatz). Das Leeren dieses Browsers löscht sie hier; das Wiederherstellen Ihrer Sicherung bringt sie zurück.',
+    'Dieser Browser enthält die zwei Geheimnisse, die beweisen, dass Sie diesen Datensatz auf der Chain halten. Dieser Datensatz wird nur auf diesem Gerät aufbewahrt, deshalb geht keine Kopie davon verschlossen an VeilCore. Nur dieser Browser und Ihre geprüfte Sicherung enthalten sie, dazu Ihre Passkey-Kopie, falls Sie eine haben, verschlossen auf dem Server von VeilCore (sie enthält nur Schlüssel, nie den Datensatz). Das Leeren dieses Browsers löscht sie hier; das Wiederherstellen Ihrer Sicherung bringt sie zurück.',
   'app.plant.keys.noBackup': 'Noch keine Sicherung. Laden Sie sie herunter und bewahren Sie sie offline auf.',
   'app.plant.keys.downloadAgain': 'Sicherungskopie erneut herunterladen',
   'app.plant.keys.download': 'Sicherungskopie herunterladen (geheim)',

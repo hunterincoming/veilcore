@@ -387,7 +387,7 @@ export const plant = {
   'app.plant.keys.holds':
     'Este navegador guarda los dos secretos que demuestran que usted tiene este registro en la cadena. Una copia va también dentro de la caja bloqueada del registro en VeilCore, que solo abre la clave que bloquea sus registros. Borrar este navegador los elimina aquí; restaurar su copia de seguridad los recupera.',
   'app.plant.keys.holdsDeviceOnly':
-    'Este navegador guarda los dos secretos que demuestran que usted tiene este registro en la cadena. Este registro se guarda solo en este dispositivo, así que no va ninguna copia de ellos a VeilCore en una caja bloqueada. Solo este navegador y su copia comprobada los tienen, y su copia con llave de acceso si la conserva (guarda solo claves, nunca el registro). Borrar este navegador los elimina aquí; restaurar su copia de seguridad los recupera.',
+    'Este navegador guarda los dos secretos que demuestran que usted tiene este registro en la cadena. Este registro se guarda solo en este dispositivo, así que no va ninguna copia de ellos a VeilCore en una caja bloqueada. Solo este navegador y su copia comprobada los tienen, y su copia con llave de acceso si la conserva, guardada bloqueada en el servidor de VeilCore (guarda solo claves, nunca el registro). Borrar este navegador los elimina aquí; restaurar su copia de seguridad los recupera.',
   'app.plant.keys.noBackup': 'Todavía no hay copia de seguridad. Descárguela y guárdela sin conexión.',
   'app.plant.keys.downloadAgain': 'Descargar de nuevo la copia de seguridad',
   'app.plant.keys.download': 'Descargar la copia de seguridad (secreta)',

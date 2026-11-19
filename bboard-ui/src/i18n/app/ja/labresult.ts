@@ -207,6 +207,8 @@ export const labresult = {
   'app.lr.check.finding': 'あなたの記録を探しています…',
   'app.lr.check.notYours': 'サンプルはこのブラウザのどの記録から来たものでもないため、追加する先がありません。',
   'app.lr.check.yours': 'あなたが署名した結果です。あなたの記録にあります。',
+  'app.lr.check.signedHere': 'あなたが署名した結果です。',
+  'app.lr.check.autoFinding': 'あなたの記録の中から探しています…',
   'app.lr.panelTitle': 'ラボ結果',
   'app.lr.inReport': 'この報告書に付いたラボの署名済みの結果（{kind}）：',
   'app.lr.out.title': 'この報告書に付ける署名済みの結果（任意）',

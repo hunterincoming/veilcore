@@ -448,7 +448,7 @@ describe("what's live where", () => {
     expect(e['m.live.lic.testNext']).toMatch(/^Yes for licenses/);
     // Built and offered there, and not called working until it has run end to end there.
     expect(e['m.live.lic.testNext']).toMatch(
-      /Royalty reports, and paying royalties on Midnight itself: built and offered here; they have not yet worked end to end on this network\.$/,
+      /Royalty reports \(they have worked on veilcore\.org\), and paying royalties on Midnight itself: built and offered here; they have not yet worked end to end on this network\.$/,
     );
     // The veilcore.org cell: no "Yes" for royalties until v2 has worked on mainnet, on any build.
     // It has (8 Nov 2026: license accepted, report sent, answered, paid, received).
@@ -1578,7 +1578,9 @@ describe('what a walk of the live veilcore.org found (18 Nov 2026)', () => {
   it('the home card does not say a live license is proved from this website (that needs a wallet)', () => {
     const live = mainnetStrings({ ...BUILD, chainSends: true, agreementsLive: true });
     expect(live['m.get.2b']).not.toMatch(/made from this website\.$/);
-    expect(live['m.get.2b']).toMatch(/needs a wallet, which this website doesn[’']t use\.$/);
+    expect(live['m.get.2b']).toMatch(
+      /The contract can prove a license is in force without showing it; that needs a wallet, which this website doesn[’']t use\.$/,
+    );
     expect(copy).toMatch(/That needs a wallet, which this website doesn[’']t use, so it doesn[’']t offer it\./);
   });
 
@@ -1590,6 +1592,14 @@ describe('what a walk of the live veilcore.org found (18 Nov 2026)', () => {
     expect(appEn['app.plant.keys.holdsDeviceOnly']).toMatch(/no copy of them goes to VeilCore in a locked box/);
     expect(appEn['app.plant.keys.holdsDeviceOnly']).toMatch(/Only this browser and your checked backup hold them/);
     expect(appEs['app.plant.keys.holdsDeviceOnly']).toMatch(/Solo este navegador y su copia comprobada los tienen/);
+    // Where the passkey copy is, said as the record's page says it (app.doc.local.sent).
+    expect(appEn['app.plant.keys.holdsDeviceOnly']).toMatch(
+      /passkey copy if you keep one, kept locked on VeilCore[’']s server/,
+    );
+    expect(appEn['app.doc.local.sent']).toMatch(/locked, on VeilCore[’']s server/);
+    const SERVER =
+      /VeilCore[’']s server|Server von VeilCore|servidor de VeilCore|serveur de VeilCore|VeilCoreのサーバー/;
+    for (const [lang, a] of Object.entries(allApp)) expect(a['app.plant.keys.holdsDeviceOnly'], lang).toMatch(SERVER);
     const panel = fs.readFileSync(path.join(SRC, 'components/chain/RecordKeysPanel.tsx'), 'utf8');
     expect(panel).toMatch(/deviceOnly \? 'app\.plant\.keys\.holdsDeviceOnly' : 'app\.plant\.keys\.holds'/);
   });
@@ -1618,6 +1628,11 @@ describe('what a walk of the live veilcore.org found (18 Nov 2026)', () => {
     const step = fs.readFileSync(path.join(SRC, 'components/flow/BackupStep.tsx'), 'utf8');
     expect(step).toMatch(/\{saved && \(\s*<Typography variant="body1" data-backup-saved-where="">/);
     expect(step).toMatch(/\{thisBrowserClearsAfterSevenDays\(\) && \(/);
+    // Shown on every iPhone and iPad browser too, so it doesn't name Safari.
+    for (const [lang, a] of Object.entries(allApp)) expect(a['app.backup.safari'], lang).not.toMatch(/Safari/);
+    expect(appEn['app.backup.safari']).toMatch(
+      /^This browser can clear a site[’']s data after 7 days without a visit\./,
+    );
   });
 
   it('a document’s key stamp is a plain choice named for what it does, with no step number', () => {
@@ -1648,5 +1663,27 @@ describe('what a walk of the live veilcore.org found (18 Nov 2026)', () => {
     for (const a of [appEn, appDe, appEs, appFr])
       for (const k of ['app.verify.who.date.none', 'app.verify.who.date.pending', 'app.verify.who.date.failed'])
         expect(a[k as keyof typeof a], k).not.toMatch(/^(Nobody|Niemand|Noch niemand|Nadie|Personne)/);
+    // Japanese: "not yet" where there is no date yet; "none" only where the check failed.
+    expect(appJa['app.verify.who.date.none']).toMatch(/^まだありません。/);
+    expect(appJa['app.verify.who.date.pending']).toMatch(/^まだありません。/);
+  });
+
+  it('a lab is told it signed a result from its key, and "in your records" only when a record holds it', () => {
+    for (const [lang, a] of Object.entries(allApp)) {
+      expect(a['app.lr.check.signedHere'], lang).toBeTruthy();
+      expect(a['app.lr.check.autoFinding'], lang).toBeTruthy();
+      expect(a['app.lr.check.signedHere'], lang).not.toBe(a['app.lr.check.yours']);
+    }
+    expect(appEn['app.lr.check.signedHere']).toBe('You signed this result.');
+    expect(appEn['app.lr.check.yours']).toBe('You signed this result: it is in your records.');
+    const page = fs.readFileSync(path.join(SRC, 'components/lab/LabResultCheck.tsx'), 'utf8');
+    // "In your records" sits inside the branch for a record this browser holds, nowhere else.
+    expect(page.match(/app\.lr\.check\.yours/g)).toHaveLength(1);
+    expect(page).toMatch(
+      /\{have \? \(\s*<Box sx=\{\{ mt: 2 \}\}>\s*\{\(signedHere \|\| have\.labResult\?\.bindingId\) && \(/,
+    );
+    expect(page).toMatch(/\{signedHere && !have && \(/);
+    // The header says the page may read the records by itself.
+    expect(page).toMatch(/or by themselves\s*\/\/ when the lab key in this browser made the signature/);
   });
 });

@@ -465,7 +465,7 @@ export const fr: Strings = {
     'Les licences sont mises en service avec le déploiement qui les active, une fois qu’une vraie licence aura fonctionné de bout en bout sur le réseau principal. Relevés de redevances et paiements : construits, pas encore en service.',
   // The test-site cell until royalties v2 has run there (config/copy.ts ROYALTIES_RUN_ON_TEST).
   'm.live.lic.testNext':
-    'Oui pour les licences, avec de vraies transactions. Rapports de redevances et paiement des redevances sur Midnight même : construits et proposés ici ; sur ce réseau, ils n’ont pas encore fonctionné de bout en bout.',
+    'Oui pour les licences, avec de vraies transactions. Rapports de redevances (ils ont fonctionné sur veilcore.org) et paiement des redevances sur Midnight même : construits et proposés ici ; sur ce réseau, ils n’ont pas encore fonctionné de bout en bout.',
   // Licenses on in code, on a build that isn't veilcore.org's (the test site, the demo): the main-network cell.
   'm.live.lic.next':
     'Construit. Mis en service avec le prochain déploiement de veilcore.org, une fois qu’une vraie licence aura fonctionné de bout en bout sur le réseau principal.',

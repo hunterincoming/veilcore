@@ -464,7 +464,7 @@ export const de: Strings = {
     'Lizenzen gehen mit dem Deployment live, das sie einschaltet, sobald eine echte Lizenz im Hauptnetz einmal vollständig funktioniert hat. Abrechnungen von Lizenzgebühren und Zahlungen: gebaut, noch nicht live.',
   // The test-site cell until royalties v2 has run there (config/copy.ts ROYALTIES_RUN_ON_TEST).
   'm.live.lic.testNext':
-    'Ja für Lizenzen, mit echten Transaktionen. Berichte über Lizenzgebühren und das Zahlen direkt auf Midnight: gebaut und hier angeboten; in diesem Netz haben sie noch nicht vollständig funktioniert.',
+    'Ja für Lizenzen, mit echten Transaktionen. Berichte über Lizenzgebühren (auf veilcore.org haben sie funktioniert) und das Zahlen direkt auf Midnight: gebaut und hier angeboten; in diesem Netz haben sie noch nicht vollständig funktioniert.',
   // Licenses on in code, on a build that isn't veilcore.org's (the test site, the demo): the main-network cell.
   'm.live.lic.next':
     'Gebaut. Geht mit dem nächsten Deployment von veilcore.org live, sobald eine echte Lizenz im Hauptnetz einmal vollständig funktioniert hat.',

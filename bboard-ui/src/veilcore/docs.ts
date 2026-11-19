@@ -34,7 +34,7 @@ export const REPO_VIEW = `${REPO_BLOB}/${DOCS_COMMIT}`;
  * has draft sections this site does not show, so only this one file moved. Set both back to one
  * commit at the next full update.
  */
-export const EVIDENCE_COMMIT = 'a32d8f5a732308b8787514a3540edb15a6caab7b';
+export const EVIDENCE_COMMIT = 'b5c63e50dc37fda008031410f5cc1dd88b4e8fce';
 
 /** The commit one document was copied from, and where "Source" opens it. */
 export const commitOf = (d: { commit?: string }): string => d.commit ?? DOCS_COMMIT;

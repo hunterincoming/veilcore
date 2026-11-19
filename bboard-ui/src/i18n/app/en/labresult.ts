@@ -225,6 +225,8 @@ export const labresult = {
   'app.lr.check.notYours':
     'The sample isn’t from one of the records in this browser, so there is nothing to add it to.',
   'app.lr.check.yours': 'You signed this result: it is in your records.',
+  'app.lr.check.signedHere': 'You signed this result.',
+  'app.lr.check.autoFinding': 'Looking for it in your records…',
 
   // ---- on a record and in the lab's delivery flow ----
   'app.lr.panelTitle': 'Lab result',

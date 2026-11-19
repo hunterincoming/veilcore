@@ -211,6 +211,8 @@ export const labresult = {
   'app.lr.check.notYours':
     'La muestra no viene de ninguno de los registros de este navegador, así que no hay dónde añadirla.',
   'app.lr.check.yours': 'Usted firmó este resultado: está en sus registros.',
+  'app.lr.check.signedHere': 'Usted firmó este resultado.',
+  'app.lr.check.autoFinding': 'Buscándolo en sus registros…',
   'app.lr.panelTitle': 'Resultado de laboratorio',
   'app.lr.inReport': 'El resultado firmado del laboratorio con este informe ({kind}):',
   'app.lr.out.title': 'Un resultado firmado con este informe (opcional)',
