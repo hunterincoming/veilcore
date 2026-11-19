@@ -492,14 +492,20 @@ describe("what's live where", () => {
     const signedRun = /export const LAB_SIGNING_RUN_ON_MAINNET = (true|false);/.exec(
       fs.readFileSync(path.join(SRC, 'config/copy.ts'), 'utf8'),
     )?.[1];
-    expect(signedRun).toBe('false');
+    expect(signedRun).toBe('true');
     expect(e['m.live.signed.main']).toBe('Built, not yet tried on the main network.');
     expect(e['m.live.signed.main']).not.toMatch(/^Yes/);
     expect(e['m.live.signed.test']).toMatch(/^Yes\. The lab signs with its own key\./);
     // Who sees it (final review, 12 Nov 2026): the holder, the lab and the delivery's sender;
     // only the holder can show it.
     expect(e['m.live.signed.live']).toMatch(
-      /the record’s holder, the lab and whoever sent it the sample see it, and only the holder can show it to others\.$/,
+      /the record’s holder, the lab and whoever sent it the sample see it, and only the holder can show it to others\./,
+    );
+    // Live covers only what ran on mainnet (18 Nov 2026): the lab signed, the holder checked, shared
+    // and proved a number, the lab withdrew. Adding a lab's result file to another breeder's
+    // records never ran there, and the cell says so.
+    expect(e['m.live.signed.live']).toMatch(
+      / Adding a lab’s result file to another breeder’s records is built, not yet tried on the main network\.$/,
     );
     for (const k of ['test', 'live']) expect(e[`m.live.signed.${k}`]).not.toMatch(/unless one of them shares it/);
     for (const l of Object.values(LANGUAGES)) {
