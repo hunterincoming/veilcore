@@ -126,7 +126,7 @@ export const deMainnet = buildMainnet({
     ],
     'm.get.2b': [
       'Im Contract im Hauptnetz von Midnight eingebaut; auf dieser Website simuliert.',
-      'Im Contract im Hauptnetz von Midnight eingebaut und auf dieser Website nutzbar.',
+      'Lizenzen werden auf dieser Website im Hauptnetz von Midnight geschlossen. Der Contract kann beweisen, dass eine Lizenz gilt, ohne sie zu zeigen; dafür braucht es eine Wallet, die diese Website nicht nutzt.',
     ],
     'm.demo.lede': [
       'Lizenzen und Laborvereinbarungen sind simuliert.',

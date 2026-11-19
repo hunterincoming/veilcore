@@ -213,6 +213,8 @@ export const labresult = {
   'app.lr.check.notYours':
     'L’échantillon ne vient d’aucun des enregistrements de ce navigateur, il n’y a donc rien où l’ajouter.',
   'app.lr.check.yours': 'Vous avez signé ce résultat : il est dans vos enregistrements.',
+  'app.lr.check.signedHere': 'Vous avez signé ce résultat.',
+  'app.lr.check.autoFinding': 'Nous le cherchons dans vos enregistrements…',
   'app.lr.panelTitle': 'Résultat de laboratoire',
   'app.lr.inReport': 'Le résultat signé du laboratoire avec ce rapport ({kind}) :',
   'app.lr.out.title': 'Un résultat signé avec ce rapport (facultatif)',

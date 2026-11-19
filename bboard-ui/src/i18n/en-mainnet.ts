@@ -234,7 +234,7 @@ export const LIVE_SWAPS: LiveSwaps = {
   ],
   'm.get.2b': [
     "Built into the contract on Midnight's main network; simulated on this website.",
-    "Built into the contract on Midnight's main network, and made from this website.",
+    "Licenses are made from this website, on Midnight's main network. The contract can prove a license is in force without showing it; that needs a wallet, which this website doesn't use.",
   ],
   'm.demo.lede': ['Licenses and lab agreements are simulated.', 'Licenses and lab agreements go on Midnight too.'],
   'm.for.3p': [

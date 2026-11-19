@@ -79,6 +79,7 @@ export const document = {
   'app.doc.compare.text': 'Pick a file to compare with the ones sealed here. It isn’t uploaded.',
   'app.doc.compare.pick': 'Pick a file',
   'app.doc.compare.match': '<b>{name}</b> is byte for byte {sealed}, sealed here.',
+  'app.doc.compare.matchSame': '<b>{name}</b> is byte for byte the file sealed here.',
   'app.doc.compare.noMatch':
     '<b>No match.</b> {name} isn’t the sealed file. Saving it again, printing it to PDF or sending it through some apps changes the file: ask for the original file.',
   'app.doc.new.introTech': 'For the technically minded: the code is the file’s SHA-256.',
@@ -112,6 +113,8 @@ export const document = {
     'Nothing dates this record yet, or the link was changed. Don’t rely on it until it shows a date.',
   'app.doc.check.what':
     'What this shows: a file with exactly these bytes was in the holder’s hands by that date. What it doesn’t: that the document is genuine, that the issuer issued it, or that what it says is true. “Issued by” is the holder’s statement.',
+  'app.doc.check.whatUndated':
+    'What this will show, once it is dated: a file with exactly these bytes was in the holder’s hands by its date. What it doesn’t: that the document is genuine, that the issuer issued it, or that what it says is true. “Issued by” is the holder’s statement.',
   'app.doc.check.inLink': 'In the link (the holder’s own words)',
   'app.doc.nums.title': 'The numbers on it (optional)',
   'app.doc.nums.help':
@@ -207,6 +210,8 @@ export const document = {
     'What has left this device: the record’s ID, its proof code and its key binding, sent to VeilCore to date it. Every request shows VeilCore your network address and the time. If you keep a passkey copy, it holds this record’s ID and its keys, locked, on VeilCore’s server; never what you typed.',
   'app.doc.local.stamp':
     'Date-stamping this record’s key is your choice, and nothing starts it but the button below. If you do it, a code made from the key goes to Midnight through VeilCore’s fee service. Nothing you typed goes with it.',
+  'app.doc.stamp.title': 'Date-stamp this record’s key on {network}',
+  'app.doc.stamp.button': 'Put a date stamp on this record’s key',
   'app.doc.local.conflict':
     'VeilCore’s server answered with something other than this record’s proof code alone. What you see is this device’s own copy. Nothing more is sent, and the server’s answer changes nothing here.',
   'app.doc.local.homeNotBacked': 'On this device only · not in a backup yet',

@@ -373,8 +373,8 @@ export const plant = {
     'La clé de cette plante n’est pas dans ce navigateur. Récupérez-la depuis votre fichier de copie de secours : une nouvelle clé ne correspondrait pas à l’enregistrement scellé.',
   'app.plant.anchor.onlyNew':
     'Uniquement pour un enregistrement qui n’a jamais eu de clés : si vous l’avez déjà ancré, ou créé ses clés dans un autre navigateur, restaurez-les plutôt depuis votre copie de secours ci-dessus. De nouvelles clés seraient une autre identité.',
-  'app.plant.anchor.makeKeys': '1. Créer les clés de cet enregistrement (dans ce navigateur)',
-  'app.plant.anchor.anchorTest': '2. Ancrer sur le réseau de test',
+  'app.plant.anchor.makeKeys': 'Créer les clés de cet enregistrement (dans ce navigateur)',
+  'app.plant.anchor.anchorTest': 'Ancrer sur le réseau de test',
   'app.plant.anchor.backupFirst': 'Télécharger d’abord la copie de secours',
   'app.plant.keys.restoredFor': 'Clés restaurées pour {id}.',
   'app.plant.keys.notNamed':
@@ -389,6 +389,8 @@ export const plant = {
   'app.plant.keys.title': 'Clés de l’enregistrement',
   'app.plant.keys.holds':
     'Ce navigateur contient les deux secrets qui prouvent que vous détenez cet enregistrement sur la chaîne. Une copie part aussi dans la boîte verrouillée de l’enregistrement sur VeilCore, que seule la clé qui verrouille vos enregistrements ouvre. Effacer ce navigateur les supprime ici ; restaurer votre sauvegarde les ramène.',
+  'app.plant.keys.holdsDeviceOnly':
+    'Ce navigateur contient les deux secrets qui prouvent que vous détenez cet enregistrement sur la chaîne. Cet enregistrement est gardé uniquement sur cet appareil : aucune copie ne part donc vers VeilCore dans une boîte verrouillée. Seuls ce navigateur et votre sauvegarde vérifiée les contiennent, ainsi que votre copie avec clé d’accès si vous en avez une, gardée verrouillée sur le serveur de VeilCore (elle ne contient que des clés, jamais l’enregistrement). Effacer ce navigateur les supprime ici ; restaurer votre sauvegarde les ramène.',
   'app.plant.keys.noBackup': 'Pas encore de sauvegarde. Téléchargez-la et gardez-la hors ligne.',
   'app.plant.keys.downloadAgain': 'Télécharger de nouveau la copie de secours',
   'app.plant.keys.download': 'Télécharger la copie de secours (secrète)',

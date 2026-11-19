@@ -20,7 +20,15 @@ import { ChainStatusLine, TxLine } from './ChainStatusLine';
 import { RecordKeysPanel } from './RecordKeysPanel';
 import { DatingPausedNotice } from '../DatingPausedNotice';
 
-export const AnchorOnChainPanel: React.FC<{ recordId: string }> = ({ recordId }) => {
+/**
+ * `forDocument`: a document's page, where this sits folded under "Technical details" and is not
+ * needed for the document's date. There it is a plain choice, worded as what it does (a date
+ * stamp on the record's key), not a numbered step: "anchor" means batch dating elsewhere.
+ */
+export const AnchorOnChainPanel: React.FC<{ recordId: string; forDocument?: boolean }> = ({
+  recordId,
+  forDocument,
+}) => {
   useRecords();
   const record = getRecord(recordId);
   const keys = useRecordKeys()[recordId];
@@ -45,7 +53,9 @@ export const AnchorOnChainPanel: React.FC<{ recordId: string }> = ({ recordId })
         <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
           <LinkIcon sx={{ color: 'text.secondary' }} />
           <Typography variant="subtitle1">
-            {t('app.plant.anchor.title', { network: networkWords(undefined, tr) })}
+            {t(forDocument ? 'app.doc.stamp.title' : 'app.plant.anchor.title', {
+              network: networkWords(undefined, tr),
+            })}
           </Typography>
         </Stack>
 
@@ -116,12 +126,15 @@ export const AnchorOnChainPanel: React.FC<{ recordId: string }> = ({ recordId })
                 <RecordKeysPanel record={record} />
                 <DatingPausedNotice on={stamp.paused} />
                 <Button
-                  variant="contained"
+                  variant={forDocument ? 'outlined' : 'contained'}
                   disabled={stamp.busy || !keys.backedUpAt || stamp.paused}
                   onClick={() => void anchor()}
                   sx={{ alignSelf: 'flex-start' }}
+                  data-key-stamp-button=""
                 >
-                  {keys.backedUpAt ? t('app.plant.anchor.anchorTest') : t('app.plant.anchor.backupFirst')}
+                  {!keys.backedUpAt
+                    ? t('app.plant.anchor.backupFirst')
+                    : t(forDocument ? 'app.doc.stamp.button' : 'app.plant.anchor.anchorTest')}
                 </Button>
               </>
             )}

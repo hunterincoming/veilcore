@@ -296,7 +296,7 @@ export const verify = {
   'app.verify.who.signedUnbound': '{who}（VeilCoreのレジストリの報告）。リンクに証明コードがないため確認できません。',
   'app.verify.who.more': 'その他の署名',
   'app.verify.who.moreText': 'ほかに{n}件、下に表示しています。',
-  'app.verify.who.date.none': 'ありません。このページで確認できる限り、日付の付いたバッチに入っていません。',
+  'app.verify.who.date.none': 'まだありません。このページで確認できる限り、日付の付いたバッチに入っていません。',
   'app.verify.who.code.recomputed': 'このページ：リンクの内容からここで計算しました。',
   'app.verify.who.file': 'ファイル',
   'app.verify.who.file.noMatch':

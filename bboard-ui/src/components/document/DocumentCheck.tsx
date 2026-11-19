@@ -22,6 +22,7 @@ import {
 import { verifyPath } from '../../veilcore/verify-link';
 import { DOCUMENT_CHAIN_ENABLED, NETWORK, isTestNetwork } from '../../config/network';
 import { useT } from '../../i18n/app';
+import { recordDateRow } from '../flow/plant-status-words';
 import { DocumentDateView, DocumentFacts, Fact, FileCompare, seen } from './DocumentParts';
 
 export const DocumentCheck: React.FC = () => {
@@ -59,6 +60,10 @@ export const DocumentCheck: React.FC = () => {
       if (a.recordId && !out.has(a.recordId)) out.set(a.recordId, aboutTarget(a.recordId, chain, read.fingerprint));
     return out;
   }, [read, opened]);
+
+  // Dated: by Midnight, or by VeilCore's word (the page says which); the same marks DocumentDateView uses.
+  const dateMark = date.proof === 'checking' ? undefined : recordDateRow(date.proof, date.anchor, tr).mark;
+  const dated = dateMark === 'done' || dateMark === 'reported';
 
   return (
     <Box sx={{ bgcolor: 'background.default' }} data-document-check="">
@@ -116,8 +121,9 @@ export const DocumentCheck: React.FC = () => {
                 </Box>
                 <DocumentDateView proof={date.proof} anchor={date.anchor} checker />
                 <FileCompare files={read.fields.files} onResult={setPicked} />
-                <Typography variant="body2" color="text.secondary">
-                  {t('app.doc.check.what')}
+                {/* "By its date" only once there is one: before, it says what it will show. */}
+                <Typography variant="body2" color="text.secondary" data-document-what={dated ? 'dated' : 'undated'}>
+                  {t(dated ? 'app.doc.check.what' : 'app.doc.check.whatUndated')}
                 </Typography>
               </Stack>
             </Paper>

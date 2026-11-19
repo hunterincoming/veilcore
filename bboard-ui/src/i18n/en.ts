@@ -151,6 +151,7 @@ export const en = {
   'title.evidence': 'Records in evidence',
   'title.integrate': 'Integrating VeilCore',
   'title.implementations': 'Implementations',
+  'title.partners': 'Require a record',
   'title.new': 'Make a record',
   'title.record': 'Record',
   'title.agreements': 'Agreements',
@@ -541,7 +542,7 @@ export const en = {
   'm.live.title1': 'What works,',
   'm.live.title2': 'and where.',
   'm.live.lede':
-    "veilcore.org runs on Midnight's main network, and records made there are real. The test site is for practice: more of it works there, and its records carry no weight.",
+    "veilcore.org runs on Midnight's main network, and records made there are real. The test site is for practice, and its records carry no weight. Some features are tried there first.",
   'm.live.colMain': 'veilcore.org (main network)',
   'm.live.colTest': 'test.veilcore.org',
   'm.live.colNot': 'Not yet',
@@ -612,13 +613,13 @@ export const en = {
     'Licenses go live with the deploy that switches them on, once a real license has worked end to end on the main network. Royalty statements and payments: built, not live yet.',
   // The test-site cell until royalties v2 has run there (config/copy.ts ROYALTIES_RUN_ON_TEST).
   'm.live.lic.testNext':
-    'Yes for licenses, with real transactions. Royalty statements and payments: built, and called live here once they have worked end to end on this network.',
+    'Yes for licenses, with real transactions. Royalty reports (they have worked on veilcore.org), and paying royalties on Midnight itself: built and offered here; they have not yet worked end to end on this network.',
   // Licenses on in code, on a build that isn't veilcore.org's (the test site, the demo): the main-network cell.
   'm.live.lic.next':
     'Built. Goes live with the next veilcore.org deploy, once a real license has worked end to end on the main network.',
   // Licenses on, on veilcore.org's own build (AGREEMENTS_LIVE, mainnet sponsor live): the main-network cell (components/site/Home.tsx).
   'm.live.lic.live':
-    'Yes: licenses, with real transactions, and royalty reports with their answer, “I paid” and “Receipt confirmed”. Handing a license on is built, not yet tried on the main network. Paying royalties on Midnight itself is on the test site only.',
+    'Yes: licenses, with real transactions, and royalty reports with their answer, “I paid” and “Receipt confirmed”. Handing a license on is built, not yet tried on the main network. Paying royalties on Midnight itself is offered on the test site only, and has not yet worked end to end there.',
   // The check page looking a record's date up on Midnight itself (docs/check-on-chain.md).
   // On veilcore.org it needs the read-only relay; the mainnet overlay says "Yes." once a
   // build has one (CHAIN_READS).

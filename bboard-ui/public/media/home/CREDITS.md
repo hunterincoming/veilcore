@@ -2,7 +2,7 @@
 
 All free under the Unsplash License (https://unsplash.com/license), which asks for no credit; the
 home page credits them anyway, under the last section. Resized for the page: each at 800 wide and
-at 1600 (greenhouse 1280), WebP; the jar also cropped to 16:10 for wide screens (`jar-wide`).
+at 1600 (greenhouse 1280), WebP, and at 1200 for phones (`-1200`, not the greenhouse); the jar also cropped to 16:10 for wide screens (`jar-wide`).
 
 | File | Photographer | Source |
 | --- | --- | --- |

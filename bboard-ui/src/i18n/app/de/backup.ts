@@ -18,14 +18,13 @@ export const backup = {
   'app.backup.copyTitle': 'Eine Kopie woanders ablegen (empfohlen)',
   'app.backup.wayBack': 'Wenn dieses Handy oder dieser Computer kaputtgeht, ist diese Kopie Ihr Weg zurück.',
   'app.backup.safari':
-    'Safari kann die Daten einer Website nach 7 Tagen ohne Besuch löschen. Ihre Sicherungsdatei holt Ihre Datensätze zurück: Bewahren Sie sie auf.',
+    'Dieser Browser kann die Daten einer Website nach 7 Tagen ohne Besuch löschen. Ihre Sicherungsdatei holt Ihre Datensätze zurück: Bewahren Sie sie auf.',
   'app.backup.actAsYou':
     'Mit dieser Datei kann jeder Ihre Datensätze öffnen und als Sie auftreten. Am besten: ein USB-Stick oder ein Passwort-Manager. Wenn Sie sie per E-Mail senden, nutzen Sie ein Konto mit Anmeldung in zwei Schritten.',
   'app.backup.sentCopy': 'Kopie gesendet ✓',
   'app.backup.sendCopy': 'Eine Kopie senden (E-Mail, Drive, Dateien…)',
   'app.backup.shareFailed': 'Dieser Browser konnte sein Teilen-Menü nicht öffnen.',
-  'app.backup.byHand':
-    'Legen Sie sie auf einen USB-Stick oder in einen Passwort-Manager. Es ist die Datei, die Sie gerade gespeichert haben, in Ihrem Download-Ordner.',
+  'app.backup.byHand': 'Es ist die Datei, die Sie gerade gespeichert haben, in Ihrem Download-Ordner.',
   'app.backup.saveAgain': 'Noch eine Kopie speichern',
   'app.backup.savedAgain': 'Weitere Kopie gespeichert ✓',
   'app.backup.checkTitle': 'Prüfen, ob sie funktioniert',
@@ -113,7 +112,7 @@ export const backup = {
   // The passkey copy (veilcore/passkey-backup.ts, flow/PasskeyCopy.tsx).
   'app.backup.passkey.title': 'Zusätzlich eine Kopie, die sich mit einem Passkey öffnet',
   'app.backup.passkey.why':
-    'Wenn Sie dieses Handy verlieren, holt Ihr Passkey alles zurück: Er wird über Ihr Apple- oder Google-Konto auf Ihr neues Handy übertragen. Die Kopie ist mit einem Schlüssel gesperrt, den nur Ihr Passkey erzeugen kann. VeilCore kann sie nicht öffnen.',
+    'Wenn Sie dieses Handy verlieren, holt Ihr Passkey alles zurück außer Datensätzen, die nur auf diesem Gerät aufbewahrt werden: Er wird über Ihr Apple- oder Google-Konto auf Ihr neues Handy übertragen. Die Kopie ist mit einem Schlüssel gesperrt, den nur Ihr Passkey erzeugen kann. VeilCore kann sie nicht öffnen.',
   'app.backup.passkey.keepFile':
     'Behalten Sie auch die Datei. Wer den Passkey löscht, löscht den einzigen Schlüssel zu dieser Kopie.',
   'app.backup.passkey.make': 'Passkey-Kopie anlegen',
@@ -125,7 +124,7 @@ export const backup = {
     'Passkey-Kopie gelöscht. Den Passkey selbst löschen Sie in den Passwort-Einstellungen Ihres Handys.',
   'app.backup.passkey.restore': 'Meinen Passkey verwenden',
   'app.backup.passkey.restoreHint':
-    'Schon einmal eine Passkey-Kopie angelegt? Verwenden Sie Ihren Passkey statt einer Datei.',
+    'Schon einmal eine Passkey-Kopie angelegt? Verwenden Sie Ihren Passkey statt einer Datei. Datensätze, die nur auf einem Gerät aufbewahrt wurden, kommen nur aus einer Sicherungsdatei zurück.',
   'app.backup.passkey.found': 'Ihre Passkey-Kopie vom {date} wurde gefunden. Hier wiederherstellen?',
   'app.backup.passkey.restoreIt': 'Wiederherstellen',
   'app.backup.passkey.notThis': 'Nicht diese',

@@ -18,14 +18,13 @@ export const backup = {
   'app.backup.copyTitle': 'Ponga una copia en otro lugar (recomendado)',
   'app.backup.wayBack': 'Si este teléfono o esta computadora se rompen, esa copia es su forma de recuperarlo todo.',
   'app.backup.safari':
-    'Safari puede borrar los datos de un sitio tras 7 días sin visitarlo. Su archivo de copia de seguridad es lo que recupera sus registros: consérvelo.',
+    'Este navegador puede borrar los datos de un sitio tras 7 días sin visitarlo. Su archivo de copia de seguridad es lo que recupera sus registros: consérvelo.',
   'app.backup.actAsYou':
     'Cualquiera que tenga este archivo puede abrir sus registros y actuar como usted. Lo mejor: una memoria USB o un gestor de contraseñas. Si lo envía por correo, use una cuenta con verificación en dos pasos.',
   'app.backup.sentCopy': 'Copia enviada ✓',
   'app.backup.sendCopy': 'Enviar una copia (correo, Drive, Archivos…)',
   'app.backup.shareFailed': 'Este navegador no pudo abrir su menú para compartir.',
-  'app.backup.byHand':
-    'Guárdelo en una memoria USB o en un gestor de contraseñas. Es el archivo que acaba de guardar, en su carpeta de Descargas.',
+  'app.backup.byHand': 'Es el archivo que acaba de guardar, en su carpeta de Descargas.',
   'app.backup.saveAgain': 'Guardar otra copia',
   'app.backup.savedAgain': 'Otra copia guardada ✓',
   'app.backup.checkTitle': 'Compruebe que funciona',
@@ -110,7 +109,7 @@ export const backup = {
   // The passkey copy (veilcore/passkey-backup.ts, flow/PasskeyCopy.tsx).
   'app.backup.passkey.title': 'Guarde también una copia que se abre con una llave de acceso',
   'app.backup.passkey.why':
-    'Si pierde este teléfono, su llave de acceso lo recupera todo: se sincroniza con su teléfono nuevo a través de su cuenta de Apple o Google. La copia está cerrada con una clave que solo su llave de acceso puede crear. VeilCore no puede abrirla.',
+    'Si pierde este teléfono, su llave de acceso lo recupera todo, salvo los registros guardados solo en este dispositivo: se sincroniza con su teléfono nuevo a través de su cuenta de Apple o Google. La copia está cerrada con una clave que solo su llave de acceso puede crear. VeilCore no puede abrirla.',
   'app.backup.passkey.keepFile':
     'Guarde también el archivo. Si borra la llave de acceso, borra la única clave de esta copia.',
   'app.backup.passkey.make': 'Crear una copia con llave de acceso',
@@ -122,7 +121,7 @@ export const backup = {
     'Copia borrada. Para borrar la llave de acceso en sí, use los ajustes de contraseñas de su teléfono.',
   'app.backup.passkey.restore': 'Usar mi llave de acceso',
   'app.backup.passkey.restoreHint':
-    '¿Ya creó una copia con llave de acceso? Use su llave de acceso en lugar de un archivo.',
+    '¿Ya creó una copia con llave de acceso? Use su llave de acceso en lugar de un archivo. Los registros guardados solo en un dispositivo vuelven únicamente desde un archivo de copia de seguridad.',
   'app.backup.passkey.found': 'Encontramos su copia con llave de acceso, guardada el {date}. ¿Restaurarla aquí?',
   'app.backup.passkey.restoreIt': 'Restaurarla',
   'app.backup.passkey.notThis': 'Esta no',

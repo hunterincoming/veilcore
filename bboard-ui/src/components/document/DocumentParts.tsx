@@ -291,7 +291,8 @@ export const FileCompare: React.FC<{
         <Alert severity="success" variant="outlined" sx={{ mt: 1.5 }} data-compare="match">
           {/* File names go in as values, never as markup: a name can't add emphasis or tags. */}
           {rich(
-            t('app.doc.compare.match'),
+            // Named once when the picked file has the sealed one's name (live walk, 18 Nov).
+            t(result.name === result.sealed ? 'app.doc.compare.matchSame' : 'app.doc.compare.match'),
             { b: (c) => <b>{c}</b> },
             { name: seen(result.name), sealed: seen(result.sealed) },
           )}

@@ -54,6 +54,7 @@ import {
   ROYALTIES_RUN_ON_TEST,
 } from '../../config/copy';
 import { EventDisplay } from './EventDisplay';
+import { GALLERY_SIZES, photoSrcSet, type PhotoName } from './photo-src';
 import './home.css';
 
 const APP_REPO = 'https://github.com/hunterincoming/veilcore';
@@ -618,13 +619,11 @@ const Marquee: React.FC<{ label: string; list: string }> = ({ label, list }) => 
   );
 };
 
-type PhotoName = 'cutting' | 'greenhouse' | 'lab' | 'hand' | 'cattle';
-
-/** A 3:2 photo, 800 or 1600 wide by the space it has (public/media/home). */
+/** A 3:2 photo, 800, 1200 or 1600 wide by the space it has (public/media/home). */
 const Photo: React.FC<{ name: PhotoName; alt: string; sizes: string }> = ({ name, alt, sizes }) => (
   <img
     src={`/media/home/${name}-800.webp`}
-    srcSet={`/media/home/${name}-800.webp 800w, /media/home/${name}.webp ${name === 'greenhouse' ? 1280 : 1600}w`}
+    srcSet={photoSrcSet(name)}
     sizes={sizes}
     alt={alt}
     width={1600}
@@ -733,7 +732,7 @@ const Gallery: React.FC<{ labelledBy: string; slides: Slide[]; heading: React.Re
         {slides.map((s, i) => (
           <li className={`k-hpanel${i === current ? ' is-near' : ''}`} key={s.key}>
             <div className="k-hpanel-img">
-              <Photo name={s.photo} alt={s.alt} sizes="(max-width: 1080px) 84vw, 680px" />
+              <Photo name={s.photo} alt={s.alt} sizes={GALLERY_SIZES} />
             </div>
             <div className="k-hpanel-copy">
               <h3>{s.title}</h3>

@@ -43,7 +43,7 @@ export const APP_SENDS: Record<Lang, SendWords> = {
     'app.pair.chain.title': 'Also date this pairing on Midnight (optional)',
     'app.pair.chain.testOnly':
       'This shows whoever controlled this record’s identity had the report, or its SHA-256, by the date it lands. It is not a check of the genetics. VeilCore pays the fee.',
-    'app.plant.anchor.anchorTest': "2. Anchor on Midnight's main network",
+    'app.plant.anchor.anchorTest': "Anchor on Midnight's main network",
   },
   de: {
     'app.prove.whatSends':
@@ -63,7 +63,7 @@ export const APP_SENDS: Record<Lang, SendWords> = {
     'app.pair.chain.title': 'Diese Kopplung auch auf Midnight datieren (optional)',
     'app.pair.chain.testOnly':
       'Das zeigt, dass, wer die Identität dieses Datensatzes kontrollierte, den Bericht oder seinen SHA-256 zu dem Datum hatte, an dem er ankommt. Das ist keine Prüfung der Genetik. VeilCore zahlt die Gebühr.',
-    'app.plant.anchor.anchorTest': '2. Im Hauptnetz von Midnight verankern',
+    'app.plant.anchor.anchorTest': 'Im Hauptnetz von Midnight verankern',
   },
   es: {
     'app.prove.whatSends':
@@ -83,7 +83,7 @@ export const APP_SENDS: Record<Lang, SendWords> = {
     'app.pair.chain.title': 'Fechar también este vínculo en Midnight (opcional)',
     'app.pair.chain.testOnly':
       'Esto muestra que quien controlaba la identidad de este registro tenía el informe, o su SHA-256, en la fecha en que llegue. No es una comprobación de la genética. VeilCore paga la tarifa.',
-    'app.plant.anchor.anchorTest': '2. Anclar en la red principal de Midnight',
+    'app.plant.anchor.anchorTest': 'Anclar en la red principal de Midnight',
   },
   fr: {
     'app.prove.whatSends':
@@ -103,7 +103,7 @@ export const APP_SENDS: Record<Lang, SendWords> = {
     'app.pair.chain.title': 'Dater aussi cette association sur Midnight (facultatif)',
     'app.pair.chain.testOnly':
       'Cela montre que la personne qui contrôlait l’identité de cet enregistrement avait le rapport, ou son SHA-256, à la date où il arrive. Ce n’est pas une vérification de la génétique. VeilCore paie les frais.',
-    'app.plant.anchor.anchorTest': '2. Ancrer sur le réseau principal de Midnight',
+    'app.plant.anchor.anchorTest': 'Ancrer sur le réseau principal de Midnight',
   },
   ja: {
     'app.prove.whatSends':
@@ -123,7 +123,7 @@ export const APP_SENDS: Record<Lang, SendWords> = {
     'app.pair.chain.title': 'この紐付けにもMidnight上で日付を付ける（任意）',
     'app.pair.chain.testOnly':
       'これは、この記録のIDを管理していた人が、届いた日付までに報告書またはそのSHA-256を持っていたことを示します。遺伝情報を確認したものではありません。手数料はVeilCoreが支払います。',
-    'app.plant.anchor.anchorTest': '2. Midnightのメインネットワークにアンカーする',
+    'app.plant.anchor.anchorTest': 'Midnightのメインネットワークにアンカーする',
   },
 };
 

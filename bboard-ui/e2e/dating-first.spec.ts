@@ -191,9 +191,10 @@ test('a plant logged with no backup is still dated in the next batch, and Home p
     'locked copy not uploaded yet — save and check your backup. Your record’s date isn’t waiting on this.',
   );
   await expect(pickup.locator('[data-pickup-item="stamp"]')).toContainText(`Key date stamp for ${name}`);
-  await expect(page.locator(`[data-home-unsaved="${recordId}"]`)).toHaveText(
-    'Locked copy not uploaded yet — save and check your backup',
-  );
+  // The record's own card says it isn't in a backup, so the locked-copy line under it isn't
+  // said again (live walk, 18 Nov): once at the top, once on the card.
+  await expect(page.getByText('Not in your backup yet · next: save your backup')).toHaveCount(1);
+  await expect(page.locator(`[data-home-unsaved="${recordId}"]`)).toHaveCount(0);
   await shot(page, '3-home-pick-up-where-you-left-off');
 
   // The anchoring job's next run: the batch with this proof code is sealed and dated.

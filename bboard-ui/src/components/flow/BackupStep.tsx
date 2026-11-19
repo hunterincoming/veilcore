@@ -32,6 +32,7 @@ import { PasskeyCopyMaker } from './PasskeyCopy';
 import { loadAttester } from '../../veilcore/attester-keys';
 import { getRole, isLab } from '../../veilcore/role';
 import { prepareToReceive } from '../../veilcore/receive';
+import { thisBrowserClearsAfterSevenDays } from './webkit-storage';
 
 const Done: React.FC<{ text: string; sub?: string }> = ({ text, sub }) => (
   <Stack direction="row" spacing={1.25} sx={{ alignItems: 'center' }}>
@@ -338,9 +339,12 @@ export const BackupStep: React.FC<{
         <Typography variant="body2" color="text.secondary" sx={{ mb: 1.25 }}>
           {t('app.backup.wayBack')}
         </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 1.25 }} data-backup-safari="">
-          {t('app.backup.safari')}
-        </Typography>
+        {/* Only where it is true: Safari, and every browser on an iPhone or iPad. */}
+        {thisBrowserClearsAfterSevenDays() && (
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 1.25 }} data-backup-safari="">
+            {t('app.backup.safari')}
+          </Typography>
+        )}
         <Typography variant="body2" sx={{ mb: 1.25, fontWeight: 700 }} data-backup-warning="">
           {t('app.backup.actAsYou')}
         </Typography>
@@ -362,7 +366,13 @@ export const BackupStep: React.FC<{
                 {t('app.backup.shareFailed')}
               </Typography>
             )}
-            <Typography variant="body1">{t('app.backup.byHand')}</Typography>
+            {/* Where to keep it is said once, above (app.backup.actAsYou); where the file is,
+                only once there is one. */}
+            {saved && (
+              <Typography variant="body1" data-backup-saved-where="">
+                {t('app.backup.byHand')}
+              </Typography>
+            )}
             <Button
               variant="outlined"
               size="large"

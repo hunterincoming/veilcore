@@ -154,9 +154,17 @@ test('seal a document from its files, compare a file, and check it from the link
   // The key's date stamp is folded under "Technical details", and one tap opens it.
   const tech = page.locator('[data-document-technical]');
   await expect(tech).toBeVisible();
-  await expect(tech.getByText(/^Anchor this record on/)).toBeHidden();
+  await expect(tech.getByText(/^Date-stamp this record’s key on/)).toBeHidden();
   await tech.getByRole('button', { name: 'Technical details' }).click();
-  await expect(tech.getByText(/^Anchor this record on/)).toBeVisible();
+  await expect(tech.getByText(/^Date-stamp this record’s key on/)).toBeVisible();
+  // A plain choice, named for what it does: no "2." with no step 1, not the page's main button.
+  // (Its words before a backup of the key are "Download the backup first"; after, "Put a date
+  // stamp on this record's key": copy-truth.test.ts pins both.)
+  const stampButton = tech.locator('[data-key-stamp-button]');
+  await expect(stampButton).toHaveClass(/MuiButton-outlined/);
+  await expect(stampButton).not.toHaveText(/^\d\./);
+  await expect(stampButton).not.toHaveText(/Anchor/);
+  await expect(tech.getByText(/^Anchor this record on/)).toHaveCount(0);
   await expect(tech).toContainText('Not needed for this document’s date');
   // Ask offers this page's own actions, not plant ones.
   await clickAsk(page);
@@ -174,6 +182,11 @@ test('seal a document from its files, compare a file, and check it from the link
     .locator('input[type=file]')
     .setInputFiles({ name: 'from-them.pdf', mimeType: 'application/pdf', buffer: ANNEX });
   await expect(page.locator('[data-compare="match"]')).toContainText('is byte for byte annex.pdf');
+  // Picked under the sealed file's own name: the name is said once (live walk, 18 Nov).
+  await compare
+    .locator('input[type=file]')
+    .setInputFiles({ name: 'annex.pdf', mimeType: 'application/pdf', buffer: ANNEX });
+  await expect(page.locator('[data-compare="match"]')).toHaveText('annex.pdf is byte for byte the file sealed here.');
   await compare
     .locator('input[type=file]')
     .setInputFiles({ name: 'other.pdf', mimeType: 'application/pdf', buffer: OTHER });
@@ -251,6 +264,9 @@ test('seal a document from its files, compare a file, and check it from the link
   await expect(check).toContainText('Practice permit 0042');
   await expect(check).toContainText('Issued by (the holder’s statement)');
   await expect(page.locator('[data-document-not-dated]')).toBeVisible();
+  // No date yet: it says what a match will show once there is one, not "by that date".
+  await expect(page.locator('[data-document-what]')).toHaveAttribute('data-document-what', 'undated');
+  await expect(page.locator('[data-document-what]')).toContainText('What this will show, once it is dated:');
   await check
     .locator('input[type=file]')
     .setInputFiles({ name: 'sent.pdf', mimeType: 'application/pdf', buffer: PERMIT });

@@ -66,3 +66,14 @@ describe('Home’s line for a plant (test builds, where keys are date stamped fr
     });
   });
 });
+
+describe('Home says "save and check your backup" once per record (live walk, 18 Nov)', () => {
+  it('no locked-copy line when the card already says the record is not in a backup', async () => {
+    const { unsavedLineKey } = await import('./plant-status-words');
+    expect(unsavedLineKey('backup', true)).toBeUndefined();
+    expect(unsavedLineKey('backup', false)).toBe('app.sealed.unsaved.short');
+    // A copy waiting to be sent again is a different thing, and still said.
+    expect(unsavedLineKey('retry', true)).toBe('app.sealed.unsaved.shortRetry');
+    expect(unsavedLineKey(undefined, true)).toBeUndefined();
+  });
+});

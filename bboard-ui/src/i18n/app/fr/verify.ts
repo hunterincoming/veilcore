@@ -299,7 +299,7 @@ export const verify = {
   'app.verify.who.date.registry': 'Le registre de VeilCore le dit. Cette page ne l’a pas vérifiée sur Midnight.',
   'app.verify.who.date.batchOnly':
     'Midnight a daté le lot, et cette page l’a vérifié sur Midnight. Seul le registre de VeilCore dit que cet enregistrement en fait partie : le lien ne contient pas de code de preuve à vérifier.',
-  'app.verify.who.date.pending': 'Personne pour l’instant. Son lot attend d’être daté sur Midnight.',
+  'app.verify.who.date.pending': 'Rien pour l’instant. Son lot attend d’être daté sur Midnight.',
   'app.verify.who.code': 'Le code de preuve',
   'app.verify.who.code.page': 'Cette page : il correspond à celui du lien qu’on vous a envoyé.',
   'app.verify.who.code.registry':
@@ -307,7 +307,7 @@ export const verify = {
   'app.verify.who.words': 'Le nom et les détails',
   'app.verify.who.words.holder':
     'Le détenteur, avec ses propres mots. Cette page vérifie seulement que le nom correspond au code de preuve, pas que son contenu est vrai.',
-  'app.verify.who.date.failed': 'Personne : la vérification de cette page sur Midnight a échoué (voir ci-dessous).',
+  'app.verify.who.date.failed': 'Rien : la vérification de cette page sur Midnight a échoué (voir ci-dessous).',
   'app.verify.who.words.differs':
     'Les mots du détenteur, mais le nom affiché ne correspond pas au code de preuve (voir ci-dessous).',
   'app.verify.who.words.unchecked': 'Le détenteur, avec ses propres mots. Rien ne les vérifie.',
@@ -319,7 +319,7 @@ export const verify = {
   'app.verify.who.more': 'Autres signatures',
   'app.verify.who.moreText': '{n} de plus, ci-dessous.',
   'app.verify.who.date.none':
-    'Personne. Pour autant que cette page puisse le voir, l’enregistrement n’est dans aucun lot daté.',
+    'Rien pour l’instant. Pour autant que cette page puisse le voir, l’enregistrement n’est dans aucun lot daté.',
   'app.verify.who.code.recomputed': 'Cette page : recalculé ici à partir de ce que contient le lien.',
   'app.verify.who.file': 'Le fichier',
   'app.verify.who.file.noMatch':

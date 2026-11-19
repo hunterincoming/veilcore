@@ -74,6 +74,14 @@ test('/records/import has its own title, not "Your records"', async ({ page }) =
   await expect(page).toHaveTitle('Date your collection · VeilCore');
 });
 
+test('/partners has its own tab title, in the visitor’s language (live walk, 18 Nov)', async ({ page }) => {
+  await isolate(page);
+  await page.goto('/partners');
+  await expect(page).toHaveTitle('Require a record · VeilCore');
+  await page.goto('/partners?lang=es');
+  await expect(page).toHaveTitle('Exigir un registro · VeilCore');
+});
+
 test.describe('stand-in registry', () => {
   test.skip(REAL_REGISTRY, 'these use the stand-in registry');
 

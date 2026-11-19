@@ -59,7 +59,7 @@ import { UnreadableDeviceOnly } from '../document/UnreadableDeviceOnly';
 import { useVaultNeedsBackup } from '../../veilcore/vault';
 import { RegistryExportButton } from '../RegistryExportButton';
 import { draftHeading, loadDraft } from './log-flow-state';
-import { homeStatusLine } from './plant-status-words';
+import { homeStatusLine, unsavedLineKey } from './plant-status-words';
 import { documentHomeDate } from '../document/document-home-words';
 import { useRecordDate } from '../verify/useAnchorCheck';
 import { datingCardLine, datingHomeStatus, homeList, isLabReportRecord, keysOnlyHereLine } from '../stage/record-kinds';
@@ -597,19 +597,19 @@ export const AppHome: React.FC = () => {
                         </Typography>
                       ))}
                     {/* Kept in this browser, not on VeilCore yet (round 3, L1, L12). */}
-                    {unsavedReason(r.id) && (
-                      <Typography
-                        variant="body2"
-                        sx={{ color: 'warning.main', fontWeight: 700 }}
-                        data-home-unsaved={r.id}
-                      >
-                        {t(
-                          unsavedReason(r.id) === 'backup'
-                            ? 'app.sealed.unsaved.short'
-                            : 'app.sealed.unsaved.shortRetry',
-                        )}
-                      </Typography>
-                    )}
+                    {/* Not when the card already says it isn't in a backup (unsavedLineKey). */}
+                    {(() => {
+                      const k = unsavedLineKey(unsavedReason(r.id), base.text.includes(t('app.home.notFinished')));
+                      return k ? (
+                        <Typography
+                          variant="body2"
+                          sx={{ color: 'warning.main', fontWeight: 700 }}
+                          data-home-unsaved={r.id}
+                        >
+                          {t(k)}
+                        </Typography>
+                      ) : null;
+                    })()}
                     {/* The breeder's own plant: whether a DNA report ties the record to it. */}
                     {!own && !doc && !r.receivedFrom && <TieLine record={r} saved={savedReports[r.id]} />}
                     {datings.map((d) => (

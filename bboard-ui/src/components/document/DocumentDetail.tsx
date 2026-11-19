@@ -489,7 +489,7 @@ export const DocumentDetail: React.FC<{ record: StrainRecord }> = ({ record }) =
                   {t('app.doc.local.stamp')}
                 </Typography>
               )}
-              <AnchorOnChainPanel recordId={record.id} />
+              <AnchorOnChainPanel recordId={record.id} forDocument />
             </AccordionDetails>
           </Accordion>
         )}

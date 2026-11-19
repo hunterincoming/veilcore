@@ -18,14 +18,13 @@ export const backup = {
   'app.backup.copyTitle': 'コピーを別の場所にも置く（おすすめ）',
   'app.backup.wayBack': 'このスマートフォンやコンピューターが壊れたとき、そのコピーが取り戻す手段になります。',
   'app.backup.safari':
-    'Safariは、7日間アクセスのないサイトのデータを消すことがあります。記録を取り戻すのはバックアップファイルなので、大切に保管してください。',
+    'このブラウザは、7日間アクセスのないサイトのデータを消すことがあります。記録を取り戻すのはバックアップファイルなので、大切に保管してください。',
   'app.backup.actAsYou':
     'このファイルを持っている人は誰でも、あなたの記録を開き、あなたとして行動できます。おすすめはUSBメモリかパスワードマネージャーです。メールで送る場合は、2段階認証を設定したアカウントを使ってください。',
   'app.backup.sentCopy': 'コピーを送りました ✓',
   'app.backup.sendCopy': 'コピーを送る（メール、ドライブ、ファイル…）',
   'app.backup.shareFailed': 'このブラウザでは共有メニューを開けませんでした。',
-  'app.backup.byHand':
-    'USBメモリかパスワードマネージャーに保存してください。先ほど保存したファイルで、ダウンロードフォルダにあります。',
+  'app.backup.byHand': '先ほど保存したファイルで、ダウンロードフォルダにあります。',
   'app.backup.saveAgain': 'もう1つコピーを保存',
   'app.backup.savedAgain': 'もう1つ保存しました ✓',
   'app.backup.checkTitle': '開けるか確認する',
@@ -101,7 +100,7 @@ export const backup = {
   // The passkey copy (veilcore/passkey-backup.ts, flow/PasskeyCopy.tsx).
   'app.backup.passkey.title': 'パスキーで開けるコピーも置いておく',
   'app.backup.passkey.why':
-    'この電話をなくしても、パスキーですべて取り戻せます。パスキーはAppleまたはGoogleのアカウントを通じて新しい電話に同期されます。コピーは、あなたのパスキーだけが作れる鍵でロックされています。VeilCoreには開けません。',
+    'この電話をなくしても、この端末だけに保管している記録を除き、パスキーですべて取り戻せます。パスキーはAppleまたはGoogleのアカウントを通じて新しい電話に同期されます。コピーは、あなたのパスキーだけが作れる鍵でロックされています。VeilCoreには開けません。',
   'app.backup.passkey.keepFile':
     'ファイルも残しておいてください。パスキーを削除すると、このコピーの唯一の鍵も消えます。',
   'app.backup.passkey.make': 'パスキーのコピーを作る',
@@ -112,7 +111,8 @@ export const backup = {
   'app.backup.passkey.removed':
     'パスキーのコピーを削除しました。パスキー自体は、電話のパスワード設定から削除してください。',
   'app.backup.passkey.restore': 'パスキーを使う',
-  'app.backup.passkey.restoreHint': '前にパスキーのコピーを作りましたか？ファイルの代わりにパスキーを使えます。',
+  'app.backup.passkey.restoreHint':
+    '前にパスキーのコピーを作りましたか？ファイルの代わりにパスキーを使えます。端末だけに保管していた記録は、バックアップファイルからしか戻せません。',
   'app.backup.passkey.found': '{date}に保存したパスキーのコピーが見つかりました。ここに復元しますか？',
   'app.backup.passkey.restoreIt': '復元する',
   'app.backup.passkey.notThis': 'これではない',

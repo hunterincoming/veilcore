@@ -152,6 +152,7 @@ export const ja: Strings = {
   'title.evidence': '証拠としての記録',
   'title.integrate': 'VeilCoreの統合',
   'title.implementations': '実装',
+  'title.partners': '記録の提出を求める',
   'title.new': '記録を作る',
   'title.record': '記録',
   'title.agreements': '契約',
@@ -399,7 +400,7 @@ export const ja: Strings = {
   'm.live.title1': '何が動いていて、',
   'm.live.title2': 'どこで使えるか。',
   'm.live.lede':
-    'veilcore.orgはMidnightのメインネットワークで稼働しており、そこで作った記録は本物です。テストサイトは練習用です。使える機能はより多いものの、記録に証拠としての重みはありません。',
+    'veilcore.orgはMidnightのメインネットワークで稼働しており、そこで作った記録は本物です。テストサイトは練習用で、記録に証拠としての重みはありません。一部の機能はそこで先に試されます。',
   'm.live.colMain': 'veilcore.org（メインネットワーク）',
   'm.live.colTest': 'test.veilcore.org',
   'm.live.colNot': '未対応',
@@ -465,13 +466,13 @@ export const ja: Strings = {
     'ライセンスは、本物のライセンスがメインネットワークで最初から最後まで一度動いた後、それを有効にするデプロイで公開されます。ロイヤリティの明細と支払いは構築済みで、まだ公開されていません。',
   // The test-site cell until royalties v2 has run there (config/copy.ts ROYALTIES_RUN_ON_TEST).
   'm.live.lic.testNext':
-    'ライセンスは、はい（本物のトランザクションで）。ロイヤリティの明細と支払いは構築済みで、このネットワークで最初から最後まで一度動いた後に公開されます。',
+    'ライセンスは、はい（本物のトランザクションで）。ロイヤリティ報告（veilcore.orgでは動いています）とMidnight上でのロイヤリティの支払いは構築済みでここで提供していますが、このネットワークではまだ最初から最後まで動いたことはありません。',
   // Licenses on in code, on a build that isn't veilcore.org's (the test site, the demo): the main-network cell.
   'm.live.lic.next':
     '構築済み。本物のライセンスがメインネットワークで最初から最後まで一度動いた後、次回のveilcore.orgのデプロイで公開されます。',
   // Licenses on, on veilcore.org's own build (AGREEMENTS_LIVE, mainnet sponsor live): the main-network cell (components/site/Home.tsx).
   'm.live.lic.live':
-    'はい。本物のトランザクションでのライセンスと、ロイヤリティ報告とその回答、「支払いました」「受領確認済み」。ライセンスの引き継ぎは構築済みですが、メインネットワークではまだ試していません。Midnight上でのロイヤリティの支払いはテストサイトだけです。',
+    'はい。本物のトランザクションでのライセンスと、ロイヤリティ報告とその回答、「支払いました」「受領確認済み」。ライセンスの引き継ぎは構築済みですが、メインネットワークではまだ試していません。Midnight上でのロイヤリティの支払いはテストサイトだけで提供しており、そこでもまだ最初から最後まで動いたことはありません。',
   'm.live.chain.t': '確認ページがMidnightを自ら読む',
   'm.live.chain.main': '未対応。私たちの読み取り専用リレーが必要です。',
   'm.live.chain.test': 'あり。',
@@ -824,7 +825,7 @@ const JA_LIVE: LiveSwaps = {
   ],
   'm.get.2b': [
     'Midnightのメインネットワーク上のコントラクトに組み込まれており、このウェブサイトではシミュレーションです。',
-    'Midnightのメインネットワーク上のコントラクトに組み込まれており、このウェブサイトから使えます。',
+    'ライセンスはこのウェブサイトから、Midnightのメインネットワーク上で結べます。コントラクトは、ライセンスを見せずに有効であることを証明できます。それにはウォレットが必要で、このウェブサイトでは使いません。',
   ],
   'm.demo.lede': ['ライセンスとラボとの契約はシミュレーションです。', 'ライセンスとラボとの契約もMidnightに載ります。'],
   'm.for.3p': [
