@@ -69,6 +69,7 @@ test.describe('the prove panel on a lab’s comparison', () => {
   test('offers the comparison’s claims, proves two, and one link carries both', async ({ browser }) => {
     test.setTimeout(240_000);
     const breederCtx = await browser.newContext({ viewport: PHONE });
+    await breederCtx.grantPermissions(['clipboard-read', 'clipboard-write']);
     const breeder = await breederCtx.newPage();
     const breederErrors = watch(breeder);
     await standInChain(breeder);
@@ -179,18 +180,32 @@ test.describe('the prove panel on a lab’s comparison', () => {
       '[data-prove-number]',
     );
 
+    // The breeder proves two claims on its own copy; after a reload, VeilCore's copy has both.
+    const holder = await breeder.evaluate(() => localStorage.getItem('veilcore.holder.v1') ?? '');
+    const copyId = new URL(breeder.url()).pathname.split('/').pop()!;
+    const revNow = async () => {
+      const res = await fetch(`${API}/api/records`, { headers: { 'x-holder-key': holder } });
+      if (!res.ok) return -1;
+      const row = ((await res.json()) as { id: string; rev?: number }[]).find((r) => r.id === copyId);
+      return row ? (row.rev ?? 0) : -1;
+    };
+    await expect.poll(revNow, { timeout: 30_000, intervals: [1000] }).toBeGreaterThanOrEqual(0);
+    const revBefore = await revNow();
+    await provePart(breeder, panel);
+    await expect.poll(revNow, { timeout: 30_000, intervals: [1000] }).toBeGreaterThan(revBefore);
+    await expect
+      .poll(() => breeder.evaluate((id) => (localStorage.getItem('veilcore.outbox.v1') ?? '').includes(id), copyId), {
+        intervals: [1000],
+      })
+      .toBe(false);
+    await breeder.reload();
+    const again = breeder.locator('[data-prove-number]');
+    await expect(again.locator('[data-marker-panel="2"]')).toContainText(
+      'Markers compared is at least 90 (this result)',
+      { timeout: 20_000 },
+    );
     expectNoErrors(breederErrors);
     await breederCtx.close();
-
-    // The registry keeps one holder per proof code, and the lab already holds this result (its
-    // list of results signed), so the breeder's copy is refused at the next save and anything
-    // proved on it would be put back. Until that is settled the claims are proved here on the
-    // lab's own copy of the same signed result: the same panel, the same record commitment.
-    await lab.goto('/lab/results');
-    await lab.locator('[data-my-results] a').first().click();
-    const panel2 = lab.locator('[data-prove-number]');
-    await expect(panel2.locator('[data-marker-offer="differing"]')).toHaveCount(1, { timeout: 20_000 });
-    await provePart(lab, panel2);
     await labCtx.close();
   });
 });
