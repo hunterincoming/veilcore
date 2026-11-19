@@ -722,7 +722,7 @@ const API = 'https://veilcore-api-production.up.railway.app';
 const PW = [
   path.resolve(HERE, '../../node_modules/playwright'),
   '/opt/node-tools/node_modules/playwright',
-  '/home/claude/.npm-global/lib/node_modules/playwright',
+  path.join(os.homedir(), '.npm-global/lib/node_modules/playwright'),
 ].find((p) => fs.existsSync(path.join(p, 'package.json')));
 const PINNED_CHROME = '/opt/pw-browsers/chromium-1194/chrome-linux/chrome';
 const CHROME = fs.existsSync(PINNED_CHROME) ? PINNED_CHROME : undefined;

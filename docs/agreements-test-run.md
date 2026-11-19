@@ -127,7 +127,7 @@ license page, the terms form and the Royalties box in each.
 
 ## 3. After
 
-Send Claude the notes and screenshots. When the run is clean, the
+Send Hunter the notes and screenshots. When the run is clean, the
 mainnet switch is two reviewed lines (`AGREEMENTS_LIVE` in `bboard-ui/src/config/copy.ts`,
 `MAINNET_AGREEMENTS` in `sponsor/src/policy.ts`) and merging `license-invites` into the
 registry's main.

@@ -564,9 +564,10 @@ describe('builds', () => {
   // ---------------------------------------------------------------- browser
 
   const require = createRequire(import.meta.url);
-  const PW = ['/opt/node-tools/node_modules/playwright', '/home/claude/.npm-global/lib/node_modules/playwright'].find(
-    (p) => fs.existsSync(p),
-  );
+  const PW = [
+    '/opt/node-tools/node_modules/playwright',
+    path.join(os.homedir(), '.npm-global/lib/node_modules/playwright'),
+  ].find((p) => fs.existsSync(p));
   const CHROME = '/opt/pw-browsers/chromium-1194/chrome-linux/chrome';
   const haveBrowser = Boolean(PW) && fs.existsSync(CHROME);
 
