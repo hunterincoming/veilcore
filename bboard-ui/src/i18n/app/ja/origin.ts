@@ -93,6 +93,7 @@ export const origin = {
   'app.origin.x.collSite': '採集地：{v}',
   'app.origin.x.mlsStat': '多数国間システム（MCPD）：{v}',
   'app.origin.x.ancest': '系譜：{v}',
+  'app.origin.x.registration': '品種登録：{v}',
   'app.origin.mcpdExample': '例：{v}（{meaning}）',
   'app.origin.mcpd.sampStat.wild': '野生',
   'app.origin.mcpd.sampStat.weedy': '雑草型',

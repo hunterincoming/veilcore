@@ -17,9 +17,16 @@ import {
   type OriginField,
 } from '../../veilcore/origin-notes';
 
-/** The step's fields, in screen order, with their words. MCPD codes come only from an import. */
+/**
+ * The step's fields, in screen order, with their words. MCPD codes come only from an import; the
+ * variety registration number is on the plant's first screen, since it applies to a plant the
+ * holder bred too.
+ */
 const FIELDS: readonly {
-  readonly k: Exclude<OriginField, 'sampStat' | 'collSrc' | 'donor' | 'instCode' | 'collSite' | 'mlsStat' | 'ancest'>;
+  readonly k: Exclude<
+    OriginField,
+    'sampStat' | 'collSrc' | 'donor' | 'instCode' | 'collSite' | 'mlsStat' | 'ancest' | 'registration'
+  >;
   readonly label: AppKey;
   readonly help?: AppKey;
   readonly placeholder?: AppKey;
@@ -51,6 +58,7 @@ const LINE_WORDS: Record<OriginField, AppKey> = {
   collSite: 'app.origin.x.collSite',
   mlsStat: 'app.origin.x.mlsStat',
   ancest: 'app.origin.x.ancest',
+  registration: 'app.origin.x.registration',
 };
 
 export const OriginStep: React.FC<{

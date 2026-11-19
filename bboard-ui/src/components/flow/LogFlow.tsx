@@ -103,7 +103,13 @@ import { HANDOFF_STATE_KEY, isBatch, readHandoff, type Handoff } from '../../ask
 import { prefillOf, type Prefill } from '../../ask/prefill';
 import { BatchFlow } from './BatchFlow';
 import { allRecords } from '../../veilcore/records';
-import { LANDRACE_METHOD, ORIGIN_SOURCES, emptyOrigin, type OriginSource } from '../../veilcore/origin-notes';
+import {
+  LANDRACE_METHOD,
+  ORIGIN_MAX,
+  ORIGIN_SOURCES,
+  emptyOrigin,
+  type OriginSource,
+} from '../../veilcore/origin-notes';
 import { OriginReviewLine, OriginStep } from './OriginStep';
 // SEAL_EACH_STAGE, STAGE_PROMPT and SELECTED_PROMPT (stage-notes.ts) are shown here in the
 // visitor's language: app.log.sealEachStage, app.log.stagePrompt, app.log.selectedPrompt.
@@ -527,7 +533,13 @@ const PlantForm: React.FC<{
   const share = draftSizeShare({ ...sealInputOf(draft) });
   const set = <K extends keyof Draft>(k: K, v: Draft[K]) => setDraft({ ...draft, [k]: v });
   const hasMore = Boolean(
-    draft.parents.length || draft.taxon || draft.breedingMethod || draft.refId || draft.notes || draft.photos.length,
+    draft.parents.length ||
+    draft.taxon ||
+    draft.breedingMethod ||
+    draft.refId ||
+    draft.registration ||
+    draft.notes ||
+    draft.photos.length,
   );
   const [more, setMore] = useState(hasMore);
   const [reading, setReading] = useState(false);
@@ -766,6 +778,14 @@ const PlantForm: React.FC<{
               fullWidth
             />
             <TextField
+              label={t('app.log.registration')}
+              value={draft.registration ?? ''}
+              onChange={(e) => set('registration', e.target.value.slice(0, ORIGIN_MAX))}
+              helperText={t('app.log.registrationHelp')}
+              slotProps={{ htmlInput: { 'data-registration': '' } }}
+              fullWidth
+            />
+            <TextField
               label={t('app.log.notes')}
               value={draft.notes}
               onChange={(e) => set('notes', e.target.value)}
@@ -893,6 +913,7 @@ const Review: React.FC<{
     draft.breedingMethod ? t('app.log.x.madeBy', { v: breedingMethodWords(draft.breedingMethod, tr) }) : '',
     draft.photos.length ? tp('app.log.photos', draft.photos.length) : '',
     draft.refId ? t('app.log.x.ref', { v: draft.refId }) : '',
+    draft.registration?.trim() ? t('app.log.x.registration', { v: draft.registration.trim() }) : '',
     draft.notes ? t('app.log.x.notes') : '',
   ].filter(Boolean);
   const change = t('app.common.change');
