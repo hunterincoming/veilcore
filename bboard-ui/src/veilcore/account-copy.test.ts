@@ -379,7 +379,7 @@ describe('two devices on one synced passkey (the reviewed machinery, unchanged)'
     expect(st.kind === 'saved' && st.problem).toBe('older');
   });
 
-  it('finding B: a registry that puts back an older copy is refused, and says so', async () => {
+  it('New-2: a registry restored from a backup (an older copy) is healed: this device saves its newer copy over it, and says so once', async () => {
     const m = await load();
     withRecords(m, ['R-1']);
     await m.ac.setUpAccount();
@@ -389,10 +389,163 @@ describe('two devices on one synced passkey (the reviewed machinery, unchanged)'
     await m.ac.syncNow();
     reg.copies.set(id, old);
     m.rk.ensureKeys('R-10');
+    await m.ac.checkAccount();
     const out = await m.ac.syncNow();
-    expect(out?.ok).toBe(false);
+    expect(out?.ok).toBe(true);
     const s = m.ac.accountState();
-    expect(s.kind === 'saved' && s.problem).toBe('older');
+    expect(s.kind === 'saved' && s.notice).toBe('healed');
+    expect(s.kind === 'saved' && s.problem).toBeUndefined();
+    expect(m.rk.keysFor('R-10')?.backedUpVia).toBe('copy');
+    // A new device restoring now gets the newest copy, with everything.
+    await switchTo(m, new Map());
+    const found = await m.ac.findAccountCopy();
+    await m.backup.restoreAny(found.file, undefined, found.restore);
+    expect(
+      m.rk
+        .allKeys()
+        .map((k) => k.recordId)
+        .sort(),
+    ).toEqual(['R-1', 'R-10', 'R-9']);
+  });
+
+  it('New-1: two open devices with nothing new don’t keep re-saving each other’s copy', async () => {
+    const m = await load();
+    withRecords(m, ['R-1', 'R-2']);
+    await m.ac.setUpAccount();
+    const deviceA = store;
+    const heldA = await m.keyStore.heldAccountKeys();
+    await switchTo(m, new Map());
+    const found = await m.ac.findAccountCopy();
+    await m.backup.restoreAny(found.file, undefined, found.restore);
+    await m.ac.adoptFound();
+    const deviceB = store;
+    const heldB = await m.keyStore.heldAccountKeys();
+    // A settling round each.
+    for (const [dev, h] of [
+      [deviceA, heldA],
+      [deviceB, heldB],
+    ] as const) {
+      await switchTo(m, dev, h);
+      await m.ac.checkAccount();
+      await m.ac.syncNow();
+    }
+    const puts = () => reg.calls.filter((c) => c.method === 'PUT').length;
+    const before = puts();
+    // An hour of ten-minute checks on both, nothing new on either.
+    for (let i = 0; i < 6; i++)
+      for (const [dev, h] of [
+        [deviceA, heldA],
+        [deviceB, heldB],
+      ] as const) {
+        await switchTo(m, dev, h);
+        await m.ac.checkAccount();
+        await m.ac.syncNow();
+      }
+    expect(puts() - before).toBe(0);
+  });
+
+  it('New-3: a copy whose counter jumps implausibly far is refused, never merged', async () => {
+    const m = await load();
+    withRecords(m, ['R-1']);
+    await m.ac.setUpAccount();
+    const held = (await m.keyStore.heldAccountKeys())!;
+    const [id] = [...reg.copies.keys()];
+    const body = {
+      v: 'veilcore/account-copy/v2',
+      savedAt: new Date().toISOString(),
+      seq: 1_000_000,
+      backup: { ...m.backup.backupContents(), records: [] },
+      manifest: (JSON.parse(store.get('veilcore.account-copy.v1')!) as { manifest: unknown }).manifest,
+    };
+    const box = await m.ac.sealAccountCopy(held, body as never);
+    reg.copies.set(id, { ...reg.copies.get(id)!, ...box });
+    const before = store.get('veilcore.account-copy.v1');
+    await m.ac.checkAccount();
+    const seqOf = (v: string) => (JSON.parse(v) as { seq: number }).seq;
+    expect(seqOf(store.get('veilcore.account-copy.v1')!)).toBe(seqOf(before!));
+  });
+
+  it('New-4: the passkey gets a short tag shown in Settings; setting up again after "Stop saving" uses the same passkey', async () => {
+    const m = await load();
+    withRecords(m, ['R-1']);
+    await m.ac.setUpAccount();
+    const made = pk.asks.find((a) => a.publicKey.rp)!;
+    const tag = /· ([0-9A-Z]{4})$/.exec(made.publicKey.user!.name!)![1];
+    let s = m.ac.accountState();
+    expect(s.kind === 'saved' && s.slots[0].tag).toBe(tag);
+    await m.ac.deleteAccountCopy();
+    const creates = pk.asks.filter((a) => a.publicKey.rp).length;
+    const out = await m.ac.setUpAccount();
+    expect(out.counted).toBe(true);
+    expect(pk.asks.filter((a) => a.publicKey.rp).length).toBe(creates);
+    s = m.ac.accountState();
+    expect(s.kind === 'saved' && s.slots[0].tag).toBe(tag);
+  });
+
+  it('New-5 and New-6: a restore counts what it leaves out; a device still holding a deleted record can keep it', async () => {
+    const m = await load();
+    withRecords(m, ['R-1', 'R-2']);
+    await m.ac.setUpAccount();
+    const deviceA = store;
+    const heldA = await m.keyStore.heldAccountKeys();
+    await switchTo(m, new Map());
+    let found = await m.ac.findAccountCopy();
+    await m.backup.restoreAny(found.file, undefined, found.restore);
+    await m.ac.adoptFound();
+    m.rk.forgetKeys('R-2');
+    await m.ac.syncNow({ force: true });
+    // A on its next save: R-2 is still here, deleted elsewhere: Home asks.
+    await switchTo(m, deviceA, heldA);
+    await m.ac.checkAccount();
+    await m.ac.syncNow({ force: true });
+    let s = m.ac.accountState();
+    expect(s.kind === 'saved' && s.deletedHere).toEqual(['R-2']);
+    // A third device first: told how many are left out.
+    const deviceA2 = store;
+    await switchTo(m, new Map());
+    found = await m.ac.findAccountCopy();
+    expect(found.deleted).toEqual(['R-2']);
+    // Back on A: "Keep" lists it as restored, and the copy counts it again.
+    await switchTo(m, deviceA2, heldA);
+    await m.ac.keepDeletedHere(['R-2']);
+    s = m.ac.accountState();
+    expect(s.kind === 'saved' && s.deletedHere).toEqual([]);
+    expect(m.rk.keysFor('R-2')?.backedUpVia).toBe('copy');
+  });
+
+  it('New-7: delete, restore from a file, delete again: the last deletion sticks, even with another device still holding it', async () => {
+    const m = await load();
+    withRecords(m, ['R-1', 'R-2']);
+    await m.ac.setUpAccount();
+    const deviceA = store;
+    const heldA = await m.keyStore.heldAccountKeys();
+    // Device B holds R-2 throughout.
+    await switchTo(m, new Map());
+    const f0 = await m.ac.findAccountCopy();
+    await m.backup.restoreAny(f0.file, undefined, f0.restore);
+    await m.ac.adoptFound();
+    const deviceB = store;
+    const heldB = await m.keyStore.heldAccountKeys();
+    await switchTo(m, deviceA, heldA);
+    const file = JSON.stringify(m.backup.backupContents());
+    const tick = () => new Promise((r) => setTimeout(r, 5));
+    m.rk.forgetKeys('R-2');
+    await m.ac.syncNow({ force: true });
+    await tick();
+    await m.backup.restoreAny(new File([file], 'f.json'));
+    await m.ac.syncNow({ force: true });
+    await tick();
+    m.rk.forgetKeys('R-2');
+    await m.ac.syncNow({ force: true });
+    // B saves too (it still holds R-2's keys, so the copy carries them).
+    await switchTo(m, deviceB, heldB);
+    await m.ac.checkAccount();
+    await m.ac.syncNow({ force: true });
+    await switchTo(m, new Map());
+    const found = await m.ac.findAccountCopy();
+    expect(found.deleted).toEqual(['R-2']);
+    await m.backup.restoreAny(found.file, undefined, found.restore);
+    expect(m.rk.keysFor('R-2')).toBeUndefined();
   });
 
   it('finding C: a registry that never shows back what was saved can’t keep the page saving', async () => {

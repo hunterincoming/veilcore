@@ -173,7 +173,9 @@ test('Face ID keeps records safe, a second browser gets them back, saving runs b
     authenticatorId: A.authenticatorId,
   })) as unknown as { credentials: Record<string, unknown>[] };
   expect(credentials).toHaveLength(1);
-  expect(credentials[0].userName).toBe('VeilCore: unlocks your records');
+  // Named for what it does, with a short tag that Settings shows too (review New-4).
+  const tag = /^VeilCore: unlocks your records · ([0-9A-Z]{4})$/.exec(String(credentials[0].userName))?.[1];
+  expect(tag).toBeTruthy();
   const [plantA] = await recordIds(A.page);
   // Counted: the locked copy of the record goes up (it waited for a backup before).
   await untilSaved(A.page, plantA);
@@ -189,6 +191,7 @@ test('Face ID keeps records safe, a second browser gets them back, saving runs b
     'Passkey on your devices with the same Apple or Google account',
   );
   await expect(A.page.locator('[data-settings-why]')).toContainText('A copy you download works without VeilCore.');
+  await expect(A.page.locator(`[data-settings-tag="${tag}"]`)).toBeVisible();
   await shots(A.page, '05-settings-saved');
 
   // 2. A document kept on this device only: its key's stamp still waits for a downloaded copy.

@@ -52,6 +52,7 @@ export const PASSKEY_WORDS = {
   unreachable: enT.t('app.backup.passkey.err.unreachable'),
   damaged: enT.t('app.backup.passkey.err.damaged'),
   older: enT.t('app.backup.passkey.err.older'),
+  busy: enT.t('app.backup.passkey.err.busy'),
 } as const;
 
 export class PasskeyProblem extends Error {
@@ -321,16 +322,23 @@ export const askPasskey = (
 export const PASSKEY_NAME = 'VeilCore: unlocks your records';
 
 /** Make a new passkey for the account copy, and its PRF output (asking again if creation didn't give it). */
-export const newPasskey = (): Promise<PasskeyAnswer> =>
+/** A short tag that tells one VeilCore passkey from another in a password list: random, never personal (review New-4). */
+export const newPasskeyTag = (): string => {
+  const A = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';
+  return Array.from(crypto.getRandomValues(new Uint8Array(4)), (b) => A[b % 32]).join('');
+};
+
+export const newPasskey = (tag?: string): Promise<PasskeyAnswer> =>
   wrapped(async () => {
+    const name = tag ? `${PASSKEY_NAME} · ${tag}` : PASSKEY_NAME;
     const rpId = pinnedRpId();
     const cred = (await navigator.credentials.create({
       publicKey: {
         rp: { name: 'VeilCore', ...(rpId ? { id: rpId } : {}) },
         user: {
           id: crypto.getRandomValues(new Uint8Array(16)),
-          name: PASSKEY_NAME,
-          displayName: PASSKEY_NAME,
+          name,
+          displayName: name,
         },
         challenge: challenge(),
         pubKeyCredParams: [

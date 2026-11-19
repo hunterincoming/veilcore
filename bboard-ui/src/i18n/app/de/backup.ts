@@ -157,4 +157,6 @@ export const backup = {
   'app.backup.fromFileAdded': 'Aus der Datei selbst wiederhergestellte Datensätze: {n}.',
   'app.backup.fromFileProblem':
     'Die Datensätze in der Datei konnten nicht wiederhergestellt werden: {why} Ihre Schlüssel sind wiederhergestellt.',
+  'app.backup.passkey.err.busy':
+    'Ihr anderes Gerät hat im selben Moment gespeichert. Es wird von selbst erneut versucht.',
 } satisfies Partial<AppTranslation>;

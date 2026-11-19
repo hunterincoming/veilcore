@@ -59,6 +59,7 @@ import {
   forgetLegacy,
   legacyRemembered,
   newPasskey,
+  newPasskeyTag,
   passkeyKeys,
   passkeysAvailable,
   registryCall,
@@ -66,7 +67,9 @@ import {
   type PasskeyAnswer,
 } from './passkey-backup';
 import { forgetAccountKeys, heldAccountKeys, keepAccountKeys, type HeldAccount } from './account-key-store';
-import { forgottenIds, restoredIds } from './record-keys';
+import { allKeys, forgottenAt, forgottenIds, noteRestored, restoredIds } from './record-keys';
+import { revMarks } from './api-store';
+import { stableStringify } from './vault';
 import { deviceOnlyRecords } from './outbox';
 import { isObject, isString } from './json';
 import { PASSKEY_BACKUP } from '../config/copy';
@@ -186,6 +189,8 @@ export type SlotEntry = {
   readonly synced?: boolean;
   /** When it was last opened again through the registry's copy of it, giving the same AK (B2). */
   readonly verifiedAt?: string;
+  /** The short tag in the passkey's name in the person's password list ("… · 7F3K"), review New-4. */
+  readonly tag?: string;
 };
 
 export type DeviceEntry = {
@@ -368,10 +373,11 @@ const withThisDevice = (m: Manifest, seq: number, at: string): Manifest => ({
     ...m.devices,
     [thisDeviceId()]: { seq, at, kind: thisDeviceKind(), deviceOnly: Object.keys(deviceOnlyRecords()).length },
   },
-  forgotten: {
-    ...Object.fromEntries(forgottenIds().map((id) => [id, m.forgotten[id] ?? at])),
-    ...m.forgotten,
-  },
+  // The latest date wins for a deletion as for a restore (review New-7): delete, restore, delete again sticks.
+  forgotten: latest(
+    m.forgotten,
+    Object.fromEntries(forgottenIds().map((id) => [id, forgottenAt()[id] ?? m.forgotten[id] ?? at])),
+  ),
   restored: latest(m.restored ?? {}, restoredIds()),
 });
 
@@ -402,8 +408,7 @@ export const mergeManifests = (mine: Manifest, theirs: Manifest): Manifest => {
   }
   const devices: Record<string, DeviceEntry> = { ...mine.devices };
   for (const [id, d] of Object.entries(theirs.devices)) if (!devices[id] || devices[id].seq < d.seq) devices[id] = d;
-  const forgotten: Record<string, string> = { ...theirs.forgotten };
-  for (const [id, at] of Object.entries(mine.forgotten)) if (!forgotten[id] || at < forgotten[id]) forgotten[id] = at;
+  const forgotten = latest(mine.forgotten, theirs.forgotten);
   // The same AK makes the same key-check value: mine stays.
   return {
     kcv: mine.kcv,
@@ -449,6 +454,8 @@ type Remembered = {
   readonly unknownSlots?: readonly string[];
   /** Devices the person said are gone: not warned about again. */
   readonly gone?: readonly string[];
+  /** The registry had an older copy, and this device saved its newer one over it (review New-2). Said once. */
+  readonly notice?: 'healed';
 };
 
 const remembered = (): Remembered | undefined => {
@@ -481,10 +488,7 @@ const remember = (given: Remembered | undefined): void => {
   // Never lower the counter seen (finding 4): another tab may have saved a newer copy since this
   // one read what it remembers. Its newer counter, fingerprint and list stay.
   const cur = given ? remembered() : undefined;
-  const r =
-    given && cur && cur.copyId === given.copyId && cur.seq > given.seq
-      ? { ...given, seq: cur.seq, prev: cur.prev, savedAt: cur.savedAt, manifest: cur.manifest, sameAs: '' }
-      : given;
+  const r = given && cur && cur.copyId === given.copyId && cur.seq > given.seq ? { ...cur, sameAs: '' } : given;
   try {
     if (r) localStorage.setItem(STORE, JSON.stringify(r));
     else localStorage.removeItem(STORE);
@@ -504,7 +508,39 @@ export const sameAsOf = (c: BackupContents): string => {
   const rest: Record<string, unknown> = { ...c };
   delete rest.savedAt;
   delete rest.revs;
-  return hex(sha256(utf8(JSON.stringify(rest))));
+  // In a fixed order, so two devices holding the same things agree (review New-1).
+  const by = (k: string) => (a: unknown, b: unknown) =>
+    String((a as Record<string, unknown>)[k]).localeCompare(String((b as Record<string, unknown>)[k]));
+  if (Array.isArray(rest.records)) rest.records = [...(rest.records as unknown[])].sort(by('recordId'));
+  if (Array.isArray(rest.heldLicenses)) rest.heldLicenses = [...(rest.heldLicenses as unknown[])].sort(by('inviteId'));
+  return hex(sha256(utf8(stableStringify(rest))));
+};
+
+/** Whether this browser holds anything the copy lacks: if not, a merge needs no save of its own (New-1). */
+const sameAsAfterMerge = (copyText: string): string => {
+  const mine = sameAsOf(accountContents());
+  try {
+    return sameAsOf(JSON.parse(copyText) as BackupContents) === mine ? mine : '';
+  } catch {
+    return '';
+  }
+};
+
+/** Most a copy's counter, or a record's version, may jump in one merge (review New-3). */
+const MAX_JUMP = 10_000;
+/** A copy whose counter or versions jump implausibly far is refused, never merged. */
+const plausible = (theirs: OpenedCopy, seen: number): void => {
+  if (theirs.seq > seen + MAX_JUMP) throw new PasskeyProblem(PASSKEY_WORDS.damaged);
+  let revs: unknown;
+  try {
+    revs = (JSON.parse(theirs.text) as { revs?: unknown }).revs;
+  } catch {
+    revs = undefined;
+  }
+  if (!isObject(revs)) return;
+  const here = revMarks();
+  for (const [k, v] of Object.entries(revs))
+    if (typeof v === 'number' && v > (here[k] ?? 0) + MAX_JUMP) throw new PasskeyProblem(PASSKEY_WORDS.damaged);
 };
 
 // ---- the registry ------------------------------------------------------------------------
@@ -587,6 +623,7 @@ const saveAndCheck = async (
   let prev = r.prev;
   let seen = r.seq;
   let manifest = r.manifest;
+  let healed = false;
   for (let tries = 0; tries < 4; tries++) {
     const contents = accountContents();
     const seq = seen + 1;
@@ -601,7 +638,8 @@ const saveAndCheck = async (
     } catch (e) {
       if (!(e instanceof Stale)) throw e;
       const theirs = await fetchCopy(held);
-      if (theirs.seq <= seen) throw new PasskeyProblem(PASSKEY_WORDS.older);
+      plausible(theirs, seen);
+      // Merged the add-only way either way: it can only bring in what this device lacks.
       await restoreAny(fileOf(theirs.text), undefined, {
         mark: false,
         skipForgotten: true,
@@ -610,7 +648,11 @@ const saveAndCheck = async (
       });
       manifest = mergeManifests(manifest, theirs.manifest);
       prev = theirs.fingerprint;
-      seen = theirs.seq;
+      // Older than this device has seen (a registry restored from a backup, or one rolling back):
+      // this device's newer copy is saved over it with the next counter (review New-2), and the
+      // person is told once. A brand-new device's restore, and the read-back below, still refuse.
+      if (theirs.seq <= seen) healed = true;
+      else seen = theirs.seq;
       continue;
     }
     seen = seq;
@@ -644,11 +686,14 @@ const saveAndCheck = async (
         problem: present.length < back.manifest.slots.length ? 'slot-missing' : undefined,
         why: undefined,
         unknownSlots: back.slots.filter((id) => !back.manifest.slots.some((s) => s.slotId === id)),
+        ...(healed ? { notice: 'healed' as const } : {}),
       });
     }
     return checked;
   }
-  throw new PasskeyProblem(PASSKEY_WORDS.damaged);
+  // Four rounds and another device kept saving in between (or the registry never showed back what
+  // was saved): tried again later, said plainly (review New-12).
+  throw new PasskeyProblem(PASSKEY_WORDS.busy);
 };
 
 let chain: Promise<unknown> = Promise.resolve();
@@ -705,7 +750,7 @@ const verified = (m: Manifest, slotId: string, synced: boolean, at = new Date().
 });
 
 /** A new copy under a new AK, with this passkey as its first way in. Returns what to remember. */
-const makeCopy = async (answer: PasskeyAnswer): Promise<Remembered> => {
+const makeCopy = async (answer: PasskeyAnswer, tag?: string): Promise<Remembered> => {
   const ak = crypto.getRandomValues(new Uint8Array(32));
   const held = await deriveAccount(ak);
   const slot = passkeySlotKeys(answer.prf, answer.rawId);
@@ -713,7 +758,15 @@ const makeCopy = async (answer: PasskeyAnswer): Promise<Remembered> => {
   ak.fill(0);
   const manifest: Manifest = {
     kcv: await keyCheck(held),
-    slots: [{ slotId: slot.slotId, kind: 'passkey', createdAt: new Date().toISOString(), synced: answer.synced }],
+    slots: [
+      {
+        slotId: slot.slotId,
+        kind: 'passkey',
+        createdAt: new Date().toISOString(),
+        synced: answer.synced,
+        ...(tag ? { tag } : {}),
+      },
+    ],
     devices: {},
     forgotten: {},
   };
@@ -731,6 +784,7 @@ const makeCopy = async (answer: PasskeyAnswer): Promise<Remembered> => {
   // Saved, read back and checked, but not counted yet: the slot isn't verified (below).
   await saveAndCheck(held, r, { slotId: slot.slotId, kind: 'passkey', tokenHash: tokenHashOf(slot.token), ...wrap });
   await keepAccountKeys(held);
+  keepLastPasskey({ credentialId: r.credentialId, ...(r.rpId ? { rpId: r.rpId } : {}), ...(tag ? { tag } : {}) });
   return remembered() ?? r;
 };
 
@@ -760,12 +814,25 @@ export const setUpAccount = (): Promise<SetUpResult> =>
   exclusive(async () => {
     const before = remembered();
     if (legacyRemembered() && !before) return moveOlderCopy();
-    let answer: PasskeyAnswer;
-    if (before) {
-      // Set up again, after the copy or a way in to it went (Home's "Save again"): the same
-      // passkey, never a second one in the person's password list. Another device on it may
-      // have set it up again already: then this one joins that copy.
-      answer = await askPasskey(unb64(before.credentialId), before.rpId ?? 'host');
+    let answer: PasskeyAnswer | undefined;
+    const last = before
+      ? {
+          credentialId: before.credentialId,
+          rpId: before.rpId,
+          tag: before.manifest.slots.find((x) => x.slotId === before.slotId)?.tag,
+        }
+      : lastPasskey();
+    if (last) {
+      // Set up again (Home's "Save again", or after "Stop saving"): the same passkey, never a
+      // second one in the person's password list (review New-4). Another device on it may have
+      // set it up again already: then this one joins that copy. A passkey that's gone is
+      // forgotten here, so the next try makes a new one.
+      try {
+        answer = await askPasskey(unb64(last.credentialId), last.rpId ?? 'host');
+      } catch (e) {
+        if (!before) forgetLastPasskey();
+        throw e;
+      }
       const opened = await openThroughSlot(answer);
       if (opened) {
         opened.ak.fill(0);
@@ -774,17 +841,20 @@ export const setUpAccount = (): Promise<SetUpResult> =>
         const checked = await saveAndCheck(held, remembered()!);
         return { ...checked, counted: remembered()?.counted === true };
       }
-      // Its way in is gone; the copy may not be. Deleted only when this was its one way in, so
-      // nothing is left that the person can't see, and never a copy another way in still opens
-      // (finding 2: a registry's 404 for one slot must not cost the others).
+      // Its way in is gone; the copy may not be. Deleted only when the copy the registry holds now
+      // lists no other way in (reviews: finding 2, New-8), so never a copy another way in opens.
       const held = await heldAccountKeys();
-      const others = before.manifest.slots.filter((x) => x.slotId !== before.slotId);
-      if (held && held.copyId === before.copyId && others.length === 0)
-        await registryCall('POST', `/account-copy/${before.copyId}/delete`, { token: await writeToken(held) }).catch(
-          () => undefined,
-        );
-    } else answer = await newPasskey();
-    const r = await makeCopy(answer);
+      if (before && held && held.copyId === before.copyId) {
+        const now = await fetchCopy(held).catch(() => undefined);
+        if (now && !now.manifest.slots.some((x) => x.slotId !== before.slotId))
+          await registryCall('POST', `/account-copy/${before.copyId}/delete`, { token: await writeToken(held) }).catch(
+            () => undefined,
+          );
+      }
+    }
+    const tag = last?.tag ?? newPasskeyTag();
+    if (!last) answer = await newPasskey(tag);
+    const r = await makeCopy(answer!, tag);
     const checked = await verifyAndCount(r);
     return { ...checked, counted: remembered()?.counted === true };
   });
@@ -881,6 +951,10 @@ export type Found = {
   readonly restore: RestoreOptions;
   /** Documents kept on the person's other devices only, by device: they never come here. */
   readonly elsewhere: readonly { readonly kind: DeviceKind; readonly count: number }[];
+  /** Records the copy holds that were deleted on another device: left out unless asked (review New-5). */
+  readonly deleted: readonly string[];
+  /** The restore that brings those too ("Bring them anyway"). */
+  readonly restoreAll: RestoreOptions;
 };
 
 /**
@@ -896,10 +970,21 @@ export const findAccountCopy = async (opts: { hostName?: boolean } = {}): Promis
     opened.ak.fill(0);
     pending = { kind: 'account', answer, held: opened.held, slot: opened.slot, copy: opened.copy };
     const here = thisDeviceId();
+    const skip = skipOf(opened.copy.manifest);
+    let inCopy: string[] = [];
+    try {
+      inCopy = ((JSON.parse(opened.copy.text) as { records?: { recordId?: unknown }[] }).records ?? [])
+        .map((e) => e.recordId)
+        .filter(isString);
+    } catch {
+      inCopy = [];
+    }
     return {
       file: fileOf(opened.copy.text),
       savedAt: opened.copy.savedAt,
-      restore: { mark: false, skipIds: skipOf(opened.copy.manifest) },
+      restore: { mark: false, skipIds: skip },
+      restoreAll: { mark: false },
+      deleted: inCopy.filter((id) => skip.has(id)),
       elsewhere: Object.entries(opened.copy.manifest.devices)
         .filter(([id, d]) => id !== here && d.deviceOnly > 0)
         .map(([, d]) => ({ kind: d.kind, count: d.deviceOnly })),
@@ -907,7 +992,14 @@ export const findAccountCopy = async (opts: { hostName?: boolean } = {}): Promis
   }
   const old = await fetchLegacyCopy(passkeyKeys(answer.prf, answer.rawId));
   pending = { kind: 'older', answer, seq: old.seq };
-  return { file: fileOf(old.text), savedAt: old.savedAt, restore: { mark: false }, elsewhere: [] };
+  return {
+    file: fileOf(old.text),
+    savedAt: old.savedAt,
+    restore: { mark: false },
+    restoreAll: { mark: false },
+    elsewhere: [],
+    deleted: [],
+  };
 };
 
 /**
@@ -917,10 +1009,14 @@ export const findAccountCopy = async (opts: { hostName?: boolean } = {}): Promis
  */
 export const adoptFound = (): Promise<SetUpResult | undefined> =>
   exclusive(async () => {
+    // Kept until it works, so "Try again" can retry it (review New-9).
     const p = pending;
-    pending = undefined;
     if (!p) return undefined;
-    if (p.kind === 'older') return moveOlderCopy({ answer: p.answer, seen: p.seq });
+    if (p.kind === 'older') {
+      const out = await moveOlderCopy({ answer: p.answer, seen: p.seq });
+      pending = undefined;
+      return out;
+    }
     await keepAccountKeys(p.held);
     remember({
       copyId: p.held.copyId,
@@ -933,9 +1029,17 @@ export const adoptFound = (): Promise<SetUpResult | undefined> =>
       seq: p.copy.seq,
       manifest: verified(p.copy.manifest, p.slot.slotId, p.answer.synced),
     });
+    keepLastPasskey({
+      credentialId: b64(p.answer.rawId),
+      ...(p.answer.rpId ? { rpId: p.answer.rpId } : {}),
+    });
     const checked = await saveAndCheck(p.held, remembered()!);
+    pending = undefined;
     return { ...checked, counted: remembered()?.counted === true };
   });
+
+/** "Bring them anyway" (review New-5): records deleted on another device, brought here on purpose. */
+export const markBroughtBack = (ids: readonly string[]): void => ids.forEach((id) => noteRestored(id));
 
 // ---- keeping it up to date by itself -------------------------------------------------------
 
@@ -1015,9 +1119,12 @@ export const checkAccount = (): Promise<void> =>
     try {
       const theirs = await fetchCopy(held);
       if (theirs.seq <= r.seq) {
-        patch((x) => ({ ...x, problem: 'older' }));
+        // Older than this device has seen: the next save merges it and saves the newer copy over
+        // it (review New-2). Nothing to say until that is done.
+        patch((x) => ({ ...x, sameAs: '' }));
         return;
       }
+      plausible(theirs, r.seq);
       await restoreAny(fileOf(theirs.text), undefined, {
         mark: false,
         skipForgotten: true,
@@ -1030,8 +1137,9 @@ export const checkAccount = (): Promise<void> =>
         seq: theirs.seq,
         savedAt: theirs.savedAt,
         manifest: mergeManifests(x.manifest, theirs.manifest),
-        // What this browser holds may differ from the copy now (it merged): the next save says.
-        sameAs: '',
+        // A save only when this browser holds something the copy lacks: two open devices don't
+        // keep saving each other's copy (review New-1).
+        sameAs: sameAsAfterMerge(theirs.text),
         ...(x.problem === 'older' ? { problem: undefined } : {}),
       }));
     } catch {
@@ -1126,16 +1234,76 @@ export const deleteAccountCopy = (): Promise<void> =>
     }
     const out = await registryCall('POST', `/account-copy/${r.copyId}/delete`, { token: await writeToken(held) });
     if (out.status !== 200 && out.status !== 404) registryFail(out);
+    // The passkey is remembered, so setting up again uses it rather than making a second one (New-4).
+    keepLastPasskey({
+      credentialId: r.credentialId,
+      ...(r.rpId ? { rpId: r.rpId } : {}),
+      ...(r.manifest.slots.find((x) => x.slotId === r.slotId)?.tag
+        ? { tag: r.manifest.slots.find((x) => x.slotId === r.slotId)!.tag }
+        : {}),
+    });
     clearCopyMarks();
     await forgetAccountKeys();
     remember(undefined);
   });
 
+// The passkey this browser last used for the copy: no secret, its id and tag (review New-4).
+const LAST = 'veilcore.account.last-passkey.v1';
+type LastPasskey = { readonly credentialId: string; readonly rpId?: string; readonly tag?: string };
+const lastPasskey = (): LastPasskey | undefined => {
+  try {
+    const v: unknown = JSON.parse(localStorage.getItem(LAST) ?? 'null');
+    return isObject(v) && isString(v.credentialId)
+      ? {
+          credentialId: v.credentialId,
+          ...(isString(v.rpId) ? { rpId: v.rpId } : {}),
+          ...(isString(v.tag) ? { tag: v.tag } : {}),
+        }
+      : undefined;
+  } catch {
+    return undefined;
+  }
+};
+const keepLastPasskey = (l: LastPasskey): void => {
+  try {
+    localStorage.setItem(LAST, JSON.stringify(l));
+  } catch {
+    /* a new passkey next time */
+  }
+};
+const forgetLastPasskey = (): void => {
+  try {
+    localStorage.removeItem(LAST);
+  } catch {
+    /* nothing kept */
+  }
+};
+
 /** "Start over" on this device (records.ts): the copy stays at the registry; this browser forgets it. */
-export const forgetAccountOnThisDevice = async (): Promise<void> => {
-  clearCopyMarks();
-  await forgetAccountKeys();
-  remember(undefined);
+export const forgetAccountOnThisDevice = (): Promise<void> =>
+  exclusive(async () => {
+    clearCopyMarks();
+    await forgetAccountKeys();
+    forgetLastPasskey();
+    remember(undefined);
+  });
+
+/** "OK" on the one-time notice. */
+export const dismissNotice = (): void =>
+  patch((r) => {
+    const { notice: _n, ...rest } = r;
+    void _n;
+    return rest;
+  });
+
+/**
+ * "Keep it here" (review New-6): records deleted on another device that this one still holds are
+ * kept on purpose. They are listed as restored, so the copy holds them and counts them again.
+ */
+export const keepDeletedHere = (ids: readonly string[]): Promise<CheckResult | undefined> => {
+  ids.forEach((id) => noteRestored(id));
+  patch((r) => ({ ...r, sameAs: '' }));
+  return syncNow({ force: true });
 };
 
 /** "That device is gone": it isn't warned about again, and drops off the list on the next save. */
@@ -1164,6 +1332,9 @@ export type AccountState =
       readonly why?: string;
       readonly slots: readonly SlotEntry[];
       readonly unknownSlots: readonly string[];
+      readonly notice?: 'healed';
+      /** Records this device holds that the copy says were deleted on another device (New-6). */
+      readonly deletedHere: readonly string[];
       /** The person's other devices that haven't saved for two weeks while this one has (S17). */
       readonly staleDevices: readonly { readonly id: string; readonly kind: DeviceKind; readonly at: string }[];
       readonly devices: readonly {
@@ -1211,6 +1382,13 @@ export const accountState = (): AccountState => {
     ...(r.why ? { why: r.why } : {}),
     slots: r.manifest.slots,
     unknownSlots: r.unknownSlots ?? [],
+    ...(r.notice ? { notice: r.notice } : {}),
+    deletedHere: (() => {
+      const gone = new Set(deletedIds(r.manifest));
+      return allKeys()
+        .map((k) => k.recordId)
+        .filter((id) => gone.has(id));
+    })(),
     staleDevices: devices.filter(
       (d) => !d.here && !(r.gone ?? []).includes(d.id) && mineAt - Date.parse(d.at) > STALE_DEVICE_MS,
     ),

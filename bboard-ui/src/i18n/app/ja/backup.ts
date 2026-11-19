@@ -143,4 +143,5 @@ export const backup = {
   'app.intake.err.badState': 'セキュリティ値（state）がないか、形式が正しくありません。',
   'app.backup.fromFileAdded': 'ファイル自体から戻した記録：{n}件。',
   'app.backup.fromFileProblem': 'ファイル内の記録は戻せませんでした：{why} 鍵は復元されています。',
+  'app.backup.passkey.err.busy': 'もう一台の端末が同時に保存していました。自動でもう一度試します。',
 } satisfies Partial<AppTranslation>;

@@ -34,6 +34,8 @@ import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import {
   accountCopyOn,
   checkAccount,
+  dismissNotice,
+  keepDeletedHere,
   forgetDevice,
   keepSafeShownBefore,
   noteKeepSafeShown,
@@ -273,7 +275,15 @@ export const accountLine = (
   s: AccountState,
   facts: { unbacked: boolean; deviceOnly: number },
   tr: Translator,
-  act: { fix: () => void; file: () => void; settings: () => void; retry: () => void; gone: (id: string) => void },
+  act: {
+    fix: () => void;
+    file: () => void;
+    settings: () => void;
+    retry: () => void;
+    gone: (id: string) => void;
+    ok: () => void;
+    keep: (ids: readonly string[]) => void;
+  },
 ): Line | undefined => {
   const { t, tp } = tr;
   const b = { b: (c: React.ReactNode) => <b>{c}</b> };
@@ -362,6 +372,23 @@ export const accountLine = (
       mark: 'bound',
       severity: 'warning',
     };
+  // Records still here that another device deleted: kept on purpose, or not (review New-6).
+  if (s.deletedHere.length > 0)
+    return {
+      words: rich(tp('app.account.line.deletedHere', s.deletedHere.length), b),
+      button: t('app.account.line.keepThem'),
+      act: () => act.keep(s.deletedHere),
+      mark: 'deleted-here',
+      severity: 'warning',
+    };
+  if (s.notice === 'healed')
+    return {
+      words: t('app.account.line.healed'),
+      button: t('app.account.line.ok'),
+      act: act.ok,
+      mark: 'healed',
+      severity: 'info',
+    };
   if (s.unknownSlots.length > 0)
     return {
       words: rich(t('app.account.line.unknownSlot'), b),
@@ -419,6 +446,11 @@ export const AccountStatusLine: React.FC = () => {
       void syncNow({ force: true }).finally(() => setBusy(false));
     },
     gone: forgetDevice,
+    ok: dismissNotice,
+    keep: (ids) => {
+      setBusy(true);
+      void keepDeletedHere(ids).finally(() => setBusy(false));
+    },
   });
   if (!line) return null;
   return (

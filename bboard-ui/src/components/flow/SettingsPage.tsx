@@ -76,6 +76,11 @@ export const SettingsPage: React.FC = () => {
                             date: tr.date(w.createdAt),
                           })}
                         </Typography>
+                        {w.tag && (
+                          <Typography variant="body2" color="text.secondary" data-settings-tag={w.tag}>
+                            {t('app.settings.ways.tag', { tag: w.tag })}
+                          </Typography>
+                        )}
                       </li>
                     ))}
                   </Box>

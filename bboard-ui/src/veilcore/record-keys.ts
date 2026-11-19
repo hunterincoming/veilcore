@@ -529,7 +529,23 @@ export const restoredIds = (): Record<string, string> => {
     return {};
   }
 };
-const noteRestored = (recordId: string): void => {
+/** When each record was removed on purpose, where this browser knows (review New-7). */
+const FORGOTTEN_AT = 'veilcore.record-keys.forgotten-at.v1';
+export const forgottenAt = (): Record<string, string> => {
+  try {
+    const v: unknown = JSON.parse(localStorage.getItem(FORGOTTEN_AT) ?? '{}');
+    return typeof v === 'object' && v !== null && !Array.isArray(v)
+      ? Object.fromEntries(Object.entries(v).filter((e): e is [string, string] => typeof e[1] === 'string'))
+      : {};
+  } catch {
+    return {};
+  }
+};
+/**
+ * Note that a record was brought back after a deletion (a file restore, "Bring them anyway", "Keep
+ * it here"): the account copy then lists it as restored, and the later date wins.
+ */
+export const noteRestored = (recordId: string): void => {
   try {
     localStorage.setItem(RESTORED, JSON.stringify({ ...restoredIds(), [recordId]: new Date().toISOString() }));
   } catch {
@@ -540,6 +556,12 @@ const noteRestored = (recordId: string): void => {
 /** Delete a record's keys from this browser. The UI asks first, and says what is lost. */
 export const forgetKeys = (recordId: string): void => {
   if (!wasForgotten(recordId)) writeForgotten([...readForgotten(), recordId]);
+  // When, stamped now (review New-7): the account copy keeps the latest of a deletion and a restore.
+  try {
+    localStorage.setItem(FORGOTTEN_AT, JSON.stringify({ ...forgottenAt(), [recordId]: new Date().toISOString() }));
+  } catch {
+    /* the copy dates it when it next saves */
+  }
   const all = readAll();
   delete all[recordId];
   const { [recordId]: _dropped, ...rest } = sessionOnly;

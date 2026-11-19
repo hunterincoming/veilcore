@@ -147,4 +147,5 @@ export const backup = {
   'app.intake.err.badState': 'Its security value (state) is missing or malformed.',
   'app.backup.fromFileAdded': 'Records put back from the file itself: {n}.',
   'app.backup.fromFileProblem': "The records inside the file couldn't be put back: {why} Your keys are restored.",
+  'app.backup.passkey.err.busy': 'Your other device kept saving at the same moment. It tries again by itself.',
 };

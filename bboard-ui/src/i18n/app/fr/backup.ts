@@ -160,4 +160,5 @@ export const backup = {
   'app.backup.fromFileAdded': 'Enregistrements récupérés depuis le fichier lui-même : {n}.',
   'app.backup.fromFileProblem':
     'Les enregistrements du fichier n’ont pas pu être récupérés : {why} Vos clés sont restaurées.',
+  'app.backup.passkey.err.busy': 'Votre autre appareil a sauvegardé au même moment. Cela sera réessayé tout seul.',
 } satisfies Partial<AppTranslation>;

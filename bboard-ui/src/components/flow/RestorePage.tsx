@@ -23,7 +23,8 @@ import { rich, useT } from '../../i18n/app';
 import { enT, type Translator } from '../../i18n/translate';
 import { backupMessageWords } from './backup-words';
 import { SupportDetails } from '../SupportDetails';
-import { accountCopyOn, adoptFound, findAccountCopy, type Found } from '../../veilcore/account-copy';
+import { accountCopyOn, adoptFound, findAccountCopy, markBroughtBack, type Found } from '../../veilcore/account-copy';
+import { PASSKEY_WORDS } from '../../veilcore/passkey-backup';
 import { oldPasskeysHaveOtherName } from '../../veilcore/passkey-backup';
 import { deviceWords, unlockWordFor } from './KeepSafe';
 import { deviceUnlockAvailable } from '../../veilcore/passkey-backup';
@@ -99,16 +100,28 @@ export const RestorePage: React.FC = () => {
       .catch((e: unknown) => setProblem(e instanceof Error ? e.message : String(e)))
       .finally(() => setAsking(false));
   };
-  const restore = async (f: File, password?: string, fromCopy?: Found) => {
+  // This device couldn't start saving after the records came back (review New-9): said, with Try again.
+  const [adoptProblem, setAdoptProblem] = useState<string>();
+  const adopt = async () => {
+    setAdoptProblem(undefined);
+    try {
+      await adoptFound();
+    } catch (e) {
+      setAdoptProblem(e instanceof Error ? e.message : String(e));
+    }
+  };
+  const restore = async (f: File, password?: string, fromCopy?: Found, all = false) => {
     setBusy(true);
     setProblem(undefined);
     try {
       // The copy saved with VeilCore isn't a backup file: restoring marks nothing by itself;
       // its own check marks what it holds once this browser keeps it (adoptFound).
-      const r = await restoreAny(f, password, fromCopy ? fromCopy.restore : {});
+      const r = await restoreAny(f, password, fromCopy ? (all ? fromCopy.restoreAll : fromCopy.restore) : {});
       setWaiting(undefined);
       if (fromCopy) {
-        await adoptFound().catch(() => undefined);
+        // "Bring them anyway": listed as restored, so the copy keeps them from now on (New-5).
+        if (all) markBroughtBack(fromCopy.deleted);
+        await adopt();
         setFromAccount(fromCopy);
       }
       await hydrate();
@@ -189,6 +202,20 @@ export const RestorePage: React.FC = () => {
                   {t('app.account.restore.savedOn', { date: tr.date(fromAccount.savedAt) })}
                 </Typography>
               )}
+              {adoptProblem && (
+                <Alert
+                  severity="warning"
+                  variant="outlined"
+                  data-restore-adopt-failed=""
+                  action={
+                    <Button color="inherit" variant="outlined" onClick={() => void adopt()} sx={{ minHeight: 44 }}>
+                      {t('app.account.restore.tryAgain')}
+                    </Button>
+                  }
+                >
+                  {t('app.account.restore.adoptFailed', { why: backupMessageWords(adoptProblem, tr) })}
+                </Alert>
+              )}
               {/* Records the file had no key for (an older file, or only the holder key) stay locked. */}
               {locked.length > 0 && (
                 <Alert severity="warning" variant="outlined" data-still-locked="">
@@ -228,6 +255,26 @@ export const RestorePage: React.FC = () => {
                           {t('app.account.restore.notThis')}
                         </Button>
                       </Stack>
+                      {/* Records deleted on another device: counted, never left out silently (New-5). */}
+                      {found.deleted.length > 0 && (
+                        <Box sx={{ mt: 1.5 }} data-restore-deleted={found.deleted.length}>
+                          <Typography variant="body2">
+                            {tr.tp('app.account.restore.deleted', found.deleted.length)}
+                          </Typography>
+                          <Button
+                            color="inherit"
+                            disabled={busy}
+                            onClick={() => {
+                              const f = found;
+                              setFound(undefined);
+                              void restore(f.file, undefined, f, true);
+                            }}
+                            sx={{ minHeight: 44, px: 0 }}
+                          >
+                            {t('app.account.restore.bringAnyway')}
+                          </Button>
+                        </Box>
+                      )}
                     </Alert>
                   ) : (
                     <Button
@@ -266,6 +313,12 @@ export const RestorePage: React.FC = () => {
               {account && problem && (
                 <Alert severity="warning" variant="outlined">
                   {backupMessageWords(problem, tr)}
+                  {/* A passkey from before the pin, made on www, is found only there (review New-10). */}
+                  {problem === PASSKEY_WORDS.noCopy && location.hostname === 'veilcore.org' && (
+                    <Box sx={{ mt: 0.5 }}>
+                      <a href="https://www.veilcore.org/restore">{t('app.account.restore.tryWww')}</a>
+                    </Box>
+                  )}
                 </Alert>
               )}
               {account && (

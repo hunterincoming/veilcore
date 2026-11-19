@@ -110,7 +110,7 @@ export const account = {
   'app.settings.devices.here': '{device} (celui-ci) · dernière sauvegarde le {date}',
   'app.settings.stop': 'Arrêter la sauvegarde chez VeilCore',
   'app.settings.stopConfirm':
-    'Supprimer vos enregistrements sauvegardés chez VeilCore ? Cet appareil les garde. Vos autres appareils arrêtent de sauvegarder. La clé d’accès reste dans les réglages de votre téléphone.',
+    'Supprimer vos enregistrements sauvegardés chez VeilCore ? Cet appareil les garde. Vos autres appareils arrêtent de sauvegarder, et le premier qui sauvegarde à nouveau crée une nouvelle copie. La clé d’accès reste dans les réglages de votre téléphone.',
   'app.settings.stopped': 'Supprimé. Vos enregistrements restent sur cet appareil.',
   'app.settings.file.title': 'Télécharger une copie',
   'app.settings.file.text':
@@ -118,4 +118,22 @@ export const account = {
   'app.settings.file.button': 'Télécharger une copie',
   'app.settings.devices.removeConfirm':
     'Retirer votre {device} de cette liste ? S’il sauvegarde à nouveau, il revient.',
+  'app.account.line.healed':
+    'Quelque chose n’allait pas sur le serveur de VeilCore. Votre copie la plus récente a été sauvegardée à nouveau, et rien n’a été perdu.',
+  'app.account.line.ok': 'OK',
+  'app.account.line.deletedHere.one':
+    '<b>{count} enregistrement ici a été supprimé sur votre autre appareil.</b> Le garder ici ?',
+  'app.account.line.deletedHere.other':
+    '<b>{count} enregistrements ici ont été supprimés sur votre autre appareil.</b> Les garder ici ?',
+  'app.account.line.keepThem': 'Garder',
+  'app.account.restore.deleted.one':
+    '{count} enregistrement a été supprimé sur vos autres appareils et ne sera pas amené ici.',
+  'app.account.restore.deleted.other':
+    '{count} enregistrements ont été supprimés sur vos autres appareils et ne seront pas amenés ici.',
+  'app.account.restore.bringAnyway': 'Les amener quand même',
+  'app.account.restore.adoptFailed':
+    'Vos enregistrements sont ici, mais cet appareil n’a pas pu commencer à sauvegarder chez VeilCore : {why}',
+  'app.account.restore.tryAgain': 'Réessayer',
+  'app.account.restore.tryWww': 'Vous avez d’abord utilisé www.veilcore.org ? Ouvrez cette page là-bas.',
+  'app.settings.ways.tag': 'Nommée « VeilCore: unlocks your records · {tag} » dans vos mots de passe',
 } satisfies Partial<AppTranslation>;

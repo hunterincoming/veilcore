@@ -122,6 +122,13 @@ The two reviews disagreed. Decided:
   lock (Web Locks) where there is one, and the remembered counter never goes down.
 - **A copy shown back older than the one just saved** was reported as "damaged". It is now
   refused as older, and Home says so.
+- **Two open devices re-saved each other's copy** (New-1), **a registry restore stranded every
+  device** (New-2), **identical passkey names** (New-4), **a restore skipping deleted records
+  silently** (New-5: it now says how many, with "Bring them anyway"), **a record deleted elsewhere
+  stuck here** (New-6: "Keep it here?"), **delete, restore, delete again** (New-7: latest date
+  wins), **"Save again" deciding from an old list** (New-8: it reads the registry's copy first),
+  **a failed adoption swallowed** (New-9: said, with Try again), **www-only passkeys** (New-10: the
+  apex restore page points to www after a not-found): all fixed in the second review round.
 - **Not done:** a slot is verified once, at setup or on a new device; nothing re-verifies it later,
   so a registry that keeps a slot listed but corrupts its sealed key is found only at a restore
   (re-verify after 90 days, with step 3). A passkey whose sync is turned off later keeps counting
@@ -129,10 +136,56 @@ The two reviews disagreed. Decided:
 
 ## Restoring the registry from a backup (operators)
 
-Every device refuses a copy older than one it has seen. After the registry's database is restored
-from a backup (`backup.mjs`), each person's devices show "Something looks wrong on VeilCore's
-server" and stop saving until the person deletes the copy in Settings ("Stop saving with
-VeilCore") and sets it up again. Say so in the notice about the restore.
+No action needed from anyone. After the registry's database is restored from a backup
+(`backup.mjs`), the registry holds copies older than the ones people's devices have seen. The
+next time a device saves, it merges the registry's older copy the add-only way (it can only bring
+in what the device lacks) and saves its own newer copy over it with the next counter. Home then
+says once: "Something looked wrong on VeilCore's server. Your newest copy was saved again, and
+nothing was lost." A brand-new device restoring from the older copy can't tell, which is why the
+restore screen shows the copy's date; a read-back right after a save that shows an older copy
+is still refused. A registry that rolls back on purpose gains nothing it couldn't do before
+(withhold or serve an old copy).
+
+## Two open devices
+
+A device merges another device's newer copy without saving one of its own unless it holds
+something that copy lacks (the contents are compared in a fixed order), so two devices left open
+don't keep re-saving each other's copy and use up the 500-a-day limit (review New-1).
+
+## A script running in the page: what lasts, and re-keying (review New-3)
+
+The account key is kept only as keys the page can use and not read (S5), and a way in can't be
+added without a fresh unlock. But the copy's write token is an HMAC output: a script running in
+the page for one visit (an XSS bug) can read it, and can seal copies with the seal key while it
+runs. Later, with the bug fixed, it could upload one of those with the stolen token, and every
+device would merge it if its counter is higher. Merges refuse a counter that jumps more than
+10,000 past what the device has seen, and record versions that jump more than 10,000.
+
+After any such bug is fixed, re-key everyone:
+1. In `bboard-ui/src/veilcore/account-copy.ts`, change `LABEL.copyId` and `LABEL.writeToken` to
+   `…/v2` (and `ACCOUNT_COPY_VERSION` if the sealed format changes).
+2. Every device then derives a different copy id and token from the same account key, finds no
+   copy there, and shows "Save again". Saving again uses the same passkey (no second passkey),
+   makes a new account key and copy, and the old copy and its stolen token open nothing.
+3. Delete the old copies at the registry once the new release has been live for a few weeks
+   (operator job: rows in `account_copies` and `account_slots` not saved since the release).
+
+## The passkey trust boundary (review New-11)
+
+WebAuthn lets any page on a `*.veilcore.org` host ask for a passkey made for `veilcore.org`. That
+includes `test.veilcore.org`, which serves builds of branches. A bad branch deploy, or a script bug
+on the test site, could ask for a person's mainnet passkey; one Face ID (the prompt says
+"veilcore.org") would then give the passkey's output, and so the account key. So:
+- every veilcore.org subdomain is inside the passkey trust boundary;
+- never put user-supplied or third-party content on a veilcore.org subdomain;
+- plan to move the test site to a separate domain (not done in this change).
+
+## Passkey names
+
+Each new passkey is named "VeilCore: unlocks your records · 7F3K": the same short random tag is
+shown in Settings under "Ways to open them", so a person tidying their passwords can tell which one
+is in use (review New-4). Setting up again, after "Save again" or "Stop saving", asks for the passkey
+this browser last used before it ever makes a new one.
 
 ## Moving the older passkey copy over
 

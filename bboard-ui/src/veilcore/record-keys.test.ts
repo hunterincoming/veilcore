@@ -201,8 +201,10 @@ describe('record keys', () => {
     expect(a.recordSecret).not.toBe(a.recoverySecret);
     expect(keysFor('VEIL-A')).toEqual(a);
     expect(keysWithoutBackup().some((k) => k.recordId === 'VEIL-A')).toBe(true);
-    // (Besides the list of records whose keys the holder removed here, round 4.)
-    expect([...local.keys()].filter((k) => k.includes('record-keys') && !k.endsWith('.forgotten.v1'))).toEqual([
+    // (Besides the list of records whose keys the holder removed here, round 4, and when each was
+    // removed or brought back, which the account copy carries: easy mode step 2.)
+    const lists = ['.forgotten.v1', '.forgotten-at.v1', '.restored.v1'];
+    expect([...local.keys()].filter((k) => k.includes('record-keys') && !lists.some((l) => k.endsWith(l)))).toEqual([
       'veilcore.record-keys.v1',
     ]);
   });

@@ -153,4 +153,5 @@ export const backup = {
   'app.backup.fromFileAdded': 'Registros recuperados del propio archivo: {n}.',
   'app.backup.fromFileProblem':
     'No se pudieron recuperar los registros del archivo: {why} Sus claves están restauradas.',
+  'app.backup.passkey.err.busy': 'Su otro dispositivo guardó en el mismo momento. Se vuelve a intentar solo.',
 } satisfies Partial<AppTranslation>;

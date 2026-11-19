@@ -10,7 +10,12 @@
 // there, still unreadable). Neither can wrap or make a new way in: adding or removing one always
 // needs the raw account key, so a fresh unlock through an existing way in (account-copy.ts).
 // Something that runs in this page (a script bug, XSS) could use them while it runs, as it could
-// the vault key in localStorage; it can't take them away, and can't add a way in that outlasts it.
+// the vault key in localStorage. It can't take the keys away, and can't add a way in that outlasts
+// it. It CAN take away what they make: the copy's write token (an HMAC output, readable once made),
+// and copies it seals during that visit. With those it could later replace the copy at the
+// registry (review New-3): every device would merge it if its counter is higher. Merges refuse
+// implausible counter and version jumps (account-copy.ts plausible), and docs/passkey-backup.md
+// has the re-key procedure to run after any such bug is fixed.
 //
 // "Start over" on this device clears it (records.ts startOver).
 // SPDX-License-Identifier: Apache-2.0

@@ -110,7 +110,7 @@ export const account = {
   'app.settings.devices.here': '{device} (dieses) · zuletzt gespeichert am {date}',
   'app.settings.stop': 'Nicht mehr bei VeilCore speichern',
   'app.settings.stopConfirm':
-    'Ihre bei VeilCore gespeicherten Datensätze löschen? Dieses Gerät behält sie. Ihre anderen Geräte speichern nicht mehr. Der Passkey bleibt in den Einstellungen Ihres Handys.',
+    'Ihre bei VeilCore gespeicherten Datensätze löschen? Dieses Gerät behält sie. Ihre anderen Geräte speichern nicht mehr, und das erste, das wieder speichert, richtet eine neue Kopie ein. Der Passkey bleibt in den Einstellungen Ihres Handys.',
   'app.settings.stopped': 'Gelöscht. Ihre Datensätze bleiben auf diesem Gerät.',
   'app.settings.file.title': 'Kopie herunterladen',
   'app.settings.file.text':
@@ -118,4 +118,22 @@ export const account = {
   'app.settings.file.button': 'Kopie herunterladen',
   'app.settings.devices.removeConfirm':
     'Ihr {device} von dieser Liste entfernen? Speichert es wieder, erscheint es wieder.',
+  'app.account.line.healed':
+    'Auf dem Server von VeilCore stimmte etwas nicht. Ihre neueste Kopie wurde wieder gespeichert, und nichts ging verloren.',
+  'app.account.line.ok': 'OK',
+  'app.account.line.deletedHere.one':
+    '<b>{count} Datensatz hier wurde auf Ihrem anderen Gerät gelöscht.</b> Hier behalten?',
+  'app.account.line.deletedHere.other':
+    '<b>{count} Datensätze hier wurden auf Ihrem anderen Gerät gelöscht.</b> Hier behalten?',
+  'app.account.line.keepThem': 'Behalten',
+  'app.account.restore.deleted.one':
+    '{count} Datensatz wurde auf Ihren anderen Geräten gelöscht und wird nicht hierher geholt.',
+  'app.account.restore.deleted.other':
+    '{count} Datensätze wurden auf Ihren anderen Geräten gelöscht und werden nicht hierher geholt.',
+  'app.account.restore.bringAnyway': 'Trotzdem hierher holen',
+  'app.account.restore.adoptFailed':
+    'Ihre Datensätze sind hier, aber dieses Gerät konnte nicht mit dem Speichern bei VeilCore beginnen: {why}',
+  'app.account.restore.tryAgain': 'Erneut versuchen',
+  'app.account.restore.tryWww': 'Zuerst www.veilcore.org genutzt? Öffnen Sie diese Seite dort.',
+  'app.settings.ways.tag': 'In Ihren Passwörtern „VeilCore: unlocks your records · {tag}“ genannt',
 } satisfies Partial<AppTranslation>;

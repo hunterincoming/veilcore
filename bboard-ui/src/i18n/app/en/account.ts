@@ -105,11 +105,26 @@ export const account = {
   'app.settings.devices.here': '{device} (this one) · last saved {date}',
   'app.settings.stop': 'Stop saving with VeilCore',
   'app.settings.stopConfirm':
-    'Delete your records saved with VeilCore? This device keeps them. Your other devices stop saving. The passkey stays in your phone’s settings.',
+    'Delete your records saved with VeilCore? This device keeps them. Your other devices stop saving, and the first of them to save again sets up a new copy. The passkey stays in your phone’s settings.',
   'app.settings.stopped': 'Deleted. Your records stay on this device.',
   'app.settings.file.title': 'Download a copy',
   'app.settings.file.text':
     'A file you keep yourself. It works without VeilCore, and it is the only other place documents you keep on this device only are saved.',
   'app.settings.file.button': 'Download a copy',
   'app.settings.devices.removeConfirm': 'Remove your {device} from this list? If it saves again, it comes back.',
+  'app.account.line.healed':
+    'Something looked wrong on VeilCore’s server. Your newest copy was saved again, and nothing was lost.',
+  'app.account.line.ok': 'OK',
+  'app.account.line.deletedHere.one': '<b>{count} record here was deleted on your other device.</b> Keep it here?',
+  'app.account.line.deletedHere.other':
+    '<b>{count} records here were deleted on your other device.</b> Keep them here?',
+  'app.account.line.keepThem': 'Keep',
+  'app.account.restore.deleted.one': '{count} record was deleted on your other devices and won’t be brought here.',
+  'app.account.restore.deleted.other': '{count} records were deleted on your other devices and won’t be brought here.',
+  'app.account.restore.bringAnyway': 'Bring them anyway',
+  'app.account.restore.adoptFailed':
+    'Your records are here, but this device couldn’t start saving with VeilCore: {why}',
+  'app.account.restore.tryAgain': 'Try again',
+  'app.account.restore.tryWww': 'First used www.veilcore.org? Open this page there.',
+  'app.settings.ways.tag': 'Named “VeilCore: unlocks your records · {tag}” in your passwords',
 };

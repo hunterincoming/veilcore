@@ -95,7 +95,7 @@ export const account = {
   'app.settings.devices.here': '{device}（この端末）・最後の保存：{date}',
   'app.settings.stop': 'VeilCoreへの保存をやめる',
   'app.settings.stopConfirm':
-    'VeilCoreに保存した記録を削除しますか？この端末には記録が残ります。ほかの端末は保存しなくなります。パスキーはスマートフォンの設定に残ります。',
+    'VeilCoreに保存した記録を削除しますか？この端末には記録が残ります。ほかの端末は保存しなくなり、最初にもう一度保存した端末が新しいコピーを作ります。パスキーはスマートフォンの設定に残ります。',
   'app.settings.stopped': '削除しました。記録はこの端末に残っています。',
   'app.settings.file.title': 'コピーをダウンロード',
   'app.settings.file.text':
@@ -103,4 +103,16 @@ export const account = {
   'app.settings.file.button': 'コピーをダウンロード',
   'app.settings.devices.removeConfirm':
     'お使いの{device}をこの一覧から外しますか？もう一度保存すると、また表示されます。',
+  'app.account.line.healed':
+    'VeilCoreのサーバーに問題がありました。最新のコピーをもう一度保存したので、何も失われていません。',
+  'app.account.line.ok': '閉じる',
+  'app.account.line.deletedHere.other':
+    '<b>ここにある記録{count}件は、もう一台の端末で削除されています。</b>ここに残しますか？',
+  'app.account.line.keepThem': '残す',
+  'app.account.restore.deleted.other': '記録{count}件はほかの端末で削除されたため、ここには移しません。',
+  'app.account.restore.bringAnyway': 'それでも移す',
+  'app.account.restore.adoptFailed': '記録はここにありますが、この端末でVeilCoreへの保存を始められませんでした：{why}',
+  'app.account.restore.tryAgain': 'もう一度試す',
+  'app.account.restore.tryWww': '最初にwww.veilcore.orgを使いましたか？そちらでこのページを開いてください。',
+  'app.settings.ways.tag': 'パスワードでの名前は「VeilCore: unlocks your records · {tag}」',
 } satisfies Partial<AppTranslation>;
