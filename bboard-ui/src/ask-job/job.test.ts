@@ -14,6 +14,7 @@ import {
   getJob,
   listJobs,
   newJobId,
+  newestRead,
   planHash,
   putJob,
   setStoreHooks,
@@ -533,5 +534,27 @@ describe('the words a refusal offers', () => {
   it('French never says “licencier” (to fire someone)', async () => {
     const { job: fr } = await import('../i18n/app/fr/job');
     for (const [k, v] of Object.entries(fr)) expect(/licenci/i.test(v), `${k}: ${v}`).toBe(false);
+  });
+});
+
+describe('a screen reading the jobs', () => {
+  it('uses only the newest read: an older one finishing late never puts back the old plan', async () => {
+    const pending: ((v: string) => void)[] = [];
+    const shown: string[] = [];
+    const r = newestRead(
+      () => new Promise<string>((res) => pending.push(res)),
+      (v) => shown.push(v),
+    );
+    r.load(); // before a figure is saved
+    r.load(); // after it
+    pending[1]('saved');
+    pending[0]('before');
+    await new Promise((res) => setTimeout(res, 0));
+    expect(shown).toEqual(['saved']);
+    r.stop();
+    r.load();
+    pending[2]('after leaving');
+    await new Promise((res) => setTimeout(res, 0));
+    expect(shown).toEqual(['saved']);
   });
 });

@@ -487,6 +487,26 @@ export const onJobsChange = (l: () => void): (() => void) => {
   return () => listeners.delete(l);
 };
 
+/**
+ * A screen's reader of the jobs: reads can finish out of order, so only the answer to the newest
+ * read is used. An older read never puts back a plan the screen has already moved past.
+ */
+export const newestRead = <T>(read: () => Promise<T>, use: (v: T) => void): { load: () => void; stop: () => void } => {
+  let asked = 0;
+  let live = true;
+  return {
+    load: () => {
+      const n = ++asked;
+      void read().then((v) => {
+        if (live && n === asked) use(v);
+      });
+    },
+    stop: () => {
+      live = false;
+    },
+  };
+};
+
 /** Every job, after the expiry sweep. */
 export const listJobs = async (now = Date.now()): Promise<Job[]> => {
   const b = pick();

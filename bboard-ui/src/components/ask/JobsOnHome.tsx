@@ -15,19 +15,18 @@ import { useRecords } from '../../veilcore/records';
 import { useRecordKeys } from '../../veilcore/record-keys';
 import { useAgreementsWaitForBackup } from '../../veilcore/licenses';
 import { localDay } from '../../veilcore/royalty-terms';
-import { listJobs, onJobsChange, type Job } from '../../ask-job/store';
+import { listJobs, newestRead, onJobsChange, type Job } from '../../ask-job/store';
 import { JOB_STATE_KEY, jobTitle } from '../../ask-job/words';
 import { AddIds, littersWithoutIds, type Litter } from './AddIds';
 
 const useJobs = (): Job[] => {
   const [jobs, setJobs] = useState<Job[]>([]);
   useEffect(() => {
-    let live = true;
-    const load = () => void listJobs().then((j) => live && setJobs(j));
-    load();
-    const off = onJobsChange(load);
+    const r = newestRead(() => listJobs(), setJobs);
+    r.load();
+    const off = onJobsChange(r.load);
     return () => {
-      live = false;
+      r.stop();
       off();
     };
   }, []);

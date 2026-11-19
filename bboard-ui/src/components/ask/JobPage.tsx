@@ -48,6 +48,7 @@ import {
   approveJob,
   discardJob,
   getJob,
+  newestRead,
   onJobsChange,
   anyStarted,
   deadlineOf,
@@ -82,15 +83,13 @@ export const JobPage: React.FC = () => {
   const fromApp = (loc.state as Record<string, unknown> | null)?.[JOB_STATE_KEY] === id;
   const [job, setJob] = useState<Job | undefined | null>(null);
   useEffect(() => {
-    let live = true;
-    const load = () =>
-      void getJob(id).then((j) => {
-        if (live) setJob(j);
-      });
-    load();
-    const off = onJobsChange(load);
+    // Only the newest read is shown: an older one finishing late would put back a plan this tab
+    // has moved past, and a figure just saved would vanish from the screen.
+    const r = newestRead(() => getJob(id), setJob);
+    r.load();
+    const off = onJobsChange(r.load);
     return () => {
-      live = false;
+      r.stop();
       off();
     };
   }, [id]);
@@ -171,8 +170,9 @@ const JobResult: React.FC<{ job: Job; fromApp: boolean }> = ({ job: latest, from
   const ownHashes = useRef(new Set<string>([latest.hash]));
   useEffect(() => {
     if (latest.hash === job.hash) return;
-    if (ownHashes.current.has(latest.hash)) setShown(latest);
-    else setChangedElsewhere(true);
+    // A plan this tab saved earlier is behind what it shows now: never swapped back in.
+    if (ownHashes.current.has(latest.hash)) return;
+    setChangedElsewhere(true);
   }, [latest.hash]);
   const tr = useT();
   const { t, tp } = tr;
@@ -437,12 +437,17 @@ const JobResult: React.FC<{ job: Job; fromApp: boolean }> = ({ job: latest, from
           action={
             <Button
               color="inherit"
-              onClick={() => {
-                shownRef.current = latest;
-                setShown(latest);
-                setChangedElsewhere(false);
-                setError(undefined);
-              }}
+              onClick={() =>
+                // The plan as it is now, read afresh: the last change from the other tab may not
+                // have reached this screen yet.
+                void getJob(latest.id).then((fresh) => {
+                  const now = fresh?.state === 'ready' ? fresh : latest;
+                  shownRef.current = now;
+                  setShown(now);
+                  setChangedElsewhere(false);
+                  setError(undefined);
+                })
+              }
               sx={{ minHeight: 44 }}
             >
               {t('app.job.open')}
