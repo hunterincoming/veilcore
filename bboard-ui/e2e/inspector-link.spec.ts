@@ -113,7 +113,7 @@ test('a document link: not ready until dated, opens in the holder’s language, 
     'registry-only',
   );
   await expect(inspector.locator('[data-document-not-confirmed]')).toContainText(
-    'El registro de VeilCore da esta fecha',
+    'El servidor de registros de VeilCore da esta fecha',
   );
   await expect(inspector.locator('[data-document-not-dated]')).toHaveCount(0);
   expectNoErrors(errors);

@@ -467,7 +467,7 @@ describe('round 4: the privacy sentences the fourth review found false', () => {
           /Größenstufe/,
           /Schlüsselbindung/,
           /Bei einer Lieferung von vor den Kennzeichen/,
-          /externen Sicherungen/,
+          /externen Sicherungskopien/,
           /der Name jedes Datensatzes, Züchter/,
           /nach dem #\. Diesen Teil sendet ein Browser nicht, wenn er den Link öffnet, aber der Link geht vollständig an jeden/,
         ],
@@ -836,7 +836,7 @@ describe('round 6: the sentences the fifth review found false', () => {
       /^Ihre DNA-Dateien verlassen nie Ihr Gerät\. Laborberichte reisen verschlossen\./,
     );
     expect(t['es:m.privacy.local.text']).toMatch(
-      /^Sus archivos de ADN nunca salen de su dispositivo\. Los informes de laboratorio viajan bloqueados\./,
+      /^Sus archivos de ADN nunca salen de su dispositivo\. Los informes de laboratorio viajan cifrados\./,
     );
     expect(t['fr:m.privacy.local.text']).toMatch(
       /^Vos fichiers ADN ne quittent jamais votre appareil\. Les rapports de laboratoire voyagent verrouillés\./,

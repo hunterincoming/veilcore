@@ -1435,7 +1435,7 @@ describe('the maintenance key', () => {
       /jede Kopie allein genügt/,
       /auf drei Schlüssel zu verlagern, von denen zwei zustimmen müssen, war vor dem Ledger-9-Upgrade von Midnight am 6\. November 2026 geplant und ist nicht umgesetzt\./,
       /Das Netzwerk akzeptiert den Schlüssel weiterhin; betrachten Sie ihn also als aktiv\./,
-      /Der Änderungszähler des Contracts stand am 13\. November 2026 bei 16\. Jeder kann ihn prüfen, und jede Änderung erhöht ihn\./,
+      /Der Änderungszähler des Smart Contracts stand am 13\. November 2026 bei 16\. Jeder kann ihn prüfen, und jede Änderung erhöht ihn\./,
     ],
     es: [
       /cualquiera de las dos copias basta por sí sola/,

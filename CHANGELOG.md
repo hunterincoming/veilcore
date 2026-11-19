@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   lines say so (`docs/translations/README.md`), and the English terms of use govern.
 - New `docs/i18n-glossary.md`: one word per idea in each language, with its source.
 - Spanish reads naturally in Argentina: computadora (not ordenador), completar (not rellenar),
-  presionar (not pulsar), bloqueado for "locked" everywhere.
+  presionar (not pulsar), agregar (not añadir), cifrado for encrypted data.
 - One term per idea: Japanese 端末, ロイヤリティ, 育成者 and 私たち; German Prüfcode, Handy and
   Inhaber; French sauvegarde (not copie de secours), détenteur (not titulaire) and the
   typographic apostrophe.
@@ -23,6 +23,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   "el servidor" or "le serveur"; Spanish "Selected for" no longer reads as "selected by";
   "existed by that date" is exact in German, Spanish and French; the privacy page names the Ask
   helper in each language.
+- Two more independent reviews (Japanese and Spanish; German and French), applied in full with
+  the founder's decisions, each recorded with its source in `docs/i18n-glossary.md`:
+  - "Prior possession" in plain words, never a legal term of art: Spanish "Constancia de que ya
+    lo tenía a una fecha" (not posesión or tenencia), German "Früheres Vorliegen", French "vous
+    déteniez déjà…"; Japanese ある日付までに保有していたこと. The authority pack and the honesty
+    lines name who sealed the record instead of a bare "titular".
+  - Spanish says "servidor de registros" for the registry, never a bare "registro" (which read
+    as "the record" on the confirm screen), "sin crear una cuenta" for no sign-up, "afirmación"
+    for a claim and "análisis" for a lab test. The pack is "Documentación de respaldo para
+    REPROCANN / SEDRONAR".
+  - Japanese: "second party" no longer reads as an independent 第三者, a claim or attestation
+    is no longer called 証明, the batch root is no longer called a proof code, and a record is
+    never "yours"; ラボ, 鍵をかける and 機種変更 throughout.
+  - French: Accords for agreements, smart contract for the on-chain contract, contrat des
+    preuves (not revendications), obtenteur. German: Smart Contract, Beleg for a claim,
+    angegeben (not angemeldet, the variety-right application), Abfragecode.
+  - The Spanish and Japanese review screens say the stage note is sealed as "Stage: …" in
+    English, which it is; what is sealed is unchanged.
+  - A test (`translations.test.ts`) fails if a word the reviews took out comes back, on the site
+    or in the app.
 
 ### What a walk of the live veilcore.org found (18 Nov 2026, not deployed yet)
 
