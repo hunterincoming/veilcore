@@ -32,6 +32,7 @@ import { animalMissing, animalSealInputOf, type AnimalDraft, type LogKind, type 
 import { draftSizeShare, sizeWords } from '../../veilcore/records';
 import type { AppKey } from '../../i18n/app/en';
 import { useAskMark } from '../ask/AskFill';
+import { ScanTextField } from '../../scan/ScanTextField';
 
 /** "What are you logging?": a plant, an animal, or (where offered) a strain or line. Radio semantics, one press. */
 export const KindChoice: React.FC<{
@@ -122,12 +123,12 @@ const ParentFields: React.FC<{
           />
         )}
       />
-      <TextField
+      <ScanTextField
         label={t(role === 'sire' ? 'app.animal.sireId' : 'app.animal.damId')}
         value={value.individualId}
         disabled={!!value.recordId}
         helperText={value.recordId ? t('app.animal.linkedId') : undefined}
-        onChange={(e) => onChange({ ...value, individualId: e.target.value })}
+        onValue={(v) => onChange({ ...value, individualId: v })}
         fullWidth
       />
     </Stack>
@@ -251,13 +252,25 @@ export const AnimalForm: React.FC<{
         onChange={(e) => set('name', e.target.value)}
         fullWidth
       />
-      <TextField
-        label={t('app.animal.individualId')}
-        value={draft.individualId}
-        onChange={(e) => set('individualId', e.target.value)}
-        helperText={t(idShapeHint(draft.individualId, draft.idScheme, (k) => t(k)) ?? 'app.animal.individualIdHelp')}
-        fullWidth
-      />
+      <Box>
+        <ScanTextField
+          label={t('app.animal.individualId')}
+          value={draft.individualId}
+          onValue={(v) => set('individualId', v)}
+          helperText={t(idShapeHint(draft.individualId, draft.idScheme, (k) => t(k)) ?? 'app.animal.individualIdHelp')}
+          fullWidth
+          data-individual-id=""
+        />
+        {/* A Bluetooth stick reader types the tag in (scan/scan-text.ts readerKeyDown). */}
+        <Typography
+          variant="caption"
+          color="text.secondary"
+          sx={{ display: 'block', mt: 0.5, mx: 1.75 }}
+          data-reader-help=""
+        >
+          {t('app.scan.readerHelp')}
+        </Typography>
+      </Box>
       <Autocomplete<string, false, false, true>
         freeSolo
         options={SCHEMES.map((k) => t(k))}

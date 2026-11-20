@@ -164,7 +164,11 @@ export const headers = {
   'X-Frame-Options': 'DENY',
   'X-Content-Type-Options': 'nosniff',
   'Referrer-Policy': 'strict-origin-when-cross-origin',
-  'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
+  // camera=(self): this site's own pages may ask for the camera, for "Scan" beside an ID box
+  // (bboard-ui/src/scan, docs/scan-and-labels.md); the browser still asks the person first, and no
+  // other site (no frame, no other origin) can. The frames are read on the device and dropped.
+  // Microphone and location stay off for everyone.
+  'Permissions-Policy': 'camera=(self), microphone=(), geolocation=()',
   'Content-Security-Policy': csp,
   // Vercel adds HSTS on its own domains; whether it does on the veilcore.org alias was
   // not verified, so it is set here. Two years, subdomains included. Not "preload": that

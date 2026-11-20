@@ -691,6 +691,7 @@ export const de: Strings = {
   'm.verify.what':
     'Ein VeilCore-Datensatz beschreibt genetisches Material, ohne die Genetik zu enthalten. Seine Prüfseite zeigt, was sein Inhaber freigegeben hat, und seinen Namen, wenn der Link des Inhabers ihn enthält. Nur sein Prüfcode kommt auf Midnight, und er erhält ein Datum, sobald er dort verankert ist. Einen Datensatz zu prüfen, ist kostenlos und braucht kein Konto.',
   'm.verify.home': 'Was ist VeilCore? →',
+  'm.verify.scan': 'QR-Code eines Etiketts scannen',
   'm.verify.example': 'Nicht sicher, was Sie sehen werden? Sehen Sie sich zuerst ein Beispiel an →',
   // Round 5 (15 Oct 2026): landing page rework, keys added.
   'm.open.6t': 'Prüfen ohne uns.',

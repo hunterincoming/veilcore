@@ -37,6 +37,7 @@ import { origin } from './origin';
 import { job } from './job';
 import { pack } from './pack';
 import { account } from './account';
+import { scan } from './scan';
 
 export const appEn = {
   ...common,
@@ -71,6 +72,7 @@ export const appEn = {
   ...job,
   ...pack,
   ...account,
+  ...scan,
 };
 
 export type AppKey = keyof typeof appEn;

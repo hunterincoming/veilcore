@@ -693,6 +693,7 @@ export const fr: Strings = {
   'm.verify.what':
     'Un enregistrement VeilCore décrit du matériel génétique sans contenir la génétique. Sa page de vérification montre ce que son détenteur a choisi de partager, et son nom quand le lien du détenteur le porte. Seul son code de preuve va sur Midnight, et il reçoit une date une fois ancré. En vérifier un est gratuit et ne demande aucun compte.',
   'm.verify.home': 'Qu’est-ce que VeilCore ? →',
+  'm.verify.scan': 'Scanner le code QR d’une étiquette',
   'm.verify.example': 'Vous ne savez pas ce que vous allez voir ? Regardez d’abord un exemple →',
   // Round 5 (15 Oct 2026): landing page rework, keys added.
   'm.open.6t': 'Vérifier sans nous.',

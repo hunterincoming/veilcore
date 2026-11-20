@@ -76,6 +76,8 @@ const LabResultsPage = page(() => import('./components/lab/LabResultsPage'), 'La
 const LabResultCheck = page(() => import('./components/lab/LabResultCheck'), 'LabResultCheck');
 const BulkImportPage = page(() => import('./components/lab-import/BulkImportPage'), 'BulkImportPage');
 const AuthorityPackPage = page(() => import('./components/authority-pack/AuthorityPackPage'), 'AuthorityPackPage');
+// QR labels that open a record's check page, drawn and printed on this device (docs/scan-and-labels.md).
+const LabelsPage = page(() => import('./components/labels/LabelsPage'), 'LabelsPage');
 const RestorePage = page(() => import('./components/flow/RestorePage'), 'RestorePage');
 const BackupPage = page(() => import('./components/flow/BackupPage'), 'BackupPage');
 // Records saved with VeilCore and the downloaded copy (easy mode step 2).
@@ -368,6 +370,7 @@ const routes = (
     <Route path="/records" element={withLayout(<AppHome />)} />
     <Route path="/records/import" element={withLayout(<BulkImportPage />)} />
     <Route path="/records/authority-pack" element={withLayout(<AuthorityPackPage />)} />
+    <Route path="/records/labels" element={withLayout(<LabelsPage />)} />
     <Route path="/restore" element={withLayout(<RestorePage />)} />
     <Route path="/backup" element={withLayout(<BackupPage />)} />
     <Route path="/settings" element={withLayout(<SettingsPage />)} />
