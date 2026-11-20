@@ -1,0 +1,611 @@
+// VeilCore's offline worker (docs/offline.md). Served as /sw.js; the build writes it from this
+// file with the registry's address filled in (vite.config.ts offlineWorker). Plain JavaScript,
+// one file, no importScripts and nothing from another site.
+//
+// What it does:
+//   1. Keeps a copy of the app (the files the build listed in /offline-shell.json) so the site
+//      opens with no signal. Every file is checked against the release list a release deploy
+//      publishes (/release.json, /releases/<network>/<commit>.json, scripts/release-manifest.mjs)
+//      before it is kept: a file whose SHA-256 is not the listed one is never kept or served. A
+//      site with no release list (a build on someone's own computer) gets no offline copy.
+//   2. One copy per release, named by its commit. A new release is noticed on the next page load
+//      with signal (and when the page says it is back online), copied whole and checked, and only
+//      then used; the old copy is deleted. Pages are always asked of the network first: the
+//      copy is used only when the network can't answer (no signal, or no answer in 8 seconds).
+//   3. Leaves everything else alone: requests to other sites (the registry, the sponsor, Midnight)
+//      are never touched, nor is any request that asks not to be cached (the site checks on
+//      /check-this-site, npm run check:site), nor /release.json, /releases/ or this file.
+//   4. Background Sync, where the browser has it (Chrome on Android): when signal comes back
+//      with VeilCore closed, it sends the proof codes of records sealed with no signal (only
+//      { id, recordFingerprint, keyBinding? }, what PUT /api/records/dating takes, never anything
+//      typed), so they are dated then and not at the next visit. Open VeilCore pages are told to
+//      send as well.
+//
+// The kill switch is offline/sw-kill.js (VITE_OFFLINE=off): the same address, a worker that
+// deletes every copy and unregisters itself.
+// SPDX-License-Identifier: Apache-2.0
+'use strict';
+
+/* The registry's address, filled in by the build; empty in a build without one. */
+const API_BASE = '__VEILCORE_API_BASE__';
+
+/*
+ * What this release's copy must be, written into this file and so held to the release list with
+ * it (security re-check of PR #145, SW-1). The Cache Storage can be written by the page, so code
+ * injected into one visit could plant a file or a page there; nothing from it is trusted:
+ *   SHELL_FILES   the SHA-256 of each file of the offline copy, by path, filled in by the build
+ *                 (vite.config.ts offlineWorker). A kept file is served only if its bytes hash to
+ *                 the value here.
+ *   PAGE_HEADERS  the headers the site sends with its page (scripts/vercel-config.mjs fills them
+ *                 in when a release is made, before the release list is written). The kept page
+ *                 is served with these and nothing else; with none filled in it is never served.
+ * A newer release brings a new /sw.js (no-cache) with its own values.
+ */
+const SHELL_FILES = '__VEILCORE_SHELL_FILES__';
+const PAGE_HEADERS = '__VEILCORE_PAGE_HEADERS__';
+
+const SHELL_PREFIX = 'veilcore-shell-';
+const META_CACHE = 'veilcore-offline-meta';
+const META_KEY = '/__veilcore-offline/active';
+const SHELL_LIST = '/offline-shell.json';
+const NAVIGATION_TIMEOUT_MS = 8000;
+const RELEASE_FORMAT = 'veilcore-release/v1';
+const MANIFEST_FORMAT = 'veilcore-release-manifest/v1';
+const SHELL_FORMAT = 'veilcore-offline-shell/v1';
+const SYNC_TAG = 'veilcore-send';
+const DB_NAME = 'veilcore-offline';
+const DB_STORE = 'kv';
+const DB_KEY = 'dating';
+/* Never answered from a copy: the release list, the worker itself. */
+const NEVER = [/^\/release\.json$/, /^\/releases\//, /^\/sw\.js$/, /^\/offline-shell\.json$/];
+
+const HEX64 = /^[0-9a-f]{64}$/;
+const COMMIT = /^[0-9a-f]{40}$/;
+const NETWORK = /^[a-z][a-z0-9-]{0,31}$/;
+const PATH = /^\/[A-Za-z0-9._~!$&'()*+,;=:@%/-]*$/;
+
+const isObject = (v) => typeof v === 'object' && v !== null && !Array.isArray(v);
+const hex = (buf) => Array.from(new Uint8Array(buf), (b) => b.toString(16).padStart(2, '0')).join('');
+const sha256 = async (buf) => hex(await crypto.subtle.digest('SHA-256', buf));
+
+/** /release.json as a release deploy writes it, or null. */
+const readRelease = async () => {
+  let res;
+  try {
+    res = await fetch('/release.json', { cache: 'no-store', credentials: 'same-origin', redirect: 'error' });
+  } catch {
+    return null;
+  }
+  if (!res.ok) return null;
+  let v;
+  try {
+    v = JSON.parse(await res.text());
+  } catch {
+    return null;
+  }
+  return isObject(v) && v.format === RELEASE_FORMAT && NETWORK.test(String(v.network)) && COMMIT.test(String(v.commit)) ? v : null;
+};
+
+/** The release's file list, for exactly that network and commit, or null. */
+const readManifest = async (rel) => {
+  let res;
+  try {
+    res = await fetch(`/releases/${rel.network}/${rel.commit}.json`, { cache: 'no-store', credentials: 'same-origin', redirect: 'error' });
+  } catch {
+    return null;
+  }
+  if (!res.ok) return null;
+  let m;
+  try {
+    m = JSON.parse(await res.text());
+  } catch {
+    return null;
+  }
+  if (!isObject(m) || m.format !== MANIFEST_FORMAT || m.network !== rel.network || m.commit !== rel.commit || !isObject(m.files)) return null;
+  for (const [p, h] of Object.entries(m.files)) if (!PATH.test(p) || p.split('/').includes('..') || !HEX64.test(String(h))) return null;
+  if (m.headers !== undefined && !isObject(m.headers)) return null;
+  return m;
+};
+
+/** The active copy: { commit, network, files } (files: the release list's path -> SHA-256), or null. */
+const readActive = async () => {
+  try {
+    const meta = await caches.open(META_CACHE);
+    const r = await meta.match(META_KEY);
+    if (!r) return null;
+    const v = await r.json();
+    return isObject(v) && COMMIT.test(String(v.commit)) ? v : null;
+  } catch {
+    return null;
+  }
+};
+
+const writeActive = async (active) => {
+  const meta = await caches.open(META_CACHE);
+  await meta.put(META_KEY, new Response(JSON.stringify(active), { headers: { 'content-type': 'application/json' } }));
+};
+
+/**
+ * A file from the network, kept only if its bytes are the listed ones. Its response headers are
+ * kept as the site sent them (the Content-Security-Policy among them), so a page from the copy
+ * runs under the same policy as one from the network.
+ */
+const fetchVerified = async (path, want) => {
+  const res = await fetch(path, { cache: 'no-store', credentials: 'same-origin', redirect: 'error' });
+  if (!res.ok) throw new Error(`${path} answered ${res.status}`);
+  const body = await res.arrayBuffer();
+  if ((await sha256(body)) !== want) throw new Error(`${path} is not the listed file`);
+  return new Response(body, { status: 200, statusText: 'OK', headers: res.headers });
+};
+
+/** A copy already kept, re-checked against the listed SHA-256, so an unchanged file isn't fetched again. */
+const reuse = async (oldCache, path, want) => {
+  if (!oldCache) return null;
+  const hit = await oldCache.match(path);
+  if (!hit) return null;
+  const body = await hit.clone().arrayBuffer();
+  return (await sha256(body)) === want ? new Response(body, { status: 200, statusText: 'OK', headers: hit.headers }) : null;
+};
+
+/** The listed headers the site sends on its pages, as the release list records them, if it does. */
+const headersMatch = (res, listed) =>
+  !isObject(listed) || Object.entries(listed).every(([name, value]) => (res.headers.get(name) ?? '').trim() === String(value).trim());
+
+/**
+ * Copy a release whole, checked, into its own cache. Throws (and changes nothing in use) if any
+ * file isn't the listed one. `switchNow`: then make it the active copy and delete the others;
+ * otherwise (a new worker's install) it is noted as ready, and the switch is made when that worker
+ * takes over (activate), so the worker still in charge keeps the copy it can serve until then.
+ */
+const installRelease = async (rel, man, switchNow) => {
+  const listWant = man.files[SHELL_LIST];
+  if (!listWant) throw new Error('this release lists no offline shell');
+  const listRes = await fetchVerified(SHELL_LIST, listWant);
+  const shell = await listRes.json();
+  if (!isObject(shell) || shell.format !== SHELL_FORMAT || !Array.isArray(shell.files)) throw new Error('not an offline shell list');
+  const paths = [...new Set(['/index.html', ...shell.files.filter((p) => typeof p === 'string')])];
+  for (const p of paths) if (!man.files[p]) throw new Error(`${p} is not in the release list`);
+  const before = await readActive();
+  const oldCache = before ? await caches.open(SHELL_PREFIX + before.commit) : null;
+  const name = SHELL_PREFIX + rel.commit;
+  const cache = await caches.open(name);
+  try {
+    let next = 0;
+    const one = async () => {
+      while (next < paths.length) {
+        const p = paths[next++];
+        // The page is always fetched again: its headers (the policy it runs under) may change
+        // with a release even when its bytes don't, and they must be the listed ones.
+        const res = (p === '/index.html' ? null : await reuse(oldCache, p, man.files[p])) ?? (await fetchVerified(p, man.files[p]));
+        if (p === '/index.html' && !headersMatch(res, man.headers)) throw new Error('the page is not sent with the listed headers');
+        await cache.put(p, res);
+      }
+    };
+    await Promise.all([one(), one(), one(), one()]);
+  } catch (e) {
+    await caches.delete(name);
+    throw e;
+  }
+  if (!switchNow) {
+    // With the page this worker was built with, so a later worker never takes up a copy left by
+    // one that never took over.
+    const ready = { commit: rel.commit, network: rel.network, page: builtHash('/index.html') };
+    await (await caches.open(META_CACHE)).put(READY_KEY, new Response(JSON.stringify(ready)));
+    return true;
+  }
+  // A newer worker arrived while this one copied: the switch is that worker's to make.
+  if (newerWorker()) return false;
+  await switchTo(rel);
+  return true;
+};
+
+/** Make a copied release the one in use, and delete every other copy. */
+const switchTo = async (rel) => {
+  // Which copy is in use. Not trusted for what a file must be (that is SHELL_FILES, above).
+  await writeActive({ commit: rel.commit, network: rel.network, at: new Date().toISOString() });
+  const name = SHELL_PREFIX + rel.commit;
+  for (const k of await caches.keys()) if (k.startsWith(SHELL_PREFIX) && k !== name) await caches.delete(k);
+};
+
+/** The release a new worker copied at install, waiting for it to take over, or null. */
+const READY_KEY = '/__veilcore-offline/ready';
+const takeReady = async () => {
+  try {
+    const meta = await caches.open(META_CACHE);
+    const r = await meta.match(READY_KEY);
+    await meta.delete(READY_KEY);
+    const v = r ? await r.json() : null;
+    return isObject(v) &&
+      COMMIT.test(String(v.commit)) &&
+      NETWORK.test(String(v.network)) &&
+      v.page === builtHash('/index.html') &&
+      (await caches.has(SHELL_PREFIX + v.commit))
+      ? v
+      : null;
+  } catch {
+    return null;
+  }
+};
+
+/**
+ * This worker was built for this release: every file of its copy is the listed one (SHELL_FILES,
+ * above). A worker serves no other release's files, so it copies no other release: that is the
+ * new worker's to do, which the browser fetches with the new release.
+ */
+const builtFor = (man) =>
+  isObject(SHELL_FILES) && Object.keys(SHELL_FILES).length > 0 && Object.entries(SHELL_FILES).every(([p, h]) => man.files[p] === h);
+
+/**
+ * Pages this worker answered from a copy, by client id: the release they came from. Kept with the
+ * copy's own record, not in memory: the browser stops an idle worker and starts it again.
+ */
+const SERVED_KEY = '/__veilcore-offline/served';
+const readServed = async () => {
+  try {
+    const r = await (await caches.open(META_CACHE)).match(SERVED_KEY);
+    const v = r ? await r.json() : {};
+    return isObject(v) ? v : {};
+  } catch {
+    return {};
+  }
+};
+const rememberServed = async (clientId, commit) => {
+  const open = new Set((await self.clients.matchAll({ type: 'window', includeUncontrolled: true })).map((c) => c.id));
+  const now = Object.fromEntries(Object.entries(await readServed()).filter(([id]) => open.has(id)));
+  now[clientId] = commit;
+  await (await caches.open(META_CACHE)).put(SERVED_KEY, new Response(JSON.stringify(now), { headers: { 'content-type': 'application/json' } }));
+};
+
+/**
+ * A new release is copied: each open page is told, and told it is older (`stale`) when it came
+ * from an older copy, so it can offer to reload (offline/register.ts). A page from the network is
+ * that release already.
+ */
+const tellRelease = async (commit) => {
+  const served = await readServed();
+  for (const c of await self.clients.matchAll({ type: 'window', includeUncontrolled: true })) {
+    const from = served[c.id];
+    c.postMessage({ type: 'veilcore-release', commit, stale: from !== undefined && from !== commit });
+  }
+};
+
+/**
+ * A newer worker is installing or waiting to take over from this one. It copies its own release
+ * when it installs, and this worker couldn't serve that copy anyway (each worker serves only the
+ * files it was built with, SHELL_FILES), so this one leaves the copies alone until it is gone.
+ * Without this, an old worker still in charge could copy a release back after the kill switch
+ * deleted it.
+ */
+const newerWorker = () => !!(self.registration && (self.registration.installing || self.registration.waiting));
+
+/**
+ * Look for a new release and copy it. One check at a time, at most every 30 seconds. `own` is a
+ * check made by this worker's own install (it copies, and switches when it takes over); any other
+ * is made by the worker in charge, which copies only a release it was built for (builtFor), and
+ * none while a newer worker is installing or waiting.
+ */
+let checking = null;
+let lastCheck = 0;
+const checkForUpdate = (force = false, own = false) => {
+  if (!own && newerWorker()) return Promise.resolve(false);
+  if (checking) return checking;
+  if (!force && Date.now() - lastCheck < 30_000) return Promise.resolve(false);
+  lastCheck = Date.now();
+  checking = (async () => {
+    const rel = await readRelease();
+    if (!rel) return false;
+    const active = await readActive();
+    if (active && active.commit === rel.commit && (await caches.has(SHELL_PREFIX + rel.commit))) return false;
+    try {
+      const man = await readManifest(rel);
+      if (!man) throw new Error('the release list could not be read');
+      if (!builtFor(man)) {
+        // Another release's worker copies it. Asked for now; the browser also asks on each page load.
+        if (!own) void Promise.resolve(self.registration?.update?.()).catch(() => undefined);
+        throw new Error('this worker was not built for this release');
+      }
+      if (!(await installRelease(rel, man, !own))) return false;
+      if (own) return true;
+    } catch (e) {
+      // /release.json names another release and it couldn't be copied, for any reason: the copy
+      // in use is an old release now. Noted once, so it is not used for ever (stale, below).
+      if (active && !active.supersededSince) await writeActive({ ...active, supersededSince: Date.now() });
+      throw e;
+    }
+    await tellRelease(rel.commit);
+    return true;
+  })()
+    .catch(() => false)
+    .finally(() => {
+      checking = null;
+    });
+  return checking;
+};
+
+/**
+ * How long a copy is still used once a newer release is known and hasn't been copied (a host
+ * problem, a release list that can't be read, or someone slowing the connection to keep a fixed
+ * page from arriving): 48 hours, and meanwhile only when the network fails outright, never on a
+ * slow answer (security review of PR #145, SW-2). After that the old copy is not served.
+ */
+const SUPERSEDED_MAX_MS = 48 * 3_600_000;
+const superseded = (active) => typeof active.supersededSince === 'number';
+const stale = (active) => superseded(active) && Date.now() - active.supersededSince > SUPERSEDED_MAX_MS;
+
+/** The SHA-256 this worker was built with for a file of the copy, or undefined. */
+const builtHash = (path) => (isObject(SHELL_FILES) && Object.prototype.hasOwnProperty.call(SHELL_FILES, path) ? SHELL_FILES[path] : undefined);
+
+const TYPES = {
+  '.js': 'text/javascript',
+  '.mjs': 'text/javascript',
+  '.css': 'text/css',
+  '.wasm': 'application/wasm',
+  '.svg': 'image/svg+xml',
+  '.png': 'image/png',
+  '.ico': 'image/x-icon',
+  '.woff': 'font/woff',
+  '.woff2': 'font/woff2',
+  '.json': 'application/json',
+  '.webmanifest': 'application/manifest+json',
+};
+
+/**
+ * The headers a kept file is served with: never the kept ones (the page could have written
+ * them). The page gets PAGE_HEADERS; any other file its type, by its name, and nosniff.
+ */
+const servedHeaders = (path) => {
+  if (path === '/index.html') return isObject(PAGE_HEADERS) ? { ...PAGE_HEADERS, 'content-type': 'text/html; charset=utf-8' } : null;
+  const dot = path.lastIndexOf('.');
+  const type = dot >= 0 ? TYPES[path.slice(dot).toLowerCase()] : undefined;
+  return type ? { 'content-type': type, 'x-content-type-options': 'nosniff' } : null;
+};
+
+/**
+ * A file from the copy, re-checked every time it is served against the SHA-256 this worker was
+ * built with (SW-1): one that doesn't match is not served, and the network is asked. It isn't
+ * deleted here: during a release change it may be the next release's file, which the next worker
+ * serves.
+ */
+const checkedCopy = async (active, path) => {
+  const want = builtHash(path);
+  const headers = servedHeaders(path);
+  if (!want || !headers) return undefined;
+  const cache = await caches.open(SHELL_PREFIX + active.commit);
+  const hit = await cache.match(path);
+  if (!hit) return undefined;
+  const body = await hit.arrayBuffer();
+  if ((await sha256(body)) !== want) return undefined;
+  return new Response(body, { status: 200, statusText: 'OK', headers });
+};
+
+const fromCopy = async (path) => {
+  const active = await readActive();
+  if (!active || stale(active)) return undefined;
+  return checkedCopy(active, path);
+};
+
+/** A page: the network first; the copy only when the network can't answer. */
+const navigate = async (event) => {
+  const known = await readActive();
+  const net = fetch(event.request);
+  // A newer release is known: only an outright network failure serves the old copy (SW-2).
+  if (known && superseded(known)) {
+    try {
+      return await net;
+    } catch (e) {
+      const copy = await fromCopy('/index.html');
+      if (copy) {
+        if (event.resultingClientId) event.waitUntil(rememberServed(event.resultingClientId, known.commit).catch(() => undefined));
+        return copy;
+      }
+      throw e;
+    }
+  }
+  // Whatever the network does, look for a new release once it answers.
+  event.waitUntil(net.then(() => checkForUpdate(), () => undefined));
+  let timer;
+  const timedOut = new Promise((resolve) => {
+    timer = setTimeout(() => resolve('timeout'), NAVIGATION_TIMEOUT_MS);
+  });
+  try {
+    const first = await Promise.race([net, timedOut]);
+    if (first !== 'timeout') return first;
+  } catch {
+    /* no network: the copy below */
+  } finally {
+    clearTimeout(timer);
+  }
+  const active = await readActive();
+  const copy = await fromCopy('/index.html');
+  if (copy && active && !stale(active)) {
+    // Remembered, so once a newer release is copied this page is told it is older (tellRelease).
+    if (event.resultingClientId) event.waitUntil(rememberServed(event.resultingClientId, active.commit).catch(() => undefined));
+    return copy;
+  }
+  return net;
+};
+
+/**
+ * A built file (content-addressed: its name changes with its content). The copy first, then the
+ * network; a listed file fetched from the network is kept once its bytes are checked.
+ */
+const asset = async (request, path) => {
+  const active = await readActive();
+  if (active && !stale(active)) {
+    const hit = await checkedCopy(active, path);
+    if (hit) return hit;
+  }
+  const res = await fetch(request);
+  const want = builtHash(path);
+  if (res.ok && want && active && res.type === 'basic') {
+    const body = await res.clone().arrayBuffer();
+    if ((await sha256(body)) === want) {
+      try {
+        const cache = await caches.open(SHELL_PREFIX + active.commit);
+        await cache.put(path, new Response(body, { status: 200, statusText: 'OK', headers: res.headers }));
+      } catch {
+        /* full: served from the network as it came */
+      }
+    }
+  }
+  return res;
+};
+
+/** Any other file of this site: the network, then the copy when there's no network. */
+const other = async (request, path) => {
+  try {
+    return await fetch(request);
+  } catch (e) {
+    const copy = await fromCopy(path);
+    if (copy) return copy;
+    throw e;
+  }
+};
+
+/**
+ * Take over as soon as the old worker is idle, asked again every second until this worker is
+ * active (a minute at most). Chrome answers skipWaiting() by stopping the old worker once it is
+ * idle; but if an open page asks the old worker for a file just then, Chrome starts it again and
+ * no longer hurries it, so this worker would wait until that one idles out by itself (30 seconds
+ * or more; minutes with developer tools open). Meanwhile the old worker is still in charge of a
+ * copy it may no longer have. Asking again makes Chrome stop the restarted worker once it's idle.
+ * The kill switch (offline/sw-kill.js) does the same.
+ */
+let activated = false;
+const TAKE_OVER_TRIES = 60;
+const takeOver = () => {
+  let tries = 0;
+  const timer = setInterval(() => {
+    if (activated || ++tries > TAKE_OVER_TRIES) clearInterval(timer);
+    else void Promise.resolve(self.skipWaiting()).catch(() => undefined);
+  }, 1000);
+};
+
+self.addEventListener('install', (event) => {
+  self.skipWaiting();
+  takeOver();
+  event.waitUntil(checkForUpdate(true, true));
+});
+
+self.addEventListener('activate', (event) => {
+  activated = true;
+  event.waitUntil(
+    (async () => {
+      // The release this worker copied at install becomes the copy in use now, not before: until
+      // now the old worker was in charge, and it can serve only its own copy.
+      const ready = await takeReady();
+      if (ready) await switchTo(ready);
+      const active = await readActive();
+      for (const k of await caches.keys())
+        if (k.startsWith(SHELL_PREFIX) && (!active || k !== SHELL_PREFIX + active.commit)) await caches.delete(k);
+      await self.clients.claim();
+      if (ready) await tellRelease(ready.commit);
+    })(),
+  );
+});
+
+self.addEventListener('fetch', (event) => {
+  const req = event.request;
+  if (req.method !== 'GET') return;
+  const url = new URL(req.url);
+  if (url.origin !== self.location.origin) return;
+  // A request that asks not to be cached is a check of what the site serves now: never a copy.
+  if (req.cache === 'no-store' || req.cache === 'reload' || req.cache === 'no-cache') return;
+  // Part of a file (video, audio): the network's own answer, never a whole copy in its place.
+  if (req.headers && req.headers.has && req.headers.has('range')) return;
+  if (NEVER.some((re) => re.test(url.pathname))) return;
+  if (req.mode === 'navigate') return event.respondWith(navigate(event));
+  if (url.pathname.startsWith('/assets/')) return event.respondWith(asset(req, url.pathname));
+  event.respondWith(other(req, url.pathname));
+});
+
+self.addEventListener('message', (event) => {
+  if (event.origin && event.origin !== self.location.origin) return;
+  const type = isObject(event.data) ? event.data.type : undefined;
+  if (type === 'veilcore-check') event.waitUntil(checkForUpdate(true));
+  else if (type === 'veilcore-active')
+    event.waitUntil(
+      readActive().then((a) => event.source?.postMessage({ type: 'veilcore-active', commit: a ? a.commit : null, network: a ? a.network : null })),
+    );
+});
+
+// ---- Background Sync: the proof codes of records sealed with no signal ------------------------
+
+const openDb = () =>
+  new Promise((resolve, reject) => {
+    const req = indexedDB.open(DB_NAME, 1);
+    req.onupgradeneeded = () => req.result.createObjectStore(DB_STORE);
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+const dbDo = async (mode, fn) => {
+  const db = await openDb();
+  try {
+    return await new Promise((resolve, reject) => {
+      const tx = db.transaction(DB_STORE, mode);
+      const out = fn(tx.objectStore(DB_STORE));
+      tx.oncomplete = () => resolve(out?.result);
+      tx.onerror = () => reject(tx.error);
+    });
+  } finally {
+    db.close();
+  }
+};
+
+const ROW_ID = /^[A-Za-z0-9_.:-]{1,128}$/;
+/** The pages the holder key is never sent from (veilcore/holder-guard.ts PAUSED). */
+const PAUSED = /^\/(prove|verify)(\/|$)/;
+const HOLDER = /^[0-9a-f]{64}$/i;
+
+/** The open windows; throws if any is a check or prove page (SW-3). */
+const pausedCheck = async () => {
+  const open = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+  if (open.some((c) => PAUSED.test(new URL(c.url).pathname))) throw new Error('a check or prove page is open');
+  return open;
+};
+
+/** Send what the page left, when no page is open to do it. Throws so the browser tries again. */
+const sendQueued = async () => {
+  // Never while a check or prove page is open (CONTRACT.md #36, veilcore/holder-guard.ts): a
+  // request carrying the holder key then could join that page's key to the holder in a request
+  // log. Thrown, so the browser tries again later (security review of PR #145, SW-3).
+  const open = await pausedCheck();
+  // Open pages send too (their own sync); a tab the browser froze may not, so the worker sends
+  // regardless. Sending a dating row twice changes nothing: the registry answers it as dated.
+  for (const c of open) c.postMessage({ type: 'veilcore-send-now' });
+  if (!/^https?:\/\//.test(API_BASE)) return;
+  const q = await dbDo('readonly', (s) => s.get(DB_KEY));
+  if (!isObject(q) || !HOLDER.test(String(q.holderKey)) || !Array.isArray(q.rows)) return;
+  const rows = q.rows
+    .filter((r) => isObject(r) && ROW_ID.test(String(r.id)) && HEX64.test(String(r.recordFingerprint)))
+    .slice(0, 100)
+    .map((r) => ({ id: r.id, recordFingerprint: r.recordFingerprint, ...(HEX64.test(String(r.keyBinding)) ? { keyBinding: r.keyBinding } : {}) }));
+  if (rows.length === 0) return;
+  // And again just before sending: a check or prove page opened while the queue was read.
+  await pausedCheck();
+  const res = await fetch(`${API_BASE}/api/records/dating`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', 'x-holder-key': q.holderKey },
+    body: JSON.stringify(rows),
+    credentials: 'omit',
+  });
+  if (!res.ok) throw new Error(`the registry answered ${res.status}`);
+  const body = await res.json().catch(() => ({}));
+  const done = new Set([...(Array.isArray(body.dated) ? body.dated : []), ...(Array.isArray(body.rejected) ? body.rejected.map((r) => r && r.id) : [])]);
+  // Only what was answered is taken off; the page reads the registry at the next visit anyway.
+  // Read again inside the write: the page may have changed the list meanwhile.
+  await dbDo('readwrite', (s) => {
+    const get = s.get(DB_KEY);
+    get.onsuccess = () => {
+      const now = get.result;
+      if (!isObject(now) || !Array.isArray(now.rows)) return;
+      const left = now.rows.filter((r) => !(isObject(r) && done.has(r.id)));
+      if (left.length) s.put({ ...now, rows: left }, DB_KEY);
+      else s.delete(DB_KEY);
+    };
+  });
+};
+
+self.addEventListener('sync', (event) => {
+  if (event.tag === SYNC_TAG) event.waitUntil(sendQueued());
+});

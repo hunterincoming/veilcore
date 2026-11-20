@@ -27,6 +27,7 @@
  */
 import './globals';
 import { guardHolderRequests } from './veilcore/holder-guard';
+import { startOffline } from './offline/register';
 
 import React from 'react';
 import ReactDOM from 'react-dom/client';
@@ -50,6 +51,10 @@ import './fonts.css';
 // record app's words in it (i18n/app.tsx) on any page but the three that don't use them.
 // The check and prove pages never send the holder key (round 6, CONTRACT.md #36).
 guardHolderRequests(window);
+// The offline worker (docs/offline.md): registered on every page, so the app opens with no
+// signal. It never sends the holder key from a check or prove page: it sends nothing a page
+// doesn't leave for it (offline/sw.js, Background Sync).
+startOffline();
 const startLang = startingLanguage();
 const { pathname } = window.location;
 await Promise.all([

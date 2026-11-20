@@ -18,6 +18,33 @@ export const utcStamp = (t: number | string): string => {
   return `${iso.slice(0, 10)} ${iso.slice(11, 16)} UTC`;
 };
 
+/** "2020-01-01 14:03:12 UTC", to the second (a timestamp authority's time), or "an unknown time". */
+export const utcSeconds = (t: number | string): string => {
+  const d = parse(t);
+  if (!d) return 'an unknown time';
+  const iso = d.toISOString();
+  return `${iso.slice(0, 10)} ${iso.slice(11, 19)} UTC`;
+};
+
+/**
+ * To the second, for the person at this screen: their own time zone, named ("19 Nov 2026,
+ * 09:03:12 EST"), so it reads beside their device's clock. Check pages use utcSeconds.
+ */
+export const localSeconds = (t: number | string, locale?: string): string => {
+  const d = parse(t);
+  return d
+    ? d.toLocaleString(locale, {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        timeZoneName: 'short',
+      })
+    : 'an unknown time';
+};
+
 /** "2020-01-01 (UTC)", or "an unknown date" for a value that is not a date. */
 export const utcDate = (t: number | string): string => {
   const d = parse(t);

@@ -734,6 +734,9 @@ export const en = {
   'm.privacy.chain.title': 'What goes on Midnight, permanently',
   'm.privacy.chain.text':
     'Midnight is a public network: what goes there can’t be changed or removed by anyone, us included, and anyone can read it. Your genetics, your terms, your name and your files never go there. What does: the proof code of each batch of records; a record’s own key and its date stamp; a code made from a DNA report, when you date its pairing; which records are linked as parent and child, once both holders confirm (a link can’t be undone); that a record has a license, an obligation or a lender’s claim recorded on it, and when that changed; a lab’s public key when it signs a certificate there; a value you choose to prove exactly, in full; and, where this site lets a royalty be paid in NIGHT, the amount and the two addresses. Before each of these steps, the app shows a receipt listing exactly what that step makes public. A code or key on its own says nothing about you, but anyone you give a check link to can follow what happens to that record on the network from then on.',
+  'm.privacy.timestamps.title': 'Timestamps, and working with no signal',
+  'm.privacy.timestamps.text':
+    "When our server takes a record's proof code, it asks one or more timestamp authorities (independent services, some run by one person) for a timestamp on it, and on each batch. Each authority receives a code made from the proof code and the time it was asked, and can keep a log of them; since proof codes appear on check pages, an authority could match its log to a check link. Anyone with a check link can read, to the second, when our server took that record's proof code. For a record sealed with no signal, that is when your device next had signal. The page leads with the minute; the timestamp itself carries the second. To open with no signal, your browser keeps a copy of this site's own code, and, where it can send by itself (Chrome), the proof codes waiting to be sent and the key they are sent with. That copy is deleted when you start over or remove this site's data.",
   'm.privacy.helper.title': 'The helper, and its optional model',
   'm.privacy.helper.text':
     'Ask, the helper in the app, where this site offers it, works on your device. Nothing you type into it is sent anywhere; only the app’s own Save sends anything, and that goes to our server locked, as above. Where this site offers the optional language model, it is downloaded once from Hugging Face, a separate company: Hugging Face sees your IP address, the time, which model files, and that the request comes from this site; we see that a download started. The model runs on your device, in a part of the page that can’t reach the network, so nothing you type reaches Hugging Face or us, then or later. You can delete the model from the helper’s panel. Its “Do it for me” keeps a record of each job on your device only, never in a backup: the steps and how far they got, references to the records and agreements involved, and the figures you type for a report until it is sent; never what you typed to ask. It is deleted 7 days after the job ends. While a job waits for your approval, its new records are kept in your browser, locked, with their keys; a backup made meanwhile holds those keys too. Getting reports ready reads each of your agreements’ messages from our server, one after another, so our server can see that those agreements were read together; nothing is sent until you approve.',
@@ -780,6 +783,13 @@ export const en = {
   'm.checksite.noHeaders':
     'This release’s list has no security headers (it was made before they were listed), so they weren’t compared.',
   'm.checksite.extraScript': 'This page has a script the listed page doesn’t: {script}',
+  'm.checksite.workerOk':
+    'The part that lets VeilCore open with no signal (/sw.js) is sent so browsers always fetch it fresh, and keeps only files on this release’s list.',
+  'm.checksite.workerWrong':
+    'The part that lets VeilCore open with no signal isn’t as it should be ({path}). Don’t rely on it with no signal: clear this site’s data, reload, and tell us.',
+  'm.checksite.copyHere': 'This browser’s no-signal copy matches release {commit}.',
+  'm.checksite.copyOther':
+    'This browser’s no-signal copy is release {commit}, not the one checked here. It updates the next time a page loads with signal.',
   'm.checksite.limit': 'This shows what your browser received. It can’t prove the host sent everyone the same files.',
   'm.checksite.listLink': 'This release’s list in the public code',
   'm.checksite.useSite': 'Check against the list this site serves',

@@ -9,6 +9,9 @@ import FailIcon from '@mui/icons-material/HighlightOff';
 import ChevronIcon from '@mui/icons-material/ChevronRight';
 import { proofCodeSent, waitsToBeSent, type StrainRecord } from '../../veilcore/records';
 import { nextBatchRow, useAnchorCadence } from './dating-words';
+import { goesWords, instantLinesHere, sealedHereWords } from '../offline/offline-words';
+import { useInstantStamp } from '../../veilcore/instant-stamp';
+import { useOfflineState } from '../../offline/register';
 import { useStampRetries } from '../chain/useKeyStamp';
 import type { RecordKeys } from '../../veilcore/record-keys';
 import { REAL_CHAIN } from '../../veilcore/chain/config';
@@ -222,14 +225,21 @@ export const PlantStatus: React.FC<{
   // sealed, so until its batch it is "in the next batch", backup or not.
   const cadence = useAnchorCadence();
   const retry = useStampRetries()[record.id];
+  // Sealed with no signal (docs/offline.md): its proof code hasn't reached VeilCore, so it has no
+  // date at all yet. The line says when it was sealed by this device's own clock, and that the
+  // date comes when it is sent; never a date before then.
+  const sent = proofCodeSent(record.id) || !waitsToBeSent(record.id);
+  const { online } = useOfflineState();
+  // Its own timestamps, in seconds (veilcore/instant-stamp.ts), once its proof code is there.
+  const instant = useInstantStamp(sent && !received ? record.recordFingerprint : undefined);
   const dated = recordDateRow(
     proof,
     anchor,
     tr,
-    proofCodeSent(record.id) || !waitsToBeSent(record.id)
-      ? nextBatchRow(tr, cadence)
-      : { value: t('app.plant.notSentYet') },
+    sent ? nextBatchRow(tr, cadence) : { value: sealedHereWords(record.loggedAt, tr) },
   );
+  const anchoredNow = proof !== 'checking' && proof.status === 'anchor-reported';
+  const instantSub = instantLinesHere(instant, anchoredNow, tr).join(' ');
   // One plain line for the record's date (fresh-eyes review, 12 Nov): "waiting: …" until its
   // batch has a date, "dated …" once it has. The words around the value only; what the value
   // says comes from recordDateRow as before.
@@ -242,7 +252,7 @@ export const PlantStatus: React.FC<{
     return at && !Number.isNaN(Date.parse(at)) ? at : undefined;
   })();
   const datedValue =
-    proof === 'checking' || dated.mark === 'failed'
+    proof === 'checking' || dated.mark === 'failed' || !sent
       ? dated.value
       : proof.status === 'pending'
         ? t('app.plant.date.inBatch')
@@ -286,7 +296,13 @@ export const PlantStatus: React.FC<{
             ...batch,
             id: 'Record dated',
             label: t('app.plant.recordDate'),
-            ...(dated.sub ? { sub: dated.sub } : {}),
+            ...(!sent && !online
+              ? { sub: goesWords(tr) }
+              : instantSub
+                ? { sub: instantSub }
+                : dated.sub
+                  ? { sub: dated.sub }
+                  : {}),
           },
           ...(REAL_CHAIN ? [{ ...holdRow(keys), id: 'Proof you hold it', label: t('app.plant.holdProof') }] : []),
           // Under the dates: a date shows a description existed; the DNA report is what ties

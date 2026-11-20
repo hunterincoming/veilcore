@@ -11,3 +11,5 @@ export { NetworkBadge } from './components/veilcore/WalletBadge';
 export { RoleChangeLink } from './components/RoleChangeLink';
 // Records saved with VeilCore: saved by themselves, and the first-run sheet (easy mode step 2).
 export { AccountKeeper } from './components/flow/KeepSafe';
+// No signal, or a newer version ready (docs/offline.md).
+export { OfflineBar } from './components/offline/OfflineBar';

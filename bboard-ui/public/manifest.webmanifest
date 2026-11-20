@@ -1,0 +1,15 @@
+{
+  "name": "VeilCore",
+  "short_name": "VeilCore",
+  "description": "Dated, private records for plant, animal and microbial genetics. Opens and seals with no signal; a record is dated when it is sent.",
+  "id": "/records",
+  "start_url": "/records",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#F6F3EC",
+  "theme_color": "#F6F3EC",
+  "icons": [
+    { "src": "/icon.png", "sizes": "384x384", "type": "image/png", "purpose": "any" },
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}
