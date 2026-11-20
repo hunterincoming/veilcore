@@ -124,10 +124,48 @@ and **503** with codes when something does:
 - `anchoring-failing`: three stamping runs in a row failed.
 - `sync-stalled`: the wallet sync has made no progress for 30 minutes.
 - `not-synced`: still not synced three hours after starting.
-- `fuel-low`: under `ALERT_DUST_LOW_DUST` DUST left (default 50, ten stamps at the default cap).
-  The wallet holds no NIGHT of its own, so its DUST doesn't refill: top it up before this fires.
+- `fuel-low`: under `ALERT_DUST_LOW_DUST` DUST left (default 50, ten stamps at the default cap),
+  or under `ALERT_FUEL_RUNWAY_DAYS` days left (default 7) at the rate the balance has been
+  falling. With `fuel-low`, the answer also says `fuelRunwayDays` (whole days) once the sponsor
+  has six hours of readings since it started. No figure means DUST isn't falling, or there
+  aren't enough readings yet. The operator's `/sponsor/status` always shows `fuelRunwayDays`
+  (`null` in those two cases).
+- `fork-mismatch`: the wallet, midnight-js and the chain don't agree which side of Midnight's
+  Ledger 9 fork the network is on (step 8.6). Fees would be built for the wrong ledger.
 
 Codes only: no balances, no error text, no token.
+
+**Where the sponsor's DUST comes from (corrected 19 Nov 2026).** This step used to say the
+wallet "holds no NIGHT of its own, so its DUST doesn't refill". That was wrong, and it
+contradicted step 2. What is true:
+
+- The sponsor wallet holds NIGHT. It got about 100 NIGHT when it was set up (step 2). When the
+  sponsor moved to a new wallet on 24 Oct, its NIGHT went to the new wallet and DUST
+  generation was started there.
+- In the 1AM app, a wallet's NIGHT makes DUST for its own DUST address all the time, up to a
+  cap set by how much NIGHT it holds. So the sponsor's DUST refills by itself while the NIGHT
+  stays in that wallet.
+- The sponsor's code never moves NIGHT and never changes DUST settings. It only reads the DUST
+  balance (`sponsor/src/wallet.ts`, `dustBalance`) and spends DUST on fees.
+- Not checked from here: how much NIGHT the wallet holds today, and how fast it makes DUST.
+  Only the 1AM app shows those.
+
+So `fuel-low` means either fees are using DUST faster than the NIGHT makes it, or the DUST
+isn't being made. The second happened on 31 Oct: the service ran an old wallet that had no
+DUST. What to do:
+
+1. With the operator token, open `/sponsor/status` (the command in step 6). Check
+   `dustBalanceSpecks` and `fuelRunwayDays`. Check the DUST address in the deploy log
+   (`sponsor wallet`) is the sponsor wallet's DUST address in the 1AM app.
+2. In the 1AM app, check the sponsor wallet still holds its NIGHT and shows DUST.
+3. If the addresses match and DUST is being made but the runway is short, the sponsor is
+   spending faster than its NIGHT refills. There are two fixes. One: lower `DAILY_BUDGET_DUST`.
+   Two: send the wallet more NIGHT from the 1AM app, keeping to what you'd accept losing (the
+   top of this page). More NIGHT should make more DUST a day. Not checked from here: whether
+   the app starts generating on the added NIGHT by itself. Look in the app, and watch
+   `fuelRunwayDays` over the next day.
+4. Never re-register NIGHT or change DUST settings on the main 1AM wallet, and never put a
+   retired sponsor seed back.
 
 1. Make a free account at uptimerobot.com (free plan: checks every 5 minutes, any use).
 2. **Add New Monitor → HTTP(s)**. URL: `https://veilcore-sponsor-mainnet-production.up.railway.app/sponsor/alerts`.
