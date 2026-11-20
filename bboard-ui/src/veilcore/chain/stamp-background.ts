@@ -60,6 +60,8 @@ export const stampRetryTick = async (): Promise<void> => {
   // Dating paused (DATING_PAUSED): nothing is tried, so no record runs out of retries meanwhile.
   if (busy || stampInProgress() || holderRequestsPaused() || DATING_PAUSED) return;
   if (typeof document !== 'undefined' && document.visibilityState !== 'visible') return;
+  // No signal (docs/offline.md): nothing is tried, so no record runs out of retries meanwhile.
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) return;
   for (const id of Object.keys(stampRetries())) if (keysFor(id)?.anchor) clearStampRetry(id);
   const next = dueStamps()[0];
   if (!next) return;
@@ -81,4 +83,6 @@ export const startStampRetries = (): void => {
   if (timer !== undefined || typeof window === 'undefined' || !REAL_CHAIN || chainNotReady()) return;
   timer = setInterval(() => void stampRetryTick(), 30_000);
   window.setTimeout(() => void stampRetryTick(), 5_000);
+  // Signal back: the most overdue stamp is tried now, not at the next tick.
+  window.addEventListener('online', () => window.setTimeout(() => void stampRetryTick(), 2_000));
 };

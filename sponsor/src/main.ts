@@ -16,7 +16,8 @@ import {
 } from "./config.js";
 import { paysForAgreements } from "./policy.js";
 import { FacadeWallet } from "./wallet.js";
-import { alertsOf, SYNC_GRACE_MS } from "./alerts.js";
+import { alertReport, SYNC_GRACE_MS } from "./alerts.js";
+import { FuelGauge } from "./fuel.js";
 import { ProofOfWork } from "./pow.js";
 import {
   DailyBudget,
@@ -186,6 +187,7 @@ const main = async (): Promise<void> => {
     now,
   );
 
+  const fuel = new FuelGauge(now);
   let anchorer: Anchorer | undefined;
   let sealer: Sealer | undefined;
   let anchorerNote = cfg.anchorer.enabled ? "" : `off: ${cfg.anchorer.why}`;
@@ -306,6 +308,9 @@ const main = async (): Promise<void> => {
         ...(cfg.claimsAddress ? { claimsAddress: cfg.claimsAddress } : {}),
         // True while the wallet sync has applied nothing for 30 minutes (wallet.ts checkStall).
         syncStalled: wallet.syncStalled(),
+        // Operator only: days of DUST left at the rate it has been falling (fuel.ts); null when
+        // it isn't falling or there aren't six hours of readings yet.
+        ...(detail ? { fuelRunwayDays: fuel.runwayDays() ?? null } : {}),
         // Which side of Midnight's Ledger 9 fork, and whether wallet, midnight-js and chain agree (fork.ts).
         fork: { protocolVersion: fork.protocolVersion, ledger: fork.walletEra, agree: fork.agree },
         sealer: sealer
@@ -319,9 +324,10 @@ const main = async (): Promise<void> => {
             ? { enabled: false, note: anchorerNote }
             : { enabled: false },
       }),
-      // For an outside monitor (alerts.ts): stamping failing, sync stuck, or fuel low.
+      // For an outside monitor (alerts.ts): stamping failing, sync stuck, or fuel low (with
+      // the days left at the rate it has been going, fuel.ts).
       alerts: () =>
-        alertsOf({
+        alertReport({
           forkMismatch: !fork.agree,
           anchoringFailing: anchorer
             ? anchorer.publicStatus().alert
@@ -333,6 +339,8 @@ const main = async (): Promise<void> => {
           syncGraceMs: SYNC_GRACE_MS,
           dustSpecks: wallet.isSynced() ? wallet.dustBalance() : undefined,
           dustLowSpecks: cfg.alertDustLowSpecks,
+          fuelRunwayDays: fuel.runwayDays(),
+          fuelLowRunwayDays: cfg.alertFuelRunwayDays,
         }),
       statusToken: cfg.statusToken || undefined,
       allowedOrigins: cfg.allowedOrigins,
@@ -350,6 +358,17 @@ const main = async (): Promise<void> => {
   log("info", "listening", { port: cfg.port });
 
   setInterval(() => limits.sweep(), MINUTE).unref();
+  // The DUST balance every ten minutes, for the runway in /sponsor/alerts (fuel.ts). Reads
+  // only what the wallet already reports.
+  const noteFuel = () => {
+    try {
+      fuel.note(wallet.isSynced() ? wallet.dustBalance() : undefined);
+    } catch {
+      // a reading missed; the next one is ten minutes away
+    }
+  };
+  setInterval(noteFuel, 10 * MINUTE).unref();
+  setTimeout(noteFuel, MINUTE).unref();
   // The fork check again every ten minutes: a network can fork while this runs (preprod).
   setInterval(
     () =>

@@ -338,6 +338,30 @@ test('in Japanese at 360px the way in shows on the first screen, above the hero 
   expectNoErrors(errors);
 });
 
+// The live test of step 2 (19 Nov 2026): a first visit on a new laptop had no way back to records
+// made on a phone from the front page. It sits beside "Make a record", in every language.
+test('a first visit offers the way back to records made on another device, next to Make a record', async ({ page }) => {
+  const errors = watch(page);
+  await isolate(page);
+  await page.goto('/');
+  const back = page.locator('[data-restore-entry="hero"]');
+  await expect(back).toHaveText('Get my records back →');
+  await expect(page.locator('.hero-restore')).toContainText('Used VeilCore on another device?');
+  await back.click();
+  await expect(page).toHaveURL(/\/restore$/);
+  for (const [lang, words] of [
+    ['de', 'Meine Datensätze zurückholen →'],
+    ['es', 'Recuperar mis registros →'],
+    ['fr', 'Récupérer mes enregistrements →'],
+    ['ja', '記録を取り戻す →'],
+  ] as const) {
+    await page.evaluate((l) => localStorage.setItem('veilcore.lang', l), lang);
+    await page.goto('/');
+    await expect(page.locator('[data-restore-entry="hero"]')).toHaveText(words);
+  }
+  expectNoErrors(errors);
+});
+
 // Fresh-eyes review, 12 Nov (problem 4): a lab that made its key and saved a checked backup
 // on /backup before its first code was still stopped at "Save a backup and check it first",
 // because the key that locks its records was only made when the code was used, after that

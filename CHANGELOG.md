@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Works with no signal, dated in seconds (19 Nov 2026, not deployed yet)
+
+- veilcore.org opens and seals records with no internet. An offline worker (`/sw.js`) keeps a
+  copy of the app, checked file by file against the release list; one copy per release, pages
+  always from the network first. A record sealed with no signal says "Sealed on this phone at
+  05:02 (your phone's clock). Dated when it's sent." and is sent by itself when signal is back
+  (Background Sync on Chrome; on iPhone, the next time VeilCore is opened). Proving and the key
+  date stamp wait for signal without spending a try.
+- A record's own RFC 3161 timestamp in seconds, from each timestamp authority the registry
+  uses: "Timestamped 14:03:12 by freetsa.org — Midnight date follows in the next batch", checked
+  in the browser, one fact per authority on the check page. Needs the registry's
+  `record-timestamp-v1` (deploy the registry first).
+- "Use VeilCore with no signal" on Home: add to the Home Screen, with the iPhone's separate
+  storage said up front.
+- The kill switch: a build with `VITE_OFFLINE=off` replaces the worker with one that removes
+  itself and every copy. `/check-this-site` and `npm run check:site` check the worker. See
+  `docs/offline.md`.
+
 ### Japanese, Spanish, German and French switched on (19 Nov 2026, not deployed yet)
 
 - The four translations are published: a visitor whose browser or phone asks for one of them

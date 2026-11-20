@@ -26,7 +26,7 @@ export const account = {
   'app.account.saved.title': '保存しました。',
   'app.account.saved.text': '記録はVeilCoreに保存されました。新しい記録も自動で保存されます。',
   'app.account.saved.bound':
-    'VeilCoreに保存しましたが、このパスキーはこの端末にしかありません。端末をなくすとパスキーも失われます。念のため、自分で保管するコピーをダウンロードしてください。',
+    '保存済みの記録を開けるのはこの端末だけです。端末をなくしたり、買い替えたり、初期化したりしたときは、復旧シートが必要です。',
   'app.account.saved.download': 'コピーをダウンロード',
   'app.account.saved.done': '完了',
 
@@ -38,13 +38,13 @@ export const account = {
   'app.account.line.missing': '<b>VeilCoreに保存した記録がサーバーにありません。</b>もう一度保存してください。',
   'app.account.line.saveAgain': 'もう一度保存',
   'app.account.line.slotMissing':
-    '<b>保存した記録を開く方法の一つが、VeilCoreのサーバーから消えています。</b>もう一度設定してください。',
+    '<b>保存した記録を開く方法の一つが、VeilCoreのサーバーから消えたか、変わっています。</b>もう一度設定してください。',
   'app.account.line.serverOlder':
     '<b>VeilCoreのサーバーに問題があるようです。</b>この端末の記録は無事で、何も変更していません。念のためコピーをダウンロードしてください。',
   'app.account.line.failing': '<b>アカウントに保存できませんでした。</b>{why}自動でもう一度試します。',
   'app.account.line.tryNow': '今すぐ試す',
   'app.account.line.bound':
-    '<b>VeilCoreに保存しましたが、開けるのはこの端末だけです。</b>自分で保管するコピーをダウンロードしてください。',
+    '<b>保存済みの記録を開けるのはこの端末だけです。</b>端末を失っても取り戻せるよう、復旧シートを作ってください。',
   'app.account.line.download': 'コピーをダウンロード',
   'app.account.line.deviceOnly.other':
     '<b>書類{count}件がこの端末にしかありません。</b>安全のためコピーをダウンロードしてください。',
@@ -95,7 +95,7 @@ export const account = {
   'app.settings.devices.here': '{device}（この端末）・最後の保存：{date}',
   'app.settings.stop': 'VeilCoreへの保存をやめる',
   'app.settings.stopConfirm':
-    'VeilCoreに保存した記録を削除しますか？この端末には記録が残ります。ほかの端末は保存しなくなり、最初にもう一度保存した端末が新しいコピーを作ります。パスキーはスマートフォンの設定に残ります。',
+    'VeilCoreに保存した記録を削除しますか？この端末には記録が残ります。ほかの端末は保存しなくなり、最初にもう一度保存した端末が新しいコピーを作ります。復旧シートは使えなくなります。パスキーはスマートフォンの設定に残ります。',
   'app.settings.stopped': '削除しました。記録はこの端末に残っています。',
   'app.settings.file.title': 'コピーをダウンロード',
   'app.settings.file.text':
@@ -119,4 +119,12 @@ export const account = {
     'パスキーが端末で使えない場合は、<link>このブラウザのパスキー対応を確認</link>してください。',
   'app.account.sheet.passkeyCheck':
     'これが続く場合は、<link>このブラウザのパスキー対応を確認</link>してください。このブラウザと端末でできることを表示し、何も送信しません。',
+  // The way in, as a fragment after “with” (Home's first card, the live test on Windows).
+  'app.account.how.faceId': 'Face ID',
+  'app.account.how.touchId': 'Touch ID',
+  'app.account.how.screenLock': '端末のPIN・パターン・パスワード',
+  'app.account.how.windowsHello': 'Windows Hello',
+  'app.account.how.passkey': 'パスキー',
+  'app.account.line.off':
+    '<b>VeilCoreへの保存はオフです。</b>保存したコピーは削除されました。ほかの端末で「VeilCoreへの保存をやめる」を選んだのかもしれません。',
 } satisfies Partial<AppTranslation>;

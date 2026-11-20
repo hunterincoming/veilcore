@@ -18,6 +18,7 @@ import {
 } from '../../veilcore/chain/key-stamp';
 import { holdStamp } from '../../veilcore/chain/stamp-background';
 import { DATING_PAUSED } from '../../veilcore/chain/paused';
+import { useOfflineState } from '../../offline/register';
 
 export type KeyStampState = {
   readonly busy: boolean;
@@ -31,6 +32,8 @@ export type KeyStampState = {
   /** How many tries this screen makes by itself in all. */
   readonly quickTries: number;
   readonly run: () => Promise<void>;
+  /** No signal now: the stamp waits for it (docs/offline.md). */
+  readonly offline: boolean;
   readonly tryNow: () => Promise<void>;
   /** Dating on Midnight is paused (DATING_PAUSED): nothing is tried; the screen says why. */
   readonly paused: boolean;
@@ -59,6 +62,9 @@ export const useKeyStamp = (recordId: string, opts: { auto: boolean }): KeyStamp
 
   const run = useCallback(async () => {
     if (running.current || DATING_PAUSED) return;
+    // No signal (docs/offline.md): proving needs the network, so it waits, without spending a
+    // try, and starts by itself when signal is back (below).
+    if (typeof navigator !== 'undefined' && navigator.onLine === false) return;
     running.current = true;
     setBusy(true);
     setError(undefined);
@@ -105,7 +111,16 @@ export const useKeyStamp = (recordId: string, opts: { auto: boolean }): KeyStamp
     };
   }, [autoNext, run]);
 
+  // Signal back: a stamp that waited for it starts now.
+  const { online } = useOfflineState();
+  const wasOffline = useRef(!online);
+  useEffect(() => {
+    if (online && wasOffline.current && opts.auto && !entry?.stopped) void run();
+    wasOffline.current = !online;
+  }, [online, opts.auto, entry?.stopped, run]);
+
   return {
+    offline: !online,
     busy,
     progress,
     error: error ?? (entry && !busy ? entry.lastError : undefined),

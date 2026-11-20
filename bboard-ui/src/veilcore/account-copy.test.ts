@@ -208,6 +208,23 @@ describe('S1 and S4: the marks go when the copy or its way in does', () => {
     expect(s.kind === 'saved' && s.problem).toBe('missing');
   });
 
+  it('a copy gone at the registry is not tried again by itself, on every visit; "Save again" is the way on', async () => {
+    const m = await load();
+    withRecords(m, ['R-1']);
+    await m.ac.setUpAccount();
+    reg.copies.clear();
+    reg.slots.clear();
+    await m.ac.checkAccount();
+    const before = reg.calls.length;
+    // Something new to save, and the background's own tries: nothing goes to the registry.
+    m.rk.ensureKeys('R-2');
+    expect(await m.ac.syncNow()).toBeUndefined();
+    expect(await m.ac.syncNow()).toBeUndefined();
+    expect(reg.calls.slice(before)).toEqual([]);
+    const s = m.ac.accountState();
+    expect(s.kind === 'saved' && s.problem).toBe('missing');
+  });
+
   it('"Save again" after the registry dropped the copy uses the same passkey, and counts again', async () => {
     const m = await load();
     withRecords(m, ['R-1']);
