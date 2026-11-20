@@ -27,7 +27,7 @@ import { useVaultNeedsBackup } from '../veilcore/vault';
 import { useRecordT } from '../i18n/app';
 import { enT } from '../i18n/translate';
 import { SupportDetails } from './SupportDetails';
-import { sealedHereWords } from './offline/offline-words';
+import { goesWords, sealedHereWords } from './offline/offline-words';
 import { useOfflineState } from '../offline/register';
 
 export const RecordSaveNotices: React.FC<{ record: StrainRecord; onShare?: () => void }> = ({ record, onShare }) => {
@@ -118,7 +118,7 @@ export const RecordSaveNotices: React.FC<{ record: StrainRecord; onShare?: () =>
           {!proofCodeSent(record.id) && record.loggedAt > 0 && (
             <Typography variant="body2" sx={{ mb: 0.75, fontWeight: 700 }} data-sealed-here="">
               {sealedHereWords(record.loggedAt, tr)}
-              {!online && ` ${t('app.offline.goesBySelf')}`}
+              {!online && ` ${goesWords(tr)}`}
             </Typography>
           )}
           {t(`app.sealed.unsaved.${unsaved}`)}

@@ -79,6 +79,13 @@ export const forgetHolderKey = (): void => {
   } catch {
     /* nothing stored */
   }
+  // The offline worker's copy of the key, kept beside the proof codes it may send by itself
+  // (offline/dating-mirror.ts): forgotten with it, so nothing is sent under a forgotten key.
+  try {
+    indexedDB.deleteDatabase('veilcore-offline');
+  } catch {
+    /* none here */
+  }
 };
 
 /**

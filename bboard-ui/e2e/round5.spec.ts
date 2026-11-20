@@ -17,6 +17,7 @@ import { REAL_REGISTRY, expectNoErrors, isolate, json, watch } from './helpers';
 import { buildFacts, writeRelease } from '../../scripts/release-manifest.mjs';
 import { downloadWorkerCsp, engineWorkerCsp, modelWorkerRouteSrc } from '../../scripts/ask-model-csp.mjs';
 import { checkSite } from '../../scripts/check-site.mjs';
+import { SW_CACHE_CONTROL, SW_PATH } from '../../scripts/release-check.mjs';
 
 const RECORD = `VEIL-${'5E'.repeat(16)}`;
 const FP = '3f'.repeat(32);
@@ -127,11 +128,12 @@ test.describe('the check page, round 5', () => {
 /**
  * A folder served as Vercel serves the site: a file if there is one, else the app's page. Ask's
  * model workers (in this e2e build, VITE_ASK_MODEL=test) get their own policy, as
- * scripts/vercel-config.mjs routes them, from the model pins given (`workerPolicies`).
+ * scripts/vercel-config.mjs routes them, from the model pins given (`workerPolicies`), and the
+ * offline worker its no-cache header (`swCacheControl`, on unless turned off).
  */
 const serve = (
   dir: string,
-  opts: { workerPolicies?: { pins: unknown; on: () => boolean } } = {},
+  opts: { workerPolicies?: { pins: unknown; on: () => boolean }; swCacheControl?: () => boolean } = {},
 ): Promise<{ server: Server; url: string }> =>
   new Promise((ok) => {
     const server = createServer((req, res) => {
@@ -163,6 +165,7 @@ const serve = (
           .writeHead(200, {
             'content-type': isFile ? type : 'text/html',
             ...(workerCsp ? { 'content-security-policy': workerCsp } : {}),
+            ...(path === SW_PATH && (opts.swCacheControl?.() ?? true) ? { 'cache-control': SW_CACHE_CONTROL } : {}),
           })
           .end(readFileSync(isFile ? file : join(dir, 'index.html')));
       } catch {
@@ -181,6 +184,7 @@ test.describe('check this site (CONTRACT.md #31)', () => {
   let repo = '';
   let site: { server: Server; url: string } | undefined;
   let workerPoliciesOn = true;
+  let swNoCache = true;
 
   test.beforeAll(async () => {
     // This build, copied, with a release manifest written as a deploy writes one.
@@ -204,7 +208,7 @@ test.describe('check this site (CONTRACT.md #31)', () => {
     mkdirSync(pinsAt, { recursive: true });
     cpSync(join(process.cwd(), 'src/ask-local/model-manifest.stub.json'), join(pinsAt, 'model-manifest.json'));
     const pins = JSON.parse(readFileSync(join(pinsAt, 'model-manifest.json'), 'utf8')) as unknown;
-    site = await serve(dir, { workerPolicies: { pins, on: () => workerPoliciesOn } });
+    site = await serve(dir, { workerPolicies: { pins, on: () => workerPoliciesOn }, swCacheControl: () => swNoCache });
   });
   test.afterAll(() => {
     site?.server.close();
@@ -217,6 +221,16 @@ test.describe('check this site (CONTRACT.md #31)', () => {
     expect(r.code, r.lines.join('\n')).toBe(0);
     expect(r.lines.join('\n')).toMatch(/^All \d+ files match the release’s published list\.$/m);
     expect(r.lines).toContain("Ask's model workers: 2 files, each with exactly its own security policy.");
+    expect(r.lines).toContain('Offline worker: served no-cache, and keeps only files the release list hashes.');
+    // The offline worker served so browsers may keep it (a routing mistake): found (docs/offline.md).
+    swNoCache = false;
+    try {
+      r = await checkSite(site!.url, { repoRoot: repo });
+      expect(r.code).toBe(1);
+      expect(r.lines.join('\n')).toMatch(/offline worker: \/sw\.js: not served with Cache-Control/);
+    } finally {
+      swNoCache = true;
+    }
     // Served without their own policy (a routing mistake): found.
     workerPoliciesOn = false;
     try {

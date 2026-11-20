@@ -8,8 +8,11 @@
 //     (veilcore-records verifyTimestampToken: imprint, signature, time-stamping key usage); a
 //     token that doesn't check is dropped, never shown;
 //   - takes the time from the token itself, not from the registry's answer;
-//   - names the TSA by the address the registry says it asked (its host), as the authority
-//     pack names a batch's TSA. Who issued the TSA's certificate is not checked here.
+//   - names the TSA by the name in the certificate that signed the token (its CN), never by
+//     what the registry says it asked (security review, 19 Nov 2026: a registry could sign a
+//     token with a certificate of its own making and label it with any TSA's address). Who
+//     issued that certificate is not checked here, so every line says the name is the key's own,
+//     as a lab key's name is said ("a key named …, name not checked").
 // What a token shows: the proof code existed by that time, nothing earlier. The Midnight date
 // still comes with the record's batch.
 //
@@ -24,7 +27,7 @@ const BASE = import.meta.env.VITE_API_BASE ?? '';
 const HEX64 = /^[0-9a-f]{64}$/;
 
 export type InstantToken = {
-  /** The TSA's host, as the registry names the address it asked. */
+  /** The name in the signing certificate (its CN, or the whole subject): the key's own word. */
   readonly tsa: string;
   /** The time the token states (RFC 3339, UTC), read from the checked token. */
   readonly at: string;
@@ -36,12 +39,16 @@ export type InstantState =
   | { readonly status: 'asking' }
   | { readonly status: 'stamped'; readonly tokens: readonly InstantToken[]; readonly stillAsking: boolean };
 
-const hostOf = (u: string): string => {
-  try {
-    return new URL(u).host;
-  } catch {
-    return '';
-  }
+/** "CN=www.freetsa.org, O=…" → "www.freetsa.org"; the subject as given when it has no CN. */
+export const signerName = (subject: string | undefined): string => {
+  if (!subject) return '';
+  const cn = /(?:^|[,/]\s*)CN=([^,/]+)/.exec(subject);
+  const name = (cn ? cn[1] : subject).trim();
+  // Shown as text only; kept short and free of control characters.
+  return [...name]
+    .filter((ch) => ch.charCodeAt(0) >= 0x20 && ch.charCodeAt(0) !== 0x7f)
+    .join('')
+    .slice(0, 80);
 };
 
 const bytesOf = (h: string): Uint8Array => Uint8Array.from(h.match(/../g) ?? [], (x) => parseInt(x, 16));
@@ -73,7 +80,7 @@ export const instantStampFor = async (commitment?: string, fetchImpl: typeof fet
       if (!der) continue;
       const v = await verifyTimestampToken(der, stamped);
       if (!v.ok || !v.genTime) continue;
-      const tsa = hostOf(t.tsa);
+      const tsa = signerName(v.signerSubject);
       if (!tsa || tokens.some((x) => x.tsa === tsa)) continue;
       const q = isObject(t.qualified) && isString(t.qualified.scheme) ? t.qualified.scheme : undefined;
       tokens.push({ tsa, at: v.genTime, ...(q ? { qualified: q } : {}) });

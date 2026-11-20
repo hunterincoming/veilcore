@@ -20,11 +20,16 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(
     (async () => {
       for (const k of await caches.keys()) if (k.startsWith('veilcore-')) await caches.delete(k);
-      try {
-        indexedDB.deleteDatabase('veilcore-offline');
-      } catch {
-        /* nothing kept */
-      }
+      // Awaited; "blocked" (a page still has it open) is settled by that page, which in a
+      // kill-switch build deletes it too (src/offline/register.ts).
+      await new Promise((resolve) => {
+        try {
+          const req = indexedDB.deleteDatabase('veilcore-offline');
+          req.onsuccess = req.onerror = req.onblocked = () => resolve(undefined);
+        } catch {
+          resolve(undefined);
+        }
+      });
       await self.registration.unregister();
       for (const c of await self.clients.matchAll({ type: 'window' })) {
         try {

@@ -403,7 +403,8 @@ test('opens and seals with no signal; sent and timestamped by itself when signal
   await expect(here).toBeVisible({ timeout: 60_000 });
   // The phone's own clock, said as such, and the date only when sent: never a date before.
   await expect(here).toContainText(/Sealed on this phone at .+ \(your phone’s clock\)\. Dated when it’s sent\./);
-  await expect(here).toContainText(/No signal now\. It goes by itself when you’re back online/);
+  // Chromium has Background Sync: the proof code goes by itself.
+  await expect(here).toContainText(/Its proof code goes by itself when you’re back online\./);
   await expect(page.locator('[data-record-dated-next]')).toHaveCount(0);
   expect(reg.dating, 'nothing sent with no signal').toEqual([]);
   await shot(page, 'offline-sealed');
@@ -418,7 +419,8 @@ test('opens and seals with no signal; sent and timestamped by itself when signal
   await expect(page.locator('[data-offline-bar]')).toHaveCount(0);
   const line = page.locator('[data-record-dated-next]').first();
   await expect(line).toContainText(
-    /Timestamped \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2} UTC by tsa\.e2e\.example — Midnight date follows in the next batch\./,
+    // In the person's own time zone, to the second; the name is the signing key's own (its certificate's).
+    /Timestamped .+\d{2}:\d{2}:\d{2}.* by E2E TSA \(as its key names it\) — the date on Midnight, the blockchain, follows in the next batch\./,
     { timeout: 30_000 },
   );
   await shot(page, 'online-timestamped');
@@ -431,7 +433,12 @@ test('opens and seals with no signal; sent and timestamped by itself when signal
   // The check page shows the timestamp as its own fact, checked here.
   const fp = sent[0].recordFingerprint;
   await page.goto(`${site.origin}/verify/${sent[0].id}?fp=${fp}`);
-  await expect(page.locator('[data-instant-stamp]')).toContainText(/Timestamped .+ by tsa\.e2e\.example/);
+  await expect(page.locator('[data-instant-stamp]')).toContainText(
+    /Timestamped \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2} UTC by E2E TSA/,
+  );
+  // Its own fact in "What each fact rests on": signed, checked here, the name the key's own.
+  await page.locator('[data-see-checks]').click();
+  await expect(page.locator('[data-instant-fact="E2E TSA"]')).toContainText(/a key named E2E TSA \(name not checked\)/);
   await shot(page, 'check-page-timestamp');
 
   expect(violations).toEqual([]);

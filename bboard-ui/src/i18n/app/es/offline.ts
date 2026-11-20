@@ -8,34 +8,37 @@ export const offline = {
   'app.offline.sealedHere.computer':
     'Sellado en esta computadora a las {time} (según el reloj de su computadora). Se fecha cuando se envía.',
   'app.offline.short': 'Sellado {time}, se fecha al enviarse',
-  'app.offline.goesBySelf':
-    'Ahora no hay señal. Se envía solo cuando vuelva a tener conexión, y se fecha en ese momento.',
+  'app.offline.goesBySelf': 'Su código de prueba se envía solo cuando vuelva a tener conexión.',
   'app.offline.bar':
-    'Sin señal. Puede seguir creando y sellando registros aquí; cada uno se fecha cuando se envía. Comprobar, compartir y los sellos de fecha esperan hasta que vuelva a tener conexión.',
-  'app.offline.updated': 'Hay una versión más nueva de VeilCore lista.',
+    'Sin señal. Puede seguir creando y sellando registros; cada uno recibe su fecha una vez enviado. Comprobar, compartir, las entregas a laboratorios y los sellos de fecha de claves esperan a que haya señal.',
+  'app.offline.updated':
+    'Hay una versión más nueva de VeilCore lista. Vuelva a cargar entre un registro y otro; no se pierde nada sellado.',
   'app.offline.reload': 'Volver a cargar',
-  'app.offline.stampWaits':
-    'Sin señal. El sello de fecha de la clave espera y empieza solo cuando vuelva a tener conexión.',
+  'app.offline.stampWaits': 'El sello de fecha de su clave espera y empieza solo cuando vuelva a tener conexión.',
 
   'app.install.title': 'Usar VeilCore sin señal',
   'app.install.text':
-    'Agregue VeilCore a su pantalla de inicio. Así se abre sin señal: puede crear y sellar registros, y cada uno se fecha cuando vuelva a tener conexión.',
+    'Agregue VeilCore a su pantalla de inicio. Así se abre sin señal: puede crear y sellar registros, y cada uno recibe su fecha una vez enviado.',
   'app.install.button': 'Agregar a la pantalla de inicio',
   'app.install.iosSteps': 'En iPhone o iPad: en Safari, toque Compartir y luego “Agregar a inicio”.',
   'app.install.iosEmpty':
-    'La app de la pantalla de inicio guarda sus datos aparte de Safari, así que se abre vacía. Ábrala una vez con señal y recupere allí sus registros (Face ID o su archivo de copia de seguridad). Antes, deje que se envíe lo que todavía espera en Safari.',
+    'Primero, con señal, deje que se envíe lo que espera en Safari. El ícono de la pantalla de inicio guarda sus datos aparte, así que se abre vacío; sus registros siguen a salvo en Safari. Abra el ícono con señal y recupérelos allí con Face ID o su archivo de copia de seguridad. Desde entonces, use el ícono: los registros creados en Safari no aparecen allí.',
   'app.install.iosKeep':
-    'En la pantalla de inicio, VeilCore no se borra como Safari borra los sitios que no abrió en 7 días. Conserve igual su copia de seguridad.',
-  'app.install.ready': 'Este navegador guarda una copia de VeilCore, así que aquí se abre sin señal.',
+    'Safari puede borrar un sitio que no abrió en 7 días. El ícono de la pantalla de inicio se conserva. Conserve igual su copia de seguridad.',
+  'app.install.ready':
+    'Este navegador guarda la app de VeilCore, así que aquí se abre sin señal. Sus registros siguen necesitando su copia de seguridad.',
   'app.install.dismiss': 'Ahora no',
 
-  'app.instant.pending': 'Sello de tiempo {time} de {tsa} — la fecha en Midnight llega con el próximo lote.',
-  'app.instant.also': 'También tiene sello de tiempo {time} de {tsa}.',
+  'app.instant.pending':
+    'Sello de tiempo {time} de {tsa} (como lo nombra su clave) — la fecha en Midnight, la blockchain, llega con el próximo lote.',
+  'app.instant.also': 'También tiene sello de tiempo {time} de {tsa} (como lo nombra su clave).',
   'app.instant.asking': 'Pidiendo un sello de tiempo a una autoridad de sellado de tiempo…',
   'app.instant.fact':
-    'Sello de tiempo de {tsa}: {time}. Esta página comprobó su firma sobre el código de prueba. Muestra que el código de prueba ya existía a esa hora, no antes.',
+    'Sello de tiempo de una clave llamada {tsa} (nombre no comprobado): {time}. Esta página comprobó su firma sobre el código de prueba. Muestra que el código de prueba ya existía a esa hora; no dice nada sobre antes.',
   'app.verify.who.tsa': 'Un sello de tiempo ({tsa})',
-  'app.verify.who.tsa.checked': '{time}, firmado por la autoridad de sellado de tiempo. Esta página comprobó la firma.',
+  'app.verify.who.tsa.checked':
+    '{time}. Esta página comprobó su firma. El nombre es el que da la propia clave; quién emitió la clave no se comprueba aquí.',
   'app.verify.who.tsa.unbound':
-    '{time}, firmado por la autoridad de sellado de tiempo. Esta página comprobó la firma, pero el enlace no lleva un código de prueba para compararlo.',
+    '{time}. Esta página comprobó su firma, pero el enlace no lleva un código de prueba para compararlo. Pida a quien se lo envió el enlace de comprobación completo.',
+  'app.offline.goesOnOpen': 'Su código de prueba se envía la próxima vez que abra VeilCore con señal.',
 } satisfies Partial<AppTranslation>;

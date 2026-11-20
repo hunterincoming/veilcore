@@ -9,7 +9,7 @@ import FailIcon from '@mui/icons-material/HighlightOff';
 import ChevronIcon from '@mui/icons-material/ChevronRight';
 import { proofCodeSent, waitsToBeSent, type StrainRecord } from '../../veilcore/records';
 import { nextBatchRow, useAnchorCadence } from './dating-words';
-import { instantLines, sealedHereWords } from '../offline/offline-words';
+import { goesWords, instantLinesHere, sealedHereWords } from '../offline/offline-words';
 import { useInstantStamp } from '../../veilcore/instant-stamp';
 import { useOfflineState } from '../../offline/register';
 import { useStampRetries } from '../chain/useKeyStamp';
@@ -239,7 +239,7 @@ export const PlantStatus: React.FC<{
     sent ? nextBatchRow(tr, cadence) : { value: sealedHereWords(record.loggedAt, tr) },
   );
   const anchoredNow = proof !== 'checking' && proof.status === 'anchor-reported';
-  const instantSub = instantLines(instant, anchoredNow, tr).join(' ');
+  const instantSub = instantLinesHere(instant, anchoredNow, tr).join(' ');
   // One plain line for the record's date (fresh-eyes review, 12 Nov): "waiting: …" until its
   // batch has a date, "dated …" once it has. The words around the value only; what the value
   // says comes from recordDateRow as before.
@@ -297,7 +297,7 @@ export const PlantStatus: React.FC<{
             id: 'Record dated',
             label: t('app.plant.recordDate'),
             ...(!sent && !online
-              ? { sub: t('app.offline.goesBySelf') }
+              ? { sub: goesWords(tr) }
               : instantSub
                 ? { sub: instantSub }
                 : dated.sub

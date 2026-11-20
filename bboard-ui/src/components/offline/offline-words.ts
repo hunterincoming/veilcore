@@ -9,7 +9,7 @@
 
 import type { Translator } from '../../i18n/translate';
 import type { AppKey } from '../../i18n/app/en';
-import { utcSeconds } from '../../veilcore/time';
+import { localSeconds, utcSeconds } from '../../veilcore/time';
 import type { InstantState } from '../../veilcore/instant-stamp';
 
 /** A phone or a small tablet (a touch screen first), or a computer: for "this phone" / "this computer". */
@@ -39,14 +39,39 @@ export const sealedHereShort = (loggedAt: number, tr: Translator): string =>
   tr.t('app.offline.short', { time: deviceClock(loggedAt, tr.locale) });
 
 /**
- * A record's own timestamps, one line each, earliest first: the first says the Midnight date
- * follows while the batch has none (`anchored` false). Nothing while there are none.
+ * When the proof code of a record sealed with no signal goes: by itself where the browser can wake
+ * VeilCore's worker when signal is back (Background Sync), otherwise the next time VeilCore is
+ * opened with signal (iPhone, iPad, Safari, Firefox). Said so, so nobody thinks it went.
  */
-export const instantLines = (state: InstantState | undefined, anchored: boolean, tr: Translator): string[] => {
+export const goesWords = (tr: Translator): string => {
+  let sync = false;
+  try {
+    sync = typeof window !== 'undefined' && 'SyncManager' in window;
+  } catch {
+    sync = false;
+  }
+  return tr.t(sync ? 'app.offline.goesBySelf' : 'app.offline.goesOnOpen');
+};
+
+/**
+ * A record's own timestamps, one line each, earliest first: the first says the Midnight date
+ * follows while the batch has none (`anchored` false). Nothing while there are none. `when`
+ * writes the time: UTC on a check page, the person's own zone on their own pages.
+ */
+export const instantLines = (
+  state: InstantState | undefined,
+  anchored: boolean,
+  tr: Translator,
+  when: (iso: string) => string = utcSeconds,
+): string[] => {
   if (!state) return [];
   if (state.status === 'asking') return [tr.t('app.instant.asking')];
   if (state.status !== 'stamped') return [];
   return state.tokens.map((tok, i) =>
-    tr.t(i === 0 && !anchored ? 'app.instant.pending' : 'app.instant.also', { time: utcSeconds(tok.at), tsa: tok.tsa }),
+    tr.t(i === 0 && !anchored ? 'app.instant.pending' : 'app.instant.also', { time: when(tok.at), tsa: tok.tsa }),
   );
 };
+
+/** The same, in the person's own time zone (their own pages). */
+export const instantLinesHere = (state: InstantState | undefined, anchored: boolean, tr: Translator): string[] =>
+  instantLines(state, anchored, tr, (iso) => localSeconds(iso, tr.locale));

@@ -10,32 +10,36 @@ export const offline = {
   'app.offline.sealedHere.phone': 'Sealed on this phone at {time} (your phone’s clock). Dated when it’s sent.',
   'app.offline.sealedHere.computer': 'Sealed on this computer at {time} (your computer’s clock). Dated when it’s sent.',
   'app.offline.short': 'Sealed {time}, dated when sent',
-  'app.offline.goesBySelf': 'No signal now. It goes by itself when you’re back online, and is dated then.',
+  'app.offline.goesBySelf': 'Its proof code goes by itself when you’re back online.',
   'app.offline.bar':
-    'No signal. You can still make and seal records here; each is dated when it’s sent. Checking, sharing and date stamps wait until you’re back online.',
-  'app.offline.updated': 'A newer version of VeilCore is ready.',
+    'No signal. You can still make and seal records; each gets its date once it’s sent. Checking, sharing, lab hand-overs and key date stamps wait for signal.',
+  'app.offline.updated': 'A newer VeilCore is ready. Reload when you’re between records; nothing sealed is lost.',
   'app.offline.reload': 'Reload',
-  'app.offline.stampWaits': 'No signal. The key date stamp waits, and starts by itself when you’re back online.',
+  'app.offline.stampWaits': 'Your key’s date stamp waits, and starts by itself when you’re back online.',
 
   'app.install.title': 'Use VeilCore with no signal',
   'app.install.text':
-    'Add VeilCore to your Home Screen. It then opens with no signal: you can make and seal records, and each is dated when you’re back online.',
+    'Add VeilCore to your Home Screen. It then opens with no signal: you can make and seal records, and each gets its date once it’s sent.',
   'app.install.button': 'Add to Home Screen',
   'app.install.iosSteps': 'On iPhone or iPad: in Safari, tap Share, then “Add to Home Screen”.',
   'app.install.iosEmpty':
-    'The Home Screen app keeps its own storage, apart from Safari, so it opens empty. Open it once with signal and get your records back there (Face ID or your backup file). Let anything still waiting in Safari send first.',
+    'First, with signal, let anything waiting in Safari send. The Home Screen icon has its own storage, so it opens empty; your records are still safe in Safari. Open the icon with signal and bring them back with Face ID or your backup file. From then on, use the icon: records made in Safari won’t show there.',
   'app.install.iosKeep':
-    'On the Home Screen, VeilCore isn’t cleared the way Safari clears sites you haven’t opened for 7 days. Keep your backup anyway.',
-  'app.install.ready': 'This browser keeps a copy of VeilCore, so it opens here with no signal.',
+    'Safari can erase a site you haven’t opened for 7 days. The Home Screen icon is kept. Keep your backup anyway.',
+  'app.install.ready':
+    'This browser keeps the VeilCore app, so it opens here with no signal. Your records still need your backup.',
   'app.install.dismiss': 'Not now',
 
-  'app.instant.pending': 'Timestamped {time} by {tsa} — Midnight date follows in the next batch.',
-  'app.instant.also': 'Also timestamped {time} by {tsa}.',
+  'app.instant.pending':
+    'Timestamped {time} by {tsa} (as its key names it) — the date on Midnight, the blockchain, follows in the next batch.',
+  'app.instant.also': 'Also timestamped {time} by {tsa} (as its key names it).',
   'app.instant.asking': 'Getting a timestamp from a timestamp authority…',
   'app.instant.fact':
-    'Timestamp from {tsa}: {time}. This page checked its signature on the proof code. It shows the proof code existed by then, nothing earlier.',
+    'Timestamp from a key named {tsa} (name not checked): {time}. This page checked its signature on the proof code. It shows the proof code existed by then; it says nothing about before.',
   'app.verify.who.tsa': 'A timestamp ({tsa})',
-  'app.verify.who.tsa.checked': '{time}, signed by the timestamp authority. This page checked the signature.',
+  'app.verify.who.tsa.checked':
+    '{time}. This page checked its signature. The name is the key’s own; who issued the key isn’t checked here.',
   'app.verify.who.tsa.unbound':
-    '{time}, signed by the timestamp authority. This page checked the signature, but the link you were sent carries no proof code to match it with.',
+    '{time}. This page checked its signature, but the link you were sent carries no proof code to match it with. Ask the sender for the full check link.',
+  'app.offline.goesOnOpen': 'Its proof code goes the next time you open VeilCore with signal.',
 };

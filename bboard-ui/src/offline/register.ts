@@ -135,6 +135,13 @@ export const startOffline = (): void => {
       .getRegistrations()
       .then((rs) => Promise.all(rs.map((r) => r.unregister())))
       .catch(() => undefined);
+    // And the proof codes left for Background Sync (offline/dating-mirror.ts): the page's own
+    // queue (veilcore/outbox.ts) still has them.
+    try {
+      indexedDB.deleteDatabase('veilcore-offline');
+    } catch {
+      /* nothing kept */
+    }
     return;
   }
   // `npm run dev` serves source files, not a release: no worker there.

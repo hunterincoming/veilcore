@@ -376,13 +376,18 @@ export const checkServiceWorker = async (site, manifest, { fetchImpl = fetch } =
   const wrong = [];
   let res;
   try {
-    res = await fetchImpl(`${origin(site)}${SW_PATH}`, { cache: 'no-store' });
+    // Asked for the way a browser asks for a worker script, so a host can't send browsers one
+    // worker and checkers another; and its bytes held to the list here as well.
+    res = await fetchImpl(`${origin(site)}${SW_PATH}`, { cache: 'no-store', headers: { 'Service-Worker': 'script' } });
   } catch {
     return { ok: false, wrong: [{ path: SW_PATH, problem: 'not reachable' }] };
   }
-  const body = res.ok ? await res.text() : '';
+  const bytes = res.ok ? await res.arrayBuffer() : new ArrayBuffer(0);
+  const body = new TextDecoder().decode(bytes);
   if (res.status !== 200) wrong.push({ path: SW_PATH, problem: `answered ${res.status}` });
   else {
+    if ((await sha256Hex(bytes)) !== manifest.files[SW_PATH])
+      wrong.push({ path: SW_PATH, problem: 'asked for as a worker, not the listed file' });
     if (!/javascript/.test(res.headers.get('content-type') ?? '')) wrong.push({ path: SW_PATH, problem: 'not JavaScript' });
     if ((res.headers.get('cache-control') ?? '').trim().toLowerCase() !== SW_CACHE_CONTROL)
       wrong.push({ path: SW_PATH, problem: `not served with Cache-Control: ${SW_CACHE_CONTROL}` });

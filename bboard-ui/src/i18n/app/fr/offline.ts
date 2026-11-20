@@ -8,34 +8,38 @@ export const offline = {
   'app.offline.sealedHere.computer':
     'Scellé sur cet ordinateur à {time} (selon l’horloge de votre ordinateur). Daté quand il est envoyé.',
   'app.offline.short': 'Scellé {time}, daté à l’envoi',
-  'app.offline.goesBySelf':
-    'Pas de réseau pour l’instant. Il part tout seul quand vous êtes de nouveau en ligne, et il est daté à ce moment-là.',
+  'app.offline.goesBySelf': 'Son code de preuve part tout seul quand vous êtes de nouveau en ligne.',
   'app.offline.bar':
-    'Pas de réseau. Vous pouvez toujours créer et sceller des enregistrements ici ; chacun est daté quand il est envoyé. Les vérifications, le partage et les horodatages attendent votre retour en ligne.',
-  'app.offline.updated': 'Une version plus récente de VeilCore est prête.',
+    'Pas de réseau. Vous pouvez toujours créer et sceller des enregistrements ; chacun reçoit sa date une fois envoyé. Les vérifications, le partage, les remises aux laboratoires et les horodatages de clé attendent le réseau.',
+  'app.offline.updated':
+    'Une version plus récente de VeilCore est prête. Rechargez entre deux enregistrements ; rien de scellé n’est perdu.',
   'app.offline.reload': 'Recharger',
   'app.offline.stampWaits':
-    'Pas de réseau. L’horodatage de la clé attend, et démarre tout seul quand vous êtes de nouveau en ligne.',
+    'L’horodatage de votre clé attend, et démarre tout seul quand vous êtes de nouveau en ligne.',
 
   'app.install.title': 'Utiliser VeilCore sans réseau',
   'app.install.text':
-    'Ajoutez VeilCore à votre écran d’accueil. Il s’ouvre alors sans réseau : vous pouvez créer et sceller des enregistrements, et chacun est daté quand vous êtes de nouveau en ligne.',
+    'Ajoutez VeilCore à votre écran d’accueil. Il s’ouvre alors sans réseau : vous pouvez créer et sceller des enregistrements, et chacun reçoit sa date une fois envoyé.',
   'app.install.button': 'Ajouter à l’écran d’accueil',
   'app.install.iosSteps': 'Sur iPhone ou iPad : dans Safari, touchez Partager, puis « Sur l’écran d’accueil ».',
   'app.install.iosEmpty':
-    'L’app de l’écran d’accueil garde ses propres données, à part de Safari : elle s’ouvre donc vide. Ouvrez-la une fois avec du réseau et récupérez-y vos enregistrements (Face ID ou votre fichier de sauvegarde). Laissez d’abord partir ce qui attend encore dans Safari.',
+    'D’abord, avec du réseau, laissez partir ce qui attend dans Safari. L’icône de l’écran d’accueil a ses propres données : elle s’ouvre donc vide ; vos enregistrements restent en sécurité dans Safari. Ouvrez l’icône avec du réseau et récupérez-les avec Face ID ou votre fichier de sauvegarde. Ensuite, utilisez l’icône : les enregistrements créés dans Safari n’y apparaissent pas.',
   'app.install.iosKeep':
-    'Sur l’écran d’accueil, VeilCore n’est pas effacé comme Safari efface les sites que vous n’avez pas ouverts depuis 7 jours. Gardez quand même votre sauvegarde.',
-  'app.install.ready': 'Ce navigateur garde une copie de VeilCore : il s’ouvre ici sans réseau.',
+    'Safari peut effacer un site que vous n’avez pas ouvert depuis 7 jours. L’icône de l’écran d’accueil est conservée. Gardez quand même votre sauvegarde.',
+  'app.install.ready':
+    'Ce navigateur garde l’app VeilCore : elle s’ouvre ici sans réseau. Vos enregistrements ont toujours besoin de votre sauvegarde.',
   'app.install.dismiss': 'Pas maintenant',
 
-  'app.instant.pending': 'Horodaté à {time} par {tsa} — la date sur Midnight suit avec le prochain lot.',
-  'app.instant.also': 'Horodaté aussi à {time} par {tsa}.',
-  'app.instant.asking': 'Demande d’un horodatage à une autorité d’horodatage…',
+  'app.instant.pending':
+    'Horodaté à {time} par le service {tsa} (nom donné par sa clé) — la date sur Midnight, la blockchain, suit avec le prochain lot.',
+  'app.instant.also': 'Horodaté aussi à {time} par le service {tsa} (nom donné par sa clé).',
+  'app.instant.asking': 'Demande d’un jeton d’horodatage à un service d’horodatage…',
   'app.instant.fact':
-    'Horodatage de {tsa} : {time}. Cette page a vérifié sa signature sur le code de preuve. Il montre que le code de preuve existait à cette heure, rien d’antérieur.',
-  'app.verify.who.tsa': 'Un horodatage ({tsa})',
-  'app.verify.who.tsa.checked': '{time}, signé par l’autorité d’horodatage. Cette page a vérifié la signature.',
+    'Jeton d’horodatage d’une clé nommée {tsa} (nom non vérifié) : {time}. Cette page a vérifié sa signature sur le code de preuve. Il montre que le code de preuve existait à cette heure ; il ne dit rien de plus ancien.',
+  'app.verify.who.tsa': 'Un jeton d’horodatage ({tsa})',
+  'app.verify.who.tsa.checked':
+    '{time}. Cette page a vérifié sa signature. Le nom est celui que donne la clé ; qui l’a délivrée n’est pas vérifié ici.',
   'app.verify.who.tsa.unbound':
-    '{time}, signé par l’autorité d’horodatage. Cette page a vérifié la signature, mais le lien ne contient pas de code de preuve pour le rapprocher.',
+    '{time}. Cette page a vérifié sa signature, mais le lien ne contient pas de code de preuve pour le rapprocher. Demandez à l’expéditeur le lien de vérification complet.',
+  'app.offline.goesOnOpen': 'Son code de preuve part la prochaine fois que vous ouvrez VeilCore avec du réseau.',
 } satisfies Partial<AppTranslation>;

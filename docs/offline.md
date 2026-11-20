@@ -34,14 +34,21 @@ The phone's clock is anyone's to set, so it is said as the phone's, and nothing 
   must be the listed ones. A build on someone's own computer has no list, so no copy.
 - **One copy per release.** Named by its commit. The worker looks for a new release on every
   page load with signal, and when the page says it is back online; it copies the new one whole,
-  checks it, switches to it, then deletes the old one.
+  checks it, switches to it, then deletes the old one. The page itself is always fetched again
+  (never reused from the old copy), since its headers can change when its bytes don't.
+- **A copy left behind expires.** If a newer release is out and can't be copied (a host
+  problem, or someone slowing the connection to keep a fix from arriving), the old copy is still
+  used for a week, then no longer: the site needs signal until the new one is copied.
 - **Network first.** Pages always come from the network when it answers (within 8 seconds).
   The copy is used only when it doesn't. The worker remembers which open pages it answered
   from a copy; once signal is back and a newer release is copied, those pages say "A newer
   version of VeilCore is ready" with a Reload button.
 - **Hands off.** It never answers a request to another site (the registry, the sponsor,
   Midnight), any request that asks not to be cached (the site's own checks,
-  `/check-this-site` and `npm run check:site`), `/release.json`, `/releases/`, or itself.
+  `/check-this-site` and `npm run check:site`), a request for part of a file (`Range`),
+  `/release.json`, `/releases/`, or itself. A page a worker controls can't vouch for that
+  worker: the check that needs nothing from the site is `npm run check:site`, which asks for
+  `/sw.js` the way a browser asks for a worker (`Service-Worker: script`) and holds it to the list.
 - **No third-party code.** One file, no `importScripts`.
 
 ### Sending when signal is back
@@ -53,8 +60,9 @@ The phone's clock is anyone's to set, so it is said as the phone's, and nothing 
   proof code, key binding) and the holder key, in this site's IndexedDB
   (`src/offline/dating-mirror.ts`). When signal comes back the browser wakes the worker, which
   sends them, so they are dated then. Nothing typed, no vault key, no locked copy: the locked
-  copy waits for the page, as it always has.
-- **iPhone and iPad:** no Background Sync. Records are sent the next time VeilCore is opened.
+  copy waits for the page, as it always has. Forgetting the holder key deletes this copy too.
+- **iPhone and iPad (and Safari, Firefox):** no Background Sync. The screen says so: "Its proof
+  code goes the next time you open VeilCore with signal."
 - The outbox itself stays where it was (`veilcore/outbox.ts`, the browser's local storage). It
   already survives reloads and a closed browser; moving it would touch every save path for no
   gain, since the worker only needs the dating rows.
@@ -87,7 +95,11 @@ them. The site (`src/veilcore/instant-stamp.ts`):
 
 - checks every token in the browser against the proof code (imprint, signature, time-stamping
   key usage) and drops one that doesn't check;
-- takes the time from the token, not from the registry's answer;
+- takes the time from the token, not from the registry's answer, and the authority's name
+  from the certificate that signed it, not from the registry's label, said as the key's own
+  name ("name not checked"): who issued that certificate isn't checked in the browser, so a
+  registry that lied could sign with a key of its own making. Pinning each authority's key in
+  the site build would close that; it needs the keys chosen first;
 - shows one line per authority, and on the check page one row each in "What each fact rests
   on": signed and checked here when the link carried the proof code, the registry's word when
   it didn't (the same rule as a lab's signature).
@@ -117,4 +129,6 @@ The end-to-end test `e2e/offline.spec.ts` runs the kill switch against a live co
   storage, Safari's 7-day rule outside the Home Screen). The backup is still what keeps records.
 - A device's clock is not evidence. Only the dates from the registry, a timestamp authority and
   Midnight are.
-- The timestamp authority sees a SHA-256 of the proof code and when it was asked.
+- The timestamp authority sees a SHA-256 of the proof code and when it was asked. One holder
+  can have at most 20 proof codes waiting per authority; past that, and when an authority is
+  slow or down, the batch's timestamp dates them as before.

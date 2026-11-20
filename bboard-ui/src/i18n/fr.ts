@@ -743,11 +743,12 @@ export const fr: Strings = {
     'La liste de cette version n’a pas d’en-têtes de sécurité (elle a été faite avant qu’ils y figurent) : ils n’ont donc pas été comparés.',
   'm.checksite.extraScript': 'Cette page a un script que la page listée n’a pas : {script}',
   'm.checksite.workerOk':
-    'Le worker hors ligne (/sw.js) est envoyé pour que les navigateurs le rechargent toujours, et il ne garde que des fichiers de la liste de cette version.',
-  'm.checksite.workerWrong': 'Le worker hors ligne n’est pas comme il devrait : {path}.',
-  'm.checksite.copyHere': 'La copie hors ligne du site dans ce navigateur est la version {commit}.',
+    'La partie qui permet d’ouvrir VeilCore sans réseau (/sw.js) est envoyée pour que les navigateurs la rechargent toujours, et ne garde que des fichiers de la liste de cette version.',
+  'm.checksite.workerWrong':
+    'La partie qui permet d’ouvrir VeilCore sans réseau n’est pas comme elle devrait ({path}). Ne comptez pas dessus sans réseau : effacez les données de ce site, rechargez et prévenez-nous.',
+  'm.checksite.copyHere': 'La copie sans réseau de ce navigateur correspond à la version {commit}.',
   'm.checksite.copyOther':
-    'La copie hors ligne de ce navigateur est la version {commit}, pas celle vérifiée ici. Elle se met à jour au prochain chargement d’une page avec du réseau.',
+    'La copie sans réseau de ce navigateur est la version {commit}, pas celle vérifiée ici. Elle se met à jour au prochain chargement d’une page avec du réseau.',
   'm.checksite.limit':
     'Cela montre ce que votre navigateur a reçu. Cela ne peut pas prouver que l’hébergeur a envoyé à tous les mêmes fichiers.',
   'm.checksite.listLink': 'La liste de cette version dans le code public',

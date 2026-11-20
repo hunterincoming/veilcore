@@ -738,11 +738,12 @@ export const es: Strings = {
     'La lista de esta versión no tiene encabezados de seguridad (se hizo antes de que se listaran), así que no se compararon.',
   'm.checksite.extraScript': 'Esta página tiene un script que la página listada no tiene: {script}',
   'm.checksite.workerOk':
-    'El worker sin conexión (/sw.js) se envía para que los navegadores siempre lo descarguen de nuevo, y solo guarda archivos de la lista de esta versión.',
-  'm.checksite.workerWrong': 'El worker sin conexión no está como debería: {path}.',
-  'm.checksite.copyHere': 'La copia sin conexión del sitio en este navegador es la versión {commit}.',
+    'La parte que permite abrir VeilCore sin señal (/sw.js) se envía para que los navegadores siempre la descarguen de nuevo, y solo guarda archivos de la lista de esta versión.',
+  'm.checksite.workerWrong':
+    'La parte que permite abrir VeilCore sin señal no está como debería ({path}). No confíe en ella sin señal: borre los datos de este sitio, vuelva a cargar y avísenos.',
+  'm.checksite.copyHere': 'La copia para usar sin señal de este navegador coincide con la versión {commit}.',
   'm.checksite.copyOther':
-    'La copia sin conexión de este navegador es la versión {commit}, no la que se comprobó aquí. Se actualiza la próxima vez que se cargue una página con señal.',
+    'La copia para usar sin señal de este navegador es la versión {commit}, no la que se comprobó aquí. Se actualiza la próxima vez que se cargue una página con señal.',
   'm.checksite.limit':
     'Esto muestra lo que recibió su navegador. No puede probar que el servidor haya enviado a todos los mismos archivos.',
   'm.checksite.listLink': 'La lista de esta versión en el código público',

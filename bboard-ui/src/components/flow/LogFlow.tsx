@@ -57,7 +57,7 @@ import {
 } from '../../veilcore/records';
 import { useInstantStamp } from '../../veilcore/instant-stamp';
 import { useOfflineState } from '../../offline/register';
-import { instantLines, sealedHereWords } from '../offline/offline-words';
+import { goesWords, instantLinesHere, sealedHereWords } from '../offline/offline-words';
 import { sealAnimalRecord, sealRecord, sealStrainRecord } from '../../veilcore/seal-record';
 import { localStamp } from '../../veilcore/time';
 import { forgetKeys, keysFor, storageKeeps, useRecordKeys } from '../../veilcore/record-keys';
@@ -1203,12 +1203,12 @@ const Stamp: React.FC<{ step: string; recordId: string; onNext: () => void }> = 
             </Typography>
           )}
         </>
-      ) : (
+      ) : stamp.offline ? null : (
         <Typography variant="body2" color="text.secondary">
           {t('app.log.keepOpen')}
         </Typography>
       )}
-      {keysFor(recordId) === undefined && <CircularProgress />}
+      {keysFor(recordId) === undefined && !stamp.offline && <CircularProgress />}
     </Stack>
   );
 };
@@ -1244,10 +1244,10 @@ const RecordDateNow: React.FC<{ recordId: string; cadence: number | undefined; t
     return (
       <Typography variant={variant} color={color} sx={sx} data-sealed-here="">
         {sealedHereWords(r.loggedAt, tr)}
-        {!online && ` ${tr.t('app.offline.goesBySelf')}`}
+        {!online && ` ${goesWords(tr)}`}
       </Typography>
     );
-  const [first] = instantLines(instant, false, tr);
+  const [first] = instantLinesHere(instant, false, tr);
   return (
     <Typography
       variant={variant}

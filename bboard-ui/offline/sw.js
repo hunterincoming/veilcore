@@ -18,8 +18,8 @@
 //   4. Background Sync, where the browser has it (Chrome on Android): when signal comes back
 //      with VeilCore closed, it sends the proof codes of records sealed with no signal (only
 //      { id, recordFingerprint, keyBinding? }, what PUT /api/records/dating takes, never anything
-//      typed), so they are dated then and not at the next visit. With a VeilCore page open it
-//      asks the page to send instead.
+//      typed), so they are dated then and not at the next visit. Open VeilCore pages are told to
+//      send as well.
 //
 // The kill switch is offline/sw-kill.js (VITE_OFFLINE=off): the same address, a worker that
 // deletes every copy and unregisters itself.
@@ -157,7 +157,9 @@ const installRelease = async (rel, man) => {
     const one = async () => {
       while (next < paths.length) {
         const p = paths[next++];
-        const res = (await reuse(oldCache, p, man.files[p])) ?? (await fetchVerified(p, man.files[p]));
+        // The page is always fetched again: its headers (the policy it runs under) may change
+        // with a release even when its bytes don't, and they must be the listed ones.
+        const res = (p === '/index.html' ? null : await reuse(oldCache, p, man.files[p])) ?? (await fetchVerified(p, man.files[p]));
         if (p === '/index.html' && !headersMatch(res, man.headers)) throw new Error('the page is not sent with the listed headers');
         await cache.put(p, res);
       }
@@ -220,7 +222,14 @@ const checkForUpdate = (force = false) => {
     if (active && active.commit === rel.commit && (await caches.has(SHELL_PREFIX + rel.commit))) return false;
     const man = await readManifest(rel);
     if (!man) return false;
-    await installRelease(rel, man);
+    try {
+      await installRelease(rel, man);
+    } catch (e) {
+      // A newer release is out and couldn't be copied: the copy in use is now an old release.
+      // Noted once, so a copy left behind is not used for ever (stale, below).
+      if (active && !active.supersededSince) await writeActive({ ...active, supersededSince: Date.now() });
+      throw e;
+    }
     await tellRelease(rel.commit);
     return true;
   })()
@@ -231,9 +240,17 @@ const checkForUpdate = (force = false) => {
   return checking;
 };
 
+/**
+ * How long a copy is still used once a newer release is out that couldn't be copied (a host
+ * problem, or someone slowing the connection to keep a fixed page from arriving): a week. After
+ * that the old copy is not served, and the site needs signal until the new one is copied.
+ */
+const SUPERSEDED_MAX_MS = 7 * 86_400_000;
+const stale = (active) => typeof active.supersededSince === 'number' && Date.now() - active.supersededSince > SUPERSEDED_MAX_MS;
+
 const fromCopy = async (path) => {
   const active = await readActive();
-  if (!active) return undefined;
+  if (!active || stale(active)) return undefined;
   const cache = await caches.open(SHELL_PREFIX + active.commit);
   return cache.match(path);
 };
@@ -257,7 +274,7 @@ const navigate = async (event) => {
   }
   const active = await readActive();
   const copy = await fromCopy('/index.html');
-  if (copy && active) {
+  if (copy && active && !stale(active)) {
     // Remembered, so once a newer release is copied this page is told it is older (tellRelease).
     if (event.resultingClientId) event.waitUntil(rememberServed(event.resultingClientId, active.commit).catch(() => undefined));
     return copy;
@@ -271,7 +288,7 @@ const navigate = async (event) => {
  */
 const asset = async (request, path) => {
   const active = await readActive();
-  if (active) {
+  if (active && !stale(active)) {
     const cache = await caches.open(SHELL_PREFIX + active.commit);
     const hit = await cache.match(path);
     if (hit) return hit;
@@ -326,6 +343,8 @@ self.addEventListener('fetch', (event) => {
   if (url.origin !== self.location.origin) return;
   // A request that asks not to be cached is a check of what the site serves now: never a copy.
   if (req.cache === 'no-store' || req.cache === 'reload' || req.cache === 'no-cache') return;
+  // Part of a file (video, audio): the network's own answer, never a whole copy in its place.
+  if (req.headers && req.headers.has && req.headers.has('range')) return;
   if (NEVER.some((re) => re.test(url.pathname))) return;
   if (req.mode === 'navigate') return event.respondWith(navigate(event));
   if (url.pathname.startsWith('/assets/')) return event.respondWith(asset(req, url.pathname));
@@ -370,11 +389,9 @@ const HOLDER = /^[0-9a-f]{64}$/i;
 
 /** Send what the page left, when no page is open to do it. Throws so the browser tries again. */
 const sendQueued = async () => {
-  const open = await self.clients.matchAll({ type: 'window' });
-  if (open.length) {
-    for (const c of open) c.postMessage({ type: 'veilcore-send-now' });
-    return;
-  }
+  // Open pages send too (their own sync); a tab the browser froze may not, so the worker sends
+  // regardless. Sending a dating row twice changes nothing: the registry answers it as dated.
+  for (const c of await self.clients.matchAll({ type: 'window' })) c.postMessage({ type: 'veilcore-send-now' });
   if (!/^https?:\/\//.test(API_BASE)) return;
   const q = await dbDo('readonly', (s) => s.get(DB_KEY));
   if (!isObject(q) || !HOLDER.test(String(q.holderKey)) || !Array.isArray(q.rows)) return;

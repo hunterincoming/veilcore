@@ -288,13 +288,21 @@ describe('checking the site covers the worker (release-check.mjs)', () => {
   const H = { 'content-type': 'text/javascript', 'cache-control': SW_CACHE_CONTROL };
 
   it('passes the built worker served no-cache, keeping only listed files', async () => {
-    const r = await checkServiceWorker(ORIGIN, manifest({ '/sw.js': 'x', '/offline-shell.json': 'y', '/a.js': 'z' }), {
-      fetchImpl: fake(SW, H),
-    });
+    const r = await checkServiceWorker(
+      ORIGIN,
+      manifest({ '/sw.js': sha(SW), '/offline-shell.json': 'y', '/a.js': 'z' }),
+      {
+        fetchImpl: fake(SW, H),
+      },
+    );
     expect(r).toEqual({ ok: true, wrong: [] });
   });
   it('fails a worker cached by the browser, one that keeps unlisted files, or a kill-switch build that answers requests', async () => {
-    const files = { '/sw.js': 'x', '/offline-shell.json': 'y', '/a.js': 'z' };
+    const files = { '/sw.js': sha(SW), '/offline-shell.json': 'y', '/a.js': 'z' };
+    // Another worker to a worker's request than the one listed: caught.
+    expect((await checkServiceWorker(ORIGIN, manifest(files), { fetchImpl: fake(KILL, H) })).wrong[0].problem).toMatch(
+      /not the listed file/,
+    );
     expect(
       (
         await checkServiceWorker(ORIGIN, manifest(files), {
@@ -310,7 +318,11 @@ describe('checking the site covers the worker (release-check.mjs)', () => {
       (await checkServiceWorker(ORIGIN, manifest(files, { VITE_OFFLINE: 'off' }), { fetchImpl: fake(SW, H) })).ok,
     ).toBe(false);
     expect(
-      (await checkServiceWorker(ORIGIN, manifest(files, { VITE_OFFLINE: 'off' }), { fetchImpl: fake(KILL, H) })).ok,
+      (
+        await checkServiceWorker(ORIGIN, manifest({ ...files, '/sw.js': sha(KILL) }, { VITE_OFFLINE: 'off' }), {
+          fetchImpl: fake(KILL, H),
+        })
+      ).ok,
     ).toBe(true);
   });
   it('says a release from before the worker wasn’t checked, and a whole check fails on a bad worker', async () => {
@@ -373,10 +385,12 @@ describe('a record sealed with no signal, and its own timestamp', () => {
       ],
     } as const;
     expect(instantLines(state, false, enT)).toEqual([
-      'Timestamped 2026-11-19 14:03:12 UTC by freetsa.org — Midnight date follows in the next batch.',
-      'Also timestamped 2026-11-19 14:03:14 UTC by timestamp.sectigo.com.',
+      'Timestamped 2026-11-19 14:03:12 UTC by freetsa.org (as its key names it) — the date on Midnight, the blockchain, follows in the next batch.',
+      'Also timestamped 2026-11-19 14:03:14 UTC by timestamp.sectigo.com (as its key names it).',
     ]);
-    expect(instantLines(state, true, enT)[0]).toBe('Also timestamped 2026-11-19 14:03:12 UTC by freetsa.org.');
+    expect(instantLines(state, true, enT)[0]).toBe(
+      'Also timestamped 2026-11-19 14:03:12 UTC by freetsa.org (as its key names it).',
+    );
     expect(instantLines({ status: 'none' }, false, enT)).toEqual([]);
   });
 
@@ -397,7 +411,7 @@ describe('a record sealed with no signal, and its own timestamp', () => {
       ['A timestamp (timestamp.digicert.com)', 'signed'],
     ]);
     expect(bound[0].who).toBe(
-      '2026-11-19 14:03:12 UTC, signed by the timestamp authority. This page checked the signature.',
+      '2026-11-19 14:03:12 UTC. This page checked its signature. The name is the key’s own; who issued the key isn’t checked here.',
     );
     expect(
       whoVouches({ ...base, bound: false })
@@ -435,7 +449,7 @@ describe('a record sealed with no signal, and its own timestamp', () => {
     );
     expect(stamped.status).toBe('stamped');
     if (stamped.status === 'stamped') {
-      expect(stamped.tokens[0].tsa).toBe('tsa.example');
+      expect(stamped.tokens[0].tsa).toBe('Unit TSA'); // the signing certificate's name, not the registry's label
       expect(stamped.tokens[0].at).not.toBe('1999-01-01T00:00:00Z'); // the token's time, not the registry's
     }
     expect(
