@@ -152,10 +152,12 @@ const headersMatch = (res, listed) =>
   !isObject(listed) || Object.entries(listed).every(([name, value]) => (res.headers.get(name) ?? '').trim() === String(value).trim());
 
 /**
- * Copy a release whole, checked, into its own cache, then make it the active one and delete the
- * others. Throws (and changes nothing in use) if any file isn't the listed one.
+ * Copy a release whole, checked, into its own cache. Throws (and changes nothing in use) if any
+ * file isn't the listed one. `switchNow`: then make it the active copy and delete the others;
+ * otherwise (a new worker's install) it is noted as ready, and the switch is made when that worker
+ * takes over (activate), so the worker still in charge keeps the copy it can serve until then.
  */
-const installRelease = async (rel, man) => {
+const installRelease = async (rel, man, switchNow) => {
   const listWant = man.files[SHELL_LIST];
   if (!listWant) throw new Error('this release lists no offline shell');
   const listRes = await fetchVerified(SHELL_LIST, listWant);
@@ -184,11 +186,54 @@ const installRelease = async (rel, man) => {
     await caches.delete(name);
     throw e;
   }
-  // Which copy is in use. Not trusted for what a file must be (that is SHELL_FILES, above).
-  await writeActive({ commit: rel.commit, network: rel.network, at: new Date().toISOString() });
-  for (const k of await caches.keys()) if (k.startsWith(SHELL_PREFIX) && k !== name) await caches.delete(k);
+  if (!switchNow) {
+    // With the page this worker was built with, so a later worker never takes up a copy left by
+    // one that never took over.
+    const ready = { commit: rel.commit, network: rel.network, page: builtHash('/index.html') };
+    await (await caches.open(META_CACHE)).put(READY_KEY, new Response(JSON.stringify(ready)));
+    return true;
+  }
+  // A newer worker arrived while this one copied: the switch is that worker's to make.
+  if (newerWorker()) return false;
+  await switchTo(rel);
   return true;
 };
+
+/** Make a copied release the one in use, and delete every other copy. */
+const switchTo = async (rel) => {
+  // Which copy is in use. Not trusted for what a file must be (that is SHELL_FILES, above).
+  await writeActive({ commit: rel.commit, network: rel.network, at: new Date().toISOString() });
+  const name = SHELL_PREFIX + rel.commit;
+  for (const k of await caches.keys()) if (k.startsWith(SHELL_PREFIX) && k !== name) await caches.delete(k);
+};
+
+/** The release a new worker copied at install, waiting for it to take over, or null. */
+const READY_KEY = '/__veilcore-offline/ready';
+const takeReady = async () => {
+  try {
+    const meta = await caches.open(META_CACHE);
+    const r = await meta.match(READY_KEY);
+    await meta.delete(READY_KEY);
+    const v = r ? await r.json() : null;
+    return isObject(v) &&
+      COMMIT.test(String(v.commit)) &&
+      NETWORK.test(String(v.network)) &&
+      v.page === builtHash('/index.html') &&
+      (await caches.has(SHELL_PREFIX + v.commit))
+      ? v
+      : null;
+  } catch {
+    return null;
+  }
+};
+
+/**
+ * This worker was built for this release: every file of its copy is the listed one (SHELL_FILES,
+ * above). A worker serves no other release's files, so it copies no other release: that is the
+ * new worker's to do, which the browser fetches with the new release.
+ */
+const builtFor = (man) =>
+  isObject(SHELL_FILES) && Object.keys(SHELL_FILES).length > 0 && Object.entries(SHELL_FILES).every(([p, h]) => man.files[p] === h);
 
 /**
  * Pages this worker answered from a copy, by client id: the release they came from. Kept with the
@@ -224,10 +269,25 @@ const tellRelease = async (commit) => {
   }
 };
 
-/** Look for a new release and copy it. One check at a time, at most every 30 seconds. */
+/**
+ * A newer worker is installing or waiting to take over from this one. It copies its own release
+ * when it installs, and this worker couldn't serve that copy anyway (each worker serves only the
+ * files it was built with, SHELL_FILES), so this one leaves the copies alone until it is gone.
+ * Without this, an old worker still in charge could copy a release back after the kill switch
+ * deleted it.
+ */
+const newerWorker = () => !!(self.registration && (self.registration.installing || self.registration.waiting));
+
+/**
+ * Look for a new release and copy it. One check at a time, at most every 30 seconds. `own` is a
+ * check made by this worker's own install (it copies, and switches when it takes over); any other
+ * is made by the worker in charge, which copies only a release it was built for (builtFor), and
+ * none while a newer worker is installing or waiting.
+ */
 let checking = null;
 let lastCheck = 0;
-const checkForUpdate = (force = false) => {
+const checkForUpdate = (force = false, own = false) => {
+  if (!own && newerWorker()) return Promise.resolve(false);
   if (checking) return checking;
   if (!force && Date.now() - lastCheck < 30_000) return Promise.resolve(false);
   lastCheck = Date.now();
@@ -239,7 +299,13 @@ const checkForUpdate = (force = false) => {
     try {
       const man = await readManifest(rel);
       if (!man) throw new Error('the release list could not be read');
-      await installRelease(rel, man);
+      if (!builtFor(man)) {
+        // Another release's worker copies it. Asked for now; the browser also asks on each page load.
+        if (!own) void Promise.resolve(self.registration?.update?.()).catch(() => undefined);
+        throw new Error('this worker was not built for this release');
+      }
+      if (!(await installRelease(rel, man, !own))) return false;
+      if (own) return true;
     } catch (e) {
       // /release.json names another release and it couldn't be copied, for any reason: the copy
       // in use is an old release now. Noted once, so it is not used for ever (stale, below).
@@ -396,18 +462,44 @@ const other = async (request, path) => {
   }
 };
 
+/**
+ * Take over as soon as the old worker is idle, asked again every second until this worker is
+ * active (a minute at most). Chrome answers skipWaiting() by stopping the old worker once it is
+ * idle; but if an open page asks the old worker for a file just then, Chrome starts it again and
+ * no longer hurries it, so this worker would wait until that one idles out by itself (30 seconds
+ * or more; minutes with developer tools open). Meanwhile the old worker is still in charge of a
+ * copy it may no longer have. Asking again makes Chrome stop the restarted worker once it's idle.
+ * The kill switch (offline/sw-kill.js) does the same.
+ */
+let activated = false;
+const TAKE_OVER_TRIES = 60;
+const takeOver = () => {
+  let tries = 0;
+  const timer = setInterval(() => {
+    if (activated || ++tries > TAKE_OVER_TRIES) clearInterval(timer);
+    else void Promise.resolve(self.skipWaiting()).catch(() => undefined);
+  }, 1000);
+};
+
 self.addEventListener('install', (event) => {
   self.skipWaiting();
-  event.waitUntil(checkForUpdate(true));
+  takeOver();
+  event.waitUntil(checkForUpdate(true, true));
 });
 
 self.addEventListener('activate', (event) => {
+  activated = true;
   event.waitUntil(
     (async () => {
+      // The release this worker copied at install becomes the copy in use now, not before: until
+      // now the old worker was in charge, and it can serve only its own copy.
+      const ready = await takeReady();
+      if (ready) await switchTo(ready);
       const active = await readActive();
       for (const k of await caches.keys())
         if (k.startsWith(SHELL_PREFIX) && (!active || k !== SHELL_PREFIX + active.commit)) await caches.delete(k);
       await self.clients.claim();
+      if (ready) await tellRelease(ready.commit);
     })(),
   );
 });
