@@ -161,6 +161,11 @@ const totalOf = (list: readonly { amount?: string; currency?: string }[]): strin
 };
 
 const JobResult: React.FC<{ job: Job; fromApp: boolean }> = ({ job: latest, fromApp }) => {
+  useEffect(() => {
+    console.log('DBG mount', latest.hash.slice(0, 8), JSON.stringify(latest.figures ?? {}), fromApp);
+    return () => console.log('DBG unmount');
+  }, []);
+  console.log('DBG render latest', latest.hash.slice(0, 8));
   // What this tab drew stays on screen: a change made in another tab is said, never swapped in
   // under the person's thumb. Approve sends the hash of what is shown.
   const [job, setShown] = useState(latest);
@@ -270,6 +275,7 @@ const JobResult: React.FC<{ job: Job; fromApp: boolean }> = ({ job: latest, from
   useEffect(() => {
     if (shownHash.current === job.hash) return;
     shownHash.current = job.hash;
+    console.log('DBG reset', job.hash.slice(0, 8), saving.current, JSON.stringify(job.figures ?? {}));
     setDrafts((d) =>
       Object.fromEntries(
         reports.map((_, i) => {
@@ -284,13 +290,16 @@ const JobResult: React.FC<{ job: Job; fromApp: boolean }> = ({ job: latest, from
   const saving = useRef(0);
   const [savingCount, setSavingCount] = useState(0);
   const commit = (key: string, d: Draft) => {
+    console.log('DBG commit', key, JSON.stringify(d), readOnly);
     if (readOnly) return;
     setDrafts((x) => ({ ...x, [key]: d }));
     saving.current += 1;
     setSavingCount(saving.current);
     queue.current = queue.current.then(async () => {
       try {
-        refusal(await setFigures(shownRef.current, key, figuresOf(d)));
+        const out = await setFigures(shownRef.current, key, figuresOf(d));
+        console.log('DBG saved', key, 'job' in out ? out.job.hash.slice(0, 8) : JSON.stringify(out));
+        refusal(out);
       } catch (e) {
         setError(e instanceof Error ? e.message : String(e));
       } finally {
@@ -552,6 +561,7 @@ const JobResult: React.FC<{ job: Job; fromApp: boolean }> = ({ job: latest, from
                         // Functional updates, and the box's own value on leaving it: a figure just typed is
                         // never lost to a draft object from an earlier render (CI, step 2 and 3 branches).
                         onChange={(e) => {
+                          console.log('DBG change', key, e.target.value);
                           const quantity = e.target.value.slice(0, 20);
                           setDrafts((x) => ({ ...x, [key]: { ...(x[key] ?? d), quantity } }));
                         }}
