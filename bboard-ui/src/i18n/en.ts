@@ -206,6 +206,8 @@ export const en = {
   'm.hero.how': 'How it works',
   'm.hero.pasteQ': 'Got a lab code or a link from someone?',
   'm.hero.pasteGo': 'Paste it here →',
+  'm.hero.restoreQ': 'Used VeilCore on another device?',
+  'm.hero.restoreGo': 'Get my records back →',
   'm.hero.cultivar': 'Cultivar',
   'm.hero.bredBy': 'Bred by',
   'm.hero.bredByDefault': 'Your name here',

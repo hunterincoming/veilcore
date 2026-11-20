@@ -45,6 +45,12 @@ const KNOWN: [string, AppKey][] = [
   [enT.t('app.backup.passkey.err.damaged'), 'app.backup.passkey.err.damaged'],
   [enT.t('app.backup.passkey.err.older'), 'app.backup.passkey.err.older'],
   [enT.t('app.backup.passkey.err.busy'), 'app.backup.passkey.err.busy'],
+  // The recovery sheet (veilcore/recovery-code.ts).
+  [enT.t('app.recovery.err.length'), 'app.recovery.err.length'],
+  [enT.t('app.recovery.err.typo'), 'app.recovery.err.typo'],
+  [enT.t('app.recovery.err.wrong'), 'app.recovery.err.wrong'],
+  [enT.t('app.recovery.err.notThisSheet'), 'app.recovery.err.notThisSheet'],
+  [enT.t('app.recovery.err.needsSheet'), 'app.recovery.err.needsSheet'],
 ];
 
 const MISSING = /^That backup is missing the latest for (\d+) of your records\. Save a new one and check that\.$/;

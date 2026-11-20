@@ -176,6 +176,8 @@ export const ja: Strings = {
   'm.hero.how': '仕組みを見る',
   'm.hero.pasteQ': 'ラボコードやリンクが送られてきましたか？',
   'm.hero.pasteGo': 'ここに貼り付ける →',
+  'm.hero.restoreQ': 'ほかの端末でVeilCoreを使っていましたか？',
+  'm.hero.restoreGo': '記録を取り戻す →',
   'm.hero.cultivar': '品種',
   'm.hero.bredBy': '育成者',
   'm.hero.bredByDefault': 'お名前',

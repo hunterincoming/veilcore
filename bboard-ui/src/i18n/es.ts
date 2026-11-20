@@ -168,6 +168,8 @@ export const es: Strings = {
   'm.hero.how': 'Cómo funciona',
   'm.hero.pasteQ': '¿Alguien le envió un código de laboratorio o un enlace?',
   'm.hero.pasteGo': 'Péguelo aquí →',
+  'm.hero.restoreQ': '¿Usó VeilCore en otro dispositivo?',
+  'm.hero.restoreGo': 'Recuperar mis registros →',
   'm.hero.cultivar': 'Cultivar',
   'm.hero.bredBy': 'Obtenido por',
   'm.hero.bredByDefault': 'Su nombre aquí',

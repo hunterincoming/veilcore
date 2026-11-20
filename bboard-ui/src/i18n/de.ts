@@ -168,6 +168,8 @@ export const de: Strings = {
   'm.hero.how': 'So funktioniert es',
   'm.hero.pasteQ': 'Laborcode oder Link von jemandem bekommen?',
   'm.hero.pasteGo': 'Hier einfügen →',
+  'm.hero.restoreQ': 'VeilCore schon auf einem anderen Gerät genutzt?',
+  'm.hero.restoreGo': 'Meine Datensätze zurückholen →',
   'm.hero.cultivar': 'Sorte',
   'm.hero.bredBy': 'Gezüchtet von',
   'm.hero.bredByDefault': 'Ihr Name',

@@ -38,6 +38,7 @@ import { job } from './job';
 import { pack } from './pack';
 import { account } from './account';
 import { offline } from './offline';
+import { recovery } from './recovery';
 
 export const appEn = {
   ...common,
@@ -73,6 +74,7 @@ export const appEn = {
   ...pack,
   ...account,
   ...offline,
+  ...recovery,
 };
 
 export type AppKey = keyof typeof appEn;

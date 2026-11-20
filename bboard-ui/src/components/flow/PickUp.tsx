@@ -12,6 +12,7 @@ import { proofFor } from '../../veilcore/proofs';
 import { effectiveState, useLicenses } from '../../veilcore/licenses';
 import { sentByMe, type SentTransfer } from '../../veilcore/transfers';
 import { recordTitle } from '../../veilcore/animal-profile';
+import { arrivedIds } from '../../veilcore/arrived';
 import { REAL_CHAIN } from '../../veilcore/chain/config';
 import { retryStampNow, stampInProgress } from '../../veilcore/chain/key-stamp';
 import { stampRetryTick } from '../../veilcore/chain/stamp-background';
@@ -90,11 +91,13 @@ export const PickUp: React.FC<{
   const retries = useStampRetries();
   const licenses = useLicenses();
   const cadence = useAnchorCadence();
+  const arrived = arrivedIds();
   const own = useMemo(
     // Not a copy of a result a lab keeps (records.ts StrainRecord.copy): its date is the lab's, never this holder's to wait for.
     () =>
       records
-        .filter((r) => !r.receivedFrom && !(r.copy === true && !!r.labSignature))
+        // Nor a record that came here from a backup or another device: listed once, below (arrived.ts).
+        .filter((r) => !r.receivedFrom && !(r.copy === true && !!r.labSignature) && !arrived.has(r.id))
         .sort((a, b) => (b.loggedAt ?? 0) - (a.loggedAt ?? 0)),
     [records],
   );
