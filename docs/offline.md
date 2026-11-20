@@ -36,6 +36,17 @@ The phone's clock is anyone's to set, so it is said as the phone's, and nothing 
   page load with signal, and when the page says it is back online; it copies the new one whole,
   checks it, switches to it, then deletes the old one. The page itself is always fetched again
   (never reused from the old copy), since its headers can change when its bytes don't.
+- **Handing over to a new worker.** Each worker serves only the files it was built with, so a
+  new release is copied by its own worker, not the old one: the old worker asks the browser for
+  the new `/sw.js` and copies nothing while a newer worker is installing or waiting (nor could a
+  copy come back after the kill switch deleted it). The new worker copies its release when it
+  installs and switches to it when it takes over, so until then the old worker keeps the copy it
+  can serve, and the site still opens with no signal. The new worker asks to take over
+  (`skipWaiting`) at once and again every second until it is in charge, for a minute at most:
+  Chrome stops the old worker once it is idle, but if an open page asks the old worker for a file
+  just then, Chrome starts it again and stops hurrying it, and the new worker then waited until
+  the old one idled out by itself (30 seconds or more; over a minute in the browser tests, which
+  run with developer tools attached).
 - **A copy left behind expires.** Once `/release.json` names a newer release that hasn't been
   copied, for any reason (a host problem, a release list that can't be read, someone slowing the
   connection to keep a fix from arriving), the old copy is served only when the network fails
@@ -173,8 +184,9 @@ deploy still requires `record-timestamp-v1`, so the registry goes first.
 A worker outlives a bad deploy. To remove it from every browser:
 
 1. Build and deploy the site with `VITE_OFFLINE=off` (the deploy scripts pass it through, and the
-   release list records it). `/sw.js` is then `offline/sw-kill.js`: no fetch handler; it deletes
-   every copy and the Background Sync list, unregisters itself and reloads open pages. That
+   release list records it). `/sw.js` is then `offline/sw-kill.js`: no fetch handler; it asks to
+   take over as a new release's worker does (above), then deletes every copy and the Background
+   Sync list, unregisters itself and reloads open pages. That
    build's pages delete the copies too, in case they unregister the old worker before the
    browser fetches the kill switch.
 2. `/sw.js` is served `Cache-Control: no-cache, no-store, must-revalidate`
