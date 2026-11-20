@@ -14,9 +14,21 @@
 // SPDX-License-Identifier: Apache-2.0
 'use strict';
 
-self.addEventListener('install', () => self.skipWaiting());
+// Takes over as soon as the old worker is idle, asking again every second until active (a minute
+// at most): if an open page wakes the old worker just as Chrome stopped it, Chrome no longer
+// hurries it, and this would wait until it idles out by itself (offline/sw.js takeOver).
+let activated = false;
+self.addEventListener('install', () => {
+  self.skipWaiting();
+  let tries = 0;
+  const timer = setInterval(() => {
+    if (activated || ++tries > 60) clearInterval(timer);
+    else void Promise.resolve(self.skipWaiting()).catch(() => undefined);
+  }, 1000);
+});
 
 self.addEventListener('activate', (event) => {
+  activated = true;
   event.waitUntil(
     (async () => {
       for (const k of await caches.keys()) if (k.startsWith('veilcore-')) await caches.delete(k);

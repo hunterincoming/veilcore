@@ -553,10 +553,13 @@ test('the kill switch: the worker unregisters itself and every copy goes', async
     await expect
       .poll(
         () =>
-          page.evaluate(async () => ({
-            workers: (await navigator.serviceWorker.getRegistrations()).length,
-            copies: (await caches.keys()).filter((k) => k.startsWith('veilcore-')).length,
-          })),
+          page
+            .evaluate(async () => ({
+              workers: (await navigator.serviceWorker.getRegistrations()).length,
+              copies: (await caches.keys()).filter((k) => k.startsWith('veilcore-')).length,
+            }))
+            // The kill switch reloads the page as it takes over: asked again once it has loaded.
+            .catch(() => 'reloading'),
         { timeout: 60_000 },
       )
       .toEqual({ workers: 0, copies: 0 });
