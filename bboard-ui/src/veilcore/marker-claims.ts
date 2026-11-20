@@ -26,6 +26,11 @@
 //   5. "M of N compared" is said as one line only when both claims checked and are on the same
 //      record (a link carries claims on one record only: claim-link.ts `more`), and in the
 //      headline only when the link's first claim is one of the two.
+//   6. A laboratory's parentage result under animal-parentage/v1 (parentage.ts, 20 Nov 2026) is
+//      offered ICAR 2023's class bounds only, fixed, never a rounded one: rounding a count of 0 to
+//      4 up gave "at most 5", the top of ICAR's doubtful band. A bound the lab's number doesn't
+//      meet is not offered at all. Its conflict counts are never offered as "at least" and its
+//      compared counts never as "at most", which say nothing anyone asked.
 // SPDX-License-Identifier: Apache-2.0
 
 import type { AppKey } from '../i18n/app/en';
@@ -33,6 +38,7 @@ import type { LabResultStatement } from './lab-result';
 import type { HeldFieldSet } from './field-set';
 import type { MadeClaim } from './claim-link';
 import type { How } from './prove-number';
+import { ACCEPTANCE, PARENTAGE_SCHEMA, blockedBy, meetsBound, type ParentageTest } from './parentage';
 
 /** lab-result.ts CALL_SCHEMA.match and .lineage (named here so a claim link doesn't load lab-result.ts). */
 export const MATCH_SCHEMA = 'veilcore/schema/genetic-match/v1';
@@ -40,11 +46,26 @@ export const LINEAGE_SCHEMA = 'veilcore/schema/lineage-check/v1';
 
 /** One claim the panel offers on a result: which number, which way, and its words. */
 export type MarkerOffer = {
-  readonly id: 'differing' | 'compared' | 'call' | 'conflictsFirst' | 'conflictsSecond';
+  readonly id:
+    | 'differing'
+    | 'compared'
+    | 'call'
+    | 'conflictsFirst'
+    | 'conflictsSecond'
+    | 'sireConflicts'
+    | 'damConflicts'
+    | 'trioConflicts'
+    | 'sireCompared'
+    | 'damCompared';
   readonly slot: number;
   readonly how: How;
   /** A count (rounded bound, exact-count warning), or the lab's call (published as it is). */
   readonly count: boolean;
+  /**
+   * The only bound offered, fixed by a published rule (ICAR 2023's class bounds on a parentage
+   * result): never rounded from the count, never typed. Not offered when the lab's number doesn't meet it.
+   */
+  readonly fixed?: bigint;
 };
 
 /** The claims offered per form, in the order shown. Nothing else is offered on these forms. */
@@ -60,6 +81,7 @@ export const MARKER_OFFERS: Readonly<Record<string, readonly MarkerOffer[]>> = {
     { id: 'conflictsSecond', slot: 3, how: 'at-most', count: true },
     { id: 'compared', slot: 1, how: 'at-least', count: true },
   ],
+  [PARENTAGE_SCHEMA]: ACCEPTANCE.map((a) => ({ id: a.id, slot: a.slot, how: a.how, count: true, fixed: a.bound })),
 };
 
 export const isMarkerSchema = (schema: string): boolean => Object.hasOwn(MARKER_OFFERS, schema);
@@ -74,7 +96,32 @@ export const offersFor = (held: Pick<HeldFieldSet, 'schema' | 'values'>): readon
   return all.filter((o) => {
     const v = held.values[o.slot];
     if (v === null || v === undefined) return false;
+    // A fixed bound the lab's number doesn't meet: the claim would fail, and no other bound is offered.
+    if (o.fixed !== undefined && o.how !== 'exactly' && !meetsBound(BigInt(v), o.how, o.fixed)) return false;
+    // On a parentage result, never "(ICAR accepted)" for a test the lab didn't accept, nor the trio
+    // unless both parents are accepted (ICAR grades the trio only then).
+    if (held.schema === PARENTAGE_SCHEMA && blockedBy(o.id as ParentageTest, held.values)) return false;
+    if (o.fixed !== undefined) return true;
     return !(o.how === 'at-least' && BigInt(v) === 0n);
+  });
+};
+
+/**
+ * The offers of a form a held result can't make, and why: the lab's number doesn't meet the
+ * fixed bound (`count`), the lab graded the test as not accepted (`grade`), or the trio, with a
+ * parent not accepted (`parents`).
+ */
+export const unmetOffers = (
+  held: Pick<HeldFieldSet, 'schema' | 'values'>,
+): readonly { readonly offer: MarkerOffer; readonly why: 'count' | 'grade' | 'parents' }[] => {
+  const offered = offersFor(held) ?? [];
+  type Unmet = { readonly offer: MarkerOffer; readonly why: 'count' | 'grade' | 'parents' };
+  return (MARKER_OFFERS[held.schema] ?? []).flatMap((o): Unmet[] => {
+    const v = held.values[o.slot];
+    if (o.fixed === undefined || v === null || v === undefined || offered.includes(o) || o.how === 'exactly') return [];
+    if (!meetsBound(BigInt(v), o.how, o.fixed)) return [{ offer: o, why: 'count' as const }];
+    const b = held.schema === PARENTAGE_SCHEMA ? blockedBy(o.id as ParentageTest, held.values) : undefined;
+    return b ? [{ offer: o, why: b }] : [];
   });
 };
 
@@ -92,7 +139,7 @@ export const offerAllowed = (schema: string, slot: number, how: How, bound?: big
   const offers = MARKER_OFFERS[schema];
   if (!offers) return true;
   if (how === 'at-least' && bound === 0n) return false;
-  return offers.some((o) => o.slot === slot && o.how === how);
+  return offers.some((o) => o.slot === slot && o.how === how && (o.fixed === undefined || bound === o.fixed));
 };
 
 /**
@@ -162,8 +209,11 @@ export const isExactCount = (
   c: Pick<MadeClaim, 'schema' | 'slot' | 'kind' | 'bound' | 'value'>,
   values?: readonly (string | null)[],
 ): boolean => {
-  if (!MARKER_OFFERS[c.schema]?.some((o) => o.count && o.slot === c.slot)) return false;
+  const offer = MARKER_OFFERS[c.schema]?.find((o) => o.count && o.slot === c.slot);
+  if (!offer) return false;
   if (c.kind === 'value') return true;
+  // A fixed class bound (ICAR's "at most 2") publishes the band, not the count, whatever the count.
+  if (offer.fixed !== undefined && c.bound === offer.fixed.toString()) return false;
   const v = values?.[c.slot];
   return v !== null && v !== undefined && c.bound === v;
 };
@@ -223,6 +273,11 @@ export const LINE_KEYS: Readonly<Record<Exclude<MarkerOffer['id'], 'call'>, AppK
   compared: 'app.marker.line.compared',
   conflictsFirst: 'app.marker.line.conflictsFirst',
   conflictsSecond: 'app.marker.line.conflictsSecond',
+  sireConflicts: 'app.parentage.line.sireConflicts',
+  damConflicts: 'app.parentage.line.damConflicts',
+  trioConflicts: 'app.parentage.line.trioConflicts',
+  sireCompared: 'app.parentage.line.sireCompared',
+  damCompared: 'app.parentage.line.damCompared',
 };
 
 /** The offer in the panel's list: "Markers differing: at least …". */
@@ -231,6 +286,11 @@ export const OFFER_KEYS: Readonly<Record<Exclude<MarkerOffer['id'], 'call'>, App
   compared: 'app.marker.offer.compared',
   conflictsFirst: 'app.marker.offer.conflictsFirst',
   conflictsSecond: 'app.marker.offer.conflictsSecond',
+  sireConflicts: 'app.parentage.offer.sireConflicts',
+  damConflicts: 'app.parentage.offer.damConflicts',
+  trioConflicts: 'app.parentage.offer.trioConflicts',
+  sireCompared: 'app.parentage.offer.sireCompared',
+  damCompared: 'app.parentage.offer.damCompared',
 };
 
 /** A claim as the check page reads it: what it says, and whether it checked on Midnight. */

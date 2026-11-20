@@ -15,6 +15,7 @@ import {
   discardUnsaved,
   letGoNow,
   letGoOf,
+  proofCodeSent,
   unsavedReason,
   useRecords,
   type StrainRecord,
@@ -26,6 +27,8 @@ import { useVaultNeedsBackup } from '../veilcore/vault';
 import { useRecordT } from '../i18n/app';
 import { enT } from '../i18n/translate';
 import { SupportDetails } from './SupportDetails';
+import { goesWords, sealedHereWords } from './offline/offline-words';
+import { useOfflineState } from '../offline/register';
 
 export const RecordSaveNotices: React.FC<{ record: StrainRecord; onShare?: () => void }> = ({ record, onShare }) => {
   useRecords();
@@ -36,6 +39,7 @@ export const RecordSaveNotices: React.FC<{ record: StrainRecord; onShare?: () =>
   const [busy, setBusy] = useState(false);
   const [problem, setProblem] = useState<string>();
   const unsaved = unsavedReason(record.id);
+  const { online } = useOfflineState();
   const differs = useGrantDifference(record.id);
   const ask = record.grantToConfirm ?? [];
   // The button's label only (records.ts letGoOf): VeilCore's earlier copy shown again ('undo'),
@@ -109,6 +113,14 @@ export const RecordSaveNotices: React.FC<{ record: StrainRecord; onShare?: () =>
             )
           }
         >
+          {/* Sealed with no signal (docs/offline.md): when, by this device's clock, and that the
+              date comes when it is sent. Never a date before then. */}
+          {!proofCodeSent(record.id) && record.loggedAt > 0 && (
+            <Typography variant="body2" sx={{ mb: 0.75, fontWeight: 700 }} data-sealed-here="">
+              {sealedHereWords(record.loggedAt, tr)}
+              {!online && ` ${goesWords(tr)}`}
+            </Typography>
+          )}
           {t(`app.sealed.unsaved.${unsaved}`)}
           {letGoProblem && (
             <Typography variant="body2" sx={{ mt: 1 }} role="status" data-let-go-problem="">

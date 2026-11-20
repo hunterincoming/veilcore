@@ -7,6 +7,9 @@
 // On a lab's genotype comparison or parentage check (veilcore/marker-claims.ts) the panel offers a
 // fixed list instead ("Markers differing: at least …"), fills a bound rounded away from the exact
 // count, warns before an exact bound, counts what is public per sample, and states the limits.
+// On a lab's parentage result under animal-parentage/v1 (veilcore/parentage.ts) it offers ICAR
+// 2023's class bounds only, fixed and never typed or rounded, says the bands in plain words and
+// which tests the lab's counts leave out of the accepted band, and the limits of such a result.
 //
 // On a record kept on this device only (docs/device-only-records.md) the panel is shown only
 // after the holder turns it on (DeviceOnlyProve, below), says exactly what would be published
@@ -43,8 +46,11 @@ import {
   offersFor,
   panelClaims,
   roundedBound,
+  unmetOffers,
   type MarkerOffer,
 } from '../../veilcore/marker-claims';
+import { PARENTAGE_SCHEMA } from '../../veilcore/parentage';
+import type { AppKey } from '../../i18n/app/en';
 import { DEVICE_ONLY_CLAIMS_ENABLED } from '../../config/network';
 import { useT } from '../../i18n/app';
 import type { Translator } from '../../i18n/translate';
@@ -76,32 +82,88 @@ export const claimWords = (c: ClaimLine, tr: Translator, labStands = false): str
   return claimRawWords(c, tr);
 };
 
-/** The limits of claims on a lab's genotype comparison or parentage check (SPEC 4.5, 11.12), said wherever they are offered or checked. */
-export const MarkerLimits: React.FC = () => {
+const MARKER_LIMITS: readonly AppKey[] = [
+  'app.marker.limits.examine',
+  'app.marker.limits.oneParty',
+  'app.marker.limits.labWord',
+  'app.marker.limits.meaning',
+  'app.marker.limits.which',
+  'app.marker.limits.later',
+  'app.marker.limits.size',
+  'app.marker.limits.opening',
+];
+
+/** A parentage result's limits: an animal, a laboratory that saw the genotypes, no breed society's word. */
+const PARENTAGE_LIMITS: readonly AppKey[] = [
+  'app.parentage.limits.labSaw',
+  'app.parentage.limits.descent',
+  'app.marker.limits.labWord',
+  'app.parentage.limits.which',
+  'app.parentage.limits.sample',
+  'app.parentage.limits.trioMin',
+  'app.marker.limits.later',
+  'app.parentage.limits.society',
+  'app.marker.limits.opening',
+];
+
+/**
+ * The limits of claims on a lab's genotype comparison or parentage check (SPEC 4.5, 11.12), said
+ * wherever they are offered or checked; a parentage result under animal-parentage/v1 has its own.
+ */
+export const MarkerLimits: React.FC<{ parentage?: boolean }> = ({ parentage = false }) => {
   const { t } = useT();
   return (
-    <Box data-marker-limits="">
+    <Box data-marker-limits={parentage ? 'parentage' : ''}>
       <Typography variant="subtitle2" component="h3" sx={{ mb: 0.5 }}>
         {t('app.marker.limits.title')}
       </Typography>
       <Box component="ul" sx={{ m: 0, pl: 2.5 }}>
-        {(
-          [
-            'app.marker.limits.examine',
-            'app.marker.limits.oneParty',
-            'app.marker.limits.labWord',
-            'app.marker.limits.meaning',
-            'app.marker.limits.which',
-            'app.marker.limits.later',
-            'app.marker.limits.size',
-            'app.marker.limits.opening',
-          ] as const
-        ).map((k) => (
+        {(parentage ? PARENTAGE_LIMITS : MARKER_LIMITS).map((k) => (
           <Typography key={k} component="li" variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
             {t(k)}
           </Typography>
         ))}
       </Box>
+    </Box>
+  );
+};
+
+/**
+ * ICAR 2023's bands in plain words, on a parentage result. On the prove panel (`unmet` given) also
+ * that only the accepted bounds are offered, and each test whose count is outside them.
+ */
+export const ParentageBands: React.FC<{ unmet?: ReturnType<typeof unmetOffers> }> = ({ unmet }) => {
+  const { t } = useT();
+  return (
+    <Box data-parentage-bands="">
+      <Typography variant="subtitle2" component="h3" sx={{ mb: 0.5 }}>
+        {t('app.parentage.bands.title')}
+      </Typography>
+      <Box component="ul" sx={{ m: 0, pl: 2.5 }}>
+        {(['app.parentage.bands.single', 'app.parentage.bands.trio', 'app.parentage.bands.compared'] as const).map(
+          (k) => (
+            <Typography key={k} component="li" variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+              {t(k)}
+            </Typography>
+          ),
+        )}
+      </Box>
+      {unmet && (
+        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+          {t('app.parentage.bands.only')}
+        </Typography>
+      )}
+      {unmet?.map(({ offer: o, why }) => (
+        <Alert key={o.id} severity="info" variant="outlined" sx={{ mt: 1 }} data-parentage-unmet={o.id} data-why={why}>
+          {t(
+            why === 'parents'
+              ? 'app.parentage.unmet.trioParents'
+              : why === 'grade'
+                ? (`app.parentage.unmet.grade.${o.id}` as AppKey)
+                : (`app.parentage.unmet.${o.id}` as AppKey),
+          )}
+        </Alert>
+      ))}
     </Box>
   );
 };
@@ -150,7 +212,14 @@ export const ProveNumber: React.FC<{
   const all = allRecords();
   /** The bound filled in for an offer: the lab's count rounded away from itself. */
   const filledFor = (o: MarkerOffer | undefined): string =>
-    o && o.how !== 'exactly' && held ? roundedBound(BigInt(held.values[o.slot] ?? '0'), o.how).toString() : '';
+    o?.fixed !== undefined
+      ? o.fixed.toString()
+      : o && o.how !== 'exactly' && held
+        ? roundedBound(BigInt(held.values[o.slot] ?? '0'), o.how).toString()
+        : '';
+  // A lab's parentage result: ICAR's bands, and the tests its counts leave out of the accepted band.
+  const parentage = held?.schema === PARENTAGE_SCHEMA;
+  const unmet = held && parentage ? unmetOffers(held) : [];
   const [offerId, setOfferId] = useState<MarkerOffer['id'] | undefined>(offers?.[0]?.id);
   const offer = offers?.find((o) => o.id === offerId) ?? offers?.[0];
   const [slotPicked, setSlot] = useState<number>(filled[0]?.slot ?? 0);
@@ -165,13 +234,33 @@ export const ProveNumber: React.FC<{
   const [error, setError] = useState<string>();
   const [made, setMade] = useState<MadeClaim>();
   const [copied, setCopied] = useState(false);
-  if (!held || !schema || filled.length === 0 || (offers && offers.length === 0)) return null;
+  if (!held || !schema || filled.length === 0) return null;
+  if (offers && offers.length === 0) {
+    if (!parentage) return null;
+    // Nothing on this parentage result is in ICAR's accepted band: say so, and why, rather than show nothing.
+    return (
+      <Paper sx={{ p: { xs: 2.5, md: 3 } }} data-prove-number="" data-parentage-none="">
+        <Typography variant="h6" component="h2" sx={{ mb: 0.5 }}>
+          {t('app.claim.title')}
+        </Typography>
+        <Stack spacing={2}>
+          <Alert severity="info" variant="outlined">
+            {t('app.parentage.none')}
+          </Alert>
+          <ParentageBands unmet={unmet} />
+          <MarkerLimits parentage />
+        </Stack>
+      </Paper>
+    );
+  }
 
   const s = schema.slots.find((x) => x.slot === slot) ?? filled[0];
   const scale = s.scale ?? 1;
   const places = Math.round(Math.log10(scale));
   const sealed = BigInt(held.values[s.slot] ?? '0');
-  const bound = how === 'exactly' ? sealed : storedNumber(typed, scale);
+  // A fixed bound (ICAR's class bound) is the bound: never typed, never rounded.
+  const fixed = offer?.fixed;
+  const bound = how === 'exactly' ? sealed : (fixed ?? storedNumber(typed, scale));
   const meets =
     bound !== undefined && (how === 'at-most' ? sealed <= bound : how === 'at-least' ? sealed >= bound : true);
   const earlier = offers ? [] : (record.claims ?? []).filter((c) => c.schema === held.schema && c.slot === s.slot);
@@ -182,8 +271,9 @@ export const ProveNumber: React.FC<{
   // The lab's call and a count on this result, both public once this is proved (rule 3).
   const hereClaims = onPanel.filter((p) => p.here).map((p) => offerOf(p.claim));
   const pairWould = !!offer && (offer.count ? hereClaims.some((o) => o && !o.count) : hereClaims.some((o) => o?.count));
-  const exactCount = !!offer?.count && bound !== undefined && bound === sealed;
-  const rounded = !!offer?.count && typed !== '' && typed === filledFor(offer) && bound !== sealed;
+  const exactCount = !!offer?.count && fixed === undefined && bound !== undefined && bound === sealed;
+  const rounded =
+    !!offer?.count && fixed === undefined && typed !== '' && typed === filledFor(offer) && bound !== sealed;
   const callKey = offer && !offer.count ? callWordKey(s.path, { kind: 'value', value: sealed.toString() }) : undefined;
   const label = slotWords(s.path, tr);
 
@@ -288,7 +378,7 @@ export const ProveNumber: React.FC<{
                           return k ? t(k) : '';
                         })(),
                       })
-                    : t(OFFER_KEYS[o.id])}
+                    : t(OFFER_KEYS[o.id], { n: o.fixed !== undefined ? o.fixed.toString() : '' })}
                 </MenuItem>
               ))}
             </TextField>
@@ -325,7 +415,13 @@ export const ProveNumber: React.FC<{
               </TextField>
             </>
           )}
-          {how !== 'exactly' && (
+          {fixed !== undefined && (
+            <Typography variant="body2" color="text.secondary" data-parentage-fixed={fixed.toString()}>
+              {t('app.parentage.fixed')}
+            </Typography>
+          )}
+          {parentage && <ParentageBands unmet={unmet} />}
+          {how !== 'exactly' && fixed === undefined && (
             <TextField
               label={t('app.claim.bound')}
               value={typed}
@@ -392,7 +488,12 @@ export const ProveNumber: React.FC<{
               {pairsOnPanel > 0 && ` ${t('app.marker.pairsPublic', { n: String(pairsOnPanel) })}`}
             </Alert>
           )}
-          {offers && <MarkerLimits />}
+          {parentage && (
+            <Typography variant="body2" data-parentage-all="">
+              {t('app.parentage.all')}
+            </Typography>
+          )}
+          {offers && <MarkerLimits parentage={parentage} />}
           {earlier.length > 0 && (
             <Alert severity="info" variant="outlined" data-claim-earlier="">
               {t('app.claim.already', {

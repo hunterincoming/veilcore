@@ -24,6 +24,8 @@ import {
 } from '@mui/material';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { AppHeader } from '../AppHeader';
+import { ScanTextField } from '../../scan/ScanTextField';
+import { LABELS_PATH, type LabelsState } from '../labels/label-layouts';
 import { BackupStep } from './BackupStep';
 import { FlowFrame, ScreenHeading, focusScreenHeading, softDisabled } from './FlowFrame';
 import { today } from './log-flow-state';
@@ -606,11 +608,16 @@ export const BatchFlow: React.FC<{ handoff: Handoff }> = ({ handoff }) => {
                             {n}
                           </Typography>
                           <Stack spacing={1.5}>
-                            <TextField
+                            {/* A stick reader's Enter moves on to the next young's box, so a
+                                row of tags can be read one after another. */}
+                            <ScanTextField
                               size="small"
                               label={t('app.batch.each.id')}
                               value={id}
-                              onChange={(e) => editChild(i, { individualId: e.target.value.slice(0, 200) })}
+                              onValue={(v) => editChild(i, { individualId: v.slice(0, 200) })}
+                              onEnter={() =>
+                                document.querySelector<HTMLInputElement>(`input[data-child-id="${i + 1}"]`)?.focus()
+                              }
                               helperText={hint ? t(hint) : undefined}
                               fullWidth
                               slotProps={{ htmlInput: { 'data-child-id': i } }}
@@ -837,6 +844,21 @@ export const BatchFlow: React.FC<{ handoff: Handoff }> = ({ handoff }) => {
                 </Button>
               )}
             </Box>
+            {/* QR labels for the whole batch, one per record (components/labels). */}
+            {saved.length > 0 && (
+              <Button
+                variant="outlined"
+                size="large"
+                fullWidth
+                onClick={() => {
+                  const state: LabelsState = { ids: saved };
+                  void navigate(LABELS_PATH, { state });
+                }}
+                data-batch-labels=""
+              >
+                {t('app.labels.openBatch')}
+              </Button>
+            )}
             <Button variant="contained" size="large" fullWidth onClick={() => void navigate('/records')}>
               {t('app.ask.batch.toRecords')}
             </Button>

@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import { existsSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { normaliseAddress, readMainnetPins } from './mainnet-pins.mjs';
+import { SW_CACHE_CONTROL, SW_ROUTE_SRC } from './release-check.mjs';
 import { SITE_ROUTE_SRC, downloadWorkerCsp, engineWorkerCsp, manifestProblem, modelWorkerRouteSrc } from './ask-model-csp.mjs';
 
 // The registry API the site talks to. Must match the VITE_API_BASE the site was built
@@ -114,6 +115,13 @@ for (const name of ['VITE_INDEXER_RELAY_URL', 'VITE_INDEXER_SECOND_URL']) {
     throw new Error('VITE_INDEXER_SECOND_URL is the same indexer as VITE_INDEXER_RELAY_URL; a second check needs a different one.');
 }
 
+// The two Bitcoin block explorers the check page and the evidence bundle ask for block headers
+// (bboard-ui/evidence-page/btc-header-fetch.js EXPLORERS; docs/bitcoin-header-check.md). Only
+// when a visitor presses "Check on Bitcoin", or a holder makes a bundle.
+export const BITCOIN_EXPLORERS = ['https://mempool.space', 'https://blockstream.info'];
+/** Block 438's hash: the e2e build's only Bitcoin pin. A deployed build must not carry it. */
+export const E2E_BITCOIN_PIN = '0000000025c6b644f8add734be7e666fa4afa43ca0204d623a0c0b1fd2104c7a';
+
 // The content security policy. Checked against the built site in headless Chromium
 // (every main page, zero violations; bboard-ui/src/hardening-roundD.test.ts) before each
 // tightening:
@@ -126,7 +134,9 @@ for (const name of ['VITE_INDEXER_RELAY_URL', 'VITE_INDEXER_SECOND_URL']) {
 //   font-src     the Atkinson Hyperlegible Next file is bundled by @fontsource; no
 //                Google Fonts. data: for any small font Vite inlines.
 //   img-src      data: and blob: for QR codes and certificate images (html-to-image).
-//   connect-src  our own origin (the .wasm file) and the registry API. Nothing on GitHub:
+//   connect-src  our own origin (the .wasm file), the registry API and the two Bitcoin block
+//                explorers above (block headers only; nothing is sent to them but the
+//                block's height). Nothing on GitHub:
 //                the documents are bundled at build time now (attack round D), and the
 //                old entry allowed every repository on raw.githubusercontent.com. If the
 //                app starts talking to a Midnight indexer or proof server, those origins
@@ -141,7 +151,7 @@ const csp = [
   "style-src 'self' 'unsafe-inline'",
   "font-src 'self' data:",
   "img-src 'self' data: blob:",
-  `connect-src 'self' ${API_ORIGIN}${chainOrigins.length ? ` ${chainOrigins.join(' ')}` : ''}`,
+  `connect-src 'self' ${API_ORIGIN} ${BITCOIN_EXPLORERS.join(' ')}${chainOrigins.length ? ` ${chainOrigins.join(' ')}` : ''}`,
   "worker-src 'self' blob:",
   "frame-ancestors 'none'",
   // 'self', not 'none': html-to-image sets a same-origin <base> while it inlines the
@@ -156,7 +166,9 @@ const csp = [
   // on this site. Without it the browser refused to start the worker, and no date stamp
   // could be made (17 Oct 2026). veilcore-ask-model: the two on-device model workers'
   // addresses (bboard-ui/src/ask-local/client.ts), exactly those two files on this site.
-  'trusted-types veilcore-docs dompurify veilcore-prover veilcore-ask-model',
+  // veilcore-sw: the offline worker's address (bboard-ui/src/offline/register.ts), exactly
+  // /sw.js on this site; registering a worker is a script-address sink like a worker's.
+  'trusted-types veilcore-docs dompurify veilcore-prover veilcore-ask-model veilcore-sw',
   'upgrade-insecure-requests',
 ].join('; ');
 
@@ -164,7 +176,11 @@ export const headers = {
   'X-Frame-Options': 'DENY',
   'X-Content-Type-Options': 'nosniff',
   'Referrer-Policy': 'strict-origin-when-cross-origin',
-  'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
+  // camera=(self): this site's own pages may ask for the camera, for "Scan" beside an ID box
+  // (bboard-ui/src/scan, docs/scan-and-labels.md); the browser still asks the person first, and no
+  // other site (no frame, no other origin) can. The frames are read on the device and dropped.
+  // Microphone and location stay off for everyone.
+  'Permissions-Policy': 'camera=(self), microphone=(), geolocation=()',
   'Content-Security-Policy': csp,
   // Vercel adds HSTS on its own domains; whether it does on the veilcore.org alias was
   // not verified, so it is set here. Two years, subdomains included. Not "preload": that
@@ -190,6 +206,13 @@ if (['test', 'eval'].includes((process.env.VITE_ASK_MODEL || '').trim()))
       const src = readFileSync(`${assets}/${f}`, 'utf8');
       if (src.includes('veilcore-test/stub-model') || src.includes('__askEval'))
         throw new Error(`${assets}/${f} is from a test or evaluation build of Ask's model (VITE_ASK_MODEL); it is never deployed.`);
+      // The browser tests' Bitcoin pins (bboard-ui/src/e2e-fixtures/btc-e2e-chain.json): block 438,
+      // from the difficulty-1 era, where a fake block costs nothing. Only an e2e build has them.
+      if (src.includes(E2E_BITCOIN_PIN))
+        throw new Error(`${assets}/${f} pins the browser tests' Bitcoin checkpoint (VITE_E2E_FIXTURES); it is never deployed.`);
+      // The end-to-end build's test pin for its local timestamp authority (veilcore/instant-stamp.ts).
+      if (src.includes('veilcore.e2e.tsa-pins'))
+        throw new Error(`${assets}/${f} is from the end-to-end test build (VITE_E2E_FIXTURES); it is never deployed.`);
     }
 }
 const modelManifest = JSON.parse(
@@ -198,8 +221,14 @@ const modelManifest = JSON.parse(
 if (modelManifest.pinned && manifestProblem(modelManifest)) throw new Error(`model-manifest.json: ${manifestProblem(modelManifest)}`);
 const workerHeaders = (policy) => ({ ...headers, 'Content-Security-Policy': policy });
 
+// The offline worker (docs/offline.md, security review S16): the browser must ask for /sw.js
+// past every cache, so a fix or the kill switch reaches every browser on its next page load.
+// The page registers it with updateViaCache: 'none' too; this covers anything in between. A
+// check of the site (release-check.mjs checkServiceWorker) requires exactly this header.
+
 const routes = [
   { src: SITE_ROUTE_SRC, headers, continue: true },
+  { src: SW_ROUTE_SRC, headers: { 'Cache-Control': SW_CACHE_CONTROL }, continue: true },
   { src: modelWorkerRouteSrc('download'), headers: workerHeaders(downloadWorkerCsp(modelManifest)), continue: true },
   { src: modelWorkerRouteSrc('engine'), headers: workerHeaders(engineWorkerCsp()), continue: true },
   { handle: 'filesystem' },
@@ -218,3 +247,19 @@ writeFileSync(
   ),
 );
 console.log('wrote .vercel/output/config.json');
+
+// The offline worker serves its kept copy of the page with exactly these headers, written into
+// /sw.js here, before the release list hashes it (docs/offline.md; security re-check of PR #145,
+// SW-1): the headers a page could write into Cache Storage are never used. A worker left with
+// its placeholder never serves the kept page.
+{
+  const swFile = '.vercel/output/static/sw.js';
+  if (existsSync(swFile)) {
+    const text = readFileSync(swFile, 'utf8');
+    if (text.includes("'__VEILCORE_PAGE_HEADERS__'")) {
+      const pageHeaders = Object.fromEntries(Object.entries(headers).map(([k, v]) => [k.toLowerCase(), v]));
+      writeFileSync(swFile, text.replace("'__VEILCORE_PAGE_HEADERS__'", JSON.stringify(pageHeaders)));
+      console.log('wrote the page headers into .vercel/output/static/sw.js');
+    }
+  }
+}

@@ -91,6 +91,11 @@ export type Config = {
   readonly anchorReserveSpecks: bigint;
   /** Below this much DUST, GET /sponsor/alerts reports fuel-low (ALERT_DUST_LOW_DUST, default 50). */
   readonly alertDustLowSpecks: bigint;
+  /**
+   * Below this many days of DUST at the rate it has been falling, GET /sponsor/alerts also
+   * reports fuel-low (fuel.ts; ALERT_FUEL_RUNWAY_DAYS, default 7; 0 turns the runway check off).
+   */
+  readonly alertFuelRunwayDays: number;
   readonly powDifficulty: number;
   readonly queueDepth: number;
   readonly limits: LimitConfig;
@@ -427,6 +432,14 @@ export const loadConfig = (env: Record<string, string | undefined>): Config => {
       env.ALERT_DUST_LOW_DUST,
       50n * SPECKS_PER_DUST,
       "ALERT_DUST_LOW_DUST",
+      problems,
+    ),
+    alertFuelRunwayDays: int(
+      env.ALERT_FUEL_RUNWAY_DAYS,
+      7,
+      0,
+      365,
+      "ALERT_FUEL_RUNWAY_DAYS",
       problems,
     ),
     powDifficulty: int(

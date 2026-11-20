@@ -100,6 +100,7 @@ import {
   namesDeviceOnly,
 } from './outbox';
 import { holderKey, holderKeyIfAny, holderRequestsPaused } from './holder';
+import { mirrorDatingQueue } from '../offline/dating-mirror';
 import { enT, type Translator } from '../i18n/translate';
 import type { AppKey } from '../i18n/app/en';
 
@@ -458,7 +459,26 @@ const listeners = new Set<() => void>();
  */
 let loadedOnce = false;
 
-const notify = () => listeners.forEach((l) => l());
+const notify = () => {
+  listeners.forEach((l) => l());
+  mirrorForWorker();
+};
+
+/**
+ * The offline worker's copy of what waits to be dated (offline/dating-mirror.ts): the dating rows
+ * of records kept here whose proof code hasn't reached VeilCore, the same ones dateFirst sends.
+ */
+const mirrorForWorker = (): void => {
+  try {
+    const rows = [...Object.values(outboxRecords()), ...Object.values(deviceOnlyRecords())]
+      .filter((r) => isString(r.id) && !deleting.has(r.id) && !registryHasProofCode(r.id))
+      .map(datingRowOf)
+      .filter((r): r is NonNullable<typeof r> => r !== undefined);
+    mirrorDatingQueue(holderKeyIfAny(), rows);
+  } catch {
+    /* the worker's copy is only a help: the page still sends */
+  }
+};
 
 /**
  * What the last load found besides the records it could open (api-store.ts): records
@@ -1133,6 +1153,12 @@ export const startRecordSync = (): void => {
     window.addEventListener('focus', () => {
       if (!holderRequestsPaused()) void hydrate();
     });
+    // And the moment signal comes back, or the offline worker says Background Sync fired
+    // (offline/register.ts SEND_NOW_EVENT): records sealed with no signal are sent and dated now.
+    for (const ev of ['online', 'veilcore-send-now'])
+      window.addEventListener(ev, () => {
+        if (!holderRequestsPaused()) void hydrate();
+      });
   }
   if (!firstSync && !holderRequestsPaused()) {
     firstSync = true;

@@ -126,7 +126,7 @@ jobs:
       # release list, and the Bitcoin stamp check. Nothing is deployed or sent.
       - name: Other script checks
         run: |
-          node --test scripts/case-collisions.test.mjs scripts/release-manifest.test.mjs scripts/check-bitcoin-stamp.test.mjs
+          node --test scripts/case-collisions.test.mjs scripts/release-manifest.test.mjs scripts/check-bitcoin-stamp.test.mjs scripts/btc-checkpoints.test.mjs
 
       # deployments/*.json against docs/fingerprints.md, the README, the deploy guard, the release
       # list and the pinned compiler; then the deployment check against a stand-in indexer

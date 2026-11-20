@@ -221,6 +221,8 @@ export const de: Strings = {
   'm.hero.how': 'So funktioniert es',
   'm.hero.pasteQ': 'Laborcode oder Link von jemandem bekommen?',
   'm.hero.pasteGo': 'Hier einfügen →',
+  'm.hero.restoreQ': 'VeilCore schon auf einem anderen Gerät genutzt?',
+  'm.hero.restoreGo': 'Meine Datensätze zurückholen →',
   'm.hero.cultivar': 'Sorte',
   'm.hero.bredBy': 'Gezüchtet von',
   'm.hero.bredByDefault': 'Ihr Name',
@@ -377,6 +379,9 @@ export const de: Strings = {
   'm.privacy.chain.title': 'Was auf Midnight landet, dauerhaft',
   'm.privacy.chain.text':
     'Midnight ist ein öffentliches Netzwerk: Was dort landet, kann niemand ändern oder entfernen, auch wir nicht, und jeder kann es lesen. Ihre Genetik, Ihre Bedingungen, Ihr Name und Ihre Dateien landen dort nie. Was dort landet: der Prüfcode jedes Stapels von Datensätzen; der eigene Schlüssel eines Datensatzes und sein Datumsstempel; ein Code aus einem DNA-Bericht, wenn Sie dessen Kopplung datieren; welche Datensätze als Eltern und Nachkommen verknüpft sind, sobald beide Datensatzinhaber bestätigen (eine Verknüpfung lässt sich nicht zurücknehmen); dass auf einem Datensatz eine Lizenz, eine Verpflichtung oder der Anspruch eines Kreditgebers vermerkt ist, und wann sich das geändert hat; der öffentliche Schlüssel eines Labors, wenn es dort ein Zertifikat signiert; ein Wert, den Sie exakt nachweisen wollen, vollständig; und, wo diese Website Lizenzgebühren in NIGHT zahlen lässt, der Betrag und die beiden Adressen. Vor jedem dieser Schritte zeigt die App eine Quittung, die genau auflistet, was der Schritt öffentlich macht. Ein Code oder Schlüssel allein sagt nichts über Sie, aber wer von Ihnen einen Prüflink bekommt, kann von da an verfolgen, was mit diesem Datensatz im Netzwerk geschieht.',
+  'm.privacy.timestamps.title': 'Zeitstempel, und Arbeiten ohne Netz',
+  'm.privacy.timestamps.text':
+    'Wenn unser Server den Prüfcode eines Datensatzes annimmt, bittet er einen oder mehrere Zeitstempeldienste (unabhängige Dienste, manche von einer einzelnen Person betrieben) um einen Zeitstempel darauf, und auf jeden Stapel. Jeder Dienst erhält einen aus dem Prüfcode gebildeten Code und den Zeitpunkt der Anfrage und kann ein Protokoll darüber führen; da Prüfcodes auf Prüfseiten erscheinen, könnte ein Dienst sein Protokoll einem Prüflink zuordnen. Wer einen Prüflink hat, kann sekundengenau lesen, wann unser Server den Prüfcode dieses Datensatzes angenommen hat. Bei einem ohne Netz versiegelten Datensatz ist das, wann Ihr Gerät wieder Netz hatte. Die Seite nennt zuerst die Minute; der Zeitstempel selbst enthält die Sekunde. Damit sie ohne Netz öffnet, hält Ihr Browser eine Kopie des Codes dieser Website, und, wo er von selbst senden kann (Chrome), die Prüfcodes, die auf das Senden warten, und den Schlüssel, mit dem sie gesendet werden. Diese Kopie wird gelöscht, wenn Sie neu beginnen oder die Daten dieser Website entfernen.',
   'm.privacy.helper.title': 'Der Helfer und sein optionales Modell',
   'm.privacy.helper.text':
     '„Fragen“, der Helfer in der App, arbeitet dort, wo diese Website ihn anbietet, auf Ihrem Gerät. Nichts, was Sie dort eingeben, wird irgendwohin gesendet; nur das Speichern der App selbst sendet etwas, und das geht verschlossen an unseren Server, wie oben beschrieben. Wo diese Website das optionale Sprachmodell anbietet, wird es einmal von Hugging Face heruntergeladen, einem eigenen Unternehmen: Hugging Face sieht Ihre IP-Adresse, die Uhrzeit, welche Modelldateien und dass die Anfrage von dieser Website kommt; wir sehen, dass ein Download begonnen hat. Das Modell läuft auf Ihrem Gerät, in einem Teil der Seite, der das Netzwerk nicht erreichen kann; nichts, was Sie eingeben, gelangt zu Hugging Face oder zu uns, weder dann noch später. Sie können das Modell im Bereich des Helfers löschen. Sein „Für mich erledigen“ führt zu jedem Auftrag eine Aufzeichnung nur auf Ihrem Gerät, nie in einer Sicherungskopie: die Schritte und wie weit sie sind, Verweise auf die beteiligten Datensätze und Vereinbarungen und die Zahlen, die Sie für einen Bericht eingeben, bis er gesendet ist; nie, was Sie zum Fragen geschrieben haben. Sie wird 7 Tage nach dem Ende des Auftrags gelöscht. Solange ein Auftrag auf Ihre Zustimmung wartet, bleiben seine neuen Datensätze verschlossen mit ihren Schlüsseln in Ihrem Browser; eine Sicherungskopie aus dieser Zeit enthält diese Schlüssel ebenfalls. Um Berichte vorzubereiten, werden die Nachrichten Ihrer Vereinbarungen nacheinander von unserem Server gelesen, sodass unser Server sehen kann, dass diese Vereinbarungen zusammen gelesen wurden; gesendet wird erst, wenn Sie freigeben.',
@@ -744,6 +749,7 @@ export const de: Strings = {
   'm.verify.what':
     'Ein VeilCore-Datensatz beschreibt genetisches Material, ohne die Genetik zu enthalten. Seine Prüfseite zeigt, was sein Inhaber freigegeben hat, und seinen Namen, wenn der Link des Inhabers ihn enthält. Nur sein Prüfcode kommt auf Midnight, und er erhält ein Datum, sobald er dort verankert ist. Einen Datensatz zu prüfen, ist kostenlos und braucht kein Konto.',
   'm.verify.home': 'Was ist VeilCore? →',
+  'm.verify.scan': 'QR-Code eines Etiketts scannen',
   'm.verify.example': 'Nicht sicher, was Sie sehen werden? Sehen Sie sich zuerst ein Beispiel an →',
   // Round 5 (15 Oct 2026): landing page rework, keys added.
   'm.open.6t': 'Prüfen ohne uns.',
@@ -795,6 +801,13 @@ export const de: Strings = {
   'm.checksite.noHeaders':
     'Die Liste dieser Version enthält keine Sicherheits-Header (sie wurde erstellt, bevor sie aufgeführt wurden), daher wurden sie nicht verglichen.',
   'm.checksite.extraScript': 'Diese Seite hat ein Skript, das die gelistete Seite nicht hat: {script}',
+  'm.checksite.workerOk':
+    'Der Teil, mit dem VeilCore ohne Netz öffnet (/sw.js), wird so gesendet, dass Browser ihn immer neu laden, und hält nur Dateien aus der Liste dieser Version.',
+  'm.checksite.workerWrong':
+    'Der Teil, mit dem VeilCore ohne Netz öffnet, ist nicht, wie er sein soll ({path}). Verlassen Sie sich ohne Netz nicht darauf: Löschen Sie die Daten dieser Website, laden Sie neu und sagen Sie uns Bescheid.',
+  'm.checksite.copyHere': 'Die Kopie für die Nutzung ohne Netz in diesem Browser entspricht Version {commit}.',
+  'm.checksite.copyOther':
+    'Die Kopie für die Nutzung ohne Netz in diesem Browser ist Version {commit}, nicht die hier geprüfte. Sie wird beim nächsten Laden einer Seite mit Netz aktualisiert.',
   'm.checksite.limit':
     'Das zeigt, was Ihr Browser erhalten hat. Es kann nicht beweisen, dass der Host allen dieselben Dateien geschickt hat.',
   'm.checksite.listLink': 'Die Liste dieser Version im öffentlichen Code',

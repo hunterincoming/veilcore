@@ -1,9 +1,9 @@
 // VeilCore evidence bundle: the checks verify.html runs (docs/evidence-bundle.md).
 //
 // Plain browser JavaScript with no imports and no network. It is copied into verify.html
-// as it is, right after the canonicalisation code of the published SDK (veilcore-records,
-// dist/canonical.js, also copied in as it is), which defines `canonicalise`. SHA-256 and
-// Ed25519 come from the browser's own WebCrypto.
+// as it is (minus its last line, the one `export`), right after the canonicalisation code
+// of the published SDK (veilcore-records, dist/canonical.js, also copied in as it is), which
+// defines `canonicalise`. SHA-256 and Ed25519 come from the browser's own WebCrypto.
 //
 // The same checks the site and the registry make, written out again here so the page
 // needs nothing from VeilCore (the site's commitment.ts, key-binding.ts, proofs.ts; the
@@ -625,6 +625,31 @@ var VeilcoreVerify = (function () {
     return { status: 'unreadable', reason: 'it names no Bitcoin block and no stamping server' };
   }
 
+  /**
+   * The bundle's Bitcoin block headers (proof/bitcoin-headers.json) against what the stamp file
+   * names (readStamp) and the checkpoints this page pins, with the header check `chain`
+   * (btc-header-chain.js, loaded before this file in verify.html). null when the bundle carries
+   * no headers or the stamp names no Bitcoin block; otherwise verifyLink's result, failing when
+   * block N's header doesn't hold the value the stamp's steps end on. Never throws.
+   */
+  async function checkBitcoinHeaders(stamp, headersFile, pins, chain) {
+    try {
+      if (!isObject(headersFile) || !stamp || stamp.status !== 'bitcoin' || !chain) return null;
+      var named = null;
+      for (var i = 0; i < stamp.bitcoin.length; i++) if (stamp.bitcoin[i].height === headersFile.height) named = stamp.bitcoin[i];
+      if (!named) return { ok: false, reason: 'the headers are for block ' + headersFile.height + ', which the stamp file doesn’t name' };
+      if (!named.merkleRoot) return { ok: false, reason: 'the stamp’s steps to block ' + named.height + ' use a hash this browser can’t run' };
+      var r = await chain.verifyLink({ height: headersFile.height, headers: headersFile.headers, checkpoints: pins });
+      if (!r.ok) return r;
+      if (r.merkleRoot !== named.merkleRoot)
+        return { ok: false, reason: 'block ' + r.height + '’s header holds merkle root ' + r.merkleRoot + ', not the stamp’s ' + named.merkleRoot };
+      var from = Array.isArray(headersFile.from) ? headersFile.from.filter(function (x) { return typeof x === 'string'; }) : [];
+      return { ok: true, height: r.height, hash: r.hash, time: r.time, checkpoint: r.checkpoint, direction: r.direction, blocksOfWork: r.blocksOfWork, from: from };
+    } catch (e) {
+      return { ok: false, reason: messageOf(e) };
+    }
+  }
+
   // ---- 7. what to look up --------------------------------------------------------------
 
   var EXPLORERS = {
@@ -800,6 +825,7 @@ var VeilcoreVerify = (function () {
     midnightSteps: midnightSteps,
     bitcoinSteps: bitcoinSteps,
     readStamp: readStamp,
+    checkBitcoinHeaders: checkBitcoinHeaders,
     parseOts: parseOts,
     networkWords: networkWords,
     utc: utc,
@@ -819,3 +845,6 @@ var VeilcoreVerify = (function () {
     sha256Hex: sha256Hex,
   };
 })();
+// The site imports this file as a module too (veilcore/bitcoin/stamp-check.ts reads stamps with it);
+// verify-page.ts removes this one line when it copies the file into verify.html.
+export { VeilcoreVerify };

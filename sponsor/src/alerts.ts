@@ -8,6 +8,9 @@
 // is public, and the codes tell an outsider no more than the public status already does
 // (accepting, synced, alert), except that fuel is low.
 //
+// `fuel-low`: under ALERT_DUST_LOW_DUST, or under ALERT_FUEL_RUNWAY_DAYS days left at the rate
+// DUST has been falling (fuel.ts). The answer then also says `fuelRunwayDays` when it is known.
+//
 // `fork-mismatch`: the wallet's fork schedule, midnight-js and the contract state the indexer
 // serves do not name the same side of Midnight's Ledger 9 fork (fork.ts), so fee payments
 // would be built for the wrong ledger and fail. The log line "fork check" says which part.
@@ -33,6 +36,10 @@ export type AlertInput = {
   readonly dustSpecks: bigint | undefined;
   /** Below this, fuel is low (ALERT_DUST_LOW_DUST). */
   readonly dustLowSpecks: bigint;
+  /** Days of DUST left at the rate it has been falling (fuel.ts); undefined when not falling or not known yet. */
+  readonly fuelRunwayDays?: number;
+  /** Fewer days than this is low too (ALERT_FUEL_RUNWAY_DAYS); 0 or undefined: not checked. */
+  readonly fuelLowRunwayDays?: number;
 };
 
 /** What needs attention now; empty when all is well. */
@@ -43,8 +50,27 @@ export const alertsOf = (i: AlertInput): AlertCode[] => {
   if (i.syncStalled) out.push('sync-stalled');
   if (!i.synced && i.now - i.startedAt > i.syncGraceMs) out.push('not-synced');
   // Only once synced: before that the balance isn't known yet, and "not-synced" covers it.
-  if (i.synced && i.dustSpecks !== undefined && i.dustSpecks < i.dustLowSpecks) out.push('fuel-low');
+  const lowBalance = i.dustSpecks !== undefined && i.dustSpecks < i.dustLowSpecks;
+  const shortRunway =
+    i.fuelRunwayDays !== undefined && (i.fuelLowRunwayDays ?? 0) > 0 && i.fuelRunwayDays < (i.fuelLowRunwayDays ?? 0);
+  if (i.synced && (lowBalance || shortRunway)) out.push('fuel-low');
   return out;
+};
+
+/** What GET /sponsor/alerts answers: the codes, and with fuel-low the runway in days when it is known. */
+export type AlertReport = { readonly problems: readonly AlertCode[]; readonly fuelRunwayDays?: number };
+
+/**
+ * The codes, plus `fuelRunwayDays` beside fuel-low (reliability audit, 19 Nov 2026): how long
+ * the operator has to top up, at the rate DUST has been falling. Only with fuel-low, and only
+ * when known: when all is well the answer says no more than it did. A whole number of days,
+ * rounded down, so the figure tells an outsider little about the balance itself.
+ */
+export const alertReport = (i: AlertInput): AlertReport => {
+  const problems = alertsOf(i);
+  return problems.includes('fuel-low') && i.fuelRunwayDays !== undefined
+    ? { problems, fuelRunwayDays: Math.floor(i.fuelRunwayDays) }
+    : { problems };
 };
 
 /** A first sync of a fresh wallet took about an hour on preprod (1 Oct 2026); three is a problem. */

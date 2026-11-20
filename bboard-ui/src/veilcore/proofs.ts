@@ -148,7 +148,7 @@ export const downloadProof = (proof: InclusionProof, recordId: string): void => 
  */
 export const bitcoinStampFor = (
   proof: InclusionProof,
-): { otsUrl: string; rootUrl: string; status: 'bitcoin' | 'pending' } | undefined => {
+): { otsUrl: string; rootUrl: string; status: 'bitcoin' | 'pending'; height?: number } | undefined => {
   const anchors: unknown = (proof as unknown as Record<string, unknown>).anchors;
   if (!Array.isArray(anchors)) return undefined;
   const ots = anchors.find((a) => isObject(a) && a.kind === 'opentimestamps') as Record<string, unknown> | undefined;
@@ -158,5 +158,11 @@ export const bitcoinStampFor = (
     otsUrl: `${batch}/root.bin.ots`,
     rootUrl: `${batch}/root.bin`,
     status: ots.status === 'bitcoin' ? 'bitcoin' : 'pending',
+    // The registry's word for which block; the check page checks it (bitcoin/stamp-check.ts).
+    ...(typeof ots.bitcoinBlockHeight === 'number' &&
+    Number.isSafeInteger(ots.bitcoinBlockHeight) &&
+    ots.bitcoinBlockHeight >= 0
+      ? { height: ots.bitcoinBlockHeight }
+      : {}),
   };
 };

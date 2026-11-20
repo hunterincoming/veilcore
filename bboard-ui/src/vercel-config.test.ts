@@ -86,3 +86,25 @@ describe('scripts/vercel-config.mjs: no key, no plain http, in any indexer addre
     expect(r.connect).toContain('https://second.example');
   });
 });
+
+describe('scripts/vercel-config.mjs: the camera only for this site (docs/scan-and-labels.md)', () => {
+  it('lets this site’s own pages ask for the camera (Scan), and nothing else: no other origin, no microphone, no location', () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'vcfg-test-'));
+    fs.mkdirSync(path.join(dir, '.vercel/output'), { recursive: true });
+    const r = spawnSync(process.execPath, [SCRIPT], {
+      cwd: dir,
+      env: {
+        ...Object.fromEntries(
+          Object.entries(process.env).filter(([k]) => !/^VITE_(REAL_CHAIN|SPONSOR_URL|INDEXER|NETWORK_ID)/.test(k)),
+        ),
+        VITE_API_BASE: 'https://registry.example',
+      },
+      encoding: 'utf8',
+    });
+    expect(r.status, String(r.stderr)).toBe(0);
+    const cfg = JSON.parse(fs.readFileSync(path.join(dir, '.vercel/output/config.json'), 'utf8')) as {
+      routes: { headers?: Record<string, string> }[];
+    };
+    expect(cfg.routes[0].headers?.['Permissions-Policy']).toBe('camera=(self), microphone=(), geolocation=()');
+  });
+});

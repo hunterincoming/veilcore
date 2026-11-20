@@ -223,11 +223,21 @@ export const Founders: React.FC = () => {
   );
 };
 
+// A label's QR code, read with the camera on this device (scan/SiteScan.tsx): fetched only when
+// pressed, so this page's first download doesn't grow.
+const SiteScan = React.lazy(() => import('../../scan/SiteScan'));
+const canScan = () =>
+  typeof navigator !== 'undefined' &&
+  !!navigator.mediaDevices &&
+  typeof navigator.mediaDevices.getUserMedia === 'function';
+
 /** /verify with no identifier: ask for one, then open /verify/:id. */
 export const VerifyLookup: React.FC = () => {
   const { t, sp } = useI18n();
   const navigate = useNavigate();
   const [id, setId] = React.useState('');
+  const [scanning, setScanning] = React.useState(false);
+  const idBox = React.useRef<HTMLInputElement>(null);
   // The proof code from the certificate (persona review, 17 Oct): with it the check page
   // checks the record against the code in hand, not only against the registry's answer.
   const [fp, setFp] = React.useState('');
@@ -255,7 +265,14 @@ export const VerifyLookup: React.FC = () => {
         <form className="lookup" onSubmit={go}>
           <div className="field">
             <label htmlFor="vid">{t('m.verify.field')}</label>
-            <input id="vid" value={id} autoComplete="off" spellCheck={false} onChange={(e) => setId(e.target.value)} />
+            <input
+              id="vid"
+              ref={idBox}
+              value={id}
+              autoComplete="off"
+              spellCheck={false}
+              onChange={(e) => setId(e.target.value)}
+            />
           </div>
           <div className="field">
             <label htmlFor="vfp">{t('m.verify.fpField')}</label>
@@ -278,7 +295,23 @@ export const VerifyLookup: React.FC = () => {
           <button type="submit" className="btn solid">
             {t('m.verify.go')}
           </button>
+          {canScan() && (
+            <button type="button" className="btn" onClick={() => setScanning(true)} data-verify-scan="">
+              {t('m.verify.scan')}
+            </button>
+          )}
         </form>
+        {scanning && (
+          <React.Suspense fallback={null}>
+            <SiteScan
+              onClose={() => setScanning(false)}
+              onText={(text) => {
+                setId(text);
+                window.setTimeout(() => idBox.current?.focus(), 0);
+              }}
+            />
+          </React.Suspense>
+        )}
         <p className="verify-what">
           <RouterLink to="/verify/example">{t('m.verify.example')}</RouterLink>
         </p>

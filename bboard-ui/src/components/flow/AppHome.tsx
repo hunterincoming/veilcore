@@ -22,6 +22,7 @@ import {
   deviceOnlyBackedUp,
   isKeptOnDeviceOnly,
   labNameOf,
+  proofCodeSent,
   unsavedReason,
   startOver,
   useSealedView,
@@ -69,8 +70,11 @@ import { dnaTieSentence } from '../../veilcore/dna-tie';
 import type { StrainRecord } from '../../veilcore/records';
 import type { SavedReport } from '../../veilcore/saved-report';
 import { PickUp } from './PickUp';
+import { sealedHereShort } from '../offline/offline-words';
+import { InstallCard } from '../offline/InstallCard';
 import { BackupNeeded, backupNeed } from './BackupNeeded';
-import { AccountStatusLine } from './KeepSafe';
+import { AccountStatusLine, useRestoreUnlockWord } from './KeepSafe';
+import type { AppKey } from '../../i18n/app/en';
 import { useAccountState } from '../../veilcore/account-copy';
 import { JobsOnHome } from '../ask/JobsOnHome';
 import { keysOnlyHere } from './keys-only-here';
@@ -198,6 +202,7 @@ export const AppHome: React.FC = () => {
   const vaultUnbacked = useVaultNeedsBackup();
   // Records saved with VeilCore (easy mode step 2): one account line says whether they are safe.
   const accountOn = useAccountState().kind !== 'off';
+  const unlockWord = useRestoreUnlockWord();
   // Records saved before locking wait for that backup before they are locked (CONTRACT.md #23).
   const legacyWaiting = records.some((r) => rowStateOf(RECORDS_KEY, r.id) === 'legacy');
   const { vaultProblem } = useSealedView();
@@ -354,13 +359,15 @@ export const AppHome: React.FC = () => {
           {/* A new device, or a browser that was cleared: the backup brings everything back,
               so it is the first thing offered, not a link at the bottom. Not once this
               browser has a holder key (it has been used here). */}
+          {/* The account line, when it has something to say (saving was turned off elsewhere). */}
+          {accountOn && <AccountStatusLine />}
           {!draft && !holderKeyIfAny() && (
             <Paper variant="outlined" sx={{ p: 2 }} data-restore-first="">
               <Typography variant="subtitle1" component="h2" sx={{ fontWeight: 700 }}>
                 {t('app.home.restoreFirstTitle')}
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
-                {t('app.home.restoreFirstText')}
+                {t('app.home.restoreFirstText', { how: t(`app.account.how.${unlockWord}` as AppKey) })}
               </Typography>
               <Button component={RouterLink} to="/restore" variant="outlined" sx={{ minHeight: 44 }}>
                 {t('app.home.restoreFirstButton')}
@@ -457,6 +464,10 @@ export const AppHome: React.FC = () => {
         {/* Saving with VeilCore on (easy mode step 2): the account line says whether records are
             kept safe, in place of the backup line above. */}
         {accountOn && <AccountStatusLine />}
+
+        {/* Once there is a record to keep: VeilCore on the Home Screen, so it opens with no
+            signal, worded so the iPhone's separate storage is no surprise (docs/offline.md). */}
+        {records.length > 0 && <InstallCard />}
 
         {vaultProblem === 'cant-store' && (
           <Alert severity="warning" variant="outlined" data-vault-cant-store="">
@@ -605,7 +616,8 @@ export const AppHome: React.FC = () => {
                           sx={{ color: 'warning.main', fontWeight: 700 }}
                           data-home-unsaved={r.id}
                         >
-                          {t(k)}
+                          {/* Sealed with no signal: when, and that it's dated when sent (docs/offline.md). */}
+                          {!proofCodeSent(r.id) && r.loggedAt > 0 ? sealedHereShort(r.loggedAt, tr) : t(k)}
                         </Typography>
                       ) : null;
                     })()}

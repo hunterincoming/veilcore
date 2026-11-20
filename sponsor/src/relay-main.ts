@@ -1,12 +1,14 @@
 // Starts the indexer relay on its own, read-only: what veilcore.org's check page reads
 // Midnight through (indexer-relay.ts, docs/check-on-chain.md). No wallet, no fees, no
 // anchoring. Start with `node dist/relay-main.js`.
+// GET /alerts tells an outside monitor whether Blockfrost is answering with recent blocks.
 // SPDX-License-Identifier: Apache-2.0
 
 import { createServer } from "node:http";
 import { clientIp } from "./server.js";
 import { createIndexerRelay, loadReadRelayConfig, readRelayHandler } from "./indexer-relay.js";
 import { createCardanoRelay } from "./cardano-relay.js";
+import { createUpstreamCheck } from "./upstream-check.js";
 import { log, scrubOutput } from "./log.js";
 
 const loaded = loadReadRelayConfig(process.env);
@@ -25,7 +27,9 @@ const relay = createIndexerRelay({
 // GET /cardano/tx/<hash>, only when a Cardano project id is set (cardano-relay.ts).
 const cardano = cfg.cardano ? createCardanoRelay(cfg.cardano) : undefined;
 const ip = (req: Parameters<typeof clientIp>[0]) => clientIp(req, cfg.trustProxyHops);
-const server = createServer((req, res) => void readRelayHandler(relay, cfg, ip, cardano)(req, res));
+// GET /alerts: Blockfrost answers with a block under 10 minutes old (upstream-check.ts).
+const upstream = createUpstreamCheck({ indexer: cfg.indexer });
+const server = createServer((req, res) => void readRelayHandler(relay, cfg, ip, cardano, upstream)(req, res));
 relay.attach(server, ip);
 server.requestTimeout = 60_000;
 server.listen(cfg.port, () =>

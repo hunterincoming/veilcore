@@ -338,6 +338,10 @@ html:has(.vcm .home) body {
   background: var(--yellow);
   color: var(--void);
 }
+/* "Used VeilCore on another device?" sits right under the paste line, as its pair. */
+.vcm .home .k-paste.hero-restore {
+  margin-top: 6px;
+}
 .vcm .home .k-status-line {
   margin-top: 14px;
   max-width: 46em;

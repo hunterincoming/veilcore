@@ -9,6 +9,7 @@ import DrawOutlinedIcon from '@mui/icons-material/DrawOutlined';
 import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutlineOutlined';
 import StorageOutlinedIcon from '@mui/icons-material/StorageOutlined';
 import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutlined';
+import PublicOutlinedIcon from '@mui/icons-material/PublicOutlined';
 import { useT } from '../../i18n/app';
 import type { Basis, WhoRow } from './who-vouches';
 
@@ -16,11 +17,16 @@ const MARK: Record<Basis, React.ElementType> = {
   checked: CheckCircleOutlineIcon,
   signed: DrawOutlinedIcon,
   registry: StorageOutlinedIcon,
+  explorer: PublicOutlinedIcon,
   holder: ChatBubbleOutlineIcon,
   none: RemoveCircleOutlineIcon,
 };
 
-export const WhoVouches: React.FC<{ rows: readonly WhoRow[] }> = ({ rows }) => {
+/** `after`: something to show under a row, by its id (the Bitcoin row's check button). */
+export const WhoVouches: React.FC<{
+  rows: readonly WhoRow[];
+  after?: Readonly<Partial<Record<NonNullable<WhoRow['id']>, React.ReactNode>>>;
+}> = ({ rows, after }) => {
   const { t } = useT();
   return (
     <Box
@@ -37,7 +43,7 @@ export const WhoVouches: React.FC<{ rows: readonly WhoRow[] }> = ({ rows }) => {
           const Mark = MARK[r.basis];
           // A dl may group each dt and dd in a div (HTML); the mark sits inside the dt.
           return (
-            <Box key={r.fact} data-who-row={r.basis}>
+            <Box key={r.fact} data-who-row={r.basis} data-who-id={r.id}>
               <Typography
                 component="dt"
                 variant="body2"
@@ -54,6 +60,7 @@ export const WhoVouches: React.FC<{ rows: readonly WhoRow[] }> = ({ rows }) => {
               >
                 {r.who}
               </Typography>
+              {r.id && after?.[r.id] && <Box sx={{ pl: 3.25, mt: 0.75 }}>{after[r.id]}</Box>}
             </Box>
           );
         })}

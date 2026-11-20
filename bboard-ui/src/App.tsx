@@ -76,6 +76,8 @@ const LabResultsPage = page(() => import('./components/lab/LabResultsPage'), 'La
 const LabResultCheck = page(() => import('./components/lab/LabResultCheck'), 'LabResultCheck');
 const BulkImportPage = page(() => import('./components/lab-import/BulkImportPage'), 'BulkImportPage');
 const AuthorityPackPage = page(() => import('./components/authority-pack/AuthorityPackPage'), 'AuthorityPackPage');
+// QR labels that open a record's check page, drawn and printed on this device (docs/scan-and-labels.md).
+const LabelsPage = page(() => import('./components/labels/LabelsPage'), 'LabelsPage');
 const RestorePage = page(() => import('./components/flow/RestorePage'), 'RestorePage');
 const BackupPage = page(() => import('./components/flow/BackupPage'), 'BackupPage');
 // Records saved with VeilCore and the downloaded copy (easy mode step 2).
@@ -119,6 +121,7 @@ const RoleChangeLink = page(layoutParts, 'RoleChangeLink');
 const AskLauncher = page(layoutParts, 'AskLauncher');
 const NetworkBadge = page(layoutParts, 'NetworkBadge');
 const AccountKeeper = page(layoutParts, 'AccountKeeper');
+const OfflineBar = page(layoutParts, 'OfflineBar');
 
 const AppLayout: React.FC<React.PropsWithChildren> = ({ children }) => {
   // The role question belongs to the app: making records, holding them, licensing them.
@@ -166,6 +169,8 @@ const AppLayout: React.FC<React.PropsWithChildren> = ({ children }) => {
       <SiteHeader app badge={IS_MAINNET ? undefined : <NetworkBadge />} />
       {/* The one main landmark: the header, the page and its notices. The footer stays outside. */}
       <Container component="main" maxWidth="md" sx={{ pt: { xs: 2, md: 4 }, pb: { xs: 3, md: 6 } }}>
+        {/* No signal: what still works and what waits (docs/offline.md). */}
+        <OfflineBar />
         <SaveProblemBar />
         {/* A page that fails to draw says so plainly, not with a blank screen (round 3, L5). */}
         <PageErrorBoundary>{children}</PageErrorBoundary>
@@ -378,6 +383,7 @@ const routes = (
     <Route path="/records" element={withLayout(<AppHome />)} />
     <Route path="/records/import" element={withLayout(<BulkImportPage />)} />
     <Route path="/records/authority-pack" element={withLayout(<AuthorityPackPage />)} />
+    <Route path="/records/labels" element={withLayout(<LabelsPage />)} />
     <Route path="/restore" element={withLayout(<RestorePage />)} />
     <Route path="/backup" element={withLayout(<BackupPage />)} />
     <Route path="/settings" element={withLayout(<SettingsPage />)} />

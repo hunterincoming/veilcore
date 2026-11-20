@@ -4,6 +4,7 @@
 
 import React from 'react';
 import { Autocomplete, Box, Button, MenuItem, Stack, TextField, Typography } from '@mui/material';
+import { ScanTextField } from '../../scan/ScanTextField';
 import {
   CULTURES_MAX,
   QC_MAX,
@@ -155,7 +156,14 @@ export const ResultForm: React.FC<{
           helperText: t('app.lr.form.subjectHelp'),
           error: problem === 'subject',
         })}
-      {field('sampleId', 'app.lr.form.sampleId')}
+      <ScanTextField
+        label={t('app.lr.form.sampleId')}
+        value={d.sampleId}
+        onValue={(v) => set('sampleId', v.slice(0, 200) as never)}
+        error={problem === 'sampleId'}
+        fullWidth
+        slotProps={{ htmlInput: { maxLength: 200, 'data-field': 'sampleId' } }}
+      />
       {field('accession', 'app.lr.form.accession')}
       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
         {field('method', 'app.lr.form.method')}

@@ -32,6 +32,7 @@ import { royaltyPay } from './royalty-pay';
 import { document } from './document';
 import { attest } from './attest';
 import { labresult } from './labresult';
+import { parentage } from './parentage';
 import { start } from './start';
 import { receipt } from './receipt';
 import { ask } from './ask';
@@ -39,6 +40,9 @@ import { origin } from './origin';
 import { job } from './job';
 import { pack } from './pack';
 import { account } from './account';
+import { scan } from './scan';
+import { offline } from './offline';
+import { recovery } from './recovery';
 
 export const appFr: AppTranslation = {
   ...common,
@@ -66,6 +70,7 @@ export const appFr: AppTranslation = {
   ...document,
   ...attest,
   ...labresult,
+  ...parentage,
   ...start,
   ...receipt,
   ...ask,
@@ -73,4 +78,7 @@ export const appFr: AppTranslation = {
   ...job,
   ...pack,
   ...account,
+  ...scan,
+  ...offline,
+  ...recovery,
 };

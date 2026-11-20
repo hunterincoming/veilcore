@@ -26,7 +26,7 @@ export const account = {
   'app.account.saved.title': 'Guardado.',
   'app.account.saved.text': 'Sus registros están guardados con VeilCore. Los nuevos se guardan solos.',
   'app.account.saved.bound':
-    'Guardado con VeilCore, pero esta llave de acceso se queda solo en este dispositivo: si lo pierde, se pierde también. Descargue una copia que guarde usted, por seguridad.',
+    'Solo este dispositivo puede abrir sus registros guardados: si se pierde, se reemplaza o se restablece, necesitará su hoja de recuperación.',
   'app.account.saved.download': 'Descargar una copia',
   'app.account.saved.done': 'Listo',
 
@@ -39,13 +39,13 @@ export const account = {
   'app.account.line.missing': '<b>El servidor de VeilCore ya no tiene sus registros guardados.</b> Guárdelos de nuevo.',
   'app.account.line.saveAgain': 'Guardar de nuevo',
   'app.account.line.slotMissing':
-    '<b>Falta en el servidor de VeilCore una forma de abrir sus registros guardados.</b> Configúrelo de nuevo.',
+    '<b>Una forma de abrir sus registros guardados falta o cambió en el servidor de VeilCore.</b> Configúrelo de nuevo.',
   'app.account.line.serverOlder':
     '<b>Algo no está bien en el servidor de VeilCore.</b> Sus registros en este dispositivo están bien y no se cambió nada. Descargue una copia por seguridad.',
   'app.account.line.failing': '<b>No se pudo guardar en su cuenta.</b> {why} Se vuelve a intentar solo.',
   'app.account.line.tryNow': 'Intentar ahora',
   'app.account.line.bound':
-    '<b>Guardado con VeilCore, pero solo este dispositivo puede abrirlo.</b> Descargue una copia que guarde usted.',
+    '<b>Solo este dispositivo puede abrir sus registros guardados.</b> Cree una hoja de recuperación para recuperarlos si lo pierde.',
   'app.account.line.download': 'Descargar una copia',
   'app.account.line.deviceOnly.one':
     '<b>{count} documento está solo en este dispositivo.</b> Descargue una copia para mantenerlo a salvo.',
@@ -105,7 +105,7 @@ export const account = {
   'app.settings.devices.here': '{device} (este) · guardado por última vez el {date}',
   'app.settings.stop': 'Dejar de guardar con VeilCore',
   'app.settings.stopConfirm':
-    '¿Borrar sus registros guardados con VeilCore? Este dispositivo los conserva. Sus otros dispositivos dejan de guardar, y el primero que vuelva a guardar crea una copia nueva. La llave de acceso sigue en los ajustes de su teléfono.',
+    '¿Borrar sus registros guardados con VeilCore? Este dispositivo los conserva. Sus otros dispositivos dejan de guardar, y el primero que vuelva a guardar crea una copia nueva. Sus hojas de recuperación dejan de funcionar. La llave de acceso sigue en los ajustes de su teléfono.',
   'app.settings.stopped': 'Borrado. Sus registros siguen en este dispositivo.',
   'app.settings.file.title': 'Descargar una copia',
   'app.settings.file.text':
@@ -128,4 +128,16 @@ export const account = {
   'app.account.restore.tryAgain': 'Intentar de nuevo',
   'app.account.restore.tryWww': '¿Usó primero www.veilcore.org? Abra esta página allí.',
   'app.settings.ways.tag': 'Con el nombre «VeilCore: unlocks your records · {tag}» en sus contraseñas',
+  'app.settings.passkeyCheck':
+    '¿Una llave de acceso no funciona en un dispositivo? <link>Compruebe si este navegador admite llaves de acceso</link>.',
+  'app.account.sheet.passkeyCheck':
+    'Si vuelve a pasar, <link>compruebe si este navegador admite llaves de acceso</link>. Muestra lo que pueden hacer este navegador y este dispositivo, y no envía nada.',
+  // The way in, as a fragment after “with” (Home's first card, the live test on Windows).
+  'app.account.how.faceId': 'Face ID',
+  'app.account.how.touchId': 'Touch ID',
+  'app.account.how.screenLock': 'el bloqueo de pantalla',
+  'app.account.how.windowsHello': 'Windows Hello',
+  'app.account.how.passkey': 'una llave de acceso',
+  'app.account.line.off':
+    '<b>El guardado con VeilCore está desactivado.</b> Su copia guardada se eliminó, quizás con «Dejar de guardar con VeilCore» en otro dispositivo.',
 } satisfies Partial<AppTranslation>;
