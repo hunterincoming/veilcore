@@ -9,7 +9,8 @@
 // the proof of work, the second explorer's agreement.
 //
 //   - nothing is asked of any explorer until the visitor presses the button;
-//   - linked: "Checked in this browser", in English and Japanese;
+//   - linked up from checkpoint 438 (no later pin): "Checked in this browser", saying it rests on
+//     mined work, in English and Japanese;
 //   - the two explorers disagree: nothing rests on Bitcoin;
 //   - the explorers can't be reached: the registry's word, and "Try again".
 // SPDX-License-Identifier: Apache-2.0
@@ -121,7 +122,9 @@ const openCheck = async (
 
 const bitcoinRow = (page: Page) => page.locator('[data-who-vouches] [data-who-id="bitcoin"]');
 
-test('linked: block 439’s proof of work and its link to checkpoint 438, checked in this browser', async ({ page }) => {
+test('linked up: block 439’s proof of work and its link up from checkpoint 438, checked in this browser', async ({
+  page,
+}) => {
   const errors = watch(page);
   const asked = await openCheck(page, { mempool: CHAIN, blockstream: CHAIN });
   const row = bitcoinRow(page);
@@ -129,14 +132,17 @@ test('linked: block 439’s proof of work and its link to checkpoint 438, checke
   await expect(row).toContainText(
     `VeilCore’s registry says it is in Bitcoin block ${HEIGHT}. This page hasn’t checked it on Bitcoin.`,
   );
-  await expect(row).toContainText('They see this browser’s internet address and the block number, not the record.');
+  await expect(row).toContainText(
+    'They see this browser’s internet address, that it is checking a VeilCore batch, and which block; not the record.',
+  );
   // Nothing goes to an explorer before the button.
   expect(asked).toEqual([]);
   await row.getByRole('button', { name: 'Check on Bitcoin' }).click();
   await expect(row).toHaveAttribute('data-who-row', 'checked');
   await expect(row).toContainText(
-    `Checked in this browser: block ${HEIGHT}’s proof of work and its link to checkpoint 438, a block this website pins. The block holds this batch’s stamp.`,
+    `Checked in this browser: block ${HEIGHT}’s proof of work and its link up from checkpoint 438, a block this website pins, through blocks mined at Bitcoin’s real difficulty. The block holds this batch’s stamp.`,
   );
+  await expect(row).toContainText('A later checkpoint would check it more strongly.');
   await expect(row.getByRole('button')).toHaveCount(0);
   // One explorer gave the run, the other the hash of block 439.
   expect(asked.some((u) => u.startsWith('https://mempool.space/api/blocks/'))).toBe(true);
@@ -151,7 +157,9 @@ test('linked, in Japanese', async ({ page }) => {
   const row = bitcoinRow(page);
   await row.getByRole('button', { name: 'Bitcoinで確認' }).click();
   await expect(row).toHaveAttribute('data-who-row', 'checked');
-  await expect(row).toContainText(`このブラウザで確認しました：ブロック${HEIGHT}のプルーフ・オブ・ワーク`);
+  await expect(row).toContainText(
+    `このブラウザで確認しました：ブロック${HEIGHT}のプルーフ・オブ・ワークと、このウェブサイトが固定しているブロックであるチェックポイント438から、Bitcoinの実際の難易度で採掘されたブロックを通じた上向きのつながり。`,
+  );
   await page.locator('[data-who-vouches]').screenshot({ path: test.info().outputPath('bitcoin-linked-ja.png') });
   expectNoErrors(errors);
 });
