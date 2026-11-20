@@ -128,4 +128,12 @@ export const account = {
   'app.account.restore.tryAgain': 'Intentar de nuevo',
   'app.account.restore.tryWww': '¿Usó primero www.veilcore.org? Abra esta página allí.',
   'app.settings.ways.tag': 'Con el nombre «VeilCore: unlocks your records · {tag}» en sus contraseñas',
+  // The way in, as a fragment after “with” (Home's first card, the live test on Windows).
+  'app.account.how.faceId': 'Face ID',
+  'app.account.how.touchId': 'Touch ID',
+  'app.account.how.screenLock': 'el bloqueo de pantalla',
+  'app.account.how.windowsHello': 'Windows Hello',
+  'app.account.how.passkey': 'una llave de acceso',
+  'app.account.line.off':
+    '<b>El guardado con VeilCore está desactivado.</b> Su copia guardada se eliminó, quizás con «Dejar de guardar con VeilCore» en otro dispositivo.',
 } satisfies Partial<AppTranslation>;

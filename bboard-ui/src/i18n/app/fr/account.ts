@@ -136,4 +136,12 @@ export const account = {
   'app.account.restore.tryAgain': 'Réessayer',
   'app.account.restore.tryWww': 'Vous avez d’abord utilisé www.veilcore.org ? Ouvrez cette page là-bas.',
   'app.settings.ways.tag': 'Nommée « VeilCore: unlocks your records · {tag} » dans vos mots de passe',
+  // The way in, as a fragment after “with” (Home's first card, the live test on Windows).
+  'app.account.how.faceId': 'Face ID',
+  'app.account.how.touchId': 'Touch ID',
+  'app.account.how.screenLock': 'le verrouillage de l’écran',
+  'app.account.how.windowsHello': 'Windows Hello',
+  'app.account.how.passkey': 'une clé d’accès',
+  'app.account.line.off':
+    '<b>La sauvegarde chez VeilCore est désactivée.</b> Votre copie sauvegardée a été supprimée, peut-être avec « Arrêter la sauvegarde chez VeilCore » sur un autre appareil.',
 } satisfies Partial<AppTranslation>;
