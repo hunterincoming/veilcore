@@ -38,9 +38,21 @@ const built = (files: Served, pageHeaders: Record<string, string> | null = PAGE_
     .replace("'__VEILCORE_SHELL_FILES__'", JSON.stringify(hashes))
     .replace("'__VEILCORE_PAGE_HEADERS__'", pageHeaders ? JSON.stringify(pageHeaders) : "'__VEILCORE_PAGE_HEADERS__'");
 };
-const scope = (served: Served, opts: { offline?: () => boolean; pageUrl?: () => string; worker?: string } = {}) => {
+const scope = (
+  served: Served,
+  opts: {
+    offline?: () => boolean;
+    pageUrl?: () => string;
+    worker?: string;
+    /** A newer worker installing or waiting beside this one. */
+    newer?: () => 'installing' | 'waiting' | undefined;
+    /** Cache Storage shared with another worker of the same site. */
+    stores?: Map<string, Map<string, Response>>;
+    messages?: unknown[];
+  } = {},
+) => {
   const handlers: Record<string, ((e: unknown) => void)[]> = {};
-  const stores = new Map<string, Map<string, Response>>();
+  const stores = opts.stores ?? new Map<string, Map<string, Response>>();
   const keyOf = (r: RequestInfo | URL) =>
     new URL(typeof r === 'string' ? r : r instanceof URL ? r.href : r.url, ORIGIN).pathname;
   const cache = (name: string) => {
@@ -62,21 +74,40 @@ const scope = (served: Served, opts: { offline?: () => boolean; pageUrl?: () => 
     if (!f) return new Response('not here', { status: 404 });
     return new Response(f.body, { status: 200, headers: f.headers ?? {} });
   };
-  const messages: unknown[] = [];
+  const messages: unknown[] = opts.messages ?? [];
+  let updated = 0;
+  let skipped = 0;
+  /** The worker's timers, run by hand (tick). */
+  const timers = new Map<number, () => void>();
+  let timerId = 0;
   const self = {
     location: new URL(`${ORIGIN}/sw.js`),
     addEventListener: (t: string, h: (e: unknown) => void) => (handlers[t] ??= []).push(h),
-    skipWaiting: () => undefined,
+    skipWaiting: async () => void skipped++,
     clients: {
       claim: async () => undefined,
       matchAll: async () => [
         { id: 'page-1', url: opts.pageUrl?.() ?? `${ORIGIN}/records`, postMessage: (m: unknown) => messages.push(m) },
       ],
     },
-    registration: { unregister: async () => true },
+    registration: {
+      unregister: async () => true,
+      update: async () => void updated++,
+      get installing() {
+        return opts.newer?.() === 'installing' ? {} : null;
+      },
+      get waiting() {
+        return opts.newer?.() === 'waiting' ? {} : null;
+      },
+    },
   };
   const ctx = vm.createContext({
     self,
+    setInterval: (f: () => void) => {
+      timers.set(++timerId, f);
+      return timerId;
+    },
+    clearInterval: (id: number) => timers.delete(id),
     caches: {
       open: async (n: string) => cache(n),
       keys: async () => [...stores.keys()],
@@ -120,7 +151,25 @@ const scope = (served: Served, opts: { offline?: () => boolean; pageUrl?: () => 
     await Promise.allSettled(waits);
     return { answered: answer !== undefined, response: answer ? await answer : undefined };
   };
-  return { fire, stores, fetched, messages, handlers };
+  /** One second of the worker's interval timers. */
+  const tick = () => [...timers.values()].forEach((f) => f());
+  /** Installed and then in charge, as a first visit goes (the copy switches when it takes over). */
+  const start = async () => {
+    await fire('install');
+    await fire('activate');
+  };
+  return {
+    fire,
+    start,
+    stores,
+    fetched,
+    messages,
+    handlers,
+    tick,
+    skipped: () => skipped,
+    updated: () => updated,
+    timers,
+  };
 };
 
 /** A release as a deploy publishes it: the files, release.json and the manifest of their hashes. */
@@ -162,7 +211,7 @@ const req = (p: string, init: { mode?: string; cache?: string; origin?: string }
 describe('the offline worker', () => {
   it('copies only the listed shell, checked file by file, under the release’s commit', async () => {
     const s = scope(release(APP, COMMIT_A));
-    await s.fire('install');
+    await s.start();
     const copy = s.stores.get(`veilcore-shell-${COMMIT_A}`);
     expect([...(copy?.keys() ?? [])].sort()).toEqual(['/assets/index-abc.js', '/index.html']);
     // Kept with the headers it was sent with: a page from the copy runs under the same policy.
@@ -171,10 +220,10 @@ describe('the offline worker', () => {
 
   it('copies nothing when a file isn’t the listed one, or the site has no release list', async () => {
     const bad = scope(release(APP, COMMIT_A, '/assets/index-abc.js'));
-    await bad.fire('install');
+    await bad.start();
     expect([...bad.stores.keys()].filter((k) => k.startsWith('veilcore-shell-'))).toEqual([]);
     const none = scope(APP);
-    await none.fire('install');
+    await none.start();
     expect([...none.stores.keys()].filter((k) => k.startsWith('veilcore-shell-'))).toEqual([]);
     // A list naming a file the release list doesn't: refused whole.
     const extra = scope(
@@ -186,13 +235,13 @@ describe('the offline worker', () => {
         COMMIT_A,
       ),
     );
-    await extra.fire('install');
+    await extra.start();
     expect([...extra.stores.keys()].filter((k) => k.startsWith('veilcore-shell-'))).toEqual([]);
   });
 
   it('never answers another site, a check that asks not to be cached, the release list or itself', async () => {
     const s = scope(release(APP, COMMIT_A));
-    await s.fire('install');
+    await s.start();
     for (const r of [
       req('/api/records', { origin: 'https://registry.example' }),
       req('/assets/index-abc.js', { cache: 'no-store' }),
@@ -209,7 +258,7 @@ describe('the offline worker', () => {
     let offline = false;
     const files = release(APP, COMMIT_A);
     const s = scope(files, { offline: () => offline });
-    await s.fire('install');
+    await s.start();
     const online = await s.fire('fetch', {
       request: req('/records', { mode: 'navigate' }),
       resultingClientId: 'page-1',
@@ -224,22 +273,42 @@ describe('the offline worker', () => {
     // A built file comes from the copy.
     const js = await s.fire('fetch', { request: req('/assets/index-abc.js') });
     expect(await js.response?.text()).toBe('console.log(1)');
-    // A new release: copied, the old copy deleted, and the page from A's copy told it is older.
+    // A new release. A's worker doesn't copy it (it couldn't serve B's files): it asks the
+    // browser for B's worker.
     offline = false;
-    const b = release({ ...APP, '/index.html': { body: '<html>B</html>' } }, COMMIT_B);
+    const bFiles = { ...APP, '/index.html': { body: '<html>B</html>' } };
+    const b = release(bFiles, COMMIT_B);
     for (const k of Object.keys(files)) delete files[k];
     Object.assign(files, b);
     await s.fire('message', { data: { type: 'veilcore-check' }, origin: ORIGIN });
-    expect([...s.stores.keys()].filter((k) => k.startsWith('veilcore-shell-'))).toEqual([`veilcore-shell-${COMMIT_B}`]);
+    const shells = () => [...s.stores.keys()].filter((k) => k.startsWith('veilcore-shell-'));
+    expect(shells()).toEqual([`veilcore-shell-${COMMIT_A}`]);
+    expect(s.updated()).toBe(1);
+    // B's worker copies B when it installs; until it takes over, A's copy is the one in use, and
+    // still opens with no signal.
+    const w = scope(files, { offline: () => offline, worker: built(bFiles), stores: s.stores, messages: s.messages });
+    await w.fire('install');
+    expect(shells().sort()).toEqual([`veilcore-shell-${COMMIT_A}`, `veilcore-shell-${COMMIT_B}`].sort());
+    offline = true;
+    const stillA = await s.fire('fetch', {
+      request: req('/records', { mode: 'navigate' }),
+      resultingClientId: 'page-1',
+    });
+    expect(await stillA.response?.text()).toBe('<html>app</html>');
+    // It takes over: B's copy in use, A's deleted, and the page from A's copy told it is older.
+    await w.fire('activate');
+    expect(shells()).toEqual([`veilcore-shell-${COMMIT_B}`]);
     expect(s.messages).toContainEqual({ type: 'veilcore-release', commit: COMMIT_B, stale: true });
+    const nowB = await w.fire('fetch', { request: req('/records', { mode: 'navigate' }) });
+    expect(await nowB.response?.text()).toBe('<html>B</html>');
     // Unchanged files are reused from the old copy, not fetched again.
-    expect(s.fetched.filter((p) => p === '/assets/index-abc.js').length).toBe(1);
+    expect(w.fetched.filter((p) => p === '/assets/index-abc.js').length).toBe(0);
   });
 
   it('a built file fetched from the network is kept only when it is this site’s own answer (basic) with the listed bytes', async () => {
     const files = release(APP, COMMIT_A);
     const s = scope(files);
-    await s.fire('install');
+    await s.start();
     await s.fire('fetch', { request: req('/assets/big.wasm') });
     // The stand-in's answers aren't "basic" (same-origin, as a browser marks them): not kept.
     expect(s.stores.get(`veilcore-shell-${COMMIT_A}`)?.has('/assets/big.wasm')).toBe(false);
@@ -259,7 +328,7 @@ describe('the offline worker, after the review of PR #145', () => {
   it('serves a file from the copy only when it hashes to the value the worker was built with (SW-1)', async () => {
     let offline = false;
     const s = scope(release(APP, COMMIT_A), { offline: () => offline });
-    await s.fire('install');
+    await s.start();
     const copy = s.stores.get(`veilcore-shell-${COMMIT_A}`)!;
     const meta = s.stores.get('veilcore-offline-meta')!;
     // Code injected into one visit writes Cache Storage directly: a file, and the copy's own
@@ -282,7 +351,7 @@ describe('the offline worker, after the review of PR #145', () => {
   it('serves the kept page with the headers built into the worker, never the kept ones (SW-1)', async () => {
     let offline = false;
     const s = scope(release(APP, COMMIT_A), { offline: () => offline });
-    await s.fire('install');
+    await s.start();
     const copy = s.stores.get(`veilcore-shell-${COMMIT_A}`)!;
     // The right bytes, kept with a policy that lets anything run.
     copy.set(
@@ -302,7 +371,7 @@ describe('the offline worker, after the review of PR #145', () => {
     // A worker whose page headers were never filled in (no release made it) never serves the page.
     const bare = scope(release(APP, COMMIT_A), { offline: () => offline, worker: built(APP, null) });
     offline = false;
-    await bare.fire('install');
+    await bare.start();
     offline = true;
     const none = await bare.fire('fetch', { request: req('/records', { mode: 'navigate' }) }).catch(() => undefined);
     expect(none?.response).toBeUndefined();
@@ -312,7 +381,7 @@ describe('the offline worker, after the review of PR #145', () => {
     let offline = false;
     const files = release(APP, COMMIT_A);
     const s = scope(files, { offline: () => offline });
-    await s.fire('install');
+    await s.start();
     // Release B is named, but its list can't be read.
     files['/release.json'] = {
       body: JSON.stringify({ format: 'veilcore-release/v1', network: 'mainnet', commit: COMMIT_B, date: 'x' }),
@@ -348,16 +417,100 @@ describe('the offline worker, after the review of PR #145', () => {
   });
 });
 
+describe('the offline worker, handing over to a newer one', () => {
+  const shellCaches = (s: ReturnType<typeof scope>) =>
+    [...s.stores.keys()].filter((k) => k.startsWith('veilcore-shell-'));
+
+  it('keeps asking to take over, every second, until it is in charge (a minute at most)', async () => {
+    // Chrome stops the old worker once this one calls skipWaiting(), but a page asking the old
+    // one for a file just then starts it again, and Chrome no longer hurries it: one call left
+    // the new worker (and the kill switch) waiting a minute or more behind it (PR #145 e2e).
+    const s = scope(release(APP, COMMIT_A));
+    await s.fire('install');
+    expect(s.skipped()).toBe(1);
+    s.tick();
+    s.tick();
+    expect(s.skipped()).toBe(3);
+    await s.fire('activate');
+    s.tick();
+    expect(s.skipped()).toBe(3);
+    expect(s.timers.size).toBe(0);
+    // Never activated (another worker replaced it): it stops asking after a minute.
+    const t = scope(release(APP, COMMIT_A));
+    await t.fire('install');
+    for (let i = 0; i < 70; i++) t.tick();
+    expect(t.skipped()).toBe(61);
+    expect(t.timers.size).toBe(0);
+  });
+
+  it('a worker with a newer one installing or waiting copies nothing, so a copy can’t come back after the kill switch', async () => {
+    let newer: 'installing' | 'waiting' | undefined;
+    let offline = false;
+    const files = release(APP, COMMIT_A);
+    const s = scope(files, { newer: () => newer, offline: () => offline });
+    await s.start();
+    expect(shellCaches(s)).toEqual([`veilcore-shell-${COMMIT_A}`]);
+    // Release B is out and the browser has its worker, waiting to take over. That worker copies
+    // B itself; this one couldn't serve B's copy (its files aren't the ones it was built with).
+    Object.assign(files, release({ ...APP, '/index.html': { body: '<html>B</html>' } }, COMMIT_B));
+    for (const state of ['installing', 'waiting'] as const) {
+      newer = state;
+      await s.fire('message', { data: { type: 'veilcore-check' }, origin: ORIGIN });
+      expect(shellCaches(s)).toEqual([`veilcore-shell-${COMMIT_A}`]);
+    }
+    // So until it hands over, its own copy still opens with no signal.
+    offline = true;
+    const page = await s.fire('fetch', { request: req('/records', { mode: 'navigate' }), resultingClientId: 'page-1' });
+    expect(await page.response?.text()).toBe('<html>app</html>');
+    // The kill switch, waiting, deleted every copy: none is copied back.
+    offline = false;
+    s.stores.clear();
+    await s.fire('message', { data: { type: 'veilcore-check' }, origin: ORIGIN });
+    expect([...s.stores.keys()]).toEqual([]);
+    // A worker's own install still copies its release while it is the one installing.
+    const own = scope(release(APP, COMMIT_A), { newer: () => 'installing' });
+    await own.start();
+    expect(shellCaches(own)).toEqual([`veilcore-shell-${COMMIT_A}`]);
+  });
+
+  it('a copy a worker made at install is used only by that worker, once it takes over', async () => {
+    const files = release(APP, COMMIT_A);
+    const a = scope(files);
+    await a.start();
+    // B's worker copies B, then never takes over (replaced, say, by the kill switch's).
+    const bFiles = { ...APP, '/index.html': { body: '<html>B</html>' } };
+    Object.assign(files, release(bFiles, COMMIT_B));
+    const b = scope(files, { worker: built(bFiles), stores: a.stores });
+    await b.fire('install');
+    // A third worker, built for neither, takes over with no signal: B's copy isn't taken up.
+    const cFiles = { ...APP, '/index.html': { body: '<html>C</html>' } };
+    const c = scope(files, { worker: built(cFiles), stores: a.stores, offline: () => true });
+    await c.fire('install');
+    await c.fire('activate');
+    const meta = (await (a.stores.get('veilcore-offline-meta')!.get('/__veilcore-offline/active') as Response)
+      .clone()
+      .json()) as { commit: string };
+    expect(meta.commit).toBe(COMMIT_A);
+  });
+});
+
 describe('the kill switch (VITE_OFFLINE=off)', () => {
   it('answers no request, deletes every copy, and unregisters itself', async () => {
     expect(KILL).not.toMatch(/addEventListener\(\s*['"]fetch['"]/);
     const handlers: Record<string, (e: unknown) => void> = {};
     const deleted: string[] = [];
     let unregistered = false;
+    let skipped = 0;
+    let tick: (() => void) | undefined;
     const ctx = vm.createContext({
+      setInterval: (f: () => void) => {
+        tick = f;
+        return 1;
+      },
+      clearInterval: () => (tick = undefined),
       self: {
         addEventListener: (t: string, h: (e: unknown) => void) => (handlers[t] = h),
-        skipWaiting: () => undefined,
+        skipWaiting: async () => void skipped++,
         registration: { unregister: async () => (unregistered = true) },
         clients: { matchAll: async () => [] },
       },
@@ -368,11 +521,19 @@ describe('the kill switch (VITE_OFFLINE=off)', () => {
       indexedDB: { deleteDatabase: () => undefined },
     });
     vm.runInContext(KILL, ctx);
+    // Asks to take over at install, and again every second until active (as offline/sw.js does).
+    handlers.install({ waitUntil: () => undefined });
+    tick?.();
+    tick?.();
+    expect(skipped).toBe(3);
     const waits: Promise<unknown>[] = [];
     handlers.activate({ waitUntil: (p: Promise<unknown>) => waits.push(p) });
     await Promise.all(waits);
     expect(deleted).toEqual(['veilcore-shell-x', 'veilcore-offline-meta']);
     expect(unregistered).toBe(true);
+    tick?.();
+    expect(tick).toBeUndefined();
+    expect(skipped).toBe(3);
   });
 });
 
