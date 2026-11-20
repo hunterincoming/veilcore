@@ -157,7 +157,10 @@ describe('scripts/vercel-config.mjs: one Content-Security-Policy per response', 
     const { routes } = config();
     if (!routes) throw new Error('no config');
     const site = routes[0].headers?.['Content-Security-Policy'] as string;
-    expect(site).toMatch(/connect-src 'self' https:\/\/registry\.example;/);
+    // The registry, and the two Bitcoin explorers every build allows (docs/bitcoin-header-check.md).
+    expect(site).toMatch(
+      /connect-src 'self' https:\/\/registry\.example https:\/\/mempool\.space https:\/\/blockstream\.info;/,
+    );
     expect(site).not.toMatch(/huggingface|hf\.co/);
     expect(site).toMatch(/trusted-types [^;]*veilcore-ask-model/);
     expect(cspHeadersFor(routes, '/assets/ask-model-download.worker-abc123.js')).toEqual([downloadWorkerCsp(real)]);
