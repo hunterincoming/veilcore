@@ -1064,6 +1064,17 @@ export const Home: React.FC = () => {
                   {arrowed(t('m.hero.pasteGo'))}
                 </RouterLink>
               </p>
+              {/* A first visit on a new phone or computer (the live test, 19 Nov 2026): the way back
+                  to records made elsewhere is next to "Make a record", not only inside the app. */}
+              {!returning && (
+                <p className="k-paste hero-restore">
+                  {t('m.hero.restoreQ')}
+                  {sp}
+                  <RouterLink to="/restore" data-restore-entry="hero">
+                    {arrowed(t('m.hero.restoreGo'))}
+                  </RouterLink>
+                </p>
+              )}
               <p className="k-fine k-status-line">{t('m.hero.status')}</p>
             </div>
             <EventDisplay hex={hex} />

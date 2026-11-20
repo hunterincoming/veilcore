@@ -4,11 +4,13 @@
 // this site's passkeys, their date shown before anything changes, then "Welcome back. N records
 // are here." and, for documents kept on the person's other device only, where they are. "Other
 // ways" holds the backup file (backup.ts restoreAny, which also reads the older files) and the
-// typed holder key, as before.
+// typed holder key, as before. "Use my recovery sheet" (step 3) opens the same records with the
+// printed code: its date shown first in the same way, then an offer to set up a passkey here so
+// this device opens them by itself from then on.
 // SPDX-License-Identifier: Apache-2.0
 
 import React, { useEffect, useId, useRef, useState } from 'react';
-import { Alert, Box, Button, CircularProgress, Collapse, Stack, TextField, Typography } from '@mui/material';
+import { Alert, Box, Button, CircularProgress, Collapse, Paper, Stack, TextField, Typography } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
 import DoneIcon from '@mui/icons-material/CheckCircle';
 import { BackupNeedsPassword, restoreAny, type RestoreResult } from '../../veilcore/backup';
@@ -23,11 +25,20 @@ import { rich, useT } from '../../i18n/app';
 import { enT, type Translator } from '../../i18n/translate';
 import { backupMessageWords } from './backup-words';
 import { SupportDetails } from '../SupportDetails';
-import { accountCopyOn, adoptFound, findAccountCopy, markBroughtBack, type Found } from '../../veilcore/account-copy';
+import {
+  accountCopyOn,
+  addFaceIdHere,
+  adoptFound,
+  findAccountCopy,
+  findWithSheet,
+  forgetFound,
+  markBroughtBack,
+  recoveredHere,
+  type Found,
+} from '../../veilcore/account-copy';
 import { PASSKEY_WORDS } from '../../veilcore/passkey-backup';
 import { oldPasskeysHaveOtherName } from '../../veilcore/passkey-backup';
-import { deviceWords, unlockWordFor } from './KeepSafe';
-import { deviceUnlockAvailable } from '../../veilcore/passkey-backup';
+import { deviceWords, useRestoreUnlockWord } from './KeepSafe';
 import type { AppKey } from '../../i18n/app/en';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
@@ -78,27 +89,53 @@ export const RestorePage: React.FC = () => {
   const [found, setFound] = useState<Found>();
   const [asking, setAsking] = useState(false);
   const [others, setOthers] = useState(false);
-  const [deviceUnlock, setDeviceUnlock] = useState<boolean>();
   const account = accountCopyOn();
-  useEffect(() => {
-    let on = true;
-    void deviceUnlockAvailable().then((v) => on && setDeviceUnlock(v));
-    return () => {
-      on = false;
-    };
-  }, []);
   // On a computer that isn't a Mac, the passkey is most often on the person's phone: the button
   // says "Use a passkey" and the browser offers "Use a phone" (first-time-user pass on step 2).
-  const ua = navigator.userAgent;
-  const appleOrAndroid = /iPhone|iPad|iPod|Macintosh|Mac OS X|Android/.test(ua);
-  const word = appleOrAndroid ? unlockWordFor(ua, deviceUnlock === true) : 'passkey';
+  const appleOrAndroid = /iPhone|iPad|iPod|Macintosh|Mac OS X|Android/.test(navigator.userAgent);
+  const word = useRestoreUnlockWord();
   const find = (hostName = false) => {
     setAsking(true);
     setProblem(undefined);
+    setFromSheet(false);
     findAccountCopy({ hostName })
       .then(setFound)
       .catch((e: unknown) => setProblem(e instanceof Error ? e.message : String(e)))
       .finally(() => setAsking(false));
+  };
+  // A copy found and not taken, or an account key held for "Use Face ID": forgotten on leaving.
+  useEffect(() => () => forgetFound(), []);
+  // The recovery sheet: its code typed here, never kept.
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const [code, setCode] = useState('');
+  const [fromSheet, setFromSheet] = useState(false);
+  const findBySheet = () => {
+    setAsking(true);
+    setProblem(undefined);
+    findWithSheet(code)
+      .then((f) => {
+        setCode('');
+        setFromSheet(true);
+        setFound(f);
+      })
+      .catch((e: unknown) => setProblem(e instanceof Error ? e.message : String(e)))
+      .finally(() => setAsking(false));
+  };
+  // After the sheet brought them here: a passkey on this device, so it opens them by itself.
+  const [adding, setAdding] = useState(false);
+  const [added, setAdded] = useState(false);
+  const [addProblem, setAddProblem] = useState<string>();
+  const addHere = async () => {
+    setAdding(true);
+    setAddProblem(undefined);
+    try {
+      await addFaceIdHere();
+      setAdded(true);
+    } catch (e) {
+      setAddProblem(e instanceof Error ? e.message : String(e));
+    } finally {
+      setAdding(false);
+    }
   };
   // This device couldn't start saving after the records came back (review New-9): said, with Try again.
   const [adoptProblem, setAdoptProblem] = useState<string>();
@@ -202,6 +239,35 @@ export const RestorePage: React.FC = () => {
                   {t('app.account.restore.savedOn', { date: tr.date(fromAccount.savedAt) })}
                 </Typography>
               )}
+              {fromAccount && fromSheet && !adoptProblem && (
+                <Paper variant="outlined" sx={{ p: 2 }} data-restore-add-face-id={added ? 'done' : 'offer'}>
+                  {added ? (
+                    <Typography variant="body1">{t('app.recovery.restore.added')}</Typography>
+                  ) : (
+                    <Stack spacing={1}>
+                      <Typography variant="subtitle1" component="h3" sx={{ fontWeight: 700 }}>
+                        {t('app.recovery.restore.addTitle')}
+                      </Typography>
+                      <Typography variant="body2">{t('app.recovery.restore.addText')}</Typography>
+                      <Button
+                        variant="contained"
+                        disabled={adding || !recoveredHere()}
+                        onClick={() => void addHere()}
+                        startIcon={adding ? <CircularProgress size={18} color="inherit" /> : undefined}
+                        sx={{ minHeight: 48, alignSelf: 'flex-start' }}
+                        data-restore-add-face-id-go=""
+                      >
+                        {t(`app.account.use.${word}` as AppKey)}
+                      </Button>
+                      {addProblem && (
+                        <Alert severity="warning" variant="outlined">
+                          {backupMessageWords(addProblem, tr)}
+                        </Alert>
+                      )}
+                    </Stack>
+                  )}
+                </Paper>
+              )}
               {adoptProblem && (
                 <Alert
                   severity="warning"
@@ -222,7 +288,15 @@ export const RestorePage: React.FC = () => {
                   {done.vaultKey === 'none' ? t('app.sealed.backup.olderFile') : lockedWords(locked, tr)}
                 </Alert>
               )}
-              <Button component={RouterLink} to="/records" variant="contained" size="large" fullWidth sx={{ py: 1.5 }}>
+              <Button
+                component={RouterLink}
+                to="/records"
+                // One yellow button at a time: the passkey offer first, when there is one.
+                variant={fromAccount && fromSheet && !added && !adoptProblem ? 'outlined' : 'contained'}
+                size="large"
+                fullWidth
+                sx={{ py: 1.5 }}
+              >
                 {t('app.backup.seeMyPlants')}
               </Button>
             </Stack>
@@ -298,6 +372,55 @@ export const RestorePage: React.FC = () => {
                   <Typography variant="body2" color="text.secondary" data-restore-use-phone="">
                     {t('app.account.restore.usePhone')}
                   </Typography>
+                  {/* The printed recovery sheet (step 3): named as the sheet itself names it. */}
+                  {!found && (
+                    <Box data-restore-sheet="">
+                      <Button
+                        variant="outlined"
+                        onClick={() => setSheetOpen(!sheetOpen)}
+                        aria-expanded={sheetOpen}
+                        sx={{ minHeight: 44 }}
+                        data-restore-sheet-open=""
+                      >
+                        {t('app.recovery.restore.use')}
+                      </Button>
+                      <Collapse in={sheetOpen}>
+                        <Stack spacing={1} sx={{ pt: 1.5 }}>
+                          <Typography variant="body2" color="text.secondary">
+                            {t('app.recovery.restore.lead')}
+                          </Typography>
+                          <TextField
+                            label={t('app.recovery.confirm.label')}
+                            value={code}
+                            onChange={(e) => setCode(e.target.value.slice(0, 64))}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter' && code.trim() && !asking) findBySheet();
+                            }}
+                            fullWidth
+                            slotProps={{
+                              htmlInput: {
+                                'data-restore-sheet-input': '',
+                                autoComplete: 'off',
+                                autoCapitalize: 'characters',
+                                autoCorrect: 'off',
+                                spellCheck: false,
+                                style: { fontFamily: 'monospace', letterSpacing: '0.04em' },
+                              },
+                            }}
+                          />
+                          <Button
+                            variant="contained"
+                            disabled={asking || busy || !code.trim()}
+                            onClick={findBySheet}
+                            sx={{ minHeight: 44, alignSelf: 'flex-start' }}
+                            data-restore-sheet-go=""
+                          >
+                            {t('app.recovery.restore.open')}
+                          </Button>
+                        </Stack>
+                      </Collapse>
+                    </Box>
+                  )}
                   {oldPasskeysHaveOtherName() && !found && (
                     <Button
                       color="inherit"

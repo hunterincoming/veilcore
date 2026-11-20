@@ -37,6 +37,8 @@ declare global {
     readonly VITE_CANONICAL_ORIGIN?: string;
     /** 'true' shows the notice that dating on Midnight is paused (config/network.ts). Off otherwise. */
     readonly VITE_DATING_PAUSED?: string;
+    /** The offline worker (docs/offline.md): 'on' (the default) or 'off', the kill switch (vite.config.ts). */
+    readonly VITE_OFFLINE: 'on' | 'off';
     /** Ask's on-device model: unset (never offered), 'on', or 'test' / 'eval' for builds never deployed (ask-local/manifest.ts). */
     readonly VITE_ASK_MODEL?: string;
     /**

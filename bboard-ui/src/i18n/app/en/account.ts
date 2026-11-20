@@ -28,7 +28,7 @@ export const account = {
   'app.account.saved.title': 'Saved.',
   'app.account.saved.text': 'Your records are saved with VeilCore. New ones save by themselves.',
   'app.account.saved.bound':
-    'Saved with VeilCore, but this passkey stays on this device only: if you lose the device, it goes too. Download a copy you keep yourself to be safe.',
+    'Only this device can open your saved records: if it is lost, replaced or reset, you’ll need your recovery sheet.',
   'app.account.saved.download': 'Download a copy',
   'app.account.saved.done': 'Done',
 
@@ -41,13 +41,13 @@ export const account = {
   'app.account.line.missing': '<b>Your records saved with VeilCore are gone from its server.</b> Save them again.',
   'app.account.line.saveAgain': 'Save again',
   'app.account.line.slotMissing':
-    '<b>A way to open your saved records is missing on VeilCore’s server.</b> Set it up again.',
+    '<b>A way to open your saved records is missing or changed on VeilCore’s server.</b> Set it up again.',
   'app.account.line.serverOlder':
     '<b>Something looks wrong on VeilCore’s server.</b> Your records on this device are fine, and nothing was changed. Download a copy to be safe.',
   'app.account.line.failing': '<b>Couldn’t save to your account.</b> {why} It tries again by itself.',
   'app.account.line.tryNow': 'Try now',
   'app.account.line.bound':
-    '<b>Saved with VeilCore, but only this device can open it.</b> Download a copy you keep yourself.',
+    '<b>Only this device can open your saved records.</b> Make a recovery sheet so you can get them back if you lose it.',
   'app.account.line.download': 'Download a copy',
   'app.account.line.deviceOnly.one': '<b>{count} document is only on this device.</b> Download a copy to keep it safe.',
   'app.account.line.deviceOnly.other':
@@ -105,7 +105,7 @@ export const account = {
   'app.settings.devices.here': '{device} (this one) · last saved {date}',
   'app.settings.stop': 'Stop saving with VeilCore',
   'app.settings.stopConfirm':
-    'Delete your records saved with VeilCore? This device keeps them. Your other devices stop saving, and the first of them to save again sets up a new copy. The passkey stays in your phone’s settings.',
+    'Delete your records saved with VeilCore? This device keeps them. Your other devices stop saving, and the first of them to save again sets up a new copy. Your recovery sheets stop working. The passkey stays in your phone’s settings.',
   'app.settings.stopped': 'Deleted. Your records stay on this device.',
   'app.settings.file.title': 'Download a copy',
   'app.settings.file.text':
@@ -127,4 +127,12 @@ export const account = {
   'app.account.restore.tryAgain': 'Try again',
   'app.account.restore.tryWww': 'First used www.veilcore.org? Open this page there.',
   'app.settings.ways.tag': 'Named “VeilCore: unlocks your records · {tag}” in your passwords',
+  // The way in, as a fragment after “with” (Home's first card, the live test on Windows).
+  'app.account.how.faceId': 'Face ID',
+  'app.account.how.touchId': 'Touch ID',
+  'app.account.how.screenLock': 'your screen lock',
+  'app.account.how.windowsHello': 'Windows Hello',
+  'app.account.how.passkey': 'a passkey',
+  'app.account.line.off':
+    '<b>Saving with VeilCore is off.</b> Your saved copy was deleted, perhaps with “Stop saving with VeilCore” on another device.',
 };

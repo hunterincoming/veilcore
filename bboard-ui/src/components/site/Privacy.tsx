@@ -26,6 +26,8 @@ const SECTIONS = [
   'local',
   'deals',
   'chain',
+  // Timestamp authorities and the offline copy (docs/offline.md; security review of PR #145, P-1).
+  'timestamps',
   'browser',
   'deviceonly',
   'helper',
