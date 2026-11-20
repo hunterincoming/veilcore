@@ -114,6 +114,11 @@ for (const name of ['VITE_INDEXER_RELAY_URL', 'VITE_INDEXER_SECOND_URL']) {
     throw new Error('VITE_INDEXER_SECOND_URL is the same indexer as VITE_INDEXER_RELAY_URL; a second check needs a different one.');
 }
 
+// The two Bitcoin block explorers the check page and the evidence bundle ask for block headers
+// (bboard-ui/evidence-page/btc-header-fetch.js EXPLORERS; docs/bitcoin-header-check.md). Only
+// when a visitor presses "Check on Bitcoin", or a holder makes a bundle.
+export const BITCOIN_EXPLORERS = ['https://mempool.space', 'https://blockstream.info'];
+
 // The content security policy. Checked against the built site in headless Chromium
 // (every main page, zero violations; bboard-ui/src/hardening-roundD.test.ts) before each
 // tightening:
@@ -126,7 +131,9 @@ for (const name of ['VITE_INDEXER_RELAY_URL', 'VITE_INDEXER_SECOND_URL']) {
 //   font-src     the Atkinson Hyperlegible Next file is bundled by @fontsource; no
 //                Google Fonts. data: for any small font Vite inlines.
 //   img-src      data: and blob: for QR codes and certificate images (html-to-image).
-//   connect-src  our own origin (the .wasm file) and the registry API. Nothing on GitHub:
+//   connect-src  our own origin (the .wasm file), the registry API and the two Bitcoin block
+//                explorers above (block headers only; nothing is sent to them but the
+//                block's height). Nothing on GitHub:
 //                the documents are bundled at build time now (attack round D), and the
 //                old entry allowed every repository on raw.githubusercontent.com. If the
 //                app starts talking to a Midnight indexer or proof server, those origins
@@ -141,7 +148,7 @@ const csp = [
   "style-src 'self' 'unsafe-inline'",
   "font-src 'self' data:",
   "img-src 'self' data: blob:",
-  `connect-src 'self' ${API_ORIGIN}${chainOrigins.length ? ` ${chainOrigins.join(' ')}` : ''}`,
+  `connect-src 'self' ${API_ORIGIN} ${BITCOIN_EXPLORERS.join(' ')}${chainOrigins.length ? ` ${chainOrigins.join(' ')}` : ''}`,
   "worker-src 'self' blob:",
   "frame-ancestors 'none'",
   // 'self', not 'none': html-to-image sets a same-origin <base> while it inlines the

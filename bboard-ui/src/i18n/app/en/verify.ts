@@ -359,4 +359,26 @@ export const verify = {
   'app.verify.who.typed': 'What’s typed (title, holder, issuer, notes)',
   'app.verify.who.typed.holder':
     'The holder, in their own words. This page checks only that they match the proof code, not that they’re true.',
+  'app.verify.who.btc': 'The Bitcoin stamp',
+  'app.verify.who.btc.pending':
+    'Nothing on Bitcoin yet: only a promise from the stamping servers, not yet in a Bitcoin block.',
+  'app.verify.who.btc.reported':
+    'VeilCore’s registry says it is in Bitcoin block {height}. This page hasn’t checked it on Bitcoin.',
+  'app.verify.who.btc.reportedAny':
+    'VeilCore’s registry says it is in a Bitcoin block. This page hasn’t checked it on Bitcoin.',
+  'app.verify.who.btc.checking': 'Checking on Bitcoin…',
+  'app.verify.who.btc.linked':
+    'Checked in this browser: block {height}’s proof of work and its link to checkpoint {checkpoint}, a block this website pins. The block holds this batch’s stamp. Block time: {time}.',
+  'app.verify.who.btc.explorers':
+    'The block explorers’ word ({explorers}): block {height} holds this batch’s stamp. This browser checked the block’s own proof of work, but it is too far from every checkpoint this website pins to link it.',
+  'app.verify.who.btc.failed.stamp': 'Nothing: the stamp file isn’t about this batch, or this browser can’t read it.',
+  'app.verify.who.btc.failed.mismatch': 'Nothing: the block the stamp names doesn’t hold this batch’s stamp.',
+  'app.verify.who.btc.failed.headers':
+    'Nothing: the block headers the explorers gave don’t check out, or the two explorers don’t agree.',
+  'app.verify.who.btc.unreachable':
+    'VeilCore’s registry says it is in a Bitcoin block. This browser couldn’t reach the block explorers to check it.',
+  'app.verify.who.btc.check': 'Check on Bitcoin',
+  'app.verify.who.btc.again': 'Try again',
+  'app.verify.who.btc.note':
+    'Asks mempool.space and blockstream.info for block headers. They see this browser’s internet address and the block number, not the record.',
 };

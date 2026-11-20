@@ -5,7 +5,7 @@
 
 import { describe, expect, it } from 'vitest';
 import { whoVouches, type WhoInput } from './who-vouches';
-import { makeTranslator } from '../../i18n/translate';
+import { enT, makeTranslator } from '../../i18n/translate';
 import { appDe } from '../../i18n/app/de';
 import { appEs } from '../../i18n/app/es';
 import { appFr } from '../../i18n/app/fr';
@@ -161,5 +161,63 @@ describe('what each fact rests on', () => {
         expect(row.who).not.toMatch(/app\.verify/);
       }
     }
+  });
+});
+
+describe('the Bitcoin stamp row', () => {
+  const btc = (bitcoin: NonNullable<WhoInput['bitcoin']>, tr = enT) =>
+    whoVouches({ ...base, bitcoin }, tr).find((r) => r.id === 'bitcoin');
+
+  it('says “checked” only when the block linked to a pinned checkpoint here', () => {
+    const linked = btc({ state: 'linked', height: 971004, checkpoint: 971005, time: 1791762944 });
+    expect(linked).toMatchObject({ fact: 'The Bitcoin stamp', basis: 'checked' });
+    expect(linked?.who).toMatch(
+      /^Checked in this browser: block 971004’s proof of work and its link to checkpoint 971005, a block this website pins\. The block holds this batch’s stamp\. Block time: .*2026.* UTC\.$/,
+    );
+    expect(btc({ state: 'explorers', height: 971004, explorers: ['mempool.space', 'blockstream.info'] })).toMatchObject(
+      {
+        basis: 'explorer',
+        who: expect.stringMatching(/^The block explorers’ word \(mempool\.space, blockstream\.info\)/),
+      },
+    );
+    for (const s of ['reported', 'checking', 'unreachable'] as const)
+      expect(btc({ state: s, height: 971004 })?.basis, s).toBe('registry');
+    expect(btc({ state: 'reported', height: 971004 })?.who).toBe(
+      'VeilCore’s registry says it is in Bitcoin block 971004. This page hasn’t checked it on Bitcoin.',
+    );
+    expect(btc({ state: 'reported' })?.who).toMatch(/in a Bitcoin block\. This page hasn’t checked/);
+    for (const kind of ['stamp', 'mismatch', 'headers'] as const)
+      expect(btc({ state: 'failed', kind })).toMatchObject({ basis: 'none', who: expect.stringMatching(/^Nothing: /) });
+    expect(btc({ state: 'pending' })).toMatchObject({ basis: 'none' });
+    // No stamp reported: no row.
+    expect(whoVouches(base).some((r) => r.id === 'bitcoin')).toBe(false);
+    // Right after the date.
+    expect(whoVouches({ ...base, bitcoin: { state: 'pending' } })[1].id).toBe('bitcoin');
+  });
+
+  it('every state in every language, with nothing left as a key', () => {
+    const states: NonNullable<WhoInput['bitcoin']>[] = [
+      { state: 'pending' },
+      { state: 'reported', height: 1 },
+      { state: 'reported' },
+      { state: 'checking' },
+      { state: 'unreachable' },
+      { state: 'linked', height: 2, checkpoint: 3, time: 0 },
+      { state: 'explorers', height: 2, explorers: ['a', 'b'] },
+      { state: 'failed', kind: 'stamp' },
+      { state: 'failed', kind: 'mismatch' },
+      { state: 'failed', kind: 'headers' },
+    ];
+    for (const tr of [
+      makeTranslator('de', appDe),
+      makeTranslator('es', appEs),
+      makeTranslator('fr', appFr),
+      makeTranslator('ja', appJa),
+    ])
+      for (const s of states) {
+        const row = btc(s, tr);
+        expect(row?.fact, `${tr.lang} ${s.state}`).not.toMatch(/app\.verify/);
+        expect(row?.who, `${tr.lang} ${s.state}`).not.toMatch(/app\.verify|\{\w+\}/);
+      }
   });
 });

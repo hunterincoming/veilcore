@@ -369,4 +369,26 @@ export const verify = {
   'app.verify.who.typed': 'Lo escrito (título, titular, emisor, notas)',
   'app.verify.who.typed.holder':
     'El titular, con sus propias palabras. Esta página solo comprueba que coinciden con el código de prueba, no que sean ciertos.',
+  'app.verify.who.btc': 'El sello de Bitcoin',
+  'app.verify.who.btc.pending':
+    'Nada en Bitcoin todavía: solo una promesa de los servidores de sellado, aún no en un bloque de Bitcoin.',
+  'app.verify.who.btc.reported':
+    'Lo dice el servidor de registros de VeilCore: está en el bloque de Bitcoin {height}. Esta página no lo ha comprobado en Bitcoin.',
+  'app.verify.who.btc.reportedAny':
+    'Lo dice el servidor de registros de VeilCore: está en un bloque de Bitcoin. Esta página no lo ha comprobado en Bitcoin.',
+  'app.verify.who.btc.checking': 'Comprobando en Bitcoin…',
+  'app.verify.who.btc.linked':
+    'Comprobado en este navegador: la prueba de trabajo del bloque {height} y su enlace con el punto de control {checkpoint}, un bloque que este sitio fija. El bloque contiene el sello de este lote. Hora del bloque: {time}.',
+  'app.verify.who.btc.explorers':
+    'Lo dicen los exploradores de bloques ({explorers}): el bloque {height} contiene el sello de este lote. Este navegador comprobó la prueba de trabajo del propio bloque, pero está demasiado lejos de todos los puntos de control que este sitio fija para enlazarlo.',
+  'app.verify.who.btc.failed.stamp': 'Nada: el archivo de sello no es de este lote, o este navegador no puede leerlo.',
+  'app.verify.who.btc.failed.mismatch': 'Nada: el bloque que nombra el sello no contiene el sello de este lote.',
+  'app.verify.who.btc.failed.headers':
+    'Nada: las cabeceras de bloque que dieron los exploradores no superan la comprobación, o los dos exploradores no coinciden.',
+  'app.verify.who.btc.unreachable':
+    'Lo dice el servidor de registros de VeilCore: está en un bloque de Bitcoin. Este navegador no pudo llegar a los exploradores de bloques para comprobarlo.',
+  'app.verify.who.btc.check': 'Comprobar en Bitcoin',
+  'app.verify.who.btc.again': 'Intentar de nuevo',
+  'app.verify.who.btc.note':
+    'Pide cabeceras de bloque a mempool.space y blockstream.info. Ellos ven la dirección de internet de este navegador y el número de bloque, no el registro.',
 } satisfies Partial<AppTranslation>;

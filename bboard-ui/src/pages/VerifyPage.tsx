@@ -108,6 +108,8 @@ import {
   registryDateWords,
 } from '../components/verify/anchor-words';
 import { useAnchorCheck, useRecordDate } from '../components/verify/useAnchorCheck';
+import { useBitcoinCheck } from '../components/verify/useBitcoinCheck';
+import { BitcoinCheckAction } from '../components/verify/BitcoinCheckAction';
 import { deletedDateKey } from '../components/verify/deleted-words';
 import { utcStamp } from '../veilcore/time';
 import { VerifierChallengePanel } from '../components/chain/VerifierChallengePanel';
@@ -548,6 +550,9 @@ export const VerifyPage: React.FC = () => {
   // (chain/anchor-lookup.ts), so the two never disagree. Undefined until the inclusion
   // proof names a transaction to look up.
   const anchor = useAnchorCheck(proof);
+  // The batch's Bitcoin stamp: the registry's word until the visitor asks this browser to
+  // check it (useBitcoinCheck.ts; docs/bitcoin-header-check.md).
+  const bitcoin = useBitcoinCheck(proof);
 
   // A tick (and the stamp) only for a check against the link's own fingerprint.
   const checked = bound && proof !== 'checking' && proof.status !== 'none';
@@ -1048,9 +1053,15 @@ export const VerifyPage: React.FC = () => {
                             };
                           }),
                           max: SIGNATURE_LINES,
+                          ...(bitcoin.row ? { bitcoin: bitcoin.row } : {}),
                         },
                         tr,
                       )}
+                      after={
+                        bitcoin.row && bitcoin.run
+                          ? { bitcoin: <BitcoinCheckAction row={bitcoin.row} run={bitcoin.run} /> }
+                          : undefined
+                      }
                     />
                   )}
 
