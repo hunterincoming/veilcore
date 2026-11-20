@@ -554,10 +554,15 @@ const JobResult: React.FC<{ job: Job; fromApp: boolean }> = ({ job: latest, from
                         }
                         value={d.quantity}
                         disabled={readOnly || d.nothing}
-                        onChange={(e) =>
-                          setDrafts({ ...drafts, [key]: { ...d, quantity: e.target.value.slice(0, 20) } })
+                        // Functional updates, and the box's own value on leaving it: a figure just typed is
+                        // never lost to a draft object from an earlier render (CI, step 2 and 3 branches).
+                        onChange={(e) => {
+                          const quantity = e.target.value.slice(0, 20);
+                          setDrafts((x) => ({ ...x, [key]: { ...(x[key] ?? d), quantity } }));
+                        }}
+                        onBlur={(e) =>
+                          commit(key, { ...d, quantity: (e.target as HTMLInputElement).value.slice(0, 20) })
                         }
-                        onBlur={() => commit(key, d)}
                         slotProps={{ htmlInput: { 'data-job-figure': i, inputMode: 'decimal' } }}
                       />
                     )}
@@ -567,10 +572,13 @@ const JobResult: React.FC<{ job: Job; fromApp: boolean }> = ({ job: latest, from
                         label={t('app.job.report.offspring')}
                         value={d.offspring}
                         disabled={readOnly || d.nothing}
-                        onChange={(e) =>
-                          setDrafts({ ...drafts, [key]: { ...d, offspring: e.target.value.slice(0, 20) } })
+                        onChange={(e) => {
+                          const offspring = e.target.value.slice(0, 20);
+                          setDrafts((x) => ({ ...x, [key]: { ...(x[key] ?? d), offspring } }));
+                        }}
+                        onBlur={(e) =>
+                          commit(key, { ...d, offspring: (e.target as HTMLInputElement).value.slice(0, 20) })
                         }
-                        onBlur={() => commit(key, d)}
                       />
                     )}
                     <FormControlLabel

@@ -27,7 +27,7 @@ export const account = {
   'app.account.saved.text':
     'Vos enregistrements sont sauvegardés chez VeilCore. Les nouveaux se sauvegardent tout seuls.',
   'app.account.saved.bound':
-    'Sauvegardé chez VeilCore, mais cette clé d’accès reste sur cet appareil seulement : si vous perdez l’appareil, elle disparaît aussi. Téléchargez une copie que vous gardez vous-même, par sécurité.',
+    'Seul cet appareil peut ouvrir vos enregistrements sauvegardés : s’il est perdu, remplacé ou réinitialisé, il vous faudra votre fiche de secours.',
   'app.account.saved.download': 'Télécharger une copie',
   'app.account.saved.done': 'Terminé',
 
@@ -42,14 +42,14 @@ export const account = {
     '<b>Vos enregistrements sauvegardés chez VeilCore ne sont plus sur son serveur.</b> Sauvegardez-les à nouveau.',
   'app.account.line.saveAgain': 'Sauvegarder à nouveau',
   'app.account.line.slotMissing':
-    '<b>Un moyen d’ouvrir vos enregistrements sauvegardés manque sur le serveur de VeilCore.</b> Configurez-le à nouveau.',
+    '<b>Un moyen d’ouvrir vos enregistrements sauvegardés manque ou a changé sur le serveur de VeilCore.</b> Configurez-le à nouveau.',
   'app.account.line.serverOlder':
     '<b>Quelque chose ne va pas sur le serveur de VeilCore.</b> Vos enregistrements sur cet appareil vont bien, et rien n’a été modifié. Téléchargez une copie par sécurité.',
   'app.account.line.failing':
     '<b>La sauvegarde dans votre compte n’a pas marché.</b> {why} Elle sera réessayée toute seule.',
   'app.account.line.tryNow': 'Réessayer maintenant',
   'app.account.line.bound':
-    '<b>Sauvegardé chez VeilCore, mais seul cet appareil peut l’ouvrir.</b> Téléchargez une copie que vous gardez vous-même.',
+    '<b>Seul cet appareil peut ouvrir vos enregistrements sauvegardés.</b> Créez une fiche de secours pour les récupérer si vous le perdez.',
   'app.account.line.download': 'Télécharger une copie',
   'app.account.line.deviceOnly.one':
     '<b>{count} document est seulement sur cet appareil.</b> Téléchargez une copie pour le garder en sécurité.',
@@ -110,7 +110,7 @@ export const account = {
   'app.settings.devices.here': '{device} (celui-ci) · dernière sauvegarde le {date}',
   'app.settings.stop': 'Arrêter la sauvegarde chez VeilCore',
   'app.settings.stopConfirm':
-    'Supprimer vos enregistrements sauvegardés chez VeilCore ? Cet appareil les garde. Vos autres appareils arrêtent de sauvegarder, et le premier qui sauvegarde à nouveau crée une nouvelle copie. La clé d’accès reste dans les réglages de votre téléphone.',
+    'Supprimer vos enregistrements sauvegardés chez VeilCore ? Cet appareil les garde. Vos autres appareils arrêtent de sauvegarder, et le premier qui sauvegarde à nouveau crée une nouvelle copie. Vos fiches de secours ne fonctionnent plus. La clé d’accès reste dans les réglages de votre téléphone.',
   'app.settings.stopped': 'Supprimé. Vos enregistrements restent sur cet appareil.',
   'app.settings.file.title': 'Télécharger une copie',
   'app.settings.file.text':

@@ -56,7 +56,12 @@ const shots = async (page: Page, name: string) => {
 type Device = { context: BrowserContext; page: Page; cdp: CDPSession; authenticatorId: string; errors: string[] };
 
 /** A browser with a platform authenticator: Face ID, a synced passkey, PRF as a synced passkey gives it. */
-const device = async (browser: Browser, userAgent: string, init?: (page: Page) => Promise<void>): Promise<Device> => {
+const device = async (
+  browser: Browser,
+  userAgent: string,
+  init?: (page: Page) => Promise<void>,
+  opts: { synced?: boolean } = {},
+): Promise<Device> => {
   const context = await browser.newContext({ userAgent, viewport: { width: 390, height: 844 }, baseURL: SITE });
   const page = await context.newPage();
   const errors = watch(page);
@@ -109,8 +114,9 @@ const device = async (browser: Browser, userAgent: string, init?: (page: Page) =
       isUserVerified: true,
       automaticPresenceSimulation: true,
       hasPrf: true,
-      defaultBackupEligibility: true,
-      defaultBackupState: true,
+      // BS=1 a passkey that syncs; BS=0 one that stays on this device (Windows Hello, a security key).
+      defaultBackupEligibility: opts.synced ?? true,
+      defaultBackupState: opts.synced ?? true,
     },
   } as never);
   return { context, page, cdp, authenticatorId, errors };
@@ -409,6 +415,183 @@ test('a passkey copy from before moves over with one Face ID, and the older copy
   await expect(C.page.locator('[data-account-line]')).toHaveCount(0);
   expectNoErrors(C.errors);
   await C.context.close();
+});
+
+// ---- the recovery sheet (easy mode step 3) ----------------------------------------------------
+
+const CROCKFORD = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';
+/** A well-formed recovery code that opens nothing (Luhn mod 32 check symbol, as recovery-code.ts). */
+const strangerCode = (): string => {
+  const v = Array.from(randomBytes(27), (b) => b & 31);
+  let factor = 2;
+  let sum = 0;
+  for (let i = v.length - 1; i >= 0; i--) {
+    let a = factor * v[i];
+    factor = factor === 2 ? 1 : 2;
+    a = Math.floor(a / 32) + (a % 32);
+    sum += a;
+  }
+  return [...v, (32 - (sum % 32)) % 32].map((x) => CROCKFORD[x]).join('');
+};
+
+/** The sheet's dialog: made with one Face ID, shown, printed (a PDF and a print-media screenshot), then its whole code typed back. */
+const makeAndCheckSheet = async (page: Page, prefix: string, opts: { canSkip: boolean }) => {
+  const dialog = page.locator('[data-recovery-dialog]');
+  await expect(dialog).toHaveAttribute('data-recovery-dialog', 'intro');
+  await shots(page, `${prefix}-recovery-intro`);
+  await dialog.locator('[data-recovery-go]').click();
+  await expect(dialog).toHaveAttribute('data-recovery-dialog', 'show', { timeout: 60_000 });
+  const code = (await dialog.locator('[data-recovery-code]').innerText()).replace(/\s+/g, '');
+  expect(code).toMatch(/^([0-9A-Z]{4}-){6}[0-9A-Z]{4}$/);
+  await expect(dialog).toContainText('Keep this with your herd book or other important papers.');
+  await expect(dialog.locator('[data-recovery-phishing]')).toContainText(
+    'VeilCore asks for this code only at localhost: to check this sheet, or to get your records back.',
+  );
+  await shots(page, `${prefix}-recovery-sheet-on-screen`);
+  // As printed: the sheet alone.
+  await page.emulateMedia({ media: 'print' });
+  const print = page.locator('[data-recovery-print]');
+  await expect(print).toBeVisible();
+  await expect(print).toContainText(code);
+  await expect(page.locator('[data-recovery-dialog]')).toBeHidden();
+  await shots(page, `${prefix}-recovery-sheet-printed`);
+  fs.mkdirSync(SHOTS, { recursive: true });
+  await page.pdf({ path: path.join(SHOTS, `${prefix}-recovery-sheet.pdf`), format: 'A4' });
+  await page.emulateMedia({ media: 'screen' });
+  // Nothing about the code is kept in the page's storage.
+  const kept = await page.evaluate(() => JSON.stringify({ ...localStorage }) + location.href);
+  expect(kept).not.toContain(code);
+  expect(kept).not.toContain(code.replace(/-/g, ''));
+
+  await dialog.locator('[data-recovery-next]').click();
+  await expect(dialog).toHaveAttribute('data-recovery-dialog', 'confirm');
+  await expect(dialog.locator('[data-recovery-skip]')).toHaveCount(opts.canSkip ? 1 : 0);
+  const input = dialog.locator('[data-recovery-input]');
+  const typo = `${code.slice(0, 2)}${code[2] === 'A' ? 'B' : 'A'}${code.slice(3)}`;
+  await input.fill(typo);
+  await dialog.locator('[data-recovery-check]').click();
+  await expect(dialog.locator('[data-recovery-problem]')).toContainText('That code has a mistake in it.');
+  await input.fill(strangerCode());
+  await dialog.locator('[data-recovery-check]').click();
+  await expect(dialog.locator('[data-recovery-problem]')).toContainText(
+    'That doesn’t match your sheet. Check each character, then try again.',
+  );
+  await shots(page, `${prefix}-recovery-wrong-code`);
+  await input.fill(code.toLowerCase().replace(/-/g, ' '));
+  await dialog.locator('[data-recovery-check]').click();
+  await expect(dialog).toHaveAttribute('data-recovery-dialog', 'done', { timeout: 30_000 });
+  await expect(dialog).toContainText('Your recovery sheet works.');
+  await shots(page, `${prefix}-recovery-works`);
+  await dialog.getByRole('button', { name: 'Done' }).click();
+  return code;
+};
+
+test('the recovery sheet: offered after Face ID, printed, checked, and it brings the records back on a fresh browser', async ({
+  browser,
+}) => {
+  test.setTimeout(420_000);
+  const A = await device(browser, IPHONE);
+  const name = `Recovery sheet plant (practice) ${Date.now()}`;
+  await logPlant(A.page, name);
+  const sheet = A.page.locator('[data-keep-safe]');
+  await expect(sheet).toBeVisible({ timeout: 60_000 });
+  await sheet.getByRole('button', { name: 'Use Face ID' }).click();
+  await expect(sheet.locator('[data-keep-safe-done="counted"]')).toBeVisible({ timeout: 60_000 });
+  // Offered at once, before "Done": recommended where the passkey syncs.
+  const prompt = sheet.locator('[data-recovery-prompt="synced"]');
+  await expect(prompt).toContainText('One more thing: your recovery sheet');
+  await expect(prompt).toContainText('If you ever lose your Apple or Google account, this sheet is the only way back.');
+  await shots(A.page, '15-saved-recovery-offered');
+  await prompt.locator('[data-recovery-make]').click();
+  const code = await makeAndCheckSheet(A.page, '16', { canSkip: true });
+  const [plant] = await recordIds(A.page);
+  await untilSaved(A.page, plant);
+  await A.page.goto('/settings');
+  await expect(A.page.locator('[data-settings-sheet="checked"]')).toBeVisible();
+  await expect(A.page.locator('[data-settings-way="recovery"]')).toContainText('Recovery sheet · made');
+  await expect(A.page.locator('[data-settings-way="recovery"]')).toContainText('Checked');
+  await shots(A.page, '17-settings-recovery-sheet');
+
+  // A fresh browser: no passkey, nothing here but the sheet.
+  const D = await device(browser, WINDOWS);
+  await D.page.goto('/restore');
+  await D.page.locator('[data-restore-sheet-open]').click();
+  const input = D.page.locator('[data-restore-sheet-input]');
+  await input.fill(strangerCode());
+  await D.page.locator('[data-restore-sheet-go]').click();
+  await expect(D.page.getByText('That code doesn’t open any saved records.')).toBeVisible({ timeout: 30_000 });
+  await input.fill(code.slice(0, 20));
+  await D.page.locator('[data-restore-sheet-go]').click();
+  await expect(D.page.getByText('A recovery code has 28 characters.')).toBeVisible();
+  await shots(D.page, '18-restore-sheet-wrong-code');
+  await input.fill(code);
+  await D.page.locator('[data-restore-sheet-go]').click();
+  const found = D.page.locator('[data-passkey-found]');
+  await expect(found).toContainText('Found your records saved with VeilCore on', { timeout: 30_000 });
+  await shots(D.page, '19-restore-sheet-found');
+  await found.getByRole('button', { name: 'Bring them here' }).click();
+  await expect(D.page.locator('[data-restore-done="account"]')).toHaveText(
+    /Welcome back\. \d+ records? (is|are) here\./,
+    {
+      timeout: 30_000,
+    },
+  );
+  expect(await recordIds(D.page)).toContain(plant);
+  // Then a passkey of its own, added to the same records.
+  const offer = D.page.locator('[data-restore-add-face-id="offer"]');
+  await expect(offer).toContainText('Open them by yourself next time');
+  await shots(D.page, '20-restore-sheet-welcome');
+  await offer.locator('[data-restore-add-face-id-go]').click();
+  await expect(D.page.locator('[data-restore-add-face-id="done"]')).toBeVisible({ timeout: 60_000 });
+  await D.page.goto('/settings');
+  await expect(D.page.locator('[data-settings-account="saved"]')).toContainText('New records save by themselves.');
+  await expect(D.page.locator('[data-settings-make-sheet]')).toBeVisible();
+  await shots(D.page, '21-settings-after-sheet-restore');
+  await D.page.goto('/records');
+  await expect(D.page.getByRole('heading', { name })).toBeVisible({ timeout: 30_000 });
+  await expect(D.page.locator('[data-account-line]')).toHaveCount(0);
+  expectNoErrors(A.errors);
+  expectNoErrors(D.errors);
+  await A.context.close();
+  await D.context.close();
+});
+
+test('a passkey that stays on one device counts only once a recovery sheet is checked', async ({ browser }) => {
+  test.setTimeout(300_000);
+  const E = await device(browser, WINDOWS, undefined, { synced: false });
+  const name = `Device-bound plant (practice) ${Date.now()}`;
+  await logPlant(E.page, name);
+  const sheet = E.page.locator('[data-keep-safe]');
+  await expect(sheet).toBeVisible({ timeout: 60_000 });
+  await sheet.locator('[data-keep-safe-go]').click();
+  await expect(sheet.locator('[data-keep-safe-done="bound"]')).toBeVisible({ timeout: 60_000 });
+  await expect(sheet.locator('[data-recovery-prompt="bound"]')).toContainText('Make it now: it is the only way back.');
+  await shots(E.page, '22-saved-bound-recovery-offered');
+  await sheet.getByRole('button', { name: 'I’ll do it later' }).click();
+  const [plant] = await recordIds(E.page);
+  const backedUp = () =>
+    E.page.evaluate(
+      (id) =>
+        (
+          JSON.parse(localStorage.getItem('veilcore.record-keys.v1') ?? '{}') as Record<string, { backedUpAt?: number }>
+        )[id]?.backedUpAt,
+      plant,
+    );
+  // The gate stays closed: not counted as backed up.
+  expect(await backedUp()).toBeUndefined();
+  await E.page.goto('/records');
+  const line = E.page.locator('[data-account-line="bound"]');
+  await expect(line).toContainText('Only this device can open your saved records.');
+  await shots(E.page, '23-home-bound-make-sheet');
+  await line.getByRole('button', { name: 'Make a recovery sheet' }).click();
+  await makeAndCheckSheet(E.page, '24', { canSkip: false });
+  await expect.poll(backedUp, { timeout: 30_000 }).toBeTruthy();
+  await E.page.goto('/records');
+  await expect(E.page.getByRole('heading', { name: 'Your records' })).toBeVisible();
+  await expect(E.page.locator('[data-account-line]')).toHaveCount(0);
+  await shots(E.page, '25-home-bound-counted');
+  expectNoErrors(E.errors);
+  await E.context.close();
 });
 
 test('stop saving on one device: the other says saving is off, stops trying, and saves again on one tap', async ({

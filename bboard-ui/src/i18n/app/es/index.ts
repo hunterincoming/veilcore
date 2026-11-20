@@ -40,6 +40,7 @@ import { origin } from './origin';
 import { job } from './job';
 import { pack } from './pack';
 import { account } from './account';
+import { recovery } from './recovery';
 
 export const appEs: AppTranslation = {
   ...common,
@@ -74,4 +75,5 @@ export const appEs: AppTranslation = {
   ...job,
   ...pack,
   ...account,
+  ...recovery,
 };
