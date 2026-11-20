@@ -226,7 +226,8 @@ The same shape fits inactivated vaccines and cell lines, heat-treated seed and s
 - `variety-identity/v1`: match to the variety's reference profile (% × 100), units tested,
   off-types, the variety's registration number, the panel code (INASE's 56-SNP soybean set is one).
 - `animal-parentage/v1`: ICAR's 2023 SNP parentage terms: species, panel size, SNPs compared and
-  conflicts and outcome for sire, dam and trio.
+  conflicts and outcome for sire, dam and trio. A holder proves ICAR's acceptance bounds from it,
+  fixed, never rounded: `docs/parentage.md`.
 
 Only a lab is offered these; a holder typing them would prove nothing. Identifiers are numbers so
 a claim can disclose which variety was compared (`proveValue`).

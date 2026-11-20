@@ -374,4 +374,31 @@ export const verify = {
   'app.verify.who.typed': 'Ce qui est saisi (titre, détenteur, émetteur, notes)',
   'app.verify.who.typed.holder':
     'Le détenteur, avec ses propres mots. Cette page vérifie seulement qu’ils correspondent au code de preuve, pas qu’ils sont vrais.',
+  'app.verify.who.btc': 'L’horodatage Bitcoin',
+  'app.verify.who.btc.pending':
+    'Rien sur Bitcoin pour l’instant : seulement une promesse des serveurs d’horodatage, pas encore dans un bloc Bitcoin.',
+  'app.verify.who.btc.reported':
+    'Le registre de VeilCore dit qu’il est dans le bloc Bitcoin {height}. Cette page ne l’a pas vérifié sur Bitcoin.',
+  'app.verify.who.btc.reportedAny':
+    'Le registre de VeilCore dit qu’il est dans un bloc Bitcoin. Cette page ne l’a pas vérifié sur Bitcoin.',
+  'app.verify.who.btc.checking': 'Vérification sur Bitcoin…',
+  'app.verify.who.btc.linked':
+    'Vérifié dans ce navigateur : la preuve de travail du bloc {height} et son lien avec le point de contrôle {checkpoint}, un bloc que ce site fixe. Le bloc contient l’horodatage de ce lot. Heure du bloc : {time}.',
+  'app.verify.who.btc.explorers':
+    'Ce que disent les explorateurs de blocs ({explorers}) : le bloc {height} contient l’horodatage de ce lot. Ce navigateur a vérifié la preuve de travail du bloc lui-même, mais le bloc est trop loin de tous les points de contrôle que ce site fixe pour l’y relier.',
+  'app.verify.who.btc.failed.stamp':
+    'Rien : le fichier d’horodatage ne concerne pas ce lot, ou ce navigateur ne peut pas le lire.',
+  'app.verify.who.btc.failed.mismatch': 'Rien : le bloc que nomme l’horodatage ne contient pas l’horodatage de ce lot.',
+  'app.verify.who.btc.failed.headers':
+    'Rien : les en-têtes de bloc donnés par les explorateurs ne passent pas la vérification, ou les deux explorateurs ne concordent pas.',
+  'app.verify.who.btc.unreachable':
+    'Le registre de VeilCore dit qu’il est dans un bloc Bitcoin. Ce navigateur n’a pas pu joindre les explorateurs de blocs pour le vérifier.',
+  'app.verify.who.btc.check': 'Vérifier sur Bitcoin',
+  'app.verify.who.btc.again': 'Réessayer',
+  'app.verify.who.btc.note':
+    'Demande des en-têtes de bloc à mempool.space et blockstream.info. Ils voient l’adresse internet de ce navigateur, qu’il vérifie un lot VeilCore, et quel bloc ; pas l’enregistrement.',
+  'app.verify.who.btc.linkedUp':
+    'Vérifié dans ce navigateur : la preuve de travail du bloc {height} et son lien vers le haut depuis le point de contrôle {checkpoint}, un bloc que ce site fixe, par des blocs minés à la difficulté réelle de Bitcoin. Le bloc contient l’horodatage de ce lot. Heure du bloc, telle que son mineur l’a fixée : {time}. Un point de contrôle plus récent le vérifierait plus solidement.',
+  'app.verify.who.btc.batchOnly':
+    'Ce navigateur a vérifié que l’horodatage du lot est dans le bloc Bitcoin {height}, relié au point de contrôle {checkpoint}. Seul le registre de VeilCore dit que cet enregistrement est dans ce lot : le lien qu’on vous a envoyé ne contient pas de code de preuve pour le vérifier.',
 } satisfies Partial<AppTranslation>;

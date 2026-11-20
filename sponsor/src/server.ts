@@ -6,7 +6,8 @@
 //                            figures, counters and the anchoring job's own words.
 //   GET  /sponsor/alerts     200 { ok: true, problems: [] } when nothing needs the operator,
 //                            503 { ok: false, problems: [codes] } when something does
-//                            (alerts.ts). For an outside monitor; codes only.
+//                            (alerts.ts). For an outside monitor; codes only, and with
+//                            fuel-low the days of DUST left (fuelRunwayDays) when known.
 // Plain node:http, no framework. Request bodies are never logged.
 // SPDX-License-Identifier: Apache-2.0
 
@@ -32,8 +33,11 @@ export type ServerDeps = {
   readonly maxBodyBytes: number;
   /** The indexer relay (indexer-relay.ts): POST /indexer and the /indexer/ws socket. */
   readonly indexerRelay?: IndexerRelay;
-  /** What needs the operator now (alerts.ts), for GET /sponsor/alerts. Unset: the route is 404. */
-  readonly alerts?: () => readonly string[];
+  /**
+   * What needs the operator now (alerts.ts), for GET /sponsor/alerts: the codes, or a report
+   * with the codes and fuelRunwayDays (alertReport). Unset: the route is 404.
+   */
+  readonly alerts?: () => readonly string[] | { readonly problems: readonly string[]; readonly fuelRunwayDays?: number };
 };
 
 /**
@@ -115,12 +119,23 @@ export const handler = (deps: ServerDeps) => async (req: IncomingMessage, res: S
     if (req.method === 'GET' && path === '/health') return send(res, 200, { ok: true });
     if (req.method === 'GET' && path === '/sponsor/alerts' && deps.alerts) {
       let problems: readonly string[];
+      let runway: number | undefined;
       try {
-        problems = deps.alerts();
+        const a = deps.alerts();
+        if (Array.isArray(a)) problems = a;
+        else {
+          const r = a as { problems: readonly string[]; fuelRunwayDays?: number };
+          problems = r.problems;
+          runway = typeof r.fuelRunwayDays === 'number' && Number.isFinite(r.fuelRunwayDays) ? r.fuelRunwayDays : undefined;
+        }
       } catch {
         problems = ['check-failed'];
       }
-      return send(res, problems.length ? 503 : 200, { ok: problems.length === 0, problems });
+      return send(res, problems.length ? 503 : 200, {
+        ok: problems.length === 0,
+        problems,
+        ...(runway !== undefined ? { fuelRunwayDays: runway } : {}),
+      });
     }
     if (req.method === 'GET' && path === '/sponsor/status') {
       const operator = operatorTokenMatches(req, deps.statusToken);

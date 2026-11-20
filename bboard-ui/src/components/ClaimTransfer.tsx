@@ -31,6 +31,7 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
+import { ScanTextField } from '../scan/ScanTextField';
 import InboxIcon from '@mui/icons-material/MoveToInboxOutlined';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -203,7 +204,14 @@ const ArrivalForm: React.FC<{ value: ArrivalInput; onChange: (v: ArrivalInput) =
       <Typography variant="caption" color="text.secondary" sx={{ mt: '0 !important' }}>
         {t('app.lab.recv.checkTube')}
       </Typography>
-      <TextField label={t('app.lab.recv.sampleIdOnArrival')} {...field('sampleId')} />
+      <ScanTextField
+        label={t('app.lab.recv.sampleIdOnArrival')}
+        value={value.sampleId}
+        onValue={(v) => onChange({ ...value, sampleId: v.slice(0, CUSTODY_LIMITS.arrival.sampleId) })}
+        fullWidth
+        size="small"
+        disabled={disabled}
+      />
       <TextField label={t('app.lab.recv.sealOnArrival')} {...field('sealNumber')} />
       <Box>
         <Typography variant="body2" id="seal-intact-label">

@@ -108,8 +108,12 @@ import {
   registryDateWords,
 } from '../components/verify/anchor-words';
 import { useAnchorCheck, useRecordDate } from '../components/verify/useAnchorCheck';
+import { useBitcoinCheck } from '../components/verify/useBitcoinCheck';
+import { BitcoinCheckAction } from '../components/verify/BitcoinCheckAction';
 import { deletedDateKey } from '../components/verify/deleted-words';
-import { utcStamp } from '../veilcore/time';
+import { utcSeconds, utcStamp } from '../veilcore/time';
+import { useInstantStamp } from '../veilcore/instant-stamp';
+import { instantLines } from '../components/offline/offline-words';
 import { VerifierChallengePanel } from '../components/chain/VerifierChallengePanel';
 import { LicenseProofPanel } from '../components/licensing/LicenseProof';
 import { LendHere } from '../components/licensing/LendHere';
@@ -548,6 +552,13 @@ export const VerifyPage: React.FC = () => {
   // (chain/anchor-lookup.ts), so the two never disagree. Undefined until the inclusion
   // proof names a transaction to look up.
   const anchor = useAnchorCheck(proof);
+  // The batch's Bitcoin stamp: the registry's word until the visitor asks this browser to
+  // check it (useBitcoinCheck.ts; docs/bitcoin-header-check.md).
+  const bitcoin = useBitcoinCheck(proof);
+  // The record's own timestamps, in seconds (veilcore/instant-stamp.ts): each token checked here
+  // against the proof code before it is shown.
+  const instant = useInstantStamp(fingerprint);
+  const instantTokens = instant?.status === 'stamped' ? instant.tokens : [];
 
   // A tick (and the stamp) only for a check against the link's own fingerprint.
   const checked = bound && proof !== 'checking' && proof.status !== 'none';
@@ -840,6 +851,21 @@ export const VerifyPage: React.FC = () => {
                 </Box>
               </Stack>
 
+              {/* Its own timestamp, seconds after it was sealed, until its batch has a Midnight
+                date (veilcore/instant-stamp.ts): the authority's time, checked here, and that the
+                Midnight date follows. The checks below list each one. */}
+              {/* Only against the link's own proof code (TSA-2): otherwise the proof code is the
+                registry's report, and so would the line be. The checks list says it unbound. */}
+              {result.recordFingerprint &&
+                bound &&
+                instantTokens.length > 0 &&
+                !(instant?.status === 'stamped' && instant.disagree) &&
+                !(proof !== 'checking' && proof.status === 'anchor-reported') && (
+                  <Typography variant="body2" sx={{ mb: 2 }} data-instant-stamp="">
+                    {instantLines(instant, false, tr)[0]}
+                  </Typography>
+                )}
+
               {/* The holder's own words, labelled as such: never a heading next to the mark,
                 cleaned of symbols and control characters, and capped (display-name.ts). */}
               {name && nameCheck.state === 'differs' ? (
@@ -1038,6 +1064,8 @@ export const VerifyPage: React.FC = () => {
                                 ? 'differs'
                                 : 'unchecked',
                           testNetwork: isTestNetwork(reportedNetwork ?? NETWORK),
+                          instant: instantTokens,
+                          instantDisagree: instant?.status === 'stamped' && instant.disagree,
                           signers: signed.map((a) => {
                             const label = signerLabel(a, 'Signed by', undefined, tr);
                             return {
@@ -1048,9 +1076,15 @@ export const VerifyPage: React.FC = () => {
                             };
                           }),
                           max: SIGNATURE_LINES,
+                          ...(bitcoin.row ? { bitcoin: bitcoin.row } : {}),
                         },
                         tr,
                       )}
+                      after={
+                        bitcoin.row && bitcoin.run
+                          ? { bitcoin: <BitcoinCheckAction row={bitcoin.row} run={bitcoin.run} /> }
+                          : undefined
+                      }
                     />
                   )}
 
@@ -1132,6 +1166,21 @@ export const VerifyPage: React.FC = () => {
                             <Fact ok={false}>{t('app.verify.batchNoStamp')}</Fact>
                           )}
                         </>
+                      ))}
+
+                    {/* The record's own timestamps: each a timestamp authority's signature on the
+                  proof code, checked here; ticked only against the link's own proof code. */}
+                    {result.recordFingerprint &&
+                      instantTokens.map((tok, i) => (
+                        <Box key={`tsa-${String(i)}`} data-instant-fact={tok.tsa}>
+                          <Fact ok={bound && !(instant?.status === 'stamped' && instant.disagree)}>
+                            {bound ? '' : forWhom}
+                            {t('app.instant.fact', { tsa: tok.tsa, time: utcSeconds(tok.at) })}
+                            {instant?.status === 'stamped' && instant.disagree
+                              ? ` ${t('app.verify.who.tsa.disagree')}`
+                              : ''}
+                          </Fact>
+                        </Box>
                       ))}
 
                     {/* Base data: shown whatever the holder shared. Signatures are checked here;

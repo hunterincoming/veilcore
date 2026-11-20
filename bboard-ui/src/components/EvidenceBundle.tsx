@@ -5,7 +5,7 @@
 // (for a document record: a copy of the document's own files, each checked against the record).
 // SPDX-License-Identifier: Apache-2.0
 
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Alert,
   Button,
@@ -26,6 +26,8 @@ import { downloadEvidenceBundle, lockedParentsOf } from '../veilcore/evidence/bu
 import { MAX_FINGERPRINT_BYTES } from '../veilcore/commitment';
 import { InEnglishNote, useRecordT } from '../i18n/app';
 import { isDocument } from '../veilcore/document-profile';
+import { bitcoinStampFor } from '../veilcore/proofs';
+import { recordProof } from './verify/useAnchorCheck';
 
 /** The button's English (app.plant.bundle.download): the landing page names it. */
 export const DOWNLOAD_EVIDENCE_LABEL = 'Download evidence bundle';
@@ -39,6 +41,11 @@ export const EvidenceBundle: React.FC<{
   const [open, setOpen] = useState(false);
   const [includeKey, setIncludeKey] = useState(false);
   const [includeLab, setIncludeLab] = useState(false);
+  // Off unless ticked: it asks two outside sites (docs/bitcoin-header-check.md).
+  const [includeBtc, setIncludeBtc] = useState(false);
+  // Offered only when the record's batch is stamped in a Bitcoin block: otherwise there are no
+  // headers to fetch, and the option would do nothing.
+  const [stampedOnBitcoin, setStampedOnBitcoin] = useState(false);
   const [labFile, setLabFile] = useState<File | null>(null);
   const [docFiles, setDocFiles] = useState<File[]>([]);
   const [busy, setBusy] = useState(false);
@@ -57,6 +64,17 @@ export const EvidenceBundle: React.FC<{
   const hasDocFiles = doc && (record.document?.files?.length ?? 0) > 0;
   const include = doc ? 'app.doc.bundle.includeFiles' : 'app.plant.bundle.includeLab';
   const sealed = !!record.recordFingerprint && !!record.nonce;
+
+  useEffect(() => {
+    if (!open) return;
+    let live = true;
+    void recordProof(record.recordFingerprint).then((p) => {
+      if (live) setStampedOnBitcoin(p.status !== 'none' && bitcoinStampFor(p.proof)?.status === 'bitcoin');
+    });
+    return () => {
+      live = false;
+    };
+  }, [open, record.recordFingerprint]);
 
   const close = () => {
     setOpen(false);
@@ -82,6 +100,7 @@ export const EvidenceBundle: React.FC<{
       const datedBy = datingOf(record, undefined, allRecords())?.id;
       const out = await downloadEvidenceBundle(record, keys, {
         includeKey: canKey && includeKey,
+        bitcoinHeaders: stampedOnBitcoin && includeBtc,
         ...(datedBy ? { dnaReportDatedBy: datedBy } : {}),
         ...(lockedParents ? { lockedParents } : {}),
         ...(!doc && includeLab && labFile
@@ -149,6 +168,12 @@ export const EvidenceBundle: React.FC<{
                     {canKey ? t('app.plant.bundle.keyWith') : t('app.plant.bundle.keyNotHere')}
                   </Typography>
                 }
+              />
+            )}
+            {sealed && stampedOnBitcoin && (
+              <FormControlLabel
+                control={<Checkbox checked={includeBtc} onChange={(e) => setIncludeBtc(e.target.checked)} />}
+                label={<Typography variant="body2">{t('app.plant.bundle.includeBtc')}</Typography>}
               />
             )}
             {(hasLab || hasDocFiles) && (

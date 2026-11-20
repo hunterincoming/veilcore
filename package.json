@@ -102,7 +102,9 @@
     "check:compiler": "node scripts/check-compiler.mjs",
     "test:deployments": "node --test scripts/deployments.test.mjs && node --experimental-strip-types --no-warnings --import ./api/test-ts-resolve.mjs --test scripts/verify-deployment.test.mjs",
     "check:bitcoin-stamp": "node scripts/check-bitcoin-stamp.mjs",
-    "test:bitcoin-stamp": "node --test scripts/check-bitcoin-stamp.test.mjs"
+    "test:bitcoin-stamp": "node --test scripts/check-bitcoin-stamp.test.mjs",
+    "btc:checkpoints": "node scripts/btc-checkpoints.mjs",
+    "test:btc-checkpoints": "node --test scripts/btc-checkpoints.test.mjs"
   },
   "allowScripts": {
     "@swc/core": false,

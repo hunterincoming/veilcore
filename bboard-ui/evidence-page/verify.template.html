@@ -82,7 +82,7 @@
       <li>Who holds the <span class="vc-subject">plant</span> or the record now.</li>
       <li>That a signing key belongs to the lab it names. VeilCore doesn’t vouch for anyone, and neither does this page.</li>
       <li>Any date at all, until you find the batch root in the transaction named above (or the Bitcoin stamp checks). Until then the files only agree with each other.</li>
-      <li>The Bitcoin block itself: this page reads the stamp file, but it can’t reach Bitcoin to see that the block holds the value the file names.</li>
+      <li>That Bitcoin’s network agrees today: this page reaches no network. When this bundle carries the stamped block’s header (<code>proof/bitcoin-headers.json</code>), the page checks the block holds the value the stamp file names, has Bitcoin’s proof of work, and links to a block this page pins; without it, the page only reads the stamp file.</li>
       <li class="vc-not-document">When a lab report was saved to the <span class="vc-subject">plant</span>. That came after sealing and isn’t inside the record’s proof code, so the batch doesn’t date it.</li>
     </ul>
   </div>
@@ -98,6 +98,8 @@
 
 <script type="application/json" id="veilcore-evidence">@@EVIDENCE_JSON@@</script>
 <script type="application/json" id="veilcore-stamp">@@STAMP_JSON@@</script>
+<script type="application/json" id="veilcore-btc-headers">@@BTC_HEADERS_JSON@@</script>
+<script type="application/json" id="veilcore-btc-checkpoints">@@BTC_CHECKPOINTS_JSON@@</script>
 <script>
 // The published SDK's canonicalisation (veilcore-records @@SDK_VERSION@@, dist/canonical.js), copied in unchanged
 // except for its one `export` keyword.
@@ -108,6 +110,10 @@ return canonicalise;
 </script>
 <script>
 /*@@VERIFY_CORE@@*/
+</script>
+<script>
+// The Bitcoin header check (btc-header-chain.js; docs/bitcoin-header-check.md in the VeilCore repository).
+/*@@BTC_HEADER_CHAIN@@*/
 </script>
 <script>
 (function () {
@@ -132,6 +138,31 @@ return canonicalise;
     embeddedStamp = null;
   }
   var currentStamp = embeddedStamp;
+  // The bundle's Bitcoin block headers (proof/bitcoin-headers.json), and the checkpoints this
+  // page pins: Bitcoin block hashes chosen when this page's release was made, never the bundle's.
+  function embeddedJson(id) {
+    try {
+      return JSON.parse(document.getElementById(id).textContent);
+    } catch (e) {
+      return null;
+    }
+  }
+  var btcHeaders = embeddedJson('veilcore-btc-headers');
+  var btcPins = embeddedJson('veilcore-btc-checkpoints') || [];
+
+  /**
+   * What a header check that passed shows. The checkpoint is pinned in this page, and this page
+   * travels in the bundle, so the reader is asked to look its hash up rather than told it.
+   */
+  function btcHeadersWords(h) {
+    var when = VeilcoreVerify.utc(new Date(h.time * 1000).toISOString()) || String(h.time);
+    var from = h.from.length ? plain(h.from.join(' and ')) : 'block explorers';
+    var pin = 'block ' + h.checkpoint.height + ' (hash ' + h.checkpoint.hash + '), the checkpoint this page pins';
+    var lookUp = ' Look that hash up on any block explorer or Bitcoin node: if it is block ' + h.checkpoint.height + '’s there, ';
+    if (h.direction === 'up')
+      return ' Checked in this page: block ' + h.height + '’s header holds that value and has Bitcoin’s proof of work, and it is linked up from ' + pin + ', through ' + h.blocksOfWork + ' block' + (h.blocksOfWork === 1 ? '' : 's') + ' mined at Bitcoin’s real difficulty. That shows real mining went into it, not that Bitcoin’s network follows it:' + lookUp + 'look block ' + h.height + '’s hash (' + h.hash + ') up too. Block ' + h.height + '’s time, as its miner set it: ' + when + '. The headers came from ' + from + ' when the bundle was made; this page checked them itself.';
+    return ' Checked in this page: block ' + h.height + '’s header holds that value and has Bitcoin’s proof of work, and a chain of headers links it to ' + pin + '.' + lookUp + 'block ' + h.height + ' is in Bitcoin’s chain. Block ' + h.height + '’s time, as its miner set it (Bitcoin allows about two hours either way): ' + when + '. The headers came from ' + from + ' when the bundle was made; this page checked them itself.';
+  }
 
   function el(tag, cls, text) {
     var n = document.createElement(tag);
@@ -495,7 +526,12 @@ return canonicalise;
         if (st && st.status === 'bitcoin') {
           shows = 'The stamp file starts from SHA-256 of root.bin and names Bitcoin block ' + st.bitcoin.map(function (x) { return x.height; }).join(', ') + '. ' +
             st.bitcoin.map(function (x) { return x.merkleRoot ? 'Block ' + x.height + '’s merkle root must be ' + x.merkleRoot + ' (as block explorers print it).' : 'The steps to block ' + x.height + ' use a hash this browser can’t run, so the value it must hold isn’t shown here.'; }).join(' ') +
-            ' This page can’t reach Bitcoin: the steps above check that the block really holds it.';
+            (report.headers && report.headers.ok
+              ? btcHeadersWords(report.headers)
+              : report.headers
+                ? ' The block headers in this bundle don’t check: ' + report.headers.reason + '. Go by the steps above.'
+                : ' This page can’t reach Bitcoin, and this bundle carries no block headers: the steps above check that the block really holds it.');
+          if (report.headers) kind = report.headers.ok ? 'ok' : 'bad';
         } else if (st && st.status === 'pending') {
           shows = 'The stamp file starts from SHA-256 of root.bin, but holds only a promise from the stamping servers, not yet a Bitcoin block. Upgrading it needs the internet once.';
         } else if (st && st.status === 'other-root') {
@@ -671,6 +707,12 @@ return canonicalise;
 
   function run(ev, files) {
     return VeilcoreVerify.checkAll(ev, files || [], { ots: currentStamp }).then(function (report) {
+      var chain = typeof BtcHeaderChain === 'undefined' ? null : BtcHeaderChain;
+      return VeilcoreVerify.checkBitcoinHeaders(report.stamp, btcHeaders, btcPins, chain).then(function (h) {
+        report.headers = h;
+        return report;
+      });
+    }).then(function (report) {
       render(ev, report);
       renderFiles(report);
       document.body.setAttribute('data-checked', 'yes');

@@ -24,7 +24,7 @@ export const accountRegistry = (inner?: typeof fetch) => {
   const slotList = (id: string) =>
     [...slots.entries()]
       .filter(([, s]) => s.copyId === id)
-      .map(([slotId, s]) => ({ slotId, kind: s.kind, createdAt: s.createdAt }));
+      .map(([slotId, s]) => ({ slotId, kind: s.kind, createdAt: s.createdAt, wrap: sha(`${s.iv}.${s.ct}`) }));
 
   const fetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
     const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;

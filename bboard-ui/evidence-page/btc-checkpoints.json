@@ -1,0 +1,15 @@
+{
+  "about": "Bitcoin mainnet block hashes this release pins. The check page and verify.html link a stamped block to one of these. How they are chosen and updated: docs/bitcoin-header-check.md. Update with: npm run btc:checkpoints",
+  "network": "bitcoin-mainnet",
+  "spacing": 144,
+  "start": 969696,
+  "minConfirmations": 100,
+  "updated": "2026-10-15",
+  "checkpoints": [
+    {
+      "height": 971005,
+      "hash": "0000000000000000000042601b4858534f518c3fc526a6f1544a728d92f8ead4"
+    }
+  ],
+  "seed": "971005: VeilCore's first stamped blocks. mempool.space and blockstream.info gave the same header, with real proof of work, on 15 Oct 2026, about 500 blocks later (docs/bitcoin-stamp-check-11oct.md). Every later pin is linked to it by scripts/btc-checkpoints.mjs."
+}

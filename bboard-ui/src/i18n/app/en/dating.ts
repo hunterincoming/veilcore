@@ -26,7 +26,7 @@ export const dating = {
   'app.plant.keyStampCannot': 'Key date stamped: not yet. This site can’t make it now; the reason is below.',
 
   'app.home.restoreFirstTitle': 'Used VeilCore on another device?',
-  'app.home.restoreFirstText': 'Get your records back here first: with Face ID, or the backup file you saved.',
+  'app.home.restoreFirstText': 'Get your records back here first: with {how}, or the backup file you saved.',
   'app.home.restoreFirstButton': 'Get my records back',
 
   'app.pickup.title': 'Still in progress',

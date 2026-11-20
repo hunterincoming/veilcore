@@ -66,9 +66,18 @@ const agreement = async (over: Partial<License> = {}): Promise<License> => {
 describe('the certificate summary file', () => {
   it('holds no agreement: none of its fields, its sales figures or its salt; only a count', async () => {
     const l = await agreement();
-    const text = JSON.stringify(
-      certificateSummary({ record: RECORD, agreements: [l], anchored: 'Not yet.', secondParty: '-', note: 'n' }),
-    );
+    const summary = certificateSummary({
+      record: RECORD,
+      agreements: [l],
+      anchored: 'Not yet.',
+      secondParty: '-',
+      note: 'n',
+    });
+    // The time it was made is the clock's, not the agreement's: "…T07:02:13.755Z" once held "13.75"
+    // by chance (CI, 20 Nov 2026). Checked on its own, and left out of the search below.
+    const { generatedAt, ...rest } = summary;
+    expect(new Date(String(generatedAt)).toISOString()).toBe(generatedAt);
+    const text = JSON.stringify(rest);
     const secrets = [
       l.id,
       l.agreementFingerprint,

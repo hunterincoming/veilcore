@@ -1,0 +1,14 @@
+{
+  "about": "Only for the end-to-end build (VITE_E2E_FIXTURES=1; veilcore/bitcoin/stamp-check.ts). The browser tests pin real mainnet block 438 and serve a practice block 439 mined on top of it at Bitcoin's minimum difficulty (nBits 0x1d00ffff), whose merkle root is SHA-256 of the e2e test batch's root (veilcore/chain/fixtures/anchor-indexer.json). Block 439 is not Bitcoin's block 439. Mined once for these tests.",
+  "checkpoints": [
+    {
+      "height": 438,
+      "hash": "0000000025c6b644f8add734be7e666fa4afa43ca0204d623a0c0b1fd2104c7a"
+    }
+  ],
+  "practice": {
+    "height": 439,
+    "header": "010000007a4c10d21f0b0c3a624d20a03ca4afa46f667ebe34d7adf844b6c625000000009d55e364ca16809c5178e08cdc544e6d70b51b541d4a99313c6e9df24d9986443ebc6d49ffff001d2d6ce50b",
+    "hash": "000000006dead54b16bf102e096859c842289d3e1a3e1a27c6b0c4e20ba9ad23"
+  }
+}
