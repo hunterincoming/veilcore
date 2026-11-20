@@ -31,6 +31,7 @@ import { royaltyPay } from './royalty-pay';
 import { document } from './document';
 import { attest } from './attest';
 import { labresult } from './labresult';
+import { parentage } from './parentage';
 import { start } from './start';
 import { receipt } from './receipt';
 import { ask } from './ask';
@@ -65,6 +66,7 @@ export const appDe: AppTranslation = {
   ...document,
   ...attest,
   ...labresult,
+  ...parentage,
   ...start,
   ...receipt,
   ...ask,

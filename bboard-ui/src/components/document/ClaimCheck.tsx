@@ -10,6 +10,11 @@
 // as the headline when the link's first claim is one of the two, else under "Also in this
 // link"; otherwise each is said alone, in the holder's words. Whose numbers they are is said in
 // the same states as the footer (markerSourceKey). The limits are always said.
+//
+// On a laboratory's parentage result (animal-parentage/v1, veilcore/parentage.ts) the page says
+// "meets ICAR 2023 parentage acceptance", in the words docs/parentage.md fixes, only when the link
+// carries all five acceptance claims, every one checked on Midnight, and a laboratory stands
+// behind the numbers. ICAR's bands are said in plain words, and a parentage result's own limits.
 // SPDX-License-Identifier: Apache-2.0
 
 import React, { useEffect, useState } from 'react';
@@ -22,7 +27,8 @@ import { CheckVerdict, MakeYourOwn } from '../verify/CheckParts';
 import { claimVerdict, VERDICT_DATE } from '../verify/verdict';
 import { useT } from '../../i18n/app';
 import { DocumentDate, Fact } from './DocumentParts';
-import { claimRawWords, claimWords, MarkerLimits } from './ProveNumber';
+import { claimRawWords, claimWords, MarkerLimits, ParentageBands } from './ProveNumber';
+import { PARENTAGE_SCHEMA, meetsAcceptance } from '../../veilcore/parentage';
 import { claimFooterKey, labStands } from '../../veilcore/claim-call';
 import { schemaWords } from './NumbersFields';
 import { keyShort } from '../../veilcore/lab-key-text';
@@ -94,7 +100,16 @@ export const ClaimCheck: React.FC = () => {
       ? t(joined.key, { m: joined.m, n: joined.n })
       : claimWords(link, tr, stands)
     : '';
-  const sourceKey = link ? markerSourceKey(verdict, !!offerOf(link)?.count) : undefined;
+  const parentage = !!link && link.schema === PARENTAGE_SCHEMA;
+  const markerSource = link ? markerSourceKey(verdict, !!offerOf(link)?.count) : undefined;
+  // A parentage result's counts are not "a decision about the variety".
+  const sourceKey = parentage && markerSource === 'app.marker.source.lab' ? 'app.parentage.source.lab' : markerSource;
+  // "Meets ICAR 2023 parentage acceptance": all five claims, each checked, a laboratory standing behind them.
+  const certified =
+    !!link &&
+    parentage &&
+    stands &&
+    meetsAcceptance([{ ...link, ok: !!verdict?.ok }, ...more.map((m, i) => ({ ...m, ok: !!moreVerdicts[i]?.ok }))]);
   // The one plain line at the top (easy-mode review, 19 Nov), never kinder than the answers below:
   // every claim in the link and the lab's signature on it count.
   const top = claimVerdict({
@@ -127,6 +142,19 @@ export const ClaimCheck: React.FC = () => {
           <ViabilityNotRead />
         ) : (
           <Stack spacing={2.5}>
+            {certified && (
+              <Paper sx={{ p: { xs: 2.5, md: 3 } }} data-parentage-cert="">
+                <Typography variant="h6" component="h2" sx={{ mb: 1 }}>
+                  {t('app.parentage.cert.title')}
+                </Typography>
+                <Typography variant="body1" sx={{ mb: 1.5 }}>
+                  {t('app.parentage.cert.text')}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {t('app.parentage.cert.bounds')}
+                </Typography>
+              </Paper>
+            )}
             <Paper sx={{ p: { xs: 2.5, md: 3 } }}>
               {/* What the link says: plain until the chain confirms it, never styled as a fact before. */}
               <Typography
@@ -277,9 +305,14 @@ export const ClaimCheck: React.FC = () => {
                 </Fact>
               </Stack>
             </Paper>
+            {parentage && (
+              <Paper sx={{ p: { xs: 2.5, md: 3 } }}>
+                <ParentageBands />
+              </Paper>
+            )}
             {isMarker && (
               <Paper sx={{ p: { xs: 2.5, md: 3 } }}>
-                <MarkerLimits />
+                <MarkerLimits parentage={parentage} />
               </Paper>
             )}
             <Typography variant="body2" color="text.secondary">
