@@ -1049,6 +1049,10 @@ export const syncNow = (opts: { force?: boolean } = {}): Promise<CheckResult | u
     const r = remembered();
     const held = r && (await heldAccountKeys());
     if (!r || !held || held.copyId !== r.copyId) return undefined;
+    // The copy is gone at the registry (deleted, perhaps with "Stop saving" on another device):
+    // nothing is tried again by itself, every visit, until the person chooses "Save again"
+    // (setUpAccount). The open-time check still looks, cheaply, in case it comes back.
+    if (r.problem === 'missing' && !opts.force) return undefined;
     const mine = r.manifest.devices[thisDeviceId()];
     const heartbeat = !mine || Date.now() - Date.parse(mine.at) > HEARTBEAT_MS;
     if (!opts.force && !heartbeat && r.sameAs === sameAsOf(accountContents()) && !r.problem) return undefined;

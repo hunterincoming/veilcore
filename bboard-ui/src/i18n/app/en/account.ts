@@ -127,4 +127,12 @@ export const account = {
   'app.account.restore.tryAgain': 'Try again',
   'app.account.restore.tryWww': 'First used www.veilcore.org? Open this page there.',
   'app.settings.ways.tag': 'Named “VeilCore: unlocks your records · {tag}” in your passwords',
+  // The way in, as a fragment after “with” (Home's first card, the live test on Windows).
+  'app.account.how.faceId': 'Face ID',
+  'app.account.how.touchId': 'Touch ID',
+  'app.account.how.screenLock': 'your screen lock',
+  'app.account.how.windowsHello': 'Windows Hello',
+  'app.account.how.passkey': 'a passkey',
+  'app.account.line.off':
+    '<b>Saving with VeilCore is off.</b> Your saved copy was deleted, perhaps with “Stop saving with VeilCore” on another device.',
 };

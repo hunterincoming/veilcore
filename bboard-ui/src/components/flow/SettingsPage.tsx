@@ -13,7 +13,7 @@ import { useNavigate } from 'react-router-dom';
 import DoneIcon from '@mui/icons-material/CheckCircle';
 import { AppHeader } from '../AppHeader';
 import { FlowFrame, ScreenHeading } from './FlowFrame';
-import { useT } from '../../i18n/app';
+import { rich, useT } from '../../i18n/app';
 import { deleteAccountCopy, forgetDevice, useAccountState } from '../../veilcore/account-copy';
 import { backupMessageWords } from './backup-words';
 import { deviceWords, openKeepSafe } from './KeepSafe';
@@ -55,7 +55,26 @@ export const SettingsPage: React.FC = () => {
               <Typography variant="h6" component="h2" sx={{ mb: 1 }}>
                 {t('app.settings.account.title')}
               </Typography>
-              {s.kind === 'saved' ? (
+              {s.kind === 'saved' && s.problem === 'missing' ? (
+                // The copy is gone at the registry (deleted, perhaps with "Stop saving" on another
+                // device; the live test, 19 Nov 2026): said as such, never "saved", and one way on.
+                <Stack spacing={1.25} data-settings-missing="">
+                  <Typography variant="body1">{rich(t('app.account.line.off'), { b: (c) => <b>{c}</b> })}</Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {t('app.settings.account.why')}
+                  </Typography>
+                  <Box>
+                    <Button
+                      variant="contained"
+                      onClick={openKeepSafe}
+                      sx={{ minHeight: 48 }}
+                      data-settings-save-again=""
+                    >
+                      {t('app.account.line.saveAgain')}
+                    </Button>
+                  </Box>
+                </Stack>
+              ) : s.kind === 'saved' ? (
                 <Stack spacing={1.25}>
                   <Stack direction="row" spacing={1} sx={{ alignItems: 'flex-start' }}>
                     {s.counted && <DoneIcon color="success" fontSize="small" aria-hidden="true" sx={{ mt: 0.25 }} />}

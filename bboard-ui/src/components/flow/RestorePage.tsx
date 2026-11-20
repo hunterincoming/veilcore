@@ -26,8 +26,7 @@ import { SupportDetails } from '../SupportDetails';
 import { accountCopyOn, adoptFound, findAccountCopy, markBroughtBack, type Found } from '../../veilcore/account-copy';
 import { PASSKEY_WORDS } from '../../veilcore/passkey-backup';
 import { oldPasskeysHaveOtherName } from '../../veilcore/passkey-backup';
-import { deviceWords, unlockWordFor } from './KeepSafe';
-import { deviceUnlockAvailable } from '../../veilcore/passkey-backup';
+import { deviceWords, useRestoreUnlockWord } from './KeepSafe';
 import type { AppKey } from '../../i18n/app/en';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
@@ -78,20 +77,11 @@ export const RestorePage: React.FC = () => {
   const [found, setFound] = useState<Found>();
   const [asking, setAsking] = useState(false);
   const [others, setOthers] = useState(false);
-  const [deviceUnlock, setDeviceUnlock] = useState<boolean>();
   const account = accountCopyOn();
-  useEffect(() => {
-    let on = true;
-    void deviceUnlockAvailable().then((v) => on && setDeviceUnlock(v));
-    return () => {
-      on = false;
-    };
-  }, []);
   // On a computer that isn't a Mac, the passkey is most often on the person's phone: the button
   // says "Use a passkey" and the browser offers "Use a phone" (first-time-user pass on step 2).
-  const ua = navigator.userAgent;
-  const appleOrAndroid = /iPhone|iPad|iPod|Macintosh|Mac OS X|Android/.test(ua);
-  const word = appleOrAndroid ? unlockWordFor(ua, deviceUnlock === true) : 'passkey';
+  const appleOrAndroid = /iPhone|iPad|iPod|Macintosh|Mac OS X|Android/.test(navigator.userAgent);
+  const word = useRestoreUnlockWord();
   const find = (hostName = false) => {
     setAsking(true);
     setProblem(undefined);

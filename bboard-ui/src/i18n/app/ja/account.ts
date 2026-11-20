@@ -115,4 +115,12 @@ export const account = {
   'app.account.restore.tryAgain': 'もう一度試す',
   'app.account.restore.tryWww': '最初にwww.veilcore.orgを使いましたか？そちらでこのページを開いてください。',
   'app.settings.ways.tag': 'パスワードでの名前は「VeilCore: unlocks your records · {tag}」',
+  // The way in, as a fragment after “with” (Home's first card, the live test on Windows).
+  'app.account.how.faceId': 'Face ID',
+  'app.account.how.touchId': 'Touch ID',
+  'app.account.how.screenLock': '端末のPIN・パターン・パスワード',
+  'app.account.how.windowsHello': 'Windows Hello',
+  'app.account.how.passkey': 'パスキー',
+  'app.account.line.off':
+    '<b>VeilCoreへの保存はオフです。</b>保存したコピーは削除されました。ほかの端末で「VeilCoreへの保存をやめる」を選んだのかもしれません。',
 } satisfies Partial<AppTranslation>;

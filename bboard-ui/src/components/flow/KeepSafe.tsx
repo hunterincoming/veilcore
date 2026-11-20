@@ -88,6 +88,18 @@ const useUnlock = (): { word: UnlockWord; deviceUnlock: boolean | undefined } =>
   return { word: unlockWordFor(navigator.userAgent, deviceUnlock === true), deviceUnlock };
 };
 
+/**
+ * The word for getting records back on this device, the same on every screen that offers it
+ * (Home's first card, the restore page): on a computer that isn't a Mac the passkey is most often
+ * on the person's phone, so "a passkey", and the browser offers "Use a phone" (first-time-user
+ * pass on step 2; the live test on Windows, 19 Nov 2026).
+ */
+export const useRestoreUnlockWord = (): UnlockWord => {
+  const { deviceUnlock } = useUnlock();
+  const ua = typeof navigator !== 'undefined' ? navigator.userAgent : '';
+  return /iPhone|iPad|iPod|Macintosh|Mac OS X|Android/.test(ua) ? unlockWordFor(ua, deviceUnlock === true) : 'passkey';
+};
+
 export const deviceWords = (kind: DeviceKind, tr: Translator): string => tr.t(`app.account.device.${kind}` as AppKey);
 
 /** The sheet. `onClose` when it is closed, whatever happened. */
@@ -324,14 +336,24 @@ export const accountLine = (
             severity: 'warning',
           }
         : undefined;
+  // Gone at the registry: with records here not saved anywhere else, a warning; with nothing at
+  // risk here (it was turned off, perhaps on another device), one quiet line.
   if (s.problem === 'missing')
-    return {
-      words: rich(t('app.account.line.missing'), b),
-      button: t('app.account.line.saveAgain'),
-      act: act.fix,
-      mark: 'missing',
-      severity: 'warning',
-    };
+    return facts.unbacked
+      ? {
+          words: rich(t('app.account.line.missing'), b),
+          button: t('app.account.line.saveAgain'),
+          act: act.fix,
+          mark: 'missing',
+          severity: 'warning',
+        }
+      : {
+          words: rich(t('app.account.line.off'), b),
+          button: t('app.account.line.saveAgain'),
+          act: act.fix,
+          mark: 'off',
+          severity: 'info',
+        };
   if (s.problem === 'slot-missing')
     return {
       words: rich(t('app.account.line.slotMissing'), b),
