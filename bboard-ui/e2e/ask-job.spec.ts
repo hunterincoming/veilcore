@@ -768,6 +768,8 @@ test('what’s due: three reports drafted, a figure typed in each, a stale tab r
   // A second tab changes a figure; Approve on this stale tab is refused and sends nothing.
   const jobUrl = page.url();
   const other = await context.newPage();
+  other.on('console', (m) => m.text().startsWith('DBG') && console.log('OTHER', Date.now() % 100000, m.text()));
+  page.on('console', (m) => m.text().startsWith('DBG') && console.log('PAGE', Date.now() % 100000, m.text()));
   await standIn(other, held, setup);
   await dealChannel(other);
   await other.goto('/records');
@@ -777,8 +779,13 @@ test('what’s due: three reports drafted, a figure typed in each, a stale tab r
     .getByRole('button')
     .click();
   await expect(other).toHaveURL(jobUrl);
+  console.log('T before fill', Date.now() % 100000, await other.locator('[data-job-figure="0"]').inputValue());
   await other.locator('[data-job-figure="0"]').fill('9999');
+  console.log('T after fill', Date.now() % 100000, await other.locator('[data-job-figure="0"]').inputValue());
   await other.locator('[data-job-figure="0"]').blur();
+  console.log('T after blur', Date.now() % 100000, await other.locator('[data-job-figure="0"]').inputValue());
+  await other.waitForTimeout(1500);
+  console.log('T later', Date.now() % 100000, await other.locator('[data-job-figure="0"]').inputValue(), await other.locator('[data-job-changed]').count());
   await expect(other.locator('[data-job-report="0"]')).toContainText('USD 999.90 owed');
   await expect(page.locator('[data-job-changed]')).toBeVisible();
   await approve(page, 'Approve: send 3 reports, USD 350.05 owed in total');
