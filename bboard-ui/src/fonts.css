@@ -26,6 +26,21 @@
   descent-override: 21.4%;
   line-gap-override: 0%;
 }
+/* Archivo (variable, 400-700) and JetBrains Mono, both OFL (public/fonts/LICENSE-*.txt), subset
+   and self-hosted: Mako's design faces (home page, how it works, about) and the v2 wordmark on
+   every page (components/Wordmark.tsx). */
+@font-face {
+  font-family: 'VeilCore Archivo';
+  src: url('/fonts/archivo-var.woff2') format('woff2');
+  font-weight: 400 700;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'VeilCore Mono';
+  src: url('/fonts/jetbrains-mono-var.woff2') format('woff2');
+  font-weight: 400 500;
+  font-display: swap;
+}
 /* Selected text is highlighted in pollen, like a marker on a printed record. */
 ::selection {
   background: #f6da3c;

@@ -337,10 +337,12 @@ describe('the palette: pollen and ink; red only for errors; no green brand', () 
     expect(/<meta name="theme-color" content="(#[0-9A-F]{6})"/.exec(indexHtml)?.[1]).toBe(GROUND);
     // A version on the links, so browsers drop the old tab icon they cached (18-19 Oct: tag -> ring).
     expect(indexHtml).toMatch(/href="\/favicon\.svg\?v=\w+"/);
-    // The simple V from Mako's logo set (18 Nov), in the mark's gold on a paper tile, so it reads
-    // on a light or dark tab bar alike and needs no dark-mode variant.
+    // The simple V from Mako's v2 logo set (21 Nov), in the mark's gold on a white tile with a
+    // light grey edge, so it reads on a light or dark tab bar alike and needs no dark-mode variant.
     expect(faviconSvg.toLowerCase()).toContain(MARK_GOLD.toLowerCase());
-    expect(faviconSvg.toLowerCase()).toContain('#f6f3ec');
+    expect(faviconSvg.toLowerCase()).toMatch(/<rect[^>]*fill="#fff"/);
+    // Nothing in it that runs or fetches: no script, no link, no embedded metadata.
+    expect(faviconSvg).not.toMatch(/<script|href=|<image|<metadata|on\w+=/i);
     // Gold on white is at least 3:1, the floor for a graphic (WCAG 1.4.11).
     expect(contrast(MARK_GOLD, '#FFFFFF')).toBeGreaterThanOrEqual(3);
   });
@@ -398,10 +400,11 @@ describe("the home page's night (home.css, Mako's design, 18 Nov 2026)", () => {
   });
 
   it("one gold on a dark ground, clear of other brands' yellows", () => {
-    // CTO decision (review of the redesign, 18 Nov): one gold for the accent and the mark on
-    // night; #B8860B stays the mark on paper. Mako's draft used IMDb's exact #F5C518, and the
-    // first replacement, #E3AE2A, was 3.8 from Binance's: this keeps it 10 or more from all three.
+    // One gold for the accent and the mark (Mako's v2 logo, 21 Nov: #A67C00 everywhere). Mako's
+    // first draft used IMDb's exact #F5C518, and an earlier replacement, #E3AE2A, was 3.8 from
+    // Binance's: this keeps it 10 or more from all three.
     expect(GOLD.toUpperCase()).toBe(MARK_GOLD_ON_DARK);
+    expect(MARK_GOLD_ON_DARK).toBe(MARK_GOLD);
     for (const brand of ['#F0B90B', '#FCD535', '#F5C518', BINANCE_YELLOW, BITCOIN_ORANGE])
       expect(de2000(lab(GOLD), lab(brand)), brand).toBeGreaterThanOrEqual(10);
     // The mark's two golds read as one family.

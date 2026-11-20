@@ -190,7 +190,9 @@ export const allMatch = (r) => r.total > 0 && r.differ.length === 0 && r.missing
  */
 export const APP_ROUTES = Object.freeze([
   '/',
+  '/how-it-works',
   '/founders',
+  '/about',
   '/privacy',
   '/terms',
   '/help',

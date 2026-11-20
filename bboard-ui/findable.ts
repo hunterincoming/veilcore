@@ -25,6 +25,7 @@ export const SITE = 'https://veilcore.org';
 /** The public pages, in the order a sitemap lists them. Pages that hold a person's records aren't here. */
 export const SITE_PAGES = [
   '/',
+  '/how-it-works',
   '/founders',
   '/docs/spec',
   '/docs/evidence',

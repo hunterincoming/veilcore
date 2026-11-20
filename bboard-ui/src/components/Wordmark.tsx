@@ -1,30 +1,30 @@
-// The wordmark on the app's pages: the plant-tag mark and "VeilCore" set in Caslon, drawn
-// exactly as in the public pages' navigation (site.css .brand), so the app and the landing
-// page read as one product. It replaced a glowing dot and a tracked-out "VEILCORE"
-// (15 October 2026).
+// The wordmark on every page: the v2 mark (TagMark) and "VeilCore" in Archivo at weight 600, as
+// Mako's v2 logo sets it (21 November 2026). Archivo is self-hosted and OFL (src/fonts.css,
+// public/fonts). It replaced the Caslon wordmark beside the old tag.
 // SPDX-License-Identifier: Apache-2.0
 
 import React from 'react';
 import { Box } from '@mui/material';
 import { TagMark } from './site/TagMark';
-import { DISPLAY_FONT, INK_COLOR, POLLEN } from '../config/theme';
+import { FONT, INK_COLOR } from '../config/theme';
 
-/** `tone`: 'dark' on a dark ground (the home page's header), where the mark takes its lighter gold. */
+/** The wordmark's face: Archivo, then the app's own sans. */
+export const WORDMARK_FONT = `"VeilCore Archivo", ${FONT}`;
+
+/** `tone`: 'dark' on a dark ground (the home page's header): the word turns light; the gold is one. */
 export const Wordmark: React.FC<{ tone?: 'light' | 'dark' }> = ({ tone = 'light' }) => (
   <Box
     component="span"
     sx={{
       display: 'inline-flex',
       alignItems: 'center',
-      gap: '9px',
-      fontFamily: DISPLAY_FONT,
-      fontSize: 23,
-      fontWeight: 700,
+      gap: '10px',
+      fontFamily: WORDMARK_FONT,
+      fontSize: 20,
+      fontWeight: 600,
       letterSpacing: '-0.01em',
       lineHeight: 1,
-      color: INK_COLOR,
-      // An ink tag, its stub in pollen gold edged in ink (TagMark).
-      '& svg': { color: INK_COLOR, '--tm-stub': POLLEN, '--tm-edge': INK_COLOR },
+      color: tone === 'dark' ? '#ECEEF1' : INK_COLOR,
     }}
   >
     <TagMark tone={tone} />

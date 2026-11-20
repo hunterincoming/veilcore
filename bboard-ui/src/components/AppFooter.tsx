@@ -11,13 +11,13 @@
 
 import React from 'react';
 import { Box, Container, Link, Stack, Typography } from '@mui/material';
-import { DISPLAY_FONT, INK_COLOR, POLLEN } from '../config/theme';
+import { INK_COLOR } from '../config/theme';
+import { WORDMARK_FONT } from './Wordmark';
 import { TagMark } from './site/TagMark';
 import { Link as RouterLink } from 'react-router-dom';
 import { useI18n } from '../i18n';
 
-// On Ink: warm grey links (8.9:1), paper for the group names, and pollen gold (12.7:1) on
-// the mark's stub, the underlines and the focus ring.
+// On Ink: warm grey links (8.9:1), paper for the group names, and the logo's gold on the mark.
 export const ON_DARK_MUTED = '#BDB7AA';
 export const ON_DARK = '#F6F3EC';
 const groupName = {
@@ -87,14 +87,13 @@ export const AppFooter: React.FC<{
               sx={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: '9px',
-                fontFamily: DISPLAY_FONT,
-                fontSize: 23,
-                fontWeight: 700,
+                gap: '10px',
+                fontFamily: WORDMARK_FONT,
+                fontSize: 22,
+                fontWeight: 600,
                 letterSpacing: '-0.01em',
                 color: ON_DARK,
                 mb: 1.5,
-                '& svg': { color: ON_DARK, '--tm-stub': POLLEN },
               }}
             >
               <TagMark tone="dark" />
@@ -133,11 +132,11 @@ export const AppFooter: React.FC<{
               <Typography component="p" sx={groupName}>
                 {t('m.foot.explore')}
               </Typography>
-              <Item to="/#about">{t('m.nav.about')}</Item>
+              <Item to="/how-it-works">{t('m.hero.how')}</Item>
+              <Item to="/founders">{t('m.nav.about')}</Item>
               <Item to="/#demo">{t('m.foot.demo')}</Item>
               <Item to="/#updates">{t('m.nav.updates')}</Item>
-              <Item to="/#live">{t('m.live.label')}</Item>
-              <Item to="/founders">{t('m.nav.team')}</Item>
+              <Item to="/how-it-works#where">{t('m.live.label')}</Item>
               <Item to="/verify">{t('m.foot.verify')}</Item>
             </Stack>
 

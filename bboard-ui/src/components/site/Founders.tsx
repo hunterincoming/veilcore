@@ -1,11 +1,18 @@
-// The founders page (/founders), from Mako's 25 September template.
+// About (/founders, and /about): Mako's About page (site draft, 21 November 2026) on the night
+// ground of the home page (home.css, scoped by the root's class "home"). The two founders with
+// their headshots, bios, what each leads and their profile links (the same facts as before); a
+// photo for the people who grow things; where we are; the latest from the build; and talk to the
+// founders (#contact), with what each kind of reader should write about. Nothing the page had is
+// gone: the band's invitation is the contact section's lede, and its buttons are in the rows.
 // SPDX-License-Identifier: Apache-2.0
 
-import React from 'react';
-import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import React, { useRef } from 'react';
+import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
 import { useI18n } from '../../i18n';
 import type { StringKey } from '../../i18n/en';
-import { FOUNDERS_MAIL, RoleLine, SiteShell, X_HANDLE } from './SiteShell';
+import { FOUNDERS_MAIL, RoleLine, SDK_REPO, SiteShell, X_HANDLE } from './SiteShell';
+import { Marquee, NightClose, PhotoCredits, PhotoScreen, Two, Updates, useHashScroll, useReveals } from './night-parts';
+import './home.css';
 
 type Founder = {
   name: string;
@@ -57,99 +64,161 @@ const FOUNDERS: Founder[] = [
 
 export const Founders: React.FC = () => {
   const { t, sp } = useI18n();
+  const { hash } = useLocation();
+  const root = useRef<HTMLDivElement>(null);
+  useReveals(root);
+  useHashScroll(hash);
   return (
     <SiteShell>
-      <header className="wrap page">
-        <h1>
-          {t('m.team.title1')}
-          {sp}
-          <em>{t('m.team.title2')}</em>
-        </h1>
-        <p>{t('m.founders.lede')}</p>
-      </header>
-
-      <div className="wrap grid" aria-label={t('m.founders.label')}>
-        {FOUNDERS.map((f) => (
-          <article className="founder" key={f.name}>
-            <div className="photo">
-              <span aria-hidden="true">{f.initials}</span>
-              <img
-                src={f.photo}
-                alt={t('m.portraitOf', { name: f.name })}
-                loading="lazy"
-                onError={(e) => e.currentTarget.remove()}
-              />
-            </div>
-            <div className="fbody">
-              <h2>{f.name}</h2>
-              <RoleLine as="p" className="role" text={t(f.role)} />
-              <p className="bio first">{t(f.bio1)}</p>
-              <p className="bio">{t(f.bio2)}</p>
-              <dl className="meta">
-                <div>
-                  <dt>{t('m.founders.leads')}</dt>
-                  <dd>
-                    <ul className="tags">
-                      {t(f.leads)
-                        .split('|')
-                        .map((x) => (
-                          <li key={x}>{x}</li>
-                        ))}
-                    </ul>
-                  </dd>
-                </div>
-                <div>
-                  <dt>{t('m.founders.also')}</dt>
-                  <dd>{t(f.also)}</dd>
-                </div>
-                {f.languages && (
-                  <div>
-                    <dt>{t('m.founders.languages')}</dt>
-                    <dd>{t(f.languages)}</dd>
+      <div className="home k-page k-about" ref={root}>
+        <header className="k-screen k-page-hero" id="top">
+          <div className="k-wrap">
+            <h1 className="k-giant">
+              {t('m.team.title1')}
+              {sp}
+              <span className="k-mute">{t('m.team.title2')}</span>
+            </h1>
+            <p className="k-lead k-about-lede">{t('m.founders.lede')}</p>
+            <div className="k-founders" aria-label={t('m.founders.label')} role="group">
+              {FOUNDERS.map((f) => (
+                <article className="k-founder" key={f.name}>
+                  <div className="k-founder-photo">
+                    <span aria-hidden="true">{f.initials}</span>
+                    <img
+                      src={f.photo}
+                      alt={t('m.portraitOf', { name: f.name })}
+                      width={480}
+                      height={480}
+                      onError={(e) => e.currentTarget.remove()}
+                    />
                   </div>
-                )}
-              </dl>
-              <ul className="links" aria-label={f.name}>
-                {f.links.map((l) => (
-                  <li key={l.href}>
-                    <a
-                      href={l.href}
-                      rel="me noopener noreferrer"
-                      target={l.href.startsWith('mailto:') ? undefined : '_blank'}
-                    >
-                      {l.label}
-                    </a>
-                  </li>
-                ))}
-              </ul>
+                  <h2>{f.name}</h2>
+                  <RoleLine as="p" className="k-role" text={t(f.role)} />
+                  <p>{t(f.bio1)}</p>
+                  <p>{t(f.bio2)}</p>
+                  <dl className="k-facts">
+                    <div>
+                      <dt>{t('m.founders.leads')}</dt>
+                      <dd>
+                        <ul className="k-tags">
+                          {t(f.leads)
+                            .split('|')
+                            .map((x) => (
+                              <li key={x}>{x}</li>
+                            ))}
+                        </ul>
+                      </dd>
+                    </div>
+                    <div>
+                      <dt>{t('m.founders.also')}</dt>
+                      <dd>{t(f.also)}</dd>
+                    </div>
+                    {f.languages && (
+                      <div>
+                        <dt>{t('m.founders.languages')}</dt>
+                        <dd>{t(f.languages)}</dd>
+                      </div>
+                    )}
+                  </dl>
+                  <ul className="k-links" aria-label={f.name}>
+                    {f.links.map((l) => (
+                      <li key={l.href}>
+                        <a
+                          href={l.href}
+                          rel="me noopener noreferrer"
+                          target={l.href.startsWith('mailto:') ? undefined : '_blank'}
+                        >
+                          {l.label}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </article>
+              ))}
             </div>
-          </article>
-        ))}
-      </div>
-
-      <section className="band" aria-labelledby="founders-contact">
-        <div className="wrap">
-          <h2 id="founders-contact">
-            {t('m.founders.band1')}
-            {sp}
-            <em>{t('m.founders.band2')}</em>
-            {sp}
-            {t('m.founders.band3')}
-          </h2>
-          <p>{t('m.founders.bandText')}</p>
-          <div className="contact">
-            <a className="btn solid" href={FOUNDERS_MAIL}>
-              {t('m.founders.emailBoth')}
-            </a>
-            <RouterLink className="btn" to="/docs/spec">
-              {t('m.contact.spec')}
-            </RouterLink>
-            <a className="btn" href={X_HANDLE} rel="noopener noreferrer" target="_blank">
-              @VeilCoreProof
-            </a>
           </div>
-        </div>
-      </section>
+        </header>
+
+        <PhotoScreen labelledBy="grow-h" name="greenhouse" alt={t('m.home.alt.greenhouse')}>
+          <h2 id="grow-h" className="k-giant" data-reveal="">
+            {t('m.about.grow1')}
+            {sp}
+            <span className="k-hl">{t('m.about.grow2')}</span>
+          </h2>
+          <p className="k-lead" data-reveal="" style={{ '--d': 1 } as React.CSSProperties}>
+            {t('m.about.growP')}
+          </p>
+        </PhotoScreen>
+
+        <Marquee label={t('m.about.whereLabel')} list={t('m.about.where')} />
+
+        <Updates />
+
+        {/* Talk to the founders: who should write about what (it was on the home page). */}
+        <section className="k-sec" id="contact" aria-labelledby="contact-h">
+          <div className="k-wrap">
+            <h2 id="contact-h" className="k-giant" data-reveal="">
+              <Two a={t('m.contact.title1')} b={t('m.contact.title2')} hl />
+            </h2>
+            <p className="k-lead" data-reveal="" style={{ '--d': 1 } as React.CSSProperties}>
+              {t('m.founders.bandText')}
+            </p>
+            <dl className="audiences">
+              <div>
+                <dt>{t('m.contact.1t')}</dt>
+                <dd>
+                  <p>{t('m.contact.1p')}</p>
+                  <a className="k-btn k-btn-primary" href={FOUNDERS_MAIL}>
+                    {t('m.founders.emailBoth')}
+                  </a>
+                </dd>
+              </div>
+              <div>
+                <dt>{t('m.contact.2t')}</dt>
+                <dd>
+                  <p>{t('m.contact.2p')}</p>
+                  <a className="k-btn k-btn-ghost" href={FOUNDERS_MAIL}>
+                    {t('m.contact.email')}
+                  </a>
+                  <RouterLink className="k-btn k-btn-ghost" to="/docs/spec">
+                    {t('m.contact.spec')}
+                  </RouterLink>
+                </dd>
+              </div>
+              <div>
+                <dt>{t('m.contact.3t')}</dt>
+                <dd>
+                  <p>{t('m.contact.3p')}</p>
+                  <RouterLink className="k-btn k-btn-ghost" to="/docs/integrate">
+                    {t('m.contact.integrate')}
+                  </RouterLink>
+                  <a className="k-btn k-btn-ghost" href={SDK_REPO} rel="noopener noreferrer" target="_blank">
+                    GitHub
+                  </a>
+                </dd>
+              </div>
+              <div>
+                <dt>{t('m.contact.4t')}</dt>
+                <dd>
+                  <p>{t('m.contact.4p')}</p>
+                  <a className="k-btn k-btn-ghost" href="mailto:mako@veilcore.org">
+                    mako@veilcore.org
+                  </a>
+                </dd>
+              </div>
+            </dl>
+            <p className="k-fine k-follow">
+              {t('m.updates.follow')}{' '}
+              <a href={X_HANDLE} rel="noopener noreferrer" target="_blank">
+                @VeilCoreProof
+              </a>
+            </p>
+          </div>
+        </section>
+
+        <PhotoCredits names={['greenhouse']} />
+        <NightClose />
+      </div>
     </SiteShell>
   );
 };
