@@ -87,9 +87,12 @@ export const fetchHeaders = async (explorer, heights, opts = {}) => {
   const want = new Set(heights);
   const have = new Map();
   const concurrency = Math.max(1, opts.concurrency || 4);
+  // At most three rounds, and a round that adds nothing ends it: an explorer that leaves blocks
+  // out can't make this browser ask again and again.
   let rounds = 0;
   while ([...want].some((h) => !have.has(h))) {
-    if (++rounds > 3 + Math.ceil(want.size / 10)) throw new Unreachable(`${explorer.name}: it left some blocks out`);
+    if (++rounds > 3) throw new Unreachable(`${explorer.name}: it left some blocks out`);
+    const before = have.size;
     const missing = [...want].filter((h) => !have.has(h)).sort((a, b) => b - a);
     const starts = [];
     for (const h of missing) if (!starts.some((s) => h <= s && h > s - 10)) starts.push(h);
@@ -117,6 +120,7 @@ export const fetchHeaders = async (explorer, heights, opts = {}) => {
         }
       }
     }
+    if (have.size === before) throw new Unreachable(`${explorer.name}: it left some blocks out`);
   }
   return [...want].sort((a, b) => a - b).map((height) => ({ height, header: have.get(height) }));
 };

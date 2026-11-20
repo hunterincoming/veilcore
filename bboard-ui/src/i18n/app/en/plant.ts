@@ -506,4 +506,6 @@ export const plant = {
   'app.plant.att.legacy':
     'Delivery taken on {date} by a party holding the code the sender issued{addressed}. Recorded before signing existed, so it establishes that a second party took delivery without proving who they are.',
   'app.plant.att.addressed': ', addressed to {who}',
+  'app.plant.bundle.includeBtc':
+    'Include Bitcoin block headers, so verify.html can check the Bitcoin stamp with no internet. To get them, this browser asks mempool.space and blockstream.info now: they see your internet address, that this is a VeilCore batch, and which block.',
 };

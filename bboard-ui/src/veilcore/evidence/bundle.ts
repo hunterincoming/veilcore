@@ -345,13 +345,19 @@ export const withBitcoinHeaders = async (
 ): Promise<Gathered> => {
   const b = gathered.batch;
   if (!gathered.ots || !gathered.proof || !b || b.opentimestamps.status !== 'bitcoin') return gathered;
+  // One deadline for the whole check: at it every request still open is aborted.
+  const stop = new AbortController();
+  const timer = setTimeout(() => stop.abort(), opts.timeoutMs ?? 20_000);
+  const base = opts.fetchImpl ?? fetch;
+  const fetchImpl = ((url: RequestInfo | URL, init?: RequestInit) =>
+    base(url, {
+      ...init,
+      signal: init?.signal ? AbortSignal.any([init.signal, stop.signal]) : stop.signal,
+    })) as typeof fetch;
   try {
     const { checkStamp, bundleHeaders } = await import('../bitcoin/stamp-check');
-    const timeout = new Promise<null>((r) => setTimeout(() => r(null), opts.timeoutMs ?? 20_000));
-    const check = await Promise.race([
-      checkStamp(gathered.proof.root, gathered.ots, opts.fetchImpl ? { fetchImpl: opts.fetchImpl } : {}),
-      timeout,
-    ]);
+    const timeout = new Promise<null>((r) => stop.signal.addEventListener('abort', () => r(null)));
+    const check = await Promise.race([checkStamp(gathered.proof.root, gathered.ots, { fetchImpl }), timeout]);
     const headers = check ? bundleHeaders(check) : null;
     if (!headers) return gathered;
     return {
@@ -361,6 +367,8 @@ export const withBitcoinHeaders = async (
     };
   } catch {
     return gathered;
+  } finally {
+    clearTimeout(timer);
   }
 };
 
@@ -376,6 +384,12 @@ export type EvidenceOptions = {
    * Each must be byte for byte one of the files the record sealed, or nothing is downloaded.
    */
   readonly documentFiles?: readonly { readonly name: string; readonly bytes: Uint8Array }[];
+  /**
+   * Ask two block explorers for the stamped block's headers so verify.html can check the Bitcoin
+   * stamp offline (withBitcoinHeaders). Only when the holder ticks it: it tells those sites the
+   * holder's internet address and the batch's block.
+   */
+  readonly bitcoinHeaders?: boolean;
   /** For tests: when the bundle was made. */
   readonly now?: Date;
   /**
@@ -1452,7 +1466,7 @@ export const downloadEvidenceBundle = async (
 ): Promise<{ ok: true; name: string } | { error: string }> => {
   const first = await gatherEvidence(record);
   if ('error' in first) return first;
-  const gathered = await withBitcoinHeaders(first);
+  const gathered = options.bitcoinHeaders ? await withBitcoinHeaders(first) : first;
   // The sample details on this plant's deliveries: the holder's own, from the registry.
   // None (an older registry, no network) leaves them out; nothing else depends on them.
   const deliveries = options.deliveries ?? (await sentByMe());

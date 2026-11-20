@@ -396,5 +396,9 @@ export const verify = {
   'app.verify.who.btc.check': 'Vérifier sur Bitcoin',
   'app.verify.who.btc.again': 'Réessayer',
   'app.verify.who.btc.note':
-    'Demande des en-têtes de bloc à mempool.space et blockstream.info. Ils voient l’adresse internet de ce navigateur et le numéro du bloc, pas l’enregistrement.',
+    'Demande des en-têtes de bloc à mempool.space et blockstream.info. Ils voient l’adresse internet de ce navigateur, qu’il vérifie un lot VeilCore, et quel bloc ; pas l’enregistrement.',
+  'app.verify.who.btc.linkedUp':
+    'Vérifié dans ce navigateur : la preuve de travail du bloc {height} et son lien vers le haut depuis le point de contrôle {checkpoint}, un bloc que ce site fixe, par des blocs minés à la difficulté réelle de Bitcoin. Le bloc contient l’horodatage de ce lot. Heure du bloc, telle que son mineur l’a fixée : {time}. Un point de contrôle plus récent le vérifierait plus solidement.',
+  'app.verify.who.btc.batchOnly':
+    'Ce navigateur a vérifié que l’horodatage du lot est dans le bloc Bitcoin {height}, relié au point de contrôle {checkpoint}. Seul le registre de VeilCore dit que cet enregistrement est dans ce lot : le lien qu’on vous a envoyé ne contient pas de code de preuve pour le vérifier.',
 } satisfies Partial<AppTranslation>;

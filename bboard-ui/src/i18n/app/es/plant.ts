@@ -499,4 +499,6 @@ export const plant = {
   'app.plant.att.legacy':
     'Entrega recibida el {date} por alguien con el código que emitió el remitente{addressed}. Se registró antes de que existieran las firmas, así que establece que una segunda parte recibió la entrega sin demostrar quién es.',
   'app.plant.att.addressed': ', dirigido a {who}',
+  'app.plant.bundle.includeBtc':
+    'Incluir las cabeceras de bloque de Bitcoin, para que verify.html pueda comprobar el sello de Bitcoin sin internet. Para obtenerlas, este navegador consulta ahora mempool.space y blockstream.info: ellos ven su dirección de internet, que se trata de un lote de VeilCore y qué bloque.',
 } satisfies Partial<AppTranslation>;

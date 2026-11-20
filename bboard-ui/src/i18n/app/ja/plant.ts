@@ -486,4 +486,6 @@ export const plant = {
   'app.plant.att.legacy':
     '{date}に、送り手が発行したコードを持つ人が受け取りました{addressed}。署名の仕組みができる前の記録なので、あなた以外の当事者が受け取ったことは示しますが、それが誰かは証明しません。',
   'app.plant.att.addressed': '（宛先：{who}）',
+  'app.plant.bundle.includeBtc':
+    'Bitcoinのブロックヘッダーを含める。verify.htmlがインターネットなしでBitcoinのスタンプを確認できます。取得のため、このブラウザが今mempool.spaceとblockstream.infoに問い合わせます。相手にはあなたのインターネットアドレス、VeilCoreのバッチであること、どのブロックかが見えます。',
 } satisfies Partial<AppTranslation>;

@@ -46,6 +46,8 @@ export type BitcoinCheck =
       readonly time: number;
       readonly checkpoint: Checkpoint;
       readonly direction: 'down' | 'up';
+      /** Up: the mined blocks above the checkpoint the link rests on (0 down). */
+      readonly blocksOfWork: number;
       readonly explorers: readonly string[];
       /** The headers checked, for the evidence bundle (proof/bitcoin-headers.json). */
       readonly headers: readonly HeaderAt[];
@@ -71,18 +73,22 @@ export const checkStamp = async (
   if (!('bitcoin' in read)) return { status: 'failed', kind: 'stamp', reason: read.reason };
   if (read.status === 'pending' || read.bitcoin.length === 0) return { status: 'pending' };
   const pins = opts.checkpoints ?? PINNED;
-  let first: BitcoinCheck | undefined;
+  // Every named block is tried; the strongest result wins (linked, then the explorers' word,
+  // then a failure), so a bad attestation can't hide a good one, nor a good one a bad one's
+  // reason when nothing checks.
+  let explorers: BitcoinCheck | undefined;
+  let failed: BitcoinCheck | undefined;
   for (const att of read.bitcoin) {
     if (!att.merkleRoot) continue;
     const r = await checkBlock(att.height, pins, opts);
     if (r.status === 'unreachable') return { status: 'unreachable', reason: r.reason };
     if (r.status === 'failed') {
-      first ??= { status: 'failed', kind: 'headers', reason: r.reason };
+      failed ??= { status: 'failed', kind: 'headers', reason: r.reason };
       continue;
     }
     const root = r.status === 'linked' ? r.linked.merkleRoot : r.read.merkleRoot;
     if (root !== att.merkleRoot) {
-      first ??= {
+      failed ??= {
         status: 'failed',
         kind: 'mismatch',
         reason: `block ${att.height}'s merkle root is ${root}, not the stamp's ${att.merkleRoot}`,
@@ -97,12 +103,16 @@ export const checkStamp = async (
         time: r.linked.time,
         checkpoint: r.linked.checkpoint,
         direction: r.linked.direction,
+        blocksOfWork: r.linked.blocksOfWork,
         explorers: r.explorers,
         headers: r.headers,
       };
-    first ??= { status: 'explorers', height: att.height, hash: r.hash, time: r.read.time, explorers: r.explorers };
+    explorers ??= { status: 'explorers', height: att.height, hash: r.hash, time: r.read.time, explorers: r.explorers };
   }
-  return first ?? { status: 'failed', kind: 'stamp', reason: 'no Bitcoin step in the stamp file runs in this browser' };
+  return (
+    explorers ??
+    failed ?? { status: 'failed', kind: 'stamp', reason: 'no Bitcoin step in the stamp file runs in this browser' }
+  );
 };
 
 /** What the evidence bundle carries as proof/bitcoin-headers.json, for verify.html. */

@@ -37,6 +37,8 @@ var BtcHeaderChain = (function () {
   var TIMESPAN = 14 * 24 * 60 * 60;
   /** The most headers one check will take, so a page never walks a whole chain. */
   var DEFAULT_MAX_HEADERS = 2016;
+  /** Going up, no header's time may be this far before the checkpoint's (see verifyLink). */
+  var TIME_FLOOR = 3 * 60 * 60;
   var HEX64 = /^[0-9a-f]{64}$/;
   var HEX160 = /^[0-9a-f]{160}$/;
 
@@ -197,10 +199,13 @@ var BtcHeaderChain = (function () {
   /**
    * Which headers a check of block `height` needs, from the pinned checkpoints:
    *   - 'down': from block `height` up to the nearest checkpoint at or above it;
-   *   - 'up': from the nearest checkpoint below it up to block `height`, plus, for each
+   *   - 'up' (only when no checkpoint above is within reach): from the nearest checkpoint below
+   *     it up to block `height`, plus, for each
    *     difficulty adjustment on the way whose period started before that checkpoint, the
    *     period's first block, which must itself be a checkpoint (its time sets the new nBits).
-   * The shorter one within `maxHeaders` (default 2016); 'down' when both are as short.
+   * Within `maxHeaders` (default 2016).
+   * Down whenever it fits, even when up is shorter: down can't be faked, up costs a miner real
+   * work for each block above the checkpoint.
    * Returns { ok, direction, checkpoint, from, to, anchors: [checkpoint...] } or a failure.
    */
   function plan(height, checkpoints, maxHeaders) {
@@ -233,7 +238,9 @@ var BtcHeaderChain = (function () {
         anchors.push(byHeight[first]);
       }
     }
-    if (down && (!up || above.height - height <= height - below.height))
+    // Down whenever it fits: it rests on the hash chain alone. Up only when no pin above is
+    // close enough: it rests on proof of work, which a determined miner can pay for.
+    if (down)
       return { ok: true, direction: 'down', checkpoint: above, from: height, to: above.height, anchors: [] };
     if (up) return { ok: true, direction: 'up', checkpoint: below, from: below.height, to: height, anchors: anchors };
     if (missingAnchor)
@@ -306,13 +313,26 @@ var BtcHeaderChain = (function () {
         }
         if (chain[d].bits !== expected)
           return fail('difficulty', 'block ' + height + '’s nBits is not the difficulty Bitcoin’s rules set for it');
+        // Times, so a block made up on top of a checkpoint can't carry a date from well before it.
+        // Once 11 headers are in the walk, Bitcoin's own rule: after the median of the 11 before
+        // it. Before that (the 10 headers below the checkpoint aren't fetched), a floor this page
+        // sets: no more than three hours before the checkpoint's time. Bitcoin times aren't in
+        // order, so the floor is loose on purpose; it can only refuse, never pass, a header.
+        if (chain[d].time <= chain[0].time - TIME_FLOOR)
+          return fail('time', 'block ' + height + '’s time is more than three hours before the checkpoint’s');
+        if (d >= 11) {
+          var prev = [];
+          for (var t = d - 11; t < d; t++) prev.push(chain[t].time);
+          prev.sort(function (x, y) { return x - y; });
+          if (chain[d].time <= prev[5]) return fail('time', 'block ' + height + '’s time is not after the median of the 11 before it');
+        }
       }
     }
     var work = BigInt(0);
     for (var q = 0; q < chain.length; q++) {
       var pow = powProblem(chain[q]);
       if (pow) return fail('pow', 'block ' + (p.from + q) + ': ' + pow);
-      if (q > 0) work += workOf(chain[q].bits);
+      if (p.direction === 'down' ? q > 0 : true) work += workOf(chain[q].bits);
     }
     for (var an in anchors) {
       var apow = powProblem(anchors[an]);
@@ -330,6 +350,8 @@ var BtcHeaderChain = (function () {
       direction: p.direction,
       checkpoint: { height: p.checkpoint.height, hash: p.checkpoint.hash },
       headersChecked: chain.length + p.anchors.length,
+      // Up: how many mined blocks (the checkpoint's excluded) the link rests on.
+      blocksOfWork: p.direction === 'up' ? chain.length - 1 : 0,
       workToCheckpoint: work.toString(),
     };
   }

@@ -40,6 +40,8 @@ export type Linked = {
   readonly checkpoint: Checkpoint;
   readonly headersChecked: number;
   readonly workToCheckpoint: string;
+  /** Going up: the mined blocks above the checkpoint the link rests on; 0 going down. */
+  readonly blocksOfWork: number;
 };
 
 export declare const BtcHeaderChain: {

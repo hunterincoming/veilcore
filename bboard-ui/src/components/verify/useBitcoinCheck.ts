@@ -17,7 +17,9 @@ export const useBitcoinCheck = (
 ): { row: BitcoinRow | undefined; run: (() => void) | undefined } => {
   const p = proof !== undefined && proof !== 'checking' && proof.status !== 'none' ? proof.proof : undefined;
   const stamp = p ? bitcoinStampFor(p) : undefined;
-  const [row, setRow] = useState<BitcoinRow | undefined>(undefined);
+  // Each result is kept with the proof it is about, and shown only for that proof: a page that
+  // moves to another record never shows the last one's result, not even for one paint.
+  const [found, setFound] = useState<{ key: string; row: BitcoinRow } | undefined>(undefined);
   const live = useRef(0);
 
   const idle: BitcoinRow | undefined = !stamp
@@ -30,15 +32,15 @@ export const useBitcoinCheck = (
   const key = p ? `${p.batchId}:${p.root}` : '';
   useEffect(() => {
     live.current += 1;
-    setRow(undefined);
   }, [key]);
+  const row = found?.key === key ? found.row : undefined;
 
   const run = useCallback(() => {
     if (!p || !stamp || stamp.status !== 'bitcoin') return;
     const mine = ++live.current;
     const height = stamp.height;
     const set = (r: BitcoinRow) => {
-      if (live.current === mine) setRow(r);
+      if (live.current === mine) setFound({ key, row: r });
     };
     set({ state: 'checking', ...(height === undefined ? {} : { height }) });
     void (async () => {
@@ -55,7 +57,13 @@ export const useBitcoinCheck = (
         const { checkStamp } = await import('../../veilcore/bitcoin/stamp-check');
         const r = await checkStamp(p.root, ots);
         if (r.status === 'linked')
-          set({ state: 'linked', height: r.height, checkpoint: r.checkpoint.height, time: r.time });
+          set({
+            state: 'linked',
+            height: r.height,
+            checkpoint: r.checkpoint.height,
+            time: r.time,
+            direction: r.direction,
+          });
         else if (r.status === 'explorers') set({ state: 'explorers', height: r.height, explorers: r.explorers });
         else if (r.status === 'failed') set({ state: 'failed', kind: r.kind });
         else if (r.status === 'pending') set({ state: 'pending' });
@@ -65,7 +73,6 @@ export const useBitcoinCheck = (
       }
     })();
     // p and stamp are recomputed every render from `proof`; `key` names them.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key, stamp?.status, stamp?.otsUrl, stamp?.height]);
 
   return {

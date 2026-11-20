@@ -390,5 +390,9 @@ export const verify = {
   'app.verify.who.btc.check': 'Comprobar en Bitcoin',
   'app.verify.who.btc.again': 'Intentar de nuevo',
   'app.verify.who.btc.note':
-    'Pide cabeceras de bloque a mempool.space y blockstream.info. Ellos ven la dirección de internet de este navegador y el número de bloque, no el registro.',
+    'Pide cabeceras de bloque a mempool.space y blockstream.info. Ellos ven la dirección de internet de este navegador, que comprueba un lote de VeilCore y qué bloque; no el registro.',
+  'app.verify.who.btc.linkedUp':
+    'Comprobado en este navegador: la prueba de trabajo del bloque {height} y su enlace hacia arriba desde el punto de control {checkpoint}, un bloque que este sitio fija, a través de bloques minados con la dificultad real de Bitcoin. El bloque contiene el sello de este lote. Hora del bloque, como la fijó su minero: {time}. Un punto de control posterior lo comprobaría con más fuerza.',
+  'app.verify.who.btc.batchOnly':
+    'Este navegador comprobó que el sello del lote está en el bloque de Bitcoin {height}, enlazado con el punto de control {checkpoint}. Solo el servidor de registros de VeilCore dice que este registro está en ese lote: el enlace que le enviaron no lleva un código de prueba para comprobarlo.',
 } satisfies Partial<AppTranslation>;

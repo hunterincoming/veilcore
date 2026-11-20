@@ -150,6 +150,20 @@ return canonicalise;
   var btcHeaders = embeddedJson('veilcore-btc-headers');
   var btcPins = embeddedJson('veilcore-btc-checkpoints') || [];
 
+  /**
+   * What a header check that passed shows. The checkpoint is pinned in this page, and this page
+   * travels in the bundle, so the reader is asked to look its hash up rather than told it.
+   */
+  function btcHeadersWords(h) {
+    var when = VeilcoreVerify.utc(new Date(h.time * 1000).toISOString()) || String(h.time);
+    var from = h.from.length ? plain(h.from.join(' and ')) : 'block explorers';
+    var pin = 'block ' + h.checkpoint.height + ' (hash ' + h.checkpoint.hash + '), the checkpoint this page pins';
+    var lookUp = ' Look that hash up on any block explorer or Bitcoin node: if it is block ' + h.checkpoint.height + '’s there, ';
+    if (h.direction === 'up')
+      return ' Checked in this page: block ' + h.height + '’s header holds that value and has Bitcoin’s proof of work, and it is linked up from ' + pin + ', through ' + h.blocksOfWork + ' block' + (h.blocksOfWork === 1 ? '' : 's') + ' mined at Bitcoin’s real difficulty. That shows real mining went into it, not that Bitcoin’s network follows it:' + lookUp + 'look block ' + h.height + '’s hash (' + h.hash + ') up too. Block ' + h.height + '’s time, as its miner set it: ' + when + '. The headers came from ' + from + ' when the bundle was made; this page checked them itself.';
+    return ' Checked in this page: block ' + h.height + '’s header holds that value and has Bitcoin’s proof of work, and a chain of headers links it to ' + pin + '.' + lookUp + 'block ' + h.height + ' is in Bitcoin’s chain. Block ' + h.height + '’s time, as its miner set it (Bitcoin allows about two hours either way): ' + when + '. The headers came from ' + from + ' when the bundle was made; this page checked them itself.';
+  }
+
   function el(tag, cls, text) {
     var n = document.createElement(tag);
     if (cls) n.className = cls;
@@ -513,7 +527,7 @@ return canonicalise;
           shows = 'The stamp file starts from SHA-256 of root.bin and names Bitcoin block ' + st.bitcoin.map(function (x) { return x.height; }).join(', ') + '. ' +
             st.bitcoin.map(function (x) { return x.merkleRoot ? 'Block ' + x.height + '’s merkle root must be ' + x.merkleRoot + ' (as block explorers print it).' : 'The steps to block ' + x.height + ' use a hash this browser can’t run, so the value it must hold isn’t shown here.'; }).join(' ') +
             (report.headers && report.headers.ok
-              ? ' Checked in this page: block ' + report.headers.height + '’s header holds that value, has Bitcoin’s proof of work, and links to block ' + report.headers.checkpoint.height + ' (hash ' + report.headers.checkpoint.hash + '), a checkpoint this page pins: any copy of Bitcoin’s chain shows that block with that hash. Block ' + report.headers.height + '’s time, as its miner set it (Bitcoin allows about two hours either way): ' + (VeilcoreVerify.utc(new Date(report.headers.time * 1000).toISOString()) || report.headers.time) + '. The headers came from ' + (report.headers.from.length ? plain(report.headers.from.join(' and ')) : 'block explorers') + ' when the bundle was made; nothing here takes their word for it.'
+              ? btcHeadersWords(report.headers)
               : report.headers
                 ? ' The block headers in this bundle don’t check: ' + report.headers.reason + '. Go by the steps above.'
                 : ' This page can’t reach Bitcoin, and this bundle carries no block headers: the steps above check that the block really holds it.');

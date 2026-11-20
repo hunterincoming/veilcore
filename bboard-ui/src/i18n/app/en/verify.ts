@@ -380,5 +380,9 @@ export const verify = {
   'app.verify.who.btc.check': 'Check on Bitcoin',
   'app.verify.who.btc.again': 'Try again',
   'app.verify.who.btc.note':
-    'Asks mempool.space and blockstream.info for block headers. They see this browser’s internet address and the block number, not the record.',
+    'Asks mempool.space and blockstream.info for block headers. They see this browser’s internet address, that it is checking a VeilCore batch, and which block; not the record.',
+  'app.verify.who.btc.linkedUp':
+    'Checked in this browser: block {height}’s proof of work and its link up from checkpoint {checkpoint}, a block this website pins, through blocks mined at Bitcoin’s real difficulty. The block holds this batch’s stamp. Block time, as its miner set it: {time}. A later checkpoint would check it more strongly.',
+  'app.verify.who.btc.batchOnly':
+    'This browser checked that the batch’s stamp is in Bitcoin block {height}, linked to checkpoint {checkpoint}. Only VeilCore’s registry says this record is in that batch: the link you were sent carries no proof code to check it.',
 };

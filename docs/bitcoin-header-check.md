@@ -22,20 +22,25 @@ The check page's box "What each fact rests on" has a row for the Bitcoin stamp:
 | What happened | The row says | Mark |
 | --- | --- | --- |
 | Nothing yet (the default) | VeilCore's registry says it is in block N; this page hasn't checked it on Bitcoin. A **Check on Bitcoin** button. | registry |
-| Linked to a checkpoint | Checked in this browser: block N's proof of work and its link to checkpoint M, a block this website pins. The block holds this batch's stamp. Block time. | checked here |
+| Linked down to a later checkpoint | Checked in this browser: block N's proof of work and its link to checkpoint M, a block this website pins. The block holds this batch's stamp. Block time. | checked here |
+| Linked up from an earlier checkpoint (no later one in reach) | The same, saying the link runs up through blocks mined at Bitcoin's real difficulty, and that a later checkpoint would check it more strongly. | checked here |
+| Linked, but the link carries no proof code | The batch's stamp is checked; only the registry says this record is in that batch (as the date row says). | registry |
 | Too far from every checkpoint | The block explorers' word (mempool.space, blockstream.info): block N holds this batch's stamp. This browser checked the block's own proof of work but couldn't link it to a checkpoint. | explorers' word |
 | Any check failed | Nothing: why, in one of three plain reasons (the stamp file isn't about this batch; the named block doesn't hold it; the headers don't check out or the explorers disagree). | none |
 | Explorers unreachable | The registry's word, and a **Try again** button. | registry |
 | Stamp still pending | Nothing on Bitcoin yet: only the stamping servers' promise. | none |
 
 Nothing is fetched until the visitor presses the button. The check asks two outside sites,
-which see the visitor's internet address and the block number, never the record; the note
-under the button says so. In all five languages.
+which see the visitor's internet address, that a VeilCore batch is being checked (the request
+comes from veilcore.org), and which block; never the record. The note under the button says
+so. In all five languages.
 
-The evidence bundle does the same when it is made (best effort, at most 20 seconds): if the
-block links, the bundle carries `proof/bitcoin-headers.json`, and `verify.html` checks those
-headers against its own pinned checkpoints with no network. Without them (pending, too far,
-unreachable) the bundle is as before and the page says it has no headers.
+The evidence bundle does the same when it is made, **only if the holder ticks "Include Bitcoin
+block headers"** (unticked by default; the option says what the two sites see), at most 20
+seconds, every request aborted at the deadline. If the block links, the bundle carries
+`proof/bitcoin-headers.json`, and `verify.html` checks those headers with no network. Without
+them (not ticked, pending, too far, unreachable) the bundle is as before and the page says it
+has no headers.
 
 ## How the check works
 
@@ -47,8 +52,9 @@ explorers). The site's glue is `bboard-ui/src/veilcore/bitcoin/stamp-check.ts`.
    used): the stamp must start from SHA-256 of the batch root; its steps name block N and the
    merkle root N must have.
 2. **Plan.** From the pinned checkpoints: the nearest checkpoint at or above N (walk **down**:
-   headers N..M), or the nearest below (walk **up**: headers M..N), whichever is shorter, at
-   most 2016 headers. Too far either way: no link, only the explorers' word.
+   headers N..M) **whenever it is within 2016 headers**, even if one below is nearer, because
+   down can't be faked. Only when no checkpoint above is in reach, the nearest below (walk
+   **up**: headers M..N). Too far either way: no link, only the explorers' word.
 3. **Fetch.** One explorer supplies the headers, ten blocks a request (`GET /blocks/:height`,
    Esplora; each block's fields are rebuilt into its 80-byte header, which must hash to the id
    the explorer gives). The other explorer must give the same hash for block N
@@ -63,7 +69,10 @@ explorers). The site's glue is `bboard-ui/src/veilcore/bitcoin/stamp-check.ts`.
      2016-block period, and at each adjustment exactly what Bitcoin Core's
      `CalculateNextWorkRequired` gives (the period took between a quarter and four times two
      weeks; never easier than the minimum). The period's first block, whose time sets the new
-     difficulty, must itself be a pinned checkpoint (they are: see below);
+     difficulty, must itself be a pinned checkpoint (they are: see below). And times: once 11
+     headers are in the walk, Bitcoin's rule (after the median of the 11 before); before that a
+     floor this page sets, no more than three hours before the checkpoint's time. Bitcoin's times
+     aren't in order, so the floor is loose on purpose: it can refuse a header, never pass one;
    - each header's proof of work.
 5. **Compare.** Block N's header must carry the stamp's merkle root. A stamp that names two
    blocks (VeilCore's do: two calendars) needs one to check; the row names that one.
@@ -74,13 +83,15 @@ explorers). The site's glue is `bboard-ui/src/veilcore/bitcoin/stamp-check.ts`.
   which commits to the one below it, and so on to block N. Finding another header N with the
   same descendants is a second preimage of double SHA-256. Proof of work is checked too, but the
   link doesn't rest on it.
-- **Up** (N above every checkpoint): an attacker who wants a fake block N with their own merkle
-  root must mine every block from the checkpoint to N at Bitcoin's real difficulty, because the
-  difficulty rule leaves them no easier target. At October 2026's difficulty (block
-  971004's nBits) one block is about 6 × 10^23 hashes; an attacker also has to get both explorers to serve that fork (or sit between
-  the browser and both over TLS). This shows real work was spent on a chain from the checkpoint
-  to N. It doesn't show that chain is the one Bitcoin's network follows; the down direction, and
-  fresh checkpoints, are what make that gap small.
+- **Up** (no checkpoint above N within reach): an attacker who wants a fake block N with their
+  own merkle root must mine every block from the checkpoint to N at Bitcoin's real difficulty,
+  because the difficulty rule leaves them no easier target, and can't date it from well before
+  the checkpoint. At October 2026's difficulty (block 971004's nBits) one block is about
+  6 × 10^23 hashes, roughly one block reward. On the check page they also have to get both
+  explorers to serve that fork; a forged bundle needs no explorer, so `verify.html` says what an
+  up link rests on and asks the reader to look the block's hash up. This shows real work was
+  spent on a chain from the checkpoint to N, not that Bitcoin's network follows it. That is why
+  up is used only when no checkpoint above is in reach, and why fresh checkpoints matter.
 
 ### What it doesn't check
 
@@ -93,14 +104,18 @@ explorers). The site's glue is `bboard-ui/src/veilcore/bitcoin/stamp-check.ts`.
 ## Checkpoints: how they are chosen and updated
 
 The file: `bboard-ui/evidence-page/btc-checkpoints.json`. The site, the bundle and
-`verify.html` all take their pins from it, so a page made by one release checks against that
-release's pins, never the bundle's.
+`verify.html` all take their pins from it. On the site the pins are the release's. In a bundle,
+`verify.html` itself travels with the files, so someone who forges a bundle can edit its pins
+too: the page therefore shows the checkpoint's hash and asks the reader to look it up on any
+block explorer or node, rather than asserting it. Anyone can compare it with this file in the
+public repository.
 
 **The rule.** One pin at every height that is a multiple of `spacing` (144 blocks, about a day)
 from `start` (969696, the first block of the difficulty period VeilCore's first stamps are in)
 up to the explorers' tip minus `minConfirmations` (100). Every multiple of 2016 is a multiple of
 144, so every difficulty period's first block is pinned, which the up direction needs. With a
-pin a day, a record from any day the file covers links in at most 143 headers (15 requests).
+pin a day, a record from any day the file covers links down in at most 144 headers (15
+requests).
 
 **The seed.** Block 971005: VeilCore's first stamps are in blocks 971004 and 971005, and both
 mempool.space and blockstream.info gave the same header for 971005, with real proof of work,
@@ -124,8 +139,14 @@ A new pin is written only when all of these hold, none of them an explorer's wor
 2. the second explorer gives the same hash for it;
 3. it is at least 100 blocks deep at both explorers.
 
-So every pin is as good as the seed plus real proof of work. The first run fills in from 969696
+So every pin is as good as the seed plus real proof of work. (`--check` asks both explorers
+about every pin; it doesn't re-link pins already in the file, so a hand-edited pin is caught by
+the explorers, not by the links.) The first run fills in from 969696
 (a few hundred requests, about a minute); later runs add a day's pin per day.
+
+**What ships in this pull request:** only the seed. Run the update before merging; until then
+most records fall back to the explorers' word. A deploy can't carry the browser tests' pins
+(block 438, from the difficulty-1 era): `scripts/vercel-config.mjs` refuses such a build.
 
 **How fresh is fresh enough.** A record stamped after the newest pin is checked up from it, at
 most 2016 headers (about two weeks). Older than that and the row falls back to the explorers'

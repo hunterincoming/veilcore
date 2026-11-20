@@ -118,6 +118,8 @@ for (const name of ['VITE_INDEXER_RELAY_URL', 'VITE_INDEXER_SECOND_URL']) {
 // (bboard-ui/evidence-page/btc-header-fetch.js EXPLORERS; docs/bitcoin-header-check.md). Only
 // when a visitor presses "Check on Bitcoin", or a holder makes a bundle.
 export const BITCOIN_EXPLORERS = ['https://mempool.space', 'https://blockstream.info'];
+/** Block 438's hash: the e2e build's only Bitcoin pin. A deployed build must not carry it. */
+export const E2E_BITCOIN_PIN = '0000000025c6b644f8add734be7e666fa4afa43ca0204d623a0c0b1fd2104c7a';
 
 // The content security policy. Checked against the built site in headless Chromium
 // (every main page, zero violations; bboard-ui/src/hardening-roundD.test.ts) before each
@@ -197,6 +199,10 @@ if (['test', 'eval'].includes((process.env.VITE_ASK_MODEL || '').trim()))
       const src = readFileSync(`${assets}/${f}`, 'utf8');
       if (src.includes('veilcore-test/stub-model') || src.includes('__askEval'))
         throw new Error(`${assets}/${f} is from a test or evaluation build of Ask's model (VITE_ASK_MODEL); it is never deployed.`);
+      // The browser tests' Bitcoin pins (bboard-ui/src/e2e-fixtures/btc-e2e-chain.json): block 438,
+      // from the difficulty-1 era, where a fake block costs nothing. Only an e2e build has them.
+      if (src.includes(E2E_BITCOIN_PIN))
+        throw new Error(`${assets}/${f} pins the browser tests' Bitcoin checkpoint (VITE_E2E_FIXTURES); it is never deployed.`);
     }
 }
 const modelManifest = JSON.parse(

@@ -4,7 +4,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { createHash } from 'node:crypto';
-import { readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { checkBlock, EXPLORERS, fetchHeaders } from '../../../evidence-page/btc-header-fetch.js';
 import { bundleHeaders, checkStamp, PINNED } from './stamp-check';
@@ -45,6 +45,7 @@ const explorers = (
   edit?: (host: string, block: ReturnType<typeof esplora>) => ReturnType<typeof esplora>,
 ) => {
   const calls: string[] = [];
+  // eslint-disable-next-line @typescript-eslint/require-await -- a stand-in for an API that returns a promise
   const fetchImpl = (async (input: string | URL) => {
     const url = new URL(String(input));
     calls.push(url.href);
@@ -222,6 +223,23 @@ describe('checkStamp, other stamps', () => {
 describe('the pins', () => {
   it('every build but the e2e one pins btc-checkpoints.json', () => {
     expect(PINNED).toEqual(pinnedFile.checkpoints);
+  });
+});
+
+describe('the browser tests’ pins stay in the browser tests', () => {
+  const cfg = readFileSync(new URL('../../../../scripts/vercel-config.mjs', import.meta.url), 'utf8');
+  it('the deploy refuses a build carrying them', () => {
+    const e2e = JSON.parse(readFileSync(new URL('../../e2e-fixtures/btc-e2e-chain.json', import.meta.url), 'utf8')) as {
+      checkpoints: { hash: string }[];
+    };
+    expect(cfg).toContain(`export const E2E_BITCOIN_PIN = '${e2e.checkpoints[0].hash}';`);
+  });
+  // CI builds the site (`npm run build`) before these tests: its files must not hold them.
+  const dist = new URL('../../../dist/assets/', import.meta.url);
+  it.skipIf(!existsSync(dist))('the built site (bboard-ui/dist) has no e2e pin in it', () => {
+    const pin = /E2E_BITCOIN_PIN = '([0-9a-f]{64})'/.exec(cfg)![1];
+    for (const f of readdirSync(dist).filter((n) => n.endsWith('.js')))
+      expect(readFileSync(new URL(f, dist), 'utf8').includes(pin), f).toBe(false);
   });
 });
 

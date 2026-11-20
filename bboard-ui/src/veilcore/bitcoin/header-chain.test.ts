@@ -143,9 +143,12 @@ describe('linking a block to a pinned checkpoint', () => {
     expect(r).toMatchObject({ ok: true, direction: 'up', hash: hashOf(g[300]) });
   });
 
-  it('picks the nearer checkpoint, and refuses one too far away', async () => {
+  it('goes down to a checkpoint whenever one is within reach (it can’t be faked), up only otherwise', () => {
     expect(C.plan(300, [pin(0), pin(310)])).toMatchObject({ ok: true, direction: 'down', from: 300, to: 310 });
-    expect(C.plan(300, [pin(295), pin(438)])).toMatchObject({ ok: true, direction: 'up', from: 295, to: 300 });
+    // Up is shorter here, but down rests on the hash chain alone, so down it is.
+    expect(C.plan(300, [pin(295), pin(438)])).toMatchObject({ ok: true, direction: 'down', from: 300, to: 438 });
+    expect(C.plan(300, [pin(295), pin(438)], 100)).toMatchObject({ ok: true, direction: 'up', from: 295, to: 300 });
+    expect(C.plan(300, [pin(295)])).toMatchObject({ ok: true, direction: 'up', from: 295, to: 300 });
     expect(C.plan(300, [pin(0)], 100)).toMatchObject({ ok: false, code: 'too-far' });
     expect(C.plan(300, [])).toMatchObject({ ok: false, code: 'bad-checkpoints' });
     expect(C.plan(300, [pin(438), pin(100)])).toMatchObject({ ok: false, code: 'bad-checkpoints' });
@@ -250,6 +253,18 @@ describe('tampered headers and forks fail', () => {
       checkpoints,
     });
     expect(r).toMatchObject({ ok: false, code: 'checkpoint' });
+  });
+
+  it('fork, going up: a mined block can’t take a date from well before the checkpoint', async () => {
+    // The real time rule can't be met by an easy target, so this checks the floor directly: a
+    // header whose time is four hours before the checkpoint's fails on time, before proof of work.
+    const early = edit(g[301], { prev: hashOf(g[300]), time: Buffer.from(g[100], 'hex').readUInt32LE(68) - 4 * 3600 });
+    const r = await C.verifyLink({
+      height: 301,
+      headers: [...at(100, 300), { height: 301, header: early }],
+      checkpoints: [pin(100)],
+    });
+    expect(r).toMatchObject({ ok: false, code: 'time' });
   });
 
   it('missing, malformed and conflicting headers are failures, not errors', async () => {

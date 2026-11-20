@@ -67,6 +67,7 @@ const authenticator = (
   return {
     seen,
     creds: {
+      // eslint-disable-next-line @typescript-eslint/require-await -- a stand-in for an API that returns a promise
       get: async ({
         publicKey,
       }: {
@@ -76,6 +77,7 @@ const authenticator = (
         seen.push({ rpId: publicKey.rpId, allow: publicKey.allowCredentials });
         return cred(publicKey.extensions.prf.eval.first);
       },
+      // eslint-disable-next-line @typescript-eslint/require-await -- a stand-in for an API that returns a promise
       create: async () => ({
         rawId: new Uint8Array([9, 9]).buffer,
         getClientExtensionResults: () => ({ prf: { enabled: opts.prf !== false } }),

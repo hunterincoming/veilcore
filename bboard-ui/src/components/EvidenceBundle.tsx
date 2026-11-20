@@ -39,6 +39,8 @@ export const EvidenceBundle: React.FC<{
   const [open, setOpen] = useState(false);
   const [includeKey, setIncludeKey] = useState(false);
   const [includeLab, setIncludeLab] = useState(false);
+  // Off unless ticked: it asks two outside sites (docs/bitcoin-header-check.md).
+  const [includeBtc, setIncludeBtc] = useState(false);
   const [labFile, setLabFile] = useState<File | null>(null);
   const [docFiles, setDocFiles] = useState<File[]>([]);
   const [busy, setBusy] = useState(false);
@@ -82,6 +84,7 @@ export const EvidenceBundle: React.FC<{
       const datedBy = datingOf(record, undefined, allRecords())?.id;
       const out = await downloadEvidenceBundle(record, keys, {
         includeKey: canKey && includeKey,
+        bitcoinHeaders: includeBtc,
         ...(datedBy ? { dnaReportDatedBy: datedBy } : {}),
         ...(lockedParents ? { lockedParents } : {}),
         ...(!doc && includeLab && labFile
@@ -149,6 +152,12 @@ export const EvidenceBundle: React.FC<{
                     {canKey ? t('app.plant.bundle.keyWith') : t('app.plant.bundle.keyNotHere')}
                   </Typography>
                 }
+              />
+            )}
+            {sealed && (
+              <FormControlLabel
+                control={<Checkbox checked={includeBtc} onChange={(e) => setIncludeBtc(e.target.checked)} />}
+                label={<Typography variant="body2">{t('app.plant.bundle.includeBtc')}</Typography>}
               />
             )}
             {(hasLab || hasDocFiles) && (

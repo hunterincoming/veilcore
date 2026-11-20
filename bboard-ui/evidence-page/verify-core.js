@@ -644,7 +644,7 @@ var VeilcoreVerify = (function () {
       if (r.merkleRoot !== named.merkleRoot)
         return { ok: false, reason: 'block ' + r.height + '’s header holds merkle root ' + r.merkleRoot + ', not the stamp’s ' + named.merkleRoot };
       var from = Array.isArray(headersFile.from) ? headersFile.from.filter(function (x) { return typeof x === 'string'; }) : [];
-      return { ok: true, height: r.height, hash: r.hash, time: r.time, checkpoint: r.checkpoint, direction: r.direction, from: from };
+      return { ok: true, height: r.height, hash: r.hash, time: r.time, checkpoint: r.checkpoint, direction: r.direction, blocksOfWork: r.blocksOfWork, from: from };
     } catch (e) {
       return { ok: false, reason: messageOf(e) };
     }

@@ -397,5 +397,9 @@ export const verify = {
   'app.verify.who.btc.check': 'Auf Bitcoin prüfen',
   'app.verify.who.btc.again': 'Erneut versuchen',
   'app.verify.who.btc.note':
-    'Fragt mempool.space und blockstream.info nach Block-Headern. Sie sehen die Internetadresse dieses Browsers und die Blocknummer, nicht den Datensatz.',
+    'Fragt mempool.space und blockstream.info nach Block-Headern. Sie sehen die Internetadresse dieses Browsers, dass ein VeilCore-Stapel geprüft wird, und welchen Block; nicht den Datensatz.',
+  'app.verify.who.btc.linkedUp':
+    'In diesem Browser geprüft: der Arbeitsnachweis von Block {height} und seine Verbindung aufwärts vom Checkpoint {checkpoint}, einem Block, den diese Website fest hinterlegt, über Blöcke, die mit Bitcoins echter Schwierigkeit gemined wurden. Der Block enthält den Stempel dieses Stapels. Blockzeit, wie der Miner sie gesetzt hat: {time}. Ein späterer Checkpoint würde ihn stärker prüfen.',
+  'app.verify.who.btc.batchOnly':
+    'Dieser Browser hat geprüft, dass der Stempel des Stapels in Bitcoin-Block {height} ist, verbunden mit Checkpoint {checkpoint}. Nur das Register von VeilCore sagt, dass dieser Datensatz in dem Stapel ist: Der Link, den Sie erhalten haben, enthält keinen Prüfcode, um das zu prüfen.',
 } satisfies Partial<AppTranslation>;

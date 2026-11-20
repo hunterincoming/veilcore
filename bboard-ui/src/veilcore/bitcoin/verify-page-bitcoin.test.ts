@@ -64,12 +64,12 @@ describe('verify.html checks the bundle’s Bitcoin headers offline', () => {
     ).toMatchObject({ ok: false });
     expect(await page.checkBitcoinHeaders(stamp, { ...file, height: 971003 }, pins, chain)).toMatchObject({
       ok: false,
-      reason: expect.stringMatching(/doesn’t name/),
+      reason: expect.stringMatching(/doesn’t name/) as string,
     });
     // Pins the page doesn't have: the bundle can't bring its own.
     expect(
       await page.checkBitcoinHeaders(stamp, file, [{ height: 971005, hash: 'ab'.repeat(32) }], chain),
-    ).toMatchObject({ ok: false, reason: expect.stringMatching(/pinned checkpoint/) });
+    ).toMatchObject({ ok: false, reason: expect.stringMatching(/pinned checkpoint/) as string });
     expect(await page.checkBitcoinHeaders(stamp, null, pins, chain)).toBeNull();
     expect(await page.checkBitcoinHeaders(stamp, 'junk', pins, chain)).toBeNull();
     expect(await page.checkBitcoinHeaders(stamp, { height: 971004, headers: 'junk' }, pins, chain)).toMatchObject({
@@ -112,6 +112,7 @@ describe('the bundle gathers the headers when it is made', () => {
     };
   };
   const byHeight = new Map(fe71.headers.map((h) => [h.height, h.header]));
+  // eslint-disable-next-line @typescript-eslint/require-await -- a stand-in for an API that returns a promise
   const explorers = (async (input: string | URL) => {
     const url = new URL(String(input));
     const m = /\/api\/(blocks|block-height)\/(\d+)$/.exec(url.pathname);
@@ -153,6 +154,7 @@ describe('the bundle gathers the headers when it is made', () => {
     const pending = gathered('pending');
     expect(await withBitcoinHeaders(pending, { fetchImpl: explorers })).toBe(pending);
     const down = gathered('bitcoin');
+    // eslint-disable-next-line @typescript-eslint/require-await -- a stand-in for an API that returns a promise
     const fail = (async () => {
       throw new TypeError('Failed to fetch');
     }) as typeof fetch;

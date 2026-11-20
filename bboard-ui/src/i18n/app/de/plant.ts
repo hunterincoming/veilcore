@@ -508,4 +508,6 @@ export const plant = {
   'app.plant.att.legacy':
     'Lieferung am {date} angenommen von jemandem mit dem Code, den der Absender ausgestellt hat{addressed}. Erfasst, bevor es Signaturen gab, daher zeigt es, dass eine zweite Partei die Lieferung angenommen hat, ohne zu beweisen, wer sie ist.',
   'app.plant.att.addressed': ', adressiert an {who}',
+  'app.plant.bundle.includeBtc':
+    'Bitcoin-Block-Header beifügen, damit verify.html den Bitcoin-Stempel ohne Internet prüfen kann. Dafür fragt dieser Browser jetzt mempool.space und blockstream.info: Sie sehen Ihre Internetadresse, dass es um einen VeilCore-Stapel geht, und welchen Block.',
 } satisfies Partial<AppTranslation>;

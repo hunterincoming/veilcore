@@ -370,5 +370,9 @@ export const verify = {
   'app.verify.who.btc.check': 'Bitcoinで確認',
   'app.verify.who.btc.again': 'もう一度試す',
   'app.verify.who.btc.note':
-    'mempool.spaceとblockstream.infoにブロックヘッダーを問い合わせます。相手に見えるのはこのブラウザのインターネットアドレスとブロック番号で、記録は見えません。',
+    'mempool.spaceとblockstream.infoにブロックヘッダーを問い合わせます。相手に見えるのはこのブラウザのインターネットアドレス、VeilCoreのバッチを確認していること、どのブロックかで、記録は送信されません。',
+  'app.verify.who.btc.linkedUp':
+    'このブラウザで確認しました：ブロック{height}のプルーフ・オブ・ワークと、このウェブサイトが固定しているブロックであるチェックポイント{checkpoint}から、Bitcoinの実際の難易度で採掘されたブロックを通じた上向きのつながり。このブロックにはこのバッチのスタンプが入っています。ブロック時刻（マイナーが設定したもの）：{time}。より新しいチェックポイントがあれば、より強く確認できます。',
+  'app.verify.who.btc.batchOnly':
+    'このブラウザは、バッチのスタンプがBitcoinのブロック{height}に入っていて、チェックポイント{checkpoint}につながることを確認しました。この記録がそのバッチに含まれることは、VeilCoreのレジストリが述べているだけです（送られてきたリンクに確認できる証明コードがありません）。',
 } satisfies Partial<AppTranslation>;
