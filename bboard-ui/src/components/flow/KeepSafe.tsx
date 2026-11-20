@@ -9,8 +9,10 @@
 //   - AccountKeeper: mounted with the app's frame (App.tsx): keeps the copy saved by itself and
 //     holds the sheet.
 //
-// Right after a passkey that syncs is set up, the recovery sheet is offered (easy mode step 3:
-// RecoverySheetPrompt.tsx is its place, empty until then).
+// Right after Face ID is set up, the recovery sheet is offered (easy mode step 3,
+// RecoverySheet.tsx): recommended where the passkey syncs, and the way to count at all where it
+// stays on this device. When a passkey can't open the records any more and a checked sheet can,
+// the sheet's code sets Face ID up again on the same records (account-copy.ts addFaceIdHere).
 // SPDX-License-Identifier: Apache-2.0
 
 import React, { useEffect, useState } from 'react';
@@ -33,8 +35,10 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import {
   accountCopyOn,
+  addFaceIdHere,
   checkAccount,
   dismissNotice,
+  dismissSheetReminder,
   keepDeletedHere,
   forgetDevice,
   keepSafeShownBefore,
@@ -56,7 +60,9 @@ import { rich, useT } from '../../i18n/app';
 import type { Translator } from '../../i18n/translate';
 import type { AppKey } from '../../i18n/app/en';
 import { backupMessageWords } from './backup-words';
-import { RecoverySheetPrompt } from './RecoverySheetPrompt';
+import { RecoverySheetHost, RecoverySheetPrompt, openRecoverySheet } from './RecoverySheet';
+import { SHEET_WORDS } from '../../veilcore/recovery-code';
+import { TextField } from '@mui/material';
 
 /** Opens the sheet from anywhere ("Fix it" on Home, a "save your backup" button). */
 export const OPEN_KEEP_SAFE_EVENT = 'veilcore:open-keep-safe';
@@ -88,6 +94,21 @@ const useUnlock = (): { word: UnlockWord; deviceUnlock: boolean | undefined } =>
   return { word: unlockWordFor(navigator.userAgent, deviceUnlock === true), deviceUnlock };
 };
 
+/** This device's word for unlocking a passkey ("Use Face ID", "Use Windows Hello"…). */
+export const useUnlockWord = (): UnlockWord => useUnlock().word;
+
+/**
+ * The word for getting records back on this device, the same on every screen that offers it
+ * (Home's first card, the restore page): on a computer that isn't a Mac the passkey is most often
+ * on the person's phone, so "a passkey", and the browser offers "Use a phone" (first-time-user
+ * pass on step 2; the live test on Windows, 19 Nov 2026).
+ */
+export const useRestoreUnlockWord = (): UnlockWord => {
+  const { deviceUnlock } = useUnlock();
+  const ua = typeof navigator !== 'undefined' ? navigator.userAgent : '';
+  return /iPhone|iPad|iPod|Macintosh|Mac OS X|Android/.test(ua) ? unlockWordFor(ua, deviceUnlock === true) : 'passkey';
+};
+
 export const deviceWords = (kind: DeviceKind, tr: Translator): string => tr.t(`app.account.device.${kind}` as AppKey);
 
 /** The sheet. `onClose` when it is closed, whatever happened. */
@@ -101,20 +122,28 @@ export const KeepSafeSheet: React.FC<{ open: boolean; onClose: () => void }> = (
   const [problem, setProblem] = useState<string>();
   const [done, setDone] = useState<{ counted: boolean }>();
   const [others, setOthers] = useState(false);
+  // Only the recovery sheet can set Face ID up again here: its code, typed (never kept).
+  const [code, setCode] = useState('');
   useEffect(() => {
     if (open) {
       setProblem(undefined);
       setDone(undefined);
       setOthers(false);
+      setCode('');
     }
   }, [open]);
+  const needsSheet = problem === SHEET_WORDS.needsSheet || (problem !== undefined && code !== '');
 
   const go = async () => {
     setBusy(true);
     setProblem(undefined);
     try {
-      const out =
-        state.kind === 'older' || (state.kind === 'saved' && state.locked) ? await unlockHere() : await setUpAccount();
+      const out = needsSheet
+        ? await addFaceIdHere(code)
+        : state.kind === 'older' || (state.kind === 'saved' && state.locked)
+          ? await unlockHere()
+          : await setUpAccount();
+      setCode('');
       await hydrate().catch(() => undefined);
       if (!out.ok) setProblem(out.reason);
       else setDone({ counted: out.counted === true });
@@ -143,7 +172,16 @@ export const KeepSafeSheet: React.FC<{ open: boolean; onClose: () => void }> = (
             <Typography variant="body1" data-keep-safe-done={done.counted ? 'counted' : 'bound'}>
               {done.counted ? t('app.account.saved.text') : t('app.account.saved.bound')}
             </Typography>
-            {done.counted && <RecoverySheetPrompt />}
+            {/* Offered at once, before "Done" (the founder's strong prompt); never where a checked sheet exists. */}
+            {!(state.kind === 'saved' && state.sheet?.checked) && (
+              <RecoverySheetPrompt
+                bound={!done.counted}
+                onMake={() => {
+                  onClose();
+                  openRecoverySheet('make');
+                }}
+              />
+            )}
           </DialogContent>
           <DialogActions sx={{ px: 3, pb: 2 }}>
             {!done.counted && (
@@ -151,8 +189,9 @@ export const KeepSafeSheet: React.FC<{ open: boolean; onClose: () => void }> = (
                 {t('app.account.saved.download')}
               </Button>
             )}
-            <Button variant="contained" onClick={onClose} sx={{ minHeight: 44 }}>
-              {t('app.account.saved.done')}
+            <Button variant={done.counted ? 'contained' : 'outlined'} onClick={onClose} sx={{ minHeight: 44 }}>
+              {/* Where the sheet is required, closing is said for what it is (first-time-user pass). */}
+              {done.counted ? t('app.account.saved.done') : t('app.recovery.prompt.laterBound')}
             </Button>
           </DialogActions>
         </>
@@ -191,9 +230,62 @@ export const KeepSafeSheet: React.FC<{ open: boolean; onClose: () => void }> = (
               </Typography>
             )}
             {problem && (
-              <Alert severity="warning" variant="outlined" sx={{ mt: 1.5 }}>
-                {t('app.account.sheet.failed', { why: backupMessageWords(problem, tr) })}
+              <Alert severity="warning" variant="outlined" sx={{ mt: 1.5 }} data-keep-safe-problem="">
+                {needsSheet
+                  ? backupMessageWords(problem, tr)
+                  : t('app.account.sheet.failed', { why: backupMessageWords(problem, tr) })}
               </Alert>
+            )}
+            {needsSheet && (
+              <Stack spacing={1} sx={{ mt: 1.5 }} data-keep-safe-sheet-code="">
+                <TextField
+                  label={t('app.recovery.confirm.label')}
+                  value={code}
+                  onChange={(e) => setCode(e.target.value.slice(0, 64))}
+                  fullWidth
+                  slotProps={{
+                    htmlInput: {
+                      autoComplete: 'off',
+                      autoCapitalize: 'characters',
+                      autoCorrect: 'off',
+                      spellCheck: false,
+                      style: { fontFamily: 'monospace' },
+                    },
+                  }}
+                />
+                <Button
+                  variant="contained"
+                  disabled={busy || !code.trim()}
+                  onClick={() => void go()}
+                  sx={{ minHeight: 44, alignSelf: 'flex-start' }}
+                  data-keep-safe-sheet-go=""
+                >
+                  {t('app.account.sheet.setUpAgain')}
+                </Button>
+                {/* No sheet after all (one made and never printed): a way on, said for what it does. */}
+                <Button
+                  color="inherit"
+                  disabled={busy}
+                  onClick={() => {
+                    if (!window.confirm(t('app.account.sheet.noSheetConfirm'))) return;
+                    setBusy(true);
+                    setProblem(undefined);
+                    setCode('');
+                    void setUpAccount({ withoutSheet: true })
+                      .then(async (out) => {
+                        await hydrate().catch(() => undefined);
+                        if (!out.ok) setProblem(out.reason);
+                        else setDone({ counted: out.counted === true });
+                      })
+                      .catch((e: unknown) => setProblem(e instanceof Error ? e.message : String(e)))
+                      .finally(() => setBusy(false));
+                  }}
+                  sx={{ minHeight: 44, alignSelf: 'flex-start', px: 0 }}
+                  data-keep-safe-no-sheet=""
+                >
+                  {t('app.account.sheet.noSheet')}
+                </Button>
+              </Stack>
             )}
             <Box sx={{ mt: 1.5 }}>
               <Button
@@ -265,10 +357,23 @@ export const AccountKeeper: React.FC = () => {
     };
   }, [needsBackup, state.kind, pathname]);
   if (state.kind === 'off') return null;
-  return <KeepSafeSheet open={open} onClose={() => setOpen(false)} />;
+  return (
+    <>
+      <KeepSafeSheet open={open} onClose={() => setOpen(false)} />
+      <RecoverySheetHost />
+    </>
+  );
 };
 
-type Line = { words: React.ReactNode; button?: string; act?: () => void; mark: string; severity: 'warning' | 'info' };
+type Line = {
+  words: React.ReactNode;
+  button?: string;
+  act?: () => void;
+  /** A second, quieter button ("Later"). */
+  second?: { label: string; act: () => void };
+  mark: string;
+  severity: 'warning' | 'info';
+};
 
 /** What the account line says, worst first; undefined when all is well (nothing is shown). */
 export const accountLine = (
@@ -283,6 +388,9 @@ export const accountLine = (
     gone: (id: string) => void;
     ok: () => void;
     keep: (ids: readonly string[]) => void;
+    sheet: () => void;
+    later: (day: 7 | 30) => void;
+    reverify: () => void;
   },
 ): Line | undefined => {
   const { t, tp } = tr;
@@ -324,14 +432,24 @@ export const accountLine = (
             severity: 'warning',
           }
         : undefined;
+  // Gone at the registry: with records here not saved anywhere else, a warning; with nothing at
+  // risk here (it was turned off, perhaps on another device), one quiet line.
   if (s.problem === 'missing')
-    return {
-      words: rich(t('app.account.line.missing'), b),
-      button: t('app.account.line.saveAgain'),
-      act: act.fix,
-      mark: 'missing',
-      severity: 'warning',
-    };
+    return facts.unbacked
+      ? {
+          words: rich(t('app.account.line.missing'), b),
+          button: t('app.account.line.saveAgain'),
+          act: act.fix,
+          mark: 'missing',
+          severity: 'warning',
+        }
+      : {
+          words: rich(t('app.account.line.off'), b),
+          button: t('app.account.line.saveAgain'),
+          act: act.fix,
+          mark: 'off',
+          severity: 'info',
+        };
   if (s.problem === 'slot-missing')
     return {
       words: rich(t('app.account.line.slotMissing'), b),
@@ -364,11 +482,12 @@ export const accountLine = (
       mark: 'failing',
       severity: 'warning',
     };
+  // A passkey that stays on this device: the recovery sheet is what makes it count (step 3).
   if (!s.counted && facts.unbacked)
     return {
       words: rich(t('app.account.line.bound'), b),
-      button: t('app.account.line.download'),
-      act: act.file,
+      button: t('app.account.line.makeSheet'),
+      act: act.sheet,
       mark: 'bound',
       severity: 'warning',
     };
@@ -414,6 +533,26 @@ export const accountLine = (
       mark: 'stale',
       severity: 'info',
     };
+  // The 90-day re-verify: one Face ID through the registry's copy of this device's way in.
+  if (s.reverify)
+    return {
+      words: t('app.account.line.reverify'),
+      button: t('app.account.line.check'),
+      act: act.reverify,
+      mark: 'reverify',
+      severity: 'info',
+    };
+  // Day 7 and day 30 with no checked recovery sheet: one quiet line, never per record.
+  const day = s.sheetReminder;
+  if (day && s.faceIdHere)
+    return {
+      words: rich(t('app.account.line.reminder'), b),
+      button: t('app.account.line.makeSheet'),
+      act: act.sheet,
+      second: { label: t('app.account.line.later'), act: () => act.later(day) },
+      mark: `sheet-reminder-${day}`,
+      severity: 'info',
+    };
   return undefined;
 };
 
@@ -451,6 +590,14 @@ export const AccountStatusLine: React.FC = () => {
       setBusy(true);
       void keepDeletedHere(ids).finally(() => setBusy(false));
     },
+    sheet: () => openRecoverySheet('make'),
+    later: dismissSheetReminder,
+    reverify: () => {
+      setBusy(true);
+      void unlockHere()
+        .catch(() => openKeepSafe())
+        .finally(() => setBusy(false));
+    },
   });
   if (!line) return null;
   return (
@@ -465,9 +612,16 @@ export const AccountStatusLine: React.FC = () => {
       }}
       action={
         line.button ? (
-          <Button color="inherit" variant="outlined" disabled={busy} onClick={line.act} sx={{ minHeight: 44 }}>
-            {line.button}
-          </Button>
+          <Stack direction="row" spacing={1}>
+            {line.second && (
+              <Button color="inherit" disabled={busy} onClick={line.second.act} sx={{ minHeight: 44 }}>
+                {line.second.label}
+              </Button>
+            )}
+            <Button color="inherit" variant="outlined" disabled={busy} onClick={line.act} sx={{ minHeight: 44 }}>
+              {line.button}
+            </Button>
+          </Stack>
         ) : undefined
       }
     >

@@ -168,6 +168,8 @@ export const fr: Strings = {
   'm.hero.how': 'Comment ça marche',
   'm.hero.pasteQ': 'Quelqu’un vous a envoyé un code laboratoire ou un lien ?',
   'm.hero.pasteGo': 'Collez-le ici →',
+  'm.hero.restoreQ': 'Vous avez utilisé VeilCore sur un autre appareil ?',
+  'm.hero.restoreGo': 'Récupérer mes enregistrements →',
   'm.hero.cultivar': 'Cultivar',
   'm.hero.bredBy': 'Obtenu par',
   'm.hero.bredByDefault': 'Votre nom ici',
@@ -326,6 +328,9 @@ export const fr: Strings = {
   'm.privacy.chain.title': 'Ce qui va sur Midnight, pour toujours',
   'm.privacy.chain.text':
     'Midnight est un réseau public : ce qui y va ne peut être ni modifié ni retiré par personne, nous compris, et tout le monde peut le lire. Votre génétique, vos conditions, votre nom et vos fichiers n’y vont jamais. Ce qui y va : le code de preuve de chaque lot d’enregistrements ; la clé propre d’un enregistrement et son horodatage ; un code tiré d’un rapport ADN, quand vous datez son association ; quels enregistrements sont liés comme parent et enfant, une fois que les deux détenteurs confirment (un lien ne peut pas être défait) ; qu’un enregistrement porte une licence, une obligation ou une mention de prêteur, et quand cela a changé ; la clé publique d’un laboratoire quand il y signe un certificat ; une valeur que vous choisissez de prouver exactement, en entier ; et, là où ce site permet de payer une redevance en NIGHT, le montant et les deux adresses. Avant chacune de ces étapes, l’application affiche un reçu qui liste exactement ce que l’étape rend public. Un code ou une clé seuls ne disent rien de vous, mais quiconque reçoit de vous un lien de vérification peut suivre dès lors ce qui arrive à cet enregistrement sur le réseau.',
+  'm.privacy.timestamps.title': 'Horodatages, et travailler sans réseau',
+  'm.privacy.timestamps.text':
+    'Quand notre serveur reçoit le code de preuve d’un enregistrement, il demande à un ou plusieurs services d’horodatage (des services indépendants, certains tenus par une seule personne) un jeton d’horodatage dessus, et sur chaque lot. Chaque service reçoit un code tiré du code de preuve et l’heure de la demande, et peut en garder un journal ; comme les codes de preuve figurent sur les pages de vérification, un service pourrait rapprocher son journal d’un lien de vérification. Toute personne ayant un lien de vérification peut lire, à la seconde, quand notre serveur a reçu le code de preuve de cet enregistrement. Pour un enregistrement scellé sans réseau, c’est le moment où votre appareil a retrouvé du réseau. La page donne d’abord la minute ; le jeton lui-même porte la seconde. Pour s’ouvrir sans réseau, votre navigateur garde une copie du code de ce site et, là où il peut envoyer tout seul (Chrome), les codes de preuve en attente d’envoi et la clé avec laquelle ils partent. Cette copie est supprimée quand vous recommencez ou effacez les données de ce site.',
   'm.privacy.helper.title': 'L’assistant et son modèle facultatif',
   'm.privacy.helper.text':
     '« Demander », l’assistant de l’application, là où ce site le propose, fonctionne sur votre appareil. Rien de ce que vous y tapez n’est envoyé nulle part ; seul le bouton Enregistrer de l’application envoie quelque chose, et cela part verrouillé vers notre serveur, comme décrit plus haut. Là où ce site propose le modèle de langue facultatif, il est téléchargé une fois depuis Hugging Face, une société distincte : Hugging Face voit votre adresse IP, l’heure, quels fichiers du modèle et que la demande vient de ce site ; nous voyons qu’un téléchargement a commencé. Le modèle tourne sur votre appareil, dans une partie de la page qui ne peut pas atteindre le réseau ; rien de ce que vous tapez n’atteint Hugging Face ni nous, ni à ce moment ni plus tard. Vous pouvez supprimer le modèle depuis le panneau de l’assistant. Son « Faites-le pour moi » garde une trace de chaque tâche sur votre appareil seulement, jamais dans une sauvegarde : les étapes et leur avancement, des références aux enregistrements et accords concernés, et les chiffres que vous saisissez pour un rapport jusqu’à son envoi ; jamais ce que vous avez écrit pour demander. Elle est supprimée 7 jours après la fin de la tâche. Tant qu’une tâche attend votre accord, ses nouveaux enregistrements restent verrouillés dans votre navigateur, avec leurs clés ; une sauvegarde faite entre-temps contient aussi ces clés. Préparer les rapports lit les messages de chacun de vos accords sur notre serveur, l’un après l’autre : notre serveur peut donc voir que ces accords ont été lus ensemble ; rien n’est envoyé avant que vous validiez.',
@@ -743,6 +748,13 @@ export const fr: Strings = {
   'm.checksite.noHeaders':
     'La liste de cette version n’a pas d’en-têtes de sécurité (elle a été faite avant qu’ils y figurent) : ils n’ont donc pas été comparés.',
   'm.checksite.extraScript': 'Cette page a un script que la page listée n’a pas : {script}',
+  'm.checksite.workerOk':
+    'La partie qui permet d’ouvrir VeilCore sans réseau (/sw.js) est envoyée pour que les navigateurs la rechargent toujours, et ne garde que des fichiers de la liste de cette version.',
+  'm.checksite.workerWrong':
+    'La partie qui permet d’ouvrir VeilCore sans réseau n’est pas comme elle devrait ({path}). Ne comptez pas dessus sans réseau : effacez les données de ce site, rechargez et prévenez-nous.',
+  'm.checksite.copyHere': 'La copie sans réseau de ce navigateur correspond à la version {commit}.',
+  'm.checksite.copyOther':
+    'La copie sans réseau de ce navigateur est la version {commit}, pas celle vérifiée ici. Elle se met à jour au prochain chargement d’une page avec du réseau.',
   'm.checksite.limit':
     'Cela montre ce que votre navigateur a reçu. Cela ne peut pas prouver que l’hébergeur a envoyé à tous les mêmes fichiers.',
   'm.checksite.listLink': 'La liste de cette version dans le code public',

@@ -24,8 +24,7 @@ export const dating = {
   'app.plant.keyStampCannot': '鍵の日付スタンプ：まだです。このサイトでは今は行えません。理由は下にあります。',
 
   'app.home.restoreFirstTitle': 'ほかの端末でVeilCoreを使っていましたか？',
-  'app.home.restoreFirstText':
-    'まずここで記録を取り戻してください。Face IDか、保存したバックアップファイルを使います。',
+  'app.home.restoreFirstText': 'まずここで記録を取り戻してください。{how}か、保存したバックアップファイルを使います。',
   'app.home.restoreFirstButton': '記録を取り戻す',
 
   'app.pickup.title': '進行中',

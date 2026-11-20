@@ -1,0 +1,33 @@
+{
+  "format": "veilcore-tsa-pins/v1",
+  "about": "The timestamp authorities whose timestamps this site shows (docs/offline.md, 'Whose timestamp'). A token is shown only when the certificate that signed it is one of these, by the SHA-256 of its DER; the name shown is the name here. A token is shown only when its own time is within the certificate's notBefore and validUntil (its notBefore and notAfter). Copies of each certificate are in docs/tsa-pins/. Published with each release as /tsa-pins.json. To add one: node scripts/tsa-pin.mjs <address>, then check its source as the 'verified' lines below do.",
+  "pins": [
+    {
+      "name": "FreeTSA",
+      "certSha256": "32e841a95cc1164101ffde41298ef2fc75c1c4372ef095e88a6bbd47dfb191fc",
+      "subject": "CN=www.freetsa.org, OU=TSA, O=Free TSA",
+      "notBefore": "2026-02-15T19:44:22Z",
+      "validUntil": "2040-02-02T19:44:22Z",
+      "file": "docs/tsa-pins/freetsa-signer-2026.pem",
+      "verified": "20 Nov 2026: the PEM file's SHA-256 (8bfb0305…3467) is the one FreeTSA publishes for tsa.crt on freetsa.org; it chains to FreeTSA's root (docs/tsa-pins/freetsa-ca.pem, whose PEM SHA-256 2151b611…4438 is also as published) with openssl verify -purpose timestampsign. A real FreeTSA token from 15 Nov 2026, in a public repository, was signed by this certificate (found with scripts/tsa-signer.mjs, the site's own parser)."
+    },
+    {
+      "name": "DigiCert",
+      "certSha256": "4aa03fa22cd75c84c55c938f828e676b9caecab33fe36d269aa334f146110a33",
+      "subject": "CN=DigiCert SHA256 RSA4096 Timestamp Responder 2025 1, O=DigiCert, Inc.",
+      "notBefore": "2025-06-04T00:00:00Z",
+      "validUntil": "2036-09-03T23:59:59Z",
+      "file": "docs/tsa-pins/digicert-responder-2025-1.pem",
+      "verified": "20 Nov 2026: the same bytes from two unrelated public copies of DigiCert tokens' chains; chains to DigiCert Trusted Root G4 in the operating system's trust store through DigiCert Trusted G4 TimeStamping RSA4096 SHA256 2025 CA1 (openssl verify -purpose timestampsign), extended key usage Time Stamping, critical."
+    },
+    {
+      "name": "DigiCert",
+      "certSha256": "2da09da7f4131f9fe72db6c5e6e9c9656755af043f1ea742cc0d2120e141ebfc",
+      "subject": "CN=DigiCert SHA256 RSA4096 Timestamp Responder 2026 1, O=DigiCert, Inc.",
+      "notBefore": "2026-08-05T00:00:00Z",
+      "validUntil": "2037-11-04T23:59:59Z",
+      "file": "docs/tsa-pins/digicert-responder-2026-1.pem",
+      "verified": "20 Nov 2026: as for the 2025 responder: two unrelated public copies, byte-identical, chaining to DigiCert Trusted Root G4 in the operating system's trust store, Time Stamping only. A real DigiCert token from 15 Nov 2026, in a public repository, was signed by this certificate (found with scripts/tsa-signer.mjs, the site's own parser)."
+    }
+  ]
+}

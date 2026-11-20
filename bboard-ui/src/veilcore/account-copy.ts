@@ -4,9 +4,9 @@
 // seals one copy of this browser's keys (backup.ts accountContents: the backup file's keys,
 // never the records themselves and never a document kept on this device only). Each way in to
 // it is a slot at the registry holding AK sealed for that way in; today a passkey (its PRF
-// output, through HKDF). A recovery sheet (step 3), a password (step 6) and another person of a
-// shared space are kinds the slot format already takes, so none of them needs a migration
-// (docs/passkey-backup.md, "Later ways in").
+// output, through HKDF), and a printed recovery sheet (step 3: a code made on this device,
+// recovery-code.ts). A password (step 6) and another person of a shared space are kinds the slot
+// format already takes, so neither needs a migration (docs/passkey-backup.md, "Later ways in").
 //
 // What the registry holds: the copy, sealed (AES-256-GCM, padded to a power-of-two size, the
 // copy's id in the AAD), and per slot AK sealed with that way in's key (the copy's id, the slot's
@@ -20,7 +20,11 @@
 // slot list sealed inside the copy (S4), never from what the registry says. Then the copy's
 // check marks what it holds as backed up, with the copy as the source (S1), and never a document
 // kept on this device only (B3). A passkey that stays on this device (BS=0: Windows Hello, a
-// security key) saves the copy but doesn't count: it needs the recovery sheet (step 3).
+// security key) saves the copy but counts only once a recovery sheet has been checked too: its
+// whole code typed back and opened through the registry's own copy of its slot, giving the same
+// AK (step 3, the same B2 rule). Each way in's sealed AK is fingerprinted inside the copy when it
+// is opened, and every check compares the registry's (a changed one counts as gone); the passkey
+// on this device is asked again after 90 days (re-verify).
 //
 // Saving is automatic: after 30 to 60 quiet seconds (a random part, review S10), when the page
 // is hidden, and on a check when the app opens (is there a newer copy? are my ways in still
@@ -73,6 +77,7 @@ import { stableStringify } from './vault';
 import { deviceOnlyRecords } from './outbox';
 import { isObject, isString } from './json';
 import { PASSKEY_BACKUP } from '../config/copy';
+import { SHEET_WORDS, newRecoveryCode, parseRecoveryCode, recoverySlotKeys } from './recovery-code';
 
 const utf8 = (s: string): Uint8Array<ArrayBuffer> => new TextEncoder().encode(s);
 const hex = (b: Uint8Array): string => Array.from(b, (x) => x.toString(16).padStart(2, '0')).join('');
@@ -92,6 +97,7 @@ const LABEL = {
 const STORE = 'veilcore.account-copy.v1';
 const DEVICE = 'veilcore.account.device.v1';
 const SHOWN = 'veilcore.account.keep-safe-shown.v1';
+const REMINDED = 'veilcore.account.sheet-reminder.v1';
 
 /** Whether this build offers the account copy at all (it ships with the passkey copy's switch). */
 export const accountCopyOn = (): boolean => PASSKEY_BACKUP && passkeysAvailable();
@@ -191,6 +197,12 @@ export type SlotEntry = {
   readonly verifiedAt?: string;
   /** The short tag in the passkey's name in the person's password list ("… · 7F3K"), review New-4. */
   readonly tag?: string;
+  /**
+   * The fingerprint of this way in's sealed AK as the registry held it when it was last opened
+   * (SHA-256 of "iv.ct"). Every check compares it with the registry's (`wrap` in its slot list):
+   * one changed or damaged there counts as gone at once, not first at a restore.
+   */
+  readonly wrap?: string;
 };
 
 export type DeviceEntry = {
@@ -220,6 +232,11 @@ export type Manifest = {
    * wins (attack pass on step 2, finding 1): a deletion never hides a record restored since.
    */
   readonly restored?: Readonly<Record<string, string>>;
+  /**
+   * Ways in removed on purpose (an older recovery sheet, once a new one is checked): slot id →
+   * when. A merge never brings one back from a device that hasn't heard yet.
+   */
+  readonly retired?: Readonly<Record<string, string>>;
 };
 
 type Body = {
@@ -283,7 +300,17 @@ const asManifest = (v: unknown): Manifest | undefined => {
   const restored = isObject(v.restored)
     ? Object.fromEntries(Object.entries(v.restored).filter((e): e is [string, string] => isString(e[1])))
     : {};
-  return { kcv: v.kcv, slots: v.slots.filter(isSlot), devices, forgotten, restored };
+  const retired = isObject(v.retired)
+    ? Object.fromEntries(Object.entries(v.retired).filter((e): e is [string, string] => isString(e[1])))
+    : {};
+  return {
+    kcv: v.kcv,
+    slots: v.slots.filter(isSlot).filter((s) => !retired[s.slotId]),
+    devices,
+    forgotten,
+    restored,
+    retired,
+  };
 };
 
 export type OpenedCopy = {
@@ -329,11 +356,50 @@ export const openAccountCopy = async (held: HeldAccount, box: { iv: string; ct: 
 };
 
 /**
- * Whether the copy counts as a backup (the founder's rule, above): a way in that is a passkey,
- * syncs, and was opened again through the registry's copy of it. From the sealed list only.
+ * Whether the copy counts as a backup (the founder's rule, above): a passkey that syncs and was
+ * opened again through the registry's copy of it; or a passkey that stays on its device, opened
+ * again the same way, together with a recovery sheet whose whole code was typed back and opened
+ * the same way. From the sealed list only (pass only the ways in still at the registry).
  */
-export const countsAsBackup = (m: Manifest | undefined): boolean =>
-  !!m && m.slots.some((s) => s.kind === 'passkey' && s.synced === true && !!s.verifiedAt);
+export const countsAsBackup = (m: Manifest | undefined): boolean => {
+  if (!m) return false;
+  const passkeys = m.slots.filter((s) => s.kind === 'passkey' && !!s.verifiedAt);
+  return (
+    passkeys.some((s) => s.synced === true) ||
+    (passkeys.length > 0 && m.slots.some((s) => s.kind === 'recovery' && !!s.verifiedAt))
+  );
+};
+
+/** A way in as the registry lists it: its id and, from a registry with account-slot-check-v1, its wrap's fingerprint. */
+export type Listed = { readonly slotId: string; readonly wrap?: string };
+
+const listedOf = (v: unknown): Listed[] =>
+  Array.isArray(v)
+    ? v
+        .filter(isObject)
+        .filter((s) => isString(s.slotId))
+        .map((s) => ({ slotId: s.slotId as string, ...(isString(s.wrap) ? { wrap: s.wrap } : {}) }))
+    : [];
+
+/**
+ * The sealed list's ways in that are still at the registry as they were when last opened (S4): a
+ * way in it no longer lists is gone, and so is one whose sealed AK it now holds differently.
+ */
+export const presentSlots = (m: Manifest, listed: readonly Listed[]): SlotEntry[] => {
+  // A registry with account-slot-check-v1 lists a wrap for every slot: one left out of a slot that
+  // has one recorded counts as changed. (This catches a registry that broke or lost a slot; one
+  // that lies can send back the fingerprint it was given. The restore is the final check.)
+  const wraps = listed.some((x) => !!x.wrap);
+  return m.slots.filter((s) => {
+    const l = listed.find((x) => x.slotId === s.slotId);
+    return !!l && (!s.wrap || (!wraps && !l.wrap) || l.wrap === s.wrap);
+  });
+};
+
+/** A passkey on this device not opened again for this long is asked once more (the 90-day re-verify). */
+export const REVERIFY_MS = 90 * 86_400_000;
+/** Days after setting up when the recovery sheet is asked for again, while there is none. */
+export const SHEET_REMINDER_DAYS = [7, 30] as const;
 
 // ---- this device -------------------------------------------------------------------------
 
@@ -396,14 +462,18 @@ export const deletedIds = (m: Manifest): string[] =>
 
 /** Two devices' lists, merged: every slot (the newer facts of each), each device's latest, every deletion. */
 export const mergeManifests = (mine: Manifest, theirs: Manifest): Manifest => {
+  const retired = latest(mine.retired ?? {}, theirs.retired ?? {});
   const slots = new Map<string, SlotEntry>();
   for (const s of [...mine.slots, ...theirs.slots]) {
+    if (retired[s.slotId]) continue;
     const had = slots.get(s.slotId);
     if (!had) slots.set(s.slotId, s);
     else
       slots.set(s.slotId, {
         ...had,
-        ...((s.verifiedAt ?? '') > (had.verifiedAt ?? '') ? { verifiedAt: s.verifiedAt, synced: s.synced } : {}),
+        ...((s.verifiedAt ?? '') > (had.verifiedAt ?? '')
+          ? { verifiedAt: s.verifiedAt, synced: s.synced, ...(s.wrap ? { wrap: s.wrap } : {}) }
+          : {}),
       });
   }
   const devices: Record<string, DeviceEntry> = { ...mine.devices };
@@ -416,6 +486,7 @@ export const mergeManifests = (mine: Manifest, theirs: Manifest): Manifest => {
     devices,
     forgotten,
     restored: latest(mine.restored ?? {}, theirs.restored ?? {}),
+    retired,
   };
 };
 
@@ -433,7 +504,10 @@ export type Problem =
 
 type Remembered = {
   readonly copyId: string;
-  /** This device's way in: the passkey it set up or opened the copy with. */
+  /**
+   * This device's way in: the passkey it set up or opened the copy with; or, on a device brought
+   * back with the recovery sheet that hasn't added Face ID yet, that sheet's slot and '' here.
+   */
   readonly slotId: string;
   readonly credentialId: string;
   /** The relying party id that passkey is for, when it isn't the page's host. */
@@ -568,24 +642,20 @@ const upload = async (
   return boxFingerprint(box);
 };
 
-const fetchCopy = async (held: HeldAccount): Promise<OpenedCopy & { slots: string[] }> => {
+const fetchCopy = async (held: HeldAccount): Promise<OpenedCopy & { listed: Listed[] }> => {
   const out = await registryCall('POST', `/account-copy/${held.copyId}/read`, { token: await writeToken(held) });
   if (out.status !== 200 || !isObject(out.json) || !isString(out.json.iv) || !isString(out.json.ct))
     return registryFail(out);
-  const slots = Array.isArray(out.json.slots)
-    ? out.json.slots
-        .filter(isObject)
-        .map((s) => s.slotId)
-        .filter(isString)
-    : [];
-  return { ...(await openAccountCopy(held, { iv: out.json.iv, ct: out.json.ct })), slots };
+  return { ...(await openAccountCopy(held, { iv: out.json.iv, ct: out.json.ct })), listed: listedOf(out.json.slots) };
 };
 
+/** A way in at the registry, read with its own token: which copy, and AK sealed for it. Undefined when there is none. */
 const readSlot = async (
   slot: SlotKeys,
+  kind: 'passkey' | 'recovery',
 ): Promise<{ copyId: string; kind: SlotKind; iv: string; ct: string } | undefined> => {
   const out = await registryCall('POST', `/account-slot/${slot.slotId}/read`, { token: slot.token });
-  if (out.status === 404) return undefined;
+  if (out.status === 404 && isObject(out.json) && isString(out.json.error)) return undefined;
   const j = out.json;
   if (
     out.status !== 200 ||
@@ -593,10 +663,10 @@ const readSlot = async (
     !isString(j.copyId) ||
     !isString(j.iv) ||
     !isString(j.ct) ||
-    j.kind !== 'passkey'
+    j.kind !== kind
   )
     return registryFail(out);
-  return { copyId: j.copyId, kind: 'passkey', iv: j.iv, ct: j.ct };
+  return { copyId: j.copyId, kind, iv: j.iv, ct: j.ct };
 };
 
 const tokenHashOf = (token: string) => hex(sha256(utf8(token)));
@@ -663,8 +733,8 @@ const saveAndCheck = async (
       continue; // another device saved in between: merge and save again
     }
     if (back.manifest.kcv !== (await keyCheck(held))) throw new PasskeyProblem(PASSKEY_WORDS.damaged);
-    // S4: the ways in it counts on must still be at the registry.
-    const present = back.manifest.slots.filter((s) => back.slots.includes(s.slotId));
+    // S4: the ways in it counts on must still be at the registry, as they were when opened.
+    const present = presentSlots(back.manifest, back.listed);
     const counts = countsAsBackup({ ...back.manifest, slots: present });
     // A record the copy says was deleted is not counted as in it (finding 1): a new device restored
     // from it would leave it out.
@@ -685,7 +755,9 @@ const saveAndCheck = async (
         counted: counts,
         problem: present.length < back.manifest.slots.length ? 'slot-missing' : undefined,
         why: undefined,
-        unknownSlots: back.slots.filter((id) => !back.manifest.slots.some((s) => s.slotId === id)),
+        unknownSlots: back.listed
+          .map((l) => l.slotId)
+          .filter((id) => !back.manifest.slots.some((s) => s.slotId === id)),
         ...(healed ? { notice: 'healed' as const } : {}),
       });
     }
@@ -724,29 +796,69 @@ const exclusive = <T>(f: () => Promise<T>): Promise<T> => {
  * sealed copy matches, and the slot is in its sealed list. Marks the slot verified, with whether
  * the passkey syncs as it says now.
  */
-const openThroughSlot = async (
-  answer: PasskeyAnswer,
-  expect?: { copyId: string; slotId: string },
-): Promise<
-  { held: HeldAccount; copy: OpenedCopy & { slots: string[] }; slot: SlotKeys; ak: Uint8Array } | undefined
-> => {
-  const slot = passkeySlotKeys(answer.prf, answer.rawId);
-  if (expect && slot.slotId !== expect.slotId) throw new PasskeyProblem(PASSKEY_WORDS.damaged);
-  const found = await readSlot(slot);
+type Opened = {
+  held: HeldAccount;
+  copy: OpenedCopy & { listed: Listed[] };
+  slot: SlotKeys;
+  ak: Uint8Array;
+  /** The fingerprint of the sealed AK the registry gave for this way in. */
+  wrap: string;
+};
+
+/** Through a way in's own slot at the registry to the copy: the same AK must make the copy's key-check value. */
+const openSlot = async (
+  slot: SlotKeys,
+  kind: 'passkey' | 'recovery',
+  expectCopy?: string,
+): Promise<Opened | undefined> => {
+  const found = await readSlot(slot, kind);
   if (!found) return undefined;
-  if (expect && found.copyId !== expect.copyId) throw new PasskeyProblem(PASSKEY_WORDS.damaged);
+  if (expectCopy && found.copyId !== expectCopy)
+    throw new PasskeyProblem(kind === 'recovery' ? SHEET_WORDS.wrong : PASSKEY_WORDS.damaged);
   const ak = await unwrapAccountKey(found, slot, found.copyId, found.kind);
   const held = await deriveAccount(ak);
   if (held.copyId !== found.copyId) throw new PasskeyProblem(PASSKEY_WORDS.damaged);
   const copy = await fetchCopy(held);
   if (copy.manifest.kcv !== (await keyCheck(held)) || !copy.manifest.slots.some((s) => s.slotId === slot.slotId))
     throw new PasskeyProblem(PASSKEY_WORDS.damaged);
-  return { held, copy, slot, ak };
+  return { held, copy, slot, ak, wrap: boxFingerprint(found) };
 };
 
-const verified = (m: Manifest, slotId: string, synced: boolean, at = new Date().toISOString()): Manifest => ({
+const openThroughSlot = async (
+  answer: PasskeyAnswer,
+  expect?: { copyId: string; slotId: string },
+): Promise<Opened | undefined> => {
+  const slot = passkeySlotKeys(answer.prf, answer.rawId);
+  if (expect && slot.slotId !== expect.slotId) throw new PasskeyProblem(PASSKEY_WORDS.damaged);
+  return openSlot(slot, 'passkey', expect?.copyId);
+};
+
+/**
+ * Open the copy with a recovery sheet's code (typed whole), through the registry's own copy of
+ * its slot (the B2 rule for the sheet): the code's slot must be there and its AK must make the
+ * copy's key-check value. A code that opens nothing is "wrong", never a hint of whose it is.
+ */
+const openWithCode = async (code: string, expectCopy?: string): Promise<Opened> => {
+  const opened = await openSlot(recoverySlotKeys(code), 'recovery', expectCopy);
+  if (!opened) throw new PasskeyProblem(SHEET_WORDS.wrong);
+  return opened;
+};
+
+const verified = (
+  m: Manifest,
+  slotId: string,
+  synced: boolean,
+  wrap?: string,
+  at = new Date().toISOString(),
+): Manifest => ({
   ...m,
-  slots: m.slots.map((s) => (s.slotId === slotId ? { ...s, synced, verifiedAt: at } : s)),
+  slots: m.slots.map((s) => (s.slotId === slotId ? { ...s, synced, verifiedAt: at, ...(wrap ? { wrap } : {}) } : s)),
+});
+
+/** A recovery sheet's slot, opened just now with its whole code: verified, with its wrap's fingerprint. */
+const sheetVerified = (m: Manifest, slotId: string, wrap: string, at = new Date().toISOString()): Manifest => ({
+  ...m,
+  slots: m.slots.map((s) => (s.slotId === slotId ? { ...s, verifiedAt: at, wrap } : s)),
 });
 
 /** A new copy under a new AK, with this passkey as its first way in. Returns what to remember. */
@@ -790,13 +902,15 @@ const makeCopy = async (answer: PasskeyAnswer, tag?: string): Promise<Remembered
 
 /** The fresh Face ID through the registry's copy of the slot (B2), then a save that records it. */
 const verifyAndCount = async (r: Remembered): Promise<CheckResult> => {
+  // A device brought back with the recovery sheet has no passkey of its own yet: the sheet adds one.
+  if (!r.credentialId) throw new PasskeyProblem(SHEET_WORDS.needsSheet);
   const answer = await askPasskey(unb64(r.credentialId), r.rpId ?? 'host');
   const opened = await openThroughSlot(answer, { copyId: r.copyId, slotId: r.slotId });
   if (!opened) throw new PasskeyProblem(PASSKEY_WORDS.noCopy);
   opened.ak.fill(0);
   await keepAccountKeys(opened.held);
   const now = remembered() ?? r;
-  remember({ ...now, manifest: verified(now.manifest, r.slotId, answer.synced), sameAs: '' });
+  remember({ ...now, manifest: verified(now.manifest, r.slotId, answer.synced, opened.wrap), sameAs: '' });
   return saveAndCheck(opened.held, remembered() ?? now);
 };
 
@@ -810,10 +924,13 @@ export type SetUpResult = CheckResult & {
  * registry (a second Face ID), and count it when the passkey syncs. Moves an older passkey copy
  * over first if this browser has one.
  */
-export const setUpAccount = (): Promise<SetUpResult> =>
+export const setUpAccount = (opts: { withoutSheet?: boolean } = {}): Promise<SetUpResult> =>
   exclusive(async () => {
     const before = remembered();
     if (legacyRemembered() && !before) return moveOlderCopy();
+    // Brought back with the recovery sheet, no passkey of its own yet: one is added to the same
+    // records (the sheet's code is asked for when its account key isn't still in hand).
+    if (before && !before.credentialId) return addFaceId();
     let answer: PasskeyAnswer | undefined;
     const last = before
       ? {
@@ -842,15 +959,36 @@ export const setUpAccount = (): Promise<SetUpResult> =>
         return { ...checked, counted: remembered()?.counted === true };
       }
       // Its way in is gone; the copy may not be. Deleted only when the copy the registry holds now
-      // lists no other way in (reviews: finding 2, New-8), so never a copy another way in opens.
+      // lists no other way in (reviews: finding 2, New-8), so never a copy another way in opens:
+      // the decision is the sealed list the registry returns now, never this device's older one.
+      // When that list has a recovery sheet still there, the sheet adds Face ID back to this same
+      // copy (addFaceIdHere) rather than a new copy splitting the person's records in two.
+      // A failure to read it is never taken as "gone" (security pass on step 3, S-3): that would
+      // start a second copy beside the one the sheet opens. "Start again without the sheet"
+      // (opts.withoutSheet) is the person's own choice, and deletes the old copy first.
       const held = await heldAccountKeys();
       if (before && held && held.copyId === before.copyId) {
-        const now = await fetchCopy(held).catch(() => undefined);
-        if (now && !now.manifest.slots.some((x) => x.slotId !== before.slotId))
-          await registryCall('POST', `/account-copy/${before.copyId}/delete`, { token: await writeToken(held) }).catch(
-            () => undefined,
-          );
-      }
+        let now: Awaited<ReturnType<typeof fetchCopy>> | undefined;
+        try {
+          now = await fetchCopy(held);
+        } catch (e) {
+          if (!(e instanceof PasskeyProblem && e.message === PASSKEY_WORDS.noCopy)) throw e;
+        }
+        const sheetThere = !!now && presentSlots(now.manifest, now.listed).some((x) => x.kind === 'recovery');
+        if (sheetThere && !opts.withoutSheet) throw new PasskeyProblem(SHEET_WORDS.needsSheet);
+        if (now && (opts.withoutSheet || !now.manifest.slots.some((x) => x.slotId !== before.slotId))) {
+          const out = await registryCall('POST', `/account-copy/${before.copyId}/delete`, {
+            token: await writeToken(held),
+          });
+          if (out.status !== 200 && out.status !== 404) registryFail(out);
+        }
+      } else if (
+        before &&
+        !opts.withoutSheet &&
+        before.manifest.slots.some((x) => x.kind === 'recovery' && x.verifiedAt)
+      )
+        // Without this copy's keys here its list can't be read now: the last one seen had a sheet.
+        throw new PasskeyProblem(SHEET_WORDS.needsSheet);
     }
     const tag = last?.tag ?? newPasskeyTag();
     if (!last) answer = await newPasskey(tag);
@@ -885,7 +1023,7 @@ export const unlockHere = (): Promise<SetUpResult> =>
  */
 const joinCopy = async (
   answer: PasskeyAnswer,
-  opened: { held: HeldAccount; copy: OpenedCopy; slot: SlotKeys },
+  opened: { held: HeldAccount; copy: OpenedCopy; slot: SlotKeys; wrap: string },
 ): Promise<void> => {
   await restoreAny(fileOf(opened.copy.text), undefined, {
     mark: false,
@@ -903,7 +1041,7 @@ const joinCopy = async (
     savedAt: opened.copy.savedAt,
     prev: opened.copy.fingerprint,
     seq: opened.copy.seq,
-    manifest: verified(opened.copy.manifest, opened.slot.slotId, answer.synced),
+    manifest: verified(opened.copy.manifest, opened.slot.slotId, answer.synced, opened.wrap),
   });
 };
 
@@ -940,9 +1078,15 @@ const moveOlderCopy = async (pending?: { answer: PasskeyAnswer; seen: number }):
 // ---- a new device: get the copy back -----------------------------------------------------
 
 let pending:
-  | { kind: 'account'; answer: PasskeyAnswer; held: HeldAccount; slot: SlotKeys; copy: OpenedCopy }
+  | { kind: 'account'; answer: PasskeyAnswer; held: HeldAccount; slot: SlotKeys; copy: OpenedCopy; wrap: string }
+  | { kind: 'recovery'; held: HeldAccount; slot: SlotKeys; copy: OpenedCopy; wrap: string; ak: Uint8Array }
   | { kind: 'older'; answer: PasskeyAnswer; seq: number }
   | undefined;
+
+const dropPending = (): void => {
+  if (pending?.kind === 'recovery') pending.ak.fill(0);
+  pending = undefined;
+};
 
 export type Found = {
   readonly file: File;
@@ -962,33 +1106,45 @@ export type Found = {
  * account copy). Nothing changes here until the person accepts it (adoptFound): the page shows
  * the copy's date first.
  */
+/** What the restore screen shows of a found copy before anything changes. */
+const foundOf = (copy: OpenedCopy): Found => {
+  const here = thisDeviceId();
+  const skip = skipOf(copy.manifest);
+  let inCopy: string[] = [];
+  try {
+    inCopy = ((JSON.parse(copy.text) as { records?: { recordId?: unknown }[] }).records ?? [])
+      .map((e) => e.recordId)
+      .filter(isString);
+  } catch {
+    inCopy = [];
+  }
+  return {
+    file: fileOf(copy.text),
+    savedAt: copy.savedAt,
+    restore: { mark: false, skipIds: skip },
+    restoreAll: { mark: false },
+    deleted: inCopy.filter((id) => skip.has(id)),
+    elsewhere: Object.entries(copy.manifest.devices)
+      .filter(([id, d]) => id !== here && d.deviceOnly > 0)
+      .map(([, d]) => ({ kind: d.kind, count: d.deviceOnly })),
+  };
+};
+
 export const findAccountCopy = async (opts: { hostName?: boolean } = {}): Promise<Found> => {
-  pending = undefined;
+  dropPending();
   const answer = await askPasskey(undefined, opts.hostName ? 'host' : undefined);
   const opened = await openThroughSlot(answer);
   if (opened) {
     opened.ak.fill(0);
-    pending = { kind: 'account', answer, held: opened.held, slot: opened.slot, copy: opened.copy };
-    const here = thisDeviceId();
-    const skip = skipOf(opened.copy.manifest);
-    let inCopy: string[] = [];
-    try {
-      inCopy = ((JSON.parse(opened.copy.text) as { records?: { recordId?: unknown }[] }).records ?? [])
-        .map((e) => e.recordId)
-        .filter(isString);
-    } catch {
-      inCopy = [];
-    }
-    return {
-      file: fileOf(opened.copy.text),
-      savedAt: opened.copy.savedAt,
-      restore: { mark: false, skipIds: skip },
-      restoreAll: { mark: false },
-      deleted: inCopy.filter((id) => skip.has(id)),
-      elsewhere: Object.entries(opened.copy.manifest.devices)
-        .filter(([id, d]) => id !== here && d.deviceOnly > 0)
-        .map(([, d]) => ({ kind: d.kind, count: d.deviceOnly })),
+    pending = {
+      kind: 'account',
+      answer,
+      held: opened.held,
+      slot: opened.slot,
+      copy: opened.copy,
+      wrap: opened.wrap,
     };
+    return foundOf(opened.copy);
   }
   const old = await fetchLegacyCopy(passkeyKeys(answer.prf, answer.rawId));
   pending = { kind: 'older', answer, seq: old.seq };
@@ -1017,6 +1173,26 @@ export const adoptFound = (): Promise<SetUpResult | undefined> =>
       pending = undefined;
       return out;
     }
+    if (p.kind === 'recovery') {
+      // Brought back with the recovery sheet: this device saves with the keys the sheet opened,
+      // and its way in is the sheet's (just opened with its whole code, so verified) until it adds
+      // Face ID of its own (addFaceIdHere, offered on the next screen with the AK still in hand).
+      await keepAccountKeys(p.held);
+      remember({
+        copyId: p.held.copyId,
+        slotId: p.slot.slotId,
+        credentialId: '',
+        sameAs: '',
+        savedAt: p.copy.savedAt,
+        prev: p.copy.fingerprint,
+        seq: p.copy.seq,
+        manifest: sheetVerified(p.copy.manifest, p.slot.slotId, p.wrap),
+      });
+      const checked = await saveAndCheck(p.held, remembered()!);
+      keepRecovered(p.held.copyId, p.ak);
+      pending = undefined;
+      return { ...checked, counted: remembered()?.counted === true };
+    }
     await keepAccountKeys(p.held);
     remember({
       copyId: p.held.copyId,
@@ -1027,7 +1203,7 @@ export const adoptFound = (): Promise<SetUpResult | undefined> =>
       savedAt: p.copy.savedAt,
       prev: p.copy.fingerprint,
       seq: p.copy.seq,
-      manifest: verified(p.copy.manifest, p.slot.slotId, p.answer.synced),
+      manifest: verified(p.copy.manifest, p.slot.slotId, p.answer.synced, p.wrap),
     });
     keepLastPasskey({
       credentialId: b64(p.answer.rawId),
@@ -1036,6 +1212,293 @@ export const adoptFound = (): Promise<SetUpResult | undefined> =>
     const checked = await saveAndCheck(p.held, remembered()!);
     pending = undefined;
     return { ...checked, counted: remembered()?.counted === true };
+  });
+
+/**
+ * "Use my recovery sheet" on a new device: the whole code, typed, opens the copy through the
+ * registry's own copy of its slot. As with Face ID, nothing changes here until the person accepts
+ * it (adoptFound): the page shows the copy's date first. A typo is caught here, before the
+ * registry is asked; a code that opens nothing is said so.
+ */
+export const findWithSheet = async (typed: string): Promise<Found> => {
+  dropPending();
+  const parsed = parseRecoveryCode(typed);
+  if (!parsed.ok) throw new PasskeyProblem(parsed.why);
+  const opened = await openWithCode(parsed.code);
+  pending = {
+    kind: 'recovery',
+    held: opened.held,
+    slot: opened.slot,
+    copy: opened.copy,
+    wrap: opened.wrap,
+    ak: opened.ak,
+  };
+  return foundOf(opened.copy);
+};
+
+// The account key a recovery sheet just opened on this device, held for the "Use Face ID on this
+// device" offer that follows at once (a passkey can only be added with the account key itself),
+// then wiped: after two minutes, once used, or when the page is left (security pass on step 3).
+// Never written anywhere.
+const RECOVERED_MS = 2 * 60_000;
+let recovered: { copyId: string; ak: Uint8Array; timer: ReturnType<typeof setTimeout> } | undefined;
+const forgetRecovered = (): void => {
+  if (!recovered) return;
+  clearTimeout(recovered.timer);
+  recovered.ak.fill(0);
+  recovered = undefined;
+};
+const keepRecovered = (copyId: string, ak: Uint8Array): void => {
+  forgetRecovered();
+  recovered = { copyId, ak: new Uint8Array(ak), timer: setTimeout(forgetRecovered, RECOVERED_MS) };
+  ak.fill(0);
+};
+/** Forget a found copy and any account key held for it (the restore page, when it is left). */
+export const forgetFound = (): void => {
+  dropPending();
+  forgetRecovered();
+};
+if (typeof window !== 'undefined' && typeof window.addEventListener === 'function')
+  window.addEventListener('pagehide', forgetFound);
+
+/** Whether "Use Face ID on this device" can go ahead without the code typed again. */
+export const recoveredHere = (): boolean => !!recovered && recovered.copyId === remembered()?.copyId;
+
+/**
+ * "Use Face ID on this device": a new passkey here, added to the same copy as another way in,
+ * then opened again through the registry's copy of it (B2, a second Face ID). Needs the account
+ * key: the one a recovery sheet just opened here, or the sheet's code typed again.
+ */
+export const addFaceIdHere = (typed?: string): Promise<SetUpResult> => exclusive(() => addFaceId(typed));
+
+const addFaceId = async (typed?: string): Promise<SetUpResult> => {
+  const r = remembered();
+  const keys = r && (await heldAccountKeys());
+  if (!r) throw new PasskeyProblem(PASSKEY_WORDS.noCopy);
+  let ak: Uint8Array;
+  let held: HeldAccount;
+  if (recovered && recovered.copyId === r.copyId) {
+    ak = new Uint8Array(recovered.ak);
+    held = await deriveAccount(ak);
+  } else {
+    const parsed = parseRecoveryCode(typed ?? '');
+    if (!typed) throw new PasskeyProblem(SHEET_WORDS.needsSheet);
+    if (!parsed.ok) throw new PasskeyProblem(parsed.why);
+    const opened = await openWithCode(parsed.code, r.copyId);
+    ak = opened.ak;
+    held = opened.held;
+    patch((x) => ({ ...x, manifest: sheetVerified(x.manifest, opened.slot.slotId, opened.wrap) }));
+  }
+  try {
+    if (keys && keys.copyId !== held.copyId) throw new PasskeyProblem(PASSKEY_WORDS.damaged);
+    // A passkey this browser used for these records before is asked again, never a second one
+    // in the person's password list (New-4); one that's gone is forgotten, so a retry makes one.
+    const last = lastPasskey();
+    const tag = last?.tag ?? newPasskeyTag();
+    let answer: PasskeyAnswer;
+    if (last) {
+      try {
+        answer = await askPasskey(unb64(last.credentialId), last.rpId ?? 'host');
+      } catch (e) {
+        forgetLastPasskey();
+        throw e;
+      }
+    } else answer = await newPasskey(tag);
+    const slot = passkeySlotKeys(answer.prf, answer.rawId);
+    // Added at the registry (again, when its way in went missing there): a 409 is fine only when
+    // that way in already opens these records.
+    const box = await wrapAccountKey(ak, slot, held.copyId, 'passkey');
+    const out = await registryCall('PUT', `/account-copy/${held.copyId}/slots/${slot.slotId}`, {
+      token: await writeToken(held),
+      kind: 'passkey',
+      tokenHash: tokenHashOf(slot.token),
+      ...box,
+    });
+    let wrapSeen = out.status === 200 ? boxFingerprint(box) : undefined;
+    if (out.status === 409) {
+      const there = await readSlot(slot, 'passkey');
+      if (!there || there.copyId !== held.copyId) {
+        // That passkey opens other records (an earlier copy): forgotten here, so trying again makes
+        // a new passkey for these ones (security pass on step 3).
+        if (last) forgetLastPasskey();
+        return registryFail(out);
+      }
+      wrapSeen = boxFingerprint(there);
+    } else if (out.status !== 200) registryFail(out);
+    const now = remembered() ?? r;
+    const entry: SlotEntry = {
+      slotId: slot.slotId,
+      kind: 'passkey',
+      createdAt: new Date().toISOString(),
+      synced: answer.synced,
+      tag,
+      ...(wrapSeen ? { wrap: wrapSeen } : {}),
+    };
+    remember({
+      ...now,
+      slotId: slot.slotId,
+      credentialId: b64(answer.rawId),
+      ...(answer.rpId ? { rpId: answer.rpId } : {}),
+      manifest: {
+        ...now.manifest,
+        slots: [...now.manifest.slots.filter((x) => x.slotId !== slot.slotId), entry],
+      },
+      sameAs: '',
+    });
+    keepLastPasskey({ credentialId: b64(answer.rawId), ...(answer.rpId ? { rpId: answer.rpId } : {}), tag });
+    await keepAccountKeys(held);
+    await saveAndCheck(held, remembered()!);
+    forgetRecovered();
+  } finally {
+    ak.fill(0);
+  }
+  const checked = await verifyAndCount(remembered()!);
+  return { ...checked, counted: remembered()?.counted === true };
+};
+
+/** A recovery sheet just made: its code (shown and printed once, kept nowhere) and what the sheet also says. */
+export type MadeSheet = {
+  readonly code: string;
+  readonly slotId: string;
+  readonly createdAt: string;
+  /** The tag in the name of the passkey that opens the same records, for the sheet. */
+  readonly tag?: string;
+};
+
+/**
+ * "Print or save my recovery sheet": one Face ID through this device's passkey (which also counts
+ * as its re-verify) gives the account key; a new code is made here, the key sealed for it, and the
+ * slot added at the registry and to the sealed list, not verified yet. An older sheet keeps
+ * working until this one is checked (confirmRecoverySheet).
+ */
+export const makeRecoverySheet = (): Promise<MadeSheet> =>
+  exclusive(async () => {
+    const r = remembered();
+    if (!r) throw new PasskeyProblem(PASSKEY_WORDS.noCopy);
+    if (!r.credentialId) throw new PasskeyProblem(SHEET_WORDS.needsSheet);
+    const answer = await askPasskey(unb64(r.credentialId), r.rpId ?? 'host');
+    const opened = await openThroughSlot(answer, { copyId: r.copyId, slotId: r.slotId });
+    if (!opened) throw new PasskeyProblem(PASSKEY_WORDS.noCopy);
+    const { held, ak } = opened;
+    try {
+      await keepAccountKeys(held);
+      // Sheets made and never checked are dropped as this one is made: only one waits at a time.
+      // Decided from this list merged with the copy just read (security pass on step 3, S-1): a
+      // sheet another device has checked since is never taken for an unchecked one.
+      const base = mergeManifests((remembered() ?? r).manifest, opened.copy.manifest);
+      const unchecked = base.slots.filter((x) => x.kind === 'recovery' && !x.verifiedAt);
+      const code = newRecoveryCode();
+      const slot = recoverySlotKeys(code);
+      const wrap = await wrapAccountKey(ak, slot, held.copyId, 'recovery');
+      const out = await registryCall('PUT', `/account-copy/${held.copyId}/slots/${slot.slotId}`, {
+        token: await writeToken(held),
+        kind: 'recovery',
+        tokenHash: tokenHashOf(slot.token),
+        ...wrap,
+      });
+      if (out.status !== 200) registryFail(out);
+      const createdAt = new Date().toISOString();
+      const now = remembered() ?? r;
+      const v = verified(mergeManifests(now.manifest, opened.copy.manifest), r.slotId, answer.synced, opened.wrap);
+      try {
+        await removeSlots(held, unchecked);
+        remember({
+          ...now,
+          manifest: retire(
+            {
+              ...v,
+              slots: [...v.slots, { slotId: slot.slotId, kind: 'recovery', createdAt, wrap: boxFingerprint(wrap) }],
+            },
+            unchecked.map((x) => x.slotId),
+            createdAt,
+          ),
+          sameAs: '',
+        });
+        const saved = await saveAndCheck(held, remembered()!);
+        if (!saved.ok) throw new PasskeyProblem(saved.reason);
+      } catch (e) {
+        // Not in the saved list, a way in whose code nobody has would show as "something you
+        // didn't add": taken away again, and the sheet is made again from the start.
+        await removeSlots(held, [{ slotId: slot.slotId, kind: 'recovery', createdAt }]).catch(() => undefined);
+        patch((x) => ({ ...x, manifest: retire(x.manifest, [slot.slotId], createdAt) }));
+        throw e;
+      }
+      const tag = (remembered() ?? now).manifest.slots.find((x) => x.slotId === r.slotId)?.tag;
+      return { code, slotId: slot.slotId, createdAt, ...(tag ? { tag } : {}) };
+    } finally {
+      ak.fill(0);
+    }
+  });
+
+/** Ways in removed at the registry (a 404 is fine: already gone). */
+const removeSlots = async (held: HeldAccount, slots: readonly SlotEntry[]): Promise<void> => {
+  for (const x of slots) {
+    const out = await registryCall('POST', `/account-copy/${held.copyId}/slots/${x.slotId}/delete`, {
+      token: await writeToken(held),
+    });
+    if (out.status !== 200 && out.status !== 404) registryFail(out);
+  }
+};
+
+const retire = (m: Manifest, ids: readonly string[], at: string): Manifest =>
+  ids.length === 0
+    ? m
+    : {
+        ...m,
+        slots: m.slots.filter((x) => !ids.includes(x.slotId)),
+        retired: { ...(m.retired ?? {}), ...Object.fromEntries(ids.map((id) => [id, at])) },
+      };
+
+/**
+ * "Check it": the whole code typed back from the printed sheet, opened through the registry's own
+ * copy of its slot and compared with the copy's key-check value (security review B2, for the
+ * sheet). Then it counts, and every other sheet stops working (removed at the registry, retired
+ * in the sealed list). `slotId` is the sheet just made, when checking that one: another sheet's
+ * code is then said to be the wrong sheet. Without it (Settings, "Check my recovery sheet") any
+ * sheet of these records is checked.
+ */
+export const confirmRecoverySheet = (typed: string, slotId?: string): Promise<CheckResult> =>
+  exclusive(async () => {
+    const parsed = parseRecoveryCode(typed);
+    if (!parsed.ok) throw new PasskeyProblem(parsed.why);
+    const r = remembered();
+    if (!r) throw new PasskeyProblem(PASSKEY_WORDS.noCopy);
+    const keys = recoverySlotKeys(parsed.code);
+    if (slotId && keys.slotId !== slotId) {
+      // A sheet of these records, but not the one just made (an older one): said so.
+      throw new PasskeyProblem(
+        r.manifest.slots.some((x) => x.slotId === keys.slotId) ? SHEET_WORDS.notThisSheet : SHEET_WORDS.wrong,
+      );
+    }
+    const opened = await openWithCode(parsed.code, r.copyId);
+    opened.ak.fill(0);
+    // An older copy than this device has seen (a registry rolled back): refused, nothing changes
+    // (security pass on step 3, S-2).
+    if (opened.copy.seq < r.seq) throw new PasskeyProblem(PASSKEY_WORDS.older);
+    await keepAccountKeys(opened.held);
+    const at = new Date().toISOString();
+    // This list merged with the copy just read; the sheet must be one of its ways in now.
+    const base = mergeManifests((remembered() ?? r).manifest, opened.copy.manifest);
+    if (!base.slots.some((x) => x.slotId === keys.slotId)) throw new PasskeyProblem(SHEET_WORDS.wrong);
+    const others = base.slots.filter((x) => x.kind === 'recovery' && x.slotId !== keys.slotId);
+    await removeSlots(opened.held, others);
+    const now = remembered() ?? r;
+    remember({
+      ...now,
+      manifest: retire(
+        sheetVerified(base, keys.slotId, opened.wrap, at),
+        others.map((x) => x.slotId),
+        at,
+      ),
+      sameAs: '',
+    });
+    const checked = await saveAndCheck(opened.held, remembered()!);
+    if (!checked.ok) throw new PasskeyProblem(checked.reason);
+    // "Works" only when the saved copy lists it, checked, and it is at the registry as opened.
+    const after = remembered();
+    if (!after?.manifest.slots.find((x) => x.slotId === keys.slotId)?.verifiedAt || after.problem === 'slot-missing')
+      throw new PasskeyProblem(PASSKEY_WORDS.damaged);
+    return checked;
   });
 
 /** "Bring them anyway" (review New-5): records deleted on another device, brought here on purpose. */
@@ -1049,6 +1512,10 @@ export const syncNow = (opts: { force?: boolean } = {}): Promise<CheckResult | u
     const r = remembered();
     const held = r && (await heldAccountKeys());
     if (!r || !held || held.copyId !== r.copyId) return undefined;
+    // The copy is gone at the registry (deleted, perhaps with "Stop saving" on another device):
+    // nothing is tried again by itself, every visit, until the person chooses "Save again"
+    // (setUpAccount). The open-time check still looks, cheaply, in case it comes back.
+    if (r.problem === 'missing' && !opts.force) return undefined;
     const mine = r.manifest.devices[thisDeviceId()];
     const heartbeat = !mine || Date.now() - Date.parse(mine.at) > HEARTBEAT_MS;
     if (!opts.force && !heartbeat && r.sameAs === sameAsOf(accountContents()) && !r.problem) return undefined;
@@ -1096,14 +1563,11 @@ export const checkAccount = (): Promise<void> =>
       return;
     }
     if (out.status !== 200 || !isObject(out.json) || !isString(out.json.fingerprint)) return;
-    const atRegistry = Array.isArray(out.json.slots)
-      ? out.json.slots
-          .filter(isObject)
-          .map((s) => s.slotId)
-          .filter(isString)
-      : [];
-    const present = r.manifest.slots.filter((s) => atRegistry.includes(s.slotId));
-    const unknownSlots = atRegistry.filter((id) => !r.manifest.slots.some((s) => s.slotId === id));
+    const listed = listedOf(out.json.slots);
+    // Gone, or held differently than when last opened (its wrap's fingerprint changed): either way
+    // that way in no longer counts (S4, and the re-verify of step 3).
+    const present = presentSlots(r.manifest, listed);
+    const unknownSlots = listed.map((l) => l.slotId).filter((id) => !r.manifest.slots.some((s) => s.slotId === id));
     const slotGone = present.length < r.manifest.slots.length;
     if (r.counted && !countsAsBackup({ ...r.manifest, slots: present })) clearCopyMarks();
     patch((x) => ({
@@ -1221,6 +1685,7 @@ export const deleteAccountCopy = (): Promise<void> =>
     if (!r) return;
     let held = await heldAccountKeys();
     if (!held || held.copyId !== r.copyId) {
+      if (!r.credentialId) throw new PasskeyProblem(SHEET_WORDS.needsSheet);
       const answer = await askPasskey(unb64(r.credentialId), r.rpId ?? 'host');
       const opened = await openThroughSlot(answer, { copyId: r.copyId, slotId: r.slotId });
       if (!opened) {
@@ -1235,13 +1700,14 @@ export const deleteAccountCopy = (): Promise<void> =>
     const out = await registryCall('POST', `/account-copy/${r.copyId}/delete`, { token: await writeToken(held) });
     if (out.status !== 200 && out.status !== 404) registryFail(out);
     // The passkey is remembered, so setting up again uses it rather than making a second one (New-4).
-    keepLastPasskey({
-      credentialId: r.credentialId,
-      ...(r.rpId ? { rpId: r.rpId } : {}),
-      ...(r.manifest.slots.find((x) => x.slotId === r.slotId)?.tag
-        ? { tag: r.manifest.slots.find((x) => x.slotId === r.slotId)!.tag }
-        : {}),
-    });
+    if (r.credentialId)
+      keepLastPasskey({
+        credentialId: r.credentialId,
+        ...(r.rpId ? { rpId: r.rpId } : {}),
+        ...(r.manifest.slots.find((x) => x.slotId === r.slotId)?.tag
+          ? { tag: r.manifest.slots.find((x) => x.slotId === r.slotId)!.tag }
+          : {}),
+      });
     clearCopyMarks();
     await forgetAccountKeys();
     remember(undefined);
@@ -1343,6 +1809,16 @@ export type AccountState =
         readonly at: string;
         readonly here: boolean;
       }[];
+      /** This device opens the copy with a passkey of its own (not only the recovery sheet it came back with). */
+      readonly faceIdHere: boolean;
+      /** The tag in the name of this device's passkey (for the recovery sheet). */
+      readonly tag?: string;
+      /** The newest recovery sheet in the sealed list, and whether its whole code was typed back. */
+      readonly sheet?: { readonly createdAt: string; readonly checked: boolean; readonly checkedAt?: string };
+      /** This device's passkey hasn't been opened again for 90 days: asked once more (re-verify). */
+      readonly reverify: boolean;
+      /** Day 7 or day 30 after setting up, with no checked recovery sheet: one quiet line asks. */
+      readonly sheetReminder?: 7 | 30;
     };
 
 let held: boolean | undefined;
@@ -1373,6 +1849,13 @@ export const accountState = (): AccountState => {
     here: id === here,
   }));
   const mineAt = mine ? Date.parse(mine.at) : 0;
+  const ownSlot = r.manifest.slots.find((x) => x.slotId === r.slotId);
+  const sheets = r.manifest.slots
+    .filter((x) => x.kind === 'recovery')
+    .sort((a, b) => (b.verifiedAt ?? '').localeCompare(a.verifiedAt ?? '') || b.createdAt.localeCompare(a.createdAt));
+  const sheet = sheets[0];
+  const now = Date.now();
+  const faceIdHere = !!r.credentialId && ownSlot?.kind === 'passkey';
   return {
     kind: 'saved',
     savedAt: r.savedAt,
@@ -1393,7 +1876,56 @@ export const accountState = (): AccountState => {
       (d) => !d.here && !(r.gone ?? []).includes(d.id) && mineAt - Date.parse(d.at) > STALE_DEVICE_MS,
     ),
     devices,
+    faceIdHere,
+    ...(ownSlot?.tag ? { tag: ownSlot.tag } : {}),
+    ...(sheet
+      ? {
+          sheet: {
+            createdAt: sheet.createdAt,
+            checked: !!sheet.verifiedAt,
+            ...(sheet.verifiedAt ? { checkedAt: sheet.verifiedAt } : {}),
+          },
+        }
+      : {}),
+    reverify: faceIdHere && now - Date.parse(ownSlot?.verifiedAt ?? '') > REVERIFY_MS,
+    ...(() => {
+      const day = sheetReminderDay(r.manifest, now);
+      return day ? { sheetReminder: day } : {};
+    })(),
   };
+};
+
+/** Day 7 or 30 after the first way in was set up, while no sheet is checked and that day's line wasn't dismissed. */
+const sheetReminderDay = (m: Manifest, now: number): 7 | 30 | undefined => {
+  if (m.slots.some((x) => x.kind === 'recovery' && x.verifiedAt)) return undefined;
+  const since = Math.min(...m.slots.filter((x) => x.kind === 'passkey').map((x) => Date.parse(x.createdAt)));
+  if (!Number.isFinite(since)) return undefined;
+  const days = (now - since) / 86_400_000;
+  const dismissed = remindersDismissed();
+  if (days >= 30) return dismissed.includes(30) ? undefined : 30;
+  if (days >= 7) return dismissed.includes(7) ? undefined : 7;
+  return undefined;
+};
+
+const remindersDismissed = (): number[] => {
+  try {
+    const v: unknown = JSON.parse(localStorage.getItem(REMINDED) ?? '[]');
+    return Array.isArray(v) ? v.filter((x): x is number => typeof x === 'number') : [];
+  } catch {
+    return [];
+  }
+};
+
+/** "Later" on the reminder: that day's line isn't shown again (day 30's still comes). */
+export const dismissSheetReminder = (day: 7 | 30): void => {
+  try {
+    const had = remindersDismissed();
+    // Dismissing day 30 covers day 7 too: never shown after it.
+    localStorage.setItem(REMINDED, JSON.stringify([...new Set([...had, day, ...(day === 30 ? [7] : [])])]));
+  } catch {
+    /* asked again next visit */
+  }
+  notify();
 };
 
 let snapshot: { v: number; s: AccountState } | undefined;
@@ -1435,7 +1967,8 @@ export const noteKeepSafeShown = (): void => {
 
 /** Tests only: forget the page-life state. */
 export const _resetAccountForTests = (): void => {
-  pending = undefined;
+  dropPending();
+  forgetRecovered();
   chain = Promise.resolve();
   busy = 0;
   held = undefined;

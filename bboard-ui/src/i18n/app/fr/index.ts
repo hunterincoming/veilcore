@@ -40,6 +40,8 @@ import { job } from './job';
 import { pack } from './pack';
 import { account } from './account';
 import { scan } from './scan';
+import { offline } from './offline';
+import { recovery } from './recovery';
 
 export const appFr: AppTranslation = {
   ...common,
@@ -75,4 +77,6 @@ export const appFr: AppTranslation = {
   ...pack,
   ...account,
   ...scan,
+  ...offline,
+  ...recovery,
 };

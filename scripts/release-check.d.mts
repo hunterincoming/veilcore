@@ -29,7 +29,7 @@ export type RouteCheck = {
   headerDiffers: { path: string; name: string }[];
   headersListed: boolean;
 };
-export type ReleaseCheck = { files: FileCheck; routes: RouteCheck; model?: ModelWorkerCheck };
+export type ReleaseCheck = { files: FileCheck; routes: RouteCheck; model?: ModelWorkerCheck; worker?: WorkerCheck };
 export type FileCheck = { total: number; matched: string[]; differ: string[]; missing: string[] };
 export function sha256Hex(bytes: ArrayBuffer | Uint8Array): Promise<string>;
 export function isRelease(v: unknown): v is Release;
@@ -72,6 +72,12 @@ export function checkModelWorkers(
   manifest: Manifest,
   opts?: { fetchImpl?: typeof fetch; modelManifest?: object },
 ): Promise<ModelWorkerCheck>;
+export type WorkerCheck = { skipped?: string; ok: boolean; wrong: { path: string; problem: string }[] };
+export const SW_PATH: string;
+export const SW_ROUTE_SRC: string;
+export const SW_CACHE_CONTROL: string;
+export const OFFLINE_SHELL_PATH: string;
+export function checkServiceWorker(site: string, manifest: Manifest, opts?: { fetchImpl?: typeof fetch }): Promise<WorkerCheck>;
 export function checkRelease(
   site: string,
   manifest: Manifest,

@@ -47,6 +47,8 @@ import { job } from './job';
 import { pack } from './pack';
 import { account } from './account';
 import { scan } from './scan';
+import { offline } from './offline';
+import { recovery } from './recovery';
 
 export const appJa: AppTranslation = {
   ...common,
@@ -82,4 +84,6 @@ export const appJa: AppTranslation = {
   ...pack,
   ...account,
   ...scan,
+  ...offline,
+  ...recovery,
 };
