@@ -169,6 +169,22 @@ const startSite = async (): Promise<Site> => {
         JSON.stringify({ format: 'veilcore-release/v1', network: 'e2e', commit, date: new Date().toISOString() }),
       );
       const all = new Map(next);
+      // The worker as a release fills it in: its kept files' SHA-256 (vite.config.ts, here
+      // re-made for this release's files) and the page's headers (scripts/vercel-config.mjs).
+      const worker = all.get('/sw.js')?.toString();
+      if (worker !== undefined) {
+        let t = worker;
+        const m = /const SHELL_FILES = (\{[^\n]*\});/.exec(t);
+        if (m) {
+          const h = JSON.parse(m[1]) as Record<string, string>;
+          for (const k of Object.keys(h)) h[k] = sha(all.get(k)!);
+          t = t.replace(m[0], () => `const SHELL_FILES = ${JSON.stringify(h)};`);
+        }
+        t = t.replace("'__VEILCORE_PAGE_HEADERS__'", () =>
+          JSON.stringify(Object.fromEntries(Object.entries(headers).map(([k, v]) => [k.toLowerCase(), v]))),
+        );
+        all.set('/sw.js', Buffer.from(t));
+      }
       all.set('/release.json', release);
       const hashes: Record<string, string> = {};
       for (const [p, b] of all) if (!p.startsWith('/releases/')) hashes[p] = sha(b);
@@ -237,13 +253,17 @@ const makeTsa = () => {
     `[ tsa ]\ndefault_tsa = t\n[ t ]\ndir = ${dir}\nserial = ${dir}/serial\nsigner_cert = ${dir}/tsa.pem\nsigner_key = ${dir}/tsa.key\nsigner_digest = sha256\ndefault_policy = 1.2.3.4.1\ndigests = sha256\ness_cert_id_alg = sha256\naccuracy = secs:1\nordering = no\ntsa_name = no\ness_cert_id_chain = no\ncerts = ${dir}/tsa.pem\n`,
   );
   writeFileSync(path.join(dir, 'serial'), '01\n');
+  const certSha256 = createHash('sha256')
+    .update(execFileSync('openssl', ['x509', '-in', path.join(dir, 'tsa.pem'), '-outform', 'DER']))
+    .digest('hex');
   /** A token on the proof code's 32 raw bytes, base64 (a full TimeStampResp; the page takes either). */
-  return (fp: string): string => {
+  const token = (fp: string): string => {
     writeFileSync(path.join(dir, 'pc.bin'), Buffer.from(fp, 'hex'));
     ssl('ts', '-query', '-data', 'pc.bin', '-sha256', '-cert', '-out', 'q.tsq');
     ssl('ts', '-reply', '-config', 'tsa.cnf', '-queryfile', 'q.tsq', '-out', 'r.tsr');
     return readFileSync(path.join(dir, 'r.tsr')).toString('base64');
   };
+  return { token, certSha256 };
 };
 
 // ---- the stand-in registry, which "no signal" cuts off too ----------------------------------------
@@ -353,10 +373,14 @@ const goOffline = async (context: BrowserContext, off: boolean) => {
 
 let site: Site;
 let reg: Registry;
+/** This run's local TSA's certificate, pinned in the e2e build only (veilcore/instant-stamp.ts e2ePins). */
+let tsaPin = '';
 test.beforeAll(async () => {
   test.skip(!existsSync(path.join(DIST, 'index.html')), 'run npm run e2e:build first');
   site = await startSite();
-  reg = await startRegistry(makeTsa());
+  const tsa = makeTsa();
+  tsaPin = tsa.certSha256;
+  reg = await startRegistry(tsa.token);
 });
 test.afterAll(() => {
   site?.close();
@@ -377,12 +401,16 @@ test('opens and seals with no signal; sent and timestamped by itself when signal
   page.on('pageerror', (e) => errors.push(String(e)));
   const violations: string[] = [];
   await page.exposeFunction('__csp', (v: string) => violations.push(v));
-  await page.addInitScript(() => {
+  await page.addInitScript((pin) => {
+    localStorage.setItem(
+      'veilcore.e2e.tsa-pins',
+      JSON.stringify({ format: 'veilcore-tsa-pins/v1', pins: [{ name: 'E2E TSA', certSha256: pin }] }),
+    );
     localStorage.setItem('veilcore.role.v1', 'breeder');
     document.addEventListener('securitypolicyviolation', (e) =>
       (window as unknown as { __csp: (s: string) => void }).__csp(`${e.violatedDirective} ${e.blockedURI}`),
     );
-  });
+  }, tsaPin);
   const commit = site.publish(distFiles());
 
   // A first visit with signal: the worker copies the release, checked file by file.
@@ -402,7 +430,9 @@ test('opens and seals with no signal; sent and timestamped by itself when signal
   const here = page.locator('[data-sealed-here]').first();
   await expect(here).toBeVisible({ timeout: 60_000 });
   // The phone's own clock, said as such, and the date only when sent: never a date before.
-  await expect(here).toContainText(/Sealed on this phone at .+ \(your phone’s clock\)\. Dated when it’s sent\./);
+  await expect(here).toContainText(
+    /Sealed on this phone at .+ \(your phone’s clock, not checked\)\. Dated when it’s sent\./,
+  );
   // Chromium has Background Sync: the proof code goes by itself.
   await expect(here).toContainText(/Its proof code goes by itself when you’re back online\./);
   await expect(page.locator('[data-record-dated-next]')).toHaveCount(0);
@@ -419,8 +449,9 @@ test('opens and seals with no signal; sent and timestamped by itself when signal
   await expect(page.locator('[data-offline-bar]')).toHaveCount(0);
   const line = page.locator('[data-record-dated-next]').first();
   await expect(line).toContainText(
-    // In the person's own time zone, to the second; the name is the signing key's own (its certificate's).
-    /Timestamped .+\d{2}:\d{2}:\d{2}.* by E2E TSA \(as its key names it\) — the date on Midnight, the blockchain, follows in the next batch\./,
+    // In the person's own time zone, to the minute; the name is the pin's (the test's local TSA,
+    // pinned in the e2e build only).
+    /Timestamped .+\d{1,2}:\d{2}.* by E2E TSA — the date on Midnight, the blockchain, follows in the next batch\./,
     { timeout: 30_000 },
   );
   await shot(page, 'online-timestamped');
@@ -433,13 +464,20 @@ test('opens and seals with no signal; sent and timestamped by itself when signal
   // The check page shows the timestamp as its own fact, checked here.
   const fp = sent[0].recordFingerprint;
   await page.goto(`${site.origin}/verify/${sent[0].id}?fp=${fp}`);
+  // The minute up top (P-1), only because the link carries the proof code (TSA-2).
   await expect(page.locator('[data-instant-stamp]')).toContainText(
-    /Timestamped \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2} UTC by E2E TSA/,
+    /Timestamped \d{4}-\d{2}-\d{2} \d{2}:\d{2} UTC by E2E TSA —/,
   );
-  // Its own fact in "What each fact rests on": signed, checked here, the name the key's own.
+  // Its own fact in "What each fact rests on", to the second, with the pinned key.
   await page.locator('[data-see-checks]').click();
-  await expect(page.locator('[data-instant-fact="E2E TSA"]')).toContainText(/a key named E2E TSA \(name not checked\)/);
+  await expect(page.locator('[data-instant-fact="E2E TSA"]')).toContainText(
+    /Timestamp from E2E TSA: \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2} UTC\. .*the key this site lists for E2E TSA/,
+  );
   await shot(page, 'check-page-timestamp');
+  // A link without the proof code: no line up top (TSA-2).
+  await page.goto(`${site.origin}/verify/${sent[0].id}`);
+  await expect(page.locator('[data-see-checks]')).toBeVisible();
+  await expect(page.locator('[data-instant-stamp]')).toHaveCount(0);
 
   expect(violations).toEqual([]);
   expect(errors).toEqual([]);

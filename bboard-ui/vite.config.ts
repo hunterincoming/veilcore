@@ -350,11 +350,53 @@ const offlineWorker = (mode: string): Plugin => {
         source: `${JSON.stringify({ format: OFFLINE_SHELL_FORMAT, files: [...files].sort() }, null, 2)}\n`,
       });
     },
+    // Once every file is written (the page and the public folder too): the SHA-256 of each file of
+    // the offline copy goes into sw.js itself, which the worker checks every kept file against
+    // before serving it (security re-check of PR #145, SW-1; docs/offline.md).
+    closeBundle() {
+      if (!config || offlineFlag(mode) === 'off') return;
+      const out = resolve(config.root, config.build.outDir);
+      const swFile = join(out, 'sw.js');
+      if (!existsSync(swFile)) return;
+      const shell = JSON.parse(readFileSync(join(out, 'offline-shell.json'), 'utf8')) as { files: string[] };
+      const hashes: Record<string, string> = {};
+      for (const p of ['/index.html', ...shell.files].sort())
+        hashes[p] = createHash('sha256')
+          .update(readFileSync(join(out, p.slice(1))))
+          .digest('hex');
+      const text = readFileSync(swFile, 'utf8');
+      if (!text.includes("'__VEILCORE_SHELL_FILES__'")) throw new Error('offline/sw.js lost its shell placeholder');
+      writeFileSync(swFile, text.replace("'__VEILCORE_SHELL_FILES__'", JSON.stringify(hashes)));
+    },
   };
 };
 
+// The timestamp authorities whose timestamps the site shows (src/config/tsa-pins.json, bundled
+// into the page's code by veilcore/instant-stamp.ts): published as /tsa-pins.json too, so it is a
+// file of its own in every release list and anyone can read which keys a release trusts.
+const tsaPins = (): Plugin => ({
+  name: 'veilcore-tsa-pins',
+  apply: 'build',
+  generateBundle() {
+    const here = fileURLToPath(new URL('.', import.meta.url));
+    this.emitFile({
+      type: 'asset',
+      fileName: 'tsa-pins.json',
+      source: readFileSync(join(here, 'src', 'config', 'tsa-pins.json'), 'utf8'),
+    });
+  },
+});
+
 // https://vitejs.dev/config/
 export default defineConfig(({ mode, command }) => {
+  // The end-to-end build trusts a test timestamp authority it is handed (veilcore/instant-stamp.ts
+  // e2ePins): never for a site build (scripts/vercel-config.mjs refuses its files as well).
+  if (
+    command === 'build' &&
+    (mode === 'mainnet' || mode === 'preprod') &&
+    String({ ...loadEnv(mode, process.cwd(), 'VITE_'), ...process.env }.VITE_E2E_FIXTURES ?? '').trim() === '1'
+  )
+    throw new Error(`\n\nVITE_E2E_FIXTURES=1 is the end-to-end test build, never --mode ${mode}.\n`);
   const pins = mainnetBuild(mode, command);
   const askModel = askModelFlag(mode);
   return {
@@ -412,6 +454,7 @@ export default defineConfig(({ mode, command }) => {
       recordBuildSettings(),
       askModelFiles(askModel),
       offlineWorker(mode),
+      tsaPins(),
       react(),
       // Configure WASM plugin with more options
       wasm(),

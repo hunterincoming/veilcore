@@ -371,6 +371,18 @@ export const OFFLINE_SHELL_PATH = '/offline-shell.json';
  * A release that lists no /sw.js (made before the worker) is not checked, and says so.
  * @returns {Promise<{ skipped?: string, ok: boolean, wrong: { path: string, problem: string }[] }>}
  */
+/** A value the build wrote into the worker (`const NAME = {...};`), or null if it is missing or unfilled. */
+const builtInto = (text, name) => {
+  const m = new RegExp(`\\bconst ${name} = (\\{[^\\n]*\\});`).exec(text);
+  if (!m) return null;
+  try {
+    const v = JSON.parse(m[1]);
+    return typeof v === 'object' && v !== null && !Array.isArray(v) ? v : null;
+  } catch {
+    return null;
+  }
+};
+
 export const checkServiceWorker = async (site, manifest, { fetchImpl = fetch } = {}) => {
   if (!manifest.files[SW_PATH]) return { skipped: 'this release has no offline worker', ok: true, wrong: [] };
   const wrong = [];
@@ -392,6 +404,11 @@ export const checkServiceWorker = async (site, manifest, { fetchImpl = fetch } =
     if ((res.headers.get('cache-control') ?? '').trim().toLowerCase() !== SW_CACHE_CONTROL)
       wrong.push({ path: SW_PATH, problem: `not served with Cache-Control: ${SW_CACHE_CONTROL}` });
     if (/\bimportScripts\s*\(/.test(body)) wrong.push({ path: SW_PATH, problem: 'loads other scripts (importScripts)' });
+    // The worker's own Content-Security-Policy is what limits where it can send anything (its
+    // connect-src): the listed one, as on every page (security review of PR #145, R-1).
+    const listedCsp = manifest.headers?.['content-security-policy'];
+    if (listedCsp !== undefined && (res.headers.get('content-security-policy') ?? '').trim() !== String(listedCsp).trim())
+      wrong.push({ path: SW_PATH, problem: 'not served with the listed Content-Security-Policy' });
     const off = String(manifest.build?.settings?.VITE_OFFLINE ?? '').trim() === 'off';
     const handlesFetch = /addEventListener\(\s*['"]fetch['"]/.test(body);
     if (off && handlesFetch) wrong.push({ path: SW_PATH, problem: 'built as the kill switch (VITE_OFFLINE=off) but answers requests' });
@@ -403,6 +420,24 @@ export const checkServiceWorker = async (site, manifest, { fetchImpl = fetch } =
           const files = Array.isArray(list?.files) ? list.files : null;
           if (!files) wrong.push({ path: OFFLINE_SHELL_PATH, problem: 'not a list of files' });
           else for (const f of files) if (!manifest.files[f]) wrong.push({ path: String(f), problem: 'kept for offline use but not in the release list' });
+          // What the worker itself holds each kept file to, and the headers it serves the kept
+          // page with (docs/offline.md, SW-1): the listed ones, every one.
+          const built = builtInto(body, 'SHELL_FILES');
+          if (!built) wrong.push({ path: SW_PATH, problem: 'has no SHA-256 for the files it keeps' });
+          else {
+            for (const f of ['/index.html', ...(files ?? [])])
+              if (built[f] === undefined) wrong.push({ path: String(f), problem: 'kept for offline use but the worker has no SHA-256 for it' });
+            for (const [f, h] of Object.entries(built))
+              if (manifest.files[f] !== h) wrong.push({ path: f, problem: 'the worker holds it to another SHA-256 than the release list' });
+          }
+          const pageHeaders = builtInto(body, 'PAGE_HEADERS');
+          // A release list with no headers (a build no release was made from, or one listed before
+          // headers were): the worker then keeps its placeholder and never serves the kept page.
+          if (!pageHeaders) {
+            if (manifest.headers !== undefined) wrong.push({ path: SW_PATH, problem: 'has no headers for the page it keeps' });
+          }
+          else if (listedCsp !== undefined && String(pageHeaders['content-security-policy'] ?? '').trim() !== String(listedCsp).trim())
+            wrong.push({ path: SW_PATH, problem: 'serves its kept page with another Content-Security-Policy than the listed one' });
         } catch {
           wrong.push({ path: OFFLINE_SHELL_PATH, problem: 'not readable' });
         }

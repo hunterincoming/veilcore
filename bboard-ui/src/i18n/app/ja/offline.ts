@@ -4,9 +4,9 @@ import type { AppTranslation } from '../../translate';
 
 export const offline = {
   'app.offline.sealedHere.phone':
-    'このスマートフォンで{time}に封印しました（スマートフォンの時計による時刻）。日付は送信されたときに付きます。',
+    'このスマートフォンで{time}に封印しました（スマートフォンの時計による時刻、未確認）。日付は送信されたときに付きます。',
   'app.offline.sealedHere.computer':
-    'このパソコンで{time}に封印しました（パソコンの時計による時刻）。日付は送信されたときに付きます。',
+    'このパソコンで{time}に封印しました（パソコンの時計による時刻、未確認）。日付は送信されたときに付きます。',
   'app.offline.short': '{time}に封印、送信時に日付',
   'app.offline.goesBySelf': 'オンラインに戻ると、証明コードが自動で送信されます。',
   'app.offline.bar':
@@ -30,15 +30,17 @@ export const offline = {
   'app.install.dismiss': '今はしない',
 
   'app.instant.pending':
-    '{tsa}（鍵に記された名前）によるタイムスタンプ：{time} — Midnight（ブロックチェーン）での日付は次のバッチで付きます。',
-  'app.instant.also': '{tsa}（鍵に記された名前）によるタイムスタンプもあります：{time}。',
+    '{tsa}によるタイムスタンプ：{time} — Midnight（ブロックチェーン）での日付は次のバッチで付きます。',
+  'app.instant.also': '{tsa}によるタイムスタンプもあります：{time}。',
   'app.instant.asking': 'タイムスタンプ局にタイムスタンプを依頼しています…',
   'app.instant.fact':
-    '{tsa}という名前の鍵によるタイムスタンプ（名前は未確認）：{time}。このページで証明コードに対する署名を確認しました。証明コードがその時刻までに存在していたことを示し、それより前のことは何も示しません。',
+    '{tsa}のタイムスタンプ：{time}。このページで、証明コードに対する署名が、このサイトが{tsa}の鍵として掲げる鍵によるものであることを確認しました。証明コードがその時刻までに存在していたことを示し、それより前のことは何も示しません。',
   'app.verify.who.tsa': 'タイムスタンプ（{tsa}）',
-  'app.verify.who.tsa.checked':
-    '{time}。このページで署名を確認しました。名前は鍵自身が記したもので、鍵の発行元はここでは確認していません。',
+  'app.verify.who.tsa.checked': '{time}。このページで、このサイトがその局の鍵として掲げる鍵による署名を確認しました。',
   'app.verify.who.tsa.unbound':
-    '{time}。このページで署名を確認しましたが、受け取ったリンクには照合する証明コードが含まれていません。送信者に完全な確認リンクを求めてください。',
+    '{time}。このページで、このサイトがその局の鍵として掲げる鍵による署名を確認しましたが、受け取ったリンクには照合する証明コードが含まれていません。送信者に完全な確認リンクを求めてください。',
   'app.offline.goesOnOpen': '電波のある状態で次にVeilCoreを開いたときに、証明コードが送信されます。',
+  'app.instant.disagree':
+    '複数のタイムスタンプ局の時刻が5分を超えて食い違っています。記録の確認ページにそれぞれ表示されます。',
+  'app.verify.who.tsa.disagree': 'これらのタイムスタンプは5分を超えて食い違っています。',
 } satisfies Partial<AppTranslation>;

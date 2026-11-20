@@ -9,7 +9,7 @@
 
 import type { Translator } from '../../i18n/translate';
 import type { AppKey } from '../../i18n/app/en';
-import { localSeconds, utcSeconds } from '../../veilcore/time';
+import { localStamp, utcStamp } from '../../veilcore/time';
 import type { InstantState } from '../../veilcore/instant-stamp';
 
 /** A phone or a small tablet (a touch screen first), or a computer: for "this phone" / "this computer". */
@@ -55,18 +55,21 @@ export const goesWords = (tr: Translator): string => {
 
 /**
  * A record's own timestamps, one line each, earliest first: the first says the Midnight date
- * follows while the batch has none (`anchored` false). Nothing while there are none. `when`
- * writes the time: UTC on a check page, the person's own zone on their own pages.
+ * follows while the batch has none (`anchored` false). Nothing while there are none. When the
+ * authorities disagree by more than five minutes, one line says so and none leads (TSA-5).
+ * `when` writes the time, to the minute (the checks list gives the seconds; review P-1): UTC on
+ * a check page, the person's own zone on their own pages.
  */
 export const instantLines = (
   state: InstantState | undefined,
   anchored: boolean,
   tr: Translator,
-  when: (iso: string) => string = utcSeconds,
+  when: (iso: string) => string = utcStamp,
 ): string[] => {
   if (!state) return [];
   if (state.status === 'asking') return [tr.t('app.instant.asking')];
   if (state.status !== 'stamped') return [];
+  if (state.disagree) return [tr.t('app.instant.disagree')];
   return state.tokens.map((tok, i) =>
     tr.t(i === 0 && !anchored ? 'app.instant.pending' : 'app.instant.also', { time: when(tok.at), tsa: tok.tsa }),
   );
@@ -74,4 +77,4 @@ export const instantLines = (
 
 /** The same, in the person's own time zone (their own pages). */
 export const instantLinesHere = (state: InstantState | undefined, anchored: boolean, tr: Translator): string[] =>
-  instantLines(state, anchored, tr, (iso) => localSeconds(iso, tr.locale));
+  instantLines(state, anchored, tr, (iso) => localStamp(iso, tr.locale));

@@ -849,8 +849,12 @@ export const VerifyPage: React.FC = () => {
               {/* Its own timestamp, seconds after it was sealed, until its batch has a Midnight
                 date (veilcore/instant-stamp.ts): the authority's time, checked here, and that the
                 Midnight date follows. The checks below list each one. */}
+              {/* Only against the link's own proof code (TSA-2): otherwise the proof code is the
+                registry's report, and so would the line be. The checks list says it unbound. */}
               {result.recordFingerprint &&
+                bound &&
                 instantTokens.length > 0 &&
+                !(instant?.status === 'stamped' && instant.disagree) &&
                 !(proof !== 'checking' && proof.status === 'anchor-reported') && (
                   <Typography variant="body2" sx={{ mb: 2 }} data-instant-stamp="">
                     {instantLines(instant, false, tr)[0]}
@@ -1056,6 +1060,7 @@ export const VerifyPage: React.FC = () => {
                                 : 'unchecked',
                           testNetwork: isTestNetwork(reportedNetwork ?? NETWORK),
                           instant: instantTokens,
+                          instantDisagree: instant?.status === 'stamped' && instant.disagree,
                           signers: signed.map((a) => {
                             const label = signerLabel(a, 'Signed by', undefined, tr);
                             return {
@@ -1155,11 +1160,14 @@ export const VerifyPage: React.FC = () => {
                     {/* The record's own timestamps: each a timestamp authority's signature on the
                   proof code, checked here; ticked only against the link's own proof code. */}
                     {result.recordFingerprint &&
-                      instantTokens.map((tok) => (
-                        <Box key={`tsa-${tok.tsa}`} data-instant-fact={tok.tsa}>
-                          <Fact ok={bound}>
+                      instantTokens.map((tok, i) => (
+                        <Box key={`tsa-${String(i)}`} data-instant-fact={tok.tsa}>
+                          <Fact ok={bound && !(instant?.status === 'stamped' && instant.disagree)}>
                             {bound ? '' : forWhom}
                             {t('app.instant.fact', { tsa: tok.tsa, time: utcSeconds(tok.at) })}
+                            {instant?.status === 'stamped' && instant.disagree
+                              ? ` ${t('app.verify.who.tsa.disagree')}`
+                              : ''}
                           </Fact>
                         </Box>
                       ))}

@@ -92,6 +92,8 @@ The site uses your browser's local storage, on this device only. No cookies.
 | Documents kept on this device only (`veilcore.device-only.v1`, `veilcore.device-only-backup.v1`) | The records themselves, and which of them are in a backup file you have checked. The only copies are this browser's and that file's. |
 | A random fee-sponsor ticket (`veilcore.sponsor-ticket.v1`) | Made for the date-stamp service only. Not your holder key. |
 | Your role and language (`veilcore.role.v1`, `veilcore.lang`), a "seen this" flag (`veilcore.lab-visibility-seen.v2`) | Settings. |
+| The offline copy (Cache Storage `veilcore-shell-<release>`, `veilcore-offline-meta`) | This site's own code, so it opens with no signal (`docs/offline.md`). Nothing of yours. |
+| Proof codes waiting to be sent (IndexedDB `veilcore-offline`) | Only where the browser can send by itself (Chrome): each waiting record's id, proof code and key binding, and your holder key, so they go when signal comes back. Deleted when nothing waits, when you start over, or with this site's data. |
 
 To remove them, clear this site's data in your browser settings. Save your holder key and
 record backup first.
@@ -157,6 +159,7 @@ link carries, so only someone you send the link and the file to can tell which f
 | Blockfrost | Runs the Midnight indexer the check page reads through our relay | The relay's queries (which transaction is being checked), from the relay's address, not yours |
 | Midnight network | Records batch roots and key stamps | Public transactions |
 | OpenTimestamps calendars | Stamp batch roots on Bitcoin | Batch roots |
+| Timestamp authorities (RFC 3161: FreeTSA, and any others set on the registry; some are run by one person) | Timestamp batch roots, and each record's proof code the moment the registry takes it | A code made from each batch root and each proof code, and when it was asked, from the registry's address. Proof codes appear on check pages, so an authority could match its log to a check link. |
 | Backblaze B2 | Stores encrypted backups | Encrypted files it can't open |
 
 The fee sponsor logs counters and outcomes only, never a request body, a transaction, a

@@ -7,8 +7,10 @@
 // SPDX-License-Identifier: Apache-2.0
 
 export const offline = {
-  'app.offline.sealedHere.phone': 'Sealed on this phone at {time} (your phone’s clock). Dated when it’s sent.',
-  'app.offline.sealedHere.computer': 'Sealed on this computer at {time} (your computer’s clock). Dated when it’s sent.',
+  'app.offline.sealedHere.phone':
+    'Sealed on this phone at {time} (your phone’s clock, not checked). Dated when it’s sent.',
+  'app.offline.sealedHere.computer':
+    'Sealed on this computer at {time} (your computer’s clock, not checked). Dated when it’s sent.',
   'app.offline.short': 'Sealed {time}, dated when sent',
   'app.offline.goesBySelf': 'Its proof code goes by itself when you’re back online.',
   'app.offline.bar':
@@ -31,15 +33,18 @@ export const offline = {
   'app.install.dismiss': 'Not now',
 
   'app.instant.pending':
-    'Timestamped {time} by {tsa} (as its key names it) — the date on Midnight, the blockchain, follows in the next batch.',
-  'app.instant.also': 'Also timestamped {time} by {tsa} (as its key names it).',
+    'Timestamped {time} by {tsa} — the date on Midnight, the blockchain, follows in the next batch.',
+  'app.instant.also': 'Also timestamped {time} by {tsa}.',
   'app.instant.asking': 'Getting a timestamp from a timestamp authority…',
   'app.instant.fact':
-    'Timestamp from a key named {tsa} (name not checked): {time}. This page checked its signature on the proof code. It shows the proof code existed by then; it says nothing about before.',
+    'Timestamp from {tsa}: {time}. This page checked its signature on the proof code, made with the key this site lists for {tsa}. It shows the proof code existed by then; it says nothing about before.',
   'app.verify.who.tsa': 'A timestamp ({tsa})',
   'app.verify.who.tsa.checked':
-    '{time}. This page checked its signature. The name is the key’s own; who issued the key isn’t checked here.',
+    '{time}. This page checked its signature, made with the key this site lists for that authority.',
   'app.verify.who.tsa.unbound':
-    '{time}. This page checked its signature, but the link you were sent carries no proof code to match it with. Ask the sender for the full check link.',
+    '{time}. This page checked its signature, made with the key this site lists for that authority, but the link you were sent carries no proof code to match it with. Ask the sender for the full check link.',
   'app.offline.goesOnOpen': 'Its proof code goes the next time you open VeilCore with signal.',
+  'app.instant.disagree':
+    'Timestamps from more than one authority disagree by more than five minutes. The record’s check page lists each.',
+  'app.verify.who.tsa.disagree': 'These timestamps disagree by more than five minutes.',
 };

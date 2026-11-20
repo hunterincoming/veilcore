@@ -6,7 +6,7 @@
 /* eslint-disable @typescript-eslint/require-await -- stand-ins for the browser's promise-returning APIs */
 
 import { execFileSync, spawnSync } from 'node:child_process';
-import { createHash, webcrypto } from 'node:crypto';
+import { createHash, webcrypto, X509Certificate } from 'node:crypto';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -17,7 +17,7 @@ import { checkServiceWorker, releaseMatches, SW_CACHE_CONTROL } from '../../../s
 import { workerScriptUrl } from './register';
 import { whoVouches } from '../components/verify/who-vouches';
 import { instantLines, sealedHereWords } from '../components/offline/offline-words';
-import { instantStampFor } from '../veilcore/instant-stamp';
+import { instantStampFor, TSA_PINS, withinPin } from '../veilcore/instant-stamp';
 import { enT } from '../i18n/translate';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -29,7 +29,16 @@ const sha = (s: string) => createHash('sha256').update(s).digest('hex');
 // ---- a stand-in service-worker scope -----------------------------------------------------------
 
 type Served = Record<string, { body: string; headers?: Record<string, string> }>;
-const scope = (served: Served, opts: { offline?: () => boolean } = {}) => {
+/** The worker as a release build writes it: its copy's hashes and the page's headers filled in. */
+const PAGE_HEADERS = { 'content-security-policy': "default-src 'self'" };
+const built = (files: Served, pageHeaders: Record<string, string> | null = PAGE_HEADERS) => {
+  const shell = (JSON.parse(files['/offline-shell.json'].body) as { files: string[] }).files;
+  const hashes = Object.fromEntries(['/index.html', ...shell].map((p) => [p, sha(files[p].body)]));
+  return SW.replace("'__VEILCORE_API_BASE__'", '"https://registry.example"')
+    .replace("'__VEILCORE_SHELL_FILES__'", JSON.stringify(hashes))
+    .replace("'__VEILCORE_PAGE_HEADERS__'", pageHeaders ? JSON.stringify(pageHeaders) : "'__VEILCORE_PAGE_HEADERS__'");
+};
+const scope = (served: Served, opts: { offline?: () => boolean; pageUrl?: () => string; worker?: string } = {}) => {
   const handlers: Record<string, ((e: unknown) => void)[]> = {};
   const stores = new Map<string, Map<string, Response>>();
   const keyOf = (r: RequestInfo | URL) =>
@@ -40,6 +49,7 @@ const scope = (served: Served, opts: { offline?: () => boolean } = {}) => {
     return {
       match: async (r: RequestInfo) => m.get(keyOf(r))?.clone(),
       put: async (r: RequestInfo, res: Response) => void m.set(keyOf(r), res.clone()),
+      delete: async (r: RequestInfo) => m.delete(keyOf(r)),
     };
   };
   const fetched: string[] = [];
@@ -59,7 +69,9 @@ const scope = (served: Served, opts: { offline?: () => boolean } = {}) => {
     skipWaiting: () => undefined,
     clients: {
       claim: async () => undefined,
-      matchAll: async () => [{ id: 'page-1', postMessage: (m: unknown) => messages.push(m) }],
+      matchAll: async () => [
+        { id: 'page-1', url: opts.pageUrl?.() ?? `${ORIGIN}/records`, postMessage: (m: unknown) => messages.push(m) },
+      ],
     },
     registration: { unregister: async () => true },
   };
@@ -92,7 +104,7 @@ const scope = (served: Served, opts: { offline?: () => boolean } = {}) => {
     Error,
     indexedDB: undefined,
   });
-  vm.runInContext(SW.replace("'__VEILCORE_API_BASE__'", '"https://registry.example"'), ctx);
+  vm.runInContext(opts.worker ?? built(APP), ctx);
   /** Fire an event; resolve with what it waited on and what it answered. */
   const fire = async (type: string, extra: Record<string, unknown> = {}) => {
     const waits: Promise<unknown>[] = [];
@@ -238,6 +250,101 @@ describe('the offline worker', () => {
     expect(SW).not.toMatch(/importScripts\s*\(/);
     expect(SW.match(/['"`]https?:\/\//g)).toBeNull();
     expect(SW).toContain("'__VEILCORE_API_BASE__'");
+    expect(SW).toContain("'__VEILCORE_SHELL_FILES__'");
+    expect(SW).toContain("'__VEILCORE_PAGE_HEADERS__'");
+  });
+});
+
+describe('the offline worker, after the review of PR #145', () => {
+  it('serves a file from the copy only when it hashes to the value the worker was built with (SW-1)', async () => {
+    let offline = false;
+    const s = scope(release(APP, COMMIT_A), { offline: () => offline });
+    await s.fire('install');
+    const copy = s.stores.get(`veilcore-shell-${COMMIT_A}`)!;
+    const meta = s.stores.get('veilcore-offline-meta')!;
+    // Code injected into one visit writes Cache Storage directly: a file, and the copy's own
+    // record, naming the planted file's hash (the record is never what a file is checked against).
+    copy.set('/assets/index-abc.js', new Response('stealKeys()'));
+    meta.set(
+      '/__veilcore-offline/active',
+      new Response(
+        JSON.stringify({ commit: COMMIT_A, network: 'mainnet', files: { '/assets/index-abc.js': sha('stealKeys()') } }),
+      ),
+    );
+    const js = await s.fire('fetch', { request: req('/assets/index-abc.js') });
+    expect(await js.response?.text()).toBe('console.log(1)'); // the network's, the listed bytes
+    copy.set('/index.html', new Response('<html>planted</html>'));
+    offline = true;
+    const page = await s.fire('fetch', { request: req('/records', { mode: 'navigate' }) }).catch(() => undefined);
+    expect(page?.response).toBeUndefined();
+  });
+
+  it('serves the kept page with the headers built into the worker, never the kept ones (SW-1)', async () => {
+    let offline = false;
+    const s = scope(release(APP, COMMIT_A), { offline: () => offline });
+    await s.fire('install');
+    const copy = s.stores.get(`veilcore-shell-${COMMIT_A}`)!;
+    // The right bytes, kept with a policy that lets anything run.
+    copy.set(
+      '/index.html',
+      new Response('<html>app</html>', {
+        headers: { 'content-security-policy': 'script-src *', refresh: '0; url=https://x.example' },
+      }),
+    );
+    copy.set('/assets/index-abc.js', new Response('console.log(1)', { headers: { 'content-type': 'text/html' } }));
+    offline = true;
+    const page = (await s.fire('fetch', { request: req('/records', { mode: 'navigate' }) })).response!;
+    expect(await page.text()).toBe('<html>app</html>');
+    expect(page.headers.get('content-security-policy')).toBe("default-src 'self'");
+    expect(page.headers.get('refresh')).toBeNull();
+    const js = (await s.fire('fetch', { request: req('/assets/index-abc.js') })).response!;
+    expect(js.headers.get('content-type')).toBe('text/javascript');
+    // A worker whose page headers were never filled in (no release made it) never serves the page.
+    const bare = scope(release(APP, COMMIT_A), { offline: () => offline, worker: built(APP, null) });
+    offline = false;
+    await bare.fire('install');
+    offline = true;
+    const none = await bare.fire('fetch', { request: req('/records', { mode: 'navigate' }) }).catch(() => undefined);
+    expect(none?.response).toBeUndefined();
+  });
+
+  it('a newer release it can’t copy (even an unreadable list) marks the copy old: served only on network failure (SW-2)', async () => {
+    let offline = false;
+    const files = release(APP, COMMIT_A);
+    const s = scope(files, { offline: () => offline });
+    await s.fire('install');
+    // Release B is named, but its list can't be read.
+    files['/release.json'] = {
+      body: JSON.stringify({ format: 'veilcore-release/v1', network: 'mainnet', commit: COMMIT_B, date: 'x' }),
+    };
+    await s.fire('message', { data: { type: 'veilcore-check' }, origin: ORIGIN });
+    const meta = (await (s.stores.get('veilcore-offline-meta')!.get('/__veilcore-offline/active') as Response)
+      .clone()
+      .json()) as { supersededSince?: unknown };
+    expect(typeof meta.supersededSince).toBe('number');
+    expect(SW).toMatch(/SUPERSEDED_MAX_MS = 48 \* 3_600_000/);
+    // With no network at all, the old copy still opens (within 48 hours).
+    offline = true;
+    const page = await s.fire('fetch', { request: req('/records', { mode: 'navigate' }) });
+    expect(await page.response?.text()).toBe('<html>app</html>');
+  });
+
+  it('never sends the holder key while a check or prove page is open (SW-3)', async () => {
+    let url = `${ORIGIN}/verify/VEIL-1`;
+    const s = scope(release(APP, COMMIT_A), { pageUrl: () => url });
+    const sync = s.handlers.sync[0];
+    const run = async () => {
+      let waited: Promise<unknown> = Promise.resolve();
+      sync({ tag: 'veilcore-send', waitUntil: (p: Promise<unknown>) => (waited = p) });
+      return waited;
+    };
+    await expect(run()).rejects.toThrow(/check or prove page is open/);
+    url = `${ORIGIN}/prove/PR-1`;
+    await expect(run()).rejects.toThrow(/check or prove page is open/);
+    expect(s.fetched.filter((p) => p.includes('/api/records/dating'))).toEqual([]);
+    // Checked again right before the request, so a page opened while the queue was read still
+    // stops it (re-check of the PR #145 fixes).
+    expect(SW).toMatch(/await pausedCheck\(\);\s*const res = await fetch\(`\$\{API_BASE\}\/api\/records\/dating`/);
   });
 });
 
@@ -286,19 +393,26 @@ describe('checking the site covers the worker (release-check.mjs)', () => {
         headers: u.endsWith('/sw.js') ? headers : {},
       })) as typeof fetch;
   const H = { 'content-type': 'text/javascript', 'cache-control': SW_CACHE_CONTROL };
+  /** The worker as a release writes it: hashes for the page and /a.js, the page's headers. */
+  const fill = (hashes: Record<string, string>, page: Record<string, string> | null) =>
+    SW.replace("'__VEILCORE_SHELL_FILES__'", JSON.stringify(hashes)).replace(
+      "'__VEILCORE_PAGE_HEADERS__'",
+      page ? JSON.stringify(page) : "'__VEILCORE_PAGE_HEADERS__'",
+    );
+  const WSW = fill({ '/index.html': 'x', '/a.js': 'z' }, { 'content-security-policy': "default-src 'self'" });
 
   it('passes the built worker served no-cache, keeping only listed files', async () => {
     const r = await checkServiceWorker(
       ORIGIN,
-      manifest({ '/sw.js': sha(SW), '/offline-shell.json': 'y', '/a.js': 'z' }),
+      manifest({ '/sw.js': sha(WSW), '/offline-shell.json': 'y', '/a.js': 'z', '/index.html': 'x' }),
       {
-        fetchImpl: fake(SW, H),
+        fetchImpl: fake(WSW, H),
       },
     );
     expect(r).toEqual({ ok: true, wrong: [] });
   });
   it('fails a worker cached by the browser, one that keeps unlisted files, or a kill-switch build that answers requests', async () => {
-    const files = { '/sw.js': sha(SW), '/offline-shell.json': 'y', '/a.js': 'z' };
+    const files = { '/sw.js': sha(WSW), '/offline-shell.json': 'y', '/a.js': 'z', '/index.html': 'x' };
     // Another worker to a worker's request than the one listed: caught.
     expect((await checkServiceWorker(ORIGIN, manifest(files), { fetchImpl: fake(KILL, H) })).wrong[0].problem).toMatch(
       /not the listed file/,
@@ -306,16 +420,16 @@ describe('checking the site covers the worker (release-check.mjs)', () => {
     expect(
       (
         await checkServiceWorker(ORIGIN, manifest(files), {
-          fetchImpl: fake(SW, { ...H, 'cache-control': 'max-age=3600' }),
+          fetchImpl: fake(WSW, { ...H, 'cache-control': 'max-age=3600' }),
         })
       ).ok,
     ).toBe(false);
     expect(
-      (await checkServiceWorker(ORIGIN, manifest(files), { fetchImpl: fake(SW, H, '{"files":["/b.js"]}') })).wrong[0]
+      (await checkServiceWorker(ORIGIN, manifest(files), { fetchImpl: fake(WSW, H, '{"files":["/b.js"]}') })).wrong[0]
         .path,
     ).toBe('/b.js');
     expect(
-      (await checkServiceWorker(ORIGIN, manifest(files, { VITE_OFFLINE: 'off' }), { fetchImpl: fake(SW, H) })).ok,
+      (await checkServiceWorker(ORIGIN, manifest(files, { VITE_OFFLINE: 'off' }), { fetchImpl: fake(WSW, H) })).ok,
     ).toBe(false);
     expect(
       (
@@ -324,6 +438,59 @@ describe('checking the site covers the worker (release-check.mjs)', () => {
         })
       ).ok,
     ).toBe(true);
+  });
+  it('requires the listed Content-Security-Policy on the worker too (R-1)', async () => {
+    const files = { '/sw.js': sha(WSW), '/offline-shell.json': 'y', '/a.js': 'z', '/index.html': 'x' };
+    const listed = {
+      ...(manifest(files) as object),
+      headers: { 'content-security-policy': "default-src 'self'" },
+    } as never;
+    const without = await checkServiceWorker(ORIGIN, listed, { fetchImpl: fake(WSW, H) });
+    expect(without.wrong.map((w) => w.problem)).toContain('not served with the listed Content-Security-Policy');
+    const withCsp = await checkServiceWorker(ORIGIN, listed, {
+      fetchImpl: fake(WSW, { ...H, 'content-security-policy': "default-src 'self'" }),
+    });
+    expect(withCsp.ok).toBe(true);
+  });
+  it('holds what the worker checks kept files against, and the page headers it keeps, to the release list (SW-1)', async () => {
+    const check = async (sw: string) =>
+      (
+        await checkServiceWorker(
+          ORIGIN,
+          {
+            ...(manifest({
+              '/sw.js': sha(sw),
+              '/offline-shell.json': 'y',
+              '/a.js': 'z',
+              '/index.html': 'x',
+            }) as object),
+            headers: { 'content-security-policy': "default-src 'self'" },
+          } as never,
+          { fetchImpl: fake(sw, { ...H, 'content-security-policy': "default-src 'self'" }) },
+        )
+      ).wrong.map((w) => w.problem);
+    expect(await check(WSW)).toEqual([]);
+    expect(
+      await check(fill({ '/index.html': 'x', '/a.js': 'evil' }, { 'content-security-policy': "default-src 'self'" })),
+    ).toContain('the worker holds it to another SHA-256 than the release list');
+    expect(await check(fill({ '/index.html': 'x' }, { 'content-security-policy': "default-src 'self'" }))).toContain(
+      'kept for offline use but the worker has no SHA-256 for it',
+    );
+    expect(
+      await check(fill({ '/index.html': 'x', '/a.js': 'z' }, { 'content-security-policy': 'script-src *' })),
+    ).toContain('serves its kept page with another Content-Security-Policy than the listed one');
+    expect(await check(fill({ '/index.html': 'x', '/a.js': 'z' }, null))).toContain(
+      'has no headers for the page it keeps',
+    );
+    expect(await check(SW)).toContain('has no SHA-256 for the files it keeps');
+    // A release list with no headers: a worker without them never serves the kept page, so it passes.
+    const noHeaders = fill({ '/index.html': 'x', '/a.js': 'z' }, null);
+    const listed = await checkServiceWorker(
+      ORIGIN,
+      manifest({ '/sw.js': sha(noHeaders), '/offline-shell.json': 'y', '/a.js': 'z', '/index.html': 'x' }),
+      { fetchImpl: fake(noHeaders, H) },
+    );
+    expect(listed.wrong).toEqual([]);
   });
   it('says a release from before the worker wasn’t checked, and a whole check fails on a bad worker', async () => {
     expect((await checkServiceWorker(ORIGIN, manifest({ '/a.js': 'z' }))).skipped).toMatch(/no offline worker/);
@@ -368,30 +535,33 @@ describe('the deploy’s headers (vercel-config.mjs)', () => {
 describe('a record sealed with no signal, and its own timestamp', () => {
   afterEach(() => vi.restoreAllMocks());
 
-  it('says when by the device’s clock, and that it is dated when sent: never a date', () => {
+  it('says when by the device’s clock, not checked, and that it is dated when sent: never a date', () => {
     const at = new Date(2026, 10, 19, 5, 2).getTime();
     const phone = sealedHereWords(at, enT, 'phone');
-    expect(phone).toMatch(/^Sealed on this phone at .*0?5:02.* \(your phone’s clock\)\. Dated when it’s sent\.$/);
-    expect(sealedHereWords(at, enT, 'computer')).toMatch(/this computer .* \(your computer’s clock\)/);
+    expect(phone).toMatch(
+      /^Sealed on this phone at .*0?5:02.* \(your phone’s clock, not checked\)\. Dated when it’s sent\.$/,
+    );
+    expect(sealedHereWords(at, enT, 'computer')).toMatch(/this computer .* \(your computer’s clock, not checked\)/);
   });
 
-  it('timestamp lines: the first says the Midnight date follows until the batch has one', () => {
+  it('timestamp lines lead with the minute, and say the Midnight date follows until the batch has one', () => {
     const state = {
       status: 'stamped',
       stillAsking: false,
+      disagree: false,
       tokens: [
-        { tsa: 'freetsa.org', at: '2026-11-19T14:03:12Z' },
-        { tsa: 'timestamp.sectigo.com', at: '2026-11-19T14:03:14Z' },
+        { tsa: 'FreeTSA', at: '2026-11-19T14:03:12Z' },
+        { tsa: 'DigiCert', at: '2026-11-19T14:03:14Z' },
       ],
     } as const;
     expect(instantLines(state, false, enT)).toEqual([
-      'Timestamped 2026-11-19 14:03:12 UTC by freetsa.org (as its key names it) — the date on Midnight, the blockchain, follows in the next batch.',
-      'Also timestamped 2026-11-19 14:03:14 UTC by timestamp.sectigo.com (as its key names it).',
+      'Timestamped 2026-11-19 14:03 UTC by FreeTSA — the date on Midnight, the blockchain, follows in the next batch.',
+      'Also timestamped 2026-11-19 14:03 UTC by DigiCert.',
     ]);
-    expect(instantLines(state, true, enT)[0]).toBe(
-      'Also timestamped 2026-11-19 14:03:12 UTC by freetsa.org (as its key names it).',
-    );
+    expect(instantLines(state, true, enT)[0]).toBe('Also timestamped 2026-11-19 14:03 UTC by FreeTSA.');
     expect(instantLines({ status: 'none' }, false, enT)).toEqual([]);
+    // Authorities more than five minutes apart: none leads (TSA-5).
+    expect(instantLines({ ...state, disagree: true }, false, enT)).toEqual([enT.t('app.instant.disagree')]);
   });
 
   it('each timestamp is its own fact: signed and checked here with the link’s proof code, the registry’s word without', () => {
@@ -401,67 +571,223 @@ describe('a record sealed with no signal, and its own timestamp', () => {
       testNetwork: false,
       signers: [],
       instant: [
-        { tsa: 'freetsa.org', at: '2026-11-19T14:03:12Z' },
-        { tsa: 'timestamp.digicert.com', at: '2026-11-19T14:03:13Z' },
+        { tsa: 'FreeTSA', at: '2026-11-19T14:03:12Z' },
+        { tsa: 'DigiCert', at: '2026-11-19T14:03:13Z' },
       ],
     };
     const bound = whoVouches({ ...base, bound: true }).filter((r) => r.fact.startsWith('A timestamp'));
     expect(bound.map((r) => [r.fact, r.basis])).toEqual([
-      ['A timestamp (freetsa.org)', 'signed'],
-      ['A timestamp (timestamp.digicert.com)', 'signed'],
+      ['A timestamp (FreeTSA)', 'signed'],
+      ['A timestamp (DigiCert)', 'signed'],
     ]);
     expect(bound[0].who).toBe(
-      '2026-11-19 14:03:12 UTC. This page checked its signature. The name is the key’s own; who issued the key isn’t checked here.',
+      '2026-11-19 14:03:12 UTC. This page checked its signature, made with the key this site lists for that authority.',
     );
     expect(
       whoVouches({ ...base, bound: false })
         .filter((r) => r.fact.startsWith('A timestamp'))
         .every((r) => r.basis === 'registry'),
     ).toBe(true);
+    expect(whoVouches({ ...base, bound: true, instantDisagree: true })[1].who).toMatch(
+      /disagree by more than five minutes/,
+    );
   });
 
-  it('shows a token only once it checks here against the proof code; an older registry shows nothing', async () => {
+  it('shows a token only when a pinned certificate signed it, over this proof code, named from the pin (TSA-1)', async () => {
     const fp = 'ab'.repeat(32);
     const answer = (status: number, body: unknown) =>
       (async () => new Response(JSON.stringify(body), { status })) as typeof fetch;
+    const stampedBy = (token: string, extra: Record<string, unknown> = {}) =>
+      answer(200, {
+        status: 'stamped',
+        tokens: [{ kind: 'rfc3161', token, tsa: 'https://timestamp.digicert.com/', ...extra }],
+      });
     expect(await instantStampFor(fp, answer(404, { error: 'Not Found' }))).toEqual({ status: 'none' });
     expect(await instantStampFor(fp, answer(202, { status: 'queued' }))).toEqual({ status: 'asking' });
-    expect(
-      await instantStampFor(
-        fp,
-        answer(200, { status: 'stamped', tokens: [{ kind: 'rfc3161', token: 'AAAA', tsa: 'https://x/' }] }),
-      ),
-    ).toEqual({ status: 'none' });
+    expect(await instantStampFor(fp, stampedBy('AAAA'))).toEqual({ status: 'none' });
     expect(await instantStampFor('not-hex', answer(200, {}))).toEqual({ status: 'none' });
-    // A real token (a local openssl TSA), on this proof code: shown, with its own time. On another: not.
-    let token: string;
+    let tsa: UnitTsa;
+    let forger: UnitTsa;
     try {
-      token = opensslToken(fp);
+      tsa = unitTsa('Unit TSA');
+      // A registry's own key, made to look like an authority: same name, same time-stamping use.
+      forger = unitTsa('timestamp.digicert.com');
     } catch {
       return; // no openssl here: the browser test (e2e/offline.spec.ts) checks a real token
     }
+    const pins = [{ name: 'Unit Authority', certSha256: tsa.certSha256 }];
+    const good = tsa.token(fp);
     const stamped = await instantStampFor(
       fp,
-      answer(200, {
-        status: 'stamped',
-        tokens: [{ kind: 'rfc3161', token, tsa: 'https://tsa.example/x', genTime: '1999-01-01T00:00:00Z' }],
-      }),
+      stampedBy(good, { genTime: '1999-01-01T00:00:00Z', qualified: { scheme: 'eIDAS' } }),
+      pins,
     );
     expect(stamped.status).toBe('stamped');
     if (stamped.status === 'stamped') {
-      expect(stamped.tokens[0].tsa).toBe('Unit TSA'); // the signing certificate's name, not the registry's label
+      expect(stamped.tokens).toHaveLength(1);
+      expect(stamped.tokens[0].tsa).toBe('Unit Authority'); // the pin's name, not the certificate's or the registry's
       expect(stamped.tokens[0].at).not.toBe('1999-01-01T00:00:00Z'); // the token's time, not the registry's
+      expect(Object.keys(stamped.tokens[0]).sort()).toEqual(['at', 'tsa']); // no "qualified" (TSA-6)
+      expect(stamped.disagree).toBe(false);
     }
-    expect(
-      await instantStampFor(
-        'cd'.repeat(32),
-        answer(200, { status: 'stamped', tokens: [{ kind: 'rfc3161', token, tsa: 'https://tsa.example/' }] }),
-      ),
-    ).toEqual({ status: 'none' });
+    // Signed by a key nobody pinned, however it is named: not shown.
+    expect(await instantStampFor(fp, stampedBy(forger.token(fp)), pins)).toEqual({ status: 'none' });
+    // Carrying the pinned certificate beside the forger's own signature: still not.
+    expect(await instantStampFor(fp, stampedBy(forger.tokenWithExtraCert(fp, tsa.certPem)), pins)).toEqual({
+      status: 'none',
+    });
+    // The re-check's attack: a certificate of the forger's own whose second extensions block
+    // carries the pinned certificate's key identifier, beside the pinned certificate, and the
+    // signer named by that identifier. A parser that keeps the last identifier checks the
+    // signature with the forger's key; one that keeps the first finds the pinned certificate.
+    expect(await instantStampFor(fp, stampedBy(twoBlockForgery(forger.token(fp), tsa.certPem)), pins)).toEqual({
+      status: 'none',
+    });
+    // A pinned token on another proof code: not.
+    expect(await instantStampFor('cd'.repeat(32), stampedBy(good), pins)).toEqual({ status: 'none' });
+    // No pins at all: nothing.
+    expect(await instantStampFor(fp, stampedBy(good), [])).toEqual({ status: 'none' });
+    // The same certificate twice: one token (TSA-5).
+    const twice = await instantStampFor(
+      fp,
+      answer(200, {
+        status: 'stamped',
+        tokens: [
+          { kind: 'rfc3161', token: good, tsa: 'a' },
+          { kind: 'rfc3161', token: tsa.token(fp), tsa: 'b' },
+        ],
+      }),
+      pins,
+    );
+    expect(twice.status === 'stamped' && twice.tokens.length).toBe(1);
+  });
+
+  it('the pins the site ships are well formed, and each names its checked certificate in docs/tsa-pins', () => {
+    const file = JSON.parse(fs.readFileSync(path.resolve(HERE, '../config/tsa-pins.json'), 'utf8')) as {
+      format: string;
+      pins: { name: string; certSha256: string; file: string; notBefore: string; validUntil: string }[];
+    };
+    expect(file.format).toBe('veilcore-tsa-pins/v1');
+    expect(TSA_PINS.length).toBe(file.pins.length);
+    for (const p of file.pins) {
+      const pem = fs.readFileSync(path.resolve(HERE, '../../..', p.file), 'utf8');
+      const der = Buffer.from(pem.replace(/-----[^-]+-----|\s/g, ''), 'base64');
+      expect(sha(der as unknown as string), p.file).toBe(p.certSha256);
+      // Its window is the certificate's own life.
+      const x = new X509Certificate(der);
+      expect(Date.parse(p.notBefore), p.file).toBe(Date.parse(x.validFrom));
+      expect(Date.parse(p.validUntil), p.file).toBe(Date.parse(x.validTo));
+    }
+  });
+
+  it('a pinned token counts only within its certificate’s life', () => {
+    const pin = {
+      name: 'A',
+      certSha256: 'ab'.repeat(32),
+      notBefore: '2026-01-01T00:00:00Z',
+      validUntil: '2030-01-01T00:00:00Z',
+    };
+    expect(withinPin(pin, '2026-11-20T12:00:00Z')).toBe(true);
+    expect(withinPin(pin, '2025-12-31T23:59:59Z')).toBe(false);
+    expect(withinPin(pin, '2030-01-01T00:00:01Z')).toBe(false);
+    expect(withinPin({ ...pin, validUntil: 'not a date' }, '2026-11-20T12:00:00Z')).toBe(false);
+    expect(withinPin({ name: 'B', certSha256: pin.certSha256 }, '2026-11-20T12:00:00Z')).toBe(true);
+    expect(withinPin(pin, 'not a date')).toBe(false);
   });
 });
 
-const opensslToken = (fp: string): string => {
+// ---- DER surgery for the two-extension-block attack ----------------------------------------
+type Node = { tag: number; s: number; e: number; w: Buffer };
+const tlvAt = (b: Buffer, at: number): Node => {
+  let len = b[at + 1];
+  let h = 2;
+  if (len & 0x80) {
+    const n = len & 0x7f;
+    len = 0;
+    for (let i = 0; i < n; i++) len = len * 256 + b[at + 2 + i];
+    h = 2 + n;
+  }
+  return { tag: b[at], s: at + h, e: at + h + len, w: b.subarray(at, at + h + len) };
+};
+const kidsOf = (b: Buffer, n: Node): Node[] => {
+  const o: Node[] = [];
+  for (let a = n.s; a < n.e; ) {
+    const k = tlvAt(b, a);
+    o.push(k);
+    a = k.e;
+  }
+  return o;
+};
+const enc = (tag: number, ...parts: Buffer[]): Buffer => {
+  const body = Buffer.concat(parts);
+  const n = body.length;
+  const l =
+    n < 0x80
+      ? [n]
+      : n < 0x100
+        ? [0x81, n]
+        : n < 0x10000
+          ? [0x82, n >> 8, n & 255]
+          : [0x83, n >> 16, (n >> 8) & 255, n & 255];
+  return Buffer.concat([Buffer.from([tag, ...l]), body]);
+};
+const skiOf = (certDer: Buffer): Buffer => {
+  const tbs = kidsOf(certDer, kidsOf(certDer, tlvAt(certDer, 0))[0]);
+  const [list] = kidsOf(certDer, tbs.find((x) => x.tag === 0xa3)!);
+  for (const e of kidsOf(certDer, list)) {
+    const parts = kidsOf(certDer, e);
+    if (parts[0].w.equals(Buffer.from('0603551d0e', 'hex'))) {
+      const inner = tlvAt(certDer, parts[parts.length - 1].s);
+      return certDer.subarray(inner.s, inner.e);
+    }
+  }
+  throw new Error('no subject key identifier');
+};
+/** The forger's token, re-made as described above (its signature over the signed attributes is untouched). */
+const twoBlockForgery = (tokenB64: string, pinnedPem: string): string => {
+  const pinned = Buffer.from(pinnedPem.replace(/-----[^-]+-----|\s/g, ''), 'base64');
+  const pinnedSki = skiOf(pinned);
+  let b = Buffer.from(tokenB64, 'base64');
+  // A full TimeStampResp: the token is its second field.
+  const top = kidsOf(b, tlvAt(b, 0));
+  if (top[0].tag === 0x30 && top[1]?.tag === 0x30) b = Buffer.from(top[1].w);
+  const [ct, ex] = kidsOf(b, tlvAt(b, 0));
+  const sd = kidsOf(b, kidsOf(b, ex)[0]);
+  const ci = sd.findIndex((k) => k.tag === 0xa0);
+  const forgerCert = kidsOf(b, sd[ci]).find((c) => !c.w.equals(pinned))!;
+  const cc = kidsOf(b, forgerCert);
+  const tbs = kidsOf(b, cc[0]);
+  const second = enc(
+    0xa3,
+    enc(0x30, enc(0x30, Buffer.from('0603551d0e', 'hex'), enc(0x04, enc(0x04, Buffer.from(pinnedSki))))),
+  );
+  const certA = enc(
+    0x30,
+    enc(0x30, ...tbs.map((x) => Buffer.from(x.w)), second),
+    Buffer.from(cc[1].w),
+    Buffer.from(cc[2].w),
+  );
+  const [si] = kidsOf(b, sd[sd.length - 1]);
+  const siParts = kidsOf(b, si);
+  const nsi = enc(
+    0x30,
+    ...siParts.map((x, i) =>
+      i === 0 ? enc(0x02, Buffer.from([3])) : i === 1 ? enc(0x80, Buffer.from(pinnedSki)) : Buffer.from(x.w),
+    ),
+  );
+  const nsd = sd.map((x, i) =>
+    i === ci ? enc(0xa0, certA, pinned) : i === sd.length - 1 ? enc(0x31, nsi) : Buffer.from(x.w),
+  );
+  return enc(0x30, Buffer.from(ct.w), enc(0xa0, enc(0x30, ...nsd))).toString('base64');
+};
+
+type UnitTsa = {
+  certSha256: string;
+  certPem: string;
+  token: (fp: string) => string;
+  tokenWithExtraCert: (fp: string, extraPem: string) => string;
+};
+const unitTsa = (cn: string): UnitTsa => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'unit-tsa-'));
   const ssl = (...a: string[]) => execFileSync('openssl', a, { cwd: dir, stdio: ['ignore', 'pipe', 'pipe'] });
   fs.writeFileSync(
@@ -475,39 +801,34 @@ const opensslToken = (fp: string): string => {
     'rsa:2048',
     '-nodes',
     '-keyout',
-    'ca.key',
-    '-out',
-    'ca.pem',
-    '-days',
-    '2',
-    '-subj',
-    '/CN=Unit TSA Root',
-  );
-  ssl('req', '-newkey', 'rsa:2048', '-nodes', '-keyout', 'tsa.key', '-out', 'tsa.csr', '-subj', '/CN=Unit TSA');
-  ssl(
-    'x509',
-    '-req',
-    '-in',
-    'tsa.csr',
-    '-CA',
-    'ca.pem',
-    '-CAkey',
-    'ca.key',
-    '-CAcreateserial',
+    'tsa.key',
     '-out',
     'tsa.pem',
     '-days',
     '2',
-    '-extfile',
-    'ext.cnf',
+    '-subj',
+    `/CN=${cn}`,
+    '-addext',
+    'extendedKeyUsage=critical,timeStamping',
   );
   fs.writeFileSync(
     path.join(dir, 'tsa.cnf'),
     `[ tsa ]\ndefault_tsa = t\n[ t ]\ndir = ${dir}\nserial = ${dir}/serial\nsigner_cert = ${dir}/tsa.pem\nsigner_key = ${dir}/tsa.key\nsigner_digest = sha256\ndefault_policy = 1.2.3.4.1\ndigests = sha256\ness_cert_id_alg = sha256\naccuracy = secs:1\nordering = no\ntsa_name = no\ness_cert_id_chain = no\ncerts = ${dir}/tsa.pem\n`,
   );
   fs.writeFileSync(path.join(dir, 'serial'), '01\n');
-  fs.writeFileSync(path.join(dir, 'pc.bin'), Buffer.from(fp, 'hex'));
-  ssl('ts', '-query', '-data', 'pc.bin', '-sha256', '-cert', '-out', 'q.tsq');
-  ssl('ts', '-reply', '-config', 'tsa.cnf', '-queryfile', 'q.tsq', '-out', 'r.tsr');
-  return fs.readFileSync(path.join(dir, 'r.tsr')).toString('base64');
+  const certPem = fs.readFileSync(path.join(dir, 'tsa.pem'), 'utf8');
+  const der = execFileSync('openssl', ['x509', '-in', path.join(dir, 'tsa.pem'), '-outform', 'DER']);
+  const reply = (fp: string, certs: string) => {
+    fs.writeFileSync(path.join(dir, 'pc.bin'), Buffer.from(fp, 'hex'));
+    fs.writeFileSync(path.join(dir, 'chain.pem'), certs);
+    ssl('ts', '-query', '-data', 'pc.bin', '-sha256', '-cert', '-out', 'q.tsq');
+    ssl('ts', '-reply', '-config', 'tsa.cnf', '-queryfile', 'q.tsq', '-chain', 'chain.pem', '-out', 'r.tsr');
+    return fs.readFileSync(path.join(dir, 'r.tsr')).toString('base64');
+  };
+  return {
+    certSha256: createHash('sha256').update(der).digest('hex'),
+    certPem,
+    token: (fp) => reply(fp, certPem),
+    tokenWithExtraCert: (fp, extra) => reply(fp, `${extra}${certPem}`),
+  };
 };

@@ -120,6 +120,13 @@ export const startOffline = (): void => {
     set({ online: true });
     window.dispatchEvent(new Event(SEND_NOW_EVENT));
     void navigator.serviceWorker?.controller?.postMessage({ type: 'veilcore-check' });
+    // And a new worker, if there is one: each release's worker holds the files of its own copy
+    // (offline/sw.js SHELL_FILES), so the copy of a new release is served by the new worker.
+    if (OFFLINE_ON && !import.meta.env.DEV)
+      void navigator.serviceWorker
+        ?.getRegistration()
+        .then((r) => r?.update())
+        .catch(() => undefined);
   });
   window.addEventListener('offline', () => set({ online: false }));
   window.addEventListener('beforeinstallprompt', (e) => {
@@ -142,6 +149,15 @@ export const startOffline = (): void => {
     } catch {
       /* nothing kept */
     }
+    // And the copies themselves: this page may unregister the old worker before the browser has
+    // fetched the kill switch, which would then never run (security review of PR #145, K-1).
+    void (async () => {
+      try {
+        for (const k of await caches.keys()) if (k.startsWith('veilcore-')) await caches.delete(k);
+      } catch {
+        /* no Cache Storage here */
+      }
+    })();
     return;
   }
   // `npm run dev` serves source files, not a release: no worker there.

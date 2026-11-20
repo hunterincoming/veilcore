@@ -4,9 +4,9 @@ import type { AppTranslation } from '../../translate';
 
 export const offline = {
   'app.offline.sealedHere.phone':
-    'Sellado en este teléfono a las {time} (según el reloj de su teléfono). Se fecha cuando se envía.',
+    'Sellado en este teléfono a las {time} (según el reloj de su teléfono, sin comprobar). Se fecha cuando se envía.',
   'app.offline.sealedHere.computer':
-    'Sellado en esta computadora a las {time} (según el reloj de su computadora). Se fecha cuando se envía.',
+    'Sellado en esta computadora a las {time} (según el reloj de su computadora, sin comprobar). Se fecha cuando se envía.',
   'app.offline.short': 'Sellado {time}, se fecha al enviarse',
   'app.offline.goesBySelf': 'Su código de prueba se envía solo cuando vuelva a tener conexión.',
   'app.offline.bar':
@@ -30,15 +30,18 @@ export const offline = {
   'app.install.dismiss': 'Ahora no',
 
   'app.instant.pending':
-    'Sello de tiempo {time} de {tsa} (como lo nombra su clave) — la fecha en Midnight, la blockchain, llega con el próximo lote.',
-  'app.instant.also': 'También tiene sello de tiempo {time} de {tsa} (como lo nombra su clave).',
+    'Sello de tiempo {time} de {tsa} — la fecha en Midnight, la blockchain, llega con el próximo lote.',
+  'app.instant.also': 'También tiene sello de tiempo {time} de {tsa}.',
   'app.instant.asking': 'Pidiendo un sello de tiempo a una autoridad de sellado de tiempo…',
   'app.instant.fact':
-    'Sello de tiempo de una clave llamada {tsa} (nombre no comprobado): {time}. Esta página comprobó su firma sobre el código de prueba. Muestra que el código de prueba ya existía a esa hora; no dice nada sobre antes.',
+    'Sello de tiempo de {tsa}: {time}. Esta página comprobó su firma sobre el código de prueba, hecha con la clave que este sitio indica para {tsa}. Muestra que el código de prueba ya existía a esa hora; no dice nada sobre antes.',
   'app.verify.who.tsa': 'Un sello de tiempo ({tsa})',
   'app.verify.who.tsa.checked':
-    '{time}. Esta página comprobó su firma. El nombre es el que da la propia clave; quién emitió la clave no se comprueba aquí.',
+    '{time}. Esta página comprobó su firma, hecha con la clave que este sitio indica para esa autoridad.',
   'app.verify.who.tsa.unbound':
-    '{time}. Esta página comprobó su firma, pero el enlace no lleva un código de prueba para compararlo. Pida a quien se lo envió el enlace de comprobación completo.',
+    '{time}. Esta página comprobó su firma, hecha con la clave que este sitio indica para esa autoridad, pero el enlace no lleva un código de prueba para compararlo. Pida a quien se lo envió el enlace de comprobación completo.',
   'app.offline.goesOnOpen': 'Su código de prueba se envía la próxima vez que abra VeilCore con señal.',
+  'app.instant.disagree':
+    'Los sellos de tiempo de más de una autoridad difieren en más de cinco minutos. La página de comprobación del registro muestra cada uno.',
+  'app.verify.who.tsa.disagree': 'Estos sellos de tiempo difieren en más de cinco minutos.',
 } satisfies Partial<AppTranslation>;

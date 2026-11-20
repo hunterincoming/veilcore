@@ -4,9 +4,9 @@ import type { AppTranslation } from '../../translate';
 
 export const offline = {
   'app.offline.sealedHere.phone':
-    'Scellé sur ce téléphone à {time} (selon l’horloge de votre téléphone). Daté quand il est envoyé.',
+    'Scellé sur ce téléphone à {time} (selon l’horloge de votre téléphone, non vérifiée). Daté quand il est envoyé.',
   'app.offline.sealedHere.computer':
-    'Scellé sur cet ordinateur à {time} (selon l’horloge de votre ordinateur). Daté quand il est envoyé.',
+    'Scellé sur cet ordinateur à {time} (selon l’horloge de votre ordinateur, non vérifiée). Daté quand il est envoyé.',
   'app.offline.short': 'Scellé {time}, daté à l’envoi',
   'app.offline.goesBySelf': 'Son code de preuve part tout seul quand vous êtes de nouveau en ligne.',
   'app.offline.bar':
@@ -31,15 +31,18 @@ export const offline = {
   'app.install.dismiss': 'Pas maintenant',
 
   'app.instant.pending':
-    'Horodaté à {time} par le service {tsa} (nom donné par sa clé) — la date sur Midnight, la blockchain, suit avec le prochain lot.',
-  'app.instant.also': 'Horodaté aussi à {time} par le service {tsa} (nom donné par sa clé).',
+    'Horodaté à {time} par le service {tsa} — la date sur Midnight, la blockchain, suit avec le prochain lot.',
+  'app.instant.also': 'Horodaté aussi à {time} par le service {tsa}.',
   'app.instant.asking': 'Demande d’un jeton d’horodatage à un service d’horodatage…',
   'app.instant.fact':
-    'Jeton d’horodatage d’une clé nommée {tsa} (nom non vérifié) : {time}. Cette page a vérifié sa signature sur le code de preuve. Il montre que le code de preuve existait à cette heure ; il ne dit rien de plus ancien.',
+    'Jeton d’horodatage de {tsa} : {time}. Cette page a vérifié sa signature sur le code de preuve, faite avec la clé que ce site indique pour {tsa}. Il montre que le code de preuve existait à cette heure ; il ne dit rien de plus ancien.',
   'app.verify.who.tsa': 'Un jeton d’horodatage ({tsa})',
   'app.verify.who.tsa.checked':
-    '{time}. Cette page a vérifié sa signature. Le nom est celui que donne la clé ; qui l’a délivrée n’est pas vérifié ici.',
+    '{time}. Cette page a vérifié sa signature, faite avec la clé que ce site indique pour ce service.',
   'app.verify.who.tsa.unbound':
-    '{time}. Cette page a vérifié sa signature, mais le lien ne contient pas de code de preuve pour le rapprocher. Demandez à l’expéditeur le lien de vérification complet.',
+    '{time}. Cette page a vérifié sa signature, faite avec la clé que ce site indique pour ce service, mais le lien ne contient pas de code de preuve pour le rapprocher. Demandez à l’expéditeur le lien de vérification complet.',
   'app.offline.goesOnOpen': 'Son code de preuve part la prochaine fois que vous ouvrez VeilCore avec du réseau.',
+  'app.instant.disagree':
+    'Les jetons d’horodatage de plusieurs services diffèrent de plus de cinq minutes. La page de vérification de l’enregistrement les liste tous.',
+  'app.verify.who.tsa.disagree': 'Ces jetons d’horodatage diffèrent de plus de cinq minutes.',
 } satisfies Partial<AppTranslation>;

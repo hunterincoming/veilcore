@@ -51,6 +51,8 @@ export type WhoInput = {
   }[];
   /** The record's own timestamps, each checked on this page against the proof code (instant-stamp.ts). */
   readonly instant?: readonly { readonly tsa: string; readonly at: string }[];
+  /** Those timestamps are more than five minutes apart (instant-stamp.ts DISAGREE_MS). */
+  readonly instantDisagree?: boolean;
   /** How many signatures to list before "and N more". */
   readonly max?: number;
   /**
@@ -91,7 +93,9 @@ export const whoVouches = (i: WhoInput, tr: Translator = enT): WhoRow[] => {
   for (const tok of i.instant ?? [])
     rows.push({
       fact: t(tr, 'app.verify.who.tsa', { tsa: tok.tsa }),
-      who: t(tr, i.bound ? 'app.verify.who.tsa.checked' : 'app.verify.who.tsa.unbound', { time: utcSeconds(tok.at) }),
+      who:
+        t(tr, i.bound ? 'app.verify.who.tsa.checked' : 'app.verify.who.tsa.unbound', { time: utcSeconds(tok.at) }) +
+        (i.instantDisagree ? `${t(tr, 'app.signer.sep')}${t(tr, 'app.verify.who.tsa.disagree')}` : ''),
       basis: i.bound ? 'signed' : 'registry',
     });
   if (i.document) {

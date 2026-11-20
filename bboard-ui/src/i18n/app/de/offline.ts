@@ -4,9 +4,9 @@ import type { AppTranslation } from '../../translate';
 
 export const offline = {
   'app.offline.sealedHere.phone':
-    'Auf diesem Handy versiegelt um {time} (Uhr Ihres Handys). Der Datensatz wird datiert, wenn er gesendet ist.',
+    'Auf diesem Handy versiegelt um {time} (Uhr Ihres Handys, nicht geprüft). Der Datensatz wird datiert, wenn er gesendet ist.',
   'app.offline.sealedHere.computer':
-    'Auf diesem Computer versiegelt um {time} (Uhr Ihres Computers). Der Datensatz wird datiert, wenn er gesendet ist.',
+    'Auf diesem Computer versiegelt um {time} (Uhr Ihres Computers, nicht geprüft). Der Datensatz wird datiert, wenn er gesendet ist.',
   'app.offline.short': 'Versiegelt {time}, datiert beim Senden',
   'app.offline.goesBySelf': 'Sein Prüfcode wird von selbst gesendet, sobald Sie wieder online sind.',
   'app.offline.bar':
@@ -31,15 +31,18 @@ export const offline = {
   'app.install.dismiss': 'Nicht jetzt',
 
   'app.instant.pending':
-    'Zeitstempel {time} von {tsa} (so nennt sich sein Schlüssel) — das Datum auf Midnight, der Blockchain, folgt mit dem nächsten Stapel.',
-  'app.instant.also': 'Außerdem Zeitstempel {time} von {tsa} (so nennt sich sein Schlüssel).',
+    'Zeitstempel {time} von {tsa} — das Datum auf Midnight, der Blockchain, folgt mit dem nächsten Stapel.',
+  'app.instant.also': 'Außerdem Zeitstempel {time} von {tsa}.',
   'app.instant.asking': 'Zeitstempel wird bei einem Zeitstempeldienst angefragt…',
   'app.instant.fact':
-    'Zeitstempel von einem Schlüssel namens {tsa} (Name nicht geprüft): {time}. Diese Seite hat seine Signatur über dem Prüfcode geprüft. Er zeigt, dass der Prüfcode spätestens zu diesem Zeitpunkt vorlag; über die Zeit davor sagt er nichts.',
+    'Zeitstempel von {tsa}: {time}. Diese Seite hat seine Signatur über dem Prüfcode geprüft, erstellt mit dem Schlüssel, den diese Website für {tsa} führt. Er zeigt, dass der Prüfcode spätestens zu diesem Zeitpunkt vorlag; über die Zeit davor sagt er nichts.',
   'app.verify.who.tsa': 'Ein Zeitstempel ({tsa})',
   'app.verify.who.tsa.checked':
-    '{time}. Diese Seite hat die Signatur geprüft. Der Name ist die eigene Angabe des Schlüssels; wer den Schlüssel ausgestellt hat, wird hier nicht geprüft.',
+    '{time}. Diese Seite hat die Signatur geprüft, erstellt mit dem Schlüssel, den diese Website für diesen Dienst führt.',
   'app.verify.who.tsa.unbound':
-    '{time}. Diese Seite hat die Signatur geprüft, aber der Link enthält keinen Prüfcode, um ihn zuzuordnen. Bitten Sie den Absender um den vollständigen Prüflink.',
+    '{time}. Diese Seite hat die Signatur geprüft, erstellt mit dem Schlüssel, den diese Website für diesen Dienst führt, aber der Link enthält keinen Prüfcode, um ihn zuzuordnen. Bitten Sie den Absender um den vollständigen Prüflink.',
   'app.offline.goesOnOpen': 'Sein Prüfcode wird gesendet, wenn Sie VeilCore das nächste Mal mit Netz öffnen.',
+  'app.instant.disagree':
+    'Zeitstempel mehrerer Zeitstempeldienste weichen um mehr als fünf Minuten voneinander ab. Die Prüfseite des Datensatzes führt jeden auf.',
+  'app.verify.who.tsa.disagree': 'Diese Zeitstempel weichen um mehr als fünf Minuten voneinander ab.',
 } satisfies Partial<AppTranslation>;
