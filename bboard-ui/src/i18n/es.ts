@@ -145,12 +145,12 @@ export const es: Strings = {
   'm.home.f4t': 'Resultados firmados por un laboratorio.',
   'm.home.f4p':
     'Un laboratorio firma valores y resultados con su propia clave. Solo usted, el laboratorio y quien envió la muestra los ven, y solo usted puede mostrarlos. En funcionamiento en veilcore.org, en la red principal de Midnight, desde el 18 de noviembre de 2026.',
-  'm.home.f5t': 'Gratis de comprobar.',
+  'm.home.f5t': 'Comprobarlo es gratis.',
   'm.home.f5p': 'Un comprador, un examinador o un tribunal comprueba un registro gratis, sin cuenta y sin billetera.',
   'm.hiw.title1': 'Cómo funciona',
   'm.hiw.title2': 'VeilCore.',
   'm.hiw.lede':
-    'Un formato de registro abierto para genética vegetal, animal y microbiana. Su computadora calcula un código de prueba a partir de su registro, y solo los códigos de prueba se fechan en Midnight. Más adelante usted muestra el registro, o prueba un solo hecho sobre él.',
+    'Un formato de registro abierto para genética vegetal, animal y microbiana. Su computadora calcula un código de prueba a partir de su registro, y ese código se fecha en Midnight. Lo que usted escribió nunca va allí. Más adelante usted muestra el registro, o prueba un solo hecho sobre él.',
   'm.hiw.lab1': 'Una segunda parte,',
   'm.hiw.lab2': 'en el registro.',
   'm.hiw.labP':
@@ -162,7 +162,8 @@ export const es: Strings = {
   'm.hiw.you1t': 'Sus archivos de ADN',
   'm.hiw.you1p': 'Nunca salen de su dispositivo: su computadora lee cada uno para calcular su código.',
   'm.hiw.you2t': 'Los datos del registro',
-  'm.hiw.you2p': 'Se guardan cifrados en el servidor de VeilCore, el nombre incluido. No tenemos la clave.',
+  'm.hiw.you2p':
+    'Se guardan cifrados en el servidor de VeilCore, el nombre incluido, salvo que usted elija mostrarlo. No tenemos la clave.',
   'm.hiw.you3t': 'Su archivo de copia de seguridad',
   'm.hiw.you3p': 'Contiene sus claves. Guárdelo en un lugar seguro.',
   'm.hiw.chainLbl': 'En Midnight',
@@ -180,8 +181,8 @@ export const es: Strings = {
   'm.about.grow1': 'Para quienes',
   'm.about.grow2': 'crían y cultivan.',
   'm.about.growP':
-    'Obtentores, empresas de semillas, laboratorios de cultivo de tejidos y libros genealógicos, y los certificadores y examinadores que revisan su trabajo.',
-  'm.about.whereLabel': 'Dónde estamos',
+    'Obtentores y criadores, empresas de semillas, laboratorios de cultivo de tejidos y libros genealógicos, y los certificadores y examinadores que revisan su trabajo.',
+  'm.about.whereLabel': 'Dónde trabajamos',
   'm.about.where': 'Tokio|Nueva Jersey|Japón|Unión Europea|Estados Unidos',
   'title.terms': 'Términos de uso',
   'title.privacy': 'Privacidad de la demo',

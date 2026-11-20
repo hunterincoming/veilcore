@@ -443,7 +443,9 @@ describe("what's live where", () => {
     expect(home).toMatch(/const LICENSES_ON_SITE = \(\) => THIS_BUILD\.agreementsLive === true && MAINNET_SENDS;/);
     // Once royalties have worked on veilcore.org, the test site and the demo say so too (a fact
     // about veilcore.org); a mainnet build says "Yes" only with licenses on.
-    expect(home).toMatch(/LICENSES_ON_SITE\(\) \|\| !IS_MAINNET\s*\?\s*'m\.live\.lic\.live'\s*:\s*'m\.live\.lic\.next'/);
+    expect(home).toMatch(
+      /LICENSES_ON_SITE\(\) \|\| !IS_MAINNET\s*\?\s*'m\.live\.lic\.live'\s*:\s*'m\.live\.lic\.next'/,
+    );
     expect(e['m.live.lic.next']).not.toMatch(/^Yes/);
     expect(e['m.live.lic.next']).toMatch(/next veilcore\.org deploy/);
     // The test-site cell doesn't say "Yes" for royalties until v2 has run there.

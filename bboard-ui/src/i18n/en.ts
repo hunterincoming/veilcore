@@ -155,7 +155,7 @@ export const en = {
   'm.hiw.title1': 'How VeilCore',
   'm.hiw.title2': 'works.',
   'm.hiw.lede':
-    'An open record format for plant, animal and microbial genetics. Your computer makes a proof code from your record, and only proof codes are dated on Midnight. Later you show the record, or prove one fact about it.',
+    'An open record format for plant, animal and microbial genetics. Your computer makes a proof code from your record, and that code is dated on Midnight. What you wrote never goes there. Later you show the record, or prove one fact about it.',
   'm.hiw.lab1': 'A second party,',
   'm.hiw.lab2': 'on the record.',
   'm.hiw.labP':
@@ -167,7 +167,8 @@ export const en = {
   'm.hiw.you1t': 'Your DNA files',
   'm.hiw.you1p': 'They never leave your device: your computer reads each one to make its code.',
   'm.hiw.you2t': "The record's details",
-  'm.hiw.you2p': "Stored on VeilCore's server locked, the name included. We don't have the key.",
+  'm.hiw.you2p':
+    "Stored on VeilCore's server locked, the name included, unless you choose to show it. We don't have the key.",
   'm.hiw.you3t': 'Your backup file',
   'm.hiw.you3p': 'It holds your keys. Keep it safe.',
   'm.hiw.chainLbl': 'On Midnight',
@@ -186,7 +187,7 @@ export const en = {
   'm.about.grow2': 'who grow things.',
   'm.about.growP':
     'Breeders, seed companies, tissue culture labs and herd books, and the certifiers and examiners who check their work.',
-  'm.about.whereLabel': 'Where we are',
+  'm.about.whereLabel': 'Where we work',
   'm.about.where': 'Tokyo|New Jersey|Japan|European Union|United States',
   'title.terms': 'Terms of use',
   'title.privacy': 'Demo privacy',

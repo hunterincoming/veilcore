@@ -150,7 +150,7 @@ export const de: Strings = {
   'm.hiw.title1': 'So funktioniert',
   'm.hiw.title2': 'VeilCore.',
   'm.hiw.lede':
-    'Ein offenes Datensatzformat für pflanzliche, tierische und mikrobielle Genetik. Ihr Computer berechnet aus Ihrem Datensatz einen Prüfcode, und nur Prüfcodes werden auf Midnight datiert. Später zeigen Sie den Datensatz oder belegen eine einzelne Tatsache daraus.',
+    'Ein offenes Datensatzformat für pflanzliche, tierische und mikrobielle Genetik. Ihr Computer berechnet aus Ihrem Datensatz einen Prüfcode, und dieser Code wird auf Midnight datiert. Was Sie geschrieben haben, kommt nie dorthin. Später zeigen Sie den Datensatz oder belegen eine einzelne Tatsache daraus.',
   'm.hiw.lab1': 'Eine zweite Partei,',
   'm.hiw.lab2': 'im Datensatz.',
   'm.hiw.labP':
@@ -162,7 +162,8 @@ export const de: Strings = {
   'm.hiw.you1t': 'Ihre DNA-Dateien',
   'm.hiw.you1p': 'Sie verlassen Ihr Gerät nie: Ihr Computer liest jede einzelne, um ihren Code zu berechnen.',
   'm.hiw.you2t': 'Die Angaben des Datensatzes',
-  'm.hiw.you2p': 'Verschlossen auf dem Server von VeilCore gespeichert, auch der Name. Wir haben den Schlüssel nicht.',
+  'm.hiw.you2p':
+    'Verschlossen auf dem Server von VeilCore gespeichert, auch der Name, außer Sie entscheiden sich, ihn zu zeigen. Wir haben den Schlüssel nicht.',
   'm.hiw.you3t': 'Ihre Sicherungsdatei',
   'm.hiw.you3p': 'Sie enthält Ihre Schlüssel. Bewahren Sie sie sicher auf.',
   'm.hiw.chainLbl': 'Auf Midnight',
@@ -178,10 +179,10 @@ export const de: Strings = {
   'm.hiw.more1': 'Abstammung, Lizenzen',
   'm.hiw.more2': 'und Labore.',
   'm.about.grow1': 'Für die Menschen,',
-  'm.about.grow2': 'die Pflanzen und Tiere züchten.',
+  'm.about.grow2': 'die etwas anbauen und züchten.',
   'm.about.growP':
     'Züchter, Saatgutunternehmen, Gewebekulturlabore und Zuchtverbände, und die Anerkennungsstellen und Prüfer, die ihre Arbeit prüfen.',
-  'm.about.whereLabel': 'Wo wir sind',
+  'm.about.whereLabel': 'Wo wir arbeiten',
   'm.about.where': 'Tokio|New Jersey|Japan|Europäische Union|Vereinigte Staaten',
   'title.terms': 'Nutzungsbedingungen',
   'title.privacy': 'Datenschutz in der Demo',

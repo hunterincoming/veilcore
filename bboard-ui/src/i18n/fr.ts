@@ -150,7 +150,7 @@ export const fr: Strings = {
   'm.hiw.title1': 'Comment fonctionne',
   'm.hiw.title2': 'VeilCore.',
   'm.hiw.lede':
-    'Un format d’enregistrement ouvert pour la génétique végétale, animale et microbienne. Votre ordinateur calcule un code de preuve à partir de votre enregistrement, et seuls des codes de preuve sont datés sur Midnight. Plus tard, vous montrez l’enregistrement, ou vous prouvez un seul fait à son sujet.',
+    'Un format d’enregistrement ouvert pour la génétique végétale, animale et microbienne. Votre ordinateur calcule un code de preuve à partir de votre enregistrement, et ce code est daté sur Midnight. Ce que vous avez écrit n’y va jamais. Plus tard, vous montrez l’enregistrement, ou vous prouvez un seul fait à son sujet.',
   'm.hiw.lab1': 'Une seconde partie,',
   'm.hiw.lab2': 'dans l’enregistrement.',
   'm.hiw.labP':
@@ -160,9 +160,10 @@ export const fr: Strings = {
   'm.hiw.youLbl': 'Chez vous',
   'm.hiw.youT': 'Votre génétique et vos clés',
   'm.hiw.you1t': 'Vos fichiers ADN',
-  'm.hiw.you1p': 'Ils restent sur votre appareil : votre ordinateur lit chacun pour calculer son code.',
+  'm.hiw.you1p': 'Ils ne quittent jamais votre appareil : votre ordinateur lit chacun pour calculer son code.',
   'm.hiw.you2t': 'Les informations de l’enregistrement',
-  'm.hiw.you2p': 'Conservées verrouillées sur le serveur de VeilCore, le nom compris. Nous n’avons pas la clé.',
+  'm.hiw.you2p':
+    'Conservées verrouillées sur le serveur de VeilCore, le nom compris, sauf si vous choisissez de le montrer. Nous n’avons pas la clé.',
   'm.hiw.you3t': 'Votre fichier de sauvegarde',
   'm.hiw.you3p': 'Il contient vos clés. Gardez-le en lieu sûr.',
   'm.hiw.chainLbl': 'Sur Midnight',
@@ -181,7 +182,7 @@ export const fr: Strings = {
   'm.about.grow2': 'qui font pousser et élèvent.',
   'm.about.growP':
     'Obtenteurs et éleveurs, semenciers, laboratoires de culture in vitro et livres généalogiques, et les certificateurs et examinateurs qui vérifient leur travail.',
-  'm.about.whereLabel': 'Où nous sommes',
+  'm.about.whereLabel': 'Où nous travaillons',
   'm.about.where': 'Tokyo|New Jersey|Japon|Union européenne|États-Unis',
   'title.terms': 'Conditions d’utilisation',
   'title.privacy': 'Confidentialité de la démo',
