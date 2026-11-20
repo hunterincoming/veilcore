@@ -79,8 +79,8 @@ const common: Overlay = {
   // "Prove it" by link needs the browser to send a transaction, which this site doesn't.
   'm.for.6p':
     "They send you a link. You tap once, and their page checks on the network that you control your record's own key. Your record named that key when it was sealed, so it can't be swapped. It says nothing about who you are or who bred the plant. This website can't do it yet.",
-  'footer.privacy': 'Site privacy',
-  'title.privacy': 'Site privacy',
+  'footer.privacy': 'Privacy policy',
+  'title.privacy': 'Privacy policy',
   'm.privacy.label': 'Site privacy',
   'm.privacy.title': 'What this site keeps.',
 

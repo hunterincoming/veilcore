@@ -1,207 +1,199 @@
-# VeilCore privacy and data terms (draft)
+# VeilCore privacy and data terms (lawyer-review copy)
 
-> **DRAFT for the founders and a lawyer to review. Not published. Not legal advice.**
-> Written 15 October 2026 from what the code does today, and updated 16 October 2026 for
-> sealed records (what you type is locked in your browser before it is sent), and 17 October
-> 2026 for round 5 (the record's name is locked too; a DNA report is shown only as a salted
-> code; each release publishes the list of its files) and round 6 (name codes, lab signatures
-> bound to the record, no holder key on check and prove pages): the site (`bboard-ui`), the
-> registry (`veilcore-api`, `server.js` and `lineage/`), the fee sponsor and indexer relay
-> (`sponsor/`), and the site's own privacy page (`/privacy`, `i18n/en.ts` and
-> `en-mainnet.ts`, `m.privacy.*`). Where the code and this text disagree, the code is right
-> and this text must change. Questions for the lawyer are at the end. Nothing here has been
-> checked against the law of any country.
+> **For the founders and a lawyer to review. Not legal advice.** This is the source of the
+> privacy policy veilcore.org publishes at `/privacy` (`bboard-ui/src/i18n/privacy-policy/en.ts`,
+> shown by `components/site/PrivacyPolicy.tsx` in a mainnet build; German, Spanish, French and
+> Japanese beside it). The published text is below, section by section, with where each claim
+> comes from in the code. Change the two together. Where the code and this text disagree, the
+> code is right and both texts change. Nothing here has been checked against the law of any
+> country: the questions for the lawyer are at the end.
+>
+> Last updated 20 November 2026, to describe veilcore.org once the open pull requests of that
+> week are deployed: site #142, #143, #145, #146, #147, #148, #149 and registry #10, #11, #12
+> (live sync and the recovery sheet; offline sealing and a timestamp per record; two Bitcoin
+> explorers and alerts; scanning and QR labels; parentage results; the Bitcoin header check and
+> the passkey check page). Before that, 15 October to 8 November 2026 (sealed records, locked
+> names, private lab signatures). The test site keeps its own short note (`m.privacy.*`).
 
-## The short version
+## What the page leaves out, and why
 
-- Your DNA files **never leave your device**. Lab reports travel locked. Your browser works
-  out a code from each file you add (its SHA-256); the files are never uploaded. A lab's
-  signature on a report you sent names the report bound to your record with a salt only you
-  and the lab hold; one made before 17 October 2026 names the file's SHA-256, which the
-  registry shows only to you, the lab and whoever sent the lab the sample.
-- A lab's receipts and reports about your record are **private** (since the registry's 8
-  November 2026 update): the registry shows them only to you and the lab, and to whoever
-  sent the delivery. Your record's check page shows a lab signature only when you turn it on
-  under Show someone, "Lab signatures". One you turn on is also shown to anyone who has the
-  record's proof code (it is on the check page, and your links that prove a number carry it),
-  until you turn it off. With "Whether a DNA report is saved" on, the check page also says,
-  for each lab receipt, that a lab received a sample and whether what arrived matches what
-  was sent, without the lab's name.
-- The check and prove pages never send your holder key. A prove request tells our server
-  which on-chain key it names.
-- Each release publishes the list of its files. You can check that the files your browser
-  received match that list, and anyone can rebuild the release from the published code and
-  compare. This shows what we released. It can't prove a host sent everyone the same files.
-- What you type (breeder names, dates, notes, parents, agreement terms) is **locked in your
-  browser before it is sent**, and VeilCore's server stores it locked, so you can come back
-  to it. We don't have the key: it stays in your browser and your backup file. VeilCore also
-  serves the app's code, so this is "stored locked, and we don't have the key", not a promise
-  that the code can never change.
-- A record's **name is locked too** (since 17 October 2026). The check links you make can
-  carry it after the #. A browser doesn't send that part when it opens the link, but the link
-  goes whole to anyone you send it to and to any site you paste it into (a partner's form
-  included), so the people you send a link to see it (and anyone they pass it on to). The
-  record publishes a code made from its name, which says nothing about the name without the
-  salt in your link, so a check page can tell whether the name in a link is the record's. You can choose to show it on the record's
-  public check page; then anyone with the record's ID sees it. A name saved before then stays
-  readable to us until your browser saves the record again. The sample details on a delivery (sample
-  ID, seal number, where and when it was taken, a witness, what the lab wrote on arrival)
-  **are locked too**, with a key that travels in the lab code, and we don't have it. Sample
-  details written before sealing stay readable to us until the registry's purge removes
-  them.
-- Only a **batch's code** (one SHA-256 standing for every record in the batch) goes on a public network (Midnight, and Bitcoin through
-  OpenTimestamps). Nothing you typed goes there. Once there, nobody can delete it,
-  including us.
-- A lab report a lab sends back to you through VeilCore is **locked so only you can open
-  it**, and **deleted after 180 days**.
-- We **don't sell** your data, show **no ads**, run **no analytics or tracking**, and set
-  **no cookies**.
-- You can **download** your records and agreements at any time (what is not in that download,
-  and where it is, is under "Your choices"), and ask us to **delete** them.
+- **Paid plans** (Paddle; `VITE_PAID_PLANS`, the registry's `BILLING`), **royalties paid in
+  NIGHT on Midnight** (`ONCHAIN_PAYMENTS = !IS_MAINNET`) and **stablecoin payments on Cardano**
+  (`STABLECOIN_PAY_ON_MAINNET = false`, with its sanctions-list check and Cardano relay) are
+  built and switched off on veilcore.org. The page says the site takes no payments and that it
+  will be updated before any payment feature is turned on. A payment partner's receipt (a
+  company the two parties choose) is not a VeilCore payment feature and is listed.
+- **Ask's optional on-device model** (downloaded from Hugging Face) is only in a build with
+  `VITE_ASK_MODEL`, which the mainnet deploy doesn't set, and the model isn't pinned
+  (`model-manifest.json` `"pinned": false`). The page says Ask works on the device.
+- **Viability results** are off on mainnet (`VIABILITY_RESULTS_OFF`).
+- **Incorporation.** The page says VeilCore's founders run the site, the registry and the fee
+  sponsor, and gives hunter@veilcore.org. It says nothing about incorporation (question 1).
+- **"We don't use your records to breed, test or train anything."** True of the code today,
+  but not yet a founders' commitment, so it is not on the page (question 15).
 
-## Who we are
+## The published text, with its sources
 
-VeilCore isn't incorporated yet. VeilCore's founders run the website, the registry and the
-fee sponsor. Contact: hunter@veilcore.org. *[Entity name, address and, if needed, an EU or
-UK representative go here once VeilCore is incorporated.]*
+### The short version
 
-## What never leaves your device
+- Your DNA files, lab report files and photos never leave your device; the browser makes a
+  SHA-256 of each. (`veilcore/` file pickers hash locally; the CSP's `connect-src` allows no
+  upload host.)
+- What you type is locked in the browser before it is sent; the server stores it locked and we
+  don't have the key. (Sealed records, registry README "Sealed records".)
+- The server can read what it needs: a record's ID, proof code, dates and what you choose to
+  show.
+- Only codes, and what the holder chooses to prove, go on public networks (Midnight; Bitcoin
+  through OpenTimestamps). Typed content goes there only as a number proved exactly. Nobody can
+  delete it.
+- No sale of data, no ads, no analytics or tracking, no cookies. (Checked: no `document.cookie`,
+  no analytics or error-reporting library in the site, sponsor or registry; the CSP allows no
+  third-party script; `privacy-policy.test.ts` keeps it so for the site.)
+- You can download and delete; for anything else, hunter@veilcore.org.
 
-| What | Where it stays |
-|---|---|
-| Genetic data, DNA reports, lab report files, photos you add | Read by your browser to work out a fingerprint (SHA-256). Never uploaded. |
-| Each record's secret keys (made when you seal a record that names its key, or send it to a lab) | Your browser and the backup file you save. A copy also goes inside the record's locked box, so restoring your vault key brings them back; VeilCore can't open it. Never sent readable. |
-| The vault key that locks your records and licences | Your browser and the backup file you save. Never sent to VeilCore. |
-| A lab's private signing key | The lab's own browser and its backup file. Only the public key is sent to VeilCore. |
-| A document you chose to keep on this device only (a choice when sealing a document) | Your browser and a backup file you save after sealing it (one saved before doesn't hold it; a passkey copy holds its id and keys, never the record). Nothing you typed into it is sent to VeilCore, locked or not: the server gets its id, proof code and key binding, to date it. VeilCore can't give it back. |
+### Who we are
 
-## What your browser keeps
+VeilCore's founders run the website, the registry and the fee sponsor. Contact:
+hunter@veilcore.org.
 
-The site uses your browser's local storage, on this device only. No cookies.
+### What stays on your device
 
-| Kept | What it is |
-|---|---|
-| Your holder key (`veilcore.holder.v1`) | The key that finds your records on the server. A copy is sent with every save (below). |
-| Your records and licences (`veilcore.records.v1`, `veilcore.licenses.v1`) | Your own copy, so the site works without the server. |
-| The vault key (`veilcore.vault.v1`) | The key that locks your records and licences before they are sent. Never sent; your backup file has a copy. Without it (or the backup) your records can't be opened. |
-| Record keys (`veilcore.record-keys.v1`) | The secret keys of your records. Lab reports are locked to them. A locked copy also goes with each record, so restoring your backup's vault key brings them back. |
-| A lab's signing key (`veilcore.attester.v1`) | Only if you set one up as a lab. |
-| Deliveries, codes, opened lab reports (`veilcore.lab-deliveries.v1`, `veilcore.sent-codes.v1`, `veilcore.opened-results.v1`) | Lab codes you made or used and which reports you've opened. |
-| Check requests (`veilcore.prove-asks.v1`, `veilcore.verifier-challenges.v1`, `veilcore.verifier-challenges.lasting.v1`) | Requests you made to someone to prove they control a record's key, and their answers. |
-| A form you haven't finished (`veilcore.log-draft.v1`) | So a half-typed record isn't lost. |
-| Documents kept on this device only (`veilcore.device-only.v1`, `veilcore.device-only-backup.v1`) | The records themselves, and which of them are in a backup file you have checked. The only copies are this browser's and that file's. |
-| A random fee-sponsor ticket (`veilcore.sponsor-ticket.v1`) | Made for the date-stamp service only. Not your holder key. |
-| Your role and language (`veilcore.role.v1`, `veilcore.lang`), a "seen this" flag (`veilcore.lab-visibility-seen.v2`) | Settings. |
-
-To remove them, clear this site's data in your browser settings. Save your holder key and
-record backup first.
-
-## What VeilCore's server (the registry) keeps
-
-| What | Why | How long |
+| What | What happens to it | Source |
 |---|---|---|
-| Your records, locked: the record's name, breeder name, species, dates, notes, reference numbers, parents, fingerprints of photos and lab reports, lab report file names, the names you give recipients, each record's secret keys. Stored as a box only your vault key opens | So you can come back to them | Until you ask us to delete it. No set period. |
-| Each record's readable fields: its id, its profile, proof code (fingerprint) and key binding, which fields a correction changed and when, how many times it was saved and when it was last saved, and its size bucket (roughly how large its locked box is) | So a record can be found and checked | As long as the record |
-| Records saved before sealing, as they were typed | Until your browser locks them (after you save a checked backup), or until the registry's purge removes their contents | Until converted or purged |
-| Your holder key, stored as a one-way digest (`h1:` + SHA-256), never as sent | To find your records | As long as your records |
-| When the registry first saw each record | The registry's own date for it (its word only) | As long as the record |
-| Licences and agreement terms, counterparties, locked like records | Licences you issue | Until you ask us to delete them |
-| For a license with a royalty on offspring: an obligation on the record's fingerprint, with when it was made and a digest of the key that made it. Anyone can ask whether a given record carries one; it is never listed | So a descendant's check can find what it owes | As long as the license |
-| Your sharing choices for each record's public check page, and the values you choose to show (readable: they are what the page shows) | What a stranger with the link sees | As long as the record |
-| Lab codes: a tag in place of the recipient's name (made with a key derived from your vault key, which we don't have; without it the tag can't be turned back into the name), the delivery's details (name, breeder, quantity, note) locked with a key that travels only in the lab code, a one-way digest of the claim code, which record it came from and was received as, which holder account received it, and (when filled in) the sample details: sample ID, seal number, where and when it was taken, a witness's name, and what the lab wrote on arrival, **locked** with the same key as the delivery's details (we don't have it; the server stores the box). Lab codes made before sealing keep the recipient's handle, quantity, note and sample details as typed until the purge (it replaces every such handle, whoever sent it) | So a lab can take delivery and sign a receipt | No set period |
-| Labs: public signing key, the name the key gives itself, role, and VeilCore's name-check notes | So signatures can be checked and named | No set period |
-| Lab signatures (attestations) and withdrawals. A lab's receipts and reports about a record, and a lab key's genetic-fingerprint and inspection signatures, are private: shown only to the record's holder, the delivery's sender and that lab, and on the record's check page (and to anyone with its proof code) only the ones the holder chooses to show | So a record's holder can see who handled it, and show it when they choose | No set period |
-| Locked lab reports a lab sends you (encrypted to your key with `age`; the server can't open them), with their size and SHA-256 | So you can collect them | **Deleted 180 days after they arrive**, checked every hour. Not in backups. Off on the main site for now. |
-| Requests to prove control of a record's key, with the asker's name as typed and the answers | The prove-by-link feature | **Deleted after 7 days** |
-| Batches: each record's fingerprint, its inclusion proof, the batch root, where it was anchored, and the Bitcoin stamp | So anyone can check a record's date | Kept: they are what make old records checkable |
+| DNA reports, lab report files, photos | Hashed in the browser, never uploaded | CSP `connect-src` |
+| The vault key | Browser and backup file; never sent unlocked. With "Saved with VeilCore" on, inside the locked account copy (the backup file's keys, `backup.ts accountContents`) | `veilcore/account-copy.ts` |
+| Each record's secret keys | Browser and backup file; a locked copy goes with the record | `record-keys.ts` |
+| A lab's private signing key | The lab's browser and backup; only the public key is sent unlocked; with "Saved with VeilCore" on, the private key is inside the locked copy (`backup.ts`) | `attester-keys.ts` |
+| A document kept on this device only | Nothing typed is sent, locked or not; the registry gets its ID, proof code and key binding; with "Saved with VeilCore" on, its ID and keys go inside the locked copy | `docs/device-only-records.md` |
+| The camera, when scanning | Frames read in the tab and dropped; only the decoded text goes into the box | `docs/scan-and-labels.md`, PR #147 |
+| QR labels | Drawn on the device and printed by the browser; ID and proof code, the name only if ticked | `docs/scan-and-labels.md` |
+| The recovery sheet's code | Made on the device; never sent (slot id, token and key come from it by HKDF) and never stored | `docs/passkey-backup.md`, PR #143 |
+| The passkey check page | Tests in the browser; nothing sent | `docs/passkey-support.md`, PR #148 |
+| Ask | Shortcuts only, on the device; typing sends nothing; an approved "Do it for me" job saves, sends reports or dates what was approved; jobs are local, deleted 7 days after they end | `docs/ask-veilcore.md`, `ask-job/store.ts` |
 
-**Request logs.** The registry writes no request log (no request logger exists, and
-`test/no-request-logging.test.mjs` fails if one is added). Rate limits count requests per
-network address block in memory only: nothing is written to disk, and the counts are lost
-when the server restarts. The registry's console output is start-up and error messages.
+### What your browser keeps
 
-**Backups.** Once a day, if backups are switched on, a copy of the whole database is
-encrypted (with `age`, to a key the server never holds) and sent to a storage bucket
-(Backblaze B2). The bucket is meant to lock each copy so it can't be deleted early. Lab
-report files aren't in it. Backups taken before sealing (and before the purge) hold records
-as they were typed; the operator holds the key that opens them until it is rotated and the
-old one destroyed (the registry's `docs/rotate-backup-key.md`). *[Lock period and how long copies are kept: to be set.]*
+Local storage, IndexedDB and Cache Storage on this device, no cookies: the holder key, the
+vault key, records and licences, record keys, lab codes, an unfinished record, settings and
+language, the offline copy of the site's code (`veilcore-shell-<release>`,
+`veilcore-offline-meta`), and, where Background Sync exists (Chrome), records waiting to be
+dated with the holder key (IndexedDB `veilcore-offline`, `src/offline/dating-mirror.ts`). With
+"Saved with VeilCore" on, two non-extractable WebCrypto keys derived from the account key
+(IndexedDB `veilcore.account.v1`, `account-key-store.ts`). The full list of names is in the
+page's "Technical details".
 
-## What goes on a public network
+### What our server keeps
 
-- **Midnight.** VeilCore puts a batch's root (one fingerprint standing for every record in the
-  batch) into a transaction on Midnight's network. On the main network this is done by
-  hand. Nothing you typed is in it. It is public and permanent.
-- **Bitcoin, through OpenTimestamps.** The same batch root is sent to public OpenTimestamps
-  calendar servers, which put it into Bitcoin. Public and permanent.
-- **A record's key.** If your record names its key and you make a date stamp for that key,
-  the key's public ID is recorded on Midnight. It is a public ID, not the secret.
+The registry (`veilcore-api`), hosted on Railway.
 
-A fingerprint can't be turned back into what you typed: each record has a random salt.
+| What | Can we read it? | How long | Source |
+|---|---|---|---|
+| Records and agreements (name, breeder, species, dates, notes, reference numbers, parents, file codes and names, agreement terms and the other party, recipient names, record secret keys) | No: locked | Until deleted | `sealed.js` |
+| Each record's ID, proof code, key binding, kind, name code, correction links, first seen, save count and last save, size bucket, parent links, batch and timestamps | Yes; `/verify/:id` shows anyone with the ID the proof code, first seen, correction links, anchor and whether signatures exist | As long as the record | `server.js`, `sealed.js` |
+| What the holder chooses to show on the check page | Yes (public by ID) | Until turned off or deleted | `disclosure_grants` |
+| The holder key | Only `h1:` + SHA-256 | As long as the records; afterwards in each tombstone and in `fingerprint_holders` | `holder-key.js` |
+| Every proof code a holder key has held, with that key's digest and when first held | Yes | Never deleted (stops another key taking over an old proof code) | `fingerprint-holders.js` |
+| The account copy (the backup file's contents except the records: keys, lab codes, licence and deal keys) and its slots (passkey, recovery sheet) | No: AES-256-GCM, padded; SHA-256 of tokens only. The registry sees which slots open which copy and their kind, the size bucket, when saved or checked, and each slot's `wrap` fingerprint (API #10); timing and address could let it guess the holder (`account-copy.mjs` header) | Until "Stop saving with VeilCore" | `lineage/account-copy.mjs` |
+| Lab codes: source record, receiving account and time, a tag for the recipient; quantity, note and sample details locked with a key in the lab code | Partly | No set period | `lineage/transfer.mjs` |
+| Labs: public key, name, role, website, the operator's name-check record and note, signatures; receipts and reports private to holder, lab and sender unless shown | Yes | No set period | `lineage/attesters.mjs` |
+| Lab reports sent back | No: `age` to the record's key | 180 days; copies in backups until removed | `lineage/lab-results.mjs` `keepMs`, `backup.mjs` |
+| Prove requests (asker's typed name, answers; the on-chain key named) | Yes, and anyone with the request's link | 7 days | `lineage/prove-requests.mjs` `ttlMs` |
+| License invites (the issuer's label for the licensee, the record's on-chain identity, the licence commitment, both sides' nonces, transaction IDs) | Yes, and anyone with the invite's link | 30 days | `lineage/license-invites.mjs` `ttlMs` |
+| Deal messages (terms, reports, answers, "I paid", "received", payout and business details) | No: locked to the two parties; the registry sees the license, count and arrival times | Until a party asks; empty deals 7 days | `lineage/deals.mjs` |
+| License lines on a check page and the licensee's answers (type and date) | Yes, public by ID | Until the line is taken off or the record deleted; answers stay | README "License notices" |
+| Royalty obligations (record covered, since when; anyone can ask) | Yes | As long as the license | `server.js` obligations |
+| Payment partner receipts (amount, currency, account, reference, time) | Yes, to anyone with the statement's fingerprint | No set period | `lineage/payment-receipts.mjs` |
+| Batches (proof codes, inclusion proofs, root, anchor, Bitcoin stamp, RFC 3161 tokens) | Yes | Kept | `lineage/batches.mjs` |
 
-## Public pages
+**Request logs.** The registry has no request logger (`test/no-request-logging.test.mjs`).
+Rate limits count per address bucket (IPv4 address, IPv6 /64; some per /48) in memory only.
+Console output is start-up and error messages. The per-record timestamp quota keeps each holder
+key digest, TSA and request time for a day (`record_timestamp_usage`, `lineage/record-stamps.mjs`). The fee sponsor logs counters and outcomes only,
+never a body, transaction, ticket or address (`sponsor/src/log.ts`); its per-address buckets
+(/24, /48) and per-ticket quotas are in memory and dropped when their window passes
+(`sponsor/src/limits.ts`). Vercel and Railway keep their own request logs.
 
-A record's public check page (`/verify/:id`) shows whatever you chose to share, and the
-record's name when the link carries it (your check links do, after the #, unless you leave it
-out) or when you chose to show it. What you choose to share is sent to the server readable, so
-it can be shown, except a DNA report: if you share whether one is saved, the server gets only
-a code made from the report's SHA-256, the record's proof code and a salt that only your check
-link carries, so only someone you send the link and the file to can tell which file it is. Anyone with the link can see it. The registry doesn't record who looked.
+**Before sealing.** Text saved before records were locked was removed on 18 October 2026, and
+the key to the backups made before then was destroyed the same day.
 
-## Who else handles data
+**Backups.** Daily, the database is gzipped, encrypted with `age` to the operator's public key
+and uploaded to Backblaze B2 under a new name; lab report files (already locked) go too
+(`backup.mjs`). The bucket is set up with Object Lock, 30 days, compliance mode (README "Off-site
+backups"). How long copies are kept after the lock is not set (question 5). A deleted record
+stays in earlier backups until they are removed.
 
-| Service | What it does for us | What it sees |
+### What is public, for good
+
+On Midnight (and Bitcoin, for batch roots, through OpenTimestamps): each batch root; a record's
+key and its date stamp; a DNA report pairing's code when dated; parent and child links once both
+holders confirm; that a record has a license, an obligation or a lender's claim, and when that
+changed; a lab's public key when it signs a certificate; what a holder proves about a number (a
+limit and its direction, or the exact value); for a parentage result (PR #149), only that ICAR
+2023's bounds are met, with no genotype or count. The fee sponsor anchors batches on its
+schedule; every other step shows a receipt first and goes from the browser through the fee
+sponsor. Royalties in NIGHT are not on veilcore.org and not on the page.
+
+### Timestamps, and checking on Bitcoin
+
+- Registry #11 / site #145: on taking a proof code, the registry queues an RFC 3161 request to
+  each TSA in `VEILCORE_TSA_URL` (FreeTSA and DigiCert are the ones the site pins,
+  `bboard-ui/src/config/tsa-pins.json`; the registry README's example also lists Sectigo). The
+  TSA receives SHA-256 of the proof code's 32 bytes, a nonce and the time, from the registry's
+  address (`lineage/record-stamps.mjs`, `lineage/tsa.mjs`); batch roots likewise. The check page
+  shows the time to the second.
+- Site #148: "Check on Bitcoin" on a check page, and "Include Bitcoin block headers" in an
+  evidence bundle, are the only times the browser contacts mempool.space and blockstream.info
+  (block heights and headers; the explorers see the IP address, that a VeilCore batch is being
+  checked, and which block). Registry #12 asks both explorers for every batch's block.
+
+### Who else handles data
+
+| Service | Does | Gets |
 |---|---|---|
-| Vercel | Hosts the website | Your network address and the pages you load. Vercel logs requests. |
-| Railway | Runs the registry, the fee sponsor and the indexer relay | Your network address and requests to them. Railway logs requests. |
-| Blockfrost | Runs the Midnight indexer the check page reads through our relay | The relay's queries (which transaction is being checked), from the relay's address, not yours |
-| Midnight network | Records batch roots and key stamps | Public transactions |
-| OpenTimestamps calendars | Stamp batch roots on Bitcoin | Batch roots |
-| Backblaze B2 | Stores encrypted backups | Encrypted files it can't open |
+| Vercel | Hosts the site | IP address, pages and files loaded (a check page's address carries the record ID and proof code); request logs |
+| Railway | Runs the registry, fee sponsor and indexer relay (on mainnet every chain read of the app goes through the relay) | IP address and requests (a check names the record ID); the registry's data at rest; request logs |
+| Blockfrost | Indexer and node for the fee sponsor and relay | Transactions the sponsor sends, the relay's queries; from our service, never the visitor's address (`sponsor/src/indexer-relay.ts` forwards no client headers) |
+| Midnight | The public network | Public transactions |
+| OpenTimestamps calendars | `a.pool.opentimestamps.org`, `b.pool.opentimestamps.org`, `a.pool.eternitywall.com`, `ots.btc.catallaxy.com` | Batch roots, from the registry |
+| Timestamp authorities | FreeTSA, DigiCert (and any set in `VEILCORE_TSA_URL`) | A SHA-256 of each proof code and batch root, and when, from the registry |
+| Bitcoin explorers | mempool.space, blockstream.info | Block heights; from the browser only on request, with its IP address |
+| Backblaze B2 | Backups | Encrypted files |
+| A lab's own website | Daily check that it lists the lab's key (`lineage/lab-domain.mjs`) | A request from the registry |
+| Passkey providers | Keep the passkey for "Saved with VeilCore" | That a passkey exists for veilcore.org; we never receive the passkey or its PRF output |
 
-The fee sponsor logs counters and outcomes only, never a request body, a transaction, a
-ticket or an address. *[Each provider's own log retention and data processing terms: to be
-checked.]*
+The browser can reach only the hosts in the CSP's `connect-src` (`scripts/vercel-config.mjs`):
+the site, the registry, the sponsor and relay, mempool.space and blockstream.info. Camera:
+`camera=(self)`; microphone and location off.
 
-## What we don't do
+### Your choices
 
-- We don't sell or rent your data, or share it for advertising.
-- No analytics, no tracking pixels, no third-party scripts or fonts, no cookies.
-- We don't use your records to breed, test or train anything. *[Founders to confirm this
-  as a commitment: nothing in the code does it today.]*
-- VeilCore doesn't vouch for any record, breeder or lab.
+- **See and download**: "Export all records" (the browser's copy); "Download your records and
+  agreements from VeilCore" (`GET /api/export`: records, licences, sharing choices), which leaves
+  out deliveries and sample details, lab reports and signatures, royalty obligations, licence
+  invites, deal messages, prove requests and per-record timestamp tokens; the backup file ("Download a copy" in
+  Settings) holds the keys.
+- **Delete**: "Delete this record" (`DELETE /api/records`, registry 17 Nov 2026) removes the
+  record's body, locked copy, sharing choices and license lines; "Stop saving with VeilCore"
+  deletes the account copy and every slot. Anything else by email with the IDs.
+- **What stays**: anything on Midnight or Bitcoin; the record's tombstone (ID, holder key digest,
+  proof code, deletion time: `tombstones.js`); `fingerprint_holders`; parent links and obligations already recorded; lab
+  signatures; earlier backups until removed; copies others hold.
+- **Correct**: a sealed record can't change; a correction is a new record pointing to it
+  (`docs/corrections.md`).
+- **Ask us**: hunter@veilcore.org, with record IDs (the registry finds records by ID or holder
+  key, not by name).
 
-## Your choices
+### Changes to this policy
 
-- **Download.** On your records page, under More: **Export all records** downloads what
-  this browser holds; **Download your records and agreements from VeilCore** downloads what
-  the server holds for them (`GET /api/export`), opened in your browser, with every proof,
-  checkable without us. It leaves out deliveries with their sample details and locked lab
-  reports (open them from the delivery), royalty obligations (the lineage check answers
-  one record at a time), and prove requests (deleted after 7 days). Your keys and your
-  records' secret keys are in your backup file, not in either download. **Download
-  evidence bundle** on a plant's page gives one record's evidence.
-- **Delete.** Email hunter@veilcore.org with your records' IDs. Deleting removes the
-  server's copy of the records and their sharing choices (the server can also do this for
-  your holder key directly: `DELETE /api/records`; the site has no button for it yet).
-  Deleting **doesn't** remove: batch fingerprints and anchors already on Midnight or Bitcoin;
-  the inclusion proofs the registry keeps for batches; signatures labs made about it; lab codes
-  and their sample details; encrypted backups until their lock ends; and copies anyone you
-  shared with already has.
-- **Correct.** A sealed record can't change. A correction is a new record that points to
-  the old one (`docs/corrections.md`).
-
-## Changes to these terms
-
-*[How users will be told about changes, and from when they apply.]*
+Posted on the page, with the date, before they apply.
 
 ---
 
 ## Open questions for the lawyer
 
-1. **Who is responsible.** Until VeilCore is incorporated, the founders personally run the
-   service. Which entity should be named, and from when? Do we need an EU or UK
-   representative?
+1. **Who is responsible.** VeilCore isn't incorporated yet; the founders personally run the
+   service. The page names the founders and gives an email address. Which entity should be
+   named, and from when? Do we need an EU or UK representative?
 2. **Controller or processor.** For records a breeder types, VeilCore looks like a
    controller. For a lab's or partner's records sealed inside their own systems, or under the
    managed service (`docs/legal/managed-service-agreement-DRAFT.md`), are we a processor? Do
@@ -212,23 +204,24 @@ checked.]*
    Our design puts only salted commitments on chain. Is a written data protection impact
    assessment needed, and is this design enough?
 4. **Names in records.** Breeder names, witness names, the asker's name on a check request,
-   lab contact names: personal data of people who may not be our users. Lawful basis? Notice
-   to them?
-5. **Retention.** Nothing but lab reports (180 days) and check requests (7 days) has a set
-   period. What periods should we set for records of people who stop using VeilCore, lab
-   codes and sample details, and backups? Can a backup lock period override a deletion
-   request?
-6. **Deletion limits.** Is our answer to a deletion request (server copy deleted; anchors,
-   proofs, published signatures and locked backups kept) acceptable under GDPR Article 17,
-   the CCPA, Japan's APPI and Switzerland's FADP, and how must we say it?
+   lab contact names, the label on a license invite: personal data of people who may not be our
+   users. Lawful basis? Notice to them?
+5. **Retention.** Lab reports (180 days), prove requests (7 days), license invites (30 days)
+   and empty deals (7 days) have set periods. What periods should we set for records of people
+   who stop using VeilCore, lab codes and sample details, deal messages, and backups after
+   their 30-day lock? Can a backup lock period override a deletion request?
+6. **Deletion limits.** Is our answer to a deletion request (server copy deleted; a tombstone
+   with ID, proof code and time kept; anchors, proofs, published signatures and locked backups
+   kept) acceptable under GDPR Article 17, the CCPA, Japan's APPI and Switzerland's FADP, and how
+   must we say it?
 7. **Where the servers are.** Which regions do Vercel, Railway, Blockfrost and Backblaze use
    for us? Are transfers out of the EU, UK, Japan or Switzerland covered (standard
    contractual clauses or similar)? Do we have each provider's data processing terms?
 8. **Provider logs.** Vercel and Railway log addresses and requests. For how long, and must
-   we name that in the terms?
-9. **The record's name** is locked and travels in the holder's check links (after the #);
-   showing it on the public check page is opt-in. A forwarded link carries the name too. Is
-   that clear enough?
+   we name that period on the page?
+9. **The record's name** is locked and travels in the holder's check links (after the #) and,
+   if ticked, on a QR label; showing it on the public check page is opt-in. A forwarded link or
+   a label carries the name too. Is that clear enough?
 10. **Cannabis.** Some users work with cannabis genetics. Does holding their records raise
     data, licensing or disclosure concerns in the US, Japan or Switzerland, and should the
     terms say anything about lawful use?
@@ -236,5 +229,21 @@ checked.]*
 12. **Security incidents.** What must we notify, to whom, and how fast?
 13. **The evidence bundle and declaration template.** They are marked "not legal advice". Is
     that enough, or do the terms need more?
-14. **Test site.** The test site asks for made-up data and may be reset. Does it need its
-    own, shorter terms?
+14. **Test site.** The test site asks for made-up data and may be reset, and keeps its short
+    note. Does it need its own, shorter terms?
+15. **Training and breeding.** Nothing in the code uses records to breed, test or train
+    anything. Should the page promise that, once the founders commit to it?
+16. **Timestamp authorities.** Each one receives a SHA-256 of every proof code and the time, and
+    some are run by one person. Do they need naming in full (the page says "such as FreeTSA and
+    DigiCert"), and do we need terms with them?
+17. **Payment partners.** Their receipts (amount, currency, account paid) are readable by anyone
+    holding the statement's fingerprint. Is that the right default, and what must the page say
+    before a payment feature of VeilCore's own is turned on?
+18. **What a deletion keeps.** Each deleted record leaves a tombstone with the holder key's
+    digest, and every proof code a holder key held stays tied to it for good, to stop takeovers.
+    Is that a legitimate interest that survives an erasure request?
+19. **Backblaze Object Lock.** The page says the bucket locks each copy for 30 days. Confirm the
+    real bucket's setting before publishing.
+20. **Rights wording.** The page says how to ask for access, deletion and correction by email.
+    Must it name a supervisory authority, a response deadline, or the right to object and to
+    portability in those words?

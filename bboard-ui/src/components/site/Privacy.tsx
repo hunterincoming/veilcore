@@ -1,4 +1,7 @@
-// /privacy — a short privacy note for the demo. It states only what is true of the demo
+// /privacy. On veilcore.org (a mainnet build) this is the privacy policy (PrivacyPolicy.tsx,
+// m.pp.*). On the test site it is the short note below (m.privacy.*), which is about the demo.
+//
+// The short note for the demo. It states only what is true of the demo
 // today: what the app sends to VeilCore's registry, what never leaves the browser, which
 // network records are dated on (a test network, or the main network in a mainnet build:
 // i18n/en-mainnet.ts), and how to export and delete.
@@ -20,6 +23,8 @@ import React from 'react';
 import { Link as RouterLink } from 'react-router-dom';
 import { useI18n } from '../../i18n';
 import { SiteShell } from './SiteShell';
+import { PrivacyPolicy } from './PrivacyPolicy';
+import { IS_MAINNET } from '../../config/network';
 
 const SECTIONS = [
   'stored',
@@ -46,6 +51,12 @@ const SUMMARY = ['local', 'locked', 'read'] as const;
 
 export const Privacy: React.FC = () => {
   const { t } = useI18n();
+  if (IS_MAINNET)
+    return (
+      <SiteShell>
+        <PrivacyPolicy />
+      </SiteShell>
+    );
   return (
     <SiteShell>
       <header className="wrap page">
