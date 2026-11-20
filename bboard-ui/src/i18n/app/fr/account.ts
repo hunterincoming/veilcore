@@ -27,7 +27,7 @@ export const account = {
   'app.account.saved.text':
     'Vos enregistrements sont sauvegardés chez VeilCore. Les nouveaux se sauvegardent tout seuls.',
   'app.account.saved.bound':
-    'Sauvegardé chez VeilCore, mais cette clé d’accès reste sur cet appareil seulement : si vous perdez l’appareil, elle disparaît aussi. Une fiche de secours vous protège.',
+    'Seul cet appareil peut ouvrir vos enregistrements sauvegardés : s’il est perdu, remplacé ou réinitialisé, il vous faudra votre fiche de secours.',
   'app.account.saved.download': 'Télécharger une copie',
   'app.account.saved.done': 'Terminé',
 

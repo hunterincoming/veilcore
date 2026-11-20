@@ -16,7 +16,7 @@ export const recovery = {
   'app.recovery.prompt.text':
     'Falls Sie Ihr Apple- oder Google-Konto verlieren, ist dieses Blatt der einzige Weg zurück. VeilCore kann es nicht für Sie wiederherstellen.',
   'app.recovery.prompt.bound':
-    'Nur dieses Gerät kann Ihre gespeicherten Datensätze öffnen. Falls Sie es verlieren, ist dieses Blatt der einzige Weg zurück. VeilCore kann es nicht für Sie wiederherstellen.',
+    'Erstellen Sie es jetzt: Es ist der einzige Weg zurück. VeilCore kann es nicht für Sie wiederherstellen.',
   'app.recovery.prompt.make': 'Mein Wiederherstellungsblatt drucken oder speichern',
   'app.recovery.prompt.later': 'Später',
 
@@ -26,7 +26,7 @@ export const recovery = {
   'app.recovery.asking': 'Ihr Gerät fragt einmal, um Ihre Datensätze zu öffnen und das Blatt zu erstellen.',
   'app.recovery.haveOne': 'Ich habe mein Blatt: prüfen',
   'app.recovery.onlyNow':
-    'Dieser Code wird nur jetzt angezeigt. Drucken Sie das Blatt oder speichern Sie es als PDF, bevor Sie weitergehen.',
+    'Dieser Code wird nur angezeigt, solange dieses Fenster offen ist. Drucken Sie das Blatt oder schreiben Sie den Code ab, bevor Sie es schließen.',
   'app.recovery.print': 'Drucken oder als PDF speichern',
   'app.recovery.next': 'Weiter: prüfen',
   'app.recovery.confirm.lead': 'Damit Ihr Blatt sicher stimmt, geben Sie den ganzen Code davon ein.',
@@ -51,10 +51,10 @@ export const recovery = {
   'app.recovery.sheet.how':
     'So holen Sie Ihre Datensätze zurück: Öffnen Sie {site}, tippen Sie auf „Meine Datensätze zurückholen“, wählen Sie „Mein Wiederherstellungsblatt verwenden“ und geben Sie den Code ein.',
   'app.recovery.sheet.phishing':
-    'VeilCore fragt nach diesem Code nur, wenn Sie auf einem neuen Gerät unter {site} wiederherstellen. Geben Sie ihn nirgendwo sonst ein und sagen Sie ihn niemandem, auch nicht VeilCore.',
+    'VeilCore fragt nach diesem Code nur unter {site}: um dieses Blatt zu prüfen oder um Ihre Datensätze zurückzuholen. Geben Sie ihn nirgendwo sonst ein. Lesen Sie ihn nie am Telefon, per WhatsApp oder E-Mail vor, auch nicht VeilCore.',
   'app.recovery.sheet.anyone':
     'Wer diesen Code hat, kann Ihre Datensätze öffnen. VeilCore bewahrt ihn nicht auf und kann ihn Ihnen nicht noch einmal sagen.',
-  'app.recovery.sheet.newer': 'Wenn Sie ein neueres Blatt erstellen, funktioniert dieses nicht mehr.',
+  'app.recovery.sheet.newer': 'Sobald Sie ein neueres Blatt prüfen, funktioniert dieses nicht mehr.',
 
   'app.recovery.restore.use': 'Mein Wiederherstellungsblatt verwenden',
   'app.recovery.restore.lead':
@@ -69,7 +69,7 @@ export const recovery = {
   'app.settings.ways.sheetChecked': 'Geprüft am {date}.',
   'app.settings.ways.sheetUnchecked': 'Noch nicht geprüft: Geben Sie seinen Code ein, um es zu prüfen.',
   'app.settings.sheet.why':
-    'Ein Wiederherstellungsblatt öffnet Ihre gespeicherten Datensätze auf einem neuen Gerät, falls Sie Ihr Apple- oder Google-Konto verlieren oder das einzige Gerät, auf dem Ihr Passkey ist.',
+    'Ein Wiederherstellungsblatt öffnet Ihre gespeicherten Datensätze auf einem neuen Gerät, falls Sie das Handy oder den Computer mit Ihrem Passkey verlieren oder das Konto, in dem er gespeichert ist.',
   'app.settings.sheet.make': 'Wiederherstellungsblatt erstellen',
   'app.settings.sheet.makeNew': 'Neues Wiederherstellungsblatt erstellen',
   'app.settings.sheet.check': 'Mein Wiederherstellungsblatt prüfen',
@@ -78,10 +78,22 @@ export const recovery = {
   'app.account.line.makeSheet': 'Wiederherstellungsblatt erstellen',
   'app.account.line.later': 'Später',
   'app.account.line.reminder':
-    '<b>Erstellen Sie ein Wiederherstellungsblatt:</b> Ihr Weg zurück, falls Sie Ihr Apple- oder Google-Konto verlieren.',
+    '<b>Erstellen Sie ein Wiederherstellungsblatt:</b> Ihr Weg zurück, falls Sie Ihren Passkey einmal verlieren.',
   'app.account.line.reverify':
     'Es ist eine Weile her. Prüfen Sie, ob Ihr Passkey Ihre gespeicherten Datensätze noch öffnet.',
   'app.account.line.check': 'Prüfen',
 
   'app.account.sheet.setUpAgain': 'Neu einrichten',
+  'app.recovery.noPrinter':
+    'Kein Drucker? Schreiben Sie den Code von Hand auf Papier. Wenn Sie ein PDF speichern, bewahren Sie es auf einem USB-Stick auf, nicht in E-Mail, Chat, iCloud, Google Drive oder OneDrive.',
+  'app.recovery.prompt.laterBound': 'Ich mache es später',
+  'app.recovery.err.noMatch':
+    'Das passt nicht zu Ihrem Blatt. Prüfen Sie jedes Zeichen und versuchen Sie es noch einmal.',
+  'app.recovery.done.first': 'Bewahren Sie es bei Ihren wichtigen Unterlagen auf, nicht auf Ihrem Handy.',
+  'app.recovery.sheet.lost':
+    'Blatt verloren, oder hat es jemand gesehen? Erstellen Sie jetzt in den Einstellungen ein neues.',
+  'app.recovery.sheet.letters': 'Die Buchstaben O, I und L kommen nicht vor: Lesen Sie sie als 0 und 1.',
+  'app.account.sheet.noSheet': 'Ich habe mein Blatt nicht: neu beginnen',
+  'app.account.sheet.noSheetConfirm':
+    'Ohne das Blatt neu beginnen? Ihre gespeicherten Datensätze werden durch eine neue Kopie von diesem Gerät ersetzt, und alle Wiederherstellungsblätter funktionieren nicht mehr. Datensätze, die nur auf Ihren anderen Geräten sind, kommen zurück, sobald diese wieder speichern.',
 } satisfies Partial<AppTranslation>;

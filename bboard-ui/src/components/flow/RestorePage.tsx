@@ -31,6 +31,7 @@ import {
   adoptFound,
   findAccountCopy,
   findWithSheet,
+  forgetFound,
   markBroughtBack,
   recoveredHere,
   type Found,
@@ -112,6 +113,8 @@ export const RestorePage: React.FC = () => {
       .catch((e: unknown) => setProblem(e instanceof Error ? e.message : String(e)))
       .finally(() => setAsking(false));
   };
+  // A copy found and not taken, or an account key held for "Use Face ID": forgotten on leaving.
+  useEffect(() => () => forgetFound(), []);
   // The recovery sheet: its code typed here, never kept.
   const [sheetOpen, setSheetOpen] = useState(false);
   const [code, setCode] = useState('');
@@ -295,7 +298,15 @@ export const RestorePage: React.FC = () => {
                   {done.vaultKey === 'none' ? t('app.sealed.backup.olderFile') : lockedWords(locked, tr)}
                 </Alert>
               )}
-              <Button component={RouterLink} to="/records" variant="contained" size="large" fullWidth sx={{ py: 1.5 }}>
+              <Button
+                component={RouterLink}
+                to="/records"
+                // One yellow button at a time: the passkey offer first, when there is one.
+                variant={fromAccount && fromSheet && !added && !adoptProblem ? 'outlined' : 'contained'}
+                size="large"
+                fullWidth
+                sx={{ py: 1.5 }}
+              >
                 {t('app.backup.seeMyPlants')}
               </Button>
             </Stack>

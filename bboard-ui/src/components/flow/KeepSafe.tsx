@@ -178,7 +178,8 @@ export const KeepSafeSheet: React.FC<{ open: boolean; onClose: () => void }> = (
               </Button>
             )}
             <Button variant={done.counted ? 'contained' : 'outlined'} onClick={onClose} sx={{ minHeight: 44 }}>
-              {t('app.account.saved.done')}
+              {/* Where the sheet is required, closing is said for what it is (first-time-user pass). */}
+              {done.counted ? t('app.account.saved.done') : t('app.recovery.prompt.laterBound')}
             </Button>
           </DialogActions>
         </>
@@ -248,6 +249,29 @@ export const KeepSafeSheet: React.FC<{ open: boolean; onClose: () => void }> = (
                   data-keep-safe-sheet-go=""
                 >
                   {t('app.account.sheet.setUpAgain')}
+                </Button>
+                {/* No sheet after all (one made and never printed): a way on, said for what it does. */}
+                <Button
+                  color="inherit"
+                  disabled={busy}
+                  onClick={() => {
+                    if (!window.confirm(t('app.account.sheet.noSheetConfirm'))) return;
+                    setBusy(true);
+                    setProblem(undefined);
+                    setCode('');
+                    void setUpAccount({ withoutSheet: true })
+                      .then(async (out) => {
+                        await hydrate().catch(() => undefined);
+                        if (!out.ok) setProblem(out.reason);
+                        else setDone({ counted: out.counted === true });
+                      })
+                      .catch((e: unknown) => setProblem(e instanceof Error ? e.message : String(e)))
+                      .finally(() => setBusy(false));
+                  }}
+                  sx={{ minHeight: 44, alignSelf: 'flex-start', px: 0 }}
+                  data-keep-safe-no-sheet=""
+                >
+                  {t('app.account.sheet.noSheet')}
                 </Button>
               </Stack>
             )}

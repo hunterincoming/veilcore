@@ -256,6 +256,40 @@ or Google account, deletes the passkey, or loses the one device a passkey that d
   asks for the sheet's code, which adds the passkey back to the same records.
 - **Stop saving** deletes every sheet's slot with the copy; the confirmation says so.
 
+### Found in the passes on step 3 (19 Nov 2026), and what was done
+
+Independent security pass (no blockers):
+- **S-1** Making a sheet decided which sheets were "unchecked" from this device's possibly old
+  list, so it could remove a sheet another device had checked since. It now decides from this list
+  merged with the copy just read, and never removes a checked one that way.
+- **S-2** "Check my recovery sheet" accepted a copy older than this device had seen and could
+  retire the current sheet. It now refuses an older copy, merges the copy's list first, requires
+  the sheet to be in it, and says "works" only once the saved copy lists it checked.
+- **S-3** "Save again" treated a failure to read the copy as "gone" and could start a second copy
+  beside the one a sheet opens. It now stops with the error. A person with no sheet after all has
+  "I don't have my sheet: start again", which deletes the old copy first, on purpose.
+- **S-4** The sheet's line against phishing said the code is asked only when restoring; it is also
+  asked to check the sheet. It now says: only at the site, to check the sheet or get records back;
+  never on a phone call, WhatsApp or email. "Save as PDF" now says where not to keep it.
+- **S-5** The code could be pasted back from the screen. The check field refuses paste and drop,
+  and the print copy is only in the page while the sheet is shown.
+- Nits done: a registry that lists wraps but leaves one out counts that slot as changed (a lying
+  registry can still echo a fingerprint: the restore is the final check); the account key a sheet
+  opened is held two minutes, not ten, and wiped on leaving the page; a passkey that opens other
+  records is forgotten so the next try makes a new one; a sheet whose save failed is taken away
+  again rather than left as "something you didn't add".
+- Not done: two tabs making a sheet at once can leave one tab showing a code the other replaced
+  (it then says the code opens nothing; make it again). The 90-day re-verify is a reminder, not an
+  expiry.
+
+First-time-user pass: the Saved screen's close button says "I'll do it later" where the sheet is
+required; "No printer? Write the code on paper by hand…"; a code that wraps only between groups; one
+error line, not two ("That doesn't match your sheet"); wording that doesn't assume an Apple or
+Google account where the passkey is on one Windows PC; "Lost this sheet, or someone saw it? Make a
+new one in Settings now."; "There are no letters O, I or L in it". Not done: telling two passkeys
+apart in Settings by device name (only their tags differ); who keeps an association's sheet when
+its secretary changes (that belongs with shared spaces, step "member").
+
 ## Later ways in, without a migration
 
 The slot is generic: `{ slotId, copyId, kind, sealed AK, read token hash }`, and the registry

@@ -351,3 +351,91 @@ describe('the sealed list across devices', () => {
     expect(ac.countsAsBackup(m([{ ...pkB, verifiedAt: undefined }, sheetOk]))).toBe(false);
   });
 });
+
+describe('the security pass on step 3', () => {
+  it('S-1: a sheet another device checked since is never taken for an unchecked one when a new sheet is made', async () => {
+    const m = await load();
+    withRecords(m, ['R-1']);
+    await m.ac.setUpAccount();
+    const deviceA = store;
+    const heldA = await m.keyStore.heldAccountKeys();
+    // Device B (the same synced passkey) makes a sheet; A merges the copy that lists it unchecked.
+    m.ac._resetAccountForTests();
+    m.keyStore.__forgetAccountKeysInMemory();
+    store = new Map(deviceA);
+    await m.keyStore.keepAccountKeys(heldA!);
+    const b = store;
+    const sheet = await m.ac.makeRecoverySheet();
+    m.ac._resetAccountForTests();
+    store = deviceA;
+    await m.ac.checkAccount();
+    // B checks it; A doesn't hear.
+    m.ac._resetAccountForTests();
+    store = b;
+    await m.ac.confirmRecoverySheet(sheet.code, sheet.slotId);
+    // A makes a new sheet: B's checked sheet stays at the registry and keeps working.
+    m.ac._resetAccountForTests();
+    store = deviceA;
+    await m.ac.makeRecoverySheet();
+    expect(reg.slots.has(sheet.slotId)).toBe(true);
+    expect(await problemOf(m.ac.confirmRecoverySheet(sheet.code))).toBe('no problem');
+  });
+
+  it('S-2: checking a sheet against an older copy than this device has seen is refused, and changes nothing', async () => {
+    const m = await load();
+    withRecords(m, ['R-1']);
+    await m.ac.setUpAccount();
+    const sheet = await m.ac.makeRecoverySheet();
+    const [id] = [...reg.copies.keys()];
+    const older = { ...reg.copies.get(id)! };
+    m.rk.ensureKeys('R-2');
+    await m.ac.syncNow({ force: true });
+    reg.copies.set(id, older);
+    const slotsBefore = [...reg.slots.keys()].sort();
+    expect(await problemOf(m.ac.confirmRecoverySheet(sheet.code, sheet.slotId))).toMatch(/older/i);
+    expect([...reg.slots.keys()].sort()).toEqual(slotsBefore);
+    expect(saved(m).sheet?.checked).toBe(false);
+  });
+
+  it('S-3: "Save again" never starts a second copy when the registry can’t be read; "start again without the sheet" replaces it on purpose', async () => {
+    const m = await load();
+    withRecords(m, ['R-1']);
+    await m.ac.setUpAccount();
+    const sheet = await m.ac.makeRecoverySheet();
+    await m.ac.confirmRecoverySheet(sheet.code, sheet.slotId);
+    const passkeySlot = [...reg.slots.entries()].find(([, x]) => x.kind === 'passkey')![0];
+    reg.slots.delete(passkeySlot);
+    const [copyId] = [...reg.copies.keys()];
+    // The registry's copy can't be read just now.
+    const inner = reg.fetch;
+    vi.stubGlobal('fetch', async (u: string, init?: RequestInit) =>
+      /\/account-copy\/[0-9a-f]{32}\/read$/.test(u) ? new Response('{}', { status: 503 }) : inner(u, init),
+    );
+    expect(await problemOf(m.ac.setUpAccount())).not.toBe('no problem');
+    expect([...reg.copies.keys()]).toEqual([copyId]);
+    vi.stubGlobal('fetch', inner);
+    expect(await problemOf(m.ac.setUpAccount())).toBe(SHEET_WORDS.needsSheet);
+    const out = await m.ac.setUpAccount({ withoutSheet: true });
+    expect(out.ok).toBe(true);
+    expect(reg.copies.has(copyId)).toBe(false);
+    expect(reg.copies.size).toBe(1);
+    expect(await problemOf(m.ac.findWithSheet(sheet.code))).toBe(SHEET_WORDS.wrong);
+  });
+
+  it('a registry that lists wraps but leaves one out of a slot with a recorded wrap: that way in counts as changed', async () => {
+    const { ac } = await load();
+    const m = {
+      kcv: 'k',
+      devices: {},
+      forgotten: {},
+      slots: [
+        { slotId: 'a'.repeat(32), kind: 'passkey' as const, createdAt: 'x', wrap: 'f'.repeat(64) },
+        { slotId: 'b'.repeat(32), kind: 'recovery' as const, createdAt: 'x', wrap: 'e'.repeat(64) },
+      ],
+    };
+    const present = ac.presentSlots(m, [{ slotId: 'a'.repeat(32), wrap: 'f'.repeat(64) }, { slotId: 'b'.repeat(32) }]);
+    expect(present.map((x) => x.slotId)).toEqual(['a'.repeat(32)]);
+    // An older registry with no wraps at all: not held against it.
+    expect(ac.presentSlots(m, [{ slotId: 'a'.repeat(32) }, { slotId: 'b'.repeat(32) }])).toHaveLength(2);
+  });
+});

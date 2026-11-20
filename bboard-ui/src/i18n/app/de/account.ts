@@ -26,7 +26,7 @@ export const account = {
   'app.account.saved.title': 'Gespeichert.',
   'app.account.saved.text': 'Ihre Datensätze sind bei VeilCore gespeichert. Neue speichern sich von selbst.',
   'app.account.saved.bound':
-    'Bei VeilCore gespeichert, aber dieser Passkey bleibt nur auf diesem Gerät: Verlieren Sie das Gerät, ist auch er weg. Ein Wiederherstellungsblatt schützt Sie davor.',
+    'Nur dieses Gerät kann Ihre gespeicherten Datensätze öffnen: Wird es verloren, ersetzt oder zurückgesetzt, brauchen Sie Ihr Wiederherstellungsblatt.',
   'app.account.saved.download': 'Kopie herunterladen',
   'app.account.saved.done': 'Fertig',
 

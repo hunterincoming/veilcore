@@ -28,7 +28,7 @@ export const account = {
   'app.account.saved.title': 'Saved.',
   'app.account.saved.text': 'Your records are saved with VeilCore. New ones save by themselves.',
   'app.account.saved.bound':
-    'Saved with VeilCore, but this passkey stays on this device only: if you lose the device, it goes too. A recovery sheet keeps you safe.',
+    'Only this device can open your saved records: if it is lost, replaced or reset, you’ll need your recovery sheet.',
   'app.account.saved.download': 'Download a copy',
   'app.account.saved.done': 'Done',
 

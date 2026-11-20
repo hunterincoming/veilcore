@@ -124,6 +124,9 @@ export const SheetPaper: React.FC<{ sheet: MadeSheet; site: string }> = ({ sheet
             </Box>
           ))}
       </Box>
+      <Typography variant="caption" component="p" sx={{ mb: 1 }}>
+        {t('app.recovery.sheet.letters')}
+      </Typography>
       <Typography variant="body2" sx={{ mb: 1.5 }}>
         {t('app.recovery.sheet.made', { date: tr.date(sheet.createdAt) })}
         {sheet.tag ? ` ${t('app.recovery.sheet.passkey', { tag: sheet.tag })}` : ''}
@@ -137,7 +140,10 @@ export const SheetPaper: React.FC<{ sheet: MadeSheet; site: string }> = ({ sheet
       <Typography variant="body2" sx={{ mb: 1 }}>
         {t('app.recovery.sheet.anyone')}
       </Typography>
-      <Typography variant="body2">{t('app.recovery.sheet.newer')}</Typography>
+      <Typography variant="body2" sx={{ mb: 1 }}>
+        {t('app.recovery.sheet.newer')}
+      </Typography>
+      <Typography variant="body2">{t('app.recovery.sheet.lost')}</Typography>
     </Box>
   );
 };
@@ -177,6 +183,8 @@ export const RecoverySheetDialog: React.FC<{ open: boolean; mode: RecoveryMode; 
   const [typed, setTyped] = useState('');
   const [busy, setBusy] = useState(false);
   const [problem, setProblem] = useState<string>();
+  // Whether a checked sheet existed before this one: then "any older sheet no longer works".
+  const [hadOlder, setHadOlder] = useState(false);
   const site = sheetSite();
   useEffect(() => {
     if (!open) return;
@@ -200,6 +208,7 @@ export const RecoverySheetDialog: React.FC<{ open: boolean; mode: RecoveryMode; 
     setBusy(true);
     setProblem(undefined);
     try {
+      setHadOlder(state.kind === 'saved' && !!state.sheet?.checked);
       setSheet(await makeRecoverySheet());
       setPhase('show');
     } catch (e) {
@@ -234,7 +243,8 @@ export const RecoverySheetDialog: React.FC<{ open: boolean; mode: RecoveryMode; 
       maxWidth="sm"
       data-recovery-dialog={phase}
     >
-      {sheet && (phase === 'show' || phase === 'confirm') && <PrintCopy sheet={sheet} site={site} />}
+      {/* Only while it is shown: typing it back must come from the paper (security pass, S-5). */}
+      {sheet && phase === 'show' && <PrintCopy sheet={sheet} site={site} />}
       <DialogTitle component="h2" sx={{ pb: 0.5 }}>
         {phase === 'done' ? (
           <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
@@ -283,6 +293,7 @@ export const RecoverySheetDialog: React.FC<{ open: boolean; mode: RecoveryMode; 
           <Stack spacing={2}>
             <Alert severity="warning" variant="outlined" data-recovery-only-now="">
               {t('app.recovery.onlyNow')}
+              <Box sx={{ mt: 0.75 }}>{t('app.recovery.noPrinter')}</Box>
             </Alert>
             <Paper variant="outlined" sx={{ p: { xs: 2, sm: 3 } }}>
               <SheetPaper sheet={sheet} site={site} />
@@ -296,6 +307,9 @@ export const RecoverySheetDialog: React.FC<{ open: boolean; mode: RecoveryMode; 
               label={t('app.recovery.confirm.label')}
               value={typed}
               onChange={(e) => setTyped(e.target.value.slice(0, 64))}
+              // Typed from the paper, never pasted from the screen (security pass on step 3, S-5).
+              onPaste={(e) => e.preventDefault()}
+              onDrop={(e) => e.preventDefault()}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && typed.trim() && !busy) void check();
               }}
@@ -316,15 +330,17 @@ export const RecoverySheetDialog: React.FC<{ open: boolean; mode: RecoveryMode; 
         )}
         {phase === 'done' && (
           <Typography variant="body1" data-recovery-done="">
-            {t('app.recovery.done.text')}
+            {hadOlder ? t('app.recovery.done.text') : t('app.recovery.done.first')}
           </Typography>
         )}
         {problem && (
           <Alert severity="warning" variant="outlined" sx={{ mt: 1.5 }} data-recovery-problem="">
             {/* A wrong code says what is wrong with it; anything else, that it didn't work and why. */}
-            {Object.values(SHEET_WORDS).includes(problem)
-              ? backupMessageWords(problem, tr)
-              : t('app.recovery.failed', { why: backupMessageWords(problem, tr) })}
+            {problem === SHEET_WORDS.wrong && phase === 'confirm' && sheet
+              ? t('app.recovery.err.noMatch')
+              : Object.values(SHEET_WORDS).includes(problem)
+                ? backupMessageWords(problem, tr)
+                : t('app.recovery.failed', { why: backupMessageWords(problem, tr) })}
           </Alert>
         )}
       </DialogContent>

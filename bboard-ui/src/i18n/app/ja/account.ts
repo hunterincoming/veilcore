@@ -26,7 +26,7 @@ export const account = {
   'app.account.saved.title': '保存しました。',
   'app.account.saved.text': '記録はVeilCoreに保存されました。新しい記録も自動で保存されます。',
   'app.account.saved.bound':
-    'VeilCoreに保存しましたが、このパスキーはこの端末にしかありません。端末をなくすとパスキーも失われます。復旧シートがあれば安心です。',
+    '保存済みの記録を開けるのはこの端末だけです。端末をなくしたり、買い替えたり、初期化したりしたときは、復旧シートが必要です。',
   'app.account.saved.download': 'コピーをダウンロード',
   'app.account.saved.done': '完了',
 

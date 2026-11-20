@@ -26,7 +26,7 @@ export const account = {
   'app.account.saved.title': 'Guardado.',
   'app.account.saved.text': 'Sus registros están guardados con VeilCore. Los nuevos se guardan solos.',
   'app.account.saved.bound':
-    'Guardado con VeilCore, pero esta llave de acceso se queda solo en este dispositivo: si lo pierde, se pierde también. Una hoja de recuperación lo protege.',
+    'Solo este dispositivo puede abrir sus registros guardados: si se pierde, se reemplaza o se restablece, necesitará su hoja de recuperación.',
   'app.account.saved.download': 'Descargar una copia',
   'app.account.saved.done': 'Listo',
 

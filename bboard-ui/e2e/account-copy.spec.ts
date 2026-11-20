@@ -441,7 +441,7 @@ const makeAndCheckSheet = async (page: Page, prefix: string, opts: { canSkip: bo
   expect(code).toMatch(/^([0-9A-Z]{4}-){6}[0-9A-Z]{4}$/);
   await expect(dialog).toContainText('Keep this with your herd book or other important papers.');
   await expect(dialog.locator('[data-recovery-phishing]')).toContainText(
-    'VeilCore asks for this code only when you restore on a new device at localhost.',
+    'VeilCore asks for this code only at localhost: to check this sheet, or to get your records back.',
   );
   await shots(page, `${prefix}-recovery-sheet-on-screen`);
   // As printed: the sheet alone.
@@ -469,7 +469,9 @@ const makeAndCheckSheet = async (page: Page, prefix: string, opts: { canSkip: bo
   await expect(dialog.locator('[data-recovery-problem]')).toContainText('That code has a mistake in it.');
   await input.fill(strangerCode());
   await dialog.locator('[data-recovery-check]').click();
-  await expect(dialog.locator('[data-recovery-problem]')).toContainText('That code doesn’t open any saved records.');
+  await expect(dialog.locator('[data-recovery-problem]')).toContainText(
+    'That doesn’t match your sheet. Check each character, then try again.',
+  );
   await shots(page, `${prefix}-recovery-wrong-code`);
   await input.fill(code.toLowerCase().replace(/-/g, ' '));
   await dialog.locator('[data-recovery-check]').click();
@@ -559,11 +561,9 @@ test('a passkey that stays on one device counts only once a recovery sheet is ch
   await expect(sheet).toBeVisible({ timeout: 60_000 });
   await sheet.locator('[data-keep-safe-go]').click();
   await expect(sheet.locator('[data-keep-safe-done="bound"]')).toBeVisible({ timeout: 60_000 });
-  await expect(sheet.locator('[data-recovery-prompt="bound"]')).toContainText(
-    'Only this device can open your saved records. If you lose it, this sheet is the only way back.',
-  );
+  await expect(sheet.locator('[data-recovery-prompt="bound"]')).toContainText('Make it now: it is the only way back.');
   await shots(E.page, '22-saved-bound-recovery-offered');
-  await sheet.getByRole('button', { name: 'Done' }).click();
+  await sheet.getByRole('button', { name: 'I’ll do it later' }).click();
   const [plant] = await recordIds(E.page);
   const backedUp = () =>
     E.page.evaluate(
@@ -583,6 +583,7 @@ test('a passkey that stays on one device counts only once a recovery sheet is ch
   await makeAndCheckSheet(E.page, '24', { canSkip: false });
   await expect.poll(backedUp, { timeout: 30_000 }).toBeTruthy();
   await E.page.goto('/records');
+  await expect(E.page.getByRole('heading', { name: 'Your records' })).toBeVisible();
   await expect(E.page.locator('[data-account-line]')).toHaveCount(0);
   await shots(E.page, '25-home-bound-counted');
   expectNoErrors(E.errors);
