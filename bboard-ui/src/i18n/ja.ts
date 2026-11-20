@@ -9,6 +9,7 @@
 // (登録 alone would read as registering the material, which a record is not).
 // SPDX-License-Identifier: Apache-2.0
 import type { Strings } from './en';
+import { policyJa } from './privacy-policy/ja';
 import { applyLiveSwaps, withoutCadence, type LiveSwaps } from './mainnet-overlay';
 export const ja: Strings = {
   // Header and footer
@@ -192,7 +193,7 @@ export const ja: Strings = {
   'm.about.where': '東京|ニュージャージー|日本|欧州連合|米国',
   'title.terms': '利用規約',
   'title.privacy': 'デモのプライバシー',
-  'title.privacyMainnet': 'サイトのプライバシー',
+  'title.privacyMainnet': 'プライバシーポリシー',
   'title.example': '記録の例',
   'title.verify': '記録を確認する',
   'title.import': 'コレクションに日付を付ける',
@@ -814,6 +815,8 @@ export const ja: Strings = {
   'm.checksite.otherList': 'その一覧は別のリリースのもので、このサイトが名乗るリリースのものではありません。',
   'm.checksite.uncommitted':
     'このリリースはまだコミットされていない変更を含むコードから作られたため、ファイルはそのコミットの公開コードと完全には一致しません。',
+  // The privacy policy veilcore.org shows at /privacy (components/site/PrivacyPolicy.tsx).
+  ...policyJa,
 };
 
 /** The public test site (en-testchain.ts), in this language. Draft, like the rest of this file. */
@@ -1009,8 +1012,8 @@ const jaMainnetBase = ({
     'ラボコードを付けて素材を送ります。ラボが自らの鍵で受領書に署名するので、記録にもう一方の当事者が残ります。受領書は本物の署名で、チェーン上ではなくVeilCoreのレジストリが保管します。増殖禁止などの条件は、このウェブサイトでは練習用です。',
   'm.for.6p':
     '相手からリンクが届きます。1回タップすると、あなたが記録固有の鍵を管理していることを、相手のページがネットワーク上で確認します。その鍵は記録を封印したときに記録の中で指定されているので、差し替えることはできません。あなたが誰か、誰が育成したかについては何も示しません。このウェブサイトではまだ使えません。',
-  'footer.privacy': 'サイトのプライバシー',
-  'title.privacy': 'サイトのプライバシー',
+  'footer.privacy': 'プライバシーポリシー',
+  'title.privacy': 'プライバシーポリシー',
   'm.privacy.label': 'サイトのプライバシー',
   'm.privacy.title': 'このサイトが保存するもの。',
   'm.privacy.lede':

@@ -64,8 +64,8 @@ export const esMainnet = buildMainnet({
       'Envíe material con un código de laboratorio. El laboratorio firma un acuse de recibo con su propia clave, así el registro muestra a una segunda parte. El acuse es una firma real, guardada por el servidor de registros de VeilCore, no en la cadena. Condiciones como no propagar son solo de práctica en este sitio web.',
     'm.for.6p':
       'Le envían un enlace. Usted toca una vez, y la página de la otra persona comprueba en la red que usted controla la clave propia de su registro. Su registro nombró esa clave al sellarse, así que no se puede cambiar por otra. No dice nada sobre quién es usted ni sobre quién obtuvo la planta. Este sitio web todavía no puede hacerlo.',
-    'footer.privacy': 'Privacidad del sitio',
-    'title.privacy': 'Privacidad del sitio',
+    'footer.privacy': 'Política de privacidad',
+    'title.privacy': 'Política de privacidad',
     'm.privacy.label': 'Privacidad del sitio',
     'm.privacy.title': 'Qué guarda este sitio.',
     'm.privacy.lede':

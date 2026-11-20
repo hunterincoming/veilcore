@@ -64,8 +64,8 @@ export const deMainnet = buildMainnet({
       'Senden Sie Material mit einem Laborcode. Das Labor signiert eine Empfangsbestätigung mit seinem eigenen Schlüssel, sodass der Datensatz eine zweite Partei zeigt. Die Bestätigung ist eine echte Signatur, gespeichert im Register von VeilCore, nicht auf der Chain. Bedingungen wie „keine Vermehrung“ sind auf dieser Website nur zum Üben.',
     'm.for.6p':
       'Man schickt Ihnen einen Link. Sie tippen einmal, und die Seite der anderen Person prüft im Netzwerk, dass Sie den eigenen Schlüssel Ihres Datensatzes kontrollieren. Ihr Datensatz hat diesen Schlüssel beim Versiegeln benannt, deshalb lässt er sich nicht austauschen. Wer Sie sind oder wer die Pflanze gezüchtet hat, zeigt es nicht. Diese Website kann das noch nicht.',
-    'footer.privacy': 'Datenschutz der Website',
-    'title.privacy': 'Datenschutz der Website',
+    'footer.privacy': 'Datenschutzerklärung',
+    'title.privacy': 'Datenschutzerklärung',
     'm.privacy.label': 'Datenschutz der Website',
     'm.privacy.title': 'Was diese Website speichert.',
     'm.privacy.lede':

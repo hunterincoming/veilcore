@@ -719,11 +719,11 @@ describe('builds', () => {
         /Records sealed on this site are real records: they go into batches that we anchor there by hand for now\. Licenses and lab agreements here are still simulated\./,
       );
       expect(mainnet['/']).toMatch(/Make a record/);
-      expect(mainnet['/privacy']).toMatch(/Site privacy/);
-      expect(mainnet['/privacy']).toMatch(/Once anchored, it is permanent: nobody, including us, can delete it\./);
-      expect(mainnet['/privacy']).toMatch(
-        /We can delete what our server holds for your records: email hunter@veilcore\.org/,
-      );
+      // The privacy policy (components/site/PrivacyPolicy.tsx), not the test site's note.
+      expect(mainnet['/privacy']).toMatch(/Privacy policy/);
+      expect(mainnet['/privacy']).toMatch(/Once there, nobody can delete it, us included\./);
+      expect(mainnet['/privacy']).toMatch(/email hunter@veilcore\.org with the IDs/);
+      expect(mainnet['/privacy']).not.toMatch(/What the demo keeps|Use made-up data/);
       expect(mainnet['/licenses']).toMatch(/Simulated in this web app/);
       for (const p of ['/records', '/licenses', '/new']) expect(mainnet[p], p).toMatch(/Web app/);
       // The test-network site is still a demo, and says so.
