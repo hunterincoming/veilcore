@@ -64,7 +64,7 @@ waiting.
 | Route | What |
 |---|---|
 | `GET /sponsor/status` | Synced or not, accepting or not, queue depth, the anchoring job's last outcome as a short code, and `agreements`: whether it pays for license and other agreement calls (`policy.ts`). No budget figures and no error text. With the header `x-operator-token: <SPONSOR_STATUS_TOKEN>`: also the exact budget, counters and the anchoring job's own messages |
-| `GET /sponsor/alerts` | For an outside monitor (`docs/mainnet-sponsor.md`, step 7): **200** `{ ok: true, problems: [] }` when nothing needs the operator, **503** with codes when something does: `anchoring-failing`, `sync-stalled`, `not-synced` (three hours after start), `fuel-low` (under `ALERT_DUST_LOW_DUST`). Codes only (`alerts.ts`) |
+| `GET /sponsor/alerts` | For an outside monitor (`docs/mainnet-sponsor.md`, step 7): **200** `{ ok: true, problems: [] }` when nothing needs the operator, **503** with codes when something does: `fork-mismatch`, `anchoring-failing`, `sync-stalled`, `not-synced` (three hours after start), `fuel-low` (under `ALERT_DUST_LOW_DUST`, or under `ALERT_FUEL_RUNWAY_DAYS` days left at the rate DUST has been falling; then also `fuelRunwayDays`, whole days, when known). Codes only otherwise (`alerts.ts`, `fuel.ts`) |
 | `GET /sponsor/challenge` | A proof-of-work challenge |
 | `POST /sponsor` | `{ tx, ticket, challenge, nonce }` → `{ txId }` or a refusal with a plain reason |
 | `GET /health` | `{ ok: true }` |
@@ -74,7 +74,10 @@ waiting.
 The same relay code also runs on its own, read-only: `node dist/relay-main.js`
 (`src/relay-main.ts`). No wallet, no seed, no fees, no anchoring: it only passes the check
 page's reads of Midnight (`POST /indexer`, `/indexer/ws`, `GET /health`) to Blockfrost with
-the project id kept on the server. It is what lets veilcore.org's check page look a
+the project id kept on the server. `GET /alerts` is for an outside monitor: **200**
+`{ ok: true, problems: [] }` when Blockfrost answers with a Midnight block under 10 minutes
+old, **503** with `upstream-unreachable` or `upstream-stale` when not (`src/upstream-check.ts`;
+one upstream lookup a minute at most, codes only). `/health` only says the relay is running. It is what lets veilcore.org's check page look a
 record's date up on Midnight itself; the sponsor can't do that there, because it refuses
 mainnet. Its settings are `RELAY_NETWORK`, `BLOCKFROST_PROJECT_ID`, `ALLOWED_ORIGINS` and
 `TRUST_PROXY_HOPS` only, and it refuses to start if it sees a seed, a private key, a
@@ -118,6 +121,9 @@ turn the job off), `TRUST_PROXY_HOPS` (1 on Railway), `INDEXER_URL`, `INDEXER_WS
 `NODE_WS_URL`, `POW_SECRET`, `VEILCORE_ARTIFACTS_DIR`, `SPONSOR_STATUS_TOKEN` (at least 32
 characters, e.g. 64 random hex; without it `/sponsor/status` only has the public view).
 `ALERT_DUST_LOW_DUST` (50): below this much DUST, `/sponsor/alerts` reports `fuel-low`.
+`ALERT_FUEL_RUNWAY_DAYS` (7; 0 turns it off): fewer days of DUST than this left, at the rate the
+balance fell over the readings kept (up to a week, at least six hours, `src/fuel.ts`), is
+`fuel-low` too.
 
 `TRUST_PROXY_HOPS` must be the real number of proxies in front. A request to
 `/sponsor` or `/sponsor/challenge` with fewer `X-Forwarded-For` entries than that is

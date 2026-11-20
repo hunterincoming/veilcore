@@ -62,7 +62,10 @@ export const checkSite = async (url, { manifestFile, repoRoot = process.cwd(), f
   const pins = join(repoRoot, 'bboard-ui/src/ask-local/model-manifest.json');
   const modelManifest = existsSync(pins) ? JSON.parse(readFileSync(pins, 'utf8')) : undefined;
   const out = await checkRelease(site, manifest, { fetchImpl, routes, modelManifest });
-  const { model } = out;
+  const { model, worker } = out;
+  // The offline worker (release-check.mjs checkServiceWorker).
+  if (worker.skipped) lines.push(`Offline worker: not checked (${worker.skipped}).`);
+  else if (worker.ok) lines.push('Offline worker: served no-cache, and keeps only files the release list hashes.');
   if (model.skipped && model.ok) lines.push(`Ask's model workers: not checked (${model.skipped}).`);
   else if (model.ok) lines.push(`Ask's model workers: ${model.checked.length} files, each with exactly its own security policy.`);
   const { files, routes: pages } = out;
@@ -83,6 +86,7 @@ export const checkSite = async (url, { manifestFile, repoRoot = process.cwd(), f
   for (const p of pages.differ) lines.push(`  page differs: ${p}`);
   for (const p of pages.missing) lines.push(`  page missing: ${p}`);
   for (const w of model.wrong) lines.push(`  model worker: ${w.path}: ${w.problem}`);
+  for (const w of worker.wrong) lines.push(`  offline worker: ${w.path}: ${w.problem}`);
   const byName = new Map();
   for (const h of pages.headerDiffers) byName.set(h.name, [...(byName.get(h.name) ?? []), h.path]);
   for (const [name, paths] of byName)

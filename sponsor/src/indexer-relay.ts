@@ -1180,9 +1180,10 @@ export const loadReadRelayConfig = (
 };
 
 /**
- * The read-only relay's routes: GET /health (and the network it reads), the CORS
- * preflight, and POST /indexer. Everything else is 404. The socket (/indexer/ws) is
- * attached to the server by relay.attach.
+ * The read-only relay's routes: GET /health (and the network it reads), GET /alerts (the
+ * upstream indexer answers with a recent block: upstream-check.ts), the CORS preflight, and
+ * POST /indexer. Everything else is 404. The socket (/indexer/ws) is attached to the server
+ * by relay.attach.
  */
 export const readRelayHandler =
   (
@@ -1190,6 +1191,7 @@ export const readRelayHandler =
     cfg: Pick<ReadRelayConfig, "network" | "allowedOrigins">,
     clientIp: (req: IncomingMessage) => string | undefined,
     cardano?: CardanoRelay,
+    upstreamAlerts?: () => Promise<readonly string[]>,
   ) =>
   async (req: IncomingMessage, res: ServerResponse): Promise<void> => {
     const origin = typeof req.headers.origin === "string" ? req.headers.origin : undefined;
@@ -1220,6 +1222,16 @@ export const readRelayHandler =
       }
       if (req.method === "GET" && path === "/health")
         return send(200, { ok: true, readsOnly: true, network: cfg.network }, cors);
+      // For an outside monitor: codes only, never the upstream's address, words or numbers.
+      if (req.method === "GET" && path === "/alerts" && upstreamAlerts) {
+        let problems: readonly string[];
+        try {
+          problems = await upstreamAlerts();
+        } catch {
+          problems = ["check-failed"];
+        }
+        return send(problems.length ? 503 : 200, { ok: problems.length === 0, problems }, cors);
+      }
       if (path === "/indexer") {
         await relay.http(req, res, clientIp(req), cors);
         return;

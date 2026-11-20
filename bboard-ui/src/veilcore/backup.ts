@@ -78,6 +78,7 @@ import {
   type ImportResult,
 } from './records';
 import { deviceOnlyRecords } from './outbox';
+import { noteArrived } from './arrived';
 import { proofFor } from './proofs';
 import { dealRecordsForBackup } from './deal-backup';
 import { committedRecordFields, type CommittedRecordInput } from './commitment';
@@ -716,7 +717,10 @@ export const restoreAny = async (file: File, password?: string, opts: RestoreOpt
 
   const holder = fileKey ? adoptHolderKey(fileKey) : 'none';
   const vault = fileVault ? adoptVaultKey(fileVault, opts.mark !== false) : 'none';
+  const before = new Set(allKeys().map((k) => k.recordId));
   const recordIds = entries.map((e) => restoreKeysEntry(e, { mark: opts.mark }).recordId);
+  // New to this device: made elsewhere, so never listed as in progress here (arrived.ts).
+  noteArrived(recordIds.filter((id) => !before.has(id)));
   const labAdopted = lab ? adoptAttester(lab) : false;
   // A lab key that came from the file is in that file: backed up, unless this is a copy that
   // marks nothing (a passkey copy, RestoreOptions).

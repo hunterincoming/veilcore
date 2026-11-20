@@ -95,7 +95,10 @@ railway up ../veilcore-sponsor-deploy --path-as-root --service veilcore-indexer-
 ```
 
 **4. Check it.** Open `https://<relay address>/health`. It must say
-`{"ok":true,"readsOnly":true,"network":"mainnet"}`.
+`{"ok":true,"readsOnly":true,"network":"mainnet"}`. Then open
+`https://<relay address>/alerts`: `{"ok":true,"problems":[]}` means Blockfrost answered with a
+recent Midnight block. Put an UptimeRobot monitor on `/alerts` (`docs/ops/outages.md`):
+`/health` stays green when Blockfrost is down, `/alerts` doesn't.
 
 **5. Rebuild veilcore.org with the relay's address.** From the repository folder:
 

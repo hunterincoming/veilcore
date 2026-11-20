@@ -33,7 +33,7 @@ export const dating = {
 
   'app.home.restoreFirstTitle': 'Vous avez utilisé VeilCore sur un autre appareil ?',
   'app.home.restoreFirstText':
-    'Récupérez d’abord vos enregistrements ici : avec Face ID, ou avec le fichier de sauvegarde que vous avez enregistré.',
+    'Récupérez d’abord vos enregistrements ici : avec {how}, ou avec le fichier de sauvegarde que vous avez enregistré.',
   'app.home.restoreFirstButton': 'Récupérer mes enregistrements',
 
   'app.pickup.title': 'En cours',

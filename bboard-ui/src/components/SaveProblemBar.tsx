@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import { clearSaveProblem, describeRefusals, useSaveProblem } from '../veilcore/save-status';
 import { useT } from '../i18n/app';
 import { SupportDetails } from './SupportDetails';
+import { useOfflineState } from '../offline/register';
 import {
   clearCopiesMade,
   copiesMadeNow,
@@ -94,6 +95,7 @@ export const SaveProblemBar: React.FC = () => (
 const SaveProblem: React.FC = () => {
   const problem = useSaveProblem();
   const tr = useT();
+  const { online } = useOfflineState();
   if (!problem) return null;
   // `what` is 'records' or 'agreements' (records.ts, licenses.ts); the registry's own reasons stay as it gave them.
   const what =
@@ -107,6 +109,9 @@ const SaveProblem: React.FC = () => {
   // general line read "…have been put back to what it holds: …nothing was saved", which on a
   // phone with a bad signal sounded like the record just sealed was lost.
   const unreachable = problem.refused.every((r) => r.words === 'app.sealed.refuse.unknown');
+  // No signal: the offline line above says it already (OfflineBar, docs/offline.md). Shown
+  // again if VeilCore still can't be reached once there is signal.
+  if (unreachable && !online) return null;
   return (
     <Alert
       severity="warning"

@@ -15,6 +15,7 @@ import { OPEN_RECEIVE_EVENT } from '../ClaimTransfer';
 import { useRecords } from '../../veilcore/records';
 import { useRecordKeys } from '../../veilcore/record-keys';
 import { useT } from '../../i18n/app';
+import { ScanAdornment } from '../../scan/ScanButton';
 
 export const PasteBox: React.FC<{
   /**
@@ -44,11 +45,15 @@ export const PasteBox: React.FC<{
   const provable = records.filter((r) => keys[r.id]?.anchor);
   const { t } = useT();
 
-  const go = async () => {
-    if (busy || !value.trim()) return;
+  // A scanned check link or proof link (a label's QR code, a link on someone's screen) opens at
+  // once, as pressing Go would: recognise() keeps only the path, so a code can never send anyone
+  // to another site. Anything else a scan reads (a lab code, a proof request, an agreement to
+  // sign) only fills the box: the holder reads it and presses Go (review, 20 Nov).
+  const go = async (text: string = value) => {
+    if (busy || !text.trim()) return;
     setProblem(undefined);
     setChoose(undefined);
-    const p = recognise(value, (id) => records.some((r) => r.id === id));
+    const p = recognise(text, (id) => records.some((r) => r.id === id));
     switch (p.kind) {
       case 'delivery': {
         setBusy(true);
@@ -112,6 +117,21 @@ export const PasteBox: React.FC<{
           }}
           fullWidth
           size="medium"
+          slotProps={{
+            input: {
+              endAdornment: (
+                <ScanAdornment
+                  field={t('app.home.paste.label')}
+                  inputRef={field}
+                  onScan={(text) => {
+                    setValue(text);
+                    const kind = recognise(text).kind;
+                    if (kind === 'record-link' || kind === 'prove-link') void go(text);
+                  }}
+                />
+              ),
+            },
+          }}
         />
         <Button
           variant="contained"

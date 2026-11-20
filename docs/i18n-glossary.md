@@ -59,6 +59,11 @@ is the source text, and the terms of use say the English governs.
 | device | 端末 (not デバイス) | bank app help pages: 機種変更, 端末 |
 | we (VeilCore) | 私たち, as the English says "we" (not 当社) | — |
 | the Ask helper | 「VeilCoreに聞く」 | — |
+| passkey | パスキー | Apple and Google Japanese help pages |
+| saved with VeilCore (the account copy) | VeilCoreに保存 (not バックアップ, which is the file) | easy mode step 2, 19 Nov 2026 |
+| recovery sheet, recovery code | 復旧シート, 復旧コード | Apple's own name for its printed code: 「復旧キー」 ([support.apple.com/ja-jp/HT208072](https://support.apple.com/ja-jp/HT208072)) |
+| screen lock (Android, on the button) | 端末のPIN・パターン・パスワードを使う (what the phone actually asks for; 画面ロック names the setting, not what is typed) | easy mode step 2, 19 Nov 2026 |
+| herd book (on the recovery sheet) | 血統書 (the papers a Japanese breeder keeps with it) | easy mode step 3 |
 | tap | タップ | 77bank app help: 「…をタップし」 |
 
 Typography: no space between a Latin word and Japanese (`VeilCoreの`, `記録ID`), and the
@@ -106,6 +111,9 @@ full-width colon `：` (19 Nov 2026 review, S12, S13).
 | target (qPCR) | blanco (not diana); SOP: POE (not PNT) | 19 Nov 2026 review (19) |
 | ear tag | caravana | SENASA |
 | the Ask helper | «Preguntar» | — |
+| passkey | llave de acceso | Apple and Google Spanish help pages |
+| saved with VeilCore | guardado con VeilCore | easy mode step 2, 19 Nov 2026 |
+| recovery sheet, recovery code | hoja de recuperación, código de recuperación | Apple: "clave de recuperación" ([support.apple.com/es-lamr/HT208072](https://support.apple.com/es-lamr/HT208072)) |
 
 Register: *usted*. Argentine government pages use *vos* ("Descargá", "podés"); the founder
 chose neutral *usted*, which reads correctly in Argentina and the rest of Latin America.
@@ -133,6 +141,10 @@ chose neutral *usted*, which reads correctly in Argentina and the rest of Latin 
 | existed by a date | spätestens an diesem Datum / spätestens zu diesem Zeitpunkt | — |
 | main network | Hauptnetz | — |
 | the Ask helper | „Fragen“ | — |
+| passkey | Passkey | Apple and Google German help pages |
+| saved with VeilCore | bei VeilCore gespeichert | easy mode step 2, 19 Nov 2026 |
+| recovery sheet, recovery code | Wiederherstellungsblatt, Wiederherstellungscode | Apple: "Wiederherstellungsschlüssel" |
+| herd book | Herdbuch | — |
 
 Register: *Sie*, as the Sparkasse help pages do.
 
@@ -155,6 +167,9 @@ Register: *Sie*, as the Sparkasse help pages do.
 | lab report | rapport de laboratoire | — |
 | accession number | n° d’accession | — |
 | the Ask helper | « Demander » | — |
+| passkey | clé d’accès | Google French help pages (Apple says "clé d’identification"; the app keeps one word) |
+| saved with VeilCore | sauvegardé chez VeilCore | easy mode step 2, 19 Nov 2026 |
+| recovery sheet, recovery code | fiche de secours, code de secours | Apple: "clé de secours" |
 
 Register: *vous*. Typography: the typographic apostrophe (’) everywhere, and a space before
 `;`, `:`, `?` and `!`.
@@ -185,3 +200,16 @@ the English says "registry".
 What this review is not: a fluent speaker reading every screen. Wording that is correct but
 not how a native speaker would put it can remain, most likely on the screens step 3 did not
 read. A fluent speaker's corrections are welcome, as in [translations/README.md](translations/README.md).
+
+## Scanning and labels (docs/scan-and-labels.md)
+
+| English | Japanese | Spanish | German | French |
+| --- | --- | --- | --- | --- |
+| scan | スキャン | escanear | scannen | scanner |
+| QR code, barcode | QRコード, バーコード | código QR, código de barras | QR-Code, Barcode | code QR, code-barres |
+| label (printed) | ラベル | etiqueta | Etikett | étiquette |
+| NFC tag | NFCタグ | etiqueta NFC | NFC-Tag | puce NFC |
+| stick reader (ear tags) | スティックリーダー | lector de bastón | Stablesegerät | bâton lecteur |
+| check page | 確認ページ | página de comprobación | Prüfseite | page de vérification |
+| "Scan to check" (on a label) | スキャンして確認 | Escanee para comprobar | Zum Prüfen scannen | Scanner pour vérifier |
+| straw canister | ストローの容器 | recipiente de pajuelas (not "contenedor": it holds "tenedor", which the Spanish check refuses) | Paillettenbehälter | visotube |

@@ -19,6 +19,7 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
+import { ScanTextField } from '../scan/ScanTextField';
 import SendIcon from '@mui/icons-material/SendOutlined';
 import ContentCopyIcon from '@mui/icons-material/ContentCopyOutlined';
 import ShareIcon from '@mui/icons-material/IosShareOutlined';
@@ -141,6 +142,14 @@ export const SendToLab: React.FC<{
     value: sample[k],
     onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
       setSample({ ...sample, [k]: e.target.value.slice(0, CUSTODY_LIMITS.sample[k]) }),
+    fullWidth: true,
+    size: 'small' as const,
+  });
+
+  // The same, for a box with a Scan button (scan/ScanTextField.tsx).
+  const scanField = (k: 'sampleId' | 'sealNumber') => ({
+    value: sample[k],
+    onValue: (v: string) => setSample({ ...sample, [k]: v.slice(0, CUSTODY_LIMITS.sample[k]) }),
     fullWidth: true,
     size: 'small' as const,
   });
@@ -288,8 +297,8 @@ export const SendToLab: React.FC<{
                   <Typography variant="caption" color="text.secondary" sx={{ mt: '0 !important' }}>
                     {t('app.lab.send.sampleHelp')}
                   </Typography>
-                  <TextField label={t('app.lab.send.sampleId')} {...sampleField('sampleId')} />
-                  <TextField label={t('app.lab.send.sealNumber')} {...sampleField('sealNumber')} />
+                  <ScanTextField label={t('app.lab.send.sampleId')} {...scanField('sampleId')} />
+                  <ScanTextField label={t('app.lab.send.sealNumber')} {...scanField('sealNumber')} />
                   <TextField
                     label={t('app.lab.field.takenFrom')}
                     helperText={t('app.lab.send.takenFromHelp')}
