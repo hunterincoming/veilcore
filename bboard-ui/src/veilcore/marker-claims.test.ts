@@ -25,6 +25,7 @@ import {
   roundedBound,
 } from './marker-claims';
 import { SCHEMAS } from './field-set';
+import { PARENTAGE_SCHEMA } from './parentage';
 import { CALL_SCHEMA, type LabResultStatement } from './lab-result';
 import { CALL_WORDS } from './claim-call';
 import { claimLink, claimsOf, readClaimLink, withMore, type MadeClaim } from './claim-link';
@@ -117,7 +118,9 @@ describe('what the panel offers, per form', () => {
   });
 
   it('nothing changes on any other form', () => {
-    for (const id of Object.keys(SCHEMAS).filter((x) => x !== MATCH_SCHEMA && x !== LINEAGE_SCHEMA))
+    for (const id of Object.keys(SCHEMAS).filter(
+      (x) => x !== MATCH_SCHEMA && x !== LINEAGE_SCHEMA && x !== PARENTAGE_SCHEMA,
+    ))
       expect(offersFor({ schema: id, values: ['1'] }), id).toBeUndefined();
     expect(offerAllowed(POTENCY, 0, 'at-most')).toBe(true);
     expect(offerAllowed(POTENCY, 0, 'exactly')).toBe(true);
@@ -130,6 +133,11 @@ describe('what the panel offers, per form', () => {
       call: '',
       conflictsFirst: 'lineage.conflictsFirst',
       conflictsSecond: 'lineage.conflictsSecond',
+      sireConflicts: 'parentage.sireConflicts',
+      damConflicts: 'parentage.damConflicts',
+      trioConflicts: 'parentage.trioConflicts',
+      sireCompared: 'parentage.sireCompared',
+      damCompared: 'parentage.damCompared',
     };
     for (const [schema, offers] of Object.entries(MARKER_OFFERS))
       for (const o of offers) {
