@@ -736,6 +736,12 @@ export const ja: Strings = {
   'm.checksite.noHeaders':
     'このリリースの一覧にはセキュリティヘッダーが載っていません（載せるようになる前に作られました）。そのため比べていません。',
   'm.checksite.extraScript': 'このページには、一覧のページにないスクリプトがあります：{script}',
+  'm.checksite.workerOk':
+    'オフライン用ワーカー（/sw.js）は、ブラウザが毎回新しく取得するように送られ、このリリースの一覧にあるファイルだけを保存します。',
+  'm.checksite.workerWrong': 'オフライン用ワーカーが本来の状態ではありません：{path}。',
+  'm.checksite.copyHere': 'このブラウザにあるサイトのオフライン用コピーはリリース{commit}です。',
+  'm.checksite.copyOther':
+    'このブラウザのオフライン用コピーはリリース{commit}で、ここで確認したものではありません。電波のある状態で次にページを開いたときに更新されます。',
   'm.checksite.limit':
     'これで分かるのは、あなたのブラウザが受け取ったものです。ホストが全員に同じファイルを送ったことまでは証明できません。',
   'm.checksite.listLink': '公開コードにあるこのリリースの一覧',

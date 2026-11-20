@@ -353,9 +353,63 @@ export const checkModelWorkers = async (site, manifest, { fetchImpl = fetch, mod
   return { ok: wrong.length === 0, checked: workers, wrong };
 };
 
+/** The offline worker's address, its route in config.json, and the one header it must have. */
+export const SW_PATH = '/sw.js';
+export const SW_ROUTE_SRC = '^/sw\\.js$';
+export const SW_CACHE_CONTROL = 'no-cache, no-store, must-revalidate';
+export const OFFLINE_SHELL_PATH = '/offline-shell.json';
+
+/**
+ * The offline worker (docs/offline.md). Served at /sw.js, it decides what a browser gets when
+ * there is no signal, and it outlives a deploy, so a check holds it to more than its hash
+ * (checkFiles does that):
+ *   - it is served as JavaScript with Cache-Control exactly SW_CACHE_CONTROL, so every browser
+ *     fetches a fix or the kill switch on its next page load (security review S16);
+ *   - in a release built with VITE_OFFLINE=off it is the kill switch: no fetch handler;
+ *   - otherwise /offline-shell.json, the files it keeps, is listed and every file it names is
+ *     listed too, so the worker can keep nothing the release list doesn't hash.
+ * A release that lists no /sw.js (made before the worker) is not checked, and says so.
+ * @returns {Promise<{ skipped?: string, ok: boolean, wrong: { path: string, problem: string }[] }>}
+ */
+export const checkServiceWorker = async (site, manifest, { fetchImpl = fetch } = {}) => {
+  if (!manifest.files[SW_PATH]) return { skipped: 'this release has no offline worker', ok: true, wrong: [] };
+  const wrong = [];
+  let res;
+  try {
+    res = await fetchImpl(`${origin(site)}${SW_PATH}`, { cache: 'no-store' });
+  } catch {
+    return { ok: false, wrong: [{ path: SW_PATH, problem: 'not reachable' }] };
+  }
+  const body = res.ok ? await res.text() : '';
+  if (res.status !== 200) wrong.push({ path: SW_PATH, problem: `answered ${res.status}` });
+  else {
+    if (!/javascript/.test(res.headers.get('content-type') ?? '')) wrong.push({ path: SW_PATH, problem: 'not JavaScript' });
+    if ((res.headers.get('cache-control') ?? '').trim().toLowerCase() !== SW_CACHE_CONTROL)
+      wrong.push({ path: SW_PATH, problem: `not served with Cache-Control: ${SW_CACHE_CONTROL}` });
+    if (/\bimportScripts\s*\(/.test(body)) wrong.push({ path: SW_PATH, problem: 'loads other scripts (importScripts)' });
+    const off = String(manifest.build?.settings?.VITE_OFFLINE ?? '').trim() === 'off';
+    const handlesFetch = /addEventListener\(\s*['"]fetch['"]/.test(body);
+    if (off && handlesFetch) wrong.push({ path: SW_PATH, problem: 'built as the kill switch (VITE_OFFLINE=off) but answers requests' });
+    if (!off && handlesFetch) {
+      if (!manifest.files[OFFLINE_SHELL_PATH]) wrong.push({ path: OFFLINE_SHELL_PATH, problem: 'not listed' });
+      else {
+        try {
+          const list = JSON.parse(await (await fetchImpl(`${origin(site)}${OFFLINE_SHELL_PATH}`, { cache: 'no-store' })).text());
+          const files = Array.isArray(list?.files) ? list.files : null;
+          if (!files) wrong.push({ path: OFFLINE_SHELL_PATH, problem: 'not a list of files' });
+          else for (const f of files) if (!manifest.files[f]) wrong.push({ path: String(f), problem: 'kept for offline use but not in the release list' });
+        } catch {
+          wrong.push({ path: OFFLINE_SHELL_PATH, problem: 'not readable' });
+        }
+      }
+    }
+  }
+  return { ok: wrong.length === 0, wrong };
+};
+
 /**
  * The whole check: every listed file, then every page address, then the model workers' own
- * headers when the release has the model. `total` and `done` in onProgress count the first two.
+ * headers when the release has the model, then the offline worker (checkServiceWorker). `total` and `done` in onProgress count the first two.
  */
 export const checkRelease = async (site, manifest, { fetchImpl = fetch, onProgress, routes, modelManifest } = {}) => {
   const fileCount = Object.keys(manifest.files).length + (manifest.files['/index.html'] ? 1 : 0);
@@ -368,11 +422,12 @@ export const checkRelease = async (site, manifest, { fetchImpl = fetch, onProgre
     onProgress: (d) => onProgress?.(fileCount + d, total),
   });
   const model = await checkModelWorkers(site, manifest, { fetchImpl, modelManifest });
-  return { files, routes: pagesOut, model };
+  const worker = await checkServiceWorker(site, manifest, { fetchImpl });
+  return { files, routes: pagesOut, model, worker };
 };
 
-/** Whether a whole check found everything as listed (a result without `model` predates it). */
-export const releaseMatches = (r) => allMatch(r.files) && routesMatch(r.routes) && (r.model?.ok ?? true);
+/** Whether a whole check found everything as listed (a result without `model` or `worker` predates it). */
+export const releaseMatches = (r) => allMatch(r.files) && routesMatch(r.routes) && (r.model?.ok ?? true) && (r.worker?.ok ?? true);
 
 /**
  * The page a browser is showing, against the listed index.html (round 6): every script in it

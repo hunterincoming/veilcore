@@ -48,11 +48,16 @@ import {
   createRecord,
   draftSizeShare,
   getRecord,
+  proofCodeSent,
   sizeWords,
   tooLargeToSave,
   useRecords,
+  waitsToBeSent,
   type ParentRef,
 } from '../../veilcore/records';
+import { useInstantStamp } from '../../veilcore/instant-stamp';
+import { useOfflineState } from '../../offline/register';
+import { instantLines, sealedHereWords } from '../offline/offline-words';
 import { sealAnimalRecord, sealRecord, sealStrainRecord } from '../../veilcore/seal-record';
 import { localStamp } from '../../veilcore/time';
 import { forgetKeys, keysFor, storageKeeps, useRecordKeys } from '../../veilcore/record-keys';
@@ -1100,9 +1105,7 @@ const Stamp: React.FC<{ step: string; recordId: string; onNext: () => void }> = 
             Dating first (CONTRACT.md #38): the record's proof code is already on its way into
             the next batch, backup or not. */}
         <Box>
-          <Typography variant="body1" sx={{ fontWeight: 700 }} data-record-dated-next="">
-            {nextBatchWords(tr, cadence)}
-          </Typography>
+          <RecordDateNow recordId={recordId} cadence={cadence} tr={tr} strong />
           <Typography variant="body2" color="text.secondary">
             {t('app.log.publicDateLater', { datedOn })}
           </Typography>
@@ -1120,23 +1123,32 @@ const Stamp: React.FC<{ step: string; recordId: string; onNext: () => void }> = 
     );
   }
 
-  const failed = !stamp.busy && stamp.error ? stamp.error : undefined;
+  const failed = !stamp.busy && !stamp.offline && stamp.error ? stamp.error : undefined;
   const problem = failed ? stampProblem(failed, tr) : undefined;
   const stopped = stamp.entry?.stopped;
   return (
     <Stack spacing={2.5}>
       <Box>
         <ScreenHeading step={step}>
-          {problem ? t('app.log.stampFailedTitle') : t('app.log.stampingTitle')}
+          {/* No signal: sealed, and nothing is being fetched now (docs/offline.md). */}
+          {problem
+            ? t('app.log.stampFailedTitle')
+            : stamp.offline && !stamp.busy
+              ? t('app.log.sealed')
+              : t('app.log.stampingTitle')}
         </ScreenHeading>
         <Typography variant="body1" color="text.secondary">
           {t('app.log.onlyFingerprint')}
         </Typography>
       </Box>
       {/* The record's own date doesn't wait for this (dating first, CONTRACT.md #38). */}
-      <Typography variant="body2" color="text.secondary" data-record-dated-next="">
-        {nextBatchWords(tr, cadence)}
-      </Typography>
+      <RecordDateNow recordId={recordId} cadence={cadence} tr={tr} />
+      {/* No signal: the stamp waits politely and starts by itself (docs/offline.md). */}
+      {stamp.offline && !stamp.busy && (
+        <Alert severity="info" variant="outlined" data-stamp-waits="">
+          {t('app.offline.stampWaits')}
+        </Alert>
+      )}
       {stamp.busy && <LinearProgress aria-label={t('app.log.stampingAria')} sx={{ height: 10, borderRadius: 5 }} />}
       <Typography variant="body1" role="status" sx={{ minHeight: stamp.busy ? '1.5em' : 0 }}>
         {progressWords(stamp.progress, tr) ?? ''}
@@ -1206,6 +1218,48 @@ const waitWords = (seconds: number, tr: Translator): string =>
   seconds < 90
     ? tr.t('app.log.inSeconds', { n: String(seconds) })
     : tr.tp('app.chain.inAboutMinutes', Math.round(seconds / 60));
+
+/**
+ * Where the record's own date stands, just after sealing (docs/offline.md). Its proof code not
+ * yet with VeilCore (no signal): sealed when, by this device's clock, and dated when it's sent;
+ * never a date before then. Sent: its own timestamp once a timestamp authority has answered
+ * (veilcore/instant-stamp.ts), with the Midnight date following in the next batch; until then
+ * "in the next batch".
+ */
+const RecordDateNow: React.FC<{ recordId: string; cadence: number | undefined; tr: Translator; strong?: boolean }> = ({
+  recordId,
+  cadence,
+  tr,
+  strong,
+}) => {
+  useRecords();
+  const { online } = useOfflineState();
+  const r = getRecord(recordId);
+  const sent = proofCodeSent(recordId) || !waitsToBeSent(recordId);
+  const instant = useInstantStamp(sent ? r?.recordFingerprint : undefined);
+  const sx = strong ? { fontWeight: 700 } : {};
+  const variant = strong ? 'body1' : 'body2';
+  const color = strong ? undefined : 'text.secondary';
+  if (!sent && r)
+    return (
+      <Typography variant={variant} color={color} sx={sx} data-sealed-here="">
+        {sealedHereWords(r.loggedAt, tr)}
+        {!online && ` ${tr.t('app.offline.goesBySelf')}`}
+      </Typography>
+    );
+  const [first] = instantLines(instant, false, tr);
+  return (
+    <Typography
+      variant={variant}
+      color={color}
+      sx={sx}
+      data-record-dated-next=""
+      {...(instant?.status === 'stamped' ? { 'data-instant-stamp': '' } : {})}
+    >
+      {first ?? nextBatchWords(tr, cadence)}
+    </Typography>
+  );
+};
 
 const DoneTitle: React.FC<{ step: string; title: string }> = ({ step, title }) => (
   <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>

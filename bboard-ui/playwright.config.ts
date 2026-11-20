@@ -20,6 +20,10 @@ export default defineConfig({
     viewport: { width: 390, height: 844 },
     browserName: 'chromium',
     trace: 'retain-on-failure',
+    // The offline worker (docs/offline.md) is off in every test but its own (offline.spec.ts,
+    // which turns it on): a worker answering the page's requests would sit between page.route()
+    // and the page, and the other tests route the site's requests themselves.
+    serviceWorkers: 'block',
   },
   webServer: {
     // Serves the build `npm run e2e:build` made; it never builds by itself, so a test run

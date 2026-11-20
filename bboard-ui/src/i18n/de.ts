@@ -742,6 +742,12 @@ export const de: Strings = {
   'm.checksite.noHeaders':
     'Die Liste dieser Version enthält keine Sicherheits-Header (sie wurde erstellt, bevor sie aufgeführt wurden), daher wurden sie nicht verglichen.',
   'm.checksite.extraScript': 'Diese Seite hat ein Skript, das die gelistete Seite nicht hat: {script}',
+  'm.checksite.workerOk':
+    'Der Offline-Worker (/sw.js) wird so gesendet, dass Browser ihn immer neu laden, und er hält nur Dateien aus der Liste dieser Version.',
+  'm.checksite.workerWrong': 'Der Offline-Worker ist nicht, wie er sein soll: {path}.',
+  'm.checksite.copyHere': 'Die Offline-Kopie der Website in diesem Browser ist Version {commit}.',
+  'm.checksite.copyOther':
+    'Die Offline-Kopie in diesem Browser ist Version {commit}, nicht die hier geprüfte. Sie wird beim nächsten Laden einer Seite mit Netz aktualisiert.',
   'm.checksite.limit':
     'Das zeigt, was Ihr Browser erhalten hat. Es kann nicht beweisen, dass der Host allen dieselben Dateien geschickt hat.',
   'm.checksite.listLink': 'Die Liste dieser Version im öffentlichen Code',

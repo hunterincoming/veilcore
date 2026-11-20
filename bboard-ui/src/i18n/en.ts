@@ -778,6 +778,12 @@ export const en = {
   'm.checksite.noHeaders':
     'This release’s list has no security headers (it was made before they were listed), so they weren’t compared.',
   'm.checksite.extraScript': 'This page has a script the listed page doesn’t: {script}',
+  'm.checksite.workerOk':
+    'The offline worker (/sw.js) is sent so browsers always fetch it fresh, and keeps only files on this release’s list.',
+  'm.checksite.workerWrong': 'The offline worker isn’t as it should be: {path}.',
+  'm.checksite.copyHere': 'This browser’s offline copy of the site is release {commit}.',
+  'm.checksite.copyOther':
+    'This browser’s offline copy is release {commit}, not the one checked here. It updates the next time a page loads with signal.',
   'm.checksite.limit': 'This shows what your browser received. It can’t prove the host sent everyone the same files.',
   'm.checksite.listLink': 'This release’s list in the public code',
   'm.checksite.useSite': 'Check against the list this site serves',

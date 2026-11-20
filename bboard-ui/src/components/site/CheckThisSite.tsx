@@ -42,13 +42,34 @@ type State =
   | { kind: 'none'; problem: string }
   | { kind: 'ready'; release: Release }
   | { kind: 'checking'; release: Release; done: number; total: number }
-  | { kind: 'done'; release: Release; result: ReleaseCheck; manifest: Manifest; extra: string[] }
+  | { kind: 'done'; release: Release; result: ReleaseCheck; manifest: Manifest; extra: string[]; copy?: string }
   | { kind: 'bad-list'; release: Release; why: 'none' | 'other' };
 
 export const CheckThisSite: React.FC = () => {
   const { t } = useI18n();
   const origin = typeof window === 'undefined' ? '' : window.location.origin;
   const [state, setState] = useState<State>({ kind: 'loading' });
+
+  /** The release this browser's offline copy is (offline/sw.js), if it has one. */
+  const browserCopy = (): Promise<string | undefined> =>
+    new Promise((resolve) => {
+      const sw = typeof navigator === 'undefined' ? undefined : navigator.serviceWorker;
+      const ctl = sw?.controller;
+      if (!sw || !ctl) return resolve(undefined);
+      const done = (v: string | undefined) => {
+        sw.removeEventListener('message', on);
+        clearTimeout(timer);
+        resolve(v);
+      };
+      const on = (e: MessageEvent) => {
+        const d = e.data as { type?: unknown; commit?: unknown } | null;
+        if (d?.type === 'veilcore-active')
+          done(typeof d.commit === 'string' && /^[0-9a-f]{40}$/.test(d.commit) ? d.commit : undefined);
+      };
+      const timer = setTimeout(() => done(undefined), 3000);
+      sw.addEventListener('message', on);
+      ctl.postMessage({ type: 'veilcore-active' });
+    });
 
   useEffect(() => {
     let live = true;
@@ -78,7 +99,9 @@ export const CheckThisSite: React.FC = () => {
     } catch {
       extra = [];
     }
-    setState({ kind: 'done', release, result, manifest, extra });
+    // This browser's offline copy (docs/offline.md): which release it holds, said beside the check.
+    const copy = await browserCopy();
+    setState({ kind: 'done', release, result, manifest, extra, ...(copy ? { copy } : {}) });
   };
 
   const fromSite = async (release: Release) => {
@@ -219,6 +242,25 @@ export const CheckThisSite: React.FC = () => {
                   </div>
                 )}
                 {!state.result.routes.headersListed && <p>{t('m.checksite.noHeaders')}</p>}
+                {/* The offline worker (release-check.mjs checkServiceWorker), and this browser's copy. */}
+                {state.result.worker &&
+                  !state.result.worker.skipped &&
+                  (state.result.worker.ok ? (
+                    <p data-worker="ok">{t('m.checksite.workerOk')}</p>
+                  ) : (
+                    <ul data-worker="wrong">
+                      {state.result.worker.wrong.map((w) => (
+                        <li key={`w${w.path}`}>{t('m.checksite.workerWrong', { path: w.path })}</li>
+                      ))}
+                    </ul>
+                  ))}
+                {state.copy && (
+                  <p data-browser-copy={state.copy === state.manifest.commit ? 'this' : 'other'}>
+                    {t(state.copy === state.manifest.commit ? 'm.checksite.copyHere' : 'm.checksite.copyOther', {
+                      commit: state.copy.slice(0, 12),
+                    })}
+                  </p>
+                )}
                 {state.extra.length > 0 && (
                   <ul data-extra-scripts="">
                     {state.extra.map((x) => (

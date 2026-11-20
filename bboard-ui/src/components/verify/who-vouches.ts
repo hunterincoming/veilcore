@@ -11,6 +11,10 @@
 //   - a signature is a laboratory's word only as signerLabel words it ("a key named X (name not
 //     checked)" unless VeilCore's operator matched the name), and only checked against a bound
 //     link; a matched name says who matched it, so it never reads as VeilCore vouching;
+//   - a record's own timestamp (veilcore/instant-stamp.ts) is a timestamp authority's signed
+//     word, checked here against the proof code: 'signed', as a lab's signature is, when the link
+//     carried that proof code, and the registry's word ('registry') when it didn't. One row per
+//     token, so two authorities are two facts. A token that doesn't check is never passed in;
 //   - a document's file is checked only once a picked file matched;
 //   - the name and details are always the holder's own words.
 //
@@ -18,6 +22,7 @@
 
 import type { AppKey } from '../../i18n/app/en';
 import { enT, type Translator } from '../../i18n/translate';
+import { utcSeconds } from '../../veilcore/time';
 
 /** Who a row rests on, for its mark: checked here, signed by a lab, the registry's word, the holder's. */
 export type Basis = 'checked' | 'signed' | 'registry' | 'holder' | 'none';
@@ -44,6 +49,8 @@ export type WhoInput = {
     /** The website the key named has since stopped listing it (signerLabel `published.state`). */
     readonly withdrawn?: boolean;
   }[];
+  /** The record's own timestamps, each checked on this page against the proof code (instant-stamp.ts). */
+  readonly instant?: readonly { readonly tsa: string; readonly at: string }[];
   /** How many signatures to list before "and N more". */
   readonly max?: number;
   /**
@@ -81,6 +88,12 @@ export const whoVouches = (i: WhoInput, tr: Translator = enT): WhoRow[] => {
   } else if (i.proof === 'none') {
     rows.push({ fact: date, who: t(tr, 'app.verify.who.date.none'), basis: 'none' });
   }
+  for (const tok of i.instant ?? [])
+    rows.push({
+      fact: t(tr, 'app.verify.who.tsa', { tsa: tok.tsa }),
+      who: t(tr, i.bound ? 'app.verify.who.tsa.checked' : 'app.verify.who.tsa.unbound', { time: utcSeconds(tok.at) }),
+      basis: i.bound ? 'signed' : 'registry',
+    });
   if (i.document) {
     rows.push({ fact: t(tr, 'app.verify.who.code'), who: t(tr, 'app.verify.who.code.recomputed'), basis: 'checked' });
     const file = i.file ?? 'waiting';

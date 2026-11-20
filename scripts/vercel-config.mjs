@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import { existsSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { normaliseAddress, readMainnetPins } from './mainnet-pins.mjs';
+import { SW_CACHE_CONTROL, SW_ROUTE_SRC } from './release-check.mjs';
 import { SITE_ROUTE_SRC, downloadWorkerCsp, engineWorkerCsp, manifestProblem, modelWorkerRouteSrc } from './ask-model-csp.mjs';
 
 // The registry API the site talks to. Must match the VITE_API_BASE the site was built
@@ -156,7 +157,9 @@ const csp = [
   // on this site. Without it the browser refused to start the worker, and no date stamp
   // could be made (17 Oct 2026). veilcore-ask-model: the two on-device model workers'
   // addresses (bboard-ui/src/ask-local/client.ts), exactly those two files on this site.
-  'trusted-types veilcore-docs dompurify veilcore-prover veilcore-ask-model',
+  // veilcore-sw: the offline worker's address (bboard-ui/src/offline/register.ts), exactly
+  // /sw.js on this site; registering a worker is a script-address sink like a worker's.
+  'trusted-types veilcore-docs dompurify veilcore-prover veilcore-ask-model veilcore-sw',
   'upgrade-insecure-requests',
 ].join('; ');
 
@@ -198,8 +201,14 @@ const modelManifest = JSON.parse(
 if (modelManifest.pinned && manifestProblem(modelManifest)) throw new Error(`model-manifest.json: ${manifestProblem(modelManifest)}`);
 const workerHeaders = (policy) => ({ ...headers, 'Content-Security-Policy': policy });
 
+// The offline worker (docs/offline.md, security review S16): the browser must ask for /sw.js
+// past every cache, so a fix or the kill switch reaches every browser on its next page load.
+// The page registers it with updateViaCache: 'none' too; this covers anything in between. A
+// check of the site (release-check.mjs checkServiceWorker) requires exactly this header.
+
 const routes = [
   { src: SITE_ROUTE_SRC, headers, continue: true },
+  { src: SW_ROUTE_SRC, headers: { 'Cache-Control': SW_CACHE_CONTROL }, continue: true },
   { src: modelWorkerRouteSrc('download'), headers: workerHeaders(downloadWorkerCsp(modelManifest)), continue: true },
   { src: modelWorkerRouteSrc('engine'), headers: workerHeaders(engineWorkerCsp()), continue: true },
   { handle: 'filesystem' },

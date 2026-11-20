@@ -22,6 +22,7 @@ import {
   deviceOnlyBackedUp,
   isKeptOnDeviceOnly,
   labNameOf,
+  proofCodeSent,
   unsavedReason,
   startOver,
   useSealedView,
@@ -69,6 +70,8 @@ import { dnaTieSentence } from '../../veilcore/dna-tie';
 import type { StrainRecord } from '../../veilcore/records';
 import type { SavedReport } from '../../veilcore/saved-report';
 import { PickUp } from './PickUp';
+import { sealedHereShort } from '../offline/offline-words';
+import { InstallCard } from '../offline/InstallCard';
 import { BackupNeeded, backupNeed } from './BackupNeeded';
 import { AccountStatusLine } from './KeepSafe';
 import { useAccountState } from '../../veilcore/account-copy';
@@ -458,6 +461,10 @@ export const AppHome: React.FC = () => {
             kept safe, in place of the backup line above. */}
         {accountOn && <AccountStatusLine />}
 
+        {/* Once there is a record to keep: VeilCore on the Home Screen, so it opens with no
+            signal, worded so the iPhone's separate storage is no surprise (docs/offline.md). */}
+        {records.length > 0 && <InstallCard />}
+
         {vaultProblem === 'cant-store' && (
           <Alert severity="warning" variant="outlined" data-vault-cant-store="">
             {t('app.sealed.cantStore')}
@@ -605,7 +612,8 @@ export const AppHome: React.FC = () => {
                           sx={{ color: 'warning.main', fontWeight: 700 }}
                           data-home-unsaved={r.id}
                         >
-                          {t(k)}
+                          {/* Sealed with no signal: when, and that it's dated when sent (docs/offline.md). */}
+                          {!proofCodeSent(r.id) && r.loggedAt > 0 ? sealedHereShort(r.loggedAt, tr) : t(k)}
                         </Typography>
                       ) : null;
                     })()}

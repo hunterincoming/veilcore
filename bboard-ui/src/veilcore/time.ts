@@ -18,6 +18,14 @@ export const utcStamp = (t: number | string): string => {
   return `${iso.slice(0, 10)} ${iso.slice(11, 16)} UTC`;
 };
 
+/** "2020-01-01 14:03:12 UTC", to the second (a timestamp authority's time), or "an unknown time". */
+export const utcSeconds = (t: number | string): string => {
+  const d = parse(t);
+  if (!d) return 'an unknown time';
+  const iso = d.toISOString();
+  return `${iso.slice(0, 10)} ${iso.slice(11, 19)} UTC`;
+};
+
 /** "2020-01-01 (UTC)", or "an unknown date" for a value that is not a date. */
 export const utcDate = (t: number | string): string => {
   const d = parse(t);

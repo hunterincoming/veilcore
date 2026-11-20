@@ -15,7 +15,7 @@
 
 import { defineConfig, loadEnv, type Plugin, type ResolvedConfig } from 'vite';
 import { createHash } from 'node:crypto';
-import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 // The published documents (SPEC, EVIDENCE, INTEGRATING) are vendored in src/docs from an
@@ -276,6 +276,83 @@ const askModelFiles = (flag: string): Plugin => {
   };
 };
 
+// The offline worker (docs/offline.md): /sw.js, written from offline/sw.js with the registry's
+// address filled in, and /offline-shell.json, the files it keeps so the app opens with no
+// signal. Both are ordinary files of the build, so a release lists and hashes them like any
+// other (scripts/release-manifest.mjs), and the worker keeps only files whose SHA-256 is the
+// listed one. The list is the app's own code and styles, its fonts and icons, and WebAssembly
+// under 2 MB; never the proving keys, the on-device model, videos or the large Midnight and
+// Cardano libraries (those wait for signal, as proving does). VITE_OFFLINE=off writes the kill
+// switch (offline/sw-kill.js) as /sw.js instead, and the page then registers no worker.
+const OFFLINE_SHELL_FORMAT = 'veilcore-offline-shell/v1';
+const SHELL_PUBLIC = ['favicon.svg', 'icon.png', 'apple-touch-icon.png', 'manifest.webmanifest'];
+const SHELL_ASSET = /\.(css|woff2?|svg|png|webp)$/;
+const SHELL_WASM_MAX = 2 * 1024 * 1024;
+const SHELL_ASSET_MAX = 512 * 1024;
+const offlineFlag = (mode: string): 'on' | 'off' => {
+  const v = String({ ...loadEnv(mode, process.cwd(), 'VITE_'), ...process.env }.VITE_OFFLINE ?? '').trim();
+  if (v && v !== 'on' && v !== 'off')
+    throw new Error(`\n\nVITE_OFFLINE=${v}: use on or off, or leave it unset (on).\n`);
+  return v === 'off' ? 'off' : 'on';
+};
+const offlineWorker = (mode: string): Plugin => {
+  let config: ResolvedConfig | undefined;
+  return {
+    name: 'veilcore-offline-worker',
+    apply: 'build',
+    configResolved(c) {
+      config = c;
+    },
+    generateBundle(_options, bundle) {
+      if (!config) return;
+      const here = fileURLToPath(new URL('.', import.meta.url));
+      const flag = offlineFlag(mode);
+      if (flag === 'off') {
+        this.emitFile({
+          type: 'asset',
+          fileName: 'sw.js',
+          source: readFileSync(join(here, 'offline', 'sw-kill.js'), 'utf8'),
+        });
+        return;
+      }
+      const api = String(config.env.VITE_API_BASE ?? '')
+        .trim()
+        .replace(/\/+$/, '');
+      if (api && !/^https?:\/\/[A-Za-z0-9.:[\]_~%/-]+$/.test(api))
+        throw new Error(
+          `\n\nThe offline worker was not built: VITE_API_BASE (${api}) is not a plain http(s) address.\n`,
+        );
+      const template = readFileSync(join(here, 'offline', 'sw.js'), 'utf8');
+      if (!template.includes("'__VEILCORE_API_BASE__'")) throw new Error('offline/sw.js lost its registry placeholder');
+      this.emitFile({
+        type: 'asset',
+        fileName: 'sw.js',
+        source: template.replace("'__VEILCORE_API_BASE__'", JSON.stringify(api)),
+      });
+      const files = new Set<string>();
+      for (const [name, out] of Object.entries(bundle)) {
+        if (name === 'sw.js' || name === 'offline-shell.json') continue;
+        if (out.type === 'chunk') files.add(`/${name}`);
+        else {
+          const size = typeof out.source === 'string' ? Buffer.byteLength(out.source) : out.source.byteLength;
+          if (name.endsWith('.wasm') ? size <= SHELL_WASM_MAX : SHELL_ASSET.test(name) && size <= SHELL_ASSET_MAX)
+            files.add(`/${name}`);
+        }
+      }
+      for (const f of SHELL_PUBLIC) if (existsSync(join(config.publicDir, f))) files.add(`/${f}`);
+      // The heading font, preloaded by index.html from the public folder.
+      const fonts = join(config.publicDir, 'fonts');
+      if (existsSync(fonts))
+        for (const f of readdirSync(fonts).filter((n) => n.endsWith('.woff2'))) files.add(`/fonts/${f}`);
+      this.emitFile({
+        type: 'asset',
+        fileName: 'offline-shell.json',
+        source: `${JSON.stringify({ format: OFFLINE_SHELL_FORMAT, files: [...files].sort() }, null, 2)}\n`,
+      });
+    },
+  };
+};
+
 // https://vitejs.dev/config/
 export default defineConfig(({ mode, command }) => {
   const pins = mainnetBuild(mode, command);
@@ -334,6 +411,7 @@ export default defineConfig(({ mode, command }) => {
       preloadFonts(),
       recordBuildSettings(),
       askModelFiles(askModel),
+      offlineWorker(mode),
       react(),
       // Configure WASM plugin with more options
       wasm(),
@@ -402,6 +480,7 @@ export default defineConfig(({ mode, command }) => {
       'import.meta.env.VITE_MAINNET_CLAIMS_ADDRESS': JSON.stringify(pins.claims),
       'import.meta.env.VITE_MAINTENANCE_POLICY_APPROVED': JSON.stringify(pins.policyApproved ? 'true' : ''),
       'import.meta.env.VITE_ASK_MODEL': JSON.stringify(askModel),
+      'import.meta.env.VITE_OFFLINE': JSON.stringify(offlineFlag(mode)),
     },
     checks: {
       importIsUndefined: false,

@@ -117,6 +117,7 @@ const RoleChangeLink = page(layoutParts, 'RoleChangeLink');
 const AskLauncher = page(layoutParts, 'AskLauncher');
 const NetworkBadge = page(layoutParts, 'NetworkBadge');
 const AccountKeeper = page(layoutParts, 'AccountKeeper');
+const OfflineBar = page(layoutParts, 'OfflineBar');
 
 const AppLayout: React.FC<React.PropsWithChildren> = ({ children }) => {
   // The role question belongs to the app: making records, holding them, licensing them.
@@ -164,6 +165,8 @@ const AppLayout: React.FC<React.PropsWithChildren> = ({ children }) => {
       <SiteHeader app badge={IS_MAINNET ? undefined : <NetworkBadge />} />
       {/* The one main landmark: the header, the page and its notices. The footer stays outside. */}
       <Container component="main" maxWidth="md" sx={{ pt: { xs: 2, md: 4 }, pb: { xs: 3, md: 6 } }}>
+        {/* No signal: what still works and what waits (docs/offline.md). */}
+        <OfflineBar />
         <SaveProblemBar />
         {/* A page that fails to draw says so plainly, not with a blank screen (round 3, L5). */}
         <PageErrorBoundary>{children}</PageErrorBoundary>

@@ -38,6 +38,7 @@ import { origin } from './origin';
 import { job } from './job';
 import { pack } from './pack';
 import { account } from './account';
+import { offline } from './offline';
 
 export const appDe: AppTranslation = {
   ...common,
@@ -72,4 +73,5 @@ export const appDe: AppTranslation = {
   ...job,
   ...pack,
   ...account,
+  ...offline,
 };

@@ -68,6 +68,11 @@ export const REQUIRED_FEATURES = Object.freeze({
   // A deleted record stays deleted (veilcore-api tombstones.js, 17 Nov 2026): without it a save
   // from another tab or a restored backup would put a deleted record back.
   "record-tombstones-v1": "keeping a deleted record deleted",
+  // A record's own RFC 3161 timestamps, in seconds (veilcore-api lineage/record-stamps.mjs, 19 Nov
+  // 2026): GET /proof/:commitment/instant. The site reads them on a record's page and its check
+  // page and works without them (an older registry answers 404 and nothing is shown), but the
+  // order stays registry, then site.
+  "record-timestamp-v1": "a record’s own timestamp, in seconds",
 });
 
 /**
