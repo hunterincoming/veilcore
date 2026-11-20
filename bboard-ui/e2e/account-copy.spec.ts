@@ -238,6 +238,8 @@ test('Face ID keeps records safe, a second browser gets them back, saving runs b
   } as never);
   await B.page.goto('/records');
   await expect(B.page.locator('[data-restore-first]').getByRole('link', { name: 'Get my records back' })).toBeVisible();
+  // Said with this device's own words: on Windows a passkey, never Face ID (the live test, 19 Nov).
+  await expect(B.page.locator('[data-restore-first]')).toContainText('with a passkey, or the backup file you saved.');
   await B.page.locator('[data-restore-first]').getByRole('link', { name: 'Get my records back' }).click();
   await expect(B.page.locator('[data-restore-account]')).toContainText('Choose “Use a phone”');
   await shots(B.page, '07-restore-face-id-first');
@@ -259,6 +261,8 @@ test('Face ID keeps records safe, a second browser gets them back, saving runs b
   expect(await recordIds(B.page)).toContain(plantA);
   await B.page.goto('/records');
   await expect(B.page.getByRole('heading', { name: first })).toBeVisible({ timeout: 30_000 });
+  // A record that came from the other device is listed once: not also under "Still in progress".
+  await expect(B.page.locator('[data-pickup-item="dating"]')).toHaveCount(0);
   await expect(B.page.locator('[data-account-line]')).toHaveCount(0);
 
   // B logs a record; A picks up its keys by itself on its next check.
@@ -405,4 +409,73 @@ test('a passkey copy from before moves over with one Face ID, and the older copy
   await expect(C.page.locator('[data-account-line]')).toHaveCount(0);
   expectNoErrors(C.errors);
   await C.context.close();
+});
+
+test('stop saving on one device: the other says saving is off, stops trying, and saves again on one tap', async ({
+  browser,
+}) => {
+  test.setTimeout(300_000);
+  const A = await device(browser, IPHONE);
+  const name = `Stop saving plant (practice) ${Date.now()}`;
+  await logPlant(A.page, name);
+  const sheet = A.page.locator('[data-keep-safe]');
+  await expect(sheet).toBeVisible({ timeout: 60_000 });
+  await sheet.getByRole('button', { name: 'Use Face ID' }).click();
+  await expect(sheet.locator('[data-keep-safe-done="counted"]')).toBeVisible({ timeout: 60_000 });
+  await sheet.getByRole('button', { name: 'Done' }).click();
+  const { credentials } = (await A.cdp.send('WebAuthn.getCredentials', {
+    authenticatorId: A.authenticatorId,
+  })) as unknown as { credentials: Record<string, unknown>[] };
+
+  // B gets the records back with the same passkey.
+  const B = await device(browser, WINDOWS);
+  await B.cdp.send('WebAuthn.addCredential', {
+    authenticatorId: B.authenticatorId,
+    credential: credentials[0],
+  } as never);
+  await B.page.goto('/restore');
+  await B.page.locator('[data-passkey-restore]').click();
+  await B.page.locator('[data-passkey-found]').getByRole('button', { name: 'Bring them here' }).click();
+  await expect(B.page.locator('[data-restore-done="account"]')).toBeVisible({ timeout: 30_000 });
+  await B.page.goto('/settings');
+  await expect(B.page.locator('[data-settings-account="saved"]')).toContainText('New records save by themselves.');
+
+  // A stops saving: the copy and its ways in are deleted at the registry.
+  A.page.on('dialog', (d) => void d.accept());
+  await A.page.goto('/settings');
+  await A.page.getByRole('button', { name: 'Stop saving with VeilCore' }).click();
+  await expect(A.page.getByText('Deleted. Your records stay on this device.')).toBeVisible({ timeout: 30_000 });
+
+  // B, next time it opens: never "saved", one line on Home, Settings says it plainly.
+  const writes: string[] = [];
+  B.page.on('request', (r) => {
+    const p = new URL(r.url()).pathname;
+    if (/^\/account-copy\//.test(p) && !/\/head$/.test(p)) writes.push(`${r.method()} ${p}`);
+  });
+  await B.page.goto('/records');
+  const line = B.page.locator('[data-account-line="missing"], [data-account-line="off"]');
+  await expect(line).toBeVisible({ timeout: 30_000 });
+  await expect(B.page.locator('[data-account-line]')).toHaveCount(1);
+  await shots(B.page, '13-home-saving-off');
+  await B.page.goto('/settings');
+  const missing = B.page.locator('[data-settings-missing]');
+  await expect(missing).toContainText('Saving with VeilCore is off.');
+  await expect(B.page.locator('[data-settings-account]')).not.toContainText('only this device can open it');
+  await shots(B.page, '14-settings-saving-off');
+  // Nothing tried again by itself (the end-to-end build ticks every half second).
+  await B.page.waitForTimeout(6000);
+  expect(writes).toEqual([]);
+
+  // One tap saves again, with the same passkey: a new copy, and B counts again.
+  await B.page.locator('[data-settings-save-again]').click();
+  await B.page.locator('[data-keep-safe-go]').click();
+  await expect(B.page.locator('[data-keep-safe-done="counted"]')).toBeVisible({ timeout: 60_000 });
+  await B.page.locator('[data-keep-safe]').getByRole('button', { name: 'Done' }).click();
+  await expect(B.page.locator('[data-settings-account="saved"]')).toContainText('New records save by themselves.');
+  await B.page.goto('/records');
+  await expect(B.page.locator('[data-account-line]')).toHaveCount(0);
+  expectNoErrors(A.errors);
+  expectNoErrors(B.errors);
+  await A.context.close();
+  await B.context.close();
 });

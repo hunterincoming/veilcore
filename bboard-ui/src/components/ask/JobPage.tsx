@@ -270,6 +270,11 @@ const JobResult: React.FC<{ job: Job; fromApp: boolean }> = ({ job: latest, from
   useEffect(() => {
     if (shownHash.current === job.hash) return;
     shownHash.current = job.hash;
+    // A plan this tab saved itself: the boxes already hold what was saved, and maybe more typed
+    // since. Redrawn from the plan, a figure typed while an earlier save was on its way would be
+    // wiped (CI, 20 Nov 2026: a save from leaving the box came back after 9999 was typed, and the
+    // box went back to 1000). Only a plan from another tab ("Check it") replaces the boxes.
+    if (ownHashes.current.has(job.hash)) return;
     setDrafts((d) =>
       Object.fromEntries(
         reports.map((_, i) => {

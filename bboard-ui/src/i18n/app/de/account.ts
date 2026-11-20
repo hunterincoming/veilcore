@@ -136,4 +136,12 @@ export const account = {
   'app.account.restore.tryAgain': 'Erneut versuchen',
   'app.account.restore.tryWww': 'Zuerst www.veilcore.org genutzt? Öffnen Sie diese Seite dort.',
   'app.settings.ways.tag': 'In Ihren Passwörtern „VeilCore: unlocks your records · {tag}“ genannt',
+  // The way in, as a fragment after “with” (Home's first card, the live test on Windows).
+  'app.account.how.faceId': 'Face ID',
+  'app.account.how.touchId': 'Touch ID',
+  'app.account.how.screenLock': 'Ihrer Displaysperre',
+  'app.account.how.windowsHello': 'Windows Hello',
+  'app.account.how.passkey': 'einem Passkey',
+  'app.account.line.off':
+    '<b>Das Speichern bei VeilCore ist aus.</b> Ihre gespeicherte Kopie wurde gelöscht, vielleicht mit „Nicht mehr bei VeilCore speichern“ auf einem anderen Gerät.',
 } satisfies Partial<AppTranslation>;
