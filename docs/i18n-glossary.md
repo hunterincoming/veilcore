@@ -200,3 +200,16 @@ the English says "registry".
 What this review is not: a fluent speaker reading every screen. Wording that is correct but
 not how a native speaker would put it can remain, most likely on the screens step 3 did not
 read. A fluent speaker's corrections are welcome, as in [translations/README.md](translations/README.md).
+
+## Scanning and labels (docs/scan-and-labels.md)
+
+| English | Japanese | Spanish | German | French |
+| --- | --- | --- | --- | --- |
+| scan | スキャン | escanear | scannen | scanner |
+| QR code, barcode | QRコード, バーコード | código QR, código de barras | QR-Code, Barcode | code QR, code-barres |
+| label (printed) | ラベル | etiqueta | Etikett | étiquette |
+| NFC tag | NFCタグ | etiqueta NFC | NFC-Tag | puce NFC |
+| stick reader (ear tags) | スティックリーダー | lector de bastón | Stablesegerät | bâton lecteur |
+| check page | 確認ページ | página de comprobación | Prüfseite | page de vérification |
+| "Scan to check" (on a label) | スキャンして確認 | Escanee para comprobar | Zum Prüfen scannen | Scanner pour vérifier |
+| straw canister | ストローの容器 | recipiente de pajuelas (not "contenedor": it holds "tenedor", which the Spanish check refuses) | Paillettenbehälter | visotube |

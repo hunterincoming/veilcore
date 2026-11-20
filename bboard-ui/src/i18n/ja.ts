@@ -691,6 +691,7 @@ export const ja: Strings = {
   'm.verify.what':
     'VeilCoreの記録は、遺伝情報そのものを含めずに遺伝資源を記述します。確認ページには、保有者が共有を選んだものと、保有者のリンクに名前が含まれていればその名前が表示されます。Midnightに載るのは証明コードだけで、アンカーされると日付が付きます。確認は無料で、アカウントも不要です。',
   'm.verify.home': 'VeilCoreとは →',
+  'm.verify.scan': 'ラベルのQRコードをスキャン',
   'm.verify.example': '何が表示されるか分からない場合は、まず例をご覧ください →',
   // Round 5 (15 Oct 2026): landing page rework, keys added.
   'm.open.6t': 'VeilCoreを介さずに確認する。',

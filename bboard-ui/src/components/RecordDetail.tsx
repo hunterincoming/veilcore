@@ -14,6 +14,8 @@ import { Link as RouterLink, useParams, useNavigate, useSearchParams } from 'rea
 import ArrowBackIcon from '@mui/icons-material/ArrowBackOutlined';
 import CodeIcon from '@mui/icons-material/DataObjectOutlined';
 import FactCheckIcon from '@mui/icons-material/FactCheckOutlined';
+import QrCodeIcon from '@mui/icons-material/QrCode2Outlined';
+import { LABELS_PATH, labelReady, type LabelsState } from './labels/label-layouts';
 import {
   useRecords,
   deleteRecord,
@@ -459,6 +461,26 @@ export const RecordDetail: React.FC = () => {
             data-open-check-page=""
           >
             {t('app.plant.openCheckPage')}
+          </Button>
+        )}
+        {/* A QR label for the tube, bag or pot (components/labels): it opens the same check page,
+            with the record's batch (the records made from it) offered beside it. */}
+        {labelReady(record) && (
+          <Button
+            onClick={() => {
+              const state: LabelsState = {
+                ids: [record.id],
+                also: childrenOf(record.id).map((c) => c.id),
+                back: `/record/${record.id}`,
+              };
+              void navigate(LABELS_PATH, { state });
+            }}
+            variant="outlined"
+            startIcon={<QrCodeIcon />}
+            sx={{ mt: 1.5, ml: { xs: 0, sm: 1 }, minHeight: 44 }}
+            data-print-labels=""
+          >
+            {t('app.labels.open')}
           </Button>
         )}
       </Box>

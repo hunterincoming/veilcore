@@ -223,16 +223,19 @@ describe.skipIf(!built)('the first download, in the built site (dist/)', () => {
     const dir = path.join(DIST, 'assets');
     const assets = fs.readdirSync(dir).filter((f) => f.endsWith('.js'));
     const late = (f: string) => /let __tla\s*=\s*Promise\.all\(/.test(fs.readFileSync(path.join(DIST, f), 'utf8'));
+    // React DOM's small shared part (createPortal, flushSync) may get a file of its own, depending
+    // on which pages use MUI's portals (the Scan button's window, 20 Nov): it is checked with the
+    // rest, and not counted as one of the five.
     const libs = assets
       .filter((f) => /^(react|router|Stack|Container|Box)-[\w-]+\.js$/.test(f))
       .map((f) => `assets/${f}`);
-    expect(libs.map((f) => path.basename(f).split('-')[0]).sort()).toEqual([
-      'Box',
-      'Container',
-      'Stack',
-      'react',
-      'router',
-    ]);
+    expect(
+      libs
+        .map((f) => path.basename(f))
+        .filter((f) => !/^react-dom-/.test(f))
+        .map((f) => f.split('-')[0])
+        .sort(),
+    ).toEqual(['Box', 'Container', 'Stack', 'react', 'router']);
     expect(closure(libs).filter(late)).toEqual([]);
   });
 

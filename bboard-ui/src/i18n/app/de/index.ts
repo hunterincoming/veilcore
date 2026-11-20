@@ -38,6 +38,7 @@ import { origin } from './origin';
 import { job } from './job';
 import { pack } from './pack';
 import { account } from './account';
+import { scan } from './scan';
 import { offline } from './offline';
 import { recovery } from './recovery';
 
@@ -74,6 +75,7 @@ export const appDe: AppTranslation = {
   ...job,
   ...pack,
   ...account,
+  ...scan,
   ...offline,
   ...recovery,
 };
