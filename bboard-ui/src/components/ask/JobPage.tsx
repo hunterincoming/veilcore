@@ -275,6 +275,7 @@ const JobResult: React.FC<{ job: Job; fromApp: boolean }> = ({ job: latest, from
   useEffect(() => {
     if (shownHash.current === job.hash) return;
     shownHash.current = job.hash;
+    if (ownHashes.current.has(job.hash)) return;
     console.log('DBG reset', job.hash.slice(0, 8), saving.current, JSON.stringify(job.figures ?? {}));
     setDrafts((d) =>
       Object.fromEntries(

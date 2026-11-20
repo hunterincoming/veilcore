@@ -162,7 +162,7 @@ jobs:
         working-directory: bboard-ui
         run: |
           npm run e2e:build
-          npx playwright test e2e/ask-job.spec.ts -g 'three reports' --repeat-each=12 --reporter=line || true
+          npx playwright test e2e/ask-job.spec.ts -g 'three reports' --repeat-each=25 --reporter=line || true
           npm run e2e
 
       # A browser test that fails only here: print what the page showed (Playwright's text
