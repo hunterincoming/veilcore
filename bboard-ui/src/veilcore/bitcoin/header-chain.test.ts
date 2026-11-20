@@ -310,7 +310,10 @@ describe('VeilCore’s first stamped batch, end to end', () => {
   });
 
   it('the pinned seed checkpoint is block 971005 exactly as both explorers gave it', () => {
-    expect(pinnedFile.checkpoints[0]).toEqual({ height: 971005, hash: fe71.headers[1].hash });
+    // The refresh script also pins blocks below the seed (linked down from it), so the seed
+    // need not be first: it must be in the list, with exactly the hash both explorers gave.
+    expect(pinnedFile.checkpoints).toContainEqual({ height: 971005, hash: fe71.headers[1].hash });
+    expect(pinnedFile.checkpoints.filter((c) => c.height === 971005)).toHaveLength(1);
     expect(hashOf(fe71.headers[1].header)).toBe(fe71.headers[1].hash);
   });
 
