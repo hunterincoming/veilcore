@@ -86,6 +86,10 @@ export const AGREEMENT_FEATURES = Object.freeze({
   // lineage/account-copy.mjs): one locked copy, opened by Face ID, saved by itself. An older
   // registry answers 404 and nothing would be saved: deploy the registry first.
   "account-copy-v1": "records saved with VeilCore (one locked copy, opened by Face ID)",
+  // Each way in listed with its wrap's fingerprint (easy mode step 3): the site compares it with
+  // the one sealed in the copy, so a recovery sheet or passkey changed at the registry stops
+  // counting at the next check. A registry without it lists none, and the check is skipped.
+  "account-slot-check-v1": "checking each way in to records saved with VeilCore on every visit",
   // A licensor's record's public check page says a royalty statement is overdue, or a license
   // was revoked for non-payment (bboard-ui veilcore/license-notices.ts, docs/royalty-pay.md).
   "license-notices-v1": "overdue and revoked-for-non-payment notices on a record's check page",

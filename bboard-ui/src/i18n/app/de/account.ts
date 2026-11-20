@@ -26,7 +26,7 @@ export const account = {
   'app.account.saved.title': 'Gespeichert.',
   'app.account.saved.text': 'Ihre Datensätze sind bei VeilCore gespeichert. Neue speichern sich von selbst.',
   'app.account.saved.bound':
-    'Bei VeilCore gespeichert, aber dieser Passkey bleibt nur auf diesem Gerät: Verlieren Sie das Gerät, ist auch er weg. Laden Sie zur Sicherheit eine Kopie herunter, die Sie selbst aufbewahren.',
+    'Bei VeilCore gespeichert, aber dieser Passkey bleibt nur auf diesem Gerät: Verlieren Sie das Gerät, ist auch er weg. Ein Wiederherstellungsblatt schützt Sie davor.',
   'app.account.saved.download': 'Kopie herunterladen',
   'app.account.saved.done': 'Fertig',
 
@@ -41,14 +41,14 @@ export const account = {
     '<b>Ihre bei VeilCore gespeicherten Datensätze sind nicht mehr auf dem Server.</b> Speichern Sie sie erneut.',
   'app.account.line.saveAgain': 'Erneut speichern',
   'app.account.line.slotMissing':
-    '<b>Ein Weg, Ihre gespeicherten Datensätze zu öffnen, fehlt auf dem Server von VeilCore.</b> Richten Sie es neu ein.',
+    '<b>Ein Weg, Ihre gespeicherten Datensätze zu öffnen, fehlt auf dem Server von VeilCore oder wurde verändert.</b> Richten Sie es neu ein.',
   'app.account.line.serverOlder':
     '<b>Auf dem Server von VeilCore stimmt etwas nicht.</b> Ihre Datensätze auf diesem Gerät sind in Ordnung, und es wurde nichts geändert. Laden Sie zur Sicherheit eine Kopie herunter.',
   'app.account.line.failing':
     '<b>Speichern in Ihrem Konto hat nicht geklappt.</b> {why} Es wird von selbst erneut versucht.',
   'app.account.line.tryNow': 'Jetzt versuchen',
   'app.account.line.bound':
-    '<b>Bei VeilCore gespeichert, aber nur dieses Gerät kann es öffnen.</b> Laden Sie eine Kopie herunter, die Sie selbst aufbewahren.',
+    '<b>Nur dieses Gerät kann Ihre gespeicherten Datensätze öffnen.</b> Erstellen Sie ein Wiederherstellungsblatt, damit Sie sie zurückbekommen, falls Sie es verlieren.',
   'app.account.line.download': 'Kopie herunterladen',
   'app.account.line.deviceOnly.one':
     '<b>{count} Dokument ist nur auf diesem Gerät.</b> Laden Sie eine Kopie herunter, um es zu sichern.',
@@ -110,7 +110,7 @@ export const account = {
   'app.settings.devices.here': '{device} (dieses) · zuletzt gespeichert am {date}',
   'app.settings.stop': 'Nicht mehr bei VeilCore speichern',
   'app.settings.stopConfirm':
-    'Ihre bei VeilCore gespeicherten Datensätze löschen? Dieses Gerät behält sie. Ihre anderen Geräte speichern nicht mehr, und das erste, das wieder speichert, richtet eine neue Kopie ein. Der Passkey bleibt in den Einstellungen Ihres Handys.',
+    'Ihre bei VeilCore gespeicherten Datensätze löschen? Dieses Gerät behält sie. Ihre anderen Geräte speichern nicht mehr, und das erste, das wieder speichert, richtet eine neue Kopie ein. Ihre Wiederherstellungsblätter funktionieren nicht mehr. Der Passkey bleibt in den Einstellungen Ihres Handys.',
   'app.settings.stopped': 'Gelöscht. Ihre Datensätze bleiben auf diesem Gerät.',
   'app.settings.file.title': 'Kopie herunterladen',
   'app.settings.file.text':

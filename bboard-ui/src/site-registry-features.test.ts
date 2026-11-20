@@ -59,6 +59,7 @@ const AGREEMENTS = [
   'payment-receipts-v1',
   'passkey-vault-v1',
   'account-copy-v1',
+  'account-slot-check-v1',
   'license-notices-v1',
   'license-notices-v2',
   'license-notices-v3',

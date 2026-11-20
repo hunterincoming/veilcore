@@ -73,13 +73,13 @@ The two reviews disagreed. Decided:
   Face ID, giving the same AK** (the key-check value inside the sealed copy matches: review B2)
   counts as backed up at once. Both facts are read from the sealed list, never from the registry.
   Then the copy's check marks what it holds as backed up, with the copy as the source.
-- Right after, a strong prompt for the **recovery sheet** (step 3, a later change:
-  `components/flow/RecoverySheetPrompt.tsx` is its place). B1's point stands: a synced passkey
-  protects against losing the phone, not against deleting the passkey or losing the Apple or
-  Google account. The recovery sheet is for that.
+- Right after, a strong prompt for the **recovery sheet** on the "Saved." screen (step 3, below).
+  B1's point stands: a synced passkey protects against losing the phone, not against deleting the
+  passkey or losing the Apple or Google account. The recovery sheet is for that.
 - A passkey that **stays on one device** (BS=0: Windows Hello, a security key) saves the copy but
-  does **not** count. It will need the recovery sheet. Until then Home says "only this device can
-  open it. Download a copy".
+  counts only once a **recovery sheet has been checked** too (step 3): its whole code typed back
+  and opened through the registry's own copy of its slot, giving the same AK. Until then Home says
+  "Only this device can open your saved records. Make a recovery sheet".
 - **Documents kept on this device only** never sync: what they say is never in the copy. Their ID
   and keys are, locked, as before (the privacy page says so). The copy never marks them backed up,
   and the key date stamp of such a document waits for a checked file that holds it
@@ -129,10 +129,15 @@ The two reviews disagreed. Decided:
   wins), **"Save again" deciding from an old list** (New-8: it reads the registry's copy first),
   **a failed adoption swallowed** (New-9: said, with Try again), **www-only passkeys** (New-10: the
   apex restore page points to www after a not-found): all fixed in the second review round.
-- **Not done:** a slot is verified once, at setup or on a new device; nothing re-verifies it later,
-  so a registry that keeps a slot listed but corrupts its sealed key is found only at a restore
-  (re-verify after 90 days, with step 3). A passkey whose sync is turned off later keeps counting
-  until it is next opened. The save when the page is hidden goes at once, without the random wait.
+- **Re-verify (done with step 3).** Each way in's sealed AK is fingerprinted (SHA-256 of
+  "iv.ct") inside the copy when it is opened; the registry lists each slot's fingerprint
+  (`account-slot-check-v1`), and every check compares them. A slot the registry changed or
+  damaged counts as gone at once (Home: "missing or changed"), not first at a restore. This
+  device's passkey is asked again after 90 days without being opened ("It's been a while. Check
+  that your passkey still opens your saved records."): one Face ID, which also reads its sync
+  flag again, so a passkey whose sync was turned off stops counting then. It keeps counting until
+  then; the reminder never blocks anything. Making a recovery sheet is also such a Face ID.
+- **Still not done:** the save when the page is hidden goes at once, without the random wait.
 
 ## Restoring the registry from a backup (operators)
 
@@ -204,14 +209,59 @@ www.veilcore.org (www is its own alias of the site) was made for that host: the 
 it by the page's own host, and the restore screen on www also offers "Made your passkey on
 www.veilcore.org before? Try it here".
 
+## The recovery sheet (easy mode step 3)
+
+A printed code that opens the same records on a new device, for when the person loses their Apple
+or Google account, deletes the passkey, or loses the one device a passkey that doesn't sync is on.
+
+- **The code** (`veilcore/recovery-code.ts`): made on the device. 27 random symbols of Crockford's
+  base32 (135 bits) and one check symbol (Luhn mod 32, from the same 32 symbols: Crockford's own
+  check needs `* ~ $ = U`, awkward to type on a phone), printed as seven groups of four. Read back
+  forgiving lower case, spaces, missing dashes, O for 0 and I or L for 1. Every single wrong
+  character is caught on the device before the registry is asked. At 135 bits no slow key
+  derivation is needed: guessing is out of reach however fast each guess is.
+- **Its slot**: one HKDF of the whole code under `veilcore/account-slot/recovery/v1` gives the
+  slot id, its read token and the key that seals AK (AAD: copy id, slot id, kind `recovery`).
+  The registry never sees the code. It is never kept on the device either: not in localStorage,
+  IndexedDB, a URL or a file name; it lives in the dialog's memory until the dialog closes.
+- **Making it** needs AK, so one Face ID through this device's passkey (which also counts as its
+  re-verify). The slot is added at the registry and to the sealed list, not checked yet. Sheets
+  made and never checked are dropped as a new one is made. An older checked sheet keeps working
+  until the new one is checked.
+- **Checking it** (the B2 rule, for the sheet): the person types the **whole** code back from the
+  printed sheet. It is opened through the registry's own copy of its slot and must give the copy's
+  key-check value. Then the sheet counts, every other sheet is removed at the registry and retired
+  in the sealed list (a merge from another device never brings one back), and the passkey that
+  stays on its device counts too. "Skip for now" only where a synced passkey already counts; where
+  it doesn't, the dialog doesn't close by a stray tap before the code is checked.
+- **The sheet** says, in the person's language: "VeilCore recovery sheet. Keep this with your herd
+  book or other important papers. Don't photograph it or email it.", the code, the date, the tag of
+  the passkey that opens the same records, how to get the records back ("go to veilcore.org, tap
+  'Get my records back', choose 'Use my recovery sheet', type the code"), and one line against
+  phishing: VeilCore asks for this code only when restoring on a new device at veilcore.org; never
+  type it anywhere else or tell it to anyone, VeilCore included. Printing shows the sheet alone
+  (a print-only copy, everything else hidden); "Save as PDF" is the browser's own.
+- **Where it is offered**: on the "Saved." screen right after Face ID is set up (recommended where
+  the passkey syncs; the way to count at all where it doesn't); in Settings (make, make a new one,
+  check mine); on Home, one quiet line on day 7 and on day 30 after setting up while no sheet is
+  checked ("Later" dismisses that day's line), never per record; and Home's warning line for a
+  passkey that stays on its device.
+- **A new device with the sheet**: "Use my recovery sheet" on the restore page. The copy's date is
+  shown before anything changes, as with Face ID. This device then saves with the keys the sheet
+  opened, and is offered "Use Face ID" at once: a passkey added to the **same** records as another
+  way in (the AK the sheet opened is held in memory for ten minutes for this, then wiped; after
+  that, the code is asked again). Never a second copy.
+- **New-8, finished**: when this device's passkey way in is gone at the registry and the copy the
+  registry returns now still lists a sheet, "Save again" doesn't delete it or start a new copy: it
+  asks for the sheet's code, which adds the passkey back to the same records.
+- **Stop saving** deletes every sheet's slot with the copy; the confirmation says so.
+
 ## Later ways in, without a migration
 
 The slot is generic: `{ slotId, copyId, kind, sealed AK, read token hash }`, and the registry
 already accepts the kinds below.
 
-- **`recovery`** (step 3): a code made on the device (at least 120 bits, Crockford base32 with a
-  check character, review S15); HKDF gives the slot id, its token and the key that seals AK. It
-  will clear the gate where a passkey that stays on one device can't.
+- **`recovery`** (step 3, above): built.
 - **`password`** (step 6): needs B4, S2, S3, S7 and S8 first (a generated passphrase or a strength
   floor; client-side minimum Argon2 settings; a guess limit; the pepper's backup). The slot's
   token can't delete anything, by design.
@@ -232,6 +282,7 @@ already accepts the kinds below.
   stays deleted on any new device restored from the copy (S13).
 - A passkey is tied to the website it was made on: a copy made on test.veilcore.org opens there,
   not on the mainnet site.
-- Deploy order: the registry (`account-copy-v1` on /health) before the site. The site's deploy
+- Deploy order: the registry (`account-copy-v1` and, since step 3, `account-slot-check-v1` on
+  /health) before the site. The site's deploy
   checks refuse without it (`scripts/registry-features.mjs`), and a site against an older registry
   says it can't reach the saved records instead of "no copy".
