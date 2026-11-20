@@ -127,4 +127,7 @@ export const account = {
   'app.account.restore.tryAgain': 'Try again',
   'app.account.restore.tryWww': 'First used www.veilcore.org? Open this page there.',
   'app.settings.ways.tag': 'Named “VeilCore: unlocks your records · {tag}” in your passwords',
+  'app.settings.passkeyCheck': 'Passkey not working on a device? <link>Test this browser’s passkey support</link>.',
+  'app.account.sheet.passkeyCheck':
+    'If this keeps happening, <link>test this browser’s passkey support</link>. It shows what this browser and device can do, and sends nothing.',
 };

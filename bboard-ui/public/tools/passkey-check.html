@@ -1,0 +1,72 @@
+<!doctype html>
+<!-- Passkey check: can this browser lock and open data with a passkey (WebAuthn PRF)?
+     The page and passkey-check.js beside it are all there is; copy both to use it on another
+     site. Nothing is sent anywhere. docs/passkey-support.md. SPDX-License-Identifier: Apache-2.0 -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta name="robots" content="noindex">
+<title>Passkey check</title>
+<style>
+  :root { color-scheme: light dark; --fg: #1d1b16; --muted: #5f5a4e; --bg: #fbfaf6; --line: #d9d4c7; --ok: #1f6b3a; --warn: #8a4b00; --accent: #6b4f00; }
+  @media (prefers-color-scheme: dark) { :root { --fg: #eeeae0; --muted: #b5af9f; --bg: #15140f; --line: #3b382f; --ok: #7fd39b; --warn: #f2b56b; --accent: #e3c56a; } }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width: 640px; margin: 0 auto; padding: 24px 16px 48px; }
+  h1 { font-size: 1.6rem; margin: 0 0 8px; }
+  h2 { font-size: 1.1rem; margin: 28px 0 8px; }
+  p, .note { color: var(--muted); margin: 6px 0; }
+  dl { display: grid; grid-template-columns: 1fr auto; gap: 6px 16px; margin: 8px 0; }
+  dt { color: var(--muted); }
+  dd { margin: 0; font-weight: 600; text-align: right; }
+  .actions { display: grid; gap: 12px; margin-top: 12px; }
+  button, select { font: inherit; }
+  button { min-height: 48px; padding: 10px 16px; border-radius: 8px; border: 1px solid var(--accent); background: transparent; color: var(--fg); cursor: pointer; text-align: left; }
+  button:disabled { opacity: 0.5; cursor: default; }
+  button:focus-visible, select:focus-visible, a:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  #pk-status { min-height: 1.5em; font-weight: 600; }
+  #pk-verdict { font-weight: 600; margin: 12px 0 0; }
+  #pk-verdict.ok { color: var(--ok); }
+  #pk-verdict.warn { color: var(--warn); }
+  code#pk-line { display: block; padding: 12px; border: 1px solid var(--line); border-radius: 8px; overflow-wrap: anywhere; font-size: 0.9rem; }
+  header { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <a id="pk-back" href="/">Back to VeilCore</a>
+    <label><span id="pk-language">Language</span> <select id="pk-lang"></select></label>
+  </header>
+  <h1 id="pk-title">Passkey check</h1>
+  <p id="pk-intro"></p>
+
+  <h2 id="pk-capsTitle"></h2>
+  <dl id="pk-caps" data-pk-caps=""></dl>
+
+  <h2 id="pk-testTitle"></h2>
+  <p id="pk-testIntro"></p>
+  <div class="actions">
+    <div><button id="pk-useExisting" type="button"></button><p class="note" id="pk-useExistingNote"></p></div>
+    <div><button id="pk-makeNew" type="button"></button><p class="note" id="pk-makeNewNote"></p></div>
+  </div>
+  <p id="pk-status" role="status" aria-live="polite"></p>
+
+  <section id="pk-result" hidden>
+    <h2 id="pk-resTitle"></h2>
+    <dl id="pk-res" data-pk-result=""></dl>
+    <p class="note" id="pk-codeNote" hidden></p>
+    <p id="pk-verdict"></p>
+  </section>
+
+  <h2 id="pk-shareTitle"></h2>
+  <p id="pk-shareNote"></p>
+  <code id="pk-line" data-pk-line=""></code>
+  <div class="actions"><button id="pk-copy" type="button"></button></div>
+</main>
+<script src="passkey-check.js"></script>
+</body>
+</html>

@@ -115,4 +115,8 @@ export const account = {
   'app.account.restore.tryAgain': 'もう一度試す',
   'app.account.restore.tryWww': '最初にwww.veilcore.orgを使いましたか？そちらでこのページを開いてください。',
   'app.settings.ways.tag': 'パスワードでの名前は「VeilCore: unlocks your records · {tag}」',
+  'app.settings.passkeyCheck':
+    'パスキーが端末で使えない場合は、<link>このブラウザのパスキー対応を確認</link>してください。',
+  'app.account.sheet.passkeyCheck':
+    'これが続く場合は、<link>このブラウザのパスキー対応を確認</link>してください。このブラウザと端末でできることを表示し、何も送信しません。',
 } satisfies Partial<AppTranslation>;

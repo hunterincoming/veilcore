@@ -136,4 +136,8 @@ export const account = {
   'app.account.restore.tryAgain': 'Erneut versuchen',
   'app.account.restore.tryWww': 'Zuerst www.veilcore.org genutzt? Öffnen Sie diese Seite dort.',
   'app.settings.ways.tag': 'In Ihren Passwörtern „VeilCore: unlocks your records · {tag}“ genannt',
+  'app.settings.passkeyCheck':
+    'Funktioniert ein Passkey auf einem Gerät nicht? <link>Passkey-Unterstützung dieses Browsers prüfen</link>.',
+  'app.account.sheet.passkeyCheck':
+    'Wenn das wieder passiert, <link>prüfen Sie die Passkey-Unterstützung dieses Browsers</link>. Die Seite zeigt, was dieser Browser und dieses Gerät können, und sendet nichts.',
 } satisfies Partial<AppTranslation>;

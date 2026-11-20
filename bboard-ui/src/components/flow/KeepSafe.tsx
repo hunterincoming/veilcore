@@ -57,6 +57,7 @@ import type { Translator } from '../../i18n/translate';
 import type { AppKey } from '../../i18n/app/en';
 import { backupMessageWords } from './backup-words';
 import { RecoverySheetPrompt } from './RecoverySheetPrompt';
+import { PasskeyCheckLink } from './PasskeyCheckLink';
 
 /** Opens the sheet from anywhere ("Fix it" on Home, a "save your backup" button). */
 export const OPEN_KEEP_SAFE_EVENT = 'veilcore:open-keep-safe';
@@ -193,6 +194,7 @@ export const KeepSafeSheet: React.FC<{ open: boolean; onClose: () => void }> = (
             {problem && (
               <Alert severity="warning" variant="outlined" sx={{ mt: 1.5 }}>
                 {t('app.account.sheet.failed', { why: backupMessageWords(problem, tr) })}
+                <PasskeyCheckLink words="failed" />
               </Alert>
             )}
             <Box sx={{ mt: 1.5 }}>
