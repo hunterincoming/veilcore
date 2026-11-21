@@ -1,5 +1,7 @@
 # VeilCore
 
+[![CI](https://github.com/hunterincoming/veilcore/actions/workflows/ci.yaml/badge.svg?branch=main)](https://github.com/hunterincoming/veilcore/actions/workflows/ci.yaml)
+
 Dated, private records for plant, animal and microbial genetics, on Midnight.
 
 This project is built on the Midnight Network.
@@ -27,7 +29,7 @@ and a Rust implementation in [veilcore-rs](https://github.com/hunterincoming/vei
 | **Live on veilcore.org** | Sealing records, dated in batches on Midnight mainnet; check pages; proving a record by link; dating a DNA report pairing; lab codes and signed receipts; licenses and royalty reports; documents kept on the device only; proving one number from a sealed document; production chains of linked document records; numbers and results a lab signs, since a run on 18 November 2026 ([docs/lab-signing.md](docs/lab-signing.md), [docs/lab-mainnet-test.md](docs/lab-mainnet-test.md)). No wallet needed: VeilCore's fee service pays the network fee. |
 | **Built, not yet run on mainnet** | Handing a license on to another grower, with the breeder's approval. Adding a lab's result file to another breeder's records. |
 | **Test network only** | A lab's viability result for a sample before or after a kill step; paying royalties in NIGHT on Midnight. |
-| **Not built** | A paid plan for labs (designed only: [docs/lab-plan.md](docs/lab-plan.md)). |
+| **Built, switched off** | Paid plans for labs: built in the registry, switched off; not on veilcore.org (`veilcore-api` README, "Paid plans"). A plan that hides which records are a lab's is a design only ([docs/lab-plan.md](docs/lab-plan.md)). |
 
 Details and dates: [Where it stands](#where-it-stands). No formal security audit yet: [the reviews so far](#current-status).
 
@@ -320,7 +322,7 @@ Midnight's standards repository.
 - It **pairs** the DNA report a laboratory returns, as the holder's own statement. It does not sequence anything, check the report, or confirm it came from a laboratory.
 - A license is activated on chain with the licensee's own license secret, and every message in a deal is signed with the sender's Ed25519 key. Neither is a qualified eIDAS signature. The older practice licenses only record a time in the registry.
 - The royalty record shows what each side declared and signed. It does not show that anything is owed, and it does not move money.
-- It raises the cost and the evidentiary risk of laundering stolen genetics. It does not prevent it.
+- It lets a holder prove, when they choose, what they held and when. It does not stop anyone else from copying genetics.
 - A license on VeilCore records what two parties agreed and signed. VeilCore is not a party to it, doesn't enforce it and doesn't decide disputes.
 - VeilCore does not vouch for any record, holder or lab. A lab's signature shows which key signed; a lab's name is shown as checked only after the operator has matched it to a public license, and even then only that match is claimed ([`docs/lab-name-checks.md`](docs/lab-name-checks.md)).
 

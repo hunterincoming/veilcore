@@ -13,8 +13,10 @@
 //
 // Facts here are the same as the site's own (SUMMARY in vite.config.ts): what VeilCore is, that
 // a record shows prior possession and not ownership, that it tests no DNA, that there is no
-// token and no formal audit, and whether licenses are on (AGREEMENTS_LIVE in config/copy.ts,
-// read here so this file can't say otherwise).
+// token and no formal audit, and what is live where. That last part follows the README's status
+// table (live on veilcore.org, built and not yet run on mainnet, test network only, built and
+// switched off) and the app's own switches in config/copy.ts (AGREEMENTS_LIVE and the
+// *_RUN_ON_MAINNET flags), read here so this file can't say otherwise. findable.test.ts checks each item sits in the same README row.
 // SPDX-License-Identifier: Apache-2.0
 
 import { readFileSync } from 'node:fs';
@@ -41,21 +43,122 @@ export const SITE_PAGES = [
 const SDK_RAW = 'https://raw.githubusercontent.com/hunterincoming/veilcore-sdk/main';
 const APP_RAW = 'https://raw.githubusercontent.com/hunterincoming/veilcore/main';
 
-/** Whether licenses are on at veilcore.org, as the app's own switch says. */
-export const agreementsLive = (root: string): boolean =>
-  /export const AGREEMENTS_LIVE\s*=\s*true\b/.test(readFileSync(resolve(root, 'src/config/copy.ts'), 'utf8'));
+/** One of the app's own switches in config/copy.ts (`export const NAME = true`), read as source. */
+const copyFlag = (root: string, name: string): boolean =>
+  new RegExp(`export const ${name}\\s*=\\s*true\\b`).test(readFileSync(resolve(root, 'src/config/copy.ts'), 'utf8'));
 
-const status = (live: boolean): string[] => [
+/** Whether licenses are on at veilcore.org, as the app's own switch says. */
+export const agreementsLive = (root: string): boolean => copyFlag(root, 'AGREEMENTS_LIVE');
+
+/** The switches that decide what llms.txt says is live on veilcore.org. */
+export interface StatusFlags {
+  /** AGREEMENTS_LIVE: licenses are on at veilcore.org. */
+  agreementsLive: boolean;
+  /** ROYALTIES_RUN_ON_MAINNET: a royalty report has worked end to end on veilcore.org. */
+  royaltiesRunOnMainnet: boolean;
+  /** LAB_SIGNING_RUN_ON_MAINNET: a lab has signed a result end to end on veilcore.org. */
+  labSigningRunOnMainnet: boolean;
+  /** DEVICE_ONLY_RUN_ON_MAINNET: a document kept on the device only has worked on veilcore.org. */
+  deviceOnlyRunOnMainnet: boolean;
+  /** DEVICE_ONLY_CLAIMS_RUN_ON_MAINNET: a number proved from such a document has worked there. */
+  deviceOnlyClaimsRunOnMainnet: boolean;
+  /** DOCUMENT_CHAIN_RUN_ON_MAINNET: a production chain of document records has worked there. */
+  documentChainRunOnMainnet: boolean;
+}
+
+export const statusFlags = (root: string): StatusFlags => ({
+  agreementsLive: agreementsLive(root),
+  royaltiesRunOnMainnet: copyFlag(root, 'ROYALTIES_RUN_ON_MAINNET'),
+  labSigningRunOnMainnet: copyFlag(root, 'LAB_SIGNING_RUN_ON_MAINNET'),
+  deviceOnlyRunOnMainnet: copyFlag(root, 'DEVICE_ONLY_RUN_ON_MAINNET'),
+  deviceOnlyClaimsRunOnMainnet: copyFlag(root, 'DEVICE_ONLY_CLAIMS_RUN_ON_MAINNET'),
+  documentChainRunOnMainnet: copyFlag(root, 'DOCUMENT_CHAIN_RUN_ON_MAINNET'),
+});
+
+/** The rows of the README's status table, in its order. */
+export type Where = 'live' | 'built' | 'test' | 'off';
+export const WHERE_LABEL: Record<Where, string> = {
+  live: 'Live on veilcore.org',
+  built: 'Built, not yet run on mainnet',
+  test: 'Test network only',
+  off: 'Built, switched off',
+};
+
+/** One feature: the row it sits in, and the words for it. `key` is a phrase the README row also carries. */
+export interface StatusItem {
+  where: Where;
+  text: string;
+  key: RegExp;
+}
+
+export const statusItems = (f: StatusFlags): StatusItem[] => {
+  const items: StatusItem[] = [
+    {
+      where: 'live',
+      text: 'sealing records, dated in batches on Midnight mainnet; check pages; proving a record by link; dating a DNA report pairing; lab codes and signed receipts',
+      key: /Sealing records/i,
+    },
+  ];
+  if (!f.agreementsLive) {
+    items.push({ where: 'test', text: 'licenses and royalties', key: /licenses/i });
+  } else if (!f.royaltiesRunOnMainnet) {
+    items.push({ where: 'live', text: 'licenses', key: /licenses/i });
+    items.push({ where: 'built', text: 'royalty statements and payments', key: /royalt/i });
+  } else {
+    items.push({
+      where: 'live',
+      text: 'licenses and royalty reports, with real transactions signed by both sides (VeilCore records obligations and never holds money)',
+      key: /licenses and royalty reports/i,
+    });
+  }
+  const ran = (yes: boolean): Where => (yes ? 'live' : 'built');
+  items.push(
+    { where: ran(f.deviceOnlyRunOnMainnet), text: 'documents kept on the device only', key: /documents kept on the device only/i },
+    {
+      where: ran(f.deviceOnlyClaimsRunOnMainnet),
+      text: 'proving one number from a sealed document',
+      key: /proving one number from a sealed document/i,
+    },
+    {
+      where: ran(f.documentChainRunOnMainnet),
+      text: 'production chains of linked document records',
+      key: /production chains of linked document records/i,
+    },
+    {
+      where: ran(f.labSigningRunOnMainnet),
+      text: 'numbers and results a lab signs with its own key',
+      key: /numbers and results a lab signs/i,
+    },
+  );
+  if (f.agreementsLive) {
+    items.push({
+      where: 'built',
+      text: 'handing a license on to another grower, with the breeder’s approval',
+      key: /Handing a license on/i,
+    });
+  }
+  items.push(
+    { where: 'built', text: 'adding a lab’s result file to another breeder’s records', key: /lab's result file/i },
+    { where: 'test', text: 'a lab’s viability result for a sample before or after a kill step', key: /viability/i },
+    { where: 'test', text: 'paying royalties in NIGHT on Midnight', key: /paying royalties in NIGHT/i },
+    { where: 'off', text: 'paid plans for labs (in the registry; not on veilcore.org)', key: /Paid plans for labs/i },
+  );
+  return items;
+};
+
+const status = (f: StatusFlags): string[] => [
   "- On Midnight's main network since 8 October 2026: records are sealed in the browser and batches of proof codes are anchored automatically. VeilCore pays the network fee; no wallet or account is needed.",
-  live
-    ? '- Licenses: a breeder licenses a record to a grower on Midnight, with royalty statements and payments signed by both sides, royalties on declared offspring, handing a license on with the breeder’s approval, and lenders’ claims. VeilCore records obligations and never holds money.'
-    : '- Licenses and royalties are built and run on the test site (test.veilcore.org); on veilcore.org they are switched off until a final test run.',
+  ...(Object.keys(WHERE_LABEL) as Where[]).flatMap((w) => {
+    const these = statusItems(f).filter((i) => i.where === w);
+    return these.length ? [`- ${WHERE_LABEL[w]}: ${these.map((i) => i.text).join('; ')}.`] : [];
+  }),
+  ...(f.agreementsLive ? [] : ['- Licenses and royalties are built and run on the test site (test.veilcore.org); on veilcore.org they are switched off until a final test run.']),
   '- No formal security audit yet. The adversarial reviews are public in the code repository.',
   '- No token. VeilCore has never sold a token, coin or presale.',
 ];
 
 /** llms.txt: what VeilCore is, in plain words, and where to read more (Markdown links). */
-export const llmsTxt = (live: boolean): string =>
+export const llmsTxt = (flags: StatusFlags): string =>
   [
     '# VeilCore',
     '',
@@ -67,7 +170,7 @@ export const llmsTxt = (live: boolean): string =>
     '',
     'Who it is for: plant breeders, seed companies, tissue-culture and testing labs, animal breeders and herd books, seed certifiers and variety examiners, and lenders or buyers who need to check a breeder’s records.',
     '',
-    ...status(live),
+    ...status(flags),
     '',
     '## Documents',
     '',
@@ -93,10 +196,10 @@ export const llmsTxt = (live: boolean): string =>
   ].join('\n');
 
 /** llms-full.txt: the summary, then the specification, the evidence guide and the integration guide. */
-export const llmsFullTxt = (root: string, live: boolean): string => {
+export const llmsFullTxt = (root: string, flags: StatusFlags): string => {
   const doc = (f: string) => readFileSync(resolve(root, 'src/docs', f), 'utf8').trim();
   return [
-    llmsTxt(live).trim(),
+    llmsTxt(flags).trim(),
     '',
     '---',
     '',

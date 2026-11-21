@@ -1,5 +1,6 @@
-// Writes .vercel/output/config.json for the prebuilt deploy (npm run deploy:prod).
-// Security headers on every page, then files, then the single-page app fallback.
+// Writes .vercel/output/config.json for the prebuilt deploys (npm run deploy:mainnet, deploy:test).
+// Security headers on every page, then the passkey check's short address, then files, then the
+// single-page app fallback.
 // SPDX-License-Identifier: Apache-2.0
 import { existsSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { normaliseAddress, readMainnetPins } from './mainnet-pins.mjs';
@@ -7,7 +8,7 @@ import { SW_CACHE_CONTROL, SW_ROUTE_SRC } from './release-check.mjs';
 import { SITE_ROUTE_SRC, downloadWorkerCsp, engineWorkerCsp, manifestProblem, modelWorkerRouteSrc } from './ask-model-csp.mjs';
 
 // The registry API the site talks to. Must match the VITE_API_BASE the site was built
-// with (deploy:prod sets it on the build step), or every API call is blocked by
+// with (the deploy script sets it on the build step), or every API call is blocked by
 // connect-src below. Override with VEILCORE_API_ORIGIN when deploying against another.
 const API_ORIGIN = new URL(
   process.env.VEILCORE_API_ORIGIN || process.env.VITE_API_BASE || 'https://veilcore-api-production.up.railway.app',
@@ -226,11 +227,23 @@ const workerHeaders = (policy) => ({ ...headers, 'Content-Security-Policy': poli
 // The page registers it with updateViaCache: 'none' too; this covers anything in between. A
 // check of the site (release-check.mjs checkServiceWorker) requires exactly this header.
 
+// The passkey check page is a plain file (public/tools/passkey-check.html,
+// docs/passkey-support.md). Its short address serves the same file, not the app's "not found".
+// No trailing slash: the page loads passkey-check.js by a relative address.
+const PASSKEY_CHECK_ROUTE = { src: '^/tools/passkey-check$', dest: '/tools/passkey-check.html' };
+
+// Every other address the app doesn't have still gets index.html with a 200, and the app shows
+// its own "not found". A real 404 would need the list of the app's routes here, and the site
+// check (release-check.mjs routesToCheck, /check-this-site) asks for a random address and
+// requires the listed index.html, so a host can't serve something else to an address nobody
+// listed.
+
 const routes = [
   { src: SITE_ROUTE_SRC, headers, continue: true },
   { src: SW_ROUTE_SRC, headers: { 'Cache-Control': SW_CACHE_CONTROL }, continue: true },
   { src: modelWorkerRouteSrc('download'), headers: workerHeaders(downloadWorkerCsp(modelManifest)), continue: true },
   { src: modelWorkerRouteSrc('engine'), headers: workerHeaders(engineWorkerCsp()), continue: true },
+  PASSKEY_CHECK_ROUTE,
   { handle: 'filesystem' },
   { src: '/.*', dest: '/index.html' },
 ];

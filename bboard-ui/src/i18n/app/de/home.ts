@@ -62,7 +62,7 @@ export const home = {
   'app.home.exportAll': 'Alle Datensätze exportieren',
   'app.home.importRecords': 'Datensätze importieren',
   'app.home.trust.title': '„Was hindert mich daran, <em>Ihr</em> Material zu erfassen?“',
-  'app.home.trust.lede': 'Drei Dinge machen einen VeilCore-Datensatz schwer zu fälschen:',
+  'app.home.trust.lede': 'Drei Dinge stehen hinter einem VeilCore-Datensatz:',
   'app.home.trust.1t': 'Ein früherer Datensatz zeigt sich als früher',
   'app.home.trust.1b':
     'Sobald Datensätze verankert sind, kann jeder prüfen, welcher zuerst verankert wurde. Davor ist die Zeit eines Datensatzes die Uhr seines Geräts. Ein Datensatz ist ein Beweismittel, keine Eintragung: Er zeigt, was Sie wann hatten, entscheidet aber für sich allein keinen Streit.',

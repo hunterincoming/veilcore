@@ -263,7 +263,7 @@ once #1605 is resolved.
 ## VeilCore-run (managed service v1, added 6 October)
 
 Built on branch `managed`: `veilcore-run/` (custody stores, operator CLI `npm run managed`,
-exit, partner-side recovery), `docs/MANAGED.md`, `docs/legal/managed-service-agreement-DRAFT.md`.
+exit, partner-side recovery), `docs/MANAGED.md`, and a service agreement (now prepared privately).
 Uses only the partner kit's public exports (a test checks). Fresh-session AI review 6 Oct
 (`review-managed.md`): NOT PASS, 4 high and 7 medium; all addressed the same day (H1 password
 change, H2 fingerprint-confirmed pools and exit answers, H3 bundles sealed to a key from the

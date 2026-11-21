@@ -25,7 +25,7 @@ import wasm from 'vite-plugin-wasm';
 import topLevelAwait from 'vite-plugin-top-level-await';
 import { readMainnetPins } from '../scripts/mainnet-pins.mjs';
 import { readPolicyStatus } from '../scripts/maintenance-policy.mjs';
-import { agreementsLive, llmsFullTxt, llmsTxt, robotsTxt, sitemapXml, structuredData } from './findable';
+import { agreementsLive, llmsFullTxt, llmsTxt, robotsTxt, sitemapXml, statusFlags, structuredData } from './findable';
 
 // What the site says about where records are dated depends on the build mode, never on
 // hand-edited strings: `--mode mainnet` describes Midnight's main network, every other
@@ -156,10 +156,10 @@ const findable = (mode: string): Plugin => {
       const emit = (fileName: string, source: string) => this.emitFile({ type: 'asset', fileName, source });
       emit('robots.txt', robotsTxt(indexed));
       if (!indexed) return;
-      const live = agreementsLive(root);
+      const flags = statusFlags(root);
       emit('sitemap.xml', sitemapXml());
-      emit('llms.txt', llmsTxt(live));
-      emit('llms-full.txt', llmsFullTxt(root, live));
+      emit('llms.txt', llmsTxt(flags));
+      emit('llms-full.txt', llmsFullTxt(root, flags));
     },
   };
 };

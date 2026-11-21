@@ -61,7 +61,7 @@ export const home = {
   'app.home.exportAll': 'Exportar todos los registros',
   'app.home.importRecords': 'Importar registros',
   'app.home.trust.title': '“¿Qué me impide registrar <em>su</em> material?”',
-  'app.home.trust.lede': 'Tres cosas hacen que un registro de VeilCore sea difícil de falsificar:',
+  'app.home.trust.lede': 'Tres cosas respaldan un registro de VeilCore:',
   'app.home.trust.1t': 'Un registro anterior se ve como anterior',
   'app.home.trust.1b':
     'Una vez anclados los registros, cualquiera puede comprobar cuál se ancló primero. Antes de eso, la hora de un registro es el reloj de su dispositivo. Un registro es una prueba, no una inscripción: muestra qué tenía usted y cuándo, pero no resuelve una disputa por sí solo.',

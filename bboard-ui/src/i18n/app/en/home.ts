@@ -60,7 +60,7 @@ export const home = {
   'app.home.importRecords': 'Import records',
   // TrustPanel.tsx
   'app.home.trust.title': '“What stops me from logging <em>your</em> material?”',
-  'app.home.trust.lede': 'Three things make a VeilCore record hard to fake:',
+  'app.home.trust.lede': 'Three things stand behind a VeilCore record:',
   'app.home.trust.1t': 'An earlier record shows as earlier',
   'app.home.trust.1b':
     'Once records are anchored, anyone can check which was anchored first. Before that, a record’s time is its device’s clock. A record is evidence, not a registration: it shows what you had and when, but doesn’t settle a dispute on its own.',

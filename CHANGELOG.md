@@ -3,11 +3,18 @@
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+and each section below is one release to veilcore.org: the date and commit in its release list
+(`releases/mainnet/<commit>.json`), holding the changes that release first carried. The site
+has no version numbers. Release lists start on 18 October 2026; earlier work is in the last
+section.
 
 ## [Unreleased]
 
-### Works with no signal, dated in seconds (19 Nov 2026, not deployed yet)
+Nothing since the last release to veilcore.org.
+
+## 21 Nov 2026: veilcore.org release `59aae05`
+
+### Works with no signal, dated in seconds (19 Nov 2026)
 
 - veilcore.org opens and seals records with no internet. An offline worker (`/sw.js`) keeps a
   copy of the app, checked file by file against the release list; one copy per release, pages
@@ -25,7 +32,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   itself and every copy. `/check-this-site` and `npm run check:site` check the worker. See
   `docs/offline.md`.
 
-### Japanese, Spanish, German and French switched on (19 Nov 2026, not deployed yet)
+## 19 Nov 2026: veilcore.org release `71aeebe`
+
+### Japanese, Spanish, German and French switched on (19 Nov 2026)
 
 - The four translations are published: a visitor whose browser or phone asks for one of them
   gets it, with no draft banner. The picker stays on every page. The founder decided this
@@ -62,7 +71,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - A test (`translations.test.ts`) fails if a word the reviews took out comes back, on the site
     or in the app.
 
-### What a walk of the live veilcore.org found (18 Nov 2026, not deployed yet)
+## 19 Nov 2026: veilcore.org release `340b7a5`
+
+### What a walk of the live veilcore.org found (18 Nov 2026)
 
 - A record kept on this device only no longer says a copy of its keys goes to VeilCore in a
   locked box (Technical details, Record keys). The passkey copy says it brings back everything
@@ -76,8 +87,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   a wallet).
 - The note for counsel's live list adds documents kept on the device only, proving one number
   and production chains, and says lab-signed numbers worked on the main network in a test run
-  on 18 November 2026. Taken from SDK commit `b5c63e5` (`EVIDENCE_COMMIT`), on the SDK's
-  branch `evidence-device-only-chains` until that is merged. The README's status table lists
+  on 18 November 2026. Taken from SDK commit `b5c63e5` (`EVIDENCE_COMMIT`), since merged
+  into the SDK's `main`. The README's status table lists
   lab-signed numbers as live on veilcore.org since that run, and adding a lab's result file to
   another breeder's records as built, not yet run on mainnet.
 - A document's key date stamp is a plain button, "Put a date stamp on this record's key", with no
@@ -91,12 +102,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   in its browser; "it is in your records" only once a record here holds it; and it says when it
   is looking in the records by itself.
 
+## 17 Nov 2026: veilcore.org release `7307667`
+
 ### Documents kept on the device: restored, and a number proved, on veilcore.org
 
 - 17 November 2026: a device-only grow batch restored from a backup in a second browser, with
   everything typed in it and its date checked on Midnight.
 - By 17 November 2026: a number proved from a device-only document and its claim link checked.
   `DEVICE_ONLY_CLAIMS_RUN_ON_MAINNET` is on, so "what's live where" says "Yes" for it.
+
+## 17 Nov 2026: veilcore.org release `83d3a26`
 
 ### A production chain: first run on veilcore.org
 
@@ -105,6 +120,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `DOCUMENT_CHAIN_RUN_ON_MAINNET` is on, so "what's live where" says "Yes" for the chain on
   veilcore.org. A number proved from a document kept on the device only is still "built, not
   yet tried on the main network".
+
+## 16 Nov 2026: veilcore.org release `b296bf4`
 
 ### A production chain as document records, and proving a number from a device-only document (built, not tried on a network yet)
 
@@ -121,6 +138,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - "What's live where" has a row for each, saying "built, not yet tried"
   (`DOCUMENT_CHAIN_RUN_ON_MAINNET`, `DEVICE_ONLY_CLAIMS_RUN_ON_MAINNET` in `config/copy.ts`, off).
   In all five languages. `docs/document-chain.md`, `docs/device-only-records.md`.
+
+## 15 Nov 2026: veilcore.org release `846108c`
 
 ### Lab signing on veilcore.org (switched on, not tried on the main network yet)
 
@@ -144,7 +163,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The README and `docs/lab-signing.md` say the same: built, switched on, not yet run on mainnet.
   The steps of the first run on veilcore.org are in `docs/lab-mainnet-test.md`.
 
-### The maintenance key is live; the committee tools move to Ledger 9 (14 Nov 2026, not deployed, nothing sent)
+## 14 Nov 2026: veilcore.org release `4590ba2`
+
+### The maintenance key is live; the committee tools move to Ledger 9 (14 Nov 2026; nothing sent to mainnet)
 
 - The site, the maintenance policy and the committee document now say what is true of the main
   contract's key: the 2-of-3 committee has not been installed, the network still accepts the key
@@ -175,7 +196,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `deployments/mainnet.json` records counter 16, so `npm run verify:deployment` fails if it moves.
 - `docs/committee-rehearsal.md`: the steps to rehearse the change on a local network.
 
-### "Records in evidence" claims only what is built (14 Nov 2026, not deployed yet)
+## 14 Nov 2026: veilcore.org release `7cf5dcf`
+
+### "Records in evidence" claims only what is built (14 Nov 2026)
 
 - The note for counsel (`/docs/evidence`, `bboard-ui/src/docs/EVIDENCE.md`) says what is live on
   veilcore.org, what is on the test network only and what is only in the specification. It no
@@ -186,7 +209,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The text is the SDK's, from commit `329b25f` (`EVIDENCE_COMMIT` in `veilcore/docs.ts`); the
   page's "Source" link opens that commit. SPEC and INTEGRATING stay at `3196c68`. English only.
 
-### A change undone before it is saved is saved undone (13 Nov 2026, not deployed yet)
+### A change undone before it is saved is saved undone (13 Nov 2026)
 
 - A holder who changed a record and changed it back before the first save was answered had the
   change-back skipped: it matched the copy last saved, and the change still on its way wasn't
@@ -194,7 +217,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   row only when nothing sent above the copy last saved is still unanswered (on its way, or its
   answer lost); otherwise the row is sent again, one rev above.
 
-### Plant, animal and microbe wording (14 Nov 2026, not deployed yet)
+### Plant, animal and microbe wording (14 Nov 2026)
 
 - The home page's opening line, the page description, the link previews and the summary shown
   before the script runs say "plant, animal and microbial genetics", in all five languages.
@@ -213,7 +236,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   hour": they say "automatically", as the pages do (the rule is in `config/copy.ts`), and
   `site-mainnet.test.ts` now checks these two texts as well.
 
-### Two quick saves of a record keep the newer copy (13 Nov 2026, not deployed yet)
+## 13 Nov 2026: veilcore.org release `faa468a`
+
+### Two quick saves of a record keep the newer copy (13 Nov 2026)
 
 - A save's rev was taken after its hashing finished, and hashing can finish in any order. A
   record saved as made and saved again a moment later (with its DNA pairing and its sealed
@@ -284,7 +309,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   says so, instead of naming the same result twice.
 - Lab signing stays on the test network only.
 
-### Lab signatures: private unless the holder shows them (not live yet; ships with the registry)
+### Lab signatures: private unless the holder shows them (goes with the registry change)
 
 - The registry is changing to keep a lab's receipts and reports about a record private: only
   the holder, the delivery's parties and the lab can read them. This site update goes with it.
@@ -327,6 +352,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     mismatch is not lost when the holder hasn't shown the receipt.
   - Wording: a withdrawn lab report is "every one shown"; French "joint à cet enregistrement".
 
+## 9 Nov 2026: veilcore.org release `ca6bf3c`
+
 ### Lab results v2: the lab's name link is salted (8 Nov 2026, test network)
 
 - The binding a lab posts to put its name on a result no longer gives away which record it
@@ -336,6 +363,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   gets the salt in the result file, or on a claim link, and still sees the lab's name.
 - Results signed before this still check, without the lab's name; the check page and the
   record page say so and don't look the name up. A lab that wants its name on one signs it again.
+
+## 9 Nov 2026: veilcore.org release `291765e`
 
 ### Dating again after the fork; licences and royalties on veilcore.org (8 Nov 2026)
 
@@ -347,6 +376,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - A licence and a royalty report (sent, answered, paid, received) worked end to end on
   veilcore.org. `ROYALTIES_RUN_ON_MAINNET` is on: the home page's veilcore.org cell says "Yes",
   and that handing a licence on hasn't been tried there yet. In all five languages.
+
+## 8 Nov 2026: veilcore.org release `e95b1ed`
 
 ### Where it came from, and real batches (7 Nov 2026)
 
@@ -378,6 +409,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   show their meaning and the donor columns import; on a phone the Ask bubble stays off forms.
 - All new words in English, German, Spanish, French and Japanese.
 
+## 8 Nov 2026: veilcore.org release `978fe84`
+
 ### Midnight's Ledger 9 fork: midnight-js 5 (6 Nov 2026)
 
 - Mainnet moved to Midnight Ledger 9 on 6 November 2026. The site, sponsor, client API,
@@ -396,6 +429,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - A switch for a notice that dating is paused (`VITE_DATING_PAUSED`), off by default, in all
   five languages.
 - Lockfile review: `docs/log/ledger-9-lockfile.md`.
+
+## 31 Oct 2026: veilcore.org release `5333214`
 
 ### Claims: prove one number from a sealed certificate, test networks (29 Oct 2026)
 
@@ -446,6 +481,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   simulated: every type is made with real transactions there. The license screens dropped the
   "Simulated…" line where agreements are real.
 
+## 25 Oct 2026: veilcore.org release `8864000`
+
 ### Licenses with royalties, on the test network (21 to 24 Oct 2026)
 
 - Real licenses from the website on test.veilcore.org: the licensee's key is made on their own
@@ -461,6 +498,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `npx veilcore-records deal`; lenders' claims on a record (`/claim`).
 - A passkey copy of the backup, for a lost phone.
 - Every license screen in Spanish, Japanese, German and French (drafts until signed off).
+
+## Up to 17 Oct 2026: before release lists
+
+Mainnet launched on 8 October 2026. Releases to veilcore.org before 18 October 2026 have no
+release list in `releases/mainnet/`, so these are by date of work.
 
 ### Repository tidy (17 Oct 2026)
 
@@ -591,7 +633,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `partner-check-receipt`, with the log's raw lines in every bundle; `purge` anchors the log
   after the purge line; unusable bundle keys refused.
 - `docs/MANAGED.md`; `docs/PARTNERS.md` now lists three options at launch;
-  `docs/legal/managed-service-agreement-DRAFT.md` (draft, for a lawyer).
+  a managed-service agreement draft for counsel (now kept privately, see `docs/legal/README.md`).
 
 ### Partner integration kit (6 Oct 2026)
 

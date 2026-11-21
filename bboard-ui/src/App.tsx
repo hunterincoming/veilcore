@@ -104,7 +104,7 @@ const VerifyExample = page(() => import('./components/verify/VerifyExample'), 'V
 const CheckThisSite = page(() => import('./components/site/CheckThisSite'), 'CheckThisSite');
 const Terms = page(() => import('./components/site/Terms'), 'Terms');
 const Help = page(() => import('./components/site/Help'), 'Help');
-// Mako's How it works page (site draft, 21 Nov 2026): the night design, fetched when opened.
+// The How it works page (site design, 21 Nov 2026): the night design, fetched when opened.
 const HowItWorks = page(() => import('./components/site/HowItWorks'), 'HowItWorks');
 const Status = page(() => import('./components/site/Status'), 'Status');
 // Only in the end-to-end build (package.json e2e:build sets VITE_E2E_FIXTURES=1): a stand-in for
@@ -369,7 +369,7 @@ const routes = (
     <Route path="/" element={<Home />} />
     <Route path="/how-it-works" element={<HowItWorks />} />
     <Route path="/founders" element={<Founders />} />
-    {/* Mako's name for the founders page; its sections' anchors (#contact) come along. */}
+    {/* The design's name for the founders page; its sections' anchors (#contact) come along. */}
     <Route path="/about" element={<AboutRedirect />} />
     <Route path="/privacy" element={<Privacy />} />
     <Route path="/terms" element={<Terms />} />
