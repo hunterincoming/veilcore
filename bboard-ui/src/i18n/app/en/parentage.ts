@@ -4,9 +4,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 export const parentage = {
-  'app.parentage.offer.sireConflicts': 'Conflicts with the sire: at most {n} (ICAR accepted)',
-  'app.parentage.offer.damConflicts': 'Conflicts with the dam: at most {n} (ICAR accepted)',
-  'app.parentage.offer.trioConflicts': 'Conflicts across the trio: at most {n} (ICAR accepted)',
+  'app.parentage.offer.sireConflicts': 'Conflicts with the sire: at most {n} (within ICAR’s accepted band)',
+  'app.parentage.offer.damConflicts': 'Conflicts with the dam: at most {n} (within ICAR’s accepted band)',
+  'app.parentage.offer.trioConflicts': 'Conflicts across the trio: at most {n} (within ICAR’s accepted band)',
   'app.parentage.offer.sireCompared': 'SNPs compared with the sire: at least {n} (ICAR minimum)',
   'app.parentage.offer.damCompared': 'SNPs compared with the dam: at least {n} (ICAR minimum)',
   'app.parentage.line.sireConflicts': 'Conflicts with the sire: at most {n}',

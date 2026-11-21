@@ -160,7 +160,7 @@ describe('what the panel offers on a parentage result', () => {
     ).toEqual(['damCompared']);
   });
 
-  it('never "(ICAR accepted)" for a test the laboratory didn’t accept, nor the trio unless both parents are', () => {
+  it('never "(within ICAR’s accepted band)" for a test the laboratory didn’t accept, nor the trio unless both parents are', () => {
     // The counts fit, but the lab graded the sire doubtful (it may have re-tested, or used more SNPs).
     const v = values({});
     v[4] = '1';
@@ -294,6 +294,30 @@ describe('the words', () => {
       'A laboratory’s signed parentage result, dated on Midnight. The holder proved, without showing the genotypes or the counts, that it meets ICAR 2023’s conflict limits and its minimum of SNPs compared with each parent. The laboratory saw the genotypes. Consistent with descent is not proof of descent. VeilCore tested nothing.',
     );
     expect(appEn['app.parentage.cert.title']).toBe('Meets five of ICAR 2023’s parentage checks');
+  });
+
+  it('a conflict offer names ICAR’s accepted band, never a bare "ICAR accepted", in all five languages', () => {
+    const BAND: Record<string, string> = {
+      en: '(within ICAR’s accepted band)',
+      de: '(im Bereich „akzeptiert“ der ICAR)',
+      es: '(dentro de la franja «aceptado» de ICAR)',
+      fr: '(dans la classe « accepté » de l’ICAR)',
+      ja: '（ICARの「適合」の区分内）',
+    };
+    // "ICAR accepted" on its own reads as ICAR's whole acceptance, which needs minimums no claim shows.
+    const BARE: Record<string, RegExp> = {
+      en: /ICAR[- ]accepted|\(ICAR accept/i,
+      de: /ICAR: akzeptiert|ICAR-akzeptiert/i,
+      es: /aceptado (según|por) ICAR/i,
+      fr: /accepté (selon|par) l’ICAR/i,
+      ja: /ICARの適合）|ICAR適合/,
+    };
+    for (const [lang, dict] of Object.entries(LANGS)) {
+      const d = dict as Record<string, string>;
+      for (const id of ['sireConflicts', 'damConflicts', 'trioConflicts'])
+        expect(d[`app.parentage.offer.${id}`], `${lang} ${id}`).toContain(BAND[lang]);
+      for (const [k, v] of Object.entries(d)) expect(BARE[lang].test(v), `${lang} ${k}: ${v}`).toBe(false);
+    }
   });
 
   it('says which ICAR minimums were not proved, and never that the parents share the trio’s SNPs', () => {

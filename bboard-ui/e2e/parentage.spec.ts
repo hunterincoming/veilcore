@@ -209,9 +209,9 @@ const signAndAdd = async (browser: Browser, numbers: Numbers) => {
 };
 
 const OFFERS = [
-  'Conflicts with the sire: at most 2 (ICAR accepted)',
-  'Conflicts with the dam: at most 2 (ICAR accepted)',
-  'Conflicts across the trio: at most 3 (ICAR accepted)',
+  'Conflicts with the sire: at most 2 (within ICAR’s accepted band)',
+  'Conflicts with the dam: at most 2 (within ICAR’s accepted band)',
+  'Conflicts across the trio: at most 3 (within ICAR’s accepted band)',
   'SNPs compared with the sire: at least 175 (ICAR minimum)',
   'SNPs compared with the dam: at least 175 (ICAR minimum)',
 ];

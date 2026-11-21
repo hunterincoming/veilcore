@@ -3,9 +3,9 @@
 import type { AppTranslation } from '../../translate';
 
 export const parentage = {
-  'app.parentage.offer.sireConflicts': 'Konflikte mit dem Vater: höchstens {n} (ICAR: akzeptiert)',
-  'app.parentage.offer.damConflicts': 'Konflikte mit der Mutter: höchstens {n} (ICAR: akzeptiert)',
-  'app.parentage.offer.trioConflicts': 'Konflikte im Trio: höchstens {n} (ICAR: akzeptiert)',
+  'app.parentage.offer.sireConflicts': 'Konflikte mit dem Vater: höchstens {n} (im Bereich „akzeptiert“ der ICAR)',
+  'app.parentage.offer.damConflicts': 'Konflikte mit der Mutter: höchstens {n} (im Bereich „akzeptiert“ der ICAR)',
+  'app.parentage.offer.trioConflicts': 'Konflikte im Trio: höchstens {n} (im Bereich „akzeptiert“ der ICAR)',
   'app.parentage.offer.sireCompared': 'Mit dem Vater verglichene SNPs: mindestens {n} (ICAR-Minimum)',
   'app.parentage.offer.damCompared': 'Mit der Mutter verglichene SNPs: mindestens {n} (ICAR-Minimum)',
   'app.parentage.line.sireConflicts': 'Konflikte mit dem Vater: höchstens {n}',

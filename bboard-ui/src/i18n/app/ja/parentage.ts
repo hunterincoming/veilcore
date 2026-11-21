@@ -3,9 +3,9 @@
 import type { AppTranslation } from '../../translate';
 
 export const parentage = {
-  'app.parentage.offer.sireConflicts': '父との不一致数：{n}以下（ICARの適合）',
-  'app.parentage.offer.damConflicts': '母との不一致数：{n}以下（ICARの適合）',
-  'app.parentage.offer.trioConflicts': 'トリオでの不一致数：{n}以下（ICARの適合）',
+  'app.parentage.offer.sireConflicts': '父との不一致数：{n}以下（ICARの「適合」の区分内）',
+  'app.parentage.offer.damConflicts': '母との不一致数：{n}以下（ICARの「適合」の区分内）',
+  'app.parentage.offer.trioConflicts': 'トリオでの不一致数：{n}以下（ICARの「適合」の区分内）',
   'app.parentage.offer.sireCompared': '父と比較したSNP数：{n}以上（ICARの最低数）',
   'app.parentage.offer.damCompared': '母と比較したSNP数：{n}以上（ICARの最低数）',
   'app.parentage.line.sireConflicts': '父との不一致数：{n}以下',

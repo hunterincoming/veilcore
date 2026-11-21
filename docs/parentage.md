@@ -90,7 +90,7 @@ with a fixed bound:
 - **A bound the lab's number doesn't meet is not offered.** A sire with 4 conflicts gets no claim
   about the sire at all, never "at most 5", and the panel says why. If nothing meets ICAR's
   bounds, the panel says that instead of offering anything.
-- **Never "(ICAR accepted)" for a test the laboratory didn't accept.** A conflict claim is offered
+- **Never "(within ICAR's accepted band)" for a test the laboratory didn't accept.** A conflict claim is offered
   only where the lab's own grade for that test (slots 4, 7 and 9) is 0, accepted. A missing
   grade is not accepted.
 - **The trio only once both parents are accepted.** ICAR runs the trio step on parents already

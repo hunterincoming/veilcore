@@ -3,9 +3,12 @@
 import type { AppTranslation } from '../../translate';
 
 export const parentage = {
-  'app.parentage.offer.sireConflicts': 'Conflictos con el padre: como máximo {n} (aceptado según ICAR)',
-  'app.parentage.offer.damConflicts': 'Conflictos con la madre: como máximo {n} (aceptado según ICAR)',
-  'app.parentage.offer.trioConflicts': 'Conflictos en el trío: como máximo {n} (aceptado según ICAR)',
+  'app.parentage.offer.sireConflicts':
+    'Conflictos con el padre: como máximo {n} (dentro de la franja «aceptado» de ICAR)',
+  'app.parentage.offer.damConflicts':
+    'Conflictos con la madre: como máximo {n} (dentro de la franja «aceptado» de ICAR)',
+  'app.parentage.offer.trioConflicts':
+    'Conflictos en el trío: como máximo {n} (dentro de la franja «aceptado» de ICAR)',
   'app.parentage.offer.sireCompared': 'SNP comparados con el padre: al menos {n} (mínimo de ICAR)',
   'app.parentage.offer.damCompared': 'SNP comparados con la madre: al menos {n} (mínimo de ICAR)',
   'app.parentage.line.sireConflicts': 'Conflictos con el padre: como máximo {n}',
