@@ -12,7 +12,7 @@
 // the same states as the footer (markerSourceKey). The limits are always said.
 //
 // On a laboratory's parentage result (animal-parentage/v1, veilcore/parentage.ts) the page says
-// "meets ICAR 2023 parentage acceptance", in the words docs/parentage.md fixes, only when the link
+// "meets five of ICAR 2023's parentage checks", in the words docs/parentage.md fixes, only when the link
 // carries all five acceptance claims, every one checked on Midnight, and a laboratory stands
 // behind the numbers. ICAR's bands are said in plain words, and a parentage result's own limits.
 // SPDX-License-Identifier: Apache-2.0
@@ -106,7 +106,7 @@ export const ClaimCheck: React.FC = () => {
   const markerSource = link ? markerSourceKey(verdict, !!offerOf(link)?.count) : undefined;
   // A parentage result's counts are not "a decision about the variety".
   const sourceKey = parentage && markerSource === 'app.marker.source.lab' ? 'app.parentage.source.lab' : markerSource;
-  // "Meets ICAR 2023 parentage acceptance": all five claims, each checked, a laboratory standing behind them.
+  // "Meets five of ICAR 2023's parentage checks": all five claims, each checked, a laboratory standing behind them.
   const certified =
     !!link &&
     parentage &&

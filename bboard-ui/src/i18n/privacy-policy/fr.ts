@@ -156,7 +156,7 @@ export const policyFr: PolicyStrings = {
     'qu’un enregistrement porte une licence, une obligation ou le droit d’un prêteur, et quand cela a changé ;',
   'm.pp.chain.6': 'la clé publique d’un laboratoire, quand il y signe un certificat ;',
   'm.pp.chain.7':
-    'ce que vous choisissez de prouver sur un chiffre : le seuil et son sens ou, si vous le prouvez exactement, le chiffre lui-même. Un résultat de filiation prouve seulement que les seuils de l’ICAR sont respectés ; aucun génotype ni aucun décompte n’est publié.',
+    'ce que vous choisissez de prouver sur un chiffre : le seuil et son sens ou, si vous le prouvez exactement, le chiffre lui-même. Un résultat de filiation prouve seulement que ses conflits et ses SNP comparés respectent les seuils de l’ICAR ; aucun génotype ni aucun décompte n’est publié.',
   'm.pp.chain.p2':
     'Notre service de frais ancre chaque lot. Pour les autres étapes, l’application montre d’abord un reçu qui liste exactement ce que l’étape rend public, et votre navigateur l’envoie par notre service de frais, qui paie les frais. Un code ou une clé seuls ne disent rien de vous, mais toute personne à qui vous donnez un lien de vérification peut suivre ce qui arrive à cet enregistrement sur le réseau à partir de là.',
 

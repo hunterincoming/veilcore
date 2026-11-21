@@ -189,6 +189,13 @@ no longer stands behind this result."
 holder checks, shares and proves a number, the lab withdraws. In steps 1 to 13 the lab and the
 holder were the same window (step 11 opens the lab's own record; the check page doesn't offer
 "Add it as a record you hold"), and the second breeder in steps 14 to 17 only sent a sample and
-saw the lab's receipt. So adding a lab's result file to another breeder's records has never run
-on mainnet: it stays described as built, not yet run, until a run where a second breeder adds a
-lab's result, proves a number on it and reloads.
+saw the lab's receipt. So adding a lab's result file to another breeder's records had not run
+on mainnet in these two runs: it stayed described as built, not yet run, until a run where a
+second breeder adds a lab's result, proves a number on it and reloads (the third run, below).
+
+**Third run, 21 November 2026** (agent run, `DEMO Lab (agent run)`, signing key
+`601f77f6…ca97a02e`). Spreadsheet signing: 3 rows signed, 0 refused, checked as a stranger. A
+second browser added the lab's HLVd result (`VEIL-ED6A708CE143BC84E03AE9D9AFC6B794`), published
+its signature at block 3553271, proved "Not detected" at block 3553306, and reloaded; the claim
+checks once batch B-20261121-3285 is dated (block 3553843). Adding a lab's result file to another
+breeder's records is live.

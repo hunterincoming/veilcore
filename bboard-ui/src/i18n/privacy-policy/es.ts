@@ -152,7 +152,7 @@ export const policyEs: PolicyStrings = {
     'que un registro tiene una licencia, una obligación o un derecho de un prestamista, y cuándo cambió eso;',
   'm.pp.chain.6': 'la clave pública de un laboratorio, cuando firma allí un certificado;',
   'm.pp.chain.7':
-    'lo que usted decide probar sobre un número: el límite y su sentido o, si lo prueba exacto, el número en sí. Un resultado de filiación prueba solo que se cumplen los límites de ICAR; no se publica ningún genotipo ni ningún conteo.',
+    'lo que usted decide probar sobre un número: el límite y su sentido o, si lo prueba exacto, el número en sí. Un resultado de filiación prueba solo que sus conflictos y SNP comparados están dentro de los límites de ICAR; no se publica ningún genotipo ni ningún conteo.',
   'm.pp.chain.p2':
     'Nuestro servicio de tarifas ancla cada lote. En los demás pasos, la aplicación muestra primero un comprobante que enumera exactamente lo que ese paso hace público, y su navegador lo envía a través de nuestro servicio de tarifas, que paga la tarifa. Un código o una clave por sí solos no dicen nada de usted, pero cualquiera a quien le dé un enlace de comprobación puede seguir lo que pasa con ese registro en la red desde entonces.',
 

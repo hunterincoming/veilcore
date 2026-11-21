@@ -3,9 +3,12 @@
 import type { AppTranslation } from '../../translate';
 
 export const parentage = {
-  'app.parentage.offer.sireConflicts': 'Conflictos con el padre: como máximo {n} (aceptado según ICAR)',
-  'app.parentage.offer.damConflicts': 'Conflictos con la madre: como máximo {n} (aceptado según ICAR)',
-  'app.parentage.offer.trioConflicts': 'Conflictos en el trío: como máximo {n} (aceptado según ICAR)',
+  'app.parentage.offer.sireConflicts':
+    'Conflictos con el padre: como máximo {n} (dentro de la franja «aceptado» de ICAR)',
+  'app.parentage.offer.damConflicts':
+    'Conflictos con la madre: como máximo {n} (dentro de la franja «aceptado» de ICAR)',
+  'app.parentage.offer.trioConflicts':
+    'Conflictos en el trío: como máximo {n} (dentro de la franja «aceptado» de ICAR)',
   'app.parentage.offer.sireCompared': 'SNP comparados con el padre: al menos {n} (mínimo de ICAR)',
   'app.parentage.offer.damCompared': 'SNP comparados con la madre: al menos {n} (mínimo de ICAR)',
   'app.parentage.line.sireConflicts': 'Conflictos con el padre: como máximo {n}',
@@ -21,7 +24,7 @@ export const parentage = {
   'app.parentage.bands.trio':
     'En el trío (la cría, el padre y la madre): de 0 a 3 conflictos es aceptado, de 4 a 7 es dudoso y más de 7 es excluido.',
   'app.parentage.bands.compared':
-    'Cada progenitor necesita al menos 175 SNP comparados con la cría, y el trío al menos 165 que ambos progenitores tengan en común.',
+    'Cada animal necesita al menos 185 SNP leídos. La cría y cada progenitor necesitan al menos 175 leídos en ambos, y el trío al menos 165 leídos en los tres (cría, padre y madre).',
   'app.parentage.bands.only':
     'Aquí solo se ofrecen los límites de la franja «aceptado», nunca uno redondeado: «como máximo 5» sería el tope de la franja «dudoso».',
   'app.parentage.unmet.sireConflicts':
@@ -35,14 +38,14 @@ export const parentage = {
   'app.parentage.unmet.damCompared':
     'Se compararon con la madre menos SNP que el mínimo de ICAR, así que ese mínimo no se puede afirmar.',
   'app.parentage.all':
-    'Para mostrar que el resultado cumple la aceptación de ICAR 2023, pruebe las cinco afirmaciones y luego copie un solo enlace con todas. Si cada afirmación se comprueba y un laboratorio respalda los números, la página de comprobación dirá que el resultado cumple la aceptación de ICAR 2023.',
+    'Para mostrar los criterios de ICAR 2023 que se pueden probar aquí, pruebe las cinco afirmaciones y luego copie un solo enlace con todas. Si cada afirmación se comprueba y un laboratorio respalda los números, la página de comprobación dirá que el resultado cumple cinco de los criterios de filiación de ICAR 2023.',
   'app.parentage.none':
     'Nada de este resultado cumple los límites de aceptación de ICAR, así que no se ofrece ninguna afirmación.',
-  'app.parentage.cert.title': 'Cumple la aceptación de filiación de ICAR 2023',
+  'app.parentage.cert.title': 'Cumple cinco de los criterios de filiación de ICAR 2023',
   'app.parentage.cert.text':
-    'Resultado de filiación firmado por un laboratorio, fechado en Midnight. Quien tiene el resultado probó que el resultado cumple la aceptación de ICAR 2023 sin mostrar los genotipos ni los recuentos. El laboratorio vio los genotipos. Ser compatible con la filiación declarada no prueba la filiación. VeilCore no analizó nada.',
+    'Resultado de filiación firmado por un laboratorio, fechado en Midnight. Quien tiene el resultado probó, sin mostrar los genotipos ni los recuentos, que cumple los límites de conflictos de ICAR 2023 y su mínimo de SNP comparados con cada progenitor. El laboratorio vio los genotipos. Ser compatible con la filiación declarada no prueba la filiación. VeilCore no analizó nada.',
   'app.parentage.cert.bounds':
-    'Probado: como máximo 2 conflictos con el padre y como máximo 2 con la madre, como máximo 3 en el trío, y al menos 175 SNP comparados con cada progenitor. El mínimo de ICAR de 165 SNP que ambos progenitores tienen en común, para el trío, le corresponde aplicarlo al laboratorio; ninguna afirmación lo muestra.',
+    'Probado: como máximo 2 conflictos con el padre y como máximo 2 con la madre, como máximo 3 en el trío, y al menos 175 SNP comparados entre la cría y cada progenitor. No probado: los mínimos de ICAR de 185 SNP leídos en cada animal y 165 leídos en los tres (cría, padre y madre). El formulario no tiene un número para ellos; los aplica el laboratorio.',
   'app.parentage.source.lab':
     'Los recuentos del laboratorio, del resultado que firmó. Son recuentos, no una decisión de una asociación de criadores.',
   'app.parentage.limits.labSaw':
@@ -54,7 +57,7 @@ export const parentage = {
   'app.parentage.limits.sample':
     'Un resultado dice lo que mostraron las muestras enviadas con esos registros. No muestra que el animal que tiene delante sea el que se muestreó.',
   'app.parentage.limits.trioMin':
-    'El formulario no tiene un número para los SNP que ambos progenitores tienen en común (el mínimo de 165 de ICAR para el trío). Aplicarlo le corresponde al laboratorio, y ninguna afirmación lo muestra.',
+    'El formulario no tiene un número para los SNP leídos en cada animal (el mínimo de ICAR es 185) ni para los leídos en los tres, cría, padre y madre (el mínimo de ICAR para el trío es 165). Aplicar esos mínimos le corresponde al laboratorio, y ninguna afirmación los muestra.',
   'app.parentage.limits.society':
     'No es un certificado de una asociación de criadores. VeilCore no analizó nada y no responde por ningún laboratorio.',
   'app.parentage.unmet.trioParents':

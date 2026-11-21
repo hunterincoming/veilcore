@@ -513,12 +513,14 @@ describe("what's live where", () => {
     expect(e['m.live.signed.live']).toMatch(
       /the record’s holder, the lab and whoever sent it the sample see it, and only the holder can show it to others\./,
     );
-    // Live covers only what ran on mainnet (18 Nov 2026): the lab signed, the holder checked, shared
-    // and proved a number, the lab withdrew. Adding a lab's result file to another breeder's
-    // records never ran there, and the cell says so.
+    // Live covers only what ran on mainnet: on 18 Nov 2026 the lab signed, the holder checked,
+    // shared and proved a number, the lab withdrew; on 21 Nov 2026 a second breeder added a lab's
+    // result file to its records, proved a number on it and reloaded (docs/lab-mainnet-test.md,
+    // third run). The cell gives that date, and no longer says "not yet tried".
     expect(e['m.live.signed.live']).toMatch(
-      / Adding a lab’s result file to another breeder’s records is built, not yet tried on the main network\.$/,
+      / Adding a lab’s result file to another breeder’s records: yes, since 21 November 2026\.$/,
     );
+    expect(e['m.live.signed.live']).not.toMatch(/not yet/);
     for (const k of ['test', 'live']) expect(e[`m.live.signed.${k}`]).not.toMatch(/unless one of them shares it/);
     for (const l of Object.values(LANGUAGES)) {
       const s = l.strings as Record<string, string>;

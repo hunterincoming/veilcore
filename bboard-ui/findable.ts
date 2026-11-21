@@ -138,7 +138,8 @@ export const statusItems = (f: StatusFlags): StatusItem[] => {
     });
   }
   items.push(
-    { where: 'built', text: 'adding a lab’s result file to another breeder’s records', key: /lab's result file/i },
+    // Ran on veilcore.org on 21 Nov 2026 (docs/lab-mainnet-test.md, third run).
+    { where: 'live', text: 'adding a lab’s result file to another breeder’s records', key: /lab's result file/i },
     { where: 'test', text: 'a lab’s viability result for a sample before or after a kill step', key: /viability/i },
     { where: 'test', text: 'paying royalties in NIGHT on Midnight', key: /paying royalties in NIGHT/i },
     { where: 'off', text: 'paid plans for labs (in the registry; not on veilcore.org)', key: /Paid plans for labs/i },
