@@ -2,6 +2,8 @@
 // review, 12 Nov: there were three, the app had no way back to the site, and "Home" meant two
 // different pages). The mark always goes to veilcore.org's home page; the same links follow it
 // everywhere (How it works, About, your records, Verify, and "Make a record" or your records);
+// since Mako's site draft of 21 Nov, How it works and About are pages of their own (/how-it-works,
+// /founders), drawn on the night ground like the home page;
 // then the language, and on the app's pages which network this is. Since the dark home page
 // (18 Nov) the links are Mako's: Updates and Team are in the footer, and the button goes
 // straight to making a record (/new). On the home page the same header is drawn on the night
@@ -41,21 +43,11 @@ const linkSx = {
   '&:hover': { textDecoration: 'underline', backgroundColor: 'transparent' },
 } as const;
 
-/** A link to a section of the home page: on the home page it scrolls, elsewhere it goes there first. */
-const SectionLink: React.FC<{ id: string; sx?: object; children: React.ReactNode; data?: string }> = ({
-  id,
-  sx,
-  children,
-  data,
-}) => {
-  const onHome = useLocation().pathname === '/';
-  const attrs = data ? { [data]: '' } : {};
-  return onHome ? (
-    <Link href={`#${id}`} sx={{ ...linkSx, ...sx }} {...attrs}>
-      {children}
-    </Link>
-  ) : (
-    <Link component={RouterLink} to={`/#${id}`} sx={{ ...linkSx, ...sx }} {...attrs}>
+/** A link to one of the public pages, marked as the current page when it is. */
+const SectionLink: React.FC<{ to: string; sx?: object; children: React.ReactNode }> = ({ to, sx, children }) => {
+  const here = useLocation().pathname === to;
+  return (
+    <Link component={RouterLink} to={to} sx={{ ...linkSx, ...sx }} aria-current={here ? 'page' : undefined}>
       {children}
     </Link>
   );
@@ -78,10 +70,10 @@ const menuCtaSx = {
 /** Where AskLauncher puts Ask on a phone (App.tsx AppLayout): the first item under "Menu". */
 export const ASK_SLOT_ID = 'veilcore-ask-slot';
 
-/** The section links, inline from md up; on a phone in the menu. */
+/** Mako's pages (site draft, 21 Nov 2026), inline from md up; on a phone in the menu. */
 const sections = [
-  { id: 'how', key: 'm.hero.how' },
-  { id: 'about', key: 'm.nav.about' },
+  { to: '/how-it-works', key: 'm.hero.how' },
+  { to: '/founders', key: 'm.nav.about' },
 ] as const;
 
 /**
@@ -174,8 +166,8 @@ const PhoneMenu: React.FC<{ ask: boolean; returning: boolean }> = ({ ask, return
         {/* Ask, on the app's pages, where AskLauncher offers it (not on an agreement's screens). */}
         {ask && <li id={ASK_SLOT_ID} />}
         {sections.map((s) => (
-          <li key={s.id}>
-            <SectionLink id={s.id} sx={item}>
+          <li key={s.to}>
+            <SectionLink to={s.to} sx={item}>
               {t(s.key)}
             </SectionLink>
           </li>
@@ -248,7 +240,7 @@ export const SiteHeader: React.FC<{
             sx={{ alignItems: 'center', columnGap: { xs: 1, md: 2.5 } }}
           >
             {sections.map((s) => (
-              <SectionLink key={s.id} id={s.id} sx={wide}>
+              <SectionLink key={s.to} to={s.to} sx={wide}>
                 {t(s.key)}
               </SectionLink>
             ))}

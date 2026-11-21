@@ -122,10 +122,13 @@ test.describe('the home page', () => {
     await expect.poll(() => track.evaluate((el) => el.scrollLeft)).toBeGreaterThan(100);
     await expect(prev).toBeEnabled();
     expect(await page.evaluate(() => window.scrollY)).toBe(y);
-    // Five panels, each with its photo's size set, so nothing shifts as they load.
+    // Five panels, each with its photo's size set, so nothing shifts as they load. Mako's photos
+    // (21 Nov) come in their own sizes, so each img carries its own file's width and height.
     await expect(track.locator('li img')).toHaveCount(5);
     for (const img of await track.locator('li img').all()) {
-      await expect(img).toHaveAttribute('width', '1600');
+      await expect(img).toHaveAttribute('width', /^[1-9]\d{2,3}$/);
+      await expect(img).toHaveAttribute('height', /^[1-9]\d{2,3}$/);
+      await expect(img).toHaveAttribute('loading', 'lazy');
       await expect(img).toHaveAttribute('alt', /.+/);
     }
     expectNoErrors(errors);

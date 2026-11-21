@@ -103,6 +103,8 @@ const VerifyExample = page(() => import('./components/verify/VerifyExample'), 'V
 const CheckThisSite = page(() => import('./components/site/CheckThisSite'), 'CheckThisSite');
 const Terms = page(() => import('./components/site/Terms'), 'Terms');
 const Help = page(() => import('./components/site/Help'), 'Help');
+// Mako's How it works page (site draft, 21 Nov 2026): the night design, fetched when opened.
+const HowItWorks = page(() => import('./components/site/HowItWorks'), 'HowItWorks');
 const Status = page(() => import('./components/site/Status'), 'Status');
 // Only in the end-to-end build (package.json e2e:build sets VITE_E2E_FIXTURES=1): a stand-in for
 // a live license's page around the real royalty ledger (e2e-fixtures/RoyaltyPayFixture.tsx). The
@@ -277,6 +279,7 @@ const withLayout = (el: React.ReactNode) => (
 
 /** The browser tab's title for each page; the home page keeps the one in index.html. */
 const PAGE_TITLES: [RegExp, string][] = [
+  [/^\/how-it-works/, 'How it works'],
   [/^\/founders/, 'Founders'],
   [/^\/terms/, 'Terms of use'],
   [/^\/help/, 'Help'],
@@ -302,6 +305,7 @@ const HOME_TITLE = typeof document === 'undefined' ? '' : document.title;
 
 /** Each title above in the visitor's language (i18n/en.ts title.*). */
 const TITLE_KEYS: Record<string, StringKey> = {
+  'How it works': 'title.how',
   Founders: 'title.founders',
   'Terms of use': 'title.terms',
   Help: 'title.help',
@@ -354,12 +358,18 @@ const NewPageFocus: React.FC = () => {
   return null;
 };
 
+/** /about is /founders, with the section it was asked for. */
+const AboutRedirect: React.FC = () => <Navigate to={`/founders${useLocation().hash}`} replace />;
+
 const routes = (
   <>
     {/* A stranger arriving from a specification or a government submission needs
     somewhere to understand what this is. The dashboard assumes you already do. */}
     <Route path="/" element={<Home />} />
+    <Route path="/how-it-works" element={<HowItWorks />} />
     <Route path="/founders" element={<Founders />} />
+    {/* Mako's name for the founders page; its sections' anchors (#contact) come along. */}
+    <Route path="/about" element={<AboutRedirect />} />
     <Route path="/privacy" element={<Privacy />} />
     <Route path="/terms" element={<Terms />} />
     <Route path="/help" element={<Help />} />

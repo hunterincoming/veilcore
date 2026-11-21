@@ -384,7 +384,10 @@ describe('the privacy note on downloading everything', () => {
 });
 
 describe("what's live where", () => {
-  const home = fs.readFileSync(path.join(SRC, 'components/site/Home.tsx'), 'utf8');
+  // The table moved to its own file (LiveWhere.tsx) when How it works got it too (21 Nov 2026).
+  const home = ['components/site/Home.tsx', 'components/site/LiveWhere.tsx']
+    .map((f) => fs.readFileSync(path.join(SRC, f), 'utf8'))
+    .join('\n');
   const rows = [
     ...(home.match(/const LIVE_ROWS = \[([\s\S]*?)\] as const;/)?.[1] ?? '').matchAll(
       /\['(\w+)', (true|false), (true|false), (true|false)\]/g,
@@ -437,10 +440,12 @@ describe("what's live where", () => {
     expect(e['m.live.lic.test']).toMatch(/^Yes, with real transactions/);
     // Nothing is called live on veilcore.org until it has worked there: only veilcore.org's
     // own build (licenses on, mainnet sponsor live) says "Yes"; the test site never does.
-    expect(home).toMatch(/const LICENSES_ON_SITE = THIS_BUILD\.agreementsLive === true && MAINNET_SENDS;/);
+    expect(home).toMatch(/const LICENSES_ON_SITE = \(\) => THIS_BUILD\.agreementsLive === true && MAINNET_SENDS;/);
     // Once royalties have worked on veilcore.org, the test site and the demo say so too (a fact
     // about veilcore.org); a mainnet build says "Yes" only with licenses on.
-    expect(home).toMatch(/LICENSES_ON_SITE \|\| !IS_MAINNET\s*\?\s*'m\.live\.lic\.live'\s*:\s*'m\.live\.lic\.next'/);
+    expect(home).toMatch(
+      /LICENSES_ON_SITE\(\) \|\| !IS_MAINNET\s*\?\s*'m\.live\.lic\.live'\s*:\s*'m\.live\.lic\.next'/,
+    );
     expect(e['m.live.lic.next']).not.toMatch(/^Yes/);
     expect(e['m.live.lic.next']).toMatch(/next veilcore\.org deploy/);
     // The test-site cell doesn't say "Yes" for royalties until v2 has run there.
@@ -1147,7 +1152,16 @@ describe('Japanese (round 6)', () => {
     for (const l of ['en', 'de', 'fr', 'es'] as Lang[]) expect(LANGUAGES[l].spaces, l).toBe(true);
     // No language without spaces other than Japanese (Chinese would need the same).
     expect(Object.keys(LANGUAGES).sort()).toEqual(['de', 'en', 'es', 'fr', 'ja']);
-    for (const f of ['Home.tsx', 'Founders.tsx', 'Fold.tsx']) {
+    for (const f of [
+      'Home.tsx',
+      'Founders.tsx',
+      'Fold.tsx',
+      'HowItWorks.tsx',
+      'night-parts.tsx',
+      'LiveWhere.tsx',
+      'Gallery.tsx',
+      'Claims.tsx',
+    ]) {
       const src = fs.readFileSync(path.join(SRC, 'components/site', f), 'utf8');
       // `{t('…')} <em>` or `</strong> {children}` would put an ASCII space into Japanese.
       expect(src, f).not.toMatch(/\)\} <em>|<\/em> \{t\(|<\/strong> \{children\}/);
@@ -1421,49 +1435,51 @@ describe('the price', () => {
 
 // Who can change the main contract (14 Nov 2026). The 2-of-3 committee was not installed
 // before Midnight's Ledger 9 upgrade, and the single key is still accepted by the network:
-// the page says so in every language, and the counter it gives is the one recorded in
-// deployments/mainnet.json (which `npm run verify:deployment` checks against the chain).
+// the page says so in every language. It gives no counter value (Mako's site draft, 21 Nov
+// 2026): a dated number goes stale with the next change, so the page sends readers to a Midnight
+// explorer to read the counter themselves. deployments/mainnet.json (which
+// `npm run verify:deployment` checks against the chain) must still show the single key live.
 describe('the maintenance key', () => {
   const SAID: Record<Lang, RegExp[]> = {
     en: [
       /either copy alone can use it\./,
       /Moving it to three keys, where two must agree, was planned before Midnight's Ledger 9 upgrade on 6 November 2026 and has not been done\./,
       /The network still accepts the key, so treat it as live\./,
-      /The contract's change counter was 16 on 13 November 2026\. Anyone can check it, and any change raises it\./,
+      /Anyone can check the contract's change counter on a Midnight explorer, and any change raises it\./,
     ],
     de: [
       /jede Kopie allein genügt/,
       /auf drei Schlüssel zu verlagern, von denen zwei zustimmen müssen, war vor dem Ledger-9-Upgrade von Midnight am 6\. November 2026 geplant und ist nicht umgesetzt\./,
       /Das Netzwerk akzeptiert den Schlüssel weiterhin; betrachten Sie ihn also als aktiv\./,
-      /Der Änderungszähler des Smart Contracts stand am 13\. November 2026 bei 16\. Jeder kann ihn prüfen, und jede Änderung erhöht ihn\./,
+      /Jeder kann den Änderungszähler des Smart Contracts in einem Midnight-Explorer prüfen, und jede Änderung erhöht ihn\./,
     ],
     es: [
       /cualquiera de las dos copias basta por sí sola/,
       /Pasarla a tres claves, de las que dos deban estar de acuerdo, estaba previsto antes de la actualización de Midnight a Ledger 9 del 6 de noviembre de 2026 y no se ha hecho\./,
       /La red sigue aceptando la clave, así que debe considerarse activa\./,
-      /El contador de cambios del contrato estaba en 16 el 13 de noviembre de 2026\. Cualquiera puede comprobarlo, y cualquier cambio lo aumenta\./,
+      /Cualquiera puede comprobar el contador de cambios del contrato en un explorador de Midnight, y cualquier cambio lo aumenta\./,
     ],
     fr: [
       /une seule copie suffit pour l’utiliser/,
       /Le passage à trois clés, dont deux doivent s’accorder, était prévu avant la mise à niveau Ledger 9 de Midnight du 6 novembre 2026 et n’a pas été fait\./,
       /Le réseau accepte toujours la clé : considérez-la donc comme active\./,
-      /Le compteur de modifications du contrat était à 16 le 13 novembre 2026\. Tout le monde peut le vérifier, et toute modification l’augmente\./,
+      /Tout le monde peut vérifier le compteur de modifications du contrat sur un explorateur Midnight, et toute modification l’augmente\./,
     ],
     ja: [
       /どちらか1部だけで使用できます。/,
       /3本の鍵（うち2本の合意が必要）への移行は、2026年11月6日のMidnightのLedger 9アップグレードより前に計画していましたが、まだ実施していません。/,
       /ネットワークは引き続きこの鍵を受け付けるため、鍵は有効なものとして扱ってください。/,
-      /コントラクトの変更カウンターは2026年11月13日時点で16でした。誰でも確認でき、変更があるたびに増えます。/,
+      /コントラクトの変更カウンターは、誰でもMidnightのエクスプローラーで確認でき、変更があるたびに増えます。/,
     ],
   };
-  it('is said to be live, with the recorded counter, in every language and on veilcore.org', () => {
+  it('is said to be live, with the counter left to an explorer, in every language and on veilcore.org', () => {
     const file = path.resolve(SRC, '..', '..', 'deployments', 'mainnet.json');
     const deployed = JSON.parse(fs.readFileSync(file, 'utf8')) as {
       contracts: { name: string; maintenanceAuthority: Record<string, unknown> }[];
     };
     const authority = deployed.contracts.find((c) => c.name === 'veilcore')?.maintenanceAuthority;
-    // If the committee is installed or the counter moves, this sentence is out of date.
-    expect(authority).toMatchObject({ retired: false, committee: 1, threshold: 1, counter: 16 });
+    // If the committee is installed, this sentence is out of date.
+    expect(authority).toMatchObject({ retired: false, committee: 1, threshold: 1 });
     for (const lang of Object.keys(SAID) as Lang[]) {
       const texts = [
         (LANGUAGES[lang].strings as Record<string, string>)['m.status.keyText'],
@@ -1471,6 +1487,8 @@ describe('the maintenance key', () => {
       ];
       for (const [i, text] of texts.entries()) {
         for (const re of SAID[lang]) expect(text, `${lang} ${i === 0 ? 'base' : 'veilcore.org'}`).toMatch(re);
+        // No counter value written into the page: it would go stale with the next change.
+        expect(text, lang).not.toMatch(/\b16\b|11月13日|13 November|13\. November|13 de noviembre|13 novembre/);
         // The sentence it replaces, and anything saying the key cannot be used.
         expect(text, lang).not.toMatch(
           /planned, not done|a group of keys|aber noch nicht umgesetzt|pero aún no está hecho|mais pas encore fait|計画中|frozen|eingefroren|congelad|gelée|凍結/,

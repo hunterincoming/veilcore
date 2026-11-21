@@ -1,28 +1,34 @@
-// The home page, in the layout of Mako's design (lambent-cajeta-c3212a.netlify.app, 18 November
-// 2026): night ground, his yellow, Archivo and JetBrains Mono, photos between the sections. In
-// order: the hero with the event display drawn from the live proof code; who it is for; your
-// genetics stay with you (photo); what did you have, and when; where it matters (a carousel); we
-// don't hold your keys; four steps; the demo's ways in; share proof, not data; more than a date;
-// where it stops, with the status and what's live where; what it gives you; updates; questions;
-// technical readers; the founders; tell us where it fails.
+// The home page, in Mako's design (his site draft of 21 November 2026, ported from the 18 November
+// one): night ground, the logo's gold #A67C00, Archivo and JetBrains Mono, photos between the
+// sections. In order: the hero with the event display drawn from the live proof code; who it is
+// for; your genetics stay with you (photo); what did you have, and when; where it matters (a
+// sideways strip, Gallery.tsx); we can't read your records; four steps; make a record or check
+// one (Mako's Records page: his two doors, with the paste box and the video beside them); share
+// proof, not data; more than a date; where it stops, where things stand and what works where;
+// latest from the build; questions; technical readers; talk to the founders.
 //
-// Ported, not copied: his page pinned three sections and moved them as you scrolled (the steps,
-// the timeline, the gallery). A tester found the page stopped moving under the wheel, so nothing
-// here is pinned or driven by the page's scroll: the steps change when one is chosen, the
-// timeline is drawn complete, the gallery is a row you swipe or step through with its buttons.
-// No scroll listeners. The event display draws only for about a second after the proof code
-// changes, never while off screen or hidden, at no more than 1.5 device pixels per pixel, and
-// not at all in motion with reduced motion. The moving band of names has a pause button, stops
-// off screen, and stands still with reduced motion. Photos are resized (800 and 1600 wide),
-// lazy below the first screen, with their size set (public/media/home/CREDITS.md).
+// How it works (/how-it-works) and About (/founders) are the other two of Mako's pages; the
+// sections they share with this one are in night-parts.tsx, LiveWhere.tsx and Claims.tsx.
+//
+// Ported, not copied: his page pinned sections and moved them as you scrolled (the steps, the
+// timeline, the gallery). Hunter's direction (18 Nov): modern, fewer words, effects fine, no
+// scroll-jacking, fast on a computer. So nothing here is pinned or driven by the page's scroll:
+// the steps change when one is chosen, the timeline is drawn complete, the gallery is a row you
+// swipe or step through with its buttons. No scroll listeners. The event display draws only for
+// about a second after the proof code changes, never while off screen or hidden, at no more than
+// 1.5 device pixels per pixel, and not at all in motion with reduced motion. The moving band of
+// names has a pause button, stops off screen, and stands still with reduced motion. Photos are
+// Mako's re-exports with an 800-wide copy for phones, lazy below the first screen, with their
+// size set (public/media/home/CREDITS.md).
 //
 // Every sentence is the site's own, from the translations, and holds to its rules (copy-truth
 // and the promise rule): where Mako's draft said genetic data never leaves your computer, this
-// says DNA files never leave it and what you type reaches our server locked.
+// says DNA files never leave it and what you type reaches our server locked. What is live where
+// comes from the flags in config/copy.ts, never from text written in by hand.
 //
 // Technical detail (SHA-256, test vectors, OpenTimestamps, the contract addresses, the claims
 // contract's status, the maintenance key) lives only in "For technical readers": still on the
-// page, still true, but out of a breeder's way. What's live where stays on the page, folded.
+// page, still true, but out of a breeder's way.
 //
 // The proof code in the hero is a real record commitment (veilcore-records), not a stand-in
 // hash: what a visitor sees change is what the format publishes.
@@ -33,35 +39,40 @@
 // plainly who holds the maintenance key (docs/maintenance-policy.md, APPROVED 7 Oct).
 // Strings that flip on mainnet day are grouped in i18n/en.ts under "MAINNET DAY".
 //
+// Every in-page anchor other pages link to stays here once (e2e/home.spec.ts): top, about, how,
+// demo, claims, value, open, status, live, updates, questions, technical, contact, team.
+//
 // SPDX-License-Identifier: Apache-2.0
 
 import React, { useEffect, useRef, useState } from 'react';
 import { Link as RouterLink, useLocation } from 'react-router-dom';
 import { computeCommitment, newNonce } from 'veilcore-records';
-import { IS_TEST_SITE, MAINNET_SENDS, THIS_BUILD, useI18n } from '../../i18n';
-import { FOUNDERS_MAIL, RoleLine, SDK_REPO, SiteShell, X_HANDLE } from './SiteShell';
-import { FoldGroup, usePhone } from './Fold';
+import { useI18n } from '../../i18n';
+import { FOUNDERS_MAIL, SiteShell } from './SiteShell';
 import { hasRecordsHere } from './returning';
 import { PASTE_ENTRY } from './paste-entry';
 import { IS_MAINNET, MAINNET_CLAIMS_ADDRESS, MAINNET_CONTRACT_ADDRESS, explorerFor } from '../../config/network';
-import {
-  AGREEMENTS_LIVE,
-  DEVICE_ONLY_CLAIMS_RUN_ON_MAINNET,
-  DEVICE_ONLY_RUN_ON_MAINNET,
-  DOCUMENT_CHAIN_RUN_ON_MAINNET,
-  LAB_SIGNING_RUN_ON_MAINNET,
-  ROYALTIES_RUN_ON_MAINNET,
-  ROYALTIES_RUN_ON_TEST,
-} from '../../config/copy';
+import { AGREEMENTS_LIVE, LAB_SIGNING_RUN_ON_MAINNET, ROYALTIES_RUN_ON_MAINNET } from '../../config/copy';
 import { EventDisplay } from './EventDisplay';
-import { GALLERY_SIZES, photoSrcSet, type PhotoName } from './photo-src';
+import {
+  APP_REPO,
+  Arrow,
+  Marquee,
+  NightClose,
+  Photo,
+  PhotoCredits,
+  PhotoScreen,
+  SR_ONLY,
+  Two,
+  Updates,
+  arrowed,
+  useHashScroll,
+  useReveals,
+} from './night-parts';
+import { LiveWhere, StandList } from './LiveWhere';
+import { Gallery, type Slide } from './Gallery';
+import { Claims } from './Claims';
 import './home.css';
-
-const APP_REPO = 'https://github.com/hunterincoming/veilcore';
-/** The public test site (docs/test-site.md). It goes live with this release. */
-const TEST_SITE_URL = 'https://test.veilcore.org';
-/** Our own reviews (not audits), listed in the public repository's audit pack, section 8. */
-const REVIEWS_URL = `${APP_REPO}/blob/main/docs/audit/README.md#8-history-of-internal-attack-rounds`;
 
 /**
  * A founder's photo, as on the Founders page. The initials show only if the photo can't
@@ -72,48 +83,6 @@ const Avatar: React.FC<{ initials: string; photo: string }> = ({ initials, photo
   const [failed, setFailed] = useState(false);
   return (
     <span className="avatar">{failed ? initials : <img src={photo} alt="" onError={() => setFailed(true)} />}</span>
-  );
-};
-
-/** Read by screen readers, not shown. */
-const SR_ONLY: React.CSSProperties = {
-  position: 'absolute',
-  width: 1,
-  height: 1,
-  margin: -1,
-  padding: 0,
-  overflow: 'hidden',
-  clip: 'rect(0 0 0 0)',
-  whiteSpace: 'nowrap',
-  border: 0,
-};
-
-/**
- * A link's closing arrow ("Read the spec →"). Archivo has no arrow, so the character stays in
- * the text (screen readers and find-in-page see it) but is drawn as a small SVG in the text's
- * colour (home.css .k-gl), not borrowed from another font.
- */
-const arrowed = (s: string): React.ReactNode => {
-  const m = /\s*→\s*$/.exec(s);
-  if (!m) return s;
-  return (
-    <>
-      {s.slice(0, m.index)}
-      {s.slice(m.index, m.index + m[0].indexOf('→'))}
-      <span className="k-gl">→</span>
-    </>
-  );
-};
-
-/** A heading written in two halves, read as one sentence: the second half quieter. */
-const Two: React.FC<{ a: string; b: string }> = ({ a, b }) => {
-  const { sp } = useI18n();
-  return (
-    <>
-      {a}
-      {sp}
-      <span className="k-mute">{b}</span>
-    </>
   );
 };
 
@@ -258,192 +227,6 @@ const Contracts: React.FC = () => {
   );
 };
 
-/** One update, dated first: the site is about dates, so updates read like a log book. */
-const Post: React.FC<{
-  href: string;
-  date: string;
-  iso: string;
-  tag: string;
-  title: string;
-  text: string;
-  go: string;
-}> = (p) => (
-  <a className="post" href={p.href} rel="noopener noreferrer" target="_blank">
-    <span className="when">
-      <time dateTime={p.iso}>{p.date}</time>
-      <span className="tag">{p.tag}</span>
-    </span>
-    <div className="what">
-      <h3>{p.title}</h3>
-      <p>{p.text}</p>
-      <span className="go">{arrowed(p.go)}</span>
-    </div>
-  </a>
-);
-
-/**
- * What's live where: one row per feature, and for each the sites it works on. Read from
- * the code and docs on 14 October 2026 (i18n/en.ts, "What's live where"); a cell left out
- * means the feature isn't there (a dash on wide screens, nothing on a phone). A table on
- * wide screens; on a phone each row stacks, and each cell names its site.
- */
-const LIVE_ROWS = [
-  ['stamp', true, true, false],
-  // The registry stamps every sealed batch on Bitcoin (OpenTimestamps), and the plant page
-  // offers the batch's stamp file (round 5). The test site's registry runs with it off
-  // (docs/no-wallet-run-12oct.md), so no test-site cell.
-  ['btc', true, false, false],
-  // The check page looking the date up on Midnight itself (docs/check-on-chain.md): on the
-  // test site through the sponsor's relay; on veilcore.org once the read-only relay is live
-  // (its cell says "Not yet" in en.ts, "Yes." from the mainnet overlay on a build with one).
-  ['chain', true, true, false],
-  ['share', true, true, false],
-  ['lab', true, true, false],
-  // Lab reports locked to the breeder: on veilcore.org too since 16 Oct 2026 (config/network.ts).
-  ['results', true, true, false],
-  // Numbers and results a lab signs (config/network.ts LAB_SIGNING_ENABLED): switched on for
-  // veilcore.org too (from the first site deploy that carries it). Its cell says "built, not yet tried" until it has worked there
-  // (config/copy.ts LAB_SIGNING_RUN_ON_MAINNET, cellKey below).
-  ['signed', true, true, false],
-  // A document kept on this device only (config/network.ts DEVICE_ONLY_RECORDS_ENABLED): on in
-  // every build. Its veilcore.org cell says "built, not yet tried" until one has been sealed and
-  // checked there (config/copy.ts DEVICE_ONLY_RUN_ON_MAINNET, cellKey below).
-  ['local', true, true, false],
-  // A production chain as document records (config/network.ts DOCUMENT_CHAIN_ENABLED), and
-  // proving a number from a document kept on the device only (DEVICE_ONLY_CLAIMS_ENABLED): on in
-  // every build. Neither has been tried on a network yet, so both cells say "built", and the
-  // veilcore.org cell keeps saying so until each has worked there (config/copy.ts
-  // DOCUMENT_CHAIN_RUN_ON_MAINNET, DEVICE_ONLY_CLAIMS_RUN_ON_MAINNET, cellKey below).
-  ['docchain', true, true, false],
-  ['localclaims', true, true, false],
-  ['dna', true, true, false],
-  ['prove', false, true, true],
-  ['claims', true, false, true],
-  ['lic', true, true, true],
-] as const;
-
-/**
- * With the mainnet sponsor live (scripts/deploy-mainnet.mjs), "prove it by link" works on
- * veilcore.org exactly as on the test site, so its cell says the same thing the test cell does.
- */
-type LiveRow = (typeof LIVE_ROWS)[number];
-const CLAIMS_ON_SITE = THIS_BUILD.claimsOnSite === true;
-/** veilcore.org itself, built with licenses on and the mainnet sponsor live. */
-const LICENSES_ON_SITE = THIS_BUILD.agreementsLive === true && MAINNET_SENDS;
-const liveRows = (): readonly LiveRow[] =>
-  LIVE_ROWS.map((r): LiveRow => {
-    if (MAINNET_SENDS && r[0] === 'prove') return ['prove', true, true, false] as unknown as LiveRow;
-    // Licenses: a tick in the veilcore.org column on every build while AGREEMENTS_LIVE is on. The
-    // cell's words (cellKey, below) say "Yes" once royalties have worked on veilcore.org
-    // (config/copy.ts ROYALTIES_RUN_ON_MAINNET): on veilcore.org's own build, and on the test
-    // site and the demo too, since it is a fact about veilcore.org. Until then they say licenses
-    // come with the deploy (m.live.lic.mainNext).
-    if (AGREEMENTS_LIVE && r[0] === 'lic') return ['lic', true, true, false] as unknown as LiveRow;
-    // "Prove one number" on veilcore.org (the sponsor pays for VeilCore's claims contract).
-    if (CLAIMS_ON_SITE && r[0] === 'claims') return ['claims', true, true, false] as unknown as LiveRow;
-    return r;
-  });
-const cellKey = (row: string, col: string) =>
-  (MAINNET_SENDS && row === 'prove' && col === 'main'
-    ? 'm.live.prove.test'
-    : AGREEMENTS_LIVE && row === 'lic' && col === 'main'
-      ? // "Yes" only once royalties have worked on veilcore.org. After that, a mainnet build says
-        // "Yes" only with licenses on (veilcore.org's own build); the test site and the demo say
-        // it too, since it is a fact about veilcore.org, not about the build.
-        !ROYALTIES_RUN_ON_MAINNET
-        ? 'm.live.lic.mainNext'
-        : LICENSES_ON_SITE || !IS_MAINNET
-          ? 'm.live.lic.live'
-          : 'm.live.lic.next'
-      : // The test site: licenses are there; royalties say "Yes" only once v2 has run there.
-        row === 'lic' && col === 'test' && !ROYALTIES_RUN_ON_TEST
-        ? 'm.live.lic.testNext'
-        : CLAIMS_ON_SITE && row === 'claims' && col !== 'not'
-          ? 'm.live.claims.live'
-          : // Lab signing: "Yes" on veilcore.org only once it has worked there, on every build.
-            LAB_SIGNING_RUN_ON_MAINNET && row === 'signed' && col === 'main'
-            ? 'm.live.signed.live'
-            : // Kept on this device only: "Yes" on veilcore.org only once it has worked there.
-              DEVICE_ONLY_RUN_ON_MAINNET && row === 'local' && col === 'main'
-              ? 'm.live.local.live'
-              : // A production chain, and a number proved from a device-only document: the same rule.
-                DOCUMENT_CHAIN_RUN_ON_MAINNET && row === 'docchain' && col === 'main'
-                ? 'm.live.docchain.live'
-                : DEVICE_ONLY_CLAIMS_RUN_ON_MAINNET && row === 'localclaims' && col === 'main'
-                  ? 'm.live.localclaims.live'
-                  : `m.live.${row}.${col}`) as Parameters<ReturnType<typeof useI18n>['t']>[0];
-
-const LiveWhere: React.FC = () => {
-  const { t } = useI18n();
-  const { hash } = useLocation();
-  const rows = liveRows();
-  // The "Not yet" column is there only while some feature has a cell in it: an empty column
-  // of dashes says nothing.
-  const showNot = rows.some((r) => r[3]);
-  const cols = (
-    [
-      ['main', 'chip live', t('m.live.colMain')],
-      ['test', 'chip', t('m.live.colTest')],
-      ['not', 'chip', t('m.live.colNot')],
-    ] as const
-  ).filter(([col]) => col !== 'not' || showNot);
-  const table = (
-    <table className="live-table">
-      <thead>
-        <tr>
-          <th scope="col">
-            <span style={SR_ONLY}>{t('m.live.feature')}</span>
-          </th>
-          <th scope="col">{t('m.live.colMain')}</th>
-          <th scope="col">
-            {/* On the test site itself, a link to itself reads oddly. No launch date beside it: a date like that goes stale. */}
-            {IS_TEST_SITE ? (
-              t('m.live.colTestHere')
-            ) : (
-              <a href={TEST_SITE_URL} rel="noopener noreferrer" target="_blank">
-                {t('m.live.colTest')}
-              </a>
-            )}
-          </th>
-          {showNot && <th scope="col">{t('m.live.colNot')}</th>}
-        </tr>
-      </thead>
-      <tbody>
-        {rows.map(([row, ...has]) => (
-          <tr key={row}>
-            <th scope="row">{t(`m.live.${row}.t`)}</th>
-            {cols.map(([col, chip, name], i) =>
-              has[i] ? (
-                <td key={col}>
-                  <span className={chip}>{name}</span> {t(cellKey(row, col))}
-                </td>
-              ) : (
-                <td key={col} className="no">
-                  <span aria-hidden="true">—</span>
-                </td>
-              ),
-            )}
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  );
-  // Folded on every screen size (the page is short); opened when arrived at by /#live, the
-  // footer's "What's live where" and Help's answer for labs.
-  return (
-    <div className="k-live" id="live">
-      <h3 className="k-h3">
-        <Two a={t('m.live.title1')} b={t('m.live.title2')} />
-      </h3>
-      <p className="k-sub">{t('m.live.lede')}</p>
-      <details className="older-posts live-fold" open={hash === '#live' || undefined}>
-        <summary>{t('m.live.show')}</summary>
-        {table}
-      </details>
-    </div>
-  );
-};
-
 /** Everything a technical reader wants, in one block that stays closed until asked for. */
 const Technical: React.FC = () => {
   const { t, sp } = useI18n();
@@ -535,218 +318,6 @@ const ASK_ON_SITE = true;
 
 /** An illustration, not a record: the example in "Four steps". */
 const EXAMPLE_CODE = '3f9a1c07b2e84d6a91c5f0e27b4d8a3c6e1f95b0d27a4c8e3b61f0a9d5c27e48';
-
-/** A pipe-separated list from the translations ("Breeders|Seed companies|…"). */
-const items = (s: string) => s.split('|').filter(Boolean);
-
-const reduced = () => typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-/**
- * Things that fade up as they come into view (Mako's reveals): an IntersectionObserver adds
- * .in once, so nothing is tied to the page's scroll and nothing holds it. Without the observer,
- * or with reduced motion, everything is simply shown.
- */
-const useReveals = (root: React.RefObject<HTMLElement | null>) => {
-  useEffect(() => {
-    const el = root.current;
-    if (!el) return;
-    const all = [...el.querySelectorAll<HTMLElement>('[data-reveal]')];
-    if (reduced() || typeof IntersectionObserver === 'undefined') {
-      all.forEach((n) => n.classList.add('in'));
-      return;
-    }
-    el.classList.add('k-js');
-    const io = new IntersectionObserver(
-      (entries) => {
-        for (const e of entries)
-          if (e.isIntersecting) {
-            e.target.classList.add('in');
-            io.unobserve(e.target);
-          }
-      },
-      { rootMargin: '0px 0px -10% 0px', threshold: 0.05 },
-    );
-    all.forEach((n) => io.observe(n));
-    return () => io.disconnect();
-  }, [root]);
-};
-
-/**
- * A band of names that runs sideways (Mako's marquee). It moves by CSS alone; it stops while off
- * screen, under the pointer, and when its button is pressed, and stands still with reduced
- * motion. Screen readers get the names once, as a sentence.
- */
-const Marquee: React.FC<{ label: string; list: string }> = ({ label, list }) => {
-  const { t, lang } = useI18n();
-  const box = useRef<HTMLDivElement>(null);
-  const [paused, setPaused] = useState(false);
-  const [away, setAway] = useState(false);
-  useEffect(() => {
-    const el = box.current;
-    if (!el || typeof IntersectionObserver === 'undefined') return;
-    const io = new IntersectionObserver(([e]) => setAway(!e.isIntersecting));
-    io.observe(el);
-    return () => io.disconnect();
-  }, []);
-  const names = items(list);
-  const run = [...names, ...names];
-  return (
-    <div className={`k-marquee${paused || away ? ' is-paused' : ''}`} role="region" aria-label={label} ref={box}>
-      <p className="k-sr">{names.join(lang === 'ja' ? '、' : ', ')}</p>
-      <div className="k-marquee-track" aria-hidden="true">
-        {[0, 1].map((r) => (
-          <div className="k-marquee-run" key={r}>
-            {run.map((n, i) => (
-              <span key={i} className={i % 2 ? 'o' : undefined}>
-                {n}
-                <i />
-              </span>
-            ))}
-          </div>
-        ))}
-      </div>
-      <button
-        type="button"
-        className="k-mq-btn"
-        onClick={() => setPaused(!paused)}
-        aria-label={paused ? t('m.home.play') : t('m.home.pause')}
-      >
-        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-          {paused ? <path d="M8 5v14l11-7z" /> : <path d="M8 5h3v14H8zM13 5h3v14h-3z" />}
-        </svg>
-      </button>
-    </div>
-  );
-};
-
-/** A 3:2 photo, 800, 1200 or 1600 wide by the space it has (public/media/home). */
-const Photo: React.FC<{ name: PhotoName; alt: string; sizes: string }> = ({ name, alt, sizes }) => (
-  <img
-    src={`/media/home/${name}-800.webp`}
-    srcSet={photoSrcSet(name)}
-    sizes={sizes}
-    alt={alt}
-    width={1600}
-    height={1067}
-    loading="lazy"
-    decoding="async"
-  />
-);
-
-/** Who took the photos (public/media/home/CREDITS.md). Names are not translated. */
-const PHOTO_CREDITS: readonly [string, string][] = [
-  ['Henry Lai', 'https://unsplash.com/photos/a-glass-jar-with-a-plant-inside-of-it-cPBPHCAPQnI'],
-  ['Pranav Gavali', 'https://unsplash.com/photos/a-young-green-seedling-growing-from-dark-soil-4KnaYSLHnAI'],
-  ['Abigail Lynn', 'https://unsplash.com/photos/greenhouse-interior-9y8c_YDUrYA'],
-  ['Adam Bezer', 'https://unsplash.com/photos/a-laboratory-table-is-filled-with-tools-k6HAXK61FWw'],
-  ['Nikola Jovanovic', 'https://unsplash.com/photos/woman-holding-green-leafed-seedling-OBok3F8buKY'],
-  ['Brianna Sanders', 'https://unsplash.com/photos/cows-in-a-field-at-sunset-g82y7lmqS2U'],
-];
-
-type Slide = { key: string; photo: PhotoName; alt: string; title: string; body: React.ReactNode };
-
-/**
- * Where it matters (Mako's gallery, unpinned): a row of panels that scrolls sideways and snaps,
- * with momentum on a phone. The buttons step one panel; the arrow keys work on the focused row.
- * The counter follows the panel in view, from an IntersectionObserver on the row (no scroll
- * listener). The page's own scroll never stops here: the wheel moves the page.
- */
-const Gallery: React.FC<{ labelledBy: string; slides: Slide[]; heading: React.ReactNode }> = ({
-  labelledBy,
-  slides,
-  heading,
-}) => {
-  const { t } = useI18n();
-  const track = useRef<HTMLUListElement>(null);
-  const [current, setCurrent] = useState(0);
-  const [atStart, setAtStart] = useState(true);
-  const [atEnd, setAtEnd] = useState(false);
-  useEffect(() => {
-    const el = track.current;
-    if (!el || typeof IntersectionObserver === 'undefined') return;
-    const panels = [...el.children];
-    const ratios = new Map<Element, number>();
-    const io = new IntersectionObserver(
-      (entries) => {
-        for (const e of entries) ratios.set(e.target, e.intersectionRatio);
-        let best = 0;
-        let bestRatio = -1;
-        panels.forEach((p, i) => {
-          const r = ratios.get(p) ?? 0;
-          if (r > bestRatio + 0.01) {
-            best = i;
-            bestRatio = r;
-          }
-        });
-        setCurrent(best);
-        setAtStart((ratios.get(panels[0]) ?? 0) > 0.95);
-        setAtEnd((ratios.get(panels[panels.length - 1]) ?? 0) > 0.95);
-      },
-      { root: el, threshold: [0, 0.25, 0.5, 0.75, 0.96, 1] },
-    );
-    panels.forEach((p) => io.observe(p));
-    return () => io.disconnect();
-  }, []);
-  const go = (dir: 1 | -1) => {
-    const el = track.current;
-    if (!el) return;
-    const panel = el.children[0] as HTMLElement | undefined;
-    const gap = parseFloat(getComputedStyle(el).columnGap) || 0;
-    const step = panel ? panel.getBoundingClientRect().width + gap : el.clientWidth;
-    el.scrollBy({ left: dir * step, behavior: reduced() ? 'auto' : 'smooth' });
-  };
-  const pad = (n: number) => String(n).padStart(2, '0');
-  return (
-    <>
-      <div className="k-hgal-head k-wrap">
-        {heading}
-        <div className="k-hgal-side">
-          <p className="k-lbl k-count" aria-hidden="true">
-            {pad(current + 1)} / {pad(slides.length)}
-          </p>
-          <button
-            type="button"
-            className="k-arrow"
-            onClick={() => go(-1)}
-            disabled={atStart}
-            aria-label={t('m.home.prev')}
-          >
-            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-              <path d="M19 12H5M11 6l-6 6 6 6" />
-            </svg>
-          </button>
-          <button
-            type="button"
-            className="k-arrow"
-            onClick={() => go(1)}
-            disabled={atEnd}
-            aria-label={t('m.home.next')}
-          >
-            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-              <path d="M5 12h14M13 6l6 6-6 6" />
-            </svg>
-          </button>
-        </div>
-      </div>
-      <ul className="k-hgal-track" ref={track} tabIndex={0} aria-labelledby={labelledBy}>
-        {slides.map((s, i) => (
-          <li className={`k-hpanel${i === current ? ' is-near' : ''}`} key={s.key}>
-            <div className="k-hpanel-img">
-              <Photo name={s.photo} alt={s.alt} sizes={GALLERY_SIZES} />
-            </div>
-            <div className="k-hpanel-copy">
-              <h3>{s.title}</h3>
-              <p>{s.body}</p>
-            </div>
-          </li>
-        ))}
-      </ul>
-      <div className="k-hgal-bar k-wrap" aria-hidden="true">
-        <i style={{ '--p': slides.length > 1 ? current / (slides.length - 1) : 1 } as React.CSSProperties} />
-      </div>
-    </>
-  );
-};
 
 /**
  * Four steps (Mako's pinned stage, unpinned). The step in the middle of the window is the lit
@@ -846,74 +417,6 @@ const Steps: React.FC = () => {
   );
 };
 
-/** Sixteen sealed values, drawn as bars: their heights are made up, for the picture only. */
-const BARS = [62, 48, 81, 35, 70, 92, 55, 40, 77, 97, 44, 66, 58, 85, 38, 73];
-const BARS_B = [62, 48, 52, 35, 70, 92, 55, 61, 77, 97, 44, 66, 30, 85, 38, 73];
-const MODES = ['1', '2', '3', '4', '5'] as const;
-type Mode = (typeof MODES)[number];
-
-/** Share proof, not data: one kind of claim at a time, its picture beside it. */
-const Claims: React.FC = () => {
-  const { t, sp } = useI18n();
-  const [mode, setMode] = useState<Mode>('1');
-  const cls = (i: number, row: 'a' | 'b') => {
-    if (mode === '1') return i === 5 ? 'on' : '';
-    if (mode === '2') return i === 9 ? 'pass' : '';
-    if (mode === '3') return BARS[i] !== BARS_B[i] ? 'on' : row === 'a' ? '' : 'same';
-    if (mode === '4') return i === 4 ? 'fix' : 'same';
-    return 'sig';
-  };
-  const row = (values: number[], r: 'a' | 'b') => (
-    <div className={`k-cal-row${r === 'b' ? ' k-cal-row-b' : ''}`}>
-      {values.map((h, i) => (
-        <span key={i} className={`k-v ${cls(i, r)}`} style={{ '--h': `${h}%` } as React.CSSProperties}>
-          <i />
-        </span>
-      ))}
-    </div>
-  );
-  return (
-    <>
-      <div className="k-wrap k-claims">
-        <div>
-          <h2 id="claims-h" className="k-h2" data-reveal="">
-            <Two a={t('m.claims.title1')} b={t('m.claims.title2')} />
-          </h2>
-          <p className="k-lead" data-reveal="" style={{ '--d': 1 } as React.CSSProperties}>
-            {t('m.claims.lede')}
-          </p>
-          <div className="k-claim-list" role="group" aria-label={t('m.claims.label')}>
-            {MODES.map((n) => (
-              <button key={n} type="button" className="k-claim" aria-pressed={mode === n} onClick={() => setMode(n)}>
-                {t(`m.claims.${n}t`)}
-              </button>
-            ))}
-          </div>
-        </div>
-        <figure className="k-cal" data-mode={mode}>
-          <div className="k-cal-rows" aria-hidden="true">
-            {row(BARS, 'a')}
-            {row(BARS_B, 'b')}
-            <div className="k-bar-line">
-              <span>95%</span>
-            </div>
-          </div>
-          <figcaption aria-live="polite">{t(`m.claims.${mode}p`)}</figcaption>
-        </figure>
-      </div>
-      <div className="k-wrap">
-        <p className="k-fine k-claims-fine">
-          <b>{t('m.claims.limitsTitle')}</b>
-          {sp}
-          {t('m.claims.limits')}
-          {sp}
-          <RouterLink to="/docs/spec">{arrowed(t('m.claims.link'))}</RouterLink>
-        </p>
-      </div>
-    </>
-  );
-};
-
 /** The round marks on the cards of "Where it stops" (Mako's), a wider ring on each. */
 const StackMark: React.FC<{ r: number }> = ({ r }) => (
   <svg className="k-stack-mark" viewBox="0 0 120 120" aria-hidden="true" focusable="false">
@@ -923,10 +426,9 @@ const StackMark: React.FC<{ r: number }> = ({ r }) => (
   </svg>
 );
 
-const Arrow: React.FC = () => (
-  <span className="k-arr k-gl" aria-hidden="true">
-    →
-  </span>
+/** The doors' photos: decoration behind the words, which say it all. */
+const DoorPhoto: React.FC<{ name: 'hand' | 'seed' }> = ({ name }) => (
+  <Photo name={name} alt="" sizes="(max-width: 760px) 100vw, 50vw" className="k-door-img" />
 );
 
 export const Home: React.FC = () => {
@@ -935,48 +437,19 @@ export const Home: React.FC = () => {
   const [showVideo, setShowVideo] = useState(false);
   const [returning] = useState(hasRecordsHere);
   const [hex, setHex] = useState('');
-  const phone = usePhone();
   const root = useRef<HTMLDivElement>(null);
   useReveals(root);
-
-  // Arriving from another page at /#section: the router does not scroll to it.
-  useEffect(() => {
-    if (hash) document.getElementById(hash.slice(1))?.scrollIntoView();
-  }, [hash]);
-
-  const post = (
-    k: 'postG' | 'postF' | 'postE' | 'postD' | 'postC' | 'postB' | 'postA' | 'post0' | 'post1' | 'post2',
-    doc: string,
-    iso: string,
-  ) => (
-    <Post
-      key={k}
-      href={`${APP_REPO}/blob/main/docs/${doc}`}
-      iso={iso}
-      date={t(`m.${k}.date`)}
-      tag={t(`m.${k}.tag`)}
-      title={t(`m.${k}.title`)}
-      text={t(`m.${k}.text`)}
-      go={t('m.updates.read')}
-    />
-  );
-  const latest = [
-    post('postG', 'document-chain.md', '2026-11-16'),
-    post('postF', 'device-only-records.md', '2026-11-16'),
-  ];
-  const third = post('postE', 'evidence-bundle.md', '2026-11-02');
-  const older = [
-    post('postD', 'document-profile.md', '2026-10-31'),
-    post('postC', 'mainnet-sponsor.md', '2026-10-19'),
-    post('postB', 'mainnet-completeness.md', '2026-10-11'),
-    post('postA', 'deployment-record-revision-4.md', '2026-10-08'),
-    post('post0', 'log/preprod-run-4oct.md', '2026-10-04'),
-    post('post1', 'log/self-audit-3oct.md', '2026-10-03'),
-    post('post2', 'log/preprod-run-2oct.md', '2026-10-02'),
-  ];
+  useHashScroll(hash);
 
   const slides: Slide[] = [
-    { key: '1', photo: 'cutting', alt: t('m.home.alt.cutting'), title: t('m.for.1t'), body: t('m.for.1p') },
+    {
+      key: '1',
+      photo: 'cutting',
+      position: '50% 55%',
+      alt: t('m.home.alt.cutting'),
+      title: t('m.for.1t'),
+      body: t('m.for.1p'),
+    },
     {
       key: '2',
       photo: 'greenhouse',
@@ -991,10 +464,18 @@ export const Home: React.FC = () => {
       ),
     },
     { key: '3', photo: 'lab', alt: t('m.home.alt.lab'), title: t('m.for.3t'), body: t('m.for.3p') },
-    { key: '6', photo: 'hand', alt: t('m.home.alt.hand'), title: t('m.for.6t'), body: t('m.for.6p') },
+    {
+      key: '6',
+      photo: 'hand',
+      position: '50% 40%',
+      alt: t('m.home.alt.hand'),
+      title: t('m.for.6t'),
+      body: t('m.for.6p'),
+    },
     {
       key: '5',
       photo: 'cattle',
+      position: '50% 45%',
       alt: t('m.home.alt.cattle'),
       title: t('m.for.5t'),
       body: (
@@ -1007,13 +488,16 @@ export const Home: React.FC = () => {
     },
   ];
 
+  // More than a date (Mako's six). Licenses and lab-signed results take his words once they have
+  // worked on veilcore.org (config/copy.ts); until then the site's earlier words, which say what
+  // is built and what is not.
   const features: [string, string][] = [
     [t('m.home.f1t'), t('m.home.f1p')],
     [t('m.home.f2t'), t('m.home.f2p')],
-    [t('m.get.2a'), t('m.get.2b')],
-    [t('m.for.4t'), t('m.for.4p')],
-    [t('m.get.3a'), t('m.get.3b')],
+    AGREEMENTS_LIVE && ROYALTIES_RUN_ON_MAINNET ? [t('m.home.f3t'), t('m.home.f3p')] : [t('m.get.2a'), t('m.get.2b')],
+    LAB_SIGNING_RUN_ON_MAINNET ? [t('m.home.f4t'), t('m.home.f4p')] : [t('m.for.4t'), t('m.for.4p')],
     ...(ASK_ON_SITE ? [[t('m.home.ask.t'), t('m.home.ask.p')] as [string, string]] : []),
+    [t('m.home.f5t'), t('m.home.f5p')],
   ];
 
   const stops: [string, string, string, number][] = [
@@ -1051,9 +535,9 @@ export const Home: React.FC = () => {
                   {t('m.demo.create.title')}
                   <Arrow />
                 </RouterLink>
-                <a className="k-link-quiet" href="#how">
+                <RouterLink className="k-link-quiet" to="/how-it-works">
                   {t('m.hero.how')}
-                </a>
+                </RouterLink>
               </div>
               {/* The third way in (a lab tested it, 8 Nov): anyone who was sent a lab code or a
                   link goes straight to the box that opens it (paste-entry.ts). */}
@@ -1086,31 +570,14 @@ export const Home: React.FC = () => {
 
         <Marquee label={t('m.home.audLabel')} list={t('m.home.audience')} />
 
-        <section className="k-photo" id="keep" aria-labelledby="keep-h">
-          <div className="k-photo-frame">
-            <picture>
-              <source media="(max-width: 760px)" srcSet="/media/home/jar-800.webp" width={533} height={800} />
-              <img
-                src="/media/home/jar-wide-960.webp"
-                srcSet="/media/home/jar-wide-960.webp 960w, /media/home/jar-wide.webp 1600w"
-                sizes="100vw"
-                width={1600}
-                height={1000}
-                alt={t('m.home.alt.jar')}
-                loading="lazy"
-                decoding="async"
-              />
-            </picture>
-          </div>
-          <div className="k-photo-copy k-wrap">
-            <h2 id="keep-h" className="k-giant" data-reveal="">
-              {t('m.home.keep.t')}
-            </h2>
-            <p className="k-lead" data-reveal="" style={{ '--d': 1 } as React.CSSProperties}>
-              {t('m.home.keep.p')}
-            </p>
-          </div>
-        </section>
+        <PhotoScreen id="keep" labelledBy="keep-h" name="jar" alt={t('m.home.alt.jar')} position="50% 60%">
+          <h2 id="keep-h" className="k-giant" data-reveal="">
+            {t('m.home.keep.t')}
+          </h2>
+          <p className="k-lead" data-reveal="" style={{ '--d': 1 } as React.CSSProperties}>
+            {t('m.home.keep.p')}
+          </p>
+        </PhotoScreen>
 
         <section className="k-screen k-question" id="about" aria-labelledby="q-h">
           <div className="k-wrap">
@@ -1162,6 +629,18 @@ export const Home: React.FC = () => {
         </section>
 
         <section className="k-screen k-drench" id="open" aria-labelledby="custody-h">
+          {/* Mako's leaf texture: the dark leaf multiplied over the gold, away from the words. */}
+          <img
+            className="k-drench-tex"
+            src="/media/home/leaf-800.webp"
+            srcSet="/media/home/leaf-800.webp 800w, /media/home/leaf.webp 1458w"
+            sizes="60vw"
+            width={1458}
+            height={972}
+            alt=""
+            loading="lazy"
+            decoding="async"
+          />
           <div className="k-wrap">
             <h2 id="custody-h" className="k-giant" data-reveal="">
               {t('m.home.custody.t')}
@@ -1192,7 +671,9 @@ export const Home: React.FC = () => {
           <Steps />
         </section>
 
-        <section className="k-sec" id="demo" aria-labelledby="demo-h">
+        {/* Mako's Records page, as this page's ways in: his two doors, then the paste box and the
+            video, which veilcore.org had and his draft didn't. */}
+        <section className="k-sec k-ways-sec" id="demo" aria-labelledby="demo-h">
           <div className="k-wrap">
             <h2 id="demo-h" className="k-h2" data-reveal="">
               <Two a={t('m.demo.title1')} b={t('m.demo.title2')} />
@@ -1202,23 +683,37 @@ export const Home: React.FC = () => {
               {sp}
               <RouterLink to="/privacy">{arrowed(t('m.demo.privacy'))}</RouterLink>
             </p>
+          </div>
+          <div className="k-doors">
+            <RouterLink className="k-door k-door-make" to="/new">
+              <DoorPhoto name="hand" />
+              <span className="k-chips">
+                <span className="k-chip live">{t('m.chip.interactive')}</span>
+                <span className="k-chip">{t('m.chip.3min')}</span>
+              </span>
+              <h3>{t('m.demo.create.title')}</h3>
+              <p>{t('m.demo.create.text')}</p>
+              <span className="k-btn k-btn-primary k-door-go">
+                {t('m.demo.create.title')}
+                <Arrow />
+              </span>
+            </RouterLink>
+            <RouterLink className="k-door k-door-verify" to="/verify">
+              <DoorPhoto name="seed" />
+              <span className="k-chips">
+                <span className="k-chip live">{t('m.chip.interactive')}</span>
+                <span className="k-chip">{t('m.chip.1min')}</span>
+              </span>
+              <h3>{t('m.demo.verify.title')}</h3>
+              <p>{t('m.demo.verify.text')}</p>
+              <span className="k-btn k-btn-ghost k-door-go">
+                {t('m.demo.verify.title')}
+                <Arrow />
+              </span>
+            </RouterLink>
+          </div>
+          <div className="k-wrap">
             <div className="k-grid4 k-ways">
-              <RouterLink className="k-way" to="/new">
-                <h3>{t('m.demo.create.title')}</h3>
-                <p>{t('m.demo.create.text')}</p>
-                <span className="k-chips">
-                  <span className="k-chip live">{t('m.chip.interactive')}</span>
-                  <span className="k-chip">{t('m.chip.3min')}</span>
-                </span>
-              </RouterLink>
-              <RouterLink className="k-way" to="/verify">
-                <h3>{t('m.demo.verify.title')}</h3>
-                <p>{t('m.demo.verify.text')}</p>
-                <span className="k-chips">
-                  <span className="k-chip live">{t('m.chip.interactive')}</span>
-                  <span className="k-chip">{t('m.chip.1min')}</span>
-                </span>
-              </RouterLink>
               <RouterLink className="k-way" to={PASTE_ENTRY} data-paste-entry="demo">
                 <h3>{t('m.demo.paste.title')}</h3>
                 <p>{t('m.demo.paste.text')}</p>
@@ -1299,75 +794,15 @@ export const Home: React.FC = () => {
               <Two a={t('m.status.title1')} b={t('m.status.title2')} />
             </h3>
             <p className="k-sub">{t('m.status.lede')}</p>
-            <ul className="k-status">
-              <li>
-                <i className="k-m k-m-on" />
-                <b>{t('m.stat2.b')}</b>
-                {sp}
-                {t('m.stat2.s')}
-              </li>
-              <li>
-                <i className="k-m k-m-off" />
-                <b>{t('m.stat3.b')}</b>
-                {sp}
-                {t('m.stat3.s')}
-                {sp}
-                {/* Where the reviews really are: the public repository's audit pack, section 8. */}
-                <a href={REVIEWS_URL} rel="noopener noreferrer" target="_blank">
-                  {arrowed(t('m.stat3.link'))}
-                </a>
-              </li>
-              <li>
-                <i className="k-m k-m-on" />
-                <b>{t('m.stat4.b')}</b>
-                {sp}
-                {t('m.stat4.s')}
-              </li>
-            </ul>
+            <StandList />
             <LiveWhere />
+            <p className="k-fine k-where-link">
+              <RouterLink to="/how-it-works#where">{arrowed(t('m.status.whereLink'))}</RouterLink>
+            </p>
           </div>
         </section>
 
-        <Marquee label={t('m.home.trustLabel')} list={t('m.home.trust')} />
-
-        <section className="k-sec" id="updates" aria-labelledby="updates-h">
-          <div className="k-wrap">
-            <h2 id="updates-h" className="k-h2" data-reveal="">
-              <Two a={t('m.updates.title1')} b={t('m.updates.title2')} />
-            </h2>
-            {phone ? (
-              <div className="posts">
-                {latest}
-                <FoldGroup label={t('m.updates.more')}>
-                  {third}
-                  {older}
-                </FoldGroup>
-              </div>
-            ) : (
-              <>
-                <div className="posts">
-                  {latest}
-                  {third}
-                </div>
-                <details className="older-posts">
-                  <summary>{t('m.updates.older')}</summary>
-                  <div className="posts">{older}</div>
-                </details>
-              </>
-            )}
-            <div className="subscribe">
-              <a className="more" href={`${SDK_REPO}/commits/main`} rel="noopener noreferrer" target="_blank">
-                {arrowed(t('m.updates.all'))}
-              </a>
-              <span>
-                {t('m.updates.follow')}{' '}
-                <a className="x-link" href={X_HANDLE} rel="noopener noreferrer" target="_blank">
-                  @VeilCoreProof
-                </a>
-              </span>
-            </div>
-          </div>
-        </section>
+        <Updates />
 
         <section className="k-sec" id="questions" aria-labelledby="faq-h">
           <div className="k-wrap">
@@ -1410,89 +845,17 @@ export const Home: React.FC = () => {
 
         <Technical />
 
-        <section className="k-sec" id="contact" aria-labelledby="contact-h">
-          <div className="k-wrap">
-            <h2 id="contact-h" className="k-h2" data-reveal="">
-              <Two a={t('m.contact.title1')} b={t('m.contact.title2')} />
-            </h2>
-            <dl className="audiences">
-              <div>
-                <dt>{t('m.contact.1t')}</dt>
-                <dd>
-                  <p>{t('m.contact.1p')}</p>
-                  <a className="k-btn k-btn-primary" href={FOUNDERS_MAIL}>
-                    {t('m.contact.email')}
-                  </a>
-                </dd>
-              </div>
-              <div>
-                <dt>{t('m.contact.2t')}</dt>
-                <dd>
-                  <p>{t('m.contact.2p')}</p>
-                  <a className="k-btn k-btn-ghost" href={FOUNDERS_MAIL}>
-                    {t('m.contact.email')}
-                  </a>
-                  <RouterLink className="k-btn k-btn-ghost" to="/docs/spec">
-                    {t('m.contact.spec')}
-                  </RouterLink>
-                </dd>
-              </div>
-              <div>
-                <dt>{t('m.contact.3t')}</dt>
-                <dd>
-                  <p>{t('m.contact.3p')}</p>
-                  <RouterLink className="k-btn k-btn-ghost" to="/docs/integrate">
-                    {t('m.contact.integrate')}
-                  </RouterLink>
-                  <a className="k-btn k-btn-ghost" href={SDK_REPO} rel="noopener noreferrer" target="_blank">
-                    GitHub
-                  </a>
-                </dd>
-              </div>
-              <div>
-                <dt>{t('m.contact.4t')}</dt>
-                <dd>
-                  <p>{t('m.contact.4p')}</p>
-                  <a className="k-btn k-btn-ghost" href="mailto:mako@veilcore.org">
-                    mako@veilcore.org
-                  </a>
-                </dd>
-              </div>
-            </dl>
-            <div
-              className="team-row"
-              id="team"
-              role="group"
-              aria-label={`${t('m.team.title1')}${sp}${t('m.team.title2')}`}
-            >
-              <div className="team">
-                {(
-                  [
-                    ['Mako Steiner', 'MS', '/team/mako.jpg', 'm.mako.role', 'm.mako.short'],
-                    ['Hunter Roberts', 'HR', '/team/hunter.jpg', 'm.hunter.role', 'm.hunter.short'],
-                  ] as const
-                ).map(([name, initials, photo, role, short]) => (
-                  <RouterLink className="person" to="/founders" key={name}>
-                    <Avatar initials={initials} photo={photo} />
-                    <span>
-                      <h3>{name}</h3>
-                      <RoleLine className="role" text={t(role)} />
-                      <p>{t(short)}</p>
-                    </span>
-                  </RouterLink>
-                ))}
-              </div>
-              <RouterLink className="more" to="/founders">
-                {arrowed(t('m.team.more'))}
-              </RouterLink>
-            </div>
-          </div>
-        </section>
+        <Marquee label={t('m.home.trustLabel')} list={t('m.home.trust')} />
 
-        <section className="k-screen k-drench k-close" aria-labelledby="close-h">
+        {/* Talk to the founders (Mako's close): who to write to, and their faces. What each kind of
+            reader should write about is on About (/founders#contact). */}
+        <section className="k-screen k-drench k-close" id="contact" aria-labelledby="close-h">
           <div className="k-wrap">
+            {/* One colour on the gold: night text throughout (Mako: small text on gold is black). */}
             <h2 id="close-h" className="k-giant" data-reveal="">
-              {t('m.home.fails')}
+              {t('m.contact.title1')}
+              {sp}
+              {t('m.contact.title2')}
             </h2>
             <div className="k-close-row">
               <p className="k-drench-lead" data-reveal="" style={{ '--d': 1 } as React.CSSProperties}>
@@ -1512,22 +875,32 @@ export const Home: React.FC = () => {
                 </a>
               </div>
             </div>
+            <div
+              className="team-row k-close-team"
+              id="team"
+              role="group"
+              aria-label={`${t('m.team.title1')}${sp}${t('m.team.title2')}`}
+            >
+              {(
+                [
+                  ['Mako Steiner', 'MS', '/team/mako.jpg', 'm.mako.role'],
+                  ['Hunter Roberts', 'HR', '/team/hunter.jpg', 'm.hunter.role'],
+                ] as const
+              ).map(([name, initials, photo, role]) => (
+                <RouterLink className="person" to="/founders" key={name}>
+                  <Avatar initials={initials} photo={photo} />
+                  <span>
+                    <b>{name}</b>
+                    <span className="role">{t(role)}</span>
+                  </span>
+                </RouterLink>
+              ))}
+            </div>
           </div>
         </section>
 
-        {/* The photos are free under the Unsplash License, which asks for no credit; we give it. */}
-        <p className="k-wrap k-credit">
-          {t('m.home.photos')}
-          {sp}
-          {PHOTO_CREDITS.map(([name, url], i) => (
-            <React.Fragment key={name}>
-              {i > 0 && (lang === 'ja' ? '、' : ', ')}
-              <a href={url} rel="noopener noreferrer" target="_blank">
-                {name}
-              </a>
-            </React.Fragment>
-          ))}
-        </p>
+        <PhotoCredits names={['jar', 'cutting', 'greenhouse', 'lab', 'hand', 'cattle', 'seed', 'leaf']} />
+        <NightClose />
       </div>
     </SiteShell>
   );
