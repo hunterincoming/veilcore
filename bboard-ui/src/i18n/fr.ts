@@ -492,7 +492,7 @@ export const fr: Strings = {
   'm.live.signed.test':
     'Oui. Le laboratoire signe avec sa propre clé. Seuls le détenteur de l’enregistrement, le laboratoire et la personne qui lui a envoyé l’échantillon le voient, et seul le détenteur peut le montrer à d’autres.',
   'm.live.signed.live':
-    'Oui. Le laboratoire signe avec sa propre clé. Seuls le détenteur de l’enregistrement, le laboratoire et la personne qui lui a envoyé l’échantillon le voient, et seul le détenteur peut le montrer à d’autres. Ajouter le fichier de résultat d’un laboratoire aux enregistrements d’un autre obtenteur est construit, mais pas encore essayé sur le réseau principal.',
+    'Oui. Le laboratoire signe avec sa propre clé. Seuls le détenteur de l’enregistrement, le laboratoire et la personne qui lui a envoyé l’échantillon le voient, et seul le détenteur peut le montrer à d’autres. Ajouter le fichier de résultat d’un laboratoire aux enregistrements d’un autre obtenteur : oui, depuis le 21 novembre 2026.',
   'm.live.local.t': 'Un document gardé uniquement sur votre appareil',
   'm.live.local.main': 'Construit, mais pas encore essayé sur le réseau principal.',
   'm.live.local.test':

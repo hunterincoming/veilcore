@@ -155,7 +155,7 @@ export const policyEn = {
   'm.pp.chain.5': 'that a record has a license, an obligation or a lender’s claim on it, and when that changed;',
   'm.pp.chain.6': 'a lab’s public key, when it signs a certificate there;',
   'm.pp.chain.7':
-    'what you choose to prove about a number: the limit and its direction or, if you prove it exactly, the number itself. A parentage result proves only that ICAR’s limits are met; no genotype or count is published.',
+    'what you choose to prove about a number: the limit and its direction or, if you prove it exactly, the number itself. A parentage result proves only that its conflict counts and SNPs compared are within ICAR’s limits; no genotype or count is published.',
   'm.pp.chain.p2':
     'Our fee sponsor anchors each batch. For the other steps, the app first shows a receipt listing exactly what that step makes public, and your browser sends it through our fee sponsor, which pays the fee. A code or key on its own says nothing about you, but anyone you give a check link to can follow what happens to that record on the network from then on.',
 
