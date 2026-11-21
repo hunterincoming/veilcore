@@ -73,6 +73,8 @@ const LogFlow = page(() => import('./components/flow/LogFlow'), 'LogFlow', 'afte
 const DocumentNew = page(() => import('./components/document/DocumentNew'), 'DocumentNew', 'after');
 const DocumentCheck = page(() => import('./components/document/DocumentCheck'), 'DocumentCheck', 'wait');
 const ClaimCheck = page(() => import('./components/document/ClaimCheck'), 'ClaimCheck');
+// A lab's way in from the site (/for-labs): the lab view, and its signing key (lab/LabDoor.tsx).
+const LabDoor = page(() => import('./components/lab/LabDoor'), 'LabDoor');
 const LabResultsPage = page(() => import('./components/lab/LabResultsPage'), 'LabResultsPage');
 const LabResultCheck = page(() => import('./components/lab/LabResultCheck'), 'LabResultCheck');
 const BulkImportPage = page(() => import('./components/lab-import/BulkImportPage'), 'BulkImportPage');
@@ -119,6 +121,7 @@ const layoutParts = () => import('./app-layout-parts');
 const RolePicker = page<{ ask: boolean }>(layoutParts, 'RolePicker');
 const SaveProblemBar = page(layoutParts, 'SaveProblemBar');
 const RoleChangeLink = page(layoutParts, 'RoleChangeLink');
+const ViewSwitch = page(layoutParts, 'ViewSwitch');
 const AskLauncher = page(layoutParts, 'AskLauncher');
 const NetworkBadge = page(layoutParts, 'NetworkBadge');
 const AccountKeeper = page(layoutParts, 'AccountKeeper');
@@ -158,7 +161,7 @@ const AppLayout: React.FC<React.PropsWithChildren> = ({ children }) => {
       {/* Never asked up front (Hunter, 30 Oct): a newcomer is a breeder unless they say
         otherwise, and the first question is what they want to prove (flow/StartChoice.tsx).
         A lab says so with "I'm a lab" on its home screen or the footer's "change" link,
-        which open this. */}
+        which open this, or picks Lab in the header's view menu (ViewSwitch.tsx), or opens /for-labs. */}
       <RolePicker ask={false} />
       {/* Records saved with VeilCore, kept up to date by themselves; the "Keep your records safe"
         sheet (flow/KeepSafe.tsx, veilcore/account-copy.ts). */}
@@ -167,7 +170,9 @@ const AppLayout: React.FC<React.PropsWithChildren> = ({ children }) => {
       {/* The network badge only where it warns: a test or demo build, whose records are practice
         data. veilcore.org says it runs on the main network on its landing page (What's live where);
         on every app page the chips were noise ("Web app", "Main network": easy-mode review, 19 Nov). */}
-      <SiteHeader app badge={IS_MAINNET ? undefined : <NetworkBadge />} />
+      {/* The view (Breeder, Lab or Both) in the header, one tap away on every app page: the footer's
+        "change" alone was missed (21 Nov). */}
+      <SiteHeader app badge={IS_MAINNET ? undefined : <NetworkBadge />} view={<ViewSwitch />} />
       {/* The one main landmark: the header, the page and its notices. The footer stays outside. */}
       <Container component="main" maxWidth="md" sx={{ pt: { xs: 2, md: 4 }, pb: { xs: 3, md: 6 } }}>
         {/* No signal: what still works and what waits (docs/offline.md). */}
@@ -196,6 +201,7 @@ const layoutPreload: Preloadable = {
       SaveProblemBar.preload(),
       AskLauncher.preload(),
       RoleChangeLink.preload(),
+      ViewSwitch.preload(),
       NetworkBadge.preload(),
       AccountKeeper.preload(),
     ]),
@@ -413,6 +419,7 @@ const routes = (
         </Light>
       }
     />
+    <Route path="/for-labs" element={withLayout(<LabDoor />)} />
     <Route path="/lab/results" element={withLayout(<LabResultsPage />)} />
     <Route
       path="/check-lab-result"

@@ -19,6 +19,11 @@
 // section links, Verify, the demo or your records, and on the app's pages Ask, are under
 // "Menu" (Ask is put there by AskLauncher.tsx; as a bubble or a header button it either
 // covered the page or took a line of its own).
+//
+// For labs (21 Nov): the public pages carry "For labs", to /for-labs (lab/LabDoor.tsx), which gives
+// the lab view and opens the signing key screen; the co-founder couldn't find a lab's way in from
+// the site. On the app's pages the view menu (ViewSwitch.tsx) is there instead, after the language:
+// on a phone it starts the second line, beside the network on a test build.
 // SPDX-License-Identifier: Apache-2.0
 
 import React, { useEffect, useRef, useState } from 'react';
@@ -75,6 +80,10 @@ const sections = [
   { to: '/how-it-works', key: 'm.hero.how' },
   { to: '/founders', key: 'm.nav.about' },
 ] as const;
+
+/** A lab's way in (lab/LabDoor.tsx), on the public pages. */
+// Not /lab: that was the old lab-signing page, retired on purpose (lab-attest.test.ts).
+export const LAB_DOOR = '/for-labs';
 
 /**
  * Below md: the section links and Verify under one "Menu" button, a list that drops below it; on
@@ -172,6 +181,13 @@ const PhoneMenu: React.FC<{ ask: boolean; returning: boolean }> = ({ ask, return
             </SectionLink>
           </li>
         ))}
+        {!ask && (
+          <li>
+            <Link component={RouterLink} to={LAB_DOOR} sx={item} data-for-labs="menu">
+              {t('m.nav.forLabs')}
+            </Link>
+          </li>
+        )}
         {!returning && (
           <li>
             <Link component={RouterLink} to="/records" sx={item}>
@@ -206,7 +222,9 @@ export const SiteHeader: React.FC<{
   badge?: React.ReactNode;
   /** The app's pages (Ask in the phone menu), whether or not they carry a badge. */
   app?: boolean;
-}> = ({ badge, app = !!badge }) => {
+  /** The app's pages: which view this is, Breeder, Lab or Both (ViewSwitch.tsx). */
+  view?: React.ReactNode;
+}> = ({ badge, view, app = !!badge || !!view }) => {
   const { t } = useI18n();
   // The home page draws this header on its night ground (home.css): the mark takes its dark-ground gold.
   const onHome = useLocation().pathname === '/';
@@ -244,6 +262,12 @@ export const SiteHeader: React.FC<{
                 {t(s.key)}
               </SectionLink>
             ))}
+            {/* For labs, on the public pages; the app's pages have the view menu. */}
+            {!app && (
+              <Link component={RouterLink} to={LAB_DOOR} sx={{ ...linkSx, ...wide }} data-for-labs="nav">
+                {t('m.nav.forLabs')}
+              </Link>
+            )}
             {/* Your records: the button says it for someone coming back, so the link is for the rest. */}
             {!returning && (
               <Link component={RouterLink} to="/records" sx={{ ...linkSx, ...wide }}>
@@ -271,9 +295,21 @@ export const SiteHeader: React.FC<{
             <PhoneMenu ask={app} returning={returning} />
           </Stack>
           <LanguagePicker />
-          {/* On the app's pages, after the language: on a phone the line under the mark. */}
-          {badge && (
-            <Box sx={{ display: 'flex', alignItems: 'center', flexBasis: { xs: '100%', md: 'auto' } }}>{badge}</Box>
+          {/* On the app's pages, after the language: the view (Breeder, Lab or Both), then the network;
+              on a phone the line under the mark (the first line has no room for the view). */}
+          {(view || badge) && (
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                flexWrap: 'wrap',
+                gap: 1,
+                flexBasis: { xs: '100%', md: 'auto' },
+              }}
+            >
+              {view}
+              {badge}
+            </Box>
           )}
         </Stack>
         <Box sx={{ mt: { xs: 1, md: 2 }, '&:empty': { display: 'none' } }}>

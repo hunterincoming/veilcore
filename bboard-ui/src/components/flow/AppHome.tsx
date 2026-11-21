@@ -6,7 +6,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { PlanBox } from '../PlanBox';
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, Box, Button, Collapse, Paper, Snackbar, Stack, Typography } from '@mui/material';
 import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
 import AddIcon from '@mui/icons-material/Add';
@@ -39,6 +39,7 @@ import { importedRecordIds } from '../../veilcore/bulk-import-ledger';
 import { importStampsOn } from '../../veilcore/bulk-import';
 import { useRole, isBreeder, isLab, requestRoleChange } from '../../veilcore/role';
 import { loadAttester } from '../../veilcore/attester-keys';
+import { LAB_CHANGED_EVENT } from '../../veilcore/lab-results';
 import { LAB_SIGNING_ENABLED, PAID_PLANS_ENABLED } from '../../config/network';
 import { RecordFinder, matchesQuery, sortRecords, type SortKey } from '../RecordFinder';
 import { AppHeader } from '../AppHeader';
@@ -175,6 +176,17 @@ const DocumentDateLine: React.FC<{ fingerprint?: string; loggedAt: number }> = (
   );
 };
 
+/** Whether this browser holds a lab signing key, kept up to date as one is made (AttesterSetup.tsx). */
+const useHasLabKey = (): boolean => {
+  const [has, setHas] = useState(() => loadAttester() !== null);
+  useEffect(() => {
+    const read = () => setHas(loadAttester() !== null);
+    window.addEventListener(LAB_CHANGED_EVENT, read);
+    return () => window.removeEventListener(LAB_CHANGED_EVENT, read);
+  }, []);
+  return has;
+};
+
 export const AppHome: React.FC = () => {
   const records = useRecords();
   const keys = useRecordKeys();
@@ -210,6 +222,7 @@ export const AppHome: React.FC = () => {
   const waitingForBackup = Object.keys(outboxRecords()).some((id) => unsavedReason(id) === 'backup');
   const labOnly = isLab(role) && !isBreeder(role);
   const lab = isLab(role);
+  const hasLabKey = useHasLabKey();
   // Plants as cards; a record that dates a lab report shows under its plant, not as a plant.
   const { cards, datingsOf } = homeList(records);
   const visible = sortRecords(
@@ -255,6 +268,17 @@ export const AppHome: React.FC = () => {
     }
   };
 
+  const signatureButton = (variant: 'contained' | 'outlined') => (
+    <Button
+      variant={variant}
+      startIcon={<BadgeIcon />}
+      onClick={() => window.dispatchEvent(new Event(OPEN_SIGNING_KEY_EVENT))}
+      sx={{ minHeight: 48 }}
+      data-lab-signature-button={variant}
+    >
+      {hasLabKey ? t('app.home.labSignature') : t('app.home.setUpLabSignature')}
+    </Button>
+  );
   // The lab's panel is the page's heading when nothing has arrived yet (a real h1), and a
   // section under "Samples received" after.
   const labPanel = (heading: 'h1' | 'h2') => (
@@ -269,23 +293,20 @@ export const AppHome: React.FC = () => {
       <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
         {t('app.home.labJobsText')}
       </Typography>
+      {/* Without a key, setting it up is the one solid button and comes first (21 Nov): a lab's
+          receipts and reports are signed with it, and the co-founder didn't find it as the
+          second, outlined one. Once there is a key, confirming a delivery is. */}
       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
+        {!hasLabKey && signatureButton('contained')}
         <Button
-          variant="contained"
+          variant={hasLabKey ? 'contained' : 'outlined'}
           startIcon={<InboxIcon />}
           onClick={() => window.dispatchEvent(new Event(OPEN_RECEIVE_EVENT))}
           sx={{ minHeight: 48 }}
         >
           {t('app.home.confirmDelivery')}
         </Button>
-        <Button
-          variant="outlined"
-          startIcon={<BadgeIcon />}
-          onClick={() => window.dispatchEvent(new Event(OPEN_SIGNING_KEY_EVENT))}
-          sx={{ minHeight: 48 }}
-        >
-          {loadAttester() ? t('app.home.labSignature') : t('app.home.setUpLabSignature')}
-        </Button>
+        {hasLabKey && signatureButton('outlined')}
         {LAB_SIGNING_ENABLED && (
           <Button
             component={RouterLink}

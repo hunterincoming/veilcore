@@ -230,7 +230,7 @@ export const lab = {
     'Ihre Empfangsbestätigung ist signiert. Verknüpfen Sie sie mit dieser Lieferung, damit der Züchter sie sieht: Bis dahin zählt seine Seite sie nicht, denn jeder kann eine Erklärung über eine Pflanze signieren, aber nur wer den Laborcode verwendet hat, kann eine mit der Lieferung verknüpfen.',
   'app.lab.recv.linking': 'Wird verknüpft…',
   'app.lab.recv.setUpFirst':
-    'Richten Sie zuerst die Signatur Ihres Labors ein; dann können Sie signieren, dass diese Probe angekommen ist.',
+    'Richten Sie zuerst den Signaturschlüssel Ihres Labors ein; dann können Sie signieren, dass diese Probe angekommen ist.',
   'app.lab.recv.checking': 'Datensatz des Züchters wird geprüft…',
   'app.lab.recv.notRecorded': 'Ihre Empfangsbestätigung wurde nicht erfasst: {error}.',
   'app.lab.recv.noCodeHere': 'diese Pflanze hat auf diesem Gerät keinen Laborcode',
@@ -430,7 +430,7 @@ export const lab = {
   'app.lab.out.cancelCorrection': 'Korrektur abbrechen',
   'app.lab.out.turnedAway': 'Sie haben diese Probe abgelehnt, daher gibt es keinen Laborbericht zu senden.',
   'app.lab.out.setUpFirst':
-    'Richten Sie zuerst die Signatur Ihres Labors ein, damit der Züchter erkennt, dass der Laborbericht von Ihnen ist.',
+    'Richten Sie zuerst den Signaturschlüssel Ihres Labors ein, damit der Züchter erkennt, dass der Laborbericht von Ihnen ist.',
   'app.lab.out.noLockHere':
     'Dieser Browser hat das Schloss des Züchters für diese Lieferung nicht. Fügen Sie den Laborcode ein, den er Ihnen gesendet hat.',
   'app.lab.out.useCode': 'Diesen Laborcode verwenden',
