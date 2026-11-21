@@ -1,15 +1,16 @@
 // Print QR labels (/records/labels, docs/scan-and-labels.md): for a record, for a batch just
 // saved, or for a record and the records made from it. The records come in this tab's router
 // state (LABELS_STATE), never in the address, so the web host's logs never see which records were
-// printed together. The page draws the labels on this device and the browser's own print window
-// prints them or saves a PDF; nothing is sent to make or print a label.
+// printed together. The page draws the labels on this device; "Download PDF" saves them as a PDF
+// at the sheet's own size, made in this tab (label-pdf.ts), and "Print" opens the browser's print
+// window. Nothing is sent to make, save or print a label.
 //
 // By default a label shows the short record ID and "Scan to check", and its QR code carries only
 // the record ID and proof code, both public on the check page. The name is added only if the
 // holder ticks it (label-layouts.ts labelLink).
 // SPDX-License-Identifier: Apache-2.0
 
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
 import {
   Alert,
@@ -18,6 +19,7 @@ import {
   Checkbox,
   FormControlLabel,
   FormGroup,
+  Link,
   MenuItem,
   Paper,
   Radio,
@@ -27,6 +29,7 @@ import {
   Typography,
 } from '@mui/material';
 import PrintIcon from '@mui/icons-material/PrintOutlined';
+import DownloadIcon from '@mui/icons-material/FileDownloadOutlined';
 import ArrowBackIcon from '@mui/icons-material/ArrowBackOutlined';
 import { AppHeader } from '../AppHeader';
 import { useT } from '../../i18n/app';
@@ -38,6 +41,7 @@ import {
   LABEL_SIZES,
   LAYOUTS,
   defaultSize,
+  labelFileName,
   labelReady,
   paginate,
   perPage,
@@ -46,6 +50,8 @@ import {
   type LabelsState,
 } from './label-layouts';
 import { LabelPages } from './LabelSheet';
+import { labelsPdf } from './label-pdf';
+import { drawQrCodes, drawWords, saveFile } from './label-download';
 
 const SIZE_WORDS: Record<LabelSize, AppKey> = {
   thermal: 'app.labels.size.thermal',
@@ -105,6 +111,40 @@ export const LabelsPage: React.FC = () => {
       return n;
     });
   const back = state.back;
+  // The PDF, made in this tab and saved in one tap (label-pdf.ts, label-download.tsx). Made inside
+  // the tap itself, so the browser lets it save. Then a link to the same file stays under the
+  // buttons, for a browser that took the tap and saved nothing; or a note if it couldn't be made.
+  // Either shows only for the labels it was made from: change anything and it goes.
+  const made = JSON.stringify([size, showName, skip, copies, chosen.map((r) => r.id)]);
+  const [savedAs, setSaved] = useState<{ for: string; failed?: true; url?: string } | undefined>();
+  const saved = savedAs?.for === made ? savedAs : undefined;
+  const savedUrl = savedAs?.url;
+  // The file's address is let go when a new one is made or the page closes, not before.
+  useEffect(() => (savedUrl ? () => URL.revokeObjectURL(savedUrl) : undefined), [savedUrl]);
+  const download = () => {
+    try {
+      const bytes = labelsPdf({
+        pages,
+        layout,
+        showName,
+        scanToCheck: t('app.labels.scanToCheck'),
+        qr: drawQrCodes,
+        text: drawWords,
+      });
+      const url = saveFile(
+        bytes,
+        labelFileName(
+          chosen.map((r) => r.id),
+          size,
+        ),
+        'application/pdf',
+      );
+      setSaved({ for: made, url });
+    } catch (e) {
+      console.warn('labels: the PDF was not made', e);
+      setSaved({ for: made, failed: true });
+    }
+  };
 
   return (
     <Box sx={{ maxWidth: 820, mx: 'auto' }} data-labels-page="">
@@ -253,24 +293,55 @@ export const LabelsPage: React.FC = () => {
             </Stack>
           </Paper>
 
-          <Box>
-            <Button
-              variant="contained"
-              size="large"
-              fullWidth
-              startIcon={<PrintIcon />}
-              disabled={!labels}
-              onClick={() => window.print()}
-              sx={{ minHeight: 48 }}
-              data-labels-print=""
-            >
-              {t('app.labels.print')}
-              {labels > 0 && ` · ${tp('app.labels.count', labels)}`}
-            </Button>
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-              {t('app.labels.printHelp')}
-            </Typography>
+          <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, alignItems: 'start' }}>
+            <Box>
+              <Button
+                variant="contained"
+                size="large"
+                fullWidth
+                startIcon={<DownloadIcon />}
+                disabled={!labels}
+                onClick={download}
+                sx={{ minHeight: 48 }}
+                data-labels-download=""
+              >
+                {t('app.labels.download')}
+              </Button>
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                {t('app.labels.downloadHelp')}
+              </Typography>
+            </Box>
+            <Box>
+              <Button
+                variant="outlined"
+                size="large"
+                fullWidth
+                startIcon={<PrintIcon />}
+                disabled={!labels}
+                onClick={() => window.print()}
+                sx={{ minHeight: 48 }}
+                data-labels-print=""
+              >
+                {t('app.labels.print')}
+                {labels > 0 && ` · ${tp('app.labels.count', labels)}`}
+              </Button>
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                {t('app.labels.printHelp')}
+              </Typography>
+            </Box>
           </Box>
+          {saved?.failed && (
+            <Alert severity="warning" variant="outlined" data-labels-download-failed="">
+              {t('app.labels.downloadFailed')}
+            </Alert>
+          )}
+          {saved?.url && (
+            <Typography variant="body2">
+              <Link href={saved.url} target="_blank" rel="noopener" data-labels-download-open="">
+                {t('app.labels.downloadOpen')}
+              </Link>
+            </Typography>
+          )}
 
           {pages.length > 0 && (
             <Typography variant="subtitle1" component="h2" sx={{ fontWeight: 700 }}>

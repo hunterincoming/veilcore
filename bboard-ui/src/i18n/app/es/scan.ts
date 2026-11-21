@@ -59,9 +59,14 @@ export const scan = {
   'app.labels.copies': 'Etiquetas por registro',
   'app.labels.count.one': '{count} etiqueta',
   'app.labels.count.other': '{count} etiquetas',
-  'app.labels.print': 'Imprimir o guardar como PDF',
+  'app.labels.print': 'Imprimir',
   'app.labels.printHelp':
-    'Se abre la ventana de impresión del navegador. Elija 100 % o «Tamaño real» y sin márgenes para que las etiquetas coincidan, o «Guardar como PDF» para conservar un archivo. Imprima primero una hoja de prueba en papel común.',
+    'Se abre la ventana de impresión del navegador. Elija 100 % o «Tamaño real» y sin márgenes para que las etiquetas coincidan. Imprima primero una hoja de prueba en papel común.',
+  'app.labels.download': 'Descargar PDF',
+  'app.labels.downloadHelp':
+    'Guarda las etiquetas en un PDF del tamaño real de la hoja, hecho en este dispositivo. Imprímalo al 100 % o en «Tamaño real».',
+  'app.labels.downloadOpen': '¿No se guardó nada? Abrir el PDF',
+  'app.labels.downloadFailed': 'No se pudo hacer el PDF en este dispositivo. Use «Imprimir».',
   'app.labels.preview': 'Cómo se imprimirán las etiquetas',
   'app.labels.pageOf': 'Página {n} de {of}',
   'app.labels.scanToCheck': 'Escanee para comprobar',

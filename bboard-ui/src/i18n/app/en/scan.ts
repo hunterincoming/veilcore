@@ -58,9 +58,14 @@ export const scan = {
   'app.labels.copies': 'Labels for each record',
   'app.labels.count.one': '{count} label',
   'app.labels.count.other': '{count} labels',
-  'app.labels.print': 'Print or save as PDF',
+  'app.labels.print': 'Print',
   'app.labels.printHelp':
-    'Your browser’s print window opens. Choose 100% or “Actual size” and no margins so the labels line up, or “Save as PDF” to keep a file. Print one test sheet on plain paper first.',
+    'Your browser’s print window opens. Choose 100% or “Actual size” and no margins so the labels line up. Print one test sheet on plain paper first.',
+  'app.labels.download': 'Download PDF',
+  'app.labels.downloadHelp':
+    'Saves the labels as a PDF at the sheet’s true size, made on this device. Print it at 100% or “Actual size”.',
+  'app.labels.downloadOpen': 'Nothing saved? Open the PDF',
+  'app.labels.downloadFailed': 'The PDF couldn’t be made on this device. Use Print instead.',
   'app.labels.preview': 'How the labels will print',
   'app.labels.pageOf': 'Page {n} of {of}',
   'app.labels.scanToCheck': 'Scan to check',

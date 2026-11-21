@@ -52,9 +52,14 @@ export const scan = {
   'app.labels.skipHelp': '左上から行ごとに数えます。その次から印刷するので、使いかけのシートを無駄にしません。',
   'app.labels.copies': '記録ごとのラベルの枚数',
   'app.labels.count.other': 'ラベル{count}枚',
-  'app.labels.print': '印刷またはPDFで保存',
+  'app.labels.print': '印刷',
   'app.labels.printHelp':
-    'ブラウザの印刷画面が開きます。ラベルの位置が合うよう、倍率は100%（実際のサイズ）、余白はなしを選んでください。ファイルとして残すには「PDFに保存」を選びます。最初に普通紙で1枚試し刷りしてください。',
+    'ブラウザの印刷画面が開きます。ラベルの位置が合うよう、倍率は100%（実際のサイズ）、余白はなしを選んでください。最初に普通紙で1枚試し刷りしてください。',
+  'app.labels.download': 'PDFをダウンロード',
+  'app.labels.downloadHelp':
+    'ラベルを用紙の実際のサイズのPDFとして保存します。PDFはこの端末で作られます。印刷するときは倍率100%（実際のサイズ）を選んでください。',
+  'app.labels.downloadOpen': '保存されていない場合は、PDFを開く',
+  'app.labels.downloadFailed': 'この端末ではPDFを作れませんでした。代わりに「印刷」を使ってください。',
   'app.labels.preview': '印刷されるラベル',
   'app.labels.pageOf': '{of}ページ中{n}ページ目',
   'app.labels.scanToCheck': 'スキャンして確認',
