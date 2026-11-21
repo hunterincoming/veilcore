@@ -9,12 +9,12 @@ describe('the lab door', () => {
     expect(labDoorStep('both', true)).toBe('keep');
   });
 
-  it('gives the lab view to someone with no records of their own', () => {
+  it('gives the lab view to a browser with nothing in it', () => {
     expect(labDoorStep(null, false)).toBe('lab');
     expect(labDoorStep('breeder', false)).toBe('lab');
   });
 
-  it('asks a breeder with records before adding the lab tools', () => {
+  it('asks a browser that has been used before adding the lab tools', () => {
     expect(labDoorStep(null, true)).toBe('ask');
     expect(labDoorStep('breeder', true)).toBe('ask');
   });
@@ -23,6 +23,11 @@ describe('the lab door', () => {
 describe('the page after a view is chosen', () => {
   it('takes a lab off the record wizard to its own home', () => {
     expect(pageAfterRole('lab', '/new')).toBe('/records');
+  });
+
+  it("takes a breeder off the lab's results tools", () => {
+    expect(pageAfterRole('breeder', '/lab/results')).toBe('/records');
+    expect(pageAfterRole('both', '/lab/results')).toBeNull();
   });
 
   it('leaves everyone else where they are', () => {

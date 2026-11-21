@@ -14,8 +14,8 @@ section.
 
 - "For labs" in the site's header (under "Menu" on a phone), on the home page's lab slide and on
   How it works. It opens /for-labs, which switches to the lab view and opens the signing key
-  screen if this browser has no key yet. A breeder with records of their own is asked first:
-  "Add lab tools? Your records stay as they are."
+  screen if this browser has no key yet. A browser that already holds records, or has been used
+  before, is asked first: "Add lab tools? Your records stay as they are."
 - Every app page has the view in its header ("Breeder view ▾"): Breeder, Lab or Both, one tap
   away. The footer's "change" link stays.
 - On the lab's home, with no key yet, "Set up your lab's signature" is the solid button and

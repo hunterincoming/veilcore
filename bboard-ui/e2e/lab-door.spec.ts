@@ -7,8 +7,8 @@
 //     signature";
 //   - from /records anyone switches to the lab view in 2 taps from the header's view menu, and
 //     back;
-//   - a breeder with records of their own who opens /for-labs is asked once, plainly, and their
-//     records stay; "Not now" leaves the view as it was;
+//   - a browser with records, or used before, that opens /for-labs is asked once, plainly, and
+//     the records stay; "Not now" or Escape leaves the view as it was;
 //   - the website step (the file, the DNS TXT record and the domain) is on the key screen
 //     without opening anything.
 // SPDX-License-Identifier: Apache-2.0
@@ -295,6 +295,47 @@ test.describe('a breeder with records of their own', () => {
     expect(await role(page)).toBe('breeder');
     expectNoErrors(errors);
   });
+
+  test('Escape is "Not now" too', async ({ page }) => {
+    const errors = watch(page);
+    await asBreeder(page);
+    await page.goto('/for-labs');
+    await expect(page.getByRole('dialog', { name: homeEn['app.home.labDoor.title'] })).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(page.getByRole('heading', { level: 1, name: homeEn['app.home.yourRecords'] })).toBeVisible();
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+    expect(await role(page)).toBe('breeder');
+    expectNoErrors(errors);
+  });
+});
+
+test('a browser used before, with no records showing (the registry failed), is asked, not switched', async ({
+  page,
+}) => {
+  const errors = watch(page);
+  await page.addInitScript(() => localStorage.setItem('veilcore.holder.v1', 'ab'.repeat(32)));
+  await isolate(page, {
+    'GET /api/records': (route) => json(route, 503, { error: 'down for the test' }),
+    'GET /api/licenses': (route) => json(route, 200, []),
+    'GET /api/disclosures': (route) => json(route, 200, []),
+    'GET /transfers/sent': (route) => json(route, 200, { transfers: [] }),
+  });
+  await page.goto('/for-labs');
+  await expect(page.getByRole('dialog', { name: homeEn['app.home.labDoor.title'] })).toBeVisible();
+  expect(await role(page)).toBeNull();
+  expect(errors.filter((e) => !/503|down for the test/.test(e))).toEqual([]);
+});
+
+test("switching to Breeder on the lab's results tools goes to Home", async ({ page }) => {
+  const errors = watch(page);
+  await page.addInitScript(() => localStorage.setItem('veilcore.role.v1', 'lab'));
+  await standIn(page);
+  await page.goto('/lab/results');
+  await page.locator('[data-view-switch]').click();
+  await page.getByRole('menuitemradio', { name: homeEn['app.home.roleView.breeder'], exact: true }).click();
+  await expect(page).toHaveURL(/\/records$/);
+  expect(await role(page)).toBe('breeder');
+  expectNoErrors(errors);
 });
 
 test('the key screen shows the website step, the file and the DNS record, without opening anything', async ({

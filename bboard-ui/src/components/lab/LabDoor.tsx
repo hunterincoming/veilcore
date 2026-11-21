@@ -3,9 +3,9 @@
 // the site had no way for labs, and in the app the lab view hid behind a footer link.
 //
 // Opening it gives the lab view (role.ts labDoorStep) and lands on the lab's home (/records), with
-// the signing key screen open when this browser has no key yet. A breeder with records of their
-// own is asked once, plainly, before the lab's tools are added beside them; "Not now" leaves the
-// view as it was. Nothing about any record changes either way.
+// the signing key screen open when this browser has no key yet. A browser that holds records or
+// has been used before is asked once, plainly, before the lab's tools are added beside what is
+// there; "Not now" (or Escape) leaves the view as it was. Nothing about any record changes either way.
 // SPDX-License-Identifier: Apache-2.0
 
 import React, { useEffect, useRef, useState } from 'react';
@@ -39,10 +39,12 @@ export const LabDoor: React.FC = () => {
   useEffect(() => {
     if (decided.current || (!loaded && !waited)) return;
     decided.current = true;
-    // A registry that hasn't answered in time, for a browser that has been used here: asked, as
-    // for a breeder, rather than quietly putting a breeder's records behind the lab view.
-    const own = loaded ? records.some((r) => !r.receivedFrom) : holderKeyIfAny() !== null;
-    const step = labDoorStep(getRole(), own);
+    // Anything kept here, or a browser that has been used here at all (it holds a holder key),
+    // counts as a breeder's: asked, never quietly switched. A registry that failed or is slow
+    // shows few or no records, and a breeder who received cuttings is still a breeder
+    // (independent review, 21 Nov). Only a browser with nothing in it goes straight to the lab view.
+    const used = records.length > 0 || holderKeyIfAny() !== null;
+    const step = labDoorStep(getRole(), used);
     if (step === 'ask') {
       setAsking(true);
       return;
@@ -51,14 +53,16 @@ export const LabDoor: React.FC = () => {
     toLabHome();
   }, [loaded, waited]);
 
+  const notNow = () => void navigate('/records', { replace: true });
   return (
-    <Dialog open={asking} maxWidth="xs" fullWidth aria-labelledby="lab-door-title" data-lab-door="">
+    // Escape and a tap outside are "Not now".
+    <Dialog open={asking} onClose={notNow} maxWidth="xs" fullWidth aria-labelledby="lab-door-title" data-lab-door="">
       <DialogTitle id="lab-door-title">{t('app.home.labDoor.title')}</DialogTitle>
       <DialogContent>
         <Typography variant="body1">{t('app.home.labDoor.text')}</Typography>
       </DialogContent>
       <DialogActions>
-        <Button onClick={() => void navigate('/records', { replace: true })} sx={{ minHeight: 44 }}>
+        <Button onClick={notNow} sx={{ minHeight: 44 }}>
           {t('app.home.labDoor.notNow')}
         </Button>
         <Button
