@@ -13,7 +13,8 @@ confirmed hidden until the holder shared it, a number proved from it, and the re
 window, so adding a lab's result file to another breeder's records ("Add it as a record you hold"
 on `/check-lab-result`) was not covered; the third run covers it.
 Spreadsheet signing (CSV) live on veilcore.org since 21 Nov 2026. A second breeder adding a lab's
-result file, proving a number on it and reloading: live since 21 Nov 2026.
+result file, proving a number on it and reloading: live since 21 Nov 2026. Both ran with a DEMO
+lab key and invented data.
 
 ## What it is for
 
