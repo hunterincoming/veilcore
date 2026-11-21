@@ -26,7 +26,7 @@ and a Rust implementation in [veilcore-rs](https://github.com/hunterincoming/vei
 
 | Status | |
 |---|---|
-| **Live on veilcore.org** | Sealing records, dated in batches on Midnight mainnet; check pages; proving a record by link; dating a DNA report pairing; lab codes and signed receipts; licenses and royalty reports; documents kept on the device only; proving one number from a sealed document; production chains of linked document records; numbers and results a lab signs, since a run on 18 November 2026 ([docs/lab-signing.md](docs/lab-signing.md), [docs/lab-mainnet-test.md](docs/lab-mainnet-test.md)); a lab signing a spreadsheet of results, adding a lab's result file to another breeder's records, and a lab's parentage result proved against ICAR 2023, since a run on 21 November 2026 with a DEMO lab key and invented data ([docs/lab-mainnet-test.md](docs/lab-mainnet-test.md), [docs/parentage.md](docs/parentage.md)). No wallet needed: VeilCore's fee service pays the network fee. |
+| **Live on veilcore.org** | Sealing records, dated in batches on Midnight mainnet; check pages; proving a record by link; dating a DNA report pairing; lab codes and signed receipts; licenses and royalty reports; documents kept on the device only; proving one number from a sealed document; production chains of linked document records; numbers and results a lab signs, since a run on 18 November 2026 ([docs/lab-signing.md](docs/lab-signing.md), [docs/lab-mainnet-test.md](docs/lab-mainnet-test.md)); a lab signing a spreadsheet of results, adding a lab's result file to another breeder's records, and five of ICAR 2023's parentage checks proved from a lab's result, since a run on 21 November 2026 with a DEMO lab key and invented data ([docs/lab-mainnet-test.md](docs/lab-mainnet-test.md), [docs/parentage.md](docs/parentage.md)). No wallet needed: VeilCore's fee service pays the network fee. |
 | **Built, not yet run on mainnet** | Handing a license on to another grower, with the breeder's approval. |
 | **Test network only** | A lab's viability result for a sample before or after a kill step; paying royalties in NIGHT on Midnight. |
 | **Built, switched off** | Paid plans for labs: built in the registry, switched off; not on veilcore.org (`veilcore-api` README, "Paid plans"). A plan that hides which records are a lab's is a design only ([docs/lab-plan.md](docs/lab-plan.md)). |
@@ -114,7 +114,8 @@ indexer of your own choosing instead of ours, see [docs/reproduce-build.md](docs
   ([docs/lab-mainnet-test.md](docs/lab-mainnet-test.md); `LAB_SIGNING_RUN_ON_MAINNET` in
   `bboard-ui/src/config/copy.ts`). On 21 November 2026, with a DEMO lab key and invented data:
   spreadsheet (CSV) signing; a second browser adding a lab's result file to its records, proving
-  a number on it and reloading; and a parentage result proved against ICAR 2023 ([docs/parentage.md](docs/parentage.md)). A
+  a number on it and reloading; and five of ICAR 2023's parentage checks proved from a lab's
+  result ([docs/parentage.md](docs/parentage.md)). A
   viability result (a sample before or after a kill step) is on the test network only
   (`VIABILITY_RESULTS_ENABLED`).
   [docs/lab-signing.md](docs/lab-signing.md)

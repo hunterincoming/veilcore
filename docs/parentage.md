@@ -9,7 +9,9 @@ range claims and the laboratory's signature (`proveAttested`).
 **Status: live on veilcore.org since 21 Nov 2026.** A DEMO lab signed an animal-parentage/v1
 result with invented counts; the holder, in a second browser, published it (block 3553789) and
 proved the five bounds (blocks 3553856, 3553891, 3554384, 3554445, 3554479); a stranger's check
-page says "Meets ICAR 2023 parentage acceptance".
+page confirms five of ICAR 2023's parentage checks (conflicts with the sire, the dam and the trio;
+SNPs compared with each parent). ICAR's minimums of 185 SNPs read for each animal and 165 read in
+all three are applied by the lab, not proved.
 Each proof took about 2–3.5 minutes in a desktop browser; five proofs on an older phone may run
 out of memory, so do parentage on a computer for now.
 
