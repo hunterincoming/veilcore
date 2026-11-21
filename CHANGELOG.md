@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### One way back after a seal, not three (21 Nov 2026, not deployed yet)
+
+- Records already saved with VeilCore (the account copy counts and holds them once saved again
+  and read back) skip the backup file step after sealing: in a new record, a batch of clones or
+  offspring, and a spreadsheet import. If the copy can't be saved just then, the file step comes
+  back. A person with no way back yet still gets one step, and Finish waits for one way back.
+- That step is now the only prompt after a seal: it offers this device's lock beside the file,
+  and "Keep your records safe" no longer pops up inside the flow. The recovery sheet is no
+  longer pushed right after setting up where the passkey syncs: it is in Settings, and Home asks
+  once, after the third record.
+- The passkey button says "This device's lock", with one line: "The passcode, face or
+  finger you unlock your phone with". It never says Face ID.
+- The backup step no longer says the file is "the only way to prove you hold your records": it
+  is one of the ways back. The same fix in the help page and the file's own warning line.
+- "Get my records back": the recovery sheet is under "Other ways", with one line saying what it
+  is; the printed sheet says so too.
+
 ### Works with no signal, dated in seconds (19 Nov 2026, not deployed yet)
 
 - veilcore.org opens and seals records with no internet. An offline worker (`/sw.js`) keeps a

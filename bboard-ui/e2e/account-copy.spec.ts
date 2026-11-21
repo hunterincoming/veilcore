@@ -1,9 +1,12 @@
 // Records saved with VeilCore (easy mode step 2, docs/passkey-backup.md), in two real browsers
 // against a real registry (E2E_API_BASE: the account copy needs its routes, lineage/account-copy.mjs):
 //
-//   1. After the first record is saved, "Keep your records safe" opens by itself; Face ID (a
-//      virtual authenticator: user verification, a synced passkey, BS=1) makes the passkey and
-//      opens it again through the registry; the records count as backed up, and Home says nothing.
+//   1. After the first record is saved, the flow's one prompt is its backup step, which offers
+//      "This device's lock" beside the file ("Keep your records safe" no longer pops up inside
+//      the flow: the simplify-unlock plan, phase 1). The lock (a virtual authenticator: user
+//      verification, a synced passkey, BS=1) makes the passkey and opens it again through the
+//      registry; the records count as backed up, Finish turns on with no file, and Home says
+//      nothing. A record logged once the copy counts skips the file step altogether.
 //   2. A document kept on this device only: never marked by the copy, so its key's date stamp
 //      still waits for a downloaded copy (security review B3).
 //   3. A second browser on the same synced passkey gets everything back with Face ID, sees the
@@ -130,6 +133,31 @@ const prfOf = (credentialId: Buffer, input: Buffer) =>
 
 const SEAL = /^(Seal it|Save and date it)$/;
 
+/** Past the date stamp and the optional lab report, to where the flow goes next. */
+const pastStampAndReport = async (page: Page) => {
+  const later = page.getByRole('button', { name: /Do the date stamp later|^Next$/ }).first();
+  await expect(later).toBeVisible({ timeout: 120_000 });
+  await later.click();
+  await page.getByRole('button', { name: /No report yet: skip/ }).click();
+};
+
+/** After logPlant: on to the backup step, where this device's lock is offered beside the file. */
+const toBackupStep = async (page: Page) => {
+  await pastStampAndReport(page);
+  await expect(page.getByRole('button', { name: /Save backup file/ })).toBeVisible({ timeout: 60_000 });
+  // One prompt after the seal: the sheet never popped up on the way.
+  await expect(page.locator('[data-keep-safe]')).toHaveCount(0);
+};
+
+/** After logPlant: saved with VeilCore from the flow's own backup step, then Finish, with no file. */
+const lockInFlow = async (page: Page) => {
+  await toBackupStep(page);
+  await page.locator('[data-backup-device-lock-go]').click();
+  await expect(page.locator('[data-backup-saved-with-copy]')).toBeVisible({ timeout: 60_000 });
+  await page.getByRole('button', { name: 'Finish' }).click();
+  await page.waitForURL(/\/record\//);
+};
+
 /** Log a plant from /new; leaves the page right after it is sealed. */
 const logPlant = async (page: Page, name: string) => {
   await page.goto('/new');
@@ -156,23 +184,28 @@ test('Face ID keeps records safe, a second browser gets them back, saving runs b
         .catch(() => undefined);
   });
 
-  // 1. The first record is saved: the sheet opens by itself, once, with one button.
+  // 1. The first record is saved. Inside the flow nothing pops up: the backup step is the one
+  // prompt, and it offers this device's lock beside the file. Finish waits for one of them.
   const first = `Account copy plant A (practice) ${Date.now()}`;
   await logPlant(A.page, first);
-  const sheet = A.page.locator('[data-keep-safe]');
-  await expect(sheet).toBeVisible({ timeout: 60_000 });
-  await expect(sheet.getByRole('heading', { name: 'Keep your records safe' })).toBeVisible();
-  await expect(sheet.getByRole('button', { name: 'Use Face ID' })).toBeVisible();
-  await expect(sheet).toContainText('Documents you keep on this device only aren’t included.');
-  await shots(A.page, '01-keep-safe-sheet');
-  await sheet.getByRole('button', { name: 'Other ways' }).click();
-  await expect(sheet.getByRole('button', { name: 'Keep a file myself' })).toBeVisible();
-  await shots(A.page, '02-keep-safe-other-ways');
-  await sheet.getByRole('button', { name: 'Use Face ID' }).click();
-  await expect(sheet.locator('[data-keep-safe-done="counted"]')).toBeVisible({ timeout: 60_000 });
-  await expect(sheet).toContainText('Your records are saved with VeilCore. New ones save by themselves.');
-  await shots(A.page, '03-keep-safe-saved');
-  await sheet.getByRole('button', { name: 'Done' }).click();
+  await toBackupStep(A.page);
+  const lock = A.page.locator('[data-backup-device-lock]');
+  await expect(lock.getByRole('button', { name: 'This device’s lock' })).toBeVisible();
+  await expect(lock).toContainText('The passcode, face or finger you unlock your phone with.');
+  await expect(A.page.getByText('One of the ways to get your records back')).toBeVisible();
+  await expect(A.page.getByText(/only way to prove/)).toHaveCount(0);
+  await expect(A.page.getByRole('button', { name: 'Finish' })).toHaveAttribute('aria-disabled', 'true');
+  await shots(A.page, '01-backup-step-device-lock');
+  await lock.getByRole('button', { name: 'This device’s lock' }).click();
+  await expect(A.page.locator('[data-backup-saved-with-copy]')).toContainText('Saved with VeilCore.', {
+    timeout: 60_000,
+  });
+  // Saved with VeilCore is enough: Finish is on with no file, and no recovery sheet is pushed now.
+  await expect(A.page.getByRole('button', { name: 'Finish' })).not.toHaveAttribute('aria-disabled', 'true');
+  await expect(A.page.locator('[data-recovery-prompt], [data-recovery-dialog]')).toHaveCount(0);
+  await shots(A.page, '03-backup-step-saved');
+  await A.page.getByRole('button', { name: 'Finish' }).click();
+  await A.page.waitForURL(/\/record\//);
 
   // Made once, opened again through the registry: one passkey, a copy and its one way in.
   const { credentials } = (await A.cdp.send('WebAuthn.getCredentials', {
@@ -271,9 +304,13 @@ test('Face ID keeps records safe, a second browser gets them back, saving runs b
   await expect(B.page.locator('[data-pickup-item="dating"]')).toHaveCount(0);
   await expect(B.page.locator('[data-account-line]')).toHaveCount(0);
 
-  // B logs a record; A picks up its keys by itself on its next check.
+  // B logs a record; A picks up its keys by itself on its next check. The copy counts on B, so
+  // the flow ends after the lab report: saved into the copy, no file step, no pop-up.
   const second = `Account copy plant B (practice) ${Date.now()}`;
   await logPlant(B.page, second);
+  await pastStampAndReport(B.page);
+  await B.page.waitForURL(/\/record\//, { timeout: 60_000 });
+  await expect(B.page.getByRole('button', { name: /Save backup file/ })).toHaveCount(0);
   await expect(B.page.locator('[data-keep-safe]')).toHaveCount(0);
   const plantB = (await recordIds(B.page)).find((id) => id !== plantA && id !== doc)!;
   await untilSaved(B.page, plantB);
@@ -493,16 +530,12 @@ test('the recovery sheet: offered after Face ID, printed, checked, and it brings
   const A = await device(browser, IPHONE);
   const name = `Recovery sheet plant (practice) ${Date.now()}`;
   await logPlant(A.page, name);
-  const sheet = A.page.locator('[data-keep-safe]');
-  await expect(sheet).toBeVisible({ timeout: 60_000 });
-  await sheet.getByRole('button', { name: 'Use Face ID' }).click();
-  await expect(sheet.locator('[data-keep-safe-done="counted"]')).toBeVisible({ timeout: 60_000 });
-  // Offered at once, before "Done": recommended where the passkey syncs.
-  const prompt = sheet.locator('[data-recovery-prompt="synced"]');
-  await expect(prompt).toContainText('One more thing: your recovery sheet');
-  await expect(prompt).toContainText('If you ever lose your Apple or Google account, this sheet is the only way back.');
-  await shots(A.page, '15-saved-recovery-offered');
-  await prompt.locator('[data-recovery-make]').click();
+  // Not pushed right after setting up (one prompt after a seal): it waits in Settings.
+  await lockInFlow(A.page);
+  await expect(A.page.locator('[data-recovery-prompt], [data-recovery-dialog]')).toHaveCount(0);
+  await A.page.goto('/settings');
+  await shots(A.page, '15-settings-recovery-offered');
+  await A.page.locator('[data-settings-make-sheet]').click();
   const code = await makeAndCheckSheet(A.page, '16', { canSkip: true });
   const [plant] = await recordIds(A.page);
   await untilSaved(A.page, plant);
@@ -515,6 +548,10 @@ test('the recovery sheet: offered after Face ID, printed, checked, and it brings
   // A fresh browser: no passkey, nothing here but the sheet.
   const D = await device(browser, WINDOWS);
   await D.page.goto('/restore');
+  // Under "Other ways", with one line saying what a recovery sheet is.
+  await expect(D.page.locator('[data-restore-sheet-open]')).toBeHidden();
+  await D.page.locator('[data-restore-other-ways]').click();
+  await expect(D.page.locator('[data-restore-sheet-what]')).toContainText('A recovery sheet is a printed page');
   await D.page.locator('[data-restore-sheet-open]').click();
   const input = D.page.locator('[data-restore-sheet-input]');
   await input.fill(strangerCode());
@@ -561,13 +598,14 @@ test('a passkey that stays on one device counts only once a recovery sheet is ch
   const E = await device(browser, WINDOWS, undefined, { synced: false });
   const name = `Device-bound plant (practice) ${Date.now()}`;
   await logPlant(E.page, name);
-  const sheet = E.page.locator('[data-keep-safe]');
-  await expect(sheet).toBeVisible({ timeout: 60_000 });
-  await sheet.locator('[data-keep-safe-go]').click();
-  await expect(sheet.locator('[data-keep-safe-done="bound"]')).toBeVisible({ timeout: 60_000 });
-  await expect(sheet.locator('[data-recovery-prompt="bound"]')).toContainText('Make it now: it is the only way back.');
-  await shots(E.page, '22-saved-bound-recovery-offered');
-  await sheet.getByRole('button', { name: 'I’ll do it later' }).click();
+  await toBackupStep(E.page);
+  await E.page.locator('[data-backup-device-lock-go]').click();
+  // Set up, but it doesn't count: the step says so, offers the sheet, and Finish still waits.
+  const bound = E.page.locator('[data-backup-device-lock="bound"]');
+  await expect(bound).toContainText('Only this device can open your saved records', { timeout: 60_000 });
+  await expect(bound.locator('[data-backup-make-sheet]')).toBeVisible();
+  await expect(E.page.getByRole('button', { name: 'Finish' })).toHaveAttribute('aria-disabled', 'true');
+  await shots(E.page, '22-backup-step-bound');
   const [plant] = await recordIds(E.page);
   const backedUp = () =>
     E.page.evaluate(
@@ -601,11 +639,7 @@ test('stop saving on one device: the other says saving is off, stops trying, and
   const A = await device(browser, IPHONE);
   const name = `Stop saving plant (practice) ${Date.now()}`;
   await logPlant(A.page, name);
-  const sheet = A.page.locator('[data-keep-safe]');
-  await expect(sheet).toBeVisible({ timeout: 60_000 });
-  await sheet.getByRole('button', { name: 'Use Face ID' }).click();
-  await expect(sheet.locator('[data-keep-safe-done="counted"]')).toBeVisible({ timeout: 60_000 });
-  await sheet.getByRole('button', { name: 'Done' }).click();
+  await lockInFlow(A.page);
   const { credentials } = (await A.cdp.send('WebAuthn.getCredentials', {
     authenticatorId: A.authenticatorId,
   })) as unknown as { credentials: Record<string, unknown>[] };
@@ -651,6 +685,14 @@ test('stop saving on one device: the other says saving is off, stops trying, and
 
   // One tap saves again, with the same passkey: a new copy, and B counts again.
   await B.page.locator('[data-settings-save-again]').click();
+  // The sheet: one button named for what it is, never "Face ID", one line under it, and the file under "Other ways".
+  const sheet = B.page.locator('[data-keep-safe]');
+  await expect(sheet.getByRole('heading', { name: 'Keep your records safe' })).toBeVisible();
+  await expect(sheet.locator('[data-keep-safe-go]')).toHaveText('This device’s lock');
+  await expect(sheet).toContainText('Documents you keep on this device only aren’t included.');
+  await sheet.getByRole('button', { name: 'Other ways' }).click();
+  await expect(sheet.getByRole('button', { name: 'Keep a file myself' })).toBeVisible();
+  await shots(B.page, '02-keep-safe-sheet');
   await B.page.locator('[data-keep-safe-go]').click();
   await expect(B.page.locator('[data-keep-safe-done="counted"]')).toBeVisible({ timeout: 60_000 });
   await B.page.locator('[data-keep-safe]').getByRole('button', { name: 'Done' }).click();

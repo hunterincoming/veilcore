@@ -6,8 +6,15 @@ export const backup = {
   'app.backup.title': 'Save your backup',
   'app.backup.done': 'Done',
   'app.backup.shareTitle': 'VeilCore backup',
-  'app.backup.onlyWay':
-    "<b>This file is the only way to prove you hold your records</b>, and to get them back on a new phone or computer. VeilCore can't recover it or make another.",
+  'app.backup.oneWay':
+    '<b>A file you keep.</b> One of the ways to get your records back, and it works even without VeilCore.',
+  'app.backup.lock.text':
+    'Saves your records with VeilCore, locked so only you can open them: VeilCore doesn’t have the key.',
+  'app.backup.lock.orFile': 'Or keep a file yourself',
+  'app.backup.lock.savedTitle': 'Saved with VeilCore.',
+  'app.backup.lock.savedText':
+    'These records come back on a new device with your passkey. New ones save by themselves. A file you keep is in Settings, if you want one too.',
+  'app.backup.lock.saving': 'Saving with VeilCore…',
   'app.backup.saveIt': 'Save it',
   'app.backup.saved': 'Saved',
   'app.backup.savedSub': '{file} · one file for everything',

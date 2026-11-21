@@ -27,6 +27,8 @@ import { AppHeader } from '../AppHeader';
 import { ScanTextField } from '../../scan/ScanTextField';
 import { LABELS_PATH, type LabelsState } from '../labels/label-layouts';
 import { BackupStep } from './BackupStep';
+import { accountState, useAccountState } from '../../veilcore/account-copy';
+import { copyCountsHere, savedWithVeilCore } from './way-back';
 import { FlowFrame, ScreenHeading, focusScreenHeading, softDisabled } from './FlowFrame';
 import { today } from './log-flow-state';
 import { useT } from '../../i18n/app';
@@ -103,6 +105,16 @@ const takenNames = (records: readonly StrainRecord[]): ReadonlySet<string> =>
     ...records.map((r) => r.strainName),
     ...Object.values(loadLedger().rows).flatMap((e) => (e.record?.strainName ? [e.record.strainName] : [])),
   ]);
+
+/** The record ids of rows held for the backup, or undefined when any of them isn't in the ledger. */
+const heldIds = (rows: readonly PreparedRow[]): string[] | undefined => {
+  const ledger = loadLedger().rows;
+  const ids = rows.flatMap((r) => {
+    const id = ledger[r.hash]?.recordId;
+    return id ? [id] : [];
+  });
+  return ids.length === rows.length && ids.length > 0 ? ids : undefined;
+};
 
 const VAULT_WORDS: Record<string, AppKey> = {
   locked: 'app.sealed.refuse.noKey',
@@ -264,7 +276,13 @@ export const BatchFlow: React.FC<{ handoff: Handoff }> = ({ handoff }) => {
     return focusScreenHeading();
   }, [screen]);
 
-  const step = t('app.log.stepOf', { n: STEP[screen], total: 3 });
+  // Saved with VeilCore already: the backup step is skipped once these records are in the copy
+  // too (way-back.ts), so the counter has two steps.
+  const copyOn = copyCountsHere(useAccountState());
+  const step =
+    copyOn && screen !== 'backup'
+      ? t('app.log.stepOf', { n: screen === 'review' ? 1 : 2, total: 2 })
+      : t('app.log.stepOf', { n: STEP[screen], total: 3 });
   const blocked = problems.length > 0 || !online || busy;
 
   /** Seal every child here and keep it for the backup; nothing is sent yet. */
@@ -299,6 +317,14 @@ export const BatchFlow: React.FC<{ handoff: Handoff }> = ({ handoff }) => {
         return;
       }
       setRows(made);
+      // Held here, keys made: saved with VeilCore now, they go straight on to be sent; else the
+      // backup comes first, as before (never zero ways back).
+      const ids = heldIds(made);
+      if (ids && copyCountsHere(accountState()) && (await savedWithVeilCore(ids))) {
+        setScreen('saving');
+        void send(made);
+        return;
+      }
       setScreen('backup');
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
@@ -308,10 +334,10 @@ export const BatchFlow: React.FC<{ handoff: Handoff }> = ({ handoff }) => {
   };
 
   /** Send the sealed children: the same records, through the bulk import's path. */
-  const send = async () => {
+  const send = async (these: readonly PreparedRow[] = rows) => {
     setBusy(true);
     setError(undefined);
-    const result = await sealRows(rows, { onProgress: setProgress });
+    const result = await sealRows([...these], { onProgress: setProgress });
     setBusy(false);
     const ids = Object.values(result.outcomes).flatMap((o) => (o.state === 'sealed' ? [o.recordId] : []));
     setSaved(ids);
@@ -766,7 +792,11 @@ export const BatchFlow: React.FC<{ handoff: Handoff }> = ({ handoff }) => {
               onClick={() => void prepare()}
               sx={{ py: 1.6 }}
             >
-              {busy ? t('app.ask.batch.sealing') : t('app.log.nextSaveBackup')}
+              {busy
+                ? t('app.ask.batch.sealing')
+                : copyOn && Number.isFinite(count)
+                  ? tr.tp('app.ask.batch.saveThem', count)
+                  : t('app.log.nextSaveBackup')}
             </Button>
             <Typography id={hintId} variant="caption" color="text.secondary" sx={{ textAlign: 'center' }}>
               {problems.includes('parent')
@@ -786,6 +816,7 @@ export const BatchFlow: React.FC<{ handoff: Handoff }> = ({ handoff }) => {
           <BackupStep
             title={t('app.ask.batch.backupTitle')}
             stepLabel={step}
+            wayBackFor={heldIds(rows)}
             finishLabel={tr.tp('app.ask.batch.saveThem', rows.length)}
             onDone={() => {
               setScreen('saving');

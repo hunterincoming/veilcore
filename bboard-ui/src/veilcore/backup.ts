@@ -155,8 +155,8 @@ export type BackupContents = {
 };
 
 const WARNING =
-  'SECRET. This file is the only way to prove you hold your records, and to get them back on a new device. ' +
-  'Anyone with it can act as you. VeilCore has no copy and cannot make another. Keep a copy off this device.';
+  'SECRET. This file brings your records back on a new device, even without VeilCore. ' +
+  'Anyone with it can act as you. VeilCore has no copy of this file and cannot make another. Keep a copy off this device.';
 
 /** 4: a version 3 backup sealed with a password (`locked`). */
 export const LOCKED_BACKUP_VERSION = 4;

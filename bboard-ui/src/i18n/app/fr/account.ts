@@ -3,11 +3,11 @@
 import type { AppTranslation } from '../../translate';
 
 export const account = {
-  'app.account.use.faceId': 'Utiliser Face ID',
-  'app.account.use.touchId': 'Utiliser Touch ID',
-  'app.account.use.screenLock': 'Utiliser le verrouillage de l’écran',
-  'app.account.use.windowsHello': 'Utiliser Windows Hello',
+  'app.account.use.deviceLock': 'Le verrouillage de cet appareil',
   'app.account.use.passkey': 'Utiliser une clé d’accès',
+  'app.account.deviceLock.hint': 'Le code, le visage ou le doigt avec lequel vous déverrouillez votre téléphone.',
+  'app.account.deviceLock.hintComputer':
+    'Le mot de passe, le code PIN, le visage ou le doigt avec lequel vous déverrouillez votre ordinateur.',
 
   'app.account.sheet.title': 'Gardez vos enregistrements en sécurité',
   'app.account.sheet.lead': 'Pour pouvoir les récupérer, même si vous perdez cet appareil.',
@@ -74,7 +74,7 @@ export const account = {
   'app.account.restore.sameAccount':
     'Le même compte Apple ou Google que sur votre autre téléphone ? Cela marche tout simplement.',
   'app.account.restore.usePhone':
-    'Sur un ordinateur sans Face ID ? Choisissez « Utiliser un téléphone » dans la fenêtre qui s’ouvre, puis scannez le code avec votre téléphone.',
+    'Sur un ordinateur qui ne peut pas déverrouiller une clé d’accès tout seul ? Choisissez « Utiliser un téléphone » dans la fenêtre qui s’ouvre, puis scannez le code avec votre téléphone.',
   'app.account.restore.oldName': 'Clé d’accès créée sur {host} auparavant ? Essayez-la ici',
   'app.account.restore.otherWays': 'Autres moyens',
   'app.account.restore.found':
@@ -141,10 +141,7 @@ export const account = {
   'app.account.sheet.passkeyCheck':
     'Si cela se reproduit, <link>vérifiez la prise en charge des clés d’accès par ce navigateur</link>. La page montre ce que ce navigateur et cet appareil savent faire, et n’envoie rien.',
   // The way in, as a fragment after “with” (Home's first card, the live test on Windows).
-  'app.account.how.faceId': 'Face ID',
-  'app.account.how.touchId': 'Touch ID',
-  'app.account.how.screenLock': 'le verrouillage de l’écran',
-  'app.account.how.windowsHello': 'Windows Hello',
+  'app.account.how.deviceLock': 'le verrouillage de cet appareil',
   'app.account.how.passkey': 'une clé d’accès',
   'app.account.line.off':
     '<b>La sauvegarde chez VeilCore est désactivée.</b> Votre copie sauvegardée a été supprimée, peut-être avec « Arrêter la sauvegarde chez VeilCore » sur un autre appareil.',

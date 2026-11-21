@@ -47,7 +47,7 @@ export const recovery = {
   'app.recovery.sheet.passkey':
     '同じ記録を開くパスキーは、パスワード一覧で「VeilCore: unlocks your records · {tag}」という名前です。',
   'app.recovery.sheet.how':
-    '記録を取り戻すには：{site}を開き、「記録を取り戻す」をタップし、「復旧シートを使う」を選んで、コードを入力します。',
+    '記録を取り戻すには：{site}を開き、「記録を取り戻す」をタップし、「ほかの方法」から「復旧シートを使う」を選んで、コードを入力します。',
   'app.recovery.sheet.phishing':
     'VeilCoreがこのコードを尋ねるのは{site}上だけです（このシートの確認、または記録を取り戻すとき）。ほかの場所では入力しないでください。電話、WhatsApp、メールでは、VeilCoreに対しても伝えないでください。',
   'app.recovery.sheet.anyone':
@@ -56,6 +56,8 @@ export const recovery = {
 
   'app.recovery.restore.use': '復旧シートを使う',
   'app.recovery.restore.lead': '復旧シートのコードを入力してください。ハイフンやスペースはあってもなくても構いません。',
+  'app.recovery.restore.what':
+    '復旧シートは、28文字のコードを印刷したページです。パスキーを設定したあと、設定で作れます。作ったことがない場合は、ほかの方法を使ってください。',
   'app.recovery.restore.open': '記録を開く',
   'app.recovery.restore.addTitle': '次からはシートなしで開く',
   'app.recovery.restore.addText':

@@ -23,7 +23,7 @@ export const offline = {
   'app.install.button': 'Zum Home-Bildschirm',
   'app.install.iosSteps': 'Auf iPhone oder iPad: in Safari auf Teilen tippen, dann „Zum Home-Bildschirm“.',
   'app.install.iosEmpty':
-    'Lassen Sie zuerst, mit Netz, alles senden, was in Safari noch wartet. Das Symbol auf dem Home-Bildschirm hat einen eigenen Speicher und öffnet sich deshalb leer; Ihre Datensätze sind in Safari weiter sicher. Öffnen Sie das Symbol mit Netz und holen Sie sie dort mit Face ID oder Ihrer Sicherungsdatei zurück. Nutzen Sie danach das Symbol: In Safari angelegte Datensätze erscheinen dort nicht.',
+    'Lassen Sie zuerst, mit Netz, alles senden, was in Safari noch wartet. Das Symbol auf dem Home-Bildschirm hat einen eigenen Speicher und öffnet sich deshalb leer; Ihre Datensätze sind in Safari weiter sicher. Öffnen Sie das Symbol mit Netz und holen Sie sie dort mit der Sperre dieses Geräts oder Ihrer Sicherungsdatei zurück. Nutzen Sie danach das Symbol: In Safari angelegte Datensätze erscheinen dort nicht.',
   'app.install.iosKeep':
     'Safari kann eine Website löschen, die Sie 7 Tage nicht geöffnet haben. Das Symbol auf dem Home-Bildschirm bleibt. Behalten Sie Ihre Sicherungskopie trotzdem.',
   'app.install.ready':
