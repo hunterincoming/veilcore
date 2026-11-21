@@ -7,8 +7,14 @@ export const backup = {
   'app.backup.title': 'バックアップを保存する',
   'app.backup.done': '完了',
   'app.backup.shareTitle': 'VeilCoreのバックアップ',
-  'app.backup.onlyWay':
-    '<b>このファイルは、記録を保有していることを証明する唯一の手段です</b>。新しいスマートフォンやコンピューターで記録を取り戻すのにも使います。VeilCoreはこのファイルを復元することも、作り直すこともできません。',
+  'app.backup.oneWay': '<b>あなたが保管するファイルです。</b>記録を取り戻す方法の1つで、VeilCoreがなくても使えます。',
+  'app.backup.lock.text':
+    '記録をVeilCoreに保存し、あなただけが開けるように鍵をかけます。VeilCoreはその鍵を持っていません。',
+  'app.backup.lock.orFile': 'または、ファイルを自分で保管する',
+  'app.backup.lock.savedTitle': 'VeilCoreに保存しました。',
+  'app.backup.lock.savedText':
+    'これらの記録は、新しい端末でもパスキーで取り戻せます。新しい記録も自動で保存されます。自分で保管するファイルも欲しい場合は、設定にあります。',
+  'app.backup.lock.saving': 'VeilCoreに保存しています…',
   'app.backup.saveIt': '保存する',
   'app.backup.saved': '保存しました',
   'app.backup.savedSub': '{file} · すべてが入った1つのファイル',

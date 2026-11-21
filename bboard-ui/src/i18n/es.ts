@@ -50,7 +50,7 @@ export const es: Strings = {
   'm.help.backup.t': 'Su copia de seguridad',
   'm.help.backup.1q': '¿Por qué el sitio insiste en que guarde una copia de seguridad?',
   'm.help.backup.1a':
-    'El archivo de copia de seguridad es la única forma de demostrar que usted tiene sus registros, y la única forma de recuperarlos en un teléfono o una computadora nuevos. VeilCore no puede recuperarlo ni crear otro.',
+    'Se lo pide mientras sus registros no tengan otra forma de volver. El archivo de copia de seguridad es una forma: recupera sus registros en un teléfono o una computadora nuevos, incluso sin VeilCore. Guardarlos con VeilCore, con el bloqueo de este dispositivo, es otra; entonces el archivo queda a su criterio. VeilCore no puede recuperar el archivo ni hacer otro.',
   'm.help.backup.2q': '¿Dónde debo guardarlo?',
   'm.help.backup.2a':
     'En una memoria USB o en un gestor de contraseñas, y además en un segundo lugar. Quien tenga el archivo puede abrir sus registros y actuar en su nombre. Agregue una contraseña al guardarlo: así el archivo por sí solo no abre nada. Si olvida la contraseña, nadie puede abrir el archivo, tampoco nosotros.',

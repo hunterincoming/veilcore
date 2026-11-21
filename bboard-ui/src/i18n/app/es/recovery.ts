@@ -47,7 +47,7 @@ export const recovery = {
   'app.recovery.sheet.passkey':
     'La llave de acceso que abre los mismos registros se llama «VeilCore: unlocks your records · {tag}» en sus contraseñas.',
   'app.recovery.sheet.how':
-    'Para recuperar sus registros: entre en {site}, toque «Recuperar mis registros», elija «Usar mi hoja de recuperación» y escriba el código.',
+    'Para recuperar sus registros: entre en {site}, toque «Recuperar mis registros», luego «Otras formas», elija «Usar mi hoja de recuperación» y escriba el código.',
   'app.recovery.sheet.phishing':
     'VeilCore pide este código solo en {site}: para comprobar esta hoja o para recuperar sus registros. Nunca lo escriba en otro lugar. Nunca lo dicte por teléfono, WhatsApp ni correo, ni siquiera a VeilCore.',
   'app.recovery.sheet.anyone':
@@ -56,6 +56,8 @@ export const recovery = {
 
   'app.recovery.restore.use': 'Usar mi hoja de recuperación',
   'app.recovery.restore.lead': 'Escriba el código de su hoja de recuperación. Los guiones y los espacios no importan.',
+  'app.recovery.restore.what':
+    'Una hoja de recuperación es una página impresa con un código de 28 caracteres. Puede hacerla en Configuración después de configurar una llave de acceso; si nunca hizo una, use otra forma.',
   'app.recovery.restore.open': 'Abrir mis registros',
   'app.recovery.restore.addTitle': 'Ábralos sin la hoja la próxima vez',
   'app.recovery.restore.addText':

@@ -7,8 +7,15 @@ export const backup = {
   'app.backup.title': 'Guarde su copia de seguridad',
   'app.backup.done': 'Listo',
   'app.backup.shareTitle': 'Copia de seguridad de VeilCore',
-  'app.backup.onlyWay':
-    '<b>Este archivo es la única forma de demostrar que tiene sus registros</b> y de recuperarlos en un teléfono o una computadora nuevos. VeilCore no puede recuperarlo ni hacer otro.',
+  'app.backup.oneWay':
+    '<b>Un archivo que usted guarda.</b> Una de las formas de recuperar sus registros, y funciona incluso sin VeilCore.',
+  'app.backup.lock.text':
+    'Guarda sus registros con VeilCore, cifrados para que solo usted pueda abrirlos: VeilCore no tiene la clave.',
+  'app.backup.lock.orFile': 'O guarde usted mismo un archivo',
+  'app.backup.lock.savedTitle': 'Guardado con VeilCore.',
+  'app.backup.lock.savedText':
+    'Estos registros vuelven en un dispositivo nuevo con su llave de acceso. Los nuevos se guardan solos. Si también quiere un archivo propio, está en Configuración.',
+  'app.backup.lock.saving': 'Guardando con VeilCore…',
   'app.backup.saveIt': 'Guárdelo',
   'app.backup.saved': 'Guardado',
   'app.backup.savedSub': '{file} · un solo archivo para todo',

@@ -49,7 +49,7 @@ export const fr: Strings = {
   'm.help.backup.t': 'Votre sauvegarde',
   'm.help.backup.1q': 'Pourquoi le site me demande-t-il sans cesse d’enregistrer une sauvegarde ?',
   'm.help.backup.1a':
-    'Le fichier de sauvegarde est le seul moyen de prouver que vous détenez vos enregistrements, et le seul moyen de les retrouver sur un nouveau téléphone ou ordinateur. VeilCore ne peut ni le récupérer ni en créer un autre.',
+    'Il est demandé tant que vos enregistrements n’ont pas d’autre moyen de revenir. Le fichier de sauvegarde en est un : il récupère vos enregistrements sur un nouveau téléphone ou ordinateur, même sans VeilCore. Les sauvegarder chez VeilCore, avec le verrouillage de cet appareil, en est un autre ; le fichier est alors à votre choix. VeilCore ne peut ni récupérer le fichier ni en refaire un.',
   'm.help.backup.2q': 'Où dois-je le conserver ?',
   'm.help.backup.2a':
     'Sur une clé USB ou dans un gestionnaire de mots de passe, et aussi à un deuxième endroit. Toute personne qui a le fichier peut ouvrir vos enregistrements et agir en votre nom. Ajoutez un mot de passe en l’enregistrant : le fichier seul n’ouvre alors rien. Si vous oubliez le mot de passe, personne ne peut ouvrir le fichier, nous non plus.',

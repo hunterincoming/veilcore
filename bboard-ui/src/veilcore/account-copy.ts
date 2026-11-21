@@ -398,8 +398,12 @@ export const presentSlots = (m: Manifest, listed: readonly Listed[]): SlotEntry[
 
 /** A passkey on this device not opened again for this long is asked once more (the 90-day re-verify). */
 export const REVERIFY_MS = 90 * 86_400_000;
-/** Days after setting up when the recovery sheet is asked for again, while there is none. */
-export const SHEET_REMINDER_DAYS = [7, 30] as const;
+/**
+ * Records held here before Home asks, once, for a recovery sheet while there is none checked:
+ * not right after setting up (one prompt after a seal: the simplify-unlock plan, phase 1), but
+ * once there is something worth losing.
+ */
+export const SHEET_REMINDER_RECORDS = 3;
 
 // ---- this device -------------------------------------------------------------------------
 
@@ -1817,8 +1821,8 @@ export type AccountState =
       readonly sheet?: { readonly createdAt: string; readonly checked: boolean; readonly checkedAt?: string };
       /** This device's passkey hasn't been opened again for 90 days: asked once more (re-verify). */
       readonly reverify: boolean;
-      /** Day 7 or day 30 after setting up, with no checked recovery sheet: one quiet line asks. */
-      readonly sheetReminder?: 7 | 30;
+      /** Three records or more and no checked recovery sheet: one quiet line asks, once. */
+      readonly sheetReminder?: true;
     };
 
 let held: boolean | undefined;
@@ -1839,7 +1843,10 @@ export const accountState = (): AccountState => {
   if (!PASSKEY_BACKUP) return { kind: 'off' };
   const r = remembered();
   if (!r) return !passkeysAvailable() ? { kind: 'off' } : legacyRemembered() ? { kind: 'older' } : { kind: 'none' };
-  if (heldFor !== r.copyId) refreshHeld();
+  // Asked again while "not held": a save remembers the copy (and draws this) before its keys are
+  // kept here (makeCopy), and a "not held" read then would stick until a reload, so a browser
+  // that does hold them showed as locked (found by the simplify-unlock plan's e2e, phase 1).
+  if (heldFor !== r.copyId || held === false) refreshHeld();
   const here = thisDeviceId();
   const mine = r.manifest.devices[here];
   const devices = Object.entries(r.manifest.devices).map(([id, d]) => ({
@@ -1888,40 +1895,35 @@ export const accountState = (): AccountState => {
         }
       : {}),
     reverify: faceIdHere && now - Date.parse(ownSlot?.verifiedAt ?? '') > REVERIFY_MS,
-    ...(() => {
-      const day = sheetReminderDay(r.manifest, now);
-      return day ? { sheetReminder: day } : {};
-    })(),
+    ...(sheetReminderDue(r.manifest) ? { sheetReminder: true as const } : {}),
   };
 };
 
-/** Day 7 or 30 after the first way in was set up, while no sheet is checked and that day's line wasn't dismissed. */
-const sheetReminderDay = (m: Manifest, now: number): 7 | 30 | undefined => {
-  if (m.slots.some((x) => x.kind === 'recovery' && x.verifiedAt)) return undefined;
-  const since = Math.min(...m.slots.filter((x) => x.kind === 'passkey').map((x) => Date.parse(x.createdAt)));
-  if (!Number.isFinite(since)) return undefined;
-  const days = (now - since) / 86_400_000;
-  const dismissed = remindersDismissed();
-  if (days >= 30) return dismissed.includes(30) ? undefined : 30;
-  if (days >= 7) return dismissed.includes(7) ? undefined : 7;
-  return undefined;
+/** Asked once: a passkey set up, no checked sheet, three records or more here, and never dismissed. */
+const sheetReminderDue = (m: Manifest): boolean => {
+  if (m.slots.some((x) => x.kind === 'recovery' && x.verifiedAt)) return false;
+  if (!m.slots.some((x) => x.kind === 'passkey')) return false;
+  if (allKeys().length < SHEET_REMINDER_RECORDS) return false;
+  return !reminderDismissed();
 };
 
-const remindersDismissed = (): number[] => {
+/**
+ * "Later" on this line (stored as 3), or on the day 30 line it replaced, counts; "Later" on the old
+ * day 7 line doesn't (that one asked again on day 30 anyway).
+ */
+const reminderDismissed = (): boolean => {
   try {
     const v: unknown = JSON.parse(localStorage.getItem(REMINDED) ?? '[]');
-    return Array.isArray(v) ? v.filter((x): x is number => typeof x === 'number') : [];
+    return Array.isArray(v) && v.some((x) => x === SHEET_REMINDER_RECORDS || x === 30);
   } catch {
-    return [];
+    return false;
   }
 };
 
-/** "Later" on the reminder: that day's line isn't shown again (day 30's still comes). */
-export const dismissSheetReminder = (day: 7 | 30): void => {
+/** "Later" on the reminder: it isn't shown again (the sheet stays in Settings). */
+export const dismissSheetReminder = (): void => {
   try {
-    const had = remindersDismissed();
-    // Dismissing day 30 covers day 7 too: never shown after it.
-    localStorage.setItem(REMINDED, JSON.stringify([...new Set([...had, day, ...(day === 30 ? [7] : [])])]));
+    localStorage.setItem(REMINDED, JSON.stringify([SHEET_REMINDER_RECORDS]));
   } catch {
     /* asked again next visit */
   }

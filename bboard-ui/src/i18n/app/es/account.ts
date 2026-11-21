@@ -3,11 +3,10 @@
 import type { AppTranslation } from '../../translate';
 
 export const account = {
-  'app.account.use.faceId': 'Usar Face ID',
-  'app.account.use.touchId': 'Usar Touch ID',
-  'app.account.use.screenLock': 'Usar el bloqueo de pantalla',
-  'app.account.use.windowsHello': 'Usar Windows Hello',
+  'app.account.use.deviceLock': 'El bloqueo de este dispositivo',
   'app.account.use.passkey': 'Usar una llave de acceso',
+  'app.account.deviceLock.hint': 'El código, la cara o el dedo con que desbloquea su teléfono.',
+  'app.account.deviceLock.hintComputer': 'La contraseña, el PIN, la cara o el dedo con que desbloquea su computadora.',
 
   'app.account.sheet.title': 'Mantenga sus registros a salvo',
   'app.account.sheet.lead': 'Para que pueda recuperarlos, aunque pierda este dispositivo.',
@@ -68,7 +67,7 @@ export const account = {
   'app.account.restore.sameAccount':
     '¿La misma cuenta de Apple o Google que en su otro teléfono? Entonces funciona sin más.',
   'app.account.restore.usePhone':
-    '¿En una computadora sin Face ID? Elija «Usar un teléfono» en la ventana que se abre y escanee el código con su teléfono.',
+    '¿En una computadora que no puede desbloquear una llave de acceso por sí sola? Elija «Usar un teléfono» en la ventana que se abre y escanee el código con su teléfono.',
   'app.account.restore.oldName': '¿Creó su llave de acceso antes en {host}? Pruébela aquí',
   'app.account.restore.otherWays': 'Otras formas',
   'app.account.restore.found':
@@ -133,10 +132,7 @@ export const account = {
   'app.account.sheet.passkeyCheck':
     'Si vuelve a pasar, <link>compruebe si este navegador admite llaves de acceso</link>. Muestra lo que pueden hacer este navegador y este dispositivo, y no envía nada.',
   // The way in, as a fragment after “with” (Home's first card, the live test on Windows).
-  'app.account.how.faceId': 'Face ID',
-  'app.account.how.touchId': 'Touch ID',
-  'app.account.how.screenLock': 'el bloqueo de pantalla',
-  'app.account.how.windowsHello': 'Windows Hello',
+  'app.account.how.deviceLock': 'el bloqueo de este dispositivo',
   'app.account.how.passkey': 'una llave de acceso',
   'app.account.line.off':
     '<b>El guardado con VeilCore está desactivado.</b> Su copia guardada se eliminó, quizás con «Dejar de guardar con VeilCore» en otro dispositivo.',

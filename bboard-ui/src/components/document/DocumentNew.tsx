@@ -294,6 +294,8 @@ export const DocumentNew: React.FC = () => {
           <BackupStep
             title={t('app.backup.title')}
             finishLabel={t('app.doc.local.toRecord')}
+            // A document kept on this device only needs the file: the account copy never holds it.
+            wayBackFor={backupFor.local ? undefined : [backupFor.id]}
             onDone={() => void navigate(`/record/${backupFor.id}`)}
           />
         </FlowFrame>

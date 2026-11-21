@@ -3,11 +3,11 @@
 import type { AppTranslation } from '../../translate';
 
 export const account = {
-  'app.account.use.faceId': 'Face ID verwenden',
-  'app.account.use.touchId': 'Touch ID verwenden',
-  'app.account.use.screenLock': 'Displaysperre verwenden',
-  'app.account.use.windowsHello': 'Windows Hello verwenden',
+  'app.account.use.deviceLock': 'Sperre dieses Geräts',
   'app.account.use.passkey': 'Passkey verwenden',
+  'app.account.deviceLock.hint': 'Der Code, das Gesicht oder der Finger, mit dem Sie Ihr Handy entsperren.',
+  'app.account.deviceLock.hintComputer':
+    'Das Passwort, die PIN, das Gesicht oder der Finger, mit dem Sie Ihren Computer entsperren.',
 
   'app.account.sheet.title': 'Datensätze sicher aufbewahren',
   'app.account.sheet.lead': 'Damit Sie sie zurückbekommen, auch wenn Sie dieses Gerät verlieren.',
@@ -73,7 +73,7 @@ export const account = {
   'app.account.restore.sameAccount':
     'Dasselbe Apple- oder Google-Konto wie auf Ihrem anderen Handy? Dann klappt es einfach.',
   'app.account.restore.usePhone':
-    'Auf einem Computer ohne Face ID? Wählen Sie im Fenster, das sich öffnet, „Handy verwenden“ und scannen Sie den Code mit Ihrem Handy.',
+    'Auf einem Computer, der einen Passkey nicht selbst entsperren kann? Wählen Sie im Fenster, das sich öffnet, „Handy verwenden“ und scannen Sie den Code mit Ihrem Handy.',
   'app.account.restore.oldName': 'Passkey früher auf {host} angelegt? Hier versuchen',
   'app.account.restore.otherWays': 'Andere Wege',
   'app.account.restore.found':
@@ -141,10 +141,7 @@ export const account = {
   'app.account.sheet.passkeyCheck':
     'Wenn das wieder passiert, <link>prüfen Sie die Passkey-Unterstützung dieses Browsers</link>. Die Seite zeigt, was dieser Browser und dieses Gerät können, und sendet nichts.',
   // The way in, as a fragment after “with” (Home's first card, the live test on Windows).
-  'app.account.how.faceId': 'Face ID',
-  'app.account.how.touchId': 'Touch ID',
-  'app.account.how.screenLock': 'Ihrer Displaysperre',
-  'app.account.how.windowsHello': 'Windows Hello',
+  'app.account.how.deviceLock': 'der Sperre dieses Geräts',
   'app.account.how.passkey': 'einem Passkey',
   'app.account.line.off':
     '<b>Das Speichern bei VeilCore ist aus.</b> Ihre gespeicherte Kopie wurde gelöscht, vielleicht mit „Nicht mehr bei VeilCore speichern“ auf einem anderen Gerät.',

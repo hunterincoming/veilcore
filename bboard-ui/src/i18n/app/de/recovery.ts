@@ -49,7 +49,7 @@ export const recovery = {
   'app.recovery.sheet.passkey':
     'Der Passkey, der dieselben Datensätze öffnet, heißt in Ihren Passwörtern „VeilCore: unlocks your records · {tag}“.',
   'app.recovery.sheet.how':
-    'So holen Sie Ihre Datensätze zurück: Öffnen Sie {site}, tippen Sie auf „Meine Datensätze zurückholen“, wählen Sie „Mein Wiederherstellungsblatt verwenden“ und geben Sie den Code ein.',
+    'So holen Sie Ihre Datensätze zurück: Öffnen Sie {site}, tippen Sie auf „Meine Datensätze zurückholen“, dann auf „Andere Wege“, wählen Sie „Mein Wiederherstellungsblatt verwenden“ und geben Sie den Code ein.',
   'app.recovery.sheet.phishing':
     'VeilCore fragt nach diesem Code nur unter {site}: um dieses Blatt zu prüfen oder um Ihre Datensätze zurückzuholen. Geben Sie ihn nirgendwo sonst ein. Lesen Sie ihn nie am Telefon, per WhatsApp oder E-Mail vor, auch nicht VeilCore.',
   'app.recovery.sheet.anyone':
@@ -59,6 +59,8 @@ export const recovery = {
   'app.recovery.restore.use': 'Mein Wiederherstellungsblatt verwenden',
   'app.recovery.restore.lead':
     'Geben Sie den Code von Ihrem Wiederherstellungsblatt ein. Bindestriche und Leerzeichen spielen keine Rolle.',
+  'app.recovery.restore.what':
+    'Ein Wiederherstellungsblatt ist eine ausgedruckte Seite mit einem Code aus 28 Zeichen. Sie können es in den Einstellungen anlegen, nachdem Sie einen Passkey eingerichtet haben; wenn Sie nie eines angelegt haben, nutzen Sie einen anderen Weg.',
   'app.recovery.restore.open': 'Meine Datensätze öffnen',
   'app.recovery.restore.addTitle': 'Beim nächsten Mal von selbst öffnen',
   'app.recovery.restore.addText':
