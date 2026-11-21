@@ -1,0 +1,9 @@
+{
+  "format": "veilcore-lab/v1",
+  "name": "VeilCore Demo Lab",
+  "keys": [
+    {
+      "publicKey": "a39921a2bf4c18c2dbea16e9b83958097f16f66e2fe0bf77be310dfe6c22138f"
+    }
+  ]
+}

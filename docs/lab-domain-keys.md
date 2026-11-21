@@ -115,3 +115,10 @@ The same file format works for a body that says which labs count (ICAR for paren
 ISTA for seed testing, a national accreditation body): a file on the body's domain listing
 its members' keys. When one body wants to do that, the registry reads its list the same way,
 and pages say "listed by <body>". No contract change, no change for labs.
+
+## veilcore.org's own demo lab
+
+`bboard-ui/public/.well-known/veilcore-lab.json` lists the key of "VeilCore Demo Lab", a demo
+lab the founders run on veilcore.org to show and test a lab name checked through its website
+on mainnet. It signs sample results only, never a real lab's. To retire it, remove the key from
+that file (see "What the registry does" above).
