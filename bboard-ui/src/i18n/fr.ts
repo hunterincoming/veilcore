@@ -216,6 +216,7 @@ export const fr: Strings = {
   'm.nav.demo': 'Essayer la démo',
   'm.nav.yours': 'Vos enregistrements',
   'm.nav.menu': 'Menu',
+  'm.nav.forLabs': 'Pour les laboratoires',
   'm.hero.label': 'La preuve de ce que vous détenez',
   'm.hero.title1': 'Datez votre enregistrement.',
   'm.hero.title2': 'Gardez votre génétique privée.',
@@ -626,6 +627,8 @@ export const fr: Strings = {
     'Scellez un enregistrement et associez-y son rapport ADN. Si la plante réapparaît sous un autre nom, un laboratoire peut comparer un nouveau test avec votre rapport. Dans la démo web, l’association est enregistrée avec votre enregistrement mais pas encore datée. VeilCore ne fait pas de tests ADN.',
   'm.for.2t': 'Protection des obtentions et certification.',
   'm.for.2link': 'Comment fonctionne une preuve →',
+  // The lab slide's way in (lab/LabDoor.tsx), and on How it works.
+  'm.for.3link': 'Vous dirigez un laboratoire ? Configurez la signature de votre laboratoire →',
   'm.for.3t': 'Du matériel entre les mains d’un laboratoire.',
   'm.for.4t': 'Les résultats du laboratoire, renvoyés vers vous.',
   'm.for.4p':

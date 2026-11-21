@@ -87,6 +87,11 @@ export const home = {
   'app.home.roleView.both': 'Vista de obtentor y laboratorio',
   'app.home.roleChange': '{view} · cambiar',
   'app.home.chooseView': '¿Obtentor o laboratorio? Elija su vista',
+  // lab/LabDoor.tsx: /for-labs, asked once of a breeder with records of their own
+  'app.home.labDoor.title': '¿Agregar las herramientas de laboratorio?',
+  'app.home.labDoor.text': 'Sus registros quedan como están.',
+  'app.home.labDoor.add': 'Agregar herramientas de laboratorio',
+  'app.home.labDoor.notNow': 'Ahora no',
   'app.home.saveProblem.records': 'registros',
   'app.home.saveProblem.agreements': 'acuerdos',
   'app.home.saveProblem.unreachable':

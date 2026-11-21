@@ -79,6 +79,11 @@ export const home = {
   'app.home.roleView.both': '育成者とラボ向けの表示',
   'app.home.roleChange': '{view} · 変更',
   'app.home.chooseView': '育成者ですか、ラボですか？表示を選ぶ',
+  // lab/LabDoor.tsx: /for-labs, asked once of a breeder with records of their own
+  'app.home.labDoor.title': 'ラボ用の機能を追加しますか？',
+  'app.home.labDoor.text': 'あなたの記録はそのまま残ります。',
+  'app.home.labDoor.add': 'ラボ用の機能を追加する',
+  'app.home.labDoor.notNow': '今はしない',
   'app.home.saveProblem.records': '記録',
   'app.home.saveProblem.agreements': '契約',
   'app.home.saveProblem.unreachable':

@@ -88,6 +88,11 @@ export const home = {
   'app.home.roleView.both': 'Vue obtenteur et laboratoire',
   'app.home.roleChange': '{view} · changer',
   'app.home.chooseView': 'Obtenteur ou laboratoire ? Choisissez votre vue',
+  // lab/LabDoor.tsx: /for-labs, asked once of a breeder with records of their own
+  'app.home.labDoor.title': 'Ajouter les outils de laboratoire ?',
+  'app.home.labDoor.text': 'Vos enregistrements restent tels quels.',
+  'app.home.labDoor.add': 'Ajouter les outils de laboratoire',
+  'app.home.labDoor.notNow': 'Pas maintenant',
   'app.home.saveProblem.records': 'enregistrements',
   'app.home.saveProblem.agreements': 'accords',
   'app.home.saveProblem.unreachable':

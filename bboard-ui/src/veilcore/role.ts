@@ -75,6 +75,33 @@ export const roleAfterReceiving = (
 /** Whether to show the things a lab does: receive, attest, retract. */
 export const isLab = (r: Role | null): boolean => r === 'lab' || r === 'both';
 
+/**
+ * What the lab door (/for-labs, components/lab/LabDoor.tsx) does with the view. A lab told to "open
+ * veilcore.org" had no way to its tools from the site, and inside the app only a footer link
+ * (the co-founder looked for it and didn't find it, 21 Nov). Opening /for-labs gives the lab view:
+ *   - 'keep': the view already has the lab's tools;
+ *   - 'lab': nobody has said, or a breeder with no records of their own here: the lab view;
+ *   - 'ask': a breeder with records of their own: asked once whether to add the lab's tools
+ *     ('both'), so their records stay in front of them.
+ */
+export const labDoorStep = (current: Role | null, hasOwnRecords: boolean): 'keep' | 'lab' | 'ask' =>
+  isLab(current) ? 'keep' : hasOwnRecords ? 'ask' : 'lab';
+
+/**
+ * The navigation state that asks the lab's home to open the signing key screen (AttesterSetup.tsx),
+ * which it does only when this browser has no key yet. Here, not there, so the door doesn't fetch
+ * the key screen's code to name it.
+ */
+export const OPEN_SIGNING_KEY_STATE = 'openSigningKey';
+
+/**
+ * Where to go once a view is chosen, or null to stay. A lab arriving at the record wizard would
+ * be asked to seal a cultivar; its own first screen is the records page, which shows receiving
+ * and signing. The same rule for the role question and the header's view menu.
+ */
+export const pageAfterRole = (r: Role, pathname: string): string | null =>
+  isLab(r) && !isBreeder(r) && pathname === '/new' ? '/records' : null;
+
 export const ROLE_COPY: Record<Role, { label: string; blurb: string }> = {
   breeder: {
     label: 'I breed or hold genetics',

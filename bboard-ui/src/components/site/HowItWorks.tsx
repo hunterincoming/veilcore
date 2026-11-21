@@ -19,6 +19,7 @@ import React, { useRef } from 'react';
 import { Link as RouterLink, useLocation } from 'react-router-dom';
 import { useI18n } from '../../i18n';
 import { SiteShell } from './SiteShell';
+import { LAB_DOOR } from '../SiteHeader';
 import { EventDisplay } from './EventDisplay';
 import {
   Arrow,
@@ -108,6 +109,12 @@ export const HowItWorks: React.FC = () => {
           </h2>
           <p className="k-lead" data-reveal="" style={{ '--d': 1 } as React.CSSProperties}>
             {t('m.hiw.labP')}
+          </p>
+          {/* A lab's way in (lab/LabDoor.tsx), where the page says what a lab does. */}
+          <p className="k-lead" data-reveal="" style={{ '--d': 2 } as React.CSSProperties}>
+            <RouterLink to={LAB_DOOR} data-for-labs="how">
+              {arrowed(t('m.for.3link'))}
+            </RouterLink>
           </p>
         </PhotoScreen>
 

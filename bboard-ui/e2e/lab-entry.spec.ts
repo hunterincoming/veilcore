@@ -2,9 +2,9 @@
 // code in one browser; a lab with a fresh browser lands on /, finds "Got a lab code or a link
 // from someone?" in the hero, pastes the code and reaches the receive screen. It then
 // receives the sample (saving its backup first, in the same dialog), gets the lab view, sets
-// up its signing key from the plant's next step (the key screen puts "Continue" first and
-// folds the optional name matching and the raw key away) and is shown "Sign that it arrived"
-// at once.
+// up its signing key from the plant's next step (the key screen puts "Continue" first, shows the
+// optional name matching open, and folds did:web and the raw key away) and is shown "Sign that it
+// arrived" at once.
 //
 // The stand-in keeps one registry for both browsers, as far as these screens need it: each
 // holder's sealed rows, a delivery with its sealed offer and sample details, a claim that
@@ -283,9 +283,12 @@ test('a fresh browser lands on /, finds the lab path, pastes a lab code and rece
   await keyDialog.getByRole('button', { name: 'Done' }).click();
   await expect(keyDialog.locator('[data-lab-backed-up]')).toBeVisible();
   await expect(cont).toHaveClass(/MuiButton-contained/);
-  await expect(keyDialog.getByText(/We match the name; we don't vouch for your work\./)).toBeHidden();
-  await expect(keyDialog.getByText(/\/\.well-known\/veilcore-lab\.json/)).toBeHidden();
-  await expect(keyDialog.getByText(/_veilcore-lab\./)).toBeHidden();
+  // Showing the name as the lab's is open on the screen (21 Nov: the website step was missed
+  // folded): the email, the website file and the DNS TXT record. Only did:web stays folded.
+  await expect(keyDialog.getByText(/We match the name; we don't vouch for your work\./)).toBeVisible();
+  await expect(keyDialog.getByText(/\/\.well-known\/veilcore-lab\.json/)).toBeVisible();
+  await expect(keyDialog.getByText(/_veilcore-lab\./)).toBeVisible();
+  await expect(keyDialog.getByText(/did:web/)).toBeHidden();
   const pub = await lab.evaluate(
     () =>
       (JSON.parse(localStorage.getItem('veilcore.attester.v1') ?? '{}') as { keypair?: { publicKey?: string } }).keypair
@@ -293,20 +296,15 @@ test('a fresh browser lands on /, finds the lab path, pastes a lab code and rece
   );
   expect(pub).toMatch(/^[0-9a-f]{40,}$/);
   await expect(keyDialog.getByText(pub, { exact: true })).toBeHidden();
-  await keyDialog.getByRole('button', { name: /optional, do it once/ }).click();
-  await expect(keyDialog.getByText(/We match the name; we don't vouch for your work\./)).toBeVisible();
-  await expect(keyDialog.getByText(/\/\.well-known\/veilcore-lab\.json/)).toBeVisible();
-  await expect(keyDialog.getByText(/_veilcore-lab\./)).toBeHidden();
   // A fold's words count as visible as soon as it starts to open, while the dialog (centred on
   // the screen) is still growing and moving. "Other ways" was found shut once (13 Nov, under
   // load; not reproduced in 12 runs since, 4 of them at a sixth of the CPU): most likely a click
-  // that landed as the button moved and was retried, opening and shutting it. So each fold is
-  // let finish opening before anything inside it is clicked, and "Other ways" must say it is open.
-  await expect(keyDialog.locator('#fold-lab-key-optional')).toHaveClass(/MuiCollapse-entered/);
+  // that landed as the button moved and was retried, opening and shutting it. So the fold is
+  // let finish opening before anything inside it is read, and "Other ways" must say it is open.
   await keyDialog.getByRole('button', { name: 'Other ways' }).click();
   await expect(keyDialog.getByRole('button', { name: 'Other ways' })).toHaveAttribute('aria-expanded', 'true');
   await expect(keyDialog.locator('#fold-lab-key-other-ways')).toHaveClass(/MuiCollapse-entered/);
-  await expect(keyDialog.getByText(/_veilcore-lab\./)).toBeVisible();
+  await expect(keyDialog.getByText(/did:web/)).toBeVisible();
   await keyDialog.getByRole('button', { name: 'Show key' }).click();
   await expect(keyDialog.getByText(pub, { exact: true })).toBeVisible();
   await expect(keyDialog.getByRole('button', { name: 'Copy key' })).toBeVisible();

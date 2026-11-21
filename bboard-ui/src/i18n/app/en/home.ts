@@ -86,6 +86,11 @@ export const home = {
   'app.home.roleView.both': 'Breeder and lab view',
   'app.home.roleChange': '{view} · change',
   'app.home.chooseView': 'Breeder or lab? Choose your view',
+  // lab/LabDoor.tsx: /for-labs, asked once of a breeder with records of their own
+  'app.home.labDoor.title': 'Add lab tools?',
+  'app.home.labDoor.text': 'Your records stay as they are.',
+  'app.home.labDoor.add': 'Add lab tools',
+  'app.home.labDoor.notNow': 'Not now',
   // SaveProblemBar.tsx
   'app.home.saveProblem.records': 'records',
   'app.home.saveProblem.agreements': 'agreements',

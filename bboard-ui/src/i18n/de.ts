@@ -216,6 +216,7 @@ export const de: Strings = {
   'm.nav.demo': 'Demo testen',
   'm.nav.yours': 'Ihre Datensätze',
   'm.nav.menu': 'Menü',
+  'm.nav.forLabs': 'Für Labore',
   'm.hero.label': 'Nachweis dessen, was Sie haben',
   'm.hero.title1': 'Datieren Sie Ihren Datensatz.',
   'm.hero.title2': 'Ihre Genetik bleibt privat.',
@@ -623,6 +624,8 @@ export const de: Strings = {
     'Versiegeln Sie einen Datensatz und koppeln Sie seinen DNA-Bericht. Taucht die Pflanze unter anderem Namen auf, kann ein Labor einen neuen Test mit Ihrem Bericht vergleichen. In der Web-Demo wird die Kopplung mit Ihrem Datensatz gespeichert, aber noch nicht datiert. VeilCore führt keine DNA-Tests durch.',
   'm.for.2t': 'Sortenschutz und Anerkennung.',
   'm.for.2link': 'So funktioniert ein Beleg →',
+  // The lab slide's way in (lab/LabDoor.tsx), and on How it works.
+  'm.for.3link': 'Sie betreiben ein Labor? Die Signatur Ihres Labors einrichten →',
   'm.for.3t': 'Material in den Händen eines Labors.',
   'm.for.4t': 'Laborergebnisse, zurück zu Ihnen.',
   'm.for.4p':
