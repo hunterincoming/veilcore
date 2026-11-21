@@ -63,7 +63,7 @@ export const scan = {
   'app.labels.download': 'PDF herunterladen',
   'app.labels.downloadHelp':
     'Speichert die Etiketten als PDF in der tatsächlichen Größe des Bogens, erstellt auf diesem Gerät. Drucken Sie es mit 100 % oder „Tatsächliche Größe“.',
-  'app.labels.downloadOpen': 'PDF öffnen',
+  'app.labels.downloadOpen': 'Nichts gespeichert? PDF öffnen',
   'app.labels.downloadFailed':
     'Das PDF konnte auf diesem Gerät nicht erstellt werden. Nutzen Sie stattdessen „Drucken“.',
   'app.labels.preview': 'So werden die Etiketten gedruckt',

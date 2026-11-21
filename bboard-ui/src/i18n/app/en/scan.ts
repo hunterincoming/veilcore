@@ -64,7 +64,7 @@ export const scan = {
   'app.labels.download': 'Download PDF',
   'app.labels.downloadHelp':
     'Saves the labels as a PDF at the sheet’s true size, made on this device. Print it at 100% or “Actual size”.',
-  'app.labels.downloadOpen': 'Open the PDF',
+  'app.labels.downloadOpen': 'Nothing saved? Open the PDF',
   'app.labels.downloadFailed': 'The PDF couldn’t be made on this device. Use Print instead.',
   'app.labels.preview': 'How the labels will print',
   'app.labels.pageOf': 'Page {n} of {of}',

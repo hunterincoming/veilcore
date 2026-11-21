@@ -2,7 +2,10 @@
 // vector QR code per label where the screen puts it, and each code reads back (with zxing-wasm,
 // the site's own reader) as the label's check link.
 // SPDX-License-Identifier: Apache-2.0
+import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 import { createRequire } from 'node:module';
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
@@ -22,6 +25,21 @@ import {
   type LabelSize,
 } from './label-layouts';
 import { labelsPdf, qrRuns, type QrDrawing } from './label-pdf';
+
+/** A PDF renderer on this machine (poppler's pdftoppm), for the test that draws the file as a reader would. */
+const PDFTOPPM = (() => {
+  try {
+    execFileSync('pdftoppm', ['-v'], { stdio: 'ignore' });
+    return true;
+  } catch {
+    return false;
+  }
+})();
+
+const prepared = (async () => {
+  const wasm = fs.readFileSync(createRequire(import.meta.url).resolve('zxing-wasm/reader/zxing_reader.wasm'));
+  await prepareZXingModule({ overrides: { wasmBinary: wasm.buffer }, fireImmediately: true });
+})();
 
 const FP = 'ab'.repeat(32);
 const rec = (n: number) => ({
@@ -177,8 +195,7 @@ describe('the downloaded label sheet', () => {
   });
 
   it('each QR code reads back as its label’s check link', async () => {
-    const wasm = fs.readFileSync(createRequire(import.meta.url).resolve('zxing-wasm/reader/zxing_reader.wasm'));
-    await prepareZXingModule({ overrides: { wasmBinary: wasm.buffer }, fireImmediately: true });
+    await prepared;
     for (const [size, showName] of [
       ['thermal', false],
       ['letter', true],
@@ -211,6 +228,60 @@ describe('the downloaded label sheet', () => {
       expect(read?.text, size).toBe(labelLink(r, showName));
     }
   });
+
+  it.skipIf(!PDFTOPPM)(
+    'drawn by a real PDF reader: the code reads back and the words are the right way up',
+    async () => {
+      await prepared;
+      const l = LAYOUTS.thermal;
+      const pages = paginate([rec(3)], 1, 0, l);
+      let box = { x: 0, y: 0, w: 0, h: 0 };
+      // The words' picture: black in its top quarter, white below, to see which way up it lands.
+      const pdf = labelsPdf({
+        pages,
+        layout: l,
+        showName: false,
+        scanToCheck: 'Scan to check',
+        qr,
+        text: (_lines, b, width, height) => {
+          box = b;
+          const gray = new Uint8Array(width * height).fill(255);
+          gray.fill(0, 0, width * Math.floor(height / 4));
+          return { width, height, gray };
+        },
+      });
+      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'labels-pdf-'));
+      try {
+        fs.writeFileSync(path.join(dir, 'l.pdf'), pdf);
+        execFileSync('pdftoppm', ['-r', '300', '-gray', '-singlefile', path.join(dir, 'l.pdf'), path.join(dir, 'l')]);
+        const pgm = fs.readFileSync(path.join(dir, 'l.pgm'));
+        const head = /^P5\s+(\d+)\s+(\d+)\s+255\s/.exec(pgm.subarray(0, 40).toString('latin1'))!;
+        const [width, height] = [Number(head[1]), Number(head[2])];
+        // 2 × 1 inch at 300 dpi.
+        expect([width, height]).toEqual([600, 300]);
+        const px = pgm.subarray(head[0].length);
+        const at = (xMm: number, yMm: number) =>
+          px[Math.round((yMm / 25.4) * 300) * width + Math.round((xMm / 25.4) * 300)];
+        const cx = box.x + box.w / 2;
+        expect(at(cx, box.y + box.h * 0.1)).toBeLessThan(64);
+        expect(at(cx, box.y + box.h * 0.9)).toBeGreaterThan(192);
+        const data = new Uint8ClampedArray(width * height * 4);
+        for (let i = 0; i < width * height; i++) {
+          data[i * 4] = data[i * 4 + 1] = data[i * 4 + 2] = px[i];
+          data[i * 4 + 3] = 255;
+        }
+        const [read] = await readBarcodes(
+          { data, width, height, colorSpace: 'srgb' },
+          {
+            formats: ['QRCode'],
+          },
+        );
+        expect(read?.text).toBe(labelLink(rec(3), false));
+      } finally {
+        fs.rmSync(dir, { recursive: true, force: true });
+      }
+    },
+  );
 
   it('refuses a QR drawing it does not read, rather than print a wrong code', () => {
     expect(qrRuns('M2 3h4v1H2zM0,1 h1v1H0z')).toEqual([

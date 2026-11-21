@@ -58,7 +58,7 @@ export const scan = {
   'app.labels.download': 'PDFをダウンロード',
   'app.labels.downloadHelp':
     'ラベルを用紙の実際のサイズのPDFとして保存します。PDFはこの端末で作られます。印刷するときは倍率100%（実際のサイズ）を選んでください。',
-  'app.labels.downloadOpen': 'PDFを開く',
+  'app.labels.downloadOpen': '保存されていない場合は、PDFを開く',
   'app.labels.downloadFailed': 'この端末ではPDFを作れませんでした。代わりに「印刷」を使ってください。',
   'app.labels.preview': '印刷されるラベル',
   'app.labels.pageOf': '{of}ページ中{n}ページ目',

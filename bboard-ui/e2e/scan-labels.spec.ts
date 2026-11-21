@@ -266,6 +266,9 @@ test('a saved record prints QR labels: the short ID by default, the name only wh
   expect((await readLabelPdfCode(file))?.replace(/^https?:\/\/[^/]+/, '')).toBe(
     `/verify/${id}?fp=${String(held.records[0].recordFingerprint)}`,
   );
+  // A link to the same file stays, for a browser that took the tap and saved nothing.
+  await expect(page.locator('[data-labels-download-open]')).toHaveText('Nothing saved? Open the PDF');
+  await expect(page.locator('[data-labels-download-open]')).toHaveAttribute('href', /^blob:/);
   if (SHOTS) {
     fs.copyFileSync(await saved.path(), path.join(SHOTS, saved.suggestedFilename()));
     await page.locator('[data-labels-download]').scrollIntoViewIfNeeded();

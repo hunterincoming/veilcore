@@ -71,19 +71,14 @@ export const drawWords = (
 };
 
 /**
- * Saves a file in one tap: a blob: address and a link with `download`, which Safari on iPhone and
+ * Saves a file in one tap: a link to a blob: address with `download`, which Safari on iPhone and
  * iPad (13 and later), Chrome, Firefox and Edge all take. A browser without `download` gets the
- * file in a new tab, where its own Share or Save is; if that tab is blocked, the page shows a link
- * to the file instead ('blocked', with the address: the page lets it go when it is done with it).
+ * file in a new tab, where its own Share or Save is. Either way the address is returned: some
+ * browsers (an app's built-in browser, an iPhone Home Screen app) take the tap and save nothing,
+ * so the page keeps an "Open the PDF" link to it, and lets the address go when it is done with it.
  */
-export const saveFile = (
-  bytes: Uint8Array,
-  name: string,
-  type: string,
-): { how: 'saved' | 'opened'; url?: undefined } | { how: 'blocked'; url: string } => {
+export const saveFile = (bytes: Uint8Array, name: string, type: string): string => {
   const url = URL.createObjectURL(new Blob([bytes as BlobPart], { type }));
-  // Safari reads the file after the tap returns: the address is kept a while, not let go at once.
-  const later = () => setTimeout(() => URL.revokeObjectURL(url), 120_000);
   if ('download' in HTMLAnchorElement.prototype) {
     const a = document.createElement('a');
     a.href = url;
@@ -92,13 +87,9 @@ export const saveFile = (
     document.body.appendChild(a);
     a.click();
     a.remove();
-    later();
-    return { how: 'saved' };
+  } else {
+    // Not 'noopener': the new tab is this site's own file. If it is blocked, the link stays.
+    window.open(url, '_blank');
   }
-  // Not 'noopener': with it, window.open always returns null. The new tab is this site's own file.
-  if (window.open(url, '_blank')) {
-    later();
-    return { how: 'opened' };
-  }
-  return { how: 'blocked', url };
+  return url;
 };

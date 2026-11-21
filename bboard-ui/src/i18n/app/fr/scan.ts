@@ -66,7 +66,7 @@ export const scan = {
   'app.labels.download': 'Télécharger le PDF',
   'app.labels.downloadHelp':
     'Enregistre les étiquettes dans un PDF à la taille réelle de la planche, fait sur cet appareil. Imprimez-le à 100 % ou en « Taille réelle ».',
-  'app.labels.downloadOpen': 'Ouvrir le PDF',
+  'app.labels.downloadOpen': 'Rien n’a été enregistré ? Ouvrir le PDF',
   'app.labels.downloadFailed': 'Le PDF n’a pas pu être fait sur cet appareil. Utilisez « Imprimer ».',
   'app.labels.preview': 'Aperçu de l’impression',
   'app.labels.pageOf': 'Page {n} sur {of}',

@@ -120,7 +120,7 @@ export const labelsPdf = (input: LabelsPdfInput): Uint8Array => {
         throw new Error('labels: the words were drawn at the wrong size');
       const obj = add(
         `<< /Type /XObject /Subtype /Image /Width ${width} /Height ${height} /ColorSpace /DeviceGray /BitsPerComponent 8 /Filter /FlateDecode >>`,
-        zlibSync(pic.gray, { level: 9 }),
+        zlibSync(pic.gray, { level: 6 }),
       );
       im = { name: `T${images.size}`, obj };
       images.set(key, im);
@@ -142,7 +142,11 @@ export const labelsPdf = (input: LabelsPdfInput): Uint8Array => {
       );
       // One fill for the whole code, so a viewer draws no hairline seams between modules.
       if (rects.length) ops.push('0 g', ...rects, 'f');
-      const box = { x: text.x, y, w: text.w, h: l.label.h };
+      // The picture covers only the lines (a little above the tallest letters, below the lowest
+      // descenders), not the whole label: a third of the pixels to draw and keep.
+      const top = Math.max(y, Math.min(...lines.map((li) => li.y - li.size)));
+      const bottom = Math.min(y + l.label.h, Math.max(...lines.map((li) => li.y + li.size * 0.35)));
+      const box = { x: text.x, y: top, w: text.w, h: bottom - top };
       const im = pictureOf(lines, box);
       used.set(im.name, im.obj);
       ops.push(`q ${num(box.w)} 0 0 ${num(-box.h)} ${num(box.x)} ${num(box.y + box.h)} cm /${im.name} Do Q`);

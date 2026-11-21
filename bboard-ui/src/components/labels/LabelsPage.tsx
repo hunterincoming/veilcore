@@ -15,11 +15,11 @@ import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
 import {
   Alert,
   Box,
-  Link,
   Button,
   Checkbox,
   FormControlLabel,
   FormGroup,
+  Link,
   MenuItem,
   Paper,
   Radio,
@@ -111,18 +111,19 @@ export const LabelsPage: React.FC = () => {
       return n;
     });
   const back = state.back;
-  // The PDF: saved in one tap. 'failed' if this browser couldn't make it; a link to the file if it
-  // made it but would neither save nor open it (label-download.ts saveFile).
-  // Kept only for the labels it was made from: change anything and it goes.
+  // The PDF, made in this tab and saved in one tap (label-pdf.ts, label-download.tsx). Made inside
+  // the tap itself, so the browser lets it save. Then a link to the same file stays under the
+  // buttons, for a browser that took the tap and saved nothing; or a note if it couldn't be made.
+  // Either shows only for the labels it was made from: change anything and it goes.
   const made = JSON.stringify([size, showName, skip, copies, chosen.map((r) => r.id)]);
   const [savedAs, setSaved] = useState<{ for: string; failed?: true; url?: string } | undefined>();
   const saved = savedAs?.for === made ? savedAs : undefined;
-  const leftUrl = saved?.url;
-  useEffect(() => (leftUrl ? () => URL.revokeObjectURL(leftUrl) : undefined), [leftUrl]);
+  const savedUrl = savedAs?.url;
+  // The file's address is let go when a new one is made or the page closes, not before.
+  useEffect(() => (savedUrl ? () => URL.revokeObjectURL(savedUrl) : undefined), [savedUrl]);
   const download = () => {
-    let bytes: Uint8Array;
     try {
-      bytes = labelsPdf({
+      const bytes = labelsPdf({
         pages,
         layout,
         showName,
@@ -130,20 +131,19 @@ export const LabelsPage: React.FC = () => {
         qr: drawQrCodes,
         text: drawWords,
       });
+      const url = saveFile(
+        bytes,
+        labelFileName(
+          chosen.map((r) => r.id),
+          size,
+        ),
+        'application/pdf',
+      );
+      setSaved({ for: made, url });
     } catch (e) {
       console.warn('labels: the PDF was not made', e);
       setSaved({ for: made, failed: true });
-      return;
     }
-    const done = saveFile(
-      bytes,
-      labelFileName(
-        chosen.map((r) => r.id),
-        size,
-      ),
-      'application/pdf',
-    );
-    setSaved(done.how === 'blocked' ? { for: made, url: done.url } : undefined);
   };
 
   return (
@@ -335,12 +335,12 @@ export const LabelsPage: React.FC = () => {
               {t('app.labels.downloadFailed')}
             </Alert>
           )}
-          {leftUrl && (
-            <Alert severity="info" variant="outlined">
-              <Link href={leftUrl} target="_blank" rel="noopener" data-labels-download-open="">
+          {saved?.url && (
+            <Typography variant="body2">
+              <Link href={saved.url} target="_blank" rel="noopener" data-labels-download-open="">
                 {t('app.labels.downloadOpen')}
               </Link>
-            </Alert>
+            </Typography>
           )}
 
           {pages.length > 0 && (

@@ -89,14 +89,19 @@ device. Two buttons:
   its true size (2 × 1 in, US Letter or A4), with every label where the screen puts it
   (`labelParts`, shared with the screen). The QR codes are vector (one filled rectangle per run
   of dark modules, from qrcode.react with the screen's settings), so they print sharp at any
-  size. The words beside them are a 600 dpi greyscale picture drawn by the browser in the
-  screen's fonts: a PDF's built-in fonts have no Japanese or other scripts a name may use, and
+  size. The words beside them are a 600 dpi greyscale picture of just the lines, drawn once per
+  record by the browser in the screen's fonts: a PDF's built-in fonts have no Japanese or other scripts a name may use, and
   embedding a font would make every file large. The PDF is written by hand (PDF 1.4, compressed
   with `fflate`, already in the site); no PDF library was added. The file is
   `veilcore-labels-<record ID>-<paper>.pdf` for one record, the device's date in place of the ID
-  for several. It is saved from a `blob:` address with a `download` link (Safari on iPhone and
-  iPad 13 and later, Chrome, Firefox, Edge); a browser without that opens it in a new tab, and
-  if that is blocked the page shows an "Open the PDF" link. Not yet tried on a real iPhone.
+  for several. The PDF is made inside the tap, so the browser lets it save, and saved from a
+  `blob:` address with a `download` link (Safari on iPhone and iPad 13 and later, Chrome,
+  Firefox, Edge); a browser without `download` opens it in a new tab. Some browsers take the tap
+  and save nothing (an app's built-in browser, perhaps an iPhone Home Screen app), so a
+  "Nothing saved? Open the PDF" link to the same file stays under the buttons until the labels
+  change. Not yet tried on a real iPhone. One difference from the screen: a line too long for
+  its room is squeezed to fit in both, but the screen squeezes by an estimate of its width and
+  the PDF by its measured width, so a line can sit a little differently.
 - **Print** opens the browser's print window (100% or "Actual size", no margins).
 
 What a label carries:
