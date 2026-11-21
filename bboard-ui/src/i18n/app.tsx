@@ -15,6 +15,7 @@ import { withSends } from './app/sends';
 import type { Lang } from '../config/languages';
 import { appEn } from './app/en';
 import { forKind, makeTranslator, type AppDict, type Translator } from './translate';
+import { fulfilled, tracked } from './settled';
 import { isAnimal } from '../veilcore/animal-profile';
 import { isStrain } from '../veilcore/strain-profile';
 
@@ -53,7 +54,8 @@ const dictOrEnglish = new Map<Lang, Promise<AppDict>>();
 const loadDictOrEnglish = (lang: Lang): Promise<AppDict> => {
   let p = dictOrEnglish.get(lang);
   if (!p) {
-    p = loadAppStrings(lang).catch(() => appEn as AppDict);
+    const have = loaded[lang];
+    p = have ? fulfilled(have) : tracked(loadAppStrings(lang).catch(() => appEn as AppDict));
     dictOrEnglish.set(lang, p);
   }
   return p;
@@ -75,7 +77,9 @@ const buildDict = (raw: AppDict, lang: Lang): AppDict => {
 /** The app's text in the visitor's language. */
 export const useT = (): Translator => {
   const { lang } = useI18n();
-  const raw = loaded[lang] ?? use(loadDictOrEnglish(lang));
+  // `use` on every render, never behind `??` (settled.ts: React error #520).
+  const fetched = use(loadDictOrEnglish(lang));
+  const raw = loaded[lang] ?? fetched;
   const dict = buildDict(raw, lang);
   return useMemo(() => {
     const have = translators.get(lang);
