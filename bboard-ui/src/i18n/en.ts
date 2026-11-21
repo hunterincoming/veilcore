@@ -341,7 +341,7 @@ export const en = {
   'm.for.2t': 'Variety protection and certification.',
   'm.for.2link': 'How a claim works →',
   // The lab slide's way in (lab/LabDoor.tsx), and on How it works.
-  'm.for.3link': "Run a lab? Set up your lab's signature →",
+  'm.for.3link': "Run a lab? Set up your lab's signing key →",
   'm.for.3t': "Material in a lab's hands.",
   'm.for.3p':
     "Send material with a lab code. The lab signs a receipt with its own key, so the record shows a second party. The receipt is a real signature, kept by VeilCore's registry, not on the chain. Terms such as no propagation are practice only in the web demo.",

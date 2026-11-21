@@ -50,8 +50,8 @@ export const home = {
   'app.home.labJobsText':
     'Confirmez ce qui arrive, puis renvoyez les résultats depuis la page de l’enregistrement. Les deux sont signés avec la propre clé de votre laboratoire, pas par nous, et les résultats sont verrouillés pour que seul l’obtenteur puisse les ouvrir.',
   'app.home.confirmDelivery': 'Confirmer une livraison',
-  'app.home.labSignature': 'La signature de votre laboratoire',
-  'app.home.setUpLabSignature': 'Configurer la signature de votre laboratoire',
+  'app.home.labSignature': 'La clé de signature de votre laboratoire',
+  'app.home.setUpLabSignature': 'Configurer la clé de signature de votre laboratoire',
   'app.home.openPlant': 'Ouvrir {name}',
   'app.home.quoted': '« {v} »',
   'app.home.labReportWaiting': 'Rapport de laboratoire en attente',
@@ -90,6 +90,8 @@ export const home = {
   'app.home.chooseView': 'Obtenteur ou laboratoire ? Choisissez votre vue',
   // lab/LabDoor.tsx: /for-labs, asked once of a breeder with records of their own
   'app.home.labDoor.title': 'Ajouter les outils de laboratoire ?',
+  'app.home.labDoor.what':
+    'Vous verrez une vue laboratoire avec votre clé de signature et les échantillons que vous recevez.',
   'app.home.labDoor.text': 'Vos enregistrements restent tels quels.',
   'app.home.labDoor.add': 'Ajouter les outils de laboratoire',
   'app.home.labDoor.notNow': 'Pas maintenant',

@@ -42,8 +42,8 @@ export const home = {
   'app.home.labJobsText':
     '届いたものを確認し、記録のページから結果を送り返します。どちらも私たちではなくラボ自身の鍵で署名され、結果は育成者だけが開けるように鍵がかけられます。',
   'app.home.confirmDelivery': '届いたものを確認する',
-  'app.home.labSignature': 'ラボの署名',
-  'app.home.setUpLabSignature': 'ラボの署名を設定する',
+  'app.home.labSignature': 'ラボの署名用の鍵',
+  'app.home.setUpLabSignature': 'ラボの署名用の鍵を設定する',
   'app.home.openPlant': '{name} を開く',
   'app.home.quoted': '「{v}」',
   'app.home.labReportWaiting': '検査報告書が届いています',
@@ -81,6 +81,7 @@ export const home = {
   'app.home.chooseView': '育成者ですか、ラボですか？表示を選ぶ',
   // lab/LabDoor.tsx: /for-labs, asked once of a breeder with records of their own
   'app.home.labDoor.title': 'ラボ用の機能を追加しますか？',
+  'app.home.labDoor.what': 'ラボ向けの表示で、署名用の鍵と受け取ったサンプルを確認できます。',
   'app.home.labDoor.text': 'あなたの記録はそのまま残ります。',
   'app.home.labDoor.add': 'ラボ用の機能を追加する',
   'app.home.labDoor.notNow': '今はしない',

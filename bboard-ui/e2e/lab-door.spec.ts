@@ -4,7 +4,7 @@
 //   - a new visitor on veilcore.org's home page reaches the signing key screen in 3 taps or
 //     fewer through "For labs" (the header, the home page's lab slide, How it works), in all
 //     five languages, and lands on the lab's home whose solid button is "Set up your lab's
-//     signature";
+//     signing key";
 //   - from /records anyone switches to the lab view in 2 taps from the header's view menu, and
 //     back;
 //   - a browser with records, or used before, that opens /for-labs is asked once, plainly, and
@@ -50,7 +50,7 @@ const FOR_LABS = {
   fr: 'Pour les laboratoires',
   ja: 'ラボ向け',
 };
-const SLIDE_LINK_EN = "Run a lab? Set up your lab's signature →";
+const SLIDE_LINK_EN = "Run a lab? Set up your lab's signing key →";
 
 const LANGS = [
   { lang: 'en', home: homeEn, lab: labEn },
@@ -274,6 +274,7 @@ test.describe('a breeder with records of their own', () => {
     const ask = page.getByRole('dialog', { name: homeEn['app.home.labDoor.title'] });
     await expect(ask).toBeVisible();
     await expect(ask).toContainText(homeEn['app.home.labDoor.text']);
+    await expect(ask).toContainText(homeEn['app.home.labDoor.what']);
     await ask.getByRole('button', { name: homeEn['app.home.labDoor.add'] }).click();
     await expect(keyScreen(page)).toBeVisible();
     expect(await role(page)).toBe('both');

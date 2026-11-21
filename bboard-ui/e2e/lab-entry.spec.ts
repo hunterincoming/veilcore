@@ -262,7 +262,7 @@ test('a fresh browser lands on /, finds the lab path, pastes a lab code and rece
   // Received: the plant's page, the lab view from now on, and the next step is the lab's key.
   await expect(lab).toHaveURL(/\/record\/VEIL-/, { timeout: 30_000 });
   expect(await lab.evaluate(() => localStorage.getItem('veilcore.role.v1'))).toBe('lab');
-  await expect(lab.getByRole('heading', { name: 'Set up your lab’s signature' })).toBeVisible();
+  await expect(lab.getByRole('heading', { name: 'Set up your lab’s signing key' })).toBeVisible();
   await lab.getByRole('button', { name: 'Set it up' }).first().click();
   const keyDialog = lab.getByRole('dialog', { name: /signing key/ });
   await keyDialog.getByLabel(/^Name/).fill('E2E Lab');
@@ -408,7 +408,7 @@ test('a lab that backs up before its first code receives it without a second bac
   await lab.goto('/records');
   await lab.getByRole('button', { name: "I'm a lab" }).click();
   await lab.getByRole('button', { name: /I run a lab/ }).click();
-  await lab.getByRole('button', { name: /Set up your lab.s signature/ }).click();
+  await lab.getByRole('button', { name: /Set up your lab.s signing key/ }).click();
   const keyDialog = lab.getByRole('dialog', { name: /signing key|signature/ });
   await keyDialog.getByLabel(/^Name/).fill('E2E Lab');
   await keyDialog.getByRole('button', { name: /Create my key/ }).click();

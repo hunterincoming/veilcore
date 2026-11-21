@@ -623,7 +623,7 @@ export const es: Strings = {
   'm.for.2t': 'Protección de variedades y certificación.',
   'm.for.2link': 'Cómo funciona una afirmación →',
   // The lab slide's way in (lab/LabDoor.tsx), and on How it works.
-  'm.for.3link': '¿Tiene un laboratorio? Configure la firma de su laboratorio →',
+  'm.for.3link': '¿Tiene un laboratorio? Configure la clave de firma de su laboratorio →',
   'm.for.3t': 'Material en manos de un laboratorio.',
   'm.for.4t': 'Resultados de laboratorio, de vuelta a usted.',
   'm.for.4p':

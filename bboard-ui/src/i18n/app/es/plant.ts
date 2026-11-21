@@ -201,7 +201,7 @@ export const plant = {
   'app.plant.next.rejected.title': 'Usted rechazó esta muestra',
   'app.plant.next.rejected.why':
     'No se firmó nada. VeilCore no avisa al obtentor: avísele usted, para que pueda enviar otra.',
-  'app.plant.next.setup.title': 'Configure la firma de su laboratorio',
+  'app.plant.next.setup.title': 'Configure la clave de firma de su laboratorio',
   'app.plant.next.setup.why':
     'Así podrá firmar que esta muestra llegó y devolver el informe de laboratorio firmado por su laboratorio.',
   'app.plant.next.setup.action': 'Configurarla',

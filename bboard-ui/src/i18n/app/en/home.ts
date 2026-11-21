@@ -47,8 +47,8 @@ export const home = {
   'app.home.labJobsText':
     "Confirm what arrives, then send results back from the record's page. Both are signed with your lab's own key, not by us, and results are locked so only the breeder can open them.",
   'app.home.confirmDelivery': 'Confirm a delivery',
-  'app.home.labSignature': "Your lab's signature",
-  'app.home.setUpLabSignature': "Set up your lab's signature",
+  'app.home.labSignature': "Your lab's signing key",
+  'app.home.setUpLabSignature': "Set up your lab's signing key",
   'app.home.openPlant': 'Open {name}',
   'app.home.quoted': '“{v}”',
   'app.home.labReportWaiting': 'Lab report waiting',
@@ -88,6 +88,7 @@ export const home = {
   'app.home.chooseView': 'Breeder or lab? Choose your view',
   // lab/LabDoor.tsx: /for-labs, asked once of a breeder with records of their own
   'app.home.labDoor.title': 'Add lab tools?',
+  'app.home.labDoor.what': "You'll see a lab view with your signing key and samples you receive.",
   'app.home.labDoor.text': 'Your records stay as they are.',
   'app.home.labDoor.add': 'Add lab tools',
   'app.home.labDoor.notNow': 'Not now',

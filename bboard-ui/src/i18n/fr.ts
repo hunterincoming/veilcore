@@ -628,7 +628,7 @@ export const fr: Strings = {
   'm.for.2t': 'Protection des obtentions et certification.',
   'm.for.2link': 'Comment fonctionne une preuve →',
   // The lab slide's way in (lab/LabDoor.tsx), and on How it works.
-  'm.for.3link': 'Vous dirigez un laboratoire ? Configurez la signature de votre laboratoire →',
+  'm.for.3link': 'Vous dirigez un laboratoire ? Configurez la clé de signature de votre laboratoire →',
   'm.for.3t': 'Du matériel entre les mains d’un laboratoire.',
   'm.for.4t': 'Les résultats du laboratoire, renvoyés vers vous.',
   'm.for.4p':

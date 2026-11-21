@@ -35,6 +35,8 @@ export const ROUTE_TIERS: Record<string, RouteTier> = {
   '/help': { tier: 'core' },
 
   // ---- role: a lab ----
+  // A lab's way in from the site ("For labs"): the lab view and its signing key (lab/LabDoor.tsx).
+  '/for-labs': { tier: 'role', role: 'lab' },
   '/lab/results': { tier: 'role', role: 'lab' },
   '/check-lab-result': { tier: 'role', role: 'lab' },
 

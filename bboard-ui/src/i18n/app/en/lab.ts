@@ -224,7 +224,7 @@ export const lab = {
   'app.lab.recv.linkIntro':
     "Your receipt is signed. Link it to this delivery so the breeder sees it: until then their page doesn't count it, because anyone can sign a statement about a plant, but only whoever used the lab code can link one to the delivery.",
   'app.lab.recv.linking': 'Linking…',
-  'app.lab.recv.setUpFirst': "Set up your lab's signature first; then you can sign that this sample arrived.",
+  'app.lab.recv.setUpFirst': "Set up your lab's signing key first; then you can sign that this sample arrived.",
   'app.lab.recv.checking': "Checking the breeder's record…",
   'app.lab.recv.notRecorded': 'Your receipt was not recorded: {error}.',
   'app.lab.recv.noCodeHere': 'this plant has no lab code on this device',
@@ -414,7 +414,7 @@ export const lab = {
     'Your browser signs the lab report’s code with your lab’s key and locks the file so only the breeder can open it. The locked file waits on VeilCore’s server for the breeder to open, and VeilCore doesn’t have its key.',
   'app.lab.out.cancelCorrection': 'Cancel the correction',
   'app.lab.out.turnedAway': "You turned this sample away, so there's no lab report to send.",
-  'app.lab.out.setUpFirst': "Set up your lab's signature first, so the breeder can tell the lab report is yours.",
+  'app.lab.out.setUpFirst': "Set up your lab's signing key first, so the breeder can tell the lab report is yours.",
   'app.lab.out.noLockHere':
     "This browser doesn't have the breeder's lock for this delivery. Paste the lab code they sent you.",
   'app.lab.out.useCode': 'Use this lab code',

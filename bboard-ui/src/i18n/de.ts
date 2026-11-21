@@ -625,7 +625,7 @@ export const de: Strings = {
   'm.for.2t': 'Sortenschutz und Anerkennung.',
   'm.for.2link': 'So funktioniert ein Beleg →',
   // The lab slide's way in (lab/LabDoor.tsx), and on How it works.
-  'm.for.3link': 'Sie betreiben ein Labor? Die Signatur Ihres Labors einrichten →',
+  'm.for.3link': 'Sie betreiben ein Labor? Den Signaturschlüssel Ihres Labors einrichten →',
   'm.for.3t': 'Material in den Händen eines Labors.',
   'm.for.4t': 'Laborergebnisse, zurück zu Ihnen.',
   'm.for.4p':

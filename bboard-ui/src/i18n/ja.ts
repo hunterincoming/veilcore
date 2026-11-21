@@ -621,7 +621,7 @@ export const ja: Strings = {
   'm.for.2t': '品種保護と認証。',
   'm.for.2link': 'クレームの仕組み →',
   // The lab slide's way in (lab/LabDoor.tsx), and on How it works.
-  'm.for.3link': 'ラボの方へ：ラボの署名を設定する →',
+  'm.for.3link': 'ラボの方へ：ラボの署名用の鍵を設定する →',
   'm.for.3t': 'ラボに預けた素材。',
   'm.for.4t': 'ラボの結果を、あなたの手元へ。',
   'm.for.4p':

@@ -59,6 +59,10 @@ export const LabDoor: React.FC = () => {
     <Dialog open={asking} onClose={notNow} maxWidth="xs" fullWidth aria-labelledby="lab-door-title" data-lab-door="">
       <DialogTitle id="lab-door-title">{t('app.home.labDoor.title')}</DialogTitle>
       <DialogContent>
+        {/* What changes, then what doesn't (review, 21 Nov). */}
+        <Typography variant="body1" sx={{ mb: 1 }}>
+          {t('app.home.labDoor.what')}
+        </Typography>
         <Typography variant="body1">{t('app.home.labDoor.text')}</Typography>
       </DialogContent>
       <DialogActions>

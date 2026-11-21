@@ -51,7 +51,7 @@ test('a lab signs numbers with its report; the breeder adds them; the record nam
   await lab.goto('/records');
   await lab.getByRole('button', { name: "I'm a lab" }).click();
   await lab.getByRole('button', { name: /I run a lab/ }).click();
-  await lab.getByRole('button', { name: /Set up your lab.s signature/ }).click();
+  await lab.getByRole('button', { name: /Set up your lab.s signing key/ }).click();
   await lab.getByLabel(/^Name/).fill('E2E Lab');
   await lab.getByRole('button', { name: /Create my key/ }).click();
   await lab.getByRole('button', { name: /^(Continue|Done)$/ }).click();
