@@ -2,6 +2,8 @@
 
 Dated, private records for plant, animal and microbial genetics, on Midnight.
 
+This project is built on the Midnight Network.
+
 **For** breeders, growers, labs and nurseries who need to show they held a cultivar, an animal
 line, a strain or a document by a date, and for the buyers, examiners, lenders and courts who
 check it.
