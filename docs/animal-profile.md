@@ -12,8 +12,8 @@ doesn't list `animal-profile-v1` (`docs/ops/mainnet-day-site.md`).
 
 ## The problem it answers
 
-Branded beef is counterfeited. A label can carry a real animal's ID number, but nothing
-dated and tamper-evident ties a DNA test to that specific animal. Herd books keep the
+A breeder or a brand that wants to show a buyer that a label's animal ID belongs to a
+DNA-tested animal has nothing dated and tamper-evident that ties the test to that animal. Herd books keep the
 pedigree; they don't give each entry a date nobody can backdate.
 
 ## What a record holds

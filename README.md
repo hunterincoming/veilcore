@@ -322,7 +322,7 @@ Midnight's standards repository.
 - It **pairs** the DNA report a laboratory returns, as the holder's own statement. It does not sequence anything, check the report, or confirm it came from a laboratory.
 - A license is activated on chain with the licensee's own license secret, and every message in a deal is signed with the sender's Ed25519 key. Neither is a qualified eIDAS signature. The older practice licenses only record a time in the registry.
 - The royalty record shows what each side declared and signed. It does not show that anything is owed, and it does not move money.
-- It raises the cost and the evidentiary risk of laundering stolen genetics. It does not prevent it.
+- It lets a holder prove, when they choose, what they held and when. It does not stop anyone else from copying genetics.
 - A license on VeilCore records what two parties agreed and signed. VeilCore is not a party to it, doesn't enforce it and doesn't decide disputes.
 - VeilCore does not vouch for any record, holder or lab. A lab's signature shows which key signed; a lab's name is shown as checked only after the operator has matched it to a public license, and even then only that match is claimed ([`docs/lab-name-checks.md`](docs/lab-name-checks.md)).
 
