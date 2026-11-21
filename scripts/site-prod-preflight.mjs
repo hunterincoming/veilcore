@@ -1,4 +1,5 @@
-// Runs first in `npm run deploy:prod`, the test-network website. That site says records are
+// Ran first in `npm run deploy:prod` (retired: scripts/deploy-prod-retired.mjs), the test-network
+// website; deploy-test-site.mjs still uses checkTestSiteAllowed. That site says records are
 // dated on a Midnight test network. Once the registry anchors on mainnet, that is no longer
 // true, and deploying it would put the old wording back on veilcore.org over the mainnet
 // site. So it refuses as soon as the registry's /.well-known/veilcore-registry lists a

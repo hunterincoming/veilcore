@@ -1,5 +1,5 @@
 // The wordmark on every page: the v2 mark (TagMark) and "VeilCore" in Archivo at weight 600, as
-// Mako's v2 logo sets it (21 November 2026). Archivo is self-hosted and OFL (src/fonts.css,
+// the v2 logo sets it (21 November 2026). Archivo is self-hosted and OFL (src/fonts.css,
 // public/fonts). It replaced the Caslon wordmark beside the old tag.
 // SPDX-License-Identifier: Apache-2.0
 

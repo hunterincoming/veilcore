@@ -62,7 +62,7 @@ export const home = {
   'app.home.exportAll': 'Exporter tous les enregistrements',
   'app.home.importRecords': 'Importer des enregistrements',
   'app.home.trust.title': '« Qu’est-ce qui m’empêche d’enregistrer <em>votre</em> matériel génétique ? »',
-  'app.home.trust.lede': 'Trois choses rendent un enregistrement VeilCore difficile à falsifier :',
+  'app.home.trust.lede': 'Trois choses fondent un enregistrement VeilCore :',
   'app.home.trust.1t': 'Un enregistrement antérieur apparaît comme antérieur',
   'app.home.trust.1b':
     'Une fois les enregistrements ancrés, chacun peut vérifier lequel a été ancré en premier. Avant cela, l’heure d’un enregistrement est l’horloge de son appareil. Un enregistrement est une preuve, pas une inscription : il montre ce que vous aviez et quand, mais ne tranche pas un litige à lui seul.',

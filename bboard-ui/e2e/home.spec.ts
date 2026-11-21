@@ -1,6 +1,6 @@
-// The home page in Mako's layout (18 November 2026): the page always moves when you scroll, every
+// The home page in the site layout (18 November 2026): the page always moves when you scroll, every
 // anchor other pages link to is still there, every way in goes to a real page, and the gallery
-// moves with its buttons. A tester found Mako's draft held the page still while pinned sections
+// moves with its buttons. A tester found the draft held the page still while pinned sections
 // played; nothing here may do that again.
 // SPDX-License-Identifier: Apache-2.0
 import { expect, test } from '@playwright/test';
@@ -122,7 +122,7 @@ test.describe('the home page', () => {
     await expect.poll(() => track.evaluate((el) => el.scrollLeft)).toBeGreaterThan(100);
     await expect(prev).toBeEnabled();
     expect(await page.evaluate(() => window.scrollY)).toBe(y);
-    // Five panels, each with its photo's size set, so nothing shifts as they load. Mako's photos
+    // Five panels, each with its photo's size set, so nothing shifts as they load. The design's photos
     // (21 Nov) come in their own sizes, so each img carries its own file's width and height.
     await expect(track.locator('li img')).toHaveCount(5);
     for (const img of await track.locator('li img').all()) {

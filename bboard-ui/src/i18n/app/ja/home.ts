@@ -54,7 +54,7 @@ export const home = {
   'app.home.exportAll': 'すべての記録をエクスポート',
   'app.home.importRecords': '記録をインポート',
   'app.home.trust.title': '「私が<em>あなたの</em>素材を先に記録してしまったら？」',
-  'app.home.trust.lede': 'VeilCoreの記録を偽造しにくくしているのは、次の3つです。',
+  'app.home.trust.lede': 'VeilCoreの記録を支えているのは、次の3つです。',
   'app.home.trust.1t': '先に作った記録は、先のものとして示されます',
   'app.home.trust.1b':
     '記録がアンカーされると、どちらが先にアンカーされたかを誰でも確認できます。それまでは、記録の時刻は端末の時計です。記録は証拠であって登録ではありません。何をいつ持っていたかは示しますが、それだけで争いを決着させるものではありません。',
