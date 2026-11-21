@@ -297,7 +297,7 @@ export const verify = {
   'app.verify.bredByShared': 'Obtenu par, tel que le détenteur l’a écrit : {name}',
   'app.verify.noBredBy': 'Aucun obtenteur enregistré.',
   'app.verify.mark.anyName':
-    'N’importe qui peut créer une clé sous n’importe quel nom. Chaque signature ci-dessous indique où en est la vérification de sa clé : non vérifiée, vérifiée par site web ou vérifiée auprès d’une liste publique.',
+    'N’importe qui peut créer une clé sous n’importe quel nom. Chaque signature ci-dessous indique ce que l’on sait de sa clé : non vérifiée, publiée sur un site web ou vérifiée auprès d’une liste publique.',
   'app.verify.summary.checked':
     'L’enregistrement existait au plus tard le {date} : cette page l’a vérifié sur Midnight.{test}',
   'app.verify.summary.reported':

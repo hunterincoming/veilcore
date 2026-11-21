@@ -33,9 +33,9 @@ export const lab = {
     'Jeder kann einen Schlüssel mit jedem Namen erstellen. Fragen Sie beim Labor nach, bevor Sie sich darauf verlassen.',
   'app.labid.expired.body':
     'Seine frühere Prüfung anhand eines öffentlichen Verzeichnisses ist abgelaufen. Jeder kann einen Schlüssel mit jedem Namen erstellen. Fragen Sie beim Labor nach, bevor Sie sich darauf verlassen.',
-  'app.labid.website.title': 'Per Website verifiziert',
+  'app.labid.website.title': 'Aufgeführt auf {domain}',
   'app.labid.website.body':
-    '{domain} führt diesen Schlüssel auf, und der Schlüssel nennt diese Website. VeilCore hat ihn dort zuletzt am {date} gesehen. VeilCore prüft nicht, wer die Website betreibt: Prüfen Sie, dass es die eigene Website des Labors ist und keine Nachahmung.',
+    'Diese Website führt den Schlüssel auf, und der Schlüssel nennt diese Website. VeilCore hat ihn dort zuletzt am {date} gesehen. VeilCore prüft nicht, wer die Website betreibt: Prüfen Sie, dass es die eigene Website des Labors ist und keine Nachahmung.',
   'app.labid.website.unmarked':
     'Der Betreiber von VeilCore hat einen früheren Abgleich dieses Schlüssels mit einem öffentlichen Verzeichnis zurückgenommen.',
   'app.labid.listing.title': 'Verifiziert anhand von {listing}',
@@ -55,7 +55,7 @@ export const lab = {
   'app.labid.more.none':
     '<b>Nicht verifiziert</b>: Jeder kann einen Schlüssel erstellen und ihm jeden Namen geben, auch den eines bestehenden Labors. Ein abgelaufener oder zurückgenommener Abgleich mit einem Verzeichnis zählt als nicht verifiziert.',
   'app.labid.more.website':
-    '<b>Per Website verifiziert</b>: Der Schlüssel nennt eine Website, und diese Website führt den Schlüssel auf. Wer diese Website betreibt, steht hinter dem Schlüssel; prüfen Sie also, dass es die Adresse des Labors ist.',
+    '<b>Auf einer Website aufgeführt</b>: Der Schlüssel nennt eine Website, und diese Website führt den Schlüssel auf. Wer diese Website betreibt, steht hinter dem Schlüssel; VeilCore prüft nicht, wer das ist. Prüfen Sie also, dass es die Adresse des Labors ist. Verifiziert heißt nur ein Abgleich mit einem öffentlichen Verzeichnis.',
   'app.labid.more.listing':
     '<b>Verifiziert anhand eines öffentlichen Verzeichnisses</b>: Der Betreiber von VeilCore hat den Namen des Labors in einem öffentlichen Lizenz- oder Akkreditierungsverzeichnis gefunden, und das Labor hat den Schlüssel von einer E-Mail-Adresse unter der Domain des Labors bestätigt, für höchstens ein Jahr.',
   'app.labid.more.withdrawn':
@@ -66,9 +66,9 @@ export const lab = {
   'app.labid.own.looking': 'Es wird nachgesehen, wie Prüfseiten Ihren Schlüssel zeigen …',
   'app.labid.own.couldNot': 'Gerade ließ sich nicht nachsehen, wie Prüfseiten Ihren Schlüssel zeigen.',
   'app.labid.own.next.none':
-    'Nächster Schritt: Führen Sie Ihren Schlüssel auf der Website Ihres Labors auf. Prüfseiten zeigen dann „Per Website verifiziert“ mit der Adresse Ihrer Website.',
+    'Nächster Schritt: Führen Sie Ihren Schlüssel auf der Website Ihres Labors auf. Prüfseiten zeigen dann „Aufgeführt auf“ mit der Adresse Ihrer Website.',
   'app.labid.own.next.listingWithdrawn':
-    'Nächster Schritt: Führen Sie Ihren Schlüssel auf der Website Ihres Labors auf. Prüfseiten zeigen dann „Per Website verifiziert“ mit der Adresse Ihrer Website.',
+    'Nächster Schritt: Führen Sie Ihren Schlüssel auf der Website Ihres Labors auf. Prüfseiten zeigen dann „Aufgeführt auf“ mit der Adresse Ihrer Website.',
   'app.labid.own.next.website':
     'Nächster Schritt: Bitten Sie VeilCore, den Namen Ihres Labors mit einem öffentlichen Lizenz- oder Akkreditierungsverzeichnis abzugleichen. Prüfseiten zeigen dann „Verifiziert anhand von“ diesem Verzeichnis.',
   'app.labid.own.next.expired':
@@ -166,7 +166,7 @@ export const lab = {
   'app.lab.strength.expired': ' Ein früherer Abgleich dieses Namens ist abgelaufen.',
   'app.lab.strength.notChecked': 'Signiert · nicht verifiziert',
   'app.lab.strength.listingWithdrawn': 'Signiert · Abgleich mit Verzeichnis zurückgenommen',
-  'app.lab.strength.website': 'Signiert · per Website verifiziert ({domain})',
+  'app.lab.strength.website': 'Signiert · aufgeführt auf {domain}',
   'app.lab.strength.websiteWhy': '{text} Prüfen Sie, dass es die eigene Website des Labors ist.',
   'app.lab.strength.websiteWithdrawn': 'Signiert · von der Website zurückgezogen ({domain})',
   'app.lab.strength.websiteWithdrawnWhy': '{text} Verlassen Sie sich nicht darauf, ohne beim Labor nachzufragen.',

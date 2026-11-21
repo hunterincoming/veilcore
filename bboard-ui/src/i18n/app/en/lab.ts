@@ -34,9 +34,9 @@ export const lab = {
   'app.labid.none.body': 'Anyone can make a key with any name. Check with the lab before relying on it.',
   'app.labid.expired.body':
     'Its earlier check against a public listing has expired. Anyone can make a key with any name. Check with the lab before relying on it.',
-  'app.labid.website.title': 'Verified by website',
+  'app.labid.website.title': 'Listed on {domain}',
   'app.labid.website.body':
-    '{domain} lists this key, and the key names that website. VeilCore last saw it there on {date}. VeilCore doesn’t check who runs the website: make sure it is the lab’s own, not a lookalike.',
+    'that website lists this key, and the key names that website. VeilCore last saw it there on {date}. VeilCore doesn’t check who runs the website: make sure it is the lab’s own, not a lookalike.',
   'app.labid.website.unmarked': 'VeilCore’s operator has taken off an earlier match of this key to a public listing.',
   'app.labid.listing.title': 'Verified against {listing}',
   'app.labid.listing.body':
@@ -54,7 +54,7 @@ export const lab = {
   'app.labid.more.none':
     '<b>Not verified</b>: anyone can make a key and give it any name, even the name of a lab that exists. A listing match that expired or was withdrawn counts as not verified.',
   'app.labid.more.website':
-    '<b>Verified by website</b>: the key names a website, and that website lists the key. Whoever runs that website stands behind the key, so check the address is the lab’s own.',
+    '<b>Listed on a website</b>: the key names a website, and that website lists the key. Whoever runs that website stands behind the key; VeilCore doesn’t check who that is, so make sure the address is the lab’s own. Only a match to a public listing is called verified.',
   'app.labid.more.listing':
     '<b>Verified against a public listing</b>: VeilCore’s operator found the lab’s name in a public license or accreditation listing, and the lab confirmed the key from an email address at the lab’s domain, for up to a year.',
   'app.labid.more.withdrawn':
@@ -66,9 +66,9 @@ export const lab = {
   'app.labid.own.looking': 'Looking up how check pages show your key…',
   'app.labid.own.couldNot': 'Couldn’t look up how check pages show your key just now.',
   'app.labid.own.next.none':
-    'Next step: list your key on your lab’s website. Check pages then say “Verified by website” and show your website’s address.',
+    'Next step: list your key on your lab’s website. Check pages then say “Listed on” your website’s address.',
   'app.labid.own.next.listingWithdrawn':
-    'Next step: list your key on your lab’s website. Check pages then say “Verified by website” and show your website’s address.',
+    'Next step: list your key on your lab’s website. Check pages then say “Listed on” your website’s address.',
   'app.labid.own.next.website':
     'Next step: ask VeilCore to match your lab’s name to a public license or accreditation listing. Check pages then say “Verified against” that listing.',
   'app.labid.own.next.expired':
@@ -165,7 +165,7 @@ export const lab = {
   'app.lab.strength.expired': ' An earlier check of this name has expired.',
   'app.lab.strength.notChecked': 'Signed · not verified',
   'app.lab.strength.listingWithdrawn': 'Signed · listing check withdrawn',
-  'app.lab.strength.website': 'Signed · verified by website ({domain})',
+  'app.lab.strength.website': 'Signed · listed on {domain}',
   'app.lab.strength.websiteWhy': '{text} Make sure that website is the lab’s own.',
   'app.lab.strength.websiteWithdrawn': 'Signed · withdrawn by website ({domain})',
   'app.lab.strength.websiteWithdrawnWhy': '{text} Don’t rely on it without asking the lab.',

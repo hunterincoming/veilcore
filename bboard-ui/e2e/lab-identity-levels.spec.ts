@@ -177,7 +177,7 @@ for (const lang of Object.keys(DICTS))
       await openCheck(page, level, lang);
       const badge = page.locator(`[data-lab-identity="${level}"]`).first();
       await expect(badge).toBeVisible();
-      const title = d[TITLE[level]].replace('{listing}', 'cannabis.example.gov');
+      const title = d[TITLE[level]].replace('{listing}', 'cannabis.example.gov').replace('{domain}', DOMAIN);
       await expect(badge.locator('[data-lab-identity-title]')).toHaveText(title);
       if (level === 'none') {
         await expect(badge).toContainText(d['app.labid.none.body']);
@@ -194,13 +194,14 @@ for (const lang of Object.keys(DICTS))
         await expect(badge.locator('[data-name-check-source]')).toHaveAttribute('href', LISTING);
         await expect(badge).toContainText(d['app.signer.disclaimer']);
       }
-      // A level that isn't verified never carries a verified level's title.
-      if (level !== 'website' && level !== 'listing') {
-        await expect(badge).not.toContainText(d['app.labid.website.title']);
-        await expect(badge).not.toContainText(
-          d['app.labid.listing.title'].replace(' {listing}', '').replace('{listing}', ''),
-        );
-      }
+      // Only a listing match is "verified": no other level carries the listing title's words,
+      // and a level below the website never carries the website's.
+      const listingWords = d['app.labid.listing.title'].replace(' {listing}', '').replace('{listing}', '');
+      const websiteWords = d['app.labid.website.title'].replace(' {domain}', '').replace('{domain}', '');
+      if (level !== 'listing') await expect(badge.locator('[data-lab-identity-title]')).not.toContainText(listingWords);
+      if (level !== 'website' && level !== 'listing') await expect(badge).not.toContainText(websiteWords);
+      if (level === 'website')
+        await expect(badge.locator('[data-lab-identity-title] [data-lab-domain]')).toHaveText(DOMAIN);
       // Screenshots for review (LAB_LEVEL_SHOTS): the page, then the badge with its explainer open.
       const shoot = async (open: boolean) => {
         if (!SHOTS || (lang !== 'en' && lang !== 'ja')) return;

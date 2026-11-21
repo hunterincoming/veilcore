@@ -1,5 +1,5 @@
 // A key's identity level, in words, wherever a page shows a lab signature
-// (docs/lab-identity-levels.md): "Not verified", "Verified by website", "Verified against
+// (docs/lab-identity-levels.md): "Not verified", "Listed on acme.com", "Verified against
 // <listing>", or withdrawn. The words come from veilcore/lab-identity-words.ts; this draws them
 // with an icon and a border so the level is plain at a glance, and links the website and the
 // listing so a reader can look for themselves.

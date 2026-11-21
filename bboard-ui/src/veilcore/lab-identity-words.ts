@@ -56,9 +56,10 @@ export const labIdentityWords = (id: LabIdentity, tr: Translator = enT): LabIden
     case 'website':
       return {
         tone,
-        title: { key: TITLE.website },
+        // The website in the title itself ("Listed on acme.com"): only a listing match says "verified".
+        title: { key: TITLE.website, vars: { domain: id.domain } },
         body: [
-          { key: 'app.labid.website.body', vars: { domain: id.domain, date: id.date } },
+          { key: 'app.labid.website.body', vars: { date: id.date } },
           ...(id.listingWithdrawn ? [{ key: 'app.labid.website.unmarked' as AppKey }] : []),
           { key: 'app.signer.disclaimer' },
         ],

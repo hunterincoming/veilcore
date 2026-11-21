@@ -217,6 +217,16 @@ describe('the words, in every language', () => {
       expect(labIdentitySeverity('listing')).toBe('success');
     });
 
+    it(`${lang}: only a listing match is called verified`, () => {
+      const VERIFIED = /verif|vérif|確認済み/i;
+      const web = labIdentityWords(sample('website'), tr);
+      expect(tr.t(web.title.key, web.title.vars)).not.toMatch(VERIFIED);
+      expect(tr.t(web.title.key, web.title.vars)).toContain('acmelabs.example');
+      expect(tr.t('app.lab.strength.website', { domain: 'acmelabs.example' })).not.toMatch(VERIFIED);
+      const list = labIdentityWords(sample('listing'), tr);
+      expect(tr.t(list.title.key, list.title.vars)).toMatch(VERIFIED);
+    });
+
     it(`${lang}: the plain-text signer says the level too`, () => {
       const who = (a: ResolvedAttestation) => signerLabel(a, 'Signed by', NOW, tr).who;
       expect(who(att({ domainCheck: listed() }))).toContain('acmelabs.example');

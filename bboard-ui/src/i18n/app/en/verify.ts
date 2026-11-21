@@ -289,7 +289,7 @@ export const verify = {
   'app.verify.bredByShared': 'Bred by, as the holder wrote it: {name}',
   'app.verify.noBredBy': 'No breeder recorded.',
   'app.verify.mark.anyName':
-    'Anyone can make a key with any name. Each signature below says how far its key is verified: not verified, verified by website, or verified against a public listing.',
+    'Anyone can make a key with any name. Each signature below says what is known about its key: not verified, listed on a website, or verified against a public listing.',
   'app.verify.summary.checked': 'Record existed by {date}: this page checked it on Midnight.{test}',
   'app.verify.summary.reported':
     "Record existed by {date}. VeilCore's registry says so; this page hasn't checked it on Midnight yet.{test}",

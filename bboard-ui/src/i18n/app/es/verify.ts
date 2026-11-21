@@ -295,7 +295,7 @@ export const verify = {
   'app.verify.bredByShared': 'Obtenido por, según lo escribió quien lo selló: {name}',
   'app.verify.noBredBy': 'No hay obtentor registrado.',
   'app.verify.mark.anyName':
-    'Cualquiera puede crear una clave con cualquier nombre. Cada firma de abajo dice hasta dónde está verificada su clave: no verificada, verificada por sitio web o verificada con un listado público.',
+    'Cualquiera puede crear una clave con cualquier nombre. Cada firma de abajo dice lo que se sabe de su clave: no verificada, publicada en un sitio web o verificada con un listado público.',
   'app.verify.summary.checked': 'El registro ya existía el {date}: esta página lo comprobó en Midnight.{test}',
   'app.verify.summary.reported':
     'El registro ya existía el {date}. Lo dice el servidor de registros de VeilCore; esta página aún no lo ha comprobado en Midnight.{test}',

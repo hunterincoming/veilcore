@@ -33,9 +33,9 @@ export const lab = {
     'N’importe qui peut créer une clé sous n’importe quel nom. Vérifiez auprès du laboratoire avant de vous y fier.',
   'app.labid.expired.body':
     'Son ancienne vérification auprès d’une liste publique a expiré. N’importe qui peut créer une clé sous n’importe quel nom. Vérifiez auprès du laboratoire avant de vous y fier.',
-  'app.labid.website.title': 'Vérifiée par site web',
+  'app.labid.website.title': 'Publiée sur {domain}',
   'app.labid.website.body':
-    '{domain} publie cette clé, et la clé désigne ce site. VeilCore l’y a vue pour la dernière fois le {date}. VeilCore ne vérifie pas qui gère le site : assurez-vous qu’il s’agit bien de celui du laboratoire, et non d’une imitation.',
+    'ce site publie cette clé, et la clé désigne ce site. VeilCore l’y a vue pour la dernière fois le {date}. VeilCore ne vérifie pas qui gère le site : assurez-vous qu’il s’agit bien de celui du laboratoire, et non d’une imitation.',
   'app.labid.website.unmarked':
     'L’opérateur de VeilCore a retiré un ancien rapprochement de cette clé avec une liste publique.',
   'app.labid.listing.title': 'Vérifiée auprès de {listing}',
@@ -54,7 +54,7 @@ export const lab = {
   'app.labid.more.none':
     '<b>Non vérifiée</b> : n’importe qui peut créer une clé et lui donner n’importe quel nom, même celui d’un laboratoire qui existe. Un rapprochement avec une liste expiré ou retiré compte comme non vérifié.',
   'app.labid.more.website':
-    '<b>Vérifiée par site web</b> : la clé désigne un site, et ce site publie la clé. Qui gère ce site se tient derrière la clé : vérifiez donc que l’adresse est bien celle du laboratoire.',
+    '<b>Publiée sur un site web</b> : la clé désigne un site, et ce site publie la clé. Qui gère ce site se tient derrière la clé ; VeilCore ne vérifie pas de qui il s’agit : assurez-vous donc que l’adresse est bien celle du laboratoire. Seul un rapprochement avec une liste publique est dit vérifié.',
   'app.labid.more.listing':
     '<b>Vérifiée auprès d’une liste publique</b> : l’opérateur de VeilCore a trouvé le nom du laboratoire dans une liste publique d’agréments ou d’accréditations, et le laboratoire a confirmé la clé depuis une adresse e-mail du domaine du laboratoire, pour un an au plus.',
   'app.labid.more.withdrawn':
@@ -65,9 +65,9 @@ export const lab = {
   'app.labid.own.looking': 'Recherche de la façon dont les pages de vérification montrent votre clé…',
   'app.labid.own.couldNot': 'Impossible de voir pour l’instant comment les pages de vérification montrent votre clé.',
   'app.labid.own.next.none':
-    'Étape suivante : publiez votre clé sur le site de votre laboratoire. Les pages de vérification indiqueront alors « Vérifiée par site web » avec l’adresse de votre site.',
+    'Étape suivante : publiez votre clé sur le site de votre laboratoire. Les pages de vérification indiqueront alors « Publiée sur » suivi de l’adresse de votre site.',
   'app.labid.own.next.listingWithdrawn':
-    'Étape suivante : publiez votre clé sur le site de votre laboratoire. Les pages de vérification indiqueront alors « Vérifiée par site web » avec l’adresse de votre site.',
+    'Étape suivante : publiez votre clé sur le site de votre laboratoire. Les pages de vérification indiqueront alors « Publiée sur » suivi de l’adresse de votre site.',
   'app.labid.own.next.website':
     'Étape suivante : demandez à VeilCore de rapprocher le nom de votre laboratoire d’une liste publique d’agréments ou d’accréditations. Les pages de vérification indiqueront alors « Vérifiée auprès de » cette liste.',
   'app.labid.own.next.expired':
@@ -167,7 +167,7 @@ export const lab = {
   'app.lab.strength.expired': ' Une vérification antérieure de ce nom a expiré.',
   'app.lab.strength.notChecked': 'Signé · non vérifiée',
   'app.lab.strength.listingWithdrawn': 'Signé · rapprochement avec une liste retiré',
-  'app.lab.strength.website': 'Signé · vérifiée par site web ({domain})',
+  'app.lab.strength.website': 'Signé · publiée sur {domain}',
   'app.lab.strength.websiteWhy': '{text} Assurez-vous que ce site est bien celui du laboratoire.',
   'app.lab.strength.websiteWithdrawn': 'Signé · retirée par le site web ({domain})',
   'app.lab.strength.websiteWithdrawnWhy': '{text} Ne vous y fiez pas sans demander au laboratoire.',

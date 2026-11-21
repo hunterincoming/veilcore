@@ -4,7 +4,7 @@
 
 Anyone can make a signing key and register it under any lab's name. Until the operator
 marks a key, every page shows its signatures as *a key calling itself "…" (not verified)*, with
-the level **Not verified** (or **Verified by website**, if the lab lists the key on its own
+the level **Not verified** (or **Listed on <domain>**, if the lab lists the key on its own
 website; [lab-identity-levels.md](lab-identity-levels.md)).
 
 A mark lets pages print the name plainly, followed by exactly what was checked:
@@ -26,6 +26,7 @@ methods, or any sample or report it signs. It doesn't mean the lab is licensed o
 accredited for a given test. Anyone relying on a lab report checks that with the lab and
 the listing themselves. Pages show a marked key as **Verified against <listing>**, which
 says what was checked and against what ([lab-identity-levels.md](lab-identity-levels.md)).
+This is the only level pages call "verified".
 Never describe a marked lab as a "verified lab", or as "approved", "certified" or "trusted by
 VeilCore".
 

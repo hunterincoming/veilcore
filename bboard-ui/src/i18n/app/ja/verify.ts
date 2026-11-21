@@ -276,7 +276,7 @@ export const verify = {
   'app.verify.bredByShared': '育成者（保有者の記載による）：{name}',
   'app.verify.noBredBy': '育成者は記録されていません。',
   'app.verify.mark.anyName':
-    '誰でもどんな名前でも鍵を作れます。下の各署名には、その鍵の確認の程度が表示されます：未確認、ウェブサイトで確認済み、公開リストで確認済み。',
+    '誰でもどんな名前でも鍵を作れます。下の各署名には、その鍵について分かっていることが表示されます：未確認、ウェブサイトに掲載、公開リストで確認済み。',
   'app.verify.summary.checked': '記録は{date}までに存在していました。このページがMidnightで確認しました。{test}',
   'app.verify.summary.reported':
     '記録は{date}までに存在していました。VeilCoreのレジストリの報告によるもので、このページはまだMidnightで確認していません。{test}',

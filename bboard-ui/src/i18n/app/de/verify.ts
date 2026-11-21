@@ -297,7 +297,7 @@ export const verify = {
   'app.verify.bredByShared': 'Gezüchtet von, wie der Inhaber es angegeben hat: {name}',
   'app.verify.noBredBy': 'Kein Züchter eingetragen.',
   'app.verify.mark.anyName':
-    'Jeder kann einen Schlüssel mit jedem Namen erstellen. Jede Signatur unten sagt, wie weit ihr Schlüssel verifiziert ist: nicht verifiziert, per Website verifiziert oder anhand eines öffentlichen Verzeichnisses verifiziert.',
+    'Jeder kann einen Schlüssel mit jedem Namen erstellen. Jede Signatur unten sagt, was über ihren Schlüssel bekannt ist: nicht verifiziert, auf einer Website aufgeführt oder anhand eines öffentlichen Verzeichnisses verifiziert.',
   'app.verify.summary.checked':
     'Der Datensatz bestand spätestens am {date}: Diese Seite hat es auf Midnight geprüft.{test}',
   'app.verify.summary.reported':

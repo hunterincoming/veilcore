@@ -16,7 +16,7 @@ Worked out from the same checks the signer's sentence uses, first match wins:
 | --- | --- | --- |
 | Withdrawn by website | The website the key named stopped listing it (two real "not here" answers, `docs/lab-key-on-website.md`). Shown on a retracted signature too. | **Withdrawn by website** — acme.com no longer lists this key: VeilCore saw that on 2026-11-19. The lab may have retired or disowned it. Don't rely on it without asking the lab. |
 | Verified against a public listing | VeilCore's operator matched the key's name to a public licence or accreditation listing, current (`docs/lab-name-checks.md`). | **Verified against cannabis.example.gov** — VeilCore's operator matched the name "Acme Labs" to this public listing (license TL-1) on 2026-10-01, and the lab confirmed the key from an email address at the lab's domain. The match counts until 2027-10-01. VeilCore doesn't vouch for the lab's work. |
-| Verified by website | The key signed a claim naming a website (checked on the page), and the registry's last look, under 7 days old, found the key listed there (`docs/lab-domain-keys.md`). | **Verified by website** — **acme.com** lists this key, and the key names that website. VeilCore last saw it there on 2026-11-20. VeilCore doesn't check who runs the website: make sure it is the lab's own, not a lookalike. VeilCore doesn't vouch for the lab's work. |
+| Listed on a website | The key signed a claim naming a website (checked on the page), and the registry's last look, under 7 days old, found the key listed there (`docs/lab-domain-keys.md`). | **Listed on acme.com** — that website lists this key, and the key names that website. VeilCore last saw it there on 2026-11-20. VeilCore doesn't check who runs the website: make sure it is the lab's own, not a lookalike. VeilCore doesn't vouch for the lab's work. |
 | Listing match withdrawn | The operator took the listing match off (`nameCheckStatus: withdrawn`). A website still listing the key wins, with a note. | **Not verified: listing match withdrawn** — this key calls itself "Acme Labs". VeilCore's operator took off its match to a public listing. Check with the lab before relying on it. |
 | Not verified (expired) | An earlier listing check expired. | **Not verified** — this key calls itself "Acme Labs". Its earlier check against a public listing has expired. … |
 | Not verified | Anything else, including a signature that doesn't verify or was retracted. | **Not verified** — this key calls itself "Acme Labs". Anyone can make a key with any name. Check with the lab before relying on it. |
@@ -53,6 +53,9 @@ next: list the key on its website (opens those steps), or email VeilCore for a l
 
 ## Wording rule
 
-"Verified" is used only in these level titles, and always says by what: "by website" or "against
-<listing>". Never "verified lab", "approved", "certified" or "trusted by VeilCore", and never a
-word about the quality of a result.
+"Verified" is used for one level only: a current match to a public listing, as "Verified against
+<listing>", which is also the only green level. A key listed on a website is "Listed on
+<domain>" (21 November 2026, after the skeptical-buyer review: anyone can register a website and
+list their own key on it, so "verified" would overclaim). Never "verified lab", "approved",
+"certified" or "trusted by VeilCore", and never a word about the quality of a result. The unit
+tests check the website level never says "verified" in any of the five languages.

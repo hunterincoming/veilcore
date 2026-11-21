@@ -114,9 +114,11 @@ file". So a website only counts for a withdrawal once this version has seen it l
 date; it is forgotten after 30 days as before.
 
 The sentence never says the lab is real, licensed, accredited or "verified", and never "owns":
-the unit tests check that in all five languages. The level above it says **Verified by website**
-(21 November 2026, [lab-identity-levels.md](lab-identity-levels.md)): verified by what, with the
-domain in bold and a reminder to check it is the lab's own, never "verified lab". It shows the key's holder and whoever controls that
+the unit tests check that in all five languages. The level above it says **Listed on
+acme-labs.com** (21 November 2026, [lab-identity-levels.md](lab-identity-levels.md)), with the
+domain in bold, that VeilCore doesn't check who runs the website, and a reminder to check it is
+the lab's own. It never says "verified": pages use that word only for a match to a public
+listing. It shows the key's holder and whoever controls that
 domain name each other. The operator's name check is unchanged and still the only thing that
 prints a name plainly; the website line sits after it, never instead of it.
 

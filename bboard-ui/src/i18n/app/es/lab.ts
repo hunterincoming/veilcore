@@ -33,9 +33,9 @@ export const lab = {
     'Cualquiera puede crear una clave con cualquier nombre. Consulte con el laboratorio antes de confiar en ella.',
   'app.labid.expired.body':
     'Su comprobación anterior con un listado público venció. Cualquiera puede crear una clave con cualquier nombre. Consulte con el laboratorio antes de confiar en ella.',
-  'app.labid.website.title': 'Verificada por sitio web',
+  'app.labid.website.title': 'Publicada en {domain}',
   'app.labid.website.body':
-    '{domain} publica esta clave, y la clave nombra ese sitio web. VeilCore la vio allí por última vez el {date}. VeilCore no comprueba quién administra el sitio web: asegúrese de que sea el del propio laboratorio y no una imitación.',
+    'ese sitio web publica esta clave, y la clave nombra ese sitio. VeilCore la vio allí por última vez el {date}. VeilCore no comprueba quién administra el sitio web: asegúrese de que sea el del propio laboratorio y no una imitación.',
   'app.labid.website.unmarked':
     'El operador de VeilCore quitó un cotejo anterior de esta clave con un listado público.',
   'app.labid.listing.title': 'Verificada con {listing}',
@@ -54,7 +54,7 @@ export const lab = {
   'app.labid.more.none':
     '<b>No verificada</b>: cualquiera puede crear una clave y darle cualquier nombre, incluso el de un laboratorio que existe. Un cotejo con un listado que venció o se retiró cuenta como no verificado.',
   'app.labid.more.website':
-    '<b>Verificada por sitio web</b>: la clave nombra un sitio web, y ese sitio web publica la clave. Quien administra ese sitio respalda la clave, así que compruebe que la dirección sea la del laboratorio.',
+    '<b>Publicada en un sitio web</b>: la clave nombra un sitio web, y ese sitio publica la clave. Quien administra ese sitio respalda la clave; VeilCore no comprueba quién es, así que asegúrese de que la dirección sea la del laboratorio. Solo un cotejo con un listado público se llama verificado.',
   'app.labid.more.listing':
     '<b>Verificada con un listado público</b>: el operador de VeilCore encontró el nombre del laboratorio en un listado público de licencias o acreditaciones, y el laboratorio confirmó la clave desde una dirección de correo del dominio del laboratorio, por un año como máximo.',
   'app.labid.more.withdrawn':
@@ -65,9 +65,9 @@ export const lab = {
   'app.labid.own.looking': 'Buscando cómo muestran su clave las páginas de comprobación…',
   'app.labid.own.couldNot': 'Ahora no se pudo ver cómo muestran su clave las páginas de comprobación.',
   'app.labid.own.next.none':
-    'Siguiente paso: publique su clave en el sitio web de su laboratorio. Las páginas de comprobación dirán entonces “Verificada por sitio web” y mostrarán la dirección de su sitio.',
+    'Siguiente paso: publique su clave en el sitio web de su laboratorio. Las páginas de comprobación dirán entonces “Publicada en” y la dirección de su sitio.',
   'app.labid.own.next.listingWithdrawn':
-    'Siguiente paso: publique su clave en el sitio web de su laboratorio. Las páginas de comprobación dirán entonces “Verificada por sitio web” y mostrarán la dirección de su sitio.',
+    'Siguiente paso: publique su clave en el sitio web de su laboratorio. Las páginas de comprobación dirán entonces “Publicada en” y la dirección de su sitio.',
   'app.labid.own.next.website':
     'Siguiente paso: pida a VeilCore que coteje el nombre de su laboratorio con un listado público de licencias o acreditaciones. Las páginas de comprobación dirán entonces “Verificada con” ese listado.',
   'app.labid.own.next.expired':
@@ -164,7 +164,7 @@ export const lab = {
   'app.lab.strength.expired': ' Una comprobación anterior de este nombre ha vencido.',
   'app.lab.strength.notChecked': 'Firmado · no verificada',
   'app.lab.strength.listingWithdrawn': 'Firmado · cotejo con listado retirado',
-  'app.lab.strength.website': 'Firmado · verificada por sitio web ({domain})',
+  'app.lab.strength.website': 'Firmado · publicada en {domain}',
   'app.lab.strength.websiteWhy': '{text} Asegúrese de que ese sitio web sea el del propio laboratorio.',
   'app.lab.strength.websiteWithdrawn': 'Firmado · retirada por el sitio web ({domain})',
   'app.lab.strength.websiteWithdrawnWhy': '{text} No confíe en ella sin preguntar al laboratorio.',

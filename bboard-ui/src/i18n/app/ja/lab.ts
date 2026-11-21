@@ -33,9 +33,9 @@ export const lab = {
   'app.labid.none.body': '誰でもどんな名前でも鍵を作れます。頼りにする前にラボに確認してください。',
   'app.labid.expired.body':
     '以前の公開リストとの照合は期限切れです。誰でもどんな名前でも鍵を作れます。頼りにする前にラボに確認してください。',
-  'app.labid.website.title': 'ウェブサイトで確認済み',
+  'app.labid.website.title': '{domain}に掲載',
   'app.labid.website.body':
-    '{domain}がこの鍵を掲載しており、鍵もそのウェブサイトを指定しています。VeilCoreが最後にそこで確認したのは{date}です。VeilCoreはウェブサイトの運営者を確認しません。ラボ自身のウェブサイトで、よく似た別のアドレスではないことを確かめてください。',
+    'そのウェブサイトがこの鍵を掲載しており、鍵もそのウェブサイトを指定しています。VeilCoreが最後にそこで確認したのは{date}です。VeilCoreはウェブサイトの運営者を確認しません。ラボ自身のウェブサイトで、よく似た別のアドレスではないことを確かめてください。',
   'app.labid.website.unmarked': 'VeilCoreの運営者は、この鍵と公開リストとの以前の照合を取り消しています。',
   'app.labid.listing.title': '{listing}で確認済み',
   'app.labid.listing.body':
@@ -53,7 +53,7 @@ export const lab = {
   'app.labid.more.none':
     '<b>未確認</b>：誰でも鍵を作り、実在するラボの名前を含め、どんな名前でも付けられます。期限切れまたは取り消された公開リストとの照合も未確認として扱います。',
   'app.labid.more.website':
-    '<b>ウェブサイトで確認済み</b>：鍵がウェブサイトを指定し、そのウェブサイトが鍵を掲載しています。そのウェブサイトの運営者が鍵を認めているということなので、アドレスがラボ自身のものか確かめてください。',
+    '<b>ウェブサイトに掲載</b>：鍵がウェブサイトを指定し、そのウェブサイトが鍵を掲載しています。そのウェブサイトの運営者が鍵を認めていますが、VeilCoreは運営者が誰かを確認しません。アドレスがラボ自身のものか確かめてください。「確認済み」と表示されるのは公開リストとの照合だけです。',
   'app.labid.more.listing':
     '<b>公開リストで確認済み</b>：VeilCoreの運営者が公開のライセンスまたは認定リストでラボの名前を見つけ、ラボがラボのドメインのメールアドレスから鍵を確認しました。有効期間は最長1年です。',
   'app.labid.more.withdrawn':
@@ -64,9 +64,9 @@ export const lab = {
   'app.labid.own.looking': '確認ページでの鍵の表示を調べています…',
   'app.labid.own.couldNot': '確認ページでの鍵の表示を今は調べられませんでした。',
   'app.labid.own.next.none':
-    '次のステップ：ラボのウェブサイトに鍵を掲載してください。確認ページに「ウェブサイトで確認済み」とウェブサイトのアドレスが表示されます。',
+    '次のステップ：ラボのウェブサイトに鍵を掲載してください。確認ページに、ウェブサイトのアドレスとともに「掲載」と表示されます。',
   'app.labid.own.next.listingWithdrawn':
-    '次のステップ：ラボのウェブサイトに鍵を掲載してください。確認ページに「ウェブサイトで確認済み」とウェブサイトのアドレスが表示されます。',
+    '次のステップ：ラボのウェブサイトに鍵を掲載してください。確認ページに、ウェブサイトのアドレスとともに「掲載」と表示されます。',
   'app.labid.own.next.website':
     '次のステップ：ラボの名前を公開のライセンスまたは認定リストと照合するようVeilCoreに依頼してください。確認ページにそのリストで「確認済み」と表示されます。',
   'app.labid.own.next.expired':
@@ -159,7 +159,7 @@ export const lab = {
   'app.lab.strength.expired': 'この名前の以前の照合は期限切れです。',
   'app.lab.strength.notChecked': '署名あり · 未確認',
   'app.lab.strength.listingWithdrawn': '署名あり · 公開リストとの照合を取り消し',
-  'app.lab.strength.website': '署名あり · ウェブサイトで確認済み（{domain}）',
+  'app.lab.strength.website': '署名あり · {domain}に掲載',
   'app.lab.strength.websiteWhy': '{text}そのウェブサイトがラボ自身のものか確かめてください。',
   'app.lab.strength.websiteWithdrawn': '署名あり · ウェブサイトが撤回（{domain}）',
   'app.lab.strength.websiteWithdrawnWhy': '{text}ラボに尋ねずに頼りにしないでください。',

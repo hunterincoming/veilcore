@@ -216,12 +216,12 @@ read. A fluent speaker's corrections are welcome, as in [translations/README.md]
 
 ## A lab key's identity level (docs/lab-identity-levels.md)
 
-"Verified" only ever in these titles, and always saying by what. Japanese keeps 確認 for verify.
+"Verified" (確認済み) only for a match to a public listing; a key on a website is "listed on". Japanese keeps 確認 for verify.
 
 | English | Japanese | Spanish | German | French |
 | --- | --- | --- | --- | --- |
 | Not verified | 未確認 | No verificada (la clave) | Nicht verifiziert | Non vérifiée (la clé) |
-| Verified by website | ウェブサイトで確認済み | Verificada por sitio web | Per Website verifiziert | Vérifiée par site web |
+| Listed on {domain} | {domain}に掲載 | Publicada en {domain} | Aufgeführt auf {domain} | Publiée sur {domain} |
 | Verified against {listing} | {listing}で確認済み | Verificada con {listing} | Verifiziert anhand von {listing} | Vérifiée auprès de {listing} |
 | Withdrawn by website | ウェブサイトが撤回 | Retirada por el sitio web | Von der Website zurückgezogen | Retirée par le site web |
 | Not verified: listing match withdrawn | 未確認：公開リストとの照合を取り消し | No verificada: cotejo con listado retirado | Nicht verifiziert: Abgleich mit Verzeichnis zurückgenommen | Non vérifiée : rapprochement avec une liste retiré |

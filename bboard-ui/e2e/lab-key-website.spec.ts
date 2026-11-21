@@ -145,7 +145,7 @@ test('listed on the lab’s website: the line says so, who looked and when, and 
   await expect(link).toHaveAttribute('href', 'https://stand-in-lab.example/.well-known/veilcore-lab.json');
   // The level, in words (docs/lab-identity-levels.md), with when VeilCore last saw the listing.
   const badge = page.locator('[data-lab-identity="website"]');
-  await expect(badge).toContainText('Verified by website');
+  await expect(badge.locator('[data-lab-identity-title]')).toHaveText('Listed on stand-in-lab.example');
   await expect(badge).toContainText(`VeilCore last saw it there on ${today()}.`);
   await expect(
     page.getByText('a key calling itself “Stand-in Lab”, listed by stand-in-lab.example').first(),
