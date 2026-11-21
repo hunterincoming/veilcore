@@ -19,6 +19,9 @@ npm run e2e            # site.spec.ts; flow.spec.ts is skipped
 answer is checked by the chain code in the browser; the holder's and a stranger's view of
 a prove link; the paste box. The registry is a stand-in inside the test.
 
+`complexity-budget.spec.ts`: the default screens on an iPhone 14 in all five languages, against
+the limits in `complexity-budget.json` (docs/complexity-budget.md).
+
 ## Against a real registry (before merging site changes)
 
 Start a registry (the `veilcore-api` repository) locally, for example on port 8790 with

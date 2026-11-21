@@ -1,0 +1,267 @@
+{
+  "about": "VeilCore's complexity budget (docs/complexity-budget.md). Each number is the most a default screen may show, measured by e2e/complexity-budget.spec.ts on an iPhone 14 in each language. Numbers only go down, unless Hunter approves a rise in the PR and something else is removed in the same change.",
+  "coreRoutes": 11,
+  "screens": {
+    "home.empty": {
+      "screen": "/records on a new device, nothing logged",
+      "primary": 2,
+      "buttons": 8,
+      "moreDepth": 0,
+      "words": {
+        "en": 102,
+        "de": 105,
+        "es": 112,
+        "fr": 116,
+        "ja": 106
+      }
+    },
+    "restore": {
+      "screen": "/restore, get your records back",
+      "primary": 1,
+      "buttons": 4,
+      "moreDepth": 2,
+      "words": {
+        "en": 60,
+        "de": 59,
+        "es": 67,
+        "fr": 64,
+        "ja": 66
+      }
+    },
+    "seal.start": {
+      "screen": "/new, what do you want to prove?",
+      "primary": 0,
+      "buttons": 6,
+      "moreDepth": 0,
+      "words": {
+        "en": 104,
+        "de": 94,
+        "es": 114,
+        "fr": 118,
+        "ja": 94
+      }
+    },
+    "seal.form": {
+      "screen": "/new, log your plant",
+      "primary": 1,
+      "buttons": 4,
+      "moreDepth": 1,
+      "words": {
+        "en": 138,
+        "de": 142,
+        "es": 145,
+        "fr": 139,
+        "ja": 128
+      }
+    },
+    "seal.review": {
+      "screen": "/new, is this right?",
+      "primary": 1,
+      "buttons": 7,
+      "moreDepth": 1,
+      "words": {
+        "en": 78,
+        "de": 82,
+        "es": 81,
+        "fr": 84,
+        "ja": 86
+      }
+    },
+    "seal.sealed": {
+      "screen": "/new, sealed (date stamp trying again)",
+      "primary": 1,
+      "buttons": 5,
+      "moreDepth": 1,
+      "words": {
+        "en": 104,
+        "de": 100,
+        "es": 116,
+        "fr": 99,
+        "ja": 108
+      }
+    },
+    "home.records": {
+      "screen": "/records with one record",
+      "primary": 2,
+      "buttons": 12,
+      "moreDepth": 0,
+      "words": {
+        "en": 248,
+        "de": 256,
+        "es": 270,
+        "fr": 248,
+        "ja": 259
+      }
+    },
+    "keepSafe": {
+      "screen": "the keep-your-records-safe sheet, from Home's account line",
+      "primary": 1,
+      "buttons": 3,
+      "moreDepth": 1,
+      "words": {
+        "en": 86,
+        "de": 83,
+        "es": 91,
+        "fr": 92,
+        "ja": 89
+      }
+    },
+    "record": {
+      "screen": "/record/:id, the record's own page",
+      "primary": 1,
+      "buttons": 15,
+      "moreDepth": 1,
+      "words": {
+        "en": 200,
+        "de": 206,
+        "es": 230,
+        "fr": 225,
+        "ja": 212
+      }
+    },
+    "check": {
+      "screen": "/verify/:id, a stranger's check page",
+      "primary": 1,
+      "buttons": 3,
+      "moreDepth": 2,
+      "words": {
+        "en": 180,
+        "de": 167,
+        "es": 216,
+        "fr": 200,
+        "ja": 186
+      }
+    }
+  },
+  "firstSeal": {
+    "screens": 4,
+    "taps": 4
+  },
+  "jargon": {
+    "terms": {
+      "en": [
+        "proof code",
+        "batch root",
+        "holder key",
+        "vault key",
+        "anchor",
+        "merkle",
+        "hash",
+        "fingerprint",
+        "commitment",
+        "attestation",
+        "indexer",
+        "transaction",
+        "wallet",
+        "zero-knowledge",
+        "sha-256",
+        "rfc 3161",
+        "registry",
+        "next batch",
+        "evidence bundle"
+      ],
+      "de": [
+        "prüfcode",
+        "stapelwurzel",
+        "inhaberschlüssel",
+        "verank",
+        "merkle",
+        "hash",
+        "fingerabdruck",
+        "indexer",
+        "transaktion",
+        "wallet",
+        "zero-knowledge",
+        "sha-256",
+        "rfc 3161",
+        "register",
+        "nächsten stapel",
+        "nachweispaket"
+      ],
+      "es": [
+        "código de prueba",
+        "raíz del lote",
+        "clave de titular",
+        "anclad",
+        "merkle",
+        "hash",
+        "huella",
+        "indexador",
+        "transacción",
+        "billetera",
+        "conocimiento cero",
+        "sha-256",
+        "rfc 3161",
+        "servidor de registros",
+        "próximo lote",
+        "paquete de evidencia"
+      ],
+      "fr": [
+        "code de preuve",
+        "racine de lot",
+        "clé de détenteur",
+        "ancr",
+        "merkle",
+        "hash",
+        "empreinte",
+        "indexeur",
+        "transaction",
+        "portefeuille",
+        "zero-knowledge",
+        "sha-256",
+        "rfc 3161",
+        "registre",
+        "prochain lot",
+        "dossier de preuve"
+      ],
+      "ja": [
+        "証明コード",
+        "バッチのルート",
+        "保有者キー",
+        "アンカー",
+        "マークル",
+        "ハッシュ",
+        "フィンガープリント",
+        "インデクサー",
+        "トランザクション",
+        "ウォレット",
+        "ゼロ知識",
+        "sha-256",
+        "rfc 3161",
+        "レジストリ",
+        "次のバッチ",
+        "証拠バンドル"
+      ]
+    },
+    "today": {
+      "seal.sealed": {
+        "en": ["next batch"],
+        "de": ["nächsten stapel"],
+        "es": ["próximo lote"],
+        "fr": ["prochain lot"],
+        "ja": ["次のバッチ"]
+      },
+      "home.records": {
+        "en": ["next batch"],
+        "de": ["nächsten stapel"],
+        "es": ["próximo lote"],
+        "fr": ["prochain lot"],
+        "ja": ["次のバッチ"]
+      },
+      "record": {
+        "en": ["next batch", "evidence bundle"],
+        "de": ["nächsten stapel", "nachweispaket"],
+        "es": ["próximo lote", "paquete de evidencia"],
+        "fr": ["prochain lot", "dossier de preuve"],
+        "ja": ["次のバッチ", "証拠バンドル"]
+      },
+      "check": {
+        "en": ["proof code", "anchor", "registry"],
+        "de": ["prüfcode", "verank", "register"],
+        "es": ["código de prueba", "anclad", "servidor de registros"],
+        "fr": ["code de preuve", "ancr", "registre"],
+        "ja": ["証明コード", "アンカー", "レジストリ"]
+      }
+    }
+  }
+}
