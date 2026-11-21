@@ -651,6 +651,12 @@ export const fr: Strings = {
   'm.step4.text':
     'Donnez-le à un acheteur, un examinateur ou un tribunal. Ils peuvent le vérifier gratuitement, sans compte.',
   'm.claims.label': 'Prouver un fait',
+  'm.claims.1s': '1 affichée · 15 scellées',
+  'm.claims.2s': '1 fait · 16 scellées',
+  'm.claims.3s': '≥ 6 diffèrent',
+  'm.claims.4s': '15 inchangées',
+  'm.claims.5s': '1 clé a signé',
+  'm.claims.fixed': 'corrigée',
   'm.claims.title1': 'Partager la preuve,',
   'm.claims.title2': 'pas les données.',
   'm.claims.lede':

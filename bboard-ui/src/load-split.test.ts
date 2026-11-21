@@ -33,6 +33,8 @@ describe('the first download, in the source', () => {
         // The one header and footer, which the public pages load anyway (SiteShell.tsx).
         './components/AppFooter',
         './components/SiteHeader',
+        // The page curtain between the public pages: a few lines, on every page (site/Curtain.tsx).
+        './components/site/Curtain',
         './components/site/Founders',
         './components/site/Home',
         // An empty iPhone Home Screen launch: a few lines, on any page (site/home-screen.ts).

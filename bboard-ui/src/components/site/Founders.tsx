@@ -11,7 +11,18 @@ import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
 import { useI18n } from '../../i18n';
 import type { StringKey } from '../../i18n/en';
 import { FOUNDERS_MAIL, RoleLine, SDK_REPO, SiteShell, X_HANDLE } from './SiteShell';
-import { Marquee, NightClose, PhotoCredits, PhotoScreen, Two, Updates, useHashScroll, useReveals } from './night-parts';
+import {
+  Marquee,
+  NightClose,
+  PhotoCredits,
+  PhotoScreen,
+  Two,
+  Updates,
+  useHashScroll,
+  useReveals,
+  useScrollPieces,
+} from './night-parts';
+import { Ambient } from './EventDisplay';
 import './home.css';
 
 type Founder = {
@@ -67,21 +78,34 @@ export const Founders: React.FC = () => {
   const { hash } = useLocation();
   const root = useRef<HTMLDivElement>(null);
   useReveals(root);
+  useScrollPieces(root);
   useHashScroll(hash);
   return (
     <SiteShell>
       <div className="home k-page k-about" ref={root}>
-        <header className="k-screen k-page-hero" id="top">
+        <header className="k-screen k-page-hero k-intro" id="top">
+          <Ambient seed="about" />
           <div className="k-wrap">
             <h1 className="k-giant">
-              {t('m.team.title1')}
+              <span className="k-line">
+                <span>{t('m.team.title1')}</span>
+              </span>
               {sp}
-              <span className="k-mute">{t('m.team.title2')}</span>
+              <span className="k-line k-mute">
+                <span>{t('m.team.title2')}</span>
+              </span>
             </h1>
-            <p className="k-lead k-about-lede">{t('m.founders.lede')}</p>
+            <p className="k-lead k-about-lede" data-intro="" style={{ '--i': 2 } as React.CSSProperties}>
+              {t('m.founders.lede')}
+            </p>
             <div className="k-founders" aria-label={t('m.founders.label')} role="group">
-              {FOUNDERS.map((f) => (
-                <article className="k-founder" key={f.name}>
+              {FOUNDERS.map((f, i) => (
+                <article
+                  className="k-founder"
+                  key={f.name}
+                  data-intro=""
+                  style={{ '--i': 3 + i } as React.CSSProperties}
+                >
                   <div className="k-founder-photo">
                     <span aria-hidden="true">{f.initials}</span>
                     <img
@@ -156,6 +180,7 @@ export const Founders: React.FC = () => {
 
         {/* Talk to the founders: who should write about what (it was on the home page). */}
         <section className="k-sec" id="contact" aria-labelledby="contact-h">
+          <Ambient seed="contact" faint />
           <div className="k-wrap">
             <h2 id="contact-h" className="k-giant" data-reveal="">
               <Two a={t('m.contact.title1')} b={t('m.contact.title2')} hl />

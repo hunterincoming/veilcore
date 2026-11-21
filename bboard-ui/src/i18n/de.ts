@@ -648,6 +648,12 @@ export const de: Strings = {
   'm.step4.text':
     'Geben Sie ihn einem Käufer, einer Prüfstelle oder einem Gericht. Dort kann man ihn kostenlos prüfen, ohne Konto.',
   'm.claims.label': 'Eine Tatsache beweisen',
+  'm.claims.1s': '1 gezeigt · 15 versiegelt',
+  'm.claims.2s': '1 Tatsache · 16 versiegelt',
+  'm.claims.3s': '≥ 6 verschieden',
+  'm.claims.4s': '15 unverändert',
+  'm.claims.5s': '1 Schlüssel signiert',
+  'm.claims.fixed': 'korrigiert',
   'm.claims.title1': 'Nachweis teilen,',
   'm.claims.title2': 'nicht die Daten.',
   'm.claims.lede':

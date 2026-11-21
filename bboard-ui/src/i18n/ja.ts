@@ -644,6 +644,12 @@ export const ja: Strings = {
     'Midnightに載るのは証明コードだけで、他の記録とまとめてバッチになります。日付はバッチが入ったブロックで、その時点までに記録が存在していたことを示します。',
   'm.step4.text': '買い手、審査官、裁判所に渡せます。相手は無料で、アカウントなしで確認できます。',
   'm.claims.label': '1つの事実を証明する',
+  'm.claims.1s': '1件を表示・15件は封印',
+  'm.claims.2s': '1つの事実・16件は封印',
+  'm.claims.3s': '6件以上が異なる',
+  'm.claims.4s': '15件は変更なし',
+  'm.claims.5s': '1つの鍵が署名',
+  'm.claims.fixed': '修正済み',
   'm.claims.title1': '見せるのは証明、',
   'm.claims.title2': 'データではなく。',
   'm.claims.lede':

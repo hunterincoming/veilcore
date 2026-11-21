@@ -11,10 +11,13 @@
 // sections they share with this one are in night-parts.tsx, LiveWhere.tsx and Claims.tsx.
 //
 // Ported, not copied: his page pinned sections and moved them as you scrolled (the steps, the
-// timeline, the gallery). Hunter's direction (18 Nov): modern, fewer words, effects fine, no
-// scroll-jacking, fast on a computer. So nothing here is pinned or driven by the page's scroll:
-// the steps change when one is chosen, the timeline is drawn complete, the gallery is a row you
-// swipe or step through with its buttons. No scroll listeners. The event display draws only for
+// gallery, the stacked cards). Hunter's direction (18 Nov): modern, fewer words, effects fine, no
+// scroll-jacking, fast on a computer. So nothing here is pinned, holds the page or turns its
+// scroll sideways: the steps follow the one in the middle of the window, the gallery is a row
+// you swipe or step through with its buttons. His motion that only follows the page is kept
+// (site-motion, 21 Nov): reveals that replay, the timeline filling, the photo opening, the words
+// lighting up, the code settling from random hex, the hero's intro and the page curtain
+// (Curtain.tsx), from IntersectionObservers and one passive scroll listener (night-parts.tsx). The event display draws only for
 // about a second after the proof code changes, never while off screen or hidden, at no more than
 // 1.5 device pixels per pixel, and not at all in motion with reduced motion. The moving band of
 // names has a pause button, stops off screen, and stands still with reduced motion. Photos are
@@ -44,7 +47,7 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Link as RouterLink, useLocation } from 'react-router-dom';
 import { computeCommitment, newNonce } from 'veilcore-records';
 import { useI18n } from '../../i18n';
@@ -53,7 +56,7 @@ import { hasRecordsHere } from './returning';
 import { PASTE_ENTRY } from './paste-entry';
 import { IS_MAINNET, MAINNET_CLAIMS_ADDRESS, MAINNET_CONTRACT_ADDRESS, explorerFor } from '../../config/network';
 import { AGREEMENTS_LIVE, LAB_SIGNING_RUN_ON_MAINNET, ROYALTIES_RUN_ON_MAINNET } from '../../config/copy';
-import { EventDisplay } from './EventDisplay';
+import { Ambient, EventDisplay } from './EventDisplay';
 import {
   APP_REPO,
   Arrow,
@@ -65,9 +68,12 @@ import {
   SR_ONLY,
   Two,
   Updates,
+  WordLight,
   arrowed,
+  scramble,
   useHashScroll,
   useReveals,
+  useScrollPieces,
 } from './night-parts';
 import { LiveWhere, StandList } from './LiveWhere';
 import { Gallery, type Slide } from './Gallery';
@@ -328,6 +334,13 @@ const Steps: React.FC = () => {
   const { t, sp } = useI18n();
   const [step, setStep] = useState(0);
   const list = useRef<HTMLOListElement>(null);
+  // The example code settles from random hex when its step lights (Mako's scramble). Written
+  // here, not by React, so the scramble and React never both own the text.
+  const code = useRef<HTMLParagraphElement>(null);
+  useLayoutEffect(() => {
+    if (code.current) code.current.textContent = EXAMPLE_CODE;
+  }, []);
+  useEffect(() => (step === 1 ? scramble(code.current, EXAMPLE_CODE) : undefined), [step]);
   useEffect(() => {
     const el = list.current;
     if (!el || typeof IntersectionObserver === 'undefined') return;
@@ -381,7 +394,7 @@ const Steps: React.FC = () => {
           <p className="k-layer-cap">{t('m.home.ex.label')}</p>
         </div>
         <div className={layer(1)}>
-          <p className="k-bigcode">{EXAMPLE_CODE}</p>
+          <p className="k-bigcode" ref={code} />
           <p className="k-layer-cap">{t('m.home.l2')}</p>
         </div>
         <div className={layer(2)}>
@@ -439,6 +452,7 @@ export const Home: React.FC = () => {
   const [hex, setHex] = useState('');
   const root = useRef<HTMLDivElement>(null);
   useReveals(root);
+  useScrollPieces(root);
   useHashScroll(hash);
 
   const slides: Slide[] = [
@@ -512,7 +526,7 @@ export const Home: React.FC = () => {
   return (
     <SiteShell>
       <div className="home" ref={root}>
-        <header className="k-screen k-hero" id="top">
+        <header className="k-screen k-hero k-intro" id="top">
           <div className="k-wrap k-hero-grid">
             <div className={`k-hero-text${lang === 'ja' ? ' cjk' : ''}`}>
               <h1>
@@ -524,8 +538,10 @@ export const Home: React.FC = () => {
                   <span>{t('m.hero.title2')}</span>
                 </span>
               </h1>
-              <p className="k-lede">{t('m.hero.lede')}</p>
-              <div className="k-actions hero-actions">
+              <p className="k-lede" data-intro="" style={{ '--i': 2 } as React.CSSProperties}>
+                {t('m.hero.lede')}
+              </p>
+              <div className="k-actions hero-actions" data-intro="" style={{ '--i': 3 } as React.CSSProperties}>
                 {returning && (
                   <RouterLink className="k-btn k-btn-primary" to="/records" data-your-records="">
                     {t('m.nav.yours')}
@@ -541,7 +557,7 @@ export const Home: React.FC = () => {
               </div>
               {/* The third way in (a lab tested it, 8 Nov): anyone who was sent a lab code or a
                   link goes straight to the box that opens it (paste-entry.ts). */}
-              <p className="k-paste hero-paste">
+              <p className="k-paste hero-paste" data-intro="" style={{ '--i': 3 } as React.CSSProperties}>
                 {t('m.hero.pasteQ')}
                 {sp}
                 <RouterLink to={PASTE_ENTRY} data-paste-entry="hero">
@@ -551,7 +567,7 @@ export const Home: React.FC = () => {
               {/* A first visit on a new phone or computer (the live test, 19 Nov 2026): the way back
                   to records made elsewhere is next to "Make a record", not only inside the app. */}
               {!returning && (
-                <p className="k-paste hero-restore">
+                <p className="k-paste hero-restore" data-intro="" style={{ '--i': 3 } as React.CSSProperties}>
                   {t('m.hero.restoreQ')}
                   {sp}
                   <RouterLink to="/restore" data-restore-entry="hero">
@@ -559,11 +575,13 @@ export const Home: React.FC = () => {
                   </RouterLink>
                 </p>
               )}
-              <p className="k-fine k-status-line">{t('m.hero.status')}</p>
+              <p className="k-fine k-status-line" data-intro="" style={{ '--i': 3 } as React.CSSProperties}>
+                {t('m.hero.status')}
+              </p>
             </div>
             <EventDisplay hex={hex} />
           </div>
-          <div className="k-wrap">
+          <div className="k-wrap" data-intro="" style={{ '--i': 4 } as React.CSSProperties}>
             <Fingerprint key={lang} onHash={setHex} />
           </div>
         </header>
@@ -605,9 +623,7 @@ export const Home: React.FC = () => {
                 <b />
               </div>
             </div>
-            <p className="k-wordlight" data-reveal="">
-              {t('m.for.lede')}
-            </p>
+            <WordLight text={t('m.for.lede')} />
             <p className="k-lead k-answer" data-reveal="">
               <b>{t('m.get.1a')}</b>
               {sp}
@@ -687,6 +703,7 @@ export const Home: React.FC = () => {
           <div className="k-doors">
             <RouterLink className="k-door k-door-make" to="/new">
               <DoorPhoto name="hand" />
+              <Ambient seed="make" />
               <span className="k-chips">
                 <span className="k-chip live">{t('m.chip.interactive')}</span>
                 <span className="k-chip">{t('m.chip.3min')}</span>
@@ -700,6 +717,7 @@ export const Home: React.FC = () => {
             </RouterLink>
             <RouterLink className="k-door k-door-verify" to="/verify">
               <DoorPhoto name="seed" />
+              <Ambient seed="verify" />
               <span className="k-chips">
                 <span className="k-chip live">{t('m.chip.interactive')}</span>
                 <span className="k-chip">{t('m.chip.1min')}</span>
@@ -850,6 +868,7 @@ export const Home: React.FC = () => {
         {/* Talk to the founders (Mako's close): who to write to, and their faces. What each kind of
             reader should write about is on About (/founders#contact). */}
         <section className="k-screen k-drench k-close" id="contact" aria-labelledby="close-h">
+          <Ambient seed="close" tone="dark" faint />
           <div className="k-wrap">
             {/* One colour on the gold: night text throughout (Mako: small text on gold is black). */}
             <h2 id="close-h" className="k-giant" data-reveal="">
