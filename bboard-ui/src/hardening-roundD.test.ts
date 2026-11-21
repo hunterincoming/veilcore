@@ -250,7 +250,7 @@ describe('F2 attestationsFor: bound to this record; only signed retractions coun
     expect(a.retraction).toBeNull();
     expect(a.retractionUnverified).toBe(true);
     expect(countsAsSigned(a)).toBe(true);
-    expect(strengthLabel(a).label).toBe('Signed · name matched to a public listing');
+    expect(strengthLabel(a).label).toBe('Signed · verified against a public listing');
     expect(strengthLabel(a).why).toMatch(/not signed by the attester, so it is ignored/);
   });
 

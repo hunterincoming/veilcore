@@ -140,12 +140,12 @@ describe('the breeder’s receipt line', () => {
     const line = receiptSignedLine(vetted);
     expect(line.startsWith('Receipt signed by Checked Lab. ')).toBe(true);
     expect(line.slice('Receipt signed by Checked Lab. '.length)).toMatch(MATCHED);
-    expect(receiptSignedLine(plain)).toBe('Receipt signed by a key named “Acme Labs” (name not checked)');
+    expect(receiptSignedLine(plain)).toBe('Receipt signed by a key calling itself “Acme Labs” (not verified)');
     // A mark with no check record behind it (every mark made before round 4) is not checked.
     const bareMark = att({ key: OTHER, vettedAttester: true, registeredAs: { displayName: 'Checked Lab' } });
-    expect(receiptSignedLine(bareMark)).toBe('Receipt signed by a key named “Checked Lab” (name not checked)');
+    expect(receiptSignedLine(bareMark)).toBe('Receipt signed by a key calling itself “Checked Lab” (not verified)');
     expect(receiptSignedLine(att({ registeredAs: null, attester: { publicKey: LAB } }))).toBe(
-      'Receipt signed by a key nobody has named',
+      'Receipt signed by a key nobody has named (not verified)',
     );
     // Withdrawn, a vetted key's statement no longer reads as named.
     const withdrawn = att({
@@ -154,7 +154,7 @@ describe('the breeder’s receipt line', () => {
       registeredAs: { displayName: 'Checked Lab', nameCheck: checkFor('Checked Lab') },
       retraction: { attestationId: 'x', attesterPublicKey: OTHER, reason: 'other', retractedAt: 'x', signature: 's' },
     });
-    expect(signedByWords(withdrawn)).toMatch(/name not checked/);
+    expect(signedByWords(withdrawn)).toMatch(/not verified/);
     expect(line).not.toMatch(/VeilCore (has )?(checked|verified)|vouches for/i);
     // Two linked receipts: the named key first.
     const two = breederReceipt(
@@ -180,7 +180,7 @@ describe('the certificate’s receipt line', () => {
     );
     const acme = att({ attestationId: 'b', registeredAs: { displayName: 'Acme Labs' } });
     expect(receiptLineFor(plant(), breederReceipt(plant(), [acme], sentWith('b')))).toMatch(
-      /^Receipt signed by a key named “Acme Labs” \(name not checked\), .+ \(signature checked in this browser\)$/,
+      /^Receipt signed by a key calling itself “Acme Labs” \(not verified\), .+ \(signature checked in this browser\)$/,
     );
     // Unlinked, Acme is never on the certificate.
     expect(receiptLineFor(plant(), breederReceipt(plant(), [acme], sentWith()))).toMatch(/^Lab code used; no receipt/);

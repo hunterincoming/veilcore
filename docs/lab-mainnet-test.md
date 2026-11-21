@@ -62,7 +62,7 @@ Stop at the first step that fails (see "If a step fails" at the end).
    can't be used".
 
 9. **Look up the lab's name.** Still in the private window, press **Find the lab's name**.
-   **Pass if:** it shows `TEST Lab (Hunter)`, marked "name not checked".
+   **Pass if:** it shows `TEST Lab (Hunter)`, marked "Not verified".
 
 10. **Confirm it is private.** In your normal window open the test record, press **Show
     someone**, then **Get the link**. Open that link in the private window.
@@ -110,7 +110,7 @@ Stop at the first step that fails (see "If a step fails" at the end).
 16. **Confirm the receipt's signature is hidden.** In the Guest window open
     `TEST lab signing 2` and press **Show someone**. Turn on **Whether a DNA report is saved**.
     Under **Lab signatures** there is a line "Receipt for a sample, signed …" with the switch
-    "Show that a key named “TEST Lab (Hunter)” (name not checked) signed this on your check
+    "Show that a key calling itself “TEST Lab (Hunter)” (not verified) signed this on your check
     link". Leave that switch OFF. Press **Get the link** and open the link in the private window.
     Even with the switch off, the page says that a lab received a sample from this record and
     whether what arrived matches what was sent ("A lab's receipt for a sample from this record,
@@ -124,7 +124,7 @@ Stop at the first step that fails (see "If a step fails" at the end).
     screen, turn that switch ON and press **Get the link** again. Open the new link in the
     private window.
     **Pass if:** the page now says "Lab's receipt for a sample, signature verified in this
-    browser" and names `TEST Lab (Hunter)` (name not checked). The sentence "The holder hasn't
+    browser" and names `TEST Lab (Hunter)` (not verified). The sentence "The holder hasn't
     shown any lab signatures here" is gone.
 
 18. **Last: withdraw the TEST result.** The result from step 6 is permanent, so mark it. In your

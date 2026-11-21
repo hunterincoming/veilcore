@@ -15,11 +15,70 @@ export const lab = {
   'app.signer.disclaimer': 'VeilCore no avala el trabajo del laboratorio.',
   'app.signer.rest': ' {before}{host}{after} {disclaimer}',
   'app.signer.text': '{lead}.{rest}',
-  'app.signer.keyNamed': 'una clave llamada “{name}” (nombre no comprobado)',
-  'app.signer.keyUnnamed': 'una clave a la que nadie ha puesto nombre',
+  'app.signer.keyNamed': 'una clave que se presenta como “{name}” (no verificada)',
+  'app.signer.keyUnnamed': 'una clave a la que nadie ha puesto nombre (no verificada)',
+  'app.signer.keyWebsite': 'una clave que se presenta como “{name}”, publicada por {domain}',
+  'app.signer.keyWebsiteUnnamed': 'una clave publicada por {domain}',
+  'app.signer.keyWithdrawn': 'una clave que se presenta como “{name}” (retirada por {domain})',
+  'app.signer.keyWithdrawnUnnamed': 'una clave a la que nadie ha puesto nombre (retirada por {domain})',
   'app.signer.domainBefore': 'La clave nombra el sitio web ',
   'app.signer.domainAfter': ', y VeilCore la encontró publicada allí el {date}.',
   'app.signer.domainWithdrawn': ', pero VeilCore vio el {date} que ya no está publicada allí.',
+  'app.labid.aria': 'Quién tiene la clave de firma',
+  'app.labid.dash': ' — ',
+  'app.labid.calls': 'esta clave se presenta como “{name}”.',
+  'app.labid.callsNone': 'esta clave no tiene nombre.',
+  'app.labid.none.title': 'No verificada',
+  'app.labid.none.body':
+    'Cualquiera puede crear una clave con cualquier nombre. Consulte con el laboratorio antes de confiar en ella.',
+  'app.labid.expired.body':
+    'Su comprobación anterior con un listado público venció. Cualquiera puede crear una clave con cualquier nombre. Consulte con el laboratorio antes de confiar en ella.',
+  'app.labid.website.title': 'Verificada por sitio web',
+  'app.labid.website.body':
+    '{domain} publica esta clave, y la clave nombra ese sitio web. VeilCore la vio allí por última vez el {date}. VeilCore no comprueba quién administra el sitio web: asegúrese de que sea el del propio laboratorio y no una imitación.',
+  'app.labid.website.unmarked':
+    'El operador de VeilCore quitó un cotejo anterior de esta clave con un listado público.',
+  'app.labid.listing.title': 'Verificada con {listing}',
+  'app.labid.listing.body':
+    'El operador de VeilCore cotejó el nombre “{name}” con este listado público{number} el {date}, y el laboratorio confirmó la clave desde una dirección de correo del dominio del laboratorio. El cotejo vale hasta el {until}.',
+  'app.labid.listing.website': '{domain} también publica esta clave (VeilCore la vio allí por última vez el {date}).',
+  'app.labid.websiteWithdrawn.title': 'Retirada por el sitio web',
+  'app.labid.websiteWithdrawn.body':
+    '{domain} ya no publica esta clave: VeilCore lo vio el {date}. Puede que el laboratorio la haya dado de baja o desconocido. No confíe en ella sin preguntar al laboratorio.',
+  'app.labid.listingWithdrawn.title': 'No verificada: cotejo con listado retirado',
+  'app.labid.listingWithdrawn.body':
+    'El operador de VeilCore quitó su cotejo con un listado público. Consulte con el laboratorio antes de confiar en ella.',
+  'app.labid.more': '¿Qué significa esto?',
+  'app.labid.more.what':
+    'VeilCore comprueba qué clave firmó y lo que se sabe de quién es la clave. Nunca comprueba la calidad del resultado ni si el laboratorio tiene licencia.',
+  'app.labid.more.none':
+    '<b>No verificada</b>: cualquiera puede crear una clave y darle cualquier nombre, incluso el de un laboratorio que existe. Un cotejo con un listado que venció o se retiró cuenta como no verificado.',
+  'app.labid.more.website':
+    '<b>Verificada por sitio web</b>: la clave nombra un sitio web, y ese sitio web publica la clave. Quien administra ese sitio respalda la clave, así que compruebe que la dirección sea la del laboratorio.',
+  'app.labid.more.listing':
+    '<b>Verificada con un listado público</b>: el operador de VeilCore encontró el nombre del laboratorio en un listado público de licencias o acreditaciones, y el laboratorio confirmó la clave desde una dirección de correo del dominio del laboratorio, por un año como máximo.',
+  'app.labid.more.withdrawn':
+    '<b>Retirada</b>: el sitio web del laboratorio dejó de publicar la clave, o el operador de VeilCore quitó el cotejo. Pregunte al laboratorio antes de confiar en ella.',
+  'app.labid.more.how':
+    'Cómo queda verificado un laboratorio: publica su clave en su propio sitio web o pide a VeilCore que coteje su nombre con un listado público. Para consultar con un laboratorio, use datos de contacto que haya encontrado usted.',
+  'app.labid.own.title': 'Cómo muestran su clave ahora las páginas de comprobación',
+  'app.labid.own.looking': 'Buscando cómo muestran su clave las páginas de comprobación…',
+  'app.labid.own.couldNot': 'Ahora no se pudo ver cómo muestran su clave las páginas de comprobación.',
+  'app.labid.own.next.none':
+    'Siguiente paso: publique su clave en el sitio web de su laboratorio. Las páginas de comprobación dirán entonces “Verificada por sitio web” y mostrarán la dirección de su sitio.',
+  'app.labid.own.next.listingWithdrawn':
+    'Siguiente paso: publique su clave en el sitio web de su laboratorio. Las páginas de comprobación dirán entonces “Verificada por sitio web” y mostrarán la dirección de su sitio.',
+  'app.labid.own.next.website':
+    'Siguiente paso: pida a VeilCore que coteje el nombre de su laboratorio con un listado público de licencias o acreditaciones. Las páginas de comprobación dirán entonces “Verificada con” ese listado.',
+  'app.labid.own.next.expired':
+    'Siguiente paso: su comprobación con el listado venció. Pida a VeilCore que vuelva a comprobar el nombre de su laboratorio.',
+  'app.labid.own.next.listing':
+    'Este es el nivel más alto. Vale hasta el {date}; para renovarlo, pida a VeilCore una nueva comprobación antes de esa fecha.',
+  'app.labid.own.next.websiteWithdrawn':
+    '{domain} ya no publica esta clave, así que las páginas de comprobación muestran sus firmas como retiradas. Si fue un error, vuelva a publicar la clave en {domain}. Si la clave se filtró, cree una clave nueva.',
+  'app.labid.own.do.website': 'Publicarla en mi sitio web',
+  'app.labid.own.do.listing': 'Escribir a VeilCore',
+  'app.labid.own.mailSubject': 'Comprobación del nombre de mi clave de laboratorio',
   'app.lab.saved.lab': 'guardado · coincide con el informe firmado por el laboratorio',
   'app.lab.saved.self': 'guardado · ninguna firma de laboratorio coincide',
   'app.lab.saved.replacedNewer': 'reemplazado por el laboratorio: guarde el corregido',
@@ -99,11 +158,16 @@ export const lab = {
     'Quien la firmó la retiró el {date}, con una retractación firmada con su clave. Sigue en el registro: retractar no es borrar.',
   'app.lab.strength.unverifiedRetraction':
     ' El servidor de registros también informa una retractación que no firmó quien firmó la declaración, así que aquí se ignora.',
-  'app.lab.strength.matched': 'Firmado · nombre cotejado con un listado público',
+  'app.lab.strength.matched': 'Firmado · verificada con un listado público',
   'app.lab.strength.matchedWhy': '{text} La firma se verificó en este navegador.{acc}{unverified}',
   'app.lab.strength.accreditation': ' Indican una acreditación {scheme} de {by}; confírmela con {by}.',
   'app.lab.strength.expired': ' Una comprobación anterior de este nombre ha vencido.',
-  'app.lab.strength.notChecked': 'Firmado · nombre no comprobado',
+  'app.lab.strength.notChecked': 'Firmado · no verificada',
+  'app.lab.strength.listingWithdrawn': 'Firmado · cotejo con listado retirado',
+  'app.lab.strength.website': 'Firmado · verificada por sitio web ({domain})',
+  'app.lab.strength.websiteWhy': '{text} Asegúrese de que ese sitio web sea el del propio laboratorio.',
+  'app.lab.strength.websiteWithdrawn': 'Firmado · retirada por el sitio web ({domain})',
+  'app.lab.strength.websiteWithdrawnWhy': '{text} No confíe en ella sin preguntar al laboratorio.',
   'app.lab.strength.anyName':
     '{text}. Cualquiera puede registrar una clave con cualquier nombre, así que esto no muestra quién firmó.{expired}',
   'app.lab.strength.unregistered':
@@ -329,15 +393,13 @@ export const lab = {
     '<b>Firmado por {who}, pero no por la clave que firmó el acuse de recibo de este envío.</b> El archivo coincide con la firma de esa clave, pero nada muestra que esa clave haya tenido su muestra. Consulte al laboratorio antes de confiar en él.',
   'app.lab.results.signed':
     '<b>{lead}</b> (clave {key}), firma comprobada en este navegador. La misma clave firmó el acuse de recibo de este envío.',
-  'app.lab.results.anyName':
-    ' Cualquiera puede registrar una clave con cualquier nombre, así que el nombre no muestra quién firmó.',
   'app.lab.results.locked':
     'Bloqueados para que solo usted pueda abrirlos, con la clave de esta planta de su copia de seguridad. VeilCore los guarda cifrados y no tiene la clave.',
   'app.lab.results.noKey':
     'La clave de esta planta no está en este dispositivo, así que aquí no se pueden abrir sus informes de laboratorio. Primero <link>recupere sus plantas desde su copia de seguridad</link>.',
   'app.lab.results.gotIt': 'Entendido',
   'app.lab.results.whatOthersSee':
-    '<b>Lo que otros pueden ver.</b> La firma del laboratorio sobre este informe es privada, como el informe: solo usted y el laboratorio la ven. Para mostrarla, elija Mostrar a alguien y actívela en “Firmas de laboratorio”. Cualquiera con ese enlace verá entonces que el laboratorio firmó un informe sobre esta planta, y el nombre con el que está registrada la clave del laboratorio: marcado “nombre no comprobado” salvo que el operador de VeilCore lo haya cotejado con un listado público de licencias o acreditaciones. Si es un informe de ADN y lo guarda en esta planta, la página también puede decir que el laboratorio firmó ese archivo.',
+    '<b>Lo que otros pueden ver.</b> La firma del laboratorio sobre este informe es privada, como el informe: solo usted y el laboratorio la ven. Para mostrarla, elija Mostrar a alguien y actívela en “Firmas de laboratorio”. Cualquiera con ese enlace verá entonces que el laboratorio firmó un informe sobre esta planta, y el nombre con el que está registrada la clave del laboratorio: marcado “No verificada” salvo que el operador de VeilCore lo haya cotejado con un listado público de licencias o acreditaciones. Si es un informe de ADN y lo guarda en esta planta, la página también puede decir que el laboratorio firmó ese archivo.',
   'app.lab.results.noCurrent': 'No hay informe vigente de {lab}: el original fue reemplazado y la corrección retirada.',
   'app.lab.results.looking': 'Buscando informes de laboratorio…',
   'app.lab.results.nothingYet':
@@ -405,7 +467,7 @@ export const lab = {
   'app.lab.out.sentText':
     'Solo el obtentor puede abrirlo. Su firma sobre él también es privada: solo el obtentor y usted pueden verla, salvo que el obtentor decida mostrarla en su enlace de comprobación. Si firmó un acuse de recibo de la muestra y el obtentor muestra si hay un informe de ADN guardado, su página de comprobación dice que un laboratorio recibió una muestra y si lo que llegó coincide con lo enviado, sin el nombre de su laboratorio.',
   'app.lab.out.sentName':
-    'Si lo hace, cualquiera con ese enlace ve también el nombre con el que está registrada su clave. Hasta que el operador de VeilCore lo coteje con un listado público de licencias o acreditaciones, aparece como “una clave llamada “{name}” (nombre no comprobado)”.',
+    'Si lo hace, cualquiera con ese enlace ve también el nombre con el que está registrada su clave. Hasta que el operador de VeilCore lo coteje con un listado público de licencias o acreditaciones, aparece como “una clave que se presenta como “{name}” (no verificada)”.',
   'app.lab.out.yourLab': 'su laboratorio',
   'app.lab.out.youSent': 'Informes de laboratorio que envió',
   'app.lab.out.rowHead': '{id} · enviado {when}',

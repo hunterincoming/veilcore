@@ -211,7 +211,7 @@ export const verify = {
     'Le registre indique que cette racine a été inscrite sur {network}{tx}. Sa date : {date}.{notLooked}{test}',
   'app.verify.notLooked': ' Cette page ne l’a pas consultée ; faites-le avant de vous fier à la date.',
   'app.verify.batchNoStamp': 'Le lot n’a pas encore d’horodatage sur Midnight.',
-  'app.verify.sigLine': '{forWhom}{kind}, signature vérifiée dans ce navigateur. {lead}.',
+  'app.verify.sigLine': '{forWhom}{kind}, signature contrôlée dans ce navigateur. {lead}.',
   'app.verify.sampleDetails': 'Détails de l’échantillon, selon le registre :',
   'app.verify.moreSigs': '{forWhom}Et {n} signatures de plus, chacune vérifiée dans ce navigateur.',
   'app.verify.noneVerified':
@@ -278,11 +278,11 @@ export const verify = {
   'app.verify.ex.note3':
     'Cette transaction, sur {network}, est ce qui date l’enregistrement. Sur un vrai enregistrement, votre navigateur la demande à un indexeur Midnight et vérifie qu’elle a écrit cette racine de lot dans le smart contract de VeilCore. Si aucun indexeur ne répond, la ligne le dit et la date n’est que ce que signale le registre : consultez la transaction sur un explorateur Midnight, comme midnightexplorer.com, avant de vous y fier.',
   'app.verify.ex.fact4':
-    'Rapport de laboratoire (SHA-256 du fichier 7c1e04d2…9b3a51), signature vérifiée dans ce navigateur. Signé par une clé nommée « Example Lab » (nom non vérifié).',
+    'Rapport de laboratoire (SHA-256 du fichier 7c1e04d2…9b3a51), signature vérifiée dans ce navigateur. Signé par une clé qui se présente comme « Example Lab » (non vérifiée).',
   'app.verify.ex.note4':
     'Un laboratoire peut signer avec sa propre clé son accusé de réception d’un échantillon et son rapport de laboratoire. Chaque ligne dit de quoi il s’agit. La page vérifie la signature ; c’est à vous de juger si la clé appartient à un laboratoire de confiance.',
   'app.verify.ex.fact5':
-    'Le détenteur a joint un rapport ADN à cet enregistrement. Son fichier (SHA-256 7c1e04d2…9b3a51) correspond au rapport de laboratoire signé par une clé nommée « Example Lab » (nom non vérifié) : signature vérifiée dans ce navigateur.',
+    'Le détenteur a joint un rapport ADN à cet enregistrement. Son fichier (SHA-256 7c1e04d2…9b3a51) correspond au rapport de laboratoire signé par une clé qui se présente comme « Example Lab » (non vérifiée) : signature vérifiée dans ce navigateur.',
   'app.verify.ex.note5':
     'Le détenteur choisit quelles informations apparaissent ici. Tout ce qui n’est pas partagé est indiqué comme non partagé.',
   'app.verify.ex.marks':
@@ -297,7 +297,7 @@ export const verify = {
   'app.verify.bredByShared': 'Obtenu par, tel que le détenteur l’a écrit : {name}',
   'app.verify.noBredBy': 'Aucun obtenteur enregistré.',
   'app.verify.mark.anyName':
-    'Le nom d’un signataire est le nom sous lequel sa clé a été enregistrée. N’importe qui peut enregistrer une clé sous n’importe quel nom : un nom ne montre qui a signé que s’il est indiqué comme vérifié auprès d’une inscription publique.',
+    'N’importe qui peut créer une clé sous n’importe quel nom. Chaque signature ci-dessous indique où en est la vérification de sa clé : non vérifiée, vérifiée par site web ou vérifiée auprès d’une liste publique.',
   'app.verify.summary.checked':
     'L’enregistrement existait au plus tard le {date} : cette page l’a vérifié sur Midnight.{test}',
   'app.verify.summary.reported':

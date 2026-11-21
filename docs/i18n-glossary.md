@@ -213,3 +213,16 @@ read. A fluent speaker's corrections are welcome, as in [translations/README.md]
 | check page | 確認ページ | página de comprobación | Prüfseite | page de vérification |
 | "Scan to check" (on a label) | スキャンして確認 | Escanee para comprobar | Zum Prüfen scannen | Scanner pour vérifier |
 | straw canister | ストローの容器 | recipiente de pajuelas (not "contenedor": it holds "tenedor", which the Spanish check refuses) | Paillettenbehälter | visotube |
+
+## A lab key's identity level (docs/lab-identity-levels.md)
+
+"Verified" only ever in these titles, and always saying by what. Japanese keeps 確認 for verify.
+
+| English | Japanese | Spanish | German | French |
+| --- | --- | --- | --- | --- |
+| Not verified | 未確認 | No verificada (la clave) | Nicht verifiziert | Non vérifiée (la clé) |
+| Verified by website | ウェブサイトで確認済み | Verificada por sitio web | Per Website verifiziert | Vérifiée par site web |
+| Verified against {listing} | {listing}で確認済み | Verificada con {listing} | Verifiziert anhand von {listing} | Vérifiée auprès de {listing} |
+| Withdrawn by website | ウェブサイトが撤回 | Retirada por el sitio web | Von der Website zurückgezogen | Retirée par le site web |
+| Not verified: listing match withdrawn | 未確認：公開リストとの照合を取り消し | No verificada: cotejo con listado retirado | Nicht verifiziert: Abgleich mit Verzeichnis zurückgenommen | Non vérifiée : rapprochement avec une liste retiré |
+| a key calling itself "X" | 「X」と名乗る鍵 | una clave que se presenta como "X" | ein Schlüssel, der sich „X“ nennt | une clé qui se présente comme « X » |

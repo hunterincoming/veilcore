@@ -69,7 +69,7 @@ const label = async (registeredAs: Record<string, unknown>, tr = makeTranslator(
   const [a] = await checkAttestations([await row(registeredAs)], PLANT);
   return signerLabel(a, 'Receipt signed by', NOW, tr);
 };
-const NOT_CHECKED = 'Receipt signed by a key named “Acme Labs” (name not checked)';
+const NOT_CHECKED = 'Receipt signed by a key calling itself “Acme Labs” (not verified)';
 
 beforeAll(async () => {
   lab = await generateKeypair();
@@ -81,7 +81,7 @@ describe('the key names its website: checked here, not taken from the registry',
     const claim = await claimBy(lab, lab.publicKey, 'acme-labs.com');
     const s = await label({ domainCheck: { domain: 'acme-labs.com', method: 'file', checkedAt: LOOKED, claim } });
     expect(s.text).toBe(
-      `${NOT_CHECKED}. The key names the website acme-labs.com, and VeilCore found it listed there on 2026-11-18.`,
+      `Receipt signed by a key calling itself “Acme Labs”, listed by acme-labs.com. The key names the website acme-labs.com, and VeilCore found it listed there on 2026-11-18.`,
     );
     expect(s.published).toMatchObject({
       state: 'listed',
@@ -123,7 +123,7 @@ describe('the key names its website: checked here, not taken from the registry',
     const withdrawn = { domain: 'acme-labs.com', method: 'file', withdrawnAt: '2026-11-10T03:00:00.000Z', claim };
     const s = await label({ domainCheck: null, domainWithdrawn: withdrawn });
     expect(s.text).toBe(
-      `${NOT_CHECKED}. The key names the website acme-labs.com, but VeilCore found it no longer listed there on 2026-11-10.`,
+      `Receipt signed by a key calling itself “Acme Labs” (withdrawn by acme-labs.com). The key names the website acme-labs.com, but VeilCore found it no longer listed there on 2026-11-10.`,
     );
     expect(s.published?.state).toBe('withdrawn');
     // Not signed by this key: nothing, as for a listing.

@@ -15,12 +15,69 @@ export const lab = {
   'app.signer.disclaimer': 'VeilCoreはラボの作業を保証しません。',
   'app.signer.rest': '{before}{host}{after}{disclaimer}',
   'app.signer.text': '{lead}。{rest}',
-  'app.signer.keyNamed': '「{name}」という名前の鍵（名前は未確認）',
-  'app.signer.keyUnnamed': '誰も名前を付けていない鍵',
+  'app.signer.keyNamed': '「{name}」と名乗る鍵（未確認）',
+  'app.signer.keyUnnamed': '誰も名前を付けていない鍵（未確認）',
+  'app.signer.keyWebsite': '{domain}が掲載している、「{name}」と名乗る鍵',
+  'app.signer.keyWebsiteUnnamed': '{domain}が掲載している鍵',
+  'app.signer.keyWithdrawn': '「{name}」と名乗る鍵（{domain}が撤回）',
+  'app.signer.keyWithdrawnUnnamed': '誰も名前を付けていない鍵（{domain}が撤回）',
   'app.signer.domainBefore': 'この鍵はウェブサイト',
   'app.signer.domainAfter': 'を指定しており、VeilCoreは{date}にそこでこの鍵が掲載されていることを確認しました。',
   'app.signer.domainWithdrawn':
     'を指定していますが、VeilCoreは{date}にそこでこの鍵が掲載されなくなったことを確認しました。',
+  'app.labid.aria': '署名鍵を持っているのは誰か',
+  'app.labid.dash': '：',
+  'app.labid.calls': 'この鍵は「{name}」と名乗っています。',
+  'app.labid.callsNone': 'この鍵には名前がありません。',
+  'app.labid.none.title': '未確認',
+  'app.labid.none.body': '誰でもどんな名前でも鍵を作れます。頼りにする前にラボに確認してください。',
+  'app.labid.expired.body':
+    '以前の公開リストとの照合は期限切れです。誰でもどんな名前でも鍵を作れます。頼りにする前にラボに確認してください。',
+  'app.labid.website.title': 'ウェブサイトで確認済み',
+  'app.labid.website.body':
+    '{domain}がこの鍵を掲載しており、鍵もそのウェブサイトを指定しています。VeilCoreが最後にそこで確認したのは{date}です。VeilCoreはウェブサイトの運営者を確認しません。ラボ自身のウェブサイトで、よく似た別のアドレスではないことを確かめてください。',
+  'app.labid.website.unmarked': 'VeilCoreの運営者は、この鍵と公開リストとの以前の照合を取り消しています。',
+  'app.labid.listing.title': '{listing}で確認済み',
+  'app.labid.listing.body':
+    'VeilCoreの運営者は{date}に「{name}」という名前をこの公開リストと照合し{number}、ラボはラボのドメインのメールアドレスからこの鍵を確認しました。この照合は{until}まで有効です。',
+  'app.labid.listing.website': '{domain}もこの鍵を掲載しています（VeilCoreが最後にそこで確認したのは{date}）。',
+  'app.labid.websiteWithdrawn.title': 'ウェブサイトが撤回',
+  'app.labid.websiteWithdrawn.body':
+    '{domain}はもうこの鍵を掲載していません。VeilCoreは{date}にそれを確認しました。ラボが鍵の使用をやめたか、鍵を否認した可能性があります。ラボに尋ねずに頼りにしないでください。',
+  'app.labid.listingWithdrawn.title': '未確認：公開リストとの照合を取り消し',
+  'app.labid.listingWithdrawn.body':
+    'VeilCoreの運営者は公開リストとの照合を取り消しました。頼りにする前にラボに確認してください。',
+  'app.labid.more': 'これはどういう意味ですか？',
+  'app.labid.more.what':
+    'VeilCoreが確認するのは、どの鍵が署名したかと、その鍵が誰のものかについて分かっていることです。結果の質や、ラボがライセンスを持っているかは確認しません。',
+  'app.labid.more.none':
+    '<b>未確認</b>：誰でも鍵を作り、実在するラボの名前を含め、どんな名前でも付けられます。期限切れまたは取り消された公開リストとの照合も未確認として扱います。',
+  'app.labid.more.website':
+    '<b>ウェブサイトで確認済み</b>：鍵がウェブサイトを指定し、そのウェブサイトが鍵を掲載しています。そのウェブサイトの運営者が鍵を認めているということなので、アドレスがラボ自身のものか確かめてください。',
+  'app.labid.more.listing':
+    '<b>公開リストで確認済み</b>：VeilCoreの運営者が公開のライセンスまたは認定リストでラボの名前を見つけ、ラボがラボのドメインのメールアドレスから鍵を確認しました。有効期間は最長1年です。',
+  'app.labid.more.withdrawn':
+    '<b>撤回</b>：ラボのウェブサイトが鍵の掲載をやめたか、VeilCoreの運営者が照合を取り消しました。頼りにする前にラボに尋ねてください。',
+  'app.labid.more.how':
+    'ラボが確認済みになる方法：自身のウェブサイトに鍵を掲載するか、VeilCoreに名前を公開リストと照合するよう依頼します。ラボに確認するときは、ご自身で調べた連絡先を使ってください。',
+  'app.labid.own.title': '確認ページでの現在のあなたの鍵の表示',
+  'app.labid.own.looking': '確認ページでの鍵の表示を調べています…',
+  'app.labid.own.couldNot': '確認ページでの鍵の表示を今は調べられませんでした。',
+  'app.labid.own.next.none':
+    '次のステップ：ラボのウェブサイトに鍵を掲載してください。確認ページに「ウェブサイトで確認済み」とウェブサイトのアドレスが表示されます。',
+  'app.labid.own.next.listingWithdrawn':
+    '次のステップ：ラボのウェブサイトに鍵を掲載してください。確認ページに「ウェブサイトで確認済み」とウェブサイトのアドレスが表示されます。',
+  'app.labid.own.next.website':
+    '次のステップ：ラボの名前を公開のライセンスまたは認定リストと照合するようVeilCoreに依頼してください。確認ページにそのリストで「確認済み」と表示されます。',
+  'app.labid.own.next.expired':
+    '次のステップ：公開リストとの照合が期限切れです。ラボの名前をもう一度確認するようVeilCoreに依頼してください。',
+  'app.labid.own.next.listing':
+    'これが最も高いレベルです。{date}まで有効です。更新するには、その前にVeilCoreに再確認を依頼してください。',
+  'app.labid.own.next.websiteWithdrawn':
+    '{domain}はもうこの鍵を掲載していないため、確認ページではこの鍵の署名が撤回として表示されます。間違いであれば、{domain}に鍵を掲載し直してください。鍵が漏れた場合は、新しい鍵を作ってください。',
+  'app.labid.own.do.website': '自分のウェブサイトに掲載する',
+  'app.labid.own.do.listing': 'VeilCoreにメールする',
+  'app.labid.own.mailSubject': 'ラボの鍵の名前の確認',
   'app.lab.saved.lab': '保存済み · ラボが署名した報告書と一致',
   'app.lab.saved.self': '保存済み · 一致するラボの署名なし',
   'app.lab.saved.replacedNewer': 'ラボが差し替えました。訂正版を保存してください',
@@ -96,11 +153,16 @@ export const lab = {
     '証明者が{date}に、自分の鍵で署名した撤回によって取り下げました。記録には残ります。撤回は削除ではありません。',
   'app.lab.strength.unverifiedRetraction':
     'レジストリは証明者の署名がない撤回も報告していますが、ここでは無視しています。',
-  'app.lab.strength.matched': '署名あり · 名前を公開リストと照合済み',
+  'app.lab.strength.matched': '署名あり · 公開リストで確認済み',
   'app.lab.strength.matchedWhy': '{text}署名はこのブラウザで確認しました。{acc}{unverified}',
   'app.lab.strength.accreditation': '{by}による{scheme}の認定が記載されています。{by}に確認してください。',
   'app.lab.strength.expired': 'この名前の以前の照合は期限切れです。',
-  'app.lab.strength.notChecked': '署名あり · 名前は未確認',
+  'app.lab.strength.notChecked': '署名あり · 未確認',
+  'app.lab.strength.listingWithdrawn': '署名あり · 公開リストとの照合を取り消し',
+  'app.lab.strength.website': '署名あり · ウェブサイトで確認済み（{domain}）',
+  'app.lab.strength.websiteWhy': '{text}そのウェブサイトがラボ自身のものか確かめてください。',
+  'app.lab.strength.websiteWithdrawn': '署名あり · ウェブサイトが撤回（{domain}）',
+  'app.lab.strength.websiteWithdrawnWhy': '{text}ラボに尋ねずに頼りにしないでください。',
   'app.lab.strength.anyName': '{text}。誰でもどんな名前でも鍵を登録できるため、誰が署名したかは示しません。{expired}',
   'app.lab.strength.unregistered':
     '誰も登録していない鍵による署名です。署名は有効ですが、鍵を持つのが誰かはわかりません。',
@@ -316,14 +378,13 @@ export const lab = {
     '<b>{who}が署名していますが、この送付の受領書に署名した鍵ではありません。</b>ファイルはその鍵の署名と一致しますが、その鍵があなたのサンプルを受け取ったことを示すものはありません。頼る前にラボに確認してください。',
   'app.lab.results.signed':
     '<b>{lead}</b>（鍵 {key}）。署名はこのブラウザで確認しました。この送付の受領書にも同じ鍵が署名しています。',
-  'app.lab.results.anyName': '誰でもどんな名前でも鍵を登録できるため、名前は誰が署名したかを示しません。',
   'app.lab.results.locked':
     'バックアップにあるこの植物の鍵で、あなただけが開けるように鍵がかかっています。VeilCoreは鍵がかかったまま保存し、鍵を持っていません。',
   'app.lab.results.noKey':
     'この植物の鍵はこの端末にないため、ここでは検査報告書を開けません。先に<link>バックアップから植物を取り戻してください</link>。',
   'app.lab.results.gotIt': 'わかりました',
   'app.lab.results.whatOthersSee':
-    '<b>他の人に見えるもの。</b>この報告書へのラボの署名は、報告書と同じく非公開で、あなたとラボだけが見られます。表示するには、「誰かに見せる」を選び、「ラボの署名」でオンにします。そのリンクを持つ人には、ラボがこの植物についての報告書に署名したことと、ラボの鍵が登録されている名前が見えます。名前には、VeilCoreの運営者が公開のライセンスや認定のリストと照合していない限り「名前は未確認」と表示されます。DNA報告書をこの植物に保存すると、ラボがそのファイルに署名したこともページに表示できます。',
+    '<b>他の人に見えるもの。</b>この報告書へのラボの署名は、報告書と同じく非公開で、あなたとラボだけが見られます。表示するには、「誰かに見せる」を選び、「ラボの署名」でオンにします。そのリンクを持つ人には、ラボがこの植物についての報告書に署名したことと、ラボの鍵が登録されている名前が見えます。名前には、VeilCoreの運営者が公開のライセンスや認定のリストと照合していない限り「未確認」と表示されます。DNA報告書をこの植物に保存すると、ラボがそのファイルに署名したこともページに表示できます。',
   'app.lab.results.noCurrent':
     '{lab}からの現在の報告書はありません。元の報告書は差し替えられ、訂正版は撤回されました。',
   'app.lab.results.looking': '検査報告書を探しています…',
@@ -389,7 +450,7 @@ export const lab = {
   'app.lab.out.sentText':
     '開けるのは育成者だけです。報告書へのあなたの署名も非公開で、育成者とあなただけが見られます。ただし、育成者が確認リンクに表示すると選んだ場合は別です。サンプルの受領書に署名していて、育成者が「DNA報告書が保存されているか」を表示した場合、育成者の確認ページには、ラボがサンプルを受け取ったことと、届いたものが送ったものと一致するかどうかが、あなたのラボの名前なしで表示されます。',
   'app.lab.out.sentName':
-    '表示された場合、そのリンクを持つ人にはあなたの鍵が登録されている名前も見えます。VeilCoreの運営者が公開のライセンスや認定のリストと照合するまでは、「「{name}」という名前の鍵（名前は未確認）」と表示されます。',
+    '表示された場合、そのリンクを持つ人にはあなたの鍵が登録されている名前も見えます。VeilCoreの運営者が公開のライセンスや認定のリストと照合するまでは、「「{name}」と名乗る鍵（未確認）」と表示されます。',
   'app.lab.out.yourLab': 'あなたのラボ',
   'app.lab.out.youSent': '送った検査報告書',
   'app.lab.out.rowHead': '{id} · {when}に送信',

@@ -639,7 +639,7 @@ test.describe('evidence bundle', () => {
     await expect(sp.getByText('How it was checked', { exact: false }).first()).toBeVisible();
     await expect(sp.locator('main')).toContainText('Not checked for you: the Midnight transaction');
     await expect(sp.locator('main')).toContainText(LAB_SHA);
-    await expect(sp.locator('main')).toContainText('Practice Lab (not checked)');
+    await expect(sp.locator('main')).toContainText('Practice Lab (not verified)');
     if (setup.sent) {
       // The sample details on the delivery, beside the lab's receipt that covers them.
       const custody = sp.locator('[data-custody="covered"]');

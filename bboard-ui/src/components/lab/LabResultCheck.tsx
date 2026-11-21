@@ -31,6 +31,8 @@ import {
 } from '../../veilcore/lab-result';
 import type { LabSigner } from '../../veilcore/claim-link';
 import { signerLabel, type ResolvedAttestation } from '../../veilcore/attesters';
+import { labIdentitySeverity } from '../../veilcore/lab-identity-words';
+import { NameCheckText } from '../NameCheckText';
 import { createRecord, useRecords, useRecordsLoaded } from '../../veilcore/records';
 import { keyShort } from '../../veilcore/lab-key-text';
 import { ResultFacts, callWords } from './ResultFacts';
@@ -235,12 +237,18 @@ const OneChecked: React.FC<{
   useEffect(() => {
     if (signedHere && !loaded && !asked) void find();
   }, [signedHere, loaded, asked]);
+  // The signer and its key's level (docs/lab-identity-levels.md): the box is green only for a
+  // listing match, and the level is said in words under the name.
+  const boundLabel =
+    signer?.kind === 'bound'
+      ? signerLabel(signer.attestation as ResolvedAttestation, 'Signed by', Date.now(), tr)
+      : null;
   const who = !lookUp
     ? ''
     : signer === undefined
       ? t('app.lr.check.looking')
       : signer.kind === 'bound'
-        ? signerLabel(signer.attestation as ResolvedAttestation, 'Signed by', Date.now(), tr).text
+        ? `${boundLabel?.lead ?? ''}${t('app.common.period')}`
         : signer.kind === 'retracted'
           ? withdrawnWords(signer, true, tr)
           : signer.kind === 'conflict'
@@ -265,13 +273,20 @@ const OneChecked: React.FC<{
       data-signer={signer?.kind ?? (lookUp ? 'checking' : 'not-asked')}
     >
       <Alert
-        severity={signer?.kind === 'bound' ? 'success' : signer?.kind === 'retracted' ? 'warning' : 'info'}
+        severity={
+          boundLabel
+            ? labIdentitySeverity(boundLabel.identity.level)
+            : signer?.kind === 'retracted'
+              ? 'warning'
+              : 'info'
+        }
         variant="outlined"
         sx={{ mb: 2 }}
         data-lab-name={signer?.kind ?? (lookUp ? 'looking' : 'not-asked')}
       >
         {who ? `${who} ` : ''}
         {t('app.attest.signedBy', { key: keyShort(b.signature.key) })}
+        {boundLabel && <NameCheckText label={boundLabel} />}
         {/* Signed before binding salts: there is no name binding this page would read (SPEC 11.12). */}
         {!b.statement.bindingSalt && (
           <Typography variant="body2" sx={{ mt: 1 }} data-lab-name-unsalted="">

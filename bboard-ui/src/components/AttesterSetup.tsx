@@ -44,6 +44,7 @@ import { prepareToReceive } from '../veilcore/receive';
 import { didDocumentFor, didVerificationMethod, LAB_DOMAIN } from '../veilcore/lab-domain';
 import { labChanged } from '../veilcore/lab-results';
 import { BackupStep } from './flow/BackupStep';
+import { LabOwnLevel } from './LabOwnLevel';
 import { Link as RouterLink } from 'react-router-dom';
 import { rich, useT } from '../i18n/app';
 import type { AppKey } from '../i18n/app/en';
@@ -269,6 +270,19 @@ export const AttesterSetup: React.FC<{
                 <Typography variant="body1" data-lab-key-ready="">
                   {t('app.lab.key.ready')}
                 </Typography>
+              )}
+              {/* How check pages show this key now, and the one step up (docs/lab-identity-levels.md). */}
+              {profile.registeredAt && (
+                <LabOwnLevel
+                  publicKey={profile.keypair.publicKey}
+                  onWebsite={() => {
+                    setShowMatch(true);
+                    window.setTimeout(
+                      () => document.querySelector('[data-lab-domain-setup]')?.scrollIntoView({ block: 'center' }),
+                      50,
+                    );
+                  }}
+                />
               )}
               {keySafe ? (
                 <Alert severity="success" variant="outlined" data-lab-backed-up="">
