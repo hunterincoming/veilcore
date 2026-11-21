@@ -98,7 +98,7 @@ export const offersFor = (held: Pick<HeldFieldSet, 'schema' | 'values'>): readon
     if (v === null || v === undefined) return false;
     // A fixed bound the lab's number doesn't meet: the claim would fail, and no other bound is offered.
     if (o.fixed !== undefined && o.how !== 'exactly' && !meetsBound(BigInt(v), o.how, o.fixed)) return false;
-    // On a parentage result, never "(ICAR accepted)" for a test the lab didn't accept, nor the trio
+    // On a parentage result, never "(within ICAR’s accepted band)" for a test the lab didn't accept, nor the trio
     // unless both parents are accepted (ICAR grades the trio only then).
     if (held.schema === PARENTAGE_SCHEMA && blockedBy(o.id as ParentageTest, held.values)) return false;
     if (o.fixed !== undefined) return true;

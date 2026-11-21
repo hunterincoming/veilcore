@@ -54,6 +54,7 @@ These are adversarial reviews and run records, not a formal security audit.
 | [log/](log/) | Dated run records: preprod smoke tests, partner kit check, round D, the 3 October self-review |
 | [no-wallet-run-12oct.md](no-wallet-run-12oct.md) | No-wallet run on preprod, 12 October 2026 |
 | [bitcoin-stamp-check-11oct.md](bitcoin-stamp-check-11oct.md) | Check of the first mainnet batch's Bitcoin timestamp |
+| [lab-mainnet-test.md](lab-mainnet-test.md) | Lab signing on mainnet: the 18 November 2026 runs, and the 21 November 2026 runs (CSV signing, a second breeder adding a lab's result, parentage) |
 
 ## For partners
 

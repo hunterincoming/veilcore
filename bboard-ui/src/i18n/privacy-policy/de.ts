@@ -154,7 +154,7 @@ export const policyDe: PolicyStrings = {
     'dass auf einem Datensatz eine Lizenz, eine Verpflichtung oder der Anspruch eines Kreditgebers vermerkt ist, und wann sich das geändert hat;',
   'm.pp.chain.6': 'der öffentliche Schlüssel eines Labors, wenn es dort ein Zertifikat signiert;',
   'm.pp.chain.7':
-    'was Sie über eine Zahl belegen möchten: die Grenze und ihre Richtung oder, wenn Sie die Zahl genau belegen, die Zahl selbst. Ein Abstammungsergebnis belegt nur, dass die Grenzen der ICAR eingehalten sind; kein Genotyp und keine Zählung wird veröffentlicht.',
+    'was Sie über eine Zahl belegen möchten: die Grenze und ihre Richtung oder, wenn Sie die Zahl genau belegen, die Zahl selbst. Ein Abstammungsergebnis belegt nur, dass seine Konfliktzahlen und verglichenen SNPs innerhalb der Grenzen der ICAR liegen; kein Genotyp und keine Zählung wird veröffentlicht.',
   'm.pp.chain.p2':
     'Unser Gebührendienst verankert jeden Stapel. Bei den anderen Schritten zeigt die App zuerst eine Quittung, die genau auflistet, was der Schritt öffentlich macht, und Ihr Browser sendet ihn über unseren Gebührendienst, der die Gebühr zahlt. Ein Code oder Schlüssel allein sagt nichts über Sie, aber wer von Ihnen einen Prüflink bekommt, kann von da an verfolgen, was mit diesem Datensatz im Netzwerk geschieht.',
 

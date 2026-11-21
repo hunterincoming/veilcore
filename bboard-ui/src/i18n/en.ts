@@ -637,7 +637,7 @@ export const en = {
   'm.live.signed.test':
     'Yes. The lab signs with its own key. Only the record’s holder, the lab and whoever sent it the sample see it, and only the holder can show it to others.',
   'm.live.signed.live':
-    'Yes. The lab signs with its own key. Only the record’s holder, the lab and whoever sent it the sample see it, and only the holder can show it to others. Adding a lab’s result file to another breeder’s records is built, not yet tried on the main network.',
+    'Yes. The lab signs with its own key. Only the record’s holder, the lab and whoever sent it the sample see it, and only the holder can show it to others. Adding a lab’s result file to another breeder’s records: yes, since 21 November 2026.',
   'm.live.local.t': 'A document kept on your device only',
   'm.live.local.main': 'Built, not yet tried on the main network.',
   'm.live.local.test':

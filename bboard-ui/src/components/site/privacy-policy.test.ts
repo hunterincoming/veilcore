@@ -100,9 +100,9 @@ describe('the privacy policy in every language', () => {
 
   it('writes the date in the reader’s language', () => {
     expect(POLICY_UPDATED).toMatch(/^\d{4}-\d{2}-\d{2}$/);
-    expect(policyDate('en')).toBe('20 November 2026');
-    expect(policyDate('ja')).toBe('2026年11月20日');
-    expect(policyDate('de')).toBe('20. November 2026');
+    expect(policyDate('en')).toBe('21 November 2026');
+    expect(policyDate('ja')).toBe('2026年11月21日');
+    expect(policyDate('de')).toBe('21. November 2026');
   });
 });
 
