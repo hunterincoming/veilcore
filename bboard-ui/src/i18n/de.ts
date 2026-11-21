@@ -49,7 +49,7 @@ export const de: Strings = {
   'm.help.backup.t': 'Ihre Sicherungskopie',
   'm.help.backup.1q': 'Warum fordert die Website mich immer wieder auf, eine Sicherungskopie zu speichern?',
   'm.help.backup.1a':
-    'Die Sicherungskopie ist der einzige Weg zu belegen, dass Sie Ihre Datensätze halten, und der einzige Weg, sie auf ein neues Handy oder einen neuen Computer zu holen. VeilCore kann sie nicht wiederherstellen und keine neue erstellen.',
+    'Sie wird erfragt, solange Ihre Datensätze keinen anderen Weg zurück haben. Die Sicherungsdatei ist ein Weg: Sie holt Ihre Datensätze auf einem neuen Handy oder Computer zurück, sogar ohne VeilCore. Sie bei VeilCore zu speichern, mit der Sperre dieses Geräts, ist ein anderer; dann ist die Datei Ihre Wahl. VeilCore kann die Datei weder wiederherstellen noch neu erstellen.',
   'm.help.backup.2q': 'Wo bewahre ich sie auf?',
   'm.help.backup.2a':
     'Auf einem USB-Stick oder in einem Passwortmanager, und zusätzlich an einem zweiten Ort. Wer die Datei hat, kann Ihre Datensätze öffnen und in Ihrem Namen handeln. Geben Sie beim Speichern ein Passwort an: Dann öffnet die Datei allein nichts. Wenn Sie das Passwort vergessen, kann niemand die Datei öffnen, auch wir nicht.',
@@ -216,6 +216,7 @@ export const de: Strings = {
   'm.nav.demo': 'Demo testen',
   'm.nav.yours': 'Ihre Datensätze',
   'm.nav.menu': 'Menü',
+  'm.nav.forLabs': 'Für Labore',
   'm.hero.label': 'Nachweis dessen, was Sie haben',
   'm.hero.title1': 'Datieren Sie Ihren Datensatz.',
   'm.hero.title2': 'Ihre Genetik bleibt privat.',
@@ -623,6 +624,8 @@ export const de: Strings = {
     'Versiegeln Sie einen Datensatz und koppeln Sie seinen DNA-Bericht. Taucht die Pflanze unter anderem Namen auf, kann ein Labor einen neuen Test mit Ihrem Bericht vergleichen. In der Web-Demo wird die Kopplung mit Ihrem Datensatz gespeichert, aber noch nicht datiert. VeilCore führt keine DNA-Tests durch.',
   'm.for.2t': 'Sortenschutz und Anerkennung.',
   'm.for.2link': 'So funktioniert ein Beleg →',
+  // The lab slide's way in (lab/LabDoor.tsx), and on How it works.
+  'm.for.3link': 'Sie betreiben ein Labor? Den Signaturschlüssel Ihres Labors einrichten →',
   'm.for.3t': 'Material in den Händen eines Labors.',
   'm.for.4t': 'Laborergebnisse, zurück zu Ihnen.',
   'm.for.4p':

@@ -7,8 +7,15 @@ export const backup = {
   'app.backup.title': 'Sicherungskopie speichern',
   'app.backup.done': 'Fertig',
   'app.backup.shareTitle': 'VeilCore-Sicherungskopie',
-  'app.backup.onlyWay':
-    '<b>Diese Datei ist der einzige Weg zu beweisen, dass Sie Ihre Datensätze halten</b>, und sie auf einem neuen Handy oder Computer zurückzubekommen. VeilCore kann sie weder wiederherstellen noch neu erstellen.',
+  'app.backup.oneWay':
+    '<b>Eine Datei, die Sie selbst aufbewahren.</b> Einer der Wege, Ihre Datensätze zurückzubekommen, und er funktioniert sogar ohne VeilCore.',
+  'app.backup.lock.text':
+    'Speichert Ihre Datensätze bei VeilCore, so verschlossen, dass nur Sie sie öffnen können: VeilCore hat den Schlüssel nicht.',
+  'app.backup.lock.orFile': 'Oder bewahren Sie selbst eine Datei auf',
+  'app.backup.lock.savedTitle': 'Bei VeilCore gespeichert.',
+  'app.backup.lock.savedText':
+    'Diese Datensätze kommen auf einem neuen Gerät mit Ihrem Passkey zurück. Neue speichern sich von selbst. Eine Datei zum Selbstaufbewahren finden Sie in den Einstellungen, wenn Sie auch eine möchten.',
+  'app.backup.lock.saving': 'Wird bei VeilCore gespeichert …',
   'app.backup.saveIt': 'Speichern',
   'app.backup.saved': 'Gespeichert',
   'app.backup.savedSub': '{file} · eine Datei für alles',

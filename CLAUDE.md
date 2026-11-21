@@ -64,6 +64,30 @@ before it is sent, not after.
   Nothing is called live until it has worked once on mainnet.
 - Every user-facing string exists in all five languages (en, de, es, fr, ja); the tests check.
 
+## Keep it simple
+
+VeilCore is voluntary: a confused person just leaves. How the budget works is in
+`docs/complexity-budget.md`.
+
+- **Never buy simplicity with privacy or control.** No forced biometrics, no forced Apple, Google
+  or other Big Tech account, no analytics, nothing that lets VeilCore read a record. A simpler
+  screen that costs any of these is worse, not simpler.
+- **New features start hidden**, under More, Technical details or a role, and earn a place on a
+  default screen. Every page has a tier (core, role or advanced) in
+  `bboard-ui/src/config/route-tiers.ts`; a page without one fails the tests.
+- **Anything kept out of the default view still needs an obvious way in** (a visible menu item or
+  link), never only a footer link.
+- **Per-screen limits live in `bboard-ui/complexity-budget.json`** (primary buttons, things to
+  tap, words, levels of More, screens to a first sealed record), checked on a phone in all five
+  languages. A number only goes down. Raising one needs Hunter's written OK in the PR, and
+  something else removed in the same change.
+- **No jargon on default screens.** The banned words are in the budget file. What is there today
+  is reported until it is removed; anything new fails.
+- **One plain sentence per feature.** Every feature's PR says, in one sentence a grower would
+  understand, what it lets them do. If it can't, it isn't ready.
+- **Remove one thing per quarter.** In the first week of January, April, July and October, cut,
+  merge or hide at least one visible thing, and lower its budget number.
+
 ## Commits
 
 Commit as the maintainer: `git config user.name "Hunter Roberts"` and

@@ -969,6 +969,8 @@ export const ClaimTransfer: React.FC<{
                 title={t('app.backup.title')}
                 headingComponent="h2"
                 finishLabel={t('app.lab.recv.backToCode')}
+                // Asked because the vault key is in no backup: this device's lock covers it too.
+                wayBackFor={[]}
                 onDone={() => {
                   setStage({ step: 'code' });
                   setError(null);

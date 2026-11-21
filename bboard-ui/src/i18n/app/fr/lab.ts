@@ -61,13 +61,14 @@ export const lab = {
     '<b>Retirée</b> : le site du laboratoire ne publie plus la clé, ou l’opérateur de VeilCore a retiré le rapprochement. Demandez au laboratoire avant de vous y fier.',
   'app.labid.more.how':
     'Comment un laboratoire devient vérifié : il publie sa clé sur son propre site, ou demande à VeilCore de rapprocher son nom d’une liste publique. Pour vérifier auprès d’un laboratoire, utilisez des coordonnées que vous avez trouvées vous-même.',
-  'app.labid.own.title': 'Comment les pages de vérification montrent votre clé',
-  'app.labid.own.looking': 'Recherche de la façon dont les pages de vérification montrent votre clé…',
-  'app.labid.own.couldNot': 'Impossible de voir pour l’instant comment les pages de vérification montrent votre clé.',
+  'app.labid.own.title': 'Comment les pages de vérification montrent votre clé de signature',
+  'app.labid.own.looking': 'Recherche de la façon dont les pages de vérification montrent votre clé de signature…',
+  'app.labid.own.couldNot':
+    'Impossible de voir pour l’instant comment les pages de vérification montrent votre clé de signature.',
   'app.labid.own.next.none':
-    'Étape suivante : publiez votre clé sur le site de votre laboratoire. Les pages de vérification indiqueront alors « Publiée sur » suivi de l’adresse de votre site.',
+    'Étape suivante : publiez votre clé de signature sur le site de votre laboratoire. Les pages de vérification indiqueront alors « Publiée sur » suivi de l’adresse de votre site.',
   'app.labid.own.next.listingWithdrawn':
-    'Étape suivante : publiez votre clé sur le site de votre laboratoire. Les pages de vérification indiqueront alors « Publiée sur » suivi de l’adresse de votre site.',
+    'Étape suivante : publiez votre clé de signature sur le site de votre laboratoire. Les pages de vérification indiqueront alors « Publiée sur » suivi de l’adresse de votre site.',
   'app.labid.own.next.website':
     'Étape suivante : demandez à VeilCore de rapprocher le nom de votre laboratoire d’une liste publique d’agréments ou d’accréditations. Les pages de vérification indiqueront alors « Vérifiée auprès de » cette liste.',
   'app.labid.own.next.expired':
@@ -296,7 +297,7 @@ export const lab = {
     'Votre accusé de réception est signé. Liez-le à cette livraison pour que l’obtenteur le voie : jusque-là, sa page ne le compte pas, car n’importe qui peut signer une déclaration sur une plante, mais seule la personne qui a utilisé le code laboratoire peut en lier une à la livraison.',
   'app.lab.recv.linking': 'Liaison…',
   'app.lab.recv.setUpFirst':
-    'Configurez d’abord la signature de votre laboratoire ; vous pourrez ensuite signer que cet échantillon est arrivé.',
+    'Configurez d’abord la clé de signature de votre laboratoire ; vous pourrez ensuite signer que cet échantillon est arrivé.',
   'app.lab.recv.checking': 'Vérification de l’enregistrement de l’obtenteur…',
   'app.lab.recv.notRecorded': 'Votre accusé de réception n’a pas été inscrit : {error}.',
   'app.lab.recv.noCodeHere': 'cette plante n’a pas de code laboratoire sur cet appareil',
@@ -491,7 +492,7 @@ export const lab = {
   'app.lab.out.cancelCorrection': 'Annuler la correction',
   'app.lab.out.turnedAway': 'Vous avez refusé cet échantillon : il n’y a donc pas de rapport de laboratoire à envoyer.',
   'app.lab.out.setUpFirst':
-    'Configurez d’abord la signature de votre laboratoire, pour que l’obtenteur sache que le rapport vient de vous.',
+    'Configurez d’abord la clé de signature de votre laboratoire, pour que l’obtenteur sache que le rapport vient de vous.',
   'app.lab.out.noLockHere':
     'Ce navigateur n’a pas le verrou de l’obtenteur pour cette livraison. Collez le code laboratoire qu’il vous a envoyé.',
   'app.lab.out.useCode': 'Utiliser ce code laboratoire',

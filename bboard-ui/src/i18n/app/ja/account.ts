@@ -4,11 +4,10 @@
 import type { AppTranslation } from '../../translate';
 
 export const account = {
-  'app.account.use.faceId': 'Face IDを使う',
-  'app.account.use.touchId': 'Touch IDを使う',
-  'app.account.use.screenLock': '端末のPIN・パターン・パスワードを使う',
-  'app.account.use.windowsHello': 'Windows Helloを使う',
+  'app.account.use.deviceLock': 'この端末の解除方法を使う',
   'app.account.use.passkey': 'パスキーを使う',
+  'app.account.deviceLock.hint': 'スマートフォンの解除に使うパスコード、顔、または指です。',
+  'app.account.deviceLock.hintComputer': 'パソコンの解除に使うパスワード、PIN、顔、または指です。',
 
   'app.account.sheet.title': '記録を安全に保管する',
   'app.account.sheet.lead': 'この端末をなくしても、記録を取り戻せるように。',
@@ -66,7 +65,7 @@ export const account = {
   'app.account.restore.sameAccount':
     'もう一台のスマートフォンと同じAppleまたはGoogleアカウントなら、そのまま開けます。',
   'app.account.restore.usePhone':
-    'Face IDのないパソコンでは、開いた画面で「スマートフォンを使う」を選び、スマートフォンでコードを読み取ってください。',
+    'パスキーを単独で解除できないパソコンでは、開いた画面で「スマートフォンを使う」を選び、スマートフォンでコードを読み取ってください。',
   'app.account.restore.oldName': '以前{host}でパスキーを作りましたか？ここで試す',
   'app.account.restore.otherWays': 'ほかの方法',
   'app.account.restore.found': '{date}にVeilCoreに保存した記録が見つかりました。この端末に移しますか？',
@@ -120,10 +119,7 @@ export const account = {
   'app.account.sheet.passkeyCheck':
     'これが続く場合は、<link>このブラウザのパスキー対応を確認</link>してください。このブラウザと端末でできることを表示し、何も送信しません。',
   // The way in, as a fragment after “with” (Home's first card, the live test on Windows).
-  'app.account.how.faceId': 'Face ID',
-  'app.account.how.touchId': 'Touch ID',
-  'app.account.how.screenLock': '端末のPIN・パターン・パスワード',
-  'app.account.how.windowsHello': 'Windows Hello',
+  'app.account.how.deviceLock': 'この端末の解除方法',
   'app.account.how.passkey': 'パスキー',
   'app.account.line.off':
     '<b>VeilCoreへの保存はオフです。</b>保存したコピーは削除されました。ほかの端末で「VeilCoreへの保存をやめる」を選んだのかもしれません。',

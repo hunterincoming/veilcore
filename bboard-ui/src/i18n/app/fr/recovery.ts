@@ -48,7 +48,7 @@ export const recovery = {
   'app.recovery.sheet.passkey':
     'La clé d’accès qui ouvre les mêmes enregistrements s’appelle « VeilCore: unlocks your records · {tag} » dans vos mots de passe.',
   'app.recovery.sheet.how':
-    'Pour récupérer vos enregistrements : allez sur {site}, touchez « Récupérer mes enregistrements », choisissez « Utiliser ma fiche de secours » et tapez le code.',
+    'Pour récupérer vos enregistrements : allez sur {site}, touchez « Récupérer mes enregistrements », puis « Autres moyens », choisissez « Utiliser ma fiche de secours » et tapez le code.',
   'app.recovery.sheet.phishing':
     'VeilCore ne demande ce code que sur {site} : pour vérifier cette fiche, ou pour récupérer vos enregistrements. Ne le tapez jamais ailleurs. Ne le dictez jamais au téléphone, sur WhatsApp ou par e-mail, même à VeilCore.',
   'app.recovery.sheet.anyone':
@@ -58,6 +58,8 @@ export const recovery = {
   'app.recovery.restore.use': 'Utiliser ma fiche de secours',
   'app.recovery.restore.lead':
     'Tapez le code de votre fiche de secours. Les tirets et les espaces n’ont pas d’importance.',
+  'app.recovery.restore.what':
+    'Une fiche de secours est une page imprimée avec un code de 28 caractères. Vous pouvez en faire une dans les Réglages après avoir créé une clé d’accès ; si vous n’en avez jamais fait, utilisez un autre moyen.',
   'app.recovery.restore.open': 'Ouvrir mes enregistrements',
   'app.recovery.restore.addTitle': 'Les ouvrir sans la fiche la prochaine fois',
   'app.recovery.restore.addText':

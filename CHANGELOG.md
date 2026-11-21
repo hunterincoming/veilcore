@@ -10,7 +10,38 @@ section.
 
 ## [Unreleased]
 
-Nothing since the last release to veilcore.org.
+### A way in for labs (21 Nov 2026, not deployed yet)
+
+- "For labs" in the site's header (under "Menu" on a phone), on the home page's lab slide and on
+  How it works. It opens /for-labs, which switches to the lab view and opens the signing key
+  screen if this browser has no key yet. A browser that already holds records, or has been used
+  before, is asked first: "Add lab tools? You'll see a lab view with your signing key and
+  samples you receive. Your records stay as they are."
+- Every app page has the view in its header ("Breeder view ▾"): Breeder, Lab or Both, one tap
+  away. The footer's "change" link stays.
+- On the lab's home, with no key yet, "Set up your lab's signing key" is the solid button and
+  comes first. The way in says "signing key" everywhere now, as the key screen does (the site
+  link, the lab home, the plant's next step and the two "set it up first" lines), not
+  "signature".
+- On the key screen, showing the key is your lab's is open, not folded: the email, the website
+  file and the DNS TXT record, and the domain to check. Only did:web stays under "Other ways".
+
+### One way back after a seal, not three (21 Nov 2026, not deployed yet)
+
+- Records already saved with VeilCore (the account copy counts and holds them once saved again
+  and read back) skip the backup file step after sealing: in a new record, a batch of clones or
+  offspring, and a spreadsheet import. If the copy can't be saved just then, the file step comes
+  back. A person with no way back yet still gets one step, and Finish waits for one way back.
+- That step is now the only prompt after a seal: it offers this device's lock beside the file,
+  and "Keep your records safe" no longer pops up inside the flow. The recovery sheet is no
+  longer pushed right after setting up where the passkey syncs: it is in Settings, and Home asks
+  once, after the third record.
+- The passkey button says "This device's lock", with one line: "The passcode, face or
+  finger you unlock your phone with". It never says Face ID.
+- The backup step no longer says the file is "the only way to prove you hold your records": it
+  is one of the ways back. The same fix in the help page and the file's own warning line.
+- "Get my records back": the recovery sheet is under "Other ways", with one line saying what it
+  is; the printed sheet says so too.
 
 ## 21 Nov 2026: veilcore.org release `59aae05`
 

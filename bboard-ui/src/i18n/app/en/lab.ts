@@ -62,13 +62,13 @@ export const lab = {
   'app.labid.more.how':
     'How a lab gets verified: it lists its key on its own website, or asks VeilCore to match its name to a public listing. To check with a lab, use contact details you find yourself.',
   // AttesterSetup.tsx: the lab's own level, and the one step to the next.
-  'app.labid.own.title': 'How check pages show your key now',
-  'app.labid.own.looking': 'Looking up how check pages show your key…',
-  'app.labid.own.couldNot': 'Couldn’t look up how check pages show your key just now.',
+  'app.labid.own.title': 'How check pages show your signing key now',
+  'app.labid.own.looking': 'Looking up how check pages show your signing key…',
+  'app.labid.own.couldNot': 'Couldn’t look up how check pages show your signing key just now.',
   'app.labid.own.next.none':
-    'Next step: list your key on your lab’s website. Check pages then say “Listed on” your website’s address.',
+    'Next step: list your signing key on your lab’s website. Check pages then say “Listed on” your website’s address.',
   'app.labid.own.next.listingWithdrawn':
-    'Next step: list your key on your lab’s website. Check pages then say “Listed on” your website’s address.',
+    'Next step: list your signing key on your lab’s website. Check pages then say “Listed on” your website’s address.',
   'app.labid.own.next.website':
     'Next step: ask VeilCore to match your lab’s name to a public license or accreditation listing. Check pages then say “Verified against” that listing.',
   'app.labid.own.next.expired':
@@ -287,7 +287,7 @@ export const lab = {
   'app.lab.recv.linkIntro':
     "Your receipt is signed. Link it to this delivery so the breeder sees it: until then their page doesn't count it, because anyone can sign a statement about a plant, but only whoever used the lab code can link one to the delivery.",
   'app.lab.recv.linking': 'Linking…',
-  'app.lab.recv.setUpFirst': "Set up your lab's signature first; then you can sign that this sample arrived.",
+  'app.lab.recv.setUpFirst': "Set up your lab's signing key first; then you can sign that this sample arrived.",
   'app.lab.recv.checking': "Checking the breeder's record…",
   'app.lab.recv.notRecorded': 'Your receipt was not recorded: {error}.',
   'app.lab.recv.noCodeHere': 'this plant has no lab code on this device',
@@ -476,7 +476,7 @@ export const lab = {
     'Your browser signs the lab report’s code with your lab’s key and locks the file so only the breeder can open it. The locked file waits on VeilCore’s server for the breeder to open, and VeilCore doesn’t have its key.',
   'app.lab.out.cancelCorrection': 'Cancel the correction',
   'app.lab.out.turnedAway': "You turned this sample away, so there's no lab report to send.",
-  'app.lab.out.setUpFirst': "Set up your lab's signature first, so the breeder can tell the lab report is yours.",
+  'app.lab.out.setUpFirst': "Set up your lab's signing key first, so the breeder can tell the lab report is yours.",
   'app.lab.out.noLockHere':
     "This browser doesn't have the breeder's lock for this delivery. Paste the lab code they sent you.",
   'app.lab.out.useCode': 'Use this lab code',

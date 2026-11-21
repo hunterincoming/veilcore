@@ -49,7 +49,7 @@ export const fr: Strings = {
   'm.help.backup.t': 'Votre sauvegarde',
   'm.help.backup.1q': 'Pourquoi le site me demande-t-il sans cesse d’enregistrer une sauvegarde ?',
   'm.help.backup.1a':
-    'Le fichier de sauvegarde est le seul moyen de prouver que vous détenez vos enregistrements, et le seul moyen de les retrouver sur un nouveau téléphone ou ordinateur. VeilCore ne peut ni le récupérer ni en créer un autre.',
+    'Il est demandé tant que vos enregistrements n’ont pas d’autre moyen de revenir. Le fichier de sauvegarde en est un : il récupère vos enregistrements sur un nouveau téléphone ou ordinateur, même sans VeilCore. Les sauvegarder chez VeilCore, avec le verrouillage de cet appareil, en est un autre ; le fichier est alors à votre choix. VeilCore ne peut ni récupérer le fichier ni en refaire un.',
   'm.help.backup.2q': 'Où dois-je le conserver ?',
   'm.help.backup.2a':
     'Sur une clé USB ou dans un gestionnaire de mots de passe, et aussi à un deuxième endroit. Toute personne qui a le fichier peut ouvrir vos enregistrements et agir en votre nom. Ajoutez un mot de passe en l’enregistrant : le fichier seul n’ouvre alors rien. Si vous oubliez le mot de passe, personne ne peut ouvrir le fichier, nous non plus.',
@@ -216,6 +216,7 @@ export const fr: Strings = {
   'm.nav.demo': 'Essayer la démo',
   'm.nav.yours': 'Vos enregistrements',
   'm.nav.menu': 'Menu',
+  'm.nav.forLabs': 'Pour les laboratoires',
   'm.hero.label': 'La preuve de ce que vous détenez',
   'm.hero.title1': 'Datez votre enregistrement.',
   'm.hero.title2': 'Gardez votre génétique privée.',
@@ -626,6 +627,8 @@ export const fr: Strings = {
     'Scellez un enregistrement et associez-y son rapport ADN. Si la plante réapparaît sous un autre nom, un laboratoire peut comparer un nouveau test avec votre rapport. Dans la démo web, l’association est enregistrée avec votre enregistrement mais pas encore datée. VeilCore ne fait pas de tests ADN.',
   'm.for.2t': 'Protection des obtentions et certification.',
   'm.for.2link': 'Comment fonctionne une preuve →',
+  // The lab slide's way in (lab/LabDoor.tsx), and on How it works.
+  'm.for.3link': 'Vous dirigez un laboratoire ? Configurez la clé de signature de votre laboratoire →',
   'm.for.3t': 'Du matériel entre les mains d’un laboratoire.',
   'm.for.4t': 'Les résultats du laboratoire, renvoyés vers vous.',
   'm.for.4p':

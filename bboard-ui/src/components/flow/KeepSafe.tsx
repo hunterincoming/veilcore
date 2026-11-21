@@ -2,16 +2,21 @@
 //
 //   - KeepSafeSheet: "Keep your records safe". It opens by itself once, after the first record is
 //     saved (value first, setup second: the UX review), on a device that can unlock a passkey
-//     itself; after that, from "Fix it" on the account line. One big button, labelled for the
-//     device (Use Face ID, Touch ID, screen lock, Windows Hello). "Other ways" is the file.
+//     itself; after that, from "Fix it" on the account line. Never by itself inside a flow that
+//     seals records: there, the flow's own backup step offers this device's lock beside the file,
+//     so a seal is followed by one prompt, not two (the simplify-unlock plan, phase 1). One big
+//     button, "This device's lock", with one line saying what that is (the phone's passcode,
+//     fingerprint or face): not "Face ID", which hid that the passcode works too and pushed
+//     biometrics. "Other ways" is the file.
 //   - AccountStatusLine: the one account-level line on Home that replaced every per-record "not
 //     in your backup" label. Shown only when something is wrong.
 //   - AccountKeeper: mounted with the app's frame (App.tsx): keeps the copy saved by itself and
 //     holds the sheet.
 //
-// Right after Face ID is set up, the recovery sheet is offered (easy mode step 3,
-// RecoverySheet.tsx): recommended where the passkey syncs, and the way to count at all where it
-// stays on this device. When a passkey can't open the records any more and a checked sheet can,
+// Right after a passkey that stays on this device is set up, the recovery sheet is offered (easy
+// mode step 3, RecoverySheet.tsx): it is the way to count at all there. Where the passkey syncs,
+// it is not offered then (one prompt after a seal): it waits in Settings, and Home asks once,
+// after the third record (account-copy.ts sheetReminder). When a passkey can't open the records any more and a checked sheet can,
 // the sheet's code sets Face ID up again on the same records (account-copy.ts addFaceIdHere).
 // SPDX-License-Identifier: Apache-2.0
 
@@ -71,17 +76,22 @@ export const openKeepSafe = (): void => {
   window.dispatchEvent(new Event(OPEN_KEEP_SAFE_EVENT));
 };
 
-export type UnlockWord = 'faceId' | 'touchId' | 'screenLock' | 'windowsHello' | 'passkey';
+/**
+ * 'deviceLock': this device unlocks the passkey itself (its passcode, PIN, fingerprint or face,
+ * whichever the person set up: the button never names one). 'passkey': it can't, and the browser
+ * offers another device ("Use a phone").
+ */
+export type UnlockWord = 'deviceLock' | 'passkey';
 
 /** The button's words for this device: what it will actually ask for. */
-export const unlockWordFor = (ua: string, deviceUnlock: boolean): UnlockWord => {
-  if (!deviceUnlock) return 'passkey';
-  if (/iPhone|iPod/.test(ua)) return 'faceId';
-  if (/iPad|Macintosh|Mac OS X/.test(ua)) return 'touchId';
-  if (/Android/.test(ua)) return 'screenLock';
-  if (/Windows/.test(ua)) return 'windowsHello';
-  return 'passkey';
-};
+export const unlockWordFor = (_ua: string, deviceUnlock: boolean): UnlockWord =>
+  deviceUnlock ? 'deviceLock' : 'passkey';
+
+/** The one line under "This device's lock": a phone's words or a computer's. */
+export const deviceLockHintFor = (ua: string): AppKey =>
+  /iPhone|iPad|iPod|Android/.test(ua) ? 'app.account.deviceLock.hint' : 'app.account.deviceLock.hintComputer';
+export const useDeviceLockHint = (): AppKey =>
+  deviceLockHintFor(typeof navigator !== 'undefined' ? navigator.userAgent : '');
 
 const useUnlock = (): { word: UnlockWord; deviceUnlock: boolean | undefined } => {
   const [deviceUnlock, setDeviceUnlock] = useState<boolean>();
@@ -95,8 +105,13 @@ const useUnlock = (): { word: UnlockWord; deviceUnlock: boolean | undefined } =>
   return { word: unlockWordFor(navigator.userAgent, deviceUnlock === true), deviceUnlock };
 };
 
-/** This device's word for unlocking a passkey ("Use Face ID", "Use Windows Hello"…). */
+/** This device's word for unlocking a passkey ("This device's lock", or "Use a passkey"). */
 export const useUnlockWord = (): UnlockWord => useUnlock().word;
+/** Whether this device can unlock a passkey itself (undefined until the browser says). */
+export const useDeviceUnlock = (): { deviceUnlock: boolean | undefined } => {
+  const { deviceUnlock } = useUnlock();
+  return { deviceUnlock };
+};
 
 /**
  * The word for getting records back on this device, the same on every screen that offers it
@@ -112,12 +127,20 @@ export const useRestoreUnlockWord = (): UnlockWord => {
 
 export const deviceWords = (kind: DeviceKind, tr: Translator): string => tr.t(`app.account.device.${kind}` as AppKey);
 
-/** The sheet. `onClose` when it is closed, whatever happened. */
-export const KeepSafeSheet: React.FC<{ open: boolean; onClose: () => void }> = ({ open, onClose }) => {
+/**
+ * The sheet. `onClose` when it is closed, whatever happened. `onFile` replaces going to the backup
+ * page for "Keep a file myself" (a flow's own backup step, already on screen behind it).
+ */
+export const KeepSafeSheet: React.FC<{ open: boolean; onClose: () => void; onFile?: () => void }> = ({
+  open,
+  onClose,
+  onFile,
+}) => {
   const tr = useT();
   const { t } = tr;
   const navigate = useNavigate();
   const { word, deviceUnlock } = useUnlock();
+  const hint = useDeviceLockHint();
   const state = useAccountState();
   const [busy, setBusy] = useState(false);
   const [problem, setProblem] = useState<string>();
@@ -156,7 +179,8 @@ export const KeepSafeSheet: React.FC<{ open: boolean; onClose: () => void }> = (
   };
   const toFile = () => {
     onClose();
-    void navigate('/backup');
+    if (onFile) onFile();
+    else void navigate('/backup');
   };
 
   return (
@@ -173,8 +197,10 @@ export const KeepSafeSheet: React.FC<{ open: boolean; onClose: () => void }> = (
             <Typography variant="body1" data-keep-safe-done={done.counted ? 'counted' : 'bound'}>
               {done.counted ? t('app.account.saved.text') : t('app.account.saved.bound')}
             </Typography>
-            {/* Offered at once, before "Done" (the founder's strong prompt); never where a checked sheet exists. */}
-            {!(state.kind === 'saved' && state.sheet?.checked) && (
+            {/* Offered at once only where it is needed to count (a passkey that stays on this
+                device); where the passkey syncs it waits for Settings and one later reminder,
+                so a seal is followed by one prompt. Never where a checked sheet exists. */}
+            {!done.counted && !(state.kind === 'saved' && state.sheet?.checked) && (
               <RecoverySheetPrompt
                 bound={!done.counted}
                 onMake={() => {
@@ -217,6 +243,11 @@ export const KeepSafeSheet: React.FC<{ open: boolean; onClose: () => void }> = (
             >
               {t(`app.account.use.${word}` as AppKey)}
             </Button>
+            {word === 'deviceLock' && (
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 0.75 }} data-keep-safe-hint="">
+                {t(hint)}
+              </Typography>
+            )}
             <Typography variant="body2" color="text.secondary" sx={{ mt: 1.25 }}>
               {t('app.account.sheet.how')}
             </Typography>
@@ -322,8 +353,13 @@ export const KeepSafeSheet: React.FC<{ open: boolean; onClose: () => void }> = (
   );
 };
 
-/** Pages where the sheet never opens by itself: agreements being signed, a restore, the backup itself, Settings. */
-const QUIET = /^\/(restore|backup|settings|license\/[^/]+\/sign|license-invite|prove-license|claim|lender|prove)\b/;
+/**
+ * Pages where the sheet never opens by itself: agreements being signed, a restore, the backup
+ * itself, Settings, and the flows that seal records (their backup step offers this device's lock
+ * itself: one prompt after a seal, not the sheet and then the step).
+ */
+export const QUIET =
+  /^\/(restore|backup|settings|license\/[^/]+\/sign|license-invite|prove-license|claim|lender|prove|new|documents\/new|records\/import)\b/;
 
 /**
  * With the app's frame: keeps the copy saved by itself, and opens the sheet once, by itself,
@@ -391,7 +427,7 @@ export const accountLine = (
     ok: () => void;
     keep: (ids: readonly string[]) => void;
     sheet: () => void;
-    later: (day: 7 | 30) => void;
+    later: () => void;
     reverify: () => void;
   },
 ): Line | undefined => {
@@ -544,15 +580,14 @@ export const accountLine = (
       mark: 'reverify',
       severity: 'info',
     };
-  // Day 7 and day 30 with no checked recovery sheet: one quiet line, never per record.
-  const day = s.sheetReminder;
-  if (day && s.faceIdHere)
+  // Once, after the third record, with no checked recovery sheet: one quiet line, never per record.
+  if (s.sheetReminder && s.faceIdHere)
     return {
       words: rich(t('app.account.line.reminder'), b),
       button: t('app.account.line.makeSheet'),
       act: act.sheet,
-      second: { label: t('app.account.line.later'), act: () => act.later(day) },
-      mark: `sheet-reminder-${day}`,
+      second: { label: t('app.account.line.later'), act: act.later },
+      mark: 'sheet-reminder',
       severity: 'info',
     };
   return undefined;

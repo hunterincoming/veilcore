@@ -17,7 +17,7 @@ import { FlowFrame, ScreenHeading } from './FlowFrame';
 import { rich, useT } from '../../i18n/app';
 import { deleteAccountCopy, forgetDevice, useAccountState } from '../../veilcore/account-copy';
 import { backupMessageWords } from './backup-words';
-import { deviceWords, openKeepSafe, useUnlockWord } from './KeepSafe';
+import { deviceWords, openKeepSafe, useDeviceLockHint, useUnlockWord } from './KeepSafe';
 import { PasskeyCheckLink } from './PasskeyCheckLink';
 import { openRecoverySheet } from './RecoverySheet';
 import type { AppKey } from '../../i18n/app/en';
@@ -29,6 +29,7 @@ export const SettingsPage: React.FC = () => {
   const navigate = useNavigate();
   const s = useAccountState();
   const word = useUnlockWord();
+  const lockHint = useDeviceLockHint();
   const [busy, setBusy] = useState(false);
   const [problem, setProblem] = useState<string>();
   const [stopped, setStopped] = useState(false);
@@ -144,6 +145,11 @@ export const SettingsPage: React.FC = () => {
                           >
                             {t(`app.account.use.${word}` as AppKey)}
                           </Button>
+                          {word === 'deviceLock' && (
+                            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
+                              {t(lockHint)}
+                            </Typography>
+                          )}
                         </Box>
                       )}
                       {s.sheet && (

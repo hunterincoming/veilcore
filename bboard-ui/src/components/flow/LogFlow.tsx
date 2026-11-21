@@ -17,6 +17,10 @@
 //     won't keep them (a private window) is asked for the backup BEFORE the date stamp.
 //   - saving the file is not the same as having it: the step ends only when the saved copy
 //     is opened and read back (backup.ts, checkBackup).
+//   - records already saved with VeilCore (the account copy counts, and holds this record once
+//     saved now) skip the file step: the flow is three steps and ends after the lab report
+//     (way-back.ts). Where there is no way back yet, the file step is the one prompt after the
+//     seal, and it offers this device's lock too (BackupStep).
 // SPDX-License-Identifier: Apache-2.0
 
 import React, { useEffect, useId, useRef, useState } from 'react';
@@ -67,7 +71,9 @@ import { SupportDetails } from '../SupportDetails';
 import { nextBatchWords, useAnchorCadence } from './dating-words';
 import { Step2PairDna } from '../wizard/Step2PairDna';
 import { AppHeader } from '../AppHeader';
-import { BackupStep } from './BackupStep';
+import { BackupStep, SavingWithVeilCore } from './BackupStep';
+import { accountState, useAccountState } from '../../veilcore/account-copy';
+import { copyCountsHere, savedWithVeilCore } from './way-back';
 import { IntakeBanner } from './IntakePage';
 import { allowRecord, loadIntake } from '../../veilcore/intake';
 import { FlowFrame, ScreenHeading, focusScreenHeading, softDisabled, visuallyHidden } from './FlowFrame';
@@ -119,7 +125,7 @@ import { OriginReviewLine, OriginStep } from './OriginStep';
 // SEAL_EACH_STAGE, STAGE_PROMPT and SELECTED_PROMPT (stage-notes.ts) are shown here in the
 // visitor's language: app.log.sealEachStage, app.log.stagePrompt, app.log.selectedPrompt.
 
-type Screen = 'plant' | 'origin' | 'review' | 'stamp' | 'report' | 'backup';
+type Screen = 'plant' | 'origin' | 'review' | 'stamp' | 'report' | 'saving' | 'backup';
 
 /**
  * The counter. The lab report is optional, so it is not counted; nor is "Where it came from",
@@ -131,13 +137,17 @@ export const STEP: Record<Screen, number | 'optional'> = {
   review: 2,
   stamp: 3,
   report: 'optional',
+  saving: 4,
   backup: 4,
 };
 
-/** "Step 1 of 4", or "Optional", in the visitor's language. */
-const stepWords = (screen: Screen, tr: Translator): string => {
+/**
+ * "Step 1 of 4", or "Optional", in the visitor's language. Of 3 when the records are saved with
+ * VeilCore, so the file step won't come (way-back.ts).
+ */
+const stepWords = (screen: Screen, tr: Translator, total: 3 | 4 = 4): string => {
   const n = STEP[screen];
-  return n === 'optional' ? tr.t('app.log.optional') : tr.t('app.log.stepOf', { n, total: 4 });
+  return n === 'optional' ? tr.t('app.log.optional') : tr.t('app.log.stepOf', { n, total });
 };
 
 export const LogFlow: React.FC = () => {
@@ -286,8 +296,30 @@ const LogFlowFor: React.FC<{ nextOf?: string; handoff?: Handoff }> = ({ nextOf, 
     return focusScreenHeading();
   }, [screen, picked]);
 
-  const step = stepWords(screen, tr);
+  // Saved with VeilCore already: the file step is skipped once this record is in the copy too.
+  const copyOn = copyCountsHere(useAccountState());
+  const step = stepWords(screen, tr, copyOn && screen !== 'backup' ? 3 : 4);
   const { t } = tr;
+
+  // Where the flow ends: a partner's intake waiting (/intake), else the record's page.
+  const finish = () =>
+    // A partner's intake is waiting (/intake): the breeder decides what goes back.
+    recordId && loadIntake()
+      ? (allowRecord(recordId), navigate(`/intake/send?record=${encodeURIComponent(recordId)}`))
+      : recordId
+        ? navigate(`/record/${recordId}`)
+        : navigate('/records');
+  // After the lab report: the file step, unless the copy now holds this record (never zero ways back).
+  const afterReport = async () => {
+    if (recordId && copyCountsHere(accountState())) {
+      setScreen('saving');
+      if (await savedWithVeilCore([recordId])) {
+        void finish();
+        return;
+      }
+    }
+    setScreen('backup');
+  };
 
   const body = (() => {
     switch (screen) {
@@ -410,9 +442,9 @@ const LogFlowFor: React.FC<{ nextOf?: string; handoff?: Handoff }> = ({ nextOf, 
             recordId={recordId}
             headingComponent="h1"
             stepLabel={step}
-            onDone={() => setScreen('backup')}
-            onSkip={() => setScreen('backup')}
-            doneLabel={tr.t('app.log.nextSaveBackup')}
+            onDone={() => void afterReport()}
+            onSkip={() => void afterReport()}
+            doneLabel={copyOn ? tr.t('app.log.finish') : tr.t('app.log.nextSaveBackup')}
             intro={
               <Alert severity="info" variant="outlined">
                 {rich(forKind(tr, kind).t('app.log.reportIntro'), { b: (c) => <b>{c}</b> })}
@@ -420,20 +452,16 @@ const LogFlowFor: React.FC<{ nextOf?: string; handoff?: Handoff }> = ({ nextOf, 
             }
           />
         ) : null;
+      case 'saving':
+        return <SavingWithVeilCore step={step} />;
       case 'backup':
         return (
           <BackupStep
             title={tr.t('app.backup.title')}
             stepLabel={step}
             finishLabel={tr.t('app.log.finish')}
-            onDone={() =>
-              // A partner's intake is waiting (/intake): the breeder decides what goes back.
-              recordId && loadIntake()
-                ? (allowRecord(recordId), navigate(`/intake/send?record=${encodeURIComponent(recordId)}`))
-                : recordId
-                  ? navigate(`/record/${recordId}`)
-                  : navigate('/records')
-            }
+            wayBackFor={recordId ? [recordId] : undefined}
+            onDone={() => void finish()}
           />
         );
     }

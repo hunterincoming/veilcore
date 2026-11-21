@@ -53,7 +53,7 @@ export const recovery = {
   'app.recovery.sheet.passkey':
     'The passkey that opens the same records is named “VeilCore: unlocks your records · {tag}” in your passwords.',
   'app.recovery.sheet.how':
-    'To get your records back: go to {site}, tap “Get my records back”, choose “Use my recovery sheet”, and type the code.',
+    'To get your records back: go to {site}, tap “Get my records back”, then “Other ways”, choose “Use my recovery sheet”, and type the code.',
   'app.recovery.sheet.phishing':
     'VeilCore asks for this code only at {site}: to check this sheet, or to get your records back. Never type it anywhere else. Never read it out on a phone call, WhatsApp or email, even to VeilCore.',
   'app.recovery.sheet.anyone':
@@ -63,6 +63,8 @@ export const recovery = {
   // Getting records back with it on a new device.
   'app.recovery.restore.use': 'Use my recovery sheet',
   'app.recovery.restore.lead': 'Type the code from your recovery sheet. Dashes and spaces don’t matter.',
+  'app.recovery.restore.what':
+    'A recovery sheet is a printed page with a 28-character code. You can make one in Settings after setting up a passkey; if you never made one, use another way.',
   'app.recovery.restore.open': 'Open my records',
   'app.recovery.restore.addTitle': 'Open them by yourself next time',
   'app.recovery.restore.addText':

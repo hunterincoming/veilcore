@@ -61,13 +61,13 @@ export const lab = {
     '<b>Retirada</b>: el sitio web del laboratorio dejó de publicar la clave, o el operador de VeilCore quitó el cotejo. Pregunte al laboratorio antes de confiar en ella.',
   'app.labid.more.how':
     'Cómo queda verificado un laboratorio: publica su clave en su propio sitio web o pide a VeilCore que coteje su nombre con un listado público. Para consultar con un laboratorio, use datos de contacto que haya encontrado usted.',
-  'app.labid.own.title': 'Cómo muestran su clave ahora las páginas de comprobación',
-  'app.labid.own.looking': 'Buscando cómo muestran su clave las páginas de comprobación…',
-  'app.labid.own.couldNot': 'Ahora no se pudo ver cómo muestran su clave las páginas de comprobación.',
+  'app.labid.own.title': 'Cómo muestran su clave de firma ahora las páginas de comprobación',
+  'app.labid.own.looking': 'Buscando cómo muestran su clave de firma las páginas de comprobación…',
+  'app.labid.own.couldNot': 'Ahora no se pudo ver cómo muestran su clave de firma las páginas de comprobación.',
   'app.labid.own.next.none':
-    'Siguiente paso: publique su clave en el sitio web de su laboratorio. Las páginas de comprobación dirán entonces “Publicada en” y la dirección de su sitio.',
+    'Siguiente paso: publique su clave de firma en el sitio web de su laboratorio. Las páginas de comprobación dirán entonces “Publicada en” y la dirección de su sitio.',
   'app.labid.own.next.listingWithdrawn':
-    'Siguiente paso: publique su clave en el sitio web de su laboratorio. Las páginas de comprobación dirán entonces “Publicada en” y la dirección de su sitio.',
+    'Siguiente paso: publique su clave de firma en el sitio web de su laboratorio. Las páginas de comprobación dirán entonces “Publicada en” y la dirección de su sitio.',
   'app.labid.own.next.website':
     'Siguiente paso: pida a VeilCore que coteje el nombre de su laboratorio con un listado público de licencias o acreditaciones. Las páginas de comprobación dirán entonces “Verificada con” ese listado.',
   'app.labid.own.next.expired':
@@ -291,7 +291,7 @@ export const lab = {
     'Su acuse de recibo está firmado. Vincúlelo a este envío para que el obtentor lo vea: hasta entonces su página no lo cuenta, porque cualquiera puede firmar una declaración sobre una planta, pero solo quien usó el código de laboratorio puede vincular una al envío.',
   'app.lab.recv.linking': 'Vinculando…',
   'app.lab.recv.setUpFirst':
-    'Configure primero la firma de su laboratorio; después podrá firmar que esta muestra llegó.',
+    'Configure primero la clave de firma de su laboratorio; después podrá firmar que esta muestra llegó.',
   'app.lab.recv.checking': 'Comprobando el registro del obtentor…',
   'app.lab.recv.notRecorded': 'Su acuse de recibo no se registró: {error}.',
   'app.lab.recv.noCodeHere': 'esta planta no tiene código de laboratorio en este dispositivo',
@@ -485,7 +485,7 @@ export const lab = {
   'app.lab.out.cancelCorrection': 'Cancelar la corrección',
   'app.lab.out.turnedAway': 'Usted rechazó esta muestra, así que no hay informe de laboratorio que enviar.',
   'app.lab.out.setUpFirst':
-    'Configure primero la firma de su laboratorio, para que el obtentor sepa que el informe es suyo.',
+    'Configure primero la clave de firma de su laboratorio, para que el obtentor sepa que el informe es suyo.',
   'app.lab.out.noLockHere':
     'Este navegador no tiene el candado del obtentor para este envío. Pegue el código de laboratorio que le enviaron.',
   'app.lab.out.useCode': 'Usar este código de laboratorio',

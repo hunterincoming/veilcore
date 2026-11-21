@@ -116,7 +116,7 @@ test('(a) a plant with a marker in every field, sent to a lab: no marker is in t
   await l.page.goto('/records');
   await l.page.getByRole('button', { name: "I'm a lab" }).click();
   await l.page.getByRole('button', { name: /I run a lab/ }).click();
-  await l.page.getByRole('button', { name: /Set up your lab.s signature/ }).click();
+  await l.page.getByRole('button', { name: /Set up your lab.s signing key/ }).click();
   await l.page.getByLabel(/^Name/).fill('E2E Lab');
   await l.page.getByRole('button', { name: /Create my key/ }).click();
   await l.page.getByRole('button', { name: /^(Continue|Done)$/ }).click();

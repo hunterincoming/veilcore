@@ -260,3 +260,84 @@ test('a plant logged with no backup is still dated in the next batch, and Home p
 
 test('the same, without passkeys: Home’s one line is the backup line (easy mode step 1)', async ({ page }) =>
   datingFirst(page, false));
+
+// One prompt after a seal (the simplify-unlock plan, phase 1): on a device that unlocks a passkey
+// itself and has no way back yet, "Keep your records safe" no longer pops up over the flow. The
+// backup step is the one prompt, and it offers this device's lock beside the file; Finish waits
+// for one of them, so nobody ends the flow with no way back.
+test('no way back yet: nothing pops up after the seal, and the backup step is the one prompt, with this device’s lock beside the file', async ({
+  page,
+}) => {
+  test.setTimeout(240_000);
+  const errors = watch(page);
+  await page.addInitScript(() => localStorage.setItem('veilcore.role.v1', 'breeder'));
+  if (REAL_REGISTRY) await isolate(page);
+  else await standIn(page);
+  // A device that unlocks a passkey itself (a platform authenticator), as a phone does.
+  const cdp = await page.context().newCDPSession(page);
+  await cdp.send('WebAuthn.enable');
+  await cdp.send('WebAuthn.addVirtualAuthenticator', {
+    options: {
+      protocol: 'ctap2',
+      ctap2Version: 'ctap2_1',
+      transport: 'internal',
+      hasResidentKey: true,
+      hasUserVerification: true,
+      isUserVerified: true,
+      automaticPresenceSimulation: true,
+    },
+  } as never);
+  const popups: string[] = [];
+  await page.goto('/new');
+  await startPlant(page);
+  await page.getByLabel(/Plant or line name/).fill(`One prompt (practice) ${Date.now()}`);
+  await page.getByLabel(/Bred by/).fill('E2E');
+  await page.getByRole('button', { name: /Next: check it/ }).click();
+  await page.getByRole('button', { name: /Seal it/ }).click();
+  const watchSheet = setInterval(() => {
+    void page
+      .locator('[data-keep-safe]')
+      .count()
+      .then((c) => c > 0 && popups.push('keep-safe'))
+      .catch(() => undefined);
+  }, 250);
+  await page.getByRole('button', { name: /Do the date stamp later/ }).click({ timeout: 90_000 });
+  await page.getByRole('button', { name: /No report yet: skip/ }).click();
+  await expect(page.getByRole('button', { name: /Save backup file/ })).toBeVisible();
+  const lock = page.locator('[data-backup-device-lock]');
+  await expect(lock.getByRole('button', { name: 'This device’s lock' })).toBeVisible();
+  await expect(lock).toContainText(/face or finger you unlock your (phone|computer) with/);
+  // One yellow button: this device's lock; the file's is outlined beside it.
+  await expect(page.getByRole('button', { name: /Save backup file/ })).toHaveClass(/MuiButton-outlined/);
+  await expect(page.getByText('One of the ways to get your records back')).toBeVisible();
+  await expect(page.getByText(/only way to prove/)).toHaveCount(0);
+  // Never zero ways back: Finish waits for the lock or a checked file.
+  await expect(page.getByRole('button', { name: 'Finish' })).toHaveAttribute('aria-disabled', 'true');
+  await shot(page, 'one-prompt-backup-step');
+  clearInterval(watchSheet);
+  expect(popups).toEqual([]);
+  await expect(page.locator('[data-keep-safe]')).toHaveCount(0);
+  expectNoErrors(errors);
+});
+
+// "Get my records back": the recovery sheet isn't offered beside this device's lock to people who
+// may never have made one. It is under "Other ways", with one line saying what it is.
+test('Get my records back: the recovery sheet is under “Other ways”, with one line saying what it is', async ({
+  page,
+}) => {
+  const errors = watch(page);
+  await page.addInitScript(() => localStorage.setItem('veilcore.role.v1', 'breeder'));
+  if (REAL_REGISTRY) await isolate(page);
+  else await standIn(page);
+  await page.goto('/restore');
+  await expect(page.locator('[data-passkey-restore]')).toBeVisible();
+  await expect(page.locator('[data-restore-sheet-open]')).toBeHidden();
+  await page.locator('[data-restore-other-ways]').click();
+  await expect(page.locator('[data-restore-sheet-what]')).toContainText(
+    'A recovery sheet is a printed page with a 28-character code.',
+  );
+  await expect(page.locator('[data-restore-sheet-open]')).toBeVisible();
+  await expect(page.getByRole('button', { name: /Open my backup file|backup file/i }).first()).toBeVisible();
+  await shot(page, 'restore-other-ways');
+  expectNoErrors(errors);
+});

@@ -25,7 +25,7 @@ export const offline = {
   'app.install.button': 'Add to Home Screen',
   'app.install.iosSteps': 'On iPhone or iPad: in Safari, tap Share, then “Add to Home Screen”.',
   'app.install.iosEmpty':
-    'First, with signal, let anything waiting in Safari send. The Home Screen icon has its own storage, so it opens empty; your records are still safe in Safari. Open the icon with signal and bring them back with Face ID or your backup file. From then on, use the icon: records made in Safari won’t show there.',
+    'First, with signal, let anything waiting in Safari send. The Home Screen icon has its own storage, so it opens empty; your records are still safe in Safari. Open the icon with signal and bring them back with this device’s lock or your backup file. From then on, use the icon: records made in Safari won’t show there.',
   'app.install.iosKeep':
     'Safari can erase a site you haven’t opened for 7 days. The Home Screen icon is kept. Keep your backup anyway.',
   'app.install.ready':

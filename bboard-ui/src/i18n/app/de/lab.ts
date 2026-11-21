@@ -62,13 +62,13 @@ export const lab = {
     '<b>Zurückgezogen</b>: Die Website des Labors führt den Schlüssel nicht mehr auf, oder der Betreiber von VeilCore hat den Abgleich zurückgenommen. Fragen Sie beim Labor nach, bevor Sie sich darauf verlassen.',
   'app.labid.more.how':
     'So wird ein Labor verifiziert: Es führt seinen Schlüssel auf seiner eigenen Website auf oder bittet VeilCore, seinen Namen mit einem öffentlichen Verzeichnis abzugleichen. Um beim Labor nachzufragen, nutzen Sie Kontaktdaten, die Sie selbst gefunden haben.',
-  'app.labid.own.title': 'So zeigen Prüfseiten Ihren Schlüssel jetzt',
-  'app.labid.own.looking': 'Es wird nachgesehen, wie Prüfseiten Ihren Schlüssel zeigen …',
-  'app.labid.own.couldNot': 'Gerade ließ sich nicht nachsehen, wie Prüfseiten Ihren Schlüssel zeigen.',
+  'app.labid.own.title': 'So zeigen Prüfseiten Ihren Signaturschlüssel jetzt',
+  'app.labid.own.looking': 'Es wird nachgesehen, wie Prüfseiten Ihren Signaturschlüssel zeigen …',
+  'app.labid.own.couldNot': 'Gerade ließ sich nicht nachsehen, wie Prüfseiten Ihren Signaturschlüssel zeigen.',
   'app.labid.own.next.none':
-    'Nächster Schritt: Führen Sie Ihren Schlüssel auf der Website Ihres Labors auf. Prüfseiten zeigen dann „Aufgeführt auf“ mit der Adresse Ihrer Website.',
+    'Nächster Schritt: Führen Sie Ihren Signaturschlüssel auf der Website Ihres Labors auf. Prüfseiten zeigen dann „Aufgeführt auf“ mit der Adresse Ihrer Website.',
   'app.labid.own.next.listingWithdrawn':
-    'Nächster Schritt: Führen Sie Ihren Schlüssel auf der Website Ihres Labors auf. Prüfseiten zeigen dann „Aufgeführt auf“ mit der Adresse Ihrer Website.',
+    'Nächster Schritt: Führen Sie Ihren Signaturschlüssel auf der Website Ihres Labors auf. Prüfseiten zeigen dann „Aufgeführt auf“ mit der Adresse Ihrer Website.',
   'app.labid.own.next.website':
     'Nächster Schritt: Bitten Sie VeilCore, den Namen Ihres Labors mit einem öffentlichen Lizenz- oder Akkreditierungsverzeichnis abzugleichen. Prüfseiten zeigen dann „Verifiziert anhand von“ diesem Verzeichnis.',
   'app.labid.own.next.expired':
@@ -295,7 +295,7 @@ export const lab = {
     'Ihre Empfangsbestätigung ist signiert. Verknüpfen Sie sie mit dieser Lieferung, damit der Züchter sie sieht: Bis dahin zählt seine Seite sie nicht, denn jeder kann eine Erklärung über eine Pflanze signieren, aber nur wer den Laborcode verwendet hat, kann eine mit der Lieferung verknüpfen.',
   'app.lab.recv.linking': 'Wird verknüpft…',
   'app.lab.recv.setUpFirst':
-    'Richten Sie zuerst die Signatur Ihres Labors ein; dann können Sie signieren, dass diese Probe angekommen ist.',
+    'Richten Sie zuerst den Signaturschlüssel Ihres Labors ein; dann können Sie signieren, dass diese Probe angekommen ist.',
   'app.lab.recv.checking': 'Datensatz des Züchters wird geprüft…',
   'app.lab.recv.notRecorded': 'Ihre Empfangsbestätigung wurde nicht erfasst: {error}.',
   'app.lab.recv.noCodeHere': 'diese Pflanze hat auf diesem Gerät keinen Laborcode',
@@ -493,7 +493,7 @@ export const lab = {
   'app.lab.out.cancelCorrection': 'Korrektur abbrechen',
   'app.lab.out.turnedAway': 'Sie haben diese Probe abgelehnt, daher gibt es keinen Laborbericht zu senden.',
   'app.lab.out.setUpFirst':
-    'Richten Sie zuerst die Signatur Ihres Labors ein, damit der Züchter erkennt, dass der Laborbericht von Ihnen ist.',
+    'Richten Sie zuerst den Signaturschlüssel Ihres Labors ein, damit der Züchter erkennt, dass der Laborbericht von Ihnen ist.',
   'app.lab.out.noLockHere':
     'Dieser Browser hat das Schloss des Züchters für diese Lieferung nicht. Fügen Sie den Laborcode ein, den er Ihnen gesendet hat.',
   'app.lab.out.useCode': 'Diesen Laborcode verwenden',

@@ -30,7 +30,9 @@ import UploadIcon from '@mui/icons-material/UploadFileOutlined';
 import { Link as RouterLink } from 'react-router-dom';
 import { AppHeader } from '../AppHeader';
 import { mcpdGroup, type McpdField } from '../../veilcore/origin-notes';
-import { BackupStep } from '../flow/BackupStep';
+import { BackupStep, SavingWithVeilCore } from '../flow/BackupStep';
+import { accountState, useAccountState } from '../../veilcore/account-copy';
+import { copyCountsHere, savedWithVeilCore } from '../flow/way-back';
 import { FlowFrame, ScreenHeading, focusScreenHeading, softDisabled } from '../flow/FlowFrame';
 import { ANIMAL_RECORDS_ENABLED, IS_MAINNET } from '../../config/network';
 import { KindChoice, parentWords, sexWords } from '../flow/AnimalForm';
@@ -82,7 +84,7 @@ import { DisclosureReceipt } from '../chain/DisclosureReceipt';
 import { InEnglishNote, rich, useT } from '../../i18n/app';
 import type { AppKey } from '../../i18n/app/en';
 
-type Screen = 'file' | 'header' | 'columns' | 'check' | 'seal' | 'sealed' | 'backup' | 'done';
+type Screen = 'file' | 'header' | 'columns' | 'check' | 'seal' | 'sealed' | 'saving' | 'backup' | 'done';
 
 const STEP: Record<Screen, number | undefined> = {
   file: 1,
@@ -91,6 +93,7 @@ const STEP: Record<Screen, number | undefined> = {
   check: 4,
   seal: 5,
   sealed: 5,
+  saving: 6,
   backup: 6,
   done: undefined,
 };
@@ -180,8 +183,29 @@ export const BulkImportPage: React.FC = () => {
     return focusScreenHeading();
   }, [screen]);
 
+  // Saved with VeilCore already: the backup step is skipped once these records are in the copy
+  // too (way-back.ts), so the counter has five steps.
+  const copyOn = copyCountsHere(useAccountState());
   const stepN = STEP[screen];
-  const step = stepN ? t('app.log.stepOf', { n: stepN, total: 6 }) : undefined;
+  const step = stepN
+    ? t('app.log.stepOf', {
+        n: Math.min(stepN, copyOn && screen !== 'backup' ? 5 : 6),
+        total: copyOn && screen !== 'backup' ? 5 : 6,
+      })
+    : undefined;
+  // After the summary: the backup step, unless the copy now holds every new record (never zero ways back).
+  const afterSummary = async (j: Job) => {
+    const ids = jobRecordIds(j);
+    if (copyCountsHere(accountState())) {
+      setScreen('saving');
+      if (await savedWithVeilCore(ids)) {
+        setJob({ ...j, phase: 'backed-up' });
+        setScreen('done');
+        return;
+      }
+    }
+    setScreen('backup');
+  };
   const body = (() => {
     switch (screen) {
       case 'file':
@@ -260,8 +284,9 @@ export const BulkImportPage: React.FC = () => {
           <Summary
             step={step}
             job={job}
+            copyOn={copyOn}
             onNext={() => {
-              if (jobRecordIds(job).length > 0) setScreen('backup');
+              if (jobRecordIds(job).length > 0) void afterSummary(job);
               else {
                 setJob({ ...job, phase: 'backed-up' });
                 setScreen('done');
@@ -269,11 +294,14 @@ export const BulkImportPage: React.FC = () => {
             }}
           />
         ) : null;
+      case 'saving':
+        return <SavingWithVeilCore step={step} />;
       case 'backup':
         return (
           <BackupStep
             title={t('app.backup.title')}
             stepLabel={step}
+            wayBackFor={job && jobRecordIds(job).length > 0 ? jobRecordIds(job) : undefined}
             finishLabel={t('app.common.next')}
             onDone={() => {
               if (job) setJob({ ...job, phase: 'backed-up' });
@@ -989,7 +1017,12 @@ const Seal: React.FC<{
 
 // ---------------------------------------------------------------------------------------
 
-const Summary: React.FC<{ step?: string; job: Job; onNext: () => void }> = ({ step, job, onNext }) => {
+const Summary: React.FC<{ step?: string; job: Job; onNext: () => void; copyOn?: boolean }> = ({
+  step,
+  job,
+  onNext,
+  copyOn,
+}) => {
   const { t, tp } = useT();
   const s = jobSummary(job);
   const notSealed = job.rows.filter((r) => r.status === 'problem' || job.outcomes[r.hash]?.state === 'refused');
@@ -1050,9 +1083,9 @@ const Summary: React.FC<{ step?: string; job: Job; onNext: () => void }> = ({ st
       )}
       <NoDnaReports job={job} />
       <Button variant="contained" size="large" fullWidth onClick={onNext} sx={{ py: 1.6 }}>
-        {jobRecordIds(job).length > 0 ? t('app.log.nextSaveBackup') : t('app.common.next')}
+        {jobRecordIds(job).length > 0 && !copyOn ? t('app.log.nextSaveBackup') : t('app.common.next')}
       </Button>
-      {jobRecordIds(job).length > 0 && (
+      {jobRecordIds(job).length > 0 && !copyOn && (
         <Typography variant="body2" color="text.secondary">
           {t('app.import.sum.untilSaved')}
         </Typography>
