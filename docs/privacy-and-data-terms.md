@@ -196,7 +196,7 @@ Posted on the page, with the date, before they apply.
    named, and from when? Do we need an EU or UK representative?
 2. **Controller or processor.** For records a breeder types, VeilCore looks like a
    controller. For a lab's or partner's records sealed inside their own systems, or under the
-   managed service (`docs/legal/managed-service-agreement-DRAFT.md`), are we a processor? Do
+   managed service (agreement prepared privately, `docs/legal/README.md`), are we a processor? Do
    labs need a data processing agreement from us?
 3. **Is a fingerprint personal data?** Batch roots on public networks can't be deleted. EU
    data protection authorities advise keeping personal data off chain and treating hashes

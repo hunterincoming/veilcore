@@ -1,5 +1,7 @@
 # VeilCore
 
+[![CI](https://github.com/hunterincoming/veilcore/actions/workflows/ci.yaml/badge.svg?branch=main)](https://github.com/hunterincoming/veilcore/actions/workflows/ci.yaml)
+
 Dated, private records for plant, animal and microbial genetics, on Midnight.
 
 This project is built on the Midnight Network.
@@ -27,7 +29,7 @@ and a Rust implementation in [veilcore-rs](https://github.com/hunterincoming/vei
 | **Live on veilcore.org** | Sealing records, dated in batches on Midnight mainnet; check pages; proving a record by link; dating a DNA report pairing; lab codes and signed receipts; licenses and royalty reports; documents kept on the device only; proving one number from a sealed document; production chains of linked document records; numbers and results a lab signs, since a run on 18 November 2026 ([docs/lab-signing.md](docs/lab-signing.md), [docs/lab-mainnet-test.md](docs/lab-mainnet-test.md)). No wallet needed: VeilCore's fee service pays the network fee. |
 | **Built, not yet run on mainnet** | Handing a license on to another grower, with the breeder's approval. Adding a lab's result file to another breeder's records. |
 | **Test network only** | A lab's viability result for a sample before or after a kill step; paying royalties in NIGHT on Midnight. |
-| **Not built** | A paid plan for labs (designed only: [docs/lab-plan.md](docs/lab-plan.md)). |
+| **Built, switched off** | Paid plans for labs: built in the registry, switched off; not on veilcore.org (`veilcore-api` README, "Paid plans"). A plan that hides which records are a lab's is a design only ([docs/lab-plan.md](docs/lab-plan.md)). |
 
 Details and dates: [Where it stands](#where-it-stands). No formal security audit yet: [the reviews so far](#current-status).
 

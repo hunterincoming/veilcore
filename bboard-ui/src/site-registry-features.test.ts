@@ -501,11 +501,11 @@ describe('deploy:prod', () => {
     expect(mainnet.asked).not.toContain('/health');
   }, 30_000);
 
-  it('all three deploy commands check the registry first and write a release manifest', () => {
+  it('both deploy commands check the registry first and write a release manifest; deploy:prod is retired', () => {
     const pkg = (
       JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8')) as { scripts: Record<string, string> }
     ).scripts;
-    expect(pkg['deploy:prod']).toMatch(/^VITE_API_BASE=\S+ node scripts\/site-prod-preflight\.mjs && /);
+    expect(pkg['deploy:prod']).toBe('node scripts/deploy-prod-retired.mjs');
     expect(pkg['deploy:mainnet']).toBe('node scripts/deploy-mainnet.mjs');
     const main = fs.readFileSync(path.join(ROOT, 'scripts', 'deploy-mainnet.mjs'), 'utf8');
     expect(main.indexOf("run('node', ['scripts/site-mainnet-preflight.mjs'])")).toBeGreaterThan(-1);
@@ -515,9 +515,6 @@ describe('deploy:prod', () => {
     expect(pkg['deploy:test']).toBe('node scripts/deploy-test-site.mjs');
     for (const f of ['site-prod-preflight.mjs', 'site-mainnet-preflight.mjs', 'deploy-test-site.mjs'])
       expect(fs.readFileSync(path.join(ROOT, 'scripts', f), 'utf8'), f).toMatch(/checkRegistryFeatures\(/);
-    expect(pkg['deploy:prod']).toMatch(
-      /node scripts\/vercel-config\.mjs && node scripts\/release-manifest\.mjs prod \.vercel\/output\/static && npm ci --prefix tools\/vercel/,
-    );
     for (const s of Object.values(pkg)) expect(s).not.toMatch(/git\s+push/);
   });
 });

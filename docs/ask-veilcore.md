@@ -16,7 +16,7 @@ header's "Menu", a plain menu item with the chat icon, so it covers nothing on t
 header stays one line (two on the app's pages, with the network); like the bubble on a
 phone-sized screen, it is not offered on an agreement's screens or a form being filled in.
 Once someone has a record, a hint sits by it with an example naming their own latest record ("Try: cut 6 clones
-from Gelato", or "Try: record 2 calves from Daisy" for someone whose records are mostly
+from Copper Fern", or "Try: record 2 calves from Daisy" for someone whose records are mostly
 animals); tapping it opens Ask with the example typed in. The example is read with Shortcuts
 first, and a record whose name would send it elsewhere ("Due Diligence", "Backup") is passed
 over for the next latest; with none that works there is no hint. It shows on three visits at
@@ -31,11 +31,11 @@ the page, instant and offline.
 
 What it does:
 
-- **Batches.** "Cut 12 clones from Blue Dream #12", "3 calves from Bull #4 x Cow #9": one
+- **Batches.** "Cut 12 clones from Harbour Mist #12", "3 calves from Bull #4 x Cow #9": one
   review screen with N new records, each naming its parent(s) inside its own sealed record, and
   one Save. Also on a record's own page: "Cut clones from this" (plants), "Record offspring"
   (animals). See [Batches](#batches).
-- **A record or a cross.** "New plant Harbour Mist", "cross Blue Dream x Gelato" (交配): opens
+- **A record or a cross.** "New plant Silver Lantern", "cross Harbour Mist x Copper Fern" (交配): opens
   the logging screen with the name and the parents filled in.
 - **What's due.** Royalty reports, payments and agreement end dates for the live agreements in
   this browser. Each period's step comes from the deal's signed messages as this page last read
@@ -111,7 +111,7 @@ asks before replacing it.
 ## Batches
 
 1. **Review** (works offline): the parent(s), from your records; how many; a name, numbered
-   ("Blue Dream #12 clone 1" …); the date. The screen says saving needs a connection.
+   ("Harbour Mist #12 clone 1" …); the date. The screen says saving needs a connection.
 2. **Save your backup.** The children are sealed in this browser first, through the bulk
    import's own path (`bulk-import.ts sealRows`, held by `holdForBackup`), so the backup holds
    every new record's key. This is a step in the flow, not a refusal at Save.
@@ -327,7 +327,7 @@ The jobs:
 
 1. **A birth or a cut, each with its own details**: "Bella whelped 6 pups, 4 male 2 female",
    "3 calves by AI bull 7HO12345 out of Cow #9", "Daisy calved today, bull calf, tag 1234",
-   "cut 12 clones off Blue Dream, tag 1A4-0099". No date stamps. IDs can be pasted as a column on
+   "cut 12 clones off Harbour Mist, tag 1A4-0099". No date stamps. IDs can be pasted as a column on
    the result screen; young saved without them show on Home as "Add 6 IDs".
 2. **What's due, reports drafted**: every report due on the agreements this browser holds as a
    licensee, at most 5, in one sheet. The person types each number or ticks "Nothing to report".
@@ -335,7 +335,7 @@ The jobs:
    screen; the bulk import's own steps read it (`readSheet`, `guessMapping` with the passport
    columns, `checkRows`) and the result says "40 ready, 3 need a fix". No stamps.
 4. **Get one record ready to license**: its key date stamp (one sponsored step) and the backup
-   check. Home then shows "Blue Dream: ready to license", or "ready tomorrow" while the stamp
+   check. Home then shows "Harbour Mist: ready to license", or "ready tomorrow" while the stamp
    waits.
 
 Batch plus license, and the license quantity field, are Part B and not built: a request that

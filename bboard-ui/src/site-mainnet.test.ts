@@ -179,11 +179,19 @@ describe("deploy:prod's registry check", () => {
     expect(down.text).toMatch(/Could not read the registry/);
   }, 30_000);
 
-  it('runs first in deploy:prod', () => {
+  it('deploy:prod itself is retired: it deploys nothing and points to deploy:mainnet', async () => {
     const pkg = JSON.parse(fs.readFileSync(path.resolve(UI, '../package.json'), 'utf8')) as {
       scripts: Record<string, string>;
     };
-    expect(pkg.scripts['deploy:prod']).toMatch(/^VITE_API_BASE=\S+ node scripts\/site-prod-preflight\.mjs && /);
+    expect(pkg.scripts['deploy:prod']).toBe('node scripts/deploy-prod-retired.mjs');
+    const { spawnSync } = await import('node:child_process');
+    const r = spawnSync(process.execPath, [path.resolve(UI, '../scripts/deploy-prod-retired.mjs')], {
+      env: cleanEnv(),
+      encoding: 'utf8',
+    });
+    expect(r.status).toBe(1);
+    expect(r.stderr).toMatch(/NOT DEPLOYED\. npm run deploy:prod is retired/);
+    expect(r.stderr).toMatch(/Use npm run deploy:mainnet instead/);
   });
 });
 
@@ -302,11 +310,21 @@ describe('the mainnet strings', () => {
     // script runs (vite.config.ts) and llms.txt (findable.ts). Read as source, so every build's
     // summary and both license states are covered.
     const { llmsTxt } = await import('../findable');
+    const flagsAll = (v: boolean) => ({
+      agreementsLive: v,
+      royaltiesRunOnMainnet: v,
+      labSigningRunOnMainnet: v,
+      deviceOnlyRunOnMainnet: v,
+      deviceOnlyClaimsRunOnMainnet: v,
+      documentChainRunOnMainnet: v,
+    });
+    const off = flagsAll(false);
+    const on = flagsAll(true);
     const statics: [string, string][] = [
       ['vite.config.ts', fs.readFileSync(path.join(UI, 'vite.config.ts'), 'utf8')],
       ['findable.ts', fs.readFileSync(path.join(UI, 'findable.ts'), 'utf8')],
-      ['llms.txt', llmsTxt(false)],
-      ['llms.txt (licenses on)', llmsTxt(true)],
+      ['llms.txt', llmsTxt(off)],
+      ['llms.txt (licenses on)', llmsTxt(on)],
     ];
     const staticHits = statics.flatMap(([name, text]) =>
       text
@@ -315,7 +333,7 @@ describe('the mainnet strings', () => {
         .map((sen) => `${name}: ${sen.trim()}`),
     );
     expect(staticHits).toEqual([]);
-    expect(llmsTxt(true)).toMatch(/batches of proof codes are anchored automatically\./);
+    expect(llmsTxt(on)).toMatch(/batches of proof codes are anchored automatically\./);
     expect(statics[0][1]).toMatch(/batches dated on Midnight automatically;/);
     // With the sponsor live (veilcore.org), the cadence the job has shown is said, as written.
     const o = mainnetStrings({ claimsOnMainnet: true, policyApproved: true, chainSends: true });

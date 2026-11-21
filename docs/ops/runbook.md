@@ -330,9 +330,9 @@ table, which must stay as it is.
     never written to this Mac: the deploy holds it in memory and drops it when it ends.
     - **Second copy (decided by both founders, 6 and 7 October).** While the key is on screen,
       and **before** typing `WRITTEN`, write it on a second sheet too, and check that sheet
-      against the screen, group by group (the CLI checks only the copy you type back). One
-      sheet is Hunter's, one is Mako's, kept in different places. Never photograph, scan,
-      email, message or type it anywhere to get it to Mako: his copy goes to him by hand.
+      against the screen, group by group (the CLI checks only the copy you type back). The
+      two sheets are kept in different places, one with each founder. Never photograph, scan,
+      email, message or type the key anywhere to move a copy: a copy only ever moves by hand.
 19. The deploy runs. First it prints `Contract address: …` on its own line, before
     anything is sent. **Copy that address onto paper now.** The `contractDeployed` line
     comes after the first transaction is confirmed. Then it prints `adding circuit key 1 of 16` (if the first

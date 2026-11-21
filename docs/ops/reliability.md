@@ -88,19 +88,10 @@ A lapsed domain is the one outage that can be permanent.
    (SSL) expiry alert for veilcore.org.
 4. **Worked when** the registrar shows auto-renew on and the lock on.
 
-### 5. Access for two people (30 minutes, with Mako)
+### 5. Access
 
-Today, Mako can't change DNS and Hunter can't administer Google Workspace.
-
-1. Vercel: give Mako access to the team (if the plan allows; Vercel Pro is $20 a seat a
-   month).
-2. Railway: give Mako access to the project (if the plan allows).
-3. Google Workspace: Mako makes Hunter an admin, or adds a second admin.
-4. Write down **where** each account's recovery lives (not the codes themselves): Railway,
-   Vercel, Blockfrost (both accounts), Backblaze B2, the registrar, npm, GitHub, UptimeRobot,
-   healthchecks.io, Google Workspace. Keep that list in Apple Passwords, and give Mako his own
-   copy.
-5. **Worked when** Mako can open the Vercel DNS page and the Railway project himself.
+Access to the hosting, registry, domain and email accounts is held by both founders and
+reviewed privately.
 
 ### 6. Restore drill (20 minutes, then once a month)
 

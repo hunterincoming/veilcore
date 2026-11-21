@@ -122,15 +122,15 @@ test('checkFiles also fetches "/" and holds it to the listed index.html', async 
   }
 });
 
-test('all three deploy scripts write and print the manifest, and none pushes anything', () => {
+test('both deploy scripts write and print the manifest, and none pushes anything', () => {
   const pkg = JSON.parse(readFileSync(join(ROOT, 'package.json'), 'utf8')).scripts;
   assert.equal(pkg['deploy:mainnet'], 'node scripts/deploy-mainnet.mjs');
   const main = readFileSync(join(ROOT, 'scripts/deploy-mainnet.mjs'), 'utf8');
   const m = main.indexOf("run('node', ['scripts/release-manifest.mjs', 'mainnet', '.vercel/output/static']);");
   assert.ok(main.indexOf("run('node', ['scripts/vercel-config.mjs']);") < m && m > 0);
   assert.ok(m < main.indexOf("['deploy', '--prebuilt', '--prod']"));
-  // Round 6 (finding 1): deploy:prod, how veilcore.org ships until mainnet, writes one too.
-  assert.match(pkg['deploy:prod'], /node scripts\/vercel-config\.mjs && node scripts\/release-manifest\.mjs prod \.vercel\/output\/static && npm ci --prefix tools\/vercel/);
+  // deploy:prod, how veilcore.org shipped before mainnet, is retired: it deploys nothing.
+  assert.equal(pkg['deploy:prod'], 'node scripts/deploy-prod-retired.mjs');
   assert.equal(pkg['check:rebuild'], 'node scripts/check-rebuild.mjs');
   assert.equal(pkg['check:site'], 'node scripts/check-site.mjs');
   const test = readFileSync(join(ROOT, 'scripts/deploy-test-site.mjs'), 'utf8');

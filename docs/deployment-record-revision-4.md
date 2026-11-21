@@ -13,7 +13,7 @@
 
 VeilCore records who held a genetic record and when, the licences granted against it,
 and the parentage and obligations its holders agreed to. It is for plant and animal
-genetics; cannabis is the first market. A record is the commitment to a 32-byte random
+genetics; plant genetics is the first use. A record is the commitment to a 32-byte random
 secret its holder keeps. The contract never receives genetic data, names, licence terms
 or amounts. Parentage and obligations are keyed by the origin. A licence is keyed by the
 commitment that issued it and controlled by whichever commitment is that identity's
