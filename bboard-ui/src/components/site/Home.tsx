@@ -1,31 +1,31 @@
-// The home page, in Mako's design (his site draft of 21 November 2026, ported from the 18 November
-// one): night ground, the logo's gold #A67C00, Archivo and JetBrains Mono, photos between the
+// The home page, in the site design of 21 November 2026 (ported from the 18 November
+// draft): night ground, the logo's gold #A67C00, Archivo and JetBrains Mono, photos between the
 // sections. In order: the hero with the event display drawn from the live proof code; who it is
 // for; your genetics stay with you (photo); what did you have, and when; where it matters (a
 // sideways strip, Gallery.tsx); we can't read your records; four steps; make a record or check
-// one (Mako's Records page: his two doors, with the paste box and the video beside them); share
+// one (the design's Records page: two doors, with the paste box and the video beside them); share
 // proof, not data; more than a date; where it stops, where things stand and what works where;
 // latest from the build; questions; technical readers; talk to the founders.
 //
-// How it works (/how-it-works) and About (/founders) are the other two of Mako's pages; the
+// How it works (/how-it-works) and About (/founders) are the design's other two pages; the
 // sections they share with this one are in night-parts.tsx, LiveWhere.tsx and Claims.tsx.
 //
-// Ported, not copied: his page pinned sections and moved them as you scrolled (the steps, the
-// gallery, the stacked cards). Hunter's direction (18 Nov): modern, fewer words, effects fine, no
+// Ported, not copied: the draft pinned sections and moved them as you scrolled (the steps, the
+// gallery, the stacked cards). The brief (18 Nov): modern, fewer words, effects fine, no
 // scroll-jacking, fast on a computer. So nothing here is pinned, holds the page or turns its
 // scroll sideways: the steps follow the one in the middle of the window, the gallery is a row
-// you swipe or step through with its buttons. His motion that only follows the page is kept
+// you swipe or step through with its buttons. The draft's motion that only follows the page is kept
 // (site-motion, 21 Nov): reveals that replay, the timeline filling, the photo opening, the words
 // lighting up, the code settling from random hex, the hero's intro and the page curtain
 // (Curtain.tsx), from IntersectionObservers and one passive scroll listener (night-parts.tsx). The event display draws only for
 // about a second after the proof code changes, never while off screen or hidden, at no more than
 // 1.5 device pixels per pixel, and not at all in motion with reduced motion. The moving band of
 // names has a pause button, stops off screen, and stands still with reduced motion. Photos are
-// Mako's re-exports with an 800-wide copy for phones, lazy below the first screen, with their
+// the design's re-exports with an 800-wide copy for phones, lazy below the first screen, with their
 // size set (public/media/home/CREDITS.md).
 //
 // Every sentence is the site's own, from the translations, and holds to its rules (copy-truth
-// and the promise rule): where Mako's draft said genetic data never leaves your computer, this
+// and the promise rule): where the draft said genetic data never leaves your computer, this
 // says DNA files never leave it and what you type reaches our server locked. What is live where
 // comes from the flags in config/copy.ts, never from text written in by hand.
 //
@@ -36,7 +36,7 @@
 // The proof code in the hero is a real record commitment (veilcore-records), not a stand-in
 // hash: what a visitor sees change is what the format publishes.
 //
-// Content rules (Mako's): "prior possession", never "ownership"; no customer, pilot or partner
+// Content rules: "prior possession", never "ownership"; no customer, pilot or partner
 // claims; plant AND animal genetics; the three implementations have one author and are never
 // called independent; the status stays honest and current, and the technical section says
 // plainly who holds the maintenance key (docs/maintenance-policy.md, APPROVED 7 Oct).
@@ -326,7 +326,7 @@ const ASK_ON_SITE = true;
 const EXAMPLE_CODE = '3f9a1c07b2e84d6a91c5f0e27b4d8a3c6e1f95b0d27a4c8e3b61f0a9d5c27e48';
 
 /**
- * Four steps (Mako's pinned stage, unpinned). The step in the middle of the window is the lit
+ * Four steps (the draft's pinned stage, unpinned). The step in the middle of the window is the lit
  * one, from an IntersectionObserver; choosing a step lights it too. The picture beside the
  * steps shows that step. The page scrolls on as normal.
  */
@@ -334,7 +334,7 @@ const Steps: React.FC = () => {
   const { t, sp } = useI18n();
   const [step, setStep] = useState(0);
   const list = useRef<HTMLOListElement>(null);
-  // The example code settles from random hex when its step lights (Mako's scramble). Written
+  // The example code settles from random hex when its step lights (the design's scramble). Written
   // here, not by React, so the scramble and React never both own the text.
   const code = useRef<HTMLParagraphElement>(null);
   useLayoutEffect(() => {
@@ -430,7 +430,7 @@ const Steps: React.FC = () => {
   );
 };
 
-/** The round marks on the cards of "Where it stops" (Mako's), a wider ring on each. */
+/** The round marks on the cards of "Where it stops", a wider ring on each. */
 const StackMark: React.FC<{ r: number }> = ({ r }) => (
   <svg className="k-stack-mark" viewBox="0 0 120 120" aria-hidden="true" focusable="false">
     <circle cx="60" cy="60" r="56" fill="none" stroke="currentColor" strokeOpacity=".28" strokeWidth="1" />
@@ -502,7 +502,7 @@ export const Home: React.FC = () => {
     },
   ];
 
-  // More than a date (Mako's six). Licenses and lab-signed results take his words once they have
+  // More than a date (the design's six). Licenses and lab-signed results take the design's words once they have
   // worked on veilcore.org (config/copy.ts); until then the site's earlier words, which say what
   // is built and what is not.
   const features: [string, string][] = [
@@ -645,7 +645,7 @@ export const Home: React.FC = () => {
         </section>
 
         <section className="k-screen k-drench" id="open" aria-labelledby="custody-h">
-          {/* Mako's leaf texture: the dark leaf multiplied over the gold, away from the words. */}
+          {/* The leaf texture: the dark leaf multiplied over the gold, away from the words. */}
           <img
             className="k-drench-tex"
             src="/media/home/leaf-800.webp"
@@ -687,8 +687,8 @@ export const Home: React.FC = () => {
           <Steps />
         </section>
 
-        {/* Mako's Records page, as this page's ways in: his two doors, then the paste box and the
-            video, which veilcore.org had and his draft didn't. */}
+        {/* The design's Records page, as this page's ways in: two doors, then the paste box and the
+            video, which veilcore.org had and the draft didn't. */}
         <section className="k-sec k-ways-sec" id="demo" aria-labelledby="demo-h">
           <div className="k-wrap">
             <h2 id="demo-h" className="k-h2" data-reveal="">
@@ -865,12 +865,12 @@ export const Home: React.FC = () => {
 
         <Marquee label={t('m.home.trustLabel')} list={t('m.home.trust')} />
 
-        {/* Talk to the founders (Mako's close): who to write to, and their faces. What each kind of
+        {/* Talk to the founders (the design's close): who to write to, and their faces. What each kind of
             reader should write about is on About (/founders#contact). */}
         <section className="k-screen k-drench k-close" id="contact" aria-labelledby="close-h">
           <Ambient seed="close" tone="dark" faint />
           <div className="k-wrap">
-            {/* One colour on the gold: night text throughout (Mako: small text on gold is black). */}
+            {/* One colour on the gold: night text throughout (small text on gold is black). */}
             <h2 id="close-h" className="k-giant" data-reveal="">
               {t('m.contact.title1')}
               {sp}

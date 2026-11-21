@@ -1,5 +1,5 @@
 // What works, and where: one row per feature, and for each the sites it works on. On the home
-// page folded under its title (#live); on How it works open (#where), as in Mako's design (21 Nov
+// page folded under its title (#live); on How it works open (#where), as in the site design (21 Nov
 // 2026). Every cell is chosen by the config flags in config/copy.ts (ROYALTIES_RUN_ON_MAINNET,
 // LAB_SIGNING_RUN_ON_MAINNET and the rest) and the build, never written in by hand: when a flag
 // turns on, the table says so in every language. Moved here from Home.tsx unchanged.

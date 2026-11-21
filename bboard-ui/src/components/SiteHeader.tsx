@@ -2,10 +2,10 @@
 // review, 12 Nov: there were three, the app had no way back to the site, and "Home" meant two
 // different pages). The mark always goes to veilcore.org's home page; the same links follow it
 // everywhere (How it works, About, your records, Verify, and "Make a record" or your records);
-// since Mako's site draft of 21 Nov, How it works and About are pages of their own (/how-it-works,
+// since the site design of 21 Nov, How it works and About are pages of their own (/how-it-works,
 // /founders), drawn on the night ground like the home page;
 // then the language, and on the app's pages which network this is. Since the dark home page
-// (18 Nov) the links are Mako's: Updates and Team are in the footer, and the button goes
+// (18 Nov) the links follow the design: Updates and Team are in the footer, and the button goes
 // straight to making a record (/new). On the home page the same header is drawn on the night
 // ground (home.css, "the header on the home page"); the markup is the same everywhere. Under it, the notices every page carries
 // (dating paused, a draft translation).
@@ -70,7 +70,7 @@ const menuCtaSx = {
 /** Where AskLauncher puts Ask on a phone (App.tsx AppLayout): the first item under "Menu". */
 export const ASK_SLOT_ID = 'veilcore-ask-slot';
 
-/** Mako's pages (site draft, 21 Nov 2026), inline from md up; on a phone in the menu. */
+/** The design's pages (21 Nov 2026), inline from md up; on a phone in the menu. */
 const sections = [
   { to: '/how-it-works', key: 'm.hero.how' },
   { to: '/founders', key: 'm.nav.about' },

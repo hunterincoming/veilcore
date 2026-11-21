@@ -108,3 +108,35 @@ describe('scripts/vercel-config.mjs: the camera only for this site (docs/scan-an
     expect(cfg.routes[0].headers?.['Permissions-Policy']).toBe('camera=(self), microphone=(), geolocation=()');
   });
 });
+
+describe('scripts/vercel-config.mjs: the passkey check page by its short address', () => {
+  it('serves /tools/passkey-check as the .html file, after the headers and before the files and the app', () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'vcfg-test-'));
+    fs.mkdirSync(path.join(dir, '.vercel/output'), { recursive: true });
+    const r = spawnSync(process.execPath, [SCRIPT], {
+      cwd: dir,
+      env: {
+        ...Object.fromEntries(
+          Object.entries(process.env).filter(([k]) => !/^VITE_(REAL_CHAIN|SPONSOR_URL|INDEXER|NETWORK_ID)/.test(k)),
+        ),
+        VITE_API_BASE: 'https://registry.example',
+      },
+      encoding: 'utf8',
+    });
+    expect(r.status, String(r.stderr)).toBe(0);
+    const { routes } = JSON.parse(fs.readFileSync(path.join(dir, '.vercel/output/config.json'), 'utf8')) as {
+      routes: { src?: string; dest?: string; handle?: string; headers?: Record<string, string>; continue?: boolean }[];
+    };
+    const at = routes.findIndex((x) => x.dest === '/tools/passkey-check.html');
+    expect(routes[at]).toEqual({ src: '^/tools/passkey-check$', dest: '/tools/passkey-check.html' });
+    const re = new RegExp(routes[at].src ?? '');
+    expect(re.test('/tools/passkey-check')).toBe(true);
+    // Not with a trailing slash: the page loads passkey-check.js by a relative address.
+    expect(re.test('/tools/passkey-check/')).toBe(false);
+    expect(re.test('/tools/passkey-check.html')).toBe(false);
+    // Every header route comes first, so the page keeps the site's headers.
+    expect(routes.slice(0, at).every((x) => x.continue === true && x.headers)).toBe(true);
+    expect(routes[at + 1]).toEqual({ handle: 'filesystem' });
+    expect(routes[routes.length - 1]).toEqual({ src: '/.*', dest: '/index.html' });
+  });
+});

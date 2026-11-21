@@ -72,4 +72,4 @@ is skipped when the variable isn't set.
 ## Not covered
 
 A real date stamp or a real proof on the network: those need the sponsor and a Blockfrost
-key, so they are run by hand on Hunter's Mac (docs/no-wallet-preprod-run.md).
+key, so they are run by hand on Hunter's Mac (docs/log/no-wallet-preprod-run.md).

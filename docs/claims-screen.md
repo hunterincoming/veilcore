@@ -5,18 +5,20 @@ Status: DESIGN AND BUILD, 29 October 2026. Test networks first. The claims contr
 
 ## What a person does
 
-1. **Seal the results.** A grower has a certificate of analysis. They seal it as a document
-   (`docs/document-profile.md`: the PDF's SHA-256, never the PDF) and type the numbers from it
-   into a published form (a *schema*): total THC 0.21 %, total CBD 11.4 %, and so on. The
-   numbers are sealed as a field set (SPEC 4.5): each one salted, under one root, inside the
-   same record. Nobody can see them; nobody can change them later.
-2. **Prove one fact.** Later a buyer, a regulator or a partner asks "is it under 0.3 % THC?".
-   The holder picks the number and the bound, and their browser proves on Midnight that the
-   sealed number is at most 0.3 %, without publishing the number. Or that a value is exactly
-   what they say (that publishes the value).
+1. **Seal the results.** A breeder, grower or seed company has a lab certificate. They seal it
+   as a document (`docs/document-profile.md`: the PDF's SHA-256, never the PDF) and type the
+   numbers from it into a published form (a *schema*): a seed lot's germination 94.5 %, its
+   moisture 8.2 %, or a plant's total THC 0.21 %, and so on. The numbers are sealed as a field
+   set (SPEC 4.5): each one salted, under one root, inside the same record. Nobody can see them;
+   nobody can change them later.
+2. **Prove one fact.** Later a buyer, a regulator or a partner asks "is germination at least
+   85 %?" (or "is it under 0.3 % THC?"). The holder picks the number and the bound, and their
+   browser proves on Midnight that the sealed number is at least (or at most) that bound,
+   without publishing the number. Or that a value is exactly what they say (that publishes the
+   value).
 3. **Show the proof.** The holder sends a link. The check page reads the claim from Midnight,
-   checks it names the record and the schema it says, and shows: "Total THC is at most 0.300 %
-   in record X, sealed on date D. The holder typed the numbers; no lab signed them."
+   checks it names the record and the schema it says, and shows: "Germination is at least
+   85.00 % in record X, sealed on date D. The holder typed the numbers; no lab signed them."
 
 ## Why this shape (borrowed, and why)
 
@@ -25,8 +27,8 @@ Status: DESIGN AND BUILD, 29 October 2026. Test networks first. The claims contr
   "which certificate did these come from" has one answer. SPEC 4.5 already puts `fieldSchema`
   and `fieldSetRoot` in the committed JSON; the document profile allows the two.
 - **Published schemas, not free-form numbers.** A claim names a schema id; the checker
-  recomputes the id from the published schema document (SPEC 4.5, check 3), so "slot 0 is total
-  THC in % × 1000" can't be reinterpreted. Two to start, both public in this repository and on
+  recomputes the id from the published schema document (SPEC 4.5, check 3), so "slot 0 is
+  germination in % × 100" can't be reinterpreted. Two to start, both public in this repository and on
   the site at `/schemas/`:
   - `veilcore/schema/potency/v1`: cannabinoid potency (total THC, delta-9 THC, THCA, total CBD,
     CBDA, CBG, total cannabinoids, moisture), each % × 1000.
@@ -46,7 +48,7 @@ Status: DESIGN AND BUILD, 29 October 2026. Test networks first. The claims contr
   80 seconds (block 3205450), and its check link confirmed it. Phones haven't been tried, so
   the screen and veilcore.org's "What's live where" say to use a computer.
 - **The numbers are the holder's statement.** A claim proves "the number this holder sealed is
-  at most 0.3 %", not that a lab measured it. A lab-signed version (`proveAttested`, where the
+  at least 85 %", not that a lab measured it. A lab-signed version (`proveAttested`, where the
   lab signs the record) is the strong form; it needs the lab's signing flow and comes next. The
   check page says which one it is, every time.
 - **Range claims leak.** Each bound proved is public; a series narrows the number (SPEC 4.5,

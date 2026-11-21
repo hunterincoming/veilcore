@@ -55,7 +55,7 @@ export const en = {
   'm.help.backup.t': 'Your backup',
   'm.help.backup.1q': 'Why does the site keep asking me to save a backup?',
   'm.help.backup.1a':
-    "The backup file is the only way to prove you hold your records, and the only way to get them back on a new phone or computer. VeilCore can't recover it or make another.",
+    'It asks while your records have no other way back. The backup file is one way: it brings your records back on a new phone or computer, even without VeilCore. Saving them with VeilCore, with this device’s lock, is another; then the file is up to you. VeilCore can’t recover the file or make another.',
   'm.help.backup.2q': 'Where should I keep it?',
   'm.help.backup.2a':
     'On a USB stick or in a password manager, and in a second place too. Anyone with the file can open your records and act as you. Add a password when you save it: then the file alone opens nothing. If you forget the password, nobody can open the file, us included.',

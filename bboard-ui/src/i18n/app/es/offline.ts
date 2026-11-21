@@ -22,7 +22,7 @@ export const offline = {
   'app.install.button': 'Agregar a la pantalla de inicio',
   'app.install.iosSteps': 'En iPhone o iPad: en Safari, toque Compartir y luego “Agregar a inicio”.',
   'app.install.iosEmpty':
-    'Primero, con señal, deje que se envíe lo que espera en Safari. El ícono de la pantalla de inicio guarda sus datos aparte, así que se abre vacío; sus registros siguen a salvo en Safari. Abra el ícono con señal y recupérelos allí con Face ID o su archivo de copia de seguridad. Desde entonces, use el ícono: los registros creados en Safari no aparecen allí.',
+    'Primero, con señal, deje que se envíe lo que espera en Safari. El ícono de la pantalla de inicio guarda sus datos aparte, así que se abre vacío; sus registros siguen a salvo en Safari. Abra el ícono con señal y recupérelos allí con el bloqueo de este dispositivo o su archivo de copia de seguridad. Desde entonces, use el ícono: los registros creados en Safari no aparecen allí.',
   'app.install.iosKeep':
     'Safari puede borrar un sitio que no abrió en 7 días. El ícono de la pantalla de inicio se conserva. Conserve igual su copia de seguridad.',
   'app.install.ready':

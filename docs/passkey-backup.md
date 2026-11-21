@@ -19,18 +19,26 @@ phones. The founder's word for it was "hassle".
 
 ## What a person sees
 
-1. They save their first record. Then, once, **Keep your records safe**: one button, labelled for
-   the device (Use Face ID, Touch ID, your screen lock, Windows Hello), and "Other ways" for a file.
-   On a computer that can't unlock a passkey itself, the sheet doesn't open by itself, and says
-   to choose "Use a phone" in the browser's window.
-2. Face ID twice: once to make the passkey, once to check it opens the records (below, "When it
-   counts"). Then **Saved.** New records save by themselves from then on.
+1. They save their first record. The flow's last step is then the one prompt: **This device's
+   lock** (with one line under it: "The passcode, face or finger you unlock your phone with"; a computer's
+   words on a computer) beside the backup file. Either one is enough to finish; with neither,
+   Finish stays off. The button is a passkey. It never says "Face ID": every passkey prompt also
+   takes the phone's passcode, and the button shouldn't push biometrics (the simplify-unlock
+   plan, phase 1, 21 Nov 2026). Outside a flow (a person who left it early), **Keep your records
+   safe** opens once by itself, with the same button and "Other ways" for a file. On a computer
+   that can't unlock a passkey itself, the sheet doesn't open by itself, and says to choose
+   "Use a phone" in the browser's window.
+2. The device asks twice: once to make the passkey, once to check it opens the records (below,
+   "When it counts"). Then **Saved with VeilCore.** New records save by themselves from then on,
+   and a flow that seals records skips the file step once the copy counts and holds them
+   (`components/flow/way-back.ts`: saved and read back first; if that fails, the file step comes
+   back).
 3. Home says nothing about backups while all is well. When something is wrong it says so in one
    line ("Not saved to your account yet. Fix it"), never on each record.
 4. **Settings** shows where the records are saved, the ways in, the devices and when each last
    saved, "Stop saving with VeilCore", and **Download a copy**: the backup file, which works as
    before and without VeilCore.
-5. On another device, **Get my records back** → Face ID (or "Use a phone" on a computer) → the
+5. On another device, **Get my records back** → this device's lock (or "Use a phone" on a computer) → the
    copy's date, then "Bring them here" → **Welcome back. N records are here.** Documents kept on
    the other device only are named there ("2 documents are kept only on your iPhone").
 
@@ -237,18 +245,20 @@ or Google account, deletes the passkey, or loses the one device a passkey that d
 - **The sheet** says, in the person's language: "VeilCore recovery sheet. Keep this with your herd
   book or other important papers. Don't photograph it or email it.", the code, the date, the tag of
   the passkey that opens the same records, how to get the records back ("go to veilcore.org, tap
-  'Get my records back', choose 'Use my recovery sheet', type the code"), and one line against
+  'Get my records back', then 'Other ways', choose 'Use my recovery sheet', type the code"), and one line against
   phishing: VeilCore asks for this code only when restoring on a new device at veilcore.org; never
   type it anywhere else or tell it to anyone, VeilCore included. Printing shows the sheet alone
   (a print-only copy, everything else hidden); "Save as PDF" is the browser's own.
-- **Where it is offered**: on the "Saved." screen right after Face ID is set up (recommended where
-  the passkey syncs; the way to count at all where it doesn't); in Settings (make, make a new one,
-  check mine); on Home, one quiet line on day 7 and on day 30 after setting up while no sheet is
-  checked ("Later" dismisses that day's line), never per record; and Home's warning line for a
-  passkey that stays on its device.
-- **A new device with the sheet**: "Use my recovery sheet" on the restore page. The copy's date is
+- **Where it is offered**: right after setting up only where it is the way to count at all (a
+  passkey that stays on its device); in Settings (make, make a new one, check mine); on Home, one
+  quiet line once the person holds three records while no sheet is checked ("Later" dismisses it
+  for good), never per record and never right after a seal; and Home's warning line for a passkey
+  that stays on its device. Where the passkey syncs it is no longer pushed on the "Saved." screen:
+  that stacked a third prompt on the first seal (reviews A and B, 21 Nov 2026).
+- **A new device with the sheet**: "Use my recovery sheet" on the restore page, under "Other
+  ways" with one line saying what a recovery sheet is (only people who made one can use it). The copy's date is
   shown before anything changes, as with Face ID. This device then saves with the keys the sheet
-  opened, and is offered "Use Face ID" at once: a passkey added to the **same** records as another
+  opened, and is offered this device's lock at once: a passkey added to the **same** records as another
   way in (the AK the sheet opened is held in memory for ten minutes for this, then wiped; after
   that, the code is asked again). Never a second copy.
 - **New-8, finished**: when this device's passkey way in is gone at the registry and the copy the

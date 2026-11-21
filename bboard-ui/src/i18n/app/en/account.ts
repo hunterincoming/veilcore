@@ -6,11 +6,10 @@
 
 export const account = {
   // How this device opens a passkey, on its button.
-  'app.account.use.faceId': 'Use Face ID',
-  'app.account.use.touchId': 'Use Touch ID',
-  'app.account.use.screenLock': 'Use your screen lock',
-  'app.account.use.windowsHello': 'Use Windows Hello',
+  'app.account.use.deviceLock': 'This device’s lock',
   'app.account.use.passkey': 'Use a passkey',
+  'app.account.deviceLock.hint': 'The passcode, face or finger you unlock your phone with.',
+  'app.account.deviceLock.hintComputer': 'The password, PIN, face or finger you unlock your computer with.',
 
   // The sheet after the first record is saved.
   'app.account.sheet.title': 'Keep your records safe',
@@ -70,7 +69,7 @@ export const account = {
   'app.account.restore.lead': 'Open your records on this device.',
   'app.account.restore.sameAccount': 'Same Apple or Google account as your other phone? This just works.',
   'app.account.restore.usePhone':
-    'On a computer without Face ID? Choose “Use a phone” in the window that opens, then scan the code with your phone.',
+    'On a computer that can’t unlock a passkey by itself? Choose “Use a phone” in the window that opens, then scan the code with your phone.',
   'app.account.restore.oldName': 'Made your passkey on {host} before? Try it here',
   'app.account.restore.otherWays': 'Other ways',
   'app.account.restore.found': 'Found your records saved with VeilCore on {date}. Bring them to this device?',
@@ -131,10 +130,7 @@ export const account = {
   'app.account.sheet.passkeyCheck':
     'If this keeps happening, <link>test this browser’s passkey support</link>. It shows what this browser and device can do, and sends nothing.',
   // The way in, as a fragment after “with” (Home's first card, the live test on Windows).
-  'app.account.how.faceId': 'Face ID',
-  'app.account.how.touchId': 'Touch ID',
-  'app.account.how.screenLock': 'your screen lock',
-  'app.account.how.windowsHello': 'Windows Hello',
+  'app.account.how.deviceLock': 'this device’s lock',
   'app.account.how.passkey': 'a passkey',
   'app.account.line.off':
     '<b>Saving with VeilCore is off.</b> Your saved copy was deleted, perhaps with “Stop saving with VeilCore” on another device.',

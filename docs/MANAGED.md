@@ -211,7 +211,7 @@ Schedule A. Pools and exit answers are confirmed by their fingerprint (below) as
 3. They send you the pool file. `import-pool --partner <id> --file <pool.json>`. It asks for the
    fingerprint: **the partner reads it out to you from their screen**, by phone or in person; you type it.
    It is never shown on your side, so it cannot be copied instead of heard. A mismatch is refused.
-4. Sign the agreement (docs/legal/managed-service-agreement-DRAFT.md, once a lawyer has reviewed it).
+4. Sign the agreement (prepared privately and reviewed by counsel; see `docs/legal/README.md`).
 
 ### Day to day
 

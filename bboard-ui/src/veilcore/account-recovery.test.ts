@@ -270,28 +270,29 @@ describe('New-8: "Save again" decides from the sealed list the registry returns 
 });
 
 describe('reminders and the 90-day re-verify', () => {
-  it('day 7 and day 30 without a checked sheet: one quiet line each, until dismissed; none once a sheet is checked', async () => {
+  it('not right after setting up: once, after the third record, until dismissed; never with a checked sheet', async () => {
     const m = await load();
     withRecords(m, ['R-1']);
     await m.ac.setUpAccount();
-    const start = Date.now();
-    vi.useFakeTimers({ toFake: ['Date'] });
-    vi.setSystemTime(start + 3 * 86_400_000);
+    // One prompt after a seal: nothing asks for the sheet with one or two records.
     expect(saved(m).sheetReminder).toBeUndefined();
-    vi.setSystemTime(start + 8 * 86_400_000);
-    expect(saved(m).sheetReminder).toBe(7);
-    m.ac.dismissSheetReminder(7);
+    m.rk.ensureKeys('R-2');
     expect(saved(m).sheetReminder).toBeUndefined();
-    vi.setSystemTime(start + 31 * 86_400_000);
-    expect(saved(m).sheetReminder).toBe(30);
-    m.ac.dismissSheetReminder(30);
+    m.rk.ensureKeys('R-3');
+    expect(saved(m).sheetReminder).toBe(true);
+    // Time alone doesn't bring it back after "Later", and neither do more records.
+    m.ac.dismissSheetReminder();
+    m.rk.ensureKeys('R-4');
     expect(saved(m).sheetReminder).toBeUndefined();
-    vi.useRealTimers();
+    // A "Later" on the day 30 line this replaced counts as dismissed; one on day 7 only doesn't.
+    store.set('veilcore.account.sheet-reminder.v1', JSON.stringify([7, 30]));
+    expect(saved(m).sheetReminder).toBeUndefined();
+    store.set('veilcore.account.sheet-reminder.v1', JSON.stringify([7]));
+    expect(saved(m).sheetReminder).toBe(true);
+    store.delete('veilcore.account.sheet-reminder.v1');
+    expect(saved(m).sheetReminder).toBe(true);
     const sheet = await m.ac.makeRecoverySheet();
     await m.ac.confirmRecoverySheet(sheet.code, sheet.slotId);
-    store.delete('veilcore.account.sheet-reminder.v1');
-    vi.useFakeTimers({ toFake: ['Date'] });
-    vi.setSystemTime(start + 31 * 86_400_000);
     expect(saved(m).sheetReminder).toBeUndefined();
   });
 

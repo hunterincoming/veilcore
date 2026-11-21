@@ -23,7 +23,7 @@ export const offline = {
   'app.install.button': 'Ajouter à l’écran d’accueil',
   'app.install.iosSteps': 'Sur iPhone ou iPad : dans Safari, touchez Partager, puis « Sur l’écran d’accueil ».',
   'app.install.iosEmpty':
-    'D’abord, avec du réseau, laissez partir ce qui attend dans Safari. L’icône de l’écran d’accueil a ses propres données : elle s’ouvre donc vide ; vos enregistrements restent en sécurité dans Safari. Ouvrez l’icône avec du réseau et récupérez-les avec Face ID ou votre fichier de sauvegarde. Ensuite, utilisez l’icône : les enregistrements créés dans Safari n’y apparaissent pas.',
+    'D’abord, avec du réseau, laissez partir ce qui attend dans Safari. L’icône de l’écran d’accueil a ses propres données : elle s’ouvre donc vide ; vos enregistrements restent en sécurité dans Safari. Ouvrez l’icône avec du réseau et récupérez-les avec le verrouillage de cet appareil ou votre fichier de sauvegarde. Ensuite, utilisez l’icône : les enregistrements créés dans Safari n’y apparaissent pas.',
   'app.install.iosKeep':
     'Safari peut effacer un site que vous n’avez pas ouvert depuis 7 jours. L’icône de l’écran d’accueil est conservée. Gardez quand même votre sauvegarde.',
   'app.install.ready':

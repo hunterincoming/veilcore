@@ -49,7 +49,7 @@ export const de: Strings = {
   'm.help.backup.t': 'Ihre Sicherungskopie',
   'm.help.backup.1q': 'Warum fordert die Website mich immer wieder auf, eine Sicherungskopie zu speichern?',
   'm.help.backup.1a':
-    'Die Sicherungskopie ist der einzige Weg zu belegen, dass Sie Ihre Datensätze halten, und der einzige Weg, sie auf ein neues Handy oder einen neuen Computer zu holen. VeilCore kann sie nicht wiederherstellen und keine neue erstellen.',
+    'Sie wird erfragt, solange Ihre Datensätze keinen anderen Weg zurück haben. Die Sicherungsdatei ist ein Weg: Sie holt Ihre Datensätze auf einem neuen Handy oder Computer zurück, sogar ohne VeilCore. Sie bei VeilCore zu speichern, mit der Sperre dieses Geräts, ist ein anderer; dann ist die Datei Ihre Wahl. VeilCore kann die Datei weder wiederherstellen noch neu erstellen.',
   'm.help.backup.2q': 'Wo bewahre ich sie auf?',
   'm.help.backup.2a':
     'Auf einem USB-Stick oder in einem Passwortmanager, und zusätzlich an einem zweiten Ort. Wer die Datei hat, kann Ihre Datensätze öffnen und in Ihrem Namen handeln. Geben Sie beim Speichern ein Passwort an: Dann öffnet die Datei allein nichts. Wenn Sie das Passwort vergessen, kann niemand die Datei öffnen, auch wir nicht.',

@@ -38,7 +38,7 @@ import {
 } from '../../veilcore/account-copy';
 import { PASSKEY_WORDS } from '../../veilcore/passkey-backup';
 import { oldPasskeysHaveOtherName } from '../../veilcore/passkey-backup';
-import { deviceWords, useRestoreUnlockWord } from './KeepSafe';
+import { deviceWords, useDeviceLockHint, useRestoreUnlockWord } from './KeepSafe';
 import type { AppKey } from '../../i18n/app/en';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
@@ -94,6 +94,7 @@ export const RestorePage: React.FC = () => {
   // says "Use a passkey" and the browser offers "Use a phone" (first-time-user pass on step 2).
   const appleOrAndroid = /iPhone|iPad|iPod|Macintosh|Mac OS X|Android/.test(navigator.userAgent);
   const word = useRestoreUnlockWord();
+  const lockHint = useDeviceLockHint();
   const find = (hostName = false) => {
     setAsking(true);
     setProblem(undefined);
@@ -364,6 +365,11 @@ export const RestorePage: React.FC = () => {
                       {t(`app.account.use.${word}` as AppKey)}
                     </Button>
                   )}
+                  {!found && word === 'deviceLock' && (
+                    <Typography variant="body2" color="text.secondary" data-restore-lock-hint="">
+                      {t(lockHint)}
+                    </Typography>
+                  )}
                   {appleOrAndroid && (
                     <Typography variant="body2" color="text.secondary">
                       {t('app.account.restore.sameAccount')}
@@ -372,9 +378,51 @@ export const RestorePage: React.FC = () => {
                   <Typography variant="body2" color="text.secondary" data-restore-use-phone="">
                     {t('app.account.restore.usePhone')}
                   </Typography>
-                  {/* The printed recovery sheet (step 3): named as the sheet itself names it. */}
-                  {!found && (
+                  {oldPasskeysHaveOtherName() && !found && (
+                    <Button
+                      color="inherit"
+                      onClick={() => find(true)}
+                      disabled={asking}
+                      sx={{ alignSelf: 'flex-start', minHeight: 44, px: 0 }}
+                    >
+                      {t('app.account.restore.oldName', { host: location.hostname })}
+                    </Button>
+                  )}
+                </Stack>
+              )}
+              {account && problem && (
+                <Alert severity="warning" variant="outlined">
+                  {backupMessageWords(problem, tr)}
+                  {/* A passkey from before the pin, made on www, is found only there (review New-10). */}
+                  {problem === PASSKEY_WORDS.noCopy && location.hostname === 'veilcore.org' && (
+                    <Box sx={{ mt: 0.5 }}>
+                      <a href="https://www.veilcore.org/restore">{t('app.account.restore.tryWww')}</a>
+                    </Box>
+                  )}
+                </Alert>
+              )}
+              {account && (
+                <Button
+                  color="inherit"
+                  onClick={() => setOthers(!others)}
+                  aria-expanded={others}
+                  endIcon={others ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                  sx={{ minHeight: 44, px: 0, alignSelf: 'flex-start' }}
+                  data-restore-other-ways=""
+                >
+                  {t('app.account.restore.otherWays')}
+                </Button>
+              )}
+              <Collapse in={!account || others || !!waiting || (account && !!problem)}>
+                <Stack spacing={2.5}>
+                  {/* The printed recovery sheet (step 3): named as the sheet itself names it. Under
+                      "Other ways", not beside this device's lock: only people who made one can use
+                      it, and one line says what it is (the simplify-unlock plan, phase 1). */}
+                  {account && !found && (
                     <Box data-restore-sheet="">
+                      <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }} data-restore-sheet-what="">
+                        {t('app.recovery.restore.what')}
+                      </Typography>
                       <Button
                         variant="outlined"
                         onClick={() => setSheetOpen(!sheetOpen)}
@@ -421,43 +469,6 @@ export const RestorePage: React.FC = () => {
                       </Collapse>
                     </Box>
                   )}
-                  {oldPasskeysHaveOtherName() && !found && (
-                    <Button
-                      color="inherit"
-                      onClick={() => find(true)}
-                      disabled={asking}
-                      sx={{ alignSelf: 'flex-start', minHeight: 44, px: 0 }}
-                    >
-                      {t('app.account.restore.oldName', { host: location.hostname })}
-                    </Button>
-                  )}
-                </Stack>
-              )}
-              {account && problem && (
-                <Alert severity="warning" variant="outlined">
-                  {backupMessageWords(problem, tr)}
-                  {/* A passkey from before the pin, made on www, is found only there (review New-10). */}
-                  {problem === PASSKEY_WORDS.noCopy && location.hostname === 'veilcore.org' && (
-                    <Box sx={{ mt: 0.5 }}>
-                      <a href="https://www.veilcore.org/restore">{t('app.account.restore.tryWww')}</a>
-                    </Box>
-                  )}
-                </Alert>
-              )}
-              {account && (
-                <Button
-                  color="inherit"
-                  onClick={() => setOthers(!others)}
-                  aria-expanded={others}
-                  endIcon={others ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-                  sx={{ minHeight: 44, px: 0, alignSelf: 'flex-start' }}
-                  data-restore-other-ways=""
-                >
-                  {t('app.account.restore.otherWays')}
-                </Button>
-              )}
-              <Collapse in={!account || others || !!waiting}>
-                <Stack spacing={2.5}>
                   <Typography variant="body2" color="text.secondary">
                     {t('app.backup.lookIn')}
                   </Typography>
