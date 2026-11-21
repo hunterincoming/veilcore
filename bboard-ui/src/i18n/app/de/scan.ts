@@ -57,9 +57,15 @@ export const scan = {
   'app.labels.copies': 'Etiketten pro Datensatz',
   'app.labels.count.one': '{count} Etikett',
   'app.labels.count.other': '{count} Etiketten',
-  'app.labels.print': 'Drucken oder als PDF speichern',
+  'app.labels.print': 'Drucken',
   'app.labels.printHelp':
-    'Das Druckfenster Ihres Browsers öffnet sich. Wählen Sie 100 % oder „Tatsächliche Größe“ und keine Ränder, damit die Etiketten passen, oder „Als PDF speichern“, um eine Datei zu behalten. Drucken Sie zuerst einen Probebogen auf Normalpapier.',
+    'Das Druckfenster Ihres Browsers öffnet sich. Wählen Sie 100 % oder „Tatsächliche Größe“ und keine Ränder, damit die Etiketten passen. Drucken Sie zuerst einen Probebogen auf Normalpapier.',
+  'app.labels.download': 'PDF herunterladen',
+  'app.labels.downloadHelp':
+    'Speichert die Etiketten als PDF in der tatsächlichen Größe des Bogens, erstellt auf diesem Gerät. Drucken Sie es mit 100 % oder „Tatsächliche Größe“.',
+  'app.labels.downloadOpen': 'PDF öffnen',
+  'app.labels.downloadFailed':
+    'Das PDF konnte auf diesem Gerät nicht erstellt werden. Nutzen Sie stattdessen „Drucken“.',
   'app.labels.preview': 'So werden die Etiketten gedruckt',
   'app.labels.pageOf': 'Seite {n} von {of}',
   'app.labels.scanToCheck': 'Zum Prüfen scannen',

@@ -149,6 +149,86 @@ export const fitName = (name: string, max: number): string => {
   return chars.length <= max ? chars.join('') : `${chars.slice(0, Math.max(1, max - 1)).join('')}…`;
 };
 
+/** The QR code's settings, the same on screen, in print and in the downloaded PDF (label-pdf.ts). */
+export const QR_LEVEL = 'M';
+/** Modules of white round the code, inside the label's own edge. */
+export const QR_MARGIN = 2;
+
+export const LABEL_FONTS = {
+  mono: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
+  sans: 'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif',
+} as const;
+
+/** One line of a label's text: its baseline at (x, y), in a page's millimetres, at most `room` wide. */
+export type LabelLine = {
+  readonly text: string;
+  readonly size: number;
+  readonly font: keyof typeof LABEL_FONTS;
+  readonly weight: 400 | 700;
+  readonly x: number;
+  readonly y: number;
+  readonly room: number;
+};
+
+/**
+ * Where everything on one label goes, for the label whose corner is at (x, y): the QR code (a
+ * square, its margin inside) and the lines of text beside it, centred in the label's height. The
+ * screen and print (LabelSheet.tsx) and the downloaded PDF (label-pdf.ts) both draw from this.
+ */
+export const labelParts = (
+  r: Labelled,
+  showName: boolean,
+  scanToCheck: string,
+  x: number,
+  y: number,
+  l: Layout,
+): {
+  qr: { x: number; y: number; size: number; value: string };
+  text: { x: number; w: number };
+  lines: LabelLine[];
+} => {
+  const { w, h } = l.label;
+  // The quiet zone round the code: two modules inside it (QR_MARGIN) and the label's edge.
+  const pad = Math.min(2.5, h * 0.08);
+  const qr = h - 2 * pad;
+  const tx = x + pad + qr + 2;
+  const room = w - (tx - x) - pad;
+  // Type sized to the label's height: about 3 mm on a 1 inch label, larger on L7160.
+  const big = Math.min(4.2, h * 0.13);
+  const small = big * 0.8;
+  const name =
+    showName && r.strainName?.trim() ? fitName(r.strainName, Math.max(4, Math.floor(room / (small * 0.55)))) : '';
+  const raw: Omit<LabelLine, 'x' | 'y' | 'room'>[] = [
+    { text: shortId(r.id), size: big, font: 'mono', weight: 700 },
+    { text: scanToCheck, size: small, font: 'sans', weight: 400 },
+    ...(name ? [{ text: name, size: small, font: 'sans' as const, weight: 700 as const }] : []),
+  ];
+  const total = raw.reduce((n, li) => n + li.size * 1.35, 0);
+  let cy = y + (h - total) / 2;
+  const lines = raw.map((li) => {
+    cy += li.size * 1.35;
+    return { ...li, x: tx, y: cy - li.size * 0.3, room };
+  });
+  return {
+    qr: { x: x + pad, y: y + pad, size: qr, value: labelLink(r, showName) },
+    text: { x: tx, w: room },
+    lines,
+  };
+};
+
+const FILE_SIZE: Record<LabelSize, string> = { thermal: '2x1in', letter: 'letter', a4: 'a4' };
+
+/**
+ * The downloaded file's name: `veilcore-labels-<record ID>-<paper>.pdf` for one record, the
+ * day's date in its place for several (the date on this device, so it matches the person's day).
+ */
+export const labelFileName = (ids: readonly string[], size: LabelSize, now: Date = new Date()): string => {
+  const pad = (n: number) => String(n).padStart(2, '0');
+  const day = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+  const what = ids.length === 1 && /^[A-Za-z0-9-]{1,64}$/.test(ids[0]) ? ids[0] : day;
+  return `veilcore-labels-${what}-${FILE_SIZE[size]}.pdf`;
+};
+
 /** The labels page (LabelsPage.tsx). */
 export const LABELS_PATH = '/records/labels';
 /**

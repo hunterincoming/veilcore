@@ -7,7 +7,8 @@
 //     animal's ID box, and Enter submits nothing;
 //   - a saved record's "Print a QR label": by default the label shows the short ID and "Scan to
 //     check", never the name; the name only when chosen; the print is the chosen paper, one page
-//     per sheet (E2E_SHOTS saves the PDF and screenshots).
+//     per sheet; "Download PDF" saves the sheet as a PDF of that paper whose QR code reads back as
+//     the check link (E2E_SHOTS saves the PDFs and screenshots).
 // SPDX-License-Identifier: Apache-2.0
 import { randomBytes } from 'node:crypto';
 import fs from 'node:fs';
@@ -26,6 +27,7 @@ import {
   watch,
 } from './helpers';
 import { fakeCameraArgs, qrVideo } from './fake-camera';
+import { readLabelPdfCode } from './label-pdf-read';
 
 test.skip(REAL_REGISTRY, 'this uses the stand-in registry');
 
@@ -250,6 +252,26 @@ test('a saved record prints QR labels: the short ID by default, the name only wh
     await page.emulateMedia({ media: 'screen' });
   }
 
+  // Download PDF: one tap saves a PDF of the sheet at US Letter size, named for the record, and
+  // its QR code reads back as the label's check link (the record ID and proof code, no name).
+  const saving = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Download PDF' }).click();
+  const saved = await saving;
+  expect(saved.suggestedFilename()).toBe(`veilcore-labels-${id}-letter.pdf`);
+  const file = fs.readFileSync(await saved.path());
+  expect(file.length).toBeGreaterThan(1000);
+  expect(file.subarray(0, 8).toString('latin1')).toBe('%PDF-1.4');
+  expect(file.toString('latin1')).toMatch(/\/MediaBox \[0 0 612 792\]/);
+  // The site's own address in front (this test's server here, veilcore.org when deployed).
+  expect((await readLabelPdfCode(file))?.replace(/^https?:\/\/[^/]+/, '')).toBe(
+    `/verify/${id}?fp=${String(held.records[0].recordFingerprint)}`,
+  );
+  if (SHOTS) {
+    fs.copyFileSync(await saved.path(), path.join(SHOTS, saved.suggestedFilename()));
+    await page.locator('[data-labels-download]').scrollIntoViewIfNeeded();
+    await page.screenshot({ path: path.join(SHOTS, 'labels-buttons-390.png') });
+  }
+
   // The name, only when chosen; three copies, after five labels already used.
   await page.getByLabel('The record’s name too').check();
   await expect(page.locator('[data-labels-note="name"]')).toContainText('anyone who scans it sees the name');
@@ -291,6 +313,8 @@ test('a saved record prints QR labels: the short ID by default, the name only wh
     await page.screenshot({ path: path.join(SHOTS, 'labels-390-name.png'), fullPage: true });
     await page.setViewportSize({ width: 1366, height: 900 });
     await page.screenshot({ path: path.join(SHOTS, 'labels-1366.png'), fullPage: true });
+    await page.locator('[data-labels-download]').scrollIntoViewIfNeeded();
+    await page.screenshot({ path: path.join(SHOTS, 'labels-buttons-1366.png') });
     await page.goto(`/record/${id}?lang=en`);
     await page.getByRole('button', { name: 'Print a QR label' }).waitFor();
     await page.screenshot({ path: path.join(SHOTS, 'record-1366.png') });

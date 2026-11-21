@@ -60,9 +60,14 @@ export const scan = {
   'app.labels.copies': 'Étiquettes par enregistrement',
   'app.labels.count.one': '{count} étiquette',
   'app.labels.count.other': '{count} étiquettes',
-  'app.labels.print': 'Imprimer ou enregistrer en PDF',
+  'app.labels.print': 'Imprimer',
   'app.labels.printHelp':
-    'La fenêtre d’impression du navigateur s’ouvre. Choisissez 100 % ou « Taille réelle » et aucune marge pour que les étiquettes tombent juste, ou « Enregistrer au format PDF » pour garder un fichier. Imprimez d’abord une planche d’essai sur papier ordinaire.',
+    'La fenêtre d’impression du navigateur s’ouvre. Choisissez 100 % ou « Taille réelle » et aucune marge pour que les étiquettes tombent juste. Imprimez d’abord une planche d’essai sur papier ordinaire.',
+  'app.labels.download': 'Télécharger le PDF',
+  'app.labels.downloadHelp':
+    'Enregistre les étiquettes dans un PDF à la taille réelle de la planche, fait sur cet appareil. Imprimez-le à 100 % ou en « Taille réelle ».',
+  'app.labels.downloadOpen': 'Ouvrir le PDF',
+  'app.labels.downloadFailed': 'Le PDF n’a pas pu être fait sur cet appareil. Utilisez « Imprimer ».',
   'app.labels.preview': 'Aperçu de l’impression',
   'app.labels.pageOf': 'Page {n} sur {of}',
   'app.labels.scanToCheck': 'Scanner pour vérifier',

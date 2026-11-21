@@ -82,7 +82,22 @@ Sizes:
 
 Margins are worked out from the paper and the pitch (`label-layouts.ts`). Labels already used on
 a sheet can be skipped, and each record can have several copies. The page draws the labels on the
-device and the browser's print window prints them or saves a PDF.
+device. Two buttons:
+
+- **Download PDF** saves the sheet as a PDF in one tap (`label-pdf.ts`, `label-download.tsx`),
+  so nobody has to find "Save as PDF" in a phone's print window. Each PDF page is the paper at
+  its true size (2 × 1 in, US Letter or A4), with every label where the screen puts it
+  (`labelParts`, shared with the screen). The QR codes are vector (one filled rectangle per run
+  of dark modules, from qrcode.react with the screen's settings), so they print sharp at any
+  size. The words beside them are a 600 dpi greyscale picture drawn by the browser in the
+  screen's fonts: a PDF's built-in fonts have no Japanese or other scripts a name may use, and
+  embedding a font would make every file large. The PDF is written by hand (PDF 1.4, compressed
+  with `fflate`, already in the site); no PDF library was added. The file is
+  `veilcore-labels-<record ID>-<paper>.pdf` for one record, the device's date in place of the ID
+  for several. It is saved from a `blob:` address with a `download` link (Safari on iPhone and
+  iPad 13 and later, Chrome, Firefox, Edge); a browser without that opens it in a new tab, and
+  if that is blocked the page shows an "Open the PDF" link. Not yet tried on a real iPhone.
+- **Print** opens the browser's print window (100% or "Actual size", no margins).
 
 What a label carries:
 
@@ -100,4 +115,8 @@ What a label carries:
 - `src/scan/scan.test.ts`, `src/components/labels/labels.test.ts`, `src/vercel-config.test.ts`.
 - `e2e/scan-labels.spec.ts`: a fake camera (`e2e/fake-camera.ts` draws the QR code into a Y4M
   video at test time) read by the bundled reader on `/verify` and in the paste box; no camera; a
-  stick reader's burst; printing labels as a PDF of the chosen paper.
+  stick reader's burst; printing labels as a PDF of the chosen paper; Download PDF saves a PDF of
+  that paper, named for the record, whose QR code reads back as the check link
+  (`e2e/label-pdf-read.ts`).
+- `src/components/labels/label-pdf.test.ts`: page sizes, one QR code per label in its place, the
+  words drawn once per record, and every code read back with zxing-wasm.

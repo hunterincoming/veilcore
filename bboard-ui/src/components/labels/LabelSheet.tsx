@@ -5,13 +5,11 @@
 
 import React from 'react';
 import { QRCodeSVG } from 'qrcode.react';
-import { fitName, labelLink, shortId, slotAt, type Labelled, type Layout } from './label-layouts';
+import { LABEL_FONTS, QR_LEVEL, QR_MARGIN, labelParts, slotAt, type Labelled, type Layout } from './label-layouts';
 
 const INK = '#000';
-const MONO = 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace';
-const SANS = 'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif';
 
-/** One label, drawn at (x, y) in a page's millimetres. */
+/** One label, drawn at (x, y) in a page's millimetres (label-layouts.ts labelParts). */
 const Label: React.FC<{ r: Labelled; showName: boolean; scanToCheck: string; x: number; y: number; l: Layout }> = ({
   r,
   showName,
@@ -20,54 +18,34 @@ const Label: React.FC<{ r: Labelled; showName: boolean; scanToCheck: string; x: 
   y,
   l,
 }) => {
-  const { w, h } = l.label;
-  // The quiet zone round the code: two modules inside it (marginSize) and the label's edge.
-  const pad = Math.min(2.5, h * 0.08);
-  const qr = h - 2 * pad;
-  const tx = x + pad + qr + 2;
-  const room = w - (tx - x) - pad;
-  // Type sized to the label's height: about 3 mm on a 1 inch label, larger on L7160.
-  const big = Math.min(4.2, h * 0.13);
-  const small = big * 0.8;
-  const name =
-    showName && r.strainName?.trim() ? fitName(r.strainName, Math.max(4, Math.floor(room / (small * 0.55)))) : '';
-  const lines = [
-    { text: shortId(r.id), size: big, font: MONO, weight: 700 },
-    { text: scanToCheck, size: small, font: SANS, weight: 400 },
-    ...(name ? [{ text: name, size: small, font: SANS, weight: 700 }] : []),
-  ];
-  const total = lines.reduce((n, li) => n + li.size * 1.35, 0);
-  let cy = y + (h - total) / 2;
+  const { qr, lines } = labelParts(r, showName, scanToCheck, x, y, l);
   return (
     <g data-label={r.id}>
       <QRCodeSVG
-        value={labelLink(r, showName)}
-        x={x + pad}
-        y={y + pad}
-        size={qr}
-        level="M"
-        marginSize={2}
+        value={qr.value}
+        x={qr.x}
+        y={qr.y}
+        size={qr.size}
+        level={QR_LEVEL}
+        marginSize={QR_MARGIN}
         bgColor="#fff"
         fgColor={INK}
       />
-      {lines.map((li, i) => {
-        cy += li.size * 1.35;
-        return (
-          <text
-            key={i}
-            x={tx}
-            y={cy - li.size * 0.3}
-            fontSize={li.size}
-            fontFamily={li.font}
-            fontWeight={li.weight}
-            fill={INK}
-            textLength={li.text.length * li.size * 0.6 > room ? room : undefined}
-            lengthAdjust="spacingAndGlyphs"
-          >
-            {li.text}
-          </text>
-        );
-      })}
+      {lines.map((li, i) => (
+        <text
+          key={i}
+          x={li.x}
+          y={li.y}
+          fontSize={li.size}
+          fontFamily={LABEL_FONTS[li.font]}
+          fontWeight={li.weight}
+          fill={INK}
+          textLength={li.text.length * li.size * 0.6 > li.room ? li.room : undefined}
+          lengthAdjust="spacingAndGlyphs"
+        >
+          {li.text}
+        </text>
+      ))}
     </g>
   );
 };
