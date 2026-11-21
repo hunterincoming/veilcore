@@ -18,14 +18,14 @@
     "restore": {
       "screen": "/restore, get your records back",
       "primary": 1,
-      "buttons": 4,
+      "buttons": 3,
       "moreDepth": 2,
       "words": {
         "en": 60,
-        "de": 59,
-        "es": 67,
-        "fr": 64,
-        "ja": 66
+        "de": 60,
+        "es": 70,
+        "fr": 66,
+        "ja": 65
       }
     },
     "seal.start": {
@@ -86,11 +86,11 @@
       "buttons": 12,
       "moreDepth": 0,
       "words": {
-        "en": 248,
-        "de": 256,
-        "es": 270,
-        "fr": 248,
-        "ja": 259
+        "en": 249,
+        "de": 258,
+        "es": 273,
+        "fr": 251,
+        "ja": 260
       }
     },
     "keepSafe": {

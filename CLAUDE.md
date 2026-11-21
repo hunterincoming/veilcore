@@ -75,6 +75,8 @@ VeilCore is voluntary: a confused person just leaves. How the budget works is in
 - **New features start hidden**, under More, Technical details or a role, and earn a place on a
   default screen. Every page has a tier (core, role or advanced) in
   `bboard-ui/src/config/route-tiers.ts`; a page without one fails the tests.
+- **Anything kept out of the default view still needs an obvious way in** (a visible menu item or
+  link), never only a footer link.
 - **Per-screen limits live in `bboard-ui/complexity-budget.json`** (primary buttons, things to
   tap, words, levels of More, screens to a first sealed record), checked on a phone in all five
   languages. A number only goes down. Raising one needs Hunter's written OK in the PR, and
