@@ -125,8 +125,10 @@ export const ROYALTIES_RUN_ON_MAINNET = true;
  * first run was published at block 3514926. "Live" covers only what ran there: a lab signed a
  * result, the holder checked it, shared it and proved a number from it, and the lab withdrew it.
  * In that run the lab and the holder were the same window, so adding a lab's result file to
- * another breeder's records (check page, "Add it as a record you hold") never ran on mainnet:
- * the cell says it is built, not yet tried (m.live.signed.live).
+ * another breeder's records (check page, "Add it as a record you hold") did not run then. It ran
+ * on 21 November 2026 (docs/lab-mainnet-test.md, third run: a second browser added the result,
+ * published its signature at block 3553271, proved a number at block 3553306 and reloaded), and
+ * the cell says so with that date (m.live.signed.live).
  */
 export const LAB_SIGNING_RUN_ON_MAINNET = true;
 

@@ -6,10 +6,14 @@ What the site does with a laboratory's signed parentage result under the publish
 `ClaimCheck.tsx` (the check page). No contract change: the claims are the frozen claims contract's
 range claims and the laboratory's signature (`proveAttested`).
 
-**Status: built, not yet run on the main network.** Lab signing is switched on at veilcore.org and
-a laboratory's signed numbers have been proved on mainnet (a pathogen result, 18 Nov 2026,
-`docs/lab-mainnet-test.md`). No parentage result has been signed and proved on mainnet yet. Until
-it has, say "built, not yet run on the main network".
+**Status: live on veilcore.org since 21 Nov 2026.** A DEMO lab signed an animal-parentage/v1
+result with invented counts; the holder, in a second browser, published it (block 3553789) and
+proved the five bounds (blocks 3553856, 3553891, 3554384, 3554445, 3554479); a stranger's check
+page confirms five of ICAR 2023's parentage checks (conflicts with the sire, the dam and the trio;
+SNPs compared with each parent). ICAR's minimums of 185 SNPs read for each animal and 165 read in
+all three are applied by the lab, not proved.
+Each proof took about 2–3.5 minutes in a desktop browser; five proofs on an older phone may run
+out of memory, so do parentage on a computer for now.
 
 ## In plain words
 
@@ -123,9 +127,8 @@ society's decision, and the limits.
 
 ## Not done here
 
-- **A mainnet run.** First the test network, then a run by the maintainer in the style of
-  `docs/lab-mainnet-test.md`: a laboratory signs an `animal-parentage/v1` result built from
-  practice numbers, the holder proves the five bounds, a stranger checks the link.
+- **A phone run.** The 21 Nov 2026 mainnet run (status above) used a desktop browser. Five
+  proofs in a row on a real phone have not been tried.
 - **The sire's registration number.** The form holds it (slot 10), and a certificate usually names
   the sire. Proving it would be a sixth claim, one more than a link carries, and it publishes the
   number itself. Left for a decision.
