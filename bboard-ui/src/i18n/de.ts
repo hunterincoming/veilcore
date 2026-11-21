@@ -1,6 +1,7 @@
 // German. Published: machine-assisted, reviewed against native official sources (docs/i18n-glossary.md).
 // SPDX-License-Identifier: Apache-2.0
 import type { Strings } from './en';
+import { policyDe } from './privacy-policy/de';
 export const de: Strings = {
   // Header and footer
   'nav.language': 'Sprache',
@@ -133,7 +134,7 @@ export const de: Strings = {
   'title.founders': 'Gründer',
   'title.terms': 'Nutzungsbedingungen',
   'title.privacy': 'Datenschutz in der Demo',
-  'title.privacyMainnet': 'Datenschutz der Website',
+  'title.privacyMainnet': 'Datenschutzerklärung',
   'title.example': 'Beispieldatensatz',
   'title.verify': 'Datensatz prüfen',
   'title.import': 'Ihre Sammlung datieren',
@@ -769,6 +770,8 @@ export const de: Strings = {
   'm.checksite.otherList': 'Diese Liste gehört zu einer anderen Version, nicht zu der, die diese Website angibt.',
   'm.checksite.uncommitted':
     'Diese Version wurde aus Code mit noch nicht eingecheckten Änderungen erstellt; ihre Dateien sind daher nicht genau der veröffentlichte Code dieses Commits.',
+  // The privacy policy veilcore.org shows at /privacy (components/site/PrivacyPolicy.tsx).
+  ...policyDe,
 };
 
 /** The public test site (en-testchain.ts), in this language. Draft, like the rest of this file. */

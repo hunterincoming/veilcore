@@ -2,6 +2,8 @@
 // key a translation leaves out shows in English.
 // SPDX-License-Identifier: Apache-2.0
 
+import { policyEn } from './privacy-policy/en';
+
 export const en = {
   // Header and footer
   'nav.newCultivar': 'New record',
@@ -140,7 +142,7 @@ export const en = {
   'title.founders': 'Founders',
   'title.terms': 'Terms of use',
   'title.privacy': 'Demo privacy',
-  'title.privacyMainnet': 'Site privacy',
+  'title.privacyMainnet': 'Privacy policy',
   'title.example': 'Example record',
   'title.verify': 'Check a record',
   'title.import': 'Date your collection',
@@ -804,6 +806,8 @@ export const en = {
   'm.checksite.otherList': 'That list is for another release, not the one this site says it is.',
   'm.checksite.uncommitted':
     'This release was built from code with changes not yet committed, so its files are not exactly the published code at that commit.',
+  // The privacy policy veilcore.org shows at /privacy (components/site/PrivacyPolicy.tsx).
+  ...policyEn,
 } as const;
 
 export type StringKey = keyof typeof en;

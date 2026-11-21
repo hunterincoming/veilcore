@@ -1604,12 +1604,99 @@ html:has(.vcm) {
   font-weight: 700;
 }
 
+/* /privacy on veilcore.org: the policy (PrivacyPolicy.tsx). Paragraphs, lists and tables at
+   reading width; each table stacks into labelled rows on a phone (the 720px block below). */
+.vcm .policy .wrap > :is(p, ul, dl, details) {
+  max-width: 880px;
+}
+.vcm .policy p,
+.vcm .policy li {
+  color: var(--muted);
+  line-height: 1.6;
+}
+.vcm .policy ul {
+  padding-left: 1.25em;
+}
+.vcm .policy li + li {
+  margin-top: 8px;
+}
+.vcm .policy .wrap > ul + p,
+.vcm .policy .wrap > p + p,
+.vcm details.policy-tech p + p {
+  margin-top: 12px;
+}
+.vcm .policy h2.privacy-full {
+  max-width: none;
+}
+.vcm .policy .policy-short {
+  max-width: 880px;
+  padding: 24px;
+  border-radius: var(--r-picture);
+  background: var(--wash);
+}
+.vcm .policy .policy-short h2 {
+  margin: 0 0 12px;
+  font-size: 1.25rem;
+}
+.vcm .policy .policy-short li {
+  color: var(--ink);
+}
+.vcm .policy dl {
+  margin-top: 8px;
+}
+.vcm .policy-table {
+  width: 100%;
+  max-width: 1080px;
+  margin: 16px 0 24px;
+  border-collapse: collapse;
+}
+.vcm .policy-table th,
+.vcm .policy-table td {
+  text-align: left;
+  vertical-align: top;
+  padding: 12px 16px;
+  line-height: 1.5;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+.vcm .policy-table thead th {
+  padding-top: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ink);
+}
+.vcm .policy-table tbody th {
+  font-weight: 600;
+  color: var(--ink);
+  width: 42%;
+}
+.vcm .policy-table tbody tr:nth-child(odd) > * {
+  background: var(--band);
+}
+.vcm .policy-table tbody tr > :first-child {
+  border-radius: var(--r-control) 0 0 var(--r-control);
+}
+.vcm .policy-table tbody tr > :last-child {
+  border-radius: 0 var(--r-control) var(--r-control) 0;
+}
+.vcm details.policy-tech {
+  margin-top: 40px;
+}
+.vcm details.policy-tech > summary {
+  font-weight: 700;
+  color: var(--ink);
+}
+.vcm details.policy-tech p {
+  font-size: 15px;
+  overflow-wrap: anywhere;
+}
+
 /* ------------------------------------------------------------------ focus, motion */
 
 /* A page's title takes focus by script when the page opens, so a screen reader starts there.
    It can't be reached with Tab and does nothing, so it draws no ring (browsers drew a black
    box round it on a fresh load). Same rule as config/theme.ts lightFocusStyles. */
-.vcm :is(h1, h2)[tabindex="-1"]:focus {
+.vcm :is(h1, h2)[tabindex='-1']:focus {
   outline: none;
 }
 
@@ -1742,6 +1829,44 @@ html:has(.vcm) {
   .vcm .privacy-note dl > div {
     grid-template-columns: minmax(0, 1fr);
     gap: 6px;
+  }
+  .vcm .policy-table,
+  .vcm .policy-table tbody,
+  .vcm .policy-table tr,
+  .vcm .policy-table th,
+  .vcm .policy-table td {
+    display: block;
+    width: auto;
+  }
+  .vcm .policy-table thead {
+    display: none;
+  }
+  .vcm .policy-table tbody tr {
+    padding: 14px 16px;
+    border-radius: var(--r-control);
+  }
+  .vcm .policy-table tbody tr:nth-child(odd) {
+    background: var(--band);
+  }
+  .vcm .policy-table tbody tr > *,
+  .vcm .policy-table tbody tr:nth-child(odd) > * {
+    background: none;
+    padding: 0;
+    border-radius: 0;
+  }
+  .vcm .policy-table tbody th {
+    width: auto;
+  }
+  .vcm .policy-table td {
+    margin-top: 6px;
+  }
+  /* Each cell names its column above it (the heading row is hidden on a phone). */
+  .vcm .policy-table td::before {
+    content: attr(data-col);
+    display: block;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--ink);
   }
   .vcm .pt.span2 {
     grid-column: auto;
