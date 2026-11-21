@@ -33,6 +33,8 @@ import { claimFooterKey, labStands } from '../../veilcore/claim-call';
 import { schemaWords } from './NumbersFields';
 import { keyShort } from '../../veilcore/lab-key-text';
 import { signerLabel, type ResolvedAttestation } from '../../veilcore/attesters';
+import { labIdentitySeverity } from '../../veilcore/lab-identity-words';
+import { NameCheckText } from '../NameCheckText';
 import { RESULT_CALL_SCHEMAS } from '../../veilcore/field-set';
 import { ClaimResultFile } from '../lab/ClaimResultFile';
 import { ViabilityNotRead } from '../lab/ResultFacts';
@@ -118,6 +120,12 @@ export const ClaimCheck: React.FC = () => {
     verdict,
     more: more.map((_, i) => moreVerdicts[i]),
   });
+  // The lab's signer, with its key's level (docs/lab-identity-levels.md), when the registry tied it.
+  const signer = verdict?.ok && verdict.lab?.ok ? verdict.lab.signer : undefined;
+  const signerWords =
+    signer?.kind === 'bound'
+      ? signerLabel(signer.attestation as ResolvedAttestation, 'Signed by', Date.now(), tr)
+      : null;
 
   return (
     <Box sx={{ bgcolor: 'background.default' }} data-claim-check="">
@@ -246,13 +254,7 @@ export const ClaimCheck: React.FC = () => {
                 {verdict.lab.ok ? (
                   <Stack spacing={1.5}>
                     <Alert
-                      severity={
-                        verdict.lab.signer?.kind === 'bound' &&
-                        signerLabel(verdict.lab.signer.attestation as ResolvedAttestation, 'Signed by', Date.now(), tr)
-                          .checked
-                          ? 'success'
-                          : 'info'
-                      }
+                      severity={signerWords ? labIdentitySeverity(signerWords.identity.level) : 'info'}
                       variant="outlined"
                       data-claim-signer={verdict.lab.signer?.kind ?? 'none'}
                     >
@@ -261,18 +263,19 @@ export const ClaimCheck: React.FC = () => {
                         block: String(verdict.lab.blockHeight ?? '?'),
                         date: verdict.lab.blockTime ? ` (${tr.date(verdict.lab.blockTime)})` : '',
                       })}{' '}
-                      {verdict.lab.signer?.kind === 'bound'
-                        ? signerLabel(
-                            verdict.lab.signer.attestation as ResolvedAttestation,
-                            'Signed by',
-                            Date.now(),
-                            tr,
-                          ).text
-                        : verdict.lab.signer?.kind === 'retracted'
-                          ? withdrawnWords(verdict.lab.signer, isCall, tr)
-                          : verdict.lab.signer?.kind === 'conflict'
-                            ? t('app.claim.check.labConflict')
-                            : t('app.claim.check.labUnidentified')}
+                      {signerWords ? (
+                        <>
+                          {signerWords.lead}
+                          {t('app.common.period')}
+                          <NameCheckText label={signerWords} />
+                        </>
+                      ) : verdict.lab.signer?.kind === 'retracted' ? (
+                        withdrawnWords(verdict.lab.signer, isCall, tr)
+                      ) : verdict.lab.signer?.kind === 'conflict' ? (
+                        t('app.claim.check.labConflict')
+                      ) : (
+                        t('app.claim.check.labUnidentified')
+                      )}
                     </Alert>
                     {verdict.lab.signer?.kind === 'bound' && link?.attested?.about && (
                       <Fact label={t('app.claim.check.labAbout')} mono>

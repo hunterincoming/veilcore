@@ -113,8 +113,12 @@ file". So a website only counts for a withdrawal once this version has seen it l
 (`seenListed`): a key taken down before the deploy is never marked withdrawn with the deploy's
 date; it is forgotten after 30 days as before.
 
-The words never say the lab is real, licensed, accredited or "verified", and never "owns": the
-unit tests check that in all five languages. It shows the key's holder and whoever controls that
+The sentence never says the lab is real, licensed, accredited or "verified", and never "owns":
+the unit tests check that in all five languages. The level above it says **Listed on
+acme-labs.com** (21 November 2026, [lab-identity-levels.md](lab-identity-levels.md)), with the
+domain in bold, that VeilCore doesn't check who runs the website, and a reminder to check it is
+the lab's own. It never says "verified": pages use that word only for a match to a public
+listing. It shows the key's holder and whoever controls that
 domain name each other. The operator's name check is unchanged and still the only thing that
 prints a name plainly; the website line sits after it, never instead of it.
 

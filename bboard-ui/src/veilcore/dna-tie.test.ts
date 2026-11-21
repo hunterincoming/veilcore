@@ -95,12 +95,12 @@ describe('a record and its DNA report', () => {
 
   it('signed by a lab: tied, by whom in the signer’s own words', () => {
     const tie = dnaTieOf(status(saved, [att()]));
-    expect(tie).toEqual({ state: 'lab', lead: 'signed by a key named “Test Lab” (name not checked)' });
+    expect(tie).toEqual({ state: 'lab', lead: 'signed by a key calling itself “Test Lab” (not verified)' });
     expect(dnaTieSentence(tie, NOT_DATED)).toBe(
-      'Tied to the plant: DNA report signed by a key named “Test Lab” (name not checked), not dated yet.',
+      'Tied to the plant: DNA report signed by a key calling itself “Test Lab” (not verified), not dated yet.',
     );
     const row = dnaTieRow(tie, NOT_DATED);
-    expect(row.value).toBe('DNA report signed by a key named “Test Lab” (name not checked)');
+    expect(row.value).toBe('DNA report signed by a key calling itself “Test Lab” (not verified)');
     expect(row.sub).toBe('Report not dated yet. A lab can compare a new test of the plant with it.');
   });
 
@@ -109,12 +109,12 @@ describe('a record and its DNA report', () => {
     const waiting = dnaDateOf(true, { mark: 'wait', value: 'waiting for a batch' });
     expect(waiting).toEqual({ state: 'dating', status: 'waiting for a batch' });
     expect(dnaTieSentence(tie, waiting)).toBe(
-      'Tied to the plant: DNA report signed by a key named “Test Lab” (name not checked), being dated (waiting for a batch).',
+      'Tied to the plant: DNA report signed by a key calling itself “Test Lab” (not verified), being dated (waiting for a batch).',
     );
     const dated = dnaDateOf(true, { mark: 'done', value: '2026-10-15 UTC — checked on Midnight' });
     expect(dated).toEqual({ state: 'dated', date: '2026-10-15 UTC — checked on Midnight' });
     expect(dnaTieSentence(tie, dated)).toBe(
-      'Tied to the plant: DNA report signed by a key named “Test Lab” (name not checked), dated 2026-10-15 UTC — checked on Midnight.',
+      'Tied to the plant: DNA report signed by a key calling itself “Test Lab” (not verified), dated 2026-10-15 UTC — checked on Midnight.',
     );
     // The registry's word is said as the registry's, as the record's own date row says it.
     expect(
@@ -167,7 +167,7 @@ describe('the check page (publicReportLine)', () => {
   it('a lab-signed file, a holder’s own file, an unnamed file, and a withdrawn one', () => {
     expect(publicReportLine({ paired: true, binding, linkDna: DNA, atts: [att()], bound: true }).tie).toEqual({
       state: 'lab',
-      lead: 'signed by a key named “Test Lab” (name not checked)',
+      lead: 'signed by a key calling itself “Test Lab” (not verified)',
     });
     expect(
       publicReportLine({ paired: true, binding, linkDna: DNA, chosenSha: SHA, atts: [], bound: true }).tie,
@@ -235,7 +235,7 @@ describe('the evidence bundle’s README.txt (bundle.ts tiedToPlantLines)', () =
 
   it('a lab-signed report, dated by its own record, and what it does and doesn’t show', () => {
     expect(tiedToPlantLines(ev(report), [sig()], 'VEIL-D1')).toEqual([
-      `Tied to the plant: DNA report signed by a key named “Test Lab” (name not checked; key ${LAB}).`,
+      `Tied to the plant: DNA report signed by a key calling itself “Test Lab” (not verified; key ${LAB}).`,
       "A separate record, VEIL-D1, dates this DNA report's existence: it holds only the report's SHA-256. Its own evidence bundle has its date.",
       'A DNA report lets a lab compare a new test of a plant with it. It doesn’t show by itself that a plant matches.',
     ]);

@@ -442,7 +442,7 @@ describe('the bundle', () => {
     expect(readme).toMatch(/held this record by that date/);
     expect(readme).toMatch(/test network.*practice data/);
     expect(readme).toMatch(
-      /The key [0-9a-f]{64} \(it calls itself "Practice Lab"; not checked\) signed a lab report with SHA-256/,
+      /The key [0-9a-f]{64} \(it calls itself "Practice Lab"; not verified\) signed a lab report with SHA-256/,
     );
     expect(readme).toMatch(/It is the lab report saved to this plant/);
     expect(readme).toMatch(/doesn't vouch for anyone/);

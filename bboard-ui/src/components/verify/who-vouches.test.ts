@@ -78,13 +78,17 @@ describe('what each fact rests on', () => {
     });
     const r = rows({
       signers: [
-        { kind: 'Lab’s receipt for a sample', who: 'a key named “Acme Labs” (name not checked)', nameChecked: false },
+        {
+          kind: 'Lab’s receipt for a sample',
+          who: 'a key calling itself “Acme Labs” (not verified)',
+          nameChecked: false,
+        },
         { kind: 'Lab report', who: 'Acme Labs', nameChecked: true },
       ],
     });
     expect(r.at(-2)).toEqual({
       fact: 'Lab’s receipt for a sample',
-      who: 'A key named “Acme Labs” (name not checked). This page checked the signature.',
+      who: 'A key calling itself “Acme Labs” (not verified). This page checked the signature.',
       basis: 'signed',
     });
     expect(r.at(-1)?.who).toBe(
@@ -127,7 +131,7 @@ describe('what each fact rests on', () => {
   });
 
   it('a key its website stopped listing says so on its own row, with the same mark; a listing adds nothing', () => {
-    const lab = { kind: 'Lab report', who: 'a key named “Acme” (name not checked)', nameChecked: false };
+    const lab = { kind: 'Lab report', who: 'a key calling itself “Acme” (not verified)', nameChecked: false };
     const [plain] = rows({ signers: [lab] }).filter((r) => r.fact === 'Lab report');
     const [gone] = rows({ signers: [{ ...lab, withdrawn: true }] }).filter((r) => r.fact === 'Lab report');
     expect(gone.basis).toBe(plain.basis);

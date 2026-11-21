@@ -15,11 +15,71 @@ export const lab = {
   'app.signer.disclaimer': 'VeilCore bürgt nicht für die Arbeit des Labors.',
   'app.signer.rest': ' {before}{host}{after} {disclaimer}',
   'app.signer.text': '{lead}.{rest}',
-  'app.signer.keyNamed': 'einem Schlüssel namens „{name}“ (Name nicht geprüft)',
-  'app.signer.keyUnnamed': 'einem Schlüssel, den niemand benannt hat',
+  'app.signer.keyNamed': 'einem Schlüssel, der sich „{name}“ nennt (nicht verifiziert)',
+  'app.signer.keyUnnamed': 'einem Schlüssel, den niemand benannt hat (nicht verifiziert)',
+  'app.signer.keyWebsite': 'einem Schlüssel, der sich „{name}“ nennt, aufgeführt von {domain}',
+  'app.signer.keyWebsiteUnnamed': 'einem Schlüssel, aufgeführt von {domain}',
+  'app.signer.keyWithdrawn': 'einem Schlüssel, der sich „{name}“ nennt (von {domain} zurückgezogen)',
+  'app.signer.keyWithdrawnUnnamed': 'einem Schlüssel, den niemand benannt hat (von {domain} zurückgezogen)',
   'app.signer.domainBefore': 'Der Schlüssel nennt die Website ',
   'app.signer.domainAfter': ', und VeilCore fand ihn dort am {date} aufgeführt.',
   'app.signer.domainWithdrawn': ', aber VeilCore fand ihn dort am {date} nicht mehr aufgeführt.',
+  'app.labid.aria': 'Wer den Signaturschlüssel hält',
+  'app.labid.dash': ' — ',
+  'app.labid.calls': 'Dieser Schlüssel nennt sich „{name}“.',
+  'app.labid.callsNone': 'Dieser Schlüssel hat keinen Namen.',
+  'app.labid.none.title': 'Nicht verifiziert',
+  'app.labid.none.body':
+    'Jeder kann einen Schlüssel mit jedem Namen erstellen. Fragen Sie beim Labor nach, bevor Sie sich darauf verlassen.',
+  'app.labid.expired.body':
+    'Seine frühere Prüfung anhand eines öffentlichen Verzeichnisses ist abgelaufen. Jeder kann einen Schlüssel mit jedem Namen erstellen. Fragen Sie beim Labor nach, bevor Sie sich darauf verlassen.',
+  'app.labid.website.title': 'Aufgeführt auf {domain}',
+  'app.labid.website.body':
+    'Diese Website führt den Schlüssel auf, und der Schlüssel nennt diese Website. VeilCore hat ihn dort zuletzt am {date} gesehen. VeilCore prüft nicht, wer die Website betreibt: Prüfen Sie, dass es die eigene Website des Labors ist und keine Nachahmung.',
+  'app.labid.website.unmarked':
+    'Der Betreiber von VeilCore hat einen früheren Abgleich dieses Schlüssels mit einem öffentlichen Verzeichnis zurückgenommen.',
+  'app.labid.listing.title': 'Verifiziert anhand von {listing}',
+  'app.labid.listing.body':
+    'Der Betreiber von VeilCore hat den Namen „{name}“ am {date} mit diesem öffentlichen Verzeichnis abgeglichen{number}, und das Labor hat den Schlüssel von einer E-Mail-Adresse unter der Domain des Labors bestätigt. Der Abgleich gilt bis {until}.',
+  'app.labid.listing.website':
+    '{domain} führt diesen Schlüssel ebenfalls auf (VeilCore hat ihn dort zuletzt am {date} gesehen).',
+  'app.labid.websiteWithdrawn.title': 'Von der Website zurückgezogen',
+  'app.labid.websiteWithdrawn.body':
+    '{domain} führt diesen Schlüssel nicht mehr auf: VeilCore hat das am {date} gesehen. Das Labor hat ihn vielleicht stillgelegt oder sich von ihm losgesagt. Verlassen Sie sich nicht darauf, ohne beim Labor nachzufragen.',
+  'app.labid.listingWithdrawn.title': 'Nicht verifiziert: Abgleich mit Verzeichnis zurückgenommen',
+  'app.labid.listingWithdrawn.body':
+    'Der Betreiber von VeilCore hat seinen Abgleich mit einem öffentlichen Verzeichnis zurückgenommen. Fragen Sie beim Labor nach, bevor Sie sich darauf verlassen.',
+  'app.labid.more': 'Was bedeutet das?',
+  'app.labid.more.what':
+    'VeilCore prüft, welcher Schlüssel signiert hat und was darüber bekannt ist, wem der Schlüssel gehört. Es prüft nie die Qualität des Ergebnisses oder ob das Labor eine Lizenz hat.',
+  'app.labid.more.none':
+    '<b>Nicht verifiziert</b>: Jeder kann einen Schlüssel erstellen und ihm jeden Namen geben, auch den eines bestehenden Labors. Ein abgelaufener oder zurückgenommener Abgleich mit einem Verzeichnis zählt als nicht verifiziert.',
+  'app.labid.more.website':
+    '<b>Auf einer Website aufgeführt</b>: Der Schlüssel nennt eine Website, und diese Website führt den Schlüssel auf. Wer diese Website betreibt, steht hinter dem Schlüssel; VeilCore prüft nicht, wer das ist. Prüfen Sie also, dass es die Adresse des Labors ist. Verifiziert heißt nur ein Abgleich mit einem öffentlichen Verzeichnis.',
+  'app.labid.more.listing':
+    '<b>Verifiziert anhand eines öffentlichen Verzeichnisses</b>: Der Betreiber von VeilCore hat den Namen des Labors in einem öffentlichen Lizenz- oder Akkreditierungsverzeichnis gefunden, und das Labor hat den Schlüssel von einer E-Mail-Adresse unter der Domain des Labors bestätigt, für höchstens ein Jahr.',
+  'app.labid.more.withdrawn':
+    '<b>Zurückgezogen</b>: Die Website des Labors führt den Schlüssel nicht mehr auf, oder der Betreiber von VeilCore hat den Abgleich zurückgenommen. Fragen Sie beim Labor nach, bevor Sie sich darauf verlassen.',
+  'app.labid.more.how':
+    'So wird ein Labor verifiziert: Es führt seinen Schlüssel auf seiner eigenen Website auf oder bittet VeilCore, seinen Namen mit einem öffentlichen Verzeichnis abzugleichen. Um beim Labor nachzufragen, nutzen Sie Kontaktdaten, die Sie selbst gefunden haben.',
+  'app.labid.own.title': 'So zeigen Prüfseiten Ihren Schlüssel jetzt',
+  'app.labid.own.looking': 'Es wird nachgesehen, wie Prüfseiten Ihren Schlüssel zeigen …',
+  'app.labid.own.couldNot': 'Gerade ließ sich nicht nachsehen, wie Prüfseiten Ihren Schlüssel zeigen.',
+  'app.labid.own.next.none':
+    'Nächster Schritt: Führen Sie Ihren Schlüssel auf der Website Ihres Labors auf. Prüfseiten zeigen dann „Aufgeführt auf“ mit der Adresse Ihrer Website.',
+  'app.labid.own.next.listingWithdrawn':
+    'Nächster Schritt: Führen Sie Ihren Schlüssel auf der Website Ihres Labors auf. Prüfseiten zeigen dann „Aufgeführt auf“ mit der Adresse Ihrer Website.',
+  'app.labid.own.next.website':
+    'Nächster Schritt: Bitten Sie VeilCore, den Namen Ihres Labors mit einem öffentlichen Lizenz- oder Akkreditierungsverzeichnis abzugleichen. Prüfseiten zeigen dann „Verifiziert anhand von“ diesem Verzeichnis.',
+  'app.labid.own.next.expired':
+    'Nächster Schritt: Ihre Prüfung anhand des Verzeichnisses ist abgelaufen. Bitten Sie VeilCore, den Namen Ihres Labors erneut zu prüfen.',
+  'app.labid.own.next.listing':
+    'Das ist die höchste Stufe. Sie gilt bis {date}; zum Verlängern bitten Sie VeilCore vorher um eine neue Prüfung.',
+  'app.labid.own.next.websiteWithdrawn':
+    '{domain} führt diesen Schlüssel nicht mehr auf, daher zeigen Prüfseiten seine Signaturen als zurückgezogen. War das ein Versehen, führen Sie den Schlüssel wieder auf {domain} auf. Ist der Schlüssel in falsche Hände geraten, erstellen Sie einen neuen.',
+  'app.labid.own.do.website': 'Auf meiner Website aufführen',
+  'app.labid.own.do.listing': 'VeilCore eine E-Mail schreiben',
+  'app.labid.own.mailSubject': 'Namensprüfung für meinen Laborschlüssel',
   'app.lab.saved.lab': 'gespeichert · passt zum signierten Bericht des Labors',
   'app.lab.saved.self': 'gespeichert · keine Laborsignatur passt dazu',
   'app.lab.saved.replacedNewer': 'vom Labor ersetzt – speichern Sie den korrigierten',
@@ -99,12 +159,17 @@ export const lab = {
     'Der Bestätigende hat dies am {date} zurückgezogen, mit einer von seinem Schlüssel signierten Rücknahme. Es bleibt im Datensatz – Rücknahme ist keine Löschung.',
   'app.lab.strength.unverifiedRetraction':
     ' Das Register meldet auch eine Rücknahme, die nicht vom Bestätigenden signiert ist; sie wird hier ignoriert.',
-  'app.lab.strength.matched': 'Signiert · Name mit einem öffentlichen Verzeichnis abgeglichen',
+  'app.lab.strength.matched': 'Signiert · verifiziert anhand eines öffentlichen Verzeichnisses',
   'app.lab.strength.matchedWhy': '{text} Die Signatur wurde in diesem Browser geprüft.{acc}{unverified}',
   'app.lab.strength.accreditation':
     ' Angegeben ist eine {scheme}-Akkreditierung durch {by}; bestätigen Sie das bei {by}.',
   'app.lab.strength.expired': ' Ein früherer Abgleich dieses Namens ist abgelaufen.',
-  'app.lab.strength.notChecked': 'Signiert · Name nicht geprüft',
+  'app.lab.strength.notChecked': 'Signiert · nicht verifiziert',
+  'app.lab.strength.listingWithdrawn': 'Signiert · Abgleich mit Verzeichnis zurückgenommen',
+  'app.lab.strength.website': 'Signiert · aufgeführt auf {domain}',
+  'app.lab.strength.websiteWhy': '{text} Prüfen Sie, dass es die eigene Website des Labors ist.',
+  'app.lab.strength.websiteWithdrawn': 'Signiert · von der Website zurückgezogen ({domain})',
+  'app.lab.strength.websiteWithdrawnWhy': '{text} Verlassen Sie sich nicht darauf, ohne beim Labor nachzufragen.',
   'app.lab.strength.anyName':
     '{text}. Jeder kann einen Schlüssel unter jedem Namen registrieren, daher zeigt das nicht, wer signiert hat.{expired}',
   'app.lab.strength.unregistered':
@@ -332,15 +397,13 @@ export const lab = {
     '<b>Signiert von {who}, aber nicht von dem Schlüssel, der die Empfangsbestätigung für diese Lieferung signiert hat.</b> Die Datei passt zur Signatur dieses Schlüssels, aber nichts zeigt, dass der Schlüssel je Ihre Probe hatte. Fragen Sie das Labor, bevor Sie sich darauf verlassen.',
   'app.lab.results.signed':
     '<b>{lead}</b> (Schlüssel {key}), Signatur in diesem Browser geprüft. Derselbe Schlüssel hat die Empfangsbestätigung für diese Lieferung signiert.',
-  'app.lab.results.anyName':
-    ' Jeder kann einen Schlüssel unter jedem Namen registrieren, daher zeigt der Name nicht, wer signiert hat.',
   'app.lab.results.locked':
     'So verschlossen, dass nur Sie sie öffnen können, mit dem Schlüssel dieser Pflanze aus Ihrer Sicherungskopie. VeilCore speichert sie verschlossen und hat den Schlüssel nicht.',
   'app.lab.results.noKey':
     'Der Schlüssel dieser Pflanze ist nicht auf diesem Gerät, daher können ihre Laborberichte hier nicht geöffnet werden. <link>Holen Sie Ihre Pflanzen zuerst aus Ihrer Sicherungskopie zurück</link>.',
   'app.lab.results.gotIt': 'Verstanden',
   'app.lab.results.whatOthersSee':
-    '<b>Was andere sehen können.</b> Die Signatur des Labors zu diesem Bericht ist privat, wie der Bericht: Nur Sie und das Labor sehen sie. Um sie zu zeigen, wählen Sie „Jemandem zeigen“ und schalten Sie sie unter „Laborsignaturen“ ein. Wer diesen Link hat, sieht dann, dass das Labor einen Bericht über diese Pflanze signiert hat, und den Namen, unter dem der Schlüssel des Labors registriert ist: markiert mit „Name nicht geprüft“, sofern der Betreiber von VeilCore ihn nicht mit einem öffentlichen Lizenz- oder Akkreditierungsverzeichnis abgeglichen hat. Ist es ein DNA-Bericht und speichern Sie ihn bei dieser Pflanze, kann die Seite auch sagen, dass das Labor diese Datei signiert hat.',
+    '<b>Was andere sehen können.</b> Die Signatur des Labors zu diesem Bericht ist privat, wie der Bericht: Nur Sie und das Labor sehen sie. Um sie zu zeigen, wählen Sie „Jemandem zeigen“ und schalten Sie sie unter „Laborsignaturen“ ein. Wer diesen Link hat, sieht dann, dass das Labor einen Bericht über diese Pflanze signiert hat, und den Namen, unter dem der Schlüssel des Labors registriert ist: markiert mit „Nicht verifiziert“, sofern der Betreiber von VeilCore ihn nicht mit einem öffentlichen Lizenz- oder Akkreditierungsverzeichnis abgeglichen hat. Ist es ein DNA-Bericht und speichern Sie ihn bei dieser Pflanze, kann die Seite auch sagen, dass das Labor diese Datei signiert hat.',
   'app.lab.results.noCurrent':
     'Kein aktueller Bericht von {lab}: Das Original wurde ersetzt und die Korrektur zurückgezogen.',
   'app.lab.results.looking': 'Laborberichte werden gesucht…',
@@ -412,7 +475,7 @@ export const lab = {
   'app.lab.out.sentText':
     'Nur der Züchter kann ihn öffnen. Auch Ihre Signatur darauf ist privat: Nur der Züchter und Sie sehen sie, außer der Züchter zeigt sie auf seinem Prüflink. Wenn Sie eine Empfangsbestätigung für die Probe signiert haben und der Züchter zeigt, ob ein DNA-Bericht gespeichert ist, sagt seine Prüfseite, dass ein Labor eine Probe erhalten hat und ob das Angekommene dem Gesendeten entspricht, ohne den Namen Ihres Labors.',
   'app.lab.out.sentName':
-    'Tut er das, sieht jeder mit diesem Link auch den Namen, unter dem Ihr Schlüssel registriert ist. Bis der Betreiber von VeilCore ihn mit einem öffentlichen Lizenz- oder Akkreditierungsverzeichnis abgleicht, erscheint er als „einem Schlüssel namens „{name}“ (Name nicht geprüft)“.',
+    'Tut er das, sieht jeder mit diesem Link auch den Namen, unter dem Ihr Schlüssel registriert ist. Bis der Betreiber von VeilCore ihn mit einem öffentlichen Lizenz- oder Akkreditierungsverzeichnis abgleicht, erscheint er als „einem Schlüssel, der sich „{name}“ nennt (nicht verifiziert)“.',
   'app.lab.out.yourLab': 'Ihr Labor',
   'app.lab.out.youSent': 'Von Ihnen gesendete Laborberichte',
   'app.lab.out.rowHead': '{id} · gesendet {when}',
