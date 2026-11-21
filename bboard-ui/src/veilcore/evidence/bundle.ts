@@ -8,6 +8,9 @@
 //   buildEvidence    evidence.json: the sealed fields exactly as fingerprinted, the proof,
 //                    the batch, what to look up, the lab report pairing, lab signatures,
 //                    and (only if the holder ticks it) the record's key.
+//   withBitcoinHeaders  the stamped Bitcoin block's header and those linking it to a checkpoint
+//                    this release pins, from two block explorers that must agree, checked here
+//                    (bitcoin/stamp-check.ts). Best effort: without them the bundle is as before.
 //   bundleFiles      every file in the zip, README.txt and verify.html included.
 //
 // The lab report file goes in only if the holder ticks it and picks the file, and only if
@@ -37,6 +40,7 @@ import { receiptCovers, sentByMe, type SentTransfer } from '../transfers';
 import { isObject, isString, isNumber, readJson } from '../json';
 import { DOCS, DOCS_COMMIT, DOCS_VERSION, REPO_VIEW } from '../docs';
 import { verifyPageHtml, SDK_VERSION } from './verify-page';
+import type { BundleHeaders } from '../bitcoin/stamp-check';
 import { EXAMINER_FILE, examinerSummaryHtml } from './examiner';
 import { DECLARATION_FILE, declarationText } from './declaration';
 import {
@@ -88,6 +92,8 @@ export type BatchFacts = {
     readonly bitcoinBlockTime?: string;
     readonly calendars?: string[];
     readonly file?: string;
+    /** proof/bitcoin-headers.json, when the bundle carries the stamped block's headers. */
+    readonly headersFile?: string;
   };
   /**
    * An RFC 3161 timestamp on the batch root from a Time Stamping Authority (registry
@@ -122,6 +128,8 @@ export type Gathered = {
   readonly tst: Uint8Array | null;
   /** Lab signatures (attestations) about the record's proof code, as served. */
   readonly attestations: Record<string, unknown>[];
+  /** The stamped block's headers, checked here (withBitcoinHeaders); none when they couldn't be. */
+  readonly bitcoinHeaders?: BundleHeaders | null;
 };
 
 const base64ToBytes = (b64: string): Uint8Array | null => {
@@ -321,6 +329,49 @@ export const gatherEvidence = async (
   return fromPublicRoutes(fingerprint, fetcher);
 };
 
+/** Where the bundle keeps the stamped Bitcoin block's headers. */
+export const BITCOIN_HEADERS_FILE = 'proof/bitcoin-headers.json';
+
+/**
+ * The stamped Bitcoin block's header and the headers linking it to a checkpoint this release
+ * pins, checked here against the stamp file before they go in: from two block explorers that
+ * must agree (bitcoin/stamp-check.ts). Only a check that links the block goes in; anything
+ * else (pending, too far, unreachable, a failed check) leaves the bundle as it was, and
+ * verify.html says it has no headers. At most `timeoutMs` (default 20 s).
+ */
+export const withBitcoinHeaders = async (
+  gathered: Gathered,
+  opts: { readonly fetchImpl?: typeof fetch; readonly timeoutMs?: number } = {},
+): Promise<Gathered> => {
+  const b = gathered.batch;
+  if (!gathered.ots || !gathered.proof || !b || b.opentimestamps.status !== 'bitcoin') return gathered;
+  // One deadline for the whole check: at it every request still open is aborted.
+  const stop = new AbortController();
+  const timer = setTimeout(() => stop.abort(), opts.timeoutMs ?? 20_000);
+  const base = opts.fetchImpl ?? fetch;
+  const fetchImpl = ((url: RequestInfo | URL, init?: RequestInit) =>
+    base(url, {
+      ...init,
+      signal: init?.signal ? AbortSignal.any([init.signal, stop.signal]) : stop.signal,
+    })) as typeof fetch;
+  try {
+    const { checkStamp, bundleHeaders } = await import('../bitcoin/stamp-check');
+    const timeout = new Promise<null>((r) => stop.signal.addEventListener('abort', () => r(null)));
+    const check = await Promise.race([checkStamp(gathered.proof.root, gathered.ots, { fetchImpl }), timeout]);
+    const headers = check ? bundleHeaders(check) : null;
+    if (!headers) return gathered;
+    return {
+      ...gathered,
+      bitcoinHeaders: headers,
+      batch: { ...b, opentimestamps: { ...b.opentimestamps, headersFile: BITCOIN_HEADERS_FILE } },
+    };
+  } catch {
+    return gathered;
+  } finally {
+    clearTimeout(timer);
+  }
+};
+
 // ---- the bundle's contents -------------------------------------------------------------
 
 export type EvidenceOptions = {
@@ -333,6 +384,12 @@ export type EvidenceOptions = {
    * Each must be byte for byte one of the files the record sealed, or nothing is downloaded.
    */
   readonly documentFiles?: readonly { readonly name: string; readonly bytes: Uint8Array }[];
+  /**
+   * Ask two block explorers for the stamped block's headers so verify.html can check the Bitcoin
+   * stamp offline (withBitcoinHeaders). Only when the holder ticks it: it tells those sites the
+   * holder's internet address and the batch's block.
+   */
+  readonly bitcoinHeaders?: boolean;
   /** For tests: when the bundle was made. */
   readonly now?: Date;
   /**
@@ -975,6 +1032,11 @@ export const fileList = (ev: Evidence, hasOts: boolean): { path: string; what: s
       { path: 'proof/anchors.json', what: "where the batch root was recorded, as VeilCore's registry reported it." },
     );
     if (hasOts) out.push({ path: 'proof/root.bin.ots', what: 'the Bitcoin stamp file (OpenTimestamps) for root.bin.' });
+    if (hasOts && ev.batch.opentimestamps.headersFile === BITCOIN_HEADERS_FILE)
+      out.push({
+        path: BITCOIN_HEADERS_FILE,
+        what: 'the Bitcoin block headers from the stamped block to a checkpoint verify.html pins, as two block explorers gave them when the bundle was made. verify.html checks their proof of work and that they link the stamped block to that checkpoint; nothing takes the explorers’ word.',
+      });
     if (ev.batch.rfc3161?.available)
       out.push({
         path: 'proof/root.tst',
@@ -1178,6 +1240,10 @@ export const readmeText = (
     L.push(
       `   VeilCore's registry reported the stamp as ${reported} when the bundle was made. verify.html reads the stamp file itself and says what it shows.`,
     );
+    if (bitcoin.headersFile === BITCOIN_HEADERS_FILE)
+      L.push(
+        `   ${BITCOIN_HEADERS_FILE} carries the stamped block's header and the headers linking it to a Bitcoin block verify.html pins. verify.html checks, with no network, that the block holds the stamp's value, has Bitcoin's proof of work, and links to that block.`,
+      );
   }
   if (tsa) {
     L.push(`${bitcoin ? '4' : '3'}. A Time Stamping Authority (another separate date):`);
@@ -1327,7 +1393,11 @@ export const bundleFiles = async (
   );
   const ots = ev.proof && ev.batch && gathered.ots && ev.batch.opentimestamps.available ? gathered.ots : null;
   add('README.txt', text(readmeText(ev, sigs, ots !== null, options.dnaReportDatedBy, options.lockedParents)));
-  add('verify.html', text(verifyPageHtml(ev, ots)));
+  const headers =
+    ots && gathered.bitcoinHeaders && ev.batch?.opentimestamps.headersFile === BITCOIN_HEADERS_FILE
+      ? gathered.bitcoinHeaders
+      : null;
+  add('verify.html', text(verifyPageHtml(ev, ots, headers)));
   add('evidence.json', json(ev));
   add('record/sealed-fields.json', json(ev.record.sealedFields));
   add('record/sealed-fields.canonical.json', text(ev.record.canonical));
@@ -1352,6 +1422,7 @@ export const bundleFiles = async (
       }),
     );
     if (ots) add('proof/root.bin.ots', ots);
+    if (headers) add(BITCOIN_HEADERS_FILE, json(headers));
     if (gathered.tst && ev.batch.rfc3161?.available) add('proof/root.tst', gathered.tst);
     const script = checkScriptFor(ev);
     if (script) add('proof/check-on-midnight.mjs', text(script));
@@ -1393,8 +1464,9 @@ export const downloadEvidenceBundle = async (
   keys: RecordKeys | undefined,
   options: EvidenceOptions,
 ): Promise<{ ok: true; name: string } | { error: string }> => {
-  const gathered = await gatherEvidence(record);
-  if ('error' in gathered) return gathered;
+  const first = await gatherEvidence(record);
+  if ('error' in first) return first;
+  const gathered = options.bitcoinHeaders ? await withBitcoinHeaders(first) : first;
   // The sample details on this plant's deliveries: the holder's own, from the registry.
   // None (an older registry, no network) leaves them out; nothing else depends on them.
   const deliveries = options.deliveries ?? (await sentByMe());

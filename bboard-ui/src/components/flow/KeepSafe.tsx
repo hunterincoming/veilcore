@@ -63,6 +63,7 @@ import { backupMessageWords } from './backup-words';
 import { RecoverySheetHost, RecoverySheetPrompt, openRecoverySheet } from './RecoverySheet';
 import { SHEET_WORDS } from '../../veilcore/recovery-code';
 import { TextField } from '@mui/material';
+import { PasskeyCheckLink } from './PasskeyCheckLink';
 
 /** Opens the sheet from anywhere ("Fix it" on Home, a "save your backup" button). */
 export const OPEN_KEEP_SAFE_EVENT = 'veilcore:open-keep-safe';
@@ -234,6 +235,7 @@ export const KeepSafeSheet: React.FC<{ open: boolean; onClose: () => void }> = (
                 {needsSheet
                   ? backupMessageWords(problem, tr)
                   : t('app.account.sheet.failed', { why: backupMessageWords(problem, tr) })}
+                {!needsSheet && <PasskeyCheckLink words="failed" />}
               </Alert>
             )}
             {needsSheet && (

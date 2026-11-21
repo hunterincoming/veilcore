@@ -887,7 +887,9 @@ describe.skipIf(!haveBrowser)('browser: built site under the production headers'
     expect(csp).toMatch(/frame-ancestors 'none'/);
     expect(csp).toMatch(/script-src 'self' 'wasm-unsafe-eval';/);
     expect(csp).toMatch(/require-trusted-types-for 'script'/);
-    expect(csp).toMatch(/connect-src 'self' https:\/\/veilcore-api-production\.up\.railway\.app;/);
+    expect(csp).toMatch(
+      /connect-src 'self' https:\/\/veilcore-api-production\.up\.railway\.app https:\/\/mempool\.space https:\/\/blockstream\.info;/,
+    );
     expect(csp).not.toMatch(/githubusercontent/);
     expect(headers['Strict-Transport-Security']).toMatch(/max-age=\d{8}/);
     expect(headers['Cross-Origin-Opener-Policy']).toBe('same-origin');
@@ -1641,7 +1643,7 @@ describe('headers for a build that sends transactions (test networks only)', () 
   const connectSrc = (h: Record<string, string>): string =>
     /connect-src ([^;]+);/.exec(h['Content-Security-Policy'] ?? '')?.[1] ?? '';
 
-  it('adds exactly the sponsor and the network indexer, nothing else', () => {
+  it('adds exactly the sponsor and the network indexer, nothing else (beyond the Bitcoin explorers every build has)', () => {
     const h = prodHeaders({
       VITE_REAL_CHAIN: '1',
       VITE_NETWORK_ID: 'preview',
@@ -1650,6 +1652,8 @@ describe('headers for a build that sends transactions (test networks only)', () 
     expect(connectSrc(h).split(' ')).toEqual([
       "'self'",
       API,
+      'https://mempool.space',
+      'https://blockstream.info',
       'https://sponsor.example.org',
       'https://indexer.preview.midnight.network',
       'wss://indexer.preview.midnight.network',
@@ -1692,6 +1696,11 @@ describe('headers for a build that sends transactions (test networks only)', () 
   });
 
   it('a site build without the flag gets the plain policy', () => {
-    expect(connectSrc(prodHeaders()).split(' ')).toEqual(["'self'", API]);
+    expect(connectSrc(prodHeaders()).split(' ')).toEqual([
+      "'self'",
+      API,
+      'https://mempool.space',
+      'https://blockstream.info',
+    ]);
   });
 });

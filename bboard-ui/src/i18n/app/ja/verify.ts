@@ -348,4 +348,31 @@ export const verify = {
   'app.verify.who.typed': '入力された内容（タイトル、保有者、発行者、メモ）',
   'app.verify.who.typed.holder':
     '保有者自身の言葉です。このページは証明コードと一致することだけを確認し、内容が正しいかは確認しません。',
+  'app.verify.who.btc': 'Bitcoinのスタンプ',
+  'app.verify.who.btc.pending':
+    'Bitcoinにはまだありません。スタンプサーバーの約束だけで、まだBitcoinのブロックに入っていません。',
+  'app.verify.who.btc.reported':
+    'VeilCoreのレジストリは、Bitcoinのブロック{height}に入っていると報告しています。このページはBitcoin上で確認していません。',
+  'app.verify.who.btc.reportedAny':
+    'VeilCoreのレジストリは、Bitcoinのブロックに入っていると報告しています。このページはBitcoin上で確認していません。',
+  'app.verify.who.btc.checking': 'Bitcoinで確認しています…',
+  'app.verify.who.btc.linked':
+    'このブラウザで確認しました：ブロック{height}のプルーフ・オブ・ワークと、このウェブサイトが固定しているブロックであるチェックポイント{checkpoint}へのつながり。このブロックにはこのバッチのスタンプが入っています。ブロック時刻：{time}。',
+  'app.verify.who.btc.explorers':
+    'ブロックエクスプローラー（{explorers}）の報告です：ブロック{height}にこのバッチのスタンプが入っています。このブラウザはブロック自体のプルーフ・オブ・ワークを確認しましたが、このウェブサイトが固定しているどのチェックポイントからも遠すぎるため、つながりは確認できていません。',
+  'app.verify.who.btc.failed.stamp':
+    'ありません：スタンプファイルがこのバッチのものではないか、このブラウザで読み取れません。',
+  'app.verify.who.btc.failed.mismatch': 'ありません：スタンプが示すブロックに、このバッチのスタンプが入っていません。',
+  'app.verify.who.btc.failed.headers':
+    'ありません：エクスプローラーが返したブロックヘッダーが確認を通らないか、2つのエクスプローラーの答えが一致しません。',
+  'app.verify.who.btc.unreachable':
+    'VeilCoreのレジストリは、Bitcoinのブロックに入っていると報告しています。このブラウザはブロックエクスプローラーに接続できず、確認できませんでした。',
+  'app.verify.who.btc.check': 'Bitcoinで確認',
+  'app.verify.who.btc.again': 'もう一度試す',
+  'app.verify.who.btc.note':
+    'mempool.spaceとblockstream.infoにブロックヘッダーを問い合わせます。相手に見えるのはこのブラウザのインターネットアドレス、VeilCoreのバッチを確認していること、どのブロックかで、記録は送信されません。',
+  'app.verify.who.btc.linkedUp':
+    'このブラウザで確認しました：ブロック{height}のプルーフ・オブ・ワークと、このウェブサイトが固定しているブロックであるチェックポイント{checkpoint}から、Bitcoinの実際の難易度で採掘されたブロックを通じた上向きのつながり。このブロックにはこのバッチのスタンプが入っています。ブロック時刻（マイナーが設定したもの）：{time}。より新しいチェックポイントがあれば、より強く確認できます。',
+  'app.verify.who.btc.batchOnly':
+    'このブラウザは、バッチのスタンプがBitcoinのブロック{height}に入っていて、チェックポイント{checkpoint}につながることを確認しました。この記録がそのバッチに含まれることは、VeilCoreのレジストリが述べているだけです（送られてきたリンクに確認できる証明コードがありません）。',
 } satisfies Partial<AppTranslation>;

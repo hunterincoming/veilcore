@@ -18,6 +18,7 @@ import { rich, useT } from '../../i18n/app';
 import { deleteAccountCopy, forgetDevice, useAccountState } from '../../veilcore/account-copy';
 import { backupMessageWords } from './backup-words';
 import { deviceWords, openKeepSafe, useUnlockWord } from './KeepSafe';
+import { PasskeyCheckLink } from './PasskeyCheckLink';
 import { openRecoverySheet } from './RecoverySheet';
 import type { AppKey } from '../../i18n/app/en';
 import { hydrate } from '../../veilcore/records';
@@ -239,6 +240,10 @@ export const SettingsPage: React.FC = () => {
                   {backupMessageWords(problem, tr)}
                 </Alert>
               )}
+              {/* When a passkey won't work on some device: what this browser can do (docs/passkey-support.md). */}
+              <Box sx={{ mt: 1.5 }}>
+                <PasskeyCheckLink words="settings" />
+              </Box>
             </Paper>
           )}
 

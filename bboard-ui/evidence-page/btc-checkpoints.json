@@ -1,0 +1,211 @@
+{
+  "about": "Bitcoin mainnet block hashes this release pins. The check page and verify.html link a stamped block to one of these. How they are chosen and updated: docs/bitcoin-header-check.md. Update with: npm run btc:checkpoints",
+  "network": "bitcoin-mainnet",
+  "spacing": 144,
+  "start": 969696,
+  "minConfirmations": 100,
+  "updated": "2026-11-20",
+  "checkpoints": [
+    {
+      "height": 969696,
+      "hash": "000000000000000000001e39df127cbab82a824ac43cfcdbf62e59f6a08b9f0b"
+    },
+    {
+      "height": 969840,
+      "hash": "000000000000000000008ef28c2340138d25cdc0c4105b371afc992061d5e9ae"
+    },
+    {
+      "height": 969984,
+      "hash": "00000000000000000001e125a4e0db6f8750380480058f1bac0a8d988fbed9f3"
+    },
+    {
+      "height": 970128,
+      "hash": "00000000000000000001864a215359f05d01cbe68a27cfb3ad49fe37dc2e5b65"
+    },
+    {
+      "height": 970272,
+      "hash": "00000000000000000001e31719050c4e68efa2bdb75717344b259a955d0d6633"
+    },
+    {
+      "height": 970416,
+      "hash": "00000000000000000001e0a6f58797ab205005aaada003415beceae6318c9095"
+    },
+    {
+      "height": 970560,
+      "hash": "000000000000000000016b54a005b36acd1bf309d9c6d2190f0577582bb635eb"
+    },
+    {
+      "height": 970704,
+      "hash": "000000000000000000019d58679c38b69c5a1c85623ee8840448f46289341e02"
+    },
+    {
+      "height": 970848,
+      "hash": "000000000000000000012581ecfa1d86c8bba63eff45f3cdd8485524610306eb"
+    },
+    {
+      "height": 970992,
+      "hash": "00000000000000000000465814e6e800b2f8f51d006eb36817946648ed463b88"
+    },
+    {
+      "height": 971005,
+      "hash": "0000000000000000000042601b4858534f518c3fc526a6f1544a728d92f8ead4"
+    },
+    {
+      "height": 971136,
+      "hash": "0000000000000000000017de10350c1070988724ea7978b0cc8f9449ff42c4b1"
+    },
+    {
+      "height": 971280,
+      "hash": "0000000000000000000076fa2eb0e84d39d01e94ad56338fdf308a02f8988b09"
+    },
+    {
+      "height": 971424,
+      "hash": "000000000000000000014d31efb33250bd9418c7df2692a3531a0a63050d1fb9"
+    },
+    {
+      "height": 971568,
+      "hash": "00000000000000000000a37be76148cf9cfe502564a841fedf2ed3d9b4216095"
+    },
+    {
+      "height": 971712,
+      "hash": "00000000000000000000c185f0906690a08d62d6fe842682a888d5560217e467"
+    },
+    {
+      "height": 971856,
+      "hash": "000000000000000000015781636d8854b45053b983048fef4836aec7a5bd2c30"
+    },
+    {
+      "height": 972000,
+      "hash": "00000000000000000001f09a6919251b4c3dd5261ee68c8a17ec718667d35f20"
+    },
+    {
+      "height": 972144,
+      "hash": "0000000000000000000165b9db61d8684079115feaf764e476f0f0dd802cca23"
+    },
+    {
+      "height": 972288,
+      "hash": "000000000000000000013fe4badfb2d3608a18533182429f8c63a5b5de2882cb"
+    },
+    {
+      "height": 972432,
+      "hash": "00000000000000000000ca6edd26d231fdbe6f2a5abe441d1a9433eb0a3c58ef"
+    },
+    {
+      "height": 972576,
+      "hash": "00000000000000000000a43e85455b720c8f6c516df76b994328e8b71e38f98e"
+    },
+    {
+      "height": 972720,
+      "hash": "00000000000000000000e534271566c864326a0b880adefdaf97ba309de717cc"
+    },
+    {
+      "height": 972864,
+      "hash": "00000000000000000001ba415b1177d633d064c137612653c7a3228d714b7b15"
+    },
+    {
+      "height": 973008,
+      "hash": "00000000000000000000860cd5932895582fa4acab364ad84e6a6dc8063e0f13"
+    },
+    {
+      "height": 973152,
+      "hash": "0000000000000000000061229526c10dbec8b4d9bf9c388b747f755c625dac1a"
+    },
+    {
+      "height": 973296,
+      "hash": "00000000000000000001fab594fa1631407d3bcd4e622a30968c5250b1d1f532"
+    },
+    {
+      "height": 973440,
+      "hash": "00000000000000000001162179f4b91bdeb359a09c40c757b53d6bc0a85b9502"
+    },
+    {
+      "height": 973584,
+      "hash": "00000000000000000000a00abaa0825058c26793af5b5d3ef8783cb30aafda7c"
+    },
+    {
+      "height": 973728,
+      "hash": "0000000000000000000104150b08ff89bbb2d11bab42c245c82b8165ab2e2c11"
+    },
+    {
+      "height": 973872,
+      "hash": "000000000000000000007a05529f28b1df10f341c18fb0cd77b1452ee88125f5"
+    },
+    {
+      "height": 974016,
+      "hash": "00000000000000000001330cc73712aaa80cbbf2538542efdf6e3136f40411ff"
+    },
+    {
+      "height": 974160,
+      "hash": "0000000000000000000106faf2e1cb0c6f3930d21f4e4d0d42cab10368555e35"
+    },
+    {
+      "height": 974304,
+      "hash": "00000000000000000000290cca2354d3e79e0e38407e5419745e71b6765b2827"
+    },
+    {
+      "height": 974448,
+      "hash": "00000000000000000000be64d1a56c0d0b5f53041b86ce729d72febe7f376b2f"
+    },
+    {
+      "height": 974592,
+      "hash": "0000000000000000000100aa2136e58bbd83a16574d136b69666d0d804e0f270"
+    },
+    {
+      "height": 974736,
+      "hash": "000000000000000000000ac973abbff58f579418203ac0d558f4bfde1057c350"
+    },
+    {
+      "height": 974880,
+      "hash": "0000000000000000000136c52f3032499424b938c40492faf2782de992c68649"
+    },
+    {
+      "height": 975024,
+      "hash": "00000000000000000000ce2b3288a262c9cb50706057e70a9398b4e02d10095f"
+    },
+    {
+      "height": 975168,
+      "hash": "000000000000000000008608f867af96a730e5c4b4ca8de2fcf7671a2105b3d8"
+    },
+    {
+      "height": 975312,
+      "hash": "000000000000000000019b96eb4a40f59506f402f2179259a96028b63bc3d5d9"
+    },
+    {
+      "height": 975456,
+      "hash": "0000000000000000000159a21004471951469f698104f192e209e57c2fde5e88"
+    },
+    {
+      "height": 975600,
+      "hash": "0000000000000000000031031887f79182c54476f8d333377ca6fbdde51dec42"
+    },
+    {
+      "height": 975744,
+      "hash": "0000000000000000000123e2681e2f82acdcb9430a15eec24cc85b400691d479"
+    },
+    {
+      "height": 975888,
+      "hash": "000000000000000000000f43b618a94ff2d1f1d6c96c18f0bf74d71e7643f290"
+    },
+    {
+      "height": 976032,
+      "hash": "0000000000000000000071b2795b228b31a80445e58c00a55946eaa4422926f0"
+    },
+    {
+      "height": 976176,
+      "hash": "0000000000000000000102add72bdabe07a8e442042f850573120db6464437f6"
+    },
+    {
+      "height": 976320,
+      "hash": "000000000000000000014f58b6556978062b8480a7348c7d21af5531f793e4f5"
+    },
+    {
+      "height": 976464,
+      "hash": "000000000000000000005088879bf748ee5740e35f8e1b8fa3c629a5c2a7625e"
+    },
+    {
+      "height": 976608,
+      "hash": "00000000000000000000b6903d0fc2088458e462770f7ef1da7014033714d280"
+    }
+  ],
+  "seed": "971005: VeilCore's first stamped blocks. mempool.space and blockstream.info gave the same header, with real proof of work, on 15 Oct 2026, about 500 blocks later (docs/bitcoin-stamp-check-11oct.md). Every later pin is linked to it by scripts/btc-checkpoints.mjs."
+}

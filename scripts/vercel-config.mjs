@@ -115,6 +115,13 @@ for (const name of ['VITE_INDEXER_RELAY_URL', 'VITE_INDEXER_SECOND_URL']) {
     throw new Error('VITE_INDEXER_SECOND_URL is the same indexer as VITE_INDEXER_RELAY_URL; a second check needs a different one.');
 }
 
+// The two Bitcoin block explorers the check page and the evidence bundle ask for block headers
+// (bboard-ui/evidence-page/btc-header-fetch.js EXPLORERS; docs/bitcoin-header-check.md). Only
+// when a visitor presses "Check on Bitcoin", or a holder makes a bundle.
+export const BITCOIN_EXPLORERS = ['https://mempool.space', 'https://blockstream.info'];
+/** Block 438's hash: the e2e build's only Bitcoin pin. A deployed build must not carry it. */
+export const E2E_BITCOIN_PIN = '0000000025c6b644f8add734be7e666fa4afa43ca0204d623a0c0b1fd2104c7a';
+
 // The content security policy. Checked against the built site in headless Chromium
 // (every main page, zero violations; bboard-ui/src/hardening-roundD.test.ts) before each
 // tightening:
@@ -127,7 +134,9 @@ for (const name of ['VITE_INDEXER_RELAY_URL', 'VITE_INDEXER_SECOND_URL']) {
 //   font-src     the Atkinson Hyperlegible Next file is bundled by @fontsource; no
 //                Google Fonts. data: for any small font Vite inlines.
 //   img-src      data: and blob: for QR codes and certificate images (html-to-image).
-//   connect-src  our own origin (the .wasm file) and the registry API. Nothing on GitHub:
+//   connect-src  our own origin (the .wasm file), the registry API and the two Bitcoin block
+//                explorers above (block headers only; nothing is sent to them but the
+//                block's height). Nothing on GitHub:
 //                the documents are bundled at build time now (attack round D), and the
 //                old entry allowed every repository on raw.githubusercontent.com. If the
 //                app starts talking to a Midnight indexer or proof server, those origins
@@ -142,7 +151,7 @@ const csp = [
   "style-src 'self' 'unsafe-inline'",
   "font-src 'self' data:",
   "img-src 'self' data: blob:",
-  `connect-src 'self' ${API_ORIGIN}${chainOrigins.length ? ` ${chainOrigins.join(' ')}` : ''}`,
+  `connect-src 'self' ${API_ORIGIN} ${BITCOIN_EXPLORERS.join(' ')}${chainOrigins.length ? ` ${chainOrigins.join(' ')}` : ''}`,
   "worker-src 'self' blob:",
   "frame-ancestors 'none'",
   // 'self', not 'none': html-to-image sets a same-origin <base> while it inlines the
@@ -197,6 +206,10 @@ if (['test', 'eval'].includes((process.env.VITE_ASK_MODEL || '').trim()))
       const src = readFileSync(`${assets}/${f}`, 'utf8');
       if (src.includes('veilcore-test/stub-model') || src.includes('__askEval'))
         throw new Error(`${assets}/${f} is from a test or evaluation build of Ask's model (VITE_ASK_MODEL); it is never deployed.`);
+      // The browser tests' Bitcoin pins (bboard-ui/src/e2e-fixtures/btc-e2e-chain.json): block 438,
+      // from the difficulty-1 era, where a fake block costs nothing. Only an e2e build has them.
+      if (src.includes(E2E_BITCOIN_PIN))
+        throw new Error(`${assets}/${f} pins the browser tests' Bitcoin checkpoint (VITE_E2E_FIXTURES); it is never deployed.`);
       // The end-to-end build's test pin for its local timestamp authority (veilcore/instant-stamp.ts).
       if (src.includes('veilcore.e2e.tsa-pins'))
         throw new Error(`${assets}/${f} is from the end-to-end test build (VITE_E2E_FIXTURES); it is never deployed.`);

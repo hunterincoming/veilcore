@@ -502,4 +502,6 @@ export const plant = {
   'app.plant.att.legacy':
     'Livraison prise le {date} par une personne détenant le code émis par l’expéditeur{addressed}. Inscrit avant l’existence des signatures : cela établit qu’une seconde partie a pris livraison, sans prouver qui elle est.',
   'app.plant.att.addressed': ', adressée à {who}',
+  'app.plant.bundle.includeBtc':
+    'Inclure les en-têtes de bloc Bitcoin, pour que verify.html puisse vérifier l’horodatage Bitcoin sans internet. Pour les obtenir, ce navigateur interroge maintenant mempool.space et blockstream.info : ils voient votre adresse internet, qu’il s’agit d’un lot VeilCore, et quel bloc.',
 } satisfies Partial<AppTranslation>;

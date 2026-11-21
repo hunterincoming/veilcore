@@ -136,6 +136,10 @@ export const account = {
   'app.account.restore.tryAgain': 'Réessayer',
   'app.account.restore.tryWww': 'Vous avez d’abord utilisé www.veilcore.org ? Ouvrez cette page là-bas.',
   'app.settings.ways.tag': 'Nommée « VeilCore: unlocks your records · {tag} » dans vos mots de passe',
+  'app.settings.passkeyCheck':
+    'Une clé d’accès ne marche pas sur un appareil ? <link>Vérifiez la prise en charge des clés d’accès par ce navigateur</link>.',
+  'app.account.sheet.passkeyCheck':
+    'Si cela se reproduit, <link>vérifiez la prise en charge des clés d’accès par ce navigateur</link>. La page montre ce que ce navigateur et cet appareil savent faire, et n’envoie rien.',
   // The way in, as a fragment after “with” (Home's first card, the live test on Windows).
   'app.account.how.faceId': 'Face ID',
   'app.account.how.touchId': 'Touch ID',

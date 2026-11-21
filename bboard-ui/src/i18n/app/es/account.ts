@@ -128,6 +128,10 @@ export const account = {
   'app.account.restore.tryAgain': 'Intentar de nuevo',
   'app.account.restore.tryWww': '¿Usó primero www.veilcore.org? Abra esta página allí.',
   'app.settings.ways.tag': 'Con el nombre «VeilCore: unlocks your records · {tag}» en sus contraseñas',
+  'app.settings.passkeyCheck':
+    '¿Una llave de acceso no funciona en un dispositivo? <link>Compruebe si este navegador admite llaves de acceso</link>.',
+  'app.account.sheet.passkeyCheck':
+    'Si vuelve a pasar, <link>compruebe si este navegador admite llaves de acceso</link>. Muestra lo que pueden hacer este navegador y este dispositivo, y no envía nada.',
   // The way in, as a fragment after “with” (Home's first card, the live test on Windows).
   'app.account.how.faceId': 'Face ID',
   'app.account.how.touchId': 'Touch ID',
