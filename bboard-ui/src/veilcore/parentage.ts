@@ -1,7 +1,10 @@
 // A laboratory's signed parentage result under `animal-parentage/v1` (docs/parentage.md), in the
 // terms of ICAR's "Guidelines for Parentage Verification and Parentage Discovery Based on SNP
-// Genotypes" (May 2023): the bands a count falls in, the bounds the site offers, and when a link's
-// claims together say "meets ICAR 2023 acceptance".
+// Genotypes" (May 2023; the February 2025 revision, reviewed October 2025, has the same numbers for
+// verification): the bands a count falls in, the bounds the site offers, and when a link's claims
+// together say "meets five of ICAR 2023's parentage checks". ICAR's two other minimums, SNPs read
+// per animal and SNPs read in all three of the trio, have no slot on the form: the laboratory
+// applies them and no claim shows them, and the page says so.
 //
 // The lab genotypes the calf, sire and dam, counts the conflicts and signs the counts. The holder
 // proves only ICAR's own class bounds (at most 2 with each parent, at most 3 across the trio, at
@@ -20,10 +23,16 @@ export const ICAR_2023 = {
   /** The trio (ICAR step 2, on parents already accepted): 0 to 3 accepted, 4 to 7 doubtful, more than 7 excluded. */
   trioAccept: 3n,
   trioDoubt: 7n,
-  /** SNPs called in common, the offspring with one parent. */
+  /**
+   * SNPs called for each animal, offspring and parents alike (95% of 195, rounded down). The form
+   * has no slot for it, so no claim can show it: the laboratory applies it.
+   */
+  minCalledPerAnimal: 185n,
+  /** SNPs called in common, the offspring with one parent: 195 - 2 x (195 - 185). */
   minCommonSingle: 175n,
   /**
-   * SNPs called in common for the trio step. The form has no slot for it, so no claim can show
+   * SNPs called in all three of the offspring, sire and dam, for the trio step: 195 - 3 x (195 -
+   * 185). Not the SNPs the two parents share. The form has no slot for it, so no claim can show
    * it: the laboratory applies it before it grades the trio.
    */
   minCommonTrio: 165n,
@@ -49,7 +58,7 @@ export const PARENTAGE_SLOT = {
 
 export type ParentageTest = keyof typeof PARENTAGE_SLOT;
 
-/** The five claims that together are ICAR 2023 acceptance, with the bound each proves. */
+/** The five claims that together are the ICAR 2023 checks the form can show, with the bound each proves. */
 export const ACCEPTANCE: readonly {
   readonly id: ParentageTest;
   readonly slot: number;
@@ -110,7 +119,7 @@ type Claim = {
 };
 
 /**
- * Whether a link's claims together say "meets ICAR 2023 acceptance": every one of the five, each
+ * Whether a link's claims together say "meets five of ICAR 2023's parentage checks": every one of the five, each
  * checked on Midnight, all on one record under the parentage form, each at least as strict as
  * ICAR's bound. Whether a laboratory stands behind the numbers is the caller's to add.
  */

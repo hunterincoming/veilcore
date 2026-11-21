@@ -20,7 +20,7 @@ export const parentage = {
   'app.parentage.bands.trio':
     'Dans le trio (le descendant, le père et la mère) : de 0 à 3 conflits, accepté ; de 4 à 7, douteux ; plus de 7, exclu.',
   'app.parentage.bands.compared':
-    'Il faut au moins 175 SNP comparés entre le descendant et chaque parent, et pour le trio au moins 165 que les deux parents ont en commun.',
+    'Chaque animal doit avoir au moins 185 SNP lus. Le descendant et chaque parent doivent en avoir au moins 175 lus chez les deux, et le trio au moins 165 lus chez les trois (descendant, père et mère).',
   'app.parentage.bands.only':
     'Seules les limites de la classe « accepté » sont proposées ici, jamais une limite arrondie : « au plus 5 » serait le haut de la classe « douteux ».',
   'app.parentage.unmet.sireConflicts':
@@ -34,14 +34,14 @@ export const parentage = {
   'app.parentage.unmet.damCompared':
     'Moins de SNP ont été comparés avec la mère que le minimum de l’ICAR : ce minimum ne peut donc pas faire l’objet d’une preuve.',
   'app.parentage.all':
-    'Pour montrer que le résultat satisfait à l’acceptation de l’ICAR 2023, établissez les cinq preuves, puis copiez un seul lien qui les contient toutes. Si chaque preuve est vérifiée et qu’un laboratoire se tient derrière les nombres, la page de vérification indique alors que le résultat satisfait à l’acceptation de l’ICAR 2023.',
+    'Pour montrer les critères de l’ICAR 2023 qui peuvent être prouvés ici, établissez les cinq preuves, puis copiez un seul lien qui les contient toutes. Si chaque preuve est vérifiée et qu’un laboratoire se tient derrière les nombres, la page de vérification indique alors que le résultat satisfait à cinq des critères de filiation de l’ICAR 2023.',
   'app.parentage.none':
     'Rien dans ce résultat ne respecte les limites d’acceptation de l’ICAR : aucune preuve n’est donc proposée.',
-  'app.parentage.cert.title': 'Satisfait à l’acceptation de filiation de l’ICAR 2023',
+  'app.parentage.cert.title': 'Satisfait à cinq des critères de filiation de l’ICAR 2023',
   'app.parentage.cert.text':
-    'Un résultat de filiation signé par un laboratoire, daté sur Midnight. Le détenteur a prouvé que ce résultat satisfait à l’acceptation de l’ICAR 2023 sans montrer les génotypes ni les comptages. Le laboratoire a vu les génotypes. Être compatible avec la filiation n’est pas une preuve de filiation. VeilCore n’a rien analysé.',
+    'Un résultat de filiation signé par un laboratoire, daté sur Midnight. Le détenteur a prouvé, sans montrer les génotypes ni les comptages, que ce résultat respecte les limites de conflits de l’ICAR 2023 et son minimum de SNP comparés avec chaque parent. Le laboratoire a vu les génotypes. Être compatible avec la filiation n’est pas une preuve de filiation. VeilCore n’a rien analysé.',
   'app.parentage.cert.bounds':
-    'Prouvé : au plus 2 conflits avec le père et au plus 2 avec la mère, au plus 3 dans le trio, et au moins 175 SNP comparés avec chaque parent. Le minimum de l’ICAR de 165 SNP que les deux parents ont en commun, pour le trio, revient au laboratoire ; aucune preuve ne le montre.',
+    'Prouvé : au plus 2 conflits avec le père et au plus 2 avec la mère, au plus 3 dans le trio, et au moins 175 SNP comparés entre le descendant et chaque parent. Non prouvé : les minimums de l’ICAR de 185 SNP lus pour chaque animal et de 165 lus chez les trois (descendant, père et mère). Le formulaire n’a pas de nombre pour eux ; le laboratoire les applique.',
   'app.parentage.source.lab':
     'Les comptages du laboratoire, issus du résultat qu’il a signé. Ce sont des comptages, pas une décision d’un organisme de sélection.',
   'app.parentage.limits.labSaw':
@@ -53,7 +53,7 @@ export const parentage = {
   'app.parentage.limits.sample':
     'Un résultat dit ce qu’ont montré les échantillons envoyés sous ces enregistrements. Il ne montre pas que l’animal devant vous est celui qui a été prélevé.',
   'app.parentage.limits.trioMin':
-    'Le formulaire n’a pas de nombre pour les SNP que les deux parents ont en commun (le minimum de 165 de l’ICAR pour le trio). L’appliquer revient au laboratoire, et aucune preuve ne le montre.',
+    'Le formulaire n’a pas de nombre pour les SNP lus pour chaque animal (le minimum de l’ICAR est 185) ni pour ceux lus chez les trois, descendant, père et mère (le minimum de l’ICAR pour le trio est 165). Appliquer ces minimums revient au laboratoire, et aucune preuve ne les montre.',
   'app.parentage.limits.society':
     'Ce n’est pas un certificat d’un organisme de sélection. VeilCore n’a rien analysé et ne se porte garant d’aucun laboratoire.',
   'app.parentage.unmet.trioParents':

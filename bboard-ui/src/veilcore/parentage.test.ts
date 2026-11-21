@@ -105,7 +105,8 @@ describe('ICAR 2023 bands (the prototype’s vectors)', () => {
     ]);
   });
 
-  it('the minimums: 175 SNPs in common with one parent, 165 for the trio', () => {
+  it('the minimums: 185 SNPs called per animal, 175 in common with one parent, 165 in all three of the trio', () => {
+    expect(ICAR_2023.minCalledPerAnimal).toBe(185n);
     expect(ICAR_2023.minCommonSingle).toBe(175n);
     expect(ICAR_2023.minCommonTrio).toBe(165n);
   });
@@ -239,7 +240,7 @@ describe('what the panel offers on a parentage result', () => {
   });
 });
 
-describe('when a link says "meets ICAR 2023 acceptance"', () => {
+describe('when a link says "meets five of ICAR 2023’s parentage checks"', () => {
   const checked = (cs: MadeClaim[], ok = true) => cs.map((c) => ({ ...c, ok }));
 
   it('all five, each checked, on one record under the parentage form', () => {
@@ -290,8 +291,18 @@ describe('the words', () => {
 
   it('the certificate says exactly what tier A is, in English', () => {
     expect(appEn['app.parentage.cert.text']).toBe(
-      'A laboratory’s signed parentage result, dated on Midnight. The holder proved it meets ICAR 2023 acceptance without showing the genotypes or the counts. The laboratory saw the genotypes. Consistent with descent is not proof of descent. VeilCore tested nothing.',
+      'A laboratory’s signed parentage result, dated on Midnight. The holder proved, without showing the genotypes or the counts, that it meets ICAR 2023’s conflict limits and its minimum of SNPs compared with each parent. The laboratory saw the genotypes. Consistent with descent is not proof of descent. VeilCore tested nothing.',
     );
+    expect(appEn['app.parentage.cert.title']).toBe('Meets five of ICAR 2023’s parentage checks');
+  });
+
+  it('says which ICAR minimums were not proved, and never that the parents share the trio’s SNPs', () => {
+    for (const k of ['app.parentage.cert.bounds', 'app.parentage.limits.trioMin', 'app.parentage.bands.compared'])
+      for (const n of ['185', '165']) expect(appEn[k as keyof typeof appEn], `${k} ${n}`).toContain(n);
+    expect(appEn['app.parentage.cert.bounds']).toContain('Not proved');
+    for (const v of Object.values(appEn).filter((v) => /ICAR|trio/.test(v)))
+      expect(v).not.toMatch(/two parents (share|have in common)|parents share/);
+    expect(appEn['app.parentage.cert.title']).not.toMatch(/acceptance/);
   });
 
   it('every parentage string in all five languages, keeping ICAR’s numbers and the limits', () => {
