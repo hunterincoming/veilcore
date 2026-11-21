@@ -11,7 +11,9 @@ confirmed hidden until the holder shared it, a number proved from it, and the re
 (`LAB_SIGNING_RUN_ON_MAINNET` in `bboard-ui/src/config/copy.ts`; the steps:
 [lab-mainnet-test.md](lab-mainnet-test.md)). In that run the lab and the holder were the same
 window, so adding a lab's result file to another breeder's records ("Add it as a record you hold"
-on `/check-lab-result`) is built, not yet run on mainnet.
+on `/check-lab-result`) was not covered; the third run covers it.
+Spreadsheet signing (CSV) live on veilcore.org since 21 Nov 2026. A second breeder adding a lab's
+result file, proving a number on it and reloading: live since 21 Nov 2026.
 
 ## What it is for
 
