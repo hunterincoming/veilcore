@@ -6,6 +6,7 @@
 import React, { Suspense, lazy, useEffect, useRef } from 'react';
 import { Home } from './components/site/Home';
 import { Founders, VerifyLookup } from './components/site/Founders';
+import { Curtain } from './components/site/Curtain';
 import { Privacy } from './components/site/Privacy';
 import { NotFound } from './components/site/NotFound';
 import { HomeScreenStart } from './components/site/HomeScreenStart';
@@ -541,6 +542,7 @@ const App: React.FC = () => (
   <MotionConfig reducedMotion="user">
     <PageTitle />
     <NewPageFocus />
+    <Curtain preload={preloadPage} />
     <Suspense fallback={null}>
       {/* An iPhone Home Screen launch with nothing in its own storage: says nothing is lost, first
         (site/home-screen.ts). Any other visit gets the page it asked for. */}

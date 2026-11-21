@@ -372,6 +372,12 @@ export const en = {
   'm.step4.text': 'Give it to a buyer, examiner or court. They can check it, free, with no account.',
 
   'm.claims.label': 'Prove one fact',
+  'm.claims.1s': '1 shown · 15 sealed',
+  'm.claims.2s': '1 fact · 16 sealed',
+  'm.claims.3s': '≥ 6 differ',
+  'm.claims.4s': '15 unchanged',
+  'm.claims.5s': '1 key signed',
+  'm.claims.fixed': 'fixed',
   'm.claims.title1': 'Share proof,',
   'm.claims.title2': 'not data.',
   'm.claims.lede':

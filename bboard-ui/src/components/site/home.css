@@ -28,10 +28,12 @@
    outlined buttons (his ghost buttons are filled). The text fields keep an underline, drawn as a
    shadow, so people can see where to type.
 
-   Nothing here pins the page or listens to its scroll. The photo opening up and the timeline
-   filling are CSS scroll-driven animations (animation-timeline: view()), which follow the page
-   and never hold it; browsers without them show the finished state. Reduced motion stops every
-   animation (site.css) and the page shows the finished state. */
+   Nothing here pins the page, holds its scroll or turns it sideways. The photo opening up and
+   the timeline filling are CSS scroll-driven animations (animation-timeline: view()), which
+   follow the page and never hold it; browsers without them get the same from one passive
+   scroll listener (night-parts.tsx useScrollPieces), as does the word-light. Motion moves
+   transform and opacity (the photo's inset is a clip-path, as in Mako's). Reduced motion stops
+   every animation (site.css) and the page shows the finished state. */
 
 /* The two faces' @font-face rules are in src/fonts.css: the wordmark uses Archivo on every page. */
 
@@ -250,19 +252,38 @@ html:has(.vcm .home) body {
 }
 
 /* ------------------------------------------------------------------ reveals
-   Mako's: things fade up as they come into view. Only once the script is running (.k-js), so
-   without it everything simply shows. */
+   Mako's: things fade up as they come into view, each time they come into view (night-parts.tsx
+   useReveals). Only once the script is running (.k-js), so without it everything simply shows.
+   His blur is left out: transform and opacity only, so it stays smooth on a phone. */
 .vcm .home [data-reveal] {
   transition:
     opacity 0.9s var(--ease-out),
-    transform 0.9s var(--ease-out),
-    filter 0.9s var(--ease-out);
+    transform 0.9s var(--ease-out);
   transition-delay: calc(var(--d, 0) * 70ms);
+}
+.vcm .home [data-reveal].k-now {
+  transition: none;
 }
 .vcm .home.k-js [data-reveal]:not(.in) {
   opacity: 0;
-  filter: blur(4px);
   transform: translateY(18px);
+}
+
+/* The first screen's intro (Mako's .intro): the headline's lines rise, then the rest fades up
+   in turn. CSS alone, once, on load. */
+.vcm .home .k-intro [data-intro] {
+  animation: k-fadeup 0.9s var(--ease-out) both;
+  animation-delay: calc(var(--i, 0) * 90ms + 300ms);
+}
+@keyframes k-fadeup {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 /* ------------------------------------------------------------------ the hero */
@@ -297,9 +318,10 @@ html:has(.vcm .home) body {
 .vcm .home .k-line > span {
   display: block;
   animation: k-rise 1s var(--ease-out) both;
+  animation-delay: 100ms;
 }
 .vcm .home .k-line + .k-line > span {
-  animation-delay: 90ms;
+  animation-delay: 190ms;
 }
 @keyframes k-rise {
   from {
@@ -507,6 +529,8 @@ html:has(.vcm .home) body {
   position: absolute;
   inset: 0;
   background: var(--fill);
+  /* Set by the script only where CSS has no view timeline (useScrollPieces); open otherwise. */
+  clip-path: inset(var(--ci, 0%) round var(--cr, 0px));
 }
 .vcm .home .k-photo-frame img {
   display: block;
@@ -514,6 +538,8 @@ html:has(.vcm .home) body {
   height: 100%;
   object-fit: cover;
   object-position: 50% 45%;
+  transform: scale(var(--sc, 1));
+  transform-origin: 50% 60%;
 }
 .vcm .home .k-photo-frame::after {
   content: '';
@@ -618,6 +644,9 @@ html:has(.vcm .home) body {
 }
 .vcm .home .k-tl-pin.b {
   left: calc(var(--from) + (var(--to) - var(--from)) * var(--p));
+}
+.vcm .home.k-js .k-wordlight .w {
+  transition: opacity 0.2s linear;
 }
 .vcm .home .k-wordlight {
   max-width: 28ch;
@@ -908,16 +937,13 @@ html:has(.vcm .home) body {
   gap: 24px;
   padding: clamp(20px, 4vw, 56px);
   opacity: 0;
-  filter: blur(8px);
   transform: translateY(16px) scale(0.98);
   transition:
     opacity 0.6s var(--ease-out),
-    transform 0.6s var(--ease-out),
-    filter 0.6s var(--ease-out);
+    transform 0.6s var(--ease-out);
 }
 .vcm .home .k-layer.is-on {
   opacity: 1;
-  filter: none;
   transform: none;
 }
 .vcm .home .k-layer-cap {
@@ -1136,6 +1162,7 @@ html:has(.vcm .home) body {
   display: grid;
 }
 .vcm .home .k-v {
+  position: relative;
   display: flex;
   align-items: flex-end;
   height: 100%;
@@ -1149,6 +1176,22 @@ html:has(.vcm .home) body {
   transition:
     height 0.55s var(--ease-out),
     background-color 0.3s;
+}
+.vcm .home .k-v em {
+  position: absolute;
+  bottom: calc(var(--h) + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: var(--mono);
+  font-size: 11px;
+  font-style: normal;
+  white-space: nowrap;
+  color: var(--ink-1);
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+.vcm .home .k-v:is(.on, .pass, .fix) em {
+  opacity: 1;
 }
 .vcm .home .k-v:is(.on, .pass) i {
   background: var(--yellow);
@@ -1187,10 +1230,20 @@ html:has(.vcm .home) body {
   color: var(--yellow);
 }
 .vcm .home .k-cal figcaption {
+  display: flex;
+  gap: 20px;
   min-height: 3.2em;
   margin-top: 24px;
   font-size: 15px;
   color: var(--ink-2);
+}
+.vcm .home .k-cal-status {
+  flex: none;
+  min-width: 14em;
+  padding-top: 2px;
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--yellow);
 }
 .vcm .home .k-claims-fine {
   margin-top: clamp(40px, 6vh, 72px);
@@ -1596,6 +1649,13 @@ html:has(.vcm .home) [data-site-header] [data-language-picker] .MuiOutlinedInput
   .vcm .home .k-cal-row {
     gap: 3px;
   }
+  .vcm .home .k-v em {
+    font-size: 10px;
+  }
+  .vcm .home .k-cal figcaption {
+    flex-direction: column;
+    gap: 6px;
+  }
   .vcm .home .k-batch {
     flex-direction: column;
     gap: 16px;
@@ -1619,7 +1679,9 @@ html:has(.vcm .home) [data-site-header] [data-language-picker] .MuiOutlinedInput
     animation: none;
   }
   .vcm .home .k-layer {
-    filter: none;
+    transform: none;
+  }
+  .vcm .home .k-ambient {
     transform: none;
   }
 }
@@ -1913,6 +1975,7 @@ html:has(.vcm .home) [data-site-header] nav > a[aria-current='page'] {
   }
 }
 .vcm .home .k-foot-word {
+  overflow: hidden;
   margin: clamp(24px, 4vh, 48px) 0 0;
   font-size: 21vw;
   font-weight: 700;
@@ -1924,8 +1987,17 @@ html:has(.vcm .home) [data-site-header] nav > a[aria-current='page'] {
   transform: translateY(0.08em);
   user-select: none;
 }
+/* The letters rise in turn as the wordmark comes into view (Mako's data-letters). */
 .vcm .home .k-foot-word span {
+  display: inline-block;
+  transition: transform 1.1s var(--ease-out);
+  transition-delay: calc(var(--i) * 45ms);
+}
+.vcm .home .k-foot-word .c {
   color: var(--yellow);
+}
+.vcm .home.k-js .k-foot-word:not(.in) span {
+  transform: translateY(102%);
 }
 
 /* How it works: what stays with you, and what goes on Midnight. */
@@ -2156,4 +2228,114 @@ html:has(.vcm .home) [data-site-header] nav > a[aria-current='page'] {
   .vcm .home :is(.k-door-img, .k-foot-cta-go) {
     transition: none;
   }
+}
+
+/* ------------------------------------------------------------------ the background displays
+   Mako's ambient event displays (EventDisplay.tsx Ambient): behind a section's words, never over
+   them, and never catching the pointer. */
+.vcm .home :has(> .k-ambient) {
+  position: relative;
+  isolation: isolate;
+  overflow: clip;
+}
+.vcm .home .k-ambient {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+.vcm .home .k-ambient canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.vcm .home .k-ambient.faint {
+  opacity: 0.55;
+}
+.vcm .home :has(> .k-ambient) > .k-wrap {
+  position: relative;
+  z-index: 1;
+}
+.vcm .home .k-page-hero > .k-ambient {
+  inset: 0 -10vw auto auto;
+  width: min(58vw, 900px);
+  height: min(78svh, 800px);
+  opacity: 0.75;
+  -webkit-mask-image: radial-gradient(closest-side, #000 60%, transparent);
+  mask-image: radial-gradient(closest-side, #000 60%, transparent);
+}
+.vcm .home #contact > .k-ambient {
+  left: auto;
+  right: -10vw;
+  width: min(62vw, 1000px);
+}
+.vcm .home .k-close > .k-ambient {
+  top: -8vh;
+  right: -22vw;
+  opacity: 0.32;
+}
+.vcm .home .k-door > .k-ambient {
+  /* Over the photo, under the door's shade, as in Mako's. */
+  z-index: -2;
+  opacity: 0.2;
+  transition:
+    opacity 0.6s ease,
+    transform 1.2s var(--ease-out);
+}
+@media (hover: hover) {
+  .vcm .home .k-door:hover > .k-ambient {
+    opacity: 0.42;
+    transform: scale(1.04);
+  }
+}
+
+/* ------------------------------------------------------------------ the page curtain
+   Mako's: a gold panel wipes up over the old page and lifts away from the new one (Curtain.tsx).
+   Outside .vcm (it covers the header too), so not scoped; hidden unless a navigation runs. */
+.vc-curtain {
+  position: absolute;
+  inset: 0;
+  z-index: 1400;
+  display: grid;
+  place-items: center;
+  background: #a67c00;
+  color: #fff;
+  pointer-events: none;
+  transform: translateY(101%);
+}
+.vc-curtain[hidden] {
+  display: none;
+}
+/* Fixed only while it runs: hidden, it is not on the page at all. */
+.vc-curtain:not([hidden]) {
+  position: fixed;
+}
+.vc-curtain.is-in {
+  transform: translateY(0);
+  transition: transform 0.52s cubic-bezier(0.77, 0, 0.175, 1);
+  pointer-events: auto;
+}
+.vc-curtain.is-out {
+  transform: translateY(-101%);
+  transition: transform 0.7s cubic-bezier(0.77, 0, 0.175, 1);
+}
+.vc-curtain-t {
+  font-family: 'VeilCore Archivo', 'Hiragino Sans', 'Yu Gothic UI', 'Noto Sans JP', system-ui, sans-serif;
+  font-size: clamp(3rem, 8.4vw, 9rem);
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  opacity: 0;
+  transform: translateY(24px);
+  transition:
+    opacity 0.3s ease,
+    transform 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+}
+.vc-curtain.is-in .vc-curtain-t {
+  opacity: 1;
+  transform: none;
+  transition-delay: 0.18s;
+}
+html:lang(ja) .vc-curtain-t {
+  letter-spacing: 0;
 }

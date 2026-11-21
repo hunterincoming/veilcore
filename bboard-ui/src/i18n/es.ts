@@ -645,6 +645,12 @@ export const es: Strings = {
     'Solo el código de prueba va a Midnight, en un lote con otros. La fecha es el bloque en el que entra el lote: muestra que el registro existía para entonces.',
   'm.step4.text': 'Entrégueselo a un comprador, un examinador o un tribunal. Pueden comprobarlo gratis y sin cuenta.',
   'm.claims.label': 'Probar un hecho',
+  'm.claims.1s': '1 visible · 15 sellados',
+  'm.claims.2s': '1 hecho · 16 sellados',
+  'm.claims.3s': '≥ 6 distintos',
+  'm.claims.4s': '15 sin cambios',
+  'm.claims.5s': '1 clave firmó',
+  'm.claims.fixed': 'corregido',
   'm.claims.title1': 'Comparta la prueba,',
   'm.claims.title2': 'no los datos.',
   'm.claims.lede':

@@ -3,9 +3,11 @@
 // record."). Each page's root carries the class "home", the scope of home.css, so all three are
 // drawn on the same night ground with the same header.
 //
-// Nothing here pins the page or listens to its scroll: reveals are an IntersectionObserver that
-// adds a class once, the moving band stops off screen, under the pointer, on its button and with
-// reduced motion, and photos load lazily with their size set.
+// Nothing here pins the page, holds its scroll or turns it sideways: reveals are two
+// IntersectionObservers that add and remove a class, the word-light and the photo's opening
+// follow the page from one passive scroll listener (useScrollPieces), the moving band stops off
+// screen, under the pointer, on its button and with reduced motion, and photos load lazily with
+// their size set.
 // SPDX-License-Identifier: Apache-2.0
 
 import React, { useEffect, useRef, useState } from 'react';
@@ -74,33 +76,195 @@ export const reduced = (): boolean =>
   typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 /**
- * Things that fade up as they come into view (Mako's reveals): an IntersectionObserver adds
- * .in once, so nothing is tied to the page's scroll and nothing holds it. Without the observer,
- * or with reduced motion, everything is simply shown.
+ * Things that fade up as they come into view (Mako's reveals), and the footer's wordmark, whose
+ * letters rise (his data-letters). As in his script they replay: a block animates in each time
+ * it enters the view, from above or below, and quietly resets once it is fully off screen. Two
+ * IntersectionObservers do it, so nothing is tied to the page's scroll and nothing holds it.
+ * Without the observer, or with reduced motion, everything is simply shown. Only the look
+ * changes: the words stay in the page for screen readers, find-in-page and the keyboard.
  */
 export const useReveals = (root: React.RefObject<HTMLElement | null>): void => {
   useEffect(() => {
     const el = root.current;
     if (!el) return;
-    const all = [...el.querySelectorAll<HTMLElement>('[data-reveal]')];
+    const all = [...el.querySelectorAll<HTMLElement>('[data-reveal],[data-letters]')];
     if (reduced() || typeof IntersectionObserver === 'undefined') {
       all.forEach((n) => n.classList.add('in'));
       return;
     }
     el.classList.add('k-js');
-    const io = new IntersectionObserver(
+    const show = new IntersectionObserver(
       (entries) => {
-        for (const e of entries)
-          if (e.isIntersecting) {
-            e.target.classList.add('in');
-            io.unobserve(e.target);
-          }
+        for (const e of entries) if (e.isIntersecting) e.target.classList.add('in');
       },
-      { rootMargin: '0px 0px -10% 0px', threshold: 0.05 },
+      { rootMargin: '0px 0px -12% 0px', threshold: 0.05 },
     );
-    all.forEach((n) => io.observe(n));
-    return () => io.disconnect();
+    const hide = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) if (!e.isIntersecting) e.target.classList.remove('in');
+      },
+      { threshold: 0 },
+    );
+    // A block that has focus is shown at once, wherever it is (a keyboard user tabbing into it):
+    // no fade, so focus never lands on faint text.
+    const focused = (e: FocusEvent) => {
+      const block = (e.target as Element | null)?.closest?.('[data-reveal]');
+      if (!block || !el.contains(block) || block.classList.contains('in')) return;
+      block.classList.add('k-now', 'in');
+      requestAnimationFrame(() => requestAnimationFrame(() => block.classList.remove('k-now')));
+    };
+    el.addEventListener('focusin', focused);
+    all.forEach((n) => {
+      show.observe(n);
+      hide.observe(n);
+    });
+    return () => {
+      show.disconnect();
+      hide.disconnect();
+      el.removeEventListener('focusin', focused);
+      el.classList.remove('k-js');
+      all.forEach((n) => n.classList.remove('in'));
+    };
   }, [root]);
+};
+
+const clamp01 = (x: number) => Math.max(0, Math.min(1, x));
+const easeOut = (t: number) => 1 - (1 - t) ** 3;
+
+/**
+ * Mako's scramble: a code settles from random hex, left to right, in 0.9 s. For decoration only
+ * (its box is hidden from screen readers); with reduced motion it is left as it is.
+ */
+export const scramble = (el: HTMLElement | null, target: string): (() => void) => {
+  if (!el || reduced()) return () => undefined;
+  const hex = '0123456789abcdef';
+  const start = performance.now();
+  let raf = 0;
+  const step = (now: number) => {
+    const t = clamp01((now - start) / 900);
+    const fixed = Math.floor(easeOut(t) * target.length);
+    let s = target.slice(0, fixed);
+    for (let i = fixed; i < target.length; i++) s += hex[(Math.random() * 16) | 0];
+    el.textContent = s;
+    raf = t < 1 ? requestAnimationFrame(step) : 0;
+  };
+  raf = requestAnimationFrame(step);
+  return () => {
+    cancelAnimationFrame(raf);
+    el.textContent = target;
+  };
+};
+
+/**
+ * How dim a word not yet lit is. Mako's is 0.16; 0.4 keeps every word at 3:1 or more on the
+ * night (ink #ECEEF1 on #0B0E14), so the sentence can be read wherever it is on screen.
+ */
+const DIM = 0.4;
+
+/** A view timeline in CSS (home.css @supports): then the photo and the timeline need no script. */
+const cssViewTimeline = (): boolean =>
+  typeof CSS !== 'undefined' && typeof CSS.supports === 'function' && CSS.supports('animation-timeline: view()');
+
+/**
+ * The scroll-linked pieces of Mako's script that only follow the page, never hold it or turn it
+ * sideways: the paragraph whose words light up as it rises (his word-light), and, where the
+ * browser has no CSS view timeline, the photo opening from an inset and the timeline filling
+ * (home.css draws those itself where it can). One passive scroll listener, read in one
+ * animation frame; it writes only opacity and CSS variables for transform and clip-path, and
+ * skips what is off screen. With reduced motion everything is shown finished and nothing listens.
+ */
+export const useScrollPieces = (root: React.RefObject<HTMLElement | null>): void => {
+  useEffect(() => {
+    const el = root.current;
+    if (!el) return;
+    const css = cssViewTimeline();
+    const photos = css ? [] : [...el.querySelectorAll<HTMLElement>('.k-photo-frame')];
+    const timelines = css ? [] : [...el.querySelectorAll<HTMLElement>('.k-timeline')];
+    const lights = [...el.querySelectorAll<HTMLElement>('[data-wordlight]')].map((p) => ({
+      p,
+      words: [...p.querySelectorAll<HTMLElement>('.w')],
+      last: -1,
+    }));
+    if (!photos.length && !timelines.length && !lights.length) return;
+    const finish = () => {
+      lights.forEach(({ words }) => words.forEach((w) => (w.style.opacity = '')));
+      photos.forEach((f) => ['--ci', '--cr', '--sc'].forEach((v) => f.style.removeProperty(v)));
+      timelines.forEach((t) => t.style.removeProperty('--p'));
+    };
+    if (reduced()) return finish;
+    let ticking = false;
+    const frame = () => {
+      ticking = false;
+      const vh = window.innerHeight;
+      for (const t of timelines) {
+        const r = t.getBoundingClientRect();
+        t.style.setProperty('--p', clamp01((vh * 0.9 - r.top) / (vh * 0.6)).toFixed(3));
+      }
+      for (const f of photos) {
+        const r = f.getBoundingClientRect();
+        if (r.bottom < 0 || r.top > vh) continue;
+        const p = clamp01((vh - r.top) / (vh * 0.9));
+        f.style.setProperty('--ci', `${((1 - p) * 9).toFixed(2)}%`);
+        f.style.setProperty('--cr', `${((1 - p) * 28).toFixed(1)}px`);
+        f.style.setProperty('--sc', (1.16 - 0.16 * p).toFixed(4));
+      }
+      for (const l of lights) {
+        const r = l.p.getBoundingClientRect();
+        if (r.bottom < 0 || r.top > vh) continue;
+        const p = clamp01((vh * 0.85 - r.top) / (r.height + vh * 0.35));
+        if (p === l.last) continue;
+        l.last = p;
+        const n = l.words.length;
+        l.words.forEach((w, i) => (w.style.opacity = (DIM + (1 - DIM) * clamp01(p * n * 1.15 - i)).toFixed(2)));
+      }
+    };
+    const onScroll = () => {
+      if (!ticking) {
+        ticking = true;
+        requestAnimationFrame(frame);
+      }
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll, { passive: true });
+    frame();
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onScroll);
+      finish();
+    };
+  }, [root]);
+};
+
+/**
+ * Mako's word-light: a paragraph whose words light up one by one as it rises through the window
+ * (useScrollPieces). The words are the text itself, each in a span; only their opacity changes,
+ * so screen readers and find-in-page read the sentence as written. Japanese, written without
+ * spaces, is cut into words by the browser's own word breaker.
+ */
+export const WordLight: React.FC<{ text: string; className?: string }> = ({ text, className }) => {
+  const { lang } = useI18n();
+  const parts: string[] = (() => {
+    const Seg = (Intl as { Segmenter?: typeof Intl.Segmenter }).Segmenter;
+    if (lang === 'ja' && Seg) return [...new Seg(lang, { granularity: 'word' }).segment(text)].map((s) => s.segment);
+    return text.split(/(\s+)/);
+  })();
+  // Screen readers get the sentence whole (one span per word can be read a word at a time).
+  return (
+    <p className={`k-wordlight${className ? ` ${className}` : ''}`} data-wordlight="">
+      <span style={SR_ONLY}>{text}</span>
+      <span aria-hidden="true">
+        {parts.map((w, i) =>
+          /^\s*$/.test(w) ? (
+            w
+          ) : (
+            <span className="w" key={i}>
+              {w}
+            </span>
+          ),
+        )}
+      </span>
+    </p>
+  );
 };
 
 /** Arriving from another page at #section: the router does not scroll to it. */
@@ -343,8 +507,13 @@ export const NightClose: React.FC = () => {
           </span>
         </RouterLink>
       </div>
-      <p className="k-foot-word" aria-hidden="true">
-        Veil<span>C</span>ore
+      {/* The letters rise as the wordmark comes into view (Mako's data-letters, useReveals). */}
+      <p className="k-foot-word" aria-hidden="true" data-letters="">
+        {[...'VeilCore'].map((ch, i) => (
+          <span key={i} className={i === 4 ? 'c' : undefined} style={{ '--i': i } as React.CSSProperties}>
+            {ch}
+          </span>
+        ))}
       </p>
     </div>
   );

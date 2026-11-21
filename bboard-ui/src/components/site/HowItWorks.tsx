@@ -20,7 +20,17 @@ import { Link as RouterLink, useLocation } from 'react-router-dom';
 import { useI18n } from '../../i18n';
 import { SiteShell } from './SiteShell';
 import { EventDisplay } from './EventDisplay';
-import { Arrow, NightClose, PhotoCredits, PhotoScreen, Two, arrowed, useHashScroll, useReveals } from './night-parts';
+import {
+  Arrow,
+  NightClose,
+  PhotoCredits,
+  PhotoScreen,
+  Two,
+  arrowed,
+  useHashScroll,
+  useReveals,
+  useScrollPieces,
+} from './night-parts';
 import { Claims } from './Claims';
 import { LiveWhere, StandList } from './LiveWhere';
 import './home.css';
@@ -33,6 +43,7 @@ export const HowItWorks: React.FC = () => {
   const { hash } = useLocation();
   const root = useRef<HTMLDivElement>(null);
   useReveals(root);
+  useScrollPieces(root);
   useHashScroll(hash);
 
   const side = (keys: [string, string][]) => (
@@ -60,7 +71,7 @@ export const HowItWorks: React.FC = () => {
   return (
     <SiteShell>
       <div className="home k-page" ref={root}>
-        <header className="k-screen k-hero k-page-hero" id="top">
+        <header className="k-screen k-hero k-page-hero k-intro" id="top">
           <div className="k-wrap k-hero-grid">
             <div className={`k-hero-text${lang === 'ja' ? ' cjk' : ''}`}>
               <h1>
@@ -72,8 +83,10 @@ export const HowItWorks: React.FC = () => {
                   <span>{t('m.hiw.title2')}</span>
                 </span>
               </h1>
-              <p className="k-lede">{t('m.hiw.lede')}</p>
-              <div className="k-actions hero-actions">
+              <p className="k-lede" data-intro="" style={{ '--i': 2 } as React.CSSProperties}>
+                {t('m.hiw.lede')}
+              </p>
+              <div className="k-actions hero-actions" data-intro="" style={{ '--i': 3 } as React.CSSProperties}>
                 <RouterLink className="k-btn k-btn-primary" to="/new">
                   {t('m.demo.create.title')}
                   <Arrow />
