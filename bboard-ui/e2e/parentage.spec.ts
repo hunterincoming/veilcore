@@ -8,7 +8,7 @@
 //      rounded into "doubtful"), says the bands in plain words, and the limits of a parentage
 //      result. The holder proves all five and copies one link with them.
 //   2. That link, opened by a stranger: with a laboratory standing behind the numbers and every
-//      claim checked, the page says it meets ICAR 2023 acceptance in the fixed words; with one
+//      claim checked, the page says it meets five of ICAR 2023's checks in the fixed words; with one
 //      claim failing, or no laboratory, it doesn't.
 //   3. A lab's result with a doubtful sire: no claim about the sire is offered, and the page says why.
 //
@@ -209,9 +209,9 @@ const signAndAdd = async (browser: Browser, numbers: Numbers) => {
 };
 
 const OFFERS = [
-  'Conflicts with the sire: at most 2 (ICAR accepted)',
-  'Conflicts with the dam: at most 2 (ICAR accepted)',
-  'Conflicts across the trio: at most 3 (ICAR accepted)',
+  'Conflicts with the sire: at most 2 (within ICAR’s accepted band)',
+  'Conflicts with the dam: at most 2 (within ICAR’s accepted band)',
+  'Conflicts across the trio: at most 3 (within ICAR’s accepted band)',
   'SNPs compared with the sire: at least 175 (ICAR minimum)',
   'SNPs compared with the dam: at least 175 (ICAR minimum)',
 ];
@@ -219,7 +219,7 @@ const OFFERS = [
 test.describe('a laboratory’s signed parentage result', () => {
   test.use({ viewport: PHONE });
 
-  test('the lab signs it; the holder proves ICAR 2023 acceptance; a stranger checks the link', async ({ browser }) => {
+  test('the lab signs it; the holder proves five ICAR 2023 checks; a stranger checks the link', async ({ browser }) => {
     test.setTimeout(300_000);
     const { page, ctx, errors } = await signAndAdd(browser, ACCEPTED);
     const panel = page.locator('[data-prove-number]');
@@ -321,9 +321,12 @@ test.describe('a laboratory’s signed parentage result', () => {
     {
       const { p, s, errs } = await open({ first: ok, rest: { ok: true, blockHeight: 3514960 } });
       const cert = p.locator('[data-parentage-cert]');
-      await expect(cert).toContainText('Meets ICAR 2023 parentage acceptance');
+      await expect(cert).toContainText('Meets five of ICAR 2023’s parentage checks');
       await expect(cert).toContainText(
-        'A laboratory’s signed parentage result, dated on Midnight. The holder proved it meets ICAR 2023 acceptance without showing the genotypes or the counts. The laboratory saw the genotypes. Consistent with descent is not proof of descent. VeilCore tested nothing.',
+        'A laboratory’s signed parentage result, dated on Midnight. The holder proved, without showing the genotypes or the counts, that it meets ICAR 2023’s conflict limits and its minimum of SNPs compared with each parent. The laboratory saw the genotypes. Consistent with descent is not proof of descent. VeilCore tested nothing.',
+      );
+      await expect(cert).toContainText(
+        'Not proved: ICAR’s minimums of 185 SNPs read for each animal and 165 read in all three (offspring, sire and dam).',
       );
       await expect(p.locator('[data-marker-more-claim="ok"]')).toHaveCount(4);
       await expect(p.locator('[data-marker-source="lab"]')).toHaveText(
