@@ -12,7 +12,7 @@ permissions: {}
 #
 #   contract ──┬── packages       (contract tests, api, partner kit, VeilCore-run, CLI, sponsor, scripts)
 #              ├── site-unit      (site typecheck, lint, unit tests and the built site under production headers)
-#              └── site-browser   (the browser tests, in 4 shards)
+#              └── site-browser   (the browser tests, in 6 shards)
 #                        └── install-and-test   (passes only when every job above passed)
 #
 # The contract is compiled once, with its keys, and handed to the other jobs. `install-and-test`
@@ -175,7 +175,7 @@ jobs:
   # The built site in a real browser at phone size, with a stand-in registry and every
   # other network request refused (bboard-ui/e2e/README.md). Catches what only breaks
   # in a browser: bundling, storage, the chain code loading, pages that come up blank.
-  # Split by test file into 4 shards; together they run every test, as one run did.
+  # Split by test file into 6 shards; together they run every test, as one run did.
   site-browser:
     needs: contract
     runs-on: ubuntu-24.04
@@ -184,7 +184,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        shard: [1, 2, 3, 4]
+        shard: [1, 2, 3, 4, 5, 6]
     steps:
       - name: Checkout code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  #v7.0.1
@@ -200,7 +200,7 @@ jobs:
           name: compiled-contract
           path: contract/src/managed
 
-      - name: Site in a browser (shard ${{ matrix.shard }} of 4)
+      - name: Site in a browser (shard ${{ matrix.shard }} of 6)
         working-directory: bboard-ui
         env:
           SHARD: ${{ matrix.shard }}
@@ -208,7 +208,7 @@ jobs:
           npm run build -w @veilcore/contract
           npm run e2e:setup -- --with-deps
           npm run e2e:build
-          npm run e2e -- --shard="$SHARD/4"
+          npm run e2e -- --shard="$SHARD/6"
 
       # A browser test that fails only here: print what the page showed (Playwright's text
       # snapshot of it), so the cause can be read from the log.
