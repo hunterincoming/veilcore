@@ -87,7 +87,9 @@ const Steps: React.FC = () => {
     <div className="k-wrap k-how-grid">
       <div>
         <h2 id="how-h" className="k-h2" data-reveal="">
-          <Two a={t('m.how.title1')} b={t('m.how.title2')} />
+          {/* "Four steps." alone: its second line, "The genetics stay with you.", repeated the jar's
+              headline just below (cut with the founder's OK, 22 Nov). */}
+          {t('m.how.title1')}
         </h2>
         <ol className="k-steps" ref={list}>
           {(['1', '2', '3', '4'] as const).map((n, i) => (

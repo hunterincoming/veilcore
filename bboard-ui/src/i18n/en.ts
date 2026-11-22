@@ -394,7 +394,6 @@ export const en = {
 
   'm.how.label': 'How it works',
   'm.how.title1': 'Four steps.',
-  'm.how.title2': 'The genetics stay with you.',
   'm.step1.n': '01 · Record',
   'm.step1.title': 'Write it down',
   'm.step1.text':

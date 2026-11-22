@@ -684,7 +684,6 @@ export const fr: Strings = {
   'm.for.5ask': 'Si vous élevez des animaux, dites-nous ce dont vos enregistrements ont besoin.',
   'm.how.label': 'Comment ça marche',
   'm.how.title1': 'Quatre étapes.',
-  'm.how.title2': 'La génétique reste chez vous.',
   'm.step1.title': 'Le noter',
   'm.step1.text':
     'Ce que c’est et d’où ça vient. Le serveur de VeilCore conserve les détails verrouillés, le nom compris, et nous n’avons pas la clé. Un lien de vérification ne porte le nom que si vous l’activez, pour les personnes à qui vous l’envoyez.',

@@ -63,7 +63,6 @@ test.describe('the home page', () => {
 
     // Nothing is sticky or fixed but the site header, and the small "Back to top" button, which
     // holds nothing (the wheel steps above went on under it).
-    await expect(page.locator('[data-back-to-top]')).toBeVisible();
     const pinned = await page.evaluate(() =>
       [...document.querySelectorAll<HTMLElement>('body *')]
         .filter((el) => ['sticky', 'fixed'].includes(getComputedStyle(el).position))
@@ -203,7 +202,9 @@ test.describe('the home page', () => {
     expect(order[2]).toBe('claims');
     expect(order[3]).toContain('k-photo');
     await expect(page.locator('#how .k-steps > li')).toHaveCount(4);
-    await expect(page.locator('#how-h')).toContainText('Four steps.');
+    await expect(page.locator('#how-h')).toHaveText('Four steps.');
+    // Its old second line repeated the jar's headline; the jar keeps it (once on the page).
+    await expect(page.locator('main').getByText('genetics stay with you', { exact: false })).toHaveCount(1);
     await expect(page.locator('.k-photo img[src*="jar"]')).toHaveCount(1);
     await expect(page.locator('#claims-h')).toHaveCount(1);
     // Choosing a step lights it, and the steps don't hold the page.
@@ -217,7 +218,11 @@ test.describe('the home page', () => {
       // and the keyboard back to the title.
       const top = page.getByRole('button', { name: 'Back to top' });
       await expect(top).toHaveCount(0);
+      // At the very bottom it steps aside, so it never covers the wordmark.
       await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+      await expect(page.locator('.k-foot-word')).toBeInViewport();
+      await expect(top).toHaveCount(0);
+      await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight / 2));
       await expect(top).toBeVisible();
       await top.focus();
       await page.keyboard.press('Enter');

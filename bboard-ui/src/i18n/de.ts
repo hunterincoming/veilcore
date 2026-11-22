@@ -681,7 +681,6 @@ export const de: Strings = {
   'm.for.5ask': 'Wenn Sie Tiere züchten, sagen Sie uns, was Ihre Datensätze brauchen.',
   'm.how.label': 'So funktioniert es',
   'm.how.title1': 'Vier Schritte.',
-  'm.how.title2': 'Die Genetik bleibt bei Ihnen.',
   'm.step1.title': 'Aufschreiben',
   'm.step1.text':
     'Was es ist und woher es stammt. Der Server von VeilCore speichert die Angaben verschlossen, auch den Namen, und wir haben den Schlüssel nicht. Ein Prüflink trägt den Namen nur, wenn Sie das einschalten, für die Menschen, denen Sie ihn schicken.',

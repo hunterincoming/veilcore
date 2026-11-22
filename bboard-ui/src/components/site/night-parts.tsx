@@ -523,7 +523,8 @@ const TOP_AFTER = 1.5;
  * (aria-hidden), and the button is the page's own furniture, like the header.
  *
  * The button is not on the page at all until the page is scrolled 1.5 windows down (hidden, so
- * not tabbed to); then it is a round button in the bottom corner, labelled, that takes the page
+ * not tabbed to), nor while the wordmark is on screen, so it never covers its last letter on a
+ * phone; otherwise it is a round button in the bottom corner, labelled, that takes the page
  * and the keyboard focus back to the title. It moves nothing and holds nothing: the page scrolls
  * under it as normal. With reduced motion the jump is instant and nothing fades or rises.
  */
@@ -532,6 +533,8 @@ export const NightEnd: React.FC = () => {
   const root = useRef<HTMLDivElement>(null);
   const word = useRef<HTMLParagraphElement>(null);
   const [away, setAway] = useState(false);
+  // While the wordmark is on screen the button steps aside, so it never covers a letter.
+  const [atEnd, setAtEnd] = useState(false);
 
   // The letters: the same two observers as useReveals, for the one element out of a page's root.
   useEffect(() => {
@@ -563,6 +566,16 @@ export const NightEnd: React.FC = () => {
       el.classList.remove('k-js');
       w.classList.remove('in');
     };
+  }, []);
+
+  useEffect(() => {
+    const w = word.current;
+    if (!w || typeof IntersectionObserver === 'undefined') return;
+    const io = new IntersectionObserver((entries) => {
+      for (const e of entries) setAtEnd(e.isIntersecting);
+    });
+    io.observe(w);
+    return () => io.disconnect();
   }, []);
 
   // Whether the page is far enough down for the button: one passive listener, read once a frame.
@@ -609,7 +622,7 @@ export const NightEnd: React.FC = () => {
       <button
         type="button"
         className="k-top"
-        hidden={!away}
+        hidden={!away || atEnd}
         onClick={toTop}
         title={t('m.foot.top')}
         data-back-to-top=""
