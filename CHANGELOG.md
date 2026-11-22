@@ -10,6 +10,18 @@ section.
 
 ## [Unreleased]
 
+### "Prove a fact", and "this device" on the seal screen (21 Nov 2026, not deployed yet)
+
+- "Prove one number" is now "Prove a fact", in all five languages: it proves a number's limit
+  and also a yes/no result such as "not detected". The help, the live list, the home page's
+  claims line, "Show someone", the check page and llms.txt say the same, and the home page's
+  heading ("Prove one fact") and the live list now use the same name.
+- The claim check page's closing line fits the claim: a number's bound keeps its line; a lab
+  result's yes/no call a lab stands behind says "the result sealed in that record is “Not
+  detected”"; in every other state it says the result code meets the line above, never the word.
+- A record sealed with no signal says "Sealed on this device" instead of guessing phone or
+  computer from the screen, which told a phone "this computer".
+
 ### A way in for labs (21 Nov 2026, not deployed yet)
 
 - "For labs" in the site's header (under "Menu" on a phone), on the home page's lab slide and on

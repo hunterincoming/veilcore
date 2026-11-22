@@ -86,7 +86,7 @@ const liveRows = (): readonly LiveRow[] =>
     // site and the demo too, since it is a fact about veilcore.org. Until then they say licenses
     // come with the deploy (m.live.lic.mainNext).
     if (AGREEMENTS_LIVE && r[0] === 'lic') return ['lic', true, true, false] as unknown as LiveRow;
-    // "Prove one number" on veilcore.org (the sponsor pays for VeilCore's claims contract).
+    // "Prove a fact" on veilcore.org (the sponsor pays for VeilCore's claims contract).
     if (CLAIMS_ON_SITE() && r[0] === 'claims') return ['claims', true, true, false] as unknown as LiveRow;
     return r;
   });

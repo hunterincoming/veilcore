@@ -137,7 +137,7 @@ export type BuildKind = {
   chainSends?: boolean;
   /** Mainnet: licenses are switched on (config/copy.ts AGREEMENTS_LIVE). */
   agreementsLive?: boolean;
-  /** Mainnet: the site offers "prove one number" (chain/config.ts CLAIMS_READY). */
+  /** Mainnet: the site offers "prove a fact" (chain/config.ts CLAIMS_READY). */
   claimsOnSite?: boolean;
 };
 

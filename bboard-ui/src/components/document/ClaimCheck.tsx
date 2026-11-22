@@ -29,13 +29,13 @@ import { useT } from '../../i18n/app';
 import { DocumentDate, Fact } from './DocumentParts';
 import { claimRawWords, claimWords, MarkerLimits, ParentageBands } from './ProveNumber';
 import { PARENTAGE_SCHEMA, meetsAcceptance } from '../../veilcore/parentage';
-import { claimFooterKey, labStands } from '../../veilcore/claim-call';
+import { claimFooter, labStands } from '../../veilcore/claim-call';
 import { schemaWords } from './NumbersFields';
 import { keyShort } from '../../veilcore/lab-key-text';
 import { signerLabel, type ResolvedAttestation } from '../../veilcore/attesters';
 import { labIdentitySeverity } from '../../veilcore/lab-identity-words';
 import { NameCheckText } from '../NameCheckText';
-import { RESULT_CALL_SCHEMAS } from '../../veilcore/field-set';
+import { RESULT_CALL_SCHEMAS, SCHEMAS } from '../../veilcore/field-set';
 import { ClaimResultFile } from '../lab/ClaimResultFile';
 import { ViabilityNotRead } from '../lab/ResultFacts';
 import { viabilityNotRead } from '../../config/network';
@@ -103,6 +103,10 @@ export const ClaimCheck: React.FC = () => {
       : claimWords(link, tr, stands)
     : '';
   const parentage = !!link && link.schema === PARENTAGE_SCHEMA;
+  // The closing line fits the claim's kind: a number's bound, or a lab result's yes/no call.
+  const footer = link
+    ? claimFooter(verdict, SCHEMAS[link.schema]?.slots.find((x) => x.slot === link.slot)?.path, link)
+    : undefined;
   const markerSource = link ? markerSourceKey(verdict, !!offerOf(link)?.count) : undefined;
   // A parentage result's counts are not "a decision about the variety".
   const sourceKey = parentage && markerSource === 'app.marker.source.lab' ? 'app.parentage.source.lab' : markerSource;
@@ -319,7 +323,7 @@ export const ClaimCheck: React.FC = () => {
               </Paper>
             )}
             <Typography variant="body2" color="text.secondary">
-              {t(claimFooterKey(verdict))}
+              {footer && t(footer.key, footer.call ? { call: t(footer.call) } : undefined)}
             </Typography>
           </Stack>
         )}

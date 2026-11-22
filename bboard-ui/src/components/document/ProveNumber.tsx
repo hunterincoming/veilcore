@@ -1,4 +1,4 @@
-// "Prove one number" on a document with sealed numbers (docs/claims-screen.md): pick the
+// "Prove a fact" on a document with sealed numbers (docs/claims-screen.md): pick the
 // number, at most / at least a bound (the number is never published) or exactly (it is), and
 // prove it on Midnight from this browser. Before proving, the page says what earlier claims on
 // that number already made public (SPEC 4.5, disclosure accounting). After, a link anyone can
@@ -646,7 +646,7 @@ export const ProveNumber: React.FC<{
 };
 
 /**
- * "Prove one number" for a record kept on this device only: the holder's choice, off every time
+ * "Prove a fact" for a record kept on this device only: the holder's choice, off every time
  * the page is opened. Until it is turned on the page says what proving would do and shows no
  * way to do it. (`initialOn` is for a test.)
  */

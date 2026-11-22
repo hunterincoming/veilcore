@@ -33,7 +33,7 @@ export const de: Strings = {
     'Eine datierte Beschreibung von etwas, das Sie halten: eine Pflanze, ein Tier, ein Stamm oder eine Zelllinie, oder ein Dokument. Ihr Browser macht daraus einen kurzen Prüfcode, und dieser Code wird zusammen mit anderen in einem Stapel auf Midnight datiert. Er belegt, dass Sie diesen Datensatz zu diesem Datum bereits hatten. Er belegt nicht, wer Rechte an etwas hat, und nicht, dass der Inhalt des Datensatzes stimmt.',
   'm.help.start.2q': 'Was brauche ich?',
   'm.help.start.2a':
-    'Ein Handy oder einen Computer mit aktuellem Browser. Keine Wallet, keine Anmeldung, nichts zu kaufen. Um eine einzelne Zahl aus einem Datensatz zu belegen, brauchen Sie einen Computer: Auf Handys wurde das noch nicht ausprobiert.',
+    'Ein Handy oder einen Computer mit aktuellem Browser. Keine Wallet, keine Anmeldung, nichts zu kaufen. Um eine Tatsache aus einem Datensatz zu belegen, brauchen Sie einen Computer: Auf Handys wurde das noch nicht ausprobiert.',
   'm.help.start.3q': 'Was kostet es?',
   'm.help.start.3a': 'Einen Datensatz auf dieser Website anzulegen und jeden Datensatz zu prüfen ist kostenlos.',
   'm.help.make.t': 'Einen Datensatz anlegen',
@@ -70,9 +70,9 @@ export const de: Strings = {
   'm.help.show.2q': 'Wie zeige ich ein Dokument?',
   'm.help.show.2a':
     'Senden Sie den Prüflink zusammen mit der Datei. Der Browser der anderen Person vergleicht die Datei Byte für Byte mit dem versiegelten Datensatz und zeigt, seit wann Sie sie hatten. Deren Kopie der Datei wird nicht hochgeladen.',
-  'm.help.show.3q': 'Kann ich eine Zahl belegen, ohne den Rest zu zeigen?',
+  'm.help.show.3q': 'Kann ich eine Tatsache belegen, ohne den Rest zu zeigen?',
   'm.help.show.3a':
-    'Ja, wenn Sie den Datensatz mit seinen Zahlen versiegelt haben. Sie können belegen, dass eine Zahl höchstens oder mindestens einen Grenzwert erreicht oder genau einem Wert entspricht. Nutzen Sie einen Computer.',
+    'Ja, wenn Sie den Datensatz mit seinen Zahlen versiegelt haben. Sie können belegen, dass eine Zahl höchstens oder mindestens einen Grenzwert erreicht oder genau einem Wert entspricht, oder dass ein Laborergebnis „nicht nachgewiesen“ ist. Nutzen Sie einen Computer.',
   'm.help.check.t': 'Einen Datensatz prüfen, den Ihnen jemand geschickt hat',
   'm.help.check.1q': 'Jemand hat mir einen Datensatz geschickt. Wie prüfe ich ihn?',
   'm.help.check.1a':
@@ -496,16 +496,16 @@ export const de: Strings = {
   'm.live.local.t': 'Ein Dokument, das nur auf Ihrem Gerät aufbewahrt wird',
   'm.live.local.main': 'Gebaut, im Hauptnetz aber noch nicht ausprobiert.',
   'm.live.local.test':
-    'Ja, für Dokument-Datensätze. Nichts von dem, was Sie eingeben, wird an VeilCore gesendet: nur die Kennung des Datensatzes, sein Prüfcode und seine Schlüsselbindung. Die einzige Ausnahme ist eine Zahl, die Sie belegen wollen (nächste Zeile).',
+    'Ja, für Dokument-Datensätze. Nichts von dem, was Sie eingeben, wird an VeilCore gesendet: nur die Kennung des Datensatzes, sein Prüfcode und seine Schlüsselbindung. Die einzige Ausnahme ist eine Tatsache, die Sie belegen wollen (nächste Zeile).',
   'm.live.local.live':
-    'Ja, für Dokument-Datensätze. Nichts von dem, was Sie eingeben, wird an VeilCore gesendet: nur die Kennung des Datensatzes, sein Prüfcode und seine Schlüsselbindung. Die einzige Ausnahme ist eine Zahl, die Sie belegen wollen (nächste Zeile).',
+    'Ja, für Dokument-Datensätze. Nichts von dem, was Sie eingeben, wird an VeilCore gesendet: nur die Kennung des Datensatzes, sein Prüfcode und seine Schlüsselbindung. Die einzige Ausnahme ist eine Tatsache, die Sie belegen wollen (nächste Zeile).',
   'm.live.docchain.t': 'Eine Produktionskette als verknüpfte Datensätze',
   'm.live.docchain.main': 'Gebaut, im Hauptnetz aber noch nicht ausprobiert.',
   'm.live.docchain.test':
     'Gebaut, aber noch nicht ausprobiert. Ausgangsdatensatz, Anbaucharge, Erntelos und Laborbericht nennen jeweils den vorherigen, und jeder hat sein eigenes Datum. Die Verknüpfungen sind die Angabe des Inhabers.',
   'm.live.docchain.live':
     'Ja. Ausgangsdatensatz, Anbaucharge, Erntelos und Laborbericht nennen jeweils den vorherigen, und jeder hat sein eigenes Datum. Die Verknüpfungen sind die Angabe des Inhabers und werden weder von VeilCore noch von Midnight geprüft.',
-  'm.live.localclaims.t': 'Eine Zahl aus einem Dokument belegen, das nur auf Ihrem Gerät liegt',
+  'm.live.localclaims.t': 'Eine Tatsache aus einem Dokument belegen, das nur auf Ihrem Gerät liegt',
   'm.live.localclaims.main': 'Gebaut, im Hauptnetz aber noch nicht ausprobiert.',
   'm.live.localclaims.test':
     'Gebaut, aber noch nicht ausprobiert. Ihre Wahl, aus, bis Sie es einschalten. Was Sie belegen, ist auf Midnight öffentlich; an das Register von VeilCore geht nichts, aber VeilCore kann das Belegte dem Datensatz zuordnen.',
@@ -518,11 +518,11 @@ export const de: Strings = {
   'm.live.prove.test':
     'Ja. Die Seite der anderen Person prüft im Netzwerk, dass Sie den eigenen Schlüssel des Datensatzes kontrollieren. Der Datensatz hat diesen Schlüssel beim Versiegeln benannt, deshalb lässt er sich nicht austauschen.',
   'm.live.prove.not': 'Auf veilcore.org: Dafür muss Ihr Browser eine Transaktion senden.',
-  'm.live.claims.t': 'Eine Tatsache beweisen (Belege)',
+  'm.live.claims.t': 'Eine Tatsache belegen (Belege)',
   'm.live.claims.main': 'Im Hauptnetz, ohne Wartungsschlüssel. Die Website kann ihn noch nicht nutzen.',
   'm.live.claims.not': 'Ihn über die Website nutzen.',
   'm.live.claims.live':
-    'Ja, an einem Computer: eine Zahl aus einem versiegelten Zertifikat oder Laborergebnis belegen, ohne den Rest zu zeigen. Auf Handys noch nicht ausprobiert.',
+    'Ja, an einem Computer: eine Tatsache aus einem versiegelten Zertifikat oder Laborergebnis belegen, ohne den Rest zu zeigen. Auf Handys noch nicht ausprobiert.',
   'm.live.lic.t': 'Lizenzen und Lizenzgebühren',
   'm.live.lic.main': 'Abgeschaltet bis zu einem letzten Testlauf.',
   'm.live.lic.test': 'Ja, mit echten Transaktionen: Lizenzgebühren, Zahlungen, Weitergabe einer Lizenz.',
@@ -650,7 +650,7 @@ export const de: Strings = {
     'Nur der Prüfcode kommt auf Midnight, in einem Stapel mit anderen. Das Datum ist der Block, in dem der Stapel landet: Er zeigt, dass der Datensatz spätestens dann existierte.',
   'm.step4.text':
     'Geben Sie ihn einem Käufer, einer Prüfstelle oder einem Gericht. Dort kann man ihn kostenlos prüfen, ohne Konto.',
-  'm.claims.label': 'Eine Tatsache beweisen',
+  'm.claims.label': 'Eine Tatsache belegen',
   'm.claims.1s': '1 gezeigt · 15 versiegelt',
   'm.claims.2s': '1 Tatsache · 16 versiegelt',
   'm.claims.3s': '≥ 6 verschieden',

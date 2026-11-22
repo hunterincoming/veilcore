@@ -63,7 +63,7 @@ type Verdict =
 export const labStands = (v: Verdict): boolean => !!v?.ok && !!v.lab?.ok && v.lab.signer?.kind === 'bound';
 
 /**
- * The same rule on a record's own page ("Prove one number"): its kept lab signature checks
+ * The same rule on a record's own page ("Prove a fact"): its kept lab signature checks
  * against the record (`signatureOk`, lab-attest.ts labSignatureChecks), and the lab's binding names
  * one lab for the key and isn't withdrawn (`signer`, LabSignaturePanel useLabSigner). Undefined
  * either way while it is being checked: not yet.
@@ -94,4 +94,27 @@ export const claimFooterKey = (v: Verdict): AppKey => {
   if (v.lab.signer?.kind === 'bound') return 'app.claim.check.whatLab';
   if (v.lab.signer?.kind === 'retracted') return 'app.claim.check.whatLabWithdrawn';
   return 'app.claim.check.whatLabUnnamed';
+};
+
+/**
+ * The footer for the claim's own kind. A number (a bound or a value) keeps claimFooterKey's line.
+ * A claim on a yes/no or before/after slot (CALL_WORDS) is about a result, not a number: where a
+ * laboratory stands behind it and the claim forces the result, the line names it ("the result
+ * sealed in that record is “Not detected”"), as the headline does; in every other state it says
+ * the result code meets the line above, and never the result word (the headline's rule).
+ */
+export const claimFooter = (
+  v: Verdict,
+  path: string | undefined,
+  c: ClaimShape,
+): { readonly key: AppKey; readonly call?: AppKey } => {
+  const base = claimFooterKey(v);
+  if (path === undefined || !CALL_WORDS[path]) return { key: base };
+  if (base === 'app.claim.check.whatLab') {
+    const call = callWordKey(path, c);
+    return call ? { key: 'app.claim.check.whatLabCall', call } : { key: 'app.claim.check.whatLabCode' };
+  }
+  if (base === 'app.claim.check.whatLabWithdrawn') return { key: 'app.claim.check.whatLabWithdrawnCall' };
+  if (base === 'app.claim.check.whatLabUnnamed') return { key: 'app.claim.check.whatLabUnnamedCall' };
+  return { key: 'app.claim.check.whatCall' };
 };

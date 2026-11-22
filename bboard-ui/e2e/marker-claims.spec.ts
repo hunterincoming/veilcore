@@ -1,7 +1,7 @@
 // Claims on a lab's signed genotype comparison (veilcore/marker-claims.ts; "Route A"):
 //
 //   1. With a real registry: a lab signs a comparison bound to the breeder's record, the breeder
-//      adds it, and its "Prove one number" panel offers the comparison's own claims, fills a
+//      adds it, and its "Prove a fact" panel offers the comparison's own claims, fills a
 //      rounded bound, warns before an exact count, counts what is public about the sample, and
 //      states the limits. The two claims are proved through the e2e build's stand-in for Midnight
 //      (chain/e2e-chain.ts `prove`), and one link carries both.

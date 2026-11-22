@@ -3,7 +3,7 @@
 // sheet made in the browser as its file), a harvest lot about the batch, and a lab report about
 // the lot. Then the lab report's link with its chain, opened as a stranger would: each record's
 // page is reached from the one before, and each shows its own date. The batch's page offers
-// "Prove one number" only after its holder turns it on. A record that names one kept on this
+// "Prove a fact" only after its holder turns it on. A record that names one kept on this
 // device only must be kept here too (its "About" would otherwise go to the registry in its
 // locked copy), so the lot and the lab report are kept here as well, and the registry is sent
 // nothing typed for any of the three. All files and records are test data.
@@ -257,12 +257,12 @@ test('a chain of records: source, grow batch, harvest lot, lab report, followed 
   await expect(page.locator('[data-about-note]')).toContainText(
     'Neither VeilCore nor Midnight checks it against the record it names.',
   );
-  // "Prove one number" is the holder's choice here: nothing proves until it is turned on.
+  // "Prove a fact" is the holder's choice here: nothing proves until it is turned on.
   const choice = page.locator('[data-device-only-prove]');
   await expect(choice).toHaveAttribute('data-device-only-prove', 'off');
   await expect(choice).toContainText('Off unless you turn it on here.');
   await expect(page.locator('[data-prove-number]')).toHaveCount(0);
-  await choice.getByLabel('Show “Prove one number” for this record').check();
+  await choice.getByLabel('Show “Prove a fact” for this record').check();
   await expect(choice).toHaveAttribute('data-device-only-prove', 'on');
   await expect(page.locator('[data-prove-number]')).toBeVisible();
 

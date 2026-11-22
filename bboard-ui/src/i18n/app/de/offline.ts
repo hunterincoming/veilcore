@@ -3,10 +3,8 @@
 import type { AppTranslation } from '../../translate';
 
 export const offline = {
-  'app.offline.sealedHere.phone':
-    'Auf diesem Handy versiegelt um {time} (Uhr Ihres Handys, nicht geprüft). Der Datensatz wird datiert, wenn er gesendet ist.',
-  'app.offline.sealedHere.computer':
-    'Auf diesem Computer versiegelt um {time} (Uhr Ihres Computers, nicht geprüft). Der Datensatz wird datiert, wenn er gesendet ist.',
+  'app.offline.sealedHere':
+    'Auf diesem Gerät versiegelt um {time} (Uhr dieses Geräts, nicht geprüft). Der Datensatz wird datiert, wenn er gesendet ist.',
   'app.offline.short': 'Versiegelt {time}, datiert beim Senden',
   'app.offline.goesBySelf': 'Sein Prüfcode wird von selbst gesendet, sobald Sie wieder online sind.',
   'app.offline.bar':

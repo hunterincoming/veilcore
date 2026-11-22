@@ -76,7 +76,7 @@ steps 1 and 2.
 
 ## What the panel offers
 
-On an `animal-parentage/v1` result, "Prove one number" offers exactly these, in this order, each
+On an `animal-parentage/v1` result, "Prove a fact" offers exactly these, in this order, each
 with a fixed bound:
 
 | Offer | Slot | Claim |

@@ -170,7 +170,7 @@ export const prove = {
     'Si c’est activé, la page de vérification montre aussi, pour chaque accusé de réception qu’un laboratoire a signé pour un échantillon de cet enregistrement, qu’un laboratoire a reçu un échantillon (pas lequel) et si ce qui est arrivé correspond à ce qui a été envoyé.',
   'app.prove.share.labSigs.title': 'Signatures de laboratoire',
   'app.prove.share.labSigs.intro':
-    'Les accusés de réception et les rapports d’un laboratoire sur cet enregistrement sont privés : seuls vous, le laboratoire et la personne qui lui a envoyé l’échantillon pouvez les voir. Activez-en un pour l’afficher sur votre lien de vérification et à quiconque a le code de preuve de cet enregistrement (vos liens qui prouvent un nombre le contiennent). Ils voient alors que le laboratoire l’a signé, et le nom du laboratoire. Même si aucun n’est activé, « Si un rapport ADN est enregistré » montre, pour chaque accusé de réception, qu’un laboratoire a reçu un échantillon et si ce qui est arrivé correspond à ce qui a été envoyé, sans le nom du laboratoire.',
+    'Les accusés de réception et les rapports d’un laboratoire sur cet enregistrement sont privés : seuls vous, le laboratoire et la personne qui lui a envoyé l’échantillon pouvez les voir. Activez-en un pour l’afficher sur votre lien de vérification et à quiconque a le code de preuve de cet enregistrement (vos liens qui prouvent un fait le contiennent). Ils voient alors que le laboratoire l’a signé, et le nom du laboratoire. Même si aucun n’est activé, « Si un rapport ADN est enregistré » montre, pour chaque accusé de réception, qu’un laboratoire a reçu un échantillon et si ce qui est arrivé correspond à ce qui a été envoyé, sans le nom du laboratoire.',
   'app.prove.share.labSigs.item': 'Montrer sur votre lien de vérification que {who} a signé ceci',
   'app.prove.share.labSigs.receipt': 'Accusé de réception d’un échantillon, signé le {date}',
   'app.prove.share.labSigs.report': 'Rapport de laboratoire, signé le {date}',
@@ -198,4 +198,15 @@ export const prove = {
   // ClaimCheck.tsx: the footer when a key signs the numbers but no single lab is tied to it (unidentified, conflicting).
   'app.claim.check.whatLabUnnamed':
     'Ce que cela montre : le nombre scellé dans cet enregistrement respecte la limite (ou est cette valeur), et la clé ci-dessus a signé les nombres de cet enregistrement. Aucun laboratoire unique n’est lié à cette clé ici : considérez les chiffres comme ceux du détenteur. Chaque limite prouvée sur un nombre est publique, et ensemble elles le resserrent.',
+  // ClaimCheck.tsx: the footer for a claim on a lab result's yes/no or before/after slot (claim-call.ts claimFooter).
+  'app.claim.check.whatCall':
+    'Ce que cela montre : le code de résultat scellé dans cet enregistrement respecte la ligne ci-dessus. Ce que cela ne montre pas : qu’un laboratoire a analysé quoi que ce soit, ni que le document est authentique ; le détenteur a saisi le résultat. Chaque preuve sur ce résultat est publique, et ensemble elles le resserrent.',
+  'app.claim.check.whatLabCall':
+    'Ce que cela montre : le résultat scellé dans cet enregistrement est « {call} », et la clé ci-dessus a signé les résultats de cet enregistrement. Ce que cela ne montre pas : à qui est cette clé, ni que le rapport est authentique. Chaque preuve sur un résultat est publique, et celle-ci montre le résultat lui-même.',
+  'app.claim.check.whatLabCode':
+    'Ce que cela montre : le code de résultat scellé dans cet enregistrement respecte la ligne ci-dessus, et la clé ci-dessus a signé les résultats de cet enregistrement. Ce que cela ne montre pas : à qui est cette clé, ni que le rapport est authentique. Chaque preuve sur ce résultat est publique, et ensemble elles le resserrent.',
+  'app.claim.check.whatLabWithdrawnCall':
+    'Ce que cela montre : le code de résultat scellé dans cet enregistrement respecte la ligne ci-dessus, et la clé ci-dessus a signé les résultats de cet enregistrement. Le laboratoire a depuis retiré ce résultat, ne vous y fiez donc pas : demandez au laboratoire ou au détenteur le dernier résultat pour cet échantillon. Chaque preuve sur ce résultat est publique, et ensemble elles le resserrent.',
+  'app.claim.check.whatLabUnnamedCall':
+    'Ce que cela montre : le code de résultat scellé dans cet enregistrement respecte la ligne ci-dessus, et la clé ci-dessus a signé les résultats de cet enregistrement. Aucun laboratoire unique n’est lié à cette clé ici : considérez le résultat comme celui du détenteur. Chaque preuve sur ce résultat est publique, et ensemble elles le resserrent.',
 } satisfies Partial<AppTranslation>;

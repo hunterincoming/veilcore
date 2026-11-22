@@ -231,3 +231,18 @@ read. A fluent speaker's corrections are welcome, as in [translations/README.md]
 | Not verified: listing match withdrawn | 未確認：公開リストとの照合を取り消し | No verificada: cotejo con listado retirado | Nicht verifiziert: Abgleich mit Verzeichnis zurückgenommen | Non vérifiée : rapprochement avec une liste retiré |
 | a key calling itself "X" | 「X」と名乗る鍵 | una clave que se presenta como "X" | ein Schlüssel, der sich „X“ nennt | une clé qui se présente comme « X » |
 | signing key (a lab's) | 署名用の鍵 | clave de firma | Signaturschlüssel | clé de signature |
+
+## Proving a fact, and "this device" (21 Nov 2026)
+
+"Prove a fact" covers a number's limit (at most, at least, exactly) and a yes/no result such
+as "not detected"; it replaced "Prove one number", which read as numbers only. The words for a
+yes/no result are the lab result's own (`app.lr.call.notDetected`). The seal line for a record
+sealed with no signal always says "this device": the app no longer guesses phone or computer.
+`copy-truth.test.ts` fails if the old feature name or a phone/computer seal line comes back.
+
+| English | Japanese | Spanish | German | French |
+| --- | --- | --- | --- | --- |
+| Prove a fact (the claims panel's name, the home page heading, the live list) | 事実を証明する | Probar un hecho | Eine Tatsache belegen | Prouver un fait |
+| not detected (in a sentence) | 「不検出」 | «no detectado» | „nicht nachgewiesen“ | « non détecté » |
+| Sealed on this device (offline seal line) | この端末で…封印しました | Sellado en este dispositivo | Auf diesem Gerät versiegelt | Scellé sur cet appareil |
+| this device's clock | この端末の時計 | el reloj de este dispositivo | Uhr dieses Geräts | l’horloge de cet appareil |

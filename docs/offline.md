@@ -14,9 +14,11 @@ The date VeilCore can prove is when the proof code reached someone who can witne
 registry, a timestamp authority, Midnight. Working offline makes sealing easy; it can't make the
 date earlier. So a record sealed with no signal says:
 
-> Sealed on this phone at 05:02 (your phone's clock). Dated when it's sent.
+> Sealed on this device at 05:02 (this device's clock, not checked). Dated when it's sent.
 
-The phone's clock is anyone's to set, so it is said as the phone's, and nothing calls it a date.
+The device's clock is anyone's to set, so it is said as the device's, and nothing calls it a date.
+The line always says "this device": guessing phone or computer from the screen told a phone
+"this computer" (fixed 21 Nov 2026).
 
 ## How it works
 

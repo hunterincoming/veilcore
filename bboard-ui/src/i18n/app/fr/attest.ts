@@ -35,11 +35,11 @@ export const attest = {
 
   'app.labnums.title': 'Chiffres de ce rapport, signés par vous (facultatif)',
   'app.labnums.text':
-    'Choisissez le formulaire et saisissez les chiffres exactement comme dans votre rapport. Ils sont scellés dans un enregistrement que vous signez et envoyés verrouillés avec le rapport. L’obtenteur pourra alors prouver un chiffre sans montrer les autres, comme un chiffre signé par votre laboratoire.',
+    'Choisissez le formulaire et saisissez les chiffres exactement comme dans votre rapport. Ils sont scellés dans un enregistrement que vous signez et envoyés verrouillés avec le rapport. L’obtenteur pourra alors prouver un fait sur l’un d’eux sans montrer les autres, comme des chiffres signés par votre laboratoire.',
   'app.labnums.resultTitle': 'Nom de ce résultat (la référence de votre rapport)',
   'app.labnums.inReport': 'Chiffres signés par le laboratoire avec ce rapport ({form}) :',
   'app.labnums.addText':
-    'Ajoutez-les comme un enregistrement que vous détenez. Vous pourrez ensuite publier la signature du laboratoire sur Midnight et prouver un chiffre à la fois.',
+    'Ajoutez-les comme un enregistrement que vous détenez. Vous pourrez ensuite publier la signature du laboratoire sur Midnight et prouver un fait à la fois.',
   'app.labnums.add': 'Ajouter les chiffres signés comme enregistrement',
   'app.labnums.openRecord': 'Ouvrir l’enregistrement avec ces chiffres',
   'app.labnums.cantUse': 'Ce rapport contient des chiffres inutilisables : {reason}',

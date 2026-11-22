@@ -39,7 +39,7 @@ export const en = {
     "A dated description of something you hold: a plant, an animal, a strain or cell line, or a document. Your browser turns it into a short proof code, and that code is dated on Midnight in a batch with others. It shows prior possession of the record by that date. It doesn't show who has rights in anything, and it doesn't show that what the record says is true.",
   'm.help.start.2q': 'What do I need?',
   'm.help.start.2a':
-    "A phone or computer with a current browser. No wallet, no sign-up and nothing to buy. Proving one number from a record needs a computer: phones haven't been tried for that.",
+    "A phone or computer with a current browser. No wallet, no sign-up and nothing to buy. Proving a fact from a record needs a computer: phones haven't been tried for that.",
   'm.help.start.3q': 'What does it cost?',
   'm.help.start.3a': 'Making a record on this site and checking any record are both free.',
   'm.help.make.t': 'Making a record',
@@ -75,9 +75,9 @@ export const en = {
   'm.help.show.2q': 'How do I show a document?',
   'm.help.show.2a':
     "Send the check link together with the file. The other person's browser compares the file with the sealed record, byte for byte, and shows when you had it. Their copy of the file is not uploaded.",
-  'm.help.show.3q': 'Can I prove one number without showing the rest?',
+  'm.help.show.3q': 'Can I prove a fact without showing the rest?',
   'm.help.show.3a':
-    'Yes, if you sealed the record with its numbers. You can prove that one number is at most or at least a limit, or exactly a value. Use a computer.',
+    'Yes, if you sealed the record with its numbers. You can prove that one number is at most or at least a limit, or exactly a value, or that a lab result is “not detected”. Use a computer.',
   'm.help.check.t': 'Checking a record someone sent you',
   'm.help.check.1q': 'Someone sent me a record. How do I check it?',
   'm.help.check.1a':
@@ -374,7 +374,7 @@ export const en = {
   'm.step4.title': 'Show it later',
   'm.step4.text': 'Give it to a buyer, examiner or court. They can check it, free, with no account.',
 
-  'm.claims.label': 'Prove one fact',
+  'm.claims.label': 'Prove a fact',
   'm.claims.1s': '1 shown · 15 sealed',
   'm.claims.2s': '1 fact · 16 sealed',
   'm.claims.3s': '≥ 6 differ',
@@ -641,16 +641,16 @@ export const en = {
   'm.live.local.t': 'A document kept on your device only',
   'm.live.local.main': 'Built, not yet tried on the main network.',
   'm.live.local.test':
-    'Yes, for document records. Nothing you type is sent to VeilCore: only the record’s ID, its proof code and its key binding. The one exception is a number you choose to prove (next row).',
+    'Yes, for document records. Nothing you type is sent to VeilCore: only the record’s ID, its proof code and its key binding. The one exception is a fact you choose to prove (next row).',
   'm.live.local.live':
-    'Yes, for document records. Nothing you type is sent to VeilCore: only the record’s ID, its proof code and its key binding. The one exception is a number you choose to prove (next row).',
+    'Yes, for document records. Nothing you type is sent to VeilCore: only the record’s ID, its proof code and its key binding. The one exception is a fact you choose to prove (next row).',
   'm.live.docchain.t': 'A production chain as linked records',
   'm.live.docchain.main': 'Built, not yet tried on the main network.',
   'm.live.docchain.test':
     'Built, not yet tried. A source record, a grow batch, a harvest lot and a lab report each name the one before, and each has its own date. The links are the holder’s statement.',
   'm.live.docchain.live':
     'Yes. A source record, a grow batch, a harvest lot and a lab report each name the one before, and each has its own date. The links are the holder’s statement, not checked by VeilCore or Midnight.',
-  'm.live.localclaims.t': 'Proving a number from a document kept on your device',
+  'm.live.localclaims.t': 'Proving a fact from a document kept on your device',
   'm.live.localclaims.main': 'Built, not yet tried on the main network.',
   'm.live.localclaims.test':
     'Built, not yet tried. Your choice, off until you turn it on. What you prove is public on Midnight; nothing goes to VeilCore’s registry, but VeilCore can tie what you prove to the record.',
@@ -663,11 +663,11 @@ export const en = {
   'm.live.prove.test':
     "Yes. Their page checks on the network that you control the record's own key. The record named that key when it was sealed, so it can't be swapped.",
   'm.live.prove.not': 'On veilcore.org: it needs your browser to send a transaction.',
-  'm.live.claims.t': 'Proving one fact (claims)',
+  'm.live.claims.t': 'Proving a fact (claims)',
   'm.live.claims.main': 'On the main network, with no maintenance key. The website can’t use it yet.',
   'm.live.claims.not': 'Using it from the website.',
   'm.live.claims.live':
-    "Yes, from a computer: prove one number from a sealed certificate or lab result, without showing the rest. Phones haven't been tried.",
+    "Yes, from a computer: prove a fact from a sealed certificate or lab result, without showing the rest. Phones haven't been tried.",
   'm.live.lic.t': 'Licenses and royalties',
   'm.live.lic.main': 'Switched off until a final test run.',
   'm.live.lic.test': 'Yes, with real transactions: royalties, payments, handing a license on.',

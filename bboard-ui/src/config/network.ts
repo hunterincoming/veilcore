@@ -234,7 +234,7 @@ export const DEVICE_ONLY_RECORDS_ENABLED = true;
 export const DOCUMENT_CHAIN_ENABLED = true;
 
 /**
- * "Prove one number" for a document kept on this device only (docs/device-only-records.md,
+ * "Prove a fact" for a document kept on this device only (docs/device-only-records.md,
  * "Proving a number"): the holder's own choice on that record's page, off each time the page is
  * opened, with what would be published said first. Proving runs in the browser; the claim goes
  * to Midnight through the sponsor, and nothing goes to the registry. On in every build where

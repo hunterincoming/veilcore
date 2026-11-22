@@ -171,7 +171,7 @@ export const prove = {
     'Wenn eingeschaltet, zeigt die Prüfseite außerdem für jede Empfangsbestätigung, die ein Labor für eine Probe aus diesem Datensatz signiert hat, dass ein Labor eine Probe erhalten hat (nicht welches) und ob das Angekommene dem Gesendeten entspricht.',
   'app.prove.share.labSigs.title': 'Laborsignaturen',
   'app.prove.share.labSigs.intro':
-    'Empfangsbestätigungen und Berichte eines Labors zu diesem Datensatz sind privat: Nur Sie, das Labor und wer ihm die Probe geschickt hat, sehen sie. Schalten Sie eine ein, um sie auf Ihrem Prüflink zu zeigen und allen, die den Prüfcode dieses Datensatzes haben (Ihre Links, die eine Zahl belegen, enthalten ihn). Sie sehen dann, dass das Labor sie signiert hat, und den Namen des Labors. Auch wenn keine eingeschaltet ist, zeigt „Ob ein DNA-Bericht gespeichert ist“ für jede Empfangsbestätigung, dass ein Labor eine Probe erhalten hat und ob das Angekommene dem Gesendeten entspricht, ohne den Namen des Labors.',
+    'Empfangsbestätigungen und Berichte eines Labors zu diesem Datensatz sind privat: Nur Sie, das Labor und wer ihm die Probe geschickt hat, sehen sie. Schalten Sie eine ein, um sie auf Ihrem Prüflink zu zeigen und allen, die den Prüfcode dieses Datensatzes haben (Ihre Links, die eine Tatsache belegen, enthalten ihn). Sie sehen dann, dass das Labor sie signiert hat, und den Namen des Labors. Auch wenn keine eingeschaltet ist, zeigt „Ob ein DNA-Bericht gespeichert ist“ für jede Empfangsbestätigung, dass ein Labor eine Probe erhalten hat und ob das Angekommene dem Gesendeten entspricht, ohne den Namen des Labors.',
   'app.prove.share.labSigs.item': 'Auf Ihrem Prüflink zeigen, dass {who} dies signiert hat',
   'app.prove.share.labSigs.receipt': 'Empfangsbestätigung für eine Probe, signiert am {date}',
   'app.prove.share.labSigs.report': 'Laborbericht, signiert am {date}',
@@ -199,4 +199,15 @@ export const prove = {
   // ClaimCheck.tsx: the footer when a key signs the numbers but no single lab is tied to it (unidentified, conflicting).
   'app.claim.check.whatLabUnnamed':
     'Was das zeigt: Die im Datensatz versiegelte Zahl erfüllt die Grenze (oder ist dieser Wert), und der Schlüssel oben hat die Zahlen dieses Datensatzes signiert. Hier ist kein einzelnes Labor mit diesem Schlüssel verbunden, lesen Sie die Zahlen also als Eingaben des Inhabers. Jede belegte Grenze ist öffentlich, und zusammen grenzen sie die Zahl ein.',
+  // ClaimCheck.tsx: the footer for a claim on a lab result's yes/no or before/after slot (claim-call.ts claimFooter).
+  'app.claim.check.whatCall':
+    'Was das zeigt: Der in diesem Datensatz versiegelte Ergebniscode erfüllt die Zeile oben. Was nicht: dass ein Labor etwas getestet hat oder dass das Dokument echt ist; der Inhaber hat das Ergebnis eingegeben. Jeder Beleg dazu ist öffentlich, und zusammen grenzen sie es ein.',
+  'app.claim.check.whatLabCall':
+    'Was das zeigt: Das in diesem Datensatz versiegelte Ergebnis ist „{call}“, und der Schlüssel oben hat die Ergebnisse dieses Datensatzes signiert. Was nicht: wem der Schlüssel gehört oder dass der Bericht echt ist. Jeder Beleg zu einem Ergebnis ist öffentlich, und dieser zeigt das Ergebnis selbst.',
+  'app.claim.check.whatLabCode':
+    'Was das zeigt: Der in diesem Datensatz versiegelte Ergebniscode erfüllt die Zeile oben, und der Schlüssel oben hat die Ergebnisse dieses Datensatzes signiert. Was nicht: wem der Schlüssel gehört oder dass der Bericht echt ist. Jeder Beleg dazu ist öffentlich, und zusammen grenzen sie es ein.',
+  'app.claim.check.whatLabWithdrawnCall':
+    'Was das zeigt: Der in diesem Datensatz versiegelte Ergebniscode erfüllt die Zeile oben, und der Schlüssel oben hat die Ergebnisse dieses Datensatzes signiert. Das Labor hat dieses Ergebnis inzwischen zurückgezogen, verlassen Sie sich also nicht darauf: Fragen Sie das Labor oder den Inhaber nach dem neuesten Ergebnis für diese Probe. Jeder Beleg dazu ist öffentlich, und zusammen grenzen sie es ein.',
+  'app.claim.check.whatLabUnnamedCall':
+    'Was das zeigt: Der in diesem Datensatz versiegelte Ergebniscode erfüllt die Zeile oben, und der Schlüssel oben hat die Ergebnisse dieses Datensatzes signiert. Hier ist kein einzelnes Labor mit diesem Schlüssel verbunden, lesen Sie das Ergebnis also als Eingabe des Inhabers. Jeder Beleg dazu ist öffentlich, und zusammen grenzen sie es ein.',
 } satisfies Partial<AppTranslation>;

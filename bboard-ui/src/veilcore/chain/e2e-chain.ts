@@ -5,7 +5,7 @@
 //   status  what licenseStatusNow reads for a license (license-invites.ts);
 //   revoke  what revokeLicenseOnChain answers, in place of a proof and a transaction;
 //   prove   what a range or value claim's call answers (prove-number.ts), in place of a proof
-//           and a transaction, so the "Prove one number" panel can be used (e2e/marker-claims.spec.ts);
+//           and a transaction, so the "Prove a fact" panel can be used (e2e/marker-claims.spec.ts);
 //   claim   what checkClaim answers for a claim link (claim-check.ts), or 'checking' to stay
 //           unanswered, so the check page can be opened in each state (e2e/claim-words.spec.ts).
 // In every other build the condition below is a constant false, so this returns undefined and

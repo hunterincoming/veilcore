@@ -25,7 +25,7 @@ type Held = DocumentRecordLike & { readonly fieldSet: HeldFieldSet };
 
 /**
  * Who the lab's binding names for this record's signature, checked here (claims-key.ts). Used by
- * the record's page (DocumentDetail), which hands it to this panel and to "Prove one number".
+ * the record's page (DocumentDetail), which hands it to this panel and to "Prove a fact".
  */
 export const useLabSigner = (record: StrainRecord): LabSigner | undefined => {
   const [signer, setSigner] = useState<LabSigner>();

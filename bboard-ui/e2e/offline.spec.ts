@@ -5,7 +5,7 @@
 // which would send http://127.0.0.1 to https), sw.js no-cache, and a release list (/release.json and
 // /releases/e2e/<commit>.json, hashed here as scripts/release-manifest.mjs hashes them). Then:
 //   1. the first visit with signal copies the app; with no signal it opens anyway, a plant is
-//      sealed, the screen says when by the phone's clock and that it is dated when sent, and
+//      sealed, the screen says when by the device's own clock and that it is dated when sent, and
 //      nothing is sent; back online it is sent by itself, and its own RFC 3161 timestamp (a real
 //      token from a local openssl TSA, checked in the page) shows in seconds;
 //   2. a new release: a page served from the old copy says a newer version is ready once signal
@@ -429,9 +429,9 @@ test('opens and seals with no signal; sent and timestamped by itself when signal
   await page.getByRole('button', { name: /Seal it/ }).click();
   const here = page.locator('[data-sealed-here]').first();
   await expect(here).toBeVisible({ timeout: 60_000 });
-  // The phone's own clock, said as such, and the date only when sent: never a date before.
+  // The device's own clock, said as such ("this device": never a guess at phone or computer), and the date only when sent: never a date before.
   await expect(here).toContainText(
-    /Sealed on this phone at .+ \(your phone’s clock, not checked\)\. Dated when it’s sent\./,
+    /Sealed on this device at .+ \(this device’s clock, not checked\)\. Dated when it’s sent\./,
   );
   // Chromium has Background Sync: the proof code goes by itself.
   await expect(here).toContainText(/Its proof code goes by itself when you’re back online\./);

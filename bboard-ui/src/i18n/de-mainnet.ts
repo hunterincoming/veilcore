@@ -90,7 +90,7 @@ export const deMainnet = buildMainnet({
   },
   claimsOnSite: {
     'm.claims.status':
-      'Ein zweiter Midnight-Smart-Contract, im Hauptnetz von Midnight. Auf dieser Website können Sie damit eine Zahl aus einem Zertifikat oder Laborergebnis belegen, das mit seinen Zahlen versiegelt wurde: dass sie höchstens oder mindestens einen Grenzwert erreicht oder genau einen Wert hat, ohne den Rest zu zeigen. Nutzen Sie dafür einen Computer; auf Handys ist es noch nicht ausprobiert. Die anderen Belege oben gibt es auf dieser Website noch nicht.',
+      'Ein zweiter Midnight-Smart-Contract, im Hauptnetz von Midnight. Auf dieser Website können Sie damit eine Tatsache aus einem Zertifikat oder Laborergebnis belegen, das mit seinen Zahlen versiegelt wurde: dass eine Zahl höchstens oder mindestens einen Grenzwert erreicht oder genau einen Wert hat oder dass ein Ergebnis „nicht nachgewiesen“ ist, ohne den Rest zu zeigen. Nutzen Sie dafür einen Computer; auf Handys ist es noch nicht ausprobiert. Die anderen Belege oben gibt es auf dieser Website noch nicht.',
   },
   claimsPending: {
     'm.claims.status':

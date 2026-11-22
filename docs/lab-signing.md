@@ -54,7 +54,7 @@ VeilCore says exactly what it can check and nothing more.
 5. **The breeder adds it.** Opening the report shows the numbers, checked (form, plain numbers,
    root, signature, this plant, this report file), and one press adds them as a record. Its page
    names the lab through the binding and publishes the signature on Midnight.
-6. **Claims.** "Prove one number" works as on any document. Each claim link also names the
+6. **Claims.** "Prove a fact" works as on any document. Each claim link also names the
    `proveAttested` transaction, the key and the plant's proof code. The check page reads both
    calls on Midnight, finds the binding, checks it in the browser, and prints the lab with the
    same wording every page uses for signers ("a key calling itself … (not verified)", with its level in words, or the operator's

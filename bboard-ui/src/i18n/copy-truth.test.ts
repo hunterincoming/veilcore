@@ -543,9 +543,9 @@ describe("what's live where", () => {
     expect(localRun).toBe('true');
     expect(e['m.live.local.main']).toBe('Built, not yet tried on the main network.');
     // What leaves is said exactly (the id, the proof code, the key binding), never "only the proof code".
-    // The one exception is said in the cell itself: a number the holder chooses to prove (the next row).
+    // The one exception is said in the cell itself: a fact the holder chooses to prove (the next row).
     expect(e['m.live.local.test']).toBe(
-      'Yes, for document records. Nothing you type is sent to VeilCore: only the record’s ID, its proof code and its key binding. The one exception is a number you choose to prove (next row).',
+      'Yes, for document records. Nothing you type is sent to VeilCore: only the record’s ID, its proof code and its key binding. The one exception is a fact you choose to prove (next row).',
     );
     expect(e['m.live.local.live']).toBe(e['m.live.local.test']);
     for (const dict of [appEn, appDe, appEs, appFr, appJa]) {
@@ -1517,10 +1517,10 @@ describe('the mainnet run of 18 November 2026: what veilcore.org says about itse
     expect(panel.match(/app\.plant\.anchor\.testNet/g)).toHaveLength(1);
   });
 
-  it('"Show someone" says proving one number works where this build can prove it', () => {
+  it('"Show someone" says proving a fact works where this build can prove it', () => {
     // veilcore.org: VeilCore's claims contract pinned, the sponsor live (CLAIMS_ON_THIS_SITE).
     expect(claimsWhere('en', { onSite: true, live: true })).toBe(
-      'It has been on Midnight’s main network since 8 October 2026. On this website you can prove one number from a certificate or lab result sealed with its numbers: that it is at most or at least a limit, or exactly a value. Proving a marker, or that two varieties differ, isn’t on this website yet.',
+      'It has been on Midnight’s main network since 8 October 2026. On this website you can prove a fact from a certificate or lab result sealed with its numbers: that a number is at most or at least a limit or exactly a value, or that a result is “not detected”. Proving a marker, or that two varieties differ, isn’t on this website yet.',
     );
     for (const [lang, w] of Object.entries(CLAIMS_WHERE_WORDS)) {
       const onSite = claimsWhere(lang as Lang, { onSite: true, live: true });
@@ -1542,14 +1542,14 @@ describe('the mainnet run of 18 November 2026: what veilcore.org says about itse
       );
   });
 
-  it('the home page and "Show someone" read one switch for "prove one number" on this website', () => {
+  it('the home page and "Show someone" read one switch for "prove a fact" on this website', () => {
     expect(fs.readFileSync(path.join(SRC, 'config/copy.ts'), 'utf8')).toContain(
       'export const CLAIMS_ON_THIS_SITE = IS_MAINNET && CHAIN_READY && CLAIMS_READY;',
     );
     expect(fs.readFileSync(path.join(SRC, 'i18n/index.tsx'), 'utf8')).toContain('  claimsOnSite: CLAIMS_ON_THIS_SITE,');
   });
 
-  it('both say what can be proved here the same way: a number from a certificate or lab result', () => {
+  it('both say what can be proved here the same way: a fact from a certificate or lab result', () => {
     const LAB_RESULT: Record<Lang, RegExp> = {
       en: /certificate or lab result sealed with its numbers/,
       de: /Zertifikat oder Laborergebnis/,
@@ -1712,5 +1712,97 @@ describe('what a walk of the live veilcore.org found (18 Nov 2026)', () => {
     expect(page).toMatch(/\{signedHere && !have && \(/);
     // The header says the page may read the records by itself.
     expect(page).toMatch(/or by themselves\s*\/\/ when the lab key in this browser made the signature/);
+  });
+});
+
+describe('"Prove a fact", and "this device" on the seal line (21 Nov 2026)', () => {
+  // Every string a person can see: the site in each language with every network overlay, and
+  // the app's catalogs. "Prove one number" read as numbers only; the panel also proves a yes/no
+  // result such as "not detected". The seal line guessed phone or computer from the screen and
+  // told a phone "this computer".
+  const flagSets = [false, true].flatMap((claimsOnSite) =>
+    [false, true].map((chainSends) => ({
+      ...MAINNET,
+      chainReads: true,
+      chainSends,
+      agreementsLive: true,
+      claimsOnSite,
+    })),
+  );
+  const siteTexts = (lang: Lang): string[] => [
+    ...Object.values(LANGUAGES[lang].strings as Record<string, string>),
+    ...[TEST_SITE, MAINNET, ...flagSets].flatMap((f) =>
+      Object.values(networkOverlay(f, lang)).filter((v): v is string => typeof v === 'string'),
+    ),
+  ];
+  const allApp = { en: appEn, ...APP } as Record<Lang, Record<string, string>>;
+  const OLD_NAME: Record<Lang, RegExp> = {
+    en: /prov(e|es|ing) one number|proving a number|links that prove a number/i,
+    de: /Eine Zahl belegen|eine einzelne Zahl|eine Zahl aus einem \w+ belegen|Zahl beweisen|Belegen einer Zahl|jeweils eine Zahl|Links, die eine Zahl/,
+    es: /(probar|demostrar) un (solo )?número/i,
+    fr: /prouver un (seul )?(chiffre|nombre)/i,
+    ja: /数値を1つ証明|一つの数値だけを証明|数値の証明は|一つの数値を証明/,
+  };
+  const NEW_NAME: Record<Lang, string> = {
+    en: 'Prove a fact',
+    de: 'Eine Tatsache belegen',
+    es: 'Probar un hecho',
+    fr: 'Prouver un fait',
+    ja: '事実を証明する',
+  };
+  const DEVICE: Record<Lang, RegExp> = {
+    en: /this device/,
+    de: /diesem Gerät/,
+    es: /este dispositivo/,
+    fr: /cet appareil/,
+    ja: /この端末/,
+  };
+  const PHONE_OR_COMPUTER =
+    /phone|computer|Handy|Computer|teléfono|computadora|téléphone|ordinateur|スマートフォン|パソコン/;
+
+  for (const lang of Object.keys(OLD_NAME) as Lang[]) {
+    it(`${lang}: the old name "Prove one number" is gone from the site and the app`, () => {
+      const texts = [...siteTexts(lang), ...Object.values(allApp[lang])];
+      expect(texts.filter((v) => OLD_NAME[lang].test(v))).toEqual([]);
+    });
+
+    it(`${lang}: the panel, its switch and its "off" line say "Prove a fact", and the panel names a yes/no result`, () => {
+      const a = allApp[lang];
+      expect(a['app.claim.title']).toBe(NEW_NAME[lang]);
+      expect(a['app.doc.local.prove.title'].startsWith(NEW_NAME[lang])).toBe(true);
+      expect(a['app.doc.local.prove.choice']).toContain(NEW_NAME[lang]);
+      expect(a['app.claim.text']).toContain(allApp[lang]['app.lr.call.notDetected'].toLowerCase());
+    });
+
+    it(`${lang}: the home page heading and the live list name the action the same way`, () => {
+      const site = LANGUAGES[lang].strings as Record<string, string>;
+      expect(site['m.claims.label']).toBe(NEW_NAME[lang]);
+      expect(site['m.live.claims.t'].startsWith(lang === 'en' ? 'Proving a fact' : NEW_NAME[lang])).toBe(true);
+      // The old heading and live-list names, as names (a dated post keeps its own title).
+      const OLD = [
+        'Prove one fact',
+        'Proving one fact (claims)',
+        'Eine Tatsache beweisen',
+        'Eine Tatsache beweisen (Belege)',
+        'Probar un solo hecho',
+        'Prouver un seul fait',
+        '1つの事実を証明する',
+        '1つの事実を証明する（クレーム）',
+      ];
+      expect(siteTexts(lang).filter((v) => OLD.includes(v))).toEqual([]);
+    });
+
+    it(`${lang}: a record sealed with no signal says "this device", never phone or computer`, () => {
+      const a = allApp[lang];
+      expect(a['app.offline.sealedHere']).toMatch(DEVICE[lang]);
+      expect(a['app.offline.sealedHere']).not.toMatch(PHONE_OR_COMPUTER);
+      expect(Object.keys(a).filter((k) => k.startsWith('app.offline.sealedHere.'))).toEqual([]);
+    });
+  }
+
+  it('the seal line is chosen without guessing the device from the screen or the browser', () => {
+    const src = fs.readFileSync(path.join(SRC, 'components/offline/offline-words.ts'), 'utf8');
+    expect(src).not.toMatch(/matchMedia|userAgent|pointer: coarse/);
+    expect(src).toContain("tr.t('app.offline.sealedHere',");
   });
 });

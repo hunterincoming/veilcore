@@ -165,7 +165,7 @@ export const prove = {
     'Si está activado, la página de comprobación también muestra, para cada acuse de recibo que un laboratorio firmó por una muestra de este registro, que un laboratorio recibió una muestra (no cuál) y si lo que llegó coincide con lo enviado.',
   'app.prove.share.labSigs.title': 'Firmas de laboratorio',
   'app.prove.share.labSigs.intro':
-    'Los acuses de recibo y los informes de un laboratorio sobre este registro son privados: solo usted, el laboratorio y quien le envió la muestra pueden verlos. Active uno para mostrarlo en su enlace de comprobación y a cualquiera que tenga el código de prueba de este registro (sus enlaces que demuestran un número lo llevan). Verán entonces que el laboratorio lo firmó, y el nombre del laboratorio. Aunque no active ninguno, “Si hay un informe de ADN guardado” muestra, para cada acuse de recibo, que un laboratorio recibió una muestra y si lo que llegó coincide con lo enviado, sin el nombre del laboratorio.',
+    'Los acuses de recibo y los informes de un laboratorio sobre este registro son privados: solo usted, el laboratorio y quien le envió la muestra pueden verlos. Active uno para mostrarlo en su enlace de comprobación y a cualquiera que tenga el código de prueba de este registro (sus enlaces que prueban un hecho lo llevan). Verán entonces que el laboratorio lo firmó, y el nombre del laboratorio. Aunque no active ninguno, “Si hay un informe de ADN guardado” muestra, para cada acuse de recibo, que un laboratorio recibió una muestra y si lo que llegó coincide con lo enviado, sin el nombre del laboratorio.',
   'app.prove.share.labSigs.item': 'Mostrar en su enlace de comprobación que {who} firmó esto',
   'app.prove.share.labSigs.receipt': 'Acuse de recibo de una muestra, firmado el {date}',
   'app.prove.share.labSigs.report': 'Informe de laboratorio, firmado el {date}',
@@ -193,4 +193,15 @@ export const prove = {
   // ClaimCheck.tsx: the footer when a key signs the numbers but no single lab is tied to it (unidentified, conflicting).
   'app.claim.check.whatLabUnnamed':
     'Qué muestra: el número sellado en ese registro cumple el límite (o es ese valor), y la clave de arriba firmó los números de ese registro. Aquí ningún laboratorio único está vinculado a esa clave, así que tome los números como de quien selló el registro. Cada límite demostrado sobre un número es público, y juntos lo acotan.',
+  // ClaimCheck.tsx: the footer for a claim on a lab result's yes/no or before/after slot (claim-call.ts claimFooter).
+  'app.claim.check.whatCall':
+    'Lo que esto muestra: el código de resultado sellado en ese registro cumple la línea de arriba. Lo que no: que un laboratorio analizara algo, ni que el documento sea auténtico; el titular escribió el resultado. Cada afirmación probada sobre él es pública, y juntas lo acotan.',
+  'app.claim.check.whatLabCall':
+    'Lo que esto muestra: el resultado sellado en ese registro es «{call}», y la clave de arriba firmó los resultados de ese registro. Lo que no: de quién es esa clave, ni que el informe sea auténtico. Cada afirmación probada sobre un resultado es pública, y esta muestra el resultado mismo.',
+  'app.claim.check.whatLabCode':
+    'Lo que esto muestra: el código de resultado sellado en ese registro cumple la línea de arriba, y la clave de arriba firmó los resultados de ese registro. Lo que no: de quién es esa clave, ni que el informe sea auténtico. Cada afirmación probada sobre él es pública, y juntas lo acotan.',
+  'app.claim.check.whatLabWithdrawnCall':
+    'Lo que esto muestra: el código de resultado sellado en ese registro cumple la línea de arriba, y la clave de arriba firmó los resultados de ese registro. El laboratorio ha retirado después este resultado, así que no confíe en él: pida al laboratorio o al titular el resultado más reciente para esta muestra. Cada afirmación probada sobre él es pública, y juntas lo acotan.',
+  'app.claim.check.whatLabUnnamedCall':
+    'Lo que esto muestra: el código de resultado sellado en ese registro cumple la línea de arriba, y la clave de arriba firmó los resultados de ese registro. Aquí ningún laboratorio único está vinculado a esa clave, así que tome el resultado como de quien selló el registro. Cada afirmación probada sobre él es pública, y juntas lo acotan.',
 } satisfies Partial<AppTranslation>;

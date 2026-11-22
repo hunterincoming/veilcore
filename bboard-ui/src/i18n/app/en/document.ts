@@ -142,9 +142,9 @@ export const document = {
   'app.doc.nums.heldTitle': 'Its numbers',
   'app.doc.nums.heldText':
     'Sealed with this document as {schema}. Only you see them: the record holds a code that commits to them, not the numbers.',
-  'app.claim.title': 'Prove one number',
+  'app.claim.title': 'Prove a fact',
   'app.claim.text':
-    'Prove a fact about one number to anyone, without showing it, the other numbers or the certificate. The proof goes on Midnight, where anyone can check it.',
+    'Prove a fact to anyone without showing the number behind it, the other numbers or the certificate: that a number is within a limit, or that a result is “not detected”. The proof goes on Midnight, where anyone can check it.',
   'app.claim.example':
     'For example: show a buyer that total THC is at most 0.3%, or that a batch has at most 9 plants in flower, without giving them the figure or the rest of the record. You pick the number and the limit. They get a link that checks it.',
   'app.claim.notReady': 'Proving isn’t switched on for this site yet.',
@@ -193,7 +193,7 @@ export const document = {
   'app.doc.verdict.datedSameFile': 'Dated {date}, and the file you chose is the one sealed. Checked in your browser.',
   'app.doc.verdict.datedOtherFile': 'Dated {date}, but the file you chose isn’t the one sealed.',
   'app.claim.check.intro':
-    'Someone sent you this link to show a fact about one number in a sealed document, without showing the number or the document. This page reads the claim from Midnight and checks it.',
+    'Someone sent you this link to show one fact from a sealed document, without showing its numbers or the document. This page reads the claim from Midnight and checks it.',
   'app.claim.check.bad': 'This link can’t be read. Ask for it again.',
   'app.claim.check.checking': 'Reading the claim from Midnight…',
   'app.claim.check.okWhen': 'Proved on Midnight in block {block}{date}.',
@@ -330,12 +330,12 @@ export const document = {
   'app.doc.chain.share.copy': 'Copy link with its chain',
   'app.doc.chain.share.copied': 'Copied.',
   'app.doc.local.p6':
-    'If it has numbers, you can later choose to prove one. That publishes a fact about the number on Midnight, through VeilCore’s fee service, and only if you turn it on for that record.',
-  'app.doc.local.prove.off': 'Proving a number isn’t switched on for a record kept on this device only.',
-  'app.doc.local.prove.title': 'Prove one number: your choice',
+    'If it has numbers, you can later choose to prove a fact from them. That publishes the fact on Midnight, through VeilCore’s fee service, and only if you turn it on for that record.',
+  'app.doc.local.prove.off': 'Proving a fact isn’t switched on for a record kept on this device only.',
+  'app.doc.local.prove.title': 'Prove a fact: your choice',
   'app.doc.local.prove.text':
-    'Off unless you turn it on here. Proving publishes a fact about one number on Midnight, for good, through VeilCore’s fee service. Nothing is sent to VeilCore’s registry. You are shown exactly what would be published before anything is proved.',
-  'app.doc.local.prove.choice': 'Show “Prove one number” for this record',
+    'Off unless you turn it on here. Proving publishes one fact from this record on Midnight, for good, through VeilCore’s fee service. Nothing is sent to VeilCore’s registry. You are shown exactly what would be published before anything is proved.',
+  'app.doc.local.prove.choice': 'Show “Prove a fact” for this record',
   'app.doc.local.prove.publish.title': 'What will be published if you go ahead',
   'app.doc.local.prove.publish.range':
     'On Midnight, public and permanent: the form “{schema}”, the field “{label}”, the limit {bound} and the direction ({direction}), with a code that stands for this record. The number itself is not published. Every limit you prove narrows it.',

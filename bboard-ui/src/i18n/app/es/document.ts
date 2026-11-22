@@ -140,9 +140,9 @@ export const document = {
   'app.doc.nums.heldTitle': 'Sus números',
   'app.doc.nums.heldText':
     'Sellados con este documento como {schema}. Solo usted los ve: el registro guarda un código que los compromete, no los números.',
-  'app.claim.title': 'Probar un número',
+  'app.claim.title': 'Probar un hecho',
   'app.claim.text':
-    'Pruebe ante cualquiera un hecho sobre un número, sin mostrarlo, ni los demás números ni el certificado. La prueba va a Midnight, donde cualquiera puede comprobarla.',
+    'Pruebe ante cualquiera un hecho sin mostrar el número que hay detrás, ni los demás números ni el certificado: que un número está dentro de un límite, o que un resultado es «no detectado». La prueba va a Midnight, donde cualquiera puede comprobarla.',
   'app.claim.example':
     'Por ejemplo: muestre a un comprador que el THC total es como máximo 0,3 %, o que un lote tiene como máximo 9 plantas en floración, sin darle la cifra ni el resto del registro. Usted elige el número y el límite. Él recibe un enlace que lo comprueba.',
   'app.claim.notReady': 'Las pruebas aún no están activadas en este sitio.',
@@ -192,7 +192,7 @@ export const document = {
     'Fechado el {date}, y el archivo que eligió es el que se selló. Comprobado en su navegador.',
   'app.doc.verdict.datedOtherFile': 'Fechado el {date}, pero el archivo que eligió no es el que se selló.',
   'app.claim.check.intro':
-    'Alguien le envió este enlace para mostrar un hecho sobre un número de un documento sellado, sin mostrar el número ni el documento. Esta página lee la afirmación en Midnight y la comprueba.',
+    'Alguien le envió este enlace para mostrar un hecho de un documento sellado, sin mostrar sus números ni el documento. Esta página lee la afirmación en Midnight y la comprueba.',
   'app.claim.check.bad': 'Este enlace no se puede leer. Pídalo de nuevo.',
   'app.claim.check.checking': 'Leyendo la afirmación en Midnight…',
   'app.claim.check.okWhen': 'Probado en Midnight en el bloque {block}{date}.',
@@ -330,12 +330,12 @@ export const document = {
   'app.doc.chain.share.copy': 'Copiar enlace con su cadena',
   'app.doc.chain.share.copied': 'Copiado.',
   'app.doc.local.p6':
-    'Si tiene números, más adelante puede elegir probar uno. Eso publica un hecho sobre el número en Midnight, a través del servicio de tarifas de VeilCore, y solo si usted lo activa para ese registro.',
-  'app.doc.local.prove.off': 'Probar un número no está activado para un registro guardado solo en este dispositivo.',
-  'app.doc.local.prove.title': 'Probar un número: usted decide',
+    'Si tiene números, más adelante puede elegir probar un hecho a partir de ellos. Eso publica ese hecho en Midnight, a través del servicio de tarifas de VeilCore, y solo si usted lo activa para ese registro.',
+  'app.doc.local.prove.off': 'Probar un hecho no está activado para un registro guardado solo en este dispositivo.',
+  'app.doc.local.prove.title': 'Probar un hecho: usted decide',
   'app.doc.local.prove.text':
-    'Desactivado salvo que usted lo active aquí. Probar publica para siempre un hecho sobre un número en Midnight, a través del servicio de tarifas de VeilCore. No se envía nada al servidor de registros de VeilCore. Antes de probar nada, se le muestra exactamente lo que se publicaría.',
-  'app.doc.local.prove.choice': 'Mostrar «Probar un número» para este registro',
+    'Desactivado salvo que usted lo active aquí. Probar publica para siempre un hecho de este registro en Midnight, a través del servicio de tarifas de VeilCore. No se envía nada al servidor de registros de VeilCore. Antes de probar nada, se le muestra exactamente lo que se publicaría.',
+  'app.doc.local.prove.choice': 'Mostrar «Probar un hecho» para este registro',
   'app.doc.local.prove.publish.title': 'Qué se publicará si continúa',
   'app.doc.local.prove.publish.range':
     'En Midnight, público y permanente: el formulario «{schema}», el campo «{label}», el límite {bound} y el sentido ({direction}), con un código que representa este registro. El número en sí no se publica. Cada límite que pruebe lo acota más.',

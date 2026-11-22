@@ -53,7 +53,7 @@ the device for such a record:
 | The record's id and its keys, inside the passkey copy, locked with a key only the passkey makes | The registry (`/vault`) | Only if the holder keeps a passkey copy (where the build offers one) | The passkey copy is the keys of every record. It never holds a record's contents, so it can't bring this record back |
 | A code made from the record's key (its identity, and a commitment to its recovery secret) | Midnight, through VeilCore's fee service | Only if the holder presses "date stamp" on the record's page | The key's own date. A stamp that failed is tried again by itself; nothing starts the first one but that button: not sealing, not the background, not a "Do it for me" job |
 | The proof code, in a batch's root | Midnight | When the batch is anchored | The date |
-| A claim about one number: the record's commitment (a hash), the form's id, which field, and the limit with its direction, or the number itself for "exactly" | Midnight, through VeilCore's fee service | Only if the holder turns on "Prove one number" on that record's page and proves one (see "Proving a number") | The holder's own choice to make that fact public |
+| A claim about one number: the record's commitment (a hash), the form's id, which field, and the limit with its direction, or the number itself for "exactly" | Midnight, through VeilCore's fee service | Only if the holder turns on "Prove a fact" on that record's page and proves one (see "Proving a number") | The holder's own choice to make that fact public |
 
 Never sent, by any path:
 
@@ -117,7 +117,7 @@ How:
 - **Other routes.** Sharing by link (`PUT /api/records/:id/disclosure`), sending to a lab
   (`POST /transfers`), receiving a delivery into it, corrections, taking the registry's "older
   copy", converting a plain row, and licences (`licenses.ts`, for every caller) are refused for
-  such a record by id. The lab-signature step is not shown on its page. "Prove one number" is
+  such a record by id. The lab-signature step is not shown on its page. "Prove a fact" is
   shown only after the holder turns it on there (see "Proving a number").
 - **The dating row** is built field by field from the three fields above (`sendDatingRows`).
 
@@ -164,14 +164,14 @@ What was looked at beside this, and where a device-only record's name, ID or fie
 
 ## Proving a number
 
-Added 16 Nov 2026. Until then "Prove one number" was hidden for such a record, because proving
+Added 16 Nov 2026. Until then "Prove a fact" was hidden for such a record, because proving
 sends something out of the browser. That was a cautious default, not a need: the proof is made
 in the browser, and the number and its salt are not sent (`docs/claims-screen.md`).
 
 Now it is the holder's choice, on that record's page:
 
 - **Off every time the page is opened.** The page says what proving would do and shows no way
-  to do it until the holder ticks "Show 'Prove one number' for this record". The choice is not
+  to do it until the holder ticks "Show 'Prove a fact' for this record". The choice is not
   kept.
 - **What would be published is said before the button**, from what is picked: the form, the
   field, the limit and the direction, public and permanent on Midnight; the number itself is not
@@ -191,7 +191,7 @@ say, that this holder's record is a grow batch with at most so many plants (or t
 before the choice and again before the button: what you prove is public on Midnight in a way
 that VeilCore, and anyone who has this record's check link, can tie to this record, and VeilCore
 can also tie it to the holder key that dated the record. The same is true of a claim from any
-record, and the same sentence is on every "Prove one number" panel.
+record, and the same sentence is on every "Prove a fact" panel.
 
 The call itself (`prove-number.ts` `proveNumber`) refuses a record kept on this device only
 unless proving is switched on for such records and the holder turned it on, and refuses
@@ -283,7 +283,7 @@ still holds it.
   undone, and one wrong click would break the rule the holder chose this for. To have a copy on
   VeilCore, seal the document again without the choice. (It gets a new date.)
 - **No corrections** of such a record, for now: seal a new one.
-- **"Prove one number" is off unless the holder turns it on** for that record, each time. What
+- **"Prove a fact" is off unless the holder turns it on** for that record, each time. What
   is proved is public on Midnight for good and can't be taken back.
 - **A hand-edited backup file** with the mark taken out restores as an ordinary record, which
   is uploaded. The file is the holder's own; the app doesn't edit it.

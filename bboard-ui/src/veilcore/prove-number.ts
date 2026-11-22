@@ -1,4 +1,4 @@
-// "Prove one number", apart from its screen (components/document/ProveNumber.tsx): the one
+// "Prove a fact", apart from its screen (components/document/ProveNumber.tsx): the one
 // claim call and what is kept of it, and the rules for a record kept on this device only
 // (docs/device-only-records.md, "Proving a number").
 //
@@ -43,7 +43,7 @@ export type ClaimCalls = {
   readonly proveValueOnChain: (m: ClaimMaterial, slot: number, opts: Progress) => Promise<Receipt>;
 };
 
-/** Whether the "Prove one number" panel is on a record's page. Off for a record kept on this device only until its holder turns it on. */
+/** Whether the "Prove a fact" panel is on a record's page. Off for a record kept on this device only until its holder turns it on. */
 export const proveShown = (o: { deviceOnly: boolean; optedIn: boolean; enabled: boolean }): boolean =>
   !o.deviceOnly || (o.enabled && o.optedIn);
 

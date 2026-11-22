@@ -1,4 +1,4 @@
-# The claims screen: prove one number from a lab certificate without showing the rest
+# The claims screen: prove a fact from a lab certificate without showing the rest
 
 Status: DESIGN AND BUILD, 29 October 2026. Test networks first. The claims contract
 (`docs/claims-design.md`) has been on mainnet since 8 October with no screen; this is the screen.
@@ -64,7 +64,7 @@ A claim names the record's commitment, not its name. The record's proof code is 
 commitment and the record's key binding, and VeilCore's registry holds both for every record,
 beside the holder key that sent them. So VeilCore can tie any claim to its record and to that
 holder key, and anyone who has the record's check link can tie the claim to the record. "Prove
-one number" says so before the button, for every record, in five languages (`app.claim.tie`).
+a fact" says so before the button, for every record, in five languages (`app.claim.tie`).
 
 ## Build order, and where it stands
 

@@ -1,25 +1,15 @@
 // The words for a record sealed with no signal, and for its own timestamps (docs/offline.md).
 //
 // The rule: a record is dated when its proof code reaches VeilCore, never earlier. Until then
-// the only time there is is the device's own clock, said as such ("your phone's clock"), and
+// the only time there is is the device's own clock, said as such ("this device's clock"), and
 // the line says the date comes when it is sent. A timestamp authority's time is the token's own,
 // checked on this device (veilcore/instant-stamp.ts), and the line says the Midnight date
 // follows while the batch has none.
 // SPDX-License-Identifier: Apache-2.0
 
 import type { Translator } from '../../i18n/translate';
-import type { AppKey } from '../../i18n/app/en';
 import { localStamp, utcStamp } from '../../veilcore/time';
 import type { InstantState } from '../../veilcore/instant-stamp';
-
-/** A phone or a small tablet (a touch screen first), or a computer: for "this phone" / "this computer". */
-export const deviceKind = (): 'phone' | 'computer' => {
-  try {
-    return matchMedia('(pointer: coarse)').matches && matchMedia('(max-width: 1024px)').matches ? 'phone' : 'computer';
-  } catch {
-    return 'computer';
-  }
-};
 
 /** The device's own clock time for a moment: "05:02", or with the day when it isn't today. */
 export const deviceClock = (t: number, locale: string | undefined, now: number = Date.now()): string => {
@@ -30,9 +20,13 @@ export const deviceClock = (t: number, locale: string | undefined, now: number =
   return sameDay ? time : `${d.toLocaleDateString(locale, { day: 'numeric', month: 'short' })} ${time}`;
 };
 
-/** "Sealed on this phone at 05:02 (your phone's clock). Dated when it's sent." */
-export const sealedHereWords = (loggedAt: number, tr: Translator, kind: 'phone' | 'computer' = deviceKind()): string =>
-  tr.t(`app.offline.sealedHere.${kind}` as AppKey, { time: deviceClock(loggedAt, tr.locale) });
+/**
+ * "Sealed on this device at 05:02 (this device's clock, not checked). Dated when it's sent."
+ * Always "this device": guessing phone or computer from the screen got it wrong on phones
+ * (a phone was told "this computer"), and a wrong word here is worse than a plain one.
+ */
+export const sealedHereWords = (loggedAt: number, tr: Translator): string =>
+  tr.t('app.offline.sealedHere', { time: deviceClock(loggedAt, tr.locale) });
 
 /** The short line for a list: "Sealed 05:02, dated when sent". */
 export const sealedHereShort = (loggedAt: number, tr: Translator): string =>

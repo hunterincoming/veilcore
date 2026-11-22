@@ -3,10 +3,8 @@
 import type { AppTranslation } from '../../translate';
 
 export const offline = {
-  'app.offline.sealedHere.phone':
-    'Scellé sur ce téléphone à {time} (selon l’horloge de votre téléphone, non vérifiée). Daté quand il est envoyé.',
-  'app.offline.sealedHere.computer':
-    'Scellé sur cet ordinateur à {time} (selon l’horloge de votre ordinateur, non vérifiée). Daté quand il est envoyé.',
+  'app.offline.sealedHere':
+    'Scellé sur cet appareil à {time} (selon l’horloge de cet appareil, non vérifiée). Daté quand il est envoyé.',
   'app.offline.short': 'Scellé {time}, daté à l’envoi',
   'app.offline.goesBySelf': 'Son code de preuve part tout seul quand vous êtes de nouveau en ligne.',
   'app.offline.bar':
