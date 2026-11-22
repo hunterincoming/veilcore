@@ -96,7 +96,12 @@ export const labresult = {
   'app.lr.tools.none': 'Ninguno todavía.',
   'app.lr.form.kind': 'Qué tipo de resultado',
   'app.lr.form.subject': 'Código de prueba que el remitente indicó para esta muestra',
-  'app.lr.form.subjectHelp': 'Del registro de la muestra o de su enlace de comprobación: 64 caracteres.',
+  'app.lr.form.subjectHelp':
+    'Escanee el código QR junto al código de prueba en el registro de la muestra o en su etiqueta, o pegue el código (64 caracteres). También sirve un lector de códigos de barras USB: haga clic en este campo y escanee.',
+  'app.lr.form.subjectBadCheck':
+    'Ese código no se leyó bien. Escanéelo de nuevo. Si un lector USB lo repite, configure el lector con la misma distribución de teclado que este ordenador.',
+  'app.lr.form.subjectNotCode':
+    'Eso no es un código de prueba. Escanee el código QR junto al código de prueba en el registro de la muestra o en su etiqueta, o pegue el código de 64 caracteres.',
   'app.lr.form.sampleId': 'ID de la muestra (el del remitente)',
   'app.lr.form.accession': 'Su n.º de accesión del laboratorio',
   'app.lr.form.method': 'Método o POE (SOP)',
@@ -143,7 +148,7 @@ export const labresult = {
   'app.lr.csv.template': 'Descargar una plantilla',
   'app.lr.csv.choose': 'Elegir el archivo CSV',
   'app.lr.csv.intro':
-    'Una fila por muestra y blanco. Cada fila se convierte en su propio resultado firmado. Columnas necesarias: subject (el código de prueba que dio el remitente), sample id, accession, result. La plantilla tiene el resto, incluidos los datos del análisis y de control de calidad.',
+    'Una fila por muestra y blanco. Cada fila se convierte en su propio resultado firmado. Columnas necesarias: subject (el código de prueba que dio el remitente), sample id, accession, result. La plantilla tiene el resto, incluidos los datos del análisis y de control de calidad. Un lector de códigos de barras USB puede rellenar la columna subject: haga clic en una celda de ella y escanee el código QR de cada muestra.',
   'app.lr.csv.ready': '{ok} listos para firmar. {bad} no se firmarán: corríjalos y fírmelos de nuevo.',
   'app.lr.csv.tooMany':
     'Este archivo tiene {rows} filas, y una tanda firma como mucho {n}. No se leyó nada: divídalo y empiece el siguiente archivo en la línea {next}.',

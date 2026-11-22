@@ -104,6 +104,7 @@ import { useRole, isBreeder, isLab } from '../veilcore/role';
 import { utcStamp as fmt } from '../veilcore/time';
 import { LAB_RESULTS_ENABLED } from '../config/network';
 import { CODE_TEXT } from '../config/theme';
+import { ProofCodeQr } from './lab/ProofCodeQr';
 
 type Mode =
   | 'overview'
@@ -804,8 +805,9 @@ export const RecordDetail: React.FC = () => {
                         : t('app.plant.f.notSavedYet')}
                     </Field>
                     <Divider />
-                    {/* Whole, with a copy button: a lab types this code into its result form, and
-                        a short form ("99ae…6f56") can't be copied or checked (lab test, 17 Nov). */}
+                    {/* Whole, with a copy button and a QR code: a lab puts this code into its result
+                        form, and a short form ("99ae…6f56") can't be copied or checked (lab test,
+                        17 Nov). */}
                     <Field label={t('app.plant.f.recordFingerprint')}>
                       <Box component="span" sx={{ ...CODE_TEXT, overflowWrap: 'anywhere' }} data-proof-code="">
                         {record.recordFingerprint}
@@ -813,6 +815,8 @@ export const RecordDetail: React.FC = () => {
                       <Box sx={{ mt: 0.5 }}>
                         <CopyCode text={record.recordFingerprint} />
                       </Box>
+                      {/* The same code as a QR code, for the lab to scan instead of typing it. */}
+                      <ProofCodeQr code={record.recordFingerprint} />
                     </Field>
                     <StatusChain record={record} licenseCount={activeLicenseCount(record.id)} />
                   </Stack>

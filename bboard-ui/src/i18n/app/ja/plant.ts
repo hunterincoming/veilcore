@@ -91,6 +91,9 @@ export const plant = {
   'app.plant.f.codeCopied': 'コピーしました',
   'app.plant.f.codeNotCopied': 'コピーできませんでした。コードを選択してコピーしてください',
   'app.plant.f.recordFingerprint': '記録の証明コード',
+  'app.plant.f.proofQrLabel': 'この証明コードのQRコード（ラボが読み取るためのもの）',
+  'app.plant.f.proofQrText':
+    'ラボはコードを入力する代わりに、これを結果の入力フォームに読み取れます。中身は証明コードだけで、確認ページで誰でも見られるものです。',
   'app.plant.evidenceBundle': '証拠バンドル',
   'app.plant.evidenceBundleText':
     '封印したままの記録、その包含証明、バッチのルート、バッチが記録された場所、あればBitcoinのスタンプファイル、記録に関するラボの署名を、1つの.zipにまとめたものです。中のverify.htmlは、インターネットもVeilCoreも使わずに確認し、日付を確かめるために何を調べればよいかを示します。',

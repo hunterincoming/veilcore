@@ -95,7 +95,12 @@ export const labresult = {
   'app.lr.tools.none': 'まだありません。',
   'app.lr.form.kind': '結果の種類',
   'app.lr.form.subject': '送り主がこのサンプルについて示した証明コード',
-  'app.lr.form.subjectHelp': 'サンプルの記録か確認リンクから。64文字です。',
+  'app.lr.form.subjectHelp':
+    'サンプルの記録で証明コードの横にあるQRコード、またはラベルのQRコードを読み取るか、コード（64文字）を貼り付けてください。USBバーコードスキャナーも使えます。この入力欄をクリックしてから読み取ってください。',
+  'app.lr.form.subjectBadCheck':
+    'コードを正しく読み取れませんでした。もう一度読み取ってください。USBスキャナーで何度も起きる場合は、スキャナーのキーボード配列をこのコンピューターと同じにしてください。',
+  'app.lr.form.subjectNotCode':
+    '証明コードではありません。サンプルの記録で証明コードの横にあるQRコード、またはラベルのQRコードを読み取るか、64文字のコードを貼り付けてください。',
   'app.lr.form.sampleId': 'サンプルID（送り主のもの）',
   'app.lr.form.accession': '受付番号（貴ラボ）',
   'app.lr.form.method': '方法またはSOP',
@@ -141,7 +146,7 @@ export const labresult = {
   'app.lr.csv.template': 'テンプレートをダウンロード',
   'app.lr.csv.choose': 'CSVファイルを選ぶ',
   'app.lr.csv.intro':
-    '1サンプル・1標的につき1行です。各行がそれぞれ署名された結果になります。必要な列：subject（送り主が示した証明コード）、sample id、accession、result。検査の実施と品質管理の列を含め、残りはテンプレートにあります。',
+    '1サンプル・1標的につき1行です。各行がそれぞれ署名された結果になります。必要な列：subject（送り主が示した証明コード）、sample id、accession、result。検査の実施と品質管理の列を含め、残りはテンプレートにあります。 subject列はUSBバーコードスキャナーで入力できます。列のセルをクリックして、各サンプルのQRコードを読み取ってください。',
   'app.lr.csv.ready': '署名できるもの{ok}件。{bad}件は署名されません。直して、もう一度署名してください。',
   'app.lr.csv.tooMany':
     'このファイルは{rows}行あり、1回で署名できるのは{n}行までです。何も読み込んでいません。分割して、次のファイルは{next}行目から始めてください。',

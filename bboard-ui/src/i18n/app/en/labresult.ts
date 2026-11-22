@@ -104,7 +104,12 @@ export const labresult = {
   // ---- one result (ResultForm.tsx) ----
   'app.lr.form.kind': 'What kind of result',
   'app.lr.form.subject': 'Proof code the sender gave for this sample',
-  'app.lr.form.subjectHelp': 'From the sample’s record or its check link: 64 characters.',
+  'app.lr.form.subjectHelp':
+    'Scan the QR code beside the proof code on the sample’s record, or on its label, or paste the code (64 characters). A USB barcode scanner works too: click in this box, then scan.',
+  'app.lr.form.subjectBadCheck':
+    'That code didn’t read correctly. Scan it again. If a USB scanner keeps doing this, set the scanner to the same keyboard layout as this computer.',
+  'app.lr.form.subjectNotCode':
+    'That isn’t a proof code. Scan the QR code beside the proof code on the sample’s record, or on its label, or paste the 64-character code.',
   'app.lr.form.sampleId': 'Sample ID (the sender’s)',
   'app.lr.form.accession': 'Your accession number',
   'app.lr.form.method': 'Method or SOP',
@@ -153,7 +158,7 @@ export const labresult = {
   'app.lr.csv.template': 'Download a template',
   'app.lr.csv.choose': 'Choose the CSV file',
   'app.lr.csv.intro':
-    'One row per sample and target. Each row becomes its own signed result. Needed columns: subject (the proof code the sender gave), sample id, accession, result. The template has the rest, including the run and QC details.',
+    'One row per sample and target. Each row becomes its own signed result. Needed columns: subject (the proof code the sender gave), sample id, accession, result. The template has the rest, including the run and QC details. A USB barcode scanner can fill the subject column: click a cell in it and scan each sample’s QR code.',
   'app.lr.csv.ready': '{ok} ready to sign. {bad} won’t be signed: fix them and run them again.',
   'app.lr.csv.tooMany':
     'This file has {rows} rows, and one run signs at most {n}. Nothing was read: split it, and start the next file at line {next}.',

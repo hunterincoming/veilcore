@@ -100,6 +100,9 @@ export const plant = {
   'app.plant.f.codeCopied': 'Kopiert',
   'app.plant.f.codeNotCopied': 'Kopieren nicht möglich: Code markieren und kopieren',
   'app.plant.f.recordFingerprint': 'Prüfcode des Datensatzes',
+  'app.plant.f.proofQrLabel': 'QR-Code dieses Prüfcodes, zum Scannen durch ein Labor',
+  'app.plant.f.proofQrText':
+    'Ein Labor kann ihn in sein Ergebnisformular scannen, statt den Code abzutippen. Er enthält nur den Prüfcode, den die Prüfseite jedem zeigt.',
   'app.plant.evidenceBundle': 'Nachweispaket',
   'app.plant.evidenceBundleText':
     'Der Datensatz wie versiegelt, sein Inklusionsnachweis, die Stapelwurzel, wo der Stapel festgehalten wurde, die Bitcoin-Stempeldatei, falls vorhanden, und Laborsignaturen dazu, in einer .zip-Datei. Ihre verify.html prüft ihn ohne Internet und ohne etwas von VeilCore und sagt, was man nachschlagen muss, um ihn zu datieren.',

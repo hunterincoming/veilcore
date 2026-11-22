@@ -96,6 +96,9 @@ export const plant = {
   'app.plant.f.codeCopied': 'Copiado',
   'app.plant.f.codeNotCopied': 'No se pudo copiar: seleccione el código y cópielo',
   'app.plant.f.recordFingerprint': 'Código de prueba del registro',
+  'app.plant.f.proofQrLabel': 'Código QR de este código de prueba, para que lo escanee un laboratorio',
+  'app.plant.f.proofQrText':
+    'Un laboratorio puede escanearlo en su formulario de resultado en lugar de escribir el código. Solo lleva el código de prueba, que la página de comprobación muestra a cualquiera.',
   'app.plant.evidenceBundle': 'Paquete de evidencia',
   'app.plant.evidenceBundleText':
     'El registro tal como se selló, su prueba de inclusión, la raíz del lote, dónde se registró el lote, el archivo de sello de Bitcoin si lo hay y las firmas de laboratorio sobre él, en un solo .zip. Su verify.html lo comprueba sin internet y sin nada de VeilCore, y dice qué consultar para fecharlo.',
