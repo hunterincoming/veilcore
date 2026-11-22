@@ -113,7 +113,7 @@ export const plant = {
   'app.plant.date.dated': 'dated on {what}',
   'app.plant.date.inBatch': 'waiting: in a batch, its date stamp still to come',
   'app.plant.date.reportedNoDay': 'dated, as VeilCore’s registry reports (it gave no day)',
-  'app.plant.holdProof': 'Proof you hold it',
+  'app.plant.holdProof': 'Key date stamp',
   'app.plant.hold.dated': 'dated on {date}',
   'app.plant.hold.notYet': 'not dated yet',
   'app.plant.hold.retrying': 'waiting: trying again by itself',
@@ -275,8 +275,8 @@ export const plant = {
   'app.plant.next.noCurrent.title': 'No current DNA report from {lab}',
   'app.plant.next.open.title': 'Open the lab report from {lab}',
   'app.plant.next.label': 'Next step',
-  'app.plant.next.stamp.title': 'Optional: set up proof you hold it',
-  'app.plant.next.stamp.action': 'Set up proof you hold it',
+  'app.plant.next.stamp.title': 'Optional: add the key date stamp (needed before you license it)',
+  'app.plant.next.stamp.action': 'Add the key date stamp',
   'app.plant.next.open.action': 'Open',
   'app.plant.chain.sealed': 'Sealed',
   'app.plant.chain.reportSaved': 'DNA report saved',
@@ -334,6 +334,8 @@ export const plant = {
   'app.plant.tree.datedReports': 'Dated DNA reports (not offspring)',
   'app.plant.action.nextStage': 'Add the next generation or selection',
   'app.plant.action.nextStageHint': 'A new record with this plant as its parent. Seal each stage when it happens.',
+  'app.plant.action.nextOrClones': 'Next generation or clones',
+  'app.plant.action.nextOrClonesHint': 'A new record with this plant as its parent',
   // stage/DateLabReport.tsx and lab-report-date.ts
   'app.plant.dated.refused': 'The registry didn’t save it ({reason}). Nothing was dated. Try again.',
   'app.plant.dated.line': 'DNA report dated: in <link></link> ({status})',
@@ -494,7 +496,7 @@ export const plant = {
   'app.plant.fix.issue': 'Issue correction',
   // AttestationPanel.tsx: signatures about a record (Technical details).
   'app.plant.att.linked': '{date} · linked to your delivery {id}',
-  'app.plant.att.verified': 'The signature was verified in this browser.',
+  'app.plant.att.verified': 'The signature was checked in this browser.',
   'app.plant.att.unverifiedRetraction':
     ' The registry also reports a retraction that is not signed by the lab, so it is ignored here.',
   'app.plant.att.codeUsed':

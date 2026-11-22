@@ -638,6 +638,28 @@ export type RestoreResult = {
 };
 
 /**
+ * What a backup file says about itself, read without changing anything: when it was made and
+ * how many records it holds. Shown before a file is restored into an empty browser, so a file
+ * someone else made (sent to trick you, or an old one) is seen for what it is first (full
+ * review, 22 Nov). A locked file needs its password first (BackupNeedsPassword). Null for the
+ * older files that say neither (a single record's keys, a holder-key text file).
+ */
+export const peekBackup = async (
+  file: File,
+  password?: string,
+): Promise<{ readonly savedAt?: string; readonly records: number } | null> => {
+  const text = await file.text();
+  if (text.startsWith('VeilCore holder key')) return null;
+  const v = await opened(parse(text), password);
+  if (v.format !== BACKUP_FORMAT) {
+    if (v.format === 'veilcore-record-keys') return null;
+    throw new Error("That file isn't a VeilCore backup. Pick the file you saved from VeilCore.");
+  }
+  const records = Array.isArray(v.records) ? v.records.length : 0;
+  return { savedAt: typeof v.savedAt === 'string' ? v.savedAt : undefined, records };
+};
+
+/**
  * Restore from any VeilCore backup: the one-file backup, an older single record's keys
  * file, or an older holder-key text file. Never replaces a different key already here.
  */

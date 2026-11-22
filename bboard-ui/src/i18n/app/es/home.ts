@@ -15,7 +15,7 @@ export const home = {
   'app.home.aboutThreeMinutesByHand':
     'Unos 3 minutos. Al terminar queda sellado; su fecha pública llega cuando anclamos su lote (a mano por ahora). Usted tiene la única clave.',
   'app.home.continue': 'Continuar',
-  'app.home.start': 'Empezar',
+  'app.home.start': 'Crear un registro',
   'app.home.spreadsheet': '¿Tiene una hoja de cálculo? Feche toda su colección',
   'app.home.newPhone': '¿Teléfono nuevo? Recupere sus registros',
   'app.home.newPhoneLab': '¿Teléfono nuevo? Recupere la clave y las muestras de su laboratorio',
@@ -27,7 +27,7 @@ export const home = {
   'app.home.whatStops': '¿Qué impide que alguien registre mi material primero?',
   'app.home.samplesReceived': 'Muestras recibidas',
   'app.home.yourRecords': 'Sus registros',
-  'app.home.logNew': 'Registrar nuevo',
+  'app.home.logNew': 'Crear un registro',
   'app.home.saveIt': 'Guardarla',
   'app.home.finishBackupLine': '<b>Para terminar: guarde su copia de seguridad.</b> {line}',
   'app.home.keysOnlyHereRecords.one': 'Un registro tiene claves solo en este dispositivo.',
@@ -93,6 +93,48 @@ export const home = {
   'app.home.labDoor.text': 'Sus registros quedan como están.',
   'app.home.labDoor.add': 'Agregar herramientas de laboratorio',
   'app.home.labDoor.notNow': 'Ahora no',
+  'app.labpage.title': 'VeilCore para laboratorios',
+  'app.labpage.lede':
+    'Firme los resultados que ya produce. El obtentor puede mostrarlos, y quien los vea puede comprobar qué clave los firmó y cuándo. Su propio sistema sigue funcionando como hasta ahora.',
+  'app.labpage.setUp': 'Configurar su laboratorio',
+  'app.labpage.gets.title': 'Lo que obtiene su laboratorio',
+  'app.labpage.gets.key.t': 'Una clave de firma.',
+  'app.labpage.gets.key.p':
+    'Se crea en su navegador. Los acuses de recibo y los resultados que firma lo llevan, y cualquiera a quien se le muestren puede comprobar la firma.',
+  'app.labpage.gets.arrived.t': 'Un acuse de recibo firmado por cada muestra.',
+  'app.labpage.gets.arrived.p':
+    'Un obtentor envía una muestra con un código de laboratorio de VeilCore. Usted confirma que llegó, o la rechaza, y lo firma.',
+  'app.labpage.gets.results.t': 'Resultados cerrados para el obtentor.',
+  'app.labpage.gets.results.p':
+    'Solo los ven el obtentor, su laboratorio y quien envió la muestra, y solo el obtentor puede mostrárselos a otros.',
+  'app.labpage.work.title': 'Qué cambia en su trabajo',
+  'app.labpage.work.p1':
+    'Nada en su propio sistema. Cuando una muestra llega con un código de laboratorio, pega o escanea el código, confirma la entrega y, más tarde, firma su resultado.',
+  'app.labpage.work.p2':
+    'Los datos de sus muestras y los nombres de sus clientes se quedan con usted. VeilCore guarda los acuses que firma, y sus resultados cerrados para que solo el obtentor pueda abrirlos.',
+  'app.labpage.cost.title': 'Cuánto cuesta',
+  'app.labpage.cost.p': 'Gratis para probar. Los planes para laboratorios están hechos, pero no activados.',
+  'app.labpage.own.title': 'Úselo a su manera',
+  'app.labpage.own.lede':
+    'Nunca está obligado a usar veilcore.org. Todo el código de VeilCore es abierto, con licencia Apache-2.0.',
+  'app.labpage.own.site.t': 'Usar veilcore.org.',
+  'app.labpage.own.site.p': 'Nada que configurar. Nosotros operamos el servidor y pagamos las comisiones de la red.',
+  'app.labpage.own.plug.t': 'Integrarlo en su propio software.',
+  'app.labpage.own.plug.p':
+    'Su sistema conserva sus datos y agrega un código de prueba a cada registro, con el paquete de contratos inteligentes @veilcore/contracts.',
+  'app.labpage.own.plug.link': 'Cómo integrarlo →',
+  'app.labpage.own.run.t': 'Operar su propia copia.',
+  'app.labpage.own.run.p':
+    'El sitio web, el servidor que guarda los registros y el servicio de comisiones son código abierto. Usted los alojaría y pagaría sus propias comisiones de red. Se está escribiendo una guía para operarlos por su cuenta; mientras tanto, empiece por la guía de integración.',
+  'app.labpage.own.run.link': 'La guía de integración →',
+  'app.labpage.own.plainly':
+    'Dicho claramente: operar su propia copia es posible con el código abierto, pero nadie fuera de VeilCore lo ha hecho aún, así que sin nuestra ayuda no está probado. Hoy una copia todavía apunta a veilcore.org hasta que se vuelva a compilar con sus propias direcciones. El contrato inteligente principal de registros tiene una clave de mantenimiento, que tenemos nosotros. El contrato inteligente de pruebas de hechos no tiene ninguna.',
+  'app.labpage.own.policyLink': 'Quién tiene la clave de mantenimiento y cuándo puede usarse →',
+  'app.labpage.own.codeLink': 'El código en GitHub →',
+  'app.labpage.gone.title': 'Si VeilCore desaparece',
+  'app.labpage.gone.p':
+    'Lo que ya tiene fecha la conserva: las fechas están en Midnight, y el archivo de respaldo de un obtentor guarda sus registros y las pruebas para comprobarlos con herramientas libres y abiertas. Lo que se detiene es crear registros nuevos y pasar códigos de laboratorio, hasta que alguien opere un servidor con el código abierto.',
+  'app.labpage.gone.link': 'Todo lo que sigue funcionando sin nosotros →',
   'app.home.saveProblem.records': 'registros',
   'app.home.saveProblem.agreements': 'acuerdos',
   'app.home.saveProblem.unreachable':
@@ -120,7 +162,7 @@ export const home = {
   'app.home.paste.go': 'Ir',
   'app.home.paste.orMake': '¿Nada que pegar? Cree un registro',
   'app.home.paste.hint':
-    'Un código de laboratorio, un enlace a un registro, una solicitud para demostrar que tiene un registro o un acuerdo para firmar. Nosotros averiguamos cuál es.',
+    'Un código de laboratorio, un enlace a un registro o un acuerdo para firmar. Nosotros averiguamos cuál es.',
   'app.home.paste.whichRecord': 'Es una solicitud para demostrar que tiene un registro. ¿Por cuál le preguntaron?',
   'app.home.receivedFrom': 'Recibida de {name}',
   'app.home.receivedFromNamed': 'De {name} · su registro {id}',

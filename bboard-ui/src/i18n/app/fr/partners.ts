@@ -29,7 +29,8 @@ export const partners = {
   'app.partners.not.3': 'Qui détient le matériel, ou l’enregistrement, aujourd’hui.',
   'app.partners.not.4':
     'Que le travail d’un laboratoire est juste. Un nom vérifié signifie qu’une liste publique a été rapprochée, rien de plus.',
-  'app.partners.not.5': 'La filiation, les droits, les licences ou le statut juridique.',
+  'app.partners.not.5':
+    'La filiation, sauf si le détenteur envoie un lien de preuve de filiation. Les droits, les licences ou le statut juridique.',
   'app.partners.demo.title': 'Essayez',
   'app.partners.demo.lede':
     'Collez le lien de vérification d’un enregistrement. Il est vérifié dans ce navigateur, auprès du registre qu’utilise ce site. Rien n’est envoyé ailleurs, et rien n’est conservé.',

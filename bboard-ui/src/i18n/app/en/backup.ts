@@ -26,9 +26,9 @@ export const backup = {
   'app.backup.safari':
     'This browser can clear a site’s data after 7 days without a visit. Your backup file is what brings your records back, so keep it.',
   'app.backup.actAsYou':
-    'Anyone with this file can open your records and act as you. Best: a USB stick or a password manager. If you email it, use an account with two-step login.',
+    'Anyone with this file can open your records and act as you, unless it has a password. Best: a USB stick or a password manager. Keep the password apart from the file.',
   'app.backup.sentCopy': 'Sent a copy ✓',
-  'app.backup.sendCopy': 'Send a copy (email, Drive, Files…)',
+  'app.backup.sendCopy': 'Save a copy somewhere else (Files, Drive…)',
   'app.backup.shareFailed': "This browser couldn't open its share menu.",
   'app.backup.byHand': 'It’s the file you just saved, in your Downloads folder.',
   'app.backup.saveAgain': 'Save another copy',
@@ -40,7 +40,7 @@ export const backup = {
   'app.backup.openCopy': 'Open my saved copy',
   'app.backup.saveFirst': 'Save the backup file first.',
   'app.backup.turnsOn': 'This turns on once the check passes.',
-  'app.backup.pw.add': 'Add a password (suggested)',
+  'app.backup.pw.add': 'Lock it with a password (suggested)',
   'app.backup.pw.why':
     'Then the file alone opens nothing: whoever has it also needs the password. If you forget it, nobody can open the file, us included.',
   'app.backup.pw.label': 'Password for the backup file',
@@ -57,6 +57,11 @@ export const backup = {
   // RestorePage.tsx
   'app.backup.restoreTitle': 'Get your records back',
   'app.backup.restoreIntro': 'New phone or computer, or cleared your browser? Open the backup file you saved.',
+  'app.backup.ownOnly': 'Only open a file or code you saved yourself. VeilCore will never ask for or send you one.',
+  'app.backup.preview.one': 'This backup was made on {date} and holds {count} record. Bring it here?',
+  'app.backup.preview.other': 'This backup was made on {date} and holds {count} records. Bring them here?',
+  'app.backup.previewUndated.one': 'This backup holds {count} record. Bring it here?',
+  'app.backup.previewUndated.other': 'This backup holds {count} records. Bring them here?',
   'app.backup.plantsBack': 'Your records are back.',
   'app.backup.restored': 'Restored.',
   'app.backup.nothingNew': 'Nothing new in that file.',
@@ -70,8 +75,7 @@ export const backup = {
   'app.backup.nCodes.other': '{count} lab codes',
   'app.backup.and': '{a} and {b}',
   'app.backup.seeMyPlants': 'See my records',
-  'app.backup.lookIn':
-    'Look on your USB stick, in your password manager, or in your email, Drive or iCloud. Any file name is fine. Nothing is uploaded.',
+  'app.backup.lookIn': 'Look on your USB stick, in your password manager or your cloud drive. Nothing is uploaded.',
   'app.backup.openFile': 'Open my backup file',
   'app.backup.onlyKey': 'Have only your holder key (64 characters)?',
   'app.backup.keyLabel': 'Your holder key (64 characters)',

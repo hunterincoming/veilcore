@@ -1048,7 +1048,7 @@ describe.skipIf(!haveBrowser)('browser: built site under the production headers'
     const badge = await pg.evaluate(() => document.querySelector('[data-checked]')?.getAttribute('data-checked'));
     expect(text).not.toMatch(/Anchored on/);
     expect(text).not.toMatch(/fingerprint is intact/);
-    expect(text).toMatch(/none could be verified in this browser/);
+    expect(text).toMatch(/none could be checked in this browser/);
     expect(badge).toBe('no');
     expect(violations).toEqual([]);
     await ctx.close();

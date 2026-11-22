@@ -28,6 +28,7 @@ import {
 import { Link as RouterLink } from 'react-router-dom';
 import LockIcon from '@mui/icons-material/LockOutlined';
 import VerifiedIcon from '@mui/icons-material/VerifiedOutlined';
+import SignedIcon from '@mui/icons-material/DrawOutlined';
 import {
   RECORDS_KEY,
   createRecord,
@@ -75,7 +76,7 @@ import type { LabResultBundle, ProblemCode } from '../../veilcore/lab-result';
 import type { AppKey } from '../../i18n/app/en';
 import { OPEN_SIGNING_KEY_EVENT } from '../AttesterSetup';
 import { NameCheckText } from '../NameCheckText';
-import { labIdentitySeverity } from '../../veilcore/lab-identity-words';
+import { labIdentitySeverity, labIdentityTone } from '../../veilcore/lab-identity-words';
 import { focusScreenHeading } from './FlowFrame';
 import {
   deleteResult,
@@ -450,7 +451,12 @@ const SignerLine: React.FC<{ signer: ReportSigner }> = ({ signer }) => {
   // The box takes the key's level (lab-identity-words.ts): green only for a listing match, never
   // for a key nobody has verified; the level itself is said in words below.
   return (
-    <Alert severity={labIdentitySeverity(label.identity.level)} variant="outlined" icon={<VerifiedIcon />}>
+    // The rosette only for a real listing match; any other key gets a plain signature mark.
+    <Alert
+      severity={labIdentitySeverity(label.identity.level)}
+      variant="outlined"
+      icon={labIdentityTone(label.identity.level) === 'listing' ? <VerifiedIcon /> : <SignedIcon />}
+    >
       {rich(t('app.lab.results.signed'), { b }, { lead: label.lead, key: short(a.attester.publicKey) })}
       <NameCheckText label={label} />
     </Alert>

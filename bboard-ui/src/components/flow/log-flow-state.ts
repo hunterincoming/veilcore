@@ -90,7 +90,9 @@ export const today = (): string => {
 export const emptyDraft = (): Draft => ({
   strainName: '',
   bredBy: '',
-  dateCreated: today(),
+  // Empty, never today (full review, 22 Nov): a years-old cultivar would read as "stated
+  // today" to an examiner. The holder fills in their own date, or leaves it unstated.
+  dateCreated: '',
   parents: [],
   taxon: '',
   breedingMethod: '',
@@ -211,7 +213,7 @@ export const sealInputOf = (draft: Draft): SealInput => ({
 /**
  * The first screen of the next generation or selection of a plant: this plant as its linked
  * parent (the way the parents box links a logged plant), its breeder and species carried
- * over to edit, today's date. The name, "How it was made" and the stage questions start
+ * over to edit, and no date (the holder states one, 22 Nov). The name, "How it was made" and the stage questions start
  * empty: they are this stage's, not the parent's. The name box suggests one as a
  * placeholder only (nextStageNamePlaceholder), never as text that would be sealed unread.
  */

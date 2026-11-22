@@ -27,7 +27,7 @@ export const HELP_SECTIONS: readonly { readonly id: string; readonly items: read
     id: 'check',
     items: [{ n: 1, to: '/verify' }, { n: 2 }, { n: 3 }, { n: 4, to: '/docs/evidence', answer: false }],
   },
-  { id: 'labs', items: [{ n: 1, to: '/#live' }] },
+  { id: 'labs', items: [{ n: 1, to: '/how-it-works#where' }] },
   { id: 'wrong', items: [{ n: 1, to: '/status' }, { n: 2 }, { n: 3, href: HELP_TOOL_URL }] },
 ];
 

@@ -102,16 +102,16 @@ describe('Pick up where you left off', () => {
 describe('the record’s date while its proof code waits for the next batch', () => {
   it('says "in the next batch", with how often a batch is dated when known', () => {
     expect(nextBatchWords(undefined, 5)).toBe(
-      'Record dated: in the next batch (about every 5 minutes on the test network)',
+      'Your record gets its date with the next group of records (about every 5 minutes on the test network)',
     );
-    expect(nextBatchWords(undefined, undefined)).toBe('Record dated: in the next batch');
+    expect(nextBatchWords(undefined, undefined)).toBe('Your record gets its date with the next group of records.');
     expect(nextBatchRow(undefined, 5)).toEqual({
-      value: 'in the next batch',
+      value: 'with the next group of records',
       sub: 'about every 5 minutes on the test network',
     });
     expect(recordDateRow({ status: 'none' }, undefined, undefined, nextBatchRow(undefined, 5))).toEqual({
       mark: 'wait',
-      value: 'in the next batch',
+      value: 'with the next group of records',
       sub: 'about every 5 minutes on the test network',
     });
     // Rows that don't pass it (a DNA report's dating record) keep their words.

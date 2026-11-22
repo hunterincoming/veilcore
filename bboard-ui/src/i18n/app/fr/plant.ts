@@ -116,7 +116,7 @@ export const plant = {
   'app.plant.date.dated': 'daté du {what}',
   'app.plant.date.inBatch': 'en attente : dans un lot, horodatage à venir',
   'app.plant.date.reportedNoDay': 'daté, selon le registre de VeilCore (sans le jour)',
-  'app.plant.holdProof': 'Preuve que vous le détenez',
+  'app.plant.holdProof': 'Horodatage de la clé',
   'app.plant.hold.dated': 'datée du {date}',
   'app.plant.hold.notYet': 'pas encore datée',
   'app.plant.hold.retrying': 'en attente : réessayé tout seul',
@@ -277,8 +277,9 @@ export const plant = {
   'app.plant.next.noCurrent.title': 'Aucun rapport ADN en vigueur de {lab}',
   'app.plant.next.open.title': 'Ouvrir le rapport de laboratoire de {lab}',
   'app.plant.next.label': 'Étape suivante',
-  'app.plant.next.stamp.title': 'Facultatif : préparer la preuve que vous le détenez',
-  'app.plant.next.stamp.action': 'Préparer la preuve que vous le détenez',
+  'app.plant.next.stamp.title':
+    'Facultatif : ajouter l’horodatage de la clé (nécessaire avant de concéder une licence)',
+  'app.plant.next.stamp.action': 'Ajouter l’horodatage de la clé',
   'app.plant.next.open.action': 'Ouvrir',
   'app.plant.chain.sealed': 'Scellé',
   'app.plant.chain.reportSaved': 'Rapport ADN enregistré',
@@ -335,6 +336,8 @@ export const plant = {
   'app.plant.action.nextStage': 'Ajouter la génération ou la sélection suivante',
   'app.plant.action.nextStageHint':
     'Un nouvel enregistrement avec cette plante comme parent. Scellez chaque étape au moment où elle a lieu.',
+  'app.plant.action.nextOrClones': 'Génération suivante ou boutures',
+  'app.plant.action.nextOrClonesHint': 'Un nouvel enregistrement avec cette plante comme parent',
   'app.plant.dated.refused': 'Le registre ne l’a pas enregistré ({reason}). Rien n’a été daté. Réessayez.',
   'app.plant.dated.line': 'Rapport ADN daté : dans <link></link> ({status})',
   'app.plant.dated.dated': 'daté {value}',
@@ -490,7 +493,7 @@ export const plant = {
   'app.plant.fix.notSaved': 'La correction n’a pas pu être enregistrée.',
   'app.plant.fix.issue': 'Émettre la correction',
   'app.plant.att.linked': '{date} · lié à votre livraison {id}',
-  'app.plant.att.verified': 'La signature a été vérifiée dans ce navigateur.',
+  'app.plant.att.verified': 'La signature a été contrôlée dans ce navigateur.',
   'app.plant.att.unverifiedRetraction':
     ' Le registre signale aussi une rétractation qui n’est pas signée par le laboratoire ; elle est donc ignorée ici.',
   'app.plant.att.codeUsed':

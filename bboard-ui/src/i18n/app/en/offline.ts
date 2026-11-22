@@ -28,6 +28,8 @@ export const offline = {
   'app.install.ready':
     'This browser keeps the VeilCore app, so it opens here with no signal. Your records still need your backup.',
   'app.install.dismiss': 'Not now',
+  'app.install.showHow': 'Show me how',
+  'app.install.gotIt': 'Got it',
 
   'app.instant.pending':
     'Timestamped {time} by {tsa} — the date on Midnight, the blockchain, follows in the next batch.',

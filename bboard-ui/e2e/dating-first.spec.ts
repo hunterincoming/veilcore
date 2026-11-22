@@ -156,13 +156,15 @@ const datingFirst = async (page: Page, passkeys: boolean) => {
   await page.getByRole('button', { name: /Next: check it/ }).click();
   await page.getByRole('button', { name: /Seal it/ }).click();
   // The record's own date doesn't wait for the key's stamp, or for the backup.
-  await expect(page.locator('[data-record-dated-next]').first()).toContainText('Record dated: in the next batch');
+  await expect(page.locator('[data-record-dated-next]').first()).toContainText(
+    'Your record gets its date with the next group of records',
+  );
   // The network is blocked on purpose: the key's stamp fails, says so, and is tried again by itself.
   await expect(page.locator('[data-error]')).toBeVisible({ timeout: 90_000 });
   await expect(page.getByRole('button', { name: /Copy details for support/ })).toBeVisible();
   await expect(page.locator('[data-stamp-retry-in]')).toContainText(/Trying again by itself/);
   await shot(page, v + '2-stamp-failed-retrying');
-  await page.getByRole('button', { name: /Do the date stamp later/ }).click();
+  await page.getByRole('button', { name: /Go on without waiting/ }).click();
   await page.getByRole('button', { name: /No report yet: skip/ }).click();
   // The backup screen: they leave without saving it.
   await expect(page.getByRole('button', { name: /Save backup file/ })).toBeVisible();
@@ -190,7 +192,7 @@ const datingFirst = async (page: Page, passkeys: boolean) => {
   const pickup = page.locator('[data-pickup]');
   await expect(pickup).toContainText('Still in progress');
   await expect(pickup.locator('[data-pickup-item="dating"]')).toContainText(
-    `${name} will get its date in the next batch`,
+    `${name} will get its date with the next group of records`,
   );
   await expect(pickup.locator('[data-pickup-item="stamp"]')).toContainText(`Key date stamp for ${name}`);
   // Whether records are kept safe is said once, for the whole account: never on the record's
@@ -301,7 +303,7 @@ test('no way back yet: nothing pops up after the seal, and the backup step is th
       .then((c) => c > 0 && popups.push('keep-safe'))
       .catch(() => undefined);
   }, 250);
-  await page.getByRole('button', { name: /Do the date stamp later/ }).click({ timeout: 90_000 });
+  await page.getByRole('button', { name: /Go on without waiting/ }).click({ timeout: 90_000 });
   await page.getByRole('button', { name: /No report yet: skip/ }).click();
   await expect(page.getByRole('button', { name: /Save backup file/ })).toBeVisible();
   const lock = page.locator('[data-backup-device-lock]');
@@ -338,6 +340,13 @@ test('Get my records back: the recovery sheet is under “Other ways”, with on
   );
   await expect(page.locator('[data-restore-sheet-open]')).toBeVisible();
   await expect(page.getByRole('button', { name: /Open my backup file|backup file/i }).first()).toBeVisible();
+  // The file and the passkey are equal choices, the file first, and nobody is told to trust a
+  // file someone else sends (22 Nov).
+  await expect(page.locator('[data-restore-file-open]')).toHaveClass(/MuiButton-outlined/);
+  await expect(page.locator('[data-passkey-restore]')).toHaveClass(/MuiButton-outlined/);
+  await expect(page.locator('[data-restore-own-only]')).toContainText(
+    'Only open a file or code you saved yourself. VeilCore will never ask for or send you one.',
+  );
   await shot(page, 'restore-other-ways');
   expectNoErrors(errors);
 });

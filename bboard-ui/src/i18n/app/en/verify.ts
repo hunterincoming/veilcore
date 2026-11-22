@@ -209,8 +209,8 @@ export const verify = {
   'app.verify.batchNoStamp': 'The batch has no date stamp on Midnight yet.',
   'app.verify.sigLine': '{forWhom}{kind}, signature checked in this browser. {lead}.',
   'app.verify.sampleDetails': 'Sample details, as the registry reports them:',
-  'app.verify.moreSigs': '{forWhom}And {n} more signatures, each verified in this browser.',
-  'app.verify.noneVerified': 'The registry reports a signed attestation, but none could be verified in this browser.',
+  'app.verify.moreSigs': '{forWhom}And {n} more signatures, each checked in this browser.',
+  'app.verify.noneVerified': 'The registry reports a signed attestation, but none could be checked in this browser.',
   'app.verify.noneSigned':
     'The holder hasn’t shown any lab signatures here. A lab’s receipts and reports are private unless the holder chooses to show them.',
   'app.verify.badSigs.one': 'One signature the registry reports doesn’t verify in this browser, so it is not counted.',

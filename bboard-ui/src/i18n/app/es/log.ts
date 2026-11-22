@@ -88,7 +88,7 @@ export const log = {
     'Los detalles se guardan cifrados en {server} para que pueda volver a ellos, y nosotros no tenemos la clave. El nombre también está cifrado; un enlace de comprobación lo lleva después del # solo si usted lo activa. Solo se fecha un código de prueba, en {datedOn}.',
   'app.log.sealing': 'Sellando…',
   'app.log.sealPlain':
-    'Se publica, de forma permanente: solo códigos hechos a partir de él, en Midnight. Nunca sus textos ni sus fotos: eso sigue siendo privado, y solo usted puede abrirlo.',
+    'Se publica, de forma permanente: solo códigos hechos a partir de él, en Midnight. Nunca sus textos ni sus fotos: eso sigue siendo privado; solo usted puede abrirlo.',
   'app.log.sealDetails': '¿Qué se publica?',
   'app.log.seal': 'Sellarlo',
   'app.log.sealingPlant': 'Sellando su planta…',
@@ -109,12 +109,13 @@ export const log = {
   'app.log.keyStamped':
     'Clave con sello de fecha. La clave de su planta también queda fechada, para que más adelante pueda demostrar que la tiene.{bound} No salió nada sobre la planta.',
   'app.log.keyBound': ' El registro sellado nombra esta clave, así que nadie puede cambiarla por otra.',
-  'app.log.stampFailedTitle': 'Registro sellado. Aún sin sello de fecha',
-  'app.log.stampingTitle': 'Registro sellado. Obteniendo el sello de fecha de hoy…',
+  'app.log.stampFailedTitle': 'Registro sellado. Sello de fecha opcional de la clave: aún no',
+  'app.log.stampingTitle': 'Registro sellado. Agregando el sello de fecha opcional de la clave…',
   'app.log.onlyFingerprint':
-    'Solo sale un código de la clave de su planta, nada sobre la planta. Gratis: VeilCore paga la tarifa de la red.',
-  'app.log.stampingAria': 'Obteniendo el sello de fecha de hoy',
-  'app.log.stampLater': 'Hacer el sello de fecha más tarde',
+    'Opcional, solo hace falta para probar que tiene este registro o para licenciarlo. Solo sale un código de su clave, nada sobre la planta. Gratis.',
+  'app.log.stampingAria': 'Agregando el sello de fecha de la clave',
+  'app.log.stampLater': 'Seguir sin esperar',
+  'app.log.stampNotYet': 'El sello de fecha de la clave aún no se completó. Se sigue intentando solo.',
   'app.log.keepOpen':
-    'Tarda alrededor de un minuto. Mantenga esta pantalla abierta hasta que termine: en un teléfono, cambiar de aplicación o bloquear la pantalla puede detenerlo. Si se detiene, no se pierde nada: su planta está guardada y su página le ofrecerá el sello de fecha de nuevo.',
+    'No hace falta esperar aquí. Tarda alrededor de un minuto y se sigue intentando solo mientras VeilCore está abierto. Si se detiene, no se pierde nada: la página de su planta vuelve a ofrecer el sello de fecha de la clave.',
 } satisfies Partial<AppTranslation>;

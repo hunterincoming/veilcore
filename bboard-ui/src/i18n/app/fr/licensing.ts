@@ -489,7 +489,7 @@ export const licensing = {
   'app.lic.real.errCommit':
     'Sa réponse ne correspond pas à ce qui a été envoyé en premier. N’émettez pas : recommencez avec un nouveau lien.',
   'app.lic.real.needAnchor':
-    'Pour concéder une vraie licence sur cet enregistrement, établissez d’abord sur sa page la preuve que vous le détenez. La licence est émise à partir de la clé propre de l’enregistrement.',
+    'Pour concéder cet enregistrement sous licence pour de vrai, ajoutez d’abord l’horodatage de la clé sur sa page. La licence est émise depuis la propre clé de l’enregistrement.',
   'app.lic.real.openRecord': 'Ouvrir l’enregistrement',
   'app.lic.real.inviteUnsure':
     'Impossible de savoir si le lien a été créé : aucune réponse claire n’est revenue. S’il l’a été, personne ne peut l’utiliser, car il n’est jamais arrivé sur cette page, et il expire de lui-même au bout de 30 jours. D’ici là, le serveur de VeilCore garde avec lui le nom saisi et l’identité on-chain de cet enregistrement. Ne créez un nouveau lien que si vous en avez encore besoin.',

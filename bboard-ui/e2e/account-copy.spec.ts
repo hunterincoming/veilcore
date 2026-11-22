@@ -135,7 +135,7 @@ const SEAL = /^(Seal it|Save and date it)$/;
 
 /** Past the date stamp and the optional lab report, to where the flow goes next. */
 const pastStampAndReport = async (page: Page) => {
-  const later = page.getByRole('button', { name: /Do the date stamp later|^Next$/ }).first();
+  const later = page.getByRole('button', { name: /Go on without waiting|^Next$/ }).first();
   await expect(later).toBeVisible({ timeout: 120_000 });
   await later.click();
   await page.getByRole('button', { name: /No report yet: skip/ }).click();

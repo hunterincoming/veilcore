@@ -32,7 +32,8 @@ import LockIcon from '@mui/icons-material/LockOutlined';
 import ContentCopyIcon from '@mui/icons-material/ContentCopyOutlined';
 import ShareIcon from '@mui/icons-material/IosShareOutlined';
 import VisibilityIcon from '@mui/icons-material/VisibilityOutlined';
-import VerifiedIcon from '@mui/icons-material/VerifiedOutlined';
+import ShareHeadIcon from '@mui/icons-material/ShareOutlined';
+import LinkIcon from '@mui/icons-material/LinkOutlined';
 import { getRecord, integrityOf } from '../../veilcore/records';
 import {
   fieldsFor,
@@ -282,7 +283,7 @@ export const Step5ProveDisclosure: React.FC<{
     <Stack spacing={2.5}>
       <Box>
         <Stack direction="row" spacing={1} sx={{ alignItems: 'center', mb: 0.5 }}>
-          <VerifiedIcon sx={{ color: 'success.main' }} aria-hidden="true" />
+          <ShareHeadIcon sx={{ color: 'text.secondary' }} aria-hidden="true" />
           <Typography variant="h5" component="h2" tabIndex={-1} data-screen-heading="">
             {t('app.prove.share.title')}
           </Typography>
@@ -404,7 +405,7 @@ export const Step5ProveDisclosure: React.FC<{
         <Alert
           severity="success"
           variant="outlined"
-          icon={<VerifiedIcon />}
+          icon={<LinkIcon />}
           role="region"
           aria-label={t('app.prove.share.yourLink')}
         >

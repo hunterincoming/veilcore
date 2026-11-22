@@ -26,9 +26,9 @@ export const backup = {
   'app.backup.safari':
     'このブラウザは、7日間アクセスのないサイトのデータを消すことがあります。記録を取り戻すのはバックアップファイルなので、大切に保管してください。',
   'app.backup.actAsYou':
-    'このファイルを持っている人は誰でも、あなたの記録を開き、あなたとして行動できます。おすすめはUSBメモリかパスワードマネージャーです。メールで送る場合は、2段階認証を設定したアカウントを使ってください。',
+    'パスワードがなければ、このファイルを持っている人は誰でもあなたの記録を開き、あなたとして行動できます。おすすめはUSBメモリかパスワードマネージャーです。パスワードはファイルとは別に保管してください。',
   'app.backup.sentCopy': 'コピーを送りました ✓',
-  'app.backup.sendCopy': 'コピーを送る（メール、ドライブ、ファイル…）',
+  'app.backup.sendCopy': '別の場所にコピーを保存（ファイル、ドライブ…）',
   'app.backup.shareFailed': 'このブラウザでは共有メニューを開けませんでした。',
   'app.backup.byHand': '先ほど保存したファイルで、ダウンロードフォルダにあります。',
   'app.backup.saveAgain': 'もう1つコピーを保存',
@@ -40,7 +40,7 @@ export const backup = {
   'app.backup.openCopy': '保存したコピーを開く',
   'app.backup.saveFirst': '先にバックアップファイルを保存してください。',
   'app.backup.turnsOn': '確認が済むと押せるようになります。',
-  'app.backup.pw.add': 'パスワードを付ける（おすすめ）',
+  'app.backup.pw.add': 'パスワードで鍵をかける（おすすめ）',
   'app.backup.pw.why':
     'そうすれば、ファイルだけでは何も開けません。ファイルを持つ人にはパスワードも必要です。パスワードを忘れると、私たちを含め誰もファイルを開けません。',
   'app.backup.pw.label': 'バックアップファイルのパスワード',
@@ -57,6 +57,10 @@ export const backup = {
   'app.backup.restoreTitle': '記録を取り戻す',
   'app.backup.restoreIntro':
     '新しいスマートフォンやコンピューター、またはブラウザのデータを消去しましたか？保存したバックアップファイルを開いてください。',
+  'app.backup.ownOnly':
+    '自分で保存したファイルやコードだけを開いてください。VeilCore がそれを求めたり送ったりすることはありません。',
+  'app.backup.preview.other': 'このバックアップは{date}に作られ、記録が{count}件入っています。ここに戻しますか？',
+  'app.backup.previewUndated.other': 'このバックアップには記録が{count}件入っています。ここに戻しますか？',
   'app.backup.plantsBack': '記録が戻りました。',
   'app.backup.restored': '復元しました。',
   'app.backup.nothingNew': 'そのファイルに新しいものはありません。',
@@ -68,8 +72,7 @@ export const backup = {
   'app.backup.nCodes.other': 'ラボコード {count}件',
   'app.backup.and': '{a}と{b}',
   'app.backup.seeMyPlants': '記録を見る',
-  'app.backup.lookIn':
-    'USBメモリ、パスワードマネージャー、またはメール、ドライブ、iCloudの中を探してください。ファイル名は何でもかまいません。何もアップロードされません。',
+  'app.backup.lookIn': 'USBメモリ、パスワードマネージャー、クラウドの中を探してください。何もアップロードされません。',
   'app.backup.openFile': 'バックアップファイルを開く',
   'app.backup.onlyKey': '保有者キー（64文字）しかありませんか？',
   'app.backup.keyLabel': '保有者キー（64文字）',

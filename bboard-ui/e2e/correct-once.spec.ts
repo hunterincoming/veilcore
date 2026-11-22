@@ -118,7 +118,7 @@ for (const lang of ['en', 'ja'] as const) {
     await A.getByLabel(/Bred by/).fill('E2E breeder');
     await A.getByRole('button', { name: /Next: check it/ }).click();
     await A.getByRole('button', { name: /Seal it/ }).click();
-    await A.getByRole('button', { name: /Do the date stamp later/ }).click({ timeout: 90_000 });
+    await A.getByRole('button', { name: /Go on without waiting/ }).click({ timeout: 90_000 });
     await A.getByRole('button', { name: /No report yet: skip/ }).click();
     await saveAndCheckBackup(A);
     await A.getByRole('button', { name: /Finish/ }).click();

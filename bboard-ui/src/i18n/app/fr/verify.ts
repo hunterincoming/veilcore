@@ -213,9 +213,9 @@ export const verify = {
   'app.verify.batchNoStamp': 'Le lot n’a pas encore d’horodatage sur Midnight.',
   'app.verify.sigLine': '{forWhom}{kind}, signature contrôlée dans ce navigateur. {lead}.',
   'app.verify.sampleDetails': 'Détails de l’échantillon, selon le registre :',
-  'app.verify.moreSigs': '{forWhom}Et {n} signatures de plus, chacune vérifiée dans ce navigateur.',
+  'app.verify.moreSigs': '{forWhom}Et {n} signatures de plus, chacune contrôlée dans ce navigateur.',
   'app.verify.noneVerified':
-    'Le registre signale une attestation signée, mais aucune n’a pu être vérifiée dans ce navigateur.',
+    'Le registre signale une attestation signée, mais aucune n’a pu être contrôlée dans ce navigateur.',
   'app.verify.noneSigned':
     'Le détenteur n’a montré ici aucune signature de laboratoire. Les accusés de réception et les rapports d’un laboratoire sont privés, sauf si le détenteur choisit de les montrer.',
   'app.verify.badSigs.one':

@@ -11,7 +11,7 @@
 import React from 'react';
 import { Alert, Box, Container, Divider, Paper, Stack, Typography } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
-import VerifiedIcon from '@mui/icons-material/VerifiedOutlined';
+import EventIcon from '@mui/icons-material/EventOutlined';
 import LockIcon from '@mui/icons-material/LockOutlined';
 import { LINK_SX, MUTED_COLOR } from '../../config/theme';
 import { IS_MAINNET } from '../../config/network';
@@ -36,7 +36,8 @@ export const VerifyExample: React.FC = () => {
   const { t } = tr;
   return (
     <Box sx={{ bgcolor: 'background.default' }}>
-      <Container maxWidth="sm" sx={{ py: { xs: 5, md: 8 } }}>
+      {/* The page's main part, as on the real check page (accessibility review, 22 Nov). */}
+      <Container component="main" id="main" maxWidth="sm" sx={{ py: { xs: 5, md: 8 } }}>
         <Alert severity="info" variant="outlined" sx={{ mb: 3 }}>
           <Typography variant="subtitle2">{t('app.verify.ex.title')}</Typography>
           <Typography variant="body2">{t('app.verify.ex.intro')}</Typography>
@@ -45,7 +46,7 @@ export const VerifyExample: React.FC = () => {
 
         <Paper sx={{ p: { xs: 3, md: 4 } }}>
           <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', mb: 2 }}>
-            <VerifiedIcon sx={{ color: 'text.disabled', fontSize: 30 }} />
+            <EventIcon sx={{ color: 'text.disabled', fontSize: 30 }} aria-hidden="true" />
             <Box>
               <Typography variant="overline" sx={{ color: 'text.secondary' }}>
                 {t('app.verify.ex.status')}

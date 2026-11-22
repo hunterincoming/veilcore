@@ -64,8 +64,6 @@ export const account = {
   'app.account.device.other': 'otro dispositivo',
 
   'app.account.restore.lead': 'Abra sus registros en este dispositivo.',
-  'app.account.restore.sameAccount':
-    '¿La misma cuenta de Apple o Google que en su otro teléfono? Entonces funciona sin más.',
   'app.account.restore.usePhone':
     '¿En una computadora que no puede desbloquear una llave de acceso por sí sola? Elija «Usar un teléfono» en la ventana que se abre y escanee el código con su teléfono.',
   'app.account.restore.oldName': '¿Creó su llave de acceso antes en {host}? Pruébela aquí',

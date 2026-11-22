@@ -14,7 +14,7 @@ export const home = {
   'app.home.aboutThreeMinutesByHand':
     '約3分です。終わると封印されます。公開の日付は、私たちがそのバッチをアンカーしたときに付きます（当面は手作業）。鍵を持つのはあなただけです。',
   'app.home.continue': '続ける',
-  'app.home.start': '始める',
+  'app.home.start': '記録を作る',
   'app.home.spreadsheet': 'スプレッドシートがありますか？コレクション全体に日付を付ける',
   'app.home.newPhone': '機種変更しましたか？記録を取り戻す',
   'app.home.newPhoneLab': '機種変更しましたか？ラボの鍵とサンプルを取り戻す',
@@ -26,7 +26,7 @@ export const home = {
   'app.home.whatStops': '他の人が先に私の素材を記録してしまったら、どうなりますか？',
   'app.home.samplesReceived': '受け取ったサンプル',
   'app.home.yourRecords': 'あなたの記録',
-  'app.home.logNew': '新しく記録',
+  'app.home.logNew': '記録を作る',
   'app.home.saveIt': '保存する',
   'app.home.finishBackupLine': '<b>仕上げ：バックアップを保存してください。</b>{line}',
   'app.home.keysOnlyHereRecords.other': '記録{count}件の鍵がこの端末にしかありません。',
@@ -85,6 +85,48 @@ export const home = {
   'app.home.labDoor.text': 'あなたの記録はそのまま残ります。',
   'app.home.labDoor.add': 'ラボ用の機能を追加する',
   'app.home.labDoor.notNow': '今はしない',
+  'app.labpage.title': 'ラボ向けの VeilCore',
+  'app.labpage.lede':
+    'すでに出している結果に署名します。育成者はそれを見せることができ、見た人はどの鍵がいつ署名したかを確認できます。ラボの今のシステムはそのまま使えます。',
+  'app.labpage.setUp': 'ラボを設定する',
+  'app.labpage.gets.title': 'ラボが得るもの',
+  'app.labpage.gets.key.t': '署名用の鍵。',
+  'app.labpage.gets.key.p':
+    'ブラウザーの中で作られます。署名した受領と結果にはこの鍵が付き、それを見せられた人は誰でも署名を確認できます。',
+  'app.labpage.gets.arrived.t': 'サンプルごとの署名付き受領。',
+  'app.labpage.gets.arrived.p':
+    '育成者が VeilCore のラボコード付きでサンプルを送ります。ラボは到着を確認するか受け取りを断り、そのことに署名します。',
+  'app.labpage.gets.results.t': '育成者だけが開ける結果。',
+  'app.labpage.gets.results.p':
+    '見られるのは育成者、ラボ、サンプルを送った人だけで、ほかの人に見せられるのは育成者だけです。',
+  'app.labpage.work.title': '仕事で変わること',
+  'app.labpage.work.p1':
+    'ラボのシステムは何も変わりません。ラボコード付きのサンプルが届いたら、コードを貼り付けるかスキャンして受け取りを確認し、あとで結果に署名します。',
+  'app.labpage.work.p2':
+    'サンプルのデータと依頼者の名前はラボの手元に残ります。VeilCore が保管するのは署名した受領と、育成者だけが開けるように鍵をかけた結果です。',
+  'app.labpage.cost.title': '費用',
+  'app.labpage.cost.p': '無料で試せます。ラボ向けの有料プランは作ってありますが、まだ有効にしていません。',
+  'app.labpage.own.title': '使い方は自由に',
+  'app.labpage.own.lede':
+    'veilcore.org を使う必要はありません。VeilCore のコードはすべて Apache-2.0 ライセンスで公開しています。',
+  'app.labpage.own.site.t': 'veilcore.org を使う。',
+  'app.labpage.own.site.p': '設定は不要です。サーバーは私たちが動かし、ネットワーク手数料も私たちが払います。',
+  'app.labpage.own.plug.t': '自分のソフトウェアに組み込む。',
+  'app.labpage.own.plug.p':
+    'データはラボのシステムに置いたまま、スマートコントラクトのパッケージ @veilcore/contracts で記録ごとに証明コードを加えます。',
+  'app.labpage.own.plug.link': '組み込み方 →',
+  'app.labpage.own.run.t': '自分で動かす。',
+  'app.labpage.own.run.p':
+    'ウェブサイト、記録を保管するサーバー、手数料サービスはすべて公開コードです。自分でホストし、ネットワーク手数料も自分で払うことになります。自分で運用するためのガイドは現在作成中です。それまでは組み込みガイドから始めてください。',
+  'app.labpage.own.run.link': '組み込みガイド →',
+  'app.labpage.own.plainly':
+    'はっきり言うと、公開コードから自分で動かすことはできますが、VeilCore 以外でそれを行った人はまだいないので、私たちの手助けなしでは未検証です。今のところ、コピーは自分のアドレスで作り直すまで veilcore.org を指したままです。記録のメインのスマートコントラクトにはメンテナンス鍵があり、私たちが持っています。事実を証明するスマートコントラクトには鍵がありません。',
+  'app.labpage.own.policyLink': 'メンテナンス鍵を誰が持ち、いつ使えるか →',
+  'app.labpage.own.codeLink': 'GitHub のコード →',
+  'app.labpage.gone.title': 'VeilCore がなくなったら',
+  'app.labpage.gone.p':
+    '日付が付いたものはそのまま残ります。日付は Midnight 上にあり、育成者のバックアップファイルには記録と、無料の公開ツールで確認するための証明が入っています。止まるのは新しい記録の作成とラボコードの受け渡しで、誰かが公開コードからサーバーを動かすまでです。',
+  'app.labpage.gone.link': '私たちなしでも動き続けるもの →',
   'app.home.saveProblem.records': '記録',
   'app.home.saveProblem.agreements': '契約',
   'app.home.saveProblem.unreachable':
@@ -110,8 +152,7 @@ export const home = {
   'app.home.paste.placeholder': 'ここに貼り付け',
   'app.home.paste.go': '開く',
   'app.home.paste.orMake': '貼り付けるものがない場合は、記録を作る',
-  'app.home.paste.hint':
-    'ラボコード、記録のリンク、記録を保有していることの証明の依頼、署名する契約。どれかはこちらで判断します。',
+  'app.home.paste.hint': 'ラボコード、記録のリンク、署名する契約。どれかはこちらで判断します。',
   'app.home.paste.whichRecord': '保有の証明を求めるリクエストです。どの記録について聞かれましたか？',
   'app.home.receivedFrom': '{name} から受け取り',
   'app.home.receivedFromNamed': '{name}から · 相手の記録 {id}',

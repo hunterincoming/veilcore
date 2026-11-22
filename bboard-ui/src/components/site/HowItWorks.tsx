@@ -11,11 +11,11 @@
 // Midnight" is "Codes, never your genetics" (key stamps, report codes and parent links go there
 // too: the privacy page lists them, linked here); his "Batches are also stamped on Bitcoin" is
 // said of veilcore.org only (the test site's registry doesn't stamp); his "Our own registry code
-// isn't published" is the site's "public, under the Apache-2.0 license" (m.open.4p); and the
+// isn't published" is the site's "public, under the Apache-2.0 license" (m.own.p, Use it your way); and the
 // table is the site's LiveWhere, driven by the flags in config/copy.ts, not his hand-written rows.
 // SPDX-License-Identifier: Apache-2.0
 
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { Link as RouterLink, useLocation } from 'react-router-dom';
 import { useI18n } from '../../i18n';
 import { SiteShell } from './SiteShell';
@@ -33,8 +33,12 @@ import {
   useScrollPieces,
 } from './night-parts';
 import { Claims } from './Claims';
+import { MovedFromHome, TryIt } from './Home';
 import { LiveWhere, StandList } from './LiveWhere';
 import './home.css';
+
+/** How a lab or software vendor plugs the smart contracts into its own software. */
+const PARTNERS_DOC = 'https://github.com/hunterincoming/veilcore/blob/main/docs/PARTNERS.md';
 
 /** The title's event display: drawn from a fixed code (SHA-256 of "how-it-works"), not a record. */
 const HOW_HEX = 'a4bc41d13611d125b6b91a85a77972588a326187dabb9d3aa0699f8483e16f8c';
@@ -42,6 +46,8 @@ const HOW_HEX = 'a4bc41d13611d125b6b91a85a77972588a326187dabb9d3aa0699f8483e16f8
 export const HowItWorks: React.FC = () => {
   const { t, sp, lang } = useI18n();
   const { hash } = useLocation();
+  // The title's display follows the try-it code once something is typed (TryIt, from the home page).
+  const [hex, setHex] = useState('');
   const root = useRef<HTMLDivElement>(null);
   useReveals(root);
   useScrollPieces(root);
@@ -96,9 +102,14 @@ export const HowItWorks: React.FC = () => {
                   {t('m.contact.spec')}
                 </RouterLink>
               </div>
+              {/* Where things stand (the home page's hero line until 22 Nov). */}
+              <p className="k-fine k-status-line" data-intro="" style={{ '--i': 3 } as React.CSSProperties}>
+                {t('m.hero.status')}
+              </p>
             </div>
-            <EventDisplay hex={HOW_HEX} />
+            <EventDisplay hex={hex || HOW_HEX} />
           </div>
+          <TryIt onHash={setHex} />
         </header>
 
         <PhotoScreen labelledBy="party-h" name="lab" alt={t('m.home.alt.lab')}>
@@ -145,6 +156,8 @@ export const HowItWorks: React.FC = () => {
                   [t('m.hiw.chain1t'), t('m.hiw.chain1p')],
                   [t('m.hiw.chain2t'), t('m.hiw.chain2p')],
                   [t('m.hiw.chain3t'), t('m.hiw.chain3p')],
+                  // What Midnight itself does beyond dating (full review, 22 Nov: it wasn't said).
+                  [t('m.hiw.chain4t'), t('m.hiw.chain4p')],
                 ])}
                 <p className="k-fine">
                   <RouterLink to="/privacy">{arrowed(t('m.hiw.chainMore'))}</RouterLink>
@@ -172,6 +185,9 @@ export const HowItWorks: React.FC = () => {
           </div>
         </section>
 
+        {/* What the home page carried until 22 Nov 2026 (Home.tsx MovedFromHome): nothing deleted. */}
+        <MovedFromHome />
+
         <section className="k-sec" id="gone" aria-labelledby="gone-h">
           <div className="k-wrap">
             <h2 id="gone-h" className="k-giant" data-reveal="">
@@ -181,8 +197,28 @@ export const HowItWorks: React.FC = () => {
               [t('m.open.1t'), t('m.open.1p')],
               [t('m.open.2t'), t('m.open.2p')],
               [t('m.open.6t'), t('m.open.6p')],
-              [t('m.open.4t'), t('m.open.4p')],
             ])}
+          </div>
+        </section>
+
+        {/* Use it your way (22 Nov): nobody has to use veilcore.org. What works today, and what
+            nobody outside VeilCore has done yet, said plainly; the three ways in full are on the
+            page for labs (lab/LabDoor.tsx #own-way). Replaces the "Anyone can run a registry" card. */}
+        <section className="k-sec" id="own-way" aria-labelledby="own-h" data-own-way="">
+          <div className="k-wrap">
+            <h2 id="own-h" className="k-h2" data-reveal="">
+              {t('m.own.title')}
+            </h2>
+            <p className="k-lead" data-reveal="" style={{ '--d': 1 } as React.CSSProperties}>
+              {t('m.own.p')}
+            </p>
+            <p className="k-lead" data-reveal="" style={{ '--d': 2 } as React.CSSProperties}>
+              <a href={PARTNERS_DOC} target="_blank" rel="noopener noreferrer">
+                {arrowed(t('m.own.plugLink'))}
+              </a>
+              {sp}
+              <RouterLink to="/for-labs#own-way">{arrowed(t('m.own.link'))}</RouterLink>
+            </p>
           </div>
         </section>
 
@@ -196,7 +232,7 @@ export const HowItWorks: React.FC = () => {
           </div>
         </section>
 
-        <PhotoCredits names={['lab']} />
+        <PhotoCredits names={['lab', 'cutting', 'greenhouse', 'hand', 'cattle', 'seed', 'leaf']} />
         <NightClose />
       </div>
     </SiteShell>

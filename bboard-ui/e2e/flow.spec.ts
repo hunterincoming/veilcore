@@ -46,7 +46,7 @@ test('log, share, ask by link, open as the holder, answer arrives', async ({ bro
   const holderErrors = watch(holder);
   await isolate(holder);
   await holder.goto('/records');
-  await holder.getByText('Start', { exact: true }).click();
+  await holder.locator('main').getByRole('link', { name: 'Make a record', exact: true }).click();
   const name = `E2E ${Date.now()}`;
   await startPlant(holder);
   await holder.getByLabel(/Plant or line name/).fill(name);
@@ -57,7 +57,7 @@ test('log, share, ask by link, open as the holder, answer arrives', async ({ bro
   await expect(holder.getByText(/Couldn.t reach the network/)).toBeVisible({ timeout: 90_000 });
   await expect(holder.getByText(/Your plant is saved/)).toBeVisible();
   // ...and never leave them stuck: they can carry on and save the backup.
-  await holder.getByRole('button', { name: /Do the date stamp later/ }).click();
+  await holder.getByRole('button', { name: /Go on without waiting/ }).click();
   await holder.getByRole('button', { name: /No report yet: skip/ }).click();
   await expect(holder.getByRole('button', { name: /Save backup file/ })).toBeVisible();
 
@@ -206,14 +206,14 @@ test('a lab sends results back: signed by the lab, locked for the breeder, opene
   const breederErrors = watch(breeder);
   await isolate(breeder);
   await breeder.goto('/records');
-  await breeder.getByText('Start', { exact: true }).click();
+  await breeder.locator('main').getByRole('link', { name: 'Make a record', exact: true }).click();
   const name = `E2E Lab Run ${Date.now()}`;
   await startPlant(breeder);
   await breeder.getByLabel(/Plant or line name/).fill(name);
   await breeder.getByLabel(/Bred by/).fill('E2E');
   await breeder.getByRole('button', { name: /Next: check it/ }).click();
   await breeder.getByRole('button', { name: /Seal it/ }).click();
-  await breeder.getByRole('button', { name: /Do the date stamp later/ }).click({ timeout: 90_000 });
+  await breeder.getByRole('button', { name: /Go on without waiting/ }).click({ timeout: 90_000 });
   const recordId = await breeder.evaluate(
     () => Object.keys(JSON.parse(localStorage.getItem('veilcore.record-keys.v1') ?? '{}') as object)[0],
   );

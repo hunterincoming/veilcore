@@ -2,9 +2,10 @@
 // site had no way for labs, and in the app the lab view hid behind a small footer link. Against
 // the stand-in registry, at 390 and 1366px:
 //   - a new visitor on veilcore.org's home page reaches the signing key screen in 3 taps or
-//     fewer through "For labs" (the header, the home page's lab slide, How it works), in all
-//     five languages, and lands on the lab's home whose solid button is "Set up your lab's
-//     signing key";
+//     fewer through "Use it as a lab" (the header, the home page's lab slide, How it works), in
+//     all five languages: a page for a lab owner first, which changes nothing by being opened,
+//     then its "Set up your lab", and lands on the lab's home whose solid button is "Set up your
+//     lab's signing key";
 //   - from /records anyone switches to the lab view in 2 taps from the header's view menu, and
 //     back;
 //   - a browser with records, or used before, that opens /for-labs is asked once, plainly, and
@@ -44,13 +45,13 @@ const DESKTOP = { width: 1366, height: 900 };
 
 // The site's words (src/i18n/<lang>.ts, which can't be loaded outside the build), as they are there.
 const FOR_LABS = {
-  en: 'For labs',
-  de: 'Für Labore',
-  es: 'Para laboratorios',
-  fr: 'Pour les laboratoires',
-  ja: 'ラボ向け',
+  en: 'Use it as a lab',
+  de: 'Als Labor nutzen',
+  es: 'Usar como laboratorio',
+  fr: 'Utiliser comme laboratoire',
+  ja: 'ラボとして使う',
 };
-const SLIDE_LINK_EN = "Run a lab? Set up your lab's signing key →";
+const SLIDE_LINK_EN = 'Run a lab? What VeilCore does for labs →';
 
 const LANGS = [
   { lang: 'en', home: homeEn, lab: labEn },
@@ -90,6 +91,8 @@ const tapper = () => {
 const keyScreen = (page: Page, title = labEn['app.lab.key.setUp']) =>
   page.getByRole('dialog').getByRole('heading', { name: title });
 const role = (page: Page) => page.evaluate(() => localStorage.getItem('veilcore.role.v1'));
+/** The lab page's one button (lab/LabDoor.tsx): only it sets anything up. */
+const setUp = (page: Page) => page.locator('[data-lab-set-up]').first();
 
 test.describe('a new visitor, from the home page', () => {
   for (const { lang, home, lab } of LANGS) {
@@ -105,6 +108,12 @@ test.describe('a new visitor, from the home page', () => {
       const forLabs = page.locator('[data-for-labs="menu"]');
       await expect(forLabs).toHaveText(FOR_LABS[lang]);
       await t.tap(forLabs);
+      // The page for a lab owner: opening it changes nothing.
+      await expect(page.getByRole('heading', { level: 1, name: home['app.labpage.title'] })).toBeVisible();
+      await expect(page).toHaveTitle(/·/);
+      expect(await role(page)).toBeNull();
+      await expect(page.getByRole('dialog')).toHaveCount(0);
+      await t.tap(setUp(page));
       await expect(keyScreen(page, lab['app.lab.key.setUp'])).toBeVisible();
       expect(t.taps).toBeLessThanOrEqual(3);
       expect(page.url()).toMatch(/\/records$/);
@@ -130,7 +139,7 @@ test.describe('a new visitor, from the home page', () => {
     });
   }
 
-  test('at 1366px: For labs in the header is one tap', async ({ page }) => {
+  test('at 1366px: the lab page is one tap from the header, the key screen two', async ({ page }) => {
     await page.setViewportSize(DESKTOP);
     const errors = watch(page);
     await standIn(page);
@@ -139,23 +148,30 @@ test.describe('a new visitor, from the home page', () => {
     const forLabs = page.locator('[data-for-labs="nav"]');
     await expect(forLabs).toBeVisible();
     await t.tap(forLabs);
+    await expect(page).toHaveTitle('For labs · VeilCore');
+    await t.tap(setUp(page));
     await expect(keyScreen(page)).toBeVisible();
-    expect(t.taps).toBe(1);
+    expect(t.taps).toBe(2);
     expectNoErrors(errors);
   });
 
-  test("the home page's lab slide and How it works lead there too", async ({ page }) => {
+  test('the home page, the lab slide and How it works lead there too', async ({ page }) => {
     await page.setViewportSize(DESKTOP);
     const errors = watch(page);
     await standIn(page);
     await page.goto('/');
-    const slide = page.locator('[data-for-labs="home"]');
+    // The short home page's "Who it is for" (22 Nov); the lab slide is on How it works now.
+    const home = page.locator('[data-for-labs="home"]');
+    await expect(home).toHaveAttribute('href', '/for-labs');
+    await expect(home).toHaveText('For labs →');
+    await page.goto('/how-it-works');
+    const slide = page.locator('[data-for-labs="slide"]');
     await expect(slide).toHaveAttribute('href', '/for-labs');
     await expect(slide).toHaveText(SLIDE_LINK_EN);
-    await page.goto('/how-it-works');
     const how = page.locator('[data-for-labs="how"]');
     await how.scrollIntoViewIfNeeded();
     await how.click();
+    await setUp(page).click();
     await expect(keyScreen(page)).toBeVisible();
     expectNoErrors(errors);
   });
@@ -178,6 +194,7 @@ test.describe('a new visitor, from the home page', () => {
       ),
     );
     await page.goto('/for-labs');
+    await setUp(page).click();
     await expect(page.getByRole('heading', { level: 1, name: homeEn['app.home.labJobs'] })).toBeVisible();
     await page.waitForTimeout(500);
     await expect(page.getByRole('dialog')).toHaveCount(0);
@@ -227,7 +244,7 @@ test.describe("the header's view menu", () => {
     });
   }
 
-  test('the public pages have "For labs", not the view menu', async ({ page }) => {
+  test('the public pages have "Use it as a lab", not the view menu', async ({ page }) => {
     await standIn(page);
     await page.goto('/');
     await expect(page.locator('[data-view-switch]')).toHaveCount(0);
@@ -271,6 +288,7 @@ test.describe('a breeder with records of their own', () => {
     const errors = watch(page);
     await asBreeder(page);
     await page.goto('/for-labs');
+    await setUp(page).click();
     const ask = page.getByRole('dialog', { name: homeEn['app.home.labDoor.title'] });
     await expect(ask).toBeVisible();
     await expect(ask).toContainText(homeEn['app.home.labDoor.text']);
@@ -289,9 +307,11 @@ test.describe('a breeder with records of their own', () => {
     const errors = watch(page);
     await asBreeder(page);
     await page.goto('/for-labs');
+    await setUp(page).click();
     const ask = page.getByRole('dialog', { name: homeEn['app.home.labDoor.title'] });
     await ask.getByRole('button', { name: homeEn['app.home.labDoor.notNow'] }).click();
-    await expect(page.getByRole('heading', { level: 1, name: homeEn['app.home.yourRecords'] })).toBeVisible();
+    // Back on the lab page, nothing changed.
+    await expect(page.getByRole('heading', { level: 1, name: homeEn['app.labpage.title'] })).toBeVisible();
     await expect(page.getByRole('dialog')).toHaveCount(0);
     expect(await role(page)).toBe('breeder');
     expectNoErrors(errors);
@@ -301,9 +321,10 @@ test.describe('a breeder with records of their own', () => {
     const errors = watch(page);
     await asBreeder(page);
     await page.goto('/for-labs');
+    await setUp(page).click();
     await expect(page.getByRole('dialog', { name: homeEn['app.home.labDoor.title'] })).toBeVisible();
     await page.keyboard.press('Escape');
-    await expect(page.getByRole('heading', { level: 1, name: homeEn['app.home.yourRecords'] })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1, name: homeEn['app.labpage.title'] })).toBeVisible();
     await expect(page.getByRole('dialog')).toHaveCount(0);
     expect(await role(page)).toBe('breeder');
     expectNoErrors(errors);
@@ -322,6 +343,7 @@ test('a browser used before, with no records showing (the registry failed), is a
     'GET /transfers/sent': (route) => json(route, 200, { transfers: [] }),
   });
   await page.goto('/for-labs');
+  await setUp(page).click();
   await expect(page.getByRole('dialog', { name: homeEn['app.home.labDoor.title'] })).toBeVisible();
   expect(await role(page)).toBeNull();
   expect(errors.filter((e) => !/503|down for the test/.test(e))).toEqual([]);
@@ -352,6 +374,7 @@ test('the key screen shows the website step, the file and the DNS record, withou
     'POST /attesters': (route) => json(route, 200, { attesterId: `ATT-${randomBytes(8).toString('hex')}` }),
   });
   await page.goto('/for-labs');
+  await setUp(page).click();
   const dialog = page.getByRole('dialog');
   await expect(keyScreen(page)).toBeVisible();
   await dialog.getByLabel(labEn['app.lab.key.name']).fill('E2E lab (test data)');
