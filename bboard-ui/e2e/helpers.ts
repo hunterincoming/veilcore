@@ -120,7 +120,10 @@ export const isolate = async (page: Page, handlers: Record<string, Handler> = {}
  */
 export const noBackupPassword = async (page: Page): Promise<void> => {
   // The step is on screen first: a switch looked for before it renders would be missed.
-  await page.getByRole('button', { name: /Save backup file/ }).first().waitFor({ timeout: 90_000 });
+  await page
+    .getByRole('button', { name: /Save backup file/ })
+    .first()
+    .waitFor({ timeout: 90_000 });
   const sw = page.locator('[data-backup-password] input[type="checkbox"]');
   if ((await sw.count()) && (await sw.first().isChecked())) await sw.first().click();
 };
