@@ -148,15 +148,50 @@ export const labresult = {
   'app.lr.csv.template': 'Télécharger un modèle',
   'app.lr.csv.choose': 'Choisir le fichier CSV',
   'app.lr.csv.intro':
-    'Une ligne par échantillon et par cible. Chaque ligne devient son propre résultat signé. Colonnes nécessaires : subject (le code de preuve donné par l’expéditeur), sample id, accession, result. Le modèle a le reste, y compris les données d’analyse et de contrôle qualité. Une douchette USB peut remplir la colonne subject : cliquez sur une cellule de cette colonne et scannez le code QR de chaque échantillon.',
+    'Une ligne par échantillon et par cible. Chaque ligne devient son propre résultat signé. Une douchette USB peut remplir la colonne subject : cliquez sur une cellule de cette colonne et scannez le code QR de chaque échantillon.',
   'app.lr.csv.ready': '{ok} prêts à signer. {bad} ne seront pas signés : corrigez-les et signez-les de nouveau.',
   'app.lr.csv.tooMany':
     'Ce fichier a {rows} lignes, et une série en signe {n} au plus. Rien n’a été lu : divisez-le et commencez le fichier suivant à la ligne {next}.',
   'app.lr.csv.empty': 'Le fichier n’a aucune ligne sous son en-tête.',
-  'app.lr.csv.columns': 'Le fichier doit avoir des colonnes nommées subject, sample id et accession.',
+  'app.lr.csv.columns':
+    'Il manque au fichier une colonne pour : {cols}. Chaque ligne en a besoin ; le modèle a toutes les colonnes.',
   'app.lr.csv.row': 'Ligne {line} : {problem}',
-  'app.lr.csv.sign': 'Signer {n} résultats',
+  'app.lr.csv.sign.one': 'Signer {count} résultat',
+  'app.lr.csv.sign.other': 'Signer {count} résultats',
   'app.lr.csv.progress': '{done} sur {total} signés…',
+  'app.lr.csv.needs': 'Chaque ligne a besoin de ces colonnes :',
+  'app.lr.csv.col.subject': 'le code de preuve donné par l’expéditeur pour l’échantillon',
+  'app.lr.csv.col.sampleId': 'l’identifiant d’échantillon de l’expéditeur',
+  'app.lr.csv.col.accession': 'la référence de votre laboratoire pour l’échantillon',
+  'app.lr.csv.col.typed': 'ou tapez-les une fois ci-dessus, pour toutes les lignes',
+  'app.lr.csv.col.result.pathogen': '« detected » ou « not detected »',
+  'app.lr.csv.col.result.match': '« match » ou « no match »',
+  'app.lr.csv.col.result.lineage': '« consistent » ou « excluded »',
+  'app.lr.csv.col.other': 'le code de preuve de l’enregistrement comparé',
+  'app.lr.csv.col.parent': 'le code de preuve d’un parent (parent 2 pour l’autre, si les deux ont été vérifiés)',
+  'app.lr.csv.also.pathogen':
+    'Lues aussi, si elles sont là : tested (si vide, la date ci-dessus), received, ct, toute colonne « qc: … », replaces et reason.',
+  'app.lr.csv.also.match':
+    'Lues aussi, si elles sont là : tested (si vide, la date ci-dessus), received, other sample id, panel, panel version, compared, differing, toute colonne « qc: … », replaces et reason.',
+  'app.lr.csv.also.lineage':
+    'Lues aussi, si elles sont là : tested (si vide, la date ci-dessus), received, panel, panel version, compared, conflicts 1, conflicts 2, toute colonne « qc: … », replaces et reason.',
+  'app.lr.csv.templateHas': 'Le modèle a toutes les colonnes, avec une ligne d’exemple.',
+  'app.lr.csv.readyAll': '{ok} prêts à signer.',
+  'app.lr.csv.missing': 'Manque : {cols}.',
+  'app.lr.csv.dupes.one':
+    '{count} de ces lignes a déjà été signée dans ce navigateur : même enregistrement, même identifiant d’échantillon, même accession et même résultat (ligne {rows}). La signer de nouveau en fait une deuxième copie.',
+  'app.lr.csv.dupes.other':
+    '{count} de ces lignes ont déjà été signées dans ce navigateur : même enregistrement, même identifiant d’échantillon, même accession et même résultat (lignes {rows}). Les signer de nouveau fait une deuxième copie de chacune.',
+  'app.lr.csv.dupesSkip': 'Les ignorer : ne signer que les nouvelles lignes',
+  'app.lr.csv.dupesAgain': 'Les signer de nouveau',
+  'app.lr.csv.nothingNew': 'Rien de nouveau à signer.',
+  'app.lr.tools.skipped.one':
+    '{count} ligne déjà signée dans ce navigateur a été ignorée. Le récapitulatif la liste avec le code sous lequel elle a été signée.',
+  'app.lr.tools.skipped.other':
+    '{count} lignes déjà signées dans ce navigateur ont été ignorées. Le récapitulatif les liste avec le code sous lequel chacune a été signée.',
+  'app.lr.form.subjectEnd': 'Les 6 derniers caractères de ce code de preuve',
+  'app.lr.form.subjectEndCheck':
+    'Vérifiez qu’ils correspondent à la fin du code de preuve donné par l’expéditeur pour cet échantillon (sur son certificat ou la page de son enregistrement).',
   'app.lr.problem.unreadable': 'Il ne peut pas être lu.',
   'app.lr.problem.format': 'Ce n’est pas un résultat de laboratoire version 2.',
   'app.lr.problem.kind': 'Ce type de résultat n’existe pas dans ce format.',

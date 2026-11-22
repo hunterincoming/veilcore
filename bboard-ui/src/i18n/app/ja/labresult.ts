@@ -146,15 +146,45 @@ export const labresult = {
   'app.lr.csv.template': 'テンプレートをダウンロード',
   'app.lr.csv.choose': 'CSVファイルを選ぶ',
   'app.lr.csv.intro':
-    '1サンプル・1標的につき1行です。各行がそれぞれ署名された結果になります。必要な列：subject（送り主が示した証明コード）、sample id、accession、result。検査の実施と品質管理の列を含め、残りはテンプレートにあります。 subject列はUSBバーコードスキャナーで入力できます。列のセルをクリックして、各サンプルのQRコードを読み取ってください。',
+    '1サンプル・1標的につき1行です。各行がそれぞれ署名された結果になります。subject列はUSBバーコードスキャナーで入力できます。列のセルをクリックして、各サンプルのQRコードを読み取ってください。',
   'app.lr.csv.ready': '署名できるもの{ok}件。{bad}件は署名されません。直して、もう一度署名してください。',
   'app.lr.csv.tooMany':
     'このファイルは{rows}行あり、1回で署名できるのは{n}行までです。何も読み込んでいません。分割して、次のファイルは{next}行目から始めてください。',
   'app.lr.csv.empty': 'ファイルの見出し行の下に行がありません。',
-  'app.lr.csv.columns': 'ファイルにはsubject、sample id、accessionという列が必要です。',
+  'app.lr.csv.columns':
+    'ファイルに次の列がありません：{cols}。どの行にも必要です。テンプレートにはすべての列があります。',
   'app.lr.csv.row': '{line}行目：{problem}',
-  'app.lr.csv.sign': '{n}件の結果に署名する',
+  'app.lr.csv.sign.other': '{count}件の結果に署名する',
   'app.lr.csv.progress': '{total}件中{done}件に署名しました…',
+  'app.lr.csv.needs': 'どの行にも次の列が必要です：',
+  'app.lr.csv.col.subject': '送り主がサンプルについて示した証明コード',
+  'app.lr.csv.col.sampleId': '送り主のサンプルID',
+  'app.lr.csv.col.accession': '貴ラボでのサンプルの参照番号',
+  'app.lr.csv.col.typed': 'または上で一度入力すれば全行に使われます',
+  'app.lr.csv.col.result.pathogen': '「detected」または「not detected」',
+  'app.lr.csv.col.result.match': '「match」または「no match」',
+  'app.lr.csv.col.result.lineage': '「consistent」または「excluded」',
+  'app.lr.csv.col.other': '比較した記録の証明コード',
+  'app.lr.csv.col.parent': '親の証明コード（両親を調べた場合は、もう一方をparent 2に）',
+  'app.lr.csv.also.pathogen':
+    '次の列もあれば読み込みます：tested（空なら上の日付）、received、ct、「qc: …」の列、replaces、reason。',
+  'app.lr.csv.also.match':
+    '次の列もあれば読み込みます：tested（空なら上の日付）、received、other sample id、panel、panel version、compared、differing、「qc: …」の列、replaces、reason。',
+  'app.lr.csv.also.lineage':
+    '次の列もあれば読み込みます：tested（空なら上の日付）、received、panel、panel version、compared、conflicts 1、conflicts 2、「qc: …」の列、replaces、reason。',
+  'app.lr.csv.templateHas': 'テンプレートにはすべての列と、例の行が1行あります。',
+  'app.lr.csv.readyAll': '署名できるもの{ok}件。',
+  'app.lr.csv.missing': '未入力：{cols}。',
+  'app.lr.csv.dupes.other':
+    'このうち{count}行は、このブラウザーですでに署名されています。記録、サンプルID、accession、結果が同じです（{rows}行目）。もう一度署名すると、それぞれ2つ目のコピーができます。',
+  'app.lr.csv.dupesSkip': 'スキップする（新しい行だけに署名）',
+  'app.lr.csv.dupesAgain': 'もう一度署名する',
+  'app.lr.csv.nothingNew': '新しく署名するものはありません。',
+  'app.lr.tools.skipped.other':
+    'このブラウザーで署名済みの{count}行をスキップしました。一覧には、それぞれが署名されたときのコードとともに載っています。',
+  'app.lr.form.subjectEnd': 'この証明コードの最後の6文字',
+  'app.lr.form.subjectEndCheck':
+    '送り主がこのサンプルについて示した証明コード（証明書や記録のページにあります）の最後と一致するか確認してください。',
   'app.lr.problem.unreadable': '読み取れません。',
   'app.lr.problem.format': 'バージョン2のラボ結果ではありません。',
   'app.lr.problem.kind': 'この形式にない種類の結果です。',

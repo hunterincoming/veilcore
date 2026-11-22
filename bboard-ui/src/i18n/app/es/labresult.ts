@@ -148,15 +148,50 @@ export const labresult = {
   'app.lr.csv.template': 'Descargar una plantilla',
   'app.lr.csv.choose': 'Elegir el archivo CSV',
   'app.lr.csv.intro':
-    'Una fila por muestra y blanco. Cada fila se convierte en su propio resultado firmado. Columnas necesarias: subject (el código de prueba que dio el remitente), sample id, accession, result. La plantilla tiene el resto, incluidos los datos del análisis y de control de calidad. Un lector de códigos de barras USB puede rellenar la columna subject: haga clic en una celda de ella y escanee el código QR de cada muestra.',
+    'Una fila por muestra y blanco. Cada fila se convierte en su propio resultado firmado. Un lector de códigos de barras USB puede rellenar la columna subject: haga clic en una celda de ella y escanee el código QR de cada muestra.',
   'app.lr.csv.ready': '{ok} listos para firmar. {bad} no se firmarán: corríjalos y fírmelos de nuevo.',
   'app.lr.csv.tooMany':
     'Este archivo tiene {rows} filas, y una tanda firma como mucho {n}. No se leyó nada: divídalo y empiece el siguiente archivo en la línea {next}.',
   'app.lr.csv.empty': 'El archivo no tiene filas bajo su encabezado.',
-  'app.lr.csv.columns': 'El archivo necesita columnas llamadas subject, sample id y accession.',
-  'app.lr.csv.row': 'Línea {line}: {problem}',
-  'app.lr.csv.sign': 'Firmar {n} resultados',
+  'app.lr.csv.columns':
+    'Al archivo le falta una columna para: {cols}. Cada fila las necesita; la plantilla tiene todas las columnas.',
+  'app.lr.csv.row': 'Fila {line}: {problem}',
+  'app.lr.csv.sign.one': 'Firmar {count} resultado',
+  'app.lr.csv.sign.other': 'Firmar {count} resultados',
   'app.lr.csv.progress': 'Firmados {done} de {total}…',
+  'app.lr.csv.needs': 'Cada fila necesita estas columnas:',
+  'app.lr.csv.col.subject': 'el código de prueba que dio el remitente para la muestra',
+  'app.lr.csv.col.sampleId': 'el ID de muestra del remitente',
+  'app.lr.csv.col.accession': 'la referencia de su laboratorio para la muestra',
+  'app.lr.csv.col.typed': 'o escríbalos una vez arriba, para todas las filas',
+  'app.lr.csv.col.result.pathogen': '«detected» o «not detected»',
+  'app.lr.csv.col.result.match': '«match» o «no match»',
+  'app.lr.csv.col.result.lineage': '«consistent» o «excluded»',
+  'app.lr.csv.col.other': 'el código de prueba del registro con el que se comparó',
+  'app.lr.csv.col.parent': 'el código de prueba de un progenitor (parent 2 para el otro, si se comprobaron ambos)',
+  'app.lr.csv.also.pathogen':
+    'También se leen, si están: tested (si está vacía, la fecha de arriba), received, ct, cualquier columna «qc: …», replaces y reason.',
+  'app.lr.csv.also.match':
+    'También se leen, si están: tested (si está vacía, la fecha de arriba), received, other sample id, panel, panel version, compared, differing, cualquier columna «qc: …», replaces y reason.',
+  'app.lr.csv.also.lineage':
+    'También se leen, si están: tested (si está vacía, la fecha de arriba), received, panel, panel version, compared, conflicts 1, conflicts 2, cualquier columna «qc: …», replaces y reason.',
+  'app.lr.csv.templateHas': 'La plantilla tiene todas las columnas, con una fila de ejemplo.',
+  'app.lr.csv.readyAll': '{ok} listos para firmar.',
+  'app.lr.csv.missing': 'Falta: {cols}.',
+  'app.lr.csv.dupes.one':
+    '{count} de estas filas ya se firmó en este navegador: el mismo registro, ID de muestra, accession y resultado (fila {rows}). Firmarla de nuevo crea una segunda copia.',
+  'app.lr.csv.dupes.other':
+    '{count} de estas filas ya se firmaron en este navegador: el mismo registro, ID de muestra, accession y resultado (filas {rows}). Firmarlas de nuevo crea una segunda copia de cada una.',
+  'app.lr.csv.dupesSkip': 'Omitirlas: firmar solo las filas nuevas',
+  'app.lr.csv.dupesAgain': 'Firmarlas de nuevo',
+  'app.lr.csv.nothingNew': 'No hay nada nuevo que firmar.',
+  'app.lr.tools.skipped.one':
+    'Se omitió {count} fila ya firmada en este navegador. El resumen la lista con el código con el que se firmó.',
+  'app.lr.tools.skipped.other':
+    'Se omitieron {count} filas ya firmadas en este navegador. El resumen las lista con el código con el que se firmó cada una.',
+  'app.lr.form.subjectEnd': 'Últimos 6 caracteres de este código de prueba',
+  'app.lr.form.subjectEndCheck':
+    'Compruebe que coinciden con el final del código de prueba que dio el remitente para esta muestra (en su certificado o en la página de su registro).',
   'app.lr.problem.unreadable': 'No se puede leer.',
   'app.lr.problem.format': 'No es un resultado de laboratorio de la versión 2.',
   'app.lr.problem.kind': 'Ese tipo de resultado no existe en este formato.',

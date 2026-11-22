@@ -172,7 +172,7 @@ test('a lab signs results bound to a record; the breeder checks them, adds one, 
   );
   await lab.locator('[data-csv-input]').setInputFiles(csvPath);
   await expect(csvBox).toContainText('2 ready to sign. 1 won’t be signed');
-  await expect(csvBox.locator('[data-csv-bad="4"]')).toContainText('Line 4');
+  await expect(csvBox.locator('[data-csv-bad="4"]')).toContainText('Row 4');
   await shot(lab, 'lab-csv');
   await lab.getByRole('button', { name: 'Sign 2 results' }).click();
   await expect(lab.getByRole('heading', { name: 'Signed and kept: 2' })).toBeVisible({ timeout: 90_000 });
@@ -186,7 +186,41 @@ test('a lab signs results bound to a record; the breeder checks them, adds one, 
   const resultsFile = await download(lab, () => lab.locator('[data-result-archive]').click());
   // The summary lists the row that wasn't signed, so it isn't forgotten.
   const summary = await download(lab, () => lab.getByRole('button', { name: /summary for your LIMS/ }).click());
-  expect(readFileSync(summary, 'utf8')).toContain('not signed: line 4');
+  expect(readFileSync(summary, 'utf8')).toContain('not signed: row 4');
+
+  // The same file again (plant-users review: it signed every result twice, with no warning):
+  // the rows already signed are named, and skipped unless the lab says to sign them again.
+  await lab.getByRole('button', { name: 'Sign another' }).click();
+  await lab.getByRole('tab', { name: 'From a spreadsheet (CSV)' }).click();
+  await choose(lab, 'What the rows are', 'Comparison with another record');
+  await csvBox.getByLabel('Method or SOP').fill('SNP genotyping');
+  await csvBox.getByLabel('Method version').fill('4');
+  await csvBox.getByLabel(/Marker panel/).fill('CannSNP90');
+  await csvBox.getByLabel('Panel version').fill('2.1');
+  await lab.locator('[data-csv-input]').setInputFiles(csvPath);
+  const dupes = csvBox.locator('[data-csv-dupes]');
+  await expect(dupes).toHaveAttribute('data-csv-dupes', '2');
+  await expect(dupes).toContainText('2 of these rows were already signed in this browser');
+  await expect(dupes).toContainText('(rows 2, 3)');
+  await expect(dupes.getByLabel('Skip them: sign only the new rows')).toBeChecked();
+  await expect(csvBox.locator('[data-csv-nothing-new]')).toHaveText('Nothing new to sign.');
+  await expect(csvBox.getByRole('button', { name: /^Sign \d+ results?$/ })).toHaveCount(0);
+  await dupes.getByLabel('Sign them again').check();
+  await expect(csvBox.getByRole('button', { name: 'Sign 2 results' })).toBeVisible();
+  await dupes.getByLabel('Skip them: sign only the new rows').check();
+  // With one new row added, only that one is signed; the summary lists the two skipped.
+  const againPath = info.outputPath('results-again.csv');
+  writeFileSync(againPath, `${readFileSync(csvPath, 'utf8')}\n${subject},S-5,LAB-C-5,${B},match,90,0,99.2`);
+  await lab.locator('[data-csv-input]').setInputFiles(againPath);
+  await expect(dupes).toHaveAttribute('data-csv-dupes', '2');
+  await shot(lab, 'lab-csv-dupes');
+  await lab.getByRole('button', { name: 'Sign 1 result' }).click();
+  await expect(lab.getByRole('heading', { name: 'Signed and kept' })).toBeVisible({ timeout: 90_000 });
+  await expect(lab.locator('[data-skipped]')).toContainText('Skipped 2 rows already signed in this browser');
+  const summary2 = await download(lab, () => lab.getByRole('button', { name: /summary for your LIMS/ }).click());
+  const summaryText = readFileSync(summary2, 'utf8');
+  expect(summaryText.match(/already signed before: skipped/g)).toHaveLength(2);
+  expect(summaryText).toContain('signed,LAB-C-5');
   // The lab's own list now holds all four, each a record it holds.
   await expect(lab.locator('[data-my-results]')).toContainText('LAB-C-2');
   // The lab checks a result it signed, on a fresh page (mainnet lab run, step 11): it is told at

@@ -514,9 +514,12 @@ describe('the words for a viability result', () => {
     expect(KEYS.length).toBeGreaterThan(600);
     expect(KEYS).toContain('app.lr.kind.viability');
     expect(KEYS).toContain('app.lab.strength.invalidWhy');
-    for (const [lang, dict] of Object.entries(COPY))
+    for (const [lang, dict] of Object.entries(COPY)) {
+      // A plural's `.one` form only where the language has one (Japanese has none).
+      const hasOne = new Intl.PluralRules(lang).resolvedOptions().pluralCategories.includes('one');
       // A string in each (Japanese joins sentences with no space, so one may be empty there).
-      for (const k of KEYS) expect(typeof dict[k], `${lang} ${k}`).toBe('string');
+      for (const k of KEYS) if (hasOne || !k.endsWith('.one')) expect(typeof dict[k], `${lang} ${k}`).toBe('string');
+    }
   });
 
   it('never says the batch is dead or sterile, or that a result proves it, in any language', () => {

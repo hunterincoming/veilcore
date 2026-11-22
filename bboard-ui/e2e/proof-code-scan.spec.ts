@@ -8,6 +8,7 @@
 //   - a USB barcode scanner typing the QR text and Enter lands the plain code, and Enter signs
 //     nothing; a garbled reading and a code that isn't a proof code say so at once;
 //   - paste keeps working: the bare code, and a label's check link with the name's salt in it;
+//     a whole code shows its last 6 characters large, to check against the code the sender gave;
 //   - the spreadsheet's help says a USB scanner can fill the subject column.
 // E2E_SHOTS saves screenshots at 390 and 1366 px.
 // SPDX-License-Identifier: Apache-2.0
@@ -156,6 +157,18 @@ test('paste keeps working: the bare code, and a label’s check link with the na
   const box = await openLabPage(page);
   await box.fill(FP.toUpperCase());
   await expect(box).toHaveValue(FP);
+  // The code's last 6 characters, large, to check against the code the sender gave (security
+  // review: a scan of the wrong tube would otherwise go unnoticed).
+  const end = page.locator('[data-proof-code-end]');
+  await expect(end).toHaveAttribute('data-proof-code-end', FP.slice(-6));
+  await expect(end).toContainText(FP.slice(-6));
+  await expect(end).toContainText('Check they match the end of the proof code the sender gave for this sample');
+  await shoot(page, 'lab-proof-code-end', () => end.scrollIntoViewIfNeeded());
+  // Not a whole code: nothing to check yet.
+  await box.fill(FP.slice(0, 40));
+  await expect(end).toHaveCount(0);
+  await box.fill(FP);
+  await expect(end).toBeVisible();
   const salt = randomBytes(32).toString('hex');
   await box.fill(`https://veilcore.org/verify/VEIL-3F9A0000C21B?fp=${FP}#n=Blue+Dream&ns=${salt}`);
   await expect(box).toHaveValue(FP);

@@ -10,9 +10,12 @@ import {
   Alert,
   Box,
   Button,
+  FormControlLabel,
   LinearProgress,
   MenuItem,
   Paper,
+  Radio,
+  RadioGroup,
   Stack,
   Tab,
   Tabs,
@@ -37,28 +40,56 @@ import { emptyDraft, today, tryDraft, type ResultDraft } from '../../veilcore/la
 import {
   CSV_KINDS,
   CSV_MAX_ROWS,
+  alreadySigned,
   csvTemplate,
   readResultsCsv,
   resultsSummaryCsv,
   type CsvDefaults,
   type CsvKind,
   type CsvRow,
+  type SignedBefore,
 } from '../../veilcore/lab-result-csv';
 import type { SignedResult } from '../../veilcore/lab-result-sign';
 import { decodeText } from '../../veilcore/bulk-import';
 import { useT } from '../../i18n/app';
 import type { AppKey } from '../../i18n/app/en';
+import type { Translator } from '../../i18n/translate';
 import { ResultForm, type MyResult } from './ResultForm';
 import { download, resultFileNames } from './download';
 import { ResultFacts, callWords, kindWords } from './ResultFacts';
 
 const short = (h: string) => `${h.slice(0, 8)}…${h.slice(-6)}`;
 
-/** What was signed in the last run, the sequence files a mark result left to keep, and the rows not signed. */
+type CsvOk = Extract<CsvRow, { ok: true }>;
+type CsvBad = Extract<CsvRow, { ok: false }>;
+
+/**
+ * What was signed in the last run, the sequence files a mark result left to keep, the rows not
+ * signed, and the rows skipped as already signed in this browser (with the code each has).
+ */
 type Done = {
   readonly results: readonly SignedResult[];
   readonly openings: ReadonlyMap<string, MarkOpening>;
-  readonly unsigned?: readonly Extract<CsvRow, { ok: false }>[];
+  readonly unsigned?: readonly CsvBad[];
+  readonly skipped?: readonly { readonly row: CsvOk; readonly code: string }[];
+};
+
+/** Names in a list, the language's way (column names stay as the file has them). */
+const listOf = (tr: Translator, names: readonly string[]) => names.join(tr.lang === 'ja' ? '、' : ', ');
+
+/** Everything wrong with a row, in one line: the empty cells first, then each other problem once. */
+export const rowProblems = (tr: Translator, r: CsvBad): string => {
+  const missing = [...new Set(r.problems.filter((p) => p.missing).map((p) => p.column))];
+  const other = [
+    ...new Set(
+      r.problems
+        .filter((p) => !p.missing)
+        .map((p) => tr.t(`app.lr.problem.${p.code === 'result' ? 'csvResult' : p.code}` as AppKey)),
+    ),
+  ];
+  return [...(missing.length ? [tr.t('app.lr.csv.missing', { cols: listOf(tr, missing) })] : []), ...other].join(
+    tr.lang === 'ja' ? '' : ' ',
+  );
 };
 
 /**
@@ -188,6 +219,11 @@ const SignedPanel: React.FC<{ done: Done; onAgain: () => void }> = ({ done, onAg
           {t('app.lr.tools.unsigned', { n: String(done.unsigned!.length) })}
         </Alert>
       )}
+      {(done.skipped?.length ?? 0) > 0 && (
+        <Alert severity="info" variant="outlined" data-skipped={done.skipped!.length}>
+          {tr.tp('app.lr.tools.skipped', done.skipped!.length)}
+        </Alert>
+      )}
       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} sx={{ flexWrap: 'wrap', gap: 1 }}>
         {ok.length === 1 && (
           <Button variant="contained" onClick={() => one(0)} sx={{ minHeight: 44 }} data-result-download="">
@@ -214,7 +250,7 @@ const SignedPanel: React.FC<{ done: Done; onAgain: () => void }> = ({ done, onAg
             {t('app.lr.tools.archive')}
           </Button>
         )}
-        {(ok.length > 0 || (done.unsigned?.length ?? 0) > 0) && (
+        {(ok.length > 0 || (done.unsigned?.length ?? 0) > 0 || (done.skipped?.length ?? 0) > 0) && (
           <Button
             variant="outlined"
             onClick={() =>
@@ -226,9 +262,10 @@ const SignedPanel: React.FC<{ done: Done; onAgain: () => void }> = ({ done, onAg
                       sampleId: u.sampleId,
                       accession: u.accession,
                       target: u.target,
-                      why: `line ${u.line}: ${t(`app.lr.problem.${u.code}` as AppKey)}`,
+                      why: `row ${u.line}: ${rowProblems(tr, u)}`,
                     },
                   })),
+                  ...(done.skipped ?? []).map((k) => ({ already: k.row.statement, code: k.code })),
                 ]),
                 'lab-results-summary.csv',
                 'text/csv',
@@ -312,10 +349,27 @@ const OneResult: React.FC<{
   );
 };
 
-const CsvResults: React.FC<{ records: ReturnType<typeof useRecords>; onDone: (d: Done) => void }> = ({
-  records,
-  onDone,
-}) => {
+/** What the help says each kind's rows need: the column, and what goes in it. */
+const neededHelp = (kind: CsvKind): readonly { cols: string; what: AppKey }[] => [
+  { cols: 'subject', what: 'app.lr.csv.col.subject' },
+  { cols: 'sample id', what: 'app.lr.csv.col.sampleId' },
+  { cols: 'accession', what: 'app.lr.csv.col.accession' },
+  { cols: 'method, method version', what: 'app.lr.csv.col.typed' },
+  { cols: 'result', what: `app.lr.csv.col.result.${kind}` },
+  ...(kind === 'pathogen' ? [{ cols: 'target, sample type', what: 'app.lr.csv.col.typed' as AppKey }] : []),
+  ...(kind === 'match' ? [{ cols: 'other', what: 'app.lr.csv.col.other' as AppKey }] : []),
+  ...(kind === 'lineage' ? [{ cols: 'parent 1', what: 'app.lr.csv.col.parent' as AppKey }] : []),
+];
+
+/** At most this many row numbers are listed in the "already signed" warning; the rest as "…". */
+const ROWS_LISTED = 12;
+
+const CsvResults: React.FC<{
+  records: ReturnType<typeof useRecords>;
+  /** Results this lab's key already signed in this browser, to find a row signed twice. */
+  signedBefore: readonly SignedBefore[];
+  onDone: (d: Done) => void;
+}> = ({ records, signedBefore, onDone }) => {
   const tr = useT();
   const { t } = tr;
   const pick = useRef<HTMLInputElement>(null);
@@ -333,13 +387,20 @@ const CsvResults: React.FC<{ records: ReturnType<typeof useRecords>; onDone: (d:
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState<{ done: number; total: number }>();
   const [error, setError] = useState<string>();
+  // Rows already signed in this browser are skipped unless the lab says to sign them again.
+  const [signAgain, setSignAgain] = useState(false);
   const read = useMemo(
     () => (text === undefined ? undefined : readResultsCsv(text, kind, defaults)),
     [text, kind, defaults],
   );
   const rows: CsvRow[] = read && !('error' in read) ? read.rows : [];
-  const ready = rows.filter((r): r is Extract<CsvRow, { ok: true }> => r.ok);
-  const bad = rows.filter((r): r is Extract<CsvRow, { ok: false }> => !r.ok);
+  const ready = rows.filter((r): r is CsvOk => r.ok);
+  const bad = rows.filter((r): r is CsvBad => !r.ok);
+  const before = useMemo(() => alreadySigned(rows, signedBefore), [rows, signedBefore]);
+  const toSign = signAgain ? ready : ready.filter((r) => !before.has(r.line));
+  const skipped = signAgain
+    ? []
+    : ready.filter((r) => before.has(r.line)).map((row) => ({ row, code: before.get(row.line)! }));
   const def = (k: keyof CsvDefaults, label: AppKey, extra: Partial<React.ComponentProps<typeof TextField>> = {}) => (
     <TextField
       label={t(label)}
@@ -357,11 +418,11 @@ const CsvResults: React.FC<{ records: ReturnType<typeof useRecords>; onDone: (d:
     const name = loadAttester()?.displayName ?? '';
     try {
       const results = await runSign(
-        ready.map((r) => ({ labName: name, statement: r.statement })),
+        toSign.map((r) => ({ labName: name, statement: r.statement })),
         records,
         (done, total) => setProgress({ done, total }),
       );
-      onDone({ results, openings: new Map(), unsigned: bad });
+      onDone({ results, openings: new Map(), unsigned: bad, skipped });
     } catch (e) {
       setError(t('app.lr.tools.failed', { error: e instanceof Error ? e.message : String(e) }));
     } finally {
@@ -369,6 +430,7 @@ const CsvResults: React.FC<{ records: ReturnType<typeof useRecords>; onDone: (d:
       setProgress(undefined);
     }
   };
+  const dupeLines = [...before.keys()];
   return (
     <Stack spacing={2} data-lab-csv="">
       <Typography variant="body2" color="text.secondary">
@@ -387,6 +449,25 @@ const CsvResults: React.FC<{ records: ReturnType<typeof useRecords>; onDone: (d:
           </MenuItem>
         ))}
       </TextField>
+      <Box data-csv-help={kind}>
+        <Typography variant="body2" sx={{ fontWeight: 700 }}>
+          {t('app.lr.csv.needs')}
+        </Typography>
+        <Box component="ul" sx={{ m: 0, mt: 0.5, pl: 2.5 }}>
+          {neededHelp(kind).map((c) => (
+            <Typography key={c.cols} component="li" variant="body2" data-csv-needs={c.cols}>
+              <Box component="code" sx={{ fontWeight: 700, overflowWrap: 'anywhere' }}>
+                {c.cols}
+              </Box>
+              {tr.lang === 'ja' ? '：' : ': '}
+              {t(c.what)}
+            </Typography>
+          ))}
+        </Box>
+        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.75 }}>
+          {t(`app.lr.csv.also.${kind}`)} {t('app.lr.csv.templateHas')}
+        </Typography>
+      </Box>
       <Typography variant="body2" sx={{ fontWeight: 700 }}>
         {t('app.lr.csv.defaults')}
       </Typography>
@@ -414,6 +495,7 @@ const CsvResults: React.FC<{ records: ReturnType<typeof useRecords>; onDone: (d:
         <Button
           onClick={() => download(csvTemplate(kind), `veilcore-${kind}-results-template.csv`, 'text/csv')}
           sx={{ minHeight: 44 }}
+          data-csv-template=""
         >
           {t('app.lr.csv.template')}
         </Button>
@@ -427,6 +509,7 @@ const CsvResults: React.FC<{ records: ReturnType<typeof useRecords>; onDone: (d:
         onChange={(e) => {
           const f = e.target.files?.[0];
           e.target.value = '';
+          setSignAgain(false);
           if (f) void f.arrayBuffer().then((b) => setText(decodeText(new Uint8Array(b))));
         }}
       />
@@ -438,26 +521,63 @@ const CsvResults: React.FC<{ records: ReturnType<typeof useRecords>; onDone: (d:
                 n: String(CSV_MAX_ROWS),
                 next: String(read.lastLine + 1),
               })
-            : t(read.error === 'empty' ? 'app.lr.csv.empty' : 'app.lr.csv.columns')}
+            : read.error === 'columns'
+              ? t('app.lr.csv.columns', { cols: listOf(tr, read.missing) })
+              : t('app.lr.csv.empty')}
         </Alert>
       )}
       {read && !('error' in read) && (
         <>
           <Typography variant="body1" data-csv-ready={ready.length}>
-            {t('app.lr.csv.ready', { ok: String(ready.length), bad: String(bad.length) })}
+            {bad.length === 0
+              ? t('app.lr.csv.readyAll', { ok: String(ready.length) })
+              : t('app.lr.csv.ready', { ok: String(ready.length), bad: String(bad.length) })}
           </Typography>
-          {bad.map((r) => (
-            <Typography key={r.line} variant="body2" color="warning.main" data-csv-bad={r.line}>
-              {t('app.lr.csv.row', {
-                line: String(r.line),
-                problem: t(`app.lr.problem.${r.code === 'result' ? 'csvResult' : r.code}` as AppKey),
+          {bad.length > 0 && (
+            <Stack spacing={0.5} data-csv-problems={bad.length}>
+              {bad.map((r) => (
+                <Typography key={r.line} variant="body2" color="warning.main" data-csv-bad={r.line}>
+                  {t('app.lr.csv.row', { line: String(r.line), problem: rowProblems(tr, r) })}
+                </Typography>
+              ))}
+            </Stack>
+          )}
+          {dupeLines.length > 0 && (
+            <Alert severity="warning" variant="outlined" data-csv-dupes={dupeLines.length}>
+              {tr.tp('app.lr.csv.dupes', dupeLines.length, {
+                rows:
+                  listOf(tr, dupeLines.slice(0, ROWS_LISTED).map(String)) + (dupeLines.length > ROWS_LISTED ? '…' : ''),
               })}
-            </Typography>
-          ))}
-          {ready.length > 0 && (
+              <RadioGroup
+                value={signAgain ? 'again' : 'skip'}
+                onChange={(e) => setSignAgain(e.target.value === 'again')}
+                sx={{ mt: 1 }}
+              >
+                <FormControlLabel
+                  value="skip"
+                  control={<Radio size="small" />}
+                  label={t('app.lr.csv.dupesSkip')}
+                  data-csv-dupes-skip=""
+                />
+                <FormControlLabel
+                  value="again"
+                  control={<Radio size="small" />}
+                  label={t('app.lr.csv.dupesAgain')}
+                  data-csv-dupes-again=""
+                />
+              </RadioGroup>
+            </Alert>
+          )}
+          {toSign.length > 0 ? (
             <Button variant="contained" size="large" disabled={busy} onClick={() => void sign()} sx={{ py: 1.4 }}>
-              {busy ? t('app.lr.form.signing') : t('app.lr.csv.sign', { n: String(ready.length) })}
+              {busy ? t('app.lr.form.signing') : tr.tp('app.lr.csv.sign', toSign.length)}
             </Button>
+          ) : (
+            ready.length > 0 && (
+              <Typography variant="body2" data-csv-nothing-new="">
+                {t('app.lr.csv.nothingNew')}
+              </Typography>
+            )
           )}
         </>
       )}
@@ -526,6 +646,10 @@ export const LabResultsPage: React.FC = () => {
   const attester = loadAttester();
   const myKey = useMemo(() => (attester ? claimsKeyFor(attester.keypair.privateKey).keyText : undefined), [attester]);
   const mineRecords = records.filter((r) => r.labResult && r.labSignature && r.labSignature.key === myKey);
+  const signedBefore: SignedBefore[] = useMemo(
+    () => mineRecords.map((r) => ({ statement: r.labResult!.statement, code: r.labSignature!.record })),
+    [records, myKey],
+  );
   const mine: MyResult[] = mineRecords.map((r) => {
     const s = r.labResult!.statement;
     const v = s.kind === 'viability' ? (s.result as ViabilityResult) : undefined;
@@ -561,7 +685,7 @@ export const LabResultsPage: React.FC = () => {
       {tab === 'one' ? (
         <OneResult mine={mine} records={records} onDone={setDone} />
       ) : (
-        <CsvResults records={records} onDone={setDone} />
+        <CsvResults records={records} signedBefore={signedBefore} onDone={setDone} />
       )}
     </>
   );
