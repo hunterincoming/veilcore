@@ -20,6 +20,19 @@ import { checkDealRecord, type DealRecordCheck } from 'veilcore-records';
 import type { License, OnChainLicense } from './licenses';
 import type { DealParty } from './deal-client';
 
+// Where the record's page is: the site's own name in a build that sets one (a copy someone else
+// runs, or test.veilcore.org: config/network.ts CANONICAL_ORIGIN), veilcore.org otherwise.
+// Decided when the site is built.
+const PACK_HOST: string = import.meta.env.VITE_CANONICAL_ORIGIN
+  ? (() => {
+      try {
+        return new URL(import.meta.env.VITE_CANONICAL_ORIGIN).host;
+      } catch {
+        return 'veilcore.org';
+      }
+    })()
+  : 'veilcore.org';
+
 type DealRecord = Record<string, unknown> & { license?: { commitment?: string } };
 
 /**
@@ -146,7 +159,7 @@ export const readmeText = (): string =>
     'THE LICENSE ITSELF',
     'Whether the license is live is public on the Midnight network, not in this pack: ask',
     'the licensee to prove it to you from their VeilCore page (they answer a one-time',
-    'challenge you choose), or check the record’s page on veilcore.org.',
+    `challenge you choose), or check the record’s page on ${PACK_HOST}.`,
     '',
     'A CLAIM ON THE RECORD',
     'A lender can record a claim on the licensed record that only the lender can release,',

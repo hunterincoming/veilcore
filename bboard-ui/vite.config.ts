@@ -25,7 +25,14 @@ import wasm from 'vite-plugin-wasm';
 import topLevelAwait from 'vite-plugin-top-level-await';
 import { readMainnetPins } from '../scripts/mainnet-pins.mjs';
 import { readPolicyStatus } from '../scripts/maintenance-policy.mjs';
-import { mainnetOriginProblem, plainHttpsOrigin, VEILCORE_ORIGIN } from '../scripts/canonical-origin.mjs';
+import {
+  isVeilcoreRegistry,
+  mainnetOriginProblem,
+  operatorProblems,
+  plainHttpsOrigin,
+  VEILCORE_ORIGIN,
+} from '../scripts/canonical-origin.mjs';
+import { preflightFetch, selfHostProblems } from '../scripts/self-host-preflight.mjs';
 import { agreementsLive, llmsFullTxt, llmsTxt, robotsTxt, sitemapXml, statusFlags, structuredData } from './findable';
 
 // What the site says about where records are dated depends on the build mode, never on
@@ -77,10 +84,60 @@ const mainnetBuild = (mode: string, command: string) => {
   }
   // Where its links and QR codes point (scripts/canonical-origin.mjs): veilcore.org for
   // VeilCore's registry, the copy's own address for any other (docs/SELF-HOSTING.md).
-  const origin = mainnetOriginProblem({ api: env.VITE_API_BASE, canonical: env.VITE_CANONICAL_ORIGIN });
+  const origin = mainnetOriginProblem({ api: env.VITE_API_BASE, canonical: env.VITE_CANONICAL_ORIGIN, env });
   if (origin) throw new Error(`\n\nThe mainnet website was not built: ${origin}\n`);
   return { veilcore: pins.veilcore, claims: pins.claims, policyApproved: policy.approved };
 };
+
+// A mainnet copy with its own registry: the checks npm run deploy:mainnet makes for veilcore.org,
+// against its own registry, sponsor and relay (scripts/self-host-preflight.mjs), before anything is
+// built. veilcore.org's build (VeilCore's registry) skips this, as before: its deploy script makes
+// those checks itself.
+const selfHostPreflight = (mode: string, pinned: string): Plugin => ({
+  name: 'veilcore-self-host-preflight',
+  apply: 'build',
+  async buildStart() {
+    if (mode !== 'mainnet') return;
+    const env = { ...loadEnv(mode, process.cwd(), 'VITE_'), ...process.env };
+    if (isVeilcoreRegistry(env.VITE_API_BASE)) return;
+    const problems = await selfHostProblems({
+      env,
+      pinned,
+      agreements: agreementsLive(fileURLToPath(new URL('.', import.meta.url))),
+      fetchImpl: preflightFetch(env),
+    });
+    if (problems.length) throw new Error(`\n\nThe mainnet website was not built:\n - ${problems.join('\n - ')}\n`);
+  },
+});
+
+// A copy someone else runs names its operator (src/config/operator.ts): all four VITE_OPERATOR_*
+// settings, or none. Its contact address then replaces VeilCore's in the site's own code, except
+// on the Founders page, which is about VeilCore's people. Without the settings nothing here
+// changes anything: veilcore.org's build is the same as before.
+const viteEnv = (mode: string): Record<string, string | undefined> => ({
+  ...loadEnv(mode, process.cwd(), 'VITE_'),
+  ...process.env,
+});
+const operatorEnv = (mode: string) => {
+  const env = { ...loadEnv(mode, process.cwd(), 'VITE_'), ...process.env };
+  const problems = operatorProblems(env, false);
+  if (problems.length) throw new Error(`\n\nThe website was not built: ${problems.join(' ')}\n`);
+  return {
+    selfHosted: Boolean(String(env.VITE_OPERATOR_NAME ?? '').trim()),
+    email: String(env.VITE_OPERATOR_EMAIL ?? '').trim(),
+  };
+};
+const VEILCORE_CONTACT = /\b(?:hunter|mako)@veilcore\.org\b/g;
+const operatorEmail = (email: string): Plugin => ({
+  name: 'veilcore-operator-email',
+  enforce: 'pre',
+  transform(code, id) {
+    if (!email || !/[\\/]src[\\/]/.test(id) || /[\\/]Founders\.tsx/.test(id) || !VEILCORE_CONTACT.test(code))
+      return null;
+    VEILCORE_CONTACT.lastIndex = 0;
+    return { code: code.replace(VEILCORE_CONTACT, email), map: null };
+  },
+});
 
 // A mainnet build that names another site as its own (VITE_CANONICAL_ORIGIN): a copy someone
 // else runs. It asks not to be indexed and leaves out veilcore.org's sitemap and llms files.
@@ -413,6 +470,7 @@ export default defineConfig(({ mode, command }) => {
     throw new Error(`\n\nVITE_E2E_FIXTURES=1 is the end-to-end test build, never --mode ${mode}.\n`);
   const pins = mainnetBuild(mode, command);
   const askModel = askModelFlag(mode);
+  const operator = operatorEnv(mode);
   return {
     cacheDir: './.vite',
     build: {
@@ -458,6 +516,10 @@ export default defineConfig(({ mode, command }) => {
           return source === 'node:crypto' ? new URL('./src/shims/node-crypto.ts', import.meta.url).pathname : null;
         },
       },
+      // Only for a copy someone else runs: a plugin with no work to do still changes how the
+      // bundler orders modules, and veilcore.org's build must come out as it did.
+      mode === 'mainnet' && !isVeilcoreRegistry(viteEnv(mode).VITE_API_BASE) && selfHostPreflight(mode, pins.veilcore),
+      operator.email !== '' && operatorEmail(operator.email),
       siteDescription(mode),
       siteSummary(
         mode,
@@ -538,6 +600,8 @@ export default defineConfig(({ mode, command }) => {
       'import.meta.env.VITE_MAINTENANCE_POLICY_APPROVED': JSON.stringify(pins.policyApproved ? 'true' : ''),
       'import.meta.env.VITE_ASK_MODEL': JSON.stringify(askModel),
       'import.meta.env.VITE_OFFLINE': JSON.stringify(offlineFlag(mode)),
+      // Only in a copy that names its operator: veilcore.org's build gets no such key at all.
+      ...(operator.selfHosted ? { 'import.meta.env.VITE_SELF_HOSTED': JSON.stringify('on') } : {}),
     },
     checks: {
       importIsUndefined: false,

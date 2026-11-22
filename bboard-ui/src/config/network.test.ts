@@ -69,6 +69,13 @@ describe('the origin shared links point at', () => {
   });
 });
 
+const OPERATOR = {
+  VITE_OPERATOR_NAME: 'Example Breed Registry',
+  VITE_OPERATOR_EMAIL: 'help@registry.example.org',
+  VITE_OPERATOR_PRIVACY_URL: 'https://registry.example.org/privacy',
+  VITE_OPERATOR_TERMS_URL: 'https://registry.example.org/terms',
+};
+
 describe("a mainnet build's link origin, checked before building (scripts/canonical-origin.mjs)", () => {
   it("veilcore.org's build (VeilCore's registry, no setting) builds as before", () => {
     expect(mainnetOriginProblem({ api: DEFAULT_API })).toBeUndefined();
@@ -88,8 +95,17 @@ describe("a mainnet build's link origin, checked before building (scripts/canoni
   it('refuses a copy with its own registry unless it names its own address', () => {
     const api = 'https://registry.example.org';
     expect(mainnetOriginProblem({ api })).toMatch(/set VITE_CANONICAL_ORIGIN to this site's own https address/);
-    expect(mainnetOriginProblem({ api, canonical: 'https://veilcore.org' })).toMatch(/never heard of your records/);
-    expect(mainnetOriginProblem({ api, canonical: 'https://records.example.org' })).toBeUndefined();
+    // Never any veilcore.org name: www., test., or the site itself (review of PR #171, L2).
+    for (const vc of [
+      'https://veilcore.org',
+      'https://www.veilcore.org',
+      'https://test.veilcore.org',
+      'https://WWW.VeilCore.org',
+    ])
+      expect(mainnetOriginProblem({ api, canonical: vc }), vc).toMatch(/never heard of your records/);
+    expect(mainnetOriginProblem({ api, canonical: 'https://records.example.org', env: OPERATOR })).toBeUndefined();
+    // A look-alike that is not under veilcore.org is someone's own name.
+    expect(mainnetOriginProblem({ api, canonical: 'https://notveilcore.org', env: OPERATOR })).toBeUndefined();
   });
 
   it('refuses a setting that is not a plain https origin, rather than quietly pointing at veilcore.org', () => {

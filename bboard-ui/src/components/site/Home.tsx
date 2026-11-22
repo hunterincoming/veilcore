@@ -896,8 +896,9 @@ export const Home: React.FC = () => {
               <p className="k-drench-lead" data-reveal="" style={{ '--d': 1 } as React.CSSProperties}>
                 {t('m.home.closeLede')}
                 {sp}
-                <a href="mailto:mako@veilcore.org">mako@veilcore.org</a>
-                {lang === 'ja' ? '・' : ', '}
+                {/* A copy someone else runs: its one address (config/operator.ts). */}
+                {import.meta.env.VITE_SELF_HOSTED !== 'on' && <a href="mailto:mako@veilcore.org">mako@veilcore.org</a>}
+                {import.meta.env.VITE_SELF_HOSTED !== 'on' && (lang === 'ja' ? '・' : ', ')}
                 <a href="mailto:hunter@veilcore.org">hunter@veilcore.org</a>
               </p>
               <div className="k-actions" data-reveal="" style={{ '--d': 2 } as React.CSSProperties}>

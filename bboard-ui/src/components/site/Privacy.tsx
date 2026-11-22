@@ -25,6 +25,12 @@ import { useI18n } from '../../i18n';
 import { SiteShell } from './SiteShell';
 import { PrivacyPolicy } from './PrivacyPolicy';
 import { IS_MAINNET } from '../../config/network';
+// A copy someone else runs (config/operator.ts): its own page. Decided when the site is built, so
+// veilcore.org's build leaves OperatorNotice out entirely.
+const OperatorNotice =
+  import.meta.env.VITE_SELF_HOSTED === 'on'
+    ? React.lazy(() => import('./OperatorNotice').then((m) => ({ default: m.OperatorNotice })))
+    : null;
 
 const SECTIONS = [
   'stored',
@@ -53,6 +59,15 @@ const SUMMARY = ['local', 'locked', 'read'] as const;
 
 export const Privacy: React.FC = () => {
   const { t } = useI18n();
+  // A copy someone else runs: its own privacy page, never VeilCore's (config/operator.ts).
+  if (OperatorNotice)
+    return (
+      <SiteShell>
+        <React.Suspense fallback={null}>
+          <OperatorNotice kind="privacy" />
+        </React.Suspense>
+      </SiteShell>
+    );
   if (IS_MAINNET)
     return (
       <SiteShell>
