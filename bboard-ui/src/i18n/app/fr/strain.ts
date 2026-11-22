@@ -25,9 +25,9 @@ export const strain = {
   'app.strain.v.app.log.keyStamped':
     'Clé horodatée. La clé de votre souche est datée elle aussi, pour que vous puissiez prouver plus tard que vous la détenez.{bound} Rien sur la souche n’a été envoyé.',
   'app.strain.v.app.log.onlyFingerprint':
-    'Seul un code de la clé de votre souche est envoyé, rien sur la souche. Gratuit : VeilCore paie les frais du réseau.',
+    'Facultatif, nécessaire seulement pour prouver que vous détenez cet enregistrement ou pour le concéder sous licence. Seul un code de sa clé est envoyé, rien sur la souche. Gratuit.',
   'app.strain.v.app.log.keepOpen':
-    'Cela prend environ une minute. Gardez cet écran ouvert jusqu’à la fin : sur un téléphone, changer d’application ou verrouiller l’écran peut l’interrompre. S’il s’interrompt, rien n’est perdu : votre souche est enregistrée, et sa page vous proposera à nouveau l’horodatage.',
+    'Inutile d’attendre ici. Cela prend environ une minute et se réessaie tout seul tant que VeilCore est ouvert. Si cela s’arrête, rien n’est perdu : la page de votre souche propose à nouveau l’horodatage de la clé.',
   'app.strain.v.app.chain.stampMayHaveGoneOut':
     'Votre horodatage est peut-être déjà parti{tx}. Votre souche est enregistrée. Ne réessayez pas tant que cette transaction n’a pas été vérifiée sur le réseau.',
   'app.strain.v.app.chain.stampUnreachable':
@@ -136,7 +136,7 @@ export const strain = {
     'La clé de cette souche a déjà été horodatée sur le réseau. Cela date la clé, pas l’enregistrement.',
   'app.strain.v.app.prove.own.title': 'Prouvez que vous détenez la clé de cette souche (réseau de test)',
   'app.strain.v.app.prove.own.stampFirst':
-    'Préparez d’abord la preuve : touchez « Préparer la preuve que vous le détenez » sur la page de la souche. La preuve porte sur l’identité de la souche sur la chaîne, que crée cette étape.',
+    'Ajoutez d’abord l’horodatage de la clé : appuyez sur « Ajouter l’horodatage de la clé » sur la page de la souche. La preuve porte sur l’identité sur la chaîne de l’enregistrement, que cette étape crée.',
   'app.strain.v.app.lab.sentence.none': 'Aucun rapport ADN n’est enregistré sur cette souche.',
   'app.strain.v.app.lab.sentence.self':
     'Un fichier de rapport ADN est enregistré sur cette souche. Aucune signature de laboratoire ne correspond : c’est la propre déclaration du détenteur.',

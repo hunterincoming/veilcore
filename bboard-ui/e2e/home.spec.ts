@@ -6,26 +6,30 @@
 import { expect, test } from '@playwright/test';
 import { expectNoErrors, isolate, watch } from './helpers';
 
+/** The short home page's own sections (22 Nov 2026). */
+const ANCHORS = ['top', 'steps', 'about', 'private', 'own-way', 'more'];
+
 /**
- * The in-page anchors something links to: the header (#how, #about), the app footer (#about,
- * #demo, #updates, #live, #technical), Help (#live), the gallery (#claims), and the old header
- * and older links (#team, #contact, #status, #questions, #value, #open, #top).
+ * The anchors older links point at on the home page: the old header (#how, #about), the app
+ * footer (#demo, #updates, #live, #technical), Help (#live), the gallery (#claims), and older
+ * links (#team, #contact, #status, #questions, #value, #open). Those sections moved to How it
+ * works or About when the home page was cut short; an old link lands on the same section there.
  */
-const ANCHORS = [
-  'top',
-  'about',
-  'how',
-  'demo',
-  'claims',
-  'value',
-  'open',
-  'status',
-  'live',
-  'updates',
-  'questions',
-  'technical',
-  'contact',
-  'team',
+const MOVED: [string, string][] = [
+  ['how', '/how-it-works'],
+  ['demo', '/how-it-works#demo'],
+  ['claims', '/how-it-works#claims'],
+  ['value', '/how-it-works#value'],
+  ['open', '/how-it-works#open'],
+  ['status', '/how-it-works#status'],
+  ['live', '/how-it-works#where'],
+  ['questions', '/how-it-works#questions'],
+  ['technical', '/how-it-works#technical'],
+  ['matters', '/how-it-works#matters'],
+  ['updates', '/founders#updates'],
+  ['contact', '/founders#contact'],
+  ['team', '/founders'],
+  ['keep', '/#private'],
 ];
 
 test.describe('the home page', () => {
@@ -70,15 +74,47 @@ test.describe('the home page', () => {
     expectNoErrors(errors);
   });
 
-  test('every anchor other pages link to is on the page, once', async ({ page }) => {
+  test('every anchor other pages link to is still reached, once', async ({ page }) => {
     await isolate(page);
     await page.goto('/');
     for (const id of ANCHORS) await expect(page.locator(`[id="${id}"]`), id).toHaveCount(1);
-    // Arriving at /#live opens what's live where; /#technical opens the technical section.
+    // An old link to a section that moved lands on that section on its new page.
+    for (const [id, to] of MOVED) {
+      await page.goto(`/#${id}`);
+      await expect(page, id).toHaveURL(new RegExp(`${to.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`));
+      const hash = to.split('#')[1];
+      if (hash) await expect(page.locator(`[id="${hash}"]`), id).toHaveCount(1);
+    }
+    // Each section once on How it works, the moved ones included (review of #169).
+    await page.goto('/how-it-works');
+    for (const id of ['claims', 'demo', 'value', 'status', 'questions', 'technical', 'matters', 'open', 'own-way'])
+      await expect(page.locator(`[id="${id}"]`), id).toHaveCount(1);
+    // Arriving at #live opens what's live where; #technical opens the technical section.
+    // What's live where is drawn open on How it works (#where), with its table.
     await page.goto('/#live');
-    await expect(page.locator('#live details')).toHaveAttribute('open', '');
+    await expect(page.locator('#where table')).toHaveCount(1);
     await page.goto('/#technical');
     await expect(page.locator('#technical details')).toHaveAttribute('open', '');
+  });
+
+  test('is short: hero, three steps, who it is for, privacy, use it your way, links', async ({ page }) => {
+    await isolate(page);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto('/');
+    // "Make a record" and "Check a record" are the hero's two buttons, before the paste line.
+    const make = page.locator('.hero-actions a[href="/new"]');
+    await expect(make).toBeVisible();
+    await expect(page.locator('.hero-actions a[href="/verify"]')).toBeVisible();
+    const paste = await page.locator('[data-paste-entry="hero"]').boundingBox();
+    const buttons = await page.locator('.hero-actions').boundingBox();
+    expect(paste && buttons && paste.y > buttons.y).toBe(true);
+    await expect(make).toBeInViewport();
+    // It was about 25,400 px (some 30 phone screens) with 60 headings.
+    expect(await page.evaluate(() => document.documentElement.scrollHeight)).toBeLessThan(844 * 8);
+    expect(await page.locator('main :is(h1, h2, h3)').count()).toBeLessThanOrEqual(14);
+    // Who it is for: each to its own page.
+    const who = page.locator('#about');
+    for (const to of ['/new', '/for-labs', '/partners']) await expect(who.locator(`a[href="${to}"]`)).toHaveCount(1);
   });
 
   test('the ways in go to real pages', async ({ page }) => {
@@ -87,7 +123,7 @@ test.describe('the home page', () => {
     const hrefs = await page.evaluate(() =>
       [...document.querySelectorAll('main a[href]')].map((a) => a.getAttribute('href') ?? ''),
     );
-    for (const h of hrefs.filter((x) => x.startsWith('#'))) expect(ANCHORS.concat(['claims']), h).toContain(h.slice(1));
+    for (const h of hrefs.filter((x) => x.startsWith('#'))) expect(ANCHORS, h).toContain(h.slice(1));
     const routes = [...new Set(hrefs.filter((h) => h.startsWith('/')))].sort();
     expect(routes).toEqual(
       expect.arrayContaining([
@@ -111,7 +147,8 @@ test.describe('the home page', () => {
     const errors = watch(page);
     await page.setViewportSize({ width: 1280, height: 800 });
     await isolate(page);
-    await page.goto('/');
+    // On How it works since the home page was cut short (22 Nov).
+    await page.goto('/how-it-works');
     await page.locator('#matters').scrollIntoViewIfNeeded();
     const y = await page.evaluate(() => window.scrollY);
     const track = page.locator('#matters ul');
@@ -136,7 +173,7 @@ test.describe('the home page', () => {
 
   test('the moving names can be paused, and screen readers get them once', async ({ page }) => {
     await isolate(page);
-    await page.goto('/');
+    await page.goto('/how-it-works');
     const band = page.getByRole('region', { name: 'Who it is for' });
     await expect(band).toContainText('Breeders, Seed companies');
     await band.getByRole('button', { name: 'Pause the moving names' }).click();

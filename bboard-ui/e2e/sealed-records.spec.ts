@@ -44,7 +44,7 @@ type Plant = {
  */
 const logPlant = async (page: Page, p: Plant): Promise<{ recordId: string; backupFile: string }> => {
   await page.goto('/records');
-  await page.getByText('Start', { exact: true }).click();
+  await page.locator('main').getByRole('link', { name: 'Make a record', exact: true }).click();
   await startPlant(page);
   await page.getByLabel(/Plant or line name/).fill(p.name);
   await page.getByLabel(/Bred by/).fill(p.bredBy);
@@ -64,7 +64,7 @@ const logPlant = async (page: Page, p: Plant): Promise<{ recordId: string; backu
   }
   await page.getByRole('button', { name: /Next: check it/ }).click();
   await page.getByRole('button', { name: /Seal it/ }).click();
-  await page.getByRole('button', { name: /Do the date stamp later/ }).click({ timeout: 90_000 });
+  await page.getByRole('button', { name: /Go on without waiting/ }).click({ timeout: 90_000 });
   const recordId = await page.evaluate(
     () => Object.keys(JSON.parse(localStorage.getItem('veilcore.record-keys.v1') ?? '{}') as object)[0],
   );
@@ -168,12 +168,15 @@ test('(b) the backup file, restored in a fresh browser: the records open, none l
   const fresh = await newPage(browser);
   await fresh.page.addInitScript(() => localStorage.setItem('veilcore.role.v1', 'breeder'));
   await fresh.page.goto('/restore');
-  // Face ID first (easy mode step 2); the file is under "Other ways".
-  const otherWays = fresh.page.locator('[data-restore-other-ways]');
-  if (await otherWays.isVisible()) await otherWays.click();
+  // The backup file first, beside the passkey (22 Nov).
   const chooser = fresh.page.waitForEvent('filechooser');
   await fresh.page.getByRole('button', { name: /Open my backup file/ }).click();
   await (await chooser).setFiles(file);
+  // An empty browser: when the file was made and what it holds, before it is opened (22 Nov).
+  await expect(fresh.page.locator('[data-restore-preview]')).toContainText(
+    /This backup was made on .+ and holds 1 record/,
+  );
+  await fresh.page.locator('[data-restore-preview-bring]').click();
   await expect(fresh.page.getByRole('heading', { name: /Your records are back/ })).toBeVisible();
   await expect(fresh.page.locator('[data-still-locked]')).toHaveCount(0);
   await fresh.page.getByRole('link', { name: /See my records/ }).click();

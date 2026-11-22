@@ -1,7 +1,8 @@
 // The one header, on every page: the public pages, the app and the check pages (fresh-eyes
 // review, 12 Nov: there were three, the app had no way back to the site, and "Home" meant two
 // different pages). The mark always goes to veilcore.org's home page; the same links follow it
-// everywhere (How it works, About, your records, Verify, and "Make a record" or your records);
+// everywhere (How it works, About, Check a record, Use it as a lab, Get my records back, and
+// "Make a record" or your records);
 // since the site design of 21 Nov, How it works and About are pages of their own (/how-it-works,
 // /founders), drawn on the night ground like the home page;
 // then the language, and on the app's pages which network this is. Since the dark home page
@@ -20,10 +21,16 @@
 // "Menu" (Ask is put there by AskLauncher.tsx; as a bubble or a header button it either
 // covered the page or took a line of its own).
 //
-// For labs (21 Nov): the public pages carry "For labs", to /for-labs (lab/LabDoor.tsx), which gives
-// the lab view and opens the signing key screen; the co-founder couldn't find a lab's way in from
-// the site. On the app's pages the view menu (ViewSwitch.tsx) is there instead, after the language:
-// on a phone it starts the second line, beside the network on a test build.
+// For labs (21 Nov): the public pages carry "Use it as a lab", to /for-labs (lab/LabDoor.tsx), a
+// page for a lab owner whose button gives the lab view and opens the signing key screen; the
+// co-founder couldn't find a lab's way in from the site. On the app's pages the view menu
+// (ViewSwitch.tsx) is there instead, after the language: on a phone it starts the second line,
+// beside the network on a test build.
+//
+// By task (22 Nov): every link is something to read first (How it works, About) or something to
+// do (Check a record, Use it as a lab, Get my records back, Make a record). It had mixed an
+// audience ("For labs"), a place ("Your records") and actions, and a lab read "Your records" as
+// the breeder's.
 // SPDX-License-Identifier: Apache-2.0
 
 import React, { useEffect, useRef, useState } from 'react';
@@ -181,6 +188,11 @@ const PhoneMenu: React.FC<{ ask: boolean; returning: boolean }> = ({ ask, return
             </SectionLink>
           </li>
         ))}
+        <li>
+          <Link component={RouterLink} to="/verify" sx={item}>
+            {t('m.foot.verify')}
+          </Link>
+        </li>
         {!ask && (
           <li>
             <Link component={RouterLink} to={LAB_DOOR} sx={item} data-for-labs="menu">
@@ -190,16 +202,11 @@ const PhoneMenu: React.FC<{ ask: boolean; returning: boolean }> = ({ ask, return
         )}
         {!returning && (
           <li>
-            <Link component={RouterLink} to="/records" sx={item}>
-              {t('m.nav.yours')}
+            <Link component={RouterLink} to="/restore" sx={item} data-get-back="menu">
+              {t('m.nav.getBack')}
             </Link>
           </li>
         )}
-        <li>
-          <Link component={RouterLink} to="/verify" sx={item}>
-            {t('m.foot.verify')}
-          </Link>
-        </li>
         {/* On a phone the demo or your records is here, not beside the mark (no room). */}
         <Box component="li" sx={{ display: { xs: 'block', sm: 'none' } }}>
           {returning ? (
@@ -235,6 +242,36 @@ export const SiteHeader: React.FC<{
   const cta = { display: { xs: 'none', sm: 'inline-flex' } } as const;
   return (
     <Box component="header" data-site-header="" sx={{ pt: { xs: 1, md: 2.5 } }}>
+      {/* Skip to the page's main part: off screen until a keyboard reaches it (accessibility
+          review, 22 Nov). Every page has one <main>; it takes the focus. */}
+      <Box
+        component="a"
+        href="#main"
+        data-skip-link=""
+        onClick={(e: React.MouseEvent) => {
+          const main = document.querySelector('main');
+          if (!main) return;
+          e.preventDefault();
+          if (!main.hasAttribute('tabindex')) main.setAttribute('tabindex', '-1');
+          main.focus();
+        }}
+        sx={{
+          position: 'absolute',
+          left: 8,
+          top: -100,
+          zIndex: (th) => th.zIndex.tooltip,
+          px: 2,
+          py: 1,
+          borderRadius: '8px',
+          background: POLLEN,
+          color: INK_COLOR,
+          fontWeight: 700,
+          textDecoration: 'none',
+          '&:focus': { top: 8 },
+        }}
+      >
+        {t('nav.skip')}
+      </Box>
       <Container maxWidth="lg">
         <Stack
           direction="row"
@@ -262,21 +299,24 @@ export const SiteHeader: React.FC<{
                 {t(s.key)}
               </SectionLink>
             ))}
-            {/* For labs, on the public pages; the app's pages have the view menu. */}
+            <Link component={RouterLink} to="/verify" sx={{ ...linkSx, ...wide }}>
+              {t('m.foot.verify')}
+            </Link>
+            {/* Use it as a lab, on the public pages; the app's pages have the view menu, which
+                sets the same lab view, so a person never meets two pickers at once. */}
             {!app && (
               <Link component={RouterLink} to={LAB_DOOR} sx={{ ...linkSx, ...wide }} data-for-labs="nav">
                 {t('m.nav.forLabs')}
               </Link>
             )}
-            {/* Your records: the button says it for someone coming back, so the link is for the rest. */}
+            {/* Get my records back, for a browser with nothing in it: for them "Your records"
+                opened an empty Home whose first offer was this. Someone coming back has the
+                button, "Your records". */}
             {!returning && (
-              <Link component={RouterLink} to="/records" sx={{ ...linkSx, ...wide }}>
-                {t('m.nav.yours')}
+              <Link component={RouterLink} to="/restore" sx={{ ...linkSx, ...wide }} data-get-back="nav">
+                {t('m.nav.getBack')}
               </Link>
             )}
-            <Link component={RouterLink} to="/verify" sx={{ ...linkSx, ...wide }}>
-              {t('m.foot.verify')}
-            </Link>
             {returning ? (
               <Link
                 component={RouterLink}

@@ -485,7 +485,8 @@ test.describe('evidence bundle', () => {
     const errors = watch(page);
     await openPlant(page, setup, bound.id);
 
-    // The visible link near the record's date.
+    // Under Technical details since 22 Nov (it was also a line near the record's date).
+    await page.getByRole('button', { name: 'Technical details' }).click();
     await page.getByRole('button', { name: 'Download evidence bundle' }).first().click();
     const dialog = page.getByRole('dialog', { name: 'Download evidence bundle' });
     await expect(dialog).toBeVisible();

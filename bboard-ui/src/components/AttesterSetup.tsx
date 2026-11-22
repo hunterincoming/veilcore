@@ -25,7 +25,7 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-import BadgeIcon from '@mui/icons-material/VerifiedUserOutlined';
+import BadgeIcon from '@mui/icons-material/KeyOutlined';
 import CopyIcon from '@mui/icons-material/ContentCopy';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';

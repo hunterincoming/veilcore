@@ -27,6 +27,8 @@ export const offline = {
   'app.install.ready':
     'Ce navigateur garde l’app VeilCore : elle s’ouvre ici sans réseau. Vos enregistrements ont toujours besoin de votre sauvegarde.',
   'app.install.dismiss': 'Pas maintenant',
+  'app.install.showHow': 'Me montrer comment',
+  'app.install.gotIt': 'Compris',
 
   'app.instant.pending':
     'Horodaté à {time} par le service {tsa} — la date sur Midnight, la blockchain, suit avec le prochain lot.',

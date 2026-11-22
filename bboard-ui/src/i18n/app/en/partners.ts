@@ -29,7 +29,7 @@ export const partners = {
   'app.partners.not.2': 'That the description is true, only that it hasn’t changed.',
   'app.partners.not.3': 'Who holds the material, or the record, today.',
   'app.partners.not.4': 'That a lab’s work is right. A checked name means a public listing was matched, nothing more.',
-  'app.partners.not.5': 'Parentage, rights, licenses or legal status.',
+  'app.partners.not.5': 'Parentage, unless the holder sends a parentage claim link. Rights, licenses or legal status.',
   'app.partners.demo.title': 'Try it',
   'app.partners.demo.lede':
     'Paste a record’s check link. It is checked in this browser, against the registry this site uses. Nothing is sent anywhere else, and nothing is kept.',

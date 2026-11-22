@@ -87,13 +87,13 @@ const sendAndReceive = async (browser: Browser, t: Typed, arrivedSeal: string, t
   const breederErrors = watch(breeder);
   await isolate(breeder);
   await breeder.goto('/records');
-  await breeder.getByText('Start', { exact: true }).click();
+  await breeder.locator('main').getByRole('link', { name: 'Make a record', exact: true }).click();
   await startPlant(breeder);
   await breeder.getByLabel(/Plant or line name/).fill(`E2E Custody ${tag} ${Date.now()}`);
   await breeder.getByLabel(/Bred by/).fill('E2E');
   await breeder.getByRole('button', { name: /Next: check it/ }).click();
   await breeder.getByRole('button', { name: /Seal it/ }).click();
-  await breeder.getByRole('button', { name: /Do the date stamp later/ }).click({ timeout: 90_000 });
+  await breeder.getByRole('button', { name: /Go on without waiting/ }).click({ timeout: 90_000 });
   const recordId = await breeder.evaluate(
     () => Object.keys(JSON.parse(localStorage.getItem('veilcore.record-keys.v1') ?? '{}') as object)[0],
   );
@@ -402,7 +402,7 @@ test('the whole way round: logged, backed up, sent with sample details; received
   const breederErrors = watch(breeder);
   await isolate(breeder);
   await breeder.goto('/records');
-  await breeder.getByText('Start', { exact: true }).click();
+  await breeder.locator('main').getByRole('link', { name: 'Make a record', exact: true }).click();
   const name = `E2E Round ${u}`;
   await startPlant(breeder);
   await breeder.getByLabel(/Plant or line name/).fill(name);
@@ -411,7 +411,7 @@ test('the whole way round: logged, backed up, sent with sample details; received
   await breeder.getByLabel(/^Notes/).fill(typed.notes);
   await breeder.getByRole('button', { name: /Next: check it/ }).click();
   await breeder.getByRole('button', { name: /Seal it/ }).click();
-  await breeder.getByRole('button', { name: /Do the date stamp later/ }).click({ timeout: 90_000 });
+  await breeder.getByRole('button', { name: /Go on without waiting/ }).click({ timeout: 90_000 });
   const recordId = await breeder.evaluate(
     () => Object.keys(JSON.parse(localStorage.getItem('veilcore.record-keys.v1') ?? '{}') as object)[0],
   );

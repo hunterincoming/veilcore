@@ -421,8 +421,9 @@ describe('the glossary terms stay settled', () => {
 
   it('es says "servidor de registros" at least as often as the English says "registry"', () => {
     // Where the English names an outside registry rather than ours ("your registry"), or names
-    // ours twice in one possessive ("VeilCore's registry's clock").
-    const OUTSIDE = new Set(['app.partners.lede', 'app.rpay.revoke.what']);
+    // ours twice in one possessive ("VeilCore's registry's clock"), or names the registries a
+    // record is shown to (the home page's "Registries, certifiers and herd books").
+    const OUTSIDE = new Set(['app.partners.lede', 'app.rpay.revoke.what', 'm.home2.w3t']);
     const count = (s: string, re: RegExp) => (s.match(re) ?? []).length;
     const short: string[] = [];
     const pairs: [Record<string, string>, Record<string, string>][] = [

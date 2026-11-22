@@ -160,7 +160,7 @@ export const lab = {
   'app.lab.strength.unverifiedRetraction':
     ' The registry also reports a retraction that is not signed by the attester, so it is ignored here.',
   'app.lab.strength.matched': 'Signed · verified against a public listing',
-  'app.lab.strength.matchedWhy': '{text} The signature was verified in this browser.{acc}{unverified}',
+  'app.lab.strength.matchedWhy': '{text} The signature was checked in this browser.{acc}{unverified}',
   'app.lab.strength.accreditation': ' They list {scheme} accreditation from {by}; confirm that with {by}.',
   'app.lab.strength.expired': ' An earlier check of this name has expired.',
   'app.lab.strength.notChecked': 'Signed · not verified',

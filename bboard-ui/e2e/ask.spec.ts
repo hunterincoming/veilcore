@@ -203,7 +203,7 @@ test('the receipt before the key date stamp, then 3 clones from Ask saved with t
   await receipt.scrollIntoViewIfNeeded();
   await shot(page, 'receipt', true);
   await seal.click();
-  await page.getByRole('button', { name: /Do the date stamp later/ }).click({ timeout: 90_000 });
+  await page.getByRole('button', { name: /Go on without waiting/ }).click({ timeout: 90_000 });
   await page.getByRole('button', { name: /No report yet: skip/ }).click();
   await saveAndCheckBackup(page);
   await page.getByRole('button', { name: /Finish/ }).click();
@@ -212,7 +212,8 @@ test('the receipt before the key date stamp, then 3 clones from Ask saved with t
   const motherId = held.records[0].id;
 
   // The record page offers a batch; Ask drafts the same from what is typed.
-  await expect(page.getByText('Cut clones from this')).toBeVisible();
+  // (Since 22 Nov one row, "Next generation or clones", asks which.)
+  await expect(page.getByText('Next generation or clones')).toBeVisible();
 
   // Now there is a record, the hint by the bubble names it. Dismissed, it stays gone; only the
   // flag is stored. (Cleared here to try the hint again.)

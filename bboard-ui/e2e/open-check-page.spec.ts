@@ -75,7 +75,7 @@ test('a saved record has an "Open check page" button at the top that opens its c
   await page.getByLabel(/Bred by/).fill('E2E breeder');
   await page.getByRole('button', { name: /Next: check it/ }).click();
   await page.getByRole('button', { name: /Seal it/ }).click();
-  await page.getByRole('button', { name: /Do the date stamp later/ }).click({ timeout: 90_000 });
+  await page.getByRole('button', { name: /Go on without waiting/ }).click({ timeout: 90_000 });
   await page.getByRole('button', { name: /No report yet: skip/ }).click();
 
   await saveAndCheckBackup(page);

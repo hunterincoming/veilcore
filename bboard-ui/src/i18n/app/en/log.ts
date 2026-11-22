@@ -94,7 +94,7 @@ export const log = {
     'The details are stored locked on {server}, so you can come back to them, and we don’t have the key. The name is locked too; a check link carries it after the # only if you switch that on. Only a proof code is dated on {datedOn}.',
   'app.log.sealing': 'Sealing…',
   'app.log.sealPlain':
-    'Published, permanently: only codes made from it, on Midnight. Never your words or photos: those stay private, and only you can open them.',
+    'Published, permanently: only codes made from it, on Midnight. Never your words or photos: those stay private; only you can open them.',
   'app.log.sealDetails': 'What gets published?',
   'app.log.seal': 'Seal it',
   'app.log.sealingPlant': 'Sealing your plant…',
@@ -115,12 +115,13 @@ export const log = {
   'app.log.keyStamped':
     "Key date stamped. Your plant's key is dated too, so you can prove you hold it later.{bound} Nothing about the plant went out.",
   'app.log.keyBound': ' The sealed record names this key, so nobody can swap in another.',
-  'app.log.stampFailedTitle': 'Sealed. Date stamp not done yet',
-  'app.log.stampingTitle': 'Sealed. Getting today’s date stamp…',
+  'app.log.stampFailedTitle': 'Sealed. Optional key date stamp: not yet',
+  'app.log.stampingTitle': 'Sealed. Adding the optional key date stamp…',
   'app.log.onlyFingerprint':
-    "Only a code made from your plant's key goes out, nothing about the plant. Free: VeilCore pays the network fee.",
-  'app.log.stampingAria': 'Getting today’s date stamp',
-  'app.log.stampLater': 'Do the date stamp later',
+    'Optional, needed only to prove you hold this record or to license it. Only a code made from its key goes out, nothing about the plant. Free.',
+  'app.log.stampingAria': 'Adding the key date stamp',
+  'app.log.stampLater': 'Go on without waiting',
+  'app.log.stampNotYet': "The key date stamp didn't go through yet. It keeps trying by itself.",
   'app.log.keepOpen':
-    'This takes about a minute. Keep this screen open until it’s done: on a phone, switching apps or locking the screen can stop it. If it stops, nothing is lost: your plant is saved, and its page will offer the date stamp again.',
+    "You don't need to wait here. It takes about a minute and keeps trying by itself while VeilCore is open. If it stops, nothing is lost: your plant's page offers the key date stamp again.",
 };

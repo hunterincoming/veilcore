@@ -72,7 +72,7 @@ test('seal, see it is not tied to the plant, save a DNA report, see it tied, dat
   await page.getByRole('button', { name: /Next: check it/ }).click();
   await page.getByRole('button', { name: /Seal it/ }).click();
   // The network is blocked on purpose: the key's date stamp fails safely and waits.
-  await page.getByRole('button', { name: /Do the date stamp later/ }).click({ timeout: 90_000 });
+  await page.getByRole('button', { name: /Go on without waiting/ }).click({ timeout: 90_000 });
   await expect(page.getByRole('heading', { name: /Save your DNA report to this plant/ })).toBeVisible();
   await expect(page.getByText('Optional', { exact: true }).first()).toBeVisible();
   await expect(page.getByText(/This is what ties your record to the actual plant\./)).toBeVisible();

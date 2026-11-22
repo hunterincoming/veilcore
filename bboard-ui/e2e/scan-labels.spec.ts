@@ -217,7 +217,7 @@ test('a saved record prints QR labels: the short ID by default, the name only wh
   await page.getByLabel(/Bred by/).fill('E2E breeder');
   await page.getByRole('button', { name: /Next: check it/ }).click();
   await page.getByRole('button', { name: /Seal it/ }).click();
-  await page.getByRole('button', { name: /Do the date stamp later/ }).click({ timeout: 90_000 });
+  await page.getByRole('button', { name: /Go on without waiting/ }).click({ timeout: 90_000 });
   await page.getByRole('button', { name: /No report yet: skip/ }).click();
   await saveAndCheckBackup(page);
   await page.getByRole('button', { name: /Finish/ }).click();

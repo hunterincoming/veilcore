@@ -27,6 +27,8 @@ export const offline = {
   'app.install.ready':
     'Dieser Browser hält die VeilCore-App bereit, deshalb öffnet sie sich hier auch ohne Netz. Für Ihre Datensätze brauchen Sie weiter Ihre Sicherungskopie.',
   'app.install.dismiss': 'Nicht jetzt',
+  'app.install.showHow': 'So geht’s',
+  'app.install.gotIt': 'Verstanden',
 
   'app.instant.pending':
     'Zeitstempel {time} von {tsa} — das Datum auf Midnight, der Blockchain, folgt mit dem nächsten Stapel.',

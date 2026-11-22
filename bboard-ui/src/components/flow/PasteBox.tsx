@@ -133,8 +133,9 @@ export const PasteBox: React.FC<{
             },
           }}
         />
+        {/* Outlined: the screen's one filled button is "Make a record" (22 Nov). */}
         <Button
-          variant="contained"
+          variant="outlined"
           onClick={() => void go()}
           disabled={!value.trim() || busy}
           sx={{ minWidth: 72, minHeight: 48 }}

@@ -10,6 +10,7 @@ export const en = {
   'nav.licenses': 'Agreements',
   'nav.language': 'Language',
   'nav.main': 'Main',
+  'nav.skip': 'Skip to main content',
   'nav.home': 'VeilCore home',
   'footer.about': 'An open record format for plant, animal and microbial genetics.',
   'footer.howCheck': 'How checking works →',
@@ -134,12 +135,12 @@ export const en = {
   // The record app's frame (components/flow/FlowFrame.tsx) and the browser tab's title for
   // each page (App.tsx). Here, with the public pages' text, because they load with the first
   // file; the rest of the app's text is in app/.
-  'app.frame.section.log': 'Log',
+  'app.frame.section.log': 'Make a record',
   'app.frame.section.send': 'Send & receive',
   'app.frame.section.license': 'License & royalties',
   'app.frame.section.prove': 'Prove & check',
-  'app.frame.home': 'Your records. Your progress is saved.',
-  'title.founders': 'Founders',
+  'app.frame.home': 'Your records (progress saved)',
+  'title.founders': 'About',
   // Mako's site draft of 21 November 2026 (components/site/HowItWorks.tsx, Founders.tsx and the
   // home page): the strings it needed that the site had no words for.
   'title.how': 'How it works',
@@ -182,6 +183,9 @@ export const en = {
     'Proof codes go into batches, and each batch is anchored on Midnight. On veilcore.org, batches are also stamped on Bitcoin.',
   'm.hiw.chain3t': 'The date',
   'm.hiw.chain3p': 'The block a batch lands in shows the record existed by then.',
+  'm.hiw.chain4t': 'The private proofs',
+  'm.hiw.chain4p':
+    'Midnight checks the private (zero-knowledge) proofs, so you can prove one fact about a record, like a number on a lab result, without showing the rest.',
   'm.hiw.chainMore': 'Everything that can go on Midnight →',
   'm.hiw.more1': 'Lineage, licenses',
   'm.hiw.more2': 'and labs.',
@@ -208,6 +212,11 @@ export const en = {
   'title.new': 'Make a record',
   'title.record': 'Record',
   'title.agreements': 'Agreements',
+  'title.pack': 'Pack for REPROCANN / SEDRONAR',
+  'title.labels': 'Print QR labels',
+  'title.labResults': 'Sign lab results',
+  'title.settings': 'Settings',
+  'title.forLabs': 'For labs',
   // PageErrorBoundary.tsx: a page that failed to draw (round 3)
   'error.page.title': 'This page couldn’t be shown',
   'error.page.text':
@@ -242,7 +251,8 @@ export const en = {
   'm.nav.demo': 'Try the demo',
   'm.nav.yours': 'Your records',
   'm.nav.menu': 'Menu',
-  'm.nav.forLabs': 'For labs',
+  'm.nav.forLabs': 'Use it as a lab',
+  'm.nav.getBack': 'Get my records back',
 
   'm.hero.label': 'Proof of what you hold',
   // Round 3 (CTO decision, 14 Oct): not "Prove you had it first." A record shows you had
@@ -256,7 +266,7 @@ export const en = {
   'm.hero.title1': 'Date your record.',
   'm.hero.title2': 'Keep your genetics private.',
   'm.hero.lede':
-    'For breeders, seed companies and labs working with plant, animal and microbial genetics: give your records a date nobody can backdate. Your genetic data stays locked: DNA files never leave your computer, and what you type reaches our server locked. Only proof codes go on Midnight, which dates them.',
+    'For breeders, seed companies and labs working with plant, animal and microbial genetics: give your records a date nobody can backdate. Your genetic data stays locked: DNA files never leave your computer, and what you type reaches our server locked. Only codes, and the facts you choose to prove, go on Midnight, which dates them.',
   'm.hero.how': 'How it works',
   'm.hero.pasteQ': 'Got a lab code or a link from someone?',
   'm.hero.pasteGo': 'Paste it here →',
@@ -289,7 +299,29 @@ export const en = {
     'Breeders|Seed companies|Tissue culture labs|Certifiers|Examiners|Herd books|Plant variety offices',
   'm.home.keep.t': 'Your genetics stay with you.',
   'm.home.keep.p':
-    "Only proof codes go on Midnight, never what you typed or your files. A record's code is 64 characters your computer works out from it, and nobody can work back from it to the plant, the markers or the name.",
+    "Only codes go on Midnight, and any fact you choose to prove: an exact value you prove becomes public, and a fact a lab signed shows the lab's key. Never your files. Midnight checks the private proofs, so you can prove one fact about a record without showing the rest.",
+  'm.home2.l.contact': 'Talk to the founders',
+  'm.home2.l.faq': 'Questions',
+  'm.home2.moreTitle': 'Everything else',
+  'm.home2.w3p': 'Ask for a dated record with an application, and check it free, with no account.',
+  'm.home2.w3t': 'Registries, certifiers and herd books',
+  'm.home2.w2p':
+    'Sign the results you already produce, so the breeder can show them and anyone they show can check who signed.',
+  'm.home2.w2t': 'Labs',
+  'm.home2.w1p': 'Date each cultivar, line or animal, and show it later to a buyer, an examiner or a court.',
+  'm.home2.w1t': 'Breeders and seed companies',
+  'm.home2.whoTitle': 'Who it is for',
+  'm.home2.howLink': 'All of how it works →',
+  'm.home2.s3p': 'Send a link. Whoever gets it checks the date free, with no account, and sees only what you choose.',
+  'm.home2.s3t': '3. Show it when asked.',
+  'm.home2.s2p':
+    'Your device makes a code from the record. Only that code is dated, on Midnight, and nobody can work back from it to what you wrote.',
+  'm.home2.s2t': '2. Seal it.',
+  'm.home2.s1p':
+    'What it is and where it came from. Your device locks the details before they are sent: they reach us locked, and we can’t read them.',
+  'm.home2.s1t': '1. Write it down.',
+  'm.home2.stepsTitle': 'How it works, in three steps',
+  'm.home2.lede': 'Show you held a plant, an animal or a strain by a date, without your genetics leaving your device.',
   'm.home.tlDated': 'Record dated',
   'm.home.tlAsks': 'Someone asks',
   'm.home.matters': 'Where it matters.',
@@ -341,7 +373,7 @@ export const en = {
   'm.for.2t': 'Variety protection and certification.',
   'm.for.2link': 'How a claim works →',
   // The lab slide's way in (lab/LabDoor.tsx), and on How it works.
-  'm.for.3link': "Run a lab? Set up your lab's signing key →",
+  'm.for.3link': 'Run a lab? What VeilCore does for labs →',
   'm.for.3t': "Material in a lab's hands.",
   'm.for.3p':
     "Send material with a lab code. The lab signs a receipt with its own key, so the record shows a second party. The receipt is a real signature, kept by VeilCore's registry, not on the chain. Terms such as no propagation are practice only in the web demo.",
@@ -354,6 +386,9 @@ export const en = {
   'm.for.5t': 'Animal lines.',
   'm.for.5p':
     'Herd books keep the pedigree. A record can give each entry a date nobody can backdate, without publishing the genotype. You can log an animal on this site: its individual ID, sire and dam, and a DNA report.',
+  'm.for.5parent':
+    'A lab’s signed parentage result can also prove a calf fits its sire and dam, without showing any DNA profile.',
+  'm.for.5parentLink': 'How parentage works →',
   'm.for.5ask': 'If you breed animals, tell us what your records need.',
 
   'm.how.label': 'How it works',
@@ -370,7 +405,7 @@ export const en = {
   'm.step3.title': 'Get a date',
   'm.step3.text':
     'Only the proof code goes on Midnight, in a batch with others. The date is the block the batch lands in: it shows the record existed by then.',
-  'm.step4.n': '04 · Verify',
+  'm.step4.n': '04 · Check',
   'm.step4.title': 'Show it later',
   'm.step4.text': 'Give it to a buyer, examiner or court. They can check it, free, with no account.',
 
@@ -437,17 +472,21 @@ export const en = {
   'm.open.1link': 'All three implementations →',
   'm.open.2t': 'Keep one file.',
   'm.open.2p':
-    "From your record's page: Download evidence bundle. One .zip with the record as sealed, its inclusion proof, the batch root, where the batch was recorded, the Bitcoin stamp file when there is one, and a page that checks it offline. Your backup file holds your keys, not these. The single files are still under Technical details: Export record, Download inclusion proof, Download Bitcoin stamp file.",
+    "From your record's page, under Technical details: Download evidence bundle. One .zip with the record as sealed, its inclusion proof, the batch root, where the batch was recorded, the Bitcoin stamp file when there is one, and a page that checks it offline. Your backup file holds your keys, not these. The single files are still under Technical details: Export record, Download inclusion proof, Download Bitcoin stamp file.",
   'm.open.3t': "We don't vouch for results.",
   'm.open.3p':
     "A lab's signatures about a record stay private unless the record's holder shows them. Each one shown says which key signed it, the name it was registered under, any accreditation its holder declared (we don't check that), and whether VeilCore's operator has matched that name to a public license or accreditation listing, and on what day. VeilCore doesn't vouch for any lab: whoever checks a record decides what a signature is worth.",
-  'm.open.4t': 'Anyone can run a registry.',
-  'm.open.4p':
-    "The format lets a lab, certifier or rights body run its own, under its own web domain, and anchor without asking us. Our own registry's code is public, under the Apache-2.0 license, at github.com/hunterincoming/veilcore-api.",
   'm.open.6t': 'Checking without us.',
   'm.open.6p':
     'With that bundle, anyone can check a record offline: open its verify.html, then look up the one transaction it names on a Midnight explorer. Records sealed since 14 October also need spec section 3.6.1, in the spec on this site and in SDK 0.16.0 and later.',
   'm.open.6link': 'Read the spec →',
+  'm.own.link': 'The three ways, and what is untested →',
+  'm.own.p':
+    "You never have to use veilcore.org. All of VeilCore's code is open (Apache-2.0): use this site, plug the smart contracts (the code on Midnight) into your own software, or run your own copy of the site, the server and the fee service. Running your own copy is possible from the open code, but nobody outside VeilCore has done it yet. Today a copy still points at veilcore.org until it is rebuilt with your own addresses, and a self-hosting guide is being written. You would host it and pay your own network fees.",
+  'm.own.short':
+    'You never have to use veilcore.org. The code is open: plug the smart contracts into your own software, or run your own copy. Nobody outside VeilCore has run their own copy yet.',
+  'm.own.plugLink': 'How to plug in the smart contracts →',
+  'm.own.title': 'Use it your way.',
 
   'm.faq.label': 'Questions',
   'm.faq.title1': 'Questions',
@@ -476,7 +515,7 @@ export const en = {
   'm.demo.privacy': 'What the demo keeps →',
   'm.demo.create.title': 'Make a record',
   'm.demo.create.text': 'A made-up plant, animal or document: seal it, save your backup, then see its page.',
-  'm.demo.verify.title': 'Verify a record',
+  'm.demo.verify.title': 'Check a record',
   'm.demo.verify.text': "Enter a record's identifier and see what its holder disclosed and whether it is anchored.",
   'm.demo.paste.title': 'Got a code or link?',
   'm.demo.paste.text':
@@ -666,6 +705,9 @@ export const en = {
   'm.live.claims.t': 'Proving a fact (claims)',
   'm.live.claims.main': 'On the main network, with no maintenance key. The website can’t use it yet.',
   'm.live.claims.not': 'Using it from the website.',
+  'm.live.parentage.t': 'Proving parentage from a lab result (ICAR 2023)',
+  'm.live.parentage.main':
+    'Yes, since 21 November 2026. A lab signs the parentage counts; you prove ICAR’s checks without showing any DNA profile. Each proof takes a few minutes: use a computer.',
   'm.live.claims.live':
     "Yes, from a computer: prove a fact from a sealed certificate or lab result, without showing the rest. Phones haven't been tried.",
   'm.live.lic.t': 'Licenses and royalties',
@@ -709,12 +751,12 @@ export const en = {
   'm.foot.explore': 'Explore',
   'm.foot.demo': 'Demo',
   'm.foot.contact': 'Contact',
-  'm.foot.verify': 'Verify a record',
+  'm.foot.verify': 'Check a record',
   'm.foot.fine': 'Evidence you held a record by a date. Not a title to what it describes.',
   'm.foot.terms': 'Terms of use',
   'm.terms.inEnglish': 'These terms are in English, and the English text governs.',
 
-  'm.verify.label': 'Verify',
+  'm.verify.label': 'Check',
   'm.verify.title': 'Check a record',
   'm.verify.lede':
     'Enter the record identifier printed on a certificate or shared with you. You will see what its holder chose to share, and what this page could check itself: whether the record is in a sealed batch, and whether any lab signatures verify.',

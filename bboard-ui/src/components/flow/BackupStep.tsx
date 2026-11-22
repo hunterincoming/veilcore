@@ -174,9 +174,11 @@ export const BackupStep: React.FC<{
     if (checked !== undefined) worksRef.current?.focus();
   }, [checked]);
 
-  // A password on the file (persona review, 17 Oct): suggested, never forced. The password
-  // lives only in this screen's memory while it's open; it's never stored or sent.
-  const [usePassword, setUsePassword] = useState(false);
+  // A password on the file (persona review, 17 Oct): suggested, never forced. On by default since
+  // the full review (22 Nov): a file without one opens the records for whoever finds it, and it
+  // is easy to switch off. The password lives only in this screen's memory while it's open; it's
+  // never stored or sent.
+  const [usePassword, setUsePassword] = useState(true);
   const [pw, setPw] = useState('');
   const [pw2, setPw2] = useState('');
   const [locking, setLocking] = useState(false);

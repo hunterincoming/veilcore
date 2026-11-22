@@ -159,7 +159,7 @@ export const lab = {
   'app.lab.strength.unverifiedRetraction':
     ' El servidor de registros también informa una retractación que no firmó quien firmó la declaración, así que aquí se ignora.',
   'app.lab.strength.matched': 'Firmado · verificada con un listado público',
-  'app.lab.strength.matchedWhy': '{text} La firma se verificó en este navegador.{acc}{unverified}',
+  'app.lab.strength.matchedWhy': '{text} La firma se comprobó en este navegador.{acc}{unverified}',
   'app.lab.strength.accreditation': ' Indican una acreditación {scheme} de {by}; confírmela con {by}.',
   'app.lab.strength.expired': ' Una comprobación anterior de este nombre ha vencido.',
   'app.lab.strength.notChecked': 'Firmado · no verificada',

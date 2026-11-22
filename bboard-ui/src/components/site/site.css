@@ -2012,7 +2012,9 @@ html:has(.vcm) {
   }
   /* On a phone the way in for a lab, or anyone sent a code, comes before the buttons: under
      them it fell below the first screen in Japanese, under the translation notice. */
-  .vcm .hero-paste {
+  /* (The older hero only: on the home page's night hero the paste line comes after the buttons,
+     22 Nov.) */
+  .vcm header.hero .hero-paste {
     order: -1;
   }
   .vcm header.hero h1,
