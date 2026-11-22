@@ -1,14 +1,16 @@
 # VeilCore sponsor
 
-A small service that pays the Midnight network fee (DUST) for a few VeilCore calls made
-from the website demo, so a visitor needs no wallet and no crypto. It also anchors the
+A small service that pays the Midnight network fee (DUST) for a fixed list of VeilCore calls
+made from the website, so a visitor needs no wallet and no crypto. It also anchors the
 registry's batch roots on chain on a schedule, replacing the manual operator step.
 
 **Status:** running on test.veilcore.org (preprod, first run end to end 12 and 13 October
 2026, `docs/no-wallet-run-12oct.md`) and on veilcore.org (mainnet, live since 19 October,
 checked by hand on 20 October, `docs/mainnet-sponsor.md`). On mainnet it pays only for
-VeilCore's pinned contracts. Licences and royalties stay switched off there until a final
-test run.
+VeilCore's pinned contracts. Agreements (licences, hand-ons, parentage, obligations such as
+an offspring royalty) are paid for on mainnet too (`MAINNET_AGREEMENTS` in `src/policy.ts`),
+and so are claims on VeilCore's pinned claims contract (`MAINNET_CLAIMS`, on since
+2 November 2026).
 
 ## What it does, and what it can see
 
@@ -18,9 +20,20 @@ test run.
 - The browser sends the sealed transaction here. The service checks it is one of the
   allowed VeilCore calls and nothing else, adds its own fee payment in a separate part,
   and submits it. It sees only what the network will publish anyway.
-- Allowed calls: `anchor`, `proveOwnership`, `pairDna`. Never `anchorBatch` or
-  `sealRevocations` from the public endpoint (only this service's own job calls those),
-  never a deploy, a maintenance update, or anything that moves tokens.
+- Allowed calls, exactly the lists in `src/policy.ts`:
+  - on VeilCore's contract, `PHASE1_PUBLIC_CIRCUITS`: `anchor`, `proveOwnership`, `pairDna`;
+  - on the same contract, `AGREEMENT_CIRCUITS`: `issueLicense`, `countersignLicense`,
+    `proveLicense`, `revokeLicense`, `proposeTransfer`, `approveTransfer`,
+    `withdrawTransfer`, `proposeParent`, `confirmParent`, `withdrawParent`,
+    `proposeObligation`, `withdrawObligation`, `acceptObligation`, `rejectObligation`,
+    `discharge`;
+  - on VeilCore's claims contract, only when `VEILCORE_CLAIMS_ADDRESS` names it,
+    `CLAIMS_CIRCUITS`: `proveRange`, `proveValue`, `proveAttested`.
+
+  Never `anchorBatch` or `sealRevocations` from the public endpoint (`NEVER_PUBLIC`: only
+  this service's own job calls those), never a deploy, a maintenance update, or anything
+  that moves tokens. On mainnet the list can't be changed by configuration
+  (`SPONSOR_CIRCUITS` is refused there).
 - Limits: a little proof of work per request, a cap per network address (3 an hour, 10 a
   day), a daily DUST budget, and a queue of at most 20. When any of them is hit, the site
   says so. The quota, the duplicate check and the budget are claimed together, before any
@@ -28,8 +41,9 @@ test run.
   What is counted against the budget is the fee the balanced transaction actually pays,
   checked before it is sent: above `MAX_FEE_DUST`, or more than is left today, and it is
   not sent.
-- There is also a per-browser cap per call type (anchor 3, pairDna 5, proveOwnership 20 a
-  day), but the browser makes its own ticket, so a script can make a new one per request.
+- There is also a per-browser cap per call type a day (`src/limits.ts` `DEFAULT_LIMITS`:
+  anchor 3, pairDna 5, proveOwnership 20, proveLicense 20, every other agreement and claims
+  call 10), but the browser makes its own ticket, so a script can make a new one per request.
   It only gives an honest visitor a friendly message; the network cap and the budget are
   what actually limit abuse.
 - Logs hold counters and outcomes only. Never request bodies, tickets or secrets.

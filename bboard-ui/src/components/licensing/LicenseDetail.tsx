@@ -19,10 +19,6 @@ import {
   agreementType,
   agreementRows,
   agreementLabel,
-  VEILCORE_FEE_PCT,
-  SHOW_VEILCORE_FEE,
-  feeNote,
-  veilcoreFee,
   dealValueOf,
   signedByTwoParties,
   royaltyProtectionPending,
@@ -143,7 +139,6 @@ export const LicenseDetail: React.FC = () => {
 
   const totalOwed = license.royaltyLog.reduce((s, e) => s + e.amountOwed, 0);
   const totalDeal = license.royaltyLog.reduce((s, e) => s + dealValueOf(license, e.input), 0);
-  const totalFee = veilcoreFee(totalDeal);
   const royaltyInputLabel =
     license.terms.royaltyType === 'percent'
       ? tr.t('app.lic.detail.salesInput')
@@ -375,12 +370,6 @@ export const LicenseDetail: React.FC = () => {
                         k={tr.t('app.lic.detail.yourRoyalty')}
                         v={money(e.amountOwed, tr, currencyOf(license.terms))}
                       />
-                      {SHOW_VEILCORE_FEE && (
-                        <Row
-                          k={tr.t('app.lic.detail.feeShort', { pct: VEILCORE_FEE_PCT })}
-                          v={money(veilcoreFee(dv), tr, currencyOf(license.terms))}
-                        />
-                      )}
                     </Box>
                   );
                 })}
@@ -395,24 +384,10 @@ export const LicenseDetail: React.FC = () => {
                   </Typography>
                   <Typography variant="body2">{money(totalOwed, tr, currencyOf(license.terms))}</Typography>
                 </Stack>
-                {SHOW_VEILCORE_FEE && (
-                  <Stack direction="row" sx={{ justifyContent: 'space-between' }}>
-                    <Typography variant="body2" color="text.secondary">
-                      {tr.t('app.lic.detail.feeShort', { pct: VEILCORE_FEE_PCT })}
-                    </Typography>
-                    <Typography variant="body2">{money(totalFee, tr, currencyOf(license.terms))}</Typography>
-                  </Stack>
-                )}
-                {SHOW_VEILCORE_FEE && (
-                  <Typography variant="caption" color="text.secondary" sx={{ mt: 1 }}>
-                    {feeNote(tr)}
-                  </Typography>
-                )}
               </Stack>
             ) : (
               <Typography variant="body2" color="text.secondary">
                 {tr.t('app.lic.detail.nothingYet')}
-                {SHOW_VEILCORE_FEE ? ` ${feeNote(tr)}` : ''}
               </Typography>
             )}
           </Paper>

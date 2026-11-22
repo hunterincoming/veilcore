@@ -128,7 +128,11 @@ stand-in from here, not against Blockfrost's mainnet indexer itself.
 
 Each check page asks one question per indexer. The relay allows 240 questions a minute per
 visitor address and counts against the Blockfrost plan of the project in step 1. If the
-plan runs out, check pages say "Couldn't reach a Midnight indexer" and nothing else breaks.
+plan runs out, check pages say "Couldn't reach a Midnight indexer". That is not the only thing
+that stops: the site's own transactions read Midnight through this same relay too (dating a
+record's key after it is sealed, proving a record by link, dating a DNA pairing, licences and
+claims: `VITE_INDEXER_URL` in `scripts/deploy-mainnet.mjs`), so those fail until the plan is
+back. Saving a record to the registry does not go through the relay.
 
 ## A second indexer (optional, later)
 

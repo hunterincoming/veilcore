@@ -18,6 +18,10 @@
 // it. Commit and push that file with the release; anyone can then check the live site against
 // it (npm run check:site -- https://test.veilcore.org, or /check-this-site on the site).
 //
+// First it runs scripts/deploy-gate.mjs, like the mainnet deploy, except that the commit need not
+// be main: a pushed branch can be tried here, but only with nothing uncommitted, on CI's Node and
+// npm, and with GitHub saying CI passed for that commit.
+//
 //   VEILCORE_TEST_REGISTRY=https://<preprod registry> VEILCORE_TEST_SPONSOR=https://<sponsor> npm run deploy:test
 // SPDX-License-Identifier: Apache-2.0
 
@@ -27,6 +31,7 @@ import { pathToFileURL } from 'node:url';
 import { checkTestSiteAllowed } from './site-prod-preflight.mjs';
 import { checkRegistryFeatures, featuresLine } from './registry-features.mjs';
 import { vercelEnv } from './vercel-token.mjs';
+import { deployGate } from './deploy-gate.mjs';
 
 const CONTRACT = '72fe33436d424fcf247919c8e2f0de224175cc55061739be0ebffb2d650f2f73'; // practice contract, 7 Oct
 const DOMAIN = 'test.veilcore.org';
@@ -112,6 +117,9 @@ export const claimsFor = (status, exists) => {
 };
 
 const main = async () => {
+  const gate = await deployGate({ requireMain: false, argv: process.argv.slice(2), command: 'npm run deploy:test' });
+  if (gate.problems.length) fail(gate.problems.join('\n'));
+  for (const n of gate.notes) console.log(n);
   if (!existsSync('bboard-ui/public/params') || readdirSync('bboard-ui/public/params').length === 0)
     fail('The proving parameters are missing: run `cd bboard-ui && node scripts/fetch-params.mjs && cd ..` first.');
   if (!existsSync('contract/src/managed/veilcore/keys'))

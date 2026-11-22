@@ -8,8 +8,19 @@ on:
 
 permissions: {}
 
+# The same tests as before, in jobs that run side by side:
+#
+#   contract ──┬── packages       (contract tests, api, partner kit, VeilCore-run, CLI, sponsor, scripts)
+#              ├── site-unit      (site typecheck, lint, unit tests and the built site under production headers)
+#              └── site-browser   (the browser tests, in 6 shards)
+#                        └── install-and-test   (passes only when every job above passed)
+#
+# The contract is compiled once, with its keys, and handed to the other jobs. `install-and-test`
+# is the check the "protect main" ruleset requires and scripts/deploy-gate.mjs reads: keep that
+# job's name. Every job starts from .github/actions/setup (compiler, Node, npm, npm ci).
+
 jobs:
-  install-and-test:
+  contract:
     runs-on: ubuntu-24.04
     permissions:
       contents: read
@@ -19,69 +30,55 @@ jobs:
         with:
           persist-credentials: false
 
-      # The compiler is a fixed release asset checked against a recorded SHA-256, not the
-      # "latest" installer piped to sh. If the download, the checksum or the version check
-      # fails, CI fails: there is no fallback to whatever compiler happens to be current.
-      # To move to a new compiler: change both values below together, taking the hash from
-      # a download you have checked against the GitHub release page.
-      - name: Install Compact compiler (pinned, checksummed)
-        env:
-          COMPACTC_VERSION: "0.31.1"
-          COMPACTC_SHA256: "e291b4bab4d4e857707008f8b1c25c2b8e0c843f6c737d0ee6c0d9ac69a6bbfb"
-        run: |
-          set -euo pipefail
-          dir="$RUNNER_TEMP/compactc"
-          zip="$RUNNER_TEMP/compactc.zip"
-          curl -fsSL --retry 3 -o "$zip" \
-            "https://github.com/midnightntwrk/compact/releases/download/compactc-v${COMPACTC_VERSION}/compactc_v${COMPACTC_VERSION}_x86_64-unknown-linux-musl.zip"
-          echo "${COMPACTC_SHA256}  ${zip}" | sha256sum -c -
-          mkdir -p "$dir"
-          unzip -q "$zip" -d "$dir"
-          # contract/package.json calls `compact compile`. CI does not install the compact
-          # CLI (it would fetch more unpinned binaries), so `compact compile` here goes
-          # straight to the pinned compactc and nothing else is available.
-          cat > "$dir/compact" <<'SHIM'
-          #!/usr/bin/env bash
-          set -euo pipefail
-          if [ "${1:-}" != "compile" ]; then echo "compact (CI): only 'compile' is available" >&2; exit 2; fi
-          shift
-          exec compactc "$@"
-          SHIM
-          chmod +x "$dir/compact"
-          echo "$dir" >> "$GITHUB_PATH"
-
-      - name: Assert compiler version
-        run: |
-          v="$(compact compile --version)"
-          echo "compactc $v"
-          test "$v" = "0.31.1"
-
-      - name: Install Node.js
-        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1  #v7.1.0
-        with:
-          # Exact version from .nvmrc (24.11.1), the same one used locally.
-          node-version-file: .nvmrc
-
-      # npm comes with Node, so pinning Node pins npm. Node 24.11.1 ships npm 11.6.2, which
-      # already has the optional-dependency fix the old `npm install -g npm@latest` step was
-      # for (npm/cli#4828). Fail rather than run with an npm nobody chose.
-      - name: Check npm version
-        run: |
-          npm --version
-          test "$(npm --version)" = "11.6.2"
-
-      - name: Install dependencies
-        run: npm ci
+      - name: Set up (compiler, Node, npm, npm ci)
+        uses: ./.github/actions/setup
 
       # Advisories in anything that ships (the site bundle, the CLI, the contract package).
       # Dev-only tooling is left out so a test-runner advisory doesn't block a release.
       - name: Audit production dependencies
         run: npm audit --omit=dev --audit-level=high
 
-      - name: Compile and test contract
+      - name: Compile the contract, with keys
         working-directory: contract
         run: |
-          npm run ci
+          npm run compact
+
+      - name: Hand the compiled contract to the other jobs
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9  #v7.0.2
+        with:
+          name: compiled-contract
+          path: contract/src/managed
+          if-no-files-found: error
+          retention-days: 1
+
+  packages:
+    needs: contract
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  #v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up (compiler, Node, npm, npm ci)
+        uses: ./.github/actions/setup
+
+      - name: The compiled contract
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333  #v8.0.2
+        with:
+          name: compiled-contract
+          path: contract/src/managed
+
+      # The rest of the contract's `npm run ci`, after the compile the contract job did.
+      - name: Test contract
+        working-directory: contract
+        run: |
+          npm run typecheck
+          npm run lint
+          npm run build
+          npm run test
 
       - name: api
         working-directory: api
@@ -110,10 +107,10 @@ jobs:
           node --test scripts/committee/committee.test.mjs
 
       # The deploy scripts' refusals (a test site with claims but no claims keys, a mainnet
-      # build with a leftover indexer). Nothing is deployed.
+      # build with a leftover indexer, a deploy from a commit CI has not passed). Nothing is deployed.
       - name: Deploy script checks
         run: |
-          node --test scripts/deploy-test-site.test.mjs scripts/deploy-mainnet.test.mjs
+          node --test scripts/deploy-gate.test.mjs scripts/deploy-test-site.test.mjs scripts/deploy-mainnet.test.mjs
 
       # The fee sponsor and its indexer relay (sponsor/): the code veilcore.org's sends go
       # through. Nothing is sent; the network is stood in for.
@@ -140,10 +137,30 @@ jobs:
         run: |
           npx vitest run src/launcher/committee.test.ts
 
+  site-unit:
+    needs: contract
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  #v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up (compiler, Node, npm, npm ci)
+        uses: ./.github/actions/setup
+
+      - name: The compiled contract
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333  #v8.0.2
+        with:
+          name: compiled-contract
+          path: contract/src/managed
+
       - name: Compile bboard-ui
-        working-directory: bboard-ui
         run: |
-          npm run ci
+          npm run build -w @veilcore/contract
+          npm run ci -w @veilcore/ui
 
       # The unit tests include the built site under the production headers
       # (src/hardening-roundD.test.ts), so build it first, against the address those tests
@@ -152,17 +169,46 @@ jobs:
         working-directory: bboard-ui
         run: |
           VITE_API_BASE=https://veilcore-api-production.up.railway.app npm run build
-          npx playwright install --with-deps chromium
+          npm run e2e:setup -- --with-deps
           npm test
 
-      # The built site in a real browser at phone size, with a stand-in registry and every
-      # other network request refused (bboard-ui/e2e/README.md). Catches what only breaks
-      # in a browser: bundling, storage, the chain code loading, pages that come up blank.
-      - name: Site in a browser
+  # The built site in a real browser at phone size, with a stand-in registry and every
+  # other network request refused (bboard-ui/e2e/README.md). Catches what only breaks
+  # in a browser: bundling, storage, the chain code loading, pages that come up blank.
+  # Split by test file into 6 shards; together they run every test, as one run did.
+  site-browser:
+    needs: contract
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4, 5, 6]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  #v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up (compiler, Node, npm, npm ci)
+        uses: ./.github/actions/setup
+
+      - name: The compiled contract
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333  #v8.0.2
+        with:
+          name: compiled-contract
+          path: contract/src/managed
+
+      - name: Site in a browser (shard ${{ matrix.shard }} of 6)
         working-directory: bboard-ui
+        env:
+          SHARD: ${{ matrix.shard }}
         run: |
+          npm run build -w @veilcore/contract
+          npm run e2e:setup -- --with-deps
           npm run e2e:build
-          npm run e2e
+          npm run e2e -- --shard="$SHARD/6"
 
       # A browser test that fails only here: print what the page showed (Playwright's text
       # snapshot of it), so the cause can be read from the log.
@@ -171,3 +217,18 @@ jobs:
         working-directory: bboard-ui
         run: |
           find test-results -name error-context.md -print -exec cat {} \; 2>/dev/null | head -400 || true
+
+  # The required check. It runs even when a job above failed or was skipped, and passes only
+  # when every one of them passed (a skipped required check would otherwise count as passing).
+  install-and-test:
+    if: always()
+    needs: [contract, packages, site-unit, site-browser]
+    runs-on: ubuntu-24.04
+    permissions: {}
+    steps:
+      - name: Every job passed
+        env:
+          RESULTS: ${{ toJSON(needs) }}
+        run: |
+          echo "$RESULTS" | jq -r 'to_entries[] | "\(.key): \(.value.result)"'
+          echo "$RESULTS" | jq -e 'to_entries | length == 4 and all(.value.result == "success")' > /dev/null

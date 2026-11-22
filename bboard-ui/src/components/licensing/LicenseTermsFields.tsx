@@ -224,7 +224,7 @@ export const emptyTermsFor = (type: AgreementType, kind: RecordKind = 'plant'): 
   return base;
 };
 
-// ---- Lab transfer: custody, not commerce. No royalty, no VeilCore fee. ----
+// ---- Lab transfer: custody, not commerce. No royalty. ----
 export const LabTransferFields: React.FC<{ terms: LicenseTerms; set: SetTerm }> = ({ terms: t, set }) => {
   const tr = useT();
   return (

@@ -18,9 +18,6 @@ import {
   createLicense,
   renewLicense,
   getLicense,
-  feeNote,
-  hasVeilcoreFee,
-  SHOW_VEILCORE_FEE,
   agreementLabel,
   agreementTagline,
   type AgreementType,
@@ -306,12 +303,6 @@ const TermsBuilderFor: React.FC<{ record: StrainRecord }> = ({ record }) => {
           <Typography variant="overline">{tr.t('app.roy.f.moneyTitle')}</Typography>
           <MoneyTermsFields terms={t} set={set} tr={tr} />
         </Stack>
-      )}
-
-      {SHOW_VEILCORE_FEE && hasVeilcoreFee(type, t) && (
-        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1.5 }}>
-          {feeNote(tr)}
-        </Typography>
       )}
 
       <Divider sx={{ my: 3 }} />

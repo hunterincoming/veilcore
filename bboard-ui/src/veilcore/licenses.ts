@@ -709,24 +709,9 @@ const subscribe = (l: () => void): (() => void) => {
 
 export const useLicenses = (): License[] => useSyncExternalStore(subscribe, () => licenses);
 
-// ---- VeilCore platform fee ----
-// Single source of truth — change this one constant to change the fee everywhere.
-export const VEILCORE_FEE_PCT = 3;
-
-/** Whether to surface VeilCore's fee in the UI. Off — the revenue model is a
- flat fee and lives in the investor deck, not the product. */
-export const SHOW_VEILCORE_FEE = false;
-
-/** VeilCore's fee for a given deal value (a calculated obligation, never a charge). */
-export const veilcoreFee = (dealValue: number): number => (dealValue * VEILCORE_FEE_PCT) / 100;
-
 /** The deal value a royalty report represents: reported sales (percent) or units × fee (flat). */
 export const dealValueOf = (l: License, input: number): number =>
   l.terms?.royaltyType === 'percent' ? input : input * (Number(l.terms?.royaltyAmount) || 0);
-
-/** VeilCore's fee note, in the reader's language. */
-export const feeNote = (tr: Translator = enT): string => tr.t('app.lic.fee.note', { pct: VEILCORE_FEE_PCT });
-export const FEE_NOTE = feeNote();
 
 // display helpers: each in the reader's language (English by default, for the tests and files)
 export const rightsLabel = (r: Rights, tr: Translator = enT): string => labelOr(tr, `app.lic.rights.${r}`, r);
@@ -746,26 +731,14 @@ export const STATE_LABEL: Record<LicenseState, string> = {
 export const agreementType = (l: License): AgreementType => l.type ?? 'license';
 
 /**
- * Whether the VeilCore fee applies. A license is always commercial. A breeder share is
- * commercial only when it sets an offspring royalty (> 0) — otherwise it's a free share.
- * A lab transfer is custody, never commerce.
- */
-/**
  * Whether an agreement creates an obligation that descendants inherit.
  *
- * Not the same question as hasVeilcoreFee. A license with no offspring royalty is
- * commercial but binds only the signatories — nothing rides down the lineage. An
+ * A license with no offspring royalty is commercial but binds only the signatories — nothing rides down the lineage. An
  * obligation is heritable exactly when it attaches to offspring, whatever the
  * agreement is called.
  */
 export const createsHeritableObligation = (type: AgreementType, terms?: LicenseTerms): boolean =>
   hasOffspringRoyalty(terms);
-
-export const hasVeilcoreFee = (type: AgreementType, terms?: LicenseTerms): boolean => {
-  if (type === 'license') return true;
-  if (type === 'breeder-share') return hasOffspringRoyalty(terms);
-  return false;
-};
 
 export const agreementLabel = (t: AgreementType, tr: Translator = enT): string => labelOr(tr, `app.lic.type.${t}`, t);
 export const agreementTagline = (t: AgreementType, tr: Translator = enT): string =>
@@ -879,7 +852,6 @@ export const agreementRows = (l: License, reader: Translator = enT): { k: string
   const type = agreementType(l);
   const yesNo = (b?: boolean): string => tr.t(b ? 'app.lic.yes' : 'app.lic.no');
   const term = tr.t('app.lic.row.termValue', { from: t.startDate ?? '', to: t.endDate ?? '' });
-  const fee = { k: tr.t('app.lic.row.fee', { pct: VEILCORE_FEE_PCT }), v: tr.t('app.lic.row.feeValue') };
   const rows: { k: string; v: string }[] = [{ k: counterpartyLabel(type, tr), v: t.licensee || '—' }];
 
   if (type === 'license') {
@@ -895,7 +867,6 @@ export const agreementRows = (l: License, reader: Translator = enT): { k: string
             ? `${t.royaltyAmount || '—'}% ${basisLabel(t.unitBasis, tr)}`
             : `${formatMoney(t.royaltyAmount || '0', currencyOf(t), tr.locale)} ${basisLabel(t.unitBasis, tr)}`,
       },
-      ...(SHOW_VEILCORE_FEE ? [fee] : []),
       // Shown explicitly because it is the one term that binds beyond the signatories:
       // it carries to descendants declared from the record, so a counter-signer has to see it.
       { k: tr.t('app.lic.row.offspring'), v: offspringWords(t, tr) },
@@ -928,8 +899,6 @@ export const agreementRows = (l: License, reader: Translator = enT): { k: string
         v: !offspring ? tr.t('app.lic.none') : t.offspring ? offspringWords(t, tr) : `${t.offspringRoyaltyPct}%`,
       },
     );
-    // An offspring royalty makes it a commercial deal — the fee applies, same as a license.
-    if (offspring && SHOW_VEILCORE_FEE) rows.push(fee);
     rows.push({ k: tr.t('app.lic.row.term'), v: term });
     if (offspring) rows.push(...royaltyRows(t, tr));
   }
