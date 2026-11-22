@@ -38,6 +38,7 @@ import {
 import { chainEntriesFor, documentChainLink, documentCheckLink, type AboutTarget } from '../../veilcore/document-link';
 import { verifyPath } from '../../veilcore/verify-link';
 import { documentKindOf } from '../../veilcore/document-kind';
+import { RecordChangedNotice } from '../flow/RecordChanged';
 import { REAL_CHAIN } from '../../veilcore/chain/config';
 import { DOCUMENT_CHAIN_ENABLED, LAB_SIGNING_ENABLED, viabilityNotRead } from '../../config/network';
 import { AnchorOnChainPanel } from '../chain/AnchorOnChainPanel';
@@ -263,6 +264,8 @@ export const DocumentDetail: React.FC<{ record: StrainRecord }> = ({ record }) =
             {record.strainName}
           </Typography>
         </Box>
+        {/* Changed on the network, not by this browser (record-watch.ts). Nothing when nothing changed. */}
+        <RecordChangedNotice recordId={record.id} />
         {local && (
           <Alert
             severity={backedUp ? 'info' : 'warning'}

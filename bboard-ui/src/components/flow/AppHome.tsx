@@ -80,6 +80,7 @@ import { useAccountState } from '../../veilcore/account-copy';
 import { JobsOnHome } from '../ask/JobsOnHome';
 import { keysOnlyHere } from './keys-only-here';
 import { wantsPasteFirst } from '../site/paste-entry';
+import { RecordChangesOnHome } from './RecordChanged';
 
 /**
  * A plant's card line: "Tied to the plant: DNA report signed by …, not dated yet." or "Not
@@ -451,6 +452,10 @@ export const AppHome: React.FC = () => {
         {pasteFirst && <PasteBox focus />}
 
         <LoadNoticeBar />
+
+        {/* Something about a record changed on the network that this browser didn't do (the check
+            made when the app opens, record-watch.ts). Nothing when nothing changed. */}
+        <RecordChangesOnHome records={records} />
 
         {/* Paid plans (billing.ts): off unless the build switches them on. */}
         <PlanBox waiting={PAID_PLANS_ENABLED ? waitingHere(records) : 0} />

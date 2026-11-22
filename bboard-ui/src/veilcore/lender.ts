@@ -13,6 +13,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { useSyncExternalStore } from 'react';
+import { NO_RECOVERY_SECRET, hasRecoverySecret } from './record-keys';
 
 const KEY = 'veilcore.lender.v1';
 const HEX64 = /^[0-9a-f]{64}$/;
@@ -40,7 +41,11 @@ export type Lender = {
   readonly name: string;
   /** 32 bytes, hex. Secret: proposes and releases every claim. */
   readonly secret: string;
-  /** 32 bytes, hex. Secret: takes the identity back if the first is lost or stolen. */
+  /**
+   * 32 bytes, hex. Secret: moves the identity to a new secret if the first is lost. Kept beside
+   * it today, so not a guard against a copy of this browser. NO_RECOVERY_SECRET (64 zeros) when
+   * none is kept here (record-keys.ts): every reader accepts it, and it is never put back.
+   */
   readonly recoverySecret: string;
   /** commit(secret), hex: the lender's identity on chain. */
   readonly identity: string;
@@ -163,12 +168,18 @@ export const makeLender = (name: string, identityOf: (secret: Uint8Array) => str
   return l;
 };
 
-/** Change anything but the secrets and the identity they make. */
+/**
+ * Change anything but the secrets and the identity they make. The one change allowed to a secret
+ * is dropping the recovery secret (to NO_RECOVERY_SECRET), and it is never put back.
+ */
 export const updateLender = (change: (l: Lender) => Lender): Lender => {
   const l = read();
   if (!l) throw new Error('No lender identity in this browser.');
   const next = change(l);
-  if (next.secret !== l.secret || next.recoverySecret !== l.recoverySecret || next.identity !== l.identity)
+  const recoveryKept =
+    next.recoverySecret === l.recoverySecret ||
+    (next.recoverySecret === NO_RECOVERY_SECRET && hasRecoverySecret(l.recoverySecret));
+  if (next.secret !== l.secret || !recoveryKept || next.identity !== l.identity)
     throw new Error('A lender identity keeps its secrets.');
   write(next);
   return next;
@@ -232,7 +243,9 @@ export const lenderHeldBy = (fromFile: unknown): boolean => {
   const l = read();
   if (!l) return true;
   if (!isLender(fromFile)) return false;
-  if (fromFile.secret !== l.secret || fromFile.recoverySecret !== l.recoverySecret) return false;
+  if (fromFile.secret !== l.secret) return false;
+  // A recovery secret this browser keeps must be in the file; one it dropped needs nothing.
+  if (hasRecoverySecret(l.recoverySecret) && fromFile.recoverySecret !== l.recoverySecret) return false;
   const salts = new Map(fromFile.claims.map((c) => [c.claim, c.salt]));
   return l.claims.every((c) => salts.get(c.claim) === c.salt);
 };

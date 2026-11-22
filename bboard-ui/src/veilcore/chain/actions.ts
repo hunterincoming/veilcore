@@ -182,9 +182,19 @@ const call = async (
   }
 };
 
-/** Anchor a record: its identity goes on chain, with the recovery commitment fixed now. */
+/** Why a date stamp can't be made from keys whose recovery secret isn't kept here. */
+export const NO_RECOVERY_TO_ANCHOR =
+  'This record has no recovery secret in this browser, so its key can’t be date stamped from here. Nothing was sent.';
+
+/**
+ * Anchor a record: its identity goes on chain, with the recovery commitment fixed now. Keys
+ * that keep no recovery secret (record-keys.ts NO_RECOVERY_SECRET, 64 zeros) are refused here,
+ * before any proof: the contract would refuse that commitment anyway (assertUsableRecovery).
+ */
 export const anchorOnChain = (recordSecret: Uint8Array, recoverySecret: Uint8Array, opts: CallOptions = {}) =>
-  call('anchor', [recoveryCommitmentOf(recoverySecret)], createVeilcorePrivateState(recordSecret), opts);
+  recoverySecret.length !== 32 || recoverySecret.every((b) => b === 0)
+    ? Promise.reject(new Error(NO_RECOVERY_TO_ANCHOR))
+    : call('anchor', [recoveryCommitmentOf(recoverySecret)], createVeilcorePrivateState(recordSecret), opts);
 
 /** Prove possession to a verifier, answering their challenge (64 hex characters). */
 export const proveOwnershipOnChain = (recordSecret: Uint8Array, challengeHex: string, opts: CallOptions = {}) =>

@@ -1,7 +1,18 @@
 // A record's two on-chain secrets, made and kept in this browser only.
 //
 //   record secret    proves you hold the record (its on-chain identity is commit(secret))
-//   recovery secret  moves the record to a new secret if the first is lost or stolen
+//   recovery secret  moves the record to a new secret (recoverRecordSecret)
+//
+// Today the website keeps the recovery secret right beside the record secret, so anyone who
+// copies one copies both: it helps if the record secret is lost, not if this browser's keys
+// are copied. Never call it theft protection.
+//
+// A later step stops keeping it here. Until then a reader must already accept "none kept":
+// the recovery secret is then 64 zeros (NO_RECOVERY_SECRET), never a missing field. Older
+// builds accept that value (it is 64 hex characters), so an older open tab never drops the
+// entry, and with it the record secret, on its next write. The contract refuses the zero
+// secret's commitment (assertUsableRecovery), so an older build that tried to date stamp with
+// it fails before anything is sent.
 //
 // They are stored under their own localStorage key, which nothing else reads or sends.
 // Since round 4 (F5) a copy also goes inside the record's SEALED part (`secrets`, never a
@@ -28,6 +39,17 @@ import { vaultBackedUpVia } from './vault';
 const KEY = 'veilcore.record-keys.v1';
 
 const HEX64 = /^[0-9a-f]{64}$/;
+
+/**
+ * The recovery secret's value when this browser keeps none (see the top of this file). Once an
+ * entry has it, it keeps it: a write or a restore that carries a real one for the same record
+ * secret is stored with this instead, so a secret dropped on purpose never comes back.
+ */
+export const NO_RECOVERY_SECRET = '0'.repeat(64);
+
+/** Whether a recovery secret is a real one: 64 hex characters and not the placeholder. */
+export const hasRecoverySecret = (recoverySecret: string): boolean =>
+  HEX64.test(recoverySecret) && recoverySecret !== NO_RECOVERY_SECRET;
 
 /** Where the record's identity was anchored. Public on chain; kept local (see above). */
 export type ChainAnchor = {
@@ -151,7 +173,10 @@ const readStored = (): Record<string, RecordKeys> => {
  *   - an entry stored now that the write doesn't name is kept (unless it is the one being forgotten);
  *   - an entry stored now is kept, unchanged, if the write would give that record other secrets;
  *   - an entry filed under another record's id is never written.
- * Same secrets: the write's version wins (an anchor, a pairing, a backup mark).
+ * Same secrets: the write's version wins (an anchor, a pairing, a backup mark). Same record
+ * secret, and one side keeps no recovery secret (NO_RECOVERY_SECRET): the write's version wins,
+ * with no recovery secret. So a write that drops it is kept, and a tab still holding the old
+ * one in memory can't put it back.
  */
 export const mergeForWrite = (
   stored: Readonly<Record<string, RecordKeys>>,
@@ -163,7 +188,11 @@ export const mergeForWrite = (
   for (const [id, k] of Object.entries(stored)) {
     if (id === forget) continue;
     const mine = out[id];
-    if (!mine || mine.recordSecret !== k.recordSecret || mine.recoverySecret !== k.recoverySecret) out[id] = k;
+    if (!mine || mine.recordSecret !== k.recordSecret) out[id] = k;
+    else if (mine.recoverySecret === k.recoverySecret) continue;
+    else if (!hasRecoverySecret(mine.recoverySecret) || !hasRecoverySecret(k.recoverySecret))
+      out[id] = { ...mine, recoverySecret: NO_RECOVERY_SECRET };
+    else out[id] = k;
   }
   return out;
 };
@@ -318,6 +347,8 @@ export const restoreKeysEntry = (
   if (existing && existing.recordSecret !== keys.recordSecret) {
     throw new Error('This browser already holds different keys for that record. Nothing was changed.');
   }
+  // A recovery secret this browser dropped on purpose doesn't come back from an older file.
+  const dropped = !!existing && !hasRecoverySecret(existing.recoverySecret);
   // Restoring an older backup must not drop what this browser saved since (a pairing's
   // salt, an anchor): keep this browser's, unless the backup has the same pairing landed.
   const dna =
@@ -339,6 +370,7 @@ export const restoreKeysEntry = (
   // something (a newer salt, say) that no backup file has yet.
   const merged: RecordKeys = {
     ...fromFile,
+    ...(dropped ? { recoverySecret: NO_RECOVERY_SECRET } : {}),
     ...(anchor ? { anchor } : {}),
     ...(dna ? { dnaOnChain: dna } : {}),
     ...(opts.mark === false

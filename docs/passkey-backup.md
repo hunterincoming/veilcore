@@ -1,9 +1,12 @@
 # Records saved with VeilCore (the account copy)
 
-Status: **built, not on veilcore.org.** Easy mode step 2, November 2026. It replaces the passkey
-copy built on 21 October 2026, which shipped with agreements (`PASSKEY_BACKUP` in
-`bboard-ui/src/config/copy.ts`; the account copy follows the same switch). Nothing here is called
-live until it has worked once on mainnet. Owner: hunter@veilcore.org.
+Status: **live on veilcore.org** (easy mode step 2, November 2026; the fixes from its live test there are
+commit d9ed899, 19 November). `bboard-ui/src/config/copy.ts` turns it on with agreements (`AGREEMENTS_LIVE`, then
+`PASSKEY_BACKUP`), and the mainnet registry's `/health` lists `account-copy-v1`,
+`account-slot-check-v1` and `passkey-vault-v1`. It replaces the passkey copy built on 21 October
+2026. Like a backup file, the copy holds each record's keys, its recovery secret included: whoever
+opens it can act for those records on chain, so it is not a guard against someone who copies it.
+Owner: hunter@veilcore.org.
 
 Code: `bboard-ui/src/veilcore/account-copy.ts` (the copy, saving, the check), `account-key-store.ts`
 (the keys kept between visits), `passkey-backup.ts` (passkeys, and reading the older copy),
