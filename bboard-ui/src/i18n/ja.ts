@@ -145,6 +145,7 @@ export const ja: Strings = {
   // home page): the strings it needed that the site had no words for.
   'title.how': '仕組み',
   'm.foot.cta': '最初の記録に日付を。',
+  'm.foot.top': 'ページの先頭へ',
   'm.status.liveNow': 'ライセンス、ロイヤリティ報告、ラボが署名した結果は、veilcore.orgで稼働しています。',
   'm.status.whereLink': 'どこで何が使えるか →',
   'm.home.f3t': 'ライセンスとロイヤリティ。',
@@ -672,7 +673,6 @@ export const ja: Strings = {
   'm.for.5ask': '家畜の改良・繁殖に携わっている方は、記録に何が必要か教えてください。',
   'm.how.label': '仕組み',
   'm.how.title1': '4つのステップ。',
-  'm.how.title2': '遺伝情報はあなたの手元に。',
   'm.step1.title': '書き留める',
   'm.step1.text':
     'それが何で、どこから来たのか。詳細は名前も含めてVeilCoreのサーバーに鍵をかけた状態で保存され、私たちはその鍵を持っていません。確認リンクに名前が入るのは、あなたがそうすると選んだときだけです。その場合、リンクを送った相手には名前が見えます。',

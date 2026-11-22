@@ -138,6 +138,7 @@ export const es: Strings = {
   // home page): the strings it needed that the site had no words for.
   'title.how': 'Cómo funciona',
   'm.foot.cta': 'Feche su primer registro.',
+  'm.foot.top': 'Volver arriba',
   'm.status.liveNow':
     'Las licencias, los informes de regalías y los resultados firmados por un laboratorio ya funcionan en veilcore.org.',
   'm.status.whereLink': 'Qué funciona y dónde →',
@@ -678,7 +679,6 @@ export const es: Strings = {
   'm.for.5ask': 'Si usted cría animales, díganos qué necesitan sus registros.',
   'm.how.label': 'Cómo funciona',
   'm.how.title1': 'Cuatro pasos.',
-  'm.how.title2': 'La genética se queda con usted.',
   'm.step1.title': 'Anótelo',
   'm.step1.text':
     'Qué es y de dónde viene. El servidor de VeilCore guarda los detalles cifrados, el nombre incluido, y nosotros no tenemos la clave. Un enlace de comprobación lleva el nombre solo si usted lo activa, para las personas a las que se lo envía.',

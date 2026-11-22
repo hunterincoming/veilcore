@@ -490,8 +490,9 @@ export const Updates: React.FC<{ id?: string }> = ({ id = 'updates' }) => {
 
 /**
  * The end of every night page (Mako's footer): one large link to make a record, with a round
- * gold arrow, and the wordmark across the full width, its C in gold. The links themselves are in
- * the site's one footer below (AppFooter.tsx), the same on every page.
+ * gold arrow. Then the site's one footer with the links (AppFooter.tsx, the same on every page),
+ * then the wordmark across the full width at the very bottom (NightEnd, after the footer; Mako's
+ * note, 22 Nov).
  */
 export const NightClose: React.FC = () => {
   const { t } = useI18n();
@@ -507,14 +508,130 @@ export const NightClose: React.FC = () => {
           </span>
         </RouterLink>
       </div>
-      {/* The letters rise as the wordmark comes into view (Mako's data-letters, useReveals). */}
-      <p className="k-foot-word" aria-hidden="true" data-letters="">
+    </div>
+  );
+};
+
+/** How far down (in window heights) the page is before "Back to top" shows. */
+const TOP_AFTER = 1.5;
+
+/**
+ * Below the site's footer on the long night pages (SiteShell's `after`): Mako's wordmark across
+ * the full width, its C in gold, whose letters rise in turn as it comes into view (his Footer:
+ * 21.4vw, spread edge to edge, 1.1 s each, 45 ms apart, replaying like the reveals), and a small
+ * "Back to top" button. Both sit outside the page's main part: the wordmark is decoration
+ * (aria-hidden), and the button is the page's own furniture, like the header.
+ *
+ * The button is not on the page at all until the page is scrolled 1.5 windows down (hidden, so
+ * not tabbed to), nor while the wordmark is on screen, so it never covers its last letter on a
+ * phone; otherwise it is a round button in the bottom corner, labelled, that takes the page
+ * and the keyboard focus back to the title. It moves nothing and holds nothing: the page scrolls
+ * under it as normal. With reduced motion the jump is instant and nothing fades or rises.
+ */
+export const NightEnd: React.FC = () => {
+  const { t } = useI18n();
+  const root = useRef<HTMLDivElement>(null);
+  const word = useRef<HTMLParagraphElement>(null);
+  const [away, setAway] = useState(false);
+  // While the wordmark is on screen the button steps aside, so it never covers a letter.
+  const [atEnd, setAtEnd] = useState(false);
+
+  // The letters: the same two observers as useReveals, for the one element out of a page's root.
+  useEffect(() => {
+    const el = root.current;
+    const w = word.current;
+    if (!el || !w) return;
+    if (reduced() || typeof IntersectionObserver === 'undefined') {
+      w.classList.add('in');
+      return;
+    }
+    el.classList.add('k-js');
+    const show = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) if (e.isIntersecting) e.target.classList.add('in');
+      },
+      { rootMargin: '0px 0px -12% 0px', threshold: 0.05 },
+    );
+    const hide = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) if (!e.isIntersecting) e.target.classList.remove('in');
+      },
+      { threshold: 0 },
+    );
+    show.observe(w);
+    hide.observe(w);
+    return () => {
+      show.disconnect();
+      hide.disconnect();
+      el.classList.remove('k-js');
+      w.classList.remove('in');
+    };
+  }, []);
+
+  useEffect(() => {
+    const w = word.current;
+    if (!w || typeof IntersectionObserver === 'undefined') return;
+    const io = new IntersectionObserver((entries) => {
+      for (const e of entries) setAtEnd(e.isIntersecting);
+    });
+    io.observe(w);
+    return () => io.disconnect();
+  }, []);
+
+  // Whether the page is far enough down for the button: one passive listener, read once a frame.
+  useEffect(() => {
+    let ticking = false;
+    const frame = () => {
+      ticking = false;
+      setAway(window.scrollY > window.innerHeight * TOP_AFTER);
+    };
+    const onScroll = () => {
+      if (!ticking) {
+        ticking = true;
+        requestAnimationFrame(frame);
+      }
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll, { passive: true });
+    frame();
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onScroll);
+    };
+  }, []);
+
+  const toTop = () => {
+    window.scrollTo({ top: 0, behavior: reduced() ? 'auto' : 'smooth' });
+    // The keyboard goes back to the top too: to the page's title, without a second jump.
+    const title = document.querySelector<HTMLElement>('main h1');
+    if (title) {
+      if (!title.hasAttribute('tabindex')) title.setAttribute('tabindex', '-1');
+      title.focus({ preventScroll: true });
+    }
+  };
+
+  return (
+    <div className="home k-end" ref={root}>
+      <p className="k-foot-word" aria-hidden="true" data-letters="" ref={word}>
         {[...'VeilCore'].map((ch, i) => (
           <span key={i} className={i === 4 ? 'c' : undefined} style={{ '--i': i } as React.CSSProperties}>
             {ch}
           </span>
         ))}
       </p>
+      <button
+        type="button"
+        className="k-top"
+        hidden={!away || atEnd}
+        onClick={toTop}
+        title={t('m.foot.top')}
+        data-back-to-top=""
+      >
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M12 19V5M6 11l6-6 6 6" />
+        </svg>
+        <span className="k-sr">{t('m.foot.top')}</span>
+      </button>
     </div>
   );
 };

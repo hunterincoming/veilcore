@@ -10,6 +10,21 @@ section.
 
 ## [Unreleased]
 
+### Mako's four steps and jar photo back on How it works, and a common close on the long pages (22 Nov 2026, not deployed yet)
+
+- How it works opens with the four steps again (#how, as before #169: the lit step follows the
+  middle of the window, nothing pins), then "Share proof, not data", then the jar photo, which
+  opens as it comes into view. #169 had dropped both by mistake. All five languages.
+- The photos now really open as they come into view, and the dated/asked timeline fills as it
+  scrolls: the built CSS had folded the timeline into the animation shorthand, which browsers
+  ignore, and the photo section's overflow made it its own scroller. Reduced motion shows them
+  finished, as before.
+- Home, How it works and About end the same way: "Date your first record.", the footer's links,
+  then the big VeilCore wordmark at the very bottom, its letters rising in turn (Mako's size and
+  timing), and a small "Back to top" button after scrolling, in all five languages.
+- "More than a date", "Where things stand" and "For technical readers" are the same size as
+  "Where it matters".
+
 ### A check for changes this browser didn't make, and room to stop keeping recovery secrets (22 Nov 2026, not deployed yet)
 
 - When the app opens, it reads the contract's state once (no transaction, through the same relay)

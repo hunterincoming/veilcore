@@ -2,7 +2,7 @@
   "about": "VeilCore's complexity budget (docs/complexity-budget.md). Each number is the most a default screen may show, measured by e2e/complexity-budget.spec.ts on an iPhone 14 in each language. Numbers only go down, unless Hunter approves a rise in the PR and something else is removed in the same change.",
   "coreRoutes": 11,
   "siteHomeHeight": 5719,
-  "howItWorksHeight": 27012,
+  "howItWorksHeight": 28818,
   "screens": {
     "site.home": {
       "screen": "/, the landing page (veilcore.org), from 22 Nov 2026",
@@ -20,14 +20,14 @@
     "site.how": {
       "screen": "/how-it-works, from 22 Nov 2026 (it carries what the landing page used to)",
       "primary": 0,
-      "buttons": 41,
+      "buttons": 46,
       "moreDepth": 1,
       "words": {
-        "en": 2824,
-        "de": 2859,
-        "es": 3213,
-        "fr": 3255,
-        "ja": 3044
+        "en": 2985,
+        "de": 3020,
+        "es": 3380,
+        "fr": 3428,
+        "ja": 3221
       }
     },
     "home.empty": {
