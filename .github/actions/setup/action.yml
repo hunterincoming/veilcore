@@ -19,25 +19,28 @@ runs:
         COMPACTC_SHA256: "e291b4bab4d4e857707008f8b1c25c2b8e0c843f6c737d0ee6c0d9ac69a6bbfb"
       run: |
         set -euo pipefail
-        dir="$RUNNER_TEMP/compactc"
+        dir=/opt/compactc
         zip="$RUNNER_TEMP/compactc.zip"
         curl -fsSL --retry 3 -o "$zip" \
           "https://github.com/midnightntwrk/compact/releases/download/compactc-v${COMPACTC_VERSION}/compactc_v${COMPACTC_VERSION}_x86_64-unknown-linux-musl.zip"
         echo "${COMPACTC_SHA256}  ${zip}" | sha256sum -c -
-        mkdir -p "$dir"
-        unzip -q "$zip" -d "$dir"
+        sudo mkdir -p "$dir"
+        sudo unzip -q "$zip" -d "$dir"
+        # Put on the PATH by two small scripts in /usr/local/bin (already on it), not by writing
+        # to GITHUB_PATH, which a shared setup step should not do. compactc finds its own files
+        # from where it is, so these call it where it was unpacked.
         # contract/package.json calls `compact compile`. CI does not install the compact
         # CLI (it would fetch more unpinned binaries), so `compact compile` here goes
         # straight to the pinned compactc and nothing else is available.
-        cat > "$dir/compact" <<'SHIM'
+        sudo tee /usr/local/bin/compact > /dev/null <<'SHIM'
         #!/usr/bin/env bash
         set -euo pipefail
         if [ "${1:-}" != "compile" ]; then echo "compact (CI): only 'compile' is available" >&2; exit 2; fi
         shift
-        exec compactc "$@"
+        exec /opt/compactc/compactc "$@"
         SHIM
-        chmod +x "$dir/compact"
-        echo "$dir" >> "$GITHUB_PATH"
+        printf '#!/usr/bin/env bash\nexec /opt/compactc/compactc "$@"\n' | sudo tee /usr/local/bin/compactc > /dev/null
+        sudo chmod +x /usr/local/bin/compact /usr/local/bin/compactc
 
     - name: Assert compiler version
       shell: bash
