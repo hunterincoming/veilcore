@@ -99,7 +99,7 @@ showing the rest. Code: `veilcore/lab-result.ts`.
   for these forms and lets the checker choose the result file, which is checked against the claim's
   record and not sent. Putting the target and the compared records into the field set was weighed
   and not done: each would need its own claim on Midnight (one more transaction per identifier,
-  against the 10 a day a browser may make) and text slots the claims path doesn't take.
+  against the 30 a day one internet connection may make on veilcore.org) and text slots the claims path doesn't take.
 - **DNA marks:** the sequence is sealed as SHA-256 of a tag, a 32-byte salt and the sequence. The
   lab downloads a sequence file (sequence and salt) and keeps it; VeilCore never has it. Nothing
   else can be signed, and leaving the page asks first, until it is saved. The check page shows the
