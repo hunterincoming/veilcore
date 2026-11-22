@@ -486,7 +486,7 @@ test('the whole way round: logged, backed up, sent with sample details; received
     .filter({ hasText: /lab report came back/ })
     .getByRole('button', { name: 'Open' })
     .click();
-  await expect(breeder.getByText(/Signed by a key named “E2E Lab” \(name not checked\)/)).toBeVisible();
+  await expect(breeder.getByText(/Signed by a key calling itself “E2E Lab” \(not verified\)/)).toBeVisible();
   const [dl] = await Promise.all([
     breeder.waitForEvent('download'),
     breeder.getByRole('button', { name: /Download the file/ }).click(),

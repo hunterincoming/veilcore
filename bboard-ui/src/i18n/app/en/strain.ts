@@ -151,7 +151,7 @@ export const strain = {
   'app.strain.v.app.lab.results.noKey':
     "This strain's key isn't on this device, so its lab reports can't be opened here. <link>Get your strains back from your backup</link> first.",
   'app.strain.v.app.lab.results.whatOthersSee':
-    '<b>What others can see.</b> The lab’s signature on this report is private, like the report: only you and the lab see it. To show it, choose Show someone and turn it on under “Lab signatures”. Anyone with that link then sees that the lab signed a report about this strain, and the name the lab’s key is registered under: marked “name not checked” unless VeilCore’s operator has matched it to a public license or accreditation listing. If it is a DNA report and you save it to this strain, the page can also say the lab signed that file.',
+    '<b>What others can see.</b> The lab’s signature on this report is private, like the report: only you and the lab see it. To show it, choose Show someone and turn it on under “Lab signatures”. Anyone with that link then sees that the lab signed a report about this strain, and the name the lab’s key is registered under: marked “Not verified” unless VeilCore’s operator has matched it to a public license or accreditation listing. If it is a DNA report and you save it to this strain, the page can also say the lab signed that file.',
   'app.strain.v.app.lab.results.nothingYet':
     'Nothing yet. When a lab you sent this strain to sends a lab report, it shows up here.',
   'app.strain.v.app.lab.results.savedHere': ' · saved to this strain',

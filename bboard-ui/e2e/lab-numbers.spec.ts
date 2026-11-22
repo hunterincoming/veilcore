@@ -108,7 +108,7 @@ test('a lab signs numbers with its report; the breeder adds them; the record nam
   // The record: the lab named through its binding, unchecked, as every page says it.
   const panel = breeder.locator('[data-lab-signature]');
   await expect(panel.locator('[data-lab-signed="bound"]')).toBeVisible({ timeout: 20_000 });
-  await expect(panel).toContainText('Signed by a key named “E2E Lab” (name not checked)');
+  await expect(panel).toContainText('Signed by a key calling itself “E2E Lab” (not verified)');
   await expect(breeder.locator('[data-held-numbers]')).toContainText('Germination: 96.00');
   await expect(breeder.getByRole('heading', { name: 'GT-2026-0412' })).toBeVisible();
   await expect(breeder.locator('[data-lab-result-panel]')).toContainText('GT-2026-0412');

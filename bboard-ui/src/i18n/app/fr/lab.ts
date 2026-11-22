@@ -15,11 +15,71 @@ export const lab = {
   'app.signer.disclaimer': 'VeilCore ne se porte pas garant du travail du laboratoire.',
   'app.signer.rest': ' {before}{host}{after} {disclaimer}',
   'app.signer.text': '{lead}.{rest}',
-  'app.signer.keyNamed': 'une clé nommée « {name} » (nom non vérifié)',
-  'app.signer.keyUnnamed': 'une clé que personne n’a nommée',
+  'app.signer.keyNamed': 'une clé qui se présente comme « {name} » (non vérifiée)',
+  'app.signer.keyUnnamed': 'une clé que personne n’a nommée (non vérifiée)',
+  'app.signer.keyWebsite': 'une clé qui se présente comme « {name} », publiée par {domain}',
+  'app.signer.keyWebsiteUnnamed': 'une clé publiée par {domain}',
+  'app.signer.keyWithdrawn': 'une clé qui se présente comme « {name} » (retirée par {domain})',
+  'app.signer.keyWithdrawnUnnamed': 'une clé que personne n’a nommée (retirée par {domain})',
   'app.signer.domainBefore': 'La clé désigne le site ',
   'app.signer.domainAfter': ', et VeilCore l’y a trouvée publiée le {date}.',
   'app.signer.domainWithdrawn': ', mais VeilCore a constaté le {date} qu’elle n’y est plus publiée.',
+  'app.labid.aria': 'Qui détient la clé de signature',
+  'app.labid.dash': ' — ',
+  'app.labid.calls': 'cette clé se présente comme « {name} ».',
+  'app.labid.callsNone': 'cette clé n’a pas de nom.',
+  'app.labid.none.title': 'Non vérifiée',
+  'app.labid.none.body':
+    'N’importe qui peut créer une clé sous n’importe quel nom. Vérifiez auprès du laboratoire avant de vous y fier.',
+  'app.labid.expired.body':
+    'Son ancienne vérification auprès d’une liste publique a expiré. N’importe qui peut créer une clé sous n’importe quel nom. Vérifiez auprès du laboratoire avant de vous y fier.',
+  'app.labid.website.title': 'Publiée sur {domain}',
+  'app.labid.website.body':
+    'ce site publie cette clé, et la clé désigne ce site. VeilCore l’y a vue pour la dernière fois le {date}. VeilCore ne vérifie pas qui gère le site : assurez-vous qu’il s’agit bien de celui du laboratoire, et non d’une imitation.',
+  'app.labid.website.unmarked':
+    'L’opérateur de VeilCore a retiré un ancien rapprochement de cette clé avec une liste publique.',
+  'app.labid.listing.title': 'Vérifiée auprès de {listing}',
+  'app.labid.listing.body':
+    'L’opérateur de VeilCore a rapproché le nom « {name} » de cette liste publique{number} le {date}, et le laboratoire a confirmé la clé depuis une adresse e-mail du domaine du laboratoire. Le rapprochement vaut jusqu’au {until}.',
+  'app.labid.listing.website': '{domain} publie aussi cette clé (VeilCore l’y a vue pour la dernière fois le {date}).',
+  'app.labid.websiteWithdrawn.title': 'Retirée par le site web',
+  'app.labid.websiteWithdrawn.body':
+    '{domain} ne publie plus cette clé : VeilCore l’a constaté le {date}. Le laboratoire l’a peut-être mise hors service ou désavouée. Ne vous y fiez pas sans demander au laboratoire.',
+  'app.labid.listingWithdrawn.title': 'Non vérifiée : rapprochement avec une liste retiré',
+  'app.labid.listingWithdrawn.body':
+    'L’opérateur de VeilCore a retiré son rapprochement avec une liste publique. Vérifiez auprès du laboratoire avant de vous y fier.',
+  'app.labid.more': 'Qu’est-ce que cela signifie ?',
+  'app.labid.more.what':
+    'VeilCore vérifie quelle clé a signé et ce que l’on sait de qui détient la clé. Il ne vérifie jamais la qualité du résultat, ni si le laboratoire est agréé.',
+  'app.labid.more.none':
+    '<b>Non vérifiée</b> : n’importe qui peut créer une clé et lui donner n’importe quel nom, même celui d’un laboratoire qui existe. Un rapprochement avec une liste expiré ou retiré compte comme non vérifié.',
+  'app.labid.more.website':
+    '<b>Publiée sur un site web</b> : la clé désigne un site, et ce site publie la clé. Qui gère ce site se tient derrière la clé ; VeilCore ne vérifie pas de qui il s’agit : assurez-vous donc que l’adresse est bien celle du laboratoire. Seul un rapprochement avec une liste publique est dit vérifié.',
+  'app.labid.more.listing':
+    '<b>Vérifiée auprès d’une liste publique</b> : l’opérateur de VeilCore a trouvé le nom du laboratoire dans une liste publique d’agréments ou d’accréditations, et le laboratoire a confirmé la clé depuis une adresse e-mail du domaine du laboratoire, pour un an au plus.',
+  'app.labid.more.withdrawn':
+    '<b>Retirée</b> : le site du laboratoire ne publie plus la clé, ou l’opérateur de VeilCore a retiré le rapprochement. Demandez au laboratoire avant de vous y fier.',
+  'app.labid.more.how':
+    'Comment un laboratoire devient vérifié : il publie sa clé sur son propre site, ou demande à VeilCore de rapprocher son nom d’une liste publique. Pour vérifier auprès d’un laboratoire, utilisez des coordonnées que vous avez trouvées vous-même.',
+  'app.labid.own.title': 'Comment les pages de vérification montrent votre clé de signature',
+  'app.labid.own.looking': 'Recherche de la façon dont les pages de vérification montrent votre clé de signature…',
+  'app.labid.own.couldNot':
+    'Impossible de voir pour l’instant comment les pages de vérification montrent votre clé de signature.',
+  'app.labid.own.next.none':
+    'Étape suivante : publiez votre clé de signature sur le site de votre laboratoire. Les pages de vérification indiqueront alors « Publiée sur » suivi de l’adresse de votre site.',
+  'app.labid.own.next.listingWithdrawn':
+    'Étape suivante : publiez votre clé de signature sur le site de votre laboratoire. Les pages de vérification indiqueront alors « Publiée sur » suivi de l’adresse de votre site.',
+  'app.labid.own.next.website':
+    'Étape suivante : demandez à VeilCore de rapprocher le nom de votre laboratoire d’une liste publique d’agréments ou d’accréditations. Les pages de vérification indiqueront alors « Vérifiée auprès de » cette liste.',
+  'app.labid.own.next.expired':
+    'Étape suivante : votre vérification auprès de la liste a expiré. Demandez à VeilCore de vérifier à nouveau le nom de votre laboratoire.',
+  'app.labid.own.next.listing':
+    'C’est le niveau le plus élevé. Il vaut jusqu’au {date} ; pour le renouveler, demandez à VeilCore une nouvelle vérification avant cette date.',
+  'app.labid.own.next.websiteWithdrawn':
+    '{domain} ne publie plus cette clé : les pages de vérification montrent donc ses signatures comme retirées. Si c’était une erreur, republiez la clé sur {domain}. Si la clé a fuité, créez-en une nouvelle.',
+  'app.labid.own.do.website': 'La publier sur mon site',
+  'app.labid.own.do.listing': 'Écrire à VeilCore',
+  'app.labid.own.mailSubject': 'Vérification du nom de ma clé de laboratoire',
   'app.lab.saved.lab': 'enregistré · correspond au rapport signé du laboratoire',
   'app.lab.saved.self': 'enregistré · aucune signature de laboratoire ne correspond',
   'app.lab.saved.replacedNewer': 'remplacé par le laboratoire — enregistrez le rapport corrigé',
@@ -101,12 +161,17 @@ export const lab = {
     'L’attestant l’a retirée le {date}, par une rétractation signée avec sa clé. Elle reste dans l’enregistrement — rétracter n’est pas supprimer.',
   'app.lab.strength.unverifiedRetraction':
     ' Le registre signale aussi une rétractation qui n’est pas signée par l’attestant ; elle est donc ignorée ici.',
-  'app.lab.strength.matched': 'Signé · nom rapproché d’une liste publique',
+  'app.lab.strength.matched': 'Signé · vérifiée auprès d’une liste publique',
   'app.lab.strength.matchedWhy': '{text} La signature a été vérifiée dans ce navigateur.{acc}{unverified}',
   'app.lab.strength.accreditation':
     ' Ils indiquent une accréditation {scheme} délivrée par {by} ; confirmez-la auprès de {by}.',
   'app.lab.strength.expired': ' Une vérification antérieure de ce nom a expiré.',
-  'app.lab.strength.notChecked': 'Signé · nom non vérifié',
+  'app.lab.strength.notChecked': 'Signé · non vérifiée',
+  'app.lab.strength.listingWithdrawn': 'Signé · rapprochement avec une liste retiré',
+  'app.lab.strength.website': 'Signé · publiée sur {domain}',
+  'app.lab.strength.websiteWhy': '{text} Assurez-vous que ce site est bien celui du laboratoire.',
+  'app.lab.strength.websiteWithdrawn': 'Signé · retirée par le site web ({domain})',
+  'app.lab.strength.websiteWithdrawnWhy': '{text} Ne vous y fiez pas sans demander au laboratoire.',
   'app.lab.strength.anyName':
     '{text}. N’importe qui peut enregistrer une clé sous n’importe quel nom : cela ne montre donc pas qui a signé.{expired}',
   'app.lab.strength.unregistered':
@@ -334,15 +399,13 @@ export const lab = {
     '<b>Signé par {who}, mais pas par la clé qui a signé l’accusé de réception de cette livraison.</b> Le fichier correspond à la signature de cette clé, mais rien ne montre que cette clé ait jamais eu votre échantillon. Interrogez le laboratoire avant de vous y fier.',
   'app.lab.results.signed':
     '<b>{lead}</b> (clé {key}), signature vérifiée dans ce navigateur. La même clé a signé l’accusé de réception de cette livraison.',
-  'app.lab.results.anyName':
-    ' N’importe qui peut enregistrer une clé sous n’importe quel nom : le nom ne montre donc pas qui a signé.',
   'app.lab.results.locked':
     'Verrouillés pour que vous seul puissiez les ouvrir, avec la clé de cette plante tirée de votre sauvegarde. VeilCore les conserve verrouillés et n’a pas la clé.',
   'app.lab.results.noKey':
     'La clé de cette plante n’est pas sur cet appareil : ses rapports de laboratoire ne peuvent donc pas être ouverts ici. <link>Récupérez d’abord vos plantes depuis votre sauvegarde</link>.',
   'app.lab.results.gotIt': 'Compris',
   'app.lab.results.whatOthersSee':
-    '<b>Ce que les autres peuvent voir.</b> La signature du laboratoire sur ce rapport est privée, comme le rapport : seuls vous et le laboratoire la voyez. Pour la montrer, choisissez Montrer à quelqu’un et activez-la sous « Signatures de laboratoire ». Quiconque a ce lien voit alors que le laboratoire a signé un rapport sur cette plante, et le nom sous lequel la clé du laboratoire est enregistrée : marqué « nom non vérifié » sauf si l’opérateur de VeilCore l’a rapproché d’une liste publique de licences ou d’accréditations. S’il s’agit d’un rapport ADN et que vous l’enregistrez sur cette plante, la page peut aussi dire que le laboratoire a signé ce fichier.',
+    '<b>Ce que les autres peuvent voir.</b> La signature du laboratoire sur ce rapport est privée, comme le rapport : seuls vous et le laboratoire la voyez. Pour la montrer, choisissez Montrer à quelqu’un et activez-la sous « Signatures de laboratoire ». Quiconque a ce lien voit alors que le laboratoire a signé un rapport sur cette plante, et le nom sous lequel la clé du laboratoire est enregistrée : marqué « Non vérifiée » sauf si l’opérateur de VeilCore l’a rapproché d’une liste publique de licences ou d’accréditations. S’il s’agit d’un rapport ADN et que vous l’enregistrez sur cette plante, la page peut aussi dire que le laboratoire a signé ce fichier.',
   'app.lab.results.noCurrent':
     'Aucun rapport en vigueur de {lab} : l’original a été remplacé et la correction retirée.',
   'app.lab.results.looking': 'Recherche des rapports de laboratoire…',
@@ -411,7 +474,7 @@ export const lab = {
   'app.lab.out.sentText':
     'Seul l’obtenteur peut l’ouvrir. Votre signature dessus est privée aussi : seuls l’obtenteur et vous pouvez la voir, sauf si l’obtenteur choisit de la montrer sur son lien de vérification. Si vous avez signé un accusé de réception pour l’échantillon et que l’obtenteur montre si un rapport ADN est enregistré, sa page de vérification indique qu’un laboratoire a reçu un échantillon et si ce qui est arrivé correspond à ce qui a été envoyé, sans le nom de votre laboratoire.',
   'app.lab.out.sentName':
-    'S’il le fait, quiconque a ce lien voit aussi le nom sous lequel votre clé est enregistrée. Tant que l’opérateur de VeilCore ne l’a pas rapproché d’une liste publique de licences ou d’accréditations, il apparaît comme « une clé nommée « {name} » (nom non vérifié) ».',
+    'S’il le fait, quiconque a ce lien voit aussi le nom sous lequel votre clé est enregistrée. Tant que l’opérateur de VeilCore ne l’a pas rapproché d’une liste publique de licences ou d’accréditations, il apparaît comme « une clé qui se présente comme « {name} » (non vérifiée) ».',
   'app.lab.out.yourLab': 'votre laboratoire',
   'app.lab.out.youSent': 'Rapports de laboratoire que vous avez envoyés',
   'app.lab.out.rowHead': '{id} · envoyé {when}',

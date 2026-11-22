@@ -886,7 +886,9 @@ export const signatureLines = async (
     // or a type can't start lines of its own in README.txt or the declaration (words.ts oneLine).
     const what = TYPE_WORDS[String(a.type)] ?? `"${oneLine(a.type)}"`;
     const displayName = isString(attester.displayName) ? oneLine(attester.displayName) : undefined;
-    const name = displayName !== undefined ? ` (it calls itself "${displayName}"; not checked)` : '';
+    // Who holds the key, in the words the check pages use (docs/lab-identity-levels.md). The bundle
+    // is read offline, so it can't look up a lab's website or a public listing: always "not verified".
+    const name = displayName !== undefined ? ` (it calls itself "${displayName}"; not verified)` : '';
     const bound =
       a.type === 'laboratory-report' &&
       isString(a.attestationId) &&
@@ -1094,8 +1096,8 @@ export const tiedToPlantLines = (ev: Evidence, sigs: readonly SignatureLine[], d
           state: 'lab',
           lead:
             standing.displayName !== undefined
-              ? `signed by a key named “${standing.displayName}” (name not checked; key ${standing.publicKey ?? ''})`
-              : `signed by a key nobody has named (key ${standing.publicKey ?? ''})`,
+              ? `signed by a key calling itself “${standing.displayName}” (not verified; key ${standing.publicKey ?? ''})`
+              : `signed by a key nobody has named (not verified; key ${standing.publicKey ?? ''})`,
         }
       : gone
         ? { state: gone.withdrawnReason === 'superseded' ? 'replaced' : 'withdrawn' }

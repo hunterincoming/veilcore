@@ -211,7 +211,7 @@ export const verify = {
     'El servidor de registros informa que esa raíz se registró en {network}{tx}. Su fecha: {date}.{notLooked}{test}',
   'app.verify.notLooked': ' Esta página no la consultó; hágalo antes de confiar en la fecha.',
   'app.verify.batchNoStamp': 'El lote todavía no tiene sello de fecha en Midnight.',
-  'app.verify.sigLine': '{forWhom}{kind}, firma verificada en este navegador. {lead}.',
+  'app.verify.sigLine': '{forWhom}{kind}, firma comprobada en este navegador. {lead}.',
   'app.verify.sampleDetails': 'Detalles de la muestra, según el servidor de registros:',
   'app.verify.moreSigs': '{forWhom}Y {n} firmas más, cada una verificada en este navegador.',
   'app.verify.noneVerified':
@@ -277,11 +277,11 @@ export const verify = {
   'app.verify.ex.note3':
     'Esa transacción, en {network}, es lo que fecha el registro. En un registro real, su navegador la pide a un indexador de Midnight y comprueba que escribió esta raíz de lote en el contrato de VeilCore. Si ningún indexador responde, la línea lo dice y la fecha es solo lo que informa el servidor de registros: consulte la transacción en un explorador de Midnight, como midnightexplorer.com, antes de confiar en ella.',
   'app.verify.ex.fact4':
-    'Informe de laboratorio (SHA-256 del archivo 7c1e04d2…9b3a51), firma verificada en este navegador. Firmado por una clave llamada “Example Lab” (nombre no comprobado).',
+    'Informe de laboratorio (SHA-256 del archivo 7c1e04d2…9b3a51), firma verificada en este navegador. Firmado por una clave que se presenta como “Example Lab” (no verificada).',
   'app.verify.ex.note4':
     'Un laboratorio puede firmar con su propia clave su acuse de recibo de una muestra y su informe de laboratorio. Cada línea dice cuál es. La página comprueba la firma; si la clave es de un laboratorio en el que confía, lo decide usted.',
   'app.verify.ex.fact5':
-    'El titular guardó un informe de ADN en este registro. Su archivo (SHA-256 7c1e04d2…9b3a51) coincide con el informe de laboratorio firmado por una clave llamada “Example Lab” (nombre no comprobado): firma comprobada en este navegador.',
+    'El titular guardó un informe de ADN en este registro. Su archivo (SHA-256 7c1e04d2…9b3a51) coincide con el informe de laboratorio firmado por una clave que se presenta como “Example Lab” (no verificada): firma comprobada en este navegador.',
   'app.verify.ex.note5': 'El titular elige qué datos aparecen aquí. Lo que no se comparte aparece como no compartido.',
   'app.verify.ex.marks':
     '✓ esta página comprobó la línea por sí misma, en su navegador. ○ lo informa el servidor de registros de VeilCore o el titular; esta página no lo comprobó. ⊗ una comprobación falló, o un laboratorio retiró lo que firmó.',
@@ -295,7 +295,7 @@ export const verify = {
   'app.verify.bredByShared': 'Obtenido por, según lo escribió quien lo selló: {name}',
   'app.verify.noBredBy': 'No hay obtentor registrado.',
   'app.verify.mark.anyName':
-    'El nombre de un firmante es el nombre con el que se registró su clave. Cualquiera puede registrar una clave con cualquier nombre, así que un nombre muestra quién firmó solo cuando dice que se cotejó con un listado público.',
+    'Cualquiera puede crear una clave con cualquier nombre. Cada firma de abajo dice lo que se sabe de su clave: no verificada, publicada en un sitio web o verificada con un listado público.',
   'app.verify.summary.checked': 'El registro ya existía el {date}: esta página lo comprobó en Midnight.{test}',
   'app.verify.summary.reported':
     'El registro ya existía el {date}. Lo dice el servidor de registros de VeilCore; esta página aún no lo ha comprobado en Midnight.{test}',

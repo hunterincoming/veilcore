@@ -118,7 +118,7 @@ describe('where the saved lab report stands', () => {
     expect(s.kind).toBe('lab');
     expect(savedReportRow(s)).toEqual({ done: true, value: 'saved · matches the lab’s signed report' });
     expect(savedReportSentence(s)).toMatch(
-      /matches a lab report signed by a key named “Test Lab” \(name not checked\), by its SHA-256/,
+      /matches a lab report signed by a key calling itself “Test Lab” \(not verified\), by its SHA-256/,
     );
   });
 
@@ -198,7 +198,7 @@ describe('the public check page’s lab report line', () => {
     const l = publicReportLine({ paired: true, linkSha: SHA_V1, atts: [v1], bound: true });
     expect(l.status).toBe('checked');
     expect(l.text).toMatch(
-      /Its file \(SHA-256 3bb6af11…111111\) matches the lab report signed by a key named “Test Lab”/,
+      /Its file \(SHA-256 3bb6af11…111111\) matches the lab report signed by a key calling itself “Test Lab”/,
     );
     expect(publicReportLine({ paired: true, linkSha: SHA_V1, atts: [v1], bound: false }).status).toBe('reported');
   });

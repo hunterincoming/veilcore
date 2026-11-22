@@ -278,11 +278,11 @@ export const verify = {
   'app.verify.ex.note3':
     'Diese Transaktion auf {network} datiert den Datensatz. Bei einem echten Datensatz fragt Ihr Browser einen Midnight-Indexer danach und prüft, dass sie diese Stapelwurzel in den VeilCore-Smart-Contract geschrieben hat. Antwortet kein Indexer, sagt die Zeile das, und das Datum ist nur die Meldung des Registers: Schlagen Sie die Transaktion in einem Midnight-Explorer wie midnightexplorer.com nach, bevor Sie sich darauf verlassen.',
   'app.verify.ex.fact4':
-    'Laborbericht (SHA-256 der Datei 7c1e04d2…9b3a51), Signatur in diesem Browser geprüft. Signiert von einem Schlüssel namens „Example Lab“ (Name nicht geprüft).',
+    'Laborbericht (SHA-256 der Datei 7c1e04d2…9b3a51), Signatur in diesem Browser geprüft. Signiert von einem Schlüssel, der sich „Example Lab“ nennt (nicht verifiziert).',
   'app.verify.ex.note4':
     'Ein Labor kann seine Empfangsbestätigung für eine Probe und seinen Laborbericht mit seinem eigenen Schlüssel signieren. Jede Zeile sagt, welches von beiden es ist. Die Seite prüft die Signatur; ob der Schlüssel zu einem Labor gehört, dem Sie vertrauen, entscheiden Sie.',
   'app.verify.ex.fact5':
-    'Der Inhaber hat einen DNA-Bericht zu diesem Datensatz gespeichert. Seine Datei (SHA-256 7c1e04d2…9b3a51) passt zum Laborbericht, signiert von einem Schlüssel namens „Example Lab“ (Name nicht geprüft): Signatur in diesem Browser geprüft.',
+    'Der Inhaber hat einen DNA-Bericht zu diesem Datensatz gespeichert. Seine Datei (SHA-256 7c1e04d2…9b3a51) passt zum Laborbericht, signiert von einem Schlüssel, der sich „Example Lab“ nennt (nicht verifiziert): Signatur in diesem Browser geprüft.',
   'app.verify.ex.note5':
     'Der Inhaber wählt, welche Angaben hier erscheinen. Alles nicht Geteilte wird als nicht geteilt aufgeführt.',
   'app.verify.ex.marks':
@@ -297,7 +297,7 @@ export const verify = {
   'app.verify.bredByShared': 'Gezüchtet von, wie der Inhaber es angegeben hat: {name}',
   'app.verify.noBredBy': 'Kein Züchter eingetragen.',
   'app.verify.mark.anyName':
-    'Der Name eines Unterzeichners ist der Name, unter dem sein Schlüssel registriert wurde. Jeder kann einen Schlüssel unter jedem Namen registrieren; ein Name zeigt also nur dann, wer signiert hat, wenn dabei steht, dass er mit einem öffentlichen Eintrag abgeglichen wurde.',
+    'Jeder kann einen Schlüssel mit jedem Namen erstellen. Jede Signatur unten sagt, was über ihren Schlüssel bekannt ist: nicht verifiziert, auf einer Website aufgeführt oder anhand eines öffentlichen Verzeichnisses verifiziert.',
   'app.verify.summary.checked':
     'Der Datensatz bestand spätestens am {date}: Diese Seite hat es auf Midnight geprüft.{test}',
   'app.verify.summary.reported':

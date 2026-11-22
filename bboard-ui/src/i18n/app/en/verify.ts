@@ -207,7 +207,7 @@ export const verify = {
     'The registry reports that root was recorded on {network}{tx}. Its date: {date}.{notLooked}{test}',
   'app.verify.notLooked': ' This page has not looked it up; do that before relying on the date.',
   'app.verify.batchNoStamp': 'The batch has no date stamp on Midnight yet.',
-  'app.verify.sigLine': '{forWhom}{kind}, signature verified in this browser. {lead}.',
+  'app.verify.sigLine': '{forWhom}{kind}, signature checked in this browser. {lead}.',
   'app.verify.sampleDetails': 'Sample details, as the registry reports them:',
   'app.verify.moreSigs': '{forWhom}And {n} more signatures, each verified in this browser.',
   'app.verify.noneVerified': 'The registry reports a signed attestation, but none could be verified in this browser.',
@@ -271,11 +271,11 @@ export const verify = {
   'app.verify.ex.note3':
     "That transaction, on {network}, is what dates the record. On a real record your browser asks a Midnight indexer for it and checks it wrote this batch root to VeilCore's contract. If no indexer answers, the line says so and the date is only the registry's report: look the transaction up on a Midnight explorer, such as midnightexplorer.com, before relying on it.",
   'app.verify.ex.fact4':
-    'Lab report (file SHA-256 7c1e04d2…9b3a51), signature verified in this browser. Signed by a key named “Example Lab” (name not checked).',
+    'Lab report (file SHA-256 7c1e04d2…9b3a51), signature checked in this browser. Signed by a key calling itself “Example Lab” (not verified).',
   'app.verify.ex.note4':
     'A lab can sign its receipt for a sample, and its lab report, with its own key. Each line says which it is. The page checks the signature; whether the key is a lab you trust is your call.',
   'app.verify.ex.fact5':
-    'The holder saved a DNA report to this record. Its file (SHA-256 7c1e04d2…9b3a51) matches the lab report signed by a key named “Example Lab” (name not checked): signature checked in this browser.',
+    'The holder saved a DNA report to this record. Its file (SHA-256 7c1e04d2…9b3a51) matches the lab report signed by a key calling itself “Example Lab” (not verified): signature checked in this browser.',
   'app.verify.ex.note5': 'The holder chooses which facts appear here. Anything not shared is listed as not shared.',
   'app.verify.ex.marks':
     "✓ this page checked the line itself, in your browser. ○ VeilCore's registry or the holder reports it; this page didn't check it. ⊗ a check failed, or a lab withdrew what it signed.",
@@ -289,7 +289,7 @@ export const verify = {
   'app.verify.bredByShared': 'Bred by, as the holder wrote it: {name}',
   'app.verify.noBredBy': 'No breeder recorded.',
   'app.verify.mark.anyName':
-    "A signer's name is the name its key was registered under. Anyone can register a key under any name, so a name shows who signed only when it says it was matched to a public listing.",
+    'Anyone can make a key with any name. Each signature below says what is known about its key: not verified, listed on a website, or verified against a public listing.',
   'app.verify.summary.checked': 'Record existed by {date}: this page checked it on Midnight.{test}',
   'app.verify.summary.reported':
     "Record existed by {date}. VeilCore's registry says so; this page hasn't checked it on Midnight yet.{test}",

@@ -57,7 +57,7 @@ VeilCore says exactly what it can check and nothing more.
 6. **Claims.** "Prove one number" works as on any document. Each claim link also names the
    `proveAttested` transaction, the key and the plant's proof code. The check page reads both
    calls on Midnight, finds the binding, checks it in the browser, and prints the lab with the
-   same wording every page uses for signers ("a key named … (name not checked)", or the operator's
+   same wording every page uses for signers ("a key calling itself … (not verified)", with its level in words, or the operator's
    dated match). A withdrawn binding, two labs claiming one key, or none: the numbers read as the
    holder's own. Since 8 Nov 2026 the registry keeps a lab's report signature private (shown only
    to the holder, the delivery's sender and the lab). A version 1 binding names that signature, so

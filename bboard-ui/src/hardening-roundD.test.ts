@@ -250,7 +250,7 @@ describe('F2 attestationsFor: bound to this record; only signed retractions coun
     expect(a.retraction).toBeNull();
     expect(a.retractionUnverified).toBe(true);
     expect(countsAsSigned(a)).toBe(true);
-    expect(strengthLabel(a).label).toBe('Signed · name matched to a public listing');
+    expect(strengthLabel(a).label).toBe('Signed · verified against a public listing');
     expect(strengthLabel(a).why).toMatch(/not signed by the attester, so it is ignored/);
   });
 
@@ -1274,12 +1274,12 @@ describe.skipIf(!haveBrowser)('browser: built site under the production headers'
       timeout: 15_000,
     });
     // Round 5: each signature says what it is (here a lab report, by its file's SHA-256).
-    await pg.waitForSelector('text=signature verified in this browser', { timeout: 15_000 });
+    await pg.waitForSelector('text=signature checked in this browser', { timeout: 15_000 });
     const text = await pg.evaluate(() => document.body.innerText);
     expect(text).toMatch(/Borrowed Name/); // the page still opens
     expect(text).toMatch(/For the proof code the registry reports: it is in batch genuine-x/);
     expect(text).toMatch(
-      /For the proof code the registry reports: Lab report \(file SHA-256 eeeeeeee…eeeeee\), signature verified in this browser\. Signed by Real Lab\.\s+VeilCore’s operator matched this name to cannabis\.example\.gov \(license TL-1\) on \d{4}-\d{2}-\d{2}\.\s+VeilCore doesn’t vouch for the lab’s work\./,
+      /For the proof code the registry reports: Lab report \(file SHA-256 eeeeeeee…eeeeee\), signature checked in this browser\. Signed by Real Lab\.\s+Verified against cannabis\.example\.gov — VeilCore’s operator matched the name “Real Lab” to this public listing \(license TL-1\) on \d{4}-\d{2}-\d{2}, and the lab confirmed the key from an email address at the lab’s domain\. The match counts until \d{4}-\d{2}-\d{2}\. VeilCore doesn’t vouch for the lab’s work\./,
     );
     expect(text).toMatch(/This link does not name the record's proof code/);
     expect(text).toMatch(
