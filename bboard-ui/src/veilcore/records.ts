@@ -20,6 +20,7 @@ import {
   keysFitRecord,
   keysFor,
   sealedSecretsOf,
+  hasRecoverySecret,
   type SealedSecrets,
 } from './record-keys';
 import { bindingForSecret } from './key-binding';
@@ -1244,9 +1245,14 @@ const withSealedSecrets = (): void => {
   let added = false;
   const next = records.map((r) => {
     const k = keysFor(r.id);
-    if (!k || !keysFitRecord(k, r) || r.secrets?.recordSecret === k.recordSecret) return r;
+    if (!k || !keysFitRecord(k, r)) return r;
+    const same = r.secrets?.recordSecret === k.recordSecret;
+    // A recovery secret this browser no longer keeps (record-keys.ts NO_RECOVERY_SECRET) goes
+    // from the sealed copy too, on its next save; nothing else about the secrets changes.
+    const drop = same && !hasRecoverySecret(k.recoverySecret) && hasRecoverySecret(r.secrets?.recoverySecret ?? '');
+    if (same && !drop) return r;
     // Secrets the record already carries that fit it are its own: never replaced from here.
-    if (r.secrets && keysFitRecord(r.secrets, r)) return r;
+    if (!same && r.secrets && keysFitRecord(r.secrets, r)) return r;
     added = true;
     return { ...r, secrets: sealedSecretsOf(k) };
   });

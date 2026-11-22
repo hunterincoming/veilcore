@@ -146,6 +146,10 @@ const AppLayout: React.FC<React.PropsWithChildren> = ({ children }) => {
     // with the chain features only, which it checks itself; never on a check or prove page:
     // stamp-background.ts).
     void import('./veilcore/chain/stamp-background').then((m) => m.startStampRetries());
+    // A read-only look at the network for the records this browser date stamped: has anything
+    // changed that this browser didn't do? Sends nothing; at most one read per ten minutes
+    // (record-watch.ts). Never on a check or prove page, the same rule as the stamps.
+    void import('./veilcore/record-watch').then((m) => m.startRecordWatch());
     // Ask's approved "Do it for me" jobs, carried on while the app is open: never on a check or
     // prove page, the same rule as the stamps (ask-job/start.ts). Nothing runs that the person
     // hasn't approved.

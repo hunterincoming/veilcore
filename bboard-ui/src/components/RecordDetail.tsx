@@ -32,6 +32,7 @@ import {
 import { nameLinkParams, verifyPath } from '../veilcore/verify-link';
 import { LockedRecords } from './LockedRecords';
 import { RecordSaveNotices } from './RecordSaveNotices';
+import { RecordChangedNotice } from './flow/RecordChanged';
 import { FinishReceiving } from './FinishReceiving';
 import { useRecordKeys } from '../veilcore/record-keys';
 import { ProveOwnershipPanel } from './chain/ProveOwnershipPanel';
@@ -497,6 +498,8 @@ export const RecordDetail: React.FC = () => {
           {t('app.sealed.mismatch')}
         </Alert>
       )}
+      {/* Changed on the network, not by this browser (record-watch.ts). Nothing when nothing changed. */}
+      <RecordChangedNotice recordId={record.id} />
       <FinishReceiving record={record} />
       <RecordSaveNotices
         record={record}

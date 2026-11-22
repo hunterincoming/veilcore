@@ -10,6 +10,19 @@ section.
 
 ## [Unreleased]
 
+### A check for changes this browser didn't make, and room to stop keeping recovery secrets (22 Nov 2026, not deployed yet)
+
+- When the app opens, it reads the contract's state once (no transaction, through the same relay)
+  and compares each record this browser date stamped with what it expects: the recovery
+  commitment, no move to a new key, no rotation or recovery. If anything differs, the record and
+  Home say so in one calm line, with what to do under "Here's what to do", in all five languages.
+  At most one read per ten minutes, kept for the tab's session. Nothing shows when nothing changed.
+- Every reader of a record's or the lender's keys now accepts "no recovery secret kept here"
+  (64 zeros) and never puts a dropped one back, so a later release can stop keeping recovery
+  secrets in the browser without an older open tab losing anything. Nothing is removed yet.
+- `docs/passkey-backup.md` now says the account copy is live on veilcore.org, and that it holds
+  recovery secrets like a backup file does. Recovery is not described as theft protection.
+
 ### Keep it simple, round 2, and the full review's fixes (22 Nov 2026, not deployed yet)
 
 - Home and each record's page ask for less: one filled button on Home ("Go" in the paste box is
