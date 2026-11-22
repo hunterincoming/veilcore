@@ -97,7 +97,7 @@ is what the tests and the clients run.
 
 | Tool | Version | Where it is pinned |
 |---|---|---|
-| Compact compiler | `compactc` 0.31.1, language version 0.23 (`pragma language_version 0.23` in both contracts) | `.github/workflows/ci.yaml` |
+| Compact compiler | `compactc` 0.31.1, language version 0.23 (`pragma language_version 0.23` in both contracts) | `.github/actions/setup/action.yml` |
 | Node.js | 24.11.1 | `.nvmrc`; CI uses it |
 | npm | 11.6.2 (ships with Node 24.11.1) | CI fails on any other |
 | Proof server (only for live networks) | Mainnet (Ledger 9 since 6 Nov 2026): `midnightntwrk/proof-server:9.0.1`, pinned by digest (`sha256:90e36a14…2f37`, from Midnight's release notes, tag `proof-server-9.0.1`; there is no 9.0.0 image). Test networks until they fork: `8.1.3` (the 2 Oct 2026 security patch, GHSA-wr7g-rr4v-jmj8), pinned by digest (`sha256:0f4ab071…115c`) | `bboard-cli/proof-server-mainnet.yml`, `bboard-cli/proof-server.yml`, `partner-kit/src/network.ts` |
@@ -164,8 +164,8 @@ host. **Your `fingerprints:check` result on a full build would be the first inde
 check of the keys.** We do not know whether key generation is deterministic for a given
 compiler and parameter set; if your keys differ, that is worth knowing in itself.
 
-CI (`.github/workflows/ci.yaml`) compiles with the checksummed compiler and runs
-`npm run ci` in `contract/` (compact, typecheck, lint, build, test). It does not run
+CI (`.github/workflows/ci.yaml`, compiler in `.github/actions/setup/action.yml`) compiles with the checksummed compiler and runs
+the steps of `npm run ci` in `contract/` (compact, typecheck, lint, build, test). It does not run
 `fingerprints:check`.
 
 ### Circuit sizes

@@ -1,6 +1,6 @@
 // Is the Compact compiler on this computer the one VeilCore's deployed contracts were built
 // with? The version is pinned in compiler-version at the repository root (CI pins the same
-// release by checksum, .github/workflows/ci.yaml). A different compiler builds different
+// release by checksum, .github/actions/setup/action.yml). A different compiler builds different
 // circuits and keys, so a build made with it can never match deployments/<network>.json.
 //
 //   npm run check:compiler             warns on a mismatch (exit 0), errors if none is found

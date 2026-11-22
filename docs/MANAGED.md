@@ -161,7 +161,7 @@ operating.
 | Who holds record secrets | VeilCore, in a store of yours | you | you |
 | Who holds recovery secrets | you (recommended) or VeilCore | you | you |
 | You need | a safe for one sheet of paper; to leave, one recovery run with a DUST wallet | a developer, a server, a DUST wallet | a browser, nothing else |
-| Available | at launch | at launch (docs/PARTNERS.md) | on veilcore.org now (licences once switched on there) |
+| Available | built (this document) | now: `@veilcore/contracts` 0.3.0 on npm (docs/PARTNERS.md) | on veilcore.org now, licences included (README, "Status") |
 
 ---
 
@@ -455,7 +455,7 @@ compares them with the chain.
 - The partner's last step of an exit needs a DUST wallet and someone able to run one command; VeilCore
   cannot pay for it without seeing the partner's recovery secret (its fee service pays only for what
   veilcore.org's own pages send, and recovery is not among those calls, `sponsor/src/policy.ts`).
-- Website self-custody is on veilcore.org: records, date stamps, proofs by link and DNA pairings
-  now, with VeilCore's fee service paying; licences once they are switched on there.
+- Website self-custody is on veilcore.org: records, date stamps, proofs by link, DNA pairings,
+  licences and royalty reports, and proving a fact, with VeilCore's fee service paying.
 - No independent security audit of VeilCore-run yet; one AI review (`review-managed.md`), whose findings
   this version addresses.

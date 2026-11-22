@@ -447,12 +447,15 @@ describe('deploy:test', () => {
   });
 
   it('the script refuses with a plain NOT DEPLOYED line', async () => {
-    // Run from an empty folder: its first check (the proving parameters) stops it there.
+    // Run from an empty folder: its first check (scripts/deploy-gate.mjs: not a git checkout,
+    // no .nvmrc) stops it there, before anything is read from the network.
     const empty = fs.mkdtempSync(path.join(os.tmpdir(), 'vc-deploy-test-'));
     try {
       const r = await runScript('deploy-test-site.mjs', {}, empty);
       expect(r.code).toBe(1);
-      expect(r.text).toMatch(/NOT DEPLOYED\. The test site is unchanged\. The proving parameters are missing/);
+      expect(r.text).toMatch(/NOT DEPLOYED\. The test site is unchanged\. Could not run git/);
+      expect(r.text).toMatch(/\.nvmrc does not name a Node version/);
+      expect(r.text).not.toMatch(/proving parameters/);
     } finally {
       fs.rmSync(empty, { recursive: true, force: true });
     }

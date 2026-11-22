@@ -1,0 +1,66 @@
+name: Set up
+description: >-
+  The pinned Compact compiler, Node from .nvmrc, a check that npm is the version that comes with
+  it, and `npm ci`. Every CI job starts with this (after checkout), so they all test with the same
+  tools. scripts/deploy-gate.mjs reads the npm version from the "Check npm version" step below.
+
+runs:
+  using: composite
+  steps:
+    # The compiler is a fixed release asset checked against a recorded SHA-256, not the
+    # "latest" installer piped to sh. If the download, the checksum or the version check
+    # fails, CI fails: there is no fallback to whatever compiler happens to be current.
+    # To move to a new compiler: change both values below together, taking the hash from
+    # a download you have checked against the GitHub release page.
+    - name: Install Compact compiler (pinned, checksummed)
+      shell: bash
+      env:
+        COMPACTC_VERSION: "0.31.1"
+        COMPACTC_SHA256: "e291b4bab4d4e857707008f8b1c25c2b8e0c843f6c737d0ee6c0d9ac69a6bbfb"
+      run: |
+        set -euo pipefail
+        dir="$RUNNER_TEMP/compactc"
+        zip="$RUNNER_TEMP/compactc.zip"
+        curl -fsSL --retry 3 -o "$zip" \
+          "https://github.com/midnightntwrk/compact/releases/download/compactc-v${COMPACTC_VERSION}/compactc_v${COMPACTC_VERSION}_x86_64-unknown-linux-musl.zip"
+        echo "${COMPACTC_SHA256}  ${zip}" | sha256sum -c -
+        mkdir -p "$dir"
+        unzip -q "$zip" -d "$dir"
+        # contract/package.json calls `compact compile`. CI does not install the compact
+        # CLI (it would fetch more unpinned binaries), so `compact compile` here goes
+        # straight to the pinned compactc and nothing else is available.
+        cat > "$dir/compact" <<'SHIM'
+        #!/usr/bin/env bash
+        set -euo pipefail
+        if [ "${1:-}" != "compile" ]; then echo "compact (CI): only 'compile' is available" >&2; exit 2; fi
+        shift
+        exec compactc "$@"
+        SHIM
+        chmod +x "$dir/compact"
+        echo "$dir" >> "$GITHUB_PATH"
+
+    - name: Assert compiler version
+      shell: bash
+      run: |
+        v="$(compact compile --version)"
+        echo "compactc $v"
+        test "$v" = "0.31.1"
+
+    - name: Install Node.js
+      uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1  #v7.1.0
+      with:
+        # Exact version from .nvmrc (24.11.1), the same one used locally.
+        node-version-file: .nvmrc
+
+    # npm comes with Node, so pinning Node pins npm. Node 24.11.1 ships npm 11.6.2, which
+    # already has the optional-dependency fix the old `npm install -g npm@latest` step was
+    # for (npm/cli#4828). Fail rather than run with an npm nobody chose.
+    - name: Check npm version
+      shell: bash
+      run: |
+        npm --version
+        test "$(npm --version)" = "11.6.2"
+
+    - name: Install dependencies
+      shell: bash
+      run: npm ci

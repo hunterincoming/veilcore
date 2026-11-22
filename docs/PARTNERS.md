@@ -53,8 +53,8 @@ chain. Checking what others show you costs nothing and needs no wallet.
 
 **No developers?** VeilCore can run all of this for you (VeilCore-run): day to day you need none
 of the three things above, only a safe place for one sheet of paper. Leaving needs one recovery
-run, with a DUST wallet, by you or someone you choose. See _Three ways to use VeilCore
-at launch_ below, and [MANAGED.md](MANAGED.md), written for a lab owner.
+run, with a DUST wallet, by you or someone you choose. See _Three ways to use VeilCore_
+below, and [MANAGED.md](MANAGED.md), written for a lab owner.
 
 **If VeilCore disappears.** Your records still verify. Proof codes are plain SHA-256, the
 contracts live on Midnight, and this package and the SDK (both Apache-2.0) work without any
@@ -349,21 +349,21 @@ Every action that writes to the chain pays a fee in **DUST**. Checking costs not
    for `await wallet.nightAddress()`, then `await wallet.registerNightForDust()` (test networks
    only; the package refuses it on mainnet).
 2. **VeilCore runs it for you (VeilCore-run).** VeilCore's own wallet pays, and VeilCore sends
-   the transactions on your behalf. See _Three ways to use VeilCore at launch_ below and
+   the transactions on your behalf. See _Three ways to use VeilCore_ below and
    [MANAGED.md](MANAGED.md).
 
 **Fee sponsorship, for the website only.** VeilCore's fee service pays the network fee for the
 transactions a visitor's browser proves and sends on veilcore.org: in service on mainnet since
 19 October 2026 (docs/mainnet-sponsor.md) for a record key's date stamp, proving a record by
-link and dating a DNA pairing, and the calls it lists in `sponsor/src/policy.ts` (licences
-once they are switched on). This package doesn't use it: what you send from the kit, you pay
+link and dating a DNA pairing, licences and the other agreement calls, and claims on VeilCore's claims contract: exactly the
+calls listed in `sponsor/src/policy.ts` (sponsor/README.md lists them). This package doesn't use it: what you send from the kit, you pay
 for with your own DUST.
 
 Proving the two heavy claims (`proveDistinct`, `proveUnchanged`) takes the most memory: on
 VeilCore's own 16 GB laptop the proof server peaked at 3.7 GB proving every claim back to
 back (docs/log/preprod-run-4oct.md). Everything else needs much less.
 
-### Three ways to use VeilCore at launch
+### Three ways to use VeilCore
 
 | | **VeilCore-run** (custody, with an exit) | **Partner kit** (self-run) | **Website self-custody** |
 | --- | --- | --- | --- |
@@ -373,7 +373,7 @@ back (docs/log/preprod-run-4oct.md). Everything else needs much less.
 | Recovery secrets | you, from one master sheet VeilCore never sees (recommended); or VeilCore | you | you |
 | What you need | a safe for one sheet of paper (your master secret) | a developer, Node 24, Docker, a DUST wallet | a browser, nothing else |
 | Leaving | any time, in two parts. VeilCore hands you a bundle only your master opens, and (assisted) moves every record off the secrets it stored, or (self) stops acting. Then **you** take each record back with your own recovery secret (`partner-recover`, which needs a DUST wallet): only after that does nothing VeilCore's software made or held control your records. Licences you hold stay usable with VeilCore's old copy until their issuer approves the move. VeilCore then deletes its copies, as far as deleting can (MANAGED.md) | nothing to leave | nothing to leave |
-| Available | **at launch** ([MANAGED.md](MANAGED.md)) | **at launch** (this guide) | **on veilcore.org now** for records, date stamps, proofs by link and DNA pairings; licences once switched on there |
+| Available | built ([MANAGED.md](MANAGED.md)) | now: `@veilcore/contracts` 0.3.0 on npm (this guide) | **on veilcore.org now** for records, date stamps, proofs by link, DNA pairings, licences and royalty reports, and proving a fact; handing a licence on is built, not yet run on mainnet |
 
 VeilCore-run is built on this package's public surface only: VeilCore does for you exactly
 what your own developer would do with it, nothing more. What it means that VeilCore holds

@@ -44,7 +44,9 @@ const record = {
   subjectType: 'plant-genetic-material',
   profile: 'veilcore/profile/plant-variety/v1',
   commitmentAlgorithm: 'sha256/canonical-json/v1',
-  anchor: { chain: 'midnight', network: 'undeployed' },
+  // Put the network your anchors will really be on: 'mainnet' for dates that count, or a test
+  // network's name while you try it out. 'undeployed' means never anchored (SPEC.md).
+  anchor: { chain: 'midnight', network: YOUR_NETWORK },
   sealedAt: new Date().toISOString().replace(/\.\d{3}Z$/, 'Z'),
   holder: { id: yourClientIdentifier },
   profileData: { ...yourExistingFields, nonce: newNonce() },

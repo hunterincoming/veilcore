@@ -94,7 +94,7 @@ only as a higher authority counter.
 
 | | Version | Pinned in |
 |---|---|---|
-| Compact compiler (`compactc`) | **0.31.1** | `compiler-version`, `.github/workflows/ci.yaml` (with the Linux download's SHA-256) |
+| Compact compiler (`compactc`) | **0.31.1** | `compiler-version`, `.github/actions/setup/action.yml` (with the Linux download's SHA-256) |
 | Node | **24.11.1** (npm 11.6.2) | `.nvmrc`, CI |
 | Compact runtime | 0.16.0 | `package.json` |
 
@@ -114,7 +114,7 @@ compact compile --version        # must print 0.31.1
 ```
 
 On Linux x86-64 you can instead take the compiler release directly, as CI does
-(`.github/workflows/ci.yaml`, "Install Compact compiler"), check it, unpack it, and add the
+(`.github/actions/setup/action.yml`, "Install Compact compiler"), check it, unpack it, and add the
 same small `compact` shim CI uses, because `contract/package.json` runs `compact compile`:
 
 ```bash

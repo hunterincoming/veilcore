@@ -11,6 +11,9 @@
 //                                                    link, the DNA pairing date), with VeilCore
 //                                                    paying the fee. Needs the relay too.
 //
+// Before anything else it runs scripts/deploy-gate.mjs: this computer must be on origin/main,
+// with nothing uncommitted, on CI's Node and npm, and GitHub must say CI passed for the commit.
+//
 // Without the sponsor the site is exactly what it was: nothing sent from the browser.
 // With it, the deploy first checks the sponsor says mainnet, VeilCore's pinned contract and
 // synced, and that the relay answers this site. Nothing is built if any of that is not so.
@@ -27,6 +30,7 @@ import { pathToFileURL } from 'node:url';
 import { normaliseAddress, readMainnetPins } from './mainnet-pins.mjs';
 import { vercelEnv } from './vercel-token.mjs';
 import { agreementsLive } from './registry-features.mjs';
+import { deployGate } from './deploy-gate.mjs';
 
 export const API = 'https://veilcore-api-production.up.railway.app';
 
@@ -139,6 +143,9 @@ export const chainEnv = (relayUrl, sponsor, pinned) => {
 };
 
 const main = async () => {
+  const gate = await deployGate({ requireMain: true, argv: process.argv.slice(2), command: 'npm run deploy:mainnet' });
+  if (gate.problems.length) fail(gate.problems.join('\n'));
+  for (const n of gate.notes) console.log(n);
   const pins = readMainnetPins();
   if (!pins.ok) fail(pins.problem);
   let relay;

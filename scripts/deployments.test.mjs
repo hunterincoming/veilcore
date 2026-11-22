@@ -164,8 +164,8 @@ test('one compiler and one Node version everywhere', () => {
     for (const c of deployments[n].contracts) assert.equal(c.compiler, v);
     assert.equal(deployments[n].toolchain.node, read('.nvmrc').trim());
   }
-  assert.equal(/COMPACTC_VERSION: "([^"]+)"/.exec(read('.github/workflows/ci.yaml'))?.[1], v);
-  assert.match(read('.github/workflows/ci.yaml'), new RegExp(`test "\\$v" = "${v.replace(/\./g, '\\.')}"`));
+  assert.equal(/COMPACTC_VERSION: "([^"]+)"/.exec(read('.github/actions/setup/action.yml'))?.[1], v);
+  assert.match(read('.github/actions/setup/action.yml'), new RegExp(`test "\\$v" = "${v.replace(/\./g, '\\.')}"`));
   assert.equal(/compact update (\d+\.\d+\.\d+)/.exec(read('README.md'))?.[1], v);
   assert.equal(/compact update (\d+\.\d+\.\d+)/.exec(read('docs/reproduce-build.md'))?.[1], v);
   const rt = readJson(path.join(ROOT, 'package.json')).dependencies['@midnight-ntwrk/compact-runtime'];

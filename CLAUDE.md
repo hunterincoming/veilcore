@@ -100,6 +100,7 @@ authorship of commits already pushed.
 - Research first: look at what existing projects do before building.
 - Test before claiming done: unit tests, the end-to-end tests (`npm run e2e:build` first; the
   e2e server never builds by itself), and a look at the rendered result.
+- In a new clone, `npm run e2e:setup` (in `bboard-ui`) installs the browser that matches the pinned Playwright.
 - Plain, short language. When steps are needed from the maintainer, give all of them in one
   message, in order, with the exact commands.
 - What only the maintainer does: approve merges and deploys, anything touching a wallet, and
