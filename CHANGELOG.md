@@ -22,6 +22,22 @@ section.
 - A record sealed with no signal says "Sealed on this device" instead of guessing phone or
   computer from the screen, which told a phone "this computer".
 
+### A way in for labs (21 Nov 2026, not deployed yet)
+
+- "For labs" in the site's header (under "Menu" on a phone), on the home page's lab slide and on
+  How it works. It opens /for-labs, which switches to the lab view and opens the signing key
+  screen if this browser has no key yet. A browser that already holds records, or has been used
+  before, is asked first: "Add lab tools? You'll see a lab view with your signing key and
+  samples you receive. Your records stay as they are."
+- Every app page has the view in its header ("Breeder view ▾"): Breeder, Lab or Both, one tap
+  away. The footer's "change" link stays.
+- On the lab's home, with no key yet, "Set up your lab's signing key" is the solid button and
+  comes first. The way in says "signing key" everywhere now, as the key screen does (the site
+  link, the lab home, the plant's next step and the two "set it up first" lines), not
+  "signature".
+- On the key screen, showing the key is your lab's is open, not folded: the email, the website
+  file and the DNS TXT record, and the domain to check. Only did:web stays under "Other ways".
+
 ### One way back after a seal, not three (21 Nov 2026, not deployed yet)
 
 - Records already saved with VeilCore (the account copy counts and holds them once saved again

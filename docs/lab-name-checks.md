@@ -3,7 +3,9 @@
 **For VeilCore's registry operator · written 14 October 2026**
 
 Anyone can make a signing key and register it under any lab's name. Until the operator
-marks a key, every page shows its signatures as *a key named "…" (name not checked)*.
+marks a key, every page shows its signatures as *a key calling itself "…" (not verified)*, with
+the level **Not verified** (or **Listed on <domain>**, if the lab lists the key on its own
+website; [lab-identity-levels.md](lab-identity-levels.md)).
 
 A mark lets pages print the name plainly, followed by exactly what was checked:
 
@@ -22,8 +24,11 @@ confirmed this key.
 A mark does **not** mean VeilCore vouches for the lab, its work, its results, its
 methods, or any sample or report it signs. It doesn't mean the lab is licensed or
 accredited for a given test. Anyone relying on a lab report checks that with the lab and
-the listing themselves. Never describe a marked lab as "verified", "approved",
-"certified" or "trusted by VeilCore".
+the listing themselves. Pages show a marked key as **Verified against <listing>**, which
+says what was checked and against what ([lab-identity-levels.md](lab-identity-levels.md)).
+This is the only level pages call "verified".
+Never describe a marked lab as a "verified lab", or as "approved", "certified" or "trusted by
+VeilCore".
 
 ## 1. Find the lab in a public listing
 
@@ -107,7 +112,7 @@ Then open `GET /attesters/<public key>` and check `nameCheckStatus` is `checked`
 ## 5. Re-check every year
 
 A mark expires 12 months after the check, or on `expiresAt` if sooner. After that,
-pages show the key as *name not checked* again. To renew, do steps 1 to 4 again and mark
+pages show the key as **Not verified** again, saying the earlier check expired. To renew, do steps 1 to 4 again and mark
 the key with the new check.
 
 ## 6. Take a mark off
@@ -143,5 +148,5 @@ key, with the notes, newest first.
 
 ## Marks made before 14 October 2026
 
-They have no check record, so from this version on they read as *name not checked*.
+They have no check record, so from this version on they read as *not verified*.
 That is intended. Run steps 1 to 4 for any lab that should show its name.

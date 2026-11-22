@@ -99,7 +99,7 @@ test('a lab signs a before/after kill-step pair; the producer checks them togeth
   await lab.goto('/records');
   await lab.getByRole('button', { name: "I'm a lab" }).click();
   await lab.getByRole('button', { name: /I run a lab/ }).click();
-  await lab.getByRole('button', { name: /Set up your lab.s signature/ }).click();
+  await lab.getByRole('button', { name: /Set up your lab.s signing key/ }).click();
   await lab.getByLabel(/^Name/).fill('E2E Micro Lab');
   await lab.getByRole('button', { name: /Create my key/ }).click();
   await lab.getByRole('button', { name: /^(Continue|Done)$/ }).click();
@@ -236,7 +236,7 @@ test('a lab signs a before/after kill-step pair; the producer checks them togeth
   expect(pageText).not.toMatch(/as reported\s*:?\s*0\b/i);
   await after.locator('[data-lab-name-find]').click();
   await expect(after).toHaveAttribute('data-signer', 'bound', { timeout: 20_000 });
-  await expect(after).toContainText('Signed by a key named “E2E Micro Lab” (name not checked)');
+  await expect(after).toContainText('Signed by a key calling itself “E2E Micro Lab” (not verified)');
   await shot(producer, 'viability-check-pair');
 
   // The producer adds the after result to its strain record, and sees it there.

@@ -109,7 +109,7 @@ test('the holder shows no lab signature, then one lab report: the check page say
   await lab.goto('/records');
   await lab.getByRole('button', { name: "I'm a lab" }).click();
   await lab.getByRole('button', { name: /I run a lab/ }).click();
-  await lab.getByRole('button', { name: /Set up your lab.s signature/ }).click();
+  await lab.getByRole('button', { name: /Set up your lab.s signing key/ }).click();
   await lab.getByLabel(/^Name/).fill('E2E Lab');
   await lab.getByRole('button', { name: /Create my key/ }).click();
   await lab.getByRole('button', { name: /^(Continue|Done)$/ }).click();
@@ -137,7 +137,7 @@ test('the holder shows no lab signature, then one lab report: the check page say
   await breeder.getByRole('button', { name: /Save it to this plant/ }).click();
   await expect(breeder.getByRole('heading', { name: /Save your DNA report to this plant/ })).toBeVisible();
   await breeder.getByRole('button', { name: /Save it to this plant/ }).click();
-  await expect(breeder.locator('[data-lab-match]')).toContainText('signed by a key named “E2E Lab”');
+  await expect(breeder.locator('[data-lab-match]')).toContainText('signed by a key calling itself “E2E Lab”');
   await breeder.getByRole('button', { name: /Back to the plant/ }).click();
   await expect(breeder.locator('[data-status-row="DNA report"]')).toContainText('Tied to the plant');
 
@@ -167,7 +167,7 @@ test('the holder shows no lab signature, then one lab report: the check page say
   await expect(section.locator('[data-lab-share]')).toHaveCount(2);
   for (const s of await section.getByRole('switch').all()) await expect(s).not.toBeChecked();
   await expect(section).toContainText(
-    'Show that a key named “E2E Lab” (name not checked) signed this on your check link',
+    'Show that a key calling itself “E2E Lab” (not verified) signed this on your check link',
   );
   await expect(section).toContainText(/Receipt for a sample, signed /);
   await expect(section).toContainText(/Lab report, signed /);
@@ -205,7 +205,7 @@ test('the holder shows no lab signature, then one lab report: the check page say
       await expect(s.page.locator('[data-none-shown]')).toHaveText(
         'The holder hasn’t shown any lab signatures here. A lab’s receipts and reports are private unless the holder chooses to show them.',
       );
-      await expect(s.page.getByText(/signature verified in this browser/)).toHaveCount(0);
+      await expect(s.page.getByText(/signature checked in this browser/)).toHaveCount(0);
       // The custody line is still said, without the lab.
       await expect(s.page.locator('[data-unnamed-custody]')).toHaveText(
         'A lab’s receipt for a sample from this record, as the registry reports it. The holder hasn’t shown which lab signed it.',
@@ -216,7 +216,7 @@ test('the holder shows no lab signature, then one lab report: the check page say
       );
       expect(await text()).not.toContain('E2E Lab');
     } else {
-      await expect(s.page.getByText(/Lab.s receipt for a sample, signature verified in this browser/)).toBeVisible();
+      await expect(s.page.getByText(/Lab.s receipt for a sample, signature checked in this browser/)).toBeVisible();
     }
     expect(await text()).not.toMatch(/has been signed about this record|No lab has signed/);
     expect(s.asked).toEqual([]);
@@ -253,7 +253,7 @@ test('the holder shows no lab signature, then one lab report: the check page say
   }
   {
     const s = await stranger(browser, linkOne);
-    await expect(s.page.getByText(/Lab report, signature verified in this browser/)).toBeVisible();
+    await expect(s.page.getByText(/Lab report, signature checked in this browser/)).toBeVisible();
     await s.page
       .locator('[data-dna-file]')
       .setInputFiles({ name: 'sent.pdf', mimeType: 'application/pdf', buffer: report });
@@ -262,7 +262,7 @@ test('the holder shows no lab signature, then one lab report: the check page say
     ).toBeVisible();
     if (labPrivate) {
       // That one and no other: not the receipt, which the holder didn't show.
-      await expect(s.page.getByText(/signature verified in this browser/)).toHaveCount(1);
+      await expect(s.page.getByText(/signature checked in this browser/)).toHaveCount(1);
       await expect(s.page.getByText(/Lab.s receipt for a sample, signature verified/)).toHaveCount(0);
       await expect(s.page.locator('[data-none-shown]')).toHaveCount(0);
       await expect(s.page.locator('[data-unnamed-custody]')).toHaveCount(1);

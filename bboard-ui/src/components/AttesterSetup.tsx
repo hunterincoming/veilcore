@@ -44,7 +44,9 @@ import { prepareToReceive } from '../veilcore/receive';
 import { didDocumentFor, didVerificationMethod, LAB_DOMAIN } from '../veilcore/lab-domain';
 import { labChanged } from '../veilcore/lab-results';
 import { BackupStep } from './flow/BackupStep';
-import { Link as RouterLink } from 'react-router-dom';
+import { LabOwnLevel } from './LabOwnLevel';
+import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
+import { OPEN_SIGNING_KEY_STATE } from '../veilcore/role';
 import { rich, useT } from '../i18n/app';
 import type { AppKey } from '../i18n/app/en';
 
@@ -115,8 +117,9 @@ export const AttesterSetup: React.FC<{
   // A checked backup holds this key: saved here just now, or at any time before (attester-keys.ts).
   const keySafe = backedUp || labKeyBackedUp();
   const { t } = useT();
-  // Folded until asked for (a lab tested it, 8 Nov): matching the name, other ways, the raw key.
-  const [showMatch, setShowMatch] = useState(false);
+  // Folded until asked for (a lab tested it, 8 Nov): did:web and the raw key. Showing the name as
+  // the lab's (an email, or its own website: the file or a DNS TXT record) is shown open since the
+  // co-founder looked for the website step and didn't find it (21 Nov).
   const [showOther, setShowOther] = useState(false);
   const [showKey, setShowKey] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -166,6 +169,17 @@ export const AttesterSetup: React.FC<{
     window.addEventListener(OPEN_SIGNING_KEY_EVENT, show);
     return () => window.removeEventListener(OPEN_SIGNING_KEY_EVENT, show);
   }, []);
+
+  // Sent here by the lab door (/for-labs, lab/LabDoor.tsx): open, if this browser has no key yet. The
+  // ask is taken off the history entry, so going back or reloading doesn't open it again.
+  const location = useLocation();
+  const navigate = useNavigate();
+  useEffect(() => {
+    const asked = (location.state as Record<string, unknown> | null)?.[OPEN_SIGNING_KEY_STATE] === true;
+    if (!asked) return;
+    if (!loadAttester()) setOpen(true);
+    void navigate(`${location.pathname}${location.search}`, { replace: true, state: null });
+  }, [location.state]);
 
   const setup = async () => {
     if (!name.trim()) return;
@@ -270,6 +284,16 @@ export const AttesterSetup: React.FC<{
                   {t('app.lab.key.ready')}
                 </Typography>
               )}
+              {/* How check pages show this key now, and the one step up (docs/lab-identity-levels.md). */}
+              {profile.registeredAt && (
+                <LabOwnLevel
+                  publicKey={profile.keypair.publicKey}
+                  // The website steps are open below (lab-door, 21 Nov): take the lab straight to them.
+                  onWebsite={() =>
+                    document.querySelector('[data-lab-domain-setup]')?.scrollIntoView({ block: 'center' })
+                  }
+                />
+              )}
               {keySafe ? (
                 <Alert severity="success" variant="outlined" data-lab-backed-up="">
                   {t('app.lab.key.backedUp')}
@@ -290,104 +314,105 @@ export const AttesterSetup: React.FC<{
                   </Button>
                 </Stack>
               )}
-              <Fold
-                label={t('app.lab.key.optional.title')}
-                open={showMatch}
-                onToggle={() => setShowMatch(!showMatch)}
-                data="lab-key-optional"
-              >
-                <Stack spacing={1.25} data-lab-key-optional-body="">
-                  <Typography variant="body2" color="text.secondary">
-                    {t('app.lab.key.optional.intro')}
-                  </Typography>
-                  <Box component="ol" sx={{ m: 0, pl: 3, '& > li': { mb: 1.5 } }}>
-                    <li>
-                      <Typography variant="body2">
-                        {rich(t('app.lab.key.optional.step1'), {
-                          mail: (c) => <Link href="mailto:hunter@veilcore.org">{c}</Link>,
-                        })}
-                      </Typography>
-                    </li>
-                    {profile.registeredAt && (
-                      <li data-lab-domain-setup="">
-                        <Stack spacing={1}>
-                          <Typography variant="body2">{t('app.lab.key.optional.step2')}</Typography>
-                          <Button
-                            variant="outlined"
-                            onClick={() => saveLabFile(profile)}
-                            sx={{ alignSelf: 'flex-start' }}
-                          >
-                            {t('app.lab.key.domain.saveFile')}
-                          </Button>
-                          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
-                            <TextField
-                              size="small"
-                              label={t('app.lab.key.domain.field')}
-                              placeholder="acme-labs.com"
-                              value={domain}
-                              onChange={(e) => setDomain(e.target.value)}
-                              fullWidth
-                            />
-                            <Button
-                              variant="outlined"
-                              onClick={() => void look(profile)}
-                              disabled={busy || !domain.trim()}
-                            >
-                              {t('app.lab.key.domain.look')}
-                            </Button>
-                          </Stack>
-                          {looked && (
-                            <Alert severity={looked.severity} variant="outlined" data-lab-domain-result="">
-                              {looked.text}
-                            </Alert>
-                          )}
-                        </Stack>
-                      </li>
-                    )}
-                  </Box>
+              {/* Optional, and open: a heading, not a fold (21 Nov). */}
+              <Stack spacing={1.25} data-lab-key-optional-body="">
+                <Typography variant="subtitle2" component="h3" sx={{ fontWeight: 700 }}>
+                  {t('app.lab.key.optional.title')}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {t('app.lab.key.optional.intro')}
+                </Typography>
+                <Box component="ol" sx={{ m: 0, pl: 3, '& > li': { mb: 1.5 } }}>
+                  <li>
+                    <Typography variant="body2">
+                      {rich(t('app.lab.key.optional.step1'), {
+                        mail: (c) => <Link href="mailto:hunter@veilcore.org">{c}</Link>,
+                      })}
+                    </Typography>
+                  </li>
                   {profile.registeredAt && (
-                    <Fold
-                      label={t('app.lab.key.optional.otherWays')}
-                      open={showOther}
-                      onToggle={() => setShowOther(!showOther)}
-                      data="lab-key-other-ways"
-                    >
-                      <Typography variant="body2" color="text.secondary">
-                        {t('app.lab.key.domain.orTxt')}
-                      </Typography>
-                      <Typography sx={{ fontFamily: 'monospace', fontSize: 12, wordBreak: 'break-all', mt: 0.5 }}>
-                        {labTxtFor(profile)}
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-                        {t('app.lab.key.domain.orDid')}
-                      </Typography>
-                      {didDomain && (
-                        <Stack spacing={1} sx={{ mt: 0.5 }} data-lab-did="">
-                          <Typography
-                            component="pre"
-                            sx={{
-                              fontFamily: 'monospace',
-                              fontSize: 12,
-                              whiteSpace: 'pre-wrap',
-                              wordBreak: 'break-all',
-                              m: 0,
-                            }}
-                          >
-                            {JSON.stringify(didVerificationMethod(didDomain, profile.keypair.publicKey), null, 2)}
+                    <li data-lab-domain-setup="">
+                      <Stack spacing={1}>
+                        <Typography variant="body2">{t('app.lab.key.optional.step2')}</Typography>
+                        <Button
+                          variant="outlined"
+                          onClick={() => saveLabFile(profile)}
+                          sx={{ alignSelf: 'flex-start' }}
+                        >
+                          {t('app.lab.key.domain.saveFile')}
+                        </Button>
+                        {/* The DNS way, beside the file: a lab that can't put a file on its
+                            website looks for it here. */}
+                        <Box data-lab-domain-txt="">
+                          <Typography variant="body2" color="text.secondary">
+                            {t('app.lab.key.domain.orTxt')}
                           </Typography>
+                          <Typography sx={{ fontFamily: 'monospace', fontSize: 12, wordBreak: 'break-all', mt: 0.5 }}>
+                            {labTxtFor(profile)}
+                          </Typography>
+                        </Box>
+                        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
+                          <TextField
+                            size="small"
+                            label={t('app.lab.key.domain.field')}
+                            placeholder="acme-labs.com"
+                            value={domain}
+                            onChange={(e) => setDomain(e.target.value)}
+                            fullWidth
+                          />
                           <Button
                             variant="outlined"
-                            onClick={() => saveFile(didDocumentFor(didDomain, profile.keypair.publicKey), 'did.json')}
-                            sx={{ alignSelf: 'flex-start' }}
+                            onClick={() => void look(profile)}
+                            disabled={busy || !domain.trim()}
                           >
-                            {t('app.lab.key.domain.saveDid')}
+                            {t('app.lab.key.domain.look')}
                           </Button>
                         </Stack>
-                      )}
-                    </Fold>
+                        {looked && (
+                          <Alert severity={looked.severity} variant="outlined" data-lab-domain-result="">
+                            {looked.text}
+                          </Alert>
+                        )}
+                      </Stack>
+                    </li>
                   )}
-                </Stack>
-              </Fold>
+                </Box>
+                {profile.registeredAt && (
+                  <Fold
+                    label={t('app.lab.key.optional.otherWays')}
+                    open={showOther}
+                    onToggle={() => setShowOther(!showOther)}
+                    data="lab-key-other-ways"
+                  >
+                    <Typography variant="body2" color="text.secondary">
+                      {t('app.lab.key.domain.orDid')}
+                    </Typography>
+                    {didDomain && (
+                      <Stack spacing={1} sx={{ mt: 0.5 }} data-lab-did="">
+                        <Typography
+                          component="pre"
+                          sx={{
+                            fontFamily: 'monospace',
+                            fontSize: 12,
+                            whiteSpace: 'pre-wrap',
+                            wordBreak: 'break-all',
+                            m: 0,
+                          }}
+                        >
+                          {JSON.stringify(didVerificationMethod(didDomain, profile.keypair.publicKey), null, 2)}
+                        </Typography>
+                        <Button
+                          variant="outlined"
+                          onClick={() => saveFile(didDocumentFor(didDomain, profile.keypair.publicKey), 'did.json')}
+                          sx={{ alignSelf: 'flex-start' }}
+                        >
+                          {t('app.lab.key.domain.saveDid')}
+                        </Button>
+                      </Stack>
+                    )}
+                  </Fold>
+                )}
+              </Stack>
               <Box data-lab-public-key="">
                 <Button
                   size="small"

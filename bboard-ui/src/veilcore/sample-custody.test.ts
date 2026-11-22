@@ -309,7 +309,7 @@ describe('the breeder’s receipt with the sample’s chain of custody', () => {
       'Received: Sample BLU-07 · seal 4417, seal intact · arrived 2026-10-15 · condition: Cold, dry · lab no. ACC-9',
     ]);
     // The certificate's receipt line itself is unchanged; the sample lines go under it.
-    expect(receiptLineFor(plant(), r)).toMatch(/^Receipt signed by a key named “Test Lab” \(name not checked\)/);
+    expect(receiptLineFor(plant(), r)).toMatch(/^Receipt signed by a key calling itself “Test Lab” \(not verified\)/);
   });
 
   it('a matching receipt says what matched', async () => {

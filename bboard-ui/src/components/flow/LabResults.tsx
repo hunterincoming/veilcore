@@ -75,6 +75,7 @@ import type { LabResultBundle, ProblemCode } from '../../veilcore/lab-result';
 import type { AppKey } from '../../i18n/app/en';
 import { OPEN_SIGNING_KEY_EVENT } from '../AttesterSetup';
 import { NameCheckText } from '../NameCheckText';
+import { labIdentitySeverity } from '../../veilcore/lab-identity-words';
 import { focusScreenHeading } from './FlowFrame';
 import {
   deleteResult,
@@ -444,20 +445,14 @@ const SignerLine: React.FC<{ signer: ReportSigner }> = ({ signer }) => {
     );
   }
   const a = signer.report;
-  // One label for every screen (attesters.ts signerLabel): a checked name says what was
-  // matched, where and when; any other reads "name not checked".
+  // One label for every screen (attesters.ts signerLabel), with the key's level in words.
   const label = signerLabel(a, 'Signed by', undefined, tr);
+  // The box takes the key's level (lab-identity-words.ts): green only for a listing match, never
+  // for a key nobody has verified; the level itself is said in words below.
   return (
-    <Alert severity={label.checked ? 'success' : 'info'} variant="outlined" icon={<VerifiedIcon />}>
+    <Alert severity={labIdentitySeverity(label.identity.level)} variant="outlined" icon={<VerifiedIcon />}>
       {rich(t('app.lab.results.signed'), { b }, { lead: label.lead, key: short(a.attester.publicKey) })}
-      {label.checked ? (
-        <NameCheckText label={label} />
-      ) : (
-        <>
-          <NameCheckText label={label} />
-          {t('app.lab.results.anyName')}
-        </>
-      )}
+      <NameCheckText label={label} />
     </Alert>
   );
 };

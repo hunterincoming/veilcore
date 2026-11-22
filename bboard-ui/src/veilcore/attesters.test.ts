@@ -45,7 +45,7 @@ const att = (over: Partial<ResolvedAttestation> = {}, nameCheck: NameCheck | nul
 
 const CHECKED =
   'Receipt signed by Acme Labs. VeilCore’s operator matched this name to cannabis.example.gov (license TL-000123) on 2026-10-01. VeilCore doesn’t vouch for the lab’s work.';
-const NOT_CHECKED = 'Receipt signed by a key named “Acme Labs” (name not checked)';
+const NOT_CHECKED = 'Receipt signed by a key calling itself “Acme Labs” (not verified)';
 
 describe('signerLabel', () => {
   it('a current check states the listing host, the licence number and the day, and that VeilCore doesn’t vouch', () => {
@@ -91,9 +91,9 @@ describe('signerLabel', () => {
     const expired = att({}, check({ checkedAt: '2025-01-01', expiresAt: '2026-01-01' }));
     const s = strengthLabel(expired);
     expect(s.ok).toBe(false);
-    expect(s.label).toBe('Signed · name not checked');
+    expect(s.label).toBe('Signed · not verified');
     expect(s.why).toMatch(
-      /^Signed by a key named “Acme Labs” \(name not checked\)\. .*An earlier check of this name has expired\./,
+      /^Signed by a key calling itself “Acme Labs” \(not verified\)\. .*An earlier check of this name has expired\./,
     );
     const ok = strengthLabel(
       att(
@@ -105,7 +105,7 @@ describe('signerLabel', () => {
       ),
     );
     expect(ok.ok).toBe(true);
-    expect(ok.label).toBe('Signed · name matched to a public listing');
+    expect(ok.label).toBe('Signed · verified against a public listing');
   });
 
   it('a mark without a check record (made before round 4) and an unmarked key read "name not checked"', () => {
@@ -113,7 +113,7 @@ describe('signerLabel', () => {
     expect(signerLabel(att({ vettedAttester: false }), 'Receipt signed by', NOW).text).toBe(NOT_CHECKED);
     expect(signerLabel(att({ vettedAttester: undefined }), 'Receipt signed by', NOW).text).toBe(NOT_CHECKED);
     expect(signerLabel(att({ registeredAs: null, attester: { publicKey: LAB } }), 'Receipt signed by', NOW).text).toBe(
-      'Receipt signed by a key nobody has named',
+      'Receipt signed by a key nobody has named (not verified)',
     );
   });
 
@@ -163,7 +163,7 @@ describe('a lab key published on the lab’s own domain (docs/lab-domain-keys.md
     const s = signerLabel(withDomain(null), 'Receipt signed by', NOW);
     expect(s.checked).toBe(false);
     expect(s.text).toBe(
-      `${NOT_CHECKED}. The key names the website acmelabs.example, and VeilCore found it listed there on 2026-10-14.`,
+      `Receipt signed by a key calling itself “Acme Labs”, listed by acmelabs.example. The key names the website acmelabs.example, and VeilCore found it listed there on 2026-10-14.`,
     );
     expect(s.published?.href).toBe('https://acmelabs.example/.well-known/veilcore-lab.json');
     expect(`${s.lead}.${s.rest}`).toBe(s.text);

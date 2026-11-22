@@ -205,7 +205,7 @@ export const plant = {
   'app.plant.next.rejected.title': 'Sie haben diese Probe abgelehnt',
   'app.plant.next.rejected.why':
     'Es wurde nichts signiert. VeilCore benachrichtigt den Züchter nicht: Sagen Sie es ihm selbst, damit er eine andere senden kann.',
-  'app.plant.next.setup.title': 'Richten Sie die Signatur Ihres Labors ein',
+  'app.plant.next.setup.title': 'Richten Sie den Signaturschlüssel Ihres Labors ein',
   'app.plant.next.setup.why':
     'Dann können Sie signieren, dass diese Probe angekommen ist, und den Laborbericht von Ihrem Labor signiert zurücksenden.',
   'app.plant.next.setup.action': 'Einrichten',

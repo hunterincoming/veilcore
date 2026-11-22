@@ -51,7 +51,7 @@ test('a lab signs numbers with its report; the breeder adds them; the record nam
   await lab.goto('/records');
   await lab.getByRole('button', { name: "I'm a lab" }).click();
   await lab.getByRole('button', { name: /I run a lab/ }).click();
-  await lab.getByRole('button', { name: /Set up your lab.s signature/ }).click();
+  await lab.getByRole('button', { name: /Set up your lab.s signing key/ }).click();
   await lab.getByLabel(/^Name/).fill('E2E Lab');
   await lab.getByRole('button', { name: /Create my key/ }).click();
   await lab.getByRole('button', { name: /^(Continue|Done)$/ }).click();
@@ -108,7 +108,7 @@ test('a lab signs numbers with its report; the breeder adds them; the record nam
   // The record: the lab named through its binding, unchecked, as every page says it.
   const panel = breeder.locator('[data-lab-signature]');
   await expect(panel.locator('[data-lab-signed="bound"]')).toBeVisible({ timeout: 20_000 });
-  await expect(panel).toContainText('Signed by a key named “E2E Lab” (name not checked)');
+  await expect(panel).toContainText('Signed by a key calling itself “E2E Lab” (not verified)');
   await expect(breeder.locator('[data-held-numbers]')).toContainText('Germination: 96.00');
   await expect(breeder.getByRole('heading', { name: 'GT-2026-0412' })).toBeVisible();
   await expect(breeder.locator('[data-lab-result-panel]')).toContainText('GT-2026-0412');

@@ -88,7 +88,7 @@ test('a lab signs results bound to a record; the breeder checks them, adds one, 
   await lab.goto('/records');
   await lab.getByRole('button', { name: "I'm a lab" }).click();
   await lab.getByRole('button', { name: /I run a lab/ }).click();
-  await lab.getByRole('button', { name: /Set up your lab.s signature/ }).click();
+  await lab.getByRole('button', { name: /Set up your lab.s signing key/ }).click();
   await lab.getByLabel(/^Name/).fill('E2E Lab');
   await lab.getByRole('button', { name: /Create my key/ }).click();
   await lab.getByRole('button', { name: /^(Continue|Done)$/ }).click();
@@ -229,7 +229,7 @@ test('a lab signs results bound to a record; the breeder checks them, adds one, 
   await expect(checked.locator('[data-lab-result-yours]')).toHaveCount(0);
   await checked.locator('[data-lab-name-find]').click();
   await expect(checked).toHaveAttribute('data-signer', 'bound', { timeout: 20_000 });
-  await expect(checked).toContainText('Signed by a key named “E2E Lab” (name not checked)');
+  await expect(checked).toContainText('Signed by a key calling itself “E2E Lab” (not verified)');
   await expect(checked.locator('[data-lab-result-call]')).toHaveText('Not detected');
   await expect(checked).toContainText('RT-qPCR HLVd SOP-14, version 3');
   await expect(checked).toContainText('VeilCore didn’t take or test this sample');

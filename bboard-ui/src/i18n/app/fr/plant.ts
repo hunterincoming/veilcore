@@ -202,7 +202,7 @@ export const plant = {
   'app.plant.next.rejected.title': 'Vous avez refusé cet échantillon',
   'app.plant.next.rejected.why':
     'Rien n’a été signé. VeilCore ne prévient pas l’obtenteur : informez-le vous-même, pour qu’il puisse en envoyer un autre.',
-  'app.plant.next.setup.title': 'Configurez la signature de votre laboratoire',
+  'app.plant.next.setup.title': 'Configurez la clé de signature de votre laboratoire',
   'app.plant.next.setup.why':
     'Vous pourrez alors signer que cet échantillon est arrivé, et renvoyer le rapport de laboratoire signé par votre laboratoire.',
   'app.plant.next.setup.action': 'La configurer',

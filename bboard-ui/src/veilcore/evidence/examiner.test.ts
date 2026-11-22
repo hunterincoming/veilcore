@@ -178,7 +178,7 @@ describe('EXAMINER-SUMMARY.html', () => {
     // Lab report, signature, sample receipt.
     expect(text).toContain(s.fileSha);
     expect(text).toContain(s.kp.publicKey);
-    expect(text).toMatch(/\(not checked\)/);
+    expect(text).toMatch(/\(not verified\)/);
     expect(text).toContain('Sent: Seal number');
     expect(text).toContain('Received: Seal on arrival');
     expect(text).toContain('Seal number differs: sent 4471, received 4417');
@@ -218,7 +218,7 @@ describe('EXAMINER-SUMMARY.html', () => {
     // Each hostile string is there, escaped, where it was typed.
     expect(html).toContain(escapeHtml(`Practice ${HOSTILE}`));
     expect(html).toContain(escapeHtml(`Notes ${HOSTILE}`));
-    expect(html).toContain(escapeHtml(`Lab ${HOSTILE} (not checked)`));
+    expect(html).toContain(escapeHtml(`Lab ${HOSTILE} (not verified)`));
     expect(html).toContain(escapeHtml(`J. Doe ${HOSTILE}`));
     expect(escapeHtml('<>&"\'`')).toBe('&#60;&#62;&#38;&#34;&#39;&#96;');
   });

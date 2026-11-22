@@ -183,7 +183,7 @@ test('a lab sends results back: signed by the lab, locked for the breeder, opene
     await page.goto(path);
     await expect(page.getByText('Shared by the holder · reported by the registry')).toBeVisible();
     // Wait for the signatures to be checked: the lab's receipt always has a line.
-    await expect(page.getByText(/Lab.s receipt for a sample, signature verified in this browser/)).toBeVisible();
+    await expect(page.getByText(/Lab.s receipt for a sample, signature checked in this browser/)).toBeVisible();
     // Round 6 (CONTRACT.md #34): a lab signs the report bound to the record, so which report it
     // signed is told only with the file the holder sent and the salt in the holder's link.
     if (file) {
@@ -239,7 +239,7 @@ test('a lab sends results back: signed by the lab, locked for the breeder, opene
   await lab.goto('/records');
   await lab.getByRole('button', { name: "I'm a lab" }).click();
   await lab.getByRole('button', { name: /I run a lab/ }).click();
-  await lab.getByRole('button', { name: /Set up your lab.s signature/ }).click();
+  await lab.getByRole('button', { name: /Set up your lab.s signing key/ }).click();
   await lab.getByLabel(/^Name/).fill('E2E Lab');
   await lab.getByRole('button', { name: /Create my key/ }).click();
   await lab.getByRole('button', { name: /^(Continue|Done)$/ }).click();
@@ -284,7 +284,7 @@ test('a lab sends results back: signed by the lab, locked for the breeder, opene
   // The breeder's plant: the lab's receipt, linked to this delivery, named as unchecked.
   await breeder.goto(`/record/${recordId}`);
   await expect(breeder.getByText('Receipt signed', { exact: true })).toBeVisible();
-  await expect(breeder.getByText('by a key named “E2E Lab” (name not checked)', { exact: true })).toBeVisible();
+  await expect(breeder.getByText('by a key calling itself “E2E Lab” (not verified)', { exact: true })).toBeVisible();
   await expect(breeder.getByText(/Confirmed by a lab/)).toHaveCount(0);
 
   // The breeder opens it.
@@ -293,7 +293,7 @@ test('a lab sends results back: signed by the lab, locked for the breeder, opene
     .filter({ hasText: /lab report came back/ })
     .getByRole('button', { name: 'Open' })
     .click();
-  await expect(breeder.getByText(/Signed by a key named “E2E Lab” \(name not checked\)/)).toBeVisible();
+  await expect(breeder.getByText(/Signed by a key calling itself “E2E Lab” \(not verified\)/)).toBeVisible();
   await expect(breeder.getByText(/The same key signed the receipt for this delivery/)).toBeVisible();
   await shot(breeder, 'breeder-2-opened');
   const [dl] = await Promise.all([
@@ -319,11 +319,11 @@ test('a lab sends results back: signed by the lab, locked for the breeder, opene
   await expect(breeder.getByText('PAIRING CODE', { exact: true })).toBeVisible();
   const reportSha = createHash('sha256').update(report).digest('hex');
   await expect(breeder.getByText(new RegExp(`File SHA-256: ${reportSha.slice(0, 12)}`))).toBeVisible();
-  await expect(breeder.locator('[data-lab-match]')).toContainText('signed by a key named “E2E Lab”');
+  await expect(breeder.locator('[data-lab-match]')).toContainText('signed by a key calling itself “E2E Lab”');
   await breeder.getByRole('button', { name: /Back to the plant/ }).click();
   await expect(breeder.locator('[data-status-row="DNA report"]')).toContainText('Tied to the plant');
   await expect(breeder.locator('[data-status-row="DNA report"]')).toContainText(
-    'DNA report signed by a key named “E2E Lab”',
+    'DNA report signed by a key calling itself “E2E Lab”',
   );
 
   // The buyer's page: the saved report matches a report the lab signed; no "Not confirmed by a lab".
@@ -364,9 +364,9 @@ test('a lab sends results back: signed by the lab, locked for the breeder, opene
     const buyerErrors = watch(buyer);
     await isolate(buyer);
     await buyer.goto(new URL(shareLink).pathname + new URL(shareLink).search + new URL(shareLink).hash);
-    await expect(buyer.getByText(/Lab.s receipt for a sample, signature verified in this browser/)).toBeVisible();
+    await expect(buyer.getByText(/Lab.s receipt for a sample, signature checked in this browser/)).toBeVisible();
     // The lab's signature names no file (round 6): nothing about the report is printed for it.
-    await expect(buyer.getByText(/Lab report, signature verified in this browser/)).toBeVisible();
+    await expect(buyer.getByText(/Lab report, signature checked in this browser/)).toBeVisible();
     await expect(buyer.getByText(/file SHA-256/)).toHaveCount(0);
     // With the file the holder sent: it is the saved report, and the one the lab signed.
     await buyer
@@ -433,7 +433,7 @@ test('a lab sends results back: signed by the lab, locked for the breeder, opene
   await breeder.getByRole('button', { name: /Back to the plant/ }).click();
   await expect(breeder.locator('[data-status-row="DNA report"]')).toContainText('Tied to the plant');
   await expect(breeder.locator('[data-status-row="DNA report"]')).toContainText(
-    'DNA report signed by a key named “E2E Lab”',
+    'DNA report signed by a key calling itself “E2E Lab”',
   );
   // The corrected report is a new lab signature, private until shown (8 Nov 2026): the share
   // screen suggests it, as the saved report's match.

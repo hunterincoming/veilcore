@@ -404,7 +404,7 @@ export const examinerSummaryHtml = (ev: Evidence, sigs: readonly SignatureLine[]
         `${s.what ?? s.type ?? ''}${s.savedReport ? ` (the lab report saved to this ${subject})` : ''}`,
       ],
       ['Signing key', s.publicKey ?? null],
-      ['Name it gives itself', s.displayName ? `${s.displayName} (not checked)` : null],
+      ['Name it gives itself', s.displayName ? `${s.displayName} (not verified)` : null],
       [
         s.type === 'chain-of-custody'
           ? 'Signed code (the lab’s record of the delivery, not the sample)'

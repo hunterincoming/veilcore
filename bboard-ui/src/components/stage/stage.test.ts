@@ -210,9 +210,9 @@ describe('Date this lab report: what is sealed', () => {
       resultId: 'LR-3f2a9c01',
     };
     const f = labReportFacts(plant, saved);
-    expect(f).toEqual({ sha: SHA, resultId: 'LR-3f2a9c01', lab: 'a key named “Test Lab” (name not checked)' });
+    expect(f).toEqual({ sha: SHA, resultId: 'LR-3f2a9c01', lab: 'a key calling itself “Test Lab” (not verified)' });
     expect(labReportNotes(f!)).toBe(
-      `Lab report SHA-256: ${SHA}\nResult: LR-3f2a9c01\nLab: a key named “Test Lab” (name not checked)`,
+      `Lab report SHA-256: ${SHA}\nResult: LR-3f2a9c01\nLab: a key calling itself “Test Lab” (not verified)`,
     );
   });
 

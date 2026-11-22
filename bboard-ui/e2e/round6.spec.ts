@@ -80,7 +80,7 @@ test.describe('round 6 against a real registry: the lab report hash and the name
     await lab.goto('/records');
     await lab.getByRole('button', { name: "I'm a lab" }).click();
     await lab.getByRole('button', { name: /I run a lab/ }).click();
-    await lab.getByRole('button', { name: /Set up your lab.s signature/ }).click();
+    await lab.getByRole('button', { name: /Set up your lab.s signing key/ }).click();
     await lab.getByLabel(/^Name/).fill('Round6 Lab');
     await lab.getByRole('button', { name: /Create my key/ }).click();
     await lab.getByRole('button', { name: /^(Continue|Done)$/ }).click();
@@ -159,7 +159,7 @@ test.describe('round 6 against a real registry: the lab report hash and the name
       await expect(buyer.locator('[data-none-shown]')).toHaveText(
         'The holder hasn’t shown any lab signatures here. A lab’s receipts and reports are private unless the holder chooses to show them.',
       );
-      await expect(buyer.getByText(/signature verified in this browser/)).toHaveCount(0);
+      await expect(buyer.getByText(/signature checked in this browser/)).toHaveCount(0);
       await buyer
         .locator('[data-dna-file]')
         .setInputFiles({ name: 'report.pdf', mimeType: 'application/pdf', buffer: report });
@@ -169,7 +169,7 @@ test.describe('round 6 against a real registry: the lab report hash and the name
       ).toBeVisible();
       expect(await buyer.locator('main').innerText()).not.toContain('Round6 Lab');
     } else {
-      await expect(buyer.getByText(/Lab.s receipt for a sample, signature verified in this browser/)).toBeVisible();
+      await expect(buyer.getByText(/Lab.s receipt for a sample, signature checked in this browser/)).toBeVisible();
     }
     expect(await buyer.locator('main').innerText()).not.toMatch(/has been signed about this record|No lab has signed/);
 
@@ -211,7 +211,7 @@ test.describe('round 6 against a real registry: the lab report hash and the name
     // A fresh load: the page read the first link's answer, from before the holder showed it.
     await buyer.goto('about:blank');
     await buyer.goto(`${u.pathname}${u.search}#${forgedH.toString()}`);
-    await expect(buyer.getByText(/Lab report, signature verified in this browser/)).toBeVisible();
+    await expect(buyer.getByText(/Lab report, signature checked in this browser/)).toBeVisible();
     await expect(buyer.locator('[data-name-check="differs"]')).toContainText(
       `This name does not match the record: ${FORGED}`,
     );
@@ -220,7 +220,7 @@ test.describe('round 6 against a real registry: the lab report hash and the name
     await buyer.goto(`${u.pathname}${u.search}${u.hash}`);
     await expect(buyer.locator('[data-holder-name]')).toHaveAttribute('data-name-check', 'matches');
     await expect(buyer.locator('[data-holder-name]')).toContainText(`Name matches the record: ${NAME}`);
-    await expect(buyer.getByText(/Lab report, signature verified in this browser/)).toBeVisible();
+    await expect(buyer.getByText(/Lab report, signature checked in this browser/)).toBeVisible();
     await buyer
       .locator('[data-dna-file]')
       .setInputFiles({ name: 'report.pdf', mimeType: 'application/pdf', buffer: report });

@@ -182,7 +182,7 @@ const checkRetraction = async (r: unknown, a: SignedAttestation): Promise<Retrac
  * whatever the registry sent in that field is dropped. A row with no claim, or one that doesn't
  * verify, loses the line: the key never named that website as far as anyone can check.
  */
-const checkDomainRecords = async (
+export const checkDomainRecords = async (
   publicKey: string,
   registeredAs: unknown,
 ): Promise<{ domainCheck?: DomainCheck | null; domainWithdrawn?: DomainWithdrawn | null }> => {
@@ -481,6 +481,88 @@ export const currentDomainWithdrawal = (
   };
 };
 
+/**
+ * How far a signer's key is verified (docs/lab-identity-levels.md): one answer per signature,
+ * worked out from the same checks the label's sentences use, so a page can never show a level
+ * its words don't back. In order, the first that holds:
+ *
+ *   website-withdrawn  the website the key named stopped listing it (a dated fact, on a
+ *                      retracted signature too): said first, as a lab disowning a key matters most;
+ *   listing            VeilCore's operator matched the key's name to a public listing, current;
+ *   website            the key names a website and the registry's last look found it listed there
+ *                      (with a note when the operator took a listing match off: a renamed lab's
+ *                      match is taken off too, and the registry doesn't say why on a signature);
+ *   listing-withdrawn  the operator took that match off (the registry's nameCheckStatus);
+ *   expired            an earlier listing check has expired;
+ *   none               nothing: anyone can make a key with any name.
+ *
+ * It says who holds a key as far as anyone can tell, never anything about the lab's work.
+ */
+export type LabIdentity = { name: string | null } & (
+  | { level: 'none' | 'expired' | 'listing-withdrawn' }
+  | { level: 'website'; domain: string; href: string; date: string; listingWithdrawn?: true }
+  | { level: 'website-withdrawn'; domain: string; href: string; date: string }
+  | {
+      level: 'listing';
+      listing: string;
+      href: string;
+      date: string;
+      /** YYYY-MM-DD: the check stops counting at the start of this day. */
+      until: string;
+      licenceNo?: string;
+      source: NameCheck['source'];
+      /** The key's website too, when one lists it. */
+      website?: { domain: string; href: string; date: string };
+    }
+);
+
+export type LabIdentityLevel = LabIdentity['level'];
+
+/** Every level, strongest identity first (the order a lab climbs is the reverse). */
+export const LAB_IDENTITY_LEVELS: readonly LabIdentityLevel[] = [
+  'listing',
+  'website',
+  'listing-withdrawn',
+  'expired',
+  'none',
+  'website-withdrawn',
+];
+
+export const labIdentity = (a: ResolvedAttestation, now: number = Date.now()): LabIdentity => {
+  const check = countsAsSigned(a) ? currentNameCheck(a, now) : null;
+  const dw = currentDomainWithdrawal(a, now);
+  const dc = dw ? null : currentDomainCheck(a, now);
+  const raw = (check?.checkedName ?? a.registeredAs?.displayName ?? a.attester.displayName)?.trim();
+  const name = raw ? raw : null;
+  if (dw) return { name, level: 'website-withdrawn', domain: dw.domain, href: dw.href, date: dw.date };
+  if (check)
+    return {
+      name,
+      level: 'listing',
+      listing: check.sourceHost,
+      href: check.sourceUrl,
+      date: check.checkedAt,
+      until: check.expiresAt,
+      ...(check.licenceNo ? { licenceNo: check.licenceNo } : {}),
+      source: check.source,
+      ...(dc ? { website: { domain: dc.domain, href: dc.href, date: dc.date } } : {}),
+    };
+  const unmarked = a.registeredAs?.nameCheckStatus === 'withdrawn';
+  if (dc)
+    return {
+      name,
+      level: 'website',
+      domain: dc.domain,
+      href: dc.href,
+      date: dc.date,
+      ...(unmarked ? { listingWithdrawn: true as const } : {}),
+    };
+  if (unmarked) return { name, level: 'listing-withdrawn' };
+  const record: unknown = a.registeredAs?.nameCheck;
+  const expired = a.registeredAs?.nameCheckStatus === 'expired' || (isObject(record) && dayMs(record.expiresAt) <= now);
+  return { name, level: expired ? 'expired' : 'none' };
+};
+
 /** A name check that counts, on a signature that counts. Used everywhere a page names a signer. */
 export const nameChecked = (a: ResolvedAttestation, now: number = Date.now()): boolean =>
   countsAsSigned(a) && currentNameCheck(a, now) !== null;
@@ -507,6 +589,8 @@ export type SignerLabel = {
   rest: string;
   /** The whole label as plain text. */
   text: string;
+  /** How far the key is verified (labIdentity): what LabIdentityBadge shows in words. */
+  identity: LabIdentity;
 };
 
 /**
@@ -534,6 +618,7 @@ export const signerLabel = (
   now: number = Date.now(),
   tr: Translator = enT,
 ): SignerLabel => {
+  const identity = labIdentity(a, now);
   const check = countsAsSigned(a) ? currentNameCheck(a, now) : null;
   // A withdrawal wins: a website the key named disowning it matters more than another listing
   // it (the registry serves no listing while one stands; this holds for an older answer too).
@@ -588,10 +673,23 @@ export const signerLabel = (
       published,
       rest,
       text: tr.t('app.signer.text', { lead, rest }),
+      identity,
     };
   }
   const name = (a.registeredAs?.displayName ?? a.attester.displayName)?.trim();
-  const who = name ? tr.t('app.signer.keyNamed', { name }) : tr.t('app.signer.keyUnnamed');
+  // The level in the words themselves, so a line that is only text (a PDF, a list) says it too.
+  const who =
+    identity.level === 'website'
+      ? name
+        ? tr.t('app.signer.keyWebsite', { name, domain: identity.domain })
+        : tr.t('app.signer.keyWebsiteUnnamed', { domain: identity.domain })
+      : identity.level === 'website-withdrawn'
+        ? name
+          ? tr.t('app.signer.keyWithdrawn', { name, domain: identity.domain })
+          : tr.t('app.signer.keyWithdrawnUnnamed', { domain: identity.domain })
+        : name
+          ? tr.t('app.signer.keyNamed', { name })
+          : tr.t('app.signer.keyUnnamed');
   const lead = leadOf(who);
   if (published)
     return {
@@ -603,8 +701,9 @@ export const signerLabel = (
       published,
       rest: publishedText,
       text: tr.t('app.signer.text', { lead, rest: publishedText }),
+      identity,
     };
-  return { checked: false, lead, who, match: null, disclaimer: null, published: null, rest: '', text: lead };
+  return { checked: false, lead, who, match: null, disclaimer: null, published: null, rest: '', text: lead, identity };
 };
 
 /** What to tell a breeder about how much an attestation is worth. */
@@ -647,13 +746,20 @@ export const strengthLabel = (
       ok: true,
     };
   }
-  const record: unknown = a.registeredAs?.nameCheck;
-  const expired =
-    a.registeredAs?.nameCheckStatus === 'expired' || (isObject(record) && dayMs(record.expiresAt) <= Date.now())
-      ? tr.t('app.lab.strength.expired')
-      : '';
+  const id = s.identity;
+  if (id.level === 'website' || id.level === 'website-withdrawn') {
+    const gone = id.level === 'website-withdrawn';
+    return {
+      label: tr.t(gone ? 'app.lab.strength.websiteWithdrawn' : 'app.lab.strength.website', { domain: id.domain }),
+      why:
+        tr.t(gone ? 'app.lab.strength.websiteWithdrawnWhy' : 'app.lab.strength.websiteWhy', { text: s.text }) +
+        unverifiedRetraction,
+      ok: false,
+    };
+  }
+  const expired = id.level === 'expired' ? tr.t('app.lab.strength.expired') : '';
   return {
-    label: tr.t('app.lab.strength.notChecked'),
+    label: tr.t(id.level === 'listing-withdrawn' ? 'app.lab.strength.listingWithdrawn' : 'app.lab.strength.notChecked'),
     why:
       (a.registeredAs?.displayName
         ? tr.t('app.lab.strength.anyName', { text: s.text, expired })

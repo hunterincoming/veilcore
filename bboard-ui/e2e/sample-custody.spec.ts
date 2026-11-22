@@ -124,7 +124,7 @@ const sendAndReceive = async (browser: Browser, t: Typed, arrivedSeal: string, t
   await lab.goto('/records');
   await lab.getByRole('button', { name: "I'm a lab" }).click();
   await lab.getByRole('button', { name: /I run a lab/ }).click();
-  await lab.getByRole('button', { name: /Set up your lab.s signature/ }).click();
+  await lab.getByRole('button', { name: /Set up your lab.s signing key/ }).click();
   await lab.getByLabel(/^Name/).fill('E2E Lab');
   await lab.getByRole('button', { name: /Create my key/ }).click();
   await lab.getByRole('button', { name: /^(Continue|Done)$/ }).click();
@@ -447,7 +447,7 @@ test('the whole way round: logged, backed up, sent with sample details; received
   await lab.goto('/records');
   await lab.getByRole('button', { name: "I'm a lab" }).click();
   await lab.getByRole('button', { name: /I run a lab/ }).click();
-  await lab.getByRole('button', { name: /Set up your lab.s signature/ }).click();
+  await lab.getByRole('button', { name: /Set up your lab.s signing key/ }).click();
   await lab.getByLabel(/^Name/).fill('E2E Lab');
   await lab.getByRole('button', { name: /Create my key/ }).click();
   await lab.getByRole('button', { name: /^(Continue|Done)$/ }).click();
@@ -486,7 +486,7 @@ test('the whole way round: logged, backed up, sent with sample details; received
     .filter({ hasText: /lab report came back/ })
     .getByRole('button', { name: 'Open' })
     .click();
-  await expect(breeder.getByText(/Signed by a key named “E2E Lab” \(name not checked\)/)).toBeVisible();
+  await expect(breeder.getByText(/Signed by a key calling itself “E2E Lab” \(not verified\)/)).toBeVisible();
   const [dl] = await Promise.all([
     breeder.waitForEvent('download'),
     breeder.getByRole('button', { name: /Download the file/ }).click(),

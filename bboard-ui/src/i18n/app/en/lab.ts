@@ -16,11 +16,70 @@ export const lab = {
   'app.signer.disclaimer': 'VeilCore doesn’t vouch for the lab’s work.',
   'app.signer.rest': ' {before}{host}{after} {disclaimer}',
   'app.signer.text': '{lead}.{rest}',
-  'app.signer.keyNamed': 'a key named “{name}” (name not checked)',
-  'app.signer.keyUnnamed': 'a key nobody has named',
+  'app.signer.keyNamed': 'a key calling itself “{name}” (not verified)',
+  'app.signer.keyUnnamed': 'a key nobody has named (not verified)',
+  'app.signer.keyWebsite': 'a key calling itself “{name}”, listed by {domain}',
+  'app.signer.keyWebsiteUnnamed': 'a key listed by {domain}',
+  'app.signer.keyWithdrawn': 'a key calling itself “{name}” (withdrawn by {domain})',
+  'app.signer.keyWithdrawnUnnamed': 'a key nobody has named (withdrawn by {domain})',
   'app.signer.domainBefore': 'The key names the website ',
   'app.signer.domainAfter': ', and VeilCore found it listed there on {date}.',
   'app.signer.domainWithdrawn': ', but VeilCore found it no longer listed there on {date}.',
+  // How far a signer's key is verified (attesters.ts labIdentity, LabIdentityBadge.tsx).
+  'app.labid.aria': 'Who holds the signing key',
+  'app.labid.dash': ' — ',
+  'app.labid.calls': 'this key calls itself “{name}”.',
+  'app.labid.callsNone': 'this key has no name.',
+  'app.labid.none.title': 'Not verified',
+  'app.labid.none.body': 'Anyone can make a key with any name. Check with the lab before relying on it.',
+  'app.labid.expired.body':
+    'Its earlier check against a public listing has expired. Anyone can make a key with any name. Check with the lab before relying on it.',
+  'app.labid.website.title': 'Listed on {domain}',
+  'app.labid.website.body':
+    'that website lists this key, and the key names that website. VeilCore last saw it there on {date}. VeilCore doesn’t check who runs the website: make sure it is the lab’s own, not a lookalike.',
+  'app.labid.website.unmarked': 'VeilCore’s operator has taken off an earlier match of this key to a public listing.',
+  'app.labid.listing.title': 'Verified against {listing}',
+  'app.labid.listing.body':
+    'VeilCore’s operator matched the name “{name}” to this public listing{number} on {date}, and the lab confirmed the key from an email address at the lab’s domain. The match counts until {until}.',
+  'app.labid.listing.website': '{domain} also lists this key (VeilCore last saw it there on {date}).',
+  'app.labid.websiteWithdrawn.title': 'Withdrawn by website',
+  'app.labid.websiteWithdrawn.body':
+    '{domain} no longer lists this key: VeilCore saw that on {date}. The lab may have retired or disowned it. Don’t rely on it without asking the lab.',
+  'app.labid.listingWithdrawn.title': 'Not verified: listing match withdrawn',
+  'app.labid.listingWithdrawn.body':
+    'VeilCore’s operator took off its match to a public listing. Check with the lab before relying on it.',
+  'app.labid.more': 'What does this mean?',
+  'app.labid.more.what':
+    'VeilCore checks which key signed and what is known about whose key it is. It never checks the quality of the result, or whether the lab is licensed.',
+  'app.labid.more.none':
+    '<b>Not verified</b>: anyone can make a key and give it any name, even the name of a lab that exists. A listing match that expired or was withdrawn counts as not verified.',
+  'app.labid.more.website':
+    '<b>Listed on a website</b>: the key names a website, and that website lists the key. Whoever runs that website stands behind the key; VeilCore doesn’t check who that is, so make sure the address is the lab’s own. Only a match to a public listing is called verified.',
+  'app.labid.more.listing':
+    '<b>Verified against a public listing</b>: VeilCore’s operator found the lab’s name in a public license or accreditation listing, and the lab confirmed the key from an email address at the lab’s domain, for up to a year.',
+  'app.labid.more.withdrawn':
+    '<b>Withdrawn</b>: the lab’s website stopped listing the key, or VeilCore’s operator took the listing match off. Ask the lab before relying on it.',
+  'app.labid.more.how':
+    'How a lab gets verified: it lists its key on its own website, or asks VeilCore to match its name to a public listing. To check with a lab, use contact details you find yourself.',
+  // AttesterSetup.tsx: the lab's own level, and the one step to the next.
+  'app.labid.own.title': 'How check pages show your signing key now',
+  'app.labid.own.looking': 'Looking up how check pages show your signing key…',
+  'app.labid.own.couldNot': 'Couldn’t look up how check pages show your signing key just now.',
+  'app.labid.own.next.none':
+    'Next step: list your signing key on your lab’s website. Check pages then say “Listed on” your website’s address.',
+  'app.labid.own.next.listingWithdrawn':
+    'Next step: list your signing key on your lab’s website. Check pages then say “Listed on” your website’s address.',
+  'app.labid.own.next.website':
+    'Next step: ask VeilCore to match your lab’s name to a public license or accreditation listing. Check pages then say “Verified against” that listing.',
+  'app.labid.own.next.expired':
+    'Next step: your listing check has expired. Ask VeilCore to check your lab’s name again.',
+  'app.labid.own.next.listing':
+    'This is the highest level. It counts until {date}; to renew it, ask VeilCore to check again before then.',
+  'app.labid.own.next.websiteWithdrawn':
+    '{domain} no longer lists this key, so check pages show its signatures as withdrawn. If that was a mistake, put the key back on {domain}. If the key leaked, make a new key.',
+  'app.labid.own.do.website': 'List it on my website',
+  'app.labid.own.do.listing': 'Email VeilCore',
+  'app.labid.own.mailSubject': 'Name check for my lab key',
   // saved-report.ts
   'app.lab.saved.lab': 'saved · matches the lab’s signed report',
   'app.lab.saved.self': 'saved · no lab signature matches it',
@@ -100,13 +159,17 @@ export const lab = {
     'The attester withdrew this on {date}, with a retraction signed by their key. It remains on record — retraction is not deletion.',
   'app.lab.strength.unverifiedRetraction':
     ' The registry also reports a retraction that is not signed by the attester, so it is ignored here.',
-  'app.lab.strength.matched': 'Signed · name matched to a public listing',
+  'app.lab.strength.matched': 'Signed · verified against a public listing',
   'app.lab.strength.matchedWhy': '{text} The signature was verified in this browser.{acc}{unverified}',
   'app.lab.strength.accreditation': ' They list {scheme} accreditation from {by}; confirm that with {by}.',
   'app.lab.strength.expired': ' An earlier check of this name has expired.',
-  'app.lab.strength.notChecked': 'Signed · name not checked',
-  'app.lab.strength.anyName':
-    '{text}. Anyone can register a key under any name, so this doesn’t show who signed.{expired}',
+  'app.lab.strength.notChecked': 'Signed · not verified',
+  'app.lab.strength.listingWithdrawn': 'Signed · listing check withdrawn',
+  'app.lab.strength.website': 'Signed · listed on {domain}',
+  'app.lab.strength.websiteWhy': '{text} Make sure that website is the lab’s own.',
+  'app.lab.strength.websiteWithdrawn': 'Signed · withdrawn by website ({domain})',
+  'app.lab.strength.websiteWithdrawnWhy': '{text} Don’t rely on it without asking the lab.',
+  'app.lab.strength.anyName': '{text}. Anyone can make a key with any name, so this doesn’t show who signed.{expired}',
   'app.lab.strength.unregistered':
     'Signed by a key nobody has registered. The signature is valid; who holds the key is not known.',
   // veilcore/transfers.ts: a sample's details, and the registry's refusals in plain words.
@@ -224,7 +287,7 @@ export const lab = {
   'app.lab.recv.linkIntro':
     "Your receipt is signed. Link it to this delivery so the breeder sees it: until then their page doesn't count it, because anyone can sign a statement about a plant, but only whoever used the lab code can link one to the delivery.",
   'app.lab.recv.linking': 'Linking…',
-  'app.lab.recv.setUpFirst': "Set up your lab's signature first; then you can sign that this sample arrived.",
+  'app.lab.recv.setUpFirst': "Set up your lab's signing key first; then you can sign that this sample arrived.",
   'app.lab.recv.checking': "Checking the breeder's record…",
   'app.lab.recv.notRecorded': 'Your receipt was not recorded: {error}.',
   'app.lab.recv.noCodeHere': 'this plant has no lab code on this device',
@@ -323,14 +386,13 @@ export const lab = {
     "<b>Signed by {who}, but not by the key that signed the receipt for this delivery.</b> The file matches that key's signature, but nothing shows the key ever had your sample. Ask the lab before relying on it.",
   'app.lab.results.signed':
     '<b>{lead}</b> (key {key}), signature checked in this browser. The same key signed the receipt for this delivery.',
-  'app.lab.results.anyName': ' Anyone can register a key under any name, so the name doesn’t show who signed.',
   'app.lab.results.locked':
     'Locked so only you can open them, with this plant’s key from your backup. VeilCore stores them locked and doesn’t have the key.',
   'app.lab.results.noKey':
     "This plant's key isn't on this device, so its lab reports can't be opened here. <link>Get your plants back from your backup</link> first.",
   'app.lab.results.gotIt': 'Got it',
   'app.lab.results.whatOthersSee':
-    '<b>What others can see.</b> The lab’s signature on this report is private, like the report: only you and the lab see it. To show it, choose Show someone and turn it on under “Lab signatures”. Anyone with that link then sees that the lab signed a report about this plant, and the name the lab’s key is registered under: marked “name not checked” unless VeilCore’s operator has matched it to a public license or accreditation listing. If it is a DNA report and you save it to this plant, the page can also say the lab signed that file.',
+    '<b>What others can see.</b> The lab’s signature on this report is private, like the report: only you and the lab see it. To show it, choose Show someone and turn it on under “Lab signatures”. Anyone with that link then sees that the lab signed a report about this plant, and the name the lab’s key is registered under: marked “Not verified” unless VeilCore’s operator has matched it to a public license or accreditation listing. If it is a DNA report and you save it to this plant, the page can also say the lab signed that file.',
   'app.lab.results.noCurrent': 'No current report from {lab}: the original was replaced and the correction withdrawn.',
   'app.lab.results.looking': 'Looking for lab reports…',
   'app.lab.results.nothingYet': 'Nothing yet. When a lab you sent this plant to sends a lab report, it shows up here.',
@@ -397,7 +459,7 @@ export const lab = {
   'app.lab.out.sentText':
     'Only the breeder can open it. Your signature on it is private too: only the breeder and you can see it, unless the breeder chooses to show it on their check link. If you signed a receipt for the sample and the breeder shows whether a DNA report is saved, their check page says that a lab received a sample and whether what arrived matches what was sent, without your lab’s name.',
   'app.lab.out.sentName':
-    "If they do, anyone with that link also sees the name your key is registered under. Until VeilCore's operator matches it to a public license or accreditation listing, it shows as “a key named “{name}” (name not checked)”.",
+    "If they do, anyone with that link also sees the name your key is registered under. Until VeilCore's operator matches it to a public license or accreditation listing, it shows as “a key calling itself “{name}” (not verified)”.",
   'app.lab.out.yourLab': 'your lab',
   'app.lab.out.youSent': 'Lab reports you sent',
   'app.lab.out.rowHead': '{id} · sent {when}',
@@ -414,7 +476,7 @@ export const lab = {
     'Your browser signs the lab report’s code with your lab’s key and locks the file so only the breeder can open it. The locked file waits on VeilCore’s server for the breeder to open, and VeilCore doesn’t have its key.',
   'app.lab.out.cancelCorrection': 'Cancel the correction',
   'app.lab.out.turnedAway': "You turned this sample away, so there's no lab report to send.",
-  'app.lab.out.setUpFirst': "Set up your lab's signature first, so the breeder can tell the lab report is yours.",
+  'app.lab.out.setUpFirst': "Set up your lab's signing key first, so the breeder can tell the lab report is yours.",
   'app.lab.out.noLockHere':
     "This browser doesn't have the breeder's lock for this delivery. Paste the lab code they sent you.",
   'app.lab.out.useCode': 'Use this lab code',

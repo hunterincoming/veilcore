@@ -43,7 +43,7 @@ const BreederReceiptPanel: React.FC<{ receipt: BreederReceipt }> = ({ receipt })
           </Typography>
           <Typography variant="body2" color="text.secondary">
             {t('app.plant.att.verified')}
-            {s?.checked ? <NameCheckText label={s} /> : t('app.lab.results.anyName')}
+            {s && <NameCheckText label={s} />}
             {receipt.by.retractionUnverified ? t('app.plant.att.unverifiedRetraction') : ''}
           </Typography>
         </Box>
@@ -132,6 +132,8 @@ export const AttestationPanel: React.FC<{
             </Stack>
             <Typography variant="body2" color="text.secondary">
               {s.why}
+              {/* The key's level in words (docs/lab-identity-levels.md), on a signature that checks. */}
+              {a.signatureValid && <NameCheckText label={signerLabel(a, 'Signed by', undefined, tr)} />}
             </Typography>
           </Box>
         );
