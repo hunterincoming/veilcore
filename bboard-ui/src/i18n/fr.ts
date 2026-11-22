@@ -33,7 +33,7 @@ export const fr: Strings = {
     'Une description datée de quelque chose que vous détenez : une plante, un animal, une souche ou une lignée cellulaire, ou un document. Votre navigateur en tire un court code de preuve, et ce code est daté sur Midnight dans un lot avec d’autres. Il montre que vous déteniez déjà cet enregistrement à cette date. Il n’établit pas qui a des droits sur quoi que ce soit, ni que ce que dit l’enregistrement est vrai.',
   'm.help.start.2q': 'De quoi ai-je besoin ?',
   'm.help.start.2a':
-    'D’un téléphone ou d’un ordinateur avec un navigateur à jour. Ni portefeuille, ni inscription, ni achat. Pour prouver un seul nombre d’un enregistrement, il faut un ordinateur : cela n’a pas encore été essayé sur téléphone.',
+    'D’un téléphone ou d’un ordinateur avec un navigateur à jour. Ni portefeuille, ni inscription, ni achat. Pour prouver un fait tiré d’un enregistrement, il faut un ordinateur : cela n’a pas encore été essayé sur téléphone.',
   'm.help.start.3q': 'Combien cela coûte-t-il ?',
   'm.help.start.3a': 'Créer un enregistrement sur ce site et vérifier n’importe quel enregistrement sont gratuits.',
   'm.help.make.t': 'Créer un enregistrement',
@@ -70,9 +70,9 @@ export const fr: Strings = {
   'm.help.show.2q': 'Comment montrer un document ?',
   'm.help.show.2a':
     'Envoyez le lien de vérification avec le fichier. Le navigateur de l’autre personne compare le fichier à l’enregistrement scellé, octet par octet, et indique depuis quand vous l’aviez. Sa copie du fichier n’est pas téléversée.',
-  'm.help.show.3q': 'Puis-je prouver un nombre sans montrer le reste ?',
+  'm.help.show.3q': 'Puis-je prouver un fait sans montrer le reste ?',
   'm.help.show.3a':
-    'Oui, si vous avez scellé l’enregistrement avec ses nombres. Vous pouvez prouver qu’un nombre est au plus ou au moins égal à une limite, ou exactement égal à une valeur. Utilisez un ordinateur.',
+    'Oui, si vous avez scellé l’enregistrement avec ses nombres. Vous pouvez prouver qu’un nombre est au plus ou au moins égal à une limite, ou exactement égal à une valeur, ou qu’un résultat de laboratoire est « non détecté ». Utilisez un ordinateur.',
   'm.help.check.t': 'Vérifier un enregistrement qu’on vous a envoyé',
   'm.help.check.1q': 'On m’a envoyé un enregistrement. Comment le vérifier ?',
   'm.help.check.1a':
@@ -496,16 +496,16 @@ export const fr: Strings = {
   'm.live.local.t': 'Un document gardé uniquement sur votre appareil',
   'm.live.local.main': 'Construit, mais pas encore essayé sur le réseau principal.',
   'm.live.local.test':
-    'Oui, pour les enregistrements de documents. Rien de ce que vous saisissez n’est envoyé à VeilCore : seulement l’identifiant de l’enregistrement, son code de preuve et sa liaison de clé. La seule exception est un chiffre que vous choisissez de prouver (ligne suivante).',
+    'Oui, pour les enregistrements de documents. Rien de ce que vous saisissez n’est envoyé à VeilCore : seulement l’identifiant de l’enregistrement, son code de preuve et sa liaison de clé. La seule exception est un fait que vous choisissez de prouver (ligne suivante).',
   'm.live.local.live':
-    'Oui, pour les enregistrements de documents. Rien de ce que vous saisissez n’est envoyé à VeilCore : seulement l’identifiant de l’enregistrement, son code de preuve et sa liaison de clé. La seule exception est un chiffre que vous choisissez de prouver (ligne suivante).',
+    'Oui, pour les enregistrements de documents. Rien de ce que vous saisissez n’est envoyé à VeilCore : seulement l’identifiant de l’enregistrement, son code de preuve et sa liaison de clé. La seule exception est un fait que vous choisissez de prouver (ligne suivante).',
   'm.live.docchain.t': 'Une chaîne de production en enregistrements liés',
   'm.live.docchain.main': 'Construit, mais pas encore essayé sur le réseau principal.',
   'm.live.docchain.test':
     'Construit, mais pas encore essayé. Un enregistrement d’origine, un lot de culture, un lot de récolte et un rapport de laboratoire nomment chacun le précédent, et chacun a sa date. Les liens sont la déclaration du détenteur.',
   'm.live.docchain.live':
     'Oui. Un enregistrement d’origine, un lot de culture, un lot de récolte et un rapport de laboratoire nomment chacun le précédent, et chacun a sa date. Les liens sont la déclaration du détenteur ; ni VeilCore ni Midnight ne les vérifient.',
-  'm.live.localclaims.t': 'Prouver un chiffre d’un document gardé sur votre appareil',
+  'm.live.localclaims.t': 'Prouver un fait tiré d’un document gardé sur votre appareil',
   'm.live.localclaims.main': 'Construit, mais pas encore essayé sur le réseau principal.',
   'm.live.localclaims.test':
     'Construit, mais pas encore essayé. À vous de choisir ; désactivé tant que vous ne l’activez pas. Ce que vous prouvez est public sur Midnight ; rien ne va au registre de VeilCore, mais VeilCore peut rattacher ce que vous prouvez à l’enregistrement.',
@@ -522,7 +522,7 @@ export const fr: Strings = {
   'm.live.claims.main': 'Sur le réseau principal, sans clé de maintenance. Le site ne peut pas encore l’utiliser.',
   'm.live.claims.not': 'L’utiliser depuis le site.',
   'm.live.claims.live':
-    'Oui, depuis un ordinateur : prouver un chiffre d’un certificat ou d’un résultat de laboratoire scellé sans montrer le reste. Pas encore essayé sur téléphone.',
+    'Oui, depuis un ordinateur : prouver un fait tiré d’un certificat ou d’un résultat de laboratoire scellé sans montrer le reste. Pas encore essayé sur téléphone.',
   'm.live.lic.t': 'Licences et redevances',
   'm.live.lic.main': 'Désactivé jusqu’à un dernier essai complet.',
   'm.live.lic.test': 'Oui, avec de vraies transactions : redevances, paiements, transmission d’une licence.',

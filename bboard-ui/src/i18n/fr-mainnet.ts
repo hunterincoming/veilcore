@@ -90,7 +90,7 @@ export const frMainnet = buildMainnet({
   },
   claimsOnSite: {
     'm.claims.status':
-      'Un second smart contract Midnight, sur le réseau principal de Midnight. Sur ce site, vous pouvez l’utiliser pour prouver un chiffre d’un certificat ou d’un résultat de laboratoire scellé avec ses chiffres : qu’il est au plus ou au moins une limite, ou exactement une valeur, sans montrer le reste. Utilisez un ordinateur ; les téléphones n’ont pas encore été essayés. Les autres preuves ci-dessus ne sont pas encore sur ce site.',
+      'Un second smart contract Midnight, sur le réseau principal de Midnight. Sur ce site, vous pouvez l’utiliser pour prouver un fait tiré d’un certificat ou d’un résultat de laboratoire scellé avec ses chiffres : qu’un chiffre est au plus ou au moins une limite, ou exactement une valeur, ou qu’un résultat est « non détecté », sans montrer le reste. Utilisez un ordinateur ; les téléphones n’ont pas encore été essayés. Les autres preuves ci-dessus ne sont pas encore sur ce site.',
   },
   claimsPending: {
     'm.claims.status':

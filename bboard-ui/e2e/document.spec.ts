@@ -366,8 +366,8 @@ test('seal a certificate with its numbers: refused until each one fits, then kep
   await expect(nums).toContainText('Total THC: 0.210 %');
   await expect(nums).toContainText('Total CBD: 11.400 %');
   await expect(nums).toContainText('Sealed with this document as Cannabinoid potency');
-  // Proving a number: offered on the page, and said plainly when this build can't make claims.
-  await expect(page.locator('[data-prove-number]')).toContainText('Prove one number');
+  // Proving a fact: offered on the page, and said plainly when this build can't make claims.
+  await expect(page.locator('[data-prove-number]')).toContainText('Prove a fact');
   await expect(page.locator('[data-claims-not-ready]')).toBeVisible();
   // What reached the registry is sealed: neither the numbers nor the field secret are readable.
   const sent = JSON.stringify(held.records);

@@ -7,10 +7,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 export const offline = {
-  'app.offline.sealedHere.phone':
-    'Sealed on this phone at {time} (your phone’s clock, not checked). Dated when it’s sent.',
-  'app.offline.sealedHere.computer':
-    'Sealed on this computer at {time} (your computer’s clock, not checked). Dated when it’s sent.',
+  'app.offline.sealedHere': 'Sealed on this device at {time} (this device’s clock, not checked). Dated when it’s sent.',
   'app.offline.short': 'Sealed {time}, dated when sent',
   'app.offline.goesBySelf': 'Its proof code goes by itself when you’re back online.',
   'app.offline.bar':

@@ -698,11 +698,9 @@ describe('a record sealed with no signal, and its own timestamp', () => {
 
   it('says when by the device’s clock, not checked, and that it is dated when sent: never a date', () => {
     const at = new Date(2026, 10, 19, 5, 2).getTime();
-    const phone = sealedHereWords(at, enT, 'phone');
-    expect(phone).toMatch(
-      /^Sealed on this phone at .*0?5:02.* \(your phone’s clock, not checked\)\. Dated when it’s sent\.$/,
+    expect(sealedHereWords(at, enT)).toMatch(
+      /^Sealed on this device at .*0?5:02.* \(this device’s clock, not checked\)\. Dated when it’s sent\.$/,
     );
-    expect(sealedHereWords(at, enT, 'computer')).toMatch(/this computer .* \(your computer’s clock, not checked\)/);
   });
 
   it('timestamp lines lead with the minute, and say the Midnight date follows until the batch has one', () => {

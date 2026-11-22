@@ -1,4 +1,4 @@
-// "Prove one number" for a document kept on this device only (docs/device-only-records.md,
+// "Prove a fact" for a document kept on this device only (docs/device-only-records.md,
 // "Proving a number"): off until the holder turns it on, "exactly" asked for twice, and the
 // registry sent nothing typed even then. The registry is deny-by-default here
 // (fixtures/dishonest-registry.ts lieEverywhere): every request it is sent is kept, and any

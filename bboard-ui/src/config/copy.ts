@@ -31,7 +31,7 @@ export const DATED_ON = IS_MAINNET ? 'Midnight’s main network' : 'a Midnight t
  * language's sentences are in i18n/app/claims-where.ts.
  */
 /**
- * veilcore.org offers "prove one number": a mainnet build that sends transactions, with VeilCore's
+ * veilcore.org offers "prove a fact": a mainnet build that sends transactions, with VeilCore's
  * pinned claims contract. The home page (i18n/index.tsx THIS_BUILD.claimsOnSite) and "Show
  * someone" (CLAIMS_WHERE) read this one switch, so they can't disagree.
  */
@@ -172,7 +172,7 @@ export const DEVICE_ONLY_RUN_ON_MAINNET = true;
 export const DOCUMENT_CHAIN_RUN_ON_MAINNET = true;
 
 /**
- * Whether "Prove one number" for a document kept on this device only (config/network.ts
+ * Whether "Prove a fact" for a document kept on this device only (config/network.ts
  * DEVICE_ONLY_CLAIMS_ENABLED) has worked on veilcore.org: one proved there from such a record,
  * its claim link checked, and the registry seen to hold nothing more than before. Until it has,
  * the home page's veilcore.org cell says it is built and not yet tried on the main network

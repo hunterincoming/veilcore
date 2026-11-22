@@ -3,8 +3,8 @@
 //
 //   1. A lab sets up its key, signs an ICAR 2023 parentage result for a calf (practice numbers: 1
 //      conflict with the sire, 0 with the dam, 2 across the trio, 190 and 188 SNPs compared), and
-//      downloads the result file. The holder adds it to their records and opens it. "Prove one
-//      number" offers ICAR's five class bounds only, fixed (no box to type a bound, nothing
+//      downloads the result file. The holder adds it to their records and opens it. "Prove a
+//      fact" offers ICAR's five class bounds only, fixed (no box to type a bound, nothing
 //      rounded into "doubtful"), says the bands in plain words, and the limits of a parentage
 //      result. The holder proves all five and copies one link with them.
 //   2. That link, opened by a stranger: with a laboratory standing behind the numbers and every

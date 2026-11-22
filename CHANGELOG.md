@@ -10,6 +10,14 @@ section.
 
 ## [Unreleased]
 
+### "Prove a fact", and "this device" on the seal screen (21 Nov 2026, not deployed yet)
+
+- "Prove one number" is now "Prove a fact", in all five languages: it proves a number's limit
+  and also a yes/no result such as "not detected". The help, the live list, the home page's
+  claims line, "Show someone", the check page and llms.txt say the same.
+- A record sealed with no signal says "Sealed on this device" instead of guessing phone or
+  computer from the screen, which told a phone "this computer".
+
 ### One way back after a seal, not three (21 Nov 2026, not deployed yet)
 
 - Records already saved with VeilCore (the account copy counts and holds them once saved again

@@ -3,10 +3,8 @@
 import type { AppTranslation } from '../../translate';
 
 export const offline = {
-  'app.offline.sealedHere.phone':
-    'このスマートフォンで{time}に封印しました（スマートフォンの時計による時刻、未確認）。日付は送信されたときに付きます。',
-  'app.offline.sealedHere.computer':
-    'このパソコンで{time}に封印しました（パソコンの時計による時刻、未確認）。日付は送信されたときに付きます。',
+  'app.offline.sealedHere':
+    'この端末で{time}に封印しました（この端末の時計による時刻、未確認）。日付は送信されたときに付きます。',
   'app.offline.short': '{time}に封印、送信時に日付',
   'app.offline.goesBySelf': 'オンラインに戻ると、証明コードが自動で送信されます。',
   'app.offline.bar':

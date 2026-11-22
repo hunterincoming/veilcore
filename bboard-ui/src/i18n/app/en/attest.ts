@@ -36,11 +36,11 @@ export const attest = {
   // On a document's page: getting the laboratory's signature, and publishing it.
   'app.labnums.title': 'Numbers from this report, signed by you (optional)',
   'app.labnums.text':
-    'Pick the form and type the numbers exactly as in your report. They are sealed into a record you sign and sent locked with the report. The breeder can then prove one number without showing the others, as a number your lab signed.',
+    'Pick the form and type the numbers exactly as in your report. They are sealed into a record you sign and sent locked with the report. The breeder can then prove a fact from one of them without showing the others, as numbers your lab signed.',
   'app.labnums.resultTitle': 'Name of this result (your report reference)',
   'app.labnums.inReport': 'Numbers the lab signed with this report ({form}):',
   'app.labnums.addText':
-    'Add them as a record you hold. Then you can publish the lab’s signature on Midnight and prove one number at a time.',
+    'Add them as a record you hold. Then you can publish the lab’s signature on Midnight and prove one fact at a time.',
   'app.labnums.add': 'Add the signed numbers as a record',
   'app.labnums.openRecord': 'Open the record with these numbers',
   'app.labnums.cantUse': 'This report carries numbers that can’t be used: {reason}',
@@ -56,7 +56,7 @@ export const attest = {
     'Published on Midnight in block {block}. The links you copy under “What you’ve proved” now include it.',
   'app.attest.stale': 'The signature kept with this record no longer checks against it. Add it again.',
 
-  // What "Prove one number" says once the numbers are signed.
+  // What "Prove a fact" says once the numbers are signed.
   'app.claim.labSigned': 'Signing key {key} signed these numbers, and the links include that signature.',
 
   // The claim check page, when the link names a laboratory signature.

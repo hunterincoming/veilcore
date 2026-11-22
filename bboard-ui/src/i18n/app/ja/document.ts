@@ -138,9 +138,9 @@ export const document = {
   'app.doc.nums.heldTitle': 'その数値',
   'app.doc.nums.heldText':
     'この書類と一緒に{schema}として封印されています。見えるのはあなただけです。記録に入っているのは数値を拘束するコードで、数値そのものではありません。',
-  'app.claim.title': '数値を1つ証明する',
+  'app.claim.title': '事実を証明する',
   'app.claim.text':
-    '数値そのもの、ほかの数値、証明書を見せずに、1つの数値についての事実を誰にでも証明できます。証明はMidnight上に置かれ、誰でも確認できます。',
+    'その数値、ほかの数値、証明書を見せずに、事実を誰にでも証明できます。たとえば、数値が上限の範囲内であることや、結果が「不検出」であることです。証明はMidnight上に置かれ、誰でも確認できます。',
   'app.claim.example':
     '例：総THCが0.3%以下であること、または栽培バッチの開花中の株が9株以下であることを、数値そのものや記録の残りを渡さずに買い手に示せます。数値と上限・下限はあなたが選びます。相手は、それを確認できるリンクを受け取ります。',
   'app.claim.notReady': 'このサイトでは、証明はまだ有効になっていません。',
@@ -191,7 +191,7 @@ export const document = {
     '{date}に日付が付いており、選んだファイルは封印されたものと同じです。このブラウザで確認しました。',
   'app.doc.verdict.datedOtherFile': '{date}に日付が付いていますが、選んだファイルは封印されたものではありません。',
   'app.claim.check.intro':
-    '封印された文書の数値1つについての事実を、数値や文書を見せずに示すため、このリンクが送られてきました。このページはMidnight上のクレームを読み取り、確認します。',
+    '封印された文書についての事実を1つ、数値や文書を見せずに示すため、このリンクが送られてきました。このページはMidnight上のクレームを読み取り、確認します。',
   'app.claim.check.bad': 'このリンクは読み取れません。もう一度送ってもらってください。',
   'app.claim.check.checking': 'Midnight上のクレームを読み取っています…',
   'app.claim.check.okWhen': 'Midnight上のブロック{block}{date}で証明されました。',
@@ -330,12 +330,12 @@ export const document = {
   'app.doc.chain.share.copy': '記録の連なり付きのリンクをコピー',
   'app.doc.chain.share.copied': 'コピーしました。',
   'app.doc.local.p6':
-    '数値がある場合、あとで1つを証明することを選べます。その場合、数値についての事実がVeilCoreの手数料サービスを通ってMidnightで公開されます。その記録でオンにしたときだけです。',
-  'app.doc.local.prove.off': 'この端末だけに保管する記録では、数値の証明は有効になっていません。',
-  'app.doc.local.prove.title': '数値を1つ証明する：あなたの選択',
+    '数値がある場合、あとでそこから事実を証明することを選べます。その場合、その事実がVeilCoreの手数料サービスを通ってMidnightで公開されます。その記録でオンにしたときだけです。',
+  'app.doc.local.prove.off': 'この端末だけに保管する記録では、事実の証明は有効になっていません。',
+  'app.doc.local.prove.title': '事実を証明する：あなたの選択',
   'app.doc.local.prove.text':
-    'ここでオンにしない限りオフです。証明すると、1つの数値についての事実が、VeilCoreの手数料サービスを通ってMidnightで永久に公開されます。VeilCoreのレジストリには何も送信されません。証明する前に、何が公開されるかが正確に表示されます。',
-  'app.doc.local.prove.choice': 'この記録で「数値を1つ証明する」を表示する',
+    'ここでオンにしない限りオフです。証明すると、この記録についての事実が1つ、VeilCoreの手数料サービスを通ってMidnightで永久に公開されます。VeilCoreのレジストリには何も送信されません。証明する前に、何が公開されるかが正確に表示されます。',
+  'app.doc.local.prove.choice': 'この記録で「事実を証明する」を表示する',
   'app.doc.local.prove.publish.title': '続行した場合に公開される内容',
   'app.doc.local.prove.publish.range':
     'Midnightで永久に公開されるもの：フォーム「{schema}」、項目「{label}」、境界値{bound}とその向き（{direction}）、この記録を表すコード。数値そのものは公開されません。境界値を証明するたびに、数値の範囲は狭まります。',

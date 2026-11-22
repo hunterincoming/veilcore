@@ -217,3 +217,18 @@ read. A fluent speaker's corrections are welcome, as in [translations/README.md]
 | check page | 確認ページ | página de comprobación | Prüfseite | page de vérification |
 | "Scan to check" (on a label) | スキャンして確認 | Escanee para comprobar | Zum Prüfen scannen | Scanner pour vérifier |
 | straw canister | ストローの容器 | recipiente de pajuelas (not "contenedor": it holds "tenedor", which the Spanish check refuses) | Paillettenbehälter | visotube |
+
+## Proving a fact, and "this device" (21 Nov 2026)
+
+"Prove a fact" covers a number's limit (at most, at least, exactly) and a yes/no result such
+as "not detected"; it replaced "Prove one number", which read as numbers only. The words for a
+yes/no result are the lab result's own (`app.lr.call.notDetected`). The seal line for a record
+sealed with no signal always says "this device": the app no longer guesses phone or computer.
+`copy-truth.test.ts` fails if the old feature name or a phone/computer seal line comes back.
+
+| English | Japanese | Spanish | German | French |
+| --- | --- | --- | --- | --- |
+| Prove a fact (the claims panel's name) | 事実を証明する | Probar un hecho | Eine Tatsache belegen | Prouver un fait |
+| not detected (in a sentence) | 「不検出」 | «no detectado» | „nicht nachgewiesen“ | « non détecté » |
+| Sealed on this device (offline seal line) | この端末で…封印しました | Sellado en este dispositivo | Auf diesem Gerät versiegelt | Scellé sur cet appareil |
+| this device's clock | この端末の時計 | el reloj de este dispositivo | Uhr dieses Geräts | l’horloge de cet appareil |

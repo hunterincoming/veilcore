@@ -34,7 +34,7 @@ export const es: Strings = {
     'Una descripción fechada de algo que usted tiene: una planta, un animal, una cepa o línea celular, o un documento. Su navegador la convierte en un código de prueba corto, y ese código se fecha en Midnight en un lote junto con otros. Muestra que quien lo selló ya tenía el registro a esa fecha. No muestra quién tiene derechos sobre nada, ni muestra que lo que dice el registro sea cierto.',
   'm.help.start.2q': '¿Qué necesito?',
   'm.help.start.2a':
-    'Un teléfono o una computadora con un navegador actual. Sin billetera, sin darse de alta y sin comprar nada. Para demostrar un solo número de un registro hace falta una computadora: en teléfonos aún no se ha probado.',
+    'Un teléfono o una computadora con un navegador actual. Sin billetera, sin darse de alta y sin comprar nada. Para probar un hecho de un registro hace falta una computadora: en teléfonos aún no se ha intentado.',
   'm.help.start.3q': '¿Cuánto cuesta?',
   'm.help.start.3a': 'Crear un registro en este sitio y comprobar cualquier registro son gratis.',
   'm.help.make.t': 'Crear un registro',
@@ -70,9 +70,9 @@ export const es: Strings = {
   'm.help.show.2q': '¿Cómo muestro un documento?',
   'm.help.show.2a':
     'Envíe el enlace de comprobación junto con el archivo. El navegador de la otra persona compara el archivo con el registro sellado, byte por byte, y muestra desde cuándo lo tenía usted. Su copia del archivo no se sube.',
-  'm.help.show.3q': '¿Puedo demostrar un número sin mostrar el resto?',
+  'm.help.show.3q': '¿Puedo probar un hecho sin mostrar el resto?',
   'm.help.show.3a':
-    'Sí, si selló el registro con sus números. Puede demostrar que un número es como máximo o como mínimo un límite, o exactamente un valor. Use una computadora.',
+    'Sí, si selló el registro con sus números. Puede demostrar que un número es como máximo o como mínimo un límite, o exactamente un valor, o que un resultado de laboratorio es «no detectado». Use una computadora.',
   'm.help.check.t': 'Comprobar un registro que le enviaron',
   'm.help.check.1q': 'Me enviaron un registro. ¿Cómo lo compruebo?',
   'm.help.check.1a':
@@ -492,16 +492,16 @@ export const es: Strings = {
   'm.live.local.t': 'Un documento guardado solo en su dispositivo',
   'm.live.local.main': 'Construido, pero aún no se ha probado en la red principal.',
   'm.live.local.test':
-    'Sí, para registros de documentos. Nada de lo que usted escribe se envía a VeilCore: solo el identificador del registro, su código de prueba y su vínculo de clave. La única excepción es un número que usted elija probar (fila siguiente).',
+    'Sí, para registros de documentos. Nada de lo que usted escribe se envía a VeilCore: solo el identificador del registro, su código de prueba y su vínculo de clave. La única excepción es un hecho que usted elija probar (fila siguiente).',
   'm.live.local.live':
-    'Sí, para registros de documentos. Nada de lo que usted escribe se envía a VeilCore: solo el identificador del registro, su código de prueba y su vínculo de clave. La única excepción es un número que usted elija probar (fila siguiente).',
+    'Sí, para registros de documentos. Nada de lo que usted escribe se envía a VeilCore: solo el identificador del registro, su código de prueba y su vínculo de clave. La única excepción es un hecho que usted elija probar (fila siguiente).',
   'm.live.docchain.t': 'Una cadena de producción como registros enlazados',
   'm.live.docchain.main': 'Construido, pero aún no se ha probado en la red principal.',
   'm.live.docchain.test':
     'Construido, pero aún no se ha probado. Un registro de origen, un lote de cultivo, un lote de cosecha y un informe de laboratorio nombran cada uno al anterior, y cada uno tiene su fecha. Los enlaces son la declaración de quien lo selló.',
   'm.live.docchain.live':
     'Sí. Un registro de origen, un lote de cultivo, un lote de cosecha y un informe de laboratorio nombran cada uno al anterior, y cada uno tiene su fecha. Los enlaces son la declaración de quien lo selló; ni VeilCore ni Midnight los comprueban.',
-  'm.live.localclaims.t': 'Probar un número de un documento guardado en su dispositivo',
+  'm.live.localclaims.t': 'Probar un hecho de un documento guardado en su dispositivo',
   'm.live.localclaims.main': 'Construido, pero aún no se ha probado en la red principal.',
   'm.live.localclaims.test':
     'Construido, pero aún no se ha probado. Usted decide; está desactivado hasta que lo active. Lo que pruebe es público en Midnight; nada va al servidor de registros de VeilCore, pero VeilCore puede vincular lo que pruebe con el registro.',
@@ -518,7 +518,7 @@ export const es: Strings = {
   'm.live.claims.main': 'En la red principal, sin clave de mantenimiento. El sitio aún no puede usarlo.',
   'm.live.claims.not': 'Usarlo desde el sitio web.',
   'm.live.claims.live':
-    'Sí, desde una computadora: probar un número de un certificado o un resultado de laboratorio sellado sin mostrar el resto. En teléfonos todavía no se ha probado.',
+    'Sí, desde una computadora: probar un hecho de un certificado o un resultado de laboratorio sellado sin mostrar el resto. En teléfonos todavía no se ha probado.',
   'm.live.lic.t': 'Licencias y regalías',
   'm.live.lic.main': 'Desactivado hasta una última prueba completa.',
   'm.live.lic.test': 'Sí, con transacciones reales: regalías, pagos, traspaso de una licencia.',

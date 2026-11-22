@@ -35,11 +35,11 @@ export const attest = {
 
   'app.labnums.title': 'Números de este informe, firmados por usted (opcional)',
   'app.labnums.text':
-    'Elija el formulario y escriba los números exactamente como en su informe. Se sellan en un registro que usted firma y se envían cifrados con el informe. El obtentor podrá demostrar un número sin mostrar los demás, como un número que su laboratorio firmó.',
+    'Elija el formulario y escriba los números exactamente como en su informe. Se sellan en un registro que usted firma y se envían cifrados con el informe. El obtentor podrá probar un hecho sobre uno de ellos sin mostrar los demás, como números que su laboratorio firmó.',
   'app.labnums.resultTitle': 'Nombre de este resultado (la referencia de su informe)',
   'app.labnums.inReport': 'Números que el laboratorio firmó con este informe ({form}):',
   'app.labnums.addText':
-    'Agréguelos como un registro suyo. Después podrá publicar la firma del laboratorio en Midnight y demostrar un número cada vez.',
+    'Agréguelos como un registro suyo. Después podrá publicar la firma del laboratorio en Midnight y probar un hecho cada vez.',
   'app.labnums.add': 'Agregar los números firmados como registro',
   'app.labnums.openRecord': 'Abrir el registro con estos números',
   'app.labnums.cantUse': 'Este informe trae números que no se pueden usar: {reason}',

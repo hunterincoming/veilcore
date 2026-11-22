@@ -63,7 +63,7 @@ type Verdict =
 export const labStands = (v: Verdict): boolean => !!v?.ok && !!v.lab?.ok && v.lab.signer?.kind === 'bound';
 
 /**
- * The same rule on a record's own page ("Prove one number"): its kept lab signature checks
+ * The same rule on a record's own page ("Prove a fact"): its kept lab signature checks
  * against the record (`signatureOk`, lab-attest.ts labSignatureChecks), and the lab's binding names
  * one lab for the key and isn't withdrawn (`signer`, LabSignaturePanel useLabSigner). Undefined
  * either way while it is being checked: not yet.

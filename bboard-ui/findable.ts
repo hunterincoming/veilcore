@@ -116,8 +116,8 @@ export const statusItems = (f: StatusFlags): StatusItem[] => {
     { where: ran(f.deviceOnlyRunOnMainnet), text: 'documents kept on the device only', key: /documents kept on the device only/i },
     {
       where: ran(f.deviceOnlyClaimsRunOnMainnet),
-      text: 'proving one number from a sealed document',
-      key: /proving one number from a sealed document/i,
+      text: 'proving a fact from a sealed document',
+      key: /proving a fact from a sealed document/i,
     },
     {
       where: ran(f.documentChainRunOnMainnet),

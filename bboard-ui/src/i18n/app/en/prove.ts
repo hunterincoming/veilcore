@@ -168,7 +168,7 @@ export const prove = {
     'If on, the check page also shows, for each receipt a lab signed for a sample from this record, that a lab received a sample (not which lab) and whether what arrived matches what was sent.',
   'app.prove.share.labSigs.title': 'Lab signatures',
   'app.prove.share.labSigs.intro':
-    'A lab’s receipts and reports about this record are private: only you, the lab and whoever sent it the sample can see them. Turn one on to show it on your check link and to anyone with this record’s proof code (your links that prove a number carry it). They then see that the lab signed it, and the lab’s name. Even with none on, “Whether a DNA report is saved” shows, for each receipt, that a lab received a sample and whether what arrived matches what was sent, without the lab’s name.',
+    'A lab’s receipts and reports about this record are private: only you, the lab and whoever sent it the sample can see them. Turn one on to show it on your check link and to anyone with this record’s proof code (your links that prove a fact carry it). They then see that the lab signed it, and the lab’s name. Even with none on, “Whether a DNA report is saved” shows, for each receipt, that a lab received a sample and whether what arrived matches what was sent, without the lab’s name.',
   'app.prove.share.labSigs.item': 'Show that {who} signed this on your check link',
   'app.prove.share.labSigs.receipt': 'Receipt for a sample, signed {date}',
   'app.prove.share.labSigs.report': 'Lab report, signed {date}',

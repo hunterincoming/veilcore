@@ -15,7 +15,7 @@
 // With it, the deploy first checks the sponsor says mainnet, VeilCore's pinned contract and
 // synced, and that the relay answers this site. Nothing is built if any of that is not so.
 //
-// Claims ("prove one number", docs/claims-screen.md) are on when the sponsor pays for them:
+// Claims ("prove a fact", docs/claims-screen.md) are on when the sponsor pays for them:
 // its /sponsor/status names a claims contract, which must be VeilCore's pinned one, and the
 // claims proving keys (proveRange, proveValue, proveAttested) and the k=15 and k=16 parameters
 // must be on this computer (proveAttested's k=13 is the main contract's too).

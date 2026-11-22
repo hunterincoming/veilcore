@@ -140,9 +140,9 @@ export const document = {
   'app.doc.nums.heldTitle': 'Ses chiffres',
   'app.doc.nums.heldText':
     'Scellés avec ce document sous {schema}. Vous seul les voyez : l’enregistrement contient un code qui les engage, pas les chiffres.',
-  'app.claim.title': 'Prouver un chiffre',
+  'app.claim.title': 'Prouver un fait',
   'app.claim.text':
-    'Prouvez à quiconque un fait sur un chiffre, sans le montrer, ni les autres chiffres ni le certificat. La preuve va sur Midnight, où chacun peut la vérifier.',
+    'Prouvez à quiconque un fait sans montrer le chiffre en cause, ni les autres chiffres ni le certificat : qu’un chiffre respecte une limite, ou qu’un résultat est « non détecté ». La preuve va sur Midnight, où chacun peut la vérifier.',
   'app.claim.example':
     'Par exemple : montrez à un acheteur que le THC total est au plus de 0,3 %, ou qu’un lot compte au plus 9 plantes en floraison, sans lui donner le chiffre ni le reste de l’enregistrement. Vous choisissez le chiffre et le seuil. Il reçoit un lien qui le vérifie.',
   'app.claim.notReady': 'Les preuves ne sont pas encore activées sur ce site.',
@@ -194,7 +194,7 @@ export const document = {
     'Daté du {date}, et le fichier choisi est bien celui qui a été scellé. Vérifié dans votre navigateur.',
   'app.doc.verdict.datedOtherFile': 'Daté du {date}, mais le fichier choisi n’est pas celui qui a été scellé.',
   'app.claim.check.intro':
-    'Quelqu’un vous a envoyé ce lien pour montrer un fait sur un chiffre d’un document scellé, sans montrer le chiffre ni le document. Cette page lit la preuve sur Midnight et la vérifie.',
+    'Quelqu’un vous a envoyé ce lien pour montrer un fait tiré d’un document scellé, sans montrer ses chiffres ni le document. Cette page lit la preuve sur Midnight et la vérifie.',
   'app.claim.check.bad': 'Ce lien est illisible. Redemandez-le.',
   'app.claim.check.checking': 'Lecture de la preuve sur Midnight…',
   'app.claim.check.okWhen': 'Prouvé sur Midnight dans le bloc {block}{date}.',
@@ -335,13 +335,13 @@ export const document = {
   'app.doc.chain.share.copy': 'Copier le lien avec sa chaîne',
   'app.doc.chain.share.copied': 'Copié.',
   'app.doc.local.p6':
-    'S’il a des chiffres, vous pourrez plus tard choisir d’en prouver un. Cela publie un fait sur ce chiffre sur Midnight, par le service de frais de VeilCore, et seulement si vous l’activez pour cet enregistrement.',
+    'S’il a des chiffres, vous pourrez plus tard choisir de prouver un fait à partir de ceux-ci. Cela publie ce fait sur Midnight, par le service de frais de VeilCore, et seulement si vous l’activez pour cet enregistrement.',
   'app.doc.local.prove.off':
-    'Prouver un chiffre n’est pas activé pour un enregistrement gardé uniquement sur cet appareil.',
-  'app.doc.local.prove.title': 'Prouver un chiffre : à vous de choisir',
+    'Prouver un fait n’est pas activé pour un enregistrement gardé uniquement sur cet appareil.',
+  'app.doc.local.prove.title': 'Prouver un fait : à vous de choisir',
   'app.doc.local.prove.text':
-    'Désactivé tant que vous ne l’activez pas ici. Prouver publie pour toujours un fait sur un chiffre sur Midnight, par le service de frais de VeilCore. Rien n’est envoyé au registre de VeilCore. Avant toute preuve, vous voyez exactement ce qui serait publié.',
-  'app.doc.local.prove.choice': 'Afficher « Prouver un chiffre » pour cet enregistrement',
+    'Désactivé tant que vous ne l’activez pas ici. Prouver publie pour toujours un fait tiré de cet enregistrement sur Midnight, par le service de frais de VeilCore. Rien n’est envoyé au registre de VeilCore. Avant toute preuve, vous voyez exactement ce qui serait publié.',
+  'app.doc.local.prove.choice': 'Afficher « Prouver un fait » pour cet enregistrement',
   'app.doc.local.prove.publish.title': 'Ce qui sera publié si vous continuez',
   'app.doc.local.prove.publish.range':
     'Sur Midnight, public et permanent : le formulaire « {schema} », le champ « {label} », le seuil {bound} et le sens ({direction}), avec un code qui représente cet enregistrement. Le chiffre lui-même n’est pas publié. Chaque seuil prouvé le resserre.',

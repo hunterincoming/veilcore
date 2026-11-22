@@ -141,9 +141,9 @@ export const document = {
   'app.doc.nums.heldTitle': 'Seine Zahlen',
   'app.doc.nums.heldText':
     'Mit diesem Dokument versiegelt als {schema}. Nur Sie sehen sie: Der Datensatz enthält einen Code, der sie bindet, nicht die Zahlen.',
-  'app.claim.title': 'Eine Zahl belegen',
+  'app.claim.title': 'Eine Tatsache belegen',
   'app.claim.text':
-    'Belegen Sie jedem eine Tatsache über eine Zahl, ohne sie, die anderen Zahlen oder das Zertifikat zu zeigen. Der Beleg kommt auf Midnight, wo jeder ihn prüfen kann.',
+    'Belegen Sie jedem eine Tatsache, ohne die Zahl dahinter, die anderen Zahlen oder das Zertifikat zu zeigen: dass eine Zahl innerhalb eines Grenzwerts liegt oder dass ein Ergebnis „nicht nachgewiesen“ ist. Der Beleg kommt auf Midnight, wo jeder ihn prüfen kann.',
   'app.claim.example':
     'Zum Beispiel: Zeigen Sie einem Käufer, dass der Gesamt-THC-Gehalt höchstens 0,3 % beträgt oder dass eine Charge höchstens 9 blühende Pflanzen hat, ohne ihm die Zahl oder den Rest des Datensatzes zu geben. Sie wählen die Zahl und die Grenze. Er bekommt einen Link, der es prüft.',
   'app.claim.notReady': 'Belege sind auf dieser Website noch nicht eingeschaltet.',
@@ -195,7 +195,7 @@ export const document = {
     'Datiert am {date}, und die gewählte Datei ist die versiegelte. In Ihrem Browser geprüft.',
   'app.doc.verdict.datedOtherFile': 'Datiert am {date}, aber die gewählte Datei ist nicht die versiegelte.',
   'app.claim.check.intro':
-    'Jemand hat Ihnen diesen Link geschickt, um eine Tatsache über eine Zahl in einem versiegelten Dokument zu zeigen, ohne die Zahl oder das Dokument zu zeigen. Diese Seite liest den Beleg auf Midnight und prüft ihn.',
+    'Jemand hat Ihnen diesen Link geschickt, um eine Tatsache aus einem versiegelten Dokument zu zeigen, ohne seine Zahlen oder das Dokument zu zeigen. Diese Seite liest den Beleg auf Midnight und prüft ihn.',
   'app.claim.check.bad': 'Dieser Link ist nicht lesbar. Bitten Sie erneut darum.',
   'app.claim.check.checking': 'Der Beleg wird auf Midnight gelesen…',
   'app.claim.check.okWhen': 'Auf Midnight belegt in Block {block}{date}.',
@@ -338,13 +338,13 @@ export const document = {
   'app.doc.chain.share.copy': 'Link mit seiner Kette kopieren',
   'app.doc.chain.share.copied': 'Kopiert.',
   'app.doc.local.p6':
-    'Wenn es Zahlen hat, können Sie später wählen, eine zu belegen. Das veröffentlicht eine Tatsache über die Zahl auf Midnight, über den Gebührendienst von VeilCore, und nur, wenn Sie es für diesen Datensatz einschalten.',
+    'Wenn es Zahlen hat, können Sie später wählen, daraus eine Tatsache zu belegen. Das veröffentlicht diese Tatsache auf Midnight, über den Gebührendienst von VeilCore, und nur, wenn Sie es für diesen Datensatz einschalten.',
   'app.doc.local.prove.off':
-    'Das Belegen einer Zahl ist für einen Datensatz, der nur auf diesem Gerät aufbewahrt wird, nicht eingeschaltet.',
-  'app.doc.local.prove.title': 'Eine Zahl belegen: Ihre Wahl',
+    'Das Belegen einer Tatsache ist für einen Datensatz, der nur auf diesem Gerät aufbewahrt wird, nicht eingeschaltet.',
+  'app.doc.local.prove.title': 'Eine Tatsache belegen: Ihre Wahl',
   'app.doc.local.prove.text':
-    'Aus, solange Sie es hier nicht einschalten. Ein Beleg veröffentlicht dauerhaft eine Tatsache über eine Zahl auf Midnight, über den Gebührendienst von VeilCore. An das Register von VeilCore wird nichts gesendet. Bevor etwas belegt wird, sehen Sie genau, was veröffentlicht würde.',
-  'app.doc.local.prove.choice': '„Eine Zahl belegen“ für diesen Datensatz anzeigen',
+    'Aus, solange Sie es hier nicht einschalten. Ein Beleg veröffentlicht dauerhaft eine Tatsache aus diesem Datensatz auf Midnight, über den Gebührendienst von VeilCore. An das Register von VeilCore wird nichts gesendet. Bevor etwas belegt wird, sehen Sie genau, was veröffentlicht würde.',
+  'app.doc.local.prove.choice': '„Eine Tatsache belegen“ für diesen Datensatz anzeigen',
   'app.doc.local.prove.publish.title': 'Was veröffentlicht wird, wenn Sie fortfahren',
   'app.doc.local.prove.publish.range':
     'Auf Midnight, öffentlich und dauerhaft: das Formular „{schema}“, das Feld „{label}“, die Grenze {bound} und die Richtung ({direction}), mit einem Code, der für diesen Datensatz steht. Die Zahl selbst wird nicht veröffentlicht. Jede belegte Grenze grenzt sie weiter ein.',

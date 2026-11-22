@@ -422,7 +422,7 @@ describe('the mainnet strings', () => {
       }
   });
 
-  it('with "prove one number" on the site, every language says so, and says use a computer; only that sentence changes', async () => {
+  it('with "prove a fact" on the site, every language says so, and says use a computer; only that sentence changes', async () => {
     const { LANGUAGES } = await import('./i18n/catalogs');
     const { MAINNET_DRAFTS } = await import('./config/languages');
     const NOT_HERE =

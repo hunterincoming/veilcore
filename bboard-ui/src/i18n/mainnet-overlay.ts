@@ -15,7 +15,7 @@ export type MainnetFlags = {
   chainSends?: boolean;
   /** Licenses are switched on at veilcore.org (config/copy.ts AGREEMENTS_LIVE); applied only with chainSends. */
   agreementsLive?: boolean;
-  /** Mainnet: the site offers "prove one number" (the sponsor pays for VeilCore's claims contract). Applied only with chainSends. */
+  /** Mainnet: the site offers "prove a fact" (the sponsor pays for VeilCore's claims contract). Applied only with chainSends. */
   claimsOnSite?: boolean;
 };
 
@@ -56,7 +56,7 @@ export type MainnetWords = {
   notReads: Strings;
   /** The mainnet sponsor is live; `stat2` depends on the claims pin. */
   sends: (claimsOnMainnet: boolean) => Strings;
-  /** The site offers "prove one number" on the claims contract (with the sponsor live). */
+  /** The site offers "prove a fact" on the claims contract (with the sponsor live). */
   claimsOnSite: Strings;
   /** Licenses switched on (with the sponsor live). */
   live: LiveSwaps;

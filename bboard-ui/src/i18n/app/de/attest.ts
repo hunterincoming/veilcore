@@ -35,11 +35,11 @@ export const attest = {
 
   'app.labnums.title': 'Zahlen aus diesem Bericht, von Ihnen signiert (optional)',
   'app.labnums.text':
-    'Wählen Sie das Formular und geben Sie die Zahlen genau wie in Ihrem Bericht ein. Sie werden in einen Datensatz versiegelt, den Sie signieren, und verschlossen mit dem Bericht gesendet. Der Züchter kann dann eine Zahl belegen, ohne die anderen zu zeigen, als Zahl, die Ihr Labor signiert hat.',
+    'Wählen Sie das Formular und geben Sie die Zahlen genau wie in Ihrem Bericht ein. Sie werden in einen Datensatz versiegelt, den Sie signieren, und verschlossen mit dem Bericht gesendet. Der Züchter kann dann eine Tatsache zu einer davon belegen, ohne die anderen zu zeigen, als Zahlen, die Ihr Labor signiert hat.',
   'app.labnums.resultTitle': 'Name dieses Ergebnisses (Ihre Berichtsreferenz)',
   'app.labnums.inReport': 'Zahlen, die das Labor mit diesem Bericht signiert hat ({form}):',
   'app.labnums.addText':
-    'Fügen Sie sie als Datensatz hinzu, den Sie halten. Dann können Sie die Signatur des Labors auf Midnight veröffentlichen und jeweils eine Zahl belegen.',
+    'Fügen Sie sie als Datensatz hinzu, den Sie halten. Dann können Sie die Signatur des Labors auf Midnight veröffentlichen und jeweils eine Tatsache belegen.',
   'app.labnums.add': 'Signierte Zahlen als Datensatz hinzufügen',
   'app.labnums.openRecord': 'Datensatz mit diesen Zahlen öffnen',
   'app.labnums.cantUse': 'Dieser Bericht enthält Zahlen, die nicht verwendet werden können: {reason}',

@@ -129,7 +129,7 @@ check a document for now.
   of its own (`/documents/new`).
 - **Home:** with the other records, marked "Document" and its type.
 - **Its own page:** what was sealed, its date on Midnight, "Copy link: proves you had this
-  file", "Is this the same file?", and, for a certificate with numbers, "Prove one number"
+  file", "Is this the same file?", and, for a certificate with numbers, "Prove a fact"
   (`docs/claims-screen.md`; on veilcore.org once claims are switched on there).
 - **The check page:** `/check-document#d=…`.
 - **A chain of records** ([document-chain.md](document-chain.md)): a document can be about
