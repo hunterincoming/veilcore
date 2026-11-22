@@ -36,7 +36,7 @@ const PAGES: [string, RegExp][] = [
   ['/privacy', /privacy/i],
   ['/verify', /check/i],
   ['/verify/example', /example/i],
-  ['/records', /log your first record|your records/i],
+  ['/records', /make your first record|your records/i],
   ['/records/import', /date your whole collection/i],
   ['/new', /what do you want to prove\?/i],
   ['/restore', /backup/i],

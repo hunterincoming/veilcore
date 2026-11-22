@@ -6,6 +6,7 @@ export const de: Strings = {
   // Header and footer
   'nav.language': 'Sprache',
   'nav.main': 'Hauptnavigation',
+  'nav.skip': 'Zum Hauptinhalt springen',
   'nav.home': 'VeilCore-Startseite',
   'footer.documents': 'Dokumente',
   'footer.spec': 'Spezifikation',
@@ -126,12 +127,12 @@ export const de: Strings = {
   'notice.datingPaused':
     'Das Datieren auf Midnight ist wegen des Netzwerk-Upgrades von Midnight pausiert. Ihre Datensätze sind gespeichert und werden datiert, sobald es wieder läuft.',
   // The record app's frame and the browser tab's titles.
-  'app.frame.section.log': 'Erfassen',
+  'app.frame.section.log': 'Datensatz anlegen',
   'app.frame.section.send': 'Senden und empfangen',
   'app.frame.section.license': 'Lizenzen und Lizenzgebühren',
   'app.frame.section.prove': 'Nachweisen und prüfen',
-  'app.frame.home': 'Ihre Datensätze. Ihr Fortschritt ist gespeichert.',
-  'title.founders': 'Gründer',
+  'app.frame.home': 'Ihre Datensätze (gespeichert)',
+  'title.founders': 'Über uns',
   // Mako's site draft of 21 November 2026 (components/site/HowItWorks.tsx, Founders.tsx and the
   // home page): the strings it needed that the site had no words for.
   'title.how': 'So funktioniert es',
@@ -176,6 +177,9 @@ export const de: Strings = {
     'Prüfcodes kommen in Stapel, und jeder Stapel wird auf Midnight verankert. Auf veilcore.org werden die Stapel zusätzlich auf Bitcoin gestempelt.',
   'm.hiw.chain3t': 'Das Datum',
   'm.hiw.chain3p': 'Der Block, in dem ein Stapel landet, zeigt, dass der Datensatz spätestens dann existierte.',
+  'm.hiw.chain4t': 'Die privaten Beweise',
+  'm.hiw.chain4p':
+    'Midnight prüft die privaten Beweise (Zero-Knowledge), sodass Sie eine Tatsache über einen Datensatz beweisen können, etwa eine Zahl aus einem Laborergebnis, ohne den Rest zu zeigen.',
   'm.hiw.chainMore': 'Alles, was auf Midnight kommen kann →',
   'm.hiw.more1': 'Abstammung, Lizenzen',
   'm.hiw.more2': 'und Labore.',
@@ -202,6 +206,11 @@ export const de: Strings = {
   'title.new': 'Einen Datensatz anlegen',
   'title.record': 'Datensatz',
   'title.agreements': 'Vereinbarungen',
+  'title.pack': 'Unterlagen für REPROCANN / SEDRONAR',
+  'title.labels': 'QR-Etiketten drucken',
+  'title.labResults': 'Laborergebnisse signieren',
+  'title.settings': 'Einstellungen',
+  'title.forLabs': 'Für Labore',
   // PageErrorBoundary.tsx: a page that failed to draw (round 3)
   'error.page.title': 'Diese Seite konnte nicht angezeigt werden',
   'error.page.text':
@@ -209,14 +218,15 @@ export const de: Strings = {
   'error.page.reload': 'Neu laden',
   'error.page.home': 'Ihre Datensätze',
   // Public pages (Mako's 25 September layout)
-  'm.nav.about': 'Über',
+  'm.nav.about': 'Über uns',
   'm.nav.team': 'Team',
   'm.nav.updates': 'Neuigkeiten',
   'm.nav.spec': 'Spezifikation',
   'm.nav.demo': 'Demo testen',
   'm.nav.yours': 'Ihre Datensätze',
   'm.nav.menu': 'Menü',
-  'm.nav.forLabs': 'Für Labore',
+  'm.nav.forLabs': 'Als Labor nutzen',
+  'm.nav.getBack': 'Meine Datensätze zurückholen',
   'm.hero.label': 'Nachweis dessen, was Sie haben',
   'm.hero.title1': 'Datieren Sie Ihren Datensatz.',
   'm.hero.title2': 'Ihre Genetik bleibt privat.',
@@ -408,7 +418,7 @@ export const de: Strings = {
   'm.privacy.contact': 'Fragen: hunter@veilcore.org',
   // Round 2 truth pass (14 Oct 2026): keys added or newly translated.
   'm.hero.lede':
-    'Für Züchter, Saatgutunternehmen und Labore, die mit pflanzlicher, tierischer und mikrobieller Genetik arbeiten: Geben Sie Ihren Datensätzen ein Datum, das niemand zurückdatieren kann. Ihre genetischen Daten bleiben verschlossen: DNA-Dateien verlassen Ihren Computer nie, und was Sie eingeben, erreicht unseren Server verschlossen. Nur Prüfcodes kommen auf Midnight, das sie datiert.',
+    'Für Züchter, Saatgutunternehmen und Labore, die mit pflanzlicher, tierischer und mikrobieller Genetik arbeiten: Geben Sie Ihren Datensätzen ein Datum, das niemand zurückdatieren kann. Ihre genetischen Daten bleiben verschlossen: DNA-Dateien verlassen Ihren Computer nie, und was Sie eingeben, erreicht unseren Server verschlossen. Nur Codes und die Fakten, die Sie beweisen wollen, kommen auf Midnight, das sie datiert.',
   'm.for.3p':
     'Senden Sie Material mit einem Laborcode. Das Labor signiert eine Empfangsbestätigung mit seinem eigenen Schlüssel, sodass der Datensatz eine zweite Partei zeigt. Die Bestätigung ist eine echte Signatur, gespeichert im Register von VeilCore, nicht auf der Chain. Bedingungen wie „keine Vermehrung“ sind in der Web-Demo nur zum Üben.',
   'm.get.1b': 'für einen Datensatz dessen, was Sie haben, ohne Ihre Genetik zu zeigen.',
@@ -416,7 +426,7 @@ export const de: Strings = {
     'Eine Elternverknüpfung zählt nur, wenn beide Datensatzinhaber sie bestätigen. Auf dieser Website erfasst sie das Register von VeilCore, nicht die Chain.',
   'm.open.2t': 'Bewahren Sie eine Datei auf.',
   'm.open.2p':
-    'Auf der Seite Ihres Datensatzes: „Nachweispaket herunterladen“. Eine .zip-Datei mit dem Datensatz, wie er versiegelt wurde, seinem Einschlussnachweis, dem Prüfcode des Stapels, dem Ort, an dem der Stapel festgehalten wurde, der Bitcoin-Stempeldatei, falls es eine gibt, und einer Seite, die alles offline prüft. Ihre Sicherungsdatei enthält Ihre Schlüssel, nicht diese Dateien. Die einzelnen Dateien gibt es weiterhin unter „Technische Details“: „Datensatz exportieren“, „Inklusionsnachweis herunterladen“, „Bitcoin-Stempeldatei herunterladen“.',
+    'Auf der Seite Ihres Datensatzes, unter „Technische Details“: „Nachweispaket herunterladen“. Eine .zip-Datei mit dem Datensatz, wie er versiegelt wurde, seinem Einschlussnachweis, dem Code der Gruppe, dem Ort, an dem die Gruppe festgehalten wurde, der Bitcoin-Stempeldatei, falls es eine gibt, und einer Seite, die alles offline prüft. Ihre Sicherungsdatei enthält Ihre Schlüssel, nicht diese Dateien. Die einzelnen Dateien gibt es weiterhin unter „Technische Details“: „Datensatz exportieren“, „Inklusionsnachweis herunterladen“, „Bitcoin-Stempeldatei herunterladen“.',
   'm.faq.1a':
     'Sobald Datensätze verankert sind, kann jeder prüfen, welcher zuerst verankert wurde. Koppeln Sie Ihren Laborbericht, damit ein späterer Test damit verglichen werden kann. Wenn Sie Material versenden, signiert der Empfänger mit seinem eigenen Schlüssel eine Empfangsbestätigung. Ein Datensatz ist ein Beweismittel, keine Registrierung: Er zeigt, dass Sie diesen Datensatz spätestens an diesem Datum hatten, nicht, dass Sie das Material hatten, und entscheidet einen Streit nicht allein.',
   'm.post0.date': '4. Okt. 2026',
@@ -521,6 +531,9 @@ export const de: Strings = {
   'm.live.claims.t': 'Eine Tatsache belegen (Belege)',
   'm.live.claims.main': 'Im Hauptnetz, ohne Wartungsschlüssel. Die Website kann ihn noch nicht nutzen.',
   'm.live.claims.not': 'Ihn über die Website nutzen.',
+  'm.live.parentage.t': 'Abstammung aus einem Laborergebnis nachweisen (ICAR 2023)',
+  'm.live.parentage.main':
+    'Ja, seit dem 21. November 2026. Ein Labor signiert die Abstammungszahlen; Sie weisen die ICAR-Prüfungen nach, ohne ein DNA-Profil zu zeigen. Jeder Nachweis dauert einige Minuten: Nutzen Sie einen Computer.',
   'm.live.claims.live':
     'Ja, an einem Computer: eine Tatsache aus einem versiegelten Zertifikat oder Laborergebnis belegen, ohne den Rest zu zeigen. Auf Handys noch nicht ausprobiert.',
   'm.live.lic.t': 'Lizenzen und Lizenzgebühren',
@@ -572,7 +585,32 @@ export const de: Strings = {
     'Züchter|Saatgutunternehmen|Gewebekulturlabore|Anerkennungsstellen|Prüfer|Zuchtverbände|Sortenämter',
   'm.home.keep.t': 'Ihre Genetik bleibt bei Ihnen.',
   'm.home.keep.p':
-    'Auf Midnight kommen nur Prüfcodes, nie das, was Sie eingegeben haben, und nie Ihre Dateien. Der Code eines Datensatzes sind 64 Zeichen, die Ihr Computer daraus berechnet, und niemand kann daraus auf die Pflanze, die Marker oder den Namen zurückschließen.',
+    'Auf Midnight kommen nur Codes und die Fakten, die Sie beweisen wollen: Ein genauer Wert, den Sie beweisen, wird öffentlich, und ein von einem Labor signierter Fakt zeigt den Schlüssel des Labors. Nie Ihre Dateien. Midnight prüft die privaten Beweise, sodass Sie eine Tatsache über einen Datensatz beweisen können, ohne den Rest zu zeigen.',
+  'm.home2.l.contact': 'Mit den Gründern sprechen',
+  'm.home2.l.faq': 'Fragen',
+  'm.home2.moreTitle': 'Alles Weitere',
+  'm.home2.w3p': 'Verlangen Sie mit einem Antrag einen datierten Datensatz, und prüfen Sie ihn kostenlos, ohne Konto.',
+  'm.home2.w3t': 'Sortenämter, Zertifizierer und Zuchtbücher',
+  'm.home2.w2p':
+    'Signieren Sie die Ergebnisse, die Sie ohnehin erstellen: Der Züchter kann sie vorzeigen, und wer sie sieht, kann prüfen, wer signiert hat.',
+  'm.home2.w2t': 'Labore',
+  'm.home2.w1p':
+    'Datieren Sie jede Sorte, Linie oder jedes Tier, und zeigen Sie es später einem Käufer, einem Prüfer oder einem Gericht.',
+  'm.home2.w1t': 'Züchter und Saatgutunternehmen',
+  'm.home2.whoTitle': 'Für wen es ist',
+  'm.home2.howLink': 'Alles darüber, wie es funktioniert →',
+  'm.home2.s3p':
+    'Schicken Sie einen Link. Wer ihn bekommt, prüft das Datum kostenlos, ohne Konto, und sieht nur, was Sie auswählen.',
+  'm.home2.s3t': '3. Zeigen, wenn jemand fragt.',
+  'm.home2.s2p':
+    'Ihr Gerät berechnet einen Code aus dem Datensatz. Nur dieser Code wird datiert, auf Midnight, und niemand kann daraus auf das Geschriebene zurückschließen.',
+  'm.home2.s2t': '2. Versiegeln.',
+  'm.home2.s1p':
+    'Was es ist und woher es kommt. Ihr Gerät verschlüsselt die Angaben vor dem Senden: Sie kommen verschlüsselt bei uns an, und wir können sie nicht lesen.',
+  'm.home2.s1t': '1. Aufschreiben.',
+  'm.home2.stepsTitle': 'So funktioniert es, in drei Schritten',
+  'm.home2.lede':
+    'Zeigen Sie, dass Sie eine Pflanze, ein Tier oder eine Linie zu einem Datum hatten, ohne dass Ihre Genetik Ihr Gerät verlässt.',
   'm.home.tlDated': 'Datensatz datiert',
   'm.home.tlAsks': 'Jemand fragt nach',
   'm.home.matters': 'Wo es zählt.',
@@ -625,7 +663,7 @@ export const de: Strings = {
   'm.for.2t': 'Sortenschutz und Anerkennung.',
   'm.for.2link': 'So funktioniert ein Beleg →',
   // The lab slide's way in (lab/LabDoor.tsx), and on How it works.
-  'm.for.3link': 'Sie betreiben ein Labor? Den Signaturschlüssel Ihres Labors einrichten →',
+  'm.for.3link': 'Sie betreiben ein Labor? Was VeilCore für Labore tut →',
   'm.for.3t': 'Material in den Händen eines Labors.',
   'm.for.4t': 'Laborergebnisse, zurück zu Ihnen.',
   'm.for.4p':
@@ -636,6 +674,9 @@ export const de: Strings = {
   'm.for.5t': 'Tierlinien.',
   'm.for.5p':
     'Herdbücher führen die Abstammung. Ein Datensatz kann jedem Eintrag ein Datum geben, das niemand zurückdatieren kann, ohne den Genotyp zu veröffentlichen. Auf dieser Website können Sie ein Tier erfassen: seine Einzeltierkennung, Vater und Mutter und einen DNA-Bericht.',
+  'm.for.5parent':
+    'Ein signiertes Abstammungsergebnis eines Labors kann auch zeigen, dass ein Kalb zu Vater und Mutter passt, ohne ein DNA-Profil zu zeigen.',
+  'm.for.5parentLink': 'So funktioniert der Abstammungsnachweis →',
   'm.for.5ask': 'Wenn Sie Tiere züchten, sagen Sie uns, was Ihre Datensätze brauchen.',
   'm.how.label': 'So funktioniert es',
   'm.how.title1': 'Vier Schritte.',
@@ -710,9 +751,6 @@ export const de: Strings = {
   'm.open.3t': 'Wir bürgen nicht für Ergebnisse.',
   'm.open.3p':
     'Die Signaturen eines Labors zu einem Datensatz bleiben privat, außer der Inhaber des Datensatzes zeigt sie. Jede gezeigte nennt den Schlüssel, der signiert hat, den Namen, unter dem dieser registriert wurde, eine Akkreditierung, die sein Inhaber angegeben hat (das prüfen wir nicht), und ob der Betreiber von VeilCore diesen Namen mit einem öffentlichen Lizenz- oder Akkreditierungsverzeichnis abgeglichen hat, und an welchem Tag. VeilCore bürgt für kein Labor: Wer einen Datensatz prüft, entscheidet, was eine Signatur wert ist.',
-  'm.open.4t': 'Jeder kann ein Register betreiben.',
-  'm.open.4p':
-    'Das Format erlaubt einem Labor, einer Anerkennungsstelle oder einem Sortenschutzgremium, ein eigenes Register unter eigener Webdomain zu betreiben und zu verankern, ohne uns zu fragen. Unser eigener Registercode ist öffentlich, unter der Apache-2.0-Lizenz, auf github.com/hunterincoming/veilcore-api.',
   'm.faq.label': 'Fragen',
   'm.faq.title1': 'Fragen,',
   'm.faq.title2': 'die man uns stellt.',
@@ -766,6 +804,13 @@ export const de: Strings = {
   'm.open.6p':
     'Mit diesem Beweispaket kann jeder einen Datensatz offline prüfen: seine verify.html öffnen und dann die eine Transaktion, die sie nennt, in einem Midnight-Explorer nachschlagen. Datensätze, die seit dem 14. Oktober versiegelt wurden, brauchen außerdem Abschnitt 3.6.1 der Spezifikation, in der Spezifikation auf dieser Website und im SDK ab 0.16.0.',
   'm.open.6link': 'Spezifikation lesen →',
+  'm.own.link': 'Die drei Wege, und was ungetestet ist →',
+  'm.own.p':
+    'Sie müssen veilcore.org nie benutzen. Der gesamte Code von VeilCore ist offen (Apache-2.0): Nutzen Sie diese Website, binden Sie die Smart Contracts (den Code auf Midnight) in Ihre eigene Software ein, oder betreiben Sie eine eigene Kopie der Website, des Servers und des Gebührendienstes. Eine eigene Kopie ist mit dem offenen Code möglich, aber außerhalb von VeilCore hat das noch niemand getan. Die Anleitung zum Selbstbetrieb zeigt, wie Sie eine Kopie mit Ihrer eigenen Adresse und Ihrem Namen bauen. Sie würden sie selbst hosten und Ihre eigenen Netzwerkgebühren zahlen.',
+  'm.own.short':
+    'Sie müssen veilcore.org nie benutzen. Der Code ist offen: Binden Sie die Smart Contracts in Ihre eigene Software ein, oder betreiben Sie eine eigene Kopie. Außerhalb von VeilCore hat das noch niemand getan.',
+  'm.own.plugLink': 'So binden Sie die Smart Contracts ein →',
+  'm.own.title': 'Nutzen Sie es auf Ihre Weise.',
   'm.updates.older': 'Ältere Neuigkeiten',
   'm.live.colTestHere': 'Diese Test-Website (test.veilcore.org)',
   'm.live.feature': 'Funktion',

@@ -6,6 +6,7 @@ export const fr: Strings = {
   // Header and footer
   'nav.language': 'Langue',
   'nav.main': 'Navigation principale',
+  'nav.skip': 'Aller au contenu principal',
   'nav.home': 'Accueil VeilCore',
   'footer.documents': 'Documents',
   'footer.spec': 'Spécification',
@@ -126,12 +127,12 @@ export const fr: Strings = {
   'notice.datingPaused':
     'La datation sur Midnight est suspendue pendant la mise à niveau du réseau de Midnight. Vos enregistrements sont sauvegardés et seront datés dès son retour.',
   // The record app's frame and the browser tab's titles.
-  'app.frame.section.log': 'Enregistrer',
+  'app.frame.section.log': 'Créer un enregistrement',
   'app.frame.section.send': 'Envoyer et recevoir',
   'app.frame.section.license': 'Licences et redevances',
   'app.frame.section.prove': 'Prouver et vérifier',
-  'app.frame.home': 'Vos enregistrements. Votre progression est enregistrée.',
-  'title.founders': 'Fondateurs',
+  'app.frame.home': 'Vos enregistrements (enregistré)',
+  'title.founders': 'À propos',
   // Mako's site draft of 21 November 2026 (components/site/HowItWorks.tsx, Founders.tsx and the
   // home page): the strings it needed that the site had no words for.
   'title.how': 'Comment ça marche',
@@ -176,6 +177,9 @@ export const fr: Strings = {
     'Les codes de preuve vont dans des lots, et chaque lot est ancré sur Midnight. Sur veilcore.org, les lots sont aussi horodatés sur Bitcoin.',
   'm.hiw.chain3t': 'La date',
   'm.hiw.chain3p': 'Le bloc où arrive un lot montre que l’enregistrement existait déjà à ce moment-là.',
+  'm.hiw.chain4t': 'Les preuves privées',
+  'm.hiw.chain4p':
+    'Midnight vérifie les preuves privées (à divulgation nulle), pour que vous puissiez prouver un fait sur un enregistrement, comme un nombre d’un résultat de laboratoire, sans montrer le reste.',
   'm.hiw.chainMore': 'Tout ce qui peut aller sur Midnight →',
   'm.hiw.more1': 'Lignées, licences',
   'm.hiw.more2': 'et laboratoires.',
@@ -202,6 +206,11 @@ export const fr: Strings = {
   'title.new': 'Créer un enregistrement',
   'title.record': 'Enregistrement',
   'title.agreements': 'Accords',
+  'title.pack': 'Dossier pour REPROCANN / SEDRONAR',
+  'title.labels': 'Imprimer des étiquettes QR',
+  'title.labResults': 'Signer des résultats de laboratoire',
+  'title.settings': 'Réglages',
+  'title.forLabs': 'Pour les laboratoires',
   // PageErrorBoundary.tsx: a page that failed to draw (round 3)
   'error.page.title': 'Cette page n’a pas pu être affichée',
   'error.page.text':
@@ -216,7 +225,8 @@ export const fr: Strings = {
   'm.nav.demo': 'Essayer la démo',
   'm.nav.yours': 'Vos enregistrements',
   'm.nav.menu': 'Menu',
-  'm.nav.forLabs': 'Pour les laboratoires',
+  'm.nav.forLabs': 'Utiliser comme laboratoire',
+  'm.nav.getBack': 'Récupérer mes enregistrements',
   'm.hero.label': 'La preuve de ce que vous détenez',
   'm.hero.title1': 'Datez votre enregistrement.',
   'm.hero.title2': 'Gardez votre génétique privée.',
@@ -409,7 +419,7 @@ export const fr: Strings = {
   'm.privacy.contact': 'Questions : hunter@veilcore.org',
   // Round 2 truth pass (14 Oct 2026): keys added or newly translated.
   'm.hero.lede':
-    'Pour les obtenteurs, les éleveurs, les semenciers et les laboratoires qui travaillent sur la génétique végétale, animale et microbienne : donnez à vos enregistrements une date que personne ne peut antidater. Vos données génétiques restent verrouillées : les fichiers ADN ne quittent jamais votre ordinateur, et ce que vous saisissez arrive verrouillé sur notre serveur. Seuls des codes de preuve vont sur Midnight, qui les date.',
+    'Pour les obtenteurs, les éleveurs, les semenciers et les laboratoires qui travaillent sur la génétique végétale, animale et microbienne : donnez à vos enregistrements une date que personne ne peut antidater. Vos données génétiques restent verrouillées : les fichiers ADN ne quittent jamais votre ordinateur, et ce que vous saisissez arrive verrouillé sur notre serveur. Seuls des codes, et les faits que vous choisissez de prouver, vont sur Midnight, qui les date.',
   'm.for.3p':
     'Envoyez du matériel avec un code laboratoire. Le laboratoire signe un accusé de réception avec sa propre clé, et l’enregistrement montre ainsi une seconde partie. L’accusé est une vraie signature, conservée par le registre de VeilCore, pas sur la chaîne. Des conditions comme l’interdiction de multiplier ne sont qu’un exercice dans la démo web.',
   'm.get.1b': 'pour un enregistrement de ce que vous détenez, sans montrer votre génétique.',
@@ -417,7 +427,7 @@ export const fr: Strings = {
     'Un lien de parenté ne compte que si les deux détenteurs le confirment. Sur ce site, c’est le registre de VeilCore qui l’enregistre, pas la chaîne.',
   'm.open.2t': 'Gardez un seul fichier.',
   'm.open.2p':
-    'Sur la page de votre enregistrement : « Télécharger le dossier de preuve ». Un seul .zip avec l’enregistrement tel qu’il a été scellé, sa preuve d’inclusion, le code de preuve du lot, l’endroit où le lot a été inscrit, le fichier d’horodatage Bitcoin s’il y en a un, et une page qui vérifie le tout hors ligne. Votre fichier de sauvegarde contient vos clés, pas ces fichiers. Les fichiers séparés restent sous « Détails techniques » : « Exporter l’enregistrement », « Télécharger la preuve d’inclusion », « Télécharger le fichier d’horodatage Bitcoin ».',
+    'Sur la page de votre enregistrement, sous « Détails techniques » : « Télécharger le dossier de preuve ». Un seul .zip avec l’enregistrement tel qu’il a été scellé, sa preuve d’inclusion, le code de preuve du lot, l’endroit où le lot a été inscrit, le fichier d’horodatage Bitcoin s’il y en a un, et une page qui vérifie le tout hors ligne. Votre fichier de sauvegarde contient vos clés, pas ces fichiers. Les fichiers séparés restent sous « Détails techniques » : « Exporter l’enregistrement », « Télécharger la preuve d’inclusion », « Télécharger le fichier d’horodatage Bitcoin ».',
   'm.faq.1a':
     'Une fois les enregistrements ancrés, chacun peut vérifier lequel a été ancré en premier. Associez votre rapport de laboratoire, pour qu’un test ultérieur puisse y être comparé. Quand vous envoyez du matériel, le destinataire signe un accusé de réception avec sa propre clé. Un enregistrement est une preuve, pas une inscription : il montre que vous déteniez déjà cet enregistrement à cette date, pas que vous déteniez le matériel, et ne tranche pas un litige à lui seul.',
   'm.post0.date': '4 oct. 2026',
@@ -522,6 +532,9 @@ export const fr: Strings = {
   'm.live.claims.t': 'Prouver un fait',
   'm.live.claims.main': 'Sur le réseau principal, sans clé de maintenance. Le site ne peut pas encore l’utiliser.',
   'm.live.claims.not': 'L’utiliser depuis le site.',
+  'm.live.parentage.t': 'Prouver la filiation à partir d’un résultat de laboratoire (ICAR 2023)',
+  'm.live.parentage.main':
+    'Oui, depuis le 21 novembre 2026. Un laboratoire signe les comptages de filiation ; vous prouvez les contrôles de l’ICAR sans montrer aucun profil ADN. Chaque preuve prend quelques minutes : utilisez un ordinateur.',
   'm.live.claims.live':
     'Oui, depuis un ordinateur : prouver un fait tiré d’un certificat ou d’un résultat de laboratoire scellé sans montrer le reste. Pas encore essayé sur téléphone.',
   'm.live.lic.t': 'Licences et redevances',
@@ -574,7 +587,32 @@ export const fr: Strings = {
     'Obtenteurs et éleveurs|Semenciers|Laboratoires de culture in vitro|Certificateurs|Examinateurs|Livres généalogiques|Offices des variétés végétales',
   'm.home.keep.t': 'Votre génétique reste chez vous.',
   'm.home.keep.p':
-    'Seuls des codes de preuve vont sur Midnight, jamais ce que vous avez saisi ni vos fichiers. Le code d’un enregistrement fait 64 caractères que votre ordinateur calcule à partir de celui-ci, et personne ne peut en remonter à la plante, aux marqueurs ou au nom.',
+    'Seuls des codes vont sur Midnight, avec les faits que vous choisissez de prouver : une valeur exacte que vous prouvez devient publique, et un fait signé par un laboratoire montre la clé du laboratoire. Jamais vos fichiers. Midnight vérifie les preuves privées, pour que vous puissiez prouver un fait sur un enregistrement sans montrer le reste.',
+  'm.home2.l.contact': 'Parler aux fondateurs',
+  'm.home2.l.faq': 'Questions',
+  'm.home2.moreTitle': 'Tout le reste',
+  'm.home2.w3p': 'Demandez un enregistrement daté avec une demande, et vérifiez-le gratuitement, sans compte.',
+  'm.home2.w3t': 'Offices des variétés, certificateurs et livres généalogiques',
+  'm.home2.w2p':
+    'Signez les résultats que vous produisez déjà : l’obtenteur peut les montrer, et qui les voit peut vérifier qui a signé.',
+  'm.home2.w2t': 'Laboratoires',
+  'm.home2.w1p':
+    'Datez chaque variété, lignée ou animal, et montrez-le plus tard à un acheteur, un examinateur ou un tribunal.',
+  'm.home2.w1t': 'Obtenteurs et semenciers',
+  'm.home2.whoTitle': 'Pour qui',
+  'm.home2.howLink': 'Tout sur le fonctionnement →',
+  'm.home2.s3p':
+    'Envoyez un lien. Qui le reçoit vérifie la date gratuitement, sans compte, et ne voit que ce que vous choisissez.',
+  'm.home2.s3t': '3. Montrez-le quand on vous le demande.',
+  'm.home2.s2p':
+    'Votre appareil calcule un code à partir de l’enregistrement. Seul ce code est daté, sur Midnight, et personne ne peut en remonter à ce que vous avez écrit.',
+  'm.home2.s2t': '2. Scellez-le.',
+  'm.home2.s1p':
+    'Ce que c’est et d’où ça vient. Votre appareil verrouille les détails avant de les envoyer ; nous ne pouvons pas les lire.',
+  'm.home2.s1t': '1. Notez-le.',
+  'm.home2.stepsTitle': 'Comment ça marche, en trois étapes',
+  'm.home2.lede':
+    'Montrez que vous déteniez une plante, un animal ou une souche à une date donnée, sans que votre génétique quitte votre appareil.',
   'm.home.tlDated': 'Enregistrement daté',
   'm.home.tlAsks': 'Quelqu’un demande',
   'm.home.matters': 'Là où ça compte.',
@@ -628,7 +666,7 @@ export const fr: Strings = {
   'm.for.2t': 'Protection des obtentions et certification.',
   'm.for.2link': 'Comment fonctionne une preuve →',
   // The lab slide's way in (lab/LabDoor.tsx), and on How it works.
-  'm.for.3link': 'Vous dirigez un laboratoire ? Configurez la clé de signature de votre laboratoire →',
+  'm.for.3link': 'Vous dirigez un laboratoire ? Ce que VeilCore fait pour les laboratoires →',
   'm.for.3t': 'Du matériel entre les mains d’un laboratoire.',
   'm.for.4t': 'Les résultats du laboratoire, renvoyés vers vous.',
   'm.for.4p':
@@ -639,6 +677,9 @@ export const fr: Strings = {
   'm.for.5t': 'Lignées animales.',
   'm.for.5p':
     'Les livres généalogiques tiennent le pedigree. Un enregistrement peut donner à chaque entrée une date que personne ne peut antidater, sans publier le génotype. Sur ce site, vous pouvez enregistrer un animal : son numéro d’identification individuel, son père et sa mère, et un rapport ADN.',
+  'm.for.5parent':
+    'Un résultat de filiation signé par un laboratoire peut aussi prouver qu’un veau correspond à son père et à sa mère, sans montrer aucun profil ADN.',
+  'm.for.5parentLink': 'Comment marche la filiation →',
   'm.for.5ask': 'Si vous élevez des animaux, dites-nous ce dont vos enregistrements ont besoin.',
   'm.how.label': 'Comment ça marche',
   'm.how.title1': 'Quatre étapes.',
@@ -713,9 +754,6 @@ export const fr: Strings = {
   'm.open.3t': 'Nous ne nous portons pas garants des résultats.',
   'm.open.3p':
     'Les signatures d’un laboratoire sur un enregistrement restent privées, sauf si le détenteur de l’enregistrement les montre. Chacune de celles qui sont montrées indique quelle clé a signé, le nom sous lequel cette clé a été enregistrée, toute accréditation déclarée par son détenteur (nous ne la vérifions pas), et si l’opérateur de VeilCore a rapproché ce nom d’une liste publique de licences ou d’accréditations, et à quelle date. VeilCore ne se porte garant d’aucun laboratoire : c’est la personne qui vérifie un enregistrement qui décide de ce que vaut une signature.',
-  'm.open.4t': 'Chacun peut tenir un registre.',
-  'm.open.4p':
-    'Le format permet à un laboratoire, un organisme de certification ou un organisme de droits de gérer son propre registre, sous son propre domaine web, et d’ancrer sans nous demander. Le code de notre propre registre est public, sous licence Apache-2.0, sur github.com/hunterincoming/veilcore-api.',
   'm.faq.label': 'Questions',
   'm.faq.title1': 'Les questions',
   'm.faq.title2': 'qu’on nous pose.',
@@ -768,6 +806,13 @@ export const fr: Strings = {
   'm.open.6p':
     'Avec ce dossier de preuve, n’importe qui peut vérifier un enregistrement hors ligne : ouvrir son verify.html, puis consulter sur un explorateur Midnight la transaction qu’il nomme. Les enregistrements scellés depuis le 14 octobre demandent aussi la section 3.6.1 de la spécification, dans la spécification sur ce site et dans le SDK 0.16.0 et suivants.',
   'm.open.6link': 'Lire la spécification →',
+  'm.own.link': 'Les trois façons, et ce qui n’est pas testé →',
+  'm.own.p':
+    'Vous n’êtes jamais obligé d’utiliser veilcore.org. Tout le code de VeilCore est ouvert (Apache-2.0) : utilisez ce site, intégrez les contrats intelligents (le code sur Midnight) à votre propre logiciel, ou faites tourner votre propre copie du site, du serveur et du service de frais. Faire tourner votre propre copie est possible à partir du code ouvert, mais personne en dehors de VeilCore ne l’a encore fait. Le guide pour l’héberger soi-même explique comment construire une copie avec votre propre adresse et votre nom. Vous l’hébergeriez et paieriez vos propres frais de réseau.',
+  'm.own.short':
+    'Vous n’êtes jamais obligé d’utiliser veilcore.org. Le code est ouvert : intégrez les contrats intelligents à votre propre logiciel, ou faites tourner votre propre copie. Personne en dehors de VeilCore ne l’a encore fait.',
+  'm.own.plugLink': 'Comment intégrer les contrats intelligents →',
+  'm.own.title': 'Utilisez-le à votre façon.',
   'm.updates.older': 'Actualités plus anciennes',
   'm.live.colTestHere': 'Ce site de test (test.veilcore.org)',
   'm.live.feature': 'Fonction',

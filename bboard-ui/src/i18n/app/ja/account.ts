@@ -62,8 +62,6 @@ export const account = {
   'app.account.device.other': 'ほかの端末',
 
   'app.account.restore.lead': 'この端末で記録を開きます。',
-  'app.account.restore.sameAccount':
-    'もう一台のスマートフォンと同じAppleまたはGoogleアカウントなら、そのまま開けます。',
   'app.account.restore.usePhone':
     'パスキーを単独で解除できないパソコンでは、開いた画面で「スマートフォンを使う」を選び、スマートフォンでコードを読み取ってください。',
   'app.account.restore.oldName': '以前{host}でパスキーを作りましたか？ここで試す',

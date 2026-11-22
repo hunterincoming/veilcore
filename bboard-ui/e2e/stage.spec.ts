@@ -88,7 +88,7 @@ test('seal a plant, add the next stage from its page, and date its lab report on
   await page.getByRole('button', { name: /Next: check it/ }).click();
   await page.getByRole('button', { name: /Seal it/ }).click();
   // The network is blocked on purpose: the key's date stamp fails safely and waits.
-  await page.getByRole('button', { name: /Do the date stamp later/ }).click({ timeout: 90_000 });
+  await page.getByRole('button', { name: /Go on without waiting/ }).click({ timeout: 90_000 });
   await page.locator('input[type="file"]').setInputFiles({
     name: 'Practice lab report.txt',
     mimeType: 'text/plain',
@@ -110,7 +110,11 @@ test('seal a plant, add the next stage from its page, and date its lab report on
   // 2. Its page offers the next generation; the log flow asks about the unsaved plant first.
   await page.goto(`/record/${f1Id}`);
   await expect(page.getByRole('heading', { name: f1 })).toBeVisible();
-  await page.getByRole('button', { name: /Add the next generation or selection/ }).click();
+  await page.getByText('Next generation or clones').click();
+  await page
+    .getByRole('dialog')
+    .getByRole('button', { name: /Add the next generation or selection/ })
+    .click();
   await expect(page).toHaveURL(new RegExp(`/new\\?next=${f1Id}$`)); // kept: a reload comes back to this stage
   await expect(page.locator('[data-unsaved-plant]')).toContainText(`You have an unsaved plant: ${unsaved}.`);
   await expect(page.getByRole('button', { name: 'Continue that plant' })).toBeVisible();
@@ -136,7 +140,7 @@ test('seal a plant, add the next stage from its page, and date its lab report on
   await page.getByRole('button', { name: /Next: check it/ }).click();
   await expect(page.getByText(/Stage: F2 · Selected for: vigour, early finish/)).toBeVisible();
   await page.getByRole('button', { name: /Seal it/ }).click();
-  await page.getByRole('button', { name: /Do the date stamp later/ }).click({ timeout: 90_000 });
+  await page.getByRole('button', { name: /Go on without waiting/ }).click({ timeout: 90_000 });
   // The name is sealed with the rest (round 5): found by opening the rows, never in the clear.
   await expect.poll(() => opened(held).some((r) => r.strainName === f2)).toBe(true);
   expect(JSON.stringify(held.records)).not.toContain(f2);
@@ -213,7 +217,7 @@ test('seal a plant, add the next stage from its page, and date its lab report on
   await expect(page.getByRole('button', { name: /Technical details/ })).toBeVisible();
   await expect(
     page.getByRole('button', {
-      name: /Add the next generation|Certificate|Send it to a lab|License it|Save a DNA report|Date this DNA report|Family tree/,
+      name: /Add the next generation|Next generation or clones|Certificate|Send it to a lab|License it|Save a DNA report|Date this DNA report|Family tree/,
     }),
   ).toHaveCount(0);
 

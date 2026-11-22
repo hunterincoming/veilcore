@@ -29,7 +29,8 @@ export const partners = {
   'app.partners.not.3': 'Quién tiene hoy el material o el registro.',
   'app.partners.not.4':
     'Que el trabajo de un laboratorio sea correcto. Un nombre verificado significa que coincidió con un listado público, nada más.',
-  'app.partners.not.5': 'Parentesco, derechos, licencias ni situación legal.',
+  'app.partners.not.5':
+    'Parentesco, salvo que el titular envíe un enlace de prueba de parentesco. Derechos, licencias ni situación legal.',
   'app.partners.demo.title': 'Pruébelo',
   'app.partners.demo.lede':
     'Pegue el enlace de comprobación de un registro. Se verifica en este navegador, contra el servidor de registros que usa este sitio. No se envía nada a ningún otro lugar y no se guarda nada.',

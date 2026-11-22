@@ -26,6 +26,8 @@ export const offline = {
   'app.install.ready':
     'このブラウザにはVeilCoreのアプリがあるため、ここでは電波がなくても開きます。記録のためのバックアップは引き続き必要です。',
   'app.install.dismiss': '今はしない',
+  'app.install.showHow': 'やり方を見る',
+  'app.install.gotIt': 'わかりました',
 
   'app.instant.pending':
     '{tsa}によるタイムスタンプ：{time} — Midnight（ブロックチェーン）での日付は次のバッチで付きます。',

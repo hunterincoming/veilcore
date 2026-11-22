@@ -213,9 +213,9 @@ export const verify = {
   'app.verify.batchNoStamp': 'El lote todavía no tiene sello de fecha en Midnight.',
   'app.verify.sigLine': '{forWhom}{kind}, firma comprobada en este navegador. {lead}.',
   'app.verify.sampleDetails': 'Detalles de la muestra, según el servidor de registros:',
-  'app.verify.moreSigs': '{forWhom}Y {n} firmas más, cada una verificada en este navegador.',
+  'app.verify.moreSigs': '{forWhom}Y {n} firmas más, cada una comprobada en este navegador.',
   'app.verify.noneVerified':
-    'El servidor de registros informa una declaración firmada, pero no se pudo verificar ninguna en este navegador.',
+    'El servidor de registros informa una declaración firmada, pero no se pudo comprobar ninguna en este navegador.',
   'app.verify.noneSigned':
     'El titular no ha mostrado aquí ninguna firma de laboratorio. Los acuses de recibo y los informes de un laboratorio son privados, salvo que el titular decida mostrarlos.',
   'app.verify.badSigs.one':

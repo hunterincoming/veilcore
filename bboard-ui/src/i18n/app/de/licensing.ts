@@ -498,7 +498,7 @@ export const licensing = {
   'app.lic.real.errCommit':
     'Die Antwort passt nicht zu dem, was zuerst gesendet wurde. Nicht ausstellen: Beginnen Sie mit einem neuen Link von vorn.',
   'app.lic.real.needAnchor':
-    'Um diesen Datensatz wirklich zu lizenzieren, richten Sie zuerst auf seiner Seite den Nachweis ein, dass Sie ihn halten. Die Lizenz wird mit dem eigenen Schlüssel des Datensatzes ausgestellt.',
+    'Um diesen Datensatz wirklich zu lizenzieren, setzen Sie zuerst auf seiner Seite den Datumsstempel des Schlüssels. Die Lizenz wird vom eigenen Schlüssel des Datensatzes ausgestellt.',
   'app.lic.real.openRecord': 'Datensatz öffnen',
   'app.lic.real.inviteUnsure':
     'Wir konnten nicht feststellen, ob der Link erstellt wurde: Es kam keine eindeutige Antwort. Falls doch, kann ihn niemand nutzen, weil er diese Seite nie erreicht hat, und er läuft nach 30 Tagen von selbst ab. Bis dahin hält der VeilCore-Server den eingegebenen Namen und die On-Chain-Identität dieses Datensatzes dazu. Erstellen Sie nur dann einen neuen Link, wenn Sie ihn noch brauchen.',

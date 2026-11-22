@@ -65,7 +65,8 @@ describe('the draft', () => {
       }),
     );
     expect(d?.strainName).toBe('X');
-    expect(d?.dateCreated).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    // A date that isn't one is left empty, never filled in with today (22 Nov).
+    expect(d?.dateCreated).toBe('');
     expect(d?.parents).toEqual([{ name: 'P' }]);
     expect(d?.photos).toEqual([{ name: 'b', fingerprint: 'cd'.repeat(32) }]);
     expect(d?.breedingMethod).toBe('');
@@ -97,7 +98,7 @@ describe('the draft', () => {
 describe('Home, with a draft in this browser', () => {
   beforeEach(() => mem.clear());
   it('offers to continue it by name instead of logging a first plant', () => {
-    expect(draftHeading(loadDraft())).toBe('Let’s log your first record');
+    expect(draftHeading(loadDraft())).toBe('Let’s make your first record');
     saveDraft({ ...emptyDraft(), strainName: '  Blue Dream ' });
     expect(draftHeading(loadDraft())).toBe('Continue your draft: Blue Dream');
     saveDraft({ ...emptyDraft(), notes: 'started, no name yet' });

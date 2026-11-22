@@ -213,11 +213,12 @@ describe('privacy, said plainly', () => {
     const lede = en['m.hero.lede'];
     // Who it's for and what it does, then the privacy line: genetic data, not "everything".
     // "Stays locked", not "stays on your computer": the description does reach the server,
-    // locked (panel review). What goes on Midnight is proof codes, plural (review of the home
+    // locked (panel review). What goes on Midnight is codes, plural (review of the home
     // redesign, 18 Nov): on veilcore.org a key's date stamp, a DNA pairing, a license and a
-    // claim's proof go there too, never what was typed or a file.
+    // claim's proof go there too, never a file; and what someone proves (full review, 22 Nov:
+    // "only proof codes" overclaimed, as the privacy page says).
     expect(lede).toMatch(
-      /Your genetic data stays locked: DNA files never leave your computer, and what you type reaches our server locked\. Only proof codes go on Midnight, which dates them\.$/,
+      /Your genetic data stays locked: DNA files never leave your computer, and what you type reaches our server locked\. Only codes, and the facts you choose to prove, go on Midnight, which dates them\.$/,
     );
     expect(lede.split(/(?<=\.)\s+/).length).toBeLessThanOrEqual(4);
     // No lab-report sentence next to "stays on your computer" (it read as a contradiction):
@@ -260,10 +261,13 @@ describe('what to keep if VeilCore is gone', () => {
   it('one file: the evidence bundle the plant page really offers, never "coming" (round 7)', () => {
     const label = /DOWNLOAD_EVIDENCE_LABEL = '([^']+)'/.exec(source('components/EvidenceBundle.tsx'))?.[1];
     expect(label).toBe('Download evidence bundle');
-    // The plant page shows it: once right under the record's date, once in its own panel.
-    expect(source('components/RecordDetail.tsx').match(/<EvidenceBundle\b/g)?.length).toBe(2);
+    // The plant page shows it in its own panel under Technical details (since 22 Nov; it was
+    // also a line right under the record's date).
+    expect(source('components/RecordDetail.tsx').match(/<EvidenceBundle\b/g)?.length).toBe(1);
     expect(en['m.open.2t']).toBe('Keep one file.');
-    expect(en['m.open.2p']).toMatch(new RegExp(`^From your record's page: ${label}\\. One \\.zip with `));
+    expect(en['m.open.2p']).toMatch(
+      new RegExp(`^From your record's page, under Technical details: ${label}\\. One \\.zip with `),
+    );
     // What the bundle really holds (veilcore/evidence/bundle.ts) and its offline page.
     const bundle = source('veilcore/evidence/bundle.ts');
     for (const f of ['record/sealed-fields.json', 'proof/inclusion-proof.json', 'proof/anchors.json', 'verify.html'])
@@ -410,6 +414,7 @@ describe("what's live where", () => {
       'dna',
       'prove',
       'claims',
+      'parentage',
       'lic',
     ]);
     for (const { row, has } of rows) {
@@ -954,7 +959,7 @@ describe('the check page reading Midnight itself, per build (round 7)', () => {
     for (const s of [en, testSite, mainnetNoRelay, mainnetRelay])
       expect(s['m.tech.check.p']).toMatch(/Looking a record up by its identifier on this site uses our server\.$/);
     const footer = fs.readFileSync(path.join(SRC, 'components/AppFooter.tsx'), 'utf8');
-    expect(footer).toMatch(/to="\/#technical"[\s\S]*footer\.howCheck/);
+    expect(footer).toMatch(/to="\/how-it-works#technical"[\s\S]*footer\.howCheck/);
   });
   it('the overlays change only the check page sentence', () => {
     for (const s of [testSite, mainnetNoRelay, mainnetRelay])

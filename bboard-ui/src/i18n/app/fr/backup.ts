@@ -28,9 +28,9 @@ export const backup = {
   'app.backup.safari':
     'Ce navigateur peut effacer les données d’un site après 7 jours sans visite. Votre fichier de sauvegarde est ce qui ramène vos enregistrements : gardez-le.',
   'app.backup.actAsYou':
-    'Quiconque a ce fichier peut ouvrir vos enregistrements et agir en votre nom. Le mieux : une clé USB ou un gestionnaire de mots de passe. Si vous l’envoyez par e-mail, utilisez un compte avec validation en deux étapes.',
+    'Quiconque a ce fichier peut ouvrir vos enregistrements et agir en votre nom, sauf s’il a un mot de passe. Le mieux : une clé USB ou un gestionnaire de mots de passe. Gardez le mot de passe à part du fichier.',
   'app.backup.sentCopy': 'Copie envoyée ✓',
-  'app.backup.sendCopy': 'Envoyer une copie (e-mail, Drive, Fichiers…)',
+  'app.backup.sendCopy': 'Enregistrer une copie ailleurs (Fichiers, Drive…)',
   'app.backup.shareFailed': 'Ce navigateur n’a pas pu ouvrir son menu de partage.',
   'app.backup.byHand': 'C’est le fichier que vous venez d’enregistrer, dans votre dossier Téléchargements.',
   'app.backup.saveAgain': 'Enregistrer une autre copie',
@@ -42,7 +42,7 @@ export const backup = {
   'app.backup.openCopy': 'Ouvrir ma copie enregistrée',
   'app.backup.saveFirst': 'Enregistrez d’abord le fichier de sauvegarde.',
   'app.backup.turnsOn': 'S’active une fois la vérification réussie.',
-  'app.backup.pw.add': 'Ajouter un mot de passe (conseillé)',
+  'app.backup.pw.add': 'Le verrouiller avec un mot de passe (conseillé)',
   'app.backup.pw.why':
     'Le fichier seul n’ouvre alors rien : qui l’a doit aussi avoir le mot de passe. Si vous l’oubliez, personne ne peut ouvrir le fichier, pas même nous.',
   'app.backup.pw.label': 'Mot de passe du fichier de sauvegarde',
@@ -59,6 +59,14 @@ export const backup = {
   'app.backup.restoreTitle': 'Récupérez vos enregistrements',
   'app.backup.restoreIntro':
     'Nouveau téléphone ou ordinateur, ou navigateur vidé ? Ouvrez le fichier de sauvegarde que vous avez enregistré.',
+  'app.backup.ownOnly':
+    'N’ouvrez qu’un fichier ou un code que vous avez enregistré vous-même. VeilCore ne vous en demandera ni ne vous en enverra jamais.',
+  'app.backup.preview.one':
+    'Cette sauvegarde a été faite le {date} et contient {count} enregistrement. L’ajouter ici ?',
+  'app.backup.preview.other':
+    'Cette sauvegarde a été faite le {date} et contient {count} enregistrements. Les ajouter ici ?',
+  'app.backup.previewUndated.one': 'Cette sauvegarde contient {count} enregistrement. L’ajouter ici ?',
+  'app.backup.previewUndated.other': 'Cette sauvegarde contient {count} enregistrements. Les ajouter ici ?',
   'app.backup.plantsBack': 'Vos enregistrements sont de retour.',
   'app.backup.restored': 'Restauré.',
   'app.backup.nothingNew': 'Rien de nouveau dans ce fichier.',
@@ -73,7 +81,7 @@ export const backup = {
   'app.backup.and': '{a} et {b}',
   'app.backup.seeMyPlants': 'Voir mes enregistrements',
   'app.backup.lookIn':
-    'Cherchez sur votre clé USB, dans votre gestionnaire de mots de passe, ou dans vos e-mails, Drive ou iCloud. N’importe quel nom de fichier convient. Rien n’est envoyé.',
+    'Cherchez sur votre clé USB, dans votre gestionnaire de mots de passe ou votre cloud. Rien n’est envoyé.',
   'app.backup.openFile': 'Ouvrir mon fichier de sauvegarde',
   'app.backup.onlyKey': 'Vous n’avez que votre clé de détenteur (64 caractères) ?',
   'app.backup.keyLabel': 'Votre clé de détenteur (64 caractères)',

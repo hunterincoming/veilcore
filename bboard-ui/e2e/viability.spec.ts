@@ -68,7 +68,7 @@ test('a lab signs a before/after kill-step pair; the producer checks them togeth
   await producer.getByLabel(/^Made or isolated by/).fill('E2E producer (test data)');
   await producer.getByRole('button', { name: /Next: check it/ }).click();
   await producer.getByRole('button', { name: /Seal it/ }).click();
-  await producer.getByRole('button', { name: /Do the date stamp later/ }).click({ timeout: 90_000 });
+  await producer.getByRole('button', { name: /Go on without waiting/ }).click({ timeout: 90_000 });
   const recordId = await producer.evaluate(
     () => Object.keys(JSON.parse(localStorage.getItem('veilcore.record-keys.v1') ?? '{}') as object)[0],
   );

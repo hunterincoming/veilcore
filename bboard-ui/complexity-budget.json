@@ -1,31 +1,59 @@
 {
   "about": "VeilCore's complexity budget (docs/complexity-budget.md). Each number is the most a default screen may show, measured by e2e/complexity-budget.spec.ts on an iPhone 14 in each language. Numbers only go down, unless Hunter approves a rise in the PR and something else is removed in the same change.",
   "coreRoutes": 11,
+  "siteHomeHeight": 5719,
+  "howItWorksHeight": 27012,
   "screens": {
-    "home.empty": {
-      "screen": "/records on a new device, nothing logged",
-      "primary": 2,
-      "buttons": 8,
+    "site.home": {
+      "screen": "/, the landing page (veilcore.org), from 22 Nov 2026",
+      "primary": 0,
+      "buttons": 26,
       "moreDepth": 0,
       "words": {
-        "en": 102,
-        "de": 105,
-        "es": 112,
-        "fr": 116,
-        "ja": 106
+        "en": 373,
+        "de": 379,
+        "es": 370,
+        "fr": 388,
+        "ja": 345
+      }
+    },
+    "site.how": {
+      "screen": "/how-it-works, from 22 Nov 2026 (it carries what the landing page used to)",
+      "primary": 0,
+      "buttons": 41,
+      "moreDepth": 1,
+      "words": {
+        "en": 2824,
+        "de": 2859,
+        "es": 3213,
+        "fr": 3255,
+        "ja": 3044
+      }
+    },
+    "home.empty": {
+      "screen": "/records on a new device, nothing logged",
+      "primary": 1,
+      "buttons": 7,
+      "moreDepth": 0,
+      "words": {
+        "en": 90,
+        "de": 93,
+        "es": 101,
+        "fr": 104,
+        "ja": 93
       }
     },
     "restore": {
       "screen": "/restore, get your records back",
-      "primary": 1,
+      "primary": 0,
       "buttons": 3,
       "moreDepth": 2,
       "words": {
-        "en": 60,
-        "de": 60,
-        "es": 70,
-        "fr": 66,
-        "ja": 65
+        "en": 50,
+        "de": 49,
+        "es": 56,
+        "fr": 57,
+        "ja": 56
       }
     },
     "seal.start": {
@@ -35,10 +63,10 @@
       "moreDepth": 0,
       "words": {
         "en": 104,
-        "de": 94,
-        "es": 114,
-        "fr": 118,
-        "ja": 94
+        "de": 92,
+        "es": 113,
+        "fr": 117,
+        "ja": 91
       }
     },
     "seal.form": {
@@ -48,10 +76,10 @@
       "moreDepth": 1,
       "words": {
         "en": 138,
-        "de": 142,
-        "es": 145,
-        "fr": 139,
-        "ja": 128
+        "de": 140,
+        "es": 144,
+        "fr": 138,
+        "ja": 125
       }
     },
     "seal.review": {
@@ -61,10 +89,10 @@
       "moreDepth": 1,
       "words": {
         "en": 78,
-        "de": 82,
-        "es": 81,
-        "fr": 84,
-        "ja": 86
+        "de": 80,
+        "es": 80,
+        "fr": 83,
+        "ja": 83
       }
     },
     "seal.sealed": {
@@ -73,24 +101,24 @@
       "buttons": 5,
       "moreDepth": 1,
       "words": {
-        "en": 104,
-        "de": 100,
-        "es": 116,
-        "fr": 99,
-        "ja": 108
+        "en": 90,
+        "de": 91,
+        "es": 94,
+        "fr": 90,
+        "ja": 89
       }
     },
     "home.records": {
       "screen": "/records with one record",
-      "primary": 2,
-      "buttons": 12,
+      "primary": 1,
+      "buttons": 10,
       "moreDepth": 0,
       "words": {
-        "en": 249,
-        "de": 258,
-        "es": 273,
-        "fr": 251,
-        "ja": 260
+        "en": 139,
+        "de": 141,
+        "es": 145,
+        "fr": 137,
+        "ja": 126
       }
     },
     "keepSafe": {
@@ -109,14 +137,14 @@
     "record": {
       "screen": "/record/:id, the record's own page",
       "primary": 1,
-      "buttons": 15,
+      "buttons": 10,
       "moreDepth": 1,
       "words": {
-        "en": 200,
-        "de": 206,
-        "es": 230,
-        "fr": 225,
-        "ja": 212
+        "en": 142,
+        "de": 148,
+        "es": 162,
+        "fr": 157,
+        "ja": 139
       }
     },
     "check": {
@@ -234,33 +262,46 @@
       ]
     },
     "today": {
-      "seal.sealed": {
-        "en": ["next batch"],
-        "de": ["nächsten stapel"],
-        "es": ["próximo lote"],
-        "fr": ["prochain lot"],
-        "ja": ["次のバッチ"]
-      },
-      "home.records": {
-        "en": ["next batch"],
-        "de": ["nächsten stapel"],
-        "es": ["próximo lote"],
-        "fr": ["prochain lot"],
-        "ja": ["次のバッチ"]
-      },
-      "record": {
-        "en": ["next batch", "evidence bundle"],
-        "de": ["nächsten stapel", "nachweispaket"],
-        "es": ["próximo lote", "paquete de evidencia"],
-        "fr": ["prochain lot", "dossier de preuve"],
-        "ja": ["次のバッチ", "証拠バンドル"]
-      },
       "check": {
         "en": ["proof code", "anchor", "registry"],
         "de": ["prüfcode", "verank", "register"],
         "es": ["código de prueba", "anclad", "servidor de registros"],
         "fr": ["code de preuve", "ancr", "registre"],
         "ja": ["証明コード", "アンカー", "レジストリ"]
+      },
+      "site.how": {
+        "en": [
+          "proof code",
+          "batch root",
+          "anchor",
+          "transaction",
+          "wallet",
+          "zero-knowledge",
+          "registry",
+          "evidence bundle"
+        ],
+        "de": ["prüfcode", "verank", "transaktion", "wallet", "zero-knowledge", "register", "nachweispaket"],
+        "es": [
+          "código de prueba",
+          "raíz del lote",
+          "anclad",
+          "transacción",
+          "billetera",
+          "conocimiento cero",
+          "servidor de registros",
+          "paquete de evidencia"
+        ],
+        "fr": ["code de preuve", "ancr", "transaction", "portefeuille", "registre", "dossier de preuve"],
+        "ja": [
+          "証明コード",
+          "バッチのルート",
+          "アンカー",
+          "トランザクション",
+          "ウォレット",
+          "ゼロ知識",
+          "レジストリ",
+          "証拠バンドル"
+        ]
       }
     }
   }

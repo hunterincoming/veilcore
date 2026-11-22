@@ -32,6 +32,7 @@ import {
 import { nameLinkParams, verifyPath } from '../veilcore/verify-link';
 import { LockedRecords } from './LockedRecords';
 import { RecordSaveNotices } from './RecordSaveNotices';
+import { RecordChangedNotice } from './flow/RecordChanged';
 import { FinishReceiving } from './FinishReceiving';
 import { useRecordKeys } from '../veilcore/record-keys';
 import { ProveOwnershipPanel } from './chain/ProveOwnershipPanel';
@@ -400,6 +401,11 @@ export const RecordDetail: React.FC = () => {
   // A document has its own page: no DNA report, lab codes, licensing or family tree.
   if (isDocument(record)) return <DocumentDetail record={record} />;
 
+  // The backup is asked for once (22 Nov: it was the notice, the next step and a row, all on one
+  // screen): while it is the next step, the notice's button and "Save a fresh backup" wait.
+  const datesReportHere = isLabReportRecord(record);
+  const backupIsNext = REAL_CHAIN && !!keys && !keys.backedUpAt && !datesReportHere;
+
   const back = () => setMode('overview');
   const openResult = (resultId?: string) => {
     setAutoOpen(resultId);
@@ -492,8 +498,14 @@ export const RecordDetail: React.FC = () => {
           {t('app.sealed.mismatch')}
         </Alert>
       )}
+      {/* Changed on the network, not by this browser (record-watch.ts). Nothing when nothing changed. */}
+      <RecordChangedNotice recordId={record.id} />
       <FinishReceiving record={record} />
-      <RecordSaveNotices record={record} onShare={() => setMode('share')} />
+      <RecordSaveNotices
+        record={record}
+        onShare={() => setMode('share')}
+        backupIsNext={mode === 'overview' && backupIsNext}
+      />
 
       {/* A record that dates a lab report is not a plant: its own short page (components/stage). */}
       {mode === 'overview' && datesReport && (
@@ -548,29 +560,8 @@ export const RecordDetail: React.FC = () => {
             saved={saved}
           />
 
-          {/* Right under the record's date: everything needed to check it without us. */}
-          {record.recordFingerprint && record.nonce && (
-            <EvidenceBundle
-              record={record}
-              keys={keys}
-              trigger={(open) => (
-                <Typography variant="body2" sx={{ mt: -1.5 }}>
-                  {rich(t('app.plant.evidenceLine'), {
-                    link: (c) => (
-                      <Link component="button" type="button" onClick={open} sx={{ verticalAlign: 'baseline' }}>
-                        {c}
-                      </Link>
-                    ),
-                    muted: (c) => (
-                      <Box component="span" sx={{ color: 'text.secondary' }}>
-                        {c}
-                      </Box>
-                    ),
-                  })}
-                </Typography>
-              )}
-            />
-          )}
+          {/* The evidence bundle (everything needed to check the record without us) is under
+              "Technical details", with what it holds (22 Nov: it was also a line up here). */}
 
           {/* The next step says "Open the lab report" unless the backup or date stamp comes
               first; then this says it, so a lab report never waits unseen. */}
@@ -685,11 +676,10 @@ export const RecordDetail: React.FC = () => {
               )}
               {/* The next stage of a breeding history, and dating the saved lab report (components/stage). */}
               <StageRows record={record} labOnly={labOnly} saved={saved} />
-              <ActionRow section="log" label={t('app.plant.action.checkReport')} onClick={() => setMode('check')} />
               {hasFamily && (
                 <ActionRow section="log" label={t('app.plant.action.familyTree')} onClick={() => setMode('tree')} />
               )}
-              {REAL_CHAIN && keys && (
+              {REAL_CHAIN && keys && !backupIsNext && (
                 <ActionRow section="log" label={t('app.plant.action.freshBackup')} onClick={() => setMode('backup')} />
               )}
               {/* A holder who mistypes something needs a path that is not deletion. A record is
@@ -863,6 +853,18 @@ export const RecordDetail: React.FC = () => {
                     <BreedingHistory record={record} />
                   </Paper>
                 )}
+                {/* Checking a report file against this record (22 Nov: a row in "More you can do"
+                    before; most growers never need it). */}
+                <Box>
+                  <Button
+                    variant="text"
+                    startIcon={<FactCheckIcon />}
+                    onClick={() => setMode('check')}
+                    data-check-report=""
+                  >
+                    {t('app.plant.action.checkReport')}
+                  </Button>
+                </Box>
                 {/* The wire format. Any implementation can read this and recompute the
                     commitment without our code, our chain, or our permission. */}
                 <Box>

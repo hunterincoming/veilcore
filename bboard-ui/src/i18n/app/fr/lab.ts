@@ -162,7 +162,7 @@ export const lab = {
   'app.lab.strength.unverifiedRetraction':
     ' Le registre signale aussi une rétractation qui n’est pas signée par l’attestant ; elle est donc ignorée ici.',
   'app.lab.strength.matched': 'Signé · vérifiée auprès d’une liste publique',
-  'app.lab.strength.matchedWhy': '{text} La signature a été vérifiée dans ce navigateur.{acc}{unverified}',
+  'app.lab.strength.matchedWhy': '{text} La signature a été contrôlée dans ce navigateur.{acc}{unverified}',
   'app.lab.strength.accreditation':
     ' Ils indiquent une accréditation {scheme} délivrée par {by} ; confirmez-la auprès de {by}.',
   'app.lab.strength.expired': ' Une vérification antérieure de ce nom a expiré.',

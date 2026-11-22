@@ -98,9 +98,9 @@ export const animal = {
   'app.animal.v.app.log.keyStamped':
     'Schlüssel mit Datumsstempel versehen. Auch der Schlüssel Ihres Tieres ist datiert, damit Sie später nachweisen können, dass Sie seinen Datensatz halten.{bound} Über das Tier wurde nichts gesendet.',
   'app.animal.v.app.log.onlyFingerprint':
-    'Gesendet wird nur ein Code des Schlüssels Ihres Tieres, nichts über das Tier. Kostenlos: VeilCore zahlt die Netzwerkgebühr.',
+    'Freiwillig, nur nötig, um zu beweisen, dass Sie diesen Datensatz halten, oder um ihn zu lizenzieren. Gesendet wird nur ein Code des Schlüssels, nichts über das Tier. Kostenlos.',
   'app.animal.v.app.log.keepOpen':
-    'Das dauert etwa eine Minute. Lassen Sie diese Seite offen, bis es fertig ist: Auf einem Handy kann der Wechsel in eine andere App oder das Sperren des Bildschirms es anhalten. Wenn es anhält, geht nichts verloren: Ihr Tier ist gespeichert, und seine Seite bietet den Datumsstempel erneut an.',
+    'Sie müssen hier nicht warten. Es dauert etwa eine Minute und wird von selbst weiter versucht, solange VeilCore offen ist. Bricht es ab, geht nichts verloren: Die Seite Ihres Tieres bietet den Datumsstempel des Schlüssels wieder an.',
   'app.animal.v.app.chain.stampMayHaveGoneOut':
     'Ihr Datumsstempel wurde möglicherweise schon gesendet{tx}. Ihr Tier ist gespeichert. Versuchen Sie es erst wieder, wenn diese Transaktion im Netzwerk geprüft wurde.',
   'app.animal.v.app.chain.stampUnreachable':
@@ -207,7 +207,7 @@ export const animal = {
     'Der Schlüssel dieses Tieres erhielt schon früher einen Datumsstempel im Netzwerk. Das datiert den Schlüssel, nicht den Datensatz.',
   'app.animal.v.app.prove.own.title': 'Beweisen Sie, dass Sie den Schlüssel dieses Tieres halten (Testnetz)',
   'app.animal.v.app.prove.own.stampFirst':
-    'Richten Sie zuerst den Nachweis ein: Tippen Sie auf der Seite des Tieres auf „Nachweis einrichten, dass Sie ihn halten“. Der Beweis betrifft die On-Chain-Identität des Tierdatensatzes, die dieser Schritt erzeugt.',
+    'Setzen Sie zuerst den Datumsstempel des Schlüssels: „Datumsstempel des Schlüssels setzen“ auf der Seite des Tieres. Der Nachweis bezieht sich auf die On-Chain-Identität des Datensatzes, die dieser Schritt erzeugt.',
   // The lab report panels, a delivery and the saved report's sentence, for an animal.
   'app.animal.v.app.lab.sentence.none': 'Bei diesem Tier ist kein DNA-Bericht gespeichert.',
   'app.animal.v.app.lab.sentence.self':

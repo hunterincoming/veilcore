@@ -70,8 +70,6 @@ export const account = {
   'app.account.device.other': 'anderes Gerät',
 
   'app.account.restore.lead': 'Öffnen Sie Ihre Datensätze auf diesem Gerät.',
-  'app.account.restore.sameAccount':
-    'Dasselbe Apple- oder Google-Konto wie auf Ihrem anderen Handy? Dann klappt es einfach.',
   'app.account.restore.usePhone':
     'Auf einem Computer, der einen Passkey nicht selbst entsperren kann? Wählen Sie im Fenster, das sich öffnet, „Handy verwenden“ und scannen Sie den Code mit Ihrem Handy.',
   'app.account.restore.oldName': 'Passkey früher auf {host} angelegt? Hier versuchen',

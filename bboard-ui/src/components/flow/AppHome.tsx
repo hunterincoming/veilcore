@@ -12,7 +12,7 @@ import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
 import AddIcon from '@mui/icons-material/Add';
 import ChevronIcon from '@mui/icons-material/ChevronRight';
 import InboxIcon from '@mui/icons-material/MoveToInboxOutlined';
-import BadgeIcon from '@mui/icons-material/VerifiedUserOutlined';
+import BadgeIcon from '@mui/icons-material/KeyOutlined';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import {
@@ -80,6 +80,7 @@ import { useAccountState } from '../../veilcore/account-copy';
 import { JobsOnHome } from '../ask/JobsOnHome';
 import { keysOnlyHere } from './keys-only-here';
 import { wantsPasteFirst } from '../site/paste-entry';
+import { RecordChangesOnHome } from './RecordChanged';
 
 /**
  * A plant's card line: "Tied to the plant: DNA report signed by …, not dated yet." or "Not
@@ -405,16 +406,22 @@ export const AppHome: React.FC = () => {
           <UnreadableDeviceOnly />
           <LockedAgreements />
           {!pasteFirst && <PasteBox />}
-          {/* A lab's own links (persona review, 17 Oct): no spreadsheet of plants, no "logging my plant first". */}
+          {/* A lab's own links (persona review, 17 Oct): no spreadsheet of plants, no "logging my plant first".
+              Not here since 22 Nov: "New phone? Get your records back" while the card above says it
+              (and the header). "I'm a lab" stays beside the header's view button: on an empty Home
+              it is where a first-time lab looks. */}
           <Stack spacing={1} sx={{ alignItems: 'center', pt: 1 }}>
             {!labOnly && (
               <Button component={RouterLink} to="/records/import" sx={{ minHeight: 44 }}>
                 {t('app.home.spreadsheet')}
               </Button>
             )}
-            <Button component={RouterLink} to="/restore" sx={{ minHeight: 44 }}>
-              {labOnly ? t('app.home.newPhoneLab') : t('app.home.newPhone')}
-            </Button>
+            {/* The restore card above is for a browser never used here; a lab's own words when it isn't shown. */}
+            {(draft || holderKeyIfAny()) && (
+              <Button component={RouterLink} to="/restore" sx={{ minHeight: 44 }}>
+                {labOnly ? t('app.home.newPhoneLab') : t('app.home.newPhone')}
+              </Button>
+            )}
             <Button onClick={requestRoleChange} color="inherit" sx={{ minHeight: 44 }}>
               {labOnly ? t('app.home.breederToo') : t('app.home.imALab')}
             </Button>
@@ -437,12 +444,19 @@ export const AppHome: React.FC = () => {
     <Box sx={{ maxWidth: 680, mx: 'auto' }}>
       <AppHeader />
       <Stack spacing={2.5}>
-        <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
+        {/* "Make a record" on one line at 390px: the row wraps before the button does (review of #169). */}
+        <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between', gap: 1, flexWrap: 'wrap' }}>
           <Typography variant="h4" component="h1">
             {labOnly ? t('app.home.samplesReceived') : t('app.home.yourRecords')}
           </Typography>
           {!labOnly && (
-            <Button component={RouterLink} to="/new" variant="contained" startIcon={<AddIcon />} sx={{ minHeight: 48 }}>
+            <Button
+              component={RouterLink}
+              to="/new"
+              variant="contained"
+              startIcon={<AddIcon />}
+              sx={{ minHeight: 48, whiteSpace: 'nowrap' }}
+            >
               {t('app.home.logNew')}
             </Button>
           )}
@@ -451,6 +465,10 @@ export const AppHome: React.FC = () => {
         {pasteFirst && <PasteBox focus />}
 
         <LoadNoticeBar />
+
+        {/* Something about a record changed on the network that this browser didn't do (the check
+            made when the app opens, record-watch.ts). Nothing when nothing changed. */}
+        <RecordChangesOnHome records={records} />
 
         {/* Paid plans (billing.ts): off unless the build switches them on. */}
         <PlanBox waiting={PAID_PLANS_ENABLED ? waitingHere(records) : 0} />
@@ -691,7 +709,9 @@ export const AppHome: React.FC = () => {
 
         {!pasteFirst && <PasteBox />}
 
-        {!labOnly && (
+        {/* My agreements: once there is one (22 Nov). Before that it is a line under "More", and
+            every record's page has "License it". */}
+        {!labOnly && licenses.length > 0 && (
           <Paper
             {...linkCard(() => void navigate('/licenses'), t('app.home.openAgreements'))}
             sx={{
@@ -719,11 +739,6 @@ export const AppHome: React.FC = () => {
         )}
 
         <Stack spacing={0.5} sx={{ alignItems: 'center', pt: 2 }}>
-          {!labOnly && (
-            <Button component={RouterLink} to="/records/import" sx={{ minHeight: 44 }}>
-              {t('app.home.spreadsheet')}
-            </Button>
-          )}
           {/* The pack for the authority (authority-pack.ts): offered once there is a production
               chain to make it from, a grow batch or a harvest lot. */}
           {!labOnly && records.some((r) => documentKindOf(r) !== undefined) && (
@@ -731,9 +746,8 @@ export const AppHome: React.FC = () => {
               {t('app.pack.home')}
             </Button>
           )}
-          <Button component={RouterLink} to="/restore" sx={{ minHeight: 44 }}>
-            {labOnly ? t('app.home.newPhoneLab') : t('app.home.newPhone')}
-          </Button>
+          {/* The spreadsheet import and "New phone?" are under "More" once there are records (22 Nov):
+              this device already has them, and Home was twelve things to tap. */}
           <Button
             color="inherit"
             onClick={() => setMore(!more)}
@@ -746,6 +760,19 @@ export const AppHome: React.FC = () => {
             <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', justifyContent: 'center', gap: 1 }}>
               <Button variant="text" onClick={() => void navigate('/settings')} data-settings-link="">
                 {t('app.settings.link')}
+              </Button>
+              {!labOnly && licenses.length === 0 && (
+                <Button variant="text" component={RouterLink} to="/licenses" data-agreements-link="">
+                  {t('app.home.myAgreements', { n: 0 })}
+                </Button>
+              )}
+              {!labOnly && (
+                <Button variant="text" component={RouterLink} to="/records/import" data-spreadsheet-link="">
+                  {t('app.home.spreadsheet')}
+                </Button>
+              )}
+              <Button variant="text" component={RouterLink} to="/restore" data-new-phone-link="">
+                {labOnly ? t('app.home.newPhoneLab') : t('app.home.newPhone')}
               </Button>
               <Button variant="text" onClick={exportRecords}>
                 {t('app.home.exportAll')}

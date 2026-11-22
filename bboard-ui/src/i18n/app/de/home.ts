@@ -16,7 +16,7 @@ export const home = {
   'app.home.aboutThreeMinutesByHand':
     'Etwa 3 Minuten. Danach ist der Datensatz versiegelt; sein öffentliches Datum kommt, wenn wir seinen Stapel verankern (vorerst von Hand). Nur Sie halten den Schlüssel.',
   'app.home.continue': 'Fortsetzen',
-  'app.home.start': 'Los geht’s',
+  'app.home.start': 'Datensatz anlegen',
   'app.home.spreadsheet': 'Eine Tabelle? Ihre ganze Sammlung datieren',
   'app.home.newPhone': 'Neues Handy? Datensätze wiederherstellen',
   'app.home.newPhoneLab': 'Neues Handy? Schlüssel und Proben Ihres Labors wiederherstellen',
@@ -28,7 +28,7 @@ export const home = {
   'app.home.whatStops': 'Was hindert jemanden daran, mein Material zuerst zu erfassen?',
   'app.home.samplesReceived': 'Erhaltene Proben',
   'app.home.yourRecords': 'Ihre Datensätze',
-  'app.home.logNew': 'Neu erfassen',
+  'app.home.logNew': 'Datensatz anlegen',
   'app.home.saveIt': 'Speichern',
   'app.home.finishBackupLine': '<b>Zum Abschluss: Sicherungskopie speichern.</b> {line}',
   'app.home.keysOnlyHereRecords.one': 'Ein Datensatz hat Schlüssel nur auf diesem Gerät.',
@@ -95,6 +95,48 @@ export const home = {
   'app.home.labDoor.text': 'Ihre Datensätze bleiben, wie sie sind.',
   'app.home.labDoor.add': 'Labor-Werkzeuge hinzufügen',
   'app.home.labDoor.notNow': 'Jetzt nicht',
+  'app.labpage.title': 'VeilCore für Labore',
+  'app.labpage.lede':
+    'Signieren Sie die Ergebnisse, die Sie ohnehin erstellen. Der Züchter kann sie vorzeigen, und wer sie sieht, kann prüfen, welcher Schlüssel sie wann signiert hat. Ihr eigenes System arbeitet weiter wie bisher.',
+  'app.labpage.setUp': 'Labor einrichten',
+  'app.labpage.gets.title': 'Was Ihr Labor bekommt',
+  'app.labpage.gets.key.t': 'Einen Signaturschlüssel.',
+  'app.labpage.gets.key.p':
+    'In Ihrem Browser erstellt. Die Empfangsbestätigungen und Ergebnisse, die Sie signieren, tragen ihn, und jeder, dem sie gezeigt werden, kann die Signatur prüfen.',
+  'app.labpage.gets.arrived.t': 'Eine signierte Empfangsbestätigung für jede Probe.',
+  'app.labpage.gets.arrived.p':
+    'Ein Züchter schickt eine Probe mit einem VeilCore-Laborcode. Sie bestätigen, dass sie angekommen ist, oder lehnen sie ab, und signieren das.',
+  'app.labpage.gets.results.t': 'Ergebnisse, verschlüsselt für den Züchter.',
+  'app.labpage.gets.results.p':
+    'Nur der Züchter, Ihr Labor und wer die Probe geschickt hat, sehen sie, und nur der Züchter kann sie anderen zeigen.',
+  'app.labpage.work.title': 'Was sich an Ihrer Arbeit ändert',
+  'app.labpage.work.p1':
+    'Nichts in Ihrem eigenen System. Kommt eine Probe mit einem Laborcode, fügen Sie den Code ein oder scannen ihn, bestätigen die Lieferung und signieren später Ihr Ergebnis.',
+  'app.labpage.work.p2':
+    'Ihre Probendaten und Kundennamen bleiben bei Ihnen. VeilCore bewahrt die Empfangsbestätigungen auf, die Sie signieren, und Ihre Ergebnisse verschlüsselt, sodass nur der Züchter sie öffnen kann.',
+  'app.labpage.cost.title': 'Was es kostet',
+  'app.labpage.cost.p': 'Kostenlos zum Ausprobieren. Pläne für Labore sind gebaut, aber nicht eingeschaltet.',
+  'app.labpage.own.title': 'Nutzen Sie es auf Ihre Weise',
+  'app.labpage.own.lede':
+    'Sie müssen veilcore.org nie benutzen. Der gesamte Code von VeilCore ist offen, unter der Apache-2.0-Lizenz.',
+  'app.labpage.own.site.t': 'veilcore.org nutzen.',
+  'app.labpage.own.site.p': 'Nichts einzurichten. Wir betreiben den Server und zahlen die Netzwerkgebühren.',
+  'app.labpage.own.plug.t': 'In Ihre eigene Software einbinden.',
+  'app.labpage.own.plug.p':
+    'Ihr System behält Ihre Daten und fügt jedem Datensatz einen Prüfcode hinzu, mit dem Smart-Contract-Paket @veilcore/contracts.',
+  'app.labpage.own.plug.link': 'So binden Sie es ein →',
+  'app.labpage.own.run.t': 'Eine eigene Kopie betreiben.',
+  'app.labpage.own.run.p':
+    'Die Website, der Server, der Datensätze aufbewahrt, und der Gebührendienst sind offener Code. Sie würden sie selbst hosten und Ihre eigenen Netzwerkgebühren zahlen. Die Anleitung zum Selbstbetrieb nennt jeden Teil und jede Einstellung.',
+  'app.labpage.own.run.link': 'Die Anleitung zum Selbstbetrieb →',
+  'app.labpage.own.plainly':
+    'Offen gesagt: Eine eigene Kopie ist mit dem offenen Code möglich, aber außerhalb von VeilCore hat das noch niemand getan, ohne unsere Hilfe ist es also ungetestet. Eine Kopie nutzt Ihre eigene Adresse und Ihren Namen, sobald sie damit gebaut wird, wie die Anleitung zeigt. Der Haupt-Smart-Contract für Datensätze hat einen Wartungsschlüssel, den wir halten. Der Smart Contract für Nachweise hat keinen.',
+  'app.labpage.own.policyLink': 'Wer den Wartungsschlüssel hält und wann er benutzt werden darf →',
+  'app.labpage.own.codeLink': 'Der Code auf GitHub →',
+  'app.labpage.gone.title': 'Wenn es VeilCore nicht mehr gibt',
+  'app.labpage.gone.p':
+    'Was schon datiert ist, bleibt datiert: Die Daten stehen auf Midnight, und die Sicherungsdatei eines Züchters enthält seine Datensätze und die Nachweise, um sie mit freien, offenen Werkzeugen zu prüfen. Was aufhört, ist das Anlegen neuer Datensätze und das Weitergeben von Laborcodes, bis jemand einen Server aus dem offenen Code betreibt.',
+  'app.labpage.gone.link': 'Alles, was ohne uns weiterläuft →',
   'app.home.saveProblem.records': 'Datensätze',
   'app.home.saveProblem.agreements': 'Vereinbarungen',
   'app.home.saveProblem.unreachable':
@@ -123,7 +165,7 @@ export const home = {
   'app.home.paste.go': 'Los',
   'app.home.paste.orMake': 'Nichts einzufügen? Einen Datensatz anlegen',
   'app.home.paste.hint':
-    'Ein Laborcode, ein Link zu einem Datensatz, eine Anfrage, nachzuweisen, dass Sie einen Datensatz halten, oder eine Vereinbarung zum Unterschreiben. Wir erkennen, was es ist.',
+    'Ein Laborcode, ein Link zu einem Datensatz oder eine Vereinbarung zum Unterschreiben. Wir erkennen, was es ist.',
   'app.home.paste.whichRecord':
     'Das ist eine Anfrage, nachzuweisen, dass Sie einen Datensatz halten. Nach welchem wurde gefragt?',
   'app.home.receivedFrom': 'Erhalten von {name}',

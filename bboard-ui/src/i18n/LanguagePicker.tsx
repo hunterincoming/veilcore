@@ -22,6 +22,9 @@ export const LanguagePicker: React.FC = () => {
       data-language-picker=""
       slotProps={{
         select: {
+          // The name belongs on the combobox itself, not on the box around it (accessibility
+          // review, 22 Nov: screen readers announced an unnamed list).
+          SelectDisplayProps: { 'aria-label': t('nav.language') },
           renderValue: (v) => (
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
               <TranslateIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
@@ -37,6 +40,8 @@ export const LanguagePicker: React.FC = () => {
         '& .MuiSelect-select': { py: 0.75, fontSize: 14, pl: { xs: 1, sm: 1.75 } },
         '& .MuiSelect-select.MuiSelect-select': { pr: { xs: 3, sm: 4 } },
         '& .MuiSelect-icon': { right: { xs: 2, sm: 7 } },
+        // A focus ring that shows on the light pages and on the home page's night ground alike.
+        '& .MuiSelect-select:focus-visible': { outline: '3px solid currentColor', outlineOffset: 2, borderRadius: 1 },
       }}
     >
       {choices.map((l) => (

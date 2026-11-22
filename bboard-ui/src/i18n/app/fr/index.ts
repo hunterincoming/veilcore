@@ -43,6 +43,7 @@ import { account } from './account';
 import { scan } from './scan';
 import { offline } from './offline';
 import { recovery } from './recovery';
+import { watch } from './watch';
 
 export const appFr: AppTranslation = {
   ...common,
@@ -81,4 +82,5 @@ export const appFr: AppTranslation = {
   ...scan,
   ...offline,
   ...recovery,
+  ...watch,
 };

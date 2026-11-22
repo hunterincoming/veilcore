@@ -108,7 +108,7 @@ export const AppFooter: React.FC<{
             {/* How a record is checked by hand lives in the home page's technical section. */}
             <Link
               component={RouterLink}
-              to="/#technical"
+              to="/how-it-works#technical"
               underline="always"
               sx={{
                 ...linkBox,
@@ -134,8 +134,8 @@ export const AppFooter: React.FC<{
               </Typography>
               <Item to="/how-it-works">{t('m.hero.how')}</Item>
               <Item to="/founders">{t('m.nav.about')}</Item>
-              <Item to="/#demo">{t('m.foot.demo')}</Item>
-              <Item to="/#updates">{t('m.nav.updates')}</Item>
+              <Item to="/how-it-works#demo">{t('m.foot.demo')}</Item>
+              <Item to="/founders#updates">{t('m.nav.updates')}</Item>
               <Item to="/how-it-works#where">{t('m.live.label')}</Item>
               <Item to="/verify">{t('m.foot.verify')}</Item>
             </Stack>

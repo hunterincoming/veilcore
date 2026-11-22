@@ -16,12 +16,18 @@ a number that CI checks. The rules themselves are in `CLAUDE.md`, "Keep it simpl
     browser version.
   - `moreDepth`: how many levels of "More" or "Technical details" the screen goes.
   - `firstSeal`: screens and taps from the landing page to sealing a first record.
+  - `siteHomeHeight`: how tall the landing page (`site.home`) is on the phone, in CSS pixels
+    (22 Nov 2026: it had grown to about 25,400 measured this way, some 30 screens).
+  - `howItWorksHeight`: the same for How it works (`site.how`), which carries what the landing
+    page used to.
+    Heights are set from what CI measures; a page may be 1% over before it fails, because fonts
+    lay out a few pixels differently from machine to machine.
   - `coreRoutes`: how many pages are core in `bboard-ui/src/config/route-tiers.ts`.
   - `jargon.terms`: words that don't belong on a default screen, per language.
     `jargon.today`: the ones still there today. These are reported, not failed, until they are
     removed; any other term on a default screen fails.
 - **`bboard-ui/e2e/complexity-budget.spec.ts`**: an iPhone 14 walks the default screens in all
-  five languages against the stand-in registry: Home on a new device, getting records back,
+  five languages against the stand-in registry: the landing page, Home on a new device, getting records back,
   the four screens to a first sealed record, Home with a record, the keep-your-records-safe
   sheet, the record page and a stranger's check page. It counts what is shown before anything
   is opened, then opens every "More" to count the levels, and fails if any number is over.

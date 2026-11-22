@@ -7,6 +7,7 @@ export const es: Strings = {
   // Header and footer
   'nav.language': 'Idioma',
   'nav.main': 'Principal',
+  'nav.skip': 'Ir al contenido principal',
   'nav.home': 'Inicio de VeilCore',
   'footer.documents': 'Documentos',
   'footer.spec': 'Especificación',
@@ -127,12 +128,12 @@ export const es: Strings = {
   'notice.datingPaused':
     'El fechado en Midnight está en pausa por la actualización de la red de Midnight. Sus registros están guardados y se fecharán cuando vuelva a funcionar.',
   // The record app's frame and the browser tab's titles.
-  'app.frame.section.log': 'Registrar',
+  'app.frame.section.log': 'Crear un registro',
   'app.frame.section.send': 'Enviar y recibir',
   'app.frame.section.license': 'Licencias y regalías',
   'app.frame.section.prove': 'Demostrar y comprobar',
-  'app.frame.home': 'Sus registros. Su avance está guardado.',
-  'title.founders': 'Fundadores',
+  'app.frame.home': 'Sus registros (guardado)',
+  'title.founders': 'Acerca de',
   // Mako's site draft of 21 November 2026 (components/site/HowItWorks.tsx, Founders.tsx and the
   // home page): the strings it needed that the site had no words for.
   'title.how': 'Cómo funciona',
@@ -176,6 +177,9 @@ export const es: Strings = {
     'Los códigos de prueba van en lotes, y cada lote se ancla en Midnight. En veilcore.org, los lotes también se sellan en Bitcoin.',
   'm.hiw.chain3t': 'La fecha',
   'm.hiw.chain3p': 'El bloque en el que entra un lote muestra que el registro ya existía para entonces.',
+  'm.hiw.chain4t': 'Las pruebas privadas',
+  'm.hiw.chain4p':
+    'Midnight comprueba las pruebas privadas (de conocimiento cero), así que puede probar un hecho de un registro, como un número de un resultado de laboratorio, sin mostrar el resto.',
   'm.hiw.chainMore': 'Todo lo que puede ir a Midnight →',
   'm.hiw.more1': 'Linaje, licencias',
   'm.hiw.more2': 'y laboratorios.',
@@ -202,6 +206,11 @@ export const es: Strings = {
   'title.new': 'Crear un registro',
   'title.record': 'Registro',
   'title.agreements': 'Acuerdos',
+  'title.pack': 'Documentación de respaldo para REPROCANN / SEDRONAR',
+  'title.labels': 'Imprimir etiquetas QR',
+  'title.labResults': 'Firmar resultados de laboratorio',
+  'title.settings': 'Ajustes',
+  'title.forLabs': 'Para laboratorios',
   // PageErrorBoundary.tsx: a page that failed to draw (round 3)
   'error.page.title': 'No se pudo mostrar esta página',
   'error.page.text': 'Algo salió mal al mostrarla. No se cambió nada. Recargue la página o vaya a sus registros.',
@@ -215,7 +224,8 @@ export const es: Strings = {
   'm.nav.demo': 'Pruebe la demo',
   'm.nav.yours': 'Sus registros',
   'm.nav.menu': 'Menú',
-  'm.nav.forLabs': 'Para laboratorios',
+  'm.nav.forLabs': 'Usar como laboratorio',
+  'm.nav.getBack': 'Recuperar mis registros',
   'm.hero.label': 'Prueba de lo que usted tiene',
   'm.hero.title1': 'Feche su registro.',
   'm.hero.title2': 'Mantenga su genética en privado.',
@@ -235,7 +245,7 @@ export const es: Strings = {
   'm.step1.n': '01 · Registro',
   'm.step2.n': '02 · Código de prueba',
   'm.step3.n': '03 · Anclaje',
-  'm.step4.n': '04 · Verificación',
+  'm.step4.n': '04 · Comprobación',
   'm.step4.title': 'Muéstrelo después',
   'm.demo.label': 'Demo',
   'm.demo.title1': 'Pruebe',
@@ -243,7 +253,7 @@ export const es: Strings = {
   'm.demo.create.title': 'Crear un registro',
   'm.demo.create.text':
     'Una planta, un animal o un documento inventados: séllelo, guarde su copia de seguridad y vea su página.',
-  'm.demo.verify.title': 'Verificar un registro',
+  'm.demo.verify.title': 'Comprobar un registro',
   'm.demo.verify.text': 'Ingrese el identificador de un registro y vea lo que su titular divulgó y si está anclado.',
   'm.demo.paste.title': '¿Recibió un código o un enlace?',
   'm.demo.paste.text':
@@ -297,11 +307,11 @@ export const es: Strings = {
   'm.contact.spec': 'Lea la especificación',
   'm.foot.explore': 'Explorar',
   'm.foot.contact': 'Contacto',
-  'm.foot.verify': 'Verificar un registro',
+  'm.foot.verify': 'Comprobar un registro',
   'm.foot.fine': 'Prueba de que usted ya tenía un registro a una fecha dada. No es un título sobre lo que describe.',
   'm.foot.terms': 'Términos de uso',
   'm.terms.inEnglish': 'Estos términos están en inglés y rige el texto en inglés.',
-  'm.verify.label': 'Verificar',
+  'm.verify.label': 'Comprobar',
   'm.verify.title': 'Compruebe un registro',
   'm.verify.lede':
     'Ingrese el identificador de registro impreso en un certificado o que le hayan compartido. Verá lo que su titular decidió compartir y lo que esta página pudo comprobar por sí misma: si el registro está en un lote sellado y si las firmas de laboratorio, si las hay, son válidas.',
@@ -405,7 +415,7 @@ export const es: Strings = {
   'm.privacy.contact': 'Preguntas: hunter@veilcore.org',
   // Round 2 truth pass (14 Oct 2026): keys added or newly translated.
   'm.hero.lede':
-    'Para obtentores, empresas de semillas y laboratorios que trabajan con genética vegetal, animal y microbiana: dé a sus registros una fecha que nadie pueda antedatar. Sus datos genéticos se quedan cifrados: los archivos de ADN nunca salen de su computadora, y lo que escribe llega cifrado a nuestro servidor. Solo los códigos de prueba van a Midnight, que los fecha.',
+    'Para obtentores, empresas de semillas y laboratorios que trabajan con genética vegetal, animal y microbiana: dé a sus registros una fecha que nadie pueda antedatar. Sus datos genéticos se quedan cifrados: los archivos de ADN nunca salen de su computadora, y lo que escribe llega cifrado a nuestro servidor. Solo los códigos, y los hechos que usted decida probar, van a Midnight, que los fecha.',
   'm.for.3p':
     'Envíe material con un código de laboratorio. El laboratorio firma un acuse de recibo con su propia clave, así el registro muestra a una segunda parte. El acuse es una firma real, guardada por el servidor de registros de VeilCore, no en la cadena. Condiciones como no propagar son solo de práctica en la demo web.',
   'm.get.1b': 'para un registro de lo que usted tiene, sin mostrar su genética.',
@@ -413,7 +423,7 @@ export const es: Strings = {
     'Un vínculo de parentesco cuenta solo cuando ambos titulares lo confirman. En este sitio lo anota el servidor de registros de VeilCore, no la cadena.',
   'm.open.2t': 'Guarde un solo archivo.',
   'm.open.2p':
-    'En la página de su registro: «Descargar el paquete de evidencia». Un solo .zip con el registro tal como se selló, su prueba de inclusión, la raíz del lote, dónde se registró el lote, el archivo de sello de Bitcoin si lo hay, y una página que lo comprueba todo sin conexión. Su archivo de copia de seguridad contiene sus claves, no estos archivos. Los archivos sueltos siguen en «Detalles técnicos»: «Exportar el registro», «Descargar la prueba de inclusión», «Descargar el archivo de sello de Bitcoin».',
+    'En la página de su registro, en «Detalles técnicos»: «Descargar el paquete de evidencia». Un solo .zip con el registro tal como se selló, su prueba de inclusión, la raíz del lote, dónde se registró el lote, el archivo de sello de Bitcoin si lo hay, y una página que lo comprueba todo sin conexión. Su archivo de copia de seguridad contiene sus claves, no estos archivos. Los archivos sueltos siguen en «Detalles técnicos»: «Exportar el registro», «Descargar la prueba de inclusión», «Descargar el archivo de sello de Bitcoin».',
   'm.faq.1a':
     'Una vez anclados los registros, cualquiera puede comprobar cuál se ancló primero. Vincule su informe de laboratorio, para que un análisis posterior pueda compararse con él. Cuando envíe material, el receptor firma un acuse de recibo con su propia clave. Un registro es una prueba, no una inscripción: muestra que usted ya tenía este registro a esa fecha, no que tenía el material, y por sí solo no resuelve una disputa.',
   'm.post0.date': '4 oct 2026',
@@ -518,6 +528,9 @@ export const es: Strings = {
   'm.live.claims.t': 'Probar un hecho',
   'm.live.claims.main': 'En la red principal, sin clave de mantenimiento. El sitio aún no puede usarlo.',
   'm.live.claims.not': 'Usarlo desde el sitio web.',
+  'm.live.parentage.t': 'Probar el parentesco con un resultado de laboratorio (ICAR 2023)',
+  'm.live.parentage.main':
+    'Sí, desde el 21 de noviembre de 2026. Un laboratorio firma los recuentos de parentesco; usted prueba los controles de ICAR sin mostrar ningún perfil de ADN. Cada prueba tarda unos minutos: use una computadora.',
   'm.live.claims.live':
     'Sí, desde una computadora: probar un hecho de un certificado o un resultado de laboratorio sellado sin mostrar el resto. En teléfonos todavía no se ha probado.',
   'm.live.lic.t': 'Licencias y regalías',
@@ -570,7 +583,32 @@ export const es: Strings = {
     'Obtentores|Empresas de semillas|Laboratorios de cultivo de tejidos|Certificadores|Examinadores|Libros genealógicos|Oficinas de variedades vegetales',
   'm.home.keep.t': 'Su genética se queda con usted.',
   'm.home.keep.p':
-    'Solo van a Midnight códigos de prueba, nunca lo que usted escribió ni sus archivos. El código de un registro son 64 caracteres que su computadora calcula a partir de él, y nadie puede deducir a partir de él la planta, los marcadores ni el nombre.',
+    'A Midnight solo van códigos, y los hechos que usted decida probar: un valor exacto que pruebe se vuelve público, y un hecho firmado por un laboratorio muestra la clave del laboratorio. Nunca sus archivos. Midnight comprueba las pruebas privadas, así que puede probar un hecho de un registro sin mostrar el resto.',
+  'm.home2.l.contact': 'Hablar con los fundadores',
+  'm.home2.l.faq': 'Preguntas',
+  'm.home2.moreTitle': 'Todo lo demás',
+  'm.home2.w3p': 'Pida un registro fechado junto con una solicitud, y compruébelo gratis, sin cuenta.',
+  'm.home2.w3t': 'Registros, certificadores y libros genealógicos',
+  'm.home2.w2p':
+    'Firme los resultados que ya produce: el obtentor puede mostrarlos, y quien los vea puede comprobar quién firmó.',
+  'm.home2.w2t': 'Laboratorios',
+  'm.home2.w1p':
+    'Ponga fecha a cada variedad, línea o animal, y muéstrela después a un comprador, un examinador o un tribunal.',
+  'm.home2.w1t': 'Obtentores y empresas de semillas',
+  'm.home2.whoTitle': 'Para quién es',
+  'm.home2.howLink': 'Todo sobre cómo funciona →',
+  'm.home2.s3p':
+    'Envíe un enlace. Quien lo reciba comprueba la fecha gratis, sin cuenta, y ve solo lo que usted elija.',
+  'm.home2.s3t': '3. Muéstrelo cuando se lo pidan.',
+  'm.home2.s2p':
+    'Su dispositivo calcula un código a partir del registro. Solo ese código se fecha, en Midnight, y nadie puede deducir de él lo que escribió.',
+  'm.home2.s2t': '2. Séllelo.',
+  'm.home2.s1p':
+    'Qué es y de dónde viene. Su dispositivo cierra los datos antes de enviarlos: nos llegan cerrados y no podemos leerlos.',
+  'm.home2.s1t': '1. Anótelo.',
+  'm.home2.stepsTitle': 'Cómo funciona, en tres pasos',
+  'm.home2.lede':
+    'Demuestre que tenía una planta, un animal o una cepa en una fecha, sin que su genética salga de su dispositivo.',
   'm.home.tlDated': 'Registro fechado',
   'm.home.tlAsks': 'Alguien pregunta',
   'm.home.matters': 'Dónde importa.',
@@ -623,7 +661,7 @@ export const es: Strings = {
   'm.for.2t': 'Protección de variedades y certificación.',
   'm.for.2link': 'Cómo funciona una afirmación →',
   // The lab slide's way in (lab/LabDoor.tsx), and on How it works.
-  'm.for.3link': '¿Tiene un laboratorio? Configure la clave de firma de su laboratorio →',
+  'm.for.3link': '¿Dirige un laboratorio? Lo que VeilCore hace por los laboratorios →',
   'm.for.3t': 'Material en manos de un laboratorio.',
   'm.for.4t': 'Resultados de laboratorio, de vuelta a usted.',
   'm.for.4p':
@@ -634,6 +672,9 @@ export const es: Strings = {
   'm.for.5t': 'Líneas animales.',
   'm.for.5p':
     'Los libros genealógicos llevan el pedigrí. Un registro puede dar a cada entrada una fecha que nadie puede antedatar, sin publicar el genotipo. En este sitio puede registrar un animal: su identificación individual, padre y madre, y un informe de ADN.',
+  'm.for.5parent':
+    'Un resultado de parentesco firmado por un laboratorio también puede probar que un ternero corresponde a su padre y su madre, sin mostrar ningún perfil de ADN.',
+  'm.for.5parentLink': 'Cómo funciona el parentesco →',
   'm.for.5ask': 'Si usted cría animales, díganos qué necesitan sus registros.',
   'm.how.label': 'Cómo funciona',
   'm.how.title1': 'Cuatro pasos.',
@@ -706,9 +747,6 @@ export const es: Strings = {
   'm.open.3t': 'No respondemos por los resultados.',
   'm.open.3p':
     'Las firmas de un laboratorio sobre un registro son privadas salvo que el titular del registro las muestre. Cada una que se muestra dice qué clave la firmó, el nombre con que se registró esa clave, cualquier acreditación que declaró su titular (no la comprobamos) y si el operador de VeilCore ha cotejado ese nombre con un listado público de licencias o acreditaciones, y en qué fecha. VeilCore no responde por ningún laboratorio: quien comprueba un registro decide cuánto vale una firma.',
-  'm.open.4t': 'Cualquiera puede gestionar un servidor de registros.',
-  'm.open.4p':
-    'El formato permite que un laboratorio, una certificadora o un organismo de derechos lleve su propio servidor de registros, en su propio dominio web, y ancle sin pedirnos permiso. El código de nuestro propio servidor de registros es público, con licencia Apache-2.0, en github.com/hunterincoming/veilcore-api.',
   'm.faq.label': 'Preguntas',
   'm.faq.title1': 'Preguntas',
   'm.faq.title2': 'que nos hacen.',
@@ -761,6 +799,13 @@ export const es: Strings = {
   'm.open.6p':
     'Con ese paquete de evidencia, cualquiera puede comprobar un registro sin conexión: abrir su verify.html y luego buscar en un explorador de Midnight la única transacción que nombra. Los registros sellados desde el 14 de octubre también necesitan la sección 3.6.1 de la especificación, en la especificación de este sitio y en el SDK 0.16.0 y posteriores.',
   'm.open.6link': 'Leer la especificación →',
+  'm.own.link': 'Las tres formas, y lo que no está probado →',
+  'm.own.p':
+    'Nunca está obligado a usar veilcore.org. Todo el código de VeilCore es abierto (Apache-2.0): use este sitio, integre los contratos inteligentes (el código en Midnight) en su propio software, u opere su propia copia del sitio, el servidor y el servicio de comisiones. Operar su propia copia es posible con el código abierto, pero nadie fuera de VeilCore lo ha hecho aún. La guía para operarla por su cuenta explica cómo compilar una copia con su propia dirección y su nombre. Usted la alojaría y pagaría sus propias comisiones de red.',
+  'm.own.short':
+    'Nunca está obligado a usar veilcore.org. El código es abierto: integre los contratos inteligentes en su propio software, u opere su propia copia. Nadie fuera de VeilCore lo ha hecho aún.',
+  'm.own.plugLink': 'Cómo integrar los contratos inteligentes →',
+  'm.own.title': 'Úselo a su manera.',
   'm.updates.older': 'Novedades anteriores',
   'm.live.colTestHere': 'Este sitio de prueba (test.veilcore.org)',
   'm.live.feature': 'Función',

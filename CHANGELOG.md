@@ -10,6 +10,65 @@ section.
 
 ## [Unreleased]
 
+### A check for changes this browser didn't make, and room to stop keeping recovery secrets (22 Nov 2026, not deployed yet)
+
+- When the app opens, it reads the contract's state once (no transaction, through the same relay)
+  and compares each record this browser date stamped with what it expects: the recovery
+  commitment, no move to a new key, no rotation or recovery. If anything differs, the record and
+  Home say so in one calm line, with what to do under "Here's what to do", in all five languages.
+  At most one read per ten minutes, kept for the tab's session. Nothing shows when nothing changed.
+- Every reader of a record's or the lender's keys now accepts "no recovery secret kept here"
+  (64 zeros) and never puts a dropped one back, so a later release can stop keeping recovery
+  secrets in the browser without an older open tab losing anything. Nothing is removed yet.
+- `docs/passkey-backup.md` now says the account copy is live on veilcore.org, and that it holds
+  recovery secrets like a backup file does. Recovery is not described as theft protection.
+
+### Keep it simple, round 2, and the full review's fixes (22 Nov 2026, not deployed yet)
+
+- Home and each record's page ask for less: one filled button on Home ("Go" in the paste box is
+  outlined); the iPhone Home Screen steps open from "Show me how"; the spreadsheet import, "New
+  phone?" and "My agreements (0)" are under Home's "More" once there are records (the agreements
+  card comes back once there is one). On a new device the second "Get your records back" link is
+  gone while the card above says it.
+- A record's page asks for the backup once: while it is the next step, the "Save it" notice and
+  "Save a fresh backup" wait. "Download evidence bundle" and "Check a report matches" are under
+  Technical details; "Add the next generation" and "Cut clones from this" are one row, "Next
+  generation or clones", which asks which.
+- "Next batch" is now "with the next group of records"; the key date stamp after sealing is
+  labelled optional, and "Go on without waiting for it" is there from the start.
+- The header is by task: How it works · About · Check a record · Use it as a lab · Get my records
+  back (or Your records) · Make a record. "Verify" is "Check" everywhere; "Log new" and "Start"
+  are "Make a record".
+- /for-labs is a page for a lab owner (what the lab gets, what changes, what it costs, how to use
+  VeilCore its own way, what happens if VeilCore disappears). Opening it changes nothing; only
+  "Set up your lab" gives the lab view and opens the signing key screen. Its tab says "For labs".
+- "Use it your way" on the lab page, About and How it works: veilcore.org, the contracts in your
+  own software, or your own copy from the open code, with what is untested said plainly.
+- Getting records back: the backup file and the passkey are equal choices, the file first; "Only
+  open a file or code you saved yourself" is said on the page; a file opened into an empty
+  browser says when it was made and how many records it holds before anything changes.
+- The backup file's password switch is on by default, and the copy is "saved somewhere else"
+  rather than emailed.
+- No "verified" rosette where nothing is verified: the check page shows a plain dated mark, and a
+  lab's signature gets the rosette only for a real listing match.
+- Parentage is findable: a row in "What works, and where", a line on the Animal lines card, and
+  /partners says a check shows parentage when the holder sends a parentage claim link.
+- A record's stated date starts empty, never today.
+- Midnight's part is said: it dates the codes and checks the private (zero-knowledge) proofs; the
+  home page no longer says "only proof codes" go on Midnight.
+- The language picker is named and shows its focus; every page has a skip link; the example
+  check page has a main part; tabs name About, For labs, Settings, labels, the pack and lab results.
+- The home page is short (hero, three steps, who it is for, privacy, use it your way, links); what
+  it carried is on How it works (each section once) and About, and an old link lands there. Both
+  pages have a height in the complexity budget.
+- "Use it your way" says plainly that running your own copy is possible from the open code but
+  nobody outside VeilCore has done it yet, that a copy still points at veilcore.org until rebuilt
+  with your own addresses, and that a self-hosting guide is being written. "Smart contracts" in
+  every language, never the word for a legal contract.
+- The key date stamp has one name everywhere, says it is needed before licensing, and a failure
+  after sealing is calm ("Go on without waiting" first). "Verified" is kept for a listing match;
+  a signature checked in this browser says "checked". The flow's band says "Make a record".
+
 ### "Prove a fact", and "this device" on the seal screen (21 Nov 2026, not deployed yet)
 
 - "Prove one number" is now "Prove a fact", in all five languages: it proves a number's limit

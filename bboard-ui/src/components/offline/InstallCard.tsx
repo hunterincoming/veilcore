@@ -10,11 +10,22 @@
 //   - Elsewhere (a computer with no install offer), only that this browser keeps a copy and
 //     opens with no signal, once the offline worker is in place.
 // Not shown once VeilCore is opened from the Home Screen, or after "Not now" (kept in this
-// browser only).
+// browser only). On Home the iPhone steps open from "Show me how" (22 Nov: they were a third of
+// Home's words, open by default); they are still read before anyone does it.
 // SPDX-License-Identifier: Apache-2.0
 
 import React, { useState } from 'react';
-import { Box, Button, Paper, Stack, Typography } from '@mui/material';
+import {
+  Box,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Paper,
+  Stack,
+  Typography,
+} from '@mui/material';
 import { askToInstall, useOfflineState, OFFLINE_ON } from '../../offline/register';
 import { thisBrowserClearsAfterSevenDays } from '../flow/webkit-storage';
 import { useT } from '../../i18n/app';
@@ -43,6 +54,7 @@ export const InstallCard: React.FC = () => {
   const s = useOfflineState();
   const { t } = useT();
   const [gone, setGone] = useState(dismissedHere);
+  const [how, setHow] = useState(false);
   if (!OFFLINE_ON || s.installed || gone) return null;
   const ios = isIos();
   // A computer with no install offer and no worker yet: nothing to say.
@@ -70,21 +82,42 @@ export const InstallCard: React.FC = () => {
         </Typography>
       )}
       {ios && (
-        <Box component="ul" sx={{ pl: 2.5, my: 1, '& li': { mb: 0.75 } }}>
-          <Typography component="li" variant="body2">
-            {t('app.install.iosSteps')}
-          </Typography>
-          <Typography component="li" variant="body2" data-install-ios-empty="">
-            {t('app.install.iosEmpty')}
-          </Typography>
-          {thisBrowserClearsAfterSevenDays() && (
-            <Typography component="li" variant="body2">
-              {t('app.install.iosKeep')}
-            </Typography>
-          )}
-        </Box>
+        <Dialog open={how} onClose={() => setHow(false)} aria-labelledby="install-how-title" data-install-how="">
+          <DialogTitle id="install-how-title">{t('app.install.title')}</DialogTitle>
+          <DialogContent>
+            <Box component="ul" sx={{ pl: 2.5, my: 0, '& li': { mb: 0.75 } }}>
+              <Typography component="li" variant="body2">
+                {t('app.install.iosSteps')}
+              </Typography>
+              <Typography component="li" variant="body2" data-install-ios-empty="">
+                {t('app.install.iosEmpty')}
+              </Typography>
+              {thisBrowserClearsAfterSevenDays() && (
+                <Typography component="li" variant="body2">
+                  {t('app.install.iosKeep')}
+                </Typography>
+              )}
+            </Box>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setHow(false)} sx={{ minHeight: 44 }}>
+              {t('app.install.gotIt')}
+            </Button>
+          </DialogActions>
+        </Dialog>
       )}
       <Stack direction="row" sx={{ gap: 1, flexWrap: 'wrap' }}>
+        {ios && (
+          <Button
+            variant="outlined"
+            aria-haspopup="dialog"
+            onClick={() => setHow(true)}
+            sx={{ minHeight: 44 }}
+            data-install-show-how=""
+          >
+            {t('app.install.showHow')}
+          </Button>
+        )}
         {s.canInstall && (
           <Button variant="contained" onClick={() => void askToInstall()} sx={{ minHeight: 44 }}>
             {t('app.install.button')}

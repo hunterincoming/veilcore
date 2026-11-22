@@ -30,7 +30,12 @@ import { SupportDetails } from './SupportDetails';
 import { goesWords, sealedHereWords } from './offline/offline-words';
 import { useOfflineState } from '../offline/register';
 
-export const RecordSaveNotices: React.FC<{ record: StrainRecord; onShare?: () => void }> = ({ record, onShare }) => {
+export const RecordSaveNotices: React.FC<{
+  record: StrainRecord;
+  onShare?: () => void;
+  /** The page's next step is the backup: waiting for it isn't said twice (22 Nov). */
+  backupIsNext?: boolean;
+}> = ({ record, onShare, backupIsNext = false }) => {
   useRecords();
   useVaultNeedsBackup();
   const tr = useRecordT(record);
@@ -88,16 +93,20 @@ export const RecordSaveNotices: React.FC<{ record: StrainRecord; onShare?: () =>
     else if (how === 'discard') void navigate('/records');
   };
 
-  if (!unsaved && !ask.length && !differs) return null;
+  // Waiting only for the backup, with the backup as the page's next step: the next step says it.
+  // Still said when it was sealed with no signal (the line with when it was sealed here).
+  const saidByNextStep = unsaved === 'backup' && backupIsNext && (proofCodeSent(record.id) || !(record.loggedAt > 0));
+  const shown = saidByNextStep ? undefined : unsaved;
+  if (!shown && !ask.length && !differs) return null;
   return (
     <Stack spacing={1.5} sx={{ mb: 2 }}>
-      {unsaved && (
+      {shown && (
         <Alert
           severity="warning"
           variant="outlined"
-          data-unsaved={unsaved}
+          data-unsaved={shown}
           action={
-            unsaved === 'backup' ? (
+            shown === 'backup' ? (
               <Button
                 color="inherit"
                 variant="outlined"
@@ -121,15 +130,15 @@ export const RecordSaveNotices: React.FC<{ record: StrainRecord; onShare?: () =>
               {!online && ` ${goesWords(tr)}`}
             </Typography>
           )}
-          {t(`app.sealed.unsaved.${unsaved}`)}
+          {t(`app.sealed.unsaved.${shown}`)}
           {letGoProblem && (
             <Typography variant="body2" sx={{ mt: 1 }} role="status" data-let-go-problem="">
               {letGoProblem}
             </Typography>
           )}
           {/* Waiting for the backup is not a failure; the other two are. */}
-          {unsaved !== 'backup' && (
-            <SupportDetails step="save to VeilCore" error={enT.t(`app.sealed.unsaved.${unsaved}`)} />
+          {shown !== 'backup' && (
+            <SupportDetails step="save to VeilCore" error={enT.t(`app.sealed.unsaved.${shown}`)} />
           )}
         </Alert>
       )}

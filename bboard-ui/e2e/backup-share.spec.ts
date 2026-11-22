@@ -10,7 +10,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import { readFileSync } from 'node:fs';
 import { expect, test, type Page } from '@playwright/test';
-import { isolate, watch, expectNoErrors } from './helpers';
+import { isolate, noBackupPassword, watch, expectNoErrors } from './helpers';
 
 /** The backup page (no first-visit question: everyone starts as a breeder). */
 const openBackup = async (page: Page) => {
@@ -23,7 +23,7 @@ test('on a computer: no share button, the by-hand way and "Save another copy" (t
   await isolate(page);
   await openBackup(page);
   await expect(page.getByRole('heading', { name: /Put a copy somewhere else \(recommended\)/ })).toBeVisible();
-  await expect(page.getByRole('button', { name: /Send a copy/ })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: /Save a copy somewhere else/ })).toHaveCount(0);
   // Where to keep it is said once (live walk, 18 Nov); where the saved file is, only once saved;
   // and Safari's 7-day warning only in Safari or on iOS, not in this Chromium.
   await expect(page.getByText(/USB stick/)).toHaveCount(1);
@@ -33,6 +33,7 @@ test('on a computer: no share button, the by-hand way and "Save another copy" (t
   await expect(page.locator('[data-backup-safari]')).toHaveCount(0);
 
   const first = page.waitForEvent('download');
+  await noBackupPassword(page);
   await page.getByRole('button', { name: /Save backup file/ }).click();
   const firstFile = await first;
   await expect(page.locator('[data-backup-saved-where]')).toHaveText(
@@ -79,9 +80,10 @@ test.describe('on a phone', () => {
     });
     await openBackup(page);
     const download = page.waitForEvent('download');
+    await noBackupPassword(page);
     await page.getByRole('button', { name: /Save backup file/ }).click();
     await download;
-    await page.getByRole('button', { name: /Send a copy/ }).click();
+    await page.getByRole('button', { name: /Save a copy somewhere else/ }).click();
     await expect(page.getByText(/couldn.t open its share menu/)).toBeVisible();
     await expect(page.locator('[data-backup-saved-where]')).toHaveText(
       'It’s the file you just saved, in your Downloads folder.',

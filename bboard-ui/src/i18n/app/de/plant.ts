@@ -119,7 +119,7 @@ export const plant = {
   'app.plant.date.dated': 'datiert am {what}',
   'app.plant.date.inBatch': 'wartet: in einem Stapel, der Datumsstempel kommt noch',
   'app.plant.date.reportedNoDay': 'datiert, laut VeilCore-Register (ohne Tagesangabe)',
-  'app.plant.holdProof': 'Nachweis, dass Sie ihn halten',
+  'app.plant.holdProof': 'Datumsstempel des Schlüssels',
   'app.plant.hold.dated': 'datiert am {date}',
   'app.plant.hold.notYet': 'noch nicht datiert',
   'app.plant.hold.retrying': 'wartet: wird von selbst erneut versucht',
@@ -281,8 +281,8 @@ export const plant = {
   'app.plant.next.noCurrent.title': 'Kein aktueller DNA-Bericht von {lab}',
   'app.plant.next.open.title': 'Den Laborbericht von {lab} öffnen',
   'app.plant.next.label': 'Nächster Schritt',
-  'app.plant.next.stamp.title': 'Optional: Nachweis einrichten, dass Sie ihn halten',
-  'app.plant.next.stamp.action': 'Nachweis einrichten, dass Sie ihn halten',
+  'app.plant.next.stamp.title': 'Freiwillig: den Datumsstempel des Schlüssels setzen (nötig, bevor Sie lizenzieren)',
+  'app.plant.next.stamp.action': 'Datumsstempel des Schlüssels setzen',
   'app.plant.next.open.action': 'Öffnen',
   'app.plant.chain.sealed': 'Versiegelt',
   'app.plant.chain.reportSaved': 'DNA-Bericht gespeichert',
@@ -339,6 +339,8 @@ export const plant = {
   'app.plant.action.nextStage': 'Die nächste Generation oder Selektion hinzufügen',
   'app.plant.action.nextStageHint':
     'Ein neuer Datensatz mit dieser Pflanze als Elternteil. Versiegeln Sie jede Stufe, wenn sie passiert.',
+  'app.plant.action.nextOrClones': 'Nächste Generation oder Stecklinge',
+  'app.plant.action.nextOrClonesHint': 'Ein neuer Datensatz mit dieser Pflanze als Elternteil',
   'app.plant.dated.refused':
     'Das Register hat ihn nicht gespeichert ({reason}). Es wurde nichts datiert. Versuchen Sie es erneut.',
   'app.plant.dated.line': 'DNA-Bericht datiert: in <link></link> ({status})',

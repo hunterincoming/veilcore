@@ -29,7 +29,8 @@ export const partners = {
   'app.partners.not.3': 'Wer das Material oder den Datensatz heute hält.',
   'app.partners.not.4':
     'Dass die Arbeit eines Labors richtig ist. Ein geprüfter Name heißt, dass ein öffentliches Verzeichnis abgeglichen wurde, mehr nicht.',
-  'app.partners.not.5': 'Abstammung, Rechte, Lizenzen oder rechtlichen Status.',
+  'app.partners.not.5':
+    'Abstammung, außer der Inhaber schickt einen Link zum Abstammungsnachweis. Rechte, Lizenzen oder rechtlichen Status.',
   'app.partners.demo.title': 'Ausprobieren',
   'app.partners.demo.lede':
     'Fügen Sie den Prüflink eines Datensatzes ein. Er wird in diesem Browser geprüft, gegen das Register, das diese Website nutzt. Nichts wird anderswohin gesendet, und nichts wird gespeichert.',

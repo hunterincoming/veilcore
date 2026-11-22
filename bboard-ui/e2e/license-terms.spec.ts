@@ -54,7 +54,7 @@ test('a plant license: the cannabis question, the territory and the law come fir
   await page.getByLabel(/^Species/).fill('Cannabis sativa');
   await page.getByRole('button', { name: /Next: check it/ }).click();
   await page.getByRole('button', { name: /Seal it/ }).click();
-  await page.getByRole('button', { name: /Do the date stamp later/ }).click({ timeout: 90_000 });
+  await page.getByRole('button', { name: /Go on without waiting/ }).click({ timeout: 90_000 });
   await page.getByRole('button', { name: /No report yet: skip/ }).click();
   await saveAndCheckBackup(page);
   await page.getByRole('button', { name: /Finish/ }).click();

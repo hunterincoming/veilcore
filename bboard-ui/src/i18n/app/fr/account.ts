@@ -71,8 +71,6 @@ export const account = {
   'app.account.device.other': 'autre appareil',
 
   'app.account.restore.lead': 'Ouvrez vos enregistrements sur cet appareil.',
-  'app.account.restore.sameAccount':
-    'Le même compte Apple ou Google que sur votre autre téléphone ? Cela marche tout simplement.',
   'app.account.restore.usePhone':
     'Sur un ordinateur qui ne peut pas déverrouiller une clé d’accès tout seul ? Choisissez « Utiliser un téléphone » dans la fenêtre qui s’ouvre, puis scannez le code avec votre téléphone.',
   'app.account.restore.oldName': 'Clé d’accès créée sur {host} auparavant ? Essayez-la ici',

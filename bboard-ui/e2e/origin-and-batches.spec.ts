@@ -122,7 +122,7 @@ test('a landrace with no breeder and where it came from, then clones with a lot 
   await step.getByRole('button', { name: /Next: check it/ }).click();
 
   await page.getByRole('button', { name: /Seal it/ }).click();
-  await page.getByRole('button', { name: /Do the date stamp later/ }).click({ timeout: 90_000 });
+  await page.getByRole('button', { name: /Go on without waiting/ }).click({ timeout: 90_000 });
   await page.getByRole('button', { name: /No report yet: skip/ }).click();
   await saveAndCheckBackup(page);
   await page.getByRole('button', { name: /Finish/ }).click();
@@ -144,7 +144,11 @@ test('a landrace with no breeder and where it came from, then clones with a lot 
   );
 
   // Clones of it: no breeder needed either, a lot named, a plant tag each, numbered on.
-  await page.getByText('Cut clones from this').click();
+  await page.getByText('Next generation or clones').click();
+  await page
+    .getByRole('dialog')
+    .getByRole('button', { name: /Cut clones from this/ })
+    .click();
   await expect(page.locator('[data-batch-review="clones"]')).toBeVisible();
   await page.getByLabel(/How many clones/).fill('3');
   await expect(page.getByLabel(/Breeder, if known/)).toHaveValue('');
@@ -178,7 +182,11 @@ test('a landrace with no breeder and where it came from, then clones with a lot 
   // Cut again with the same first tag: those tags are already on records, so it is refused; with
   // the next tags it is new records, numbered on, never the old ones said to be saved again.
   await page.goto(`/record/${plant.id}`);
-  await page.getByText('Cut clones from this').click();
+  await page.getByText('Next generation or clones').click();
+  await page
+    .getByRole('dialog')
+    .getByRole('button', { name: /Cut clones from this/ })
+    .click();
   await page.getByLabel(/How many clones/).fill('3');
   await page.getByLabel('First plant tag').fill('1A4000300012345000099');
   await expect(page.locator('[data-batch-taken]')).toContainText(
@@ -222,7 +230,9 @@ test('every check page says a date is not who bred it; the terms say not to regi
   await expect(page.locator('[data-dated-not-origin]')).toHaveText(DATED_NOT_ORIGIN);
   // In the visitor's language.
   await page.goto('/verify/example?lang=ja');
-  await expect(page.locator('[data-dated-not-origin]')).toContainText('誰が育成・作成したか、どこから来たか、内容が正しいかは示しません');
+  await expect(page.locator('[data-dated-not-origin]')).toContainText(
+    '誰が育成・作成したか、どこから来たか、内容が正しいかは示しません',
+  );
   await page.goto('/terms');
   await expect(
     page.getByText('Don’t register other people’s traditional varieties, landraces or breeds as your own breeding.', {

@@ -7,9 +7,11 @@ import type { AppTranslation } from '../../translate';
 export const dating = {
   'app.chain.progress.starting': 'Der Beweiser wird auf Ihrem Gerät gestartet…',
 
-  'app.log.recordDatedNext.one': 'Datensatz datiert: im nächsten Stapel (etwa jede {count} Minute im Testnetz)',
-  'app.log.recordDatedNext.other': 'Datensatz datiert: im nächsten Stapel (etwa alle {count} Minuten im Testnetz)',
-  'app.log.recordDatedNextPlain': 'Datensatz datiert: im nächsten Stapel',
+  'app.log.recordDatedNext.one':
+    'Ihr Datensatz erhält sein Datum mit der nächsten Gruppe von Datensätzen (etwa jede {count} Minute im Testnetz)',
+  'app.log.recordDatedNext.other':
+    'Ihr Datensatz erhält sein Datum mit der nächsten Gruppe von Datensätzen (etwa alle {count} Minuten im Testnetz)',
+  'app.log.recordDatedNextPlain': 'Ihr Datensatz erhält sein Datum mit der nächsten Gruppe von Datensätzen.',
   'app.log.inSeconds': 'in {n} s',
   'app.log.retryingIn': 'Neuer Versuch von selbst {when} (Versuch {n}).',
   'app.log.retriesUsed':
@@ -18,7 +20,7 @@ export const dating = {
   'app.log.keepsTrying':
     'Es wird von selbst weiter versucht, solange VeilCore geöffnet ist, und die Startseite zeigt es, bis es durchgeht.',
 
-  'app.plant.nextBatch': 'im nächsten Stapel',
+  'app.plant.nextBatch': 'mit der nächsten Gruppe von Datensätzen',
   'app.plant.nextBatchEvery.one': 'etwa jede {count} Minute im Testnetz',
   'app.plant.nextBatchEvery.other': 'etwa alle {count} Minuten im Testnetz',
   'app.plant.notSentYet': 'noch nicht an VeilCore gesendet; wird von selbst erneut versucht',
@@ -40,11 +42,11 @@ export const dating = {
   'app.pickup.saveBackup': 'Sicherungskopie speichern',
   'app.pickup.openAgreements': 'Vereinbarungen öffnen',
   'app.pickup.dating.notSent': '{name}: versiegelt. Sein Prüfcode geht an VeilCore, sobald VeilCore erreichbar ist.',
-  'app.pickup.dating.next': '{name} erhält sein Datum mit dem nächsten Stapel.',
+  'app.pickup.dating.next': '{name} erhält sein Datum mit der nächsten Gruppe von Datensätzen.',
   'app.pickup.dating.nextEvery.one':
-    '{name} erhält sein Datum mit dem nächsten Stapel (ein Stapel etwa jede {count} Minute).',
+    '{name} erhält sein Datum mit der nächsten Gruppe von Datensätzen (etwa jede {count} Minute eine).',
   'app.pickup.dating.nextEvery.other':
-    '{name} erhält sein Datum mit dem nächsten Stapel (ein Stapel etwa alle {count} Minuten).',
+    '{name} erhält sein Datum mit der nächsten Gruppe von Datensätzen (etwa alle {count} Minuten eine).',
   'app.pickup.dating.batched': '{name} ist in einem Stapel und wartet auf sein Datum.',
   'app.pickup.dating.progress': 'Schritt {n} von {total} zu seinem Datum',
   'app.pickup.more.one': 'und {count} weiterer auf dem Weg zu seinem Datum',

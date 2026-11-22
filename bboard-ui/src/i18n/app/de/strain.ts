@@ -25,9 +25,9 @@ export const strain = {
   'app.strain.v.app.log.keyStamped':
     'Schlüssel mit Datumsstempel versehen. Auch der Schlüssel Ihrer Linie ist datiert, damit Sie später nachweisen können, dass Sie ihn halten.{bound} Über die Linie wurde nichts gesendet.',
   'app.strain.v.app.log.onlyFingerprint':
-    'Gesendet wird nur ein Code des Schlüssels Ihrer Linie, nichts über die Linie. Kostenlos: VeilCore zahlt die Netzwerkgebühr.',
+    'Freiwillig, nur nötig, um zu beweisen, dass Sie diesen Datensatz halten, oder um ihn zu lizenzieren. Gesendet wird nur ein Code des Schlüssels, nichts über die Linie. Kostenlos.',
   'app.strain.v.app.log.keepOpen':
-    'Das dauert etwa eine Minute. Lassen Sie diese Seite offen, bis es fertig ist: Auf einem Handy kann der Wechsel in eine andere App oder das Sperren des Bildschirms es anhalten. Wenn es anhält, geht nichts verloren: Ihre Linie ist gespeichert, und ihre Seite bietet den Datumsstempel erneut an.',
+    'Sie müssen hier nicht warten. Es dauert etwa eine Minute und wird von selbst weiter versucht, solange VeilCore offen ist. Bricht es ab, geht nichts verloren: Die Seite Ihrer Linie bietet den Datumsstempel des Schlüssels wieder an.',
   'app.strain.v.app.chain.stampMayHaveGoneOut':
     'Ihr Datumsstempel wurde möglicherweise schon gesendet{tx}. Ihre Linie ist gespeichert. Versuchen Sie es erst wieder, wenn diese Transaktion im Netzwerk geprüft wurde.',
   'app.strain.v.app.chain.stampUnreachable':
@@ -136,7 +136,7 @@ export const strain = {
     'Der Schlüssel dieser Linie erhielt schon früher einen Datumsstempel im Netzwerk. Das datiert den Schlüssel, nicht den Datensatz.',
   'app.strain.v.app.prove.own.title': 'Beweisen Sie, dass Sie den Schlüssel dieser Linie halten (Testnetz)',
   'app.strain.v.app.prove.own.stampFirst':
-    'Richten Sie zuerst den Nachweis ein: Tippen Sie auf der Seite der Linie auf „Nachweis einrichten, dass Sie ihn halten“. Der Beweis betrifft die On-Chain-Identität der Linie, die dieser Schritt erzeugt.',
+    'Setzen Sie zuerst den Datumsstempel des Schlüssels: „Datumsstempel des Schlüssels setzen“ auf der Seite der Linie. Der Nachweis bezieht sich auf die On-Chain-Identität des Datensatzes, die dieser Schritt erzeugt.',
   'app.strain.v.app.lab.sentence.none': 'Bei dieser Linie ist kein DNA-Bericht gespeichert.',
   'app.strain.v.app.lab.sentence.self':
     'Bei dieser Linie ist eine Datei eines DNA-Berichts gespeichert. Keine Laborsignatur passt dazu, daher ist sie die eigene Angabe des Inhabers.',

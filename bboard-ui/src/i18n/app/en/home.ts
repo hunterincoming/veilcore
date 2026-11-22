@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 export const home = {
-  'app.home.firstRecord': 'Let’s log your first record',
+  'app.home.firstRecord': 'Let’s make your first record',
   'app.home.oldLinks':
     'Check links and QR codes made before 17 October 2026 no longer show your records’ names: VeilCore keeps names locked now, so the registry has none to show. To share a name, open the record, choose Show someone, switch the name on, and send the new link. A new certificate has a new QR code.',
   'app.home.continueDraftNamed': 'Continue your draft: {name}',
@@ -14,7 +14,7 @@ export const home = {
   'app.home.aboutThreeMinutesByHand':
     "About 3 minutes. When you're done it's sealed; its public date comes when we anchor its batch (by hand for now). You hold the only key.",
   'app.home.continue': 'Continue',
-  'app.home.start': 'Start',
+  'app.home.start': 'Make a record',
   'app.home.spreadsheet': 'Have a spreadsheet? Date your whole collection',
   'app.home.newPhone': 'New phone? Get your records back',
   'app.home.newPhoneLab': "New phone? Get your lab's key and samples back",
@@ -26,7 +26,7 @@ export const home = {
   'app.home.whatStops': 'What stops someone logging my material first?',
   'app.home.samplesReceived': 'Samples received',
   'app.home.yourRecords': 'Your records',
-  'app.home.logNew': 'Log new',
+  'app.home.logNew': 'Make a record',
   'app.home.saveIt': 'Save it',
   'app.home.finishBackupLine': '<b>Finish: save your backup.</b> {line}',
   'app.home.keysOnlyHereRecords.one': 'A record has keys only on this device.',
@@ -92,6 +92,48 @@ export const home = {
   'app.home.labDoor.text': 'Your records stay as they are.',
   'app.home.labDoor.add': 'Add lab tools',
   'app.home.labDoor.notNow': 'Not now',
+  'app.labpage.title': 'VeilCore for labs',
+  'app.labpage.lede':
+    'Sign the results you already produce. The breeder can show them, and whoever they show can check which key signed them, and when. Your own system keeps working as it does.',
+  'app.labpage.setUp': 'Set up your lab',
+  'app.labpage.gets.title': 'What your lab gets',
+  'app.labpage.gets.key.t': 'A signing key.',
+  'app.labpage.gets.key.p':
+    'Made in your browser. The receipts and results you sign carry it, and anyone you show them to can check the signature.',
+  'app.labpage.gets.arrived.t': 'A signed receipt for each sample.',
+  'app.labpage.gets.arrived.p':
+    'A breeder sends a sample with a VeilCore lab code. You confirm it arrived, or turn it away, and sign that.',
+  'app.labpage.gets.results.t': 'Results locked to the breeder.',
+  'app.labpage.gets.results.p':
+    'Only the breeder, your lab and whoever sent the sample see them, and only the breeder can show them to anyone else.',
+  'app.labpage.work.title': 'What changes in your work',
+  'app.labpage.work.p1':
+    'Nothing in your own system. When a sample comes with a lab code, you paste or scan the code, confirm the delivery, and later sign your result.',
+  'app.labpage.work.p2':
+    'Your sample data and client names stay with you. VeilCore keeps the receipts you sign, and your results locked so only the breeder can open them.',
+  'app.labpage.cost.title': 'What it costs',
+  'app.labpage.cost.p': 'Free to try. Plans for labs are built and not switched on.',
+  'app.labpage.own.title': 'Use it your way',
+  'app.labpage.own.lede':
+    "You never have to use veilcore.org. All of VeilCore's code is open, under the Apache-2.0 license.",
+  'app.labpage.own.site.t': 'Use veilcore.org.',
+  'app.labpage.own.site.p': 'Nothing to set up. We run the server and pay the network fees.',
+  'app.labpage.own.plug.t': 'Plug it into your own software.',
+  'app.labpage.own.plug.p':
+    'Your system keeps your data and adds a proof code for each record, with the smart contracts package @veilcore/contracts.',
+  'app.labpage.own.plug.link': 'How to plug it in →',
+  'app.labpage.own.run.t': 'Run your own copy.',
+  'app.labpage.own.run.p':
+    'The website, the server that keeps records and the fee service are all open code. You would host them and pay your own network fees. The self-hosting guide lists every part and setting.',
+  'app.labpage.own.run.link': 'The self-hosting guide →',
+  'app.labpage.own.plainly':
+    'Plainly: running your own copy is possible from the open code, but nobody outside VeilCore has done it yet, so doing it without our help is untested. A copy uses your own address and name once it is built with them, as the guide says. The main records smart contract has a maintenance key, which we hold. The claims smart contract has none.',
+  'app.labpage.own.policyLink': 'Who holds the maintenance key, and when it may be used →',
+  'app.labpage.own.codeLink': 'The code on GitHub →',
+  'app.labpage.gone.title': 'If VeilCore disappears',
+  'app.labpage.gone.p':
+    "What's already dated stays dated: the dates are on Midnight, and a breeder's backup file holds their records and the proofs to check them with free, open tools. What stops is making new records and passing lab codes along, until someone runs a server from the open code.",
+  'app.labpage.gone.link': 'Everything that keeps working without us →',
   // SaveProblemBar.tsx
   'app.home.saveProblem.records': 'records',
   'app.home.saveProblem.agreements': 'agreements',
@@ -121,8 +163,7 @@ export const home = {
   'app.home.paste.placeholder': 'Paste it here',
   'app.home.paste.go': 'Go',
   'app.home.paste.orMake': 'Nothing to paste? Make a record',
-  'app.home.paste.hint':
-    "A lab code, a record link, a request to prove you hold a record, or an agreement to sign. We'll work out which.",
+  'app.home.paste.hint': "A lab code, a record link or an agreement to sign. We'll work out which.",
   'app.home.paste.whichRecord': "That's a request to prove you hold a record. Which one did they ask about?",
   // plant-status-words.ts: a plant's line on Home.
   'app.home.receivedFrom': 'Received from {name}',
