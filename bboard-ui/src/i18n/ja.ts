@@ -135,12 +135,12 @@ export const ja: Strings = {
   'notice.datingPaused':
     'Midnightのネットワークアップグレードのため、Midnightでの日付付けを一時停止しています。記録は保存されており、再開しだい日付が付けられます。',
   // The record app's frame and the browser tab's titles.
-  'app.frame.section.log': '記録',
+  'app.frame.section.log': '記録を作る',
   'app.frame.section.send': '送付と受け取り',
   'app.frame.section.license': 'ライセンスとロイヤリティ',
   'app.frame.section.prove': '証明と確認',
-  'app.frame.home': 'あなたの記録へ。入力した内容は保存されています。',
-  'title.founders': '概要',
+  'app.frame.home': 'あなたの記録へ（保存済み）',
+  'title.founders': '私たちについて',
   // Mako's site draft of 21 November 2026 (components/site/HowItWorks.tsx, Founders.tsx and the
   // home page): the strings it needed that the site had no words for.
   'title.how': '仕組み',
@@ -224,7 +224,7 @@ export const ja: Strings = {
   'error.page.reload': '再読み込み',
   'error.page.home': '記録の一覧',
   // Public pages (Mako's 25 September layout)
-  'm.nav.about': '概要',
+  'm.nav.about': '私たちについて',
   'm.nav.team': 'チーム',
   'm.nav.updates': 'お知らせ',
   'm.nav.spec': '仕様書',
@@ -583,7 +583,7 @@ export const ja: Strings = {
   'm.home.audience': '育成者|種苗会社|組織培養ラボ|認証機関|審査官|血統登録団体|品種登録機関',
   'm.home.keep.t': 'あなたの遺伝情報は、あなたの手元に。',
   'm.home.keep.p':
-    'Midnightに載るのはコードと、あなたが証明すると決めた事実だけです。ファイルが載ることはなく、入力した内容が載るのは、そこから数値をそのまま証明するときだけです。Midnightは非公開の証明を検証するので、記録について一つの事実だけを、ほかを見せずに証明できます。',
+    'Midnightに載るのはコードと、あなたが証明すると決めた事実だけです。証明した正確な値は公開され、ラボが署名した事実ではラボの鍵が示されます。ファイルが載ることはありません。Midnightは非公開の証明を検証するので、記録について一つの事実だけを、ほかを見せずに証明できます。',
   'm.home2.l.contact': '創業者に連絡する',
   'm.home2.l.faq': 'よくある質問',
   'm.home2.moreTitle': 'そのほか',
@@ -741,9 +741,6 @@ export const ja: Strings = {
   'm.open.3t': '結果は保証しません。',
   'm.open.3p':
     'ラボの署名は、記録の保有者が表示しない限り非公開です。表示された署名には、どの鍵が署名したか、その鍵が登録された名前、鍵の保有者が申告した認定（私たちは確認していません）、そしてVeilCoreの運営者がその名前を公開されている許認可または認定の一覧と照合したかどうか、またその日付が表示されます。VeilCoreはどのラボも保証しません。署名にどれだけの価値があるかは、記録を確認する人が判断します。',
-  'm.open.4t': '使い方は自由に。',
-  'm.open.4p':
-    'veilcore.org を使う必要はありません。ラボ、認証機関、権利団体は、契約を自分のソフトウェアに組み込むことも、公開コード（Apache-2.0）からサイト・サーバー・手数料サービスを自分で動かすこともでき、ネットワーク手数料を自分で払えば私たちに頼まずにアンカーできます。VeilCore 以外でそれを行った人はまだいないので、私たちの手助けなしでは未検証です。',
   'm.faq.label': 'よくある質問',
   'm.faq.title1': 'よく',
   'm.faq.title2': 'いただく質問。',
@@ -798,7 +795,10 @@ export const ja: Strings = {
   'm.open.6link': '仕様を読む →',
   'm.own.link': '3つの使い方と、未検証のこと →',
   'm.own.p':
-    'veilcore.org を使う必要はありません。VeilCore のコードはすべて公開しています（Apache-2.0）。このサイトを使う、契約を自分のソフトウェアに組み込む、サイト・サーバー・手数料サービスを自分で動かす、のどれでも選べます。VeilCore 以外でサーバーや手数料サービスを動かした人はまだいないので、私たちの手助けなしでの運用は未検証です。',
+    'veilcore.org を使う必要はありません。VeilCore のコードはすべて公開しています（Apache-2.0）。このサイトを使う、スマートコントラクト（Midnight上のコード）を自分のソフトウェアに組み込む、サイト・サーバー・手数料サービスを自分で動かす、のどれでも選べます。公開コードから自分で動かすことはできますが、VeilCore 以外でそれを行った人はまだいません。今のところ、コピーは自分のアドレスで作り直すまで veilcore.org を指したままで、自分で運用するためのガイドは現在作成中です。ホストもネットワーク手数料も自分で負担することになります。',
+  'm.own.short':
+    'veilcore.org を使う必要はありません。コードは公開されており、スマートコントラクトを自分のソフトウェアに組み込むことも、自分で動かすこともできます。VeilCore 以外で自分で動かした人はまだいません。',
+  'm.own.plugLink': 'スマートコントラクトの組み込み方 →',
   'm.own.title': '使い方は自由に。',
   'm.updates.older': '過去のお知らせ',
   'm.live.colTestHere': 'このテストサイト（test.veilcore.org）',

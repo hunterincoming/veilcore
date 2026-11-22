@@ -110,7 +110,7 @@ export const animal = {
   'app.animal.v.app.log.keyStamped':
     "Key date stamped. Your animal's key is dated too, so you can prove you hold its record later.{bound} Nothing about the animal went out.",
   'app.animal.v.app.log.onlyFingerprint':
-    'Optional: it lets you prove later that you hold this record. Only a code made from its key goes out, nothing about the animal. Free.',
+    'Optional, needed only to prove you hold this record or to license it. Only a code made from its key goes out, nothing about the animal. Free.',
   'app.animal.v.app.log.keepOpen':
     "You don't need to wait here. It takes about a minute and keeps trying by itself while VeilCore is open. If it stops, nothing is lost: your animal's page offers the key date stamp again.",
   'app.animal.v.app.chain.stampMayHaveGoneOut':
@@ -217,7 +217,7 @@ export const animal = {
     'This animal’s key was date stamped on the network earlier. That dates the key, not the record.',
   'app.animal.v.app.prove.own.title': 'Prove you hold this animal’s key (test network)',
   'app.animal.v.app.prove.own.stampFirst':
-    'Set up proof you hold it first: press “Set up proof you hold it” on the animal’s page. The proof is about the animal record’s on-chain identity, which that step creates.',
+    'Add the key date stamp first: press “Add the key date stamp” on the animal’s page. The proof is about the record’s on-chain identity, which that step creates.',
   // The lab report panels, a delivery and the saved report's sentence, for an animal.
   'app.animal.v.app.lab.sentence.none': 'No DNA report is saved to this animal.',
   'app.animal.v.app.lab.sentence.self':

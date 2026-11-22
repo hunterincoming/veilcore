@@ -11,7 +11,7 @@ export const dating = {
     'Ihr Datensatz erhält sein Datum mit der nächsten Gruppe von Datensätzen (etwa jede {count} Minute im Testnetz)',
   'app.log.recordDatedNext.other':
     'Ihr Datensatz erhält sein Datum mit der nächsten Gruppe von Datensätzen (etwa alle {count} Minuten im Testnetz)',
-  'app.log.recordDatedNextPlain': 'Ihr Datensatz erhält sein Datum mit der nächsten Gruppe von Datensätzen',
+  'app.log.recordDatedNextPlain': 'Ihr Datensatz erhält sein Datum mit der nächsten Gruppe von Datensätzen.',
   'app.log.inSeconds': 'in {n} s',
   'app.log.retryingIn': 'Neuer Versuch von selbst {when} (Versuch {n}).',
   'app.log.retriesUsed':

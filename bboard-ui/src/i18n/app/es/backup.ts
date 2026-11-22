@@ -77,7 +77,7 @@ export const backup = {
   'app.backup.nCodes.other': '{count} códigos de laboratorio',
   'app.backup.and': '{a} y {b}',
   'app.backup.seeMyPlants': 'Ver mis registros',
-  'app.backup.lookIn': 'Busque en su memoria USB, su gestor de contraseñas, su correo o su nube. No se sube nada.',
+  'app.backup.lookIn': 'Busque en su memoria USB, su gestor de contraseñas o su nube. No se sube nada.',
   'app.backup.openFile': 'Abrir mi archivo de copia de seguridad',
   'app.backup.onlyKey': '¿Solo tiene su clave de titular (64 caracteres)?',
   'app.backup.keyLabel': 'Su clave de titular (64 caracteres)',

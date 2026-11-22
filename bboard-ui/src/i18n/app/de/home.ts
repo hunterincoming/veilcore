@@ -106,14 +106,14 @@ export const home = {
   'app.labpage.gets.arrived.t': 'Eine signierte Empfangsbestätigung für jede Probe.',
   'app.labpage.gets.arrived.p':
     'Ein Züchter schickt eine Probe mit einem VeilCore-Laborcode. Sie bestätigen, dass sie angekommen ist, oder lehnen sie ab, und signieren das.',
-  'app.labpage.gets.results.t': 'Ergebnisse, verschlossen für den Züchter.',
+  'app.labpage.gets.results.t': 'Ergebnisse, verschlüsselt für den Züchter.',
   'app.labpage.gets.results.p':
     'Nur der Züchter, Ihr Labor und wer die Probe geschickt hat, sehen sie, und nur der Züchter kann sie anderen zeigen.',
   'app.labpage.work.title': 'Was sich an Ihrer Arbeit ändert',
   'app.labpage.work.p1':
     'Nichts in Ihrem eigenen System. Kommt eine Probe mit einem Laborcode, fügen Sie den Code ein oder scannen ihn, bestätigen die Lieferung und signieren später Ihr Ergebnis.',
   'app.labpage.work.p2':
-    'Ihre Probendaten und Kundennamen bleiben bei Ihnen. VeilCore bewahrt die Empfangsbestätigungen auf, die Sie signieren, und Ihre Ergebnisse verschlossen, sodass nur der Züchter sie öffnen kann.',
+    'Ihre Probendaten und Kundennamen bleiben bei Ihnen. VeilCore bewahrt die Empfangsbestätigungen auf, die Sie signieren, und Ihre Ergebnisse verschlüsselt, sodass nur der Züchter sie öffnen kann.',
   'app.labpage.cost.title': 'Was es kostet',
   'app.labpage.cost.p': 'Kostenlos zum Ausprobieren. Pläne für Labore sind gebaut, aber nicht eingeschaltet.',
   'app.labpage.own.title': 'Nutzen Sie es auf Ihre Weise',
@@ -123,14 +123,14 @@ export const home = {
   'app.labpage.own.site.p': 'Nichts einzurichten. Wir betreiben den Server und zahlen die Netzwerkgebühren.',
   'app.labpage.own.plug.t': 'In Ihre eigene Software einbinden.',
   'app.labpage.own.plug.p':
-    'Ihr System behält Ihre Daten und fügt jedem Datensatz einen Prüfcode hinzu, mit dem Vertragspaket @veilcore/contracts.',
+    'Ihr System behält Ihre Daten und fügt jedem Datensatz einen Prüfcode hinzu, mit dem Smart-Contract-Paket @veilcore/contracts.',
   'app.labpage.own.plug.link': 'So binden Sie es ein →',
   'app.labpage.own.run.t': 'Eine eigene Kopie betreiben.',
   'app.labpage.own.run.p':
-    'Die Website, der Server, der Datensätze aufbewahrt, und der Gebührendienst sind offener Code. Sie würden sie selbst hosten und Ihre eigenen Netzwerkgebühren zahlen.',
-  'app.labpage.own.run.link': 'Was ohne uns funktioniert →',
+    'Die Website, der Server, der Datensätze aufbewahrt, und der Gebührendienst sind offener Code. Sie würden sie selbst hosten und Ihre eigenen Netzwerkgebühren zahlen. Eine Anleitung zum Selbstbetrieb wird gerade geschrieben; bis dahin beginnen Sie mit dem Integrationsleitfaden.',
+  'app.labpage.own.run.link': 'Der Integrationsleitfaden →',
   'app.labpage.own.plainly':
-    'Offen gesagt: Außerhalb von VeilCore hat noch niemand einen eigenen Server oder Gebührendienst betrieben, ohne unsere Hilfe ist das also ungetestet. Der Hauptvertrag für Datensätze hat einen Wartungsschlüssel, den wir halten. Der Vertrag für Nachweise hat keinen.',
+    'Offen gesagt: Eine eigene Kopie ist mit dem offenen Code möglich, aber außerhalb von VeilCore hat das noch niemand getan, ohne unsere Hilfe ist es also ungetestet. Heute zeigt eine Kopie noch auf veilcore.org, bis sie mit Ihren eigenen Adressen neu gebaut wird. Der Haupt-Smart-Contract für Datensätze hat einen Wartungsschlüssel, den wir halten. Der Smart Contract für Nachweise hat keinen.',
   'app.labpage.own.policyLink': 'Wer den Wartungsschlüssel hält und wann er benutzt werden darf →',
   'app.labpage.own.codeLink': 'Der Code auf GitHub →',
   'app.labpage.gone.title': 'Wenn es VeilCore nicht mehr gibt',

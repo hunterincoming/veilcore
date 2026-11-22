@@ -101,7 +101,7 @@ export const animal = {
   'app.animal.v.app.log.keyStamped':
     'Clé horodatée. La clé de votre animal est datée elle aussi, pour que vous puissiez prouver plus tard que vous détenez son enregistrement.{bound} Rien sur l’animal n’a été envoyé.',
   'app.animal.v.app.log.onlyFingerprint':
-    'Facultatif : il vous permet de prouver plus tard que vous détenez cet enregistrement. Seul un code de sa clé est envoyé, rien sur l’animal. Gratuit.',
+    'Facultatif, nécessaire seulement pour prouver que vous détenez cet enregistrement ou pour le concéder sous licence. Seul un code de sa clé est envoyé, rien sur l’animal. Gratuit.',
   'app.animal.v.app.log.keepOpen':
     'Inutile d’attendre ici. Cela prend environ une minute et se réessaie tout seul tant que VeilCore est ouvert. Si cela s’arrête, rien n’est perdu : la page de votre animal propose à nouveau l’horodatage de la clé.',
   'app.animal.v.app.chain.stampMayHaveGoneOut':
@@ -211,7 +211,7 @@ export const animal = {
     'La clé de cet animal a déjà été horodatée sur le réseau. Cela date la clé, pas l’enregistrement.',
   'app.animal.v.app.prove.own.title': 'Prouvez que vous détenez la clé de cet animal (réseau de test)',
   'app.animal.v.app.prove.own.stampFirst':
-    'Préparez d’abord la preuve : touchez « Préparer la preuve que vous le détenez » sur la page de l’animal. La preuve porte sur l’identité de l’enregistrement de l’animal sur la chaîne, que crée cette étape.',
+    'Ajoutez d’abord l’horodatage de la clé : appuyez sur « Ajouter l’horodatage de la clé » sur la page de l’animal. La preuve porte sur l’identité sur la chaîne de l’enregistrement, que cette étape crée.',
   // The lab report panels, a delivery and the saved report's sentence, for an animal.
   'app.animal.v.app.lab.sentence.none': 'Aucun rapport ADN n’est enregistré sur cet animal.',
   'app.animal.v.app.lab.sentence.self':

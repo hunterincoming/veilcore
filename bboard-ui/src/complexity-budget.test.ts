@@ -23,6 +23,7 @@ type Budget = {
   >;
   firstSeal: { screens: number; taps: number };
   siteHomeHeight: number;
+  howItWorksHeight: number;
   jargon: { terms: Record<string, string[]>; today: Record<string, Record<string, string[]>> };
 };
 const budget = JSON.parse(fs.readFileSync(path.join(HERE, '..', 'complexity-budget.json'), 'utf8')) as Budget;
@@ -77,8 +78,9 @@ describe('the budget file is whole', () => {
     }
     expect(whole(budget.firstSeal.screens) && whole(budget.firstSeal.taps)).toBe(true);
     expect(whole(budget.coreRoutes)).toBe(true);
-    // The landing page's height on the phone (22 Nov 2026: it was about 17,700 px).
+    // The landing page's height on the phone (22 Nov 2026: it was about 25,400 px).
     expect(whole(budget.siteHomeHeight) && budget.siteHomeHeight > 0).toBe(true);
+    expect(whole(budget.howItWorksHeight) && budget.howItWorksHeight > 0).toBe(true);
   });
 
   it('jargon is listed for every language, and what is "there today" is jargon it checks for', () => {

@@ -112,9 +112,10 @@ export const log = {
   'app.log.stampFailedTitle': '封印しました。任意の鍵の日付スタンプ：まだです',
   'app.log.stampingTitle': '封印しました。任意の鍵の日付スタンプを付けています…',
   'app.log.onlyFingerprint':
-    '任意：この記録を持っていることを後で証明できます。送信されるのは鍵のコードだけで、植物については何も送信されません。無料です。',
+    '任意です。この記録を持っていることを証明するとき、またはライセンスを出すときにだけ必要です。送信されるのは鍵のコードだけで、植物については何も送信されません。無料です。',
   'app.log.stampingAria': '鍵の日付スタンプを付けています',
   'app.log.stampLater': '待たずに次へ',
+  'app.log.stampNotYet': '鍵の日付スタンプはまだ完了していません。自動で試し続けます。',
   'app.log.keepOpen':
     'ここで待つ必要はありません。1分ほどかかり、VeilCoreが開いている間は自動で試し続けます。止まっても何も失われません。植物のページで鍵の日付スタンプをもう一度行えます。',
 } satisfies Partial<AppTranslation>;

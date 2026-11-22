@@ -2361,3 +2361,7 @@ html:lang(ja) .vc-curtain-t {
   background: var(--yellow);
   color: var(--void);
 }
+/* "All of how it works" under the three steps, not under the first (review of #169). */
+.vcm .home .k-steps-more {
+  margin-top: 24px;
+}

@@ -1184,8 +1184,11 @@ const Stamp: React.FC<{ step: string; recordId: string; onNext: () => void }> = 
       {problem && failed ? (
         <>
           {/* The raw error stays on the element for test scripts and support, not on screen. */}
-          <Alert severity="error" variant="outlined" data-error={failed}>
-            {problem.text}
+          {/* Calm: the key date stamp is optional, and nothing is lost (full review, 22 Nov: a red
+              box right after sealing). Said plainly when it retries by itself; the reason is
+              under "Details". A stamp that may have gone out keeps its own words. */}
+          <Alert severity="info" variant="outlined" data-error={failed}>
+            {problem.retry && stopped !== 'sent' ? t('app.log.stampNotYet') : problem.text}
             {/* What went wrong, in the error's own first sentence (long hex taken out), so
                 it can be reported. Folded away: the sentence above is the answer. */}
             {problem.detail && (
@@ -1215,16 +1218,17 @@ const Stamp: React.FC<{ step: string; recordId: string; onNext: () => void }> = 
               {t('app.log.retriesUsed')}
             </Typography>
           )}
+          {/* Never a dead end: the network or the fee service can be down for a while. It keeps
+              trying while VeilCore is open, Home lists it, and the backup still gets saved. Going
+              on is the filled button (22 Nov); trying now is there beside it. */}
+          <Button variant="contained" size="large" fullWidth onClick={onNext} sx={{ py: 1.6 }} data-stamp-go-on="">
+            {t('app.log.stampLater')}
+          </Button>
           {problem.retry && stopped !== 'sent' && (
-            <Button variant="contained" size="large" fullWidth onClick={() => void stamp.tryNow()} sx={{ py: 1.6 }}>
+            <Button variant="outlined" fullWidth onClick={() => void stamp.tryNow()} sx={{ minHeight: 48 }}>
               {t('app.log.tryNow')}
             </Button>
           )}
-          {/* Never a dead end: the network or the fee service can be down for a while.
-              It keeps trying while VeilCore is open, Home lists it, and the backup still gets saved. */}
-          <Button variant="text" color="inherit" onClick={onNext} sx={{ minHeight: 48 }}>
-            {t('app.log.stampLater')}
-          </Button>
           {/* Not under the countdown, which already says it tries again by itself (22 Nov). */}
           {problem.retry && !stopped && stamp.nextInSeconds === undefined && (
             <Typography variant="caption" color="text.secondary" sx={{ textAlign: 'center' }}>

@@ -72,8 +72,7 @@ export const backup = {
   'app.backup.nCodes.other': 'ラボコード {count}件',
   'app.backup.and': '{a}と{b}',
   'app.backup.seeMyPlants': '記録を見る',
-  'app.backup.lookIn':
-    'USBメモリ、パスワードマネージャー、メール、クラウドの中を探してください。何もアップロードされません。',
+  'app.backup.lookIn': 'USBメモリ、パスワードマネージャー、クラウドの中を探してください。何もアップロードされません。',
   'app.backup.openFile': 'バックアップファイルを開く',
   'app.backup.onlyKey': '保有者キー（64文字）しかありませんか？',
   'app.backup.keyLabel': '保有者キー（64文字）',

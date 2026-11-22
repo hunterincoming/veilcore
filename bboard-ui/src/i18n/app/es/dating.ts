@@ -11,7 +11,7 @@ export const dating = {
     'Su registro recibe su fecha con el próximo grupo de registros (más o menos cada {count} minuto en la red de prueba)',
   'app.log.recordDatedNext.other':
     'Su registro recibe su fecha con el próximo grupo de registros (más o menos cada {count} minutos en la red de prueba)',
-  'app.log.recordDatedNextPlain': 'Su registro recibe su fecha con el próximo grupo de registros',
+  'app.log.recordDatedNextPlain': 'Su registro recibe su fecha con el próximo grupo de registros.',
   'app.log.inSeconds': 'en {n} s',
   'app.log.retryingIn': 'Se volverá a intentar solo {when} (intento {n}).',
   'app.log.retriesUsed':

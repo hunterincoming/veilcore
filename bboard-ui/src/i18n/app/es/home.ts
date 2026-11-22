@@ -121,14 +121,14 @@ export const home = {
   'app.labpage.own.site.p': 'Nada que configurar. Nosotros operamos el servidor y pagamos las comisiones de la red.',
   'app.labpage.own.plug.t': 'Integrarlo en su propio software.',
   'app.labpage.own.plug.p':
-    'Su sistema conserva sus datos y agrega un código de prueba a cada registro, con el paquete de contratos @veilcore/contracts.',
+    'Su sistema conserva sus datos y agrega un código de prueba a cada registro, con el paquete de contratos inteligentes @veilcore/contracts.',
   'app.labpage.own.plug.link': 'Cómo integrarlo →',
   'app.labpage.own.run.t': 'Operar su propia copia.',
   'app.labpage.own.run.p':
-    'El sitio web, el servidor que guarda los registros y el servicio de comisiones son código abierto. Usted los alojaría y pagaría sus propias comisiones de red.',
-  'app.labpage.own.run.link': 'Qué funciona sin nosotros →',
+    'El sitio web, el servidor que guarda los registros y el servicio de comisiones son código abierto. Usted los alojaría y pagaría sus propias comisiones de red. Se está escribiendo una guía para operarlos por su cuenta; mientras tanto, empiece por la guía de integración.',
+  'app.labpage.own.run.link': 'La guía de integración →',
   'app.labpage.own.plainly':
-    'Dicho claramente: nadie fuera de VeilCore ha operado aún su propio servidor o servicio de comisiones, así que hacerlo sin nuestra ayuda no está probado. El contrato principal de registros tiene una clave de mantenimiento, que tenemos nosotros. El contrato de pruebas de hechos no tiene ninguna.',
+    'Dicho claramente: operar su propia copia es posible con el código abierto, pero nadie fuera de VeilCore lo ha hecho aún, así que sin nuestra ayuda no está probado. Hoy una copia todavía apunta a veilcore.org hasta que se vuelva a compilar con sus propias direcciones. El contrato inteligente principal de registros tiene una clave de mantenimiento, que tenemos nosotros. El contrato inteligente de pruebas de hechos no tiene ninguna.',
   'app.labpage.own.policyLink': 'Quién tiene la clave de mantenimiento y cuándo puede usarse →',
   'app.labpage.own.codeLink': 'El código en GitHub →',
   'app.labpage.gone.title': 'Si VeilCore desaparece',

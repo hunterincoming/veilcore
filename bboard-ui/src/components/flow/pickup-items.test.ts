@@ -104,7 +104,7 @@ describe('the record’s date while its proof code waits for the next batch', ()
     expect(nextBatchWords(undefined, 5)).toBe(
       'Your record gets its date with the next group of records (about every 5 minutes on the test network)',
     );
-    expect(nextBatchWords(undefined, undefined)).toBe('Your record gets its date with the next group of records');
+    expect(nextBatchWords(undefined, undefined)).toBe('Your record gets its date with the next group of records.');
     expect(nextBatchRow(undefined, 5)).toEqual({
       value: 'with the next group of records',
       sub: 'about every 5 minutes on the test network',

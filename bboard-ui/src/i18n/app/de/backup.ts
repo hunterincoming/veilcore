@@ -41,7 +41,7 @@ export const backup = {
   'app.backup.openCopy': 'Meine gespeicherte Kopie öffnen',
   'app.backup.saveFirst': 'Speichern Sie zuerst die Sicherungsdatei.',
   'app.backup.turnsOn': 'Das wird aktiv, sobald die Prüfung bestanden ist.',
-  'app.backup.pw.add': 'Mit einem Passwort verschließen (empfohlen)',
+  'app.backup.pw.add': 'Mit einem Passwort verschlüsseln (empfohlen)',
   'app.backup.pw.why':
     'Dann öffnet die Datei allein nichts: Wer sie hat, braucht auch das Passwort. Wenn Sie es vergessen, kann niemand die Datei öffnen, auch wir nicht.',
   'app.backup.pw.label': 'Passwort für die Sicherungsdatei',
@@ -78,7 +78,7 @@ export const backup = {
   'app.backup.and': '{a} und {b}',
   'app.backup.seeMyPlants': 'Meine Datensätze ansehen',
   'app.backup.lookIn':
-    'Sehen Sie auf Ihrem USB-Stick, im Passwort-Manager, in E-Mails oder im Cloud-Speicher nach. Es wird nichts hochgeladen.',
+    'Sehen Sie auf Ihrem USB-Stick, im Passwort-Manager oder im Cloud-Speicher nach. Es wird nichts hochgeladen.',
   'app.backup.openFile': 'Meine Sicherungsdatei öffnen',
   'app.backup.onlyKey': 'Haben Sie nur Ihren Inhaberschlüssel (64 Zeichen)?',
   'app.backup.keyLabel': 'Ihr Inhaberschlüssel (64 Zeichen)',

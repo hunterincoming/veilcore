@@ -114,9 +114,10 @@ export const log = {
   'app.log.stampFailedTitle': 'Versiegelt. Freiwilliger Datumsstempel des Schlüssels: noch nicht',
   'app.log.stampingTitle': 'Versiegelt. Der freiwillige Datumsstempel des Schlüssels wird gesetzt…',
   'app.log.onlyFingerprint':
-    'Freiwillig: Damit zeigen Sie später, dass Sie diesen Datensatz halten. Gesendet wird nur ein Code des Schlüssels, nichts über die Pflanze. Kostenlos.',
+    'Freiwillig, nur nötig, um zu beweisen, dass Sie diesen Datensatz halten, oder um ihn zu lizenzieren. Gesendet wird nur ein Code des Schlüssels, nichts über die Pflanze. Kostenlos.',
   'app.log.stampingAria': 'Datumsstempel des Schlüssels wird gesetzt',
   'app.log.stampLater': 'Weiter, ohne zu warten',
+  'app.log.stampNotYet': 'Der Datumsstempel des Schlüssels ging noch nicht durch. Er wird von selbst weiter versucht.',
   'app.log.keepOpen':
     'Sie müssen hier nicht warten. Es dauert etwa eine Minute und wird von selbst weiter versucht, solange VeilCore offen ist. Bricht es ab, geht nichts verloren: Die Seite Ihrer Pflanze bietet den Datumsstempel des Schlüssels wieder an.',
 } satisfies Partial<AppTranslation>;

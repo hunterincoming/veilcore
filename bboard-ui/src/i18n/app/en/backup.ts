@@ -75,7 +75,7 @@ export const backup = {
   'app.backup.nCodes.other': '{count} lab codes',
   'app.backup.and': '{a} and {b}',
   'app.backup.seeMyPlants': 'See my records',
-  'app.backup.lookIn': 'Look on your USB stick, in your password manager, email or cloud drive. Nothing is uploaded.',
+  'app.backup.lookIn': 'Look on your USB stick, in your password manager or your cloud drive. Nothing is uploaded.',
   'app.backup.openFile': 'Open my backup file',
   'app.backup.onlyKey': 'Have only your holder key (64 characters)?',
   'app.backup.keyLabel': 'Your holder key (64 characters)',

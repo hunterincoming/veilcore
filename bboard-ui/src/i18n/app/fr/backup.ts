@@ -81,7 +81,7 @@ export const backup = {
   'app.backup.and': '{a} et {b}',
   'app.backup.seeMyPlants': 'Voir mes enregistrements',
   'app.backup.lookIn':
-    'Cherchez sur votre clé USB, dans votre gestionnaire de mots de passe, vos e-mails ou votre cloud. Rien n’est envoyé.',
+    'Cherchez sur votre clé USB, dans votre gestionnaire de mots de passe ou votre cloud. Rien n’est envoyé.',
   'app.backup.openFile': 'Ouvrir mon fichier de sauvegarde',
   'app.backup.onlyKey': 'Vous n’avez que votre clé de détenteur (64 caractères) ?',
   'app.backup.keyLabel': 'Votre clé de détenteur (64 caractères)',

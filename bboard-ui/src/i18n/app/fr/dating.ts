@@ -11,7 +11,7 @@ export const dating = {
     'Votre enregistrement reçoit sa date avec le prochain groupe d’enregistrements (environ toutes les {count} minute sur le réseau de test)',
   'app.log.recordDatedNext.other':
     'Votre enregistrement reçoit sa date avec le prochain groupe d’enregistrements (environ toutes les {count} minutes sur le réseau de test)',
-  'app.log.recordDatedNextPlain': 'Votre enregistrement reçoit sa date avec le prochain groupe d’enregistrements',
+  'app.log.recordDatedNextPlain': 'Votre enregistrement reçoit sa date avec le prochain groupe d’enregistrements.',
   'app.log.inSeconds': 'dans {n} s',
   'app.log.retryingIn': 'Nouvel essai automatique {when} (essai {n}).',
   'app.log.retriesUsed':

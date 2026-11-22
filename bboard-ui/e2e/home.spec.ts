@@ -17,17 +17,19 @@ const ANCHORS = ['top', 'steps', 'about', 'private', 'own-way', 'more'];
  */
 const MOVED: [string, string][] = [
   ['how', '/how-it-works'],
-  ['demo', '/how-it-works'],
-  ['claims', '/how-it-works'],
-  ['value', '/how-it-works'],
-  ['open', '/how-it-works'],
-  ['status', '/how-it-works'],
-  ['live', '/how-it-works'],
-  ['questions', '/how-it-works'],
-  ['technical', '/how-it-works'],
-  ['matters', '/how-it-works'],
-  ['updates', '/founders'],
-  ['contact', '/founders'],
+  ['demo', '/how-it-works#demo'],
+  ['claims', '/how-it-works#claims'],
+  ['value', '/how-it-works#value'],
+  ['open', '/how-it-works#open'],
+  ['status', '/how-it-works#status'],
+  ['live', '/how-it-works#live'],
+  ['questions', '/how-it-works#questions'],
+  ['technical', '/how-it-works#technical'],
+  ['matters', '/how-it-works#matters'],
+  ['updates', '/founders#updates'],
+  ['contact', '/founders#contact'],
+  ['team', '/founders'],
+  ['keep', '/#private'],
 ];
 
 test.describe('the home page', () => {
@@ -79,9 +81,14 @@ test.describe('the home page', () => {
     // An old link to a section that moved lands on that section on its new page.
     for (const [id, to] of MOVED) {
       await page.goto(`/#${id}`);
-      await expect(page, id).toHaveURL(new RegExp(`${to}#${id}$`));
-      await expect(page.locator(`[id="${id}"]`), id).toHaveCount(1);
+      await expect(page, id).toHaveURL(new RegExp(`${to.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`));
+      const hash = to.split('#')[1];
+      if (hash) await expect(page.locator(`[id="${hash}"]`), id).toHaveCount(1);
     }
+    // Each section once on How it works, the moved ones included (review of #169).
+    await page.goto('/how-it-works');
+    for (const id of ['claims', 'demo', 'value', 'status', 'questions', 'technical', 'matters', 'open', 'own-way'])
+      await expect(page.locator(`[id="${id}"]`), id).toHaveCount(1);
     // Arriving at #live opens what's live where; #technical opens the technical section.
     await page.goto('/#live');
     await expect(page.locator('#live details')).toHaveAttribute('open', '');
@@ -101,7 +108,7 @@ test.describe('the home page', () => {
     const buttons = await page.locator('.hero-actions').boundingBox();
     expect(paste && buttons && paste.y > buttons.y).toBe(true);
     await expect(make).toBeInViewport();
-    // It was about 17,700 px (25 phone screens) with 60 headings.
+    // It was about 25,400 px (some 30 phone screens) with 60 headings.
     expect(await page.evaluate(() => document.documentElement.scrollHeight)).toBeLessThan(844 * 8);
     expect(await page.locator('main :is(h1, h2, h3)').count()).toBeLessThanOrEqual(14);
     // Who it is for: each to its own page.

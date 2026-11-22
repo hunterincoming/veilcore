@@ -189,7 +189,7 @@ export const Founders: React.FC = () => {
               {t('m.own.p')}
             </p>
             <p className="k-lead" data-reveal="" style={{ '--d': 2 } as React.CSSProperties}>
-              <RouterLink to="/for-labs#own-way">{t('m.own.link')}</RouterLink>
+              <RouterLink to="/how-it-works#own-way">{t('m.own.link')}</RouterLink>
             </p>
           </div>
         </section>

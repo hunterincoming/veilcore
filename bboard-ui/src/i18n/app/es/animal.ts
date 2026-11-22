@@ -97,7 +97,7 @@ export const animal = {
   'app.animal.v.app.log.keyStamped':
     'Clave con sello de fecha. La clave de su animal también queda fechada, para que más adelante pueda demostrar que tiene su registro.{bound} No salió nada sobre el animal.',
   'app.animal.v.app.log.onlyFingerprint':
-    'Opcional: le permite probar más adelante que tiene este registro. Solo sale un código de su clave, nada sobre el animal. Gratis.',
+    'Opcional, solo hace falta para probar que tiene este registro o para licenciarlo. Solo sale un código de su clave, nada sobre el animal. Gratis.',
   'app.animal.v.app.log.keepOpen':
     'No hace falta esperar aquí. Tarda alrededor de un minuto y se sigue intentando solo mientras VeilCore está abierto. Si se detiene, no se pierde nada: la página de su animal vuelve a ofrecer el sello de fecha de la clave.',
   'app.animal.v.app.chain.stampMayHaveGoneOut':
@@ -205,7 +205,7 @@ export const animal = {
     'La clave de este animal recibió antes un sello de fecha en la red. Eso fecha la clave, no el registro.',
   'app.animal.v.app.prove.own.title': 'Demuestre que tiene la clave de este animal (red de pruebas)',
   'app.animal.v.app.prove.own.stampFirst':
-    'Prepare primero la prueba: toque “Preparar la prueba de que lo tiene” en la página del animal. La prueba trata de la identidad del registro del animal en la cadena, que crea ese paso.',
+    'Agregue primero el sello de fecha de la clave: pulse «Agregar el sello de fecha de la clave» en la página del animal. La prueba trata de la identidad en la cadena del registro, que crea ese paso.',
   // The lab report panels, a delivery and the saved report's sentence, for an animal.
   'app.animal.v.app.lab.sentence.none': 'No hay ningún informe de ADN guardado en este animal.',
   'app.animal.v.app.lab.sentence.self':

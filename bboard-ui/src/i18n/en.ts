@@ -10,7 +10,7 @@ export const en = {
   'nav.licenses': 'Agreements',
   'nav.language': 'Language',
   'nav.main': 'Main',
-  'nav.skip': 'Skip to the page',
+  'nav.skip': 'Skip to main content',
   'nav.home': 'VeilCore home',
   'footer.about': 'An open record format for plant, animal and microbial genetics.',
   'footer.howCheck': 'How checking works →',
@@ -135,11 +135,11 @@ export const en = {
   // The record app's frame (components/flow/FlowFrame.tsx) and the browser tab's title for
   // each page (App.tsx). Here, with the public pages' text, because they load with the first
   // file; the rest of the app's text is in app/.
-  'app.frame.section.log': 'Log',
+  'app.frame.section.log': 'Make a record',
   'app.frame.section.send': 'Send & receive',
   'app.frame.section.license': 'License & royalties',
   'app.frame.section.prove': 'Prove & check',
-  'app.frame.home': 'Your records. Your progress is saved.',
+  'app.frame.home': 'Your records (progress saved)',
   'title.founders': 'About',
   // Mako's site draft of 21 November 2026 (components/site/HowItWorks.tsx, Founders.tsx and the
   // home page): the strings it needed that the site had no words for.
@@ -299,7 +299,7 @@ export const en = {
     'Breeders|Seed companies|Tissue culture labs|Certifiers|Examiners|Herd books|Plant variety offices',
   'm.home.keep.t': 'Your genetics stay with you.',
   'm.home.keep.p':
-    'Only codes go on Midnight, and the facts you choose to prove: never your files, and what you typed only if you prove a number from it exactly. Midnight checks the private proofs, so you can prove one fact about a record without showing the rest.',
+    "Only codes go on Midnight, and any fact you choose to prove: an exact value you prove becomes public, and a fact a lab signed shows the lab's key. Never your files. Midnight checks the private proofs, so you can prove one fact about a record without showing the rest.",
   'm.home2.l.contact': 'Talk to the founders',
   'm.home2.l.faq': 'Questions',
   'm.home2.moreTitle': 'Everything else',
@@ -476,16 +476,16 @@ export const en = {
   'm.open.3t': "We don't vouch for results.",
   'm.open.3p':
     "A lab's signatures about a record stay private unless the record's holder shows them. Each one shown says which key signed it, the name it was registered under, any accreditation its holder declared (we don't check that), and whether VeilCore's operator has matched that name to a public license or accreditation listing, and on what day. VeilCore doesn't vouch for any lab: whoever checks a record decides what a signature is worth.",
-  'm.open.4t': 'Use it your way.',
-  'm.open.4p':
-    'You never have to use veilcore.org. A lab, certifier or rights body can plug the contracts into its own software, or run its own copy of the site, server and fee service from the open code (Apache-2.0), and anchor without asking us, paying its own network fees. Nobody outside VeilCore has done that yet, so it is untested without our help.',
   'm.open.6t': 'Checking without us.',
   'm.open.6p':
     'With that bundle, anyone can check a record offline: open its verify.html, then look up the one transaction it names on a Midnight explorer. Records sealed since 14 October also need spec section 3.6.1, in the spec on this site and in SDK 0.16.0 and later.',
   'm.open.6link': 'Read the spec →',
   'm.own.link': 'The three ways, and what is untested →',
   'm.own.p':
-    "You never have to use veilcore.org. All of VeilCore's code is open (Apache-2.0): use this site, plug the contracts into your own software, or run your own copy of the site, the server and the fee service. Nobody outside VeilCore has run their own server or fee service yet, so that is untested without our help.",
+    "You never have to use veilcore.org. All of VeilCore's code is open (Apache-2.0): use this site, plug the smart contracts (the code on Midnight) into your own software, or run your own copy of the site, the server and the fee service. Running your own copy is possible from the open code, but nobody outside VeilCore has done it yet. Today a copy still points at veilcore.org until it is rebuilt with your own addresses, and a self-hosting guide is being written. You would host it and pay your own network fees.",
+  'm.own.short':
+    'You never have to use veilcore.org. The code is open: plug the smart contracts into your own software, or run your own copy. Nobody outside VeilCore has run their own copy yet.',
+  'm.own.plugLink': 'How to plug in the smart contracts →',
   'm.own.title': 'Use it your way.',
 
   'm.faq.label': 'Questions',

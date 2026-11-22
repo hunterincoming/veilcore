@@ -25,7 +25,7 @@ export const strain = {
   'app.strain.v.app.log.keyStamped':
     'Clave con sello de fecha. La clave de su cepa también queda fechada, para que más adelante pueda demostrar que la tiene.{bound} No salió nada sobre la cepa.',
   'app.strain.v.app.log.onlyFingerprint':
-    'Opcional: le permite probar más adelante que tiene este registro. Solo sale un código de su clave, nada sobre la cepa. Gratis.',
+    'Opcional, solo hace falta para probar que tiene este registro o para licenciarlo. Solo sale un código de su clave, nada sobre la cepa. Gratis.',
   'app.strain.v.app.log.keepOpen':
     'No hace falta esperar aquí. Tarda alrededor de un minuto y se sigue intentando solo mientras VeilCore está abierto. Si se detiene, no se pierde nada: la página de su cepa vuelve a ofrecer el sello de fecha de la clave.',
   'app.strain.v.app.chain.stampMayHaveGoneOut':
@@ -134,7 +134,7 @@ export const strain = {
     'La clave de esta cepa recibió antes un sello de fecha en la red. Eso fecha la clave, no el registro.',
   'app.strain.v.app.prove.own.title': 'Demuestre que tiene la clave de esta cepa (red de pruebas)',
   'app.strain.v.app.prove.own.stampFirst':
-    'Prepare primero la prueba: toque “Preparar la prueba de que lo tiene” en la página de la cepa. La prueba trata de la identidad de la cepa en la cadena, que crea ese paso.',
+    'Agregue primero el sello de fecha de la clave: pulse «Agregar el sello de fecha de la clave» en la página de la cepa. La prueba trata de la identidad en la cadena del registro, que crea ese paso.',
   'app.strain.v.app.lab.sentence.none': 'No hay ningún informe de ADN guardado en esta cepa.',
   'app.strain.v.app.lab.sentence.self':
     'Hay un archivo de informe de ADN guardado en esta cepa. Ninguna firma de laboratorio coincide con él, así que es la propia declaración de quien lo selló.',

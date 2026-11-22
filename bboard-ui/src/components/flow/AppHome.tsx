@@ -443,12 +443,19 @@ export const AppHome: React.FC = () => {
     <Box sx={{ maxWidth: 680, mx: 'auto' }}>
       <AppHeader />
       <Stack spacing={2.5}>
-        <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
+        {/* "Make a record" on one line at 390px: the row wraps before the button does (review of #169). */}
+        <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between', gap: 1, flexWrap: 'wrap' }}>
           <Typography variant="h4" component="h1">
             {labOnly ? t('app.home.samplesReceived') : t('app.home.yourRecords')}
           </Typography>
           {!labOnly && (
-            <Button component={RouterLink} to="/new" variant="contained" startIcon={<AddIcon />} sx={{ minHeight: 48 }}>
+            <Button
+              component={RouterLink}
+              to="/new"
+              variant="contained"
+              startIcon={<AddIcon />}
+              sx={{ minHeight: 48, whiteSpace: 'nowrap' }}
+            >
               {t('app.home.logNew')}
             </Button>
           )}

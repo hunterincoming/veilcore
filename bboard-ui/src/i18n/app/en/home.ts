@@ -120,14 +120,14 @@ export const home = {
   'app.labpage.own.site.p': 'Nothing to set up. We run the server and pay the network fees.',
   'app.labpage.own.plug.t': 'Plug it into your own software.',
   'app.labpage.own.plug.p':
-    'Your system keeps your data and adds a proof code for each record, with the contracts package @veilcore/contracts.',
+    'Your system keeps your data and adds a proof code for each record, with the smart contracts package @veilcore/contracts.',
   'app.labpage.own.plug.link': 'How to plug it in →',
   'app.labpage.own.run.t': 'Run your own copy.',
   'app.labpage.own.run.p':
-    'The website, the server that keeps records and the fee service are all open code. You would host them and pay your own network fees.',
-  'app.labpage.own.run.link': 'What works without us →',
+    'The website, the server that keeps records and the fee service are all open code. You would host them and pay your own network fees. A self-hosting guide is being written; until then, start with the integration guide.',
+  'app.labpage.own.run.link': 'The integration guide →',
   'app.labpage.own.plainly':
-    'Plainly: nobody outside VeilCore has run their own server or fee service yet, so doing it without our help is untested. The main records contract has a maintenance key, which we hold. The claims contract has none.',
+    'Plainly: running your own copy is possible from the open code, but nobody outside VeilCore has done it yet, so doing it without our help is untested. Today a copy still points at veilcore.org until it is rebuilt with your own addresses. The main records smart contract has a maintenance key, which we hold. The claims smart contract has none.',
   'app.labpage.own.policyLink': 'Who holds the maintenance key, and when it may be used →',
   'app.labpage.own.codeLink': 'The code on GitHub →',
   'app.labpage.gone.title': 'If VeilCore disappears',

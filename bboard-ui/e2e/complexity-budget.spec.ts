@@ -8,7 +8,8 @@
 //   - moreDepth: how many "More"/"Technical details" levels deep the screen goes;
 // plus how many screens and taps it takes from the landing page to sealing a first record, and
 // any jargon shown on a default screen that the budget doesn't already list as there today.
-// The landing page (site.home) is measured too, with its height on the phone (siteHomeHeight).
+// The landing page (site.home) and How it works (site.how) are measured too, with their heights on
+// the phone (siteHomeHeight, howItWorksHeight).
 // Against the stand-in registry; the network and the fee sponsor are refused.
 // BUDGET_REPORT=<file> writes what was measured, for updating the budget by hand.
 // SPDX-License-Identifier: Apache-2.0
@@ -215,6 +216,7 @@ const SCREENS: Record<string, Partial<Record<Lang, Measure>>> = {};
 const TEXTS: Record<string, Partial<Record<Lang, string>>> = {};
 const FIRST_SEAL: Partial<Record<Lang, { screens: number; taps: number }>> = {};
 const HEIGHTS: Partial<Record<Lang, number>> = {};
+const HOW_HEIGHTS: Partial<Record<Lang, number>> = {};
 
 /** Measure one screen: its default view first, then how deep its "More"s go. */
 const measure = async (page: Page, lang: Lang, screen: string, rootSelector: string) => {
@@ -289,6 +291,14 @@ for (const { lang, locale, words } of LANGS) {
       if (tall > budget.siteHomeHeight)
         over.push(`site.home (${lang}): ${tall}px tall, budget ${budget.siteHomeHeight}px`);
       HEIGHTS[lang] = tall;
+      // How it works carries what the landing page used to (review of #169): held too.
+      await page.goto('/how-it-works');
+      await expect(page.locator('h1').first()).toBeVisible();
+      await check('site.how');
+      const howTall = await page.evaluate(() => document.documentElement.scrollHeight);
+      if (howTall > budget.howItWorksHeight)
+        over.push(`site.how (${lang}): ${howTall}px tall, budget ${budget.howItWorksHeight}px`);
+      HOW_HEIGHTS[lang] = howTall;
       await page.emulateMedia({ reducedMotion: null });
       await page.goto('/');
       await expect(page.locator('h1').first()).toBeVisible();
@@ -376,6 +386,7 @@ const report = (lang: Lang) => {
     screens: Object.fromEntries(Object.entries(SCREENS).map(([k, v]) => [k, v[lang]])),
     firstSeal: FIRST_SEAL[lang],
     siteHomeHeight: HEIGHTS[lang],
+    howItWorksHeight: HOW_HEIGHTS[lang],
   };
   console.log(`complexity budget, measured (${lang}): ${JSON.stringify(mine)}`);
   const file = process.env.BUDGET_REPORT;

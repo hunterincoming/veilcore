@@ -23,7 +23,7 @@ export const strain = {
   'app.strain.v.app.log.keyStamped':
     "Key date stamped. Your strain's key is dated too, so you can prove you hold it later.{bound} Nothing about the strain went out.",
   'app.strain.v.app.log.onlyFingerprint':
-    'Optional: it lets you prove later that you hold this record. Only a code made from its key goes out, nothing about the strain. Free.',
+    'Optional, needed only to prove you hold this record or to license it. Only a code made from its key goes out, nothing about the strain. Free.',
   'app.strain.v.app.log.keepOpen':
     "You don't need to wait here. It takes about a minute and keeps trying by itself while VeilCore is open. If it stops, nothing is lost: your strain's page offers the key date stamp again.",
   'app.strain.v.app.chain.stampMayHaveGoneOut':
@@ -131,7 +131,7 @@ export const strain = {
     'This strain’s key was date stamped on the network earlier. That dates the key, not the record.',
   'app.strain.v.app.prove.own.title': 'Prove you hold this strain’s key (test network)',
   'app.strain.v.app.prove.own.stampFirst':
-    'Set up proof you hold it first: press “Set up proof you hold it” on the strain’s page. The proof is about the strain’s on-chain identity, which that step creates.',
+    'Add the key date stamp first: press “Add the key date stamp” on the strain’s page. The proof is about the record’s on-chain identity, which that step creates.',
   'app.strain.v.app.lab.sentence.none': 'No DNA report is saved to this strain.',
   'app.strain.v.app.lab.sentence.self':
     'A DNA report file is saved to this strain. No lab signature matches it, so it is the holder’s own statement.',

@@ -112,9 +112,10 @@ export const log = {
   'app.log.stampFailedTitle': 'Registro sellado. Sello de fecha opcional de la clave: aún no',
   'app.log.stampingTitle': 'Registro sellado. Agregando el sello de fecha opcional de la clave…',
   'app.log.onlyFingerprint':
-    'Opcional: le permite probar más adelante que tiene este registro. Solo sale un código de su clave, nada sobre la planta. Gratis.',
+    'Opcional, solo hace falta para probar que tiene este registro o para licenciarlo. Solo sale un código de su clave, nada sobre la planta. Gratis.',
   'app.log.stampingAria': 'Agregando el sello de fecha de la clave',
   'app.log.stampLater': 'Seguir sin esperar',
+  'app.log.stampNotYet': 'El sello de fecha de la clave aún no se completó. Se sigue intentando solo.',
   'app.log.keepOpen':
     'No hace falta esperar aquí. Tarda alrededor de un minuto y se sigue intentando solo mientras VeilCore está abierto. Si se detiene, no se pierde nada: la página de su planta vuelve a ofrecer el sello de fecha de la clave.',
 } satisfies Partial<AppTranslation>;

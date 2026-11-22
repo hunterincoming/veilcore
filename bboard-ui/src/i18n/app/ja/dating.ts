@@ -8,7 +8,7 @@ export const dating = {
   'app.chain.progress.starting': 'お使いの端末で証明の準備を始めています…',
 
   'app.log.recordDatedNext.other': '記録には次のまとまりで日付が付きます（テストネットワークではおよそ{count}分ごと）',
-  'app.log.recordDatedNextPlain': '記録には次のまとまりで日付が付きます',
+  'app.log.recordDatedNextPlain': '記録には次のまとまりで日付が付きます。',
   'app.log.inSeconds': '{n}秒後に',
   'app.log.retryingIn': '{when}自動でもう一度試します（{n}回目）。',
   'app.log.retriesUsed': '何度か試しました。いつでももう一度試せます。記録自体の日付は、これとは関係なく付いています。',

@@ -7,7 +7,7 @@ export const es: Strings = {
   // Header and footer
   'nav.language': 'Idioma',
   'nav.main': 'Principal',
-  'nav.skip': 'Ir al contenido',
+  'nav.skip': 'Ir al contenido principal',
   'nav.home': 'Inicio de VeilCore',
   'footer.documents': 'Documentos',
   'footer.spec': 'Especificación',
@@ -128,11 +128,11 @@ export const es: Strings = {
   'notice.datingPaused':
     'El fechado en Midnight está en pausa por la actualización de la red de Midnight. Sus registros están guardados y se fecharán cuando vuelva a funcionar.',
   // The record app's frame and the browser tab's titles.
-  'app.frame.section.log': 'Registrar',
+  'app.frame.section.log': 'Crear un registro',
   'app.frame.section.send': 'Enviar y recibir',
   'app.frame.section.license': 'Licencias y regalías',
   'app.frame.section.prove': 'Demostrar y comprobar',
-  'app.frame.home': 'Sus registros. Su avance está guardado.',
+  'app.frame.home': 'Sus registros (guardado)',
   'title.founders': 'Acerca de',
   // Mako's site draft of 21 November 2026 (components/site/HowItWorks.tsx, Founders.tsx and the
   // home page): the strings it needed that the site had no words for.
@@ -583,7 +583,7 @@ export const es: Strings = {
     'Obtentores|Empresas de semillas|Laboratorios de cultivo de tejidos|Certificadores|Examinadores|Libros genealógicos|Oficinas de variedades vegetales',
   'm.home.keep.t': 'Su genética se queda con usted.',
   'm.home.keep.p':
-    'A Midnight solo van códigos, y los hechos que usted decida probar: nunca sus archivos, y lo que escribió solo si prueba un número de forma exacta. Midnight comprueba las pruebas privadas, así que puede probar un hecho de un registro sin mostrar el resto.',
+    'A Midnight solo van códigos, y los hechos que usted decida probar: un valor exacto que pruebe se vuelve público, y un hecho firmado por un laboratorio muestra la clave del laboratorio. Nunca sus archivos. Midnight comprueba las pruebas privadas, así que puede probar un hecho de un registro sin mostrar el resto.',
   'm.home2.l.contact': 'Hablar con los fundadores',
   'm.home2.l.faq': 'Preguntas',
   'm.home2.moreTitle': 'Todo lo demás',
@@ -747,9 +747,6 @@ export const es: Strings = {
   'm.open.3t': 'No respondemos por los resultados.',
   'm.open.3p':
     'Las firmas de un laboratorio sobre un registro son privadas salvo que el titular del registro las muestre. Cada una que se muestra dice qué clave la firmó, el nombre con que se registró esa clave, cualquier acreditación que declaró su titular (no la comprobamos) y si el operador de VeilCore ha cotejado ese nombre con un listado público de licencias o acreditaciones, y en qué fecha. VeilCore no responde por ningún laboratorio: quien comprueba un registro decide cuánto vale una firma.',
-  'm.open.4t': 'Úselo a su manera.',
-  'm.open.4p':
-    'Nunca está obligado a usar veilcore.org. Un laboratorio, un certificador o una entidad de derechos puede integrar los contratos en su propio software, u operar su propia copia del sitio, el servidor y el servicio de comisiones con el código abierto (Apache-2.0), y anclar sin pedirnos permiso, pagando sus propias comisiones de red. Nadie fuera de VeilCore lo ha hecho aún, así que sin nuestra ayuda no está probado.',
   'm.faq.label': 'Preguntas',
   'm.faq.title1': 'Preguntas',
   'm.faq.title2': 'que nos hacen.',
@@ -804,7 +801,10 @@ export const es: Strings = {
   'm.open.6link': 'Leer la especificación →',
   'm.own.link': 'Las tres formas, y lo que no está probado →',
   'm.own.p':
-    'Nunca está obligado a usar veilcore.org. Todo el código de VeilCore es abierto (Apache-2.0): use este sitio, integre los contratos en su propio software, u opere su propia copia del sitio, el servidor y el servicio de comisiones. Nadie fuera de VeilCore ha operado aún su propio servidor o servicio de comisiones, así que sin nuestra ayuda no está probado.',
+    'Nunca está obligado a usar veilcore.org. Todo el código de VeilCore es abierto (Apache-2.0): use este sitio, integre los contratos inteligentes (el código en Midnight) en su propio software, u opere su propia copia del sitio, el servidor y el servicio de comisiones. Operar su propia copia es posible con el código abierto, pero nadie fuera de VeilCore lo ha hecho aún. Hoy una copia todavía apunta a veilcore.org hasta que se vuelva a compilar con sus propias direcciones, y se está escribiendo una guía para operarla por su cuenta. Usted la alojaría y pagaría sus propias comisiones de red.',
+  'm.own.short':
+    'Nunca está obligado a usar veilcore.org. El código es abierto: integre los contratos inteligentes en su propio software, u opere su propia copia. Nadie fuera de VeilCore lo ha hecho aún.',
+  'm.own.plugLink': 'Cómo integrar los contratos inteligentes →',
   'm.own.title': 'Úselo a su manera.',
   'm.updates.older': 'Novedades anteriores',
   'm.live.colTestHere': 'Este sitio de prueba (test.veilcore.org)',

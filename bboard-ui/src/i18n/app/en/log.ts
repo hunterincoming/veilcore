@@ -118,9 +118,10 @@ export const log = {
   'app.log.stampFailedTitle': 'Sealed. Optional key date stamp: not yet',
   'app.log.stampingTitle': 'Sealed. Adding the optional key date stamp…',
   'app.log.onlyFingerprint':
-    'Optional: it lets you prove later that you hold this record. Only a code made from its key goes out, nothing about the plant. Free.',
+    'Optional, needed only to prove you hold this record or to license it. Only a code made from its key goes out, nothing about the plant. Free.',
   'app.log.stampingAria': 'Adding the key date stamp',
   'app.log.stampLater': 'Go on without waiting',
+  'app.log.stampNotYet': "The key date stamp didn't go through yet. It keeps trying by itself.",
   'app.log.keepOpen':
     "You don't need to wait here. It takes about a minute and keeps trying by itself while VeilCore is open. If it stops, nothing is lost: your plant's page offers the key date stamp again.",
 };

@@ -199,9 +199,12 @@ export const RestorePage: React.FC = () => {
         <Stack spacing={2.5}>
           <Box>
             <ScreenHeading>{t('app.backup.restoreTitle')}</ScreenHeading>
-            <Typography variant="body1" color="text.secondary">
-              {account ? t('app.account.restore.lead') : t('app.backup.restoreIntro')}
-            </Typography>
+            {/* Without saving with VeilCore, one line says what to open; with it, the two buttons say it. */}
+            {!account && (
+              <Typography variant="body1" color="text.secondary">
+                {t('app.backup.restoreIntro')}
+              </Typography>
+            )}
             {/* Nobody legitimate sends a backup file or a recovery code (security review, 22 Nov). */}
             {!done && (
               <Typography variant="body2" sx={{ mt: 1, fontWeight: 600 }} data-restore-own-only="">

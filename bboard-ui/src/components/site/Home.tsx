@@ -48,7 +48,7 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
 import { computeCommitment, newNonce } from 'veilcore-records';
 import { useI18n } from '../../i18n';
@@ -69,13 +69,11 @@ import {
   Two,
   WordLight,
   arrowed,
-  scramble,
   useHashScroll,
   useReveals,
   useScrollPieces,
 } from './night-parts';
 import { Gallery, type Slide } from './Gallery';
-import { Claims } from './Claims';
 import './home.css';
 
 /** The proof code in groups of eight, the way a long lab code is printed. */
@@ -256,22 +254,8 @@ const Technical: React.FC = () => {
               <h3>{t('m.tech.dna.t')}</h3>
               <p>{t('m.tech.dna.p')}</p>
             </div>
-            <div className="pt">
-              <h3>{t('m.open.2t')}</h3>
-              <p>{t('m.open.2p')}</p>
-            </div>
-            <div className="pt">
-              <h3>{t('m.open.6t')}</h3>
-              <p>
-                {t('m.open.6p')}
-                {sp}
-                <RouterLink to="/docs/spec">{arrowed(t('m.open.6link'))}</RouterLink>
-              </p>
-            </div>
-            <div className="pt">
-              <h3>{t('m.open.4t')}</h3>
-              <p>{t('m.open.4p')}</p>
-            </div>
+            {/* Keeping one file and checking without us are in "If VeilCore disappears", and running
+                your own in "Use it your way", on the same page (22 Nov: they were here twice). */}
             <div className="pt">
               <h3>{t('m.claims.statusTitle')}</h3>
               <p>{t('m.claims.status')}</p>
@@ -308,115 +292,6 @@ export const walkthroughFile = (lang: string, ext: 'mp4' | 'jpg'): string =>
  */
 const ASK_ON_SITE = true;
 
-/** An illustration, not a record: the example in "Four steps". */
-const EXAMPLE_CODE = '3f9a1c07b2e84d6a91c5f0e27b4d8a3c6e1f95b0d27a4c8e3b61f0a9d5c27e48';
-
-/**
- * Four steps (the draft's pinned stage, unpinned). The step in the middle of the window is the lit
- * one, from an IntersectionObserver; choosing a step lights it too. The picture beside the
- * steps shows that step. The page scrolls on as normal.
- */
-const Steps: React.FC = () => {
-  const { t, sp } = useI18n();
-  const [step, setStep] = useState(0);
-  const list = useRef<HTMLOListElement>(null);
-  // The example code settles from random hex when its step lights (the design's scramble). Written
-  // here, not by React, so the scramble and React never both own the text.
-  const code = useRef<HTMLParagraphElement>(null);
-  useLayoutEffect(() => {
-    if (code.current) code.current.textContent = EXAMPLE_CODE;
-  }, []);
-  useEffect(() => (step === 1 ? scramble(code.current, EXAMPLE_CODE) : undefined), [step]);
-  useEffect(() => {
-    const el = list.current;
-    if (!el || typeof IntersectionObserver === 'undefined') return;
-    const lis = [...el.children];
-    const io = new IntersectionObserver(
-      (entries) => {
-        for (const e of entries) if (e.isIntersecting) setStep(lis.indexOf(e.target));
-      },
-      { rootMargin: '-45% 0px -45% 0px' },
-    );
-    lis.forEach((li) => io.observe(li));
-    return () => io.disconnect();
-  }, []);
-  const layer = (i: number) => `k-layer${i === step ? ' is-on' : ''}`;
-  return (
-    <div className="k-wrap k-how-grid">
-      <div>
-        <h2 id="how-h" className="k-h2" data-reveal="">
-          <Two a={t('m.how.title1')} b={t('m.how.title2')} />
-        </h2>
-        <ol className="k-steps" ref={list}>
-          {(['1', '2', '3', '4'] as const).map((n, i) => (
-            <li key={n} className={i === step ? 'is-active' : undefined}>
-              <h3>
-                <button type="button" aria-pressed={i === step} onClick={() => setStep(i)}>
-                  {t(`m.step${n}.title`)}
-                </button>
-              </h3>
-              <p>{t(`m.step${n}.text`)}</p>
-            </li>
-          ))}
-        </ol>
-      </div>
-      {/* What each step looks like: decoration beside the steps, which say it in words. */}
-      <div className="k-stagebox" aria-hidden="true">
-        <div className={layer(0)}>
-          <dl className="k-rec">
-            <div>
-              <dt>{t('m.hero.cultivar')}</dt>
-              <dd>Harbour Mist</dd>
-            </div>
-            <div>
-              <dt>{t('m.hero.bredBy')}</dt>
-              <dd>{t('m.hero.bredByDefault')}</dd>
-            </div>
-            <div>
-              <dt>{t('m.home.ex.dna')}</dt>
-              <dd>report.pdf</dd>
-            </div>
-          </dl>
-          <p className="k-layer-cap">{t('m.home.ex.label')}</p>
-        </div>
-        <div className={layer(1)}>
-          <p className="k-bigcode" ref={code} />
-          <p className="k-layer-cap">{t('m.home.l2')}</p>
-        </div>
-        <div className={layer(2)}>
-          <div className="k-batch">
-            <div className="k-batch-grid">
-              {Array.from({ length: 64 }, (_, i) => (
-                <i key={i} className={i === 27 ? 'me' : undefined} />
-              ))}
-            </div>
-            <span className="k-batch-arrow" />
-            <div className="k-block">
-              <b>
-                {t('m.hero.stampWord')}
-                {sp}
-                {t('m.hero.stampLine')}
-              </b>
-              <span>{t('m.home.l3b')}</span>
-            </div>
-          </div>
-          <p className="k-layer-cap">{t('m.home.l3')}</p>
-        </div>
-        <div className={layer(3)}>
-          <svg className="k-check" viewBox="0 0 160 160">
-            <circle cx="80" cy="80" r="70" />
-            <circle className="ring" cx="80" cy="80" r="70" transform="rotate(-90 80 80)" />
-            <path className="ok" d="M52 82 L72 101 L110 61" />
-          </svg>
-          <p className="k-verdict">{t('m.home.l4v')}</p>
-          <p className="k-layer-cap">{t('m.home.l4')}</p>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-/** The round marks on the cards of "Where it stops", a wider ring on each. */
 const StackMark: React.FC<{ r: number }> = ({ r }) => (
   <svg className="k-stack-mark" viewBox="0 0 120 120" aria-hidden="true" focusable="false">
     <circle cx="60" cy="60" r="56" fill="none" stroke="currentColor" strokeOpacity=".28" strokeWidth="1" />
@@ -436,11 +311,11 @@ const PARENTAGE_DOC = 'https://github.com/hunterincoming/veilcore/blob/main/docs
 /**
  * What the home page carried below its first screens until 22 Nov 2026, moved whole to How it
  * works (HowItWorks.tsx) when the home page was cut to a short page: who it is for, what did you
- * have and when, where it matters, we can't read your records, the four steps, the two doors with
+ * have and when, where it matters, we can't read your records, the two doors with
  * the paste box and the video, more than a date, where it stops, questions, technical readers,
- * and the second band of names. Nothing in it was deleted. Its anchors (#how, #demo, #value,
- * #status, #questions, #technical, #matters, #open) are on How it works now; the home page sends
- * an old link to one of them there (MOVED_ANCHORS).
+ * and the second band of names. Nothing in it was deleted; what How it works already said (share
+ * proof, not data; if VeilCore disappears; the four steps, now the home page's three) is said
+ * there once. The home page sends an old link to one of these sections there (MOVED_ANCHORS).
  */
 export const MovedFromHome: React.FC = () => {
   const { t, lang, sp } = useI18n();
@@ -531,8 +406,6 @@ export const MovedFromHome: React.FC = () => {
     [t('m.stops.2a'), t('m.stops.2b'), 'k-t-cyan', 24],
     [t('m.stops.3a'), t('m.stops.3b'), 'k-t-paper', 34],
     [t('m.stops.4a'), t('m.stops.4b'), 'k-t-night', 44],
-    // Where VeilCore stops with labs: it shows who signed, never vouches.
-    [t('m.open.3t'), t('m.open.3p'), 'k-t-yellow', 52],
   ];
 
   return (
@@ -610,23 +483,8 @@ export const MovedFromHome: React.FC = () => {
             <p data-reveal="" style={{ '--d': 3 } as React.CSSProperties}>
               {t('m.home.custody.p2')}
             </p>
-            <p data-reveal="" style={{ '--d': 4 } as React.CSSProperties}>
-              <b>
-                {t('m.open.title1')}
-                {sp}
-                {t('m.open.title2')}
-              </b>
-              {sp}
-              {t('m.open.1t')}
-              {sp}
-              {t('m.open.1p')}
-            </p>
           </div>
         </div>
-      </section>
-
-      <section className="k-screen k-how" id="how" aria-labelledby="how-h">
-        <Steps />
       </section>
 
       {/* The design's Records page, as this page's ways in: two doors, then the paste box and the
@@ -714,10 +572,6 @@ export const MovedFromHome: React.FC = () => {
         </div>
       </section>
 
-      <section className="k-screen" id="claims" aria-labelledby="claims-h">
-        <Claims />
-      </section>
-
       <section className="k-screen" id="value" aria-labelledby="more-h">
         <div className="k-wrap">
           <h2 id="more-h" className="k-giant" data-reveal="">
@@ -802,8 +656,6 @@ export const MovedFromHome: React.FC = () => {
       <Technical />
 
       <Marquee label={t('m.home.trustLabel')} list={t('m.home.trust')} />
-
-      <Marquee label={t('m.home.trustLabel')} list={t('m.home.trust')} />
     </>
   );
 };
@@ -821,22 +673,26 @@ export const TryIt: React.FC<{ onHash: (hex: string) => void }> = ({ onHash }) =
   );
 };
 
-/** Old links into the home page's sections, and the page each section lives on now. */
+/**
+ * Old links into the home page's sections, and where each is now: a section of How it works or
+ * About, the top of one (the four steps became the home page's three, How it works' top), or a
+ * section of this page under its new name.
+ */
 export const MOVED_ANCHORS: Record<string, string> = {
   how: '/how-it-works',
-  demo: '/how-it-works',
-  claims: '/how-it-works',
-  value: '/how-it-works',
-  open: '/how-it-works',
-  status: '/how-it-works',
-  live: '/how-it-works',
-  questions: '/how-it-works',
-  technical: '/how-it-works',
-  matters: '/how-it-works',
-  when: '/how-it-works',
-  updates: '/founders',
-  contact: '/founders',
+  demo: '/how-it-works#demo',
+  claims: '/how-it-works#claims',
+  value: '/how-it-works#value',
+  open: '/how-it-works#open',
+  status: '/how-it-works#status',
+  live: '/how-it-works#live',
+  questions: '/how-it-works#questions',
+  technical: '/how-it-works#technical',
+  matters: '/how-it-works#matters',
+  updates: '/founders#updates',
+  contact: '/founders#contact',
   team: '/founders',
+  keep: '/#private',
 };
 
 /** The hero's event display on the home page: drawn from a fixed code (SHA-256 of "veilcore"). */
@@ -861,7 +717,7 @@ export const Home: React.FC = () => {
   useEffect(() => {
     const id = decodeURIComponent(hash.slice(1));
     const to = MOVED_ANCHORS[id];
-    if (to) void navigate(`${to}#${id}`, { replace: true });
+    if (to) void navigate(to, { replace: true });
   }, [hash]);
 
   const steps: [string, string][] = [
@@ -878,6 +734,8 @@ export const Home: React.FC = () => {
     ['/how-it-works', t('m.hero.how')],
     ['/how-it-works#claims', t('m.claims.label')],
     ['/how-it-works#where', t('m.live.label')],
+    // Parentage, live since 21 Nov, on the home page too (review of #169).
+    [PARENTAGE_DOC, t('m.for.5parentLink')],
     ['/how-it-works#status', t('m.stops.title')],
     ['/how-it-works#demo', t('m.demo.video.title')],
     ['/how-it-works#questions', t('m.home2.l.faq')],
@@ -886,7 +744,7 @@ export const Home: React.FC = () => {
     ['/founders', t('m.nav.about')],
     ['/founders#updates', t('m.nav.updates')],
     ['/founders#contact', t('m.home2.l.contact')],
-    ['/privacy', t(IS_MAINNET ? 'title.privacyMainnet' : 'title.privacy')],
+    // (Privacy is linked from the privacy line above.)
     ['/docs/spec', t('title.spec')],
     ['/docs/evidence', t('title.evidence')],
     ['/docs/integrate', t('title.integrate')],
@@ -962,7 +820,7 @@ export const Home: React.FC = () => {
                 </li>
               ))}
             </ol>
-            <p className="k-fine">
+            <p className="k-fine k-steps-more">
               <RouterLink to="/how-it-works">{arrowed(t('m.home2.howLink'))}</RouterLink>
             </p>
           </div>
@@ -1008,9 +866,9 @@ export const Home: React.FC = () => {
               {t('m.own.title')}
             </h2>
             <p className="k-lead" data-reveal="" style={{ '--d': 1 } as React.CSSProperties}>
-              {t('m.own.p')}
+              {t('m.own.short')}
               {sp}
-              <RouterLink to="/for-labs#own-way">{arrowed(t('m.own.link'))}</RouterLink>
+              <RouterLink to="/how-it-works#own-way">{arrowed(t('m.own.link'))}</RouterLink>
             </p>
           </div>
         </section>
@@ -1023,7 +881,13 @@ export const Home: React.FC = () => {
             <ul className="k-link-list" data-home-more="">
               {more.map(([to, label]) => (
                 <li key={to}>
-                  <RouterLink to={to}>{arrowed(`${label} →`)}</RouterLink>
+                  {to.startsWith('https://') ? (
+                    <a href={to} target="_blank" rel="noopener noreferrer">
+                      {arrowed(label)}
+                    </a>
+                  ) : (
+                    <RouterLink to={to}>{arrowed(`${label} →`)}</RouterLink>
+                  )}
                 </li>
               ))}
             </ul>

@@ -45,6 +45,16 @@ section.
   home page no longer says "only proof codes" go on Midnight.
 - The language picker is named and shows its focus; every page has a skip link; the example
   check page has a main part; tabs name About, For labs, Settings, labels, the pack and lab results.
+- The home page is short (hero, three steps, who it is for, privacy, use it your way, links); what
+  it carried is on How it works (each section once) and About, and an old link lands there. Both
+  pages have a height in the complexity budget.
+- "Use it your way" says plainly that running your own copy is possible from the open code but
+  nobody outside VeilCore has done it yet, that a copy still points at veilcore.org until rebuilt
+  with your own addresses, and that a self-hosting guide is being written. "Smart contracts" in
+  every language, never the word for a legal contract.
+- The key date stamp has one name everywhere, says it is needed before licensing, and a failure
+  after sealing is calm ("Go on without waiting" first). "Verified" is kept for a listing match;
+  a signature checked in this browser says "checked". The flow's band says "Make a record".
 
 ### "Prove a fact", and "this device" on the seal screen (21 Nov 2026, not deployed yet)
 

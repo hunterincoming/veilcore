@@ -123,14 +123,14 @@ export const home = {
   'app.labpage.own.site.p': 'Rien à configurer. Nous faisons tourner le serveur et payons les frais de réseau.',
   'app.labpage.own.plug.t': 'L’intégrer à votre propre logiciel.',
   'app.labpage.own.plug.p':
-    'Votre système garde vos données et ajoute un code de preuve à chaque enregistrement, avec le paquet de contrats @veilcore/contracts.',
+    'Votre système garde vos données et ajoute un code de preuve à chaque enregistrement, avec le paquet de contrats intelligents @veilcore/contracts.',
   'app.labpage.own.plug.link': 'Comment l’intégrer →',
   'app.labpage.own.run.t': 'Faire tourner votre propre copie.',
   'app.labpage.own.run.p':
-    'Le site, le serveur qui garde les enregistrements et le service de frais sont du code ouvert. Vous les hébergeriez et paieriez vos propres frais de réseau.',
-  'app.labpage.own.run.link': 'Ce qui marche sans nous →',
+    'Le site, le serveur qui garde les enregistrements et le service de frais sont du code ouvert. Vous les hébergeriez et paieriez vos propres frais de réseau. Un guide pour l’héberger soi-même est en cours d’écriture ; d’ici là, commencez par le guide d’intégration.',
+  'app.labpage.own.run.link': 'Le guide d’intégration →',
   'app.labpage.own.plainly':
-    'Pour être clair : personne en dehors de VeilCore n’a encore fait tourner son propre serveur ou service de frais, donc le faire sans notre aide n’est pas testé. Le contrat principal des enregistrements a une clé de maintenance, que nous détenons. Le contrat des preuves de faits n’en a pas.',
+    'Pour être clair : faire tourner votre propre copie est possible à partir du code ouvert, mais personne en dehors de VeilCore ne l’a encore fait, donc le faire sans notre aide n’est pas testé. Aujourd’hui, une copie pointe encore vers veilcore.org tant qu’elle n’est pas reconstruite avec vos propres adresses. Le contrat intelligent principal des enregistrements a une clé de maintenance, que nous détenons. Le contrat intelligent des preuves de faits n’en a pas.',
   'app.labpage.own.policyLink': 'Qui détient la clé de maintenance, et quand elle peut servir →',
   'app.labpage.own.codeLink': 'Le code sur GitHub →',
   'app.labpage.gone.title': 'Si VeilCore disparaît',

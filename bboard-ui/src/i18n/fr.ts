@@ -6,7 +6,7 @@ export const fr: Strings = {
   // Header and footer
   'nav.language': 'Langue',
   'nav.main': 'Navigation principale',
-  'nav.skip': 'Aller au contenu',
+  'nav.skip': 'Aller au contenu principal',
   'nav.home': 'Accueil VeilCore',
   'footer.documents': 'Documents',
   'footer.spec': 'Spécification',
@@ -127,11 +127,11 @@ export const fr: Strings = {
   'notice.datingPaused':
     'La datation sur Midnight est suspendue pendant la mise à niveau du réseau de Midnight. Vos enregistrements sont sauvegardés et seront datés dès son retour.',
   // The record app's frame and the browser tab's titles.
-  'app.frame.section.log': 'Enregistrer',
+  'app.frame.section.log': 'Créer un enregistrement',
   'app.frame.section.send': 'Envoyer et recevoir',
   'app.frame.section.license': 'Licences et redevances',
   'app.frame.section.prove': 'Prouver et vérifier',
-  'app.frame.home': 'Vos enregistrements. Votre progression est enregistrée.',
+  'app.frame.home': 'Vos enregistrements (enregistré)',
   'title.founders': 'À propos',
   // Mako's site draft of 21 November 2026 (components/site/HowItWorks.tsx, Founders.tsx and the
   // home page): the strings it needed that the site had no words for.
@@ -587,7 +587,7 @@ export const fr: Strings = {
     'Obtenteurs et éleveurs|Semenciers|Laboratoires de culture in vitro|Certificateurs|Examinateurs|Livres généalogiques|Offices des variétés végétales',
   'm.home.keep.t': 'Votre génétique reste chez vous.',
   'm.home.keep.p':
-    'Seuls des codes vont sur Midnight, avec les faits que vous choisissez de prouver : jamais vos fichiers, et ce que vous avez saisi seulement si vous en prouvez un nombre exactement. Midnight vérifie les preuves privées, pour que vous puissiez prouver un fait sur un enregistrement sans montrer le reste.',
+    'Seuls des codes vont sur Midnight, avec les faits que vous choisissez de prouver : une valeur exacte que vous prouvez devient publique, et un fait signé par un laboratoire montre la clé du laboratoire. Jamais vos fichiers. Midnight vérifie les preuves privées, pour que vous puissiez prouver un fait sur un enregistrement sans montrer le reste.',
   'm.home2.l.contact': 'Parler aux fondateurs',
   'm.home2.l.faq': 'Questions',
   'm.home2.moreTitle': 'Tout le reste',
@@ -754,9 +754,6 @@ export const fr: Strings = {
   'm.open.3t': 'Nous ne nous portons pas garants des résultats.',
   'm.open.3p':
     'Les signatures d’un laboratoire sur un enregistrement restent privées, sauf si le détenteur de l’enregistrement les montre. Chacune de celles qui sont montrées indique quelle clé a signé, le nom sous lequel cette clé a été enregistrée, toute accréditation déclarée par son détenteur (nous ne la vérifions pas), et si l’opérateur de VeilCore a rapproché ce nom d’une liste publique de licences ou d’accréditations, et à quelle date. VeilCore ne se porte garant d’aucun laboratoire : c’est la personne qui vérifie un enregistrement qui décide de ce que vaut une signature.',
-  'm.open.4t': 'Utilisez-le à votre façon.',
-  'm.open.4p':
-    'Vous n’êtes jamais obligé d’utiliser veilcore.org. Un laboratoire, un certificateur ou un organisme de droits peut intégrer les contrats à son propre logiciel, ou faire tourner sa propre copie du site, du serveur et du service de frais à partir du code ouvert (Apache-2.0), et ancrer sans nous le demander, en payant ses propres frais de réseau. Personne en dehors de VeilCore ne l’a encore fait : sans notre aide, ce n’est pas testé.',
   'm.faq.label': 'Questions',
   'm.faq.title1': 'Les questions',
   'm.faq.title2': 'qu’on nous pose.',
@@ -811,7 +808,10 @@ export const fr: Strings = {
   'm.open.6link': 'Lire la spécification →',
   'm.own.link': 'Les trois façons, et ce qui n’est pas testé →',
   'm.own.p':
-    'Vous n’êtes jamais obligé d’utiliser veilcore.org. Tout le code de VeilCore est ouvert (Apache-2.0) : utilisez ce site, intégrez les contrats à votre propre logiciel, ou faites tourner votre propre copie du site, du serveur et du service de frais. Personne en dehors de VeilCore n’a encore fait tourner son propre serveur ou service de frais : sans notre aide, ce n’est pas testé.',
+    'Vous n’êtes jamais obligé d’utiliser veilcore.org. Tout le code de VeilCore est ouvert (Apache-2.0) : utilisez ce site, intégrez les contrats intelligents (le code sur Midnight) à votre propre logiciel, ou faites tourner votre propre copie du site, du serveur et du service de frais. Faire tourner votre propre copie est possible à partir du code ouvert, mais personne en dehors de VeilCore ne l’a encore fait. Aujourd’hui, une copie pointe encore vers veilcore.org tant qu’elle n’est pas reconstruite avec vos propres adresses, et un guide pour l’héberger soi-même est en cours d’écriture. Vous l’hébergeriez et paieriez vos propres frais de réseau.',
+  'm.own.short':
+    'Vous n’êtes jamais obligé d’utiliser veilcore.org. Le code est ouvert : intégrez les contrats intelligents à votre propre logiciel, ou faites tourner votre propre copie. Personne en dehors de VeilCore ne l’a encore fait.',
+  'm.own.plugLink': 'Comment intégrer les contrats intelligents →',
   'm.own.title': 'Utilisez-le à votre façon.',
   'm.updates.older': 'Actualités plus anciennes',
   'm.live.colTestHere': 'Ce site de test (test.veilcore.org)',

@@ -10,7 +10,7 @@ export const dating = {
     'Your record gets its date with the next group of records (about every {count} minute on the test network)',
   'app.log.recordDatedNext.other':
     'Your record gets its date with the next group of records (about every {count} minutes on the test network)',
-  'app.log.recordDatedNextPlain': 'Your record gets its date with the next group of records',
+  'app.log.recordDatedNextPlain': 'Your record gets its date with the next group of records.',
   'app.log.inSeconds': 'in {n} s',
   'app.log.retryingIn': 'Trying again by itself {when} (try {n}).',
   'app.log.retriesUsed':

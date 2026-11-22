@@ -114,9 +114,10 @@ export const log = {
   'app.log.stampFailedTitle': 'Enregistrement scellé. Horodatage facultatif de la clé : pas encore',
   'app.log.stampingTitle': 'Enregistrement scellé. Horodatage facultatif de la clé en cours…',
   'app.log.onlyFingerprint':
-    'Facultatif : il vous permet de prouver plus tard que vous détenez cet enregistrement. Seul un code de sa clé est envoyé, rien sur la plante. Gratuit.',
+    'Facultatif, nécessaire seulement pour prouver que vous détenez cet enregistrement ou pour le concéder sous licence. Seul un code de sa clé est envoyé, rien sur la plante. Gratuit.',
   'app.log.stampingAria': 'Horodatage de la clé en cours',
   'app.log.stampLater': 'Continuer sans attendre',
+  'app.log.stampNotYet': 'L’horodatage de la clé n’est pas encore passé. Il se réessaie tout seul.',
   'app.log.keepOpen':
     'Inutile d’attendre ici. Cela prend environ une minute et se réessaie tout seul tant que VeilCore est ouvert. Si cela s’arrête, rien n’est perdu : la page de votre plante propose à nouveau l’horodatage de la clé.',
 } satisfies Partial<AppTranslation>;

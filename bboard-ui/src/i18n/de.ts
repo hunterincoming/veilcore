@@ -6,7 +6,7 @@ export const de: Strings = {
   // Header and footer
   'nav.language': 'Sprache',
   'nav.main': 'Hauptnavigation',
-  'nav.skip': 'Zum Inhalt springen',
+  'nav.skip': 'Zum Hauptinhalt springen',
   'nav.home': 'VeilCore-Startseite',
   'footer.documents': 'Dokumente',
   'footer.spec': 'Spezifikation',
@@ -127,12 +127,12 @@ export const de: Strings = {
   'notice.datingPaused':
     'Das Datieren auf Midnight ist wegen des Netzwerk-Upgrades von Midnight pausiert. Ihre Datensätze sind gespeichert und werden datiert, sobald es wieder läuft.',
   // The record app's frame and the browser tab's titles.
-  'app.frame.section.log': 'Erfassen',
+  'app.frame.section.log': 'Datensatz anlegen',
   'app.frame.section.send': 'Senden und empfangen',
   'app.frame.section.license': 'Lizenzen und Lizenzgebühren',
   'app.frame.section.prove': 'Nachweisen und prüfen',
-  'app.frame.home': 'Ihre Datensätze. Ihr Fortschritt ist gespeichert.',
-  'title.founders': 'Über',
+  'app.frame.home': 'Ihre Datensätze (gespeichert)',
+  'title.founders': 'Über uns',
   // Mako's site draft of 21 November 2026 (components/site/HowItWorks.tsx, Founders.tsx and the
   // home page): the strings it needed that the site had no words for.
   'title.how': 'So funktioniert es',
@@ -218,7 +218,7 @@ export const de: Strings = {
   'error.page.reload': 'Neu laden',
   'error.page.home': 'Ihre Datensätze',
   // Public pages (Mako's 25 September layout)
-  'm.nav.about': 'Über',
+  'm.nav.about': 'Über uns',
   'm.nav.team': 'Team',
   'm.nav.updates': 'Neuigkeiten',
   'm.nav.spec': 'Spezifikation',
@@ -426,7 +426,7 @@ export const de: Strings = {
     'Eine Elternverknüpfung zählt nur, wenn beide Datensatzinhaber sie bestätigen. Auf dieser Website erfasst sie das Register von VeilCore, nicht die Chain.',
   'm.open.2t': 'Bewahren Sie eine Datei auf.',
   'm.open.2p':
-    'Auf der Seite Ihres Datensatzes, unter „Technische Details“: „Nachweispaket herunterladen“. Eine .zip-Datei mit dem Datensatz, wie er versiegelt wurde, seinem Einschlussnachweis, dem Prüfcode des Stapels, dem Ort, an dem der Stapel festgehalten wurde, der Bitcoin-Stempeldatei, falls es eine gibt, und einer Seite, die alles offline prüft. Ihre Sicherungsdatei enthält Ihre Schlüssel, nicht diese Dateien. Die einzelnen Dateien gibt es weiterhin unter „Technische Details“: „Datensatz exportieren“, „Inklusionsnachweis herunterladen“, „Bitcoin-Stempeldatei herunterladen“.',
+    'Auf der Seite Ihres Datensatzes, unter „Technische Details“: „Nachweispaket herunterladen“. Eine .zip-Datei mit dem Datensatz, wie er versiegelt wurde, seinem Einschlussnachweis, dem Code der Gruppe, dem Ort, an dem die Gruppe festgehalten wurde, der Bitcoin-Stempeldatei, falls es eine gibt, und einer Seite, die alles offline prüft. Ihre Sicherungsdatei enthält Ihre Schlüssel, nicht diese Dateien. Die einzelnen Dateien gibt es weiterhin unter „Technische Details“: „Datensatz exportieren“, „Inklusionsnachweis herunterladen“, „Bitcoin-Stempeldatei herunterladen“.',
   'm.faq.1a':
     'Sobald Datensätze verankert sind, kann jeder prüfen, welcher zuerst verankert wurde. Koppeln Sie Ihren Laborbericht, damit ein späterer Test damit verglichen werden kann. Wenn Sie Material versenden, signiert der Empfänger mit seinem eigenen Schlüssel eine Empfangsbestätigung. Ein Datensatz ist ein Beweismittel, keine Registrierung: Er zeigt, dass Sie diesen Datensatz spätestens an diesem Datum hatten, nicht, dass Sie das Material hatten, und entscheidet einen Streit nicht allein.',
   'm.post0.date': '4. Okt. 2026',
@@ -585,7 +585,7 @@ export const de: Strings = {
     'Züchter|Saatgutunternehmen|Gewebekulturlabore|Anerkennungsstellen|Prüfer|Zuchtverbände|Sortenämter',
   'm.home.keep.t': 'Ihre Genetik bleibt bei Ihnen.',
   'm.home.keep.p':
-    'Auf Midnight kommen nur Codes und die Fakten, die Sie beweisen wollen: nie Ihre Dateien, und das Eingegebene nur, wenn Sie eine Zahl daraus genau beweisen. Midnight prüft die privaten Beweise, sodass Sie eine Tatsache über einen Datensatz beweisen können, ohne den Rest zu zeigen.',
+    'Auf Midnight kommen nur Codes und die Fakten, die Sie beweisen wollen: Ein genauer Wert, den Sie beweisen, wird öffentlich, und ein von einem Labor signierter Fakt zeigt den Schlüssel des Labors. Nie Ihre Dateien. Midnight prüft die privaten Beweise, sodass Sie eine Tatsache über einen Datensatz beweisen können, ohne den Rest zu zeigen.',
   'm.home2.l.contact': 'Mit den Gründern sprechen',
   'm.home2.l.faq': 'Fragen',
   'm.home2.moreTitle': 'Alles Weitere',
@@ -606,7 +606,7 @@ export const de: Strings = {
     'Ihr Gerät berechnet einen Code aus dem Datensatz. Nur dieser Code wird datiert, auf Midnight, und niemand kann daraus auf das Geschriebene zurückschließen.',
   'm.home2.s2t': '2. Versiegeln.',
   'm.home2.s1p':
-    'Was es ist und woher es kommt. Ihr Gerät verschließt die Angaben vor dem Senden: Sie kommen verschlossen bei uns an, und wir können sie nicht lesen.',
+    'Was es ist und woher es kommt. Ihr Gerät verschlüsselt die Angaben vor dem Senden: Sie kommen verschlüsselt bei uns an, und wir können sie nicht lesen.',
   'm.home2.s1t': '1. Aufschreiben.',
   'm.home2.stepsTitle': 'So funktioniert es, in drei Schritten',
   'm.home2.lede':
@@ -751,9 +751,6 @@ export const de: Strings = {
   'm.open.3t': 'Wir bürgen nicht für Ergebnisse.',
   'm.open.3p':
     'Die Signaturen eines Labors zu einem Datensatz bleiben privat, außer der Inhaber des Datensatzes zeigt sie. Jede gezeigte nennt den Schlüssel, der signiert hat, den Namen, unter dem dieser registriert wurde, eine Akkreditierung, die sein Inhaber angegeben hat (das prüfen wir nicht), und ob der Betreiber von VeilCore diesen Namen mit einem öffentlichen Lizenz- oder Akkreditierungsverzeichnis abgeglichen hat, und an welchem Tag. VeilCore bürgt für kein Labor: Wer einen Datensatz prüft, entscheidet, was eine Signatur wert ist.',
-  'm.open.4t': 'Nutzen Sie es auf Ihre Weise.',
-  'm.open.4p':
-    'Sie müssen veilcore.org nie benutzen. Ein Labor, eine Zertifizierungsstelle oder eine Rechteorganisation kann die Verträge in ihre eigene Software einbinden oder eine eigene Kopie der Website, des Servers und des Gebührendienstes aus dem offenen Code (Apache-2.0) betreiben und ohne uns verankern, mit eigenen Netzwerkgebühren. Außerhalb von VeilCore hat das noch niemand getan, ohne unsere Hilfe ist es also ungetestet.',
   'm.faq.label': 'Fragen',
   'm.faq.title1': 'Fragen,',
   'm.faq.title2': 'die man uns stellt.',
@@ -809,7 +806,10 @@ export const de: Strings = {
   'm.open.6link': 'Spezifikation lesen →',
   'm.own.link': 'Die drei Wege, und was ungetestet ist →',
   'm.own.p':
-    'Sie müssen veilcore.org nie benutzen. Der gesamte Code von VeilCore ist offen (Apache-2.0): Nutzen Sie diese Website, binden Sie die Verträge in Ihre eigene Software ein, oder betreiben Sie eine eigene Kopie der Website, des Servers und des Gebührendienstes. Außerhalb von VeilCore hat noch niemand einen eigenen Server oder Gebührendienst betrieben, ohne unsere Hilfe ist das also ungetestet.',
+    'Sie müssen veilcore.org nie benutzen. Der gesamte Code von VeilCore ist offen (Apache-2.0): Nutzen Sie diese Website, binden Sie die Smart Contracts (den Code auf Midnight) in Ihre eigene Software ein, oder betreiben Sie eine eigene Kopie der Website, des Servers und des Gebührendienstes. Eine eigene Kopie ist mit dem offenen Code möglich, aber außerhalb von VeilCore hat das noch niemand getan. Heute zeigt eine Kopie noch auf veilcore.org, bis sie mit Ihren eigenen Adressen neu gebaut wird, und eine Anleitung zum Selbstbetrieb wird gerade geschrieben. Sie würden sie selbst hosten und Ihre eigenen Netzwerkgebühren zahlen.',
+  'm.own.short':
+    'Sie müssen veilcore.org nie benutzen. Der Code ist offen: Binden Sie die Smart Contracts in Ihre eigene Software ein, oder betreiben Sie eine eigene Kopie. Außerhalb von VeilCore hat das noch niemand getan.',
+  'm.own.plugLink': 'So binden Sie die Smart Contracts ein →',
   'm.own.title': 'Nutzen Sie es auf Ihre Weise.',
   'm.updates.older': 'Ältere Neuigkeiten',
   'm.live.colTestHere': 'Diese Test-Website (test.veilcore.org)',

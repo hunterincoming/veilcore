@@ -100,7 +100,7 @@ export const UseItYourWay: React.FC = () => {
         <Choice
           k="app.labpage.own.run.t"
           p="app.labpage.own.run.p"
-          link={{ href: OWN_WAY_LINKS.without, label: 'app.labpage.own.run.link' }}
+          link={{ href: OWN_WAY_LINKS.partners, label: 'app.labpage.own.run.link' }}
         />
       </Box>
       <P>{t('app.labpage.own.plainly')}</P>

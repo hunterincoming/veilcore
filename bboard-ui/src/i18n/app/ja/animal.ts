@@ -95,7 +95,7 @@ export const animal = {
   'app.animal.v.app.log.keyStamped':
     '鍵に日付スタンプを押しました。動物の鍵にも日付が付いたので、後でその記録を保有していることを証明できます。{bound}動物については何も送信されていません。',
   'app.animal.v.app.log.onlyFingerprint':
-    '任意：この記録を持っていることを後で証明できます。送信されるのは鍵のコードだけで、動物については何も送信されません。無料です。',
+    '任意です。この記録を持っていることを証明するとき、またはライセンスを出すときにだけ必要です。送信されるのは鍵のコードだけで、動物については何も送信されません。無料です。',
   'app.animal.v.app.log.keepOpen':
     'ここで待つ必要はありません。1分ほどかかり、VeilCoreが開いている間は自動で試し続けます。止まっても何も失われません。動物のページで鍵の日付スタンプをもう一度行えます。',
   'app.animal.v.app.chain.stampMayHaveGoneOut':
@@ -202,7 +202,7 @@ export const animal = {
     'この動物の鍵には、以前ネットワーク上で日付スタンプが押されました。日付が付くのは鍵で、記録ではありません。',
   'app.animal.v.app.prove.own.title': 'この動物の鍵を保有していることを証明する（テストネットワーク）',
   'app.animal.v.app.prove.own.stampFirst':
-    '先に保有の証明を準備してください。動物のページで「保有の証明を準備する」を押します。証明の対象は動物の記録のチェーン上のIDで、それはこの手順で作られます。',
+    '先に鍵の日付スタンプを付けてください。動物のページで「鍵の日付スタンプを付ける」を押します。証明はその手順で作られる、記録のチェーン上のIDについてのものです。',
   // The lab report panels, a delivery and the saved report's sentence, for an animal.
   'app.animal.v.app.lab.sentence.none': 'この動物にはDNA報告書が保存されていません。',
   'app.animal.v.app.lab.sentence.self':
