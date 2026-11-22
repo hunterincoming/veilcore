@@ -147,16 +147,51 @@ export const labresult = {
   'app.lr.csv.template': 'Vorlage herunterladen',
   'app.lr.csv.choose': 'CSV-Datei auswählen',
   'app.lr.csv.intro':
-    'Eine Zeile pro Probe und Ziel. Jede Zeile wird ein eigenes signiertes Ergebnis. Nötige Spalten: subject (der Prüfcode, den der Absender angegeben hat), sample id, accession, result. Die Vorlage hat den Rest, auch die Lauf- und QC-Angaben. Die Spalte subject kann ein USB-Barcodescanner füllen: Klicken Sie eine Zelle darin an und scannen Sie den QR-Code jeder Probe.',
+    'Eine Zeile pro Probe und Ziel. Jede Zeile wird ein eigenes signiertes Ergebnis. Die Spalte subject kann ein USB-Barcodescanner füllen: Klicken Sie eine Zelle darin an und scannen Sie den QR-Code jeder Probe.',
   'app.lr.csv.ready':
     '{ok} bereit zum Signieren. {bad} werden nicht signiert: Korrigieren Sie sie und signieren Sie sie erneut.',
   'app.lr.csv.tooMany':
     'Diese Datei hat {rows} Zeilen, und ein Durchgang signiert höchstens {n}. Nichts wurde gelesen: Teilen Sie sie und beginnen Sie die nächste Datei bei Zeile {next}.',
   'app.lr.csv.empty': 'Die Datei hat keine Zeilen unter der Kopfzeile.',
-  'app.lr.csv.columns': 'Die Datei braucht Spalten mit den Namen subject, sample id und accession.',
+  'app.lr.csv.columns':
+    'Der Datei fehlt eine Spalte für: {cols}. Jede Zeile braucht sie; die Vorlage hat alle Spalten.',
   'app.lr.csv.row': 'Zeile {line}: {problem}',
-  'app.lr.csv.sign': '{n} Ergebnisse signieren',
+  'app.lr.csv.sign.one': '{count} Ergebnis signieren',
+  'app.lr.csv.sign.other': '{count} Ergebnisse signieren',
   'app.lr.csv.progress': '{done} von {total} signiert…',
+  'app.lr.csv.needs': 'Jede Zeile braucht diese Spalten:',
+  'app.lr.csv.col.subject': 'der Prüfcode, den der Absender für die Probe angegeben hat',
+  'app.lr.csv.col.sampleId': 'die Proben-ID des Absenders',
+  'app.lr.csv.col.accession': 'die Referenz Ihres Labors für die Probe',
+  'app.lr.csv.col.typed': 'oder einmal oben eingeben, für alle Zeilen',
+  'app.lr.csv.col.result.pathogen': '„detected“ oder „not detected“',
+  'app.lr.csv.col.result.match': '„match“ oder „no match“',
+  'app.lr.csv.col.result.lineage': '„consistent“ oder „excluded“',
+  'app.lr.csv.col.other': 'der Prüfcode des verglichenen Datensatzes',
+  'app.lr.csv.col.parent': 'der Prüfcode eines Elternteils (parent 2 für den anderen, wenn beide geprüft wurden)',
+  'app.lr.csv.also.pathogen':
+    'Ebenfalls gelesen, wenn vorhanden: tested (wenn leer, das Datum oben), received, ct, jede Spalte „qc: …“, replaces und reason.',
+  'app.lr.csv.also.match':
+    'Ebenfalls gelesen, wenn vorhanden: tested (wenn leer, das Datum oben), received, other sample id, panel, panel version, compared, differing, jede Spalte „qc: …“, replaces und reason.',
+  'app.lr.csv.also.lineage':
+    'Ebenfalls gelesen, wenn vorhanden: tested (wenn leer, das Datum oben), received, panel, panel version, compared, conflicts 1, conflicts 2, jede Spalte „qc: …“, replaces und reason.',
+  'app.lr.csv.templateHas': 'Die Vorlage hat alle Spalten und eine Beispielzeile.',
+  'app.lr.csv.readyAll': '{ok} bereit zum Signieren.',
+  'app.lr.csv.missing': 'Fehlt: {cols}.',
+  'app.lr.csv.dupes.one':
+    '{count} dieser Zeilen wurde in diesem Browser schon signiert: derselbe Datensatz, dieselbe Proben-ID, Accession und dasselbe Ergebnis (Zeile {rows}). Erneut signiert, gibt es sie doppelt.',
+  'app.lr.csv.dupes.other':
+    '{count} dieser Zeilen wurden in diesem Browser schon signiert: derselbe Datensatz, dieselbe Proben-ID, Accession und dasselbe Ergebnis (Zeilen {rows}). Erneut signiert, gibt es jede doppelt.',
+  'app.lr.csv.dupesSkip': 'Überspringen: nur die neuen Zeilen signieren',
+  'app.lr.csv.dupesAgain': 'Erneut signieren',
+  'app.lr.csv.nothingNew': 'Nichts Neues zu signieren.',
+  'app.lr.tools.skipped.one':
+    '{count} Zeile übersprungen, die in diesem Browser schon signiert war. Die Übersicht führt sie mit dem Code, unter dem sie signiert wurde.',
+  'app.lr.tools.skipped.other':
+    '{count} Zeilen übersprungen, die in diesem Browser schon signiert waren. Die Übersicht führt jede mit dem Code, unter dem sie signiert wurde.',
+  'app.lr.form.subjectEnd': 'Letzte 6 Zeichen dieses Prüfcodes',
+  'app.lr.form.subjectEndCheck':
+    'Prüfen Sie, ob sie mit dem Ende des Prüfcodes übereinstimmen, den der Absender für diese Probe angegeben hat (auf seinem Zertifikat oder seiner Datensatzseite).',
   'app.lr.problem.unreadable': 'Es kann nicht gelesen werden.',
   'app.lr.problem.format': 'Es ist kein Laborergebnis der Version 2.',
   'app.lr.problem.kind': 'Diese Art von Ergebnis gibt es in diesem Format nicht.',

@@ -130,7 +130,11 @@ slow and easy to get wrong, so:
 - **The lab's proof code box** (`/lab/results`, "One result"; `scan/ProofCodeField.tsx`) has the
   Scan button. The camera opens only when it is tapped. A USB barcode scanner acting as a keyboard
   types into the box; Enter after it signs nothing. Paste and typing work as before. Whatever comes
-  in, the box ends up holding the plain 64-character code, which is what gets signed.
+  in, the box ends up holding the plain 64-character code, which is what gets signed. Its last 6
+  characters then show large, asking the technician to check them against the end of the proof
+  code the sender gave (their certificate or record page), so a scan of the wrong tube is caught
+  before signing. The printed label does not print the proof code as text, so it can't be
+  compared against the label itself.
 - **A bad reading says so at once:** the QR text with a failed check ("didn't read correctly …
   set the scanner to the same keyboard layout as this computer") or anything that isn't a proof
   code (an ear tag, a lab code, a link with no proof code).

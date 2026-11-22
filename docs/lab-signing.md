@@ -112,7 +112,15 @@ showing the rest. Code: `veilcore/lab-result.ts`.
   with more rows is refused whole, never cut short. The CSV takes qPCR exports as they come
   ("Undetermined" or "N/A" for no Ct, QuantStudio and CFX column names, a panel of targets per
   sample); a Ct with more than two decimals, an inconclusive result or an ambiguous date is refused,
-  not rounded or guessed. Each result is kept as a record the lab holds, so it is dated in the next
+  not rounded or guessed. The help on the page lists every column a row needs for the kind chosen
+  (subject, sample id, accession, method, method version, result, and target and sample type, the
+  other record, or a parent), and the template has all of them with one example row. A file missing
+  a column no row can do without is refused whole, every missing column named; otherwise every
+  problem in every row is listed at once, by its spreadsheet row number and column. A row this
+  browser already signed (`alreadySigned`: the same record, sample ID, accession and call, on the
+  same target, other record or parents; a row naming a result it replaces is never counted) is
+  flagged before signing and skipped unless the lab chooses to sign it again; the summary lists a
+  skipped row with the code it was signed under. Each result is kept as a record the lab holds, so it is dated in the next
   hourly batch, and the lab posts a binding naming its key on it (`claims-key.ts resultBindingHash`;
   it stands on its own, without a report signature). The binding is salted with the statement's
   `bindingSalt`, 32 random bytes per result (SPEC 11.12): the key is in every result file and the

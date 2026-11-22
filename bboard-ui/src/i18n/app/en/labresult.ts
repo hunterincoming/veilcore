@@ -158,15 +158,49 @@ export const labresult = {
   'app.lr.csv.template': 'Download a template',
   'app.lr.csv.choose': 'Choose the CSV file',
   'app.lr.csv.intro':
-    'One row per sample and target. Each row becomes its own signed result. Needed columns: subject (the proof code the sender gave), sample id, accession, result. The template has the rest, including the run and QC details. A USB barcode scanner can fill the subject column: click a cell in it and scan each sample’s QR code.',
+    'One row per sample and target. Each row becomes its own signed result. A USB barcode scanner can fill the subject column: click a cell in it and scan each sample’s QR code.',
   'app.lr.csv.ready': '{ok} ready to sign. {bad} won’t be signed: fix them and run them again.',
   'app.lr.csv.tooMany':
     'This file has {rows} rows, and one run signs at most {n}. Nothing was read: split it, and start the next file at line {next}.',
   'app.lr.csv.empty': 'The file has no rows under its header.',
-  'app.lr.csv.columns': 'The file needs columns named subject, sample id and accession.',
-  'app.lr.csv.row': 'Line {line}: {problem}',
-  'app.lr.csv.sign': 'Sign {n} results',
+  'app.lr.csv.columns': 'The file has no column for: {cols}. Every row needs them; the template has every column.',
+  'app.lr.csv.row': 'Row {line}: {problem}',
+  'app.lr.csv.sign.one': 'Sign {count} result',
+  'app.lr.csv.sign.other': 'Sign {count} results',
   'app.lr.csv.progress': 'Signed {done} of {total}…',
+  'app.lr.csv.needs': 'Every row needs these columns:',
+  'app.lr.csv.col.subject': 'the proof code the sender gave for the sample',
+  'app.lr.csv.col.sampleId': 'the sender’s sample ID',
+  'app.lr.csv.col.accession': 'your lab’s reference for the sample',
+  'app.lr.csv.col.typed': 'or type them once above, for every row',
+  'app.lr.csv.col.result.pathogen': '“detected” or “not detected”',
+  'app.lr.csv.col.result.match': '“match” or “no match”',
+  'app.lr.csv.col.result.lineage': '“consistent” or “excluded”',
+  'app.lr.csv.col.other': 'the proof code of the record compared with',
+  'app.lr.csv.col.parent': 'a parent’s proof code (parent 2 for the other parent, if both were checked)',
+  'app.lr.csv.also.pathogen':
+    'Read too, when there: tested (if empty, the date above), received, ct, any “qc: …” column, replaces and reason.',
+  'app.lr.csv.also.match':
+    'Read too, when there: tested (if empty, the date above), received, other sample id, panel, panel version, compared, differing, any “qc: …” column, replaces and reason.',
+  'app.lr.csv.also.lineage':
+    'Read too, when there: tested (if empty, the date above), received, panel, panel version, compared, conflicts 1, conflicts 2, any “qc: …” column, replaces and reason.',
+  'app.lr.csv.templateHas': 'The template has every column, with one example row.',
+  'app.lr.csv.readyAll': '{ok} ready to sign.',
+  'app.lr.csv.missing': 'Missing: {cols}.',
+  'app.lr.csv.dupes.one':
+    '{count} of these rows was already signed in this browser: the same record, sample ID, accession and result (row {rows}). Signing it again makes a second copy.',
+  'app.lr.csv.dupes.other':
+    '{count} of these rows were already signed in this browser: the same record, sample ID, accession and result (rows {rows}). Signing them again makes a second copy of each.',
+  'app.lr.csv.dupesSkip': 'Skip them: sign only the new rows',
+  'app.lr.csv.dupesAgain': 'Sign them again',
+  'app.lr.csv.nothingNew': 'Nothing new to sign.',
+  'app.lr.tools.skipped.one':
+    'Skipped {count} row already signed in this browser. The summary lists it with the code it was signed under.',
+  'app.lr.tools.skipped.other':
+    'Skipped {count} rows already signed in this browser. The summary lists them with the code each was signed under.',
+  'app.lr.form.subjectEnd': 'Last 6 characters of this proof code',
+  'app.lr.form.subjectEndCheck':
+    'Check they match the end of the proof code the sender gave for this sample (on their certificate or record page).',
 
   // ---- why a result can't be used ----
   'app.lr.problem.unreadable': 'It can’t be read.',

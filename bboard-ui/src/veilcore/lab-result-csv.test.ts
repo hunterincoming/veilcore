@@ -3,7 +3,16 @@
 // too large for one run is refused whole.
 // SPDX-License-Identifier: Apache-2.0
 import { describe, expect, it } from 'vitest';
-import { csvTemplate, readResultsCsv, resultsSummaryCsv, CSV_MAX_ROWS, type CsvRead } from './lab-result-csv';
+import {
+  alreadySigned,
+  csvTemplate,
+  readResultsCsv,
+  resultsSummaryCsv,
+  CSV_MAX_ROWS,
+  type CsvRead,
+  type CsvRow,
+} from './lab-result-csv';
+import { parseCsv } from './bulk-import';
 
 const A = 'a1'.repeat(32);
 const B = 'b2'.repeat(32);
@@ -125,18 +134,27 @@ describe('a lab’s CSV of results', () => {
       statement: { result: { parents: [B, C], consistent: false, conflicts: [0, 7] } },
     });
     expect(l[1]).toMatchObject({ ok: false, code: 'parents' });
-    // A sire/dam file isn't read as parents: the order would depend on the file's wording.
+    // A sire/dam file isn't read as parents: the order would depend on the file's wording. With
+    // no parent column at all, the file is refused whole, the column named.
     const roles = readResultsCsv(
       `subject,sample,accession,sire,dam,result\n${A},S,L,${B},${C},consistent\n`,
       'lineage',
       d,
       NOW,
     );
-    expect(rowsOf(roles)[0]).toMatchObject({ ok: false, code: 'parents' });
+    expect(roles).toEqual({ error: 'columns', missing: ['parent 1'] });
   });
 
   it('refuses a file without the columns that name the sample, and one too long for a run, whole', () => {
-    expect(readResultsCsv('a,b\n1,2\n', 'pathogen', d, NOW)).toEqual({ error: 'columns' });
+    // Every column missing is named at once, not one per try.
+    expect(readResultsCsv('a,b\n1,2\n', 'pathogen', d, NOW)).toEqual({
+      error: 'columns',
+      missing: ['subject', 'sample id', 'accession', 'result'],
+    });
+    expect(readResultsCsv(`subject,sample id,accession\n${A},S,L\n`, 'match', d, NOW)).toEqual({
+      error: 'columns',
+      missing: ['result', 'other'],
+    });
     expect(readResultsCsv('subject\n', 'pathogen', d, NOW)).toEqual({ error: 'empty' });
     const many = [
       'subject,sample id,accession,result',
@@ -206,5 +224,181 @@ describe('a lab’s CSV of results', () => {
     expect(r[0]).toMatchObject({ ok: false, code: 'ctMissing' });
     // A detected result with the Ct cell left empty is the lab's choice not to report one.
     expect(r[1]).toMatchObject({ ok: true });
+  });
+
+  // Plant-users review: the help named 4 columns while 7 were needed, and the template had no
+  // method columns, so a technician met them one refusal at a time.
+  it('its template has every column a row needs, with one example row that reads', () => {
+    const empty = { ...d, method: '', methodVersion: '', sampleType: '', target: '' };
+    const needs = {
+      pathogen: ['target', 'sample type'],
+      match: ['other'],
+      lineage: ['parent 1'],
+    } as const;
+    for (const k of ['pathogen', 'match', 'lineage'] as const) {
+      const [head, example, ...more] = parseCsv(csvTemplate(k)).rows.filter((r) => r.some(Boolean));
+      expect(more, k).toEqual([]);
+      for (const c of ['subject', 'sample id', 'accession', 'method', 'method version', 'result', ...needs[k]])
+        expect(head, `${k}: ${c}`).toContain(c);
+      expect(example.length).toBe(head.length);
+      // With nothing typed on the page and the placeholders swapped for real codes, it signs.
+      const real = example.map((c) =>
+        c.startsWith('<proof code')
+          ? c.includes('other parent')
+            ? C
+            : c.includes('parent') || c.includes('other')
+              ? B
+              : A
+          : c,
+      );
+      const rows = rowsOf(readResultsCsv(`${head.join(',')}\n${real.map((c) => `"${c}"`).join(',')}\n`, k, empty, NOW));
+      expect(rows[0], k).toMatchObject({ ok: true });
+    }
+  });
+
+  it('names every problem in every row at once, each by its column', () => {
+    const empty = { ...d, method: '', methodVersion: '', sampleType: '' };
+    const csv = [
+      'subject,sample id,accession,result,ct,tested',
+      `${A},S-1,L-1,not detected,,2026-11-05`,
+      `,,L-2,,,`,
+      `${A},S-3,,maybe,1000,2026-12-30`,
+    ].join('\n');
+    const [r1, r2, r3] = rowsOf(readResultsCsv(csv, 'pathogen', empty, NOW));
+    const said = (r: CsvRow) => (r.ok ? [] : r.problems.map((p) => `${p.missing ? 'empty' : 'bad'} ${p.column}`));
+    // Nothing typed on the page and no column: every row says so, not just the first.
+    expect(said(r1)).toEqual(['empty method', 'empty method version', 'empty sample type']);
+    expect(said(r2)).toEqual([
+      'empty subject',
+      'empty sample id',
+      'empty method',
+      'empty method version',
+      'empty result',
+      'empty sample type',
+    ]);
+    expect(said(r3)).toEqual([
+      'empty accession',
+      'empty method',
+      'empty method version',
+      'bad result',
+      'empty sample type',
+      'bad ct',
+      'bad tested',
+    ]);
+    expect(r3).toMatchObject({ ok: false, line: 4, sampleId: 'S-3', code: 'accession' });
+    // Typed once on the page, the same file has only its own cells' problems.
+    const typed = rowsOf(readResultsCsv(csv, 'pathogen', d, NOW));
+    expect(typed[0]).toMatchObject({ ok: true });
+    expect(said(typed[1])).toEqual(['empty subject', 'empty sample id', 'empty result']);
+  });
+
+  it('numbers each row as the spreadsheet does, blank rows counted', () => {
+    const csv = ['subject,sample id,accession,result', '', `${A},S-1,L-1,nd`, ',,,', `${A},S-2,L-2,maybe`].join('\n');
+    const rows = rowsOf(readResultsCsv(csv, 'pathogen', d, NOW));
+    expect(rows.map((r) => [r.line, r.ok])).toEqual([
+      [3, true],
+      [5, false],
+    ]);
+  });
+
+  it('a comparison and a parentage row say every bad cell too', () => {
+    const m = rowsOf(
+      readResultsCsv(
+        `subject,sample id,accession,other,result,compared,differing\n${A},S,L,${A},yes,x,91\n`,
+        'match',
+        d,
+        NOW,
+      ),
+    );
+    expect(m[0]).toMatchObject({
+      ok: false,
+      problems: [
+        { code: 'other', column: 'other' },
+        { code: 'counts', column: 'compared' },
+      ],
+    });
+    const l = rowsOf(readResultsCsv(`subject,sample id,accession,parent 1,result\n${A},S,L,,\n`, 'lineage', d, NOW));
+    expect(l[0]).toMatchObject({
+      ok: false,
+      problems: [
+        { code: 'result', column: 'result', missing: true },
+        { code: 'parents', column: 'parent 1', missing: true },
+      ],
+    });
+  });
+});
+
+// Plant-users review: running the same file twice signed every result again, with no warning.
+describe('rows already signed in this browser', () => {
+  const csv = [
+    'subject,sample id,accession,target,result,replaces',
+    `${A},S-1,L-1,HLVd,not detected,`,
+    `${A},S-1,L-1,CBCVd,not detected,`,
+    `${A},S-2,L-2,HLVd,detected,`,
+    `${A},S-3,L-3,HLVd,not detected,${C}`,
+    `${B},S-4,L-4,HLVd,not detected,`,
+  ].join('\n');
+  const rows = rowsOf(readResultsCsv(csv, 'pathogen', d, NOW));
+  const signed = (r: CsvRow, code: string) => {
+    if (!r.ok) throw new Error('row not ok');
+    return { statement: r.statement, code };
+  };
+
+  it('finds the same result again: record, sample ID, accession, target and call', () => {
+    expect(rows.every((r) => r.ok)).toBe(true);
+    const before = rows.map((r, i) => signed(r, String(i).repeat(64).slice(0, 64)));
+    const again = alreadySigned(rows, before);
+    // Row 5 names a result it replaces: a re-test is meant, never counted as a copy.
+    expect([...again.keys()]).toEqual([2, 3, 4, 6]);
+    expect(again.get(2)).toBe(before[0].code);
+    expect(alreadySigned(rows, [])).toEqual(new Map());
+  });
+
+  it('doesn’t count a different target, call, sample, accession or record as the same', () => {
+    const one = signed(rows[0], 'e'.repeat(64));
+    const variants = [
+      `${A},S-1,L-1,CBCVd,not detected,`, // another target
+      `${A},S-1,L-1,HLVd,detected,`, // another call: a conflicting result, not a copy
+      `${A},S-9,L-1,HLVd,not detected,`,
+      `${A},S-1,L-9,HLVd,not detected,`,
+      `${B},S-1,L-1,HLVd,not detected,`,
+      `${A},S-1,L-1,hlvd,not detected,`, // the same target in another case: the same
+    ];
+    const got = variants.map(
+      (v) =>
+        alreadySigned(
+          rowsOf(readResultsCsv(`subject,sample id,accession,target,result,ct\n${v}`, 'pathogen', d, NOW)),
+          [one],
+        ).size,
+    );
+    expect(got).toEqual([0, 0, 0, 0, 0, 1]);
+  });
+
+  it('compares a comparison by its other record, and a parentage check by its parents in any order', () => {
+    const m = (other: string, call: string) =>
+      rowsOf(readResultsCsv(`subject,sample id,accession,other,result\n${A},S,L,${other},${call}\n`, 'match', d, NOW));
+    const before = [signed(m(B, 'match')[0], 'f'.repeat(64))];
+    expect(alreadySigned(m(B, 'match'), before).size).toBe(1);
+    expect(alreadySigned(m(C, 'match'), before).size).toBe(0);
+    expect(alreadySigned(m(B, 'no match'), before).size).toBe(0);
+    const l = (p1: string, p2: string) =>
+      rowsOf(
+        readResultsCsv(
+          `subject,sample id,accession,parent 1,parent 2,result\n${A},S,L,${p1},${p2},consistent\n`,
+          'lineage',
+          d,
+          NOW,
+        ),
+      );
+    const lb = [signed(l(B, C)[0], 'f'.repeat(64))];
+    expect(alreadySigned(l(C, B), lb).size).toBe(1);
+  });
+
+  it('the summary lists a skipped row with the code it was signed under before', () => {
+    const r = rows[0];
+    if (!r.ok) throw new Error('row not ok');
+    const s = resultsSummaryCsv([{ already: r.statement, code: 'e'.repeat(64) }]);
+    expect(s).toContain(`already signed before: skipped,L-1,S-1,HLVd,${A},pathogen,not detected`);
+    expect(s).toContain('e'.repeat(64));
   });
 });

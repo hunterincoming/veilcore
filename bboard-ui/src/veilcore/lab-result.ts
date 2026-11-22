@@ -242,7 +242,8 @@ const CONTROL = /\p{Cc}/u;
 const FORMAT = /\p{Cf}/u;
 /** A mark label that could be the sequence itself: ten or more of A, C, G, T in a row. */
 const SEQUENCE_RUN = /[ACGT]{10,}/i;
-const CT = /^(0|[1-9]\d?)(\.\d{1,2})?$/;
+/** A Ct as a result carries it: under 100, at most two decimals. */
+export const CT = /^(0|[1-9]\d?)(\.\d{1,2})?$/;
 export const LINE_MAX = 200;
 export const QC_MAX = 12;
 export const QC_LINE_MAX = 60;
