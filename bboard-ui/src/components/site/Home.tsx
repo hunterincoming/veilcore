@@ -64,6 +64,7 @@ import {
   Arrow,
   Marquee,
   NightClose,
+  NightEnd,
   Photo,
   SR_ONLY,
   Two,
@@ -225,7 +226,7 @@ const Technical: React.FC = () => {
   return (
     <section id="technical" className="k-sec k-tight">
       <div className="k-wrap">
-        <h2 className="k-h3">{t('m.tech.title')}</h2>
+        <h2 className="k-h2">{t('m.tech.title')}</h2>
         <p className="k-sub">{t('m.tech.lede')}</p>
         <details className="tech" open={hash === '#technical' || undefined}>
           <summary className="k-btn k-btn-ghost">{t('m.tech.show')}</summary>
@@ -314,8 +315,9 @@ const PARENTAGE_DOC = 'https://github.com/hunterincoming/veilcore/blob/main/docs
  * have and when, where it matters, we can't read your records, the two doors with
  * the paste box and the video, more than a date, where it stops, questions, technical readers,
  * and the second band of names. Nothing in it was deleted; what How it works already said (share
- * proof, not data; if VeilCore disappears; the four steps, now the home page's three) is said
- * there once. The home page sends an old link to one of these sections there (MOVED_ANCHORS).
+ * proof, not data; if VeilCore disappears) is said there once. The four steps and the jar photo
+ * are How it works' own, near its top (HowItWorks.tsx); the home page keeps a three-step summary.
+ * The home page sends an old link to one of these sections there (MOVED_ANCHORS).
  */
 export const MovedFromHome: React.FC = () => {
   const { t, lang, sp } = useI18n();
@@ -574,7 +576,8 @@ export const MovedFromHome: React.FC = () => {
 
       <section className="k-screen" id="value" aria-labelledby="more-h">
         <div className="k-wrap">
-          <h2 id="more-h" className="k-giant" data-reveal="">
+          {/* The same size as "Where it matters" (Mako's note, 22 Nov), like every section title here. */}
+          <h2 id="more-h" className="k-h2" data-reveal="">
             {t('m.home.more')}
           </h2>
           <div className="k-grid4 k-grid3">
@@ -604,7 +607,7 @@ export const MovedFromHome: React.FC = () => {
               </article>
             ))}
           </div>
-          <h3 className="k-h3">
+          <h3 className="k-h2 k-h2-next">
             <Two a={t('m.status.title1')} b={t('m.status.title2')} />
           </h3>
           <p className="k-sub">{t('m.status.lede')}</p>
@@ -675,11 +678,11 @@ export const TryIt: React.FC<{ onHash: (hex: string) => void }> = ({ onHash }) =
 
 /**
  * Old links into the home page's sections, and where each is now: a section of How it works or
- * About, the top of one (the four steps became the home page's three, How it works' top), or a
- * section of this page under its new name.
+ * About (the four steps are How it works' #how), the top of one, or a section of this page under
+ * its new name.
  */
 export const MOVED_ANCHORS: Record<string, string> = {
-  how: '/how-it-works',
+  how: '/how-it-works#how',
   demo: '/how-it-works#demo',
   claims: '/how-it-works#claims',
   value: '/how-it-works#value',
@@ -751,7 +754,7 @@ export const Home: React.FC = () => {
   ];
 
   return (
-    <SiteShell>
+    <SiteShell after={<NightEnd />}>
       <div className="home" ref={root}>
         <header className="k-screen k-hero k-intro" id="top">
           <div className="k-wrap k-hero-grid">

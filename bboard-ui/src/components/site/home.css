@@ -160,6 +160,10 @@ html:has(.vcm .home) body {
   line-height: 1.06;
   letter-spacing: -0.03em;
 }
+/* A second section title inside a section, at the size of the first (Where things stand). */
+.vcm .home .k-h2-next {
+  margin-top: clamp(56px, 8vh, 96px);
+}
 .vcm .home .k-h3 {
   margin-top: clamp(56px, 8vh, 96px);
   font-size: clamp(1.6rem, 2.6vw, 2.5rem);
@@ -523,7 +527,9 @@ html:has(.vcm .home) body {
   display: flex;
   align-items: flex-end;
   min-height: 100svh;
-  overflow: hidden;
+  /* clip, not hidden: hidden makes the section a scroll container, and the photo's view timeline
+     then follows the section, which never scrolls, instead of the page (22 Nov). */
+  overflow: clip;
 }
 .vcm .home .k-photo-frame {
   position: absolute;
@@ -1493,18 +1499,28 @@ html:has(.vcm .home) [data-site-header] [data-language-picker] .MuiOutlinedInput
    Scroll-driven animations follow the page as it moves; they never stop it. Where a browser
    has none, the finished state shows. */
 @supports (animation-timeline: view()) {
+  /* Longhands, not the animation shorthand: the build's minifier folded the shorthand and the
+     timeline into one "animation: ... view()", which browsers reject (the shorthand can't set a
+     timeline), so the photos never opened and the timeline never filled (22 Nov). The gallery's
+     drift is left as it was. */
   .vcm .home .k-photo-frame {
-    animation: k-open linear both;
+    animation-name: k-open;
+    animation-timing-function: linear;
+    animation-fill-mode: both;
     animation-timeline: view();
     animation-range: entry 0% cover 45%;
   }
   .vcm .home .k-photo-frame img {
-    animation: k-settle linear both;
+    animation-name: k-settle;
+    animation-timing-function: linear;
+    animation-fill-mode: both;
     animation-timeline: view();
     animation-range: entry 0% cover 50%;
   }
   .vcm .home .k-timeline {
-    animation: k-fill linear both;
+    animation-name: k-fill;
+    animation-timing-function: linear;
+    animation-fill-mode: both;
     animation-timeline: view();
     animation-range: entry 20% cover 55%;
   }
@@ -1969,22 +1985,38 @@ html:has(.vcm .home) [data-site-header] nav > a[aria-current='page'] {
     background: var(--yellow-hi);
   }
 }
-.vcm .home .k-foot-word {
+/* The tokens' scope under the footer (SiteShell's after): none of a page's own frame, which fills
+   the window (site.css .vcm). */
+.vcm.vcm-after {
+  display: block;
+  min-height: 0;
+  background: none;
+}
+/* At the very bottom, under the site's footer (night-parts.tsx NightEnd): Mako's wordmark, on the
+   footer's ink so the two read as one, and the "Back to top" button. */
+.vcm .home.k-end {
+  background: #16181d;
   overflow: hidden;
-  margin: clamp(24px, 4vh, 48px) 0 0;
-  font-size: 21vw;
+}
+/* Mako's Footer: 21.4vw, the letters spread edge to edge. Archivo here goes to 700 (his 800 and
+   112% width are not in the self-hosted face). */
+.vcm .home .k-foot-word {
+  display: flex;
+  justify-content: space-between;
+  overflow: hidden;
+  margin: 0;
+  padding: 0 calc(var(--gutter) * 0.5) 0.04em;
+  font-size: 21.4vw;
   font-weight: 700;
   line-height: 0.8;
-  letter-spacing: -0.06em;
-  text-align: center;
+  letter-spacing: -0.04em;
   white-space: nowrap;
   color: var(--ink-1);
-  transform: translateY(0.08em);
   user-select: none;
 }
 /* The letters rise in turn as the wordmark comes into view (Mako's data-letters). */
 .vcm .home .k-foot-word span {
-  display: inline-block;
+  display: block;
   transition: transform 1.1s var(--ease-out);
   transition-delay: calc(var(--i) * 45ms);
 }
@@ -1993,6 +2025,53 @@ html:has(.vcm .home) [data-site-header] nav > a[aria-current='page'] {
 }
 .vcm .home.k-js .k-foot-word:not(.in) span {
   transform: translateY(102%);
+}
+/* "Back to top": not on the page until it is scrolled down (hidden), then a round button in the
+   bottom corner. It holds nothing: the page scrolls under it. */
+.vcm .home .k-top {
+  position: fixed;
+  right: max(16px, env(safe-area-inset-right));
+  bottom: max(16px, env(safe-area-inset-bottom));
+  z-index: 1100;
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--fill-2);
+  color: var(--ink-1);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
+  cursor: pointer;
+  animation: k-top-in 0.25s ease-out;
+}
+.vcm .home .k-top[hidden] {
+  display: none;
+}
+.vcm .home .k-top svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.vcm .home .k-top:hover {
+  background: var(--yellow);
+  color: var(--void);
+}
+@keyframes k-top-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .vcm .home .k-top {
+    animation: none;
+  }
 }
 
 /* How it works: what stays with you, and what goes on Midnight. */

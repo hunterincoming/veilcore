@@ -36,7 +36,11 @@ export const RoleLine: React.FC<{ text: string; className?: string; as?: 'span' 
   </Tag>
 );
 
-export const SiteShell: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const SiteShell: React.FC<{
+  children: React.ReactNode;
+  /** Below the footer, at the very bottom: the long night pages' wordmark and "Back to top" (NightEnd). */
+  after?: React.ReactNode;
+}> = ({ children, after }) => {
   const { lang } = useI18n();
   // The language picker, the draft notice, the header and footer are MUI parts: give them the
   // light theme too. The header and footer are the ones every page has (fresh-eyes review,
@@ -49,6 +53,11 @@ export const SiteShell: React.FC<{ children: React.ReactNode }> = ({ children })
         <main>{children}</main>
       </div>
       <AppFooter />
+      {after && (
+        <div className="vcm vcm-after" lang={lang}>
+          {after}
+        </div>
+      )}
     </ThemeProvider>
   );
 };

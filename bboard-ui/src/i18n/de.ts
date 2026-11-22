@@ -137,6 +137,7 @@ export const de: Strings = {
   // home page): the strings it needed that the site had no words for.
   'title.how': 'So funktioniert es',
   'm.foot.cta': 'Datieren Sie Ihren ersten Datensatz.',
+  'm.foot.top': 'Nach oben',
   'm.status.liveNow':
     'Lizenzen, Berichte über Lizenzgebühren und von Laboren signierte Ergebnisse sind auf veilcore.org live.',
   'm.status.whereLink': 'Was wo funktioniert →',

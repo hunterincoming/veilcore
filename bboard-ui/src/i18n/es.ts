@@ -138,6 +138,7 @@ export const es: Strings = {
   // home page): the strings it needed that the site had no words for.
   'title.how': 'Cómo funciona',
   'm.foot.cta': 'Feche su primer registro.',
+  'm.foot.top': 'Volver arriba',
   'm.status.liveNow':
     'Las licencias, los informes de regalías y los resultados firmados por un laboratorio ya funcionan en veilcore.org.',
   'm.status.whereLink': 'Qué funciona y dónde →',

@@ -14,6 +14,7 @@ import { FOUNDERS_MAIL, RoleLine, SDK_REPO, SiteShell, X_HANDLE } from './SiteSh
 import {
   Marquee,
   NightClose,
+  NightEnd,
   PhotoCredits,
   PhotoScreen,
   Two,
@@ -81,7 +82,7 @@ export const Founders: React.FC = () => {
   useScrollPieces(root);
   useHashScroll(hash);
   return (
-    <SiteShell>
+    <SiteShell after={<NightEnd />}>
       <div className="home k-page k-about" ref={root}>
         <header className="k-screen k-page-hero k-intro" id="top">
           <Ambient seed="about" />

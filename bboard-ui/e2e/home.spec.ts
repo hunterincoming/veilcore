@@ -16,7 +16,7 @@ const ANCHORS = ['top', 'steps', 'about', 'private', 'own-way', 'more'];
  * works or About when the home page was cut short; an old link lands on the same section there.
  */
 const MOVED: [string, string][] = [
-  ['how', '/how-it-works'],
+  ['how', '/how-it-works#how'],
   ['demo', '/how-it-works#demo'],
   ['claims', '/how-it-works#claims'],
   ['value', '/how-it-works#value'],
@@ -61,11 +61,14 @@ test.describe('the home page', () => {
       (await page.evaluate(() => document.documentElement.scrollHeight)) - 2,
     );
 
-    // Nothing is sticky or fixed but the site header.
+    // Nothing is sticky or fixed but the site header, and the small "Back to top" button, which
+    // holds nothing (the wheel steps above went on under it).
+    await expect(page.locator('[data-back-to-top]')).toBeVisible();
     const pinned = await page.evaluate(() =>
       [...document.querySelectorAll<HTMLElement>('body *')]
         .filter((el) => ['sticky', 'fixed'].includes(getComputedStyle(el).position))
         .filter((el) => !el.closest('[data-site-header]'))
+        .filter((el) => !el.closest('[data-back-to-top]'))
         .map((el) => `${el.tagName.toLowerCase()}.${[...el.classList].join('.')}`),
     );
     expect(pinned).toEqual([]);
@@ -87,7 +90,18 @@ test.describe('the home page', () => {
     }
     // Each section once on How it works, the moved ones included (review of #169).
     await page.goto('/how-it-works');
-    for (const id of ['claims', 'demo', 'value', 'status', 'questions', 'technical', 'matters', 'open', 'own-way'])
+    for (const id of [
+      'how',
+      'claims',
+      'demo',
+      'value',
+      'status',
+      'questions',
+      'technical',
+      'matters',
+      'open',
+      'own-way',
+    ])
       await expect(page.locator(`[id="${id}"]`), id).toHaveCount(1);
     // Arriving at #live opens what's live where; #technical opens the technical section.
     // What's live where is drawn open on How it works (#where), with its table.
@@ -167,6 +181,56 @@ test.describe('the home page', () => {
       await expect(img).toHaveAttribute('height', /^[1-9]\d{2,3}$/);
       await expect(img).toHaveAttribute('loading', 'lazy');
       await expect(img).toHaveAttribute('alt', /.+/);
+    }
+    expectNoErrors(errors);
+  });
+
+  test("How it works has Mako's four steps, then share proof, then the jar; every night page ends the same", async ({
+    page,
+  }) => {
+    const errors = watch(page);
+    await isolate(page);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto('/how-it-works');
+    await expect(page.locator('main h1')).toBeVisible();
+    // Right after the opening: the four steps (#how), then share proof, not data (#claims), then
+    // the jar photo; each once.
+    const order = await page.evaluate(() =>
+      [...document.querySelectorAll('main .home > *')].slice(0, 4).map((el) => el.id || el.className),
+    );
+    expect(order[0]).toBe('top');
+    expect(order[1]).toBe('how');
+    expect(order[2]).toBe('claims');
+    expect(order[3]).toContain('k-photo');
+    await expect(page.locator('#how .k-steps > li')).toHaveCount(4);
+    await expect(page.locator('#how-h')).toContainText('Four steps.');
+    await expect(page.locator('.k-photo img[src*="jar"]')).toHaveCount(1);
+    await expect(page.locator('#claims-h')).toHaveCount(1);
+    // Choosing a step lights it, and the steps don't hold the page.
+    await page.locator('#how .k-steps button').nth(2).click();
+    await expect(page.locator('#how .k-steps > li').nth(2)).toHaveClass(/is-active/);
+
+    for (const path of ['/', '/how-it-works', '/founders']) {
+      await page.goto(path);
+      await expect(page.locator('main h1')).toBeVisible();
+      // "Back to top" is not on the page at the top; it shows after scrolling, and takes the page
+      // and the keyboard back to the title.
+      const top = page.getByRole('button', { name: 'Back to top' });
+      await expect(top).toHaveCount(0);
+      await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+      await expect(top).toBeVisible();
+      await top.focus();
+      await page.keyboard.press('Enter');
+      await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
+      await expect(page.locator('main h1')).toBeFocused();
+      // The close in order: "Date your first record.", then the footer's links, then the wordmark
+      // at the very bottom.
+      const y = async (sel: string) => (await page.locator(sel).first().boundingBox())!.y;
+      const cta = await y('main .k-foot-cta');
+      const footer = await y('footer');
+      const word = await y('.k-foot-word');
+      expect(cta).toBeLessThan(footer);
+      expect(footer).toBeLessThan(word);
     }
     expectNoErrors(errors);
   });

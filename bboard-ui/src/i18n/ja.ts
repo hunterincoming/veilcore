@@ -145,6 +145,7 @@ export const ja: Strings = {
   // home page): the strings it needed that the site had no words for.
   'title.how': '仕組み',
   'm.foot.cta': '最初の記録に日付を。',
+  'm.foot.top': 'ページの先頭へ',
   'm.status.liveNow': 'ライセンス、ロイヤリティ報告、ラボが署名した結果は、veilcore.orgで稼働しています。',
   'm.status.whereLink': 'どこで何が使えるか →',
   'm.home.f3t': 'ライセンスとロイヤリティ。',

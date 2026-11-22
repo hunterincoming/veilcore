@@ -1,8 +1,13 @@
 // How it works (/how-it-works): Mako's page of that name (site draft, 21 November 2026), on the
 // night ground of the home page (home.css, scoped by the root's class "home"). In order: the
-// title, with an event display drawn from a fixed code; a second party on the record (photo);
-// what stays with you and what goes on Midnight; share proof, not data; lineage, licenses and
-// labs; if VeilCore disappears; and what works where (#where), open, with where things stand.
+// title, with an event display drawn from a fixed code; the four steps (#how); share proof, not
+// data, right after them (Mako's note, 22 Nov); the jar photo, opening as it comes into view;
+// what stays with you and what goes on Midnight; a second party on the record (photo); lineage,
+// licenses and labs; what the home page carried until 22 Nov; if VeilCore disappears; use it
+// your way; and what works where (#where), open, with where things stand.
+//
+// The four steps and the jar photo are Mako's (18 Nov draft, the home page until 22 Nov). #169
+// dropped both by mistake; they are back here unchanged, in all five languages (22 Nov).
 //
 // Copy is the site's own wherever the site already said it (and so already in five languages
 // and held by copy-truth.test.ts); the few new lines are in i18n (m.hiw.*). Where Mako's draft
@@ -15,7 +20,7 @@
 // table is the site's LiveWhere, driven by the flags in config/copy.ts, not his hand-written rows.
 // SPDX-License-Identifier: Apache-2.0
 
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Link as RouterLink, useLocation } from 'react-router-dom';
 import { useI18n } from '../../i18n';
 import { SiteShell } from './SiteShell';
@@ -24,10 +29,12 @@ import { EventDisplay } from './EventDisplay';
 import {
   Arrow,
   NightClose,
+  NightEnd,
   PhotoCredits,
   PhotoScreen,
   Two,
   arrowed,
+  scramble,
   useHashScroll,
   useReveals,
   useScrollPieces,
@@ -42,6 +49,114 @@ const PARTNERS_DOC = 'https://github.com/hunterincoming/veilcore/blob/main/docs/
 
 /** The title's event display: drawn from a fixed code (SHA-256 of "how-it-works"), not a record. */
 const HOW_HEX = 'a4bc41d13611d125b6b91a85a77972588a326187dabb9d3aa0699f8483e16f8c';
+
+/** An illustration, not a record: the example in "Four steps". */
+const EXAMPLE_CODE = '3f9a1c07b2e84d6a91c5f0e27b4d8a3c6e1f95b0d27a4c8e3b61f0a9d5c27e48';
+
+/**
+ * Four steps (the draft's pinned stage, unpinned). The step in the middle of the window is the lit
+ * one, from an IntersectionObserver; choosing a step lights it too. The picture beside the
+ * steps shows that step. The page scrolls on as normal.
+ */
+const Steps: React.FC = () => {
+  const { t, sp } = useI18n();
+  const [step, setStep] = useState(0);
+  const list = useRef<HTMLOListElement>(null);
+  // The example code settles from random hex when its step lights (the design's scramble). Written
+  // here, not by React, so the scramble and React never both own the text.
+  const code = useRef<HTMLParagraphElement>(null);
+  useLayoutEffect(() => {
+    if (code.current) code.current.textContent = EXAMPLE_CODE;
+  }, []);
+  useEffect(() => (step === 1 ? scramble(code.current, EXAMPLE_CODE) : undefined), [step]);
+  useEffect(() => {
+    const el = list.current;
+    if (!el || typeof IntersectionObserver === 'undefined') return;
+    const lis = [...el.children];
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) if (e.isIntersecting) setStep(lis.indexOf(e.target));
+      },
+      { rootMargin: '-45% 0px -45% 0px' },
+    );
+    lis.forEach((li) => io.observe(li));
+    return () => io.disconnect();
+  }, []);
+  const layer = (i: number) => `k-layer${i === step ? ' is-on' : ''}`;
+  return (
+    <div className="k-wrap k-how-grid">
+      <div>
+        <h2 id="how-h" className="k-h2" data-reveal="">
+          <Two a={t('m.how.title1')} b={t('m.how.title2')} />
+        </h2>
+        <ol className="k-steps" ref={list}>
+          {(['1', '2', '3', '4'] as const).map((n, i) => (
+            <li key={n} className={i === step ? 'is-active' : undefined}>
+              <h3>
+                <button type="button" aria-pressed={i === step} onClick={() => setStep(i)}>
+                  {t(`m.step${n}.title`)}
+                </button>
+              </h3>
+              <p>{t(`m.step${n}.text`)}</p>
+            </li>
+          ))}
+        </ol>
+      </div>
+      {/* What each step looks like: decoration beside the steps, which say it in words. */}
+      <div className="k-stagebox" aria-hidden="true">
+        <div className={layer(0)}>
+          <dl className="k-rec">
+            <div>
+              <dt>{t('m.hero.cultivar')}</dt>
+              <dd>Harbour Mist</dd>
+            </div>
+            <div>
+              <dt>{t('m.hero.bredBy')}</dt>
+              <dd>{t('m.hero.bredByDefault')}</dd>
+            </div>
+            <div>
+              <dt>{t('m.home.ex.dna')}</dt>
+              <dd>report.pdf</dd>
+            </div>
+          </dl>
+          <p className="k-layer-cap">{t('m.home.ex.label')}</p>
+        </div>
+        <div className={layer(1)}>
+          <p className="k-bigcode" ref={code} />
+          <p className="k-layer-cap">{t('m.home.l2')}</p>
+        </div>
+        <div className={layer(2)}>
+          <div className="k-batch">
+            <div className="k-batch-grid">
+              {Array.from({ length: 64 }, (_, i) => (
+                <i key={i} className={i === 27 ? 'me' : undefined} />
+              ))}
+            </div>
+            <span className="k-batch-arrow" />
+            <div className="k-block">
+              <b>
+                {t('m.hero.stampWord')}
+                {sp}
+                {t('m.hero.stampLine')}
+              </b>
+              <span>{t('m.home.l3b')}</span>
+            </div>
+          </div>
+          <p className="k-layer-cap">{t('m.home.l3')}</p>
+        </div>
+        <div className={layer(3)}>
+          <svg className="k-check" viewBox="0 0 160 160">
+            <circle cx="80" cy="80" r="70" />
+            <circle className="ring" cx="80" cy="80" r="70" transform="rotate(-90 80 80)" />
+            <path className="ok" d="M52 82 L72 101 L110 61" />
+          </svg>
+          <p className="k-verdict">{t('m.home.l4v')}</p>
+          <p className="k-layer-cap">{t('m.home.l4')}</p>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export const HowItWorks: React.FC = () => {
   const { t, sp, lang } = useI18n();
@@ -76,7 +191,7 @@ export const HowItWorks: React.FC = () => {
   );
 
   return (
-    <SiteShell>
+    <SiteShell after={<NightEnd />}>
       <div className="home k-page" ref={root}>
         <header className="k-screen k-hero k-page-hero k-intro" id="top">
           <div className="k-wrap k-hero-grid">
@@ -112,20 +227,25 @@ export const HowItWorks: React.FC = () => {
           <TryIt onHash={setHex} />
         </header>
 
-        <PhotoScreen labelledBy="party-h" name="lab" alt={t('m.home.alt.lab')}>
-          <h2 id="party-h" className="k-giant" data-reveal="">
-            {t('m.hiw.lab1')}
-            {sp}
-            <span className="k-hl">{t('m.hiw.lab2')}</span>
+        {/* Mako's four steps (the 18 Nov draft's pinned stage, unpinned: Steps above), then share
+            proof, not data, right after them (his note, 22 Nov). */}
+        <section className="k-screen k-how" id="how" aria-labelledby="how-h">
+          <Steps />
+        </section>
+
+        <section className="k-screen" id="claims" aria-labelledby="claims-h">
+          <Claims />
+        </section>
+
+        {/* Mako's jar: the photo opens from an inset as it comes into view (PhotoScreen), shown
+            open with reduced motion. No id: the old #keep link goes to the home page's privacy
+            line (Home.tsx MOVED_ANCHORS). */}
+        <PhotoScreen labelledBy="keep-h" name="jar" alt={t('m.home.alt.jar')} position="50% 60%">
+          <h2 id="keep-h" className="k-giant" data-reveal="">
+            {t('m.home.keep.t')}
           </h2>
           <p className="k-lead" data-reveal="" style={{ '--d': 1 } as React.CSSProperties}>
-            {t('m.hiw.labP')}
-          </p>
-          {/* A lab's way in (lab/LabDoor.tsx), where the page says what a lab does. */}
-          <p className="k-lead" data-reveal="" style={{ '--d': 2 } as React.CSSProperties}>
-            <RouterLink to={LAB_DOOR} data-for-labs="how">
-              {arrowed(t('m.for.3link'))}
-            </RouterLink>
+            {t('m.home.keep.p')}
           </p>
         </PhotoScreen>
 
@@ -167,9 +287,22 @@ export const HowItWorks: React.FC = () => {
           </div>
         </section>
 
-        <section className="k-screen" id="claims" aria-labelledby="claims-h">
-          <Claims />
-        </section>
+        <PhotoScreen labelledBy="party-h" name="lab" alt={t('m.home.alt.lab')}>
+          <h2 id="party-h" className="k-giant" data-reveal="">
+            {t('m.hiw.lab1')}
+            {sp}
+            <span className="k-hl">{t('m.hiw.lab2')}</span>
+          </h2>
+          <p className="k-lead" data-reveal="" style={{ '--d': 1 } as React.CSSProperties}>
+            {t('m.hiw.labP')}
+          </p>
+          {/* A lab's way in (lab/LabDoor.tsx), where the page says what a lab does. */}
+          <p className="k-lead" data-reveal="" style={{ '--d': 2 } as React.CSSProperties}>
+            <RouterLink to={LAB_DOOR} data-for-labs="how">
+              {arrowed(t('m.for.3link'))}
+            </RouterLink>
+          </p>
+        </PhotoScreen>
 
         <section className="k-sec" id="labs" aria-labelledby="labs-h">
           <div className="k-wrap">
@@ -232,7 +365,7 @@ export const HowItWorks: React.FC = () => {
           </div>
         </section>
 
-        <PhotoCredits names={['lab', 'cutting', 'greenhouse', 'hand', 'cattle', 'seed', 'leaf']} />
+        <PhotoCredits names={['jar', 'lab', 'cutting', 'greenhouse', 'hand', 'cattle', 'seed', 'leaf']} />
         <NightClose />
       </div>
     </SiteShell>

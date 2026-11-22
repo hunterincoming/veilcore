@@ -145,6 +145,7 @@ export const en = {
   // home page): the strings it needed that the site had no words for.
   'title.how': 'How it works',
   'm.foot.cta': 'Date your first record.',
+  'm.foot.top': 'Back to top',
   'm.status.liveNow': 'Licenses, royalty reports and lab-signed results are live on veilcore.org.',
   'm.status.whereLink': 'What works where →',
   'm.home.f3t': 'Licenses and royalties.',
