@@ -20,6 +20,8 @@ a number that CI checks. The rules themselves are in `CLAUDE.md`, "Keep it simpl
     (22 Nov 2026: it had grown to about 25,400 measured this way, some 30 screens).
   - `howItWorksHeight`: the same for How it works (`site.how`), which carries what the landing
     page used to.
+    Heights are set from what CI measures; a page may be 1% over before it fails, because fonts
+    lay out a few pixels differently from machine to machine.
   - `coreRoutes`: how many pages are core in `bboard-ui/src/config/route-tiers.ts`.
   - `jargon.terms`: words that don't belong on a default screen, per language.
     `jargon.today`: the ones still there today. These are reported, not failed, until they are

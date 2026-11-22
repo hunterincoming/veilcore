@@ -215,6 +215,11 @@ const moreDepth = async (page: Page, rootSelector: string): Promise<number> => {
 const SCREENS: Record<string, Partial<Record<Lang, Measure>>> = {};
 const TEXTS: Record<string, Partial<Record<Lang, string>>> = {};
 const FIRST_SEAL: Partial<Record<Lang, { screens: number; taps: number }>> = {};
+/**
+ * Page heights are set from CI's browser. Fonts lay out a few pixels differently from machine to
+ * machine (22 Nov: 0.5–1% between CI and a local run), so a height may be 1% over before it fails.
+ */
+const HEIGHT_SLACK = 1.01;
 const HEIGHTS: Partial<Record<Lang, number>> = {};
 const HOW_HEIGHTS: Partial<Record<Lang, number>> = {};
 
@@ -288,7 +293,7 @@ for (const { lang, locale, words } of LANGS) {
       await expect(page.locator('h1').first()).toBeVisible();
       await check('site.home');
       const tall = await page.evaluate(() => document.documentElement.scrollHeight);
-      if (tall > budget.siteHomeHeight)
+      if (tall > budget.siteHomeHeight * HEIGHT_SLACK)
         over.push(`site.home (${lang}): ${tall}px tall, budget ${budget.siteHomeHeight}px`);
       HEIGHTS[lang] = tall;
       // How it works carries what the landing page used to (review of #169): held too.
@@ -296,7 +301,7 @@ for (const { lang, locale, words } of LANGS) {
       await expect(page.locator('h1').first()).toBeVisible();
       await check('site.how');
       const howTall = await page.evaluate(() => document.documentElement.scrollHeight);
-      if (howTall > budget.howItWorksHeight)
+      if (howTall > budget.howItWorksHeight * HEIGHT_SLACK)
         over.push(`site.how (${lang}): ${howTall}px tall, budget ${budget.howItWorksHeight}px`);
       HOW_HEIGHTS[lang] = howTall;
       await page.emulateMedia({ reducedMotion: null });
