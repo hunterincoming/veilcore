@@ -67,7 +67,6 @@ export const account = {
 
   // Getting records back on another device.
   'app.account.restore.lead': 'Open your records on this device.',
-  'app.account.restore.sameAccount': 'Same Apple or Google account as your other phone? This just works.',
   'app.account.restore.usePhone':
     'On a computer that can’t unlock a passkey by itself? Choose “Use a phone” in the window that opens, then scan the code with your phone.',
   'app.account.restore.oldName': 'Made your passkey on {host} before? Try it here',

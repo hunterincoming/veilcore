@@ -207,7 +207,7 @@ test('log a strain with its designation, deposits and parent; tie a DNA report; 
   );
   await page.getByRole('button', { name: /Seal it/ }).click();
   // The network is blocked on purpose: the key's date stamp fails safely and waits.
-  await page.getByRole('button', { name: /Do the date stamp later/ }).click({ timeout: 90_000 });
+  await page.getByRole('button', { name: /Go on without waiting/ }).click({ timeout: 90_000 });
 
   // 3. The DNA report, in a strain's words; saved on the device, never uploaded.
   await expect(page.getByRole('heading', { name: /Save your DNA report to this strain/ })).toBeVisible();
@@ -320,6 +320,8 @@ test('log a strain with its designation, deposits and parent; tie a DNA report; 
 
   // 7. The evidence bundle: download it, open verify.html from disk with the network off.
   await page.goto(`/record/${rec.id}`);
+  // Under Technical details since 22 Nov.
+  await page.getByRole('button', { name: 'Technical details' }).click();
   await page.getByRole('button', { name: 'Download evidence bundle' }).first().click();
   const dialog = page.getByRole('dialog', { name: 'Download evidence bundle' });
   const download = page.waitForEvent('download');

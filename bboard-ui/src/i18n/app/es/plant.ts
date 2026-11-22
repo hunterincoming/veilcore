@@ -332,6 +332,8 @@ export const plant = {
   'app.plant.tree.datedReports': 'Informes de ADN fechados (no son descendencia)',
   'app.plant.action.nextStage': 'Agregar la siguiente generación o selección',
   'app.plant.action.nextStageHint': 'Un registro nuevo con esta planta como madre. Selle cada etapa cuando ocurra.',
+  'app.plant.action.nextOrClones': 'Siguiente generación o esquejes',
+  'app.plant.action.nextOrClonesHint': 'Un registro nuevo con esta planta como progenitora',
   'app.plant.dated.refused': 'El servidor de registros no lo guardó ({reason}). No se fechó nada. Inténtelo de nuevo.',
   'app.plant.dated.line': 'Informe de ADN fechado: en <link></link> ({status})',
   'app.plant.dated.dated': 'fechado {value}',

@@ -335,6 +335,8 @@ export const plant = {
   'app.plant.action.nextStage': 'Ajouter la génération ou la sélection suivante',
   'app.plant.action.nextStageHint':
     'Un nouvel enregistrement avec cette plante comme parent. Scellez chaque étape au moment où elle a lieu.',
+  'app.plant.action.nextOrClones': 'Génération suivante ou boutures',
+  'app.plant.action.nextOrClonesHint': 'Un nouvel enregistrement avec cette plante comme parent',
   'app.plant.dated.refused': 'Le registre ne l’a pas enregistré ({reason}). Rien n’a été daté. Réessayez.',
   'app.plant.dated.line': 'Rapport ADN daté : dans <link></link> ({status})',
   'app.plant.dated.dated': 'daté {value}',

@@ -64,6 +64,10 @@ const LIVE_ROWS = [
   ['dna', true, true, false],
   ['prove', false, true, true],
   ['claims', true, false, true],
+  // A lab's parentage result proved under ICAR 2023's checks (docs/parentage.md): live on
+  // veilcore.org since 21 Nov 2026, a fact about veilcore.org on every build; it rests on the
+  // claims contract, which the test site doesn't use.
+  ['parentage', true, false, false],
   ['lic', true, true, true],
 ] as const;
 

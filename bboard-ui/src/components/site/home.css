@@ -1623,14 +1623,9 @@ html:has(.vcm .home) [data-site-header] [data-language-picker] .MuiOutlinedInput
   .vcm .home .k-hero-text.cjk h1 {
     font-size: 1.875rem;
   }
-  /* On a phone the way in for a lab, or anyone sent a code, comes before the buttons: under
-     them it fell below the first screen in Japanese (lab-entry.spec.ts). */
-  .vcm .home :is(.k-hero-text h1, .k-lede) {
-    order: -2;
-  }
-  .vcm .home .k-paste {
-    order: -1;
-  }
+  /* On a phone "Make a record" and "Check a record" come right after the one-line lede, then the
+     way in for anyone sent a code (22 Nov: the short home page; the lede no longer pushes the
+     paste line under the first screen). */
   .vcm .home .k-try-row {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -2338,4 +2333,31 @@ html:has(.vcm .home) [data-site-header] nav > a[aria-current='page'] {
 }
 html:lang(ja) .vc-curtain-t {
   letter-spacing: 0;
+}
+
+/* The short home page (22 Nov 2026): three plain steps, and the links to everything that moved. */
+.vcm .home .k-plain-steps {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.vcm .home .k-link-list {
+  list-style: none;
+  padding: 0;
+  margin: 24px 0 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
+  gap: 10px 32px;
+}
+.vcm .home .k-link-list a {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  font-weight: 600;
+  color: var(--ink-1);
+  text-decoration-color: var(--yellow);
+}
+.vcm .home .k-link-list a:hover {
+  background: var(--yellow);
+  color: var(--void);
 }

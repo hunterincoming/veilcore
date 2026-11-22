@@ -114,8 +114,18 @@ export const isolate = async (page: Page, handlers: Record<string, Handler> = {}
 // yet"), and a lab can't receive a delivery. So every test that saves does what a person
 // does: save the backup file, then open it again so the app checks it.
 
+/**
+ * The backup step's password is on by default (22 Nov): a test that saves a file without one
+ * switches it off first, as a person choosing no password would.
+ */
+export const noBackupPassword = async (page: Page): Promise<void> => {
+  const sw = page.locator('[data-backup-password-switch]');
+  if ((await sw.count()) && (await sw.first().isChecked())) await sw.first().click();
+};
+
 /** On a page showing the backup step: save the file, open it again, and see the check pass. Returns the file. */
 export const saveAndCheckBackup = async (page: Page): Promise<string> => {
+  await noBackupPassword(page);
   const download = page.waitForEvent('download');
   await page.getByRole('button', { name: /Save backup file/ }).click();
   const file = await (await download).path();

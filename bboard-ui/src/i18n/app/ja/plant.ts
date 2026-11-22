@@ -324,6 +324,8 @@ export const plant = {
   'app.plant.tree.datedReports': '日付を付けたDNA報告書（子孫ではありません）',
   'app.plant.action.nextStage': '次の世代や選抜を加える',
   'app.plant.action.nextStageHint': 'この植物を親とする新しい記録です。各段階は、その時点で封印してください。',
+  'app.plant.action.nextOrClones': '次の世代、またはクローン',
+  'app.plant.action.nextOrClonesHint': 'この植物を親にした新しい記録',
   'app.plant.dated.refused':
     'レジストリが保存しませんでした（{reason}）。何にも日付は付いていません。もう一度お試しください。',
   'app.plant.dated.line': 'DNA報告書の日付：<link></link>に記録（{status}）',

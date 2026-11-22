@@ -90,7 +90,7 @@ export const log = {
     'Les détails sont conservés verrouillés sur {server} pour que vous puissiez y revenir, et nous n’avons pas la clé. Le nom est verrouillé lui aussi ; un lien de vérification ne le porte après le # que si vous l’activez. Seul un code de preuve est daté, sur {datedOn}.',
   'app.log.sealing': 'Scellement…',
   'app.log.sealPlain':
-    'Publié de façon permanente sur Midnight : uniquement des codes tirés de cet enregistrement. Jamais vos textes ni vos photos : ils restent privés, et vous seul pouvez les ouvrir.',
+    'Publié de façon permanente sur Midnight : uniquement des codes tirés de cet enregistrement. Jamais vos textes ni vos photos : ils restent privés ; vous seul pouvez les ouvrir.',
   'app.log.sealDetails': 'Qu’est-ce qui est publié ?',
   'app.log.seal': 'Sceller',
   'app.log.sealingPlant': 'Scellement de votre plante…',
@@ -111,12 +111,12 @@ export const log = {
   'app.log.keyStamped':
     'Clé horodatée. La clé de votre plante est datée elle aussi, pour que vous puissiez prouver plus tard que vous la détenez.{bound} Rien sur la plante n’a été envoyé.',
   'app.log.keyBound': ' L’enregistrement scellé désigne cette clé, donc personne ne peut la remplacer par une autre.',
-  'app.log.stampFailedTitle': 'Enregistrement scellé. Pas encore horodaté',
-  'app.log.stampingTitle': 'Enregistrement scellé. Horodatage du jour en cours…',
+  'app.log.stampFailedTitle': 'Enregistrement scellé. Horodatage facultatif de la clé : pas encore',
+  'app.log.stampingTitle': 'Enregistrement scellé. Horodatage facultatif de la clé en cours…',
   'app.log.onlyFingerprint':
-    'Seul un code de la clé de votre plante est envoyé, rien sur la plante. Gratuit : VeilCore paie les frais du réseau.',
-  'app.log.stampingAria': 'Horodatage du jour en cours',
-  'app.log.stampLater': 'Faire l’horodatage plus tard',
+    'Facultatif : il vous permet de prouver plus tard que vous détenez cet enregistrement. Seul un code de sa clé est envoyé, rien sur la plante. Gratuit.',
+  'app.log.stampingAria': 'Horodatage de la clé en cours',
+  'app.log.stampLater': 'Continuer sans attendre',
   'app.log.keepOpen':
-    'Cela prend environ une minute. Gardez cet écran ouvert jusqu’à la fin : sur un téléphone, changer d’application ou verrouiller l’écran peut l’interrompre. S’il s’interrompt, rien n’est perdu : votre plante est enregistrée, et sa page vous proposera à nouveau l’horodatage.',
+    'Inutile d’attendre ici. Cela prend environ une minute et se réessaie tout seul tant que VeilCore est ouvert. Si cela s’arrête, rien n’est perdu : la page de votre plante propose à nouveau l’horodatage de la clé.',
 } satisfies Partial<AppTranslation>;

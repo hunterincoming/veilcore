@@ -8,10 +8,10 @@ export const dating = {
   'app.chain.progress.starting': 'Démarrage du générateur de preuves sur votre appareil…',
 
   'app.log.recordDatedNext.one':
-    'Enregistrement daté : dans le prochain lot (environ toutes les {count} minute sur le réseau de test)',
+    'Votre enregistrement reçoit sa date avec le prochain groupe d’enregistrements (environ toutes les {count} minute sur le réseau de test)',
   'app.log.recordDatedNext.other':
-    'Enregistrement daté : dans le prochain lot (environ toutes les {count} minutes sur le réseau de test)',
-  'app.log.recordDatedNextPlain': 'Enregistrement daté : dans le prochain lot',
+    'Votre enregistrement reçoit sa date avec le prochain groupe d’enregistrements (environ toutes les {count} minutes sur le réseau de test)',
+  'app.log.recordDatedNextPlain': 'Votre enregistrement reçoit sa date avec le prochain groupe d’enregistrements',
   'app.log.inSeconds': 'dans {n} s',
   'app.log.retryingIn': 'Nouvel essai automatique {when} (essai {n}).',
   'app.log.retriesUsed':
@@ -20,7 +20,7 @@ export const dating = {
   'app.log.keepsTrying':
     'Les essais continuent tout seuls tant que VeilCore est ouvert, et l’accueil l’affiche jusqu’à ce que cela passe.',
 
-  'app.plant.nextBatch': 'dans le prochain lot',
+  'app.plant.nextBatch': 'avec le prochain groupe d’enregistrements',
   'app.plant.nextBatchEvery.one': 'environ toutes les {count} minute sur le réseau de test',
   'app.plant.nextBatchEvery.other': 'environ toutes les {count} minutes sur le réseau de test',
   'app.plant.notSentYet': 'pas encore envoyé à VeilCore ; nouvel essai automatique',
@@ -42,11 +42,11 @@ export const dating = {
   'app.pickup.saveBackup': 'Enregistrer ma sauvegarde',
   'app.pickup.openAgreements': 'Ouvrir les accords',
   'app.pickup.dating.notSent': '{name} : scellé. Son code de preuve part chez VeilCore dès que VeilCore répond.',
-  'app.pickup.dating.next': '{name} recevra sa date avec le prochain lot.',
+  'app.pickup.dating.next': '{name} recevra sa date avec le prochain groupe d’enregistrements.',
   'app.pickup.dating.nextEvery.one':
-    '{name} recevra sa date avec le prochain lot (un lot environ toutes les {count} minute).',
+    '{name} recevra sa date avec le prochain groupe d’enregistrements (un groupe environ toutes les {count} minute).',
   'app.pickup.dating.nextEvery.other':
-    '{name} recevra sa date avec le prochain lot (un lot environ toutes les {count} minutes).',
+    '{name} recevra sa date avec le prochain groupe d’enregistrements (un groupe environ toutes les {count} minutes).',
   'app.pickup.dating.batched': '{name} est dans un lot et attend sa date.',
   'app.pickup.dating.progress': 'Étape {n} sur {total} vers sa date',
   'app.pickup.more.one': 'et {count} autre en route vers sa date',

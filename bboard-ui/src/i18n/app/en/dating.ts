@@ -6,9 +6,11 @@
 export const dating = {
   'app.chain.progress.starting': 'Starting the prover on your device…',
 
-  'app.log.recordDatedNext.one': 'Record dated: in the next batch (about every {count} minute on the test network)',
-  'app.log.recordDatedNext.other': 'Record dated: in the next batch (about every {count} minutes on the test network)',
-  'app.log.recordDatedNextPlain': 'Record dated: in the next batch',
+  'app.log.recordDatedNext.one':
+    'Your record gets its date with the next group of records (about every {count} minute on the test network)',
+  'app.log.recordDatedNext.other':
+    'Your record gets its date with the next group of records (about every {count} minutes on the test network)',
+  'app.log.recordDatedNextPlain': 'Your record gets its date with the next group of records',
   'app.log.inSeconds': 'in {n} s',
   'app.log.retryingIn': 'Trying again by itself {when} (try {n}).',
   'app.log.retriesUsed':
@@ -16,7 +18,7 @@ export const dating = {
   'app.log.tryNow': 'Try again now',
   'app.log.keepsTrying': 'It keeps trying by itself while VeilCore is open, and Home shows it until it goes through.',
 
-  'app.plant.nextBatch': 'in the next batch',
+  'app.plant.nextBatch': 'with the next group of records',
   'app.plant.nextBatchEvery.one': 'about every {count} minute on the test network',
   'app.plant.nextBatchEvery.other': 'about every {count} minutes on the test network',
   'app.plant.notSentYet': 'not sent to VeilCore yet; trying again by itself',
@@ -35,11 +37,11 @@ export const dating = {
   'app.pickup.saveBackup': 'Save my backup',
   'app.pickup.openAgreements': 'Open agreements',
   'app.pickup.dating.notSent': '{name}: sealed. Its proof code goes to VeilCore as soon as VeilCore can be reached.',
-  'app.pickup.dating.next': '{name} will get its date in the next batch.',
+  'app.pickup.dating.next': '{name} will get its date with the next group of records.',
   'app.pickup.dating.nextEvery.one':
-    '{name} will get its date in the next batch (one runs about every {count} minute).',
+    '{name} will get its date with the next group of records (one is dated about every {count} minute).',
   'app.pickup.dating.nextEvery.other':
-    '{name} will get its date in the next batch (one runs about every {count} minutes).',
+    '{name} will get its date with the next group of records (one is dated about every {count} minutes).',
   'app.pickup.dating.batched': '{name} is in a batch, waiting for its date.',
   'app.pickup.dating.progress': 'Step {n} of {total} toward its date',
   'app.pickup.more.one': 'and {count} more on its way to a date',

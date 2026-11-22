@@ -16,10 +16,11 @@ import { REAL_CHAIN } from '../veilcore/chain/config';
 import { Alert, Box, Button, CircularProgress, Paper, Stack, Typography } from '@mui/material';
 import ScienceIcon from '@mui/icons-material/ScienceOutlined';
 import EventIcon from '@mui/icons-material/EventAvailableOutlined';
-import VerifiedIcon from '@mui/icons-material/VerifiedOutlined';
+import SignIcon from '@mui/icons-material/DrawOutlined';
 import SendIcon from '@mui/icons-material/SendOutlined';
 import LockIcon from '@mui/icons-material/LockOutlined';
-import BadgeIcon from '@mui/icons-material/VerifiedUserOutlined';
+// No "verified" rosette or shield where nothing is verified (full review, 22 Nov).
+import BadgeIcon from '@mui/icons-material/KeyOutlined';
 import type { StrainRecord } from '../veilcore/records';
 import type { BreederReceipt, LabReceipt } from '../veilcore/custody';
 import { LAB_RESULTS_ENABLED } from '../config/network';
@@ -133,7 +134,7 @@ export const NextStep: React.FC<{
       // The date stamp here dates the plant's key (what proving uses), not its details.
       why: t('app.plant.next.stamp.why'),
       action: t('app.plant.next.stamp.action'),
-      icon: <VerifiedIcon />,
+      icon: <EventIcon />,
       onClick: onStamp,
     };
   } else if (isReceived) {
@@ -159,7 +160,7 @@ export const NextStep: React.FC<{
         title: t('app.plant.next.sign.title'),
         why: t('app.plant.next.sign.why'),
         action: t('app.plant.next.sign.action'),
-        icon: <VerifiedIcon />,
+        icon: <SignIcon />,
         onClick: onSignReceipt,
       };
     } else if (lab.kind === 'signed' && !lab.linked && onSignReceipt) {
@@ -167,7 +168,7 @@ export const NextStep: React.FC<{
         title: t('app.plant.next.link.title'),
         why: t('app.plant.next.link.why'),
         action: t('app.plant.next.link.action'),
-        icon: <VerifiedIcon />,
+        icon: <SignIcon />,
         onClick: onSignReceipt,
       };
     } else if (!LAB_RESULTS_ENABLED) {
@@ -314,7 +315,7 @@ export const NextStep: React.FC<{
       title: t('app.plant.next.sample.title'),
       why: t('app.plant.next.sample.whySaved'),
       action: t('app.plant.next.sample.action'),
-      icon: <VerifiedIcon />,
+      icon: <ScienceIcon />,
       custom: <SendToLab record={record} />,
     };
   } else {

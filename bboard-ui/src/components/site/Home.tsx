@@ -1,11 +1,12 @@
 // The home page, in the site design of 21 November 2026 (ported from the 18 November
-// draft): night ground, the logo's gold #A67C00, Archivo and JetBrains Mono, photos between the
-// sections. In order: the hero with the event display drawn from the live proof code; who it is
-// for; your genetics stay with you (photo); what did you have, and when; where it matters (a
-// sideways strip, Gallery.tsx); we can't read your records; four steps; make a record or check
-// one (the design's Records page: two doors, with the paste box and the video beside them); share
-// proof, not data; more than a date; where it stops, where things stand and what works where;
-// latest from the build; questions; technical readers; talk to the founders.
+// draft): night ground, the logo's gold #A67C00, Archivo and JetBrains Mono.
+//
+// Since 22 Nov 2026 a short page (it was about 25 phone screens and 60 headings): the hero with
+// one line, "Make a record" and "Check a record"; how it works in three steps; who it is for,
+// each to its own page; one line on privacy and Midnight's part; use it your way; links to
+// everything else. What it carried below that is How it works' now (MovedFromHome below, the
+// try-it proof code with it: TryIt); latest from the build and talk to the founders are on About.
+// An old link to one of those sections is sent there (MOVED_ANCHORS).
 //
 // How it works (/how-it-works) and About (/founders) are the design's other two pages; the
 // sections they share with this one are in night-parts.tsx, LiveWhere.tsx and Claims.tsx.
@@ -42,13 +43,13 @@
 // plainly who holds the maintenance key (docs/maintenance-policy.md, APPROVED 7 Oct).
 // Strings that flip on mainnet day are grouped in i18n/en.ts under "MAINNET DAY".
 //
-// Every in-page anchor other pages link to stays here once (e2e/home.spec.ts): top, about, how,
-// demo, claims, value, open, status, live, updates, questions, technical, contact, team.
+// Every in-page anchor other pages link to stays reachable (e2e/home.spec.ts): top, about, steps,
+// private, own-way and more here; the moved ones on How it works or About, by MOVED_ANCHORS.
 //
 // SPDX-License-Identifier: Apache-2.0
 
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { Link as RouterLink, useLocation } from 'react-router-dom';
+import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
 import { computeCommitment, newNonce } from 'veilcore-records';
 import { useI18n } from '../../i18n';
 import { FOUNDERS_MAIL, SiteShell } from './SiteShell';
@@ -64,11 +65,8 @@ import {
   Marquee,
   NightClose,
   Photo,
-  PhotoCredits,
-  PhotoScreen,
   SR_ONLY,
   Two,
-  Updates,
   WordLight,
   arrowed,
   scramble,
@@ -76,22 +74,9 @@ import {
   useReveals,
   useScrollPieces,
 } from './night-parts';
-import { LiveWhere, StandList } from './LiveWhere';
 import { Gallery, type Slide } from './Gallery';
 import { Claims } from './Claims';
 import './home.css';
-
-/**
- * A founder's photo, as on the Founders page. The initials show only if the photo can't
- * load. Not lazy: it is two small files, and a lazy one showed as initials in a full-page
- * screenshot (persona review, 17 Oct).
- */
-const Avatar: React.FC<{ initials: string; photo: string }> = ({ initials, photo }) => {
-  const [failed, setFailed] = useState(false);
-  return (
-    <span className="avatar">{failed ? initials : <img src={photo} alt="" onError={() => setFailed(true)} />}</span>
-  );
-};
 
 /** The proof code in groups of eight, the way a long lab code is printed. */
 const groupsOf = (hex: string, prev = '') => {
@@ -445,16 +430,21 @@ const DoorPhoto: React.FC<{ name: 'hand' | 'seed' }> = ({ name }) => (
   <Photo name={name} alt="" sizes="(max-width: 760px) 100vw, 50vw" className="k-door-img" />
 );
 
-export const Home: React.FC = () => {
+/** How a lab's parentage result is proved, in plain words first. */
+const PARENTAGE_DOC = 'https://github.com/hunterincoming/veilcore/blob/main/docs/parentage.md';
+
+/**
+ * What the home page carried below its first screens until 22 Nov 2026, moved whole to How it
+ * works (HowItWorks.tsx) when the home page was cut to a short page: who it is for, what did you
+ * have and when, where it matters, we can't read your records, the four steps, the two doors with
+ * the paste box and the video, more than a date, where it stops, questions, technical readers,
+ * and the second band of names. Nothing in it was deleted. Its anchors (#how, #demo, #value,
+ * #status, #questions, #technical, #matters, #open) are on How it works now; the home page sends
+ * an old link to one of them there (MOVED_ANCHORS).
+ */
+export const MovedFromHome: React.FC = () => {
   const { t, lang, sp } = useI18n();
-  const { hash } = useLocation();
   const [showVideo, setShowVideo] = useState(false);
-  const [returning] = useState(hasRecordsHere);
-  const [hex, setHex] = useState('');
-  const root = useRef<HTMLDivElement>(null);
-  useReveals(root);
-  useScrollPieces(root);
-  useHashScroll(hash);
 
   const slides: Slide[] = [
     {
@@ -488,7 +478,7 @@ export const Home: React.FC = () => {
         <>
           {t('m.for.3p')}
           {sp}
-          <RouterLink to={LAB_DOOR} data-for-labs="home">
+          <RouterLink to={LAB_DOOR} data-for-labs="slide">
             {arrowed(t('m.for.3link'))}
           </RouterLink>
         </>
@@ -511,6 +501,12 @@ export const Home: React.FC = () => {
       body: (
         <>
           {t('m.for.5p')}
+          {sp}
+          {/* Parentage is live (docs/parentage.md), and was findable nowhere on the site (review, 22 Nov). */}
+          {t('m.for.5parent')}{' '}
+          <a href={PARENTAGE_DOC} target="_blank" rel="noopener noreferrer" data-parentage-link="">
+            {t('m.for.5parentLink')}
+          </a>
           {sp}
           <a href={`${FOUNDERS_MAIL}&subject=${encodeURIComponent('Animal records')}`}>{t('m.for.5ask')}</a>
         </>
@@ -540,6 +536,363 @@ export const Home: React.FC = () => {
   ];
 
   return (
+    <>
+      <Marquee label={t('m.home.audLabel')} list={t('m.home.audience')} />
+
+      <section className="k-screen k-question" id="about" aria-labelledby="q-h">
+        <div className="k-wrap">
+          <p className="k-lead" data-reveal="">
+            {t('m.for.title1')}
+          </p>
+          <h2 id="q-h" className="k-giant k-hl" data-reveal="" style={{ '--d': 1 } as React.CSSProperties}>
+            {t('m.for.title2')}
+          </h2>
+          {/* A record dated early, a question asked later: drawn, so hidden from screen readers. */}
+          <div className="k-timeline" aria-hidden="true">
+            <div className="k-tl-axis" />
+            <div className="k-tl-ticks">
+              {Array.from({ length: 37 }, (_, i) => (
+                <i key={i} />
+              ))}
+            </div>
+            <div className="k-tl-fill" />
+            <div className="k-tl-pin a">
+              <span>{t('m.home.tlDated')}</span>
+              <b />
+            </div>
+            <div className="k-tl-pin b">
+              <span>{t('m.home.tlAsks')}</span>
+              <b />
+            </div>
+          </div>
+          <WordLight text={t('m.for.lede')} />
+          <p className="k-lead k-answer" data-reveal="">
+            <b>{t('m.get.1a')}</b>
+            {sp}
+            {t('m.get.1b')}
+          </p>
+        </div>
+      </section>
+
+      <section className="k-hgal" id="matters" aria-labelledby="hgal-h">
+        <Gallery
+          labelledBy="hgal-h"
+          slides={slides}
+          heading={
+            <h2 id="hgal-h" className="k-h2">
+              {t('m.home.matters')}
+            </h2>
+          }
+        />
+      </section>
+
+      <section className="k-screen k-drench" id="open" aria-labelledby="custody-h">
+        {/* The leaf texture: the dark leaf multiplied over the gold, away from the words. */}
+        <img
+          className="k-drench-tex"
+          src="/media/home/leaf-800.webp"
+          srcSet="/media/home/leaf-800.webp 800w, /media/home/leaf.webp 1458w"
+          sizes="60vw"
+          width={1458}
+          height={972}
+          alt=""
+          loading="lazy"
+          decoding="async"
+        />
+        <div className="k-wrap">
+          <h2 id="custody-h" className="k-giant" data-reveal="">
+            {t('m.home.custody.t')}
+          </h2>
+          <div className="k-drench-grid">
+            <p data-reveal="" style={{ '--d': 2 } as React.CSSProperties}>
+              {t('m.home.custody.p1')}
+            </p>
+            <p data-reveal="" style={{ '--d': 3 } as React.CSSProperties}>
+              {t('m.home.custody.p2')}
+            </p>
+            <p data-reveal="" style={{ '--d': 4 } as React.CSSProperties}>
+              <b>
+                {t('m.open.title1')}
+                {sp}
+                {t('m.open.title2')}
+              </b>
+              {sp}
+              {t('m.open.1t')}
+              {sp}
+              {t('m.open.1p')}
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section className="k-screen k-how" id="how" aria-labelledby="how-h">
+        <Steps />
+      </section>
+
+      {/* The design's Records page, as this page's ways in: two doors, then the paste box and the
+            video, which veilcore.org had and the draft didn't. */}
+      <section className="k-sec k-ways-sec" id="demo" aria-labelledby="demo-h">
+        <div className="k-wrap">
+          <h2 id="demo-h" className="k-h2" data-reveal="">
+            <Two a={t('m.demo.title1')} b={t('m.demo.title2')} />
+          </h2>
+          <p className="k-lead" data-reveal="" style={{ '--d': 1 } as React.CSSProperties}>
+            {t('m.demo.lede')}
+            {sp}
+            <RouterLink to="/privacy">{arrowed(t('m.demo.privacy'))}</RouterLink>
+          </p>
+        </div>
+        <div className="k-doors">
+          <RouterLink className="k-door k-door-make" to="/new">
+            <DoorPhoto name="hand" />
+            <Ambient seed="make" />
+            <span className="k-chips">
+              <span className="k-chip live">{t('m.chip.interactive')}</span>
+              <span className="k-chip">{t('m.chip.3min')}</span>
+            </span>
+            <h3>{t('m.demo.create.title')}</h3>
+            <p>{t('m.demo.create.text')}</p>
+            <span className="k-btn k-btn-primary k-door-go">
+              {t('m.demo.create.title')}
+              <Arrow />
+            </span>
+          </RouterLink>
+          <RouterLink className="k-door k-door-verify" to="/verify">
+            <DoorPhoto name="seed" />
+            <Ambient seed="verify" />
+            <span className="k-chips">
+              <span className="k-chip live">{t('m.chip.interactive')}</span>
+              <span className="k-chip">{t('m.chip.1min')}</span>
+            </span>
+            <h3>{t('m.demo.verify.title')}</h3>
+            <p>{t('m.demo.verify.text')}</p>
+            <span className="k-btn k-btn-ghost k-door-go">
+              {t('m.demo.verify.title')}
+              <Arrow />
+            </span>
+          </RouterLink>
+        </div>
+        <div className="k-wrap">
+          <div className="k-grid4 k-ways">
+            <RouterLink className="k-way" to={PASTE_ENTRY} data-paste-entry="demo">
+              <h3>{t('m.demo.paste.title')}</h3>
+              <p>{t('m.demo.paste.text')}</p>
+              <span className="k-chips">
+                <span className="k-chip live">{t('m.chip.interactive')}</span>
+                <span className="k-chip">{t('m.chip.1min')}</span>
+              </span>
+            </RouterLink>
+            <button
+              type="button"
+              className="k-way"
+              aria-expanded={showVideo}
+              aria-controls="walkthrough"
+              onClick={() => setShowVideo(!showVideo)}
+            >
+              <h3>{t('m.demo.video.title')}</h3>
+              <p>{t('m.demo.video.text')}</p>
+              <span className="k-chips">
+                <span className="k-chip">{t('m.chip.video')}</span>
+                <span className="k-chip">{t('m.chip.60s')}</span>
+              </span>
+            </button>
+          </div>
+          {showVideo && (
+            <div className="walkthrough" id="walkthrough">
+              <video
+                key={lang}
+                src={walkthroughFile(lang, 'mp4')}
+                poster={walkthroughFile(lang, 'jpg')}
+                controls
+                autoPlay
+                playsInline
+                preload="metadata"
+                aria-label={t('m.demo.video.title')}
+              />
+            </div>
+          )}
+        </div>
+      </section>
+
+      <section className="k-screen" id="claims" aria-labelledby="claims-h">
+        <Claims />
+      </section>
+
+      <section className="k-screen" id="value" aria-labelledby="more-h">
+        <div className="k-wrap">
+          <h2 id="more-h" className="k-giant" data-reveal="">
+            {t('m.home.more')}
+          </h2>
+          <div className="k-grid4 k-grid3">
+            {features.map(([title, text], i) => (
+              <div key={title} data-reveal="" style={{ '--d': i } as React.CSSProperties}>
+                <h3>{title}</h3>
+                <p>{text}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="k-screen" id="status" aria-labelledby="limits-h">
+        <div className="k-wrap">
+          <h2 id="limits-h" className="k-h2" data-reveal="">
+            {t('m.stops.title')}
+          </h2>
+          <div className="k-stack">
+            {stops.map(([title, text, tone, r]) => (
+              <article className={`k-stack-card ${tone}`} key={title} data-reveal="">
+                <div className="k-stack-inner">
+                  <h3>{title}</h3>
+                  <p>{text}</p>
+                </div>
+                <StackMark r={r} />
+              </article>
+            ))}
+          </div>
+          <h3 className="k-h3">
+            <Two a={t('m.status.title1')} b={t('m.status.title2')} />
+          </h3>
+          <p className="k-sub">{t('m.status.lede')}</p>
+          <p className="k-fine k-where-link">
+            <a href="#where">{arrowed(t('m.status.whereLink'))}</a>
+          </p>
+        </div>
+      </section>
+
+      <section className="k-sec" id="questions" aria-labelledby="faq-h">
+        <div className="k-wrap">
+          <h2 id="faq-h" className="k-h2" data-reveal="">
+            <Two a={t('m.faq.title1')} b={t('m.faq.title2')} />
+          </h2>
+          <div className="faq">
+            <details>
+              <summary>{t('m.faq.1q')}</summary>
+              <p>{t('m.faq.1a')}</p>
+            </details>
+            <details>
+              <summary>{t('m.faq.2q')}</summary>
+              <p>{t('m.faq.2a')}</p>
+            </details>
+            <details>
+              <summary>{t('m.faq.3q')}</summary>
+              <p>
+                {t('m.faq.3a')}
+                {sp}
+                <RouterLink to="/docs/evidence">{arrowed(t('m.faq.3link'))}</RouterLink>
+              </p>
+            </details>
+            <details>
+              <summary>{t('m.faq.4q')}</summary>
+              <p>
+                {t('m.faq.4a')}
+                {sp}
+                <RouterLink to="/privacy">{arrowed(t('m.faq.4link1'))}</RouterLink>{' '}
+                <RouterLink to="/docs/integrate">{arrowed(t('m.faq.4link2'))}</RouterLink>
+              </p>
+            </details>
+            <details>
+              <summary>{t('m.faq.6q')}</summary>
+              <p>{t('m.faq.6a')}</p>
+            </details>
+          </div>
+        </div>
+      </section>
+
+      <Technical />
+
+      <Marquee label={t('m.home.trustLabel')} list={t('m.home.trust')} />
+
+      <Marquee label={t('m.home.trustLabel')} list={t('m.home.trust')} />
+    </>
+  );
+};
+
+/**
+ * "Try it. Nothing is sent.": the proof code worked out as you type, and the event display drawn
+ * from it (the home page's hero until 22 Nov; on How it works since).
+ */
+export const TryIt: React.FC<{ onHash: (hex: string) => void }> = ({ onHash }) => {
+  const { lang } = useI18n();
+  return (
+    <div className="k-wrap" data-intro="" style={{ '--i': 4 } as React.CSSProperties}>
+      <Fingerprint key={lang} onHash={onHash} />
+    </div>
+  );
+};
+
+/** Old links into the home page's sections, and the page each section lives on now. */
+export const MOVED_ANCHORS: Record<string, string> = {
+  how: '/how-it-works',
+  demo: '/how-it-works',
+  claims: '/how-it-works',
+  value: '/how-it-works',
+  open: '/how-it-works',
+  status: '/how-it-works',
+  live: '/how-it-works',
+  questions: '/how-it-works',
+  technical: '/how-it-works',
+  matters: '/how-it-works',
+  when: '/how-it-works',
+  updates: '/founders',
+  contact: '/founders',
+  team: '/founders',
+};
+
+/** The hero's event display on the home page: drawn from a fixed code (SHA-256 of "veilcore"). */
+const HOME_HEX = 'f4f83986ca01724bd31765a409cbac032357ac5de60e6e6184611ad466954934';
+
+/**
+ * The home page since 22 Nov 2026: short (it was about 25 phone screens). A hero with one line and
+ * the two things to do; how it works in three steps; who it is for, each to its own page; one
+ * line on privacy and Midnight's part; use it your way; and a list of links to everything that
+ * moved (How it works, About, Help). complexity-budget.json holds it to that ("site.home").
+ */
+export const Home: React.FC = () => {
+  const { t, lang, sp } = useI18n();
+  const { hash } = useLocation();
+  const navigate = useNavigate();
+  const [returning] = useState(hasRecordsHere);
+  const root = useRef<HTMLDivElement>(null);
+  useReveals(root);
+  useScrollPieces(root);
+  useHashScroll(hash);
+  // An old link to a section that moved: to its new page, at the same section.
+  useEffect(() => {
+    const id = decodeURIComponent(hash.slice(1));
+    const to = MOVED_ANCHORS[id];
+    if (to) void navigate(`${to}#${id}`, { replace: true });
+  }, [hash]);
+
+  const steps: [string, string][] = [
+    [t('m.home2.s1t'), t('m.home2.s1p')],
+    [t('m.home2.s2t'), t('m.home2.s2p')],
+    [t('m.home2.s3t'), t('m.home2.s3p')],
+  ];
+  const who: [string, string, string, string][] = [
+    [t('m.home2.w1t'), t('m.home2.w1p'), '/new', t('m.demo.create.title')],
+    [t('m.home2.w2t'), t('m.home2.w2p'), LAB_DOOR, t('title.forLabs')],
+    [t('m.home2.w3t'), t('m.home2.w3p'), '/partners', t('title.partners')],
+  ];
+  const more: [string, string][] = [
+    ['/how-it-works', t('m.hero.how')],
+    ['/how-it-works#claims', t('m.claims.label')],
+    ['/how-it-works#where', t('m.live.label')],
+    ['/how-it-works#status', t('m.stops.title')],
+    ['/how-it-works#demo', t('m.demo.video.title')],
+    ['/how-it-works#questions', t('m.home2.l.faq')],
+    ['/how-it-works#technical', t('m.tech.title')],
+    ['/help', t('footer.help')],
+    ['/founders', t('m.nav.about')],
+    ['/founders#updates', t('m.nav.updates')],
+    ['/founders#contact', t('m.home2.l.contact')],
+    ['/privacy', t(IS_MAINNET ? 'title.privacyMainnet' : 'title.privacy')],
+    ['/docs/spec', t('title.spec')],
+    ['/docs/evidence', t('title.evidence')],
+    ['/docs/integrate', t('title.integrate')],
+  ];
+
+  return (
     <SiteShell>
       <div className="home" ref={root}>
         <header className="k-screen k-hero k-intro" id="top">
@@ -555,7 +908,7 @@ export const Home: React.FC = () => {
                 </span>
               </h1>
               <p className="k-lede" data-intro="" style={{ '--i': 2 } as React.CSSProperties}>
-                {t('m.hero.lede')}
+                {t('m.home2.lede')}
               </p>
               <div className="k-actions hero-actions" data-intro="" style={{ '--i': 3 } as React.CSSProperties}>
                 {returning && (
@@ -567,12 +920,13 @@ export const Home: React.FC = () => {
                   {t('m.demo.create.title')}
                   <Arrow />
                 </RouterLink>
-                <RouterLink className="k-link-quiet" to="/how-it-works">
-                  {t('m.hero.how')}
+                <RouterLink className="k-btn k-btn-ghost" to="/verify" data-check-entry="hero">
+                  {t('m.demo.verify.title')}
                 </RouterLink>
               </div>
               {/* The third way in (a lab tested it, 8 Nov): anyone who was sent a lab code or a
-                  link goes straight to the box that opens it (paste-entry.ts). */}
+                  link goes straight to the box that opens it (paste-entry.ts). Under the two
+                  buttons since 22 Nov, on a phone too. */}
               <p className="k-paste hero-paste" data-intro="" style={{ '--i': 3 } as React.CSSProperties}>
                 {t('m.hero.pasteQ')}
                 {sp}
@@ -580,8 +934,7 @@ export const Home: React.FC = () => {
                   {arrowed(t('m.hero.pasteGo'))}
                 </RouterLink>
               </p>
-              {/* A first visit on a new phone or computer (the live test, 19 Nov 2026): the way back
-                  to records made elsewhere is next to "Make a record", not only inside the app. */}
+              {/* A first visit on a new phone or computer (the live test, 19 Nov 2026). */}
               {!returning && (
                 <p className="k-paste hero-restore" data-intro="" style={{ '--i': 3 } as React.CSSProperties}>
                   {t('m.hero.restoreQ')}
@@ -591,350 +944,92 @@ export const Home: React.FC = () => {
                   </RouterLink>
                 </p>
               )}
-              <p className="k-fine k-status-line" data-intro="" style={{ '--i': 3 } as React.CSSProperties}>
-                {t('m.hero.status')}
-              </p>
             </div>
-            <EventDisplay hex={hex} />
-          </div>
-          <div className="k-wrap" data-intro="" style={{ '--i': 4 } as React.CSSProperties}>
-            <Fingerprint key={lang} onHash={setHex} />
+            <EventDisplay hex={HOME_HEX} />
           </div>
         </header>
 
-        <Marquee label={t('m.home.audLabel')} list={t('m.home.audience')} />
-
-        <PhotoScreen id="keep" labelledBy="keep-h" name="jar" alt={t('m.home.alt.jar')} position="50% 60%">
-          <h2 id="keep-h" className="k-giant" data-reveal="">
-            {t('m.home.keep.t')}
-          </h2>
-          <p className="k-lead" data-reveal="" style={{ '--d': 1 } as React.CSSProperties}>
-            {t('m.home.keep.p')}
-          </p>
-        </PhotoScreen>
-
-        <section className="k-screen k-question" id="about" aria-labelledby="q-h">
+        <section className="k-sec" id="steps" aria-labelledby="steps-h">
           <div className="k-wrap">
-            <p className="k-lead" data-reveal="">
-              {t('m.for.title1')}
-            </p>
-            <h2 id="q-h" className="k-giant k-hl" data-reveal="" style={{ '--d': 1 } as React.CSSProperties}>
-              {t('m.for.title2')}
+            <h2 id="steps-h" className="k-h2" data-reveal="">
+              {t('m.home2.stepsTitle')}
             </h2>
-            {/* A record dated early, a question asked later: drawn, so hidden from screen readers. */}
-            <div className="k-timeline" aria-hidden="true">
-              <div className="k-tl-axis" />
-              <div className="k-tl-ticks">
-                {Array.from({ length: 37 }, (_, i) => (
-                  <i key={i} />
-                ))}
-              </div>
-              <div className="k-tl-fill" />
-              <div className="k-tl-pin a">
-                <span>{t('m.home.tlDated')}</span>
-                <b />
-              </div>
-              <div className="k-tl-pin b">
-                <span>{t('m.home.tlAsks')}</span>
-                <b />
-              </div>
-            </div>
-            <WordLight text={t('m.for.lede')} />
-            <p className="k-lead k-answer" data-reveal="">
-              <b>{t('m.get.1a')}</b>
-              {sp}
-              {t('m.get.1b')}
+            <ol className="k-grid4 k-grid3 k-plain-steps">
+              {steps.map(([title, text], i) => (
+                <li key={title} data-reveal="" style={{ '--d': i } as React.CSSProperties}>
+                  <h3>{title}</h3>
+                  <p>{text}</p>
+                </li>
+              ))}
+            </ol>
+            <p className="k-fine">
+              <RouterLink to="/how-it-works">{arrowed(t('m.home2.howLink'))}</RouterLink>
             </p>
           </div>
         </section>
 
-        <section className="k-hgal" id="matters" aria-labelledby="hgal-h">
-          <Gallery
-            labelledBy="hgal-h"
-            slides={slides}
-            heading={
-              <h2 id="hgal-h" className="k-h2">
-                {t('m.home.matters')}
-              </h2>
-            }
-          />
-        </section>
-
-        <section className="k-screen k-drench" id="open" aria-labelledby="custody-h">
-          {/* The leaf texture: the dark leaf multiplied over the gold, away from the words. */}
-          <img
-            className="k-drench-tex"
-            src="/media/home/leaf-800.webp"
-            srcSet="/media/home/leaf-800.webp 800w, /media/home/leaf.webp 1458w"
-            sizes="60vw"
-            width={1458}
-            height={972}
-            alt=""
-            loading="lazy"
-            decoding="async"
-          />
+        <section className="k-sec" id="about" aria-labelledby="who-h">
           <div className="k-wrap">
-            <h2 id="custody-h" className="k-giant" data-reveal="">
-              {t('m.home.custody.t')}
-            </h2>
-            <div className="k-drench-grid">
-              <p data-reveal="" style={{ '--d': 2 } as React.CSSProperties}>
-                {t('m.home.custody.p1')}
-              </p>
-              <p data-reveal="" style={{ '--d': 3 } as React.CSSProperties}>
-                {t('m.home.custody.p2')}
-              </p>
-              <p data-reveal="" style={{ '--d': 4 } as React.CSSProperties}>
-                <b>
-                  {t('m.open.title1')}
-                  {sp}
-                  {t('m.open.title2')}
-                </b>
-                {sp}
-                {t('m.open.1t')}
-                {sp}
-                {t('m.open.1p')}
-              </p>
-            </div>
-          </div>
-        </section>
-
-        <section className="k-screen k-how" id="how" aria-labelledby="how-h">
-          <Steps />
-        </section>
-
-        {/* The design's Records page, as this page's ways in: two doors, then the paste box and the
-            video, which veilcore.org had and the draft didn't. */}
-        <section className="k-sec k-ways-sec" id="demo" aria-labelledby="demo-h">
-          <div className="k-wrap">
-            <h2 id="demo-h" className="k-h2" data-reveal="">
-              <Two a={t('m.demo.title1')} b={t('m.demo.title2')} />
-            </h2>
-            <p className="k-lead" data-reveal="" style={{ '--d': 1 } as React.CSSProperties}>
-              {t('m.demo.lede')}
-              {sp}
-              <RouterLink to="/privacy">{arrowed(t('m.demo.privacy'))}</RouterLink>
-            </p>
-          </div>
-          <div className="k-doors">
-            <RouterLink className="k-door k-door-make" to="/new">
-              <DoorPhoto name="hand" />
-              <Ambient seed="make" />
-              <span className="k-chips">
-                <span className="k-chip live">{t('m.chip.interactive')}</span>
-                <span className="k-chip">{t('m.chip.3min')}</span>
-              </span>
-              <h3>{t('m.demo.create.title')}</h3>
-              <p>{t('m.demo.create.text')}</p>
-              <span className="k-btn k-btn-primary k-door-go">
-                {t('m.demo.create.title')}
-                <Arrow />
-              </span>
-            </RouterLink>
-            <RouterLink className="k-door k-door-verify" to="/verify">
-              <DoorPhoto name="seed" />
-              <Ambient seed="verify" />
-              <span className="k-chips">
-                <span className="k-chip live">{t('m.chip.interactive')}</span>
-                <span className="k-chip">{t('m.chip.1min')}</span>
-              </span>
-              <h3>{t('m.demo.verify.title')}</h3>
-              <p>{t('m.demo.verify.text')}</p>
-              <span className="k-btn k-btn-ghost k-door-go">
-                {t('m.demo.verify.title')}
-                <Arrow />
-              </span>
-            </RouterLink>
-          </div>
-          <div className="k-wrap">
-            <div className="k-grid4 k-ways">
-              <RouterLink className="k-way" to={PASTE_ENTRY} data-paste-entry="demo">
-                <h3>{t('m.demo.paste.title')}</h3>
-                <p>{t('m.demo.paste.text')}</p>
-                <span className="k-chips">
-                  <span className="k-chip live">{t('m.chip.interactive')}</span>
-                  <span className="k-chip">{t('m.chip.1min')}</span>
-                </span>
-              </RouterLink>
-              <button
-                type="button"
-                className="k-way"
-                aria-expanded={showVideo}
-                aria-controls="walkthrough"
-                onClick={() => setShowVideo(!showVideo)}
-              >
-                <h3>{t('m.demo.video.title')}</h3>
-                <p>{t('m.demo.video.text')}</p>
-                <span className="k-chips">
-                  <span className="k-chip">{t('m.chip.video')}</span>
-                  <span className="k-chip">{t('m.chip.60s')}</span>
-                </span>
-              </button>
-            </div>
-            {showVideo && (
-              <div className="walkthrough" id="walkthrough">
-                <video
-                  key={lang}
-                  src={walkthroughFile(lang, 'mp4')}
-                  poster={walkthroughFile(lang, 'jpg')}
-                  controls
-                  autoPlay
-                  playsInline
-                  preload="metadata"
-                  aria-label={t('m.demo.video.title')}
-                />
-              </div>
-            )}
-          </div>
-        </section>
-
-        <section className="k-screen" id="claims" aria-labelledby="claims-h">
-          <Claims />
-        </section>
-
-        <section className="k-screen" id="value" aria-labelledby="more-h">
-          <div className="k-wrap">
-            <h2 id="more-h" className="k-giant" data-reveal="">
-              {t('m.home.more')}
+            <h2 id="who-h" className="k-h2" data-reveal="">
+              {t('m.home2.whoTitle')}
             </h2>
             <div className="k-grid4 k-grid3">
-              {features.map(([title, text], i) => (
+              {who.map(([title, text, to, link], i) => (
                 <div key={title} data-reveal="" style={{ '--d': i } as React.CSSProperties}>
                   <h3>{title}</h3>
                   <p>{text}</p>
+                  <p>
+                    <RouterLink to={to} {...(to === LAB_DOOR ? { 'data-for-labs': 'home' } : {})}>
+                      {arrowed(`${link} →`)}
+                    </RouterLink>
+                  </p>
                 </div>
               ))}
             </div>
           </div>
         </section>
 
-        <section className="k-screen" id="status" aria-labelledby="limits-h">
+        <section className="k-sec" id="private" aria-labelledby="keep-h">
           <div className="k-wrap">
-            <h2 id="limits-h" className="k-h2" data-reveal="">
-              {t('m.stops.title')}
+            <h2 id="keep-h" className="k-h2" data-reveal="">
+              {t('m.home.keep.t')}
             </h2>
-            <div className="k-stack">
-              {stops.map(([title, text, tone, r]) => (
-                <article className={`k-stack-card ${tone}`} key={title} data-reveal="">
-                  <div className="k-stack-inner">
-                    <h3>{title}</h3>
-                    <p>{text}</p>
-                  </div>
-                  <StackMark r={r} />
-                </article>
-              ))}
-            </div>
-            <h3 className="k-h3">
-              <Two a={t('m.status.title1')} b={t('m.status.title2')} />
-            </h3>
-            <p className="k-sub">{t('m.status.lede')}</p>
-            <StandList />
-            <LiveWhere />
-            <p className="k-fine k-where-link">
-              <RouterLink to="/how-it-works#where">{arrowed(t('m.status.whereLink'))}</RouterLink>
+            <p className="k-lead" data-reveal="" style={{ '--d': 1 } as React.CSSProperties}>
+              {t('m.home.keep.p')}
+              {sp}
+              <RouterLink to="/privacy">{arrowed(t('m.demo.privacy'))}</RouterLink>
             </p>
           </div>
         </section>
 
-        <Updates />
-
-        <section className="k-sec" id="questions" aria-labelledby="faq-h">
+        <section className="k-sec" id="own-way" aria-labelledby="own-h" data-own-way="">
           <div className="k-wrap">
-            <h2 id="faq-h" className="k-h2" data-reveal="">
-              <Two a={t('m.faq.title1')} b={t('m.faq.title2')} />
+            <h2 id="own-h" className="k-h2" data-reveal="">
+              {t('m.own.title')}
             </h2>
-            <div className="faq">
-              <details>
-                <summary>{t('m.faq.1q')}</summary>
-                <p>{t('m.faq.1a')}</p>
-              </details>
-              <details>
-                <summary>{t('m.faq.2q')}</summary>
-                <p>{t('m.faq.2a')}</p>
-              </details>
-              <details>
-                <summary>{t('m.faq.3q')}</summary>
-                <p>
-                  {t('m.faq.3a')}
-                  {sp}
-                  <RouterLink to="/docs/evidence">{arrowed(t('m.faq.3link'))}</RouterLink>
-                </p>
-              </details>
-              <details>
-                <summary>{t('m.faq.4q')}</summary>
-                <p>
-                  {t('m.faq.4a')}
-                  {sp}
-                  <RouterLink to="/privacy">{arrowed(t('m.faq.4link1'))}</RouterLink>{' '}
-                  <RouterLink to="/docs/integrate">{arrowed(t('m.faq.4link2'))}</RouterLink>
-                </p>
-              </details>
-              <details>
-                <summary>{t('m.faq.6q')}</summary>
-                <p>{t('m.faq.6a')}</p>
-              </details>
-            </div>
-          </div>
-        </section>
-
-        <Technical />
-
-        <Marquee label={t('m.home.trustLabel')} list={t('m.home.trust')} />
-
-        {/* Talk to the founders (the design's close): who to write to, and their faces. What each kind of
-            reader should write about is on About (/founders#contact). */}
-        <section className="k-screen k-drench k-close" id="contact" aria-labelledby="close-h">
-          <Ambient seed="close" tone="dark" faint />
-          <div className="k-wrap">
-            {/* One colour on the gold: night text throughout (small text on gold is black). */}
-            <h2 id="close-h" className="k-giant" data-reveal="">
-              {t('m.contact.title1')}
+            <p className="k-lead" data-reveal="" style={{ '--d': 1 } as React.CSSProperties}>
+              {t('m.own.p')}
               {sp}
-              {t('m.contact.title2')}
-            </h2>
-            <div className="k-close-row">
-              <p className="k-drench-lead" data-reveal="" style={{ '--d': 1 } as React.CSSProperties}>
-                {t('m.home.closeLede')}
-                {sp}
-                <a href="mailto:mako@veilcore.org">mako@veilcore.org</a>
-                {lang === 'ja' ? '・' : ', '}
-                <a href="mailto:hunter@veilcore.org">hunter@veilcore.org</a>
-              </p>
-              <div className="k-actions" data-reveal="" style={{ '--d': 2 } as React.CSSProperties}>
-                <RouterLink className="k-btn k-btn-dark" to="/new">
-                  {t('m.demo.create.title')}
-                  <Arrow />
-                </RouterLink>
-                <a className="k-btn k-btn-line" href={FOUNDERS_MAIL}>
-                  {t('m.contact.email')}
-                </a>
-              </div>
-            </div>
-            <div
-              className="team-row k-close-team"
-              id="team"
-              role="group"
-              aria-label={`${t('m.team.title1')}${sp}${t('m.team.title2')}`}
-            >
-              {(
-                [
-                  ['Mako Steiner', 'MS', '/team/mako.jpg', 'm.mako.role'],
-                  ['Hunter Roberts', 'HR', '/team/hunter.jpg', 'm.hunter.role'],
-                ] as const
-              ).map(([name, initials, photo, role]) => (
-                <RouterLink className="person" to="/founders" key={name}>
-                  <Avatar initials={initials} photo={photo} />
-                  <span>
-                    <b>{name}</b>
-                    <span className="role">{t(role)}</span>
-                  </span>
-                </RouterLink>
-              ))}
-            </div>
+              <RouterLink to="/for-labs#own-way">{arrowed(t('m.own.link'))}</RouterLink>
+            </p>
           </div>
         </section>
 
-        <PhotoCredits names={['jar', 'cutting', 'greenhouse', 'lab', 'hand', 'cattle', 'seed', 'leaf']} />
+        <section className="k-sec" id="more" aria-labelledby="more-links-h">
+          <div className="k-wrap">
+            <h2 id="more-links-h" className="k-h2" data-reveal="">
+              {t('m.home2.moreTitle')}
+            </h2>
+            <ul className="k-link-list" data-home-more="">
+              {more.map(([to, label]) => (
+                <li key={to}>
+                  <RouterLink to={to}>{arrowed(`${label} →`)}</RouterLink>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+
         <NightClose />
       </div>
     </SiteShell>

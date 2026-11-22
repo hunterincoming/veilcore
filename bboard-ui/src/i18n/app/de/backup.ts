@@ -27,9 +27,9 @@ export const backup = {
   'app.backup.safari':
     'Dieser Browser kann die Daten einer Website nach 7 Tagen ohne Besuch löschen. Ihre Sicherungsdatei holt Ihre Datensätze zurück: Bewahren Sie sie auf.',
   'app.backup.actAsYou':
-    'Mit dieser Datei kann jeder Ihre Datensätze öffnen und als Sie auftreten. Am besten: ein USB-Stick oder ein Passwort-Manager. Wenn Sie sie per E-Mail senden, nutzen Sie ein Konto mit Anmeldung in zwei Schritten.',
+    'Mit dieser Datei kann jeder Ihre Datensätze öffnen und als Sie auftreten, außer sie hat ein Passwort. Am besten: ein USB-Stick oder ein Passwort-Manager. Bewahren Sie das Passwort getrennt von der Datei auf.',
   'app.backup.sentCopy': 'Kopie gesendet ✓',
-  'app.backup.sendCopy': 'Eine Kopie senden (E-Mail, Drive, Dateien…)',
+  'app.backup.sendCopy': 'Eine Kopie woanders sichern (Dateien, Drive…)',
   'app.backup.shareFailed': 'Dieser Browser konnte sein Teilen-Menü nicht öffnen.',
   'app.backup.byHand': 'Es ist die Datei, die Sie gerade gespeichert haben, in Ihrem Download-Ordner.',
   'app.backup.saveAgain': 'Noch eine Kopie speichern',
@@ -41,7 +41,7 @@ export const backup = {
   'app.backup.openCopy': 'Meine gespeicherte Kopie öffnen',
   'app.backup.saveFirst': 'Speichern Sie zuerst die Sicherungsdatei.',
   'app.backup.turnsOn': 'Das wird aktiv, sobald die Prüfung bestanden ist.',
-  'app.backup.pw.add': 'Ein Passwort hinzufügen (empfohlen)',
+  'app.backup.pw.add': 'Mit einem Passwort verschließen (empfohlen)',
   'app.backup.pw.why':
     'Dann öffnet die Datei allein nichts: Wer sie hat, braucht auch das Passwort. Wenn Sie es vergessen, kann niemand die Datei öffnen, auch wir nicht.',
   'app.backup.pw.label': 'Passwort für die Sicherungsdatei',
@@ -58,6 +58,12 @@ export const backup = {
   'app.backup.restoreTitle': 'Datensätze wiederherstellen',
   'app.backup.restoreIntro':
     'Neues Handy oder neuer Computer, oder Browserdaten gelöscht? Öffnen Sie die Sicherungsdatei, die Sie gespeichert haben.',
+  'app.backup.ownOnly':
+    'Öffnen Sie nur eine Datei oder einen Code, den Sie selbst gesichert haben. VeilCore fragt nie danach und schickt Ihnen nie so etwas.',
+  'app.backup.preview.one': 'Diese Sicherung wurde am {date} erstellt und enthält {count} Datensatz. Hierher holen?',
+  'app.backup.preview.other': 'Diese Sicherung wurde am {date} erstellt und enthält {count} Datensätze. Hierher holen?',
+  'app.backup.previewUndated.one': 'Diese Sicherung enthält {count} Datensatz. Hierher holen?',
+  'app.backup.previewUndated.other': 'Diese Sicherung enthält {count} Datensätze. Hierher holen?',
   'app.backup.plantsBack': 'Ihre Datensätze sind wieder da.',
   'app.backup.restored': 'Wiederhergestellt.',
   'app.backup.nothingNew': 'In dieser Datei ist nichts Neues.',
@@ -72,7 +78,7 @@ export const backup = {
   'app.backup.and': '{a} und {b}',
   'app.backup.seeMyPlants': 'Meine Datensätze ansehen',
   'app.backup.lookIn':
-    'Sehen Sie auf Ihrem USB-Stick, in Ihrem Passwort-Manager oder in Ihren E-Mails, in Drive oder iCloud nach. Jeder Dateiname ist in Ordnung. Es wird nichts hochgeladen.',
+    'Sehen Sie auf Ihrem USB-Stick, im Passwort-Manager, in E-Mails oder im Cloud-Speicher nach. Es wird nichts hochgeladen.',
   'app.backup.openFile': 'Meine Sicherungsdatei öffnen',
   'app.backup.onlyKey': 'Haben Sie nur Ihren Inhaberschlüssel (64 Zeichen)?',
   'app.backup.keyLabel': 'Ihr Inhaberschlüssel (64 Zeichen)',

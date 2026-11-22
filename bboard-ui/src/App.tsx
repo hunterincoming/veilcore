@@ -287,7 +287,10 @@ const withLayout = (el: React.ReactNode) => (
 /** The browser tab's title for each page; the home page keeps the one in index.html. */
 const PAGE_TITLES: [RegExp, string][] = [
   [/^\/how-it-works/, 'How it works'],
-  [/^\/founders/, 'Founders'],
+  [/^\/founders/, 'About'],
+  [/^\/for-labs/, 'For labs'],
+  [/^\/settings/, 'Settings'],
+  [/^\/lab\/results/, 'Sign lab results'],
   [/^\/terms/, 'Terms of use'],
   [/^\/help/, 'Help'],
   [/^\/status/, 'Service status'],
@@ -296,6 +299,8 @@ const PAGE_TITLES: [RegExp, string][] = [
   [/^\/verify\/example/, 'Example record'],
   [/^\/verify/, 'Check a record'],
   [/^\/records\/import/, 'Date your collection'],
+  [/^\/records\/labels/, 'Print QR labels'],
+  [/^\/records\/authority-pack/, 'Pack for REPROCANN / SEDRONAR'],
   [/^\/records/, 'Your records'],
   [/^\/restore/, 'Get your records back'],
   [/^\/backup/, 'Save your backup'],
@@ -305,6 +310,7 @@ const PAGE_TITLES: [RegExp, string][] = [
   [/^\/implementations/, 'Implementations'],
   [/^\/partners/, 'Require a record'],
   [/^\/new/, 'Make a record'],
+  [/^\/documents\/new/, 'Make a record'],
   [/^\/record\//, 'Record'],
   [/^\/licenses?(\/|$)/, 'Agreements'],
 ];
@@ -313,7 +319,12 @@ const HOME_TITLE = typeof document === 'undefined' ? '' : document.title;
 /** Each title above in the visitor's language (i18n/en.ts title.*). */
 const TITLE_KEYS: Record<string, StringKey> = {
   'How it works': 'title.how',
-  Founders: 'title.founders',
+  About: 'title.founders',
+  'For labs': 'title.forLabs',
+  Settings: 'title.settings',
+  'Sign lab results': 'title.labResults',
+  'Print QR labels': 'title.labels',
+  'Pack for REPROCANN / SEDRONAR': 'title.pack',
   'Terms of use': 'title.terms',
   Help: 'title.help',
   'Service status': 'title.status',
@@ -419,7 +430,17 @@ const routes = (
         </Light>
       }
     />
-    <Route path="/for-labs" element={withLayout(<LabDoor />)} />
+    {/* A page for a lab owner, in the public pages' frame: opening it changes nothing (lab/LabDoor.tsx). */}
+    <Route
+      path="/for-labs"
+      element={
+        <Light>
+          <CheckFrame>
+            <LabDoor />
+          </CheckFrame>
+        </Light>
+      }
+    />
     <Route path="/lab/results" element={withLayout(<LabResultsPage />)} />
     <Route
       path="/check-lab-result"

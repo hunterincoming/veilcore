@@ -8,10 +8,10 @@ export const dating = {
   'app.chain.progress.starting': 'Iniciando el generador de pruebas en su dispositivo…',
 
   'app.log.recordDatedNext.one':
-    'Registro fechado: en el próximo lote (aproximadamente cada {count} minuto en la red de pruebas)',
+    'Su registro recibe su fecha con el próximo grupo de registros (más o menos cada {count} minuto en la red de prueba)',
   'app.log.recordDatedNext.other':
-    'Registro fechado: en el próximo lote (aproximadamente cada {count} minutos en la red de pruebas)',
-  'app.log.recordDatedNextPlain': 'Registro fechado: en el próximo lote',
+    'Su registro recibe su fecha con el próximo grupo de registros (más o menos cada {count} minutos en la red de prueba)',
+  'app.log.recordDatedNextPlain': 'Su registro recibe su fecha con el próximo grupo de registros',
   'app.log.inSeconds': 'en {n} s',
   'app.log.retryingIn': 'Se volverá a intentar solo {when} (intento {n}).',
   'app.log.retriesUsed':
@@ -20,7 +20,7 @@ export const dating = {
   'app.log.keepsTrying':
     'Se sigue intentando solo mientras VeilCore esté abierto, y la página de inicio lo muestra hasta que se complete.',
 
-  'app.plant.nextBatch': 'en el próximo lote',
+  'app.plant.nextBatch': 'con el próximo grupo de registros',
   'app.plant.nextBatchEvery.one': 'aproximadamente cada {count} minuto en la red de pruebas',
   'app.plant.nextBatchEvery.other': 'aproximadamente cada {count} minutos en la red de pruebas',
   'app.plant.notSentYet': 'aún no se envió a VeilCore; se vuelve a intentar solo',
@@ -41,11 +41,11 @@ export const dating = {
   'app.pickup.saveBackup': 'Guardar mi copia de seguridad',
   'app.pickup.openAgreements': 'Abrir acuerdos',
   'app.pickup.dating.notSent': '{name}: sellado. Su código de prueba se envía a VeilCore en cuanto VeilCore responda.',
-  'app.pickup.dating.next': '{name} recibirá su fecha en el próximo lote.',
+  'app.pickup.dating.next': '{name} recibirá su fecha con el próximo grupo de registros.',
   'app.pickup.dating.nextEvery.one':
-    '{name} recibirá su fecha en el próximo lote (sale uno cada {count} minuto, aproximadamente).',
+    '{name} recibirá su fecha con el próximo grupo de registros (sale uno cada {count} minuto, aproximadamente).',
   'app.pickup.dating.nextEvery.other':
-    '{name} recibirá su fecha en el próximo lote (sale uno cada {count} minutos, aproximadamente).',
+    '{name} recibirá su fecha con el próximo grupo de registros (sale uno cada {count} minutos, aproximadamente).',
   'app.pickup.dating.batched': '{name} ya está en un lote, a la espera de su fecha.',
   'app.pickup.dating.progress': 'Paso {n} de {total} hacia su fecha',
   'app.pickup.more.one': 'y {count} más en camino a su fecha',

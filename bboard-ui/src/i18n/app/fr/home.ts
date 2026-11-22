@@ -16,7 +16,7 @@ export const home = {
   'app.home.aboutThreeMinutesByHand':
     'Environ 3 minutes. À la fin, il est scellé ; sa date publique vient quand nous ancrons son lot (à la main pour l’instant). Vous êtes seul à détenir la clé.',
   'app.home.continue': 'Reprendre',
-  'app.home.start': 'Commencer',
+  'app.home.start': 'Créer un enregistrement',
   'app.home.spreadsheet': 'Vous avez un tableur ? Datez toute votre collection',
   'app.home.newPhone': 'Nouveau téléphone ? Récupérez vos enregistrements',
   'app.home.newPhoneLab': 'Nouveau téléphone ? Récupérez la clé et les échantillons de votre laboratoire',
@@ -28,7 +28,7 @@ export const home = {
   'app.home.whatStops': 'Qu’est-ce qui empêche quelqu’un d’enregistrer mon matériel génétique en premier ?',
   'app.home.samplesReceived': 'Échantillons reçus',
   'app.home.yourRecords': 'Vos enregistrements',
-  'app.home.logNew': 'Nouveau',
+  'app.home.logNew': 'Créer un enregistrement',
   'app.home.saveIt': 'L’enregistrer',
   'app.home.finishBackupLine': '<b>Pour finir : enregistrez votre sauvegarde.</b> {line}',
   'app.home.keysOnlyHereRecords.one': '{count} enregistrement a des clés uniquement sur cet appareil.',
@@ -95,6 +95,48 @@ export const home = {
   'app.home.labDoor.text': 'Vos enregistrements restent tels quels.',
   'app.home.labDoor.add': 'Ajouter les outils de laboratoire',
   'app.home.labDoor.notNow': 'Pas maintenant',
+  'app.labpage.title': 'VeilCore pour les laboratoires',
+  'app.labpage.lede':
+    'Signez les résultats que vous produisez déjà. L’obtenteur peut les montrer, et qui les voit peut vérifier quelle clé les a signés, et quand. Votre propre système continue de fonctionner comme avant.',
+  'app.labpage.setUp': 'Configurer votre laboratoire',
+  'app.labpage.gets.title': 'Ce que votre laboratoire obtient',
+  'app.labpage.gets.key.t': 'Une clé de signature.',
+  'app.labpage.gets.key.p':
+    'Créée dans votre navigateur. Les accusés de réception et les résultats que vous signez la portent, et toute personne à qui on les montre peut vérifier la signature.',
+  'app.labpage.gets.arrived.t': 'Un accusé de réception signé pour chaque échantillon.',
+  'app.labpage.gets.arrived.p':
+    'Un obtenteur envoie un échantillon avec un code laboratoire VeilCore. Vous confirmez qu’il est arrivé, ou le refusez, et vous le signez.',
+  'app.labpage.gets.results.t': 'Des résultats verrouillés pour l’obtenteur.',
+  'app.labpage.gets.results.p':
+    'Seuls l’obtenteur, votre laboratoire et l’expéditeur de l’échantillon les voient, et seul l’obtenteur peut les montrer à d’autres.',
+  'app.labpage.work.title': 'Ce qui change dans votre travail',
+  'app.labpage.work.p1':
+    'Rien dans votre propre système. Quand un échantillon arrive avec un code laboratoire, vous collez ou scannez le code, confirmez la livraison, puis signez votre résultat.',
+  'app.labpage.work.p2':
+    'Les données de vos échantillons et les noms de vos clients restent chez vous. VeilCore garde les accusés que vous signez, et vos résultats verrouillés pour que seul l’obtenteur puisse les ouvrir.',
+  'app.labpage.cost.title': 'Ce que ça coûte',
+  'app.labpage.cost.p': 'Gratuit pour essayer. Les offres pour laboratoires sont prêtes, mais pas activées.',
+  'app.labpage.own.title': 'Utilisez-le à votre façon',
+  'app.labpage.own.lede':
+    'Vous n’êtes jamais obligé d’utiliser veilcore.org. Tout le code de VeilCore est ouvert, sous licence Apache-2.0.',
+  'app.labpage.own.site.t': 'Utiliser veilcore.org.',
+  'app.labpage.own.site.p': 'Rien à configurer. Nous faisons tourner le serveur et payons les frais de réseau.',
+  'app.labpage.own.plug.t': 'L’intégrer à votre propre logiciel.',
+  'app.labpage.own.plug.p':
+    'Votre système garde vos données et ajoute un code de preuve à chaque enregistrement, avec le paquet de contrats @veilcore/contracts.',
+  'app.labpage.own.plug.link': 'Comment l’intégrer →',
+  'app.labpage.own.run.t': 'Faire tourner votre propre copie.',
+  'app.labpage.own.run.p':
+    'Le site, le serveur qui garde les enregistrements et le service de frais sont du code ouvert. Vous les hébergeriez et paieriez vos propres frais de réseau.',
+  'app.labpage.own.run.link': 'Ce qui marche sans nous →',
+  'app.labpage.own.plainly':
+    'Pour être clair : personne en dehors de VeilCore n’a encore fait tourner son propre serveur ou service de frais, donc le faire sans notre aide n’est pas testé. Le contrat principal des enregistrements a une clé de maintenance, que nous détenons. Le contrat des preuves de faits n’en a pas.',
+  'app.labpage.own.policyLink': 'Qui détient la clé de maintenance, et quand elle peut servir →',
+  'app.labpage.own.codeLink': 'Le code sur GitHub →',
+  'app.labpage.gone.title': 'Si VeilCore disparaît',
+  'app.labpage.gone.p':
+    'Ce qui est déjà daté le reste : les dates sont sur Midnight, et le fichier de sauvegarde d’un obtenteur contient ses enregistrements et les preuves pour les vérifier avec des outils libres et ouverts. Ce qui s’arrête, c’est créer de nouveaux enregistrements et transmettre des codes laboratoire, jusqu’à ce que quelqu’un fasse tourner un serveur à partir du code ouvert.',
+  'app.labpage.gone.link': 'Tout ce qui continue sans nous →',
   'app.home.saveProblem.records': 'enregistrements',
   'app.home.saveProblem.agreements': 'accords',
   'app.home.saveProblem.unreachable':
@@ -122,7 +164,7 @@ export const home = {
   'app.home.paste.go': 'Ouvrir',
   'app.home.paste.orMake': 'Rien à coller ? Créez un enregistrement',
   'app.home.paste.hint':
-    'Un code laboratoire, un lien vers un enregistrement, une demande de prouver que vous détenez un enregistrement ou un accord à signer. Nous reconnaissons lequel.',
+    'Un code laboratoire, un lien vers un enregistrement ou un accord à signer. Nous reconnaissons lequel.',
   'app.home.paste.whichRecord':
     'C’est une demande de prouver que vous détenez un enregistrement. Lequel vous a-t-on demandé ?',
   'app.home.receivedFrom': 'Reçue de {name}',

@@ -27,9 +27,9 @@ export const backup = {
   'app.backup.safari':
     'Este navegador puede borrar los datos de un sitio tras 7 días sin visitarlo. Su archivo de copia de seguridad es lo que recupera sus registros: consérvelo.',
   'app.backup.actAsYou':
-    'Cualquiera que tenga este archivo puede abrir sus registros y actuar como usted. Lo mejor: una memoria USB o un gestor de contraseñas. Si lo envía por correo, use una cuenta con verificación en dos pasos.',
+    'Cualquiera que tenga este archivo puede abrir sus registros y actuar como usted, salvo que tenga contraseña. Lo mejor: una memoria USB o un gestor de contraseñas. Guarde la contraseña aparte del archivo.',
   'app.backup.sentCopy': 'Copia enviada ✓',
-  'app.backup.sendCopy': 'Enviar una copia (correo, Drive, Archivos…)',
+  'app.backup.sendCopy': 'Guardar una copia en otro lugar (Archivos, Drive…)',
   'app.backup.shareFailed': 'Este navegador no pudo abrir su menú para compartir.',
   'app.backup.byHand': 'Es el archivo que acaba de guardar, en su carpeta de Descargas.',
   'app.backup.saveAgain': 'Guardar otra copia',
@@ -41,7 +41,7 @@ export const backup = {
   'app.backup.openCopy': 'Abrir mi copia guardada',
   'app.backup.saveFirst': 'Guarde primero el archivo de copia de seguridad.',
   'app.backup.turnsOn': 'Se activa cuando la comprobación sale bien.',
-  'app.backup.pw.add': 'Agregar una contraseña (recomendado)',
+  'app.backup.pw.add': 'Cerrarlo con una contraseña (recomendado)',
   'app.backup.pw.why':
     'Así, el archivo por sí solo no abre nada: quien lo tenga también necesita la contraseña. Si la olvida, nadie puede abrir el archivo, ni siquiera nosotros.',
   'app.backup.pw.label': 'Contraseña del archivo de copia de seguridad',
@@ -58,6 +58,12 @@ export const backup = {
   'app.backup.restoreTitle': 'Recupere sus registros',
   'app.backup.restoreIntro':
     '¿Teléfono o computadora nuevos, o borró los datos de su navegador? Abra el archivo de copia de seguridad que guardó.',
+  'app.backup.ownOnly':
+    'Abra solo un archivo o un código que haya guardado usted. VeilCore nunca se lo pedirá ni se lo enviará.',
+  'app.backup.preview.one': 'Este respaldo se hizo el {date} y tiene {count} registro. ¿Traerlo aquí?',
+  'app.backup.preview.other': 'Este respaldo se hizo el {date} y tiene {count} registros. ¿Traerlos aquí?',
+  'app.backup.previewUndated.one': 'Este respaldo tiene {count} registro. ¿Traerlo aquí?',
+  'app.backup.previewUndated.other': 'Este respaldo tiene {count} registros. ¿Traerlos aquí?',
   'app.backup.plantsBack': 'Sus registros están de vuelta.',
   'app.backup.restored': 'Restaurado.',
   'app.backup.nothingNew': 'No hay nada nuevo en ese archivo.',
@@ -71,8 +77,7 @@ export const backup = {
   'app.backup.nCodes.other': '{count} códigos de laboratorio',
   'app.backup.and': '{a} y {b}',
   'app.backup.seeMyPlants': 'Ver mis registros',
-  'app.backup.lookIn':
-    'Busque en su memoria USB, en su gestor de contraseñas, o en su correo, Drive o iCloud. Cualquier nombre de archivo sirve. No se sube nada.',
+  'app.backup.lookIn': 'Busque en su memoria USB, su gestor de contraseñas, su correo o su nube. No se sube nada.',
   'app.backup.openFile': 'Abrir mi archivo de copia de seguridad',
   'app.backup.onlyKey': '¿Solo tiene su clave de titular (64 caracteres)?',
   'app.backup.keyLabel': 'Su clave de titular (64 caracteres)',

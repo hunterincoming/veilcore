@@ -101,7 +101,8 @@ describe('Add the next generation or selection: the prefilled first screen', () 
     expect(d.stage).toBe('');
     expect(d.selectedFor).toBe('');
     expect(d.notes).toBe('');
-    expect(d.dateCreated).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    // The stated date starts empty, never today (22 Nov).
+    expect(d.dateCreated).toBe('');
     expect(nextStagePath(parent.id)).toBe(`/new?next=${parent.id}`);
   });
 

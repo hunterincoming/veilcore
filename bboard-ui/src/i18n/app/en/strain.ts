@@ -23,9 +23,9 @@ export const strain = {
   'app.strain.v.app.log.keyStamped':
     "Key date stamped. Your strain's key is dated too, so you can prove you hold it later.{bound} Nothing about the strain went out.",
   'app.strain.v.app.log.onlyFingerprint':
-    "Only a code made from your strain's key goes out, nothing about the strain. Free: VeilCore pays the network fee.",
+    'Optional: it lets you prove later that you hold this record. Only a code made from its key goes out, nothing about the strain. Free.',
   'app.strain.v.app.log.keepOpen':
-    'This takes about a minute. Keep this screen open until it’s done: on a phone, switching apps or locking the screen can stop it. If it stops, nothing is lost: your strain is saved, and its page will offer the date stamp again.',
+    "You don't need to wait here. It takes about a minute and keeps trying by itself while VeilCore is open. If it stops, nothing is lost: your strain's page offers the key date stamp again.",
   'app.strain.v.app.chain.stampMayHaveGoneOut':
     "Your date stamp may already have gone out{tx}. Your strain is saved. Don't try again until that transaction has been checked on the network.",
   'app.strain.v.app.chain.stampUnreachable':

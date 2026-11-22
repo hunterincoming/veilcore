@@ -97,9 +97,9 @@ export const animal = {
   'app.animal.v.app.log.keyStamped':
     'Clave con sello de fecha. La clave de su animal también queda fechada, para que más adelante pueda demostrar que tiene su registro.{bound} No salió nada sobre el animal.',
   'app.animal.v.app.log.onlyFingerprint':
-    'Solo sale un código de la clave de su animal, nada sobre el animal. Gratis: VeilCore paga la tarifa de la red.',
+    'Opcional: le permite probar más adelante que tiene este registro. Solo sale un código de su clave, nada sobre el animal. Gratis.',
   'app.animal.v.app.log.keepOpen':
-    'Tarda alrededor de un minuto. Mantenga esta pantalla abierta hasta que termine: en un teléfono, cambiar de aplicación o bloquear la pantalla puede detenerlo. Si se detiene, no se pierde nada: su animal está guardado y su página le ofrecerá el sello de fecha de nuevo.',
+    'No hace falta esperar aquí. Tarda alrededor de un minuto y se sigue intentando solo mientras VeilCore está abierto. Si se detiene, no se pierde nada: la página de su animal vuelve a ofrecer el sello de fecha de la clave.',
   'app.animal.v.app.chain.stampMayHaveGoneOut':
     'Puede que su sello de fecha ya se haya enviado{tx}. Su animal está guardado. No lo intente de nuevo hasta que esa transacción se haya comprobado en la red.',
   'app.animal.v.app.chain.stampUnreachable':

@@ -59,7 +59,10 @@ import {
   Typography,
 } from '@mui/material';
 import { Link as RouterLink, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import VerifiedIcon from '@mui/icons-material/VerifiedOutlined';
+// A plain dated mark, not a "verified" rosette: nothing here is a seal of approval (full review, 22 Nov).
+import DatedIcon from '@mui/icons-material/EventAvailableOutlined';
+import NotDatedIcon from '@mui/icons-material/EventOutlined';
+import MismatchIcon from '@mui/icons-material/ErrorOutlineOutlined';
 import { loadFingerprintCircuit, MAX_FINGERPRINT_BYTES, shortFingerprint } from '../veilcore/commitment';
 import { DatedNotOrigin } from '../components/verify/DatedNotOrigin';
 import { AnotherRecord, CheckVerdict, MakeYourOwn, SeeTheChecks } from '../components/verify/CheckParts';
@@ -748,7 +751,7 @@ export const VerifyPage: React.FC = () => {
           // some other record (or none), so nothing on it is checked or shown as this one.
           <Paper sx={{ p: { xs: 3, md: 4 } }}>
             <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', mb: 2 }}>
-              <VerifiedIcon data-checked="no" aria-hidden="true" sx={{ color: 'text.disabled', fontSize: 30 }} />
+              <MismatchIcon data-checked="no" aria-hidden="true" sx={{ color: 'text.disabled', fontSize: 30 }} />
               <Typography variant="h6" component="h1" sx={{ color: 'error.main', lineHeight: 1.4 }}>
                 {t('app.verify.mismatch.title')}
               </Typography>
@@ -815,18 +818,23 @@ export const VerifyPage: React.FC = () => {
                 spacing={1.5}
                 sx={{ alignItems: 'center', mb: 2, pr: seal && sealedAt !== undefined ? { xs: 7, sm: 9 } : 0 }}
               >
-                {/* The mark: an ink tick on gold once dated on the main network, amber on a test
-                  network, grey until then; the lines below still tick what this browser did check. */}
-                <VerifiedIcon
-                  aria-hidden="true"
-                  data-checked={seal ? 'yes' : 'no'}
-                  data-test-network={testSeal ? 'yes' : 'no'}
-                  sx={{
-                    color: seal ? sealColor : 'text.disabled',
-                    fontSize: 30,
-                    ...(seal && !testSeal ? { bgcolor: POLLEN, borderRadius: '50%', p: 0.375, fontSize: 34 } : {}),
-                  }}
-                />
+                {/* The mark: a dated calendar, ink on gold once dated on the main network, amber on a
+                  test network, grey until then; the lines below still tick what this browser did check. */}
+                {(() => {
+                  const Mark = seal ? DatedIcon : NotDatedIcon;
+                  return (
+                    <Mark
+                      aria-hidden="true"
+                      data-checked={seal ? 'yes' : 'no'}
+                      data-test-network={testSeal ? 'yes' : 'no'}
+                      sx={{
+                        color: seal ? sealColor : 'text.disabled',
+                        fontSize: 30,
+                        ...(seal && !testSeal ? { bgcolor: POLLEN, borderRadius: '50%', p: 0.375, fontSize: 34 } : {}),
+                      }}
+                    />
+                  );
+                })()}
                 <Box>
                   <Typography
                     variant="h6"

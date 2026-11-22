@@ -589,10 +589,10 @@ const PlantForm: React.FC<{
       // A landrace is said once: "How it was made" follows, when it says nothing yet.
       ...(v === 'landrace' && !draft.breedingMethod ? { breedingMethod: LANDRACE_METHOD } : {}),
       ...(v !== 'landrace' && draft.breedingMethod === LANDRACE_METHOD ? { breedingMethod: '' } : {}),
-      // "When you made it" means nothing for a family heirloom or seed received: today is not
-      // filled in for them (the date is the holder's own note, optional).
+      // The date is the holder's own note, optional, and never filled in for them (full review,
+      // 22 Nov: "stated today" on a years-old cultivar misleads an examiner). A draft from before
+      // that carries today for a family heirloom or seed received: cleared, as before.
       ...(v !== 'bred' && draft.dateCreated === today() ? { dateCreated: '' } : {}),
-      ...(v === 'bred' && !draft.dateCreated ? { dateCreated: today() } : {}),
     });
   const moreId = useId();
   const hintId = useId();
@@ -1225,16 +1225,24 @@ const Stamp: React.FC<{ step: string; recordId: string; onNext: () => void }> = 
           <Button variant="text" color="inherit" onClick={onNext} sx={{ minHeight: 48 }}>
             {t('app.log.stampLater')}
           </Button>
-          {problem.retry && !stopped && (
+          {/* Not under the countdown, which already says it tries again by itself (22 Nov). */}
+          {problem.retry && !stopped && stamp.nextInSeconds === undefined && (
             <Typography variant="caption" color="text.secondary" sx={{ textAlign: 'center' }}>
               {t('app.log.keepsTrying')}
             </Typography>
           )}
         </>
       ) : stamp.offline ? null : (
-        <Typography variant="body2" color="text.secondary">
-          {t('app.log.keepOpen')}
-        </Typography>
+        // Optional, and nobody is held here for it (full review, 22 Nov): the stamp keeps trying by
+        // itself while VeilCore is open, and Home lists it until it goes through.
+        <>
+          <Typography variant="body2" color="text.secondary">
+            {t('app.log.keepOpen')}
+          </Typography>
+          <Button variant="text" color="inherit" onClick={onNext} sx={{ minHeight: 48 }} data-stamp-go-on="">
+            {t('app.log.stampLater')}
+          </Button>
+        </>
       )}
       {keysFor(recordId) === undefined && !stamp.offline && <CircularProgress />}
     </Stack>

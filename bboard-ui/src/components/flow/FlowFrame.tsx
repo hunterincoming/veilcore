@@ -159,18 +159,26 @@ export const isTouch = (): boolean => {
 
 /** One screen of a flow: the section band, the screen, and a way home that loses nothing. */
 export const FlowFrame: React.FC<
-  React.PropsWithChildren<{ section: Section; step?: string; extra?: React.ReactNode }>
-> = ({ section, step, extra, children }) => {
+  React.PropsWithChildren<{
+    section: Section;
+    step?: string;
+    extra?: React.ReactNode;
+    /** The "Your records. Your progress is saved." link under it; off where nothing is in progress. */
+    home?: boolean;
+  }>
+> = ({ section, step, extra, home = true, children }) => {
   const { t } = useI18n();
   return (
     <Box sx={{ maxWidth: 600, mx: 'auto' }}>
       <SectionBand section={section} step={step} extra={extra} />
       <Paper sx={{ p: { xs: 2.25, md: 3.5 }, mt: 1.5 }}>{children}</Paper>
-      <Box sx={{ textAlign: 'center', mt: 2 }}>
-        <Button component={RouterLink} to="/records" startIcon={<HomeIcon />} color="inherit" sx={{ minHeight: 48 }}>
-          {t('app.frame.home')}
-        </Button>
-      </Box>
+      {home && (
+        <Box sx={{ textAlign: 'center', mt: 2 }}>
+          <Button component={RouterLink} to="/records" startIcon={<HomeIcon />} color="inherit" sx={{ minHeight: 48 }}>
+            {t('app.frame.home')}
+          </Button>
+        </Box>
+      )}
     </Box>
   );
 };

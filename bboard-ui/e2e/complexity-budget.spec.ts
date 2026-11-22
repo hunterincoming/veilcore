@@ -8,6 +8,7 @@
 //   - moreDepth: how many "More"/"Technical details" levels deep the screen goes;
 // plus how many screens and taps it takes from the landing page to sealing a first record, and
 // any jargon shown on a default screen that the budget doesn't already list as there today.
+// The landing page (site.home) is measured too, with its height on the phone (siteHomeHeight).
 // Against the stand-in registry; the network and the fee sponsor are refused.
 // BUDGET_REPORT=<file> writes what was measured, for updating the budget by hand.
 // SPDX-License-Identifier: Apache-2.0
@@ -27,6 +28,8 @@ type Measure = { primary: number; buttons: number; words: number; moreDepth: num
 type ScreenBudget = { primary: number; buttons: number; moreDepth: number; words: Record<Lang, number> };
 type Budget = {
   screens: Record<string, ScreenBudget>;
+  /** The landing page's height on an iPhone 14, in CSS pixels. */
+  siteHomeHeight: number;
   firstSeal: { screens: number; taps: number };
   jargon: { terms: Record<Lang, string[]>; today: Record<string, Partial<Record<Lang, string[]>>> };
 };
@@ -211,6 +214,7 @@ const moreDepth = async (page: Page, rootSelector: string): Promise<number> => {
 const SCREENS: Record<string, Partial<Record<Lang, Measure>>> = {};
 const TEXTS: Record<string, Partial<Record<Lang, string>>> = {};
 const FIRST_SEAL: Partial<Record<Lang, { screens: number; taps: number }>> = {};
+const HEIGHTS: Partial<Record<Lang, number>> = {};
 
 /** Measure one screen: its default view first, then how deep its "More"s go. */
 const measure = async (page: Page, lang: Lang, screen: string, rootSelector: string) => {
@@ -272,6 +276,20 @@ for (const { lang, locale, words } of LANGS) {
       // opens by itself on the way counts as a screen too.
       let screens = 1;
       let taps = 0;
+      await page.goto('/');
+      await expect(page.locator('h1').first()).toBeVisible();
+      // The landing page itself (22 Nov 2026: it was about 25 phone screens), and how tall it is.
+      // With reduced motion, so every section is shown at once rather than as it scrolls in (a
+      // section still fading in would not be counted).
+      await page.emulateMedia({ reducedMotion: 'reduce' });
+      await page.goto('/');
+      await expect(page.locator('h1').first()).toBeVisible();
+      await check('site.home');
+      const tall = await page.evaluate(() => document.documentElement.scrollHeight);
+      if (tall > budget.siteHomeHeight)
+        over.push(`site.home (${lang}): ${tall}px tall, budget ${budget.siteHomeHeight}px`);
+      HEIGHTS[lang] = tall;
+      await page.emulateMedia({ reducedMotion: null });
       await page.goto('/');
       await expect(page.locator('h1').first()).toBeVisible();
       const heading = page.locator('[data-screen-heading]').first();
@@ -357,6 +375,7 @@ const report = (lang: Lang) => {
   const mine = {
     screens: Object.fromEntries(Object.entries(SCREENS).map(([k, v]) => [k, v[lang]])),
     firstSeal: FIRST_SEAL[lang],
+    siteHomeHeight: HEIGHTS[lang],
   };
   console.log(`complexity budget, measured (${lang}): ${JSON.stringify(mine)}`);
   const file = process.env.BUDGET_REPORT;

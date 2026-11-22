@@ -15,7 +15,7 @@
 // table is the site's LiveWhere, driven by the flags in config/copy.ts, not his hand-written rows.
 // SPDX-License-Identifier: Apache-2.0
 
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { Link as RouterLink, useLocation } from 'react-router-dom';
 import { useI18n } from '../../i18n';
 import { SiteShell } from './SiteShell';
@@ -33,6 +33,7 @@ import {
   useScrollPieces,
 } from './night-parts';
 import { Claims } from './Claims';
+import { MovedFromHome, TryIt } from './Home';
 import { LiveWhere, StandList } from './LiveWhere';
 import './home.css';
 
@@ -42,6 +43,8 @@ const HOW_HEX = 'a4bc41d13611d125b6b91a85a77972588a326187dabb9d3aa0699f8483e16f8
 export const HowItWorks: React.FC = () => {
   const { t, sp, lang } = useI18n();
   const { hash } = useLocation();
+  // The title's display follows the try-it code once something is typed (TryIt, from the home page).
+  const [hex, setHex] = useState('');
   const root = useRef<HTMLDivElement>(null);
   useReveals(root);
   useScrollPieces(root);
@@ -96,9 +99,14 @@ export const HowItWorks: React.FC = () => {
                   {t('m.contact.spec')}
                 </RouterLink>
               </div>
+              {/* Where things stand (the home page's hero line until 22 Nov). */}
+              <p className="k-fine k-status-line" data-intro="" style={{ '--i': 3 } as React.CSSProperties}>
+                {t('m.hero.status')}
+              </p>
             </div>
-            <EventDisplay hex={HOW_HEX} />
+            <EventDisplay hex={hex || HOW_HEX} />
           </div>
+          <TryIt onHash={setHex} />
         </header>
 
         <PhotoScreen labelledBy="party-h" name="lab" alt={t('m.home.alt.lab')}>
@@ -145,6 +153,8 @@ export const HowItWorks: React.FC = () => {
                   [t('m.hiw.chain1t'), t('m.hiw.chain1p')],
                   [t('m.hiw.chain2t'), t('m.hiw.chain2p')],
                   [t('m.hiw.chain3t'), t('m.hiw.chain3p')],
+                  // What Midnight itself does beyond dating (full review, 22 Nov: it wasn't said).
+                  [t('m.hiw.chain4t'), t('m.hiw.chain4p')],
                 ])}
                 <p className="k-fine">
                   <RouterLink to="/privacy">{arrowed(t('m.hiw.chainMore'))}</RouterLink>
@@ -172,6 +182,9 @@ export const HowItWorks: React.FC = () => {
           </div>
         </section>
 
+        {/* What the home page carried until 22 Nov 2026 (Home.tsx MovedFromHome): nothing deleted. */}
+        <MovedFromHome />
+
         <section className="k-sec" id="gone" aria-labelledby="gone-h">
           <div className="k-wrap">
             <h2 id="gone-h" className="k-giant" data-reveal="">
@@ -196,7 +209,7 @@ export const HowItWorks: React.FC = () => {
           </div>
         </section>
 
-        <PhotoCredits names={['lab']} />
+        <PhotoCredits names={['lab', 'cutting', 'greenhouse', 'hand', 'cattle', 'seed', 'leaf']} />
         <NightClose />
       </div>
     </SiteShell>

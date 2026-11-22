@@ -57,7 +57,7 @@ test('a lab signs results bound to a record; the breeder checks them, adds one, 
   await breeder.getByLabel(/Bred by/).fill('E2E breeder');
   await breeder.getByRole('button', { name: /Next: check it/ }).click();
   await breeder.getByRole('button', { name: /Seal it/ }).click();
-  await breeder.getByRole('button', { name: /Do the date stamp later/ }).click({ timeout: 90_000 });
+  await breeder.getByRole('button', { name: /Go on without waiting/ }).click({ timeout: 90_000 });
   const recordId = await breeder.evaluate(
     () => Object.keys(JSON.parse(localStorage.getItem('veilcore.record-keys.v1') ?? '{}') as object)[0],
   );

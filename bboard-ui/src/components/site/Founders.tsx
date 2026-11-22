@@ -178,6 +178,22 @@ export const Founders: React.FC = () => {
 
         <Updates />
 
+        {/* Use it your way (22 Nov): nobody has to use veilcore.org; the three ways, and what is
+            untested, are on the page for labs (lab/LabDoor.tsx, #own-way). */}
+        <section className="k-sec" id="own-way" aria-labelledby="own-h" data-own-way="">
+          <div className="k-wrap">
+            <h2 id="own-h" className="k-h2" data-reveal="">
+              {t('m.own.title')}
+            </h2>
+            <p className="k-lead" data-reveal="" style={{ '--d': 1 } as React.CSSProperties}>
+              {t('m.own.p')}
+            </p>
+            <p className="k-lead" data-reveal="" style={{ '--d': 2 } as React.CSSProperties}>
+              <RouterLink to="/for-labs#own-way">{t('m.own.link')}</RouterLink>
+            </p>
+          </div>
+        </section>
+
         {/* Talk to the founders: who should write about what (it was on the home page). */}
         <section className="k-sec" id="contact" aria-labelledby="contact-h">
           <Ambient seed="contact" faint />

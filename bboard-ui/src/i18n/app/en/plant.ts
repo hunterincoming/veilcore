@@ -334,6 +334,8 @@ export const plant = {
   'app.plant.tree.datedReports': 'Dated DNA reports (not offspring)',
   'app.plant.action.nextStage': 'Add the next generation or selection',
   'app.plant.action.nextStageHint': 'A new record with this plant as its parent. Seal each stage when it happens.',
+  'app.plant.action.nextOrClones': 'Next generation or clones',
+  'app.plant.action.nextOrClonesHint': 'A new record with this plant as its parent',
   // stage/DateLabReport.tsx and lab-report-date.ts
   'app.plant.dated.refused': 'The registry didn’t save it ({reason}). Nothing was dated. Try again.',
   'app.plant.dated.line': 'DNA report dated: in <link></link> ({status})',

@@ -90,7 +90,7 @@ export const log = {
     'Die Angaben werden verschlossen auf {server} gespeichert, damit Sie darauf zurückkommen können, und wir haben den Schlüssel nicht. Auch der Name ist verschlossen; ein Prüflink trägt ihn nach dem # nur, wenn Sie das einschalten. Nur ein Prüfcode wird datiert, auf {datedOn}.',
   'app.log.sealing': 'Wird versiegelt…',
   'app.log.sealPlain':
-    'Dauerhaft veröffentlicht werden nur Codes, die daraus erzeugt werden, auf Midnight. Nie Ihre Texte oder Fotos: Die bleiben privat, und nur Sie können sie öffnen.',
+    'Dauerhaft veröffentlicht werden nur Codes, die daraus erzeugt werden, auf Midnight. Nie Ihre Texte oder Fotos: Die bleiben privat; nur Sie können sie öffnen.',
   'app.log.sealDetails': 'Was wird veröffentlicht?',
   'app.log.seal': 'Versiegeln',
   'app.log.sealingPlant': 'Ihre Pflanze wird versiegelt…',
@@ -111,12 +111,12 @@ export const log = {
   'app.log.keyStamped':
     'Schlüssel mit Datumsstempel versehen. Auch der Schlüssel Ihrer Pflanze ist datiert, damit Sie später nachweisen können, dass Sie ihn halten.{bound} Über die Pflanze wurde nichts gesendet.',
   'app.log.keyBound': ' Der versiegelte Datensatz nennt diesen Schlüssel, also kann niemand einen anderen einsetzen.',
-  'app.log.stampFailedTitle': 'Versiegelt. Noch ohne Datumsstempel',
-  'app.log.stampingTitle': 'Versiegelt. Der heutige Datumsstempel wird geholt…',
+  'app.log.stampFailedTitle': 'Versiegelt. Freiwilliger Datumsstempel des Schlüssels: noch nicht',
+  'app.log.stampingTitle': 'Versiegelt. Der freiwillige Datumsstempel des Schlüssels wird gesetzt…',
   'app.log.onlyFingerprint':
-    'Gesendet wird nur ein Code des Schlüssels Ihrer Pflanze, nichts über die Pflanze. Kostenlos: VeilCore zahlt die Netzwerkgebühr.',
-  'app.log.stampingAria': 'Der heutige Datumsstempel wird geholt',
-  'app.log.stampLater': 'Datumsstempel später setzen',
+    'Freiwillig: Damit zeigen Sie später, dass Sie diesen Datensatz halten. Gesendet wird nur ein Code des Schlüssels, nichts über die Pflanze. Kostenlos.',
+  'app.log.stampingAria': 'Datumsstempel des Schlüssels wird gesetzt',
+  'app.log.stampLater': 'Weiter, ohne zu warten',
   'app.log.keepOpen':
-    'Das dauert etwa eine Minute. Lassen Sie diese Seite offen, bis es fertig ist: Auf einem Handy kann der Wechsel in eine andere App oder das Sperren des Bildschirms es anhalten. Wenn es anhält, geht nichts verloren: Ihre Pflanze ist gespeichert, und ihre Seite bietet den Datumsstempel erneut an.',
+    'Sie müssen hier nicht warten. Es dauert etwa eine Minute und wird von selbst weiter versucht, solange VeilCore offen ist. Bricht es ab, geht nichts verloren: Die Seite Ihrer Pflanze bietet den Datumsstempel des Schlüssels wieder an.',
 } satisfies Partial<AppTranslation>;

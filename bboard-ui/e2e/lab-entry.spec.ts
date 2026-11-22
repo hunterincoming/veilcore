@@ -200,7 +200,7 @@ test('a fresh browser lands on /, finds the lab path, pastes a lab code and rece
   await breeder.getByLabel(/Bred by/).fill('E2E');
   await breeder.getByRole('button', { name: /Next: check it/ }).click();
   await breeder.getByRole('button', { name: /Seal it/ }).click();
-  await breeder.getByRole('button', { name: /Do the date stamp later/ }).click({ timeout: 90_000 });
+  await breeder.getByRole('button', { name: /Go on without waiting/ }).click({ timeout: 90_000 });
   const recordId = await breeder.evaluate(
     () => Object.keys(JSON.parse(localStorage.getItem('veilcore.record-keys.v1') ?? '{}') as object)[0],
   );
@@ -231,8 +231,11 @@ test('a fresh browser lands on /, finds the lab path, pastes a lab code and rece
   await expect(entry).toHaveText('Paste it here →');
   await expect(lab.getByText('Got a lab code or a link from someone?')).toBeVisible();
   await expect(entry).toBeInViewport({ ratio: 1 });
-  // The bottom section offers it too, beside "Make a record" and "Verify a record".
+  // How it works offers it too, beside "Make a record" and "Check a record" (the home page's
+  // bottom section until 22 Nov).
+  await lab.goto('/how-it-works');
   await expect(lab.locator('[data-paste-entry="demo"]')).toContainText('Got a code or link?');
+  await lab.goto('/');
   await entry.click();
 
   // Home leads with the paste box, as the page's heading, with the field focused.
@@ -328,11 +331,12 @@ test('in Japanese at 360px the way in shows on the first screen, above the hero 
   await page.goto('/');
   const entry = page.locator('[data-paste-entry="hero"]');
   await expect(entry).toHaveText('ここに貼り付ける →');
-  // The translation notice and the longer lede used to push it under the first screen.
+  // The translation notice and the longer lede used to push it under the first screen. Since the
+  // short home page (22 Nov) it comes right under "Make a record" and "Check a record".
   await expect(entry).toBeInViewport({ ratio: 1 });
   const link = await entry.boundingBox();
   const buttons = await page.locator('.hero-actions').boundingBox();
-  expect(link && buttons && link.y < buttons.y).toBe(true);
+  expect(link && buttons && link.y > buttons.y).toBe(true);
   expectNoErrors(errors);
 });
 
@@ -379,7 +383,7 @@ test('a lab that backs up before its first code receives it without a second bac
   await breeder.getByLabel(/Bred by/).fill('E2E');
   await breeder.getByRole('button', { name: /Next: check it/ }).click();
   await breeder.getByRole('button', { name: /Seal it/ }).click();
-  await breeder.getByRole('button', { name: /Do the date stamp later/ }).click({ timeout: 90_000 });
+  await breeder.getByRole('button', { name: /Go on without waiting/ }).click({ timeout: 90_000 });
   const recordId = await breeder.evaluate(
     () => Object.keys(JSON.parse(localStorage.getItem('veilcore.record-keys.v1') ?? '{}') as object)[0],
   );

@@ -98,9 +98,9 @@ export const animal = {
   'app.animal.v.app.log.keyStamped':
     'Schlüssel mit Datumsstempel versehen. Auch der Schlüssel Ihres Tieres ist datiert, damit Sie später nachweisen können, dass Sie seinen Datensatz halten.{bound} Über das Tier wurde nichts gesendet.',
   'app.animal.v.app.log.onlyFingerprint':
-    'Gesendet wird nur ein Code des Schlüssels Ihres Tieres, nichts über das Tier. Kostenlos: VeilCore zahlt die Netzwerkgebühr.',
+    'Freiwillig: Damit zeigen Sie später, dass Sie diesen Datensatz halten. Gesendet wird nur ein Code des Schlüssels, nichts über das Tier. Kostenlos.',
   'app.animal.v.app.log.keepOpen':
-    'Das dauert etwa eine Minute. Lassen Sie diese Seite offen, bis es fertig ist: Auf einem Handy kann der Wechsel in eine andere App oder das Sperren des Bildschirms es anhalten. Wenn es anhält, geht nichts verloren: Ihr Tier ist gespeichert, und seine Seite bietet den Datumsstempel erneut an.',
+    'Sie müssen hier nicht warten. Es dauert etwa eine Minute und wird von selbst weiter versucht, solange VeilCore offen ist. Bricht es ab, geht nichts verloren: Die Seite Ihres Tieres bietet den Datumsstempel des Schlüssels wieder an.',
   'app.animal.v.app.chain.stampMayHaveGoneOut':
     'Ihr Datumsstempel wurde möglicherweise schon gesendet{tx}. Ihr Tier ist gespeichert. Versuchen Sie es erst wieder, wenn diese Transaktion im Netzwerk geprüft wurde.',
   'app.animal.v.app.chain.stampUnreachable':

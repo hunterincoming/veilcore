@@ -1,10 +1,13 @@
 // New phone or cleared browser: get everything back.
 //
-// First, Face ID: the records saved with VeilCore (veilcore/account-copy.ts), found with any of
-// this site's passkeys, their date shown before anything changes, then "Welcome back. N records
-// are here." and, for documents kept on the person's other device only, where they are. "Other
-// ways" holds the backup file (backup.ts restoreAny, which also reads the older files) and the
-// typed holder key, as before. "Use my recovery sheet" (step 3) opens the same records with the
+// Two equal ways, the backup file first (full review, 22 Nov: it is what the first record makes,
+// and the page had led with an Apple or Google passkey and hidden the file): the backup file
+// (backup.ts restoreAny, which also reads the older files), and the records saved with VeilCore
+// (veilcore/account-copy.ts), found with any of this site's passkeys. Either way, what comes back
+// is shown before anything changes: a file's date and how many records it holds (when this
+// browser is empty), a saved copy's date; then "Welcome back. N records are here." and, for
+// documents kept on the person's other device only, where they are. One line says to open only a
+// file or code you saved yourself. "Other ways" holds the typed holder key, as before. "Use my recovery sheet" (step 3) opens the same records with the
 // printed code: its date shown first in the same way, then an offer to set up a passkey here so
 // this device opens them by itself from then on.
 // SPDX-License-Identifier: Apache-2.0
@@ -13,7 +16,7 @@ import React, { useEffect, useId, useRef, useState } from 'react';
 import { Alert, Box, Button, CircularProgress, Collapse, Paper, Stack, TextField, Typography } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
 import DoneIcon from '@mui/icons-material/CheckCircle';
-import { BackupNeedsPassword, restoreAny, type RestoreResult } from '../../veilcore/backup';
+import { BackupNeedsPassword, peekBackup, restoreAny, type RestoreResult } from '../../veilcore/backup';
 import { BackupPasswordAsk } from './BackupStep';
 import { allRecords, hydrate, useSealedView } from '../../veilcore/records';
 import { lockedWords } from '../LockedRecords';
@@ -148,6 +151,22 @@ export const RestorePage: React.FC = () => {
       setAdoptProblem(e instanceof Error ? e.message : String(e));
     }
   };
+  // A file picked into an empty browser: what it says about itself, shown before it is opened.
+  const [preview, setPreview] = useState<{ file: File; password?: string; savedAt?: string; records: number }>();
+  const emptyHere = () => allRecords().length === 0;
+  const picked = async (f: File, password?: string) => {
+    if (!emptyHere()) return restore(f, password);
+    setProblem(undefined);
+    try {
+      const p = await peekBackup(f, password);
+      if (!p) return restore(f, password);
+      setWaiting(undefined);
+      setPreview({ file: f, password, ...p });
+    } catch (e) {
+      if (e instanceof BackupNeedsPassword) setWaiting(f);
+      else setProblem(e instanceof Error ? e.message : String(e));
+    }
+  };
   const restore = async (f: File, password?: string, fromCopy?: Found, all = false) => {
     setBusy(true);
     setProblem(undefined);
@@ -175,13 +194,20 @@ export const RestorePage: React.FC = () => {
   return (
     <Box>
       <AppHeader />
-      <FlowFrame section="log">
+      {/* No "your progress is saved" link: nothing is in progress here. */}
+      <FlowFrame section="log" home={false}>
         <Stack spacing={2.5}>
           <Box>
             <ScreenHeading>{t('app.backup.restoreTitle')}</ScreenHeading>
             <Typography variant="body1" color="text.secondary">
               {account ? t('app.account.restore.lead') : t('app.backup.restoreIntro')}
             </Typography>
+            {/* Nobody legitimate sends a backup file or a recovery code (security review, 22 Nov). */}
+            {!done && (
+              <Typography variant="body2" sx={{ mt: 1, fontWeight: 600 }} data-restore-own-only="">
+                {t('app.backup.ownOnly')}
+              </Typography>
+            )}
           </Box>
           {done ? (
             <Stack spacing={2}>
@@ -303,6 +329,72 @@ export const RestorePage: React.FC = () => {
             </Stack>
           ) : (
             <>
+              {/* The backup file: the first of two equal ways (the same button as the passkey's). */}
+              <Stack spacing={1} data-restore-file="">
+                {preview ? (
+                  <Alert severity="info" variant="outlined" data-restore-preview={preview.records}>
+                    {preview.savedAt
+                      ? tr.tp('app.backup.preview', preview.records, {
+                          date: new Date(preview.savedAt).toLocaleString(tr.locale, {
+                            dateStyle: 'medium',
+                            timeStyle: 'short',
+                          }),
+                        })
+                      : tr.tp('app.backup.previewUndated', preview.records)}
+                    <Stack direction="row" spacing={1} sx={{ mt: 1, flexWrap: 'wrap', gap: 1 }}>
+                      <Button
+                        variant="contained"
+                        disabled={busy}
+                        onClick={() => {
+                          const p = preview;
+                          setPreview(undefined);
+                          void restore(p.file, p.password);
+                        }}
+                        data-restore-preview-bring=""
+                      >
+                        {t('app.account.restore.bring')}
+                      </Button>
+                      <Button color="inherit" onClick={() => setPreview(undefined)}>
+                        {t('app.account.restore.notThis')}
+                      </Button>
+                    </Stack>
+                  </Alert>
+                ) : (
+                  <Button
+                    variant={account ? 'outlined' : 'contained'}
+                    size="large"
+                    fullWidth
+                    disabled={busy}
+                    onClick={() => pick.current?.click()}
+                    startIcon={busy ? <CircularProgress size={18} color="inherit" /> : undefined}
+                    sx={{ py: 1.5, fontSize: '1.05rem' }}
+                    data-restore-file-open=""
+                  >
+                    {t('app.backup.openFile')}
+                  </Button>
+                )}
+                <Typography variant="body2" color="text.secondary">
+                  {t('app.backup.lookIn')}
+                </Typography>
+                <input
+                  ref={pick}
+                  type="file"
+                  accept="application/json,.json,text/plain,.txt"
+                  hidden
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    e.target.value = '';
+                    if (f) void picked(f);
+                  }}
+                />
+                {waiting && <BackupPasswordAsk busy={busy} onOpen={(password) => void picked(waiting, password)} />}
+                {!account && problem && (
+                  <Alert severity="warning" variant="outlined">
+                    {backupMessageWords(problem, tr)}
+                    <SupportDetails step="restore from backup" error={backupMessageWords(problem)} />
+                  </Alert>
+                )}
+              </Stack>
               {account && (
                 <Stack spacing={1} data-restore-account="">
                   {/* The copy's date first, and nothing changes until they say so (attack pass 21 Oct, finding 6). */}
@@ -353,7 +445,7 @@ export const RestorePage: React.FC = () => {
                     </Alert>
                   ) : (
                     <Button
-                      variant="contained"
+                      variant="outlined"
                       size="large"
                       fullWidth
                       disabled={busy || asking}
@@ -370,14 +462,12 @@ export const RestorePage: React.FC = () => {
                       {t(lockHint)}
                     </Typography>
                   )}
-                  {appleOrAndroid && (
-                    <Typography variant="body2" color="text.secondary">
-                      {t('app.account.restore.sameAccount')}
+                  {/* On a computer, the passkey is most often on the person's phone. */}
+                  {!appleOrAndroid && (
+                    <Typography variant="body2" color="text.secondary" data-restore-use-phone="">
+                      {t('app.account.restore.usePhone')}
                     </Typography>
                   )}
-                  <Typography variant="body2" color="text.secondary" data-restore-use-phone="">
-                    {t('app.account.restore.usePhone')}
-                  </Typography>
                   {oldPasskeysHaveOtherName() && !found && (
                     <Button
                       color="inherit"
@@ -416,7 +506,7 @@ export const RestorePage: React.FC = () => {
               <Collapse in={!account || others || !!waiting || (account && !!problem)}>
                 <Stack spacing={2.5}>
                   {/* The printed recovery sheet (step 3): named as the sheet itself names it. Under
-                      "Other ways", not beside this device's lock: only people who made one can use
+                      "Other ways", not beside the two main ways: only people who made one can use
                       it, and one line says what it is (the simplify-unlock plan, phase 1). */}
                   {account && !found && (
                     <Box data-restore-sheet="">
@@ -468,38 +558,6 @@ export const RestorePage: React.FC = () => {
                         </Stack>
                       </Collapse>
                     </Box>
-                  )}
-                  <Typography variant="body2" color="text.secondary">
-                    {t('app.backup.lookIn')}
-                  </Typography>
-                  <Button
-                    variant="contained"
-                    size="large"
-                    fullWidth
-                    disabled={busy}
-                    onClick={() => pick.current?.click()}
-                    startIcon={busy ? <CircularProgress size={18} color="inherit" /> : undefined}
-                    sx={{ py: 1.5 }}
-                  >
-                    {t('app.backup.openFile')}
-                  </Button>
-                  <input
-                    ref={pick}
-                    type="file"
-                    accept="application/json,.json,text/plain,.txt"
-                    hidden
-                    onChange={(e) => {
-                      const f = e.target.files?.[0];
-                      e.target.value = '';
-                      if (f) void restore(f);
-                    }}
-                  />
-                  {waiting && <BackupPasswordAsk busy={busy} onOpen={(password) => void restore(waiting, password)} />}
-                  {!account && problem && (
-                    <Alert severity="warning" variant="outlined">
-                      {backupMessageWords(problem, tr)}
-                      <SupportDetails step="restore from backup" error={backupMessageWords(problem)} />
-                    </Alert>
                   )}
                   <Box>
                     <Button

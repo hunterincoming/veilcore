@@ -25,9 +25,9 @@ export const strain = {
   'app.strain.v.app.log.keyStamped':
     'Schlüssel mit Datumsstempel versehen. Auch der Schlüssel Ihrer Linie ist datiert, damit Sie später nachweisen können, dass Sie ihn halten.{bound} Über die Linie wurde nichts gesendet.',
   'app.strain.v.app.log.onlyFingerprint':
-    'Gesendet wird nur ein Code des Schlüssels Ihrer Linie, nichts über die Linie. Kostenlos: VeilCore zahlt die Netzwerkgebühr.',
+    'Freiwillig: Damit zeigen Sie später, dass Sie diesen Datensatz halten. Gesendet wird nur ein Code des Schlüssels, nichts über die Linie. Kostenlos.',
   'app.strain.v.app.log.keepOpen':
-    'Das dauert etwa eine Minute. Lassen Sie diese Seite offen, bis es fertig ist: Auf einem Handy kann der Wechsel in eine andere App oder das Sperren des Bildschirms es anhalten. Wenn es anhält, geht nichts verloren: Ihre Linie ist gespeichert, und ihre Seite bietet den Datumsstempel erneut an.',
+    'Sie müssen hier nicht warten. Es dauert etwa eine Minute und wird von selbst weiter versucht, solange VeilCore offen ist. Bricht es ab, geht nichts verloren: Die Seite Ihrer Linie bietet den Datumsstempel des Schlüssels wieder an.',
   'app.strain.v.app.chain.stampMayHaveGoneOut':
     'Ihr Datumsstempel wurde möglicherweise schon gesendet{tx}. Ihre Linie ist gespeichert. Versuchen Sie es erst wieder, wenn diese Transaktion im Netzwerk geprüft wurde.',
   'app.strain.v.app.chain.stampUnreachable':

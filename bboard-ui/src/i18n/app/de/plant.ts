@@ -339,6 +339,8 @@ export const plant = {
   'app.plant.action.nextStage': 'Die nächste Generation oder Selektion hinzufügen',
   'app.plant.action.nextStageHint':
     'Ein neuer Datensatz mit dieser Pflanze als Elternteil. Versiegeln Sie jede Stufe, wenn sie passiert.',
+  'app.plant.action.nextOrClones': 'Nächste Generation oder Stecklinge',
+  'app.plant.action.nextOrClonesHint': 'Ein neuer Datensatz mit dieser Pflanze als Elternteil',
   'app.plant.dated.refused':
     'Das Register hat ihn nicht gespeichert ({reason}). Es wurde nichts datiert. Versuchen Sie es erneut.',
   'app.plant.dated.line': 'DNA-Bericht datiert: in <link></link> ({status})',
