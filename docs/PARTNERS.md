@@ -60,6 +60,11 @@ below, and [MANAGED.md](MANAGED.md), written for a lab owner.
 contracts live on Midnight, and this package and the SDK (both Apache-2.0) work without any
 VeilCore server.
 
+**Running the whole website yourself?** The registry, the fee sponsor and the site can all be
+run by you, with your own address on every check link and QR code:
+[SELF-HOSTING.md](SELF-HOSTING.md). Nobody
+outside VeilCore has done it yet.
+
 ---
 
 ## Part 2, for the developer
@@ -74,7 +79,8 @@ npm install --save-exact @veilcore/contracts@0.3.0 veilcore-records
 npm exec --package=@veilcore/contracts@0.3.0 -- veilcore-keys fetch --to ./veilcore-keys   # proving keys, checked (below)
 # mainnet (Midnight Ledger 9 since 6 November 2026):
 docker run -d -p 127.0.0.1:6300:6300 midnightntwrk/proof-server:9.0.1@sha256:90e36a14f92c2004127f0ed1cfd6ee89d770cf1f6e9cd7f02026ffd4ecb42f37 midnight-proof-server -v
-# preprod and preview, until they move to Ledger 9:
+# preprod has run Ledger 9 since 9 November 2026: the same 9.0.1 image.
+# preview, until it moves to Ledger 9:
 docker run -d -p 127.0.0.1:6300:6300 midnightntwrk/proof-server:8.1.3@sha256:0f4ab0716985eaebbe55a970348f52ff05ffd8a96631ed7232bd0c4ba02c115c midnight-proof-server -v
 ```
 

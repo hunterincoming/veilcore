@@ -33,8 +33,15 @@ declare global {
     readonly VITE_INDEXER_RELAY_URL?: string;
     /** Optional second, independent indexer: both must give the same answer. */
     readonly VITE_INDEXER_SECOND_URL?: string;
-    /** Test-network builds hosted at their own address (test.veilcore.org): the origin shared links use. */
+    /** The origin shared links and QR codes use: test.veilcore.org, or a copy run with its own registry (docs/SELF-HOSTING.md). Unset on veilcore.org. */
     readonly VITE_CANONICAL_ORIGIN?: string;
+    /** A copy someone else runs (config/operator.ts, docs/SELF-HOSTING.md): all four, or none. */
+    readonly VITE_OPERATOR_NAME?: string;
+    readonly VITE_OPERATOR_EMAIL?: string;
+    readonly VITE_OPERATOR_PRIVACY_URL?: string;
+    readonly VITE_OPERATOR_TERMS_URL?: string;
+    /** 'on' when the four above are set (vite.config.ts); absent otherwise. */
+    readonly VITE_SELF_HOSTED?: string;
     /** 'true' shows the notice that dating on Midnight is paused (config/network.ts). Off otherwise. */
     readonly VITE_DATING_PAUSED?: string;
     /** The offline worker (docs/offline.md): 'on' (the default) or 'off', the kill switch (vite.config.ts). */

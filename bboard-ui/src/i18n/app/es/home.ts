@@ -125,10 +125,10 @@ export const home = {
   'app.labpage.own.plug.link': 'Cómo integrarlo →',
   'app.labpage.own.run.t': 'Operar su propia copia.',
   'app.labpage.own.run.p':
-    'El sitio web, el servidor que guarda los registros y el servicio de comisiones son código abierto. Usted los alojaría y pagaría sus propias comisiones de red. Se está escribiendo una guía para operarlos por su cuenta; mientras tanto, empiece por la guía de integración.',
-  'app.labpage.own.run.link': 'La guía de integración →',
+    'El sitio web, el servidor que guarda los registros y el servicio de comisiones son código abierto. Usted los alojaría y pagaría sus propias comisiones de red. La guía para operarlos por su cuenta enumera cada parte y cada ajuste.',
+  'app.labpage.own.run.link': 'La guía para operarlo por su cuenta →',
   'app.labpage.own.plainly':
-    'Dicho claramente: operar su propia copia es posible con el código abierto, pero nadie fuera de VeilCore lo ha hecho aún, así que sin nuestra ayuda no está probado. Hoy una copia todavía apunta a veilcore.org hasta que se vuelva a compilar con sus propias direcciones. El contrato inteligente principal de registros tiene una clave de mantenimiento, que tenemos nosotros. El contrato inteligente de pruebas de hechos no tiene ninguna.',
+    'Dicho claramente: operar su propia copia es posible con el código abierto, pero nadie fuera de VeilCore lo ha hecho aún, así que sin nuestra ayuda no está probado. Una copia usa su propia dirección y su nombre una vez compilada con ellos, como indica la guía. El contrato inteligente principal de registros tiene una clave de mantenimiento, que tenemos nosotros. El contrato inteligente de pruebas de hechos no tiene ninguna.',
   'app.labpage.own.policyLink': 'Quién tiene la clave de mantenimiento y cuándo puede usarse →',
   'app.labpage.own.codeLink': 'El código en GitHub →',
   'app.labpage.gone.title': 'Si VeilCore desaparece',

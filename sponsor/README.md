@@ -161,13 +161,18 @@ Do these in order. Each one says how you know it worked.
 `cd contract && npm run compact`. This takes a while the first time; it downloads public
 parameters. It worked when `contract/src/managed/veilcore/keys/` has files in it.
 
-**2. Deploy a demo contract on preprod** with the operator tool and your usual deployer
-wallet (`cd bboard-cli && npm run preprod-remote`, then Deploy). Write down the contract
-address it prints. This is the contract the website demo and the sponsor will use. Keep
-the maintenance key the tool shows you offline, as always. It never goes on Railway.
+**2. No longer possible: deploying a demo contract on preprod.** Preprod moved to Midnight's
+Ledger 9 on 9 November 2026, and a contract built with Compact 0.31.1 can't be deployed there
+(docs/test-site.md). Use VeilCore's practice contract instead, `deployments/preprod.json`: main
+`72fe33436d424fcf247919c8e2f0de224175cc55061739be0ebffb2d650f2f73`, claims
+`29d3ea80e121518f8fd8bd72533d856cf29cdbddbda1b6f322a661aa4f2484b6`. (This step used to deploy
+one with `cd bboard-cli && npm run preprod-remote`, then Deploy.)
 
 **3. Make the sponsor wallet** (a new wallet, only for this):
-run `npm run preprod-remote` again in `bboard-cli`, and choose **1 (create a new wallet)**.
+run `npm run preprod-remote` in `bboard-cli`, and choose **1 (create a new wallet)**. (The
+operator tool still starts the 8.1.3 proof server for preprod, which has not been checked since
+the Ledger 9 fork; making a wallet and receiving tNIGHT don't prove anything. A wallet made in a
+Midnight wallet app works too: `npm run seed-from-phrase -w sponsor -- preprod`.)
 - It shows the new seed once. Save it in your password manager as "VeilCore sponsor seed".
 - It prints "Using unshielded address: mn_addr_preprod1…". Copy that address.
 - Go to the preprod faucet (https://midnight-tmnight-preprod.nethermind.dev/), paste the

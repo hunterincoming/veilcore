@@ -801,7 +801,7 @@ export const es: Strings = {
   'm.open.6link': 'Leer la especificación →',
   'm.own.link': 'Las tres formas, y lo que no está probado →',
   'm.own.p':
-    'Nunca está obligado a usar veilcore.org. Todo el código de VeilCore es abierto (Apache-2.0): use este sitio, integre los contratos inteligentes (el código en Midnight) en su propio software, u opere su propia copia del sitio, el servidor y el servicio de comisiones. Operar su propia copia es posible con el código abierto, pero nadie fuera de VeilCore lo ha hecho aún. Hoy una copia todavía apunta a veilcore.org hasta que se vuelva a compilar con sus propias direcciones, y se está escribiendo una guía para operarla por su cuenta. Usted la alojaría y pagaría sus propias comisiones de red.',
+    'Nunca está obligado a usar veilcore.org. Todo el código de VeilCore es abierto (Apache-2.0): use este sitio, integre los contratos inteligentes (el código en Midnight) en su propio software, u opere su propia copia del sitio, el servidor y el servicio de comisiones. Operar su propia copia es posible con el código abierto, pero nadie fuera de VeilCore lo ha hecho aún. La guía para operarla por su cuenta explica cómo compilar una copia con su propia dirección y su nombre. Usted la alojaría y pagaría sus propias comisiones de red.',
   'm.own.short':
     'Nunca está obligado a usar veilcore.org. El código es abierto: integre los contratos inteligentes en su propio software, u opere su propia copia. Nadie fuera de VeilCore lo ha hecho aún.',
   'm.own.plugLink': 'Cómo integrar los contratos inteligentes →',

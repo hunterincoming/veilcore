@@ -13,6 +13,12 @@ import { Link as RouterLink } from 'react-router-dom';
 import { useI18n } from '../../i18n';
 import { SiteShell } from './SiteShell';
 import { OPERATOR, TERMS_UPDATED } from '../../config/copy';
+// A copy someone else runs (config/operator.ts): its own page. Decided when the site is built, so
+// veilcore.org's build leaves OperatorNotice out entirely.
+const OperatorNotice =
+  import.meta.env.VITE_SELF_HOSTED === 'on'
+    ? React.lazy(() => import('./OperatorNotice').then((m) => ({ default: m.OperatorNotice })))
+    : null;
 
 type Section = { readonly id: string; readonly title: string; readonly body: readonly React.ReactNode[] };
 
@@ -91,6 +97,15 @@ const SECTIONS: readonly Section[] = [
 
 export const Terms: React.FC = () => {
   const { t, lang } = useI18n();
+  // A copy someone else runs: its own terms page, never VeilCore's (config/operator.ts).
+  if (OperatorNotice)
+    return (
+      <SiteShell>
+        <React.Suspense fallback={null}>
+          <OperatorNotice kind="terms" />
+        </React.Suspense>
+      </SiteShell>
+    );
   return (
     <SiteShell>
       <header className="wrap page">

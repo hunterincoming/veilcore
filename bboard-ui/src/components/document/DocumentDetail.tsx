@@ -40,7 +40,7 @@ import { verifyPath } from '../../veilcore/verify-link';
 import { documentKindOf } from '../../veilcore/document-kind';
 import { RecordChangedNotice } from '../flow/RecordChanged';
 import { REAL_CHAIN } from '../../veilcore/chain/config';
-import { DOCUMENT_CHAIN_ENABLED, LAB_SIGNING_ENABLED, viabilityNotRead } from '../../config/network';
+import { CANONICAL_ORIGIN, DOCUMENT_CHAIN_ENABLED, LAB_SIGNING_ENABLED, viabilityNotRead } from '../../config/network';
 import { AnchorOnChainPanel } from '../chain/AnchorOnChainPanel';
 import { AppHeader } from '../AppHeader';
 import { EvidenceBundle } from '../EvidenceBundle';
@@ -196,7 +196,7 @@ export const DocumentDetail: React.FC<{ record: StrainRecord }> = ({ record }) =
   const copyChainLink = async () => {
     setLinkError(undefined);
     try {
-      const link = documentChainLink(record as never, records as never, window.location.origin, lang);
+      const link = documentChainLink(record as never, records as never, CANONICAL_ORIGIN, lang);
       await navigator.clipboard.writeText(link);
       setChainCopied(true);
     } catch (e) {
@@ -216,7 +216,7 @@ export const DocumentDetail: React.FC<{ record: StrainRecord }> = ({ record }) =
   const copyLink = async () => {
     setLinkError(undefined);
     try {
-      const link = documentCheckLink(record as DocumentRecordLike, window.location.origin, lang);
+      const link = documentCheckLink(record as DocumentRecordLike, CANONICAL_ORIGIN, lang);
       await navigator.clipboard.writeText(link);
       setCopied(true);
     } catch (e) {

@@ -127,10 +127,10 @@ export const home = {
   'app.labpage.own.plug.link': 'Comment l’intégrer →',
   'app.labpage.own.run.t': 'Faire tourner votre propre copie.',
   'app.labpage.own.run.p':
-    'Le site, le serveur qui garde les enregistrements et le service de frais sont du code ouvert. Vous les hébergeriez et paieriez vos propres frais de réseau. Un guide pour l’héberger soi-même est en cours d’écriture ; d’ici là, commencez par le guide d’intégration.',
-  'app.labpage.own.run.link': 'Le guide d’intégration →',
+    'Le site, le serveur qui garde les enregistrements et le service de frais sont du code ouvert. Vous les hébergeriez et paieriez vos propres frais de réseau. Le guide pour l’héberger soi-même liste chaque partie et chaque réglage.',
+  'app.labpage.own.run.link': 'Le guide pour l’héberger soi-même →',
   'app.labpage.own.plainly':
-    'Pour être clair : faire tourner votre propre copie est possible à partir du code ouvert, mais personne en dehors de VeilCore ne l’a encore fait, donc le faire sans notre aide n’est pas testé. Aujourd’hui, une copie pointe encore vers veilcore.org tant qu’elle n’est pas reconstruite avec vos propres adresses. Le contrat intelligent principal des enregistrements a une clé de maintenance, que nous détenons. Le contrat intelligent des preuves de faits n’en a pas.',
+    'Pour être clair : faire tourner votre propre copie est possible à partir du code ouvert, mais personne en dehors de VeilCore ne l’a encore fait, donc le faire sans notre aide n’est pas testé. Une copie utilise votre propre adresse et votre nom une fois construite avec eux, comme le guide l’explique. Le contrat intelligent principal des enregistrements a une clé de maintenance, que nous détenons. Le contrat intelligent des preuves de faits n’en a pas.',
   'app.labpage.own.policyLink': 'Qui détient la clé de maintenance, et quand elle peut servir →',
   'app.labpage.own.codeLink': 'Le code sur GitHub →',
   'app.labpage.gone.title': 'Si VeilCore disparaît',

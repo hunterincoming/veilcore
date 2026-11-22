@@ -184,15 +184,21 @@ export const AppFooter: React.FC<{
               <Typography component="p" sx={groupName}>
                 {t('m.foot.contact')}
               </Typography>
-              <Item to="mailto:mako@veilcore.org" external>
-                mako@veilcore.org
-              </Item>
+              {/* A copy someone else runs (config/operator.ts): its one address, which the build puts
+                  in place of VeilCore's, and not VeilCore's own accounts. */}
+              {import.meta.env.VITE_SELF_HOSTED !== 'on' && (
+                <Item to="mailto:mako@veilcore.org" external>
+                  mako@veilcore.org
+                </Item>
+              )}
               <Item to="mailto:hunter@veilcore.org" external>
                 hunter@veilcore.org
               </Item>
-              <Item to="https://x.com/VeilCoreProof" external>
-                @VeilCoreProof
-              </Item>
+              {import.meta.env.VITE_SELF_HOSTED !== 'on' && (
+                <Item to="https://x.com/VeilCoreProof" external>
+                  @VeilCoreProof
+                </Item>
+              )}
             </Stack>
           </Stack>
         </Stack>

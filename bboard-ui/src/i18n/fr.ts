@@ -808,7 +808,7 @@ export const fr: Strings = {
   'm.open.6link': 'Lire la spécification →',
   'm.own.link': 'Les trois façons, et ce qui n’est pas testé →',
   'm.own.p':
-    'Vous n’êtes jamais obligé d’utiliser veilcore.org. Tout le code de VeilCore est ouvert (Apache-2.0) : utilisez ce site, intégrez les contrats intelligents (le code sur Midnight) à votre propre logiciel, ou faites tourner votre propre copie du site, du serveur et du service de frais. Faire tourner votre propre copie est possible à partir du code ouvert, mais personne en dehors de VeilCore ne l’a encore fait. Aujourd’hui, une copie pointe encore vers veilcore.org tant qu’elle n’est pas reconstruite avec vos propres adresses, et un guide pour l’héberger soi-même est en cours d’écriture. Vous l’hébergeriez et paieriez vos propres frais de réseau.',
+    'Vous n’êtes jamais obligé d’utiliser veilcore.org. Tout le code de VeilCore est ouvert (Apache-2.0) : utilisez ce site, intégrez les contrats intelligents (le code sur Midnight) à votre propre logiciel, ou faites tourner votre propre copie du site, du serveur et du service de frais. Faire tourner votre propre copie est possible à partir du code ouvert, mais personne en dehors de VeilCore ne l’a encore fait. Le guide pour l’héberger soi-même explique comment construire une copie avec votre propre adresse et votre nom. Vous l’hébergeriez et paieriez vos propres frais de réseau.',
   'm.own.short':
     'Vous n’êtes jamais obligé d’utiliser veilcore.org. Le code est ouvert : intégrez les contrats intelligents à votre propre logiciel, ou faites tourner votre propre copie. Personne en dehors de VeilCore ne l’a encore fait.',
   'm.own.plugLink': 'Comment intégrer les contrats intelligents →',

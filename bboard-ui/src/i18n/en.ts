@@ -482,7 +482,7 @@ export const en = {
   'm.open.6link': 'Read the spec →',
   'm.own.link': 'The three ways, and what is untested →',
   'm.own.p':
-    "You never have to use veilcore.org. All of VeilCore's code is open (Apache-2.0): use this site, plug the smart contracts (the code on Midnight) into your own software, or run your own copy of the site, the server and the fee service. Running your own copy is possible from the open code, but nobody outside VeilCore has done it yet. Today a copy still points at veilcore.org until it is rebuilt with your own addresses, and a self-hosting guide is being written. You would host it and pay your own network fees.",
+    "You never have to use veilcore.org. All of VeilCore's code is open (Apache-2.0): use this site, plug the smart contracts (the code on Midnight) into your own software, or run your own copy of the site, the server and the fee service. Running your own copy is possible from the open code, but nobody outside VeilCore has done it yet. The self-hosting guide says how to build a copy with your own address and name. You would host it and pay your own network fees.",
   'm.own.short':
     'You never have to use veilcore.org. The code is open: plug the smart contracts into your own software, or run your own copy. Nobody outside VeilCore has run their own copy yet.',
   'm.own.plugLink': 'How to plug in the smart contracts →',

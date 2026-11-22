@@ -127,10 +127,10 @@ export const home = {
   'app.labpage.own.plug.link': 'So binden Sie es ein →',
   'app.labpage.own.run.t': 'Eine eigene Kopie betreiben.',
   'app.labpage.own.run.p':
-    'Die Website, der Server, der Datensätze aufbewahrt, und der Gebührendienst sind offener Code. Sie würden sie selbst hosten und Ihre eigenen Netzwerkgebühren zahlen. Eine Anleitung zum Selbstbetrieb wird gerade geschrieben; bis dahin beginnen Sie mit dem Integrationsleitfaden.',
-  'app.labpage.own.run.link': 'Der Integrationsleitfaden →',
+    'Die Website, der Server, der Datensätze aufbewahrt, und der Gebührendienst sind offener Code. Sie würden sie selbst hosten und Ihre eigenen Netzwerkgebühren zahlen. Die Anleitung zum Selbstbetrieb nennt jeden Teil und jede Einstellung.',
+  'app.labpage.own.run.link': 'Die Anleitung zum Selbstbetrieb →',
   'app.labpage.own.plainly':
-    'Offen gesagt: Eine eigene Kopie ist mit dem offenen Code möglich, aber außerhalb von VeilCore hat das noch niemand getan, ohne unsere Hilfe ist es also ungetestet. Heute zeigt eine Kopie noch auf veilcore.org, bis sie mit Ihren eigenen Adressen neu gebaut wird. Der Haupt-Smart-Contract für Datensätze hat einen Wartungsschlüssel, den wir halten. Der Smart Contract für Nachweise hat keinen.',
+    'Offen gesagt: Eine eigene Kopie ist mit dem offenen Code möglich, aber außerhalb von VeilCore hat das noch niemand getan, ohne unsere Hilfe ist es also ungetestet. Eine Kopie nutzt Ihre eigene Adresse und Ihren Namen, sobald sie damit gebaut wird, wie die Anleitung zeigt. Der Haupt-Smart-Contract für Datensätze hat einen Wartungsschlüssel, den wir halten. Der Smart Contract für Nachweise hat keinen.',
   'app.labpage.own.policyLink': 'Wer den Wartungsschlüssel hält und wann er benutzt werden darf →',
   'app.labpage.own.codeLink': 'Der Code auf GitHub →',
   'app.labpage.gone.title': 'Wenn es VeilCore nicht mehr gibt',

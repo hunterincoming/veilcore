@@ -806,7 +806,7 @@ export const de: Strings = {
   'm.open.6link': 'Spezifikation lesen →',
   'm.own.link': 'Die drei Wege, und was ungetestet ist →',
   'm.own.p':
-    'Sie müssen veilcore.org nie benutzen. Der gesamte Code von VeilCore ist offen (Apache-2.0): Nutzen Sie diese Website, binden Sie die Smart Contracts (den Code auf Midnight) in Ihre eigene Software ein, oder betreiben Sie eine eigene Kopie der Website, des Servers und des Gebührendienstes. Eine eigene Kopie ist mit dem offenen Code möglich, aber außerhalb von VeilCore hat das noch niemand getan. Heute zeigt eine Kopie noch auf veilcore.org, bis sie mit Ihren eigenen Adressen neu gebaut wird, und eine Anleitung zum Selbstbetrieb wird gerade geschrieben. Sie würden sie selbst hosten und Ihre eigenen Netzwerkgebühren zahlen.',
+    'Sie müssen veilcore.org nie benutzen. Der gesamte Code von VeilCore ist offen (Apache-2.0): Nutzen Sie diese Website, binden Sie die Smart Contracts (den Code auf Midnight) in Ihre eigene Software ein, oder betreiben Sie eine eigene Kopie der Website, des Servers und des Gebührendienstes. Eine eigene Kopie ist mit dem offenen Code möglich, aber außerhalb von VeilCore hat das noch niemand getan. Die Anleitung zum Selbstbetrieb zeigt, wie Sie eine Kopie mit Ihrer eigenen Adresse und Ihrem Namen bauen. Sie würden sie selbst hosten und Ihre eigenen Netzwerkgebühren zahlen.',
   'm.own.short':
     'Sie müssen veilcore.org nie benutzen. Der Code ist offen: Binden Sie die Smart Contracts in Ihre eigene Software ein, oder betreiben Sie eine eigene Kopie. Außerhalb von VeilCore hat das noch niemand getan.',
   'm.own.plugLink': 'So binden Sie die Smart Contracts ein →',

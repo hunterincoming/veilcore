@@ -34,7 +34,7 @@ import { BackupStep, SavingWithVeilCore } from '../flow/BackupStep';
 import { accountState, useAccountState } from '../../veilcore/account-copy';
 import { copyCountsHere, savedWithVeilCore } from '../flow/way-back';
 import { FlowFrame, ScreenHeading, focusScreenHeading, softDisabled } from '../flow/FlowFrame';
-import { ANIMAL_RECORDS_ENABLED, IS_MAINNET } from '../../config/network';
+import { ANIMAL_RECORDS_ENABLED, CANONICAL_ORIGIN, IS_MAINNET } from '../../config/network';
 import { KindChoice, parentWords, sexWords } from '../flow/AnimalForm';
 import { loadLogKind } from '../flow/animal-draft';
 import { REAL_CHAIN, chainNotReady } from '../../veilcore/chain/config';
@@ -1257,9 +1257,7 @@ const Finished: React.FC<{ job: Job; onAnother: () => void }> = ({ job, onAnothe
           variant="contained"
           size="large"
           fullWidth
-          onClick={() =>
-            downloadText(resultsCsv(job, window.location.origin, hasDnaReport), resultsFileName(job.fileName))
-          }
+          onClick={() => downloadText(resultsCsv(job, CANONICAL_ORIGIN, hasDnaReport), resultsFileName(job.fileName))}
           sx={{ py: 1.6 }}
         >
           {t('app.import.done.download')}

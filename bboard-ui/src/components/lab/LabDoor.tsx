@@ -36,6 +36,7 @@ const REPO = 'https://github.com/hunterincoming';
 /** The open code and the documents that say how to use it without veilcore.org. */
 export const OWN_WAY_LINKS = {
   partners: `${REPO}/veilcore/blob/main/docs/PARTNERS.md`,
+  selfHosting: `${REPO}/veilcore/blob/main/docs/SELF-HOSTING.md`,
   without: `${REPO}/veilcore/blob/main/docs/without-veilcore.md`,
   policy: `${REPO}/veilcore/blob/main/docs/maintenance-policy.md`,
   site: `${REPO}/veilcore`,
@@ -100,7 +101,7 @@ export const UseItYourWay: React.FC = () => {
         <Choice
           k="app.labpage.own.run.t"
           p="app.labpage.own.run.p"
-          link={{ href: OWN_WAY_LINKS.partners, label: 'app.labpage.own.run.link' }}
+          link={{ href: OWN_WAY_LINKS.selfHosting, label: 'app.labpage.own.run.link' }}
         />
       </Box>
       <P>{t('app.labpage.own.plainly')}</P>

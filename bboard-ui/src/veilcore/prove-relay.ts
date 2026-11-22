@@ -27,6 +27,7 @@ import { enT, type Translator } from '../i18n/translate';
 import { newChallenge } from './chain/challenge-book';
 import { KEY_NOT_THIS_RECORDS, keyMatchesRecord, type KeyedRecord } from './key-binding';
 import { localStamp } from './time';
+import { canonicalUrl } from '../config/network';
 
 const BASE = import.meta.env.VITE_API_BASE ?? '';
 const ASKS = 'veilcore.prove-asks.v1';
@@ -212,7 +213,7 @@ export const askToProve = async (input: {
 
 /** The holder's link. The token rides in the fragment, which is never sent to a server. */
 export const proveLink = (id: string, token?: string, kind?: 'license'): string =>
-  `${typeof window === 'undefined' ? '' : window.location.origin}/${kind === 'license' ? 'prove-license' : 'prove'}/${id}${token ? `#t=${token}` : ''}`;
+  canonicalUrl(`/${kind === 'license' ? 'prove-license' : 'prove'}/${id}${token ? `#t=${token}` : ''}`);
 
 // --- both sides -----------------------------------------------------------------------
 

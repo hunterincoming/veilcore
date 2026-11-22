@@ -124,10 +124,10 @@ export const home = {
   'app.labpage.own.plug.link': 'How to plug it in →',
   'app.labpage.own.run.t': 'Run your own copy.',
   'app.labpage.own.run.p':
-    'The website, the server that keeps records and the fee service are all open code. You would host them and pay your own network fees. A self-hosting guide is being written; until then, start with the integration guide.',
-  'app.labpage.own.run.link': 'The integration guide →',
+    'The website, the server that keeps records and the fee service are all open code. You would host them and pay your own network fees. The self-hosting guide lists every part and setting.',
+  'app.labpage.own.run.link': 'The self-hosting guide →',
   'app.labpage.own.plainly':
-    'Plainly: running your own copy is possible from the open code, but nobody outside VeilCore has done it yet, so doing it without our help is untested. Today a copy still points at veilcore.org until it is rebuilt with your own addresses. The main records smart contract has a maintenance key, which we hold. The claims smart contract has none.',
+    'Plainly: running your own copy is possible from the open code, but nobody outside VeilCore has done it yet, so doing it without our help is untested. A copy uses your own address and name once it is built with them, as the guide says. The main records smart contract has a maintenance key, which we hold. The claims smart contract has none.',
   'app.labpage.own.policyLink': 'Who holds the maintenance key, and when it may be used →',
   'app.labpage.own.codeLink': 'The code on GitHub →',
   'app.labpage.gone.title': 'If VeilCore disappears',

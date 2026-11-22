@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 export declare const REQUIRED_FEATURES: Readonly<Record<string, string>>;
+export declare const AGREEMENT_FEATURES: Readonly<Record<string, string>>;
 export declare const readHealth: (
   api: string,
 ) => Promise<{ ok: true; health: unknown } | { ok: false; problem: string }>;

@@ -19,10 +19,10 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import type { MainnetFlags } from './i18n/mainnet-overlay';
-import { REQUIRED_FEATURES } from '../../scripts/registry-features.mjs';
+import { AGREEMENT_FEATURES, REQUIRED_FEATURES } from '../../scripts/registry-features.mjs';
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { createRequire } from 'node:module';
-import { spawnSync } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import http from 'node:http';
 import os from 'node:os';
@@ -44,6 +44,13 @@ const API = 'https://veilcore-api-production.up.railway.app';
 const TEST_WORDING = /test[ -]network|preprod|\bpreview\b|test server|test registry|test version/i;
 
 const DUMMY = 'ab'.repeat(32);
+/** A copy's operator (config/operator.ts), made up. */
+const SELF_OPERATOR = {
+  VITE_OPERATOR_NAME: 'Example Breed Registry',
+  VITE_OPERATOR_EMAIL: 'help@registry.example.org',
+  VITE_OPERATOR_PRIVACY_URL: 'https://registry.example.org/privacy',
+  VITE_OPERATOR_TERMS_URL: 'https://registry.example.org/terms',
+};
 const DUMMY_CLAIMS = 'cd'.repeat(32);
 const guardText = (main: string, claims: string) =>
   `export const MAINNET_VEILCORE_ADDRESS = '${main}';\nexport const MAINNET_CLAIMS_ADDRESS = '${claims}';\n`;
@@ -516,6 +523,143 @@ describe('builds', () => {
     expect(fs.existsSync(path.join(tmp, 'dist-refused3', 'index.html'))).toBe(false);
   }, 300_000);
 
+  it("a copy run with its own registry points its links at itself, and veilcore.org's build can't be pointed elsewhere (docs/SELF-HOSTING.md)", () => {
+    const own = 'https://registry.example.org';
+    const site = 'https://records.example.org';
+    // Its own registry and no address of its own: refused, or every label would point at veilcore.org.
+    const none = build('mainnet', path.join(tmp, 'dist-self-none'), {
+      VEILCORE_TEST_DEPLOY_GUARD: guardFile('self1', DUMMY, DUMMY_CLAIMS),
+      VITE_API_BASE: own,
+    });
+    expect(none.status).not.toBe(0);
+    expect(`${none.stdout}${none.stderr}`).toMatch(/set VITE_CANONICAL_ORIGIN to this site's own https address/);
+    expect(fs.existsSync(path.join(tmp, 'dist-self-none', 'index.html'))).toBe(false);
+    // VeilCore's registry with a test-site address left in the shell: refused.
+    const left = build('mainnet', path.join(tmp, 'dist-self-left'), {
+      VEILCORE_TEST_DEPLOY_GUARD: guardFile('self2', DUMMY, DUMMY_CLAIMS),
+      VITE_API_BASE: API,
+      VITE_CANONICAL_ORIGIN: 'https://test.veilcore.org',
+    });
+    expect(left.status).not.toBe(0);
+    expect(`${left.stdout}${left.stderr}`).toMatch(/unset VITE_CANONICAL_ORIGIN/);
+    // Its own registry and address but no operator: refused (its pages would name VeilCore).
+    const noOp = build('mainnet', path.join(tmp, 'dist-self-noop'), {
+      VEILCORE_TEST_DEPLOY_GUARD: guardFile('self3', DUMMY, DUMMY_CLAIMS),
+      VITE_API_BASE: own,
+      VITE_CANONICAL_ORIGIN: site,
+    });
+    expect(noOp.status).not.toBe(0);
+    expect(`${noOp.stdout}${noOp.stderr}`).toMatch(/Set VITE_OPERATOR_NAME/);
+    // A www.veilcore.org address for someone else's registry: refused (review of PR #171, L2).
+    const www = build('mainnet', path.join(tmp, 'dist-self-www'), {
+      VEILCORE_TEST_DEPLOY_GUARD: guardFile('self4', DUMMY, DUMMY_CLAIMS),
+      VITE_API_BASE: own,
+      VITE_CANONICAL_ORIGIN: 'https://www.veilcore.org',
+      ...SELF_OPERATOR,
+    });
+    expect(www.status).not.toBe(0);
+    expect(`${www.stdout}${www.stderr}`).toMatch(/not https:\/\/www\.veilcore\.org/);
+  }, 600_000);
+
+  // The copy's own registry, sponsor and relay, stood in for on this machine (the build asks them
+  // through VEILCORE_TEST_SELFHOST_STANDIN, which only a test build with the test pins honours).
+  const standIn = async (o: { anchorsAt?: string; synced?: boolean } = {}) => {
+    const server = http.createServer((req, res) => {
+      const json = (b: unknown) => {
+        res.writeHead(200, { 'content-type': 'application/json' });
+        res.end(JSON.stringify(b));
+      };
+      if (req.url === '/.well-known/veilcore-registry')
+        return json({ anchors: [{ chain: 'midnight', network: 'mainnet', contractAddress: o.anchorsAt ?? DUMMY }] });
+      if (req.url === '/health')
+        return json({ ok: true, features: [...Object.keys(REQUIRED_FEATURES), ...Object.keys(AGREEMENT_FEATURES)] });
+      if (req.url === '/sponsor/status')
+        return json({
+          network: 'mainnet',
+          contractAddress: DUMMY,
+          synced: o.synced ?? true,
+          anchorer: { enabled: true },
+          agreements: true,
+        });
+      if (req.url === '/indexer') return json({ data: { block: { height: 1 } } });
+      res.writeHead(404);
+      res.end();
+    });
+    await new Promise<void>((r) => server.listen(0, '127.0.0.1', () => r()));
+    return { server, url: `http://127.0.0.1:${(server.address() as AddressInfo).port}` };
+  };
+  // A build that doesn't block this process, so the stand-in can answer it.
+  const buildAsync = (outDir: string, env: Record<string, string>) =>
+    new Promise<{ status: number | null; out: string }>((resolve) => {
+      const p = spawn(
+        'npx',
+        ['vite', 'build', '--mode', 'mainnet', '--outDir', outDir, '--emptyOutDir', '--logLevel', 'error'],
+        {
+          cwd: UI,
+          env: { ...cleanEnv(), NODE_ENV: 'production', ...env },
+        },
+      );
+      let out = '';
+      p.stdout.on('data', (d) => (out += d));
+      p.stderr.on('data', (d) => (out += d));
+      p.on('close', (status) => resolve({ status, out }));
+    });
+  const SELF_CHAIN = {
+    VITE_API_BASE: 'https://registry.example.org',
+    VITE_CANONICAL_ORIGIN: 'https://records.example.org',
+    VITE_REAL_CHAIN: '1',
+    VITE_REAL_CHAIN_CONTRACT_ADDRESS: DUMMY,
+    VITE_SPONSOR_URL: 'https://sponsor.example.org',
+    VITE_INDEXER_URL: 'https://relay.example.org/indexer',
+    VITE_INDEXER_WS_URL: 'wss://relay.example.org/indexer/ws',
+    ...SELF_OPERATOR,
+  };
+
+  it('a copy with its own registry, sponsor, relay and operator builds after checking them, links to itself and names its operator', async () => {
+    const site = 'https://records.example.org';
+    // Its services not ready (the registry anchors elsewhere, the sponsor still syncing): refused, saying why.
+    const bad = await standIn({ anchorsAt: 'cd'.repeat(32), synced: false });
+    const refused = await buildAsync(path.join(tmp, 'dist-self-bad'), {
+      VEILCORE_TEST_DEPLOY_GUARD: guardFile('self5', DUMMY, DUMMY_CLAIMS),
+      VEILCORE_TEST_SELFHOST_STANDIN: bad.url,
+      ...SELF_CHAIN,
+    });
+    bad.server.close();
+    expect(refused.status).not.toBe(0);
+    expect(refused.out).toMatch(/does not anchor on mainnet at VeilCore's main contract/);
+    expect(refused.out).toMatch(/still syncing/);
+    expect(fs.existsSync(path.join(tmp, 'dist-self-bad', 'index.html'))).toBe(false);
+
+    const good = await standIn();
+    const dir = path.join(tmp, 'dist-self');
+    const ok = await buildAsync(dir, {
+      VEILCORE_TEST_DEPLOY_GUARD: guardFile('self6', DUMMY, DUMMY_CLAIMS),
+      VEILCORE_TEST_SELFHOST_STANDIN: good.url,
+      ...SELF_CHAIN,
+    });
+    good.server.close();
+    expect(ok.status, ok.out).toBe(0);
+    const files = fs.readdirSync(path.join(dir, 'assets')).filter((f) => f.endsWith('.js'));
+    const js = files.map((f) => fs.readFileSync(path.join(dir, 'assets', f), 'utf8')).join('\n');
+    expect(js).toContain(`configured:\`${site}\``);
+    expect(fs.readFileSync(path.join(dir, 'index.html'), 'utf8')).toMatch(/<meta name="robots" content="noindex"/);
+    expect(fs.existsSync(path.join(dir, 'sitemap.xml'))).toBe(false);
+    expect(fs.existsSync(path.join(dir, 'llms.txt'))).toBe(false);
+    // Its own privacy and terms pages, and its own contact address everywhere but the Founders page.
+    expect(js).toContain('data-operator-notice');
+    expect(js).toContain(SELF_OPERATOR.VITE_OPERATOR_PRIVACY_URL);
+    expect(js).toContain(SELF_OPERATOR.VITE_OPERATOR_EMAIL);
+    const withVeilcoreMail = files.filter((f) =>
+      /\b(?:hunter|mako)@veilcore\.org/.test(fs.readFileSync(path.join(dir, 'assets', f), 'utf8')),
+    );
+    // Only the Founders page (VeilCore's own people, bundled where its links are) keeps VeilCore's.
+    for (const f of withVeilcoreMail) {
+      const src = fs.readFileSync(path.join(dir, 'assets', f), 'utf8');
+      expect(src, f).toContain('makoto-steiner');
+      expect(src, f).not.toMatch(/(?:hunter|mako)@veilcore\.org\?subject|Email hunter@veilcore\.org/);
+    }
+  }, 900_000);
+
   it('a mainnet build with the sponsor set up as deploy:mainnet does it builds (the pinned contract, through the relay)', () => {
     const r = build('mainnet', path.join(tmp, 'dist-sponsor'), {
       VEILCORE_TEST_DEPLOY_GUARD: guardFile('dummy4', DUMMY, DUMMY_CLAIMS),
@@ -577,6 +721,13 @@ describe('builds', () => {
         .join('\n');
     expect(js(mainDist)).toContain(DUMMY);
     expect(js(preDist)).not.toContain(DUMMY);
+    // veilcore.org's build names no other site: its links go to veilcore.org, and it is indexed.
+    expect(js(mainDist)).toContain('configured:void 0');
+    expect(js(mainDist)).not.toMatch(/configured:`/);
+    expect(fs.existsSync(path.join(mainDist, 'sitemap.xml'))).toBe(true);
+    // ... and names no operator but VeilCore: the copy's notice isn't even in the bundle.
+    expect(js(mainDist)).not.toContain('data-operator-notice');
+    expect(js(mainDist)).toContain('hunter@veilcore.org');
   }, 600_000);
 
   // ---------------------------------------------------------------- browser

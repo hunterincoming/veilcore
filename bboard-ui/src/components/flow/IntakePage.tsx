@@ -25,7 +25,7 @@ import { verifyPath } from '../../veilcore/verify-link';
 import { emptyDraft, loadDraft, saveDraft } from './log-flow-state';
 import { loadLogKind } from './animal-draft';
 import { emptyStrainDraft } from './strain-draft';
-import { STRAIN_RECORDS_ENABLED } from '../../config/network';
+import { canonicalUrl, STRAIN_RECORDS_ENABLED } from '../../config/network';
 
 const HEX64 = /^[0-9a-f]{64}$/;
 
@@ -225,7 +225,7 @@ export const IntakeSendPage: React.FC = () => {
         <StayButton />
       </Frame>
     );
-  const checkLink = `${window.location.origin}${verifyPath(record.id, record.recordFingerprint)}`;
+  const checkLink = canonicalUrl(verifyPath(record.id, record.recordFingerprint));
   return (
     <Frame>
       <Box>
