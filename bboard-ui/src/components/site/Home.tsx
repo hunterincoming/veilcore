@@ -54,6 +54,7 @@ import { useI18n } from '../../i18n';
 import { FOUNDERS_MAIL, SiteShell } from './SiteShell';
 import { hasRecordsHere } from './returning';
 import { PASTE_ENTRY } from './paste-entry';
+import { LAB_DOOR } from '../SiteHeader';
 import { IS_MAINNET, MAINNET_CLAIMS_ADDRESS, MAINNET_CONTRACT_ADDRESS, explorerFor } from '../../config/network';
 import { AGREEMENTS_LIVE, LAB_SIGNING_RUN_ON_MAINNET, ROYALTIES_RUN_ON_MAINNET } from '../../config/copy';
 import { Ambient, EventDisplay } from './EventDisplay';
@@ -477,7 +478,22 @@ export const Home: React.FC = () => {
         </>
       ),
     },
-    { key: '3', photo: 'lab', alt: t('m.home.alt.lab'), title: t('m.for.3t'), body: t('m.for.3p') },
+    {
+      key: '3',
+      photo: 'lab',
+      alt: t('m.home.alt.lab'),
+      title: t('m.for.3t'),
+      // A lab's way in (lab/LabDoor.tsx): the co-founder couldn't find one from the site (21 Nov).
+      body: (
+        <>
+          {t('m.for.3p')}
+          {sp}
+          <RouterLink to={LAB_DOOR} data-for-labs="home">
+            {arrowed(t('m.for.3link'))}
+          </RouterLink>
+        </>
+      ),
+    },
     {
       key: '6',
       photo: 'hand',

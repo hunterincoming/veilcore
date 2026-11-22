@@ -227,7 +227,7 @@ export const lab = {
     'Su acuse de recibo está firmado. Vincúlelo a este envío para que el obtentor lo vea: hasta entonces su página no lo cuenta, porque cualquiera puede firmar una declaración sobre una planta, pero solo quien usó el código de laboratorio puede vincular una al envío.',
   'app.lab.recv.linking': 'Vinculando…',
   'app.lab.recv.setUpFirst':
-    'Configure primero la firma de su laboratorio; después podrá firmar que esta muestra llegó.',
+    'Configure primero la clave de firma de su laboratorio; después podrá firmar que esta muestra llegó.',
   'app.lab.recv.checking': 'Comprobando el registro del obtentor…',
   'app.lab.recv.notRecorded': 'Su acuse de recibo no se registró: {error}.',
   'app.lab.recv.noCodeHere': 'esta planta no tiene código de laboratorio en este dispositivo',
@@ -423,7 +423,7 @@ export const lab = {
   'app.lab.out.cancelCorrection': 'Cancelar la corrección',
   'app.lab.out.turnedAway': 'Usted rechazó esta muestra, así que no hay informe de laboratorio que enviar.',
   'app.lab.out.setUpFirst':
-    'Configure primero la firma de su laboratorio, para que el obtentor sepa que el informe es suyo.',
+    'Configure primero la clave de firma de su laboratorio, para que el obtentor sepa que el informe es suyo.',
   'app.lab.out.noLockHere':
     'Este navegador no tiene el candado del obtentor para este envío. Pegue el código de laboratorio que le enviaron.',
   'app.lab.out.useCode': 'Usar este código de laboratorio',

@@ -232,7 +232,7 @@ export const lab = {
     'Votre accusé de réception est signé. Liez-le à cette livraison pour que l’obtenteur le voie : jusque-là, sa page ne le compte pas, car n’importe qui peut signer une déclaration sur une plante, mais seule la personne qui a utilisé le code laboratoire peut en lier une à la livraison.',
   'app.lab.recv.linking': 'Liaison…',
   'app.lab.recv.setUpFirst':
-    'Configurez d’abord la signature de votre laboratoire ; vous pourrez ensuite signer que cet échantillon est arrivé.',
+    'Configurez d’abord la clé de signature de votre laboratoire ; vous pourrez ensuite signer que cet échantillon est arrivé.',
   'app.lab.recv.checking': 'Vérification de l’enregistrement de l’obtenteur…',
   'app.lab.recv.notRecorded': 'Votre accusé de réception n’a pas été inscrit : {error}.',
   'app.lab.recv.noCodeHere': 'cette plante n’a pas de code laboratoire sur cet appareil',
@@ -429,7 +429,7 @@ export const lab = {
   'app.lab.out.cancelCorrection': 'Annuler la correction',
   'app.lab.out.turnedAway': 'Vous avez refusé cet échantillon : il n’y a donc pas de rapport de laboratoire à envoyer.',
   'app.lab.out.setUpFirst':
-    'Configurez d’abord la signature de votre laboratoire, pour que l’obtenteur sache que le rapport vient de vous.',
+    'Configurez d’abord la clé de signature de votre laboratoire, pour que l’obtenteur sache que le rapport vient de vous.',
   'app.lab.out.noLockHere':
     'Ce navigateur n’a pas le verrou de l’obtenteur pour cette livraison. Collez le code laboratoire qu’il vous a envoyé.',
   'app.lab.out.useCode': 'Utiliser ce code laboratoire',

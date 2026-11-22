@@ -195,7 +195,7 @@ export const plant = {
   'app.plant.next.rejected.title': 'このサンプルの受け取りを断りました',
   'app.plant.next.rejected.why':
     '何も署名されていません。VeilCoreは育成者に知らせません。別のものを送ってもらえるよう、ご自身で伝えてください。',
-  'app.plant.next.setup.title': 'ラボの署名を設定する',
+  'app.plant.next.setup.title': 'ラボの署名用の鍵を設定する',
   'app.plant.next.setup.why':
     'そうすると、このサンプルが届いたことに署名し、ラボの署名付きで検査報告書を送り返せます。',
   'app.plant.next.setup.action': '設定する',

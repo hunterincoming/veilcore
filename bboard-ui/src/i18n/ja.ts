@@ -222,6 +222,7 @@ export const ja: Strings = {
   'm.nav.demo': 'デモを試す',
   'm.nav.yours': 'あなたの記録',
   'm.nav.menu': 'メニュー',
+  'm.nav.forLabs': 'ラボ向け',
   'm.hero.label': '保有していることの証明',
   'm.hero.title1': '記録に日付を。',
   'm.hero.title2': '遺伝情報は非公開のまま。',
@@ -619,6 +620,8 @@ export const ja: Strings = {
     '記録を封印し、DNA報告書を紐付けます。その植物が別の名前で出回ったら、ラボは新しい検査をあなたの報告書と比較できます。ウェブデモでは紐付けは記録とともに保存されますが、まだ日付は付きません。VeilCoreはDNA検査を行いません。',
   'm.for.2t': '品種保護と認証。',
   'm.for.2link': 'クレームの仕組み →',
+  // The lab slide's way in (lab/LabDoor.tsx), and on How it works.
+  'm.for.3link': 'ラボの方へ：ラボの署名用の鍵を設定する →',
   'm.for.3t': 'ラボに預けた素材。',
   'm.for.4t': 'ラボの結果を、あなたの手元へ。',
   'm.for.4p':

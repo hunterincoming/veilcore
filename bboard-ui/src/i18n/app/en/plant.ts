@@ -201,7 +201,7 @@ export const plant = {
   'app.plant.next.rejected.title': 'You turned this sample away',
   'app.plant.next.rejected.why':
     'Nothing was signed. VeilCore doesn’t tell the breeder: let them know yourself, so they can send another.',
-  'app.plant.next.setup.title': 'Set up your lab’s signature',
+  'app.plant.next.setup.title': 'Set up your lab’s signing key',
   'app.plant.next.setup.why':
     'Then you can sign that this sample arrived, and send the lab report back signed by your lab.',
   'app.plant.next.setup.action': 'Set it up',

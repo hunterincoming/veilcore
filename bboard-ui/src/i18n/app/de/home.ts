@@ -50,8 +50,8 @@ export const home = {
   'app.home.labJobsText':
     'Bestätigen Sie, was ankommt, und senden Sie dann Ergebnisse von der Seite des Datensatzes zurück. Beides wird mit dem eigenen Schlüssel Ihres Labors signiert, nicht von uns, und Ergebnisse werden so verschlossen, dass nur der Züchter sie öffnen kann.',
   'app.home.confirmDelivery': 'Eine Lieferung bestätigen',
-  'app.home.labSignature': 'Die Signatur Ihres Labors',
-  'app.home.setUpLabSignature': 'Die Signatur Ihres Labors einrichten',
+  'app.home.labSignature': 'Der Signaturschlüssel Ihres Labors',
+  'app.home.setUpLabSignature': 'Den Signaturschlüssel Ihres Labors einrichten',
   'app.home.openPlant': '{name} öffnen',
   'app.home.quoted': '„{v}“',
   'app.home.labReportWaiting': 'Laborbericht wartet',
@@ -88,6 +88,13 @@ export const home = {
   'app.home.roleView.both': 'Ansicht für Züchter und Labore',
   'app.home.roleChange': '{view} · ändern',
   'app.home.chooseView': 'Züchter oder Labor? Ansicht wählen',
+  // lab/LabDoor.tsx: /for-labs, asked once of a breeder with records of their own
+  'app.home.labDoor.title': 'Labor-Werkzeuge hinzufügen?',
+  'app.home.labDoor.what':
+    'Sie sehen dann eine Ansicht für Labore mit Ihrem Signaturschlüssel und den Proben, die Sie erhalten.',
+  'app.home.labDoor.text': 'Ihre Datensätze bleiben, wie sie sind.',
+  'app.home.labDoor.add': 'Labor-Werkzeuge hinzufügen',
+  'app.home.labDoor.notNow': 'Jetzt nicht',
   'app.home.saveProblem.records': 'Datensätze',
   'app.home.saveProblem.agreements': 'Vereinbarungen',
   'app.home.saveProblem.unreachable':

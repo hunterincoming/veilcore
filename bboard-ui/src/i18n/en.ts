@@ -242,6 +242,7 @@ export const en = {
   'm.nav.demo': 'Try the demo',
   'm.nav.yours': 'Your records',
   'm.nav.menu': 'Menu',
+  'm.nav.forLabs': 'For labs',
 
   'm.hero.label': 'Proof of what you hold',
   // Round 3 (CTO decision, 14 Oct): not "Prove you had it first." A record shows you had
@@ -339,6 +340,8 @@ export const en = {
     "Seal a record and pair its DNA report. If the plant turns up under another name, a lab can compare a new test with your report. In this web demo the pairing is saved with your record but not yet dated. VeilCore doesn't test DNA.",
   'm.for.2t': 'Variety protection and certification.',
   'm.for.2link': 'How a claim works →',
+  // The lab slide's way in (lab/LabDoor.tsx), and on How it works.
+  'm.for.3link': "Run a lab? Set up your lab's signing key →",
   'm.for.3t': "Material in a lab's hands.",
   'm.for.3p':
     "Send material with a lab code. The lab signs a receipt with its own key, so the record shows a second party. The receipt is a real signature, kept by VeilCore's registry, not on the chain. Terms such as no propagation are practice only in the web demo.",

@@ -12,7 +12,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Box, ButtonBase, Dialog, DialogContent, DialogTitle, Stack, Typography } from '@mui/material';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { getRole, setRole, CHANGE_ROLE_EVENT, isLab, isBreeder, type Role } from '../veilcore/role';
+import { getRole, setRole, CHANGE_ROLE_EVENT, pageAfterRole, type Role } from '../veilcore/role';
 import { useT } from '../i18n/app';
 import { LanguagePicker } from '../i18n/LanguagePicker';
 import { FOCUS_RING, INK_COLOR } from '../config/theme';
@@ -39,9 +39,9 @@ export const RolePicker: React.FC<{ ask: boolean }> = ({ ask }) => {
     setRole(r);
     chosen.current = true;
     setOpen(false);
-    // A lab arriving at the record wizard would be asked to seal a cultivar; its own
-    // first screen is the records page, which shows receiving and signing.
-    if (isLab(r) && !isBreeder(r) && pathname === '/new') void navigate('/records');
+    // A lab arriving at the record wizard would be asked to seal a cultivar (role.ts).
+    const next = pageAfterRole(r, pathname);
+    if (next) void navigate(next);
   };
 
   return (
