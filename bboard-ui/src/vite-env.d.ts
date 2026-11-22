@@ -33,7 +33,7 @@ declare global {
     readonly VITE_INDEXER_RELAY_URL?: string;
     /** Optional second, independent indexer: both must give the same answer. */
     readonly VITE_INDEXER_SECOND_URL?: string;
-    /** Test-network builds hosted at their own address (test.veilcore.org): the origin shared links use. */
+    /** The origin shared links and QR codes use: test.veilcore.org, or a copy run with its own registry (docs/SELF-HOSTING.md). Unset on veilcore.org. */
     readonly VITE_CANONICAL_ORIGIN?: string;
     /** 'true' shows the notice that dating on Midnight is paused (config/network.ts). Off otherwise. */
     readonly VITE_DATING_PAUSED?: string;

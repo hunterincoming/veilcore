@@ -51,7 +51,7 @@ import {
 } from '../../veilcore/marker-claims';
 import { PARENTAGE_SCHEMA } from '../../veilcore/parentage';
 import type { AppKey } from '../../i18n/app/en';
-import { DEVICE_ONLY_CLAIMS_ENABLED } from '../../config/network';
+import { CANONICAL_ORIGIN, DEVICE_ONLY_CLAIMS_ENABLED } from '../../config/network';
 import { useT } from '../../i18n/app';
 import type { Translator } from '../../i18n/translate';
 import { schemaWords, slotWords } from './NumbersFields';
@@ -332,7 +332,7 @@ export const ProveNumber: React.FC<{
             },
           }
         : one;
-    await navigator.clipboard.writeText(claimLink(withLab, window.location.origin));
+    await navigator.clipboard.writeText(claimLink(withLab, CANONICAL_ORIGIN));
     setCopied(true);
   };
 

@@ -31,6 +31,7 @@ import { useT, loadAppStrings } from '../../i18n/app';
 import { appEn } from '../../i18n/app/en';
 import { makeTranslator, type AppDict, type Translator } from '../../i18n/translate';
 import { LANGUAGE_CODES, type Lang } from '../../config/languages';
+import { CANONICAL_ORIGIN } from '../../config/network';
 import { isKeptOnDeviceOnly, lockedRecords, useRecords, type StrainRecord } from '../../veilcore/records';
 import {
   batchSums,
@@ -93,7 +94,7 @@ const gather = async (selection: ReturnType<typeof selectPack>, packLang: Lang, 
     import('../../veilcore/verify-link'),
     import('../../veilcore/document-profile'),
   ]);
-  const origin = window.location.origin;
+  const origin = CANONICAL_ORIGIN;
   const langParam: Record<string, string> = packLang === 'en' ? {} : { lang: packLang };
   return gatherPackFacts(selection, {
     proof: (fp) => recordProof(fp),

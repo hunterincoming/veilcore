@@ -94,11 +94,14 @@ export const DATING_PAUSED: boolean = import.meta.env.VITE_DATING_PAUSED === 'tr
  * window.location.origin, so a certificate printed from a preview deployment, or from
  * a copy of the static bundle hosted anywhere, sent whoever scanned it to that host.
  *
- * A mainnet build always points at veilcore.org, whatever the setting says. A test-network
- * site names itself with VITE_CANONICAL_ORIGIN (test.veilcore.org,
- * scripts/deploy-test-site.mjs); one that doesn't (a local or preview build) points at
- * wherever it is being served from, because its records don't exist on veilcore.org and
- * a link there would tell the person checking it that there is no such record (round 3).
+ * Any site names itself with VITE_CANONICAL_ORIGIN, a plain https origin: test.veilcore.org
+ * (scripts/deploy-test-site.mjs), or a copy someone runs with its own registry
+ * (docs/SELF-HOSTING.md), whose records don't exist on veilcore.org. Without it, a mainnet
+ * build points at veilcore.org, wherever it is served from, so a preview deployment never
+ * prints links to itself; a test-network build points at wherever it is being served from,
+ * because its records don't exist on veilcore.org and a link there would tell the person
+ * checking it that there is no such record (round 3). vite.config.ts refuses a mainnet build
+ * whose registry isn't VeilCore's without the setting, and veilcore.org's own build with it.
  */
 export const canonicalOriginFor = (input: {
   mainnet: boolean;
@@ -107,15 +110,22 @@ export const canonicalOriginFor = (input: {
   here?: string;
 }): string => {
   const MAIN = 'https://veilcore.org';
-  if (input.mainnet) return MAIN;
   const v = (input.configured ?? '').trim();
+  if (input.mainnet) return (v && plainHttpsOrigin(v)) || MAIN;
   const fallback = input.here && /^https?:\/\//.test(input.here) ? input.here : MAIN;
   if (!v) return fallback;
+  return plainHttpsOrigin(v) ?? fallback;
+};
+
+/** The origin of a plain https address (no path, query or fragment), or undefined. */
+const plainHttpsOrigin = (v: string): string | undefined => {
   try {
-    const u = new URL(v);
-    return u.protocol === 'https:' && u.pathname === '/' && !u.search ? u.origin : fallback;
+    const u = new URL(v.trim());
+    return u.protocol === 'https:' && u.pathname === '/' && !u.search && !u.hash && !u.username && !u.password
+      ? u.origin
+      : undefined;
   } catch {
-    return fallback;
+    return undefined;
   }
 };
 

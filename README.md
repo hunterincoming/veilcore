@@ -333,6 +333,10 @@ Midnight's standards repository.
 
 For whoever runs the site: [docs/ops/deploying.md](docs/ops/deploying.md).
 
+To run your own copy (registry, fee sponsor, relay and site, with your own address on every
+link and label): [docs/SELF-HOSTING.md](docs/SELF-HOSTING.md). Nobody outside VeilCore has run
+it yet.
+
 ## Contributing and security
 
 See [CONTRIBUTING.md](CONTRIBUTING.md). Report vulnerabilities privately: [SECURITY.md](SECURITY.md).

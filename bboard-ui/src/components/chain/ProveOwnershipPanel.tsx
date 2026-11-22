@@ -17,6 +17,7 @@ import { ChainStatusLine } from './ChainStatusLine';
 import { proveLinkParams } from '../../veilcore/prove-link';
 import { nameLinkParams, verifyPath } from '../../veilcore/verify-link';
 import { DatingPausedNotice } from '../DatingPausedNotice';
+import { canonicalUrl } from '../../config/network';
 import { DisclosureReceipt } from './DisclosureReceipt';
 
 export const ProveOwnershipPanel: React.FC<{ recordId: string; initialChallenge?: string }> = ({
@@ -71,7 +72,7 @@ export const ProveOwnershipPanel: React.FC<{ recordId: string; initialChallenge?
               <Button
                 size="small"
                 startIcon={<ContentCopyIcon />}
-                onClick={() => void navigator.clipboard.writeText(`${window.location.origin}${checkerLink}`)}
+                onClick={() => void navigator.clipboard.writeText(canonicalUrl(checkerLink))}
               >
                 {t('app.prove.own.copyChecker')}
               </Button>

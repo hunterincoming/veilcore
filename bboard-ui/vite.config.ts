@@ -25,6 +25,7 @@ import wasm from 'vite-plugin-wasm';
 import topLevelAwait from 'vite-plugin-top-level-await';
 import { readMainnetPins } from '../scripts/mainnet-pins.mjs';
 import { readPolicyStatus } from '../scripts/maintenance-policy.mjs';
+import { mainnetOriginProblem, plainHttpsOrigin, VEILCORE_ORIGIN } from '../scripts/canonical-origin.mjs';
 import { agreementsLive, llmsFullTxt, llmsTxt, robotsTxt, sitemapXml, statusFlags, structuredData } from './findable';
 
 // What the site says about where records are dated depends on the build mode, never on
@@ -74,7 +75,19 @@ const mainnetBuild = (mode: string, command: string) => {
       '\n\nThe mainnet website was not built: VITE_API_BASE (the registry address) is not set. Use npm run deploy:mainnet from the repository folder.\n',
     );
   }
+  // Where its links and QR codes point (scripts/canonical-origin.mjs): veilcore.org for
+  // VeilCore's registry, the copy's own address for any other (docs/SELF-HOSTING.md).
+  const origin = mainnetOriginProblem({ api: env.VITE_API_BASE, canonical: env.VITE_CANONICAL_ORIGIN });
+  if (origin) throw new Error(`\n\nThe mainnet website was not built: ${origin}\n`);
   return { veilcore: pins.veilcore, claims: pins.claims, policyApproved: policy.approved };
+};
+
+// A mainnet build that names another site as its own (VITE_CANONICAL_ORIGIN): a copy someone
+// else runs. It asks not to be indexed and leaves out veilcore.org's sitemap and llms files.
+const isVeilcoreOrg = (mode: string): boolean => {
+  if (mode !== 'mainnet') return false;
+  const set = String({ ...loadEnv(mode, process.cwd(), 'VITE_'), ...process.env }.VITE_CANONICAL_ORIGIN ?? '').trim();
+  return !set || plainHttpsOrigin(set) === VEILCORE_ORIGIN;
 };
 
 // The page description search engines and link previews show, by mode.
@@ -138,10 +151,11 @@ ${SUMMARY_TAIL}`,
 });
 
 // Being found (findable.ts): veilcore.org gets a sitemap, llms.txt and llms-full.txt, and who
-// VeilCore is as schema.org data; every other build asks not to be indexed. No dates in these
+// VeilCore is as schema.org data; every other build (test sites, and a mainnet copy someone else
+// runs, isVeilcoreOrg above) asks not to be indexed. No dates in these
 // files, so a rebuild from the same commit gives the same bytes (npm run check:rebuild).
 const findable = (mode: string): Plugin => {
-  const indexed = mode === 'mainnet';
+  const indexed = isVeilcoreOrg(mode);
   const root = fileURLToPath(new URL('.', import.meta.url));
   return {
     name: 'veilcore-findable',

@@ -60,6 +60,10 @@ at launch_ below, and [MANAGED.md](MANAGED.md), written for a lab owner.
 contracts live on Midnight, and this package and the SDK (both Apache-2.0) work without any
 VeilCore server.
 
+**Running the whole website yourself?** The registry, the fee sponsor and the site can all be
+run by you, with your own address on every link: [SELF-HOSTING.md](SELF-HOSTING.md). Nobody
+outside VeilCore has done it yet.
+
 ---
 
 ## Part 2, for the developer

@@ -36,7 +36,7 @@ Nobody outside VeilCore does yet.
 | The batch roots and the files that check their dates (root, Bitcoin `.ots`, RFC 3161 token) | Our registry; and any copy made with `scripts/mirror` in [veilcore-api](https://github.com/hunterincoming/veilcore-api) | ⚠️ Anyone can copy every batch and check it with Node alone. The copy is append-only and fetched again on every run: if our registry ever serves a changed root, anchor, token or proof, it keeps both and raises the alarm. Our own scheduled copy (a public repository GitHub updates) is ready but not switched on. A copy we run only shows what we served and when; it is independent only when someone else runs it, and nobody outside VeilCore does yet |
 | Checking a record | `npx veilcore-records verify` (open source, on npm), the evidence bundle's `verify.html` and `verify.py`, the Python and Rust implementations | ✅ No server, no account. Three implementations, all written by us so far |
 | The format itself | SPEC.md in veilcore-sdk, Apache-2.0 | ✅ Anyone can implement it from the text and the 181 vectors |
-| The website | This repository, Apache-2.0; every release has a manifest and can be rebuilt | ⚠️ Anyone can host it, but it needs a registry and a fee service to save and date records |
+| The website | This repository, Apache-2.0; every release has a manifest and can be rebuilt | ⚠️ Anyone can host it, but it needs a registry and a fee service to save and date records ([SELF-HOSTING.md](SELF-HOSTING.md)); its links and labels then point at its own address |
 | The registry (stores sealed records, batches them, relays lab codes and deal messages) | Our server. Its code is public **from 14 Nov 2026**: [hunterincoming/veilcore-api](https://github.com/hunterincoming/veilcore-api), Apache-2.0 | ⚠️ Anyone can run a compatible one from the code and its README, and nobody else does yet. Someone has to host it, keep its database and backups, and pair it with a fee service to date its batches. A new one starts empty: nothing on ours moves to it, so the backup file is still what a holder relies on. Only we have ever run it, so setting one up without our help is untested |
 | The fee service (pays the network fee so nobody needs a wallet) | Our server (`sponsor/`, in this repository) | ⚠️ The code is here; someone has to run it and fund it |
 | License state (issued, active, revoked) | The main contract on Midnight | ✅ Public chain state; the verifier rules are in `docs/design.md` |
@@ -70,8 +70,9 @@ is gone, and leaving them out keeps it small. The backup file is the thing to ke
 1. ~~Publish the registry's code~~: done 14 Nov
    ([hunterincoming/veilcore-api](https://github.com/hunterincoming/veilcore-api), Apache-2.0).
    Still open under it: **a registry and fee service run by someone else.** The code and its
-   README are public; what's missing is a second operator, and a write-up of running both from
-   a fresh start that doesn't lean on what we know from operating ours.
+   README are public, and [SELF-HOSTING.md](SELF-HOSTING.md) (22 Nov) is the write-up of running
+   the registry, fee service, relay and site from a fresh start. What's missing is a second
+   operator: nobody outside VeilCore has followed it yet.
 2. ~~Publish the backup command to npm~~: done 23 Oct (veilcore-records 0.17.1, built and
    signed by CI, approved by a person with 2FA before it went live).
 3. ~~The strain profile in veilcore-records~~: done 23 Oct (SPEC 11.9 and 30 vectors in

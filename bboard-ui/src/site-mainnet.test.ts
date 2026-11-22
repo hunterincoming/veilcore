@@ -516,6 +516,44 @@ describe('builds', () => {
     expect(fs.existsSync(path.join(tmp, 'dist-refused3', 'index.html'))).toBe(false);
   }, 300_000);
 
+  it("a copy run with its own registry points its links at itself, and veilcore.org's build can't be pointed elsewhere (docs/SELF-HOSTING.md)", () => {
+    const own = 'https://registry.example.org';
+    const site = 'https://records.example.org';
+    // Its own registry and no address of its own: refused, or every label would point at veilcore.org.
+    const none = build('mainnet', path.join(tmp, 'dist-self-none'), {
+      VEILCORE_TEST_DEPLOY_GUARD: guardFile('self1', DUMMY, DUMMY_CLAIMS),
+      VITE_API_BASE: own,
+    });
+    expect(none.status).not.toBe(0);
+    expect(`${none.stdout}${none.stderr}`).toMatch(/set VITE_CANONICAL_ORIGIN to this site's own https address/);
+    expect(fs.existsSync(path.join(tmp, 'dist-self-none', 'index.html'))).toBe(false);
+    // VeilCore's registry with a test-site address left in the shell: refused.
+    const left = build('mainnet', path.join(tmp, 'dist-self-left'), {
+      VEILCORE_TEST_DEPLOY_GUARD: guardFile('self2', DUMMY, DUMMY_CLAIMS),
+      VITE_API_BASE: API,
+      VITE_CANONICAL_ORIGIN: 'https://test.veilcore.org',
+    });
+    expect(left.status).not.toBe(0);
+    expect(`${left.stdout}${left.stderr}`).toMatch(/unset VITE_CANONICAL_ORIGIN/);
+    // Its own registry and its own address: builds, links to itself, and asks not to be indexed.
+    const dir = path.join(tmp, 'dist-self');
+    const ok = build('mainnet', dir, {
+      VEILCORE_TEST_DEPLOY_GUARD: guardFile('self3', DUMMY, DUMMY_CLAIMS),
+      VITE_API_BASE: own,
+      VITE_CANONICAL_ORIGIN: site,
+    });
+    expect(ok.status, ok.stderr).toBe(0);
+    const js = fs
+      .readdirSync(path.join(dir, 'assets'))
+      .filter((f) => f.endsWith('.js'))
+      .map((f) => fs.readFileSync(path.join(dir, 'assets', f), 'utf8'))
+      .join('\n');
+    expect(js).toContain(`configured:\`${site}\``);
+    expect(fs.readFileSync(path.join(dir, 'index.html'), 'utf8')).toMatch(/<meta name="robots" content="noindex"/);
+    expect(fs.existsSync(path.join(dir, 'sitemap.xml'))).toBe(false);
+    expect(fs.existsSync(path.join(dir, 'llms.txt'))).toBe(false);
+  }, 600_000);
+
   it('a mainnet build with the sponsor set up as deploy:mainnet does it builds (the pinned contract, through the relay)', () => {
     const r = build('mainnet', path.join(tmp, 'dist-sponsor'), {
       VEILCORE_TEST_DEPLOY_GUARD: guardFile('dummy4', DUMMY, DUMMY_CLAIMS),
@@ -577,6 +615,10 @@ describe('builds', () => {
         .join('\n');
     expect(js(mainDist)).toContain(DUMMY);
     expect(js(preDist)).not.toContain(DUMMY);
+    // veilcore.org's build names no other site: its links go to veilcore.org, and it is indexed.
+    expect(js(mainDist)).toContain('configured:void 0');
+    expect(js(mainDist)).not.toMatch(/configured:`/);
+    expect(fs.existsSync(path.join(mainDist, 'sitemap.xml'))).toBe(true);
   }, 600_000);
 
   // ---------------------------------------------------------------- browser

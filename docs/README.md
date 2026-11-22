@@ -80,5 +80,6 @@ These are adversarial reviews and run records, not a formal security audit.
 | [mainnet-sponsor.md](mainnet-sponsor.md) | The fee service that pays network fees for the browser |
 | [ops/filing-revision-4.md](ops/filing-revision-4.md) | How deployment record revision 4 was filed |
 | [test-site.md](test-site.md) | The public test site, test.veilcore.org |
+| [SELF-HOSTING.md](SELF-HOSTING.md) | Running your own copy: registry, fee sponsor, relay and site, every setting, test network first |
 | [translations/README.md](translations/README.md) | How translations are made and signed off |
 | [i18n-glossary.md](i18n-glossary.md) | One word per idea in each language, with the source for each |
