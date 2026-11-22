@@ -34,6 +34,7 @@ import { testchainStrings } from './en-testchain';
 import { IS_MAINNET, CLAIMS_ON_MAINNET, MAINTENANCE_POLICY_APPROVED } from '../config/network';
 import { CHAIN_READY, CHAIN_READS, REAL_CHAIN } from '../veilcore/chain/config';
 import { AGREEMENTS_LIVE, CLAIMS_ON_THIS_SITE } from '../config/copy';
+import { fulfilled, tracked } from './settled';
 import { LANGUAGE_CODES, MAINNET_DRAFTS, PUBLISHED_LANGUAGES, type Lang } from '../config/languages';
 
 export type { Lang };
@@ -116,7 +117,8 @@ const packOrEnglish = new Map<Lang, Promise<LanguagePack>>();
 const loadPackOrEnglish = (lang: Lang): Promise<LanguagePack> => {
   let p = packOrEnglish.get(lang);
   if (!p) {
-    p = loadLanguage(lang).catch(() => packs.en as LanguagePack);
+    const have = packs[lang];
+    p = have ? fulfilled(have) : tracked(loadLanguage(lang).catch(() => packs.en as LanguagePack));
     packOrEnglish.set(lang, p);
   }
   return p;
@@ -288,7 +290,9 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [lang, setLangState] = useState<Lang>(startingLanguage);
   // Fetched before the first page (preloadLanguage); a language picked later is fetched
   // in the picker's transition, and the page shows the old language until it is here.
-  const pack = packs[lang] ?? use(loadPackOrEnglish(lang));
+  // `use` on every render, never behind `??` (settled.ts: React error #520).
+  const fetched = use(loadPackOrEnglish(lang));
+  const pack = packs[lang] ?? fetched;
 
   useEffect(() => {
     document.documentElement.lang = lang;
