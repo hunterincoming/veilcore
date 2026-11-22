@@ -268,7 +268,7 @@ The order, because each step checks the one before:
 2. The mainnet sponsor, deployed from the switch commit. `deploy:mainnet` refuses until its
    `/sponsor/status` says `"agreements": true`, so a site can't offer licenses the sponsor would
    refuse to pay for.
-   On the mainnet sponsor, also set `LIMIT_PER_NETWORK_HOUR=15` (the default, 3, is too few
+   On the mainnet sponsor, also set `LIMIT_PER_NETWORK_HOUR=10` (live since November 2026; the default, 3, is too few
    when a breeder and a grower make a license on the same Wi-Fi: issue, countersign and a
    royalty obligation are already four transactions from one network).
 3. The site: `npm run deploy:mainnet` with `VEILCORE_MAINNET_SPONSOR` and
