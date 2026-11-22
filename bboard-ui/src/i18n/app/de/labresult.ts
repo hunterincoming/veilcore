@@ -95,7 +95,12 @@ export const labresult = {
   'app.lr.tools.none': 'Noch keine.',
   'app.lr.form.kind': 'Art des Ergebnisses',
   'app.lr.form.subject': 'Prüfcode, den der Absender für diese Probe angegeben hat',
-  'app.lr.form.subjectHelp': 'Aus dem Datensatz der Probe oder seinem Prüflink: 64 Zeichen.',
+  'app.lr.form.subjectHelp':
+    'Scannen Sie den QR-Code neben dem Prüfcode im Datensatz der Probe oder auf ihrem Etikett, oder fügen Sie den Code ein (64 Zeichen). Ein USB-Barcodescanner geht auch: In dieses Feld klicken, dann scannen.',
+  'app.lr.form.subjectBadCheck':
+    'Dieser Code wurde nicht richtig gelesen. Scannen Sie ihn noch einmal. Passiert das mit einem USB-Scanner immer wieder, stellen Sie den Scanner auf dasselbe Tastaturlayout wie diesen Computer ein.',
+  'app.lr.form.subjectNotCode':
+    'Das ist kein Prüfcode. Scannen Sie den QR-Code neben dem Prüfcode im Datensatz der Probe oder auf ihrem Etikett, oder fügen Sie den 64-stelligen Code ein.',
   'app.lr.form.sampleId': 'Proben-ID (die des Absenders)',
   'app.lr.form.accession': 'Ihre Eingangsnummer',
   'app.lr.form.method': 'Methode oder SOP',
@@ -142,7 +147,7 @@ export const labresult = {
   'app.lr.csv.template': 'Vorlage herunterladen',
   'app.lr.csv.choose': 'CSV-Datei auswählen',
   'app.lr.csv.intro':
-    'Eine Zeile pro Probe und Ziel. Jede Zeile wird ein eigenes signiertes Ergebnis. Nötige Spalten: subject (der Prüfcode, den der Absender angegeben hat), sample id, accession, result. Die Vorlage hat den Rest, auch die Lauf- und QC-Angaben.',
+    'Eine Zeile pro Probe und Ziel. Jede Zeile wird ein eigenes signiertes Ergebnis. Nötige Spalten: subject (der Prüfcode, den der Absender angegeben hat), sample id, accession, result. Die Vorlage hat den Rest, auch die Lauf- und QC-Angaben. Die Spalte subject kann ein USB-Barcodescanner füllen: Klicken Sie eine Zelle darin an und scannen Sie den QR-Code jeder Probe.',
   'app.lr.csv.ready':
     '{ok} bereit zum Signieren. {bad} werden nicht signiert: Korrigieren Sie sie und signieren Sie sie erneut.',
   'app.lr.csv.tooMany':

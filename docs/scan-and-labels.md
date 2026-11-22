@@ -14,7 +14,7 @@ A **Scan** button sits at the end of these boxes:
 | A batch of young (`BatchFlow`) | each young's ID (a reader's Enter moves to the next box) |
 | Sending to a lab | sample ID, seal number |
 | Receiving a sample (lab) | sample ID on arrival |
-| A lab result | sample ID |
+| A lab result | the proof code the sender gave (see [Proof code QR](#proof-code-qr)), sample ID |
 | The app's paste box | anything someone sent: a scanned check link or proof link opens at once, as Go would; anything else (a lab code, a proof request, an agreement to sign) only fills the box, for the holder to read and press Go |
 | `/verify` (public) | "Scan a label's QR code": only a VeilCore label is taken. A check link opens its check page, a bare record ID fills the box; any other code (an ear tag, a lot number) is refused in the window and goes nowhere, so this page can't become a look-up by tag number |
 
@@ -115,8 +115,63 @@ What a label carries:
 - **Never:** the DNA report's or lab report's salt, on-chain links, or anything sealed. The
   holder's own check link may carry those; a label never does (`labels.test.ts`).
 
+## Proof code QR
+
+Status: built in the site, tested in a browser with a fake camera and typed key bursts. Not live
+anywhere until a deploy carries it; not yet tried with a real USB scanner or on a real phone.
+
+A lab signing a result for a client needs the record's proof code (64 characters). Copying it was
+slow and easy to get wrong, so:
+
+- **The record page shows it as a QR code** (Technical details, under the proof code and its Copy
+  button; `components/lab/ProofCodeQr.tsx`). The client shows the screen to the lab, or sends a
+  screenshot. The printed label's QR code carries the proof code too (its check link's `fp`), so a
+  label on the tube works as well.
+- **The lab's proof code box** (`/lab/results`, "One result"; `scan/ProofCodeField.tsx`) has the
+  Scan button. The camera opens only when it is tapped. A USB barcode scanner acting as a keyboard
+  types into the box; Enter after it signs nothing. Paste and typing work as before. Whatever comes
+  in, the box ends up holding the plain 64-character code, which is what gets signed.
+- **A bad reading says so at once:** the QR text with a failed check ("didn't read correctly …
+  set the scanner to the same keyboard layout as this computer") or anything that isn't a proof
+  code (an ear tag, a lab code, a link with no proof code).
+- **The spreadsheet:** the `subject` column takes the same QR text, so a USB scanner can fill it
+  (click a cell, scan each sample). The help text says so.
+
+What the QR code holds (`veilcore/proof-code-qr.ts`): `VCP`, the 64 hex characters, and 4 hex
+check characters, upper case: 71 letters and digits.
+
+- Letters and digits only, because a USB scanner sends US key positions: on a French or German
+  layout `: / ? = # -` come out as other characters. What still garbles (French digits, `a`/`q`)
+  becomes a non-hex character or a failed check, and is refused, never guessed.
+- Upper case, so the QR code uses its alphanumeric mode and stays small (version 4, level M).
+  Read in any case, so Caps Lock doesn't matter.
+- `VCP` ("VeilCore proof code") says what it is, so another 64-hex value scanned by mistake (a DNA
+  report's SHA-256, a lab result's code) is not taken as a proof code.
+- The check is CRC-16/CCITT-FALSE of the 64 characters: any one character changed, dropped or
+  doubled is refused. QR codes correct their own errors; the check covers what QR doesn't (a
+  keyboard-wedge scanner, a retyped code).
+- Not a link: a phone's camera app shows it as text and opens nothing. "Scan to check" stays the
+  label's and the certificate's job.
+
+The box also takes a check link, read for its `fp`. Before this, a label printed with "The
+record's name too" was refused, because its link holds the name's salt (also 64 hex) as well.
+
+Privacy: the proof code is already public: the check page shows it to anyone with the record ID,
+every check link and label carries it, and the client was already giving it to the lab. The QR
+code holds the proof code and its check, nothing else: no record ID, no name, nothing sealed. It
+is drawn on the device; a scan is read on the device and goes only into the box.
+
+Left for later: the other proof code boxes on the form (the compared sample, parents, strain
+record) still take paste and typing only; the delivery flow needs no proof code (the lab code
+carries it).
+
 ## Tests
 
+- `src/veilcore/proof-code-qr.test.ts`: the QR text made and read back, every one-character
+  change refused, a label with the name read for its `fp`.
+- `e2e/proof-code-scan.spec.ts`: the record page's QR code read back with zxing-wasm; on
+  `/lab/results` the camera opened only on a tap and reading the code, a USB scanner's burst and
+  Enter, a garbled reading and a non-code refused with a message, paste, and the CSV help.
 - `src/scan/scan.test.ts`, `src/components/labels/labels.test.ts`, `src/vercel-config.test.ts`.
 - `e2e/scan-labels.spec.ts`: a fake camera (`e2e/fake-camera.ts` draws the QR code into a Y4M
   video at test time) read by the bundled reader on `/verify` and in the paste box; no camera; a

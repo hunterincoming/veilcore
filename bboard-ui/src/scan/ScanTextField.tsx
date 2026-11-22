@@ -17,8 +17,10 @@ export const ScanTextField: React.FC<
     onValue: (v: string) => void;
     /** After a reader's Enter: e.g. the next box in a list. */
     onEnter?: () => void;
+    /** A camera or NFC reading, in place of putting it in the box as it is: e.g. to check it. */
+    onScanned?: (text: string) => void;
   }
-> = ({ label, value, onValue, onEnter, slotProps, disabled, ...rest }) => {
+> = ({ label, value, onValue, onEnter, onScanned, slotProps, disabled, ...rest }) => {
   const input = useRef<HTMLInputElement>(null);
   const given = (slotProps ?? {}) as Record<string, object | undefined>;
   return (
@@ -41,7 +43,7 @@ export const ScanTextField: React.FC<
               field={label}
               disabled={disabled}
               inputRef={input}
-              onScan={(text) => onValue(cleanReading(text))}
+              onScan={(text) => (onScanned ? onScanned(text) : onValue(cleanReading(text)))}
             />
           ),
         },

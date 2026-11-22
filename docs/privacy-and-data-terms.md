@@ -67,6 +67,7 @@ hunter@veilcore.org.
 | A document kept on this device only | Nothing typed is sent, locked or not; the registry gets its ID, proof code and key binding; with "Saved with VeilCore" on, its ID and keys go inside the locked copy | `docs/device-only-records.md` |
 | The camera, when scanning | Frames read in the tab and dropped; only the decoded text goes into the box | `docs/scan-and-labels.md`, PR #147 |
 | QR labels | Drawn on the device and printed by the browser; ID and proof code, the name only if ticked | `docs/scan-and-labels.md` |
+| Proof code QR (record page) | Drawn on the device; the proof code and a check, nothing else; a lab's scan is read on its device and goes only into its form | `docs/scan-and-labels.md` |
 | The recovery sheet's code | Made on the device; never sent (slot id, token and key come from it by HKDF) and never stored | `docs/passkey-backup.md`, PR #143 |
 | The passkey check page | Tests in the browser; nothing sent | `docs/passkey-support.md`, PR #148 |
 | Ask | Shortcuts only, on the device; typing sends nothing; an approved "Do it for me" job saves, sends reports or dates what was approved; jobs are local, deleted 7 days after they end | `docs/ask-veilcore.md`, `ask-job/store.ts` |

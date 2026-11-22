@@ -97,6 +97,9 @@ export const plant = {
   'app.plant.f.codeCopied': 'Copié',
   'app.plant.f.codeNotCopied': 'Copie impossible : sélectionnez le code et copiez-le',
   'app.plant.f.recordFingerprint': 'Code de preuve de l’enregistrement',
+  'app.plant.f.proofQrLabel': 'Code QR de ce code de preuve, à scanner par un laboratoire',
+  'app.plant.f.proofQrText':
+    'Un laboratoire peut le scanner dans son formulaire de résultat au lieu de taper le code. Il ne contient que le code de preuve, que la page de vérification montre à tous.',
   'app.plant.evidenceBundle': 'Dossier de preuve',
   'app.plant.evidenceBundleText':
     'L’enregistrement tel que scellé, sa preuve d’inclusion, la racine du lot, l’endroit où le lot a été inscrit, le fichier d’horodatage Bitcoin s’il existe et les signatures de laboratoire le concernant, dans un seul .zip. Son verify.html le vérifie sans internet et sans rien de VeilCore, et indique quoi consulter pour le dater.',

@@ -5,6 +5,7 @@
 import React from 'react';
 import { Autocomplete, Box, Button, MenuItem, Stack, TextField, Typography } from '@mui/material';
 import { ScanTextField } from '../../scan/ScanTextField';
+import { ProofCodeField } from '../../scan/ProofCodeField';
 import {
   CULTURES_MAX,
   QC_MAX,
@@ -151,11 +152,17 @@ export const ResultForm: React.FC<{
           ))}
         </TextField>
       )}
-      {!fixedSubject &&
-        field('subject', 'app.lr.form.subject', {
-          helperText: t('app.lr.form.subjectHelp'),
-          error: problem === 'subject',
-        })}
+      {/* Scanned (the record page's QR code, a label's), typed by a USB scanner, or pasted. */}
+      {!fixedSubject && (
+        <ProofCodeField
+          label={t('app.lr.form.subject')}
+          helperText={t('app.lr.form.subjectHelp')}
+          value={d.subject}
+          onValue={(v) => set('subject', v)}
+          error={problem === 'subject'}
+          dataField="subject"
+        />
+      )}
       <ScanTextField
         label={t('app.lr.form.sampleId')}
         value={d.sampleId}

@@ -93,6 +93,9 @@ export const plant = {
   'app.plant.f.codeCopied': 'Copied',
   'app.plant.f.codeNotCopied': 'Couldn’t copy: select the code and copy it',
   'app.plant.f.recordFingerprint': 'Proof code',
+  'app.plant.f.proofQrLabel': 'QR code of this proof code, for a lab to scan',
+  'app.plant.f.proofQrText':
+    'A lab can scan this into its result form instead of typing the code. It holds only the proof code, which the check page shows anyone.',
   'app.plant.evidenceBundle': 'Evidence bundle',
   'app.plant.evidenceBundleText':
     'The record as sealed, its inclusion proof, the batch root, where the batch was recorded, the Bitcoin stamp file if there is one, and lab signatures about it, in one .zip. Its verify.html checks it with no internet and nothing from VeilCore, and says what to look up to date it.',

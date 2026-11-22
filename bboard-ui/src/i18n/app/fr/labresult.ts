@@ -96,7 +96,12 @@ export const labresult = {
   'app.lr.tools.none': 'Aucun pour l’instant.',
   'app.lr.form.kind': 'Quel type de résultat',
   'app.lr.form.subject': 'Code de preuve que l’expéditeur a donné pour cet échantillon',
-  'app.lr.form.subjectHelp': 'Depuis l’enregistrement de l’échantillon ou son lien de vérification : 64 caractères.',
+  'app.lr.form.subjectHelp':
+    'Scannez le code QR à côté du code de preuve dans l’enregistrement de l’échantillon ou sur son étiquette, ou collez le code (64 caractères). Une douchette USB marche aussi : cliquez dans ce champ, puis scannez.',
+  'app.lr.form.subjectBadCheck':
+    'Ce code n’a pas été lu correctement. Scannez-le à nouveau. Si une douchette USB le refait, réglez-la sur la même disposition de clavier que cet ordinateur.',
+  'app.lr.form.subjectNotCode':
+    'Ce n’est pas un code de preuve. Scannez le code QR à côté du code de preuve dans l’enregistrement de l’échantillon ou sur son étiquette, ou collez le code de 64 caractères.',
   'app.lr.form.sampleId': 'ID de l’échantillon (celui de l’expéditeur)',
   'app.lr.form.accession': 'Votre numéro d’enregistrement (laboratoire)',
   'app.lr.form.method': 'Méthode ou mode opératoire (SOP)',
@@ -143,7 +148,7 @@ export const labresult = {
   'app.lr.csv.template': 'Télécharger un modèle',
   'app.lr.csv.choose': 'Choisir le fichier CSV',
   'app.lr.csv.intro':
-    'Une ligne par échantillon et par cible. Chaque ligne devient son propre résultat signé. Colonnes nécessaires : subject (le code de preuve donné par l’expéditeur), sample id, accession, result. Le modèle a le reste, y compris les données d’analyse et de contrôle qualité.',
+    'Une ligne par échantillon et par cible. Chaque ligne devient son propre résultat signé. Colonnes nécessaires : subject (le code de preuve donné par l’expéditeur), sample id, accession, result. Le modèle a le reste, y compris les données d’analyse et de contrôle qualité. Une douchette USB peut remplir la colonne subject : cliquez sur une cellule de cette colonne et scannez le code QR de chaque échantillon.',
   'app.lr.csv.ready': '{ok} prêts à signer. {bad} ne seront pas signés : corrigez-les et signez-les de nouveau.',
   'app.lr.csv.tooMany':
     'Ce fichier a {rows} lignes, et une série en signe {n} au plus. Rien n’a été lu : divisez-le et commencez le fichier suivant à la ligne {next}.',
