@@ -517,7 +517,7 @@ export const de: Strings = {
   'm.live.prove.test':
     'Ja. Die Seite der anderen Person prüft im Netzwerk, dass Sie den eigenen Schlüssel des Datensatzes kontrollieren. Der Datensatz hat diesen Schlüssel beim Versiegeln benannt, deshalb lässt er sich nicht austauschen.',
   'm.live.prove.not': 'Auf veilcore.org: Dafür muss Ihr Browser eine Transaktion senden.',
-  'm.live.claims.t': 'Eine Tatsache beweisen (Belege)',
+  'm.live.claims.t': 'Eine Tatsache belegen (Belege)',
   'm.live.claims.main': 'Im Hauptnetz, ohne Wartungsschlüssel. Die Website kann ihn noch nicht nutzen.',
   'm.live.claims.not': 'Ihn über die Website nutzen.',
   'm.live.claims.live':
@@ -647,7 +647,7 @@ export const de: Strings = {
     'Nur der Prüfcode kommt auf Midnight, in einem Stapel mit anderen. Das Datum ist der Block, in dem der Stapel landet: Er zeigt, dass der Datensatz spätestens dann existierte.',
   'm.step4.text':
     'Geben Sie ihn einem Käufer, einer Prüfstelle oder einem Gericht. Dort kann man ihn kostenlos prüfen, ohne Konto.',
-  'm.claims.label': 'Eine Tatsache beweisen',
+  'm.claims.label': 'Eine Tatsache belegen',
   'm.claims.1s': '1 gezeigt · 15 versiegelt',
   'm.claims.2s': '1 Tatsache · 16 versiegelt',
   'm.claims.3s': '≥ 6 verschieden',

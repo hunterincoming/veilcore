@@ -228,7 +228,7 @@ sealed with no signal always says "this device": the app no longer guesses phone
 
 | English | Japanese | Spanish | German | French |
 | --- | --- | --- | --- | --- |
-| Prove a fact (the claims panel's name) | 事実を証明する | Probar un hecho | Eine Tatsache belegen | Prouver un fait |
+| Prove a fact (the claims panel's name, the home page heading, the live list) | 事実を証明する | Probar un hecho | Eine Tatsache belegen | Prouver un fait |
 | not detected (in a sentence) | 「不検出」 | «no detectado» | „nicht nachgewiesen“ | « non détecté » |
 | Sealed on this device (offline seal line) | この端末で…封印しました | Sellado en este dispositivo | Auf diesem Gerät versiegelt | Scellé sur cet appareil |
 | this device's clock | この端末の時計 | el reloj de este dispositivo | Uhr dieses Geräts | l’horloge de cet appareil |

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   CALL_WORDS,
   callWordKey,
+  claimFooter,
   claimFooterKey,
   forcedCall,
   labStands,
@@ -167,5 +168,75 @@ describe('on a record’s own page, the lab’s words only where its lab stands'
     expect(
       enT.t('app.claim.preview', { claim: claimWords({ schema: PATHOGEN, slot: 0, ...exactly('0') }, enT, true) }),
     ).toBe('This proves: Not detected.');
+  });
+});
+
+describe('the closing line fits the claim’s kind (21 Nov 2026)', () => {
+  const lab = (kind: string) => ({ ok: true, lab: { ok: true, signer: { kind } } });
+  const notDetected = { kind: 'range', op: 'at-most', bound: '0' } as const;
+  const atLeast1 = { kind: 'range', op: 'at-least', bound: '1' } as const;
+  const LANGS = [
+    ['en', undefined],
+    ['de', appDe],
+    ['es', appEs],
+    ['fr', appFr],
+    ['ja', appJa],
+  ] as const;
+  const NUMBER = /number|Zahl|número|chiffre|nombre|数値/;
+
+  it('a number keeps the bound line, in every lab state', () => {
+    for (const v of [undefined, { ok: true }, lab('bound'), lab('retracted'), lab('none')])
+      expect(claimFooter(v, 'potency.thcTotal', notDetected).key).toBe(claimFooterKey(v));
+    expect(claimFooter(lab('bound'), undefined, notDetected).key).toBe('app.claim.check.whatLab');
+  });
+
+  it('a yes/no result a lab stands behind, forced by the claim: the line names the result', () => {
+    const f = claimFooter(lab('bound'), 'pathogen.detected', notDetected);
+    expect(f).toEqual({ key: 'app.claim.check.whatLabCall', call: 'app.lr.call.notDetected' });
+    expect(claimFooter(lab('bound'), 'viability.stage', { kind: 'value', value: '1' }).call).toBe('app.lr.stage.after');
+    for (const [lang, d] of LANGS) {
+      const tr = d ? makeTranslator(lang, d) : enT;
+      const text = tr.t(f.key, { call: tr.t(f.call!) });
+      expect(text, lang).toContain(tr.t('app.lr.call.notDetected'));
+      expect(text, lang).not.toMatch(NUMBER);
+    }
+  });
+
+  it('a yes/no result in every other state: the result code, never the result word', () => {
+    const cases: [Parameters<typeof claimFooter>[0], string][] = [
+      [undefined, 'app.claim.check.whatCall'],
+      [{ ok: false }, 'app.claim.check.whatCall'],
+      [{ ok: true }, 'app.claim.check.whatCall'],
+      [{ ok: true, lab: { ok: false } }, 'app.claim.check.whatCall'],
+      [lab('retracted'), 'app.claim.check.whatLabWithdrawnCall'],
+      [lab('none'), 'app.claim.check.whatLabUnnamedCall'],
+      [lab('conflict'), 'app.claim.check.whatLabUnnamedCall'],
+    ];
+    for (const [v, key] of cases) expect(claimFooter(v, 'pathogen.detected', notDetected)).toEqual({ key });
+    // A lab stands, but "at least 1" doesn't force Detected.
+    expect(claimFooter(lab('bound'), 'pathogen.detected', atLeast1)).toEqual({ key: 'app.claim.check.whatLabCode' });
+    for (const [lang, d] of LANGS) {
+      const tr = d ? makeTranslator(lang, d) : enT;
+      for (const k of [
+        'app.claim.check.whatCall',
+        'app.claim.check.whatLabCode',
+        'app.claim.check.whatLabWithdrawnCall',
+        'app.claim.check.whatLabUnnamedCall',
+      ] as const) {
+        const text = tr.t(k);
+        expect(text, `${lang} ${k}`).not.toMatch(NUMBER);
+        for (const w of ['app.lr.call.notDetected', 'app.lr.call.detected'] as const)
+          expect(text, `${lang} ${k}`).not.toContain(tr.t(w));
+      }
+      // The withdrawn and unnamed lines keep their warnings.
+      expect(tr.t('app.claim.check.whatLabWithdrawnCall'), lang).toContain(
+        tr.t('app.claim.check.whatLabWithdrawn').split(/[.。] ?/)[1],
+      );
+    }
+  });
+
+  it('every yes/no slot the page words is one this rule covers', () => {
+    for (const path of Object.keys(CALL_WORDS))
+      expect(claimFooter({ ok: true }, path, notDetected).key, path).toBe('app.claim.check.whatCall');
   });
 });

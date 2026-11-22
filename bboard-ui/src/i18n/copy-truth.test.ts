@@ -1774,6 +1774,24 @@ describe('"Prove a fact", and "this device" on the seal line (21 Nov 2026)', () 
       expect(a['app.claim.text']).toContain(allApp[lang]['app.lr.call.notDetected'].toLowerCase());
     });
 
+    it(`${lang}: the home page heading and the live list name the action the same way`, () => {
+      const site = LANGUAGES[lang].strings as Record<string, string>;
+      expect(site['m.claims.label']).toBe(NEW_NAME[lang]);
+      expect(site['m.live.claims.t'].startsWith(lang === 'en' ? 'Proving a fact' : NEW_NAME[lang])).toBe(true);
+      // The old heading and live-list names, as names (a dated post keeps its own title).
+      const OLD = [
+        'Prove one fact',
+        'Proving one fact (claims)',
+        'Eine Tatsache beweisen',
+        'Eine Tatsache beweisen (Belege)',
+        'Probar un solo hecho',
+        'Prouver un seul fait',
+        '1つの事実を証明する',
+        '1つの事実を証明する（クレーム）',
+      ];
+      expect(siteTexts(lang).filter((v) => OLD.includes(v))).toEqual([]);
+    });
+
     it(`${lang}: a record sealed with no signal says "this device", never phone or computer`, () => {
       const a = allApp[lang];
       expect(a['app.offline.sealedHere']).toMatch(DEVICE[lang]);

@@ -195,4 +195,15 @@ export const prove = {
   // ClaimCheck.tsx: the footer when a key signs the numbers but no single lab is tied to it (unidentified, conflicting).
   'app.claim.check.whatLabUnnamed':
     'What this shows: the number sealed in that record meets the bound (or is that value), and the key above signed that record’s numbers. No single laboratory is tied to that key here, so read the numbers as the holder’s own. Every bound proved about a number is public, and together they narrow it.',
+  // ClaimCheck.tsx: the footer for a claim on a lab result's yes/no or before/after slot (claim-call.ts claimFooter).
+  'app.claim.check.whatCall':
+    'What this shows: the result code sealed in that record meets the line above. What it doesn’t: that a laboratory tested anything, or that the document is genuine; the holder typed the result. Every claim proved about it is public, and together they narrow it.',
+  'app.claim.check.whatLabCall':
+    'What this shows: the result sealed in that record is “{call}”, and the key above signed that record’s results. What it doesn’t: whose key that is, or that the report is genuine. Every claim proved about a result is public, and this one shows the result itself.',
+  'app.claim.check.whatLabCode':
+    'What this shows: the result code sealed in that record meets the line above, and the key above signed that record’s results. What it doesn’t: whose key that is, or that the report is genuine. Every claim proved about it is public, and together they narrow it.',
+  'app.claim.check.whatLabWithdrawnCall':
+    'What this shows: the result code sealed in that record meets the line above, and the key above signed that record’s results. The lab has since withdrawn this result, so don’t rely on it: ask the lab or the holder for the latest result for this sample. Every claim proved about it is public, and together they narrow it.',
+  'app.claim.check.whatLabUnnamedCall':
+    'What this shows: the result code sealed in that record meets the line above, and the key above signed that record’s results. No single laboratory is tied to that key here, so read the result as the holder’s own. Every claim proved about it is public, and together they narrow it.',
 };

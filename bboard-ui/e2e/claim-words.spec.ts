@@ -54,6 +54,11 @@ test('a lab standing behind it: the result word, with the slot and number under 
   await expect(page.locator('[data-claim-statement]')).toHaveText('Not detected');
   await expect(page.locator('[data-claim-raw]')).toHaveText(`As proved on Midnight: ${RAW}.`);
   await expect(page.locator('[data-claim-signer="bound"]')).toContainText('TEST Lab (Hunter)');
+  // The closing line says what a yes/no claim shows: the result, not "the number meets the bound".
+  await expect(page.locator('[data-claim-check]')).toContainText(
+    'What this shows: the result sealed in that record is “Not detected”, and the key above signed that record’s results.',
+  );
+  await expect(page.locator('[data-claim-check]')).not.toContainText('meets the bound');
   expectNoErrors(errors);
 });
 
@@ -64,19 +69,43 @@ test('"exactly 1" with a lab standing behind it says Detected; "at least 1" keep
   await page.goto(`/check-claim#c=${linkFor({ kind: 'range', op: 'at-least', bound: '1' })}`);
   await expect(page.locator('[data-claim-statement]')).toHaveText('Detected (1 yes, 0 no) is at least 1');
   await expect(page.locator('[data-claim-raw]')).toHaveCount(0);
+  // "At least 1" doesn't force Detected: the closing line keeps to the code, never the word.
+  await expect(page.locator('[data-claim-check]')).toContainText(
+    'What this shows: the result code sealed in that record meets the line above, and the key above signed',
+  );
 });
 
 for (const [state, verdict, footer] of [
-  ['while it is being checked', 'checking', /the holder typed the numbers/],
-  ['when the check fails', { ok: false, reason: 'That transaction is not a claim.' }, /the holder typed the numbers/],
-  ['with no lab signature', { ok: true, blockHeight: 1 }, /the holder typed the numbers/],
-  ['when the lab signature fails', { ok: true, lab: { ok: false, reason: 'A different key.' } }, /the holder typed/],
-  ['with a key no lab is tied to', ok({ kind: 'none' }), /read the numbers as the holder’s own/],
-  ['with a key more than one lab claims', ok({ kind: 'conflict' }), /read the numbers as the holder’s own/],
+  [
+    'while it is being checked',
+    'checking',
+    /the result code sealed in that record meets the line above\..*the holder typed the result\./,
+  ],
+  [
+    'when the check fails',
+    { ok: false, reason: 'That transaction is not a claim.' },
+    /the result code sealed in that record meets the line above\..*the holder typed the result\./,
+  ],
+  [
+    'with no lab signature',
+    { ok: true, blockHeight: 1 },
+    /the result code sealed in that record meets the line above\..*the holder typed the result\./,
+  ],
+  [
+    'when the lab signature fails',
+    { ok: true, lab: { ok: false, reason: 'A different key.' } },
+    /the result code sealed in that record meets the line above\..*the holder typed the result\./,
+  ],
+  ['with a key no lab is tied to', ok({ kind: 'none' }), /the result code .* read the result as the holder’s own/],
+  [
+    'with a key more than one lab claims',
+    ok({ kind: 'conflict' }),
+    /the result code .* read the result as the holder’s own/,
+  ],
   [
     'when the lab withdrew the result',
     ok({ kind: 'retracted', attestation: { retraction: { reason: 'retraction' } } }),
-    /The lab has since withdrawn this result/,
+    /the result code sealed in that record .*The lab has since withdrawn this result/,
   ],
 ] as const)
   test(`the slot and number, never the result word, ${state}`, async ({ page }) => {
@@ -85,6 +114,7 @@ for (const [state, verdict, footer] of [
     await expect(page.locator('[data-claim-statement]')).toHaveText(RAW);
     await expect(page.locator('[data-claim-raw]')).toHaveCount(0);
     await expect(page.getByText('Not detected', { exact: true })).toHaveCount(0);
+    await expect(page.locator('[data-claim-check]')).not.toContainText('“Not detected”');
     await expect(page.locator('[data-claim-check]')).toContainText(footer);
     expectNoErrors(errors);
   });

@@ -514,7 +514,7 @@ export const es: Strings = {
   'm.live.prove.test':
     'Sí. La página de la otra persona comprueba en la red que usted controla la clave propia del registro. El registro nombró esa clave al sellarse, así que no se puede cambiar por otra.',
   'm.live.prove.not': 'En veilcore.org: requiere que su navegador envíe una transacción.',
-  'm.live.claims.t': 'Probar un solo hecho',
+  'm.live.claims.t': 'Probar un hecho',
   'm.live.claims.main': 'En la red principal, sin clave de mantenimiento. El sitio aún no puede usarlo.',
   'm.live.claims.not': 'Usarlo desde el sitio web.',
   'm.live.claims.live':

@@ -518,7 +518,7 @@ export const fr: Strings = {
   'm.live.prove.test':
     'Oui. Leur page vérifie sur le réseau que vous contrôlez la clé propre à l’enregistrement. L’enregistrement a nommé cette clé au moment où il a été scellé : elle ne peut donc pas être remplacée.',
   'm.live.prove.not': 'Sur veilcore.org : il faut que votre navigateur envoie une transaction.',
-  'm.live.claims.t': 'Prouver un seul fait',
+  'm.live.claims.t': 'Prouver un fait',
   'm.live.claims.main': 'Sur le réseau principal, sans clé de maintenance. Le site ne peut pas encore l’utiliser.',
   'm.live.claims.not': 'L’utiliser depuis le site.',
   'm.live.claims.live':

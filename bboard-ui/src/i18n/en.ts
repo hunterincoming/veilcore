@@ -371,7 +371,7 @@ export const en = {
   'm.step4.title': 'Show it later',
   'm.step4.text': 'Give it to a buyer, examiner or court. They can check it, free, with no account.',
 
-  'm.claims.label': 'Prove one fact',
+  'm.claims.label': 'Prove a fact',
   'm.claims.1s': '1 shown · 15 sealed',
   'm.claims.2s': '1 fact · 16 sealed',
   'm.claims.3s': '≥ 6 differ',
@@ -660,7 +660,7 @@ export const en = {
   'm.live.prove.test':
     "Yes. Their page checks on the network that you control the record's own key. The record named that key when it was sealed, so it can't be swapped.",
   'm.live.prove.not': 'On veilcore.org: it needs your browser to send a transaction.',
-  'm.live.claims.t': 'Proving one fact (claims)',
+  'm.live.claims.t': 'Proving a fact (claims)',
   'm.live.claims.main': 'On the main network, with no maintenance key. The website can’t use it yet.',
   'm.live.claims.not': 'Using it from the website.',
   'm.live.claims.live':
