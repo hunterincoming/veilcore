@@ -22,7 +22,7 @@ const MOVED: [string, string][] = [
   ['value', '/how-it-works#value'],
   ['open', '/how-it-works#open'],
   ['status', '/how-it-works#status'],
-  ['live', '/how-it-works#live'],
+  ['live', '/how-it-works#where'],
   ['questions', '/how-it-works#questions'],
   ['technical', '/how-it-works#technical'],
   ['matters', '/how-it-works#matters'],
@@ -90,8 +90,9 @@ test.describe('the home page', () => {
     for (const id of ['claims', 'demo', 'value', 'status', 'questions', 'technical', 'matters', 'open', 'own-way'])
       await expect(page.locator(`[id="${id}"]`), id).toHaveCount(1);
     // Arriving at #live opens what's live where; #technical opens the technical section.
+    // What's live where is drawn open on How it works (#where), with its table.
     await page.goto('/#live');
-    await expect(page.locator('#live details')).toHaveAttribute('open', '');
+    await expect(page.locator('#where table')).toHaveCount(1);
     await page.goto('/#technical');
     await expect(page.locator('#technical details')).toHaveAttribute('open', '');
   });

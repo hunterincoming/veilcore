@@ -685,7 +685,7 @@ export const MOVED_ANCHORS: Record<string, string> = {
   value: '/how-it-works#value',
   open: '/how-it-works#open',
   status: '/how-it-works#status',
-  live: '/how-it-works#live',
+  live: '/how-it-works#where',
   questions: '/how-it-works#questions',
   technical: '/how-it-works#technical',
   matters: '/how-it-works#matters',

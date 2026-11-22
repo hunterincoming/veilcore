@@ -156,7 +156,9 @@ const datingFirst = async (page: Page, passkeys: boolean) => {
   await page.getByRole('button', { name: /Next: check it/ }).click();
   await page.getByRole('button', { name: /Seal it/ }).click();
   // The record's own date doesn't wait for the key's stamp, or for the backup.
-  await expect(page.locator('[data-record-dated-next]').first()).toContainText('Record dated: in the next batch');
+  await expect(page.locator('[data-record-dated-next]').first()).toContainText(
+    'Your record gets its date with the next group of records',
+  );
   // The network is blocked on purpose: the key's stamp fails, says so, and is tried again by itself.
   await expect(page.locator('[data-error]')).toBeVisible({ timeout: 90_000 });
   await expect(page.getByRole('button', { name: /Copy details for support/ })).toBeVisible();
@@ -190,7 +192,7 @@ const datingFirst = async (page: Page, passkeys: boolean) => {
   const pickup = page.locator('[data-pickup]');
   await expect(pickup).toContainText('Still in progress');
   await expect(pickup.locator('[data-pickup-item="dating"]')).toContainText(
-    `${name} will get its date in the next batch`,
+    `${name} will get its date with the next group of records`,
   );
   await expect(pickup.locator('[data-pickup-item="stamp"]')).toContainText(`Key date stamp for ${name}`);
   // Whether records are kept safe is said once, for the whole account: never on the record's

@@ -46,7 +46,7 @@ test('log, share, ask by link, open as the holder, answer arrives', async ({ bro
   const holderErrors = watch(holder);
   await isolate(holder);
   await holder.goto('/records');
-  await holder.getByText('Start', { exact: true }).click();
+  await holder.locator('main').getByRole('link', { name: 'Make a record', exact: true }).click();
   const name = `E2E ${Date.now()}`;
   await startPlant(holder);
   await holder.getByLabel(/Plant or line name/).fill(name);
@@ -206,7 +206,7 @@ test('a lab sends results back: signed by the lab, locked for the breeder, opene
   const breederErrors = watch(breeder);
   await isolate(breeder);
   await breeder.goto('/records');
-  await breeder.getByText('Start', { exact: true }).click();
+  await breeder.locator('main').getByRole('link', { name: 'Make a record', exact: true }).click();
   const name = `E2E Lab Run ${Date.now()}`;
   await startPlant(breeder);
   await breeder.getByLabel(/Plant or line name/).fill(name);

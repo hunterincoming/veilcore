@@ -194,7 +194,7 @@ test('a fresh browser lands on /, finds the lab path, pastes a lab code and rece
   const breeder = await breederCtx.newPage();
   const breederErrors = watch(breeder);
   await breeder.goto('/records');
-  await breeder.getByText('Start', { exact: true }).click();
+  await breeder.locator('main').getByRole('link', { name: 'Make a record', exact: true }).click();
   await startPlant(breeder);
   await breeder.getByLabel(/Plant or line name/).fill(`Lab entry ${Date.now()}`);
   await breeder.getByLabel(/Bred by/).fill('E2E');
@@ -377,7 +377,7 @@ test('a lab that backs up before its first code receives it without a second bac
   const breeder = await breederCtx.newPage();
   const breederErrors = watch(breeder);
   await breeder.goto('/records');
-  await breeder.getByText('Start', { exact: true }).click();
+  await breeder.locator('main').getByRole('link', { name: 'Make a record', exact: true }).click();
   await startPlant(breeder);
   await breeder.getByLabel(/Plant or line name/).fill(`Backup first ${Date.now()}`);
   await breeder.getByLabel(/Bred by/).fill('E2E');

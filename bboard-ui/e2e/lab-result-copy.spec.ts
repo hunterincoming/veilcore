@@ -62,7 +62,7 @@ test('the breeder adds the lab’s signed result: VeilCore keeps the copy, and i
   const refused = heldElsewhere(breeder);
   await isolate(breeder);
   await breeder.goto('/records');
-  await breeder.getByText('Start', { exact: true }).click();
+  await breeder.locator('main').getByRole('link', { name: 'Make a record', exact: true }).click();
   await startPlant(breeder);
   await breeder.getByLabel(/Plant or line name/).fill(`E2E Copy ${Date.now()}`);
   await breeder.getByLabel(/Bred by/).fill('E2E breeder');

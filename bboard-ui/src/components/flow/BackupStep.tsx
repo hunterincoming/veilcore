@@ -434,13 +434,7 @@ export const BackupStep: React.FC<{
               <Stack spacing={1.25}>
                 <Box data-backup-password="">
                   <FormControlLabel
-                    control={
-                      <Switch
-                        checked={usePassword}
-                        onChange={() => setUsePassword((v) => !v)}
-                        slotProps={{ input: { 'data-backup-password-switch': '' } as object }}
-                      />
-                    }
+                    control={<Switch checked={usePassword} onChange={() => setUsePassword((v) => !v)} />}
                     label={<Typography variant="body2">{t('app.backup.pw.add')}</Typography>}
                     sx={{ minHeight: 44, mr: 0 }}
                   />

@@ -390,7 +390,7 @@ const run = async () => {
     say('Logging a plant…');
     const b = await phone('breeder', 'Breeder', `${SITE}/records`);
     const role = b.getByRole('button', { name: /I breed or hold genetics/ });
-    const start = b.getByText('Start', { exact: true });
+    const start = b.locator('main').getByRole('link', { name: 'Make a record', exact: true });
     await waitFor({ role, start }, 30_000, 'The site opened but the first screen never showed.');
     timeline.breeder.shown = Date.now();
     await caption(b, CAPTIONS.log);

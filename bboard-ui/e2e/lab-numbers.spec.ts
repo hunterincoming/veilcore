@@ -25,7 +25,7 @@ test('a lab signs numbers with its report; the breeder adds them; the record nam
   const breederErrors = watch(breeder);
   await isolate(breeder);
   await breeder.goto('/records');
-  await breeder.getByText('Start', { exact: true }).click();
+  await breeder.locator('main').getByRole('link', { name: 'Make a record', exact: true }).click();
   await startPlant(breeder);
   await breeder.getByLabel(/Plant or line name/).fill(`E2E Numbers ${Date.now()}`);
   await breeder.getByLabel(/Bred by/).fill('E2E breeder');

@@ -52,7 +52,7 @@ test.describe('round 6 against a real registry: the lab report hash and the name
     watchAll(breeder, 'breeder');
     await isolate(breeder);
     await breeder.goto('/records');
-    await breeder.getByText('Start', { exact: true }).click();
+    await breeder.locator('main').getByRole('link', { name: 'Make a record', exact: true }).click();
     await startPlant(breeder);
     await breeder.getByLabel(/Plant or line name/).fill(NAME);
     await breeder.getByLabel(/Bred by/).fill('round6');

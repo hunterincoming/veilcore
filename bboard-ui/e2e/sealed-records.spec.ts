@@ -44,7 +44,7 @@ type Plant = {
  */
 const logPlant = async (page: Page, p: Plant): Promise<{ recordId: string; backupFile: string }> => {
   await page.goto('/records');
-  await page.getByText('Start', { exact: true }).click();
+  await page.locator('main').getByRole('link', { name: 'Make a record', exact: true }).click();
   await startPlant(page);
   await page.getByLabel(/Plant or line name/).fill(p.name);
   await page.getByLabel(/Bred by/).fill(p.bredBy);
