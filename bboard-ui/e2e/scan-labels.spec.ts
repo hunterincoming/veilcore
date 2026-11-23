@@ -258,6 +258,7 @@ test('a saved record prints QR labels: the short ID by default, the name only wh
     fs.mkdirSync(SHOTS, { recursive: true });
     await page.screenshot({ path: path.join(SHOTS, 'labels-390-default.png'), fullPage: true });
     await page.emulateMedia({ media: 'print' });
+    await page.screenshot({ path: path.join(SHOTS, 'labels-print.png'), fullPage: true });
     fs.writeFileSync(path.join(SHOTS, 'labels-letter-default.pdf'), await page.pdf({ preferCSSPageSize: true }));
     await page.emulateMedia({ media: 'screen' });
   }
@@ -349,7 +350,12 @@ test('a saved record prints QR labels: the short ID by default, the name only wh
   const ends = page.locator('main [data-proof-end]');
   await expect(ends.first()).toBeVisible({ timeout: 30_000 });
   await expect(ends.first()).toHaveText(fp.slice(-6));
-  if (SHOTS) await page.screenshot({ path: path.join(SHOTS, 'check-390-checks.png'), fullPage: true });
+  if (SHOTS) {
+    await page.screenshot({ path: path.join(SHOTS, 'check-390-checks.png'), fullPage: true });
+    await page.emulateMedia({ media: 'print' });
+    await page.screenshot({ path: path.join(SHOTS, 'check-print.png'), fullPage: true });
+    await page.emulateMedia({ media: 'screen' });
+  }
   for (const t of await ends.allTextContents()) expect(t).toBe(fp.slice(-6));
   await expect(ends.first()).toHaveCSS('font-weight', '700');
   expectNoErrors(errors);
