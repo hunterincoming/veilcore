@@ -86,6 +86,7 @@ missing. The usual ones:
 | `The registry anchors on mainnet to …, but the pinned main contract is …` | The two addresses differ. Do not deploy. Send the maintainer both lines. |
 | `Could not read the registry` | Check your internet, and that veilcore-api is running on Railway. Try again. |
 | `The registry at … is missing lab-results-v1 (lab results) …` (or `sealed-records-v1`, `animal-profile-v1`, `claimant-offer-v1`, `sealed-custody-v1`, `record-rev-v1`, `license-rev-v1`) | The registry on Railway is older than the site. Deploy the registry first (send the maintainer the line), wait until Railway shows the new deployment as active, then run `npm run deploy:mainnet` again. |
+| `VEILCORE_MAINNET_REGISTRY must be a plain https address` (or `… is not an address`) | A registry address was set in this terminal that is not `https://…`. Leave `VEILCORE_MAINNET_REGISTRY` unset to use the production registry (`unset VEILCORE_MAINNET_REGISTRY`), or set it to the full https address, then run it again. Nothing was built. |
 | `The registry at … is not ready (its /health answered 503)` | The registry is still starting, or part of it failed to load. Wait a minute and try again; if it repeats, send the maintainer the line. |
 | `The status line of docs/maintenance-policy.md reads …` | The policy's first line was changed to something the site can't read. Send the maintainer the line. |
 | Anything about Vercel or `alias` | The site may be built but not switched. Send the maintainer the last 20 lines. |

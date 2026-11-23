@@ -64,6 +64,7 @@ import DatedIcon from '@mui/icons-material/EventAvailableOutlined';
 import NotDatedIcon from '@mui/icons-material/EventOutlined';
 import MismatchIcon from '@mui/icons-material/ErrorOutlineOutlined';
 import { loadFingerprintCircuit, MAX_FINGERPRINT_BYTES, shortFingerprint } from '../veilcore/commitment';
+import { withProofCode } from '../components/verify/ProofCodeText';
 import { DatedNotOrigin } from '../components/verify/DatedNotOrigin';
 import { AnotherRecord, CheckVerdict, MakeYourOwn, SeeTheChecks } from '../components/verify/CheckParts';
 import { checkProblems, recordVerdict, VERDICT_DATE } from '../components/verify/verdict';
@@ -777,7 +778,7 @@ export const VerifyPage: React.FC = () => {
                 in the link is never echoed. */}
             {binding.linked && (
               <Typography variant="caption" color="text.secondary" sx={{ display: 'block', overflowWrap: 'anywhere' }}>
-                {t('app.verify.mismatch.inLink', { fp: binding.linked })}
+                {withProofCode((fp) => t('app.verify.mismatch.inLink', { fp }), binding.linked)}
               </Typography>
             )}
             <Box sx={{ mt: 2, textAlign: 'right' }}>
@@ -1103,22 +1104,30 @@ export const VerifyPage: React.FC = () => {
                       <Fact ok={false}>{t('app.verify.noCommitment')}</Fact>
                     ) : bound ? (
                       <Fact ok={false}>
-                        {t('app.verify.boundFact', {
-                          fp: shortFingerprint(result.recordFingerprint),
-                          firstSeen: result.registryFirstSeen
-                            ? t('app.verify.firstStored', { date: fmt(result.registryFirstSeen) })
-                            : '',
-                        })}
+                        {withProofCode(
+                          (fp) =>
+                            t('app.verify.boundFact', {
+                              fp,
+                              firstSeen: result.registryFirstSeen
+                                ? t('app.verify.firstStored', { date: fmt(result.registryFirstSeen) })
+                                : '',
+                            }),
+                          shortFingerprint(result.recordFingerprint),
+                        )}
                       </Fact>
                     ) : (
                       <>
                         <Fact ok={false}>
-                          {t('app.verify.unboundFact', {
-                            fp: shortFingerprint(result.recordFingerprint),
-                            firstSeen: result.registryFirstSeen
-                              ? t('app.verify.firstStored', { date: fmt(result.registryFirstSeen) })
-                              : '',
-                          })}
+                          {withProofCode(
+                            (fp) =>
+                              t('app.verify.unboundFact', {
+                                fp,
+                                firstSeen: result.registryFirstSeen
+                                  ? t('app.verify.firstStored', { date: fmt(result.registryFirstSeen) })
+                                  : '',
+                              }),
+                            shortFingerprint(result.recordFingerprint),
+                          )}
                         </Fact>
                         <Fact ok={false}>{t('app.verify.noFpInLink')}</Fact>
                       </>
@@ -1273,7 +1282,10 @@ export const VerifyPage: React.FC = () => {
 
                   <Divider sx={{ my: 2 }} />
                   <Typography variant="caption" color="text.secondary">
-                    {t('app.verify.footer', { fp: shortFingerprint(result.recordFingerprint ?? '') })}
+                    {withProofCode(
+                      (fp) => t('app.verify.footer', { fp }),
+                      shortFingerprint(result.recordFingerprint ?? ''),
+                    )}
                   </Typography>
 
                   <Box sx={{ mt: 2, textAlign: 'right' }}>

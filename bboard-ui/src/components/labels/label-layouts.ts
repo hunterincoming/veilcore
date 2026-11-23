@@ -11,6 +11,7 @@
 
 import { canonicalUrl } from '../../config/network';
 import { linkName, nameLinkParams, verifyPath } from '../../veilcore/verify-link';
+import { PROOF_END_FONT, proofEnd } from '../../veilcore/proof-end';
 import { isKeptOnDeviceOnly, unsavedReason, type StrainRecord } from '../../veilcore/records';
 
 export type LabelSize = 'thermal' | 'letter' | 'a4';
@@ -155,7 +156,7 @@ export const QR_LEVEL = 'M';
 export const QR_MARGIN = 2;
 
 export const LABEL_FONTS = {
-  mono: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
+  mono: PROOF_END_FONT,
   sans: 'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif',
 } as const;
 
@@ -196,10 +197,16 @@ export const labelParts = (
   // Type sized to the label's height: about 3 mm on a 1 inch label, larger on L7160.
   const big = Math.min(4.2, h * 0.13);
   const small = big * 0.8;
+  // The proof code's end ("…3fa9c1", veilcore/proof-end.ts), to match the check page by eye:
+  // the largest thing beside the code, but never squeezed (monospace letters are 0.6 of their
+  // size wide, so its 7 characters always fit their room).
+  const end = proofEnd(r.recordFingerprint);
+  const huge = Math.min(big * 1.7, room / (end.length * 0.6 || 1));
   const name =
     showName && r.strainName?.trim() ? fitName(r.strainName, Math.max(4, Math.floor(room / (small * 0.55)))) : '';
   const raw: Omit<LabelLine, 'x' | 'y' | 'room'>[] = [
     { text: shortId(r.id), size: big, font: 'mono', weight: 700 },
+    ...(end ? [{ text: end, size: huge, font: 'mono' as const, weight: 700 as const }] : []),
     { text: scanToCheck, size: small, font: 'sans', weight: 400 },
     ...(name ? [{ text: name, size: small, font: 'sans' as const, weight: 700 as const }] : []),
   ];

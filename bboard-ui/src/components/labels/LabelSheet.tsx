@@ -1,6 +1,7 @@
 // The label pages themselves (label-layouts.ts): one SVG per page, measured in millimetres, so the
 // print is exact at 100% and the screen shows the same page scaled to fit. Each label: the QR code
-// of its check link, the short record ID, "Scan to check" and, if the holder chose it, the name.
+// of its check link, the short record ID, the proof code's last 6 characters (large, to match the
+// check page by eye), "Scan to check" and, if the holder chose it, the name.
 // SPDX-License-Identifier: Apache-2.0
 
 import React from 'react';

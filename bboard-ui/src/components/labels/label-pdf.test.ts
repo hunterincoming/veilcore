@@ -183,15 +183,15 @@ describe('the downloaded label sheet', () => {
     });
     // The words are drawn once per record, not once per copy.
     expect(words).toEqual([
-      ['VEIL-0000…0001', 'Scan to check'],
-      ['VEIL-0000…0002', 'Scan to check'],
+      ['VEIL-0000…0001', '…ababab', 'Scan to check'],
+      ['VEIL-0000…0002', '…ababab', 'Scan to check'],
     ]);
   });
 
   it('the name is in the words only when chosen', () => {
     words.length = 0;
     make('a4', 1, { showName: true });
-    expect(words).toEqual([['VEIL-0000…0001', 'Scan to check', 'Plant 1']]);
+    expect(words).toEqual([['VEIL-0000…0001', '…ababab', 'Scan to check', 'Plant 1']]);
   });
 
   it('each QR code reads back as its label’s check link', async () => {
