@@ -116,7 +116,11 @@ const verdict = await checkPresentation({ network: 'preprod', blockfrostProjectI
 - midnight-js 5.0.1, Compact JS 3.0.2, wallet SDK 2.0.1, ledger-v9 1.0.2 (Midnight's 17 November
   patch set). The same calls work on a network before and after the fork.
 - Proof server: the Ledger 9 image (9.0.1, pinned by digest) on mainnet, preprod and preview; 8.1.3
-  only for the local chain in `partner-kit/local`, which still runs Ledger 8. 0.3.0 gave preprod
+  only for the local chain in `partner-kit/local`, which still runs Ledger 8. Midnight's support
+  matrix says 9.0.0 and 9.0.1 "can crash during key generation or proving for some circuits that
+  use Jubjub types"; the claims contract's `proveAttested` uses them (a ZKIR v2 circuit, which
+  9.0.2's listed fix is not for). If your 9.0.1 proof server fails on `proveAttested`, use 9.0.2;
+  the kit moves to it next. 0.3.0 gave preprod
   and preview the Ledger 8 image, which cannot prove for them since they moved to Ledger 9.
 
 **0.3.0**

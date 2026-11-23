@@ -290,7 +290,8 @@ export class FacadeWallet implements PayingWallet {
     const seeds = deriveRoleSeeds(seedHex);
     // Wallet SDK 2 needs `forks`, where the chain moves from Ledger 8 to Ledger 9: the SDK's
     // default schedule (Ledger 9 from the version a 2.x node reports). One proof server
-    // (PROOF_SERVER_URL) for the network this service is on: 9.0.2 on mainnet and preprod (Ledger 9).
+    // (PROOF_SERVER_URL) for the network this service is on: 9.0.1 on mainnet and preprod (Ledger 9);
+    // 9.0.2 is the next move.
     const config = WalletFacade.resolveConfiguration({
       indexerClientConnection: { indexerHttpUrl: ep.indexer, indexerWsUrl: ep.indexerWS },
       provingServerUrl: new URL(ep.proofServer),

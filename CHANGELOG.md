@@ -21,7 +21,8 @@ section.
   The 0.2.0 it named could not read any batch dated since Midnight's Ledger 9 fork (6 Nov), and
   every published kit looked a transaction up only by identifier while bundles give its hash, so
   the check answered "No such transaction." for every batch. 0.4.0 must be published to npm
-  before a site carrying this is deployed.
+  before a site carrying this is deployed. Holders of bundles already given out run the check
+  again after `npm install --save-exact @veilcore/contracts@0.4.0` (docs/PARTNERS.md).
 - The operator tool and the partner kit start the Ledger 9 proof server for preprod and preview,
   which moved to Ledger 9 on 9 and 7 November; only the local Ledger 8 chain keeps 8.1.3.
 - A test that no midnight-js maintenance helper is used on the version 1 contracts outside the

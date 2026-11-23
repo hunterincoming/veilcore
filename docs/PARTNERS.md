@@ -271,6 +271,11 @@ VeilCore's contract, and judges the state recorded for that call (design.md, ver
 5, 7, 8, 9). Keep a `ChallengeBook` (save its `entries()` between runs) so each challenge is
 used once.
 
+**Evidence bundles already given out** name `@veilcore/contracts@0.2.0` in
+`proof/check-on-midnight.mjs`, and answer "No such transaction." for every batch. Holders run the
+check again with 0.4.0: `npm install --save-exact @veilcore/contracts@0.4.0`, then
+`node check-on-midnight.mjs <Blockfrost project id>`, unchanged otherwise.
+
 Options the checks take _(0.3.0)_:
 
 | Option | What it does |
