@@ -16,6 +16,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import { expect, test, type Page } from '@playwright/test';
 import { isolate, json, type Handler } from './helpers';
+import { seededRecord } from './seeded-record';
 
 const PAGES = ['/', '/how-it-works', '/about', '/founders', '/privacy', '/terms', '/help', '/verify'];
 /** The app's pages that open without a record of one's own (App.tsx `Light`). */
@@ -72,6 +73,22 @@ for (const width of WIDTHS)
       page,
     }) => {
       const found = await printed(page, width, path, { dark: true, handlers: EMPTY });
+      expect(found.text, 'text that would not read on white paper').toEqual([]);
+      expect(found.dark, 'dark fills that would print').toEqual([]);
+      expect(found.under, 'photos that would print under words').toEqual([]);
+      expect(found.cut, "text past the paper's edge").toEqual([]);
+    });
+
+// A record's own pages, with a record this browser holds: its page and the page to prove it.
+for (const width of WIDTHS)
+  for (const which of ['record', 'prove'] as const)
+    test(`printed at ${width}px from a dark screen, a held record's ${which} page is ink on white, nothing dark or cut off`, async ({
+      page,
+    }) => {
+      const rec = seededRecord();
+      await rec.hold(page);
+      const found = await printed(page, width, `/${which}/${rec.id}`, { dark: true, handlers: rec.handlers });
+      if (which === 'record') await expect(page.getByRole('heading', { name: 'Blue Window' })).toBeAttached();
       expect(found.text, 'text that would not read on white paper').toEqual([]);
       expect(found.dark, 'dark fills that would print').toEqual([]);
       expect(found.under, 'photos that would print under words').toEqual([]);
@@ -178,8 +195,9 @@ async function printed(
       if (!shown(el)) continue;
       const r = el.getBoundingClientRect();
       if (r.width * r.height < 400) continue; // a dot, a tick, a rule, an icon
-      // A switch's thumb and track are its state, printed in ink like a ticked box, with no words on them.
-      if (el.closest('.MuiSwitch-root')) continue;
+      // A switch's thumb and track are its state, printed in ink like a ticked box, with no words
+      // on them. Only those: a label inside a switch is still checked.
+      if (el.matches('.MuiSwitch-track, .MuiSwitch-thumb, .MuiSwitch-switchBase')) continue;
       if (el instanceof HTMLImageElement && !/\.svg(\?|$)/.test(el.currentSrc)) photos.push({ r, what: name(el), el });
       for (const pseudo of [null, '::before', '::after']) {
         const cs = getComputedStyle(el, pseudo);

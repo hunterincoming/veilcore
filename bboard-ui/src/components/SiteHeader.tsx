@@ -65,18 +65,22 @@ const SectionLink: React.FC<{ to: string; sx?: object; children: React.ReactNode
   );
 };
 
+// The gold button: the night on it (5.1:1), never the page's text colour, which is light on the
+// night (3.3:1 on gold).
 const ctaSx = {
   px: 1.5,
   borderRadius: '8px',
   background: color.accent,
-  '&:hover': { textDecoration: 'none', filter: 'brightness(0.96)', background: color.accent },
+  color: color.onAccent,
+  '&:hover': { textDecoration: 'none', filter: 'brightness(0.96)', background: color.accent, color: color.onAccent },
 } as const;
 
 const menuCtaSx = {
   mt: 0.5,
   borderRadius: '6px',
   background: color.accent,
-  '&:hover': { filter: 'brightness(0.96)', background: color.accent },
+  color: color.onAccent,
+  '&:hover': { filter: 'brightness(0.96)', background: color.accent, color: color.onAccent },
 } as const;
 
 /** Where AskLauncher puts Ask on a phone (App.tsx AppLayout): the first item under "Menu". */
