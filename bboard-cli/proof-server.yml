@@ -1,6 +1,10 @@
+# The proof server the CLI starts for the public TEST networks (testkit-js's default file name).
+# Preprod moved to Midnight Ledger 9 on 9 November 2026 and preview was relaunched on Ledger 9 on
+# 7 November, so this is the same Ledger 9 image as proof-server-mainnet.yml (8.1.3, the Ledger 8
+# one, could no longer prove for them). The local Ledger 8 chain has its own: proof-server-local.yml.
 services:
   proof-server:
-    image: midnightntwrk/proof-server:8.1.3@sha256:0f4ab0716985eaebbe55a970348f52ff05ffd8a96631ed7232bd0c4ba02c115c
+    image: midnightntwrk/proof-server:9.0.1@sha256:90e36a14f92c2004127f0ed1cfd6ee89d770cf1f6e9cd7f02026ffd4ecb42f37
     command: ['midnight-proof-server', '-v']
     container_name: "proof-server_$TESTCONTAINERS_UID"
     ports:

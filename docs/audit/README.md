@@ -100,8 +100,8 @@ is what the tests and the clients run.
 | Compact compiler | `compactc` 0.31.1, language version 0.23 (`pragma language_version 0.23` in both contracts) | `.github/actions/setup/action.yml` |
 | Node.js | 24.11.1 | `.nvmrc`; CI uses it |
 | npm | 11.6.2 (ships with Node 24.11.1) | CI fails on any other |
-| Proof server (only for live networks) | Mainnet (Ledger 9 since 6 Nov 2026): `midnightntwrk/proof-server:9.0.1`, pinned by digest (`sha256:90e36a14…2f37`, from Midnight's release notes, tag `proof-server-9.0.1`; there is no 9.0.0 image). Test networks until they fork: `8.1.3` (the 2 Oct 2026 security patch, GHSA-wr7g-rr4v-jmj8), pinned by digest (`sha256:0f4ab071…115c`) | `bboard-cli/proof-server-mainnet.yml`, `bboard-cli/proof-server.yml`, `partner-kit/src/network.ts` |
-| midnight-js | 5.0.0 (calls the Ledger 8 contracts on Ledger 8 and Ledger 9 networks); wallet SDK 2.0.0; both `compact-runtime` 0.16.0 (the contracts') and 0.21.0 (inside midnight-js) | root `package.json`, `docs/log/ledger-9-lockfile.md` |
+| Proof server (only for live networks) | Mainnet (Ledger 9 since 6 Nov 2026): `midnightntwrk/proof-server:9.0.1`, pinned by digest (`sha256:90e36a14…2f37`, from Midnight's release notes, tag `proof-server-9.0.1`; there is no 9.0.0 image). Preprod and preview (both Ledger 9 since 9 and 7 Nov): the same 9.0.1 image. The local Ledger 8 chain only: `8.1.3` (the 2 Oct 2026 security patch, GHSA-wr7g-rr4v-jmj8), pinned by digest (`sha256:0f4ab071…115c`) | `bboard-cli/proof-server-mainnet.yml`, `bboard-cli/proof-server.yml`, `partner-kit/src/network.ts` |
+| midnight-js | 5.0.1 (calls the Ledger 8 contracts on Ledger 8 and Ledger 9 networks); Compact JS 3.0.2; wallet SDK 2.0.1; ledger-v9 1.0.2 and on-chain runtime 4.0.2, one copy each; zkir-v3 3.2.1; both `compact-runtime` 0.16.0 (the contracts') and 0.21.0 (inside midnight-js) | root `package.json`, `docs/log/ledger-9-lockfile.md` |
 
 Install the compiler the way CI does: the Linux release asset, checked against the SHA-256
 recorded in CI. The checksum below is the one in `ci.yaml`; the zip we built with on 6

@@ -3,10 +3,10 @@
 // VeilCore's contracts were compiled before the fork (compactc 0.31: ZKIR v2 circuits, keys in
 // the `midnight:verifier-key[v6]` envelope) and keep those keys on chain. After the fork
 // midnight-js 5 builds their calls as LEDGER 9 transactions. Two provers exist: zkir-v2 2.2.0
-// (what the worker uses) and zkir-v3 3.2.0 (what ledger 9's own circuits, compiled with
+// (what the worker uses) and zkir-v3 3.2.1 (what ledger 9's own circuits, compiled with
 // compactc 0.36, need). This builds a real post-fork call with midnight-js's own pre-fork
 // fixture (counter-016: compactc 0.31.1, real ZKIR v2 prover and verifier keys, shipped in
-// @midnight-ntwrk/testkit-js 5.0.0), against a contract state in ledger 9's encoding, and proves
+// @midnight-ntwrk/testkit-js 5.0.1), against a contract state in ledger 9's encoding, and proves
 // it with each.
 //
 // What it shows, offline: zkir-v3 refuses a ZKIR v2 circuit outright; zkir-v2 2.2.0 accepts the
@@ -154,7 +154,7 @@ describe("a pre-fork (ZKIR v2) contract's call after the ledger 9 fork", () => {
   );
 
   it(
-    'zkir-v3 3.2.0 (ledger 9 circuits) refuses a ZKIR v2 circuit: the worker must stay on zkir-v2',
+    'zkir-v3 3.2.1 (ledger 9 circuits) refuses a ZKIR v2 circuit: the worker must stay on zkir-v2',
     { timeout: 120_000 },
     async () => {
       const r = await proveWith(V3);
