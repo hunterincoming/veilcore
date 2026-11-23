@@ -1,7 +1,8 @@
 /* The home page, in the layout of Mako's design (18 November 2026). Scoped to .home, the home
-   page's own root, so the other public pages and the app keep their paper and ink; the shared
-   parts it reuses (what's live where, the updates, the questions, the technical section, the
-   founders) turn dark with it because the page re-sets the shared tokens for its own ground.
+   page's own root. Its colours are the night every public page shares (site.css's .vcm,
+   config/tokens.ts `night`, since 23 November 2026), so the shared parts it reuses (what's live
+   where, the updates, the questions, the technical section, the founders) are the same parts
+   the back pages draw.
 
    Mako's tokens:
      Void     #0B0E14  the ground                 Ink 16.6:1, Ink-2 8.7:1, Ink-3 5.4:1, Gold 5.0:1
@@ -37,29 +38,10 @@
 
 /* The two faces' @font-face rules are in src/fonts.css: the wordmark uses Archivo on every page. */
 
-html:has(.vcm .home),
-html:has(.vcm .home) body {
-  background: #0b0e14;
-  color-scheme: dark;
-}
-.vcm:has(> main > .home) {
-  background: #0b0e14;
-}
+/* The document's night, and the header on it, are site.css's: every public page is night. */
 
 .vcm .home {
-  --ground: #0b0e14;
-  --ground-deep: #0e121a;
-  --surface: #141b26;
-  --surface-raised: #1c2738;
-  --band: #111722;
-  --rule: #1a2331;
-  --ring: #5a7ba6;
-  --text: #eceef1;
-  --text-muted: #a4afbf;
-  --text-faint: #7a889c;
-  --accent: #a67c00;
-  --accent-hover: #b8890b;
-  --highlight: #5fd3df;
+  /* The colours are site.css's .vcm (config/tokens.ts `night`): every public page is night. */
   --sans:
     'VeilCore Archivo', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', 'Noto Sans JP', system-ui,
     sans-serif;
@@ -69,13 +51,8 @@ html:has(.vcm .home) body {
   --t-display: clamp(2.75rem, 5.6vw, 6rem);
   --t-h2: clamp(2.1rem, 3.8vw, 4.25rem);
   --t-giant: clamp(3rem, 8.4vw, 9rem);
-  /* The colours above are config/tokens.ts's `night`, by role (tokens.test.ts checks them).
-     The rest of the shared roles, for the parts the home page shares with the other pages. */
-  --surface-quiet: var(--surface);
-  --surface-quiet-hover: var(--surface-raised);
+  /* The lines that join things here are the rules' quiet blue (Mako's timeline), not the rings'. */
   --line: var(--rule);
-  --on-inverse: var(--text);
-  --on-inverse-muted: var(--text-muted);
   /* Body text and forms in Atkinson (--font, from .vcm in site.css); headings, buttons and the
      big display lines in Archivo (--sans), the same split as every other page (src/fonts.css). */
   --display: var(--sans);
@@ -89,7 +66,7 @@ html:has(.vcm .home) body {
 }
 .vcm .home ::selection {
   background: var(--accent);
-  color: var(--ground);
+  color: var(--on-accent);
 }
 .vcm .home :is(h1, h2, h3) {
   font-family: var(--sans);
@@ -128,7 +105,7 @@ html:has(.vcm .home) body {
   white-space: nowrap;
 }
 .vcm .home .k-hl {
-  color: var(--accent);
+  color: var(--accent-text);
 }
 .vcm .home .k-mute {
   color: var(--text-faint);
@@ -223,13 +200,14 @@ html:has(.vcm .home) body {
 }
 .vcm .home .k-btn-primary {
   background: var(--accent);
-  color: var(--ground);
+  color: var(--on-accent);
 }
 .vcm .home .k-btn-primary:hover {
   background: var(--accent-hover);
 }
 .vcm .home .k-btn-ghost {
   background: var(--surface);
+  box-shadow: var(--quiet-edge);
   color: var(--text);
 }
 .vcm .home .k-btn-ghost:hover {
@@ -359,7 +337,7 @@ html:has(.vcm .home) body {
 }
 .vcm .home .k-paste a:hover {
   background: var(--accent);
-  color: var(--ground);
+  color: var(--on-accent);
 }
 /* "Used VeilCore on another device?" sits right under the paste line, as its pair. */
 .vcm .home .k-paste.hero-restore {
@@ -509,6 +487,7 @@ html:has(.vcm .home) body {
   border: 0;
   border-radius: 50%;
   background: var(--surface-raised);
+  box-shadow: var(--quiet-edge);
   color: var(--text);
   cursor: pointer;
 }
@@ -696,6 +675,7 @@ html:has(.vcm .home) body {
   border: 0;
   border-radius: 50%;
   background: var(--surface);
+  box-shadow: var(--quiet-edge);
   color: var(--text);
   cursor: pointer;
   transition: background-color 0.2s;
@@ -711,7 +691,7 @@ html:has(.vcm .home) body {
 }
 .vcm .home .k-arrow:hover:not(:disabled) {
   background: var(--accent);
-  color: var(--ground);
+  color: var(--on-accent);
 }
 .vcm .home .k-arrow:disabled {
   opacity: 0.35;
@@ -804,17 +784,17 @@ html:has(.vcm .home) body {
 /* ------------------------------------------------------------------ drenched sections */
 .vcm .home .k-drench {
   background: var(--accent);
-  color: var(--ground);
+  color: var(--on-accent);
 }
 .vcm .home .k-drench ::selection {
   background: var(--ground);
-  color: var(--accent);
+  color: var(--accent-text);
 }
 .vcm .home .k-drench :focus-visible {
-  outline-color: var(--ground);
+  outline-color: var(--focus-inner);
 }
 .vcm .home .k-drench a:not(.k-btn) {
-  color: var(--ground);
+  color: var(--on-accent);
   text-decoration-color: rgba(11, 14, 20, 0.5);
 }
 .vcm .home .k-drench .k-giant {
@@ -845,14 +825,16 @@ html:has(.vcm .home) body {
 }
 .vcm .home .k-btn-dark {
   background: var(--ground);
-  color: var(--accent);
+  color: var(--accent-text);
 }
 .vcm .home .k-btn-dark:hover {
   background: #1a2030;
 }
 .vcm .home .k-btn-line {
   background: rgba(11, 14, 20, 0.1);
-  color: var(--ground);
+  color: var(--on-accent);
+  /* On the gold the page is the gold: the edge is the night (5.1:1). */
+  box-shadow: inset 0 0 0 1px var(--on-accent);
 }
 .vcm .home .k-btn-line:hover {
   background: rgba(11, 14, 20, 0.18);
@@ -1086,7 +1068,7 @@ html:has(.vcm .home) body {
   line-height: 1.15;
 }
 .vcm .home .k-way:hover h3 {
-  color: var(--accent);
+  color: var(--accent-text);
 }
 .vcm .home .k-way p {
   font-size: 15px;
@@ -1118,6 +1100,7 @@ html:has(.vcm .home) body {
   border: 0;
   border-radius: 999px;
   background: var(--surface);
+  box-shadow: var(--quiet-edge);
   color: var(--text-muted);
   font: inherit;
   font-size: 14px;
@@ -1136,7 +1119,7 @@ html:has(.vcm .home) body {
 }
 .vcm .home .k-claim[aria-pressed='true'] {
   background: var(--text);
-  color: var(--ground);
+  color: var(--on-accent);
 }
 .vcm .home .k-cal {
   --ch: clamp(220px, 34vh, 380px);
@@ -1230,7 +1213,7 @@ html:has(.vcm .home) body {
   right: 0;
   font-family: var(--mono);
   font-size: 11px;
-  color: var(--accent);
+  color: var(--accent-text);
 }
 .vcm .home .k-cal figcaption {
   display: flex;
@@ -1246,7 +1229,7 @@ html:has(.vcm .home) body {
   padding-top: 2px;
   font-family: var(--mono);
   font-size: 12px;
-  color: var(--accent);
+  color: var(--accent-text);
 }
 .vcm .home .k-claims-fine {
   margin-top: clamp(40px, 6vh, 72px);
@@ -1325,19 +1308,19 @@ html:has(.vcm .home) body {
   color: var(--text-muted);
 }
 .vcm .home .k-t-night .k-stack-mark {
-  color: var(--accent);
+  color: var(--accent-text);
 }
 .vcm .home .k-t-cyan {
   background: var(--highlight);
-  color: var(--ground);
+  color: var(--on-accent);
 }
 .vcm .home .k-t-paper {
   background: var(--text);
-  color: var(--ground);
+  color: var(--on-accent);
 }
 .vcm .home .k-t-yellow {
   background: var(--accent);
-  color: var(--ground);
+  color: var(--on-accent);
 }
 .vcm .home :is(.k-t-cyan, .k-t-paper, .k-t-yellow) p {
   color: rgba(11, 14, 20, 0.82);
@@ -1406,7 +1389,7 @@ html:has(.vcm .home) body {
   font-family: var(--mono);
   font-weight: 500;
   font-size: 14px;
-  color: var(--accent);
+  color: var(--accent-text);
 }
 .vcm .home .post h3 {
   font-size: clamp(20px, 1.8vw, 26px);
@@ -1446,50 +1429,6 @@ html:has(.vcm .home) body {
 }
 .vcm .home .k-credit a {
   color: var(--text-muted);
-}
-
-/* ------------------------------------------------------------------ the header on the home page
-   The one header (SiteHeader.tsx), drawn the way Mako's is: quiet links, the yellow pill. Its
-   menu on a phone opens as the same list as everywhere else. */
-html:has(.vcm .home) [data-site-header] :is(a, button) {
-  font-family: 'VeilCore Archivo', system-ui, sans-serif;
-}
-html:has(.vcm .home) [data-site-header] nav > a:not([data-cta]) {
-  color: #a4afbf;
-  font-size: 14px;
-  font-weight: 500;
-}
-html:has(.vcm .home) [data-site-header] nav > a:not([data-cta]):hover {
-  color: #eceef1;
-}
-html:has(.vcm .home) [data-site-header] a[href='/'] > span {
-  color: #eceef1;
-}
-html:has(.vcm .home) [data-site-menu-button] {
-  color: #eceef1;
-  border-color: #2a3547;
-  border-radius: 999px;
-}
-html:has(.vcm .home) [data-site-header] nav > a[data-cta] {
-  border-radius: 999px;
-  padding-inline: 16px;
-  background: #a67c00;
-  color: #0b0e14;
-  font-size: 14px;
-  font-weight: 500;
-}
-html:has(.vcm .home) [data-site-header] nav > a[data-cta]:hover {
-  background: #b8890b;
-}
-html:has(.vcm .home)
-  [data-site-header]
-  [data-language-picker]
-  :is(.MuiInputBase-root, .MuiSelect-select, .MuiSvgIcon-root) {
-  color: #eceef1;
-  background: transparent;
-}
-html:has(.vcm .home) [data-site-header] [data-language-picker] .MuiOutlinedInput-notchedOutline {
-  border-color: #2a3547;
 }
 
 /* ------------------------------------------------------------------ alive, never holding the page
@@ -1708,12 +1647,6 @@ html:has(.vcm .home) [data-site-header] [data-language-picker] .MuiOutlinedInput
   font-size: clamp(2.25rem, 6vw, 5.5rem);
 }
 
-/* The notices under the header (a draft translation, dating paused) are the app's paper alerts:
-   on the home page's night they keep their paper, so they read as they do everywhere else. */
-html:has(.vcm .home) [data-site-header] :is(.MuiAlert-root, [data-draft-notice]) {
-  background: #fffdf7;
-}
-
 /* A link's closing arrow, drawn: Archivo has no arrow glyph. The character stays in the text. */
 .vcm .home .k-gl {
   display: inline-block;
@@ -1748,7 +1681,7 @@ html:has(.vcm .home) [data-site-header] :is(.MuiAlert-root, [data-draft-notice])
 }
 .vcm .home .k-chip.live {
   background: var(--text);
-  color: var(--ground);
+  color: var(--on-accent);
 }
 
 /* Japanese dates in the updates: the body face, not the code face. */
@@ -1764,15 +1697,6 @@ html:has(.vcm .home) [data-site-header] :is(.MuiAlert-root, [data-draft-notice])
    gold, the founders' row in the close, the end of every page, the split on How it works, and
    the founders on About. Still no rules between things and no outlined buttons (design.test.ts):
    where his draft drew a hairline, this uses space or a fill. */
-
-/* The header on a night page: which page you are on. */
-html:has(.vcm .home) [data-site-header] nav > a[aria-current='page'] {
-  color: #eceef1;
-  text-decoration: underline;
-  text-decoration-color: var(--accent, #a67c00);
-  text-decoration-thickness: 2px;
-  text-underline-offset: 6px;
-}
 
 /* An inner page's opening screen. */
 .vcm .home .k-page-hero {
@@ -1855,7 +1779,7 @@ html:has(.vcm .home) [data-site-header] nav > a[aria-current='page'] {
   letter-spacing: -0.035em;
 }
 .vcm .home .k-door-make h3 {
-  color: var(--accent);
+  color: var(--accent-text);
 }
 .vcm .home .k-door p {
   max-width: 28em;
@@ -1906,7 +1830,7 @@ html:has(.vcm .home) [data-site-header] nav > a[aria-current='page'] {
   display: inline-flex;
   align-items: center;
   gap: 14px;
-  color: var(--ground);
+  color: var(--on-accent);
   text-decoration: none;
 }
 .vcm .home .k-close-team .person b {
@@ -1967,7 +1891,7 @@ html:has(.vcm .home) [data-site-header] nav > a[aria-current='page'] {
   height: clamp(56px, 6vw, 88px);
   border-radius: 50%;
   background: var(--accent);
-  color: var(--ground);
+  color: var(--on-accent);
   transition:
     transform 0.4s var(--ease-out),
     background-color 0.2s ease;
@@ -2023,7 +1947,7 @@ html:has(.vcm .home) [data-site-header] nav > a[aria-current='page'] {
   transition-delay: calc(var(--i) * 45ms);
 }
 .vcm .home .k-foot-word .c {
-  color: var(--accent);
+  color: var(--accent-text);
 }
 .vcm .home.k-js .k-foot-word:not(.in) span {
   transform: translateY(102%);
@@ -2044,7 +1968,9 @@ html:has(.vcm .home) [data-site-header] nav > a[aria-current='page'] {
   border-radius: 50%;
   background: var(--surface-raised);
   color: var(--text);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
+  box-shadow:
+    var(--quiet-edge),
+    0 6px 20px rgba(0, 0, 0, 0.45);
   cursor: pointer;
   animation: k-top-in 0.25s ease-out;
 }
@@ -2062,7 +1988,7 @@ html:has(.vcm .home) [data-site-header] nav > a[aria-current='page'] {
 }
 .vcm .home .k-top:hover {
   background: var(--accent);
-  color: var(--ground);
+  color: var(--on-accent);
 }
 @keyframes k-top-in {
   from {
@@ -2096,7 +2022,7 @@ html:has(.vcm .home) [data-site-header] nav > a[aria-current='page'] {
   letter-spacing: -0.02em;
 }
 .vcm .home .k-side-chain h3 {
-  color: var(--accent);
+  color: var(--accent-text);
 }
 .vcm .home .k-side ul {
   display: grid;
@@ -2204,7 +2130,7 @@ html:has(.vcm .home) [data-site-header] nav > a[aria-current='page'] {
   gap: 0 12px;
   margin-top: 8px;
   font-size: 15px;
-  color: var(--accent);
+  color: var(--accent-text);
 }
 .vcm .home .k-founder > p:not(.k-role) {
   max-width: 34em;
@@ -2440,7 +2366,7 @@ html:lang(ja) .vc-curtain-t {
 }
 .vcm .home .k-link-list a:hover {
   background: var(--accent);
-  color: var(--ground);
+  color: var(--on-accent);
 }
 /* "All of how it works" under the three steps, not under the first (review of #169). */
 .vcm .home .k-steps-more {

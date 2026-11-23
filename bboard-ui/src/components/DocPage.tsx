@@ -13,7 +13,7 @@ import { Box, Button, Container, Stack, Typography } from '@mui/material';
 import { Link as RouterLink, useParams } from 'react-router-dom';
 import ArrowBackIcon from '@mui/icons-material/ArrowBackOutlined';
 import CodeIcon from '@mui/icons-material/CodeOutlined';
-import { CODE_FONT, LINK_SX } from '../config/theme';
+import { CODE_FONT, DISPLAY_FONT, LINK_SX } from '../config/theme';
 import { color } from '../config/tokens';
 import { DOCS, DOCS_VERSION, commitOf, docHtml, sourceOf } from '../veilcore/docs';
 import { InEnglishPage, useT } from '../i18n/app';
@@ -140,17 +140,27 @@ export const DocPage: React.FC = () => {
           dangerouslySetInnerHTML={{ __html: html }}
           sx={{
             minWidth: 0,
-            '& h1': { fontSize: 32, mt: 6, mb: 2, fontWeight: 800, letterSpacing: '-0.02em', lineHeight: 1.15 },
+            '& h1': {
+              fontFamily: DISPLAY_FONT,
+              fontSize: 32,
+              mt: 6,
+              mb: 2,
+              fontWeight: 700,
+              letterSpacing: '-0.02em',
+              lineHeight: 1.15,
+            },
             '& h2': {
               // A new part of the document starts with space, not a rule over every heading.
+              // Headings in Archivo, as everywhere (its weights end at 700).
+              fontFamily: DISPLAY_FONT,
               fontSize: 26,
               mt: 7,
               mb: 2,
-              fontWeight: 800,
+              fontWeight: 700,
               letterSpacing: '-0.015em',
               lineHeight: 1.2,
             },
-            '& h3': { fontSize: 19, mt: 4, mb: 1.5, fontWeight: 700 },
+            '& h3': { fontFamily: DISPLAY_FONT, fontSize: 19, mt: 4, mb: 1.5, fontWeight: 700 },
             '& p': { fontSize: 15.5, lineHeight: 1.75, mb: 2, color: 'text.secondary' },
             '& li': { fontSize: 15.5, lineHeight: 1.75, mb: 0.75, color: 'text.secondary' },
             '& strong': { color: 'text.primary', fontWeight: 600 },
