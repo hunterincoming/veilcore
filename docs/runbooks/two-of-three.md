@@ -75,7 +75,9 @@ first), [maintenance-policy.md](../maintenance-policy.md) (the approved rules), 
    14-day notice, every use published), and **the v1 retire** (sealing isn't a use the
    approved policy lists).
 4. **Where to announce, and the dates.** The policy requires an announcement **at least
-   14 days before** any use of v1's key (the retire), with the reason. Pick the place (the
+   14 days before** any use of a key, with the reason. That covers v1's retire **and v2's
+   handover to the committee**: the earliest handover is 14 days after its notice is
+   published. Pick the place (the
    site's status page, the repo). Follow the public wording rules in `CLAUDE.md`.
 5. **Where each holder keeps their two sheets** (below). Each holder decides their own two
    places, without telling the others the exact spots.
@@ -176,95 +178,11 @@ cd ~/Desktop/veilcore
 
 ### B1. Start the local network (10 to 20 minutes the first time, for the downloads)
 
-Copy and run this whole block as one paste:
-
-```
-mkdir -p /tmp/vc-rehearsal && cat > /tmp/vc-rehearsal/compose.yml <<'EOF'
-name: vc-rehearsal
-services:
-  chainspec:
-    image: 'midnightntwrk/midnight-node:1.0.400'
-    user: '0:0'
-    entrypoint: ['/bin/bash', '-c']
-    command:
-      - 'test -s /chainspec/chainspec.json || /midnight-node build-spec > /chainspec/chainspec.json'
-    environment:
-      CFG_PRESET: 'dev'
-    volumes:
-      - chainspec:/chainspec
-  runtime-blob:
-    image: 'midnightntwrk/midnight-node:2.1.101'
-    user: '0:0'
-    entrypoint: ['/bin/bash', '-c']
-    command:
-      - >
-        set -eu; wasm=midnight_node_runtime.compact.compressed.wasm; case "$$(uname -m)" in x86_64) arch=amd64 ;;
-        aarch64|arm64) arch=arm64 ;; *) echo "unsupported architecture $$(uname -m)" >&2; exit 1 ;; esac; test -s
-        "/runtime/$$wasm" || cp "/artifacts-$$arch/$$wasm" "/runtime/$$wasm"; chmod 644 "/runtime/$$wasm"; ls -l
-        "/runtime/$$wasm"
-    volumes:
-      - runtime:/runtime
-  node:
-    image: 'midnightntwrk/midnight-node:2.1.101'
-    depends_on:
-      chainspec:
-        condition: service_completed_successfully
-      runtime-blob:
-        condition: service_completed_successfully
-    restart: 'no'
-    ports:
-      - '127.0.0.1:9944:9944'
-    volumes:
-      - chainspec:/chainspec:ro
-      - node-data:/node
-    environment:
-      CFG_PRESET: 'dev'
-      CHAIN: '/chainspec/chainspec.json'
-      SHOW_CONFIG: 'false'
-      SIDECHAIN_BLOCK_BENEFICIARY: '04bcf7ad3be7a5c790460be82a713af570f22e0f801f6659ab8e84a52be6969e'
-    healthcheck:
-      test:
-        - 'CMD-SHELL'
-        - >
-          curl -fs -H 'Content-Type: application/json' -d
-          '{"id":1,"jsonrpc":"2.0","method":"chain_getBlockHash","params":[1]}' http://localhost:9944 | grep -q
-          '"result":"0x'
-      interval: 2s
-      timeout: 5s
-      retries: 200
-      start_period: 10s
-  indexer:
-    image: 'midnightntwrk/indexer-standalone:4.4.101'
-    ports:
-      - '127.0.0.1:8088:8088'
-    environment:
-      APP__INFRA__NODE__URL: 'ws://node:9944'
-      APP__APPLICATION__NETWORK_ID: 'undeployed'
-      APP__INFRA__STORAGE__PASSWORD: 'indexer'
-      APP__INFRA__PUB_SUB__PASSWORD: 'indexer'
-      APP__INFRA__LEDGER_STATE_STORAGE__PASSWORD: 'indexer'
-      APP__INFRA__SECRET: '303132333435363738393031323334353637383930313233343536373839303132'
-      APP__INFRA__SPO_NODE__URL: 'ws://node:9944'
-      APP__INFRA__SPO_NODE__BLOCKFROST_ID: 'dummy-not-using-spo'
-      APP__INFRA__SPO_NODE__RECONNECT_MAX_DELAY: '24h'
-    depends_on:
-      node:
-        condition: service_healthy
-  toolkit:
-    profiles: ['tools']
-    image: 'midnightntwrk/midnight-node-toolkit:2.1.101'
-    volumes:
-      - runtime:/runtime:ro
-volumes:
-  chainspec:
-  runtime:
-  node-data:
-EOF
-docker compose -f /tmp/vc-rehearsal/compose.yml up -d --wait
-```
-
-The values in that file that look like secrets are fixed test constants from Midnight's own
-test files; they protect nothing.
+Open [committee-rehearsal.md](../committee-rehearsal.md), step 1 ("Start the local
+network"). Copy its first code block (it starts `mkdir -p /tmp/vc-rehearsal` and ends with
+`docker compose -f /tmp/vc-rehearsal/compose.yml up -d --wait`) and run it as one paste. It
+is kept in one place only, so the two pages can't drift apart. The values in it that look like
+secrets are fixed test constants from Midnight's own test files; they protect nothing.
 
 **Success:** it ends with `node` shown as `Healthy` and `indexer` as `Started` or `Running`.
 Then run:
@@ -355,9 +273,9 @@ main contract's shape on mainnet). Any other counter: stop.
 
 ### B5. The fork: move the local network to Ledger 9 (5 minutes)
 
-```
-docker compose -f /tmp/vc-rehearsal/compose.yml --profile tools run --rm toolkit runtime-upgrade --wasm-file /runtime/midnight_node_runtime.compact.compressed.wasm -c //Dave -c //Eve -t //Alice -t //Bob --rpc-url ws://node:9944 --signer-key //Alice
-```
+Run the first command in [committee-rehearsal.md](../committee-rehearsal.md), step 5 ("The
+fork"): the one line that starts `docker compose -f /tmp/vc-rehearsal/compose.yml --profile
+tools run --rm toolkit runtime-upgrade`.
 
 (`//Alice` and the others are a local chain's built-in test accounts, not keys of ours.) Wait a
 minute, then:
@@ -619,7 +537,8 @@ section 5):
    publish the deployment record. The team may use v2 from here (contract-v2.md, section 7,
    condition 4). **Nothing else is ever done with the temporary key** but the listed inserts
    and the handover.
-   *Steps 2 to 6 wait until the third key holder is named and Part C is done.*
+   *Steps 2 to 7 wait until the third key holder is named, Part C is done, and the 14-day
+   notice of the handover has run.*
 2. **Dry run of the handover:** the tool's install, run as the "v2 before handover" exception
    against v2's address, with the three cards from Part C. It shows the one temporary key now,
    the three keys afterwards, the counter before and after, and a check code.

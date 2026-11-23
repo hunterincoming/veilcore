@@ -49,11 +49,11 @@ The full history of v1 on mainnet, read from the chain from block 0 to 3,553,843
 
 **Claims contract:** 14 proofs.
 
-**Every one of these records is believed to be the team's own testing.** The founders are
-confirming the count against their own devices. The chain can't show who made a call, because
-the sponsor pays for every visitor and nothing names the caller. So the count is re-checked
-before the v2 code freeze and again before the public switch, because anyone can still make a
-v1 record today.
+**Every one of these records is the team's own testing (confirmed 23 November 2026),**
+including the founders' own checks of the site. The chain alone can't show who made a call,
+because the sponsor pays for every visitor and nothing names the caller, so the founders
+confirmed the count against their own records. Anyone can still make a v1 record today, so
+the count is re-checked before the v2 code freeze and again before the public switch.
 
 **What follows.** v1 holds no lineage, obligations, transfers, rotations or recoveries, and its
 maintenance history is clean: 16 updates, all in the deploy minutes, matching counter 16 in
@@ -365,7 +365,9 @@ The public switch happens only after the audit closes (section 7). It is one rel
   - **the route chosen:** a temporary deploy key, generated on the maintainer's Mac and kept
     age-encrypted on disk, never on paper or in a password manager. All inserts go in one
     wallet session. The key then **stays on v2 until the third key holder is named**, and
-    `replace-authority` hands v2 to the committee on the next booked call. The temporary key
+    `replace-authority` hands v2 to the committee. **The handover is a use of v2's key, so it
+    needs the policy's 14-day notice: the earliest handover is 14 days after the notice is
+    published.** Publish the notice as soon as the third holder is named. The temporary key
     is destroyed only after the handover is confirmed on chain. Until then, v2 has the same
     single-key exposure v1 has today. That is acceptable only while v2 holds team records
     alone (section 7, condition 4). The handover comes before the professional audit and
@@ -453,7 +455,8 @@ seal removes that power for good.
 
 ### Stage A (2 to 3 weeks)
 
-5. The founders confirm the count, and decisions 2 and 9 (section 9).
+5. The founders decide 2 and 9 (section 9). (The v1 record count was confirmed on 23 November
+   2026.)
 6. **Client patch PR:**
    - midnight-js 5.0.1, Compact JS 3.0.2, wallet SDK 2.0.1, on-chain runtime 4.0.2;
    - ledger-v9 1.0.2, including the decoder and the committee alias;
@@ -594,7 +597,7 @@ key. The tool changes (Stage A item 7) are needed for the handover.
 | 7 | Keep our own Schnorr port, with the range check | Approved |
 | 8 | An outside audit before the public switch | Approved. Not booked yet. |
 | 9 | Seal v1 by `retire` only, after the public switch, with the 14-day notice. The approved policy doesn't list sealing as a use. | **Pending the second founder's written approval** |
-| 10 | The fresh start itself, resting on every v1 record being the team's own | **Pending:** the founders are confirming the count |
+| 10 | The fresh start itself, resting on every v1 record being the team's own | **Confirmed 23 Nov 2026**: every v1 record is the team's own testing |
 | 11 | Team-only v2 on mainnet on VeilCore's own review, with condition 8 waived; a temporary single key until the third key holder is named | **Decided by the maintainer, Hunter Roberts, 23 Nov 2026** |
 
 Still open:

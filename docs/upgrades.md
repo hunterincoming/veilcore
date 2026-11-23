@@ -44,7 +44,7 @@ corrections apply to the 9 October text below. Each one is also marked where it 
    v1. So anyone could carry an identity forward first with their own head, and the rightful
    holder's carry would then be refused on chain. Verifiers would ignore the forgery, but the
    holder would still be blocked. **For v2 there is no carry at all.** Every v1 record so far
-   is believed to be the team's own testing (the founders are confirming the count), so v2 is
+   is the team's own testing (confirmed 23 November 2026), so v2 is
    a fresh start next to an untouched v1. A v1 record keeps its date on v1 forever, and the
    same commitment in v1 and v2 is two records with two dates (contract-v2.md, sections 0 and
    3). The carry design that fixes the squatting (a freeze, an on-chain snapshot, non-membership
@@ -103,8 +103,10 @@ holds for v2.*
    *not* give us is a way for a new contract to read an old one, so the link between
    versions is checked by our verifier software, against chain data anyone can read.
 5. **Now (rewritten 23 November 2026):** build version 2 on the new toolchain as a fresh
-   start, with a 2-of-3 committee from its deploy session. v1 records stay on v1 with their
-   dates, and nothing is carried. After v2 is public and audited, retire v1's single key, so
+   start. By the maintainer's decision of 23 November 2026, v2 is deployed with a temporary
+   single key, which is handed to a 2-of-3 committee once the third key holder is named (the
+   handover is a key use, so it comes at least 14 days after its notice is published). v1
+   records stay on v1 with their dates, and nothing is carried. After v2 is public and audited, retire v1's single key, so
    nobody can change v1 again ([contract-v2.md](contract-v2.md)). *The 9 October text put a
    committee on v1 before the fork and opened a carry-forward; neither applies now.*
 
@@ -445,9 +447,10 @@ and midnight-js will drop that (Known 6). So:
 2. **Narrow v1's key** to keep-working, switch-off and seal, and publish that as a change to
    the approved maintenance policy.
 3. **Name the independent third key holder** for the 2-of-3 committee, and install it before
-   the fork. *Corrected 23 November 2026:* no committee goes on v1. The committee goes on v2
-   from its deploy session, and v1 is retired with its single key
-   ([runbooks/two-of-three.md](runbooks/two-of-three.md)).
+   the fork. *Corrected 23 November 2026:* no committee goes on v1. v2 is deployed with a
+   temporary single key, handed to the 2-of-3 committee once the third key holder is named
+   (maintainer decision, 23 November 2026), with the 14-day notice before the handover. v1 is
+   retired with its single key ([runbooks/two-of-three.md](runbooks/two-of-three.md)).
 4. **Set the carry-forward window** before v1 is sealed (we suggest at least 12 months after
    v2 launches). *Dropped 23 November 2026:* v2 has no carry-forward, so there is no window
    (correction 3).
