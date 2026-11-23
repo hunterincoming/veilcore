@@ -139,12 +139,13 @@ jobs:
         run: |
           npm run test:deployments
 
-      # The committee launcher (with the mainnet gate and the key slot), and the contract v2 deploy
-      # command, each against the ledger's own code. Nothing is sent.
-      - name: Maintenance committee launcher, and the contract v2 deploy command
+      # The committee launcher (with the mainnet gate and the key slot), the contract v2 deploy
+      # command and the v2 smoke run's refusals, each against the ledger's own code. Nothing is
+      # sent. (The smoke run's end-to-end test needs contract v2 compiled: the contract-v2 job.)
+      - name: Maintenance committee launcher, and the contract v2 deploy and smoke commands
         working-directory: bboard-cli
         run: |
-          npx vitest run src/launcher/committee.test.ts src/launcher/deploy-v2.test.ts
+          npx vitest run src/launcher/committee.test.ts src/launcher/deploy-v2.test.ts src/launcher/smoke-v2.test.ts
 
   site-unit:
     needs: contract
@@ -287,6 +288,14 @@ jobs:
       - name: Contract v2 deploy, deployment check and gate
         run: |
           node --test scripts/v2/v2.test.mjs
+
+      # The v2 smoke run end to end: v2 deployed on the ledger's own code by the deploy command,
+      # then found through midnight-js and its first call built and handed to the prover. The
+      # plan itself (every circuit, through midnight-js offline) runs in `npm run ci` above.
+      - name: Contract v2 smoke run (deploy, find, first call)
+        working-directory: bboard-cli
+        run: |
+          npx vitest run src/launcher/smoke-v2.test.ts
 
   install-and-test:
     if: always()
