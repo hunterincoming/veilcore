@@ -27,7 +27,7 @@ import { ja } from '../../i18n/ja';
 import { de } from '../../i18n/de';
 import { es } from '../../i18n/es';
 import { fr } from '../../i18n/fr';
-import { night, paper } from '../../config/tokens';
+import { appNight, day, night, paper } from '../../config/tokens';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const siteCss = fs.readFileSync(path.join(here, 'site.css'), 'utf8');
@@ -397,21 +397,22 @@ describe('the palette: pollen and ink; red only for errors; no green brand', () 
     }
   });
 
-  it("the app's four jobs: a register's inks, readable, none pollen, none red, none green", () => {
-    const inks = Object.fromEntries(
-      [...flowFrameTsx.matchAll(/^\s+(\w+): \{ name: '[^']+', color: ('#[0-9A-Fa-f]{6}'|color\.text)/gm)].map((m) => [
-        m[1],
-        m[2] === 'color.text' ? INK_COLOR : m[2].slice(1, -1),
-      ]),
+  it("the app's four jobs: a register's inks, readable by day and night, none gold, none red, none green", () => {
+    // Each job's colour is a role (tokens.ts sectionSend...), so it has a day and a night value.
+    const roles = Object.fromEntries(
+      [...flowFrameTsx.matchAll(/^\s+(\w+): \{ name: '[^']+', color: color\.(\w+)/gm)].map((m) => [m[1], m[2]]),
     );
-    expect(Object.keys(inks)).toEqual(['log', 'send', 'license', 'prove']);
-    expect(inks.log).toBe(INK_COLOR);
-    for (const ink of Object.values(inks)) {
-      expect(ink).not.toBe(POLLEN);
-      expect(contrast(ink, WASH)).toBeGreaterThanOrEqual(4.5);
-      const { hue, sat } = hueSat(ink);
-      expect(hue > 75 && hue < 175 && sat > 0.15).toBe(false);
-    }
+    expect(Object.keys(roles)).toEqual(['log', 'send', 'license', 'prove']);
+    expect(roles.log).toBe('text');
+    for (const set of [day, appNight])
+      for (const role of Object.values(roles)) {
+        const ink = set[role as keyof typeof set];
+        expect(ink).not.toBe(POLLEN);
+        expect(ink).not.toBe(set.accent);
+        expect(contrast(ink, set.surfaceQuiet), `${role} on the quiet fill`).toBeGreaterThanOrEqual(4.5);
+        const { hue, sat } = hueSat(ink);
+        expect(hue > 75 && hue < 175 && sat > 0.15).toBe(false);
+      }
     // A leaf said "plants only"; the Log icon is a calendar being written in.
     expect(flowFrameTsx).not.toMatch(/icons-material\/(Spa|Eco|Grass|Yard|LocalFlorist|Park|Forest)/);
   });

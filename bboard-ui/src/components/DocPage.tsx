@@ -14,7 +14,7 @@ import { Link as RouterLink, useParams } from 'react-router-dom';
 import ArrowBackIcon from '@mui/icons-material/ArrowBackOutlined';
 import CodeIcon from '@mui/icons-material/CodeOutlined';
 import { CODE_FONT, DISPLAY_FONT, LINK_SX } from '../config/theme';
-import { color } from '../config/tokens';
+import { color, mix } from '../config/tokens';
 import { DOCS, DOCS_VERSION, commitOf, docHtml, sourceOf } from '../veilcore/docs';
 import { InEnglishPage, useT } from '../i18n/app';
 
@@ -168,18 +168,20 @@ export const DocPage: React.FC = () => {
             '& code': {
               fontFamily: CODE_FONT,
               fontSize: 13,
-              background: 'rgba(30,34,39,0.06)',
+              background: mix(color.text, 6),
               px: 0.7,
               py: 0.2,
               borderRadius: 0.5,
             },
             '& pre': {
-              background: 'rgba(30,34,39,0.03)',
+              background: mix(color.text, 3),
               p: 2,
               borderRadius: 1,
               overflowX: 'auto',
               border: '1px solid',
               borderColor: 'divider',
+              // Nothing scrolls on paper: a long line wraps instead of being cut at the edge.
+              '@media print': { overflowX: 'visible', whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' },
             },
             '& pre code': { background: 'none', px: 0 },
             '& table': { width: '100%', borderCollapse: 'collapse', my: 3, fontSize: 14 },

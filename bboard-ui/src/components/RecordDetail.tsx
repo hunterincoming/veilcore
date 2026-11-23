@@ -107,6 +107,7 @@ import { LAB_RESULTS_ENABLED } from '../config/network';
 import { CODE_TEXT } from '../config/theme';
 import { ProofCodeQr } from './lab/ProofCodeQr';
 import { errorWords } from '../i18n/error-words';
+import { color, mix } from '../config/tokens';
 
 type Mode =
   | 'overview'
@@ -723,7 +724,7 @@ export const RecordDetail: React.FC = () => {
                       gap: 1,
                       p: 1,
                       borderRadius: 1,
-                      '&:hover, &:focus-visible': { background: 'rgba(30,34,39,0.05)', outline: 'none' },
+                      '&:hover, &:focus-visible': { background: mix(color.text, 5), outline: 'none' },
                     }}
                   >
                     <Typography variant="body2" sx={{ minWidth: 0 }} noWrap>

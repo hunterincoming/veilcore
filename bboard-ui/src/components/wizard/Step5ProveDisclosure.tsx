@@ -64,6 +64,7 @@ import { useRecordT } from '../../i18n/app';
 import { isAnimal, recordTitle } from '../../veilcore/animal-profile';
 import { loadAttestations, type ResolvedAttestation } from '../../veilcore/attesters';
 import { LabSignatureShare } from './LabSignatureShare';
+import { color, mix } from '../../config/tokens';
 
 export const Step5ProveDisclosure: React.FC<{
   recordId: string;
@@ -360,7 +361,7 @@ export const Step5ProveDisclosure: React.FC<{
           <Typography variant="overline" color="text.secondary">
             {t('app.prove.share.strangerSees')}
           </Typography>
-          <Paper variant="outlined" sx={{ p: 2, mt: 0.5, background: 'rgba(30,34,39,0.02)' }}>
+          <Paper variant="outlined" sx={{ p: 2, mt: 0.5, background: mix(color.text, 2) }}>
             <DisclosedFacts
               record={record}
               disclosure={disclosure}

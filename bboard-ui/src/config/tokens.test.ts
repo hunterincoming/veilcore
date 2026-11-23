@@ -7,7 +7,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
-import { color, cssName, night, paper } from './tokens';
+import { appNight, appPrint, color, cssName, day, mix, night, paper, paperRoles, vcVars } from './tokens';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const read = (p: string) => fs.readFileSync(path.join(here, p), 'utf8');
@@ -51,7 +51,71 @@ describe('colour tokens: one source', () => {
   it('names are roles, written the same way in CSS', () => {
     expect(cssName('textMuted')).toBe('text-muted');
     expect(cssName('surfaceQuietHover')).toBe('surface-quiet-hover');
-    expect(color).toBe(paper);
+  });
+
+  it("the app's colours are CSS variables, one for each role, and each set fills every one", () => {
+    expect(color.text).toBe('var(--vc-text)');
+    expect(color.surfaceQuietHover).toBe('var(--vc-surface-quiet-hover)');
+    const roles = Object.keys(appNight).sort();
+    for (const set of [day, appPrint, paperRoles]) expect(Object.keys(set).sort()).toEqual(roles);
+    expect(Object.keys(vcVars(day)).sort()).toEqual(
+      Object.values(color)
+        .map((v) => v.slice(4, -1))
+        .sort(),
+    );
+    expect(mix(color.text, 7)).toBe('color-mix(in srgb, var(--vc-text) 7%, transparent)');
+  });
+
+  it("the app's night is the public pages' night, wherever a role is in both", () => {
+    for (const [k, v] of Object.entries(appNight)) if (k in night) expect(v, k).toBe(night[k as keyof typeof night]);
+  });
+
+  it("the day is paper and ink with Mako's gold: no pollen, and gold is never text", () => {
+    expect(day.accent).toBe(night.accent);
+    expect(Object.values(day)).not.toContain(paper.accent);
+    expect(day.accentText).toBe(day.text);
+  });
+
+  it("the app's sets read: text 4.5:1 on what it sits on, never light text on gold, edges 3:1", () => {
+    const channel = (h: string, i: number) => {
+      const c = parseInt(h.slice(i, i + 2), 16) / 255;
+      return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+    };
+    const lum = (h: string) => 0.2126 * channel(h, 1) + 0.7152 * channel(h, 3) + 0.0722 * channel(h, 5);
+    const ratio = (a: string, b: string) => {
+      const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p);
+      return (x + 0.05) / (y + 0.05);
+    };
+    for (const [name, s] of Object.entries({ day, appNight, appPrint })) {
+      const at = (fg: string, bg: string, min: number, what: string) =>
+        expect(ratio(fg, bg), `${name}: ${what} ${fg} on ${bg}`).toBeGreaterThanOrEqual(min);
+      for (const bg of ['ground', 'surface', 'surfaceRaised', 'surfaceQuiet', 'band'] as const) {
+        at(s.text, s[bg], 4.5, `text on ${bg}`);
+        at(s.textMuted, s[bg], 4.5, `muted text on ${bg}`);
+      }
+      for (const fg of ['ok', 'warn', 'error'] as const) {
+        at(s[fg], s.ground, 4.5, `${fg} on the ground`);
+        at(s[fg], s.surface, 4.5, `${fg} on a card`);
+        at(s[fg], s[`${fg}Tint`], 4.5, `${fg} on its tint`);
+        at(s.text, s[`${fg}Tint`], 4.5, `text on the ${fg} tint`);
+      }
+      at(s.onAccent, s.accent, 4.5, 'text on the gold');
+      at(s.onAccent, s.accentHover, 4.5, 'text on the gold under the pointer');
+      at(s.accentText, s.ground, 4.5, 'gold as text on the ground');
+      at(s.accentText, s.surface, 4.5, 'gold as text on a card');
+      at(s.onInverse, s.inverse, 4.5, 'text on the band');
+      at(s.onInverseMuted, s.inverse, 4.5, 'muted text on the band');
+      at(s.edge, s.ground, 3, "a field's or quiet button's edge on the ground");
+      at(s.edge, s.surface, 3, "a field's edge on a card");
+      // Never light text on gold: what is drawn on it is darker than it.
+      expect(lum(s.onAccent), `${name}: text on gold is dark`).toBeLessThan(lum(s.accent));
+      // "Needs a look" is not the brand's gold.
+      expect(s.warn).not.toBe(s.accent);
+    }
+    // Printed, the page is white, and the gold is a light fill (a printer drops it; with
+    // background graphics on, ink still reads on it).
+    expect(appPrint.ground).toBe('#FFFFFF');
+    expect(lum(appPrint.accent)).toBeGreaterThan(0.4);
   });
 
   it("site.css's .vcm holds every night token, at its value, and no other colour variable", () => {
@@ -105,7 +169,8 @@ describe('colour tokens: one source', () => {
   });
 
   it('every token value is a #RRGGBB colour', () => {
-    for (const v of [...Object.values(paper), ...Object.values(night)]) expect(v).toMatch(/^#[0-9A-F]{6}$/);
+    for (const v of [paper, night, appNight, day, appPrint].flatMap((s) => Object.values(s)))
+      expect(v).toMatch(/^#[0-9A-F]{6}$/);
   });
 
   it('theme.ts takes its colours from tokens.ts: none of their values is written there', () => {

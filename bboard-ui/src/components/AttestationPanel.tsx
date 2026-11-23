@@ -20,6 +20,7 @@ import { NameCheckText } from './NameCheckText';
 import type { StrainRecord } from '../veilcore/records';
 import { attestationAddressee } from '../veilcore/transfers';
 import { useRecordT, useT } from '../i18n/app';
+import { color, mix } from '../config/tokens';
 
 /** The breeder's own plant: its tied receipt, and a count of anything else. */
 const BreederReceiptPanel: React.FC<{ receipt: BreederReceipt }> = ({ receipt }) => {
@@ -33,7 +34,7 @@ const BreederReceiptPanel: React.FC<{ receipt: BreederReceipt }> = ({ receipt })
         {t('app.plant.labReceipt')}
       </Typography>
       {receipt.kind === 'signed' ? (
-        <Box sx={{ pl: 1.5, borderLeft: '2px solid rgba(30,34,39,0.12)' }}>
+        <Box sx={{ pl: 1.5, borderLeft: `2px solid ${mix(color.text, 12)}` }}>
           <Typography variant="body2" sx={{ fontWeight: 700 }}>
             {s?.lead}
             {s?.checked ? t('app.common.period') : ''}
@@ -123,7 +124,7 @@ export const AttestationPanel: React.FC<{
       {items.map((a) => {
         const s = strengthLabel(a, tr);
         return (
-          <Box key={a.attestationId} sx={{ pl: 1.5, borderLeft: '2px solid rgba(30,34,39,0.12)' }}>
+          <Box key={a.attestationId} sx={{ pl: 1.5, borderLeft: `2px solid ${mix(color.text, 12)}` }}>
             <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap', mb: 0.5 }}>
               <Chip size="small" variant="outlined" color={s.ok ? 'primary' : 'default'} label={s.label} />
               <Typography variant="caption" color="text.secondary">
