@@ -2476,7 +2476,9 @@ html:lang(ja) .vc-curtain-t {
 .vcm .home .k-step-pic .k-check {
   width: 120px;
 }
-.vcm .home .k-step-pic .k-check :is(.ring, .ok) {
+/* The check mark draws itself as its step comes into view, and again on the way back. */
+.vcm .home:not(.k-js) .k-step-pic .k-check :is(.ring, .ok),
+.vcm .home li.in > .k-step-pic .k-check :is(.ring, .ok) {
   stroke-dashoffset: 0;
 }
 @media (max-width: 760px) {

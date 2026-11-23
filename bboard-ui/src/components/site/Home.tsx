@@ -72,6 +72,7 @@ import {
   Two,
   WordLight,
   arrowed,
+  scramble,
   useHashScroll,
   useReveals,
   useScrollPieces,
@@ -719,6 +720,30 @@ const STEP_CODE = '3f9a1c07b2e84d6a91c5f0e27b4d8a3c6e1f95b0d27a4c8e3b61f0a9d5c27
  */
 const StepPicture: React.FC<{ n: number }> = ({ n }) => {
   const { t } = useI18n();
+  // The code settles from random hex each time it comes into view (Mako's scramble, as on How it
+  // works); the check mark draws itself (home.css). Both still with reduced motion.
+  const code = useRef<HTMLParagraphElement>(null);
+  useEffect(() => {
+    const el = code.current;
+    if (!el) return;
+    el.textContent = STEP_CODE;
+    if (typeof IntersectionObserver === 'undefined') return;
+    let stop: (() => void) | undefined;
+    const io = new IntersectionObserver(
+      ([e]) => {
+        if (e?.isIntersecting) {
+          stop?.();
+          stop = scramble(el, STEP_CODE);
+        }
+      },
+      { threshold: 0.6 },
+    );
+    io.observe(el);
+    return () => {
+      io.disconnect();
+      stop?.();
+    };
+  }, []);
   return (
     <div className="k-step-pic" aria-hidden="true">
       {n === 0 && (
@@ -733,7 +758,7 @@ const StepPicture: React.FC<{ n: number }> = ({ n }) => {
           </div>
         </dl>
       )}
-      {n === 1 && <p className="k-bigcode">{STEP_CODE}</p>}
+      {n === 1 && <p className="k-bigcode" ref={code} />}
       {n === 2 && (
         <svg className="k-check" viewBox="0 0 160 160">
           <circle cx="80" cy="80" r="70" />
