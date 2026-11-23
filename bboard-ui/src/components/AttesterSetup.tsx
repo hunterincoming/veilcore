@@ -49,6 +49,7 @@ import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
 import { OPEN_SIGNING_KEY_STATE } from '../veilcore/role';
 import { rich, useT } from '../i18n/app';
 import type { AppKey } from '../i18n/app/en';
+import { errorWords } from '../i18n/error-words';
 import { CODE_FONT } from '../config/theme';
 
 const ROLE_LABEL: Record<string, AppKey> = {
@@ -117,7 +118,8 @@ export const AttesterSetup: React.FC<{
   const [backedUp, setBackedUp] = useState(false);
   // A checked backup holds this key: saved here just now, or at any time before (attester-keys.ts).
   const keySafe = backedUp || labKeyBackedUp();
-  const { t } = useT();
+  const tr = useT();
+  const { t } = tr;
   // Folded until asked for (a lab tested it, 8 Nov): did:web and the raw key. Showing the name as
   // the lab's (an email, or its own website: the file or a DNS TXT record) is shown open since the
   // co-founder looked for the website step and didn't find it (21 Nov).
@@ -195,7 +197,7 @@ export const AttesterSetup: React.FC<{
       p = await createAttester(name.trim(), role, accreditation);
     } catch (e) {
       setBusy(false);
-      setError(e instanceof Error ? e.message : t('app.lab.key.couldNotCreate'));
+      setError(e instanceof Error ? errorWords(e, tr) : t('app.lab.key.couldNotCreate'));
       setProfile(loadAttester());
       return;
     }

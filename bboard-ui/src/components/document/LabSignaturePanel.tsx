@@ -20,6 +20,7 @@ import { useT } from '../../i18n/app';
 import { Fact } from './DocumentParts';
 import { DisclosureReceipt } from '../chain/DisclosureReceipt';
 import { withdrawnWords } from '../lab/signer-words';
+import { errorWords } from '../../i18n/error-words';
 
 type Held = DocumentRecordLike & { readonly fieldSet: HeldFieldSet };
 
@@ -97,7 +98,7 @@ export const LabSignaturePanel: React.FC<{
         ...(receipt.blockTime !== undefined ? { blockTime: receipt.blockTime } : {}),
       });
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(errorWords(e, tr));
     } finally {
       setBusy(false);
       setProgress(undefined);

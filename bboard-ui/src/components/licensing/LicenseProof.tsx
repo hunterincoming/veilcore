@@ -42,6 +42,7 @@ import { ChainStatusLine } from '../chain/ChainStatusLine';
 import { SendLink } from '../chain/ProveWatch';
 import { rich, useT } from '../../i18n/app';
 import { DisclosureReceipt } from '../chain/DisclosureReceipt';
+import { errorReason } from '../../i18n/error-words';
 import { CODE_FONT } from '../../config/theme';
 
 const WEEK = 7 * 24 * 60 * 60_000;
@@ -163,8 +164,11 @@ export const LicenseProofWatch: React.FC<{ ask: MyAsk; asker?: string }> = ({ as
       {refusals.length > 0 && (
         <Alert severity="error" variant="outlined">
           {refusals.length === 1
-            ? tr.t('app.lic.proof.refusedOne', { why: refusals[0] })
-            : tr.t('app.lic.proof.refusedMany', { count: refusals.length, why: refusals[refusals.length - 1] })}
+            ? tr.t('app.lic.proof.refusedOne', { why: errorReason(refusals[0], tr) })
+            : tr.t('app.lic.proof.refusedMany', {
+                count: refusals.length,
+                why: errorReason(refusals[refusals.length - 1], tr),
+              })}
         </Alert>
       )}
     </Stack>
@@ -187,7 +191,7 @@ export const LicenseProofPanel: React.FC<{ identity: string; recordId?: string }
     setMaking(true);
     setProblem(undefined);
     const r = await askToProve({ identity, asker, recordId, kind: 'license' }).catch((e: unknown) => ({
-      error: e instanceof Error ? e.message : String(e),
+      error: errorReason(e, tr),
     }));
     setMaking(false);
     if ('error' in r) setProblem(tr.t('app.lic.proof.couldnt', { error: r.error }));

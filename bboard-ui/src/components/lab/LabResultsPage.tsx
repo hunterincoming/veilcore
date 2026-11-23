@@ -57,6 +57,7 @@ import type { Translator } from '../../i18n/translate';
 import { ResultForm, type MyResult } from './ResultForm';
 import { download, resultFileNames } from './download';
 import { ResultFacts, callWords, kindWords } from './ResultFacts';
+import { errorReason } from '../../i18n/error-words';
 
 const short = (h: string) => `${h.slice(0, 8)}…${h.slice(-6)}`;
 
@@ -305,7 +306,8 @@ const OneResult: React.FC<{
   records: ReturnType<typeof useRecords>;
   onDone: (d: Done) => void;
 }> = ({ mine, records, onDone }) => {
-  const { t } = useT();
+  const tr = useT();
+  const { t } = tr;
   const [draft, setDraft] = useState<ResultDraft>(() => emptyDraft('pathogen'));
   const [problem, setProblem] = useState<{ code: ProblemCode; message: string }>();
   const [busy, setBusy] = useState(false);
@@ -323,7 +325,7 @@ const OneResult: React.FC<{
       if (first && !first.ok) setProblem({ code: first.code, message: first.message });
       if (first?.ok) onDone({ results, openings: new Map(d.opening ? [[first.code, d.opening]] : []) });
     } catch (e) {
-      setError(t('app.lr.tools.failed', { error: e instanceof Error ? e.message : String(e) }));
+      setError(t('app.lr.tools.failed', { error: errorReason(e, tr) }));
     } finally {
       setBusy(false);
     }
@@ -424,7 +426,7 @@ const CsvResults: React.FC<{
       );
       onDone({ results, openings: new Map(), unsigned: bad, skipped });
     } catch (e) {
-      setError(t('app.lr.tools.failed', { error: e instanceof Error ? e.message : String(e) }));
+      setError(t('app.lr.tools.failed', { error: errorReason(e, tr) }));
     } finally {
       setBusy(false);
       setProgress(undefined);

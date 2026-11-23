@@ -117,6 +117,7 @@ import { DateLabReport } from '../stage/DateLabReport';
 import { labSentPhrase } from './plant-status-words';
 import { rich, useRecordT, useT } from '../../i18n/app';
 import { enT, type Translator } from '../../i18n/translate';
+import { errorWords } from '../../i18n/error-words';
 
 const short = (h: string) => `${h.slice(0, 8)}…${h.slice(-6)}`;
 /** Every time on a lab report screen: local, with the zone's short name (round 5). */
@@ -501,7 +502,7 @@ const SignedNumbers: React.FC<{ numbers?: LabNumbers | LabResultBundle; problem?
         photoFingerprints: [],
       } as never);
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(errorWords(e, tr));
     } finally {
       setBusy(false);
     }
@@ -600,7 +601,7 @@ export const LabResultsPanel: React.FC<{
               throw new Error(t('app.labnums.otherReport'));
           } catch (e) {
             numbers = undefined;
-            numbersProblem = e instanceof Error ? e.message : String(e);
+            numbersProblem = errorWords(e, tr);
           }
         }
         const sha = reportFingerprint(bytes);
@@ -630,7 +631,7 @@ export const LabResultsPanel: React.FC<{
           },
         }));
       } catch (e) {
-        setProblem(e instanceof Error ? e.message : String(e));
+        setProblem(errorWords(e, tr));
       } finally {
         setBusy(undefined);
       }
@@ -1062,7 +1063,7 @@ export const SendResultsPanel: React.FC<{
         }),
       );
     } catch (e) {
-      setProblem(e instanceof Error ? e.message : String(e));
+      setProblem(errorWords(e, tr));
     } finally {
       setConfirm(undefined);
       setBusy(undefined);
@@ -1193,7 +1194,7 @@ export const SendResultsPanel: React.FC<{
       setScreen((n) => n + 1);
       labChanged();
     } catch (e) {
-      setProblem(e instanceof Error ? e.message : String(e));
+      setProblem(errorWords(e, tr));
     } finally {
       setBusy(undefined);
     }

@@ -16,7 +16,7 @@ import { AppHeader } from '../AppHeader';
 import { FlowFrame, ScreenHeading } from './FlowFrame';
 import { rich, useT } from '../../i18n/app';
 import { deleteAccountCopy, forgetDevice, useAccountState } from '../../veilcore/account-copy';
-import { backupMessageWords } from './backup-words';
+import { errorWords } from '../../i18n/error-words';
 import { deviceWords, openKeepSafe, useDeviceLockHint, useUnlockWord } from './KeepSafe';
 import { PasskeyCheckLink } from './PasskeyCheckLink';
 import { openRecoverySheet } from './RecoverySheet';
@@ -243,7 +243,7 @@ export const SettingsPage: React.FC = () => {
               )}
               {problem && (
                 <Alert severity="warning" variant="outlined" sx={{ mt: 1.5 }}>
-                  {backupMessageWords(problem, tr)}
+                  {errorWords(problem, tr)}
                 </Alert>
               )}
               {/* When a passkey won't work on some device: what this browser can do (docs/passkey-support.md). */}

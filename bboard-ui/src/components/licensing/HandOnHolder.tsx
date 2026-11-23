@@ -17,6 +17,7 @@ import type { ChainReceipt } from '../../veilcore/chain/actions';
 import { ConfirmInline, HowItWorks } from './DealSteps';
 import { rich, useT } from '../../i18n/app';
 import { DisclosureReceipt } from '../chain/DisclosureReceipt';
+import { errorWords } from '../../i18n/error-words';
 
 const POLL_MS = 15_000;
 
@@ -63,7 +64,7 @@ export const HandOnHolder: React.FC<{
       setOpen(false);
       refresh();
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(errorWords(e, tr));
     } finally {
       setBusy(false);
     }

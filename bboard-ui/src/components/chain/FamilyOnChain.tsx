@@ -24,6 +24,7 @@ import { useChainCall } from './useChainCall';
 import { ChainStatusLine } from './ChainStatusLine';
 import { DisclosureReceipt } from './DisclosureReceipt';
 import { useRecordT } from '../../i18n/app';
+import { errorWords } from '../../i18n/error-words';
 
 const HEX64 = /^[0-9a-f]{64}$/;
 const hex = (b: Uint8Array) => Array.from(b, (x) => x.toString(16).padStart(2, '0')).join('');
@@ -93,7 +94,7 @@ export const FamilyOnChain: React.FC<{ record: StrainRecord }> = ({ record }) =>
         setFamily(f);
         setError(undefined);
       })
-      .catch((e: unknown) => setError(e instanceof Error ? e.message : String(e)));
+      .catch((e: unknown) => setError(errorWords(e, tr)));
   }, [me, allKeys]);
   useEffect(refresh, [refresh]);
 

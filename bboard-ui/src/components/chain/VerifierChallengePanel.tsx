@@ -22,6 +22,7 @@ import { useChainCall } from './useChainCall';
 import { ChainStatusLine } from './ChainStatusLine';
 import { useT } from '../../i18n/app';
 import { keyReasonWords } from './key-reason-words';
+import { errorReason } from '../../i18n/error-words';
 import { CODE_FONT } from '../../config/theme';
 
 /**
@@ -81,7 +82,8 @@ export const VerifierChallengePanel: React.FC<{ claim?: ClaimedChainAnchor | nul
   const [making, setMaking] = useState(false);
   const [problem, setProblem] = useState<string>();
   const [byHand, setByHand] = useState(false);
-  const { t } = useT();
+  const tr = useT();
+  const { t } = tr;
   if (chainNotReady() || !claim || !/^[0-9a-f]{64}$/.test(identity)) return null;
 
   const make = async () => {
@@ -94,7 +96,7 @@ export const VerifierChallengePanel: React.FC<{ claim?: ClaimedChainAnchor | nul
       anchorTx: claim.txId,
       ...(bound ? { record: bound } : {}),
     }).catch((e: unknown) => ({
-      error: e instanceof Error ? e.message : String(e),
+      error: errorReason(e, tr),
     }));
     setMaking(false);
     if ('error' in r) setProblem(t('app.prove.ask.noLink', { error: r.error }));
@@ -175,7 +177,8 @@ const ByHand: React.FC<{ claim: ClaimedChainAnchor; record?: KeyedRecord }> = ({
   const [challenge, setChallenge] = useState<string>();
   const [txId, setTxId] = useState('');
   const call = useChainCall<{ accepted: boolean; reason: string; anchor?: boolean }>();
-  const { t } = useT();
+  const tr = useT();
+  const { t } = tr;
 
   const make = async () => {
     const { newChallenge } = await import('../../veilcore/chain/challenge-book');
@@ -249,7 +252,7 @@ const ByHand: React.FC<{ claim: ClaimedChainAnchor; record?: KeyedRecord }> = ({
             ? record
               ? t('app.prove.hand.acceptedKey')
               : t('app.prove.hand.acceptedSecret')
-            : t('app.prove.hand.notAccepted', { reason: call.result.reason })}
+            : t('app.prove.hand.notAccepted', { reason: errorReason(call.result.reason, tr) })}
           {call.result.anchor === true && t('app.prove.hand.anchorYes')}
           {call.result.anchor === false && t('app.prove.hand.anchorNo')}
         </Alert>

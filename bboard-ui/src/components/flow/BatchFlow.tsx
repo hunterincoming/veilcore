@@ -72,6 +72,7 @@ import {
 import { MAX_BATCH, type Handoff } from '../../ask/handoff';
 import { sireAndDam } from '../../ask/prefill';
 import { AskFilledBanner } from '../ask/AskFill';
+import { errorWords } from '../../i18n/error-words';
 
 type Screen = 'review' | 'backup' | 'saving' | 'done';
 
@@ -308,7 +309,7 @@ export const BatchFlow: React.FC<{ handoff: Handoff }> = ({ handoff }) => {
       }
       const refused = Object.values(result.outcomes).find((o) => o.state === 'refused');
       if (refused && refused.state === 'refused') {
-        setError(refused.reason);
+        setError(errorWords(refused.reason, tr));
         return;
       }
       // Any outcome now is a row the bulk import already had: never say an old record was saved.
@@ -327,7 +328,7 @@ export const BatchFlow: React.FC<{ handoff: Handoff }> = ({ handoff }) => {
       }
       setScreen('backup');
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(errorWords(e, tr));
     } finally {
       setBusy(false);
     }

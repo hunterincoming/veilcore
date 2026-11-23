@@ -12,6 +12,7 @@ import { finishReceiving, isUnfinishedReceipt, keptCodeFor } from '../veilcore/r
 import { labErrorWords } from '../veilcore/transfers';
 import { useT } from '../i18n/app';
 import { SupportDetails } from './SupportDetails';
+import { errorWords } from '../i18n/error-words';
 import { CODE_FONT } from '../config/theme';
 
 export const FinishReceiving: React.FC<{ record: StrainRecord }> = ({ record }) => {
@@ -29,7 +30,7 @@ export const FinishReceiving: React.FC<{ record: StrainRecord }> = ({ record }) 
       const out = await finishReceiving(record.id, code, undefined, tr);
       if ('error' in out) setError(labErrorWords(out.error, tr));
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(errorWords(e, tr));
     } finally {
       setBusy(false);
     }
