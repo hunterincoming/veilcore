@@ -157,3 +157,34 @@ for (const width of WIDTHS)
       expect(found.dark, 'dark fills that would print').toEqual([]);
       expect(found.under, 'photos that would print under words').toEqual([]);
     });
+
+// How it works' two sides ("With you", "On Midnight") sit either side of a connector on wide
+// screens. On paper the connector is left off; review of PR 185 found that this let "On Midnight"
+// take the whole row on wide paper (Letter landscape at a scale under ~75%, larger paper), and
+// "With you" printed 0px wide. Both sides must print, side by side when the paper is wide.
+for (const width of [816, 1056, 1320, 1600])
+  test(`printed at ${width}px, how it works prints both sides ("With you" and "On Midnight")`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 1056 });
+    await isolate(page);
+    await page.emulateMedia({ media: 'print' });
+    await page.goto('/how-it-works');
+    await page.locator('main').first().waitFor();
+    const sides = page.locator('.k-split2 > .k-side');
+    await expect(sides).toHaveCount(2);
+    const boxes = await sides.evaluateAll((els) =>
+      els.map((el) => {
+        const r = el.getBoundingClientRect();
+        return { w: r.width, h: r.height, top: r.top };
+      }),
+    );
+    for (const b of boxes) {
+      expect(b.w, 'each side is wide enough to read').toBeGreaterThan(200);
+      expect(b.h).toBeGreaterThan(0);
+    }
+    // Wide paper: the two sides share the row, each about half of it.
+    if (width > 1080) {
+      expect(Math.abs(boxes[0].top - boxes[1].top)).toBeLessThan(2);
+      expect(Math.abs(boxes[0].w - boxes[1].w)).toBeLessThan(2);
+    }
+    await expect(page.locator('.k-split2 .k-flow')).toBeHidden();
+  });
