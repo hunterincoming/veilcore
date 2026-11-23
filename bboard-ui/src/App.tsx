@@ -15,7 +15,7 @@ import { SiteHeader } from './components/SiteHeader';
 import { AppFooter } from './components/AppFooter';
 import { Box, Container, GlobalStyles, ThemeProvider } from '@mui/material';
 import { MotionConfig } from 'framer-motion';
-import { FONT, lightFocusStyles, lightTheme } from './config/theme';
+import { FONT, appColourStyles, appTheme, lightFocusStyles } from './config/theme';
 import { focusScreenHeading } from './components/flow/FlowFrame';
 import { Navigate, Routes, Route, createRoutesFromChildren, matchRoutes, useLocation } from 'react-router-dom';
 import { IS_MAINNET } from './config/network';
@@ -213,8 +213,9 @@ const layoutPreload: Preloadable = {
 
 /**
  * The app's pages, and the pages people are sent to (a record to check, an agreement to
- * sign), are light: dark text on a light ground reads better for longer and in daylight.
- * The public site keeps the dark brand (lightTheme, config/theme.ts).
+ * sign), follow the device's light or dark setting: Mako's night, or the same gold on paper
+ * for daylight; printed, always ink on white (config/theme.ts appTheme, appColourStyles).
+ * The public site is always the night (site.css).
  */
 /**
  * Japanese on the app's pages, as on the public ones (site.css): headings, buttons, labels
@@ -253,7 +254,8 @@ const japaneseHeadings = {
 } as const;
 
 const Light: React.FC<React.PropsWithChildren> = ({ children }) => (
-  <ThemeProvider theme={lightTheme}>
+  <ThemeProvider theme={appTheme}>
+    <GlobalStyles styles={appColourStyles} />
     <GlobalStyles styles={lightFocusStyles} />
     <GlobalStyles styles={japaneseLineBreaks} />
     <GlobalStyles styles={japaneseHeadings} />

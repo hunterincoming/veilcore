@@ -729,7 +729,14 @@ export const AppHome: React.FC = () => {
               {t('app.copy.practiceLabel') && (
                 <Typography
                   variant="caption"
-                  sx={{ fontWeight: 700, px: 1, py: 0.25, borderRadius: 5, background: '#FFF1D6', color: '#6B4100' }}
+                  sx={{
+                    fontWeight: 700,
+                    px: 1,
+                    py: 0.25,
+                    borderRadius: 5,
+                    background: color.warnTint,
+                    color: color.warn,
+                  }}
                 >
                   {t('app.copy.practiceLabel')}
                 </Typography>

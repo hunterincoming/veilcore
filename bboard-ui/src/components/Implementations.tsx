@@ -13,7 +13,7 @@
 import React from 'react';
 import { Box, Button, Container, Stack, Typography } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
-import { color } from '../config/tokens';
+import { color, mix } from '../config/tokens';
 import { InEnglishPage } from '../i18n/app';
 import { CODE_FONT } from '../config/theme';
 
@@ -26,7 +26,7 @@ const Impl: React.FC<{
   href: string;
   hrefLabel: string;
 }> = ({ name, lang, who, deps, note, href, hrefLabel }) => (
-  <Box sx={{ py: { xs: 3, sm: 4 }, borderTop: '1px solid', borderColor: 'rgba(30,34,39,0.07)' }}>
+  <Box sx={{ py: { xs: 3, sm: 4 }, borderTop: '1px solid', borderColor: mix(color.text, 7) }}>
     <Stack direction={{ xs: 'column', md: 'row' }} spacing={{ xs: 2, md: 5 }}>
       <Box sx={{ minWidth: { md: 190 } }}>
         <Typography variant="h6" sx={{ mb: 0.5 }}>
@@ -122,7 +122,7 @@ export const Implementations: React.FC = () => (
       />
     </Box>
 
-    <Box sx={{ pt: { xs: 7, md: 10 }, borderTop: '1px solid', borderColor: 'rgba(30,34,39,0.07)' }}>
+    <Box sx={{ pt: { xs: 7, md: 10 }, borderTop: '1px solid', borderColor: mix(color.text, 7) }}>
       <Typography variant="overline" sx={{ display: 'block', mb: 1.5 }}>
         How they are checked
       </Typography>
@@ -155,7 +155,7 @@ export const Implementations: React.FC = () => (
       </Stack>
     </Box>
 
-    <Box sx={{ pt: { xs: 7, md: 10 }, borderTop: '1px solid', borderColor: 'rgba(30,34,39,0.07)' }}>
+    <Box sx={{ pt: { xs: 7, md: 10 }, borderTop: '1px solid', borderColor: mix(color.text, 7) }}>
       <Typography variant="overline" sx={{ display: 'block', mb: 1.5 }}>
         Adding your own
       </Typography>
@@ -179,8 +179,8 @@ export const Implementations: React.FC = () => (
           borderRadius: 1,
           mb: 3,
           border: '1px solid',
-          borderColor: 'rgba(30,34,39,0.07)',
-          background: 'rgba(30,34,39,0.02)',
+          borderColor: mix(color.text, 7),
+          background: mix(color.text, 2),
           overflowX: 'auto',
         }}
       >

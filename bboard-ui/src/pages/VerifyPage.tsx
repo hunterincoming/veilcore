@@ -131,8 +131,8 @@ import { enT, forKind, type Translator } from '../i18n/translate';
 import { networkWords } from '../i18n/network-words';
 
 const API = import.meta.env.VITE_API_BASE ?? '';
-/** The mark for a date checked on a test network: amber, never mainnet's pollen-gold stamp. */
-const TEST_MARK = '#8A5A00';
+/** The mark for a date checked on a test network: the warning's amber, never mainnet's gold stamp. */
+const TEST_MARK = color.warn;
 
 /**
  * A record id as the site makes them: VEIL- and 128 random bits in hex (records.ts). Only

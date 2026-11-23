@@ -32,11 +32,11 @@ import { startOffline } from './offline/register';
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
-import { ThemeProvider } from '@mui/material';
+import { GlobalStyles, ThemeProvider } from '@mui/material';
 import App, { preloadPage } from './App';
 import { LanguageProvider, preloadLanguage, startingLanguage } from './i18n';
 import CssBaseline from '@mui/material/CssBaseline';
-import { theme } from './config/theme';
+import { paperColourStyles, theme } from './config/theme';
 // Body text and forms, on the whole site and app: Atkinson Hyperlegible Next, drawn so that
 // characters people mix up (I l 1, O 0, B 8) look different, for lab codes, record codes
 // and fingerprints read off a phone. One variable file covers every weight (config/theme.ts).
@@ -69,6 +69,8 @@ ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   <React.StrictMode>
     <ThemeProvider theme={theme}>
       <CssBaseline />
+      {/* The colour variables the header and footer draw with, outside the app's pages (theme.ts). */}
+      <GlobalStyles styles={paperColourStyles} />
       <LanguageProvider>
         <BrowserRouter>
           <App />

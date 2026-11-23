@@ -41,7 +41,7 @@ import { DraftBanner, LanguagePicker } from '../i18n/lazy-picker';
 import { DatingPausedNotice } from './DatingPausedNotice';
 import { Wordmark } from './Wordmark';
 import { hasRecordsHere } from './site/returning';
-import { color } from '../config/tokens';
+import { color, mix } from '../config/tokens';
 
 const linkSx = {
   display: 'inline-flex',
@@ -130,7 +130,7 @@ const PhoneMenu: React.FC<{ ask: boolean; returning: boolean }> = ({ ask, return
       document.removeEventListener('click', onClick);
     };
   }, [open]);
-  const item = { ...linkSx, display: 'flex', px: 2, '&:hover': { backgroundColor: 'rgba(0,0,0,0.04)' } } as const;
+  const item = { ...linkSx, display: 'flex', px: 2, '&:hover': { backgroundColor: mix(color.text, 4) } } as const;
   return (
     <Box ref={box} sx={{ position: 'relative', display: { xs: 'block', md: 'none' } }}>
       <Box
