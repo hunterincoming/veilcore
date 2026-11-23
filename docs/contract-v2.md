@@ -12,6 +12,14 @@ a new contract next to an untouched v1, with no carry. The carry design is kept,
 the review findings that apply to it, in **Appendix A, for v3, the first upgrade with outside
 users**.
 
+**Maintainer decision, 23 November 2026 (Hunter Roberts).** v2 goes on mainnet for the team's
+own use on the weekend of 28 and 29 November 2026, if the build and the preprod run pass, on
+VeilCore's own review. Professional audits come later. In his words: "We will audit our self
+and ... that's when we will do all professional audits." So condition 8 (an audit booked before
+the team-only deploy) is waived, and v2 is deployed with a temporary single key, handed to the
+2-of-3 committee once the third key holder is named. Until the professional audit: no outside
+pilot or real user records on v2, and the public site and SDK stay on v1 (section 7).
+
 **Founders' approval.** Decisions marked **pending the second founder's written approval** need
 both founders in writing, because they change the approved maintenance policy
 ([maintenance-policy.md](maintenance-policy.md)). The list is in section 9.
@@ -55,9 +63,10 @@ most of the timeline.
 
 ### 0.2 Why not an in-place upgrade
 
-Midnight's default way to move a contract to the current compiler is in place: "its maintenance
-authority inserts the new verifier keys through a maintenance update, and clients then attach
-with the recompiled artifacts" ([Ledger 9 notes](https://docs.midnight.network/relnotes/ledger-9)).
+Midnight's default way to move a contract to the current compiler is in place. Its
+maintenance authority inserts the newly compiled verifier keys with a maintenance update, and
+clients then use the recompiled artifacts (paraphrased from the
+[Ledger 9 notes](https://docs.midnight.network/relnotes/ledger-9)).
 A maintenance update can do exactly five things:
 
 - replace the authority;
@@ -147,7 +156,8 @@ toolchain **0.36.1** (language 0.28.0, runtime 0.21.0), the current release
   `JubjubScalar`
   ([standard-library.compact](https://github.com/LFDT-Minokawa/compact/blob/3bab3b9e214bc1de2321369a445281206d5dca86/compiler/standard-library.compact#L354-L389)).
   The choice between mod 2^248 and mod r goes to the auditor as a question.
-- **The fix for audit finding A4: take the response as two parts.** In 0.36.1 every route into
+- **The fix for A4, an internal attack-round finding** (`docs/audit/README.md`), not an
+  outside audit result: **take the response as two parts.** In 0.36.1 every route into
   `JubjubScalar` reduces modulo the order (`Field`, `Uint` and, in the unreleased 0.36.109,
   `Bytes<32>`), and `Field` has no `<`. The released runtime (0.21.0) also used the `Field`
   descriptor for `JubjubScalar` (fixed only in 0.36.110,
@@ -216,7 +226,9 @@ into [design.md](design.md):
 
 > **10. Several contracts.** A verifier holds, for each network, a pinned list of VeilCore
 > contracts. Each entry gives the address, the kind (main or claims), the contract version,
-> its verifier-key table, and the key states the contract may be in (3.3).
+> its verifier-key table, and every key state the contract may be in, each tied to the
+> authority counter and block where it began, as published in VeilCore's deployment record.
+> A contract state that matches none of its listed key states is refused.
 >
 > 1. **Pinned contracts only.** A record is checked only against the contract its
 >    `anchor.contractAddress` or `ledgerIdentity.contractAddress` names, and only if that
@@ -284,7 +296,7 @@ it may be in, each tied to the published `(counter, block)` where it began:
 |---|---|
 | v1 main | (a) all 24 keys matching [fingerprints.md](fingerprints.md), authority one key at counter 16. (b) After the seal: the same 24 keys, authority retired (empty committee), at the counter and block of the seal. |
 | v1 claims | 5 keys matching fingerprints.md, authority retired (since 8 Oct 2026). |
-| v2 main, v2 claims | Their keys matching `fingerprints-v2.md` (`V4` slot), authority the 2-of-3 committee at the counter and block in the deployment record. |
+| v2 main, v2 claims | Their keys matching `fingerprints-v2.md` (`V4` slot). Authority: (a) before the handover, the temporary single key, at the counter and block in the deployment record, shown by every checker as "one key, not yet handed to the committee"; (b) after it, the 2-of-3 committee at the counter and block of the handover. |
 
 Any other state is refused. The v1 seal removes no keys (section 6), so v1 never enters a
 state with keys missing. v2's table is its own, never `pinnedVerifierKeys('veilcore')`.
@@ -338,37 +350,60 @@ The public switch happens only after the audit closes (section 7). It is one rel
   show v2 batches as failed, so update to 0.4.0. It goes on the notice page, in the
   partner-kit release notes and in the deployment record.
 
-## 5. Governance of v2: a 2-of-3 committee from the deploy session
+## 5. Governance of v2: a temporary key, then a 2-of-3 committee
 
 - **Who holds the keys (decision 2, pending the second founder's written approval).** The
   decision now applies to v2: no committee is installed on v1 (section 6). The options are in
-  the two-of-three runbook (A: a named outside holder; B: a third key sealed by both founders
-  together; C: one founder holds two keys for now). Under C, say openly which founder, and that
-  this founder can act alone. Changing a holder later takes two signatures **and the 14-day
-  notice** the policy requires.
-- **A single key never stays on v2.** There are 29 keys to insert (24 main, 5 claims). Each
-  maintenance update is one counter and one two-signature round, with a wallet sync. So:
-  - **default:** a temporary deploy key, generated on the maintainer's Mac and kept
-    age-encrypted on disk. All inserts go in one wallet session, then `replace-authority` hands
-    v2 to the committee, then the temporary key is destroyed;
+  [runbooks/two-of-three.md](runbooks/two-of-three.md) (A: a named outside holder; B: a third
+  key sealed by both founders together; C: one founder holds two keys for now). Under C, say
+  openly which founder, and that this founder can act alone. Changing a holder later takes two
+  signatures **and the 14-day notice** the policy requires. **Book one call for all three key
+  holders across time zones** for the card checks and the confirmations of the handover.
+- **The temporary key, and when it goes (maintainer decision, 23 November 2026).** There are
+  29 keys to insert (24 main, 5 claims). Each maintenance update is one counter and one
+  two-signature round, with a wallet sync. So:
+  - **the route chosen:** a temporary deploy key, generated on the maintainer's Mac and kept
+    age-encrypted on disk, never on paper or in a password manager. All inserts go in one
+    wallet session. The key then **stays on v2 until the third key holder is named**, and
+    `replace-authority` hands v2 to the committee on the next booked call. The temporary key
+    is destroyed only after the handover is confirmed on chain. Until then, v2 has the same
+    single-key exposure v1 has today. That is acceptable only while v2 holds team records
+    alone (section 7, condition 4). The handover comes before the professional audit and
+    before any outside record;
   - **only if the devnet shows all keys fit in one or two updates:** the committee in the
     deploy transaction (counter 0);
   - **or** a "sequence" request: N updates at consecutive counters, signed in one sitting on
     the day and sent in order in one wallet session.
-- **`verify:deployment` refuses** a v2 whose history before the committee block holds any of
-  these:
-  - any contract call;
+- **`verify:deployment` refuses** a v2 whose history before the committee block holds any
+  maintenance update other than the listed inserts and the handover. That means it refuses:
   - any key removal;
   - any inserted key not in `fingerprints-v2.md`;
   - any `IrInsert` or `IrRemove`.
+
+  The team's own calls before the handover are allowed (maintainer decision). A circuit that
+  could rewrite state would need an unlisted key insert, which is refused.
 - **Key slot:** the committee tool takes the `ContractOperationVersion` as a parameter (`V4`
   for v2, `V3` for v1), checked against the contract's era, with a test that it refuses the
   wrong slot.
-- **The gate.** Every mainnet request other than an install refuses unless the contract shows
-  3 keys and threshold 2. There is one named exception: **"v1 retire with the single key"**
-  (section 6). A go/no-go records the counter range and the exact ordered list of updates, so
-  a sequence isn't refused. Tests: a single-key contract (outside the exception), a 3-of-3
-  committee and a 2-of-2 committee are each refused.
+- **The gate.** Every mainnet request refuses unless the contract shows 3 keys and threshold 2,
+  with exactly two named exceptions:
+  1. **"v2 before handover":** on v2 while it still has the temporary single key (and no
+     committee), the inserts of the keys listed in `fingerprints-v2.md` (`V4` slot), and one
+     `replace-authority` to the committee recorded in the go/no-go, with all three holders'
+     confirmations. Nothing else. The tool takes v2's address from the deploy-session record, because v2 is
+     pinned only after `verify:deployment` passes (today the tool always uses the pinned
+     mainnet address).
+  2. **"v1 retire with the single key"** (section 6): one `retire` on v1's pinned address, and
+     nothing else.
+
+  A go/no-go records the counter range and the exact ordered list of updates, so a sequence
+  isn't refused. Tests:
+  - a 3-of-3 committee and a 2-of-2 committee are each refused;
+  - a single-key contract is refused outside the two exceptions;
+  - the "v2 before handover" request is refused on a contract that already has a committee,
+    for a key not in `fingerprints-v2.md`, for any removal or IR change, and for a
+    replace-authority to anything but the recorded committee;
+  - the v1 exception is refused for anything but `retire`, and on any address but v1's.
 - **Never pre-sign** an update ahead of the day. The signed data covers only the address, the
   instructions and the counter (`scripts/committee/core.mjs`), so a signed update is usable by
   whoever holds it until the counter passes it.
@@ -387,8 +422,10 @@ seal removes that power for good.
   [deploy and operate](https://docs.midnight.network/guides/deploy-and-operate)). There is no
   committee install on v1 and no call across time zones.
 - **No keys are removed.** Checkers refuse a v1 state missing pinned keys (3.3), and a key
-  removal on ledger-v9 1.0.0 hits the fee bug (#2375). `retire` is a replace-authority, which
-  costs the same in both versions, so the seal **does not need the client patch**. After the
+  removal on ledger-v9 1.0.0 hits the fee bug (#2375). `retire` is a replace-authority. #2375
+  is reported for key removal only, so **we infer** a replace-authority is priced the same by
+  the old and the fixed wallet, and the seal doesn't need the client patch. That is our
+  inference, not a Midnight statement; devnet question 1 tests it. After the
   seal, v1's 24 circuits stay callable but can never change. VeilCore's site and sponsor stop
   sending to v1 at the switch. Anyone paying their own fee can still make a v1 record, which is
   checked as a v1 record with v1's name on its date.
@@ -426,8 +463,8 @@ seal removes that power for good.
    **[Hunter]** merge, then sponsor, then site.
 7. **Committee tool:** the key-slot parameter, the sequence request, the "v1 retire" exception
    and the counter-range go/no-go.
-8. **Three independent adversarial reviews** of this document (contract, verifier,
-   operations), with the findings fixed or rejected in writing.
+8. **Design reviews of this document: done 23 November 2026** (see *Review history*). These
+   were reviews of the design, not of code. The code reviews come later (condition 1).
 
 ### Stage B (4 to 6 weeks)
 
@@ -456,12 +493,19 @@ seal removes that power for good.
 15. **Preprod and the test site** with the exact build, including the committee handover and
     `verify:deployment`.
 
-### Pre-audit: v2 on mainnet, team only (target late January to February 2027)
+### Pre-audit: v2 on mainnet, team only (target the weekend of 28 and 29 November 2026)
+
+The maintainer set this date on 23 November 2026. Stages A to C are compressed into the week
+before it. The date holds only if the conditions below pass. Anything that doesn't pass moves
+the date; it is never skipped. The temporary-key route needs no committee-tool change for the
+deploy itself: midnight-js's current-era helpers insert keys into a ledger-9 contract with one
+key. The tool changes (Stage A item 7) are needed for the handover.
 
 **Conditions, all of which must hold before the deploy:**
 
-1. **Own review closed.** Three independent adversarial passes (contract, verifier,
-   operations), every finding fixed or rejected in writing, and all of these pass:
+1. **Own review closed.** Three independent adversarial passes on the frozen v2 **code and
+   keys** (contract, verifier, operations), separate from the design reviews already done,
+   with every finding fixed or rejected in writing, and all of these pass:
    - every v1 suite on v2;
    - the six hash vectors, byte-identical;
    - mutation testing, which must kill every new assert (zero secret, range check);
@@ -469,10 +513,14 @@ seal removes that power for good.
    - the `sealed`-write check, read from the compiled ZKIR;
    - verifier keys that rebuild byte for byte on a second machine and match
      `fingerprints-v2.md`.
-2. **The devnet and preprod runs pass** with the exact build, including the committee handover
-   and `npm run verify:deployment`.
-3. **The 2-of-3 committee is on v2 from its deploy session.** A single key never stays on v2.
-   If a temporary key is used, `verify:deployment` refuses any call before the committee block.
+2. **The devnet and preprod runs pass** with the exact build, including the temporary-key
+   deploy, a committee handover on preprod, and `npm run verify:deployment`.
+3. **Changed by maintainer decision, 23 November 2026.** v2 is deployed with a temporary single
+   key, age-encrypted on the maintainer's Mac, and handed to the 2-of-3 committee once the
+   third key holder is named. Until the handover, `verify:deployment` refuses any maintenance
+   update other than the listed key inserts, and every checker shows "one key, not yet handed
+   to the committee". The handover happens before the professional audit and before any
+   outside record.
 4. **No outside record can land in v2 before the audit closes:**
    - the public site, anchorer and SDK defaults stay on v1;
    - the sponsor pays v2 calls on mainnet only after a reviewed switch line, which stays off
@@ -488,8 +536,10 @@ seal removes that power for good.
    team, never an in-place re-key, because v2's rules never change. A replaced v2.x has all its
    keys removed, is retired, and is never pinned. A finding in the off-chain code (checkers,
    tools) means an ordinary fix.
-8. **The audit is booked before the pre-audit deploy**, with a fixed scope. The public switch,
-   and any pilot or outside record, wait for its written close.
+8. **Waived by the maintainer, 23 November 2026** (was: the audit is booked before the
+   pre-audit deploy). The team-only deploy rests on VeilCore's own review (condition 1).
+   **What still holds:** the public switch, and any pilot or real user record on v2, wait for
+   the professional audit's written close.
 9. **v1 is not sealed** until v2 is public and audited, so the public site always has a working
    contract.
 
@@ -500,15 +550,16 @@ seal removes that power for good.
 - `checkBatchAnchor` trying every pinned contract (3.2);
 - rule 10 in SPEC.md (3.1).
 
-16. **[Hunter]** deploys v2 and claims v2 from the Mac: the keys, the committee handover,
-    `verify:deployment`, then the pin, then the deployment record revision 5.
+16. **[Hunter]** deploys v2 and claims v2 from the Mac: the keys with the temporary key,
+    `verify:deployment`, then the pin, then the deployment record revision 5. **Later, once
+    the third key holder is named:** the committee handover ([runbooks/two-of-three.md](runbooks/two-of-three.md),
+    Part D), `verify:deployment` again, then a deployment record revision.
 
-### Stage D: the paid audit (4 to 8 weeks from booking)
+### Stage D: the professional audit (4 to 8 weeks from booking)
 
 17. Freeze the v2 source and write the audit pack. Its scope is the zero secret, the Schnorr
     range check, the committee tool and the checkers, which is much smaller than the carry
-    design. **The audit is not booked yet. It is paid for from the raise, so the audit date,
-    and the public date after it, follow the raise.**
+    design. **The audit is not booked yet. The public date follows the audit's close.**
 18. Fixes, re-review and re-freeze, under condition 7.
 
 ### Public switch, after the audit's written close
@@ -520,8 +571,9 @@ seal removes that power for good.
 
 ## 8. Questions for the devnet
 
-1. Is a `retire` (replace-authority) on a pre-fork contract, built by our ledger-v9 tool and
-   signed by the single key, accepted by a real node? Do the checkers accept the result?
+1. Is a `retire` (replace-authority) on a pre-fork contract, built by our ledger-v9 tool,
+   signed by the single key and **sent from a wallet on ledger-v9 1.0.0**, accepted by a real
+   node with the fee that wallet worked out? Do the checkers accept the result?
 2. Do 0.36.1 keys go in the `V4` slot, and does the committee tool insert them there?
 3. How many of v2's 29 key inserts fit one update under the 1,024-node limit? Can a ledger-9
    deploy carry a committee at counter 0?
@@ -533,34 +585,49 @@ seal removes that power for good.
 
 | # | Decision | Status |
 |---|---|---|
-| 1 | Build v2 on a realistic timeline | Approved. The fresh start shortens it: team-only on mainnet late Jan to Feb 2027, public after the paid audit, which follows the raise. |
+| 1 | Build v2 on a realistic timeline | Approved. Team-only on mainnet the weekend of 28 and 29 Nov 2026 if the build and preprod pass (maintainer decision, 23 Nov 2026); public after the professional audit closes. |
 | 2 | Who holds the third key, now for **v2's** committee (A, B or C, and under C which founder) | **Pending the second founder's written approval** |
 | 3 | Freeze v1 on launch day | **Dropped** under the fresh start. Kept for v3 (Appendix A). |
 | 4 | Pre-approved undo | **Dropped.** Kept for v3. |
 | 5 | A 12-month window, then seal; licences re-issued | **Replaced:** no window and no re-issue. The seal becomes decision 9. |
 | 6 | v2 code in a new `contract-v2/` workspace | Approved (the written OK goes in the first code PR) |
 | 7 | Keep our own Schnorr port, with the range check | Approved |
-| 8 | An outside audit before the public switch | Approved. Not booked: it is paid from the raise. |
+| 8 | An outside audit before the public switch | Approved. Not booked yet. |
 | 9 | Seal v1 by `retire` only, after the public switch, with the 14-day notice. The approved policy doesn't list sealing as a use. | **Pending the second founder's written approval** |
 | 10 | The fresh start itself, resting on every v1 record being the team's own | **Pending:** the founders are confirming the count |
+| 11 | Team-only v2 on mainnet on VeilCore's own review, with condition 8 waived; a temporary single key until the third key holder is named | **Decided by the maintainer, Hunter Roberts, 23 Nov 2026** |
 
 Still open:
 
-- **Condition 8 versus the raise.** Condition 8 says the audit is booked before the pre-audit
-  deploy, but there is no money to book it until the raise. The founders choose one: hold the
-  team-only deploy until the audit is booked, or waive condition 8 for a team-only deploy that
-  carries no outside records.
+- **How long the temporary key may stay on v2.** It stays until the third key holder is named
+  (decision 2). There is no fixed date. A deadline would bound the exposure, for example
+  "named before the first v2 record leaves the team, or the handover uses option C".
 - **If outside v1 records appear** before the switch (the re-count), how many reopen the carry
   design (Appendix A) for those identities only.
 - **The v2 maintenance policy text** (section 5), approved in writing by both founders before
-  the deploy.
+  the deploy. It covers the temporary key's use until the handover.
+
+## 10. Review history
+
+All of these were **design reviews** of this document and its plan: independent, read-only
+passes, each by a reviewer who didn't write it. None reviewed code, because there is none yet.
+Code reviews come at condition 1 (section 7), and the outside audit after that.
+
+| Date | Angle | Verdict | Where the findings went |
+|---|---|---|---|
+| 23 Nov 2026 | Contract attacker, toolchain, users and operations (three reviews of the first plan, carry design) | Four blockers (leaked origin re-anchored, lost lineage invariants, partial freeze, no rollback) and serious findings | Folded into the carry design, now Appendix A |
+| 23 Nov 2026 | Contract attacker (this doc, carry design) | Blocker: origins missing from the snapshot leaf set; high: obligation double-discharge, non-membership order | Appendix A.2 (v3); the Jubjub range-check finding in 1.3 |
+| 23 Nov 2026 | Verifier and checker (this doc, carry design) | Blockers: origins missing; checkers refuse a v1 state with keys removed | Appendix A.2 (v3); for v2: 3.1 to 3.4, the retire-only seal (section 6) |
+| 23 Nov 2026 | Migration and operations, including the fresh start | The fresh start recommended; pre-audit mainnet launch safe under nine conditions | The fresh start throughout; section 7 conditions; section 5 |
+| 23 Nov 2026 | Independent review of this document (fresh start) | Fail: older text in upgrades.md contradicted the fresh start; the gate refused the default deploy route; smaller wording and traceability points | upgrades.md rewritten; section 5 gate exceptions; this table; the runbook in the repo |
 
 ---
 
 ## Appendix A. For v3, the first upgrade with outside users
 
 v3 is the first time real holders will need to move. The design below was written for v2 and
-reviewed three times. It is kept as the starting point, together with every finding against it.
+reviewed (see *Review history*). It is kept as the starting point, together with every finding
+against it.
 It is **not** part of v2.
 
 ### A.1 The design in brief
@@ -587,7 +654,7 @@ It is **not** part of v2.
 - **A pinned successor only**, revocations always honoured, and a seal after the window. The
   carry keeps working after the seal.
 
-### A.2 Review findings v3 must fix (23 November 2026 reviews)
+### A.2 Review findings v3 must fix (the 23 November 2026 design reviews)
 
 Blockers:
 
