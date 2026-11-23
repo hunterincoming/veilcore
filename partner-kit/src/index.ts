@@ -19,6 +19,7 @@ export {
   BLOCKFROST_ENV,
   DEFAULT_PROOF_SERVER,
   MAINNET_ADDRESSES,
+  MAINNET_CONTRACTS,
   NETWORKS,
   PREPROD_ADDRESSES,
   PROOF_SERVER_IMAGE,
@@ -29,12 +30,15 @@ export {
   blockfrostEndpoints,
   defaultAddress,
   endpointsFor,
+  pinnedContractFor,
   isBlockfrostNetwork,
   isNetwork,
   type BlockfrostNetwork,
   type ContractKind,
+  type ContractVersion,
   type Endpoints,
   type Network,
+  type PinnedContract,
 } from './network.js';
 export { scrubTerminal, scrubText, urlSecrets } from './terminal.js';
 export {
