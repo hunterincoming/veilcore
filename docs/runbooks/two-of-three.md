@@ -21,18 +21,25 @@ first), [maintenance-policy.md](../maintenance-policy.md) (the approved rules), 
 
 - **v1's single key is live on mainnet.** It is on paper; each founder holds a sheet. Either
   sheet alone can change v1's rules today. The counter was 16 on 13 November 2026.
-- **v2 is a design only.** Nothing is built.
+- **v2 is built and tested on a computer, not deployed.** The contract is in `contract-v2/`.
+  The deploy command (`npm run deploy-v2`), `verify:deployment --v2-record`, and the committee
+  launcher's v2 changes are tested against Midnight's own Ledger 9 code. None has run on a real
+  node yet; the preprod run in [deploy-v2.md](deploy-v2.md) is the first.
 - **The committee tools are built and tested on a computer** against Midnight's own Ledger 9
   code. They have **never run on a real node**, not even a local one. The local rehearsal
   (Part B) has not been run.
-- **The tool changes v2 needs are not built yet** (contract-v2.md, section 7, Stage A item 7):
-  - the key slot as a parameter (`V4` for v2);
-  - a sequence request;
-  - the counter-range go/no-go;
-  - the two named exceptions to the gate: "v2 before handover", and the v1 retire with the
-    single key;
-  - a way to name v2's address on mainnet before it is pinned. Today the tool always uses the
-    pinned mainnet address, and v2 is pinned only after `verify:deployment` passes.
+- **The tool changes v2 needs are built** (contract-v2.md, section 7, Stage A item 7):
+  - the key slot comes from the contract's address (`V3` for v1's pinned address, `V4` for v2);
+    `--key-slot` only names it for a test contract, and must agree;
+  - the two named exceptions to the gate: "v2 before handover" (the listed `V4` key inserts,
+    the one handover, or one retire alone), and the v1 retire with the single key;
+  - v2's address on mainnet before it is pinned, from the deploy-session record
+    (`--v2-record`), which is refused if it names a pinned v1 address;
+  - the temporary key, kept only as an age-encrypted file (`--temp-key-file`).
+
+  **Not built, and not needed for this plan:** a sequence request and a counter-range
+  go/no-go. The deploy command inserts the keys with the temporary key itself, and the handover
+  is one update, so the launcher never sends a sequence.
 
   Parts D and E give the commands where they exist today, and say where they will change.
 
