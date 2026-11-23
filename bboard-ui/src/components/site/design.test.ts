@@ -239,6 +239,9 @@ describe('one product: the site and the app share their tokens', () => {
     expect(themeTs).toMatch(/CODE_TEXT = \{\s*fontFamily: CODE_FONT/);
     expect(siteCss).toMatch(/--mono: 'VeilCore Mono', 'VeilCore Mono fallback'/);
     expect(homeCss).toMatch(/--mono: 'VeilCore Mono', 'VeilCore Mono fallback'/);
+    // Fetched once the first screen is up (main.tsx), so it is there before a code is shown.
+    const mainTsx = fs.readFileSync(path.join(here, '../../main.tsx'), 'utf8');
+    expect(mainTsx).toContain(`document.fonts?.load('1em "VeilCore Mono"')`);
     for (const sel of ['.vcm .digest {', '.vcm .contracts code {']) {
       const at = siteCss.indexOf(sel);
       expect(siteCss.slice(at, siteCss.indexOf('}', at))).toContain('font-family: var(--mono);');

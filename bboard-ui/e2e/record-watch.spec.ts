@@ -155,6 +155,8 @@ test('a record moved by someone else: one calm line, the steps, the record says 
   await line.getByRole('button', { name: en['app.watch.what'] }).click();
   const steps = line.locator('[data-record-changed-steps]');
   await expect(steps).toBeVisible();
+  // The steps slide open: tap what is under them only once they have finished opening.
+  await expect(line.locator('.MuiCollapse-entered')).toHaveCount(1);
   await expect(steps).toContainText(en['app.watch.step.you']);
   await expect(steps).toContainText(en['app.watch.step.copy']);
   await expect(steps).toContainText(en['app.watch.step.files']);
@@ -175,6 +177,7 @@ test('a record moved by someone else: one calm line, the steps, the record says 
   // Read once for the tab's session: going to the record didn't ask again.
   expect(await reads(page)).toBe(2);
   await here.getByRole('button', { name: en['app.watch.what'] }).click();
+  await expect(here.locator('.MuiCollapse-entered')).toHaveCount(1);
   if (SHOTS) await page.screenshot({ path: `${SHOTS}/watch-record-phone.png`, fullPage: true });
   await here.getByRole('button', { name: en['app.watch.seen'] }).click();
   await expect(here).toHaveCount(0);

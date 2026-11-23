@@ -103,5 +103,12 @@ authorship of commits already pushed.
 - In a new clone, `npm run e2e:setup` (in `bboard-ui`) installs the browser that matches the pinned Playwright.
 - Plain, short language. When steps are needed from the maintainer, give all of them in one
   message, in order, with the exact commands.
-- What only the maintainer does: approve merges and deploys, anything touching a wallet, and
-  anything sent to a real person.
+- What only the maintainer does: deploys, anything touching a wallet, and anything sent to a
+  real person. Merges too, except the ones below.
+- **What an agent may merge (Hunter, 23 Nov 2026).** A pull request that meets all of these:
+  every check is green; a separate reviewer agent that did not build it has passed it against
+  these rules (privacy, five languages, complexity budget, nothing hidden, plain wording, public
+  wording); and it does not touch `contract/`, `sponsor/`, the registry, wallets or keys,
+  deploy scripts, CI, `complexity-budget.json`, or this file. Everything else waits for
+  Hunter. Merging never deploys: nothing reaches veilcore.org until Hunter deploys from his
+  Mac, and each day's merges are listed for him first.

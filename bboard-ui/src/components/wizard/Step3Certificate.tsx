@@ -26,6 +26,8 @@ import { proofFor, type ProofState } from '../../veilcore/proofs';
 import { IS_MAINNET, NETWORK, networkLabel, canonicalUrl } from '../../config/network';
 import { useLicenses, activeLicenseCount, licensesForRecord } from '../../veilcore/licenses';
 import { shortFingerprint } from '../../veilcore/commitment';
+import { PROOF_END_FONT, proofEnd } from '../../veilcore/proof-end';
+import { ProofCode } from '../verify/ProofCodeText';
 import { nameLinkParams, verifyPath } from '../../veilcore/verify-link';
 import { paper } from '../../config/tokens';
 import { utcDate, utcStamp as fmtStamp } from '../../veilcore/time';
@@ -425,7 +427,7 @@ export const Step3Certificate: React.FC<{
               </Field>
               <Field label="Proof code (SHA-256)" mono>
                 <Box component="span" data-fingerprint="">
-                  {record.recordFingerprint}
+                  {record.recordFingerprint && <ProofCode shown={record.recordFingerprint} />}
                 </Box>
               </Field>
             </Stack>
@@ -444,6 +446,21 @@ export const Step3Certificate: React.FC<{
                   title="QR code that opens this record's public check page"
                 />
               </Box>
+              {/* The proof code's last 6, as a printed label shows them, to match the check page by eye. */}
+              {proofEnd(record.recordFingerprint) && (
+                <Typography
+                  data-proof-end=""
+                  sx={{
+                    color: CERT.ink,
+                    fontFamily: PROOF_END_FONT,
+                    fontWeight: 700,
+                    fontSize: '1.5rem',
+                    lineHeight: 1.2,
+                  }}
+                >
+                  {proofEnd(record.recordFingerprint)}
+                </Typography>
+              )}
               <Typography variant="caption" sx={{ color: CERT.muted }}>
                 Scan to check the record
               </Typography>

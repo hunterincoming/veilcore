@@ -12,11 +12,14 @@ import {
   fitName,
   hasCheckPage,
   labelLink,
+  labelParts,
   paginate,
   perPage,
   shortId,
   slotAt,
 } from './label-layouts';
+import { proofEnd, splitProofEnd } from '../../veilcore/proof-end';
+import { shortFingerprint } from '../../veilcore/commitment';
 
 const FP = 'ab'.repeat(32);
 const SALT = 'cd'.repeat(32);
@@ -108,5 +111,33 @@ describe('what a label carries', () => {
     expect(shortId('VEIL-0001')).toBe('VEIL-0001');
     expect(fitName('Harbour   Mist', 40)).toBe('Harbour Mist');
     expect(fitName('Harbour Mist', 6)).toBe('Harbo…');
+  });
+
+  it('prints the proof code’s last 6 characters, the largest words on the label, inside it on every paper', () => {
+    const fp = `${'0'.repeat(58)}3fa9c1`;
+    expect(proofEnd(fp)).toBe('…3fa9c1');
+    expect(proofEnd(undefined)).toBe('');
+    // The check page bolds the same 6, in the whole code and in its shortened form.
+    expect(splitProofEnd(fp).end).toBe('3fa9c1');
+    expect(splitProofEnd(shortFingerprint(fp))).toEqual({ head: '00000000000000…00', end: '3fa9c1' });
+    expect(splitProofEnd('not sealed yet').end).toBe('');
+    for (const size of LABEL_SIZES) {
+      const l = LAYOUTS[size];
+      for (const showName of [false, true]) {
+        const { lines, qr } = labelParts({ ...rec, recordFingerprint: fp }, showName, 'Scan to check', 0, 0, l);
+        const end = lines.find((li) => li.text === '…3fa9c1');
+        expect(end, size).toBeDefined();
+        expect(end!.font).toBe('mono');
+        // Beside the QR code, larger than every other line, and never squeezed to fit.
+        expect(end!.x).toBeGreaterThan(qr.x + qr.size);
+        for (const li of lines) if (li !== end) expect(end!.size, size).toBeGreaterThan(li.size);
+        expect(end!.text.length * end!.size * 0.6, size).toBeLessThanOrEqual(end!.room + 1e-9);
+        // Every line inside the label, top to bottom.
+        for (const li of lines) {
+          expect(li.y - li.size, size).toBeGreaterThanOrEqual(0);
+          expect(li.y + li.size * 0.35, size).toBeLessThanOrEqual(l.label.h);
+        }
+      }
+    }
   });
 });

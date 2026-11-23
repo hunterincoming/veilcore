@@ -15,6 +15,10 @@ VEILCORE_MAINNET_SPONSOR=https://veilcore-sponsor-mainnet-production.up.railway.
 npm run deploy:mainnet
 ```
 
+The site talks to the production registry (`https://veilcore-api-production.up.railway.app`).
+To build against another one, add `VEILCORE_MAINNET_REGISTRY=https://<registry>`; the script
+refuses anything that is not a plain https address, before building anything.
+
 Then commit the release list (`git add releases && git commit -m "Release list: mainnet"`)
 and push. More in [`docs/ops/mainnet-day-site.md`](mainnet-day-site.md) and `CLAUDE.md`,
 "Deploying veilcore.org". test.veilcore.org is published with `npm run deploy:test`

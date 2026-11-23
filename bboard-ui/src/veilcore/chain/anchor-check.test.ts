@@ -11,7 +11,7 @@ import { describe, expect, it } from 'vitest';
 import fixture from './fixtures/anchor-indexer.json';
 import { ANCHOR_QUERY, checkAnchorOnChain, isAnchorEntry, type AnchorCheckDeps } from './anchor-check';
 import { lastBatchRootOf } from './anchor-decode';
-import { anchorContractFor, carriesKey, readIndexersFor, sameIndexer } from './config';
+import { anchorContractFor, anchorContractsFor, carriesKey, readIndexersFor, sameIndexer } from './config';
 import { contractStateAfter } from './test-chain';
 import { queryProblem } from '../../../../sponsor/src/indexer-relay';
 import { verifyInclusion } from 'veilcore-records';
@@ -48,7 +48,12 @@ const indexer = (replies: Record<string, Reply>) => {
   return { fetch: f, asked };
 };
 
-const input = { network: 'mainnet', txId: TX, contractAddress: CONTRACT, expectedRoot: fixture.root };
+const input = {
+  network: 'mainnet',
+  txId: TX,
+  contracts: [{ version: 'v1', address: CONTRACT }] as const,
+  expectedRoot: fixture.root,
+};
 const deps = (replies: Record<string, Reply>, indexers = [I1]): AnchorCheckDeps & { asked: unknown[] } => {
   const i = indexer(replies);
   return { buildNetwork: 'mainnet', indexers, fetch: i.fetch, asked: i.asked };
@@ -271,7 +276,7 @@ describe('checkAnchorOnChain', () => {
       status: 'not-checked',
       why: 'other-network',
     });
-    expect(await checkAnchorOnChain({ ...input, contractAddress: undefined }, d)).toMatchObject({
+    expect(await checkAnchorOnChain({ ...input, contracts: [] }, d)).toMatchObject({
       status: 'not-checked',
       why: 'not-configured',
     });
@@ -288,7 +293,7 @@ describe('checkAnchorOnChain', () => {
 
   it('checks against the contract it is given, never one the answer names', async () => {
     const v = await checkAnchorOnChain(
-      { ...input, contractAddress: 'ee'.repeat(32) },
+      { ...input, contracts: [{ version: 'v1', address: 'ee'.repeat(32) }] },
       deps({ [I1]: { byHash: [anchorTx()] } }),
     );
     expect(v).toMatchObject({ status: 'failed', reason: 'that transaction made no call on VeilCore’s contract' });
@@ -368,5 +373,16 @@ describe('which indexers and contract the page uses', () => {
     expect(anchorContractFor('mainnet', CONTRACT.toUpperCase(), 'c0'.repeat(32))).toBe(CONTRACT);
     expect(anchorContractFor('mainnet', '', 'c0'.repeat(32))).toBeUndefined();
     expect(anchorContractFor('preprod', CONTRACT, 'c0'.repeat(32))).toBe('c0'.repeat(32));
+  });
+
+  it('the contract list: today only v1, the same address anchorContractFor gives, or none', () => {
+    expect(anchorContractsFor('mainnet', CONTRACT.toUpperCase(), 'c0'.repeat(32))).toEqual([
+      { version: 'v1', address: CONTRACT },
+    ]);
+    expect(anchorContractsFor('mainnet', '', 'c0'.repeat(32))).toEqual([]);
+    expect(anchorContractsFor('preprod', CONTRACT, 'c0'.repeat(32))).toEqual([
+      { version: 'v1', address: 'c0'.repeat(32) },
+    ]);
+    expect(anchorContractsFor('preprod', CONTRACT, undefined)).toEqual([]);
   });
 });

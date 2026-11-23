@@ -11,6 +11,11 @@
 //                                                    link, the DNA pairing date), with VeilCore
 //                                                    paying the fee. Needs the relay too.
 //
+//   VEILCORE_MAINNET_REGISTRY=https://<registry>     the registry API the site talks to. Unset, it is
+//                                                    the production registry (MAINNET_REGISTRY
+//                                                    below). Anything but a plain https address
+//                                                    is refused before anything is built.
+//
 // Before anything else it runs scripts/deploy-gate.mjs: this computer must be on origin/main,
 // with nothing uncommitted, on CI's Node and npm, and GitHub must say CI passed for the commit.
 //
@@ -32,7 +37,8 @@ import { vercelEnv } from './vercel-token.mjs';
 import { agreementsLive } from './registry-features.mjs';
 import { deployGate } from './deploy-gate.mjs';
 
-export const API = 'https://veilcore-api-production.up.railway.app';
+/** The production registry: what the site talks to when VEILCORE_MAINNET_REGISTRY is unset. */
+export const MAINNET_REGISTRY = 'https://veilcore-api-production.up.railway.app';
 
 const fail = (msg) => {
   console.error(`\nNOT DEPLOYED. veilcore.org is unchanged. ${msg}\n`);
@@ -111,6 +117,9 @@ export const mainnetClaims = (status, pinnedClaims, exists) => {
   return { ok: true, address, line: `Claims: on, claims contract ${address}.` };
 };
 
+/** The registry address for the build: VEILCORE_MAINNET_REGISTRY, or the production one. Throws a plain problem. */
+export const registryAddress = (value) => httpsOrigin('VEILCORE_MAINNET_REGISTRY', value) ?? MAINNET_REGISTRY;
+
 const getJson = async (url) => {
   try {
     const r = await fetch(url, { signal: AbortSignal.timeout(20_000) });
@@ -151,13 +160,16 @@ const main = async () => {
   let relay;
   let sponsor;
   let chain;
+  let registry;
   try {
+    registry = registryAddress(process.env.VEILCORE_MAINNET_REGISTRY);
     relay = process.env.VITE_INDEXER_RELAY_URL?.trim() || undefined;
     sponsor = httpsOrigin('VEILCORE_MAINNET_SPONSOR', process.env.VEILCORE_MAINNET_SPONSOR);
     chain = chainEnv(relay, sponsor, pins.veilcore);
   } catch (e) {
     fail(e.message);
   }
+  if (registry !== MAINNET_REGISTRY) console.log(`Registry: ${registry} (from VEILCORE_MAINNET_REGISTRY).`);
 
   // Licenses happen in the visitor's browser, through the sponsor: switched on with no sponsor,
   // the site would offer them and send nothing.
@@ -196,7 +208,10 @@ const main = async () => {
 
   const env = {
     ...process.env,
-    VITE_API_BASE: API,
+    // Both, so the preflight, the build and the page's connect-src (scripts/vercel-config.mjs)
+    // all use this one address, whatever was left in this shell.
+    VITE_API_BASE: registry,
+    VEILCORE_API_ORIGIN: registry,
     ...chain,
     VITE_NETWORK_ID: 'mainnet',
     VITE_REAL_CHAIN_CLAIMS_ADDRESS: claimsAddress,

@@ -2,7 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { chainEnv, httpsOrigin, mainnetClaims, sponsorProblem } from './deploy-mainnet.mjs';
+import { readFileSync } from 'node:fs';
+import { MAINNET_REGISTRY, chainEnv, httpsOrigin, mainnetClaims, registryAddress, sponsorProblem } from './deploy-mainnet.mjs';
 
 const PIN = 'a04de0a2684f3713276325649540c7278ffd07cba8b014e7489844f319a02347';
 
@@ -76,4 +77,18 @@ test('claims: on only when the sponsor pays for VeilCore\'s pinned claims contra
   assert.match(mainnetClaims({ claimsAddress: CLAIMS }, '', all).problem, /no claims contract is pinned/);
   assert.match(mainnetClaims({ claimsAddress: CLAIMS }, CLAIMS, (f) => !f.endsWith('.prover')).problem, /proving keys/);
   assert.match(mainnetClaims({ claimsAddress: CLAIMS }, CLAIMS, (f) => !f.includes('2p16')).problem, /k=15 and k=16/);
+});
+
+test('the registry address: production when unset, any plain https address when set, nothing else', () => {
+  assert.equal(MAINNET_REGISTRY, 'https://veilcore-api-production.up.railway.app');
+  assert.equal(registryAddress(undefined), MAINNET_REGISTRY);
+  assert.equal(registryAddress('  '), MAINNET_REGISTRY);
+  assert.equal(registryAddress(' https://r.example.org/ '), 'https://r.example.org');
+  assert.throws(() => registryAddress('http://r.example.org'), /VEILCORE_MAINNET_REGISTRY must be a plain https address/);
+  assert.throws(() => registryAddress('r.example.org'), /VEILCORE_MAINNET_REGISTRY is not an address/);
+  assert.throws(() => registryAddress('https://r.example.org/?token=x'), /plain https/);
+  const src = readFileSync(new URL('./deploy-mainnet.mjs', import.meta.url), 'utf8');
+  // One address for the preflight, the build and the page's connect-src; no other one in the code.
+  assert.match(src, /VITE_API_BASE: registry,\n\s+VEILCORE_API_ORIGIN: registry,/);
+  assert.equal(src.split('veilcore-api-production.up.railway.app').length, 2);
 });
