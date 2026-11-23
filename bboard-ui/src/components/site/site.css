@@ -2850,6 +2850,17 @@ html:has(.vcm) {
   html .vcm .home :is(.k-stagebox, .k-cal-rows) {
     display: none;
   }
+  /* How it works' connector between "With you" and "On Midnight" is two bars a printer drops and
+     a sample code (aria-hidden, said in words beside it): on paper the code would sit alone at the
+     top of a page, so the connector is left off. */
+  html .vcm .home .k-flow {
+    display: none;
+  }
+  /* "If VeilCore disappears." is a short block: on paper its heading stays on the page with its
+     cards instead of ending a page on its own. */
+  html .vcm .home #gone .k-wrap {
+    break-inside: avoid;
+  }
   /* The timeline's second pin moves out as the page scrolls; on paper it is where it ends. */
   html .vcm .home .k-timeline {
     --p: 1 !important;
