@@ -31,19 +31,35 @@ export type AuthorityView = { readonly committee: string[]; readonly threshold: 
 export type Action =
   | { readonly kind: 'replace-authority'; readonly committee: readonly KeyCard[]; readonly threshold: number }
   | { readonly kind: 'retire' }
-  | { readonly kind: 'remove-key'; readonly circuit: string }
+  | { readonly kind: 'remove-key'; readonly circuit: string; readonly keySlot?: KeySlot }
   | {
       readonly kind: 'insert-key';
       readonly circuit: string;
       readonly verifierKey: string;
       readonly verifierKeySha256: string;
+      /** The verifier-key slot: 'v3' for v1 (compactc 0.31), 'v4' for contract v2 (0.36). Absent is 'v3'. */
+      readonly keySlot?: KeySlot;
     };
+
+export type KeySlot = 'v3' | 'v4';
+export declare const slotOfKeyBytes: (vk: Uint8Array) => KeySlot | undefined;
+export declare const KEY_SLOTS: readonly KeySlot[];
+export declare const keySlotFor: (
+  action: { readonly circuit?: string; readonly keySlot?: string },
+  current: { readonly keySlot?: string },
+) => { slot: KeySlot } | { problem: string };
 
 export type Request = {
   readonly format: string;
   readonly network: string;
   readonly contractAddress: string;
-  readonly current: { readonly committee: string[]; readonly threshold: number; readonly counter: string };
+  readonly current: {
+    readonly committee: string[];
+    readonly threshold: number;
+    readonly counter: string;
+    /** The slot the contract's verifier keys are in. Absent is 'v3' (v1). */
+    readonly keySlot?: KeySlot;
+  };
   readonly actions: readonly Action[];
   readonly reason: string;
   readonly createdAt: string;
@@ -116,7 +132,7 @@ export declare const rebuildRequest: (req: unknown, options?: { forbid?: readonl
 export declare const makeRequest: (args: {
   network: string;
   contractAddress: string;
-  current: { committee: readonly CommitteeKey[]; threshold: number; counter: bigint | string };
+  current: { committee: readonly CommitteeKey[]; threshold: number; counter: bigint | string; keySlot?: KeySlot };
   actions: readonly Action[];
   reason?: string;
   forbid?: readonly string[];

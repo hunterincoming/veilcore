@@ -41,6 +41,7 @@ import {
   confirmationProblems,
   describeRequest,
   isRetired,
+  keySlotFor,
   makeConfirmation,
   makeKeyCard,
   makeRequest,
@@ -48,6 +49,7 @@ import {
   rebuildRequest,
   requestLanded,
   signRequest,
+  slotOfKeyBytes,
 } from './core.mjs';
 import {
   MAINNET_REFUSAL,
@@ -1344,3 +1346,126 @@ test('confirm: a new holder signs the check code from the dry-run record, offlin
   for (const f of ['no.json', 'typo.json', 'eve-c.json'])
     assert.equal(existsSync(path.join(dir, f)), false, f);
 });
+
+// ──────────────────────── the verifier-key slot: V3 for v1, V4 for contract v2
+//
+// compactc 0.31 (v1) keys go in ContractOperationVersion 'v3'; compactc 0.36 (contract v2,
+// ZKIR v3) keys in 'v4' (docs/contract-v2.md 1.2). The tool used to hard-code 'v3'. The slot
+// is now a parameter of each key action, checked against the contract's slot
+// (request.current.keySlot) and against the key's own header, and the ledger agrees.
+//
+// fixtures/zkir-v3-example.verifier is a compactc 0.36.1 verifier key from Midnight's
+// examples (midnightntwrk/midnight-examples, examples/leaderboard/contract/managed/leaderboard/
+// keys/submitScore.verifier, Apache-2.0), SHA-256
+// 7e2a95768e28411ef88624a96f8f857c53e662fd84b3fa00301b88bb819cbdba. The v1-format key is
+// midnight-js's own ledger-8 test fixture.
+
+const V4_KEY_FILE = path.join(path.dirname(new URL(import.meta.url).pathname), 'fixtures', 'zkir-v3-example.verifier');
+const V3_KEY_FILE = path.join(
+  REPO,
+  'node_modules/@midnight-ntwrk/testkit-js/dist/fixtures/hf/counter-016/compiled/keys/increment.verifier',
+);
+const v4Key = () => new Uint8Array(readFileSync(V4_KEY_FILE));
+const v3Key = () => new Uint8Array(readFileSync(V3_KEY_FILE));
+const keyAction = (circuit, vk, keySlot) => ({
+  kind: 'insert-key',
+  circuit,
+  verifierKey: Buffer.from(vk).toString('hex'),
+  verifierKeySha256: sha256(vk),
+  ...(keySlot === undefined ? {} : { keySlot }),
+});
+/** A fresh one-key contract on the local ledger, whose request says its keys are in `keySlot`. */
+const slotted = (keySlot) => {
+  const c = chain();
+  const current = () => ({ ...authorityView(c.authority()), ...(keySlot === undefined ? {} : { keySlot }) });
+  const req = (actions) =>
+    roundTrip(makeRequest({ network: NET, contractAddress: c.address, current: current(), actions, reason: 'slot' }));
+  const sendSigned = (r) => c.send(assembleSigned(r, [signRequest(r, c.paperKey)], c.authority()).update);
+  return { c, req, sendSigned };
+};
+
+test('key slot: absent is v3; a slot must match the contract; unknown slots are refused', () => {
+  assert.deepEqual(keySlotFor({ circuit: 'anchor' }, {}), { slot: 'v3' });
+  assert.deepEqual(keySlotFor({ circuit: 'anchor', keySlot: 'v3' }, { keySlot: 'v3' }), { slot: 'v3' });
+  assert.deepEqual(keySlotFor({ circuit: 'anchor', keySlot: 'v4' }, { keySlot: 'v4' }), { slot: 'v4' });
+  assert.match(keySlotFor({ circuit: 'anchor', keySlot: 'v4' }, {}).problem, /keys are in slot V3, .* uses V4/);
+  assert.match(keySlotFor({ circuit: 'anchor' }, { keySlot: 'v4' }).problem, /keys are in slot V4, .* uses V3/);
+  assert.match(keySlotFor({ circuit: 'anchor', keySlot: 'v3' }, { keySlot: 'v4' }).problem, /wrong slot/);
+  assert.match(keySlotFor({ circuit: 'anchor', keySlot: 'v5' }, { keySlot: 'v5' }).problem, /Unknown key slot/);
+  assert.match(keySlotFor({ circuit: 'anchor' }, { keySlot: 'V4' }).problem, /unknown slot/);
+});
+
+test('key slot: a key says which slot it is for', () => {
+  assert.equal(slotOfKeyBytes(v4Key()), 'v4');
+  assert.equal(slotOfKeyBytes(v3Key()), 'v3');
+  assert.equal(slotOfKeyBytes(new Uint8Array(64)), undefined);
+});
+
+test('key slot: a request with no slot rebuilds to the same bytes as before the slot existed', () => {
+  const c = chain();
+  const vk = v3Key();
+  const r = request(c, [keyAction('anchor', vk), { kind: 'remove-key', circuit: 'pairDna' }]);
+  const old = new L.MaintenanceUpdate(
+    c.address,
+    [
+      new L.VerifierKeyInsert('anchor', new L.ContractOperationVersionedVerifierKey('v3', vk)),
+      new L.VerifierKeyRemove('pairDna', new L.ContractOperationVersion('v3')),
+    ],
+    c.authority().counter,
+  );
+  assert.equal(r.dataToSign, Buffer.from(old.dataToSign).toString('hex'));
+});
+
+test('key slot: a v2 (0.36.1) key goes in V4 on a V4 contract, and the ledger accepts it', () => {
+  const { c, req, sendSigned } = slotted('v4');
+  const r = req([keyAction('proveAttested', v4Key(), 'v4')]);
+  assert.match(describeRequest(r, rebuildRequest(r)).join('\n'), /slot V4, SHA-256 .*fingerprints-v2\.md/);
+  sendSigned(r);
+  assert.deepEqual(c.state().index(c.address).operations().map(String), ['proveAttested']);
+  // The same bytes, built by hand in V4: what the tool signed is exactly that.
+  const byHand = new L.MaintenanceUpdate(
+    c.address,
+    [new L.VerifierKeyInsert('x', new L.ContractOperationVersionedVerifierKey('v4', v4Key()))],
+    0n,
+  );
+  const r2 = req([keyAction('x', v4Key(), 'v4')]);
+  assert.notEqual(r2.dataToSign, Buffer.from(byHand.dataToSign).toString('hex'), 'counter moved on');
+  const again = new L.MaintenanceUpdate(
+    c.address,
+    [new L.VerifierKeyInsert('x', new L.ContractOperationVersionedVerifierKey('v4', v4Key()))],
+    c.authority().counter,
+  );
+  assert.equal(r2.dataToSign, Buffer.from(again.dataToSign).toString('hex'));
+});
+
+test('key slot: the wrong slot is refused before signing, and the ledger would refuse it too', () => {
+  // A V4 key with no slot named (so V3) on a V3 contract: refused by the key's own header.
+  const v3c = slotted(undefined);
+  assert.throws(() => v3c.req([keyAction('a', v4Key())]), /is a V4 key, but it would go in slot V3/);
+  // A V3 key named V4 on a V4 contract: refused by its header.
+  const v4c = slotted('v4');
+  assert.throws(() => v4c.req([keyAction('a', v3Key(), 'v4')]), /is a V3 key, but it would go in slot V4/);
+  // A V3 action on a V4 contract, and a V4 action on a V3 contract: refused by the contract's slot.
+  assert.throws(() => v4c.req([keyAction('a', v4Key())]), /keys are in slot V4, .* uses V3/);
+  assert.throws(() => v4c.req([{ kind: 'remove-key', circuit: 'a' }]), /keys are in slot V4, .* uses V3/);
+  assert.throws(() => v3c.req([keyAction('a', v4Key(), 'v4')]), /keys are in slot V3, .* uses V4/);
+  // The ledger's own rule, which the checks above mirror: each slot takes only its own keys.
+  const raw = (slot, vk) => {
+    const u = new L.MaintenanceUpdate(
+      v3c.c.address,
+      [new L.VerifierKeyInsert('raw', new L.ContractOperationVersionedVerifierKey(slot, vk))],
+      v3c.c.authority().counter,
+    );
+    return u.addSignature(0n, sig(v3c.c.paperKey, u.dataToSign));
+  };
+  assert.throws(() => v3c.c.send(raw('v3', v4Key())), /verifier-key\[v6\].*got 'midnight:verifier-key\[v7\]/);
+  assert.throws(() => v3c.c.send(raw('v4', v3Key())), /verifier-key\[v7\].*got 'midnight:verifier-key\[v6\]/);
+});
+
+test('key slot: removing a V4 key needs the V4 slot', () => {
+  const { c, req, sendSigned } = slotted('v4');
+  sendSigned(req([keyAction('proveValue', v4Key(), 'v4')]));
+  sendSigned(req([{ kind: 'remove-key', circuit: 'proveValue', keySlot: 'v4' }]));
+  assert.deepEqual(c.state().index(c.address).operations().map(String), []);
+});
+
