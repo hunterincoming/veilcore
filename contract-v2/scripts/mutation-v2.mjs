@@ -9,8 +9,7 @@
 //   COMPACTC=<path to compactc 0.36.1> node scripts/mutation-v2.mjs [mutant id ...]
 //
 // CI runs it (.github/workflows/mutation-v2.yaml) when a .compact file or this list
-// changes, weekly, and by hand. It takes about an hour there, so it is not in every PR's
-// required checks.
+// changes, weekly, and by hand. It is not in every PR's required checks.
 //
 // Writes nothing in the workspace: the copy is in a new temporary folder, removed after.
 // SPDX-License-Identifier: Apache-2.0
@@ -93,8 +92,17 @@ const main = () => {
         stdio: 'pipe',
       });
     const contractOf = (file) => (file === 'veilcore.compact' ? 'veilcore' : 'veilcore-claims');
-    const test = (files = DEFAULT_TESTS) =>
-      spawnSync('npx', ['vitest', 'run', ...files], { cwd: copy, stdio: 'pipe', encoding: 'utf8' });
+    // No colour, so the summary can be read (CI turns colour on), and any escape stripped.
+    const plain = (t) => String(t ?? '').replace(/\u001b\[[0-9;]*m/g, '');
+    const test = (files = DEFAULT_TESTS) => {
+      const r = spawnSync('npx', ['vitest', 'run', '--no-color', ...files], {
+        cwd: copy,
+        stdio: 'pipe',
+        encoding: 'utf8',
+        env: { ...process.env, NO_COLOR: '1', FORCE_COLOR: '0' },
+      });
+      return { status: r.status, stdout: plain(r.stdout), stderr: plain(r.stderr) };
+    };
 
     compile('veilcore');
     compile('veilcore-claims');

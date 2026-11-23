@@ -2,9 +2,9 @@ name: Contract v2 mutation pass
 
 # contract-v2/scripts/mutation-v2.mjs: each new check in contract v2 is removed or weakened in
 # turn, the copy compiled (no keys) and its tests run; every mutant must be killed, and the
-# ones marked so by at least two tests. About an hour, so it is not one of every PR's
-# required checks: it runs when a contract source or the mutant list changes, weekly, and by
-# hand. A red run here means a check in contract v2 is no longer tested.
+# ones marked so by at least two tests. It compiles the contract once per mutant, so it is
+# not one of every PR's required checks: it runs when a contract source or the mutant list
+# changes, weekly, and by hand. A red run here means a check in contract v2 is no longer tested.
 
 on:
   pull_request:
