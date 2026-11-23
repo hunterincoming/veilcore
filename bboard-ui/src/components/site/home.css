@@ -66,7 +66,7 @@
 }
 .vcm .home ::selection {
   background: var(--accent);
-  color: var(--ground);
+  color: var(--on-accent);
 }
 .vcm .home :is(h1, h2, h3) {
   font-family: var(--sans);
@@ -105,7 +105,7 @@
   white-space: nowrap;
 }
 .vcm .home .k-hl {
-  color: var(--accent);
+  color: var(--accent-text);
 }
 .vcm .home .k-mute {
   color: var(--text-faint);
@@ -200,13 +200,14 @@
 }
 .vcm .home .k-btn-primary {
   background: var(--accent);
-  color: var(--ground);
+  color: var(--on-accent);
 }
 .vcm .home .k-btn-primary:hover {
   background: var(--accent-hover);
 }
 .vcm .home .k-btn-ghost {
   background: var(--surface);
+  box-shadow: var(--quiet-edge);
   color: var(--text);
 }
 .vcm .home .k-btn-ghost:hover {
@@ -336,7 +337,7 @@
 }
 .vcm .home .k-paste a:hover {
   background: var(--accent);
-  color: var(--ground);
+  color: var(--on-accent);
 }
 /* "Used VeilCore on another device?" sits right under the paste line, as its pair. */
 .vcm .home .k-paste.hero-restore {
@@ -673,6 +674,7 @@
   border: 0;
   border-radius: 50%;
   background: var(--surface);
+  box-shadow: var(--quiet-edge);
   color: var(--text);
   cursor: pointer;
   transition: background-color 0.2s;
@@ -688,7 +690,7 @@
 }
 .vcm .home .k-arrow:hover:not(:disabled) {
   background: var(--accent);
-  color: var(--ground);
+  color: var(--on-accent);
 }
 .vcm .home .k-arrow:disabled {
   opacity: 0.35;
@@ -781,17 +783,17 @@
 /* ------------------------------------------------------------------ drenched sections */
 .vcm .home .k-drench {
   background: var(--accent);
-  color: var(--ground);
+  color: var(--on-accent);
 }
 .vcm .home .k-drench ::selection {
   background: var(--ground);
-  color: var(--accent);
+  color: var(--accent-text);
 }
 .vcm .home .k-drench :focus-visible {
-  outline-color: var(--ground);
+  outline-color: var(--focus-inner);
 }
 .vcm .home .k-drench a:not(.k-btn) {
-  color: var(--ground);
+  color: var(--on-accent);
   text-decoration-color: rgba(11, 14, 20, 0.5);
 }
 .vcm .home .k-drench .k-giant {
@@ -822,14 +824,16 @@
 }
 .vcm .home .k-btn-dark {
   background: var(--ground);
-  color: var(--accent);
+  color: var(--accent-text);
 }
 .vcm .home .k-btn-dark:hover {
   background: #1a2030;
 }
 .vcm .home .k-btn-line {
   background: rgba(11, 14, 20, 0.1);
-  color: var(--ground);
+  color: var(--on-accent);
+  /* On the gold the page is the gold: the edge is the night (5.1:1). */
+  box-shadow: inset 0 0 0 1px var(--on-accent);
 }
 .vcm .home .k-btn-line:hover {
   background: rgba(11, 14, 20, 0.18);
@@ -1063,7 +1067,7 @@
   line-height: 1.15;
 }
 .vcm .home .k-way:hover h3 {
-  color: var(--accent);
+  color: var(--accent-text);
 }
 .vcm .home .k-way p {
   font-size: 15px;
@@ -1095,6 +1099,7 @@
   border: 0;
   border-radius: 999px;
   background: var(--surface);
+  box-shadow: var(--quiet-edge);
   color: var(--text-muted);
   font: inherit;
   font-size: 14px;
@@ -1113,7 +1118,7 @@
 }
 .vcm .home .k-claim[aria-pressed='true'] {
   background: var(--text);
-  color: var(--ground);
+  color: var(--on-accent);
 }
 .vcm .home .k-cal {
   --ch: clamp(220px, 34vh, 380px);
@@ -1207,7 +1212,7 @@
   right: 0;
   font-family: var(--mono);
   font-size: 11px;
-  color: var(--accent);
+  color: var(--accent-text);
 }
 .vcm .home .k-cal figcaption {
   display: flex;
@@ -1223,7 +1228,7 @@
   padding-top: 2px;
   font-family: var(--mono);
   font-size: 12px;
-  color: var(--accent);
+  color: var(--accent-text);
 }
 .vcm .home .k-claims-fine {
   margin-top: clamp(40px, 6vh, 72px);
@@ -1302,19 +1307,19 @@
   color: var(--text-muted);
 }
 .vcm .home .k-t-night .k-stack-mark {
-  color: var(--accent);
+  color: var(--accent-text);
 }
 .vcm .home .k-t-cyan {
   background: var(--highlight);
-  color: var(--ground);
+  color: var(--on-accent);
 }
 .vcm .home .k-t-paper {
   background: var(--text);
-  color: var(--ground);
+  color: var(--on-accent);
 }
 .vcm .home .k-t-yellow {
   background: var(--accent);
-  color: var(--ground);
+  color: var(--on-accent);
 }
 .vcm .home :is(.k-t-cyan, .k-t-paper, .k-t-yellow) p {
   color: rgba(11, 14, 20, 0.82);
@@ -1383,7 +1388,7 @@
   font-family: var(--mono);
   font-weight: 500;
   font-size: 14px;
-  color: var(--accent);
+  color: var(--accent-text);
 }
 .vcm .home .post h3 {
   font-size: clamp(20px, 1.8vw, 26px);
@@ -1675,7 +1680,7 @@
 }
 .vcm .home .k-chip.live {
   background: var(--text);
-  color: var(--ground);
+  color: var(--on-accent);
 }
 
 /* Japanese dates in the updates: the body face, not the code face. */
@@ -1773,7 +1778,7 @@
   letter-spacing: -0.035em;
 }
 .vcm .home .k-door-make h3 {
-  color: var(--accent);
+  color: var(--accent-text);
 }
 .vcm .home .k-door p {
   max-width: 28em;
@@ -1824,7 +1829,7 @@
   display: inline-flex;
   align-items: center;
   gap: 14px;
-  color: var(--ground);
+  color: var(--on-accent);
   text-decoration: none;
 }
 .vcm .home .k-close-team .person b {
@@ -1885,7 +1890,7 @@
   height: clamp(56px, 6vw, 88px);
   border-radius: 50%;
   background: var(--accent);
-  color: var(--ground);
+  color: var(--on-accent);
   transition:
     transform 0.4s var(--ease-out),
     background-color 0.2s ease;
@@ -1941,7 +1946,7 @@
   transition-delay: calc(var(--i) * 45ms);
 }
 .vcm .home .k-foot-word .c {
-  color: var(--accent);
+  color: var(--accent-text);
 }
 .vcm .home.k-js .k-foot-word:not(.in) span {
   transform: translateY(102%);
@@ -1962,7 +1967,9 @@
   border-radius: 50%;
   background: var(--surface-raised);
   color: var(--text);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
+  box-shadow:
+    var(--quiet-edge),
+    0 6px 20px rgba(0, 0, 0, 0.45);
   cursor: pointer;
   animation: k-top-in 0.25s ease-out;
 }
@@ -1980,7 +1987,7 @@
 }
 .vcm .home .k-top:hover {
   background: var(--accent);
-  color: var(--ground);
+  color: var(--on-accent);
 }
 @keyframes k-top-in {
   from {
@@ -2014,7 +2021,7 @@
   letter-spacing: -0.02em;
 }
 .vcm .home .k-side-chain h3 {
-  color: var(--accent);
+  color: var(--accent-text);
 }
 .vcm .home .k-side ul {
   display: grid;
@@ -2122,7 +2129,7 @@
   gap: 0 12px;
   margin-top: 8px;
   font-size: 15px;
-  color: var(--accent);
+  color: var(--accent-text);
 }
 .vcm .home .k-founder > p:not(.k-role) {
   max-width: 34em;
@@ -2358,7 +2365,7 @@ html:lang(ja) .vc-curtain-t {
 }
 .vcm .home .k-link-list a:hover {
   background: var(--accent);
-  color: var(--ground);
+  color: var(--on-accent);
 }
 /* "All of how it works" under the three steps, not under the first (review of #169). */
 .vcm .home .k-steps-more {

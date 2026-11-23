@@ -534,10 +534,51 @@ describe("the night on every public page (site.css .vcm, Mako's design, 18 Nov 2
         const decl = m[2];
         const colour = /(?:^|[;\s])color:\s*([^;]+);/.exec(decl)?.[1]?.trim();
         if (/background(?:-color)?:[^;]*var\(--accent(?:-hover)?\)\s*;/.test(decl) && colour)
-          expect(colour, m[1].trim()).toMatch(/^var\(--(on-accent|ground)\)$/);
+          expect(colour, m[1].trim()).toBe('var(--on-accent)');
         if (/background(?:-color)?:\s*var\(--surface-raised\)/.test(decl))
           expect(colour ?? '', m[1].trim()).not.toMatch(/var\(--accent/);
       }
+  });
+
+  it('text is never drawn in a fill colour, and gold text is its own role (so print can turn it ink)', () => {
+    // The night is the text on gold on screen, but printed the ground is white: text written as
+    // `color: var(--ground)` printed white on white (review of PR 181). Text on a fill is
+    // --on-accent; gold as text is --accent-text (ink when printed), never --accent itself.
+    const fills =
+      /^var\(--(ground|ground-deep|surface|surface-raised|surface-quiet|surface-quiet-hover|band|inverse|accent|accent-hover)\)$/;
+    for (const css of [siteCss, homeCss, partnersCss])
+      for (const m of rules(css).matchAll(/([^{};]+)\{([^{}]*)\}/g))
+        for (const c of m[2].matchAll(/(?:^|[;\s])color:\s*([^;]+);/g))
+          expect(c[1].trim(), m[1].trim()).not.toMatch(fills);
+    expect(token('accent-text')).toBe(token('accent'));
+  });
+
+  it('quiet buttons show their shape: an edge 3:1 or more against the page (plan v2)', () => {
+    // The quiet fill is 1.1:1 on the night; the edge is an inset line, not a border.
+    expect(siteCss).toMatch(/--quiet-edge: inset 0 0 0 1px var\(--edge\);/);
+    for (const ground of [token('ground') ?? '', token('surface') ?? '', token('inverse') ?? ''])
+      expect(contrast(token('edge') ?? '', ground), ground).toBeGreaterThanOrEqual(3);
+    const quiet: [string, string][] = [
+      [siteCss, '.vcm .btn'],
+      [siteCss, '.vcm .menu-btn'],
+      [siteCss, '.vcm .check-site-actions label'],
+      [siteCss, '.vcm .links a'],
+      [siteCss, '  .vcm .fold-group .fold-btn'],
+      [homeCss, '.vcm .home .k-btn-ghost'],
+      [homeCss, '.vcm .home .k-arrow'],
+      [homeCss, '.vcm .home .k-claim'],
+      [homeCss, '.vcm .home .k-top'],
+    ];
+    for (const [css, sel] of quiet) {
+      const at = rules(css).lastIndexOf(`\n${sel} {`);
+      expect(at, sel).toBeGreaterThanOrEqual(0);
+      const body = rules(css).slice(at, rules(css).indexOf('}', at));
+      expect(body, sel).toMatch(/box-shadow:[^;]*var\(--quiet-edge\)/);
+    }
+    // Nothing later takes the edge away from a quiet button: only the gold (.solid) sets its own.
+    for (const m of rules(siteCss).matchAll(/([^{};]+)\{([^{}]*)\}/g))
+      if (/\.btn\b/.test(m[1]) && /box-shadow/.test(m[2]) && !/quiet-edge/.test(m[2]))
+        expect(m[1].trim()).toMatch(/\.solid|nav-cta/);
   });
 
   it('a gallery panel out of view is quieter by its photo only, never its words', () => {

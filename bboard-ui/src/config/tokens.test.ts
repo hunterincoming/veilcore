@@ -80,6 +80,30 @@ describe('colour tokens: one source', () => {
     }
   });
 
+  it('printed, every colour variable used as text reads on white paper (4.5:1 or more)', () => {
+    // Browsers drop backgrounds when printing, so whatever fill text sat on, it lands on white.
+    // Text in `var(--ground)` printed white and gold text pollen (1.4:1) (review of PR 181).
+    const print = colourVars(printBlock());
+    const channel = (h: string, i: number) => {
+      const c = parseInt(h.slice(i, i + 2), 16) / 255;
+      return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+    };
+    const lum = (h: string) => 0.2126 * channel(h, 1) + 0.7152 * channel(h, 3) + 0.0722 * channel(h, 5);
+    const onWhite = (h: string) => 1.05 / (lum(h) + 0.05);
+    const partnersCss = read('../components/partners/partners.css');
+    const used = new Set<string>();
+    for (const css of [siteCss, homeCss, partnersCss])
+      for (const m of css.replace(/\/\*[\s\S]*?\*\//g, '').matchAll(/(?:^|[;\s{])color:\s*var\((--[\w-]+)/g))
+        used.add(m[1]);
+    expect(used.size).toBeGreaterThan(5);
+    for (const name of used) {
+      if (!(name in print)) continue; // not a .vcm colour (a page's own variable)
+      expect(print[name], name).not.toBe('#ffffff');
+      expect(print[name], name).not.toBe(paper.accent.toLowerCase());
+      expect(onWhite(print[name]), `${name} ${print[name]} on white`).toBeGreaterThanOrEqual(4.5);
+    }
+  });
+
   it('every token value is a #RRGGBB colour', () => {
     for (const v of [...Object.values(paper), ...Object.values(night)]) expect(v).toMatch(/^#[0-9A-F]{6}$/);
   });

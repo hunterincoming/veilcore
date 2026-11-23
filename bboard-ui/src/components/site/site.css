@@ -45,6 +45,7 @@
   --text-faint: #7a889c;
   --accent: #a67c00;
   --accent-hover: #b8890b;
+  --accent-text: #a67c00; /* gold as text: on the night or a card only; ink when printed */
   --on-accent: #0b0e14; /* 5.1:1 on the gold; never light text on it */
   --highlight: #5fd3df;
   --ok: #7bc4a6;
@@ -65,6 +66,9 @@
   --press-rest: 0 1px 0 rgba(0, 0, 0, 0.4), 0 2px 6px -2px rgba(0, 0, 0, 0.5);
   --press-lift: 0 2px 0 rgba(0, 0, 0, 0.4), 0 8px 16px -6px rgba(0, 0, 0, 0.6);
   --press-down: 0 0 0 rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.4);
+  /* A quiet button's edge: the fill alone is 1.1:1 on the night, so a 1px inset line in the
+     text fields' edge colour (5.4:1) shows its shape (plan v2). A shadow, not a border. */
+  --quiet-edge: inset 0 0 0 1px var(--edge);
   --gutter: clamp(16px, 5vw, 64px);
   --maxw: 1280px;
   /* Shape by hierarchy: controls 8, pictures 12, chips 6. The tag has cut corners, no radius. */
@@ -364,6 +368,7 @@ html:has(.vcm) {
 .vcm .menu-btn {
   display: none;
   background: var(--surface-quiet);
+  box-shadow: var(--quiet-edge);
   border: 0;
   border-radius: var(--r-control);
   color: var(--text);
@@ -394,6 +399,7 @@ html:has(.vcm) {
   border-radius: var(--r-control);
   color: var(--text);
   background: var(--surface-quiet);
+  box-shadow: var(--quiet-edge);
   cursor: pointer;
   transition:
     background-color 0.15s,
@@ -462,7 +468,7 @@ html:has(.vcm) {
 /* The second sentence answers the first: its own line, in pollen gold (12.7:1 on ink). */
 .vcm header.hero h1 em {
   display: block;
-  color: var(--accent);
+  color: var(--accent-text);
 }
 .vcm header.hero.cjk h1 {
   font-family: var(--font);
@@ -969,7 +975,7 @@ html:has(.vcm) {
   text-underline-offset: 6px;
 }
 .vcm .demo:hover h3 {
-  color: var(--accent);
+  color: var(--accent-text);
 }
 .vcm .demo p {
   color: var(--on-inverse-muted);
@@ -995,7 +1001,7 @@ html:has(.vcm) {
   background: rgba(236, 238, 241, 0.1);
 }
 .vcm section.dark .chip.live {
-  color: var(--ground);
+  color: var(--on-accent);
   background: var(--on-inverse);
 }
 .vcm button.demo {
@@ -1548,6 +1554,7 @@ html:has(.vcm) {
   text-decoration: none;
   padding: 0 14px;
   background: var(--surface-quiet);
+  box-shadow: var(--quiet-edge);
   border-radius: var(--r-control);
 }
 .vcm .links a:hover {
@@ -1717,6 +1724,7 @@ html:has(.vcm) {
 }
 .vcm .check-site-actions label {
   background: var(--surface-quiet);
+  box-shadow: var(--quiet-edge);
   color: var(--text);
 }
 .vcm .check-site-actions label:hover:not(.disabled) {
@@ -2524,6 +2532,7 @@ html:has(.vcm) {
   .vcm .fold-group .fold-btn {
     padding: 0 16px;
     background: var(--surface-quiet);
+    box-shadow: var(--quiet-edge);
     border-radius: var(--r-control);
     color: var(--text);
     font-weight: 700;
@@ -2778,6 +2787,7 @@ html:has(.vcm) {
     --text-faint: #4b4740;
     --accent: #f6da3c;
     --accent-hover: #f6da3c;
+    --accent-text: #16181d;
     --on-accent: #16181d;
     --highlight: #16181d;
     --ok: #2e6b55;
@@ -2795,6 +2805,16 @@ html:has(.vcm) {
   .vcm *,
   .vcm {
     text-shadow: none !important;
+  }
+  /* The home pages fade parts in as they scroll into view: on paper, all of them show. */
+  html .vcm .home.k-js [data-reveal]:not(.in) {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  /* The home pages draw the wordmark light for the night (SiteHeader's tone): ink on paper. */
+  html:has(.vcm) [data-site-header] a[href='/'] > span {
+    color: #16181d;
   }
   html:has(.vcm) footer,
   .vcm.vcm-after,

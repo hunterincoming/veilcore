@@ -33,6 +33,8 @@ export const paper = {
   textMuted: '#4B4740',
   /** The one colour: the main button, stamps, link underlines. A fill, never text. */
   accent: '#F6DA3C',
+  /** Where the night draws gold text, paper draws ink: pollen is 1.4:1 on white. */
+  accentText: '#16181D',
   /** Text and icons on the accent: 12.7:1. */
   onAccent: '#16181D',
   /** The dashed rules between a record's rows. */
@@ -93,6 +95,9 @@ export const night = {
    *  card (5.1:1, 4.5:1), never on a raised card (3.9:1). */
   accent: '#A67C00',
   accentHover: '#B8890B',
+  /** Gold as text (a heading's second line, a date, a role): the gold itself, so only on the
+   *  night or a card. Its own role so print can turn it to ink. */
+  accentText: '#A67C00',
   /** Text and icons on the gold: the night, 5.1:1 (6.1:1 under the pointer). Never light text
    *  on gold: the ink is 3.3:1. */
   onAccent: '#0B0E14',
