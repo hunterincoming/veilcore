@@ -43,7 +43,10 @@ const circuitsOf = (name: string): string[] =>
     .map((f) => f.slice(0, -'.zkir'.length))
     .sort();
 
-const scripted = (answers: string[]): Prompt =>
+/** A test passphrase for the in-memory key file (not a secret: nothing real is behind it). */
+const PASS = 'test-passphrase-not-real';
+
+const scripted = (answers: string[], hidden: string[] = [PASS, PASS]): Prompt =>
   ({
     rli: {
       question: async () => answers.shift() ?? '',
@@ -51,7 +54,7 @@ const scripted = (answers: string[]): Prompt =>
       off: () => undefined,
       close: () => undefined,
     },
-    askHidden: async () => '',
+    askHidden: async () => hidden.shift() ?? '',
     askHiddenLines: async () => [],
     asking: () => false,
   }) as unknown as Prompt;
