@@ -26,6 +26,7 @@ import { emptyDraft, loadDraft, saveDraft } from './log-flow-state';
 import { loadLogKind } from './animal-draft';
 import { emptyStrainDraft } from './strain-draft';
 import { canonicalUrl, STRAIN_RECORDS_ENABLED } from '../../config/network';
+import { CODE_FONT } from '../../config/theme';
 
 const HEX64 = /^[0-9a-f]{64}$/;
 
@@ -118,7 +119,7 @@ export const IntakePage: React.FC = () => {
         {r.ref && (
           <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
             {t('app.intake.ref')}{' '}
-            <Box component="code" sx={{ fontFamily: 'monospace', bgcolor: 'action.hover', px: 0.5 }}>
+            <Box component="code" sx={{ fontFamily: CODE_FONT, bgcolor: 'action.hover', px: 0.5 }}>
               {r.ref}
             </Box>
           </Typography>

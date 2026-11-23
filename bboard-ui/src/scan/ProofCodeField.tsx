@@ -17,6 +17,7 @@ import { Box, Typography } from '@mui/material';
 import { ScanTextField } from './ScanTextField';
 import { readProofCode, PROOF_QR_PREFIX } from '../veilcore/proof-code-qr';
 import { useT } from '../i18n/app';
+import { CODE_FONT } from '../config/theme';
 
 type Problem = 'check' | 'notCode';
 
@@ -98,7 +99,7 @@ export const ProofCodeField: React.FC<{
           </Typography>
           <Typography
             component="p"
-            sx={{ fontFamily: 'monospace', fontSize: '2rem', fontWeight: 700, letterSpacing: '0.2em', lineHeight: 1.3 }}
+            sx={{ fontFamily: CODE_FONT, fontSize: '2rem', fontWeight: 700, letterSpacing: '0.2em', lineHeight: 1.3 }}
           >
             {end}
           </Typography>

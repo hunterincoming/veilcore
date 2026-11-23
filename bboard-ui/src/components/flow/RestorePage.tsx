@@ -45,6 +45,7 @@ import { deviceWords, useDeviceLockHint, useRestoreUnlockWord } from './KeepSafe
 import type { AppKey } from '../../i18n/app/en';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
+import { CODE_FONT } from '../../config/theme';
 
 /** "2 lab deliveries and 1 lab code": what else the file brought back, or '' for nothing. */
 export const labWork = (r: RestoreResult, tr: Translator = enT): string => {
@@ -545,7 +546,7 @@ export const RestorePage: React.FC = () => {
                                 autoCapitalize: 'characters',
                                 autoCorrect: 'off',
                                 spellCheck: false,
-                                style: { fontFamily: 'monospace', letterSpacing: '0.04em' },
+                                style: { fontFamily: CODE_FONT, letterSpacing: '0.04em' },
                               },
                             }}
                           />
@@ -581,7 +582,7 @@ export const RestorePage: React.FC = () => {
                           fullWidth
                           slotProps={{
                             htmlInput: {
-                              style: { fontFamily: 'monospace' },
+                              style: { fontFamily: CODE_FONT },
                               autoCapitalize: 'none',
                               spellCheck: false,
                             },

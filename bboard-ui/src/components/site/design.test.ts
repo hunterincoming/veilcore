@@ -10,13 +10,16 @@
 //     pollen gold, clearly not Binance yellow or Bitcoin orange, a fill under ink and never
 //     text on paper; red only for errors; pollen, the ✓ green, the error red and ink stay
 //     apart for red-green and blue-yellow colour-blind readers;
-//   - headings in a self-hosted Caslon with a stand-in sized to match, so nothing shifts.
+//   - type (plan v2, 23 Nov 2026): headings, buttons and the wordmark in a self-hosted Archivo
+//     with a stand-in sized to match; body and forms in Atkinson; codes in JetBrains Mono, whose
+//     subset covers the accents and the marks codes and sentences round them use. Caslon is gone.
 // Run: npx vitest run src/components/site/design.test.ts
 // SPDX-License-Identifier: Apache-2.0
 
 import { MARK_GOLD, MARK_GOLD_ON_DARK } from './TagMark';
 import { describe, it, expect } from 'vitest';
 import fs from 'node:fs';
+import zlib from 'node:zlib';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { en } from '../../i18n/en';
@@ -39,7 +42,7 @@ const stampTsx = fs.readFileSync(path.join(here, '../DatedStamp.tsx'), 'utf8');
 const fontsCss = fs.readFileSync(path.join(here, '../../fonts.css'), 'utf8');
 const indexHtml = fs.readFileSync(path.join(here, '../../../index.html'), 'utf8');
 const faviconSvg = fs.readFileSync(path.join(here, '../../../public/favicon.svg'), 'utf8');
-const caslonFile = path.join(here, '../../../public/fonts/libre-caslon-text-700.woff2');
+const fontsDir = path.join(here, '../../../public/fonts');
 const partnerKit = fs.readFileSync(path.join(here, '../../../../partner-kit/record-check/src/element.ts'), 'utf8');
 // The colours by role (config/tokens.ts, the paper set), under the names these tests were
 // written with.
@@ -158,18 +161,72 @@ describe('one product: the site and the app share their tokens', () => {
     expect(FONT.startsWith(`"${site}"`)).toBe(true);
   });
 
-  it('the same heading face: self-hosted Caslon, swapped in without moving anything', () => {
-    expect(/--display:\s*'VeilCore Caslon', 'VeilCore Caslon fallback'/.test(siteCss)).toBe(true);
-    expect(themeTs).toMatch(/DISPLAY_FONT = `"VeilCore Caslon", "VeilCore Caslon fallback"/);
+  it('the same heading face: self-hosted Archivo, swapped in from a stand-in sized to match', () => {
+    expect(/--display:\s*'VeilCore Archivo', 'VeilCore Archivo fallback'/.test(siteCss)).toBe(true);
+    expect(themeTs).toMatch(/DISPLAY_FONT = `"VeilCore Archivo", "VeilCore Archivo fallback"/);
     // Our own origin (font-src 'self'), shown at once in the stand-in, then swapped.
-    expect(fontsCss).toMatch(/src: url\('\/fonts\/libre-caslon-text-700\.woff2'\) format\('woff2'\)/);
+    expect(fontsCss).toMatch(/src: url\('\/fonts\/archivo-var\.woff2'\) format\('woff2'\)/);
     expect(fontsCss).toMatch(/font-display: swap/);
-    // The stand-in is a local serif scaled to Caslon's width and line metrics.
-    for (const d of ['size-adjust', 'ascent-override', 'descent-override', 'line-gap-override'])
-      expect(fontsCss).toMatch(new RegExp(`${d}: [0-9.]+%`));
-    expect(indexHtml).toContain('<link rel="preload" href="/fonts/libre-caslon-text-700.woff2" as="font"');
-    // One weight, subset: far under the 80 KB budget for added fonts.
-    expect(fs.statSync(caslonFile).size).toBeLessThan(30 * 1024);
+    // The stand-in is a local sans scaled to Archivo's width and line metrics, regular and bold.
+    const fallback = [...fontsCss.matchAll(/@font-face \{[^}]*'VeilCore Archivo fallback'[^}]*\}/g)].map((m) => m[0]);
+    expect(fallback).toHaveLength(2);
+    for (const face of fallback)
+      for (const d of ['size-adjust', 'ascent-override', 'descent-override', 'line-gap-override'])
+        expect(face).toMatch(new RegExp(`${d}: [0-9.]+%`));
+    expect(indexHtml).toContain('<link rel="preload" href="/fonts/archivo-var.woff2" as="font"');
+    // Subset: far under the 80 KB budget for added fonts.
+    expect(fs.statSync(path.join(fontsDir, 'archivo-var.woff2')).size).toBeLessThan(40 * 1024);
+  });
+
+  it('headings and buttons in Archivo, body in Atkinson, on every page', () => {
+    // The app: every heading variant, dialog titles and buttons take the display face.
+    for (const v of ['h1', 'h2', 'h3', 'h4', 'h5']) expect(themeTs).toMatch(new RegExp(`${v}: \\{ \\.\\.\\.HEADING`));
+    expect(themeTs).toMatch(/h6: \{\s*fontFamily: DISPLAY_FONT/);
+    expect(themeTs).toMatch(/button: \{ fontFamily: DISPLAY_FONT/);
+    expect(themeTs).toMatch(/MuiDialogTitle: \{\s*styleOverrides: \{ root: \{ fontFamily: DISPLAY_FONT/);
+    // The public pages' buttons.
+    for (const sel of ['.vcm .btn {', '.vcm .menu-btn {']) {
+      const at = siteCss.indexOf(sel);
+      expect(siteCss.slice(at, siteCss.indexOf('}', at))).toContain('font-family: var(--display);');
+    }
+    // Home, How it works and About read in the body face, with Archivo for the display lines.
+    expect(rules(homeCss)).toMatch(/\.vcm \.home \{[^}]*font-family: var\(--font\);/);
+    expect(rules(homeCss)).not.toMatch(/--font:/);
+    expect(rules(homeCss)).toMatch(/\.vcm \.home :is\(\.k-btn, \.k-mq-btn\) \{\s*font-family: var\(--display\);/);
+  });
+
+  it('Caslon is retired: no file, no face, no preload', () => {
+    expect(fs.existsSync(path.join(fontsDir, 'libre-caslon-text-700.woff2'))).toBe(false);
+    for (const src of [fontsCss, siteCss, homeCss, themeTs, indexHtml]) expect(rules(src)).not.toMatch(/caslon/i);
+  });
+
+  it('codes in JetBrains Mono: a slashed zero, and every character codes and the words round them use', () => {
+    const file = path.join(fontsDir, 'jetbrains-mono-var.woff2');
+    const font = readWoff2(fs.readFileSync(file));
+    // Not ASCII only (95 glyphs, before 23 Nov): Latin-1 and Latin Extended-A (de, es, fr), the
+    // dashes, quotes and ellipsis, arrows, the minus and times signs, the check and the cross.
+    const needed = [
+      ...range(0x20, 0x7e),
+      ...range(0xa0, 0xff),
+      // Latin Extended-A, less the Dutch IJ digraph (one character for two; JetBrains Mono has none).
+      ...range(0x100, 0x17f).filter((c) => c !== 0x132 && c !== 0x133),
+      ...'‐–—‘’‚“”„•…‹›€←↑→↓−×✓✗'.split('').map((c) => c.codePointAt(0)!),
+    ];
+    const missing = needed.filter((c) => !font.cmap.has(c)).map((c) => String.fromCodePoint(c));
+    expect(missing).toEqual([]);
+    // The slashed zero CODE_TEXT asks for (font-variant-numeric: slashed-zero).
+    expect(font.features).toContain('zero');
+    // No coding ligatures: "->" in a code stays two characters.
+    expect(font.features).not.toContain('calt');
+    expect(fs.statSync(file).size).toBeLessThan(30 * 1024);
+    // The app's codes and the public pages' fingerprints use it.
+    expect(themeTs).toMatch(/CODE_FONT = '"VeilCore Mono"/);
+    expect(themeTs).toMatch(/CODE_TEXT = \{\s*fontFamily: CODE_FONT/);
+    expect(siteCss).toMatch(/--mono: 'VeilCore Mono'/);
+    for (const sel of ['.vcm .digest {', '.vcm .contracts code {']) {
+      const at = siteCss.indexOf(sel);
+      expect(siteCss.slice(at, siteCss.indexOf('}', at))).toContain('font-family: var(--mono);');
+    }
   });
 });
 
@@ -446,3 +503,69 @@ describe("a founder's role: title and place on two lines, words unchanged", () =
         expect(parts.join(' · ')).toBe(text);
       });
 });
+
+const range = (from: number, to: number): number[] => Array.from({ length: to - from + 1 }, (_, i) => from + i);
+
+/**
+ * Just enough of a WOFF2 reader for the tests: the characters a font has (cmap) and its
+ * substitution features (GSUB). WOFF2 is a table directory, then every table in one Brotli
+ * stream; cmap and GSUB are stored as they are, so no glyph decoding is needed.
+ */
+function readWoff2(buf: Buffer): { cmap: Set<number>; features: string[] } {
+  // The table tags WOFF2 knows by number (WOFF2 spec, 5.1); 63 means the tag follows.
+  const KNOWN =
+    'cmap head hhea hmtx maxp name OS/2 post cvt  fpgm glyf loca prep CFF  VORG EBDT EBLC gasp hdmx kern LTSH PCLT VDMX vhea vmtx BASE GDEF GPOS GSUB EBSC JSTF MATH CBDT CBLC COLR CPAL SVG  sbix acnt avar bdat bloc bsln cvar fdsc feat fmtx fvar gvar hsty just lcar mort morx opbd prop trak Zapf Silf Glat Gloc Feat Sill'
+      .match(/.{4}\s?/g)!
+      .map((t) => t.slice(0, 4));
+  expect(buf.toString('latin1', 0, 4)).toBe('wOF2');
+  const numTables = buf.readUInt16BE(12);
+  let at = 48;
+  const base128 = () => {
+    let v = 0;
+    for (;;) {
+      const b = buf[at++];
+      v = v * 128 + (b & 0x7f);
+      if (!(b & 0x80)) return v;
+    }
+  };
+  const dir: { tag: string; length: number }[] = [];
+  for (let n = 0; n < numTables; n++) {
+    const flags = buf[at++];
+    const tag = (flags & 0x3f) === 63 ? buf.toString('latin1', at, (at += 4)) : KNOWN[flags & 0x3f];
+    const version = flags >> 6;
+    const orig = base128();
+    const transformed = tag === 'glyf' || tag === 'loca' ? version === 0 : version !== 0;
+    dir.push({ tag, length: transformed ? base128() : orig });
+  }
+  const data = zlib.brotliDecompressSync(buf.subarray(at, at + buf.readUInt32BE(20)));
+  const tables = new Map<string, Buffer>();
+  let off = 0;
+  for (const { tag, length } of dir) {
+    tables.set(tag, data.subarray(off, off + length));
+    off += length;
+  }
+  const cmap = new Set<number>();
+  const c = tables.get('cmap')!;
+  for (let i = 0; i < c.readUInt16BE(2); i++) {
+    const sub = c.subarray(c.readUInt32BE(4 + i * 8 + 4));
+    const format = sub.readUInt16BE(0);
+    if (format === 4) {
+      const segs = sub.readUInt16BE(6) / 2;
+      for (let s = 0; s < segs; s++) {
+        const end = sub.readUInt16BE(14 + s * 2);
+        const start = sub.readUInt16BE(16 + segs * 2 + s * 2);
+        for (let cp = start; cp <= end && cp !== 0xffff; cp++) cmap.add(cp);
+      }
+    } else if (format === 12) {
+      for (let g = 0; g < sub.readUInt32BE(12); g++)
+        for (let cp = sub.readUInt32BE(16 + g * 12); cp <= sub.readUInt32BE(20 + g * 12); cp++) cmap.add(cp);
+    }
+  }
+  const gsub = tables.get('GSUB');
+  const features: string[] = [];
+  if (gsub) {
+    const list = gsub.subarray(gsub.readUInt16BE(6));
+    for (let i = 0; i < list.readUInt16BE(0); i++) features.push(list.toString('latin1', 2 + i * 6, 6 + i * 6));
+  }
+  return { cmap, features: [...new Set(features)] };
+}

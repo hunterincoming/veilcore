@@ -247,13 +247,15 @@ describe.skipIf(!built)('the first download, in the built site (dist/)', () => {
     for (const src of text(closure([`assets/${verify[0]}`]))) expect(src).not.toMatch(/\.wasm\b/);
   });
 
-  it("two faces are preloaded: the body face (Latin, one variable file) and the headings' Caslon bold", () => {
-    // Pollen and ink (17 October 2026) set headings in Libre Caslon Text Bold, preloaded in
-    // index.html so the first screen's headline doesn't swap faces.
+  it("two faces are preloaded: the body face (Latin, one variable file) and the headings' Archivo", () => {
+    // Headings and buttons are in Archivo (plan v2, 23 Nov 2026), preloaded in index.html so
+    // the first screen's headline doesn't swap faces. Libre Caslon, the headings' face before,
+    // is gone. The code face (JetBrains Mono) is not preloaded: few first screens show a code.
     const fonts = [...html.matchAll(/rel="preload" href="\/([^"]+)" as="font"/g)].map((m) => m[1]).sort();
     expect(fonts).toHaveLength(2);
     expect(fonts[0]).toMatch(/^assets\/atkinson-hyperlegible-next-latin-wght-normal-.*\.woff2$/);
-    expect(fonts[1]).toBe('fonts/libre-caslon-text-700.woff2');
+    expect(fonts[1]).toBe('fonts/archivo-var.woff2');
+    expect(fs.existsSync(path.join(DIST, 'fonts/libre-caslon-text-700.woff2'))).toBe(false);
     // No other family is bundled: Inter and Space Grotesk were replaced on 15 October 2026.
     const files = fs.readdirSync(path.join(DIST, 'assets'));
     expect(files.filter((f) => /^(inter|space-grotesk)-/.test(f))).toEqual([]);

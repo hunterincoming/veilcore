@@ -46,7 +46,7 @@ The research behind each choice is in the report "Simple record app UX research"
   on white, became `ACCENT` (#00785A) on these pages. (Since 17 October 2026 the
   palette is pollen and ink: ink #16181D (`color.text`) on herbarium paper #F6F3EC, and one
   colour, pollen gold #F6DA3C (`color.accent`), as a fill under ink and never as text; red is
-  kept for errors. Headings are Libre Caslon Text Bold. The colours are named by role in
+  kept for errors. Headings, buttons and the wordmark are Archivo, body text Atkinson Hyperlegible Next, codes JetBrains Mono (since 23 November 2026; Libre Caslon is retired). The colours are named by role in
   `config/tokens.ts`; the theme is `config/theme.ts`.)
 - **Sections** (`components/flow/FlowFrame.tsx`): Log, Send & receive, License &
   royalties, Prove & check; Okabe–Ito colours, always with icon and name.

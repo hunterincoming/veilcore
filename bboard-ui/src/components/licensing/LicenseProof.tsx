@@ -42,6 +42,7 @@ import { ChainStatusLine } from '../chain/ChainStatusLine';
 import { SendLink } from '../chain/ProveWatch';
 import { rich, useT } from '../../i18n/app';
 import { DisclosureReceipt } from '../chain/DisclosureReceipt';
+import { CODE_FONT } from '../../config/theme';
 
 const WEEK = 7 * 24 * 60 * 60_000;
 const shortKey = (h: string) => `${h.slice(0, 8)}…${h.slice(-6)}`;
@@ -126,7 +127,7 @@ export const LicenseProofWatch: React.FC<{ ask: MyAsk; asker?: string }> = ({ as
             tr.t('app.lic.proof.okText'),
             {},
             {
-              key: <span style={{ fontFamily: 'monospace' }}>{shortKey(ask.identity)}</span>,
+              key: <span style={{ fontFamily: CODE_FONT }}>{shortKey(ask.identity)}</span>,
               when: new Date(ask.confirmed.at).toLocaleString(tr.locale),
             },
           )}
@@ -322,7 +323,7 @@ export const ProveLicensePage: React.FC = () => {
             tr.t('app.lic.proof.noneHere'),
             {},
             {
-              key: <span style={{ fontFamily: 'monospace' }}>{shortKey(req.identity)}</span>,
+              key: <span style={{ fontFamily: CODE_FONT }}>{shortKey(req.identity)}</span>,
             },
           )}
         </Typography>
@@ -376,7 +377,7 @@ const HolderAnswer: React.FC<{ req: ProveRequest; token: string; licenses: reado
         <Alert severity="warning" variant="outlined">
           {tr.t('app.lic.proof.sendFailed', { why: call.result.why ?? '' })}
         </Alert>
-        <Typography variant="body2" sx={{ fontFamily: 'monospace', wordBreak: 'break-all' }}>
+        <Typography variant="body2" sx={{ fontFamily: CODE_FONT, wordBreak: 'break-all' }}>
           {call.result.txId}
         </Typography>
       </Stack>
@@ -391,7 +392,7 @@ const HolderAnswer: React.FC<{ req: ProveRequest; token: string; licenses: reado
         {rich(
           req.asker ? tr.t('app.lic.proof.askerWants') : tr.t('app.lic.proof.someoneWants'),
           { b: (c) => <b>{c}</b> },
-          { asker: req.asker ?? '', key: <span style={{ fontFamily: 'monospace' }}>{shortKey(req.identity)}</span> },
+          { asker: req.asker ?? '', key: <span style={{ fontFamily: CODE_FONT }}>{shortKey(req.identity)}</span> },
         )}
       </Typography>
       <Alert severity="info" variant="outlined" icon={false}>

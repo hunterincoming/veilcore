@@ -66,6 +66,7 @@ import { ChainStatusLine } from '../chain/ChainStatusLine';
 import type { ChainReceipt } from '../../veilcore/chain/actions';
 import { useT } from '../../i18n/app';
 import { DisclosureReceipt } from '../chain/DisclosureReceipt';
+import { CODE_FONT } from '../../config/theme';
 
 const POLL_MS = 8_000;
 
@@ -515,7 +516,7 @@ export const RealLicensePanel: React.FC<{ license: License; blocked: boolean; on
               <Typography variant="body2">{tr.t('app.lic.real.callThem', { who })}</Typography>
               <Typography
                 data-license-code=""
-                sx={{ fontFamily: 'monospace', fontSize: '2rem', fontWeight: 700, letterSpacing: '0.15em' }}
+                sx={{ fontFamily: CODE_FONT, fontSize: '2rem', fontWeight: 700, letterSpacing: '0.15em' }}
               >
                 {code ?? '…'}
               </Typography>

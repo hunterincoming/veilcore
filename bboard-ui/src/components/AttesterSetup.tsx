@@ -49,6 +49,7 @@ import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
 import { OPEN_SIGNING_KEY_STATE } from '../veilcore/role';
 import { rich, useT } from '../i18n/app';
 import type { AppKey } from '../i18n/app/en';
+import { CODE_FONT } from '../config/theme';
 
 const ROLE_LABEL: Record<string, AppKey> = {
   laboratory: 'app.lab.key.role.laboratory',
@@ -347,7 +348,7 @@ export const AttesterSetup: React.FC<{
                           <Typography variant="body2" color="text.secondary">
                             {t('app.lab.key.domain.orTxt')}
                           </Typography>
-                          <Typography sx={{ fontFamily: 'monospace', fontSize: 12, wordBreak: 'break-all', mt: 0.5 }}>
+                          <Typography sx={{ fontFamily: CODE_FONT, fontSize: 12, wordBreak: 'break-all', mt: 0.5 }}>
                             {labTxtFor(profile)}
                           </Typography>
                         </Box>
@@ -392,7 +393,7 @@ export const AttesterSetup: React.FC<{
                         <Typography
                           component="pre"
                           sx={{
-                            fontFamily: 'monospace',
+                            fontFamily: CODE_FONT,
                             fontSize: 12,
                             whiteSpace: 'pre-wrap',
                             wordBreak: 'break-all',
@@ -429,7 +430,7 @@ export const AttesterSetup: React.FC<{
                     <Typography variant="overline" sx={{ display: 'block', lineHeight: 1.5 }}>
                       {t('app.lab.key.publicKey')}
                     </Typography>
-                    <Typography sx={{ fontFamily: 'monospace', fontSize: 12, wordBreak: 'break-all' }}>
+                    <Typography sx={{ fontFamily: CODE_FONT, fontSize: 12, wordBreak: 'break-all' }}>
                       {profile.keypair.publicKey}
                     </Typography>
                     <Button

@@ -22,6 +22,7 @@ import { useChainCall } from './useChainCall';
 import { ChainStatusLine } from './ChainStatusLine';
 import { useT } from '../../i18n/app';
 import { keyReasonWords } from './key-reason-words';
+import { CODE_FONT } from '../../config/theme';
 
 /**
  * What the holder's link says: the record's on-chain identity and its anchor transaction,
@@ -213,7 +214,7 @@ const ByHand: React.FC<{ claim: ClaimedChainAnchor; record?: KeyedRecord }> = ({
             <Typography variant="caption" color="text.secondary">
               {t('app.prove.hand.yourChallenge')}
             </Typography>
-            <Typography variant="body2" sx={{ fontFamily: 'monospace', wordBreak: 'break-all' }}>
+            <Typography variant="body2" sx={{ fontFamily: CODE_FONT, wordBreak: 'break-all' }}>
               {challenge}
             </Typography>
             <Button

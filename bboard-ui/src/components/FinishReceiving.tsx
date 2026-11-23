@@ -12,6 +12,7 @@ import { finishReceiving, isUnfinishedReceipt, keptCodeFor } from '../veilcore/r
 import { labErrorWords } from '../veilcore/transfers';
 import { useT } from '../i18n/app';
 import { SupportDetails } from './SupportDetails';
+import { CODE_FONT } from '../config/theme';
 
 export const FinishReceiving: React.FC<{ record: StrainRecord }> = ({ record }) => {
   const tr = useT();
@@ -46,7 +47,7 @@ export const FinishReceiving: React.FC<{ record: StrainRecord }> = ({ record }) 
           onChange={(e) => setCode(e.target.value)}
           size="small"
           fullWidth
-          slotProps={{ htmlInput: { style: { fontFamily: 'monospace' } } }}
+          slotProps={{ htmlInput: { style: { fontFamily: CODE_FONT } } }}
         />
         <Button
           variant="contained"

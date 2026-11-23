@@ -243,9 +243,9 @@ const longCodes = {
   },
 } as const;
 
-/** Caslon has no Japanese: Japanese headings use the body face, at its own spacing. */
+/** Archivo has no Japanese: Japanese headings and buttons use the body face, at its own spacing. */
 const japaneseHeadings = {
-  ':lang(ja) :is(.MuiTypography-h1, .MuiTypography-h2, .MuiTypography-h3, .MuiTypography-h4, .MuiTypography-h5, .MuiDialogTitle-root)':
+  ':lang(ja) :is(.MuiTypography-h1, .MuiTypography-h2, .MuiTypography-h3, .MuiTypography-h4, .MuiTypography-h5, .MuiTypography-h6, .MuiDialogTitle-root, .MuiButton-root)':
     {
       fontFamily: FONT,
       letterSpacing: 0,

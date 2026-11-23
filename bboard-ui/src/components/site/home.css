@@ -76,11 +76,12 @@ html:has(.vcm .home) body {
   --line: var(--rule);
   --on-inverse: var(--text);
   --on-inverse-muted: var(--text-muted);
-  --font: var(--sans);
+  /* Body text and forms in Atkinson (--font, from .vcm in site.css); headings, buttons and the
+     big display lines in Archivo (--sans), the same split as every other page (src/fonts.css). */
   --display: var(--sans);
   background: var(--ground);
   color: var(--text);
-  font-family: var(--sans);
+  font-family: var(--font);
   font-size: 16px;
   line-height: 1.6;
   font-variant-numeric: tabular-nums;
@@ -1752,7 +1753,7 @@ html:has(.vcm .home) [data-site-header] :is(.MuiAlert-root, [data-draft-notice])
 
 /* Japanese dates in the updates: the body face, not the code face. */
 .vcm:lang(ja) .home .post time {
-  font-family: var(--sans);
+  font-family: var(--font);
   font-weight: 700;
 }
 
@@ -2496,4 +2497,13 @@ html:lang(ja) .vc-curtain-t {
   .vcm .home .k-who-pic {
     height: 140px;
   }
+}
+
+/* Archivo for what is display type and not a heading element: the big lines, the questions,
+   and the buttons (whose own rule resets the font, so this comes after it). Everything else
+   reads in the body face. */
+.vcm .home :is(.k-h2, .k-h3, .k-giant, .k-marquee, .k-wordlight, .k-verdict, .k-foot-cta-t, .k-foot-word),
+.vcm .home .faq summary,
+.vcm .home :is(.k-btn, .k-mq-btn) {
+  font-family: var(--display);
 }
