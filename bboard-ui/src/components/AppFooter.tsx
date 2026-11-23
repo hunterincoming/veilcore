@@ -11,15 +11,15 @@
 
 import React from 'react';
 import { Box, Container, Link, Stack, Typography } from '@mui/material';
-import { INK_COLOR } from '../config/theme';
+import { color } from '../config/tokens';
 import { WORDMARK_FONT } from './Wordmark';
 import { TagMark } from './site/TagMark';
 import { Link as RouterLink } from 'react-router-dom';
 import { useI18n } from '../i18n';
 
 // On Ink: warm grey links (8.9:1), paper for the group names, and the logo's gold on the mark.
-export const ON_DARK_MUTED = '#BDB7AA';
-export const ON_DARK = '#F6F3EC';
+export const ON_DARK_MUTED = color.onInverseMuted;
+export const ON_DARK = color.onInverse;
 const groupName = {
   display: 'block',
   fontSize: 15,
@@ -68,7 +68,7 @@ export const AppFooter: React.FC<{
     <Box
       component="footer"
       sx={{
-        bgcolor: INK_COLOR,
+        bgcolor: color.inverse,
         color: ON_DARK_MUTED,
         mt: { xs: 7, sm: 12 },
         pt: { xs: 5, sm: 8 },

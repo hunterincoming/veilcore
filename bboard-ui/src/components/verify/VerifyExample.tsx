@@ -13,7 +13,8 @@ import { Alert, Box, Container, Divider, Paper, Stack, Typography } from '@mui/m
 import { Link as RouterLink } from 'react-router-dom';
 import EventIcon from '@mui/icons-material/EventOutlined';
 import LockIcon from '@mui/icons-material/LockOutlined';
-import { LINK_SX, MUTED_COLOR } from '../../config/theme';
+import { LINK_SX } from '../../config/theme';
+import { color } from '../../config/tokens';
 import { IS_MAINNET } from '../../config/network';
 import { Fact, FactKey } from './DisclosedFacts';
 import { geneticsLabel } from '../../veilcore/disclosure';
@@ -25,7 +26,7 @@ import { MakeYourOwn } from './CheckParts';
 const Note: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   <Typography
     variant="caption"
-    sx={{ display: 'block', color: MUTED_COLOR, fontWeight: 600, pl: 3.25, mt: -0.5, mb: 0.5 }}
+    sx={{ display: 'block', color: color.textMuted, fontWeight: 600, pl: 3.25, mt: -0.5, mb: 0.5 }}
   >
     {children}
   </Typography>

@@ -27,7 +27,7 @@ import { IS_MAINNET, NETWORK, networkLabel, canonicalUrl } from '../../config/ne
 import { useLicenses, activeLicenseCount, licensesForRecord } from '../../veilcore/licenses';
 import { shortFingerprint } from '../../veilcore/commitment';
 import { nameLinkParams, verifyPath } from '../../veilcore/verify-link';
-import { ERROR_COLOR, HAIRLINE, INK_COLOR, LINE_COLOR, MUTED_COLOR, OK_COLOR, SHEET } from '../../config/theme';
+import { paper } from '../../config/tokens';
 import { utcDate, utcStamp as fmtStamp } from '../../veilcore/time';
 import { REAL_CHAIN } from '../../veilcore/chain/config';
 import { ProveOwnershipPanel } from '../chain/ProveOwnershipPanel';
@@ -48,16 +48,17 @@ import { strainGroupWords, strainParentWords } from '../flow/StrainForm';
 
 // The certificate's own colours: a specimen sheet, ink on archival paper, every pair at
 // least 4.5:1. A check that passed is a ✓ in the quiet green; one that failed is a ✗ in the
-// error red. Its rules are the sheet's dashed hairlines.
+// error red. Its rules are the sheet's dashed hairlines. Always the paper set: it is printed
+// and saved as a picture, whatever the screen around it looks like.
 const CERT = {
-  ground: SHEET,
-  ink: INK_COLOR,
-  muted: MUTED_COLOR,
-  line: LINE_COLOR,
-  hairline: HAIRLINE,
-  ok: OK_COLOR,
-  error: ERROR_COLOR,
-  practice: '#8F5500',
+  ground: paper.surface,
+  ink: paper.text,
+  muted: paper.textMuted,
+  line: paper.line,
+  hairline: paper.rule,
+  ok: paper.ok,
+  error: paper.error,
+  practice: paper.warn,
 } as const;
 
 const MONO = '"JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace';

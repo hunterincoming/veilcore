@@ -29,22 +29,36 @@
    SPDX-License-Identifier: Apache-2.0 */
 
 .vcm {
+  /* The colours: config/tokens.ts's `paper`, by role (tokens.test.ts checks they match). */
   --ground: #f6f3ec;
-  --sheet: #fffdf7;
-  --ink: #16181d;
-  --muted: #4b4740;
-  --pollen: #f6da3c;
-  --wash: #ece6d8;
-  --wash-strong: #e0d8c6;
+  --surface: #fffdf7;
+  --surface-quiet: #ece6d8;
+  --surface-quiet-hover: #e0d8c6;
   --band: #f0ebe0; /* every other row of the one table */
-  --hairline: #e4dcc8; /* the dashed rules of a specimen sheet */
+  --text: #16181d;
+  --text-muted: #4b4740;
+  --accent: #f6da3c;
+  --on-accent: #16181d;
+  /* The paper gold as it is here, kept by the rules below that also reach into the night
+     pages (.home sets its own --accent): a few underlines, the hero link's hover, the
+     selection. Today's look, kept exactly; it goes when the back pages turn night. */
+  --accent-paper: var(--accent);
+  --rule: #e4dcc8; /* the dashed rules of a specimen sheet */
   --edge: #857e70; /* input edges: 4.0:1 on Sheet, 3.6:1 on Paper */
-  --step-line: #cfc6b1;
-  /* On the ink band and footer: paper text, pollen underlines and ring. */
-  --on-dark: #f6f3ec;
-  --on-dark-muted: #bdb7aa; /* 8.9:1 on Ink */
+  --line: #cfc6b1;
   --ok: #2e6b55; /* a check that passed: 5.7:1 on Paper, never the brand */
   --warn: #8f5500;
+  --error: #9e2a0b;
+  --ok-tint: #e4efea;
+  --warn-tint: #faf0e1;
+  --error-tint: #fbece6;
+  --focus: #f6da3c;
+  --focus-inner: #16181d;
+  /* The ink band and footer, and on them: paper text, pollen underlines and ring. */
+  --inverse: #16181d;
+  --inverse-surface: #1f2128;
+  --on-inverse: #f6f3ec;
+  --on-inverse-muted: #bdb7aa; /* 8.9:1 on Ink */
   --font:
     'Atkinson Hyperlegible Next Variable', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', 'Noto Sans JP',
     system-ui, -apple-system, 'Segoe UI', sans-serif;
@@ -66,7 +80,7 @@
   --reg-gap: clamp(40px, 4.5vw, 72px);
 
   background: var(--ground);
-  color: var(--ink);
+  color: var(--text);
   font-family: var(--font);
   font-size: 17px;
   line-height: 1.55;
@@ -114,8 +128,8 @@ html:has(.vcm) {
 }
 /* Selected text is highlighted in pollen, like a marker on a printed record. */
 .vcm ::selection {
-  background: var(--pollen);
-  color: var(--ink);
+  background: var(--accent-paper);
+  color: var(--text);
 }
 
 /* The draft-translation note, above the page when there is one. */
@@ -147,7 +161,7 @@ html:has(.vcm) {
   font-style: normal;
 }
 .vcm .lede {
-  color: var(--muted);
+  color: var(--text-muted);
   font-size: clamp(1.125rem, 1.5vw, 1.25rem);
   line-height: 1.5;
   max-width: 56ch;
@@ -183,10 +197,10 @@ html:has(.vcm) {
   )
   a:not(.btn),
 .vcm a.x-link {
-  color: var(--ink);
+  color: var(--text);
   font-weight: 700;
   text-decoration: underline;
-  text-decoration-color: var(--pollen);
+  text-decoration-color: var(--accent-paper);
   text-decoration-thickness: 3px;
   text-decoration-skip-ink: none;
   text-underline-offset: 3px;
@@ -213,9 +227,9 @@ html:has(.vcm) {
   display: inline-block;
   margin-top: 24px;
   font-weight: 700;
-  color: var(--ink);
+  color: var(--text);
   text-decoration: underline;
-  text-decoration-color: var(--pollen);
+  text-decoration-color: var(--accent-paper);
   text-decoration-thickness: 3px;
   text-decoration-skip-ink: none;
   text-underline-offset: 4px;
@@ -227,7 +241,7 @@ html:has(.vcm) {
 .vcm .label {
   font-size: 15px;
   font-weight: 700;
-  color: var(--muted);
+  color: var(--text-muted);
 }
 
 /* ------------------------------------------------------------------ the register
@@ -292,13 +306,13 @@ html:has(.vcm) {
   display: flex;
   align-items: center;
   gap: 9px;
-  color: var(--ink);
+  color: var(--text);
 }
 /* The mark: an ink tag whose tear-off stub is pollen gold, edged in ink (TagMark.tsx). */
 .vcm .brand svg {
-  color: var(--ink);
-  --tm-stub: var(--pollen);
-  --tm-edge: var(--ink);
+  color: var(--text);
+  --tm-stub: var(--accent);
+  --tm-edge: var(--text);
 }
 .vcm .nav-right {
   display: flex;
@@ -315,11 +329,11 @@ html:has(.vcm) {
 }
 .vcm .nav-links a {
   text-decoration: none;
-  color: var(--muted);
+  color: var(--text-muted);
 }
 .vcm .nav-links a:hover,
 .vcm .nav-links a[aria-current] {
-  color: var(--ink);
+  color: var(--text);
 }
 .vcm .nav-links a.nav-cta {
   display: inline-flex;
@@ -328,8 +342,8 @@ html:has(.vcm) {
   box-sizing: border-box;
   padding: 0 16px;
   border-radius: var(--r-control);
-  background: var(--pollen);
-  color: var(--ink);
+  background: var(--accent);
+  color: var(--text);
   font-weight: 700;
   box-shadow: var(--press-rest);
   transition:
@@ -337,7 +351,7 @@ html:has(.vcm) {
     box-shadow 0.12s ease-out;
 }
 .vcm .nav-links a.nav-cta:hover {
-  color: var(--ink);
+  color: var(--text);
   box-shadow: var(--press-lift);
   transform: translateY(-1px);
 }
@@ -347,10 +361,10 @@ html:has(.vcm) {
 }
 .vcm .menu-btn {
   display: none;
-  background: var(--wash);
+  background: var(--surface-quiet);
   border: 0;
   border-radius: var(--r-control);
-  color: var(--ink);
+  color: var(--text);
   font-family: var(--font);
   font-weight: 700;
   font-size: 16px;
@@ -376,8 +390,8 @@ html:has(.vcm) {
   padding: 12px 22px;
   border: 0;
   border-radius: var(--r-control);
-  color: var(--ink);
-  background: var(--wash);
+  color: var(--text);
+  background: var(--surface-quiet);
   cursor: pointer;
   transition:
     background-color 0.15s,
@@ -385,15 +399,15 @@ html:has(.vcm) {
     box-shadow 0.12s ease-out;
 }
 .vcm .btn:hover {
-  background: var(--wash-strong);
+  background: var(--surface-quiet-hover);
 }
 .vcm .btn.solid {
-  background: var(--pollen);
-  color: var(--ink);
+  background: var(--accent);
+  color: var(--text);
   box-shadow: var(--press-rest);
 }
 .vcm .btn.solid:hover {
-  background: var(--pollen);
+  background: var(--accent);
   box-shadow: var(--press-lift);
   transform: translateY(-1px);
 }
@@ -410,8 +424,8 @@ html:has(.vcm) {
    rows. */
 
 .vcm .hero-band {
-  background: var(--ink);
-  color: var(--on-dark);
+  background: var(--inverse);
+  color: var(--on-inverse);
 }
 .vcm header.hero {
   padding-block: clamp(48px, 6vw, 96px) clamp(64px, 7.5vw, 112px);
@@ -432,7 +446,7 @@ html:has(.vcm) {
   line-height: 1.02;
   letter-spacing: -0.012em;
   margin-bottom: clamp(28px, 3.2vw, 48px);
-  color: var(--on-dark);
+  color: var(--on-inverse);
 }
 .vcm header.hero .lede,
 .vcm .hero-actions,
@@ -446,7 +460,7 @@ html:has(.vcm) {
 /* The second sentence answers the first: its own line, in pollen gold (12.7:1 on ink). */
 .vcm header.hero h1 em {
   display: block;
-  color: var(--pollen);
+  color: var(--accent);
 }
 .vcm header.hero.cjk h1 {
   font-family: var(--font);
@@ -461,7 +475,7 @@ html:has(.vcm) {
   margin-top: 0;
   max-width: 46ch;
   font-size: clamp(1.125rem, 1.6vw, 1.3125rem);
-  color: var(--on-dark);
+  color: var(--on-inverse);
 }
 .vcm .hero-actions {
   display: flex;
@@ -472,7 +486,7 @@ html:has(.vcm) {
 /* On ink, the quiet button is a faint paper fill. */
 .vcm .hero-band .btn:not(.solid) {
   background: rgba(246, 243, 236, 0.1);
-  color: var(--on-dark);
+  color: var(--on-inverse);
 }
 .vcm .hero-band .btn:not(.solid):hover {
   background: rgba(246, 243, 236, 0.18);
@@ -482,28 +496,28 @@ html:has(.vcm) {
   margin-top: 18px;
   font-size: 17px;
   line-height: 1.5;
-  color: var(--on-dark);
+  color: var(--on-inverse);
 }
 .vcm .hero-paste a {
-  color: var(--on-dark);
+  color: var(--on-inverse);
   font-weight: 700;
   text-decoration: underline;
-  text-decoration-color: var(--pollen);
+  text-decoration-color: var(--accent-paper);
   text-decoration-thickness: 3px;
   text-decoration-skip-ink: none;
   text-underline-offset: 4px;
   white-space: nowrap;
 }
 .vcm .hero-paste a:hover {
-  color: var(--ink);
-  background: var(--pollen);
+  color: var(--text);
+  background: var(--accent-paper);
 }
 .vcm .hero-status {
   margin-top: 28px;
   max-width: 52ch;
   font-size: 15px;
   line-height: 1.5;
-  color: var(--on-dark-muted);
+  color: var(--on-inverse-muted);
 }
 
 /* The specimen sheet. The one thing on the page that moves, and only when you type.
@@ -519,8 +533,8 @@ html:has(.vcm) {
 }
 .vcm .hd-card {
   position: relative;
-  background: var(--sheet);
-  color: var(--ink);
+  background: var(--surface);
+  color: var(--text);
   border-radius: 6px;
   box-shadow:
     0 1px 0 rgba(0, 0, 0, 0.3),
@@ -535,7 +549,7 @@ html:has(.vcm) {
   gap: 8px;
   font-size: 15px;
   font-weight: 700;
-  color: var(--muted);
+  color: var(--text-muted);
   margin-bottom: 6px;
 }
 .vcm .hd-zone svg {
@@ -557,7 +571,7 @@ html:has(.vcm) {
   position: relative;
   min-width: 0;
   padding-block: 12px 14px;
-  background: linear-gradient(to right, var(--hairline) 50%, transparent 0) left bottom / 8px 1.5px repeat-x;
+  background: linear-gradient(to right, var(--rule) 50%, transparent 0) left bottom / 8px 1.5px repeat-x;
 }
 /* The last row sits on the gold strip: no rule before it. */
 .vcm .fields .field:last-child {
@@ -568,34 +582,34 @@ html:has(.vcm) {
   margin-bottom: 6px;
   font-size: 15px;
   font-weight: 700;
-  color: var(--ink);
+  color: var(--text);
 }
 .vcm .field input {
   width: 100%;
   box-sizing: border-box;
-  background: var(--sheet);
+  background: var(--surface);
   border: 1.5px solid var(--edge);
   border-radius: var(--r-control);
-  color: var(--ink);
+  color: var(--text);
   font-family: var(--font);
   font-size: 1.125rem;
   padding: 10px 14px;
   outline: none;
 }
 .vcm .field input:hover {
-  border-color: var(--muted);
+  border-color: var(--text-muted);
 }
 .vcm .field input:focus {
-  border-color: var(--ink);
+  border-color: var(--text);
 }
 /* The strip that leaves: pollen gold, ink on it. */
 .vcm .hd-out {
-  background: var(--pollen);
+  background: var(--accent);
   padding: 18px 28px 22px;
   border-radius: 0 0 6px 6px;
 }
 .vcm .hd-out .hd-zone {
-  color: var(--ink);
+  color: var(--text);
   margin-bottom: 8px;
 }
 /* The fingerprint, in groups of eight like a printed lab code. Tabular figures so the
@@ -606,7 +620,7 @@ html:has(.vcm) {
   font-weight: 700;
   font-variant-numeric: tabular-nums slashed-zero;
   letter-spacing: 0.03em;
-  color: var(--ink);
+  color: var(--text);
   min-height: 58px;
   overflow-wrap: anywhere;
 }
@@ -645,13 +659,13 @@ html:has(.vcm) {
   place-content: center;
   justify-items: center;
   text-align: center;
-  color: var(--ink);
-  background: radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.28), transparent 46%), var(--pollen);
+  color: var(--text);
+  background: radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.28), transparent 46%), var(--accent);
   /* A stamp's two rings: its edge, and an inner ring a few points in. */
   box-shadow:
-    inset 0 0 0 2px var(--ink),
-    inset 0 0 0 5px var(--pollen),
-    inset 0 0 0 6.5px var(--ink);
+    inset 0 0 0 2px var(--text),
+    inset 0 0 0 5px var(--accent),
+    inset 0 0 0 6.5px var(--text);
   transform: rotate(-8deg);
   animation: vcm-press 0.3s cubic-bezier(0.2, 0.8, 0.25, 1) 0.45s both;
   pointer-events: none;
@@ -696,7 +710,7 @@ html:has(.vcm) {
 .vcm .note {
   font-size: 15px;
   line-height: 1.5;
-  color: var(--on-dark-muted);
+  color: var(--on-inverse-muted);
   max-width: 52ch;
   margin-top: 22px;
 }
@@ -727,7 +741,7 @@ html:has(.vcm) {
   margin-bottom: 8px;
 }
 .vcm .pt p {
-  color: var(--muted);
+  color: var(--text-muted);
   max-width: 60ch;
 }
 
@@ -750,7 +764,7 @@ html:has(.vcm) {
   top: 12px;
   bottom: 12px;
   width: 2px;
-  background: var(--step-line);
+  background: var(--line);
 }
 .vcm .step {
   counter-increment: step;
@@ -774,14 +788,14 @@ html:has(.vcm) {
   line-height: 1;
   letter-spacing: 0;
   font-variant-numeric: tabular-nums;
-  color: var(--ink);
+  color: var(--text);
 }
 .vcm .step h3 {
   font-size: 1.375rem;
   margin-bottom: 6px;
 }
 .vcm .step p {
-  color: var(--muted);
+  color: var(--text-muted);
   max-width: 54ch;
 }
 
@@ -795,25 +809,25 @@ html:has(.vcm) {
   max-width: 64ch;
 }
 .vcm .claim-list li {
-  color: var(--muted);
+  color: var(--text-muted);
 }
 .vcm .claim-list li strong,
 .vcm .isnt li strong,
 .vcm .claim-notes strong {
-  color: var(--ink);
+  color: var(--text);
   font-weight: 700;
 }
 .vcm .claim-notes {
   margin-top: 36px;
   max-width: 64ch;
-  color: var(--muted);
+  color: var(--text-muted);
 }
 /* The limits are what a reader must not miss: set apart by a Wash ground, not a box line. */
 .vcm .claim-limits {
-  background: var(--wash);
+  background: var(--surface-quiet);
   border-radius: var(--r-control);
   padding: 18px 22px;
-  color: var(--ink);
+  color: var(--text);
 }
 .vcm .claim-notes .more {
   margin-top: 20px;
@@ -835,7 +849,7 @@ html:has(.vcm) {
   gap: 16px;
 }
 .vcm .isnt li {
-  color: var(--muted);
+  color: var(--text-muted);
 }
 
 /* ------------------------------------------------------------------ questions */
@@ -865,11 +879,11 @@ html:has(.vcm) {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: var(--wash);
+  background: var(--surface-quiet);
   display: grid;
   place-items: center;
   font-weight: 600;
-  color: var(--ink);
+  color: var(--text);
   font-size: 1.25rem;
   line-height: 1;
 }
@@ -878,12 +892,12 @@ html:has(.vcm) {
 }
 .vcm .faq summary:hover {
   text-decoration: underline;
-  text-decoration-color: var(--pollen);
+  text-decoration-color: var(--accent-paper);
   text-decoration-thickness: 3px;
   text-underline-offset: 4px;
 }
 .vcm .faq p {
-  color: var(--muted);
+  color: var(--text-muted);
   max-width: 64ch;
   padding-bottom: 20px;
 }
@@ -892,19 +906,19 @@ html:has(.vcm) {
    The second ink band: where both "Try the demo" buttons land. */
 
 .vcm section.dark {
-  background: var(--ink);
-  color: var(--on-dark);
+  background: var(--inverse);
+  color: var(--on-inverse);
 }
 .vcm section.dark .lede {
-  color: var(--on-dark-muted);
+  color: var(--on-inverse-muted);
 }
 .vcm section.dark .lede a.inline {
-  color: var(--on-dark);
-  text-decoration-color: var(--pollen);
+  color: var(--on-inverse);
+  text-decoration-color: var(--accent);
 }
 .vcm section.dark .lede a.inline:hover {
-  color: var(--ink);
-  background: var(--pollen);
+  color: var(--text);
+  background: var(--accent);
 }
 .vcm .demos {
   display: grid;
@@ -928,16 +942,16 @@ html:has(.vcm) {
   font-family: var(--display);
   font-size: 1.625rem;
   text-decoration: underline;
-  text-decoration-color: var(--pollen);
+  text-decoration-color: var(--accent);
   text-decoration-thickness: 3px;
   text-decoration-skip-ink: none;
   text-underline-offset: 6px;
 }
 .vcm .demo:hover h3 {
-  color: var(--pollen);
+  color: var(--accent);
 }
 .vcm .demo p {
-  color: var(--on-dark-muted);
+  color: var(--on-inverse-muted);
   max-width: 34ch;
 }
 .vcm .meta-row {
@@ -952,16 +966,16 @@ html:has(.vcm) {
   font-weight: 600;
   padding: 2px 10px;
   border-radius: var(--r-chip);
-  color: var(--muted);
-  background: var(--wash);
+  color: var(--text-muted);
+  background: var(--surface-quiet);
 }
 .vcm section.dark .chip {
-  color: var(--on-dark-muted);
+  color: var(--on-inverse-muted);
   background: rgba(246, 243, 236, 0.1);
 }
 .vcm section.dark .chip.live {
-  color: var(--ink);
-  background: var(--on-dark);
+  color: var(--text);
+  background: var(--on-inverse);
 }
 .vcm button.demo {
   font: inherit;
@@ -1000,10 +1014,10 @@ html:has(.vcm) {
   margin-bottom: 10px;
 }
 .vcm .stat span {
-  color: var(--muted);
+  color: var(--text-muted);
 }
 .vcm .stat.ok b {
-  color: var(--ink);
+  color: var(--text);
 }
 .vcm .stat.no b {
   color: var(--warn);
@@ -1036,7 +1050,7 @@ html:has(.vcm) {
   padding: 14px 18px;
   font-size: 1rem;
   line-height: 1.5;
-  color: var(--muted);
+  color: var(--text-muted);
 }
 .vcm .live-table tbody tr:nth-child(odd) > * {
   background: var(--band);
@@ -1052,7 +1066,7 @@ html:has(.vcm) {
   padding-bottom: 12px;
   font-size: 15px;
   font-weight: 700;
-  color: var(--ink);
+  color: var(--text);
 }
 .vcm .live-table thead th:first-child {
   width: 22%;
@@ -1062,17 +1076,17 @@ html:has(.vcm) {
 }
 .vcm .live-table thead .soon {
   font-weight: 400;
-  color: var(--muted);
+  color: var(--text-muted);
 }
 .vcm .live-table tbody th {
   font-weight: 700;
-  color: var(--ink);
+  color: var(--text);
 }
 .vcm .live-table td .chip {
   display: none;
 }
 .vcm .live-table td.no {
-  color: var(--muted);
+  color: var(--text-muted);
 }
 
 /* ------------------------------------------------------------------ updates
@@ -1087,7 +1101,7 @@ html:has(.vcm) {
   grid-template-columns: 136px minmax(0, 1fr);
   gap: 8px 32px;
   text-decoration: none;
-  color: var(--ink);
+  color: var(--text);
 }
 .vcm .post .when {
   display: flex;
@@ -1100,13 +1114,13 @@ html:has(.vcm) {
   font-size: 1.125rem;
   font-weight: 800;
   font-variant-numeric: tabular-nums;
-  color: var(--ink);
+  color: var(--text);
   /* A date, so it is marked: the log book's date column, each date underscored in pollen. */
-  background: linear-gradient(transparent 62%, var(--pollen) 62%, var(--pollen) 92%, transparent 92%);
+  background: linear-gradient(transparent 62%, var(--accent-paper) 62%, var(--accent-paper) 92%, transparent 92%);
 }
 .vcm .post .tag {
   font-size: 15px;
-  color: var(--muted);
+  color: var(--text-muted);
 }
 .vcm .post h3 {
   font-size: 1.375rem;
@@ -1116,13 +1130,13 @@ html:has(.vcm) {
 }
 .vcm .post:hover h3 {
   text-decoration: underline;
-  text-decoration-color: var(--pollen);
+  text-decoration-color: var(--accent-paper);
   text-decoration-thickness: 3px;
   text-decoration-skip-ink: none;
   text-underline-offset: 4px;
 }
 .vcm .post p {
-  color: var(--muted);
+  color: var(--text-muted);
   margin-top: 8px;
   max-width: 64ch;
 }
@@ -1131,9 +1145,9 @@ html:has(.vcm) {
   margin-top: 8px;
   font-size: 16px;
   font-weight: 700;
-  color: var(--ink);
+  color: var(--text);
   text-decoration: underline;
-  text-decoration-color: var(--pollen);
+  text-decoration-color: var(--accent-paper);
   text-decoration-thickness: 3px;
   text-decoration-skip-ink: none;
   text-underline-offset: 4px;
@@ -1144,7 +1158,7 @@ html:has(.vcm) {
   gap: 8px 28px;
   align-items: center;
   margin-top: 40px;
-  color: var(--muted);
+  color: var(--text-muted);
 }
 .vcm .subscribe .more {
   margin: 0;
@@ -1167,7 +1181,7 @@ html:has(.vcm) {
   font-weight: 700;
   /* Opening a list is not a date or a link: plain ink, like "Show the detail", so the
      gold in the updates column stays on the dates and the links to read them. */
-  color: var(--ink);
+  color: var(--text);
 }
 .vcm details.older-posts > summary::-webkit-details-marker,
 .vcm details.tech > summary::-webkit-details-marker {
@@ -1215,18 +1229,18 @@ html:has(.vcm) {
 .vcm .contracts dt {
   font-size: 15px;
   font-weight: 700;
-  color: var(--muted);
+  color: var(--text-muted);
 }
 .vcm .contracts dd {
   margin: 2px 0 0;
-  color: var(--muted);
+  color: var(--text-muted);
 }
 /* A contract address: the same legible face, tabular, slashed zero. */
 .vcm .contracts code {
   font-family: var(--font);
   font-variant-numeric: tabular-nums slashed-zero;
   letter-spacing: 0.02em;
-  color: var(--ink);
+  color: var(--text);
   overflow-wrap: anywhere;
 }
 .vcm .contracts .more {
@@ -1254,7 +1268,7 @@ html:has(.vcm) {
 }
 .vcm .audiences dd p {
   flex-basis: 100%;
-  color: var(--muted);
+  color: var(--text-muted);
   margin-bottom: 6px;
   max-width: 48ch;
 }
@@ -1289,19 +1303,19 @@ html:has(.vcm) {
   gap: 20px;
   align-items: center;
   text-decoration: none;
-  color: var(--ink);
+  color: var(--text);
 }
 .vcm .avatar {
   flex: none;
   width: 80px;
   height: 80px;
   border-radius: var(--r-picture);
-  background: var(--wash);
+  background: var(--surface-quiet);
   display: grid;
   place-items: center;
   font-weight: 800;
   font-size: 1.4rem;
-  color: var(--muted);
+  color: var(--text-muted);
   overflow: hidden;
   position: relative;
 }
@@ -1314,18 +1328,18 @@ html:has(.vcm) {
 }
 .vcm .person:hover h3 {
   text-decoration: underline;
-  text-decoration-color: var(--pollen);
+  text-decoration-color: var(--accent);
   text-decoration-thickness: 3px;
   text-underline-offset: 4px;
 }
 .vcm .person .role {
   font-size: 15px;
   font-weight: 700;
-  color: var(--muted);
+  color: var(--text-muted);
 }
 .vcm .person p {
   font-size: 1rem;
-  color: var(--muted);
+  color: var(--text-muted);
   margin-top: 4px;
 }
 
@@ -1333,8 +1347,8 @@ html:has(.vcm) {
    On ink: the end of the page. */
 
 .vcm footer.bottom {
-  background: var(--ink);
-  color: var(--on-dark-muted);
+  background: var(--inverse);
+  color: var(--on-inverse-muted);
   padding: 64px 0 32px;
   font-size: 15px;
 }
@@ -1344,11 +1358,11 @@ html:has(.vcm) {
   gap: 32px;
 }
 .vcm footer .brand {
-  color: var(--on-dark);
+  color: var(--on-inverse);
 }
 .vcm footer .brand svg {
-  color: var(--on-dark);
-  --tm-stub: var(--pollen);
+  color: var(--on-inverse);
+  --tm-stub: var(--accent);
   --tm-edge: transparent;
 }
 .vcm .foot-about {
@@ -1358,7 +1372,7 @@ html:has(.vcm) {
 .vcm .foot h3 {
   font-size: 15px;
   font-weight: 700;
-  color: var(--on-dark);
+  color: var(--on-inverse);
   margin-bottom: 6px;
 }
 .vcm .foot ul {
@@ -1371,7 +1385,7 @@ html:has(.vcm) {
   text-decoration: none;
 }
 .vcm footer a:hover {
-  color: var(--on-dark);
+  color: var(--on-inverse);
   text-decoration: underline;
   text-underline-offset: 3px;
 }
@@ -1405,7 +1419,7 @@ html:has(.vcm) {
   display: block;
 }
 .vcm header.page p {
-  color: var(--muted);
+  color: var(--text-muted);
   font-size: clamp(1.125rem, 1.5vw, 1.25rem);
   line-height: 1.5;
   max-width: 56ch;
@@ -1430,14 +1444,14 @@ html:has(.vcm) {
 .vcm .photo {
   position: relative;
   aspect-ratio: 4 / 3;
-  background: var(--wash);
+  background: var(--surface-quiet);
   border-radius: var(--r-picture);
   overflow: hidden;
   display: grid;
   place-items: center;
   font-weight: 800;
   font-size: clamp(3.5rem, 8vw, 5rem);
-  color: var(--muted);
+  color: var(--text-muted);
 }
 .vcm .photo img {
   position: absolute;
@@ -1459,13 +1473,13 @@ html:has(.vcm) {
 }
 .vcm .founder .role {
   font-weight: 700;
-  color: var(--muted);
+  color: var(--text-muted);
 }
 .vcm .bio {
-  color: var(--muted);
+  color: var(--text-muted);
 }
 .vcm .bio.first {
-  color: var(--ink);
+  color: var(--text);
 }
 .vcm .meta {
   padding-top: 8px;
@@ -1475,10 +1489,10 @@ html:has(.vcm) {
 .vcm .meta dt {
   font-size: 15px;
   font-weight: 700;
-  color: var(--muted);
+  color: var(--text-muted);
 }
 .vcm .meta dd {
-  color: var(--ink);
+  color: var(--text);
   margin-top: 4px;
 }
 .vcm .tags {
@@ -1492,7 +1506,7 @@ html:has(.vcm) {
   font-size: 15px;
   font-weight: 600;
   padding: 3px 10px;
-  background: var(--wash);
+  background: var(--surface-quiet);
   border-radius: var(--r-chip);
 }
 .vcm .links {
@@ -1512,33 +1526,33 @@ html:has(.vcm) {
   font-weight: 700;
   text-decoration: none;
   padding: 0 14px;
-  background: var(--wash);
+  background: var(--surface-quiet);
   border-radius: var(--r-control);
 }
 .vcm .links a:hover {
-  background: var(--wash-strong);
+  background: var(--surface-quiet-hover);
 }
 /* The founders page's contact: a Wash band, so it doesn't run into the ink footer
    below it as one dark block. Text Ink (14.3:1) and Pencil (7.4:1). */
 .vcm .band {
-  background: var(--wash);
-  color: var(--ink);
+  background: var(--surface-quiet);
+  color: var(--text);
   padding: clamp(56px, 8vw, 96px) 0;
 }
 .vcm .band h2 {
   max-width: 24ch;
 }
 .vcm .band p {
-  color: var(--muted);
+  color: var(--text-muted);
   font-size: 1.125rem;
   max-width: 56ch;
   margin-top: 16px;
 }
 .vcm .band .btn:not(.solid) {
-  background: var(--sheet);
+  background: var(--surface);
 }
 .vcm .band .btn:not(.solid):hover {
-  background: var(--wash-strong);
+  background: var(--surface-quiet-hover);
 }
 
 /* verify lookup */
@@ -1557,7 +1571,7 @@ html:has(.vcm) {
 .vcm .lookup .field small {
   display: block;
   margin-top: 6px;
-  color: var(--muted);
+  color: var(--text-muted);
   font-size: 15px;
   line-height: 1.45;
 }
@@ -1583,17 +1597,17 @@ html:has(.vcm) {
 }
 .vcm .privacy-note dd {
   margin: 0;
-  color: var(--muted);
+  color: var(--text-muted);
   line-height: 1.6;
 }
 .vcm .privacy-note dl.privacy-summary {
   gap: 16px;
   padding: 24px;
   border-radius: var(--r-picture);
-  background: var(--wash);
+  background: var(--surface-quiet);
 }
 .vcm .privacy-note dl.privacy-summary dd {
-  color: var(--ink);
+  color: var(--text);
 }
 .vcm .privacy-full {
   margin: 48px 0 24px;
@@ -1611,7 +1625,7 @@ html:has(.vcm) {
 }
 .vcm .policy p,
 .vcm .policy li {
-  color: var(--muted);
+  color: var(--text-muted);
   line-height: 1.6;
 }
 .vcm .policy ul {
@@ -1632,14 +1646,14 @@ html:has(.vcm) {
   max-width: 880px;
   padding: 24px;
   border-radius: var(--r-picture);
-  background: var(--wash);
+  background: var(--surface-quiet);
 }
 .vcm .policy .policy-short h2 {
   margin: 0 0 12px;
   font-size: 1.25rem;
 }
 .vcm .policy .policy-short li {
-  color: var(--ink);
+  color: var(--text);
 }
 .vcm .policy dl {
   margin-top: 8px;
@@ -1656,18 +1670,18 @@ html:has(.vcm) {
   vertical-align: top;
   padding: 12px 16px;
   line-height: 1.5;
-  color: var(--muted);
+  color: var(--text-muted);
   overflow-wrap: anywhere;
 }
 .vcm .policy-table thead th {
   padding-top: 0;
   font-size: 15px;
   font-weight: 700;
-  color: var(--ink);
+  color: var(--text);
 }
 .vcm .policy-table tbody th {
   font-weight: 600;
-  color: var(--ink);
+  color: var(--text);
   width: 42%;
 }
 .vcm .policy-table tbody tr:nth-child(odd) > * {
@@ -1684,7 +1698,7 @@ html:has(.vcm) {
 }
 .vcm details.policy-tech > summary {
   font-weight: 700;
-  color: var(--ink);
+  color: var(--text);
 }
 .vcm details.policy-tech p {
   font-size: 15px;
@@ -1706,9 +1720,9 @@ html:has(.vcm) {
 .vcm button:focus-visible,
 .vcm summary:focus-visible,
 .vcm input:focus-visible {
-  outline: 3px solid var(--pollen);
+  outline: 3px solid var(--focus);
   outline-offset: 2px;
-  box-shadow: 0 0 0 2px var(--ink);
+  box-shadow: 0 0 0 2px var(--focus-inner);
   border-radius: 4px;
 }
 .vcm .btn:focus-visible,
@@ -1722,7 +1736,7 @@ html:has(.vcm) {
 }
 /* On ink the inner ring turns paper, so both rings still show. */
 .vcm :is(.hero-band, section.dark, footer.bottom) :is(a, button, summary):focus-visible {
-  box-shadow: 0 0 0 2px var(--on-dark);
+  box-shadow: 0 0 0 2px var(--on-inverse);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1795,7 +1809,7 @@ html:has(.vcm) {
     flex-direction: column;
     align-items: stretch;
     gap: 0;
-    background: var(--sheet);
+    background: var(--surface);
     box-shadow: 0 18px 24px -18px rgba(22, 24, 29, 0.35);
     padding: 4px var(--gutter) 16px;
   }
@@ -1810,7 +1824,7 @@ html:has(.vcm) {
     align-items: center;
     min-height: 48px;
     font-size: 17px;
-    color: var(--ink);
+    color: var(--text);
   }
   .vcm .nav-links li:last-child {
     padding-top: 8px;
@@ -1866,7 +1880,7 @@ html:has(.vcm) {
     display: block;
     font-size: 14px;
     font-weight: 700;
-    color: var(--ink);
+    color: var(--text);
   }
   .vcm .pt.span2 {
     grid-column: auto;
@@ -1925,7 +1939,7 @@ html:has(.vcm) {
     display: inline;
     background: none;
     padding: 0;
-    color: var(--ink);
+    color: var(--text);
     font-weight: 700;
   }
 }
@@ -2103,13 +2117,13 @@ html:has(.vcm) {
     width: 28px;
     height: 28px;
     border-radius: 50%;
-    background: var(--wash);
+    background: var(--surface-quiet);
     display: grid;
     place-items: center;
   }
   .vcm .fold-i::after {
     content: '+';
-    color: var(--ink);
+    color: var(--text);
     font-weight: 600;
     font-size: 1.125rem;
     line-height: 1;
@@ -2325,9 +2339,9 @@ html:has(.vcm) {
   }
   .vcm .fold-group .fold-btn {
     padding: 0 16px;
-    background: var(--wash);
+    background: var(--surface-quiet);
     border-radius: var(--r-control);
-    color: var(--ink);
+    color: var(--text);
     font-weight: 700;
   }
   .vcm .fold-group .fold-i {

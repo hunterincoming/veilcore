@@ -17,7 +17,7 @@
                        Night text on it reads 5.0:1, so small text on gold is always night (black);
                        white on it is 3.8:1, for large headlines only, and nothing here uses it.
                        Gold text on the night reads 5.0:1. Under the pointer #B8890B (night on it
-                       6.0:1). The token keeps Mako's name, --yellow
+                       6.0:1). The token keeps Mako's name, --accent
      Cyan     #5FD3DF  the proof code, one card of "Where it stops" (Void on it 10.9:1)
    Type: Archivo (variable, 400-700) and JetBrains Mono for proof codes, both OFL, self-hosted
    and subset (public/fonts, LICENSE-*.txt): 25 KB and 8 KB. Japanese falls back to the system's
@@ -47,18 +47,19 @@ html:has(.vcm .home) body {
 }
 
 .vcm .home {
-  --void: #0b0e14;
-  --void-2: #0e121a;
-  --fill: #141b26;
-  --fill-2: #1c2738;
+  --ground: #0b0e14;
+  --ground-deep: #0e121a;
+  --surface: #141b26;
+  --surface-raised: #1c2738;
+  --band: #111722;
   --rule: #1a2331;
   --ring: #5a7ba6;
-  --ink-1: #eceef1;
-  --ink-2: #a4afbf;
-  --ink-3: #7a889c;
-  --yellow: #a67c00;
-  --yellow-hi: #b8890b;
-  --cyan: #5fd3df;
+  --text: #eceef1;
+  --text-muted: #a4afbf;
+  --text-faint: #7a889c;
+  --accent: #a67c00;
+  --accent-hover: #b8890b;
+  --highlight: #5fd3df;
   --sans:
     'VeilCore Archivo', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', 'Noto Sans JP', system-ui,
     sans-serif;
@@ -68,31 +69,26 @@ html:has(.vcm .home) body {
   --t-display: clamp(2.75rem, 5.6vw, 6rem);
   --t-h2: clamp(2.1rem, 3.8vw, 4.25rem);
   --t-giant: clamp(3rem, 8.4vw, 9rem);
-  /* The shared tokens, for the parts the home page shares with the other pages. */
-  --ground: var(--void);
-  --sheet: var(--fill);
-  --ink: var(--ink-1);
-  --muted: var(--ink-2);
-  --wash: var(--fill);
-  --wash-strong: var(--fill-2);
-  --band: #111722;
-  --hairline: var(--rule);
-  --step-line: var(--rule);
-  --on-dark: var(--ink-1);
-  --on-dark-muted: var(--ink-2);
+  /* The colours above are config/tokens.ts's `night`, by role (tokens.test.ts checks them).
+     The rest of the shared roles, for the parts the home page shares with the other pages. */
+  --surface-quiet: var(--surface);
+  --surface-quiet-hover: var(--surface-raised);
+  --line: var(--rule);
+  --on-inverse: var(--text);
+  --on-inverse-muted: var(--text-muted);
   --font: var(--sans);
   --display: var(--sans);
-  background: var(--void);
-  color: var(--ink-1);
+  background: var(--ground);
+  color: var(--text);
   font-family: var(--sans);
   font-size: 16px;
   line-height: 1.6;
   font-variant-numeric: tabular-nums;
-  caret-color: var(--yellow);
+  caret-color: var(--accent);
 }
 .vcm .home ::selection {
-  background: var(--yellow);
-  color: var(--void);
+  background: var(--accent);
+  color: var(--ground);
 }
 .vcm .home :is(h1, h2, h3) {
   font-family: var(--sans);
@@ -110,7 +106,7 @@ html:has(.vcm .home) body {
   text-decoration-color: currentColor;
 }
 .vcm .home :is(a, button, summary, input):focus-visible {
-  outline: 2px solid var(--yellow);
+  outline: 2px solid var(--accent);
   outline-offset: 4px;
   box-shadow: none;
   border-radius: 4px;
@@ -131,29 +127,29 @@ html:has(.vcm .home) body {
   white-space: nowrap;
 }
 .vcm .home .k-hl {
-  color: var(--yellow);
+  color: var(--accent);
 }
 .vcm .home .k-mute {
-  color: var(--ink-3);
+  color: var(--text-faint);
 }
 .vcm .home .k-lbl {
   font-size: 13px;
-  color: var(--ink-3);
+  color: var(--text-faint);
 }
 .vcm .home .k-lead {
   max-width: 34em;
   font-size: clamp(17px, 1.35vw, 21px);
-  color: var(--ink-2);
+  color: var(--text-muted);
 }
 .vcm .home .k-sub {
   max-width: 44em;
   margin-top: 10px;
-  color: var(--ink-2);
+  color: var(--text-muted);
 }
 .vcm .home .k-fine {
   max-width: 62em;
   font-size: 13px;
-  color: var(--ink-3);
+  color: var(--text-faint);
 }
 .vcm .home .k-h2 {
   font-size: var(--t-h2);
@@ -225,18 +221,18 @@ html:has(.vcm .home) body {
   transform: scale(0.97);
 }
 .vcm .home .k-btn-primary {
-  background: var(--yellow);
-  color: var(--void);
+  background: var(--accent);
+  color: var(--ground);
 }
 .vcm .home .k-btn-primary:hover {
-  background: var(--yellow-hi);
+  background: var(--accent-hover);
 }
 .vcm .home .k-btn-ghost {
-  background: var(--fill);
-  color: var(--ink-1);
+  background: var(--surface);
+  color: var(--text);
 }
 .vcm .home .k-btn-ghost:hover {
-  background: var(--fill-2);
+  background: var(--surface-raised);
 }
 .vcm .home .k-arr {
   display: inline-block;
@@ -248,11 +244,11 @@ html:has(.vcm .home) body {
 .vcm .home .k-link-quiet {
   padding: 14px 4px;
   font-size: 15px;
-  color: var(--ink-2);
+  color: var(--text-muted);
   text-decoration: none;
 }
 .vcm .home .k-link-quiet:hover {
-  color: var(--ink-1);
+  color: var(--text);
 }
 
 /* ------------------------------------------------------------------ reveals
@@ -344,7 +340,7 @@ html:has(.vcm .home) body {
   max-width: 34em;
   margin-top: clamp(24px, 3vh, 40px);
   font-size: clamp(16px, 1.2vw, 19px);
-  color: var(--ink-2);
+  color: var(--text-muted);
 }
 .vcm .home .hero-actions {
   margin-top: clamp(28px, 4vh, 44px);
@@ -352,17 +348,17 @@ html:has(.vcm .home) body {
 .vcm .home .k-paste {
   margin-top: 18px;
   font-size: 15px;
-  color: var(--ink-2);
+  color: var(--text-muted);
 }
 .vcm .home .k-paste a {
   font-weight: 600;
-  color: var(--ink-1);
+  color: var(--text);
   white-space: nowrap;
-  text-decoration-color: var(--yellow);
+  text-decoration-color: var(--accent);
 }
 .vcm .home .k-paste a:hover {
-  background: var(--yellow);
-  color: var(--void);
+  background: var(--accent);
+  color: var(--ground);
 }
 /* "Used VeilCore on another device?" sits right under the paste line, as its pair. */
 .vcm .home .k-paste.hero-restore {
@@ -410,7 +406,7 @@ html:has(.vcm .home) body {
 }
 .vcm .home .k-field > :is(label, span) {
   font-size: 13px;
-  color: var(--ink-3);
+  color: var(--text-faint);
 }
 .vcm .home .k-field input {
   width: 100%;
@@ -420,14 +416,14 @@ html:has(.vcm .home) body {
   border-radius: 0;
   background: none;
   box-shadow: inset 0 -1px 0 #2a3547;
-  color: var(--ink-1);
+  color: var(--text);
   font: inherit;
   font-size: 18px;
   transition: box-shadow 0.2s;
 }
 .vcm .home .k-field input:focus {
   outline: none;
-  box-shadow: inset 0 -2px 0 var(--yellow);
+  box-shadow: inset 0 -2px 0 var(--accent);
 }
 .vcm .home .k-field input:focus-visible {
   outline: none;
@@ -437,7 +433,7 @@ html:has(.vcm .home) body {
   font-family: var(--mono);
   font-size: 14px;
   line-height: 1.75;
-  color: var(--cyan);
+  color: var(--highlight);
   overflow-wrap: anywhere;
 }
 .vcm .home .k-hash .g {
@@ -459,7 +455,7 @@ html:has(.vcm .home) body {
   position: relative;
   overflow: hidden;
   padding-block: clamp(18px, 3vh, 36px);
-  background: var(--void-2);
+  background: var(--ground-deep);
   white-space: nowrap;
   font-size: clamp(2.5rem, 7.4vw, 8rem);
   font-weight: 500;
@@ -489,7 +485,7 @@ html:has(.vcm .home) body {
   height: 0.16em;
   margin-left: 0.45em;
   border-radius: 50%;
-  background: var(--yellow);
+  background: var(--accent);
 }
 .vcm .home .k-marquee span.o {
   color: transparent;
@@ -511,8 +507,8 @@ html:has(.vcm .home) body {
   padding: 0;
   border: 0;
   border-radius: 50%;
-  background: var(--fill-2);
-  color: var(--ink-1);
+  background: var(--surface-raised);
+  color: var(--text);
   cursor: pointer;
 }
 .vcm .home .k-mq-btn svg {
@@ -534,7 +530,7 @@ html:has(.vcm .home) body {
 .vcm .home .k-photo-frame {
   position: absolute;
   inset: 0;
-  background: var(--fill);
+  background: var(--surface);
   /* Set by the script only where CSS has no view timeline (useScrollPieces); open otherwise. */
   clip-path: inset(var(--ci, 0%) round var(--cr, 0px));
 }
@@ -565,7 +561,7 @@ html:has(.vcm .home) body {
 }
 .vcm .home .k-photo-copy .k-lead {
   margin-top: clamp(20px, 3vh, 32px);
-  color: var(--ink-1);
+  color: var(--text);
 }
 
 /* ------------------------------------------------------------------ what did you have, and when */
@@ -615,7 +611,7 @@ html:has(.vcm .home) body {
   width: calc((var(--to) - var(--from)) * var(--p));
   height: 3px;
   border-radius: 2px;
-  background: var(--yellow);
+  background: var(--accent);
 }
 .vcm .home .k-tl-pin {
   position: absolute;
@@ -628,7 +624,7 @@ html:has(.vcm .home) body {
   font-size: 13px;
   line-height: 1.6;
   white-space: nowrap;
-  color: var(--ink-2);
+  color: var(--text-muted);
 }
 .vcm .home .k-tl-pin span {
   order: -1;
@@ -638,14 +634,14 @@ html:has(.vcm .home) body {
   height: 11px;
   margin-top: 4px;
   border-radius: 50%;
-  background: var(--void);
-  box-shadow: inset 0 0 0 1.5px var(--ink-3);
+  background: var(--ground);
+  box-shadow: inset 0 0 0 1.5px var(--text-faint);
 }
 .vcm .home .k-tl-pin.a {
   left: var(--from);
 }
 .vcm .home .k-tl-pin.a b {
-  background: var(--yellow);
+  background: var(--accent);
   box-shadow: 0 0 0 6px rgba(201, 154, 58, 0.18);
 }
 .vcm .home .k-tl-pin.b {
@@ -666,7 +662,7 @@ html:has(.vcm .home) body {
 }
 .vcm .home .k-answer b {
   font-weight: 600;
-  color: var(--ink-1);
+  color: var(--text);
 }
 
 /* ------------------------------------------------------------------ where it matters */
@@ -698,8 +694,8 @@ html:has(.vcm .home) body {
   padding: 0;
   border: 0;
   border-radius: 50%;
-  background: var(--fill);
-  color: var(--ink-1);
+  background: var(--surface);
+  color: var(--text);
   cursor: pointer;
   transition: background-color 0.2s;
 }
@@ -713,8 +709,8 @@ html:has(.vcm .home) body {
   stroke-linejoin: round;
 }
 .vcm .home .k-arrow:hover:not(:disabled) {
-  background: var(--yellow);
-  color: var(--void);
+  background: var(--accent);
+  color: var(--ground);
 }
 .vcm .home .k-arrow:disabled {
   opacity: 0.35;
@@ -762,7 +758,7 @@ html:has(.vcm .home) body {
   height: min(60svh, 640px);
   border-radius: 4px;
   overflow: hidden;
-  background: var(--fill);
+  background: var(--surface);
 }
 .vcm .home .k-hpanel-img img {
   display: block;
@@ -783,7 +779,7 @@ html:has(.vcm .home) body {
 .vcm .home .k-hpanel-copy p {
   max-width: 30em;
   margin-top: 16px;
-  color: var(--ink-2);
+  color: var(--text-muted);
 }
 .vcm .home .k-hgal-bar {
   margin-top: clamp(24px, 4vh, 48px);
@@ -798,7 +794,7 @@ html:has(.vcm .home) body {
   display: block;
   height: 1px;
   margin-top: -1px;
-  background: var(--yellow);
+  background: var(--accent);
   transform: scaleX(var(--p, 0));
   transform-origin: 0;
   transition: transform 0.5s var(--ease-out);
@@ -806,18 +802,18 @@ html:has(.vcm .home) body {
 
 /* ------------------------------------------------------------------ drenched sections */
 .vcm .home .k-drench {
-  background: var(--yellow);
-  color: var(--void);
+  background: var(--accent);
+  color: var(--ground);
 }
 .vcm .home .k-drench ::selection {
-  background: var(--void);
-  color: var(--yellow);
+  background: var(--ground);
+  color: var(--accent);
 }
 .vcm .home .k-drench :focus-visible {
-  outline-color: var(--void);
+  outline-color: var(--ground);
 }
 .vcm .home .k-drench a:not(.k-btn) {
-  color: var(--void);
+  color: var(--ground);
   text-decoration-color: rgba(11, 14, 20, 0.5);
 }
 .vcm .home .k-drench .k-giant {
@@ -847,15 +843,15 @@ html:has(.vcm .home) body {
   color: rgba(11, 14, 20, 0.85);
 }
 .vcm .home .k-btn-dark {
-  background: var(--void);
-  color: var(--yellow);
+  background: var(--ground);
+  color: var(--accent);
 }
 .vcm .home .k-btn-dark:hover {
   background: #1a2030;
 }
 .vcm .home .k-btn-line {
   background: rgba(11, 14, 20, 0.1);
-  color: var(--void);
+  color: var(--ground);
 }
 .vcm .home .k-btn-line:hover {
   background: rgba(11, 14, 20, 0.18);
@@ -879,7 +875,7 @@ html:has(.vcm .home) body {
   position: relative;
   padding: 14px 18px 16px 44px;
   border-radius: 12px;
-  color: var(--ink-3);
+  color: var(--text-faint);
   transition:
     color 0.4s,
     background-color 0.4s;
@@ -892,15 +888,15 @@ html:has(.vcm .home) body {
   width: 9px;
   height: 9px;
   border-radius: 50%;
-  box-shadow: inset 0 0 0 1px var(--ink-3);
+  box-shadow: inset 0 0 0 1px var(--text-faint);
   transition: background-color 0.4s;
 }
 .vcm .home .k-steps li.is-active {
-  background: var(--fill);
-  color: var(--ink-1);
+  background: var(--surface);
+  color: var(--text);
 }
 .vcm .home .k-steps li.is-active::before {
-  background: var(--yellow);
+  background: var(--accent);
   box-shadow: none;
 }
 .vcm .home .k-steps h3 {
@@ -919,7 +915,7 @@ html:has(.vcm .home) body {
 .vcm .home .k-steps p {
   max-width: 30em;
   margin-top: 6px;
-  color: var(--ink-2);
+  color: var(--text-muted);
   opacity: 0.7;
   transition: opacity 0.4s;
 }
@@ -931,7 +927,7 @@ html:has(.vcm .home) body {
   height: min(72svh, 640px);
   border-radius: 6px;
   overflow: hidden;
-  background: radial-gradient(70% 70% at 50% 50%, #101724 0, var(--void) 75%);
+  background: radial-gradient(70% 70% at 50% 50%, #101724 0, var(--ground) 75%);
 }
 .vcm .home .k-layer {
   position: absolute;
@@ -956,7 +952,7 @@ html:has(.vcm .home) body {
   max-width: 32em;
   font-size: 14px;
   text-align: center;
-  color: var(--ink-2);
+  color: var(--text-muted);
 }
 .vcm .home .k-rec {
   display: grid;
@@ -969,13 +965,13 @@ html:has(.vcm .home) body {
   gap: 16px;
   padding: 14px 18px;
   border-radius: 8px;
-  background: var(--fill);
+  background: var(--surface);
   font-size: clamp(16px, 1.3vw, 19px);
 }
 .vcm .home .k-rec dt {
   padding-top: 3px;
   font-size: 14px;
-  color: var(--ink-2);
+  color: var(--text-muted);
 }
 .vcm .home .k-bigcode {
   max-width: 17ch;
@@ -985,7 +981,7 @@ html:has(.vcm .home) body {
   letter-spacing: 0.04em;
   text-align: center;
   word-break: break-all;
-  color: var(--cyan);
+  color: var(--highlight);
 }
 .vcm .home .k-batch {
   display: flex;
@@ -1001,21 +997,21 @@ html:has(.vcm .home) body {
 .vcm .home .k-batch-grid i {
   aspect-ratio: 1;
   border-radius: 2px;
-  background: var(--fill-2);
+  background: var(--surface-raised);
 }
 .vcm .home .k-batch-grid i.me {
-  background: var(--yellow);
+  background: var(--accent);
 }
 .vcm .home .k-batch-arrow {
   width: clamp(40px, 6vw, 96px);
   height: 1px;
-  background: linear-gradient(90deg, var(--yellow), var(--ring));
+  background: linear-gradient(90deg, var(--accent), var(--ring));
 }
 .vcm .home .k-block {
   min-width: 12em;
   padding: 20px 22px;
   border-radius: 6px;
-  background: var(--fill);
+  background: var(--surface);
 }
 .vcm .home .k-block b {
   display: block;
@@ -1024,7 +1020,7 @@ html:has(.vcm .home) body {
 }
 .vcm .home .k-block span {
   font-size: 13px;
-  color: var(--ink-2);
+  color: var(--text-muted);
 }
 .vcm .home .k-check {
   width: clamp(140px, 16vw, 220px);
@@ -1036,7 +1032,7 @@ html:has(.vcm .home) body {
   stroke-width: 1px;
 }
 .vcm .home .k-check .ring {
-  stroke: var(--yellow);
+  stroke: var(--accent);
   stroke-width: 1.5px;
   stroke-dasharray: 440;
   stroke-dashoffset: 440;
@@ -1044,7 +1040,7 @@ html:has(.vcm .home) body {
 }
 .vcm .home .k-check .ok {
   fill: none;
-  stroke: var(--yellow);
+  stroke: var(--accent);
   stroke-width: 3px;
   stroke-linecap: round;
   stroke-linejoin: round;
@@ -1072,7 +1068,7 @@ html:has(.vcm .home) body {
   padding: 26px;
   border: 0;
   border-radius: 14px;
-  background: var(--fill);
+  background: var(--surface);
   color: inherit;
   font: inherit;
   text-align: left;
@@ -1081,7 +1077,7 @@ html:has(.vcm .home) body {
   transition: background-color 0.3s;
 }
 .vcm .home .k-way:hover {
-  background: var(--fill-2);
+  background: var(--surface-raised);
 }
 .vcm .home .k-way h3 {
   font-size: clamp(20px, 1.8vw, 26px);
@@ -1089,11 +1085,11 @@ html:has(.vcm .home) body {
   line-height: 1.15;
 }
 .vcm .home .k-way:hover h3 {
-  color: var(--yellow);
+  color: var(--accent);
 }
 .vcm .home .k-way p {
   font-size: 15px;
-  color: var(--ink-2);
+  color: var(--text-muted);
 }
 .vcm .home #demo .k-lead {
   margin-top: 24px;
@@ -1120,8 +1116,8 @@ html:has(.vcm .home) body {
   padding: 9px 16px;
   border: 0;
   border-radius: 999px;
-  background: var(--fill);
-  color: var(--ink-2);
+  background: var(--surface);
+  color: var(--text-muted);
   font: inherit;
   font-size: 14px;
   cursor: pointer;
@@ -1131,15 +1127,15 @@ html:has(.vcm .home) body {
     transform 0.16s var(--ease-out);
 }
 .vcm .home .k-claim:hover {
-  color: var(--ink-1);
-  background: var(--fill-2);
+  color: var(--text);
+  background: var(--surface-raised);
 }
 .vcm .home .k-claim:active {
   transform: scale(0.97);
 }
 .vcm .home .k-claim[aria-pressed='true'] {
-  background: var(--ink-1);
-  color: var(--void);
+  background: var(--text);
+  color: var(--ground);
 }
 .vcm .home .k-cal {
   --ch: clamp(220px, 34vh, 380px);
@@ -1178,7 +1174,7 @@ html:has(.vcm .home) body {
   width: 100%;
   height: var(--h);
   border-radius: 2px;
-  background: var(--fill);
+  background: var(--surface);
   transition:
     height 0.55s var(--ease-out),
     background-color 0.3s;
@@ -1192,7 +1188,7 @@ html:has(.vcm .home) body {
   font-size: 11px;
   font-style: normal;
   white-space: nowrap;
-  color: var(--ink-1);
+  color: var(--text);
   opacity: 0;
   transition: opacity 0.25s ease;
 }
@@ -1200,16 +1196,16 @@ html:has(.vcm .home) body {
   opacity: 1;
 }
 .vcm .home .k-v:is(.on, .pass) i {
-  background: var(--yellow);
+  background: var(--accent);
 }
 .vcm .home .k-v.same i {
-  background: var(--fill-2);
+  background: var(--surface-raised);
 }
 .vcm .home .k-v.fix i {
-  background: var(--ink-1);
+  background: var(--text);
 }
 .vcm .home .k-v.sig i {
-  box-shadow: inset 0 3px 0 var(--yellow);
+  box-shadow: inset 0 3px 0 var(--accent);
 }
 .vcm .home .k-bar-line {
   position: absolute;
@@ -1233,7 +1229,7 @@ html:has(.vcm .home) body {
   right: 0;
   font-family: var(--mono);
   font-size: 11px;
-  color: var(--yellow);
+  color: var(--accent);
 }
 .vcm .home .k-cal figcaption {
   display: flex;
@@ -1241,7 +1237,7 @@ html:has(.vcm .home) body {
   min-height: 3.2em;
   margin-top: 24px;
   font-size: 15px;
-  color: var(--ink-2);
+  color: var(--text-muted);
 }
 .vcm .home .k-cal-status {
   flex: none;
@@ -1249,14 +1245,14 @@ html:has(.vcm .home) body {
   padding-top: 2px;
   font-family: var(--mono);
   font-size: 12px;
-  color: var(--yellow);
+  color: var(--accent);
 }
 .vcm .home .k-claims-fine {
   margin-top: clamp(40px, 6vh, 72px);
 }
 .vcm .home .k-claims-fine b {
   font-weight: 600;
-  color: var(--ink-2);
+  color: var(--text-muted);
 }
 
 /* ------------------------------------------------------------------ more than a date */
@@ -1278,7 +1274,7 @@ html:has(.vcm .home) body {
 .vcm .home .k-grid3 p {
   max-width: 34em;
   margin-top: 12px;
-  color: var(--ink-2);
+  color: var(--text-muted);
 }
 .vcm .home .k-ways.k-grid4 {
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -1321,26 +1317,26 @@ html:has(.vcm .home) body {
   width: clamp(64px, 7vw, 112px);
 }
 .vcm .home .k-t-night {
-  background: var(--fill-2);
-  color: var(--ink-1);
+  background: var(--surface-raised);
+  color: var(--text);
 }
 .vcm .home .k-t-night p {
-  color: var(--ink-2);
+  color: var(--text-muted);
 }
 .vcm .home .k-t-night .k-stack-mark {
-  color: var(--yellow);
+  color: var(--accent);
 }
 .vcm .home .k-t-cyan {
-  background: var(--cyan);
-  color: var(--void);
+  background: var(--highlight);
+  color: var(--ground);
 }
 .vcm .home .k-t-paper {
-  background: var(--ink-1);
-  color: var(--void);
+  background: var(--text);
+  color: var(--ground);
 }
 .vcm .home .k-t-yellow {
-  background: var(--yellow);
-  color: var(--void);
+  background: var(--accent);
+  color: var(--ground);
 }
 .vcm .home :is(.k-t-cyan, .k-t-paper, .k-t-yellow) p {
   color: rgba(11, 14, 20, 0.82);
@@ -1351,15 +1347,15 @@ html:has(.vcm .home) body {
   max-width: 58em;
   margin-top: 28px;
   list-style: none;
-  color: var(--ink-2);
+  color: var(--text-muted);
 }
 .vcm .home .k-status b {
   font-weight: 600;
-  color: var(--ink-1);
+  color: var(--text);
 }
 .vcm .home .k-status a {
-  color: var(--ink-1);
-  text-decoration-color: var(--yellow);
+  color: var(--text);
+  text-decoration-color: var(--accent);
 }
 .vcm .home .k-m {
   display: inline-block;
@@ -1370,10 +1366,10 @@ html:has(.vcm .home) body {
   vertical-align: 2px;
 }
 .vcm .home .k-m-on {
-  background: var(--yellow);
+  background: var(--accent);
 }
 .vcm .home .k-m-off {
-  box-shadow: inset 0 0 0 1px var(--ink-2);
+  box-shadow: inset 0 0 0 1px var(--text-muted);
 }
 .vcm .home .k-live {
   margin-top: clamp(48px, 7vh, 80px);
@@ -1389,10 +1385,10 @@ html:has(.vcm .home) body {
   a:not(.k-btn),
 .vcm .home a.x-link,
 .vcm .home .more {
-  color: var(--ink-1);
+  color: var(--text);
   font-weight: 600;
   text-decoration: underline;
-  text-decoration-color: var(--yellow);
+  text-decoration-color: var(--accent);
   text-decoration-thickness: 1.5px;
   text-underline-offset: 4px;
 }
@@ -1409,7 +1405,7 @@ html:has(.vcm .home) body {
   font-family: var(--mono);
   font-weight: 500;
   font-size: 14px;
-  color: var(--yellow);
+  color: var(--accent);
 }
 .vcm .home .post h3 {
   font-size: clamp(20px, 1.8vw, 26px);
@@ -1445,10 +1441,10 @@ html:has(.vcm .home) body {
 .vcm .home .k-credit {
   padding-block: 28px 0;
   font-size: 13px;
-  color: var(--ink-3);
+  color: var(--text-faint);
 }
 .vcm .home .k-credit a {
-  color: var(--ink-2);
+  color: var(--text-muted);
 }
 
 /* ------------------------------------------------------------------ the header on the home page
@@ -1679,7 +1675,7 @@ html:has(.vcm .home) [data-site-header] [data-language-picker] .MuiOutlinedInput
   .vcm .home .k-batch-arrow {
     width: 1px;
     height: 28px;
-    background: linear-gradient(var(--yellow), var(--ring));
+    background: linear-gradient(var(--accent), var(--ring));
   }
   .vcm .home .k-stagebox {
     height: 420px;
@@ -1745,13 +1741,13 @@ html:has(.vcm .home) [data-site-header] :is(.MuiAlert-root, [data-draft-notice])
 .vcm .home .k-chip {
   padding: 2px 10px;
   border-radius: 999px;
-  background: var(--fill-2);
-  color: var(--ink-2);
+  background: var(--surface-raised);
+  color: var(--text-muted);
   font-size: 13px;
 }
 .vcm .home .k-chip.live {
-  background: var(--ink-1);
-  color: var(--void);
+  background: var(--text);
+  color: var(--ground);
 }
 
 /* Japanese dates in the updates: the body face, not the code face. */
@@ -1772,7 +1768,7 @@ html:has(.vcm .home) [data-site-header] :is(.MuiAlert-root, [data-draft-notice])
 html:has(.vcm .home) [data-site-header] nav > a[aria-current='page'] {
   color: #eceef1;
   text-decoration: underline;
-  text-decoration-color: var(--yellow, #a67c00);
+  text-decoration-color: var(--accent, #a67c00);
   text-decoration-thickness: 2px;
   text-underline-offset: 6px;
 }
@@ -1828,8 +1824,8 @@ html:has(.vcm .home) [data-site-header] nav > a[aria-current='page'] {
   padding: clamp(24px, 4vw, 64px);
   overflow: hidden;
   border-radius: 16px;
-  background: var(--fill);
-  color: var(--ink-1);
+  background: var(--surface);
+  color: var(--text);
   text-decoration: none;
   isolation: isolate;
 }
@@ -1858,11 +1854,11 @@ html:has(.vcm .home) [data-site-header] nav > a[aria-current='page'] {
   letter-spacing: -0.035em;
 }
 .vcm .home .k-door-make h3 {
-  color: var(--yellow);
+  color: var(--accent);
 }
 .vcm .home .k-door p {
   max-width: 28em;
-  color: var(--ink-2);
+  color: var(--text-muted);
   font-size: clamp(16px, 1.25vw, 18px);
 }
 .vcm .home .k-door-go {
@@ -1874,10 +1870,10 @@ html:has(.vcm .home) [data-site-header] nav > a[aria-current='page'] {
     transform: scale(1.03);
   }
   .vcm .home .k-door:hover .k-door-go.k-btn-primary {
-    background: var(--yellow-hi);
+    background: var(--accent-hover);
   }
   .vcm .home .k-door:hover .k-door-go.k-btn-ghost {
-    background: var(--fill-2);
+    background: var(--surface-raised);
   }
   .vcm .home .k-door:hover .k-arr {
     transform: translateX(3px);
@@ -1909,7 +1905,7 @@ html:has(.vcm .home) [data-site-header] nav > a[aria-current='page'] {
   display: inline-flex;
   align-items: center;
   gap: 14px;
-  color: var(--void);
+  color: var(--ground);
   text-decoration: none;
 }
 .vcm .home .k-close-team .person b {
@@ -1954,7 +1950,7 @@ html:has(.vcm .home) [data-site-header] nav > a[aria-current='page'] {
   align-items: center;
   gap: 24px;
   padding-block: 12px;
-  color: var(--ink-1);
+  color: var(--text);
   text-decoration: none;
 }
 .vcm .home .k-foot-cta-t {
@@ -1969,8 +1965,8 @@ html:has(.vcm .home) [data-site-header] nav > a[aria-current='page'] {
   width: clamp(56px, 6vw, 88px);
   height: clamp(56px, 6vw, 88px);
   border-radius: 50%;
-  background: var(--yellow);
-  color: var(--void);
+  background: var(--accent);
+  color: var(--ground);
   transition:
     transform 0.4s var(--ease-out),
     background-color 0.2s ease;
@@ -1987,7 +1983,7 @@ html:has(.vcm .home) [data-site-header] nav > a[aria-current='page'] {
 @media (hover: hover) {
   .vcm .home .k-foot-cta:hover .k-foot-cta-go {
     transform: rotate(-45deg);
-    background: var(--yellow-hi);
+    background: var(--accent-hover);
   }
 }
 /* The tokens' scope under the footer (SiteShell's after): none of a page's own frame, which fills
@@ -2016,7 +2012,7 @@ html:has(.vcm .home) [data-site-header] nav > a[aria-current='page'] {
   line-height: 0.8;
   letter-spacing: -0.04em;
   white-space: nowrap;
-  color: var(--ink-1);
+  color: var(--text);
   user-select: none;
 }
 /* The letters rise in turn as the wordmark comes into view (Mako's data-letters). */
@@ -2026,7 +2022,7 @@ html:has(.vcm .home) [data-site-header] nav > a[aria-current='page'] {
   transition-delay: calc(var(--i) * 45ms);
 }
 .vcm .home .k-foot-word .c {
-  color: var(--yellow);
+  color: var(--accent);
 }
 .vcm .home.k-js .k-foot-word:not(.in) span {
   transform: translateY(102%);
@@ -2045,8 +2041,8 @@ html:has(.vcm .home) [data-site-header] nav > a[aria-current='page'] {
   padding: 0;
   border: 0;
   border-radius: 50%;
-  background: var(--fill-2);
-  color: var(--ink-1);
+  background: var(--surface-raised);
+  color: var(--text);
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
   cursor: pointer;
   animation: k-top-in 0.25s ease-out;
@@ -2064,8 +2060,8 @@ html:has(.vcm .home) [data-site-header] nav > a[aria-current='page'] {
   stroke-linejoin: round;
 }
 .vcm .home .k-top:hover {
-  background: var(--yellow);
-  color: var(--void);
+  background: var(--accent);
+  color: var(--ground);
 }
 @keyframes k-top-in {
   from {
@@ -2090,7 +2086,7 @@ html:has(.vcm .home) [data-site-header] nav > a[aria-current='page'] {
 .vcm .home .k-side {
   padding: clamp(24px, 3vw, 48px);
   border-radius: 16px;
-  background: var(--fill);
+  background: var(--surface);
 }
 .vcm .home .k-side h3 {
   margin-top: 8px;
@@ -2099,7 +2095,7 @@ html:has(.vcm .home) [data-site-header] nav > a[aria-current='page'] {
   letter-spacing: -0.02em;
 }
 .vcm .home .k-side-chain h3 {
-  color: var(--yellow);
+  color: var(--accent);
 }
 .vcm .home .k-side ul {
   display: grid;
@@ -2109,12 +2105,12 @@ html:has(.vcm .home) [data-site-header] nav > a[aria-current='page'] {
   list-style: none;
 }
 .vcm .home .k-side li {
-  color: var(--ink-2);
+  color: var(--text-muted);
 }
 .vcm .home .k-side li b {
   display: block;
   font-weight: 500;
-  color: var(--ink-1);
+  color: var(--text);
 }
 .vcm .home .k-side .k-fine {
   margin-top: 24px;
@@ -2130,15 +2126,15 @@ html:has(.vcm .home) [data-site-header] nav > a[aria-current='page'] {
   flex: 1;
   width: 2px;
   min-height: 40px;
-  background: linear-gradient(var(--fill-2), var(--yellow));
+  background: linear-gradient(var(--surface-raised), var(--accent));
 }
 .vcm .home .k-flow-bar:last-child {
-  background: linear-gradient(var(--yellow), var(--fill-2));
+  background: linear-gradient(var(--accent), var(--surface-raised));
 }
 .vcm .home .k-flow-code {
   font-family: var(--mono);
   font-size: 13px;
-  color: var(--cyan);
+  color: var(--highlight);
   writing-mode: vertical-rl;
 }
 .vcm .home .k-grid2 {
@@ -2152,7 +2148,7 @@ html:has(.vcm .home) [data-site-header] nav > a[aria-current='page'] {
 .vcm .home .k-grid2 p {
   max-width: 36em;
   margin-top: 12px;
-  color: var(--ink-2);
+  color: var(--text-muted);
 }
 .vcm .home .k-live-open {
   margin-top: clamp(32px, 5vh, 56px);
@@ -2183,10 +2179,10 @@ html:has(.vcm .home) [data-site-header] nav > a[aria-current='page'] {
   aspect-ratio: 1;
   overflow: hidden;
   border-radius: 50%;
-  background: var(--fill-2);
+  background: var(--surface-raised);
   font-size: 28px;
   font-weight: 600;
-  color: var(--ink-2);
+  color: var(--text-muted);
 }
 .vcm .home .k-founder-photo img {
   position: absolute;
@@ -2207,12 +2203,12 @@ html:has(.vcm .home) [data-site-header] nav > a[aria-current='page'] {
   gap: 0 12px;
   margin-top: 8px;
   font-size: 15px;
-  color: var(--yellow);
+  color: var(--accent);
 }
 .vcm .home .k-founder > p:not(.k-role) {
   max-width: 34em;
   margin-top: 16px;
-  color: var(--ink-2);
+  color: var(--text-muted);
 }
 .vcm .home .k-facts {
   display: grid;
@@ -2226,11 +2222,11 @@ html:has(.vcm .home) [data-site-header] nav > a[aria-current='page'] {
 }
 .vcm .home .k-facts dt {
   font-size: 14px;
-  color: var(--ink-3);
+  color: var(--text-faint);
 }
 .vcm .home .k-facts dd {
   margin: 0;
-  color: var(--ink-1);
+  color: var(--text);
 }
 .vcm .home .k-tags {
   display: flex;
@@ -2252,7 +2248,7 @@ html:has(.vcm .home) [data-site-header] nav > a[aria-current='page'] {
   display: inline-flex;
   align-items: center;
   min-height: 44px;
-  color: var(--ink-1);
+  color: var(--text);
 }
 .vcm .home .k-follow {
   margin-top: 32px;
@@ -2273,10 +2269,10 @@ html:has(.vcm .home) [data-site-header] nav > a[aria-current='page'] {
     height: 2px;
     min-height: 0;
     min-width: 32px;
-    background: linear-gradient(90deg, var(--fill-2), var(--yellow));
+    background: linear-gradient(90deg, var(--surface-raised), var(--accent));
   }
   .vcm .home .k-flow-bar:last-child {
-    background: linear-gradient(90deg, var(--yellow), var(--fill-2));
+    background: linear-gradient(90deg, var(--accent), var(--surface-raised));
   }
   .vcm .home .k-flow-code {
     writing-mode: horizontal-tb;
@@ -2438,12 +2434,12 @@ html:lang(ja) .vc-curtain-t {
   min-height: 44px;
   align-items: center;
   font-weight: 600;
-  color: var(--ink-1);
-  text-decoration-color: var(--yellow);
+  color: var(--text);
+  text-decoration-color: var(--accent);
 }
 .vcm .home .k-link-list a:hover {
-  background: var(--yellow);
-  color: var(--void);
+  background: var(--accent);
+  color: var(--ground);
 }
 /* "All of how it works" under the three steps, not under the first (review of #169). */
 .vcm .home .k-steps-more {
@@ -2459,7 +2455,7 @@ html:lang(ja) .vc-curtain-t {
   margin-bottom: 20px;
   padding: 20px;
   border-radius: 6px;
-  background: radial-gradient(70% 70% at 50% 50%, #101724 0, var(--void-2) 80%);
+  background: radial-gradient(70% 70% at 50% 50%, #101724 0, var(--ground-deep) 80%);
   overflow: hidden;
 }
 .vcm .home .k-step-pic .k-rec {

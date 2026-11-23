@@ -24,6 +24,7 @@ import { ja } from '../../i18n/ja';
 import { de } from '../../i18n/de';
 import { es } from '../../i18n/es';
 import { fr } from '../../i18n/fr';
+import { paper } from '../../config/tokens';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const siteCss = fs.readFileSync(path.join(here, 'site.css'), 'utf8');
@@ -40,16 +41,18 @@ const indexHtml = fs.readFileSync(path.join(here, '../../../index.html'), 'utf8'
 const faviconSvg = fs.readFileSync(path.join(here, '../../../public/favicon.svg'), 'utf8');
 const caslonFile = path.join(here, '../../../public/fonts/libre-caslon-text-700.woff2');
 const partnerKit = fs.readFileSync(path.join(here, '../../../../partner-kit/record-check/src/element.ts'), 'utf8');
-const themeHex = (name: string) => new RegExp(`export const ${name} = '(#[0-9A-Fa-f]{6})'`).exec(themeTs)?.[1];
-const GROUND = themeHex('GROUND') ?? '';
-const SHEET = themeHex('SHEET') ?? '';
-const INK_COLOR = themeHex('INK_COLOR') ?? '';
-const MUTED_COLOR = themeHex('MUTED_COLOR') ?? '';
-const POLLEN = themeHex('POLLEN') ?? '';
-const WASH = themeHex('WASH') ?? '';
-const HAIRLINE = themeHex('HAIRLINE') ?? '';
-const OK_COLOR = themeHex('OK_COLOR') ?? '';
-const ERROR_COLOR = themeHex('ERROR_COLOR') ?? '';
+// The colours by role (config/tokens.ts, the paper set), under the names these tests were
+// written with.
+const tokensTs = fs.readFileSync(path.join(here, '../../config/tokens.ts'), 'utf8');
+const GROUND: string = paper.ground;
+const SHEET: string = paper.surface;
+const INK_COLOR: string = paper.text;
+const MUTED_COLOR: string = paper.textMuted;
+const POLLEN: string = paper.accent;
+const WASH: string = paper.surfaceQuiet;
+const HAIRLINE: string = paper.rule;
+const OK_COLOR: string = paper.ok;
+const ERROR_COLOR: string = paper.error;
 const FONT = /export const FONT =\s*'([^']+)'/.exec(themeTs)?.[1] ?? '';
 const split = /export const roleParts = \(text: string\): string\[\] => text\.split\(\/(.+?)\/\);/.exec(shellTsx)?.[1];
 const roleParts = (text: string) => text.split(new RegExp(split ?? 'missing'));
@@ -141,12 +144,12 @@ describe('one product: the site and the app share their tokens', () => {
   it('the same colours', () => {
     for (const c of [GROUND, SHEET, INK_COLOR, MUTED_COLOR, POLLEN, WASH, HAIRLINE]) expect(c).toMatch(/^#/);
     expect(token('ground')).toBe(GROUND.toLowerCase());
-    expect(token('sheet')).toBe(SHEET.toLowerCase());
-    expect(token('ink')).toBe(INK_COLOR.toLowerCase());
-    expect(token('muted')).toBe(MUTED_COLOR.toLowerCase());
-    expect(token('pollen')).toBe(POLLEN.toLowerCase());
-    expect(token('wash')).toBe(WASH.toLowerCase());
-    expect(token('hairline')).toBe(HAIRLINE.toLowerCase());
+    expect(token('surface')).toBe(SHEET.toLowerCase());
+    expect(token('text')).toBe(INK_COLOR.toLowerCase());
+    expect(token('text-muted')).toBe(MUTED_COLOR.toLowerCase());
+    expect(token('accent')).toBe(POLLEN.toLowerCase());
+    expect(token('surface-quiet')).toBe(WASH.toLowerCase());
+    expect(token('rule')).toBe(HAIRLINE.toLowerCase());
   });
 
   it('the same body typeface, first in both lists', () => {
@@ -184,7 +187,7 @@ describe('the palette: pollen and ink; red only for errors; no green brand', () 
   });
 
   it('nothing is left of the blue, the red brand or the cool greys', () => {
-    for (const src of [siteCss, homeCss, partnersCss, themeTs, flowFrameTsx, faviconSvg, partnerKit])
+    for (const src of [siteCss, homeCss, partnersCss, themeTs, tokensTs, flowFrameTsx, faviconSvg, partnerKit])
       for (const old of ['#1C3BB0', '#152C86', '#A3B5F8', '#B3173B', '#F3F5F7', '#1E2227', '#575E66'])
         expect(hexes(src)).not.toContain(old);
     expect(themeTs).not.toMatch(/NOTARY/);
@@ -215,8 +218,8 @@ describe('the palette: pollen and ink; red only for errors; no green brand', () 
   it('ink on pollen reads at 10:1 or more; on the ink band pollen and paper read at 7:1 or more', () => {
     expect(contrast(INK_COLOR, POLLEN)).toBeGreaterThanOrEqual(10);
     expect(contrast(POLLEN, INK_COLOR)).toBeGreaterThanOrEqual(7);
-    expect(contrast(token('on-dark') ?? '', INK_COLOR)).toBeGreaterThanOrEqual(7);
-    expect(contrast(token('on-dark-muted') ?? '', INK_COLOR)).toBeGreaterThanOrEqual(7);
+    expect(contrast(token('on-inverse') ?? '', INK_COLOR)).toBeGreaterThanOrEqual(7);
+    expect(contrast(token('on-inverse-muted') ?? '', INK_COLOR)).toBeGreaterThanOrEqual(7);
   });
 
   it('secondary text is a warm grey at 7:1 or more on the page and the sheet', () => {
@@ -228,12 +231,13 @@ describe('the palette: pollen and ink; red only for errors; no green brand', () 
   it('pollen is never text on paper (1.3:1): only a fill, a mark or text on the ink band', () => {
     expect(contrast(POLLEN, GROUND)).toBeLessThan(1.5);
     // In the CSS, a pollen text colour only under the ink band, the dark section or the footer.
-    for (const css of [siteCss, homeCss, partnersCss])
+    // (home.css's --accent is the night's gold, held to its own contrast below.)
+    for (const css of [siteCss, partnersCss])
       for (const m of rules(css).matchAll(/([^{};]+)\{([^{}]*)\}/g))
-        if (/(^|[^-])color:\s*var\(--pollen\)/.test(m[2]))
+        if (/(^|[^-])color:\s*var\(--accent\)/.test(m[2]))
           expect(m[1], m[1].trim()).toMatch(/hero|\.dark|\.demo|footer/);
     // In the app: never `color: POLLEN` (a fill, an underline or a ring only).
-    for (const src of [themeTs, stampTsx]) expect(src).not.toMatch(/[^A-Za-z]color:\s*POLLEN/);
+    for (const src of [themeTs, stampTsx]) expect(src).not.toMatch(/[^A-Za-z]color:\s*color\.accent/);
     // The partner kit's button is the accent under ink; its links are ink with an accent underline.
     expect(partnerKit).toMatch(/--_accent:var\(--vc-accent,#f6da3c\)/);
     expect(partnerKit).toMatch(/background:var\(--_accent\);color:var\(--_on\)/);
@@ -247,6 +251,7 @@ describe('the palette: pollen and ink; red only for errors; no green brand', () 
       ...hexes(siteCss),
       ...hexes(homeCss),
       ...hexes(themeTs),
+      ...hexes(tokensTs),
       ...hexes(partnersCss),
       ...hexes(flowFrameTsx),
       ...hexes(faviconSvg),
@@ -295,6 +300,7 @@ describe('the palette: pollen and ink; red only for errors; no green brand', () 
       ...hexes(siteCss),
       ...hexes(homeCss),
       ...hexes(themeTs),
+      ...hexes(tokensTs),
       ...hexes(partnersCss),
       ...hexes(flowFrameTsx),
     ].filter((h) => {
@@ -316,9 +322,9 @@ describe('the palette: pollen and ink; red only for errors; no green brand', () 
 
   it("the app's four jobs: a register's inks, readable, none pollen, none red, none green", () => {
     const inks = Object.fromEntries(
-      [...flowFrameTsx.matchAll(/^\s+(\w+): \{ name: '[^']+', color: ('#[0-9A-Fa-f]{6}'|INK_COLOR)/gm)].map((m) => [
+      [...flowFrameTsx.matchAll(/^\s+(\w+): \{ name: '[^']+', color: ('#[0-9A-Fa-f]{6}'|color\.text)/gm)].map((m) => [
         m[1],
-        m[2] === 'INK_COLOR' ? INK_COLOR : m[2].slice(1, -1),
+        m[2] === 'color.text' ? INK_COLOR : m[2].slice(1, -1),
       ]),
     );
     expect(Object.keys(inks)).toEqual(['log', 'send', 'license', 'prove']);
@@ -359,7 +365,7 @@ describe('the palette: pollen and ink; red only for errors; no green brand', () 
 
   it('the DATED stamp is pollen only when real: a test network gets a dashed PRACTICE stamp', () => {
     expect(stampTsx).toMatch(/export type StampState = 'dated' \| 'practice' \| 'waiting'/);
-    expect(stampTsx).toMatch(/background: dated\s*\?[^:]*POLLEN/);
+    expect(stampTsx).toMatch(/background: dated\s*\?[^:]*color\.accent/);
     // It presses once, and not at all with reduced motion.
     expect(stampTsx).toMatch(/REDUCED_MOTION/);
     expect(siteCss).toMatch(/@media \(prefers-reduced-motion: reduce\)[\s\S]*animation: none !important/);
@@ -387,7 +393,9 @@ describe('no lines between things on the public pages', () => {
 
 describe("the home page's night (home.css, Mako's design, 18 Nov 2026)", () => {
   const homeToken = (name: string) => new RegExp(`--${name}:\\s*(#[0-9a-f]{6})`, 'i').exec(homeCss)?.[1] ?? '';
-  const [VOID, FILL, INK1, INK2, INK3, GOLD] = ['void', 'fill', 'ink-1', 'ink-2', 'ink-3', 'yellow'].map(homeToken);
+  const [VOID, FILL, INK1, INK2, INK3, GOLD] = ['ground', 'surface', 'text', 'text-muted', 'text-faint', 'accent'].map(
+    homeToken,
+  );
 
   it('every text colour reads at 4.5:1 or more on the night and on a card', () => {
     for (const c of [VOID, FILL, INK1, INK2, INK3, GOLD]) expect(c).toMatch(/^#/);
@@ -412,7 +420,7 @@ describe("the home page's night (home.css, Mako's design, 18 Nov 2026)", () => {
     // A graphic needs 3:1 (WCAG 1.4.11): on the night, and on the footer's ink.
     for (const ground of [VOID, INK_COLOR]) expect(contrast(MARK_GOLD_ON_DARK, ground)).toBeGreaterThanOrEqual(3);
     // The brighter gold under the pointer stays clear of the brands too, and dark text on it reads.
-    const HI = homeToken('yellow-hi');
+    const HI = homeToken('accent-hover');
     for (const brand of ['#F0B90B', '#FCD535', '#F5C518'])
       expect(de2000(lab(HI), lab(brand)), brand).toBeGreaterThanOrEqual(10);
     expect(contrast(VOID, HI)).toBeGreaterThanOrEqual(4.5);

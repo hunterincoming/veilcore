@@ -18,7 +18,7 @@ import { REAL_CHAIN } from '../../veilcore/chain/config';
 import { LAB_RESULTS_ENABLED, isTestNetwork } from '../../config/network';
 import { useRecordDate } from '../verify/useAnchorCheck';
 import { SECTIONS, useSectionName, type Section } from './FlowFrame';
-import { HAIRLINE, WASH } from '../../config/theme';
+import { color } from '../../config/tokens';
 import { DatedStamp } from '../DatedStamp';
 import { custodyHeadline, type BreederReceipt, type LabReceipt } from '../../veilcore/custody';
 import { signerLabel } from '../../veilcore/attesters';
@@ -60,7 +60,7 @@ const Row: React.FC<{
       sx={{
         py: 1.25,
         // The specimen sheet's ruled lines: a dashed hairline under every row but the last.
-        backgroundImage: last ? 'none' : `linear-gradient(to right, ${HAIRLINE} 50%, transparent 0)`,
+        backgroundImage: last ? 'none' : `linear-gradient(to right, ${color.rule} 50%, transparent 0)`,
         backgroundSize: '8px 1.5px',
         backgroundRepeat: 'repeat-x',
         backgroundPosition: 'left bottom',
@@ -394,7 +394,7 @@ export const ActionRow: React.FC<{
         // Rows are told apart by their height and icon, not by a rule under each one.
         borderRadius: 2,
         px: { xs: 1, md: 1.25 },
-        '&:hover, &.Mui-focusVisible': { background: WASH },
+        '&:hover, &.Mui-focusVisible': { background: color.surfaceQuiet },
       }}
     >
       <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', width: '100%', px: 0.5 }}>

@@ -7,7 +7,8 @@ import React from 'react';
 import { Box, Stack, Typography } from '@mui/material';
 import FingerprintIcon from '@mui/icons-material/Fingerprint';
 import { motion } from 'framer-motion';
-import { CODE_TEXT, INK_COLOR, POLLEN, REDUCED_MOTION } from '../../config/theme';
+import { CODE_TEXT, REDUCED_MOTION } from '../../config/theme';
+import { color } from '../../config/tokens';
 import { shortFingerprint } from '../../veilcore/commitment';
 import { useT } from '../../i18n/app';
 
@@ -35,7 +36,7 @@ export const FingerprintReveal: React.FC<{
           transition={{ duration: 0.6, ease: 'backOut' }}
           sx={{ display: 'inline-flex' }}
         >
-          <FingerprintIcon sx={{ fontSize: 92, color: INK_COLOR }} />
+          <FingerprintIcon sx={{ fontSize: 92, color: color.text }} />
         </MBox>
         {/* scan sweep */}
         <MBox
@@ -47,7 +48,7 @@ export const FingerprintReveal: React.FC<{
             left: '10%',
             right: '10%',
             height: 3,
-            background: `linear-gradient(90deg, transparent, ${POLLEN}, transparent)`,
+            background: `linear-gradient(90deg, transparent, ${color.accent}, transparent)`,
             borderRadius: 2,
           }}
         />

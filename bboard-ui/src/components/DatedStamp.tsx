@@ -13,7 +13,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Box } from '@mui/material';
 import { keyframes } from '@mui/material/styles';
-import { DISPLAY_FONT, INK_COLOR, LINE_COLOR, MUTED_COLOR, POLLEN, REDUCED_MOTION, SHEET } from '../config/theme';
+import { DISPLAY_FONT, REDUCED_MOTION } from '../config/theme';
+import { color } from '../config/tokens';
 
 export type StampState = 'dated' | 'practice' | 'waiting';
 
@@ -69,7 +70,7 @@ export const DatedStamp: React.FC<{
 
   const dated = state === 'dated';
   const waiting = state === 'waiting';
-  const ink = waiting ? MUTED_COLOR : INK_COLOR;
+  const ink = waiting ? color.textMuted : color.text;
   const px = (n: number) =>
     typeof size === 'number' ? n * (size / 96) : { xs: n * (size.xs / 96), sm: n * (size.sm / 96) };
   return (
@@ -87,14 +88,14 @@ export const DatedStamp: React.FC<{
         textAlign: 'center',
         color: ink,
         background: dated
-          ? `radial-gradient(circle at 32% 28%, rgba(255,255,255,0.28), transparent 46%), ${POLLEN}`
+          ? `radial-gradient(circle at 32% 28%, rgba(255,255,255,0.28), transparent 46%), ${color.accent}`
           : waiting
             ? 'transparent'
-            : SHEET,
+            : color.surface,
         // A stamp's two rings: an outer edge and an inner ring a few points in.
-        border: dated ? 0 : `2px dashed ${waiting ? LINE_COLOR : INK_COLOR}`,
+        border: dated ? 0 : `2px dashed ${waiting ? color.line : color.text}`,
         boxShadow: dated
-          ? `inset 0 0 0 2px ${INK_COLOR}, inset 0 0 0 5px ${POLLEN}, inset 0 0 0 6.5px ${INK_COLOR}`
+          ? `inset 0 0 0 2px ${color.text}, inset 0 0 0 5px ${color.accent}, inset 0 0 0 6.5px ${color.text}`
           : 'none',
         transform: 'rotate(-8deg)',
         animation: pressing ? `${press} 280ms cubic-bezier(.2,.8,.25,1) both` : 'none',

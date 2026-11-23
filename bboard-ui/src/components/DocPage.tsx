@@ -13,7 +13,8 @@ import { Box, Button, Container, Stack, Typography } from '@mui/material';
 import { Link as RouterLink, useParams } from 'react-router-dom';
 import ArrowBackIcon from '@mui/icons-material/ArrowBackOutlined';
 import CodeIcon from '@mui/icons-material/CodeOutlined';
-import { LINK_SX, LINE_COLOR, SHEET } from '../config/theme';
+import { LINK_SX } from '../config/theme';
+import { color } from '../config/tokens';
 import { DOCS, DOCS_VERSION, commitOf, docHtml, sourceOf } from '../veilcore/docs';
 import { InEnglishPage, useT } from '../i18n/app';
 
@@ -112,7 +113,7 @@ export const DocPage: React.FC = () => {
               font: 'inherit',
               fontSize: 16,
               color: 'text.primary',
-              bgcolor: SHEET,
+              bgcolor: color.surface,
               border: '1px solid',
               borderColor: 'divider',
               borderRadius: 1,
@@ -190,7 +191,7 @@ export const DocPage: React.FC = () => {
             '& hr': { border: 0, borderTop: '1px solid', borderColor: 'divider', my: 4 },
             '& blockquote': {
               borderLeft: '2px solid',
-              borderColor: LINE_COLOR,
+              borderColor: color.line,
               pl: 2,
               ml: 0,
               color: 'text.secondary',

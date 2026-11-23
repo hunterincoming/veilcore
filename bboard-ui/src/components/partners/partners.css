@@ -39,15 +39,15 @@
 }
 .vcm .pk .pk-list dd {
   margin: 0;
-  color: var(--muted);
+  color: var(--text-muted);
 }
 .vcm .pk .pk-card {
-  background: var(--sheet);
+  background: var(--surface);
   border-radius: var(--r-picture);
   padding: clamp(20px, 3vw, 28px);
 }
 .vcm .pk .pk-card p {
-  color: var(--muted);
+  color: var(--text-muted);
   margin-top: 8px;
 }
 .vcm .pk .pk-card ul,
@@ -59,24 +59,24 @@
 }
 .vcm .pk .pk-demo {
   margin-top: 28px;
-  background: var(--sheet);
+  background: var(--surface);
   border-radius: var(--r-picture);
   padding: clamp(18px, 3vw, 28px);
   min-height: 150px;
 }
 .vcm .pk veilcore-record-check {
-  --vc-accent: var(--pollen);
-  --vc-on-accent: var(--ink);
+  --vc-accent: var(--accent);
+  --vc-on-accent: var(--on-accent);
   --vc-ok: var(--ok);
-  --vc-ink: var(--ink);
-  --vc-muted: var(--muted);
+  --vc-ink: var(--text);
+  --vc-muted: var(--text-muted);
   --vc-line: var(--edge);
-  --vc-paper: var(--sheet);
+  --vc-paper: var(--surface);
   --vc-warn: var(--warn);
   max-width: none;
 }
 .vcm .pk .pk-muted {
-  color: var(--muted);
+  color: var(--text-muted);
   margin-top: 14px;
   max-width: 64ch;
 }
@@ -88,7 +88,7 @@
 .vcm .pk .pk-code {
   margin: 24px 0 0;
   padding: 18px 20px;
-  background: var(--wash);
+  background: var(--surface-quiet);
   border-radius: var(--r-control);
   /* Real code a developer copies: the one place a monospace face is the right tool. */
   font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
@@ -100,11 +100,11 @@
 .vcm .pk .pk-quote {
   margin: 20px 0 0;
   padding: 18px 22px;
-  background: var(--wash);
+  background: var(--surface-quiet);
   border-radius: var(--r-control);
   display: grid;
   gap: 12px;
-  color: var(--ink);
+  color: var(--text);
 }
 .vcm .pk .pk-links {
   margin-top: 24px;
@@ -113,10 +113,10 @@
   flex-wrap: wrap;
 }
 .vcm .pk .pk-links a {
-  color: var(--ink);
+  color: var(--text);
   font-weight: 700;
   text-decoration: underline;
-  text-decoration-color: var(--pollen);
+  text-decoration-color: var(--accent);
   text-decoration-thickness: 3px;
   text-underline-offset: 4px;
   min-height: 44px;
