@@ -13,6 +13,7 @@ import { adoptOlderLicense, deleteLockedLicense, useLockedLicenses } from '../ve
 import type { LockedRow } from '../veilcore/api-store';
 import { useT } from '../i18n/app';
 import type { Translator } from '../i18n/translate';
+import { CODE_FONT } from '../config/theme';
 
 /**
  * What a locked record needs, in words: a backup saved after the key that locked it was made,
@@ -55,7 +56,7 @@ const LockedRowLine: React.FC<{
           <Typography variant="body1" sx={{ fontWeight: 600, overflowWrap: 'anywhere' }}>
             {name}
           </Typography>
-          <Typography variant="caption" color="text.secondary" sx={{ fontFamily: 'monospace', wordBreak: 'break-all' }}>
+          <Typography variant="caption" color="text.secondary" sx={{ fontFamily: CODE_FONT, wordBreak: 'break-all' }}>
             {row.id}
           </Typography>
           {note && (

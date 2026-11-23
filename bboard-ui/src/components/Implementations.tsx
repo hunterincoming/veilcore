@@ -15,8 +15,7 @@ import { Box, Button, Container, Stack, Typography } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
 import { color } from '../config/tokens';
 import { InEnglishPage } from '../i18n/app';
-
-const MONO = '"SFMono-Regular", ui-monospace, Menlo, monospace';
+import { CODE_FONT } from '../config/theme';
 
 const Impl: React.FC<{
   name: string;
@@ -33,7 +32,7 @@ const Impl: React.FC<{
         <Typography variant="h6" sx={{ mb: 0.5 }}>
           {name}
         </Typography>
-        <Typography sx={{ fontFamily: MONO, fontSize: { xs: 13.5, sm: 12.5 }, color: color.textMuted }}>
+        <Typography sx={{ fontFamily: CODE_FONT, fontSize: { xs: 13.5, sm: 12.5 }, color: color.textMuted }}>
           {lang}
         </Typography>
       </Box>
@@ -174,7 +173,7 @@ export const Implementations: React.FC = () => (
 
       <Box
         sx={{
-          fontFamily: MONO,
+          fontFamily: CODE_FONT,
           fontSize: 13,
           p: 2.5,
           borderRadius: 1,

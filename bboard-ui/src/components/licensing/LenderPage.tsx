@@ -30,6 +30,7 @@ import { backupReturnTo } from '../flow/backup-return';
 import { useT } from '../../i18n/app';
 import { DisclosureReceipt } from '../chain/DisclosureReceipt';
 import { errorWords } from '../../i18n/error-words';
+import { CODE_FONT } from '../../config/theme';
 
 const HEX64 = /^[0-9a-f]{64}$/;
 const short = (h: string) => (h.slice(0, 16).match(/..../g) ?? []).join(' ');
@@ -323,7 +324,7 @@ export const LenderPage: React.FC = () => {
         <Stack spacing={2.5}>
           <Typography variant="body2" data-lender-key="">
             {tr.t('app.lic.lend.yourKey', { name: l.name })}{' '}
-            <span style={{ fontFamily: 'monospace', wordBreak: 'break-all' }}>{l.identity}</span>
+            <span style={{ fontFamily: CODE_FONT, wordBreak: 'break-all' }}>{l.identity}</span>
           </Typography>
 
           <Stack spacing={1.5}>

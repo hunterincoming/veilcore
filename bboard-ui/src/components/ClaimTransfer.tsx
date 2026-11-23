@@ -91,6 +91,7 @@ import { enT, type Translator } from '../i18n/translate';
 import { SupportDetails } from './SupportDetails';
 import { OPEN_SIGNING_KEY_EVENT } from './AttesterSetup';
 import { errorReason } from '../i18n/error-words';
+import { CODE_FONT } from '../config/theme';
 
 /** Opens the header's receive dialog from elsewhere on the page (a lab's first screen). */
 export const OPEN_RECEIVE_EVENT = 'veilcore:open-receive';
@@ -137,19 +138,19 @@ const ReceiptStatement: React.FC<{
       <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
         {t('app.lab.recv.aboutRecord', { id: subject.sourceRecordId })}
       </Typography>
-      <Typography sx={{ fontFamily: 'monospace', fontSize: 12, wordBreak: 'break-all' }}>
+      <Typography sx={{ fontFamily: CODE_FONT, fontSize: 12, wordBreak: 'break-all' }}>
         {subject.sourceCommitment}
       </Typography>
       <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
         {t('app.lab.recv.pointing')}
       </Typography>
-      <Typography sx={{ fontFamily: 'monospace', fontSize: 12, wordBreak: 'break-all' }}>
+      <Typography sx={{ fontFamily: CODE_FONT, fontSize: 12, wordBreak: 'break-all' }}>
         {subject.receivedRecordFingerprint}
       </Typography>
       <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
         {t('app.lab.recv.signedByKey', { name: attester.displayName ?? t('app.lab.recv.unnamed') })}
       </Typography>
-      <Typography sx={{ fontFamily: 'monospace', fontSize: 12, wordBreak: 'break-all' }}>
+      <Typography sx={{ fontFamily: CODE_FONT, fontSize: 12, wordBreak: 'break-all' }}>
         {attester.keypair.publicKey}
       </Typography>
     </Box>
@@ -948,7 +949,7 @@ export const ClaimTransfer: React.FC<{
                   if (e.key === 'Enter') void claim();
                 }}
                 fullWidth
-                slotProps={{ htmlInput: { style: { fontFamily: 'monospace', letterSpacing: 1 } } }}
+                slotProps={{ htmlInput: { style: { fontFamily: CODE_FONT, letterSpacing: 1 } } }}
               />
               {codeMissingOfferKey(code) && (
                 <Alert severity="warning" variant="outlined" data-missing-offer-key="">

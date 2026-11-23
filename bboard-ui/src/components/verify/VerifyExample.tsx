@@ -13,7 +13,7 @@ import { Alert, Box, Container, Divider, Paper, Stack, Typography } from '@mui/m
 import { Link as RouterLink } from 'react-router-dom';
 import EventIcon from '@mui/icons-material/EventOutlined';
 import LockIcon from '@mui/icons-material/LockOutlined';
-import { LINK_SX } from '../../config/theme';
+import { CODE_TEXT, LINK_SX } from '../../config/theme';
 import { color } from '../../config/tokens';
 import { IS_MAINNET } from '../../config/network';
 import { Fact, FactKey } from './DisclosedFacts';
@@ -59,7 +59,7 @@ export const VerifyExample: React.FC = () => {
               </Typography>
             </Box>
           </Stack>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+          <Typography variant="body2" color="text.secondary" sx={{ ...CODE_TEXT, mb: 2 }}>
             VEIL-EXAMPLE
           </Typography>
           <Divider sx={{ mb: 2 }} />

@@ -69,6 +69,7 @@ import { RecoverySheetHost, RecoverySheetPrompt, openRecoverySheet } from './Rec
 import { SHEET_WORDS } from '../../veilcore/recovery-code';
 import { TextField } from '@mui/material';
 import { PasskeyCheckLink } from './PasskeyCheckLink';
+import { CODE_FONT } from '../../config/theme';
 
 /** Opens the sheet from anywhere ("Fix it" on Home, a "save your backup" button). */
 export const OPEN_KEEP_SAFE_EVENT = 'veilcore:open-keep-safe';
@@ -282,7 +283,7 @@ export const KeepSafeSheet: React.FC<{ open: boolean; onClose: () => void; onFil
                       autoCapitalize: 'characters',
                       autoCorrect: 'off',
                       spellCheck: false,
-                      style: { fontFamily: 'monospace' },
+                      style: { fontFamily: CODE_FONT },
                     },
                   }}
                 />

@@ -119,6 +119,7 @@ import {
   withDealCurrency,
 } from '../../veilcore/royalty-terms';
 import { errorWords } from '../../i18n/error-words';
+import { CODE_FONT } from '../../config/theme';
 
 type Terms = LicenseTerms;
 
@@ -1580,7 +1581,7 @@ const CopyValue: React.FC<{ label: string; value: string; tr: Translator; mono?:
           sx={{
             whiteSpace: 'pre-wrap',
             overflowWrap: 'anywhere',
-            fontFamily: mono ? 'monospace' : undefined,
+            fontFamily: mono ? CODE_FONT : undefined,
             fontWeight: mono ? 700 : 400,
           }}
         >

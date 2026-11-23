@@ -31,6 +31,7 @@ import { anchorConfirmed, anchorLine } from './verify/anchor-words';
 import { useRecordDate } from './verify/useAnchorCheck';
 import { reportedText, settlementChip } from './settlement-words';
 import { Fact } from './verify/DisclosedFacts';
+import { CODE_FONT } from '../config/theme';
 
 export const SettlementStatus: React.FC<{ record: StrainRecord }> = ({ record }) => {
   // The record's proof and its anchor looked up on Midnight: the same answer the plant
@@ -88,7 +89,7 @@ export const SettlementStatus: React.FC<{ record: StrainRecord }> = ({ record })
         </Box>
       )}
 
-      <Box sx={{ fontFamily: 'monospace', fontSize: 12, color: 'text.secondary' }}>
+      <Box sx={{ fontFamily: CODE_FONT, fontSize: 12, color: 'text.secondary' }}>
         <div>{t('app.plant.date.batchLine', { batch: proof.batchId })}</div>
         <div>{t('app.plant.date.rootLine', { root: proof.root.slice(0, 32) })}</div>
         {reported && proof.anchor?.txHash && (

@@ -39,6 +39,7 @@ import { confirmRecoverySheet, makeRecoverySheet, useAccountState, type MadeShee
 import { SHEET_WORDS, groupCode } from '../../veilcore/recovery-code';
 import { useT } from '../../i18n/app';
 import { errorReason, errorWords } from '../../i18n/error-words';
+import { CODE_FONT } from '../../config/theme';
 
 export const OPEN_RECOVERY_EVENT = 'veilcore:open-recovery-sheet';
 export type RecoveryMode = 'make' | 'check';
@@ -107,7 +108,7 @@ export const SheetPaper: React.FC<{ sheet: MadeSheet; site: string }> = ({ sheet
           border: '2px solid',
           borderColor: 'text.primary',
           borderRadius: 1,
-          fontFamily: '"SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace',
+          fontFamily: CODE_FONT,
           fontSize: { xs: '1.05rem', sm: '1.4rem' },
           fontWeight: 700,
           letterSpacing: '0.06em',
@@ -322,7 +323,7 @@ export const RecoverySheetDialog: React.FC<{ open: boolean; mode: RecoveryMode; 
                   autoCapitalize: 'characters',
                   autoCorrect: 'off',
                   spellCheck: false,
-                  style: { fontFamily: 'monospace', letterSpacing: '0.04em' },
+                  style: { fontFamily: CODE_FONT, letterSpacing: '0.04em' },
                 },
               }}
             />

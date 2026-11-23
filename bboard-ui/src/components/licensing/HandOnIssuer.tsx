@@ -32,6 +32,7 @@ import { ConfirmInline, DealSteps, HowItWorks } from './DealSteps';
 import { rich, useT } from '../../i18n/app';
 import { DisclosureReceipt } from '../chain/DisclosureReceipt';
 import { errorWords } from '../../i18n/error-words';
+import { CODE_FONT } from '../../config/theme';
 
 const POLL_MS = 8_000;
 
@@ -368,7 +369,7 @@ export const HandOnIssuer: React.FC<{
             <Typography variant="body2">{tr.t('app.lic.real.callThem', { who: h.label })}</Typography>
             <Typography
               data-license-code=""
-              sx={{ fontFamily: 'monospace', fontSize: '2rem', fontWeight: 700, letterSpacing: '0.15em' }}
+              sx={{ fontFamily: CODE_FONT, fontSize: '2rem', fontWeight: 700, letterSpacing: '0.15em' }}
             >
               {code ?? '…'}
             </Typography>

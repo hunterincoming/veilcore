@@ -19,6 +19,7 @@ import type { DealEntry } from '../../veilcore/deal-client';
 import { rich, useT } from '../../i18n/app';
 import { forKind } from '../../i18n/translate';
 import { isNewTerms, termsSentence } from '../../veilcore/royalty-terms';
+import { CODE_FONT } from '../../config/theme';
 
 export type Offered = { ok: true; copy: AgreementCopy } | { ok: false; reason: string } | undefined;
 
@@ -117,7 +118,7 @@ export const TermsBox: React.FC<{ offered: Offered; agreedAt?: number }> = ({ of
         {rich(
           tr.t('app.lic.terms.signed'),
           {},
-          { fp: <span style={{ fontFamily: 'monospace' }}>{offered.copy.agreementFingerprint.slice(0, 16)}…</span> },
+          { fp: <span style={{ fontFamily: CODE_FONT }}>{offered.copy.agreementFingerprint.slice(0, 16)}…</span> },
         )}
       </Typography>
     </Paper>

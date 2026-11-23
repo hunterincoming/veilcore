@@ -19,6 +19,7 @@ import { nameLinkParams, verifyPath } from '../../veilcore/verify-link';
 import { DatingPausedNotice } from '../DatingPausedNotice';
 import { canonicalUrl } from '../../config/network';
 import { DisclosureReceipt } from './DisclosureReceipt';
+import { CODE_FONT } from '../../config/theme';
 
 export const ProveOwnershipPanel: React.FC<{ recordId: string; initialChallenge?: string }> = ({
   recordId,
@@ -107,7 +108,7 @@ export const ProveOwnershipPanel: React.FC<{ recordId: string; initialChallenge?
             {call.result && (
               <Alert severity="success" variant="outlined">
                 <Typography variant="body2">{t('app.prove.own.done')}</Typography>
-                <Typography variant="body2" sx={{ fontFamily: 'monospace', wordBreak: 'break-all', my: 0.5 }}>
+                <Typography variant="body2" sx={{ fontFamily: CODE_FONT, wordBreak: 'break-all', my: 0.5 }}>
                   {call.result.txId}
                 </Typography>
                 <Button

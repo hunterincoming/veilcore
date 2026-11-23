@@ -22,6 +22,7 @@ import { useRecordDate } from '../verify/useAnchorCheck';
 import { rich, useT } from '../../i18n/app';
 import type { Translator } from '../../i18n/translate';
 import type { AppKey } from '../../i18n/app/en';
+import { CODE_FONT } from '../../config/theme';
 
 export const typeWords = (t: DocumentType | undefined, tr: Translator): string =>
   tr.t(`app.doc.type.${t ?? 'other'}` as AppKey);
@@ -53,7 +54,7 @@ export const Fact: React.FC<{ label: string; children: React.ReactNode; mono?: b
     <Typography variant="overline" sx={{ display: 'block' }}>
       {label}
     </Typography>
-    <Typography variant="body2" sx={mono ? { fontFamily: 'monospace', wordBreak: 'break-all' } : undefined}>
+    <Typography variant="body2" sx={mono ? { fontFamily: CODE_FONT, wordBreak: 'break-all' } : undefined}>
       {children}
     </Typography>
   </Box>
@@ -108,7 +109,7 @@ export const DocumentFacts: React.FC<{
         {f.files.map((file) => (
           <Box component="span" key={file.sha256} sx={{ display: 'block', mb: 0.75 }} data-document-file="">
             <b>{seen(file.name)}</b> · {t('app.doc.fileSize', { size: file.size.toLocaleString(tr.locale) })}
-            <Box component="span" sx={{ display: 'block', fontFamily: 'monospace', wordBreak: 'break-all' }}>
+            <Box component="span" sx={{ display: 'block', fontFamily: CODE_FONT, wordBreak: 'break-all' }}>
               SHA-256 {file.sha256}
             </Box>
           </Box>

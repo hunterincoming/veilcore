@@ -22,6 +22,7 @@ import {
   type MyAsk,
 } from '../../veilcore/prove-relay';
 import { useT } from '../../i18n/app';
+import { CODE_FONT } from '../../config/theme';
 
 const WEEK = 7 * 24 * 60 * 60_000;
 const when = (t: number, locale?: string) => localStamp(t, locale);
@@ -36,7 +37,7 @@ export const SendLink: React.FC<{ link: string; asker?: string }> = ({ link, ask
       <Typography
         variant="body2"
         sx={{
-          fontFamily: 'monospace',
+          fontFamily: CODE_FONT,
           wordBreak: 'break-all',
           p: 1.25,
           borderRadius: 1,
@@ -80,7 +81,7 @@ const KeyLine: React.FC<{ identity: string }> = ({ identity }) => {
     <Stack direction="row" spacing={1} sx={{ mt: 0.75, alignItems: 'center', flexWrap: 'wrap' }}>
       <Typography variant="body2">
         {t('app.prove.watch.key')}
-        <Box component="span" sx={{ fontFamily: 'monospace' }} title={identity}>
+        <Box component="span" sx={{ fontFamily: CODE_FONT }} title={identity}>
           {identity.slice(0, 8)}…{identity.slice(-6)}
         </Box>
       </Typography>

@@ -21,6 +21,7 @@ import { useT } from '../../i18n/app';
 import type { AppKey } from '../../i18n/app/en';
 import { kindWords } from './ResultFacts';
 import { VIABILITY_RESULTS_ENABLED } from '../../config/network';
+import { CODE_FONT } from '../../config/theme';
 
 /**
  * Targets a cannabis or hop TC lab tests for most, by the name most labs report. Free text stays
@@ -401,7 +402,7 @@ export const ResultForm: React.FC<{
             fullWidth
             autoComplete="off"
             slotProps={{
-              htmlInput: { spellCheck: false, 'data-field': 'sequence', style: { fontFamily: 'monospace' } },
+              htmlInput: { spellCheck: false, 'data-field': 'sequence', style: { fontFamily: CODE_FONT } },
             }}
           />
           {field('markLabel', 'app.lr.form.markLabel', { error: problem === 'label' })}

@@ -216,7 +216,17 @@ for (const lang of Object.keys(DICTS))
       };
       await shoot(false);
       // What it means: which key signed and whose it is, never the quality of the result.
-      await badge.locator('[data-lab-identity-more]').click();
+      // The opened checks finish drawing a moment after they open, and what they add above
+      // moves the badge down; a tap during that move lands beside the link. Wait until it stays put.
+      const more = badge.locator('[data-lab-identity-more]');
+      await expect
+        .poll(async () => {
+          const before = await more.boundingBox();
+          await page.waitForTimeout(250);
+          return before?.y === (await more.boundingBox())?.y;
+        })
+        .toBe(true);
+      await more.click();
       await expect(badge).toContainText(d['app.labid.more.what']);
       await shoot(true);
     }

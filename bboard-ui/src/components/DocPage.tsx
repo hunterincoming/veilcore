@@ -13,7 +13,7 @@ import { Box, Button, Container, Stack, Typography } from '@mui/material';
 import { Link as RouterLink, useParams } from 'react-router-dom';
 import ArrowBackIcon from '@mui/icons-material/ArrowBackOutlined';
 import CodeIcon from '@mui/icons-material/CodeOutlined';
-import { LINK_SX } from '../config/theme';
+import { CODE_FONT, LINK_SX } from '../config/theme';
 import { color } from '../config/tokens';
 import { DOCS, DOCS_VERSION, commitOf, docHtml, sourceOf } from '../veilcore/docs';
 import { InEnglishPage, useT } from '../i18n/app';
@@ -156,7 +156,7 @@ export const DocPage: React.FC = () => {
             '& strong': { color: 'text.primary', fontWeight: 600 },
             '& a': LINK_SX,
             '& code': {
-              fontFamily: 'ui-monospace, Menlo, monospace',
+              fontFamily: CODE_FONT,
               fontSize: 13,
               background: 'rgba(30,34,39,0.06)',
               px: 0.7,
