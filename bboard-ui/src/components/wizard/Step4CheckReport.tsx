@@ -16,13 +16,15 @@ import { Dropzone } from './Dropzone';
 import { FingerprintReveal } from './FingerprintReveal';
 import { isTouch } from '../flow/FlowFrame';
 import { useT } from '../../i18n/app';
+import { errorWords } from '../../i18n/error-words';
 
 export const Step4CheckReport: React.FC<{ onBack: () => void; onRestart: () => void; onDone?: () => void }> = ({
   onBack,
   onRestart,
   onDone,
 }) => {
-  const { t } = useT();
+  const tr = useT();
+  const { t } = tr;
   const [file, setFile] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<{ ok: boolean; name?: string; id?: string; fingerprint?: string }>();
@@ -38,7 +40,7 @@ export const Step4CheckReport: React.FC<{ onBack: () => void; onRestart: () => v
       const match = findByDnaFingerprint(reportHex);
       setResult({ ok: !!match, name: match?.strainName, id: match?.id, fingerprint: reportHex });
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(errorWords(e, tr));
     } finally {
       setBusy(false);
     }

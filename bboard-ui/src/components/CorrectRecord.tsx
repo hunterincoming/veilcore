@@ -43,6 +43,7 @@ import { ANIMAL_SEXES, isAnimal, type AnimalSex } from '../veilcore/animal-profi
 import type { AppKey } from '../i18n/app/en';
 import { SCHEMES, idShapeHint, sexWords } from './flow/AnimalForm';
 import { line } from '../ask/batch';
+import { errorWords } from '../i18n/error-words';
 
 // The names previewCorrection gives (veilcore-records diffRecords: the envelope's paths), each in
 // the page's words; a strain's or an animal's own words come from useRecordT. Never a raw path.
@@ -400,7 +401,7 @@ export const CorrectRecord: React.FC<{
                     setError(t(e.key));
                     return;
                   }
-                  setError(e instanceof Error ? e.message : t('app.plant.fix.notSaved'));
+                  setError(e instanceof Error ? errorWords(e, tr) : t('app.plant.fix.notSaved'));
                 }
               }}
             >

@@ -70,6 +70,7 @@ import type { LicenseTerms } from '../../veilcore/licenses';
 import { STABLECOIN_PAY } from '../../config/copy';
 import { NETWORK } from '../../config/network';
 import { dealSkippedReadHere, sayOnce, type DealEntry, type DealParty } from '../../veilcore/deal-client';
+import { errorWords } from '../../i18n/error-words';
 
 const short = (s: string) => (s.length > 24 ? `${s.slice(0, 14)}…${s.slice(-6)}` : s);
 
@@ -981,7 +982,7 @@ export const CardanoPayoutForm: React.FC<{
       const C = await import('@emurgo/cardano-serialization-lib-browser');
       setAddress(bech32Of(C, hex));
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(errorWords(e, tr));
     }
   };
   if (!token) return null;
@@ -1134,7 +1135,7 @@ export const PayOnCardano: React.FC<{
       setSent(hash);
       paid(payout.method, hash);
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(errorWords(e, tr));
       // A transfer signed but not sent is kept too: the page offers to record it, never to pay again.
       setSent(sentFor(s.signature));
     } finally {

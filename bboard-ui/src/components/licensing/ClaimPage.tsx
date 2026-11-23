@@ -18,6 +18,7 @@ import { ChainStatusLine } from '../chain/ChainStatusLine';
 import type { ChainReceipt } from '../../veilcore/chain/actions';
 import { ConfirmInline, HowItWorks } from './DealSteps';
 import { rich, useT } from '../../i18n/app';
+import { errorWords } from '../../i18n/error-words';
 import { CODE_FONT } from '../../config/theme';
 
 const short = (h: string) => (h.slice(0, 16).match(/..../g) ?? []).join(' ');
@@ -51,7 +52,7 @@ export const ClaimPage: React.FC = () => {
     const read = () =>
       void claimStatusNow(claim)
         .then((s) => on && (setStatus(s), setReadError(undefined)))
-        .catch((e: unknown) => on && setReadError(e instanceof Error ? e.message : String(e)));
+        .catch((e: unknown) => on && setReadError(errorWords(e, tr)));
     read();
     const t = setInterval(read, 15_000);
     return () => {

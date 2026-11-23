@@ -56,6 +56,7 @@ import { planJob, type PlanResult } from '../../ask/plan';
 import { prepareJob, type Refusal } from '../../ask-job/prepare';
 import { JOB_STATE_KEY, jobWords, readySentence } from '../../ask-job/words';
 import { holderRequestsPaused } from '../../veilcore/holder-guard';
+import { errorWords } from '../../i18n/error-words';
 
 // The optional on-device model: its files only in a build with VITE_ASK_MODEL (vite.config.ts
 // makes it a constant, so without it these imports, the workers and WebLLM are left out).
@@ -436,7 +437,7 @@ const JobTurn: React.FC<{
           void navigate(`/ask/job/${r.id}`, { state: { [JOB_STATE_KEY]: r.id } });
         }
       },
-      (e: unknown) => live && setOut({ refused: 'records', words: e instanceof Error ? e.message : String(e) }),
+      (e: unknown) => live && setOut({ refused: 'records', words: errorWords(e, tr) }),
     );
     return () => {
       live = false;

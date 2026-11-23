@@ -22,6 +22,7 @@ import {
 import { READ_INDEXERS } from '../../veilcore/chain/config';
 import { NETWORK } from '../../config/network';
 import { useT } from '../../i18n/app';
+import { errorWords } from '../../i18n/error-words';
 
 export { methodWords } from '../../veilcore/onchain-pay';
 
@@ -45,7 +46,7 @@ export const MidnightPayoutForm: React.FC<{
       const api = await w.connect(NETWORK);
       setAddress((await api.getUnshieldedAddress()).unshieldedAddress);
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(errorWords(e, tr));
     }
   };
   return (
@@ -139,7 +140,7 @@ export const PayOnMidnight: React.FC<{
       setSent(txId);
       onPaid(txId);
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(errorWords(e, tr));
     } finally {
       setState('idle');
     }
@@ -232,7 +233,7 @@ export const OnChainPaymentCheck: React.FC<{
     </Alert>
   ) : (
     <Alert severity={r.unreachable ? 'info' : 'warning'} variant="outlined" data-onchain-check="not-yet">
-      {r.reason}
+      {errorWords(r.reason, tr)}
     </Alert>
   );
 };

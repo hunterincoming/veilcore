@@ -28,6 +28,7 @@ import {
   localMarks,
   type DateLabReportDeps,
 } from './lab-report-date';
+import { errorWords } from '../../i18n/error-words';
 
 /** Saved and answered by the registry; a refusal throws, so nothing half-made is shown. */
 const createAndSave = async (sealed: SealedRecord): Promise<StrainRecord> => {
@@ -97,6 +98,7 @@ export const useDateReport = (
   setName: (name: string) => void;
 } => {
   const records = useRecords();
+  const tr = useT();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string>();
   const suggested = labReportRecordName(
@@ -115,7 +117,7 @@ export const useDateReport = (
     try {
       await dateLabReportWith(DEPS, record, facts, name.trim() || suggested);
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(errorWords(e, tr));
     } finally {
       setBusy(false);
     }

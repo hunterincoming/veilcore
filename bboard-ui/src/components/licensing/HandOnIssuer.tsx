@@ -31,6 +31,7 @@ import type { ChainReceipt } from '../../veilcore/chain/actions';
 import { ConfirmInline, DealSteps, HowItWorks } from './DealSteps';
 import { rich, useT } from '../../i18n/app';
 import { DisclosureReceipt } from '../chain/DisclosureReceipt';
+import { errorWords } from '../../i18n/error-words';
 import { CODE_FONT } from '../../config/theme';
 
 const POLL_MS = 8_000;
@@ -183,7 +184,7 @@ export const HandOnIssuer: React.FC<{
       setOpen(false);
     } catch (e) {
       if (e instanceof InviteOutcomeUnknown) setUnsure(true);
-      else setError(e instanceof Error ? e.message : String(e));
+      else setError(errorWords(e, tr));
     } finally {
       starting.current = false;
       setBusy(false);
@@ -233,7 +234,7 @@ export const HandOnIssuer: React.FC<{
       await say(party, { type: 'handon', newLicense: h.commitment, to: h.label });
       setOnChain(license.id, (c) => ({ ...c!, handOn: { ...c!.handOn!, askedAt: Date.now() } }));
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(errorWords(e, tr));
     } finally {
       setBusy(false);
     }

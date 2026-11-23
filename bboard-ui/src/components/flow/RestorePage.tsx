@@ -27,6 +27,7 @@ import { FlowFrame, ScreenHeading } from './FlowFrame';
 import { rich, useT } from '../../i18n/app';
 import { enT, type Translator } from '../../i18n/translate';
 import { backupMessageWords } from './backup-words';
+import { errorReason, errorWords } from '../../i18n/error-words';
 import { SupportDetails } from '../SupportDetails';
 import {
   accountCopyOn,
@@ -292,7 +293,7 @@ export const RestorePage: React.FC = () => {
                       </Button>
                       {addProblem && (
                         <Alert severity="warning" variant="outlined">
-                          {backupMessageWords(addProblem, tr)}
+                          {errorWords(addProblem, tr)}
                         </Alert>
                       )}
                     </Stack>
@@ -310,7 +311,7 @@ export const RestorePage: React.FC = () => {
                     </Button>
                   }
                 >
-                  {t('app.account.restore.adoptFailed', { why: backupMessageWords(adoptProblem, tr) })}
+                  {t('app.account.restore.adoptFailed', { why: errorReason(adoptProblem, tr) })}
                 </Alert>
               )}
               {/* Records the file had no key for (an older file, or only the holder key) stay locked. */}
@@ -394,7 +395,7 @@ export const RestorePage: React.FC = () => {
                 {waiting && <BackupPasswordAsk busy={busy} onOpen={(password) => void picked(waiting, password)} />}
                 {!account && problem && (
                   <Alert severity="warning" variant="outlined">
-                    {backupMessageWords(problem, tr)}
+                    {errorWords(problem, tr)}
                     <SupportDetails step="restore from backup" error={backupMessageWords(problem)} />
                   </Alert>
                 )}
@@ -486,7 +487,7 @@ export const RestorePage: React.FC = () => {
               )}
               {account && problem && (
                 <Alert severity="warning" variant="outlined">
-                  {backupMessageWords(problem, tr)}
+                  {errorWords(problem, tr)}
                   {/* A passkey from before the pin, made on www, is found only there (review New-10). */}
                   {problem === PASSKEY_WORDS.noCopy && location.hostname === 'veilcore.org' && (
                     <Box sx={{ mt: 0.5 }}>

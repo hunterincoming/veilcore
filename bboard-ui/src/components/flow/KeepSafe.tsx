@@ -64,7 +64,7 @@ import { keysOnlyHere } from './keys-only-here';
 import { rich, useT } from '../../i18n/app';
 import type { Translator } from '../../i18n/translate';
 import type { AppKey } from '../../i18n/app/en';
-import { backupMessageWords } from './backup-words';
+import { errorReason, errorWords } from '../../i18n/error-words';
 import { RecoverySheetHost, RecoverySheetPrompt, openRecoverySheet } from './RecoverySheet';
 import { SHEET_WORDS } from '../../veilcore/recovery-code';
 import { TextField } from '@mui/material';
@@ -265,8 +265,8 @@ export const KeepSafeSheet: React.FC<{ open: boolean; onClose: () => void; onFil
             {problem && (
               <Alert severity="warning" variant="outlined" sx={{ mt: 1.5 }} data-keep-safe-problem="">
                 {needsSheet
-                  ? backupMessageWords(problem, tr)
-                  : t('app.account.sheet.failed', { why: backupMessageWords(problem, tr) })}
+                  ? errorWords(problem, tr)
+                  : t('app.account.sheet.failed', { why: errorReason(problem, tr) })}
                 {!needsSheet && <PasskeyCheckLink words="failed" />}
               </Alert>
             )}
@@ -515,7 +515,7 @@ export const accountLine = (
     };
   if (s.problem === 'failing' && facts.unbacked)
     return {
-      words: rich(t('app.account.line.failing', { why: s.why ? backupMessageWords(s.why, tr) : '' }), b),
+      words: rich(t('app.account.line.failing', { why: s.why ? errorReason(s.why, tr) : '' }), b),
       button: t('app.account.line.tryNow'),
       act: act.retry,
       mark: 'failing',

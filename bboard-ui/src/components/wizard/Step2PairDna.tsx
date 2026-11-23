@@ -28,6 +28,7 @@ import { REAL_CHAIN, chainNotReady } from '../../veilcore/chain/config';
 import { useRecordKeys } from '../../veilcore/record-keys';
 import { PairDnaOnChainPanel } from '../chain/PairDnaOnChainPanel';
 import { ScreenHeading, focusScreenHeading, isTouch, softDisabled } from '../flow/FlowFrame';
+import { errorWords } from '../../i18n/error-words';
 
 const MChip = motion(Chip);
 
@@ -116,7 +117,7 @@ export const Step2PairDna: React.FC<{
         ),
       );
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(errorWords(e, tr));
     } finally {
       setBusy(false);
     }

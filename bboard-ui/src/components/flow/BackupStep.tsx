@@ -33,7 +33,7 @@ import { isTouch, ScreenHeading, softDisabled } from './FlowFrame';
 import { damagedDeviceOnly, useRecords } from '../../veilcore/records';
 import { backupHoldsLine } from '../stage/record-kinds';
 import { rich, useT } from '../../i18n/app';
-import { backupMessageWords } from './backup-words';
+import { errorReason, errorWords } from '../../i18n/error-words';
 import { loadAttester } from '../../veilcore/attester-keys';
 import { getRole, isLab } from '../../veilcore/role';
 import { prepareToReceive } from '../../veilcore/receive';
@@ -394,7 +394,7 @@ export const BackupStep: React.FC<{
             )}
             {lockProblem && (
               <Alert severity="warning" variant="outlined" sx={{ mt: 1 }} data-backup-device-lock-problem="">
-                {t('app.account.sheet.failed', { why: backupMessageWords(lockProblem, tr) })}
+                {t('app.account.sheet.failed', { why: errorReason(lockProblem, tr) })}
               </Alert>
             )}
             <Typography variant="subtitle1" component="p" sx={{ mt: 2, fontWeight: 700 }}>
@@ -595,7 +595,7 @@ export const BackupStep: React.FC<{
             )}
             {problem && (
               <Alert severity="warning" variant="outlined" sx={{ mt: 1.5 }}>
-                {backupMessageWords(problem, tr)}
+                {errorWords(problem, tr)}
               </Alert>
             )}
           </Part>
