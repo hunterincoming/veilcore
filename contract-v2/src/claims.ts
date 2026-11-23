@@ -1,0 +1,112 @@
+// The v2 claims contract (veilcore-claims.compact, Compact 0.36.1), with its witnesses: the
+// same shape as ./veilcore.ts for the main contract. Kept in its own file so the two
+// contracts' generated names never collide. v1's ledger-8 deploy pieces are not here.
+//
+// Every witness reads one call's private input, which the client puts in private state
+// just before the call and clears straight after (api/src/claims-api.ts). Nothing a
+// holder proves from stays in private state between calls.
+// SPDX-License-Identifier: Apache-2.0
+
+import * as Claims from "./managed/veilcore-claims/contract/index.js";
+import {
+  type AttestationSignature,
+  type JubjubPoint,
+  schnorrReduction,
+  signatureWitness,
+} from "./attest.js";
+
+export {
+  ClaimKind,
+  RangeOp,
+} from "./managed/veilcore-claims/contract/index.js";
+export type {
+  FieldSet as ClaimFieldSet,
+  SlotOpening as ClaimSlotOpening,
+  SchemaTerms as ClaimSchemaTerms,
+  Ledger as ClaimsLedger,
+} from "./managed/veilcore-claims/contract/index.js";
+export const claimsLedger = Claims.ledger;
+export const claimsPureCircuits = Claims.pureCircuits;
+
+/**
+ * What the prover holds for ONE claim. Which parts a circuit reads:
+ *   value, range           opening (+ number and terms for a range)
+ *   distinct               first, second, terms
+ *   unchanged              first, second
+ *   attested               attester and signature
+ * A witness asked for something not given throws, so the call is never built.
+ */
+export type ClaimInput = {
+  readonly first?: Claims.FieldSet;
+  readonly second?: Claims.FieldSet;
+  readonly opening?: Claims.SlotOpening;
+  readonly number?: bigint;
+  readonly terms?: Claims.SchemaTerms;
+  readonly attester?: JubjubPoint;
+  readonly signature?: AttestationSignature;
+};
+
+/** Private state of a claims client: the input of the call being made, or nothing. */
+export type ClaimsPrivateState = { readonly input: ClaimInput };
+
+export const emptyClaimsPrivateState = (): ClaimsPrivateState => ({
+  input: {},
+});
+
+type W = Claims.Witnesses<ClaimsPrivateState>;
+type Ctx = Parameters<W["firstFieldSet"]>[0];
+
+const need = <T>(v: T | undefined, what: string): T => {
+  if (v === undefined)
+    throw new Error(`This claim needs ${what}, and none was given.`);
+  return v;
+};
+
+/** Every witness the claims contract declares. The compiled constructor refuses one missing. */
+export const claimsWitnesses: W = {
+  firstFieldSet: ({ privateState }: Ctx) => [
+    privateState,
+    need(privateState.input.first, "the first record's field set"),
+  ],
+  secondFieldSet: ({ privateState }: Ctx) => [
+    privateState,
+    need(privateState.input.second, "the second record's field set"),
+  ],
+  slotOpening: ({ privateState }: Ctx) => [
+    privateState,
+    need(privateState.input.opening, "an opening of the slot"),
+  ],
+  slotNumber: ({ privateState }: Ctx) => [
+    privateState,
+    need(privateState.input.number, "the number in the slot"),
+  ],
+  schemaTerms: ({ privateState }: Ctx) => [
+    privateState,
+    need(privateState.input.terms, "the schema's terms"),
+  ],
+  attesterKey: ({ privateState }: Ctx) => [
+    privateState,
+    need(privateState.input.attester, "a laboratory key"),
+  ],
+  // A laboratory signs as for v1; the v2 circuit takes the response in two parts.
+  attesterSignature: ({ privateState }: Ctx) => [
+    privateState,
+    signatureWitness(
+      need(privateState.input.signature, "a laboratory signature"),
+    ),
+  ],
+  schnorrReduction: ({ privateState }: Ctx, h: bigint) => [
+    privateState,
+    schnorrReduction(h),
+  ],
+};
+
+/** The v2 claims contract with the client's witnesses. */
+export const CompiledVeilcoreClaims = new Claims.Contract<ClaimsPrivateState>(
+  claimsWitnesses,
+);
+
+/** Every claims circuit that needs a verifier key on chain, sorted by code unit. */
+export const CLAIMS_PROVABLE_CIRCUITS: readonly string[] = Object.keys(
+  CompiledVeilcoreClaims.provableCircuits,
+).sort();

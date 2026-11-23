@@ -1,0 +1,7 @@
+# Compact toolchain 0.36.1 (language 0.28.0, runtime 0.21.0), released 2026-11-10/11
+# https://github.com/midnightntwrk/compact/releases/tag/compactc-v0.36.1
+# SHA-256 of each download, computed from the release's own URLs on 23 Nov 2026 (each fetched
+# twice, same hash). The release page shows a SHA-256 for every asset: compare it with these
+# before trusting either (docs/runbooks/deploy-v2.md, step 1).
+9d5fedfec9ae775a1e47d5c6f785130b314c1c5c52cd1a4eb9fc56d1fc61d23a  compactc_v0.36.1_x86_64-unknown-linux-musl.zip
+96ee68a59d9e8b093f05c97479a4cf08c79760015dcc26ecc797ec0160ca27f9  compactc_v0.36.1_aarch64-darwin.zip

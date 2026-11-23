@@ -1,0 +1,83 @@
+// Schnorr over Jubjub, verify only. Ported from midnightntwrk/example-zkloan
+// contract/src/schnorr.compact (Apache-2.0), with the identity-key check that the
+// standard library's jubjubSchnorrVerify (Compact >= 0.35) adds, a prime-order subgroup
+// check the standard library does not make, and (contract v2) the response taken in two
+// parts and range-checked below the curve order (docs/contract-v2.md 1.3, audit A4).
+//
+// Contract v2, Compact toolchain 0.36.1 (language 0.28). Same challenge, same message and
+// the same accepted signatures as v1, except that v1 also accepted a response s + k*r for a
+// valid s (the cast reduced it); v2 accepts only the response below r.
+module schnorr {
+  import CompactStandardLibrary;
+
+  /**
+   * The response s, 0 <= s < r (the Jubjub subgroup order), as s = hi * 2^248 + lo.
+   * The order's top four bits are 14, so hi is 0 to 14.
+   */
+  export struct SchnorrSignature {
+    announcement: JubjubPoint;
+    responseHi: Uint<4>;
+    responseLo: Uint<248>;
+  }
+
+  struct SchnorrHashInput<#n> {
+    annX: Field;
+    annY: Field;
+    pkX: Field;
+    pkY: Field;
+    msg: Vector<n, Field>;
+  }
+
+  // (quotient, remainder) of the challenge hash divided by 2^248, computed off-circuit.
+  witness schnorrReduction(challengeHash: Field): [Uint<7>, Uint<248>];
+
+  /**
+   * The response as a scalar, refused unless it is below r. Every cast into JubjubScalar
+   * reduces modulo r, so a scalar typed JubjubScalar constrains nothing: s and s + r would
+   * both verify. Below r the cast reduces nothing.
+   */
+  circuit schnorrResponse(hi: Uint<4>, lo: Uint<248>): JubjubScalar {
+    // r - 14 * 2^248, for r = 6554484396890773809930967563523245729705921265872317281365359162392183254199.
+    const R_LO: Uint<248> = 222104516725044372704429320860625768980218979470098935457522536959433977015;
+    assert(disclose(hi) < 14 || (disclose(hi) == 14 && disclose(lo) < R_LO),
+           "The laboratory signature's response is out of range");
+    const TWO_248: Field = 452312848583266388373324160190187140051835877600158453279131187530910662656 as Field;
+    return (((hi as Field) * TWO_248) + (lo as Field)) as JubjubScalar;
+  }
+
+  export circuit schnorrVerify<#n>(msg: Vector<n, Field>, sig: SchnorrSignature, pk: JubjubPoint): [] {
+    // x = 0 only for the identity (0, 1) and the order-2 point (0, -1). The identity
+    // would verify any (R = s*G, s); neither is a usable key.
+    assert(jubjubPointX(pk) != (0 as Field), "That point is not a signing key");
+    // Only keys in the prime-order subgroup: r * pk must be the identity (0, 1). The x != 0
+    // test alone lets small-order points through (attack round A6, 3 Oct). A scalar must be
+    // below r, so this computes (r - 1) * pk + pk.
+    const R_MINUS_1: JubjubScalar = (6554484396890773809930967563523245729705921265872317281365359162392183254198 as Field) as JubjubScalar;
+    const rpk = ecAdd(ecMul(pk, R_MINUS_1), pk);
+    assert(jubjubPointX(rpk) == (0 as Field) && jubjubPointY(rpk) == (1 as Field), "That point is not a signing key");
+    const cFull = transientHash<SchnorrHashInput<n>>(SchnorrHashInput<n> {
+      annX: jubjubPointX(sig.announcement), annY: jubjubPointY(sig.announcement),
+      pkX: jubjubPointX(pk), pkY: jubjubPointY(pk), msg: msg });
+    const TWO_248: Field = 452312848583266388373324160190187140051835877600158453279131187530910662656 as Field;
+    const [q, c] = schnorrReduction(cFull);
+    // floor((p - 1) / 2^248) = 115 for the BLS12-381 scalar field p: bounds q so the
+    // reduction holds over the integers, not mod p (else any challenge could be chosen).
+    // The split must be the one integer division gives: q * 2^248 + c < p. With q = 115
+    // only remainders below p - 115 * 2^248 qualify (attack round A5: a second split
+    // existed for about 1 challenge in 1600).
+    assert(disclose(q) < 115 || disclose(c) < 419897588050555816515462086314444731729426576509415695503572133883854979073,
+           "Schnorr quotient out of range");
+    assert(disclose(q) < 116, "Schnorr quotient out of range");
+    assert(((disclose(q) as Field) * TWO_248) + (disclose(c) as Field) == cFull, "Invalid challenge reduction");
+    const lhs = ecMulGenerator(schnorrResponse(sig.responseHi, sig.responseLo));
+    // c < 2^248 < r, so the cast reduces nothing.
+    const rhs = ecAdd(sig.announcement, ecMul(pk, (disclose(c) as Field) as JubjubScalar));
+    assert(jubjubPointX(lhs) == jubjubPointX(rhs) && jubjubPointY(lhs) == jubjubPointY(rhs),
+           "The laboratory signature does not verify");
+  }
+
+  /** The full challenge hash, for the off-chain signer (which reduces it mod 2^248). */
+  export pure circuit schnorrChallenge<#n>(annX: Field, annY: Field, pkX: Field, pkY: Field, msg: Vector<n, Field>): Field {
+    return transientHash<SchnorrHashInput<n>>(SchnorrHashInput<n> { annX: annX, annY: annY, pkX: pkX, pkY: pkY, msg: msg });
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "name": "@veilcore/contract-v2",
+  "private": true,
+  "type": "module",
+  "description": "VeilCore contract version 2 (docs/contract-v2.md), built with Compact toolchain 0.36.1. Not deployed. v1 is in ../contract and stays as it is.",
+  "scripts": {
+    "compact": "node scripts/compile.mjs",
+    "compact:test": "node scripts/compile.mjs --skip-zk",
+    "check:compiler": "node scripts/compile.mjs --check",
+    "ci": "npm run compact:test && npm run typecheck && npm run lint && npm run test",
+    "lint": "eslint src",
+    "test": "vitest run",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "fingerprints": "node scripts/fingerprints.mjs"
+  },
+  "dependencies": {
+    "@midnight-ntwrk/compact-runtime": "0.21.0"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3.3.5",
+    "@eslint/js": "^9.39.4",
+    "@typescript-eslint/eslint-plugin": "^8.61.0",
+    "eslint": "^9.39.4",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.6",
+    "globals": "^17.6.0",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.12"
+  }
+}

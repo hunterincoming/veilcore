@@ -1,0 +1,762 @@
+// VeilCore: provenance, licensing and heritable obligations for plant and animal genetics.
+// SPDX-License-Identifier: Apache-2.0
+//
+// Only commitments (domain-separated hashes) reach the chain. Genetic data, licence
+// terms and counterparties stay with their holders.
+//
+// IDENTITY. A record is an ORIGIN (anchored, never moved to) or a SUCCESSOR (moved to by
+// a rotation or a recovery). `originOf` maps each successor to its origin; `headOf` maps
+// each moved origin to its current live head. A commitment acts only while it is its
+// identity's head. Everything that must outlive a key change (licence authority,
+// descent, obligations) is keyed by the ORIGIN, so it survives every move. Moves are
+// bounded per identity (State bounds below).
+//
+// LICENCES. Keyed by licenseKey(licence, issuing record). Active keys are the leaves of
+// `activeLicenses`, which presentations prove membership in without revealing the leaf.
+// Revocation and transfer clear a leaf at once; older roots stop verifying at the next
+// seal (sealRevocations), which anyone may call once SEAL_INTERVAL has passed.
+//
+// LINEAGE. A descent edge exists only when both holders agreed; an obligation binds a
+// record only when its holder agreed, and only its beneficiary can release it.
+//
+// ANCHORED IDENTITIES ONLY act, other than to anchor: ownership, DNA pairing, licensing
+// and lineage all require one. An anchored record can never be a rotation target, so
+// an identity cannot be merged into another to shed what it owes or borrow history.
+//
+// Design, verifier rules and the attack history: docs/design.md, docs/security-pass-30sep.md.
+//
+// CONTRACT VERSION 2 (docs/contract-v2.md). Built with Compact toolchain 0.36.1. A fresh
+// contract next to v1, which stays as it is: nothing is carried from v1, and the same
+// commitment in v1 and v2 is two records with two dates. Every circuit, argument, hash and
+// state change is v1's, except: the version fields below, and the all-zero secret is
+// refused wherever a secret comes in (nonZeroSecret). The hash tags stay "veilcore:v1:*":
+// they name the record format, not the contract version.
+
+pragma language_version 0.28;
+
+import CompactStandardLibrary;
+
+export enum LicenseState { PENDING, ACTIVE }
+
+// ─────────────────────────────────────────────────────────────── state
+
+/** Protocol version of every hash below (their tags read "veilcore:v1:..."). */
+export sealed ledger protocolVersion: Uint<16>;
+/** This contract's version: 2. */
+export sealed ledger contractVersion: Uint<16>;
+/**
+ * The address of the contract this one follows (v1, on mainnet), kept for provenance.
+ * It is not a trust link: verifiers never follow it, and nothing is carried from it.
+ */
+export sealed ledger predecessor: Bytes<32>;
+
+export ledger anchorSeq: Counter;
+export ledger proofSeq: Counter;
+export ledger batchSeq: Counter;
+export ledger pairSeq: Counter;
+export ledger rotationSeq: Counter;
+export ledger transferSeq: Counter;
+export ledger presentationSeq: Counter;
+export ledger sealSeq: Counter;
+export ledger descentSeq: Counter;
+export ledger obligationSeq: Counter;
+
+// Event cells. A circuit's return value reaches only its caller, so a value a verifier
+// needs is written here. Each cell holds the value from the most recent transaction
+// that wrote it: verifiers read them per transaction from the indexer, not from the
+// latest state.
+export ledger lastAnchor: Bytes<32>;
+export ledger lastBatchRoot: Bytes<32>;
+export ledger lastOwnershipProof: Bytes<32>;
+/** The verifier's challenge the last ownership proof answered. */
+export ledger lastOwnershipChallenge: Bytes<32>;
+export ledger lastPairedRecord: Bytes<32>;
+export ledger lastPairedDna: Bytes<32>;
+export ledger lastRotatedFrom: Bytes<32>;
+export ledger lastRotatedTo: Bytes<32>;
+export ledger lastRecoveredOrigin: Bytes<32>;
+export ledger lastPresentation: Bytes<32>;
+/** The licence-tree root the last presentation proved against. */
+export ledger lastPresentationRoot: MerkleTreeDigest;
+/**
+ * Whether a revocation or transfer was waiting for a seal when the last presentation was
+ * proved. Recorded at proof time so the verdict cannot depend on what else lands in the
+ * same transaction or block (a seal bundled after a stale presentation used to clear the
+ * live flag before the verifier read it).
+ */
+export ledger lastPresentationUnsealed: Boolean;
+/**
+ * The licence commitment the last issueLicense created. Published so a holder who
+ * recovers from a theft can revoke pending licences the thief issued: the licence key
+ * alone does not let anyone revoke (attack on the state bounds, 1 Oct).
+ */
+export ledger lastIssuedLicense: Bytes<32>;
+export ledger lastActivatedLicense: Bytes<32>;
+/**
+ * The licence commitment the last approved transfer moved a licence to. Published so an
+ * issuer who recovers from a theft can revoke licences the thief transferred out of sight.
+ */
+export ledger lastTransferredLicense: Bytes<32>;
+export ledger lastActivatedRecord: Bytes<32>;
+export ledger lastDescentChild: Bytes<32>;
+export ledger lastDescentParent: Bytes<32>;
+export ledger lastObligationRecord: Bytes<32>;
+export ledger lastObligation: Bytes<32>;
+export ledger lastBeneficiary: Bytes<32>;
+/**
+ * The last obligation proposal: what, against which identity, by which. Published so a
+ * beneficiary who recovers from a theft can withdraw proposals the thief made in its name.
+ */
+export ledger lastProposedObligation: Bytes<32>;
+export ledger lastProposedAgainst: Bytes<32>;
+export ledger lastProposedBy: Bytes<32>;
+
+/** Successor -> its origin. */
+export ledger originOf: Map<Bytes<32>, Bytes<32>>;
+/** Moved origin -> its current head. The one source of truth for liveness. */
+export ledger headOf: Map<Bytes<32>, Bytes<32>>;
+/** Anchored origin -> its recovery commitment. */
+export ledger recoveryOf: Map<Bytes<32>, Bytes<32>>;
+
+/** licenseKey -> PENDING or ACTIVE. Absent means no such licence. */
+export ledger licenseStatusOf: Map<Bytes<32>, LicenseState>;
+/** licenseKey -> the incoming holder's licence commitment. */
+export ledger pendingTransferOf: Map<Bytes<32>, Bytes<32>>;
+/** Leaves are licenseKeys of ACTIVE licences. */
+export ledger activeLicenses: HistoricMerkleTree<24, Bytes<32>>;
+/** licenseKey -> its leaf index, so revocation and transfer need no path. */
+export ledger licenseSlotOf: Map<Bytes<32>, Uint<64>>;
+/**
+ * Leaf index -> licenseKey. The activating client picks a free index at random, so two
+ * activations conflict only if they pick the same one (a shared counter let anyone
+ * block every activation with one transaction per block).
+ */
+export ledger licenseAtSlot: Map<Uint<64>, Bytes<32>>;
+/**
+ * An upper bound on the block time (seconds) of the last seal, and whether anything is
+ * waiting for one. The next seal needs a block time at least SEAL_INTERVAL after it.
+ */
+export ledger lastSealTime: Uint<64>;
+export ledger unsealedChanges: Boolean;
+
+/** Child identity -> the parent identity it proposed. */
+export ledger pendingParentOf: Map<Bytes<32>, Bytes<32>>;
+/** Child identity -> the parent identities both holders confirmed. The pedigree, readable from state. */
+export ledger parentsOf: Map<Bytes<32>, Set<Bytes<32>>>;
+/**
+ * Identities that are a confirmed parent of something. Their own parents are then fixed:
+ * an ancestor cannot change the pedigree of material already descended from it (adding a
+ * loop or an unrecognised root used to fail every descendant's check, permanently), and
+ * no cycle can ever form, since the edge that closed one would give a parent a new parent.
+ */
+export ledger hasOffspring: Set<Bytes<32>>;
+/** obligationKey(record identity, obligation, beneficiary identity), proposed. */
+export ledger pendingObligations: Set<Bytes<32>>;
+/** obligationKey(...), in force. */
+export ledger openObligations: Set<Bytes<32>>;
+/**
+ * Anchored identity -> number of obligations in force. Created at anchor and never
+ * removed, and a Counter, so concurrent accepts and discharges on one record commute
+ * instead of failing each other. A record owes something exactly when it is above zero.
+ */
+export ledger obligationCountOf: Map<Bytes<32>, Counter>;
+
+// Per-identity bounds. Every entry the contract keeps is either overwritten, cleared by
+// the party who created it, or capped per anchored identity, so state grows with the
+// number of records and not with how often anyone calls (docs/design.md, State bounds).
+// Each of these is created at anchor and holds a count, never a list.
+/** Anchored identity -> rotations made (each adds one originOf entry). At most MAX_ROTATIONS. */
+export ledger rotationsOf: Map<Bytes<32>, Counter>;
+/** Anchored identity -> recoveries made (each adds one originOf entry). At most MAX_RECOVERIES. */
+export ledger recoveriesOf: Map<Bytes<32>, Counter>;
+/** Beneficiary identity -> obligation proposals it has waiting. At most MAX_PENDING_OBLIGATIONS. */
+export ledger pendingObligationsBy: Map<Bytes<32>, Counter>;
+/** Issuer identity -> licences it has issued that are still PENDING. At most MAX_PENDING_LICENSES. */
+export ledger pendingLicensesBy: Map<Bytes<32>, Counter>;
+/** Issuer identity -> its ACTIVE licences. At most MAX_ACTIVE_LICENSES. */
+export ledger activeLicensesBy: Map<Bytes<32>, Counter>;
+/**
+ * Whether the licence tree has gained roots since the last seal. An activation adds a
+ * root without arming a seal for revocation, so this lets anyone seal to clear the root
+ * history it keeps (sealRevocations), instead of that history growing with every activation.
+ */
+export ledger rootsSinceSeal: Boolean;
+
+constructor() {
+  protocolVersion = 1;
+  contractVersion = 2;
+  // v1 on mainnet: a04de0a2684f3713276325649540c7278ffd07cba8b014e7489844f319a02347
+  predecessor = Bytes[0xa0, 0x4d, 0xe0, 0xa2, 0x68, 0x4f, 0x37, 0x13, 0x27, 0x63, 0x25, 0x64, 0x95, 0x40, 0xc7, 0x27,
+                      0x8f, 0xfd, 0x07, 0xcb, 0xa8, 0xb0, 0x14, 0xe7, 0x48, 0x98, 0x44, 0xf3, 0x19, 0xa0, 0x23, 0x47];
+}
+
+// ─────────────────────────────────────────────────────────────── witnesses
+
+/** The caller's record secret. */
+witness localGeneticSecret(): Bytes<32>;
+/** The secret a rotation or recovery moves to. */
+witness incomingGeneticSecret(): Bytes<32>;
+/** The recovery secret, chosen at anchor time and kept offline. */
+witness recoverySecret(): Bytes<32>;
+/** The licensee's licence secret, and the record the licence was issued against. */
+witness licenseSecret(): Bytes<32>;
+witness licenseRecord(): Bytes<32>;
+/** The licence's path in activeLicenses. Never published. */
+witness licensePath(): MerkleTreePath<24, Bytes<32>>;
+/** 32 random bytes chosen by the verifier, used once, never published. */
+witness presentationChallenge(): Bytes<32>;
+
+// ─────────────────────────────────────────────────────────────── constants and hashes
+
+/** Minimum seconds between seals: the most often anyone can invalidate old roots. */
+circuit SEAL_INTERVAL(): Uint<64> { return 600; }
+/** How far ahead of the block time a seal's bound may be. */
+circuit SEAL_SLACK(): Uint<64> { return 300; }
+/** Bounds per anchored identity (see the State bounds section of docs/design.md). */
+circuit MAX_ROTATIONS(): Uint<64> { return 16; }
+circuit MAX_RECOVERIES(): Uint<64> { return 16; }
+circuit MAX_PARENTS(): Uint<64> { return 2; }
+circuit MAX_OPEN_OBLIGATIONS(): Uint<64> { return 16; }
+circuit MAX_PENDING_OBLIGATIONS(): Uint<64> { return 8; }
+circuit MAX_PENDING_LICENSES(): Uint<64> { return 32; }
+circuit MAX_ACTIVE_LICENSES(): Uint<64> { return 1024; }
+
+/**
+ * Refuse the all-zero secret (v2). Its commitments are public knowledge, so whatever was
+ * made under it anyone could act under. Every secret a circuit reads goes through here.
+ * Only that the secret is non-zero is disclosed, which every valid proof shows anyway.
+ */
+circuit nonZeroSecret(secret: Bytes<32>): Bytes<32> {
+  assert(disclose(secret != default<Bytes<32>>), "A secret cannot be all zeros");
+  return secret;
+}
+
+/** Commitment to a record secret. Every kind of value has its own tag. */
+export circuit commit(secret: Bytes<32>): Bytes<32> {
+  return persistentHash<Vector<2, Bytes<32>>>([pad(32, "veilcore:v1:commit"), secret]);
+}
+
+/** Commitment to a recovery secret. Never also a valid record commitment. */
+export circuit recoveryCommit(secret: Bytes<32>): Bytes<32> {
+  return persistentHash<Vector<2, Bytes<32>>>([pad(32, "veilcore:v1:recover"), secret]);
+}
+
+/** Commitment to a licence secret, bound to the record it is issued against. */
+export circuit licenseCommit(secret: Bytes<32>, recordCommitment: Bytes<32>): Bytes<32> {
+  return persistentHash<Vector<3, Bytes<32>>>([pad(32, "veilcore:v1:license"), secret, recordCommitment]);
+}
+
+/** A licence entry and tree leaf: the licence and the record that issued it. */
+export circuit licenseKey(licenseCommitment: Bytes<32>, recordCommitment: Bytes<32>): Bytes<32> {
+  return persistentHash<Vector<3, Bytes<32>>>([pad(32, "veilcore:v1:lickey"), licenseCommitment, recordCommitment]);
+}
+
+/** What a presentation publishes. Checkable only by whoever holds the challenge. */
+export circuit presentationTag(recordCommitment: Bytes<32>, challenge: Bytes<32>): Bytes<32> {
+  return persistentHash<Vector<3, Bytes<32>>>([pad(32, "veilcore:v1:present"), recordCommitment, challenge]);
+}
+
+/** One obligation: on which identity, what it is, and which identity it is owed to. */
+export circuit obligationKey(recordIdentity: Bytes<32>, obligationCommitment: Bytes<32>, beneficiaryIdentity: Bytes<32>): Bytes<32> {
+  return persistentHash<Vector<4, Bytes<32>>>([
+    pad(32, "veilcore:v1:obligation"), recordIdentity, obligationCommitment, beneficiaryIdentity,
+  ]);
+}
+
+// ─────────────────────────────────────────────────────────────── identity
+
+/** The origin a commitment belongs to; an origin is its own. */
+circuit originFor(record: Bytes<32>): Bytes<32> {
+  return originOf.member(record) ? originOf.lookup(record) : record;
+}
+
+/**
+ * Refuse unless `r` is its identity's current head. Liveness is read from headOf, so
+ * recovery can move an identity by writing a new head without reading the old one:
+ * a thief who keeps rotating cannot make it fail.
+ */
+circuit assertLive(r: Bytes<32>): [] {
+  const o = originFor(r);
+  const live = headOf.member(o) ? headOf.lookup(o) == r : o == r;
+  assert(live, "This record was rotated or recovered to a new secret; act under the new one");
+}
+
+/** The caller's record, derived from their secret, required to be live. */
+circuit liveSelf(): Bytes<32> {
+  const me = disclose(commit(nonZeroSecret(localGeneticSecret())));
+  assertLive(me);
+  return me;
+}
+
+/** The identity of an ANCHORED record, from any of its commitments. */
+circuit anchoredIdentity(record: Bytes<32>): Bytes<32> {
+  const o = originFor(record);
+  assert(recoveryOf.member(o), "Lineage is only for anchored records");
+  return o;
+}
+
+/** The caller's live record, required to belong to an anchored identity. */
+circuit anchoredSelf(): Bytes<32> {
+  const me = liveSelf();
+  anchoredIdentity(me);
+  return me;
+}
+
+/** The caller's identity. */
+circuit myIdentity(): Bytes<32> {
+  return anchoredIdentity(liveSelf());
+}
+
+/** Refuse unless `me` is the same identity as `issuer`, across any number of moves. */
+circuit assertSameIdentity(me: Bytes<32>, issuer: Bytes<32>): [] {
+  assert(originFor(me) == originFor(issuer),
+         "Only the issuing record, or the record it was rotated or recovered to, can do this");
+}
+
+/**
+ * A rotation or recovery target must have no history, so two identities can never be
+ * merged. Only anchor can act under an unanchored commitment, so an unused one has no
+ * events to carry into the identity either.
+ */
+circuit assertUnused(record: Bytes<32>): [] {
+  assert(!originOf.member(record), "That commitment is already a successor");
+  assert(!recoveryOf.member(record), "That commitment is already an anchored record");
+  assert(!headOf.member(record), "That commitment is already an origin with history");
+}
+
+/** Refuse a recovery commitment anyone could use. */
+circuit assertUsableRecovery(rcv: Bytes<32>): [] {
+  assert(rcv != default<Bytes<32>>, "The recovery commitment cannot be empty");
+  assert(rcv != recoveryCommit(default<Bytes<32>>),
+         "That is the recovery commitment of the all-zero secret, which anyone can use");
+}
+
+/** Refuse the all-zero value where a real commitment is required. */
+circuit assertNonEmpty(v: Bytes<32>): [] {
+  assert(v != default<Bytes<32>>, "A commitment cannot be empty");
+}
+
+// ─────────────────────────────────────────────────────────────── records
+
+/**
+ * Anchor the caller's record with a recovery commitment, fixed now: by the time a
+ * holder needs one they no longer hold the secret that would authorise adding it.
+ */
+export circuit anchor(recoveryCommitment: Bytes<32>): [] {
+  const c = liveSelf();
+  assert(!originOf.member(c), "This commitment is a successor; anchor happens before rotation");
+  assert(!recoveryOf.member(c), "This record is already anchored");
+  const rcv = disclose(recoveryCommitment);
+  assertUsableRecovery(rcv);
+  anchorSeq.increment(1);
+  lastAnchor = c;
+  recoveryOf.insert(c, rcv);
+  obligationCountOf.insert(c, default<Counter>);
+  rotationsOf.insert(c, default<Counter>);
+  recoveriesOf.insert(c, default<Counter>);
+  pendingObligationsBy.insert(c, default<Counter>);
+  pendingLicensesBy.insert(c, default<Counter>);
+  activeLicensesBy.insert(c, default<Counter>);
+}
+
+/**
+ * Anchor a batch root. UNAUTHENTICATED by design: a root proves a set of commitments
+ * existed at a time, not who held them. Never treat inclusion as possession.
+ */
+export circuit anchorBatch(root: Bytes<32>): [] {
+  const r = disclose(root);
+  assertNonEmpty(r);
+  batchSeq.increment(1);
+  lastBatchRoot = r;
+}
+
+/**
+ * Prove present possession of a live, anchored record, to the verifier who chose
+ * `challenge` (fresh random bytes, used once). Without the challenge anyone could point a
+ * verifier at the real holder's proof and pass it off as their own.
+ */
+export circuit proveOwnership(challenge: Bytes<32>): Bytes<32> {
+  const c = anchoredSelf();
+  const ch = disclose(challenge);
+  assert(ch != default<Bytes<32>>, "An ownership proof needs the verifier's challenge");
+  proofSeq.increment(1);
+  lastOwnershipProof = c;
+  lastOwnershipChallenge = ch;
+  return c;
+}
+
+/** Bind a DNA report fingerprint to the caller's own live, anchored record. */
+export circuit pairDna(dnaCommitment: Bytes<32>): Bytes<32> {
+  const rc = anchoredSelf();
+  const dc = disclose(dnaCommitment);
+  assertNonEmpty(dc);
+  pairSeq.increment(1);
+  lastPairedRecord = rc;
+  lastPairedDna = dc;
+  return rc;
+}
+
+/** Move the caller's live, anchored record to a new secret. */
+export circuit rotateRecordSecret(newRecordCommitment: Bytes<32>): Bytes<32> {
+  const old = liveSelf();
+  const origin = originFor(old);
+  assert(recoveryOf.member(origin), "Anchor this record before rotating it");
+  assert(rotationsOf.lookup(origin).lessThan(MAX_ROTATIONS()),
+         "This record has used all its rotations; its recovery secret can still move it");
+  rotationsOf.lookup(origin).increment(1);
+  const fresh = disclose(newRecordCommitment);
+  assert(old != fresh, "The new commitment must differ from the old one");
+  assert(fresh == commit(nonZeroSecret(incomingGeneticSecret())), "You must hold the secret behind the new commitment");
+  assertUnused(fresh);
+  originOf.insert(fresh, origin);
+  headOf.insert(origin, fresh);
+  rotationSeq.increment(1);
+  lastRecoveredOrigin = default<Bytes<32>>;
+  lastRotatedFrom = old;
+  lastRotatedTo = fresh;
+  return old;
+}
+
+/**
+ * Move an identity with its recovery secret, whoever holds the current head, including
+ * a thief. Whoever holds the recovery secret controls the record. The recovery secret is
+ * used up: the same call installs a new recovery commitment, because the old secret has
+ * just been typed into a machine that may be the one the record secret was stolen from.
+ */
+export circuit recoverRecordSecret(recordCommitment: Bytes<32>, newRecordCommitment: Bytes<32>,
+                                   newRecoveryCommitment: Bytes<32>): [] {
+  const origin = disclose(recordCommitment);
+  assert(recoveryOf.member(origin), "Recovery is only for an anchored origin record");
+  const current = recoveryOf.lookup(origin);
+  assert(current == recoveryCommit(nonZeroSecret(recoverySecret())), "That is not the recovery secret for this record");
+  const nextRecovery = disclose(newRecoveryCommitment);
+  assertUsableRecovery(nextRecovery);
+  assert(nextRecovery != current, "A recovery must install a new recovery commitment");
+  assert(recoveriesOf.lookup(origin).lessThan(MAX_RECOVERIES()), "This record has used all its recoveries");
+  recoveriesOf.lookup(origin).increment(1);
+  // A thief holding the head could have spent the rotations; the recovered owner gets
+  // them back. originOf stays bounded: at most MAX_ROTATIONS per recovery.
+  rotationsOf.insert(origin, default<Counter>);
+  recoveryOf.insert(origin, nextRecovery);
+  const fresh = disclose(newRecordCommitment);
+  assert(fresh == commit(nonZeroSecret(incomingGeneticSecret())), "You must hold the secret behind the new commitment");
+  assertUnused(fresh);
+  originOf.insert(fresh, origin);
+  headOf.insert(origin, fresh);
+  rotationSeq.increment(1);
+  lastRecoveredOrigin = origin;
+  lastRotatedFrom = default<Bytes<32>>; // a recovery moves from no particular commitment
+  lastRotatedTo = fresh;
+}
+
+/** Replace a recovery commitment, gated by the current recovery secret. */
+export circuit replaceRecoveryCommitment(recordCommitment: Bytes<32>, newRecoveryCommitment: Bytes<32>): [] {
+  const origin = disclose(recordCommitment);
+  assert(recoveryOf.member(origin), "Recovery is only for an anchored origin record");
+  const current = recoveryOf.lookup(origin);
+  assert(current == recoveryCommit(nonZeroSecret(recoverySecret())), "That is not the recovery secret for this record");
+  const next = disclose(newRecoveryCommitment);
+  assertUsableRecovery(next);
+  assert(next != current, "The new recovery commitment must differ");
+  recoveryOf.insert(origin, next);
+}
+
+// ─────────────────────────────────────────────────────────────── licences
+
+/**
+ * Issue a licence against the caller's live, anchored record. Starts PENDING. The
+ * LICENSEE makes the licence secret and hands over only licenseCommit(secret, record).
+ */
+export circuit issueLicense(licenseCommitment: Bytes<32>): [] {
+  const me = anchoredSelf();
+  const lc = disclose(licenseCommitment);
+  assertNonEmpty(lc);
+  const k = licenseKey(lc, me);
+  assert(!licenseStatusOf.member(k), "License already exists");
+  const issuer = originFor(me);
+  assert(pendingLicensesBy.lookup(issuer).lessThan(MAX_PENDING_LICENSES()),
+         "Too many licences waiting for countersignature; revoke or wait for some first");
+  pendingLicensesBy.lookup(issuer).increment(1);
+  licenseStatusOf.insert(k, LicenseState.PENDING);
+  lastIssuedLicense = lc;
+}
+
+/** The licensee accepts, proving the licence secret, and places the leaf at `slot`. */
+export circuit countersignLicense(recordCommitment: Bytes<32>, slot: Uint<64>): [] {
+  const rc = disclose(recordCommitment);
+  const lc = licenseCommit(nonZeroSecret(licenseSecret()), rc);
+  const k = disclose(licenseKey(lc, rc));
+  assert(licenseStatusOf.member(k), "No such license against that record");
+  assert(licenseStatusOf.lookup(k) == LicenseState.PENDING, "License is not pending");
+  const s = disclose(slot);
+  assert(s < 16777216, "That slot is outside the licence tree");
+  assert(!licenseAtSlot.member(s), "That slot is taken; pick another");
+  const issuer = originFor(rc);
+  assert(activeLicensesBy.lookup(issuer).lessThan(MAX_ACTIVE_LICENSES()),
+         "The issuer has the most active licences it can hold; it must revoke one first");
+  licenseStatusOf.insert(k, LicenseState.ACTIVE);
+  pendingLicensesBy.lookup(issuer).decrement(1);
+  activeLicensesBy.lookup(issuer).increment(1);
+  activeLicenses.insertIndex(k, s);
+  licenseSlotOf.insert(k, s);
+  licenseAtSlot.insert(s, k);
+  rootsSinceSeal = true;
+  lastActivatedLicense = disclose(lc);
+  lastActivatedRecord = rc;
+}
+
+/**
+ * The holder proposes moving the licence to a commitment the incoming party built with
+ * their own secret. It cannot hand over anyone else's licence: the leaf names its issuer.
+ */
+export circuit proposeTransfer(recordCommitment: Bytes<32>, newLicenseCommitment: Bytes<32>): [] {
+  const rc = disclose(recordCommitment);
+  const k = disclose(licenseKey(licenseCommit(nonZeroSecret(licenseSecret()), rc), rc));
+  assert(licenseStatusOf.member(k), "No such license against that record");
+  assert(licenseStatusOf.lookup(k) == LicenseState.ACTIVE, "Only an active license can be transferred");
+  assert(!pendingTransferOf.member(k), "A transfer is already proposed for this license");
+  const nlc = disclose(newLicenseCommitment);
+  assertNonEmpty(nlc);
+  assert(!licenseStatusOf.member(licenseKey(nlc, rc)), "That licence commitment is already in use");
+  transferSeq.increment(1);
+  pendingTransferOf.insert(k, nlc);
+}
+
+/**
+ * The issuer, or whoever its identity now lives under, approves the transfer to the
+ * party it names. The leaf is replaced in place; the outgoing holder's older paths stop
+ * verifying at the next seal.
+ */
+export circuit approveTransfer(licenseCommitment: Bytes<32>, issuingRecord: Bytes<32>, expectedNewLicense: Bytes<32>): [] {
+  const me = liveSelf();
+  const rc = disclose(issuingRecord);
+  assertSameIdentity(me, rc);
+  const k = licenseKey(disclose(licenseCommitment), rc);
+  assert(pendingTransferOf.member(k), "No transfer proposed for this license");
+  const nlc = pendingTransferOf.lookup(k);
+  assert(nlc == disclose(expectedNewLicense), "The pending recipient is not the one you approved");
+  const nk = licenseKey(nlc, rc);
+  assert(!licenseStatusOf.member(nk), "That licence commitment is already in use");
+  const slot = licenseSlotOf.lookup(k);
+  licenseStatusOf.remove(k);
+  pendingTransferOf.remove(k);
+  licenseSlotOf.remove(k);
+  licenseStatusOf.insert(nk, LicenseState.ACTIVE);
+  licenseSlotOf.insert(nk, slot);
+  licenseAtSlot.insert(slot, nk);
+  activeLicenses.insertIndex(nk, slot);
+  unsealedChanges = true;
+  transferSeq.increment(1);
+  lastTransferredLicense = nlc;
+}
+
+/** The holder withdraws their own proposal. */
+export circuit withdrawTransfer(recordCommitment: Bytes<32>): [] {
+  const rc = disclose(recordCommitment);
+  const k = disclose(licenseKey(licenseCommit(nonZeroSecret(licenseSecret()), rc), rc));
+  assert(pendingTransferOf.member(k), "No transfer proposed for this license");
+  pendingTransferOf.remove(k);
+  transferSeq.increment(1);
+}
+
+/**
+ * The issuer, or its successor across any number of moves, revokes. Needs no path and
+ * does not read the pending-transfer map, so a licensee cannot starve it. The leaf is
+ * cleared now; older roots stop verifying at the next seal.
+ */
+export circuit revokeLicense(licenseCommitment: Bytes<32>, issuingRecord: Bytes<32>): [] {
+  const me = liveSelf();
+  const rc = disclose(issuingRecord);
+  // assertSameIdentity, with the issuer's identity kept for the pending count below.
+  const issuer = originFor(rc);
+  assert(originFor(me) == issuer,
+         "Only the issuing record, or the record it was rotated or recovered to, can do this");
+  const k = licenseKey(disclose(licenseCommitment), rc);
+  assert(licenseStatusOf.member(k), "No such license");
+  const wasActive = licenseStatusOf.lookup(k) == LicenseState.ACTIVE;
+  licenseStatusOf.remove(k);
+  pendingTransferOf.remove(k);
+  if (wasActive) {
+    const slot = licenseSlotOf.lookup(k);
+    activeLicenses.insertIndexDefault(slot);
+    licenseSlotOf.remove(k);
+    licenseAtSlot.remove(slot);
+    activeLicensesBy.lookup(issuer).decrement(1);
+    unsealedChanges = true;
+  } else {
+    pendingLicensesBy.lookup(issuer).decrement(1);
+  }
+}
+
+/**
+ * Drop every older root, so paths proved before a revocation or transfer stop verifying,
+ * and clear the root history the tree keeps. Anyone may call it when a revocation or
+ * transfer is waiting, or when activations have added roots, once the block time is
+ * SEAL_INTERVAL past the previous seal: that caps how often anyone can force
+ * presentations in flight to be re-proved. `bound` is an upper bound on the block time,
+ * at most SEAL_SLACK ahead of it; the next seal is measured from it.
+ */
+export circuit sealRevocations(bound: Uint<64>): [] {
+  const t = disclose(bound);
+  assert(unsealedChanges || rootsSinceSeal, "Nothing has changed the licence tree since the last seal");
+  assert(blockTimeGte((lastSealTime + SEAL_INTERVAL()) as Uint<64>), "Too soon since the last seal");
+  assert(blockTimeLt(t), "That time is not ahead of the block time");
+  assert(t >= SEAL_SLACK() && blockTimeGte((t - SEAL_SLACK()) as Uint<64>), "That time is too far ahead");
+  activeLicenses.resetHistory();
+  lastSealTime = t;
+  unsealedChanges = false;
+  rootsSinceSeal = false;
+  sealSeq.increment(1);
+}
+
+/**
+ * A licensee proves to ONE verifier that they hold a live licence from ONE record.
+ * Publishes presentationTag(record, challenge) and the root proved against, nothing
+ * that names the licence, the record or the leaf. It proves that SOMEONE holding the
+ * licence secret took part, not which party.
+ */
+export circuit proveLicense(): [] {
+  const record = licenseRecord();
+  const challenge = presentationChallenge();
+  assert(disclose(challenge != default<Bytes<32>>), "A presentation needs the verifier's challenge");
+  const path = licensePath();
+  const leaf = licenseKey(licenseCommit(nonZeroSecret(licenseSecret()), record), record);
+  assert(disclose(path.leaf == leaf), "No live licence for that secret");
+  const root = disclose(merkleTreePathRoot<24, Bytes<32>>(path));
+  assert(activeLicenses.checkRoot(root), "No live licence for that secret, or the path is stale");
+  presentationSeq.increment(1);
+  lastPresentationRoot = root;
+  lastPresentationUnsealed = unsealedChanges;
+  lastPresentation = disclose(presentationTag(record, challenge));
+}
+
+// ─────────────────────────────────────────────────────────────── descent
+
+/** The child's holder names a parent. Nothing is established until the parent confirms. */
+export circuit proposeParent(parentRecord: Bytes<32>): [] {
+  const c = myIdentity();
+  const p = anchoredIdentity(disclose(parentRecord));
+  assert(c != p, "A record is not its own parent");
+  assert(!hasOffspring.member(c), "This record already has confirmed offspring; its parents are fixed");
+  assert(!pendingParentOf.member(c), "This record already has a parentage proposal outstanding");
+  assert(!(parentsOf.member(c) && parentsOf.lookup(c).member(p)), "That parentage is already confirmed");
+  assert(!parentsOf.member(c) || parentsOf.lookup(c).size() < MAX_PARENTS(), "This record already has two parents");
+  pendingParentOf.insert(c, p);
+}
+
+/** The parent's holder confirms being named, for a specific child. */
+export circuit confirmParent(childRecord: Bytes<32>): [] {
+  const p = myIdentity();
+  const c = anchoredIdentity(disclose(childRecord));
+  assert(pendingParentOf.member(c), "No parentage proposed for that record");
+  assert(pendingParentOf.lookup(c) == p, "You are not the parent proposed for this record");
+  assert(!hasOffspring.member(c), "That record already has confirmed offspring; its parents are fixed");
+  assert(!parentsOf.member(c) || parentsOf.lookup(c).size() < MAX_PARENTS(), "That record already has two parents");
+  pendingParentOf.remove(c);
+  if (!parentsOf.member(c)) {
+    parentsOf.insert(c, default<Set<Bytes<32>>>);
+  }
+  parentsOf.lookup(c).insert(p);
+  hasOffspring.insert(p);
+  descentSeq.increment(1);
+  lastDescentChild = c;
+  lastDescentParent = p;
+}
+
+/** The child's holder retracts their own proposal. */
+export circuit withdrawParent(): [] {
+  const c = myIdentity();
+  assert(pendingParentOf.member(c), "No parentage proposed for your record");
+  pendingParentOf.remove(c);
+}
+
+// ─────────────────────────────────────────────────────────────── obligations
+
+circuit addObligation(r: Bytes<32>, o: Bytes<32>, b: Bytes<32>, k: Bytes<32>): [] {
+  // MAX_OPEN_OBLIGATIONS more for every recovery: a thief holding the head can fill the
+  // record with obligations owed to himself, which only he can discharge; the recovered
+  // owner gets fresh room. Still bounded: at most (MAX_RECOVERIES + 1) * MAX_OPEN_OBLIGATIONS.
+  assert(obligationCountOf.lookup(r).lessThan(
+           (MAX_OPEN_OBLIGATIONS() * (recoveriesOf.lookup(r).read() + 1)) as Uint<64>),
+         "This record already carries the most obligations it can");
+  openObligations.insert(k);
+  obligationCountOf.lookup(r).increment(1);
+  obligationSeq.increment(1);
+  lastObligationRecord = r;
+  lastObligation = o;
+  lastBeneficiary = b;
+}
+
+/** The BENEFICIARY proposes a claim against a record. It binds nobody until accepted. */
+export circuit proposeObligation(record: Bytes<32>, obligationCommitment: Bytes<32>): [] {
+  const b = myIdentity();
+  const r = anchoredIdentity(disclose(record));
+  const o = disclose(obligationCommitment);
+  assertNonEmpty(o);
+  assert(r != b, "To claim against your own record, use encumberOwnRecord");
+  const k = obligationKey(r, o, b);
+  assert(!pendingObligations.member(k), "That obligation is already proposed");
+  assert(!openObligations.member(k), "That obligation is already in force");
+  assert(pendingObligationsBy.lookup(b).lessThan(MAX_PENDING_OBLIGATIONS()),
+         "You have too many proposals waiting; withdraw some or wait for answers");
+  pendingObligationsBy.lookup(b).increment(1);
+  pendingObligations.insert(k);
+  lastProposedObligation = o;
+  lastProposedAgainst = r;
+  lastProposedBy = b;
+}
+
+/** A holder places a claim on their own record, in their own favour, in one step. */
+export circuit encumberOwnRecord(obligationCommitment: Bytes<32>): [] {
+  const r = myIdentity();
+  const o = disclose(obligationCommitment);
+  assertNonEmpty(o);
+  const k = obligationKey(r, o, r);
+  assert(!openObligations.member(k), "That obligation is already in force");
+  addObligation(r, o, r, k);
+}
+
+/** The beneficiary retracts a proposal the holder has not accepted. */
+export circuit withdrawObligation(record: Bytes<32>, obligationCommitment: Bytes<32>): [] {
+  const b = myIdentity();
+  const k = obligationKey(anchoredIdentity(disclose(record)), disclose(obligationCommitment), b);
+  assert(pendingObligations.member(k), "No such proposal from you");
+  pendingObligations.remove(k);
+  pendingObligationsBy.lookup(b).decrement(1);
+}
+
+/** The record's holder accepts a proposed obligation from the beneficiary they name. */
+export circuit acceptObligation(obligationCommitment: Bytes<32>, beneficiary: Bytes<32>): [] {
+  const r = myIdentity();
+  const o = disclose(obligationCommitment);
+  const b = anchoredIdentity(disclose(beneficiary));
+  const k = obligationKey(r, o, b);
+  assert(pendingObligations.member(k), "No such obligation proposed against your record");
+  pendingObligations.remove(k);
+  pendingObligationsBy.lookup(b).decrement(1);
+  addObligation(r, o, b, k);
+}
+
+/** The record's holder declines a proposed obligation, clearing it from state. */
+export circuit rejectObligation(obligationCommitment: Bytes<32>, beneficiary: Bytes<32>): [] {
+  const b = anchoredIdentity(disclose(beneficiary));
+  const k = obligationKey(myIdentity(), disclose(obligationCommitment), b);
+  assert(pendingObligations.member(k), "No such obligation proposed against your record");
+  pendingObligations.remove(k);
+  pendingObligationsBy.lookup(b).decrement(1);
+}
+
+/** ONLY THE BENEFICIARY, under its current head, releases an obligation. */
+export circuit discharge(record: Bytes<32>, obligationCommitment: Bytes<32>): [] {
+  const b = myIdentity();
+  const r = anchoredIdentity(disclose(record));
+  const o = disclose(obligationCommitment);
+  const k = obligationKey(r, o, b);
+  assert(openObligations.member(k), "No such obligation in your favour");
+  openObligations.remove(k);
+  obligationCountOf.lookup(r).decrement(1);
+  obligationSeq.increment(1);
+  lastObligationRecord = r;
+  lastObligation = o;
+  lastBeneficiary = b;
+}

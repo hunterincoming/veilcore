@@ -1,0 +1,253 @@
+// A simulated VeilCore contract for tests: the compiled circuits run against an
+// in-memory ledger, one party at a time, at a block time the test controls.
+//
+// Beyond Midnight's usual simulator it can PROVE a call against one state and LAND it
+// against a later one (`prove` / `land`). That is what happens on chain when other
+// transactions arrive first, and it is how the contention attacks are tested: a call
+// that lands after an adversary's transaction is one the adversary could not stop.
+//
+// Contract v2: Compact runtime 0.21, where every circuit call is async and a context is
+// built per call. The state is kept between calls, not a context.
+//
+// SPDX-License-Identifier: Apache-2.0
+
+import { createHash } from "node:crypto";
+import {
+  type ChargedState,
+  type CircuitContext,
+  type MerkleTreePath,
+  QueryContext,
+  CostModel,
+  createCircuitContext,
+  createConstructorContext,
+  sampleContractAddress,
+} from "@midnight-ntwrk/compact-runtime";
+import {
+  Contract,
+  type Ledger,
+  ledger,
+  pureCircuits,
+} from "../managed/veilcore/contract/index.js";
+
+export const C = pureCircuits;
+export const ZERO = new Uint8Array(32);
+export const hex = (b: Uint8Array): string => Buffer.from(b).toString("hex");
+/** A deterministic 32-byte secret from a label. */
+export const secret = (label: string): Uint8Array =>
+  createHash("sha256").update(label).digest();
+
+const COIN = "0".repeat(64);
+export const T0 = 1_800_000_000n;
+
+let recoveries = 0;
+/** A recovery commitment nobody has used: every recovery must install one. */
+export const freshRecovery = (): Uint8Array =>
+  pureCircuits.recoveryCommit(secret(`fresh-recovery-${recoveries++}`));
+
+/** Who is calling: their record secret, and the other secrets a call may need. */
+export type Party = {
+  readonly own: Uint8Array;
+  readonly incoming?: Uint8Array;
+  readonly recovery?: Uint8Array;
+};
+
+/** The licence a call acts on. `path` defaults to the one found in the current tree. */
+export type LicenceWitness = {
+  readonly secret: Uint8Array;
+  readonly record: Uint8Array;
+  readonly challenge?: Uint8Array;
+  readonly path?: MerkleTreePath<Uint8Array>;
+};
+
+type Ctx = CircuitContext<Record<string, never>>;
+type Impure = Contract<Record<string, never>>["impureCircuits"];
+export type CircuitName = keyof Impure;
+
+/** A call proved against one state, waiting to land on a later one. */
+export type Proved = {
+  readonly transcript: unknown;
+  readonly effects: unknown;
+};
+
+// A budget no call reaches. Runtime 0.21 (onchain runtime 4) refuses a transcript whose
+// budget gives any bytesDeleted allowance ("ran out of gas budget"), so it is 0 here; landing
+// is about the contract's checks, and gas is not what these tests are for.
+const GAS = {
+  readTime: 10n ** 15n,
+  computeTime: 10n ** 15n,
+  bytesWritten: 10n ** 12n,
+  bytesDeleted: 0n,
+};
+
+export class VeilcoreSimulator {
+  /** The contract's public state between calls. */
+  private chain!: ChargedState;
+  private readonly address = sampleContractAddress();
+  /** Block time in seconds. Tests move it with `advance`. */
+  now = T0;
+  private licence: LicenceWitness | null = null;
+
+  private constructor() {}
+
+  /** Deploy: run the constructor (async in runtime 0.21). */
+  static async create(): Promise<VeilcoreSimulator> {
+    const sim = new VeilcoreSimulator();
+    const deployer = sim.contract({ own: secret("deployer") });
+    const initial = await deployer.initialState(
+      createConstructorContext({}, COIN),
+    );
+    sim.chain = initial.currentContractState.data;
+    return sim;
+  }
+
+  /** The public ledger, as anyone reading the chain sees it. */
+  get state(): Ledger {
+    return ledger(this.chain);
+  }
+
+  private context(circuit: string): Ctx {
+    return createCircuitContext({
+      circuitId: circuit,
+      contractAddress: this.address,
+      coinPublicKeyOrZswapState: COIN,
+      contractState: this.chain,
+      privateState: {},
+      time: Number(this.now),
+    });
+  }
+
+  advance(seconds: bigint): void {
+    this.now += seconds;
+  }
+
+  /** Run a call and commit its effects. Rejects with the contract's refusal. */
+  async call<N extends CircuitName>(
+    who: Party,
+    circuit: N,
+    ...args: Parameters<Impure[N]> extends [unknown, ...infer A] ? A : never
+  ): Promise<void> {
+    const fn = this.contract(who).impureCircuits[circuit] as (
+      c: Ctx,
+      ...a: unknown[]
+    ) => Promise<{ context: Ctx }>;
+    const out = await fn(this.context(circuit), ...args);
+    this.chain = out.context.callContext.currentQueryContext.state;
+  }
+
+  /** Run a call with a licence named (countersign, transfer, presentation). */
+  async withLicence<T>(
+    licence: LicenceWitness,
+    f: () => Promise<T>,
+  ): Promise<T> {
+    this.licence = licence;
+    try {
+      return await f();
+    } finally {
+      this.licence = null;
+    }
+  }
+
+  /** Prove a call against the CURRENT state without committing it. */
+  async prove<N extends CircuitName>(
+    who: Party,
+    circuit: N,
+    ...args: Parameters<Impure[N]> extends [unknown, ...infer A] ? A : never
+  ): Promise<Proved> {
+    const fn = this.contract(who).impureCircuits[circuit] as (
+      c: Ctx,
+      ...a: unknown[]
+    ) => Promise<{ context: Ctx }>;
+    const r = await fn(this.context(circuit), ...args);
+    // Runtime 0.21 has no proofData on the result: the call's public transcript is the
+    // root call's entry in the context's proof-data trace.
+    const root = r.context.callProofDataTrace.filter(
+      (t) => t.circuitId === circuit,
+    );
+    if (root.length !== 1)
+      throw new Error(`test error: expected one ${circuit} call in the trace`);
+    return {
+      transcript: root[0].publicTranscript,
+      effects: r.context.callContext.currentQueryContext.effects,
+    };
+  }
+
+  /** Land a proved call on the CURRENT state, as the chain would. Throws if the chain would reject it. */
+  land(p: Proved): void {
+    const q = new QueryContext(this.chain, this.address);
+    q.block = { ...q.block, secondsSinceEpoch: this.now };
+    const landed = q.runTranscript(
+      { gas: GAS, effects: p.effects, program: p.transcript } as Parameters<
+        QueryContext["runTranscript"]
+      >[0],
+      CostModel.initialCostModel(),
+    );
+    this.chain = landed.state;
+  }
+
+  /** The licensee's path, as the SDK finds it: from the current tree. */
+  pathFor(
+    licenceSecret: Uint8Array,
+    record: Uint8Array,
+  ): MerkleTreePath<Uint8Array> | undefined {
+    return this.state.activeLicenses.findPathForLeaf(
+      C.licenseKey(C.licenseCommit(licenceSecret, record), record),
+    );
+  }
+
+  /**
+   * A free leaf index (the SDK picks at random). Scanning from 0 on every call made a
+   * run of N activations cost N^2 ledger queries, and at N = 1024 the WASM runtime ran
+   * out of memory ("RuntimeError: unreachable") and took the rest of the file with it.
+   * Starting from the last slot handed out keeps it linear; a slot freed by a revoke
+   * below that point is simply not reused, which no test depends on.
+   */
+  freeSlot(): bigint {
+    let s = this.nextSlot;
+    while (this.state.licenseAtSlot.member(s)) s++;
+    this.nextSlot = s + 1n;
+    return s;
+  }
+
+  private nextSlot = 0n;
+
+  private contract(who: Party): Contract<Record<string, never>> {
+    const lic = (): LicenceWitness => {
+      if (this.licence === null)
+        throw new Error(
+          "test error: a circuit read the licence witnesses with no licence named",
+        );
+      return this.licence;
+    };
+    return new Contract<Record<string, never>>({
+      localGeneticSecret: (c) => [c.privateState, who.own],
+      incomingGeneticSecret: (c) => [c.privateState, who.incoming ?? who.own],
+      recoverySecret: (c) => [c.privateState, who.recovery ?? ZERO],
+      licenseSecret: (c) => [c.privateState, lic().secret],
+      licenseRecord: (c) => [c.privateState, lic().record],
+      presentationChallenge: (c) => [c.privateState, lic().challenge ?? ZERO],
+      licensePath: (c) => {
+        const l = lic();
+        const path =
+          l.path ??
+          this.pathFor(l.secret, l.record) ??
+          stubPath(C.licenseKey(C.licenseCommit(l.secret, l.record), l.record));
+        return [c.privateState, path];
+      },
+    });
+  }
+}
+
+/** A well-formed path for a leaf that is not in the tree: passes the leaf check, must fail the root check. */
+const stubPath = (leaf: Uint8Array): MerkleTreePath<Uint8Array> => ({
+  leaf,
+  path: Array.from({ length: 24 }, () => ({
+    sibling: { field: 0n },
+    goes_left: true,
+  })),
+});
+
+/** A party holding one secret. */
+export const as = (own: Uint8Array, extra: Omit<Party, "own"> = {}): Party => ({
+  own,
+  ...extra,
+});
