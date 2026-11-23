@@ -56,7 +56,8 @@ test.describe('a camera that sees a VeilCore label', () => {
     expect(asked.filter((u) => u.includes('labels.example'))).toEqual([]);
     // The bundled reader's WebAssembly came from this site, and nothing from a CDN.
     expect(asked.some((u) => /\/assets\/zxing_reader-[\w-]+\.wasm$/.test(u))).toBe(true);
-    expect(asked.filter((u) => /jsdelivr|unpkg|cdn/i.test(u))).toEqual([]);
+    // By host: a bundle file's content hash can contain "cdn" by chance (transfers-CdneIBC_.js).
+    expect(asked.filter((u) => /jsdelivr|unpkg|cdn/i.test(new URL(u).hostname))).toEqual([]);
     expectNoErrors(errors);
   });
 
