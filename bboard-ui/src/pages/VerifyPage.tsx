@@ -82,7 +82,7 @@ import {
   type ResolvedAttestation,
 } from '../veilcore/attesters';
 import { isBoundLabDocument, labSaltFromLink } from '../veilcore/lab-doc';
-import { LINK_SX } from '../config/theme';
+import { CODE_TEXT, LINK_SX } from '../config/theme';
 import { color } from '../config/tokens';
 import { DatedStamp } from '../components/DatedStamp';
 import { NETWORK, explorerFor, isTestNetwork } from '../config/network';
@@ -925,7 +925,17 @@ export const VerifyPage: React.FC = () => {
               )}
               {RECORD_ID.test(result.id ?? '') && (
                 <Typography variant="body2" color="text.secondary" sx={{ mb: 2, overflowWrap: 'anywhere' }}>
-                  {t('app.verify.recordId', { id: result.id ?? '' })}
+                  {rich(
+                    t('app.verify.recordId'),
+                    {},
+                    {
+                      id: (
+                        <Box component="span" sx={CODE_TEXT}>
+                          {result.id}
+                        </Box>
+                      ),
+                    },
+                  )}
                 </Typography>
               )}
 
