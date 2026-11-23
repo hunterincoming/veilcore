@@ -196,7 +196,8 @@ export const USAGE = `Usage: committee.ts <mainnet|preprod|undeployed> <show|ins
   --v2-record FILE [--contract veilcore|veilcore-claims]
                   contract v2, by the address in its deploy-session record (keys in slot V4)
   --temp-key-file FILE
-                  install on v2: the temporary key's age-encrypted file (age asks its passphrase)
+                  v2 before its handover: the temporary key's age-encrypted file (age asks its
+                  passphrase), for install, or for submit in place of --sig (a retire)
   --key-slot v3|v4
                   the key slot; it must agree with the contract's (needed only for a test contract
                   that is neither v1's pinned address nor in a v2 record)
@@ -312,8 +313,14 @@ export const parseOptions = (argv: readonly string[]): Options => {
         throw new UsageError(`Unknown option ${flag}.\n${USAGE}`);
     }
   }
-  if (o.tempKeyFile !== undefined && (o.command !== 'install' || o.v2Record === undefined))
-    throw new UsageError('--temp-key-file is for install on contract v2 (with --v2-record): the handover.');
+  if (o.tempKeyFile !== undefined && (!['install', 'submit'].includes(o.command) || o.v2Record === undefined))
+    throw new UsageError(
+      '--temp-key-file is for contract v2 before its handover (with --v2-record): install (the handover), or submit (signs a request, such as a retire, with the temporary key).',
+    );
+  if (o.tempKeyFile !== undefined && o.sigs.length > 0)
+    throw new UsageError(
+      'Give --temp-key-file or --sig files, not both: the temporary key is the only signer before the handover.',
+    );
   if (o.v2Record !== undefined && o.address !== undefined)
     throw new UsageError(
       'Give --v2-record or --address, not both: with --v2-record the address comes from the record.',
@@ -326,7 +333,7 @@ export const parseOptions = (argv: readonly string[]): Options => {
     throw new UsageError(`On ${o.network}, say which contract: --address HEX, or --v2-record FILE.`);
   if (o.command === 'install' && o.cards.length !== 3)
     throw new UsageError('install needs the three key cards: --card FILE three times.');
-  if (o.command === 'submit' && (o.request === undefined || o.sigs.length === 0))
+  if (o.command === 'submit' && (o.request === undefined || (o.sigs.length === 0 && o.tempKeyFile === undefined)))
     throw new UsageError('submit needs --request FILE and the signature files (--sig FILE, once for each).');
   if (o.command === 'request') {
     const kinds = [o.replace, o.retire, o.remove.length + o.insert.length > 0].filter(Boolean).length;
@@ -934,6 +941,21 @@ const show = async ({ o, logger, reader, v2 }: Ctx): Promise<boolean> => {
   return true;
 };
 
+/** Contract v2's temporary key, from its age file (age asks the passphrase); it must be the key on chain now. */
+const openTempKey = (c: Ctx, file: string, current: AuthorityView): string => {
+  let key: string;
+  try {
+    key = (c.keyStore ?? ageKeyStore).open(file);
+  } catch (e) {
+    throw new UsageError(e instanceof Error ? e.message : String(e));
+  }
+  redactThisSession(key);
+  const k = parseSigningKey(key);
+  if ('problem' in k || current.committee.length !== 1 || k.publicKey !== current.committee[0])
+    throw new UsageError(`${file} does not hold the key that holds this contract now. Nothing was signed.`);
+  return k.value;
+};
+
 const install = async (c: Ctx): Promise<boolean> => {
   const { o, prompt, logger } = c;
   const cards = readCards(o.cards, o.network, logger);
@@ -978,17 +1000,7 @@ const install = async (c: Ctx): Promise<boolean> => {
     logger.info(
       'Opening the temporary key file: age asks for its passphrase. The key is held in memory for one signature.',
     );
-    let key: string;
-    try {
-      key = (c.keyStore ?? ageKeyStore).open(o.tempKeyFile);
-    } catch (e) {
-      throw new UsageError(e instanceof Error ? e.message : String(e));
-    }
-    redactThisSession(key);
-    const k = parseSigningKey(key);
-    if ('problem' in k || k.publicKey !== current.committee[0])
-      throw new UsageError(`${o.tempKeyFile} does not hold the key that holds this contract now. Nothing was signed.`);
-    signature = signRequest(req, k.value);
+    signature = signRequest(req, openTempKey(c, o.tempKeyFile, current));
   } else logger.info('The current maintenance key is on paper. It is held in memory for one signature, then dropped.');
   while (signature === undefined) {
     const typed = await prompt.askHidden(
@@ -1140,7 +1152,9 @@ const submit = async (c: Ctx): Promise<boolean> => {
   const forbid = current.committee.length === 1 ? current.committee : [];
   const signed = assembleSigned(
     req,
-    o.sigs.map((f) => readJson(f, 'signature')),
+    o.tempKeyFile !== undefined
+      ? [signRequest(req, openTempKey(c, o.tempKeyFile, current))]
+      : o.sigs.map((f) => readJson(f, 'signature')),
     current,
     { forbid },
   );

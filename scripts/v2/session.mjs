@@ -8,7 +8,7 @@
 //   - the committee launcher (`--v2-record FILE`) takes v2's address from it, and its key slot (V4).
 // It is NOT a pin. Nothing here writes deployments/*.json, api/src/deploy-guard.ts or any SDK or
 // site list; v2's addresses go into those in their own PR, after verify:deployment passes
-// (docs/runbooks/deploy-v2.md, step 19).
+// (docs/runbooks/deploy-v2.md, step 17).
 //
 // IDENTIFYING v2. A checker identifies v2 by its pinned address (and, for how it started, by the
 // constructor's ledger data), never by the `contractVersion` or `predecessor` fields in its state:
@@ -16,7 +16,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import { readFileSync, renameSync, writeFileSync, existsSync } from 'node:fs';
 import path from 'node:path';
-import { V2_CONTRACTS, V2_KEY_SLOT } from './fingerprints.mjs';
+import { ROOT, V2_CONTRACTS, V2_KEY_SLOT } from './fingerprints.mjs';
 
 export const SESSION_FORMAT = 'veilcore-v2-deploy-session/v1';
 export const SESSION_NETWORKS = ['mainnet', 'preprod', 'undeployed'];
@@ -43,7 +43,9 @@ export const emptySession = ({ network, commit, compiler, fingerprintsSha256, pu
   keySlot: V2_KEY_SLOT,
   fingerprintsSha256,
   temporaryKey: { publicKey, storedAs: 'age-encrypted file on the maintainer’s Mac only; never on paper' },
-  contracts: Object.fromEntries(V2_CONTRACTS.map((c) => [c, { address: null, deploy: null, pending: null, updates: [] }])),
+  contracts: Object.fromEntries(
+    V2_CONTRACTS.map((c) => [c, { address: null, deploy: null, pending: null, updates: [], abandoned: [] }]),
+  ),
 });
 
 const txRefProblems = (t, where) => {
@@ -72,6 +74,8 @@ export const sessionProblems = (s) => {
     }
     if (e.address !== null && !HEX64.test(String(e.address))) p.push(`${c}: the address is not 64 hex characters.`);
     if (e.deploy !== null) p.push(...txRefProblems(e.deploy, `${c}: the deploy`));
+    if (e.abandoned !== undefined && (!Array.isArray(e.abandoned) || !e.abandoned.every((x) => HEX64.test(String(x?.address)))))
+      p.push(`${c}: the list of abandoned deploys is not a list of addresses.`);
     if (!Array.isArray(e.updates)) {
       p.push(`${c}: the list of updates is missing.`);
       continue;
@@ -87,6 +91,31 @@ export const sessionProblems = (s) => {
   return p;
 };
 
+/**
+ * v1's pinned addresses on the record's network (deployments/<network>.json), each refused as a
+ * v2 address: a record naming one would give v1 the V4 slot and v2's gate exception.
+ */
+export const pinnedV1Problems = (s, root = ROOT) => {
+  if (!['mainnet', 'preprod'].includes(s.network)) return [];
+  let pinned;
+  try {
+    pinned = JSON.parse(readFileSync(path.join(root, 'deployments', `${s.network}.json`), 'utf8')).contracts.map((c) =>
+      String(c.address).toLowerCase(),
+    );
+  } catch {
+    return [`deployments/${s.network}.json could not be read, so the record cannot be checked against v1's pinned addresses.`];
+  }
+  const p = [];
+  for (const c of V2_CONTRACTS) {
+    const a = s.contracts?.[c]?.address;
+    if (typeof a === 'string' && pinned.includes(a.toLowerCase()))
+      p.push(`${c}: ${a} is a pinned v1 address, never a v2 one. This record is wrong or was edited.`);
+    for (const x of s.contracts?.[c]?.abandoned ?? [])
+      if (pinned.includes(String(x?.address).toLowerCase())) p.push(`${c}: an abandoned address is a pinned v1 address.`);
+  }
+  return p;
+};
+
 /** A record read from a file and checked. Throws with every problem. */
 export const readSession = (file) => {
   let s;
@@ -96,6 +125,7 @@ export const readSession = (file) => {
     throw new Error(`Could not read the deploy-session record ${file}: ${e instanceof Error ? e.message : String(e)}`);
   }
   const p = sessionProblems(s);
+  if (p.length === 0) p.push(...pinnedV1Problems(s));
   if (p.length > 0) throw new Error(`${file}: ${p.join(' ')}`);
   return s;
 };

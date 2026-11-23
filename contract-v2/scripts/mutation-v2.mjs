@@ -1,10 +1,15 @@
 // Mutation pass over every assert and literal contract v2 adds (docs/contract-v2.md 1.3,
 // 1.4). No mutation tool reads Compact, so the mutants are listed here by hand: each one
 // removes or weakens one new check. For each, a copy of the workspace is compiled
-// (--skip-zk) and src/test/v2-changes.test.ts is run against it. Every mutant must make
-// that file fail ("killed"); one that passes is a gap in the tests.
+// (--skip-zk) and the mutant's test files are run against it (by default
+// src/test/v2-changes.test.ts and src/test/v1-pure-circuits.test.ts). Every mutant must
+// make them fail ("killed"), and a mutant with a minimum must fail at least that many
+// tests, so a check is never guarded by one test alone. One that passes is a gap.
 //
 //   COMPACTC=<path to compactc 0.36.1> node scripts/mutation-v2.mjs [mutant id ...]
+//
+// CI runs it (.github/workflows/mutation-v2.yaml) when a .compact file or this list
+// changes, weekly, and by hand. It is not in every PR's required checks.
 //
 // Writes nothing in the workspace: the copy is in a new temporary folder, removed after.
 // SPDX-License-Identifier: Apache-2.0
@@ -18,7 +23,13 @@ import { compilerCommand } from './compile.mjs';
 const ws = join(dirname(fileURLToPath(import.meta.url)), '..');
 const repo = join(ws, '..');
 
-/** [id, file, text to find, its replacement, which occurrence (1-based), what it breaks] */
+const DEFAULT_TESTS = ['src/test/v2-changes.test.ts', 'src/test/v1-pure-circuits.test.ts'];
+const SCHNORR_TESTS = [...DEFAULT_TESTS, 'src/test/claims-schnorr.test.ts', 'src/test/attack-claims-A.test.ts'];
+
+/**
+ * [id, file, text to find, its replacement, which occurrence (1-based), what it breaks,
+ *  options: { tests, minFailed }]
+ */
 export const MUTANTS = [
   ['Z0', 'veilcore.compact', 'assert(disclose(secret != default<Bytes<32>>), "A secret cannot be all zeros");', '', 1, 'the zero-secret assert itself'],
   ['Z1', 'veilcore.compact', 'commit(nonZeroSecret(localGeneticSecret()))', 'commit(localGeneticSecret())', 1, 'liveSelf: the record secret'],
@@ -44,6 +55,13 @@ export const MUTANTS = [
   ['R8', 'schnorr.compact', '222104516725044372704429320860625768980218979470098935457522536959433977015;', '222104516725044372704429320860625768980218979470098935457522536959433977014;', 1, 'R_LO one too low'],
   ['R9', 'schnorr.compact', '+ (lo as Field)) as JubjubScalar', '+ (lo as Field) + (1 as Field)) as JubjubScalar', 1, 'recomposition off by one'],
   ['R10', 'schnorr.compact', '(hi as Field) * TWO_248)', '(hi as Field) * (2 as Field))', 1, 'high part not shifted'],
+  // The independent review's mutants (scratchpad review of PR #189, 23 Nov 2026).
+  ['A1', 'schnorr.compact', 'ecMul(pk, (disclose(c) as Field) as JubjubScalar)', 'ecMul(pk, cFull as JubjubScalar)', 1, 'challenge mod r, not mod 2^248', { tests: SCHNORR_TESTS }],
+  ['A2', 'schnorr.compact', 'jubjubPointY(rpk) == (1 as Field)', 'jubjubPointY(rpk) == jubjubPointY(rpk)', 1, 'subgroup check: y dropped', { tests: SCHNORR_TESTS, minFailed: 2 }],
+  ['A3', 'schnorr.compact', 'assert(disclose(q) < 116,', 'assert(disclose(q) < 117,', 1, 'A5 quotient bound one too high', { tests: SCHNORR_TESTS, minFailed: 2 }],
+  ['A4', 'veilcore-claims.compact', '16384 as Field, 32768 as Field]', '16384 as Field, 32767 as Field]', 1, 'mask weight in the literal port'],
+  ['A5', 'veilcore.compact', '0x23, 0x47];', '0x23, 0x48];', 1, 'main predecessor, last byte'],
+  ['A6', 'veilcore.compact', 'secret != default<Bytes<32>>', 'secret != pad(32, "x")', 1, 'zero check against another value'],
 ];
 
 const replaceNth = (text, find, repl, n) => {
@@ -74,19 +92,34 @@ const main = () => {
         stdio: 'pipe',
       });
     const contractOf = (file) => (file === 'veilcore.compact' ? 'veilcore' : 'veilcore-claims');
-    const test = () =>
-      spawnSync('npx', ['vitest', 'run', 'src/test/v2-changes.test.ts'], { cwd: copy, stdio: 'pipe', encoding: 'utf8' });
+    // No colour, so the summary can be read (CI turns colour on), and any escape stripped.
+    const plain = (t) => String(t ?? '').replace(/\u001b\[[0-9;]*m/g, '');
+    const test = (files = DEFAULT_TESTS) => {
+      const r = spawnSync('npx', ['vitest', 'run', '--no-color', ...files], {
+        cwd: copy,
+        stdio: 'pipe',
+        encoding: 'utf8',
+        env: { ...process.env, NO_COLOR: '1', FORCE_COLOR: '0' },
+      });
+      return { status: r.status, stdout: plain(r.stdout), stderr: plain(r.stderr) };
+    };
 
     compile('veilcore');
     compile('veilcore-claims');
     const base = test();
     if (base.status !== 0) {
       console.error(base.stdout.slice(-3000));
-      throw new Error('The unmutated build fails v2-changes.test.ts: fix that first.');
+      throw new Error('The unmutated build fails its tests: fix that first.');
     }
-    console.log('baseline: v2-changes.test.ts passes on the unmutated build');
+    const schnorrBase = test(SCHNORR_TESTS);
+    if (schnorrBase.status !== 0) {
+      console.error(schnorrBase.stdout.slice(-3000));
+      throw new Error('The unmutated build fails the Schnorr tests: fix that first.');
+    }
+    const summary = (r) => /Tests\s+[^\n]*/.exec(r.stdout)?.[0] ?? '(no test summary)';
+    console.log(`baseline: the unmutated build passes (${summary(base)}; Schnorr set: ${summary(schnorrBase)})`);
     const results = [];
-    for (const [id, file, find, repl, n, what] of MUTANTS) {
+    for (const [id, file, find, repl, n, what, opts = {}] of MUTANTS) {
       if (only.length && !only.includes(id)) continue;
       const src = join(copy, 'src', file);
       const original = readFileSync(src, 'utf8');
@@ -96,11 +129,20 @@ const main = () => {
         writeFileSync(src, replaceNth(original, find, repl, n));
         try {
           compile(name);
-          const r = test();
-          const failed = /(\d+) failed/.exec(r.stdout)?.[1];
-          outcome = r.status === 0 ? 'SURVIVED' : `killed (${failed ?? '?'} tests failed)`;
+          const r = test(opts.tests);
+          const failed = Number(/Tests\s+(\d+) failed/.exec(r.stdout)?.[1] ?? NaN);
+          const min = opts.minFailed ?? 1;
+          if (r.status !== 0 && Number.isNaN(failed))
+            console.log(`${id}: no test count; the run said:\n${(r.stdout + r.stderr).slice(-2000)}`);
+          outcome =
+            r.status === 0
+              ? 'SURVIVED'
+              : failed >= min || (Number.isNaN(failed) && min === 1)
+                ? `killed (${Number.isNaN(failed) ? 'the file' : failed} failed)`
+                : `SURVIVED: only ${failed} test(s) failed, ${min} required`;
         } catch (e) {
-          outcome = `killed (does not compile: ${String(e.stderr ?? e).split('\n')[0].slice(0, 100)})`;
+          // A mutant that does not compile tests nothing: the list needs fixing.
+          outcome = `INVALID: does not compile (${String(e.stderr ?? e).split('\n')[0].slice(0, 100)})`;
         }
       } finally {
         writeFileSync(src, original);
@@ -109,9 +151,14 @@ const main = () => {
       results.push([id, what, outcome]);
       console.log(`${id.padEnd(4)} ${what.padEnd(46)} ${outcome}`);
     }
-    const survived = results.filter((r) => r[2] === 'SURVIVED');
-    console.log(`\n${results.length} mutants, ${results.length - survived.length} killed, ${survived.length} survived`);
-    if (survived.length) process.exitCode = 1;
+    const survived = results.filter((r) => r[2].startsWith('SURVIVED'));
+    const invalid = results.filter((r) => r[2].startsWith('INVALID'));
+    const killed = results.length - survived.length - invalid.length;
+    console.log(
+      `\n${results.length} mutants, ${killed} killed, ${survived.length} survived` +
+        (invalid.length ? `, ${invalid.length} invalid` : ''),
+    );
+    if (survived.length || invalid.length) process.exitCode = 1;
   } finally {
     rmSync(root, { recursive: true, force: true });
   }

@@ -1,0 +1,65 @@
+name: Contract v2 mutation pass
+
+# contract-v2/scripts/mutation-v2.mjs: each new check in contract v2 is removed or weakened in
+# turn, the copy compiled (no keys) and its tests run; every mutant must be killed, and the
+# ones marked so by at least two tests. It compiles the contract once per mutant, so it is
+# not one of every PR's required checks: it runs when a contract source or the mutant list
+# changes, weekly, and by hand. A red run here means a check in contract v2 is no longer tested.
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "contract-v2/src/**.compact"
+      - "contract-v2/scripts/mutation-v2.mjs"
+      - "contract-v2/src/test/v2-changes.test.ts"
+      - ".github/workflows/mutation-v2.yaml"
+  workflow_dispatch: {}
+  schedule:
+    - cron: "17 3 * * 1"   # Mondays 03:17 UTC
+
+permissions: {}
+
+concurrency:
+  group: mutation-v2-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  mutation-v2:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 150
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  #v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up (compiler, Node, npm, npm ci)
+        uses: ./.github/actions/setup
+
+      # As in ci.yaml's contract-v2 job: a fixed release asset, checked, never on the PATH.
+      - name: Install Compact compiler 0.36.1 for contract v2 (pinned, checksummed)
+        shell: bash
+        env:
+          COMPACTC_VERSION: "0.36.1"
+          COMPACTC_SHA256: "9d5fedfec9ae775a1e47d5c6f785130b314c1c5c52cd1a4eb9fc56d1fc61d23a"
+        run: |
+          set -euo pipefail
+          dir=/opt/compactc-v2
+          zip="$RUNNER_TEMP/compactc-v2.zip"
+          curl -fsSL --retry 3 -o "$zip" \
+            "https://github.com/midnightntwrk/compact/releases/download/compactc-v${COMPACTC_VERSION}/compactc_v${COMPACTC_VERSION}_x86_64-unknown-linux-musl.zip"
+          echo "${COMPACTC_SHA256}  ${zip}" | sha256sum -c -
+          grep -q "^${COMPACTC_SHA256}  compactc_v${COMPACTC_VERSION}_x86_64-unknown-linux-musl.zip$" contract-v2/compiler-checksums.txt
+          sudo mkdir -p "$dir"
+          sudo unzip -q "$zip" -d "$dir"
+          test "$("$dir/compactc" --version | cut -d' ' -f1)" = "$COMPACTC_VERSION"
+
+      - name: Mutation pass
+        working-directory: contract-v2
+        env:
+          COMPACTC: /opt/compactc-v2/compactc
+        run: |
+          node scripts/mutation-v2.mjs

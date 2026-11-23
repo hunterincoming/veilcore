@@ -34,19 +34,28 @@ import { V2_CONTRACTS, V2_KEY_SLOT, sha256Hex, slotOfKey } from './fingerprints.
 import { stateFacts } from './ledger.mjs';
 
 const tagged = (hex) => ({ tag: 'schnorr', value: hex });
-const ttl = () => new Date(Date.now() + 60 * 60 * 1000);
+/** How long a built transaction stays valid: after this a node can never take it. */
+export const TTL_MS = 60 * 60 * 1000;
+/** How long past the TTL a resume waits before it treats an unseen deploy as never landed. */
+export const TTL_MARGIN_MS = 10 * 60 * 1000;
+const ttl = (now = Date.now()) => new Date(now + TTL_MS);
 export const MAX_PER_UPDATE = 8;
 
 export const publicKeyOf = (signingKeyHex) => signatureVerifyingKey(tagged(signingKeyHex)).value;
 
 /** The deploy: the constructor's ledger data, no key, the temporary key alone at counter 0. */
-export const buildDeploy = (network, constructorBytes, temporaryPublicKey) => {
+export const buildDeploy = (network, constructorBytes, temporaryPublicKey, now = Date.now()) => {
   const ctor = ContractState.deserialize(constructorBytes);
   const state = new ContractState();
   state.data = ctor.data;
   state.maintenanceAuthority = new ContractMaintenanceAuthority([tagged(temporaryPublicKey)], 1, 0n);
   const deploy = new ContractDeploy(state);
-  return { address: deploy.address, tx: Transaction.fromParts(network, undefined, undefined, Intent.new(ttl()).addDeploy(deploy)) };
+  const until = ttl(now);
+  return {
+    address: deploy.address,
+    ttlEnds: until.toISOString(),
+    tx: Transaction.fromParts(network, undefined, undefined, Intent.new(until).addDeploy(deploy)),
+  };
 };
 
 /** Problems with a local key before it is signed into an update. Empty when it is the published V4 key. */
@@ -84,6 +93,10 @@ export const buildInsertUpdate = (network, address, keys, counter, signingKeyHex
  *                             in a block with SucceedEntirely, rejects otherwise
  *   readState(address)        the contract's state bytes now, or undefined
  *   latestTx(address)         { txHash } of the contract's latest action (to finish a step whose send stopped)
+ *   txActions(hash, address)  what that transaction did to `address` (ledger.mjs txFacts), read from the indexer;
+ *                             a step whose send stopped is recorded only if its transaction really holds it
+ *   landedTx                  a transaction hash the operator found (--landed-tx), used in place of latestTx
+ *   now()                     the time, in ms (tests)
  *   wait()                    pause before reading the chain again
  *   log(line)
  *   perUpdate                 keys per maintenance update (1 to 8)
@@ -130,29 +143,79 @@ export const runDeploy = async (deps) => {
     );
   };
 
+  const clock = deps.now ?? (() => Date.now());
+
+  /**
+   * The transaction of a step whose send stopped before it was confirmed. It is the contract's
+   * latest action, or the one the operator found (--landed-tx), and it is recorded only if it
+   * really holds that step: anyone may call v2, so the latest action can be someone's call.
+   */
+  const landedStep = async (address, isIt, what) => {
+    const t = deps.landedTx !== undefined ? { txHash: String(deps.landedTx).toLowerCase() } : await deps.latestTx(address);
+    let actions;
+    try {
+      actions = await deps.txActions(t.txHash, address);
+    } catch {
+      actions = [];
+    }
+    if (!actions.some(isIt))
+      throw new Error(
+        `The chain shows ${what} landed, but transaction ${t.txHash} (${deps.landedTx !== undefined ? 'given with --landed-tx' : "the contract's latest"}) ` +
+          `does not hold it: another transaction (perhaps someone's call) came after it. Find ${what} on a block explorer ` +
+          '(the contract address, then its transactions), and run again with --resume and --landed-tx <its hash>. Nothing was sent.',
+      );
+    return t.txHash;
+  };
+
   for (const name of V2_CONTRACTS) {
     const entry = record.contracts[name];
+    entry.abandoned ??= [];
     // ── 1. the deploy ──
-    if (entry.deploy === null) {
-      if (entry.address !== null && (await facts(entry.address, 1)) !== undefined) {
-        // A send that stopped: the chain shows the contract, so it landed.
-        const t = await deps.latestTx(entry.address);
-        entry.deploy = { txHash: t.txHash };
+    if (entry.deploy === null && entry.address !== null) {
+      // A deploy was built and maybe sent. Its address is never dropped from the record.
+      if ((await facts(entry.address, 3)) !== undefined) {
+        const h = await landedStep(entry.address, (x) => x.kind === 'deploy', `the deploy of ${entry.address}`);
+        entry.deploy = { txHash: h };
         entry.pending = null;
         deps.save(record);
-        log(`${name}: the deploy at ${entry.address} had landed (transaction ${t.txHash}).`);
+        log(`${name}: the deploy at ${entry.address} had landed (transaction ${h}).`);
       } else {
-        const { address, tx } = buildDeploy(deps.network, await deps.constructorBytes(name), publicKey);
-        entry.address = address;
-        entry.pending = { kind: 'deploy' };
-        deps.save(record);
-        log(`${name}: deploying contract v2 at ${address} (one key, no verifier key yet).`);
-        const r = await deps.send(tx);
-        entry.deploy = { txId: r.txId, txHash: r.txHash, blockHeight: r.blockHeight };
+        const ends = Date.parse(entry.pending?.ttlEnds ?? '');
+        if (Number.isNaN(ends))
+          throw new Error(
+            `${name}: the deploy at ${entry.address} is not on chain, and the record does not say until when it could ` +
+              'land (a record written before this version of the tool). The tool will not deploy again on its own. ' +
+              'Check the address on a block explorer; if nothing is there an hour after the deploy was sent, ask the ' +
+              'maintainer before going on. Nothing was sent.',
+          );
+        // If the indexer hides a deploy that did land for longer than this, the resume deploys
+        // again; the first address stays in abandoned[], so nothing is lost from the record.
+        const safe = ends + TTL_MARGIN_MS;
+        if (clock() < safe)
+          throw new Error(
+            `${name}: the deploy at ${entry.address} is not on chain yet, but it may still land until ` +
+              `${new Date(safe).toISOString()} (its one-hour validity, plus a margin). Run the same command with --resume ` +
+              'after that time. Never start a new deploy. Nothing was sent.',
+          );
+        // Past its validity and still not there: it can never land. Keep its address on record.
+        entry.abandoned.push({ address: entry.address, reason: `deploy never landed; expired ${new Date(ends).toISOString()}` });
+        log(`${name}: the deploy at ${entry.address} never landed and can no longer land; it is kept in the record as abandoned.`);
+        entry.address = null;
         entry.pending = null;
         deps.save(record);
-        log(`${name}: deployed at ${address}, transaction ${r.txHash ?? r.txId}, block ${r.blockHeight}.`);
       }
+    }
+    if (entry.deploy === null) {
+      const { address, tx, ttlEnds } = buildDeploy(deps.network, await deps.constructorBytes(name), publicKey, clock());
+      entry.address = address;
+      entry.pending = { kind: 'deploy', ttlEnds };
+      deps.save(record);
+      log(`${name}: deploying contract v2 at ${address} (one key, no verifier key yet).`);
+      const r = await deps.send(tx);
+      entry.deploy = { txId: r.txId, txHash: r.txHash, blockHeight: r.blockHeight };
+      entry.pending = null;
+      deps.save(record);
+      log(`${name}: deployed at ${address}, transaction ${r.txHash ?? r.txId}, block ${r.blockHeight}.`);
     }
     const address = entry.address;
     let now = await facts(address);
@@ -166,11 +229,21 @@ export const runDeploy = async (deps) => {
     for (;;) {
       // A send that stopped: the chain is one update ahead of the record.
       if (now.authority.counter === BigInt(entry.updates.length) + 1n && entry.pending?.kind === 'update') {
-        const t = await deps.latestTx(address);
-        entry.updates.push({ counter: String(entry.updates.length), circuits: entry.pending.circuits, txHash: t.txHash });
+        const k = BigInt(entry.updates.length);
+        const want = [...entry.pending.circuits].sort().join();
+        const h = await landedStep(
+          address,
+          (x) =>
+            x.kind === 'update' &&
+            x.counter === k &&
+            x.instructions.every((i) => i.kind === 'insert-key') &&
+            x.instructions.map((i) => i.circuit).sort().join() === want,
+          `the update at counter ${k}`,
+        );
+        entry.updates.push({ counter: String(k), circuits: entry.pending.circuits, txHash: h });
         entry.pending = null;
         deps.save(record);
-        log(`${name}: the update at counter ${entry.updates.length - 1} had landed (transaction ${t.txHash}).`);
+        log(`${name}: the update at counter ${k} had landed (transaction ${h}).`);
       }
       if (now.authority.counter !== BigInt(entry.updates.length))
         throw new Error(

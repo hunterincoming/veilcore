@@ -99,7 +99,10 @@ export const checkV2Contract = (a) => {
       else seen.set(c, 'deploy');
     }
     if (a.constructorDataHex === undefined)
-      lines.push('  NOTE  how it started: not checked here (no compiled contract-v2 in this checkout)');
+      fail(
+        'how it started: cannot be checked here: contract-v2 is not compiled in this checkout. Build it ' +
+          '(npm run compact:test -w contract-v2, no keys needed) and run this again',
+      );
     else if (s.dataHex === a.constructorDataHex) pass("how it started: the deploy carries exactly the v2 constructor's ledger data");
     else fail("how it started: the deploy's ledger data is NOT the v2 constructor's. It is not a genuine v2 deployment");
   }

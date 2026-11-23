@@ -27,9 +27,17 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { after, before, test } from 'node:test';
 import * as L from 'ledger-v9-committee';
+import { CompiledContract } from '@midnight-ntwrk/compact-js';
+import { createUnprovenCallTxFromInitialStates } from '@midnight-ntwrk/midnight-js-contracts';
+import { NodeZkConfigProvider } from '@midnight-ntwrk/midnight-js-node-zk-config-provider';
+import {
+  SerializedContractState,
+  SerializedLedgerParameters,
+  SerializedZswapChainState,
+} from '@midnight-ntwrk/midnight-js-types';
 import { ROOT, parseFingerprintsV2, slotOfKey } from './fingerprints.mjs';
 import { emptySession, readSession, sessionProblems, writeSession } from './session.mjs';
-import { buildInsertUpdate, publicKeyOf, runDeploy } from './deploy-core.mjs';
+import { TTL_MARGIN_MS, TTL_MS, buildInsertUpdate, publicKeyOf, runDeploy } from './deploy-core.mjs';
 import { constructorDataHex, constructorStateBytes, haveCompiled } from './constructor.mjs';
 import { stateFacts, txFacts } from './ledger.mjs';
 import { checkV2Contract } from './history.mjs';
@@ -86,8 +94,21 @@ const chain = () => {
     );
     if (result.type !== 'success') throw new Error(`refused by the ledger: ${result.error ?? result.type}`);
     state = next;
-    const fin = tx.mockProve();
-    const txHash = String(fin.transactionHash()).toLowerCase();
+    // A deploy or a maintenance update is mock-proved to the bytes an indexer serves. A circuit
+    // call cannot be (there are no prover keys here), so it is kept with its proofs erased:
+    // nothing in these checks reads a call's bytes, and txFacts refuses them.
+    let fin;
+    try {
+      fin = tx.mockProve();
+    } catch {
+      fin = tx.eraseProofs();
+    }
+    let txHash;
+    try {
+      txHash = String(fin.transactionHash()).toLowerCase();
+    } catch {
+      txHash = sha(fin.serialize()); // an unproven call has no ledger hash; any unique name does here
+    }
     const txId = String(fin.identifiers()[0]).toLowerCase();
     height++;
     txs.set(txHash, { raw: hex(fin.serialize()), status: 'SUCCESS', height, txId });
@@ -112,9 +133,59 @@ const chain = () => {
     },
     stateHex: (address) => hex(state.index(address).serialize()),
     latestTx: async (address) => ({ txHash: latest.get(address) }),
+    txActions: async (h, address) => {
+      try {
+        return txFacts(Buffer.from(txs.get(h).raw, 'hex'), address);
+      } catch {
+        return [];
+      }
+    },
+    ledger: () => state,
     authority: (address) => state.index(address).maintenanceAuthority,
     setLatest: (address, h) => latest.set(address, h),
   };
+};
+
+/**
+ * A real call: v2's anchorBatch, built by midnight-js from the compiled contract and the
+ * contract's state on the local ledger (anyone can make this call; it needs no secret), then
+ * applied by the ledger. No prover key is needed: the ledger here does not check proofs.
+ */
+const realAnchorBatch = async (c, address) => {
+  const m = await import(path.join(ROOT, 'contract-v2/src/managed/veilcore/contract/index.js'));
+  const noW = new Proxy({}, { get: () => () => undefined });
+  const cc = CompiledContract.make('veilcore', m.Contract).pipe(
+    CompiledContract.withWitnesses(noW),
+    CompiledContract.withCompiledFileAssets(path.join(ROOT, 'contract-v2/src/managed/veilcore')),
+  );
+  class Keys extends NodeZkConfigProvider {
+    async getVerifierKey() {
+      return V4;
+    }
+    async getVerifierKeys(ids) {
+      return ids.map((i) => [i, V4]);
+    }
+  }
+  const st = c.ledger();
+  const r = await createUnprovenCallTxFromInitialStates(
+    new Keys(path.join(ROOT, 'contract-v2/src/managed/veilcore')),
+    {
+      compiledContract: cc,
+      circuitId: 'anchorBatch',
+      contractAddress: address,
+      args: [new Uint8Array(32).fill(7)],
+      coinPublicKey: '00'.repeat(32),
+      initialContractState: SerializedContractState.fromBytes('v9', st.index(address).serialize()),
+      initialZswapChainState: SerializedZswapChainState.fromBytes('v9', st.zswap.serialize()),
+      ledgerParameters: SerializedLedgerParameters.fromBytes('v9', st.parameters.serialize()),
+      config: { networkId: NET, ttlSeconds: 3600 },
+    },
+    '00'.repeat(32),
+  );
+  const before = Buffer.from(st.index(address).serialize()).toString('hex');
+  const out = await c.send(r.private.unprovenTx.deserialize({ v9: L.Transaction }));
+  assert.notEqual(Buffer.from(c.ledger().index(address).serialize()).toString('hex'), before, 'the call changed the state');
+  return out;
 };
 
 const tmp = () => mkdtempSync(path.join(tmpdir(), 'veilcore-v2-'));
@@ -138,6 +209,7 @@ const deploy = async (c, extra = {}) => {
     send: c.send,
     readState: c.readState,
     latestTx: c.latestTx,
+    txActions: c.txActions,
     wait: async () => undefined,
     log: (l) => lines.push(l),
     ...extra,
@@ -311,6 +383,7 @@ test('deploy: a send that landed but did not confirm is finished by --resume, fr
     localKey: () => V4,
     readState: c.readState,
     latestTx: c.latestTx,
+    txActions: c.txActions,
     wait: async () => undefined,
     log: () => undefined,
   };
@@ -335,6 +408,13 @@ test('the record: never written over, never into a pinned list', () => {
   assert.throws(() => writeSession(path.join(ROOT, 'deployments', 'v2.json'), r, { first: true }), /pinned list/);
   assert.throws(() => writeSession(path.join(ROOT, 'api/src/deploy-guard.ts'), r), /pinned list/);
   assert.match(sessionProblems({ ...r, keySlot: 'v3' }).join(' '), /keys are in V4/);
+  // A record naming one of v1's pinned addresses as v2 is refused when it is read.
+  const v1 = JSON.parse(readFileSync(path.join(ROOT, 'deployments/mainnet.json'), 'utf8')).contracts.find((x) => x.name === 'veilcore-claims').address;
+  const bad = emptySession({ network: 'mainnet', commit: 't', compiler: '0.36.1', fingerprintsSha256: '00'.repeat(32), publicKey: '11'.repeat(32) });
+  bad.contracts.veilcore.address = v1;
+  const f2 = path.join(dir, 'v1-as-v2.json');
+  writeSession(f2, bad, { first: true });
+  assert.throws(() => readSession(f2), /is a pinned v1 address, never a v2 one/);
 });
 
 // ──────────────────────────────────────────────────────── the deployment check
@@ -420,26 +500,154 @@ test('verify:deployment --v2-record refuses a handover to anything but 3 differe
   assert.match(v.out, /installs 2 key\(s\) with threshold 2, not 3 different keys with threshold 2/);
 });
 
-test('history: a call is never refused (ledger data that differs from the constructor’s is not looked at)', async () => {
+test('verify:deployment never refuses a call: a real anchorBatch by anyone, then PASS', async () => {
+  const c = chain();
+  const d = await deploy(c);
+  const main = d.record.contracts.veilcore.address;
+  await realAnchorBatch(c, main);
+  await realAnchorBatch(c, main);
+  const v = await verifyV2(c, d);
+  assert.equal(v.code, 0, v.out);
+  assert.match(v.out, /RESULT: PASS/);
+});
+
+test('history: "how it started" FAILS, never skips, when the constructor cannot be computed here', async () => {
   const c = chain();
   const d = await deploy(c);
   const e = d.record.contracts.veilcore;
-  const cur = stateFacts(await c.readState(e.address));
   const read = (ref) => ({ ref, status: 'SUCCESS', actions: txFacts(Buffer.from(c.txs.get(ref.txHash).raw, 'hex'), e.address) });
-  const args = {
+  const r = checkV2Contract({
     name: 'veilcore',
     pins: PINS.veilcore,
     temporaryKey: d.record.temporaryKey.publicKey,
+    current: stateFacts(await c.readState(e.address)),
     deploy: read(e.deploy),
     updates: e.updates.map(read),
+    constructorDataHex: undefined,
+  });
+  assert.equal(r.ok, false);
+  assert.match(r.lines.join('\n'), /FAIL {2}how it started: cannot be checked here: contract-v2 is not compiled/);
+});
+
+// ───────────────────────────────────────────────── a resume after a send that stopped
+
+/** A record and the deploy-core dependencies, for runs driven step by step. */
+const session = (c) => {
+  const key = newKey();
+  const dir = tmp();
+  const file = path.join(dir, 'r.json');
+  writeSession(
+    file,
+    emptySession({ network: NET, commit: 't', compiler: '0.36.1', fingerprintsSha256: '00'.repeat(32), publicKey: publicKeyOf(key) }),
+    { first: true },
+  );
+  const deps = {
+    network: NET,
+    save: (r) => writeSession(file, r),
+    signingKey: key,
+    pins: PINS,
+    constructorBytes: (x) => constructorStateBytes(x),
+    localKey: () => V4,
+    readState: c.readState,
+    latestTx: c.latestTx,
+    txActions: c.txActions,
+    wait: async () => undefined,
+    log: () => undefined,
   };
-  // A state whose ledger data has moved on, as after anyone's anchorBatch: still a PASS.
-  const r = checkV2Contract({ ...args, current: { ...cur, dataHex: 'ff' } });
-  assert.equal(r.ok, true, r.lines.join('\n'));
-  // A V3 key on chain in place of a V4 one is refused.
-  const v3 = checkV2Contract({ ...args, current: { ...cur, ops: { ...cur.ops, [CIRCUITS.veilcore[0]]: { sha256: sha(V4), slot: 'v3' } } } });
-  assert.equal(v3.ok, false);
-  assert.match(v3.lines.join('\n'), /not a V4 key/);
+  return { key, dir, file, deps, read: () => readSession(file) };
+};
+
+test('resume after a deploy sent but not seen: waits out its validity, never redeploys early, never drops the address', async () => {
+  const c = chain();
+  const s = session(c);
+  const t0 = Date.now();
+  let held;
+  // The deploy is handed to the network, the confirmation is lost, and the indexer has not seen it.
+  const lost = async (tx) => {
+    held = tx;
+    throw new Error('websocket closed');
+  };
+  await assert.rejects(runDeploy({ ...s.deps, record: s.read(), send: lost, now: () => t0 }), /websocket closed/);
+  const first = s.read().contracts.veilcore;
+  assert.equal(first.pending.kind, 'deploy');
+  assert.ok(first.address);
+  // A resume within the hour (plus margin) refuses to deploy again, and keeps the address.
+  let sent = 0;
+  const count = async (tx) => (sent++, c.send(tx));
+  await assert.rejects(
+    runDeploy({ ...s.deps, record: s.read(), send: count, now: () => t0 + TTL_MS + TTL_MARGIN_MS - 1 }),
+    /may still land until .* Never start a new deploy/,
+  );
+  assert.equal(sent, 0);
+  assert.equal(s.read().contracts.veilcore.address, first.address);
+  // It lands late: the resume finds it, checks its transaction really is that deploy, and goes on.
+  await c.send(held);
+  await runDeploy({ ...s.deps, record: s.read(), send: count });
+  const done = s.read().contracts.veilcore;
+  assert.equal(done.address, first.address);
+  assert.equal(done.updates.length, 24);
+  assert.deepEqual(done.abandoned, []);
+});
+
+test('resume after a deploy that never landed: only past its validity, and the old address is kept as abandoned', async () => {
+  const c = chain();
+  const s = session(c);
+  const t0 = Date.now();
+  await assert.rejects(
+    runDeploy({ ...s.deps, record: s.read(), send: async () => Promise.reject(new Error('timeout')), now: () => t0 }),
+    /timeout/,
+  );
+  const lostAddress = s.read().contracts.veilcore.address;
+  // Seventy-one minutes later (the record's validity moved back, as the real clock would have moved on).
+  const later = s.read();
+  later.contracts.veilcore.pending.ttlEnds = new Date(t0 - TTL_MARGIN_MS - 60_000).toISOString();
+  writeSession(s.file, later);
+  await runDeploy({ ...s.deps, record: s.read(), send: c.send });
+  const done = s.read().contracts.veilcore;
+  assert.notEqual(done.address, lostAddress);
+  assert.equal(done.abandoned.length, 1);
+  assert.equal(done.abandoned[0].address, lostAddress);
+  // verify shows it, so it is never forgotten.
+  const v = await verifyV2(c, { dir: s.dir, file: s.file });
+  assert.equal(v.code, 0, v.out);
+  assert.match(v.out, new RegExp(`abandoned deploy at ${lostAddress}.*it can no longer land; never pin it`));
+  // A record with a pending deploy and no validity time (from an older tool) never redeploys on its own.
+  const c2 = chain();
+  const s2 = session(c2);
+  await assert.rejects(runDeploy({ ...s2.deps, record: s2.read(), send: async () => Promise.reject(new Error('x')) }), /x/);
+  const old = s2.read();
+  delete old.contracts.veilcore.pending.ttlEnds;
+  writeSession(s2.file, old);
+  await assert.rejects(runDeploy({ ...s2.deps, record: s2.read(), send: c2.send }), /does not say until when it could land/);
+  assert.equal(s2.read().contracts.veilcore.address, old.contracts.veilcore.address);
+});
+
+test('resume after an update landed unconfirmed and someone then called v2: the call is never recorded as the update', async () => {
+  const c = chain();
+  const s = session(c);
+  let n = 0;
+  // Sends 1 to 4 go through (the deploy and the updates at counters 0, 1, 2: anchorBatch's key
+  // is on). Send 5, the update at counter 3, lands but its confirmation is lost.
+  const flaky = async (tx) => {
+    const r = await c.send(tx);
+    if (++n === 5) throw new Error('confirmation lost');
+    return r;
+  };
+  await assert.rejects(runDeploy({ ...s.deps, record: s.read(), send: flaky }), /confirmation lost/);
+  const main = s.read().contracts.veilcore.address;
+  const landed = [...c.txs.keys()].at(-1);
+  // An outsider calls anchorBatch: it is now the contract's latest transaction.
+  const call = await realAnchorBatch(c, main);
+  assert.equal((await c.latestTx(main)).txHash, call.txHash);
+  // The resume refuses to record the call as the update, and says how to go on.
+  await assert.rejects(runDeploy({ ...s.deps, record: s.read(), send: c.send }), /does not hold it: another transaction .* --landed-tx/);
+  assert.equal(s.read().contracts.veilcore.updates.length, 3);
+  // A wrong --landed-tx is refused the same way; the right one is recorded.
+  await assert.rejects(runDeploy({ ...s.deps, record: s.read(), send: c.send, landedTx: call.txHash }), /given with --landed-tx/);
+  await runDeploy({ ...s.deps, record: s.read(), send: c.send, landedTx: landed });
+  assert.equal(s.read().contracts.veilcore.updates[3].txHash, landed);
+  const v = await verifyV2(c, { dir: s.dir, file: s.file });
+  assert.equal(v.code, 0, v.out);
 });
 
 // ───────────────────────────────────────────────────────────── the client stack
@@ -481,6 +689,11 @@ test('gate, exception 2: one retire on v1’s pinned address with the single key
   assert.match(g(V1, [{ kind: 'replace-authority', committee: [], threshold: 2 }]).join(' '), /only change allowed is one retire/);
   assert.match(g(V1, [{ kind: 'retire' }, { kind: 'retire' }]).join(' '), /only change allowed is one retire/);
   assert.match(g('b0'.repeat(32), [{ kind: 'retire' }]).join(' '), /not held by a 2-of-3 committee/);
+  // v1 is matched first: a record that names v1's address as v2 opens no v2 exception on it.
+  const asV2 = { address: V1, temporaryKey: single.committee[0], pins: PINS.veilcore };
+  const v4Insert = { kind: 'insert-key', circuit: CIRCUITS.veilcore[0], verifierKey: hex(V4), verifierKeySha256: sha(V4), keySlot: 'v4' };
+  assert.match(gateProblems({ network: 'mainnet', address: V1, pinnedV1Address: V1, current: single, actions: [v4Insert], v2: asV2 }).join(' '), /only change allowed is one retire/);
+  assert.deepEqual(slotForContract({ network: 'mainnet', address: V1, pinnedV1Address: V1, v2: asV2 }), { slot: 'v3' });
 });
 
 test('gate, exception 1: v2 before the handover takes listed V4 inserts and one handover, nothing else', () => {
@@ -499,7 +712,9 @@ test('gate, exception 1: v2 before the handover takes listed V4 inserts and one 
   assert.match(g([insert(CIRCUITS.veilcore[0], V3, 'v3')]).join(' '), /not for slot V4/);
   assert.match(g([{ ...insert(CIRCUITS.veilcore[0]), keySlot: undefined }]).join(' '), /not for slot V4/);
   assert.match(g([{ kind: 'remove-key', circuit: CIRCUITS.veilcore[0], keySlot: 'v4' }]).join(' '), /"remove-key" is not allowed/);
-  assert.match(g([{ kind: 'retire' }]).join(' '), /"retire" is not allowed/);
+  // One retire, alone, closes an abandoned v2 for good (design condition 7); not with anything else.
+  assert.deepEqual(g([{ kind: 'retire' }]), []);
+  assert.match(g([insert(CIRCUITS.veilcore[0]), { kind: 'retire' }]).join(' '), /a retire goes alone/);
   assert.match(g([{ kind: 'replace-authority', committee: cards.slice(0, 2), threshold: 2 }]).join(' '), /must install 3 keys/);
   // Refused: a v2 that already has another single key, or no table to check keys against.
   assert.match(g([insert(CIRCUITS.veilcore[0])], { ...single, committee: [publicKeyOf(newKey())] }).join(' '), /not the temporary key/);

@@ -22,6 +22,8 @@ import {
 } from '@midnight-ntwrk/midnight-js-types';
 import { type Prompt } from '../prompt';
 import { type Deps, type KeyStore, main, parseOptions } from './deploy-v2';
+import { encryptWithPassphrase, passphraseProblem } from '../age-key';
+import { createDecipheriv, createHmac, hkdfSync, scryptSync } from 'node:crypto';
 import { readSession } from '../../../scripts/v2/session.mjs';
 
 const NET = 'undeployed';
@@ -143,12 +145,15 @@ const chain = () => {
 };
 
 /** An in-memory stand-in for the age-encrypted key file. */
+const PASS = 'correct horse battery';
 const memoryKeys = () => {
   const files = new Map<string, string>();
+  const passphrases = new Map<string, string>();
   const store: KeyStore = {
-    create: (f, k) => {
+    create: (f, k, p) => {
       if (files.has(f)) throw new Error('exists');
       files.set(f, k);
+      passphrases.set(f, p);
     },
     open: (f) => {
       const k = files.get(f);
@@ -156,10 +161,10 @@ const memoryKeys = () => {
       return k;
     },
   };
-  return { store, files };
+  return { store, files, passphrases };
 };
 
-const scripted = (answers: string[]): Prompt =>
+const scripted = (answers: string[], hidden: string[] = [PASS, PASS]): Prompt =>
   ({
     rli: {
       question: async () => answers.shift() ?? '',
@@ -167,7 +172,7 @@ const scripted = (answers: string[]): Prompt =>
       off: () => undefined,
       close: () => undefined,
     },
-    askHidden: async () => '',
+    askHidden: async () => hidden.shift() ?? '',
     askHiddenLines: async () => [],
     asking: () => false,
   }) as unknown as Prompt;
@@ -184,9 +189,11 @@ const deps = (
   out: ReturnType<typeof capture>,
   answers: string[],
   extra: Partial<Deps> = {},
+  hidden?: string[],
 ): Deps => ({
   logger: out.logger,
-  prompt: scripted(answers),
+  prompt: scripted(answers, hidden),
+  txActions: async () => [],
   keyStore: keys.store,
   stack: () => [],
   openSender: c.openSender,
@@ -233,7 +240,7 @@ describe('npm run deploy-v2', () => {
       expect(out.text()).toContain(`${name} (v2) address: ${a}`);
     }
     expect(c.sent()).toBe(2 + 24 + 5);
-    expect(out.text()).toMatch(/make NO call/);
+    expect(out.text()).toMatch(/make no call to either contract until verify:deployment passes and v2 is pinned/);
     expect(out.text()).toMatch(/never by the contractVersion or predecessor fields/);
     expect(out.text()).not.toContain(key);
     expect(readFileSync(record, 'utf8')).not.toContain(key);
@@ -284,7 +291,7 @@ describe('npm run deploy-v2', () => {
     expect(c.sent()).toBe(0);
     // The record and key file exist: finish it.
     const other = memoryKeys();
-    other.store.create(path.join(d, 'k.age'), L.sampleSigningKey().value);
+    other.store.create(path.join(d, 'k.age'), L.sampleSigningKey().value, PASS);
     const wrong = capture();
     expect(
       await main(
@@ -302,5 +309,81 @@ describe('npm run deploy-v2', () => {
     ).toBe(0);
     expect(c.sent()).toBe(31);
     expect(readSession(record).contracts['veilcore-claims'].updates.length).toBe(5);
+  });
+
+  it('the key file passphrase: empty or short is refused and asked again; it is never logged', async () => {
+    const c = chain();
+    const keys = memoryKeys();
+    const out = capture();
+    const d = dir();
+    const code = await main(
+      [NET, '--key-file', path.join(d, 'k.age'), '--out', path.join(d, 'r.json'), '--fingerprints', table(d)],
+      deps(c, keys, out, ['no'], {}, ['', 'short', PASS, 'mismatch', PASS, PASS]),
+    );
+    expect(code).toBe(1); // stopped at the typed word, after the key file was made
+    expect(out.text()).toMatch(/The passphrase is empty/);
+    expect(out.text()).toMatch(/The passphrase is 5 characters; use at least 12/);
+    expect(out.text()).toMatch(/The two did not match/);
+    expect(keys.passphrases.get(path.join(d, 'k.age'))).toBe(PASS);
+    expect(out.text()).not.toContain(PASS);
+    // Five empty answers: nothing is written.
+    const none = memoryKeys();
+    const out2 = capture();
+    expect(
+      await main(
+        [NET, '--key-file', path.join(d, 'k2.age'), '--out', path.join(d, 'r2.json'), '--fingerprints', table(d)],
+        deps(c, none, out2, ['DEPLOY V2'], {}, []),
+      ),
+    ).toBe(1);
+    expect(none.files.size).toBe(0);
+    expect(c.opened()).toBe(0);
+  });
+});
+
+describe('the age key file (age-encryption.org/v1, scrypt)', () => {
+  /** A reader written from the age spec, independent of the writer (real age 1.1.1 also read one: PR #190). */
+  const decrypt = (file: Buffer, passphrase: string): Buffer => {
+    const text = file.toString('latin1');
+    const end = text.indexOf('\n---');
+    const header = text.slice(0, end + 4);
+    const macLine = text.slice(end + 1, text.indexOf('\n', end + 1));
+    const lines = header.split('\n');
+    expect(lines[0]).toBe('age-encryption.org/v1');
+    const [, kind, saltB64, logN] = lines[1].split(' ');
+    expect(kind).toBe('scrypt');
+    const salt = Buffer.from(saltB64, 'base64');
+    const wrapKey = scryptSync(passphrase, Buffer.concat([Buffer.from('age-encryption.org/v1/scrypt'), salt]), 32, {
+      N: 2 ** Number(logN),
+      r: 8,
+      p: 1,
+      maxmem: 512 * 1024 * 1024,
+    });
+    const open = (key: Buffer, nonce: Buffer, ct: Buffer): Buffer => {
+      const dch = createDecipheriv('chacha20-poly1305', key, nonce, { authTagLength: 16 });
+      dch.setAuthTag(ct.subarray(ct.length - 16));
+      return Buffer.concat([dch.update(ct.subarray(0, ct.length - 16)), dch.final()]);
+    };
+    const fileKey = open(wrapKey, Buffer.alloc(12), Buffer.from(lines[2], 'base64'));
+    const mac = createHmac('sha256', Buffer.from(hkdfSync('sha256', fileKey, Buffer.alloc(0), 'header', 32)))
+      .update(header)
+      .digest('base64')
+      .replace(/=+$/, '');
+    expect(macLine).toBe(`--- ${mac}`);
+    const body = file.subarray(Buffer.byteLength(text.slice(0, text.indexOf('\n', end + 1) + 1), 'latin1'));
+    const nonce = body.subarray(0, 16);
+    const last = Buffer.alloc(12);
+    last[11] = 1;
+    return open(Buffer.from(hkdfSync('sha256', fileKey, nonce, 'payload', 32)), last, body.subarray(16));
+  };
+
+  it('writes a file the spec reads back with the passphrase, and only with it', () => {
+    const key = `${'ab'.repeat(32)}\n`;
+    const f = encryptWithPassphrase(Buffer.from(key), PASS);
+    expect(f.toString('latin1')).toMatch(/^age-encryption\.org\/v1\n-> scrypt [A-Za-z0-9+/]{22} 18\n/);
+    expect(f.toString('latin1')).not.toContain('ab'.repeat(32));
+    expect(decrypt(f, PASS).toString()).toBe(key);
+    expect(() => decrypt(f, 'another passphrase')).toThrow();
+    expect(passphraseProblem('')).toMatch(/empty/);
+    expect(passphraseProblem(PASS)).toBeNull();
   });
 });

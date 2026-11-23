@@ -3,8 +3,10 @@ export type TxRef = { readonly txId?: string; readonly txHash?: string; readonly
 export type SessionContract = {
   address: string | null;
   deploy: TxRef | null;
-  pending: { kind: 'deploy' | 'update'; counter?: string; circuits?: string[] } | null;
+  pending: { kind: 'deploy' | 'update'; counter?: string; circuits?: string[]; ttlEnds?: string } | null;
   updates: (TxRef & { counter: string; circuits: string[] })[];
+  /** Deploys that never landed and can no longer land: kept, never dropped. */
+  abandoned?: { address: string; reason: string }[];
 };
 export type Session = {
   format: string;
@@ -30,6 +32,7 @@ export declare const emptySession: (a: {
   now?: Date;
 }) => Session;
 export declare const sessionProblems: (s: unknown) => string[];
+export declare const pinnedV1Problems: (s: Session, root?: string) => string[];
 export declare const readSession: (file: string) => Session;
 export declare const contractAt: (s: Session, address: string) => 'veilcore' | 'veilcore-claims' | undefined;
 export declare const writeSession: (file: string, s: Session, options?: { first?: boolean }) => string;

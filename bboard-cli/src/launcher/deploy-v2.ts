@@ -9,6 +9,8 @@
  *                        the existing one (--resume). The key is never shown, printed or logged.
  *   --out FILE           the deploy-session record to write (default: v2-deploy-<network>-<time>.json)
  *   --resume FILE        finish a run that stopped, from its record (and the same --key-file)
+ *   --landed-tx HASH     with --resume: the transaction of a step that landed unconfirmed, found on an
+ *                        explorer, when the contract's latest transaction is someone else's call
  *   --keys-per-update N  keys in each maintenance update, 1 to 8 (default 1, the route v1 took)
  *   --send-on-mainnet    needed on mainnet, together with typing DEPLOY V2 ON MAINNET
  *   --fingerprints FILE  another copy of docs/fingerprints-v2.md (tests)
@@ -50,7 +52,8 @@ import { createLogger, redactThisSession, scrubTerminal } from '../logger-utils.
 import { createPrompt, PromptClosedError, type Prompt } from '../prompt.js';
 import { SavedProgressNotOpenedError } from '../midnight-wallet-provider.js';
 import { V2_WALLET, openWallet } from './committee.js';
-import { type KeyStore, KeyFileError, ageKeyStore } from '../age-key.js';
+import { type KeyStore, KeyFileError, ageKeyStore, passphraseProblem } from '../age-key.js';
+import { fromHex, txFacts } from '../../../scripts/v2/ledger.mjs';
 
 export { type KeyStore, ageKeyStore };
 import { stackProblems } from '../../../scripts/v2/stack.mjs';
@@ -70,6 +73,7 @@ export type Options = {
   readonly out?: string;
   readonly resume?: string;
   readonly perUpdate: number;
+  readonly landedTx?: string;
   readonly sendOnMainnet: boolean;
   readonly fingerprints?: string;
 };
@@ -93,7 +97,11 @@ export const parseOptions = (argv: readonly string[]): Options => {
     if (flag === '--key-file') o.keyFile = value();
     else if (flag === '--out') o.out = value();
     else if (flag === '--resume') o.resume = value();
-    else if (flag === '--fingerprints') o.fingerprints = value();
+    else if (flag === '--landed-tx') {
+      const h = value().trim().toLowerCase().replace(/^0x/, '');
+      if (!/^[0-9a-f]{64}$/.test(h)) throw new UsageError('--landed-tx is a transaction hash: 64 hex characters.');
+      o.landedTx = h;
+    } else if (flag === '--fingerprints') o.fingerprints = value();
     else if (flag === '--send-on-mainnet') o.sendOnMainnet = true;
     else if (flag === '--keys-per-update') {
       const n = Number(value());
@@ -103,6 +111,7 @@ export const parseOptions = (argv: readonly string[]): Options => {
     } else throw new UsageError(`Unknown option ${flag}.\n${USAGE}`);
   }
   if (o.keyFile === undefined) throw new UsageError(`Say where the temporary key is kept: --key-file FILE.\n${USAGE}`);
+  if (o.landedTx !== undefined && o.resume === undefined) throw new UsageError('--landed-tx goes with --resume.');
   if (o.resume !== undefined && o.out !== undefined)
     throw new UsageError('--resume writes to its own record; leave out --out.');
   if (o.sendOnMainnet && o.network !== 'mainnet')
@@ -160,6 +169,34 @@ const latestTxFrom =
     return { txHash: h.replace(/^0x/, '').toLowerCase() };
   };
 
+const TX_QUERY =
+  'query VEILCORE_V2_TX($offset: TransactionOffset!) { transactions(offset: $offset) { raw ... on RegularTransaction { transactionResult { status } } } }';
+
+/**
+ * What a transaction did to `address` (ledger.mjs txFacts), from the indexer. A transaction that
+ * did not fully succeed counts as doing nothing.
+ */
+const txActionsFrom =
+  (network: Network) =>
+  async (txHash: string, address: string): Promise<ReturnType<typeof txFacts>> => {
+    const e =
+      network === 'undeployed'
+        ? endpointsFor('undeployed')
+        : endpointsFor(network, {}, { blockfrostProjectId: blockfrostProjectIdFor(network) });
+    const res = await fetch(e.indexer, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ query: TX_QUERY, variables: { offset: { hash: txHash } } }),
+      redirect: 'error',
+    });
+    type Tx = { raw?: string; transactionResult?: { status?: string } };
+    const body = (await res.json()) as { data?: { transactions?: Tx[] | Tx } };
+    const list = body.data?.transactions;
+    const tx = Array.isArray(list) ? list[0] : list;
+    if (typeof tx?.raw !== 'string' || tx.transactionResult?.status !== 'SUCCESS') return [];
+    return txFacts(fromHex(tx.raw), address);
+  };
+
 /* **********************************************************************
  * Start.
  */
@@ -171,6 +208,8 @@ export type Deps = {
   readonly stack?: () => string[];
   readonly openSender?: (network: Network, prompt: Prompt, logger: Logger) => Promise<Sender | undefined>;
   readonly latestTx?: (address: string) => Promise<{ txHash: string }>;
+  readonly txActions?: (txHash: string, address: string) => Promise<ReturnType<typeof txFacts>>;
+  readonly now?: () => number;
   readonly constructorBytes?: (name: string) => Promise<Uint8Array>;
   readonly localKey?: (name: string, circuit: string) => Uint8Array;
   readonly wait?: () => Promise<void>;
@@ -260,10 +299,25 @@ export const main = async (argv: readonly string[], deps: Deps = {}): Promise<nu
       redactThisSession(signingKey);
       logger.info(
         'A new temporary key has been made. It is written ONLY to the age-encrypted file ' +
-          `${o.keyFile}; age now asks for a passphrase for it (twice). It is never shown and never goes on paper.`,
+          `${o.keyFile}. Choose a passphrase for that file (at least 12 characters; never empty). It is never shown, ` +
+          'and neither the key nor the passphrase goes on paper.',
       );
-      keyStore.create(o.keyFile, signingKey);
-      logger.info('Now open it once, with the same passphrase, to prove the file is readable.');
+      let passphrase = '';
+      for (let tries = 0; ; tries++) {
+        if (tries >= 5) return stop(['No passphrase set. Nothing was written or sent.']);
+        passphrase = await prompt.askHidden('Passphrase for the key file (nothing shows): ');
+        const problem = passphraseProblem(passphrase);
+        if (problem !== null) {
+          logger.error(problem);
+          continue;
+        }
+        if ((await prompt.askHidden('The same passphrase again: ')) === passphrase) break;
+        logger.error('The two did not match. Again.');
+      }
+      redactThisSession(passphrase);
+      keyStore.create(o.keyFile, signingKey, passphrase);
+      passphrase = '';
+      logger.info('Now age opens it once (age asks for the passphrase), to prove the file is readable by age.');
       if (keyStore.open(o.keyFile) !== signingKey)
         return stop([`${o.keyFile} does not read back as the key just made. Nothing was sent.`]);
       record = emptySession({
@@ -314,6 +368,9 @@ export const main = async (argv: readonly string[], deps: Deps = {}): Promise<nu
           sendLedger9Tx(sender.providers, tx, { allowMainnet: o.network === 'mainnet' && o.sendOnMainnet }),
         readState: (a) => stateBytes(reader, a),
         latestTx: deps.latestTx ?? latestTxFrom(o.network),
+        txActions: deps.txActions ?? txActionsFrom(o.network),
+        landedTx: o.landedTx,
+        now: deps.now,
         wait: deps.wait ?? (() => new Promise((r) => setTimeout(r, 2_000))),
         log: (l) => logger.info(l),
         perUpdate: o.perUpdate,
@@ -324,7 +381,8 @@ export const main = async (argv: readonly string[], deps: Deps = {}): Promise<nu
     for (const name of V2_CONTRACTS) logger.info(`${name} (v2) address: ${record.contracts[name].address}`);
     logger.info(`Record: ${file}. ${IDENTIFY_NOTE}`);
     logger.info(
-      `Next: make NO call to either contract. Run npm run verify:deployment -- --network ${o.network} --v2-record ${file}. ` +
+      'Next: make no call to either contract until verify:deployment passes and v2 is pinned. Run ' +
+        `npm run verify:deployment -- --network ${o.network} --v2-record ${file}. ` +
         `Keep ${o.keyFile} until the handover is confirmed on chain, then delete it (docs/runbooks/deploy-v2.md).`,
     );
     return 0;
