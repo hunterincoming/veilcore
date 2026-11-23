@@ -13,7 +13,7 @@
 import React from 'react';
 import { Box, Button, Container, Stack, Typography } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
-import { INK_COLOR, MUTED_COLOR } from '../config/theme';
+import { color } from '../config/tokens';
 import { InEnglishPage } from '../i18n/app';
 
 const MONO = '"SFMono-Regular", ui-monospace, Menlo, monospace';
@@ -33,7 +33,9 @@ const Impl: React.FC<{
         <Typography variant="h6" sx={{ mb: 0.5 }}>
           {name}
         </Typography>
-        <Typography sx={{ fontFamily: MONO, fontSize: { xs: 13.5, sm: 12.5 }, color: MUTED_COLOR }}>{lang}</Typography>
+        <Typography sx={{ fontFamily: MONO, fontSize: { xs: 13.5, sm: 12.5 }, color: color.textMuted }}>
+          {lang}
+        </Typography>
       </Box>
       <Box sx={{ flex: 1, maxWidth: 560 }}>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5, lineHeight: 1.75 }}>
@@ -48,7 +50,7 @@ const Impl: React.FC<{
         </Typography>
         <Typography
           variant="caption"
-          sx={{ color: MUTED_COLOR, display: 'block', mb: 2, fontSize: { xs: 13.5, sm: 12 } }}
+          sx={{ color: color.textMuted, display: 'block', mb: 2, fontSize: { xs: 13.5, sm: 12 } }}
         >
           Dependencies: {deps}
         </Typography>
@@ -147,7 +149,7 @@ export const Implementations: React.FC = () => (
           output for records whose fields happen to be in the right order, and silently wrong commitments for everything
           else. The suite catches it, including a Unicode case where two visually identical strings hash differently.
         </Typography>
-        <Typography variant="body1" sx={{ color: INK_COLOR, fontWeight: 600, lineHeight: 1.8, fontSize: 16 }}>
+        <Typography variant="body1" sx={{ color: color.text, fontWeight: 600, lineHeight: 1.8, fontSize: 16 }}>
           Conformance is demonstrated, not asserted. The vectors are published; you do not need our permission or our
           involvement to test anything, including our own code.
         </Typography>

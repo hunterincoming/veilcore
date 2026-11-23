@@ -9,7 +9,7 @@
 import React from 'react';
 import { Box, Chip, Stack, Typography } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
-import { INK_COLOR, LINE_COLOR } from '../config/theme';
+import { color } from '../config/tokens';
 import { allRecords, type StrainRecord, type ParentRef } from '../veilcore/records';
 import { offspringOf } from './stage/self-chain';
 import { datedReportsOf } from './stage/lab-report-notes';
@@ -17,7 +17,7 @@ import { useRecordT } from '../i18n/app';
 import { isAnimal, recordTitle } from '../veilcore/animal-profile';
 import { parentWords } from './flow/AnimalForm';
 
-const Connector: React.FC = () => <Box sx={{ width: 2, height: 20, mx: 'auto', background: LINE_COLOR }} />;
+const Connector: React.FC = () => <Box sx={{ width: 2, height: 20, mx: 'auto', background: color.line }} />;
 
 const RelChip: React.FC<{ label: string; to?: string }> = ({ label, to }) =>
   to ? (
@@ -77,7 +77,7 @@ export const LineageGraph: React.FC<{ record: StrainRecord }> = ({ record }) => 
         </>
       )}
 
-      <Chip label={recordTitle(record)} sx={{ background: INK_COLOR, color: '#FFFFFF', fontWeight: 700, px: 1 }} />
+      <Chip label={recordTitle(record)} sx={{ background: color.inverse, color: '#FFFFFF', fontWeight: 700, px: 1 }} />
 
       {kids.length > 0 && (
         <>

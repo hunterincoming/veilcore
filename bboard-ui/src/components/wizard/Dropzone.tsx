@@ -6,7 +6,7 @@ import React, { useRef, useState } from 'react';
 import { Box, Stack, Typography } from '@mui/material';
 import UploadFileIcon from '@mui/icons-material/UploadFileOutlined';
 import DescriptionIcon from '@mui/icons-material/DescriptionOutlined';
-import { INK_COLOR } from '../../config/theme';
+import { color } from '../../config/tokens';
 import { useT } from '../../i18n/app';
 
 export const Dropzone: React.FC<{
@@ -49,7 +49,7 @@ export const Dropzone: React.FC<{
         cursor: 'pointer',
         borderRadius: 3,
         border: '2px dashed',
-        borderColor: over ? INK_COLOR : 'divider',
+        borderColor: over ? color.text : 'divider',
         background: over ? 'rgba(30,34,39,0.05)' : 'rgba(30,34,39,0.02)',
         p: 4,
         textAlign: 'center',

@@ -6,7 +6,8 @@
 import React from 'react';
 import { Box } from '@mui/material';
 import { TagMark } from './site/TagMark';
-import { FONT, INK_COLOR } from '../config/theme';
+import { FONT } from '../config/theme';
+import { color, night } from '../config/tokens';
 
 /** The wordmark's face: Archivo, then the app's own sans. */
 export const WORDMARK_FONT = `"VeilCore Archivo", ${FONT}`;
@@ -24,7 +25,7 @@ export const Wordmark: React.FC<{ tone?: 'light' | 'dark' }> = ({ tone = 'light'
       fontWeight: 600,
       letterSpacing: '-0.01em',
       lineHeight: 1,
-      color: tone === 'dark' ? '#ECEEF1' : INK_COLOR,
+      color: tone === 'dark' ? night.text : color.text,
     }}
   >
     <TagMark tone={tone} />

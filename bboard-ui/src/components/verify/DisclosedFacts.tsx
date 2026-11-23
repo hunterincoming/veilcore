@@ -20,7 +20,7 @@ import LockIcon from '@mui/icons-material/LockOutlined';
 import { shortFingerprint } from '../../veilcore/commitment';
 import { LEGACY_NAME, fieldsFor, geneticsLabel, keysOn, labelOf, type Disclosure } from '../../veilcore/disclosure';
 import type { StrainRecord } from '../../veilcore/records';
-import { OK_COLOR } from '../../config/theme';
+import { color } from '../../config/tokens';
 import { isTestNetwork } from '../../config/network';
 import { displayName } from '../../veilcore/display-name';
 import { utcStamp as fmt } from '../../veilcore/time';
@@ -49,7 +49,7 @@ const MarkIcon: React.FC<{ status: FactStatus; label?: boolean }> = ({ status, l
   // beside it already say it.
   const a11y = label ? { titleAccess: t(FACT_WORDS[status]) } : { 'aria-hidden': true as const };
   return status === 'checked' ? (
-    <CheckCircleIcon {...a11y} sx={{ fontSize: 18, color: OK_COLOR, mt: '2px' }} />
+    <CheckCircleIcon {...a11y} sx={{ fontSize: 18, color: color.ok, mt: '2px' }} />
   ) : status === 'failed' ? (
     <FailedIcon {...a11y} sx={{ fontSize: 18, color: 'error.main', mt: '2px' }} />
   ) : (

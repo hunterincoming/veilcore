@@ -41,7 +41,7 @@ import { DraftBanner, LanguagePicker } from '../i18n/lazy-picker';
 import { DatingPausedNotice } from './DatingPausedNotice';
 import { Wordmark } from './Wordmark';
 import { hasRecordsHere } from './site/returning';
-import { INK_COLOR, POLLEN } from '../config/theme';
+import { color } from '../config/tokens';
 
 const linkSx = {
   display: 'inline-flex',
@@ -50,7 +50,7 @@ const linkSx = {
   px: 0.25,
   fontSize: 15,
   fontWeight: 600,
-  color: INK_COLOR,
+  color: color.text,
   textDecoration: 'none',
   '&:hover': { textDecoration: 'underline', backgroundColor: 'transparent' },
 } as const;
@@ -68,15 +68,15 @@ const SectionLink: React.FC<{ to: string; sx?: object; children: React.ReactNode
 const ctaSx = {
   px: 1.5,
   borderRadius: '8px',
-  background: POLLEN,
-  '&:hover': { textDecoration: 'none', filter: 'brightness(0.96)', background: POLLEN },
+  background: color.accent,
+  '&:hover': { textDecoration: 'none', filter: 'brightness(0.96)', background: color.accent },
 } as const;
 
 const menuCtaSx = {
   mt: 0.5,
   borderRadius: '6px',
-  background: POLLEN,
-  '&:hover': { filter: 'brightness(0.96)', background: POLLEN },
+  background: color.accent,
+  '&:hover': { filter: 'brightness(0.96)', background: color.accent },
 } as const;
 
 /** Where AskLauncher puts Ask on a phone (App.tsx AppLayout): the first item under "Menu". */
@@ -263,8 +263,8 @@ export const SiteHeader: React.FC<{
           px: 2,
           py: 1,
           borderRadius: '8px',
-          background: POLLEN,
-          color: INK_COLOR,
+          background: color.accent,
+          color: color.onAccent,
           fontWeight: 700,
           textDecoration: 'none',
           '&:focus': { top: 8 },

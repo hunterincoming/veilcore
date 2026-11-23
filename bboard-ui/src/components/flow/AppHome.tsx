@@ -46,7 +46,7 @@ import { AppHeader } from '../AppHeader';
 import { OPEN_RECEIVE_EVENT } from '../ClaimTransfer';
 import { OPEN_SIGNING_KEY_EVENT } from '../AttesterSetup';
 import { linkCard } from '../a11y';
-import { INK_COLOR, GROUND, POLLEN, WASH } from '../../config/theme';
+import { color } from '../../config/tokens';
 import { useT, useRecordT, rich } from '../../i18n/app';
 import { recordTitle } from '../../veilcore/animal-profile';
 import { isDocument } from '../../veilcore/document-profile';
@@ -589,12 +589,12 @@ export const AppHome: React.FC = () => {
                   position: 'relative',
                   borderRadius: 0,
                   clipPath: 'polygon(18px 0, 100% 0, 100% 100%, 18px 100%, 0 calc(100% - 18px), 0 18px)',
-                  '&:hover': { bgcolor: WASH },
+                  '&:hover': { bgcolor: color.surfaceQuiet },
                   // The cut corners would clip an outline: the focus ring is drawn inside.
                   '&:focus-visible': {
                     outline: 'none',
-                    bgcolor: WASH,
-                    boxShadow: `inset 0 0 0 2px ${INK_COLOR}, inset 0 0 0 5px ${POLLEN}`,
+                    bgcolor: color.surfaceQuiet,
+                    boxShadow: `inset 0 0 0 2px ${color.text}, inset 0 0 0 5px ${color.accent}`,
                   },
                 }}
               >
@@ -608,9 +608,9 @@ export const AppHome: React.FC = () => {
                     height: 16,
                     mt: '-8px',
                     borderRadius: '50%',
-                    bgcolor: GROUND,
+                    bgcolor: color.ground,
                     border: '4px solid',
-                    borderColor: unfinished ? 'warning.main' : WASH,
+                    borderColor: unfinished ? 'warning.main' : color.surfaceQuiet,
                     boxSizing: 'border-box',
                   }}
                 />
@@ -692,8 +692,8 @@ export const AppHome: React.FC = () => {
                         py: 0.25,
                         borderRadius: 5,
                         // A report has come in: news, marked in pollen under ink.
-                        background: POLLEN,
-                        color: INK_COLOR,
+                        background: color.accent,
+                        color: color.onAccent,
                         whiteSpace: 'nowrap',
                       }}
                     >
@@ -717,7 +717,7 @@ export const AppHome: React.FC = () => {
             sx={{
               p: 2,
               cursor: 'pointer',
-              '&:hover': { bgcolor: WASH },
+              '&:hover': { bgcolor: color.surfaceQuiet },
             }}
           >
             <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>

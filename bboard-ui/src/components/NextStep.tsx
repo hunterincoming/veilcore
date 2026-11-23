@@ -28,7 +28,7 @@ import { loadAttester } from '../veilcore/attester-keys';
 import { SendToLab } from './SendToLab';
 import { OPEN_SIGNING_KEY_EVENT } from './AttesterSetup';
 import type { ArrivedResult } from './flow/LabResults';
-import { WASH } from '../config/theme';
+import { color } from '../config/tokens';
 import type { SavedReport } from '../veilcore/saved-report';
 import { useNavigate } from 'react-router-dom';
 import { isLabReportRecord } from './stage/lab-report-notes';
@@ -332,7 +332,7 @@ export const NextStep: React.FC<{
 
   return (
     // The one filled sheet on the plant page: Wash, no outline. It is the next thing to do.
-    <Paper sx={{ p: { xs: 2.5, md: 3 }, bgcolor: WASH }} data-next-step="">
+    <Paper sx={{ p: { xs: 2.5, md: 3 }, bgcolor: color.surfaceQuiet }} data-next-step="">
       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ alignItems: { sm: 'center' } }}>
         <Box sx={{ flex: 1, minWidth: 0 }}>
           <Typography variant="overline" sx={{ display: 'block' }}>

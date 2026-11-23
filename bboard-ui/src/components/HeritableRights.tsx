@@ -35,7 +35,7 @@ import {
   upstreamOwnRoyalties,
   upstreamOwnRoyaltyNote,
 } from './stage/self-chain';
-import { MUTED_COLOR } from '../config/theme';
+import { color } from '../config/tokens';
 import { InEnglishPage } from '../i18n/app';
 
 export const HeritableRights: React.FC<{ record: StrainRecord }> = ({ record }) => {
@@ -91,7 +91,7 @@ export const HeritableRights: React.FC<{ record: StrainRecord }> = ({ record }) 
       <InEnglishPage section />
       <Stack spacing={2} lang="en">
         <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-          <GavelIcon sx={{ color: MUTED_COLOR, fontSize: 20 }} />
+          <GavelIcon sx={{ color: color.textMuted, fontSize: 20 }} />
           <Typography variant="overline">Obligations on offspring</Typography>
         </Stack>
 

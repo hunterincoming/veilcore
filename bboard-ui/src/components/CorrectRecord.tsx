@@ -37,7 +37,7 @@ import {
   issueCorrection,
   type StrainRecord,
 } from '../veilcore/records';
-import { INK_COLOR } from '../config/theme';
+import { color } from '../config/tokens';
 import { useRecordT } from '../i18n/app';
 import { ANIMAL_SEXES, isAnimal, type AnimalSex } from '../veilcore/animal-profile';
 import type { AppKey } from '../i18n/app/en';
@@ -298,7 +298,7 @@ export const CorrectRecord: React.FC<{
             />
 
             {preview && (
-              <Box sx={{ p: 2, borderRadius: 1, border: `1px solid ${INK_COLOR}` }}>
+              <Box sx={{ p: 2, borderRadius: 1, border: `1px solid ${color.text}` }}>
                 <Typography variant="overline" sx={{ display: 'block' }}>
                   {t('app.plant.fix.does')}
                 </Typography>

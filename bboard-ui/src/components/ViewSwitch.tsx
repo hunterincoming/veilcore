@@ -15,7 +15,7 @@ import ArrowDownIcon from '@mui/icons-material/ArrowDropDown';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { pageAfterRole, setRole, useRole, type Role } from '../veilcore/role';
 import { useT } from '../i18n/app';
-import { INK_COLOR } from '../config/theme';
+import { color } from '../config/tokens';
 
 const VIEWS: Role[] = ['breeder', 'lab', 'both'];
 
@@ -58,7 +58,7 @@ export const ViewSwitch: React.FC = () => {
           borderColor: 'divider',
           borderRadius: '8px',
           background: 'transparent',
-          color: INK_COLOR,
+          color: color.text,
           cursor: 'pointer',
           font: 'inherit',
           fontSize: 15,

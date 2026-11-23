@@ -5,7 +5,7 @@ import React from 'react';
 import { Box, Stack, Typography } from '@mui/material';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import PendingIcon from '@mui/icons-material/PendingOutlined';
-import { OK_COLOR } from '../config/theme';
+import { color } from '../config/tokens';
 import type { StrainRecord } from '../veilcore/records';
 import { useT } from '../i18n/app';
 import { enT, type Translator } from '../i18n/translate';
@@ -36,7 +36,7 @@ export const StatusChain: React.FC<{ record: StrainRecord; licenseCount?: number
         <React.Fragment key={s.label}>
           <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center' }}>
             {s.done ? (
-              <CheckCircleIcon sx={{ fontSize: dense ? 15 : 17, color: OK_COLOR }} />
+              <CheckCircleIcon sx={{ fontSize: dense ? 15 : 17, color: color.ok }} />
             ) : (
               <PendingIcon sx={{ fontSize: dense ? 15 : 17, color: 'text.secondary' }} />
             )}
