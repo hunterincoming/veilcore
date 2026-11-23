@@ -109,7 +109,7 @@ export const errors = {
 
   'app.err.lic.licensorSigns': 'これらのクレデンシャルに署名するのはライセンスを許諾する側だけです。',
   'app.err.lic.otherStatement': 'その確認は別の明細書のものです。',
-  'app.err.lic.alreadyIssued': 'すでにオンチェーンで発行されています。代わりに取り消してください。',
+  'app.err.lic.alreadyIssued': 'すでにオンチェーンで発行されています。代わりにキャンセルしてください。',
   'app.err.lic.notOnChain': 'このライセンスはオンチェーンにありません。',
   'app.err.lic.noDealMessages': 'このライセンスには、まだ契約のメッセージがありません。',
   'app.err.lic.badKey': '相手方の鍵は使えません。',

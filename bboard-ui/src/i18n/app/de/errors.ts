@@ -119,7 +119,7 @@ export const errors = {
 
   'app.err.lic.licensorSigns': 'Nur der Lizenzgeber signiert diese Nachweise.',
   'app.err.lic.otherStatement': 'Diese Bestätigung gehört zu einer anderen Abrechnung.',
-  'app.err.lic.alreadyIssued': 'Schon auf der Chain ausgestellt: Widerrufen Sie sie stattdessen.',
+  'app.err.lic.alreadyIssued': 'Schon auf der Chain ausgestellt: Stornieren Sie sie stattdessen.',
   'app.err.lic.notOnChain': 'Diese Lizenz ist nicht auf der Chain.',
   'app.err.lic.noDealMessages': 'Diese Lizenz hat noch keine Vereinbarungsnachrichten.',
   'app.err.lic.badKey': 'Der Schlüssel der anderen Seite ist nicht verwendbar.',
