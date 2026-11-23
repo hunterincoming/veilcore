@@ -94,6 +94,11 @@ const FOR_DEVELOPERS = new Set([
   "Private state conflict for '¤'",
   "Signing key conflict for '¤'",
   "The deal's ¤ is not 64 hex characters.",
+  // Reading the contract's state from the indexer (chain/v1-decoder.ts).
+  'A contract state is hex.',
+  'Not a contract state from ledger 8 or ledger 9.',
+  'Not VeilCore version 1’s ledger layout.',
+  'VeilCore version 1’s lastBatchRoot is not 32 bytes in that state.',
 ]);
 
 describe('every sentence thrown for a person can be said in every language', () => {
