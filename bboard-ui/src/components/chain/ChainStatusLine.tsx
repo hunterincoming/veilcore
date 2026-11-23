@@ -11,6 +11,7 @@ import { useT } from '../../i18n/app';
 import { progressWords } from './progress-words';
 import { SupportDetails } from '../SupportDetails';
 import type { SupportStep } from '../../veilcore/support-details';
+import { CODE_FONT } from '../../config/theme';
 
 export const ChainStatusLine: React.FC<{
   busy: boolean;
@@ -51,7 +52,7 @@ export const TxLine: React.FC<{ label: string; txHash: string; blockHeight: numb
     <Typography
       variant="caption"
       color="text.secondary"
-      sx={{ display: 'block', wordBreak: 'break-all', fontFamily: 'monospace' }}
+      sx={{ display: 'block', wordBreak: 'break-all', fontFamily: CODE_FONT }}
     >
       {t('app.chain.txLine', { label, tx: txHash, block: String(blockHeight) })}
     </Typography>

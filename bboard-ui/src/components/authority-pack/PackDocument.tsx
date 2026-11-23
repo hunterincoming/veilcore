@@ -20,6 +20,7 @@ import {
 } from '../../veilcore/authority-pack';
 import { isKeptOnDeviceOnly, type StrainRecord } from '../../veilcore/records';
 import { documentKindOf } from '../../veilcore/document-kind';
+import { CODE_FONT } from '../../config/theme';
 
 /** A string as a CSS string literal: quotes, backslashes, line breaks and "<" escaped. */
 export const cssString = (v: string): string =>
@@ -102,10 +103,10 @@ const sx = {
   '& p': { my: 0.5 },
   '& .muted': { color: MUTED },
   '& .small': { fontSize: '0.86em' },
-  '& .mono': { fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace', fontSize: '0.84em' },
+  '& .mono': { fontFamily: CODE_FONT, fontSize: '0.84em' },
   // A record ID wraps anywhere rather than leaving "VEIL-" alone on a line.
   '& .id': {
-    fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
+    fontFamily: CODE_FONT,
     fontSize: '0.8em',
     wordBreak: 'break-all',
     color: MUTED,

@@ -1,34 +1,16 @@
-/* The headings' face: Libre Caslon Text Bold (SIL Open Font License 1.1, public/fonts),
-   a revival of William Caslon's 1720s type, the face of the century's registers, herbaria
-   labels and stud books. One weight, subset to Latin and Latin-1 (16 KB), served from our
-   own origin (the Content-Security-Policy is font-src 'self'), preloaded in index.html.
-   font-display: swap shows the heading at once in the stand-in below; the stand-in is a
-   serif already on the device, scaled to Caslon's width and line metrics (measured
-   against Times New Roman Bold, whose metrics Liberation Serif and Tinos share), so the
-   swap moves nothing. Japanese headings use the body face (site.css, App.tsx).
+/* VeilCore's three faces, all SIL Open Font License 1.1 (public/fonts/LICENSE-*.txt), all served
+   from our own origin (the Content-Security-Policy is font-src 'self'):
+   - Archivo (variable, 400-700): headings, buttons and the wordmark, everywhere (Mako's design).
+     Preloaded in index.html. Until it loads, Arial or Liberation Sans stands in, scaled to
+     Archivo's width and line metrics (measured from the font files), so the swap moves little.
+     Japanese headings use the body face (site.css, App.tsx): Archivo has no Japanese.
+   - Atkinson Hyperlegible Next: body text and forms (main.tsx, config/theme.ts FONT).
+   - JetBrains Mono (variable, 400-700): codes and fingerprints. Its 0 has a slash (the zero
+     feature, kept in the subset), and I, l and 1 differ. Subset to Latin, Latin-1, Latin
+     Extended-A (the accents in de, es and fr), dashes, quotes, the ellipsis, arrows, the minus
+     and multiplication signs, and the check and cross marks, so a code inside a sentence and
+     the words round it come from one face.
    SPDX-License-Identifier: Apache-2.0 */
-@font-face {
-  font-family: 'VeilCore Caslon';
-  src: url('/fonts/libre-caslon-text-700.woff2') format('woff2');
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'VeilCore Caslon fallback';
-  src:
-    local('Times New Roman Bold'), local('TimesNewRomanPS-BoldMT'), local('Liberation Serif Bold'),
-    local('LiberationSerif-Bold'), local('Tinos Bold'), local('Tinos-Bold');
-  font-weight: 700;
-  font-style: normal;
-  size-adjust: 121.4%;
-  ascent-override: 79.9%;
-  descent-override: 21.4%;
-  line-gap-override: 0%;
-}
-/* Archivo (variable, 400-700) and JetBrains Mono, both OFL (public/fonts/LICENSE-*.txt), subset
-   and self-hosted: Mako's design faces (home page, how it works, about) and the v2 wordmark on
-   every page (components/Wordmark.tsx). */
 @font-face {
   font-family: 'VeilCore Archivo';
   src: url('/fonts/archivo-var.woff2') format('woff2');
@@ -36,10 +18,59 @@
   font-display: swap;
 }
 @font-face {
+  font-family: 'VeilCore Archivo fallback';
+  src: local('Arial'), local('ArialMT'), local('Liberation Sans'), local('LiberationSans'), local('Arimo');
+  font-weight: 400 600;
+  font-style: normal;
+  size-adjust: 98.6%;
+  ascent-override: 89%;
+  descent-override: 21.3%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: 'VeilCore Archivo fallback';
+  src:
+    local('Arial Bold'), local('Arial-BoldMT'), local('Liberation Sans Bold'), local('LiberationSans-Bold'),
+    local('Arimo Bold'), local('Arimo-Bold');
+  font-weight: 700;
+  font-style: normal;
+  size-adjust: 98.1%;
+  ascent-override: 89.5%;
+  descent-override: 21.4%;
+  line-gap-override: 0%;
+}
+@font-face {
   font-family: 'VeilCore Mono';
   src: url('/fonts/jetbrains-mono-var.woff2') format('woff2');
-  font-weight: 400 500;
+  font-weight: 400 700;
   font-display: swap;
+}
+/* The code face is not preloaded, so until it arrives a monospace already on the device stands
+   in. Courier New, Liberation Mono and Cousine share JetBrains Mono's width (every character
+   0.6 em), so with its line metrics matched the swap moves nothing: a code doesn't rewrap, and a
+   button beside it doesn't jump from under a finger. */
+@font-face {
+  font-family: 'VeilCore Mono fallback';
+  src:
+    local('Courier New'), local('CourierNewPSMT'), local('Liberation Mono'), local('LiberationMono'), local('Cousine');
+  font-weight: 400 600;
+  font-style: normal;
+  size-adjust: 100%;
+  ascent-override: 102%;
+  descent-override: 30%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: 'VeilCore Mono fallback';
+  src:
+    local('Courier New Bold'), local('CourierNewPS-BoldMT'), local('Liberation Mono Bold'),
+    local('LiberationMono-Bold'), local('Cousine Bold'), local('Cousine-Bold');
+  font-weight: 700;
+  font-style: normal;
+  size-adjust: 100%;
+  ascent-override: 102%;
+  descent-override: 30%;
+  line-gap-override: 0%;
 }
 /* Selected text is highlighted in pollen, like a marker on a printed record. */
 ::selection {

@@ -25,6 +25,7 @@ import type { LicenseTerms } from '../../veilcore/licenses';
 import { currencyOf, offspringOf, ruleText } from '../../veilcore/royalty-terms';
 import { DisclosureReceipt } from '../chain/DisclosureReceipt';
 import type { ReceiptCircuit } from '../../veilcore/onchain-receipt';
+import { CODE_FONT } from '../../config/theme';
 
 /** The steps each side can send from here, by the obligation's status. */
 const RECEIPT_FOR: Record<string, readonly ReceiptCircuit[]> = {
@@ -168,7 +169,7 @@ export const OffspringRoyalty: React.FC<{
             { b: (c) => <b>{c}</b> },
             {
               name: plant.name,
-              key: <span style={{ fontFamily: 'monospace' }}>{plant.recordIdentity.slice(0, 8)}…</span>,
+              key: <span style={{ fontFamily: CODE_FONT }}>{plant.recordIdentity.slice(0, 8)}…</span>,
               state:
                 status === 'in-force'
                   ? tr.t('app.lic.off.inForce')

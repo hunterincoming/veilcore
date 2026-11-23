@@ -23,8 +23,8 @@
    (12.7:1). An error is a tinted note with an icon and a sentence (the app's alerts), in red
    (#9E2A0B), the only red anywhere, so red always means "something went wrong".
    Type: Atkinson Hyperlegible Next for everything you read (main.tsx), drawn so that
-   I l 1 / O 0 / B 8 can't be mistaken; headings in Libre Caslon Text Bold (src/fonts.css),
-   the face of the 18th century's registers. Japanese headings stay in the body face.
+   I l 1 / O 0 / B 8 can't be mistaken; headings and buttons in Archivo, codes in JetBrains
+   Mono (src/fonts.css). Japanese headings and buttons stay in the body face.
    Everything is scoped under .vcm so the record pages' MUI styling is untouched.
    SPDX-License-Identifier: Apache-2.0 */
 
@@ -62,7 +62,8 @@
   --font:
     'Atkinson Hyperlegible Next Variable', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', 'Noto Sans JP',
     system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --display: 'VeilCore Caslon', 'VeilCore Caslon fallback', Georgia, var(--font);
+  --display: 'VeilCore Archivo', 'VeilCore Archivo fallback', var(--font);
+  --mono: 'VeilCore Mono', 'VeilCore Mono fallback', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   /* Things you press sit on a thin ink shadow, lift a pixel, and go down when pressed. */
   --press-rest: 0 1px 0 rgba(22, 24, 29, 0.28), 0 2px 6px -2px rgba(22, 24, 29, 0.24);
   --press-lift: 0 2px 0 rgba(22, 24, 29, 0.3), 0 8px 16px -6px rgba(22, 24, 29, 0.3);
@@ -365,8 +366,8 @@ html:has(.vcm) {
   border: 0;
   border-radius: var(--r-control);
   color: var(--text);
-  font-family: var(--font);
-  font-weight: 700;
+  font-family: var(--display);
+  font-weight: 600;
   font-size: 16px;
   padding: 8px 16px;
   cursor: pointer;
@@ -383,9 +384,9 @@ html:has(.vcm) {
   justify-content: center;
   min-height: 48px;
   box-sizing: border-box;
-  font-family: var(--font);
+  font-family: var(--display);
   font-size: 17px;
-  font-weight: 700;
+  font-weight: 600;
   text-decoration: none;
   padding: 12px 22px;
   border: 0;
@@ -417,7 +418,7 @@ html:has(.vcm) {
 }
 
 /* ------------------------------------------------------------------ hero
-   The one ink band at the top: the headline in Caslon, its answer in pollen gold, and the
+   The one ink band at the top: the headline in Archivo, its answer in pollen gold, and the
    specimen sheet beside it. The headline runs the full width, one sentence a line; under it
    the lede, the actions and the status on the left, and the sheet on the right.
    .hero-text dissolves into the grid (display: contents) so its children can sit on those
@@ -612,14 +613,15 @@ html:has(.vcm) {
   color: var(--text);
   margin-bottom: 8px;
 }
-/* The fingerprint, in groups of eight like a printed lab code. Tabular figures so the
-   groups line up; the same legible face as the rest, so 0 and O can't be confused. */
+/* The fingerprint, in groups of eight like a printed lab code, in the code face: every
+   character the same width so the groups line up, and a slashed 0 that can't be an O. */
 .vcm .digest {
-  font-size: 1.125rem;
+  font-family: var(--mono);
+  font-size: 1.0625rem;
   line-height: 1.6;
-  font-weight: 700;
+  font-weight: 600;
   font-variant-numeric: tabular-nums slashed-zero;
-  letter-spacing: 0.03em;
+  letter-spacing: 0;
   color: var(--text);
   min-height: 58px;
   overflow-wrap: anywhere;
@@ -1235,11 +1237,11 @@ html:has(.vcm) {
   margin: 2px 0 0;
   color: var(--text-muted);
 }
-/* A contract address: the same legible face, tabular, slashed zero. */
+/* A contract address: the code face, slashed zero. */
 .vcm .contracts code {
-  font-family: var(--font);
+  font-family: var(--mono);
   font-variant-numeric: tabular-nums slashed-zero;
-  letter-spacing: 0.02em;
+  letter-spacing: 0;
   color: var(--text);
   overflow-wrap: anywhere;
 }
@@ -2538,8 +2540,9 @@ html:has(.vcm) {
 .vcm:lang(ja) :is(h1, h2, h3, h4, .stat b, .step::before, .brand) {
   letter-spacing: 0;
 }
-/* Caslon has no Japanese: Japanese headings use the body face (the wordmark stays Caslon). */
-.vcm:lang(ja) :is(h1, h2, h3, h4, .stat b) {
+/* Archivo has no Japanese: Japanese headings and buttons use the body face (the wordmark stays
+   Archivo). */
+.vcm:lang(ja) :is(h1, h2, h3, h4, .stat b, .btn, .menu-btn) {
   font-family: var(--font);
 }
 .vcm:lang(ja) h2 {

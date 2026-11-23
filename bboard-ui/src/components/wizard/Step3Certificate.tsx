@@ -47,6 +47,7 @@ import { certificateSummary } from './certificate-summary';
 import { damOf, isAnimal, parentLine, recordTitle, sireOf } from '../../veilcore/animal-profile';
 import { isStrain } from '../../veilcore/strain-profile';
 import { strainGroupWords, strainParentWords } from '../flow/StrainForm';
+import { CODE_FONT } from '../../config/theme';
 
 // The certificate's own colours: a specimen sheet, ink on archival paper, every pair at
 // least 4.5:1. A check that passed is a ✓ in the quiet green; one that failed is a ✗ in the
@@ -63,8 +64,6 @@ const CERT = {
   practice: paper.warn,
 } as const;
 
-const MONO = '"JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace';
-
 /** The practice mark on a test-network certificate. */
 export const PRACTICE_BAND = 'TEST NETWORK — PRACTICE ONLY, NOT EVIDENCE';
 const PRACTICE_WATERMARK = `url("data:image/svg+xml,${encodeURIComponent(
@@ -79,7 +78,11 @@ const Field: React.FC<{ label: string; children: React.ReactNode; mono?: boolean
     </Typography>
     <Typography
       variant="body2"
-      sx={{ color: CERT.ink, overflowWrap: 'anywhere', ...(mono ? { fontFamily: MONO, fontSize: '0.8125rem' } : {}) }}
+      sx={{
+        color: CERT.ink,
+        overflowWrap: 'anywhere',
+        ...(mono ? { fontFamily: CODE_FONT, fontSize: '0.8125rem' } : {}),
+      }}
     >
       {children}
     </Typography>

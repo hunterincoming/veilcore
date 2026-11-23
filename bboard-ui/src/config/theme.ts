@@ -17,18 +17,23 @@ import { color, night, paper } from './tokens';
 export const FONT =
   '"Atkinson Hyperlegible Next Variable", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic UI", "Noto Sans JP", system-ui, -apple-system, "Segoe UI", sans-serif';
 /**
- * Headings only: Libre Caslon Text Bold (SIL Open Font License), a revival of the face
- * William Caslon cut in the 1720s, the type of the century's registers, herbaria labels and
- * stud books. One weight, subset to Latin (16 KB, public/fonts, src/fonts.css). Until it
- * loads, a serif already on the device stands in, scaled to the same width so nothing moves
- * when it arrives. Japanese headings use the body face (App.tsx, site.css).
+ * Headings, buttons and the wordmark: Archivo (SIL Open Font License), Mako's design face,
+ * self-hosted (public/fonts, src/fonts.css) and preloaded. Until it loads, Arial or Liberation
+ * Sans stands in, scaled to Archivo's width so little moves when it arrives. Japanese headings
+ * and buttons use the body face (App.tsx, site.css): Archivo has no Japanese.
  */
-export const DISPLAY_FONT = `"VeilCore Caslon", "VeilCore Caslon fallback", Georgia, ${FONT}`;
-/** Codes and fingerprints: the same face, with figures that line up and a slashed zero. */
+export const DISPLAY_FONT = `"VeilCore Archivo", "VeilCore Archivo fallback", ${FONT}`;
+/**
+ * Codes and fingerprints: JetBrains Mono (src/fonts.css), whose 0 has a slash and whose I, l
+ * and 1 differ, so a code copied off a phone is copied right.
+ */
+export const CODE_FONT =
+  '"VeilCore Mono", "VeilCore Mono fallback", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace';
+/** A code or fingerprint: the code face, with figures that line up and a slashed zero. */
 export const CODE_TEXT = {
-  fontFamily: FONT,
+  fontFamily: CODE_FONT,
   fontVariantNumeric: 'tabular-nums slashed-zero',
-  letterSpacing: '0.02em',
+  letterSpacing: 0,
 } as const;
 
 // The dark baseline: Ink, with pollen gold (12.7:1 on Ink). No page people see is drawn
@@ -238,9 +243,8 @@ const pressable = (reduce: boolean) => ({
   '&.Mui-disabled': { backgroundColor: color.surfaceQuiet, color: alpha(color.text, 0.42), boxShadow: 'none' },
 });
 
-// Type scale (ratio about 1.25 from a 17px body). Headings in Caslon: a serif's colour is
-// lighter than a heavy sans at the same weight, so they sit a step larger, tracked at zero.
-const HEADING = { fontFamily: DISPLAY_FONT, fontWeight: 700, letterSpacing: '-0.005em', lineHeight: 1.12 } as const;
+// Type scale (ratio about 1.25 from a 17px body). Headings in Archivo, set a little tight.
+const HEADING = { fontFamily: DISPLAY_FONT, fontWeight: 700, letterSpacing: '-0.01em', lineHeight: 1.12 } as const;
 
 export const lightTheme = createTheme({
   transitions: MOTION.transitions,
@@ -269,11 +273,17 @@ export const lightTheme = createTheme({
     h3: { ...HEADING, fontSize: '2.125rem' },
     h4: { ...HEADING, fontSize: '2rem', [PHONE]: { fontSize: '1.75rem' } },
     h5: { ...HEADING, fontSize: '1.4375rem', lineHeight: 1.25 },
-    h6: { fontWeight: 700, letterSpacing: '-0.005em', fontSize: '1.1875rem', lineHeight: 1.3 },
+    h6: {
+      fontFamily: DISPLAY_FONT,
+      fontWeight: 700,
+      letterSpacing: '-0.005em',
+      fontSize: '1.1875rem',
+      lineHeight: 1.3,
+    },
     subtitle1: { fontWeight: 700, fontSize: '1.0625rem' },
     body1: { fontSize: '1.0625rem', lineHeight: 1.55 },
     body2: { fontSize: '0.9375rem', lineHeight: 1.5 },
-    button: { textTransform: 'none', fontWeight: 700, letterSpacing: 0, fontSize: '1rem' },
+    button: { fontFamily: DISPLAY_FONT, textTransform: 'none', fontWeight: 600, letterSpacing: 0, fontSize: '1rem' },
     // What MUI calls an overline is a field's name or a small group's name here ("Bred by",
     // "Next step"). It is information, so it stays, but in sentence case: no capitals, no
     // tracking, which is how an eyebrow label looks.
@@ -314,7 +324,7 @@ export const lightTheme = createTheme({
         },
       },
     },
-    // A dialog's title is a heading: Caslon, like the page's.
+    // A dialog's title is a heading: Archivo, like the page's.
     MuiDialogTitle: {
       styleOverrides: { root: { fontFamily: DISPLAY_FONT, fontSize: '1.5rem', fontWeight: 700, lineHeight: 1.25 } },
     },

@@ -28,6 +28,7 @@ import { FlowFrame } from './FlowFrame';
 import { rich, useT } from '../../i18n/app';
 import { DatingPausedNotice } from '../DatingPausedNotice';
 import { DisclosureReceipt } from '../chain/DisclosureReceipt';
+import { CODE_FONT } from '../../config/theme';
 
 /** The prove page's frame; the language picker and the draft notice are in the one header (SiteHeader.tsx). */
 const ProveFrame: React.FC<React.PropsWithChildren> = ({ children }) => (
@@ -176,7 +177,7 @@ const Answer: React.FC<{ req: ProveRequest; token: string; recordId: string; nam
       <>
         <Title>{t('app.prove.didntSend')}</Title>
         <Typography variant="body1">{t('app.prove.sendInstead', { why: call.result.why })}</Typography>
-        <Typography variant="body2" sx={{ fontFamily: 'monospace', wordBreak: 'break-all', my: 1 }}>
+        <Typography variant="body2" sx={{ fontFamily: CODE_FONT, wordBreak: 'break-all', my: 1 }}>
           {call.result.txId}
         </Typography>
         <Button variant="outlined" onClick={() => void navigator.clipboard.writeText(call.result?.txId ?? '')}>

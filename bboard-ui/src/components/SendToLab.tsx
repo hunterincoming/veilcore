@@ -48,6 +48,7 @@ import { integrityOf, recordSecretSaved, type StrainRecord } from '../veilcore/r
 import { rich, useRecordT, useT } from '../i18n/app';
 import { recordTitle } from '../veilcore/animal-profile';
 import { SupportDetails } from './SupportDetails';
+import { CODE_FONT } from '../config/theme';
 
 export const SendToLab: React.FC<{
   record: StrainRecord;
@@ -188,7 +189,7 @@ export const SendToLab: React.FC<{
                   p: 2,
                   borderRadius: 1,
                   background: 'rgba(30,34,39,0.04)',
-                  fontFamily: 'monospace',
+                  fontFamily: CODE_FONT,
                   fontSize: 20,
                   textAlign: 'center',
                   letterSpacing: 1,
@@ -217,7 +218,7 @@ export const SendToLab: React.FC<{
               <Typography variant="body2" data-short-ref="">
                 {rich(
                   t('app.lab.send.shortRef'),
-                  { b: (c) => <b style={{ fontFamily: 'monospace' }}>{c}</b> },
+                  { b: (c) => <b style={{ fontFamily: CODE_FONT }}>{c}</b> },
                   { ref: parseShareCode(transferId).transferId },
                 )}
               </Typography>
@@ -426,7 +427,7 @@ export const WaitingDeliveries: React.FC<{ open: readonly SentTransfer[] }> = ({
                     p: 1.25,
                     borderRadius: 1,
                     background: 'rgba(30,34,39,0.04)',
-                    fontFamily: 'monospace',
+                    fontFamily: CODE_FONT,
                     wordBreak: 'break-all',
                   }}
                 >

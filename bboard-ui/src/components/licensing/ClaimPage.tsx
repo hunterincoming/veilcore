@@ -18,6 +18,7 @@ import { ChainStatusLine } from '../chain/ChainStatusLine';
 import type { ChainReceipt } from '../../veilcore/chain/actions';
 import { ConfirmInline, HowItWorks } from './DealSteps';
 import { rich, useT } from '../../i18n/app';
+import { CODE_FONT } from '../../config/theme';
 
 const short = (h: string) => (h.slice(0, 16).match(/..../g) ?? []).join(' ');
 
@@ -100,7 +101,7 @@ export const ClaimPage: React.FC = () => {
           { b: (c) => <b>{c}</b> },
           {
             name: claim.name,
-            key: <span style={{ fontFamily: 'monospace', wordBreak: 'break-all' }}>{claim.claimant}</span>,
+            key: <span style={{ fontFamily: CODE_FONT, wordBreak: 'break-all' }}>{claim.claimant}</span>,
           },
         )}
       </Typography>
@@ -112,7 +113,7 @@ export const ClaimPage: React.FC = () => {
               tr.t('app.lic.claim.noRecord'),
               {},
               {
-                key: <span style={{ fontFamily: 'monospace' }}>{short(claim.record)}</span>,
+                key: <span style={{ fontFamily: CODE_FONT }}>{short(claim.record)}</span>,
               },
             )}
           </Typography>

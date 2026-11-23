@@ -62,6 +62,7 @@ import { ChainStatusLine } from '../chain/ChainStatusLine';
 import type { ChainReceipt } from '../../veilcore/chain/actions';
 import { rich, useT } from '../../i18n/app';
 import { DisclosureReceipt } from '../chain/DisclosureReceipt';
+import { CODE_FONT } from '../../config/theme';
 
 const POLL_MS = 8_000;
 /** Enough of a record's key to compare with the sender: 16 characters, in groups of 4. */
@@ -319,7 +320,7 @@ export const LicenseInvitePage: React.FC = () => {
           { b: (c) => <b>{c}</b> },
           {
             label: invite.label || tr.t('app.lic.inv.you'),
-            key: <span style={{ fontFamily: 'monospace' }}>{shown(issuerKey)}</span>,
+            key: <span style={{ fontFamily: CODE_FONT }}>{shown(issuerKey)}</span>,
           },
         )}
       </Typography>
@@ -402,7 +403,7 @@ export const LicenseInvitePage: React.FC = () => {
                   <Typography variant="body2">{tr.t('app.lic.inv.readToLicensor')}</Typography>
                   <Typography
                     data-license-code=""
-                    sx={{ fontFamily: 'monospace', fontSize: '2rem', fontWeight: 700, letterSpacing: '0.15em' }}
+                    sx={{ fontFamily: CODE_FONT, fontSize: '2rem', fontWeight: 700, letterSpacing: '0.15em' }}
                   >
                     {code}
                   </Typography>
@@ -484,7 +485,7 @@ export const LicenseInvitePage: React.FC = () => {
                   <Typography variant="body2">{tr.t('app.lic.inv.readCode')}</Typography>
                   <Typography
                     data-license-code=""
-                    sx={{ fontFamily: 'monospace', fontSize: '2rem', fontWeight: 700, letterSpacing: '0.15em' }}
+                    sx={{ fontFamily: CODE_FONT, fontSize: '2rem', fontWeight: 700, letterSpacing: '0.15em' }}
                   >
                     {code}
                   </Typography>
