@@ -45,6 +45,33 @@
   font-weight: 400 700;
   font-display: swap;
 }
+/* The code face is not preloaded, so until it arrives a monospace already on the device stands
+   in. Courier New, Liberation Mono and Cousine share JetBrains Mono's width (every character
+   0.6 em), so with its line metrics matched the swap moves nothing: a code doesn't rewrap, and a
+   button beside it doesn't jump from under a finger. */
+@font-face {
+  font-family: 'VeilCore Mono fallback';
+  src:
+    local('Courier New'), local('CourierNewPSMT'), local('Liberation Mono'), local('LiberationMono'), local('Cousine');
+  font-weight: 400 600;
+  font-style: normal;
+  size-adjust: 100%;
+  ascent-override: 102%;
+  descent-override: 30%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: 'VeilCore Mono fallback';
+  src:
+    local('Courier New Bold'), local('CourierNewPS-BoldMT'), local('Liberation Mono Bold'),
+    local('LiberationMono-Bold'), local('Cousine Bold'), local('Cousine-Bold');
+  font-weight: 700;
+  font-style: normal;
+  size-adjust: 100%;
+  ascent-override: 102%;
+  descent-override: 30%;
+  line-gap-override: 0%;
+}
 /* Selected text is highlighted in pollen, like a marker on a printed record. */
 ::selection {
   background: #f6da3c;

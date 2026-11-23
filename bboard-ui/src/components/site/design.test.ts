@@ -220,9 +220,20 @@ describe('one product: the site and the app share their tokens', () => {
     expect(font.features).not.toContain('calt');
     expect(fs.statSync(file).size).toBeLessThan(30 * 1024);
     // The app's codes and the public pages' fingerprints use it.
-    expect(themeTs).toMatch(/CODE_FONT = '"VeilCore Mono"/);
+    expect(themeTs).toMatch(/CODE_FONT =\s*'"VeilCore Mono", "VeilCore Mono fallback"/);
+    // Not preloaded, so its stand-in has the same 0.6 em width and line metrics: the swap moves
+    // nothing (a late swap once moved a button out from under a tap, in e2e).
+    const monoFallback = [...fontsCss.matchAll(/@font-face \{[^}]*'VeilCore Mono fallback'[^}]*\}/g)].map((m) => m[0]);
+    expect(monoFallback).toHaveLength(2);
+    for (const face of monoFallback) {
+      expect(face).toMatch(/local\('Courier New/);
+      expect(face).toMatch(/size-adjust: 100%;/);
+      expect(face).toMatch(/ascent-override: 102%;/);
+      expect(face).toMatch(/descent-override: 30%;/);
+    }
     expect(themeTs).toMatch(/CODE_TEXT = \{\s*fontFamily: CODE_FONT/);
-    expect(siteCss).toMatch(/--mono: 'VeilCore Mono'/);
+    expect(siteCss).toMatch(/--mono: 'VeilCore Mono', 'VeilCore Mono fallback'/);
+    expect(homeCss).toMatch(/--mono: 'VeilCore Mono', 'VeilCore Mono fallback'/);
     for (const sel of ['.vcm .digest {', '.vcm .contracts code {']) {
       const at = siteCss.indexOf(sel);
       expect(siteCss.slice(at, siteCss.indexOf('}', at))).toContain('font-family: var(--mono);');

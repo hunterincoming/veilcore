@@ -63,7 +63,7 @@ html:has(.vcm .home) body {
   --sans:
     'VeilCore Archivo', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', 'Noto Sans JP', system-ui,
     sans-serif;
-  --mono: 'VeilCore Mono', ui-monospace, Menlo, monospace;
+  --mono: 'VeilCore Mono', 'VeilCore Mono fallback', ui-monospace, Menlo, monospace;
   --gutter: clamp(20px, 3.2vw, 64px);
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   --t-display: clamp(2.75rem, 5.6vw, 6rem);

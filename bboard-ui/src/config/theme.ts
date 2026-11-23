@@ -27,7 +27,8 @@ export const DISPLAY_FONT = `"VeilCore Archivo", "VeilCore Archivo fallback", ${
  * Codes and fingerprints: JetBrains Mono (src/fonts.css), whose 0 has a slash and whose I, l
  * and 1 differ, so a code copied off a phone is copied right.
  */
-export const CODE_FONT = '"VeilCore Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace';
+export const CODE_FONT =
+  '"VeilCore Mono", "VeilCore Mono fallback", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace';
 /** A code or fingerprint: the code face, with figures that line up and a slashed zero. */
 export const CODE_TEXT = {
   fontFamily: CODE_FONT,
