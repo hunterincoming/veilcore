@@ -57,6 +57,38 @@ const R_LO = R - 14n * TWO_248;
 
 const here = (p: string): string => new URL(p, import.meta.url).pathname;
 
+type ZkirIns = {
+  op: string;
+  output?: string;
+  outputs?: string[];
+  val?: string;
+  bits?: number;
+  a?: string;
+  b?: string;
+  bit?: string;
+  cond?: string;
+  point?: string;
+  scalar?: string;
+  native?: string;
+};
+/** The instructions of one compiled claims circuit (ZKIR v3). */
+const zkirOf = (circuit: string): ZkirIns[] =>
+  (
+    JSON.parse(
+      readFileSync(
+        here(`../managed/veilcore-claims/zkir/${circuit}.zkir`),
+        "utf8",
+      ),
+    ) as { instructions: ZkirIns[] }
+  ).instructions;
+/** A constant as ZKIR v3 writes it: "0x", little-endian bytes, lower-case hex. */
+const zkirConst = (n: bigint): string => {
+  let out = "";
+  for (let v = n; v > 0n; v >>= 8n)
+    out += (v & 0xffn).toString(16).padStart(2, "0");
+  return "0x" + (out || "00");
+};
+
 // ───────────────────────────────────────────────────────────── 1. version fields
 
 describe("version fields", () => {
@@ -504,7 +536,7 @@ describe("the laboratory signature's response must be below the Jubjub order", (
     await attest(signatureWitness(sig)); // the honest one still verifies
   });
 
-  it("parts wider than their types never reach the circuit (Uint<4> and Uint<248>, bit-constrained in the ZKIR)", async () => {
+  it("parts wider than their types are refused by the runtime before the circuit runs", async () => {
     await expect(() => attest(raw(16n, 0n))).rejects.toThrow(
       /expected value of type struct SchnorrSignature/,
     );
@@ -515,6 +547,57 @@ describe("the laboratory signature's response must be below the Jubjub order", (
       /expected value of type struct SchnorrSignature/,
     );
   });
+
+  it("the compiled circuit bit-constrains both parts: the high part to 4 bits, the low part to 248", () => {
+    // The runtime's type check above is JavaScript; a hand-built prover skips it. What binds
+    // a proof is the ZKIR: both private inputs must carry constrain_bits.
+    const ins = zkirOf("proveAttested");
+    const privates = ins.filter((i) => i.op === "private_input");
+    // key, announcement, then the response's high and low parts
+    const [hi, lo] = [privates[2].output!, privates[3].output!];
+    const bits = (v: string) =>
+      ins
+        .filter((i) => i.op === "constrain_bits" && i.val === v)
+        .map((i) => i.bits);
+    expect(bits(hi)).toEqual([4]);
+    expect(bits(lo)).toEqual([248]);
+    // and the range assert compares exactly those two against 14 and R_LO
+    const lts = ins.filter((i) => i.op === "less_than");
+    expect(lts.some((i) => i.a === hi && i.b === zkirConst(14n))).toBe(true);
+    expect(lts.some((i) => i.a === lo && i.b === zkirConst(R_LO))).toBe(true);
+  });
+
+  it("A5, a second way: a challenge split with quotient 116 is refused by the quotient bound itself", async () => {
+    // q = 116 and c = cFull + p - 116 * 2^248 satisfy q * 2^248 + c = cFull in the field.
+    // Pick a challenge where that c is below 2^248, so it passes its type and the q = 115
+    // rule; only the bound q < 116 is left to refuse it (attack-claims-A tests this through
+    // its own runner; this goes through the simulator's witness).
+    const P =
+      0x73eda753299d7d483339d80809a1d80553bda402fffe5bfeffffffff00000001n;
+    const slack = 116n * TWO_248 - P;
+    let found: { R: JubjubPoint; h: bigint } | undefined;
+    for (let k = 1n; k < 60000n && !found; k++) {
+      const Rp = ecMulGenerator(k) as JubjubPoint;
+      const h = CC.attestationChallenge(Rp.x, Rp.y, lab.key.x, lab.key.y, REC);
+      if (h >= slack && h < TWO_248) found = { R: Rp, h };
+    }
+    expect(found).toBeDefined();
+    const { R: Rp, h } = found!;
+    const c = h - slack;
+    expect(116n * TWO_248 + c - P).toBe(h);
+    const sim = await ClaimsSimulator.create({ terms: TERMS });
+    await expect(() =>
+      sim.call(
+        {
+          attester: lab.key,
+          signature: { announcement: Rp, response: 1n },
+          reduction: () => [116n, c],
+        },
+        "proveAttested",
+        REC,
+      ),
+    ).rejects.toThrow(/^failed assert: Schnorr quotient out of range$/);
+  }, 120_000);
 
   it("the off-chain check agrees: it refuses r and above, and accepts the honest signature", () => {
     const sig = signedWith(() => true);
@@ -539,6 +622,72 @@ describe("the laboratory signature's response must be below the Jubjub order", (
       CC.attestationChallenge(Rp.x, Rp.y, lab.key.x, lab.key.y, REC) % TWO_248;
     const sig = { announcement: Rp, response: (k + c * lab.secret) % R };
     expect(verifyRecordSignature(lab.key, REC, sig)).toBe(true);
+  });
+});
+
+describe("the Schnorr checks, followed through the compiled circuit", () => {
+  // The JS runtime refuses keys outside the subgroup before the circuit's own check runs, so
+  // no call reaches that check (claims-schnorr.test.ts reads the instruction order). These
+  // follow each value from where it is made to the assert that uses it.
+  const ins = zkirOf("proveAttested");
+  const made = (v: string | undefined) =>
+    ins.find((i) => i.output === v || i.outputs?.includes(v ?? "\u0000"));
+
+  it("subgroup: the assert needs x(r * pk) = 0 AND y(r * pk) = 1, on the point (r - 1) * pk + pk", () => {
+    const rMinus1 = ins.find(
+      (i) =>
+        i.op === "jubjub_scalar_from_native" && i.native === zkirConst(R - 1n),
+    );
+    expect(rMinus1).toBeDefined();
+    const mul = ins.find(
+      (i) => i.op === "ec_mul" && i.scalar === rMinus1!.output,
+    );
+    const rpk = ins.find(
+      (i) => i.op === "add" && i.a === mul?.output && i.b === mul?.a,
+    );
+    expect(rpk).toBeDefined();
+    const coord = (k: 0 | 1) =>
+      ins
+        .filter((i) => i.op === "into_coordinates" && i.point === rpk!.output)
+        .map((i) => i.outputs![k])
+        .filter((o) => !o.startsWith("%ignore"));
+    const [xs, ys] = [coord(0), coord(1)];
+    const checked = ins.filter((i) => {
+      if (i.op !== "assert") return false;
+      const and = made(i.cond);
+      if (and?.op !== "cond_select" || and.b !== "0x00") return false;
+      const xTest = made(and.bit);
+      const yTest = made(and.a);
+      return (
+        xTest?.op === "test_eq" &&
+        xs.includes(xTest.a!) &&
+        xTest.b === "0x00" &&
+        yTest?.op === "test_eq" &&
+        ys.includes(yTest.a!) &&
+        yTest.b === "0x01"
+      );
+    });
+    expect(checked).toHaveLength(1);
+  });
+
+  it("A5: the quotient witness is bounded below 116, by its own assert", () => {
+    const q = ins.find(
+      (i) =>
+        i.op === "constrain_bits" &&
+        i.bits === 7 &&
+        made(i.val)?.op === "private_input",
+    )?.val;
+    expect(q).toBeDefined();
+    const bound = ins.filter((i) => {
+      const lt = made(i.cond);
+      return (
+        i.op === "assert" &&
+        lt?.op === "less_than" &&
+        lt.a === q &&
+        lt.b === zkirConst(116n)
+      );
+    });
+    expect(bound).toHaveLength(1);
   });
 });
 
