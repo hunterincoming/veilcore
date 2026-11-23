@@ -30,7 +30,7 @@ export declare const assertLedger9Network: (publicDataProvider: ChainReader) => 
 
 export declare const MAINNET_REFUSAL: string;
 
-/** Throws unless ledger-v9 1.0.0 (the wallet's copy) reads the transaction back byte for byte. */
+/** Throws unless @midnightntwrk/ledger-v9 (the wallet's copy) reads the transaction back byte for byte. */
 export declare const assertReadableByWalletLedger: (
   tx: { serialize(): Uint8Array },
   update: { readonly dataToSign: Uint8Array },

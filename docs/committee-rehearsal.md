@@ -295,10 +295,9 @@ npm run committee -- undeployed install --address $A1 --card $R/hunter.json --ca
 Paste the old key when asked. It starts a Ledger 9 proof server, syncs the local chain's
 built-in wallet, and asks you to type `INSTALL`.
 
-**Two copies of Ledger 9 meet here.** The tool builds the transaction with ledger-v9 1.0.1;
-the proof server client and the wallet read it with ledger-v9 1.0.0. Only the transaction's
-bytes pass between them, and for this transaction the two versions write the same bytes
-(compared both ways with a throwaway transaction, and in the tests). The tool checks it again
+**Two copies of Ledger 9 meet here.** The tool builds the transaction with its own copy of
+ledger-v9; the proof server client and the wallet read it with theirs. Both are 1.0.2 (they were
+1.0.1 and 1.0.0 before 23 November 2026). Only the transaction's bytes pass between them. The tool checks it again
 for the real transaction after you type `INSTALL` and before the proof server or the wallet
 sees it. If it prints `The wallet's copy of Midnight Ledger 9 does not read this transaction
 as it was built`, **stop**: nothing was sent, `show` still says counter 16, and trying again
@@ -404,10 +403,10 @@ cannot do them on a local Ledger 9 network today:
 - **Using the contract after the fork** (issuing, countersigning and presenting a licence).
   The CLI's local mode starts a Ledger 8 proof server; after the fork it needs the Ledger 9
   one.
-- **Removing a circuit key and putting it back.** The wallet in this repository uses
-  ledger-v9 1.0.0, which works out too small a fee for a key removal; Midnight's release
-  notes say the network rejects it. The fix is in 1.0.1, which the committee tool builds
-  with, but the wallet pays the fee. A replace-authority costs the same in both.
+- **Removing a circuit key and putting it back.** Until 23 November 2026 the wallet here used
+  ledger-v9 1.0.0, which works out too small a fee for a key removal (Midnight's release notes
+  say the network rejects it; fixed from 1.0.1). The wallet now uses 1.0.2, so the fee is
+  right, but no step here removes or re-inserts a key yet: that is still to be rehearsed.
 - **Inserting a key compiled with compactc 0.36** and proving that circuit against existing
   data. The tool inserts only keys in the format our contract already uses.
 - **`npm run verify:deployment`**, which checks the addresses in `deployments/`, not a local

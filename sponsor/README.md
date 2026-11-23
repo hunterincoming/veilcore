@@ -170,8 +170,9 @@ one with `cd bboard-cli && npm run preprod-remote`, then Deploy.)
 
 **3. Make the sponsor wallet** (a new wallet, only for this):
 run `npm run preprod-remote` in `bboard-cli`, and choose **1 (create a new wallet)**. (The
-operator tool still starts the 8.1.3 proof server for preprod, which has not been checked since
-the Ledger 9 fork; making a wallet and receiving tNIGHT don't prove anything. A wallet made in a
+operator tool starts the Ledger 9 proof server for preprod since 23 November 2026; before that it
+started 8.1.3, which cannot prove for preprod after its fork. Making a wallet and receiving tNIGHT
+don't prove anything. A wallet made in a
 Midnight wallet app works too: `npm run seed-from-phrase -w sponsor -- preprod`.)
 - It shows the new seed once. Save it in your password manager as "VeilCore sponsor seed".
 - It prints "Using unshielded address: mn_addr_preprod1…". Copy that address.

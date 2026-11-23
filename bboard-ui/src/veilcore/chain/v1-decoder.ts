@@ -8,7 +8,7 @@
 // later major version with no date given. This module imports neither: only
 //   - @midnightntwrk/ledger-v8 8.1.3, for state bytes in ledger 8's format (every call made
 //     before Midnight's Ledger 9 fork, mainnet 6 Nov 2026), and
-//   - @midnightntwrk/ledger-v9 1.0.0, for the same contract's state after the fork, which the
+//   - @midnightntwrk/ledger-v9 1.0.2, for the same contract's state after the fork, which the
 //     network re-expresses in ledger 9's format.
 // Both are pinned exactly in bboard-ui/package.json and the lockfile; v1-decoder.test.ts fails
 // if either pin moves, or if this file imports anything else.
@@ -23,7 +23,7 @@ import * as Ledger8 from '@midnightntwrk/ledger-v8';
 import * as Ledger9 from '@midnightntwrk/ledger-v9';
 
 /** The exact package versions this module was checked against (v1-decoder.test.ts). */
-export const V1_DECODER_PINS = { '@midnightntwrk/ledger-v8': '8.1.3', '@midnightntwrk/ledger-v9': '1.0.0' } as const;
+export const V1_DECODER_PINS = { '@midnightntwrk/ledger-v8': '8.1.3', '@midnightntwrk/ledger-v9': '1.0.2' } as const;
 
 /**
  * The tag each ledger writes at the start of a serialized contract state. Ledger 8 writes

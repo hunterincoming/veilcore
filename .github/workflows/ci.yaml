@@ -125,6 +125,12 @@ jobs:
         run: |
           node --test scripts/case-collisions.test.mjs scripts/release-manifest.test.mjs scripts/check-bitcoin-stamp.test.mjs scripts/btc-checkpoints.test.mjs
 
+      # The Ledger 9 client stack: no midnight-js maintenance helper on the v1 contracts outside
+      # the guarded places, one version of Ledger 9, every proof server pinned by digest.
+      - name: Ledger 9 client stack
+        run: |
+          node --experimental-strip-types --no-warnings --import ./api/test-ts-resolve.mjs --test scripts/ledger9-client.test.mjs
+
       # deployments/*.json against docs/fingerprints.md, the README, the deploy guard, the release
       # list and the pinned compiler; then the deployment check against a stand-in indexer
       # (docs/reproduce-build.md). Nothing is read from a real network.

@@ -10,6 +10,23 @@ section.
 
 ## [Unreleased]
 
+### Midnight's current client tools; evidence-bundle checks work again (23 Nov 2026, not deployed yet)
+
+- The site, the fee sponsor and the partner kit use Midnight's 17 November patch set:
+  midnight-js 5.0.1, Compact JS 3.0.2, wallet SDK 2.0.1, ledger-v9 1.0.2 and on-chain runtime
+  4.0.2 (one copy each; the committee tool's copy is the same release), zkir-v3 3.2.1. Records
+  and the live contracts are unchanged. ledger-v9 1.0.2 fixes contract states that could fail to
+  load after a map write; the site's version 1 decoder moves to it.
+- An evidence bundle's `proof/check-on-midnight.mjs` now installs `@veilcore/contracts` 0.4.0.
+  The 0.2.0 it named could not read any batch dated since Midnight's Ledger 9 fork (6 Nov), and
+  every published kit looked a transaction up only by identifier while bundles give its hash, so
+  the check answered "No such transaction." for every batch. 0.4.0 must be published to npm
+  before a site carrying this is deployed.
+- The operator tool and the partner kit start the Ledger 9 proof server for preprod and preview,
+  which moved to Ledger 9 on 9 and 7 November; only the local Ledger 8 chain keeps 8.1.3.
+- A test that no midnight-js maintenance helper is used on the version 1 contracts outside the
+  places that refuse on Ledger 9.
+
 ### Mako's four steps and jar photo back on How it works, and a common close on the long pages (22 Nov 2026, not deployed yet)
 
 - How it works opens with the four steps again (#how, as before #169: the lit step follows the

@@ -15,7 +15,8 @@ of the library, not of the chain), so VeilCore's other maintenance tools (adding
 circuit keys, retiring; `api/src/maintenance.ts`) still stop there. And the bytes a holder
 signs differ between Ledger 8 and Ledger 9, so a signature made with the old (Ledger 8) tool
 is not valid now. The committee tools therefore build, sign, combine and check with Ledger 9
-types (`@midnightntwrk/ledger-v9` 1.0.1), and old request and signature files are refused.
+types (`@midnightntwrk/ledger-v9`, 1.0.1 until 23 November 2026, 1.0.2 since, the same version the
+wallet uses), and old request and signature files are refused.
 Sending to mainnet is off by default (Part 2, steps 6 to 8).
 
 The main contract's counter was **16 on 13 November 2026**.
@@ -354,7 +355,8 @@ there's no wallet.
 - the single key in place is refused as a member of the new committee by install, by
   `request --replace` and by `submit`;
 - before anything is handed to the proof server or the wallet, the transaction must read back
-  byte for byte in ledger-v9 1.0.0 (the wallet's copy);
+  byte for byte in the wallet's copy of ledger-v9 (1.0.0 when this was tested; 1.0.2, the same
+  version as the tool's, since the client patch of 23 November 2026);
 - every refusal by the ledger is matched against the ledger's own words, so a refusal for
   another reason does not count;
 - the install from one paper key to 3 keys and 2 signatures, and the old key then refused,

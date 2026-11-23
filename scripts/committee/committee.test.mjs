@@ -1,4 +1,4 @@
-// The committee tools against Midnight's real ledger code: ledger-v9 1.0.1 (ledger 9.1.0.1, the
+// The committee tools against Midnight's real ledger code: ledger-v9 1.0.2 (ledger 9.1.0.2, the
 // WebAssembly build of the code the node runs) holding a contract in a local LedgerState.
 // Signatures, thresholds, counters and verifier-key rules are all checked by the ledger here;
 // proofs and fees are switched off, because a maintenance update has no proof and there is no
@@ -23,7 +23,7 @@ import { test } from 'node:test';
 import { createHash } from 'node:crypto';
 import * as L from 'ledger-v9-committee';
 import * as L8 from '@midnightntwrk/ledger-v8';
-import * as L900 from '@midnight-ntwrk/midnight-js-protocol/v9';
+import * as LWallet from '@midnight-ntwrk/midnight-js-protocol/v9';
 import {
   SerializedContractState,
   createMidnightProviderFromHandlers,
@@ -197,7 +197,7 @@ test('a key card proves its key, and nothing else passes for one', () => {
   assert.match(Buffer.from(u.dataToSign).toString('latin1'), /^midnight:contract-maintenance-update/);
 });
 
-// The ledger's own refusals, word for word (ledger 9.1.0.1), so a refusal for some other
+// The ledger's own refusals, word for word (ledger 9.1.0.2), so a refusal for some other
 // reason does not pass for the one a test is about.
 const BAD_SIGNATURE = (place) => new RegExp(`^Error: signature for key id ${place} invalid for contract ContractAddress`);
 const NOT_A_MEMBER = (place) =>
@@ -909,20 +909,20 @@ test('Ledger 9: a signature made with ledger-v8 is refused', needKeys, () => {
   assert.equal(c.authority().counter, 17n);
 });
 
-test('Ledger 9: the transaction is read and accepted by ledger-v9 1.0.0 too (what midnight-js 5.0.0 and the wallet pin)', needKeys, () => {
+test('Ledger 9: the transaction is read and accepted by the wallet\'s copy of ledger-v9 too (what midnight-js 5.0.1 and the wallet use)', needKeys, () => {
   const c = asOnMainnet();
   const { update } = toolInstall(c, holders());
   const bytes = c.tx(update).serialize();
-  const tx = L900.Transaction.deserialize('signature', 'pre-proof', 'pre-binding', bytes);
-  const state = L900.LedgerState.deserialize(c.state().serialize());
-  const strict = new L900.WellFormedStrictness();
+  const tx = LWallet.Transaction.deserialize('signature', 'pre-proof', 'pre-binding', bytes);
+  const state = LWallet.LedgerState.deserialize(c.state().serialize());
+  const strict = new LWallet.WellFormedStrictness();
   strict.enforceBalancing = false;
   strict.verifyContractProofs = false;
   strict.verifyNativeProofs = false;
   const now = BigInt(Math.floor(Date.now() / 1000));
   const [next, result] = state.apply(
     tx.eraseProofs().wellFormed(state, strict, new Date()),
-    new L900.TransactionContext(state, {
+    new LWallet.TransactionContext(state, {
       secondsSinceEpoch: now,
       secondsSinceEpochErr: 30,
       parentBlockHash: '00'.repeat(32),
@@ -933,7 +933,7 @@ test('Ledger 9: the transaction is read and accepted by ledger-v9 1.0.0 too (wha
   assert.equal(next.index(c.address).maintenanceAuthority.counter, 17n);
   // The fee a replace-authority costs is computed the same by both versions.
   const fee = (Lx, t) => t.fees(Lx.LedgerParameters.initialParameters());
-  assert.equal(fee(L, c.tx(update)), fee(L900, tx));
+  assert.equal(fee(L, c.tx(update)), fee(LWallet, tx));
 });
 
 // ────────────────────────────────────────────── sending, against the same ledger
@@ -1077,11 +1077,12 @@ test('sendMaintenanceUpdate: sent once, confirmed from the chain, never twice', 
 test('before anything is sent: the transaction must read back the same in the ledger copy the wallet uses', async () => {
   const c = chain();
   const { update, landed } = signedInstall(c, holders());
-  // ledger-v9 1.0.1 built it; ledger-v9 1.0.0 (midnight-js 5.0.0, the wallet) reads the same bytes.
-  assert.equal(L900.Transaction === L.Transaction, false, 'two separate copies of the ledger');
+  // `ledger-v9-committee` built it; @midnightntwrk/ledger-v9 (midnight-js 5.0.1, the wallet) reads the same bytes.
+  // Both are 1.0.2, installed under two names.
+  assert.equal(LWallet.Transaction === L.Transaction, false, 'two separate copies of the ledger');
   assert.doesNotThrow(() => assertReadableByWalletLedger(c.tx(update), update));
   const bytes = c.tx(update).serialize();
-  const back = L900.Transaction.deserialize('signature', 'pre-proof', 'pre-binding', bytes);
+  const back = LWallet.Transaction.deserialize('signature', 'pre-proof', 'pre-binding', bytes);
   assert.deepEqual(Buffer.from(back.serialize()), Buffer.from(bytes));
   assert.deepEqual(
     Buffer.from(L.Transaction.deserialize('signature', 'pre-proof', 'pre-binding', back.serialize()).serialize()),

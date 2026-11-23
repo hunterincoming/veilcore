@@ -1,4 +1,4 @@
-// The committee launcher end to end, against Midnight's real ledger code (ledger-v9 1.0.1)
+// The committee launcher end to end, against Midnight's real ledger code (ledger-v9 1.0.2)
 // holding a contract in a local LedgerState: install from a paper key (dry run, then sent), a
 // request two holders sign, submit (dry run, then sent), and the mainnet switch (off unless
 // --send-on-mainnet and a matching dry-run record are given; "mainnet" here is only the word
