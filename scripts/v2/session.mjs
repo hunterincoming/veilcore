@@ -8,7 +8,7 @@
 //   - the committee launcher (`--v2-record FILE`) takes v2's address from it, and its key slot (V4).
 // It is NOT a pin. Nothing here writes deployments/*.json, api/src/deploy-guard.ts or any SDK or
 // site list; v2's addresses go into those in their own PR, after verify:deployment passes
-// (docs/runbooks/deploy-v2.md, step 17).
+// (docs/runbooks/deploy-v2.md, step 19).
 //
 // IDENTIFYING v2. A checker identifies v2 by its pinned address (and, for how it started, by the
 // constructor's ledger data), never by the `contractVersion` or `predecessor` fields in its state:

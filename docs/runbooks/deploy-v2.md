@@ -5,8 +5,8 @@ This is the order of work for Hunter's Mac. The design is [docs/contract-v2.md](
 the code is `contract-v2/`. v1 (`contract/`) stays exactly as it is and stays the contract the
 public site uses.
 
-**Read section A before anything else.** One step below still needs a tool that is not built
-(step 10, calling v2's circuits). It is marked **BLOCKED**. Do not work around it by hand.
+**Read section A before anything else.** Step 8 (the proof server 9.0.2 digest) can only be
+done on the Mac, and everything after it waits for it.
 
 Wording until the public switch: "deployed on mainnet for testing by VeilCore; not yet
 independently reviewed; not for your records." Never "live" or "audited". No posts about v2.
@@ -26,8 +26,9 @@ independently reviewed; not for your records." Never "live" or "audited". No pos
 | The v2 deploy command, `npm run deploy-v2 -w bboard-cli` | Built and tested against Midnight's ledger code (PR "Contract v2: deploy, verify and committee tools"). Not yet run on a network. |
 | `npm run verify:deployment -- --v2-record FILE` | Built and tested the same way. Checks every key against `docs/fingerprints-v2.md` in slot V4, the authority (temporary key, then the 2-of-3 committee), and every maintenance update since the deploy. |
 | The committee launcher on v2 (`--v2-record`, the key slot, the mainnet gate) | Built and tested the same way. |
-| The client patch: midnight-js 5.0.1, ledger-v9 1.0.2, on-chain runtime 4.0.2, proof server **9.0.2 by digest** | **Not merged** (PR "Client patch: Midnight 17 Nov tools", branch `chore/ledger9-client`). The deploy command refuses to run until it is. As of 23 November that PR still pins the proof server at **9.0.1**: it must pin 9.0.2 by its digest before it merges. |
-| A client that calls v2's circuits (CLI or maintainer-only build) | **Not built.** Needed for step 10. |
+| The client patch: midnight-js 5.0.1, ledger-v9 1.0.2, on-chain runtime 4.0.2 | Merged (PR #188). |
+| Proof server **9.0.2 by digest**, for the v2 tools | **Digest not filled in yet.** It goes in one place, `bboard-cli/proof-server-v2.yml`, from Hunter's Mac (step 8). Until then every v2 tool (deploy, committee on v2, smoke run) refuses to start. v1's tools keep 9.0.1. |
+| The smoke run, `npm run smoke-v2 -w bboard-cli`: every v2 circuit called once, results checked, a pass/fail table | Built (PR "Contract v2: a client that calls every v2 circuit"). Tested in this repository: the whole plan through midnight-js's own call builder, offline; and deploy, find and first call on Midnight's ledger code. Not yet run on a network: proving and sending are first shown in step 11. |
 
 Decisions the design still lists as open, which both founders settle in writing:
 
@@ -75,7 +76,8 @@ Decisions the design still lists as open, which both founders settle in writing:
   `verify:deployment` never refuses a call; it refuses **maintenance** updates other than the
   listed V4 key inserts and the one handover (any key removal, any key not in
   `docs/fingerprints-v2.md`, any V3 key, any IR change, any other authority change). The team
-  still makes no call of its own until step 18.
+  still makes no call of its own on mainnet until step 19 (the preprod smoke run, step 11, is
+  the only run of calls before that).
 - Kill a process by its PID, never by name. Never force-push.
 
 ---
@@ -167,15 +169,58 @@ The keys must come out byte for byte the same on another computer, or nobody can
 
 ## E. Before the first run: the tools on the Mac
 
-8. Check the client patch is merged, then update and test. From the repository:
+8. **Pin proof server 9.0.2 by its digest, in one place.** A claims proof (the lab-signature
+   circuit, `proveAttested`) can crash proof server 9.0.0 and 9.0.1, so every v2 tool runs 9.0.2
+   and refuses any other. Open Docker Desktop first, then in Terminal:
+
+   ```sh
+   docker pull midnightntwrk/proof-server:9.0.2
+   docker inspect --format '{{index .RepoDigests 0}}' midnightntwrk/proof-server:9.0.2
+   ```
+
+   The second line prints one line like
+   `midnightntwrk/proof-server@sha256:` followed by 64 characters. That is the digest. It is
+   public (it names the image; it unlocks nothing), so it is fine to paste. If Midnight's release
+   notes for proof server 9.0.2 (https://docs.midnight.network/relnotes/proof-server) list a
+   digest, it must be the same; if they differ, stop.
+
+   Check the version inside the image says 9.0.2 (it starts it for a moment on this Mac only):
+
+   ```sh
+   docker run -d --rm --name ps-check -p 127.0.0.1:6399:6300 midnightntwrk/proof-server:9.0.2 midnight-proof-server -v
+   sleep 15; curl -s http://127.0.0.1:6399/version; echo
+   docker stop ps-check
+   ```
+
+   It must print `9.0.2`. Then pin it, on a branch of its own (paste the whole line the
+   `docker inspect` command printed in place of `PASTE_THE_LINE`):
+
+   ```sh
+   cd ~/veilcore && git checkout main && git pull --ff-only
+   git switch -c pin/proof-server-9.0.2
+   node scripts/v2/proof-server.mjs pin PASTE_THE_LINE
+   node scripts/v2/proof-server.mjs show                 # proof server OK: ...9.0.2@sha256:...
+   git diff                                              # one line changes, in bboard-cli/proof-server-v2.yml
+   git add bboard-cli/proof-server-v2.yml
+   git commit -m "Proof server 9.0.2 pinned by digest for the v2 tools"
+   git push -u origin pin/proof-server-9.0.2
+   ```
+
+   Open the pull request at https://github.com/hunterincoming/veilcore/pull/new/pin/proof-server-9.0.2,
+   wait for every check to pass, merge it, then `git checkout main && git pull --ff-only`. (Or send
+   the digest line to Claude and it opens that one-line PR.) This file is the only place the
+   digest lives; the deploy, the committee on v2 and the smoke run all start the proof server from
+   it, and the smoke run also asks the running server its version before it asks for the wallet.
+
+9. Check the client stack and the pin, then update and test. From the repository:
 
    ```sh
    cd ~/veilcore && git checkout main && git pull --ff-only && npm ci
    node -e "import('./scripts/v2/stack.mjs').then(m => console.log(m.stackProblems().join('\n') || 'stack OK'))"
    ```
 
-   It must print **`stack OK`**. If it names a package or the proof server, the client patch is
-   not merged (or still pins proof server 9.0.1): stop here.
+   It must print **`stack OK`**. If it names a package, run `npm ci` again; if it names the proof
+   server, step 8 is not merged yet: stop here.
 
    Then make the folder for v2's files (outside the repository) and check `age` is there:
 
@@ -189,31 +234,62 @@ The keys must come out byte for byte the same on another computer, or nobody can
 Use the **preprod test wallet**, never the mainnet recovery phrase. It must already have DUST
 (get some with `npm run preprod-remote`, which registers for DUST on preprod only).
 
-9. **Deploy v2 to preprod.** Put the preprod Blockfrost id in (section B), then:
+10. **Deploy v2 to preprod.** Put the preprod Blockfrost id in (section B), then:
 
-   ```sh
-   cd ~/veilcore/bboard-cli
-   npm run deploy-v2 -- preprod --key-file ~/veilcore-v2/preprod-temp-key.age --out ~/veilcore-v2/preprod-record.json
-   ```
+    ```sh
+    cd ~/veilcore/bboard-cli
+    npm run deploy-v2 -- preprod --key-file ~/veilcore-v2/preprod-temp-key.age --out ~/veilcore-v2/preprod-record.json
+    ```
 
-   In order, it:
-   1. checks the client stack, `docs/fingerprints-v2.md`, and every key of your build against it;
-   2. makes the temporary key and hands it to `age`: **type a new passphrase twice** (nothing
-      shows), then **once more** to prove the file opens;
-   3. asks you to type `DEPLOY V2`;
-   4. asks the private-state password and the wallet's recovery phrase (hidden);
-   5. deploys v2 main and v2 claims with the temporary key alone, then inserts all 29 keys in
-      slot **V4**, one update each (about 31 transactions; it takes a while).
+    In order, it:
+    1. checks the client stack, `docs/fingerprints-v2.md`, and every key of your build against it;
+    2. makes the temporary key and hands it to `age`: **type a new passphrase twice** (nothing
+       shows), then **once more** to prove the file opens;
+    3. asks you to type `DEPLOY V2`;
+    4. asks the private-state password and the wallet's recovery phrase (hidden);
+    5. deploys v2 main and v2 claims with the temporary key alone, then inserts all 29 keys in
+       slot **V4**, one update each (about 31 transactions; it takes a while).
 
-   It prints both addresses. Write them down with today's date. If it stops partway, run the
-   same command with `--resume ~/veilcore-v2/preprod-record.json` in place of `--out ...`, and
-   the same `--key-file`. Never start a second deploy for the same run.
+    It prints both addresses. Write them down with today's date. If it stops partway, run the
+    same command with `--resume ~/veilcore-v2/preprod-record.json` in place of `--out ...`, and
+    the same `--key-file`. Never start a second deploy for the same run.
 
-10. **BLOCKED** until a client that calls v2's circuits exists (section A). Then call every one
-    of the 29 circuits once on preprod, with test secrets. Each must land. A claims proof that
-    crashes the proof server means the proof server is not 9.0.2.
+11. **Call every v2 circuit once on preprod: the smoke run.** Same Terminal (the preprod
+    Blockfrost id still in, section B). Use the **preprod test wallet**; it needs DUST for about
+    34 transactions.
 
-11. **Check it.** From the repository:
+    ```sh
+    cd ~/veilcore/bboard-cli
+    npm run smoke-v2 -- --network preprod --v2-record ~/veilcore-v2/preprod-record.json --out ~/veilcore-v2/preprod-smoke.json
+    ```
+
+    In order, it:
+    1. checks the client stack, the 9.0.2 pin, the record (preprod, both contracts deployed) and
+       that the keys are built on this Mac, before anything is typed;
+    2. asks you to type `SMOKE V2`;
+    3. starts proof server 9.0.2 from `bboard-cli/proof-server-v2.yml` and asks it its version; if
+       it does not say 9.0.2 it stops, before the wallet;
+    4. asks the private-state password and the wallet's recovery phrase (hidden);
+    5. makes 34 calls covering all 29 circuits (24 main, 5 claims, including the lab-signature one,
+       `proveAttested`), with test records made up for this run and thrown away after it. After
+       each call it reads the contract's state and checks the call did what it should.
+
+    Each call is proved on this Mac: expect about an hour. It ends with a table, one row per call,
+    and a last line. It must end
+    **`PASS: all 29 circuits landed and their results checked.`** The same table is saved in
+    `~/veilcore-v2/preprod-smoke.json` (public: test data and transaction ids, no secret).
+
+    If a row says FAIL, the run stops there and the rest say NOT RUN. Send the table to the team;
+    do not work around it by hand. A FAIL on `proveAttested` that mentions the proof server means
+    the proof server is not 9.0.2. A FAIL on `sealRevocations` that says the time is too far ahead
+    or not ahead of the block time is the Mac's clock: check it is set automatically, then run the
+    whole command again (a new run uses new test records, so it can be repeated on the same
+    contracts; `--out` needs a new file name each time).
+
+    The smoke run refuses mainnet unless given `--network mainnet --i-understand-team-only` and
+    `SMOKE V2 ON MAINNET` is typed. The runbook does **not** use it on mainnet before step 19.
+
+12. **Check it.** From the repository:
 
     ```sh
     cd ~/veilcore
@@ -222,7 +298,7 @@ Use the **preprod test wallet**, never the mainnet recovery phrase. It must alre
 
     It must end **`RESULT: PASS`** and say "one key, not yet handed to the committee" for both.
 
-12. **Practice handover on preprod, exactly as on mainnet later** (practice keys; no 14-day
+13. **Practice handover on preprod, exactly as on mainnet later** (practice keys; no 14-day
     notice on a test network). Make three practice cards:
 
     ```sh
@@ -248,7 +324,7 @@ Use the **preprod test wallet**, never the mainnet recovery phrase. It must alre
     `install` lines, and use `/tmp/v2-dry-claims.json` and `~/veilcore-v2/preprod-handover-claims.json`
     in place of the main contract's files (make three new confirmations for its dry run).
 
-13. **Check the temporary key has no power left.** The chain now takes a change only with two
+14. **Check the temporary key has no power left.** The chain now takes a change only with two
     of the three practice keys, so the temporary key alone can change nothing:
 
     ```sh
@@ -267,11 +343,11 @@ Use the **preprod test wallet**, never the mainnet recovery phrase. It must alre
     It must end **`RESULT: PASS`** and say "held by the 2-of-3 committee" for both. Then delete
     the practice keys: `rm /tmp/practice-*.key`.
 
-Only when 9 to 13 all pass on preprod, with the exact build, go on.
+Only when 10 to 14 all pass on preprod, with the exact build, go on.
 
 ## G. Mainnet, team only (target: 28 and 29 November 2026)
 
-14. **Deploy v2 to mainnet.** Put the **mainnet** Blockfrost id in (section B), have the DUST
+15. **Deploy v2 to mainnet.** Put the **mainnet** Blockfrost id in (section B), have the DUST
     address your wallet app shows ready to paste, then:
 
     ```sh
@@ -284,7 +360,7 @@ Only when 9 to 13 all pass on preprod, with the exact build, go on.
     prompt. All inserts go in this one wallet session. If it stops partway, run it again with
     `--resume ~/veilcore-v2/mainnet-record.json` in place of `--out ...`.
 
-15. **Make no call** to either v2 contract, and check it:
+16. **Make no call** to either v2 contract, and check it:
 
     ```sh
     cd ~/veilcore
@@ -296,7 +372,7 @@ Only when 9 to 13 all pass on preprod, with the exact build, go on.
     that does not rely on VeilCore's relay, it uses your Blockfrost project when the variable is
     set (section B). Nothing else happens before this passes.
 
-16. **The handover, after the 14-day notice.** The handover is a use of v2's key, so the policy's
+17. **The handover, after the 14-day notice.** The handover is a use of v2's key, so the policy's
     notice comes first:
     1. When the third key holder is named in writing (decision 2), **publish the notice**: the
        handover of v2 main and v2 claims to the 2-of-3 committee, with the date.
@@ -333,13 +409,13 @@ Only when 9 to 13 all pass on preprod, with the exact build, go on.
     6. **Destroy the temporary key**, only now: `rm ~/veilcore-v2/mainnet-temp-key.age` (and
        `rm ~/veilcore-v2/preprod-temp-key.age`). Empty the Trash. There is no other copy.
 
-17. **The deadline for the single key.** v2 is held by one key until step 16 is done. That is
+18. **The deadline for the single key.** v2 is held by one key until step 17 is done. That is
     acceptable only because nobody honours a v2 record yet. **The handover happens before any v2
     record leaves the team.** If no outside holder is named by then, the handover uses
     **option C** (one founder holds two of the three keys for now), and the deployment notes
     and the policy say so openly, naming the founder who can act alone.
 
-18. **Only now, as its own PR:** the v2 addresses in the deployment record (revision 5) and the
+19. **Only now, as its own PR:** the v2 addresses in the deployment record (revision 5) and the
     pinned lists. Then the team may make its own v2 records, from the CLI or a maintainer-only
     build, never through the public site.
 
