@@ -2812,6 +2812,49 @@ html:has(.vcm) {
     transform: none;
     transition: none;
   }
+  /* The photo breaks: on paper, no photo and no dark scrim; the heading and its paragraph are
+     ink on white. */
+  html .vcm .home .k-photo {
+    display: block;
+    min-height: 0;
+  }
+  html .vcm .home .k-photo-frame,
+  html .vcm .home .k-door::before,
+  html .vcm .home.k-end {
+    display: none;
+  }
+  /* The pictures drawn on a dark glow (the steps, how it works' stage): the glow is left off, so
+     the record card, the code and the check mark print on white. */
+  html .vcm .home :is(.k-step-pic, .k-stagebox) {
+    background: none;
+  }
+  /* Ink fills (a chip that says live, a chosen claim, the paper and cyan cards) print as an edge:
+     with background graphics on, a printer would draw the fill and the ink words on it alike. */
+  html .vcm .home :is(.k-chip.live, .k-claim[aria-pressed='true'], .k-t-paper, .k-t-cyan),
+  html .vcm section.dark .chip.live {
+    background: none;
+    box-shadow: inset 0 0 0 1px var(--edge);
+  }
+  /* The check mark draws itself on screen as it comes into view: on paper it is drawn, in ink. */
+  html .vcm .home .k-check circle {
+    stroke: var(--edge);
+  }
+  html .vcm .home .k-check :is(.ring, .ok) {
+    stroke: var(--text);
+    stroke-dashoffset: 0;
+    transition: none;
+  }
+  /* The drawn arrow is a fill under a mask, which a printer drops: print the arrow character. */
+  html .vcm .home .k-gl {
+    background: none;
+    -webkit-mask: none;
+    mask: none;
+    -webkit-text-fill-color: currentColor;
+  }
+  /* The moving names are drawn partly in outline, for the screen: left off on paper. */
+  html .vcm .home .k-marquee {
+    display: none;
+  }
   /* The home pages draw the wordmark light for the night (SiteHeader's tone): ink on paper. */
   html:has(.vcm) [data-site-header] a[href='/'] > span {
     color: #16181d;
