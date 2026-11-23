@@ -22,6 +22,41 @@ node (`docs/maintenance-committee.md`, `docs/committee-rehearsal.md`). "Frozen" 
 document means a version's rules are not changed; it does not mean the contract cannot be
 changed while a key exists.
 
+**Corrections, 23 November 2026.** The design of version 2 is now in
+[contract-v2.md](contract-v2.md). It is a design only: nothing is built or live. These
+corrections apply to the 9 October text below. Each one is also marked where it occurs.
+
+1. **There is no royalties contract.** No `.compact` file for one exists on any branch.
+   Royalties are v1's obligation circuits plus the registry ([agreements-live.md](agreements-live.md):
+   "no contract change"). Version 2 adds no royalties contract.
+2. **Preprod can't rehearse maintenance.** Preprod was upgraded in place on 9 November. Its
+   v1 practice contract can still be called, but that contract's authority is retired, so no
+   maintenance step (committee install, freeze, undo, seal) can be rehearsed on it. Compact
+   0.31.1 can no longer deploy anywhere on Ledger 9. Maintenance is rehearsed on a local
+   devnet forked from Ledger 8 to Ledger 9 ([committee-rehearsal.md](committee-rehearsal.md),
+   and contract-v2.md section 6). Preprod and the test site are used for v2's own flow.
+3. **The carry-forward sketch below can be squatted.** A holder's `o` and `r` are public in
+   v1. So anyone could carry an identity forward first with their own head, and the rightful
+   holder's carry would then be refused on chain. Verifiers would ignore the forgery, but the
+   holder would still be blocked. The fix replaces the sketch: freeze v1 on launch day,
+   snapshot it, and have v2 check the snapshot on chain (contract-v2.md, section 3).
+4. **The seal does not use `retireMaintenanceAuthorityProvably`.** That function builds a
+   Ledger 8 update, which is refused after the fork. midnight-js 5 also refuses maintenance on
+   a pre-fork contract, and it signs with one key only. Every v1 maintenance step (committee
+   install, freeze, undo, seal) goes through `scripts/committee`, which builds the update with
+   ledger-v9 types: `remove-key` for each key, then `retire`.
+5. **Removing a key needs the client patch first.** The network rejects a key removal whose
+   fee was worked out by ledger-v9 1.0.0 (#2375, fixed from 1.0.1:
+   [Ledger 9 notes](https://docs.midnight.network/relnotes/ledger-9)). The committee tool
+   builds with 1.0.1, but the wallet that pays the fee still uses 1.0.0. So the freeze, the
+   undo test and the seal wait for the client patch (wallet on ledger-v9 1.0.2). The committee
+   install does not: a replace-authority costs the same in both.
+
+Also out of date: in *Known* 6, the quoted sentences about the retained era's "sunset" and
+"removal in the next major" are no longer in the current midnight-js migration guide (checked
+at `c8d1667`, 23 November 2026). No removal date is published. Plan as if it can go at the
+next major.
+
 ---
 
 ## The one-paragraph version
@@ -259,6 +294,10 @@ record on Midnight's public repository.
 
 ### How a holder carries a record forward
 
+> **Corrected 23 November 2026:** the sketch in this section can be squatted (correction 3
+> above). The design that replaces it, with a v1 freeze and an on-chain snapshot check, is in
+> [contract-v2.md](contract-v2.md), section 3.
+
 The holder already has the secret behind their v1 record. Version 2 uses the same commitment
 function for carried records (`commit(secret)` with the tag `veilcore:v1:commit`,
 `docs/design.md`, *Hashes*), so the same secret proves the same record in both.
@@ -298,8 +337,12 @@ When version 2 has been live for a long, announced window (founders to set; we s
 least 12 months), the key is used one last time, in public, with the 14-day notice:
 
 1. remove every v1 circuit key, so no transaction can change v1 again;
-2. replace the authority with an empty committee (`retireMaintenanceAuthorityProvably`,
-   already built and used on the claims contract).
+2. replace the authority with an empty committee.
+
+*Corrected 23 November 2026:* both steps go through `scripts/committee` (`remove-key`, then
+`retire`), not `retireMaintenanceAuthorityProvably`. That function builds a Ledger 8 update,
+which is refused after the fork. Removing keys needs the client patch first (corrections 4
+and 5 above).
 
 Then v1's final state is fixed forever, and anyone can see that on chain. Carrying forward
 still works after sealing, because it is checked against that final state, so nobody who
@@ -320,12 +363,13 @@ and midnight-js will drop that (Known 6). So:
 ### The other two contracts
 
 - **Claims contract:** already a sealed version (empty committee since 8 October). It needs
-  nothing. Its successor, with the standard library's Schnorr check from Compact 0.35
-  (`docs/claims-design.md`, last section), is simply a new address.
-- **Royalties contract (on a test-network branch, not deployed):** do not deploy it on
-  ledger 8. Anything deployed on ledger 8 now becomes a pre-fork contract within months,
-  with no maintenance in midnight-js and library support ending later. Build it with the
-  ledger-9 toolchain after the fork.
+  nothing. Its successor is simply a new address. *Corrected 23 November 2026:* the successor
+  keeps VeilCore's own Schnorr check, with a range check added inside the circuit, rather than
+  switching to the standard library's (founders' decision; [contract-v2.md](contract-v2.md),
+  1.3).
+- *Corrected 23 November 2026:* **there is no royalties contract** (correction 1 above). The
+  9 October text named one "on a test-network branch". No such contract exists on any
+  branch, and royalties need none.
 
 ---
 
@@ -354,7 +398,8 @@ and midnight-js will drop that (Known 6). So:
 7. **Show the circuit keys rebuild from source.** The `.zkir` files and compiled code have been
    reproduced byte for byte; the verifier keys have been built once only. "Same source, new
    keys" is only checkable by others if keys rebuild.
-8. **Do not deploy anything new on ledger 8** (royalties waits).
+8. **Do not deploy anything new on ledger 8.** (*Corrected:* the "royalties waits" note
+   referred to a contract that does not exist.)
 9. **Ask Nick** the questions below, in writing.
 
 ### After the fork
@@ -362,11 +407,15 @@ and midnight-js will drop that (Known 6). So:
 1. Confirm on mainnet that v1 calls and every verifier check still work.
 2. Write the v2 design (carry-forward, verifier rule, licences), run the adversarial review,
    then build v2 on the current Compact toolchain with v1's address in its starting state.
-   Same for claims v2 and royalties.
+   Same for claims v2. (*Corrected:* no royalties contract. The design is now
+   [contract-v2.md](contract-v2.md).)
 3. Deploy v2 (the fragmented deploy needs an authority during the deploy; v2's key follows
    the same "rules never change" policy), release the client that verifies across both
-   versions, open the carry-forward, announce the window.
-4. At the end of the window: seal v1.
+   versions, open the carry-forward, announce the window. (*Corrected:* rehearse every
+   maintenance step on a local forked devnet, not preprod, whose practice contract's
+   authority is retired. On launch day, freeze v1 and snapshot it before v2 opens; see
+   contract-v2.md, section 3.)
+4. At the end of the window: seal v1 through `scripts/committee`, after the client patch.
 
 ---
 
@@ -384,7 +433,8 @@ and midnight-js will drop that (Known 6). So:
    it is simpler to explain and leaves nothing to trust.
 6. **Licences: re-issue in v2**, or design a carry-forward that needs both the issuer and the
    licensee. We recommend re-issue for v2.
-7. **Hold the royalties contract** until the ledger-9 toolchain.
+7. ~~Hold the royalties contract until the ledger-9 toolchain.~~ *Withdrawn 23 November
+   2026:* there is no royalties contract (correction 1 above).
 
 ## Questions for Nick at Midnight
 
