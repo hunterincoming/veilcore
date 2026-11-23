@@ -16,8 +16,14 @@ import { readContractState } from '../../contract/src/contract-state.js';
 import * as Veilcore from '../../contract/src/managed/veilcore/contract/index.js';
 import { type AuthorityReport, type StateRequirements, checkContractState } from './state-check.js';
 
+// A transaction is named either by one of its identifiers (what a licensee hands over) or by its
+// hash (what the registry and every evidence bundle record: the sponsor's anchorer and the
+// operator tool write `hash`). The indexer finds each only under its own offset, so the
+// identifier is asked first and, when nothing has it, the hash (as the site's check page does,
+// bboard-ui chain/anchor-check.ts).
 const QUERY = `query VEILCORE_PRESENTATION($offset: TransactionOffset!) {
   transactions(offset: $offset) {
+    hash
     block { height timestamp }
     ... on RegularTransaction {
       identifiers
@@ -29,6 +35,7 @@ const QUERY = `query VEILCORE_PRESENTATION($offset: TransactionOffset!) {
 
 type Action = { address?: string; state?: string; entryPoint?: string };
 type Tx = {
+  hash?: string;
   identifiers?: string[];
   transactionResult?: { status?: string };
   contractActions?: Action[];
@@ -166,16 +173,27 @@ const askIndexer = async (
   refusal: string,
   timeoutMs: number,
 ): Promise<RawCall> => {
-  const res = await fetch(indexerUri, {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ query: QUERY, variables: { offset: { identifier: norm(txId) } } }),
-    signal: AbortSignal.timeout(timeoutMs),
-  });
-  if (!res.ok) throw new Error(`The indexer answered ${res.status}.`);
-  const body = (await res.json()) as { data?: { transactions?: Tx[] }; errors?: { message: string }[] };
-  if (body.errors?.length) throw new Error(`The indexer refused the query: ${body.errors[0].message}`);
-  const tx = (body.data?.transactions ?? []).find((t) => (t.identifiers ?? []).map(norm).includes(norm(txId)));
+  const ask = async (offset: { identifier: string } | { hash: string }): Promise<Tx[]> => {
+    const res = await fetch(indexerUri, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ query: QUERY, variables: { offset } }),
+      signal: AbortSignal.timeout(timeoutMs),
+    });
+    if (!res.ok) throw new Error(`The indexer answered ${res.status}.`);
+    const body = (await res.json()) as { data?: { transactions?: Tx[] | null }; errors?: { message: string }[] };
+    if (body.errors?.length) throw new Error(`The indexer refused the query: ${body.errors[0].message}`);
+    return body.data?.transactions ?? [];
+  };
+  const id = norm(txId);
+  let tx = (await ask({ identifier: id })).find((t) => (t.identifiers ?? []).map(norm).includes(id));
+  if (tx === undefined) {
+    const byHash = (await ask({ hash: id })).filter((t) => typeof t.hash === 'string' && norm(t.hash) === id);
+    // One hash names one transaction: two different answers are refused, never chosen between.
+    if (new Set(byHash.map((t) => JSON.stringify(t))).size > 1)
+      throw new Error('The indexer gave two different transactions for that hash. Refused.');
+    tx = byHash[0];
+  }
   if (tx === undefined) throw new Error('No such transaction.');
   if (tx.transactionResult?.status !== 'SUCCESS') throw new Error('That transaction did not succeed.');
   // Every action on this contract, whatever it is: a call bundled with anything else (a

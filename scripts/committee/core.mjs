@@ -6,8 +6,10 @@
 // ("midnight:contract-update:" became "midnight:contract-maintenance-update-..."), so a
 // signature made with ledger-v8 is not valid on a Ledger 9 network. Everything here (building,
 // signing, combining, checking) therefore uses Ledger 9 types, from @midnightntwrk/ledger-v9
-// 1.0.1 (ledger 9.1.0.1, which has the key-removal fee fix). It is installed under the name
-// `ledger-v9-committee`, because package.json pins the plain name to 1.0.0 for midnight-js 5.0.0.
+// 1.0.2 (ledger 9.1.0.2; the key-removal fee fix has been in since 1.0.1). It is installed under
+// the name `ledger-v9-committee`, at the same version as the plain name midnight-js 5.0.1 and the
+// wallet use, so there is one version of Ledger 9 in this repository; the separate name keeps
+// this tool's imports fixed if the two ever have to differ again.
 // Keys did not change: a key made before the upgrade is the same key after it. Replacing the
 // authority of a contract built with compactc 0.31 needs no recompile: the ledger checks the
 // counter and the signatures, nothing about the compiler (the rehearsal in

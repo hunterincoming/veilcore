@@ -7,7 +7,9 @@
 #   npm run local:deploy  deploy test copies of both VeilCore contracts on it
 #   npm run local:down    stop it and throw it away
 #
-# Same images as the VeilCore CLI's local chain (bboard-cli/compose.yml).
+# Same images as the VeilCore CLI's local chain (bboard-cli/compose.yml). Proof server 8.1.3 on
+# purpose: this chain runs Ledger 8 (node 0.22.3), so VeilCore's v1 contracts can be deployed on
+# it; a proof server serves one ledger, and every public network is on Ledger 9.
 # SPDX-License-Identifier: Apache-2.0
 name: veilcore-partner-local
 services:

@@ -14,7 +14,7 @@ import { attestationsFor, strengthLabel } from '../veilcore/attesters';
 import { useRecordDate } from './verify/useAnchorCheck';
 import { anchorHistoryEvent } from './verify/anchor-words';
 import type { StrainRecord } from '../veilcore/records';
-import { color } from '../config/tokens';
+import { color, mix } from '../config/tokens';
 import { utcStamp } from '../veilcore/time';
 import { useT } from '../i18n/app';
 
@@ -125,7 +125,7 @@ export const RecordHistory: React.FC<{ record: StrainRecord }> = ({ record }) =>
                 width: 8,
                 height: 8,
                 borderRadius: '50%',
-                background: e.strong ? color.ok : 'rgba(30,34,39,0.3)',
+                background: e.strong ? color.ok : mix(color.text, 30),
               }}
             />
             <Typography variant="body2" sx={{ fontWeight: 500 }}>

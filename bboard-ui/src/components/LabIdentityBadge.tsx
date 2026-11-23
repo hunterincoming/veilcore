@@ -9,7 +9,6 @@
 
 import React, { useId, useState } from 'react';
 import { Box, Link } from '@mui/material';
-import type { Theme } from '@mui/material/styles';
 import CautionIcon from '@mui/icons-material/WarningAmber';
 import WebsiteIcon from '@mui/icons-material/Language';
 import ListingIcon from '@mui/icons-material/CheckCircleOutlined';
@@ -35,8 +34,13 @@ const ICONS: Record<LabIdentityTone, typeof CautionIcon> = {
   listing: ListingIcon,
 };
 
-const colours = (tone: LabIdentityTone) => (theme: Theme) =>
-  TONES[tone][theme.palette.mode === 'dark' ? 'dark' : 'light'];
+/** The app follows the device's light or dark setting (config/theme.ts appTheme); printed, light. */
+const DARK = '@media screen and (prefers-color-scheme: dark)';
+/** `pick` of a tone's colours, light, and dark on a dark screen. */
+const toned = (tone: LabIdentityTone, pick: (c: [string, string, string]) => Record<string, string>) => ({
+  ...pick(TONES[tone].light),
+  [DARK]: pick(TONES[tone].dark),
+});
 
 /** "What does this mean?": what VeilCore checks, and how a lab becomes verified. */
 const More: React.FC<{ tr: Translator }> = ({ tr }) => {
@@ -136,31 +140,30 @@ export const LabIdentityBadge: React.FC<{ identity: LabIdentity; english?: boole
       role="group"
       aria-label={tr.t('app.labid.aria')}
       data-lab-identity={identity.level}
-      sx={(theme) => {
-        const [bg, edge] = colours(w.tone)(theme);
-        return {
-          display: 'flex',
-          gap: 1,
-          alignItems: 'flex-start',
-          mt: 1,
-          p: 1.25,
-          pl: 1.25,
-          bgcolor: bg,
-          border: `1px solid ${edge}`,
-          borderLeftWidth: 5,
-          borderRadius: 1,
-          color: 'text.primary',
-          textAlign: 'left',
-        };
+      sx={{
+        display: 'flex',
+        gap: 1,
+        alignItems: 'flex-start',
+        mt: 1,
+        p: 1.25,
+        pl: 1.25,
+        ...toned(w.tone, ([bg, edge]) => ({ backgroundColor: bg, border: `1px solid ${edge}` })),
+        borderLeftWidth: 5,
+        borderRadius: 1,
+        color: 'text.primary',
+        textAlign: 'left',
       }}
     >
-      <Box component="span" sx={(theme) => ({ color: colours(w.tone)(theme)[1], display: 'inline-flex', pt: '1px' })}>
+      <Box
+        component="span"
+        sx={{ ...toned(w.tone, ([, edge]) => ({ color: edge })), display: 'inline-flex', pt: '1px' }}
+      >
         <Icon fontSize="small" aria-hidden />
       </Box>
       <Box component="span" sx={{ display: 'block', minWidth: 0, fontSize: '0.875rem', lineHeight: 1.5 }}>
         <Box
           component="span"
-          sx={(theme) => ({ fontWeight: 700, color: colours(w.tone)(theme)[2] })}
+          sx={{ fontWeight: 700, ...toned(w.tone, ([, , title]) => ({ color: title })) }}
           data-lab-identity-title=""
         >
           {nodes(w.title)}

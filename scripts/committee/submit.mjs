@@ -21,14 +21,13 @@
 // `allowMainnet: true`, which the operator tool (bboard-cli/src/launcher/committee.ts) does only
 // after --send-on-mainnet and a matching dry-run record.
 //
-// TWO COPIES OF LEDGER 9. The update is built with ledger-v9 1.0.1 (core.mjs), while midnight-js
-// 5.0.0, the proof provider and the wallet read it with ledger-v9 1.0.0. No ledger object crosses
+// TWO COPIES OF LEDGER 9, ONE VERSION. The update is built with `ledger-v9-committee` (core.mjs),
+// while midnight-js 5.0.1, the proof provider and the wallet read it with @midnightntwrk/ledger-v9.
+// Both are ledger-v9 1.0.2 (package.json), installed under two names. No ledger object crosses
 // between them: LedgerTransaction.seal keeps only the serialised bytes, and each side decodes those
-// bytes with its own copy. For this transaction the bytes are the same format in both versions
-// (checked both ways with a throwaway replace-authority transaction, and in committee.test.mjs).
-// It is checked again for the real transaction, every time, before anything is handed to the
-// wallet (assertReadableByWalletLedger): if a later version changes the format, the tool stops
-// there with nothing sent.
+// bytes with its own copy. It is checked for the real transaction, every time, before anything is
+// handed to the wallet (assertReadableByWalletLedger): if the two names ever point at versions
+// that write different bytes, the tool stops there with nothing sent.
 //
 // NOT YET SHOWN ON A NODE: this Ledger 9 path has been run against the ledger's own code
 // (committee.test.mjs) but not against a real node, indexer and wallet. The rehearsal in
@@ -101,8 +100,8 @@ export const assertLedger9Network = async (publicDataProvider) => {
 const sameBytes = (a, b) => Buffer.from(a).equals(Buffer.from(b));
 
 /**
- * Refuse unless the ledger copy the wallet and midnight-js use (ledger-v9 1.0.0) reads this
- * transaction, built with ledger-v9 1.0.1, as exactly the same thing: the same bytes when it
+ * Refuse unless the ledger copy the wallet and midnight-js use (@midnightntwrk/ledger-v9) reads
+ * this transaction, built with `ledger-v9-committee`, as exactly the same thing: the same bytes when it
  * writes it back, holding the same maintenance update. Nothing is sent before this passes.
  * `decoder` is the wallet side's Transaction class (replaced in tests).
  */

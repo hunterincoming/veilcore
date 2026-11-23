@@ -493,7 +493,7 @@ export const openWallet = async (
     return undefined;
   }
   // This tool sends only on a Ledger 9 network (assertLedger9Network), and a proof server
-  // serves one ledger: the 9.0.1 one, on every network.
+  // serves one ledger: the Ledger 9 one (proof-server-mainnet.yml, 9.0.2), on every network.
   useMainnetProofServer();
   const testEnv: TestEnvironment = config.getEnvironment(logger);
   let wallet: MidnightWalletProvider | undefined;

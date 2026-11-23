@@ -6,7 +6,7 @@ import React, { useRef, useState } from 'react';
 import { Box, Stack, Typography } from '@mui/material';
 import UploadFileIcon from '@mui/icons-material/UploadFileOutlined';
 import DescriptionIcon from '@mui/icons-material/DescriptionOutlined';
-import { color } from '../../config/tokens';
+import { color, mix } from '../../config/tokens';
 import { useT } from '../../i18n/app';
 
 export const Dropzone: React.FC<{
@@ -50,13 +50,13 @@ export const Dropzone: React.FC<{
         borderRadius: 3,
         border: '2px dashed',
         borderColor: over ? color.text : 'divider',
-        background: over ? 'rgba(30,34,39,0.05)' : 'rgba(30,34,39,0.02)',
+        background: over ? mix(color.text, 5) : mix(color.text, 2),
         p: 4,
         textAlign: 'center',
         transition: 'all 0.2s',
         '&:hover, &:focus-visible': {
           borderColor: 'secondary.main',
-          background: 'rgba(30,34,39,0.04)',
+          background: mix(color.text, 4),
         },
       }}
     >

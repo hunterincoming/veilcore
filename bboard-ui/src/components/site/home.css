@@ -2301,7 +2301,8 @@
   display: grid;
   place-items: center;
   background: #a67c00;
-  color: #fff;
+  /* The night on the gold, 5.1:1 (never light text on gold: white is 3.8:1). */
+  color: #0b0e14;
   pointer-events: none;
   transform: translateY(101%);
 }

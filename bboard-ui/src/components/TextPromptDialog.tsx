@@ -39,7 +39,7 @@ export const TextPromptDialog: React.FC<Readonly<TextPromptDialogProps>> = ({ pr
   return (
     <Dialog open={isOpen} onClose={onCancel} fullWidth maxWidth="sm">
       <DialogTitle>
-        <Typography variant="body1" color="black" data-testid="textprompt-dialog-title">
+        <Typography variant="body1" data-testid="textprompt-dialog-title">
           {prompt}
         </Typography>
       </DialogTitle>
@@ -52,7 +52,6 @@ export const TextPromptDialog: React.FC<Readonly<TextPromptDialogProps>> = ({ pr
           size="small"
           color="primary"
           autoComplete="off"
-          slotProps={{ htmlInput: { style: { color: 'black' } } }}
           onChange={(e) => {
             setText(e.target.value);
           }}
