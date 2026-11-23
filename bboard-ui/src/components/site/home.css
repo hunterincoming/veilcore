@@ -487,6 +487,7 @@
   border: 0;
   border-radius: 50%;
   background: var(--surface-raised);
+  box-shadow: var(--quiet-edge);
   color: var(--text);
   cursor: pointer;
 }

@@ -2806,22 +2806,93 @@ html:has(.vcm) {
   .vcm {
     text-shadow: none !important;
   }
+  /* On screen the page fills the window; on paper that only adds a blank last sheet. */
+  .vcm {
+    min-height: 0;
+  }
   /* The home pages fade parts in as they scroll into view: on paper, all of them show. */
-  html .vcm .home.k-js [data-reveal]:not(.in) {
+  html .vcm .home [data-reveal],
+  html .vcm .home.k-js [data-reveal]:not(.in),
+  html .vcm .home .k-intro [data-intro] {
+    animation: none;
     opacity: 1;
     transform: none;
     transition: none;
   }
+  /* How it works' steps dim the ones not being shown: on paper all four are read. */
+  html .vcm .home .k-steps p {
+    opacity: 1;
+    transition: none;
+  }
   /* The photo breaks: on paper, no photo and no dark scrim; the heading and its paragraph are
-     ink on white. */
+     ink on white. The closing "Date your first record" link and the wordmark band under the
+     footer are for the screen. */
   html .vcm .home .k-photo {
     display: block;
     min-height: 0;
   }
   html .vcm .home .k-photo-frame,
   html .vcm .home .k-door::before,
+  html .vcm .home .k-foot,
   html .vcm .home.k-end {
     display: none;
+  }
+  /* Photos drawn under words (the leaf under the drenched section, the doors' photos): the words
+     stay, the photo is left off. So is the line drawing behind the page heads. */
+  html .vcm .home .k-door-img,
+  html .vcm .home .k-drench-tex,
+  html .vcm .home .k-ambient {
+    display: none;
+  }
+  /* Two pictures that move with the page (how it works' stage, and the bar of sealed values) are
+     drawn in fills a printer drops, at whatever step the scroll left them: the words beside and
+     under them say the same, so on paper the pictures are left off. */
+  html .vcm .home :is(.k-stagebox, .k-cal-rows) {
+    display: none;
+  }
+  /* The timeline's second pin moves out as the page scrolls; on paper it is where it ends. */
+  html .vcm .home .k-timeline {
+    --p: 1 !important;
+    animation: none !important;
+  }
+  /* "Where it matters" scrolls sideways on screen: on paper every panel, one under another, with
+     a small photo beside its words, and no arrows. */
+  html .vcm .home .k-hgal-track {
+    display: block;
+    overflow: visible;
+    padding: 0 var(--gutter);
+  }
+  html .vcm .home .k-hpanel {
+    width: auto;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+    align-items: start;
+    margin-bottom: 28px;
+    break-inside: avoid;
+  }
+  html .vcm .home .k-hpanel-img {
+    height: 160px;
+  }
+  html .vcm .home .k-hpanel:not(.is-near) .k-hpanel-img {
+    opacity: 1;
+  }
+  /* The words that light up as the page scrolls (their opacity is set inline): all lit. */
+  html .vcm .home .k-wordlight .w {
+    opacity: 1 !important;
+  }
+  html .vcm .home :is(.k-hgal-side, .k-hgal-bar) {
+    display: none;
+  }
+  /* Smaller photos over "Who it is for" on paper, so its cards start on the heading's page. */
+  html .vcm .home .k-who-pic {
+    height: 140px;
+  }
+  /* A heading is never split, nor ends a page on its own; a card is not split. */
+  .vcm :is(h1, h2, h3) {
+    break-after: avoid;
+    break-inside: avoid;
+  }
+  .vcm .home :is(.k-grid4 > *, .k-hpanel, .k-door, .k-stack-card, .k-founder) {
+    break-inside: avoid;
   }
   /* The pictures drawn on a dark glow (the steps, how it works' stage): the glow is left off, so
      the record card, the code and the check mark print on white. */

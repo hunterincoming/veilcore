@@ -568,6 +568,7 @@ describe("the night on every public page (site.css .vcm, Mako's design, 18 Nov 2
       [homeCss, '.vcm .home .k-arrow'],
       [homeCss, '.vcm .home .k-claim'],
       [homeCss, '.vcm .home .k-top'],
+      [homeCss, '.vcm .home .k-mq-btn'],
     ];
     for (const [css, sel] of quiet) {
       const at = rules(css).lastIndexOf(`\n${sel} {`);
