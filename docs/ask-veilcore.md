@@ -1,8 +1,8 @@
 # Ask VeilCore
 
-Status: BUILT on branch `ask-veilcore`, 6 November 2026. Not on veilcore.org or the test site
-yet. Five languages (English published; German, Spanish, French and Japanese drafts like the
-rest of the app).
+Status: on veilcore.org and the test site, on the app's pages (never the public ones), in all
+five languages. Built 6 November 2026. The on-device model described below stays off: Ask runs
+on Shortcuts.
 
 Ask drafts; only you save, sign or send. It works with Wi-Fi off.
 
