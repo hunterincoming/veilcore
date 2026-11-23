@@ -434,7 +434,21 @@ const shared: ThemeOptions = {
     // An error always has its icon and a sentence: that, not the hue alone, is how it reads.
     MuiAlert: {
       styleOverrides: {
-        root: { fontSize: '1rem', borderRadius: 12 },
+        root: {
+          fontSize: '1rem',
+          borderRadius: 12,
+          // On a phone a worded action ("Undo the change") goes under the sentence, lined up with
+          // it, instead of squeezing it into a narrow column beside it (German broke "Angaben"
+          // in two). A close button alone stays beside the sentence. 14px: the icon and its gap
+          // (34px) less a text button's own padding (20px), so the word starts under the sentence.
+          [PHONE]: {
+            '&:has(> .MuiAlert-action .MuiButton-root)': {
+              flexWrap: 'wrap',
+              '& > .MuiAlert-message': { flex: '1 1 0' },
+              '& > .MuiAlert-action': { flexBasis: '100%', marginLeft: 0, paddingLeft: '14px', paddingTop: 0 },
+            },
+          },
+        },
         // A short action ("Save it") stays on one line beside the sentence.
         action: { alignItems: 'center', '& .MuiButton-root': { whiteSpace: 'nowrap' } },
       },
