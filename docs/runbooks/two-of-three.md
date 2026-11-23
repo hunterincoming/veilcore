@@ -526,10 +526,10 @@ place.
 
 ## Part D. Deploy v2 with the temporary key, then hand it to the committee
 
-**Not runnable yet.** Step 1 needs the v2 build and the devnet and preprod runs. Steps 2 to 7
-also need the committee-tool changes listed under *Where things stand*. When they exist, the exact commands
-are written here and checked on preprod first. The order is fixed now (contract-v2.md,
-section 5):
+**The tools exist** (`npm run deploy-v2`, `verify:deployment --v2-record`, and the committee
+launcher's `--v2-record` and `--temp-key-file`). The exact commands are in
+[deploy-v2.md](deploy-v2.md): steps 9 to 13 on preprod first, then steps 14 to 18 on mainnet.
+The order (contract-v2.md, section 5):
 
 1. **Deploy v2 with the temporary key** on the maintainer's Mac, kept age-encrypted on disk.
    Insert all 29 verifier keys (`V4` slot) in one wallet session, or in the fewest updates
@@ -554,8 +554,12 @@ section 5):
 7. **Publish** a deployment record revision with the handover, and the checkers' v2 state (b).
 
 **If the session stops partway:** the temporary key is still on disk, so the remaining inserts
-or the handover can be finished. v2 is pinned only after `verify:deployment` passes at step 1. A v2 that can't be
-finished is never pinned: its keys are removed, it is retired, and a fresh v2 is deployed.
+or the handover can be finished: run the deploy again with `--resume` (deploy-v2.md, step 9). It
+never deploys a second contract while the first could still land, and it keeps every address it
+built. v2 is pinned only after `verify:deployment` passes at step 1. A v2 that can't be finished
+is never pinned: it is closed with one `retire` signed by the temporary key (the "v2 before
+handover" exception allows that, alone; no key removal is needed after it), and a fresh v2 is
+deployed (deploy-v2.md, step 15).
 
 ---
 

@@ -392,9 +392,11 @@ The public switch happens only after the audit closes (section 7). It is one rel
   1. **"v2 before handover":** on v2 while it still has the temporary single key (and no
      committee), the inserts of the keys listed in `fingerprints-v2.md` (`V4` slot), and one
      `replace-authority` to the committee recorded in the go/no-go, with all three holders'
-     confirmations. Nothing else. The tool takes v2's address from the deploy-session record, because v2 is
-     pinned only after `verify:deployment` passes (today the tool always uses the pinned
-     mainnet address).
+     confirmations; or one `retire`, alone, so a v2 that will not be finished can be closed for
+     good (condition 7; runbooks/two-of-three.md, Part D). Nothing else. The tool takes v2's
+     address from the deploy-session record, because v2 is pinned only after `verify:deployment`
+     passes, and refuses a record that names a pinned v1 address; v1's address is matched first.
+     The key slot comes from the address (v1 `V3`, v2 `V4`), never from the request.
   2. **"v1 retire with the single key"** (section 6): one `retire` on v1's pinned address, and
      nothing else.
 
