@@ -2856,6 +2856,14 @@ html:has(.vcm) {
   html .vcm .home .k-flow {
     display: none;
   }
+  /* With the connector left off, the two sides share the row. Only on paper wider than 1080px,
+     where home.css lays them out in three columns (connector in the middle); narrower paper is
+     already one column. */
+  @media (min-width: 1081px) {
+    html .vcm .home .k-split2 {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    }
+  }
   /* "If VeilCore disappears." is a short block: on paper its heading stays on the page with its
      cards instead of ending a page on its own. */
   html .vcm .home #gone .k-wrap {
