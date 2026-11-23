@@ -6,11 +6,13 @@
 // Midnight indexer itself:
 //   1. the transaction, by the hash the registry recorded (or, for an older entry, by its
 //      identifier): it must exist and have succeeded in full;
-//   2. its calls on VeilCore's contract, at the address this build pins (never the address
-//      the registry names): exactly one, and it must be anchorBatch, the date stamp call;
+//   2. its calls on VeilCore's contracts, at the addresses this build pins (config.ts
+//      ANCHOR_CONTRACTS, never the address the registry names): exactly one, and it must be
+//      anchorBatch, the date stamp call;
 //   3. the contract state the network recorded right after that call: its lastBatchRoot cell
 //      must be the root the inclusion proof folds to. The contract keeps only the latest
-//      root, so the state after this one transaction is read, never the current state;
+//      root, so the state after this one transaction is read, never the current state. The
+//      state is read with the decoder of the pinned contract the call was on (anchor-decode.ts);
 //   4. the block that transaction is in: its height and time are the date. An answer
 //      without both is refused: it dates nothing.
 // The same transaction listed twice with different contents is refused too.
@@ -24,6 +26,8 @@
 // ones must both lie). A run that can't reach one says so, and the page then falls back to
 // calling the date the registry's report.
 // SPDX-License-Identifier: Apache-2.0
+
+import type { ContractVersion, PinnedContract } from './config';
 
 export type AnchorCheck =
   /** Every step above passed, on every configured indexer. */
@@ -49,8 +53,8 @@ export type AnchorCheckInput = {
   readonly network: string;
   /** The transaction the registry names (its hash; an identifier is also looked up). */
   readonly txId: string;
-  /** VeilCore's contract on that network, as this build pins it. */
-  readonly contractAddress: string | undefined;
+  /** VeilCore's contracts on that network, as this build pins them (config.ts ANCHOR_CONTRACTS). */
+  readonly contracts: readonly PinnedContract[];
   /** The batch root the inclusion proof folds to. */
   readonly expectedRoot: string;
 };
@@ -62,8 +66,11 @@ export type AnchorCheckDeps = {
   readonly indexers: readonly string[];
   readonly fetch?: typeof fetch;
   readonly timeoutMs?: number;
-  /** Reads lastBatchRoot from a state's hex (anchor-decode.ts); loaded on first use otherwise. */
-  readonly rootOf?: (stateHex: string) => string | Promise<string>;
+  /**
+   * Reads lastBatchRoot from a state's hex, with the decoder of the contract version the call
+   * was on (anchor-decode.ts); loaded on first use otherwise.
+   */
+  readonly rootOf?: (stateHex: string, version: ContractVersion) => string | Promise<string>;
 };
 
 /** The entry point of the date stamp call (contract/src/veilcore.compact, anchorBatch). */
@@ -142,9 +149,9 @@ const asTxList = (v: unknown): Tx[] =>
 
 const askOne = async (
   indexer: string,
-  input: { txId: string; contract: string; root: string },
+  input: { txId: string; contracts: ReadonlyMap<string, ContractVersion>; root: string },
   deps: AnchorCheckDeps,
-  rootOf: (stateHex: string) => Promise<string>,
+  rootOf: (stateHex: string, version: ContractVersion) => Promise<string>,
 ): Promise<Answer> => {
   let body: { data?: { byHash?: unknown; byId?: unknown } | null; errors?: unknown };
   try {
@@ -195,7 +202,7 @@ const askOne = async (
     return { kind: 'refused', reason: 'that transaction did not succeed on Midnight' };
 
   const actions = Array.isArray(tx.contractActions) ? (tx.contractActions as Action[]) : [];
-  const calls = actions.filter((a) => typeof a === 'object' && a !== null && norm(a.address) === input.contract);
+  const calls = actions.filter((a) => typeof a === 'object' && a !== null && input.contracts.has(norm(a.address)));
   if (calls.length === 0) return { kind: 'refused', reason: 'that transaction made no call on VeilCore’s contract' };
   // A call bundled with any other on the contract is refused outright, so the verdict never
   // depends on which point in the transaction the recorded state describes.
@@ -206,13 +213,15 @@ const askOne = async (
       kind: 'refused',
       reason: 'that transaction’s call on VeilCore’s contract is not a date stamp (anchorBatch)',
     };
+  // Which pinned contract the call was on decides how its state is read.
+  const version = input.contracts.get(norm(calls[0].address)) as ContractVersion;
   const stateHex = norm(calls[0].state);
   if (!/^[0-9a-f]+$/.test(stateHex) || stateHex.length % 2 !== 0)
     return { kind: 'refused', reason: 'the indexer gave no contract state for that call' };
 
   let written: string;
   try {
-    written = norm(await rootOf(stateHex));
+    written = norm(await rootOf(stateHex, version));
   } catch {
     return { kind: 'refused', reason: 'the contract state after that call could not be read as VeilCore’s' };
   }
@@ -231,28 +240,30 @@ const askOne = async (
   return { kind: 'ok', txHash, blockHeight, blockTime, root: written };
 };
 
-const defaultRootOf = async (stateHex: string): Promise<string> =>
-  (await import('./anchor-decode')).lastBatchRootOf(stateHex);
+const defaultRootOf = async (stateHex: string, version: ContractVersion): Promise<string> =>
+  (await import('./anchor-decode')).lastBatchRootOf(stateHex, version);
 
 /** Look the registry's anchor up on Midnight. Never throws. */
 export const checkAnchorOnChain = async (input: AnchorCheckInput, deps: AnchorCheckDeps): Promise<AnchorCheck> => {
   const txId = norm(input.txId);
   const root = norm(input.expectedRoot);
-  const contract = norm(input.contractAddress);
+  // Address to version; an entry that is not an address is left out.
+  const contracts = new Map<string, ContractVersion>();
+  for (const c of input.contracts) if (HEX64.test(norm(c.address))) contracts.set(norm(c.address), c.version);
   if (input.network !== deps.buildNetwork)
     return {
       status: 'not-checked',
       why: 'other-network',
       reason: `the registry names the ${input.network} network, and this page reads only ${deps.buildNetwork}`,
     };
-  if (!HEX64.test(contract) || deps.indexers.length === 0)
+  if (contracts.size === 0 || deps.indexers.length === 0)
     return { status: 'not-checked', why: 'not-configured', reason: 'this page has no Midnight indexer to ask' };
   if (!HEX64.test(txId))
     return { status: 'failed', reason: 'the registry’s transaction reference is not a transaction id' };
   if (!HEX64.test(root)) return { status: 'failed', reason: 'the batch root is not 64 hexadecimal characters' };
 
-  const rootOf = async (s: string) => (deps.rootOf ?? defaultRootOf)(s);
-  const answers = await Promise.all(deps.indexers.map((i) => askOne(i, { txId, contract, root }, deps, rootOf)));
+  const rootOf = async (s: string, v: ContractVersion) => (deps.rootOf ?? defaultRootOf)(s, v);
+  const answers = await Promise.all(deps.indexers.map((i) => askOne(i, { txId, contracts, root }, deps, rootOf)));
 
   const ok = answers.filter((a): a is Extract<Answer, { kind: 'ok' }> => a.kind === 'ok');
   const refused = answers.filter((a): a is Extract<Answer, { kind: 'refused' }> => a.kind === 'refused');
