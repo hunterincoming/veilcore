@@ -1,8 +1,8 @@
 /* /partners (PartnersPage.tsx): the site's design (site.css tokens under .vcm), and the
    live <veilcore-record-check> field themed to match through its custom properties.
    15 October 2026: no rules and no outlined boxes, as on the home page. Lists are laid out
-   like the home page's register (name left, text right); a card is a specimen sheet on the
-   Paper ground; the policy quote sits on Wash.
+   like the home page's register (name left, text right); a card is the night's fill on the
+   night ground (23 Nov 2026), and so is the policy quote.
    SPDX-License-Identifier: Apache-2.0 */
 
 /* Aligned with the page heading; text kept to a readable measure. */
@@ -73,6 +73,7 @@
   --vc-line: var(--edge);
   --vc-paper: var(--surface);
   --vc-warn: var(--warn);
+  --vc-bad: var(--error);
   max-width: none;
 }
 .vcm .pk .pk-muted {

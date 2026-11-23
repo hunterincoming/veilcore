@@ -27,7 +27,7 @@ import { ja } from '../../i18n/ja';
 import { de } from '../../i18n/de';
 import { es } from '../../i18n/es';
 import { fr } from '../../i18n/fr';
-import { paper } from '../../config/tokens';
+import { night, paper } from '../../config/tokens';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const siteCss = fs.readFileSync(path.join(here, 'site.css'), 'utf8');
@@ -144,15 +144,20 @@ const rules = (css: string) => css.replace(/\/\*[\s\S]*?\*\//g, '');
 const hexes = (src: string) => [...rules(src).matchAll(/#[0-9a-fA-F]{6}\b/g)].map((m) => m[0].toUpperCase());
 
 describe('one product: the site and the app share their tokens', () => {
-  it('the same colours', () => {
+  it('the same colours: the public pages draw with the night set, and print with the paper set', () => {
+    // Every public page is night since 23 Nov 2026 (plan v2, PR 3); the app is still paper until
+    // its own change. Both sets come from config/tokens.ts (tokens.test.ts checks every value).
     for (const c of [GROUND, SHEET, INK_COLOR, MUTED_COLOR, POLLEN, WASH, HAIRLINE]) expect(c).toMatch(/^#/);
-    expect(token('ground')).toBe(GROUND.toLowerCase());
-    expect(token('surface')).toBe(SHEET.toLowerCase());
-    expect(token('text')).toBe(INK_COLOR.toLowerCase());
-    expect(token('text-muted')).toBe(MUTED_COLOR.toLowerCase());
-    expect(token('accent')).toBe(POLLEN.toLowerCase());
-    expect(token('surface-quiet')).toBe(WASH.toLowerCase());
-    expect(token('rule')).toBe(HAIRLINE.toLowerCase());
+    expect(token('ground')).toBe(night.ground.toLowerCase());
+    expect(token('surface')).toBe(night.surface.toLowerCase());
+    expect(token('text')).toBe(night.text.toLowerCase());
+    expect(token('text-muted')).toBe(night.textMuted.toLowerCase());
+    expect(token('accent')).toBe(night.accent.toLowerCase());
+    expect(token('rule')).toBe(night.rule.toLowerCase());
+    const print = siteCss.slice(siteCss.indexOf('@media print {'));
+    expect(print).toContain(`--text: ${INK_COLOR.toLowerCase()};`);
+    expect(print).toContain(`--text-muted: ${MUTED_COLOR.toLowerCase()};`);
+    expect(print).toContain('--ground: #ffffff;');
   });
 
   it('the same body typeface, first in both lists', () => {
@@ -377,7 +382,8 @@ describe('the palette: pollen and ink; red only for errors; no green brand', () 
     });
     // The ✓ colour, its note's pale tint, and the same ✓ lightened for the dark baseline.
     expect(new Set(greens)).toEqual(new Set([OK_COLOR.toUpperCase(), '#E4EFEA', '#7BC4A6']));
-    expect(token('ok')).toBe(OK_COLOR.toLowerCase());
+    expect(token('ok')).toBe(night.ok.toLowerCase());
+    expect(siteCss.slice(siteCss.indexOf('@media print {'))).toContain(`--ok: ${OK_COLOR.toLowerCase()};`);
   });
 
   it('every text pair passes WCAG AA (4.5:1), ink AAA everywhere', () => {
@@ -459,8 +465,9 @@ describe('no lines between things on the public pages', () => {
   });
 });
 
-describe("the home page's night (home.css, Mako's design, 18 Nov 2026)", () => {
-  const homeToken = (name: string) => new RegExp(`--${name}:\\s*(#[0-9a-f]{6})`, 'i').exec(homeCss)?.[1] ?? '';
+describe("the night on every public page (site.css .vcm, Mako's design, 18 Nov 2026)", () => {
+  // The night's tokens are .vcm's in site.css (home.css's pages take them from there).
+  const homeToken = (name: string) => token(name) ?? '';
   const [VOID, FILL, INK1, INK2, INK3, GOLD] = ['ground', 'surface', 'text', 'text-muted', 'text-faint', 'accent'].map(
     homeToken,
   );
@@ -493,6 +500,41 @@ describe("the home page's night (home.css, Mako's design, 18 Nov 2026)", () => {
       expect(de2000(lab(HI), lab(brand)), brand).toBeGreaterThanOrEqual(10);
     expect(contrast(VOID, HI)).toBeGreaterThanOrEqual(4.5);
     expect(rules(homeCss)).not.toMatch(/#f5c518|#ffd43a|#e3ae2a|#edbd47/i);
+  });
+
+  it('links, states and the focus ring read on the night and on a card (WCAG AA)', () => {
+    const t = (n: string) => token(n) ?? '';
+    for (const ground of [t('ground'), t('surface')]) {
+      // Links are ink with a gold underline; secondary links are Ink-2.
+      for (const text of [t('text'), t('text-muted'), t('ok'), t('warn'), t('error')])
+        expect(contrast(text, ground), `${text} on ${ground}`).toBeGreaterThanOrEqual(4.5);
+      // The focus ring's gold and the underline: 3:1 for a graphic (WCAG 1.4.11).
+      expect(contrast(t('focus'), ground)).toBeGreaterThanOrEqual(3);
+    }
+    // Under the pointer a link fills gold and its text turns night.
+    for (const fill of [t('accent'), t('accent-hover')])
+      expect(contrast(t('on-accent'), fill)).toBeGreaterThanOrEqual(4.5);
+    // On a gold button the ring's inner ring (the night) shows against the gold.
+    expect(contrast(t('focus-inner'), t('accent'))).toBeGreaterThanOrEqual(3);
+    // A text field's edge shows on its fill and on the page.
+    for (const ground of [t('ground'), t('surface')]) expect(contrast(t('edge'), ground)).toBeGreaterThanOrEqual(3);
+    // "Needs a look" is not the brand's gold.
+    expect(de2000(lab(t('warn')), lab(t('accent')))).toBeGreaterThanOrEqual(10);
+  });
+
+  it('never light text on gold, and never gold text on a raised fill', () => {
+    // Ink on gold is 3.3:1 and gold on the raised fill 3.9:1: both fail, so neither is drawn.
+    expect(contrast(token('text') ?? '', token('accent') ?? '')).toBeLessThan(4.5);
+    expect(contrast(token('accent') ?? '', token('surface-raised') ?? '')).toBeLessThan(4.5);
+    for (const css of [siteCss, homeCss, partnersCss])
+      for (const m of rules(css).matchAll(/([^{};]+)\{([^{}]*)\}/g)) {
+        const decl = m[2];
+        const colour = /(?:^|[;\s])color:\s*([^;]+);/.exec(decl)?.[1]?.trim();
+        if (/background(?:-color)?:[^;]*var\(--accent(?:-hover)?\)\s*;/.test(decl) && colour)
+          expect(colour, m[1].trim()).toMatch(/^var\(--(on-accent|ground)\)$/);
+        if (/background(?:-color)?:\s*var\(--surface-raised\)/.test(decl))
+          expect(colour ?? '', m[1].trim()).not.toMatch(/var\(--accent/);
+      }
   });
 
   it('a gallery panel out of view is quieter by its photo only, never its words', () => {

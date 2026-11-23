@@ -1,27 +1,26 @@
-/* The public pages (home, founders, privacy, verify lookup, not found).
+/* The public pages (home, how it works, about, help, privacy, terms, status, check this site,
+   partners, the verify lookup, not found).
    Redesigned 15 October 2026 around one object: the plant tag. Second pass, the same day:
    the register. Labs and breeders keep registers and log books, the entry's name in a
    narrow left column and the entry beside it. Every section is laid out that way (.reg:
    heading left, .entry right), so sections are told apart by one shared left edge and by
    space, not by rules, and headings carry no labels.
 
-   Pollen and ink (17 October 2026; the same tokens as the app, config/theme.ts).
-   Pollen gold is where every new variety and bloodline begins: the moment VeilCore dates.
-   Ink on archival paper is how genetics have been recorded for 300 years: herbarium
-   specimen sheets and stud books. The home page opens on a bold ink band, the one place
-   gold is loud; everything below it is herbarium paper. The hero's record is a specimen
-   sheet with a round gold DATED stamp pressed over its corner.
-     Paper    #F6F3EC  the page                               Ink 16.0:1
-     Sheet    #FFFDF7  specimen sheets, inputs                 Ink 17.5:1
-     Ink      #16181D  text, links, the hero band, the footer
-     Pencil   #4B4740  secondary text, warm grey               8.3:1 on Paper, 7.4:1 on Wash
-     Pollen   #F6DA3C  the main button, the stamp, the proof code's strip, link underlines,
-                       the focus ring; ink on it 12.7:1. Never text on paper (1.3:1).
-     Wash     #ECE6D8  quiet fills (secondary buttons, chips)  Ink on it 14.3:1
-     Hairline #E4DCC8  the dashed rules of a specimen sheet's rows, nothing else
-   On the ink band and footer: paper text (16.0:1), warm grey #BDB7AA (8.9:1), pollen
-   (12.7:1). An error is a tinted note with an icon and a sentence (the app's alerts), in red
-   (#9E2A0B), the only red anywhere, so red always means "something went wrong".
+   The night (23 November 2026): every public page is drawn in Mako's colours
+   (config/tokens.ts `night`; home.css has the home page's own layout on the same tokens).
+   Until then the back pages were paper and pollen; a visitor going from the home page's night
+   to "Check a record" thought they had reached another company.
+     Night    #0B0E14  the page                       Ink 16.6:1, Ink-2 8.7:1, Ink-3 5.4:1
+     Fill     #141B26  cards, fields, quiet buttons    Ink 14.9:1, Ink-2 7.8:1
+     Ink      #ECEEF1  text and links
+     Ink-2    #A4AFBF  secondary text
+     Gold     #A67C00  the main button, link underlines, the focus ring and the mark. The
+                       night is the text on it (5.1:1); never light text on gold (3.3:1). As
+                       text, only on the night or a card, never on a raised fill (3.9:1).
+   Links in running text are ink with a gold underline; under the pointer the word fills gold
+   and its text turns night. An error is a note with an icon and a sentence, in its own colour.
+   Printed, the pages go back to ink on white (the print block at the end): browsers drop
+   backgrounds when printing, and light text would print faint on white paper.
    Type: Atkinson Hyperlegible Next for everything you read (main.tsx), drawn so that
    I l 1 / O 0 / B 8 can't be mistaken; headings and buttons in Archivo, codes in JetBrains
    Mono (src/fonts.css). Japanese headings and buttons stay in the body face.
@@ -29,45 +28,43 @@
    SPDX-License-Identifier: Apache-2.0 */
 
 .vcm {
-  /* The colours: config/tokens.ts's `paper`, by role (tokens.test.ts checks they match). */
-  --ground: #f6f3ec;
-  --surface: #fffdf7;
-  --surface-quiet: #ece6d8;
-  --surface-quiet-hover: #e0d8c6;
-  --band: #f0ebe0; /* every other row of the one table */
-  --text: #16181d;
-  --text-muted: #4b4740;
-  --accent: #f6da3c;
-  --on-accent: #16181d;
-  /* The paper gold as it is here, kept by the rules below that also reach into the night
-     pages (.home sets its own --accent): a few underlines, the hero link's hover, the
-     selection. Today's look, kept exactly; it goes when the back pages turn night. */
-  --accent-paper: var(--accent);
-  --rule: #e4dcc8; /* the dashed rules of a specimen sheet */
-  --edge: #857e70; /* input edges: 4.0:1 on Sheet, 3.6:1 on Paper */
-  --line: #cfc6b1;
-  --ok: #2e6b55; /* a check that passed: 5.7:1 on Paper, never the brand */
-  --warn: #8f5500;
-  --error: #9e2a0b;
-  --ok-tint: #e4efea;
-  --warn-tint: #faf0e1;
-  --error-tint: #fbece6;
-  --focus: #f6da3c;
-  --focus-inner: #16181d;
-  /* The ink band and footer, and on them: paper text, pollen underlines and ring. */
+  /* The colours: config/tokens.ts's `night`, by role (tokens.test.ts checks they match). */
+  --ground: #0b0e14;
+  --ground-deep: #0e121a;
+  --surface: #141b26;
+  --surface-raised: #1c2738;
+  --surface-quiet: #141b26;
+  --surface-quiet-hover: #1c2738;
+  --band: #111722; /* every other row of a table */
+  --rule: #1a2331;
+  --ring: #5a7ba6;
+  --line: #5a7ba6;
+  --edge: #7a889c; /* input edges: 4.8:1 on the field */
+  --text: #eceef1;
+  --text-muted: #a4afbf;
+  --text-faint: #7a889c;
+  --accent: #a67c00;
+  --accent-hover: #b8890b;
+  --on-accent: #0b0e14; /* 5.1:1 on the gold; never light text on it */
+  --highlight: #5fd3df;
+  --ok: #7bc4a6;
+  --warn: #e8a65c;
+  --error: #f4a27f;
+  --focus: #a67c00;
+  --focus-inner: #0b0e14;
+  /* The band under the page (the site's footer), and on it: ink text, gold marks. */
   --inverse: #16181d;
-  --inverse-surface: #1f2128;
-  --on-inverse: #f6f3ec;
-  --on-inverse-muted: #bdb7aa; /* 8.9:1 on Ink */
+  --on-inverse: #eceef1;
+  --on-inverse-muted: #a4afbf;
   --font:
     'Atkinson Hyperlegible Next Variable', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', 'Noto Sans JP',
     system-ui, -apple-system, 'Segoe UI', sans-serif;
   --display: 'VeilCore Archivo', 'VeilCore Archivo fallback', var(--font);
   --mono: 'VeilCore Mono', 'VeilCore Mono fallback', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  /* Things you press sit on a thin ink shadow, lift a pixel, and go down when pressed. */
-  --press-rest: 0 1px 0 rgba(22, 24, 29, 0.28), 0 2px 6px -2px rgba(22, 24, 29, 0.24);
-  --press-lift: 0 2px 0 rgba(22, 24, 29, 0.3), 0 8px 16px -6px rgba(22, 24, 29, 0.3);
-  --press-down: 0 0 0 rgba(22, 24, 29, 0.3), 0 1px 2px rgba(22, 24, 29, 0.2);
+  /* Things you press sit on a thin shadow, lift a pixel, and go down when pressed. */
+  --press-rest: 0 1px 0 rgba(0, 0, 0, 0.4), 0 2px 6px -2px rgba(0, 0, 0, 0.5);
+  --press-lift: 0 2px 0 rgba(0, 0, 0, 0.4), 0 8px 16px -6px rgba(0, 0, 0, 0.6);
+  --press-down: 0 0 0 rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.4);
   --gutter: clamp(16px, 5vw, 64px);
   --maxw: 1280px;
   /* Shape by hierarchy: controls 8, pictures 12, chips 6. The tag has cut corners, no radius. */
@@ -82,6 +79,7 @@
 
   background: var(--ground);
   color: var(--text);
+  caret-color: var(--accent);
   font-family: var(--font);
   font-size: 17px;
   line-height: 1.55;
@@ -95,12 +93,12 @@
 .vcm > main {
   flex: 1 0 auto;
 }
-/* The dark MUI baseline sits under these pages: give the document the light ground too,
-   so overscroll and native controls are light. */
+/* The document takes the night too, so overscroll, scroll bars and native controls (pickers,
+   selects, the file chooser) are dark. */
 html:has(.vcm),
 html:has(.vcm) body {
-  background: #f6f3ec;
-  color-scheme: light;
+  background: #0b0e14;
+  color-scheme: dark;
 }
 html:has(.vcm) {
   scroll-behavior: smooth;
@@ -127,10 +125,10 @@ html:has(.vcm) {
   padding-inline: var(--gutter);
   box-sizing: border-box;
 }
-/* Selected text is highlighted in pollen, like a marker on a printed record. */
+/* Selected text is highlighted in gold, the night on it, like a marker on a printed record. */
 .vcm ::selection {
-  background: var(--accent-paper);
-  color: var(--text);
+  background: var(--accent);
+  color: var(--on-accent);
 }
 
 /* The draft-translation note, above the page when there is one. */
@@ -180,8 +178,8 @@ html:has(.vcm) {
   line-height: 1.3;
   letter-spacing: -0.005em;
 }
-/* Links inside running text: ink, with a thick pollen underline that fills in behind the
-   word under the pointer, like a highlighter. */
+/* Links inside running text: ink, with a thick gold underline; under the pointer the word
+   fills gold, like a highlighter, and its text turns night (never light text on gold). */
 .vcm
   :is(
     .pt,
@@ -201,7 +199,7 @@ html:has(.vcm) {
   color: var(--text);
   font-weight: 700;
   text-decoration: underline;
-  text-decoration-color: var(--accent-paper);
+  text-decoration-color: var(--accent);
   text-decoration-thickness: 3px;
   text-decoration-skip-ink: none;
   text-underline-offset: 3px;
@@ -222,7 +220,8 @@ html:has(.vcm) {
   )
   a:not(.btn):hover,
 .vcm a.x-link:hover {
-  background: rgba(246, 218, 60, 0.45);
+  background: var(--accent);
+  color: var(--on-accent);
 }
 .vcm .more {
   display: inline-block;
@@ -230,13 +229,14 @@ html:has(.vcm) {
   font-weight: 700;
   color: var(--text);
   text-decoration: underline;
-  text-decoration-color: var(--accent-paper);
+  text-decoration-color: var(--accent);
   text-decoration-thickness: 3px;
   text-decoration-skip-ink: none;
   text-underline-offset: 4px;
 }
 .vcm .more:hover {
-  background: rgba(246, 218, 60, 0.45);
+  background: var(--accent);
+  color: var(--on-accent);
 }
 /* The 404 code, the one small label left: it is information. */
 .vcm .label {
@@ -281,7 +281,7 @@ html:has(.vcm) {
 /* ------------------------------------------------------------------ nav */
 
 .vcm nav.top {
-  background: rgba(246, 243, 236, 0.94);
+  background: rgba(11, 14, 20, 0.94);
   backdrop-filter: blur(10px);
   position: sticky;
   top: 0;
@@ -344,7 +344,7 @@ html:has(.vcm) {
   padding: 0 16px;
   border-radius: var(--r-control);
   background: var(--accent);
-  color: var(--text);
+  color: var(--on-accent);
   font-weight: 700;
   box-shadow: var(--press-rest);
   transition:
@@ -352,7 +352,8 @@ html:has(.vcm) {
     box-shadow 0.12s ease-out;
 }
 .vcm .nav-links a.nav-cta:hover {
-  color: var(--text);
+  color: var(--on-accent);
+  background: var(--accent-hover);
   box-shadow: var(--press-lift);
   transform: translateY(-1px);
 }
@@ -374,9 +375,9 @@ html:has(.vcm) {
 }
 
 /* ------------------------------------------------------------------ buttons
-   Filled, never outlined: the main action in pollen gold under ink, the others in Wash.
-   The gold one is paper on a desk: a thin ink shadow, a pixel's lift under the pointer,
-   down when pressed. */
+   Filled, never outlined: the main action in gold under the night's text, the others on the
+   card's fill (Mako's filled "ghost" button). The gold one sits on a thin shadow, lifts a
+   pixel under the pointer, brightens, and goes down when pressed. */
 
 .vcm .btn {
   display: inline-flex;
@@ -404,11 +405,11 @@ html:has(.vcm) {
 }
 .vcm .btn.solid {
   background: var(--accent);
-  color: var(--text);
+  color: var(--on-accent);
   box-shadow: var(--press-rest);
 }
 .vcm .btn.solid:hover {
-  background: var(--accent);
+  background: var(--accent-hover);
   box-shadow: var(--press-lift);
   transform: translateY(-1px);
 }
@@ -486,11 +487,11 @@ html:has(.vcm) {
 }
 /* On ink, the quiet button is a faint paper fill. */
 .vcm .hero-band .btn:not(.solid) {
-  background: rgba(246, 243, 236, 0.1);
+  background: rgba(236, 238, 241, 0.1);
   color: var(--on-inverse);
 }
 .vcm .hero-band .btn:not(.solid):hover {
-  background: rgba(246, 243, 236, 0.18);
+  background: rgba(236, 238, 241, 0.18);
 }
 .vcm .hero-paste {
   grid-column: 1;
@@ -503,15 +504,15 @@ html:has(.vcm) {
   color: var(--on-inverse);
   font-weight: 700;
   text-decoration: underline;
-  text-decoration-color: var(--accent-paper);
+  text-decoration-color: var(--accent);
   text-decoration-thickness: 3px;
   text-decoration-skip-ink: none;
   text-underline-offset: 4px;
   white-space: nowrap;
 }
 .vcm .hero-paste a:hover {
-  color: var(--text);
-  background: var(--accent-paper);
+  color: var(--on-accent);
+  background: var(--accent);
 }
 .vcm .hero-status {
   margin-top: 28px;
@@ -603,6 +604,21 @@ html:has(.vcm) {
 .vcm .field input:focus {
   border-color: var(--text);
 }
+.vcm input::placeholder {
+  color: var(--text-muted);
+  opacity: 1;
+}
+/* A browser's autofill paints the field pale under the light text: keep the field's fill. */
+.vcm input:-webkit-autofill {
+  -webkit-text-fill-color: var(--text);
+  box-shadow: inset 0 0 0 100px var(--surface);
+  caret-color: var(--text);
+}
+.vcm input:-webkit-autofill:focus-visible {
+  box-shadow:
+    0 0 0 2px var(--focus-inner),
+    inset 0 0 0 100px var(--surface);
+}
 /* The strip that leaves: pollen gold, ink on it. */
 .vcm .hd-out {
   background: var(--accent);
@@ -610,7 +626,7 @@ html:has(.vcm) {
   border-radius: 0 0 6px 6px;
 }
 .vcm .hd-out .hd-zone {
-  color: var(--text);
+  color: var(--on-accent);
   margin-bottom: 8px;
 }
 /* The fingerprint, in groups of eight like a printed lab code, in the code face: every
@@ -625,6 +641,9 @@ html:has(.vcm) {
   color: var(--text);
   min-height: 58px;
   overflow-wrap: anywhere;
+}
+.vcm .hd-out .digest {
+  color: var(--on-accent);
 }
 .vcm .digest .g {
   display: inline-block;
@@ -661,13 +680,13 @@ html:has(.vcm) {
   place-content: center;
   justify-items: center;
   text-align: center;
-  color: var(--text);
+  color: var(--on-accent);
   background: radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.28), transparent 46%), var(--accent);
   /* A stamp's two rings: its edge, and an inner ring a few points in. */
   box-shadow:
-    inset 0 0 0 2px var(--text),
+    inset 0 0 0 2px var(--on-accent),
     inset 0 0 0 5px var(--accent),
-    inset 0 0 0 6.5px var(--text);
+    inset 0 0 0 6.5px var(--on-accent);
   transform: rotate(-8deg);
   animation: vcm-press 0.3s cubic-bezier(0.2, 0.8, 0.25, 1) 0.45s both;
   pointer-events: none;
@@ -894,7 +913,7 @@ html:has(.vcm) {
 }
 .vcm .faq summary:hover {
   text-decoration: underline;
-  text-decoration-color: var(--accent-paper);
+  text-decoration-color: var(--accent);
   text-decoration-thickness: 3px;
   text-underline-offset: 4px;
 }
@@ -919,7 +938,7 @@ html:has(.vcm) {
   text-decoration-color: var(--accent);
 }
 .vcm section.dark .lede a.inline:hover {
-  color: var(--text);
+  color: var(--on-accent);
   background: var(--accent);
 }
 .vcm .demos {
@@ -973,10 +992,10 @@ html:has(.vcm) {
 }
 .vcm section.dark .chip {
   color: var(--on-inverse-muted);
-  background: rgba(246, 243, 236, 0.1);
+  background: rgba(236, 238, 241, 0.1);
 }
 .vcm section.dark .chip.live {
-  color: var(--text);
+  color: var(--ground);
   background: var(--on-inverse);
 }
 .vcm button.demo {
@@ -1118,7 +1137,7 @@ html:has(.vcm) {
   font-variant-numeric: tabular-nums;
   color: var(--text);
   /* A date, so it is marked: the log book's date column, each date underscored in pollen. */
-  background: linear-gradient(transparent 62%, var(--accent-paper) 62%, var(--accent-paper) 92%, transparent 92%);
+  background: linear-gradient(transparent 62%, var(--accent) 62%, var(--accent) 92%, transparent 92%);
 }
 .vcm .post .tag {
   font-size: 15px;
@@ -1132,7 +1151,7 @@ html:has(.vcm) {
 }
 .vcm .post:hover h3 {
   text-decoration: underline;
-  text-decoration-color: var(--accent-paper);
+  text-decoration-color: var(--accent);
   text-decoration-thickness: 3px;
   text-decoration-skip-ink: none;
   text-underline-offset: 4px;
@@ -1149,7 +1168,7 @@ html:has(.vcm) {
   font-weight: 700;
   color: var(--text);
   text-decoration: underline;
-  text-decoration-color: var(--accent-paper);
+  text-decoration-color: var(--accent);
   text-decoration-thickness: 3px;
   text-decoration-skip-ink: none;
   text-underline-offset: 4px;
@@ -1602,6 +1621,17 @@ html:has(.vcm) {
   color: var(--text-muted);
   line-height: 1.6;
 }
+/* A heading with more than one paragraph (the terms): every paragraph in the text column. The
+   second one fell into the heading's narrow column under it (review, 22 Nov). */
+.vcm .privacy-note dl > div > dt {
+  grid-column: 1;
+}
+.vcm .privacy-note dl > div > dd {
+  grid-column: 2;
+}
+.vcm .privacy-note dl > div {
+  row-gap: 12px;
+}
 .vcm .privacy-note dl.privacy-summary {
   gap: 16px;
   padding: 24px;
@@ -1618,6 +1648,93 @@ html:has(.vcm) {
 .vcm .privacy-contact {
   margin-top: 40px;
   font-weight: 700;
+}
+
+/* /check-this-site: paragraphs at reading width, spaced; the commands and the commit (long runs
+   with no spaces) break instead of running off the edge of a phone; the two ways to check are
+   the site's buttons: the main one gold, choosing a file the quiet one. */
+.vcm [data-check-site] .wrap > :is(p, div, ul) {
+  max-width: 880px;
+}
+.vcm [data-check-site] :is(p, li) {
+  color: var(--text-muted);
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+.vcm [data-check-site] :is(p, ul, div) + :is(p, ul, div) {
+  margin-top: 16px;
+}
+.vcm [data-check-site] [data-release],
+.vcm [data-check-site] strong {
+  color: var(--text);
+}
+.vcm [data-check-site] ul {
+  padding-left: 1.25em;
+}
+.vcm [data-check-site] a {
+  color: var(--text);
+  font-weight: 700;
+  text-decoration: underline;
+  text-decoration-color: var(--accent);
+  text-decoration-thickness: 3px;
+  text-decoration-skip-ink: none;
+  text-underline-offset: 3px;
+}
+.vcm [data-check-site] a:hover {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+.vcm .check-site-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+.vcm .check-site-actions button,
+.vcm .check-site-actions label {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  min-height: 48px;
+  box-sizing: border-box;
+  max-width: 100%;
+  padding: 10px 20px;
+  border: 0;
+  border-radius: var(--r-control);
+  font-family: var(--display);
+  font-size: 17px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.vcm .check-site-actions button {
+  background: var(--accent);
+  color: var(--on-accent);
+  box-shadow: var(--press-rest);
+}
+.vcm .check-site-actions button:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+.vcm .check-site-actions label {
+  background: var(--surface-quiet);
+  color: var(--text);
+}
+.vcm .check-site-actions label:hover:not(.disabled) {
+  background: var(--surface-quiet-hover);
+}
+.vcm .check-site-actions :is(button:disabled, label.disabled) {
+  opacity: 0.6;
+  cursor: default;
+}
+.vcm .check-site-actions input[type='file'] {
+  min-width: 0;
+  max-width: 100%;
+  font-family: var(--font);
+  font-size: 15px;
+  color: var(--text-muted);
+}
+.vcm:lang(ja) .check-site-actions :is(button, label) {
+  font-family: var(--font);
 }
 
 /* /privacy on veilcore.org: the policy (PrivacyPolicy.tsx). Paragraphs, lists and tables at
@@ -1707,6 +1824,68 @@ html:has(.vcm) {
   overflow-wrap: anywhere;
 }
 
+@media screen {
+  /* ------------------------------------------------------------------ the header on the night
+     The one header (SiteHeader.tsx), drawn the way Mako's is on every public page: quiet links,
+     the gold pill. Its menu on a phone opens as the same list as everywhere else. On screen only:
+     printed, the header keeps its ink on white (the print block below). */
+  html:has(.vcm) [data-site-header] :is(a, button) {
+    font-family: 'VeilCore Archivo', system-ui, sans-serif;
+  }
+  html:has(.vcm) [data-site-header] nav > a:not([data-cta]) {
+    color: #a4afbf;
+    font-size: 14px;
+    font-weight: 500;
+  }
+  html:has(.vcm) [data-site-header] nav > a:not([data-cta]):hover {
+    color: #eceef1;
+  }
+  html:has(.vcm) [data-site-header] a[href='/'] > span {
+    color: #eceef1;
+  }
+  html:has(.vcm) [data-site-menu-button] {
+    color: #eceef1;
+    border-color: #2a3547;
+    border-radius: 999px;
+  }
+  html:has(.vcm) [data-site-header] nav > a[data-cta] {
+    border-radius: 999px;
+    padding-inline: 16px;
+    background: #a67c00;
+    color: #0b0e14;
+    font-size: 14px;
+    font-weight: 500;
+  }
+  html:has(.vcm) [data-site-header] nav > a[data-cta]:hover {
+    background: #b8890b;
+  }
+  html:has(.vcm)
+    [data-site-header]
+    [data-language-picker]
+    :is(.MuiInputBase-root, .MuiSelect-select, .MuiSvgIcon-root) {
+    color: #eceef1;
+    background: transparent;
+  }
+  html:has(.vcm) [data-site-header] [data-language-picker] .MuiOutlinedInput-notchedOutline {
+    border-color: #2a3547;
+  }
+
+  /* The notices under the header (a draft translation, dating paused) are the app's paper alerts:
+     on the night they keep their paper, so they read as they do everywhere else. */
+  html:has(.vcm) [data-site-header] :is(.MuiAlert-root, [data-draft-notice]) {
+    background: #fffdf7;
+  }
+
+  /* Which page you are on. */
+  html:has(.vcm) [data-site-header] nav > a[aria-current='page'] {
+    color: #eceef1;
+    text-decoration: underline;
+    text-decoration-color: var(--accent, #a67c00);
+    text-decoration-thickness: 2px;
+    text-underline-offset: 6px;
+  }
+}
+
 /* ------------------------------------------------------------------ focus, motion */
 
 /* A page's title takes focus by script when the page opens, so a screen reader starts there.
@@ -1716,8 +1895,8 @@ html:has(.vcm) {
   outline: none;
 }
 
-/* The focus ring: an ink ring hugging the element inside a pollen ring, so it shows on
-   paper (ink, 16:1), on a gold button and on the ink band (pollen, 12.7:1). */
+/* The focus ring: a ring of the night hugging the element inside a gold ring, so it shows on
+   the night and on a card (gold, 5.1:1 and 4.5:1) and on a gold button (the night, 5.1:1). */
 .vcm a:focus-visible,
 .vcm button:focus-visible,
 .vcm summary:focus-visible,
@@ -1736,7 +1915,7 @@ html:has(.vcm) {
   outline-offset: 1px;
   border-radius: var(--r-control);
 }
-/* On ink the inner ring turns paper, so both rings still show. */
+/* On the footer's band the inner ring turns ink, so both rings still show. */
 .vcm :is(.hero-band, section.dark, footer.bottom) :is(a, button, summary):focus-visible {
   box-shadow: 0 0 0 2px var(--on-inverse);
 }
@@ -1845,6 +2024,9 @@ html:has(.vcm) {
   .vcm .privacy-note dl > div {
     grid-template-columns: minmax(0, 1fr);
     gap: 6px;
+  }
+  .vcm .privacy-note dl > div > :is(dt, dd) {
+    grid-column: 1;
   }
   .vcm .policy-table,
   .vcm .policy-table tbody,
@@ -2564,5 +2746,59 @@ html:has(.vcm) {
   .vcm:lang(ja) .stat b {
     font-size: clamp(1.25rem, 2vw, 1.75rem);
     line-height: 1.3;
+  }
+}
+
+/* ------------------------------------------------------------------ print
+   Printed, a public page is ink on white, whatever the screen draws: browsers drop backgrounds
+   when printing, so the night's light text would print faint on white paper. The colours are
+   config/tokens.ts's `paper` (tokens.test.ts checks them), with the page and its cards white.
+   The site's footer and the night pages' closing band are left off; the header keeps its ink
+   (its night rules are for the screen only). */
+@media print {
+  html:has(.vcm),
+  html:has(.vcm) body {
+    background: #ffffff;
+    color-scheme: light;
+  }
+  .vcm {
+    --ground: #ffffff;
+    --ground-deep: #ffffff;
+    --surface: #ffffff;
+    --surface-raised: #ffffff;
+    --surface-quiet: #ece6d8;
+    --surface-quiet-hover: #e0d8c6;
+    --band: #f0ebe0;
+    --rule: #e4dcc8;
+    --ring: #857e70;
+    --line: #cfc6b1;
+    --edge: #857e70;
+    --text: #16181d;
+    --text-muted: #4b4740;
+    --text-faint: #4b4740;
+    --accent: #f6da3c;
+    --accent-hover: #f6da3c;
+    --on-accent: #16181d;
+    --highlight: #16181d;
+    --ok: #2e6b55;
+    --warn: #8f5500;
+    --error: #9e2a0b;
+    --focus: #f6da3c;
+    --focus-inner: #16181d;
+    --inverse: #ffffff;
+    --on-inverse: #16181d;
+    --on-inverse-muted: #4b4740;
+    --press-rest: none;
+    --press-lift: none;
+    --press-down: none;
+  }
+  .vcm *,
+  .vcm {
+    text-shadow: none !important;
+  }
+  html:has(.vcm) footer,
+  .vcm.vcm-after,
+  html:has(.vcm) [data-skip-link] {
+    display: none;
   }
 }
