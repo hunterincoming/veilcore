@@ -82,7 +82,8 @@ import {
   type ResolvedAttestation,
 } from '../veilcore/attesters';
 import { isBoundLabDocument, labSaltFromLink } from '../veilcore/lab-doc';
-import { INK_COLOR, LINK_SX, POLLEN } from '../config/theme';
+import { LINK_SX } from '../config/theme';
+import { color } from '../config/tokens';
 import { DatedStamp } from '../components/DatedStamp';
 import { NETWORK, explorerFor, isTestNetwork } from '../config/network';
 import { Fact, FactKey, SharedFacts } from '../components/verify/DisclosedFacts';
@@ -639,7 +640,7 @@ export const VerifyPage: React.FC = () => {
   // A date checked on a test network is practice data: its own amber mark and a PRACTICE
   // stamp, never mainnet's gold DATED stamp.
   const testSeal = seal && isTestNetwork(reportedNetwork ?? NETWORK);
-  const sealColor = testSeal ? TEST_MARK : INK_COLOR;
+  const sealColor = testSeal ? TEST_MARK : color.text;
   const sealedAt =
     seal && anchor !== undefined && anchor !== 'checking' && anchor.status === 'checked' ? anchor.blockTime : undefined;
   // The name (round 6): the one the holder published wins (or a record saved before names
@@ -705,7 +706,7 @@ export const VerifyPage: React.FC = () => {
             one plain line, then what a date doesn't show, then the record. */}
         {loading ? (
           <Paper sx={{ p: 6, textAlign: 'center' }}>
-            <CircularProgress size={28} sx={{ color: INK_COLOR }} aria-label={t('app.verify.checkingRecord')} />
+            <CircularProgress size={28} sx={{ color: color.text }} aria-label={t('app.verify.checkingRecord')} />
           </Paper>
         ) : unreachable ? (
           // No answer, or not one this page can read: said as that, never as "no record".
@@ -830,7 +831,9 @@ export const VerifyPage: React.FC = () => {
                       sx={{
                         color: seal ? sealColor : 'text.disabled',
                         fontSize: 30,
-                        ...(seal && !testSeal ? { bgcolor: POLLEN, borderRadius: '50%', p: 0.375, fontSize: 34 } : {}),
+                        ...(seal && !testSeal
+                          ? { bgcolor: color.accent, borderRadius: '50%', p: 0.375, fontSize: 34 }
+                          : {}),
                       }}
                     />
                   );

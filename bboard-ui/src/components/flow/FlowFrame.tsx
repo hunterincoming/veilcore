@@ -18,7 +18,7 @@ import BoxIcon from '@mui/icons-material/Inventory2Outlined';
 import DocIcon from '@mui/icons-material/DescriptionOutlined';
 import CheckIcon from '@mui/icons-material/ManageSearchOutlined';
 import HomeIcon from '@mui/icons-material/HomeOutlined';
-import { INK_COLOR, WASH } from '../../config/theme';
+import { color } from '../../config/tokens';
 import { useI18n } from '../../i18n';
 
 export type Section = 'log' | 'send' | 'license' | 'prove';
@@ -29,7 +29,7 @@ export type Section = 'log' | 'send' | 'license' | 'prove';
  * comes with the first download (App.tsx focusScreenHeading), the app's own text doesn't.
  */
 export const SECTIONS: Record<Section, { name: string; color: string; Icon: typeof LogIcon }> = {
-  log: { name: 'Log', color: INK_COLOR, Icon: LogIcon },
+  log: { name: 'Log', color: color.text, Icon: LogIcon },
   send: { name: 'Send & receive', color: '#485B75', Icon: BoxIcon },
   license: { name: 'License & royalties', color: '#542E61', Icon: DocIcon },
   prove: { name: 'Prove & check', color: '#684F36', Icon: CheckIcon },
@@ -57,7 +57,7 @@ export const SectionBand: React.FC<{ section: Section; step?: string; extra?: Re
         // One quiet ground for every job, with its name and icon in the job's colour: the
         // band says which job you are in without an outline round it (15 October 2026), and
         // Log's band is never a pink panel that could be taken for an error (16 October 2026).
-        background: WASH,
+        background: color.surfaceQuiet,
       }}
     >
       <s.Icon sx={{ color: s.color }} />

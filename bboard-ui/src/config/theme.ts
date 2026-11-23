@@ -5,6 +5,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { createTheme, alpha } from '@mui/material';
+import { color, night, paper } from './tokens';
 
 /**
  * The body and interface typeface, for the public pages and the app alike: Atkinson
@@ -32,10 +33,10 @@ export const CODE_TEXT = {
 
 // The dark baseline: Ink, with pollen gold (12.7:1 on Ink). No page people see is drawn
 // on it.
-const INK = '#16181D';
-const PANEL = '#1F2128';
-const TEXT = '#F6F3EC';
-const MUTED = '#BDB7AA';
+const INK = paper.inverse;
+const PANEL = paper.inverseSurface;
+const TEXT = paper.onInverse;
+const MUTED = paper.onInverseMuted;
 /** Below MUI's "sm" breakpoint (600px). */
 const PHONE = '@media (max-width:599.95px)';
 
@@ -66,7 +67,7 @@ export const theme = createTheme({
   palette: {
     mode: 'dark',
     primary: {
-      main: '#F6DA3C',
+      main: paper.accent,
       contrastText: INK,
     },
     secondary: {
@@ -80,8 +81,8 @@ export const theme = createTheme({
       primary: TEXT,
       secondary: MUTED,
     },
-    success: { main: '#7BC4A6' },
-    error: { main: '#F4A27F' },
+    success: { main: night.ok },
+    error: { main: night.error },
     divider: alpha('#FFFFFF', 0.14),
   },
   shape: { borderRadius: 14 },
@@ -142,8 +143,9 @@ export const theme = createTheme({
 // The app's light theme (13 Oct 2026; redrawn 15 Oct 2026 to match the public pages;
 // palette 17 Oct 2026: pollen and ink). The landing page and the app are one product, so
 // they use one set of tokens: the same colours, the same typefaces, the same shapes.
-// site.css repeats these values as CSS variables (--ground, --sheet, --ink, --muted,
-// --pollen, --wash, --hairline).
+// The values live in config/tokens.ts (`paper`), named by role; site.css uses the same names
+// as CSS variables (--ground, --surface, --text, --text-muted, --accent, --surface-quiet,
+// --rule), and tokens.test.ts checks they match.
 //
 // Pollen and ink. Pollen gold is where every new variety and bloodline begins: the moment
 // VeilCore dates. Ink on archival paper is how genetics have been recorded for 300 years:
@@ -152,14 +154,14 @@ export const theme = createTheme({
 // stamp, the proof code's strip, link underlines and the focus ring. Gold is never text on
 // paper (1.3:1): on paper it is always a fill under ink, or a mark beside ink.
 //
-//   Paper     #F6F3EC  the page: herbarium paper
-//   Sheet     #FFFDF7  cards, records, inputs, dialogs: the specimen sheet
-//   Ink       #16181D  text and links             16.0:1 on Paper, 17.5:1 on Sheet
-//   Pencil    #4B4740  secondary text, warm grey   8.3:1 on Paper, 9.1:1 on Sheet, 7.4:1 on Wash
-//   Pollen    #F6DA3C  the main button (ink text 12.7:1), stamps, the proof code strip,
-//                      link underlines, the focus ring (with an ink inner ring)
-//   Wash      #ECE6D8  quiet fills: secondary buttons, the next step, hover
-//   Hairline  #E4DCC8  the dashed rules between a record's rows, nothing else
+//   ground        Paper     #F6F3EC  the page: herbarium paper
+//   surface       Sheet     #FFFDF7  cards, records, inputs, dialogs: the specimen sheet
+//   text          Ink       #16181D  text and links     16.0:1 on Paper, 17.5:1 on Sheet
+//   textMuted     Pencil    #4B4740  secondary text      8.3:1 on Paper, 9.1:1 on Sheet, 7.4:1 on Wash
+//   accent        Pollen    #F6DA3C  the main button (ink text 12.7:1), stamps, the proof code
+//                                    strip, link underlines, the focus ring (ink inner ring)
+//   surfaceQuiet  Wash      #ECE6D8  quiet fills: secondary buttons, the next step, hover
+//   rule          Hairline  #E4DCC8  the dashed rules between a record's rows, nothing else
 //
 // Why this gold and not the first idea (#F2B705): that one is CIEDE2000 1.8 from Binance
 // yellow (#F3BA2F). A marigold light enough to stay 10:1 under ink lands on Binance too;
@@ -170,28 +172,13 @@ export const theme = createTheme({
 // Sheet), the only red anywhere; a check that passed is a ✓ in a quiet green (#2E6B55,
 // 5.7:1), never the brand. Choosing something (a checkbox, a switch, a role) is Ink: it is
 // not a date. Every text colour passes WCAG AA, and the brand pair AAA.
-export const POLLEN = '#F6DA3C';
-export const INK_COLOR = '#16181D';
-export const MUTED_COLOR = '#4B4740';
-export const GROUND = '#F6F3EC';
-export const SHEET = '#FFFDF7';
-export const WASH = '#ECE6D8';
-export const WASH_STRONG = '#E0D8C6';
-/** The dashed rule between a record's rows (a specimen sheet's ruled lines). */
-export const HAIRLINE = '#E4DCC8';
-/** A check that passed (✓): its own quiet colour, not the brand's. */
-export const OK_COLOR = '#2E6B55';
-/** Something went wrong: the only red, and always with an icon. */
-export const ERROR_COLOR = '#9E2A0B';
-/** Lines that join things in order (a lineage, a history): Wash-strong's darker step. */
-export const LINE_COLOR = '#CFC6B1';
-const L_INK = INK_COLOR;
-const L_MUTED = MUTED_COLOR;
-const L_GROUND = GROUND;
-/** The few rules left (inside technical detail): Hairline, so they separate without shouting. */
-const L_LINE = HAIRLINE;
-/** Input edges: 4.0:1 on Sheet, 3.6:1 on Paper, enough to see where to type (WCAG 1.4.11). */
-const L_EDGE = '#857E70';
+const L_INK = color.text;
+const L_MUTED = color.textMuted;
+const L_GROUND = color.ground;
+/** The few rules left (inside technical detail): the rule colour, so they separate without shouting. */
+const L_LINE = color.rule;
+/** Input edges: 4.0:1 on the surface, 3.6:1 on the ground, enough to see where to type (WCAG 1.4.11). */
+const L_EDGE = color.edge;
 
 /**
  * One visible focus ring for everything a keyboard can reach on the light pages: an ink
@@ -201,9 +188,9 @@ const L_EDGE = '#857E70';
  * cards use :focus-visible. Nothing on these pages turns the outline off.
  */
 export const FOCUS_RING = {
-  outline: `3px solid ${POLLEN}`,
+  outline: `3px solid ${color.focus}`,
   outlineOffset: 2,
-  boxShadow: `0 0 0 2px ${INK_COLOR}`,
+  boxShadow: `0 0 0 2px ${color.focusInner}`,
 } as const;
 
 /** The same ring for elements MUI doesn't draw (plain links, cards with a role). Used by App.tsx. */
@@ -222,14 +209,14 @@ export const lightFocusStyles = {
  * that aren't MUI Links (a Box rendered as a RouterLink).
  */
 export const LINK_SX = {
-  color: INK_COLOR,
+  color: color.text,
   fontWeight: 700,
   textDecoration: 'underline',
-  textDecorationColor: POLLEN,
+  textDecorationColor: color.accent,
   textDecorationThickness: 3,
   textUnderlineOffset: 3,
   textDecorationSkipInk: 'none',
-  '&:hover': { backgroundColor: alpha(POLLEN, 0.45) },
+  '&:hover': { backgroundColor: alpha(color.accent, 0.45) },
 } as const;
 
 /**
@@ -238,17 +225,17 @@ export const LINK_SX = {
  * shadows, no movement.
  */
 const PRESS = {
-  rest: `0 1px 0 ${alpha(INK_COLOR, 0.28)}, 0 2px 6px -2px ${alpha(INK_COLOR, 0.24)}`,
-  lift: `0 2px 0 ${alpha(INK_COLOR, 0.3)}, 0 8px 16px -6px ${alpha(INK_COLOR, 0.3)}`,
-  down: `0 0 0 ${alpha(INK_COLOR, 0.3)}, 0 1px 2px ${alpha(INK_COLOR, 0.2)}`,
+  rest: `0 1px 0 ${alpha(color.text, 0.28)}, 0 2px 6px -2px ${alpha(color.text, 0.24)}`,
+  lift: `0 2px 0 ${alpha(color.text, 0.3)}, 0 8px 16px -6px ${alpha(color.text, 0.3)}`,
+  down: `0 0 0 ${alpha(color.text, 0.3)}, 0 1px 2px ${alpha(color.text, 0.2)}`,
 };
 const pressable = (reduce: boolean) => ({
   boxShadow: PRESS.rest,
   transition: reduce ? 'none' : 'transform 120ms ease-out, box-shadow 120ms ease-out',
   '&:hover': { boxShadow: PRESS.lift, transform: reduce ? 'none' : 'translateY(-1px)' },
   '&:active': { boxShadow: PRESS.down, transform: 'none' },
-  '&.Mui-focusVisible': { ...FOCUS_RING, boxShadow: `0 0 0 2px ${INK_COLOR}` },
-  '&.Mui-disabled': { backgroundColor: WASH, color: alpha(INK_COLOR, 0.42), boxShadow: 'none' },
+  '&.Mui-focusVisible': { ...FOCUS_RING, boxShadow: `0 0 0 2px ${color.focusInner}` },
+  '&.Mui-disabled': { backgroundColor: color.surfaceQuiet, color: alpha(color.text, 0.42), boxShadow: 'none' },
 });
 
 // Type scale (ratio about 1.25 from a 17px body). Headings in Caslon: a serif's colour is
@@ -261,14 +248,14 @@ export const lightTheme = createTheme({
     mode: 'light',
     // The gold is a fill under ink, never ink itself: primary text and icons are drawn in
     // Ink below (MuiButton text, MuiLink, MuiChip), and only fills take the gold.
-    primary: { main: POLLEN, light: POLLEN, dark: POLLEN, contrastText: L_INK },
+    primary: { main: color.accent, light: color.accent, dark: color.accent, contrastText: color.onAccent },
     // Choosing, not dating: checkboxes, switches, radios and progress are Ink.
-    secondary: { main: L_INK, light: '#3A3B40', dark: '#000000', contrastText: SHEET },
-    background: { default: L_GROUND, paper: SHEET },
+    secondary: { main: L_INK, light: '#3A3B40', dark: '#000000', contrastText: color.surface },
+    background: { default: L_GROUND, paper: color.surface },
     text: { primary: L_INK, secondary: L_MUTED },
-    success: { main: OK_COLOR },
-    warning: { main: '#8F5500' },
-    error: { main: ERROR_COLOR },
+    success: { main: color.ok },
+    warning: { main: color.warn },
+    error: { main: color.error },
     // A neutral note in ink on Wash: no blue.
     info: { main: L_MUTED },
     divider: L_LINE,
@@ -319,11 +306,11 @@ export const lightTheme = createTheme({
           '&:focus-visible': FOCUS_RING,
           color: L_INK,
           fontWeight: 700,
-          textDecorationColor: POLLEN,
+          textDecorationColor: color.accent,
           textDecorationThickness: 3,
           textUnderlineOffset: 3,
           textDecorationSkipInk: 'none',
-          '&:hover': { backgroundColor: alpha(POLLEN, 0.45), textDecorationColor: POLLEN },
+          '&:hover': { backgroundColor: alpha(color.accent, 0.45), textDecorationColor: color.accent },
         },
       },
     },
@@ -332,7 +319,7 @@ export const lightTheme = createTheme({
       styleOverrides: { root: { fontFamily: DISPLAY_FONT, fontSize: '1.5rem', fontWeight: 700, lineHeight: 1.25 } },
     },
     MuiBackdrop: {
-      styleOverrides: { root: { '&:not(.MuiBackdrop-invisible)': { backgroundColor: alpha(INK_COLOR, 0.55) } } },
+      styleOverrides: { root: { '&:not(.MuiBackdrop-invisible)': { backgroundColor: alpha(color.text, 0.55) } } },
     },
     MuiCardActionArea: {
       styleOverrides: { root: { '&.Mui-focusVisible': FOCUS_RING } },
@@ -364,7 +351,10 @@ export const lightTheme = createTheme({
       },
       variants: [
         { props: { variant: 'contained', color: 'primary' }, style: pressable(REDUCED_MOTION) },
-        { props: { variant: 'text', color: 'primary' }, style: { color: L_INK, '&:hover': { backgroundColor: WASH } } },
+        {
+          props: { variant: 'text', color: 'primary' },
+          style: { color: L_INK, '&:hover': { backgroundColor: color.surfaceQuiet } },
+        },
         // Any other outlined button (inside a notice, in its own colour): a light fill of
         // that colour instead of an outline.
         {
@@ -382,9 +372,9 @@ export const lightTheme = createTheme({
           props: { variant: 'outlined', color: 'primary' },
           style: {
             color: L_INK,
-            backgroundColor: WASH,
+            backgroundColor: color.surfaceQuiet,
             borderColor: 'transparent',
-            '&:hover': { backgroundColor: WASH_STRONG, borderColor: 'transparent' },
+            '&:hover': { backgroundColor: color.surfaceQuietHover, borderColor: 'transparent' },
           },
         },
       ],
@@ -395,7 +385,7 @@ export const lightTheme = createTheme({
     MuiOutlinedInput: {
       styleOverrides: {
         root: {
-          backgroundColor: SHEET,
+          backgroundColor: color.surface,
           borderRadius: 8,
           '& fieldset': { borderColor: L_EDGE, borderWidth: 1.5 },
           '&.Mui-focused fieldset': { borderColor: `${L_INK} !important` },
@@ -411,7 +401,7 @@ export const lightTheme = createTheme({
         // A primary chip is a gold label under ink; outlined, an ink label with a gold edge.
         {
           props: { color: 'primary', variant: 'outlined' },
-          style: { color: L_INK, borderColor: POLLEN, borderWidth: 2 },
+          style: { color: L_INK, borderColor: color.accent, borderWidth: 2 },
         },
       ],
     },
@@ -433,10 +423,10 @@ export const lightTheme = createTheme({
       },
       variants: (
         [
-          ['success', '#E4EFEA'],
-          ['info', WASH],
-          ['warning', '#FAF0E1'],
-          ['error', '#FBECE6'],
+          ['success', color.okTint],
+          ['info', color.surfaceQuiet],
+          ['warning', color.warnTint],
+          ['error', color.errorTint],
         ] as const
       ).map(([severity, tint]) => ({
         props: { variant: 'outlined' as const, severity },
