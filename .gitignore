@@ -69,6 +69,9 @@ bboard-ui/e2e-dist/
 bboard-ui/test-results/
 bboard-ui/playwright-report/
 
+# Page screenshots (docs/screenshots.md): pictures for comparing by eye, never committed
+bboard-ui/screenshots/out/
+
 # Ask model evaluation (scripts/eval-ask.mjs): a local build and its report
 bboard-ui/ask-eval-dist/
 ask-eval-report.json
