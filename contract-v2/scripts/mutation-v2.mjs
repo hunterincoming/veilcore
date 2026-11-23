@@ -108,7 +108,8 @@ const main = () => {
       console.error(schnorrBase.stdout.slice(-3000));
       throw new Error('The unmutated build fails the Schnorr tests: fix that first.');
     }
-    console.log('baseline: the unmutated build passes every test file the mutants use');
+    const summary = (r) => /Tests\s+[^\n]*/.exec(r.stdout)?.[0] ?? '(no test summary)';
+    console.log(`baseline: the unmutated build passes (${summary(base)}; Schnorr set: ${summary(schnorrBase)})`);
     const results = [];
     for (const [id, file, find, repl, n, what, opts = {}] of MUTANTS) {
       if (only.length && !only.includes(id)) continue;
@@ -123,6 +124,8 @@ const main = () => {
           const r = test(opts.tests);
           const failed = Number(/Tests\s+(\d+) failed/.exec(r.stdout)?.[1] ?? NaN);
           const min = opts.minFailed ?? 1;
+          if (r.status !== 0 && Number.isNaN(failed))
+            console.log(`${id}: no test count; the run said:\n${(r.stdout + r.stderr).slice(-2000)}`);
           outcome =
             r.status === 0
               ? 'SURVIVED'
