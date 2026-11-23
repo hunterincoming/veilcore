@@ -18,7 +18,8 @@ export const errors = {
 
   'app.err.chain.unreachable':
     'Das Midnight-Netzwerk oder der Gebührendienst war nicht erreichbar. Es wurde nichts gesendet. Versuchen Sie es in ein paar Minuten erneut.',
-  'app.err.chain.contractNotFound': 'Der Smart Contract von VeilCore wurde im Netzwerk nicht gefunden. Es wurde nichts gesendet.',
+  'app.err.chain.contractNotFound':
+    'Der Smart Contract von VeilCore wurde im Netzwerk nicht gefunden. Es wurde nichts gesendet.',
   'app.err.chain.demoNotFound': 'Der Demo-Smart-Contract wurde im Netzwerk nicht gefunden.',
   'app.err.chain.claimsNotFound': 'Der Beleg-Smart-Contract wurde im Netzwerk nicht gefunden.',
   'app.err.chain.otherContract':
@@ -29,7 +30,8 @@ export const errors = {
     'Die Beweisdateien dieser Website passen nicht zum Smart Contract im Netzwerk. Es wurde nichts gesendet.',
   'app.err.chain.claimsFilesMismatch':
     'Die Beweisdateien dieser Website passen nicht zum Beleg-Smart-Contract. Es wurde nichts gesendet.',
-  'app.err.chain.circuitFilesMismatch': 'Die Beweisdateien dieser Website für {circuit} passen nicht zum Smart Contract.',
+  'app.err.chain.circuitFilesMismatch':
+    'Die Beweisdateien dieser Website für {circuit} passen nicht zum Smart Contract.',
   'app.err.chain.filesMissing': 'Die Beweisdateien für {circuit} sind noch nicht auf dieser Website.',
   'app.err.chain.paramsMissing': 'Die öffentlichen Parameter (k={k}) sind noch nicht auf dieser Website.',
   'app.err.chain.callFailed': 'Das Netzwerk hat den Aufruf aufgenommen, aber er war nicht erfolgreich ({status}).',
@@ -62,8 +64,7 @@ export const errors = {
 
   'app.err.claims.noNumbers': 'Dieses Dokument hat keine versiegelten Zahlen.',
   'app.err.claims.noSchema': 'Kein veröffentlichtes Schema {schema}.',
-  'app.err.claims.otherSchema':
-    'Das Schema auf dieser Website ist nicht das, unter dem die Zahlen versiegelt wurden.',
+  'app.err.claims.otherSchema': 'Das Schema auf dieser Website ist nicht das, unter dem die Zahlen versiegelt wurden.',
   'app.err.claims.notOnCertificate': 'Diese Zahl stand nicht im Zertifikat, als es versiegelt wurde.',
   'app.err.claims.boundNotMet': 'Die versiegelte Zahl erfüllt diese Grenze nicht, daher lässt sie sich nicht belegen.',
   'app.err.claims.sigOtherRecord': 'Diese Signatur gehört zu einem anderen Datensatz.',
@@ -71,13 +72,13 @@ export const errors = {
     'Diese Signatur lässt sich nicht bestätigen: Sie wurde nicht mit diesem Schlüssel für diesen Datensatz erstellt.',
   'app.err.claims.tooMany': 'Zu viele Belege für einen Link.',
   'app.err.claims.onePerNumber': 'Ein Beleg pro Zahl in einem Link.',
-  'app.err.claims.sameRecord':
-    'Belege in einem Link müssen zum selben Datensatz, Formular und Smart Contract gehören.',
+  'app.err.claims.sameRecord': 'Belege in einem Link müssen zum selben Datensatz, Formular und Smart Contract gehören.',
   'app.err.claims.provingOff':
     'Belegen ist für diesen Datensatz aus, bis Sie es auf seiner Seite einschalten. Es wurde nichts gesendet.',
   'app.err.claims.confirmPublish':
     'Um die Zahl selbst zu veröffentlichen, brauchen wir zuerst Ihre Bestätigung. Es wurde nichts gesendet.',
-  'app.err.claims.notOffered': 'Dieser Beleg wird für diese Art von Ergebnis nicht angeboten. Es wurde nichts gesendet.',
+  'app.err.claims.notOffered':
+    'Dieser Beleg wird für diese Art von Ergebnis nicht angeboten. Es wurde nichts gesendet.',
   'app.err.claims.slotNotNumber': 'Feld {slot} ist keine Zahl in {schema}.',
   'app.err.claims.noLabSignature': 'Der Link nennt keine Laborsignatur.',
   'app.err.claims.txNotLabSignature': 'Diese Transaktion ist keine Laborsignatur.',
@@ -91,8 +92,7 @@ export const errors = {
   'app.err.claims.otherBound': 'Dieser Beleg hat eine andere Grenze belegt.',
   'app.err.claims.notANumber': 'Dieser Beleg hat etwas veröffentlicht, das keine Zahl ist.',
   'app.err.claims.otherValue': 'Dieser Beleg hat einen anderen Wert veröffentlicht.',
-  'app.err.claims.noContract':
-    'Diese Website kann keine Belege lesen: Es ist kein Beleg-Smart-Contract eingerichtet.',
+  'app.err.claims.noContract': 'Diese Website kann keine Belege lesen: Es ist kein Beleg-Smart-Contract eingerichtet.',
   'app.err.claims.notOurContract':
     'Der Link nennt einen Beleg-Smart-Contract, der in diesem Netzwerk nicht der von VeilCore ist.',
 

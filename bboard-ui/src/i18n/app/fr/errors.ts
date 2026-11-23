@@ -13,8 +13,7 @@ export const errors = {
   'app.err.registry.notAsExpected': 'Le registre n’a pas répondu comme prévu.',
   'app.err.registry.answered': 'le registre a répondu {status}',
   'app.err.registry.unexpectedLower': 'réponse inattendue du registre',
-  'app.err.registry.refusedCorrection':
-    'Le registre a refusé cette correction, donc rien n’a été modifié. {refusals}',
+  'app.err.registry.refusedCorrection': 'Le registre a refusé cette correction, donc rien n’a été modifié. {refusals}',
 
   'app.err.chain.unreachable':
     'Impossible de joindre le réseau Midnight ou le service de frais. Rien n’a été envoyé. Réessayez dans quelques minutes.',
@@ -76,8 +75,7 @@ export const errors = {
     'Les preuves sont désactivées pour cet enregistrement jusqu’à ce que vous les activiez sur sa page. Rien n’a été envoyé.',
   'app.err.claims.confirmPublish':
     'Publier le nombre lui-même demande d’abord votre confirmation. Rien n’a été envoyé.',
-  'app.err.claims.notOffered':
-    'Cette preuve n’est pas proposée pour ce type de résultat. Rien n’a été envoyé.',
+  'app.err.claims.notOffered': 'Cette preuve n’est pas proposée pour ce type de résultat. Rien n’a été envoyé.',
   'app.err.claims.slotNotNumber': 'La case {slot} n’est pas un nombre dans {schema}.',
   'app.err.claims.noLabSignature': 'Le lien ne désigne aucune signature de laboratoire.',
   'app.err.claims.txNotLabSignature': 'Cette transaction n’est pas une signature de laboratoire.',
@@ -91,8 +89,7 @@ export const errors = {
   'app.err.claims.otherBound': 'Cette preuve a prouvé une autre limite.',
   'app.err.claims.notANumber': 'Cette preuve a publié quelque chose qui n’est pas un nombre.',
   'app.err.claims.otherValue': 'Cette preuve a publié une autre valeur.',
-  'app.err.claims.noContract':
-    'Ce site ne peut pas lire les preuves : aucun contrat des preuves n’est configuré.',
+  'app.err.claims.noContract': 'Ce site ne peut pas lire les preuves : aucun contrat des preuves n’est configuré.',
   'app.err.claims.notOurContract':
     'Le lien désigne un contrat des preuves qui n’est pas celui de VeilCore sur ce réseau.',
 
@@ -124,8 +121,7 @@ export const errors = {
   'app.err.lic.noDealMessages': 'Cette licence n’a pas encore de messages d’accord.',
   'app.err.lic.badKey': 'La clé de l’autre partie n’est pas utilisable.',
   'app.err.lic.handOnNotReady': 'La transmission ne peut pas encore être terminée.',
-  'app.err.lic.evidenceTooLarge':
-    'Ce fichier dépasse 50 Mo. Joignez un rapport pour cette seule période.',
+  'app.err.lic.evidenceTooLarge': 'Ce fichier dépasse 50 Mo. Joignez un rapport pour cette seule période.',
   'app.err.lic.fileEmpty': 'Ce fichier est vide.',
   'app.err.lic.notIssuedByTx': 'Cette transaction n’a pas émis cette licence.',
   'app.err.lic.notLiveByTx': 'Cette transaction n’a pas mis cette licence en vigueur.',

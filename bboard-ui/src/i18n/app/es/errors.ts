@@ -21,8 +21,7 @@ export const errors = {
   'app.err.chain.contractNotFound': 'No se encontró el contrato de VeilCore en la red. No se envió nada.',
   'app.err.chain.demoNotFound': 'No se encontró el contrato de demostración en la red.',
   'app.err.chain.claimsNotFound': 'No se encontró el contrato de afirmaciones en la red.',
-  'app.err.chain.otherContract':
-    'El contrato de la red no es el que este sitio espera. No se envió nada.',
+  'app.err.chain.otherContract': 'El contrato de la red no es el que este sitio espera. No se envió nada.',
   'app.err.chain.otherClaimsContract':
     'El contrato de afirmaciones de la red no es el que este sitio espera. No se envió nada.',
   'app.err.chain.filesMismatch':
@@ -57,8 +56,7 @@ export const errors = {
   'app.err.chain.noRecordKey': 'No hay una clave de registro con la cual comprobarlo.',
   'app.err.chain.indexerUnreachable':
     'no se pudo conectar con el indexador de la red Midnight; inténtelo de nuevo en unos minutos',
-  'app.err.chain.stateUnreadable':
-    'no se pudo leer el estado actual del contrato; inténtelo de nuevo en unos minutos',
+  'app.err.chain.stateUnreadable': 'no se pudo leer el estado actual del contrato; inténtelo de nuevo en unos minutos',
 
   'app.err.claims.noNumbers': 'Este documento no tiene números sellados.',
   'app.err.claims.noSchema': 'No hay un esquema publicado {schema}.',
@@ -66,18 +64,15 @@ export const errors = {
   'app.err.claims.notOnCertificate': 'Ese número no estaba en el certificado cuando se selló.',
   'app.err.claims.boundNotMet': 'El número sellado no cumple ese límite, así que no se puede probar.',
   'app.err.claims.sigOtherRecord': 'Esa firma es de otro registro.',
-  'app.err.claims.sigNoCheck':
-    'Esa firma no se puede confirmar: no se hizo para este registro con esa clave.',
+  'app.err.claims.sigNoCheck': 'Esa firma no se puede confirmar: no se hizo para este registro con esa clave.',
   'app.err.claims.tooMany': 'Demasiadas afirmaciones para un solo enlace.',
   'app.err.claims.onePerNumber': 'Una afirmación por número en cada enlace.',
-  'app.err.claims.sameRecord':
-    'Las afirmaciones de un enlace deben ser del mismo registro, formulario y contrato.',
+  'app.err.claims.sameRecord': 'Las afirmaciones de un enlace deben ser del mismo registro, formulario y contrato.',
   'app.err.claims.provingOff':
     'Las pruebas están desactivadas para este registro hasta que las active en su página. No se envió nada.',
   'app.err.claims.confirmPublish':
     'Para publicar el número en sí, primero necesitamos su confirmación. No se envió nada.',
-  'app.err.claims.notOffered':
-    'Esa afirmación no se ofrece para este tipo de resultado. No se envió nada.',
+  'app.err.claims.notOffered': 'Esa afirmación no se ofrece para este tipo de resultado. No se envió nada.',
   'app.err.claims.slotNotNumber': 'La posición {slot} no es un número en {schema}.',
   'app.err.claims.noLabSignature': 'El enlace no nombra ninguna firma de laboratorio.',
   'app.err.claims.txNotLabSignature': 'Esa transacción no es una firma de laboratorio.',
@@ -91,10 +86,8 @@ export const errors = {
   'app.err.claims.otherBound': 'Esa afirmación probó otro límite.',
   'app.err.claims.notANumber': 'Esa afirmación publicó algo que no es un número.',
   'app.err.claims.otherValue': 'Esa afirmación publicó otro valor.',
-  'app.err.claims.noContract':
-    'Este sitio no puede leer afirmaciones: no hay un contrato de afirmaciones configurado.',
-  'app.err.claims.notOurContract':
-    'El enlace nombra un contrato de afirmaciones que no es el de VeilCore en esta red.',
+  'app.err.claims.noContract': 'Este sitio no puede leer afirmaciones: no hay un contrato de afirmaciones configurado.',
+  'app.err.claims.notOurContract': 'El enlace nombra un contrato de afirmaciones que no es el de VeilCore en esta red.',
 
   'app.err.lab.notRequest': 'Ese archivo no es una solicitud de firma de laboratorio.',
   'app.err.lab.noForm': 'La solicitud usa números para los que este sitio no publica un formulario.',
@@ -103,16 +96,14 @@ export const errors = {
   'app.err.lab.cantCheck': 'No se puede comprobar la solicitud: {reason}',
   'app.err.lab.notDocument': 'no es un registro de documento.',
   'app.err.lab.rootMismatch': 'sus números no dan la raíz que se selló.',
-  'app.err.lab.notRecord':
-    'Los números de la solicitud no dan el registro que nombra. No la firme; pídala de nuevo.',
+  'app.err.lab.notRecord': 'Los números de la solicitud no dan el registro que nombra. No la firme; pídala de nuevo.',
   'app.err.lab.notKey': 'Esa no es una clave de firma de laboratorio.',
   'app.err.lab.notSignature': 'Ese archivo no es una firma de laboratorio.',
   'app.err.lab.sigKeyNotLab': 'La clave de esa firma no es una clave de firma de laboratorio.',
   'app.err.lab.numbersUnreadable': 'No se pueden leer los números de este informe.',
   'app.err.lab.numbersTooLarge': 'Los números son demasiado grandes para enviarlos.',
   'app.err.lab.noLock': 'El código de laboratorio no tiene un cifrado para informes de laboratorio.',
-  'app.err.lab.notLockedHere':
-    'Este informe de laboratorio no se cifró para esta planta, o el archivo está dañado.',
+  'app.err.lab.notLockedHere': 'Este informe de laboratorio no se cifró para esta planta, o el archivo está dañado.',
   'app.err.lab.signatureDamaged': 'La firma de laboratorio de ese archivo está dañada. No se cambió nada.',
   'app.err.lab.keyExists':
     'Ya hay una clave de laboratorio en este navegador. Vuelva a publicarla o descargue su copia de seguridad; no se creó una nueva.',
@@ -124,8 +115,7 @@ export const errors = {
   'app.err.lic.noDealMessages': 'Esta licencia todavía no tiene mensajes del acuerdo.',
   'app.err.lic.badKey': 'La clave de la otra parte no se puede usar.',
   'app.err.lic.handOnNotReady': 'La cesión todavía no se puede completar.',
-  'app.err.lic.evidenceTooLarge':
-    'Ese archivo pesa más de 50 MB. Adjunte un informe solo de este período.',
+  'app.err.lic.evidenceTooLarge': 'Ese archivo pesa más de 50 MB. Adjunte un informe solo de este período.',
   'app.err.lic.fileEmpty': 'Ese archivo está vacío.',
   'app.err.lic.notIssuedByTx': 'Esa transacción no emitió esta licencia.',
   'app.err.lic.notLiveByTx': 'Esa transacción no puso en vigor esta licencia.',
@@ -158,8 +148,7 @@ export const errors = {
   'app.err.rec.aboutItself': 'Un registro no puede tratar sobre sí mismo.',
   'app.err.keys.notKeysFile': 'Ese no es un archivo de claves de registros de VeilCore.',
   'app.err.keys.damaged': 'Ese archivo está dañado: no se pueden leer las claves que contiene.',
-  'app.err.keys.differentKeys':
-    'Este navegador ya tiene otras claves para ese registro. No se cambió nada.',
+  'app.err.keys.differentKeys': 'Este navegador ya tiene otras claves para ese registro. No se cambió nada.',
   'app.err.keys.noVault': 'Este navegador no tiene una clave de bóveda.',
   'app.err.keys.holderKey': 'Una clave de titular tiene 64 caracteres hexadecimales.',
   'app.err.keys.proofCode': 'Un código de prueba tiene 64 caracteres hexadecimales.',

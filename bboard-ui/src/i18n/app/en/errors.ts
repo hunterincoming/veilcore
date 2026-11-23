@@ -151,8 +151,7 @@ export const errors = {
   'app.err.keys.holderKey': 'A holder key is 64 hexadecimal characters.',
   'app.err.keys.proofCode': 'A proof code is 64 hex characters.',
   'app.err.sheet.noSheet': 'That spreadsheet has no sheet in it.',
-  'app.err.sheet.wrongKind':
-    'That kind of spreadsheet isn’t read here. Save it as Excel (.xlsx) or CSV and pick that.',
+  'app.err.sheet.wrongKind': 'That kind of spreadsheet isn’t read here. Save it as Excel (.xlsx) or CSV and pick that.',
   'app.err.sheet.notXlsx':
     "That file couldn't be opened as an Excel (.xlsx) file. Save it as .xlsx or CSV and try again.",
   'app.err.sheet.tooLarge': 'That spreadsheet is too large to read here. Save it with fewer rows and try again.',
