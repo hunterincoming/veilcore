@@ -30,7 +30,6 @@ export {
   blockfrostEndpoints,
   defaultAddress,
   endpointsFor,
-  pinnedContractFor,
   isBlockfrostNetwork,
   isNetwork,
   type BlockfrostNetwork,
