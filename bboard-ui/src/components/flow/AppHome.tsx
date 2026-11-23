@@ -81,6 +81,7 @@ import { JobsOnHome } from '../ask/JobsOnHome';
 import { keysOnlyHere } from './keys-only-here';
 import { wantsPasteFirst } from '../site/paste-entry';
 import { RecordChangesOnHome } from './RecordChanged';
+import { errorWords } from '../../i18n/error-words';
 
 /**
  * A plant's card line: "Tied to the plant: DNA report signed by …, not dated yet." or "Not
@@ -250,7 +251,7 @@ export const AppHome: React.FC = () => {
           (notImported ? tp('app.sealed.importNotImported', notImported) : ''),
       );
     } catch (e) {
-      setToast(e instanceof Error ? e.message : t('app.home.importFailed'));
+      setToast(e instanceof Error ? errorWords(e, tr) : t('app.home.importFailed'));
     }
   };
 

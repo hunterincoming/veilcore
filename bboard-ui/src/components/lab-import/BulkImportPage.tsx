@@ -83,6 +83,7 @@ import { useKeyStampQueue } from './useKeyStampQueue';
 import { DisclosureReceipt } from '../chain/DisclosureReceipt';
 import { InEnglishNote, rich, useT } from '../../i18n/app';
 import type { AppKey } from '../../i18n/app/en';
+import { errorReason, errorWords } from '../../i18n/error-words';
 
 type Screen = 'file' | 'header' | 'columns' | 'check' | 'seal' | 'sealed' | 'saving' | 'backup' | 'done';
 
@@ -337,7 +338,8 @@ export const BulkImportPage: React.FC = () => {
 // ---------------------------------------------------------------------------------------
 
 const PickFile: React.FC<{ step?: string; onRead: (s: Sheet, name: string) => void }> = ({ step, onRead }) => {
-  const { t } = useT();
+  const tr = useT();
+  const { t } = tr;
   const pick = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string>();
@@ -355,7 +357,7 @@ const PickFile: React.FC<{ step?: string; onRead: (s: Sheet, name: string) => vo
         setError(tooManyRows(s));
       } else onRead(s, f.name);
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(errorWords(e, tr));
     } finally {
       setBusy(false);
     }
@@ -1023,7 +1025,8 @@ const Summary: React.FC<{ step?: string; job: Job; onNext: () => void; copyOn?: 
   onNext,
   copyOn,
 }) => {
-  const { t, tp } = useT();
+  const tr = useT();
+  const { t, tp } = tr;
   const s = jobSummary(job);
   const notSealed = job.rows.filter((r) => r.status === 'problem' || job.outcomes[r.hash]?.state === 'refused');
   const stampsFromHere = REAL_CHAIN && !chainNotReady();
@@ -1052,7 +1055,7 @@ const Summary: React.FC<{ step?: string; job: Job; onNext: () => void; copyOn?: 
                     <Typography variant="body2">
                       {t('app.import.rowLine', {
                         line: r.line,
-                        text: o?.state === 'refused' ? o.reason : r.problems.join(' '),
+                        text: o?.state === 'refused' ? errorReason(o.reason, tr) : r.problems.join(' '),
                       })}
                     </Typography>
                   </li>

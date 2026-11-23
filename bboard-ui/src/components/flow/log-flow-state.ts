@@ -10,6 +10,7 @@ import type { ParentRef, StrainRecord } from '../../veilcore/records';
 import type { SealInput } from '../../veilcore/seal-record';
 import { parseStageHeader, stageNotes } from '../stage/stage-notes';
 import { enT, type Translator } from '../../i18n/translate';
+import { errorDetail, errorReason, isKnownError } from '../../i18n/error-words';
 import { animalDraftHasContent, parseAnimalDraft, type AnimalDraft, type LogKind } from './animal-draft';
 import { parseStrainDraft, strainDraftHasContent, type StrainDraft } from './strain-draft';
 import {
@@ -357,28 +358,31 @@ export const chainProblem = (error: string, tr: Translator = enT): { text: strin
   if (/sponsor|fee service|ticket|proof of work/i.test(e)) {
     return { text: tr.t('app.chain.didntGoThrough', { nothingSent, when }), retry: true };
   }
+  // One of the app's own sentences: said in the visitor's language, as a whole.
+  const whole = e.replace(/\s*\(try again in about \d+ min\)/i, '');
+  if (tr.lang !== 'en' && isKnownError(whole)) {
+    const said = errorReason(whole, tr).replace(/[.!?。]+$/, '');
+    const lead = tr.lang === 'de' || tr.lang === 'ja' ? said : said.charAt(0).toLowerCase() + said.slice(1);
+    return { text: tr.t('app.chain.didntGoThroughBecause', { reason: lead, nothingSent: '' }), retry: true };
+  }
   let reason = (/^(.+?[.!?])(\s|$)/.exec(e)?.[1] ?? e).replace(/\s*\(try again in about \d+ min\)/i, '');
   reason = reason.replace(/[.!?]+$/, '');
   if (reason.length > 160) reason = `${reason.slice(0, 157).trimEnd()}…`;
   if (!reason) return { text: tr.t('app.chain.didntGoThrough', { nothingSent, when }), retry: true };
+  // Anything else, in another language: a translated sentence with the technical words, marked as English.
+  if (tr.lang !== 'en') {
+    return {
+      text: tr.t('app.chain.didntGoThroughBecause', { reason: errorReason(e, tr), nothingSent }),
+      retry: true,
+    };
+  }
   // "The contract …" reads as "That didn't go through: the contract …"; keep acronyms.
-  // (The reason is the error's own words, in English: only the sentence around it is translated.)
   const lead = /^[A-Z][a-z]/.test(reason) ? `${reason.charAt(0).toLowerCase()}${reason.slice(1)}` : reason;
   return { text: tr.t('app.chain.didntGoThroughBecause', { reason: lead, nothingSent }), retry: true };
 };
 
-/**
- * The first sentence of an error, safe to show under "Details" so a person can report it.
- * Long hex (a key, a secret, a contract address, a transaction) never shows: anything over
- * 16 hex characters becomes "…". Cut short if it is long.
- */
-export const errorDetail = (error: string): string => {
-  const e = error.trim().replace(/^(Error|SponsorRefusal|TypeError):\s*/, '');
-  let first = (/^(.+?[.!?])(\s|$)/s.exec(e)?.[1] ?? e).replace(/\s+/g, ' ').trim();
-  first = first.replace(/(0x)?[0-9a-fA-F]{17,}/g, '…');
-  if (first.length > 200) first = `${first.slice(0, 197).trimEnd()}…`;
-  return first;
-};
+// The first sentence of an error, for "Details": i18n/error-words.ts, where errors are worded.
+export { errorDetail };
 
 export const stampProblem = (
   error: string,

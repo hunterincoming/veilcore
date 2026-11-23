@@ -81,6 +81,7 @@ const downloadResult = async (record: StrainRecord) => {
   );
 };
 import { SCHEMAS, shownNumber, type HeldFieldSet } from '../../veilcore/field-set';
+import { errorWords } from '../../i18n/error-words';
 
 /** The numbers sealed with the document, from the holder's own copy: nobody else has them. */
 const HeldNumbers: React.FC<{ held: HeldFieldSet }> = ({ held }) => {
@@ -200,7 +201,7 @@ export const DocumentDetail: React.FC<{ record: StrainRecord }> = ({ record }) =
       await navigator.clipboard.writeText(link);
       setChainCopied(true);
     } catch (e) {
-      setLinkError(e instanceof Error ? e.message : String(e));
+      setLinkError(errorWords(e, tr));
     }
   };
   // Where an "About" entry's link goes from the holder's own page: the named record's public
@@ -220,7 +221,7 @@ export const DocumentDetail: React.FC<{ record: StrainRecord }> = ({ record }) =
       await navigator.clipboard.writeText(link);
       setCopied(true);
     } catch (e) {
-      setLinkError(e instanceof Error ? e.message : String(e));
+      setLinkError(errorWords(e, tr));
     }
   };
 

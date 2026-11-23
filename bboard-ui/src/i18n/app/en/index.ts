@@ -42,6 +42,7 @@ import { scan } from './scan';
 import { offline } from './offline';
 import { recovery } from './recovery';
 import { watch } from './watch';
+import { errors } from './errors';
 
 export const appEn = {
   ...common,
@@ -81,6 +82,7 @@ export const appEn = {
   ...offline,
   ...recovery,
   ...watch,
+  ...errors,
 };
 
 export type AppKey = keyof typeof appEn;

@@ -106,6 +106,7 @@ import { utcStamp as fmt } from '../veilcore/time';
 import { LAB_RESULTS_ENABLED } from '../config/network';
 import { CODE_TEXT } from '../config/theme';
 import { ProofCodeQr } from './lab/ProofCodeQr';
+import { errorWords } from '../i18n/error-words';
 
 type Mode =
   | 'overview'
@@ -874,7 +875,7 @@ export const RecordDetail: React.FC = () => {
                     onClick={() => {
                       setExportError(null);
                       exportEnvelope(record.id).catch((e: unknown) =>
-                        setExportError(e instanceof Error ? e.message : t('app.plant.exportFailed')),
+                        setExportError(e instanceof Error ? errorWords(e, tr) : t('app.plant.exportFailed')),
                       );
                     }}
                   >

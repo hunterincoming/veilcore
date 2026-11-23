@@ -47,6 +47,7 @@ import {
   type PackPeriod,
 } from '../../veilcore/authority-pack';
 import { PackDocument, PACK_PRINT_STYLES } from './PackDocument';
+import { errorReason } from '../../i18n/error-words';
 
 type PeriodKind = 'six' | 'permit' | 'other';
 
@@ -144,7 +145,8 @@ const gather = async (selection: ReturnType<typeof selectPack>, packLang: Lang, 
 };
 
 export const AuthorityPackPage: React.FC = () => {
-  const { t } = useT();
+  const tr = useT();
+  const { t } = tr;
   const records = useRecords();
   const [kind, setKind] = useState<PeriodKind>('six');
   const [permitStart, setPermitStart] = useState('');
@@ -217,7 +219,7 @@ export const AuthorityPackPage: React.FC = () => {
       };
       setPack(buildPack(selection, facts, form, { madeAt: new Date(), locked: lockedRecords().length }));
     } catch (e) {
-      setError(t('app.pack.form.failed', { reason: e instanceof Error ? e.message : String(e) }));
+      setError(t('app.pack.form.failed', { reason: errorReason(e, tr) }));
     } finally {
       setBusy(false);
     }

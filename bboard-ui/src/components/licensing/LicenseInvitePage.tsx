@@ -62,6 +62,7 @@ import { ChainStatusLine } from '../chain/ChainStatusLine';
 import type { ChainReceipt } from '../../veilcore/chain/actions';
 import { rich, useT } from '../../i18n/app';
 import { DisclosureReceipt } from '../chain/DisclosureReceipt';
+import { errorWords } from '../../i18n/error-words';
 
 const POLL_MS = 8_000;
 /** Enough of a record's key to compare with the sender: 16 characters, in groups of 4. */
@@ -153,7 +154,7 @@ export const LicenseInvitePage: React.FC = () => {
       setInvite(inv ?? null);
       return inv;
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(errorWords(e, tr));
       return undefined;
     }
   }, [id]);
@@ -261,7 +262,7 @@ export const LicenseInvitePage: React.FC = () => {
       await acceptAsLicensee(invite, token, handOnRecord);
       await load();
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(errorWords(e, tr));
     } finally {
       setBusy(false);
     }
@@ -276,7 +277,7 @@ export const LicenseInvitePage: React.FC = () => {
       await say(party, { type: 'agree', agreementFingerprint: offered.copy.agreementFingerprint });
       updateHeldLicense(id, (h) => ({ ...h, agreement: offered.copy, agreedAt: Date.now() }));
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(errorWords(e, tr));
     } finally {
       setBusy(false);
     }

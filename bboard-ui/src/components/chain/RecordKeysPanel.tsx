@@ -19,7 +19,7 @@ import { isKeptOnDeviceOnly, type StrainRecord } from '../../veilcore/records';
 import { NETWORK } from '../../config/network';
 import { CHAIN_CONTRACT } from '../../veilcore/chain/config';
 import { useT } from '../../i18n/app';
-import { backupMessageWords } from '../flow/backup-words';
+import { errorWords } from '../../i18n/error-words';
 
 export const RecordKeysPanel: React.FC<{ record: StrainRecord }> = ({ record }) => {
   const keys = useRecordKeys()[record.id];
@@ -46,7 +46,7 @@ export const RecordKeysPanel: React.FC<{ record: StrainRecord }> = ({ record }) 
         setMsg(t('app.plant.keys.notIdentity'));
       } else setMsg(t('app.plant.keys.restored'));
     } catch (e) {
-      setMsg(e instanceof Error ? backupMessageWords(e.message, tr) : String(e));
+      setMsg(errorWords(e, tr));
     }
   };
 

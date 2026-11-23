@@ -40,6 +40,7 @@ import { ClaimResultFile } from '../lab/ClaimResultFile';
 import { ViabilityNotRead } from '../lab/ResultFacts';
 import { viabilityNotRead } from '../../config/network';
 import { withdrawnWords } from '../lab/signer-words';
+import { errorReason } from '../../i18n/error-words';
 
 export const ClaimCheck: React.FC = () => {
   const tr = useT();
@@ -204,7 +205,7 @@ export const ClaimCheck: React.FC = () => {
               )}
               {verdict && !verdict.ok && (
                 <Alert severity="error" variant="outlined" data-claim-verdict="failed">
-                  {t('app.claim.check.failed', { reason: verdict.reason })}
+                  {t('app.claim.check.failed', { reason: errorReason(verdict.reason, tr) })}
                 </Alert>
               )}
               {/* Whose numbers these are, in the footer's states: the lab's (count or call) only where it stands behind them. */}
@@ -245,7 +246,7 @@ export const ClaimCheck: React.FC = () => {
                                   block: String(v.blockHeight ?? '?'),
                                   date: v.blockTime ? ` (${tr.date(v.blockTime)})` : '',
                                 })
-                              : t('app.claim.check.failed', { reason: v.reason })}
+                              : t('app.claim.check.failed', { reason: errorReason(v.reason, tr) })}
                         </Typography>
                       </Box>
                     );
@@ -295,7 +296,7 @@ export const ClaimCheck: React.FC = () => {
                   </Stack>
                 ) : (
                   <Alert severity="error" variant="outlined">
-                    {t('app.claim.check.labFailed', { reason: verdict.lab.reason })}
+                    {t('app.claim.check.labFailed', { reason: errorReason(verdict.lab.reason, tr) })}
                   </Alert>
                 )}
               </Paper>

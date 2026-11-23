@@ -29,6 +29,7 @@ import { ConfirmInline, HowItWorks } from './DealSteps';
 import { backupReturnTo } from '../flow/backup-return';
 import { useT } from '../../i18n/app';
 import { DisclosureReceipt } from '../chain/DisclosureReceipt';
+import { errorWords } from '../../i18n/error-words';
 
 const HEX64 = /^[0-9a-f]{64}$/;
 const short = (h: string) => (h.slice(0, 16).match(/..../g) ?? []).join(' ');
@@ -239,7 +240,7 @@ export const LenderPage: React.FC = () => {
       const { identityOf } = await import('../../veilcore/chain/identity');
       makeLender(name, identityOf);
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(errorWords(e, tr));
     }
   };
 
@@ -267,7 +268,7 @@ export const LenderPage: React.FC = () => {
       await startClaim(record, words, recordId);
       setWords('');
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(errorWords(e, tr));
     }
   };
 

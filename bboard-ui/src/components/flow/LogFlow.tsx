@@ -122,6 +122,7 @@ import {
   type OriginSource,
 } from '../../veilcore/origin-notes';
 import { OriginReviewLine, OriginStep } from './OriginStep';
+import { errorWords } from '../../i18n/error-words';
 // SEAL_EACH_STAGE, STAGE_PROMPT and SELECTED_PROMPT (stage-notes.ts) are shown here in the
 // visitor's language: app.log.sealEachStage, app.log.stagePrompt, app.log.selectedPrompt.
 
@@ -933,7 +934,7 @@ const Review: React.FC<{
       // Forget the keys only if no record was made with them; once it exists, its key is the
       // only way to prove holding it.
       if (id && !created) forgetKeys(id);
-      setError(e instanceof Error ? e.message : String(e));
+      setError(errorWords(e, tr));
       setBusy(false);
     }
   };

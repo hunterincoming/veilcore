@@ -38,7 +38,7 @@ import DoneIcon from '@mui/icons-material/CheckCircle';
 import { confirmRecoverySheet, makeRecoverySheet, useAccountState, type MadeSheet } from '../../veilcore/account-copy';
 import { SHEET_WORDS, groupCode } from '../../veilcore/recovery-code';
 import { useT } from '../../i18n/app';
-import { backupMessageWords } from './backup-words';
+import { errorReason, errorWords } from '../../i18n/error-words';
 
 export const OPEN_RECOVERY_EVENT = 'veilcore:open-recovery-sheet';
 export type RecoveryMode = 'make' | 'check';
@@ -339,8 +339,8 @@ export const RecoverySheetDialog: React.FC<{ open: boolean; mode: RecoveryMode; 
             {problem === SHEET_WORDS.wrong && phase === 'confirm' && sheet
               ? t('app.recovery.err.noMatch')
               : Object.values(SHEET_WORDS).includes(problem)
-                ? backupMessageWords(problem, tr)
-                : t('app.recovery.failed', { why: backupMessageWords(problem, tr) })}
+                ? errorWords(problem, tr)
+                : t('app.recovery.failed', { why: errorReason(problem, tr) })}
           </Alert>
         )}
       </DialogContent>

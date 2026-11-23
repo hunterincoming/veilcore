@@ -45,6 +45,7 @@ import { scan } from './scan';
 import { offline } from './offline';
 import { recovery } from './recovery';
 import { watch } from './watch';
+import { errors } from './errors';
 
 export const appEs: AppTranslation = {
   ...common,
@@ -84,4 +85,5 @@ export const appEs: AppTranslation = {
   ...offline,
   ...recovery,
   ...watch,
+  ...errors,
 };

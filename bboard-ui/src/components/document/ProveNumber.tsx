@@ -59,6 +59,7 @@ import { keyShort } from '../../veilcore/lab-key-text';
 import { DatingPausedNotice } from '../DatingPausedNotice';
 import { DATING_PAUSED } from '../../veilcore/chain/paused';
 import { DisclosureReceipt } from '../chain/DisclosureReceipt';
+import { errorWords } from '../../i18n/error-words';
 
 /** A slot's path in a published form ("match.matches"). */
 const slotPath = (schema: string, slot: number): string =>
@@ -295,7 +296,7 @@ export const ProveNumber: React.FC<{
       );
       setConfirmedExact(false);
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(errorWords(e, tr));
     } finally {
       setBusy(false);
       setProgress(undefined);

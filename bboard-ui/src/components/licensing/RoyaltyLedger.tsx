@@ -118,6 +118,7 @@ import {
   utcDay,
   withDealCurrency,
 } from '../../veilcore/royalty-terms';
+import { errorWords } from '../../i18n/error-words';
 
 type Terms = LicenseTerms;
 
@@ -292,7 +293,7 @@ export const RoyaltyLedger: React.FC<{
       refresh();
       return true;
     } catch (e) {
-      setError(e instanceof TabLockUnavailable ? tr.t('app.roy.noLock') : e instanceof Error ? e.message : String(e));
+      setError(e instanceof TabLockUnavailable ? tr.t('app.roy.noLock') : errorWords(e, tr));
       return false;
     } finally {
       sending.current = false;
@@ -1004,7 +1005,7 @@ const ReportForm: React.FC<{
                   if (f)
                     evidenceOf(f)
                       .then(setEvidence)
-                      .catch((x: unknown) => setEvidenceError(x instanceof Error ? x.message : String(x)));
+                      .catch((x: unknown) => setEvidenceError(errorWords(x, tr)));
                 }}
               />
             </Button>

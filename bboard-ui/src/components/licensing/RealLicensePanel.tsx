@@ -66,6 +66,7 @@ import { ChainStatusLine } from '../chain/ChainStatusLine';
 import type { ChainReceipt } from '../../veilcore/chain/actions';
 import { useT } from '../../i18n/app';
 import { DisclosureReceipt } from '../chain/DisclosureReceipt';
+import { errorReason, errorWords } from '../../i18n/error-words';
 
 const POLL_MS = 8_000;
 
@@ -318,7 +319,7 @@ export const RealLicensePanel: React.FC<{ license: License; blocked: boolean; on
       }));
     } catch (e) {
       if (e instanceof InviteOutcomeUnknown) setUnsure(true);
-      else setError(e instanceof Error ? e.message : String(e));
+      else setError(errorWords(e, tr));
     } finally {
       sending.current = false;
       setBusy(false);
@@ -331,7 +332,7 @@ export const RealLicensePanel: React.FC<{ license: License; blocked: boolean; on
     try {
       clearOnChain(license.id);
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(errorWords(e, tr));
     }
   };
 
@@ -435,7 +436,7 @@ export const RealLicensePanel: React.FC<{ license: License; blocked: boolean; on
     postIssued(oc.inviteId, oc.issueTx, oc.issuerToken)
       .then(() => onToast(tr.t('app.lic.real.sentAgain')))
       .catch((e: unknown) => {
-        const error = e instanceof Error ? e.message : String(e);
+        const error = errorReason(e, tr);
         onToast(tr.t('app.lic.real.resendFailed', { error }));
         setError(tr.t('app.lic.real.resendFailed', { error }));
       });
@@ -645,7 +646,7 @@ export const RealLicensePanel: React.FC<{ license: License; blocked: boolean; on
                   void import('../../veilcore/lender-pack')
                     .then((m) => m.downloadLenderPack(license))
                     .then(() => onToast(tr.t('app.lic.real.packDone')))
-                    .catch((e: unknown) => setError(e instanceof Error ? e.message : String(e)))
+                    .catch((e: unknown) => setError(errorWords(e, tr)))
                     .finally(() => setBusy(false));
                 }}
                 sx={{ alignSelf: 'flex-start' }}

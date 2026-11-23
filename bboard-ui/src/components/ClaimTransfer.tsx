@@ -90,6 +90,7 @@ import { rich, useT } from '../i18n/app';
 import { enT, type Translator } from '../i18n/translate';
 import { SupportDetails } from './SupportDetails';
 import { OPEN_SIGNING_KEY_EVENT } from './AttesterSetup';
+import { errorReason } from '../i18n/error-words';
 
 /** Opens the header's receive dialog from elsewhere on the page (a lab's first screen). */
 export const OPEN_RECEIVE_EVENT = 'veilcore:open-receive';
@@ -867,7 +868,7 @@ export const ClaimTransfer: React.FC<{
             },
       );
     } catch (e) {
-      setError(t('app.sealed.recv.failed', { error: e instanceof Error ? e.message : String(e) }));
+      setError(t('app.sealed.recv.failed', { error: errorReason(e, tr) }));
     } finally {
       setBusy(false);
     }
@@ -1016,7 +1017,7 @@ export const ClaimTransfer: React.FC<{
 
           {stage.step === 'refused' && (
             <Alert severity="warning" variant="outlined" sx={{ mt: 1 }}>
-              {t('app.lab.recv.refused', { reason: stage.reason })}
+              {t('app.lab.recv.refused', { reason: errorReason(stage.reason, tr) })}
             </Alert>
           )}
 

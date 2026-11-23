@@ -75,6 +75,7 @@ import { checkBoxes, otherIds, type IdRow } from '../../ask-job/ids';
 import { IdBoxes } from './IdBoxes';
 import { runnerTick } from '../../ask-job/start';
 import { JOB_STATE_KEY, jobTitle, jobWords } from '../../ask-job/words';
+import { errorWords } from '../../i18n/error-words';
 
 /** A job's page: the result to check while it waits for approval, its progress after. */
 export const JobPage: React.FC = () => {
@@ -254,7 +255,7 @@ const JobResult: React.FC<{ job: Job; fromApp: boolean }> = ({ job: latest, from
     try {
       refusal(await f());
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(errorWords(e, tr));
     } finally {
       setBusy(false);
     }
@@ -297,7 +298,7 @@ const JobResult: React.FC<{ job: Job; fromApp: boolean }> = ({ job: latest, from
       try {
         refusal(await setFigures(shownRef.current, key, figuresOf(d)));
       } catch (e) {
-        setError(e instanceof Error ? e.message : String(e));
+        setError(errorWords(e, tr));
       } finally {
         saving.current -= 1;
         setSavingCount(saving.current);

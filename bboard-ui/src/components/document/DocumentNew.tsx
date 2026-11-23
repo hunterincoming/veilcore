@@ -51,6 +51,7 @@ import { NumbersFields } from './NumbersFields';
 import { BackupStep } from '../flow/BackupStep';
 import { FlowFrame } from '../flow/FlowFrame';
 import { makeFieldSet, numbersOf, type TypedNumbers } from '../../veilcore/field-set';
+import { errorWords } from '../../i18n/error-words';
 
 const MB = Math.floor(MAX_DOCUMENT_BYTES / (1024 * 1024));
 /** A one-line field as sealed: trimmed, no line breaks or tabs. */
@@ -278,7 +279,7 @@ export const DocumentNew: React.FC = () => {
       void navigate(`/record/${record.id}`);
     } catch (e) {
       if (id && !created) forgetKeys(id);
-      setError(e instanceof Error ? e.message : String(e));
+      setError(errorWords(e, tr));
       setBusy(false);
     }
   };
