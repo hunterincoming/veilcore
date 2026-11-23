@@ -13,7 +13,9 @@ check it.
 A breeder seals a record of a cultivar or an animal line in the browser. The details are
 encrypted there, and DNA files are never uploaded. Only a 32-byte proof code is anchored on
 Midnight, in a batch with others. Later a buyer, examiner or court can check what the record
-said and when it existed: free, no account, without having to trust us.
+said and when it existed: free, no account. The check page reads the date from Midnight itself
+and says which facts only our server reports. Midnight's zero-knowledge proofs also let a holder
+prove one fact from a record, such as a lab result, without showing the rest.
 (What our server can still see: [the list](#what-leaves-your-browser).)
 
 **Try it:** **[veilcore.org](https://veilcore.org)** runs on Midnight mainnet ·
@@ -27,7 +29,7 @@ and a Rust implementation in [veilcore-rs](https://github.com/hunterincoming/vei
 | Status | |
 |---|---|
 | **Live on veilcore.org** | Sealing records, dated in batches on Midnight mainnet; check pages; proving a record by link; dating a DNA report pairing; lab codes and signed receipts; licenses and royalty reports; documents kept on the device only; proving a fact from a sealed document; production chains of linked document records; numbers and results a lab signs, since a run on 18 November 2026 ([docs/lab-signing.md](docs/lab-signing.md), [docs/lab-mainnet-test.md](docs/lab-mainnet-test.md)); a lab signing a spreadsheet of results, adding a lab's result file to another breeder's records, and five of ICAR 2023's parentage checks proved from a lab's result, since a run on 21 November 2026 with a DEMO lab key and invented data ([docs/lab-mainnet-test.md](docs/lab-mainnet-test.md), [docs/parentage.md](docs/parentage.md)). No wallet needed: VeilCore's fee service pays the network fee. |
-| **Built, not yet run on mainnet** | Handing a license on to another grower, with the breeder's approval. |
+| **Built, not yet run on mainnet** | Handing a license on to another grower, with the breeder's approval. Microbe and cell-line records: offered on veilcore.org, none sealed on mainnet yet ([docs/strain-profile.md](docs/strain-profile.md)). |
 | **Test network only** | A lab's viability result for a sample before or after a kill step; paying royalties in NIGHT on Midnight. |
 | **Built, switched off** | Paid plans for labs: built in the registry, switched off; not on veilcore.org (`veilcore-api` README, "Paid plans"). A plan that hides which records are a lab's is a design only ([docs/lab-plan.md](docs/lab-plan.md)). |
 
@@ -90,8 +92,10 @@ indexer of your own choosing instead of ours, see [docs/reproduce-build.md](docs
   first batches were anchored by hand; the scheduled job first dated one on its own on
   8 November 2026: `SCHEDULED_ANCHORING_RUN_ON_MAINNET` in `bboard-ui/src/config/copy.ts`); each
   batch also stamped on Bitcoin with OpenTimestamps (the first batch, `B-20261011-FE71`, in blocks
-  971004 and 971005) and given an RFC 3161 timestamp by a timestamp authority (a batch sealed
-  before the authority was set gets one dated when it is made); proving a record by link; dating a DNA report pairing from the browser; lab receipts
+  971004 and 971005); each new record given its own RFC 3161 timestamp by DigiCert and FreeTSA
+  within seconds of its proof code reaching the registry, since 21 November 2026
+  ([docs/offline.md](docs/offline.md); batches are stamped too, and a record whose own timestamp
+  is missing falls back to its batch's); proving a record by link; dating a DNA report pairing from the browser; lab receipts
   and reports signed with the lab's own key; choosing what a record's check page shows; check
   pages that read the date from Midnight themselves, with a "What each fact rests on" box
   saying which facts the page checked and which only the registry reports; deleting a record,
