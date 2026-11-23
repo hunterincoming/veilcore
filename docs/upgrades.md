@@ -22,21 +22,70 @@ node (`docs/maintenance-committee.md`, `docs/committee-rehearsal.md`). "Frozen" 
 document means a version's rules are not changed; it does not mean the contract cannot be
 changed while a key exists.
 
+**Corrections, 23 November 2026.** The design of version 2 is now in
+[contract-v2.md](contract-v2.md). It is a design only: nothing is built or live. These
+corrections apply to the 9 October text below. Each one is also marked where it occurs.
+
+1. **There is no royalties contract.** No `.compact` file for one exists on any branch.
+   Royalties are v1's obligation circuits plus the registry ([agreements-live.md](agreements-live.md):
+   "no contract change"). Version 2 adds no royalties contract.
+2. **Preprod can't rehearse maintenance.** Preprod was upgraded in place on 9 November. Its
+   v1 practice contract can still be called, but that contract's authority is retired, so no
+   maintenance step (a committee install, a seal) can be rehearsed on it. Nothing new can be
+   deployed from Compact 0.31.1 output on a Ledger 9 network. The
+   [Ledger 9 notes](https://docs.midnight.network/relnotes/ledger-9) say a new contract can't be
+   deployed from ledger 8 artifacts, and midnight-js refuses it with
+   `'ledger8-deploy-on-ledger9-network'`
+   ([migration guide](https://github.com/midnightntwrk/midnight-js/blob/c8d16679af4a3aac70da91ba8441093399ed84be/docs/releases/v5.0.0/migration-guide.md#L1312-L1325)). Maintenance is rehearsed on a local devnet forked
+   from Ledger 8 to Ledger 9 ([committee-rehearsal.md](committee-rehearsal.md), and
+   contract-v2.md section 8). Preprod and the test site are used for v2's own flow, and
+   checkers there must name the contract version explicitly (contract-v2.md, 3.2).
+3. **The carry-forward sketch below can be squatted.** A holder's `o` and `r` are public in
+   v1. So anyone could carry an identity forward first with their own head, and the rightful
+   holder's carry would then be refused on chain. Verifiers would ignore the forgery, but the
+   holder would still be blocked. **For v2 there is no carry at all.** Every v1 record so far
+   is the team's own testing (confirmed 23 November 2026), so v2 is
+   a fresh start next to an untouched v1. A v1 record keeps its date on v1 forever, and the
+   same commitment in v1 and v2 is two records with two dates (contract-v2.md, sections 0 and
+   3). The carry design that fixes the squatting (a freeze, an on-chain snapshot, non-membership
+   checks) is kept for v3, the first upgrade with outside users, in contract-v2.md, Appendix A.
+4. **The seal does not use `retireMaintenanceAuthorityProvably`.** That function builds a
+   Ledger 8 update, which is refused after the fork. midnight-js 5 also refuses maintenance on
+   a pre-fork contract, and it signs with one key only. The v1 seal goes through
+   `scripts/committee` with the existing key, and it is **`retire` only**: v1's keys stay in
+   place, so checkers keep accepting v1's state (contract-v2.md, section 6).
+5. **Removing a key needs the client patch first.** The network rejects a key removal whose
+   fee was worked out by ledger-v9 1.0.0 (#2375, fixed from 1.0.1:
+   [Ledger 9 notes](https://docs.midnight.network/relnotes/ledger-9)). The committee tool
+   builds with 1.0.1, but the wallet that pays the fee still uses 1.0.0, so any key removal
+   waits for the client patch (wallet on ledger-v9 1.0.2). The v1 seal removes no keys:
+   `retire` is a replace-authority, which costs the same in both, so the seal doesn't need
+   the patch. That is our inference: #2375 is reported for key removal only, and we expect a
+   replace-authority to be unaffected. The devnet tests it with the wallet on ledger-v9 1.0.0
+   (contract-v2.md, section 8, question 1). This also replaces *Sealing version 1* step 1
+   below.
+
+Also out of date: in *Known* 6, the quoted sentences about the retained era's "sunset" and
+"removal in the next major" are no longer in the current midnight-js migration guide (checked
+at `c8d1667`, 23 November 2026). No removal date is published. Plan as if it can go at the
+next major.
+
 ---
 
 ## The one-paragraph version
 
 Say this out loud:
 
-> "We never rewrite the record book. We add new volumes. Every record anchored on VeilCore
-> stays in the contract it was anchored in, and the date it was anchored is in Midnight's
-> transaction history, which nobody can edit, including us. When we have something better,
-> we ship it as a new version of the contract. A holder carries their record into the new
-> version with the same secret they already hold, and the new version points back to the old
-> one, so the old date still counts. Once everyone has had time to move, we seal the old
-> version: we remove every key that could change it, and then nobody can change it again.
-> So VeilCore keeps getting better, and evidence of prior possession never depends on
+> "We never rewrite the record book. We add new volumes. Each record stays in the contract
+> it was made in, with its date, forever. That date is in Midnight's transaction history,
+> which nobody can edit, including us. A new version is a new contract next to the old one.
+> Nothing is moved. We then retire the old contract's key, so nobody can change its rules
+> again. So VeilCore keeps getting better, and evidence of prior possession never depends on
 > trusting us."
+
+*Rewritten 23 November 2026 for the fresh start (correction 3). The 9 October version said
+holders carry records into the new version and that every key is removed at the seal. Neither
+holds for v2.*
 
 ## The short version
 
@@ -53,10 +102,13 @@ Say this out loud:
    upgrade (ledger 9), and Midnight has announced no end date for them. What Midnight does
    *not* give us is a way for a new contract to read an old one, so the link between
    versions is checked by our verifier software, against chain data anyone can read.
-5. **Before the fork:** finish the move to midnight-js 5, put the key under a 2-of-3
-   committee, do not deploy anything new on the old ledger, and test our live contract on a
-   forked test network. **After the fork:** build version 2 on the new toolchain, open the
-   carry-forward, and later seal version 1.
+5. **Now (rewritten 23 November 2026):** build version 2 on the new toolchain as a fresh
+   start. By the maintainer's decision of 23 November 2026, v2 is deployed with a temporary
+   single key, which is handed to a 2-of-3 committee once the third key holder is named (the
+   handover is a key use, so it comes at least 14 days after its notice is published). v1
+   records stay on v1 with their dates, and nothing is carried. After v2 is public and audited, retire v1's single key, so
+   nobody can change v1 again ([contract-v2.md](contract-v2.md)). *The 9 October text put a
+   committee on v1 before the fork and opened a carry-forward; neither applies now.*
 
 ---
 
@@ -177,7 +229,7 @@ deployed contract's circuits are bound to the proof system that compiled them."
   ledger is at rc.6, and the state translation is unpublished, on a branch, pinned by commit
   (node `Cargo.toml` lines 114-119). Release candidates can change.
 
-### Unknown (ask Nick)
+### Unknown (questions for Midnight)
 
 Whether "no governance arm" is only the library's choice or Midnight's policy; whether
 Midnight will ever stop accepting old-format proofs; the fork date and notice (answered since:
@@ -249,7 +301,9 @@ record on Midnight's public repository.
    toolchain. Each version stores its predecessor's address, and its own protocol version, in
    its starting state. Our client already checks that a deploy carries exactly the starting
    state the constructor produces (`startsFromConstructor`), so that back-link cannot be
-   faked. Nothing points forward, so nothing can be redirected later.
+   faked. Nothing points forward, so nothing can be redirected later. *Corrected 23 November 2026:*
+   verifiers never follow that back-link. It records provenance only, and a verifier trusts
+   only its pinned list of contracts (rule 10, [contract-v2.md](contract-v2.md), 3.1).
 3. **Evidence never moves.** A record's anchor date stays where it was made: the block time
    of its `anchor` transaction in v1's history. A new version records only "this identity
    came from v1", never a copied date. Verifiers read the date from v1.
@@ -258,6 +312,10 @@ record on Midnight's public repository.
    is not a reason to migrate anyone.
 
 ### How a holder carries a record forward
+
+> **Corrected 23 November 2026:** the sketch in this section can be squatted (correction 3
+> above). v2 has no carry (a fresh start). The design that fixes the squatting is kept for v3
+> in [contract-v2.md](contract-v2.md), Appendix A.
 
 The holder already has the secret behind their v1 record. Version 2 uses the same commitment
 function for carried records (`commit(secret)` with the tag `veilcore:v1:commit`,
@@ -298,8 +356,14 @@ When version 2 has been live for a long, announced window (founders to set; we s
 least 12 months), the key is used one last time, in public, with the 14-day notice:
 
 1. remove every v1 circuit key, so no transaction can change v1 again;
-2. replace the authority with an empty committee (`retireMaintenanceAuthorityProvably`,
-   already built and used on the claims contract).
+2. replace the authority with an empty committee.
+
+*Corrected 23 November 2026:* the v1 seal is step 2 only (`retire`, through
+`scripts/committee` with the existing key, after v2 is public and audited, with the 14-day
+notice), not `retireMaintenanceAuthorityProvably`, which builds a Ledger 8 update that is
+refused after the fork. Step 1 is dropped: checkers refuse a v1 state with keys missing, and
+key removal needs the client patch (corrections 4 and 5 above). After `retire`, v1's circuits
+stay callable but can never change. There is no carry window (correction 3).
 
 Then v1's final state is fixed forever, and anyone can see that on chain. Carrying forward
 still works after sealing, because it is checked against that final state, so nobody who
@@ -320,12 +384,13 @@ and midnight-js will drop that (Known 6). So:
 ### The other two contracts
 
 - **Claims contract:** already a sealed version (empty committee since 8 October). It needs
-  nothing. Its successor, with the standard library's Schnorr check from Compact 0.35
-  (`docs/claims-design.md`, last section), is simply a new address.
-- **Royalties contract (on a test-network branch, not deployed):** do not deploy it on
-  ledger 8. Anything deployed on ledger 8 now becomes a pre-fork contract within months,
-  with no maintenance in midnight-js and library support ending later. Build it with the
-  ledger-9 toolchain after the fork.
+  nothing. Its successor is simply a new address. *Corrected 23 November 2026:* the successor
+  keeps VeilCore's own Schnorr check, with a range check added inside the circuit, rather than
+  switching to the standard library's (founders' decision; [contract-v2.md](contract-v2.md),
+  1.3).
+- *Corrected 23 November 2026:* **there is no royalties contract** (correction 1 above). The
+  9 October text named one "on a test-network branch". No such contract exists on any
+  branch, and royalties need none.
 
 ---
 
@@ -354,19 +419,25 @@ and midnight-js will drop that (Known 6). So:
 7. **Show the circuit keys rebuild from source.** The `.zkir` files and compiled code have been
    reproduced byte for byte; the verifier keys have been built once only. "Same source, new
    keys" is only checkable by others if keys rebuild.
-8. **Do not deploy anything new on ledger 8** (royalties waits).
-9. **Ask Nick** the questions below, in writing.
+8. **Do not deploy anything new on ledger 8.** (*Corrected:* the "royalties waits" note
+   referred to a contract that does not exist.)
+9. **Ask Midnight** the questions below, in writing.
 
 ### After the fork
 
 1. Confirm on mainnet that v1 calls and every verifier check still work.
-2. Write the v2 design (carry-forward, verifier rule, licences), run the adversarial review,
-   then build v2 on the current Compact toolchain with v1's address in its starting state.
-   Same for claims v2 and royalties.
+2. Write the v2 design, run the adversarial review, then build v2 on the current Compact
+   toolchain. Same for claims v2. (*Corrected 23 November 2026:* no royalties contract and no
+   carry-forward or licence re-issue. v2 stores v1's address as `predecessor` for provenance
+   only. Verifiers never follow it; they use a pinned list of contracts (rule 10,
+   [contract-v2.md](contract-v2.md), 3.1).)
 3. Deploy v2 (the fragmented deploy needs an authority during the deploy; v2's key follows
    the same "rules never change" policy), release the client that verifies across both
-   versions, open the carry-forward, announce the window.
-4. At the end of the window: seal v1.
+   versions, open the carry-forward, announce the window. (*Corrected:* v2 is a fresh start
+   with no carry and no window; rehearse every maintenance step on a local forked devnet, not
+   preprod, whose practice contract's authority is retired. The launch order is in
+   contract-v2.md, section 7.)
+4. After v2 is public and audited: seal v1 by `retire` only, through `scripts/committee`.
 
 ---
 
@@ -376,17 +447,25 @@ and midnight-js will drop that (Known 6). So:
 2. **Narrow v1's key** to keep-working, switch-off and seal, and publish that as a change to
    the approved maintenance policy.
 3. **Name the independent third key holder** for the 2-of-3 committee, and install it before
-   the fork.
+   the fork. *Corrected 23 November 2026:* no committee goes on v1. v2 is deployed with a
+   temporary single key, handed to the 2-of-3 committee once the third key holder is named
+   (maintainer decision, 23 November 2026), with the 14-day notice before the handover. v1 is
+   retired with its single key ([runbooks/two-of-three.md](runbooks/two-of-three.md)).
 4. **Set the carry-forward window** before v1 is sealed (we suggest at least 12 months after
-   v2 launches).
+   v2 launches). *Dropped 23 November 2026:* v2 has no carry-forward, so there is no window
+   (correction 3).
 5. **Seal v1 by removing every key** (a fixed archive), or only the keys of circuits that
    change data (presentations and control proofs would keep working). We recommend every key:
-   it is simpler to explain and leaves nothing to trust.
+   it is simpler to explain and leaves nothing to trust. *Corrected 23 November 2026:* seal
+   by `retire` only, keeping every key, so checkers keep accepting v1's state and no key
+   removal is needed (correction 4).
 6. **Licences: re-issue in v2**, or design a carry-forward that needs both the issuer and the
-   licensee. We recommend re-issue for v2.
-7. **Hold the royalties contract** until the ledger-9 toolchain.
+   licensee. We recommend re-issue for v2. *Dropped 23 November 2026:* nothing moves to v2;
+   a v1 licence stays a v1 licence, and new licences are made in v2.
+7. ~~Hold the royalties contract until the ledger-9 toolchain.~~ *Withdrawn 23 November
+   2026:* there is no royalties contract (correction 1 above).
 
-## Questions for Nick at Midnight
+## Questions for Midnight
 
 1. After the v9 fork, will the network accept a maintenance update (authority replacement,
    key removal, key insertion) for a contract deployed on ledger 8? The v8 to v9 translation
@@ -417,20 +496,23 @@ and midnight-js will drop that (Known 6). So:
 
 ## How to say it to each audience
 
-- **Labs:** "Your anchor date is in Midnight's history, not in a setting we control. When we
-  improve VeilCore you keep the same secret and carry your record forward. The old date
-  still counts."
-- **Regulators:** "Old versions are never edited. They are sealed, with every key that could
-  change them removed, and anyone can check that on chain. New rules only apply in new
-  versions, which are announced in advance."
+*Rewritten 23 November 2026 for the fresh start (correction 3).*
+
+- **Labs:** "Your anchor date is in Midnight's history, not in a setting we control. A record
+  stays in the contract it was made in, with its date, forever. When we improve VeilCore, the
+  new version is a new contract; new records go there, and old ones keep their date where
+  they are."
+- **Regulators:** "Old versions are never edited. Each is retired: the key that could change
+  its rules is replaced by none, and anyone can check that on chain. New rules only apply in
+  new versions, which are announced in advance."
 - **Investors:** "The product can improve without limit. What we deliberately give up is the
   ability to change what has already been recorded, and that is what makes the records worth
   something to a court or a regulator."
-- **Midnight engineers:** "Immutable versions, back-linked in their starting state, with
-  identity carried forward by the same commitment scheme and the link checked off chain
-  against the predecessor, because contracts cannot read each other and Phase 1 calls cannot
-  run callee witnesses. The predecessor's key is limited to same-source re-keying and a
-  final seal."
+- **Midnight engineers:** "Immutable versions as separate contracts. Verifiers hold a pinned
+  list and decode each transaction by the contract it calls; identities are never joined
+  across versions. `predecessor` is provenance, not a trust link. The old version's authority
+  is retired (an empty committee) once the new one is public, with its circuit keys left in
+  place so its records keep verifying."
 
 ## What this does not solve
 
@@ -439,12 +521,13 @@ and midnight-js will drop that (Known 6). So:
   it.
 - **The link between versions is checked by software, not by the contracts.** A verifier who
   skips the new rule could accept a forged carry-forward. That is the same position as rules
-  1 to 8 today.
+  1 to 8 today. *Corrected 23 November 2026:* v2 has no carry-forward. A verifier checks
+  each record against the pinned contract it names (rule 10).
 - **Reading old history depends on decoders.** We plan for it above; it is not free.
 - **Every version is a new address.** Partners and verifiers must be told, and the client pins
   each new address, as it does now.
-- **Nothing here is tested.** The fork test (step 5) and Nick's answers decide how much of
-  *Assumed* holds.
+- **Nothing here is tested.** The fork test (step 5) and Midnight's answers decide how much
+  of *Assumed* holds.
 
 ---
 
