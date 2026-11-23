@@ -1,6 +1,6 @@
 # Ask VeilCore
 
-Status: on veilcore.org and the test site, on the app's pages (never the public ones), in all
+Status: on veilcore.org, on the app's pages (never the public ones), in all
 five languages. Built 6 November 2026. The on-device model described below stays off: Ask runs
 on Shortcuts.
 
