@@ -399,7 +399,12 @@ const actionToInstruction = (action, current, opts) => {
       if (!/^([0-9a-f]{2})+$/.test(vkHex)) return { problem: `The verifier key for "${action.circuit}" is not hex.` };
       const vk = fromHex(vkHex);
       const own = slotOfKeyBytes(vk);
-      if (own !== undefined && own !== s.slot)
+      // A key whose header names no slot this tool knows is refused, not let through.
+      if (own === undefined)
+        return {
+          problem: `The verifier key for "${action.circuit}" does not start with a V3 or V4 key header. Do not sign.`,
+        };
+      if (own !== s.slot)
         return {
           problem:
             `The verifier key for "${action.circuit}" is a ${own.toUpperCase()} key, but it would go in slot ` +

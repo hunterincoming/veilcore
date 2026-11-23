@@ -25,6 +25,12 @@ export type ChainReader = StateReader & { queryLatestProtocolVersion(): Promise<
 
 export declare const readAuthorityNow: (publicDataProvider: StateReader, address: string) => Promise<AuthorityView>;
 
+/** circuit -> the slot of the verifier key the contract holds now ('v3', 'v4', or undefined when unrecognised). */
+export declare const readKeySlotsNow: (
+  publicDataProvider: StateReader,
+  address: string,
+) => Promise<Record<string, 'v3' | 'v4' | undefined>>;
+
 /** Throws on a network that is not on Midnight Ledger 9: this tool builds Ledger 9 updates only. */
 export declare const assertLedger9Network: (publicDataProvider: ChainReader) => Promise<void>;
 
@@ -56,4 +62,4 @@ export declare const sendMaintenanceUpdate: (
     /** Tests only: the wallet side's Transaction class. */
     walletLedgerTransaction?: unknown;
   },
-) => Promise<{ sent: boolean; txId?: string; blockHeight?: number; authority: AuthorityView }>;
+) => Promise<{ sent: boolean; txId?: string; txHash?: string; blockHeight?: number; authority: AuthorityView }>;

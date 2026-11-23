@@ -29,20 +29,37 @@
 // read-only relay. The relay is run by VeilCore: for an independent check, use an indexer you
 // choose. The project id is never printed; only host names are.
 //
+// CONTRACT v2 (docs/contract-v2.md 3.3 and 5), before it is pinned:
+//
+//   npm run verify:deployment -- --network mainnet --v2-record FILE [--receipt FILE ...]
+//
+// FILE is the deploy-session record `npm run deploy-v2 -w bboard-cli` wrote; --receipt is the
+// launcher's receipt of the committee handover, once it has happened (one per contract). Checked
+// against docs/fingerprints-v2.md (--fingerprints FILE for another copy): every key, V4 only; the
+// authority (the temporary key before the handover, the 2-of-3 committee after it); and every
+// maintenance update since the deploy, read from the chain (scripts/v2/history.mjs). Calls are
+// never refused: anyone can make one. deployments/<network>.json is read only for its indexers.
+//
 // Exit 0: every circuit and authority matches. Exit 1: something differs (the output names it).
 // Exit 2: the check could not be made (bad arguments, an indexer unreachable or refusing, two
 // indexers disagreeing about the keys or the authority), or the script itself failed with an
 // internal error (printed as is): no verdict either way.
 // SPDX-License-Identifier: Apache-2.0
 import { createHash } from 'node:crypto';
-import { realpathSync } from 'node:fs';
+import { readFileSync, realpathSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { loadDeployments, verifierPins } from './deployments.mjs';
 import { ContractStateMismatchError, authorityReport, checkContractState } from '../api/src/state-check.js';
 import { readContractStateHex, stateEraOf } from '../contract/src/contract-state.js';
+import { loadFingerprintsV2, FINGERPRINTS_V2 } from './v2/fingerprints.mjs';
+import { readSession } from './v2/session.mjs';
+import { fromHex, stateFacts, txFacts } from './v2/ledger.mjs';
+import { checkV2Contract } from './v2/history.mjs';
+import { constructorDataHex } from './v2/constructor.mjs';
 
 const USAGE =
-  'Usage: npm run verify:deployment -- [--network mainnet|preprod] [--contract veilcore|veilcore-claims] [--indexer <url>] [--second-indexer <url>]';
+  'Usage: npm run verify:deployment -- [--network mainnet|preprod] [--contract veilcore|veilcore-claims] [--indexer <url>] [--second-indexer <url>]\n' +
+  '       contract v2: add --v2-record FILE [--receipt FILE ...] [--fingerprints FILE]';
 
 export const STATE_QUERY = 'query VEILCORE_STATE($address: HexEncoded!) { contractAction(address: $address) { state } }';
 
@@ -59,7 +76,16 @@ const hostOf = (url) => {
 const namesNetwork = (url, n) => new RegExp(`(^|[.-])${n}([.-]|$)`).test(hostOf(url).replace(/:\d+$/, ''));
 
 export const parseArgs = (argv) => {
-  const o = { network: 'mainnet', contract: undefined, indexer: undefined, secondIndexer: undefined, help: false };
+  const o = {
+    network: 'mainnet',
+    contract: undefined,
+    indexer: undefined,
+    secondIndexer: undefined,
+    help: false,
+    v2Record: undefined,
+    receipts: [],
+    fingerprints: undefined,
+  };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     const val = () => {
@@ -71,9 +97,14 @@ export const parseArgs = (argv) => {
     else if (a === '--contract') o.contract = val();
     else if (a === '--indexer') o.indexer = val();
     else if (a === '--second-indexer') o.secondIndexer = val();
+    else if (a === '--v2-record') o.v2Record = val();
+    else if (a === '--receipt') o.receipts.push(val());
+    else if (a === '--fingerprints') o.fingerprints = val();
     else if (a === '--help' || a === '-h') o.help = true;
     else throw new CannotCheck(`Unknown argument ${a}.\n${USAGE}`);
   }
+  if (o.v2Record === undefined && (o.receipts.length > 0 || o.fingerprints !== undefined))
+    throw new CannotCheck(`--receipt and --fingerprints are for contract v2: give --v2-record too.\n${USAGE}`);
   return o;
 };
 
@@ -251,6 +282,7 @@ export const run = async (argv, { env = process.env, log = console.log } = {}) =
     log(USAGE);
     return 0;
   }
+  if (opts.v2Record !== undefined) return runV2(opts, { env, log });
   let d;
   try {
     d = loadDeployments(opts.network);
@@ -333,6 +365,174 @@ export const run = async (argv, { env = process.env, log = console.log } = {}) =
   }
   log(
     `RESULT: PASS. On ${d.network}, every circuit's verifier key matches the published build (${matching} of ${circuits}), and each maintenance authority is as published.`,
+  );
+  return 0;
+};
+
+/* **********************************************************************
+ * Contract v2, before it is pinned (--v2-record).
+ */
+
+export const TX_QUERY = `query VEILCORE_V2_TX($offset: TransactionOffset!) {
+  transactions(offset: $offset) {
+    hash
+    raw
+    block { height hash }
+    ... on RegularTransaction { transactionResult { status } }
+  }
+}`;
+
+/** One transaction, as one indexer reports it: its status, block and raw bytes. */
+export const fetchTx = async (ix, ref, timeoutMs = 30_000) => {
+  const offset = ref.txHash !== undefined ? { hash: ref.txHash } : { identifier: ref.txId };
+  const label = ref.txHash ?? ref.txId;
+  let res;
+  try {
+    res = await fetch(ix.url, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', ...ix.headers },
+      body: JSON.stringify({ query: TX_QUERY, variables: { offset } }),
+      signal: AbortSignal.timeout(timeoutMs),
+      redirect: 'error',
+    });
+  } catch (e) {
+    throw new CannotCheck(`Could not reach the indexer at ${ix.shown} (${e?.cause?.code ?? e?.name ?? 'network error'}).`);
+  }
+  if (!res.ok) throw new CannotCheck(`The indexer at ${ix.shown} answered HTTP ${res.status}.`);
+  let body;
+  try {
+    body = await res.json();
+  } catch {
+    throw new CannotCheck(`The indexer at ${ix.shown} did not answer with JSON.`);
+  }
+  if (Array.isArray(body?.errors) && body.errors.length > 0)
+    throw new CannotCheck(`The indexer at ${ix.shown} refused the query: ${String(body.errors[0]?.message ?? 'no message').slice(0, 200)}`);
+  const list = body?.data?.transactions;
+  const tx = Array.isArray(list) ? list[0] : list;
+  if (tx === undefined || tx === null || typeof tx.raw !== 'string' || !/^(0x)?(?:[0-9a-fA-F]{2})+$/.test(tx.raw))
+    throw new CannotCheck(`The indexer at ${ix.shown} has no transaction ${label}.`);
+  return { status: tx.transactionResult?.status, blockHeight: tx.block?.height, raw: tx.raw.replace(/^0x/i, '') };
+};
+
+/** A launcher receipt (maintenance-done-*.json) of a handover, for this network and this contract. */
+const readReceipt = (file, network) => {
+  let r;
+  try {
+    r = JSON.parse(readFileSync(file, 'utf8'));
+  } catch (e) {
+    throw new CannotCheck(`Could not read the receipt ${file}: ${e instanceof Error ? e.message : String(e)}`);
+  }
+  if (r?.network !== network) throw new CannotCheck(`${file} is a receipt for ${String(r?.network)}, not ${network}.`);
+  const a = r?.request?.actions?.[0];
+  if (a?.kind !== 'replace-authority' || !Array.isArray(a.committee))
+    throw new CannotCheck(`${file} is not the receipt of a handover (a replace-authority to a committee).`);
+  const ref = typeof r.transactionHash === 'string' ? { txHash: r.transactionHash } : typeof r.transaction === 'string' && /^[0-9a-f]+$/i.test(r.transaction) ? { txId: r.transaction.toLowerCase() } : undefined;
+  if (ref === undefined) throw new CannotCheck(`${file} does not name the handover's transaction.`);
+  return { address: String(r.contractAddress).toLowerCase(), ref, committee: a.committee.map((c) => String(c.publicKey).toLowerCase()) };
+};
+
+const runV2 = async (opts, { env, log }) => {
+  let session;
+  let fingerprints;
+  let d;
+  try {
+    session = readSession(opts.v2Record);
+    fingerprints = loadFingerprintsV2(opts.fingerprints ?? FINGERPRINTS_V2);
+    d = loadDeployments(opts.network);
+  } catch (e) {
+    throw new CannotCheck(e.message);
+  }
+  if (session.network !== opts.network)
+    throw new CannotCheck(`The record is for ${session.network}; this check is for ${opts.network}. Give --network ${session.network}.`);
+  const names = Object.keys(session.contracts).filter((c) => opts.contract === undefined || c === opts.contract);
+  if (names.length === 0) throw new CannotCheck(`No contract named ${opts.contract} in the record.`);
+  const receipts = opts.receipts.map((f) => readReceipt(f, opts.network));
+  const { first, second } = chooseIndexers(opts, d, env);
+
+  log(`VeilCore contract v2 deployment check: ${opts.network} (record ${opts.v2Record}; keys from docs/fingerprints-v2.md)`);
+  log(`Indexer: ${first.shown}${first.operator ? ` (${first.operator})` : ''}${second ? `; second indexer: ${second.shown}` : ''}`);
+  if (fingerprints.fileSha256 !== session.fingerprintsSha256)
+    log('Note: this docs/fingerprints-v2.md is not the copy the deploy used (its SHA-256 differs). The keys are checked against this one.');
+  log('v2 is identified by its address in the record (and, after the pin, the pinned address), never by its contractVersion or predecessor fields.');
+
+  let allOk = true;
+  let circuits = 0;
+  let matching = 0;
+  const cannot = [];
+  for (const name of names) {
+    const c = session.contracts[name];
+    log(`\n${name} (v2)  ${c.address ?? '(not deployed)'}`);
+    if (c.address === null || c.deploy === null) {
+      allOk = false;
+      log('  FAIL  the record has no deploy for this contract');
+      continue;
+    }
+    const handovers = receipts.filter((r) => r.address === c.address);
+    if (handovers.length > 1) throw new CannotCheck(`Two receipts name ${name}'s address; give the handover's only.`);
+    let r;
+    try {
+      const hex = await fetchStateHex(first, c.address);
+      if (second !== undefined) {
+        const other = await fetchStateHex(second, c.address);
+        const differ = other === hex ? [] : factsDiffer(verdictFacts(hex), verdictFacts(other));
+        if (differ.length > 0) throw new CannotCheck(`the two indexers report different verifier keys or authority (${differ.join(', ')})`);
+      }
+      let current;
+      try {
+        current = stateFacts(fromHex(hex));
+      } catch (e) {
+        throw new CannotCheck(`The state the indexer gave could not be read as a Ledger 9 state: ${e instanceof Error ? e.message : String(e)}`);
+      }
+      const read = async (ref) => {
+        const t = await fetchTx(first, ref);
+        let actions;
+        try {
+          actions = txFacts(fromHex(t.raw), c.address);
+        } catch (e) {
+          throw new CannotCheck(`Transaction ${ref.txHash ?? ref.txId} could not be read: ${e instanceof Error ? e.message : String(e)}`);
+        }
+        return { ref, status: t.status, actions };
+      };
+      const deploy = await read(c.deploy);
+      const updates = [];
+      for (const u of c.updates) updates.push(await read(u));
+      const handover = handovers.length === 0 ? undefined : { ...(await read(handovers[0].ref)), committee: handovers[0].committee };
+      r = checkV2Contract({
+        name,
+        pins: fingerprints.pins[name],
+        temporaryKey: session.temporaryKey.publicKey,
+        current,
+        deploy,
+        updates,
+        handover,
+        constructorDataHex: await constructorDataHex(name).catch(() => undefined),
+      });
+    } catch (e) {
+      if (!(e instanceof CannotCheck)) throw e;
+      cannot.push(name);
+      log(`  CANNOT CHECK  ${e.message}`);
+      continue;
+    }
+    for (const l of r.lines) log(l);
+    if (c.pending !== null && c.pending !== undefined)
+      log(`  NOTE  the record shows a step that did not finish (${c.pending.kind}); run the deploy again with --resume`);
+    circuits += r.circuits;
+    matching += r.matching;
+    allOk &&= r.ok;
+    log(`  stage: ${r.stage === 'committee' ? 'held by the 2-of-3 committee' : 'one key, not yet handed to the committee'}`);
+  }
+  log('');
+  if (!allOk) {
+    log(`RESULT: FAIL. Contract v2 on ${opts.network} does not match the record and docs/fingerprints-v2.md (see FAIL above): ${matching} of ${circuits} circuits match.`);
+    return 1;
+  }
+  if (cannot.length > 0) {
+    log(`RESULT: CANNOT CHECK: ${cannot.join(', ')}. Try again shortly.`);
+    return 2;
+  }
+  log(
+    `RESULT: PASS. Contract v2 on ${opts.network}: every key matches docs/fingerprints-v2.md in slot V4 (${matching} of ${circuits}), ` +
+      'the authority is as the record and receipts say, and every maintenance update since the deploy is a listed key insert or the handover.',
   );
   return 0;
 };

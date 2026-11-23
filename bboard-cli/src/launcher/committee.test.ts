@@ -8,6 +8,7 @@
 // SPDX-License-Identifier: Apache-2.0
 /* eslint-disable @typescript-eslint/require-await -- the fakes stand in for async interfaces */
 import { describe, expect, it } from 'vitest';
+import { createHash } from 'node:crypto';
 import { mkdtempSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
@@ -31,6 +32,7 @@ import {
   type Request,
 } from '../../../scripts/committee/core.mjs';
 import { MAINNET_VEILCORE_ADDRESS } from '../../../api/src/deploy-guard';
+import { emptySession, writeSession } from '../../../scripts/v2/session.mjs';
 
 const NET = 'undeployed';
 
@@ -176,6 +178,36 @@ const holders = (d: string, practice = false) => {
     });
   };
   return { keys, cards, files, cardArgs: files.flatMap((f) => ['--card', f]), confirmArgs };
+};
+
+/**
+ * A contract v2 deploy-session record naming `address` (with `paperKey` as its temporary key), as
+ * `npm run deploy-v2` writes it, and a stand-in docs/fingerprints-v2.md whose every key is the
+ * compactc 0.36.1 fixture.
+ */
+const V4_FILE = path.resolve(import.meta.dirname, '../../../scripts/committee/fixtures/zkir-v3-example.verifier');
+const v2Record = (d: string, address: string, paperKey: string, network = 'mainnet') => {
+  const r = emptySession({
+    network,
+    commit: 'test',
+    compiler: '0.36.1',
+    fingerprintsSha256: '00'.repeat(32),
+    publicKey: L.signatureVerifyingKey(sk(paperKey)).value,
+  });
+  r.contracts.veilcore.address = address;
+  r.contracts.veilcore.deploy = { txHash: '11'.repeat(32) };
+  const file = writeSession(path.join(d, `v2-record-${network}.json`), r, { first: true });
+  const vkSha = createHash('sha256').update(readFileSync(V4_FILE)).digest('hex');
+  const rows = [
+    ...Array.from({ length: 24 }, (_, i) => `| \`veilcore/keys/circuit${i}.verifier\` | \`${vkSha}\` |`),
+    ...Array.from({ length: 5 }, (_, i) => `| \`veilcore-claims/keys/claim${i}.verifier\` | \`${vkSha}\` |`),
+  ];
+  const table = path.join(d, 'fingerprints-v2.md');
+  writeFileSync(
+    table,
+    ['Commit abcdef0, compiler 0.36.1.', '', '| File | SHA-256 |', '|---|---|', ...rows, ''].join('\n'),
+  );
+  return { file, table, args: ['--v2-record', file, '--fingerprints', table] };
 };
 
 const NOT_PRACTICE =
@@ -555,10 +587,13 @@ describe('the mainnet switch (a local ledger; only the word "mainnet" on the com
   };
 
   it('install: refused without the flag and the record; a dry run sends nothing; a record for another change or counter is refused', async () => {
+    // The handover of contract v2 (gate exception 1): its address from the deploy-session record.
+    // (v1 with its single key takes only a retire on mainnet: see the gate tests below.)
     const c = chain(2_001_000, true);
     const d = dir();
     const h = holders(d);
-    const install = ['install', ...h.cardArgs];
+    const v2 = v2Record(d, c.address, c.paperKey);
+    const install = ['install', ...v2.args, ...h.cardArgs];
 
     // No flag: refused on the command line, exit 2, before the chain is read or a key typed.
     let hiddenAsked = 0;
@@ -585,7 +620,7 @@ describe('the mainnet switch (a local ledger; only the word "mainnet" on the com
     expect(rec).toMatchObject({
       format: DRY_RUN_FORMAT,
       network: 'mainnet',
-      contractAddress: MAINNET_VEILCORE_ADDRESS,
+      contractAddress: c.address,
     });
 
     expect(dry.text).toMatch(/Next, each of the three new holders signs the check code/);
@@ -607,7 +642,7 @@ describe('the mainnet switch (a local ledger; only the word "mainnet" on the com
       const askHidden = prompt.askHidden;
       (prompt as { askHidden: Prompt['askHidden'] }).askHidden = async (q) => (paperAsked++, askHidden(q));
       const code = await main(
-        ['mainnet', 'install', ...cardArgs, '--send-on-mainnet', '--dry-run-record', file, ...confirmArgs],
+        ['mainnet', 'install', ...v2.args, ...cardArgs, '--send-on-mainnet', '--dry-run-record', file, ...confirmArgs],
         { reader: c.reader, openSender: c.openSender, prompt, logger: out.logger, sendOptions: { waitMs: 1 } },
       );
       const r = { code, text: out.text() };
@@ -709,7 +744,8 @@ describe('the mainnet switch (a local ledger; only the word "mainnet" on the com
     // Confirmations made for another dry run (other keys): each is named, and each holder is still missing.
     const otherRecord = path.join(d, 'dry-others.json');
     expect(
-      (await run(c, ['install', ...others.cardArgs, '--dry-run', '--out', otherRecord], [], [c.paperKey])).code,
+      (await run(c, ['install', ...v2.args, ...others.cardArgs, '--dry-run', '--out', otherRecord], [], [c.paperKey]))
+        .code,
     ).toBe(0);
     await refused(
       record,
@@ -726,16 +762,22 @@ describe('the mainnet switch (a local ledger; only the word "mainnet" on the com
     expect(c.opened()).toBe(2);
 
     // All of it: the flag, the matching record, and INSTALL ON MAINNET typed out. Only now is
-    // the transaction handed over. The local ledger has no contract at the pinned mainnet
-    // address, so it refuses it there: the switch is what is shown here, not a mainnet change.
-    const done = await run(c, send(record), ['INSTALL ON MAINNET'], [c.paperKey]);
+    // the transaction handed over, and the local ledger (standing in for v2's address) takes it.
+    const done = await run(
+      c,
+      [...send(record), '--out', path.join(d, 'receipt.json')],
+      ['INSTALL ON MAINNET'],
+      [c.paperKey],
+    );
     expect(done.text).toMatch(/This is MAINNET/);
     expect(done.text).toMatch(/exactly what will change/);
-    expect(done.text).toMatch(/submitTx rejected the transaction/);
-    expect(done.code).toBe(1);
+    expect(done.code, done.text).toBe(0);
     expect(c.opened()).toBe(3);
-    expect(c.sent()).toBe(0);
-    expect(c.authority().committee.length).toBe(1);
+    expect(c.sent()).toBe(1);
+    expect(c.authority().committee.length).toBe(3);
+    // The receipt names the transaction by its hash too (verify:deployment --receipt reads it).
+    const receiptFile = /Receipt \(public, no secrets\) written to (\S+)\./.exec(done.text)?.[1];
+    expect(receiptFile).toBeDefined();
   });
 
   it('practice cards are refused by every mainnet command, before a key is typed or the chain read', async () => {
@@ -840,5 +882,169 @@ describe('the mainnet switch (a local ledger; only the word "mainnet" on the com
     expect(c.opened()).toBe(2);
     expect(c.sent()).toBe(1);
     expect(c.authority().committee.length).toBe(3);
+  });
+});
+
+describe('the mainnet gate and the key slot (docs/contract-v2.md 5)', () => {
+  const run = async (c: ReturnType<typeof chain>, argv: string[], answers: string[] = [], hidden: string[] = []) => {
+    const out = capture();
+    const code = await main(['mainnet', ...argv], {
+      reader: c.reader,
+      openSender: c.openSender,
+      prompt: scripted(answers, hidden),
+      logger: out.logger,
+      sendOptions: { waitMs: 1 },
+    });
+    return { code, text: out.text() };
+  };
+
+  it('v1 with its single key: an install or a replace is refused before the paper key is asked; a retire is allowed', async () => {
+    const c = chain(2_001_000, true);
+    const d = dir();
+    const h = holders(d);
+    let asked = 0;
+    const out = capture();
+    const prompt = scripted([], [c.paperKey]);
+    const askHidden = prompt.askHidden;
+    (prompt as { askHidden: Prompt['askHidden'] }).askHidden = async (q) => (asked++, askHidden(q));
+    const code = await main(['mainnet', 'install', ...h.cardArgs, '--dry-run', '--out', path.join(d, 'x.json')], {
+      reader: c.reader,
+      openSender: c.openSender,
+      prompt,
+      logger: out.logger,
+    });
+    expect(code).toBe(1);
+    expect(out.text()).toMatch(/On v1 with its single key, the only change allowed is one retire/);
+    expect(asked).toBe(0);
+    expect(existsSync(path.join(d, 'x.json'))).toBe(false);
+    const replace = await run(c, ['request', '--replace', ...h.cardArgs, '--out', path.join(d, 'r.json')]);
+    expect(replace.code).toBe(1);
+    expect(replace.text).toMatch(/only change allowed is one retire/);
+    const retire = await run(c, ['request', '--retire', '--out', path.join(d, 'retire.json')]);
+    expect(retire.code, retire.text).toBe(0);
+    const req = JSON.parse(readFileSync(path.join(d, 'retire.json'), 'utf8')) as Request;
+    expect(req.current.keySlot).toBe('v3');
+    expect(c.sent()).toBe(0);
+  });
+
+  it('v2 before the handover: listed keys go in V4, the slot coming from the record; nothing else is made', async () => {
+    const c = chain(2_001_000, true);
+    const d = dir();
+    const v2 = v2Record(d, c.address, c.paperKey);
+    const ok = await run(c, [
+      'request',
+      ...v2.args,
+      '--insert',
+      `circuit3=${V4_FILE}`,
+      '--out',
+      path.join(d, 'ins.json'),
+    ]);
+    expect(ok.code, ok.text).toBe(0);
+    const req = JSON.parse(readFileSync(path.join(d, 'ins.json'), 'utf8')) as Request;
+    expect(req.current.keySlot).toBe('v4');
+    expect(req.actions[0]).toMatchObject({ kind: 'insert-key', circuit: 'circuit3', keySlot: 'v4' });
+    // A circuit not in the table; a removal; V3 named for v2: each refused, no file written.
+    const notListed = await run(c, [
+      'request',
+      ...v2.args,
+      '--insert',
+      `rewriteHolder=${V4_FILE}`,
+      '--out',
+      path.join(d, 'a.json'),
+    ]);
+    expect(notListed.text).toMatch(/"rewriteHolder" is not a circuit in docs\/fingerprints-v2\.md/);
+    const removal = await run(c, ['request', ...v2.args, '--remove', 'circuit3', '--out', path.join(d, 'b.json')]);
+    expect(removal.text).toMatch(/"remove-key" is not allowed on v2 before the handover/);
+    const v3 = await run(c, [
+      'request',
+      ...v2.args,
+      '--key-slot',
+      'v3',
+      '--insert',
+      `circuit3=${V4_FILE}`,
+      '--out',
+      path.join(d, 'c.json'),
+    ]);
+    expect(v3.text).toMatch(/keys are in slot V4 \(contract v2\), not V3/);
+    for (const f of ['a.json', 'b.json', 'c.json']) expect(existsSync(path.join(d, f))).toBe(false);
+  });
+
+  it('v2: a request that leaves the slot out (the old V3 default) is refused at submit, before any signature counts', async () => {
+    const c = chain(2_001_000, true);
+    const d = dir();
+    const v2 = v2Record(d, c.address, c.paperKey);
+    // Built with the slot left out everywhere, as a request made before the slot existed (or by
+    // hand) would be: the core reads that as V3, and nothing in the file says otherwise.
+    const noSlot = makeRequest({
+      network: 'mainnet',
+      contractAddress: c.address,
+      current: c.authority(),
+      actions: [{ kind: 'remove-key', circuit: 'circuit3' }],
+    });
+    const f = path.join(d, 'req.json');
+    writeFileSync(f, JSON.stringify(noSlot));
+    const sig = path.join(d, 'sig.json');
+    writeFileSync(sig, JSON.stringify(signRequest(noSlot, c.paperKey)));
+    const r = await run(c, ['submit', ...v2.args, '--request', f, '--sig', sig, '--dry-run']);
+    expect(r.code).toBe(1);
+    expect(r.text).toMatch(/The request says the contract's keys are in slot V3, but this contract's are in V4/);
+    expect(c.sent()).toBe(0);
+  });
+
+  it('the handover on v2 signs with the temporary key from its age file, never typed; another key file is refused', async () => {
+    const c = chain(2_001_000, true);
+    const d = dir();
+    const h = holders(d);
+    const v2 = v2Record(d, c.address, c.paperKey);
+    const files = new Map([
+      ['temp.age', c.paperKey],
+      ['other.age', newKey()],
+    ]);
+    const keyStore = {
+      create: () => undefined,
+      open: (f: string) => files.get(path.basename(f)) ?? '',
+    };
+    let typed = 0;
+    const go = async (keyFile: string) => {
+      const out = capture();
+      const prompt = scripted([], []);
+      const askHidden = prompt.askHidden;
+      (prompt as { askHidden: Prompt['askHidden'] }).askHidden = async (q) => (typed++, askHidden(q));
+      const code = await main(
+        [
+          'mainnet',
+          'install',
+          ...v2.args,
+          ...h.cardArgs,
+          '--temp-key-file',
+          path.join(d, keyFile),
+          '--dry-run',
+          '--out',
+          path.join(d, `dry-${keyFile}.json`),
+        ],
+        { reader: c.reader, openSender: c.openSender, prompt, logger: out.logger, keyStore },
+      );
+      return { code, text: out.text() };
+    };
+    const ok = await go('temp.age');
+    expect(ok.code, ok.text).toBe(0);
+    expect(ok.text).toMatch(/DRY RUN, nothing sent/);
+    const bad = await go('other.age');
+    expect(bad.code).toBe(1);
+    expect(bad.text).toMatch(/does not hold the key that holds this contract now/);
+    expect(typed).toBe(0);
+    expect(() => parseOptions(['mainnet', 'show', '--temp-key-file', 'k.age'])).toThrow(/for install on contract v2/);
+  });
+
+  it('a record for another network, or an address with the record, is refused on the command line', async () => {
+    const c = chain(2_001_000, true);
+    const d = dir();
+    const v2 = v2Record(d, c.address, c.paperKey, 'preprod');
+    const r = await run(c, ['show', ...v2.args]);
+    expect(r.code).toBe(2);
+    expect(r.text).toMatch(/The record is for preprod, not mainnet/);
+    expect(() => parseOptions(['preprod', 'show', '--v2-record', 'x.json', '--address', 'ab'.repeat(32)])).toThrow(
+      /not both/,
+    );
   });
 });
