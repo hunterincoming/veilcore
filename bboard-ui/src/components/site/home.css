@@ -1648,6 +1648,11 @@ html:has(.vcm .home) [data-site-header] [data-language-picker] .MuiOutlinedInput
   .vcm .home .k-photo {
     min-height: 88svh;
   }
+  /* On a phone the words run up over the brightest part of the photo, so the dark reaches
+     further up behind them (the jar's roots made the paragraph hard to read, 22 Nov). */
+  .vcm .home .k-photo-frame::after {
+    background: linear-gradient(rgba(11, 14, 20, 0.1) 5%, rgba(11, 14, 20, 0.78) 38%, rgba(11, 14, 20, 0.94) 100%);
+  }
   .vcm .home .k-timeline {
     height: 84px;
   }
@@ -2443,4 +2448,56 @@ html:lang(ja) .vc-curtain-t {
 /* "All of how it works" under the three steps, not under the first (review of #169). */
 .vcm .home .k-steps-more {
   margin-top: 24px;
+}
+
+/* The three steps' pictures (Mako's note, 22 Nov): How it works' stage, drawn still, one above
+   each step, all the same height so the three headings line up. */
+.vcm .home .k-step-pic {
+  display: grid;
+  place-items: center;
+  height: 200px;
+  margin-bottom: 20px;
+  padding: 20px;
+  border-radius: 6px;
+  background: radial-gradient(70% 70% at 50% 50%, #101724 0, var(--void-2) 80%);
+  overflow: hidden;
+}
+.vcm .home .k-step-pic .k-rec {
+  width: 100%;
+}
+.vcm .home .k-step-pic .k-rec div {
+  grid-template-columns: 6.5em 1fr;
+  padding: 10px 14px;
+  font-size: 16px;
+}
+.vcm .home .k-step-pic .k-bigcode {
+  font-size: 15px;
+}
+.vcm .home .k-step-pic .k-check {
+  width: 120px;
+}
+/* The check mark draws itself as its step comes into view, and again on the way back. */
+.vcm .home:not(.k-js) .k-step-pic .k-check :is(.ring, .ok),
+.vcm .home li.in > .k-step-pic .k-check :is(.ring, .ok) {
+  stroke-dashoffset: 0;
+}
+@media (max-width: 760px) {
+  .vcm .home .k-step-pic {
+    height: 140px;
+  }
+}
+
+/* "Who it is for": one photo over each column, the same height as the steps' pictures. */
+.vcm .home .k-who-pic {
+  display: block;
+  width: 100%;
+  height: 200px;
+  margin-bottom: 20px;
+  border-radius: 6px;
+  object-fit: cover;
+}
+@media (max-width: 760px) {
+  .vcm .home .k-who-pic {
+    height: 140px;
+  }
 }

@@ -110,7 +110,7 @@ test.describe('the home page', () => {
     await expect(page.locator('#technical details')).toHaveAttribute('open', '');
   });
 
-  test('is short: hero, three steps, who it is for, privacy, use it your way, links', async ({ page }) => {
+  test('is short: hero, three steps with pictures, who it is for, the jar, use it your way, links', async ({ page }) => {
     await isolate(page);
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto('/');
@@ -143,7 +143,8 @@ test.describe('the home page', () => {
         '/new',
         '/verify',
         '/privacy',
-        '/founders',
+        // About itself is in the menu on every page; the list keeps "Talk to the founders" (22 Nov).
+        '/founders#contact',
         '/docs/spec',
         '/docs/integrate',
         '/docs/evidence',

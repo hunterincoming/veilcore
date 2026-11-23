@@ -66,10 +66,13 @@ import {
   NightClose,
   NightEnd,
   Photo,
+  PhotoCredits,
+  PhotoScreen,
   SR_ONLY,
   Two,
   WordLight,
   arrowed,
+  scramble,
   useHashScroll,
   useReveals,
   useScrollPieces,
@@ -707,6 +710,66 @@ const HOME_HEX = 'f4f83986ca01724bd31765a409cbac032357ac5de60e6e6184611ad4669549
  * line on privacy and Midnight's part; use it your way; and a list of links to everything that
  * moved (How it works, About, Help). complexity-budget.json holds it to that ("site.home").
  */
+/** The example proof code drawn in step 2 (the same one How it works shows). */
+const STEP_CODE = '3f9a1c07b2e84d6a91c5f0e27b4d8a3c6e1f95b0d27a4c8e3b61f0a9d5c27e48';
+
+/**
+ * What each of the three steps looks like, drawn above it (Mako's note, 22 Nov: the landing had
+ * too little to look at). The same pictures as How it works' four steps, still: an example
+ * record, its proof code, the check. Decoration: the step's own words say it.
+ */
+const StepPicture: React.FC<{ n: number }> = ({ n }) => {
+  const { t } = useI18n();
+  // The code settles from random hex each time it comes into view (Mako's scramble, as on How it
+  // works); the check mark draws itself (home.css). Both still with reduced motion.
+  const code = useRef<HTMLParagraphElement>(null);
+  useEffect(() => {
+    const el = code.current;
+    if (!el) return;
+    el.textContent = STEP_CODE;
+    if (typeof IntersectionObserver === 'undefined') return;
+    let stop: (() => void) | undefined;
+    const io = new IntersectionObserver(
+      ([e]) => {
+        if (e?.isIntersecting) {
+          stop?.();
+          stop = scramble(el, STEP_CODE);
+        }
+      },
+      { threshold: 0.6 },
+    );
+    io.observe(el);
+    return () => {
+      io.disconnect();
+      stop?.();
+    };
+  }, []);
+  return (
+    <div className="k-step-pic" aria-hidden="true">
+      {n === 0 && (
+        <dl className="k-rec">
+          <div>
+            <dt>{t('m.hero.cultivar')}</dt>
+            <dd>Harbour Mist</dd>
+          </div>
+          <div>
+            <dt>{t('m.home.ex.dna')}</dt>
+            <dd>report.pdf</dd>
+          </div>
+        </dl>
+      )}
+      {n === 1 && <p className="k-bigcode" ref={code} />}
+      {n === 2 && (
+        <svg className="k-check" viewBox="0 0 160 160">
+          <circle cx="80" cy="80" r="70" />
+          <circle className="ring" cx="80" cy="80" r="70" />
+          <path className="ok" d="M52 82 L72 101 L110 61" />
+        </svg>
+      )}
+    </div>
+  );
+};
+
 export const Home: React.FC = () => {
   const { t, lang, sp } = useI18n();
   const { hash } = useLocation();
@@ -728,15 +791,17 @@ export const Home: React.FC = () => {
     [t('m.home2.s2t'), t('m.home2.s2p')],
     [t('m.home2.s3t'), t('m.home2.s3p')],
   ];
-  const who: [string, string, string, string][] = [
-    [t('m.home2.w1t'), t('m.home2.w1p'), '/new', t('m.demo.create.title')],
-    [t('m.home2.w2t'), t('m.home2.w2p'), LAB_DOOR, t('title.forLabs')],
-    [t('m.home2.w3t'), t('m.home2.w3p'), '/partners', t('title.partners')],
+  // Each kind of user with one of Mako's photos (his note, 22 Nov: too little to look at).
+  const who: [string, string, string, string, 'greenhouse' | 'lab' | 'cattle'][] = [
+    [t('m.home2.w1t'), t('m.home2.w1p'), '/new', t('m.demo.create.title'), 'greenhouse'],
+    [t('m.home2.w2t'), t('m.home2.w2p'), LAB_DOOR, t('title.forLabs'), 'lab'],
+    [t('m.home2.w3t'), t('m.home2.w3p'), '/partners', t('title.partners'), 'cattle'],
   ];
   const more: [string, string][] = [
-    ['/how-it-works', t('m.hero.how')],
+    // How it works, About and their updates are in the menu on every page, and "All of how it
+    // works" sits under the steps, so they left this list when the steps got their pictures
+    // (Mako's note, 22 Nov).
     ['/how-it-works#claims', t('m.claims.label')],
-    ['/how-it-works#where', t('m.live.label')],
     // Parentage, live since 21 Nov, on the home page too (review of #169).
     [PARENTAGE_DOC, t('m.for.5parentLink')],
     ['/how-it-works#status', t('m.stops.title')],
@@ -744,8 +809,6 @@ export const Home: React.FC = () => {
     ['/how-it-works#questions', t('m.home2.l.faq')],
     ['/how-it-works#technical', t('m.tech.title')],
     ['/help', t('footer.help')],
-    ['/founders', t('m.nav.about')],
-    ['/founders#updates', t('m.nav.updates')],
     ['/founders#contact', t('m.home2.l.contact')],
     // (Privacy is linked from the privacy line above.)
     ['/docs/spec', t('title.spec')],
@@ -818,6 +881,7 @@ export const Home: React.FC = () => {
             <ol className="k-grid4 k-grid3 k-plain-steps">
               {steps.map(([title, text], i) => (
                 <li key={title} data-reveal="" style={{ '--d': i } as React.CSSProperties}>
+                  <StepPicture n={i} />
                   <h3>{title}</h3>
                   <p>{text}</p>
                 </li>
@@ -835,8 +899,14 @@ export const Home: React.FC = () => {
               {t('m.home2.whoTitle')}
             </h2>
             <div className="k-grid4 k-grid3">
-              {who.map(([title, text, to, link], i) => (
+              {who.map(([title, text, to, link, photo], i) => (
                 <div key={title} data-reveal="" style={{ '--d': i } as React.CSSProperties}>
+                  <Photo
+                    className="k-who-pic"
+                    name={photo}
+                    alt={t(`m.home.alt.${photo}`)}
+                    sizes="(max-width: 760px) 100vw, 33vw"
+                  />
                   <h3>{title}</h3>
                   <p>{text}</p>
                   <p>
@@ -850,18 +920,18 @@ export const Home: React.FC = () => {
           </div>
         </section>
 
-        <section className="k-sec" id="private" aria-labelledby="keep-h">
-          <div className="k-wrap">
-            <h2 id="keep-h" className="k-h2" data-reveal="">
-              {t('m.home.keep.t')}
-            </h2>
-            <p className="k-lead" data-reveal="" style={{ '--d': 1 } as React.CSSProperties}>
-              {t('m.home.keep.p')}
-              {sp}
-              <RouterLink to="/privacy">{arrowed(t('m.demo.privacy'))}</RouterLink>
-            </p>
-          </div>
-        </section>
+        {/* Mako's jar, back on the landing (his note, 22 Nov: too little to look at). The same
+            photo and words as How it works, opening from an inset as it comes into view. */}
+        <PhotoScreen id="private" labelledBy="keep-h" name="jar" alt={t('m.home.alt.jar')} position="50% 60%">
+          <h2 id="keep-h" className="k-giant" data-reveal="">
+            {t('m.home.keep.t')}
+          </h2>
+          <p className="k-lead" data-reveal="" style={{ '--d': 1 } as React.CSSProperties}>
+            {t('m.home.keep.p')}
+            {sp}
+            <RouterLink to="/privacy">{arrowed(t('m.demo.privacy'))}</RouterLink>
+          </p>
+        </PhotoScreen>
 
         <section className="k-sec" id="own-way" aria-labelledby="own-h" data-own-way="">
           <div className="k-wrap">
@@ -896,6 +966,8 @@ export const Home: React.FC = () => {
             </ul>
           </div>
         </section>
+
+        <PhotoCredits names={['jar', 'greenhouse', 'lab', 'cattle']} />
 
         <NightClose />
       </div>
