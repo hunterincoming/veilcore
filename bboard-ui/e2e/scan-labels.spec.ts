@@ -208,6 +208,15 @@ test('a saved record prints QR labels: the short ID by default, the name only wh
     'GET /api/licenses': (route) => json(route, 200, []),
     'PUT /api/licenses': (route) => json(route, 200, { ok: true }),
     'GET /transfers/sent': (route) => json(route, 200, { transfers: [] }),
+    // The label's check page: the registry reports the record with its proof code, not dated yet.
+    'GET /verify/:record': (route) =>
+      json(route, 200, {
+        found: true,
+        id: held.records[0]?.id,
+        recordFingerprint: held.records[0]?.recordFingerprint,
+        anchored: false,
+        disclosed: [],
+      }),
   });
 
   const NAME = 'Label Me (test data)';
@@ -244,13 +253,18 @@ test('a saved record prints QR labels: the short ID by default, the name only wh
   await expect(svg).toHaveAttribute('height', `${11 * 25.4}mm`);
   expect(await svg.locator('.label-outline').count()).toBe(30);
 
+  const fp = String(held.records[0].recordFingerprint);
   if (SHOTS) {
     fs.mkdirSync(SHOTS, { recursive: true });
     await page.screenshot({ path: path.join(SHOTS, 'labels-390-default.png'), fullPage: true });
     await page.emulateMedia({ media: 'print' });
+    await page.screenshot({ path: path.join(SHOTS, 'labels-print.png'), fullPage: true });
     fs.writeFileSync(path.join(SHOTS, 'labels-letter-default.pdf'), await page.pdf({ preferCSSPageSize: true }));
     await page.emulateMedia({ media: 'screen' });
   }
+
+  // The proof code's last 6 characters, large beside the QR code, to match the check page by eye.
+  await expect(sheet.locator('[data-label] text').nth(1)).toHaveText(`…${fp.slice(-6)}`);
 
   // Download PDF: one tap saves a PDF of the sheet at US Letter size, named for the record, and
   // its QR code reads back as the label's check link (the record ID and proof code, no name).
@@ -324,5 +338,25 @@ test('a saved record prints QR labels: the short ID by default, the name only wh
     await page.setViewportSize({ width: 390, height: 844 });
     await page.screenshot({ path: path.join(SHOTS, 'record-390.png') });
   }
+
+  // The check page the label opens shows the same 6 characters, in bold, wherever the proof code is.
+  await page.goto(`/verify/${id}?fp=${fp}&lang=en`);
+  if (SHOTS) {
+    await page.locator('[data-verdict]').waitFor({ timeout: 30_000 });
+    await page.screenshot({ path: path.join(SHOTS, 'check-390.png'), fullPage: true });
+  }
+  // They are under "See the checks" (the page's word budget has no room for another line).
+  await page.getByRole('button', { name: 'See the checks' }).click();
+  const ends = page.locator('main [data-proof-end]');
+  await expect(ends.first()).toBeVisible({ timeout: 30_000 });
+  await expect(ends.first()).toHaveText(fp.slice(-6));
+  if (SHOTS) {
+    await page.screenshot({ path: path.join(SHOTS, 'check-390-checks.png'), fullPage: true });
+    await page.emulateMedia({ media: 'print' });
+    await page.screenshot({ path: path.join(SHOTS, 'check-print.png'), fullPage: true });
+    await page.emulateMedia({ media: 'screen' });
+  }
+  for (const t of await ends.allTextContents()) expect(t).toBe(fp.slice(-6));
+  await expect(ends.first()).toHaveCSS('font-weight', '700');
   expectNoErrors(errors);
 });
