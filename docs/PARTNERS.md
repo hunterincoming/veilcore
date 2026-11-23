@@ -303,6 +303,14 @@ can deploy a contract with identical circuits and different starting state, so t
 is what says which one is VeilCore's. They were pinned on 8 October 2026, and 0.2.0 joins
 them by default (an earlier version, with empty pins, refuses every mainnet join).
 
+The accepted addresses are a pinned list per contract (`MAINNET_CONTRACTS`), each entry with
+the contract version that says how its state is read. Today it holds version 1 only, so the
+list and `MAINNET_ADDRESSES` name the same two contracts. If a later contract takes over, it
+is added as a new entry and the old one stays (veilcore-sdk `SPEC.md` 9.2.1). Until a
+release teaches the default to try every entry, a check made without an address uses the
+newest one, so pass the v1 address explicitly to check a batch dated on version 1 once a
+successor exists. No successor exists today.
+
 On **preprod** the default is the pair from the 5 October 2026 test run
 (`PREPROD_ADDRESSES`). Test network: nothing there is real.
 

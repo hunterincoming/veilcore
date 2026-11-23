@@ -147,6 +147,39 @@ export const anchorContractFor = (
 };
 export const ANCHOR_CONTRACT: string | undefined = anchorContractFor(NETWORK, MAINNET_CONTRACT_ADDRESS, CHAIN_CONTRACT);
 
+/**
+ * Which compiled contract wrote a state, and so which decoder reads it (anchor-decode.ts).
+ * Only v1 exists today; contract version 2 adds its own entry here and its own decoder.
+ */
+export type ContractVersion = 'v1';
+
+/** One contract the check page accepts a batch root from, pinned in this build. */
+export type PinnedContract = {
+  readonly version: ContractVersion;
+  /** 64 lowercase hexadecimal characters. */
+  readonly address: string;
+};
+
+/**
+ * Every contract a batch root may have been written to, oldest first. The check page looks
+ * for a call on any of them and reads its state with that contract's own decoder, so records
+ * dated on an older contract stay checkable after a newer one takes over. Today: v1 only,
+ * the same single contract as ANCHOR_CONTRACT; empty when that is not set.
+ */
+export const anchorContractsFor = (
+  network: string,
+  mainnetPin: string,
+  demo: string | undefined,
+): readonly PinnedContract[] => {
+  const v1 = anchorContractFor(network, mainnetPin, demo);
+  return v1 ? [{ version: 'v1', address: v1 }] : [];
+};
+export const ANCHOR_CONTRACTS: readonly PinnedContract[] = anchorContractsFor(
+  NETWORK,
+  MAINNET_CONTRACT_ADDRESS,
+  CHAIN_CONTRACT,
+);
+
 const sameContract = (a: string, b: string): boolean => {
   const n = (v: string) => v.trim().toLowerCase().replace(/^0x/, '');
   return /^[0-9a-f]{64}$/.test(n(a)) && n(a) === n(b);

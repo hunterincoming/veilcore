@@ -15,7 +15,8 @@ import type { ProofState } from '../veilcore/proofs';
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const TX = 'e1'.repeat(32);
 const ROOT = 'b5'.repeat(32);
-const PINNED = 'c0'.repeat(32);
+const PINNED_ADDRESS = 'c0'.repeat(32);
+const PINNED = [{ version: 'v1', address: PINNED_ADDRESS }] as const;
 const REGISTRY_NAMED = 'ee'.repeat(32);
 const BLOCK_MS = Date.UTC(2026, 9, 11, 14, 3, 7);
 
@@ -73,7 +74,7 @@ beforeEach(() => forgetAnchorLookups());
 
 describe('lookUpAnchor: the one look-up every page shares', () => {
   it('checks against the contract this build pins, never the one the registry names', async () => {
-    const atPinned = indexer(PINNED);
+    const atPinned = indexer(PINNED_ADDRESS);
     expect(await lookUpAnchor(proof(), deps(atPinned), PINNED)).toMatchObject({ status: 'checked', blockHeight: 77 });
     forgetAnchorLookups();
     // The registry names REGISTRY_NAMED and the transaction did call it: still refused.
@@ -82,7 +83,7 @@ describe('lookUpAnchor: the one look-up every page shares', () => {
   });
 
   it('asks once for parts of a page asking together, and keeps a definite answer', async () => {
-    const i = indexer(PINNED);
+    const i = indexer(PINNED_ADDRESS);
     const d = deps(i);
     const [a, b] = await Promise.all([lookUpAnchor(proof(), d, PINNED), lookUpAnchor(proof(), d, PINNED)]);
     expect(a).toEqual(b);
@@ -91,7 +92,7 @@ describe('lookUpAnchor: the one look-up every page shares', () => {
   });
 
   it('does not keep “couldn’t reach Midnight”: the next look tries again', async () => {
-    const down = indexer(PINNED, true);
+    const down = indexer(PINNED_ADDRESS, true);
     const d = deps(down);
     expect(await lookUpAnchor(proof(), d, PINNED)).toMatchObject({ status: 'unreachable' });
     await lookUpAnchor(proof(), d, PINNED);
@@ -99,7 +100,7 @@ describe('lookUpAnchor: the one look-up every page shares', () => {
   });
 
   it('nothing to look up without a transaction', () => {
-    expect(lookUpAnchor(proof({ txHash: undefined }), deps(indexer(PINNED)), PINNED)).toBeUndefined();
+    expect(lookUpAnchor(proof({ txHash: undefined }), deps(indexer(PINNED_ADDRESS)), PINNED)).toBeUndefined();
   });
 });
 

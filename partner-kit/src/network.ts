@@ -158,12 +158,42 @@ export const PREPROD_ADDRESSES: Readonly<Record<ContractKind, string>> = {
 };
 
 /**
+ * Which build of a VeilCore contract a state comes from, and so how that state is read
+ * (verify.ts, checkBatchAnchor). Only version 1 exists today.
+ */
+export type ContractVersion = 'v1';
+
+/** One contract this version of the package accepts as VeilCore's on mainnet. */
+export type PinnedContract = {
+  readonly version: ContractVersion;
+  /** 64 lowercase hexadecimal characters. */
+  readonly address: string;
+};
+
+const v1Only = (address: string): readonly PinnedContract[] =>
+  address === '' ? [] : [{ version: 'v1', address: address.trim().toLowerCase().replace(/^0x/, '') }];
+
+/**
+ * Every contract of each kind accepted as VeilCore's on mainnet, oldest first, each with the
+ * version that says how its state is read. Today: version 1 only, the deployment record's
+ * contracts (deployed 8 October 2026; pinned in api/src/deploy-guard.ts). A successor is
+ * added as a new entry with its own version and its own reader; entries are never changed or
+ * removed, so what was written on an older contract stays checkable (SPEC.md 9.2.1 in
+ * veilcore-sdk). On mainnet nothing outside this list is accepted as VeilCore's.
+ */
+export const MAINNET_CONTRACTS: Readonly<Record<ContractKind, readonly PinnedContract[]>> = {
+  veilcore: v1Only(MAINNET_VEILCORE_ADDRESS),
+  claims: v1Only(MAINNET_CLAIMS_ADDRESS),
+};
+
+/**
  * VeilCore's contracts on mainnet, as the deployment record names them (deployed 8 October
- * 2026; pinned in api/src/deploy-guard.ts). On mainnet nothing else is accepted as VeilCore's.
+ * 2026; pinned in api/src/deploy-guard.ts): the newest entry of each MAINNET_CONTRACTS list,
+ * the one used when no address is given. Empty while none is pinned.
  */
 export const MAINNET_ADDRESSES: Readonly<Record<ContractKind, string>> = {
-  veilcore: MAINNET_VEILCORE_ADDRESS,
-  claims: MAINNET_CLAIMS_ADDRESS,
+  veilcore: MAINNET_CONTRACTS.veilcore.at(-1)?.address ?? '',
+  claims: MAINNET_CONTRACTS.claims.at(-1)?.address ?? '',
 };
 
 const norm = (a: string): string => a.trim().toLowerCase().replace(/^0x/, '');
@@ -178,26 +208,39 @@ export const defaultAddress = (network: Network, kind: ContractKind): string | u
 /**
  * Throw unless `address` may be treated as VeilCore's `kind` contract on `network`: on a
  * development network any address (you deployed it, or someone told you which); on every
- * other network, mainnet included, only the pinned address, and nothing while that is
- * empty. The same rule as api/src/deploy-guard.ts (assertJoinAllowed,
+ * other network, mainnet included, only a pinned address (MAINNET_CONTRACTS), and nothing
+ * while none is. The same rule as api/src/deploy-guard.ts (assertJoinAllowed,
  * assertClaimsJoinAllowed), with the network passed in rather than read from the process.
  */
 export const assertAddressFor = (network: Network, kind: ContractKind, address: string): 'development' | 'pinned' => {
   if (!/^(0x)?[0-9a-fA-F]{64}$/.test(address.trim())) throw new Error('That is not a contract address (64 hex).');
   if (RECORD_NOT_REQUIRED.has(network)) return 'development';
-  const pinned = norm(MAINNET_ADDRESSES[kind]);
+  const pinned = MAINNET_CONTRACTS[kind].map((c) => c.address);
   const name = kind === 'veilcore' ? 'VeilCore' : 'VeilCore claims';
-  if (pinned === '')
+  if (pinned.length === 0)
     throw new Error(
       `Refusing ${address}: on ${network} no ${name} contract is pinned in this version of @veilcore/contracts yet ` +
         '(the mainnet address goes in with the deploy). Nothing was read or sent.',
     );
-  if (norm(address) !== pinned)
+  if (!pinned.includes(norm(address)))
     throw new Error(
-      `Refusing ${address}: on ${network} the ${name} contract is ${pinned} (the deployment record). ` +
+      `Refusing ${address}: on ${network} the ${name} contract is ${pinned.join(' or ')} (the deployment record). ` +
         'Another address can carry the same circuits with other state. Nothing was read or sent.',
     );
   return 'pinned';
+};
+
+/**
+ * Which pinned contract `address` is, and so how its state is read. On a development network,
+ * where any address is allowed, it is read as version 1, the only version this package reads.
+ * Call after assertAddressFor (resolveAddress does).
+ */
+export const pinnedContractFor = (network: Network, kind: ContractKind, address: string): PinnedContract => {
+  const a = norm(address);
+  if (RECORD_NOT_REQUIRED.has(network)) return { version: 'v1', address: a };
+  const found = MAINNET_CONTRACTS[kind].find((c) => c.address === a);
+  if (found === undefined) throw new Error(`Refusing ${address}: not a pinned contract. Nothing was read or sent.`);
+  return found;
 };
 
 /** `address`, or the default for `network`; refused unless it may be treated as VeilCore's. */

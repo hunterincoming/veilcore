@@ -37,10 +37,12 @@ import {
 import { isProvablyRetired } from '../../api/src/maintenance.js';
 import {
   type ContractKind,
-  MAINNET_ADDRESSES,
+  type ContractVersion,
+  MAINNET_CONTRACTS,
   type Network,
   endpointsFor,
   isNetwork,
+  pinnedContractFor,
   resolveAddress,
 } from './network.js';
 
@@ -107,14 +109,17 @@ const assertSameNetwork = (o: ReadOptions, indexers: readonly string[], address:
         `Refusing: the network is ${o.network} but the indexer ${hostOf(i)} is a mainnet one. ` +
           "Use network: 'mainnet', where only VeilCore's pinned contracts are accepted. Nothing was read.",
       );
-  if (Object.values(MAINNET_ADDRESSES).some((m) => m !== '' && m.toLowerCase() === address))
+  if (Object.values(MAINNET_CONTRACTS).some((list) => list.some((c) => c.address === address)))
     throw new Error(
       `Refusing: ${address} is VeilCore's mainnet contract, but the network is ${o.network}. ` +
         "Use network: 'mainnet'. Nothing was read.",
     );
 };
 
-const where = (o: ReadOptions, kind: ContractKind): { indexer: string; address: string; check: LookupCheck } => {
+const where = (
+  o: ReadOptions,
+  kind: ContractKind,
+): { indexer: string; address: string; version: ContractVersion; check: LookupCheck } => {
   if (!isNetwork(o.network)) throw new Error(`Unknown network ${String(o.network)}.`);
   const indexer = o.indexer ?? endpointsFor(o.network, {}, { blockfrostProjectId: o.blockfrostProjectId }).indexer;
   const address = resolveAddress(o.network, kind, o.address);
@@ -126,12 +131,22 @@ const where = (o: ReadOptions, kind: ContractKind): { indexer: string; address: 
   return {
     indexer,
     address,
+    version: pinnedContractFor(o.network, kind, address).version,
     check: {
       verifierKeys: pinned ? pinnedVerifierKeys(kind === 'veilcore' ? 'veilcore' : 'veilcore-claims') : undefined,
       authorityCounter: o.authorityCounter,
       secondIndexer: o.secondIndexer,
     },
   };
+};
+
+/**
+ * The batch root a call wrote, read from the state after it by the reader for the pinned
+ * contract's version (network.ts MAINNET_CONTRACTS), never by what the state or the caller
+ * says. Only version 1 today; a successor adds its own reader here.
+ */
+const BATCH_ROOT_READERS: Readonly<Record<ContractVersion, (state: ContractState) => Uint8Array>> = {
+  v1: (state) => Veilcore.ledger(state.data).lastBatchRoot,
 };
 
 /** A refusal for a state that is not the pinned build: a verdict, not an exception. */
@@ -394,7 +409,7 @@ export const checkBatchAnchor = async (
     if (r !== undefined) return r;
     throw e;
   }
-  const onChain = Buffer.from(Veilcore.ledger(found.state.data).lastBatchRoot).toString('hex');
+  const onChain = Buffer.from(BATCH_ROOT_READERS[w.version](found.state)).toString('hex');
   const ok = onChain === Buffer.from(o.root).toString('hex');
   return {
     accepted: ok,
