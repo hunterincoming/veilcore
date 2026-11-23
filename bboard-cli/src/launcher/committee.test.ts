@@ -1033,7 +1033,50 @@ describe('the mainnet gate and the key slot (docs/contract-v2.md 5)', () => {
     expect(bad.code).toBe(1);
     expect(bad.text).toMatch(/does not hold the key that holds this contract now/);
     expect(typed).toBe(0);
-    expect(() => parseOptions(['mainnet', 'show', '--temp-key-file', 'k.age'])).toThrow(/for install on contract v2/);
+    expect(() => parseOptions(['mainnet', 'show', '--temp-key-file', 'k.age'])).toThrow(
+      /for contract v2 before its handover/,
+    );
+  });
+
+  it('a record naming v1\u2019s pinned address as v2 is refused before anything is read', async () => {
+    const c = chain(2_001_000, true);
+    const d = dir();
+    const v2 = v2Record(d, MAINNET_VEILCORE_ADDRESS, c.paperKey);
+    const r = await run(c, ['request', ...v2.args, '--insert', `circuit3=${V4_FILE}`, '--out', path.join(d, 'x.json')]);
+    expect(r.code).toBe(2);
+    expect(r.text).toMatch(/is a pinned v1 address, never a v2 one/);
+    expect(existsSync(path.join(d, 'x.json'))).toBe(false);
+  });
+
+  it('v2 before the handover can be closed for good: one retire, alone, signed from the temporary key file', async () => {
+    const c = chain(2_001_000, true);
+    const d = dir();
+    const v2 = v2Record(d, c.address, c.paperKey);
+    const r = await run(c, ['request', ...v2.args, '--retire', '--out', path.join(d, 'retire.json')]);
+    expect(r.code, r.text).toBe(0);
+    expect((JSON.parse(readFileSync(path.join(d, 'retire.json'), 'utf8')) as Request).actions).toEqual([
+      { kind: 'retire' },
+    ]);
+    const keyStore = { create: () => undefined, open: () => c.paperKey };
+    const out = capture();
+    const dry = await main(
+      [
+        'mainnet',
+        'submit',
+        ...v2.args,
+        '--request',
+        path.join(d, 'retire.json'),
+        '--temp-key-file',
+        path.join(d, 't.age'),
+        '--dry-run',
+        '--out',
+        path.join(d, 'dry-retire.json'),
+      ],
+      { reader: c.reader, openSender: c.openSender, prompt: scripted([]), logger: out.logger, keyStore },
+    );
+    expect(dry, out.text()).toBe(0);
+    expect(out.text()).toMatch(/DRY RUN, nothing sent/);
+    expect(c.sent()).toBe(0);
   });
 
   it('a record for another network, or an address with the record, is refused on the command line', async () => {

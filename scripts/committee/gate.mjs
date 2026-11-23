@@ -5,8 +5,9 @@
 //     v2 is pinned only after verify:deployment passes) while it still has the temporary single
 //     key and no committee: inserts of the keys listed in docs/fingerprints-v2.md (slot V4), and
 //     one replace-authority to a 2-of-3 committee (its three holders' confirmations and the
-//     dry-run record of exactly that change are required by the launcher before it is sent).
-//     Nothing else.
+//     dry-run record of exactly that change are required by the launcher before it is sent);
+//     or one `retire`, alone, so a v2 that will not be finished can be closed for good
+//     (design condition 7; two-of-three Part D). Nothing else.
 //  2. "v1 retire with the single key" (design 6): one `retire` on v1's pinned address, nothing else.
 //
 // And the key slot: it comes from the contract, never from the request. v1's pinned address is
@@ -28,8 +29,9 @@ const sha256Hex = (hex) => createHash('sha256').update(Buffer.from(hex, 'hex')).
 export const slotForContract = ({ network, address, pinnedV1Address, v2, named }) => {
   const a = cleanHex(address);
   let slot;
-  if (v2 !== undefined && a === cleanHex(v2.address)) slot = 'v4';
-  else if (network === 'mainnet' && a === cleanHex(pinnedV1Address)) slot = 'v3';
+  // v1 first: a record naming v1's address as v2 never gives v1 the V4 slot.
+  if (network === 'mainnet' && a === cleanHex(pinnedV1Address)) slot = 'v3';
+  else if (v2 !== undefined && a === cleanHex(v2.address)) slot = 'v4';
   if (slot === undefined) {
     if (network === 'mainnet') return { problem: 'On mainnet the tool acts only on the pinned v1 contract or on the v2 contract in --v2-record.' };
     if (named === undefined)
@@ -84,8 +86,17 @@ export const gateProblems = ({ network, address, current, actions, pinnedV1Addre
   const refuse = (why) => [
     `${why} On mainnet every change needs a contract held by 3 keys, any 2 of which sign; this one has ` +
       `${current.committee.length} key(s), threshold ${current.threshold}. The only exceptions are contract v2 before its ` +
-      'handover (the listed V4 key inserts, and the one handover) and one retire of v1 with its single key. Nothing was signed or sent.',
+      'handover (the listed V4 key inserts, the one handover, or one retire) and one retire of v1 with its single key. Nothing was signed or sent.',
   ];
+  // v1 first: a record that names v1's address as v2 never opens v2's exception on v1.
+  if (a === cleanHex(pinnedV1Address)) {
+    if (isSingle(current) && list.length === 1 && list[0]?.kind === 'retire') return [];
+    return refuse(
+      isSingle(current)
+        ? 'On v1 with its single key, the only change allowed is one retire (docs/contract-v2.md 6).'
+        : 'This contract is not held by a 2-of-3 committee.',
+    );
+  }
   if (v2 !== undefined && a === cleanHex(v2.address)) {
     if (!isSingle(current)) return refuse('This is contract v2, but it is not held by one key.');
     if (cleanHex(current.committee[0]) !== cleanHex(v2.temporaryKey))
@@ -93,6 +104,7 @@ export const gateProblems = ({ network, address, current, actions, pinnedV1Addre
         `This is contract v2, but its single key (${fingerprint(cleanHex(current.committee[0]))}) is not the temporary key in the record.`,
       );
     if (list.length === 0) return refuse('No change.');
+    if (list.length === 1 && list[0]?.kind === 'retire') return [];
     if (list.length === 1 && list[0]?.kind === 'replace-authority') {
       const c = list[0];
       if (!Array.isArray(c.committee) || c.committee.length !== COMMITTEE_SIZE || c.threshold !== COMMITTEE_THRESHOLD)
@@ -102,7 +114,10 @@ export const gateProblems = ({ network, address, current, actions, pinnedV1Addre
     const p = [];
     for (const x of list) {
       if (x?.kind !== 'insert-key') {
-        p.push(`"${String(x?.kind)}" is not allowed on v2 before the handover.`);
+        p.push(
+          `"${String(x?.kind)}" is not allowed on v2 before the handover` +
+            (x?.kind === 'retire' ? ' together with other changes (a retire goes alone).' : '.'),
+        );
         continue;
       }
       if (x.keySlot !== 'v4') p.push(`The key for "${String(x.circuit)}" is not for slot V4.`);
@@ -112,10 +127,6 @@ export const gateProblems = ({ network, address, current, actions, pinnedV1Addre
         p.push(`The key for "${String(x.circuit)}" is not the one in docs/fingerprints-v2.md.`);
     }
     return p.length === 0 ? [] : refuse(p.join(' '));
-  }
-  if (a === cleanHex(pinnedV1Address) && isSingle(current)) {
-    if (list.length === 1 && list[0]?.kind === 'retire') return [];
-    return refuse('On v1 with its single key, the only change allowed is one retire (docs/contract-v2.md 6).');
   }
   return refuse('This contract is not held by a 2-of-3 committee.');
 };

@@ -2,9 +2,9 @@
 // support matrix for Ledger 9): midnight-js 5.0.1, ledger-v9 1.0.2, on-chain runtime 4.0.2, and
 // the proof server 9.0.2 pinned by digest. On 9.0.0 or 9.0.1, proving a claims circuit can crash.
 //
-// The repository moves to that stack in its own PR (chore/ledger9-client). Until it is merged,
-// this check refuses the deploy and says so; this branch changes no package version, so the two
-// never fight. Once it is merged the check passes with nothing else to change.
+// The packages came with the client patch (#188, merged 23 November 2026). The proof server it
+// pins is 9.0.1; moving bboard-cli/proof-server-mainnet.yml (which every v2 send starts, on every
+// network) to 9.0.2 by digest is its own PR. Until then this check refuses the deploy.
 // SPDX-License-Identifier: Apache-2.0
 import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
@@ -64,8 +64,8 @@ export const stackProblems = ({ version = installedVersion, yml = () => readFile
   }
   if (p.length > 0)
     p.push(
-      'This is the client patch (PR "Client patch: Midnight 17 Nov tools", branch chore/ledger9-client). Merge it, ' +
-        'with the proof server at 9.0.2 by digest, then `git pull` and `npm ci`. Nothing was read, built or sent.',
+      'Bring this checkout up to date (git pull, then npm ci). The proof server in bboard-cli/proof-server-mainnet.yml ' +
+        'must be 9.0.2 pinned by its digest: that is its own PR. Nothing was read, built or sent.',
     );
   return p;
 };

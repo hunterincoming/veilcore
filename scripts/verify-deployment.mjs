@@ -514,6 +514,8 @@ const runV2 = async (opts, { env, log }) => {
       continue;
     }
     for (const l of r.lines) log(l);
+    for (const x of c.abandoned ?? [])
+      log(`  NOTE  abandoned deploy at ${x.address} (${x.reason}): never pin it; if it ever appears on chain, retire it`);
     if (c.pending !== null && c.pending !== undefined)
       log(`  NOTE  the record shows a step that did not finish (${c.pending.kind}); run the deploy again with --resume`);
     circuits += r.circuits;
@@ -530,9 +532,11 @@ const runV2 = async (opts, { env, log }) => {
     log(`RESULT: CANNOT CHECK: ${cannot.join(', ')}. Try again shortly.`);
     return 2;
   }
+  const only = opts.contract === undefined ? '' : ` (${opts.contract} only; check the other contract too)`;
   log(
-    `RESULT: PASS. Contract v2 on ${opts.network}: every key matches docs/fingerprints-v2.md in slot V4 (${matching} of ${circuits}), ` +
-      'the authority is as the record and receipts say, and every maintenance update since the deploy is a listed key insert or the handover.',
+    `RESULT: PASS${only}. Contract v2 on ${opts.network}: every key matches docs/fingerprints-v2.md in slot V4 (${matching} of ${circuits}), ` +
+      'the authority is as the record and receipts say, and every maintenance update since the deploy is a listed key insert or the handover. ' +
+      'This checks v2 up to its handover; a later committee change needs a new deployment record revision.',
   );
   return 0;
 };

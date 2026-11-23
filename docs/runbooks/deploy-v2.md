@@ -26,7 +26,8 @@ independently reviewed; not for your records." Never "live" or "audited". No pos
 | The v2 deploy command, `npm run deploy-v2 -w bboard-cli` | Built and tested against Midnight's ledger code (PR "Contract v2: deploy, verify and committee tools"). Not yet run on a network. |
 | `npm run verify:deployment -- --v2-record FILE` | Built and tested the same way. Checks every key against `docs/fingerprints-v2.md` in slot V4, the authority (temporary key, then the 2-of-3 committee), and every maintenance update since the deploy. |
 | The committee launcher on v2 (`--v2-record`, the key slot, the mainnet gate) | Built and tested the same way. |
-| The client patch: midnight-js 5.0.1, ledger-v9 1.0.2, on-chain runtime 4.0.2, proof server **9.0.2 by digest** | **Not merged** (PR "Client patch: Midnight 17 Nov tools", branch `chore/ledger9-client`). The deploy command refuses to run until it is. As of 23 November that PR still pins the proof server at **9.0.1**: it must pin 9.0.2 by its digest before it merges. |
+| The client stack: midnight-js 5.0.1, ledger-v9 1.0.2, on-chain runtime 4.0.2 | Merged (#188, 23 November 2026). |
+| Proof server **9.0.2, pinned by its digest**, in `bboard-cli/proof-server-mainnet.yml` | **Not yet: it is still 9.0.1.** Its own PR. The deploy command refuses to run until it is 9.0.2 by digest. Every v2 send starts that file's proof server, on preprod too. |
 | A client that calls v2's circuits (CLI or maintainer-only build) | **Not built.** Needed for step 10. |
 
 Decisions the design still lists as open, which both founders settle in writing:
@@ -75,7 +76,7 @@ Decisions the design still lists as open, which both founders settle in writing:
   `verify:deployment` never refuses a call; it refuses **maintenance** updates other than the
   listed V4 key inserts and the one handover (any key removal, any key not in
   `docs/fingerprints-v2.md`, any V3 key, any IR change, any other authority change). The team
-  still makes no call of its own until step 18.
+  makes no call of its own until v2 is pinned (step 16); after that it may.
 - Kill a process by its PID, never by name. Never force-push.
 
 ---
@@ -111,7 +112,7 @@ Decisions the design still lists as open, which both founders settle in writing:
 2. In the repository, on the merged commit:
 
    ```sh
-   cd ~/veilcore && git checkout main && git pull --ff-only && npm ci
+   cd ~/Desktop/veilcore && git checkout main && git pull --ff-only && npm ci
    export COMPACTC=~/compactc-0.36.1/compactc
    npm run check:compiler -w contract-v2           # compactc 0.36.1 (...)
    npm run check:compiler                          # v1: still 0.31.1
@@ -167,20 +168,22 @@ The keys must come out byte for byte the same on another computer, or nobody can
 
 ## E. Before the first run: the tools on the Mac
 
-8. Check the client patch is merged, then update and test. From the repository:
+8. Check the tools are up to date. From the repository:
 
    ```sh
-   cd ~/veilcore && git checkout main && git pull --ff-only && npm ci
+   cd ~/Desktop/veilcore && git checkout main && git pull --ff-only && npm ci
    node -e "import('./scripts/v2/stack.mjs').then(m => console.log(m.stackProblems().join('\n') || 'stack OK'))"
    ```
 
-   It must print **`stack OK`**. If it names a package or the proof server, the client patch is
-   not merged (or still pins proof server 9.0.1): stop here.
+   It must print **`stack OK`**. If it names the proof server, the 9.0.2 proof-server PR is not
+   merged yet: stop here.
 
-   Then make the folder for v2's files (outside the repository) and check `age` is there:
+   Then make the folder for v2's files (outside the repository), keep it out of Time Machine
+   (so no old copy of a key file lingers in a backup), and check `age` is there:
 
    ```sh
    mkdir -p ~/veilcore-v2 && chmod 700 ~/veilcore-v2
+   tmutil addexclusion ~/veilcore-v2
    age --version || brew install age
    ```
 
@@ -192,14 +195,16 @@ Use the **preprod test wallet**, never the mainnet recovery phrase. It must alre
 9. **Deploy v2 to preprod.** Put the preprod Blockfrost id in (section B), then:
 
    ```sh
-   cd ~/veilcore/bboard-cli
+   cd ~/Desktop/veilcore/bboard-cli
    npm run deploy-v2 -- preprod --key-file ~/veilcore-v2/preprod-temp-key.age --out ~/veilcore-v2/preprod-record.json
    ```
 
    In order, it:
    1. checks the client stack, `docs/fingerprints-v2.md`, and every key of your build against it;
-   2. makes the temporary key and hands it to `age`: **type a new passphrase twice** (nothing
-      shows), then **once more** to prove the file opens;
+   2. makes the temporary key and writes it to the age file: **type a new passphrase of your
+      own, twice** (at least 12 characters; nothing shows; an empty one is refused). Then `age`
+      itself asks for it **once more**, to prove the file opens. Keep the passphrase in your
+      head only;
    3. asks you to type `DEPLOY V2`;
    4. asks the private-state password and the wallet's recovery phrase (hidden);
    5. deploys v2 main and v2 claims with the temporary key alone, then inserts all 29 keys in
@@ -207,7 +212,12 @@ Use the **preprod test wallet**, never the mainnet recovery phrase. It must alre
 
    It prints both addresses. Write them down with today's date. If it stops partway, run the
    same command with `--resume ~/veilcore-v2/preprod-record.json` in place of `--out ...`, and
-   the same `--key-file`. Never start a second deploy for the same run.
+   the same `--key-file`. Never start a second deploy for the same run. If it stopped while a
+   deploy was being sent, the resume waits: it will not deploy again until that deploy can no
+   longer land (an hour and ten minutes after it was built), and it keeps the old address in the
+   record either way. If the resume says another transaction came after a step that landed, find
+   that step on a block explorer (the contract address, then its transactions) and add
+   `--landed-tx <its hash>`.
 
 10. **BLOCKED** until a client that calls v2's circuits exists (section A). Then call every one
     of the 29 circuits once on preprod, with test secrets. Each must land. A claims proof that
@@ -216,7 +226,7 @@ Use the **preprod test wallet**, never the mainnet recovery phrase. It must alre
 11. **Check it.** From the repository:
 
     ```sh
-    cd ~/veilcore
+    cd ~/Desktop/veilcore
     npm run verify:deployment -- --network preprod --v2-record ~/veilcore-v2/preprod-record.json
     ```
 
@@ -226,7 +236,7 @@ Use the **preprod test wallet**, never the mainnet recovery phrase. It must alre
     notice on a test network). Make three practice cards:
 
     ```sh
-    cd ~/veilcore
+    cd ~/Desktop/veilcore
     node scripts/committee/cli.mjs keygen --practice --holder practice-hunter --out /tmp/practice-hunter.key --card /tmp/practice-hunter.json
     node scripts/committee/cli.mjs keygen --practice --holder practice-mako --out /tmp/practice-mako.key --card /tmp/practice-mako.json
     node scripts/committee/cli.mjs keygen --practice --holder practice-backup --out /tmp/practice-backup.key --card /tmp/practice-backup.json
@@ -235,7 +245,7 @@ Use the **preprod test wallet**, never the mainnet recovery phrase. It must alre
     Then, for the main contract (age asks for the preprod key file's passphrase each time):
 
     ```sh
-    cd ~/veilcore/bboard-cli
+    cd ~/Desktop/veilcore/bboard-cli
     npm run committee -- preprod install --v2-record ~/veilcore-v2/preprod-record.json --temp-key-file ~/veilcore-v2/preprod-temp-key.age --card /tmp/practice-hunter.json --card /tmp/practice-mako.json --card /tmp/practice-backup.json --dry-run --out /tmp/v2-dry-main.json
     node ../scripts/committee/cli.mjs confirm --record /tmp/v2-dry-main.json --card /tmp/practice-hunter.json --key-file /tmp/practice-hunter.key --out /tmp/v2-confirm-hunter.json
     node ../scripts/committee/cli.mjs confirm --record /tmp/v2-dry-main.json --card /tmp/practice-mako.json --key-file /tmp/practice-mako.key --out /tmp/v2-confirm-mako.json
@@ -260,7 +270,7 @@ Use the **preprod test wallet**, never the mainnet recovery phrase. It must alre
     Then check again, with both receipts:
 
     ```sh
-    cd ~/veilcore
+    cd ~/Desktop/veilcore
     npm run verify:deployment -- --network preprod --v2-record ~/veilcore-v2/preprod-record.json --receipt ~/veilcore-v2/preprod-handover-main.json --receipt ~/veilcore-v2/preprod-handover-claims.json
     ```
 
@@ -275,7 +285,7 @@ Only when 9 to 13 all pass on preprod, with the exact build, go on.
     address your wallet app shows ready to paste, then:
 
     ```sh
-    cd ~/veilcore/bboard-cli
+    cd ~/Desktop/veilcore/bboard-cli
     npm run deploy-v2 -- mainnet --send-on-mainnet --key-file ~/veilcore-v2/mainnet-temp-key.age --out ~/veilcore-v2/mainnet-record.json
     ```
 
@@ -284,10 +294,10 @@ Only when 9 to 13 all pass on preprod, with the exact build, go on.
     prompt. All inserts go in this one wallet session. If it stops partway, run it again with
     `--resume ~/veilcore-v2/mainnet-record.json` in place of `--out ...`.
 
-15. **Make no call** to either v2 contract, and check it:
+15. **Check it** before anything else (make no call to either contract until step 16):
 
     ```sh
-    cd ~/veilcore
+    cd ~/Desktop/veilcore
     npm run verify:deployment -- --network mainnet --v2-record ~/veilcore-v2/mainnet-record.json
     ```
 
@@ -296,7 +306,27 @@ Only when 9 to 13 all pass on preprod, with the exact build, go on.
     that does not rely on VeilCore's relay, it uses your Blockfrost project when the variable is
     set (section B). Nothing else happens before this passes.
 
-16. **The handover, after the 14-day notice.** The handover is a use of v2's key, so the policy's
+    **If it fails**, v2 is never pinned. Stop and send the output to the team. If the team decides
+    to abandon it, close it for good with one `retire` (the launcher allows that, alone, on v2
+    before its handover; with the 14-day notice once v2 is pinned, which it is not here), for each
+    contract, then deploy a fresh v2:
+
+    ```sh
+    cd ~/Desktop/veilcore/bboard-cli
+    npm run committee -- mainnet request --v2-record ~/veilcore-v2/mainnet-record.json --retire --reason "Abandoned v2 deploy" --out ~/veilcore-v2/retire-main.json
+    npm run committee -- mainnet submit --v2-record ~/veilcore-v2/mainnet-record.json --request ~/veilcore-v2/retire-main.json --temp-key-file ~/veilcore-v2/mainnet-temp-key.age --dry-run --out ~/veilcore-v2/retire-main-dry.json
+    npm run committee -- mainnet submit --v2-record ~/veilcore-v2/mainnet-record.json --request ~/veilcore-v2/retire-main.json --temp-key-file ~/veilcore-v2/mainnet-temp-key.age --send-on-mainnet --dry-run-record ~/veilcore-v2/retire-main-dry.json
+    ```
+
+    (For claims: add `--contract veilcore-claims` and use `retire-claims` file names.)
+
+16. **Pin v2, as its own PR, straight after step 15 passes:** the v2 addresses in the deployment
+    record (revision 5) and the pinned lists. Once it is merged, the team may make its own v2
+    records, from the CLI or a maintainer-only build, never through the public site. Wording stays
+    "deployed on mainnet for testing by VeilCore; not yet independently reviewed; not for your
+    records".
+
+17. **The handover, after the 14-day notice.** It comes later than the pin. The handover is a use of v2's key, so the policy's
     notice comes first:
     1. When the third key holder is named in writing (decision 2), **publish the notice**: the
        handover of v2 main and v2 claims to the 2-of-3 committee, with the date.
@@ -307,7 +337,7 @@ Only when 9 to 13 all pass on preprod, with the exact build, go on.
     4. Dry run, confirmations, then send, for the main contract:
 
        ```sh
-       cd ~/veilcore/bboard-cli
+       cd ~/Desktop/veilcore/bboard-cli
        npm run committee -- mainnet install --v2-record ~/veilcore-v2/mainnet-record.json --temp-key-file ~/veilcore-v2/mainnet-temp-key.age --card ../committee-key-hunter.json --card ../committee-key-mako.json --card ../committee-key-<third>.json --dry-run --out ~/veilcore-v2/mainnet-dry-main.json
        ```
 
@@ -326,22 +356,22 @@ Only when 9 to 13 all pass on preprod, with the exact build, go on.
     5. Check (it must end **`RESULT: PASS`**, "held by the 2-of-3 committee" for both):
 
        ```sh
-       cd ~/veilcore
+       cd ~/Desktop/veilcore
        npm run verify:deployment -- --network mainnet --v2-record ~/veilcore-v2/mainnet-record.json --receipt ~/veilcore-v2/mainnet-handover-main.json --receipt ~/veilcore-v2/mainnet-handover-claims.json
        ```
 
     6. **Destroy the temporary key**, only now: `rm ~/veilcore-v2/mainnet-temp-key.age` (and
-       `rm ~/veilcore-v2/preprod-temp-key.age`). Empty the Trash. There is no other copy.
+       `rm ~/veilcore-v2/preprod-temp-key.age`). The folder is kept out of Time Machine (step 8),
+       so there is no other copy.
+    7. **A deployment record revision**, as its own PR, with the handover's two receipts. This
+       check is for v2 up to its handover; a later committee change needs a new revision too.
 
-17. **The deadline for the single key.** v2 is held by one key until step 16 is done. That is
+18. **The deadline for the single key.** v2 is held by one key until step 17 is done. That is
     acceptable only because nobody honours a v2 record yet. **The handover happens before any v2
     record leaves the team.** If no outside holder is named by then, the handover uses
     **option C** (one founder holds two of the three keys for now), and the deployment notes
     and the policy say so openly, naming the founder who can act alone.
 
-18. **Only now, as its own PR:** the v2 addresses in the deployment record (revision 5) and the
-    pinned lists. Then the team may make its own v2 records, from the CLI or a maintainer-only
-    build, never through the public site.
 
 ## Must not happen
 
