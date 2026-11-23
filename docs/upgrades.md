@@ -31,26 +31,32 @@ corrections apply to the 9 October text below. Each one is also marked where it 
    "no contract change"). Version 2 adds no royalties contract.
 2. **Preprod can't rehearse maintenance.** Preprod was upgraded in place on 9 November. Its
    v1 practice contract can still be called, but that contract's authority is retired, so no
-   maintenance step (committee install, freeze, undo, seal) can be rehearsed on it. Compact
-   0.31.1 can no longer deploy anywhere on Ledger 9. Maintenance is rehearsed on a local
-   devnet forked from Ledger 8 to Ledger 9 ([committee-rehearsal.md](committee-rehearsal.md),
-   and contract-v2.md section 6). Preprod and the test site are used for v2's own flow.
+   maintenance step (a committee install, a seal) can be rehearsed on it. Compact 0.31.1 can
+   no longer deploy anywhere on Ledger 9. Maintenance is rehearsed on a local devnet forked
+   from Ledger 8 to Ledger 9 ([committee-rehearsal.md](committee-rehearsal.md), and
+   contract-v2.md section 8). Preprod and the test site are used for v2's own flow, and
+   checkers there must name the contract version explicitly (contract-v2.md, 3.2).
 3. **The carry-forward sketch below can be squatted.** A holder's `o` and `r` are public in
    v1. So anyone could carry an identity forward first with their own head, and the rightful
    holder's carry would then be refused on chain. Verifiers would ignore the forgery, but the
-   holder would still be blocked. The fix replaces the sketch: freeze v1 on launch day,
-   snapshot it, and have v2 check the snapshot on chain (contract-v2.md, section 3).
+   holder would still be blocked. **For v2 there is no carry at all.** Every v1 record so far
+   is believed to be the team's own testing (the founders are confirming the count), so v2 is
+   a fresh start next to an untouched v1. A v1 record keeps its date on v1 forever, and the
+   same commitment in v1 and v2 is two records with two dates (contract-v2.md, sections 0 and
+   3). The carry design that fixes the squatting (a freeze, an on-chain snapshot, non-membership
+   checks) is kept for v3, the first upgrade with outside users, in contract-v2.md, Appendix A.
 4. **The seal does not use `retireMaintenanceAuthorityProvably`.** That function builds a
    Ledger 8 update, which is refused after the fork. midnight-js 5 also refuses maintenance on
-   a pre-fork contract, and it signs with one key only. Every v1 maintenance step (committee
-   install, freeze, undo, seal) goes through `scripts/committee`, which builds the update with
-   ledger-v9 types: `remove-key` for each key, then `retire`.
+   a pre-fork contract, and it signs with one key only. The v1 seal goes through
+   `scripts/committee` with the existing key, and it is **`retire` only**: v1's keys stay in
+   place, so checkers keep accepting v1's state (contract-v2.md, section 6).
 5. **Removing a key needs the client patch first.** The network rejects a key removal whose
    fee was worked out by ledger-v9 1.0.0 (#2375, fixed from 1.0.1:
    [Ledger 9 notes](https://docs.midnight.network/relnotes/ledger-9)). The committee tool
-   builds with 1.0.1, but the wallet that pays the fee still uses 1.0.0. So the freeze, the
-   undo test and the seal wait for the client patch (wallet on ledger-v9 1.0.2). The committee
-   install does not: a replace-authority costs the same in both.
+   builds with 1.0.1, but the wallet that pays the fee still uses 1.0.0, so any key removal
+   waits for the client patch (wallet on ledger-v9 1.0.2). The v1 seal removes no keys:
+   `retire` is a replace-authority, which costs the same in both, so the seal doesn't need
+   the patch. This also replaces *Sealing version 1* step 1 below.
 
 Also out of date: in *Known* 6, the quoted sentences about the retained era's "sunset" and
 "removal in the next major" are no longer in the current midnight-js migration guide (checked
@@ -295,8 +301,8 @@ record on Midnight's public repository.
 ### How a holder carries a record forward
 
 > **Corrected 23 November 2026:** the sketch in this section can be squatted (correction 3
-> above). The design that replaces it, with a v1 freeze and an on-chain snapshot check, is in
-> [contract-v2.md](contract-v2.md), section 3.
+> above). v2 has no carry (a fresh start). The design that fixes the squatting is kept for v3
+> in [contract-v2.md](contract-v2.md), Appendix A.
 
 The holder already has the secret behind their v1 record. Version 2 uses the same commitment
 function for carried records (`commit(secret)` with the tag `veilcore:v1:commit`,
@@ -339,10 +345,12 @@ least 12 months), the key is used one last time, in public, with the 14-day noti
 1. remove every v1 circuit key, so no transaction can change v1 again;
 2. replace the authority with an empty committee.
 
-*Corrected 23 November 2026:* both steps go through `scripts/committee` (`remove-key`, then
-`retire`), not `retireMaintenanceAuthorityProvably`. That function builds a Ledger 8 update,
-which is refused after the fork. Removing keys needs the client patch first (corrections 4
-and 5 above).
+*Corrected 23 November 2026:* the v1 seal is step 2 only (`retire`, through
+`scripts/committee` with the existing key, after v2 is public and audited, with the 14-day
+notice), not `retireMaintenanceAuthorityProvably`, which builds a Ledger 8 update that is
+refused after the fork. Step 1 is dropped: checkers refuse a v1 state with keys missing, and
+key removal needs the client patch (corrections 4 and 5 above). After `retire`, v1's circuits
+stay callable but can never change. There is no carry window (correction 3).
 
 Then v1's final state is fixed forever, and anyone can see that on chain. Carrying forward
 still works after sealing, because it is checked against that final state, so nobody who
@@ -411,11 +419,11 @@ and midnight-js will drop that (Known 6). So:
    [contract-v2.md](contract-v2.md).)
 3. Deploy v2 (the fragmented deploy needs an authority during the deploy; v2's key follows
    the same "rules never change" policy), release the client that verifies across both
-   versions, open the carry-forward, announce the window. (*Corrected:* rehearse every
-   maintenance step on a local forked devnet, not preprod, whose practice contract's
-   authority is retired. On launch day, freeze v1 and snapshot it before v2 opens; see
-   contract-v2.md, section 3.)
-4. At the end of the window: seal v1 through `scripts/committee`, after the client patch.
+   versions, open the carry-forward, announce the window. (*Corrected:* v2 is a fresh start
+   with no carry and no window; rehearse every maintenance step on a local forked devnet, not
+   preprod, whose practice contract's authority is retired. The launch order is in
+   contract-v2.md, section 7.)
+4. After v2 is public and audited: seal v1 by `retire` only, through `scripts/committee`.
 
 ---
 
@@ -430,7 +438,9 @@ and midnight-js will drop that (Known 6). So:
    v2 launches).
 5. **Seal v1 by removing every key** (a fixed archive), or only the keys of circuits that
    change data (presentations and control proofs would keep working). We recommend every key:
-   it is simpler to explain and leaves nothing to trust.
+   it is simpler to explain and leaves nothing to trust. *Corrected 23 November 2026:* seal
+   by `retire` only, keeping every key, so checkers keep accepting v1's state and no key
+   removal is needed (correction 4).
 6. **Licences: re-issue in v2**, or design a carry-forward that needs both the issuer and the
    licensee. We recommend re-issue for v2.
 7. ~~Hold the royalties contract until the ledger-9 toolchain.~~ *Withdrawn 23 November
