@@ -45,7 +45,7 @@ import { protocolVersionToLedger } from '@midnight-ntwrk/midnight-js-protocol';
 import { submitTx } from '@midnight-ntwrk/midnight-js-contracts';
 import { LedgerTransaction } from '@midnight-ntwrk/midnight-js-types';
 import { ttlOneHour } from '@midnight-ntwrk/midnight-js-utils';
-import { authorityView } from './core.mjs';
+import { authorityView, slotOfKeyBytes } from './core.mjs';
 
 const SUCCEED_ENTIRELY = 'SucceedEntirely';
 
@@ -66,6 +66,26 @@ export const readAuthorityNow = async (publicDataProvider, address) => {
   if (state === null || state === undefined) throw new Error(`No contract found at ${address} on this network.`);
   const a = authorityOf(state);
   return authorityView(a);
+};
+
+/**
+ * The slot of every verifier key the contract holds now, from each key's own header
+ * (core.mjs slotOfKeyBytes): circuit -> 'v3' | 'v4' | undefined. The committee launcher checks
+ * these against the contract's slot right before it sends.
+ */
+export const readKeySlotsNow = async (publicDataProvider, address) => {
+  const read = await publicDataProvider.queryContractState(address);
+  if (read === null || read === undefined) throw new Error(`No contract found at ${address} on this network.`);
+  const s = read.contractState ?? read;
+  const state =
+    typeof s.deserialize === 'function' && 'era' in s ? s.deserialize({ v8: Ledger8ContractState, v9: Ledger9ContractState }) : s;
+  const out = {};
+  for (const n of state.operations()) {
+    const name = typeof n === 'string' ? n : Buffer.from(n).toString('utf8');
+    const vk = state.operation(n)?.verifierKey;
+    out[name] = vk instanceof Uint8Array && vk.length > 0 ? slotOfKeyBytes(vk) : undefined;
+  }
+  return out;
 };
 
 /** Refuse on a network that is not on Ledger 9 (see the top of this file). Nothing is built or sent. */
@@ -160,7 +180,14 @@ export const sendMaintenanceUpdate = async (
   }
   for (let i = 0; ; i++) {
     const now = await readAuthorityNow(providers.publicDataProvider, address);
-    if (landed(now)) return { sent: true, txId: finalized?.txId, blockHeight: finalized?.blockHeight, authority: now };
+    if (landed(now))
+      return {
+        sent: true,
+        txId: finalized?.txId,
+        txHash: finalized?.txHash,
+        blockHeight: finalized?.blockHeight,
+        authority: now,
+      };
     if (i >= tries)
       throw new Error(
         'The change was sent but the indexer does not show it yet. Read the authority again later (the "show" ' +
