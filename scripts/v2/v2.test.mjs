@@ -450,7 +450,7 @@ test('the stack: refused until midnight-js 5.0.1, ledger-v9 1.0.2, runtime 4.0.2
   const D = 'a'.repeat(64);
   assert.deepEqual(stackProblems({ version: good, yml: yml(`midnightntwrk/proof-server:9.0.2@sha256:${D}`) }), []);
   const old = stackProblems({ version: (p) => (p === '@midnightntwrk/ledger-v9' ? '1.0.0' : good(p)), yml: yml(`midnightntwrk/proof-server:9.0.2@sha256:${D}`) });
-  assert.match(old.join(' '), /@midnightntwrk\/ledger-v9 is 1\.0\.0; contract v2 needs 1\.0\.2.*chore\/ledger9-client/);
+  assert.match(old.join(' '), /@midnightntwrk\/ledger-v9 is 1\.0\.0; contract v2 needs 1\.0\.2.*step 8/);
   assert.match(stackProblems({ version: good, yml: yml(`midnightntwrk/proof-server:9.0.1@sha256:${D}`) }).join(' '), /proof server is 9\.0\.1/);
   assert.match(stackProblems({ version: good, yml: yml('midnightntwrk/proof-server:9.0.2') }).join(' '), /not pinned by its digest/);
   assert.deepEqual(proofServerImage(`    image: midnightntwrk/proof-server:9.0.2@sha256:${D}\n`), { tag: '9.0.2', digest: D });
@@ -548,4 +548,52 @@ test('core: an insert whose key has no V3 or V4 header is refused before signing
   );
   // buildInsertUpdate (the deploy's own path) is only ever given keys checked against the table.
   assert.ok(buildInsertUpdate(NET, dep.address, [['a', V4]], 0n, key).update);
+});
+
+// ───────────────────────────────────────────────────── the v2 proof server pin (one place)
+
+test('proof server 9.0.2: one pin in bboard-cli/proof-server-v2.yml, refused until its digest is filled in', async () => {
+  const ps = await import('./proof-server.mjs');
+  const repo = readFileSync(ps.V2_PROOF_SERVER_FILE, 'utf8');
+  const pin = ps.readPin(repo);
+  assert.equal(pin.tag, '9.0.2');
+  // Either still waiting for the Mac's digest, or pinned by one; never anything else.
+  const p = ps.pinProblems(repo);
+  if (pin.filled) assert.deepEqual(p, []);
+  else assert.match(p.join(' '), /digest is not filled in yet.*step 8/);
+  // The deploy's stack check reads the same file.
+  assert.equal((await import('./stack.mjs')).PROOF_SERVER_FILE, ps.V2_PROOF_SERVER_FILE);
+
+  const D = 'b'.repeat(64);
+  const filled = ps.withDigest(repo, `midnightntwrk/proof-server@sha256:${D}`);
+  assert.deepEqual(ps.pinProblems(filled), []);
+  assert.equal(ps.readPin(filled).digest, D);
+  assert.equal(ps.withDigest(repo, `sha256:${D}`), filled);
+  assert.equal(filled.split('\n').length, repo.split('\n').length, 'only the image line changes');
+  for (const bad of ['', 'sha256:' + 'B'.repeat(64), 'sha256:' + 'b'.repeat(63), D, `midnightntwrk/proof-server:9.0.2`])
+    assert.throws(() => ps.withDigest(repo, bad), /not a digest/);
+  assert.match(ps.pinProblems(filled.replace(':9.0.2@', ':9.0.1@')).join(' '), /9\.0\.1; contract v2 needs 9\.0\.2/);
+  assert.match(ps.pinProblems('services: {}\n').join(' '), /names no proof-server image/);
+});
+
+test('proof server 9.0.2: the running server must say it is 9.0.2', async () => {
+  const ps = await import('./proof-server.mjs');
+  assert.deepEqual(ps.versionProblems('9.0.2'), []);
+  assert.deepEqual(ps.versionProblems('"9.0.2"\n'), []);
+  assert.match(ps.versionProblems('9.0.1').join(' '), /says it is 9\.0\.1/);
+  assert.match(ps.versionProblems('9.0.2 (ledger 9.0.0)').join(' '), /says it is 9\.0\.2, 9\.0\.0/);
+  assert.match(ps.versionProblems('ok').join(' '), /did not say its version/);
+  const asked = [];
+  const answer = (status, body) => async (url) => {
+    asked.push(String(url));
+    return { ok: status === 200, status, text: async () => body };
+  };
+  assert.deepEqual(await ps.checkRunningProofServer('http://127.0.0.1:6300', answer(200, '9.0.2')), []);
+  assert.equal(asked[0], 'http://127.0.0.1:6300/version');
+  assert.match((await ps.checkRunningProofServer('http://127.0.0.1:6300', answer(200, '9.0.1'))).join(' '), /9\.0\.1/);
+  assert.match((await ps.checkRunningProofServer('http://127.0.0.1:6300', answer(404, ''))).join(' '), /HTTP 404/);
+  const down = async () => {
+    throw new Error('connection refused');
+  };
+  assert.match((await ps.checkRunningProofServer('http://127.0.0.1:6300', down)).join(' '), /connection refused/);
 });

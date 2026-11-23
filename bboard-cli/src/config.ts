@@ -114,6 +114,17 @@ export const useMainnetProofServer = (): void =>
     proofServer: { ...defaultContainersConfiguration.proofServer, fileName: MAINNET_PROOF_SERVER_FILE },
   });
 
+/**
+ * Contract v2's tools (deploy-v2, the committee on v2, smoke-v2) start proof server 9.0.2 from its
+ * own file, the one place its digest is pinned (scripts/v2/proof-server.mjs). v1's tools are untouched.
+ */
+export const V2_PROOF_SERVER_FILE = 'proof-server-v2.yml';
+export const useProofServerFile = (fileName: string): void =>
+  setContainersConfiguration({
+    ...defaultContainersConfiguration,
+    proofServer: { ...defaultContainersConfiguration.proofServer, fileName },
+  });
+
 /** The networks served only through Blockfrost: mainnet since 30 Sep 2026, preprod since 9 Oct 2026. */
 export type BlockfrostNetwork = 'mainnet' | 'preprod';
 

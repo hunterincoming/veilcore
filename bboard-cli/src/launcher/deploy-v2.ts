@@ -49,7 +49,7 @@ import {
 import { createLogger, redactThisSession, scrubTerminal } from '../logger-utils.js';
 import { createPrompt, PromptClosedError, type Prompt } from '../prompt.js';
 import { SavedProgressNotOpenedError } from '../midnight-wallet-provider.js';
-import { openWallet } from './committee.js';
+import { V2_WALLET, openWallet } from './committee.js';
 import { type KeyStore, KeyFileError, ageKeyStore } from '../age-key.js';
 
 export { type KeyStore, ageKeyStore };
@@ -294,7 +294,7 @@ export const main = async (argv: readonly string[], deps: Deps = {}): Promise<nu
     }
 
     // 5. The wallet, then the deploy.
-    const sender = await (deps.openSender ?? ((n, p, l) => openWallet(n, configFor(n), p, l)))(
+    const sender = await (deps.openSender ?? ((n, p, l) => openWallet(n, configFor(n), p, l, V2_WALLET)))(
       o.network,
       prompt,
       logger,

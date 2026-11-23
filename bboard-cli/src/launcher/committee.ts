@@ -115,6 +115,7 @@ import {
 import { readSession } from '../../../scripts/v2/session.mjs';
 import { type KeyStore, ageKeyStore } from '../age-key.js';
 import { loadFingerprintsV2 } from '../../../scripts/v2/fingerprints.mjs';
+import { checkRunningProofServer } from '../../../scripts/v2/proof-server.mjs';
 import { MAINNET_VEILCORE_ADDRESS } from '../../../api/src/deploy-guard';
 import { indexerWebSocket, usePlainForBlockfrost } from '../../../api/src/indexer-websocket';
 import { endpointsFor } from '../../../partner-kit/src/network';
@@ -126,6 +127,8 @@ import {
   blockfrostProjectIdFor,
   currentDir,
   useMainnetProofServer,
+  useProofServerFile,
+  V2_PROOF_SERVER_FILE,
 } from '../config.js';
 import { createLogger, redactThisSession, scrubTerminal } from '../logger-utils.js';
 import { createPrompt, PromptClosedError, type Prompt } from '../prompt.js';
@@ -427,6 +430,22 @@ let sending = false;
 type Sender = {
   readonly providers: Parameters<typeof sendMaintenanceUpdate>[0];
   readonly stop: () => Promise<void>;
+  /** The proof server this wallet session started (its URL on this machine). */
+  readonly proofServer?: string;
+};
+
+/** Every contract v2 tool: proof server 9.0.2 from its one pinned file, and asked its version first. */
+export const V2_WALLET: WalletOptions = {
+  proofServerFile: V2_PROOF_SERVER_FILE,
+  checkProofServer: (url) => checkRunningProofServer(url),
+};
+
+/** How a contract v2 tool opens the wallet: its own proof server file, checked before the phrase is asked. */
+export type WalletOptions = {
+  /** The compose file of the proof server to start (default: proof-server-mainnet.yml, v1's). */
+  readonly proofServerFile?: string;
+  /** Problems with the running proof server (empty when it is right). Asked before the recovery phrase. */
+  readonly checkProofServer?: (url: string) => Promise<string[]>;
 };
 
 /**
@@ -472,6 +491,7 @@ export const openWallet = async (
   config: Config,
   prompt: Prompt,
   logger: Logger,
+  options: WalletOptions = {},
 ): Promise<Sender | undefined> => {
   // One tool on this network's wallet progress at a time (store-lock.ts), as the CLI does.
   try {
@@ -493,9 +513,12 @@ export const openWallet = async (
     return undefined;
   }
   // This tool sends only on a Ledger 9 network (assertLedger9Network), and a proof server
-  // serves one ledger: the Ledger 9 one (proof-server-mainnet.yml, 9.0.2), on every network.
-  useMainnetProofServer();
+  // serves one ledger: the Ledger 9 one, on every network. v1's contracts use
+  // proof-server-mainnet.yml (9.0.1); contract v2's tools pass proof-server-v2.yml (9.0.2, V2_WALLET).
   const testEnv: TestEnvironment = config.getEnvironment(logger);
+  // Set after getEnvironment, which sets the mainnet file for mainnet.
+  if (options.proofServerFile !== undefined) useProofServerFile(options.proofServerFile);
+  else useMainnetProofServer();
   let wallet: MidnightWalletProvider | undefined;
   const stop = async (): Promise<void> => {
     try {
@@ -506,6 +529,14 @@ export const openWallet = async (
   };
   try {
     const env = await testEnv.start();
+    if (options.checkProofServer !== undefined) {
+      const wrong = await options.checkProofServer(env.proofServer);
+      if (wrong.length > 0) {
+        for (const l of wrong) logger.error(l);
+        await stop();
+        return undefined;
+      }
+    }
     const source =
       network === 'undeployed' ? { seed: GENESIS_MINT_WALLET_SEED } : await askWallet(network, prompt, logger);
     if (source === undefined) {
@@ -560,6 +591,7 @@ export const openWallet = async (
         config: midnightConfig(),
       },
       stop,
+      proofServer: env.proofServer,
     };
   } catch (e) {
     await stop().catch(() => undefined);
@@ -1193,7 +1225,7 @@ export const main = async (
     prompt,
     logger,
     reader,
-    openSender: deps.openSender ?? ((n, p, l) => openWallet(n, configFor(n), p, l)),
+    openSender: deps.openSender ?? ((n, p, l) => openWallet(n, configFor(n), p, l, v2 === undefined ? {} : V2_WALLET)),
     sendOptions: deps.sendOptions,
     keyStore: deps.keyStore,
     v2,

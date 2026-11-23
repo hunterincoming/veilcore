@@ -262,8 +262,15 @@ test("every proof server image is pinned by digest, Ledger 9 on the public netwo
       /midnight-node:0\.\d+\.\d+@sha256/,
       `${f}: a Ledger 8 node`,
     );
+  // Contract v2's tools only: proof server 9.0.2, by digest once the maintainer has pinned it
+  // (scripts/v2/proof-server.mjs; until then every v2 tool refuses to start).
+  assert.match(
+    imageIn("bboard-cli/proof-server-v2.yml"),
+    /^midnightntwrk\/proof-server:9\.0\.2@sha256:([0-9a-f]{64}|FILL-IN-THE-9\.0\.2-DIGEST)$/,
+  );
   // No other compose file in the repository names a proof server without being listed above.
   const listed = new Set([
+    "bboard-cli/proof-server-v2.yml",
     "bboard-cli/proof-server-mainnet.yml",
     "bboard-cli/proof-server.yml",
     "bboard-cli/compose.yml",
