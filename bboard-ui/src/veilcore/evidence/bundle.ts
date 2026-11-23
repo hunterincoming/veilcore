@@ -945,8 +945,13 @@ export const signatureLines = async (
 };
 
 /** Every file in the bundle, with what it is, in the order README.txt lists them. */
-/** The partner kit release the check script installs: on npm, with checkBatchAnchor (docs/PARTNERS.md). */
-export const CONTRACTS_PACKAGE = '@veilcore/contracts@0.2.0';
+/**
+ * The partner kit release the check script installs: on npm, with checkBatchAnchor (docs/PARTNERS.md).
+ * 0.4.0 is the first that reads a batch dated after Midnight's Ledger 9 fork (6 Nov 2026) and
+ * finds a transaction by the hash this script passes; partner-kit/package.json must match
+ * (bundle.test.ts), and it must be on npm before a site carrying it is deployed.
+ */
+export const CONTRACTS_PACKAGE = '@veilcore/contracts@0.4.0';
 /** The networks a Blockfrost project id reads (partner-kit network.ts BlockfrostNetwork). */
 const SCRIPT_NETWORKS = ['mainnet', 'preprod'];
 

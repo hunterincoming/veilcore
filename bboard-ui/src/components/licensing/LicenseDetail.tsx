@@ -43,6 +43,7 @@ import { AGREEMENTS_ON_CHAIN } from '../../config/copy';
 import { chainNotReady } from '../../veilcore/chain/config';
 import { RealLicensePanel } from './RealLicensePanel';
 import { ConfirmInline } from './DealSteps';
+import { color, mix } from '../../config/tokens';
 
 /** A practice amount in the terms' currency (old terms: US dollars, as their form said). */
 const money = (n: number, tr: Translator, currency: string) =>
@@ -360,7 +361,7 @@ export const LicenseDetail: React.FC = () => {
                 {license.royaltyLog.map((e, i) => {
                   const dv = dealValueOf(license, e.input);
                   return (
-                    <Box key={i} sx={{ p: 1, borderRadius: 1, background: 'rgba(30,34,39,0.02)' }}>
+                    <Box key={i} sx={{ p: 1, borderRadius: 1, background: mix(color.text, 2) }}>
                       <Typography variant="caption" color="text.secondary">
                         {tr.date(e.at)}
                         {e.note ? ` · ${e.note}` : ''}

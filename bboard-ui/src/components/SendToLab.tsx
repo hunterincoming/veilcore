@@ -49,6 +49,7 @@ import { rich, useRecordT, useT } from '../i18n/app';
 import { recordTitle } from '../veilcore/animal-profile';
 import { SupportDetails } from './SupportDetails';
 import { CODE_FONT } from '../config/theme';
+import { color, mix } from '../config/tokens';
 
 export const SendToLab: React.FC<{
   record: StrainRecord;
@@ -188,7 +189,7 @@ export const SendToLab: React.FC<{
                 sx={{
                   p: 2,
                   borderRadius: 1,
-                  background: 'rgba(30,34,39,0.04)',
+                  background: mix(color.text, 4),
                   fontFamily: CODE_FONT,
                   fontSize: 20,
                   textAlign: 'center',
@@ -426,7 +427,7 @@ export const WaitingDeliveries: React.FC<{ open: readonly SentTransfer[] }> = ({
                   sx={{
                     p: 1.25,
                     borderRadius: 1,
-                    background: 'rgba(30,34,39,0.04)',
+                    background: mix(color.text, 4),
                     fontFamily: CODE_FONT,
                     wordBreak: 'break-all',
                   }}

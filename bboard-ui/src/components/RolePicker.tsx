@@ -16,7 +16,7 @@ import { getRole, setRole, CHANGE_ROLE_EVENT, pageAfterRole, type Role } from '.
 import { useT } from '../i18n/app';
 import { LanguagePicker } from '../i18n/LanguagePicker';
 import { FOCUS_RING } from '../config/theme';
-import { color } from '../config/tokens';
+import { color, mix } from '../config/tokens';
 import { focusScreenHeading } from './flow/FlowFrame';
 
 /** `ask`: open on its own when no role is set (app pages). Elsewhere it opens only when asked to. */
@@ -92,7 +92,7 @@ export const RolePicker: React.FC<{ ask: boolean }> = ({ ask }) => {
                 p: 2,
                 borderRadius: 1,
                 border: '1px solid',
-                borderColor: r === current ? color.text : 'rgba(22,24,29,0.14)',
+                borderColor: r === current ? color.text : mix(color.text, 14),
                 '&:hover': { borderColor: color.text },
                 '&.Mui-focusVisible': { ...FOCUS_RING, borderColor: color.text },
               }}

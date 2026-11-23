@@ -37,5 +37,23 @@ await refuses('another operation whose name differs only in case', call({ contra
 answer(call({ contractActions: [{ address: OURS, state: STATE, entryPoint: Buffer.from('proveLicense').toString('hex').toUpperCase() }] }));
 assert.equal((await presentationState('http://indexer', OURS, TX)).protocolVersion, 1n);
 console.log('accepted: the same name given as hex, in capitals');
+// By its hash (what the registry and evidence bundles record): nothing has it as an identifier,
+// so the lookup asks by hash, and accepts only the transaction with exactly that hash.
+const HASH = 'dd'.repeat(32);
+const byOffset = (byHash) => {
+  globalThis.fetch = async (_u, init) => {
+    const { offset } = JSON.parse(init.body).variables;
+    return { ok: true, json: async () => ({ data: { transactions: offset.hash === HASH ? byHash : [] } }) };
+  };
+};
+byOffset([call({ hash: HASH })]);
+assert.equal((await presentationState('http://indexer', OURS, HASH)).protocolVersion, 1n);
+console.log('accepted: the same call named by its transaction hash');
+byOffset([call({ hash: 'ee'.repeat(32) })]);
+await assert.rejects(() => presentationState('http://indexer', OURS, HASH), /No such transaction/);
+console.log('refused, as it should be: an answer whose hash is not the one asked for');
+byOffset([call({ hash: HASH }), call({ hash: HASH, block: { height: 9 } })]);
+await assert.rejects(() => presentationState('http://indexer', OURS, HASH), /two different transactions/);
+console.log('refused, as it should be: two different transactions for one hash');
 await assert.rejects(() => presentationState('http://indexer', OURS, 'not-hex'), /not a transaction id/);
 console.log('refused, as it should be: a malformed id\n\nall lookup checks pass');

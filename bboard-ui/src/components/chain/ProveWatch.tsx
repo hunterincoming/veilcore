@@ -23,6 +23,7 @@ import {
 } from '../../veilcore/prove-relay';
 import { useT } from '../../i18n/app';
 import { CODE_FONT } from '../../config/theme';
+import { color, mix } from '../../config/tokens';
 
 const WEEK = 7 * 24 * 60 * 60_000;
 const when = (t: number, locale?: string) => localStamp(t, locale);
@@ -41,7 +42,7 @@ export const SendLink: React.FC<{ link: string; asker?: string }> = ({ link, ask
           wordBreak: 'break-all',
           p: 1.25,
           borderRadius: 1,
-          bgcolor: 'rgba(30,34,39,0.05)',
+          bgcolor: mix(color.text, 5),
         }}
       >
         {link}

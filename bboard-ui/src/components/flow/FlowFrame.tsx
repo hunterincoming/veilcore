@@ -30,9 +30,9 @@ export type Section = 'log' | 'send' | 'license' | 'prove';
  */
 export const SECTIONS: Record<Section, { name: string; color: string; Icon: typeof LogIcon }> = {
   log: { name: 'Log', color: color.text, Icon: LogIcon },
-  send: { name: 'Send & receive', color: '#485B75', Icon: BoxIcon },
-  license: { name: 'License & royalties', color: '#542E61', Icon: DocIcon },
-  prove: { name: 'Prove & check', color: '#684F36', Icon: CheckIcon },
+  send: { name: 'Send & receive', color: color.sectionSend, Icon: BoxIcon },
+  license: { name: 'License & royalties', color: color.sectionLicense, Icon: DocIcon },
+  prove: { name: 'Prove & check', color: color.sectionProve, Icon: CheckIcon },
 };
 
 /** A section's name in the visitor's language. */

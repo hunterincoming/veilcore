@@ -77,7 +77,10 @@ export const LineageGraph: React.FC<{ record: StrainRecord }> = ({ record }) => 
         </>
       )}
 
-      <Chip label={recordTitle(record)} sx={{ background: color.inverse, color: '#FFFFFF', fontWeight: 700, px: 1 }} />
+      <Chip
+        label={recordTitle(record)}
+        sx={{ background: color.inverse, color: color.onInverse, fontWeight: 700, px: 1 }}
+      />
 
       {kids.length > 0 && (
         <>

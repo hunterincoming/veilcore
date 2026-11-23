@@ -1,6 +1,6 @@
 // Types for core.mjs, so the operator tool (bboard-cli/src/launcher/committee.ts) can import it.
 // SPDX-License-Identifier: Apache-2.0
-// Ledger 9 types: `ledger-v9-committee` is @midnightntwrk/ledger-v9 1.0.1 (see core.mjs).
+// Ledger 9 types: `ledger-v9-committee` is @midnightntwrk/ledger-v9 1.0.2 (see core.mjs).
 import type { MaintenanceUpdate } from 'ledger-v9-committee';
 
 export declare const COMMITTEE_SIZE: number;

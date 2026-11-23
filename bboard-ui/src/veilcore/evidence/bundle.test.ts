@@ -10,6 +10,7 @@ import { bindingForSecret } from '../key-binding';
 import type { RecordKeys } from '../record-keys';
 import type { StrainRecord } from '../records';
 import {
+  CONTRACTS_PACKAGE,
   buildEvidence,
   bundleFiles,
   BundleRefusal,
@@ -421,7 +422,16 @@ describe('the bundle', () => {
     expect(readme).toMatch(/We haven't confirmed that any Midnight explorer shows the batch root/);
     expect(readme).toMatch(/we know of no way to see it without running a command/);
     expect(readme).toMatch(/check-on-midnight\.mjs/);
-    expect(readme).toContain('npm install --save-exact @veilcore/contracts@0.2.0');
+    expect(readme).toContain('npm install --save-exact @veilcore/contracts@0.4.0');
+    // The kit the script installs is this repository's partner kit (partner-kit/test/bundle-batch.test.ts
+    // runs its checkBatchAnchor on real batches from both sides of the Ledger 9 fork, named by hash
+    // as here). 0.2.0 and 0.3.0 read Ledger 8 states only and look transactions up by identifier.
+    const { readFileSync } = await import('node:fs');
+    const kit = JSON.parse(readFileSync(new URL('../../../../partner-kit/package.json', import.meta.url), 'utf8')) as {
+      name: string;
+      version: string;
+    };
+    expect(CONTRACTS_PACKAGE).toBe(`${kit.name}@${kit.version}`);
     const script = strFromU8(files[`${s.record.id}-evidence/proof/check-on-midnight.mjs`]);
     expect(script).toContain(`txId: "${TX}"`);
     expect(script).toContain(`root: Buffer.from("${s.batch.root}", 'hex')`);

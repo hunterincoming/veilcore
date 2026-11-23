@@ -15,7 +15,7 @@ import ArrowDownIcon from '@mui/icons-material/ArrowDropDown';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { pageAfterRole, setRole, useRole, type Role } from '../veilcore/role';
 import { useT } from '../i18n/app';
-import { color } from '../config/tokens';
+import { color, mix } from '../config/tokens';
 
 const VIEWS: Role[] = ['breeder', 'lab', 'both'];
 
@@ -64,7 +64,7 @@ export const ViewSwitch: React.FC = () => {
           fontSize: 15,
           fontWeight: 600,
           whiteSpace: 'nowrap',
-          '&:hover': { backgroundColor: 'rgba(0,0,0,0.04)' },
+          '&:hover': { backgroundColor: mix(color.text, 4) },
         }}
       >
         {t(`app.home.roleView.${shown}`)}

@@ -1,11 +1,12 @@
-// VeilCore's themes. `theme` is a dark baseline under the pages (main.tsx), on the same
-// ink and pollen gold; every page people see is drawn on `lightTheme` below or on the
-// public pages' site.css, which share one set of tokens (15 October 2026 redesign; palette
-// 16 October 2026; pollen and ink 17 October 2026).
+// VeilCore's themes. `theme` is a dark baseline under the pages (main.tsx). The app's pages
+// (App.tsx `Light`) are drawn on `appTheme`, which follows the device's light or dark setting
+// in Mako's night and gold (23 November 2026); the public pages on site.css, with `lightTheme`
+// for the few MUI parts in their frame. One set of components serves both, drawn with the
+// `--vc-*` colour variables (config/tokens.ts `color`), so a component never names a set.
 // SPDX-License-Identifier: Apache-2.0
 
-import { createTheme, alpha } from '@mui/material';
-import { color, night, paper } from './tokens';
+import { createTheme, alpha, type Theme, type ThemeOptions } from '@mui/material';
+import { appNight, appPrint, color, day, mix, night, paper, paperRoles, vcVars, type AppPalette } from './tokens';
 
 /**
  * The body and interface typeface, for the public pages and the app alike: Atkinson
@@ -145,52 +146,33 @@ export const theme = createTheme({
 });
 
 // ---------------------------------------------------------------------------------------
-// The app's light theme (13 Oct 2026; redrawn 15 Oct 2026 to match the public pages;
-// palette 17 Oct 2026: pollen and ink). The landing page and the app are one product, so
-// they use one set of tokens: the same colours, the same typefaces, the same shapes.
-// The values live in config/tokens.ts (`paper`), named by role; site.css uses the same names
-// as CSS variables (--ground, --surface, --text, --text-muted, --accent, --surface-quiet,
-// --rule), and tokens.test.ts checks they match.
+// The app's themes: night and day (23 Nov 2026), on the roles of config/tokens.ts.
 //
-// Pollen and ink. Pollen gold is where every new variety and bloodline begins: the moment
-// VeilCore dates. Ink on archival paper is how genetics have been recorded for 300 years:
-// herbarium specimen sheets and stud books. So the pages are herbarium paper and ink, and
-// the one colour is pollen gold, on what is dated or pressed: the main button, the DATED
-// stamp, the proof code's strip, link underlines and the focus ring. Gold is never text on
-// paper (1.3:1): on paper it is always a fill under ink, or a mark beside ink.
+// The night is Mako's: the void (#0B0E14), fills (#141B26), ink (#ECEEF1) and his gold
+// (#A67C00). The day is the same gold and roles on herbarium paper and ink, for phones in the
+// sun and greenhouses. Which one a page shows is the device's setting (prefers-color-scheme);
+// printed, it is always the day on white (tokens.ts appPrint), because printers drop
+// backgrounds and light text would print faint.
 //
-//   ground        Paper     #F6F3EC  the page: herbarium paper
-//   surface       Sheet     #FFFDF7  cards, records, inputs, dialogs: the specimen sheet
-//   text          Ink       #16181D  text and links     16.0:1 on Paper, 17.5:1 on Sheet
-//   textMuted     Pencil    #4B4740  secondary text      8.3:1 on Paper, 9.1:1 on Sheet, 7.4:1 on Wash
-//   accent        Pollen    #F6DA3C  the main button (ink text 12.7:1), stamps, the proof code
-//                                    strip, link underlines, the focus ring (ink inner ring)
-//   surfaceQuiet  Wash      #ECE6D8  quiet fills: secondary buttons, the next step, hover
-//   rule          Hairline  #E4DCC8  the dashed rules between a record's rows, nothing else
-//
-// Why this gold and not the first idea (#F2B705): that one is CIEDE2000 1.8 from Binance
-// yellow (#F3BA2F). A marigold light enough to stay 10:1 under ink lands on Binance too;
-// the warm golds that get away are pale butter or a dull mustard (7:1). This one is a clear
-// pollen yellow, 10.5 from Binance and 25.0 from Bitcoin orange (#F7931A).
-//
-// An error is always a tinted note with an icon and a sentence, in red (#9E2A0B, 7.4:1 on
-// Sheet), the only red anywhere; a check that passed is a ✓ in a quiet green (#2E6B55,
-// 5.7:1), never the brand. Choosing something (a checkbox, a switch, a role) is Ink: it is
-// not a date. Every text colour passes WCAG AA, and the brand pair AAA.
-const L_INK = color.text;
-const L_MUTED = color.textMuted;
-const L_GROUND = color.ground;
-/** The few rules left (inside technical detail): the rule colour, so they separate without shouting. */
-const L_LINE = color.rule;
-/** Input edges: 4.0:1 on the surface, 3.6:1 on the ground, enough to see where to type (WCAG 1.4.11). */
-const L_EDGE = color.edge;
+// The rules both keep (plan v2, both reviews):
+// - Never light text on gold (3.8:1): the main button is gold under the night, 5.1:1 (6.1:1
+//   under the pointer). Gold is never text on the day's paper (3.4:1), nor on a raised fill.
+// - A quiet button is its fill and a 1px line in the fields' edge colour (5.4:1 on the night,
+//   3.6:1 on paper), so its shape shows; no outlines.
+// - Choosing something (a checkbox, a switch, a role) is ink, not gold: gold is what is dated,
+//   sealed, linked or pressed.
+// - A passed check is a ✓ in green, a warning (orange, not the brand's gold) and an error each
+//   with an icon and a sentence, never colour alone. Every text colour passes WCAG AA.
+// - The focus ring is gold outside a ring of the ground's darkest ink, so it shows on the night,
+//   on paper and on a gold button alike.
+// Shape by hierarchy: controls 8, sheets 12, chips 6.
 
 /**
  * One visible focus ring for everything a keyboard can reach on the light pages: an ink
- * ring hugging the element (16:1 on paper) inside a pollen ring (12.7:1 on ink), so it
- * shows on paper, on a gold button and on the ink band alike. MUI marks keyboard focus with
- * .Mui-focusVisible (buttons, list buttons, chips, switches); plain links and clickable
- * cards use :focus-visible. Nothing on these pages turns the outline off.
+ * ring hugging the element inside a gold ring, so it shows on the ground, on a gold button
+ * and on the ink band alike. MUI marks keyboard focus with .Mui-focusVisible (buttons, list
+ * buttons, chips, switches); plain links and clickable cards use :focus-visible. Nothing on
+ * these pages turns the outline off.
  */
 export const FOCUS_RING = {
   outline: `3px solid ${color.focus}`,
@@ -210,7 +192,7 @@ export const lightFocusStyles = {
 } as const;
 
 /**
- * A plain router link drawn like MuiLink: ink, with a thick pollen underline. For anchors
+ * A plain router link drawn like MuiLink: ink, with a thick gold underline. For anchors
  * that aren't MUI Links (a Box rendered as a RouterLink).
  */
 export const LINK_SX = {
@@ -221,50 +203,58 @@ export const LINK_SX = {
   textDecorationThickness: 3,
   textUnderlineOffset: 3,
   textDecorationSkipInk: 'none',
-  '&:hover': { backgroundColor: alpha(color.accent, 0.45) },
+  '&:hover': { backgroundColor: mix(color.accent, 45) },
 } as const;
 
+/** A quiet button's edge: its fill alone is 1.1:1 on the ground, so a 1px line shows its shape. */
+export const QUIET_EDGE = `inset 0 0 0 1px ${color.edge}`;
+
 /**
- * Things you press feel like paper on a desk: a gold button sits on a thin ink shadow,
- * lifts a pixel under the pointer and goes down when pressed. Without motion, the same
- * shadows, no movement.
+ * Things you press sit on a thin shadow, lift a pixel under the pointer and go down when
+ * pressed. Without motion, the same shadows, no movement.
  */
 const PRESS = {
-  rest: `0 1px 0 ${alpha(color.text, 0.28)}, 0 2px 6px -2px ${alpha(color.text, 0.24)}`,
-  lift: `0 2px 0 ${alpha(color.text, 0.3)}, 0 8px 16px -6px ${alpha(color.text, 0.3)}`,
-  down: `0 0 0 ${alpha(color.text, 0.3)}, 0 1px 2px ${alpha(color.text, 0.2)}`,
+  rest: `0 1px 0 ${mix(color.shadow, 28)}, 0 2px 6px -2px ${mix(color.shadow, 24)}`,
+  lift: `0 2px 0 ${mix(color.shadow, 30)}, 0 8px 16px -6px ${mix(color.shadow, 30)}`,
+  down: `0 0 0 ${mix(color.shadow, 30)}, 0 1px 2px ${mix(color.shadow, 20)}`,
 };
 const pressable = (reduce: boolean) => ({
   boxShadow: PRESS.rest,
-  transition: reduce ? 'none' : 'transform 120ms ease-out, box-shadow 120ms ease-out',
-  '&:hover': { boxShadow: PRESS.lift, transform: reduce ? 'none' : 'translateY(-1px)' },
+  transition: reduce ? 'none' : 'transform 120ms ease-out, box-shadow 120ms ease-out, background-color 120ms',
+  '&:hover': {
+    boxShadow: PRESS.lift,
+    transform: reduce ? 'none' : 'translateY(-1px)',
+    backgroundColor: color.accentHover,
+  },
   '&:active': { boxShadow: PRESS.down, transform: 'none' },
   '&.Mui-focusVisible': { ...FOCUS_RING, boxShadow: `0 0 0 2px ${color.focusInner}` },
-  '&.Mui-disabled': { backgroundColor: color.surfaceQuiet, color: alpha(color.text, 0.42), boxShadow: 'none' },
+  '&.Mui-disabled': { backgroundColor: color.surfaceQuiet, color: mix(color.text, 42), boxShadow: 'none' },
 });
 
 // Type scale (ratio about 1.25 from a 17px body). Headings in Archivo, set a little tight.
 const HEADING = { fontFamily: DISPLAY_FONT, fontWeight: 700, letterSpacing: '-0.01em', lineHeight: 1.12 } as const;
 
-export const lightTheme = createTheme({
+/** MUI's palette for one set: what MUI's own parts (fields, menus, checkboxes) draw with. */
+const muiPalette = (c: AppPalette, mode: 'light' | 'dark') => ({
+  mode,
+  // The gold is a fill under the night, never text: primary text and icons are drawn in ink
+  // below (MuiButton text, MuiLink, MuiChip), and only fills take the gold.
+  primary: { main: c.accent, light: c.accent, dark: c.accent, contrastText: c.onAccent },
+  // Choosing, not dating: checkboxes, switches, radios and progress are ink.
+  secondary: { main: c.text, contrastText: c.ground },
+  background: { default: c.ground, paper: c.surface },
+  text: { primary: c.text, secondary: c.textMuted },
+  success: { main: c.ok },
+  warning: { main: c.warn },
+  error: { main: c.error },
+  // A neutral note in ink on the quiet fill: no blue.
+  info: { main: c.textMuted },
+  divider: c.rule,
+});
+
+/** Everything but the colours' values: the same type, shapes and parts in every set. */
+const shared: ThemeOptions = {
   transitions: MOTION.transitions,
-  palette: {
-    mode: 'light',
-    // The gold is a fill under ink, never ink itself: primary text and icons are drawn in
-    // Ink below (MuiButton text, MuiLink, MuiChip), and only fills take the gold.
-    primary: { main: color.accent, light: color.accent, dark: color.accent, contrastText: color.onAccent },
-    // Choosing, not dating: checkboxes, switches, radios and progress are Ink.
-    secondary: { main: L_INK, light: '#3A3B40', dark: '#000000', contrastText: color.surface },
-    background: { default: L_GROUND, paper: color.surface },
-    text: { primary: L_INK, secondary: L_MUTED },
-    success: { main: color.ok },
-    warning: { main: color.warn },
-    error: { main: color.error },
-    // A neutral note in ink on Wash: no blue.
-    info: { main: L_MUTED },
-    divider: L_LINE,
-  },
-  // Shape by hierarchy: controls 8, sheets 12 (MuiPaper below), chips 6.
   shape: { borderRadius: 8 },
   typography: {
     fontFamily: FONT,
@@ -293,9 +283,9 @@ export const lightTheme = createTheme({
       fontSize: '0.9375rem',
       lineHeight: 1.5,
       fontWeight: 700,
-      color: L_MUTED,
+      color: color.textMuted,
     },
-    caption: { fontSize: '0.875rem', color: L_MUTED },
+    caption: { fontSize: '0.875rem', color: color.textMuted },
   },
   components: {
     MuiButtonBase: {
@@ -307,20 +297,20 @@ export const lightTheme = createTheme({
       defaultProps: { color: 'secondary' },
       styleOverrides: { switchBase: { '&.Mui-focusVisible': FOCUS_RING } },
     },
-    // A link is ink with a thick pollen underline; under the pointer the underline fills
+    // A link is ink with a thick gold underline; under the pointer the underline fills
     // in behind the word, like a highlighter.
     MuiLink: {
       defaultProps: { color: 'inherit' },
       styleOverrides: {
         root: {
           '&:focus-visible': FOCUS_RING,
-          color: L_INK,
+          color: color.text,
           fontWeight: 700,
           textDecorationColor: color.accent,
           textDecorationThickness: 3,
           textUnderlineOffset: 3,
           textDecorationSkipInk: 'none',
-          '&:hover': { backgroundColor: alpha(color.accent, 0.45), textDecorationColor: color.accent },
+          '&:hover': { backgroundColor: mix(color.accent, 45), textDecorationColor: color.accent },
         },
       },
     },
@@ -328,8 +318,11 @@ export const lightTheme = createTheme({
     MuiDialogTitle: {
       styleOverrides: { root: { fontFamily: DISPLAY_FONT, fontSize: '1.5rem', fontWeight: 700, lineHeight: 1.25 } },
     },
+    // Dialogs and menus stand a step above the page: the raised fill (on paper, the sheet).
+    MuiDialog: { styleOverrides: { paper: { backgroundColor: color.surfaceRaised } } },
+    MuiPopover: { styleOverrides: { paper: { backgroundColor: color.surfaceRaised } } },
     MuiBackdrop: {
-      styleOverrides: { root: { '&:not(.MuiBackdrop-invisible)': { backgroundColor: alpha(color.text, 0.55) } } },
+      styleOverrides: { root: { '&:not(.MuiBackdrop-invisible)': { backgroundColor: mix(color.scrim, 62) } } },
     },
     MuiCardActionArea: {
       styleOverrides: { root: { '&.Mui-focusVisible': FOCUS_RING } },
@@ -338,32 +331,38 @@ export const lightTheme = createTheme({
     MuiTypography: {
       defaultProps: { variantMapping: { subtitle1: 'p', subtitle2: 'p' } },
     },
-    // A sheet is the specimen sheet on the Paper ground: no outline, a hairline of shadow
-    // so it sits on the paper. Menus and dialogs set their own elevation and keep the
-    // shadow that lifts them over the page.
+    // A sheet is a card on the ground: no outline, a hairline of shadow on paper (none shows on
+    // the night, where the fill alone sets it apart, as on Mako's pages). Menus and dialogs set
+    // their own elevation and keep the shadow that lifts them over the page.
     MuiPaper: {
       defaultProps: { elevation: 0 },
       // A sheet inside a sheet (a panel inside a step screen) is a recess in the ground
       // colour, so it still reads as its own part without a border.
       styleOverrides: {
-        root: { backgroundImage: 'none', '& .MuiPaper-root:not(.MuiAlert-root)': { backgroundColor: L_GROUND } },
+        root: {
+          backgroundImage: 'none',
+          '& .MuiPaper-root:not(.MuiAlert-root)': { backgroundColor: color.ground },
+        },
         rounded: { borderRadius: 12 },
-        elevation0: { boxShadow: `0 0 0 1px ${alpha('#5C4F2E', 0.08)}, 0 1px 2px ${alpha('#5C4F2E', 0.06)}` },
+        elevation0: { boxShadow: `0 0 0 1px ${mix(color.shadow, 8)}, 0 1px 2px ${mix(color.shadow, 6)}` },
       },
     },
-    // Filled, never outlined: the main action in pollen gold under ink, the others in
-    // Wash, as on the public pages. An outlined button keeps its variant (and behaviour);
-    // only its look changes. A text button is ink, never gold text.
+    // Filled, never outlined: the main action gold under the night, the others the quiet fill
+    // with its edge. An outlined button keeps its variant (and behaviour); only its look
+    // changes. A text button is ink, never gold text.
     MuiButton: {
       styleOverrides: {
         root: { borderRadius: 8, paddingInline: 20, paddingBlock: 10, boxShadow: 'none' },
         contained: { boxShadow: 'none', '&:hover': { boxShadow: 'none' } },
       },
       variants: [
-        { props: { variant: 'contained', color: 'primary' }, style: pressable(REDUCED_MOTION) },
+        {
+          props: { variant: 'contained', color: 'primary' },
+          style: { backgroundColor: color.accent, color: color.onAccent, ...pressable(REDUCED_MOTION) },
+        },
         {
           props: { variant: 'text', color: 'primary' },
-          style: { color: L_INK, '&:hover': { backgroundColor: color.surfaceQuiet } },
+          style: { color: color.text, '&:hover': { backgroundColor: color.surfaceQuiet } },
         },
         // Any other outlined button (inside a notice, in its own colour): a light fill of
         // that colour instead of an outline.
@@ -381,67 +380,161 @@ export const lightTheme = createTheme({
         {
           props: { variant: 'outlined', color: 'primary' },
           style: {
-            color: L_INK,
+            color: color.text,
             backgroundColor: color.surfaceQuiet,
             borderColor: 'transparent',
+            boxShadow: QUIET_EDGE,
             '&:hover': { backgroundColor: color.surfaceQuietHover, borderColor: 'transparent' },
           },
         },
       ],
     },
     MuiIconButton: {
-      variants: [{ props: { color: 'primary' }, style: { color: L_INK } }],
+      variants: [{ props: { color: 'primary' }, style: { color: color.text } }],
     },
     MuiOutlinedInput: {
       styleOverrides: {
         root: {
           backgroundColor: color.surface,
           borderRadius: 8,
-          '& fieldset': { borderColor: L_EDGE, borderWidth: 1.5 },
-          '&.Mui-focused fieldset': { borderColor: `${L_INK} !important` },
+          '& fieldset': { borderColor: color.edge, borderWidth: 1.5 },
+          '&.Mui-focused fieldset': { borderColor: `${color.text} !important` },
+          // A browser's autofill paints its own pale fill: on the night, the field keeps its fill
+          // and its ink.
+          '& input:-webkit-autofill': {
+            WebkitBoxShadow: `0 0 0 100px ${color.surface} inset`,
+            WebkitTextFillColor: color.text,
+            caretColor: color.text,
+          },
         },
       },
     },
     MuiInputLabel: {
-      styleOverrides: { root: { '&.Mui-focused': { color: L_INK } } },
+      styleOverrides: { root: { '&.Mui-focused': { color: color.text } } },
     },
     MuiChip: {
       styleOverrides: { root: { borderRadius: 6, fontWeight: 600 } },
       variants: [
-        // A primary chip is a gold label under ink; outlined, an ink label with a gold edge.
+        // A primary chip is a gold label under the night; outlined, an ink label with a gold edge.
         {
           props: { color: 'primary', variant: 'outlined' },
-          style: { color: L_INK, borderColor: color.accent, borderWidth: 2 },
+          style: { color: color.text, borderColor: color.accent, borderWidth: 2 },
         },
       ],
     },
-    // Choosing something, or waiting for it, is not a date: these are Ink (secondary),
-    // so pollen gold stays on what is dated, sealed, linked or pressed.
+    // Choosing something, or waiting for it, is not a date: these are ink (secondary),
+    // so the gold stays on what is dated, sealed, linked or pressed.
     MuiCheckbox: { defaultProps: { color: 'secondary' } },
     MuiRadio: { defaultProps: { color: 'secondary' } },
     MuiCircularProgress: { defaultProps: { color: 'secondary' } },
     MuiLinearProgress: { defaultProps: { color: 'secondary' } },
     // A notice is told apart by a tint of its own colour, not by an outline: an outlined
-    // alert keeps its variant (and behaviour) and is drawn like a filled note. The text
-    // stays MUI's darkened severity colour, 7:1 or more on each tint. An error always has its
-    // icon and a sentence: that, not the hue alone, is how it reads as a problem.
+    // alert keeps its variant (and behaviour) and is drawn like a filled note, its text in
+    // the set's text colour and its icon in the notice's colour (6.4:1 or more on each tint).
+    // An error always has its icon and a sentence: that, not the hue alone, is how it reads.
     MuiAlert: {
       styleOverrides: {
-        root: { fontSize: '1rem', borderRadius: 12 },
+        root: {
+          fontSize: '1rem',
+          borderRadius: 12,
+          // On a phone a worded action ("Undo the change") goes under the sentence, lined up with
+          // it, instead of squeezing it into a narrow column beside it (German broke "Angaben"
+          // in two). A close button alone stays beside the sentence. 14px: the icon and its gap
+          // (34px) less a text button's own padding (20px), so the word starts under the sentence.
+          [PHONE]: {
+            '&:has(> .MuiAlert-action .MuiButton-root)': {
+              flexWrap: 'wrap',
+              '& > .MuiAlert-message': { flex: '1 1 0' },
+              '& > .MuiAlert-action': { flexBasis: '100%', marginLeft: 0, paddingLeft: '14px', paddingTop: 0 },
+            },
+          },
+        },
         // A short action ("Save it") stays on one line beside the sentence.
         action: { alignItems: 'center', '& .MuiButton-root': { whiteSpace: 'nowrap' } },
       },
       variants: (
         [
-          ['success', color.okTint],
-          ['info', color.surfaceQuiet],
-          ['warning', color.warnTint],
-          ['error', color.errorTint],
+          ['success', color.okTint, color.ok],
+          ['info', color.surfaceQuiet, color.textMuted],
+          ['warning', color.warnTint, color.warn],
+          ['error', color.errorTint, color.error],
         ] as const
-      ).map(([severity, tint]) => ({
+      ).map(([severity, tint, mark]) => ({
         props: { variant: 'outlined' as const, severity },
-        style: { border: 0, backgroundColor: tint },
+        style: { border: 0, backgroundColor: tint, color: color.text, '& .MuiAlert-icon': { color: mark } },
       })),
     },
   },
-});
+};
+
+/**
+ * The public pages' frame (SiteShell.tsx): the header's and footer's MUI parts. The colour
+ * variables there hold the paper set (main.tsx paperColourStyles); site.css draws the night
+ * over them.
+ */
+export const lightTheme = createTheme({ ...shared, palette: muiPalette(paperRoles, 'light') });
+
+const DARK_MEDIA = '@media (prefers-color-scheme: dark)';
+const DARK_SCREEN = '@media screen and (prefers-color-scheme: dark)';
+/** `{ '@media (prefers-color-scheme: dark)': x }` anywhere in a style object, on screens only. */
+const onScreen = (styles: unknown): unknown => {
+  if (Array.isArray(styles)) return styles.map(onScreen);
+  if (!styles || typeof styles !== 'object') return styles;
+  return Object.fromEntries(
+    Object.entries(styles as Record<string, unknown>).map(([k, v]) => [
+      k === DARK_MEDIA ? DARK_SCREEN : k,
+      onScreen(v),
+    ]),
+  );
+};
+
+/**
+ * The app: day and night, the device's choice, in MUI's colour schemes (CSS variables, so the
+ * page doesn't flash or redraw when the setting changes). MUI writes its dark colours under
+ * `prefers-color-scheme: dark`, which a printer can match too: here they are for screens only,
+ * so a page prints in the day's colours (and appColourStyles' print set) on a dark phone.
+ */
+export const appTheme: Theme = (() => {
+  const t = createTheme({
+    ...shared,
+    cssVariables: { colorSchemeSelector: 'media' },
+    colorSchemes: { light: { palette: muiPalette(day, 'light') }, dark: { palette: muiPalette(appNight, 'dark') } },
+  }) as Theme & { generateStyleSheets: () => unknown[]; getColorSchemeSelector: (scheme: string) => string };
+  const sheets = t.generateStyleSheets;
+  t.generateStyleSheets = () => onScreen(sheets()) as unknown[];
+  const selector = t.getColorSchemeSelector;
+  t.getColorSchemeSelector = (scheme) => {
+    const s = selector(scheme);
+    return s === DARK_MEDIA ? DARK_SCREEN : s;
+  };
+  return t;
+})();
+
+/**
+ * The app's colour variables (App.tsx `Light`): the day, the night on a screen set to dark, and
+ * paper when printed. `:root:root` so they win over the public pages' defaults (main.tsx).
+ */
+export const appColourStyles = {
+  ':root:root': { ...vcVars(day), colorScheme: 'light' },
+  [DARK_SCREEN]: { ':root:root': { ...vcVars(appNight), colorScheme: 'dark' } },
+  '@media print': {
+    // MUI's own gold (a floating button, a tab's line) as the print set's light gold too.
+    ':root:root': { ...vcVars(appPrint), '--mui-palette-primary-main': appPrint.accent, colorScheme: 'light' },
+    // Ask's button and its hint are for the screen: on paper there is nothing to press.
+    '.MuiFab-root, [data-ask-open], [data-ask-hint]': { display: 'none !important' },
+    'html:root body': { paddingBottom: 0 },
+  },
+  // Past the page's end (a short page, overscroll), the ground goes on.
+  'html:root, html:root body': { backgroundColor: color.ground, color: color.text },
+  // A plain link nobody styled (a router link in a sentence) was the browser's blue, 2:1 on the
+  // night: it reads like every other link instead, ink with a gold underline.
+  ':where(a:not([class]))': {
+    color: color.text,
+    textDecorationColor: color.accent,
+    textDecorationThickness: 2,
+    textUnderlineOffset: 3,
+  },
+} as const;
+
+/** Outside the app the variables hold the paper set: the header and footer's MUI parts (main.tsx). */
+export const paperColourStyles = { ':root': vcVars(paperRoles) } as const;

@@ -24,7 +24,7 @@ Install an exact version, not a range: the package carries the mainnet addresses
 key fingerprints it checks against.
 
 ```sh
-npm install --save-exact @veilcore/contracts@0.3.0
+npm install --save-exact @veilcore/contracts@0.4.0
 ```
 
 **Read [docs/PARTNERS.md](https://github.com/hunterincoming/veilcore/blob/main/docs/PARTNERS.md)
@@ -73,7 +73,7 @@ import { checkPresentation } from '@veilcore/contracts';
 const verdict = await checkPresentation({ network: 'preprod', blockfrostProjectId, txId, issuer, challenge, issuedAt });
 ```
 
-- Node 24, ES modules. A proof server on your own machine, the one for your network (mainnet, Midnight Ledger 9 since 6 November 2026: `docker run -d -p 127.0.0.1:6300:6300 midnightntwrk/proof-server:9.0.1@sha256:90e36a14f92c2004127f0ed1cfd6ee89d770cf1f6e9cd7f02026ffd4ecb42f37 midnight-proof-server -v`; preprod until it forks: `docker run -d -p 127.0.0.1:6300:6300 midnightntwrk/proof-server:8.1.3@sha256:0f4ab0716985eaebbe55a970348f52ff05ffd8a96631ed7232bd0c4ba02c115c midnight-proof-server -v`; `proofServerImageFor(network)` names it; bound to
+- Node 24, ES modules. A proof server on your own machine, the one for your network (mainnet, preprod and preview, all on Midnight Ledger 9: `docker run -d -p 127.0.0.1:6300:6300 midnightntwrk/proof-server:9.0.1@sha256:90e36a14f92c2004127f0ed1cfd6ee89d770cf1f6e9cd7f02026ffd4ecb42f37 midnight-proof-server -v`; the local chain in `partner-kit/local`, still Ledger 8: `docker run -d -p 127.0.0.1:6300:6300 midnightntwrk/proof-server:8.1.3@sha256:0f4ab0716985eaebbe55a970348f52ff05ffd8a96631ed7232bd0c4ba02c115c midnight-proof-server -v`; `proofServerImageFor(network)` names it; bound to
   127.0.0.1 so nothing else on your network can reach it). Every proof sends it record and
   licence secrets. `connect` and `seedWallet` refuse a proof server that is not on this
   machine unless you pass `allowRemoteProofServer: true`, and then only over https.
@@ -106,6 +106,23 @@ const verdict = await checkPresentation({ network: 'preprod', blockfrostProjectI
 
 ## Changes
 
+**0.4.0**
+- Reads VeilCore's records on both sides of Midnight's Ledger 9 fork (mainnet forked on
+  6 November 2026): 0.2.0 and 0.3.0 read only states in Ledger 8's format, so they cannot check
+  anything dated since. VeilCore's contracts stay Ledger 8 contracts.
+- A transaction can be named by its hash, as the registry and evidence bundles record it, as
+  well as by one of its identifiers. Earlier versions looked up identifiers only, so an evidence
+  bundle's `check-on-midnight.mjs` answered "No such transaction." for every batch.
+- midnight-js 5.0.1, Compact JS 3.0.2, wallet SDK 2.0.1, ledger-v9 1.0.2 (Midnight's 17 November
+  patch set). The same calls work on a network before and after the fork.
+- Proof server: the Ledger 9 image (9.0.1, pinned by digest) on mainnet, preprod and preview; 8.1.3
+  only for the local chain in `partner-kit/local`, which still runs Ledger 8. Midnight's support
+  matrix says 9.0.0 and 9.0.1 "can crash during key generation or proving for some circuits that
+  use Jubjub types"; the claims contract's `proveAttested` uses them (a ZKIR v2 circuit, which
+  9.0.2's listed fix is not for). If your 9.0.1 proof server fails on `proveAttested`, use 9.0.2;
+  the kit moves to it next. 0.3.0 gave preprod
+  and preview the Ledger 8 image, which cannot prove for them since they moved to Ledger 9.
+
 **0.3.0**
 - Preprod is reached through Blockfrost (pass `blockfrostProjectId`): Midnight's own preprod
   endpoints closed on 9 October 2026, so 0.2.0 can no longer reach preprod.
@@ -117,9 +134,5 @@ const verdict = await checkPresentation({ network: 'preprod', blockfrostProjectI
   kept off the terminal.
 - Verifier checks: pinned verifier keys, a second indexer, network agreement, and an
   issuer-scoped acceptance for license presentations (rule 5).
-- midnight-js 5 and wallet SDK 2: the same calls work on a network before and after Midnight's
-  Ledger 9 fork (mainnet forked on 6 November 2026). VeilCore's contracts stay Ledger 8 contracts.
-- Proof server: 9.0.1 on mainnet (pinned by digest; 9.0.0 was never published); 8.1.3 (Midnight's
-  2 October security patch, pinned by digest) on test networks until they fork.
 
 Apache-2.0.

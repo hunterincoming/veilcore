@@ -92,6 +92,7 @@ import { SupportDetails } from './SupportDetails';
 import { OPEN_SIGNING_KEY_EVENT } from './AttesterSetup';
 import { errorReason } from '../i18n/error-words';
 import { CODE_FONT } from '../config/theme';
+import { color, mix } from '../config/tokens';
 
 /** Opens the header's receive dialog from elsewhere on the page (a lab's first screen). */
 export const OPEN_RECEIVE_EVENT = 'veilcore:open-receive';
@@ -123,7 +124,7 @@ const ReceiptStatement: React.FC<{
   const { t } = tr;
   const b = (c: React.ReactNode) => <b>{c}</b>;
   return (
-    <Box sx={{ p: 1.5, borderRadius: 1, background: 'rgba(30,34,39,0.04)', fontSize: 13 }} data-receipt-statement="">
+    <Box sx={{ p: 1.5, borderRadius: 1, background: mix(color.text, 4), fontSize: 13 }} data-receipt-statement="">
       <Typography variant="body2">{t('app.lab.recv.quoted', { v: receiptWords(subject, transferId, tr) })}</Typography>
       {sample && hasDetails(sample) && (
         <Typography variant="body2" sx={{ mt: 0.5, overflowWrap: 'anywhere' }}>
