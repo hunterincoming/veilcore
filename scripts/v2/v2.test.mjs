@@ -610,7 +610,16 @@ test('resume after a deploy that never landed: only past its validity, and the o
   // verify shows it, so it is never forgotten.
   const v = await verifyV2(c, { dir: s.dir, file: s.file });
   assert.equal(v.code, 0, v.out);
-  assert.match(v.out, new RegExp(`abandoned deploy at ${lostAddress}.*never pin it`));
+  assert.match(v.out, new RegExp(`abandoned deploy at ${lostAddress}.*it can no longer land; never pin it`));
+  // A record with a pending deploy and no validity time (from an older tool) never redeploys on its own.
+  const c2 = chain();
+  const s2 = session(c2);
+  await assert.rejects(runDeploy({ ...s2.deps, record: s2.read(), send: async () => Promise.reject(new Error('x')) }), /x/);
+  const old = s2.read();
+  delete old.contracts.veilcore.pending.ttlEnds;
+  writeSession(s2.file, old);
+  await assert.rejects(runDeploy({ ...s2.deps, record: s2.read(), send: c2.send }), /does not say until when it could land/);
+  assert.equal(s2.read().contracts.veilcore.address, old.contracts.veilcore.address);
 });
 
 test('resume after an update landed unconfirmed and someone then called v2: the call is never recorded as the update', async () => {

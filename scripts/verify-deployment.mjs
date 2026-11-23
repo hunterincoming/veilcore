@@ -515,7 +515,7 @@ const runV2 = async (opts, { env, log }) => {
     }
     for (const l of r.lines) log(l);
     for (const x of c.abandoned ?? [])
-      log(`  NOTE  abandoned deploy at ${x.address} (${x.reason}): never pin it; if it ever appears on chain, retire it`);
+      log(`  NOTE  abandoned deploy at ${x.address} (${x.reason}): it can no longer land; never pin it`);
     if (c.pending !== null && c.pending !== undefined)
       log(`  NOTE  the record shows a step that did not finish (${c.pending.kind}); run the deploy again with --resume`);
     circuits += r.circuits;

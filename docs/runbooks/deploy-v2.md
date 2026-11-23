@@ -320,6 +320,17 @@ Only when 9 to 13 all pass on preprod, with the exact build, go on.
 
     (For claims: add `--contract veilcore-claims` and use `retire-claims` file names.)
 
+    Then the fresh deploy is step 14 again with **new file names**, because the tool never writes
+    over a key file or a record:
+
+    ```sh
+    npm run deploy-v2 -- mainnet --send-on-mainnet --key-file ~/veilcore-v2/mainnet-2-temp-key.age --out ~/veilcore-v2/mainnet-2-record.json
+    ```
+
+    From then on, use `mainnet-2-temp-key.age` and `mainnet-2-record.json` wherever the steps below
+    say `mainnet-temp-key.age` and `mainnet-record.json`. Keep the first record: it is the public
+    account of the abandoned deploy. Delete the first key file once both retires are confirmed.
+
 16. **Pin v2, as its own PR, straight after step 15 passes:** the v2 addresses in the deployment
     record (revision 5) and the pinned lists. Once it is merged, the team may make its own v2
     records, from the CLI or a maintainer-only build, never through the public site. Wording stays

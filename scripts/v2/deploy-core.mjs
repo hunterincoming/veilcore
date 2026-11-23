@@ -181,7 +181,16 @@ export const runDeploy = async (deps) => {
         log(`${name}: the deploy at ${entry.address} had landed (transaction ${h}).`);
       } else {
         const ends = Date.parse(entry.pending?.ttlEnds ?? '');
-        const safe = (Number.isNaN(ends) ? clock() + TTL_MS : ends) + TTL_MARGIN_MS;
+        if (Number.isNaN(ends))
+          throw new Error(
+            `${name}: the deploy at ${entry.address} is not on chain, and the record does not say until when it could ` +
+              'land (a record written before this version of the tool). The tool will not deploy again on its own. ' +
+              'Check the address on a block explorer; if nothing is there an hour after the deploy was sent, ask the ' +
+              'maintainer before going on. Nothing was sent.',
+          );
+        // If the indexer hides a deploy that did land for longer than this, the resume deploys
+        // again; the first address stays in abandoned[], so nothing is lost from the record.
+        const safe = ends + TTL_MARGIN_MS;
         if (clock() < safe)
           throw new Error(
             `${name}: the deploy at ${entry.address} is not on chain yet, but it may still land until ` +
