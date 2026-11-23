@@ -77,3 +77,9 @@ ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
     </ThemeProvider>
   </React.StrictMode>,
 );
+
+// The code face (JetBrains Mono) isn't preloaded: most first screens show no code. Fetch it once
+// the first screen is up, so it is there before a code is, and never swaps in under a tap.
+const fetchCodeFace = () => void document.fonts?.load('1em "VeilCore Mono"').catch(() => undefined);
+if ('requestIdleCallback' in window) window.requestIdleCallback(fetchCodeFace, { timeout: 3000 });
+else setTimeout(fetchCodeFace, 1500);
