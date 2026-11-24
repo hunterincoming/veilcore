@@ -147,6 +147,12 @@ jobs:
         run: |
           npx vitest run src/launcher/committee.test.ts src/launcher/deploy-v2.test.ts src/launcher/smoke-v2.test.ts
 
+      # The same three tools, run the way the Mac runs them (Node's own loader, not a bundler), with
+      # no arguments: each must load all its code and stop at its usage message. Nothing is sent.
+      - name: The v2 deploy tools load under Node's own loader
+        run: |
+          node scripts/check-cli-loads.mjs
+
   site-unit:
     needs: contract
     runs-on: ubuntu-24.04
