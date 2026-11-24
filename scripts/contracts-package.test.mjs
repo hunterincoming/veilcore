@@ -28,3 +28,13 @@ test('refuses when npm answers with another version', () => {
 test('refuses when the bundle source has no pinned package', () => {
   assert.match(contractsPackageProblem("export const CONTRACTS_PACKAGE = '@veilcore/contracts';", () => '0.5.0'), /Could not find/);
 });
+
+test('a commented-out older line cannot stand in for the real one', () => {
+  const src = "// export const CONTRACTS_PACKAGE = '@veilcore/contracts@0.4.0';\nexport const CONTRACTS_PACKAGE = '@veilcore/contracts@0.9.0';";
+  assert.equal(bundlePackage(src).version, '0.9.0');
+  assert.match(contractsPackageProblem(src, (spec) => (spec.endsWith('0.4.0') ? '0.4.0' : undefined)), /npm does not have it/);
+});
+
+test('refuses when the line appears twice', () => {
+  assert.match(contractsPackageProblem(`${SRC}\n${SRC}`, () => '0.5.0'), /Could not find/);
+});

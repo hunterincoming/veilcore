@@ -7,16 +7,17 @@ import { readFileSync } from 'node:fs';
 
 export const BUNDLE_SOURCE = 'bboard-ui/src/veilcore/evidence/bundle.ts';
 
-/** The pinned `@veilcore/contracts@x.y.z` from the bundle source, or undefined. */
+/** The pinned `@veilcore/contracts@x.y.z` from the bundle source: exactly one, at the start of a line, or undefined. */
 export const bundlePackage = (source) => {
-  const m = /export const CONTRACTS_PACKAGE = '(@veilcore\/contracts@(\d+\.\d+\.\d+))';/.exec(source);
-  return m ? { spec: m[1], version: m[2] } : undefined;
+  const all = [...source.matchAll(/^export const CONTRACTS_PACKAGE = '(@veilcore\/contracts@(\d+\.\d+\.\d+))';$/gm)];
+  if (all.length !== 1) return undefined;
+  return { spec: all[0][1], version: all[0][2] };
 };
 
 /** What `npm view <spec> version` printed, or undefined when npm has no such version. */
 const npmView = (spec) => {
   try {
-    return execFileSync('npm', ['view', spec, 'version'], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
+    return execFileSync('npm', ['view', spec, 'version'], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'], timeout: 60_000 }).trim();
   } catch {
     return undefined;
   }
