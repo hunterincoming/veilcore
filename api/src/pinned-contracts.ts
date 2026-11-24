@@ -148,5 +148,19 @@ export const pinnedAt = (list: readonly PinnedEntry[], address: string): PinnedE
   return list.find((e) => e.address === a);
 };
 
+/**
+ * The pinned list a check on `network` counts calls against (rule 10.2): preprod's on preprod,
+ * none on a local chain or Preview (no list there), and mainnet's everywhere else, mainnet
+ * included and a network that is not set.
+ */
+export const pinnedListFor = (
+  network: string | null,
+  lists: { readonly mainnet: readonly PinnedEntry[]; readonly preprod: readonly PinnedEntry[] } = {
+    mainnet: MAINNET_PINNED,
+    preprod: PREPROD_PINNED,
+  },
+): readonly PinnedEntry[] =>
+  network === 'preprod' ? lists.preprod : network === 'undeployed' || network === 'preview' ? [] : lists.mainnet;
+
 /** How a version is named to a person: "VeilCore contract version 1". */
 export const versionName = (v: ContractVersion): string => `VeilCore contract version ${v.slice(1)}`;

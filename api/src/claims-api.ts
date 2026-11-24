@@ -57,7 +57,7 @@ import {
   retireMaintenanceAuthorityProvably,
 } from './maintenance.js';
 import { type LookupCheck, singleCallState } from './presentation-lookup.js';
-import { type AuthorityReport, withMainnetPins } from './state-check.js';
+import { type AuthorityReport, withPinnedLookup } from './state-check.js';
 import { type TxRef } from './veilcore-api.js';
 import {
   type ClaimsContract,
@@ -280,7 +280,8 @@ export class ClaimsAPI {
 
   /**
    * Read one claim back. Given a transaction id (and the indexer), the transaction must
-   * have succeeded and carry exactly one call on this contract, a claim; its cells are
+   * have succeeded and carry exactly one call on VeilCore's pinned contracts together, a
+   * claim on this contract (rule 10.2); its cells are
    * the state the indexer recorded for that call. Given a call's own result, its cells
    * are the state that call produced.
    */
@@ -303,7 +304,7 @@ export class ClaimsAPI {
       CLAIMS_PROVABLE_CIRCUITS,
       'That transaction is not a single claim on this claims contract.',
       undefined,
-      withMainnetPins(check, 'veilcore-claims', resolveNetwork()),
+      withPinnedLookup(check, 'veilcore-claims', resolveNetwork()),
     );
     const cells = claimsLedger(found.state.data);
     return { claim: claimFromCells(cells), cells, entryPoint: found.entryPoint, authority: found.authority };

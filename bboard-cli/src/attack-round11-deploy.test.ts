@@ -351,6 +351,7 @@ describe('verification review: on mainnet a caller cannot replace the pinned key
   it("the lookup runs with the deployment record's keys, whatever table the caller passes", async () => {
     const { setNetworkId, getNetworkId } = await import('../../api/src/network-id.js');
     const { pinnedVerifierKeys } = await import('../../api/src/state-check');
+    const { MAINNET_CLAIMS_ADDRESS, MAINNET_VEILCORE_ADDRESS } = await import('../../api/src/deploy-guard');
     const was = (() => {
       try {
         return getNetworkId();
@@ -376,7 +377,13 @@ describe('verification review: on mainnet a caller cannot replace the pinned key
         verifierKeys: own,
         authorityCounter: 16n,
       });
-      expect(lookup.check).toEqual({ verifierKeys: pinnedVerifierKeys('veilcore'), authorityCounter: 16n });
+      // Every contract pinned in deployments/mainnet.json counts against "exactly one call"
+      // (docs/contract-v2.md 3.1, rule 10.2); today the two version 1 contracts.
+      expect(lookup.check).toEqual({
+        verifierKeys: pinnedVerifierKeys('veilcore'),
+        authorityCounter: 16n,
+        countedWith: [MAINNET_VEILCORE_ADDRESS, MAINNET_CLAIMS_ADDRESS],
+      });
     } finally {
       setNetworkId(was);
     }
