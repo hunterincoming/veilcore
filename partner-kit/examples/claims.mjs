@@ -79,7 +79,13 @@ export const sealRecord = (schema, values, base) => {
 };
 
 export const claimsFlow = async ({ claims, network, endpoints }, { check, say }) => {
-  const read = { network, indexer: endpoints.indexer, address: claims.address };
+  // This package writes to contract version 1; off mainnet a check names the version it reads.
+  const read = {
+    network,
+    indexer: endpoints.indexer,
+    address: claims.address,
+    contractVersion: /** @type {const} */ ('v1'),
+  };
   const authority = await readClaimsAuthority(read);
   check(authority.retired, 'the claims contract’s maintenance authority is an empty committee: nobody can change it');
 

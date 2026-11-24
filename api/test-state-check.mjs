@@ -15,7 +15,8 @@ import {
   verifierKeyMismatches,
   withMainnetPins,
 } from './src/state-check.ts';
-import { singleCallState } from './src/presentation-lookup.ts';
+import { singleCallState, singleCallStateAcross } from './src/presentation-lookup.ts';
+import { matchKeyState } from './src/key-states.ts';
 
 const witnesses = new Proxy({}, { get: () => (c) => [c.privateState, new Uint8Array(32)] });
 const PROVABLE_CIRCUITS = Object.keys(new Contract(witnesses).provableCircuits);
@@ -120,4 +121,64 @@ assert.deepEqual(withMainnetPins({}, 'veilcore-claims', 'mainnet').verifierKeys,
 assert.equal(withMainnetPins(weaker, 'veilcore', 'preprod'), weaker);
 assert.equal(withMainnetPins({}, 'veilcore', null).verifierKeys, undefined);
 console.log('mainnet: the pinned keys always apply; a caller adds a counter or a second indexer, never its own pins');
+
+// ── key states (docs/contract-v2.md 3.3, rule 10): a pinned contract's published authority states
+const V1_MAIN = [
+  { retired: false, committee: 1, threshold: 1, counter: 16n, block: 2922687, label: 'one key, counter 16' },
+  { retired: true, committee: 0, threshold: 1, counter: 17n, block: null, label: 'retired (sealed)' },
+];
+const V2_MAIN = [
+  { retired: false, committee: 1, threshold: 1, counter: 24n, block: 3600000, label: 'one key, not yet handed to the committee' },
+  { retired: false, committee: 3, threshold: 2, counter: 27n, block: 3700000, label: 'the 2-of-3 committee' },
+];
+// v1 with all 24 keys at counter 16, or after `retire`; nothing else.
+assert.equal(checkContractState(standIn(genuine), { verifierKeys: testPins, keyStates: V1_MAIN }).keyState.label, 'one key, counter 16');
+assert.equal(
+  checkContractState(standIn(genuine, { committee: [], threshold: 1, counter: 17n }), { keyStates: V1_MAIN }).keyState.label,
+  'retired (sealed)',
+);
+for (const a of [
+  { committee: [1], threshold: 1, counter: 17n }, // a live key used since the deploy minutes
+  { committee: [1, 2], threshold: 1, counter: 16n }, // another key added
+  { committee: [], threshold: 1, counter: 18n }, // retired after another update
+])
+  assert.throws(
+    () => checkContractState(standIn(genuine, a), { verifierKeys: testPins, keyStates: V1_MAIN }),
+    (e) => e instanceof ContractStateMismatchError && /none of the states published for it \(one key, counter 16; retired \(sealed\)\)/.test(e.message),
+  );
+// v2: its own table and its own states; v1's states are not v2's.
+assert.equal(
+  checkContractState(standIn(genuine, { committee: [1], threshold: 1, counter: 24n }), { verifierKeys: testPins, keyStates: V2_MAIN }).keyState.label,
+  'one key, not yet handed to the committee',
+);
+assert.equal(
+  checkContractState(standIn(genuine, { committee: [1, 2, 3], threshold: 2, counter: 27n }), { keyStates: V2_MAIN }).keyState.label,
+  'the 2-of-3 committee',
+);
+assert.throws(() => checkContractState(standIn(genuine), { keyStates: V2_MAIN }), ContractStateMismatchError);
+// A retired state whose counter is not compared (the claims contract, retired from its deploy).
+assert.equal(matchKeyState([{ retired: true, committee: 0, threshold: 1, counter: null, block: 1, label: 'r' }], { retired: true, committee: 0, threshold: 1, counter: 99n })?.label, 'r');
+// Without key states, nothing changes: the authority is reported, not judged.
+assert.equal(checkContractState(standIn(genuine, { committee: [1], threshold: 1, counter: 99n }), {}).keyState, undefined);
+console.log('key states: v1 at counter 16 or retired after it; v2 by its own published states; anything else refused');
+
+// ── one call across several contracts (rule 10.2)
+const THEIRS = 'bb'.repeat(32);
+const across = (callable, actions) => {
+  serve({ 'http://one': tx(STATE, { contractActions: actions }) });
+  return singleCallStateAcross('http://one', [OURS, THEIRS], callable, TX, ['anchorBatch'], 'not a batch', 20_000, undefined, () => ({}));
+};
+assert.equal((await across([OURS, THEIRS], [{ address: THEIRS, state: STATE, entryPoint: 'anchorBatch' }])).address, THEIRS);
+await assert.rejects(
+  () => across([OURS, THEIRS], [{ address: OURS, state: STATE, entryPoint: 'anchorBatch' }, { address: THEIRS, state: STATE, entryPoint: 'anchorBatch' }]),
+  /not a batch/,
+);
+// A call on a pinned contract that was not asked about still counts, and is not answered for.
+await assert.rejects(() => across([OURS], [{ address: THEIRS, state: STATE, entryPoint: 'anchorBatch' }]), /not a batch/);
+await assert.rejects(
+  () => across([OURS], [{ address: OURS, state: STATE, entryPoint: 'anchorBatch' }, { address: THEIRS, state: STATE, entryPoint: 'proveRange' }]),
+  /not a batch/,
+);
+console.log('across contracts: exactly one call on all of them together, and on one that was asked about');
+
 console.log('\nall state checks pass');

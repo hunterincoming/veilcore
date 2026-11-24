@@ -38,6 +38,7 @@ import { holderKeyIfAny } from '../holder';
 import { custodyView } from '../custody';
 import { receiptCovers, sentByMe, type SentTransfer } from '../transfers';
 import { isObject, isString, isNumber, readJson } from '../json';
+import { PREPROD_PINNED, pinnedAt } from '../../../../api/src/pinned-contracts';
 import { DOCS, DOCS_COMMIT, DOCS_VERSION, REPO_VIEW } from '../docs';
 import { verifyPageHtml, SDK_VERSION } from './verify-page';
 import type { BundleHeaders } from '../bitcoin/stamp-check';
@@ -947,11 +948,13 @@ export const signatureLines = async (
 /** Every file in the bundle, with what it is, in the order README.txt lists them. */
 /**
  * The partner kit release the check script installs: on npm, with checkBatchAnchor (docs/PARTNERS.md).
- * 0.4.0 is the first that reads a batch dated after Midnight's Ledger 9 fork (6 Nov 2026) and
- * finds a transaction by the hash this script passes; partner-kit/package.json must match
- * (bundle.test.ts), and it must be on npm before a site carrying it is deployed.
+ * 0.4.0 was the first that reads a batch dated after Midnight's Ledger 9 fork (6 Nov 2026) and
+ * finds a transaction by the hash this script passes. 0.5.0 checks a batch on every pinned
+ * contract, version 1 and, once pinned, version 2, reading each by its own decoder
+ * (docs/contract-v2.md 3.1, rule 10). partner-kit/package.json must match (bundle.test.ts), and
+ * it must be on npm before a site carrying it is deployed.
  */
-export const CONTRACTS_PACKAGE = '@veilcore/contracts@0.4.0';
+export const CONTRACTS_PACKAGE = '@veilcore/contracts@0.5.0';
 /** The networks a Blockfrost project id reads (partner-kit network.ts BlockfrostNetwork). */
 const SCRIPT_NETWORKS = ['mainnet', 'preprod'];
 
@@ -966,6 +969,9 @@ export const checkScriptFor = (ev: Evidence): string | null => {
     return null;
   const network: string = a.network;
   const s = (v: string) => JSON.stringify(v);
+  const listed =
+    network === 'preprod' && isString(a.contractAddress) ? pinnedAt(PREPROD_PINNED, a.contractAddress) : undefined;
+  const version = listed?.kind === 'veilcore' ? listed.version : undefined;
   return [
     "// Checks on Midnight that the transaction below wrote this record's batch root, without any",
     '// VeilCore server: it asks a Midnight indexer (Blockfrost) directly.',
@@ -991,6 +997,9 @@ export const checkScriptFor = (ev: Evidence): string | null => {
     '  blockfrostProjectId,',
     `  txId: ${s(a.txHash)},`,
     ...(isString(a.contractAddress) ? [`  address: ${s(a.contractAddress)},`] : []),
+    // Off mainnet a check names its contract version (docs/contract-v2.md 3.1, rule 10.4): said
+    // here when preprod's pinned list knows the contract. On mainnet the kit's own list decides.
+    ...(network !== 'mainnet' && version !== undefined ? [`  contractVersion: ${s(version)},`] : []),
     `  root: Buffer.from(${s(ev.batch.root)}, 'hex'),`,
     '});',
     "console.log(JSON.stringify(verdict, (_k, v) => (typeof v === 'bigint' ? String(v) : v), 2));",

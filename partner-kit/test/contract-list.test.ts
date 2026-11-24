@@ -18,6 +18,7 @@ import {
   resolveAddress,
 } from '../src/network';
 import { checkBatchAnchor } from '../src/verify';
+import { PREPROD_PINNED } from '../../api/src/pinned-contracts';
 
 type Deployments = { contracts: { name: string; network: string; address: string }[] };
 const deployments = JSON.parse(
@@ -77,6 +78,13 @@ describe('the pinned contract list', () => {
     expect(fixture.contract).toBe(MAINNET_VEILCORE_ADDRESS);
   });
 
+  it('preprod’s pinned list (deployments/preprod.json) is the test site’s contracts, version 1', () => {
+    expect(PREPROD_PINNED.map((e) => ({ kind: e.kind, version: e.version, address: e.address }))).toEqual([
+      { kind: 'veilcore', version: 'v1', address: PREPROD_ADDRESSES.veilcore },
+      { kind: 'claims', version: 'v1', address: PREPROD_ADDRESSES.claims },
+    ]);
+  });
+
   it('leaves the default and pinned addresses as they were', () => {
     expect(MAINNET_ADDRESSES).toEqual({ veilcore: MAINNET_VEILCORE_ADDRESS, claims: MAINNET_CLAIMS_ADDRESS });
     expect(resolveAddress('mainnet', 'veilcore')).toBe(MAINNET_VEILCORE_ADDRESS);
@@ -87,14 +95,30 @@ describe('the pinned contract list', () => {
     );
   });
 
-  it('names the version a state is read as: v1 for the pin, and on development networks', () => {
+  it('names the version a state is read as: by the pin on mainnet and preprod, named by the caller elsewhere', () => {
     expect(pinnedContractFor('mainnet', 'veilcore', `0x${MAINNET_VEILCORE_ADDRESS.toUpperCase()}`)).toEqual({
       version: 'v1',
       address: MAINNET_VEILCORE_ADDRESS,
     });
-    for (const n of NETWORKS.filter((x) => x !== 'mainnet'))
-      expect(pinnedContractFor(n, 'veilcore', PREPROD_ADDRESSES.veilcore).version).toBe('v1');
+    // Off mainnet: preprod's pinned list (deployments/preprod.json) says, or the caller names
+    // the version; a defaulted version is refused (docs/contract-v2.md 3.1, rule 10.4).
+    expect(pinnedContractFor('preprod', 'veilcore', PREPROD_ADDRESSES.veilcore).version).toBe('v1');
+    for (const n of NETWORKS.filter((x) => x !== 'mainnet')) {
+      expect(pinnedContractFor(n, 'veilcore', 'b2'.repeat(32), 'v1').version).toBe('v1');
+      expect(pinnedContractFor(n, 'veilcore', 'b2'.repeat(32), 'v2').version).toBe('v2');
+      expect(() => pinnedContractFor(n, 'veilcore', 'b2'.repeat(32))).toThrow(
+        `On ${n}, say which contract version ${'b2'.repeat(32)} is (contractVersion: 'v1' or 'v2')`,
+      );
+    }
+    for (const n of ['preview', 'undeployed'] as const)
+      expect(() => pinnedContractFor(n, 'veilcore', PREPROD_ADDRESSES.veilcore)).toThrow(/say which contract version/);
+    // A version that is not the pinned one is refused, on mainnet and on preprod's list.
+    expect(() => pinnedContractFor('preprod', 'veilcore', PREPROD_ADDRESSES.veilcore, 'v2')).toThrow(
+      /pinned as VeilCore contract version 1, not VeilCore contract version 2/,
+    );
+    expect(() => pinnedContractFor('mainnet', 'veilcore', MAINNET_VEILCORE_ADDRESS, 'v2')).toThrow(/pinned as/);
     expect(() => pinnedContractFor('mainnet', 'veilcore', 'b2'.repeat(32))).toThrow(/not a pinned contract/);
+    expect(() => pinnedContractFor('mainnet', 'veilcore', 'b2'.repeat(32), 'v1')).toThrow(/not a pinned contract/);
   });
 });
 

@@ -32,6 +32,7 @@ import { checkTestSiteAllowed } from './site-prod-preflight.mjs';
 import { checkRegistryFeatures, featuresLine } from './registry-features.mjs';
 import { vercelEnv } from './vercel-token.mjs';
 import { deployGate } from './deploy-gate.mjs';
+import { contractsPackageProblem } from './contracts-package.mjs';
 
 const CONTRACT = '72fe33436d424fcf247919c8e2f0de224175cc55061739be0ebffb2d650f2f73'; // practice contract, 7 Oct
 const DOMAIN = 'test.veilcore.org';
@@ -119,6 +120,8 @@ export const claimsFor = (status, exists) => {
 const main = async () => {
   const gate = await deployGate({ requireMain: false, argv: process.argv.slice(2), command: 'npm run deploy:test' });
   if (gate.problems.length) fail(gate.problems.join('\n'));
+  const pkgProblem = contractsPackageProblem();
+  if (pkgProblem) fail(pkgProblem);
   for (const n of gate.notes) console.log(n);
   if (!existsSync('bboard-ui/public/params') || readdirSync('bboard-ui/public/params').length === 0)
     fail('The proving parameters are missing: run `cd bboard-ui && node scripts/fetch-params.mjs && cd ..` first.');

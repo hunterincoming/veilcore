@@ -4,11 +4,21 @@
 //
 //   VITE_REAL_CHAIN=1                     turn the real-chain features on
 //   VITE_REAL_CHAIN_CONTRACT_ADDRESS=…    the demo contract on preprod (64 hex characters)
+//   VITE_REAL_CHAIN_CONTRACT_VERSION=v1   its contract version, when it is not on preprod's
+//                                         pinned list (deployments/preprod.json)
 //   VITE_SPONSOR_URL=https://…            the sponsor service that pays the fees
 //   VITE_INDEXER_URL / VITE_INDEXER_WS_URL  the network's indexer (required on preprod: see INDEXERS)
 // SPDX-License-Identifier: Apache-2.0
 
 import { MAINNET_CLAIMS_ADDRESS, MAINNET_CONTRACT_ADDRESS, NETWORK } from '../../config/network';
+import {
+  type ContractVersion,
+  MAINNET_PINNED,
+  PREPROD_PINNED,
+  type PinnedEntry,
+  isContractVersion,
+  pinnedAt,
+} from '../../../../api/src/pinned-contracts';
 
 const env = import.meta.env as unknown as Record<string, string | undefined>;
 
@@ -148,10 +158,11 @@ export const anchorContractFor = (
 export const ANCHOR_CONTRACT: string | undefined = anchorContractFor(NETWORK, MAINNET_CONTRACT_ADDRESS, CHAIN_CONTRACT);
 
 /**
- * Which compiled contract wrote a state, and so which decoder reads it (anchor-decode.ts).
- * Only v1 exists today; contract version 2 adds its own entry here and its own decoder.
+ * Which compiled contract wrote a state, and so which decoder reads it (anchor-decode.ts). It
+ * comes only from the pinned list (deployments/mainnet.json, api/src/pinned-contracts.ts), or
+ * off mainnet from the build naming it, never from the state.
  */
-export type ContractVersion = 'v1';
+export type { ContractVersion } from '../../../../api/src/pinned-contracts';
 
 /** One contract the check page accepts a batch root from, pinned in this build. */
 export type PinnedContract = {
@@ -161,24 +172,80 @@ export type PinnedContract = {
 };
 
 /**
- * Every contract a batch root may have been written to, oldest first. The check page looks
- * for a call on any of them and reads its state with that contract's own decoder, so records
- * dated on an older contract stay checkable after a newer one takes over. Today: v1 only,
- * the same single contract as ANCHOR_CONTRACT; empty when that is not set.
+ * The version of this test build's demo contract (VITE_REAL_CHAIN_CONTRACT_VERSION: v1 or v2),
+ * when it is not on preprod's pinned list. Off mainnet a check names its contract version, and
+ * a defaulted one fails (docs/contract-v2.md 3.1, rule 10.4): with neither, the check page reads
+ * no contract.
+ */
+const demoVersionEnv = (env.VITE_REAL_CHAIN_CONTRACT_VERSION ?? '').trim().toLowerCase();
+export const CHAIN_CONTRACT_VERSION: ContractVersion | undefined = isContractVersion(demoVersionEnv)
+  ? demoVersionEnv
+  : undefined;
+
+/**
+ * Every contract a batch root may have been written to, oldest first (docs/contract-v2.md 3.1,
+ * rule 10). The check page looks for a call on any of them, counts calls across all of them,
+ * and reads the state with the decoder of the one called, so records dated on an older contract
+ * stay checkable after a newer one takes over, and the same root on two contracts is two dates.
+ *
+ * On mainnet: every main contract pinned in deployments/mainnet.json, by address, with its
+ * version (today version 1 only). The list must hold the address api/src/deploy-guard.ts pins
+ * (vite.config.ts passes it in): if it doesn't, or that pin is empty, nothing is read.
+ * Off mainnet: the test build's demo contract, with its version from preprod's pinned list
+ * (deployments/preprod.json) or named by the build; empty when it is neither.
  */
 export const anchorContractsFor = (
   network: string,
   mainnetPin: string,
   demo: string | undefined,
+  demoVersion: ContractVersion | undefined = undefined,
+  pinned: { readonly mainnet: readonly PinnedEntry[]; readonly preprod: readonly PinnedEntry[] } = {
+    mainnet: MAINNET_PINNED,
+    preprod: PREPROD_PINNED,
+  },
 ): readonly PinnedContract[] => {
-  const v1 = anchorContractFor(network, mainnetPin, demo);
-  return v1 ? [{ version: 'v1', address: v1 }] : [];
+  const address = anchorContractFor(network, mainnetPin, demo);
+  if (address === undefined) return [];
+  if (network === 'mainnet') {
+    const main = pinned.mainnet.filter((e) => e.kind === 'veilcore');
+    if (!main.some((e) => e.version === 'v1' && e.address === address)) return [];
+    return main.map((e) => ({ version: e.version, address: e.address }));
+  }
+  const listed = network === 'preprod' ? pinnedAt(pinned.preprod, address) : undefined;
+  if (listed !== undefined && listed.kind === 'veilcore') {
+    if (demoVersion !== undefined && demoVersion !== listed.version) return [];
+    return [{ version: listed.version, address }];
+  }
+  return demoVersion === undefined ? [] : [{ version: demoVersion, address }];
 };
 export const ANCHOR_CONTRACTS: readonly PinnedContract[] = anchorContractsFor(
   NETWORK,
   MAINNET_CONTRACT_ADDRESS,
   CHAIN_CONTRACT,
+  CHAIN_CONTRACT_VERSION,
 );
+
+/**
+ * Every contract a call on which counts against "exactly one call" (docs/contract-v2.md 3.1,
+ * rule 10.2), as the partner kit counts them (partner-kit/src/verify.ts pinnedAddressesOn):
+ * the main contracts a batch can be dated on, plus every other contract pinned on that network,
+ * the claims contract included. So a transaction with anchorBatch and a claims call is refused
+ * here as it is by the kit. Only the main contracts (`contracts`) can date a batch.
+ * Empty when there is no main contract to check against.
+ */
+export const countedContractsFor = (
+  network: string,
+  contracts: readonly PinnedContract[],
+  pinned: { readonly mainnet: readonly PinnedEntry[]; readonly preprod: readonly PinnedEntry[] } = {
+    mainnet: MAINNET_PINNED,
+    preprod: PREPROD_PINNED,
+  },
+): readonly string[] => {
+  if (contracts.length === 0) return [];
+  const listed = network === 'mainnet' ? pinned.mainnet : network === 'preprod' ? pinned.preprod : [];
+  return [...new Set([...contracts.map((c) => c.address), ...listed.map((e) => e.address)])];
+};
+export const COUNTED_CONTRACTS: readonly string[] = countedContractsFor(NETWORK, ANCHOR_CONTRACTS);
 
 const sameContract = (a: string, b: string): boolean => {
   const n = (v: string) => v.trim().toLowerCase().replace(/^0x/, '');

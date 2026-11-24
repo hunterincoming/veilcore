@@ -42,7 +42,13 @@ import { isMain, runExample } from './setup.mjs';
 const now = () => new Date().toISOString().replace(/\.\d{3}Z$/, 'Z');
 
 export const labFlow = async ({ vc, network, endpoints }, { check, say }) => {
-  const read = { network, indexer: endpoints.indexer, address: vc.address };
+  // This package writes to contract version 1; off mainnet a check names the version it reads.
+  const read = {
+    network,
+    indexer: endpoints.indexer,
+    address: vc.address,
+    contractVersion: /** @type {const} */ ('v1'),
+  };
 
   // ── 1. Intake ──────────────────────────────────────────────────────────────
   // YOURS: both secrets go to your secret store BEFORE anything is sent. The record secret

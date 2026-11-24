@@ -233,6 +233,7 @@ build in.
 | `VITE_OPERATOR_PRIVACY_URL`, `VITE_OPERATOR_TERMS_URL` | Your own privacy policy and terms (https). `/privacy` and `/terms` then say who runs the copy and link these, instead of VeilCore's, in all five languages. |
 | `VITE_REAL_CHAIN` | `1`: the browser sends transactions through your sponsor. **Required on mainnet**: licences, proving a record by link and key stamps need it, and the build refuses without it. |
 | `VITE_REAL_CHAIN_CONTRACT_ADDRESS` | The main contract for the network. |
+| `VITE_REAL_CHAIN_CONTRACT_VERSION` | Test networks only: `v1` or `v2`, the version of that contract, unless it is one of VeilCore's preprod contracts (`deployments/preprod.json`). Without it, check pages don't look a date up on Midnight: off mainnet a check names its contract version, and a defaulted one is refused. On mainnet the version comes from `deployments/mainnet.json`. |
 | `VITE_REAL_CHAIN_CLAIMS_ADDRESS` | The claims contract, if your sponsor pays for claims (its `/sponsor/status` names a `claimsAddress`). Needs the claims keys from step 0 and the k=15 and k=16 parameters. |
 | `VITE_SPONSOR_URL` | Your sponsor's https address. |
 | `VITE_INDEXER_URL`, `VITE_INDEXER_WS_URL` | Where the browser reads Midnight: on a test network `<sponsor>/indexer` and `wss://<sponsor host>/indexer/ws`; on mainnet `<relay>/indexer` and `wss://<relay host>/indexer/ws`. Never a Blockfrost address with a key in it: the page would publish it (the header step refuses one). |

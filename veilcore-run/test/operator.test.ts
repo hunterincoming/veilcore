@@ -43,7 +43,13 @@ afterEach(async () => {
   await t.done();
 });
 
-const read = () => ({ network: 'undeployed' as const, indexer: chain.endpoints.indexer, address: VEILCORE_ADDR });
+// Off mainnet a check names its contract version (docs/contract-v2.md 3.1, rule 10.4).
+const read = () => ({
+  network: 'undeployed' as const,
+  indexer: chain.endpoints.indexer,
+  address: VEILCORE_ADDR,
+  contractVersion: 'v1' as const,
+});
 
 describe('records', () => {
   it('partner mode: the record is anchored with the partner’s pool commitment; VeilCore never holds the recovery secret', async () => {
@@ -222,6 +228,7 @@ describe('claims', () => {
       network: 'undeployed',
       indexer: chain.endpoints.indexer,
       address: CLAIMS_ADDR,
+      contractVersion: 'v1',
       txId: range.txId,
     });
     expect(r.claim).toMatchObject({ kind: 'range', bound: 9500n, slot: 12 });
@@ -230,6 +237,7 @@ describe('claims', () => {
       network: 'undeployed',
       indexer: chain.endpoints.indexer,
       address: CLAIMS_ADDR,
+      contractVersion: 'v1',
       txId: att.txId,
     });
     expect(a.claim.attester).toEqual({ x: BigInt(`0x${key.x}`), y: BigInt(`0x${key.y}`) });

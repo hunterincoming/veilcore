@@ -261,6 +261,9 @@ export const main = async (argv: readonly string[], io: Io = terminalIo, deps: M
         (
           await checkBatchAnchor({
             network: network as never,
+            // The service writes through @veilcore/contracts, which writes to contract version 1
+            // only; off mainnet a check names its version (docs/contract-v2.md 3.1, rule 10.4).
+            contractVersion: 'v1',
             txId,
             root: fromHex(head),
             ...(address === undefined ? {} : { address }),

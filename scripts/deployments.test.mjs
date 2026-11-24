@@ -27,14 +27,93 @@ import { compareCompiler, installedCompiler } from './check-compiler.mjs';
 const read = (f) => readFileSync(path.join(ROOT, f), 'utf8');
 const fingerprints = parseFingerprints(read('docs/fingerprints.md'));
 const deployments = Object.fromEntries(NETWORKS.map((n) => [n, loadDeployments(n)]));
-const byName = (d, name) => d.contracts.find((c) => c.name === name);
+/** Contract version 1's entries; version 2's ("contractVersion": 2, the pin) are checked on their own below. */
+const isV1 = (c) => (c.contractVersion ?? 1) === 1;
+const byName = (d, name) => d.contracts.find((c) => c.name === name && isV1(c));
 
 test('every deployments/*.json file conforms to the schema and is a known network', () => {
   const files = readdirSync(path.join(ROOT, 'deployments')).filter((f) => f.endsWith('.json') && f !== 'schema.json');
   assert.deepEqual(files.sort(), NETWORKS.map((n) => `${n}.json`).sort());
   for (const n of NETWORKS) {
     assert.deepEqual(validate(schema(), readJson(path.join(ROOT, 'deployments', `${n}.json`))), []);
-    assert.deepEqual(deployments[n].contracts.map((c) => c.name).sort(), ['veilcore', 'veilcore-claims']);
+    assert.deepEqual(deployments[n].contracts.filter(isV1).map((c) => c.name).sort(), ['veilcore', 'veilcore-claims']);
+  }
+});
+
+// Pinning contract v2 is adding its entries to deployments/mainnet.json (docs/contract-v2.md 3.1;
+// api/src/pinned-contracts.ts reads them). The schema takes such an entry as it will be written.
+test('the schema takes a version 2 entry, and refuses a bad one', () => {
+  const d = readJson(path.join(ROOT, 'deployments', 'mainnet.json'));
+  const v2 = {
+    ...structuredClone(byName(d, 'veilcore')),
+    contractVersion: 2,
+    source: 'contract-v2/src/veilcore.compact',
+    address: 'f2'.repeat(32),
+    compiler: '0.36.1',
+    compactRuntime: '0.21.0',
+    ledgerVersion: 9,
+    keyStates: [{ retired: false, committee: 1, threshold: 1, counter: 24, block: 3600000, label: 'one key, not yet handed to the committee' }],
+  };
+  assert.deepEqual(validate(schema(), { ...d, contracts: [...d.contracts, v2] }), []);
+  const errs = validate(schema(), {
+    ...d,
+    contracts: [...d.contracts, { ...v2, contractVersion: 3, source: 'elsewhere/v2.compact', keyStates: [{ retired: 'no' }] }],
+  }).join('\n');
+  for (const want of ['contractVersion: must be one of 1, 2', 'source', 'keyStates[0].retired', 'keyStates[0]: "label" is missing'])
+    assert.ok(errs.includes(want), `expected an error naming ${want}:\n${errs}`);
+});
+
+test('a pinned version 2 entry: its keys are docs/fingerprints-v2.md, its compiler contract-v2\'s, its states and record published', async () => {
+  const pinned = NETWORKS.flatMap((n) => deployments[n].contracts.filter((c) => !isV1(c)).map((c) => [n, c]));
+  if (pinned.length === 0) return; // Not pinned yet (docs/runbooks/deploy-v2.md, step 17).
+  const { loadFingerprintsV2 } = await import('./v2/fingerprints.mjs');
+  const table = loadFingerprintsV2();
+  for (const [n, c] of pinned) {
+    assert.equal(c.compiler, read('contract-v2/compiler-version').trim(), `${n} ${c.name} v2 compiler`);
+    assert.ok(Array.isArray(c.keyStates) && c.keyStates.length > 0, `${n} ${c.name} v2 keyStates`);
+    assert.deepEqual(verifierPins(c), table.pins[c.name], `${n} ${c.name} v2 verifier keys`);
+    assert.ok(read(c.deployment.record.split('#')[0]).includes(c.address), `${c.deployment.record} names ${c.address}`);
+  }
+});
+
+// Pinning v2 adds entries to deployments/mainnet.json; it never edits or removes v1's. The
+// fields v1's entries hold today are frozen (a SHA-256 of each one's sorted JSON, every field
+// but maintenanceAuthority, which changes when v1 is sealed). New fields, like keyStates after
+// the seal, may be added. If this fails, a v1 entry was changed: put it back.
+const V1_FROZEN = {
+  veilcore: {
+    address: 'a04de0a2684f3713276325649540c7278ffd07cba8b014e7489844f319a02347',
+    anchorBatch: '8ae5b4c15c3a20993e8d34b4022d180d95ed2d88927fca184527ca6857f06104',
+    digest: '47e9d7c10808a68e2ff4a9826cd2bdb971247c2a5aa9d2ae29dad41a6aee6952',
+  },
+  'veilcore-claims': {
+    address: 'ef763eb4ad1846b716dbfa90c00560a9a943ffb4d1fc638b0707df5adefd070d',
+    digest: '2a99bfc624633c51e3fe47676f9bd31b953dc03329fcacdf604e42abfd768353',
+  },
+};
+const V1_FIELDS = [
+  'name', 'source', 'address', 'network', 'compiler', 'compactRuntime', 'ledgerVersion', 'commit',
+  'sourceCommit', 'fingerprintsCommit', 'deployment', 'contractCode', 'circuits',
+];
+const canonical = (v) =>
+  Array.isArray(v)
+    ? `[${v.map(canonical).join(',')}]`
+    : v !== null && typeof v === 'object'
+      ? `{${Object.keys(v).sort().map((k) => `${JSON.stringify(k)}:${canonical(v[k])}`).join(',')}}`
+      : JSON.stringify(v);
+
+test('v1\'s mainnet entries never change: same addresses, same verifier keys, every field as filed', async () => {
+  const { createHash } = await import('node:crypto');
+  const d = readJson(path.join(ROOT, 'deployments', 'mainnet.json'));
+  for (const [name, want] of Object.entries(V1_FROZEN)) {
+    const all = d.contracts.filter((c) => c.name === name && isV1(c));
+    assert.equal(all.length, 1, `exactly one v1 ${name} entry in deployments/mainnet.json`);
+    const [c] = all;
+    assert.equal(c.address, want.address, `${name} address`);
+    if (want.anchorBatch) assert.equal(c.circuits.anchorBatch.verifierKey, want.anchorBatch, `${name} anchorBatch key`);
+    for (const f of V1_FIELDS) assert.ok(f in c, `${name}.${f} is still there`);
+    const kept = Object.fromEntries(V1_FIELDS.map((f) => [f, c[f]]));
+    assert.equal(createHash('sha256').update(canonical(kept)).digest('hex'), want.digest, `${name}: a filed field changed`);
   }
 });
 
@@ -95,7 +174,7 @@ test('the deployment record carries each mainnet address, deploy transaction and
   const at = rec.indexOf('### Mainnet deployment');
   assert.ok(at > 0);
   const section = rec.slice(at, rec.indexOf('\n### ', at + 1));
-  for (const c of deployments.mainnet.contracts) {
+  for (const c of deployments.mainnet.contracts.filter(isV1)) {
     assert.ok(section.includes(c.address), `${c.name} address`);
     assert.ok(section.includes(c.deployment.transaction), `${c.name} deploy transaction`);
     assert.ok(section.includes(`block ${c.deployment.block}`), `${c.name} block`);
@@ -103,7 +182,7 @@ test('the deployment record carries each mainnet address, deploy transaction and
     if (c.maintenanceAuthority.retiredBy) assert.ok(section.includes(c.maintenanceAuthority.retiredBy), `${c.name} retirement`);
   }
   for (const c of deployments.mainnet.contracts) assert.ok(existsSync(path.join(ROOT, c.deployment.record.split('#')[0])));
-  for (const c of deployments.preprod.contracts) {
+  for (const c of deployments.preprod.contracts.filter(isV1)) {
     assert.ok(existsSync(path.join(ROOT, c.deployment.record)), c.deployment.record);
     assert.ok(read(c.deployment.record).includes(c.address), `${c.deployment.record} names ${c.address}`);
   }
@@ -161,7 +240,7 @@ test('one compiler and one Node version everywhere', () => {
   assert.match(v, /^\d+\.\d+\.\d+$/);
   for (const n of NETWORKS) {
     assert.equal(deployments[n].toolchain.compiler, v);
-    for (const c of deployments[n].contracts) assert.equal(c.compiler, v);
+    for (const c of deployments[n].contracts.filter(isV1)) assert.equal(c.compiler, v);
     assert.equal(deployments[n].toolchain.node, read('.nvmrc').trim());
   }
   assert.equal(/COMPACTC_VERSION: "([^"]+)"/.exec(read('.github/actions/setup/action.yml'))?.[1], v);
@@ -169,7 +248,7 @@ test('one compiler and one Node version everywhere', () => {
   assert.equal(/compact update (\d+\.\d+\.\d+)/.exec(read('README.md'))?.[1], v);
   assert.equal(/compact update (\d+\.\d+\.\d+)/.exec(read('docs/reproduce-build.md'))?.[1], v);
   const rt = readJson(path.join(ROOT, 'package.json')).dependencies['@midnight-ntwrk/compact-runtime'];
-  for (const n of NETWORKS) for (const c of deployments[n].contracts) assert.equal(c.compactRuntime, rt);
+  for (const n of NETWORKS) for (const c of deployments[n].contracts.filter(isV1)) assert.equal(c.compactRuntime, rt);
 });
 
 test('the circuit pins a verifier would use are the 24 + 5 verifier keys', () => {
