@@ -11,8 +11,16 @@ import { describe, expect, it } from 'vitest';
 import fixture from './fixtures/anchor-indexer.json';
 import { ANCHOR_QUERY, checkAnchorOnChain, isAnchorEntry, type AnchorCheckDeps } from './anchor-check';
 import { lastBatchRootOf } from './anchor-decode';
-import { anchorContractFor, anchorContractsFor, carriesKey, readIndexersFor, sameIndexer } from './config';
+import {
+  anchorContractFor,
+  anchorContractsFor,
+  carriesKey,
+  countedContractsFor,
+  readIndexersFor,
+  sameIndexer,
+} from './config';
 import { contractStateAfter } from './test-chain';
+import { MAINNET_PINNED, PREPROD_PINNED } from '../../../../api/src/pinned-contracts';
 import { queryProblem } from '../../../../sponsor/src/indexer-relay';
 import { verifyInclusion } from 'veilcore-records';
 
@@ -52,6 +60,7 @@ const input = {
   network: 'mainnet',
   txId: TX,
   contracts: [{ version: 'v1', address: CONTRACT }] as const,
+  counted: [] as readonly string[],
   expectedRoot: fixture.root,
 };
 const deps = (replies: Record<string, Reply>, indexers = [I1]): AnchorCheckDeps & { asked: unknown[] } => {
@@ -69,8 +78,8 @@ describe('the fixture', () => {
       },
     ]);
     expect(Buffer.from(fresh.serialize()).toString('hex')).toBe(fixture.stateHex);
-    expect(lastBatchRootOf(fixture.stateHex)).toBe(fixture.root);
-    expect(lastBatchRootOf(fixture.otherStateHex)).toBe(fixture.otherRoot);
+    expect(lastBatchRootOf(fixture.stateHex, 'v1')).toBe(fixture.root);
+    expect(lastBatchRootOf(fixture.otherStateHex, 'v1')).toBe(fixture.otherRoot);
     expect(await verifyInclusion(fixture.proof)).toBe(true);
     expect(fixture.proof.root).toBe(fixture.root);
   });
@@ -85,6 +94,9 @@ describe('checkAnchorOnChain', () => {
       blockHeight: 2973563,
       blockTime: BLOCK_MS,
       indexers: 1,
+      // The contract it came from; with version 1 alone the page doesn't name it.
+      contract: { version: 'v1', address: CONTRACT },
+      nameContract: false,
     });
     // One request, asking by hash and by identifier, that the relay passes on.
     expect(d.asked).toHaveLength(1);
@@ -298,6 +310,59 @@ describe('checkAnchorOnChain', () => {
     );
     expect(v).toMatchObject({ status: 'failed', reason: 'that transaction made no call on VeilCore’s contract' });
   });
+
+  // Rule 10.2 (docs/contract-v2.md 3.1): a call on the pinned claims contract counts against
+  // "exactly one call", as the partner kit counts it (partner-kit/test/two-contracts.test.ts,
+  // "a call on the claims contract counts too"). Only a main contract's call can date a batch.
+  describe('a call on the pinned claims contract counts too', () => {
+    const CLAIMS = MAINNET_PINNED.find((e) => e.kind === 'claims')?.address ?? '';
+    const onMainnet = { ...input, counted: countedContractsFor('mainnet', input.contracts) };
+    const proveRange = { address: CLAIMS, state: fixture.otherStateHex, entryPoint: 'proveRange' };
+
+    it('the counted list is every contract pinned on mainnet, claims included', () => {
+      expect(CLAIMS).toMatch(/^[0-9a-f]{64}$/);
+      expect([...countedContractsFor('mainnet', input.contracts)].sort()).toEqual(
+        MAINNET_PINNED.map((e) => e.address).sort(),
+      );
+      expect(countedContractsFor('mainnet', [])).toEqual([]);
+    });
+
+    it('anchorBatch on the main contract plus proveRange on the claims contract: refused', async () => {
+      const tx = anchorTx({
+        contractActions: [{ address: CONTRACT, state: fixture.stateHex, entryPoint: 'anchorBatch' }, proveRange],
+      });
+      expect(await checkAnchorOnChain(onMainnet, deps({ [I1]: { byHash: [tx] } }))).toEqual({
+        status: 'failed',
+        reason: 'that transaction made more than one call on VeilCore’s contract',
+      });
+      // The claims address in another form is the same contract.
+      const upper = anchorTx({
+        contractActions: [
+          { address: CONTRACT, state: fixture.stateHex, entryPoint: 'anchorBatch' },
+          { ...proveRange, address: `0x${CLAIMS.toUpperCase()}` },
+        ],
+      });
+      expect(await checkAnchorOnChain(onMainnet, deps({ [I1]: { byHash: [upper] } }))).toMatchObject({
+        status: 'failed',
+      });
+    });
+
+    it('a call on the claims contract alone dates nothing', async () => {
+      const tx = anchorTx({ contractActions: [{ ...proveRange, entryPoint: 'anchorBatch' }] });
+      expect(await checkAnchorOnChain(onMainnet, deps({ [I1]: { byHash: [tx] } }))).toEqual({
+        status: 'failed',
+        reason: 'that transaction’s call on VeilCore’s contract is not a date stamp (anchorBatch)',
+      });
+    });
+
+    it('anchorBatch alone is still checked', async () => {
+      expect(await checkAnchorOnChain(onMainnet, deps({ [I1]: { byHash: [anchorTx()] } }))).toMatchObject({
+        status: 'checked',
+        contract: { version: 'v1', address: CONTRACT },
+        nameContract: false,
+      });
+    });
+  });
 });
 
 describe('which indexers and contract the page uses', () => {
@@ -375,14 +440,25 @@ describe('which indexers and contract the page uses', () => {
     expect(anchorContractFor('preprod', CONTRACT, 'c0'.repeat(32))).toBe('c0'.repeat(32));
   });
 
-  it('the contract list: today only v1, the same address anchorContractFor gives, or none', () => {
+  it('the contract list: on mainnet the pinned list (today only v1), off mainnet a named version, or none', () => {
     expect(anchorContractsFor('mainnet', CONTRACT.toUpperCase(), 'c0'.repeat(32))).toEqual([
       { version: 'v1', address: CONTRACT },
     ]);
     expect(anchorContractsFor('mainnet', '', 'c0'.repeat(32))).toEqual([]);
-    expect(anchorContractsFor('preprod', CONTRACT, 'c0'.repeat(32))).toEqual([
+    // A mainnet pin the pinned list doesn't hold: nothing is read.
+    expect(anchorContractsFor('mainnet', 'c0'.repeat(32), undefined)).toEqual([]);
+    // Off mainnet a check names its contract version (docs/contract-v2.md 3.1, rule 10.4): the
+    // build names it, or preprod's pinned list does; a defaulted one reads nothing.
+    expect(anchorContractsFor('preprod', CONTRACT, 'c0'.repeat(32))).toEqual([]);
+    expect(anchorContractsFor('preview', CONTRACT, 'c0'.repeat(32), 'v1')).toEqual([
       { version: 'v1', address: 'c0'.repeat(32) },
     ]);
-    expect(anchorContractsFor('preprod', CONTRACT, undefined)).toEqual([]);
+    expect(anchorContractsFor('undeployed', CONTRACT, 'c0'.repeat(32), 'v2')).toEqual([
+      { version: 'v2', address: 'c0'.repeat(32) },
+    ]);
+    const testSite = PREPROD_PINNED.find((e) => e.kind === 'veilcore')?.address ?? '';
+    expect(anchorContractsFor('preprod', CONTRACT, testSite)).toEqual([{ version: 'v1', address: testSite }]);
+    expect(anchorContractsFor('preprod', CONTRACT, testSite, 'v2')).toEqual([]);
+    expect(anchorContractsFor('preprod', CONTRACT, undefined, 'v1')).toEqual([]);
   });
 });

@@ -39,7 +39,13 @@ afterEach(() => {
   setNetworkId('undeployed');
 });
 
-const read = () => ({ network: 'undeployed' as const, indexer: chain.endpoints.indexer, address: VEILCORE_ADDR });
+// Off mainnet a check names its contract version (docs/contract-v2.md 3.1, rule 10.4).
+const read = () => ({
+  network: 'undeployed' as const,
+  indexer: chain.endpoints.indexer,
+  address: VEILCORE_ADDR,
+  contractVersion: 'v1' as const,
+});
 
 describe('joining', () => {
   it('needs an address on a network with no default, and reads nothing without one', async () => {

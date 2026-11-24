@@ -26,7 +26,13 @@ import {
 import { isMain, runExample } from './setup.mjs';
 
 export const licenceFlow = async ({ vc, network, endpoints }, { check, say }) => {
-  const read = { network, indexer: endpoints.indexer, address: vc.address };
+  // This package writes to contract version 1; off mainnet a check names the version it reads.
+  const read = {
+    network,
+    indexer: endpoints.indexer,
+    address: vc.address,
+    contractVersion: /** @type {const} */ ('v1'),
+  };
 
   // ── 1. The breeder ─────────────────────────────────────────────────────────
   // YOURS: stored before use; the recovery secret offline.

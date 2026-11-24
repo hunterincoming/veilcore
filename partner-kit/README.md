@@ -106,6 +106,28 @@ const verdict = await checkPresentation({ network: 'preprod', blockfrostProjectI
 
 ## Changes
 
+**0.5.0** (not yet on npm; install 0.4.0 until it is)
+- Breaking: off mainnet, every check (`checkBatchAnchor`, `checkPresentation`,
+  `checkOwnership`, `checkPairing`, `readClaim`) needs `contractVersion: 'v1'` or `'v2'` unless
+  the address is in `deployments/preprod.json`. A local chain, preview or an unlisted preprod
+  address without it is refused, so scripts that worked with 0.4.0 there must add it.
+- Checks a batch date on every contract VeilCore pins, not only version 1: the pinned list now
+  comes from `deployments/mainnet.json`, each contract with its version, found only by its
+  address. Pinning contract version 2 there is the only change needed; until then the list is
+  version 1 alone and a check reads as it did.
+- `checkBatchAnchor` with no address tries every pinned contract. A transaction must make
+  exactly one call across all of them (a call on the claims contract counts too), and its state
+  is read by the decoder of the contract it called, with that contract's own verifier keys and
+  its published authority states. A state whose authority is in none of them is refused. The
+  same record on two contracts is two records with two dates; nothing is joined.
+- Verdicts name the contract that gave the date: `contract` (`version`, `address`, `name`) and
+  `keyState` (for example "one key, not yet handed to the committee"). Once more than one
+  contract is pinned, the reason says which too; with version 1 alone it reads as before.
+- Defaults never move to the newest contract: with no address the package writes to version 1,
+  and refuses to send transactions to version 2 on mainnet. Version 2 is read for batch dates
+  and the maintenance authority only; the other checks refuse it rather than read it with
+  version 1's layout.
+
 **0.4.0**
 - Reads VeilCore's records on both sides of Midnight's Ledger 9 fork (mainnet forked on
   6 November 2026): 0.2.0 and 0.3.0 read only states in Ledger 8's format, so they cannot check

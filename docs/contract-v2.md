@@ -443,6 +443,10 @@ seal removes that power for good.
   git).
 - **This uses v1's key for a reason the approved policy doesn't list** (sealing), so it needs
   both founders in writing (section 9).
+- **What changes in `deployments/mainnet.json`:** v1's main entry only. Edit
+  `maintenanceAuthority` and add `keyStates` with the seal's counter and block. Leave everything
+  else, including `deployment.record` at revision 4, as it is. The freeze test in
+  `scripts/deployments.test.mjs` refuses any other change to v1's entries.
 
 ---
 
@@ -554,7 +558,21 @@ key. The tool changes (Stage A item 7) are needed for the handover.
 
 - the 0.4.0 kit and the site with the post-fork bundle fix (3.4);
 - the decoder by era tag on ledger-v9 1.0.2 (3.2);
-- `checkBatchAnchor` trying every pinned contract (3.2);
+- `checkBatchAnchor` trying every pinned contract (3.2). **Built, 23 November 2026, not
+  published:** partner kit 0.5.0, the site's check page and the evidence-bundle check take the
+  pinned list from `deployments/mainnet.json` (`api/src/pinned-contracts.ts`), each contract by
+  its address, with version 2's decoder, key table and key states (`api/src/state-check.ts`).
+  Adding v2's entries there is the switch. Still to do: 0.5.0 on npm before the next site
+  deploy; the CLI, `verify.html`, `verify.py`, the Rust checker and `api/src/deploy-guard.ts`;
+  and, on the devnet, that a v2 state's V4 verifier keys survive the kit's carry into runtime
+  0.16 (`contract/src/contract-state.ts`);
+- **before v2 is pinned** (open, 23 November 2026):
+  - real v2 state test data from preprod or the devnet: run `checkBatchAnchor` with
+    `contractVersion: 'v2'` on a real v2 anchorBatch and keep that transaction as a test
+    fixture (today's v2 fixture is v2's ledger data in a v1 state, with v1's verifier keys);
+  - the site shows v2's key state ("one key, not yet handed to the committee") beside its date,
+    in all five languages: today the check page reads only the batch root, not the keys or key
+    states;
 - rule 10 in SPEC.md (3.1).
 
 16. **[Hunter]** deploys v2 and claims v2 from the Mac: the keys with the temporary key,
@@ -573,8 +591,9 @@ key. The tool changes (Stage A item 7) are needed for the handover.
 
 19. **[Hunter]** The switch release (section 4): registry, then sponsor, then site, then the
     release list commit. v2 is called live on veilcore.org only once it has worked there.
-20. **[Hunter]** With the 14-day notice, the v1 seal by `retire` (section 6), then a new
-    deployment record revision.
+20. **[Hunter]** With the 14-day notice, the v1 seal by `retire` (section 6), then the
+    `deployments/mainnet.json` edit that section 6 describes (v1's `maintenanceAuthority` and
+    `keyStates` only).
 
 ## 8. Questions for the devnet
 

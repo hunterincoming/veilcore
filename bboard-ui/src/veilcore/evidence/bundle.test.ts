@@ -12,6 +12,8 @@ import type { StrainRecord } from '../records';
 import {
   CONTRACTS_PACKAGE,
   buildEvidence,
+  checkScriptFor,
+  type Evidence,
   bundleFiles,
   BundleRefusal,
   gatherEvidence,
@@ -27,6 +29,7 @@ import {
   type Gathered,
 } from './bundle';
 import { loadPageVerifier, practiceBatch, practiceRecord, secretFor } from './test-records';
+import { MAINNET_PINNED, PREPROD_PINNED } from '../../../../api/src/pinned-contracts';
 
 const mem = new Map<string, string>();
 (globalThis as unknown as { localStorage: Partial<Storage> }).localStorage = {
@@ -422,7 +425,7 @@ describe('the bundle', () => {
     expect(readme).toMatch(/We haven't confirmed that any Midnight explorer shows the batch root/);
     expect(readme).toMatch(/we know of no way to see it without running a command/);
     expect(readme).toMatch(/check-on-midnight\.mjs/);
-    expect(readme).toContain('npm install --save-exact @veilcore/contracts@0.4.0');
+    expect(readme).toContain('npm install --save-exact @veilcore/contracts@0.5.0');
     // The kit the script installs is this repository's partner kit (partner-kit/test/bundle-batch.test.ts
     // runs its checkBatchAnchor on real batches from both sides of the Ledger 9 fork, named by hash
     // as here). 0.2.0 and 0.3.0 read Ledger 8 states only and look transactions up by identifier.
@@ -438,6 +441,8 @@ describe('the bundle', () => {
     expect(script).toContain('network: "preprod"');
     expect(script).toContain("import { checkBatchAnchor } from '@veilcore/contracts';");
     expect(script).not.toMatch(/veilcore\.org|VITE_API_BASE|fetch\(/);
+    // A preprod contract that is not VeilCore's pinned one: the script can't name its version.
+    expect(script).not.toContain('contractVersion');
     // It parses as a Node module (not run: it needs the network and a Blockfrost id).
     const { mkdtempSync, writeFileSync } = await import('node:fs');
     const { join } = await import('node:path');
@@ -465,6 +470,17 @@ describe('the bundle', () => {
     // Short lines for any text reader; a long value is never broken across two.
     expect(raw.split('\n').filter((l) => l.length > 78 && !/[0-9a-f]{64}/.test(l))).toEqual([]);
     expect(readme).toContain(`spec version 0.1`);
+  });
+
+  it('the check script names the contract version off mainnet when preprod’s pinned list knows it', () => {
+    const ev = (network: string, contractAddress: string) =>
+      ({ batch: { root: 'aa'.repeat(32), anchor: { network, txHash: TX, contractAddress } } }) as unknown as Evidence;
+    const testSite = PREPROD_PINNED.find((e) => e.kind === 'veilcore')?.address ?? '';
+    expect(checkScriptFor(ev('preprod', testSite))).toContain('  contractVersion: "v1",\n');
+    // On mainnet the kit's own pinned list decides; the script reads as before.
+    const v1 = MAINNET_PINNED.find((e) => e.kind === 'veilcore')?.address ?? '';
+    expect(checkScriptFor(ev('mainnet', v1))).not.toContain('contractVersion');
+    expect(checkScriptFor(ev('mainnet', v1))).toContain(`  address: "${v1}",\n`);
   });
 
   it('README: formulas only under “For technical readers”, at the end', async () => {

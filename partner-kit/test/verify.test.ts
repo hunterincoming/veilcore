@@ -102,7 +102,15 @@ describe('a fake indexer on mainnet (the review PoC)', () => {
 
 describe('a second indexer must agree', () => {
   const ADDR = 'cd'.repeat(32);
-  const base = { network: 'undeployed' as const, indexer: 'http://one/', address: ADDR, txId: TX, root: forged };
+  // Off mainnet a check names its contract version (docs/contract-v2.md 3.1, rule 10.4).
+  const base = {
+    network: 'undeployed' as const,
+    indexer: 'http://one/',
+    address: ADDR,
+    contractVersion: 'v1' as const,
+    txId: TX,
+    root: forged,
+  };
 
   it('one indexer alone: accepted, with the maintenance authority reported', async () => {
     indexers({ 'http://one/': { address: ADDR, state: STATE } });

@@ -16,7 +16,7 @@ import { type VeilcoreDerivedState, veilcorePrivateStateKey } from '../../api/sr
 import { type PairingNote } from '../../contract/src/witnesses.js';
 import { commit } from './commitments.js';
 import { type Connection } from './connect.js';
-import { type Network, resolveAddress } from './network.js';
+import { type Network, resolveWriteAddress } from './network.js';
 
 export type { SealResult, TxRef };
 export type Verdict = { readonly accepted: boolean; readonly reason: string };
@@ -58,7 +58,7 @@ export class VeilCore {
    * constructor (read from its deploy transaction).
    */
   static async join(conn: Connection, options: JoinOptions = {}): Promise<VeilCore> {
-    const address = resolveAddress(conn.network, 'veilcore', options.address);
+    const address = resolveWriteAddress(conn.network, 'veilcore', options.address);
     const api = await VeilcoreAPI.join(conn.providers.veilcore, address, conn.logger, {
       deployTxId: options.deployTxId,
     });

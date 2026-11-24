@@ -40,8 +40,9 @@ export const verify = {
   'app.verify.anchor.noDate': 'not given (VeilCore’s registry gives no date for that transaction)',
   'app.verify.anchor.lookingUp': 'Looking that transaction up on {network}…',
   'app.verify.anchor.twoIndexers': ' Two separate Midnight indexers gave the same answer.',
+  'app.verify.anchor.contract': ' VeilCore contract version {version} gave this date.',
   'app.verify.anchor.checked':
-    'Checked on Midnight: this batch root was written by transaction {tx} in block {block} at {at}.{two}{test}',
+    'Checked on Midnight: this batch root was written by transaction {tx} in block {block} at {at}.{contract}{two}{test}',
   'app.verify.anchor.failed': 'Not confirmed on Midnight: {reason}. Don’t rely on the date the registry reports.',
   'app.verify.anchor.dateNotChecked': 'The date is {date}; not checked here.',
   'app.verify.anchor.oneIndexer': 'Only one of the two Midnight indexers answered, and both must. {date}',

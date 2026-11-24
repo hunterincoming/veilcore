@@ -18,6 +18,7 @@ export {
 export {
   BLOCKFROST_ENV,
   DEFAULT_PROOF_SERVER,
+  DEFAULT_VERSION,
   MAINNET_ADDRESSES,
   MAINNET_CONTRACTS,
   NETWORKS,
@@ -137,6 +138,7 @@ export {
   type Verdict,
   type WhenLanded,
   type WithAuthority,
+  type WithContract,
 } from './verify.js';
 export { ContractStateMismatchError, type AuthorityReport } from '../../api/src/state-check.js';
 export {

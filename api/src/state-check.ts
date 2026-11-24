@@ -19,6 +19,7 @@
  */
 import { createHash } from 'node:crypto';
 import { FINGERPRINTS } from '../../partner-kit/src/fingerprints.js';
+import { type KeyState, matchKeyState } from './key-states.js';
 
 /** Circuit name -> SHA-256 (hex) of its verifier key, as docs/fingerprints.md records it. */
 export type KeyPins = Readonly<Record<string, string>>;
@@ -126,6 +127,11 @@ export type StateRequirements = {
   readonly verifierKeys?: KeyPins;
   /** Refuse unless the maintenance authority's counter is exactly this. */
   readonly authorityCounter?: bigint;
+  /**
+   * Refuse unless the maintenance authority is in one of these states: a pinned contract's
+   * published key states (docs/contract-v2.md 3.3, rule 10; pinned-contracts.ts). Omit to only report.
+   */
+  readonly keyStates?: readonly KeyState[];
 };
 
 /** Throw ContractStateMismatchError unless `state` meets `req`; otherwise report its authority. */
@@ -133,7 +139,12 @@ export const checkContractState = (
   state: StateWithKeys,
   req: StateRequirements,
   what = 'that transaction',
-): { readonly authority: AuthorityReport; readonly keys: 'pinned' | 'unchecked' } => {
+): {
+  readonly authority: AuthorityReport;
+  readonly keys: 'pinned' | 'unchecked';
+  /** The published key state the authority is in (only when `keyStates` was given). */
+  readonly keyState?: KeyState;
+} => {
   const authority = authorityReport(state);
   if (req.verifierKeys !== undefined) {
     const bad = verifierKeyMismatches(state, req.verifierKeys);
@@ -152,7 +163,19 @@ export const checkContractState = (
       [],
       authority,
     );
-  return { authority, keys: req.verifierKeys === undefined ? 'unchecked' : 'pinned' };
+  let keyState: KeyState | undefined;
+  if (req.keyStates !== undefined) {
+    keyState = matchKeyState(req.keyStates, authority);
+    if (keyState === undefined)
+      throw new ContractStateMismatchError(
+        `Refused: the contract's maintenance authority at ${what} is in none of the states published for it ` +
+          `(${req.keyStates.map((k) => k.label).join('; ')}); ${describeAuthority(authority)}.`,
+        [],
+        authority,
+      );
+  }
+  const keys = req.verifierKeys === undefined ? 'unchecked' : 'pinned';
+  return keyState === undefined ? { authority, keys } : { authority, keys, keyState };
 };
 
 /**
