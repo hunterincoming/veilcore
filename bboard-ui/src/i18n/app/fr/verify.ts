@@ -41,8 +41,9 @@ export const verify = {
   'app.verify.anchor.noDate': 'non indiquée (le registre de VeilCore ne donne pas de date pour cette transaction)',
   'app.verify.anchor.lookingUp': 'Consultation de cette transaction sur {network}…',
   'app.verify.anchor.twoIndexers': ' Deux indexeurs Midnight distincts ont donné la même réponse.',
+  'app.verify.anchor.contract': ' Cette date vient du smart contract de VeilCore, version {version}.',
   'app.verify.anchor.checked':
-    'Vérifié sur Midnight : cette racine de lot a été écrite par la transaction {tx} dans le bloc {block} le {at}.{two}{test}',
+    'Vérifié sur Midnight : cette racine de lot a été écrite par la transaction {tx} dans le bloc {block} le {at}.{contract}{two}{test}',
   'app.verify.anchor.failed':
     'Non confirmé sur Midnight : {reason}. Ne vous fiez pas à la date signalée par le registre.',
   'app.verify.anchor.dateNotChecked': 'La date est {date} ; non vérifiée ici.',

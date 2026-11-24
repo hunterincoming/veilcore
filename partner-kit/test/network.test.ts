@@ -12,6 +12,14 @@ vi.mock('../../api/src/deploy-guard.js', async (orig) => ({
   MAINNET_VEILCORE_ADDRESS: PIN.veilcore,
   MAINNET_CLAIMS_ADDRESS: PIN.claims,
 }));
+// The kit's mainnet list is the pinned list in deployments/mainnet.json (api/src/pinned-contracts.ts).
+vi.mock('../../api/src/pinned-contracts.js', async (orig) => {
+  const o = await orig<typeof import('../../api/src/pinned-contracts.js')>();
+  return {
+    ...o,
+    MAINNET_PINNED: o.MAINNET_PINNED.map((e) => ({ ...e, address: e.kind === 'veilcore' ? PIN.veilcore : PIN.claims })),
+  };
+});
 
 const real = await vi.importActual<typeof import('../../api/src/deploy-guard.js')>('../../api/src/deploy-guard.js');
 const { NETWORKS, PREPROD_ADDRESSES, assertAddressFor, defaultAddress, endpointsFor, resolveAddress } =

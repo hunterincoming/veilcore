@@ -10,6 +10,29 @@ section.
 
 ## [Unreleased]
 
+### Checks that read both contracts, version 1 and version 2 (23 Nov 2026, not deployed yet)
+
+- Every batch-date check now takes VeilCore's pinned contract list from
+  `deployments/mainnet.json`, each contract with its version, found only by its address and
+  never by anything in its state (docs/contract-v2.md 3.1, rule 10). Version 2 is not pinned
+  yet, so today the list is version 1 alone and every check reads as before. Adding version 2's
+  addresses to that file is the only switch.
+- The site's check page, the partner kit's `checkBatchAnchor` and an evidence bundle's
+  `check-on-midnight.mjs` look for one call across every pinned contract and read its state with
+  that contract's own decoder (version 2's reads ledger 9 bytes only). The same record on two
+  contracts is two records with two dates.
+- Once more than one contract is pinned, the check page says which one gave a date, in all
+  five languages. With version 1 alone the line is unchanged.
+- The state check (`api/src/state-check.ts`) can require a contract's published authority
+  states: version 1 with one key at counter 16, or retired after the seal; version 2's are
+  published with its pin. A state in none of them is refused.
+- Off mainnet a check names its contract version: the test site's contracts are on
+  `deployments/preprod.json`; any other test build sets `VITE_REAL_CHAIN_CONTRACT_VERSION`, or
+  its check page doesn't look a date up.
+- Partner kit 0.5.0 (`@veilcore/contracts`, not yet on npm): the above, `contractVersion`, and
+  the contract named in every batch verdict. Evidence bundles now install 0.5.0, so it must be
+  published to npm before a site carrying this is deployed.
+
 ### Midnight's current client tools; evidence-bundle checks work again (23 Nov 2026, not deployed yet)
 
 - The site, the fee sponsor and the partner kit use Midnight's 17 November patch set:

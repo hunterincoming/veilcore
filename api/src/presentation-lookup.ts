@@ -15,6 +15,7 @@ import { type ContractState } from '@midnight-ntwrk/compact-runtime';
 import { readContractState } from '../../contract/src/contract-state.js';
 import * as Veilcore from '../../contract/src/managed/veilcore/contract/index.js';
 import { type AuthorityReport, type StateRequirements, checkContractState } from './state-check.js';
+import type { KeyState } from './key-states.js';
 
 // A transaction is named either by one of its identifiers (what a licensee hands over) or by its
 // hash (what the registry and every evidence bundle record: the sponsor's anchorer and the
@@ -162,12 +163,16 @@ export const callState = async (
   return Veilcore.ledger(found.state.data);
 };
 
-type RawCall = { entryPoint: string; stateHex: string; blockHeight?: number; blockTime?: number };
+type RawCall = { address: string; entryPoint: string; stateHex: string; blockHeight?: number; blockTime?: number };
 
-/** One indexer's answer for the one call `txId` made on `contractAddress`. */
+/**
+ * One indexer's answer for the one call `txId` made on any of `contractAddresses`. Every call on
+ * any of them counts: a transaction with more than one is refused, whichever contracts they are
+ * on (docs/contract-v2.md 3.1, rule 10.2).
+ */
 const askIndexer = async (
   indexerUri: string,
-  contractAddress: string,
+  contractAddresses: readonly string[],
   txId: string,
   entryPoints: readonly string[],
   refusal: string,
@@ -196,20 +201,56 @@ const askIndexer = async (
   }
   if (tx === undefined) throw new Error('No such transaction.');
   if (tx.transactionResult?.status !== 'SUCCESS') throw new Error('That transaction did not succeed.');
-  // Every action on this contract, whatever it is: a call bundled with anything else (a
+  // Every action on these contracts, whatever it is: a call bundled with anything else (a
   // seal above all) is refused outright, so the verdict never depends on which point in
   // the transaction the indexer's state describes.
-  const calls = (tx.contractActions ?? []).filter(
-    (a) => a.address !== undefined && norm(a.address) === norm(contractAddress),
-  );
+  const wanted = new Set(contractAddresses.map(norm));
+  const calls = (tx.contractActions ?? []).filter((a) => a.address !== undefined && wanted.has(norm(a.address)));
   const entryPoint = calls.length === 1 ? matchEntryPoint(calls[0].entryPoint ?? '', entryPoints) : undefined;
-  if (entryPoint === undefined || calls[0].state === undefined) throw new Error(refusal);
+  if (entryPoint === undefined || calls[0].state === undefined || calls[0].address === undefined)
+    throw new Error(refusal);
   return {
+    address: norm(calls[0].address),
     entryPoint,
     stateHex: norm(calls[0].state),
     blockHeight: typeof tx.block?.height === 'number' ? tx.block.height : undefined,
     blockTime: blockTimeMs(tx.block?.timestamp),
   };
+};
+
+/** Both indexers' answers, compared; the first one, read. */
+const lookUp = async (
+  indexerUri: string,
+  contractAddresses: readonly string[],
+  txId: string,
+  entryPoints: readonly string[],
+  refusal: string,
+  timeoutMs: number,
+  secondIndexer: string | undefined,
+): Promise<RawCall & { state: ContractState }> => {
+  if (!/^(0x)?[0-9a-fA-F]+$/.test(txId)) throw new Error('That is not a transaction id.');
+  const first = await askIndexer(indexerUri, contractAddresses, txId, entryPoints, refusal, timeoutMs);
+  if (secondIndexer !== undefined) {
+    let second: RawCall;
+    try {
+      second = await askIndexer(secondIndexer, contractAddresses, txId, entryPoints, refusal, timeoutMs);
+    } catch (e) {
+      throw new Error(
+        `The second indexer does not confirm that transaction (${e instanceof Error ? e.message : String(e)}). Refused.`,
+      );
+    }
+    const differs: string[] = [];
+    if (second.address !== first.address) differs.push('the contract');
+    if (second.entryPoint !== first.entryPoint) differs.push('the call');
+    if (second.blockHeight !== first.blockHeight) differs.push('the block');
+    // Rule 5 refuses a presentation over an hour old by this time: a first indexer that
+    // lied about it could make an old presentation look fresh.
+    if (second.blockTime !== first.blockTime) differs.push('the block time');
+    if (second.stateHex !== first.stateHex) differs.push('the contract state');
+    if (differs.length > 0)
+      throw new Error(`The two indexers disagree about that transaction (${differs.join(', ')}). Refused.`);
+  }
+  return { ...first, state: readContractState(Uint8Array.from(Buffer.from(first.stateHex, 'hex'))) };
 };
 
 /**
@@ -228,36 +269,49 @@ export const singleCallState = async (
   timeoutMs = 20_000,
   check: LookupCheck = {},
 ): Promise<FoundCall> => {
-  if (!/^(0x)?[0-9a-fA-F]+$/.test(txId)) throw new Error('That is not a transaction id.');
-  const first = await askIndexer(indexerUri, contractAddress, txId, entryPoints, refusal, timeoutMs);
-  if (check.secondIndexer !== undefined) {
-    let second: RawCall;
-    try {
-      second = await askIndexer(check.secondIndexer, contractAddress, txId, entryPoints, refusal, timeoutMs);
-    } catch (e) {
-      throw new Error(
-        `The second indexer does not confirm that transaction (${e instanceof Error ? e.message : String(e)}). Refused.`,
-      );
-    }
-    const differs: string[] = [];
-    if (second.entryPoint !== first.entryPoint) differs.push('the call');
-    if (second.blockHeight !== first.blockHeight) differs.push('the block');
-    // Rule 5 refuses a presentation over an hour old by this time: a first indexer that
-    // lied about it could make an old presentation look fresh.
-    if (second.blockTime !== first.blockTime) differs.push('the block time');
-    if (second.stateHex !== first.stateHex) differs.push('the contract state');
-    if (differs.length > 0)
-      throw new Error(`The two indexers disagree about that transaction (${differs.join(', ')}). Refused.`);
-  }
-  const state = readContractState(Uint8Array.from(Buffer.from(first.stateHex, 'hex')));
-  const checked = checkContractState(state, check);
+  const found = await lookUp(indexerUri, [contractAddress], txId, entryPoints, refusal, timeoutMs, check.secondIndexer);
+  const checked = checkContractState(found.state, check);
   return {
-    entryPoint: first.entryPoint,
-    state,
-    blockHeight: first.blockHeight,
-    blockTime: first.blockTime,
+    entryPoint: found.entryPoint,
+    state: found.state,
+    blockHeight: found.blockHeight,
+    blockTime: found.blockTime,
     authority: checked.authority,
     keys: checked.keys,
+  };
+};
+
+/**
+ * singleCallState across several contracts (docs/contract-v2.md 3.1, rule 10): the transaction
+ * must make exactly ONE call on all of `contractAddresses` together, and that call must be one of
+ * `entryPoints` on one of `callable` (a subset of them). Calls on the others count, so a
+ * transaction that calls two pinned contracts is refused whichever it is asked about. The state
+ * is then checked with `checkFor(address)`: each contract's own verifier keys and key states.
+ * Says which contract the call was on.
+ */
+export const singleCallStateAcross = async (
+  indexerUri: string,
+  contractAddresses: readonly string[],
+  callable: readonly string[],
+  txId: string,
+  entryPoints: readonly string[],
+  refusal: string,
+  timeoutMs: number,
+  secondIndexer: string | undefined,
+  checkFor: (address: string) => StateRequirements,
+): Promise<FoundCall & { readonly address: string; readonly keyState?: KeyState }> => {
+  const found = await lookUp(indexerUri, contractAddresses, txId, entryPoints, refusal, timeoutMs, secondIndexer);
+  if (!callable.map(norm).includes(found.address)) throw new Error(refusal);
+  const checked = checkContractState(found.state, checkFor(found.address));
+  return {
+    address: found.address,
+    entryPoint: found.entryPoint,
+    state: found.state,
+    blockHeight: found.blockHeight,
+    blockTime: found.blockTime,
+    authority: checked.authority,
+    keys: checked.keys,
+    ...(checked.keyState === undefined ? {} : { keyState: checked.keyState }),
   };
 };
 

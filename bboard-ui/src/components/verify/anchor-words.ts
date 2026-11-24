@@ -38,6 +38,12 @@ export const anchorLine = (
   switch (check.status) {
     case 'checked': {
       const two = check.indexers > 1 ? tr.t('app.verify.anchor.twoIndexers') : '';
+      // Which contract gave the date, once there is more than one it could be (docs/contract-v2.md
+      // 3.1, rule 10.3): the same root on two contracts is two dates.
+      const contract =
+        check.nameContract && check.contract
+          ? tr.t('app.verify.anchor.contract', { version: check.contract.version.slice(1) })
+          : '';
       return {
         // Ticked only against the link's own fingerprint, like every other line.
         status: ctx.bound ? 'checked' : 'reported',
@@ -45,6 +51,7 @@ export const anchorLine = (
           tx: check.txHash,
           block: String(check.blockHeight),
           at: utcStamp(check.blockTime),
+          contract,
           two,
           test,
         }),

@@ -13,6 +13,7 @@ import { ANCHOR_QUERY, checkAnchorOnChain, isAnchorEntry, type AnchorCheckDeps }
 import { lastBatchRootOf } from './anchor-decode';
 import { anchorContractFor, anchorContractsFor, carriesKey, readIndexersFor, sameIndexer } from './config';
 import { contractStateAfter } from './test-chain';
+import { PREPROD_PINNED } from '../../../../api/src/pinned-contracts';
 import { queryProblem } from '../../../../sponsor/src/indexer-relay';
 import { verifyInclusion } from 'veilcore-records';
 
@@ -69,8 +70,8 @@ describe('the fixture', () => {
       },
     ]);
     expect(Buffer.from(fresh.serialize()).toString('hex')).toBe(fixture.stateHex);
-    expect(lastBatchRootOf(fixture.stateHex)).toBe(fixture.root);
-    expect(lastBatchRootOf(fixture.otherStateHex)).toBe(fixture.otherRoot);
+    expect(lastBatchRootOf(fixture.stateHex, 'v1')).toBe(fixture.root);
+    expect(lastBatchRootOf(fixture.otherStateHex, 'v1')).toBe(fixture.otherRoot);
     expect(await verifyInclusion(fixture.proof)).toBe(true);
     expect(fixture.proof.root).toBe(fixture.root);
   });
@@ -85,6 +86,9 @@ describe('checkAnchorOnChain', () => {
       blockHeight: 2973563,
       blockTime: BLOCK_MS,
       indexers: 1,
+      // The contract it came from; with version 1 alone the page doesn't name it.
+      contract: { version: 'v1', address: CONTRACT },
+      nameContract: false,
     });
     // One request, asking by hash and by identifier, that the relay passes on.
     expect(d.asked).toHaveLength(1);
@@ -375,14 +379,25 @@ describe('which indexers and contract the page uses', () => {
     expect(anchorContractFor('preprod', CONTRACT, 'c0'.repeat(32))).toBe('c0'.repeat(32));
   });
 
-  it('the contract list: today only v1, the same address anchorContractFor gives, or none', () => {
+  it('the contract list: on mainnet the pinned list (today only v1), off mainnet a named version, or none', () => {
     expect(anchorContractsFor('mainnet', CONTRACT.toUpperCase(), 'c0'.repeat(32))).toEqual([
       { version: 'v1', address: CONTRACT },
     ]);
     expect(anchorContractsFor('mainnet', '', 'c0'.repeat(32))).toEqual([]);
-    expect(anchorContractsFor('preprod', CONTRACT, 'c0'.repeat(32))).toEqual([
+    // A mainnet pin the pinned list doesn't hold: nothing is read.
+    expect(anchorContractsFor('mainnet', 'c0'.repeat(32), undefined)).toEqual([]);
+    // Off mainnet a check names its contract version (docs/contract-v2.md 3.1, rule 10.4): the
+    // build names it, or preprod's pinned list does; a defaulted one reads nothing.
+    expect(anchorContractsFor('preprod', CONTRACT, 'c0'.repeat(32))).toEqual([]);
+    expect(anchorContractsFor('preview', CONTRACT, 'c0'.repeat(32), 'v1')).toEqual([
       { version: 'v1', address: 'c0'.repeat(32) },
     ]);
-    expect(anchorContractsFor('preprod', CONTRACT, undefined)).toEqual([]);
+    expect(anchorContractsFor('undeployed', CONTRACT, 'c0'.repeat(32), 'v2')).toEqual([
+      { version: 'v2', address: 'c0'.repeat(32) },
+    ]);
+    const testSite = PREPROD_PINNED.find((e) => e.kind === 'veilcore')?.address ?? '';
+    expect(anchorContractsFor('preprod', CONTRACT, testSite)).toEqual([{ version: 'v1', address: testSite }]);
+    expect(anchorContractsFor('preprod', CONTRACT, testSite, 'v2')).toEqual([]);
+    expect(anchorContractsFor('preprod', CONTRACT, undefined, 'v1')).toEqual([]);
   });
 });

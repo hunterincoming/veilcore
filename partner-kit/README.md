@@ -24,7 +24,7 @@ Install an exact version, not a range: the package carries the mainnet addresses
 key fingerprints it checks against.
 
 ```sh
-npm install --save-exact @veilcore/contracts@0.4.0
+npm install --save-exact @veilcore/contracts@0.5.0
 ```
 
 **Read [docs/PARTNERS.md](https://github.com/hunterincoming/veilcore/blob/main/docs/PARTNERS.md)
@@ -105,6 +105,26 @@ const verdict = await checkPresentation({ network: 'preprod', blockfrostProjectI
   reaches it from the package's exports. It is VeilCore's operator work.
 
 ## Changes
+
+**0.5.0** (not yet on npm)
+- Checks a batch date on every contract VeilCore pins, not only version 1: the pinned list now
+  comes from `deployments/mainnet.json`, each contract with its version, found only by its
+  address. Pinning contract version 2 there is the only change needed; until then the list is
+  version 1 alone and a check reads as it did.
+- `checkBatchAnchor` with no address tries every pinned contract. A transaction must make
+  exactly one call across all of them (a call on the claims contract counts too), and its state
+  is read by the decoder of the contract it called, with that contract's own verifier keys and
+  its published authority states. A state whose authority is in none of them is refused. The
+  same record on two contracts is two records with two dates; nothing is joined.
+- Verdicts name the contract that gave the date: `contract` (`version`, `address`, `name`) and
+  `keyState` (for example "one key, not yet handed to the committee"). Once more than one
+  contract is pinned, the reason says which too; with version 1 alone it reads as before.
+- Off mainnet a check names its contract version (`contractVersion: 'v1'` or `'v2'`), unless
+  the address is one of VeilCore's preprod contracts: a defaulted version is refused.
+- Defaults never move to the newest contract: with no address the package writes to version 1,
+  and refuses to send transactions to version 2 on mainnet. Version 2 is read for batch dates
+  and the maintenance authority only; the other checks refuse it rather than read it with
+  version 1's layout.
 
 **0.4.0**
 - Reads VeilCore's records on both sides of Midnight's Ledger 9 fork (mainnet forked on

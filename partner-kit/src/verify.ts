@@ -27,19 +27,32 @@ import {
   contractStateNow,
   presentationWithTime,
   singleCallState,
+  singleCallStateAcross,
 } from '../../api/src/presentation-lookup.js';
 import {
   type AuthorityReport,
   ContractStateMismatchError,
+  type KeyPins,
+  type StateRequirements,
   checkContractState,
   pinnedVerifierKeys,
 } from '../../api/src/state-check.js';
 import { isProvablyRetired } from '../../api/src/maintenance.js';
 import {
-  type ContractKind,
   type ContractVersion,
-  MAINNET_CONTRACTS,
+  MAINNET_PINNED,
+  PREPROD_PINNED,
+  type PinnedEntry,
+  pinnedAt,
+  versionName,
+} from '../../api/src/pinned-contracts.js';
+import { v2LastBatchRoot } from '../../api/src/batch-root-layout.js';
+import {
+  type ContractKind,
   type Network,
+  type PinnedContract,
+  MAINNET_CONTRACTS,
+  defaultAddress,
   endpointsFor,
   isNetwork,
   pinnedContractFor,
@@ -74,6 +87,13 @@ export type ReadOptions = {
    * update raises it, so pinning the value you last saw makes any change since a refusal.
    */
   readonly authorityCounter?: bigint;
+  /**
+   * Which contract version `address` is: 'v1' or 'v2'. On mainnet the pinned list says (a
+   * version given here must match it). Off mainnet a check must say, unless the address is on
+   * preprod's pinned list (deployments/preprod.json): a defaulted version is refused
+   * (docs/contract-v2.md 3.1, rule 10.4).
+   */
+  readonly contractVersion?: ContractVersion;
   readonly timeoutMs?: number;
 };
 
@@ -81,6 +101,15 @@ export type Verdict = { readonly accepted: boolean; readonly reason: string };
 export type WhenLanded = { readonly blockHeight?: number; readonly blockTime?: number };
 /** The maintenance authority in the state a verdict rests on (absent only when no state was read). */
 export type WithAuthority = { readonly authority?: AuthorityReport };
+/**
+ * The contract a date came from (docs/contract-v2.md 3.1, rule 10.3: every date is shown with
+ * the name of the contract that gave it), and on mainnet the published key state its authority
+ * was in, e.g. "one key, not yet handed to the committee".
+ */
+export type WithContract = {
+  readonly contract?: PinnedContract & { readonly name: string };
+  readonly keyState?: string;
+};
 
 const hostOf = (url: string): string => {
   try {
@@ -116,37 +145,99 @@ const assertSameNetwork = (o: ReadOptions, indexers: readonly string[], address:
     );
 };
 
+/** The pinned entry for a contract on `network`, if it has one (mainnet's list, or preprod's). */
+const entryFor = (network: Network, address: string): PinnedEntry | undefined =>
+  network === 'mainnet'
+    ? pinnedAt(MAINNET_PINNED, address)
+    : network === 'preprod'
+      ? pinnedAt(PREPROD_PINNED, address)
+      : undefined;
+
+/**
+ * What a state of this contract must carry. On mainnet: its own verifier-key table (version 1:
+ * docs/fingerprints.md, as always; version 2: its entry's table, never version 1's) and one of
+ * its published key states (docs/contract-v2.md 3.3). Elsewhere, as before: the keys, when
+ * pinned, and no key states.
+ */
+const requirementsFor = (
+  o: ReadOptions,
+  kind: ContractKind,
+  c: PinnedContract,
+): StateRequirements & { readonly entry?: PinnedEntry } => {
+  if (o.network === 'mainnet' && o.verifierKeys === 'report')
+    throw new Error("On mainnet the verifier keys are always checked against the deployment record ('pinned').");
+  const pinned =
+    o.verifierKeys === undefined ? o.network === 'mainnet' || o.network === 'preprod' : o.verifierKeys === 'pinned';
+  const entry = entryFor(o.network, c.address);
+  let verifierKeys: KeyPins | undefined;
+  if (pinned) {
+    if (c.version === 'v1') verifierKeys = pinnedVerifierKeys(kind === 'veilcore' ? 'veilcore' : 'veilcore-claims');
+    else if (entry !== undefined) verifierKeys = entry.verifierKeys;
+    else
+      throw new Error(
+        `No verifier-key table is pinned for ${versionName(c.version)} at ${c.address} on ${o.network}. ` +
+          "Use verifierKeys: 'report' for a contract of your own. Nothing was read.",
+      );
+  }
+  return {
+    verifierKeys,
+    authorityCounter: o.authorityCounter,
+    ...(o.network === 'mainnet' && entry !== undefined ? { keyStates: entry.keyStates, entry } : {}),
+  };
+};
+
 const where = (
   o: ReadOptions,
   kind: ContractKind,
+  /** A reader of the state now, not a check of a record: off mainnet it may default to version 1. */
+  reader = false,
 ): { indexer: string; address: string; version: ContractVersion; check: LookupCheck } => {
   if (!isNetwork(o.network)) throw new Error(`Unknown network ${String(o.network)}.`);
   const indexer = o.indexer ?? endpointsFor(o.network, {}, { blockfrostProjectId: o.blockfrostProjectId }).indexer;
   const address = resolveAddress(o.network, kind, o.address);
   assertSameNetwork(o, o.secondIndexer === undefined ? [indexer] : [indexer, o.secondIndexer], address);
-  if (o.network === 'mainnet' && o.verifierKeys === 'report')
-    throw new Error("On mainnet the verifier keys are always checked against the deployment record ('pinned').");
-  const pinned =
-    o.verifierKeys === undefined ? o.network === 'mainnet' || o.network === 'preprod' : o.verifierKeys === 'pinned';
+  const c = pinnedContractFor(
+    o.network,
+    kind,
+    address,
+    o.contractVersion ??
+      (reader && o.network !== 'mainnet' && entryFor(o.network, address) === undefined ? 'v1' : undefined),
+  );
+  const req = requirementsFor(o, kind, c);
   return {
     indexer,
     address,
-    version: pinnedContractFor(o.network, kind, address).version,
+    version: c.version,
     check: {
-      verifierKeys: pinned ? pinnedVerifierKeys(kind === 'veilcore' ? 'veilcore' : 'veilcore-claims') : undefined,
-      authorityCounter: o.authorityCounter,
+      verifierKeys: req.verifierKeys,
+      authorityCounter: req.authorityCounter,
+      keyStates: req.keyStates,
       secondIndexer: o.secondIndexer,
     },
   };
 };
 
 /**
+ * This package reads version 2 for batch date stamps only (checkBatchAnchor) and for the
+ * maintenance authority; every other check and reader is built on version 1's compiled
+ * contract, so a version 2 contract is refused there rather than read with version 1's layout.
+ */
+const v1Only = (w: { readonly version: ContractVersion }, what: string): void => {
+  if (w.version !== 'v1')
+    throw new Error(
+      `${what} reads ${versionName('v1')} only; this version of @veilcore/contracts checks ` +
+        `${versionName(w.version)} for batch date stamps (checkBatchAnchor). Nothing was read.`,
+    );
+};
+
+/**
  * The batch root a call wrote, read from the state after it by the reader for the pinned
  * contract's version (network.ts MAINNET_CONTRACTS), never by what the state or the caller
- * says. Only version 1 today; a successor adds its own reader here.
+ * says. Version 2's by its layout (api/src/batch-root-layout.ts).
  */
 const BATCH_ROOT_READERS: Readonly<Record<ContractVersion, (state: ContractState) => Uint8Array>> = {
   v1: (state) => Veilcore.ledger(state.data).lastBatchRoot,
+  v2: (state) => v2LastBatchRoot(state.data.state),
 };
 
 /** A refusal for a state that is not the pinned build: a verdict, not an exception. */
@@ -197,7 +288,8 @@ const agreedStateNow = async (
  * ContractStateMismatchError is thrown and nothing is returned.
  */
 export const readLedger = async (o: ReadOptions): Promise<Veilcore.Ledger> => {
-  const w = where(o, 'veilcore');
+  const w = where(o, 'veilcore', true);
+  v1Only(w, 'readLedger');
   const state = await agreedStateNow(o, w);
   checkContractState(state, w.check, 'the current state');
   return Veilcore.ledger(state.data);
@@ -230,6 +322,7 @@ export const checkPresentation = async (
   },
 ): Promise<Verdict & WhenLanded & WithAuthority> => {
   const w = where(o, 'veilcore');
+  v1Only(w, 'checkPresentation');
   let found: Awaited<ReturnType<typeof presentationWithTime>>;
   try {
     found = await presentationWithTime(w.indexer, w.address, o.txId, o.timeoutMs, w.check);
@@ -258,6 +351,7 @@ export const checkOwnership = async (
   o: ReadOptions & { readonly txId: string; readonly record: Uint8Array; readonly challenge: Uint8Array },
 ): Promise<Verdict & WhenLanded & WithAuthority> => {
   const w = where(o, 'veilcore');
+  v1Only(w, 'checkOwnership');
   let found: Awaited<ReturnType<typeof singleCallState>>;
   const nows: ContractState[] = [];
   try {
@@ -333,6 +427,7 @@ export const checkPairing = async (
     }
 > => {
   const w = where(o, 'veilcore');
+  v1Only(w, 'checkPairing');
   let found: Awaited<ReturnType<typeof singleCallState>>;
   const nows: ContractState[] = [];
   try {
@@ -385,40 +480,101 @@ export const checkPairing = async (
 };
 
 /**
+ * The main contracts a batch check tries (docs/contract-v2.md 3.1, rule 10): the one `address`
+ * names; with no address, on mainnet every pinned main contract (version 1 and, once pinned,
+ * version 2), and on preprod the pinned one.
+ */
+const batchCandidates = (o: ReadOptions, sameNetwork: (address: string) => void): PinnedContract[] => {
+  if (o.network === 'mainnet' && o.address === undefined) {
+    const all = MAINNET_CONTRACTS.veilcore.filter(
+      (c) => o.contractVersion === undefined || c.version === o.contractVersion,
+    );
+    if (all.length === 0)
+      throw new Error(
+        o.contractVersion === undefined
+          ? 'No VeilCore contract is pinned for mainnet in this version yet. Nothing was read or sent.'
+          : `No ${versionName(o.contractVersion)} is pinned for mainnet in this version. Nothing was read.`,
+      );
+    for (const c of all) sameNetwork(c.address);
+    return [...all];
+  }
+  const a = resolveAddress(o.network, 'veilcore', o.address ?? defaultAddress(o.network, 'veilcore'));
+  sameNetwork(a);
+  return [pinnedContractFor(o.network, 'veilcore', a, o.contractVersion)];
+};
+
+/** Every contract a call on which counts against "exactly one call" (rule 10.2). */
+const pinnedAddressesOn = (network: Network, candidates: readonly PinnedContract[]): string[] => {
+  const listed = network === 'mainnet' ? MAINNET_PINNED : network === 'preprod' ? PREPROD_PINNED : [];
+  return [...new Set([...candidates.map((c) => c.address), ...listed.map((e) => e.address)])];
+};
+
+/**
  * Rule 7: was `root` (an SDK batch root) timestamped by transaction `txId`? Says when, by
- * the block. It does not say who: anchoring a batch is unauthenticated, and inclusion in
- * a batch is not possession.
+ * the block, and on which contract. It does not say who: anchoring a batch is
+ * unauthenticated, and inclusion in a batch is not possession.
+ *
+ * Rule 10 (docs/contract-v2.md 3.1): given an address, only that contract, and only if it is
+ * pinned; given none, every pinned main contract is tried. The transaction must make exactly
+ * one call on all of VeilCore's pinned contracts together, an anchorBatch, and its state is read
+ * by the decoder of the contract it called, with that contract's own verifier keys and key
+ * states. The same root on two contracts is two dates; this never joins them. Off mainnet,
+ * name the version (`contractVersion`) unless the address is on preprod's pinned list.
  */
 export const checkBatchAnchor = async (
   o: ReadOptions & { readonly txId: string; readonly root: Uint8Array },
-): Promise<Verdict & WhenLanded & WithAuthority> => {
-  const w = where(o, 'veilcore');
-  let found: Awaited<ReturnType<typeof singleCallState>>;
+): Promise<Verdict & WhenLanded & WithAuthority & WithContract> => {
+  if (!isNetwork(o.network)) throw new Error(`Unknown network ${String(o.network)}.`);
+  const indexer = o.indexer ?? endpointsFor(o.network, {}, { blockfrostProjectId: o.blockfrostProjectId }).indexer;
+  const candidates = batchCandidates(o, (address) =>
+    assertSameNetwork(o, o.secondIndexer === undefined ? [indexer] : [indexer, o.secondIndexer], address),
+  );
+  // Each contract's own requirements, worked out before anything is read.
+  const reqs = new Map(candidates.map((c) => [c.address, requirementsFor(o, 'veilcore', c)]));
+  let found: Awaited<ReturnType<typeof singleCallStateAcross>>;
   try {
-    found = await singleCallState(
-      w.indexer,
-      w.address,
+    found = await singleCallStateAcross(
+      indexer,
+      pinnedAddressesOn(o.network, candidates),
+      candidates.map((c) => c.address),
       o.txId,
       ['anchorBatch'],
-      'That transaction is not a single anchorBatch call on this contract.',
-      o.timeoutMs,
-      w.check,
+      candidates.length === 1
+        ? 'That transaction is not a single anchorBatch call on this contract.'
+        : 'That transaction is not a single anchorBatch call on one of VeilCore’s pinned contracts.',
+      o.timeoutMs ?? 20_000,
+      o.secondIndexer,
+      (address) => {
+        const r = reqs.get(address);
+        if (r === undefined) throw new Error('Internal error: a call on a contract that was not asked about.');
+        return { verifierKeys: r.verifierKeys, authorityCounter: r.authorityCounter, keyStates: r.keyStates };
+      },
     );
   } catch (e) {
     const r = refusedState(e);
     if (r !== undefined) return r;
     throw e;
   }
-  const onChain = Buffer.from(BATCH_ROOT_READERS[w.version](found.state)).toString('hex');
+  const contract = candidates.find((c) => c.address === found.address) as PinnedContract;
+  const onChain = Buffer.from(BATCH_ROOT_READERS[contract.version](found.state)).toString('hex');
   const ok = onChain === Buffer.from(o.root).toString('hex');
+  // Which contract gave the date is said in the reason once there is more than one it could be
+  // (always for version 2), with version 2's key state ("one key, not yet handed to the
+  // committee"). With version 1 alone, the reason reads as it always has.
+  const several = o.network === 'mainnet' ? MAINNET_CONTRACTS.veilcore.length > 1 : contract.version !== 'v1';
+  const named = several
+    ? ` (${versionName(contract.version)}${contract.version !== 'v1' && found.keyState ? `; ${found.keyState.label}` : ''})`
+    : '';
   return {
     accepted: ok,
     reason: ok
-      ? `the root was timestamped${found.blockHeight === undefined ? '' : ` in block ${found.blockHeight}`}${found.blockTime === undefined ? '' : `, ${new Date(found.blockTime).toISOString()}`}`
-      : 'that transaction timestamped a different root',
+      ? `the root was timestamped${found.blockHeight === undefined ? '' : ` in block ${found.blockHeight}`}${found.blockTime === undefined ? '' : `, ${new Date(found.blockTime).toISOString()}`}${named}`
+      : `that transaction timestamped a different root${named}`,
     blockHeight: found.blockHeight,
     blockTime: found.blockTime,
     authority: found.authority,
+    contract: { ...contract, name: versionName(contract.version) },
+    ...(found.keyState === undefined ? {} : { keyState: found.keyState.label }),
   };
 };
 
@@ -438,6 +594,7 @@ export const readClaim = async (
   } & WhenLanded
 > => {
   const w = where(o, 'claims');
+  v1Only(w, 'readClaim');
   // A state that is not the pinned build throws ContractStateMismatchError: nothing is read.
   const found = await singleCallState(
     w.indexer,
@@ -473,7 +630,7 @@ export const readClaimsAuthority = async (
   readonly threshold: number;
   readonly counter: bigint;
 }> => {
-  const w = where(o, 'claims');
+  const w = where(o, 'claims', true);
   const a = (await agreedStateNow(o, w)).maintenanceAuthority;
   return { retired: isProvablyRetired(a), keys: a.committee.length, threshold: a.threshold, counter: a.counter };
 };
@@ -486,6 +643,6 @@ export const readClaimsAuthority = async (
  * whatever the circuits are.
  */
 export const readAuthority = async (o: ReadOptions): Promise<AuthorityReport> => {
-  const w = where(o, 'veilcore');
+  const w = where(o, 'veilcore', true);
   return checkContractState(await agreedStateNow(o, w), {}).authority;
 };

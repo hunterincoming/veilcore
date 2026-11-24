@@ -152,6 +152,8 @@ describe('the check page, on the real indexer answers', () => {
         blockHeight: tx.block.height,
         blockTime: tx.block.timestamp,
         indexers: 1,
+        contract: { version: 'v1', address: golden.contract },
+        nameContract: false,
       });
       // Another batch's root is refused against the same transaction.
       const other = TXS.find((o) => o !== g)!.root;

@@ -554,7 +554,14 @@ key. The tool changes (Stage A item 7) are needed for the handover.
 
 - the 0.4.0 kit and the site with the post-fork bundle fix (3.4);
 - the decoder by era tag on ledger-v9 1.0.2 (3.2);
-- `checkBatchAnchor` trying every pinned contract (3.2);
+- `checkBatchAnchor` trying every pinned contract (3.2). **Built, 23 November 2026, not
+  published:** partner kit 0.5.0, the site's check page and the evidence-bundle check take the
+  pinned list from `deployments/mainnet.json` (`api/src/pinned-contracts.ts`), each contract by
+  its address, with version 2's decoder, key table and key states (`api/src/state-check.ts`).
+  Adding v2's entries there is the switch. Still to do: 0.5.0 on npm before the next site
+  deploy; the CLI, `verify.html`, `verify.py`, the Rust checker and `api/src/deploy-guard.ts`;
+  and, on the devnet, that a v2 state's V4 verifier keys survive the kit's carry into runtime
+  0.16 (`contract/src/contract-state.ts`);
 - rule 10 in SPEC.md (3.1).
 
 16. **[Hunter]** deploys v2 and claims v2 from the Mac: the keys with the temporary key,

@@ -71,7 +71,11 @@
       ],
       "properties": {
         "name": { "enum": ["veilcore", "veilcore-claims"] },
-        "source": { "type": "string", "pattern": "^contract/src/[a-z-]+\\.compact$" },
+        "contractVersion": {
+          "description": "Which contract version this entry is (docs/contract-v2.md 3.1, rule 10): 1 (absent means 1) or 2. Checkers take a contract's version only from here, by its address, never from its state. Adding a version 2 entry is the pin.",
+          "enum": [1, 2]
+        },
+        "source": { "type": "string", "pattern": "^contract(-v2)?/src/[a-z-]+\\.compact$" },
         "address": { "$ref": "#/$defs/address" },
         "network": { "$ref": "#/$defs/network" },
         "compiler": { "$ref": "#/$defs/version" },
@@ -107,6 +111,24 @@
             "counter": { "oneOf": [{ "type": "integer", "minimum": 0 }, { "type": "null" }] },
             "retiredBy": { "oneOf": [{ "$ref": "#/$defs/txid" }, { "type": "null" }] },
             "note": { "type": "string" }
+          }
+        },
+        "keyStates": {
+          "description": "Every maintenance-authority state the contract may be in, each from the counter and block where it began (docs/contract-v2.md 3.3). A checker refuses a state in none of them. Required for version 2 (api/src/pinned-contracts.ts refuses a version 2 entry without it); version 1's are in that file unless listed here.",
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["retired", "committee", "threshold", "counter", "block", "label"],
+            "properties": {
+              "retired": { "type": "boolean" },
+              "committee": { "type": "integer", "minimum": 0 },
+              "threshold": { "type": "integer", "minimum": 0 },
+              "counter": { "oneOf": [{ "type": "integer", "minimum": 0 }, { "type": "null" }] },
+              "block": { "oneOf": [{ "type": "integer", "minimum": 0 }, { "type": "null" }] },
+              "label": { "type": "string", "minLength": 1 }
+            }
           }
         },
         "contractCode": { "description": "SHA-256 of contract/index.js as the compiler wrote it.", "$ref": "#/$defs/sha256" },

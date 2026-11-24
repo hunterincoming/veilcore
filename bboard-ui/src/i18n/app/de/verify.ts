@@ -41,8 +41,9 @@ export const verify = {
   'app.verify.anchor.noDate': 'nicht angegeben (das VeilCore-Register nennt für diese Transaktion kein Datum)',
   'app.verify.anchor.lookingUp': 'Diese Transaktion wird auf {network} nachgeschlagen…',
   'app.verify.anchor.twoIndexers': ' Zwei getrennte Midnight-Indexer gaben dieselbe Antwort.',
+  'app.verify.anchor.contract': ' Dieses Datum stammt vom VeilCore-Smart-Contract, Version {version}.',
   'app.verify.anchor.checked':
-    'Auf Midnight geprüft: Diese Stapelwurzel wurde durch die Transaktion {tx} in Block {block} am {at} geschrieben.{two}{test}',
+    'Auf Midnight geprüft: Diese Stapelwurzel wurde durch die Transaktion {tx} in Block {block} am {at} geschrieben.{contract}{two}{test}',
   'app.verify.anchor.failed':
     'Auf Midnight nicht bestätigt: {reason}. Verlassen Sie sich nicht auf das Datum, das das Register meldet.',
   'app.verify.anchor.dateNotChecked': 'Das Datum ist {date}; hier nicht geprüft.',

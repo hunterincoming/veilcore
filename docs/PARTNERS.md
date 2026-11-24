@@ -75,7 +75,7 @@ Here a record's proof code goes by its technical name, its **fingerprint** (a co
 ### Install
 
 ```sh
-npm install --save-exact @veilcore/contracts@0.4.0 veilcore-records
+npm install --save-exact @veilcore/contracts@0.5.0 veilcore-records
 npm exec --package=@veilcore/contracts@0.3.0 -- veilcore-keys fetch --to ./veilcore-keys   # proving keys, checked (below)
 # mainnet (Midnight Ledger 9 since 6 November 2026):
 docker run -d -p 127.0.0.1:6300:6300 midnightntwrk/proof-server:9.0.1@sha256:90e36a14f92c2004127f0ed1cfd6ee89d770cf1f6e9cd7f02026ffd4ecb42f37 midnight-proof-server -v
@@ -273,7 +273,7 @@ used once.
 
 **Evidence bundles already given out** name `@veilcore/contracts@0.2.0` in
 `proof/check-on-midnight.mjs`, and answer "No such transaction." for every batch. Holders run the
-check again with 0.4.0: `npm install --save-exact @veilcore/contracts@0.4.0`, then
+check again with 0.5.0: `npm install --save-exact @veilcore/contracts@0.5.0`, then
 `node check-on-midnight.mjs <Blockfrost project id>`, unchanged otherwise.
 
 Options the checks take _(0.3.0)_:
@@ -282,6 +282,7 @@ Options the checks take _(0.3.0)_:
 | --- | --- |
 | `secondIndexer` | Another indexer's URL (your own, or another provider's). Every check asks both and refuses unless they report the same call, in the same block, with the same contract state. `checkOwnership` and `checkPairing` also read the current state from both. |
 | `verifierKeys` | `'pinned'`: refuse a state whose circuits' verifier keys are not the deployment record's build (the verdict says which circuits differ). `'report'`: only report. Default `'pinned'` on mainnet, where it cannot be turned off, and on preprod; `'report'` elsewhere (a local chain, preview), where the contract is usually your own build. |
+| `contractVersion` | `'v1'` or `'v2'` _(0.5.0)_: which VeilCore contract version the address is. On mainnet the pinned list says, and a different value is refused. **Off mainnet a check must give it**, unless the address is one of VeilCore's preprod contracts (`deployments/preprod.json`): a defaulted version is refused, so a version 2 rehearsal is never read with version 1's layout. |
 | `authorityCounter` | Refuse unless the maintenance authority's counter is exactly this. Every maintenance update raises it, so pinning the value you last saw turns any change since into a refusal. |
 | `history`, `rule` | `checkPresentation` only. `history` is the contract's state after every call, from the last seal before the presentation up to and including it, from your indexer; with it the issuer-scoped rule 5 decides, so another party's revocations cannot make an honest presentation fail. The package does not fetch it for you. `rule: 'strict'` keeps the original rule even with a history; without one, the original rule applies. |
 
@@ -301,6 +302,16 @@ API in private fields (`partner-kit/test/surface.test.ts` checks the sources and
 bundle). Without VeilCore's maintenance key it could do nothing privileged anyway.
 
 ### Which contract
+
+**Several contracts (0.5.0).** The package holds a pinned list of VeilCore's contracts per
+network, read from `deployments/mainnet.json`, each with its version. Today that is version 1
+only. Version 2 goes on the list by its address, never by anything in its state. A batch check
+given no address tries every pinned contract; a transaction must make exactly one call across
+all of them, and its state is read by that contract's own decoder, with its own verifier keys
+and its published authority states. The verdict names the contract (`contract`, and
+`keyState`). The same record on two contracts is two records with two dates: nothing is joined
+across versions. In 0.5.0 only `checkBatchAnchor` and the authority readers read version 2; the
+other checks refuse it, and transactions are sent to version 1 only.
 
 On **mainnet** the package accepts only the addresses in VeilCore's filed deployment record
 (`MAINNET_ADDRESSES`); any other address is refused before anything is read or sent. Anyone

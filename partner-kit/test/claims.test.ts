@@ -37,7 +37,13 @@ afterEach(() => {
   vi.unstubAllGlobals();
   setNetworkId('undeployed');
 });
-const read = () => ({ network: 'undeployed' as const, indexer: chain.endpoints.indexer, address: CLAIMS_ADDR });
+// Off mainnet a check names its contract version (docs/contract-v2.md 3.1, rule 10.4).
+const read = () => ({
+  network: 'undeployed' as const,
+  indexer: chain.endpoints.indexer,
+  address: CLAIMS_ADDR,
+  contractVersion: 'v1' as const,
+});
 
 describe('sealing a field set', () => {
   it('gives the SDK’s schema id and a commitment, and refuses what the SDK refuses', () => {

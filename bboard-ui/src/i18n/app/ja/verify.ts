@@ -34,8 +34,9 @@ export const verify = {
   'app.verify.anchor.noDate': '記載なし（VeilCoreのレジストリはそのトランザクションの日付を示していません）',
   'app.verify.anchor.lookingUp': '{network}でそのトランザクションを調べています…',
   'app.verify.anchor.twoIndexers': '別々の2つのMidnightインデクサーが同じ答えを返しました。',
+  'app.verify.anchor.contract': 'この日付はVeilCoreコントラクトのバージョン{version}によるものです。',
   'app.verify.anchor.checked':
-    'Midnightで確認しました：このバッチのルートは、ブロック {block} のトランザクション {tx} により、{at}に書き込まれました。{two}{test}',
+    'Midnightで確認しました：このバッチのルートは、ブロック {block} のトランザクション {tx} により、{at}に書き込まれました。{contract}{two}{test}',
   'app.verify.anchor.failed':
     'Midnightで確認できませんでした：{reason}。レジストリが報告する日付に頼らないでください。',
   'app.verify.anchor.dateNotChecked': '日付は{date}です。ここでは確認していません。',

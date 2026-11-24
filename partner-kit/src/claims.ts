@@ -16,7 +16,7 @@ import {
 } from '../../api/src/claims-api.js';
 import { type FieldSchema, type FieldSetFile, sealFieldSetFile } from '../../contract/src/field-schema.js';
 import { type Connection } from './connect.js';
-import { type Network, resolveAddress } from './network.js';
+import { type Network, resolveWriteAddress } from './network.js';
 
 export type { ClaimReading, ClaimRef, LabSignature, RangeDirection, SealedRecord };
 
@@ -67,7 +67,7 @@ export class VeilCoreClaims {
    * is not retired is joined with a warning; check authority().retired before relying on it.
    */
   static async join(conn: Connection, options: { readonly address?: string } = {}): Promise<VeilCoreClaims> {
-    const address = resolveAddress(conn.network, 'claims', options.address);
+    const address = resolveWriteAddress(conn.network, 'claims', options.address);
     return new VeilCoreClaims(await ClaimsAPI.join(conn.providers.claims, address, conn.logger), conn);
   }
 

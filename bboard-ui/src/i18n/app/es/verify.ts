@@ -40,8 +40,9 @@ export const verify = {
   'app.verify.anchor.noDate': 'no indicada (el servidor de registros de VeilCore no da fecha para esa transacción)',
   'app.verify.anchor.lookingUp': 'Consultando esa transacción en {network}…',
   'app.verify.anchor.twoIndexers': ' Dos indexadores de Midnight distintos dieron la misma respuesta.',
+  'app.verify.anchor.contract': ' Esta fecha la dio el contrato de VeilCore, versión {version}.',
   'app.verify.anchor.checked':
-    'Comprobado en Midnight: la raíz de este lote la escribió la transacción {tx} en el bloque {block} el {at}.{two}{test}',
+    'Comprobado en Midnight: la raíz de este lote la escribió la transacción {tx} en el bloque {block} el {at}.{contract}{two}{test}',
   'app.verify.anchor.failed':
     'No confirmado en Midnight: {reason}. No confíe en la fecha que informa el servidor de registros.',
   'app.verify.anchor.dateNotChecked': 'La fecha es {date}; no se comprobó aquí.',

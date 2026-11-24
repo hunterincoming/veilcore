@@ -99,6 +99,8 @@ const FOR_DEVELOPERS = new Set([
   'Not a contract state from ledger 8 or ledger 9.',
   'Not VeilCore version 1’s ledger layout.',
   'VeilCore version 1’s lastBatchRoot is not 32 bytes in that state.',
+  // And version 2's (chain/v2-decoder.ts); the check page words the refusal itself.
+  'Not a ledger 9 contract state: VeilCore version 2 has no other.',
 ]);
 
 describe('every sentence thrown for a person can be said in every language', () => {

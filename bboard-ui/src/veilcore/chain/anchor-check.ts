@@ -7,8 +7,9 @@
 //   1. the transaction, by the hash the registry recorded (or, for an older entry, by its
 //      identifier): it must exist and have succeeded in full;
 //   2. its calls on VeilCore's contracts, at the addresses this build pins (config.ts
-//      ANCHOR_CONTRACTS, never the address the registry names): exactly one, and it must be
-//      anchorBatch, the date stamp call;
+//      ANCHOR_CONTRACTS, from deployments/mainnet.json; never the address the registry names):
+//      exactly one across all of them, and it must be anchorBatch, the date stamp call
+//      (docs/contract-v2.md 3.1, rule 10);
 //   3. the contract state the network recorded right after that call: its lastBatchRoot cell
 //      must be the root the inclusion proof folds to. The contract keeps only the latest
 //      root, so the state after this one transaction is read, never the current state. The
@@ -40,6 +41,13 @@ export type AnchorCheck =
       readonly blockTime: number;
       /** How many independent indexers gave this same answer. */
       readonly indexers: number;
+      /** The pinned contract the date came from (docs/contract-v2.md 3.1, rule 10.3). */
+      readonly contract?: PinnedContract;
+      /**
+       * Whether the page names that contract with the date: once more than one is pinned, or
+       * for any contract other than version 1. With version 1 alone, the line reads as before.
+       */
+      readonly nameContract?: boolean;
     }
   /** An indexer answered, and its answer does not bear out the registry's report. */
   | { readonly status: 'failed'; readonly reason: string }
@@ -130,7 +138,7 @@ export const isAnchorEntry = (raw: unknown): boolean => {
 
 /** One indexer's answer, judged on its own. */
 type Answer =
-  | { kind: 'ok'; txHash: string; blockHeight: number; blockTime: number; root: string }
+  | { kind: 'ok'; txHash: string; blockHeight: number; blockTime: number; root: string; address: string }
   | { kind: 'refused'; reason: string }
   | { kind: 'unreachable'; reason: string };
 
@@ -237,7 +245,7 @@ const askOne = async (
       kind: 'refused',
       reason: 'the indexer didn’t say when: it gave no block height or time for that transaction',
     };
-  return { kind: 'ok', txHash, blockHeight, blockTime, root: written };
+  return { kind: 'ok', txHash, blockHeight, blockTime, root: written, address: norm(calls[0].address) };
 };
 
 const defaultRootOf = async (stateHex: string, version: ContractVersion): Promise<string> =>
@@ -286,14 +294,18 @@ export const checkAnchorOnChain = async (input: AnchorCheckInput, deps: AnchorCh
       a.txHash !== first.txHash ||
       a.blockHeight !== first.blockHeight ||
       a.blockTime !== first.blockTime ||
-      a.root !== first.root,
+      a.root !== first.root ||
+      a.address !== first.address,
   );
   if (differs) return { status: 'failed', reason: 'the two indexers disagree about that transaction' };
+  const version = contracts.get(first.address) as ContractVersion;
   return {
     status: 'checked',
     txHash: first.txHash,
     blockHeight: first.blockHeight,
     blockTime: first.blockTime,
     indexers: ok.length,
+    contract: { version, address: first.address },
+    nameContract: contracts.size > 1 || version !== 'v1',
   };
 };
