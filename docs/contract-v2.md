@@ -563,9 +563,19 @@ key. The tool changes (Stage A item 7) are needed for the handover.
   pinned list from `deployments/mainnet.json` (`api/src/pinned-contracts.ts`), each contract by
   its address, with version 2's decoder, key table and key states (`api/src/state-check.ts`).
   Adding v2's entries there is the switch. Still to do: 0.5.0 on npm before the next site
-  deploy; the CLI, `verify.html`, `verify.py`, the Rust checker and `api/src/deploy-guard.ts`;
-  and, on the devnet, that a v2 state's V4 verifier keys survive the kit's carry into runtime
-  0.16 (`contract/src/contract-state.ts`);
+  deploy; and, on the devnet, that a v2 state's V4 verifier keys survive the kit's carry into
+  runtime 0.16 (`contract/src/contract-state.ts`). **The other checkers, built 24 November 2026,
+  not deployed or published:**
+  - `api/src/deploy-guard.ts` and the CLI: the CLI reads version 1 only, so a join or finish of
+    an address pinned as version 2 is refused by name (version 2 has its own tools), and the
+    CLI's licence, ownership, pairing and claim checks count a call on any pinned contract;
+  - `verify.html` (and the bundle's README and examiner summary): carries the pinned list from
+    `deployments/*.json`, names the contract's version, and dates nothing on another contract;
+  - `verify.py`: carries the list (veilcore-sdk, `_PINNED_CONTRACTS`) and fails an anchor on
+    another contract. Needs the SDK release after 0.18.1 here; `scripts/deployments.test.mjs`
+    then compares its list with `deployments/*.json`, so v2 is pinned only once that SDK names it;
+  - the Rust crate (veilcore-rs) reads no ledger and holds no list: it has SPEC 9.4's choice of
+    contract (`veilcore_records::pinned`), tested on the SDK's vectors;
 - **before v2 is pinned** (open, 23 November 2026):
   - real v2 state test data from preprod or the devnet: run `checkBatchAnchor` with
     `contractVersion: 'v2'` on a real v2 anchorBatch and keep that transaction as a test
