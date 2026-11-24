@@ -4,11 +4,19 @@
 // VeilCore's deployment record (midnightntwrk/midnight-improvement-proposals) states,
 // for each build, its circuits and key fingerprints. A build may reach a network that
 // matters only after the record describing it is filed. This module decides that from
-// two inputs, the network id and a declared revision number, and imports nothing else
-// so the decision table can be tested on its own (test-deploy-guard.mjs).
+// two inputs, the network id and a declared revision number, so the decision table can be
+// tested on its own (test-deploy-guard.mjs). The only other thing it reads is the pinned
+// contract list (pinned-contracts.ts, from deployments/*.json), which is pure data.
+//
+// The joins below are this build's, and this build reads contract version 1 only (the
+// compiled contract in contract/). So a contract pinned as version 2 is refused by name, on
+// mainnet and on preprod, rather than joined and read with version 1's layout
+// (docs/contract-v2.md 3.1, rule 10). Version 2 has its own tools (bboard-cli launcher:
+// deploy-v2, smoke-v2, committee).
 
 import { type Logger } from 'pino';
 import { getNetworkId } from './network-id.js';
+import { MAINNET_PINNED, PREPROD_PINNED, type PinnedEntry, type PinnedKind, versionName } from './pinned-contracts.js';
 
 /** The record revision that describes this build. A constant, so moving it is a reviewed change. */
 export const REQUIRED_RECORD_REVISION = 4;
@@ -87,12 +95,54 @@ export const MAINNET_VEILCORE_ADDRESS: string = 'a04de0a2684f3713276325649540c72
 // (block 2922874).
 export const MAINNET_CLAIMS_ADDRESS: string = 'ef763eb4ad1846b716dbfa90c00560a9a943ffb4d1fc638b0707df5adefd070d';
 
-/** Which contract a pin is for, as messages name it. */
-type Pin = { readonly contract: string; readonly constant: string; readonly why: string };
+/** The pinned lists this build checks a join against, by network (deployments/*.json). */
+export type PinnedLists = { readonly mainnet: readonly PinnedEntry[]; readonly preprod: readonly PinnedEntry[] };
+const PINNED_LISTS: PinnedLists = { mainnet: MAINNET_PINNED, preprod: PREPROD_PINNED };
 
-const assertPinned = (address: string, pin: Pin, pinned: string, logger?: Logger): 'development' | 'pinned' => {
+/**
+ * Why this build must not join `address` as a `kind` contract on `network`, or null. Pure.
+ * This build reads contract version 1 only, so an address pinned as any other version is
+ * refused: on preprod by preprod's list, on every network that is not a development one
+ * (mainnet, or none set) by mainnet's. Another development network has no list, and any
+ * address there is read as version 1, the only version this build has. Version 1 addresses,
+ * and addresses on no list, are left to the checks that follow, exactly as before.
+ */
+export const versionProblem = (
+  address: string,
+  kind: PinnedKind,
+  network: string | null,
+  lists: PinnedLists = PINNED_LISTS,
+): string | null => {
+  const list =
+    network === 'preprod' ? lists.preprod : network !== null && RECORD_NOT_REQUIRED.has(network) ? [] : lists.mainnet;
+  const a = address.trim().toLowerCase().replace(/^0x/, '');
+  const entry = list.find((e) => e.address === a);
+  if (entry === undefined || entry.version === 'v1') return null;
+  const where = network === 'preprod' ? 'preprod' : 'mainnet';
+  if (entry.kind !== kind)
+    return `${a} is pinned on ${where} as the ${entry.kind === 'claims' ? 'claims' : 'main'} contract, not this one.`;
+  return (
+    `${a} is ${versionName(entry.version)} (deployments/${where}.json). This tool reads ${versionName('v1')} ` +
+    'only and would read its state wrongly; use the version 2 tools (bboard-cli: deploy-v2, smoke-v2, committee).'
+  );
+};
+
+/** Which contract a pin is for, as messages name it. */
+type Pin = { readonly contract: string; readonly constant: string; readonly why: string; readonly kind: PinnedKind };
+
+const assertPinned = (
+  address: string,
+  pin: Pin,
+  pinned: string,
+  logger?: Logger,
+  lists: PinnedLists = PINNED_LISTS,
+): 'development' | 'pinned' => {
   const network = resolveNetwork();
-  if (network !== null && RECORD_NOT_REQUIRED.has(network)) return 'development';
+  const problem = versionProblem(address, pin.kind, network, lists);
+  if (network !== null && RECORD_NOT_REQUIRED.has(network)) {
+    if (problem !== null) throw new Error(`Refusing to join ${address}: ${problem} Nothing was sent.`);
+    return 'development';
+  }
   const want = pinned.trim().toLowerCase().replace(/^0x/, '');
   if (want === '') {
     throw new Error(
@@ -101,6 +151,7 @@ const assertPinned = (address: string, pin: Pin, pinned: string, logger?: Logger
         'deployment record). Nothing was sent.',
     );
   }
+  if (problem !== null) throw new Error(`Refusing to join ${address}: ${problem} Nothing was sent.`);
   if (address.trim().toLowerCase().replace(/^0x/, '') !== want) {
     throw new Error(
       `Refusing to join ${address}: on ${network ?? 'this network'} the ${pin.contract} contract is ${want} ` +
@@ -122,6 +173,7 @@ export const assertJoinAllowed = (
   address: string,
   logger?: Logger,
   pinned: string = MAINNET_VEILCORE_ADDRESS,
+  lists: PinnedLists = PINNED_LISTS,
 ): 'development' | 'pinned' =>
   assertPinned(
     address,
@@ -129,9 +181,11 @@ export const assertJoinAllowed = (
       contract: 'VeilCore',
       constant: 'MAINNET_VEILCORE_ADDRESS',
       why: 'Another address can carry the same circuits with a forged starting state.',
+      kind: 'veilcore',
     },
     pinned,
     logger,
+    lists,
   );
 
 /**
@@ -144,8 +198,12 @@ export const assertJoinAllowed = (
 export const assertFinishAllowed = (
   address: string,
   pinned: string = MAINNET_VEILCORE_ADDRESS,
+  lists: PinnedLists = PINNED_LISTS,
 ): 'development' | 'unpinned' | 'pinned' => {
   const network = resolveNetwork();
+  // A contract pinned as version 2 is not this build's to finish, on any network.
+  const problem = versionProblem(address, 'veilcore', network, lists);
+  if (problem !== null) throw new Error(`Refusing to finish a deploy at ${address}: ${problem} Nothing was sent.`);
   if (network !== null && RECORD_NOT_REQUIRED.has(network)) return 'development';
   const want = pinned.trim().toLowerCase().replace(/^0x/, '');
   if (want === '') return 'unpinned';
@@ -166,6 +224,7 @@ export const assertClaimsJoinAllowed = (
   address: string,
   logger?: Logger,
   pinned: string = MAINNET_CLAIMS_ADDRESS,
+  lists: PinnedLists = PINNED_LISTS,
 ): 'development' | 'pinned' =>
   assertPinned(
     address,
@@ -173,9 +232,11 @@ export const assertClaimsJoinAllowed = (
       contract: 'VeilCore claims',
       constant: 'MAINNET_CLAIMS_ADDRESS',
       why: 'Another address can carry the same circuits under an authority that could change what they accept.',
+      kind: 'claims',
     },
     pinned,
     logger,
+    lists,
   );
 
 /** Throw unless `contractName` may be deployed to the configured network. */
