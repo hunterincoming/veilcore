@@ -2,14 +2,15 @@
 // support matrix for Ledger 9): midnight-js 5.0.1, ledger-v9 1.0.2, on-chain runtime 4.0.2, and
 // the proof server 9.0.2 pinned by digest. On 9.0.0 or 9.0.1, proving a claims circuit can crash.
 //
-// The packages came with the client patch (#188, merged 23 November 2026). The proof server it
-// pins is 9.0.1; moving bboard-cli/proof-server-mainnet.yml (which every v2 send starts, on every
-// network) to 9.0.2 by digest is its own PR. Until then this check refuses the deploy.
+// The packages came with the client patch (PR #188, merged). The proof server 9.0.2 is pinned by
+// digest in one place, bboard-cli/proof-server-v2.yml (scripts/v2/proof-server.mjs); v1's tools
+// keep proof-server-mainnet.yml.
 // SPDX-License-Identifier: Apache-2.0
 import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import path from 'node:path';
 import { ROOT } from './fingerprints.mjs';
+import { V2_PROOF_SERVER_FILE, V2_PROOF_SERVER_TAG, pinProblems } from './proof-server.mjs';
 
 export const REQUIRED = {
   '@midnight-ntwrk/midnight-js-contracts': '5.0.1',
@@ -19,9 +20,9 @@ export const REQUIRED = {
   'ledger-v9-committee': '1.0.2',
   '@midnightntwrk/onchain-runtime-v4': '4.0.2',
 };
-export const PROOF_SERVER_TAG = '9.0.2';
-/** The proof-server file every v2 send starts (committee.ts and deploy-v2.ts both use the mainnet one). */
-export const PROOF_SERVER_FILE = path.join(ROOT, 'bboard-cli', 'proof-server-mainnet.yml');
+export const PROOF_SERVER_TAG = V2_PROOF_SERVER_TAG;
+/** The proof-server file every v2 send starts (deploy-v2.ts, committee.ts with --v2-record, smoke-v2.ts). */
+export const PROOF_SERVER_FILE = V2_PROOF_SERVER_FILE;
 
 /** The installed version of a package, as the root of the repository resolves it, or undefined. */
 export const installedVersion = (pkg, root = ROOT) => {
@@ -51,21 +52,17 @@ export const stackProblems = ({ version = installedVersion, yml = () => readFile
     const have = version(pkg);
     if (have !== want) p.push(`${pkg} is ${have ?? 'not installed'}; contract v2 needs ${want}.`);
   }
-  let img;
+  let text;
   try {
-    img = proofServerImage(yml());
+    text = yml();
   } catch {
-    img = undefined;
+    text = '';
   }
-  if (img === undefined) p.push('bboard-cli/proof-server-mainnet.yml names no proof-server image.');
-  else {
-    if (img.tag !== PROOF_SERVER_TAG) p.push(`The proof server is ${img.tag}; contract v2 needs ${PROOF_SERVER_TAG} (claims proofs can crash on 9.0.0 and 9.0.1).`);
-    if (img.digest === undefined) p.push('The proof-server image is not pinned by its digest (@sha256:...).');
-  }
+  p.push(...pinProblems(text));
   if (p.length > 0)
     p.push(
-      'Bring this checkout up to date (git pull, then npm ci). The proof server in bboard-cli/proof-server-mainnet.yml ' +
-        'must be 9.0.2 pinned by its digest: that is its own PR. Nothing was read, built or sent.',
+      'Run `git pull` and `npm ci` on main; pin the proof server 9.0.2 digest as in docs/runbooks/deploy-v2.md, ' +
+        'step 8. Nothing was read, built or sent.',
     );
   return p;
 };

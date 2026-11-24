@@ -1,0 +1,16 @@
+# The proof server every contract v2 tool starts: the deploy (deploy-v2), the committee on v2
+# (--v2-record) and the smoke run (smoke-v2). It must be 9.0.2: proving a claims circuit (the
+# Jubjub one, proveAttested) can crash 9.0.0 and 9.0.1. v1's tools keep proof-server-mainnet.yml.
+#
+# THE ONE PLACE the 9.0.2 digest lives. Fill it in on the Mac with
+#   node scripts/v2/proof-server.mjs pin "<docker inspect line>" --release-json <release.json>
+# which writes it only if Midnight's GitHub release (midnight-ledger, tag proof-server-9.0.2)
+# names the digest Docker pulled (docs/runbooks/deploy-v2.md, step 8). Until it is filled in,
+# every v2 tool refuses to start.
+services:
+  proof-server:
+    image: midnightntwrk/proof-server:9.0.2@sha256:FILL-IN-THE-9.0.2-DIGEST
+    command: ['midnight-proof-server', '-v']
+    container_name: "proof-server_$TESTCONTAINERS_UID"
+    ports:
+      - '127.0.0.1:0:6300'

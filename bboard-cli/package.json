@@ -16,7 +16,8 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "mainnet": "node --experimental-specifier-resolution=node --loader ts-node/esm src/launcher/mainnet.ts",
     "committee": "node --experimental-specifier-resolution=node --loader ts-node/esm src/launcher/committee.ts",
-    "deploy-v2": "node --experimental-specifier-resolution=node --loader ts-node/esm src/launcher/deploy-v2.ts"
+    "deploy-v2": "node --experimental-specifier-resolution=node --loader ts-node/esm src/launcher/deploy-v2.ts",
+    "smoke-v2": "node --experimental-specifier-resolution=node --loader ts-node/esm src/launcher/smoke-v2.ts"
   },
   "devDependencies": {
     "@types/json-schema": "^7.0.15",
