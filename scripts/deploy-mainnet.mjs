@@ -36,6 +36,7 @@ import { normaliseAddress, readMainnetPins } from './mainnet-pins.mjs';
 import { vercelEnv } from './vercel-token.mjs';
 import { agreementsLive } from './registry-features.mjs';
 import { deployGate } from './deploy-gate.mjs';
+import { contractsPackageProblem } from './contracts-package.mjs';
 
 /** The production registry: what the site talks to when VEILCORE_MAINNET_REGISTRY is unset. */
 export const MAINNET_REGISTRY = 'https://veilcore-api-production.up.railway.app';
@@ -157,6 +158,8 @@ const main = async () => {
   for (const n of gate.notes) console.log(n);
   const pins = readMainnetPins();
   if (!pins.ok) fail(pins.problem);
+  const pkgProblem = contractsPackageProblem();
+  if (pkgProblem) fail(pkgProblem);
   let relay;
   let sponsor;
   let chain;
