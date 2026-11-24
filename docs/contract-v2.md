@@ -443,6 +443,10 @@ seal removes that power for good.
   git).
 - **This uses v1's key for a reason the approved policy doesn't list** (sealing), so it needs
   both founders in writing (section 9).
+- **What changes in `deployments/mainnet.json`:** v1's main entry only. Edit
+  `maintenanceAuthority` and add `keyStates` with the seal's counter and block. Leave everything
+  else, including `deployment.record` at revision 4, as it is. The freeze test in
+  `scripts/deployments.test.mjs` refuses any other change to v1's entries.
 
 ---
 
@@ -587,8 +591,9 @@ key. The tool changes (Stage A item 7) are needed for the handover.
 
 19. **[Hunter]** The switch release (section 4): registry, then sponsor, then site, then the
     release list commit. v2 is called live on veilcore.org only once it has worked there.
-20. **[Hunter]** With the 14-day notice, the v1 seal by `retire` (section 6), then a new
-    deployment record revision.
+20. **[Hunter]** With the 14-day notice, the v1 seal by `retire` (section 6), then the
+    `deployments/mainnet.json` edit that section 6 describes (v1's `maintenanceAuthority` and
+    `keyStates` only).
 
 ## 8. Questions for the devnet
 

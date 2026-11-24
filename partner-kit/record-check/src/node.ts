@@ -59,7 +59,7 @@ export const onChainChecker =
       return {
         status: 'not-checked',
         reason:
-          'looking the date up on Midnight needs @veilcore/contracts (npm install --save-exact @veilcore/contracts@0.5.0)',
+          'looking the date up on Midnight needs @veilcore/contracts (npm install --save-exact @veilcore/contracts@0.4.0)',
       };
     try {
       const v = await checkBatchAnchor({
