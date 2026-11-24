@@ -441,8 +441,9 @@ describe('which indexers and contract the page uses', () => {
   });
 
   it('the contract list: on mainnet the pinned list (today only v1), off mainnet a named version, or none', () => {
+    // With its pinned entry's key states, which the page judges only once more than one is pinned.
     expect(anchorContractsFor('mainnet', CONTRACT.toUpperCase(), 'c0'.repeat(32))).toEqual([
-      { version: 'v1', address: CONTRACT },
+      { version: 'v1', address: CONTRACT, keyStates: MAINNET_PINNED.find((e) => e.kind === 'veilcore')?.keyStates },
     ]);
     expect(anchorContractsFor('mainnet', '', 'c0'.repeat(32))).toEqual([]);
     // A mainnet pin the pinned list doesn't hold: nothing is read.

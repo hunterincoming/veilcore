@@ -10,12 +10,20 @@
 
 import * as Ledger9 from '@midnightntwrk/ledger-v9';
 import { v2LastBatchRoot, type ValueLike } from '../../../../api/src/batch-root-layout';
-import { stateLedgerOf } from './v1-decoder';
+import { type MaintenanceAuthority, stateLedgerOf } from './v1-decoder';
 
 const hexToBytes = (hex: string): Uint8Array => {
   const h = hex.trim().replace(/^0x/i, '');
   if (!/^(?:[0-9a-fA-F]{2})+$/.test(h)) throw new Error('A contract state is hex.');
   return Uint8Array.from(h.match(/../g) ?? [], (b) => parseInt(b, 16));
+};
+
+/** A v2 contract state: ledger 9 bytes only. */
+const v2StateOf = (stateHex: string): Ledger9.ContractState => {
+  const bytes = hexToBytes(stateHex);
+  if (stateLedgerOf(bytes) !== 'ledger9')
+    throw new Error('Not a ledger 9 contract state: VeilCore version 2 has no other.');
+  return Ledger9.ContractState.deserialize(bytes);
 };
 
 /**
@@ -24,9 +32,15 @@ const hexToBytes = (hex: string): Uint8Array => {
  * are not a ledger 9 contract state with v2's layout.
  */
 export const v2LastBatchRootOf = (stateHex: string): string => {
-  const bytes = hexToBytes(stateHex);
-  if (stateLedgerOf(bytes) !== 'ledger9')
-    throw new Error('Not a ledger 9 contract state: VeilCore version 2 has no other.');
-  const data = Ledger9.ContractState.deserialize(bytes).data.state as unknown as ValueLike;
+  const data = v2StateOf(stateHex).data.state as unknown as ValueLike;
   return Array.from(v2LastBatchRoot(data), (x) => x.toString(16).padStart(2, '0')).join('');
+};
+
+/**
+ * The maintenance authority in a v2 contract state (ledger 9 bytes): its committee, threshold
+ * and counter, as the network recorded them. Never v2's own `contractVersion` or similar fields.
+ */
+export const v2MaintenanceAuthorityOf = (stateHex: string): MaintenanceAuthority => {
+  const a = v2StateOf(stateHex).maintenanceAuthority;
+  return { committee: [...a.committee], threshold: a.threshold, counter: a.counter };
 };

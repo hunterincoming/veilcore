@@ -41,6 +41,10 @@ export const verify = {
   'app.verify.anchor.lookingUp': 'Looking that transaction up on {network}…',
   'app.verify.anchor.twoIndexers': ' Two separate Midnight indexers gave the same answer.',
   'app.verify.anchor.contract': ' VeilCore contract version {version} gave this date.',
+  'app.verify.anchor.keys.oneKey': ' Who can change that contract: one key, not yet handed to the committee.',
+  'app.verify.anchor.keys.committee':
+    ' Who can change that contract: the {threshold}-of-{committee} committee ({threshold} of its {committee} members must agree).',
+  'app.verify.anchor.keys.retired': ' Who can change that contract: nobody. It can no longer be changed.',
   'app.verify.anchor.checked':
     'Checked on Midnight: this batch root was written by transaction {tx} in block {block} at {at}.{contract}{two}{test}',
   'app.verify.anchor.failed': 'Not confirmed on Midnight: {reason}. Don’t rely on the date the registry reports.',

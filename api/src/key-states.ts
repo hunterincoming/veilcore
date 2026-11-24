@@ -21,6 +21,33 @@ export type KeyState = {
   readonly label: string;
 };
 
+/** The maintenance authority in a state, as a verifier reports it. */
+export type AuthorityReport = {
+  /** How many keys may sign a maintenance update. */
+  readonly committee: number;
+  /** How many of them must. */
+  readonly threshold: number;
+  /** Raised by every maintenance update (a key inserted, removed, or the authority replaced). */
+  readonly counter: bigint;
+  /** Nobody can sign: more signatures needed than there are keys (api/src/maintenance.ts). */
+  readonly retired: boolean;
+};
+
+/**
+ * The report for a state's maintenance authority (ContractState.maintenanceAuthority, from
+ * either ledger). The state check (state-check.ts) and the site's check page both read it here.
+ */
+export const authorityReportOf = (a: {
+  readonly committee: readonly unknown[];
+  readonly threshold: number;
+  readonly counter: bigint;
+}): AuthorityReport => ({
+  committee: a.committee.length,
+  threshold: a.threshold,
+  counter: a.counter,
+  retired: a.threshold > a.committee.length,
+});
+
 /** The key state `authority` is in, or undefined when it is in none of them. */
 export const matchKeyState = (
   states: readonly KeyState[],

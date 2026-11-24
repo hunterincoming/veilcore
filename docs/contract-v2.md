@@ -571,8 +571,12 @@ key. The tool changes (Stage A item 7) are needed for the handover.
     `contractVersion: 'v2'` on a real v2 anchorBatch and keep that transaction as a test
     fixture (today's v2 fixture is v2's ledger data in a v1 state, with v1's verifier keys);
   - the site shows v2's key state ("one key, not yet handed to the committee") beside its date,
-    in all five languages: today the check page reads only the batch root, not the keys or key
-    states;
+    in all five languages. **Built, 24 November 2026, not deployed:** once more than one
+    contract is pinned, the check page reads the maintenance authority from the state at the
+    date stamp (`chain/anchor-decode.ts`) and judges it against the pinned entry's key states
+    (`api/src/key-states.ts`), as the kit does on mainnet: a state in none of them is refused,
+    and a v2 date says who can change that contract. With v1 alone the page is unchanged.
+    Off mainnet no key states are pinned, so none are shown, as in the kit;
 - rule 10 in SPEC.md (3.1).
 
 16. **[Hunter]** deploys v2 and claims v2 from the Mac: the keys with the temporary key,
