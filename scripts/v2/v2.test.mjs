@@ -1007,3 +1007,24 @@ test("proof server release check: Midnight's own format (an Image line, then the
   for (const over of [{ draft: true }, { prerelease: true }, { prerelease: undefined }, { tag_name: 'proof-server-9.0.1' }, { html_url: 'https://github.com/someone/midnight-ledger/releases/tag/proof-server-9.0.2' }])
     assert.notDeepEqual(ps.releaseProblems({ ...real, ...over }, pulled), [], JSON.stringify(over));
 });
+
+test('proof server pin: the release request carries GITHUB_TOKEN only when it is set', async () => {
+  const { readRelease } = await import('./proof-server.mjs');
+  const seen = [];
+  const fake = async (_url, init) => {
+    seen.push(init.headers);
+    return { ok: true, status: 200, json: async () => ({ tag_name: 'proof-server-9.0.2' }) };
+  };
+  const before = process.env.GITHUB_TOKEN;
+  try {
+    delete process.env.GITHUB_TOKEN;
+    await readRelease(undefined, fake);
+    assert.equal(seen[0].authorization, undefined);
+    process.env.GITHUB_TOKEN = 'test-token';
+    await readRelease(undefined, fake);
+    assert.equal(seen[1].authorization, 'Bearer test-token');
+  } finally {
+    if (before === undefined) delete process.env.GITHUB_TOKEN;
+    else process.env.GITHUB_TOKEN = before;
+  }
+});

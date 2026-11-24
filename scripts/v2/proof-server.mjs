@@ -215,12 +215,17 @@ export const checkRunningProofServer = async (url, fetchImpl = fetch) => {
 };
 
 /** The release JSON: from a file saved with curl, or fetched from api.github.com. */
-const readRelease = async (file, fetchImpl = fetch) => {
+export const readRelease = async (file, fetchImpl = fetch) => {
   if (file !== undefined) return JSON.parse(readFileSync(file, 'utf8'));
   let res;
+  // In CI the job's read-only GITHUB_TOKEN lifts GitHub's limit for unsigned requests (60 an
+  // hour, shared by every job on the runner's address), which otherwise fails this check at random.
+  const token = process.env.GITHUB_TOKEN?.trim();
+  const headers = { accept: 'application/vnd.github+json', 'user-agent': 'veilcore-proof-server-pin' };
+  if (token) headers.authorization = `Bearer ${token}`;
   for (let attempt = 1; ; attempt++) {
     res = await fetchImpl(V2_RELEASE_API, {
-      headers: { accept: 'application/vnd.github+json', 'user-agent': 'veilcore-proof-server-pin' },
+      headers,
       signal: AbortSignal.timeout(20_000),
     });
     if (res.ok || attempt === 3 || res.status === 404) break;
