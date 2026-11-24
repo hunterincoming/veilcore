@@ -1,0 +1,176 @@
+# Contract v2 keys, rebuilt on a second machine (docs/runbooks/deploy-v2.md, section D).
+# The v2 prover and verifier keys are built on the maintainer's Mac; this rebuilds them here,
+# from the same commit, with the same pinned compiler, and checks every file is byte for byte
+# the same. GitHub's runner is the independent second machine, and anyone can read the run.
+#
+# Run by hand (Actions, "Contract v2 keys rebuild", Run workflow) with the whole of the Mac's
+# ~/v2-fingerprints-mac.md pasted in. The commit is read from that table ("Commit <sha>") and
+# must be on main. Green means "The two builds match"; red names every file that differs.
+# With nothing pasted it compares with docs/fingerprints-v2.md when that exists, or else only
+# builds and records the fingerprints of the chosen branch.
+#
+# Weekly, it rebuilds the commit in docs/fingerprints-v2.md (the published v2 key table) and
+# compares, so the keys stay reproducible from public inputs. Until that file exists the
+# weekly run does nothing. (Public repository: the runner time costs nothing.)
+#
+# It only reads: no secret, no token, no write permission. The pasted text is untrusted: it
+# reaches the shell only through an environment variable, and only lines shaped like
+# "| `file` | `64 hex` |" and a 40-hex commit are taken from it.
+name: Contract v2 keys rebuild
+
+on:
+  workflow_dispatch:
+    inputs:
+      mac_fingerprints:
+        description: "The whole of ~/v2-fingerprints-mac.md, pasted (hashes only). Empty: compare with docs/fingerprints-v2.md if it exists."
+        required: false
+        type: string
+        default: ""
+  schedule:
+    - cron: "41 4 * * 3"   # Wednesdays 04:41 UTC
+
+permissions: {}
+
+jobs:
+  rebuild:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  #v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0   # to find the table's commit and check it is on main
+
+      # Picks the table to compare with and checks out its commit. Writes a clean copy to
+      # $RUNNER_TEMP/reference.md holding only the commit and the well-formed rows. A browser
+      # may paste the file as one line; the rows are found either way.
+      - name: Choose the commit and the table to compare with
+        id: pick
+        env:
+          MAC_FINGERPRINTS: ${{ inputs.mac_fingerprints }}
+          EVENT: ${{ github.event_name }}
+        run: |
+          set -euo pipefail
+          raw="$RUNNER_TEMP/reference-raw.txt"
+          if [ -n "${MAC_FINGERPRINTS//[[:space:]]/}" ]; then
+            printf '%s\n' "$MAC_FINGERPRINTS" > "$raw"
+            source="the pasted Mac table"
+          elif [ -f docs/fingerprints-v2.md ]; then
+            cp docs/fingerprints-v2.md "$raw"
+            source="docs/fingerprints-v2.md"
+          elif [ "$EVENT" = "schedule" ]; then
+            echo "No published v2 key table yet (docs/fingerprints-v2.md): nothing to check." | tee -a "$GITHUB_STEP_SUMMARY"
+            echo "build=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          else
+            echo "Nothing to compare with: building $(git rev-parse HEAD) and recording its fingerprints only." | tee -a "$GITHUB_STEP_SUMMARY"
+            { echo "build=true"; echo "compare=false"; } >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          commit="$(grep -oE 'Commit [0-9a-f]{40}' "$raw" | head -n 1 | cut -d' ' -f2 || true)"
+          if [ -z "$commit" ]; then
+            echo "::error::The table names no commit (a line \"Commit <40 hex characters>, ...\"). Paste the whole file."
+            exit 1
+          fi
+          if ! git merge-base --is-ancestor "$commit" origin/main 2> /dev/null; then
+            echo "::error::Commit $commit is not on main. Build the keys on the Mac from main."
+            exit 1
+          fi
+          clean="$RUNNER_TEMP/reference.md"
+          {
+            echo "# Reference table ($source)"
+            echo
+            echo "Commit $commit."
+            echo
+            # shellcheck disable=SC2016  # the backticks are literal
+            grep -oE '\| `[^`]+` \| `[0-9a-f]{64}` \|' "$raw" || true
+          } > "$clean"
+          rows="$(grep -c '^| `' "$clean" || true)"
+          if [ "$rows" -eq 0 ]; then
+            echo "::error::No fingerprint rows found in $source. Paste the whole file."
+            exit 1
+          fi
+          # A file named twice would let the last row win in the compare; refuse it.
+          dups="$(grep '^| `' "$clean" | cut -d'`' -f2 | sort | uniq -d)"
+          if [ -n "$dups" ]; then
+            echo "::error::$source names the same file more than once: $(echo "$dups" | tr '\n' ' ')"
+            exit 1
+          fi
+          git checkout --quiet --detach "$commit"
+          echo "Comparing with $source: commit $commit, $rows files." | tee -a "$GITHUB_STEP_SUMMARY"
+          { echo "build=true"; echo "compare=true"; } >> "$GITHUB_OUTPUT"
+
+      - name: Set up (compiler for v1, Node, npm, npm ci)
+        if: steps.pick.outputs.build == 'true'
+        uses: ./.github/actions/setup
+
+      # As in ci.yaml's contract-v2 job: a fixed release asset, checked, never on the PATH.
+      - name: Install Compact compiler 0.36.1 for contract v2 (pinned, checksummed)
+        if: steps.pick.outputs.build == 'true'
+        shell: bash
+        env:
+          COMPACTC_VERSION: "0.36.1"
+          COMPACTC_SHA256: "9d5fedfec9ae775a1e47d5c6f785130b314c1c5c52cd1a4eb9fc56d1fc61d23a"
+        run: |
+          set -euo pipefail
+          dir=/opt/compactc-v2
+          zip="$RUNNER_TEMP/compactc-v2.zip"
+          curl -fsSL --retry 3 -o "$zip" \
+            "https://github.com/midnightntwrk/compact/releases/download/compactc-v${COMPACTC_VERSION}/compactc_v${COMPACTC_VERSION}_x86_64-unknown-linux-musl.zip"
+          echo "${COMPACTC_SHA256}  ${zip}" | sha256sum -c -
+          grep -q "^${COMPACTC_SHA256}  compactc_v${COMPACTC_VERSION}_x86_64-unknown-linux-musl.zip$" contract-v2/compiler-checksums.txt
+          sudo mkdir -p "$dir"
+          sudo unzip -q "$zip" -d "$dir"
+          test "$("$dir/compactc" --version | cut -d' ' -f1)" = "$COMPACTC_VERSION"
+
+      # The full build with keys; the proving parameters come from srs.midnight.network.
+      - name: Build contract v2 with keys
+        if: steps.pick.outputs.build == 'true'
+        env:
+          COMPACTC: /opt/compactc-v2/compactc
+        run: |
+          npm run compact -w contract-v2
+
+      - name: Check the key counts (48 and 10)
+        if: steps.pick.outputs.build == 'true'
+        run: |
+          set -euo pipefail
+          for want in veilcore:48 veilcore-claims:10; do
+            name="${want%%:*}"; n="${want##*:}"
+            keys="contract-v2/src/managed/$name/keys"
+            all="$(find "$keys" -maxdepth 1 -type f | wc -l)"
+            prover="$(find "$keys" -maxdepth 1 -type f -name '*.prover' | wc -l)"
+            verifier="$(find "$keys" -maxdepth 1 -type f -name '*.verifier' | wc -l)"
+            echo "$name: $all key files ($prover prover, $verifier verifier)"
+            test "$all" -eq "$n" && test "$prover" -eq $((n / 2)) && test "$verifier" -eq $((n / 2))
+          done
+
+      - name: Fingerprints of this build
+        if: steps.pick.outputs.build == 'true'
+        run: |
+          set -euo pipefail
+          npm run fingerprints -w contract-v2 -- --out "$RUNNER_TEMP/fingerprints-ci.md"
+          cp "$RUNNER_TEMP/fingerprints-ci.md" fingerprints-ci.md
+          { echo; cat fingerprints-ci.md; } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Keep the fingerprints
+        if: steps.pick.outputs.build == 'true'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9  #v7.0.2
+        with:
+          name: fingerprints-ci
+          path: fingerprints-ci.md
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Compare with the other build
+        if: steps.pick.outputs.compare == 'true'
+        run: |
+          set -euo pipefail
+          code=0
+          npm run --silent fingerprints -w contract-v2 -- --compare "$RUNNER_TEMP/reference.md" > "$RUNNER_TEMP/compare.txt" 2>&1 || code=$?
+          cat "$RUNNER_TEMP/compare.txt"
+          { echo; echo '## Result'; echo; echo '```'; cat "$RUNNER_TEMP/compare.txt"; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+          test "$code" -eq 0 && grep -q 'The two builds match' "$RUNNER_TEMP/compare.txt"
