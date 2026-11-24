@@ -1334,9 +1334,11 @@ export const readmeText = (
     L.push(
       '- On a check link: when the holder shares whether a DNA report is saved, the registry shows only H("veilcore:v1:dnapair", SHA-256 of the lab report file, proof code, pairSalt), the pairBinding in lab/lab-report-pairing.json, never the SHA-256. The holder\'s check link carries pairSalt after #ds=. With the file and that link anyone can recompute it; without them nobody can tell which file it is, or whether they hold the same one.',
     );
-  if (tx)
+  // Rule 10 (docs/contract-v2.md 3.1): one call across every pinned contract, decoded by the
+  // version of the contract called. Not for a contract that isn't VeilCore's: nothing dates it.
+  if (tx && lookup?.onList !== false)
     L.push(
-      `- Reading the batch root from Midnight yourself: ask a Midnight indexer (GraphQL) for transactions(offset: { hash: "${tx}" }) with block { height timestamp } and, on a RegularTransaction, transactionResult { status } and contractActions { address state ... on ContractCall { entryPoint } }. The transaction must have status SUCCESS and exactly one call on the contract above, with entryPoint anchorBatch. Decode that call's state with VeilCore's compiled contract (its ledger) and read lastBatchRoot: it must be the batch root. Midnight's preprod and main network indexers are run by Blockfrost and need a project id.`,
+      `- Reading the batch root from Midnight yourself: ask a Midnight indexer (GraphQL) for transactions(offset: { hash: "${tx}" }) with block { height timestamp } and, on a RegularTransaction, transactionResult { status } and contractActions { address state ... on ContractCall { entryPoint } }. The transaction must have status SUCCESS and exactly one call on ${lookup?.pinned.length ? "all of VeilCore's contracts together (step 2 lists them), with entryPoint anchorBatch, on the contract step 2 names" : 'the contract above, with entryPoint anchorBatch'}. Decode that call's state with ${lookup?.pinned.length ? "the compiled contract of that contract's version" : "VeilCore's compiled contract"} (its ledger) and read lastBatchRoot: it must be the batch root. Midnight's preprod and main network indexers are run by Blockfrost and need a project id.`,
     );
   if (tx && checkScriptFor(ev))
     L.push(

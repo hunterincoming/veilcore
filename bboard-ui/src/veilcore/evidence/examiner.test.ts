@@ -26,10 +26,12 @@ import { custodyDigest, custodyDigestV2, type SentTransfer } from '../transfers'
 import { EXAMINER_FILE, escapeHtml, examinerSummaryHtml } from './examiner';
 import { DECLARATION_FILE, DECLARATION_WARNING, declarationText } from './declaration';
 import { practiceBatch, practiceRecord } from './test-records';
+import { PREPROD_PINNED } from '../../../../api/src/pinned-contracts';
 
 const NOW = new Date('2026-10-15T12:00:00Z');
 const TX = 'c3'.repeat(32);
-const CONTRACT = '7a'.repeat(32);
+// The test site's pinned main contract: the page and README date nothing on any other (rule 10).
+const CONTRACT = PREPROD_PINNED.find((e) => e.kind === 'veilcore' && e.version === 'v1')?.address ?? '';
 const OTS = new Uint8Array([...new TextEncoder().encode('\x00OpenTimestamps\x00\x00Proof\x00'), 0xbf, 0x89, 1, 2, 3]);
 const HOSTILE = '<img src=x onerror=alert(1)> </style><script>alert("x")</script> & \'q\' `b`';
 

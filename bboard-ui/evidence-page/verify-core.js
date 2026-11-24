@@ -658,8 +658,40 @@ var VeilcoreVerify = (function () {
     preview: 'https://preview.midnightexplorer.com/',
   };
 
-  function anchorLookup(a, root, current) {
+  /**
+   * VeilCore's pinned contracts (docs/contract-v2.md 3.1, rule 10), as this page carries them:
+   * { mainnet: [{ address, kind, version }], preprod: [...] }, from the release's
+   * deployments/mainnet.json and deployments/preprod.json (verify-page.ts puts them in). A
+   * contract is VeilCore's only if its address is on the list for its network: a copy of the
+   * contract at another address is anyone's. A network with a list but no list given (an old
+   * caller) has an empty one, so nothing on it is taken as VeilCore's.
+   */
+  var LISTED_NETWORKS = { mainnet: true, preprod: true };
+  function normAddress(v) {
+    if (typeof v !== 'string') return null;
+    var a = v.trim().toLowerCase().replace(/^0x/, '');
+    return HEX64.test(a) ? a : null;
+  }
+  function pinnedOn(contracts, network) {
+    if (!LISTED_NETWORKS[network]) return null;
+    var list = isObject(contracts) && Array.isArray(contracts[network]) ? contracts[network] : [];
+    var out = [];
+    for (var i = 0; i < list.length; i++) {
+      var c = list[i];
+      var a = isObject(c) ? normAddress(c.address) : null;
+      if (a && (c.kind === 'veilcore' || c.kind === 'claims') && (c.version === 1 || c.version === 2))
+        out.push({ address: a, kind: c.kind, version: c.version });
+    }
+    return out;
+  }
+
+  function anchorLookup(a, root, current, contracts) {
     if (!isObject(a)) return null;
+    var network = typeof a.network === 'string' ? a.network : 'unknown';
+    var pinned = pinnedOn(contracts, network);
+    var address = normAddress(a.contractAddress);
+    var entry = null;
+    if (pinned && address) for (var i = 0; i < pinned.length; i++) if (pinned[i].address === address && pinned[i].kind === 'veilcore') entry = pinned[i];
     return {
       current: current,
       chain: typeof a.chain === 'string' ? a.chain : 'midnight',
@@ -672,20 +704,26 @@ var VeilcoreVerify = (function () {
       replacedAt: typeof a.replacedAt === 'string' ? a.replacedAt : null,
       explorer: EXPLORERS[a.network] || null,
       root: root,
+      // null: no list for this network (a local chain, Preview), or the bundle names no
+      // contract (then every pinned contract is a candidate: rule 10.5). Otherwise whether the
+      // contract named is one of VeilCore's main contracts there, and which version.
+      onList: pinned && address ? entry !== null : null,
+      contractVersion: entry ? entry.version : null,
+      pinned: pinned || [],
     };
   }
 
-  function lookups(ev) {
+  function lookups(ev, contracts) {
     var batch = isObject(ev.batch) ? ev.batch : null;
     var proof = isObject(ev.proof) ? ev.proof : null;
     var root = batch && isHex64(batch.root) ? batch.root : proof && isHex64(proof.root) ? proof.root : null;
     var midnight = [];
     var current = (batch && batch.anchor) || (proof && proof.anchor) || null;
-    var c = anchorLookup(current, root, true);
+    var c = anchorLookup(current, root, true, contracts);
     if (c && c.txHash) midnight.push(c);
     var earlier = batch && Array.isArray(batch.earlierAnchors) ? batch.earlierAnchors : [];
     for (var i = 0; i < earlier.length; i++) {
-      var e = anchorLookup(earlier[i], root, false);
+      var e = anchorLookup(earlier[i], root, false, contracts);
       if (e && e.txHash) midnight.push(e);
     }
     var ots = batch && isObject(batch.opentimestamps) ? batch.opentimestamps : null;
@@ -715,16 +753,39 @@ var VeilcoreVerify = (function () {
    * The steps to date the record on Midnight, in plain words, with every value written in.
    * README.txt says the same steps (bundle.ts midnightSteps; the site's tests compare them).
    */
+  /** "a04de0… (version 1), ef763e… (version 1, claims)": a network's pinned contracts, in full. */
+  function pinnedWords(a) {
+    return a.pinned.map(function (c) {
+      return c.address + ' (version ' + c.version + (c.kind === 'claims' ? ', claims' : '') + ')';
+    }).join(', ');
+  }
+
   function midnightSteps(a) {
     var when = utc(a.anchoredAt);
     var out = [];
+    if (a.onList === false) {
+      // Rule 10.1: only a pinned contract dates anything. No steps: they would date it.
+      out.push('Don’t use this transaction to date the record. The bundle says it called contract ' + a.contractAddress + ', which is not one of VeilCore’s main contracts on ' + networkWords(a.network) + '.');
+      out.push('Anyone can put a copy of VeilCore’s contract at another address, so only VeilCore’s own addresses count: ' + (a.pinned.length ? pinnedWords(a) : 'this page lists none') + '. Nothing here dates the record.');
+      return out;
+    }
     out.push(a.explorer
       ? 'Open the Midnight explorer for ' + networkWords(a.network) + ': ' + a.explorer + ' (type the address in yourself).'
       : 'Open a Midnight explorer for ' + networkWords(a.network) + '.');
     out.push('Search for transaction ' + a.txHash + '.' + (a.blockHeight !== null || when
       ? ' VeilCore’s registry reports it is' + (a.blockHeight !== null ? ' in block ' + a.blockHeight : '') + (when ? (a.blockHeight !== null ? ',' : '') + ' at ' + when : '') + '; the explorer’s own block and time are the ones to rely on.'
       : ''));
-    out.push('Check that the transaction succeeded and that it called VeilCore’s contract ' + (a.contractAddress || '(the bundle doesn’t name it)') + '. Note its block and time: that time is the date.');
+    var listed = a.pinned.length ? ' (VeilCore’s contracts on ' + networkWords(a.network) + ': ' + pinnedWords(a) + ')' : '';
+    if (a.onList)
+      out.push('Check that the transaction succeeded and that it called VeilCore contract version ' + a.contractVersion + ', ' + normAddress(a.contractAddress) + ', and no other VeilCore contract' + listed + '. Note its block and time: that time is the date.');
+    else if (a.pinned.length)
+      out.push('Check that the transaction succeeded and that it called one of VeilCore’s main contracts and no other VeilCore contract' + listed + '. The bundle doesn’t name the contract, so note which one it called: the date is that contract’s. Note its block and time: that time is the date.');
+    else
+      out.push('Check that the transaction succeeded and that it called VeilCore’s contract ' + (a.contractAddress || '(the bundle doesn’t name it)') + '. Note its block and time: that time is the date.');
+    // Condition 5 of docs/contract-v2.md 7: how version 2 is described until its public switch.
+    var v2 = a.onList ? a.contractVersion === 2 : a.onList === null && a.pinned.some(function (c) { return c.version === 2 && c.kind === 'veilcore'; });
+    if (v2 && a.network === 'mainnet')
+      out.push((a.onList ? '' : 'If it called version 2: ') + 'VeilCore contract version 2 is deployed on mainnet for testing by VeilCore. It is not yet independently reviewed and not for your records.');
     out.push('Check that it wrote this batch root: ' + a.root + '. The batch root is one code that stands for every record in the batch; this record’s proof leads to it.');
     out.push('We haven’t confirmed that any Midnight explorer shows the batch root: it sits inside the contract’s state after the call, not in plain text. If yours doesn’t show it, we know of no way to see it without running a command. A technical person can run proof/check-on-midnight.mjs (README.txt, “For technical readers”, says how): it asks a Midnight indexer directly, with no VeilCore server involved, though the code it runs is VeilCore’s published code. This record’s check page on VeilCore’s site does the same look-up in your browser, but that page is VeilCore’s too.');
     out.push('If the transaction succeeded, called that contract and wrote that root, this record existed, unchanged, by that transaction’s time: whoever had it sealed held this record by then. If any of it doesn’t match, nothing here dates the record.');
@@ -785,7 +846,7 @@ var VeilcoreVerify = (function () {
     for (var i = 0; i < sigs.length; i++) out.signatures.push(await checkSignature(sigs[i], fingerprint, ev.labReport));
     var custody = Array.isArray(ev.custody) ? ev.custody : [];
     for (var c = 0; c < custody.length; c++) out.custody.push(await checkCustody(custody[c], out.signatures, sigs));
-    out.lookups = lookups(ev);
+    out.lookups = lookups(ev, opts && opts.contracts);
     out.datable = datable(out);
     var embeddedOts = opts && opts.ots instanceof Uint8Array ? opts.ots : null;
     if (embeddedOts) out.stamp = await readStamp(embeddedOts, out.lookups.root);

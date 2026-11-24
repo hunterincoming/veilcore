@@ -6,6 +6,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { isNumber, isString } from '../json';
+import { MAINNET_PINNED, PREPROD_PINNED, type PinnedEntry } from '../../../../api/src/pinned-contracts';
 
 const NETWORK_WORDS: Record<string, string> = {
   mainnet: "Midnight's main network",
@@ -31,6 +32,13 @@ export const utcWords = (t: unknown): string | null => {
   return `${i.slice(0, 10)} ${i.slice(11, 16)} UTC`;
 };
 
+/** A pinned contract as the steps name it (verify-core.js pinnedOn). */
+type Pinned = { readonly address: string; readonly kind: 'veilcore' | 'claims'; readonly version: number };
+
+/** The pinned lists the steps are written from: this release's deployments/*.json. */
+export type PinnedLists = { readonly mainnet: readonly PinnedEntry[]; readonly preprod: readonly PinnedEntry[] };
+const PINNED: PinnedLists = { mainnet: MAINNET_PINNED, preprod: PREPROD_PINNED };
+
 /** One anchor to look up, as verify.html's lookups() reads it from evidence.json. */
 export type AnchorLookup = {
   readonly network: string;
@@ -40,20 +48,52 @@ export type AnchorLookup = {
   readonly anchoredAt: string | null;
   readonly explorer: string | null;
   readonly root: string;
+  /**
+   * null: no list for this network, or no contract named. Otherwise whether the contract named
+   * is one of VeilCore's pinned main contracts there (docs/contract-v2.md 3.1, rule 10).
+   */
+  readonly onList: boolean | null;
+  readonly contractVersion: number | null;
+  /** The network's pinned contracts; empty where it has no list. */
+  readonly pinned: readonly Pinned[];
 };
 
-export const anchorLookup = (a: Record<string, unknown>, root: string): AnchorLookup | null =>
-  isString(a.txHash)
-    ? {
-        network: isString(a.network) ? a.network : 'unknown',
-        txHash: a.txHash,
-        contractAddress: isString(a.contractAddress) ? a.contractAddress : null,
-        blockHeight: isNumber(a.blockHeight) ? a.blockHeight : null,
-        anchoredAt: isString(a.anchoredAt) ? a.anchoredAt : null,
-        explorer: (isString(a.network) && EXPLORERS[a.network]) || null,
-        root,
-      }
+const HEX64 = /^[0-9a-f]{64}$/;
+const normAddress = (v: unknown): string | null => {
+  if (!isString(v)) return null;
+  const a = v.trim().toLowerCase().replace(/^0x/, '');
+  return HEX64.test(a) ? a : null;
+};
+
+export const anchorLookup = (
+  a: Record<string, unknown>,
+  root: string,
+  lists: PinnedLists = PINNED,
+): AnchorLookup | null => {
+  if (!isString(a.txHash)) return null;
+  const network = isString(a.network) ? a.network : 'unknown';
+  const list = network === 'mainnet' ? lists.mainnet : network === 'preprod' ? lists.preprod : null;
+  const pinned: Pinned[] | null = list
+    ? list.map((e) => ({ address: e.address, kind: e.kind, version: e.version === 'v1' ? 1 : 2 }))
     : null;
+  const address = normAddress(a.contractAddress);
+  const entry = pinned && address ? (pinned.find((c) => c.address === address && c.kind === 'veilcore') ?? null) : null;
+  return {
+    network,
+    txHash: a.txHash,
+    contractAddress: isString(a.contractAddress) ? a.contractAddress : null,
+    blockHeight: isNumber(a.blockHeight) ? a.blockHeight : null,
+    anchoredAt: isString(a.anchoredAt) ? a.anchoredAt : null,
+    explorer: (isString(a.network) && EXPLORERS[a.network]) || null,
+    root,
+    onList: pinned && address ? entry !== null : null,
+    contractVersion: entry ? entry.version : null,
+    pinned: pinned ?? [],
+  };
+};
+
+const pinnedWords = (a: AnchorLookup): string =>
+  a.pinned.map((c) => `${c.address} (version ${c.version}${c.kind === 'claims' ? ', claims' : ''})`).join(', ');
 
 /**
  * The steps to date the record on Midnight: the same steps, in the same words, as
@@ -63,6 +103,15 @@ export const anchorLookup = (a: Record<string, unknown>, root: string): AnchorLo
 export const midnightSteps = (a: AnchorLookup): string[] => {
   const when = utcWords(a.anchoredAt);
   const block = a.blockHeight !== null;
+  if (a.onList === false)
+    return [
+      `Don't use this transaction to date the record. The bundle says it called contract ${a.contractAddress ?? ''}, which is not one of VeilCore's main contracts on ${networkWords(a.network)}.`,
+      `Anyone can put a copy of VeilCore's contract at another address, so only VeilCore's own addresses count: ${a.pinned.length ? pinnedWords(a) : 'this page lists none'}. Nothing here dates the record.`,
+    ];
+  const listed = a.pinned.length ? ` (VeilCore's contracts on ${networkWords(a.network)}: ${pinnedWords(a)})` : '';
+  const v2 = a.onList
+    ? a.contractVersion === 2
+    : a.onList === null && a.pinned.some((c) => c.version === 2 && c.kind === 'veilcore');
   return [
     a.explorer
       ? `Open the Midnight explorer for ${networkWords(a.network)}: ${a.explorer} (type the address in yourself).`
@@ -71,7 +120,17 @@ export const midnightSteps = (a: AnchorLookup): string[] => {
       (block || when
         ? ` VeilCore's registry reports it is${block ? ` in block ${a.blockHeight}` : ''}${when ? `${block ? ',' : ''} at ${when}` : ''}; the explorer's own block and time are the ones to rely on.`
         : ''),
-    `Check that the transaction succeeded and that it called VeilCore's contract ${a.contractAddress ?? "(the bundle doesn't name it)"}. Note its block and time: that time is the date.`,
+    a.onList
+      ? `Check that the transaction succeeded and that it called VeilCore contract version ${a.contractVersion}, ${normAddress(a.contractAddress)}, and no other VeilCore contract${listed}. Note its block and time: that time is the date.`
+      : a.pinned.length
+        ? `Check that the transaction succeeded and that it called one of VeilCore's main contracts and no other VeilCore contract${listed}. The bundle doesn't name the contract, so note which one it called: the date is that contract's. Note its block and time: that time is the date.`
+        : `Check that the transaction succeeded and that it called VeilCore's contract ${a.contractAddress ?? "(the bundle doesn't name it)"}. Note its block and time: that time is the date.`,
+    // Condition 5 of docs/contract-v2.md 7: how version 2 is described until its public switch.
+    ...(v2 && a.network === 'mainnet'
+      ? [
+          `${a.onList ? '' : 'If it called version 2: '}VeilCore contract version 2 is deployed on mainnet for testing by VeilCore. It is not yet independently reviewed and not for your records.`,
+        ]
+      : []),
     `Check that it wrote this batch root: ${a.root}. The batch root is one code that stands for every record in the batch; this record's proof leads to it.`,
     `We haven't confirmed that any Midnight explorer shows the batch root: it sits inside the contract's state after the call, not in plain text. If yours doesn't show it, we know of no way to see it without running a command. A technical person can run proof/check-on-midnight.mjs (README.txt, "For technical readers", says how): it asks a Midnight indexer directly, with no VeilCore server involved, though the code it runs is VeilCore's published code. This record's check page on VeilCore's site does the same look-up in your browser, but that page is VeilCore's too.`,
     `If the transaction succeeded, called that contract and wrote that root, this record existed, unchanged, by that transaction's time: whoever had it sealed held this record by then. If any of it doesn't match, nothing here dates the record.`,

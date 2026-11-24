@@ -29,7 +29,9 @@ import {
   type Gathered,
 } from './bundle';
 import { loadPageVerifier, practiceBatch, practiceRecord, secretFor } from './test-records';
-import { MAINNET_PINNED, PREPROD_PINNED } from '../../../../api/src/pinned-contracts';
+import { pinnedContractsForPage, verifyPageHtml } from './verify-page';
+import { MAINNET_PINNED, PREPROD_PINNED, pinnedContractsFrom } from '../../../../api/src/pinned-contracts';
+import fs from 'node:fs';
 
 const mem = new Map<string, string>();
 (globalThis as unknown as { localStorage: Partial<Storage> }).localStorage = {
@@ -48,7 +50,8 @@ const sha256 = async (b: Uint8Array) =>
 
 const OTS = new Uint8Array([...new TextEncoder().encode('\x00OpenTimestamps\x00\x00Proof\x00'), 0xbf, 0x89, 1, 2, 3]);
 const TX = 'c3'.repeat(32);
-const CONTRACT = '7a'.repeat(32);
+// The test site's pinned main contract: the page and README date nothing on any other (rule 10).
+const CONTRACT = PREPROD_PINNED.find((e) => e.kind === 'veilcore' && e.version === 'v1')?.address ?? '';
 
 /** A record with a lab report saved, a batch it is in, a lab's signature on the report. */
 const setup = async (n = 2) => {
@@ -441,8 +444,8 @@ describe('the bundle', () => {
     expect(script).toContain('network: "preprod"');
     expect(script).toContain("import { checkBatchAnchor } from '@veilcore/contracts';");
     expect(script).not.toMatch(/veilcore\.org|VITE_API_BASE|fetch\(/);
-    // A preprod contract that is not VeilCore's pinned one: the script can't name its version.
-    expect(script).not.toContain('contractVersion');
+    // The test site's pinned contract: the script names its version from preprod's list.
+    expect(script).toContain('  contractVersion: "v1",\n');
     // It parses as a Node module (not run: it needs the network and a Blockfrost id).
     const { mkdtempSync, writeFileSync } = await import('node:fs');
     const { join } = await import('node:path');
@@ -522,12 +525,14 @@ describe('the bundle', () => {
   it('README says the same Midnight and Bitcoin steps as verify.html, word for word', async () => {
     const { s, ev } = await make({ key: true });
     const V = loadPageVerifier<{
-      checkAll: (e: unknown) => Promise<{ lookups: { midnight: Record<string, unknown>[] } }>;
+      checkAll: (e: unknown, f: unknown[], o: unknown) => Promise<{ lookups: { midnight: Record<string, unknown>[] } }>;
       midnightSteps: (a: unknown) => string[];
       bitcoinSteps: (pending: boolean) => string[];
     }>();
     const plain = (t: string) => t.replace(/[’‘]/g, "'").replace(/[“”]/g, '"');
-    const page = await V.checkAll(JSON.parse(JSON.stringify(ev)));
+    // The list the page carries (verify-page.ts puts it in).
+    const contracts = pinnedContractsForPage();
+    const page = await V.checkAll(JSON.parse(JSON.stringify(ev)), [], { contracts });
     expect(page.lookups.midnight.length).toBe(2);
     const anchors = [ev.batch?.anchor, ...(ev.batch?.earlierAnchors ?? [])];
     for (const [i, a] of page.lookups.midnight.entries()) {
@@ -537,14 +542,170 @@ describe('the bundle', () => {
     }
     // Without a block or time, and on a network with no explorer listed.
     const bare = { network: 'undeployed', txHash: TX, root: s.batch.root };
-    const pageBare = await V.checkAll({
-      ...JSON.parse(JSON.stringify(ev)),
-      batch: { ...ev.batch, anchor: { chain: 'midnight', ...bare }, earlierAnchors: [] },
-    });
+    const pageBare = await V.checkAll(
+      {
+        ...JSON.parse(JSON.stringify(ev)),
+        batch: { ...ev.batch, anchor: { chain: 'midnight', ...bare }, earlierAnchors: [] },
+      },
+      [],
+      { contracts },
+    );
     expect(midnightSteps(anchorLookup(bare, s.batch.root) as NonNullable<ReturnType<typeof anchorLookup>>)).toEqual(
       V.midnightSteps(pageBare.lookups.midnight[0]).map(plain),
     );
     for (const pending of [true, false]) expect(bitcoinSteps(pending)).toEqual(V.bitcoinSteps(pending).map(plain));
+  });
+
+  // Rule 10 (docs/contract-v2.md 3.1): the page and the README name a transaction's contract by
+  // the pinned list alone. Version 2 is pinned here the way it will be: in a copy of
+  // deployments/*.json (as partner-kit/test/two-contracts.test.ts does).
+  describe('the pinned contracts (rule 10)', () => {
+    const V2 = 'f2'.repeat(32);
+    const V2_PREPROD = 'e2'.repeat(32);
+    const read = (n: string) =>
+      JSON.parse(fs.readFileSync(new URL(`../../../../deployments/${n}.json`, import.meta.url), 'utf8')) as {
+        contracts: Record<string, unknown>[];
+      };
+    const withV2 = (d: { contracts: Record<string, unknown>[] }, address: string) => ({
+      ...d,
+      contracts: [
+        ...d.contracts,
+        {
+          ...structuredClone(d.contracts.find((c) => c.name === 'veilcore')),
+          address,
+          contractVersion: 2,
+          keyStates: [
+            {
+              retired: false,
+              committee: 1,
+              threshold: 1,
+              counter: 24,
+              block: 3600000,
+              label: 'one key, not yet handed to the committee',
+            },
+          ],
+        },
+      ],
+    });
+    const fakeLists = {
+      mainnet: pinnedContractsFrom(withV2(read('mainnet'), V2), 'mainnet'),
+      preprod: pinnedContractsFrom(withV2(read('preprod'), V2_PREPROD), 'preprod'),
+    };
+    const forPage = (l: typeof fakeLists) => ({
+      mainnet: l.mainnet.map((e) => ({ address: e.address, kind: e.kind, version: e.version === 'v1' ? 1 : 2 })),
+      preprod: l.preprod.map((e) => ({ address: e.address, kind: e.kind, version: e.version === 'v1' ? 1 : 2 })),
+    });
+    const V = () =>
+      loadPageVerifier<{
+        checkAll: (
+          e: unknown,
+          f: unknown[],
+          o: unknown,
+        ) => Promise<{ lookups: { midnight: Record<string, unknown>[] } }>;
+        midnightSteps: (a: unknown) => string[];
+      }>();
+    const plain = (t: string) => t.replace(/[’‘]/g, "'").replace(/[“”]/g, '"');
+    const v1Main = MAINNET_PINNED.find((e) => e.kind === 'veilcore' && e.version === 'v1')?.address ?? '';
+    const v1Claims = MAINNET_PINNED.find((e) => e.kind === 'claims')?.address ?? '';
+    const evOn = (anchor: Record<string, unknown>) => ({ batch: { root: 'ab'.repeat(32), anchor } });
+    /** The page's steps and the README's, for one anchor and one list: they must be the same. */
+    const both = async (anchor: Record<string, unknown>, lists: typeof fakeLists | undefined) => {
+      const page = await V().checkAll(evOn(anchor), [], {
+        contracts: lists ? forPage(lists) : pinnedContractsForPage(),
+      });
+      const m = page.lookups.midnight[0];
+      const ours = anchorLookup(anchor, 'ab'.repeat(32), lists);
+      const readme = midnightSteps(ours as NonNullable<typeof ours>);
+      expect(readme).toEqual(V().midnightSteps(m).map(plain));
+      return { m, readme: readme.join('\n') };
+    };
+    const at = (network: string, contractAddress?: string) => ({
+      chain: 'midnight',
+      network,
+      txHash: TX,
+      ...(contractAddress === undefined ? {} : { contractAddress }),
+    });
+
+    it('the page carries exactly the contracts in deployments/*.json', () => {
+      const html = verifyPageHtml({ any: 'evidence' });
+      const m = /<script type="application\/json" id="veilcore-contracts">([^<]*)<\/script>/.exec(html);
+      expect(m).not.toBe(null);
+      const embedded = JSON.parse((m as RegExpExecArray)[1]) as Record<
+        string,
+        { address: string; kind: string; version: number }[]
+      >;
+      expect(Object.keys(embedded).sort()).toEqual(['mainnet', 'preprod']);
+      // Read from the files themselves, not through pinned-contracts.ts.
+      const byAddress = (a: { address: string }, b: { address: string }) => a.address.localeCompare(b.address);
+      for (const n of ['mainnet', 'preprod']) {
+        const want = read(n).contracts.map((c) => ({
+          address: String(c.address).toLowerCase(),
+          kind: c.name === 'veilcore' ? 'veilcore' : 'claims',
+          version: (c.contractVersion as number | undefined) ?? 1,
+        }));
+        expect([...embedded[n]].sort(byAddress)).toEqual(want.sort(byAddress));
+      }
+    });
+
+    it('today, version 1 on mainnet: the steps name version 1 and the whole list', async () => {
+      const { m, readme } = await both(at('mainnet', v1Main), undefined);
+      expect(m).toMatchObject({ onList: true, contractVersion: 1 });
+      expect(readme).toContain(`called VeilCore contract version 1, ${v1Main}, and no other VeilCore contract`);
+      expect(readme).toContain(`${v1Claims} (version 1, claims)`);
+      expect(readme).not.toContain('version 2');
+      // Upper case and 0x in the bundle: the same contract.
+      expect((await both(at('mainnet', `0x${v1Main.toUpperCase()}`), undefined)).m).toMatchObject({ onList: true });
+    });
+
+    it('a contract not on the list, or the claims contract, dates nothing', async () => {
+      for (const c of ['ab'.repeat(32), v1Claims, V2]) {
+        const { m, readme } = await both(at('mainnet', c), undefined);
+        expect(m.onList).toBe(false);
+        expect(readme).toMatch(/^Don't use this transaction to date the record\./);
+        expect(readme).toContain('Nothing here dates the record.');
+        expect(readme).not.toContain('Search for transaction');
+      }
+      // The same on preprod, against preprod's own list.
+      expect((await both(at('preprod', v1Main), undefined)).m.onList).toBe(false);
+    });
+
+    it('no contract named: every pinned main contract is a candidate, never a default one', async () => {
+      const { m, readme } = await both(at('mainnet'), undefined);
+      expect(m.onList).toBe(null);
+      expect(readme).toContain("called one of VeilCore's main contracts and no other VeilCore contract");
+      expect(readme).toContain(v1Main);
+    });
+
+    it('version 2 pinned: named by its own entry, with how it is described until its public switch', async () => {
+      const { m, readme } = await both(at('mainnet', V2), fakeLists);
+      expect(m).toMatchObject({ onList: true, contractVersion: 2 });
+      expect(readme).toContain(`called VeilCore contract version 2, ${V2}, and no other VeilCore contract`);
+      expect(readme).toContain(
+        'deployed on mainnet for testing by VeilCore. It is not yet independently reviewed and not for your records.',
+      );
+      // Version 1 reads as before, with version 2 in the list it must not also have called.
+      const v1 = await both(at('mainnet', v1Main), fakeLists);
+      expect(v1.m).toMatchObject({ onList: true, contractVersion: 1 });
+      expect(v1.readme).toContain(`${V2} (version 2)`);
+      expect(v1.readme).not.toContain('for testing by VeilCore');
+      // Preprod's version 2, against preprod's list; no mainnet wording on a test network.
+      const pre = await both(at('preprod', V2_PREPROD), fakeLists);
+      expect(pre.m).toMatchObject({ onList: true, contractVersion: 2 });
+      expect(pre.readme).not.toContain('deployed on mainnet');
+      // A version 2 address of one network is not VeilCore's on the other.
+      expect((await both(at('preprod', V2), fakeLists)).m.onList).toBe(false);
+    });
+
+    it('a network with no list (a local chain, Preview) reads as before', async () => {
+      const { m, readme } = await both(at('undeployed', 'ab'.repeat(32)), fakeLists);
+      expect(m.onList).toBe(null);
+      expect(readme).toContain(`called VeilCore's contract ${'ab'.repeat(32)}. Note its block`);
+    });
+
+    it('a page given no list takes nothing on mainnet as VeilCore’s', async () => {
+      const page = await V().checkAll(evOn(at('mainnet', v1Main)), [], {});
+      expect(page.lookups.midnight[0].onList).toBe(false);
+    });
   });
 
   it('README lists exactly the files in the zip, even when the lab report is named like a bundle file', async () => {

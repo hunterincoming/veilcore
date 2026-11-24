@@ -6,6 +6,7 @@
 //   - the Bitcoin header check: bboard-ui/evidence-page/btc-header-chain.js (plain browser
 //     JavaScript; docs/bitcoin-header-check.md), with the Bitcoin checkpoints this release pins
 //     (btc-checkpoints.json);
+//   - VeilCore's pinned contracts, from this release's deployments/*.json (pinnedContractsForPage);
 //   - the canonicalisation of the published SDK, veilcore-records' own dist/canonical.js,
 //     the exact code the site and the registry hash with, minus its one `export` keyword.
 // and the bundle's evidence.json, Bitcoin stamp file and Bitcoin block headers, put in as data. The page loads nothing else and its
@@ -16,6 +17,7 @@ import template from '../../../evidence-page/verify.template.html?raw';
 import core from '../../../evidence-page/verify-core.js?raw';
 import headerChain from '../../../evidence-page/btc-header-chain.js?raw';
 import checkpointsFile from '../../../evidence-page/btc-checkpoints.json';
+import { MAINNET_PINNED, PREPROD_PINNED, type PinnedEntry } from '../../../../api/src/pinned-contracts';
 import sdkCanonical from '../../../../node_modules/veilcore-records/dist/canonical.js?raw';
 import sdkPackage from 'veilcore-records/package.json';
 
@@ -61,6 +63,23 @@ export const pinnedCheckpoints = (): { height: number; hash: string }[] =>
     height: c.height,
     hash: c.hash,
   }));
+
+/** One pinned contract, as the page gets it. */
+export type PagePinnedContract = { address: string; kind: 'veilcore' | 'claims'; version: 1 | 2 };
+
+const forPage = (list: readonly PinnedEntry[]): PagePinnedContract[] =>
+  list.map((e) => ({ address: e.address, kind: e.kind, version: e.version === 'v1' ? 1 : 2 }));
+
+/**
+ * VeilCore's pinned contracts by network, as the page gets them: this release's
+ * deployments/mainnet.json and deployments/preprod.json (api/src/pinned-contracts.ts;
+ * docs/contract-v2.md 3.1, rule 10). The page names a transaction's contract by this list
+ * alone, never by what the bundle says about it.
+ */
+export const pinnedContractsForPage = (): { mainnet: PagePinnedContract[]; preprod: PagePinnedContract[] } => ({
+  mainnet: forPage(MAINNET_PINNED),
+  preprod: forPage(PREPROD_PINNED),
+});
 
 const CLOSES_SCRIPT = /<\/script/i;
 
@@ -108,5 +127,6 @@ export const verifyPageHtml = (evidence: unknown, stamp?: Uint8Array | null, bit
   html = put(html, '@@STAMP_JSON@@', embedJson(stamp && stamp.length ? toBase64(stamp) : null));
   html = put(html, '@@BTC_CHECKPOINTS_JSON@@', embedJson(pinnedCheckpoints()));
   html = put(html, '@@BTC_HEADERS_JSON@@', embedJson(bitcoinHeaders ?? null));
+  html = put(html, '@@PINNED_CONTRACTS_JSON@@', embedJson(pinnedContractsForPage()));
   return html;
 };
