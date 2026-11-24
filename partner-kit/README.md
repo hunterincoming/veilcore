@@ -24,7 +24,7 @@ Install an exact version, not a range: the package carries the mainnet addresses
 key fingerprints it checks against.
 
 ```sh
-npm install --save-exact @veilcore/contracts@0.4.0
+npm install --save-exact @veilcore/contracts@0.5.0
 ```
 
 **Read [docs/PARTNERS.md](https://github.com/hunterincoming/veilcore/blob/main/docs/PARTNERS.md)
@@ -106,7 +106,7 @@ const verdict = await checkPresentation({ network: 'preprod', blockfrostProjectI
 
 ## Changes
 
-**0.5.0** (not yet on npm; install 0.4.0 until it is)
+**0.5.0** (24 Nov 2026)
 - Breaking: off mainnet, every check (`checkBatchAnchor`, `checkPresentation`,
   `checkOwnership`, `checkPairing`, `readClaim`) needs `contractVersion: 'v1'` or `'v2'` unless
   the address is in `deployments/preprod.json`. A local chain, preview or an unlisted preprod

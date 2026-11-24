@@ -30,11 +30,9 @@ section.
 - Off mainnet a check names its contract version: the test site's contracts are on
   `deployments/preprod.json`; any other test build sets `VITE_REAL_CHAIN_CONTRACT_VERSION`, or
   its check page doesn't look a date up.
-- Partner kit 0.5.0 (`@veilcore/contracts`, unreleased: not yet on npm, and the install lines
-  in the docs stay at 0.4.0 until it is): the above, `contractVersion`, and the contract named
+- Partner kit 0.5.0 (`@veilcore/contracts`, on npm since 24 Nov 2026; the docs install it): the above, `contractVersion`, and the contract named
   in every batch verdict. Breaking: off mainnet, every check needs `contractVersion` unless the
-  address is in `deployments/preprod.json`. Evidence bundles now install 0.5.0, so it must be
-  published to npm before a site carrying this is deployed.
+  address is in `deployments/preprod.json`. Evidence bundles now install 0.5.0.
 
 ### Midnight's current client tools; evidence-bundle checks work again (23 Nov 2026, not deployed yet)
 
