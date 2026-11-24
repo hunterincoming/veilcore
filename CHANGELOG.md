@@ -10,6 +10,17 @@ section.
 
 ## [Unreleased]
 
+### The other checkers read the pinned list too (24 Nov 2026, not deployed yet)
+
+- The evidence bundle's `verify.html` carries VeilCore's contracts from `deployments/*.json`.
+  Its steps to date a record, and the README's and examiner summary's, name the contract's
+  version and every VeilCore contract, and ask that the transaction called no other one. A
+  bundle naming a contract that isn't VeilCore's gets no steps: it dates nothing.
+- The CLI reads contract version 1 only: joining or finishing an address pinned as version 2
+  is refused by name (`api/src/deploy-guard.ts`). Its licence, ownership, pairing and claim
+  checks refuse a transaction that also calls another pinned contract. With version 1 alone,
+  every transaction with one call reads as before.
+
 ### Checks that read both contracts, version 1 and version 2 (23 Nov 2026, not deployed yet)
 
 - Every batch-date check now takes VeilCore's pinned contract list from

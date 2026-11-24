@@ -20,6 +20,7 @@
 import { createHash } from 'node:crypto';
 import { FINGERPRINTS } from '../../partner-kit/src/fingerprints.js';
 import { type AuthorityReport, type KeyState, authorityReportOf, matchKeyState } from './key-states.js';
+import { pinnedListFor } from './pinned-contracts.js';
 
 export type { AuthorityReport } from './key-states.js';
 
@@ -171,3 +172,20 @@ export const withMainnetPins = <T extends StateRequirements>(
   contract: PinnedContract,
   network: string | null,
 ): T => (network === 'mainnet' ? { ...check, verifierKeys: pinnedVerifierKeys(contract) } : check);
+
+/**
+ * withMainnetPins, for a lookup of one call (presentation-lookup.ts singleCallState), plus
+ * every contract on `network`'s pinned list counted against "exactly one call" (rule 10.2,
+ * docs/contract-v2.md 3.1): a transaction that also calls another of VeilCore's pinned
+ * contracts, of either version or kind, is refused. Used by the CLI's checks (veilcore-api.ts,
+ * claims-api.ts). On today's mainnet the list is the two version 1 contracts.
+ */
+export const withPinnedLookup = <T extends StateRequirements>(
+  check: T,
+  contract: PinnedContract,
+  network: string | null,
+  list: readonly { readonly address: string }[] = pinnedListFor(network),
+): T & { readonly countedWith: readonly string[] } => ({
+  ...withMainnetPins(check, contract, network),
+  countedWith: list.map((e) => e.address),
+});

@@ -79,8 +79,15 @@ export const matchEntryPoint = (raw: string, entryPoints: readonly string[]): st
  *    transaction as succeeded, the same single call, in the same block, with byte-for-byte
  *    the same contract state, or the lookup is refused. One indexer is trusted for
  *    everything it reports; two that must agree make a lie cost two compromises.
+ *  - `countedWith`: VeilCore's other pinned contracts on this network (rule 10.2,
+ *    docs/contract-v2.md 3.1). A call on any of them counts against "exactly one call": a
+ *    transaction that also calls one of them is refused, whichever contract it is asked
+ *    about. The answer is still only ever about the contract asked about.
  */
-export type LookupCheck = StateRequirements & { readonly secondIndexer?: string };
+export type LookupCheck = StateRequirements & {
+  readonly secondIndexer?: string;
+  readonly countedWith?: readonly string[];
+};
 
 export type FoundCall = {
   readonly entryPoint: string;
@@ -257,7 +264,8 @@ const lookUp = async (
  * The contract state the indexer recorded for the ONE call a transaction made on a
  * contract, when that call is one of `entryPoints`. Any contract's state, so the claims
  * contract uses it too (claims-api.ts, readClaim). Refused, with `refusal`, when the
- * transaction made no call or several on this contract, or a call of another kind.
+ * transaction made no call or several on this contract (and on `check.countedWith`, the
+ * other pinned contracts, together), or a call of another kind.
  * `check` adds the verifier-key, authority and second-indexer checks (LookupCheck).
  */
 export const singleCallState = async (
@@ -269,7 +277,17 @@ export const singleCallState = async (
   timeoutMs = 20_000,
   check: LookupCheck = {},
 ): Promise<FoundCall> => {
-  const found = await lookUp(indexerUri, [contractAddress], txId, entryPoints, refusal, timeoutMs, check.secondIndexer);
+  const found = await lookUp(
+    indexerUri,
+    [contractAddress, ...(check.countedWith ?? [])],
+    txId,
+    entryPoints,
+    refusal,
+    timeoutMs,
+    check.secondIndexer,
+  );
+  // The one call was on another pinned contract: not the contract asked about.
+  if (found.address !== norm(contractAddress)) throw new Error(refusal);
   const checked = checkContractState(found.state, check);
   return {
     entryPoint: found.entryPoint,

@@ -162,6 +162,55 @@ test('the README lists exactly the mainnet addresses', () => {
   assert.match(readme, /docs\/reproduce-build\.md/);
 });
 
+// The SDK's own copies of the pinned list (docs/contract-v2.md 3.1 and 3.2): SPEC 9.2.1's table of
+// the mainnet contracts that publish batch roots, and the list the evidence package's verify.py
+// carries (it runs on its own, so it holds a copy). Both must be this file's. So version 2 is
+// pinned here only once the installed SDK release names it too (the pin comes from the signed SDK
+// release, docs/contract-v2.md 4).
+test("the installed SDK's SPEC 9.2.1 and verify.py list exactly the deployments files' contracts", () => {
+  const sdk = path.join(ROOT, 'node_modules', 'veilcore-records');
+  const version = (c) => c.contractVersion ?? 1;
+  const byAddress = (a, b) => a.address.localeCompare(b.address);
+  // veilcore-records 0.18.1 and earlier have neither SPEC 9.2.1 nor a list in verify.py: verify.py
+  // names no contract at all. The release after it carries both, and from then on this compares
+  // every entry.
+  const [maj, min, patch] = JSON.parse(readFileSync(path.join(sdk, 'package.json'), 'utf8')).version.split('.').map(Number);
+  const before = maj === 0 && (min < 18 || (min === 18 && patch <= 1));
+  const spec = readFileSync(path.join(sdk, 'SPEC.md'), 'utf8');
+  if (before && !spec.includes('### 9.2.1')) return;
+  const section = spec.slice(spec.indexOf('### 9.2.1'), spec.indexOf('### 9.3'));
+  const rows = [...section.matchAll(/^\| v(\d+) \| Midnight mainnet[^|]*\| `([0-9a-f]{64})` \|/gm)].map((m) => ({
+    address: m[2],
+    version: Number(m[1]),
+  }));
+  const main = deployments.mainnet.contracts
+    .filter((c) => c.name === 'veilcore')
+    .map((c) => ({ address: c.address.toLowerCase(), version: version(c) }));
+  assert.deepEqual(rows.sort(byAddress), main.sort(byAddress), 'SPEC 9.2.1 in the installed veilcore-records');
+  const generated = readFileSync(path.join(sdk, 'dist', 'evidence-verifier.generated.js'), 'utf8');
+  const py = JSON.parse(generated.slice(generated.indexOf('= ') + 2, generated.lastIndexOf(';')));
+  const block = /^_PINNED_CONTRACTS = \{\n([\s\S]*?)\n\}\n/m.exec(py);
+  assert.ok(block !== null || before, 'this veilcore-records should carry _PINNED_CONTRACTS in verify.py');
+  if (block === null) return;
+  const carried = {};
+  let network = null;
+  for (const line of block[1].split('\n')) {
+    const n = /^ {4}"([a-z]+)": \[$/.exec(line);
+    if (n) network = n[1];
+    const e = /^ {8}\{"address": "([0-9a-f]{64})", "kind": "(main|claims)", "version": (\d+)\},$/.exec(line);
+    if (e) (carried[network] ??= []).push({ address: e[1], kind: e[2], version: Number(e[3]) });
+  }
+  assert.deepEqual(Object.keys(carried).sort(), [...NETWORKS].sort());
+  for (const n of NETWORKS) {
+    const want = deployments[n].contracts.map((c) => ({
+      address: c.address.toLowerCase(),
+      kind: c.name === 'veilcore' ? 'main' : 'claims',
+      version: version(c),
+    }));
+    assert.deepEqual(carried[n].sort(byAddress), want.sort(byAddress), `verify.py's ${n} list`);
+  }
+});
+
 test('the addresses pinned in api/src/deploy-guard.ts are the deployments file\'s', () => {
   const guard = read('api/src/deploy-guard.ts');
   const pin = (n) => new RegExp(`export const ${n}(?:: string)? = '([0-9a-f]{64})'`).exec(guard)?.[1];

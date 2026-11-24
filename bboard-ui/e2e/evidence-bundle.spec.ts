@@ -28,7 +28,15 @@ import {
 } from './helpers';
 
 const OPERATOR = process.env.E2E_OPERATOR_TOKEN ?? '';
-const ANCHOR_CONTRACT = process.env.E2E_ANCHOR_CONTRACT ?? '7a'.repeat(32);
+// By default the test site's pinned main contract (deployments/preprod.json): verify.html dates
+// nothing on a contract that isn't on its network's pinned list (docs/contract-v2.md 3.1, rule 10).
+const ANCHOR_CONTRACT =
+  process.env.E2E_ANCHOR_CONTRACT ??
+  (
+    JSON.parse(fs.readFileSync(new URL('../../deployments/preprod.json', import.meta.url), 'utf8')) as {
+      contracts: { name: string; address: string; contractVersion?: number }[];
+    }
+  ).contracts.find((c) => c.name === 'veilcore' && (c.contractVersion ?? 1) === 1)!.address;
 const ANCHOR_TX = randomBytes(32).toString('hex');
 const HOLDER = randomBytes(32).toString('hex');
 // The holder's vault key: a real registry takes records only sealed (CONTRACT.md #4).

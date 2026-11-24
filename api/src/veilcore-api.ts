@@ -55,7 +55,7 @@ import {
   type AuthorityReport,
   ContractStateMismatchError,
   checkContractState,
-  withMainnetPins,
+  withPinnedLookup,
 } from './state-check.js';
 import { checkStartingState } from './starting-state.js';
 import * as utils from './utils/index.js';
@@ -765,10 +765,11 @@ export class VeilcoreAPI {
   /**
    * What a verification lookup requires here: on mainnet, the pinned build's verifier
    * keys, always (a caller cannot turn that off or replace them with its own table);
-   * elsewhere, whatever the caller asks.
+   * elsewhere, whatever the caller asks. On every network with a pinned list, a call on any
+   * other pinned contract counts too (rule 10.2): a transaction that calls two is refused.
    */
   private lookupCheck(check: LookupCheck): LookupCheck {
-    return withMainnetPins(check, 'veilcore', resolveNetwork());
+    return withPinnedLookup(check, 'veilcore', resolveNetwork());
   }
 
   // ─────────────────────────────────────────────────────────── plumbing

@@ -14,7 +14,10 @@ import {
   pinnedVerifierKeys,
   verifierKeyMismatches,
   withMainnetPins,
+  withPinnedLookup,
 } from './src/state-check.ts';
+import { readFileSync } from 'node:fs';
+import { MAINNET_PINNED, PREPROD_PINNED, pinnedContractsFrom, pinnedListFor } from './src/pinned-contracts.ts';
 import { singleCallState, singleCallStateAcross } from './src/presentation-lookup.ts';
 import { matchKeyState } from './src/key-states.ts';
 
@@ -180,5 +183,65 @@ await assert.rejects(
   /not a batch/,
 );
 console.log('across contracts: exactly one call on all of them together, and on one that was asked about');
+
+// ── the CLI's one-contract lookups count every pinned contract (rule 10.2): `countedWith`
+const one = (actions, countedWith) => {
+  serve({ 'http://one': tx(STATE, { contractActions: actions }) });
+  return singleCallState('http://one', OURS, TX, ['anchorBatch'], 'not a batch', undefined, countedWith === undefined ? {} : { countedWith });
+};
+const ours = { address: OURS, state: STATE, entryPoint: 'anchorBatch' };
+// Today's result, with and without the list: one call on the contract asked about.
+assert.equal((await one([ours])).blockHeight, 7);
+assert.equal((await one([ours], [OURS, THEIRS])).blockHeight, 7);
+// A call on a contract on no list changes nothing, as before.
+assert.equal((await one([ours, { address: 'dd'.repeat(32), state: STATE, entryPoint: 'anchorBatch' }], [OURS, THEIRS])).blockHeight, 7);
+// Without the list, a second call elsewhere was not seen; with it, the transaction is refused.
+assert.equal((await one([ours, { address: THEIRS, state: STATE, entryPoint: 'proveRange' }])).blockHeight, 7);
+await assert.rejects(() => one([ours, { address: THEIRS, state: STATE, entryPoint: 'proveRange' }], [THEIRS]), /not a batch/);
+// Upper case or 0x in the indexer's answer is still the same contract.
+await assert.rejects(() => one([ours, { address: `0x${THEIRS.toUpperCase()}`, state: STATE, entryPoint: 'x' }], [THEIRS]), /not a batch/);
+// The one call is on another pinned contract: refused, never answered for the contract asked about.
+await assert.rejects(() => one([{ address: THEIRS, state: STATE, entryPoint: 'anchorBatch' }], [THEIRS]), /not a batch/);
+console.log('one contract asked about: a call on any other pinned contract counts, and the answer is never about it');
+
+// ── which contracts count, from the pinned lists, with version 2 pinned in a copy of deployments/*.json
+const deployments = (n) => JSON.parse(readFileSync(new URL(`../deployments/${n}.json`, import.meta.url), 'utf8'));
+const withV2 = (d, address) => ({
+  ...d,
+  contracts: [
+    ...d.contracts,
+    {
+      ...structuredClone(d.contracts.find((c) => c.name === 'veilcore')),
+      address,
+      contractVersion: 2,
+      keyStates: [{ retired: false, committee: 1, threshold: 1, counter: 24, block: 3600000, label: 'one key, not yet handed to the committee' }],
+    },
+  ],
+});
+const fakeLists = {
+  mainnet: pinnedContractsFrom(withV2(deployments('mainnet'), 'f2'.repeat(32)), 'mainnet'),
+  preprod: pinnedContractsFrom(withV2(deployments('preprod'), 'e2'.repeat(32)), 'preprod'),
+};
+const addrs = (l) => l.map((e) => e.address).sort();
+// Today: the two version 1 contracts on mainnet, and on preprod its two.
+assert.deepEqual(addrs(pinnedListFor('mainnet')), addrs(MAINNET_PINNED));
+assert.equal(MAINNET_PINNED.length, 2);
+assert.deepEqual(addrs(pinnedListFor(null)), addrs(MAINNET_PINNED));
+assert.deepEqual(addrs(pinnedListFor('preprod')), addrs(PREPROD_PINNED));
+assert.deepEqual(pinnedListFor('undeployed'), []);
+assert.deepEqual(pinnedListFor('preview'), []);
+// v2 pinned: it counts too, on its own network only.
+assert.ok(pinnedListFor('mainnet', fakeLists).some((e) => e.address === 'f2'.repeat(32)));
+assert.ok(!pinnedListFor('mainnet', fakeLists).some((e) => e.address === 'e2'.repeat(32)));
+assert.ok(pinnedListFor('preprod', fakeLists).some((e) => e.address === 'e2'.repeat(32)));
+// withPinnedLookup: the mainnet pins as before, plus the list.
+const req = withPinnedLookup(weaker, 'veilcore', 'mainnet', pinnedListFor('mainnet', fakeLists));
+assert.deepEqual(req.verifierKeys, pins);
+assert.equal(req.authorityCounter, 16n);
+assert.deepEqual([...req.countedWith].sort(), [...addrs(MAINNET_PINNED), 'f2'.repeat(32)].sort());
+assert.deepEqual([...withPinnedLookup({}, 'veilcore-claims', 'mainnet').countedWith].sort(), addrs(MAINNET_PINNED));
+assert.deepEqual(withPinnedLookup({}, 'veilcore', 'undeployed').countedWith, []);
+assert.equal(withPinnedLookup(weaker, 'veilcore', 'preprod').verifierKeys, weaker.verifierKeys);
+console.log('the CLI counts every contract on its network\'s pinned list: version 1 today, version 2 once pinned');
 
 console.log('\nall state checks pass');

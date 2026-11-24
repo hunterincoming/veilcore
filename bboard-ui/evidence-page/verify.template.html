@@ -102,6 +102,7 @@
 <script type="application/json" id="veilcore-stamp">@@STAMP_JSON@@</script>
 <script type="application/json" id="veilcore-btc-headers">@@BTC_HEADERS_JSON@@</script>
 <script type="application/json" id="veilcore-btc-checkpoints">@@BTC_CHECKPOINTS_JSON@@</script>
+<script type="application/json" id="veilcore-contracts">@@PINNED_CONTRACTS_JSON@@</script>
 <script>
 // The published SDK's canonicalisation (veilcore-records @@SDK_VERSION@@, dist/canonical.js), copied in unchanged
 // except for its one `export` keyword.
@@ -151,6 +152,9 @@ return canonicalise;
   }
   var btcHeaders = embeddedJson('veilcore-btc-headers');
   var btcPins = embeddedJson('veilcore-btc-checkpoints') || [];
+  // VeilCore's contracts, by network, as this page's release pins them (deployments/*.json in
+  // the VeilCore repository): only a transaction on one of these dates anything.
+  var pinnedContracts = embeddedJson('veilcore-contracts') || {};
 
   /**
    * What a header check that passed shows. The checkpoint is pinned in this page, and this page
@@ -515,6 +519,10 @@ return canonicalise;
       for (var i = 0; i < L.midnight.length; i++) {
         var a = L.midnight[i];
         var head = a.current ? 'Look it up on ' + networkName(a.network) : 'Recorded earlier on ' + networkName(a.network) + (a.replacedAt ? ' (replaced ' + (VeilcoreVerify.utc(a.replacedAt) || a.replacedAt) + ')' : '');
+        if (a.onList === false) {
+          lk.appendChild(result('bad', 'Not one of VeilCore’s contracts', [list(VeilcoreVerify.midnightSteps(a))], 'lookup-midnight'));
+          continue;
+        }
         var extra = [];
         if (a.testNetwork) extra.push(para(['This is a test network. It can be reset, and its dates carry no weight: treat this record as practice data.']));
         extra.push(para(['VeilCore’s registry reported this transaction. Nobody has checked it on the chain for you: that is what these steps are for.']));
@@ -714,7 +722,7 @@ return canonicalise;
   }
 
   function run(ev, files) {
-    return VeilcoreVerify.checkAll(ev, files || [], { ots: currentStamp }).then(function (report) {
+    return VeilcoreVerify.checkAll(ev, files || [], { ots: currentStamp, contracts: pinnedContracts }).then(function (report) {
       var chain = typeof BtcHeaderChain === 'undefined' ? null : BtcHeaderChain;
       return VeilcoreVerify.checkBitcoinHeaders(report.stamp, btcHeaders, btcPins, chain).then(function (h) {
         report.headers = h;
