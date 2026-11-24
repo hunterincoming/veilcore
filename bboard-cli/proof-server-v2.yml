@@ -9,7 +9,7 @@
 # every v2 tool refuses to start.
 services:
   proof-server:
-    image: midnightntwrk/proof-server:9.0.2@sha256:FILL-IN-THE-9.0.2-DIGEST
+    image: midnightntwrk/proof-server:9.0.2@sha256:787ef99db4b4706eb14d94ad389ca45f1c09bcdf740afecb01899bfbda63dc64
     command: ['midnight-proof-server', '-v']
     container_name: "proof-server_$TESTCONTAINERS_UID"
     ports:
