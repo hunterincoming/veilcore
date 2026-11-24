@@ -228,7 +228,7 @@ export const readRelease = async (file, fetchImpl = fetch) => {
       headers,
       signal: AbortSignal.timeout(20_000),
     });
-    if (res.ok || attempt === 3 || res.status === 404) break;
+    if (res.ok || attempt === 3 || res.status === 404 || res.status === 401) break;
     await new Promise((r) => setTimeout(r, 5_000 * attempt));
   }
   if (!res.ok)

@@ -931,11 +931,11 @@ test('proof server release check: the four ways round it are closed', async () =
   const wf = readFileSync(path.join(path.dirname(ps.V2_PROOF_SERVER_FILE), '..', '.github', 'workflows', 'proof-server-pin.yaml'), 'utf8');
   assert.match(wf, /bboard-cli\/proof-server-v2\.yml/);
   assert.match(wf, /^permissions:\s*\n\s+contents: read\s*$/m);
-  assert.doesNotMatch(wf, /pull_request_target|secrets\.|: *write/);
+  assert.doesNotMatch(wf, /pull_request_target|\bsecrets\b|: *write/);
   assert.equal((wf.match(/\$\{\{\s*github\.token\s*\}\}/g) ?? []).length, 1);
   assert.match(wf, /^ {10}GITHUB_TOKEN: \$\{\{ github\.token \}\}$/m);
   assert.equal(wf.split('\n').filter((l) => /GITHUB_TOKEN\s*:/.test(l)).length, 1);
-  assert.match(wf, /persist-credentials: false/);
+  assert.match(wf, /^ +persist-credentials: false$/m);
   for (const u of wf.match(/uses:\s*\S+/g) ?? []) assert.match(u, /@[0-9a-f]{40}$/, u);
   assert.match(wf, /node scripts\/v2\/proof-server\.mjs verify/);
 });
