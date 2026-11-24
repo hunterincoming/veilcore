@@ -219,6 +219,37 @@ The keys must come out byte for byte the same on another computer, or nobody can
    Send both outputs to the team instead. The pin command below makes the same comparison
    itself and refuses in the same cases, so it cannot pin an image the release does not name.
 
+   **Optional, a second check: Midnight's signed build manifest.** The release also carries
+   `build-manifest.json`, its signature `build-manifest.json.asc`, and Midnight's public key
+   `midnight-proof-server-public.asc`. The manifest names the image's digest, and the signature
+   shows Midnight's signing key vouches for it. The key comes from the same release page, so the
+   check is only worth something together with the key's fingerprint below. The same key signed
+   the 9.0.1 manifest, whose digest is the 9.0.1 pin already in this repository. It needs GnuPG
+   (`brew install gnupg` once), and uses a throwaway keyring, so nothing is added to yours:
+
+   ```sh
+   mkdir -p ~/veilcore-v2/ps-9.0.2 && cd ~/veilcore-v2/ps-9.0.2
+   for f in build-manifest.json build-manifest.json.asc midnight-proof-server-public.asc; do
+     curl -fsSLO "https://github.com/midnightntwrk/midnight-ledger/releases/download/proof-server-9.0.2/$f"
+   done
+   export GNUPGHOME="$(mktemp -d)"
+   gpg --import midnight-proof-server-public.asc
+   gpg --verify build-manifest.json.asc build-manifest.json
+   grep image_digest build-manifest.json
+   rm -rf "$GNUPGHOME"; unset GNUPGHOME; cd ~/Desktop/veilcore
+   ```
+
+   This check passes when all three of these hold, in what `gpg --verify` and `grep` print:
+
+   - `gpg --verify` says `Good signature from "Midnight Foundation (Proof Server Signing Key)"`.
+     A warning that the key "is not certified with a trusted signature" is normal.
+   - The `Primary key fingerprint:` line that `gpg --verify` prints just below it reads exactly
+     `2D55 ACA7 93E9 495E 4288  9A35 4523 91B0 57AD D8C7`. That is the key that signed the
+     manifest, not only a key that was imported.
+   - The `image_digest` line shows the same `sha256:...` as your `docker inspect` line.
+
+   If any of the three differs, stop and send the output to the team.
+
    Check the version inside the image says 9.0.2 (this starts it for a moment, on this Mac only):
 
    ```sh

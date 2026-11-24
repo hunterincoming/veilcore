@@ -1,0 +1,9 @@
+{
+  "_what": "The fields of Midnight's GitHub release proof-server-9.0.2 that scripts/v2/proof-server.mjs reads, as the API returned them on Hunter's Mac (23 November 2026). The release id in url is not used by the check beyond its form.",
+  "url": "https://api.github.com/repos/midnightntwrk/midnight-ledger/releases/0",
+  "html_url": "https://github.com/midnightntwrk/midnight-ledger/releases/tag/proof-server-9.0.2",
+  "tag_name": "proof-server-9.0.2",
+  "draft": false,
+  "prerelease": false,
+  "body": "Image: `ghcr.io/midnight-ntwrk/proof-server:9.0.2` (also `docker.io/midnightntwrk/proof-server:9.0.2`)\nDigest: `sha256:787ef99db4b4706eb14d94ad389ca45f1c09bcdf740afecb01899bfbda63dc64`\n\nVerify the build manifest with the attached public key:\n\n```\ngpg --import midnight-proof-server-public.asc\ngpg --verify build-manifest.json.asc build-manifest.json\n```"
+}

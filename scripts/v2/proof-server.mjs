@@ -94,22 +94,47 @@ export const digestOf = (line) => /^(?:midnightntwrk\/proof-server@)?(sha256:[0-
 const IMAGE = String.raw`(?<![A-Za-z0-9._/-])(?:docker\.io/)?midnightntwrk/proof-server`;
 /** `midnightntwrk/proof-server:9.0.2@sha256:<hex>`: the tag and the digest in one reference. */
 const TAGGED_DIGEST = new RegExp(String.raw`${IMAGE}:9\.0\.2@(sha256:[0-9a-f]{64})(?![0-9a-f])`, 'g');
-/** `midnightntwrk/proof-server:9.0.2` as a whole tag (not 9.0.2-rc1, 9.0.21, 9.0.2.1). */
-const TAG_ONLY = new RegExp(String.raw`${IMAGE}:9\.0\.2(?![0-9A-Za-z.+\-@])`);
-/** `midnightntwrk/proof-server@sha256:<hex>`: the reference form docker inspect prints. */
-const REF_DIGEST = new RegExp(String.raw`${IMAGE}@(sha256:[0-9a-f]{64})(?![0-9a-f])`, 'g');
+/**
+ * Midnight's own release format (proof-server-9.0.1 and -9.0.2):
+ *
+ *   Image: `ghcr.io/midnight-ntwrk/proof-server:9.0.2` (also `docker.io/midnightntwrk/proof-server:9.0.2`)
+ *   Digest: `sha256:<64 hex>`
+ *
+ * The WHOLE "Image:" line must be one of these exact forms (H is the Docker Hub image,
+ * `midnightntwrk/proof-server:9.0.2` with or without `docker.io/`; G is Midnight's ghcr.io mirror,
+ * `ghcr.io/midnight-ntwrk/proof-server:9.0.2`):
+ *
+ *   Image: H        Image: `H`        Image: `G` (also `H`)
+ *
+ * Anything else on the line (another image, a lookalike character, a reference with no tag, more
+ * words) makes it not an Image line. The IMMEDIATELY following line must be exactly
+ * "Digest: sha256:<64 hex>", with or without backticks around the digest.
+ */
+const HUB = String.raw`(?:docker\.io/)?midnightntwrk/proof-server:9\.0\.2`;
+const GHCR = String.raw`ghcr\.io/midnight-ntwrk/proof-server:9\.0\.2`;
+const IMAGE_LINE_9_0_2 = new RegExp(String.raw`^Image: (?:${HUB}|\x60${HUB}\x60|\x60${GHCR}\x60 \(also \x60${HUB}\x60\))$`);
+const DIGEST_LINE = /^Digest: (?:(sha256:[0-9a-f]{64})|`(sha256:[0-9a-f]{64})`)$/;
+
+/** Whether `line` is, as a whole, Midnight's "Image:" line for exactly 9.0.2 of the Docker Hub image. */
+const isImageLine9_0_2 = (line) => IMAGE_LINE_9_0_2.test(line.replace(/\s+$/, ''));
 
 /**
- * The digests a release text ties to `midnightntwrk/proof-server:9.0.2`, and only those: one
- * written with the tag (`...:9.0.2@sha256:...`), or a reference (`...@sha256:...`) on a line that
- * also names the image with the 9.0.2 tag. A bare `sha256:` anywhere else in the text is not one.
+ * The digests a release text ties to `midnightntwrk/proof-server:9.0.2`, and only those:
+ *   - Midnight's "Image:" line, then a "Digest:" line straight after it (above);
+ *   - one reference with the tag and the digest (`midnightntwrk/proof-server:9.0.2@sha256:...`).
+ * A bare `sha256:` anywhere else in the text is not one. More than one distinct digest is
+ * returned as found, and refused by releaseProblems.
  */
 export const releaseDigests = (body) => {
   const found = new Set();
-  for (const line of String(body ?? '').split(/\r?\n/)) {
+  const lines = String(body ?? '').split(/\r?\n/);
+  lines.forEach((line, i) => {
     for (const m of line.matchAll(TAGGED_DIGEST)) found.add(m[1]);
-    if (TAG_ONLY.test(line)) for (const m of line.matchAll(REF_DIGEST)) found.add(m[1]);
-  }
+    if (isImageLine9_0_2(line) && i + 1 < lines.length) {
+      const d = DIGEST_LINE.exec(lines[i + 1].replace(/\s+$/, ''));
+      if (d !== null) found.add(d[1] ?? d[2]);
+    }
+  });
   return [...found];
 };
 
@@ -136,6 +161,11 @@ export const releaseProblems = (release, digest) => {
     return [
       `Midnight's ${V2_RELEASE_TAG} release names no digest for midnightntwrk/proof-server:9.0.2 (${V2_RELEASE_PAGE}). ` +
         `${stop} Ask Midnight for it first.`,
+    ];
+  if (listed.length > 1)
+    return [
+      `Midnight's ${V2_RELEASE_TAG} release names more than one digest for midnightntwrk/proof-server:9.0.2 ` +
+        `(${listed.join(', ')}). ${stop} Send it to the team.`,
     ];
   if (!listed.includes(digestOf(digest)))
     return [
