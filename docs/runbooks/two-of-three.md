@@ -21,18 +21,25 @@ first), [maintenance-policy.md](../maintenance-policy.md) (the approved rules), 
 
 - **v1's single key is live on mainnet.** It is on paper; each founder holds a sheet. Either
   sheet alone can change v1's rules today. The counter was 16 on 13 November 2026.
-- **v2 is a design only.** Nothing is built.
+- **v2 is built and tested on a computer, not deployed.** The contract is in `contract-v2/`.
+  The deploy command (`npm run deploy-v2`), `verify:deployment --v2-record`, and the committee
+  launcher's v2 changes are tested against Midnight's own Ledger 9 code. None has run on a real
+  node yet; the preprod run in [deploy-v2.md](deploy-v2.md) is the first.
 - **The committee tools are built and tested on a computer** against Midnight's own Ledger 9
   code. They have **never run on a real node**, not even a local one. The local rehearsal
   (Part B) has not been run.
-- **The tool changes v2 needs are not built yet** (contract-v2.md, section 7, Stage A item 7):
-  - the key slot as a parameter (`V4` for v2);
-  - a sequence request;
-  - the counter-range go/no-go;
-  - the two named exceptions to the gate: "v2 before handover", and the v1 retire with the
-    single key;
-  - a way to name v2's address on mainnet before it is pinned. Today the tool always uses the
-    pinned mainnet address, and v2 is pinned only after `verify:deployment` passes.
+- **The tool changes v2 needs are built** (contract-v2.md, section 7, Stage A item 7):
+  - the key slot comes from the contract's address (`V3` for v1's pinned address, `V4` for v2);
+    `--key-slot` only names it for a test contract, and must agree;
+  - the two named exceptions to the gate: "v2 before handover" (the listed `V4` key inserts,
+    the one handover, or one retire alone), and the v1 retire with the single key;
+  - v2's address on mainnet before it is pinned, from the deploy-session record
+    (`--v2-record`), which is refused if it names a pinned v1 address;
+  - the temporary key, kept only as an age-encrypted file (`--temp-key-file`).
+
+  **Not built, and not needed for this plan:** a sequence request and a counter-range
+  go/no-go. The deploy command inserts the keys with the temporary key itself, and the handover
+  is one update, so the launcher never sends a sequence.
 
   Parts D and E give the commands where they exist today, and say where they will change.
 
@@ -526,10 +533,10 @@ place.
 
 ## Part D. Deploy v2 with the temporary key, then hand it to the committee
 
-**Not runnable yet.** Step 1 needs the v2 build and the devnet and preprod runs. Steps 2 to 7
-also need the committee-tool changes listed under *Where things stand*. When they exist, the exact commands
-are written here and checked on preprod first. The order is fixed now (contract-v2.md,
-section 5):
+**The tools exist** (`npm run deploy-v2`, `verify:deployment --v2-record`, and the committee
+launcher's `--v2-record` and `--temp-key-file`). The exact commands are in
+[deploy-v2.md](deploy-v2.md): steps 9 to 13 on preprod first, then steps 14 to 18 on mainnet.
+The order (contract-v2.md, section 5):
 
 1. **Deploy v2 with the temporary key** on the maintainer's Mac, kept age-encrypted on disk.
    Insert all 29 verifier keys (`V4` slot) in one wallet session, or in the fewest updates
@@ -554,8 +561,12 @@ section 5):
 7. **Publish** a deployment record revision with the handover, and the checkers' v2 state (b).
 
 **If the session stops partway:** the temporary key is still on disk, so the remaining inserts
-or the handover can be finished. v2 is pinned only after `verify:deployment` passes at step 1. A v2 that can't be
-finished is never pinned: its keys are removed, it is retired, and a fresh v2 is deployed.
+or the handover can be finished: run the deploy again with `--resume` (deploy-v2.md, step 9). It
+never deploys a second contract while the first could still land, and it keeps every address it
+built. v2 is pinned only after `verify:deployment` passes at step 1. A v2 that can't be finished
+is never pinned: it is closed with one `retire` signed by the temporary key (the "v2 before
+handover" exception allows that, alone; no key removal is needed after it), and a fresh v2 is
+deployed (deploy-v2.md, step 15).
 
 ---
 
