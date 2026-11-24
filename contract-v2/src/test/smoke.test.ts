@@ -205,4 +205,20 @@ describe("contract v2 smoke run", () => {
       /recovery commitment cannot be empty|already anchored/,
     );
   }, 600_000);
+  it("a failure's detail carries no long hex and stays short (the table can be saved publicly)", async () => {
+    const chain = await localChain();
+    const rows = await runSmoke(
+      {
+        ...chain,
+        call: () =>
+          Promise.reject(
+            new Error(`refused: ${"ab".repeat(40)} ${"x".repeat(1000)}`),
+          ),
+      },
+      { random: seeded("hex") },
+    );
+    expect(rows[0].result).toBe("FAIL");
+    expect(rows[0].detail).toMatch(/^refused: <hex> x+\.\.\.$/);
+    expect(rows[0].detail.length).toBeLessThanOrEqual(403);
+  });
 });

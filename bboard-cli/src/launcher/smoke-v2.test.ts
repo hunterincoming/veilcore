@@ -25,7 +25,17 @@ import {
 } from '@midnight-ntwrk/midnight-js-types';
 import { type Prompt } from '../prompt';
 import { main as deployV2, type KeyStore } from './deploy-v2';
-import { type Deps, type SmokeModules, MAINNET_REFUSAL, keyProblems, loadSmoke, main, parseOptions } from './smoke-v2';
+import {
+  type Deps,
+  type SmokeModules,
+  MAINNET_REFUSAL,
+  keyProblems,
+  loadSmoke,
+  main,
+  mainnetPinProblems,
+  parseOptions,
+  pinnedMainnetAddresses,
+} from './smoke-v2';
 import { MANAGED, constructorStateBytes, haveCompiled } from '../../../scripts/v2/constructor.mjs';
 import { emptySession, readSession } from '../../../scripts/v2/session.mjs';
 
@@ -165,6 +175,20 @@ describe('smoke-v2: refusals before the wallet', () => {
     expect(out.text()).toMatch(/has no keys: build them on this Mac first/);
   });
 
+  it('on mainnet, refuses unless both v2 addresses are pinned', async () => {
+    const args = ['--network', 'mainnet', '--i-understand-team-only', '--v2-record', recordFile('mainnet')];
+    const out = capture();
+    expect(await main(args, base(out, ['SMOKE V2 ON MAINNET'], { pinned: () => ['33'.repeat(32)] }))).toBe(1);
+    expect(out.text()).toMatch(/veilcore-claims 4{64} is not pinned in deployments\/mainnet\.json/);
+    expect(out.text()).not.toMatch(/This calls every circuit/);
+    // The repository's real list today: v1 only, so a v2 record is refused.
+    const out2 = capture();
+    expect(await main(args, base(out2, ['SMOKE V2 ON MAINNET'], { pinned: undefined }))).toBe(1);
+    expect(out2.text()).toMatch(/veilcore 3{64} is not pinned/);
+    expect(pinnedMainnetAddresses()).toContain('a04de0a2684f3713276325649540c7278ffd07cba8b014e7489844f319a02347');
+    expect(mainnetPinProblems({ veilcore: 'AB'.repeat(32) }, ['ab'.repeat(32)])).toEqual([]);
+  });
+
   it('stops unless SMOKE V2 is typed (SMOKE V2 ON MAINNET on mainnet)', async () => {
     const out = capture();
     expect(await main(['--network', 'preprod', '--v2-record', recordFile()], base(out, ['yes']))).toBe(1);
@@ -173,7 +197,7 @@ describe('smoke-v2: refusals before the wallet', () => {
     expect(
       await main(
         ['--network', 'mainnet', '--i-understand-team-only', '--v2-record', recordFile('mainnet')],
-        base(out2, ['SMOKE V2']),
+        base(out2, ['SMOKE V2'], { pinned: () => ['33'.repeat(32), '44'.repeat(32)] }),
       ),
     ).toBe(1);
     expect(out2.text()).toMatch(/MAINNET: these are real transactions/);

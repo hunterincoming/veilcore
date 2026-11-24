@@ -22,7 +22,7 @@
  * setting is touched. Every test secret is made fresh for the run and kept in memory only.
  */
 import { spawnSync } from 'node:child_process';
-import { existsSync, readdirSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { type Logger } from 'pino';
@@ -127,6 +127,25 @@ export const keyProblems = (managed: string = MANAGED): string[] =>
       : [`${dir} has no keys: build them on this Mac first (runbook section C, npm run compact -w contract-v2).`];
   });
 
+/** The contract addresses pinned for mainnet (deployments/mainnet.json, contracts[].address). */
+export const pinnedMainnetAddresses = (file: string = path.join(ROOT, 'deployments', 'mainnet.json')): string[] => {
+  const d = JSON.parse(readFileSync(file, 'utf8')) as { contracts?: { address?: unknown }[] };
+  return (d.contracts ?? []).map((c) => String(c.address ?? '').toLowerCase()).filter((a) => /^[0-9a-f]{64}$/.test(a));
+};
+
+/**
+ * On mainnet, the team makes no call to v2 until it is pinned (docs/runbooks/deploy-v2.md, step 17):
+ * why these addresses are not both in the pinned list; empty when they are.
+ */
+export const mainnetPinProblems = (addresses: Record<string, string>, pinned: readonly string[]): string[] =>
+  Object.entries(addresses)
+    .filter(([, a]) => !pinned.includes(a.toLowerCase()))
+    .map(
+      ([name, a]) =>
+        `${name} ${a} is not pinned in deployments/mainnet.json. On mainnet the smoke run waits until v2 is ` +
+        'pinned (docs/runbooks/deploy-v2.md, step 17). Nothing was done.',
+    );
+
 type Sender = NonNullable<Awaited<ReturnType<typeof openWallet>>>;
 
 const configFor = (network: Network): Config =>
@@ -144,6 +163,8 @@ export type Deps = {
   readonly load?: () => Promise<SmokeModules>;
   readonly openSender?: (network: Network, prompt: Prompt, logger: Logger) => Promise<Sender | undefined>;
   readonly commit?: string;
+  /** The mainnet pinned addresses (default: deployments/mainnet.json). */
+  readonly pinned?: () => string[];
 };
 
 const gitCommit = (): string => {
@@ -203,6 +224,12 @@ export const main = async (argv: readonly string[], deps: Deps = {}): Promise<nu
       }
     } catch (e) {
       return stop([e instanceof Error ? e.message : String(e)]);
+    }
+
+    // On mainnet, only once both v2 addresses are pinned.
+    if (o.network === 'mainnet') {
+      const p = mainnetPinProblems(addresses, (deps.pinned ?? pinnedMainnetAddresses)());
+      if (p.length > 0) return stop(p);
     }
 
     // 3. The keys, built on this Mac.

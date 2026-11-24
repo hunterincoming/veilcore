@@ -871,7 +871,11 @@ const reason = (e: unknown): string => {
     e instanceof Error && e.cause instanceof Error
       ? e.cause.message.split("\n")[0]
       : undefined;
-  return c !== undefined && c !== "" && !m.includes(c) ? `${m} Cause: ${c}` : m;
+  const r =
+    c !== undefined && c !== "" && !m.includes(c) ? `${m} Cause: ${c}` : m;
+  // The table can be saved to a public file: no long hex (argument bytes), and a bounded length.
+  const clean = r.replace(/[0-9a-fA-F]{64,}/g, "<hex>");
+  return clean.length > 400 ? `${clean.slice(0, 400)}...` : clean;
 };
 
 /** How many times a check reads the state again before it fails (the indexer can lag). */
