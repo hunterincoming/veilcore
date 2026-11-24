@@ -139,33 +139,63 @@ Decisions the design still lists as open, which both founders settle in writing:
 
 The keys must come out byte for byte the same on another computer, or nobody can check them.
 
-5. On the second machine (another Mac, or Linux), with the same commit:
+**The second machine is GitHub Actions.** The workflow `.github/workflows/v2-keys-rebuild.yaml`
+rebuilds the keys on GitHub's own Linux runner, from the commit named in the Mac's table, with
+the same pinned compiler (checked against `contract-v2/compiler-checksums.txt`), and compares
+every file. Anyone can open the run and see the result. It uses no secret and can only read.
+
+5. On the Mac, copy the fingerprints file (it holds only hashes, no secret):
 
    ```sh
-   git clone https://github.com/hunterincoming/veilcore && cd veilcore
-   git checkout <the same commit as on the Mac>
-   npm ci
+   pbcopy < ~/v2-fingerprints-mac.md
    ```
 
-   Get the compiler as in step 1 (on Linux: `compactc_v0.36.1_x86_64-unknown-linux-musl.zip`,
-   SHA-256 `9d5fedfec9ae775a1e47d5c6f785130b314c1c5c52cd1a4eb9fc56d1fc61d23a`), then:
+   Open https://github.com/hunterincoming/veilcore/actions/workflows/v2-keys-rebuild.yaml and
+   click **Run workflow** (top right). Leave "Use workflow from" on **main**. Click in the box
+   "The whole of ~/v2-fingerprints-mac.md", paste (Cmd+V), and click the green **Run workflow**.
+   The box is one line; that is fine, the rows are found even when the paste loses its line
+   breaks.
 
-   ```sh
-   export COMPACTC=~/compactc-0.36.1/compactc
-   npm run compact -w contract-v2
-   ```
+6. Wait (refresh the page; the build takes a while, up to 2 hours at most). Then:
+   - **Green tick: the two builds match.** Open the run to see "The two builds match: N files,
+     byte for byte" under **Result**, and the full CI table. Note the run's link for the PR in
+     step 7.
+   - **Red cross:** open the run. If the "Compare" step failed, it names each file that
+     differs: **stop**. Do not deploy keys that one machine cannot rebuild. Send the run's link
+     to the team; it is a finding, not a typo. If an earlier step failed (no commit in the
+     paste, commit not on main, download or build failed), it says why there; fix that and run
+     it again.
 
-6. Copy `~/v2-fingerprints-mac.md` over (it holds only hashes, no secret) and compare:
+7. Open a PR that adds `docs/fingerprints-v2.md` (the Mac's table) and nothing else, with the
+   link to the green run in its description. This is the key table `verify:deployment` and the
+   committee use for v2. Once it is on main, the same workflow rebuilds that commit every
+   Wednesday and compares it with this table, so the keys stay checkable over time.
 
-   ```sh
-   npm run fingerprints -w contract-v2 -- --compare v2-fingerprints-mac.md
-   ```
+**Alternative: another computer by hand** (another Mac, or Linux), if Actions is not used:
 
-   It must say **"The two builds match"**. If it names a file: **stop**. Do not deploy keys
-   that one machine cannot rebuild. Send the output to the team; it is a finding, not a typo.
+- With the same commit:
 
-7. Open a PR that adds `docs/fingerprints-v2.md` (the Mac's table) and nothing else. This is
-   the key table `verify:deployment` and the committee use for v2.
+  ```sh
+  git clone https://github.com/hunterincoming/veilcore && cd veilcore
+  git checkout <the same commit as on the Mac>
+  npm ci
+  ```
+
+  Get the compiler as in step 1 (on Linux: `compactc_v0.36.1_x86_64-unknown-linux-musl.zip`,
+  SHA-256 `9d5fedfec9ae775a1e47d5c6f785130b314c1c5c52cd1a4eb9fc56d1fc61d23a`), then:
+
+  ```sh
+  export COMPACTC=~/compactc-0.36.1/compactc
+  npm run compact -w contract-v2
+  ```
+
+- Copy `~/v2-fingerprints-mac.md` over and compare:
+
+  ```sh
+  npm run fingerprints -w contract-v2 -- --compare v2-fingerprints-mac.md
+  ```
+
+  It must say **"The two builds match"**. If it names a file: stop, as above. Then step 7.
 
 ## E. Before the first run: the tools on the Mac
 
