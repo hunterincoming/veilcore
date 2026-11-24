@@ -188,9 +188,8 @@ pays. `npm run local:down` throws it away.
 
 ### What the package offers
 
-**Not yet on npm.** Items marked _(0.3.0)_ below are in this repository but not in 0.2.0
-on npm. They ship with 0.3.0, which is not published yet. Until then, build from this
-repository to use them.
+Items marked _(0.3.0)_ or later below need that version of the package or newer. The current
+one on npm is 0.5.0.
 
 **Connecting** (`connect`, `seedWallet`, `encryptedPrivateState`, `endpointsFor`). Bring your
 own `WalletProvider` + `MidnightProvider` and private-state providers instead if you have
