@@ -17,8 +17,8 @@
 // Pure: no Node or browser API, so the site and the kit share it.
 // SPDX-License-Identifier: Apache-2.0
 
-import mainnet from '../../deployments/mainnet.json';
-import preprod from '../../deployments/preprod.json';
+import mainnet from '../../deployments/mainnet.json' with { type: 'json' };
+import preprod from '../../deployments/preprod.json' with { type: 'json' };
 import type { KeyState } from './key-states.js';
 
 export { type KeyState, matchKeyState } from './key-states.js';

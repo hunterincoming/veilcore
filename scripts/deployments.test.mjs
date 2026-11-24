@@ -302,3 +302,29 @@ test('verify:build with nothing built cannot check (exit 2), with --partial too;
     rmSync(dir, { recursive: true, force: true });
   }
 });
+
+// The CLI tools (deploy-v2, smoke-v2, committee) load these sources with Node's own ESM loader
+// (ts-node/esm), which refuses a JSON import without `with { type: 'json' }`. A bundler doesn't
+// care, so the site and the kit's tests pass either way; only the Mac's deploy run fails.
+test('every JSON import the CLI can reach carries the json import attribute', () => {
+  const here = path.dirname(new URL(import.meta.url).pathname);
+  const root = path.join(here, '..');
+  const bad = [];
+  const walk = (dir) => {
+    for (const e of readdirSync(dir, { withFileTypes: true })) {
+      if (e.name === 'node_modules' || e.name === 'dist' || e.name === 'managed') continue;
+      const p = path.join(dir, e.name);
+      if (e.isDirectory()) walk(p);
+      else if (/\.(ts|mts|mjs)$/.test(e.name) && !/\.test\./.test(e.name)) {
+        readFileSync(p, 'utf8').split('\n').forEach((line, i) => {
+          if (/^\s*import\s.+\sfrom\s+['"][^'"]+\.json['"]/.test(line) && !/\bwith\s*\{\s*type:\s*['"]json['"]\s*\}/.test(line))
+            bad.push(`${path.relative(root, p)}:${i + 1}`);
+        });
+      }
+    }
+  };
+  for (const d of ['api/src', 'partner-kit/src', 'bboard-cli/src', 'scripts']) {
+    if (existsSync(path.join(root, d))) walk(path.join(root, d));
+  }
+  assert.deepEqual(bad, [], `JSON imports without \`with { type: 'json' }\`: ${bad.join(', ')}`);
+});
