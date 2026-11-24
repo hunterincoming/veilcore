@@ -57,6 +57,7 @@ const onChain = async (txId: string, head: string): Promise<boolean> =>
       network: 'undeployed',
       indexer: chain.endpoints.indexer,
       address: VEILCORE_ADDR,
+      contractVersion: 'v1',
       txId,
       root: kit.fromHex(head),
     })
