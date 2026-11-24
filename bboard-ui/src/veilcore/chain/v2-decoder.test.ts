@@ -13,7 +13,7 @@ import { v2LastBatchRootOf } from './v2-decoder';
 import { v1LastBatchRootOf } from './v1-decoder';
 import { lastBatchRootOf } from './anchor-decode';
 import { checkAnchorOnChain, type AnchorCheck, type AnchorCheckDeps } from './anchor-check';
-import { anchorContractsFor } from './config';
+import { anchorContractsFor, countedContractsFor } from './config';
 import { anchorLine } from '../../components/verify/anchor-words';
 import { PREPROD_PINNED, pinnedContractsFrom } from '../../../../api/src/pinned-contracts';
 
@@ -78,7 +78,16 @@ const deps = (actions: { address: string; state: string; entryPoint: string }[])
     ),
 });
 const check = (actions: Parameters<typeof deps>[0], root: string) =>
-  checkAnchorOnChain({ network: 'mainnet', txId: TX, contracts, expectedRoot: root }, deps(actions));
+  checkAnchorOnChain(
+    {
+      network: 'mainnet',
+      txId: TX,
+      contracts,
+      counted: countedContractsFor('mainnet', contracts, pinnedBoth),
+      expectedRoot: root,
+    },
+    deps(actions),
+  );
 
 describe('v2LastBatchRootOf', () => {
   it('reads the root v2’s compiled contract wrote, from ledger 9 bytes', () => {
@@ -151,6 +160,7 @@ describe('the check page with version 2 pinned in deployments/mainnet.json', () 
         network: 'mainnet',
         txId: TX,
         contracts: anchorContractsFor('mainnet', V1, undefined),
+        counted: countedContractsFor('mainnet', anchorContractsFor('mainnet', V1, undefined)),
         expectedRoot: v1Tx.root,
       },
       deps([{ address: V1, state: V1_STATE, entryPoint: 'anchorBatch' }]),

@@ -245,7 +245,12 @@ and the name without `--practice`.
     the runbook and the website wording about who holds the authority. Anyone who pinned the
     old counter in our verifier (`authorityCounter`) will see refusals until they take the
     new number.
-11. **Bring the repository in line, the same day.** Until this is done the deployment check
+11. **Superseded: do not follow this step.** It puts a 2-of-3 committee on v1 at counter 17,
+    which the launcher and v1's published key states now refuse; for the repository steps
+    after the install on v2, see [contract-v2.md](contract-v2.md) sections 5 and 6. Kept below
+    for the record only.
+
+    **Bring the repository in line, the same day.** Until this is done the deployment check
     fails, on purpose. In this order:
     1. In `deployments/mainnet.json`, in the `veilcore` contract's `maintenanceAuthority`, set
        `committee: 3, threshold: 2, counter: 17`, and rewrite its `note` to say the committee

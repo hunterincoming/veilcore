@@ -76,6 +76,47 @@ test('a pinned version 2 entry: its keys are docs/fingerprints-v2.md, its compil
   }
 });
 
+// Pinning v2 adds entries to deployments/mainnet.json; it never edits or removes v1's. The
+// fields v1's entries hold today are frozen (a SHA-256 of each one's sorted JSON, every field
+// but maintenanceAuthority, which changes when v1 is sealed). New fields, like keyStates after
+// the seal, may be added. If this fails, a v1 entry was changed: put it back.
+const V1_FROZEN = {
+  veilcore: {
+    address: 'a04de0a2684f3713276325649540c7278ffd07cba8b014e7489844f319a02347',
+    anchorBatch: '8ae5b4c15c3a20993e8d34b4022d180d95ed2d88927fca184527ca6857f06104',
+    digest: '47e9d7c10808a68e2ff4a9826cd2bdb971247c2a5aa9d2ae29dad41a6aee6952',
+  },
+  'veilcore-claims': {
+    address: 'ef763eb4ad1846b716dbfa90c00560a9a943ffb4d1fc638b0707df5adefd070d',
+    digest: '2a99bfc624633c51e3fe47676f9bd31b953dc03329fcacdf604e42abfd768353',
+  },
+};
+const V1_FIELDS = [
+  'name', 'source', 'address', 'network', 'compiler', 'compactRuntime', 'ledgerVersion', 'commit',
+  'sourceCommit', 'fingerprintsCommit', 'deployment', 'contractCode', 'circuits',
+];
+const canonical = (v) =>
+  Array.isArray(v)
+    ? `[${v.map(canonical).join(',')}]`
+    : v !== null && typeof v === 'object'
+      ? `{${Object.keys(v).sort().map((k) => `${JSON.stringify(k)}:${canonical(v[k])}`).join(',')}}`
+      : JSON.stringify(v);
+
+test('v1\'s mainnet entries never change: same addresses, same verifier keys, every field as filed', async () => {
+  const { createHash } = await import('node:crypto');
+  const d = readJson(path.join(ROOT, 'deployments', 'mainnet.json'));
+  for (const [name, want] of Object.entries(V1_FROZEN)) {
+    const all = d.contracts.filter((c) => c.name === name && isV1(c));
+    assert.equal(all.length, 1, `exactly one v1 ${name} entry in deployments/mainnet.json`);
+    const [c] = all;
+    assert.equal(c.address, want.address, `${name} address`);
+    if (want.anchorBatch) assert.equal(c.circuits.anchorBatch.verifierKey, want.anchorBatch, `${name} anchorBatch key`);
+    for (const f of V1_FIELDS) assert.ok(f in c, `${name}.${f} is still there`);
+    const kept = Object.fromEntries(V1_FIELDS.map((f) => [f, c[f]]));
+    assert.equal(createHash('sha256').update(canonical(kept)).digest('hex'), want.digest, `${name}: a filed field changed`);
+  }
+});
+
 test('the schema validator refuses what it should', () => {
   const good = readJson(path.join(ROOT, 'deployments', 'mainnet.json'));
   const bad = structuredClone(good);

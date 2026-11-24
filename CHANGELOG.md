@@ -18,7 +18,8 @@ section.
   yet, so today the list is version 1 alone and every check reads as before. Adding version 2's
   addresses to that file is the only switch.
 - The site's check page, the partner kit's `checkBatchAnchor` and an evidence bundle's
-  `check-on-midnight.mjs` look for one call across every pinned contract and read its state with
+  `check-on-midnight.mjs` look for one call across every pinned contract (the claims contract
+  counts too) and read its state with
   that contract's own decoder (version 2's reads ledger 9 bytes only). The same record on two
   contracts is two records with two dates.
 - Once more than one contract is pinned, the check page says which one gave a date, in all
@@ -29,8 +30,10 @@ section.
 - Off mainnet a check names its contract version: the test site's contracts are on
   `deployments/preprod.json`; any other test build sets `VITE_REAL_CHAIN_CONTRACT_VERSION`, or
   its check page doesn't look a date up.
-- Partner kit 0.5.0 (`@veilcore/contracts`, not yet on npm): the above, `contractVersion`, and
-  the contract named in every batch verdict. Evidence bundles now install 0.5.0, so it must be
+- Partner kit 0.5.0 (`@veilcore/contracts`, unreleased: not yet on npm, and the install lines
+  in the docs stay at 0.4.0 until it is): the above, `contractVersion`, and the contract named
+  in every batch verdict. Breaking: off mainnet, every check needs `contractVersion` unless the
+  address is in `deployments/preprod.json`. Evidence bundles now install 0.5.0, so it must be
   published to npm before a site carrying this is deployed.
 
 ### Midnight's current client tools; evidence-bundle checks work again (23 Nov 2026, not deployed yet)

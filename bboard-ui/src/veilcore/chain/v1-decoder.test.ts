@@ -15,7 +15,7 @@ import synthetic from './fixtures/anchor-indexer.json';
 import { stateLedgerOf, v1LastBatchRootOf, V1_DECODER_PINS } from './v1-decoder';
 import { lastBatchRootOf } from './anchor-decode';
 import { checkAnchorOnChain, type AnchorCheckDeps } from './anchor-check';
-import { anchorContractsFor } from './config';
+import { anchorContractsFor, countedContractsFor } from './config';
 import { ledger } from '../../../../contract/src/managed/veilcore/contract/index.js';
 import { readContractStateHex } from '../../../../contract/src/contract-state';
 
@@ -143,7 +143,13 @@ describe('the check page, on the real indexer answers', () => {
       const [tx] = g.indexerAnswer.byHash;
       expect(
         await checkAnchorOnChain(
-          { network: 'mainnet', txId: tx.hash, contracts, expectedRoot: g.root },
+          {
+            network: 'mainnet',
+            txId: tx.hash,
+            contracts,
+            counted: countedContractsFor('mainnet', contracts),
+            expectedRoot: g.root,
+          },
           deps(g.indexerAnswer),
         ),
       ).toEqual({
@@ -159,7 +165,13 @@ describe('the check page, on the real indexer answers', () => {
       const other = TXS.find((o) => o !== g)!.root;
       expect(
         await checkAnchorOnChain(
-          { network: 'mainnet', txId: tx.hash, contracts, expectedRoot: other },
+          {
+            network: 'mainnet',
+            txId: tx.hash,
+            contracts,
+            counted: countedContractsFor('mainnet', contracts),
+            expectedRoot: other,
+          },
           deps(g.indexerAnswer),
         ),
       ).toMatchObject({ status: 'failed' });
@@ -170,6 +182,7 @@ describe('the check page, on the real indexer answers', () => {
             network: 'mainnet',
             txId: tx.hash,
             contracts: [{ version: 'v1', address: 'ee'.repeat(32) }],
+            counted: [],
             expectedRoot: g.root,
           },
           deps(g.indexerAnswer),

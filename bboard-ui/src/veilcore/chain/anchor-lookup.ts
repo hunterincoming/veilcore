@@ -11,7 +11,7 @@
 import type { InclusionProof } from 'veilcore-records';
 import { NETWORK } from '../../config/network';
 import { checkAnchorOnChain, type AnchorCheck, type AnchorCheckDeps } from './anchor-check';
-import { ANCHOR_CONTRACTS, READ_INDEXERS, type PinnedContract } from './config';
+import { ANCHOR_CONTRACTS, COUNTED_CONTRACTS, READ_INDEXERS, type PinnedContract } from './config';
 
 const definite = new Map<string, AnchorCheck>();
 const inFlight = new Map<string, Promise<AnchorCheck>>();
@@ -21,6 +21,7 @@ const keyOf = (
   tx: string,
   root: string,
   contracts: readonly PinnedContract[],
+  counted: readonly string[],
   deps: AnchorCheckDeps,
 ) =>
   [
@@ -28,6 +29,7 @@ const keyOf = (
     tx.toLowerCase(),
     root.toLowerCase(),
     contracts.map((c) => `${c.version}:${c.address}`).join(' '),
+    counted.join(' '),
     deps.buildNetwork,
     deps.indexers.join(' '),
   ].join('|');
@@ -40,21 +42,23 @@ export const lookUpAnchor = (
   proof: Pick<InclusionProof, 'root' | 'anchor'>,
   deps: AnchorCheckDeps = { buildNetwork: NETWORK, indexers: READ_INDEXERS },
   contracts: readonly PinnedContract[] = ANCHOR_CONTRACTS,
+  counted: readonly string[] = COUNTED_CONTRACTS,
 ): Promise<AnchorCheck> | undefined => {
   const a = proof.anchor;
   if (!a?.txHash) return undefined;
-  const key = keyOf(a.network, a.txHash, proof.root, contracts, deps);
+  const key = keyOf(a.network, a.txHash, proof.root, contracts, counted, deps);
   const known = definite.get(key);
   if (known) return Promise.resolve(known);
   const pending = inFlight.get(key);
   if (pending) return pending;
-  const p = checkAnchorOnChain({ network: a.network, txId: a.txHash, contracts, expectedRoot: proof.root }, deps).then(
-    (r) => {
-      inFlight.delete(key);
-      if (r.status === 'checked' || r.status === 'failed' || r.status === 'not-checked') definite.set(key, r);
-      return r;
-    },
-  );
+  const p = checkAnchorOnChain(
+    { network: a.network, txId: a.txHash, contracts, counted, expectedRoot: proof.root },
+    deps,
+  ).then((r) => {
+    inFlight.delete(key);
+    if (r.status === 'checked' || r.status === 'failed' || r.status === 'not-checked') definite.set(key, r);
+    return r;
+  });
   inFlight.set(key, p);
   return p;
 };

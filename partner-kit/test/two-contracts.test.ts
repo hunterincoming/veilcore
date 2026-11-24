@@ -130,6 +130,15 @@ describe('today (v1 only): unchanged', () => {
     expect(v.accepted).toBe(false);
     expect(v.reason).toMatch(/in none of the states published for it \(x\)/);
   });
+
+  it('REFUSED: anchorBatch on v1 plus a call on the claims contract (the site refuses it too)', async () => {
+    const { verify } = await kit();
+    const claims = (mainnetJson.contracts.find((c) => c.name === 'veilcore-claims') as { address: string }).address;
+    indexer([call(V1, V1_STATE), call(claims, V1_STATE, 'proveRange')]);
+    await expect(verify.checkBatchAnchor({ ...base, root: hexRoot(v1Batch.root) })).rejects.toThrow(
+      /not a single anchorBatch call/,
+    );
+  });
 });
 
 describe('with version 2 pinned in deployments/mainnet.json', () => {

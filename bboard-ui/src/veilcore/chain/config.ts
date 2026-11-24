@@ -225,6 +225,28 @@ export const ANCHOR_CONTRACTS: readonly PinnedContract[] = anchorContractsFor(
   CHAIN_CONTRACT_VERSION,
 );
 
+/**
+ * Every contract a call on which counts against "exactly one call" (docs/contract-v2.md 3.1,
+ * rule 10.2), as the partner kit counts them (partner-kit/src/verify.ts pinnedAddressesOn):
+ * the main contracts a batch can be dated on, plus every other contract pinned on that network,
+ * the claims contract included. So a transaction with anchorBatch and a claims call is refused
+ * here as it is by the kit. Only the main contracts (`contracts`) can date a batch.
+ * Empty when there is no main contract to check against.
+ */
+export const countedContractsFor = (
+  network: string,
+  contracts: readonly PinnedContract[],
+  pinned: { readonly mainnet: readonly PinnedEntry[]; readonly preprod: readonly PinnedEntry[] } = {
+    mainnet: MAINNET_PINNED,
+    preprod: PREPROD_PINNED,
+  },
+): readonly string[] => {
+  if (contracts.length === 0) return [];
+  const listed = network === 'mainnet' ? pinned.mainnet : network === 'preprod' ? pinned.preprod : [];
+  return [...new Set([...contracts.map((c) => c.address), ...listed.map((e) => e.address)])];
+};
+export const COUNTED_CONTRACTS: readonly string[] = countedContractsFor(NETWORK, ANCHOR_CONTRACTS);
+
 const sameContract = (a: string, b: string): boolean => {
   const n = (v: string) => v.trim().toLowerCase().replace(/^0x/, '');
   return /^[0-9a-f]{64}$/.test(n(a)) && n(a) === n(b);

@@ -8,8 +8,9 @@
 //      identifier): it must exist and have succeeded in full;
 //   2. its calls on VeilCore's contracts, at the addresses this build pins (config.ts
 //      ANCHOR_CONTRACTS, from deployments/mainnet.json; never the address the registry names):
-//      exactly one across all of them, and it must be anchorBatch, the date stamp call
-//      (docs/contract-v2.md 3.1, rule 10);
+//      exactly one across all of them, the claims contract included (config.ts
+//      COUNTED_CONTRACTS), and it must be anchorBatch, the date stamp call, on a main
+//      contract (docs/contract-v2.md 3.1, rule 10);
 //   3. the contract state the network recorded right after that call: its lastBatchRoot cell
 //      must be the root the inclusion proof folds to. The contract keeps only the latest
 //      root, so the state after this one transaction is read, never the current state. The
@@ -63,6 +64,12 @@ export type AnchorCheckInput = {
   readonly txId: string;
   /** VeilCore's contracts on that network, as this build pins them (config.ts ANCHOR_CONTRACTS). */
   readonly contracts: readonly PinnedContract[];
+  /**
+   * Every pinned contract on that network whose calls count against "exactly one call", the
+   * claims contract included (config.ts COUNTED_CONTRACTS). The main contracts are counted
+   * whether or not they are listed here; only they can date a batch.
+   */
+  readonly counted: readonly string[];
   /** The batch root the inclusion proof folds to. */
   readonly expectedRoot: string;
 };
@@ -157,7 +164,12 @@ const asTxList = (v: unknown): Tx[] =>
 
 const askOne = async (
   indexer: string,
-  input: { txId: string; contracts: ReadonlyMap<string, ContractVersion>; root: string },
+  input: {
+    txId: string;
+    contracts: ReadonlyMap<string, ContractVersion>;
+    counted: ReadonlySet<string>;
+    root: string;
+  },
   deps: AnchorCheckDeps,
   rootOf: (stateHex: string, version: ContractVersion) => Promise<string>,
 ): Promise<Answer> => {
@@ -210,13 +222,13 @@ const askOne = async (
     return { kind: 'refused', reason: 'that transaction did not succeed on Midnight' };
 
   const actions = Array.isArray(tx.contractActions) ? (tx.contractActions as Action[]) : [];
-  const calls = actions.filter((a) => typeof a === 'object' && a !== null && input.contracts.has(norm(a.address)));
+  const calls = actions.filter((a) => typeof a === 'object' && a !== null && input.counted.has(norm(a.address)));
   if (calls.length === 0) return { kind: 'refused', reason: 'that transaction made no call on VeilCore’s contract' };
   // A call bundled with any other on the contract is refused outright, so the verdict never
   // depends on which point in the transaction the recorded state describes.
   if (calls.length > 1)
     return { kind: 'refused', reason: 'that transaction made more than one call on VeilCore’s contract' };
-  if (!isAnchorEntry(calls[0].entryPoint))
+  if (!input.contracts.has(norm(calls[0].address)) || !isAnchorEntry(calls[0].entryPoint))
     return {
       kind: 'refused',
       reason: 'that transaction’s call on VeilCore’s contract is not a date stamp (anchorBatch)',
@@ -258,6 +270,10 @@ export const checkAnchorOnChain = async (input: AnchorCheckInput, deps: AnchorCh
   // Address to version; an entry that is not an address is left out.
   const contracts = new Map<string, ContractVersion>();
   for (const c of input.contracts) if (HEX64.test(norm(c.address))) contracts.set(norm(c.address), c.version);
+  // Calls on any of these count against "exactly one call": the main contracts and every other
+  // pinned contract on the network (rule 10.2).
+  const counted = new Set<string>(contracts.keys());
+  for (const a of input.counted) if (HEX64.test(norm(a))) counted.add(norm(a));
   if (input.network !== deps.buildNetwork)
     return {
       status: 'not-checked',
@@ -271,7 +287,9 @@ export const checkAnchorOnChain = async (input: AnchorCheckInput, deps: AnchorCh
   if (!HEX64.test(root)) return { status: 'failed', reason: 'the batch root is not 64 hexadecimal characters' };
 
   const rootOf = async (s: string, v: ContractVersion) => (deps.rootOf ?? defaultRootOf)(s, v);
-  const answers = await Promise.all(deps.indexers.map((i) => askOne(i, { txId, contracts, root }, deps, rootOf)));
+  const answers = await Promise.all(
+    deps.indexers.map((i) => askOne(i, { txId, contracts, counted, root }, deps, rootOf)),
+  );
 
   const ok = answers.filter((a): a is Extract<Answer, { kind: 'ok' }> => a.kind === 'ok');
   const refused = answers.filter((a): a is Extract<Answer, { kind: 'refused' }> => a.kind === 'refused');
