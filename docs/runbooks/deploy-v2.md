@@ -234,17 +234,18 @@ The keys must come out byte for byte the same on another computer, or nobody can
    done
    export GNUPGHOME="$(mktemp -d)"
    gpg --import midnight-proof-server-public.asc
-   gpg --fingerprint security@midnight.foundation
    gpg --verify build-manifest.json.asc build-manifest.json
    grep image_digest build-manifest.json
-   unset GNUPGHOME; cd ~/Desktop/veilcore
+   rm -rf "$GNUPGHOME"; unset GNUPGHOME; cd ~/Desktop/veilcore
    ```
 
-   This check passes when all three of these hold:
+   This check passes when all three of these hold, in what `gpg --verify` and `grep` print:
 
-   - The fingerprint reads `2D55 ACA7 93E9 495E 4288  9A35 4523 91B0 57AD D8C7`.
    - `gpg --verify` says `Good signature from "Midnight Foundation (Proof Server Signing Key)"`.
      A warning that the key "is not certified with a trusted signature" is normal.
+   - The `Primary key fingerprint:` line that `gpg --verify` prints just below it reads exactly
+     `2D55 ACA7 93E9 495E 4288  9A35 4523 91B0 57AD D8C7`. That is the key that signed the
+     manifest, not only a key that was imported.
    - The `image_digest` line shows the same `sha256:...` as your `docker inspect` line.
 
    If any of the three differs, stop and send the output to the team.

@@ -895,7 +895,9 @@ test('proof server release check: the four ways round it are closed', async () =
   const tiedTo = (body) => ps.releaseDigests(body);
   assert.deepEqual(tiedTo(`midnightntwrk/proof-server:9.0.2@sha256:${D}`), [`sha256:${D}`]);
   assert.deepEqual(tiedTo(`docker.io/midnightntwrk/proof-server:9.0.2@sha256:${D}`), [`sha256:${D}`]);
-  assert.deepEqual(tiedTo(`Image \`midnightntwrk/proof-server:9.0.2\`: \`midnightntwrk/proof-server@sha256:${D}\``), [`sha256:${D}`]);
+  // The older 'a reference on a line with the 9.0.2 tag' path is gone: only the tagged reference counts.
+  assert.deepEqual(tiedTo(`Image \`midnightntwrk/proof-server:9.0.2\`: \`midnightntwrk/proof-server@sha256:${D}\``), []);
+  assert.deepEqual(tiedTo(`midnightntwrk/proof-server:9.0.2 midnightntwrk/proof-server@sha256:${D}`), []);
   for (const body of [
     `sha256:${D}`,
     `checksum of the binary: sha256:${D}`,
@@ -973,6 +975,27 @@ test("proof server release check: Midnight's own format (an Image line, then the
   refused(body(imageLine, `Digest: \`${D}\` (amd64 only)`), 'more on the digest line');
   refused(body(imageLine, `Checksum: \`${D}\``), 'not a Digest line');
   refused(`Digest: \`${D}\``, 'a loose digest');
+  // The whole Image line must be one of Midnight's exact forms: unknown parts are refused, not skipped.
+  const ghcrAlso = (also) => `Image: \`ghcr.io/midnight-ntwrk/proof-server:9.0.2\` (also \`${also}\`)`;
+  assert.deepEqual(ps.releaseDigests(body(ghcrAlso('midnightntwrk/proof-server:9.0.2'), digestLine)), [D]);
+  assert.deepEqual(ps.releaseDigests(body(`${imageLine}   `, `${digestLine} `)), [D], 'trailing spaces only');
+  for (const line of [
+    'Image: `ghcr.io/midnight\u2010ntwrk/proof-server:9.0.2` (also `docker.io/midnightntwrk/proof-server:9.0.2`)',
+    'Image: `ghcr.io/midnight-ntwrk/proof\u2011server:9.0.2` (also `docker.io/midnightntwrk/proof-server:9.0.2`)',
+    ghcrAlso('docker.io/midnightntwrk/proof\u2010server:9.0.2'),
+    'Image: `ghcr.io/midnight-ntwrk/proof-server` (also `docker.io/midnightntwrk/proof-server:9.0.2`)',
+    'Image: `ghcr.io/midnight-ntwrk/proof-server:9.0.1` (also `docker.io/midnightntwrk/proof-server:9.0.2`)',
+    'Image: `docker.io/midnightntwrk/proof-server:9.0.2` (also `ghcr.io/midnight-ntwrk/proof-server:9.0.2`)',
+    `${imageLine} (and \`docker.io/attacker/proof-server:9.0.2\`)`,
+    'Image: `docker.io/midnightntwrk/proof-server:9.0.2` (recommended)',
+    'Image: `docker.io/midnightntwrk/proof-server:9.0.2',
+    'Image:  `docker.io/midnightntwrk/proof-server:9.0.2`',
+    ` ${imageLine}`,
+    'Image: `docker.io/midnightntwrk/proof-server`',
+  ])
+    refused(body(line, digestLine), line);
+  for (const dl of [`Digest:  \`${D}\``, `Digest: \`${D}`, `Digest: ${D.replace('sha256', 'SHA256')}`, ` ${digestLine}`])
+    refused(body(imageLine, dl), dl);
   // Two Image blocks giving different digests for 9.0.2: refused outright.
   const other = `sha256:${'a'.repeat(64)}`;
   const two = body(imageLine, digestLine, '', 'Image: `midnightntwrk/proof-server:9.0.2`', `Digest: \`${other}\``);
