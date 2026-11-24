@@ -100,16 +100,52 @@ const TAG_ONLY = new RegExp(String.raw`${IMAGE}:9\.0\.2(?![0-9A-Za-z.+\-@])`);
 const REF_DIGEST = new RegExp(String.raw`${IMAGE}@(sha256:[0-9a-f]{64})(?![0-9a-f])`, 'g');
 
 /**
- * The digests a release text ties to `midnightntwrk/proof-server:9.0.2`, and only those: one
- * written with the tag (`...:9.0.2@sha256:...`), or a reference (`...@sha256:...`) on a line that
- * also names the image with the 9.0.2 tag. A bare `sha256:` anywhere else in the text is not one.
+ * Midnight's own release format (proof-server-9.0.1 and -9.0.2):
+ *
+ *   Image: `ghcr.io/midnight-ntwrk/proof-server:9.0.2` (also `docker.io/midnightntwrk/proof-server:9.0.2`)
+ *   Digest: `sha256:<64 hex>`
+ *
+ * An "Image:" line whose every image reference is the 9.0.2 tag of the Docker Hub image
+ * (`midnightntwrk/proof-server`, `docker.io/` allowed) or of Midnight's own ghcr.io mirror, naming
+ * the Docker Hub one at least once; and, on the IMMEDIATELY following line, only "Digest:" and
+ * one digest. Nothing else ties a digest in that format.
+ */
+const IMAGE_REF = /[A-Za-z0-9._-]+(?:\/[A-Za-z0-9._-]+)+:[A-Za-z0-9._+@:-]+/g;
+const ALLOWED_9_0_2 = new Set([
+  'midnightntwrk/proof-server:9.0.2',
+  'docker.io/midnightntwrk/proof-server:9.0.2',
+  'ghcr.io/midnight-ntwrk/proof-server:9.0.2',
+]);
+const DOCKER_HUB_9_0_2 = new Set(['midnightntwrk/proof-server:9.0.2', 'docker.io/midnightntwrk/proof-server:9.0.2']);
+const DIGEST_LINE = /^Digest:\s*`?(sha256:[0-9a-f]{64})`?\s*$/;
+
+/** Whether `line` is an "Image:" line for exactly 9.0.2 of the Docker Hub image (a ghcr.io mirror beside it is fine). */
+const isImageLine9_0_2 = (line) => {
+  const t = line.trim();
+  if (!/^Image:\s/.test(t)) return false;
+  const refs = t.match(IMAGE_REF) ?? [];
+  return refs.length > 0 && refs.every((r) => ALLOWED_9_0_2.has(r)) && refs.some((r) => DOCKER_HUB_9_0_2.has(r));
+};
+
+/**
+ * The digests a release text ties to `midnightntwrk/proof-server:9.0.2`, and only those:
+ *   - Midnight's "Image:" line, then a "Digest:" line straight after it (above);
+ *   - one reference with the tag and the digest (`...:9.0.2@sha256:...`);
+ *   - a reference (`...@sha256:...`) on a line that also names the image with the 9.0.2 tag.
+ * A bare `sha256:` anywhere else in the text is not one. More than one distinct digest is
+ * returned as found, and refused by releaseProblems.
  */
 export const releaseDigests = (body) => {
   const found = new Set();
-  for (const line of String(body ?? '').split(/\r?\n/)) {
+  const lines = String(body ?? '').split(/\r?\n/);
+  lines.forEach((line, i) => {
     for (const m of line.matchAll(TAGGED_DIGEST)) found.add(m[1]);
     if (TAG_ONLY.test(line)) for (const m of line.matchAll(REF_DIGEST)) found.add(m[1]);
-  }
+    if (isImageLine9_0_2(line) && i + 1 < lines.length) {
+      const d = DIGEST_LINE.exec(lines[i + 1].trim());
+      if (d !== null) found.add(d[1]);
+    }
+  });
   return [...found];
 };
 
@@ -136,6 +172,11 @@ export const releaseProblems = (release, digest) => {
     return [
       `Midnight's ${V2_RELEASE_TAG} release names no digest for midnightntwrk/proof-server:9.0.2 (${V2_RELEASE_PAGE}). ` +
         `${stop} Ask Midnight for it first.`,
+    ];
+  if (listed.length > 1)
+    return [
+      `Midnight's ${V2_RELEASE_TAG} release names more than one digest for midnightntwrk/proof-server:9.0.2 ` +
+        `(${listed.join(', ')}). ${stop} Send it to the team.`,
     ];
   if (!listed.includes(digestOf(digest)))
     return [

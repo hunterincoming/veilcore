@@ -931,3 +931,56 @@ test('proof server release check: the four ways round it are closed', async () =
   for (const u of wf.match(/uses:\s*\S+/g) ?? []) assert.match(u, /@[0-9a-f]{40}$/, u);
   assert.match(wf, /node scripts\/v2\/proof-server\.mjs verify/);
 });
+
+test("proof server release check: Midnight's own format (an Image line, then the Digest line)", async () => {
+  const ps = await import('./proof-server.mjs');
+  const real = JSON.parse(readFileSync(new URL('./fixtures/proof-server-9.0.2-release.json', import.meta.url), 'utf8'));
+  const D = 'sha256:787ef99db4b4706eb14d94ad389ca45f1c09bcdf740afecb01899bfbda63dc64';
+  const pulled = `midnightntwrk/proof-server@${D}`;
+  // The real release, as Midnight published it, backs the digest Docker pulled.
+  assert.deepEqual(ps.releaseDigests(real.body), [D]);
+  assert.deepEqual(ps.releaseProblems(real, pulled), []);
+  assert.match(ps.releaseProblems(real, `sha256:${'0'.repeat(64)}`).join(' '), /is not the one Midnight published/);
+  // ...and pins it, and CI's re-check passes on the pinned file.
+  const d = mkdtempSync(path.join(tmpdir(), 'ps-real-'));
+  const f = path.join(d, 'proof-server-v2.yml');
+  writeFileSync(f, readFileSync(ps.V2_PROOF_SERVER_FILE, 'utf8').replace(/@sha256:\S+/, '@sha256:FILL-IN-THE-9.0.2-DIGEST'));
+  await ps.pin({ line: pulled, release: real, file: f });
+  assert.deepEqual(ps.verifyPin(readFileSync(f, 'utf8'), real), []);
+
+  const [imageLine, digestLine, ...rest] = real.body.split('\n');
+  const body = (...lines) => lines.join('\n');
+  const refused = (b, why) => {
+    assert.deepEqual(ps.releaseDigests(b), [], b);
+    assert.match(ps.releaseProblems({ ...real, body: b }, pulled).join(' '), /names no digest for midnightntwrk\/proof-server:9\.0\.2/, b);
+    void why;
+  };
+  // The Docker Hub image alone, or with docker.io/, on the Image line is fine too.
+  assert.deepEqual(ps.releaseDigests(body('Image: `midnightntwrk/proof-server:9.0.2`', digestLine)), [D]);
+  assert.deepEqual(ps.releaseDigests(body('Image: docker.io/midnightntwrk/proof-server:9.0.2', `Digest: ${D}`)), [D]);
+  // Negative variants.
+  refused(body(imageLine, '', digestLine, ...rest), 'a blank line between them');
+  refused(body(imageLine, 'Built from release/ledger-9.1.0.2.', digestLine, ...rest), 'the digest line not adjacent');
+  refused(body(digestLine, imageLine, ...rest), 'the digest before the image');
+  refused(body(imageLine.replaceAll('9.0.2', '9.0.1'), digestLine), 'the Image line for 9.0.1');
+  refused(body('Image: `ghcr.io/midnight-ntwrk/proof-server:9.0.2` (also `docker.io/someone/proof-server:9.0.2`)', digestLine), 'another repo');
+  refused(body('Image: `ghcr.io/midnight-ntwrk/proof-server:9.0.2`', digestLine), 'the ghcr mirror alone, no Docker Hub image');
+  refused(body('Image: `docker.io/midnightntwrk/proof-server:9.0.2-rc1`', digestLine), 'a pre-release tag');
+  refused(body('Image: `docker.io/evil/midnightntwrk/proof-server:9.0.2`', digestLine), 'a lookalike path');
+  refused(body('Image: `docker.io/midnightntwrk/proof-server-fork:9.0.2`', digestLine), 'a lookalike name');
+  refused(body('Image: `midnightntwrk/proof-server:9.0.2` and `midnightntwrk/proof-server:9.0.1`', digestLine), 'two tags on one line');
+  refused(body('Images: `midnightntwrk/proof-server:9.0.2`', digestLine), 'not an Image line');
+  refused(body(imageLine, `Digest: \`${D}\` (amd64 only)`), 'more on the digest line');
+  refused(body(imageLine, `Checksum: \`${D}\``), 'not a Digest line');
+  refused(`Digest: \`${D}\``, 'a loose digest');
+  // Two Image blocks giving different digests for 9.0.2: refused outright.
+  const other = `sha256:${'a'.repeat(64)}`;
+  const two = body(imageLine, digestLine, '', 'Image: `midnightntwrk/proof-server:9.0.2`', `Digest: \`${other}\``);
+  assert.deepEqual(ps.releaseDigests(two).sort(), [D, other].sort());
+  assert.match(ps.releaseProblems({ ...real, body: two }, pulled).join(' '), /more than one digest/);
+  // The same digest twice is one digest.
+  assert.deepEqual(ps.releaseProblems({ ...real, body: body(imageLine, digestLine, '', imageLine, digestLine) }, pulled), []);
+  // Every other refusal still holds on the real body.
+  for (const over of [{ draft: true }, { prerelease: true }, { prerelease: undefined }, { tag_name: 'proof-server-9.0.1' }, { html_url: 'https://github.com/someone/midnight-ledger/releases/tag/proof-server-9.0.2' }])
+    assert.notDeepEqual(ps.releaseProblems({ ...real, ...over }, pulled), [], JSON.stringify(over));
+});
