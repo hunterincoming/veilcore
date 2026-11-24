@@ -93,6 +93,12 @@ jobs:
             echo "::error::No fingerprint rows found in $source. Paste the whole file."
             exit 1
           fi
+          # A file named twice would let the last row win in the compare; refuse it.
+          dups="$(grep '^| `' "$clean" | cut -d'`' -f2 | sort | uniq -d)"
+          if [ -n "$dups" ]; then
+            echo "::error::$source names the same file more than once: $(echo "$dups" | tr '\n' ' ')"
+            exit 1
+          fi
           git checkout --quiet --detach "$commit"
           echo "Comparing with $source: commit $commit, $rows files." | tee -a "$GITHUB_STEP_SUMMARY"
           { echo "build=true"; echo "compare=true"; } >> "$GITHUB_OUTPUT"
