@@ -130,7 +130,9 @@ export const keyProblems = (managed: string = MANAGED): string[] =>
 /** The contract addresses pinned for mainnet (deployments/mainnet.json, contracts[].address). */
 export const pinnedMainnetAddresses = (file: string = path.join(ROOT, 'deployments', 'mainnet.json')): string[] => {
   const d = JSON.parse(readFileSync(file, 'utf8')) as { contracts?: { address?: unknown }[] };
-  return (d.contracts ?? []).map((c) => String(c.address ?? '').toLowerCase()).filter((a) => /^[0-9a-f]{64}$/.test(a));
+  return (d.contracts ?? [])
+    .map((c) => (typeof c.address === 'string' ? c.address : '').toLowerCase())
+    .filter((a) => /^[0-9a-f]{64}$/.test(a));
 };
 
 /**
