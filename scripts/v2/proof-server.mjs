@@ -215,20 +215,25 @@ export const checkRunningProofServer = async (url, fetchImpl = fetch) => {
 };
 
 /** The release JSON: from a file saved with curl, or fetched from api.github.com. */
-const readRelease = async (file, fetchImpl = fetch) => {
+export const readRelease = async (file, fetchImpl = fetch) => {
   if (file !== undefined) return JSON.parse(readFileSync(file, 'utf8'));
   let res;
+  // In CI the job's read-only GITHUB_TOKEN lifts GitHub's limit for unsigned requests (60 an
+  // hour, shared by every job on the runner's address), which otherwise fails this check at random.
+  const token = process.env.GITHUB_TOKEN?.trim();
+  const headers = { accept: 'application/vnd.github+json', 'user-agent': 'veilcore-proof-server-pin' };
+  if (token) headers.authorization = `Bearer ${token}`;
   for (let attempt = 1; ; attempt++) {
     res = await fetchImpl(V2_RELEASE_API, {
-      headers: { accept: 'application/vnd.github+json', 'user-agent': 'veilcore-proof-server-pin' },
+      headers,
       signal: AbortSignal.timeout(20_000),
     });
-    if (res.ok || attempt === 3 || res.status === 404) break;
+    if (res.ok || attempt === 3 || res.status === 404 || res.status === 401) break;
     await new Promise((r) => setTimeout(r, 5_000 * attempt));
   }
   if (!res.ok)
     throw new Error(
-      `GitHub answered HTTP ${res.status} for ${V2_RELEASE_API}. Nothing was written. If it is a rate limit, save it with ` +
+      `GitHub answered HTTP ${res.status} for ${V2_RELEASE_API}. Nothing was written. A 401 means a GITHUB_TOKEN in this shell is stale: unset it and run this again. If it is a rate limit, save it with ` +
         `curl -s ${V2_RELEASE_API} -o ~/veilcore-v2/proof-server-9.0.2-release.json and add --release-json with that file.`,
     );
   return res.json();
