@@ -820,6 +820,8 @@ test('proof server 9.0.2: pinned only when Midnight\'s GitHub release names the 
   const D = 'c'.repeat(64);
   const line = `midnightntwrk/proof-server@sha256:${D}`;
   const release = (over = {}) => ({
+    url: 'https://api.github.com/repos/midnightntwrk/midnight-ledger/releases/123456',
+    html_url: 'https://github.com/midnightntwrk/midnight-ledger/releases/tag/proof-server-9.0.2',
     tag_name: 'proof-server-9.0.2',
     draft: false,
     prerelease: false,
@@ -830,9 +832,9 @@ test('proof server 9.0.2: pinned only when Midnight\'s GitHub release names the 
   assert.deepEqual(ps.releaseProblems(release(), `sha256:${D}`), []);
   assert.equal(ps.digestOf(line), `sha256:${D}`);
   // Mandatory: no digest in the release, another digest, another tag, a pre-release: refused.
-  assert.match(ps.releaseProblems(release({ body: 'Fixes a crash.' }), line).join(' '), /names no sha256 digest.*Do not pin/);
+  assert.match(ps.releaseProblems(release({ body: 'Fixes a crash.' }), line).join(' '), /names no digest for midnightntwrk\/proof-server:9\.0\.2.*Do not pin/);
   assert.match(
-    ps.releaseProblems(release({ body: `sha256:${'d'.repeat(64)}` }), line).join(' '),
+    ps.releaseProblems(release({ body: `midnightntwrk/proof-server:9.0.2@sha256:${'d'.repeat(64)}` }), line).join(' '),
     /is not the one Midnight published.*Do not pin/,
   );
   assert.match(ps.releaseProblems(release({ tag_name: 'proof-server-9.0.1' }), line).join(' '), /not proof-server-9\.0\.2/);
@@ -846,10 +848,86 @@ test('proof server 9.0.2: pinned only when Midnight\'s GitHub release names the 
   const f = path.join(d, 'proof-server-v2.yml');
   const original = readFileSync(ps.V2_PROOF_SERVER_FILE, 'utf8');
   writeFileSync(f, original);
-  await assert.rejects(ps.pin({ line, release: release({ body: 'no digest' }), file: f }), /names no sha256 digest/);
+  await assert.rejects(ps.pin({ line, release: release({ body: 'no digest' }), file: f }), /names no digest for midnightntwrk\/proof-server:9\.0\.2/);
   assert.equal(readFileSync(f, 'utf8'), original, 'nothing written on a refusal');
   const said = await ps.pin({ line, release: release(), file: f });
   assert.match(said.join('\n'), /the one Midnight published in proof-server-9\.0\.2/);
   assert.equal(ps.readPin(readFileSync(f, 'utf8')).digest, D);
   assert.deepEqual(ps.pinProblems(readFileSync(f, 'utf8')), []);
+});
+
+test('proof server release check: the four ways round it are closed', async () => {
+  const ps = await import('./proof-server.mjs');
+  const D = 'e'.repeat(64);
+  const line = `sha256:${D}`;
+  const good = {
+    url: 'https://api.github.com/repos/midnightntwrk/midnight-ledger/releases/987',
+    html_url: 'https://github.com/midnightntwrk/midnight-ledger/releases/tag/proof-server-9.0.2',
+    tag_name: 'proof-server-9.0.2',
+    draft: false,
+    prerelease: false,
+    body: `docker pull midnightntwrk/proof-server:9.0.2@sha256:${D}`,
+  };
+  assert.deepEqual(ps.releaseProblems(good, line), []);
+
+  // 1. draft and prerelease must both be there and false: a missing or odd value is a refusal.
+  for (const over of [{ draft: undefined }, { prerelease: undefined }, { draft: 'false' }, { prerelease: 0 }, { prerelease: null }]) {
+    const r = { ...good, ...over };
+    for (const k of Object.keys(over)) if (over[k] === undefined) delete r[k];
+    assert.match(ps.releaseProblems(r, line).join(' '), /does not say it is a published, final release/, JSON.stringify(over));
+  }
+
+  // 2. The release must be midnight-ledger's, by its own URLs.
+  for (const over of [
+    { html_url: 'https://github.com/someone/midnight-ledger/releases/tag/proof-server-9.0.2' },
+    { html_url: 'https://github.com/midnightntwrk/midnight-ledger/releases/tag/proof-server-9.0.2-rc1' },
+    { html_url: undefined },
+  ])
+    assert.match(ps.releaseProblems({ ...good, ...over }, line).join(' '), /release's page is/);
+  for (const over of [
+    { url: 'https://api.github.com/repos/someone/midnight-ledger/releases/987' },
+    { url: 'https://api.github.com/repos/midnightntwrk/midnight-ledger/releases/987/../../../x' },
+    { url: undefined },
+  ])
+    assert.match(ps.releaseProblems({ ...good, ...over }, line).join(' '), /not one of midnightntwrk\/midnight-ledger's/);
+
+  // 3. Only a digest tied to midnightntwrk/proof-server:9.0.2 counts.
+  const tiedTo = (body) => ps.releaseDigests(body);
+  assert.deepEqual(tiedTo(`midnightntwrk/proof-server:9.0.2@sha256:${D}`), [`sha256:${D}`]);
+  assert.deepEqual(tiedTo(`docker.io/midnightntwrk/proof-server:9.0.2@sha256:${D}`), [`sha256:${D}`]);
+  assert.deepEqual(tiedTo(`Image \`midnightntwrk/proof-server:9.0.2\`: \`midnightntwrk/proof-server@sha256:${D}\``), [`sha256:${D}`]);
+  for (const body of [
+    `sha256:${D}`,
+    `checksum of the binary: sha256:${D}`,
+    `midnightntwrk/proof-server:9.0.1@sha256:${D}`,
+    `midnightntwrk/proof-server:9.0.2-rc1@sha256:${D}`,
+    `midnightntwrk/proof-server:9.0.2-rc1 midnightntwrk/proof-server@sha256:${D}`,
+    `midnightntwrk/proof-server:9.0.21@sha256:${D}`,
+    `evil/midnightntwrk/proof-server:9.0.2@sha256:${D}`,
+    `midnightntwrk/proof-server-fork:9.0.2@sha256:${D}`,
+    // the tag on one line, the reference on another
+    `midnightntwrk/proof-server:9.0.2\nmidnightntwrk/proof-server@sha256:${D}`,
+  ]) {
+    assert.deepEqual(tiedTo(body), [], body);
+    assert.match(ps.releaseProblems({ ...good, body }, line).join(' '), /names no digest for midnightntwrk\/proof-server:9\.0\.2/, body);
+  }
+
+  // 4. CI's independent re-check: the pinned digest against the release CI fetched.
+  const placeholder = readFileSync(ps.V2_PROOF_SERVER_FILE, 'utf8').replace(/@sha256:\S+/, '@sha256:FILL-IN-THE-9.0.2-DIGEST');
+  assert.deepEqual(ps.verifyPin(placeholder, undefined), [], 'the placeholder: nothing pinned, every tool refuses');
+  const pinned = ps.withDigest(placeholder, line);
+  assert.deepEqual(ps.verifyPin(pinned, good), []);
+  assert.match(ps.verifyPin(pinned, { ...good, body: `midnightntwrk/proof-server:9.0.2@sha256:${'f'.repeat(64)}` }).join(' '), /not the one Midnight published/);
+  assert.match(ps.verifyPin(pinned, { ...good, prerelease: true }).join(' '), /published, final release/);
+  assert.match(ps.verifyPin(pinned, undefined).join(' '), /not a GitHub release/);
+  assert.match(ps.verifyPin(pinned.replace(':9.0.2@', ':9.0.1@'), good).join(' '), /9\.0\.1; contract v2 needs 9\.0\.2/);
+  assert.match(ps.verifyPin(placeholder.replace(':9.0.2@', ':9.0.1@'), good).join(' '), /9\.0\.1/);
+
+  // The workflow that runs it: minimal, read-only, no secrets, pinned actions.
+  const wf = readFileSync(path.join(path.dirname(ps.V2_PROOF_SERVER_FILE), '..', '.github', 'workflows', 'proof-server-pin.yaml'), 'utf8');
+  assert.match(wf, /bboard-cli\/proof-server-v2\.yml/);
+  assert.match(wf, /^permissions:\s*\n\s+contents: read\s*$/m);
+  assert.doesNotMatch(wf, /pull_request_target|secrets\.|GITHUB_TOKEN|: *write/);
+  for (const u of wf.match(/uses:\s*\S+/g) ?? []) assert.match(u, /@[0-9a-f]{40}$/, u);
+  assert.match(wf, /node scripts\/v2\/proof-server\.mjs verify/);
 });

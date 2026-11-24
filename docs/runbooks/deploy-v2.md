@@ -212,7 +212,9 @@ The keys must come out byte for byte the same on another computer, or nobody can
 
    - `curl` fails, because there is no such release;
    - the `grep` prints nothing, because the release names no digest;
-   - none of the lines it prints is exactly the `sha256:...` part of your `docker inspect` line.
+   - none of the lines it prints is exactly the `sha256:...` part of your `docker inspect` line;
+   - the release page does not show that digest next to `midnightntwrk/proof-server:9.0.2`, or
+     marks the release as a pre-release.
 
    Send both outputs to the team instead. The pin command below makes the same comparison
    itself and refuses in the same cases, so it cannot pin an image the release does not name.
@@ -243,8 +245,11 @@ The keys must come out byte for byte the same on another computer, or nobody can
    proof-server-9.0.2". If it refuses, nothing was written: stop and send its message to the team.
 
    Open the pull request at
-   https://github.com/hunterincoming/veilcore/pull/new/pin/proof-server-9.0.2, wait for every
-   check to pass, merge it, then run `git checkout main && git pull --ff-only`.
+   https://github.com/hunterincoming/veilcore/pull/new/pin/proof-server-9.0.2 and wait for every
+   check to pass. One of them, **Proof server pin**, fetches Midnight's release itself, on
+   GitHub's machines, and fails unless the release ties the pinned digest to
+   `midnightntwrk/proof-server:9.0.2`. If it fails, do not merge. When everything passes, merge,
+   then run `git checkout main && git pull --ff-only`.
 
    You can instead send Claude the `docker inspect` line. Claude then runs the same `pin`
    command, which reads the release itself and refuses on any mismatch, before it opens that

@@ -1,0 +1,37 @@
+# Independent re-check of the proof server 9.0.2 pin (scripts/v2/proof-server.mjs, verify):
+# whenever bboard-cli/proof-server-v2.yml changes, CI fetches Midnight's GitHub release
+# (midnightntwrk/midnight-ledger, tag proof-server-9.0.2) itself and fails unless it names the
+# pinned digest for midnightntwrk/proof-server:9.0.2. The proof server sees every secret of every
+# v2 call, so the pin is never taken on one machine's word. It only reads, and uses no secret or token.
+name: Proof server pin
+
+on:
+  pull_request:
+    paths:
+      - bboard-cli/proof-server-v2.yml
+      - scripts/v2/proof-server.mjs
+      - .github/workflows/proof-server-pin.yaml
+  push:
+    branches: [main]
+    paths:
+      - bboard-cli/proof-server-v2.yml
+      - scripts/v2/proof-server.mjs
+      - .github/workflows/proof-server-pin.yaml
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  #v7.0.1
+        with:
+          persist-credentials: false
+
+      # No npm install: the script uses only Node's own modules and fetch.
+      - name: The pinned digest is the one in Midnight's release
+        run: |
+          node scripts/v2/proof-server.mjs verify

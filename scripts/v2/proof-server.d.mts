@@ -17,3 +17,5 @@ export const V2_RELEASE_PAGE: string;
 export function digestOf(line: string): string | undefined;
 export function releaseProblems(release: unknown, digest: string): string[];
 export function pin(o: { line: string; release: unknown; file?: string }): Promise<string[]>;
+export function releaseDigests(body: string): string[];
+export function verifyPin(yml: string, release: unknown): string[];

@@ -16,6 +16,8 @@
 //        proof-server-9.0.2 and names exactly that digest. Otherwise it writes nothing.
 //   node scripts/v2/proof-server.mjs show
 //        print what the file pins, or what is wrong
+//   node scripts/v2/proof-server.mjs verify
+//        CI's independent re-check: fetch the release itself and fail unless it backs the pin
 //
 // A digest is public (it names an image, it unlocks nothing). Docs: docs/runbooks/deploy-v2.md, step 8.
 //
@@ -89,10 +91,33 @@ export const withDigest = (yml, digest) => {
 /** The digest in a `docker inspect` line, `sha256:<64 hex>` or the whole line; undefined if it is not one. */
 export const digestOf = (line) => /^(?:midnightntwrk\/proof-server@)?(sha256:[0-9a-f]{64})$/.exec(String(line).trim())?.[1];
 
+const IMAGE = String.raw`(?<![A-Za-z0-9._/-])(?:docker\.io/)?midnightntwrk/proof-server`;
+/** `midnightntwrk/proof-server:9.0.2@sha256:<hex>`: the tag and the digest in one reference. */
+const TAGGED_DIGEST = new RegExp(String.raw`${IMAGE}:9\.0\.2@(sha256:[0-9a-f]{64})(?![0-9a-f])`, 'g');
+/** `midnightntwrk/proof-server:9.0.2` as a whole tag (not 9.0.2-rc1, 9.0.21, 9.0.2.1). */
+const TAG_ONLY = new RegExp(String.raw`${IMAGE}:9\.0\.2(?![0-9A-Za-z.+\-@])`);
+/** `midnightntwrk/proof-server@sha256:<hex>`: the reference form docker inspect prints. */
+const REF_DIGEST = new RegExp(String.raw`${IMAGE}@(sha256:[0-9a-f]{64})(?![0-9a-f])`, 'g');
+
+/**
+ * The digests a release text ties to `midnightntwrk/proof-server:9.0.2`, and only those: one
+ * written with the tag (`...:9.0.2@sha256:...`), or a reference (`...@sha256:...`) on a line that
+ * also names the image with the 9.0.2 tag. A bare `sha256:` anywhere else in the text is not one.
+ */
+export const releaseDigests = (body) => {
+  const found = new Set();
+  for (const line of String(body ?? '').split(/\r?\n/)) {
+    for (const m of line.matchAll(TAGGED_DIGEST)) found.add(m[1]);
+    if (TAG_ONLY.test(line)) for (const m of line.matchAll(REF_DIGEST)) found.add(m[1]);
+  }
+  return [...found];
+};
+
 /**
  * Why `release` (the GitHub API's JSON for midnight-ledger's proof-server-9.0.2 release) does not
- * back `digest`; empty when it does. Refused: another tag, a draft or pre-release, a release that
- * names no digest, and a digest the release does not name.
+ * back `digest`; empty when it does. It must be that repository's release with that tag (by its
+ * own URLs), say outright that it is neither a draft nor a pre-release, and tie exactly this
+ * digest to midnightntwrk/proof-server:9.0.2. Anything missing is a refusal.
  */
 export const releaseProblems = (release, digest) => {
   const stop = 'Nothing was written. Do not pin this image.';
@@ -100,16 +125,38 @@ export const releaseProblems = (release, digest) => {
   if (release === null || typeof release !== 'object' || typeof release.tag_name !== 'string')
     return [`That is not a GitHub release (${V2_RELEASE_PAGE}). ${stop}`];
   if (release.tag_name !== V2_RELEASE_TAG) return [`The release is ${release.tag_name}, not ${V2_RELEASE_TAG}. ${stop}`];
-  if (release.draft === true || release.prerelease === true) return [`${V2_RELEASE_TAG} is a draft or a pre-release. ${stop}`];
-  const listed = [...new Set(String(release.body ?? '').match(/sha256:[0-9a-f]{64}/g) ?? [])];
+  if (release.html_url !== V2_RELEASE_PAGE)
+    return [`The release's page is ${String(release.html_url)}, not ${V2_RELEASE_PAGE}. ${stop}`];
+  if (typeof release.url !== 'string' || !/^https:\/\/api\.github\.com\/repos\/midnightntwrk\/midnight-ledger\/releases\/\d+$/.test(release.url))
+    return [`The release is not one of midnightntwrk/midnight-ledger's (${String(release.url)}). ${stop}`];
+  if (release.draft !== false || release.prerelease !== false)
+    return [`${V2_RELEASE_TAG} does not say it is a published, final release (draft: ${String(release.draft)}, pre-release: ${String(release.prerelease)}). ${stop}`];
+  const listed = releaseDigests(release.body);
   if (listed.length === 0)
-    return [`Midnight's ${V2_RELEASE_TAG} release names no sha256 digest (${V2_RELEASE_PAGE}). ${stop} Ask Midnight for it first.`];
+    return [
+      `Midnight's ${V2_RELEASE_TAG} release names no digest for midnightntwrk/proof-server:9.0.2 (${V2_RELEASE_PAGE}). ` +
+        `${stop} Ask Midnight for it first.`,
+    ];
   if (!listed.includes(digestOf(digest)))
     return [
-      `The digest Docker pulled (${digestOf(digest)}) is not the one Midnight published for ${V2_RELEASE_TAG} ` +
+      `The digest Docker pulled (${digestOf(digest)}) is not the one Midnight published for midnightntwrk/proof-server:9.0.2 ` +
         `(${listed.join(', ')}). ${stop} Send both lines to the team.`,
     ];
   return [];
+};
+
+/**
+ * The independent re-check CI runs whenever the pin changes: the digest in `yml` against the
+ * release fetched by CI itself. Empty when it matches, or when the file still holds the
+ * placeholder (then every v2 tool refuses to start, so there is nothing to vouch for).
+ */
+export const verifyPin = (yml, release) => {
+  const pin = readPin(yml);
+  if (pin === undefined) return [`bboard-cli/${V2_PROOF_SERVER_FILE_NAME} names no proof-server image.`];
+  if (pin.pinned && !pin.filled && pin.tag === V2_PROOF_SERVER_TAG) return [];
+  const p = pinProblems(yml);
+  if (p.length > 0) return p;
+  return releaseProblems(release, `sha256:${pin.digest}`);
 };
 
 /**
@@ -140,10 +187,15 @@ export const checkRunningProofServer = async (url, fetchImpl = fetch) => {
 /** The release JSON: from a file saved with curl, or fetched from api.github.com. */
 const readRelease = async (file, fetchImpl = fetch) => {
   if (file !== undefined) return JSON.parse(readFileSync(file, 'utf8'));
-  const res = await fetchImpl(V2_RELEASE_API, {
-    headers: { accept: 'application/vnd.github+json' },
-    signal: AbortSignal.timeout(20_000),
-  });
+  let res;
+  for (let attempt = 1; ; attempt++) {
+    res = await fetchImpl(V2_RELEASE_API, {
+      headers: { accept: 'application/vnd.github+json', 'user-agent': 'veilcore-proof-server-pin' },
+      signal: AbortSignal.timeout(20_000),
+    });
+    if (res.ok || attempt === 3 || res.status === 404) break;
+    await new Promise((r) => setTimeout(r, 5_000 * attempt));
+  }
   if (!res.ok)
     throw new Error(
       `GitHub answered HTTP ${res.status} for ${V2_RELEASE_API}. Nothing was written. If it is a rate limit, save it with ` +
@@ -178,6 +230,20 @@ const main = async (argv) => {
     for (const l of await pin({ line: value ?? '', release: await readRelease(releaseFile) })) console.log(l);
     return 0;
   }
+  if (cmd === 'verify') {
+    // CI's independent re-check (.github/workflows/proof-server-pin.yaml).
+    const yml = readFileSync(V2_PROOF_SERVER_FILE, 'utf8');
+    const pinned = readPin(yml);
+    if (pinned !== undefined && pinned.pinned && !pinned.filled) {
+      console.log('Not pinned yet (the placeholder): every v2 tool refuses to start. Nothing to check.');
+      return verifyPin(yml, undefined).length === 0 ? 0 : 1;
+    }
+    const p = verifyPin(yml, await readRelease(undefined));
+    for (const l of p) console.log(l);
+    if (p.length > 0) return 1;
+    console.log(`OK: the pinned digest sha256:${pinned.digest} is the one Midnight published in ${V2_RELEASE_TAG}.`);
+    return 0;
+  }
   if (cmd === 'show') {
     const p = filePinProblems();
     if (p.length > 0) {
@@ -188,7 +254,7 @@ const main = async (argv) => {
     console.log(`proof server OK: midnightntwrk/proof-server:${pinned.tag}@sha256:${pinned.digest}`);
     return 0;
   }
-  console.log('Usage: node scripts/v2/proof-server.mjs pin "<docker inspect line>" [--release-json FILE] | show');
+  console.log('Usage: node scripts/v2/proof-server.mjs pin "<docker inspect line>" [--release-json FILE] | show | verify');
   return 2;
 };
 
