@@ -35,6 +35,10 @@ export const verify = {
   'app.verify.anchor.lookingUp': '{network}でそのトランザクションを調べています…',
   'app.verify.anchor.twoIndexers': '別々の2つのMidnightインデクサーが同じ答えを返しました。',
   'app.verify.anchor.contract': 'この日付はVeilCoreコントラクトのバージョン{version}によるものです。',
+  'app.verify.anchor.keys.oneKey': 'このコントラクトを変更できるのは1つの鍵のみで、まだ委員会に引き渡されていません。',
+  'app.verify.anchor.keys.committee':
+    'このコントラクトを変更できるのは{committee}人中{threshold}人の委員会です（{committee}人のメンバーのうち{threshold}人の同意が必要）。',
+  'app.verify.anchor.keys.retired': 'このコントラクトは誰も変更できません。',
   'app.verify.anchor.checked':
     'Midnightで確認しました：このバッチのルートは、ブロック {block} のトランザクション {tx} により、{at}に書き込まれました。{contract}{two}{test}',
   'app.verify.anchor.failed':

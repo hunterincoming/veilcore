@@ -20,6 +20,15 @@
 // The same transaction listed twice with different contents is refused too.
 // With a second indexer configured, both are asked and must give the same answer.
 //
+// Once more than one contract is pinned (or for any contract other than version 1), the
+// maintenance authority in that same state (who can change the contract's circuits) is judged
+// against the pinned entry's published key states, as the partner kit does on mainnet
+// (docs/contract-v2.md 3.3, partner-kit/src/verify.ts checkBatchAnchor): a state in none of them
+// is refused, and for version 2 the page says which one it was in ("one key, not yet handed to
+// the committee", or "held by the 2-of-3 committee"). It comes from the state the network
+// recorded, never from fields the contract keeps about itself. With version 1 alone (mainnet
+// today) none of this runs and the page reads as it always has.
+//
 // What it shows: the root (and so every record in the batch) existed by that block. Not
 // who wrote it: anchorBatch is open to anyone by design, and a batch says nothing about who
 // holds a record.
@@ -30,6 +39,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import type { ContractVersion, PinnedContract } from './config';
+import { type AuthorityReport, type KeyState, authorityReportOf, matchKeyState } from '../../../../api/src/key-states';
 
 export type AnchorCheck =
   /** Every step above passed, on every configured indexer. */
@@ -49,6 +59,12 @@ export type AnchorCheck =
        * for any contract other than version 1. With version 1 alone, the line reads as before.
        */
       readonly nameContract?: boolean;
+      /**
+       * The published key state the contract's maintenance authority was in at that call
+       * (docs/contract-v2.md 3.3), from the pinned entry. Only for a contract other than
+       * version 1, and only once it is judged (see above): the page shows it beside the date.
+       */
+      readonly keyState?: KeyState;
     }
   /** An indexer answered, and its answer does not bear out the registry's report. */
   | { readonly status: 'failed'; readonly reason: string }
@@ -86,7 +102,15 @@ export type AnchorCheckDeps = {
    * was on (anchor-decode.ts); loaded on first use otherwise.
    */
   readonly rootOf?: (stateHex: string, version: ContractVersion) => string | Promise<string>;
+  /**
+   * Reads the maintenance authority from that same state, with the same version's decoder
+   * (anchor-decode.ts); loaded on first use otherwise.
+   */
+  readonly authorityOf?: (stateHex: string, version: ContractVersion) => AuthorityLike | Promise<AuthorityLike>;
 };
+
+/** A state's maintenance authority, as the decoders read it (ContractState.maintenanceAuthority). */
+type AuthorityLike = { readonly committee: readonly unknown[]; readonly threshold: number; readonly counter: bigint };
 
 /** The entry point of the date stamp call (contract/src/veilcore.compact, anchorBatch). */
 export const ANCHOR_ENTRY_POINT = 'anchorBatch';
@@ -145,7 +169,17 @@ export const isAnchorEntry = (raw: unknown): boolean => {
 
 /** One indexer's answer, judged on its own. */
 type Answer =
-  | { kind: 'ok'; txHash: string; blockHeight: number; blockTime: number; root: string; address: string }
+  | {
+      kind: 'ok';
+      txHash: string;
+      blockHeight: number;
+      blockTime: number;
+      root: string;
+      address: string;
+      /** Only when the key states were judged. */
+      authority?: AuthorityReport;
+      keyState?: KeyState;
+    }
   | { kind: 'refused'; reason: string }
   | { kind: 'unreachable'; reason: string };
 
@@ -169,9 +203,12 @@ const askOne = async (
     contracts: ReadonlyMap<string, ContractVersion>;
     counted: ReadonlySet<string>;
     root: string;
+    /** Per main contract: the key states to judge its state against; absent when not judged. */
+    judge: ReadonlyMap<string, readonly KeyState[]>;
   },
   deps: AnchorCheckDeps,
   rootOf: (stateHex: string, version: ContractVersion) => Promise<string>,
+  authorityOf: (stateHex: string, version: ContractVersion) => Promise<AuthorityLike>,
 ): Promise<Answer> => {
   let body: { data?: { byHash?: unknown; byId?: unknown } | null; errors?: unknown };
   try {
@@ -248,6 +285,26 @@ const askOne = async (
   if (written !== input.root)
     return { kind: 'refused', reason: `that transaction wrote a different batch root (${short(written)})` };
 
+  // Who could change the contract at that call, from the state itself, judged against the
+  // pinned entry's published key states (docs/contract-v2.md 3.3).
+  const keyStates = input.judge.get(norm(calls[0].address));
+  let authority: AuthorityReport | undefined;
+  let keyState: KeyState | undefined;
+  if (keyStates !== undefined) {
+    try {
+      authority = authorityReportOf(await authorityOf(stateHex, version));
+    } catch {
+      return { kind: 'refused', reason: 'the contract state after that call could not be read as VeilCore’s' };
+    }
+    keyState = matchKeyState(keyStates, authority);
+    if (keyState === undefined)
+      return {
+        kind: 'refused',
+        reason:
+          'the keys that can change VeilCore’s contract were, at that call, in none of the states VeilCore published for it',
+      };
+  }
+
   // The block is the date. An answer that doesn't say which block, or when, dates nothing.
   const h = tx.block?.height;
   const blockHeight = typeof h === 'number' && Number.isSafeInteger(h) && h >= 0 ? h : undefined;
@@ -257,11 +314,32 @@ const askOne = async (
       kind: 'refused',
       reason: 'the indexer didn’t say when: it gave no block height or time for that transaction',
     };
-  return { kind: 'ok', txHash, blockHeight, blockTime, root: written, address: norm(calls[0].address) };
+  return {
+    kind: 'ok',
+    txHash,
+    blockHeight,
+    blockTime,
+    root: written,
+    address: norm(calls[0].address),
+    ...(authority === undefined ? {} : { authority }),
+    ...(keyState === undefined ? {} : { keyState }),
+  };
 };
 
 const defaultRootOf = async (stateHex: string, version: ContractVersion): Promise<string> =>
   (await import('./anchor-decode')).lastBatchRootOf(stateHex, version);
+
+const defaultAuthorityOf = async (stateHex: string, version: ContractVersion): Promise<AuthorityLike> =>
+  (await import('./anchor-decode')).maintenanceAuthorityOf(stateHex, version);
+
+const sameAuthority = (a: AuthorityReport | undefined, b: AuthorityReport | undefined): boolean =>
+  a === b ||
+  (a !== undefined &&
+    b !== undefined &&
+    a.committee === b.committee &&
+    a.threshold === b.threshold &&
+    a.counter === b.counter &&
+    a.retired === b.retired);
 
 /** Look the registry's anchor up on Midnight. Never throws. */
 export const checkAnchorOnChain = async (input: AnchorCheckInput, deps: AnchorCheckDeps): Promise<AnchorCheck> => {
@@ -286,9 +364,21 @@ export const checkAnchorOnChain = async (input: AnchorCheckInput, deps: AnchorCh
     return { status: 'failed', reason: 'the registry’s transaction reference is not a transaction id' };
   if (!HEX64.test(root)) return { status: 'failed', reason: 'the batch root is not 64 hexadecimal characters' };
 
+  // The key states are judged once the date has to be named with its contract (more than one
+  // pinned, or a contract other than version 1), for every pinned entry that lists them: as the
+  // partner kit does on mainnet. With version 1 alone nothing changes.
+  const several = contracts.size > 1;
+  const judge = new Map<string, readonly KeyState[]>();
+  for (const c of input.contracts) {
+    const a = norm(c.address);
+    if (contracts.get(a) === c.version && c.keyStates !== undefined && (several || c.version !== 'v1'))
+      judge.set(a, c.keyStates);
+  }
+
   const rootOf = async (s: string, v: ContractVersion) => (deps.rootOf ?? defaultRootOf)(s, v);
+  const authorityOf = async (s: string, v: ContractVersion) => (deps.authorityOf ?? defaultAuthorityOf)(s, v);
   const answers = await Promise.all(
-    deps.indexers.map((i) => askOne(i, { txId, contracts, counted, root }, deps, rootOf)),
+    deps.indexers.map((i) => askOne(i, { txId, contracts, counted, root, judge }, deps, rootOf, authorityOf)),
   );
 
   const ok = answers.filter((a): a is Extract<Answer, { kind: 'ok' }> => a.kind === 'ok');
@@ -313,7 +403,8 @@ export const checkAnchorOnChain = async (input: AnchorCheckInput, deps: AnchorCh
       a.blockHeight !== first.blockHeight ||
       a.blockTime !== first.blockTime ||
       a.root !== first.root ||
-      a.address !== first.address,
+      a.address !== first.address ||
+      !sameAuthority(a.authority, first.authority),
   );
   if (differs) return { status: 'failed', reason: 'the two indexers disagree about that transaction' };
   const version = contracts.get(first.address) as ContractVersion;
@@ -324,6 +415,9 @@ export const checkAnchorOnChain = async (input: AnchorCheckInput, deps: AnchorCh
     blockTime: first.blockTime,
     indexers: ok.length,
     contract: { version, address: first.address },
-    nameContract: contracts.size > 1 || version !== 'v1',
+    nameContract: several || version !== 'v1',
+    // Shown beside the date for version 2 only, as the kit does: version 1's states are its
+    // deploy and its seal, and its line reads as before.
+    ...(version !== 'v1' && first.keyState !== undefined ? { keyState: first.keyState } : {}),
   };
 };

@@ -19,7 +19,9 @@
  */
 import { createHash } from 'node:crypto';
 import { FINGERPRINTS } from '../../partner-kit/src/fingerprints.js';
-import { type KeyState, matchKeyState } from './key-states.js';
+import { type AuthorityReport, type KeyState, authorityReportOf, matchKeyState } from './key-states.js';
+
+export type { AuthorityReport } from './key-states.js';
 
 /** Circuit name -> SHA-256 (hex) of its verifier key, as docs/fingerprints.md records it. */
 export type KeyPins = Readonly<Record<string, string>>;
@@ -33,18 +35,6 @@ export type StateWithKeys = {
     readonly threshold: number;
     readonly counter: bigint;
   };
-};
-
-/** The maintenance authority in a state, as a verifier reports it. */
-export type AuthorityReport = {
-  /** How many keys may sign a maintenance update. */
-  readonly committee: number;
-  /** How many of them must. */
-  readonly threshold: number;
-  /** Raised by every maintenance update (a key inserted, removed, or the authority replaced). */
-  readonly counter: bigint;
-  /** Nobody can sign: more signatures needed than there are keys (api/src/maintenance.ts). */
-  readonly retired: boolean;
 };
 
 export type PinnedContract = keyof typeof FINGERPRINTS;
@@ -90,15 +80,7 @@ export const verifierKeyMismatches = (state: StateWithKeys, pins: KeyPins): stri
 };
 
 /** The maintenance authority a state carries. */
-export const authorityReport = (state: StateWithKeys): AuthorityReport => {
-  const a = state.maintenanceAuthority;
-  return {
-    committee: a.committee.length,
-    threshold: a.threshold,
-    counter: a.counter,
-    retired: a.threshold > a.committee.length,
-  };
-};
+export const authorityReport = (state: StateWithKeys): AuthorityReport => authorityReportOf(state.maintenanceAuthority);
 
 /** One line for a verdict's reason. */
 export const describeAuthority = (a: AuthorityReport): string =>

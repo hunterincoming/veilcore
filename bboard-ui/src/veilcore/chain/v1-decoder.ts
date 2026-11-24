@@ -58,12 +58,32 @@ const hexToBytes = (hex: string): Uint8Array => {
 };
 const bytesToHex = (b: Uint8Array): string => Array.from(b, (x) => x.toString(16).padStart(2, '0')).join('');
 
-/** The contract's ledger data, decoded by the ledger whose tag the bytes carry. */
-const ledgerDataOf = (bytes: Uint8Array): Value => {
+/** The contract state, decoded by the ledger whose tag the bytes carry. */
+const contractStateOf = (bytes: Uint8Array): Ledger8.ContractState | Ledger9.ContractState => {
   const era = stateLedgerOf(bytes);
-  if (era === 'ledger8') return Ledger8.ContractState.deserialize(bytes).data.state;
-  if (era === 'ledger9') return Ledger9.ContractState.deserialize(bytes).data.state;
+  if (era === 'ledger8') return Ledger8.ContractState.deserialize(bytes);
+  if (era === 'ledger9') return Ledger9.ContractState.deserialize(bytes);
   throw new Error('Not a contract state from ledger 8 or ledger 9.');
+};
+
+/** The contract's ledger data, decoded by the ledger whose tag the bytes carry. */
+const ledgerDataOf = (bytes: Uint8Array): Value => contractStateOf(bytes).data.state;
+
+/** A state's maintenance authority: who can change the contract's circuits, as the state holds it. */
+export type MaintenanceAuthority = {
+  readonly committee: readonly unknown[];
+  readonly threshold: number;
+  readonly counter: bigint;
+};
+
+/**
+ * The maintenance authority in a v1 contract state (hex, either ledger's bytes): its committee,
+ * threshold and counter, as the network recorded them. Read from the state itself, never from a
+ * field the contract's data claims.
+ */
+export const v1MaintenanceAuthorityOf = (stateHex: string): MaintenanceAuthority => {
+  const a = contractStateOf(hexToBytes(stateHex)).maintenanceAuthority;
+  return { committee: [...a.committee], threshold: a.threshold, counter: a.counter };
 };
 
 const elementOf = (v: Value, i: number): Value => {
