@@ -11,3 +11,9 @@ export function checkRunningProofServer(
   url: string,
   fetchImpl?: (url: URL, init?: { signal?: AbortSignal }) => Promise<{ ok: boolean; status: number; text(): Promise<string> }>,
 ): Promise<string[]>;
+export const V2_RELEASE_TAG: string;
+export const V2_RELEASE_API: string;
+export const V2_RELEASE_PAGE: string;
+export function digestOf(line: string): string | undefined;
+export function releaseProblems(release: unknown, digest: string): string[];
+export function pin(o: { line: string; release: unknown; file?: string }): Promise<string[]>;

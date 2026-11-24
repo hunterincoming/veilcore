@@ -1,18 +1,27 @@
 // The proof server contract v2 needs: 9.0.2, pinned by digest in ONE place,
 // bboard-cli/proof-server-v2.yml. On 9.0.0 and 9.0.1, proving a claims circuit (the Jubjub one,
-// proveAttested) can crash the proof server.
+// proveAttested) can crash the proof server. The proof server sees every private witness of
+// every call (record, recovery and licence secrets), so the image is pinned only when two
+// sources agree, as the 9.0.1 and 8.1.3 pins were:
 //
-//   node scripts/v2/proof-server.mjs pin sha256:<64 hex>   write the digest into the file
-//   node scripts/v2/proof-server.mjs show                  print what the file pins, or what is wrong
+//   1. the digest Docker pulled on the maintainer's Mac:
+//        docker pull midnightntwrk/proof-server:9.0.2
+//        docker inspect --format '{{index .RepoDigests 0}}' midnightntwrk/proof-server:9.0.2
+//   2. the digest Midnight published in its GitHub release, midnightntwrk/midnight-ledger, tag
+//      proof-server-9.0.2 (https://github.com/midnightntwrk/midnight-ledger/releases/tag/proof-server-9.0.2).
 //
-// The digest comes from the maintainer's Mac (docs/runbooks/deploy-v2.md, step 8):
-//   docker pull midnightntwrk/proof-server:9.0.2
-//   docker inspect --format '{{index .RepoDigests 0}}' midnightntwrk/proof-server:9.0.2
-// A digest is public (it names an image, it unlocks nothing).
+//   node scripts/v2/proof-server.mjs pin "<the docker inspect line>" [--release-json FILE]
+//        reads the release (from api.github.com, or from FILE: the same JSON saved with curl),
+//        and writes the digest into the file ONLY if the release is the published, non-pre-release
+//        proof-server-9.0.2 and names exactly that digest. Otherwise it writes nothing.
+//   node scripts/v2/proof-server.mjs show
+//        print what the file pins, or what is wrong
 //
-// Two checks follow from it, before any v2 tool asks for a wallet:
+// A digest is public (it names an image, it unlocks nothing). Docs: docs/runbooks/deploy-v2.md, step 8.
+//
+// Two checks follow from the pin, before any v2 tool asks for a wallet:
 //   - the tool starts the proof server from that file, so Docker runs exactly the pinned image;
-//   - the running server is asked its version (GET /version) and must say 9.0.2.
+//   - the running server is asked its version (GET /version) and must say exactly 9.0.2.
 // SPDX-License-Identifier: Apache-2.0
 import { readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
@@ -22,6 +31,9 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '.
 export const V2_PROOF_SERVER_TAG = '9.0.2';
 export const V2_PROOF_SERVER_FILE_NAME = 'proof-server-v2.yml';
 export const V2_PROOF_SERVER_FILE = path.join(ROOT, 'bboard-cli', V2_PROOF_SERVER_FILE_NAME);
+export const V2_RELEASE_TAG = `proof-server-${V2_PROOF_SERVER_TAG}`;
+export const V2_RELEASE_API = `https://api.github.com/repos/midnightntwrk/midnight-ledger/releases/tags/${V2_RELEASE_TAG}`;
+export const V2_RELEASE_PAGE = `https://github.com/midnightntwrk/midnight-ledger/releases/tag/${V2_RELEASE_TAG}`;
 const PLACEHOLDER = 'FILL-IN-THE-9.0.2-DIGEST';
 const IMAGE_LINE = /^(\s*image:\s*)midnightntwrk\/proof-server:([0-9][0-9.]*)(?:@sha256:(\S+))?\s*$/m;
 
@@ -74,15 +86,42 @@ export const withDigest = (yml, digest) => {
   return yml.replace(IMAGE_LINE, `$1midnightntwrk/proof-server:${V2_PROOF_SERVER_TAG}@sha256:${m[1]}`);
 };
 
+/** The digest in a `docker inspect` line, `sha256:<64 hex>` or the whole line; undefined if it is not one. */
+export const digestOf = (line) => /^(?:midnightntwrk\/proof-server@)?(sha256:[0-9a-f]{64})$/.exec(String(line).trim())?.[1];
+
+/**
+ * Why `release` (the GitHub API's JSON for midnight-ledger's proof-server-9.0.2 release) does not
+ * back `digest`; empty when it does. Refused: another tag, a draft or pre-release, a release that
+ * names no digest, and a digest the release does not name.
+ */
+export const releaseProblems = (release, digest) => {
+  const stop = 'Nothing was written. Do not pin this image.';
+  if (digestOf(digest) === undefined) return [`That is not a docker inspect digest line (sha256: and 64 characters 0-9 a-f). ${stop}`];
+  if (release === null || typeof release !== 'object' || typeof release.tag_name !== 'string')
+    return [`That is not a GitHub release (${V2_RELEASE_PAGE}). ${stop}`];
+  if (release.tag_name !== V2_RELEASE_TAG) return [`The release is ${release.tag_name}, not ${V2_RELEASE_TAG}. ${stop}`];
+  if (release.draft === true || release.prerelease === true) return [`${V2_RELEASE_TAG} is a draft or a pre-release. ${stop}`];
+  const listed = [...new Set(String(release.body ?? '').match(/sha256:[0-9a-f]{64}/g) ?? [])];
+  if (listed.length === 0)
+    return [`Midnight's ${V2_RELEASE_TAG} release names no sha256 digest (${V2_RELEASE_PAGE}). ${stop} Ask Midnight for it first.`];
+  if (!listed.includes(digestOf(digest)))
+    return [
+      `The digest Docker pulled (${digestOf(digest)}) is not the one Midnight published for ${V2_RELEASE_TAG} ` +
+        `(${listed.join(', ')}). ${stop} Send both lines to the team.`,
+    ];
+  return [];
+};
+
 /**
  * Why the answer to GET /version is not 9.0.2; empty when it is. The proof server answers with
- * its version as plain text; anything that names another version, or none, is refused.
+ * its version as plain text; anything that names another version, a pre-release or build of it
+ * (9.0.2-rc1, 9.0.2+abc), or no version, is refused.
  */
 export const versionProblems = (text) => {
-  const versions = String(text).match(/\d+\.\d+\.\d+/g) ?? [];
+  const versions = String(text).match(/\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?/g) ?? [];
   if (versions.length === 0) return [`The proof server did not say its version (it answered "${String(text).slice(0, 60)}").`];
   if (versions.some((v) => v !== V2_PROOF_SERVER_TAG))
-    return [`The proof server says it is ${versions.join(', ')}; contract v2 needs ${V2_PROOF_SERVER_TAG}. Nothing was sent.`];
+    return [`The proof server says it is ${versions.join(', ')}; contract v2 needs exactly ${V2_PROOF_SERVER_TAG}. Nothing was sent.`];
   return [];
 };
 
@@ -98,15 +137,45 @@ export const checkRunningProofServer = async (url, fetchImpl = fetch) => {
   return versionProblems(await res.text());
 };
 
-const main = (argv) => {
-  const [cmd, value] = argv;
+/** The release JSON: from a file saved with curl, or fetched from api.github.com. */
+const readRelease = async (file, fetchImpl = fetch) => {
+  if (file !== undefined) return JSON.parse(readFileSync(file, 'utf8'));
+  const res = await fetchImpl(V2_RELEASE_API, {
+    headers: { accept: 'application/vnd.github+json' },
+    signal: AbortSignal.timeout(20_000),
+  });
+  if (!res.ok)
+    throw new Error(
+      `GitHub answered HTTP ${res.status} for ${V2_RELEASE_API}. Nothing was written. If it is a rate limit, save it with ` +
+        `curl -s ${V2_RELEASE_API} -o ~/veilcore-v2/proof-server-9.0.2-release.json and add --release-json with that file.`,
+    );
+  return res.json();
+};
+
+/** Pin `line` in the file if the release backs it. Returns the lines to print; throws on any refusal. */
+export const pin = async ({ line, release, file = V2_PROOF_SERVER_FILE }) => {
+  const p = releaseProblems(release, line);
+  if (p.length > 0) throw new Error(p.join(' '));
+  const next = withDigest(readFileSync(file, 'utf8'), digestOf(line));
+  const left = pinProblems(next);
+  if (left.length > 0) throw new Error(left.join(' '));
+  writeFileSync(file, next);
+  return [
+    `The digest Docker pulled is the one Midnight published in ${V2_RELEASE_TAG} (${V2_RELEASE_PAGE}).`,
+    `Pinned: midnightntwrk/proof-server:${V2_PROOF_SERVER_TAG}@${digestOf(line)}`,
+    `in bboard-cli/${V2_PROOF_SERVER_FILE_NAME}. Commit that one file (docs/runbooks/deploy-v2.md, step 8).`,
+  ];
+};
+
+const main = async (argv) => {
+  const [cmd, value, ...rest] = argv;
   if (cmd === 'pin') {
-    const next = withDigest(readFileSync(V2_PROOF_SERVER_FILE, 'utf8'), value ?? '');
-    writeFileSync(V2_PROOF_SERVER_FILE, next);
-    const p = pinProblems(next);
-    if (p.length > 0) throw new Error(p.join(' '));
-    console.log(`Pinned: midnightntwrk/proof-server:${V2_PROOF_SERVER_TAG}@${value.trim().replace(/^.*@/, '')}`);
-    console.log(`in bboard-cli/${V2_PROOF_SERVER_FILE_NAME}. Commit that one file (docs/runbooks/deploy-v2.md, step 8).`);
+    let releaseFile;
+    for (let i = 0; i < rest.length; i++) {
+      if (rest[i] === '--release-json' && rest[i + 1] !== undefined) releaseFile = rest[++i];
+      else throw new Error(`Unknown option ${rest[i]}. Nothing was written.`);
+    }
+    for (const l of await pin({ line: value ?? '', release: await readRelease(releaseFile) })) console.log(l);
     return 0;
   }
   if (cmd === 'show') {
@@ -115,11 +184,11 @@ const main = (argv) => {
       for (const l of p) console.log(l);
       return 1;
     }
-    const pin = readPin(readFileSync(V2_PROOF_SERVER_FILE, 'utf8'));
-    console.log(`proof server OK: midnightntwrk/proof-server:${pin.tag}@sha256:${pin.digest}`);
+    const pinned = readPin(readFileSync(V2_PROOF_SERVER_FILE, 'utf8'));
+    console.log(`proof server OK: midnightntwrk/proof-server:${pinned.tag}@sha256:${pinned.digest}`);
     return 0;
   }
-  console.log('Usage: node scripts/v2/proof-server.mjs pin sha256:<64 hex> | show');
+  console.log('Usage: node scripts/v2/proof-server.mjs pin "<docker inspect line>" [--release-json FILE] | show');
   return 2;
 };
 
@@ -131,10 +200,11 @@ const invoked = () => {
   }
 };
 if (invoked()) {
-  try {
-    process.exit(main(process.argv.slice(2)));
-  } catch (e) {
-    console.error(e instanceof Error ? e.message : String(e));
-    process.exit(1);
-  }
+  main(process.argv.slice(2)).then(
+    (code) => process.exit(code),
+    (e) => {
+      console.error(e instanceof Error ? e.message : String(e));
+      process.exit(1);
+    },
+  );
 }

@@ -794,6 +794,8 @@ test('proof server 9.0.2: one pin in bboard-cli/proof-server-v2.yml, refused unt
 test('proof server 9.0.2: the running server must say it is 9.0.2', async () => {
   const ps = await import('./proof-server.mjs');
   assert.deepEqual(ps.versionProblems('9.0.2'), []);
+  for (const pre of ['9.0.2-rc1', '9.0.2-rc.1', 'v9.0.2+build.7', '9.0.2-alpha'])
+    assert.match(ps.versionProblems(pre).join(' '), /needs exactly 9\.0\.2/, pre);
   assert.deepEqual(ps.versionProblems('"9.0.2"\n'), []);
   assert.match(ps.versionProblems('9.0.1').join(' '), /says it is 9\.0\.1/);
   assert.match(ps.versionProblems('9.0.2 (ledger 9.0.0)').join(' '), /says it is 9\.0\.2, 9\.0\.0/);
@@ -811,4 +813,43 @@ test('proof server 9.0.2: the running server must say it is 9.0.2', async () => 
     throw new Error('connection refused');
   };
   assert.match((await ps.checkRunningProofServer('http://127.0.0.1:6300', down)).join(' '), /connection refused/);
+});
+
+test('proof server 9.0.2: pinned only when Midnight\'s GitHub release names the digest Docker pulled', async () => {
+  const ps = await import('./proof-server.mjs');
+  const D = 'c'.repeat(64);
+  const line = `midnightntwrk/proof-server@sha256:${D}`;
+  const release = (over = {}) => ({
+    tag_name: 'proof-server-9.0.2',
+    draft: false,
+    prerelease: false,
+    body: `Proof server 9.0.2\n\nmidnightntwrk/proof-server:9.0.2@sha256:${D}\n`,
+    ...over,
+  });
+  assert.deepEqual(ps.releaseProblems(release(), line), []);
+  assert.deepEqual(ps.releaseProblems(release(), `sha256:${D}`), []);
+  assert.equal(ps.digestOf(line), `sha256:${D}`);
+  // Mandatory: no digest in the release, another digest, another tag, a pre-release: refused.
+  assert.match(ps.releaseProblems(release({ body: 'Fixes a crash.' }), line).join(' '), /names no sha256 digest.*Do not pin/);
+  assert.match(
+    ps.releaseProblems(release({ body: `sha256:${'d'.repeat(64)}` }), line).join(' '),
+    /is not the one Midnight published.*Do not pin/,
+  );
+  assert.match(ps.releaseProblems(release({ tag_name: 'proof-server-9.0.1' }), line).join(' '), /not proof-server-9\.0\.2/);
+  assert.match(ps.releaseProblems(release({ prerelease: true }), line).join(' '), /pre-release/);
+  assert.match(ps.releaseProblems(release({ draft: true }), line).join(' '), /draft/);
+  assert.match(ps.releaseProblems({ message: 'Not Found' }, line).join(' '), /not a GitHub release/);
+  assert.match(ps.releaseProblems(release(), 'sha256:' + 'C'.repeat(64)).join(' '), /not a docker inspect digest/);
+
+  // pin writes the file only when the release backs the digest.
+  const d = mkdtempSync(path.join(tmpdir(), 'ps-pin-'));
+  const f = path.join(d, 'proof-server-v2.yml');
+  const original = readFileSync(ps.V2_PROOF_SERVER_FILE, 'utf8');
+  writeFileSync(f, original);
+  await assert.rejects(ps.pin({ line, release: release({ body: 'no digest' }), file: f }), /names no sha256 digest/);
+  assert.equal(readFileSync(f, 'utf8'), original, 'nothing written on a refusal');
+  const said = await ps.pin({ line, release: release(), file: f });
+  assert.match(said.join('\n'), /the one Midnight published in proof-server-9\.0\.2/);
+  assert.equal(ps.readPin(readFileSync(f, 'utf8')).digest, D);
+  assert.deepEqual(ps.pinProblems(readFileSync(f, 'utf8')), []);
 });

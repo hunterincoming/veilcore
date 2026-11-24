@@ -171,18 +171,51 @@ The keys must come out byte for byte the same on another computer, or nobody can
 
 8. **Pin proof server 9.0.2 by its digest, in one place.** A claims proof (the lab-signature
    circuit, `proveAttested`) can crash proof server 9.0.0 and 9.0.1, so every v2 tool runs 9.0.2
-   and refuses any other. Open Docker Desktop first, then in Terminal:
+   and refuses any other. The proof server sees every secret of every call, so the image is
+   pinned **only** when the digest Docker pulls is the one Midnight published in its GitHub
+   release (`midnightntwrk/midnight-ledger`, tag `proof-server-9.0.2`), the same source as the
+   9.0.1 pin. That check is not optional.
+
+   **Do this step only after contract v2's tools are on `main`** (PR #189, which carries this
+   work, merged). Before that, `scripts/v2/proof-server.mjs` and `bboard-cli/proof-server-v2.yml`
+   are not on main. Check:
+
+   ```sh
+   cd ~/Desktop/veilcore && git checkout main && git pull --ff-only
+   ls scripts/v2/proof-server.mjs bboard-cli/proof-server-v2.yml
+   ```
+
+   Both must be listed. If either is missing, stop: #189 is not merged yet.
+
+   Open Docker Desktop, then get the digest Docker pulls:
 
    ```sh
    docker pull midnightntwrk/proof-server:9.0.2
    docker inspect --format '{{index .RepoDigests 0}}' midnightntwrk/proof-server:9.0.2
    ```
 
-   The second command prints one line: `midnightntwrk/proof-server@sha256:` followed by 64
-   characters. That is the digest. It is public (it names the image; it unlocks nothing), so it
-   is fine to paste. If Midnight's release notes for proof server 9.0.2
-   (https://docs.midnight.network/relnotes/proof-server) list a digest, it must be the same; if
-   they differ, stop.
+   The second command prints one line: `midnightntwrk/proof-server@sha256:` and 64 characters.
+   It is public (it names the image; it unlocks nothing).
+
+   Now Midnight's release. Save it and list every digest it names:
+
+   ```sh
+   mkdir -p ~/veilcore-v2
+   curl -fsS https://api.github.com/repos/midnightntwrk/midnight-ledger/releases/tags/proof-server-9.0.2 -o ~/veilcore-v2/proof-server-9.0.2-release.json
+   grep -o 'sha256:[0-9a-f]\{64\}' ~/veilcore-v2/proof-server-9.0.2-release.json | sort -u
+   ```
+
+   You can also read it in a browser:
+   https://github.com/midnightntwrk/midnight-ledger/releases/tag/proof-server-9.0.2
+
+   **Stop, and pin nothing, if:**
+
+   - `curl` fails, because there is no such release;
+   - the `grep` prints nothing, because the release names no digest;
+   - none of the lines it prints is exactly the `sha256:...` part of your `docker inspect` line.
+
+   Send both outputs to the team instead. The pin command below makes the same comparison
+   itself and refuses in the same cases, so it cannot pin an image the release does not name.
 
    Check the version inside the image says 9.0.2 (this starts it for a moment, on this Mac only):
 
@@ -192,13 +225,13 @@ The keys must come out byte for byte the same on another computer, or nobody can
    docker stop ps-check
    ```
 
-   It must print `9.0.2`. Then pin it, on a branch of its own. Paste the whole line the
-   `docker inspect` command printed in place of `PASTE_THE_LINE`:
+   It must print exactly `9.0.2` (not `9.0.2-rc1` or anything else). Then pin it, on a branch of
+   its own. In the `pin` line, paste the whole line `docker inspect` printed in place of
+   `PASTE_THE_LINE`, keeping the quotes:
 
    ```sh
-   cd ~/Desktop/veilcore && git checkout main && git pull --ff-only
    git switch -c pin/proof-server-9.0.2
-   node scripts/v2/proof-server.mjs pin PASTE_THE_LINE
+   node scripts/v2/proof-server.mjs pin "PASTE_THE_LINE" --release-json ~/veilcore-v2/proof-server-9.0.2-release.json
    node scripts/v2/proof-server.mjs show       # proof server OK: midnightntwrk/proof-server:9.0.2@sha256:...
    git diff                                    # one line changes, in bboard-cli/proof-server-v2.yml
    git add bboard-cli/proof-server-v2.yml
@@ -206,11 +239,20 @@ The keys must come out byte for byte the same on another computer, or nobody can
    git push -u origin pin/proof-server-9.0.2
    ```
 
-   Open the pull request at https://github.com/hunterincoming/veilcore/pull/new/pin/proof-server-9.0.2,
-   wait for every check to pass, merge it, then `git checkout main && git pull --ff-only`. (Or send
-   the digest line to Claude and it opens that one-line PR.) That file is the only place the
-   digest lives: the deploy, the committee on v2 and the smoke run all start the proof server
-   from it, and refuse while it is not filled in.
+   The `pin` line must say "The digest Docker pulled is the one Midnight published in
+   proof-server-9.0.2". If it refuses, nothing was written: stop and send its message to the team.
+
+   Open the pull request at
+   https://github.com/hunterincoming/veilcore/pull/new/pin/proof-server-9.0.2, wait for every
+   check to pass, merge it, then run `git checkout main && git pull --ff-only`.
+
+   You can instead send Claude the `docker inspect` line. Claude then runs the same `pin`
+   command, which reads the release itself and refuses on any mismatch, before it opens that
+   one-line PR.
+
+   `bboard-cli/proof-server-v2.yml` is the only place the digest lives. The deploy, the committee
+   on v2 and the smoke run all start the proof server from it, and refuse while it is not filled
+   in.
 
 9. Check the tools are up to date. From the repository:
 
@@ -296,7 +338,8 @@ Use the **preprod test wallet**, never the mainnet recovery phrase. It must alre
     contracts; `--out` needs a new file name each time.
 
     The smoke run refuses mainnet unless given `--network mainnet --i-understand-team-only` and
-    `SMOKE V2 ON MAINNET` is typed. Not before v2 is pinned (step 17).
+    `SMOKE V2 ON MAINNET` is typed, and it refuses mainnet until both v2 addresses are in
+    `deployments/mainnet.json` (the pin, step 17).
 
 12. **Check it.** From the repository:
 
