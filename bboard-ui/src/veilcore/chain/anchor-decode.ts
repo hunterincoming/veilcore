@@ -9,12 +9,17 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import type { ContractVersion } from './config';
-import { v1LastBatchRootOf } from './v1-decoder';
-import { v2LastBatchRootOf } from './v2-decoder';
+import { type MaintenanceAuthority, v1LastBatchRootOf, v1MaintenanceAuthorityOf } from './v1-decoder';
+import { v2LastBatchRootOf, v2MaintenanceAuthorityOf } from './v2-decoder';
 
 const decoders: Record<ContractVersion, (stateHex: string) => string> = {
   v1: v1LastBatchRootOf,
   v2: v2LastBatchRootOf,
+};
+
+const authorities: Record<ContractVersion, (stateHex: string) => MaintenanceAuthority> = {
+  v1: v1MaintenanceAuthorityOf,
+  v2: v2MaintenanceAuthorityOf,
 };
 
 /**
@@ -24,3 +29,11 @@ const decoders: Record<ContractVersion, (stateHex: string) => string> = {
  * version is always named: there is no default contract (docs/contract-v2.md 3.1, rule 10.4).
  */
 export const lastBatchRootOf = (stateHex: string, version: ContractVersion): string => decoders[version](stateHex);
+
+/**
+ * The maintenance authority in that same state (who can change the contract's circuits), read
+ * with the same version's decoder. Judged against the pinned entry's key states in
+ * anchor-check.ts (docs/contract-v2.md 3.3).
+ */
+export const maintenanceAuthorityOf = (stateHex: string, version: ContractVersion): MaintenanceAuthority =>
+  authorities[version](stateHex);

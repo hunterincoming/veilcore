@@ -41,6 +41,10 @@ export const verify = {
   'app.verify.anchor.lookingUp': 'Consultando esa transacción en {network}…',
   'app.verify.anchor.twoIndexers': ' Dos indexadores de Midnight distintos dieron la misma respuesta.',
   'app.verify.anchor.contract': ' Esta fecha la dio el contrato de VeilCore, versión {version}.',
+  'app.verify.anchor.keys.oneKey': ' Quién puede cambiar ese contrato: una sola clave, aún no entregada al comité.',
+  'app.verify.anchor.keys.committee':
+    ' Quién puede cambiar ese contrato: el comité de {threshold} de {committee} ({threshold} de sus {committee} miembros deben estar de acuerdo).',
+  'app.verify.anchor.keys.retired': ' Quién puede cambiar ese contrato: nadie. Ya no se puede cambiar.',
   'app.verify.anchor.checked':
     'Comprobado en Midnight: la raíz de este lote la escribió la transacción {tx} en el bloque {block} el {at}.{contract}{two}{test}',
   'app.verify.anchor.failed':

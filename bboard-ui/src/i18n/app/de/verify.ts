@@ -42,6 +42,11 @@ export const verify = {
   'app.verify.anchor.lookingUp': 'Diese Transaktion wird auf {network} nachgeschlagen…',
   'app.verify.anchor.twoIndexers': ' Zwei getrennte Midnight-Indexer gaben dieselbe Antwort.',
   'app.verify.anchor.contract': ' Dieses Datum stammt vom VeilCore-Smart-Contract, Version {version}.',
+  'app.verify.anchor.keys.oneKey':
+    ' Wer diesen Smart-Contract ändern kann: ein einzelner Schlüssel, noch nicht an das Komitee übergeben.',
+  'app.verify.anchor.keys.committee':
+    ' Wer diesen Smart-Contract ändern kann: das {threshold}-von-{committee}-Komitee ({threshold} seiner {committee} Mitglieder müssen zustimmen).',
+  'app.verify.anchor.keys.retired': ' Wer diesen Smart-Contract ändern kann: niemand. Er lässt sich nicht mehr ändern.',
   'app.verify.anchor.checked':
     'Auf Midnight geprüft: Diese Stapelwurzel wurde durch die Transaktion {tx} in Block {block} am {at} geschrieben.{contract}{two}{test}',
   'app.verify.anchor.failed':

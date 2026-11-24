@@ -13,6 +13,7 @@
 import { MAINNET_CLAIMS_ADDRESS, MAINNET_CONTRACT_ADDRESS, NETWORK } from '../../config/network';
 import {
   type ContractVersion,
+  type KeyState,
   MAINNET_PINNED,
   PREPROD_PINNED,
   type PinnedEntry,
@@ -169,6 +170,13 @@ export type PinnedContract = {
   readonly version: ContractVersion;
   /** 64 lowercase hexadecimal characters. */
   readonly address: string;
+  /**
+   * On mainnet, every maintenance-authority state the pinned entry says this contract may be in
+   * (docs/contract-v2.md 3.3; api/src/pinned-contracts.ts). The check page judges the state at
+   * the date stamp against these once more than one contract is pinned, as the partner kit does
+   * on mainnet. Absent off mainnet, as in the kit.
+   */
+  readonly keyStates?: readonly KeyState[];
 };
 
 /**
@@ -209,7 +217,7 @@ export const anchorContractsFor = (
   if (network === 'mainnet') {
     const main = pinned.mainnet.filter((e) => e.kind === 'veilcore');
     if (!main.some((e) => e.version === 'v1' && e.address === address)) return [];
-    return main.map((e) => ({ version: e.version, address: e.address }));
+    return main.map((e) => ({ version: e.version, address: e.address, keyStates: e.keyStates }));
   }
   const listed = network === 'preprod' ? pinnedAt(pinned.preprod, address) : undefined;
   if (listed !== undefined && listed.kind === 'veilcore') {

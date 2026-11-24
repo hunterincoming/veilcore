@@ -122,12 +122,15 @@ describe('v2LastBatchRootOf', () => {
 
 describe('the check page with version 2 pinned in deployments/mainnet.json', () => {
   it('the list: both, oldest first, from the deployments file', () => {
-    expect(contracts).toEqual([
+    const plain = (l: typeof contracts) => l.map(({ version, address }) => ({ version, address }));
+    expect(plain(contracts)).toEqual([
       { version: 'v1', address: V1 },
       { version: 'v2', address: V2 },
     ]);
+    // Each with its own entry's key states: v2's as published, never v1's.
+    expect(contracts[1].keyStates?.map((k) => k.label)).toEqual(['one key, not yet handed to the committee']);
     // Today: version 1 alone.
-    expect(anchorContractsFor('mainnet', V1, undefined)).toEqual([{ version: 'v1', address: V1 }]);
+    expect(plain(anchorContractsFor('mainnet', V1, undefined))).toEqual([{ version: 'v1', address: V1 }]);
   });
 
   it('a v2 batch: checked, from v2, and the page says so', async () => {
@@ -140,9 +143,10 @@ describe('the check page with version 2 pinned in deployments/mainnet.json', () 
       indexers: 1,
       contract: { version: 'v2', address: V2 },
       nameContract: true,
+      keyState: expect.objectContaining({ label: 'one key, not yet handed to the committee' }) as unknown,
     });
     expect(anchorLine(r, { network: 'mainnet', bound: true })?.text).toContain(
-      ' VeilCore contract version 2 gave this date.',
+      ' VeilCore contract version 2 gave this date. Who can change that contract: one key, not yet handed to the committee.',
     );
   });
 

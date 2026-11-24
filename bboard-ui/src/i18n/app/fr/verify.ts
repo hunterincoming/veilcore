@@ -42,6 +42,10 @@ export const verify = {
   'app.verify.anchor.lookingUp': 'Consultation de cette transaction sur {network}…',
   'app.verify.anchor.twoIndexers': ' Deux indexeurs Midnight distincts ont donné la même réponse.',
   'app.verify.anchor.contract': ' Cette date vient du smart contract de VeilCore, version {version}.',
+  'app.verify.anchor.keys.oneKey': ' Qui peut modifier ce contrat : une seule clé, pas encore remise au comité.',
+  'app.verify.anchor.keys.committee':
+    ' Qui peut modifier ce contrat : le comité {threshold} sur {committee} ({threshold} de ses {committee} membres doivent être d’accord).',
+  'app.verify.anchor.keys.retired': ' Qui peut modifier ce contrat : personne. Il ne peut plus être modifié.',
   'app.verify.anchor.checked':
     'Vérifié sur Midnight : cette racine de lot a été écrite par la transaction {tx} dans le bloc {block} le {at}.{contract}{two}{test}',
   'app.verify.anchor.failed':

@@ -22,6 +22,25 @@ export const registryDateWords = (reportedAt?: string, tr: Translator = enT): st
     ? tr.t('app.verify.anchor.registryDate', { date: utcStamp(reportedAt) })
     : tr.t('app.verify.anchor.noDate');
 
+/**
+ * Who could change the contract when it dated the batch, beside its name (docs/contract-v2.md
+ * 3.3): "one key, not yet handed to the committee", "held by the 2-of-3 committee", or nobody.
+ * Worded from the published key state the page matched the state to (anchor-check.ts), never
+ * from the contract's own fields. Empty when there is none to show (version 1, today's mainnet).
+ */
+export const keyStateWords = (
+  ks: { readonly retired: boolean; readonly committee: number; readonly threshold: number } | undefined,
+  tr: Translator = enT,
+): string => {
+  if (ks === undefined) return '';
+  if (ks.retired) return tr.t('app.verify.anchor.keys.retired');
+  if (ks.committee === 1 && ks.threshold === 1) return tr.t('app.verify.anchor.keys.oneKey');
+  return tr.t('app.verify.anchor.keys.committee', {
+    threshold: String(ks.threshold),
+    committee: String(ks.committee),
+  });
+};
+
 /** The line under the registry's report of the anchor: its mark and its words, or none. */
 export const anchorLine = (
   check: AnchorState,
@@ -42,7 +61,8 @@ export const anchorLine = (
       // 3.1, rule 10.3): the same root on two contracts is two dates.
       const contract =
         check.nameContract && check.contract
-          ? tr.t('app.verify.anchor.contract', { version: check.contract.version.slice(1) })
+          ? tr.t('app.verify.anchor.contract', { version: check.contract.version.slice(1) }) +
+            keyStateWords(check.keyState, tr)
           : '';
       return {
         // Ticked only against the link's own fingerprint, like every other line.

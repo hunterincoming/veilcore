@@ -35,6 +35,12 @@ section.
   contracts is two records with two dates.
 - Once more than one contract is pinned, the check page says which one gave a date, in all
   five languages. With version 1 alone the line is unchanged.
+- Once more than one contract is pinned, the check page also reads who could change the
+  contract at the date stamp, from the state the network recorded there, and judges it against
+  that contract's published key states, as the partner kit does: a state in none of them is
+  refused. A version 2 date says, in all five languages, whether one key held it (not yet
+  handed to the committee) or the 2-of-3 committee. With version 1 alone nothing is read and
+  the page is unchanged.
 - The state check (`api/src/state-check.ts`) can require a contract's published authority
   states: version 1 with one key at counter 16, or retired after the seal; version 2's are
   published with its pin. A state in none of them is refused.
