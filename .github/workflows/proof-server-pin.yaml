@@ -2,7 +2,8 @@
 # whenever bboard-cli/proof-server-v2.yml changes, CI fetches Midnight's GitHub release
 # (midnightntwrk/midnight-ledger, tag proof-server-9.0.2) itself and fails unless it names the
 # pinned digest for midnightntwrk/proof-server:9.0.2. The proof server sees every secret of every
-# v2 call, so the pin is never taken on one machine's word. It only reads, and uses no secret or token.
+# v2 call, so the pin is never taken on one machine's word. It only reads. It sends the job's own
+# read-only GITHUB_TOKEN with that one request, so GitHub's limit for unsigned requests can't fail it.
 name: Proof server pin
 
 on:
@@ -33,5 +34,7 @@ jobs:
 
       # No npm install: the script uses only Node's own modules and fetch.
       - name: The pinned digest is the one in Midnight's release
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         run: |
           node scripts/v2/proof-server.mjs verify

@@ -925,11 +925,17 @@ test('proof server release check: the four ways round it are closed', async () =
   assert.match(ps.verifyPin(pinned.replace(':9.0.2@', ':9.0.1@'), good).join(' '), /9\.0\.1; contract v2 needs 9\.0\.2/);
   assert.match(ps.verifyPin(placeholder.replace(':9.0.2@', ':9.0.1@'), good).join(' '), /9\.0\.1/);
 
-  // The workflow that runs it: minimal, read-only, no secrets, pinned actions.
+  // The workflow that runs it: minimal, read-only, no secrets, pinned actions. The one token it
+  // may use is the job's own read-only GITHUB_TOKEN, passed once to the verify step, so GitHub's
+  // limit for unsigned requests (it failed #198 with a 403) can't fail the check.
   const wf = readFileSync(path.join(path.dirname(ps.V2_PROOF_SERVER_FILE), '..', '.github', 'workflows', 'proof-server-pin.yaml'), 'utf8');
   assert.match(wf, /bboard-cli\/proof-server-v2\.yml/);
   assert.match(wf, /^permissions:\s*\n\s+contents: read\s*$/m);
-  assert.doesNotMatch(wf, /pull_request_target|secrets\.|GITHUB_TOKEN|: *write/);
+  assert.doesNotMatch(wf, /pull_request_target|\bsecrets\b|: *write/);
+  assert.equal((wf.match(/\$\{\{\s*github\.token\s*\}\}/g) ?? []).length, 1);
+  assert.match(wf, /^ {10}GITHUB_TOKEN: \$\{\{ github\.token \}\}$/m);
+  assert.equal(wf.split('\n').filter((l) => /GITHUB_TOKEN\s*:/.test(l)).length, 1);
+  assert.match(wf, /^ +persist-credentials: false$/m);
   for (const u of wf.match(/uses:\s*\S+/g) ?? []) assert.match(u, /@[0-9a-f]{40}$/, u);
   assert.match(wf, /node scripts\/v2\/proof-server\.mjs verify/);
 });
@@ -1006,4 +1012,25 @@ test("proof server release check: Midnight's own format (an Image line, then the
   // Every other refusal still holds on the real body.
   for (const over of [{ draft: true }, { prerelease: true }, { prerelease: undefined }, { tag_name: 'proof-server-9.0.1' }, { html_url: 'https://github.com/someone/midnight-ledger/releases/tag/proof-server-9.0.2' }])
     assert.notDeepEqual(ps.releaseProblems({ ...real, ...over }, pulled), [], JSON.stringify(over));
+});
+
+test('proof server pin: the release request carries GITHUB_TOKEN only when it is set', async () => {
+  const { readRelease } = await import('./proof-server.mjs');
+  const seen = [];
+  const fake = async (_url, init) => {
+    seen.push(init.headers);
+    return { ok: true, status: 200, json: async () => ({ tag_name: 'proof-server-9.0.2' }) };
+  };
+  const before = process.env.GITHUB_TOKEN;
+  try {
+    delete process.env.GITHUB_TOKEN;
+    await readRelease(undefined, fake);
+    assert.equal(seen[0].authorization, undefined);
+    process.env.GITHUB_TOKEN = 'test-token';
+    await readRelease(undefined, fake);
+    assert.equal(seen[1].authorization, 'Bearer test-token');
+  } finally {
+    if (before === undefined) delete process.env.GITHUB_TOKEN;
+    else process.env.GITHUB_TOKEN = before;
+  }
 });
