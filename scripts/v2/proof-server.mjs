@@ -233,7 +233,7 @@ export const readRelease = async (file, fetchImpl = fetch) => {
   }
   if (!res.ok)
     throw new Error(
-      `GitHub answered HTTP ${res.status} for ${V2_RELEASE_API}. Nothing was written. If it is a rate limit, save it with ` +
+      `GitHub answered HTTP ${res.status} for ${V2_RELEASE_API}. Nothing was written. A 401 means a GITHUB_TOKEN in this shell is stale: unset it and run this again. If it is a rate limit, save it with ` +
         `curl -s ${V2_RELEASE_API} -o ~/veilcore-v2/proof-server-9.0.2-release.json and add --release-json with that file.`,
     );
   return res.json();
