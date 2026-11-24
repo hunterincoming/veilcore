@@ -80,6 +80,46 @@ export const PRACTICE_PREFIX = 'practice-';
 const CIRCUIT = /^[A-Za-z_][A-Za-z0-9_]{0,63}$/;
 
 const sha256Hex = (bytes) => createHash('sha256').update(bytes).digest('hex');
+
+/**
+ * The verifier-key slot (ContractOperationVersion) a key goes in. It follows the compiler a
+ * contract was built with: v1 (compactc 0.31, ZKIR v2) is 'v3'; contract v2 (compactc 0.36,
+ * ZKIR v3) is 'v4' (docs/contract-v2.md 1.2). A key in the wrong slot is never used, so
+ * the slot is checked against the contract's own (the request's current.keySlot).
+ */
+export const KEY_SLOTS = ['v3', 'v4'];
+
+/**
+ * The slot one key action uses, checked against the contract's. An action that names no slot
+ * is 'v3', so every request made before the slot existed rebuilds to the same bytes. A
+ * contract whose slot is not stated is taken to be 'v3' (v1): 'v4' must be asked for.
+ * @returns {{ slot: 'v3' | 'v4' } | { problem: string }}
+ */
+export const keySlotFor = (action, current) => {
+  const slot = action.keySlot ?? 'v3';
+  const contractSlot = current.keySlot ?? 'v3';
+  if (!KEY_SLOTS.includes(slot)) return { problem: `Unknown key slot "${String(slot)}": it is v3 or v4.` };
+  if (!KEY_SLOTS.includes(contractSlot))
+    return { problem: `The request says the contract's keys are in an unknown slot "${String(contractSlot)}".` };
+  if (slot !== contractSlot)
+    return {
+      problem:
+        `This contract's keys are in slot ${contractSlot.toUpperCase()}, but the key action for ` +
+        `"${String(action.circuit)}" uses ${slot.toUpperCase()}. A key in the wrong slot is never used. Do not sign.`,
+    };
+  return { slot };
+};
+
+/**
+ * The slot a verifier key's own bytes are for, from their header: compactc 0.31 keys say
+ * "midnight:verifier-key[v6]:" (slot v3), 0.36 keys "midnight:verifier-key[v7]:" (slot v4).
+ * The ledger refuses a key in the other slot; this finds it before anyone signs.
+ * @returns {'v3' | 'v4' | undefined} undefined when the header is not one of these
+ */
+export const slotOfKeyBytes = (vk) => {
+  const m = /^midnight:verifier-key\[v(\d+)\]:/.exec(Buffer.from(vk.slice(0, 40)).toString('latin1'));
+  return m?.[1] === '6' ? 'v3' : m?.[1] === '7' ? 'v4' : undefined;
+};
 const toHex = (bytes) => Buffer.from(bytes).toString('hex');
 const fromHex = (hex) => new Uint8Array(Buffer.from(hex, 'hex'));
 
@@ -306,6 +346,7 @@ const plainCurrent = (current) => ({
   committee: [...current.committee].map(bareKey),
   threshold: Number(current.threshold),
   counter: String(BigInt(current.counter)),
+  ...(current.keySlot === undefined ? {} : { keySlot: current.keySlot }),
 });
 
 /** One action, checked. @returns {{ problem: string } | { instruction: unknown, describe: string }} */
@@ -344,27 +385,43 @@ const actionToInstruction = (action, current, opts) => {
     case 'remove-key': {
       if (typeof action.circuit !== 'string' || !CIRCUIT.test(action.circuit))
         return { problem: 'A remove-key action needs a circuit name (letters, digits, underscores).' };
+      const s = keySlotFor(action, current);
+      if ('problem' in s) return s;
       return {
-        instruction: new VerifierKeyRemove(action.circuit, new ContractOperationVersion('v3')),
-        describe: `Remove the verifier key of circuit "${action.circuit}": it can no longer be called.`,
+        instruction: new VerifierKeyRemove(action.circuit, new ContractOperationVersion(s.slot)),
+        describe: `Remove the verifier key of circuit "${action.circuit}" (slot ${s.slot.toUpperCase()}): it can no longer be called.`,
       };
     }
     case 'insert-key': {
       if (typeof action.circuit !== 'string' || !CIRCUIT.test(action.circuit))
         return { problem: 'An insert-key action needs a circuit name (letters, digits, underscores).' };
+      const s = keySlotFor(action, current);
+      if ('problem' in s) return s;
       const vkHex = cleanHex(action.verifierKey);
       if (!/^([0-9a-f]{2})+$/.test(vkHex)) return { problem: `The verifier key for "${action.circuit}" is not hex.` };
       const vk = fromHex(vkHex);
+      const own = slotOfKeyBytes(vk);
+      // A key whose header names no slot this tool knows is refused, not let through.
+      if (own === undefined)
+        return {
+          problem: `The verifier key for "${action.circuit}" does not start with a V3 or V4 key header. Do not sign.`,
+        };
+      if (own !== s.slot)
+        return {
+          problem:
+            `The verifier key for "${action.circuit}" is a ${own.toUpperCase()} key, but it would go in slot ` +
+            `${s.slot.toUpperCase()}. The ledger refuses that. Do not sign.`,
+        };
       if (sha256Hex(vk) !== cleanHex(action.verifierKeySha256))
         return {
           problem: `The verifier key for "${action.circuit}" does not match the SHA-256 written next to it. Do not sign.`,
         };
       return {
-        instruction: new VerifierKeyInsert(action.circuit, new ContractOperationVersionedVerifierKey('v3', vk)),
+        instruction: new VerifierKeyInsert(action.circuit, new ContractOperationVersionedVerifierKey(s.slot, vk)),
         describe:
-          `Insert a verifier key for circuit "${action.circuit}" (SHA-256 ${sha256Hex(vk)}). Compare it with ` +
-          'docs/fingerprints.md, or with a build of the published source, before signing: a new key can change ' +
-          'anything the contract stores.',
+          `Insert a verifier key for circuit "${action.circuit}" (slot ${s.slot.toUpperCase()}, SHA-256 ` +
+          `${sha256Hex(vk)}). Compare it with ${s.slot === 'v4' ? 'docs/fingerprints-v2.md' : 'docs/fingerprints.md'}, ` +
+          'or with a build of the published source, before signing: a new key can change anything the contract stores.',
       };
     }
     default:

@@ -156,6 +156,13 @@ and the name without `--practice`.
 
 ### Part 2: mainnet
 
+> **Changed by the contract v2 design (docs/contract-v2.md, sections 5 and 6).** No committee is
+> installed on v1 any more: on mainnet the launcher now refuses an install on v1's pinned
+> address, and lets v1's single key make one change only, a `retire`. The install below is
+> done on **contract v2**, by adding `--v2-record <its deploy-session record>` to each
+> `mainnet install` command, after the 14-day notice (docs/runbooks/deploy-v2.md, step 18).
+> The steps are otherwise the same.
+
 1. **Hunter: read today's counter** (no wallet, sends nothing):
    `npm run committee -- mainnet show`
    It should say 1 key, 1 signature needed, and counter 16 (its value on 13 November 2026,

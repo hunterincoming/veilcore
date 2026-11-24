@@ -21,6 +21,7 @@
       "bboard-ui",
       "api",
       "contract",
+      "contract-v2",
       "partner-kit",
       "sponsor"
     ]

@@ -1,0 +1,735 @@
+{
+  "source": "v1 compiled pure circuits (contract/src/managed, compiler 0.31.1)",
+  "sha256": {
+    "veilcore": "4e23ffc28f3de3ce670d9cea2896301dfeec8b4593d1b65332eb18f74ba5d286",
+    "veilcore-claims": "b549c631fa3e3f2e4adf554434519e447844d7f83748cec44f8145ae1f6ecd65"
+  },
+  "cases": [
+    {
+      "contract": "veilcore",
+      "circuit": "commit",
+      "args": [
+        "b:e8bc163c82eee18733288c7d4ac636db3a6deb013ef2d37b68322be20edc45cc"
+      ],
+      "out": "b:a6883cd88684a0f3c99c4f3161bc27a9aa550b479d0f9414026f43adb744daa8"
+    },
+    {
+      "contract": "veilcore",
+      "circuit": "recoveryCommit",
+      "args": [
+        "b:e8bc163c82eee18733288c7d4ac636db3a6deb013ef2d37b68322be20edc45cc"
+      ],
+      "out": "b:ee8603b9499a2e6289f3313e4e82b9819b49a76db051d9939bc551f394b6bf12"
+    },
+    {
+      "contract": "veilcore",
+      "circuit": "commit",
+      "args": [
+        "b:ad328846aa18b32a335816374511cac1063c704b8c57999e51da9f908290a7a4"
+      ],
+      "out": "b:89404afdab9a7cccaeb0bf02382ab1b99ecfe1780d4a9fa52a3e9ddf4e7f564b"
+    },
+    {
+      "contract": "veilcore",
+      "circuit": "recoveryCommit",
+      "args": [
+        "b:ad328846aa18b32a335816374511cac1063c704b8c57999e51da9f908290a7a4"
+      ],
+      "out": "b:8c4050345bbc65c3aeff627ee47baa084d630108b085bef62f82b915ba782296"
+    },
+    {
+      "contract": "veilcore",
+      "circuit": "commit",
+      "args": [
+        "b:41242b9fae56fad4e6e77dfe33cb18d1c3fc583f988cf25ef9f2d9be0d440bbb"
+      ],
+      "out": "b:ed9504c4e9bdd9300a26ca44abb772dd9758748d218b4b5a50a8a9fbf546f46c"
+    },
+    {
+      "contract": "veilcore",
+      "circuit": "recoveryCommit",
+      "args": [
+        "b:41242b9fae56fad4e6e77dfe33cb18d1c3fc583f988cf25ef9f2d9be0d440bbb"
+      ],
+      "out": "b:af35a59272c968be4a316ed62b53f083639bd57d68fd419aebf6c20353f73e89"
+    },
+    {
+      "contract": "veilcore",
+      "circuit": "commit",
+      "args": [
+        "b:0000000000000000000000000000000000000000000000000000000000000000"
+      ],
+      "out": "b:ee1f2db06b290ce047a8e47b0488f414abd63ea18bc941d26010cdbea4b6a7a3"
+    },
+    {
+      "contract": "veilcore",
+      "circuit": "recoveryCommit",
+      "args": [
+        "b:0000000000000000000000000000000000000000000000000000000000000000"
+      ],
+      "out": "b:5051b39f700982cac3f9d64e5831a970ee913e3c90b4c98518915afb1218765e"
+    },
+    {
+      "contract": "veilcore",
+      "circuit": "commit",
+      "args": [
+        "b:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+      ],
+      "out": "b:9a520bca46aec7518bcb17fe5c7ffe311c37334c3bb51a92a62d7ced65c9b1f9"
+    },
+    {
+      "contract": "veilcore",
+      "circuit": "recoveryCommit",
+      "args": [
+        "b:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+      ],
+      "out": "b:5bc044dc46076a300faa588a68827b2d582206bbab4c52df52f3eb567ecb57a8"
+    },
+    {
+      "contract": "veilcore",
+      "circuit": "licenseCommit",
+      "args": [
+        "b:e8bc163c82eee18733288c7d4ac636db3a6deb013ef2d37b68322be20edc45cc",
+        "b:ad328846aa18b32a335816374511cac1063c704b8c57999e51da9f908290a7a4"
+      ],
+      "out": "b:2126aa7ccb0b9c806336ba4f9f0a6eed538cd6eb295f754141f5e052baf1e84f"
+    },
+    {
+      "contract": "veilcore",
+      "circuit": "licenseKey",
+      "args": [
+        "b:e8bc163c82eee18733288c7d4ac636db3a6deb013ef2d37b68322be20edc45cc",
+        "b:ad328846aa18b32a335816374511cac1063c704b8c57999e51da9f908290a7a4"
+      ],
+      "out": "b:8a38cb2c0accc334c436b7ecff283013aa4c54662dcd25588147c868051ea23b"
+    },
+    {
+      "contract": "veilcore",
+      "circuit": "presentationTag",
+      "args": [
+        "b:e8bc163c82eee18733288c7d4ac636db3a6deb013ef2d37b68322be20edc45cc",
+        "b:ad328846aa18b32a335816374511cac1063c704b8c57999e51da9f908290a7a4"
+      ],
+      "out": "b:07b290efd39d588ad337c48e8534447c330ae9aac7b4076bcda226b28c0a0507"
+    },
+    {
+      "contract": "veilcore",
+      "circuit": "licenseCommit",
+      "args": [
+        "b:ad328846aa18b32a335816374511cac1063c704b8c57999e51da9f908290a7a4",
+        "b:e8bc163c82eee18733288c7d4ac636db3a6deb013ef2d37b68322be20edc45cc"
+      ],
+      "out": "b:bf9ec05a63059c92aff121acdd2172236a6e9a0039841b88f5281222d7cec04e"
+    },
+    {
+      "contract": "veilcore",
+      "circuit": "licenseKey",
+      "args": [
+        "b:ad328846aa18b32a335816374511cac1063c704b8c57999e51da9f908290a7a4",
+        "b:e8bc163c82eee18733288c7d4ac636db3a6deb013ef2d37b68322be20edc45cc"
+      ],
+      "out": "b:b1336733ab4311f2e5642ad768764ce06e1fd5eb5e0da93833b270e3feb4012e"
+    },
+    {
+      "contract": "veilcore",
+      "circuit": "presentationTag",
+      "args": [
+        "b:ad328846aa18b32a335816374511cac1063c704b8c57999e51da9f908290a7a4",
+        "b:e8bc163c82eee18733288c7d4ac636db3a6deb013ef2d37b68322be20edc45cc"
+      ],
+      "out": "b:9aee85a75d9e381b9b83e98072733cf24eb61c1cf1bbab720488062e428eac50"
+    },
+    {
+      "contract": "veilcore",
+      "circuit": "licenseCommit",
+      "args": [
+        "b:0000000000000000000000000000000000000000000000000000000000000000",
+        "b:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+      ],
+      "out": "b:5ab2951be684fcaded391949251162797c52915f364aeef1a329673dd1f64139"
+    },
+    {
+      "contract": "veilcore",
+      "circuit": "licenseKey",
+      "args": [
+        "b:0000000000000000000000000000000000000000000000000000000000000000",
+        "b:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+      ],
+      "out": "b:d968228c7dcced132bafad5b0966f0b008d6120146a614cc53e9f844acbef622"
+    },
+    {
+      "contract": "veilcore",
+      "circuit": "presentationTag",
+      "args": [
+        "b:0000000000000000000000000000000000000000000000000000000000000000",
+        "b:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+      ],
+      "out": "b:3d025b54fc1be942e5508be3354862f4820dca4882bd249f1de887df74180cd8"
+    },
+    {
+      "contract": "veilcore",
+      "circuit": "licenseCommit",
+      "args": [
+        "b:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        "b:0000000000000000000000000000000000000000000000000000000000000000"
+      ],
+      "out": "b:b5a6b9d9b80869795604406e3eb54d56b7a5d0bbac707073f6ea75bcb5105c08"
+    },
+    {
+      "contract": "veilcore",
+      "circuit": "licenseKey",
+      "args": [
+        "b:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        "b:0000000000000000000000000000000000000000000000000000000000000000"
+      ],
+      "out": "b:cb221cd1e4f17114e60fd0f024713a84e53dcc5002c95126f8189a4bc6cc72a5"
+    },
+    {
+      "contract": "veilcore",
+      "circuit": "presentationTag",
+      "args": [
+        "b:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        "b:0000000000000000000000000000000000000000000000000000000000000000"
+      ],
+      "out": "b:cf8912b0ffd87854bbe4335ca88501788c2cd3a0d59193c1cfa341a0641b7959"
+    },
+    {
+      "contract": "veilcore",
+      "circuit": "obligationKey",
+      "args": [
+        "b:e8bc163c82eee18733288c7d4ac636db3a6deb013ef2d37b68322be20edc45cc",
+        "b:ad328846aa18b32a335816374511cac1063c704b8c57999e51da9f908290a7a4",
+        "b:41242b9fae56fad4e6e77dfe33cb18d1c3fc583f988cf25ef9f2d9be0d440bbb"
+      ],
+      "out": "b:79bcd88e6b353e49050be342d81a9a169abf255b64ca05a9b811d947a9921263"
+    },
+    {
+      "contract": "veilcore",
+      "circuit": "obligationKey",
+      "args": [
+        "b:41242b9fae56fad4e6e77dfe33cb18d1c3fc583f988cf25ef9f2d9be0d440bbb",
+        "b:ad328846aa18b32a335816374511cac1063c704b8c57999e51da9f908290a7a4",
+        "b:e8bc163c82eee18733288c7d4ac636db3a6deb013ef2d37b68322be20edc45cc"
+      ],
+      "out": "b:1e5f5ab7a2b24c42b9b0ca7c809cbf82e4a9ec30085fef911c5366685a4cdcba"
+    },
+    {
+      "contract": "veilcore",
+      "circuit": "obligationKey",
+      "args": [
+        "b:0000000000000000000000000000000000000000000000000000000000000000",
+        "b:0000000000000000000000000000000000000000000000000000000000000000",
+        "b:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+      ],
+      "out": "b:b71864875120db471020fe94dc0eea09e6a94b24ca39b44c0c9e83a7a5dacbff"
+    },
+    {
+      "contract": "veilcore-claims",
+      "circuit": "fieldLeaf",
+      "args": [
+        "b:e8bc163c82eee18733288c7d4ac636db3a6deb013ef2d37b68322be20edc45cc",
+        "b:80f9427ec1fb4fa3a8683fb5fa1c7ae9cbe28b8258fc25"
+      ],
+      "out": "b:c79e838c6f40b0b354e057c16808016eea5de3da4eebcf87d303c491590dc163"
+    },
+    {
+      "contract": "veilcore-claims",
+      "circuit": "fieldRecord",
+      "args": [
+        "b:e8bc163c82eee18733288c7d4ac636db3a6deb013ef2d37b68322be20edc45cc",
+        "b:ad328846aa18b32a335816374511cac1063c704b8c57999e51da9f908290a7a4"
+      ],
+      "out": "b:66fb63fae4f4ce13d534d91a0f8a295376d33d46a475c925ffc07b4ebbf43e98"
+    },
+    {
+      "contract": "veilcore-claims",
+      "circuit": "schemaId",
+      "args": [
+        "b:e8bc163c82eee18733288c7d4ac636db3a6deb013ef2d37b68322be20edc45cc",
+        "b:41242b9fae56fad4e6e77dfe33cb18d1c3fc583f988cf25ef9f2d9be0d440bbb"
+      ],
+      "out": "b:f259380854b288a8dfed41a9e8f37bbc328cf2e10c181323efb1abac204c1345"
+    },
+    {
+      "contract": "veilcore-claims",
+      "circuit": "attestationMessage",
+      "args": [
+        "b:e8bc163c82eee18733288c7d4ac636db3a6deb013ef2d37b68322be20edc45cc"
+      ],
+      "out": [
+        "n:2596938879225493167221653048915359117869671798",
+        "n:123431232923603876725612530533125056056996207838083180075159949818847476968",
+        "n:315047983451848235992045406464023310818909483791733553086414842842466857503"
+      ]
+    },
+    {
+      "contract": "veilcore-claims",
+      "circuit": "fieldLeaf",
+      "args": [
+        "b:ad328846aa18b32a335816374511cac1063c704b8c57999e51da9f908290a7a4",
+        "b:1a89ae6953020c4e6724e3e8712e7c7cf09749089ed38a"
+      ],
+      "out": "b:d1dede28535aecb2302b80b5b7d99264c7434d9f25bca4f5fd630c483f72c7a7"
+    },
+    {
+      "contract": "veilcore-claims",
+      "circuit": "fieldRecord",
+      "args": [
+        "b:ad328846aa18b32a335816374511cac1063c704b8c57999e51da9f908290a7a4",
+        "b:ad328846aa18b32a335816374511cac1063c704b8c57999e51da9f908290a7a4"
+      ],
+      "out": "b:0de28f5d41a8f182c7f31f083e451852c7ea685085e0bc9d672161e71ca51633"
+    },
+    {
+      "contract": "veilcore-claims",
+      "circuit": "schemaId",
+      "args": [
+        "b:ad328846aa18b32a335816374511cac1063c704b8c57999e51da9f908290a7a4",
+        "b:41242b9fae56fad4e6e77dfe33cb18d1c3fc583f988cf25ef9f2d9be0d440bbb"
+      ],
+      "out": "b:f78261ba1e5cd8620dc5b902be12fdd422ed27960f9d59e8711fda6b6000020d"
+    },
+    {
+      "contract": "veilcore-claims",
+      "circuit": "attestationMessage",
+      "args": [
+        "b:ad328846aa18b32a335816374511cac1063c704b8c57999e51da9f908290a7a4"
+      ],
+      "out": [
+        "n:2596938879225493167221653048915359117869671798",
+        "n:296060831315724385062452416581132802895220390815295482047634024587334267565",
+        "n:61865562309077393848520861102870839877051716982813866968778142153143580298"
+      ]
+    },
+    {
+      "contract": "veilcore-claims",
+      "circuit": "fieldLeaf",
+      "args": [
+        "b:41242b9fae56fad4e6e77dfe33cb18d1c3fc583f988cf25ef9f2d9be0d440bbb",
+        "b:283d572f884e0d6ed0e8e1dedd3ae63d27ffd5e6f12b7b"
+      ],
+      "out": "b:92ffb48683cea82679d05e940ac44ef23e47adb6ebe68f122dfc47e55b380b98"
+    },
+    {
+      "contract": "veilcore-claims",
+      "circuit": "fieldRecord",
+      "args": [
+        "b:41242b9fae56fad4e6e77dfe33cb18d1c3fc583f988cf25ef9f2d9be0d440bbb",
+        "b:ad328846aa18b32a335816374511cac1063c704b8c57999e51da9f908290a7a4"
+      ],
+      "out": "b:5653d533be6e5c63b20d7815ee964e515344011bbfc1a4b32457e428915044f7"
+    },
+    {
+      "contract": "veilcore-claims",
+      "circuit": "schemaId",
+      "args": [
+        "b:41242b9fae56fad4e6e77dfe33cb18d1c3fc583f988cf25ef9f2d9be0d440bbb",
+        "b:41242b9fae56fad4e6e77dfe33cb18d1c3fc583f988cf25ef9f2d9be0d440bbb"
+      ],
+      "out": "b:5034ebffbf31e11a683727c51993d3ad28e9253d6aa3632ff073e73a80f6d35d"
+    },
+    {
+      "contract": "veilcore-claims",
+      "circuit": "attestationMessage",
+      "args": [
+        "b:41242b9fae56fad4e6e77dfe33cb18d1c3fc583f988cf25ef9f2d9be0d440bbb"
+      ],
+      "out": [
+        "n:2596938879225493167221653048915359117869671798",
+        "n:19905007042445142514967745146001889528981341467456998555120886448376194113",
+        "n:146237680935825566647553066932154346424994947089089317188958072919432496486"
+      ]
+    },
+    {
+      "contract": "veilcore-claims",
+      "circuit": "fieldLeaf",
+      "args": [
+        "b:0000000000000000000000000000000000000000000000000000000000000000",
+        "b:06d646dd32d087a82a1c0b81487b4b926bb061c053eaeb"
+      ],
+      "out": "b:06be9b526f960be4fdf4f4768ccf22345c57768df4f911a5148d41237f107e1f"
+    },
+    {
+      "contract": "veilcore-claims",
+      "circuit": "fieldRecord",
+      "args": [
+        "b:0000000000000000000000000000000000000000000000000000000000000000",
+        "b:ad328846aa18b32a335816374511cac1063c704b8c57999e51da9f908290a7a4"
+      ],
+      "out": "b:3e34146930f0a80c86ccd623fd19d0f61302dfa978d060f9295a0d10d32e53b8"
+    },
+    {
+      "contract": "veilcore-claims",
+      "circuit": "schemaId",
+      "args": [
+        "b:0000000000000000000000000000000000000000000000000000000000000000",
+        "b:41242b9fae56fad4e6e77dfe33cb18d1c3fc583f988cf25ef9f2d9be0d440bbb"
+      ],
+      "out": "b:13dc11fa7710a2850693555ff4c5d408e897b158b3be4d03359ba8b84928c00b"
+    },
+    {
+      "contract": "veilcore-claims",
+      "circuit": "attestationMessage",
+      "args": [
+        "b:0000000000000000000000000000000000000000000000000000000000000000"
+      ],
+      "out": [
+        "n:2596938879225493167221653048915359117869671798",
+        "n:0",
+        "n:260170029063724938726914458218293956253928856155469001135344950490471520199"
+      ]
+    },
+    {
+      "contract": "veilcore-claims",
+      "circuit": "fieldLeaf",
+      "args": [
+        "b:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        "b:3d14d73ba6628fceb72b5bf1e33725320bbb52fe949b15"
+      ],
+      "out": "b:06b179d498d68a9a8993d3b6e8088d25a4dbdfaf0f6c416a85fe4d2aede50bac"
+    },
+    {
+      "contract": "veilcore-claims",
+      "circuit": "fieldRecord",
+      "args": [
+        "b:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        "b:ad328846aa18b32a335816374511cac1063c704b8c57999e51da9f908290a7a4"
+      ],
+      "out": "b:45666169ac8652be6e4685390bcca94215087a649363a91117ba166f49eb96db"
+    },
+    {
+      "contract": "veilcore-claims",
+      "circuit": "schemaId",
+      "args": [
+        "b:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        "b:41242b9fae56fad4e6e77dfe33cb18d1c3fc583f988cf25ef9f2d9be0d440bbb"
+      ],
+      "out": "b:69c08769e8b6835813d80fc0105dab633a1d02c529ad17476db98635cd30890d"
+    },
+    {
+      "contract": "veilcore-claims",
+      "circuit": "attestationMessage",
+      "args": [
+        "b:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+      ],
+      "out": [
+        "n:2596938879225493167221653048915359117869671798",
+        "n:452312848583266388373324160190187140051835877600158453279131187530910662655",
+        "n:158799851653119221947159844095044500729684371161682477608308110548053021113"
+      ]
+    },
+    {
+      "contract": "veilcore-claims",
+      "circuit": "fieldSetRoot",
+      "args": [
+        "b:e8bc163c82eee18733288c7d4ac636db3a6deb013ef2d37b68322be20edc45cc",
+        [
+          "b:20e325f06280f9d0d193fed01a0eda5bef79063f2e602d93e3605cbe825d96ad",
+          "b:ccbf76d20974e563eb51d22ff1171a30472e0ae643b17863befd53614e7fefad",
+          "b:bac57df66fe6368188d1d4521bcffaecee76a03a50ff297a13439f7164de0a5f",
+          "b:ca6e6588d55d58a70e0b4de60c2dab1e4574bb97d68fa88679852a5daaa9db02",
+          "b:5036d5415fd89f22c593f3a7a10348af3c87b3f13d73373a42f8768e377da3e9",
+          "b:5df183a7928a0b9a8a923c39009e89847ab5f53d07547a362bd2b30e26ee2e16",
+          "b:e94f5850717db06bc4e0bd7444389dd11eb57caf8e60502cc633081a636510d0",
+          "b:3fc6f659908e60026f20aeb6f1a90a14cacb8a27d870aec882a0529f2c829bb2",
+          "b:3779790b00cf4dd355ba895adf36838158baa398f0e70fce7018503dbade253d",
+          "b:3327cf579337d5d2469ca9960f066abf8073645ce487d2a350f7bd7e44b7d52d",
+          "b:b789e63ed0a8dd152a5b020b53e0c9d7a2522b93702c255d2847575ebea98a92",
+          "b:5d61bd1b0b8f883e09601dffb3bdd10393a05ee4315b5ffd5369e062ca3b5cca",
+          "b:29f490d1ebc8f6c9420c8ed96e118584f77f92b705fbb9fc8269967b4768efbe",
+          "b:b91137035670e87737d52bada60db567e836f928e4aac2467cd4630164d07f9e",
+          "b:ec23c4e2f524c6fffb83ad9654431261197cbdea40ff20032b4a0100ba83d4ca",
+          "b:1be319e2fd427f0cbd74b55c7d37fb35cdcea45c465ff032d15661e9ea0555cb"
+        ]
+      ],
+      "out": "b:94511367c84df69cb29b19a5df53d80737c640f4f78b1aabaa2d94117f2ef04a"
+    },
+    {
+      "contract": "veilcore-claims",
+      "circuit": "fieldSetRoot",
+      "args": [
+        "b:0000000000000000000000000000000000000000000000000000000000000000",
+        [
+          "b:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+          "b:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+          "b:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+          "b:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+          "b:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+          "b:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+          "b:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+          "b:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+          "b:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+          "b:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+          "b:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+          "b:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+          "b:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+          "b:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+          "b:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+          "b:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+        ]
+      ],
+      "out": "b:d02da4ee0a21c12853012b81002398e3b0649a2fc2b2f9161da5926c9fa98093"
+    },
+    {
+      "contract": "veilcore-claims",
+      "circuit": "numberBytes",
+      "args": [
+        "n:0"
+      ],
+      "out": "b:0000000000000000010000000000000000000000000000000000000000000000"
+    },
+    {
+      "contract": "veilcore-claims",
+      "circuit": "numberBytes",
+      "args": [
+        "n:1"
+      ],
+      "out": "b:0100000000000000010000000000000000000000000000000000000000000000"
+    },
+    {
+      "contract": "veilcore-claims",
+      "circuit": "numberBytes",
+      "args": [
+        "n:9650"
+      ],
+      "out": "b:b225000000000000010000000000000000000000000000000000000000000000"
+    },
+    {
+      "contract": "veilcore-claims",
+      "circuit": "numberBytes",
+      "args": [
+        "n:18446744073709551615"
+      ],
+      "out": "b:ffffffffffffffff010000000000000000000000000000000000000000000000"
+    },
+    {
+      "contract": "veilcore-claims",
+      "circuit": "maskBytes",
+      "args": [
+        [
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ]
+      ],
+      "out": "b:0000000000000000000000000000000000000000000000000000000000000000"
+    },
+    {
+      "contract": "veilcore-claims",
+      "circuit": "maskBytes",
+      "args": [
+        [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      ],
+      "out": "b:ffff000000000000000000000000000000000000000000000000000000000000"
+    },
+    {
+      "contract": "veilcore-claims",
+      "circuit": "maskBytes",
+      "args": [
+        [
+          true,
+          false,
+          false,
+          true,
+          false,
+          false,
+          true,
+          false,
+          false,
+          true,
+          false,
+          false,
+          true,
+          false,
+          false,
+          true
+        ]
+      ],
+      "out": "b:4992000000000000000000000000000000000000000000000000000000000000"
+    },
+    {
+      "contract": "veilcore-claims",
+      "circuit": "termsBytes",
+      "args": [
+        {
+          "documentDigest": "b:e8bc163c82eee18733288c7d4ac636db3a6deb013ef2d37b68322be20edc45cc",
+          "comparable": [
+            true,
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "k": "n:1",
+          "numeric": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            true,
+            false,
+            false,
+            false
+          ]
+        }
+      ],
+      "out": "b:0300001001000000000000000000000000000000000000000000000000000000"
+    },
+    {
+      "contract": "veilcore-claims",
+      "circuit": "termsBytes",
+      "args": [
+        {
+          "documentDigest": "b:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+          "comparable": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "k": "n:255",
+          "numeric": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ]
+        }
+      ],
+      "out": "b:ffffffffff000000000000000000000000000000000000000000000000000000"
+    },
+    {
+      "contract": "veilcore-claims",
+      "circuit": "attestationChallenge",
+      "args": [
+        "n:0",
+        "n:1",
+        "n:12345678901234567890",
+        "n:52435875175126190479447740508185965837690552500527637822603658699938581184512",
+        "b:e8bc163c82eee18733288c7d4ac636db3a6deb013ef2d37b68322be20edc45cc"
+      ],
+      "out": "n:13585171283377495710271390934060367749323077686563811113858112120990199599350"
+    },
+    {
+      "contract": "veilcore-claims",
+      "circuit": "attestationChallenge",
+      "args": [
+        "n:1",
+        "n:12345678901234567890",
+        "n:52435875175126190479447740508185965837690552500527637822603658699938581184512",
+        "n:17478625058375396826482580169395321945896850833509212607534552899979527061504",
+        "b:ad328846aa18b32a335816374511cac1063c704b8c57999e51da9f908290a7a4"
+      ],
+      "out": "n:25542848228708313409676120741442169718963512941263604687828860444309897546746"
+    },
+    {
+      "contract": "veilcore-claims",
+      "circuit": "attestationChallenge",
+      "args": [
+        "n:12345678901234567890",
+        "n:52435875175126190479447740508185965837690552500527637822603658699938581184512",
+        "n:17478625058375396826482580169395321945896850833509212607534552899979527061504",
+        "n:0",
+        "b:41242b9fae56fad4e6e77dfe33cb18d1c3fc583f988cf25ef9f2d9be0d440bbb"
+      ],
+      "out": "n:30280145138873043951481743301130657269427615950932307417725060098996172310679"
+    },
+    {
+      "contract": "veilcore-claims",
+      "circuit": "attestationChallenge",
+      "args": [
+        "n:52435875175126190479447740508185965837690552500527637822603658699938581184512",
+        "n:17478625058375396826482580169395321945896850833509212607534552899979527061504",
+        "n:0",
+        "n:1",
+        "b:0000000000000000000000000000000000000000000000000000000000000000"
+      ],
+      "out": "n:16698851685546776356407073216364962009030524508162282975914976021224543237023"
+    },
+    {
+      "contract": "veilcore-claims",
+      "circuit": "attestationChallenge",
+      "args": [
+        "n:17478625058375396826482580169395321945896850833509212607534552899979527061504",
+        "n:0",
+        "n:1",
+        "n:12345678901234567890",
+        "b:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+      ],
+      "out": "n:9851015575328218054939498574913371213650375411657883792076833189495641786434"
+    }
+  ]
+}

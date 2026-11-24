@@ -16,6 +16,18 @@
  *             submit --request FILE --sig FILE --sig FILE [--dry-run] [--confirm FILE x3]
  *                                        check the signatures against the chain and send it
  *   --address HEX   the contract, on preprod or a local chain (mainnet: always the pinned one)
+ *   --v2-record FILE  act on contract v2: its address (and its key slot, V4) come from the
+ *                   deploy-session record `npm run deploy-v2` wrote, because v2 is pinned only after
+ *                   verify:deployment passes. --contract veilcore|veilcore-claims picks which one.
+ *   --key-slot v3|v4  the slot of the key actions. It comes from the contract (v1's pinned address
+ *                   is V3, v2 is V4) and must agree with it; only a test contract that is neither
+ *                   needs it named.
+ *
+ * THE MAINNET GATE (docs/contract-v2.md 5, scripts/committee/gate.mjs): every mainnet change is
+ * refused unless the contract shows 3 keys and threshold 2, except contract v2 before its handover
+ * (the V4 key inserts listed in docs/fingerprints-v2.md, and the one handover) and one retire of
+ * v1 with its single key. Checked before anything is signed, and again right before sending,
+ * together with the slot of every key the contract holds.
  *
  * --dry-run reads the chain, builds and checks everything, and stops before the wallet:
  * nothing is sent. It writes a dry-run record (a public file: what was checked, for which
@@ -67,6 +79,7 @@ import {
   type Action,
   type AuthorityView,
   type KeyCard,
+  type KeySlot,
   type Request,
   DRY_RUN_FORMAT,
   DRY_RUN_MAX_AGE_MS,
@@ -86,7 +99,23 @@ import {
   requestLanded,
   signRequest,
 } from '../../../scripts/committee/core.mjs';
-import { assertLedger9Network, readAuthorityNow, sendMaintenanceUpdate } from '../../../scripts/committee/submit.mjs';
+import {
+  assertLedger9Network,
+  readAuthorityNow,
+  readKeySlotsNow,
+  sendMaintenanceUpdate,
+} from '../../../scripts/committee/submit.mjs';
+import {
+  type V2Contract,
+  chainSlotProblems,
+  gateProblems,
+  requestSlotProblems,
+  slotForContract,
+} from '../../../scripts/committee/gate.mjs';
+import { readSession } from '../../../scripts/v2/session.mjs';
+import { type KeyStore, ageKeyStore } from '../age-key.js';
+import { loadFingerprintsV2 } from '../../../scripts/v2/fingerprints.mjs';
+import { checkRunningProofServer } from '../../../scripts/v2/proof-server.mjs';
 import { MAINNET_VEILCORE_ADDRESS } from '../../../api/src/deploy-guard';
 import { indexerWebSocket, usePlainForBlockfrost } from '../../../api/src/indexer-websocket';
 import { endpointsFor } from '../../../partner-kit/src/network';
@@ -98,6 +127,8 @@ import {
   blockfrostProjectIdFor,
   currentDir,
   useMainnetProofServer,
+  useProofServerFile,
+  V2_PROOF_SERVER_FILE,
 } from '../config.js';
 import { createLogger, redactThisSession, scrubTerminal } from '../logger-utils.js';
 import { createPrompt, PromptClosedError, type Prompt } from '../prompt.js';
@@ -141,6 +172,16 @@ export type Options = {
   readonly insert: string[];
   readonly reason: string;
   readonly out?: string;
+  /** Contract v2's deploy-session record: the address (and slot V4) come from it. */
+  readonly v2Record?: string;
+  /** Which v2 contract of the record (default veilcore). */
+  readonly contract: 'veilcore' | 'veilcore-claims';
+  /** The key slot named on the command line; it must agree with the contract's. */
+  readonly keySlot?: KeySlot;
+  /** docs/fingerprints-v2.md, or another copy (tests). */
+  readonly fingerprints?: string;
+  /** install on v2: the temporary key's age-encrypted file, opened by age (never typed, never shown). */
+  readonly tempKeyFile?: string;
 };
 
 export const USAGE = `Usage: committee.ts <mainnet|preprod|undeployed> <show|install|request|submit> [options]
@@ -152,6 +193,14 @@ export const USAGE = `Usage: committee.ts <mainnet|preprod|undeployed> <show|ins
   submit  --request FILE --sig FILE --sig FILE [--dry-run] [--out FILE]
           [--confirm FILE --confirm FILE --confirm FILE]
   --address HEX   the contract on preprod or a local chain (mainnet always uses the pinned address)
+  --v2-record FILE [--contract veilcore|veilcore-claims]
+                  contract v2, by the address in its deploy-session record (keys in slot V4)
+  --temp-key-file FILE
+                  v2 before its handover: the temporary key's age-encrypted file (age asks its
+                  passphrase), for install, or for submit in place of --sig (a retire)
+  --key-slot v3|v4
+                  the key slot; it must agree with the contract's (needed only for a test contract
+                  that is neither v1's pinned address nor in a v2 record)
   --send-on-mainnet --dry-run-record FILE
                   mainnet only, both needed to send: FILE is what --dry-run wrote for the same change,
                   in the last 24 hours
@@ -184,6 +233,7 @@ export const parseOptions = (argv: readonly string[]): Options => {
     remove: [] as string[],
     insert: [] as string[],
     reason: '',
+    contract: 'veilcore',
   } as {
     -readonly [K in keyof Options]: Options[K];
   };
@@ -237,17 +287,53 @@ export const parseOptions = (argv: readonly string[]): Options => {
       case '--out':
         o.out = value();
         break;
+      case '--v2-record':
+        o.v2Record = value();
+        break;
+      case '--contract': {
+        const c = value();
+        if (c !== 'veilcore' && c !== 'veilcore-claims')
+          throw new UsageError('--contract is veilcore or veilcore-claims.');
+        o.contract = c;
+        break;
+      }
+      case '--key-slot': {
+        const k = value();
+        if (k !== 'v3' && k !== 'v4') throw new UsageError('--key-slot is v3 or v4.');
+        o.keySlot = k;
+        break;
+      }
+      case '--fingerprints':
+        o.fingerprints = value();
+        break;
+      case '--temp-key-file':
+        o.tempKeyFile = value();
+        break;
       default:
         throw new UsageError(`Unknown option ${flag}.\n${USAGE}`);
     }
   }
+  if (o.tempKeyFile !== undefined && (!['install', 'submit'].includes(o.command) || o.v2Record === undefined))
+    throw new UsageError(
+      '--temp-key-file is for contract v2 before its handover (with --v2-record): install (the handover), or submit (signs a request, such as a retire, with the temporary key).',
+    );
+  if (o.tempKeyFile !== undefined && o.sigs.length > 0)
+    throw new UsageError(
+      'Give --temp-key-file or --sig files, not both: the temporary key is the only signer before the handover.',
+    );
+  if (o.v2Record !== undefined && o.address !== undefined)
+    throw new UsageError(
+      'Give --v2-record or --address, not both: with --v2-record the address comes from the record.',
+    );
   if (o.network === 'mainnet' && o.address !== undefined && o.address !== MAINNET_VEILCORE_ADDRESS)
-    throw new UsageError('On mainnet this tool works only on the pinned VeilCore main contract. Leave out --address.');
-  if (o.network !== 'mainnet' && o.address === undefined && o.command !== 'submit')
-    throw new UsageError(`On ${o.network}, say which contract: --address HEX.`);
+    throw new UsageError(
+      'On mainnet this tool works only on the pinned VeilCore main contract, or on contract v2 by --v2-record. Leave out --address.',
+    );
+  if (o.network !== 'mainnet' && o.address === undefined && o.v2Record === undefined && o.command !== 'submit')
+    throw new UsageError(`On ${o.network}, say which contract: --address HEX, or --v2-record FILE.`);
   if (o.command === 'install' && o.cards.length !== 3)
     throw new UsageError('install needs the three key cards: --card FILE three times.');
-  if (o.command === 'submit' && (o.request === undefined || o.sigs.length === 0))
+  if (o.command === 'submit' && (o.request === undefined || (o.sigs.length === 0 && o.tempKeyFile === undefined)))
     throw new UsageError('submit needs --request FILE and the signature files (--sig FILE, once for each).');
   if (o.command === 'request') {
     const kinds = [o.replace, o.retire, o.remove.length + o.insert.length > 0].filter(Boolean).length;
@@ -351,6 +437,22 @@ let sending = false;
 type Sender = {
   readonly providers: Parameters<typeof sendMaintenanceUpdate>[0];
   readonly stop: () => Promise<void>;
+  /** The proof server this wallet session started (its URL on this machine). */
+  readonly proofServer?: string;
+};
+
+/** Every contract v2 tool: proof server 9.0.2 from its one pinned file, and asked its version first. */
+export const V2_WALLET: WalletOptions = {
+  proofServerFile: V2_PROOF_SERVER_FILE,
+  checkProofServer: (url) => checkRunningProofServer(url),
+};
+
+/** How a contract v2 tool opens the wallet: its own proof server file, checked before the phrase is asked. */
+export type WalletOptions = {
+  /** The compose file of the proof server to start (default: proof-server-mainnet.yml, v1's). */
+  readonly proofServerFile?: string;
+  /** Problems with the running proof server (empty when it is right). Asked before the recovery phrase. */
+  readonly checkProofServer?: (url: string) => Promise<string[]>;
 };
 
 /**
@@ -391,11 +493,12 @@ const askWallet = async (
   return { mnemonic };
 };
 
-const openWallet = async (
+export const openWallet = async (
   network: Network,
   config: Config,
   prompt: Prompt,
   logger: Logger,
+  options: WalletOptions = {},
 ): Promise<Sender | undefined> => {
   // One tool on this network's wallet progress at a time (store-lock.ts), as the CLI does.
   try {
@@ -417,9 +520,12 @@ const openWallet = async (
     return undefined;
   }
   // This tool sends only on a Ledger 9 network (assertLedger9Network), and a proof server
-  // serves one ledger: the Ledger 9 one (proof-server-mainnet.yml, 9.0.2), on every network.
-  useMainnetProofServer();
+  // serves one ledger: the Ledger 9 one, on every network. v1's contracts use
+  // proof-server-mainnet.yml (9.0.1); contract v2's tools pass proof-server-v2.yml (9.0.2, V2_WALLET).
   const testEnv: TestEnvironment = config.getEnvironment(logger);
+  // Set after getEnvironment, which sets the mainnet file for mainnet.
+  if (options.proofServerFile !== undefined) useProofServerFile(options.proofServerFile);
+  else useMainnetProofServer();
   let wallet: MidnightWalletProvider | undefined;
   const stop = async (): Promise<void> => {
     try {
@@ -430,6 +536,14 @@ const openWallet = async (
   };
   try {
     const env = await testEnv.start();
+    if (options.checkProofServer !== undefined) {
+      const wrong = await options.checkProofServer(env.proofServer);
+      if (wrong.length > 0) {
+        for (const l of wrong) logger.error(l);
+        await stop();
+        return undefined;
+      }
+    }
     const source =
       network === 'undeployed' ? { seed: GENESIS_MINT_WALLET_SEED } : await askWallet(network, prompt, logger);
     if (source === undefined) {
@@ -484,6 +598,7 @@ const openWallet = async (
         config: midnightConfig(),
       },
       stop,
+      proofServer: env.proofServer,
     };
   } catch (e) {
     await stop().catch(() => undefined);
@@ -656,7 +771,11 @@ const sendProblems = (o: Options, req: Request, update: { readonly dataToSign: U
  * The commands.
  */
 
-const contractOf = (o: Options, req?: Request): string => {
+const contractOf = (o: Options, req?: Request, v2?: V2Contract): string => {
+  if (o.v2Record !== undefined) {
+    if (v2 === undefined) throw new UsageError('The v2 record was not read.');
+    return v2.address;
+  }
   if (o.network === 'mainnet') return MAINNET_VEILCORE_ADDRESS;
   const a = o.address ?? req?.contractAddress;
   if (a === undefined || !/^[0-9a-f]{64}$/.test(a))
@@ -676,6 +795,47 @@ export type Ctx = {
   /** The wallet and providers that send, opened only when something is to be sent. */
   readonly openSender: (network: Network, prompt: Prompt, logger: Logger) => Promise<Sender | undefined>;
   readonly sendOptions?: { waitMs?: number };
+  /** Opens the temporary key's age file (tests replace it). */
+  readonly keyStore?: KeyStore;
+  /** Contract v2 from --v2-record: its address, temporary key and published keys. */
+  readonly v2?: V2Contract;
+};
+
+/**
+ * The key slot of the contract at `address`, from the contract (gate.mjs): V3 for v1's pinned
+ * address, V4 for v2 in the record, never a default taken from a request. On a test network a
+ * contract that is neither has the slot the operator names, or none (then no key action is allowed).
+ */
+const slotOf = (c: Ctx, address: string): KeySlot | undefined => {
+  const r = slotForContract({
+    network: c.o.network,
+    address,
+    pinnedV1Address: MAINNET_VEILCORE_ADDRESS,
+    v2: c.v2,
+    named: c.o.keySlot,
+  });
+  if ('slot' in r) return r.slot;
+  if (c.o.network !== 'mainnet' && c.o.keySlot === undefined && c.v2 === undefined) return undefined;
+  throw new UsageError(r.problem);
+};
+
+/** The gate and the slot rule, for a change about to be signed or sent. Throws UsageError. */
+const gateOrStop = (c: Ctx, req: Request, current: AuthorityView, slot: KeySlot | undefined): void => {
+  const problems = gateProblems({
+    network: c.o.network,
+    address: req.contractAddress,
+    current,
+    actions: req.actions,
+    pinnedV1Address: MAINNET_VEILCORE_ADDRESS,
+    v2: c.v2,
+  });
+  const keyActions = req.actions.some((a) => a.kind === 'insert-key' || a.kind === 'remove-key');
+  if (slot !== undefined) problems.push(...requestSlotProblems(req, slot));
+  else if (keyActions)
+    problems.push(
+      'Say which slot this contract\u2019s keys are in (--v2-record FILE, or --key-slot v3|v4). Nothing was made.',
+    );
+  if (problems.length > 0) throw new UsageError(problems.join(' '));
 };
 
 /** Send `update`, after the operator types `word`. */
@@ -693,6 +853,19 @@ const send = async (
   const blocked = sendProblems(o, req, update, current);
   if (blocked.length > 0) {
     for (const l of blocked) logger.error(l);
+    return false;
+  }
+  // The gate and the key slot once more, against the chain as it is now: its authority, and the
+  // slot of every key the contract holds (never the slot the request says).
+  try {
+    const slot = slotOf(c, req.contractAddress);
+    gateOrStop(c, req, await readAuthorityNow(c.reader, req.contractAddress), slot);
+    if (slot !== undefined) {
+      const wrong = chainSlotProblems(await readKeySlotsNow(c.reader, req.contractAddress), slot);
+      if (wrong.length > 0) throw new UsageError(wrong.join(' '));
+    }
+  } catch (e) {
+    logger.error(e instanceof Error ? e.message : String(e));
     return false;
   }
   // The update is a Ledger 9 one (submit.mjs): say so before a wallet is opened, so nobody
@@ -737,6 +910,7 @@ const send = async (
       network: o.network,
       contractAddress: address,
       transaction: r.txId ?? '(not known: see the explorer for the block)',
+      ...(r.txHash === undefined ? {} : { transactionHash: r.txHash }),
       blockHeight: r.blockHeight,
       authorityAfter: {
         committee: r.authority.committee,
@@ -757,8 +931,8 @@ const send = async (
   }
 };
 
-const show = async ({ o, logger, reader }: Ctx): Promise<boolean> => {
-  const address = contractOf(o);
+const show = async ({ o, logger, reader, v2 }: Ctx): Promise<boolean> => {
+  const address = contractOf(o, undefined, v2);
   // The cards first: a practice card on mainnet is refused before the chain is read.
   const cards = readCards(o.cards, o.network, logger);
   const a = await readAuthorityNow(reader, address);
@@ -767,10 +941,26 @@ const show = async ({ o, logger, reader }: Ctx): Promise<boolean> => {
   return true;
 };
 
+/** Contract v2's temporary key, from its age file (age asks the passphrase); it must be the key on chain now. */
+const openTempKey = (c: Ctx, file: string, current: AuthorityView): string => {
+  let key: string;
+  try {
+    key = (c.keyStore ?? ageKeyStore).open(file);
+  } catch (e) {
+    throw new UsageError(e instanceof Error ? e.message : String(e));
+  }
+  redactThisSession(key);
+  const k = parseSigningKey(key);
+  if ('problem' in k || current.committee.length !== 1 || k.publicKey !== current.committee[0])
+    throw new UsageError(`${file} does not hold the key that holds this contract now. Nothing was signed.`);
+  return k.value;
+};
+
 const install = async (c: Ctx): Promise<boolean> => {
   const { o, prompt, logger } = c;
   const cards = readCards(o.cards, o.network, logger);
-  const address = contractOf(o);
+  const address = contractOf(o, undefined, c.v2);
+  const slot = slotOf(c, address);
   const current = await readAuthorityNow(c.reader, address);
   logger.info(`The authority now: ${describeAuthority(current).join(' ')}`);
   if (current.threshold === 2 && current.committee.join() === cards.map((c) => c.publicKey).join()) {
@@ -784,7 +974,7 @@ const install = async (c: Ctx): Promise<boolean> => {
   const req = makeRequest({
     network: o.network,
     contractAddress: address,
-    current,
+    current: slot === undefined ? current : { ...current, keySlot: slot },
     actions: [{ kind: 'replace-authority', committee: cards, threshold: 2 }],
     reason: o.reason || 'Move maintenance from one key to a 2-of-3 committee (docs/maintenance-committee.md).',
     forbid: current.committee,
@@ -792,6 +982,8 @@ const install = async (c: Ctx): Promise<boolean> => {
   const rebuilt = rebuildRequest(req);
   if (!rebuilt.ok) throw new UsageError(rebuilt.problems.join(' '));
   for (const l of describeRequest(req, rebuilt, { pinnedMainnetAddress: MAINNET_VEILCORE_ADDRESS })) logger.info(l);
+  // The mainnet gate, before the paper key is asked for.
+  gateOrStop(c, req, current, slot);
   // Hold the run that sends to its dry run (mainnet) and to the new holders' confirmations
   // before the paper key is asked for.
   if (!o.dryRun) {
@@ -802,9 +994,15 @@ const install = async (c: Ctx): Promise<boolean> => {
     }
   }
 
-  logger.info('The current maintenance key is on paper. It is held in memory for one signature, then dropped.');
   let signature: ReturnType<typeof signRequest> | undefined;
-  for (;;) {
+  if (o.tempKeyFile !== undefined) {
+    // Contract v2's temporary key: only ever in its age file. age asks for the passphrase.
+    logger.info(
+      'Opening the temporary key file: age asks for its passphrase. The key is held in memory for one signature.',
+    );
+    signature = signRequest(req, openTempKey(c, o.tempKeyFile, current));
+  } else logger.info('The current maintenance key is on paper. It is held in memory for one signature, then dropped.');
+  while (signature === undefined) {
     const typed = await prompt.askHidden(
       'Current maintenance key, from your paper (64 hex; spaces fine; nothing shows; blank to stop): ',
     );
@@ -868,8 +1066,13 @@ const warnRealCards = (o: Options, req: Request, logger: Logger): void => {
     if (!isPracticeCard(card)) logger.warn(notPracticeWarning(card.holder, card.publicKey, o.network));
 };
 
-const requestCommand = async ({ o, logger, reader }: Ctx): Promise<boolean> => {
-  const address = contractOf(o);
+const requestCommand = async (c: Ctx): Promise<boolean> => {
+  const { o, logger, reader } = c;
+  const address = contractOf(o, undefined, c.v2);
+  const slot = slotOf(c, address);
+  const keyAction = o.remove.length + o.insert.length > 0;
+  if (keyAction && slot === undefined)
+    throw new UsageError('Say which slot this contract\u2019s keys are in: --v2-record FILE, or --key-slot v3|v4.');
   // The cards first: a practice card on mainnet is refused before the chain is read.
   const cards = o.replace ? readCards(o.cards, o.network, logger) : [];
   const current = await readAuthorityNow(reader, address);
@@ -879,7 +1082,7 @@ const requestCommand = async ({ o, logger, reader }: Ctx): Promise<boolean> => {
   else if (o.retire) actions = [{ kind: 'retire' }];
   else
     actions = [
-      ...o.remove.map((circuit): Action => ({ kind: 'remove-key', circuit })),
+      ...o.remove.map((circuit): Action => ({ kind: 'remove-key', circuit, keySlot: slot })),
       ...o.insert.map((pair): Action => {
         const [circuit, file] = pair.split('=');
         if (!circuit || !file) throw new UsageError('--insert takes CIRCUIT=FILE (a .verifier file).');
@@ -889,6 +1092,7 @@ const requestCommand = async ({ o, logger, reader }: Ctx): Promise<boolean> => {
           circuit,
           verifierKey: vk.toString('hex'),
           verifierKeySha256: createHash('sha256').update(vk).digest('hex'),
+          keySlot: slot,
         };
       }),
     ];
@@ -898,12 +1102,21 @@ const requestCommand = async ({ o, logger, reader }: Ctx): Promise<boolean> => {
   const forbid = current.committee.length === 1 ? current.committee : [];
   let req: Request;
   try {
-    req = makeRequest({ network: o.network, contractAddress: address, current, actions, reason: o.reason, forbid });
+    req = makeRequest({
+      network: o.network,
+      contractAddress: address,
+      current: slot === undefined ? current : { ...current, keySlot: slot },
+      actions,
+      reason: o.reason,
+      forbid,
+    });
   } catch (e) {
     throw new UsageError(e instanceof Error ? e.message : String(e));
   }
   const rebuilt = rebuildRequest(req, { forbid });
   if (!rebuilt.ok) throw new UsageError(rebuilt.problems.join(' '));
+  // The mainnet gate, before a request file is written for anyone to sign.
+  gateOrStop(c, req, current, slot);
   for (const l of describeRequest(req, rebuilt, { pinnedMainnetAddress: MAINNET_VEILCORE_ADDRESS })) logger.info(l);
   const file = writePublic(
     o.out ?? `request-${o.network}-counter-${req.current.counter}-${req.dataToSignSha256.slice(0, 8)}.json`,
@@ -920,8 +1133,9 @@ const submit = async (c: Ctx): Promise<boolean> => {
   const req = readJson(o.request ?? '', 'request') as Request;
   if (req?.network !== o.network)
     throw new UsageError(`That request is for ${String(req?.network)}, not ${o.network}.`);
-  const address = contractOf(o, req);
+  const address = contractOf(o, req, c.v2);
   if (req.contractAddress !== address) throw new UsageError('That request is for a different contract.');
+  const slot = slotOf(c, address);
   const rebuilt = rebuildRequest(req);
   if (!rebuilt.ok) throw new UsageError(rebuilt.problems.join(' '));
   for (const l of describeRequest(req, rebuilt, { pinnedMainnetAddress: MAINNET_VEILCORE_ADDRESS })) logger.info(l);
@@ -931,12 +1145,16 @@ const submit = async (c: Ctx): Promise<boolean> => {
     logger.info('The chain already shows this change. Nothing to send.');
     return true;
   }
+  // The mainnet gate and the slot rule, before the signatures are put together.
+  gateOrStop(c, req, current, slot);
   // A single key that can change the contract today cannot be a member of the new committee,
   // judged against the chain as it is now, not only against what the request file says.
   const forbid = current.committee.length === 1 ? current.committee : [];
   const signed = assembleSigned(
     req,
-    o.sigs.map((f) => readJson(f, 'signature')),
+    o.tempKeyFile !== undefined
+      ? [signRequest(req, openTempKey(c, o.tempKeyFile, current))]
+      : o.sigs.map((f) => readJson(f, 'signature')),
     current,
     { forbid },
   );
@@ -966,7 +1184,7 @@ const submit = async (c: Ctx): Promise<boolean> => {
 /** Run one command. `deps` replaces the chain, the wallet, the prompt or the logger (tests). */
 export const main = async (
   argv: readonly string[],
-  deps: Partial<Pick<Ctx, 'reader' | 'openSender' | 'prompt' | 'logger' | 'sendOptions'>> = {},
+  deps: Partial<Pick<Ctx, 'reader' | 'openSender' | 'prompt' | 'logger' | 'sendOptions' | 'keyStore'>> = {},
 ): Promise<number> => {
   let o: Options;
   try {
@@ -993,6 +1211,26 @@ export const main = async (
     process.stdout.write(`${e instanceof Error ? e.message : String(e)}\n`);
     return 2;
   }
+  // Contract v2: its address and published keys, from the deploy-session record.
+  let v2: V2Contract | undefined;
+  if (o.v2Record !== undefined) {
+    try {
+      const s = readSession(o.v2Record);
+      if (s.network !== o.network) throw new Error(`The record is for ${s.network}, not ${o.network}.`);
+      const address = s.contracts[o.contract].address;
+      if (address === null) throw new Error(`The record has no address for ${o.contract}: its deploy did not happen.`);
+      let pins: Record<string, string> | undefined;
+      try {
+        pins = loadFingerprintsV2(o.fingerprints).pins[o.contract];
+      } catch {
+        pins = undefined;
+      }
+      v2 = { address, temporaryKey: s.temporaryKey.publicKey, pins };
+    } catch (e) {
+      logger.error(e instanceof Error ? e.message : String(e));
+      return 2;
+    }
+  }
   // Everything this writes is for this user only.
   if (deps.prompt === undefined) process.umask(0o077);
   const prompt = deps.prompt ?? createPrompt();
@@ -1001,8 +1239,10 @@ export const main = async (
     prompt,
     logger,
     reader,
-    openSender: deps.openSender ?? ((n, p, l) => openWallet(n, configFor(n), p, l)),
+    openSender: deps.openSender ?? ((n, p, l) => openWallet(n, configFor(n), p, l, v2 === undefined ? {} : V2_WALLET)),
     sendOptions: deps.sendOptions,
+    keyStore: deps.keyStore,
+    v2,
   };
   // Ctrl+C: stops at once, except while the transaction is being sent, when stopping would
   // leave you not knowing whether it landed. The third press stops anyway.

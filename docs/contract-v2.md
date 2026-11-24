@@ -384,17 +384,21 @@ The public switch happens only after the audit closes (section 7). It is one rel
 
   The team's own calls before the handover are allowed (maintainer decision). A circuit that
   could rewrite state would need an unlisted key insert, which is refused.
-- **Key slot:** the committee tool takes the `ContractOperationVersion` as a parameter (`V4`
-  for v2, `V3` for v1), checked against the contract's era, with a test that it refuses the
-  wrong slot.
+- **Key slot:** the slot (`ContractOperationVersion`) comes from the contract's address, never
+  from the request: `V3` for v1's pinned address, `V4` for v2's address in the deploy-session
+  record. `--key-slot` only names it for a test contract, and must agree. A request that states
+  another slot is refused, and the slot of every key on chain is checked again right before
+  sending, with tests that the wrong slot is refused.
 - **The gate.** Every mainnet request refuses unless the contract shows 3 keys and threshold 2,
   with exactly two named exceptions:
   1. **"v2 before handover":** on v2 while it still has the temporary single key (and no
      committee), the inserts of the keys listed in `fingerprints-v2.md` (`V4` slot), and one
      `replace-authority` to the committee recorded in the go/no-go, with all three holders'
-     confirmations. Nothing else. The tool takes v2's address from the deploy-session record, because v2 is
-     pinned only after `verify:deployment` passes (today the tool always uses the pinned
-     mainnet address).
+     confirmations; or one `retire`, alone, so a v2 that will not be finished can be closed for
+     good (condition 7; runbooks/two-of-three.md, Part D). Nothing else. The tool takes v2's
+     address from the deploy-session record, because v2 is pinned only after `verify:deployment`
+     passes, and refuses a record that names a pinned v1 address; v1's address is matched first.
+     The key slot comes from the address (v1 `V3`, v2 `V4`), never from the request.
   2. **"v1 retire with the single key"** (section 6): one `retire` on v1's pinned address, and
      nothing else.
 
@@ -536,9 +540,9 @@ key. The tool changes (Stage A item 7) are needed for the handover.
    not for your records." Never "live" or "audited". No posts about v2 until the public switch.
 6. **The pinned-list checkers ship before** any v2 record is printed, shared or bundled.
 7. **Audit findings:** a finding in the contract means a fresh v2.x deploy and a re-seal by the
-   team, never an in-place re-key, because v2's rules never change. A replaced v2.x has all its
-   keys removed, is retired, and is never pinned. A finding in the off-chain code (checkers,
-   tools) means an ordinary fix.
+   team, never an in-place re-key, because v2's rules never change. A replaced v2.x is retired
+   (and, once a committee holds it, may have its keys removed), and is never pinned. A finding in
+   the off-chain code (checkers, tools) means an ordinary fix.
 8. **Waived by the maintainer, 23 November 2026** (was: the audit is booked before the
    pre-audit deploy). The team-only deploy rests on VeilCore's own review (condition 1).
    **What still holds:** the public switch, and any pilot or real user record on v2, wait for
