@@ -131,11 +131,26 @@ describe('the plant form: "Bred by" only for the holder’s own breeding', () =>
     expect(plantReady(draft({ strainName: ' ', source: 'landrace' }))).toBe(false);
   });
 
-  it('offers "Where it came from" only for a landrace or received material, never a next stage', () => {
+  it('offers "Where it came from" for anything but the holder’s own cross, next stages too', () => {
     expect(originApplies(draft())).toBe(false);
+    expect(originApplies(draft({ source: 'bred' }))).toBe(false);
+    expect(originApplies(draft({ source: 'selected' }))).toBe(true);
     expect(originApplies(draft({ source: 'received' }))).toBe(true);
     expect(originApplies(draft({ breedingMethod: LANDRACE_METHOD }))).toBe(true);
-    expect(originApplies(draft({ source: 'received', stageOf: 'VEIL-1' }))).toBe(false);
+    // A next stage is no longer skipped (summit, 25 Nov 2026): it follows its own answer.
+    expect(originApplies(draft({ source: 'received', stageOf: 'VEIL-1' }))).toBe(true);
+    expect(originApplies(draft({ source: 'selected', stageOf: 'VEIL-1' }))).toBe(true);
+    expect(originApplies(draft({ stageOf: 'VEIL-1' }))).toBe(false);
+  });
+
+  it('splits "bred or selected": a selection from plants the holder got is not their own breeding', () => {
+    const d = draft({ source: 'selected', origin: { ...emptyOrigin(), from: 'Bolita maize, Oaxaca seed fair' } });
+    // No breeder needed (their own name would claim the breeding), and the origin is sealed.
+    expect(breederRequired(d)).toBe(false);
+    expect(plantReady(d)).toBe(true);
+    expect(sealInputOf(d).notes).toBe('Where it came from: Bolita maize, Oaxaca seed fair');
+    // Kept between visits.
+    expect(parseDraft(JSON.stringify(d))?.source).toBe('selected');
   });
 
   it('seals the origin in the notes, after a stage header, and only while the step is offered', () => {
@@ -159,8 +174,52 @@ describe('the plant form: "Bred by" only for the holder’s own breeding', () =>
     const landrace = { id: 'VEIL-1', strainName: 'Bolita', bredBy: '', taxon: '', breedingMethod: LANDRACE_METHOD };
     expect(breederRequired(nextStageDraft(landrace))).toBe(false);
     expect(breederRequired(nextStageDraft({ ...landrace, breedingMethod: '' }))).toBe(false);
-    expect(breederRequired(nextStageDraft({ ...landrace, bredBy: 'Harbour Farm' }))).toBe(true);
-    expect(originApplies(nextStageDraft(landrace))).toBe(false);
+    // A landrace with a breeder typed in is still a landrace: its next stage asks for none.
+    expect(breederRequired(nextStageDraft({ ...landrace, bredBy: 'Harbour Farm' }))).toBe(false);
+    expect(breederRequired(nextStageDraft({ ...landrace, bredBy: 'Harbour Farm', breedingMethod: '' }))).toBe(true);
+    // A landrace's next stage stays a landrace and says where it came from; received material's
+    // next stage is a selection from it.
+    expect(nextStageDraft(landrace).source).toBe('landrace');
+    expect(originApplies(nextStageDraft(landrace))).toBe(true);
+    expect(nextStageDraft({ ...landrace, breedingMethod: '' }).source).toBe('selected');
+  });
+
+  it('a next stage inherits its parent’s origin lines, to check and change, never the registration', () => {
+    const notes = originNotes(
+      { ...emptyOrigin(), from: 'Sierra Mazateca', country: 'MEX', smta: '00AB12', registration: 'INASE RNC 1' },
+      'Kept in jars.',
+    );
+    const parent = { id: 'VEIL-1', strainName: 'Bolita', bredBy: 'Harbour Farm', taxon: 'Zea mays', notes };
+    const d = nextStageDraft(parent);
+    // Origin lines mean the parent wasn't the holder's own cross: this stage is a selection from it.
+    expect(d.source).toBe('selected');
+    expect(originApplies(d)).toBe(true);
+    expect(breederRequired(d)).toBe(false);
+    expect(d.bredBy).toBe('Harbour Farm');
+    expect(d.originFromParent).toBe('Bolita');
+    expect(d.origin).toEqual({ ...emptyOrigin(), from: 'Sierra Mazateca', country: 'MEX', smta: '00AB12' });
+    // Sealed after the stage's own header, the parent's lines carried down.
+    const sealed = sealInputOf({ ...d, strainName: 'Bolita F2', stage: 'F2' }).notes;
+    expect(sealed).toBe('Stage: F2\n\nWhere it came from: Sierra Mazateca\nCountry of origin: MEX\nSMTA: 00AB12');
+    // And from a parent that was itself a next stage (its notes start with a stage header).
+    const grand = nextStageDraft({ ...parent, id: 'VEIL-2', strainName: 'Bolita F2', notes: sealed });
+    expect(grand.origin).toEqual(d.origin);
+    expect(grand.source).toBe('selected');
+    // Kept with the draft between visits.
+    expect(parseDraft(JSON.stringify(d))?.originFromParent).toBe('Bolita');
+  });
+
+  it('a next stage of the holder’s own cross is unchanged: no step, a breeder still needed', () => {
+    const parent = { id: 'VEIL-1', strainName: 'Harbour Mist', bredBy: 'Harbour Farm', taxon: '', notes: 'Stage: F2' };
+    const d = nextStageDraft(parent);
+    expect(d.source).toBeUndefined();
+    expect(d.origin).toBeUndefined();
+    expect(originApplies(d)).toBe(false);
+    expect(breederRequired(d)).toBe(true);
+    // A registration number alone is the parent's variety, not an origin: nothing to inherit.
+    const reg = nextStageDraft({ ...parent, notes: originNotes({ registration: 'INASE RNC 1' }, '') });
+    expect(reg.origin).toBeUndefined();
+    expect(originApplies(reg)).toBe(false);
   });
 
   it('keeps an empty date for a landrace, never today', () => {

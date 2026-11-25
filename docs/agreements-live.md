@@ -59,7 +59,16 @@ holds or moves anyone's money.
      optional yearly minimum; how often reports come (default quarterly), report due N days
      after a period ends (30), payment due N days after that (14); bank fees; the exchange
      rate source; records kept N years and checked with N days' notice (over 5% underpaid:
-     the licensee pays the check); governing law and where disputes go. Both sides see the
+     the licensee pays the check); governing law and where disputes go. Farmers' rights
+     (summit, 25 Nov 2026): the seed preset counts seed sold, and seed given away only when
+     the licensor ticks it; tonne, hectare and acre are offered only on Custom; and terms
+     charging per seed, harvest or area carry a fixed line, sealed with them in the
+     licensor's language and not editable: "Nothing in this license can take away a right
+     the law gives farmers to save, re-sow, exchange or sell farm-saved seed, where the law
+     gives it." It follows the Plant Treaty's Article 9.3 savings wording; "where the law
+     gives it" because the rights differ by country (UPOV 1991 Art. 15(2) only lets a country
+     allow re-sowing on the farmer's own holding). Terms sealed before it carry no line and
+     show none. Both sides see the
      deal in one paragraph with every value. Old terms keep their fingerprint and are read
      through fallback readers that add nothing (old flat fees read as dollars, as their form
      said). On cannabis records the territory is required and no payment link is offered.

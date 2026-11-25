@@ -5,7 +5,8 @@ import type { AppTranslation } from '../../translate';
 
 export const origin = {
   'app.origin.source.label': 'D’où vient-elle ?',
-  'app.origin.source.bred': 'Je l’ai créée ou sélectionnée moi-même',
+  'app.origin.source.bred': 'Je l’ai créée moi-même (croisement)',
+  'app.origin.source.selected': 'Je l’ai sélectionnée parmi des plantes reçues',
   'app.origin.source.received': 'Je l’ai reçue d’un obtenteur, d’une banque de semences ou d’une collection',
   'app.origin.source.landrace': 'Une variété locale ou ancienne conservée par une communauté',
   'app.origin.breederIfKnown': 'Obtenteur, si connu',
@@ -31,6 +32,10 @@ export const origin = {
   'app.origin.irccHelp': 'Un certificat de conformité reconnu au niveau international (Protocole de Nagoya).',
   'app.origin.doi': 'DOI GLIS ou autre identifiant permanent',
   'app.origin.doiPlaceholder': 'p. ex. 10.18730/…',
+  'app.origin.selectedFrom': 'Sélectionnée à partir de quoi ?',
+  'app.origin.selectedFromHelp':
+    'Les plantes ou semences dont vous l’avez sélectionnée, et leur provenance : une communauté, une banque de semences ou une personne.',
+  'app.origin.inherited': 'Repris de {name}, l’enregistrement dont celui-ci est issu. Changez ce qui diffère.',
   'app.origin.back': 'Retour',
   'app.origin.x.from': 'Provenance : {v}',
   'app.origin.x.collection': 'Collection ou communauté : {v}',

@@ -193,6 +193,7 @@ const TermsBuilderFor: React.FC<{ record: StrainRecord }> = ({ record }) => {
       shareMoney
         ? { ...t, offspring: { rule: { kind: 'percent', rate: t.offspringRoyaltyPct ?? '', base: 'gross' } } }
         : t,
+      tr,
     );
   };
   // A commercial license needs its royalty and the money terms; the others just need a counterparty.

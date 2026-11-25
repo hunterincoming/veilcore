@@ -29,7 +29,7 @@ export const log = {
   'app.log.unsavedPlant': 'Vous avez une plante non enregistrée : {name}.',
   'app.log.noNameYet': '(pas encore de nom)',
   'app.log.title': 'Enregistrer votre plante',
-  'app.log.fillIn': 'Indiquez ce que vous savez. Vous vérifierez à l’écran suivant.',
+  'app.log.fillIn': 'Indiquez ce que vous savez. Vous vérifierez ensuite.',
   'app.log.sealEachStage':
     'Un enregistrement ne date rien d’antérieur au jour où il est scellé. Scellez chaque étape quand elle a lieu.',
   'app.log.parentLinked': ' Son parent est {name}, déjà lié ci-dessous.',
@@ -43,7 +43,7 @@ export const log = {
   'app.log.egNextSelection': 'p. ex. {name}, sélection suivante',
   'app.log.bredBy': 'Obtenteur',
   'app.log.whenMade': 'Quand vous l’avez obtenue (votre propre note)',
-  'app.log.whenMadeHelp': 'L’horodatage public vient du réseau. Ceci n’est que ce que vous dites aux autres.',
+  'app.log.whenMadeHelp': 'L’horodatage public vient du réseau, pas d’ici.',
   'app.log.stagePrompt': 'De quelle étape s’agit-il ? (p. ex. F3, deuxième série de clones)',
   'app.log.stageHelp': 'Scellé dans les notes sous la forme « Stage: … ».',
   'app.log.selectedPrompt': 'Sur quoi avez-vous sélectionné ?',

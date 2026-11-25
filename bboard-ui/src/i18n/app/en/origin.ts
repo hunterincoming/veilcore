@@ -6,8 +6,9 @@
 export const origin = {
   // flow/LogFlow.tsx, the plant's first screen: who it is from.
   'app.origin.source.label': 'Where is it from?',
-  'app.origin.source.bred': 'I bred or selected it',
-  'app.origin.source.received': 'I received it from a breeder, a seed bank or a collection',
+  'app.origin.source.bred': 'I bred it (made a cross)',
+  'app.origin.source.selected': 'I selected it from plants I got',
+  'app.origin.source.received': 'I received it from a breeder, seed bank or collection',
   'app.origin.source.landrace': 'A landrace or heirloom kept by a community',
   'app.origin.breederIfKnown': 'Breeder, if known',
   'app.origin.breederHelp': 'Leave it empty unless you know who bred it. Don’t put your own name unless you bred it.',
@@ -33,6 +34,11 @@ export const origin = {
   'app.origin.irccHelp': 'An internationally recognized certificate of compliance (Nagoya Protocol).',
   'app.origin.doi': 'GLIS DOI or other permanent ID',
   'app.origin.doiPlaceholder': 'e.g. 10.18730/…',
+  'app.origin.selectedFrom': 'Selected from what?',
+  'app.origin.selectedFromHelp':
+    'The plants or seed you selected from, and where they came from: a community, a seed bank or a person.',
+  'app.origin.inherited':
+    'Carried over from {name}, the record this one comes from. Change anything that is different.',
   'app.origin.back': 'Back',
   // The "Is this right?" screen.
   'app.origin.x.from': 'From: {v}',
