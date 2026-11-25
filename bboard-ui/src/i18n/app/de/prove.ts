@@ -15,9 +15,9 @@ export const prove = {
   'app.prove.share.differs': ' Die Schalter oben weichen davon ab.{save}',
   'app.prove.yourRequest': 'Ihre Anfrage',
   'app.prove.youAskedNamed':
-    'Sie haben den Inhaber von <b>{name}</b> gebeten zu beweisen, dass er sie hält. Senden Sie ihm diesen Link, falls noch nicht geschehen.',
+    'Sie haben den Inhaber von <b>{name}</b> gebeten zu beweisen, dass er den Datensatz dazu hält. Senden Sie ihm diesen Link, falls noch nicht geschehen.',
   'app.prove.youAsked':
-    'Sie haben den Inhaber dieser Pflanze gebeten zu beweisen, dass er sie hält. Senden Sie ihm diesen Link, falls noch nicht geschehen.',
+    'Sie haben den Inhaber dieser Pflanze gebeten zu beweisen, dass er den Datensatz dazu hält. Senden Sie ihm diesen Link, falls noch nicht geschehen.',
   'app.prove.openCheckPage': 'Die Prüfseite der Pflanze öffnen',
   'app.prove.opening': 'Anfrage wird geöffnet…',
   'app.prove.ended': 'Diese Anfrage ist beendet',
@@ -56,7 +56,7 @@ export const prove = {
   'app.prove.ask.cantAsk': 'Mit diesem Link kann kein Beweis angefragt werden',
   'app.prove.ask.refused': '{reason}. Ein damit erstellter Beweis würde nichts über diesen Datensatz aussagen.',
   'app.prove.ask.noLink': 'Es wurde kein Link erstellt: {error}.',
-  'app.prove.ask.title': 'Bitten Sie um den Beweis, dass sie gehalten wird',
+  'app.prove.ask.title': 'Bitten Sie die Person zu beweisen, dass sie den Datensatz dazu hält',
   'app.prove.ask.intro':
     'Sie senden einen Link. Die Person öffnet ihn und tippt auf „Beweisen“. Die Antwort erscheint hier. Diese Seite prüft die Antwort selbst im Netzwerk, über einen Midnight-Indexer (auf der Testseite über das Relais von VeilCore). Prüfen Sie die Transaktion für eine wichtige Entscheidung bei einem zweiten Indexer. Nur Testnetz.',
   'app.prove.ask.bound':

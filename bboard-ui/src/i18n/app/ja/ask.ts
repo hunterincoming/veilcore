@@ -11,7 +11,7 @@ export const ask = {
   'app.ask.privacy': 'ここに入力しても何も送信されません。送信するのは「保存」だけです。',
   'app.ask.engine': 'オフラインでも使えます。',
   'app.ask.inputLabel': '何をしますか？',
-  'app.ask.inputPlaceholder': '例：Blue Dreamからクローンを12本取る',
+  'app.ask.inputPlaceholder': '例：Harbour Mistから挿し木を12本取る',
   'app.ask.inputPlaceholderDoc': '例：証明コードとは',
   'app.ask.go': '実行',
   'app.ask.close': '閉じる',
@@ -44,7 +44,7 @@ export const ask = {
   // ---- 記録ができてから、ボタンの横に出るヒント（例はその記録の名前） ----
   'app.ask.hint.try': '例：{example}',
   'app.ask.hint.dismiss': '閉じる',
-  'app.ask.example.clones': '{name}からクローンを6本取る',
+  'app.ask.example.clones': '{name}から挿し木を6本取る',
   'app.ask.example.calves': '{name}の子牛を2頭記録する',
   // ---- 端末内の言語モデル（任意） ----
   'app.ask.privacyModel':

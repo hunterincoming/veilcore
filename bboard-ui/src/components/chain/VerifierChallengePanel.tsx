@@ -1,4 +1,4 @@
-// On a record's verify page: ask whoever claims this record to prove they hold it.
+// On a record's verify page: ask whoever claims this record to prove they hold its record.
 // The usual way is one link (prove-relay.ts): the checker sends it, the holder opens it
 // and proves, and the answer shows up here, checked on chain. Doing it by hand (copy the
 // challenge, paste back the transaction id) stays as a fallback.

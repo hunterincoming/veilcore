@@ -16,9 +16,9 @@ export const prove = {
   'app.prove.share.differs': '上のスイッチはこれと違います。{save}',
   'app.prove.yourRequest': 'あなたのリクエスト',
   'app.prove.youAskedNamed':
-    '<b>{name}</b>の保有者に、保有していることの証明を求めました。まだなら、このリンクを送ってください。',
+    '<b>{name}</b>の保有者に、その記録を保有していることの証明を求めました。まだなら、このリンクを送ってください。',
   'app.prove.youAsked':
-    'この植物の保有者に、保有していることの証明を求めました。まだなら、このリンクを送ってください。',
+    'この植物の保有者に、その記録を保有していることの証明を求めました。まだなら、このリンクを送ってください。',
   'app.prove.openCheckPage': '植物の確認ページを開く',
   'app.prove.opening': 'リクエストを開いています…',
   'app.prove.ended': 'このリクエストは終了しました',
@@ -55,7 +55,7 @@ export const prove = {
   'app.prove.ask.cantAsk': 'このリンクからは証明を求められません',
   'app.prove.ask.refused': '{reason}。これで作った証明は、この記録について何も示しません。',
   'app.prove.ask.noLink': 'リンクは作られませんでした：{error}。',
-  'app.prove.ask.title': '保有していることの証明を求める',
+  'app.prove.ask.title': 'その記録を保有していることの証明を求める',
   'app.prove.ask.intro':
     '相手にリンクを送ります。相手がそれを開いて「証明する」をタップすると、ここに答えが表示されます。このページは、Midnightのインデクサーを通じて（テストサイトではVeilCoreの中継を通じて）ネットワーク上で直接答えを確認します。重要な判断には、別のインデクサーでもトランザクションを確認してください。テストネットワークのみです。',
   'app.prove.ask.bound':

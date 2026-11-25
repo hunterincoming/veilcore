@@ -238,7 +238,7 @@ const leftovers = (read: Read, c: readonly Token[], used: ReadonlySet<Token>): T
   c.filter((t) => !used.has(t) && !t.cats.has('filler'));
 const said = (read: Read, ts: readonly Token[]): string[] => ts.map((t) => read.cased.slice(t.at, t.end));
 
-/** The typed text with these tokens taken out, joins tidied ("cut 20 clones of Gelato, lot B" → "cut 20 clones of Gelato"). */
+/** The typed text with these tokens taken out, joins tidied ("cut 20 cuttings of Harbour Mist, lot B" → "cut 20 cuttings of Harbour Mist"). */
 const without = (read: Read, drop: readonly Token[]): string => {
   let out = read.cased;
   for (const t of [...drop].sort((a, b) => b.at - a.at)) out = `${out.slice(0, t.at)}${out.slice(t.end)}`;

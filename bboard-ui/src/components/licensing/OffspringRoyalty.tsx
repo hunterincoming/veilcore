@@ -22,7 +22,7 @@ import { ConfirmInline } from './DealSteps';
 import { rich, useT } from '../../i18n/app';
 import { forKind, type RecordKind } from '../../i18n/translate';
 import type { LicenseTerms } from '../../veilcore/licenses';
-import { currencyOf, offspringOf, ruleText } from '../../veilcore/royalty-terms';
+import { currencyOf, isControlledTerms, offspringOf, ruleText } from '../../veilcore/royalty-terms';
 import { DisclosureReceipt } from '../chain/DisclosureReceipt';
 import type { ReceiptCircuit } from '../../veilcore/onchain-receipt';
 import { CODE_FONT } from '../../config/theme';
@@ -63,7 +63,7 @@ export const OffspringRoyalty: React.FC<{
 }> = ({ side, party, entries, refresh, terms, obligation, beneficiary, issuerSecret, kind = 'plant' }) => {
   const tr = forKind(useT(), kind);
   const rule = offspringOf(terms)?.rule;
-  const pct = rule ? ruleText(rule, currencyOf(terms), tr) : '';
+  const pct = rule ? ruleText(rule, currencyOf(terms), tr, isControlledTerms(terms)) : '';
   const allKeys = useRecordKeys();
   const plant = [...(entries ?? [])].reverse().find((e) => e.type === 'plant-record' && e.from === 'licensee') as
     | Extract<DealEntry, { type: 'plant-record' }>

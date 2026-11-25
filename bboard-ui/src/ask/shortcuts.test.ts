@@ -70,6 +70,21 @@ describe('Shortcuts reads what was typed', () => {
     expect(r.unmatched).toEqual([]);
   });
 
+  it('the example in the Ask box works as typed, in all five languages', async () => {
+    const mist = [...records, rec(5, 'Harbour Mist')];
+    for (const lang of ['en', 'de', 'es', 'fr', 'ja'] as const) {
+      const { ask: dict } = (await import(`../i18n/app/${lang}/ask.ts`)) as { ask: Record<string, string> };
+      // "e.g. ", "z. B. ", "例：": the box's own lead-in is not part of what someone types.
+      const example = dict['app.ask.inputPlaceholder'].replace(/^(e\.g\.|z\. B\.|p\. ej\.|ex\.)\s+|^例：/, '');
+      expect(example, lang).toContain('Harbour Mist');
+      expect(draftOf(interpret(example, { ...ctx, records: mist })).draft, lang).toMatchObject({
+        preset: 'clones',
+        count: 12,
+        parents: [ID(5)],
+      });
+    }
+  });
+
   it('3 calves from Bull #4 x Cow #9', () => {
     const r = draftOf(interpret('3 calves from Bull #4 x Cow #9', ctx));
     expect(r.draft).toMatchObject({ kind: 'animal', preset: 'offspring', count: 3, parents: [ID(4), ID(9)] });

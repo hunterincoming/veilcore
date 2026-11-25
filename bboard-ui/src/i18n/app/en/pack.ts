@@ -10,6 +10,8 @@
 export const pack = {
   // components/flow/AppHome.tsx: the way in.
   'app.pack.home': 'Pack for REPROCANN / SEDRONAR',
+  // Under More on Home: the same pack, without naming Argentina's authorities (AppHome.tsx).
+  'app.pack.more': 'Pack for an authority',
   // components/authority-pack/AuthorityPackPage.tsx: the form.
   'app.pack.title': 'Pack for REPROCANN / SEDRONAR',
   'app.pack.intro':

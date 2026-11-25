@@ -5,6 +5,8 @@
 import type { AppTranslation } from '../../translate';
 
 export const strain = {
+  'app.strain.v.app.origin.datedNotOriginLiving':
+    'La fecha muestra que el titular ya tenía este registro entonces, no quién lo obtuvo, de dónde viene ni si es cierto. La cepa puede ser mucho más antigua.',
   'app.strain.v.app.verify.noParents': 'No hay progenitores registrados.',
   'app.strain.v.app.plant.fix.name': 'Nombre de la cepa',
   'app.strain.v.app.plant.fix.bredBy': 'Obtenida o aislada por',
