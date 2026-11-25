@@ -1,9 +1,11 @@
 # Contract version 2: design (fresh start)
 
-**Status: DESIGN, 23 November 2026. Nothing here is built, compiled, deployed or live on any
-network.** Version 1 (v1) of the main contract and of the claims contract is live on Midnight
-mainnet. Version 2 (v2) exists only as this document, written so that a security auditor can
-review the design before any code is written.
+**Status, 25 November 2026: v2 is built (`contract-v2/`) and deployed on preprod only; not on
+mainnet, not live.** The preprod deploy, `verify:deployment` and the smoke run passed on 25
+November ([runbooks/deploy-v2.md](runbooks/deploy-v2.md), section F). Version 1 (v1) of the main
+contract and of the claims contract is live on Midnight mainnet and stays the contract the public
+site uses. This document was first written, on 23 November, as a design for a security auditor
+to review before any code was written.
 
 **What changed on 23 November.** An earlier draft of this document moved v1 identities into v2
 (a v1 freeze, an on-chain snapshot, a carry-forward, an undo and a 12-month window). The chain
@@ -414,7 +416,8 @@ The public switch happens only after the audit closes (section 7). It is one rel
   instructions and the counter (`scripts/committee/core.mjs`), so a signed update is usable by
   whoever holds it until the counter passes it.
 - **A v2 maintenance policy** with v1's rules from day one: rules never change, every use is
-  announced 14 days ahead, and every use is published.
+  announced 14 days ahead, and every use is published. **Approved by both founders** (decision
+  12, section 9).
 
 ## 6. Sealing v1: `retire` only
 
@@ -636,6 +639,7 @@ key. The tool changes (Stage A item 7) are needed for the handover.
 | 9 | Seal v1 by `retire` only, after the public switch, with the 14-day notice. The approved policy doesn't list sealing as a use. | **Pending the second founder's written approval** |
 | 10 | The fresh start itself, resting on every v1 record being the team's own | **Confirmed 23 Nov 2026**: every v1 record is the team's own testing |
 | 11 | Team-only v2 on mainnet on VeilCore's own review, with condition 8 waived; a temporary single key until the third key holder is named | **Decided by the maintainer, Hunter Roberts, 23 Nov 2026** |
+| 12 | Contract v2 and its maintenance policy (section 5: v1's rules from day one, rules never change, every use announced 14 days ahead and published; the temporary key until the handover) | **Approved by both founders.** Hunter Roberts: maintainer decision, 23 Nov 2026 (decision 11). Mako, by message to Hunter, 24/25 November 2026; the message said 'v3', which Hunter confirms meant contract v2. |
 
 Still open:
 
@@ -644,13 +648,11 @@ Still open:
   "named before the first v2 record leaves the team, or the handover uses option C".
 - **If outside v1 records appear** before the switch (the re-count), how many reopen the carry
   design (Appendix A) for those identities only.
-- **The v2 maintenance policy text** (section 5), approved in writing by both founders before
-  the deploy. It covers the temporary key's use until the handover.
 
 ## 10. Review history
 
 All of these were **design reviews** of this document and its plan: independent, read-only
-passes, each by a reviewer who didn't write it. None reviewed code, because there is none yet.
+passes, each by a reviewer who didn't write it. None reviewed code, because there was none then.
 Code reviews come at condition 1 (section 7), and the outside audit after that.
 
 | Date | Angle | Verdict | Where the findings went |

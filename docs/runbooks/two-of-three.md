@@ -21,10 +21,11 @@ first), [maintenance-policy.md](../maintenance-policy.md) (the approved rules), 
 
 - **v1's single key is live on mainnet.** It is on paper; each founder holds a sheet. Either
   sheet alone can change v1's rules today. The counter was 16 on 13 November 2026.
-- **v2 is built and tested on a computer, not deployed.** The contract is in `contract-v2/`.
-  The deploy command (`npm run deploy-v2`), `verify:deployment --v2-record`, and the committee
-  launcher's v2 changes are tested against Midnight's own Ledger 9 code. None has run on a real
-  node yet; the preprod run in [deploy-v2.md](deploy-v2.md) is the first.
+- **v2 is deployed on preprod only (25 November 2026), not on mainnet.** The contract is in
+  `contract-v2/`. The deploy command (`npm run deploy-v2`), `verify:deployment --v2-record` and
+  the smoke run passed on preprod ([deploy-v2.md](deploy-v2.md), section F). The committee
+  launcher's v2 changes have not run on a network yet: the practice handover on preprod
+  (deploy-v2.md, steps 13 and 14) is the first.
 - **The committee tools are built and tested on a computer** against Midnight's own Ledger 9
   code. They have **never run on a real node**, not even a local one. The local rehearsal
   (Part B) has not been run.

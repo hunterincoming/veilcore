@@ -1,12 +1,14 @@
 # Deploying contract v2 (team only)
 
-**Status, 23 November 2026: NOT DEPLOYED. Contract v2 is built and tested on a computer only.**
+**Status, 25 November 2026: deployed on preprod only, not on mainnet.** The keys, the key table
+and the proof server pin are done, and on 25 November the preprod deploy, its check and the
+smoke run passed (steps 10 to 12, section F). Next: the practice handover on preprod (steps 13
+and 14), then mainnet (section G).
 This is the order of work for Hunter's Mac. The design is [docs/contract-v2.md](../contract-v2.md);
 the code is `contract-v2/`. v1 (`contract/`) stays exactly as it is and stays the contract the
 public site uses.
 
-**Read section A before anything else.** Step 8 (the proof server 9.0.2 digest) can only be
-done on the Mac, and everything after it waits for it.
+**Read section A before anything else.**
 
 Wording until the public switch: "deployed on mainnet for testing by VeilCore; not yet
 independently reviewed; not for your records." Never "live" or "audited". No posts about v2.
@@ -19,21 +21,23 @@ independently reviewed; not for your records." Never "live" or "audited". No pos
 |---|---|
 | v2 contracts (`contract-v2/src/*.compact`), compiler 0.36.1 | Built. Compiles without keys in CI. |
 | Every v1 test suite, ported to runtime 0.21, against v2 | Passing. |
-| Tests of every v2 change, attack tests, mutation pass | Passing; every mutant killed (section H). |
+| Tests of every v2 change, attack tests, mutation pass | Passing; every mutant killed, last run on the Mac on 25 November 2026 (section H). |
 | v2's hashes equal v1's, byte for byte | Passing (`v1-pure-circuits.test.ts`, `interface.test.ts`). |
-| Building the ZK keys | On Hunter's Mac only. Not done yet (section C). |
-| `docs/fingerprints-v2.md` (the key table) | Not yet. Its own PR after sections C and D (step 7). |
-| The v2 deploy command, `npm run deploy-v2 -w bboard-cli` | Built and tested against Midnight's ledger code (PR "Contract v2: deploy, verify and committee tools"). Not yet run on a network. |
-| `npm run verify:deployment -- --v2-record FILE` | Built and tested the same way. Checks every key against `docs/fingerprints-v2.md` in slot V4, the authority (temporary key, then the 2-of-3 committee), and every maintenance update since the deploy. |
-| The committee launcher on v2 (`--v2-record`, the key slot, the mainnet gate) | Built and tested the same way. |
+| Building the ZK keys | Done on Hunter's Mac (section C) and rebuilt byte for byte by GitHub Actions (section D). |
+| `docs/fingerprints-v2.md` (the key table) | On main: the Mac's table for commit `b1281868`, matched by the GitHub Actions rebuild (step 7). |
+| The v2 deploy command, `npm run deploy-v2 -w bboard-cli` | Built and tested against Midnight's ledger code (PR "Contract v2: deploy, verify and committee tools"). **Run on preprod, 25 November 2026** (section F). Not run on mainnet. |
+| `npm run verify:deployment -- --v2-record FILE` | Built and tested the same way. Checks every key against `docs/fingerprints-v2.md` in slot V4, the authority (temporary key, then the 2-of-3 committee), and every maintenance update since the deploy. **Passed on preprod, 25 November 2026** (29 of 29 keys). |
+| The committee launcher on v2 (`--v2-record`, the key slot, the mainnet gate) | Built and tested the same way. Not yet run on a network: the practice handover on preprod is steps 13 and 14. |
 | The client stack: midnight-js 5.0.1, ledger-v9 1.0.2, on-chain runtime 4.0.2 | Merged (#188, 23 November 2026). |
-| Proof server **9.0.2, pinned by its digest**, for the v2 tools | **Digest not filled in yet.** It goes in one place, `bboard-cli/proof-server-v2.yml`, from Hunter's Mac (step 8). Until then every v2 tool (deploy, committee on v2, smoke run) refuses to start. Every v2 send starts that file's proof server, on preprod too. v1's tools keep `proof-server-mainnet.yml` (9.0.1). |
-| The smoke run, `npm run smoke-v2 -w bboard-cli`: every v2 circuit called once, each result checked, a pass/fail table | Built (PR "Contract v2: a client that calls every v2 circuit"). Tested in this repository: the whole plan through midnight-js's own call builder, offline; and deploy, find and first call on Midnight's ledger code. Not yet run on a network: proving and sending are first shown in step 11. |
+| Proof server **9.0.2, pinned by its digest**, for the v2 tools | **Pinned** (step 8): the digest is in its one place, `bboard-cli/proof-server-v2.yml`. Every v2 send starts that file's proof server, on preprod too. v1's tools keep `proof-server-mainnet.yml` (9.0.1). |
+| The smoke run, `npm run smoke-v2 -w bboard-cli`: every v2 circuit called once, each result checked, a pass/fail table | Built (PR "Contract v2: a client that calls every v2 circuit"). **Passed on preprod, 25 November 2026** (step 12): "PASS: all 29 circuits landed and their results checked". Not run on mainnet. |
 
 Decisions the design still lists as open, which both founders settle in writing:
 
-- **Before the mainnet deploy:** the v2 maintenance policy text (design section 9); the record
-  count the fresh start rests on (decision 10, confirmed 23 November 2026).
+- **Before the mainnet deploy:** the v2 maintenance policy text (design section 9): **approved**.
+  Mako, by message to Hunter, 24/25 November 2026; the message said 'v3', which Hunter confirms
+  meant contract v2 (design decision 12). The record count the fresh start rests on (decision
+  10): confirmed 23 November 2026.
 - **Before the handover (not before the deploy):** who holds the third key (decision 2).
 - **Condition 8 is waived** by Hunter, 23 November 2026: the team-only deploy rests on VeilCore's
   own review. The public switch, and any pilot or real user record on v2, still wait for the
@@ -77,7 +81,7 @@ Decisions the design still lists as open, which both founders settle in writing:
   listed V4 key inserts and the one handover (any key removal, any key not in
   `docs/fingerprints-v2.md`, any V3 key, any IR change, any other authority change). The team
   makes no call of its own until v2 is pinned (step 17); after that it may. The only calls
-  before that are the smoke run's on preprod (step 11).
+  before that are the smoke run's on preprod (step 12).
 - Kill a process by its PID, never by name. Never force-push.
 
 ---
@@ -341,8 +345,34 @@ every file. Anyone can open the run and see the result. It uses no secret and ca
 
 ## F. Preprod first, the whole run
 
-Use the **preprod test wallet**, never the mainnet recovery phrase. It must already have DUST
-(get some with `npm run preprod-remote`, which registers for DUST on preprod only).
+Use the **preprod test wallet**, never the mainnet recovery phrase. It must already have DUST.
+**If the preprod test wallet has no DUST**, register it, on preprod only:
+
+```sh
+cd ~/Desktop/veilcore/bboard-cli
+npm run preprod-remote
+```
+
+At the wallet question, pick **2** (build the wallet from a hex seed) or **3** (from the 24-word
+recovery phrase), and give the preprod test wallet's seed or phrase at the prompt. That
+registers it for DUST on preprod. Never do this with the mainnet wallet.
+
+The order is: deploy (step 10), check (step 11), then the smoke run (step 12). The deploy tool
+itself ends with "make no call to either contract until verify:deployment passes and v2 is
+pinned", so the check comes before the smoke run's calls. (The pin is for mainnet; on preprod
+the smoke run's calls are the one exception, section B.)
+
+**Done on 25 November 2026, on Hunter's Mac:**
+
+- Step 10, the deploy: v2 main at
+  `02b2baaf064faecedad309fcb61ee5f7dab42e425378e6e6742dfb1bc3352e88`, all 24 keys in V4; v2
+  claims at `98889450146d0e7f307c1eddb5b6f9b2d77d8289639428cfdf7aa2aaf9904da6` (deploy
+  transaction `e5142ae5193422591474583248ac64919e4d27e6185728dd95a2d3ea99c1bee1`, block
+  3573219), all 5 keys in V4.
+- Step 11, the check: `RESULT: PASS`, every key matching `docs/fingerprints-v2.md` in V4 (29 of
+  29).
+- Step 12, the smoke run: "PASS: all 29 circuits landed and their results checked".
+- Steps 13 and 14 (the practice handover): not done yet.
 
 10. **Deploy v2 to preprod.** Put the preprod Blockfrost id in (section B), then:
 
@@ -371,9 +401,19 @@ Use the **preprod test wallet**, never the mainnet recovery phrase. It must alre
     that step on a block explorer (the contract address, then its transactions) and add
     `--landed-tx <its hash>`.
 
-11. **Call every v2 circuit once on preprod: the smoke run.** Same Terminal (the preprod
-    Blockfrost id still in, section B). Use the **preprod test wallet**; it needs DUST for about
-    34 transactions.
+11. **Check it**, before any call to either contract. From the repository:
+
+    ```sh
+    cd ~/Desktop/veilcore
+    npm run verify:deployment -- --network preprod --v2-record ~/veilcore-v2/preprod-record.json
+    ```
+
+    It must end **`RESULT: PASS`** and say "one key, not yet handed to the committee" for both.
+    If it fails, make no call: stop and send the output to the team.
+
+12. **Call every v2 circuit once on preprod: the smoke run.** Only after step 11 passes. Same
+    Terminal (the preprod Blockfrost id still in, section B). Use the **preprod test wallet**; it
+    needs DUST for about 34 transactions.
 
     ```sh
     cd ~/Desktop/veilcore/bboard-cli
@@ -406,15 +446,6 @@ Use the **preprod test wallet**, never the mainnet recovery phrase. It must alre
     The smoke run refuses mainnet unless given `--network mainnet --i-understand-team-only` and
     `SMOKE V2 ON MAINNET` is typed, and it refuses mainnet until both v2 addresses are in
     `deployments/mainnet.json` (the pin, step 17).
-
-12. **Check it.** From the repository:
-
-    ```sh
-    cd ~/Desktop/veilcore
-    npm run verify:deployment -- --network preprod --v2-record ~/veilcore-v2/preprod-record.json
-    ```
-
-    It must end **`RESULT: PASS`** and say "one key, not yet handed to the committee" for both.
 
 13. **Practice handover on preprod, exactly as on mainnet later** (practice keys; no 14-day
     notice on a test network). Make three practice cards:
@@ -584,10 +615,12 @@ Only when 10 to 14 all pass on preprod, with the exact build, go on.
 
 ## H. The mutation pass (already run; re-run before the deploy)
 
-`contract-v2/scripts/mutation-v2.mjs` removes or weakens each new check one at a time (24
+`contract-v2/scripts/mutation-v2.mjs` removes or weakens each new check one at a time (30
 mutants: the zero-secret assert and each of its nine call sites, the four version literals,
-and ten changes to the response range check), compiles each, and runs
-`src/test/v2-changes.test.ts`. Every mutant must be killed. On the Mac:
+ten changes to the response range check, and six more from the independent review of the v2
+code), compiles each (without keys), and runs `src/test/v2-changes.test.ts` and
+`src/test/v1-pure-circuits.test.ts` (the Schnorr mutants also run the Schnorr and attack tests).
+Every mutant must be killed. On the Mac:
 
 ```sh
 COMPACTC=~/compactc-0.36.1/compactc node contract-v2/scripts/mutation-v2.mjs
@@ -595,4 +628,8 @@ COMPACTC=~/compactc-0.36.1/compactc node contract-v2/scripts/mutation-v2.mjs
 
 It works in a temporary copy and changes nothing in the repository. It takes about 20 minutes.
 
-The run on 23 November 2026 (Linux, compiler 0.36.1): 24 mutants, 24 killed, 0 survived.
+The run on 25 November 2026 (Hunter's Mac, compiler 0.36.1): the unmutated build passed first
+(120 tests, and 156 in the Schnorr set), then "30 mutants, 30 killed, 0 survived".
+
+Earlier run, 23 November 2026 (Linux, compiler 0.36.1), when the list had 24 mutants: 24
+killed, 0 survived.
