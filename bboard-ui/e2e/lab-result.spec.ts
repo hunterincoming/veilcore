@@ -221,6 +221,9 @@ test('a lab signs results bound to a record; the breeder checks them, adds one, 
   const summaryText = readFileSync(summary2, 'utf8');
   expect(summaryText.match(/already signed before: skipped/g)).toHaveLength(2);
   expect(summaryText).toContain('signed,LAB-C-5');
+  // "At the markers compared", never a bare "same genotype": the summary ends up on paper.
+  expect(summaryText).toContain(',match,same at the markers compared,');
+  expect(summaryText).not.toMatch(/genotype/i);
   // The lab's own list now holds all four, each a record it holds.
   await expect(lab.locator('[data-my-results]')).toContainText('LAB-C-2');
   // The lab checks a result it signed, on a fresh page (mainnet lab run, step 11): it is told at
@@ -267,6 +270,18 @@ test('a lab signs results bound to a record; the breeder checks them, adds one, 
   await expect(checked.locator('[data-lab-result-call]')).toHaveText('Not detected');
   await expect(checked).toContainText('RT-qPCR HLVd SOP-14, version 3');
   await expect(checked).toContainText('VeilCore didn’t take or test this sample');
+  // What the lab did, and that this is a summary of its report (summit 5b items 10 and 15).
+  await expect(checked.locator('[data-lab-result-sample]')).toHaveText(
+    'The lab tested the sample it received under this record. This result doesn’t show who took the sample or that it came from this record’s material, and it applies only to the portion tested.',
+  );
+  await expect(checked.locator('[data-lab-result-governs]')).toHaveText(
+    'A summary of the lab’s own report; the lab’s own report for accession LAB-26-1187 governs.',
+  );
+  await expect(checked).not.toContainText(/certificate/i);
+  // On the site's own check page: the address bar, never "don't trust this page".
+  await expect(breeder.locator('main [data-check-yourself]')).toHaveText(
+    `Make sure the address bar says ${new URL(breeder.url()).host}.`,
+  );
   await shot(breeder, 'lab-check');
   // The page reads the breeder's records only when asked (the sync sends the holder key).
   await checked.locator('[data-lab-result-find]').click();

@@ -130,6 +130,8 @@ export const en = {
   'draft.showEnglish': 'Show English',
   'draft.close': 'Close this notice',
   // Shown only while a build turns it on (DATING_PAUSED, config/network.ts).
+  // Inside another app's built-in browser only (InAppBrowserNotice.tsx).
+  'notice.inApp': 'Open this in Chrome or Safari so your records and keys stay on your phone.',
   'notice.datingPaused':
     "Dating on Midnight is paused for Midnight's network upgrade. Your records are saved and will be dated when it's back.",
   // The record app's frame (components/flow/FlowFrame.tsx) and the browser tab's title for

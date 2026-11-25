@@ -21,10 +21,11 @@ first), [maintenance-policy.md](../maintenance-policy.md) (the approved rules), 
 
 - **v1's single key is live on mainnet.** It is on paper; each founder holds a sheet. Either
   sheet alone can change v1's rules today. The counter was 16 on 13 November 2026.
-- **v2 is built and tested on a computer, not deployed.** The contract is in `contract-v2/`.
-  The deploy command (`npm run deploy-v2`), `verify:deployment --v2-record`, and the committee
-  launcher's v2 changes are tested against Midnight's own Ledger 9 code. None has run on a real
-  node yet; the preprod run in [deploy-v2.md](deploy-v2.md) is the first.
+- **v2 is deployed on preprod only (25 November 2026), not on mainnet.** The contract is in
+  `contract-v2/`. The deploy command (`npm run deploy-v2`), `verify:deployment --v2-record` and
+  the smoke run passed on preprod ([deploy-v2.md](deploy-v2.md), section F). The committee
+  launcher's v2 changes have not run on a network yet: the practice handover on preprod
+  (deploy-v2.md, steps 13 and 14) is the first.
 - **The committee tools are built and tested on a computer** against Midnight's own Ledger 9
   code. They have **never run on a real node**, not even a local one. The local rehearsal
   (Part B) has not been run.
@@ -535,7 +536,7 @@ place.
 
 **The tools exist** (`npm run deploy-v2`, `verify:deployment --v2-record`, and the committee
 launcher's `--v2-record` and `--temp-key-file`). The exact commands are in
-[deploy-v2.md](deploy-v2.md): steps 9 to 13 on preprod first, then steps 14 to 18 on mainnet.
+[deploy-v2.md](deploy-v2.md): steps 10 to 14 on preprod first, then steps 15 to 19 on mainnet.
 The order (contract-v2.md, section 5):
 
 1. **Deploy v2 with the temporary key** on the maintainer's Mac, kept age-encrypted on disk.
@@ -561,7 +562,7 @@ The order (contract-v2.md, section 5):
 7. **Publish** a deployment record revision with the handover, and the checkers' v2 state (b).
 
 **If the session stops partway:** the temporary key is still on disk, so the remaining inserts
-or the handover can be finished: run the deploy again with `--resume` (deploy-v2.md, step 9). It
+or the handover can be finished: run the deploy again with `--resume` (deploy-v2.md, step 10 on preprod, step 15 on mainnet). It
 never deploys a second contract while the first could still land, and it keeps every address it
 built. v2 is pinned only after `verify:deployment` passes at step 1. A v2 that can't be finished
 is never pinned: it is closed with one `retire` signed by the temporary key (the "v2 before

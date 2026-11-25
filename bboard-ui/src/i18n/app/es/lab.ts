@@ -527,4 +527,6 @@ export const lab = {
   // LabResults.tsx: a lock this browser can’t vouch for (round 3, P1)
   'app.lab.out.pasteAgain':
     'El candado para informes de laboratorio de este registro no se puede comprobar con el código de laboratorio, así que no se envía nada con él. Pegue de nuevo el código de laboratorio.',
+  'app.signer.demo': '{who} (DEMO: la clave demo de VeilCore, usada solo con datos inventados; no es un laboratorio)',
+  'app.labid.demo': 'DEMO: es la clave demo de VeilCore, usada solo con datos inventados. No es un laboratorio.',
 } satisfies Partial<AppTranslation>;

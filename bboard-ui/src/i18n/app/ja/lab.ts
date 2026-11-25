@@ -508,4 +508,6 @@ export const lab = {
   // LabResults.tsx: a lock this browser can’t vouch for (round 3, P1)
   'app.lab.out.pasteAgain':
     'この記録の検査報告書に鍵をかけるための情報はラボコードと照合できないため、それを使って何も送りません。ラボコードをもう一度貼り付けてください。',
+  'app.signer.demo': '{who}（デモ：VeilCoreのデモ用の鍵で、架空のデータにだけ使います。ラボではありません）',
+  'app.labid.demo': 'デモ：これはVeilCoreのデモ用の鍵で、架空のデータにだけ使います。ラボではありません。',
 } satisfies Partial<AppTranslation>;

@@ -518,4 +518,7 @@ export const lab = {
   // LabResults.tsx: a lock this browser can’t vouch for (round 3, P1)
   'app.lab.out.pasteAgain':
     'The lock for lab reports on this record can’t be checked against the lab code, so nothing is sent with it. Paste the lab code again.',
+  // VeilCore’s own demo lab key (veilcore/demo-lab.ts): said wherever its name shows.
+  'app.signer.demo': '{who} (DEMO: VeilCore’s demo key, used only with invented data; not a laboratory)',
+  'app.labid.demo': 'DEMO: this is VeilCore’s demo key, used only with invented data. It is not a laboratory.',
 };

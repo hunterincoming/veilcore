@@ -124,6 +124,8 @@ export const de: Strings = {
   'draft.banner': 'Maschinell erstellter Übersetzungsentwurf, wird noch geprüft. Maßgeblich ist die englische Seite.',
   'draft.showEnglish': 'Englisch anzeigen',
   'draft.close': 'Hinweis schließen',
+  'notice.inApp':
+    'Öffnen Sie diese Seite in Chrome oder Safari, damit Ihre Datensätze und Schlüssel auf Ihrem Telefon bleiben.',
   'notice.datingPaused':
     'Das Datieren auf Midnight ist wegen des Netzwerk-Upgrades von Midnight pausiert. Ihre Datensätze sind gespeichert und werden datiert, sobald es wieder läuft.',
   // The record app's frame and the browser tab's titles.
