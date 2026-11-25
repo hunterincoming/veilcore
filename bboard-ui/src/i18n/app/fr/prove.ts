@@ -16,9 +16,9 @@ export const prove = {
   'app.prove.share.differs': ' Les interrupteurs ci-dessus en diffèrent.{save}',
   'app.prove.yourRequest': 'Votre demande',
   'app.prove.youAskedNamed':
-    'Vous avez demandé au détenteur de <b>{name}</b> de prouver qu’il la détient. Envoyez-lui ce lien si ce n’est pas déjà fait.',
+    'Vous avez demandé au détenteur de <b>{name}</b> de prouver qu’il en détient l’enregistrement. Envoyez-lui ce lien si ce n’est pas déjà fait.',
   'app.prove.youAsked':
-    'Vous avez demandé au détenteur de cette plante de prouver qu’il la détient. Envoyez-lui ce lien si ce n’est pas déjà fait.',
+    'Vous avez demandé au détenteur de cette plante de prouver qu’il en détient l’enregistrement. Envoyez-lui ce lien si ce n’est pas déjà fait.',
   'app.prove.openCheckPage': 'Ouvrir la page de vérification de la plante',
   'app.prove.opening': 'Ouverture de la demande…',
   'app.prove.ended': 'Cette demande est terminée',
@@ -57,7 +57,7 @@ export const prove = {
   'app.prove.ask.cantAsk': 'Impossible de demander une preuve depuis ce lien',
   'app.prove.ask.refused': '{reason}. Une preuve faite avec lui ne dirait rien sur cet enregistrement.',
   'app.prove.ask.noLink': 'Aucun lien n’a été créé : {error}.',
-  'app.prove.ask.title': 'Demandez-lui de prouver qu’il la détient',
+  'app.prove.ask.title': 'Demandez-lui de prouver qu’il en détient l’enregistrement',
   'app.prove.ask.intro':
     'Vous envoyez un lien. La personne l’ouvre et touche « Le prouver ». La réponse s’affiche ici. Cette page vérifie la réponse sur le réseau lui-même, via un indexeur Midnight (sur le site de test, en passant par le relais de VeilCore). Pour une décision importante, vérifiez la transaction sur un second indexeur. Réseau de test uniquement.',
   'app.prove.ask.bound':
@@ -151,7 +151,7 @@ export const prove = {
   'app.prove.share.savedText':
     'Quiconque ouvre ce lien, ou a l’identifiant de cet enregistrement d’une autre façon, voit les informations de l’aperçu et rien d’autre ; le registre n’envoie pas le reste, et modifier le lien ne peut rien y ajouter. La génétique n’est jamais divulguée. Ce choix détermine ce qu’affiche la page de vérification. Prouver une valeur cachée (un marqueur, une plage, ou que deux variétés diffèrent) sans montrer le reste est le rôle du contrat des preuves de VeilCore.',
   'app.prove.share.letThemAsk':
-    'Leur permettre de vérifier l’horodatage et de me demander de prouver que je la détiens',
+    'Leur permettre de vérifier l’horodatage et de me demander de prouver que j’en détiens l’enregistrement',
   'app.prove.share.theLink': 'Le lien',
   'app.prove.share.openTheirs': 'Ouvrir ce qu’ils verront',
   'app.prove.share.saving': 'Enregistrement…',
@@ -209,4 +209,6 @@ export const prove = {
     'Ce que cela montre : le code de résultat scellé dans cet enregistrement respecte la ligne ci-dessus, et la clé ci-dessus a signé les résultats de cet enregistrement. Le laboratoire a depuis retiré ce résultat, ne vous y fiez donc pas : demandez au laboratoire ou au détenteur le dernier résultat pour cet échantillon. Chaque preuve sur ce résultat est publique, et ensemble elles le resserrent.',
   'app.claim.check.whatLabUnnamedCall':
     'Ce que cela montre : le code de résultat scellé dans cet enregistrement respecte la ligne ci-dessus, et la clé ci-dessus a signé les résultats de cet enregistrement. Aucun laboratoire unique n’est lié à cette clé ici : considérez le résultat comme celui du détenteur. Chaque preuve sur ce résultat est publique, et ensemble elles le resserrent.',
+  'app.prove.share.tellThem':
+    'La personne qui ouvre le lien peut vérifier elle-même sur {site}/verify avec l’identifiant d’enregistrement, ou avec un vérificateur qu’elle a installé.',
 } satisfies Partial<AppTranslation>;

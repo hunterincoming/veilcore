@@ -49,7 +49,7 @@ const EDIT_ONLY = process.env.EDIT_ONLY === '1';
 const DRY_RUN = process.env.DRY_RUN === '1';
 const DRY_RUN_REGISTRY = process.env.DRY_RUN_REGISTRY || 'http://127.0.0.1:8790';
 
-const PLANT = 'Harbour Mist';
+const PLANT = 'Harbour Pippin';
 const BRED_BY = 'Example Breeding Co.';
 const CHECKER_NAME = 'Example Lab';
 
@@ -513,9 +513,11 @@ const run = async () => {
     await tap(b, b.getByRole('button', { name: 'Get the link' }), 600);
     const linkBox = b.locator('input[readonly]').first();
     await linkBox.waitFor({ timeout: 20_000 });
-    const ask = b.getByLabel('Let them check the date stamp and ask me to prove I hold it');
+    const ask = b.getByLabel('Let them check the date stamp and ask me to prove I hold its record');
     if (!(await ask.isVisible().catch(() => false))) {
-      fail('The share link doesn’t offer "ask me to prove I hold it", so the plant has no date stamp in this browser.');
+      fail(
+        'The share link doesn’t offer "ask me to prove I hold its record", so the plant has no date stamp in this browser.',
+      );
     }
     if (!(await ask.isChecked())) await tap(b, ask);
     await linkBox.scrollIntoViewIfNeeded();
@@ -534,10 +536,10 @@ const run = async () => {
     await caption(c, CAPTIONS.ask);
     await sleep(2000);
     step = 'Asking for proof by link';
-    const askHeading = c.getByRole('heading', { name: 'Ask them to prove they hold it' });
+    const askHeading = c.getByRole('heading', { name: 'Ask them to prove they hold its record' });
     await askHeading
       .waitFor({ timeout: 20_000 })
-      .catch(() => fail('The checker’s page doesn’t offer "Ask them to prove they hold it".'));
+      .catch(() => fail('The checker’s page doesn’t offer "Ask them to prove they hold its record".'));
     await askHeading.evaluate((el) => el.scrollIntoView({ behavior: 'smooth', block: 'start' }));
     await sleep(1400);
     await type(c.getByLabel(/Your name or business/), CHECKER_NAME);

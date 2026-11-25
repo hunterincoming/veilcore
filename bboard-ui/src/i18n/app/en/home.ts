@@ -35,6 +35,14 @@ export const home = {
     'A record has keys with no checked backup. Save your backup first: clearing the browser later would lose them for good.',
   'app.home.resetWarningRecords.other':
     '{count} records have keys with no checked backup. Save your backup first: clearing the browser later would lose them for good.',
+  'app.home.resetReceiving.one':
+    'You’re still receiving a delivery, and no checked backup holds its code. Starting over deletes the code from this browser, and without it the delivery can’t be finished. Save your backup first.',
+  'app.home.resetReceiving.other':
+    'You’re still receiving {count} deliveries, and no checked backup holds their codes. Starting over deletes the codes from this browser, and without them those deliveries can’t be finished. Save your backup first.',
+  'app.home.resetUnsure.one':
+    'A change to a record isn’t saved yet: its correction got no clear answer. This browser keeps it for 30 days in case you restore this set from its backup, and removes it the next time VeilCore is opened after that.',
+  'app.home.resetUnsure.other':
+    'Changes to {count} records aren’t saved yet: their corrections got no clear answer. This browser keeps them for 30 days in case you restore this set from its backup, and removes them the next time VeilCore is opened after that.',
   'app.home.resetConfirm':
     'Start over in this browser with a new, empty set?\n\nNothing is deleted. Your current records stay on VeilCore’s registry, locked. You can get them back only with your current keys, which will be downloaded now in one file. Keep it.',
   'app.home.startedOver': 'Started over. Restore your old records any time from the holder key file.',
@@ -222,4 +230,8 @@ export const home = {
     'This file has {n} records new to VeilCore, and your free plan can date {left} more. Nothing was imported. Choose a plan on your records page to date more.',
   'app.plan.box.full':
     'Your free records are used up. Everything you already have keeps verifying. Choose a plan to add more.',
+  'app.home.labSheet': "Seal today's sheet",
+  'app.labpage.work.sheet':
+    'Export a spreadsheet of your cultures or samples each day? Seal the whole sheet at once. After the first time, this device remembers its columns, so the next day it is one button.',
+  'app.labpage.work.sheetLink': "Seal today's sheet",
 };

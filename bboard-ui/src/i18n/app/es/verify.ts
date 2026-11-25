@@ -109,8 +109,7 @@ export const verify = {
   'app.verify.kindReport': 'Informe de laboratorio (SHA-256 del archivo {sha})',
   'app.verify.kindStatement': 'Declaración firmada',
   'app.verify.forWhom': 'Para el código de prueba que informa el servidor de registros: ',
-  'app.verify.intro':
-    'Esta página comprueba un registro de VeilCore: un código de prueba de la descripción de un material genético, fechado una vez anclado y publicado sin la genética. Comprobar es gratis y no necesita cuenta. <link>¿Qué es VeilCore?</link>',
+  'app.verify.intro': 'Comprobar es gratis y no necesita cuenta. <link>¿Qué es VeilCore?</link>',
   'app.verify.checkingRecord': 'Comprobando el registro',
   'app.verify.notFound': 'No se encontró ningún registro para {id}',
   'app.verify.notFoundText':
@@ -268,7 +267,7 @@ export const verify = {
   'app.verify.ex.intro':
     'Esto muestra cómo es la página de comprobación de un registro, con una nota bajo cada línea. Aquí no se consultó ni comprobó nada.',
   'app.verify.ex.status': 'Ejemplo · en un lote sellado · anclaje informado',
-  'app.verify.ex.name': 'Harbour Mist (ejemplo)',
+  'app.verify.ex.name': 'Harbour Pippin (ejemplo)',
   'app.verify.ex.fact1':
     'Este enlace se hizo para el código de prueba 3f9a0c41e2b7…, y el servidor de registros informa el mismo código de prueba para este registro.',
   'app.verify.ex.note1':
@@ -400,4 +399,7 @@ export const verify = {
     'Comprobado en este navegador: la prueba de trabajo del bloque {height} y su enlace hacia arriba desde el punto de control {checkpoint}, un bloque que este sitio fija, a través de bloques minados con la dificultad real de Bitcoin. El bloque contiene el sello de este lote. Hora del bloque, como la fijó su minero: {time}. Un punto de control posterior lo comprobaría con más fuerza.',
   'app.verify.who.btc.batchOnly':
     'Este navegador comprobó que el sello del lote está en el bloque de Bitcoin {height}, enlazado con el punto de control {checkpoint}. Solo el servidor de registros de VeilCore dice que este registro está en ese lote: el enlace que le enviaron no lleva un código de prueba para comprobarlo.',
+  'app.verify.checkYourself':
+    'Compruébelo usted mismo: abra {site}/verify e introduzca el identificador de registro, o use un verificador que haya instalado. No se fíe solo de una página que alguien le envió.',
+  'app.verify.addressBar': 'Compruebe que la barra de direcciones diga {site}.',
 } satisfies Partial<AppTranslation>;

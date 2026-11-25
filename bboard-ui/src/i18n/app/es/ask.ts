@@ -11,7 +11,7 @@ export const ask = {
   'app.ask.privacy': 'Lo que escribe aquí no se envía. Solo Guardar envía.',
   'app.ask.engine': 'Funciona sin conexión.',
   'app.ask.inputLabel': '¿Qué quiere hacer?',
-  'app.ask.inputPlaceholder': 'p. ej. cortar 12 esquejes de Blue Dream',
+  'app.ask.inputPlaceholder': 'p. ej. cortar 12 esquejes de Harbour Pippin',
   'app.ask.inputPlaceholderDoc': 'p. ej. ¿qué es un código de prueba?',
   'app.ask.go': 'Ir',
   'app.ask.close': 'Cerrar',

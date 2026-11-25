@@ -57,6 +57,7 @@
 <main>
   <h1>Check this record</h1>
   <p class="muted" id="intro">This page works with no internet and nothing from VeilCore. It checks the files in this bundle against each other. The date itself comes from one look-up you do yourself (below).</p>
+  <p class="muted" id="check-yourself">If someone sent you this bundle, check it with a checker you got yourself, not one they sent.</p>
   <div id="summary"></div>
 
   <h2>What was sealed</h2>
@@ -83,6 +84,7 @@
       <li class="vc-document-only" hidden>That the document is genuine, that the issuer named in it issued it, or that what it says is true. The title, type, issuer and dates are the holder’s statements. A file that matches shows only that a file with exactly those bytes was in the holder’s hands by the date.</li>
       <li>Who holds the <span class="vc-subject">plant</span> or the record now.</li>
       <li>That a signing key belongs to the lab it names. VeilCore doesn’t vouch for anyone, and neither does this page.</li>
+      <li>What a lab’s sample was. The lab tested the sample it received under this record. This result doesn’t show who took the sample or that it came from this record’s material, and it applies only to the portion tested.</li>
       <li>Any date at all, until you find the batch root in the transaction named above (or the Bitcoin stamp checks). Until then the files only agree with each other.</li>
       <li>That Bitcoin’s network agrees today: this page reaches no network. When this bundle carries the stamped block’s header (<code>proof/bitcoin-headers.json</code>), the page checks the block holds the value the stamp file names, has Bitcoin’s proof of work, and links to a block this page pins; without it, the page only reads the stamp file.</li>
       <li class="vc-not-document">When a lab report was saved to the <span class="vc-subject">plant</span>. That came after sealing and isn’t inside the record’s proof code, so the batch doesn’t date it.</li>

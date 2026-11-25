@@ -9,6 +9,7 @@ import {
   UNITS_FOR,
   applyPreset,
   carriesFarmersRights,
+  freeShareTerms,
   countsGifts,
   termsSentence,
   termsToSeal,
@@ -143,6 +144,28 @@ describe('the fixed farmers’-rights line', () => {
       expect(line, lang).toMatch(/[.。]$/);
       if (lang !== 'en') expect(line, lang).not.toBe(LINE);
     }
+  });
+});
+
+describe('a free breeder share', () => {
+  it('drops the line and every money term, also when a paid plant share is renewed as free', () => {
+    const paid = termsToSeal({
+      ...emptyTermsFor('breeder-share', 'plant'),
+      licensee: 'Another breeder',
+      currency: 'USD',
+      governingLaw: 'New Jersey',
+      offspringRoyaltyPct: '2',
+      offspring: { rule: { kind: 'percent', rate: '2', base: 'gross' } },
+    });
+    expect(paid.farmersRights).toBe(LINE);
+    const free = freeShareTerms({ ...paid, offspringRoyaltyPct: '' });
+    for (const k of ['farmersRights', 'offspring', 'currency', 'governingLaw', 'reporting', 'licensor'])
+      expect(k in free, k).toBe(false);
+    expect(free.licensee).toBe('Another breeder');
+    expect(termsSentence(free, enT)).not.toContain(LINE);
+    // A share that was always free keeps the shape it always had.
+    const never = { ...emptyTermsFor('breeder-share', 'plant'), licensee: 'Another breeder' };
+    expect(freeShareTerms(never)).toEqual(never);
   });
 });
 

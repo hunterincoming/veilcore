@@ -86,7 +86,7 @@ import { isBoundLabDocument, labSaltFromLink } from '../veilcore/lab-doc';
 import { LINK_SX } from '../config/theme';
 import { color } from '../config/tokens';
 import { DatedStamp } from '../components/DatedStamp';
-import { NETWORK, explorerFor, isTestNetwork } from '../config/network';
+import { CANONICAL_HOST, NETWORK, explorerFor, isTestNetwork } from '../config/network';
 import { Fact, FactKey, SharedFacts } from '../components/verify/DisclosedFacts';
 import { pairingPending, pendingReportLine, publicReportLine, withdrawnSignaturesLine } from '../veilcore/saved-report';
 import {
@@ -480,6 +480,11 @@ export const VerifyPage: React.FC = () => {
   const [chosenFile, setChosenFile] = useState<{ name: string; sha: string } | 'reading' | 'too-big' | null>(null);
   // An animal record's page says "animal" where a plant's says "plant" (translate.ts forKind).
   const tr = forKind(useT(), result?.subjectKind === 'animal' ? 'animal' : 'plant');
+  // What the record is about, for the fixed line under the answer (DatedNotOrigin.tsx).
+  const checkKind =
+    result?.subjectKind === 'animal' || result?.subjectKind === 'strain' || result?.subjectKind === 'document'
+      ? result.subjectKind
+      : 'plant';
   const { t, tp } = tr;
 
   useEffect(() => {
@@ -800,7 +805,7 @@ export const VerifyPage: React.FC = () => {
                 })}
               </CheckVerdict>
             )}
-            <DatedNotOrigin />
+            <DatedNotOrigin kind={checkKind} />
             <Paper sx={{ p: { xs: 3, md: 4 }, position: 'relative' }} data-specimen-sheet="">
               {/* Stamped only when this page found the batch root's anchor on Midnight itself
                 (anchorCheckedOnChain): gold DATED on the main network, a dashed PRACTICE
@@ -1214,6 +1219,15 @@ export const VerifyPage: React.FC = () => {
                             <Fact key={a.attestationId} status={bound ? 'checked' : 'reported'}>
                               {t('app.verify.sigLine', { forWhom, kind: signatureKind(a, tr), lead: label.lead })}
                               <NameCheckText label={label} />
+                              {a.type === 'laboratory-report' && (
+                                <Box
+                                  component="span"
+                                  sx={{ display: 'block', mt: 0.5, color: 'text.secondary' }}
+                                  data-lab-sample-note=""
+                                >
+                                  {t('app.lr.note.sample')}
+                                </Box>
+                              )}
                               {a.type === 'chain-of-custody' && publicCustody.has(a.attestationId) && (
                                 <Box component="span" sx={{ display: 'block', mt: 0.5 }} data-public-custody="">
                                   <Box component="span" sx={{ display: 'block', color: 'text.secondary' }}>
@@ -1321,7 +1335,7 @@ export const VerifyPage: React.FC = () => {
         {/* What a date doesn't show, said under a record that can't be shown too. */}
         {!loading && !(result?.found && binding.kind !== 'mismatch') && (
           <Box sx={{ mt: 3 }}>
-            <DatedNotOrigin center />
+            <DatedNotOrigin center kind={checkKind} />
           </Box>
         )}
         {/* Real-chain builds: the holder's link may name the record's on-chain identity
@@ -1352,12 +1366,16 @@ export const VerifyPage: React.FC = () => {
         {REAL_CHAIN && AGREEMENTS_ON_CHAIN && result?.found && linked('chain') && (
           <LendHere identity={linked('chain') ?? ''} recordId={id} />
         )}
-        {/* One line for a stranger who arrived from a QR code or a shared link: what this page is. */}
+        {/* For a stranger who arrived from a QR code or a shared link: a lookalike page looks the
+        same, so the address bar is what to check (summit 5b item 15). */}
         <Typography
           variant="body2"
           color="text.secondary"
           sx={{ textAlign: 'center', mt: 4, maxWidth: 460, mx: 'auto' }}
         >
+          <Box component="span" data-check-yourself="">
+            {t('app.verify.addressBar', { site: CANONICAL_HOST })}
+          </Box>{' '}
           {rich(t('app.verify.intro'), {
             link: (c) => (
               <Box component={RouterLink} to="/" sx={{ ...LINK_SX, whiteSpace: 'nowrap' }}>

@@ -45,7 +45,9 @@ export const royalties = {
   'app.roy.every.half': '6 months',
   'app.roy.every.year': 'year',
   'app.roy.ded.returns': 'returns',
-  'app.roy.ded.excise': 'excise or cannabis tax',
+  'app.roy.ded.excise': 'excise tax',
+  // Only on terms for cannabis, hemp or another controlled plant (royalty-terms.ts deductionLabel).
+  'app.roy.ded.exciseControlled': 'excise or cannabis tax',
   'app.roy.ded.freight': 'freight',
   'app.roy.fees.each-own': 'Each side pays its own bank fees',
   'app.roy.fees.licensee': 'The licensee pays all transfer fees',

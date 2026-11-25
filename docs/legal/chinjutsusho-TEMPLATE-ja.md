@@ -19,6 +19,10 @@ This is the holder's statement. Facts from the bundle go in the brackets; the ho
 everything else in their own words. Attachments are numbered as the party's exhibits
 (甲号証 for the plaintiff, 乙号証 for the defendant).
 
+For the lawyer: a date shows this record existed. It doesn't show the holder didn't also seal
+other versions. Weight comes from what someone else saw at the time. Don't let the statement
+claim more than that.
+
 ---
 
 令和〔　〕年〔　〕月〔　〕日

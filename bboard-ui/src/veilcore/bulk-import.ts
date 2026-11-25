@@ -1862,7 +1862,7 @@ export const sealRows = async (
 export { importedRecordIds, loadLedger, saveLedger } from './bulk-import-ledger';
 export type { Ledger, LedgerEntry } from './bulk-import-ledger';
 
-const JOB_KEY = 'veilcore.bulk-import.job.v1';
+export const JOB_KEY = 'veilcore.bulk-import.job.v1';
 
 export type JobPhase = 'sealing' | 'sealed' | 'backed-up';
 

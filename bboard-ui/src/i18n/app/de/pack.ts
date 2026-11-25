@@ -7,6 +7,7 @@ import type { AppTranslation } from '../../translate';
 
 export const pack = {
   'app.pack.home': 'Unterlagen für REPROCANN / SEDRONAR',
+  'app.pack.more': 'Unterlagen für eine Behörde',
   'app.pack.title': 'Unterlagen für REPROCANN / SEDRONAR',
   'app.pack.intro':
     'Für einen Verein für medizinisches Cannabis in Argentinien. Die Unterlagen stellen zusammen, was Ihre VeilCore-Einträge für einen Zeitraum zeigen, als Begleitmaterial zur Halbjahreserklärung und zum Produktionsprotokoll, nennen, was fehlt, und geben zu jedem VeilCore-Eintrag den Prüflink. Sie prüfen sie, unterschreiben sie und senden sie selbst.',

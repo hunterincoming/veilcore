@@ -46,9 +46,12 @@ The full list is in [`evidence-bundle.md`](evidence-bundle.md). The parts that m
 - any date before the transaction. The sealing time inside the record is your device's
   clock, and the registry's "first saw" time is the registry's clock: each is one party's word;
 - that a sample was handled properly before it reached the lab. That is what the chain of
-  custody (below) is for.
+  custody (below) is for;
+- that this is the only version. A date shows this record existed. It doesn't show the holder
+  didn't also seal other versions. Weight comes from what someone else saw at the time: a lab
+  receipt, a licensee's acknowledgement, a buyer's invoice.
 
-## Four situations
+## Five situations
 
 ### A dispute: "we bred it first", or a lab result is challenged
 
@@ -63,6 +66,9 @@ The full list is in [`evidence-bundle.md`](evidence-bundle.md). The parts that m
    else (see "What courts and rule-makers have said").
 5. If the dispute is about a lab result, the sample's custody matters most: who took it,
    sealed it, sent it, and what the lab wrote on arrival (see "Chain of custody").
+6. If a variety is ever said to be derived from another, breeding records made at the time are
+   what the breeder relies on. Seal crosses and selections as you make them, not when a dispute
+   starts.
 
 ### A licence negotiation
 
@@ -78,11 +84,25 @@ The licensee wants to know the plant is what you say and that you held it before
 ### A plant variety application
 
 The US Plant Variety Protection Office asks for an origin and breeding history (Exhibit A)
-and accepts additional supporting data and attachments (Exhibit D). Vegetatively propagated
-varieties need no deposit; the applicant signs a declaration that the propagating material
-will be kept at a named location, open to inspection
-([USDA AMS, PVP application](https://www.ams.usda.gov/node/5780)). The office doesn't ask for
-a blockchain date. If you choose to attach the examiner summary as supporting material, say
+and accepts additional supporting data and attachments (Exhibit D)
+([USDA AMS, PVP application](https://www.ams.usda.gov/node/5780)). On deposits, the office's
+germplasm deposit page says
+([USDA AMS, germplasm deposit](https://www.ams.usda.gov/services/pvpo/application-help/germplasm-deposit),
+read 25 November 2026):
+
+- **Asexually reproduced (vegetatively propagated) varieties:** a deposit delay waiver has been
+  granted, so there is no up-front deposit. The applicant or a repository of their choosing keeps
+  the material during the current three-year delay, at the applicant's cost. The applicant
+  declares that a voucher specimen will be provided within three months of the office's request.
+  If it isn't, the certificate is regarded as abandoned.
+- **Potatoes and other tubers:** samples go to the USDA's National Laboratory for Genetic Resources Preservation (NLGRP),
+  as ten in-vitro plantlets, after notice that the certificate will issue.
+- **Seed-reproduced varieties:** 3,000 viable, untreated seeds, within three months of filing or
+  before the certificate issues, whichever is first (and 3,000 of each parent for a
+  first-generation hybrid).
+
+Check the page again before you file: the delay is the office's current practice, not a rule
+that can't change. The office doesn't ask for a blockchain date. If you choose to attach the examiner summary as supporting material, say
 what it is in plain words: "a dated record of the breeding entry, checkable without VeilCore".
 Ask your lawyer or the examiner first whether it helps.
 
@@ -94,6 +114,22 @@ Ask your lawyer or the examiner first whether it helps.
   bundle you made before still dates *your* record.
 - The bundle doesn't make the sale lawful, and doesn't show the buyer may propagate the
   plant. That is what the contract and any licence are for.
+
+### A trade secret
+
+Some material is better kept secret than registered: parent lines behind a hybrid, a
+propagation protocol, a selection kept in-house. Trade secret law generally protects it only
+while you take reasonable measures to keep it secret, and in a dispute you usually have to say
+exactly what the secret is.
+
+A sealed record fits this kind of material well, because the description stays on your device
+and only a proof code is dated. It can show **what** you held and **by when**, in words fixed
+at the time, which helps you identify the secret precisely later.
+
+A seal documents your secrecy measures; it isn't one. What counts is what you actually did:
+who could see the material, access limits, confidentiality agreements, labelled samples. Seal
+those measures as you put them in place, and keep them going. Ask your lawyer which material
+fits and how to describe it.
 
 ## Chain of custody: the sample matters as much as the record
 
@@ -157,6 +193,14 @@ Nowhere does a bare blockchain date settle a case by itself. Don't describe the 
   blockchain anchors. A qualified time stamp is a possible addition (the SDK already reads
   RFC 3161 tokens); qualified providers usually charge for each one.
 
+## A word you may see: `proveOwnership`
+
+VeilCore's contract has a function called `proveOwnership`. The name is historical. What it
+proves is that the caller holds the record's secret at the time of the call: present
+possession of that secret. With the record's anchor date, that shows prior possession of that
+record, not ownership of the record, the plant or any right in it. If the other side
+says "your own system calls it an ownership proof", that is the answer.
+
 ## The declaration template: where its structure comes from
 
 `DECLARATION-TEMPLATE.txt` follows the public sources above:
@@ -187,6 +231,9 @@ should adapt it.
   each side typed.
 - Recover a record's date if the batch was never anchored, or delete a fingerprint already
   anchored on a public network.
+- Make a record disappear. A deleted record still shows it existed (a tombstone stays): its ID,
+  proof code and deletion time remain at the registry, and anything already dated stays on the
+  public networks.
 - Act as your lawyer or expert witness.
 
 ## Sources used
@@ -199,6 +246,7 @@ the [Federal Judicial Center transcript on Rules 902(13) and (14)](https://www.f
 [eIDAS on EUR-Lex](https://eur-lex.europa.eu/eli/reg/2014/910/oj/eng) and
 [Articles 41 and 42 as read on legislation.gov.uk](https://www.legislation.gov.uk/eur/2014/910/chapter/III/section/6);
 [USDA AMS, PVP application](https://www.ams.usda.gov/node/5780);
+[USDA AMS, germplasm deposit](https://www.ams.usda.gov/services/pvpo/application-help/germplasm-deposit);
 [IETF RFC 3161](https://www.rfc-editor.org/rfc/rfc3161).
 
 Reports of decisions and rules: [China IP Law Update on the SPC's 2026 plant-variety

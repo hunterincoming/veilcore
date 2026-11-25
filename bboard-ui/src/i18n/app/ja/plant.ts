@@ -23,7 +23,7 @@ export const plant = {
   'app.plant.moreYouCanDo': 'ほかにできること',
   'app.plant.action.show': '誰かに見せる',
   'app.plant.action.showHint': '見せる内容を選ぶ',
-  'app.plant.action.askedToProve': '保有していることの証明を求められた',
+  'app.plant.action.askedToProve': 'その記録を保有していることの証明を求められた',
   'app.plant.action.certificate': '証明書',
   'app.plant.action.sendResults': '結果を育成者に送り返す',
   'app.plant.action.sendResultsHint': 'あなたが署名し、相手だけが開けるように鍵をかけます',

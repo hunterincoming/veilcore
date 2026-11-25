@@ -4,6 +4,15 @@
 6 October and by Mako Steiner on 7 October 2026. In force from its publication with
 deployment record revision 4.**
 
+**Contract v2 (status, 25 November 2026: deployed on preprod only, not on mainnet).** This policy
+applies to contract v2 from day one: the same reasons for use, the 14-day notice and publishing
+every use. v2 starts with a temporary single key, kept age-encrypted on the maintainer's Mac,
+until it is handed to the 2-of-3 committee ([contract-v2.md](contract-v2.md), section 5).
+**Approved by both founders:** Hunter Roberts, maintainer decision of 23 November 2026; Mako's
+yes, by message to Hunter, confirmed as v2 on 25 November 2026 (his first message said 'v3')
+(contract-v2.md, section 9, decision 12). Who holds the third key (decision 2) and
+sealing v1 (decision 9) still wait for the second founder's written approval.
+
 The VeilCore contract on Midnight mainnet keeps a maintenance authority. This page says
 what that authority can do, why it is kept, who holds it, how it is used, and how
 control is meant to move away from the founders over time. It replaces the "retire on a

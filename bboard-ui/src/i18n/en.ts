@@ -130,6 +130,8 @@ export const en = {
   'draft.showEnglish': 'Show English',
   'draft.close': 'Close this notice',
   // Shown only while a build turns it on (DATING_PAUSED, config/network.ts).
+  // Inside another app's built-in browser only (InAppBrowserNotice.tsx).
+  'notice.inApp': 'Open this in Chrome or Safari so your records and keys stay on your phone.',
   'notice.datingPaused':
     "Dating on Midnight is paused for Midnight's network upgrade. Your records are saved and will be dated when it's back.",
   // The record app's frame (components/flow/FlowFrame.tsx) and the browser tab's title for
@@ -255,7 +257,6 @@ export const en = {
   'm.nav.forLabs': 'Use it as a lab',
   'm.nav.getBack': 'Get my records back',
 
-  'm.hero.label': 'Proof of what you hold',
   // Round 3 (CTO decision, 14 Oct): not "Prove you had it first." A record shows you had
   // the record by a date, not that you had the plant first. What stays hidden is the
   // genetics. Since round 5 (17 Oct) the name is locked too: a check page shows it only when
@@ -267,7 +268,7 @@ export const en = {
   'm.hero.title1': 'Date your record.',
   'm.hero.title2': 'Keep your genetics private.',
   'm.hero.lede':
-    'For breeders, seed companies and labs working with plant, animal and microbial genetics: give your records a date nobody can backdate. Your genetic data stays locked: DNA files never leave your computer, and what you type reaches our server locked. Only codes, and the facts you choose to prove, go on Midnight, which dates them.',
+    'For breeders, seed companies and labs working with plant, animal and microbial genetics: give your records a date nobody can move earlier. Your genetic data stays locked: DNA files never leave your computer, and what you type reaches our server locked. Only codes, and the facts you choose to prove, go on Midnight, which dates them.',
   'm.hero.how': 'How it works',
   'm.hero.pasteQ': 'Got a lab code or a link from someone?',
   'm.hero.pasteGo': 'Paste it here →',
@@ -349,7 +350,7 @@ export const en = {
     'On the record pages, Ask fills in a record, or a batch of clones or offspring, for you to check. It never signs or sends anything. You do.',
   'm.home.trustLabel': 'What it gives you',
   'm.home.trust':
-    'Proof you held a record by a date|A date nobody can backdate|Free to check|An open format|No wallet, no sign-up',
+    'Proof you held a record by a date|A date nobody can move earlier|Free to check|An open format|No wallet, no sign-up',
   'm.home.pause': 'Pause the moving names',
   'm.home.play': 'Play the moving names',
   'm.home.fails': 'Tell us where it fails.',
@@ -386,9 +387,8 @@ export const en = {
     "They send you a link. You tap once, and their page checks on the network that you control your record's own key. Your record named that key when it was sealed, so it can't be swapped. It says nothing about who you are or who bred the plant. This works on a Midnight test network for now.",
   'm.for.5t': 'Animal lines.',
   'm.for.5p':
-    'Herd books keep the pedigree. A record can give each entry a date nobody can backdate, without publishing the genotype. You can log an animal on this site: its individual ID, sire and dam, and a DNA report.',
-  'm.for.5parent':
-    'A lab’s signed parentage result can also prove a calf fits its sire and dam, without showing any DNA profile.',
+    'Herd books keep the pedigree. A record can give each entry a date nobody can move earlier, without publishing the genotype. You can log an animal on this site: its individual ID, sire and dam, and a DNA report.',
+  'm.for.5parent': 'Parentage results show a lab signed that the samples fit sire and dam, revealing no DNA profile.',
   'm.for.5parentLink': 'How parentage works →',
   'm.for.5ask': 'If you breed animals, tell us what your records need.',
 
@@ -442,7 +442,7 @@ export const en = {
   'm.get.title1': 'What you get,',
   'm.get.title2': 'and where it stops.',
   'm.get.title': 'What you get',
-  'm.get.1a': 'A date nobody can backdate,',
+  'm.get.1a': 'A date nobody can move earlier,',
   'm.get.1b': 'for a record of what you hold, without showing your genetics.',
   'm.get.2a': 'Licenses and lab agreements.',
   'm.get.2b':
@@ -829,7 +829,7 @@ export const en = {
     'To have your demo data deleted from our server, email hunter@veilcore.org with the identifiers of your records.',
   'm.privacy.browser.title': 'Kept in your browser',
   'm.privacy.browser.text':
-    "Your browser keeps, on this device: your holder key (a copy also goes to our server, as above); the key that locks your records, which is never sent to us; your own copy of your records; each record's secret keys, which lock its lab reports (a locked copy also goes with the record to our server); the lab codes you make or use, which hold a claim code and the key to a delivery's details; a lab's signing key if you set one up (its private half is never sent to us); the role you picked; and your language. Your backup file holds a copy of each key and of the lab codes you made. To remove them, clear this site's data in your browser settings. Save your backup first: without it, you can't find or open your records again.",
+    "Your browser keeps, on this device: your holder key (a copy also goes to our server, as above); the key that locks your records, which is never sent to us; records you haven’t finished, and documents kept on this device only; each record's secret keys, which lock its lab reports (a locked copy also goes with the record to our server); the lab codes you make or use, which hold a claim code and the key to a delivery's details; a lab's signing key if you set one up (its private half is never sent to us); the role you picked; and your language. It also keeps what the rest of the app needs while you use it, such as licenses and their keys, a code you’re receiving, saves waiting to be sent, and notices you’ve closed. Your backup file holds a copy of each key, your records, the lab codes you made and a code you’re receiving. To remove them, clear this site's data in your browser settings. Save your backup first: without it, you can't find or open your records again.",
   'm.privacy.deviceonly.title': 'A document kept on this device only',
   'm.privacy.deviceonly.text':
     'When you seal a document, you can choose to keep its record on this device and in your backup file only. Then nothing you type into it is sent to our server, locked or not. What we do get: the record ID, its proof code and its key binding, so it can be dated; your network address and the time, as with any request; and, if you keep a passkey copy, the record’s ID and its keys inside that locked copy. If you choose to date-stamp the record’s key, a code made from the key goes to Midnight through our fee service. One exception, and only if you choose it: if you prove one of its numbers, a fact about that number goes to Midnight through our fee service and is public for good. That is the limit you set and its direction or, if you prove the number exactly, the number itself. None of it goes to our registry. But what you prove is public, and we, and anyone who has the record’s check link, can tie it to the record; we can also tie it to the holder key that dated it. We can’t give such a record back: the only copies are in your browser and in a backup file saved after it was sealed, and the app asks you to save and check one straight away. Anyone you send its check link and file to can still check it. The choice is made when sealing and can’t be changed after.',

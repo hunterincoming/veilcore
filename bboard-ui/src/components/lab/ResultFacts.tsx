@@ -229,6 +229,18 @@ export const ResultFacts: React.FC<{ statement: LabResultStatement; code?: strin
           {code}
         </Fact>
       )}
+      {/* What the lab did and didn't do, and that this is a summary of the lab's own report
+      (ISO/IEC 17025 7.8.2.2 and 7.8.8; summit 5b item 10). Not for a withdrawal, which tests nothing. */}
+      {s.kind !== 'retraction' && (
+        <Typography variant="body2" sx={{ fontWeight: 600 }} data-lab-result-sample="">
+          {t('app.lr.note.sample')}
+        </Typography>
+      )}
+      {s.kind !== 'retraction' && (
+        <Typography variant="body2" color="text.secondary" data-lab-result-governs="">
+          {t('app.lr.note.governs', { accession: seen(s.accession) })}
+        </Typography>
+      )}
       <Typography variant="body2" color="text.secondary" data-lab-result-current="">
         {t('app.lr.note.current', { tested: s.tested })}
       </Typography>

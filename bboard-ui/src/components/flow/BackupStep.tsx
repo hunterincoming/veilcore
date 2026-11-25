@@ -501,6 +501,10 @@ export const BackupStep: React.FC<{
             <Typography variant="body2" sx={{ mb: 1.25, fontWeight: 700 }} data-backup-warning="">
               {t('app.backup.actAsYou')}
             </Typography>
+            {/* A page or message asking for it is someone else (summit 5b item 15). */}
+            <Typography variant="body2" sx={{ mb: 1.25 }} data-backup-never-asks="">
+              {t('app.backup.neverAsks')}
+            </Typography>
             {canShare && !shareFailed ? (
               <Button
                 variant="outlined"

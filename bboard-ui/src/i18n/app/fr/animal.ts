@@ -7,6 +7,8 @@
 import type { AppTranslation } from '../../translate';
 
 export const animal = {
+  'app.animal.v.app.origin.datedNotOriginLiving':
+    'La date montre que le détenteur avait alors déjà cet enregistrement, pas qui l’a élevé, d’où il vient ni s’il est exact. L’animal peut être bien plus ancien.',
   'app.animal.choice.label': 'Que voulez-vous enregistrer ?',
   'app.animal.choice.plant': 'Une plante',
   'app.animal.choice.animal': 'Un animal',

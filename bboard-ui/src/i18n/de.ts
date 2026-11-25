@@ -124,6 +124,8 @@ export const de: Strings = {
   'draft.banner': 'Maschinell erstellter Übersetzungsentwurf, wird noch geprüft. Maßgeblich ist die englische Seite.',
   'draft.showEnglish': 'Englisch anzeigen',
   'draft.close': 'Hinweis schließen',
+  'notice.inApp':
+    'Öffnen Sie diese Seite in Chrome oder Safari, damit Ihre Datensätze und Schlüssel auf Ihrem Telefon bleiben.',
   'notice.datingPaused':
     'Das Datieren auf Midnight ist wegen des Netzwerk-Upgrades von Midnight pausiert. Ihre Datensätze sind gespeichert und werden datiert, sobald es wieder läuft.',
   // The record app's frame and the browser tab's titles.
@@ -228,7 +230,6 @@ export const de: Strings = {
   'm.nav.menu': 'Menü',
   'm.nav.forLabs': 'Als Labor nutzen',
   'm.nav.getBack': 'Meine Datensätze zurückholen',
-  'm.hero.label': 'Nachweis dessen, was Sie haben',
   'm.hero.title1': 'Datieren Sie Ihren Datensatz.',
   'm.hero.title2': 'Ihre Genetik bleibt privat.',
   'm.hero.how': 'So funktioniert es',
@@ -382,7 +383,7 @@ export const de: Strings = {
     'Wenn Sie Ihre Demodaten von unserem Server löschen lassen möchten, schreiben Sie an hunter@veilcore.org und nennen Sie die Kennungen Ihrer Datensätze.',
   'm.privacy.browser.title': 'In Ihrem Browser gespeichert',
   'm.privacy.browser.text':
-    'Ihr Browser speichert auf diesem Gerät: Ihren Inhaberschlüssel (eine Kopie geht auch an unseren Server, siehe oben); den Schlüssel, der Ihre Datensätze verschließt und nie an uns gesendet wird; Ihre eigene Kopie Ihrer Datensätze; die geheimen Schlüssel jedes Datensatzes, die seine Laborberichte verschließen (eine verschlossene Kopie geht auch mit dem Datensatz); die Labor-Codes, die Sie erstellen oder verwenden, mit einem Abholcode und dem Schlüssel zu den Angaben einer Lieferung; den Signaturschlüssel eines Labors, falls Sie einen eingerichtet haben (sein privater Teil wird nie an uns gesendet); die gewählte Rolle; und Ihre Sprache. Ihre Sicherungsdatei enthält eine Kopie jedes Schlüssels und der Labor-Codes, die Sie erstellt haben. Um sie zu entfernen, löschen Sie die Daten dieser Website in den Einstellungen Ihres Browsers. Speichern Sie vorher Ihre Sicherungskopie: Ohne sie können Sie Ihre Datensätze nicht mehr finden oder öffnen.',
+    'Ihr Browser speichert auf diesem Gerät: Ihren Inhaberschlüssel (eine Kopie geht auch an unseren Server, siehe oben); den Schlüssel, der Ihre Datensätze verschließt und nie an uns gesendet wird; Datensätze, die Sie noch nicht fertig haben, und nur auf diesem Gerät aufbewahrte Dokumente; die geheimen Schlüssel jedes Datensatzes, die seine Laborberichte verschließen (eine verschlossene Kopie geht auch mit dem Datensatz); die Labor-Codes, die Sie erstellen oder verwenden, mit einem Abholcode und dem Schlüssel zu den Angaben einer Lieferung; den Signaturschlüssel eines Labors, falls Sie einen eingerichtet haben (sein privater Teil wird nie an uns gesendet); die gewählte Rolle; und Ihre Sprache. Außerdem speichert er, was andere Teile der App brauchen, während Sie sie nutzen, etwa Lizenzen und ihre Schlüssel, einen Code, den Sie gerade empfangen, Speicherungen, die auf das Senden warten, und Hinweise, die Sie geschlossen haben. Ihre Sicherungsdatei enthält eine Kopie jedes Schlüssels, Ihre Datensätze, die Labor-Codes, die Sie erstellt haben, und einen Code, den Sie gerade empfangen. Um sie zu entfernen, löschen Sie die Daten dieser Website in den Einstellungen Ihres Browsers. Speichern Sie vorher Ihre Sicherungskopie: Ohne sie können Sie Ihre Datensätze nicht mehr finden oder öffnen.',
   'm.privacy.deviceonly.title': 'Ein Dokument, das nur auf diesem Gerät aufbewahrt wird',
   'm.privacy.deviceonly.text':
     'Wenn Sie ein Dokument versiegeln, können Sie wählen, seinen Datensatz nur auf diesem Gerät und in Ihrer Sicherungsdatei aufzubewahren. Dann wird nichts, was Sie dort eingeben, an unseren Server gesendet, weder verschlossen noch offen. Was wir erhalten: die Kennung des Datensatzes, seinen Prüfcode und seine Schlüsselbindung, damit er datiert werden kann; Ihre Netzwerkadresse und die Uhrzeit, wie bei jeder Anfrage; und, wenn Sie eine Passkey-Kopie haben, die Kennung und die Schlüssel des Datensatzes in dieser verschlossenen Kopie. Wenn Sie den Schlüssel des Datensatzes mit einem Datum stempeln, geht ein Code aus dem Schlüssel über unseren Gebührendienst an Midnight. Eine Ausnahme, und nur, wenn Sie sie wählen: Wenn Sie eine seiner Zahlen belegen, geht eine Tatsache über diese Zahl über unseren Gebührendienst an Midnight und ist dauerhaft öffentlich. Das ist die Grenze, die Sie setzen, mit ihrer Richtung oder, wenn Sie die Zahl genau belegen, die Zahl selbst. Nichts davon geht an unser Register. Was Sie belegen, ist aber öffentlich, und wir und jeder, der den Prüflink des Datensatzes hat, können es dem Datensatz zuordnen; wir können es außerdem dem Inhaberschlüssel zuordnen, der ihn datiert hat. Einen solchen Datensatz können wir nicht zurückgeben: Die einzigen Kopien liegen in Ihrem Browser und in einer Sicherungsdatei, die nach dem Versiegeln gespeichert wurde; die App bittet Sie sofort, eine zu speichern und zu prüfen. Wer von Ihnen den Prüflink und die Datei erhält, kann ihn weiterhin prüfen. Die Wahl wird beim Versiegeln getroffen und lässt sich danach nicht ändern.',
@@ -419,7 +420,7 @@ export const de: Strings = {
   'm.privacy.contact': 'Fragen: hunter@veilcore.org',
   // Round 2 truth pass (14 Oct 2026): keys added or newly translated.
   'm.hero.lede':
-    'Für Züchter, Saatgutunternehmen und Labore, die mit pflanzlicher, tierischer und mikrobieller Genetik arbeiten: Geben Sie Ihren Datensätzen ein Datum, das niemand zurückdatieren kann. Ihre genetischen Daten bleiben verschlossen: DNA-Dateien verlassen Ihren Computer nie, und was Sie eingeben, erreicht unseren Server verschlossen. Nur Codes und die Fakten, die Sie beweisen wollen, kommen auf Midnight, das sie datiert.',
+    'Für Züchter, Saatgutunternehmen und Labore, die mit pflanzlicher, tierischer und mikrobieller Genetik arbeiten: Geben Sie Ihren Datensätzen ein Datum, das niemand vorverlegen kann. Ihre genetischen Daten bleiben verschlossen: DNA-Dateien verlassen Ihren Computer nie, und was Sie eingeben, erreicht unseren Server verschlossen. Nur Codes und die Fakten, die Sie beweisen wollen, kommen auf Midnight, das sie datiert.',
   'm.for.3p':
     'Senden Sie Material mit einem Laborcode. Das Labor signiert eine Empfangsbestätigung mit seinem eigenen Schlüssel, sodass der Datensatz eine zweite Partei zeigt. Die Bestätigung ist eine echte Signatur, gespeichert im Register von VeilCore, nicht auf der Chain. Bedingungen wie „keine Vermehrung“ sind in der Web-Demo nur zum Üben.',
   'm.get.1b': 'für einen Datensatz dessen, was Sie haben, ohne Ihre Genetik zu zeigen.',
@@ -640,7 +641,7 @@ export const de: Strings = {
     'Auf den Seiten Ihrer Datensätze füllt „Fragen“ einen Datensatz oder eine Reihe von Stecklingen oder Nachkommen aus, damit Sie ihn prüfen. Es unterschreibt und sendet nie etwas. Das tun Sie.',
   'm.home.trustLabel': 'Was es Ihnen gibt',
   'm.home.trust':
-    'Nachweis, dass Sie einen Datensatz spätestens zu einem Datum hatten|Ein Datum, das niemand zurückdatieren kann|Prüfen ist kostenlos|Ein offenes Format|Keine Wallet, keine Anmeldung',
+    'Nachweis, dass Sie einen Datensatz spätestens zu einem Datum hatten|Ein Datum, das niemand vorverlegen kann|Prüfen ist kostenlos|Ein offenes Format|Keine Wallet, keine Anmeldung',
   'm.home.pause': 'Laufende Namen anhalten',
   'm.home.play': 'Laufende Namen fortsetzen',
   'm.home.fails': 'Sagen Sie uns, wo es scheitert.',
@@ -674,9 +675,9 @@ export const de: Strings = {
     'Man schickt Ihnen einen Link. Sie tippen einmal, und die Seite der anderen Person prüft im Netzwerk, dass Sie den eigenen Schlüssel Ihres Datensatzes kontrollieren. Ihr Datensatz hat diesen Schlüssel beim Versiegeln benannt, deshalb lässt er sich nicht austauschen. Wer Sie sind oder wer die Pflanze gezüchtet hat, zeigt es nicht. Das funktioniert vorerst in einem Testnetz von Midnight.',
   'm.for.5t': 'Tierlinien.',
   'm.for.5p':
-    'Herdbücher führen die Abstammung. Ein Datensatz kann jedem Eintrag ein Datum geben, das niemand zurückdatieren kann, ohne den Genotyp zu veröffentlichen. Auf dieser Website können Sie ein Tier erfassen: seine Einzeltierkennung, Vater und Mutter und einen DNA-Bericht.',
+    'Herdbücher führen die Abstammung. Ein Datensatz kann jedem Eintrag ein Datum geben, das niemand vorverlegen kann, ohne den Genotyp zu veröffentlichen. Auf dieser Website können Sie ein Tier erfassen: seine Einzeltierkennung, Vater und Mutter und einen DNA-Bericht.',
   'm.for.5parent':
-    'Ein signiertes Abstammungsergebnis eines Labors kann auch zeigen, dass ein Kalb zu Vater und Mutter passt, ohne ein DNA-Profil zu zeigen.',
+    'Ein signiertes Abstammungsergebnis zeigt, dass ein Labor unterschrieben hat: Die Proben passen zu Vater und Mutter. Ein DNA-Profil wird nicht gezeigt.',
   'm.for.5parentLink': 'So funktioniert der Abstammungsnachweis →',
   'm.for.5ask': 'Wenn Sie Tiere züchten, sagen Sie uns, was Ihre Datensätze brauchen.',
   'm.how.label': 'So funktioniert es',
@@ -724,7 +725,7 @@ export const de: Strings = {
   'm.get.title1': 'Was Sie bekommen,',
   'm.get.title2': 'und wo es endet.',
   'm.get.title': 'Was Sie bekommen',
-  'm.get.1a': 'Ein Datum, das niemand zurückdatieren kann,',
+  'm.get.1a': 'Ein Datum, das niemand vorverlegen kann,',
   'm.get.2a': 'Lizenzen und Laborvereinbarungen.',
   'm.get.2b':
     'Sie hängen am Datensatz. Ein Lizenznehmer kann beweisen, dass er eine gültige Lizenz hält, ohne zu zeigen, welche. Eine Lizenzgebühr oder andere Verpflichtung auf einem Elternteil erscheint bei jedem Nachkommen, den beide Datensatzinhaber bestätigt haben; VeilCore erfasst sie und zieht sie nicht ein. Getestet in einem Testnetz von Midnight; in der Web-Demo simuliert.',

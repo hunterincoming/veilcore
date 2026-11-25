@@ -122,3 +122,9 @@ and pages say "listed by <body>". No contract change, no change for labs.
 lab the founders run on veilcore.org to show and test a lab name checked through its website
 on mainnet. It signs sample results only, never a real lab's. To retire it, remove the key from
 that file (see "What the registry does" above).
+
+It is labelled as a demo everywhere (summit 5b item 16): the file's `name` and `description`
+say it is a demo key used only with invented data and not a laboratory, and the site
+(`bboard-ui/src/veilcore/demo-lab.ts`) adds the same words to every line and badge that names
+the key, in all five languages, and to the evidence bundle, whatever name the key was
+registered under. A new demo key goes in both places; `demo-lab.test.ts` checks they match.

@@ -54,7 +54,7 @@ afterEach(() => vi.unstubAllGlobals());
 let n = 0;
 const rec = (over: Partial<StrainRecord> = {}): StrainRecord => ({
   id: `VEIL-K${String(++n).padStart(4, '0')}`,
-  strainName: 'Harbour Mist',
+  strainName: 'Harbour Pippin',
   bredBy: 'Test Breeder',
   dateCreated: '2026-10-01',
   notes: '',

@@ -39,7 +39,7 @@ export const log = {
   'app.log.keptLastTime': 'We kept what you typed last time.',
   'app.log.startOver': 'Start over',
   'app.log.nameLabel': 'Plant or line name',
-  'app.log.namePlaceholder': 'e.g. Harbour Mist',
+  'app.log.namePlaceholder': 'e.g. Harbour Pippin',
   // LogFlow.tsx, AnimalForm.tsx, CorrectRecord.tsx: under the name field. The name is the
   // record's name: locked like the rest since round 5 (CONTRACT.md #28).
   'app.log.nameHelp':

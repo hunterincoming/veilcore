@@ -15,9 +15,9 @@ export const prove = {
   'app.prove.share.differs': ' Die Schalter oben weichen davon ab.{save}',
   'app.prove.yourRequest': 'Ihre Anfrage',
   'app.prove.youAskedNamed':
-    'Sie haben den Inhaber von <b>{name}</b> gebeten zu beweisen, dass er sie hält. Senden Sie ihm diesen Link, falls noch nicht geschehen.',
+    'Sie haben den Inhaber von <b>{name}</b> gebeten zu beweisen, dass er den Datensatz dazu hält. Senden Sie ihm diesen Link, falls noch nicht geschehen.',
   'app.prove.youAsked':
-    'Sie haben den Inhaber dieser Pflanze gebeten zu beweisen, dass er sie hält. Senden Sie ihm diesen Link, falls noch nicht geschehen.',
+    'Sie haben den Inhaber dieser Pflanze gebeten zu beweisen, dass er den Datensatz dazu hält. Senden Sie ihm diesen Link, falls noch nicht geschehen.',
   'app.prove.openCheckPage': 'Die Prüfseite der Pflanze öffnen',
   'app.prove.opening': 'Anfrage wird geöffnet…',
   'app.prove.ended': 'Diese Anfrage ist beendet',
@@ -56,7 +56,7 @@ export const prove = {
   'app.prove.ask.cantAsk': 'Mit diesem Link kann kein Beweis angefragt werden',
   'app.prove.ask.refused': '{reason}. Ein damit erstellter Beweis würde nichts über diesen Datensatz aussagen.',
   'app.prove.ask.noLink': 'Es wurde kein Link erstellt: {error}.',
-  'app.prove.ask.title': 'Bitten Sie um den Beweis, dass sie gehalten wird',
+  'app.prove.ask.title': 'Bitten Sie die Person zu beweisen, dass sie den Datensatz dazu hält',
   'app.prove.ask.intro':
     'Sie senden einen Link. Die Person öffnet ihn und tippt auf „Beweisen“. Die Antwort erscheint hier. Diese Seite prüft die Antwort selbst im Netzwerk, über einen Midnight-Indexer (auf der Testseite über das Relais von VeilCore). Prüfen Sie die Transaktion für eine wichtige Entscheidung bei einem zweiten Indexer. Nur Testnetz.',
   'app.prove.ask.bound':
@@ -152,7 +152,7 @@ export const prove = {
   'app.prove.share.savedText':
     'Wer diesen Link öffnet oder die ID dieses Datensatzes auf anderem Weg hat, sieht die Angaben in der Vorschau und nichts sonst; das Register sendet den Rest nicht, und durch Bearbeiten des Links kommt nichts hinzu. Die Genetik wird nie offengelegt. Diese Auswahl steuert, was die Prüfseite zeigt. Einen verborgenen Wert (einen Marker, einen Bereich oder dass sich zwei Sorten unterscheiden) zu beweisen, ohne den Rest zu zeigen, übernimmt der Beleg-Smart-Contract von VeilCore.',
   'app.prove.share.letThemAsk':
-    'Den Datumsstempel prüfen lassen und mich bitten lassen zu beweisen, dass ich sie halte',
+    'Den Datumsstempel prüfen lassen und mich bitten lassen zu beweisen, dass ich den Datensatz dazu halte',
   'app.prove.share.theLink': 'Der Link',
   'app.prove.share.openTheirs': 'Öffnen, was sie sehen',
   'app.prove.share.saving': 'Wird gespeichert…',
@@ -210,4 +210,6 @@ export const prove = {
     'Was das zeigt: Der in diesem Datensatz versiegelte Ergebniscode erfüllt die Zeile oben, und der Schlüssel oben hat die Ergebnisse dieses Datensatzes signiert. Das Labor hat dieses Ergebnis inzwischen zurückgezogen, verlassen Sie sich also nicht darauf: Fragen Sie das Labor oder den Inhaber nach dem neuesten Ergebnis für diese Probe. Jeder Beleg dazu ist öffentlich, und zusammen grenzen sie es ein.',
   'app.claim.check.whatLabUnnamedCall':
     'Was das zeigt: Der in diesem Datensatz versiegelte Ergebniscode erfüllt die Zeile oben, und der Schlüssel oben hat die Ergebnisse dieses Datensatzes signiert. Hier ist kein einzelnes Labor mit diesem Schlüssel verbunden, lesen Sie das Ergebnis also als Eingabe des Inhabers. Jeder Beleg dazu ist öffentlich, und zusammen grenzen sie es ein.',
+  'app.prove.share.tellThem':
+    'Wer den Link öffnet, kann selbst auf {site}/verify mit der Datensatzkennung prüfen oder mit einem selbst installierten Prüfprogramm.',
 } satisfies Partial<AppTranslation>;

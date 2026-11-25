@@ -65,7 +65,7 @@ export const labReportFacts = (
 };
 
 /**
- * The follow-up record's suggested public name: "Harbour Mist — lab report", with a number
+ * The follow-up record's suggested public name: "Harbour Pippin — lab report", with a number
  * after it when a record of that name is already here ("… lab report 2"). Nothing from the
  * report: it used to carry the lab report's short id or the first 8 hex of the report's
  * SHA-256, which anyone with the record's id could read (round 4, F9). The holder can change

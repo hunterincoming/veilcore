@@ -535,4 +535,7 @@ export const lab = {
   // LabResults.tsx: a lock this browser can’t vouch for (round 3, P1)
   'app.lab.out.pasteAgain':
     'Das Schloss für Laborberichte bei diesem Datensatz lässt sich nicht mit dem Laborcode abgleichen, daher wird damit nichts gesendet. Fügen Sie den Laborcode erneut ein.',
+  'app.signer.demo': '{who} (DEMO: der Demo-Schlüssel von VeilCore, nur mit erfundenen Daten verwendet; kein Labor)',
+  'app.labid.demo':
+    'DEMO: Das ist der Demo-Schlüssel von VeilCore, nur mit erfundenen Daten verwendet. Er gehört zu keinem Labor.',
 } satisfies Partial<AppTranslation>;

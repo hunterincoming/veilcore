@@ -95,8 +95,7 @@ export const verify = {
   'app.verify.kindReport': '検査報告書（ファイルのSHA-256 {sha}）',
   'app.verify.kindStatement': '署名付きの陳述',
   'app.verify.forWhom': 'レジストリが報告する証明コードについて：',
-  'app.verify.intro':
-    'このページはVeilCoreの記録を確認します。記録とは、遺伝資源の説明から作った証明コードで、アンカーされると日付が付き、遺伝情報なしで公開されます。確認は無料で、アカウントも不要です。<link>VeilCoreとは？</link>',
+  'app.verify.intro': '確認は無料で、アカウントも不要です。<link>VeilCoreとは？</link>',
   'app.verify.checkingRecord': '記録を確認しています',
   'app.verify.notFound': '{id} の記録は見つかりません',
   'app.verify.notFoundText':
@@ -248,7 +247,7 @@ export const verify = {
   'app.verify.ex.intro':
     '記録の確認ページがどのように見えるかを、各行の下に説明を付けて示します。ここでは何も照会も確認もしていません。',
   'app.verify.ex.status': '例 · 封印済みのバッチ内 · アンカーの報告あり',
-  'app.verify.ex.name': 'Harbour Mist（例）',
+  'app.verify.ex.name': 'Harbour Pippin（例）',
   'app.verify.ex.fact1':
     'このリンクは証明コード 3f9a0c41e2b7… のために作られ、レジストリもこの記録について同じ証明コードを報告しています。',
   'app.verify.ex.note1':
@@ -380,4 +379,7 @@ export const verify = {
     'このブラウザで確認しました：ブロック{height}のプルーフ・オブ・ワークと、このウェブサイトが固定しているブロックであるチェックポイント{checkpoint}から、Bitcoinの実際の難易度で採掘されたブロックを通じた上向きのつながり。このブロックにはこのバッチのスタンプが入っています。ブロック時刻（マイナーが設定したもの）：{time}。より新しいチェックポイントがあれば、より強く確認できます。',
   'app.verify.who.btc.batchOnly':
     'このブラウザは、バッチのスタンプがBitcoinのブロック{height}に入っていて、チェックポイント{checkpoint}につながることを確認しました。この記録がそのバッチに含まれることは、VeilCoreのレジストリが述べているだけです（送られてきたリンクに確認できる証明コードがありません）。',
+  'app.verify.checkYourself':
+    'ご自身で確認してください。{site}/verify を開いて記録識別子を入力するか、ご自身でインストールした確認ツールを使ってください。誰かから送られてきたページだけに頼らないでください。',
+  'app.verify.addressBar': 'アドレスバーに{site}と表示されていることを確認してください。',
 } satisfies Partial<AppTranslation>;

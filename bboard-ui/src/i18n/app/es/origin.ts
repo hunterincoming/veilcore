@@ -50,6 +50,8 @@ export const origin = {
   'app.origin.x.collSrc': 'Fuente de recolección (MCPD): {v}',
   'app.origin.datedNotOrigin':
     'La fecha muestra que quien lo selló ya tenía este registro a esa fecha. No muestra quién lo obtuvo o lo hizo, de dónde viene, ni que lo que dice sea cierto.',
+  'app.origin.datedNotOriginLiving':
+    'La fecha muestra que el titular ya tenía este registro entonces, no quién lo obtuvo, de dónde viene ni si es cierto. La planta o el animal pueden ser mucho más antiguos.',
   'app.origin.import.show': '+ De dónde viene (columnas de pasaporte)',
   'app.origin.import.hide': '− Ocultar las columnas de pasaporte',
   'app.origin.import.title': 'De dónde viene (columnas de pasaporte)',

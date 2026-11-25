@@ -28,6 +28,9 @@ test('on a computer: no share button, the by-hand way and "Save another copy" (t
   // and Safari's 7-day warning only in Safari or on iOS, not in this Chromium.
   await expect(page.getByText(/USB stick/)).toHaveCount(1);
   await expect(page.getByText(/Best: a USB stick or a password manager\./)).toBeVisible();
+  await expect(page.locator('[data-backup-never-asks]')).toHaveText(
+    'VeilCore never asks for your backup file or code.',
+  );
   await expect(page.locator('[data-backup-saved-where]')).toHaveCount(0);
   await expect(page.getByText(/the file you just saved/)).toHaveCount(0);
   await expect(page.locator('[data-backup-safari]')).toHaveCount(0);

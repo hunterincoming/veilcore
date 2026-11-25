@@ -10,7 +10,7 @@ import { useI18n, type Lang } from '../../i18n';
 import type { StringKey } from '../../i18n/en';
 
 /** The day the policy last changed, as YYYY-MM-DD: change it with the words. */
-export const POLICY_UPDATED = '2026-11-21';
+export const POLICY_UPDATED = '2026-11-25';
 
 /** The rows of each table, in order: m.pp.<section>.<row>.<cell>. */
 export const DEVICE_ROWS = [
@@ -24,6 +24,7 @@ export const DEVICE_ROWS = [
   'sheet',
   'passkey',
   'ask',
+  'import',
 ] as const;
 export const SERVER_ROWS = [
   'records',
@@ -54,11 +55,22 @@ export const OTHER_ROWS = [
   'labsite',
   'passkey',
 ] as const;
+/** What the browser keeps, in plain groups (m.pp.browser.<group>.t and .p). */
+export const BROWSER_GROUPS = ['records', 'deals', 'moving', 'settings', 'caches'] as const;
 export const SHORT = [1, 2, 3, 4, 5, 6] as const;
 export const CHAIN = [1, 2, 3, 4, 5, 6, 7] as const;
 export const DONT = [1, 2, 3] as const;
 export const RIGHTS = ['see', 'delete', 'keep', 'fix', 'ask'] as const;
-export const TECH = ['storage', 'locking', 'network', 'logs', 'backups'] as const;
+/** The storage paragraphs name every key, by the same groups (storage-keys guard in privacy-policy.test.ts). */
+export const TECH_STORAGE = [
+  'storage',
+  'storage.records',
+  'storage.deals',
+  'storage.moving',
+  'storage.settings',
+  'storage.caches',
+] as const;
+export const TECH = [...TECH_STORAGE, 'locking', 'network', 'logs', 'backups'] as const;
 
 /** Every key the page shows: the test holds each language to it. */
 export const POLICY_KEYS: readonly string[] = [
@@ -75,6 +87,7 @@ export const POLICY_KEYS: readonly string[] = [
   ...DEVICE_ROWS.flatMap((r) => [`m.pp.device.${r}.t`, `m.pp.device.${r}.p`]),
   'm.pp.browser.t',
   'm.pp.browser.p1',
+  ...BROWSER_GROUPS.flatMap((g) => [`m.pp.browser.${g}.t`, `m.pp.browser.${g}.p`]),
   'm.pp.browser.p2',
   'm.pp.server.t',
   'm.pp.server.p',
@@ -193,6 +206,14 @@ export const PrivacyPolicy: React.FC = () => {
 
           {h2('browser', 'm.pp.browser.t')}
           <p>{k('m.pp.browser.p1')}</p>
+          <dl data-browser-groups="">
+            {BROWSER_GROUPS.map((g) => (
+              <div key={g}>
+                <dt>{k(`m.pp.browser.${g}.t`)}</dt>
+                <dd>{k(`m.pp.browser.${g}.p`)}</dd>
+              </div>
+            ))}
+          </dl>
           <p>{k('m.pp.browser.p2')}</p>
 
           {h2('server', 'm.pp.server.t')}

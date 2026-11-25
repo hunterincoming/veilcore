@@ -15,7 +15,10 @@
 //     nobody's existing backup stops working;
 //   - since round 3 (P4) a version 3 file also holds the highest version of each record this
 //     browser has seen (`revs`), so a browser restored from it still refuses an older copy the
-//     registry serves. A version 3 file without them restores as before.
+//     registry serves. A version 3 file without them restores as before;
+//   - a version 3 file also holds the delivery codes this browser is still receiving
+//     (`receiving`). Optional fields are how version 3 grows: a file without one restores as
+//     before, and the version changes only when an older app would misread the file.
 //
 // A password on the file is offered, and suggested, not forced (persona review, 17 Oct): the
 // file opens every locked detail, so an email account that gets broken into would leak it. A
@@ -39,7 +42,7 @@ import {
 } from './record-keys';
 import { adoptAttester, clearLabKeyCopyMark, loadAttester, markLabKeyBackedUp } from './attester-keys';
 import { allDeliveries, deliveriesMissingFrom, mergeDeliveries } from './lab-results';
-import { allSentCodes, mergeSentCodes } from './transfers';
+import { allSentCodes, markReceivingBackedUp, mergeReceiving, mergeSentCodes, receivingForBackup } from './transfers';
 import {
   clearVaultCopyMark,
   isVaultKey,
@@ -152,6 +155,14 @@ export type BackupContents = {
    * not restored: the deal itself stays on the registry. Best effort, as `proofs`.
    */
   readonly dealRecords?: readonly unknown[];
+  /**
+   * Delivery codes this browser is still receiving, by transfer id (transfers.ts): until the
+   * received record is sealed and accepted, the code is the only copy of the offer key and the
+   * breeder's lock. In the file only, never in the account copy (accountContents), which keeps
+   * what it held before. Optional, like `revs`: an older version 3 file has none and restores
+   * as before, and an older app reading a newer file passes over it.
+   */
+  readonly receiving?: Readonly<Record<string, string>>;
 };
 
 const WARNING =
@@ -331,7 +342,11 @@ const PROOF_FETCHES = 6;
  */
 export const withRecordsAndProofs = async (contents: BackupContents): Promise<BackupContents> => {
   const dealRecords = await dealRecordsForBackup().catch(() => []);
-  const deals = dealRecords.length ? { dealRecords } : {};
+  const codes = receivingForBackup();
+  const extras = {
+    ...(dealRecords.length ? { dealRecords } : {}),
+    ...(Object.keys(codes).length ? { receiving: codes } : {}),
+  };
   // A holder with documents kept on this device only has no other copy of them than this file:
   // a file that can't hold every one of them is not made, and the reason is said, never a file
   // quietly without them (docs/device-only-records.md).
@@ -346,7 +361,7 @@ export const withRecordsAndProofs = async (contents: BackupContents): Promise<Ba
   // backup step says one couldn't be read.
   const damaged = unreadableForBackup();
   const unreadable = Object.keys(damaged).length ? { deviceOnlyUnreadable: damaged } : {};
-  if (recordData.length === 0) return { ...contents, ...unreadable, ...deals };
+  if (recordData.length === 0) return { ...contents, ...unreadable, ...extras };
   const prints = [...new Set(recordData.map((r) => r.recordFingerprint).filter((f) => HEX64.test(f ?? '')))];
   const proofs: Record<string, unknown> = {};
   for (let i = 0; i < prints.length; i += PROOF_FETCHES) {
@@ -371,7 +386,7 @@ export const withRecordsAndProofs = async (contents: BackupContents): Promise<Ba
     ...(Object.keys(proofs).length ? { proofs } : {}),
     ...(Object.keys(sealedFields).length ? { sealedFields } : {}),
     ...unreadable,
-    ...deals,
+    ...extras,
   };
 };
 
@@ -439,6 +454,7 @@ export const hasAnythingToBackUp = (): boolean =>
   loadAttester() !== null ||
   Object.keys(allDeliveries()).length > 0 ||
   heldLicensesForBackup().length > 0 ||
+  Object.keys(receivingForBackup()).length > 0 ||
   Object.keys(issuerDealsForBackup()).length > 0 ||
   lenderForBackup() !== undefined;
 
@@ -594,6 +610,7 @@ export const checkBackup = async (
     if (lab) markLabKeyBackedUp(lab.keypair.publicKey, 'copy');
   } else if (opts.mark !== false) {
     markDeviceOnlyBackedUp(v.recordData);
+    markReceivingBackedUp(v.receiving);
     markBackedUp(held.map((k) => k.recordId));
     markHeldBackedUp(v.heldLicenses);
     markIssuerDealsBackedUp(v.issuerDeals);
@@ -633,6 +650,8 @@ export type RestoreResult = {
   /** Deliveries (a lab's) and lab codes (a breeder's) added from the file. */
   readonly deliveries?: number;
   readonly sentCodes?: number;
+  /** Delivery codes still being received, added from the file. */
+  readonly receiving?: number;
   /** The records the file carried (recordData): what was put back, or why none were. */
   readonly fromFile?: ImportResult | { readonly error: string };
 };
@@ -759,6 +778,9 @@ export const restoreAny = async (file: File, password?: string, opts: RestoreOpt
   mergeHeldLicenses(v.heldLicenses, { mark: opts.mark });
   mergeIssuerDeals(v.issuerDeals);
   mergeLender(v.lender, { mark: opts.mark });
+  // Codes still being received: merged, never replacing one here, so the delivery can be
+  // finished on this device.
+  const receiving = mergeReceiving(v.receiving, { mark: opts.mark });
   // The records the file carries, once their keys are back: put back any this browser and
   // its registry don't have (the same rules as an import: each must recompute, none
   // overwrites one already here). A problem here doesn't undo the keys restored above.
@@ -785,6 +807,7 @@ export const restoreAny = async (file: File, password?: string, opts: RestoreOpt
     labSignature: labAdopted,
     deliveries,
     sentCodes,
+    ...(receiving ? { receiving } : {}),
   };
 };
 

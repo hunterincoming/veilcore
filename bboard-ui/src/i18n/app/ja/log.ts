@@ -35,7 +35,7 @@ export const log = {
   'app.log.keptLastTime': '前回入力した内容を残してあります。',
   'app.log.startOver': 'やり直す',
   'app.log.nameLabel': '植物名または系統名',
-  'app.log.namePlaceholder': '例：Harbour Mist',
+  'app.log.namePlaceholder': '例：Harbour Pippin',
   'app.log.nameHelp':
     'ほかの詳細と同じく鍵がかけられます。確認リンクの#の後ろに名前が入るのは、そうすると選んだときだけです。その場合、リンクを送った相手と、その相手がリンクを転送した人には見えます。',
   'app.log.eg': '例：{v}',

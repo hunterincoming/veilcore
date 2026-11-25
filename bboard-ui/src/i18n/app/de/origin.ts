@@ -50,6 +50,8 @@ export const origin = {
   'app.origin.x.collSrc': 'Sammelquelle (MCPD): {v}',
   'app.origin.datedNotOrigin':
     'Das Datum zeigt, dass der Inhaber diesen Datensatz spätestens zu diesem Zeitpunkt hatte. Es zeigt nicht, wer es gezüchtet oder erstellt hat, woher es stammt oder ob stimmt, was darin steht.',
+  'app.origin.datedNotOriginLiving':
+    'Das Datum zeigt, dass der Inhaber diesen Datensatz spätestens dann hatte, nicht, wer es gezüchtet hat, woher es stammt oder ob die Angaben stimmen. Pflanze oder Tier können viel älter sein.',
   'app.origin.import.show': '+ Herkunft (Passdaten-Spalten)',
   'app.origin.import.hide': '− Passdaten-Spalten ausblenden',
   'app.origin.import.title': 'Herkunft (Passdaten-Spalten)',

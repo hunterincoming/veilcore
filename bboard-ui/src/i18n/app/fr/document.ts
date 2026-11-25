@@ -9,7 +9,7 @@ export const document = {
   'app.doc.orDocumentAction': 'Sceller un document',
   'app.doc.new.title': 'Sceller un document',
   'app.doc.new.intro':
-    'Choisissez le fichier. Il reste sur cet appareil. Seuls un code calculé à partir de son contenu, son nom et sa taille sont scellés, avec une date que personne ne peut antidater. Si un seul caractère du fichier change, le code ne correspond plus.',
+    'Choisissez le fichier. Il reste sur cet appareil. Seuls un code calculé à partir de son contenu, son nom et sa taille sont scellés, avec une date que personne ne peut avancer. Si un seul caractère du fichier change, le code ne correspond plus.',
   'app.doc.new.proves':
     'Ce que cela montrera : un fichier avec exactement ces octets était entre vos mains au plus tard à la date où il est scellé. Pas que le document est authentique, que l’émetteur l’a émis, ni que ce qu’il dit est vrai.',
   'app.doc.f.files': 'Fichiers',
@@ -116,7 +116,7 @@ export const document = {
   'app.doc.check.inLink': 'Dans le lien (les propres mots du détenteur)',
   'app.doc.nums.title': 'Les chiffres qui y figurent (facultatif)',
   'app.doc.nums.help':
-    'Saisissez-les tels qu’imprimés. Ils sont scellés avec le document pour que vous puissiez plus tard en prouver un, comme « THC total au plus 0,3 % », sans montrer les autres ni le certificat.',
+    'Saisissez-les tels qu’imprimés. Ils sont scellés avec le document pour que vous puissiez plus tard en prouver un, comme « germination d’au moins 85 % », sans montrer les autres ni le certificat.',
   'app.doc.nums.which': 'Quels chiffres',
   'app.doc.nums.none': 'Aucun',
   'app.doc.nums.bad': 'Un nombre avec au plus {places} décimales, comme 0,21.',
@@ -142,9 +142,9 @@ export const document = {
     'Scellés avec ce document sous {schema}. Vous seul les voyez : l’enregistrement contient un code qui les engage, pas les chiffres.',
   'app.claim.title': 'Prouver un fait',
   'app.claim.text':
-    'Prouvez à quiconque un fait sans montrer le chiffre en cause, ni les autres chiffres ni le certificat : qu’un chiffre respecte une limite, ou qu’un résultat est « non détecté ». La preuve va sur Midnight, où chacun peut la vérifier.',
+    'Prouvez à quiconque un fait sans montrer le chiffre en cause, ni les autres chiffres ni le certificat : qu’un chiffre que vous avez scellé respecte une limite, ou qu’un résultat est « non détecté ». La preuve va sur Midnight, où chacun peut la vérifier.',
   'app.claim.example':
-    'Par exemple : montrez à un acheteur que le THC total est au plus de 0,3 %, ou qu’un lot compte au plus 9 plantes en floraison, sans lui donner le chiffre ni le reste de l’enregistrement. Vous choisissez le chiffre et le seuil. Il reçoit un lien qui le vérifie.',
+    'Par exemple : montrez à un acheteur que la germination d’un lot de semences est d’au moins 85 %, ou qu’un test de pathogènes a donné « non détecté », sans lui donner le chiffre ni le reste de l’enregistrement. Vous choisissez le chiffre et le seuil. Il reçoit un lien qui le vérifie.',
   'app.claim.notReady': 'Les preuves ne sont pas encore activées sur ce site.',
   'app.claim.number': 'Quel chiffre',
   'app.claim.how': 'Que prouver',

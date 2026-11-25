@@ -13,6 +13,7 @@ import {
   applyPreset,
   currencyOf,
   currencyForLocale,
+  deductionLabel,
   isNewTerms,
   localDay,
   ruleOf,
@@ -143,6 +144,27 @@ describe('terms from presets', () => {
     expect(s).toContain('own bank fees');
     expect(s).toContain('3 years');
     expect(s).toContain('more than 5%');
+  });
+  it('excise is "excise tax", and names cannabis only on terms for a controlled plant', async () => {
+    const net = (controlled?: boolean): LicenseTerms => ({
+      ...clone(),
+      royalty: { kind: 'percent', rate: '8', base: 'net', deductions: ['returns', 'excise', 'freight'] },
+      ...(controlled === undefined ? {} : { controlled }),
+    });
+    expect(termsSentence(net(), enT)).toContain('returns, excise tax, freight');
+    expect(termsSentence(net(false), enT)).not.toContain('cannabis');
+    expect(termsSentence(net(true), enT)).toContain('returns, excise or cannabis tax, freight');
+    expect(deductionLabel('excise', enT)).toBe('excise tax');
+    expect(deductionLabel('excise', enT, true)).toBe('excise or cannabis tax');
+    expect(deductionLabel('freight', enT, true)).toBe('freight');
+    // The neutral word, in every language, says nothing about cannabis.
+    for (const l of ['de', 'es', 'fr', 'ja'] as const) {
+      const { royalties: dict } = (await import(`../i18n/app/${l}/royalties.ts`)) as {
+        royalties: Record<string, string>;
+      };
+      expect(dict['app.roy.ded.excise'], l).not.toMatch(/cannabis|Cannabis|大麻/);
+      expect(dict['app.roy.ded.exciseControlled'], l).toMatch(/cannabis|Cannabis|大麻/);
+    }
   });
   it('guesses the currency from the browser, changeable', () => {
     expect(currencyForLocale('ja-JP')).toBe('JPY');

@@ -24,7 +24,7 @@ import { shortFingerprint } from '../../veilcore/commitment';
 const FP = 'ab'.repeat(32);
 const SALT = 'cd'.repeat(32);
 const ID = `VEIL-${'3F9A'}${'0'.repeat(24)}C21B`;
-const rec = { id: ID, recordFingerprint: FP, strainName: 'Harbour Mist', nameSalt: SALT };
+const rec = { id: ID, recordFingerprint: FP, strainName: 'Harbour Pippin', nameSalt: SALT };
 
 describe('label sizes', () => {
   it('every label sits inside its paper', () => {
@@ -109,8 +109,8 @@ describe('what a label carries', () => {
   it('shows a short ID a person can match to the record page', () => {
     expect(shortId(ID)).toBe('VEIL-3F9A…C21B');
     expect(shortId('VEIL-0001')).toBe('VEIL-0001');
-    expect(fitName('Harbour   Mist', 40)).toBe('Harbour Mist');
-    expect(fitName('Harbour Mist', 6)).toBe('Harbo…');
+    expect(fitName('Harbour   Pippin', 40)).toBe('Harbour Pippin');
+    expect(fitName('Harbour Pippin', 6)).toBe('Harbo…');
   });
 
   it('prints the proof code’s last 6 characters, the largest words on the label, inside it on every paper', () => {

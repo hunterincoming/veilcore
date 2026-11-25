@@ -108,8 +108,7 @@ export const verify = {
   'app.verify.kindReport': 'Laborbericht (SHA-256 der Datei {sha})',
   'app.verify.kindStatement': 'Signierte Erklärung',
   'app.verify.forWhom': 'Für den Prüfcode, den das Register meldet: ',
-  'app.verify.intro':
-    'Diese Seite prüft einen VeilCore-Datensatz: einen Prüfcode der Beschreibung von genetischem Material, datiert, sobald er verankert ist, veröffentlicht ohne die Genetik. Die Prüfung ist kostenlos und braucht kein Konto. <link>Was ist VeilCore?</link>',
+  'app.verify.intro': 'Die Prüfung ist kostenlos und braucht kein Konto. <link>Was ist VeilCore?</link>',
   'app.verify.checkingRecord': 'Datensatz wird geprüft',
   'app.verify.notFound': 'Kein Datensatz für {id} gefunden',
   'app.verify.notFoundText':
@@ -270,7 +269,7 @@ export const verify = {
   'app.verify.ex.intro':
     'Das zeigt, wie die Prüfseite eines Datensatzes aussieht, mit einer Anmerkung unter jeder Zeile. Hier wurde nichts nachgeschlagen oder geprüft.',
   'app.verify.ex.status': 'Beispiel · in einem versiegelten Stapel · Verankerung gemeldet',
-  'app.verify.ex.name': 'Harbour Mist (Beispiel)',
+  'app.verify.ex.name': 'Harbour Pippin (Beispiel)',
   'app.verify.ex.fact1':
     'Dieser Link wurde für den Prüfcode 3f9a0c41e2b7… erstellt, und das Register meldet denselben Prüfcode für diesen Datensatz.',
   'app.verify.ex.note1':
@@ -408,4 +407,7 @@ export const verify = {
     'In diesem Browser geprüft: der Arbeitsnachweis von Block {height} und seine Verbindung aufwärts vom Checkpoint {checkpoint}, einem Block, den diese Website fest hinterlegt, über Blöcke, die mit Bitcoins echter Schwierigkeit gemined wurden. Der Block enthält den Stempel dieses Stapels. Blockzeit, wie der Miner sie gesetzt hat: {time}. Ein späterer Checkpoint würde ihn stärker prüfen.',
   'app.verify.who.btc.batchOnly':
     'Dieser Browser hat geprüft, dass der Stempel des Stapels in Bitcoin-Block {height} ist, verbunden mit Checkpoint {checkpoint}. Nur das Register von VeilCore sagt, dass dieser Datensatz in dem Stapel ist: Der Link, den Sie erhalten haben, enthält keinen Prüfcode, um das zu prüfen.',
+  'app.verify.checkYourself':
+    'Prüfen Sie selbst: Öffnen Sie {site}/verify und geben Sie die Datensatzkennung ein, oder nutzen Sie ein Prüfprogramm, das Sie selbst installiert haben. Verlassen Sie sich nicht nur auf eine Seite, die Ihnen jemand geschickt hat.',
+  'app.verify.addressBar': 'Achten Sie darauf, dass in der Adressleiste {site} steht.',
 } satisfies Partial<AppTranslation>;

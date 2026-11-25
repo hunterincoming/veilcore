@@ -125,6 +125,7 @@ export const es: Strings = {
     'Traducción preliminar hecha por máquina, en revisión. La página en inglés es la versión de referencia.',
   'draft.showEnglish': 'Ver en inglés',
   'draft.close': 'Cerrar este aviso',
+  'notice.inApp': 'Ábrala en Chrome o Safari para que sus registros y claves se queden en su teléfono.',
   'notice.datingPaused':
     'El fechado en Midnight está en pausa por la actualización de la red de Midnight. Sus registros están guardados y se fecharán cuando vuelva a funcionar.',
   // The record app's frame and the browser tab's titles.
@@ -227,7 +228,6 @@ export const es: Strings = {
   'm.nav.menu': 'Menú',
   'm.nav.forLabs': 'Usar como laboratorio',
   'm.nav.getBack': 'Recuperar mis registros',
-  'm.hero.label': 'Prueba de lo que usted tiene',
   'm.hero.title1': 'Feche su registro.',
   'm.hero.title2': 'Mantenga su genética en privado.',
   'm.hero.how': 'Cómo funciona',
@@ -379,7 +379,7 @@ export const es: Strings = {
     'Para que eliminemos sus datos de la demo de nuestro servidor, escriba a hunter@veilcore.org con los identificadores de sus registros.',
   'm.privacy.browser.title': 'Se guarda en su navegador',
   'm.privacy.browser.text':
-    'Su navegador guarda, en este dispositivo: su clave de titular (también se envía una copia a nuestro servidor, como se indica arriba); la clave que cifra sus registros, que nunca se nos envía; su propia copia de sus registros; las claves secretas de cada registro, que cifran sus informes de laboratorio (una copia cifrada también va con el registro); los códigos de laboratorio que crea o usa, con un código de retiro y la clave de los datos de un envío; la clave de firma de un laboratorio si configuró una (su parte privada nunca se nos envía); el rol que eligió; y su idioma. Su archivo de copia de seguridad contiene una copia de cada clave y de los códigos de laboratorio que creó. Para borrarlos, elimine los datos de este sitio en la configuración de su navegador. Guarde antes su copia de seguridad: sin ella, no podrá encontrar ni abrir sus registros de nuevo.',
+    'Su navegador guarda, en este dispositivo: su clave de titular (también se envía una copia a nuestro servidor, como se indica arriba); la clave que cifra sus registros, que nunca se nos envía; los registros que aún no terminó y los documentos guardados solo en este dispositivo; las claves secretas de cada registro, que cifran sus informes de laboratorio (una copia cifrada también va con el registro); los códigos de laboratorio que crea o usa, con un código de retiro y la clave de los datos de un envío; la clave de firma de un laboratorio si configuró una (su parte privada nunca se nos envía); el rol que eligió; y su idioma. También guarda lo que necesita el resto de la aplicación mientras la usa, como las licencias y sus claves, un código que está recibiendo, los guardados que esperan enviarse y los avisos que cerró. Su archivo de copia de seguridad contiene una copia de cada clave, sus registros, los códigos de laboratorio que creó y un código que está recibiendo. Para borrarlos, elimine los datos de este sitio en la configuración de su navegador. Guarde antes su copia de seguridad: sin ella, no podrá encontrar ni abrir sus registros de nuevo.',
   'm.privacy.deviceonly.title': 'Un documento guardado solo en este dispositivo',
   'm.privacy.deviceonly.text':
     'Al sellar un documento, puede elegir guardar su registro solo en este dispositivo y en su archivo de copia de seguridad. Entonces nada de lo que escriba en él se envía a nuestro servidor, ni cifrado ni sin cifrar. Lo que sí recibimos: el identificador del registro, su código de prueba y su vínculo de clave, para poder fecharlo; su dirección de red y la hora, como en cualquier solicitud; y, si tiene una copia con llave de acceso, el identificador y las claves del registro dentro de esa copia cifrada. Si decide poner un sello de fecha a la clave del registro, un código hecho con la clave va a Midnight a través de nuestro servicio de tarifas. Una excepción, y solo si usted la elige: si prueba uno de sus números, un hecho sobre ese número va a Midnight a través de nuestro servicio de tarifas y es público para siempre. Es el límite que usted fija y su sentido o, si prueba el número exacto, el número en sí. Nada de ello va a nuestro servidor de registros. Pero lo que usted prueba es público, y nosotros, y cualquiera que tenga el enlace de comprobación del registro, podemos vincularlo con el registro; también podemos vincularlo con la clave de titular que lo fechó. No podemos devolverle un registro así: las únicas copias están en su navegador y en un archivo de copia de seguridad guardado después de sellarlo, y la aplicación le pide guardar y comprobar uno enseguida. Cualquiera a quien envíe su enlace de comprobación y el archivo puede seguir comprobándolo. La elección se hace al sellar y después no se puede cambiar.',
@@ -416,7 +416,7 @@ export const es: Strings = {
   'm.privacy.contact': 'Preguntas: hunter@veilcore.org',
   // Round 2 truth pass (14 Oct 2026): keys added or newly translated.
   'm.hero.lede':
-    'Para obtentores, empresas de semillas y laboratorios que trabajan con genética vegetal, animal y microbiana: dé a sus registros una fecha que nadie pueda antedatar. Sus datos genéticos se quedan cifrados: los archivos de ADN nunca salen de su computadora, y lo que escribe llega cifrado a nuestro servidor. Solo los códigos, y los hechos que usted decida probar, van a Midnight, que los fecha.',
+    'Para obtentores, empresas de semillas y laboratorios que trabajan con genética vegetal, animal y microbiana: dé a sus registros una fecha que nadie pueda adelantar. Sus datos genéticos se quedan cifrados: los archivos de ADN nunca salen de su computadora, y lo que escribe llega cifrado a nuestro servidor. Solo los códigos, y los hechos que usted decida probar, van a Midnight, que los fecha.',
   'm.for.3p':
     'Envíe material con un código de laboratorio. El laboratorio firma un acuse de recibo con su propia clave, así el registro muestra a una segunda parte. El acuse es una firma real, guardada por el servidor de registros de VeilCore, no en la cadena. Condiciones como no propagar son solo de práctica en la demo web.',
   'm.get.1b': 'para un registro de lo que usted tiene, sin mostrar su genética.',
@@ -638,7 +638,7 @@ export const es: Strings = {
     'En las páginas de registros, «Preguntar» completa un registro, o un lote de esquejes o crías, para que usted lo revise. Nunca firma ni envía nada. Eso lo hace usted.',
   'm.home.trustLabel': 'Lo que le aporta',
   'm.home.trust':
-    'Prueba de que usted ya tenía un registro a una fecha dada|Una fecha que nadie puede antedatar|Comprobar es gratis|Un formato abierto|Sin billetera, sin crear una cuenta',
+    'Prueba de que usted ya tenía un registro a una fecha dada|Una fecha que nadie puede adelantar|Comprobar es gratis|Un formato abierto|Sin billetera, sin crear una cuenta',
   'm.home.pause': 'Pausar los nombres en movimiento',
   'm.home.play': 'Reanudar los nombres en movimiento',
   'm.home.fails': 'Díganos dónde falla.',
@@ -672,9 +672,9 @@ export const es: Strings = {
     'Le envían un enlace. Usted toca una vez, y la página de la otra persona comprueba en la red que usted controla la clave propia de su registro. Su registro nombró esa clave al sellarse, así que no se puede cambiar por otra. No dice nada sobre quién es usted ni sobre quién obtuvo la planta. Por ahora esto funciona en una red de pruebas de Midnight.',
   'm.for.5t': 'Líneas animales.',
   'm.for.5p':
-    'Los libros genealógicos llevan el pedigrí. Un registro puede dar a cada entrada una fecha que nadie puede antedatar, sin publicar el genotipo. En este sitio puede registrar un animal: su identificación individual, padre y madre, y un informe de ADN.',
+    'Los libros genealógicos llevan el pedigrí. Un registro puede dar a cada entrada una fecha que nadie puede adelantar, sin publicar el genotipo. En este sitio puede registrar un animal: su identificación individual, padre y madre, y un informe de ADN.',
   'm.for.5parent':
-    'Un resultado de parentesco firmado por un laboratorio también puede probar que un ternero corresponde a su padre y su madre, sin mostrar ningún perfil de ADN.',
+    'Un resultado de parentesco firmado muestra que un laboratorio firmó que las muestras corresponden al padre y la madre, sin mostrar ningún perfil de ADN.',
   'm.for.5parentLink': 'Cómo funciona el parentesco →',
   'm.for.5ask': 'Si usted cría animales, díganos qué necesitan sus registros.',
   'm.how.label': 'Cómo funciona',
@@ -720,7 +720,7 @@ export const es: Strings = {
   'm.get.title1': 'Lo que obtiene,',
   'm.get.title2': 'y dónde se detiene.',
   'm.get.title': 'Lo que obtiene',
-  'm.get.1a': 'Una fecha que nadie puede antedatar,',
+  'm.get.1a': 'Una fecha que nadie puede adelantar,',
   'm.get.2a': 'Licencias y acuerdos de laboratorio.',
   'm.get.2b':
     'Se adjuntan al registro. Un licenciatario puede probar que tiene una licencia vigente sin mostrar cuál. Una regalía u otra obligación sobre un progenitor aparece en cada descendiente que ambos titulares confirmaron; VeilCore la anota y no la cobra. Probado en una red de pruebas de Midnight; simulado en la demo web.',

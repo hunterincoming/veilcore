@@ -72,7 +72,7 @@ afterEach(() => {
 let n = 0;
 const rec = (over: Partial<StrainRecord> = {}): StrainRecord => ({
   id: `VEIL-T${String(++n).padStart(4, '0')}`,
-  strainName: 'Harbour Mist',
+  strainName: 'Harbour Pippin',
   bredBy: 'Test Breeder',
   dateCreated: '2026-10-01',
   notes: '',
@@ -87,11 +87,11 @@ const SHA = '3f'.repeat(32);
 // --- 1. the next stage ---------------------------------------------------------------------
 
 describe('Add the next generation or selection: the prefilled first screen', () => {
-  const parent = rec({ strainName: 'Harbour Mist F2', bredBy: 'Test Breeder', taxon: 'Cannabis sativa' });
+  const parent = rec({ strainName: 'Harbour Pippin F2', bredBy: 'Test Breeder', taxon: 'Cannabis sativa' });
 
   it('links this plant as the parent (as the parents box does) and carries breeder and species, not the name', () => {
     const d = nextStageDraft(parent);
-    expect(d.parents).toEqual([{ recordId: parent.id, name: 'Harbour Mist F2' }]);
+    expect(d.parents).toEqual([{ recordId: parent.id, name: 'Harbour Pippin F2' }]);
     // The name and how it was made are this stage's: left empty, the name only suggested.
     expect(d.strainName).toBe('');
     expect(d.breedingMethod).toBe('');
@@ -107,7 +107,7 @@ describe('Add the next generation or selection: the prefilled first screen', () 
   });
 
   it('is kept as typed under its parent’s own key, the stage answers included, and comes back after a reload', () => {
-    const d = { ...nextStageDraft(parent), strainName: 'Harbour Mist F3', stage: 'F3', selectedFor: 'vigour' };
+    const d = { ...nextStageDraft(parent), strainName: 'Harbour Pippin F3', stage: 'F3', selectedFor: 'vigour' };
     saveDraft(d, parent.id);
     expect(local.has(draftKeyFor(parent.id))).toBe(true);
     expect(local.has(DRAFT_KEY)).toBe(false);
@@ -118,7 +118,7 @@ describe('Add the next generation or selection: the prefilled first screen', () 
   });
 
   it('suggests a name as a placeholder only: the next F number when the parent’s is known', () => {
-    expect(nextStageNamePlaceholder(parent)).toBe('e.g. Harbour Mist F3');
+    expect(nextStageNamePlaceholder(parent)).toBe('e.g. Harbour Pippin F3');
     expect(nextStageNamePlaceholder(rec({ strainName: 'Gen line', notes: 'Stage: F4\n\nKept 4.' }))).toBe(
       'e.g. Gen line F5',
     );
@@ -200,7 +200,7 @@ const labSigned = (name: string): ResolvedAttestation =>
   }) as unknown as ResolvedAttestation;
 
 describe('Date this lab report: what is sealed', () => {
-  const plant = rec({ strainName: 'Harbour Mist', dnaFingerprint: '99'.repeat(32), dnaFileSha256: SHA });
+  const plant = rec({ strainName: 'Harbour Pippin', dnaFingerprint: '99'.repeat(32), dnaFileSha256: SHA });
 
   it('a lab-signed report: its SHA-256, its lab report and the lab’s name as signed (never checked by us)', () => {
     const saved: SavedReport = {
@@ -241,17 +241,17 @@ describe('Date this lab report: what is sealed', () => {
     const input = labReportSealInput(plant, { sha: SHA, resultId: 'LR-3f2a9c01', lab: 'Test Lab' }, '2026-10-15');
     expect(input).toEqual({
       // Round 4 (F9): nothing from the report in the public name (it was "… lab report LR-3F2A").
-      strainName: 'Harbour Mist — lab report',
+      strainName: 'Harbour Pippin — lab report',
       bredBy: plant.bredBy,
       dateCreated: '2026-10-15',
       notes: `Lab report SHA-256: ${SHA}\nResult: LR-3f2a9c01\nLab: Test Lab`,
-      parents: [{ recordId: plant.id, name: 'Harbour Mist' }],
+      parents: [{ recordId: plant.id, name: 'Harbour Pippin' }],
       breedingMethod: 'Lab report',
       photoFingerprints: [],
       refId: '',
       taxon: '',
     });
-    expect(labReportSealInput(plant, { sha: SHA }, '2026-10-15').strainName).toBe('Harbour Mist — lab report');
+    expect(labReportSealInput(plant, { sha: SHA }, '2026-10-15').strainName).toBe('Harbour Pippin — lab report');
     // The holder's own name, when they gave one.
     expect(labReportSealInput(plant, { sha: SHA }, '2026-10-15', '  Cert 2026  ').strainName).toBe('Cert 2026');
   });
@@ -276,7 +276,7 @@ describe('Date this lab report: what is sealed', () => {
 });
 
 describe('Date this lab report: never twice for the same report', () => {
-  const plant = rec({ strainName: 'Harbour Mist' });
+  const plant = rec({ strainName: 'Harbour Pippin' });
   const facts = { sha: SHA, resultId: 'LR-ab12', lab: 'Test Lab' };
 
   // Two tabs share the registry, the key store and the lock; each has its own list on screen.

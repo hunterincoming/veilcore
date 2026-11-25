@@ -35,7 +35,7 @@ export const log = {
   'app.log.keptLastTime': 'Guardamos lo que escribió la última vez.',
   'app.log.startOver': 'Empezar de nuevo',
   'app.log.nameLabel': 'Nombre de la planta o línea',
-  'app.log.namePlaceholder': 'p. ej., Harbour Mist',
+  'app.log.namePlaceholder': 'p. ej., Harbour Pippin',
   'app.log.nameHelp':
     'Bloqueado como los demás detalles. Un enlace de comprobación lo lleva después del # solo si usted lo activa; entonces lo ven las personas a las que envía el enlace, y cualquiera a quien ellas se lo pasen.',
   'app.log.eg': 'p. ej., {v}',

@@ -11,7 +11,7 @@ export const ask = {
   'app.ask.privacy': 'Typing here sends nothing. Only Save does.',
   'app.ask.engine': 'Works offline.',
   'app.ask.inputLabel': 'What do you want to do?',
-  'app.ask.inputPlaceholder': 'e.g. cut 12 clones from Blue Dream',
+  'app.ask.inputPlaceholder': 'e.g. 12 cuttings from Harbour Pippin',
   'app.ask.inputPlaceholderDoc': 'e.g. what is a proof code?',
   'app.ask.go': 'Go',
   'app.ask.close': 'Close',
@@ -44,7 +44,7 @@ export const ask = {
   // ---- the hint by the button, once there is a record (the example names it) ----
   'app.ask.hint.try': 'Try: {example}',
   'app.ask.hint.dismiss': 'Dismiss',
-  'app.ask.example.clones': 'cut 6 clones from {name}',
+  'app.ask.example.clones': 'take 6 cuttings from {name}',
   'app.ask.example.calves': 'record 2 calves from {name}',
   // ---- the language model on this device (optional; docs/ask-veilcore.md, v2.1) ----
   'app.ask.privacyModel': 'Typing here sends nothing. The language model runs on this device. Only Save sends.',

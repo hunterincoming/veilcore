@@ -16,9 +16,9 @@ export const prove = {
   'app.prove.share.differs': ' Los interruptores de arriba difieren de eso.{save}',
   'app.prove.yourRequest': 'Su solicitud',
   'app.prove.youAskedNamed':
-    'Usted pidió al titular de <b>{name}</b> que demuestre que la tiene. Envíele este enlace si todavía no lo hizo.',
+    'Usted pidió al titular de <b>{name}</b> que demuestre que tiene su registro. Envíele este enlace si todavía no lo hizo.',
   'app.prove.youAsked':
-    'Usted pidió al titular de esta planta que demuestre que la tiene. Envíele este enlace si todavía no lo hizo.',
+    'Usted pidió al titular de esta planta que demuestre que tiene su registro. Envíele este enlace si todavía no lo hizo.',
   'app.prove.openCheckPage': 'Abrir la página de comprobación de la planta',
   'app.prove.opening': 'Abriendo la solicitud…',
   'app.prove.ended': 'Esta solicitud terminó',
@@ -55,7 +55,7 @@ export const prove = {
   'app.prove.ask.cantAsk': 'No se puede pedir una prueba desde este enlace',
   'app.prove.ask.refused': '{reason}. Una prueba hecha con él no diría nada de este registro.',
   'app.prove.ask.noLink': 'No se hizo ningún enlace: {error}.',
-  'app.prove.ask.title': 'Pídale que demuestre que la tiene',
+  'app.prove.ask.title': 'Pídale que demuestre que tiene su registro',
   'app.prove.ask.intro':
     'Le envía un enlace. Lo abre y toca Demostrarlo. La respuesta aparece aquí. Esta página comprueba la respuesta en la propia red, a través de un indexador de Midnight (en el sitio de pruebas, por medio del relé de VeilCore). Para una decisión importante, compruebe la transacción en un segundo indexador. Solo red de pruebas.',
   'app.prove.ask.bound':
@@ -146,7 +146,7 @@ export const prove = {
   'app.prove.share.savedOn': 'Guardado en el servidor de registros',
   'app.prove.share.savedText':
     'Quien abra este enlace, o tenga el ID de este registro por otra vía, ve los datos de la vista previa y nada más; el servidor de registros no envía el resto, y editar el enlace no puede agregar nada. La genética nunca se divulga. Esta elección controla lo que muestra la página de verificación. Demostrar un valor oculto (un marcador, un rango, o que dos variedades son distintas) sin mostrar el resto lo hace el contrato de reclamaciones de VeilCore.',
-  'app.prove.share.letThemAsk': 'Permitir que comprueben el sello de fecha y me pidan demostrar que la tengo',
+  'app.prove.share.letThemAsk': 'Permitir que comprueben el sello de fecha y me pidan demostrar que tengo su registro',
   'app.prove.share.theLink': 'El enlace',
   'app.prove.share.openTheirs': 'Abrir lo que verán',
   'app.prove.share.saving': 'Guardando…',
@@ -204,4 +204,6 @@ export const prove = {
     'Lo que esto muestra: el código de resultado sellado en ese registro cumple la línea de arriba, y la clave de arriba firmó los resultados de ese registro. El laboratorio ha retirado después este resultado, así que no confíe en él: pida al laboratorio o al titular el resultado más reciente para esta muestra. Cada afirmación probada sobre él es pública, y juntas lo acotan.',
   'app.claim.check.whatLabUnnamedCall':
     'Lo que esto muestra: el código de resultado sellado en ese registro cumple la línea de arriba, y la clave de arriba firmó los resultados de ese registro. Aquí ningún laboratorio único está vinculado a esa clave, así que tome el resultado como de quien selló el registro. Cada afirmación probada sobre él es pública, y juntas lo acotan.',
+  'app.prove.share.tellThem':
+    'Quien abra el enlace puede comprobarlo por su cuenta en {site}/verify con el identificador de registro, o con un verificador que haya instalado.',
 } satisfies Partial<AppTranslation>;

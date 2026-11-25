@@ -1119,7 +1119,7 @@ describe('animal records (16 Oct 2026): where they can be logged', () => {
   it('only the last sentence changed: the paragraph still opens as before', () => {
     for (const site of [en as Record<string, string>, ...mainnetVariants])
       expect(site['m.for.5p']).toMatch(
-        /^Herd books keep the pedigree\. A record can give each entry a date nobody can backdate, without publishing the genotype\. /,
+        /^Herd books keep the pedigree\. A record can give each entry a date nobody can move earlier, without publishing the genotype\. /,
       );
   });
   it('every translation drops the old sentences', () => {

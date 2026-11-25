@@ -18,6 +18,10 @@ The operator signs one of these **on request**, for one batch, after checking ev
 in it against the registry and the chains. It says what the registry did and when. It says
 nothing about the record's contents, the plant or animal, who bred it, or any lab's work.
 
+For the lawyer using it: a date shows this record existed. It doesn't show the holder didn't
+also seal other versions. Weight comes from what someone else saw at the time. Nothing in this
+certification closes that gap; the holder's other evidence has to.
+
 ## How to fill it in
 
 1. `GET /batches` on the registry: find the batch, its root and its sealing time.

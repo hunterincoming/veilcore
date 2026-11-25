@@ -130,7 +130,7 @@ describe('the record app in every language', () => {
             ([, v]) =>
               /[A-Za-z]{3}/.test(
                 v.replace(
-                  /\{\w+\}|<\/?\w+>|VeilCore|Midnight|Face ID|Touch ID|Windows Hello|SHA-256|OpenTimestamps|ID|KB|MB|https?:\S+|[\w.-]+\.(org|com|bin|ots|html|zip)\b|ots (verify|upgrade)|Harbour Mist|Example Lab|UTC|A2LA|PJLA|\?fp=/g,
+                  /\{\w+\}|<\/?\w+>|VeilCore|Midnight|Face ID|Touch ID|Windows Hello|SHA-256|OpenTimestamps|ID|KB|MB|https?:\S+|[\w.-]+\.(org|com|bin|ots|html|zip)\b|ots (verify|upgrade)|Harbour Pippin|Example Lab|UTC|A2LA|PJLA|\?fp=/g,
                   '',
                 ),
               ) && !/[぀-ヿ㐀-鿿]/.test(v),

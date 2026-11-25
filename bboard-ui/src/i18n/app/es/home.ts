@@ -36,6 +36,14 @@ export const home = {
     'Un registro tiene claves sin una copia de seguridad comprobada. Guarde primero su copia de seguridad: si borra el navegador más tarde, se perderían para siempre.',
   'app.home.resetWarningRecords.other':
     '{count} registros tienen claves sin una copia de seguridad comprobada. Guarde primero su copia de seguridad: si borra el navegador más tarde, se perderían para siempre.',
+  'app.home.resetReceiving.one':
+    'Todavía está recibiendo un envío y ninguna copia de seguridad comprobada tiene su código. Al empezar de nuevo, el código se borra de este navegador y, sin él, el envío no se puede terminar. Guarde primero su copia de seguridad.',
+  'app.home.resetReceiving.other':
+    'Todavía está recibiendo {count} envíos y ninguna copia de seguridad comprobada tiene sus códigos. Al empezar de nuevo, los códigos se borran de este navegador y, sin ellos, esos envíos no se pueden terminar. Guarde primero su copia de seguridad.',
+  'app.home.resetUnsure.one':
+    'Un cambio en un registro aún no está guardado: su corrección no recibió una respuesta clara. Este navegador lo conserva 30 días por si restaura este conjunto desde su copia de seguridad, y lo quita la próxima vez que se abra VeilCore después de ese plazo.',
+  'app.home.resetUnsure.other':
+    'Los cambios en {count} registros aún no están guardados: sus correcciones no recibieron una respuesta clara. Este navegador los conserva 30 días por si restaura este conjunto desde su copia de seguridad, y los quita la próxima vez que se abra VeilCore después de ese plazo.',
   'app.home.resetConfirm':
     '¿Empezar de nuevo en este navegador con un conjunto nuevo y vacío?\n\nNo se borra nada. Sus registros actuales siguen cifrados en el servidor de registros de VeilCore. Solo puede recuperarlos con sus claves actuales, que se descargarán ahora en un archivo. Consérvelo.',
   'app.home.startedOver':
@@ -219,4 +227,8 @@ export const home = {
     'Este archivo tiene {n} registros nuevos para VeilCore y su plan gratuito puede fechar {left} más. No se importó nada. Elija un plan en su página de registros para fechar más.',
   'app.plan.box.full':
     'Ya usó sus registros gratuitos. Todo lo que ya tiene se sigue pudiendo comprobar. Elija un plan para agregar más.',
+  'app.home.labSheet': 'Sellar la planilla de hoy',
+  'app.labpage.work.sheet':
+    '¿Exporta cada día una planilla de sus cultivos o muestras? Selle toda la planilla de una vez. Después de la primera vez, este dispositivo recuerda sus columnas, y al día siguiente es un solo botón.',
+  'app.labpage.work.sheetLink': 'Sellar la planilla de hoy',
 } satisfies Partial<AppTranslation>;

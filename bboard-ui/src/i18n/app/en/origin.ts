@@ -55,6 +55,9 @@ export const origin = {
   // Every check page (VerifyPage.tsx, VerifyExample.tsx, ClaimCheck.tsx).
   'app.origin.datedNotOrigin':
     'The date shows the holder had this record by then. It doesn’t show who bred or made it, where it came from, or that what it says is true.',
+  // The same line on a plant's, an animal's or a strain's check page (DatedNotOrigin.tsx).
+  'app.origin.datedNotOriginLiving':
+    'The date shows the holder had this record by then, not who bred it, where it’s from, or that it’s accurate. The plant or animal may be much older.',
 
   // lab-import/BulkImportPage.tsx: a genebank passport sheet's columns (MCPD).
   'app.origin.import.show': '+ Where it came from (passport columns)',

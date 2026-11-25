@@ -6,6 +6,8 @@
 import type { AppTranslation } from '../../translate';
 
 export const animal = {
+  'app.animal.v.app.origin.datedNotOriginLiving':
+    '日付は、保有者が遅くともその日までに記録を持っていたことを示します。育成者、由来、内容の正しさは示しません。動物はずっと古いこともあります。',
   'app.animal.choice.label': '何を記録しますか？',
   'app.animal.choice.plant': '植物',
   'app.animal.choice.animal': '動物',

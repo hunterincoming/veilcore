@@ -64,7 +64,8 @@ These are adversarial reviews and run records, not a formal security audit.
 | [partners/require-a-record.md](partners/require-a-record.md) | Asking suppliers for a VeilCore record |
 | [INTAKE.md](INTAKE.md) | Labs and nurseries: a sender records a sample from your own intake page |
 | [PAYMENT-PARTNERS.md](PAYMENT-PARTNERS.md) | Wallets and payment companies: paying royalties for VeilCore users |
-| [partners/lenders.md](partners/lenders.md) | Lenders: checking a breeder's royalty history, recording a claim on a record |
+| [partners/lenders.md](partners/lenders.md) | Lenders: checking a breeder's royalty history, recording a claim on a record, who can change the contract today |
+| [partners/licensors.md](partners/licensors.md) | Licensors: the licensor kit's spec (design, not built), the evidence clause for local counsel |
 | [MANAGED.md](MANAGED.md) | VeilCore-run: VeilCore operates on chain for a partner |
 | [legal/](legal/) | Draft agreements, for a lawyer to review |
 

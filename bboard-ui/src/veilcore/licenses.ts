@@ -28,6 +28,7 @@ import type { AppKey } from '../i18n/app/en';
 import {
   currencyOf,
   hasOffspringRoyalty,
+  isControlledTerms,
   isNewTerms,
   offspringOf,
   ruleOf,
@@ -785,7 +786,7 @@ const offspringWords = (t: LicenseTerms, tr: Translator): string => {
   const o = offspringOf(t);
   if (!o) return tr.t('app.lic.none');
   if (!t.offspring) return tr.t('app.lic.row.offspringValue', { pct: String(t.offspringRoyaltyPct) });
-  const rule = ruleText(o.rule, currencyOf(t), tr);
+  const rule = ruleText(o.rule, currencyOf(t), tr, isControlledTerms(t));
   return o.years
     ? tr.t('app.roy.row.for', { rule, n: tr.tp('app.roy.years', o.years) })
     : o.generations
@@ -864,7 +865,7 @@ export const agreementRows = (l: License, reader: Translator = enT): { k: string
       {
         k: tr.t('app.lic.row.royalty'),
         v: isNewTerms(t)
-          ? ruleText(ruleOf(t)!, currencyOf(t), tr)
+          ? ruleText(ruleOf(t)!, currencyOf(t), tr, isControlledTerms(t))
           : t.royaltyType === 'percent'
             ? `${t.royaltyAmount || '—'}% ${basisLabel(t.unitBasis, tr)}`
             : `${formatMoney(t.royaltyAmount || '0', currencyOf(t), tr.locale)} ${basisLabel(t.unitBasis, tr)}`,

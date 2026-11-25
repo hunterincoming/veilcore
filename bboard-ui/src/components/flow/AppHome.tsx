@@ -25,6 +25,7 @@ import {
   proofCodeSent,
   unsavedReason,
   startOver,
+  unsureCount,
   useSealedView,
   RECORDS_KEY,
   waitingHere,
@@ -51,11 +52,13 @@ import { useT, useRecordT, rich } from '../../i18n/app';
 import { recordTitle } from '../../veilcore/animal-profile';
 import { isDocument } from '../../veilcore/document-profile';
 import { documentKindOf } from '../../veilcore/document-kind';
+import { isCannabisRecord } from '../../veilcore/royalty-terms';
+import { useI18n } from '../../i18n';
 import { kindOrTypeWords } from '../document/DocumentParts';
 import { SECTIONS, focusScreenHeading } from './FlowFrame';
 import { PasteBox } from './PasteBox';
 import { labCardLine, useLabCardFacts, useWaitingByRecord } from './LabResults';
-import { quantityPhrase } from '../../veilcore/transfers';
+import { forgetAllReceiving, quantityPhrase, receivingOnlyHere } from '../../veilcore/transfers';
 import { TrustPanel } from '../TrustPanel';
 import { LockedAgreements, LockedRecords, LoadNoticeBar } from '../LockedRecords';
 import { UnreadableDeviceOnly } from '../document/UnreadableDeviceOnly';
@@ -65,7 +68,14 @@ import { draftHeading, loadDraft } from './log-flow-state';
 import { homeStatusLine, unsavedLineKey } from './plant-status-words';
 import { documentHomeDate } from '../document/document-home-words';
 import { useRecordDate } from '../verify/useAnchorCheck';
-import { datingCardLine, datingHomeStatus, homeList, isLabReportRecord, keysOnlyHereLine } from '../stage/record-kinds';
+import {
+  datingCardLine,
+  datingHomeStatus,
+  homeList,
+  isLabReportRecord,
+  keysOnlyHereLine,
+  startOverLines,
+} from '../stage/record-kinds';
 import { useDnaTie, useSavedReports } from './useDnaTie';
 import { dnaTieSentence } from '../../veilcore/dna-tie';
 import type { StrainRecord } from '../../veilcore/records';
@@ -201,6 +211,7 @@ export const AppHome: React.FC = () => {
   const [query, setQuery] = useState('');
   const [sort, setSort] = useState<SortKey>('recent');
   const [more, setMore] = useState(false);
+  const { lang } = useI18n();
   const [why, setWhy] = useState(false);
   const [toast, setToast] = useState<string>();
   const importRef = useRef<HTMLInputElement>(null);
@@ -223,6 +234,9 @@ export const AppHome: React.FC = () => {
   // Records kept here whose locked copy waits for a checked backup ("Pick up" says so).
   const waitingForBackup = Object.keys(outboxRecords()).some((id) => unsavedReason(id) === 'backup');
   const labOnly = isLab(role) && !isBreeder(role);
+  // The pack for the authority: once there is a grow batch or a harvest lot to make it from.
+  const packChain = !labOnly && records.some((r) => documentKindOf(r) !== undefined);
+  const packOnHome = packChain && lang === 'es' && records.some((r) => !isDocument(r) && isCannabisRecord(r));
   const lab = isLab(role);
   const hasLabKey = useHasLabKey();
   // Plants as cards; a record that dates a lab report shows under its plant, not as a plant.
@@ -260,9 +274,13 @@ export const AppHome: React.FC = () => {
   const onReset = () => {
     const key = holderKeyIfAny();
     const keysWarning = unbackedIds.length > 0 ? `\n\n${keysOnlyHereLine(unbackedIds, 'reset', tr)}` : '';
-    if (window.confirm(t('app.home.resetConfirm') + keysWarning)) {
+    // A code still being received that no checked backup holds is deleted by Start over, and a
+    // change waiting on a correction's answer goes after 30 days: both said before, not after.
+    const more = startOverLines(receivingOnlyHere().length, unsureCount(), tr);
+    if (window.confirm(t('app.home.resetConfirm') + keysWarning + more)) {
       if (key) downloadHolderKey(key);
       startOver();
+      forgetAllReceiving();
       clearLoadedLicenses();
       setToast(t('app.home.startedOver'));
       // The menu that held "Start over" goes with the old set: focus the page's heading (round 6).
@@ -320,6 +338,16 @@ export const AppHome: React.FC = () => {
             {t('app.lr.tools.open')}
           </Button>
         )}
+        {/* A lab's daily export sealed at once; its columns are remembered after the first file. */}
+        <Button
+          component={RouterLink}
+          to="/records/import"
+          variant="outlined"
+          sx={{ minHeight: 48 }}
+          data-lab-sheet-link="home"
+        >
+          {t('app.home.labSheet')}
+        </Button>
       </Stack>
     </Paper>
   );
@@ -748,8 +776,10 @@ export const AppHome: React.FC = () => {
 
         <Stack spacing={0.5} sx={{ alignItems: 'center', pt: 2 }}>
           {/* The pack for the authority (authority-pack.ts): offered once there is a production
-              chain to make it from, a grow batch or a harvest lot. */}
-          {!labOnly && records.some((r) => documentKindOf(r) !== undefined) && (
+              chain to make it from, a grow batch or a harvest lot. REPROCANN / SEDRONAR are
+              Argentina's, so Home names them only in Spanish to someone holding cannabis records;
+              anyone else finds it under More as "Pack for an authority" (global summit, 5b item 1). */}
+          {packOnHome && (
             <Button component={RouterLink} to="/records/authority-pack" sx={{ minHeight: 44 }} data-pack-link="">
               {t('app.pack.home')}
             </Button>
@@ -772,6 +802,11 @@ export const AppHome: React.FC = () => {
               {!labOnly && licenses.length === 0 && (
                 <Button variant="text" component={RouterLink} to="/licenses" data-agreements-link="">
                   {t('app.home.myAgreements', { n: 0 })}
+                </Button>
+              )}
+              {packChain && !packOnHome && (
+                <Button variant="text" component={RouterLink} to="/records/authority-pack" data-pack-link="">
+                  {t('app.pack.more')}
                 </Button>
               )}
               {!labOnly && (

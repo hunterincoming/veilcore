@@ -107,8 +107,7 @@ export const verify = {
   'app.verify.kindReport': 'Lab report (file SHA-256 {sha})',
   'app.verify.kindStatement': 'Signed statement',
   'app.verify.forWhom': 'For the proof code the registry reports: ',
-  'app.verify.intro':
-    "This page checks a VeilCore record: a proof code made from a description of genetic material, dated once it's anchored, published without the genetics. Checking is free and needs no account. <link>What is VeilCore?</link>",
+  'app.verify.intro': 'Checking is free and needs no account. <link>What is VeilCore?</link>',
   'app.verify.checkingRecord': 'Checking the record',
   'app.verify.notFound': 'No record found for {id}',
   'app.verify.notFoundText':
@@ -262,7 +261,7 @@ export const verify = {
   'app.verify.ex.intro':
     "This shows what a record's check page looks like, with a note under each line. Nothing on it was looked up or checked.",
   'app.verify.ex.status': 'Example · in a sealed batch · anchor reported',
-  'app.verify.ex.name': 'Harbour Mist (example)',
+  'app.verify.ex.name': 'Harbour Pippin (example)',
   'app.verify.ex.fact1':
     'This link was made for proof code 3f9a0c41e2b7…, and the registry reports the same proof code for this record.',
   'app.verify.ex.note1':
@@ -390,4 +389,8 @@ export const verify = {
     'Checked in this browser: block {height}’s proof of work and its link up from checkpoint {checkpoint}, a block this website pins, through blocks mined at Bitcoin’s real difficulty. The block holds this batch’s stamp. Block time, as its miner set it: {time}. A later checkpoint would check it more strongly.',
   'app.verify.who.btc.batchOnly':
     'This browser checked that the batch’s stamp is in Bitcoin block {height}, linked to checkpoint {checkpoint}. Only VeilCore’s registry says this record is in that batch: the link you were sent carries no proof code to check it.',
+  // Summit 5b item 15: wherever a record is shown to someone else.
+  'app.verify.checkYourself':
+    'Check it yourself: open {site}/verify and enter the record identifier, or use a checker you installed. Don’t rely only on a page someone sent you.',
+  'app.verify.addressBar': 'Make sure the address bar says {site}.',
 };

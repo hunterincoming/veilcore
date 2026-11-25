@@ -173,4 +173,25 @@ export const importing = {
     'Un horodatage montre que les informations existaient déjà à cette date. Il ne confirme pas qu’elles sont exactes.',
   'app.import.done.toRecords': 'Aller à vos enregistrements',
   'app.import.done.another': 'Importer un autre fichier',
+  'app.import.saved.forget': 'Oublier ces colonnes',
+  'app.import.saved.remember': 'Retenir ces colonnes sur cet appareil pour la prochaine fois',
+  'app.import.saved.rememberHelp':
+    'Gardé dans ce navigateur seulement, jamais envoyé. Un fichier avec les mêmes colonnes s’ouvre alors ici, prêt à sceller.',
+  'app.import.saved.list': 'Colonnes retenues sur cet appareil',
+  'app.import.saved.forgetOne': 'Oublier',
+  'app.import.saved.forgetName': 'Oublier les colonnes de {name}',
+  'app.import.saved.same': 'Les mêmes colonnes que la dernière fois, déjà remplies pour vous.',
+  'app.import.saved.datesMdy': 'Les dates sont lues en mois/jour/année, comme la dernière fois.',
+  'app.import.saved.datesDmy': 'Les dates sont lues en jour/mois/année, comme la dernière fois.',
+  'app.import.saved.keeps':
+    'Ce qui est gardé : les noms des colonnes ({names}) et laquelle est laquelle. Rien des lignes ni du nom du fichier.',
+  'app.import.last.sealed.one': 'Votre dernière importation a scellé {count} enregistrement.',
+  'app.import.last.sealed.other': 'Votre dernière importation a scellé {count} enregistrements.',
+  'app.import.last.download': 'Télécharger son fichier de résultats (CSV)',
+  'app.import.saved.refused': 'Ces noms de colonnes ressemblent à une ligne du tableau, ils ne sont donc pas retenus.',
+  'app.import.last.once':
+    'Elle reste dans ce navigateur jusqu’à ce que vous choisissiez votre prochain fichier. Téléchargez son fichier de résultats si vous en avez besoin.',
+  'app.import.last.remove': 'La retirer',
+  'app.import.saved.notKept':
+    'Ce navigateur n’a pas pu garder les colonnes : vous les choisirez de nouveau la prochaine fois.',
 } satisfies Partial<AppTranslation>;

@@ -26,6 +26,7 @@ import { readJson, isObject, isString } from './json';
 import { isClaimsKeyBinding } from './lab-key-text';
 import { domainClaimValid, LAB_DOMAIN } from './lab-domain';
 import { holderKeyIfAny, holderRequestsPaused } from './holder';
+import { isDemoLabKey } from './demo-lab';
 import { enT, type Translator } from '../i18n/translate';
 import type { AppKey } from '../i18n/app/en';
 
@@ -498,7 +499,11 @@ export const currentDomainWithdrawal = (
  *
  * It says who holds a key as far as anyone can tell, never anything about the lab's work.
  */
-export type LabIdentity = { name: string | null } & (
+export type LabIdentity = {
+  name: string | null;
+  /** VeilCore's own demo key (demo-lab.ts): said on every level, whatever its name says. */
+  demo?: true;
+} & (
   | { level: 'none' | 'expired' | 'listing-withdrawn' }
   | { level: 'website'; domain: string; href: string; date: string; listingWithdrawn?: true }
   | { level: 'website-withdrawn'; domain: string; href: string; date: string }
@@ -529,6 +534,11 @@ export const LAB_IDENTITY_LEVELS: readonly LabIdentityLevel[] = [
 ];
 
 export const labIdentity = (a: ResolvedAttestation, now: number = Date.now()): LabIdentity => {
+  const id = identityLevel(a, now);
+  return isDemoLabKey(a.attester?.publicKey) ? { ...id, demo: true } : id;
+};
+
+const identityLevel = (a: ResolvedAttestation, now: number): LabIdentity => {
   const check = countsAsSigned(a) ? currentNameCheck(a, now) : null;
   const dw = currentDomainWithdrawal(a, now);
   const dc = dw ? null : currentDomainCheck(a, now);
@@ -646,8 +656,10 @@ export const signerLabel = (
     : '';
   const leadOf = (who: string) =>
     LEADS[leadWords] ? tr.t(LEADS[leadWords], { who }) : leadWords ? `${leadWords} ${who}` : ` ${who}`;
+  // VeilCore's demo key says so in the name itself, so a line that is only text says it too.
+  const demo = (w: string) => (identity.demo ? tr.t('app.signer.demo', { who: w }) : w);
   if (check) {
-    const who = check.checkedName.trim();
+    const who = demo(check.checkedName.trim());
     const lead = leadOf(who);
     const number = check.licenceNo
       ? tr.t(check.source === 'accreditation' ? 'app.signer.certificateNo' : 'app.signer.licenseNo', {
@@ -678,7 +690,7 @@ export const signerLabel = (
   }
   const name = (a.registeredAs?.displayName ?? a.attester.displayName)?.trim();
   // The level in the words themselves, so a line that is only text (a PDF, a list) says it too.
-  const who =
+  const who = demo(
     identity.level === 'website'
       ? name
         ? tr.t('app.signer.keyWebsite', { name, domain: identity.domain })
@@ -689,7 +701,8 @@ export const signerLabel = (
           : tr.t('app.signer.keyWithdrawnUnnamed', { domain: identity.domain })
         : name
           ? tr.t('app.signer.keyNamed', { name })
-          : tr.t('app.signer.keyUnnamed');
+          : tr.t('app.signer.keyUnnamed'),
+  );
   const lead = leadOf(who);
   if (published)
     return {

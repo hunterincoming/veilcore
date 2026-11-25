@@ -70,7 +70,7 @@ describe('the type of an opened lab report, from its bytes', () => {
     expect(reportFileType(enc('﻿' + csv)).ext).toBe('csv');
     expect(reportFileType(enc('a;b;c\r\n1;2;3\r\n4;5;6\r\n')).ext).toBe('csv');
     expect(reportFileType(enc('sample\tmarker\nHM-1\tA12\nHM-2\tB7\n')).ext).toBe('tsv');
-    expect(reportFileType(enc('Lab report for Harbour Mist.\nAll markers within range, see attached.\n')).ext).toBe(
+    expect(reportFileType(enc('Lab report for Harbour Pippin.\nAll markers within range, see attached.\n')).ext).toBe(
       'txt',
     );
     // One line with a comma isn't a table.

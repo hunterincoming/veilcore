@@ -41,7 +41,7 @@ const sealOne = async () => {
   });
   vi.spyOn(store, 'load').mockImplementation(() => Promise.resolve(held as never[]));
   const sealed = await sealRecord({
-    strainName: 'Harbour Mist (test data)',
+    strainName: 'Harbour Pippin (test data)',
     bredBy: 'Example Breeder',
     dateCreated: '2026-03-01',
     notes: 'kept only in the backup once the registry is gone',
@@ -84,7 +84,7 @@ describe('a backup that works without VeilCore', () => {
     const out = await fresh.restoreAny(fileOf(text));
     expect(out.fromFile).toMatchObject({ added: 1 });
     const back = records.allRecords().find((r) => r.id === rec.id);
-    expect(back?.strainName).toBe('Harbour Mist (test data)');
+    expect(back?.strainName).toBe('Harbour Pippin (test data)');
     expect(await records.checkIntegrity(back!)).toBe('match');
   });
 

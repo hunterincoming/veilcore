@@ -49,6 +49,8 @@ export const origin = {
   'app.origin.x.collSrc': 'Source de collecte (MCPD) : {v}',
   'app.origin.datedNotOrigin':
     'La date montre que le détenteur avait déjà cet enregistrement à ce moment-là. Elle ne montre pas qui l’a obtenu ou fait, d’où il vient, ni que ce qu’il dit est vrai.',
+  'app.origin.datedNotOriginLiving':
+    'La date montre que le détenteur avait alors déjà cet enregistrement, pas qui l’a obtenu, d’où il vient ni s’il est exact. La plante ou l’animal peut être bien plus ancien.',
   'app.origin.import.show': '+ D’où elle vient (colonnes de passeport)',
   'app.origin.import.hide': '− Masquer les colonnes de passeport',
   'app.origin.import.title': 'D’où elle vient (colonnes de passeport)',

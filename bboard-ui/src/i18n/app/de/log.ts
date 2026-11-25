@@ -36,7 +36,7 @@ export const log = {
   'app.log.keptLastTime': 'Wir haben aufbewahrt, was Sie zuletzt eingegeben haben.',
   'app.log.startOver': 'Neu beginnen',
   'app.log.nameLabel': 'Name der Pflanze oder Linie',
-  'app.log.namePlaceholder': 'z. B. Harbour Mist',
+  'app.log.namePlaceholder': 'z. B. Harbour Pippin',
   'app.log.nameHelp':
     'Verschlossen wie die anderen Angaben. Ein Prüflink trägt ihn nach dem # nur, wenn Sie das einschalten; dann sehen ihn die Menschen, denen Sie den Link schicken, und alle, an die sie ihn weitergeben.',
   'app.log.eg': 'z. B. {v}',

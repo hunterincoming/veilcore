@@ -46,7 +46,7 @@ holds or moves anyone's money.
    code become key-exchange keys (X25519). The code covers them, so the two people who
    read it to each other are the only ones who share the resulting key. The registry
    stores the deal's messages encrypted under it and can't read or forge them.
-4. **Royalties (v2: built and switched on in code; not run on the test site or veilcore.org yet).** Phone-first, the
+4. **Royalties (v2: built and switched on in code; run end to end on veilcore.org on 8 November 2026; not yet run on the test site).** Phone-first, the
    same screens on both sides; only who can press what differs. VeilCore never holds, routes or
    starts a payment.
    - *Terms.* The form opens on presets (clone, seed, breeding, semen or embryo, custom). A

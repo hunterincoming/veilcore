@@ -39,6 +39,7 @@ import { Link as RouterLink, useLocation } from 'react-router-dom';
 import { useI18n } from '../i18n';
 import { DraftBanner, LanguagePicker } from '../i18n/lazy-picker';
 import { DatingPausedNotice } from './DatingPausedNotice';
+import { InAppBrowserNotice } from './InAppBrowserNotice';
 import { Wordmark } from './Wordmark';
 import { hasRecordsHere } from './site/returning';
 import { color, mix } from '../config/tokens';
@@ -357,6 +358,7 @@ export const SiteHeader: React.FC<{
           )}
         </Stack>
         <Box sx={{ mt: { xs: 1, md: 2 }, '&:empty': { display: 'none' } }}>
+          <InAppBrowserNotice />
           <DatingPausedNotice />
           <DraftBanner />
         </Box>

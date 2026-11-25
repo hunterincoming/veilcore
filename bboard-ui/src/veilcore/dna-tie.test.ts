@@ -46,7 +46,7 @@ const att = (over: Partial<ResolvedAttestation> = {}): ResolvedAttestation => ({
 
 const plant = (over: Partial<StrainRecord> = {}): StrainRecord => ({
   id: 'VEIL-1',
-  strainName: 'Harbour Mist (practice)',
+  strainName: 'Harbour Pippin (practice)',
   bredBy: 'Test',
   dateCreated: '2026-10-01',
   notes: '',

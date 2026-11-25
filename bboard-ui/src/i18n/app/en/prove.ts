@@ -16,9 +16,9 @@ export const prove = {
   // flow/ProvePage.tsx: a prove link.
   'app.prove.yourRequest': 'Your request',
   'app.prove.youAskedNamed':
-    "You asked the holder of <b>{name}</b> to prove they hold it. Send them this link if you haven't yet.",
+    "You asked the holder of <b>{name}</b> to prove they hold its record. Send them this link if you haven't yet.",
   'app.prove.youAsked':
-    "You asked the holder of this plant to prove they hold it. Send them this link if you haven't yet.",
+    "You asked the holder of this plant to prove they hold its record. Send them this link if you haven't yet.",
   'app.prove.openCheckPage': "Open the plant's check page",
   'app.prove.opening': 'Opening the request…',
   'app.prove.ended': 'This request has ended',
@@ -57,7 +57,7 @@ export const prove = {
   'app.prove.ask.cantAsk': "Can't ask for a proof from this link",
   'app.prove.ask.refused': '{reason}. A proof made with it would say nothing about this record.',
   'app.prove.ask.noLink': 'No link was made: {error}.',
-  'app.prove.ask.title': 'Ask them to prove they hold it',
+  'app.prove.ask.title': 'Ask them to prove they hold its record',
   'app.prove.ask.intro':
     "You send them a link. They open it and tap Prove it. The answer shows up here. This page checks the answer on the network itself, through a Midnight indexer (on the test site, reached through VeilCore's relay). For a decision that matters, check the transaction on a second indexer. Test network only.",
   'app.prove.ask.bound':
@@ -124,7 +124,7 @@ export const prove = {
     'This plant’s key was date stamped on the network earlier. That dates the key, not the record.',
   'app.prove.watch.stampedThatEarlier':
     'That key was date stamped on the network earlier. That dates the key, not the record.',
-  // chain/ProveOwnershipPanel.tsx: "Someone asked me to prove I hold it" on the plant page.
+  // chain/ProveOwnershipPanel.tsx: "Someone asked me to prove I hold its record" on the plant page.
   'app.prove.own.title': 'Prove you hold this plant’s key (test network)',
   'app.prove.own.stampFirst':
     'Add the key date stamp first: press “Add the key date stamp” on the plant’s page. The proof is about the record’s on-chain identity, which that step creates.',
@@ -149,7 +149,7 @@ export const prove = {
   'app.prove.share.savedOn': 'Saved on the registry',
   'app.prove.share.savedText':
     "Anyone who opens this link, or has this record's id any other way, sees the facts in the preview and nothing else; the registry does not send the rest, and editing the link cannot add to it. The genetics are never disclosed. This choice controls what the verify page shows. Proving one hidden value (a marker, a range, or that two varieties differ) without showing the rest is done by VeilCore's claims contract.",
-  'app.prove.share.letThemAsk': 'Let them check the date stamp and ask me to prove I hold it',
+  'app.prove.share.letThemAsk': 'Let them check the date stamp and ask me to prove I hold its record',
   'app.prove.share.theLink': 'The link',
   'app.prove.share.openTheirs': "Open what they'll see",
   'app.prove.share.saving': 'Saving…',
@@ -206,4 +206,7 @@ export const prove = {
     'What this shows: the result code sealed in that record meets the line above, and the key above signed that record’s results. The lab has since withdrawn this result, so don’t rely on it: ask the lab or the holder for the latest result for this sample. Every claim proved about it is public, and together they narrow it.',
   'app.claim.check.whatLabUnnamedCall':
     'What this shows: the result code sealed in that record meets the line above, and the key above signed that record’s results. No single laboratory is tied to that key here, so read the result as the holder’s own. Every claim proved about it is public, and together they narrow it.',
+  // Show someone, under the link: the check-it-yourself line (summit 5b item 15).
+  'app.prove.share.tellThem':
+    'Whoever opens the link can check it themselves at {site}/verify with the record identifier, or with a checker they installed.',
 };

@@ -53,7 +53,7 @@ describe('a lab report says what kind it is, inside the locked file', () => {
 describe('who a delivery is from', () => {
   const record = {
     id: 'VEIL-1',
-    strainName: 'Harbour Mist',
+    strainName: 'Harbour Pippin',
     bredBy: 'Test Breeder',
     dateCreated: '2026-10-01',
   } as unknown as StrainRecord;

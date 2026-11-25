@@ -51,6 +51,8 @@ export const origin = {
   'app.origin.x.collSrc': '収集源（MCPD）：{v}',
   'app.origin.datedNotOrigin':
     '日付が示すのは、保有者が遅くともその時点までにこの記録を持っていたことです。誰が育成・作成したか、どこから来たか、内容が正しいかは示しません。',
+  'app.origin.datedNotOriginLiving':
+    '日付は、保有者が遅くともその日までに記録を持っていたことを示します。育成者、由来、内容の正しさは示しません。動植物はずっと古いこともあります。',
   'app.origin.import.show': '+ 由来（パスポートの列）',
   'app.origin.import.hide': '− パスポートの列を隠す',
   'app.origin.import.title': '由来（パスポートの列）',

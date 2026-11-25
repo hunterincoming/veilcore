@@ -37,6 +37,14 @@ export const home = {
     'Ein Datensatz hat Schlüssel ohne geprüfte Sicherungskopie. Speichern Sie zuerst Ihre Sicherungskopie: Wenn Sie den Browser später leeren, wären sie endgültig verloren.',
   'app.home.resetWarningRecords.other':
     '{count} Datensätze haben Schlüssel ohne geprüfte Sicherungskopie. Speichern Sie zuerst Ihre Sicherungskopie: Wenn Sie den Browser später leeren, wären sie endgültig verloren.',
+  'app.home.resetReceiving.one':
+    'Sie empfangen noch eine Lieferung, und keine geprüfte Sicherungskopie enthält ihren Code. Beim Neubeginn wird der Code aus diesem Browser gelöscht, und ohne ihn lässt sich die Lieferung nicht abschließen. Speichern Sie zuerst Ihre Sicherungskopie.',
+  'app.home.resetReceiving.other':
+    'Sie empfangen noch {count} Lieferungen, und keine geprüfte Sicherungskopie enthält ihre Codes. Beim Neubeginn werden die Codes aus diesem Browser gelöscht, und ohne sie lassen sich diese Lieferungen nicht abschließen. Speichern Sie zuerst Ihre Sicherungskopie.',
+  'app.home.resetUnsure.one':
+    'Eine Änderung an einem Datensatz ist noch nicht gespeichert: Seine Korrektur bekam keine klare Antwort. Dieser Browser behält sie 30 Tage, falls Sie diese Datensätze aus ihrer Sicherungskopie wiederherstellen, und entfernt sie danach beim nächsten Öffnen von VeilCore.',
+  'app.home.resetUnsure.other':
+    'Änderungen an {count} Datensätzen sind noch nicht gespeichert: Ihre Korrekturen bekamen keine klare Antwort. Dieser Browser behält sie 30 Tage, falls Sie diese Datensätze aus ihrer Sicherungskopie wiederherstellen, und entfernt sie danach beim nächsten Öffnen von VeilCore.',
   'app.home.resetConfirm':
     'In diesem Browser mit neuen, leeren Datensätzen neu beginnen?\n\nEs wird nichts gelöscht. Ihre bisherigen Datensätze bleiben verschlossen im Register von VeilCore. Zurück bekommen Sie sie nur mit Ihren jetzigen Schlüsseln, die jetzt in einer Datei heruntergeladen werden. Bewahren Sie sie auf.',
   'app.home.startedOver':
@@ -224,4 +232,8 @@ export const home = {
     'Diese Datei enthält {n} Datensätze, die für VeilCore neu sind, und Ihr kostenloser Tarif kann noch {left} datieren. Es wurde nichts importiert. Wählen Sie auf Ihrer Datensatzseite einen Tarif, um mehr zu datieren.',
   'app.plan.box.full':
     'Ihre kostenlosen Datensätze sind aufgebraucht. Alles, was Sie schon haben, bleibt prüfbar. Wählen Sie einen Tarif, um weitere hinzuzufügen.',
+  'app.home.labSheet': 'Die Tabelle von heute versiegeln',
+  'app.labpage.work.sheet':
+    'Exportieren Sie jeden Tag eine Tabelle Ihrer Kulturen oder Proben? Versiegeln Sie die ganze Tabelle auf einmal. Nach dem ersten Mal merkt sich dieses Gerät die Spalten, am nächsten Tag ist es ein Knopf.',
+  'app.labpage.work.sheetLink': 'Die Tabelle von heute versiegeln',
 } satisfies Partial<AppTranslation>;

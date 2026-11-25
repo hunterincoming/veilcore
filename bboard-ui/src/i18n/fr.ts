@@ -124,6 +124,8 @@ export const fr: Strings = {
   'draft.banner': 'Traduction provisoire faite par machine, en cours de relecture. La page en anglais fait foi.',
   'draft.showEnglish': 'Afficher en anglais',
   'draft.close': 'Fermer cet avis',
+  'notice.inApp':
+    'Ouvrez cette page dans Chrome ou Safari pour que vos enregistrements et vos clés restent sur votre téléphone.',
   'notice.datingPaused':
     'La datation sur Midnight est suspendue pendant la mise à niveau du réseau de Midnight. Vos enregistrements sont sauvegardés et seront datés dès son retour.',
   // The record app's frame and the browser tab's titles.
@@ -228,7 +230,6 @@ export const fr: Strings = {
   'm.nav.menu': 'Menu',
   'm.nav.forLabs': 'Utiliser comme laboratoire',
   'm.nav.getBack': 'Récupérer mes enregistrements',
-  'm.hero.label': 'La preuve de ce que vous détenez',
   'm.hero.title1': 'Datez votre enregistrement.',
   'm.hero.title2': 'Gardez votre génétique privée.',
   'm.hero.how': 'Comment ça marche',
@@ -384,7 +385,7 @@ export const fr: Strings = {
     'Pour faire supprimer vos données de démo de notre serveur, écrivez à hunter@veilcore.org en indiquant les identifiants de vos enregistrements.',
   'm.privacy.browser.title': 'Conservé dans votre navigateur',
   'm.privacy.browser.text':
-    'Votre navigateur conserve, sur cet appareil : votre clé de détenteur (une copie est aussi envoyée à notre serveur, voir plus haut) ; la clé qui verrouille vos enregistrements, qui ne nous est jamais envoyée ; votre propre copie de vos enregistrements ; les clés secrètes de chaque enregistrement, qui verrouillent ses rapports de laboratoire (une copie verrouillée part aussi avec l’enregistrement) ; les codes de laboratoire que vous créez ou utilisez, avec un code de retrait et la clé des informations d’un envoi ; la clé de signature d’un laboratoire si vous en avez configuré une (sa partie privée ne nous est jamais envoyée) ; le rôle choisi ; et votre langue. Votre fichier de sauvegarde contient une copie de chaque clé et des codes de laboratoire que vous avez créés. Pour les supprimer, effacez les données de ce site dans les réglages de votre navigateur. Enregistrez d’abord votre sauvegarde : sans elle, vous ne pourrez plus retrouver ni ouvrir vos enregistrements.',
+    'Votre navigateur conserve, sur cet appareil : votre clé de détenteur (une copie est aussi envoyée à notre serveur, voir plus haut) ; la clé qui verrouille vos enregistrements, qui ne nous est jamais envoyée ; les enregistrements pas encore terminés et les documents gardés sur cet appareil uniquement ; les clés secrètes de chaque enregistrement, qui verrouillent ses rapports de laboratoire (une copie verrouillée part aussi avec l’enregistrement) ; les codes de laboratoire que vous créez ou utilisez, avec un code de retrait et la clé des informations d’un envoi ; la clé de signature d’un laboratoire si vous en avez configuré une (sa partie privée ne nous est jamais envoyée) ; le rôle choisi ; et votre langue. Il garde aussi ce dont le reste de l’application a besoin pendant que vous l’utilisez, comme les licences et leurs clés, un code en cours de réception, ce qui attend d’être envoyé et les avis que vous avez fermés. Votre fichier de sauvegarde contient une copie de chaque clé, vos enregistrements, les codes de laboratoire que vous avez créés et un code en cours de réception. Pour les supprimer, effacez les données de ce site dans les réglages de votre navigateur. Enregistrez d’abord votre sauvegarde : sans elle, vous ne pourrez plus retrouver ni ouvrir vos enregistrements.',
   'm.privacy.deviceonly.title': 'Un document gardé uniquement sur cet appareil',
   'm.privacy.deviceonly.text':
     'Quand vous scellez un document, vous pouvez choisir de garder son enregistrement uniquement sur cet appareil et dans votre fichier de sauvegarde. Alors rien de ce que vous y saisissez n’est envoyé à notre serveur, verrouillé ou non. Ce que nous recevons : l’identifiant de l’enregistrement, son code de preuve et sa liaison de clé, pour qu’il puisse être daté ; votre adresse réseau et l’heure, comme pour toute requête ; et, si vous avez une copie avec clé d’accès, l’identifiant et les clés de l’enregistrement dans cette copie verrouillée. Si vous choisissez d’horodater la clé de l’enregistrement, un code tiré de la clé part vers Midnight par notre service de frais. Une exception, et seulement si vous la choisissez : si vous prouvez l’un de ses chiffres, un fait sur ce chiffre part vers Midnight par notre service de frais et reste public pour toujours. C’est le seuil que vous fixez et son sens ou, si vous prouvez le chiffre exact, le chiffre lui-même. Rien de cela ne va à notre registre. Mais ce que vous prouvez est public, et nous, ainsi que toute personne ayant le lien de vérification de l’enregistrement, pouvons le rattacher à l’enregistrement ; nous pouvons aussi le rattacher à la clé de détenteur qui l’a daté. Nous ne pouvons pas vous rendre un tel enregistrement : les seules copies sont dans votre navigateur et dans un fichier de sauvegarde enregistré après le scellement, et l’application vous demande aussitôt d’en enregistrer un et de le vérifier. Toute personne à qui vous envoyez son lien de vérification et le fichier peut toujours le vérifier. Le choix se fait au scellement et ne peut pas être modifié ensuite.',
@@ -420,7 +421,7 @@ export const fr: Strings = {
   'm.privacy.contact': 'Questions : hunter@veilcore.org',
   // Round 2 truth pass (14 Oct 2026): keys added or newly translated.
   'm.hero.lede':
-    'Pour les obtenteurs, les éleveurs, les semenciers et les laboratoires qui travaillent sur la génétique végétale, animale et microbienne : donnez à vos enregistrements une date que personne ne peut antidater. Vos données génétiques restent verrouillées : les fichiers ADN ne quittent jamais votre ordinateur, et ce que vous saisissez arrive verrouillé sur notre serveur. Seuls des codes, et les faits que vous choisissez de prouver, vont sur Midnight, qui les date.',
+    'Pour les obtenteurs, les éleveurs, les semenciers et les laboratoires qui travaillent sur la génétique végétale, animale et microbienne : donnez à vos enregistrements une date que personne ne peut avancer. Vos données génétiques restent verrouillées : les fichiers ADN ne quittent jamais votre ordinateur, et ce que vous saisissez arrive verrouillé sur notre serveur. Seuls des codes, et les faits que vous choisissez de prouver, vont sur Midnight, qui les date.',
   'm.for.3p':
     'Envoyez du matériel avec un code laboratoire. Le laboratoire signe un accusé de réception avec sa propre clé, et l’enregistrement montre ainsi une seconde partie. L’accusé est une vraie signature, conservée par le registre de VeilCore, pas sur la chaîne. Des conditions comme l’interdiction de multiplier ne sont qu’un exercice dans la démo web.',
   'm.get.1b': 'pour un enregistrement de ce que vous détenez, sans montrer votre génétique.',
@@ -643,7 +644,7 @@ export const fr: Strings = {
     'Sur les pages des enregistrements, « Demander » remplit un enregistrement, ou un lot de boutures ou de descendants, que vous vérifiez ensuite. Il ne signe et n’envoie jamais rien. C’est vous qui le faites.',
   'm.home.trustLabel': 'Ce que cela vous apporte',
   'm.home.trust':
-    'Preuve que vous déteniez déjà un enregistrement à une date|Une date que personne ne peut antidater|Vérifier est gratuit|Un format ouvert|Sans portefeuille, sans inscription',
+    'Preuve que vous déteniez déjà un enregistrement à une date|Une date que personne ne peut avancer|Vérifier est gratuit|Un format ouvert|Sans portefeuille, sans inscription',
   'm.home.pause': 'Mettre en pause le défilement',
   'm.home.play': 'Reprendre le défilement',
   'm.home.fails': 'Dites-nous où ça ne va pas.',
@@ -677,9 +678,9 @@ export const fr: Strings = {
     'On vous envoie un lien. Vous touchez une fois, et la page de votre interlocuteur vérifie sur le réseau que vous contrôlez la clé propre à votre enregistrement. Votre enregistrement a nommé cette clé au moment où il a été scellé : elle ne peut donc pas être remplacée. Cela ne dit rien de qui vous êtes ni de qui a obtenu la plante. Cela fonctionne pour l’instant sur un réseau de test de Midnight.',
   'm.for.5t': 'Lignées animales.',
   'm.for.5p':
-    'Les livres généalogiques tiennent le pedigree. Un enregistrement peut donner à chaque entrée une date que personne ne peut antidater, sans publier le génotype. Sur ce site, vous pouvez enregistrer un animal : son numéro d’identification individuel, son père et sa mère, et un rapport ADN.',
+    'Les livres généalogiques tiennent le pedigree. Un enregistrement peut donner à chaque entrée une date que personne ne peut avancer, sans publier le génotype. Sur ce site, vous pouvez enregistrer un animal : son numéro d’identification individuel, son père et sa mère, et un rapport ADN.',
   'm.for.5parent':
-    'Un résultat de filiation signé par un laboratoire peut aussi prouver qu’un veau correspond à son père et à sa mère, sans montrer aucun profil ADN.',
+    'Un résultat de filiation signé montre qu’un laboratoire a attesté que les échantillons correspondent au père et à la mère, sans montrer aucun profil ADN.',
   'm.for.5parentLink': 'Comment marche la filiation →',
   'm.for.5ask': 'Si vous élevez des animaux, dites-nous ce dont vos enregistrements ont besoin.',
   'm.how.label': 'Comment ça marche',
@@ -727,7 +728,7 @@ export const fr: Strings = {
   'm.get.title1': 'Ce que vous obtenez,',
   'm.get.title2': 'et où ça s’arrête.',
   'm.get.title': 'Ce que vous obtenez',
-  'm.get.1a': 'Une date que personne ne peut antidater,',
+  'm.get.1a': 'Une date que personne ne peut avancer,',
   'm.get.2a': 'Licences et accords de laboratoire.',
   'm.get.2b':
     'Ils sont attachés à l’enregistrement. Un licencié peut prouver qu’il détient une licence en vigueur sans montrer laquelle. Une redevance ou autre obligation sur un parent apparaît sur chaque descendant confirmé par les deux détenteurs ; VeilCore l’enregistre et ne la perçoit pas. Testé sur un réseau de test de Midnight ; simulé dans la démo web.',
