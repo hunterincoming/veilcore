@@ -57,7 +57,7 @@ const fakeRegistry = (answer?: (value: StrainRecord[]) => SaveResult) => {
 // The same plant, as typed into the logging flow and as a row of a collection.
 const DRAFT: Draft = {
   ...emptyDraft(),
-  strainName: '  Harbour Mist ',
+  strainName: '  Harbour Pippin ',
   bredBy: 'Green Lab ',
   dateCreated: '2021-03-14',
   parents: [{ name: 'A' }, { name: 'B' }],
@@ -66,7 +66,7 @@ const DRAFT: Draft = {
   notes: ' first cut ',
 };
 const ROW: RowFields = {
-  strainName: 'Harbour Mist',
+  strainName: 'Harbour Pippin',
   bredBy: 'Green Lab',
   dateCreated: '2021-03-14',
   parents: [{ name: 'A' }, { name: 'B' }],
@@ -119,7 +119,7 @@ describe('a plant logged by hand and a row of a collection', () => {
       photos: [{ name: 'a.jpg', fingerprint: fp }],
     });
     expect(input).toEqual({
-      strainName: 'Harbour Mist',
+      strainName: 'Harbour Pippin',
       bredBy: 'Green Lab',
       dateCreated: '2021-03-14',
       notes: 'first cut',

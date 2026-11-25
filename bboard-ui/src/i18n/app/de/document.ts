@@ -117,7 +117,7 @@ export const document = {
   'app.doc.check.inLink': 'Im Link (die eigenen Worte des Inhabers)',
   'app.doc.nums.title': 'Die Zahlen darauf (optional)',
   'app.doc.nums.help':
-    'Geben Sie sie so ein, wie sie gedruckt sind. Sie werden mit dem Dokument versiegelt, damit Sie später eine davon belegen können, etwa „Gesamt-THC höchstens 0,3 %“, ohne die anderen oder das Zertifikat zu zeigen.',
+    'Geben Sie sie so ein, wie sie gedruckt sind. Sie werden mit dem Dokument versiegelt, damit Sie später eine davon belegen können, etwa „Keimfähigkeit mindestens 85 %“, ohne die anderen oder das Zertifikat zu zeigen.',
   'app.doc.nums.which': 'Welche Zahlen',
   'app.doc.nums.none': 'Keine',
   'app.doc.nums.bad': 'Eine Zahl mit höchstens {places} Nachkommastellen, etwa 0,21.',
@@ -145,7 +145,7 @@ export const document = {
   'app.claim.text':
     'Belegen Sie jedem eine Tatsache, ohne die Zahl dahinter, die anderen Zahlen oder das Zertifikat zu zeigen: dass eine Zahl, die Sie versiegelt haben, innerhalb eines Grenzwerts liegt oder dass ein Ergebnis „nicht nachgewiesen“ ist. Der Beleg kommt auf Midnight, wo jeder ihn prüfen kann.',
   'app.claim.example':
-    'Zum Beispiel: Zeigen Sie einem Käufer, dass der Gesamt-THC-Gehalt höchstens 0,3 % beträgt oder dass die Keimfähigkeit einer Saatgutpartie mindestens 85 % beträgt, ohne ihm die Zahl oder den Rest des Datensatzes zu geben. Sie wählen die Zahl und die Grenze. Er bekommt einen Link, der es prüft.',
+    'Zum Beispiel: Zeigen Sie einem Käufer, dass die Keimfähigkeit einer Saatgutpartie mindestens 85 % beträgt oder dass ein Erregertest „nicht nachgewiesen“ ergab, ohne ihm die Zahl oder den Rest des Datensatzes zu geben. Sie wählen die Zahl und die Grenze. Er bekommt einen Link, der es prüft.',
   'app.claim.notReady': 'Belege sind auf dieser Website noch nicht eingeschaltet.',
   'app.claim.number': 'Welche Zahl',
   'app.claim.how': 'Was belegt werden soll',

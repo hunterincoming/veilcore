@@ -48,7 +48,7 @@ test('a plant license: the cannabis question, the territory and the law come fir
   // A plant whose species says cannabis.
   await page.goto('/new');
   await startPlant(page);
-  await page.getByLabel(/Plant or line name/).fill('Harbour Mist');
+  await page.getByLabel(/Plant or line name/).fill('Harbour Pippin');
   await page.getByLabel(/Bred by/).fill('E2E breeder');
   await page.getByRole('button', { name: /Add parents, species, photos or notes/ }).click();
   await page.getByLabel(/^Species/).fill('Cannabis sativa');
@@ -58,7 +58,7 @@ test('a plant license: the cannabis question, the territory and the law come fir
   await page.getByRole('button', { name: /No report yet: skip/ }).click();
   await saveAndCheckBackup(page);
   await page.getByRole('button', { name: /Finish/ }).click();
-  await expect(page.getByRole('heading', { name: 'Harbour Mist' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Harbour Pippin' })).toBeVisible();
   await expect.poll(() => held.records.length, { timeout: 30_000 }).toBe(1);
   const recId = held.records[0].id;
 

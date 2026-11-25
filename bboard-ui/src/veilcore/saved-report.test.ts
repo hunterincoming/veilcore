@@ -74,7 +74,7 @@ const arrivedFrom = (results: ResultSummary[], transfer = 'TR-1'): ArrivedLike[]
 
 const plant = (over: Partial<StrainRecord> = {}): StrainRecord => ({
   id: 'VEIL-1',
-  strainName: 'Harbour Mist',
+  strainName: 'Harbour Pippin',
   bredBy: 'S',
   dateCreated: '2026-01-01',
   notes: '',

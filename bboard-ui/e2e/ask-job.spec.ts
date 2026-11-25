@@ -689,7 +689,7 @@ const heldLicense = () => {
     licenseeNonce: hex(ed25519.getPublicKey(mine)),
     partySecret: hex(mine),
     issuerNonce: hex(ed25519.getPublicKey(theirs)),
-    label: 'Harbour Mist license',
+    label: 'Harbour Pippin license',
     acceptedAt: Date.UTC(2026, 0, 1),
     activatedAt: Date.UTC(2026, 0, 2),
     agreedAt: Date.UTC(2026, 0, 1),
@@ -755,7 +755,7 @@ test('what’s due: three reports drafted, a figure typed in each, a stale tab r
   await doIt(page, 'send my reports');
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Check this: 3 reports to send');
   // The licensor's name for the agreement is theirs, marked so, never by the button.
-  await expect(page.locator('[data-named-by]').first()).toHaveText('“Harbour Mist license”, named by them');
+  await expect(page.locator('[data-named-by]').first()).toHaveText('“Harbour Pippin license”, named by them');
   await expect(page.locator('[data-approve-left]')).toHaveText('Answer 1 question to approve');
   for (const [i, v] of ['1000', '2500.50'].entries()) {
     await page.locator(`[data-job-figure="${i}"]`).fill(v);

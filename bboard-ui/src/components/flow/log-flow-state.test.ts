@@ -31,7 +31,7 @@ describe('the draft', () => {
   it('is kept as it is typed and comes back on the next visit', () => {
     const d = {
       ...emptyDraft(),
-      strainName: 'Harbour Mist',
+      strainName: 'Harbour Pippin',
       bredBy: 'Hunter',
       parents: [{ name: 'A' }, { name: 'B', recordId: 'VEIL-1234' }],
       photos: [{ name: 'leaf.jpg', fingerprint: 'ab'.repeat(32) }],

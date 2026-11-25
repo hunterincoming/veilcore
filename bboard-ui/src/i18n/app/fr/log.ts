@@ -36,7 +36,7 @@ export const log = {
   'app.log.keptLastTime': 'Nous avons gardé ce que vous aviez saisi la dernière fois.',
   'app.log.startOver': 'Recommencer',
   'app.log.nameLabel': 'Nom de la plante ou de la lignée',
-  'app.log.namePlaceholder': 'p. ex. Harbour Mist',
+  'app.log.namePlaceholder': 'p. ex. Harbour Pippin',
   'app.log.nameHelp':
     'Verrouillé comme les autres détails. Un lien de vérification ne le porte après le # que si vous l’activez ; alors les personnes à qui vous envoyez le lien le voient, ainsi que toute personne à qui elles le transmettent.',
   'app.log.eg': 'p. ex. {v}',

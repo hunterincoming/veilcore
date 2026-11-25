@@ -515,17 +515,19 @@ describe(`round 4 against ${REAL ? 'a real registry' : 'the in-memory registry'}
   it('F9: "Date this lab report" names the record neutrally; nothing from the report is in the public name', async () => {
     const { labReportSealInput, labReportRecordName } = await import('../components/stage/lab-report-date');
     const A = await browser('A');
-    const plantRec = { id: 'VEIL-1', strainName: 'Harbour Mist', bredBy: 'x', taxon: '' };
+    const plantRec = { id: 'VEIL-1', strainName: 'Harbour Pippin', bredBy: 'x', taxon: '' };
     const sha = '3f2a9c1b'.padEnd(64, 'e');
     for (const facts of [{ sha }, { sha, resultId: 'LR-7B6013A09C246DCE0C1FB41761B8213C' }]) {
       const input = labReportSealInput(plantRec, facts, '2026-10-17');
-      expect(input.strainName).toBe('Harbour Mist — lab report');
+      expect(input.strainName).toBe('Harbour Pippin — lab report');
       // Since round 5 the name is sealed: nothing of it, or of the report, is in the clear.
       const clear = await A.run(() => A.m.api.publicPart({ id: 'VEIL-2', ...input }));
       expect(clear.strainName).toBeUndefined();
-      expect(JSON.stringify(clear)).not.toMatch(/3f2a9c1b|LR-7B60|Harbour Mist/i);
+      expect(JSON.stringify(clear)).not.toMatch(/3f2a9c1b|LR-7B60|Harbour Pippin/i);
     }
-    expect(labReportRecordName('Harbour Mist', ['Harbour Mist — lab report'])).toBe('Harbour Mist — lab report 2');
+    expect(labReportRecordName('Harbour Pippin', ['Harbour Pippin — lab report'])).toBe(
+      'Harbour Pippin — lab report 2',
+    );
     expect(labReportSealInput(plantRec, { sha }, '2026-10-17', 'My cert').strainName).toBe('My cert');
   });
 

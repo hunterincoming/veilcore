@@ -270,7 +270,7 @@ export const verify = {
   'app.verify.ex.intro':
     'Das zeigt, wie die Prüfseite eines Datensatzes aussieht, mit einer Anmerkung unter jeder Zeile. Hier wurde nichts nachgeschlagen oder geprüft.',
   'app.verify.ex.status': 'Beispiel · in einem versiegelten Stapel · Verankerung gemeldet',
-  'app.verify.ex.name': 'Harbour Mist (Beispiel)',
+  'app.verify.ex.name': 'Harbour Pippin (Beispiel)',
   'app.verify.ex.fact1':
     'Dieser Link wurde für den Prüfcode 3f9a0c41e2b7… erstellt, und das Register meldet denselben Prüfcode für diesen Datensatz.',
   'app.verify.ex.note1':

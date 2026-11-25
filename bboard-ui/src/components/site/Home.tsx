@@ -107,7 +107,7 @@ const groupsOf = (hex: string, prev = '') => {
 /** Try it: what you type is turned into a real proof code here, and nothing is sent. */
 const Fingerprint: React.FC<{ onHash: (hex: string) => void }> = ({ onHash }) => {
   const { t } = useI18n();
-  const [cultivar, setCultivar] = useState('Harbour Mist');
+  const [cultivar, setCultivar] = useState('Harbour Pippin');
   const [bredBy, setBredBy] = useState(() => t('m.hero.bredByDefault'));
   const [hash, setHash] = useState('');
   const prev = useRef('');
@@ -750,7 +750,7 @@ const StepPicture: React.FC<{ n: number }> = ({ n }) => {
         <dl className="k-rec">
           <div>
             <dt>{t('m.hero.cultivar')}</dt>
-            <dd>Harbour Mist</dd>
+            <dd>Harbour Pippin</dd>
           </div>
           <div>
             <dt>{t('m.home.ex.dna')}</dt>

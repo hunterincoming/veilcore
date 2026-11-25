@@ -26,7 +26,7 @@ export const plant = {
   'app.plant.moreYouCanDo': 'Ce que vous pouvez aussi faire',
   'app.plant.action.show': 'Montrer à quelqu’un',
   'app.plant.action.showHint': 'Choisissez ce qu’il voit',
-  'app.plant.action.askedToProve': 'On m’a demandé de prouver que je la détiens',
+  'app.plant.action.askedToProve': 'On m’a demandé de prouver que j’en détiens l’enregistrement',
   'app.plant.action.certificate': 'Certificat',
   'app.plant.action.sendResults': 'Renvoyer les résultats à l’obtenteur',
   'app.plant.action.sendResultsHint': 'Signés par vous, verrouillés pour lui',

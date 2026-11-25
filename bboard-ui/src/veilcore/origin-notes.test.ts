@@ -283,8 +283,8 @@ describe('a genebank passport sheet (MCPD) through the bulk import', () => {
 
   it('a sheet without passport columns imports exactly as before', () => {
     const m = guessMapping(['Name', 'Species', 'Notes']);
-    const f = rowFields(row(['Harbour Mist', 'Cannabis sativa', 'note']), m);
-    expect(f).toMatchObject({ strainName: 'Harbour Mist', taxon: 'Cannabis sativa', notes: 'note' });
+    const f = rowFields(row(['Harbour Pippin', 'Cannabis sativa', 'note']), m);
+    expect(f).toMatchObject({ strainName: 'Harbour Pippin', taxon: 'Cannabis sativa', notes: 'note' });
     expect(f.breedingMethod).toBeUndefined();
   });
 });

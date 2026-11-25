@@ -71,15 +71,22 @@ describe('Shortcuts reads what was typed', () => {
   });
 
   it('the example in the Ask box works as typed, in all five languages', async () => {
-    const mist = [...records, rec(5, 'Harbour Mist')];
+    const pippin = [...records, rec(5, 'Harbour Pippin')];
     for (const lang of ['en', 'de', 'es', 'fr', 'ja'] as const) {
       const { ask: dict } = (await import(`../i18n/app/${lang}/ask.ts`)) as { ask: Record<string, string> };
       // "e.g. ", "z. B. ", "例：": the box's own lead-in is not part of what someone types.
       const example = dict['app.ask.inputPlaceholder'].replace(/^(e\.g\.|z\. B\.|p\. ej\.|ex\.)\s+|^例：/, '');
-      expect(example, lang).toContain('Harbour Mist');
-      expect(draftOf(interpret(example, { ...ctx, records: mist })).draft, lang).toMatchObject({
+      expect(example, lang).toContain('Harbour Pippin');
+      expect(draftOf(interpret(example, { ...ctx, records: pippin })).draft, lang).toMatchObject({
         preset: 'clones',
         count: 12,
+        parents: [ID(5)],
+      });
+      // The hint under a record ("Try: take 6 cuttings from …") works as typed too.
+      const hint = dict['app.ask.example.clones'].replace('{name}', 'Harbour Pippin');
+      expect(draftOf(interpret(hint, { ...ctx, records: pippin })).draft, lang).toMatchObject({
+        preset: 'clones',
+        count: 6,
         parents: [ID(5)],
       });
     }
@@ -102,12 +109,12 @@ describe('Shortcuts reads what was typed', () => {
   });
 
   it('a new record with its name', () => {
-    expect(draftOf(interpret('new plant Harbour Mist', ctx)).draft).toEqual({
+    expect(draftOf(interpret('new plant Harbour Pippin', ctx)).draft).toEqual({
       v: 1,
       source: 'ask',
       kind: 'plant',
       preset: 'record',
-      name: 'Harbour Mist',
+      name: 'Harbour Pippin',
     });
     expect(draftOf(interpret('log a cow called Daisy', ctx)).draft).toMatchObject({ kind: 'animal', name: 'Daisy' });
   });
@@ -218,9 +225,9 @@ describe('a new record: the verb or "new" after the noun is not a name (review, 
   it('a typed name is kept, in all five languages, even one that starts like "new"', () => {
     expect(name('new plant New Dawn')).toBe('New Dawn');
     expect(name('neue Pflanze namens Sunset Sherbet')).toBe('Sunset Sherbet');
-    expect(name('nueva planta Harbour Mist')).toBe('Harbour Mist');
-    expect(name('nouvelle plante appelée Harbour Mist')).toBe('Harbour Mist');
-    expect(name('Harbour Mistという植物を登録')).toBe('Harbour Mist');
+    expect(name('nueva planta Harbour Pippin')).toBe('Harbour Pippin');
+    expect(name('nouvelle plante appelée Harbour Pippin')).toBe('Harbour Pippin');
+    expect(name('Harbour Pippinという植物を登録')).toBe('Harbour Pippin');
   });
   it('a real name that looks like one of those words is kept, in all five languages', () => {
     expect(name('new plant One')).toBe('One');

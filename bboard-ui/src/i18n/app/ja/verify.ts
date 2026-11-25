@@ -248,7 +248,7 @@ export const verify = {
   'app.verify.ex.intro':
     '記録の確認ページがどのように見えるかを、各行の下に説明を付けて示します。ここでは何も照会も確認もしていません。',
   'app.verify.ex.status': '例 · 封印済みのバッチ内 · アンカーの報告あり',
-  'app.verify.ex.name': 'Harbour Mist（例）',
+  'app.verify.ex.name': 'Harbour Pippin（例）',
   'app.verify.ex.fact1':
     'このリンクは証明コード 3f9a0c41e2b7… のために作られ、レジストリもこの記録について同じ証明コードを報告しています。',
   'app.verify.ex.note1':
