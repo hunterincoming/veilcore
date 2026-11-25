@@ -61,9 +61,24 @@ export const policyJa: PolicyStrings = {
 
   'm.pp.browser.t': 'ブラウザが保管するもの',
   'm.pp.browser.p1':
-    'このサイトは、この端末のブラウザの保存領域を使います。保管するのは、保有者キー（私たちのサーバーであなたの記録を見つける鍵）、記録に鍵をかける鍵、記録とライセンス、各記録の秘密鍵、ライセンス契約の鍵、ラボコード、書きかけの記録、前回取り込んだスプレッドシートの行と覚えておくことにした列の設定、設定と言語、そして電波がなくても開くためのこのサイトのコードのコピーです。ブラウザが自動で送信できる場合（Chrome）は、日付を待つ記録も保有者キーとともに、電波が戻るまで保管します。「VeilCoreに保存」がオンのときは、アカウントキーから作った2つの鍵も保管します。ページはこの鍵を使えますが、取り出すことはできません。',
+    'このサイトは、次のものをこの端末のブラウザの保存領域に保管します。一部は秘密の情報です。このブラウザの保存領域を読める人なら誰でも使えてしまい、保存領域を消すと、バックアップファイルに入っていない限り失われます。',
+  'm.pp.browser.records.t': '記録とその秘密',
+  'm.pp.browser.records.p':
+    '記録、書きかけの記録、この端末だけに保管する書類、送信待ちの保存、「まとめて準備」の作業、そして前回取り込んだスプレッドシートの行と覚えておくことにした列の設定。秘密の情報は、保有者キー（私たちのサーバーであなたの記録を見つける鍵）、記録に鍵をかける鍵、各記録の秘密鍵、ラボの署名鍵です。バックアップファイルには、これらの鍵と記録が入っています。送信待ちの保存は、ほかの保存と同じく、鍵をかけた状態で保有者キーとともに私たちのサーバーへ送られます。ブラウザが自動で送信できる場合（Chrome）は、日付を待つ記録も保有者キーとともに、電波が戻るまで保管します。「VeilCoreに保存」がオンのときは、アカウントキーから作った2つの鍵も保管します。ページはこの鍵を使えますが、取り出すことはできません。',
+  'm.pp.browser.deals.t': 'ライセンスと契約',
+  'm.pp.browser.deals.p':
+    '与えたライセンスと持っているライセンス、署名済みでまだ届いていない契約のメッセージ（鍵をかけた状態で、最長30日）、貸し手の権利、あなたが名前を付けた決済パートナーの鍵。秘密の情報は、持っている各ライセンスの秘密、ライセンス契約の鍵、貸し手の秘密です。バックアップファイルにはこれらが入っています。ライセンスと契約のメッセージは、鍵をかけて私たちのサーバーへ送られます。名前を付けた決済パートナーの鍵は送信されません。',
+  'm.pp.browser.moving.t': '受け取るもの、送るもの',
+  'm.pp.browser.moving.p':
+    '作成した、または受け取ったラボコード、受け取り中のコード（その記録が保存されるまで。送り主が一緒に送った内容も含みます）、受取人に付けた名前と、記録の保存を待つ送付の鍵、開いた検査報告書、記録の鍵の証明を求めて出したリクエスト（7日間）、パートナーのサイトから届いたリクエスト（このタブで、最長1時間）、そしてまだ終わっていない鍵の日付スタンプや検査報告書の日付付け。秘密の情報は、コードと送付の鍵です。バックアップファイルには、作成したラボコードとラボが受け取った送付が入っていますが、受け取り中のコードは入っていません。受取人の名前と送付の鍵は、記録の鍵のかかったコピーに入って私たちのサーバーへ送られます。',
+  'm.pp.browser.settings.t': '設定と「確認済み」の印',
+  'm.pp.browser.settings.p':
+    '言語と役割、選んだ設定、閉じたお知らせ、どの記録がバックアップから来たか、またはこのブラウザから削除されたか、確認済みのバックアップに何が入っているか、手数料サービス用のランダムなチケット、そして2つのタブが同じことをしないための短時間の印。どれにも鍵や入力した内容は含まれません。チケットは手数料サービスへ、保存したコピーのIDは、コピーを保存または確認するときに私たちのサーバーへ送られます。',
+  'm.pp.browser.caches.t': '公開ファイルのキャッシュ',
+  'm.pp.browser.caches.p':
+    '電波がなくても開くためのこのサイトのコードのコピーと、Midnight向けの証明を作るためにブラウザが必要とする公開ファイル（このサイトから一度だけダウンロード）。あなたの情報は含まれません。',
   'm.pp.browser.p2':
-    'Cookieは使いません。すべて消すには、ブラウザの設定でこのサイトのデータを削除してください。先にバックアップを保存してください。バックアップがないと、記録を見つけることも開くこともできなくなります。保存される項目の名前は、最後の「技術的な詳細」にあります。',
+    'Cookieは使いません。すべて消すには、ブラウザの設定でこのサイトのデータを削除してください。先にバックアップを保存してください。バックアップがないと、記録を見つけることも開くこともできなくなります。受け取り中のコードや書きかけの記録など、バックアップに入っていないものは完全に失われます。保存される項目の名前は、最後の「技術的な詳細」にあります。',
 
   'm.pp.server.t': '私たちのサーバーが保管するもの',
   'm.pp.server.p':
@@ -237,7 +252,17 @@ export const policyJa: PolicyStrings = {
 
   'm.pp.tech.t': '技術的な詳細',
   'm.pp.tech.storage':
-    'ブラウザの保存領域。Local Storage：veilcore.holder.v1（保有者キー）、veilcore.vault.v1（記録に鍵をかける鍵）、veilcore.records.v1とveilcore.licenses.v1（記録とライセンス）、veilcore.record-keys.v1（記録の鍵）、veilcore.attester.v1（ラボの署名鍵）、veilcore.lab-deliveries.v1、veilcore.sent-codes.v1、veilcore.opened-results.v1（ラボコードと開いた報告書）、veilcore.prove-asks.v1とveilcore.verifier-challenges.v1（証明のリクエスト）、veilcore.log-draft.v1（書きかけの記録）、veilcore.device-only.v1（この端末だけに保管する書類）、veilcore.bulk-import.job.v1（前回の取り込みの行）、veilcore.import-layouts.v1（覚えておくことにした列の設定）、veilcore.bulk-import.v1（取り込んだどの行がどの記録になったか）、veilcore.outbox.v1（送信待ちの保存）、veilcore.sponsor-ticket.v1（手数料サービス用のランダムなチケットで、保有者キーではありません）、veilcore.issuer-deals.v1（ライセンス契約の鍵）、veilcore.lender.v1（貸し手の権利）、veilcore.account-copy.v1（保存したコピーの状態）、veilcore.role.v1とveilcore.lang（設定）。IndexedDB：veilcore-offline（日付を待つ記録と保有者キー）、veilcore.account.v1（アカウントキーから作った2つの鍵）、veilcore.ask.job.v1（「VeilCoreに聞く」の作業）。Cache Storage：veilcore-shell-<release>とveilcore-offline-meta（このサイトのコード）。主なものは以上で、すべての名前は公開されているコードにあります。',
+    'ブラウザの保存領域（グループ別）。veilcore.orgでこのサイトが使う名前はすべてここにあります。特に記載がなければLocal Storageです。',
+  'm.pp.tech.storage.records':
+    '記録とその秘密：veilcore.holder.v1（保有者キー）、veilcore.vault.v1（記録に鍵をかける鍵）、veilcore.vault.made.v1（その鍵を作った日時）、veilcore.records.v1（記録）、veilcore.record-keys.v1（記録の鍵）、veilcore.attester.v1（ラボの署名鍵）、veilcore.log-draft.v1（書きかけの記録）、veilcore.device-only.v1（この端末だけに保管する書類）、veilcore.outbox.v1（送信待ちの保存）、veilcore.unsure.v1（訂正の保存にはっきりした応答がなく、確認を待つ記録）、veilcore.bulk-import.job.v1（前回の取り込みの行）、veilcore.import-layouts.v1（覚えておくことにした列の設定）、veilcore.bulk-import.v1（取り込んだどの行がどの記録になったか）。IndexedDB：veilcore-offline（日付を待つ記録と保有者キー）、veilcore.account.v1（アカウントキーから作った2つの鍵）、veilcore.ask.job.v1（「VeilCoreに聞く」の作業）。',
+  'm.pp.tech.storage.deals':
+    'ライセンスと契約：veilcore.licenses.v1（ライセンス）、veilcore.held-licenses.v1（持っているライセンスとその秘密）、veilcore.issuer-deals.v1（ライセンス契約の鍵）、veilcore.deal-outbox.v1.<deal>（まだ届いていない契約のメッセージ、鍵をかけた状態）、veilcore.lender.v1（貸し手の権利）、veilcore.partnerKeys.v1（名前を付けた決済パートナーの鍵）。',
+  'm.pp.tech.storage.moving':
+    '受け取りと送付：veilcore.lab-deliveries.v1、veilcore.sent-codes.v1、veilcore.opened-results.v1（ラボコードと開いた報告書）、veilcore.receiving.v1、veilcore.receiving-claims.v1、veilcore.receiving-refused.v1（受け取り中のコード）、veilcore.outbox-names.v1とveilcore.outbox-offer-keys.v1（記録を待つ受取人の名前と送付の鍵）、veilcore.prove-asks.v1とveilcore.verifier-challenges.lasting.v1（証明のリクエスト、7日間）、veilcore.key-stamp-retry.v1（再試行する鍵の日付スタンプ）、veilcore.lab-report-dating.v1（日付付け中の検査報告書）。Session Storage（このタブだけ）：veilcore.verifier-challenges.v1（証明のリクエストのチャレンジ、24時間）、veilcore:intake（パートナーのサイトからのリクエスト、1時間）。',
+  'm.pp.tech.storage.settings':
+    '設定と印：veilcore.langとveilcore.role.v1（設定）、veilcore.bulk-import.stamps-on.v1とveilcore.bulk-import.stamps.v1（取り込んだ記録の鍵の日付スタンプ）、veilcore.sponsor-ticket.v1（手数料サービス用のランダムなチケットで、保有者キーではありません）、veilcore.account-copy.v1（保存したコピーの状態）、veilcore.account.device.v1（そのコピーでのこの端末のランダムなID）、veilcore.account.last-passkey.v1とveilcore:passkey-copy（最後に使ったパスキーのIDで、パスキーそのものではありません）、veilcore.rev.v1（各記録の、見た中で最新の版）、veilcore.records.arrived.v1、veilcore.record-keys.forgotten.v1、veilcore.record-keys.forgotten-at.v1、veilcore.record-keys.restored.v1（バックアップから来た記録、削除した記録、戻した記録のID）、veilcore.attester.backed-up.v1、veilcore.attester.backed-up.copy.v1、veilcore.issuer-deals-backed-up.v1、veilcore.issuer-deals-backed-up.copy.v1、veilcore.device-only-backup.v1（確認済みのバックアップに入っているもの）、veilcore.invite-unsure.v1.<license>（はっきりした応答がなかった招待）、veilcore.record-watch.seen.v1、veilcore.ask.seen.v1、veilcore.draft-notice-closed.v1、veilcore.install-card.v1、veilcore.lab-visibility-seen.v2、veilcore.log-kind.v1、veilcore.note.old-links.v1、veilcore.stamp-pressed.v1、veilcore.account.keep-safe-shown.v1、veilcore.account.sheet-reminder.v1（見た、または閉じたお知らせ）、veilcore.lock.<task>（一度に1つのタブだけ、30秒）。Session Storage：veilcore.record-watch.v1（ネットワークを最後に確認したときの結果）、veilcore.homescreen.fresh、veilcore:backup-return（バックアップの後に戻るページ）。',
+  'm.pp.tech.storage.caches':
+    'Cache Storage：veilcore-shell-<release>とveilcore-offline-meta（このサイトのコード）、veilcore-zk-<contract>とveilcore-zk-claims-<contract>（このサイトから取得した、証明用の公開ファイル）。',
   'm.pp.tech.locking':
     '鍵のかけ方。記録はブラウザでAES-GCMにより鍵がかけられます。保有者キーは、h1:とそのSHA-256の形で保管されます。保存したコピーはAES-256-GCMで、いくつかある大きさの段階のうち次の段階まで埋められ、私たちのサーバーはそれを読み書きするトークンのSHA-256だけを保管します。検査報告書はageで、あなたの記録の鍵に向けて暗号化されます。',
   'm.pp.tech.network':
