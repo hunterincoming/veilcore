@@ -1758,6 +1758,10 @@ html:has(.vcm) {
 .vcm .policy ul {
   padding-left: 1.25em;
 }
+/* The paragraph after "What your browser keeps"'s groups: apart from the last group's text. */
+.vcm .policy dl + p {
+  margin-top: 24px;
+}
 .vcm .policy li + li {
   margin-top: 8px;
 }

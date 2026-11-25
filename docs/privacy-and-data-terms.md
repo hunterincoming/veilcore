@@ -9,10 +9,11 @@
 > country: the questions for the lawyer are at the end.
 >
 > Last updated 25 November 2026, to describe veilcore.org once the open pull requests are
-> deployed: site #142, #143, #145, #146, #147, #148, #149, #208, #211 and registry #10, #11, #12
+> deployed: site #142, #143, #145, #146, #147, #148, #149, #208, #211, #215 and registry #10, #11, #12
 > (live sync and the recovery sheet; offline sealing and a timestamp per record; two Bitcoin
 > explorers and alerts; scanning and QR labels; parentage results; the Bitcoin header check and
-> the passkey check page; what a spreadsheet import keeps in the browser). Before that, 15 October to 8 November 2026 (sealed records, locked
+> the passkey check page; what a spreadsheet import keeps in the browser; every key
+> the browser keeps, in five groups). Before that, 15 October to 8 November 2026 (sealed records, locked
 > names, private lab signatures). The test site keeps its own short note (`m.privacy.*`).
 
 ## What the page leaves out, and why
@@ -75,15 +76,51 @@ hunter@veilcore.org.
 
 ### What your browser keeps
 
-Local storage, IndexedDB and Cache Storage on this device, no cookies: the holder key, the
-vault key, records and licences, record keys, lab codes, an unfinished record, the last
-spreadsheet import's rows and any remembered column layouts, settings and
-language, the offline copy of the site's code (`veilcore-shell-<release>`,
-`veilcore-offline-meta`), and, where Background Sync exists (Chrome), records waiting to be
-dated with the holder key (IndexedDB `veilcore-offline`, `src/offline/dating-mirror.ts`). With
-"Saved with VeilCore" on, two non-extractable WebCrypto keys derived from the account key
-(IndexedDB `veilcore.account.v1`, `account-key-store.ts`). The full list of names is in the
-page's "Technical details".
+Local storage, session storage, IndexedDB and Cache Storage on this device, no cookies. The page
+opens by saying some of these are secrets and some are what the person typed, kept unlocked;
+anyone who can read the browser's storage could read or use them, and clearing it loses them
+unless they are in the backup file. Then five plain groups, and the full key names under
+"Technical details", by the same groups. Local storage unless the table says otherwise.
+
+**Unlocked at rest.** Unfinished records (`veilcore.log-draft.v1` and its `.next.<record>` keys),
+records waiting to be saved (`veilcore.outbox.v1`), records whose correction got no clear answer
+(`veilcore.unsure.v1`: the whole record before and after), device-only documents
+(`veilcore.device-only.v1`), the last import's rows (`veilcore.bulk-import.job.v1`), recipient
+names (`veilcore.outbox-names.v1`), the sender's note and quantity kept with a code being received
+(`veilcore.receiving-claims.v1`) and a lender's claim words (`veilcore.lender.v1`) are plain JSON in
+local storage. Only the deal outbox is stored encrypted. The page says so in the groups, and the
+technical locking line reads "locked by your browser … before they are sent; the ones it keeps
+here … are stored unlocked". Encrypting them with the vault key, which sits in the same storage,
+would add nothing against someone who can read it.
+
+**Not browser storage.** `veilcore.records.v1` and `veilcore.licenses.v1` are the registry's
+collection names (`api-store.ts kindFor`); `store.ts` uses `apiStore`, and `localStore` is unused.
+The records live in page memory and come from the registry. The page says only that an older
+version may have left those two keys, that nothing reads them, and that clearing site data
+removes them.
+
+**Kept complete by a test.** `privacy-policy.test.ts` scans the site's code (and `offline/sw.js`)
+and fails on any storage name that is neither listed in every language nor in its `NOT_STORAGE`
+exemptions (Web Lock names, message types, file and format names, hashing labels, storage
+probes, the two collection names above, and the two payment keys that are off on veilcore.org).
+It finds `veilcore.` strings anywhere, `veilcore:`/`veilcore-` strings in files that touch
+storage, names built on a storage name (`${KEY}.next.${id}`, KEY + '.x'), and the first argument
+of every Web Storage, IndexedDB and Cache Storage call when it is a string or a constant, whatever
+it starts with.
+
+| Group (page words) | Keys | Secret? | How long, what clears it | Sent anywhere? | Source |
+|---|---|---|---|---|---|
+| **Your records and their secrets**: unfinished records, records waiting to be saved or checked, device-only documents, Ask's jobs, the last import and remembered columns; the holder key, the vault key, record keys and a lab's signing key | `veilcore.holder.v1`, `veilcore.vault.v1`, `veilcore.vault.made.v1`, `veilcore.record-keys.v1`, `veilcore.attester.v1`, `veilcore.log-draft.v1`, `veilcore.log-draft.v1.next.<record>`, `veilcore.device-only.v1`, `veilcore.outbox.v1`, `veilcore.unsure.v1`, `veilcore.bulk-import.job.v1`, `veilcore.import-layouts.v1`, `veilcore.bulk-import.v1`; IndexedDB `veilcore-offline`, `veilcore.account.v1`, `veilcore.ask.job.v1` | Yes: holder key, vault key, record keys, lab private key; `veilcore-offline` holds a second copy of the holder key; `veilcore.account.v1` holds two non-extractable WebCrypto keys. Not secret but unlocked: drafts, outbox, unsure, device-only and import rows | Until clearing site data; the backup file holds the keys and the records (`backup.ts BackupContents`), not the draft; Start over drops the holder key, `veilcore-offline` and the account keys (`records.ts startOver`, `holder.ts forgetHolderKey`); `veilcore-offline` also empties when nothing waits | Outbox and `unsure` records go to the registry locked, with the holder key, as any save; record keys go locked with the record; the vault key never unlocked; device-only records never (`outbox.ts neverSend`); `veilcore-offline` rows (id, proof code, key binding) and the holder key go to `PUT /api/records/dating` from the service worker | `holder.ts`, `vault.ts`, `records.ts`, `record-keys.ts`, `attester-keys.ts`, `outbox.ts`, `log-flow-state.ts`, `bulk-import*.ts`, `import-layouts.ts`, `offline/dating-mirror.ts`, `account-key-store.ts`, `ask-job/store.ts` |
+| **Licenses and deals**: licenses held (with their secrets), the keys of deals given, deal messages not yet delivered, a lender's claims, payment partner keys named | `veilcore.held-licenses.v1`, `veilcore.issuer-deals.v1`, `veilcore.deal-outbox.v1.<deal>`, `veilcore.lender.v1`, `veilcore.partnerKeys.v1` | Yes: each held license's secret and party secret, the issuer's deal keys, a lender's secrets; a lender's claim words are unlocked | Deal messages until delivered (then 10 minutes) or 30 days (`deal-client.ts KEEP_MS`); the rest until clearing; the backup file holds held licenses, deal keys and the lender's secrets | Held license secrets never, except inside the locked saved copy; deal messages go encrypted with the deal's channel key; partner keys never (`payment-partners.ts`) | `licenses.ts`, `held-licenses.ts`, `deal-client.ts`, `lender.ts`, `payment-partners.ts` |
+| **Things you're receiving or sending**: lab codes, a code being received (with what the sender sent with it), recipient names and delivery keys waiting for their record, opened reports, prove requests, a partner site's request, key stamps and lab report dating still to finish; recipient names and the sender's words are kept unlocked | `veilcore.lab-deliveries.v1`, `veilcore.sent-codes.v1`, `veilcore.opened-results.v1`, `veilcore.receiving.v1`, `veilcore.receiving-claims.v1`, `veilcore.receiving-refused.v1`, `veilcore.outbox-names.v1`, `veilcore.outbox-offer-keys.v1`, `veilcore.prove-asks.v1`, `veilcore.verifier-challenges.lasting.v1`, `veilcore.key-stamp-retry.v1`, `veilcore.lab-report-dating.v1`; session storage `veilcore.verifier-challenges.v1`, `veilcore:intake` | Yes: lab codes and codes being received (claim code and offer key), the breeder's lock on a lab's delivery, delivery (offer) keys waiting, a prove request's answer token | A code being received until its record is sealed and accepted, or the registry refuses it (`transfers.ts forgetReceivingCode`); not in the backup file. Prove requests 7 days; session challenges 24 hours; an intake request 1 hour, this tab only; lab codes made and a lab's deliveries are in the backup file | Names and offer keys go inside the record's locked copy; prove requests post the challenge and identity, and only the token's SHA-256 (`prove-relay.ts`); an intake answer (record ID, proof code, check link) goes to the partner's address only when the breeder sends it | `transfers.ts`, `lab-results.ts`, `outbox.ts`, `prove-relay.ts`, `chain/challenge-book.ts`, `chain/key-stamp.ts`, `stage/lab-report-date.ts`, `intake.ts` |
+| **Settings and "already seen" markers** | `veilcore.lang`, `veilcore.role.v1`, `veilcore.bulk-import.stamps-on.v1`, `veilcore.bulk-import.stamps.v1`, `veilcore.sponsor-ticket.v1`, `veilcore.account-copy.v1`, `veilcore.account.device.v1`, `veilcore.account.last-passkey.v1`, `veilcore:passkey-copy`, `veilcore.rev.v1`, `veilcore.records.arrived.v1`, `veilcore.record-keys.forgotten.v1`, `veilcore.record-keys.forgotten-at.v1`, `veilcore.record-keys.restored.v1`, `veilcore.attester.backed-up.v1`, `veilcore.attester.backed-up.copy.v1`, `veilcore.issuer-deals-backed-up.v1`, `veilcore.issuer-deals-backed-up.copy.v1`, `veilcore.device-only-backup.v1`, `veilcore.invite-unsure.v1.<license>`, `veilcore.record-watch.seen.v1`, `veilcore.ask.seen.v1`, `veilcore.draft-notice-closed.v1`, `veilcore.install-card.v1`, `veilcore.lab-visibility-seen.v2`, `veilcore.log-kind.v1`, `veilcore.note.old-links.v1`, `veilcore.stamp-pressed.v1`, `veilcore.account.keep-safe-shown.v1`, `veilcore.account.sheet-reminder.v1`, `veilcore.lock.<task>`; session storage `veilcore.record-watch.v1`, `veilcore.homescreen.fresh`, `veilcore.in-app-notice.closed`, `veilcore:backup-return` | No key and nothing typed. IDs (record IDs, a passkey's credential ID, the copy's ID and device list, a public key), times, a random ticket, a SHA-256 of the backup contents (`account-copy.ts sameAsOf`) | Until clearing; leases 30 seconds (`tab-lock.ts`); session ones with the tab | The sponsor ticket to the fee sponsor; the copy's ID to the registry when the copy is saved or checked; this device's ID only inside the sealed copy | `home-screen.ts PREFERENCE_KEYS`, `account-copy.ts`, `api-store.ts`, `record-keys.ts`, `record-watch.ts`, `tab-lock.ts` |
+| **Caches of public files** | Cache Storage `veilcore-shell-<release>`, `veilcore-offline-meta`, `veilcore-zk-<contract>`, `veilcore-zk-claims-<contract>` | No: this site's code, and proving keys, circuits and parameters fetched from this site | The service worker replaces the shell per release; the kill switch, or a build with offline off, clears every `veilcore-` cache (`offline/register.ts`, `offline/sw-kill.js`) | No | `offline/sw.js`, `chain/zk-material.ts` |
+
+Ask's on-device model would add WebLLM's caches (`webllm/config`, `webllm/model`, `webllm/wasm`);
+it is not on veilcore.org (above), and the test fails if the model is pinned and the page does
+not name them. The two NIGHT-payment keys (`veilcore:onchain-sent`, `veilcore:onchain-counted`)
+hold a payment's transaction ID per statement. They are written only by the NIGHT payment (`ONCHAIN_PAYMENTS = !IS_MAINNET`)
+and the Cardano stablecoin payment (`STABLECOIN_PAY_ON_MAINNET = false`), both off on veilcore.org.
 
 ### What our server keeps
 
