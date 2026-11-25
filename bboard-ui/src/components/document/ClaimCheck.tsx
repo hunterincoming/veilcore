@@ -295,7 +295,7 @@ export const ClaimCheck: React.FC = () => {
                       <Typography variant="body2">{t('app.claim.check.labFieldSecret')}</Typography>
                     )}
                     {/* A result file below says it with the result itself. */}
-                    {!isCall && (
+                    {!isCall && verdict.lab.signer?.kind !== 'retracted' && (
                       <Typography variant="body2" color="text.secondary" data-lab-sample-note="">
                         {t('app.lr.note.sample')}
                       </Typography>

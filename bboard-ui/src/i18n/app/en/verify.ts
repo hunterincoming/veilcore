@@ -391,5 +391,6 @@ export const verify = {
     'This browser checked that the batch’s stamp is in Bitcoin block {height}, linked to checkpoint {checkpoint}. Only VeilCore’s registry says this record is in that batch: the link you were sent carries no proof code to check it.',
   // Summit 5b item 15: wherever a record is shown to someone else.
   'app.verify.checkYourself':
-    'Check it yourself: type the proof code at veilcore.org, or use a checker you installed. Never trust a page you were sent.',
+    'Check it yourself: open {site}/verify and enter the record identifier, or use a checker you installed. Don’t rely only on a page someone sent you.',
+  'app.verify.addressBar': 'Make sure the address bar says {site}.',
 };

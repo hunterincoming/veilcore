@@ -13,6 +13,7 @@ import CancelIcon from '@mui/icons-material/CancelOutlined';
 import { useT } from '../../i18n/app';
 import type { VerdictTone } from './verdict';
 import { recognise } from '../../veilcore/paste';
+import { CANONICAL_HOST } from '../../config/network';
 
 const ICON: Record<VerdictTone, React.ElementType> = {
   ok: CheckCircleIcon,
@@ -82,15 +83,14 @@ export const MakeYourOwn: React.FC = () => {
 };
 
 /**
- * One line wherever a record is shown to someone else (summit 5b item 15): a lookalike page or
- * an edited file looks just like this one, so the reader checks at veilcore.org or with a
- * checker they installed themselves.
+ * One line on the site's own check pages (summit 5b item 15): a lookalike page looks just like
+ * this one, and the address bar is what tells them apart.
  */
 export const CheckYourself: React.FC<{ sx?: React.ComponentProps<typeof Typography>['sx'] }> = ({ sx }) => {
   const { t } = useT();
   return (
     <Typography variant="body2" color="text.secondary" data-check-yourself="" sx={sx}>
-      {t('app.verify.checkYourself')}
+      {t('app.verify.addressBar', { site: CANONICAL_HOST })}
     </Typography>
   );
 };

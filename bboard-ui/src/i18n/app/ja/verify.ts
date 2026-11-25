@@ -380,5 +380,6 @@ export const verify = {
   'app.verify.who.btc.batchOnly':
     'このブラウザは、バッチのスタンプがBitcoinのブロック{height}に入っていて、チェックポイント{checkpoint}につながることを確認しました。この記録がそのバッチに含まれることは、VeilCoreのレジストリが述べているだけです（送られてきたリンクに確認できる証明コードがありません）。',
   'app.verify.checkYourself':
-    'ご自身で確認を。veilcore.orgで証明コードを入力するか、自分で入れた確認ツールを使ってください。送られてきたページは信用しないでください。',
+    'ご自身で確認してください。{site}/verify を開いて記録識別子を入力するか、ご自身でインストールした確認ツールを使ってください。誰かから送られてきたページだけに頼らないでください。',
+  'app.verify.addressBar': 'アドレスバーに{site}と表示されていることを確認してください。',
 } satisfies Partial<AppTranslation>;

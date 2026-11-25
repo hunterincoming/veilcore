@@ -483,6 +483,7 @@ export const labresult = {
   'app.marker.limits.opening':
     'Toute personne qui détient les nombres de l’enregistrement et son secret de champs peut les publier : le détenteur, et aussi le laboratoire.',
   'app.lr.note.sample':
-    'Le laboratoire a testé l’échantillon reçu sous cet enregistrement. Il n’a pas prélevé l’échantillon, et le résultat s’applique à la portion testée.',
-  'app.lr.note.governs': 'Résumé du rapport {accession} du laboratoire ; le rapport {accession} fait foi.',
+    'Le laboratoire a testé l’échantillon reçu sous cet enregistrement. Ce résultat ne montre ni qui a prélevé l’échantillon, ni qu’il provient du matériel de cet enregistrement, et il ne s’applique qu’à la portion testée.',
+  'app.lr.note.governs':
+    'Un résumé du rapport du laboratoire ; le rapport du laboratoire lui-même pour le numéro d’entrée {accession} fait foi.',
 } satisfies Partial<AppTranslation>;

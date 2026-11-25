@@ -23,7 +23,7 @@ import { QRCodeSVG } from 'qrcode.react';
 import { toPng } from 'html-to-image';
 import { getRecord, checkIntegrity, type IntegrityCheck } from '../../veilcore/records';
 import { proofFor, type ProofState } from '../../veilcore/proofs';
-import { IS_MAINNET, NETWORK, networkLabel, canonicalUrl } from '../../config/network';
+import { CANONICAL_HOST, IS_MAINNET, NETWORK, networkLabel, canonicalUrl } from '../../config/network';
 import { useLicenses, activeLicenseCount, licensesForRecord } from '../../veilcore/licenses';
 import { shortFingerprint } from '../../veilcore/commitment';
 import { PROOF_END_FONT, proofEnd } from '../../veilcore/proof-end';
@@ -476,7 +476,7 @@ export const Step3Certificate: React.FC<{
           </Typography>
           {/* In English, like the rest of the card: a printed QR code can be swapped for a lookalike's. */}
           <Typography variant="caption" sx={{ color: CERT.muted, display: 'block', mt: 0.5 }} data-check-yourself="">
-            {enT.t('app.verify.checkYourself')}
+            {enT.t('app.verify.checkYourself', { site: CANONICAL_HOST })}
           </Typography>
         </Box>
       </Box>

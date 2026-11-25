@@ -487,6 +487,6 @@ export const labresult = {
     'Anyone holding the record’s numbers and its field secret can publish them: the holder, and the laboratory too.',
   // Summit 5b item 10: on every lab result (ResultFacts.tsx) and lab-signed claim.
   'app.lr.note.sample':
-    'The lab tested the sample it received under this record. It didn’t take the sample, and the result applies to the portion tested.',
-  'app.lr.note.governs': 'A summary of the lab’s report {accession}; report {accession} governs.',
+    'The lab tested the sample it received under this record. This result doesn’t show who took the sample or that it came from this record’s material, and it applies only to the portion tested.',
+  'app.lr.note.governs': 'A summary of the lab’s own report; the lab’s own report for accession {accession} governs.',
 };

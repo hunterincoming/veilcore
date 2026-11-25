@@ -408,5 +408,6 @@ export const verify = {
   'app.verify.who.btc.batchOnly':
     'Dieser Browser hat geprüft, dass der Stempel des Stapels in Bitcoin-Block {height} ist, verbunden mit Checkpoint {checkpoint}. Nur das Register von VeilCore sagt, dass dieser Datensatz in dem Stapel ist: Der Link, den Sie erhalten haben, enthält keinen Prüfcode, um das zu prüfen.',
   'app.verify.checkYourself':
-    'Prüfen Sie selbst: Prüfcode auf veilcore.org eingeben oder ein selbst installiertes Prüfprogramm nutzen. Trauen Sie keiner zugesandten Seite.',
+    'Prüfen Sie selbst: Öffnen Sie {site}/verify und geben Sie die Datensatzkennung ein, oder nutzen Sie ein Prüfprogramm, das Sie selbst installiert haben. Verlassen Sie sich nicht nur auf eine Seite, die Ihnen jemand geschickt hat.',
+  'app.verify.addressBar': 'Achten Sie darauf, dass in der Adressleiste {site} steht.',
 } satisfies Partial<AppTranslation>;

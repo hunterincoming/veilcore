@@ -207,5 +207,6 @@ export const prove = {
   'app.claim.check.whatLabUnnamedCall':
     'What this shows: the result code sealed in that record meets the line above, and the key above signed that record’s results. No single laboratory is tied to that key here, so read the result as the holder’s own. Every claim proved about it is public, and together they narrow it.',
   // Show someone, under the link: the check-it-yourself line (summit 5b item 15).
-  'app.prove.share.tellThem': 'For whoever opens the link: {line}',
+  'app.prove.share.tellThem':
+    'Whoever opens the link can check it themselves at {site}/verify with the record identifier, or with a checker they installed.',
 };

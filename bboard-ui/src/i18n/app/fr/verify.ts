@@ -406,5 +406,6 @@ export const verify = {
   'app.verify.who.btc.batchOnly':
     'Ce navigateur a vérifié que l’horodatage du lot est dans le bloc Bitcoin {height}, relié au point de contrôle {checkpoint}. Seul le registre de VeilCore dit que cet enregistrement est dans ce lot : le lien qu’on vous a envoyé ne contient pas de code de preuve pour le vérifier.',
   'app.verify.checkYourself':
-    'Vérifiez vous-même : saisissez le code de preuve sur veilcore.org, ou utilisez un vérificateur installé par vous. Ne vous fiez jamais à une page reçue.',
+    'Vérifiez vous-même : ouvrez {site}/verify et saisissez l’identifiant d’enregistrement, ou utilisez un vérificateur que vous avez installé vous-même. Ne vous fiez pas seulement à une page qu’on vous a envoyée.',
+  'app.verify.addressBar': 'Vérifiez que la barre d’adresse indique {site}.',
 } satisfies Partial<AppTranslation>;

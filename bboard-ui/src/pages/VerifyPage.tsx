@@ -86,7 +86,7 @@ import { isBoundLabDocument, labSaltFromLink } from '../veilcore/lab-doc';
 import { LINK_SX } from '../config/theme';
 import { color } from '../config/tokens';
 import { DatedStamp } from '../components/DatedStamp';
-import { NETWORK, explorerFor, isTestNetwork } from '../config/network';
+import { CANONICAL_HOST, NETWORK, explorerFor, isTestNetwork } from '../config/network';
 import { Fact, FactKey, SharedFacts } from '../components/verify/DisclosedFacts';
 import { pairingPending, pendingReportLine, publicReportLine, withdrawnSignaturesLine } from '../veilcore/saved-report';
 import {
@@ -1361,15 +1361,15 @@ export const VerifyPage: React.FC = () => {
         {REAL_CHAIN && AGREEMENTS_ON_CHAIN && result?.found && linked('chain') && (
           <LendHere identity={linked('chain') ?? ''} recordId={id} />
         )}
-        {/* For a stranger who arrived from a QR code or a shared link: check it at veilcore.org
-        itself, never only on a page someone sent (a lookalike looks the same; summit 5b item 15). */}
+        {/* For a stranger who arrived from a QR code or a shared link: a lookalike page looks the
+        same, so the address bar is what to check (summit 5b item 15). */}
         <Typography
           variant="body2"
           color="text.secondary"
           sx={{ textAlign: 'center', mt: 4, maxWidth: 460, mx: 'auto' }}
         >
           <Box component="span" data-check-yourself="">
-            {t('app.verify.checkYourself')}
+            {t('app.verify.addressBar', { site: CANONICAL_HOST })}
           </Box>{' '}
           {rich(t('app.verify.intro'), {
             link: (c) => (

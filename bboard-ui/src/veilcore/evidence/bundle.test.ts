@@ -482,13 +482,17 @@ describe('the bundle', () => {
     const { s, files } = await make({ key: true, lab: true });
     const readme = strFromU8(files[`${s.record.id}-evidence/README.txt`]).replace(/\s+/g, ' ');
     const page = strFromU8(files[`${s.record.id}-evidence/verify.html`]);
+    // Nothing from VeilCore needed, and never "go to veilcore.org" under that heading.
     expect(CHECK_YOURSELF).toBe(
-      'Check it yourself: type the proof code at veilcore.org, or use a checker you installed. Never trust a page you were sent.',
+      'If someone sent you this bundle, check it with a checker you got yourself, not one they sent.',
     );
     expect(readme).toContain(`HOW TO CHECK IT (nothing from VeilCore needed) ${CHECK_YOURSELF}`);
     expect(readme).toContain(`- What the sample was. ${LAB_SAMPLE}`);
-    expect(LAB_SAMPLE).toMatch(/^The lab tested the sample it received under this record\. It didn’t take the sample/);
-    expect(LAB_SAMPLE).toMatch(/applies to the portion tested\.$/);
+    // Never says who took the sample: VeilCore doesn't know (SPEC 7).
+    expect(LAB_SAMPLE).toBe(
+      'The lab tested the sample it received under this record. This result doesn’t show who took the sample or that it came from this record’s material, and it applies only to the portion tested.',
+    );
+    expect(LAB_SAMPLE).not.toMatch(/didn’t take/);
     expect(page).toContain(`<p class="muted" id="check-yourself">${CHECK_YOURSELF}</p>`);
     expect(page).toContain(`<li>What a lab’s sample was. ${LAB_SAMPLE}</li>`);
   });

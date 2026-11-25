@@ -272,14 +272,15 @@ test('a lab signs results bound to a record; the breeder checks them, adds one, 
   await expect(checked).toContainText('VeilCore didn’t take or test this sample');
   // What the lab did, and that this is a summary of its report (summit 5b items 10 and 15).
   await expect(checked.locator('[data-lab-result-sample]')).toHaveText(
-    'The lab tested the sample it received under this record. It didn’t take the sample, and the result applies to the portion tested.',
+    'The lab tested the sample it received under this record. This result doesn’t show who took the sample or that it came from this record’s material, and it applies only to the portion tested.',
   );
   await expect(checked.locator('[data-lab-result-governs]')).toHaveText(
-    'A summary of the lab’s report LAB-26-1187; report LAB-26-1187 governs.',
+    'A summary of the lab’s own report; the lab’s own report for accession LAB-26-1187 governs.',
   );
   await expect(checked).not.toContainText(/certificate/i);
+  // On the site's own check page: the address bar, never "don't trust this page".
   await expect(breeder.locator('main [data-check-yourself]')).toHaveText(
-    'Check it yourself: type the proof code at veilcore.org, or use a checker you installed. Never trust a page you were sent.',
+    `Make sure the address bar says ${new URL(breeder.url()).host}.`,
   );
   await shot(breeder, 'lab-check');
   // The page reads the breeder's records only when asked (the sync sends the holder key).

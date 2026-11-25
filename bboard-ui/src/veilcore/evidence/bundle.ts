@@ -1170,11 +1170,11 @@ export const documentFileLines = (ev: Evidence): string[] => {
 };
 
 /**
- * Said wherever a record is shown to someone else (summit 5b item 15): the bundle's own page could
- * have been edited, so the reader checks at veilcore.org or with a checker they installed.
- * The site's own English words, as verify.html also says them.
+ * The bundle's own page could have been edited by whoever sent it (summit 5b item 15). Said
+ * without VeilCore, as everything here is checked: verify.html says the same words.
  */
-export const CHECK_YOURSELF = enT.t('app.verify.checkYourself');
+export const CHECK_YOURSELF =
+  'If someone sent you this bundle, check it with a checker you got yourself, not one they sent.';
 
 /** What a lab's signature does and doesn't cover (summit 5b item 10; app.lr.note.sample). */
 export const LAB_SAMPLE = enT.t('app.lr.note.sample');

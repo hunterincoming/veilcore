@@ -400,5 +400,6 @@ export const verify = {
   'app.verify.who.btc.batchOnly':
     'Este navegador comprobó que el sello del lote está en el bloque de Bitcoin {height}, enlazado con el punto de control {checkpoint}. Solo el servidor de registros de VeilCore dice que este registro está en ese lote: el enlace que le enviaron no lleva un código de prueba para comprobarlo.',
   'app.verify.checkYourself':
-    'Compruébelo usted mismo: escriba el código de prueba en veilcore.org o use un verificador que haya instalado. Nunca se fíe de una página que le enviaron.',
+    'Compruébelo usted mismo: abra {site}/verify e introduzca el identificador de registro, o use un verificador que haya instalado. No se fíe solo de una página que alguien le envió.',
+  'app.verify.addressBar': 'Compruebe que la barra de direcciones diga {site}.',
 } satisfies Partial<AppTranslation>;

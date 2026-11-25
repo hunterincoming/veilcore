@@ -484,6 +484,7 @@ export const labresult = {
   'app.marker.limits.opening':
     'Wer die Zahlen des Datensatzes und sein Feldgeheimnis hat, kann sie veröffentlichen: der Inhaber und auch das Labor.',
   'app.lr.note.sample':
-    'Das Labor hat die Probe geprüft, die es unter diesem Datensatz erhalten hat. Es hat die Probe nicht genommen, und das Ergebnis gilt für den geprüften Teil.',
-  'app.lr.note.governs': 'Eine Zusammenfassung des Laborberichts {accession}; maßgeblich ist der Bericht {accession}.',
+    'Das Labor hat die Probe geprüft, die es unter diesem Datensatz erhalten hat. Dieses Ergebnis zeigt nicht, wer die Probe entnommen hat oder dass sie aus dem Material dieses Datensatzes stammt, und es gilt nur für den geprüften Teil.',
+  'app.lr.note.governs':
+    'Eine Zusammenfassung des Laborberichts; maßgeblich ist der eigene Bericht des Labors zur Eingangsnummer {accession}.',
 } satisfies Partial<AppTranslation>;
