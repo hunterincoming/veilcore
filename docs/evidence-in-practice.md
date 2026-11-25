@@ -196,8 +196,9 @@ Nowhere does a bare blockchain date settle a case by itself. Don't describe the 
 ## A word you may see: `proveOwnership`
 
 VeilCore's contract has a function called `proveOwnership`. The name is historical. What it
-proves is that the caller holds the record's secret at the time of the call: prior possession
-of that record, not ownership of the record, the plant or any right in it. If the other side
+proves is that the caller holds the record's secret at the time of the call: present
+possession of that secret. With the record's anchor date, that shows prior possession of that
+record, not ownership of the record, the plant or any right in it. If the other side
 says "your own system calls it an ownership proof", that is the answer.
 
 ## The declaration template: where its structure comes from

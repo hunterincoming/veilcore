@@ -51,10 +51,11 @@ audit. Delivered at the time, there is one copy, held by the party who would be 
 
 How it fits what exists:
 
-- Royalty reports already work this way. The licensee signs each report and sends it in the deal;
-  the licensor answers it; the licensee's page registers it at the registry with its due date
-  ([royalty-pay.md](../royalty-pay.md), "The licensee registers each report"). The monthly report
-  is built on the same signed deal messages, never as a separate private seal.
+- Royalty reports already work this way, live on veilcore.org (run on mainnet on 8 November
+  2026): the licensee signs each report and sends it in the deal, and the licensor answers it.
+  The monthly report is built on the same signed deal messages, never as a separate private seal.
+- Registering each report at the registry with its due date is built with the overdue line and
+  not live yet ([royalty-pay.md](../royalty-pay.md), "The licensee registers each report").
 - The licensor seals their receipt (the report's fingerprint and the day it arrived) as their own
   record. The licensee keeps the report and the licensor's signed acknowledgement.
 - A missing month is visible to both sides as a missing message, not as a gap someone can fill in
@@ -91,9 +92,10 @@ nothing on chain stands in the way.
 
 **Your licences are countable in public.** The contract keeps a public count of active licences
 for each licensing record (`activeLicensesBy`, keyed by the record's original identity on chain).
-It goes up when a licensee countersigns and down when a licence is revoked. Anyone who can tie
-your variety's check link to that identity can see how many licences are active, and when the
-number changes. The terms, the licensees and the royalties stay private; the count does not.
+It goes up when a licensee countersigns and down when a licence is revoked. Each countersign
+also publishes `lastActivatedRecord` on chain, so every new licence names the licensing record's
+identity at the moment it is activated. Anyone who can tie your variety's check link to that
+identity can see how many licences are active, and when the number changes. The terms, the licensees and the royalties stay private; the count does not.
 
 ## Licence clause template: the evidence clause
 

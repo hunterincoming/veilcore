@@ -76,7 +76,8 @@ github.com/hunterincoming/veilcore-sdk); the checker is the published veilcore-r
 ### A claim on the record
 
 You can record on Midnight that a record is pledged to you. While it is in force, anyone who
-checks the record sees that a claim is in force, and **only you can release it**. It does not
+checks the record sees that a claim is in force, and **only you can release it** (apart from the
+maintenance key, see [Who can change the contract today](#who-can-change-the-contract-today)). It does not
 move the record or stop the holder using it. It tells the next lender the record is already
 pledged.
 
