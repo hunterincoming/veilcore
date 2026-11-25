@@ -214,3 +214,54 @@ The end-to-end test `e2e/offline.spec.ts` runs the kill switch against a live co
 - The timestamp authority sees a SHA-256 of the proof code and when it was asked. One holder
   can have at most 20 proof codes waiting per authority; past that, and when an authority is
   slow or down, the batch's timestamp dates them as before.
+
+## If VeilCore is gone: what each checker needs (25 November 2026)
+
+"No signal" above is about making records. This is about checking them when VeilCore itself is
+gone: the site, the registry, the relay and the sponsor all down for good. A date only counts if
+it still holds then.
+
+How others prove this, and what we copied:
+
+- **OpenTimestamps.** The stamp file is the proof and travels with the thing stamped. Calendars
+  are needed only to upgrade a pending stamp; once it names a Bitcoin block, anyone checks it
+  with a Bitcoin node and nothing from the calendar
+  ([announcement](https://petertodd.org/2016/opentimestamps-announcement)).
+- **Certificate Transparency** (RFC 9162). The log's signed receipt is embedded in the
+  certificate and checked against the log's public key with no call to the log (8.1.3); the
+  inclusion proof can travel with it too (6.4). Independence comes from more than one log and
+  from monitors anyone can run.
+
+So: everything a check needs travels in the bundle, and the one step that needs the outside world
+goes to a public source that isn't ours. A test proves it on every change
+(`bboard-ui/src/veilcore/evidence/dates-hold-offline.test.ts`): it builds a bundle as the site
+does, opens `verify.html` in a headless browser with every request refused (VeilCore's hosts and
+everything else), runs `verify.py` with every network call refused, and fails if either can't
+reach its verdict. It also checks that each test's trap really catches a call to veilcore.org.
+
+### What each step needs
+
+| Step | Checked by | Needs |
+| --- | --- | --- |
+| The record matches its proof code | `verify.html`, `verify.py` | **Nothing.** The sealed fields are in the bundle |
+| The proof code is in the batch (proof leads to the batch root) | `verify.html`, `verify.py` | **Nothing.** The proof is in the bundle |
+| The stamp file is about this batch root | `verify.html`, `verify.py` | **Nothing** |
+| The stamped Bitcoin block holds it, has proof of work and links to a block this release pins | `verify.html`, when the bundle carries `proof/bitcoin-headers.json` | **Nothing.** The headers are in the bundle. Checked in the test on real mainnet data: batch `B-20261011-FE71`, blocks 971004 and 971005 |
+| That block is in Bitcoin's chain today | `ots verify`, or any block explorer | **Bitcoin itself** (a node or any explorer). Not VeilCore |
+| A pending stamp becomes a Bitcoin one | `ots upgrade` | **The OpenTimestamps calendars**, once. Not VeilCore |
+| The batch root is in the Midnight transaction: the date | `proof/check-on-midnight.mjs`, or a Midnight explorer by hand | **Midnight itself**: the script asks Blockfrost's Midnight indexer with your own free project id, and nothing of VeilCore's. Checked on the three real mainnet anchor transactions (`partner-kit/test/bundle-batch.test.ts`: only `midnight-mainnet.blockfrost.io` is asked). The script installs `@veilcore/contracts` from npm: published code, not a server, and anyone can keep a copy |
+| The RFC 3161 token (`proof/root.tst`) | `openssl ts -verify` | **The authority's root certificate** (from the authority). Not VeilCore. `verify.html` doesn't check this token |
+
+### Limits, plainly
+
+- **No real record in the test.** A real record's sealed fields are private, so the test's record
+  and its batch are practice data, batched as the registry batches. The real mainnet data is what
+  dates a batch: the Bitcoin stamp and headers, and the Midnight transactions.
+- **`verify.py` is not in the site's bundle.** It comes with the SDK's evidence package
+  (`buildEvidencePackage` in veilcore-records), which uses the SDK's record format. The site's
+  bundle (`*-evidence.zip`) carries `verify.html` only. There is no command-line checker for the
+  site's bundle yet (`npx veilcore-records verify` reads SDK records, not this bundle); outside a
+  browser, its README's "For technical readers" gives the hashes to redo by hand. The test runs
+  `verify.py` on an SDK package for a record in the same batch.
+- **The page can't confirm the Midnight transaction.** It names it and says how to look it up;
+  that look-up is the date, and it needs Midnight.
