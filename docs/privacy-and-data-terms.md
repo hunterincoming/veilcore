@@ -71,11 +71,13 @@ hunter@veilcore.org.
 | The recovery sheet's code | Made on the device; never sent (slot id, token and key come from it by HKDF) and never stored | `docs/passkey-backup.md`, PR #143 |
 | The passkey check page | Tests in the browser; nothing sent | `docs/passkey-support.md`, PR #148 |
 | Ask | Shortcuts only, on the device; typing sends nothing; an approved "Do it for me" job saves, sends reports or dates what was approved; jobs are local, deleted 7 days after they end | `docs/ask-veilcore.md`, `ask-job/store.ts` |
+| A spreadsheet you import | Read in the browser, never uploaded; only the picked details of each row are saved, locked, as records. The last import's rows (every column, the file name, each row's outcome) stay in local storage `veilcore.bulk-import.job.v1` until the next file is chosen or "Remove it" is pressed. Remembered columns (`veilcore.import-layouts.v1`: column names, which is which, the header row, the defaults set there: breeder, species, ID system and date order) stay until "Forget". Neither is sent | `veilcore/bulk-import.ts`, `veilcore/import-layouts.ts` |
 
 ### What your browser keeps
 
 Local storage, IndexedDB and Cache Storage on this device, no cookies: the holder key, the
-vault key, records and licences, record keys, lab codes, an unfinished record, settings and
+vault key, records and licences, record keys, lab codes, an unfinished record, the last
+spreadsheet import's rows and any remembered column layouts, settings and
 language, the offline copy of the site's code (`veilcore-shell-<release>`,
 `veilcore-offline-meta`), and, where Background Sync exists (Chrome), records waiting to be
 dated with the holder key (IndexedDB `veilcore-offline`, `src/offline/dating-mirror.ts`). With

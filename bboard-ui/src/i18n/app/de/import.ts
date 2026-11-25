@@ -194,4 +194,6 @@ export const importing = {
   'app.import.last.once':
     'Er bleibt in diesem Browser, bis Sie Ihre nächste Datei wählen. Laden Sie seine Ergebnisdatei herunter, wenn Sie sie brauchen.',
   'app.import.last.remove': 'Entfernen',
+  'app.import.saved.notKept':
+    'Dieser Browser konnte die Spalten nicht behalten, darum wählen Sie sie beim nächsten Mal wieder aus.',
 } satisfies Partial<AppTranslation>;

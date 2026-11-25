@@ -88,7 +88,8 @@ import {
   layoutLabel,
   loadLayouts,
   matchLayout,
-  rememberLayout,
+  rememberAfter,
+  rememberOnSeal,
   type SavedLayout,
 } from '../../veilcore/import-layouts';
 import { DisclosureReceipt } from '../chain/DisclosureReceipt';
@@ -195,6 +196,8 @@ export const BulkImportPage: React.FC = () => {
   const [layouts, setLayouts] = useState<SavedLayout[]>(loadLayouts);
   const [layout, setLayout] = useState<SavedLayout>();
   const [remember, setRemember] = useState(true);
+  // True when Remember was on but this browser wouldn't keep the columns: the summary says so.
+  const [columnsNotKept, setColumnsNotKept] = useState(false);
   const first = useRef(true);
 
   const setJob = (j: Job | undefined) => {
@@ -251,7 +254,8 @@ export const BulkImportPage: React.FC = () => {
               setFileName(name);
               // Today's file, picked beside the last import's box: that import is put away.
               if (lastJob) removeLastJob();
-              setRemember(true);
+              setRemember(rememberAfter(remember, 'new-file'));
+              setColumnsNotKept(false);
               const found = matchLayout(s, layouts);
               if (found) {
                 setSheet(found.sheet);
@@ -273,9 +277,10 @@ export const BulkImportPage: React.FC = () => {
             step={step}
             sheet={sheet}
             onPick={(line) => {
-              // Another header row: other column names, so no longer the remembered layout.
+              // Another header row: other column names, so no longer the remembered layout. The
+              // Remember box keeps the person's choice: after Forget it stays unticked.
               setLayout(undefined);
-              setRemember(true);
+              setRemember((on) => rememberAfter(on, 'other-header-row'));
               const s = withHeaderRow(sheet, line);
               setSheet(s);
               setMapping(guessFor(s.headers, !!mapping?.animal));
@@ -307,20 +312,19 @@ export const BulkImportPage: React.FC = () => {
             mapping={mapping}
             layout={layout}
             remember={remember}
-            onRemember={setRemember}
+            onRemember={(on) => setRemember((was) => rememberAfter(was, on ? 'tick' : 'untick'))}
             onForget={() => {
               if (layout) forgetLayout(layout.id);
               setLayout(undefined);
-              setRemember(false);
+              setRemember((on) => rememberAfter(on, 'forget'));
               setLayouts(loadLayouts());
             }}
             onBack={() => setScreen('columns')}
             onHeaderRow={() => setScreen('header')}
             onSeal={(rows) => {
-              if (remember && canRemember(sheet.headers, mapping)) {
-                rememberLayout(sheet, mapping);
-                setLayouts(loadLayouts());
-              }
+              const remembered = rememberOnSeal(sheet, mapping, remember);
+              if (remembered === 'kept') setLayouts(loadLayouts());
+              setColumnsNotKept(remembered === 'not-kept');
               setJob({
                 version: 1,
                 fileName,
@@ -352,6 +356,7 @@ export const BulkImportPage: React.FC = () => {
             step={step}
             job={job}
             copyOn={copyOn}
+            columnsNotKept={columnsNotKept}
             onNext={() => {
               if (jobRecordIds(job).length > 0) void afterSummary(job);
               else {
@@ -1192,12 +1197,14 @@ const Seal: React.FC<{
 
 // ---------------------------------------------------------------------------------------
 
-const Summary: React.FC<{ step?: string; job: Job; onNext: () => void; copyOn?: boolean }> = ({
-  step,
-  job,
-  onNext,
-  copyOn,
-}) => {
+const Summary: React.FC<{
+  step?: string;
+  job: Job;
+  onNext: () => void;
+  copyOn?: boolean;
+  /** Remember was on, but this browser wouldn't keep the columns (rememberOnSeal). */
+  columnsNotKept?: boolean;
+}> = ({ step, job, onNext, copyOn, columnsNotKept }) => {
   const tr = useT();
   const { t, tp } = tr;
   const s = jobSummary(job);
@@ -1243,6 +1250,11 @@ const Summary: React.FC<{ step?: string; job: Job; onNext: () => void; copyOn?: 
           </li>
         )}
       </Box>
+      {columnsNotKept && (
+        <Typography variant="body2" color="text.secondary" data-columns-not-kept="">
+          {t('app.import.saved.notKept')}
+        </Typography>
+      )}
       {s.sealed > 0 && (
         <Typography variant="body1" color="text.secondary">
           {stampsFromHere

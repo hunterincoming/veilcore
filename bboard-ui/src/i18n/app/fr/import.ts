@@ -192,4 +192,6 @@ export const importing = {
   'app.import.last.once':
     'Elle reste dans ce navigateur jusqu’à ce que vous choisissiez votre prochain fichier. Téléchargez son fichier de résultats si vous en avez besoin.',
   'app.import.last.remove': 'La retirer',
+  'app.import.saved.notKept':
+    'Ce navigateur n’a pas pu garder les colonnes : vous les choisirez de nouveau la prochaine fois.',
 } satisfies Partial<AppTranslation>;

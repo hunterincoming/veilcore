@@ -52,13 +52,16 @@ export const policyJa: PolicyStrings = {
   'm.pp.device.sheet.p': '端末上で作られ、そこから印刷されます。私たちに送信されることはなく、端末にも保存されません。',
   'm.pp.device.passkey.t': 'パスキー確認ページ',
   'm.pp.device.passkey.p': 'ブラウザの中でパスキーをテストします。何も送信されません。',
+  'm.pp.device.import.t': '取り込むスプレッドシート',
+  'm.pp.device.import.p':
+    'ブラウザの中で読み込まれ、アップロードされることはありません。各行から保存されるのは選んだ項目だけで、ほかの記録と同じく鍵をかけて保存されます。ブラウザは前回の取り込みの行（すべての列、ファイル名、各行の結果）を、次のファイルを選ぶか「削除する」を押すまで保管します。シートの列の設定を覚えておくことにした場合は、列の名前、どの列が何か、列名のある行、そこで設定した既定値（育成者、種、ID方式、日付の順序）も、「忘れる」を押すまで保管します。どちらも私たちには送信されません。',
   'm.pp.device.ask.t': 'アプリのヘルパー「VeilCoreに聞く」',
   'm.pp.device.ask.p':
     '端末上で動きます。入力しても何も送信されません。送信するのは保存と、「まとめて準備」の作業の承認だけで、承認すると、承認した内容のとおりに保存、報告の送信、日付付けを行います。作業は端末だけに保管され、終わってから7日後に削除されます。',
 
   'm.pp.browser.t': 'ブラウザが保管するもの',
   'm.pp.browser.p1':
-    'このサイトは、この端末のブラウザの保存領域を使います。保管するのは、保有者キー（私たちのサーバーであなたの記録を見つける鍵）、記録に鍵をかける鍵、記録とライセンス、各記録の秘密鍵、ライセンス契約の鍵、ラボコード、書きかけの記録、設定と言語、そして電波がなくても開くためのこのサイトのコードのコピーです。ブラウザが自動で送信できる場合（Chrome）は、日付を待つ記録も保有者キーとともに、電波が戻るまで保管します。「VeilCoreに保存」がオンのときは、アカウントキーから作った2つの鍵も保管します。ページはこの鍵を使えますが、取り出すことはできません。',
+    'このサイトは、この端末のブラウザの保存領域を使います。保管するのは、保有者キー（私たちのサーバーであなたの記録を見つける鍵）、記録に鍵をかける鍵、記録とライセンス、各記録の秘密鍵、ライセンス契約の鍵、ラボコード、書きかけの記録、前回取り込んだスプレッドシートの行と覚えておくことにした列の設定、設定と言語、そして電波がなくても開くためのこのサイトのコードのコピーです。ブラウザが自動で送信できる場合（Chrome）は、日付を待つ記録も保有者キーとともに、電波が戻るまで保管します。「VeilCoreに保存」がオンのときは、アカウントキーから作った2つの鍵も保管します。ページはこの鍵を使えますが、取り出すことはできません。',
   'm.pp.browser.p2':
     'Cookieは使いません。すべて消すには、ブラウザの設定でこのサイトのデータを削除してください。先にバックアップを保存してください。バックアップがないと、記録を見つけることも開くこともできなくなります。保存される項目の名前は、最後の「技術的な詳細」にあります。',
 
@@ -234,7 +237,7 @@ export const policyJa: PolicyStrings = {
 
   'm.pp.tech.t': '技術的な詳細',
   'm.pp.tech.storage':
-    'ブラウザの保存領域。Local Storage：veilcore.holder.v1（保有者キー）、veilcore.vault.v1（記録に鍵をかける鍵）、veilcore.records.v1とveilcore.licenses.v1（記録とライセンス）、veilcore.record-keys.v1（記録の鍵）、veilcore.attester.v1（ラボの署名鍵）、veilcore.lab-deliveries.v1、veilcore.sent-codes.v1、veilcore.opened-results.v1（ラボコードと開いた報告書）、veilcore.prove-asks.v1とveilcore.verifier-challenges.v1（証明のリクエスト）、veilcore.log-draft.v1（書きかけの記録）、veilcore.device-only.v1（この端末だけに保管する書類）、veilcore.outbox.v1（送信待ちの保存）、veilcore.sponsor-ticket.v1（手数料サービス用のランダムなチケットで、保有者キーではありません）、veilcore.issuer-deals.v1（ライセンス契約の鍵）、veilcore.lender.v1（貸し手の権利）、veilcore.account-copy.v1（保存したコピーの状態）、veilcore.role.v1とveilcore.lang（設定）。IndexedDB：veilcore-offline（日付を待つ記録と保有者キー）、veilcore.account.v1（アカウントキーから作った2つの鍵）、veilcore.ask.job.v1（「VeilCoreに聞く」の作業）。Cache Storage：veilcore-shell-<release>とveilcore-offline-meta（このサイトのコード）。主なものは以上で、すべての名前は公開されているコードにあります。',
+    'ブラウザの保存領域。Local Storage：veilcore.holder.v1（保有者キー）、veilcore.vault.v1（記録に鍵をかける鍵）、veilcore.records.v1とveilcore.licenses.v1（記録とライセンス）、veilcore.record-keys.v1（記録の鍵）、veilcore.attester.v1（ラボの署名鍵）、veilcore.lab-deliveries.v1、veilcore.sent-codes.v1、veilcore.opened-results.v1（ラボコードと開いた報告書）、veilcore.prove-asks.v1とveilcore.verifier-challenges.v1（証明のリクエスト）、veilcore.log-draft.v1（書きかけの記録）、veilcore.device-only.v1（この端末だけに保管する書類）、veilcore.bulk-import.job.v1（前回の取り込みの行）、veilcore.import-layouts.v1（覚えておくことにした列の設定）、veilcore.bulk-import.v1（取り込んだどの行がどの記録になったか）、veilcore.outbox.v1（送信待ちの保存）、veilcore.sponsor-ticket.v1（手数料サービス用のランダムなチケットで、保有者キーではありません）、veilcore.issuer-deals.v1（ライセンス契約の鍵）、veilcore.lender.v1（貸し手の権利）、veilcore.account-copy.v1（保存したコピーの状態）、veilcore.role.v1とveilcore.lang（設定）。IndexedDB：veilcore-offline（日付を待つ記録と保有者キー）、veilcore.account.v1（アカウントキーから作った2つの鍵）、veilcore.ask.job.v1（「VeilCoreに聞く」の作業）。Cache Storage：veilcore-shell-<release>とveilcore-offline-meta（このサイトのコード）。主なものは以上で、すべての名前は公開されているコードにあります。',
   'm.pp.tech.locking':
     '鍵のかけ方。記録はブラウザでAES-GCMにより鍵がかけられます。保有者キーは、h1:とそのSHA-256の形で保管されます。保存したコピーはAES-256-GCMで、いくつかある大きさの段階のうち次の段階まで埋められ、私たちのサーバーはそれを読み書きするトークンのSHA-256だけを保管します。検査報告書はageで、あなたの記録の鍵に向けて暗号化されます。',
   'm.pp.tech.network':

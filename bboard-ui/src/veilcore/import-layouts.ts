@@ -87,17 +87,50 @@ export const signatureOf = (headers: readonly string[]): string => [...headerKey
 const UNNAMED = /^Column [A-Z]{1,3}$/;
 
 /**
- * A header cell that reads like a value from a row: a date, a number, or a code like V-001, AB_12,
- * V001 or #4471 (a separator, or three digits or more). A word, a space and a number ("Day 14",
- * "Well 96", "Rack 10") and a short name like "P10" or "F1" are column names.
+ * Month names and their short forms in English, German, Spanish and French (Japanese dates are
+ * written with 年, 月 and 日, below). Only ever matched as a whole word next to a number, so a
+ * column called "March" or "Mai" alone is still a column name.
+ */
+const MONTHS = [
+  // English
+  'january february march april may june july august september october november december',
+  'jan feb mar apr jun jul aug sep sept oct nov dec',
+  // German
+  'januar jänner februar märz mär mrz mai juni juli oktober okt dezember dez',
+  // Spanish
+  'enero ene febrero marzo abril abr mayo junio julio agosto ago septiembre setiembre octubre noviembre diciembre dic',
+  // French
+  'janvier janv février fevrier févr fevr mars avril avr juin juillet juil août aout septembre octobre novembre',
+  'décembre decembre déc',
+]
+  .join(' ')
+  .split(' ')
+  .join('|');
+/** Between a day, a month and a year: spaces, a full stop, a comma, a slash or a dash. */
+const GAP = '[\\s.,/-]*';
+const WRITTEN_DATE = [
+  // 12 Mar 2024, 12. März 2024, 12 de marzo de 2024, 1er mars, 12-Mar-24, 12th March
+  new RegExp(`(?<![\\p{L}\\d])\\d{1,2}(?:st|nd|rd|th|er)?${GAP}(?:de\\s+)?(?:${MONTHS})(?!\\p{L})`, 'iu'),
+  // March 12, 2024, Mar 12 2024, Nov 2024, Nov 24, März 2024
+  new RegExp(`(?<!\\p{L})(?:${MONTHS})${GAP}(?:de\\s+)?\\d{1,4}(?!\\d)`, 'iu'),
+  // 2024年3月12日, 令和6年3月, 3月12日 (a year or a month alone, such as 2024年 or 3月, is a column name)
+  /\d{1,4}\s*年\s*\d{1,2}\s*月|\d{1,2}\s*月\s*\d{1,2}\s*日/u,
+];
+
+/**
+ * A header cell that reads like a value from a row: a date (in numbers, or written out with a
+ * month's name in English, German, Spanish or French, or in Japanese), a number, or a code like
+ * V-001, AB_12, V001 or #4471 (a separator, or three digits or more). A word, a space and a number
+ * ("Day 14", "Well 96", "Rack 10") and a short name like "P10" or "F1" are column names.
  */
 export const looksLikeData = (cell: string): boolean => {
-  const v = cell.trim();
+  const v = cell.normalize('NFKC').trim();
   return (
     v.length > 60 ||
     /\d{1,4}[-/.]\d{1,2}[-/.]\d{1,4}/.test(v) ||
     /^[-+]?[\d\s.,:%/]*\d[\d\s.,:%/]*$/.test(v) ||
-    /^[A-Za-z]{0,4}([-_#]\d{2,}|\d{3,})[A-Za-z]?$/.test(v)
+    /^[A-Za-z]{0,4}([-_#]\d{2,}|\d{3,})[A-Za-z]?$/.test(v) ||
+    WRITTEN_DATE.some((re) => re.test(v))
   );
 };
 
@@ -241,6 +274,33 @@ export const rememberLayout = (
   };
   return store([layout, ...all.filter((l) => l.id !== id)].slice(0, MAX_LAYOUTS));
 };
+
+/**
+ * What sealing did with Remember: kept the columns, wasn't asked to (unticked, or the names read
+ * like a row), or couldn't keep them because this browser won't store anything (a private window,
+ * site data blocked, storage full). The page says so in that last case instead of failing quietly.
+ */
+export type RememberOutcome = 'kept' | 'not-asked' | 'not-kept';
+
+export const rememberOnSeal = (
+  sheet: Pick<Sheet, 'headers' | 'headerLine'>,
+  mapping: Mapping,
+  remember: boolean,
+  now = Date.now(),
+): RememberOutcome => {
+  if (!remember || !canRemember(sheet.headers, mapping)) return 'not-asked';
+  return rememberLayout(sheet, mapping, now) ? 'kept' : 'not-kept';
+};
+
+/**
+ * The Remember box after something happens on the import. A new file starts it ticked. Forget and
+ * an untick turn it off, and it stays off: picking another header row or changing a column is not
+ * the person changing their mind, so it never ticks itself again after they pressed Forget.
+ */
+export type RememberEvent = 'new-file' | 'tick' | 'untick' | 'forget' | 'other-header-row' | 'column-changed';
+
+export const rememberAfter = (on: boolean, event: RememberEvent): boolean =>
+  event === 'new-file' || event === 'tick' ? true : event === 'untick' || event === 'forget' ? false : on;
 
 export type LayoutMatch = { layout: SavedLayout; sheet: Sheet; mapping: Mapping };
 

@@ -10,7 +10,9 @@
 //   - another header row drops "same columns as last time", and a file with no header row is
 //     never offered Remember, and says why;
 //   - the layout is kept in this browser only: nothing about it goes to the registry, and it can
-//     be forgotten, after which the next file asks for its columns again.
+//     be forgotten, after which the next file asks for its columns again;
+//   - Forget on the check screen, then another header row: Remember stays unticked;
+//   - a browser that won't store the columns: the summary says so in one line.
 // NEW_SHOTS saves screenshots at 360 px.
 // SPDX-License-Identifier: Apache-2.0
 import { randomBytes } from 'node:crypto';
@@ -241,5 +243,93 @@ test('a lab seals its daily sheet: columns picked once, then one button the next
   await upload(page, 'TC_export_2026-11-26.csv', [HEADER, 'V-008,Lab Clone H (test data),Root,2026-11-26,JS']);
   await expect(page.getByRole('button', { name: 'Next: which column is which' })).toBeVisible();
 
+  expectNoErrors(errors);
+});
+
+/** Day 1 by hand: the columns picked, Remember left as it is, and the rows sealed. */
+const sealDay1 = async (page: Page, held: { records: Rec[] }) => {
+  await page.goto('/records/import?lang=en');
+  await upload(page, 'TC_export_2026-11-24.csv', [
+    HEADER,
+    'V-001,Lab Clone A (test data),Multiply,2026-11-24,AR',
+    'V-002,Lab Clone B (test data),Root,2026-11-24,AR',
+  ]);
+  await page.getByRole('button', { name: 'Next: which column is which' }).click();
+  await choose(page, /^Plant or line name/, 'Clone');
+  await choose(page, /^Your ID/, 'Vessel');
+  await page.getByRole('button', { name: 'Next: check the rows' }).click();
+  await expect(
+    page.getByRole('checkbox', { name: 'Remember these columns on this device for next time' }),
+  ).toBeChecked();
+  await page.getByRole('button', { name: 'Seal 2 records' }).click();
+  await expect.poll(() => held.records.length, { timeout: 60_000 }).toBe(2);
+};
+
+test('after Forget, picking another header row leaves Remember unticked', async ({ page }) => {
+  test.setTimeout(240_000);
+  const errors = watch(page);
+  const held = await standIn(page);
+  await sealDay1(page, held);
+  await finish(page);
+  expect(await page.evaluate((k) => localStorage.getItem(k), LAYOUTS_KEY)).not.toBeNull();
+
+  // Day 2: the remembered columns, then Forget on the check screen.
+  await page.goto('/records/import?lang=en');
+  await upload(page, 'TC_export_2026-11-25.csv', [HEADER, 'V-003,Lab Clone C (test data),Root,2026-11-25,JS']);
+  await expect(page.locator('[data-saved-layout-used]')).toBeVisible();
+  await page.getByRole('button', { name: 'Forget these columns' }).click();
+  expect(await page.evaluate((k) => localStorage.getItem(k), LAYOUTS_KEY)).toBeNull();
+  const remember = page.getByRole('checkbox', { name: 'Remember these columns on this device for next time' });
+  await expect(remember).not.toBeChecked();
+
+  // Another header row, and back: the box is still unticked.
+  await page.getByRole('button', { name: 'Change the columns' }).click();
+  await page.getByRole('button', { name: 'Change the column names row' }).click();
+  await page.getByRole('combobox', { name: 'The column names are in' }).click();
+  await page.getByRole('option', { name: /^Row 2:/ }).click();
+  await page.getByRole('combobox', { name: 'The column names are in' }).click();
+  await page.getByRole('option', { name: /^Row 1:/ }).click();
+  await page.getByRole('button', { name: 'Next: which column is which' }).click();
+  await choose(page, /^Plant or line name/, 'Clone');
+  await page.getByRole('button', { name: 'Next: check the rows' }).click();
+  await expect(page.locator('[data-screen-heading]')).toContainText('Is this right?');
+  await expect(remember).toBeVisible();
+  await expect(remember).not.toBeChecked();
+  await shot(page, 'lab-sheet-4-forgot-header-row');
+
+  // Sealing keeps nothing: the columns stay forgotten.
+  await page.getByRole('button', { name: 'Seal 1 record' }).click();
+  await expect.poll(() => held.records.length, { timeout: 60_000 }).toBe(3);
+  expect(await page.evaluate((k) => localStorage.getItem(k), LAYOUTS_KEY)).toBeNull();
+
+  expectNoErrors(errors);
+});
+
+test("a browser that won't store the columns says so after sealing", async ({ page }) => {
+  test.setTimeout(240_000);
+  const errors = watch(page);
+  // Storage that refuses this one item (full, or blocked for it), and keeps everything else.
+  await page.addInitScript((key) => {
+    const set = Object.getOwnPropertyDescriptor(Storage.prototype, 'setItem')!.value as (
+      this: Storage,
+      k: string,
+      v: string,
+    ) => void;
+    Storage.prototype.setItem = function (this: Storage, k: string, v: string) {
+      if (k === key) throw new DOMException('The quota has been exceeded.', 'QuotaExceededError');
+      set.call(this, k, v);
+    };
+  }, LAYOUTS_KEY);
+  const held = await standIn(page);
+  await sealDay1(page, held);
+  const line = page.locator('[data-columns-not-kept]');
+  await expect(line).toHaveText('This browser couldn’t keep the columns, so you’ll pick them again next time.');
+  await shot(page, 'lab-sheet-5-columns-not-kept');
+  expect(await page.evaluate((k) => localStorage.getItem(k), LAYOUTS_KEY)).toBeNull();
+  await finish(page);
+
+  // And the next file asks for its columns again, with no error.
+  await page.goto('/records/import?lang=en');
+  await expect(page.locator('[data-saved-layouts]')).toHaveCount(0);
   expectNoErrors(errors);
 });
