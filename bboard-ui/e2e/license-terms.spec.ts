@@ -3,7 +3,7 @@
 // named before a license can be saved, and the saved license's page showing readable labels and
 // no green "active" chip for a license that isn't on Midnight (panel review). And farmers' rights
 // (summit, 25 Nov 2026): the Seed license counts seed sold, gifts only on a tick, a fixed line on
-// every license charging per seed, harvest or area, and tonne, hectare and acre only on Custom.
+// every plant license, and tonne, hectare and acre only on Custom.
 // SPDX-License-Identifier: Apache-2.0
 import { randomBytes } from 'node:crypto';
 import { expect, test, type Page } from '@playwright/test';
@@ -182,7 +182,7 @@ test('a seed license: counts seed sold, carries the farmers’ rights line, no p
   await page.locator('[data-territory]').fill('New Jersey');
   await page.locator('[data-law]').fill('New Jersey');
   const LINE =
-    'Nothing in this license can take away a right the law gives farmers to save, re-sow, exchange or sell farm-saved seed, where the law gives it.';
+    'Nothing in this license takes away or limits a right the law gives farmers to save, re-sow, exchange or sell farm-saved seed or other propagating material, where the law gives it.';
   const summary = page.locator('[data-terms-sentence]');
   await expect(summary).toContainText('What counts: Each pack of seed sold counts once.');
   await expect(summary).toContainText(LINE);
@@ -212,7 +212,7 @@ test('a seed license: counts seed sold, carries the farmers’ rights line, no p
   await expect(page.locator('body')).not.toContainText(/app\.(lic|roy)\./);
   await shot(page, 'farmers-3-license-page');
 
-  // Custom offers tonne, hectare and acre, and a per-tonne license carries the line too.
+  // Custom offers tonne, hectare and acre; the line is on every plant license, whatever the unit.
   await page.goBack();
   await expect(page.locator('[data-preset="custom"]')).toBeVisible();
   await page.locator('[data-preset="custom"]').click();
@@ -232,6 +232,8 @@ test('a seed license: counts seed sold, carries the farmers’ rights line, no p
   await expect(page.locator('[data-count-gifts]')).toHaveCount(0);
   await page.getByRole('combobox', { name: 'Per' }).click();
   await page.getByRole('option', { name: 'cutting or clone' }).click();
-  await expect(summary).not.toContainText(LINE);
+  await expect(summary).toContainText(LINE);
+  await page.getByRole('button', { name: '% of sales' }).click();
+  await expect(summary).toContainText(LINE);
   expectNoErrors(errors);
 });

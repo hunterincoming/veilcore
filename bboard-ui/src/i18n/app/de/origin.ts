@@ -6,8 +6,8 @@ import type { AppTranslation } from '../../translate';
 export const origin = {
   'app.origin.source.label': 'Woher stammt sie?',
   'app.origin.source.bred': 'Ich habe sie gezüchtet (gekreuzt)',
-  'app.origin.source.selected': 'Ich habe sie aus erhaltenen Pflanzen selektiert',
-  'app.origin.source.received': 'Ich habe sie von einem Züchter, einer Saatgutbank oder einer Sammlung erhalten',
+  'app.origin.source.selected': 'Ich habe sie aus Pflanzen selektiert, die ich bekam',
+  'app.origin.source.received': 'Ich habe sie von einem Züchter, einer Saatgutbank oder Sammlung erhalten',
   'app.origin.source.landrace': 'Eine Landsorte oder alte Sorte, die von einer Gemeinschaft bewahrt wird',
   'app.origin.breederIfKnown': 'Züchter, falls bekannt',
   'app.origin.breederHelp':

@@ -43,7 +43,7 @@ export const log = {
   'app.log.egNextSelection': 'p. ex. {name}, sélection suivante',
   'app.log.bredBy': 'Obtenteur',
   'app.log.whenMade': 'Quand vous l’avez obtenue (votre propre note)',
-  'app.log.whenMadeHelp': 'L’horodatage public vient du réseau, pas d’ici.',
+  'app.log.whenMadeHelp': 'L’horodatage public vient du réseau. Ceci est votre note.',
   'app.log.stagePrompt': 'De quelle étape s’agit-il ? (p. ex. F3, deuxième série de clones)',
   'app.log.stageHelp': 'Scellé dans les notes sous la forme « Stage: … ».',
   'app.log.selectedPrompt': 'Sur quoi avez-vous sélectionné ?',

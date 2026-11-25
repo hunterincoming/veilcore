@@ -54,12 +54,6 @@ export const CUSTOM_ONLY_UNITS: Record<RecordKind, readonly RoyaltyUnit[]> = {
 export const unitsFor = (kind: RecordKind, preset: PresetId | undefined): readonly RoyaltyUnit[] =>
   preset === 'custom' ? [...UNITS_FOR[kind], ...CUSTOM_ONLY_UNITS[kind]] : UNITS_FOR[kind];
 
-/**
- * Units that charge per seed, harvest or area. Every license charging per one of them carries
- * the farmers'-rights line (withFarmersRights), sealed with the terms.
- */
-export const FARM_UNITS: readonly RoyaltyUnit[] = ['seed-pack', 'seed-kg', 'tonne', 'hectare', 'acre', 'harvest'];
-
 /** Seed units whose definition counts seed sold, and gifts only when the licensor ticks it. */
 export const GIFT_UNITS: readonly RoyaltyUnit[] = ['seed-pack', 'seed-kg'];
 
@@ -284,12 +278,18 @@ export const countsGifts = (r: RoyaltyRule | undefined, tr: Translator = enT): b
   GIFT_UNITS.includes(r.unit) &&
   r.unitDefinition?.trim() === unitDefinitionText(r.unit, tr, true);
 
-/** Whether terms charge per seed, harvest or area, in the royalty or on offspring. */
-export const chargesPerFarmUnit = (t: Pick<LicenseTerms, 'royalty' | 'offspring'>): boolean =>
-  [t.royalty, t.offspring?.rule].some((r) => r?.kind === 'per-unit' && FARM_UNITS.includes(r.unit));
+/**
+ * Whether terms carry the farmers'-rights line: every plant license with money in it, whatever
+ * the unit (review of #210: a fee per plant, or a percent of sales, reaches a farmer who re-sows
+ * saved seed as surely as one per tonne). One rule anyone can say: plant licenses always say
+ * farmers' legal rights stay. Animals and strains have no farm-saved seed.
+ */
+export const carriesFarmersRights = (t: Pick<LicenseTerms, 'subject' | 'royalty' | 'offspring'>): boolean =>
+  // Absent subject means a plant (licenses.ts subjectOf; not imported, licenses.ts imports this file).
+  (t.subject ?? 'plant') === 'plant' && Boolean(t.royalty || t.offspring);
 
 /**
- * The terms with the farmers'-rights line set when they charge per seed, harvest or area, and
+ * The terms with the farmers'-rights line set on a plant license (carriesFarmersRights), and
  * without it otherwise. The line is written out in the licensor's language and sealed with the
  * terms, like a unit's definition: what was signed never depends on what the app says later,
  * and terms sealed before it existed keep their fingerprint and show no line (rule 2 above).
@@ -298,7 +298,7 @@ export const chargesPerFarmUnit = (t: Pick<LicenseTerms, 'royalty' | 'offspring'
 export const withFarmersRights = (t: LicenseTerms, tr: Translator = enT): LicenseTerms => {
   const { farmersRights: _f, ...rest } = t;
   void _f;
-  return chargesPerFarmUnit(t) ? { ...rest, farmersRights: tr.t('app.roy.s.farmersRights') } : rest;
+  return carriesFarmersRights(t) ? { ...rest, farmersRights: tr.t('app.roy.s.farmersRights') } : rest;
 };
 
 const EUROZONE = new Set('AT BE HR CY EE FI FR DE GR IE IT LV LT LU MT NL PT SK SI ES'.split(' '));
@@ -426,10 +426,11 @@ const LEGACY_BASIS: Partial<Record<RoyaltyUnit, UnitBasis>> = {
  * The terms exactly as they will be sealed: numbers normalised (the published checker refuses
  * "05"), empty optional values left out, and the old fields set to match the new ones so an older
  * copy of the app shows the same deal. Called once, before sealing; a preset never reaches here.
- * Terms charging per seed, harvest or area get the farmers'-rights line, in `tr`'s language.
+ * A plant license gets the farmers'-rights line, in `tr`'s language.
  */
 export const termsToSeal = (t: LicenseTerms, tr: Translator = enT): LicenseTerms => {
-  if (!t.royalty && !t.offspring) return t;
+  // No money: unchanged (old terms seal as they always did), but never with a stale line.
+  if (!t.royalty && !t.offspring) return 'farmersRights' in t ? withFarmersRights(t, tr) : t;
   const n = (s: string | undefined) => (s === undefined ? undefined : (normaliseDecimal(s) ?? s.trim()));
   const rule = (r: RoyaltyRule): RoyaltyRule =>
     r.kind === 'percent'

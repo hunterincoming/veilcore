@@ -42,7 +42,7 @@ export const log = {
   'app.log.egNextSelection': 'p. ej., {name}, siguiente selección',
   'app.log.bredBy': 'Obtentor',
   'app.log.whenMade': 'Cuándo la obtuvo (su propia nota)',
-  'app.log.whenMadeHelp': 'El sello de fecha público viene de la red, no de aquí.',
+  'app.log.whenMadeHelp': 'El sello de fecha público viene de la red. Esta es solo su nota.',
   'app.log.stagePrompt': '¿Qué etapa es esta? (p. ej., F3, segunda tanda de clones)',
   'app.log.stageHelp': 'Se sella en las notas como «Stage: …».',
   'app.log.selectedPrompt': '¿Qué buscaba al seleccionar?',

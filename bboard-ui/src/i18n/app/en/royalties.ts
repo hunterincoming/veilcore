@@ -73,7 +73,7 @@ export const royalties = {
   'app.roy.s.royalty': 'Royalty: {rule}.',
   'app.roy.s.counts': 'What counts: {def}',
   'app.roy.s.farmersRights':
-    'Nothing in this license can take away a right the law gives farmers to save, re-sow, exchange or sell farm-saved seed, where the law gives it.',
+    'Nothing in this license takes away or limits a right the law gives farmers to save, re-sow, exchange or sell farm-saved seed or other propagating material, where the law gives it.',
   'app.roy.s.offspring': 'Royalty on offspring: {rule}.',
   'app.roy.s.offspringFor': 'Royalty on offspring: {rule}, for {n}.',
   'app.roy.s.minimum': 'Yearly minimum: {amount}.',

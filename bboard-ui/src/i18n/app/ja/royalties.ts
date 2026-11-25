@@ -66,7 +66,7 @@ export const royalties = {
   'app.roy.s.royalty': 'ロイヤリティ：{rule}。',
   'app.roy.s.counts': '数え方：{def}',
   'app.roy.s.farmersRights':
-    'このライセンスのどの条項も、法律が農業者に認める、自家採種した種子を保存し、再びまき、交換し、または販売する権利を、法律が認める範囲で奪うことはできません。',
+    '自家採種した種子その他の繁殖材料を保存し、再び播種し、交換し、または販売する権利が法律で農業者に認められている場合、このライセンスのどの条項もその権利を奪い、または制限するものではありません。',
   'app.roy.s.offspring': '子孫へのロイヤリティ：{rule}。',
   'app.roy.s.offspringFor': '子孫へのロイヤリティ：{rule}（{n}）。',
   'app.roy.s.minimum': '年間最低額：{amount}。',

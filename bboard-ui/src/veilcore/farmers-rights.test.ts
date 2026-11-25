@@ -1,16 +1,14 @@
 // Farmers' rights on licenses (summit, 25 Nov 2026): the Seed license counts seed sold, gifts only
-// when the licensor ticks it; a fixed line on every license charging per seed, harvest or area,
-// sealed with the terms; tonne, hectare and acre only on Custom. And what was signed before
+// when the licensor ticks it; a fixed line on every plant license, sealed with the terms; tonne, hectare and acre only on Custom. And what was signed before
 // keeps its meaning and its fingerprint.
 // SPDX-License-Identifier: Apache-2.0
 import { describe, expect, it } from 'vitest';
 import { agreementRows, sealAgreement, type License, type LicenseTerms } from './licenses';
 import {
   CUSTOM_ONLY_UNITS,
-  FARM_UNITS,
   UNITS_FOR,
   applyPreset,
-  chargesPerFarmUnit,
+  carriesFarmersRights,
   countsGifts,
   termsSentence,
   termsToSeal,
@@ -28,7 +26,7 @@ import { appFr } from '../i18n/app/fr';
 import { appJa } from '../i18n/app/ja';
 
 const LINE =
-  'Nothing in this license can take away a right the law gives farmers to save, re-sow, exchange or sell farm-saved seed, where the law gives it.';
+  'Nothing in this license takes away or limits a right the law gives farmers to save, re-sow, exchange or sell farm-saved seed or other propagating material, where the law gives it.';
 const ctx = { kind: 'plant' as const, currency: 'USD', governingLaw: 'New Jersey' };
 const TR: Record<string, Translator> = {
   en: enT,
@@ -87,27 +85,42 @@ describe('the Seed license preset counts seed sold', () => {
 });
 
 describe('the fixed farmers’-rights line', () => {
-  it('is on every license charging per seed, harvest or area, and on no other', () => {
-    expect(FARM_UNITS).toEqual(['seed-pack', 'seed-kg', 'tonne', 'hectare', 'acre', 'harvest']);
+  it('is on every plant license with money in it, whatever the unit, and on no animal or strain', () => {
     const per = (unit: RoyaltyUnit) =>
       ({ ...seedTerms(), royalty: { kind: 'per-unit', amount: '1', unit } }) as LicenseTerms;
-    for (const u of FARM_UNITS) expect(withFarmersRights(per(u)).farmersRights, u).toBe(LINE);
-    for (const u of ['cutting', 'plant', 'dose', 'offspring', 'batch', 'unit-sold'] as const)
-      expect(withFarmersRights(per(u)).farmersRights, u).toBeUndefined();
+    for (const u of [
+      'seed-pack',
+      'seed-kg',
+      'tonne',
+      'hectare',
+      'acre',
+      'harvest',
+      'cutting',
+      'plant',
+      'unit-sold',
+    ] as const)
+      expect(withFarmersRights(per(u)).farmersRights, u).toBe(LINE);
     const pct = { ...seedTerms(), royalty: { kind: 'percent', rate: '8', base: 'gross' } } as LicenseTerms;
-    expect(withFarmersRights(pct).farmersRights).toBeUndefined();
-    // On offspring too.
-    expect(chargesPerFarmUnit({ ...pct, offspring: { rule: { kind: 'per-unit', amount: '1', unit: 'tonne' } } })).toBe(
-      true,
-    );
+    expect(withFarmersRights(pct).farmersRights).toBe(LINE);
+    // A plant license's offspring royalty alone carries it too.
+    const { royalty: _r, ...noRoyalty } = pct;
+    void _r;
+    expect(carriesFarmersRights({ ...noRoyalty, offspring: { rule: { kind: 'percent', rate: '2' } } })).toBe(true);
+    // No money, no line; animals and strains have no farm-saved seed.
+    expect(carriesFarmersRights(noRoyalty)).toBe(false);
+    expect(withFarmersRights({ ...per('dose'), subject: 'animal' }).farmersRights).toBeUndefined();
+    expect(withFarmersRights({ ...per('batch'), subject: 'strain' }).farmersRights).toBeUndefined();
   });
 
-  it('can’t be kept, edited or removed by hand: it follows the unit', () => {
+  it('can’t be kept, edited or removed by hand', () => {
     const edited = { ...seedTerms(), farmersRights: 'Farmers may not save seed.' };
     expect(withFarmersRights(edited).farmersRights).toBe(LINE);
-    const toCutting = { ...edited, royalty: { kind: 'per-unit', amount: '1', unit: 'cutting' } } as LicenseTerms;
-    expect('farmersRights' in withFarmersRights(toCutting)).toBe(false);
-    expect('farmersRights' in termsToSeal(toCutting)).toBe(false);
+    expect(termsToSeal(edited).farmersRights).toBe(LINE);
+    // Terms with no money at all: a stale line is taken off, never sealed.
+    const { royalty: _r, ...free } = edited;
+    void _r;
+    expect('farmersRights' in termsToSeal(free)).toBe(false);
+    expect('farmersRights' in termsToSeal({ ...edited, subject: 'animal' })).toBe(false);
   });
 
   it('is sealed with the terms, in the licensor’s language, and shown from what was sealed', () => {
@@ -172,6 +185,41 @@ describe('what was signed before keeps its meaning', () => {
     const stored = JSON.parse(JSON.stringify(t)) as LicenseTerms;
     expect(await sealAgreement('license', stored, 'cd'.repeat(32), salt)).toEqual(made);
     expect('farmersRights' in stored).toBe(false);
+  });
+
+  it('matches a fixed fingerprint for an old-format seed license (catches a change to the hashing)', async () => {
+    // Written out by hand as an agreement sealed before 25 Nov 2026 stores it: no farmersRights.
+    const old: LicenseTerms = {
+      licensee: 'Hillside Nursery',
+      startDate: '2026-01-01',
+      endDate: '2027-01-01',
+      extraTerms: '',
+      rights: 'cultivate+propagate',
+      territory: 'New Jersey',
+      royaltyType: 'flat',
+      royaltyAmount: '0.5',
+      unitBasis: 'per-unit-sold',
+      sublicensable: false,
+      exclusive: false,
+      offspringRoyaltyPct: '',
+      currency: 'USD',
+      licensor: 'E2E breeder',
+      royalty: {
+        kind: 'per-unit',
+        amount: '0.5',
+        unit: 'seed-pack',
+        unitDefinition: 'Each pack of seed sold or given away counts once.',
+      },
+      reporting: { every: 'quarter', reportDueDays: 30, paymentDueDays: 14 },
+      bankFees: 'each-own',
+      recordsYears: 3,
+      checkNoticeDays: 30,
+      governingLaw: 'New Jersey',
+    };
+    const { agreementFingerprint } = await sealAgreement('license', old, 'cd'.repeat(32), 'ab'.repeat(16));
+    // SHA-256 over the canonical JSON of {v, type, terms, record, salt}; worked out apart from this
+    // code too (Python, sorted keys, no spaces), so a change to the hashing itself fails here.
+    expect(agreementFingerprint).toBe('dab1e9270bb54ddd9b2860e0fb05ceb7e7c04b019602c0a823f801c5ed206f08');
   });
 
   it('shows what it said, and nothing it didn’t: its own definition, and no farmers’ line', () => {

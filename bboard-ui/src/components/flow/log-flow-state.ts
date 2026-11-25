@@ -85,8 +85,13 @@ export const breederRequired = (d: Pick<Draft, 'source' | 'breedingMethod'>): bo
  * Whether the "Where it came from" step is offered, and its answers sealed: for anything but the
  * holder's own cross. A next stage too: it inherits its parent's answer (nextStageDraft), so a
  * selection from a landrace or from received material keeps saying where it came from.
+ *
+ * Lines carried over from a parent are kept whatever the answer, "I bred it" too (review of
+ * #210): an F2 the holder really crossed from a landrace selection still came from that
+ * landrace. The step stays, so the holder can remove a line only where they can see it.
  */
-export const originApplies = (d: Pick<Draft, 'source' | 'breedingMethod'>): boolean => originSourceOf(d) !== 'bred';
+export const originApplies = (d: Pick<Draft, 'source' | 'breedingMethod' | 'originFromParent'>): boolean =>
+  !!d.originFromParent || originSourceOf(d) !== 'bred';
 
 /** What the first screen needs before "Next": a name, and who bred it when the holder did. */
 export const plantReady = (d: Draft): boolean =>

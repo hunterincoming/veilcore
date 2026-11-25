@@ -34,7 +34,7 @@ export const origin = {
   'app.origin.doiPlaceholder': 'p. ex. 10.18730/…',
   'app.origin.selectedFrom': 'Sélectionnée à partir de quoi ?',
   'app.origin.selectedFromHelp':
-    'Les plantes ou semences dont vous l’avez sélectionnée, et leur provenance : une communauté, une banque de semences ou une personne.',
+    'Les plantes ou semences à partir desquelles vous l’avez sélectionnée, et leur provenance : une communauté, une banque de semences ou une personne.',
   'app.origin.inherited': 'Repris de {name}, l’enregistrement dont celui-ci est issu. Changez ce qui diffère.',
   'app.origin.back': 'Retour',
   'app.origin.x.from': 'Provenance : {v}',

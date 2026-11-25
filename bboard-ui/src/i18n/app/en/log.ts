@@ -48,7 +48,7 @@ export const log = {
   'app.log.egNextSelection': 'e.g. {name}, next selection',
   'app.log.bredBy': 'Bred by',
   'app.log.whenMade': 'When you made it (your own note)',
-  'app.log.whenMadeHelp': 'The public date stamp comes from the network, not from this.',
+  'app.log.whenMadeHelp': 'The public date comes from the network. This is your note.',
   'app.log.stagePrompt': 'What stage is this? (e.g. F3, second clone run)',
   'app.log.stageHelp': 'Sealed in the notes as “Stage: …”.',
   'app.log.selectedPrompt': 'What did you select for?',

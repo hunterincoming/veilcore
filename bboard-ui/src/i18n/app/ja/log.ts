@@ -42,7 +42,7 @@ export const log = {
   'app.log.egNextSelection': '例：{name}、次の選抜',
   'app.log.bredBy': '育成者',
   'app.log.whenMade': '作出した日（あなた自身のメモ）',
-  'app.log.whenMadeHelp': '公開される日付スタンプは、ここではなくネットワークから得られます。',
+  'app.log.whenMadeHelp': '公開される日付はネットワークから得られます。これはあなた自身のメモです。',
   'app.log.stagePrompt': 'これはどの段階ですか？（例：F3、2回目のクローン）',
   'app.log.stageHelp': 'メモに「Stage: …」として封印されます。',
   'app.log.selectedPrompt': '何を目的に選抜しましたか？',

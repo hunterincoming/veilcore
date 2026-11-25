@@ -209,6 +209,17 @@ describe('the plant form: "Bred by" only for the holder’s own breeding', () =>
     expect(parseDraft(JSON.stringify(d))?.originFromParent).toBe('Bolita');
   });
 
+  it('keeps carried-over lines when the holder says they made the cross: they are removed only in view', () => {
+    const notes = originNotes({ ...emptyOrigin(), from: 'Community X, Valley Y' }, '');
+    const parent = { id: 'VEIL-1', strainName: 'Bolita', bredBy: '', taxon: '', notes };
+    const d = { ...nextStageDraft(parent), source: 'bred' as const, bredBy: 'Harbour Farm', stage: 'F2' };
+    // The step stays, and what is in it is sealed.
+    expect(originApplies(d)).toBe(true);
+    expect(sealInputOf(d).notes).toBe('Stage: F2\n\nWhere it came from: Community X, Valley Y');
+    // Cleared by the holder on the step itself: nothing is sealed.
+    expect(sealInputOf({ ...d, origin: emptyOrigin() }).notes).toBe('Stage: F2');
+  });
+
   it('a next stage of the holder’s own cross is unchanged: no step, a breeder still needed', () => {
     const parent = { id: 'VEIL-1', strainName: 'Harbour Mist', bredBy: 'Harbour Farm', taxon: '', notes: 'Stage: F2' };
     const d = nextStageDraft(parent);

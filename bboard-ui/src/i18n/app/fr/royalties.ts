@@ -71,7 +71,7 @@ export const royalties = {
   'app.roy.s.royalty': 'Redevance : {rule}.',
   'app.roy.s.counts': 'Ce qui compte : {def}',
   'app.roy.s.farmersRights':
-    'Rien dans cette licence ne peut retirer aux agriculteurs un droit que la loi leur donne de conserver, ressemer, échanger ou vendre des semences de ferme, là où la loi le leur donne.',
+    'Rien dans cette licence ne retire ni ne limite un droit que la loi accorde aux agriculteurs de conserver, ressemer, échanger ou vendre des semences de ferme ou d’autre matériel de multiplication, là où la loi le leur accorde.',
   'app.roy.s.offspring': 'Redevance sur la descendance : {rule}.',
   'app.roy.s.offspringFor': 'Redevance sur la descendance : {rule}, pendant {n}.',
   'app.roy.s.minimum': 'Minimum annuel : {amount}.',

@@ -70,7 +70,7 @@ export const royalties = {
   'app.roy.s.royalty': 'Lizenzgebühr: {rule}.',
   'app.roy.s.counts': 'Was zählt: {def}',
   'app.roy.s.farmersRights':
-    'Nichts in dieser Lizenz kann Landwirten ein Recht nehmen, das ihnen das Gesetz gibt, hofeigenes Saatgut aufzubewahren, wieder auszusäen, zu tauschen oder zu verkaufen, soweit das Gesetz es ihnen gibt.',
+    'Nichts in dieser Lizenz nimmt oder beschränkt ein Recht, das das Gesetz Landwirten gewährt, hofeigenes Saatgut oder anderes Vermehrungsmaterial aufzubewahren, wieder auszusäen, zu tauschen oder zu verkaufen, soweit das Gesetz es gewährt.',
   'app.roy.s.offspring': 'Lizenzgebühr auf Nachkommen: {rule}.',
   'app.roy.s.offspringFor': 'Lizenzgebühr auf Nachkommen: {rule}, für {n}.',
   'app.roy.s.minimum': 'Jährliches Minimum: {amount}.',

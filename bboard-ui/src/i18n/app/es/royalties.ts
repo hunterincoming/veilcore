@@ -70,7 +70,7 @@ export const royalties = {
   'app.roy.s.royalty': 'Regalía: {rule}.',
   'app.roy.s.counts': 'Qué cuenta: {def}',
   'app.roy.s.farmersRights':
-    'Nada en esta licencia puede quitar a los agricultores un derecho que la ley les dé a guardar, volver a sembrar, intercambiar o vender semilla de su propia cosecha, allí donde la ley lo dé.',
+    'Nada en esta licencia quita ni limita un derecho que la ley reconozca a los agricultores a guardar, volver a sembrar, intercambiar o vender semilla u otro material de propagación de su propia cosecha, cuando la ley lo reconozca.',
   'app.roy.s.offspring': 'Regalía sobre la descendencia: {rule}.',
   'app.roy.s.offspringFor': 'Regalía sobre la descendencia: {rule}, durante {n}.',
   'app.roy.s.minimum': 'Mínimo anual: {amount}.',
