@@ -320,6 +320,16 @@ export const AppHome: React.FC = () => {
             {t('app.lr.tools.open')}
           </Button>
         )}
+        {/* A lab's daily export sealed at once; its columns are remembered after the first file. */}
+        <Button
+          component={RouterLink}
+          to="/records/import"
+          variant="outlined"
+          sx={{ minHeight: 48 }}
+          data-lab-sheet-link="home"
+        >
+          {t('app.home.labSheet')}
+        </Button>
       </Stack>
     </Paper>
   );

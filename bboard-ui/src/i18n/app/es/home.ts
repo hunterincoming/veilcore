@@ -219,4 +219,8 @@ export const home = {
     'Este archivo tiene {n} registros nuevos para VeilCore y su plan gratuito puede fechar {left} más. No se importó nada. Elija un plan en su página de registros para fechar más.',
   'app.plan.box.full':
     'Ya usó sus registros gratuitos. Todo lo que ya tiene se sigue pudiendo comprobar. Elija un plan para agregar más.',
+  'app.home.labSheet': 'Sellar la planilla de hoy',
+  'app.labpage.work.sheet':
+    '¿Exporta cada día una planilla de sus cultivos o muestras? Selle toda la planilla de una vez. Después de la primera vez, este dispositivo recuerda sus columnas, y al día siguiente es un solo botón.',
+  'app.labpage.work.sheetLink': 'Sellar la planilla de hoy',
 } satisfies Partial<AppTranslation>;

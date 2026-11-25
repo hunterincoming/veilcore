@@ -222,4 +222,8 @@ export const home = {
     'This file has {n} records new to VeilCore, and your free plan can date {left} more. Nothing was imported. Choose a plan on your records page to date more.',
   'app.plan.box.full':
     'Your free records are used up. Everything you already have keeps verifying. Choose a plan to add more.',
+  'app.home.labSheet': "Seal today's sheet",
+  'app.labpage.work.sheet':
+    'Export a spreadsheet of your cultures or samples each day? Seal the whole sheet at once. After the first time, this device remembers its columns, so the next day it is one button.',
+  'app.labpage.work.sheetLink': "Seal today's sheet",
 };
