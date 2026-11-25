@@ -111,6 +111,8 @@ import { licenseCalendar } from '../../ask/due';
 import {
   currencyOf,
   dateWords,
+  deductionLabel,
+  isControlledTerms,
   offspringOf,
   ruleOf,
   scheduleOf,
@@ -941,7 +943,7 @@ const ReportForm: React.FC<{
             {(rule.deductions ?? []).map((d) => (
               <TextField
                 key={d}
-                label={tr.t('app.roy.r.deduction', { what: labelOr(tr, `app.roy.ded.${d}`, d), currency })}
+                label={tr.t('app.roy.r.deduction', { what: deductionLabel(d, tr, isControlledTerms(terms)), currency })}
                 value={ded[d] ?? ''}
                 onChange={(e) => setDed({ ...ded, [d]: e.target.value.replace(/[^0-9.]/g, '').slice(0, 16) })}
                 slotProps={{ htmlInput: { inputMode: 'decimal' } }}

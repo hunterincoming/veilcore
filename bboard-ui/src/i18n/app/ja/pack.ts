@@ -6,6 +6,7 @@ import type { AppTranslation } from '../../translate';
 
 export const pack = {
   'app.pack.home': 'REPROCANN / SEDRONAR 向け提出資料',
+  'app.pack.more': '当局向けの提出資料',
   'app.pack.title': 'REPROCANN / SEDRONAR 向け提出資料',
   'app.pack.intro':
     'アルゼンチンの医療用大麻団体向けです。半年ごとの申告と生産記録の補足資料として、ある期間のVeilCoreの記録が示す内容をまとめ、足りないものを示し、各VeilCoreの記録の確認リンクを付けます。確認・署名・送付はご自身で行ってください。',

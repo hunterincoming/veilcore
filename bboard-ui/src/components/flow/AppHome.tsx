@@ -51,6 +51,8 @@ import { useT, useRecordT, rich } from '../../i18n/app';
 import { recordTitle } from '../../veilcore/animal-profile';
 import { isDocument } from '../../veilcore/document-profile';
 import { documentKindOf } from '../../veilcore/document-kind';
+import { isCannabisRecord } from '../../veilcore/royalty-terms';
+import { useI18n } from '../../i18n';
 import { kindOrTypeWords } from '../document/DocumentParts';
 import { SECTIONS, focusScreenHeading } from './FlowFrame';
 import { PasteBox } from './PasteBox';
@@ -201,6 +203,7 @@ export const AppHome: React.FC = () => {
   const [query, setQuery] = useState('');
   const [sort, setSort] = useState<SortKey>('recent');
   const [more, setMore] = useState(false);
+  const { lang } = useI18n();
   const [why, setWhy] = useState(false);
   const [toast, setToast] = useState<string>();
   const importRef = useRef<HTMLInputElement>(null);
@@ -223,6 +226,9 @@ export const AppHome: React.FC = () => {
   // Records kept here whose locked copy waits for a checked backup ("Pick up" says so).
   const waitingForBackup = Object.keys(outboxRecords()).some((id) => unsavedReason(id) === 'backup');
   const labOnly = isLab(role) && !isBreeder(role);
+  // The pack for the authority: once there is a grow batch or a harvest lot to make it from.
+  const packChain = !labOnly && records.some((r) => documentKindOf(r) !== undefined);
+  const packOnHome = packChain && lang === 'es' && records.some((r) => !isDocument(r) && isCannabisRecord(r));
   const lab = isLab(role);
   const hasLabKey = useHasLabKey();
   // Plants as cards; a record that dates a lab report shows under its plant, not as a plant.
@@ -748,8 +754,10 @@ export const AppHome: React.FC = () => {
 
         <Stack spacing={0.5} sx={{ alignItems: 'center', pt: 2 }}>
           {/* The pack for the authority (authority-pack.ts): offered once there is a production
-              chain to make it from, a grow batch or a harvest lot. */}
-          {!labOnly && records.some((r) => documentKindOf(r) !== undefined) && (
+              chain to make it from, a grow batch or a harvest lot. REPROCANN / SEDRONAR are
+              Argentina's, so Home names them only in Spanish to someone holding cannabis records;
+              anyone else finds it under More as "Pack for an authority" (global summit, 5b item 1). */}
+          {packOnHome && (
             <Button component={RouterLink} to="/records/authority-pack" sx={{ minHeight: 44 }} data-pack-link="">
               {t('app.pack.home')}
             </Button>
@@ -772,6 +780,11 @@ export const AppHome: React.FC = () => {
               {!labOnly && licenses.length === 0 && (
                 <Button variant="text" component={RouterLink} to="/licenses" data-agreements-link="">
                   {t('app.home.myAgreements', { n: 0 })}
+                </Button>
+              )}
+              {packChain && !packOnHome && (
+                <Button variant="text" component={RouterLink} to="/records/authority-pack" data-pack-link="">
+                  {t('app.pack.more')}
                 </Button>
               )}
               {!labOnly && (

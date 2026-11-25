@@ -146,7 +146,8 @@ export const ClaimCheck: React.FC = () => {
         <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
           {t('app.claim.check.intro')}
         </Typography>
-        <DatedNotOrigin />
+        {/* A number in a document: no plant or animal to be older than the date. */}
+        <DatedNotOrigin living={false} />
         {!link ? (
           <Alert severity="error" variant="outlined" data-claim-link="bad">
             {t('app.claim.check.bad')}

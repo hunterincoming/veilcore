@@ -800,7 +800,7 @@ export const VerifyPage: React.FC = () => {
                 })}
               </CheckVerdict>
             )}
-            <DatedNotOrigin />
+            <DatedNotOrigin living={result?.subjectKind !== 'document'} />
             <Paper sx={{ p: { xs: 3, md: 4 }, position: 'relative' }} data-specimen-sheet="">
               {/* Stamped only when this page found the batch root's anchor on Midnight itself
                 (anchorCheckedOnChain): gold DATED on the main network, a dashed PRACTICE
@@ -1321,7 +1321,7 @@ export const VerifyPage: React.FC = () => {
         {/* What a date doesn't show, said under a record that can't be shown too. */}
         {!loading && !(result?.found && binding.kind !== 'mismatch') && (
           <Box sx={{ mt: 3 }}>
-            <DatedNotOrigin center />
+            <DatedNotOrigin center living={result?.subjectKind !== 'document'} />
           </Box>
         )}
         {/* Real-chain builds: the holder's link may name the record's on-chain identity

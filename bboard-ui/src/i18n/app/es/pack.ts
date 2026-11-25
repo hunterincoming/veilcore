@@ -10,6 +10,7 @@ import type { AppTranslation } from '../../translate';
 
 export const pack = {
   'app.pack.home': 'Documentación de respaldo para REPROCANN / SEDRONAR',
+  'app.pack.more': 'Documentación para una autoridad',
   'app.pack.title': 'Documentación de respaldo para REPROCANN / SEDRONAR',
   'app.pack.intro':
     'Para una asociación de cannabis medicinal en Argentina. Reúne lo que muestran sus registros VeilCore en un período, como material de respaldo para el informe semestral y el registro de producción, indica lo que falta y da el enlace de comprobación de cada registro VeilCore. Usted lo revisa, lo firma y lo envía.',

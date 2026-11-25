@@ -16,9 +16,9 @@ export const prove = {
   'app.prove.share.differs': ' Los interruptores de arriba difieren de eso.{save}',
   'app.prove.yourRequest': 'Su solicitud',
   'app.prove.youAskedNamed':
-    'Usted pidió al titular de <b>{name}</b> que demuestre que la tiene. Envíele este enlace si todavía no lo hizo.',
+    'Usted pidió al titular de <b>{name}</b> que demuestre que tiene su registro. Envíele este enlace si todavía no lo hizo.',
   'app.prove.youAsked':
-    'Usted pidió al titular de esta planta que demuestre que la tiene. Envíele este enlace si todavía no lo hizo.',
+    'Usted pidió al titular de esta planta que demuestre que tiene su registro. Envíele este enlace si todavía no lo hizo.',
   'app.prove.openCheckPage': 'Abrir la página de comprobación de la planta',
   'app.prove.opening': 'Abriendo la solicitud…',
   'app.prove.ended': 'Esta solicitud terminó',
@@ -55,7 +55,7 @@ export const prove = {
   'app.prove.ask.cantAsk': 'No se puede pedir una prueba desde este enlace',
   'app.prove.ask.refused': '{reason}. Una prueba hecha con él no diría nada de este registro.',
   'app.prove.ask.noLink': 'No se hizo ningún enlace: {error}.',
-  'app.prove.ask.title': 'Pídale que demuestre que la tiene',
+  'app.prove.ask.title': 'Pídale que demuestre que tiene su registro',
   'app.prove.ask.intro':
     'Le envía un enlace. Lo abre y toca Demostrarlo. La respuesta aparece aquí. Esta página comprueba la respuesta en la propia red, a través de un indexador de Midnight (en el sitio de pruebas, por medio del relé de VeilCore). Para una decisión importante, compruebe la transacción en un segundo indexador. Solo red de pruebas.',
   'app.prove.ask.bound':

@@ -4,7 +4,7 @@
 //
 // Once someone has a record, on the records list and a record's page only, a small hint sits at
 // the end of the page, in its flow above the bubble (never over the page's content), with an
-// example that names their own record ("Try: cut 6 clones from Gelato", or calves for someone
+// example that names their own record ("Try: cut 6 cuttings from Harbour Mist", or calves for someone
 // whose records are mostly animals). Tapping it opens Ask with the example typed in. It shows on
 // three visits at most, and not again once dismissed or once Ask is opened
 // (ask-local/hint-flag.ts: the only thing stored, which also tells the real first open apart).
