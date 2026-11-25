@@ -9,6 +9,7 @@ import { isNumber, isObject, isString, readJson } from './json';
 import { dealOrder } from './deal-order';
 import { contentOf, entryContent, noteSigned } from './deal-content';
 import { withTabLock } from './tab-lock';
+import { isKept, OUTBOX_PREFIX, stillKept, type Kept } from './deal-outbox-store';
 import {
   dealKeys,
   openMessage,
@@ -180,35 +181,16 @@ export const say = async (p: DealParty, body: DealBody): Promise<{ seq: number; 
 // ciphertext, the signature, the kind and when it was made, under a key that is an HMAC with the
 // deal's write token, so the key alone says nothing about what the message says.
 
-const OUTBOX_PREFIX = 'veilcore.deal-outbox.v1.';
-/**
- * How long a report, an answer, "I paid" or "received" that landed is remembered: a second tap
- * or tab in that time sends nothing.
- */
-export const LANDED_MS = 10 * 60_000;
+export { KEEP_MS, LANDED_MS } from './deal-outbox-store';
 const ONCE: ReadonlySet<DealBody['type']> = new Set(['statement', 'reply', 'paid', 'received']);
-/** How long a message signed and not yet confirmed is kept, to be sent again as it was. */
-export const KEEP_MS = 30 * 86_400_000;
 /**
  * A kept message older than this that is not in the deal is signed again with the time now, not
  * sent with its old signed time (it can't still be on its way).
  */
 export const RESIGN_MS = 86_400_000;
 
-type Kept = {
-  readonly iv: string;
-  readonly ct: string;
-  readonly signature: string;
-  readonly type: string;
-  readonly madeAt: number;
-  readonly landedAt?: number;
-};
-
 /** In memory when the browser keeps nothing: still one message per tab. */
 const outboxHere = new Map<string, Record<string, Kept>>();
-
-const isKept = (v: unknown): v is Kept =>
-  isObject(v) && isString(v.iv) && isString(v.ct) && isString(v.signature) && isString(v.type) && isNumber(v.madeAt);
 
 /** The storage entry of one deal's kept messages. */
 const outboxName = (p: DealParty): string => `${OUTBOX_PREFIX}${p.commitment}.${p.issuerRecord}`;
@@ -225,8 +207,7 @@ const readOutbox = (name: string, now: number): Record<string, Kept> => {
     /* nothing kept, or unreadable: what this tab has */
   }
   const out: Record<string, Kept> = {};
-  for (const [k, v] of Object.entries(box))
-    if (isKept(v) && (v.landedAt ? now - v.landedAt < LANDED_MS : now - v.madeAt < KEEP_MS)) out[k] = v;
+  for (const [k, v] of Object.entries(box)) if (isKept(v) && stillKept(v, now)) out[k] = v;
   return out;
 };
 

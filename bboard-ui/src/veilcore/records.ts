@@ -721,7 +721,14 @@ const dropDeleted = (result: SaveResult): SaveResult => {
  * it). Kept in this browser (UNSURE_KEY), like the outbox, so a reload doesn't lose that change;
  * shown meanwhile as not saved yet (unsavedReason).
  */
-type UnsureEntry = { correctionId: string; before: StrainRecord; here?: StrainRecord; at?: number };
+type UnsureEntry = {
+  correctionId: string;
+  before: StrainRecord;
+  here?: StrainRecord;
+  at?: number;
+  /** When this browser first found its holder key no longer in use here (sweepUnsure). */
+  leftAt?: number;
+};
 const UNSURE_KEY = 'veilcore.unsure.v1';
 const unsure = new Map<string, UnsureEntry>();
 /** Entries this tab settled since it last wrote the set (id → the entry's `at`), to take out of the kept set. */
@@ -739,12 +746,77 @@ const unsureStore = (): Record<string, Record<string, UnsureEntry>> => {
   }
 };
 
+/**
+ * How long an entry of a holder key not in use in this browser is kept. For the key in use,
+ * every read of the registry settles every entry (refresh, settleUnsure), and the app reads it on
+ * start and at each sync: an entry lasts only while the registry can't be reached, and it is
+ * shown meanwhile as not saved yet, so it is never dropped by age. An entry of another key (left
+ * by Start over) can only be settled if that key comes back with its backup: it is kept this
+ * long from when its key stopped being used here, as long as a deal message waiting to be sent
+ * (deal-client.ts KEEP_MS), and Start over says so before it happens.
+ */
+export const UNSURE_KEEP_MS = 30 * 86_400_000;
+
+/**
+ * Drop from this browser what no read of the registry can settle here any more: entries of a
+ * holder key that hasn't been in use here for UNSURE_KEEP_MS, and entries that can't be read.
+ * The window starts the first time this finds the key not in use (`leftAt`), and a key that
+ * comes back (restored from its backup) loses that mark. The key in use is never dropped by
+ * age. Run on load (unsureNow) and by Start over.
+ */
+export const sweepUnsure = (now = Date.now()): void => {
+  const h = holderKeyIfAny()?.toLowerCase() ?? null;
+  try {
+    const all = unsureStore();
+    let changed = false;
+    for (const [key, entries] of Object.entries(all)) {
+      const kept: Record<string, UnsureEntry> = {};
+      for (const [id, e] of Object.entries(entries && typeof entries === 'object' ? entries : {})) {
+        if (!e || typeof e.correctionId !== 'string' || !isStrainRecord(e.before)) {
+          changed = true;
+          continue;
+        }
+        if (key === h) {
+          if (e.leftAt === undefined) kept[id] = e;
+          else {
+            const { leftAt: _back, ...rest } = e;
+            void _back;
+            kept[id] = rest;
+            changed = true;
+          }
+        } else if (typeof e.leftAt !== 'number') {
+          kept[id] = { ...e, leftAt: now };
+          changed = true;
+        } else if (now - e.leftAt > UNSURE_KEEP_MS) changed = true;
+        else kept[id] = e;
+      }
+      if (Object.keys(kept).length) all[key] = kept;
+      else {
+        delete all[key];
+        changed = true;
+      }
+    }
+    if (!changed) return;
+    if (Object.keys(all).length) localStorage.setItem(UNSURE_KEY, JSON.stringify(all));
+    else localStorage.removeItem(UNSURE_KEY);
+  } catch {
+    /* blocked storage: nothing kept to sweep */
+  }
+};
+
+/**
+ * How many records of the holder key in use wait on a correction's answer (UnsureEntry). Start
+ * over says they stay here for UNSURE_KEEP_MS, then go.
+ */
+export const unsureCount = (): number => unsureNow().size;
+
 /** The unsure set, read from this browser once per holder key. */
 const unsureNow = (): Map<string, UnsureEntry> => {
   const h = holderKeyIfAny()?.toLowerCase() ?? null;
   if (unsureLoadedFor !== h) {
     unsureLoadedFor = h;
     unsure.clear();
+    sweepUnsure();
     if (h)
       for (const [id, e] of Object.entries(unsureStore()[h] ?? {}))
         if (e && typeof e.correctionId === 'string' && isStrainRecord(e.before)) unsure.set(id, e);
@@ -2415,6 +2487,9 @@ export const importRecordRows = async (parsed: readonly unknown[]): Promise<Impo
  */
 export const startOver = (): void => {
   forgetHolderKey();
+  // Records of the old key still waiting on a correction's answer stay for UNSURE_KEEP_MS, from
+  // now (the Start over question says so), in case that key comes back with its backup.
+  sweepUnsure();
   // The keys kept to save the copy with VeilCore go too (account-copy.ts, review S5): this
   // device stops saving it. The copy itself stays at the registry for the person's other devices.
   void import('./account-copy').then((m) => m.forgetAccountOnThisDevice());

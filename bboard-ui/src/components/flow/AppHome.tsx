@@ -25,6 +25,7 @@ import {
   proofCodeSent,
   unsavedReason,
   startOver,
+  unsureCount,
   useSealedView,
   RECORDS_KEY,
   waitingHere,
@@ -57,7 +58,7 @@ import { kindOrTypeWords } from '../document/DocumentParts';
 import { SECTIONS, focusScreenHeading } from './FlowFrame';
 import { PasteBox } from './PasteBox';
 import { labCardLine, useLabCardFacts, useWaitingByRecord } from './LabResults';
-import { quantityPhrase } from '../../veilcore/transfers';
+import { forgetAllReceiving, quantityPhrase, receivingOnlyHere } from '../../veilcore/transfers';
 import { TrustPanel } from '../TrustPanel';
 import { LockedAgreements, LockedRecords, LoadNoticeBar } from '../LockedRecords';
 import { UnreadableDeviceOnly } from '../document/UnreadableDeviceOnly';
@@ -67,7 +68,14 @@ import { draftHeading, loadDraft } from './log-flow-state';
 import { homeStatusLine, unsavedLineKey } from './plant-status-words';
 import { documentHomeDate } from '../document/document-home-words';
 import { useRecordDate } from '../verify/useAnchorCheck';
-import { datingCardLine, datingHomeStatus, homeList, isLabReportRecord, keysOnlyHereLine } from '../stage/record-kinds';
+import {
+  datingCardLine,
+  datingHomeStatus,
+  homeList,
+  isLabReportRecord,
+  keysOnlyHereLine,
+  startOverLines,
+} from '../stage/record-kinds';
 import { useDnaTie, useSavedReports } from './useDnaTie';
 import { dnaTieSentence } from '../../veilcore/dna-tie';
 import type { StrainRecord } from '../../veilcore/records';
@@ -266,9 +274,13 @@ export const AppHome: React.FC = () => {
   const onReset = () => {
     const key = holderKeyIfAny();
     const keysWarning = unbackedIds.length > 0 ? `\n\n${keysOnlyHereLine(unbackedIds, 'reset', tr)}` : '';
-    if (window.confirm(t('app.home.resetConfirm') + keysWarning)) {
+    // A code still being received that no checked backup holds is deleted by Start over, and a
+    // change waiting on a correction's answer goes after 30 days: both said before, not after.
+    const more = startOverLines(receivingOnlyHere().length, unsureCount(), tr);
+    if (window.confirm(t('app.home.resetConfirm') + keysWarning + more)) {
       if (key) downloadHolderKey(key);
       startOver();
+      forgetAllReceiving();
       clearLoadedLicenses();
       setToast(t('app.home.startedOver'));
       // The menu that held "Start over" goes with the old set: focus the page's heading (round 6).
