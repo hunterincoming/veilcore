@@ -257,7 +257,6 @@ export const en = {
   'm.nav.forLabs': 'Use it as a lab',
   'm.nav.getBack': 'Get my records back',
 
-  'm.hero.label': 'Proof of what you hold',
   // Round 3 (CTO decision, 14 Oct): not "Prove you had it first." A record shows you had
   // the record by a date, not that you had the plant first. What stays hidden is the
   // genetics. Since round 5 (17 Oct) the name is locked too: a check page shows it only when
@@ -269,7 +268,7 @@ export const en = {
   'm.hero.title1': 'Date your record.',
   'm.hero.title2': 'Keep your genetics private.',
   'm.hero.lede':
-    'For breeders, seed companies and labs working with plant, animal and microbial genetics: give your records a date nobody can backdate. Your genetic data stays locked: DNA files never leave your computer, and what you type reaches our server locked. Only codes, and the facts you choose to prove, go on Midnight, which dates them.',
+    'For breeders, seed companies and labs working with plant, animal and microbial genetics: give your records a date nobody can move earlier. Your genetic data stays locked: DNA files never leave your computer, and what you type reaches our server locked. Only codes, and the facts you choose to prove, go on Midnight, which dates them.',
   'm.hero.how': 'How it works',
   'm.hero.pasteQ': 'Got a lab code or a link from someone?',
   'm.hero.pasteGo': 'Paste it here →',
@@ -351,7 +350,7 @@ export const en = {
     'On the record pages, Ask fills in a record, or a batch of clones or offspring, for you to check. It never signs or sends anything. You do.',
   'm.home.trustLabel': 'What it gives you',
   'm.home.trust':
-    'Proof you held a record by a date|A date nobody can backdate|Free to check|An open format|No wallet, no sign-up',
+    'Proof you held a record by a date|A date nobody can move earlier|Free to check|An open format|No wallet, no sign-up',
   'm.home.pause': 'Pause the moving names',
   'm.home.play': 'Play the moving names',
   'm.home.fails': 'Tell us where it fails.',
@@ -388,9 +387,8 @@ export const en = {
     "They send you a link. You tap once, and their page checks on the network that you control your record's own key. Your record named that key when it was sealed, so it can't be swapped. It says nothing about who you are or who bred the plant. This works on a Midnight test network for now.",
   'm.for.5t': 'Animal lines.',
   'm.for.5p':
-    'Herd books keep the pedigree. A record can give each entry a date nobody can backdate, without publishing the genotype. You can log an animal on this site: its individual ID, sire and dam, and a DNA report.',
-  'm.for.5parent':
-    'A lab’s signed parentage result can also prove a calf fits its sire and dam, without showing any DNA profile.',
+    'Herd books keep the pedigree. A record can give each entry a date nobody can move earlier, without publishing the genotype. You can log an animal on this site: its individual ID, sire and dam, and a DNA report.',
+  'm.for.5parent': 'Parentage results show a lab signed that the samples fit sire and dam, revealing no DNA profile.',
   'm.for.5parentLink': 'How parentage works →',
   'm.for.5ask': 'If you breed animals, tell us what your records need.',
 
@@ -444,7 +442,7 @@ export const en = {
   'm.get.title1': 'What you get,',
   'm.get.title2': 'and where it stops.',
   'm.get.title': 'What you get',
-  'm.get.1a': 'A date nobody can backdate,',
+  'm.get.1a': 'A date nobody can move earlier,',
   'm.get.1b': 'for a record of what you hold, without showing your genetics.',
   'm.get.2a': 'Licenses and lab agreements.',
   'm.get.2b':

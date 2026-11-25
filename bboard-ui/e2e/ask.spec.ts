@@ -218,7 +218,7 @@ test('the receipt before the key date stamp, then 3 clones from Ask saved with t
   // Now there is a record, the hint by the bubble names it. Dismissed, it stays gone; only the
   // flag is stored. (Cleared here to try the hint again.)
   const hint = page.locator('[data-ask-hint]');
-  await expect(hint).toHaveText(`Try: cut 6 clones from ${name}`);
+  await expect(hint).toHaveText(`Try: cut 6 cuttings from ${name}`);
   // Not on the agreements, backup or import screens, where it would sit on a table or a form.
   const recordUrl = page.url();
   for (const path of ['/licenses', '/backup', '/records/import']) {
@@ -231,7 +231,7 @@ test('the receipt before the key date stamp, then 3 clones from Ask saved with t
   await page.goto('/records/import');
   await expect(page.locator('[data-ask-open]')).toHaveCount(0);
   await page.goto(recordUrl);
-  await expect(hint).toHaveText(`Try: cut 6 clones from ${name}`);
+  await expect(hint).toHaveText(`Try: cut 6 cuttings from ${name}`);
   // In the page's own flow, after its content: it covers nothing (the evidence line included).
   expect(await hint.evaluate((el) => getComputedStyle(el).position)).not.toBe('fixed');
   const mainBottom = await page.evaluate(() => document.querySelector('main')?.getBoundingClientRect().bottom ?? 0);
@@ -253,7 +253,7 @@ test('the receipt before the key date stamp, then 3 clones from Ask saved with t
   // Tapping the hint opens Ask with the example typed in, ready to send.
   await hint.locator('[data-ask-hint-try]').click();
   await expect(page.locator('[data-ask-sheet]')).toBeVisible();
-  await expect(page.locator('[data-ask-input]')).toHaveValue(`cut 6 clones from ${name}`);
+  await expect(page.locator('[data-ask-input]')).toHaveValue(`cut 6 cuttings from ${name}`);
   await expect(page.locator('[data-ask-input]')).toBeFocused();
   if (process.env.ASK_SHOTS) await page.screenshot({ path: `${process.env.ASK_SHOTS}/fix-hint-prefilled-phone.png` });
   await askFor(page, `cut 3 clones from ${name}`);

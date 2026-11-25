@@ -25,7 +25,7 @@ import {
   Stack,
   Typography,
 } from '@mui/material';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
 import { OPEN_SIGNING_KEY_STATE, getRole, labDoorStep, setRole } from '../../veilcore/role';
 import { useRecords } from '../../veilcore/records';
 import { holderKeyIfAny } from '../../veilcore/holder';
@@ -182,6 +182,14 @@ export const LabDoor: React.FC = () => {
         <Section title={t('app.labpage.work.title')}>
           <P>{t('app.labpage.work.p1')}</P>
           <P>{t('app.labpage.work.p2')}</P>
+          {/* A lab's daily export, sealed at once (/records/import): its columns are remembered on
+              this device after the first file (veilcore/import-layouts.ts). */}
+          <P>{t('app.labpage.work.sheet')}</P>
+          <Typography variant="body1">
+            <Link component={RouterLink} to="/records/import" data-lab-sheet-link="door">
+              {t('app.labpage.work.sheetLink')}
+            </Link>
+          </Typography>
         </Section>
 
         <Section title={t('app.labpage.cost.title')}>

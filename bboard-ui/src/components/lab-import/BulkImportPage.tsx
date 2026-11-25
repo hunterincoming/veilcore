@@ -16,8 +16,10 @@ import {
   Alert,
   Box,
   Button,
+  Checkbox,
   CircularProgress,
   Collapse,
+  FormControlLabel,
   LinearProgress,
   MenuItem,
   Stack,
@@ -80,6 +82,15 @@ import {
   type Sheet,
 } from '../../veilcore/bulk-import';
 import { useKeyStampQueue } from './useKeyStampQueue';
+import {
+  canRemember,
+  forgetLayout,
+  layoutLabel,
+  loadLayouts,
+  matchLayout,
+  rememberLayout,
+  type SavedLayout,
+} from '../../veilcore/import-layouts';
 import { DisclosureReceipt } from '../chain/DisclosureReceipt';
 import { InEnglishNote, rich, useT } from '../../i18n/app';
 import type { AppKey } from '../../i18n/app/en';
@@ -162,12 +173,28 @@ const screenFor = (job: Job | undefined): Screen =>
 
 export const BulkImportPage: React.FC = () => {
   const { t } = useT();
-  const [job, setJobState] = useState<Job | undefined>(loadJob);
-  const [screen, setScreen] = useState<Screen>(() => screenFor(job));
+  // A finished import (sealed and backed up, its results file offered) isn't opened again: the
+  // page opens on the file screen, ready for today's file, with a box for the last import and its
+  // results file (lastJob). Its rows stay in this browser (a reload, a second tab or a stray tap
+  // loses nothing) until the person picks today's file on that same screen, or removes it.
+  const [stored] = useState<Job | undefined>(loadJob);
+  const finished = stored?.phase === 'backed-up' ? stored : undefined;
+  const [job, setJobState] = useState<Job | undefined>(finished ? undefined : stored);
+  const [lastJob, setLastJob] = useState<Job | undefined>(finished);
+  const [screen, setScreen] = useState<Screen>(() => screenFor(finished ? undefined : stored));
+  const removeLastJob = () => {
+    setLastJob(undefined);
+    clearJob();
+  };
   const [sheet, setSheet] = useState<Sheet>();
   const [fileName, setFileName] = useState('');
   const [mapping, setMapping] = useState<Mapping>();
   const [kept, setKept] = useState(true);
+  // Remembered column layouts (import-layouts.ts): kept in this browser only. A file with the
+  // same columns as one sealed before skips the header and column screens, already filled in.
+  const [layouts, setLayouts] = useState<SavedLayout[]>(loadLayouts);
+  const [layout, setLayout] = useState<SavedLayout>();
+  const [remember, setRemember] = useState(true);
   const first = useRef(true);
 
   const setJob = (j: Job | undefined) => {
@@ -213,9 +240,28 @@ export const BulkImportPage: React.FC = () => {
         return (
           <PickFile
             step={step}
+            layouts={layouts}
+            lastJob={lastJob}
+            onRemoveLast={removeLastJob}
+            onForget={(id) => {
+              forgetLayout(id);
+              setLayouts(loadLayouts());
+            }}
             onRead={(s, name) => {
-              setSheet(s);
               setFileName(name);
+              // Today's file, picked beside the last import's box: that import is put away.
+              if (lastJob) removeLastJob();
+              setRemember(true);
+              const found = matchLayout(s, layouts);
+              if (found) {
+                setSheet(found.sheet);
+                setMapping(found.mapping);
+                setLayout(found.layout);
+                setScreen('check');
+                return;
+              }
+              setLayout(undefined);
+              setSheet(s);
               setMapping(guessFor(s.headers, startAnimal()));
               setScreen('header');
             }}
@@ -227,6 +273,9 @@ export const BulkImportPage: React.FC = () => {
             step={step}
             sheet={sheet}
             onPick={(line) => {
+              // Another header row: other column names, so no longer the remembered layout.
+              setLayout(undefined);
+              setRemember(true);
               const s = withHeaderRow(sheet, line);
               setSheet(s);
               setMapping(guessFor(s.headers, !!mapping?.animal));
@@ -241,7 +290,11 @@ export const BulkImportPage: React.FC = () => {
             step={step}
             sheet={sheet}
             mapping={mapping}
-            onChange={setMapping}
+            onChange={(m) => {
+              // Changed by hand: no longer the remembered layout (sealing saves the new one).
+              setMapping(m);
+              setLayout(undefined);
+            }}
             onBack={() => setScreen('header')}
             onNext={() => setScreen('check')}
           />
@@ -252,9 +305,22 @@ export const BulkImportPage: React.FC = () => {
             step={step}
             sheet={sheet}
             mapping={mapping}
+            layout={layout}
+            remember={remember}
+            onRemember={setRemember}
+            onForget={() => {
+              if (layout) forgetLayout(layout.id);
+              setLayout(undefined);
+              setRemember(false);
+              setLayouts(loadLayouts());
+            }}
             onBack={() => setScreen('columns')}
             onHeaderRow={() => setScreen('header')}
             onSeal={(rows) => {
+              if (remember && canRemember(sheet.headers, mapping)) {
+                rememberLayout(sheet, mapping);
+                setLayouts(loadLayouts());
+              }
               setJob({
                 version: 1,
                 fileName,
@@ -318,6 +384,7 @@ export const BulkImportPage: React.FC = () => {
               setJob(undefined);
               setSheet(undefined);
               setMapping(undefined);
+              setLayout(undefined);
               setScreen('file');
             }}
           />
@@ -337,7 +404,15 @@ export const BulkImportPage: React.FC = () => {
 
 // ---------------------------------------------------------------------------------------
 
-const PickFile: React.FC<{ step?: string; onRead: (s: Sheet, name: string) => void }> = ({ step, onRead }) => {
+const PickFile: React.FC<{
+  step?: string;
+  layouts: readonly SavedLayout[];
+  /** The import finished before this visit, kept until today's file is picked or it is removed. */
+  lastJob?: Job;
+  onRemoveLast: () => void;
+  onForget: (id: string) => void;
+  onRead: (s: Sheet, name: string) => void;
+}> = ({ step, layouts, lastJob, onRemoveLast, onForget, onRead }) => {
   const tr = useT();
   const { t } = tr;
   const pick = useRef<HTMLInputElement>(null);
@@ -382,6 +457,7 @@ const PickFile: React.FC<{ step?: string; onRead: (s: Sheet, name: string) => vo
           {error}
         </Alert>
       )}
+      {lastJob && <LastImport job={lastJob} onRemove={onRemoveLast} />}
       <Button
         variant="contained"
         size="large"
@@ -412,6 +488,33 @@ const PickFile: React.FC<{ step?: string; onRead: (s: Sheet, name: string) => vo
       <Typography variant="body2" color="text.secondary">
         {t('app.import.readHere', { server: t('app.copy.ourServer'), dated: t('app.copy.datedOn') })}
       </Typography>
+      {layouts.length > 0 && (
+        <Box data-saved-layouts="">
+          <Typography variant="subtitle2" component="h2">
+            {t('app.import.saved.list')}
+          </Typography>
+          <Box component="ul" sx={{ m: 0, pl: 2.5 }}>
+            {layouts.map((l) => (
+              <li key={l.id} data-saved-layout={layoutLabel(l.columns)}>
+                <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
+                  <Typography variant="body2" sx={{ wordBreak: 'break-word', minWidth: 0 }}>
+                    {layoutLabel(l.columns)}
+                  </Typography>
+                  <Button
+                    variant="text"
+                    size="small"
+                    onClick={() => onForget(l.id)}
+                    aria-label={t('app.import.saved.forgetName', { name: layoutLabel(l.columns) })}
+                    sx={{ minHeight: 44 }}
+                  >
+                    {t('app.import.saved.forgetOne')}
+                  </Button>
+                </Stack>
+              </li>
+            ))}
+          </Box>
+        </Box>
+      )}
       {!IS_MAINNET && (
         <Typography variant="body2" color="text.secondary">
           {t('app.import.testSite')}
@@ -419,6 +522,34 @@ const PickFile: React.FC<{ step?: string; onRead: (s: Sheet, name: string) => vo
       )}
       <EarlierKeyStamps />
     </Stack>
+  );
+};
+
+/**
+ * The import finished before this visit: how many records it sealed, and its results file. Its
+ * rows stay in this browser until today's file is picked here, or "Remove it".
+ */
+const LastImport: React.FC<{ job: Job; onRemove: () => void }> = ({ job, onRemove }) => {
+  const { t, tp } = useT();
+  return (
+    <Box data-last-import="" sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2, p: 1.5 }}>
+      <Typography variant="body2">{tp('app.import.last.sealed', jobSummary(job).sealed)}</Typography>
+      <Typography variant="body2" color="text.secondary">
+        {t('app.import.last.once')}
+      </Typography>
+      <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', gap: 1 }}>
+        <Button
+          variant="text"
+          onClick={() => downloadText(resultsCsv(job, CANONICAL_ORIGIN, hasDnaReport), resultsFileName(job.fileName))}
+          sx={{ minHeight: 44, px: 0 }}
+        >
+          {t('app.import.last.download')}
+        </Button>
+        <Button variant="text" color="inherit" onClick={onRemove} sx={{ minHeight: 44 }}>
+          {t('app.import.last.remove')}
+        </Button>
+      </Stack>
+    </Box>
   );
 };
 
@@ -798,10 +929,15 @@ const Check: React.FC<{
   step?: string;
   sheet: Sheet;
   mapping: Mapping;
+  /** The remembered layout this file matched: its columns were filled in from it. */
+  layout?: SavedLayout;
+  remember: boolean;
+  onRemember: (on: boolean) => void;
+  onForget: () => void;
   onBack: () => void;
   onHeaderRow: () => void;
   onSeal: (rows: PreparedRow[]) => void;
-}> = ({ step, sheet, mapping, onBack, onHeaderRow, onSeal }) => {
+}> = ({ step, sheet, mapping, layout, remember, onRemember, onForget, onBack, onHeaderRow, onSeal }) => {
   const { t, tp } = useT();
   const records = useRecords();
   const hintId = useId();
@@ -821,6 +957,22 @@ const Check: React.FC<{
           {t('app.import.end')}
         </Typography>
       </Box>
+      {layout && (
+        <Alert
+          severity="success"
+          variant="outlined"
+          data-saved-layout-used={layoutLabel(layout.columns)}
+          action={
+            <Button color="inherit" onClick={onForget} sx={{ minHeight: 44 }}>
+              {t('app.import.saved.forget')}
+            </Button>
+          }
+        >
+          {t('app.import.saved.same')}
+          {mapping.dateOrder !== 'auto' &&
+            `${t('app.common.sentenceSep')}${t(mapping.dateOrder === 'mdy' ? 'app.import.saved.datesMdy' : 'app.import.saved.datesDmy')}`}
+        </Alert>
+      )}
       {checked.blocked && (
         <Alert severity="error" variant="outlined" role="alert">
           {checked.blocked}
@@ -886,6 +1038,27 @@ const Check: React.FC<{
       <Typography variant="body2" color="text.secondary">
         {t('app.import.check.savedOn', { server: t('app.copy.ourServer'), dated: t('app.copy.datedOn') })}
       </Typography>
+      {!layout && !canRemember(sheet.headers, mapping) && (
+        <Typography variant="body2" color="text.secondary" data-remember-refused="">
+          {t('app.import.saved.refused')}
+        </Typography>
+      )}
+      {!layout && canRemember(sheet.headers, mapping) && (
+        <Box>
+          <FormControlLabel
+            control={
+              <Checkbox checked={remember} onChange={(e) => onRemember(e.target.checked)} data-remember-layout="" />
+            }
+            label={t('app.import.saved.remember')}
+          />
+          <Typography variant="caption" color="text.secondary" component="p" sx={{ pl: 4 }}>
+            {t('app.import.saved.rememberHelp')}
+          </Typography>
+          <Typography variant="caption" color="text.secondary" component="p" sx={{ pl: 4 }} data-remember-keeps="">
+            {t('app.import.saved.keeps', { names: layoutLabel(sheet.headers, 8) })}
+          </Typography>
+        </Box>
+      )}
       <Button
         variant="contained"
         size="large"

@@ -449,12 +449,20 @@ export const termsProblems = (
 export const unitLabel = (u: RoyaltyUnit, tr: Translator = enT): string => labelOr(tr, `app.roy.unit.${u}`, u);
 export const periodLabel = (p: Period, tr: Translator = enT): string => labelOr(tr, `app.roy.every.${p}`, p);
 
+/**
+ * A deduction in words. Excise is "excise tax"; only on terms for cannabis, hemp or another
+ * controlled plant (isControlledTerms: the licensor's answer, or on older terms the record's
+ * species where the record is known) is it "excise or cannabis tax".
+ */
+export const deductionLabel = (d: Deduction, tr: Translator = enT, controlled = false): string =>
+  labelOr(tr, d === 'excise' && controlled ? 'app.roy.ded.exciseControlled' : `app.roy.ded.${d}`, d);
+
 /** A rule in a few words: "8% of gross sales", "$2.00 per cutting". */
-export const ruleText = (r: RoyaltyRule, currency: string, tr: Translator = enT): string => {
+export const ruleText = (r: RoyaltyRule, currency: string, tr: Translator = enT, controlled = false): string => {
   if (r.kind === 'percent') {
     if (!r.base) return tr.t('app.roy.rule.pctOld', { rate: r.rate || '—' });
     if (r.base === 'gross') return tr.t('app.roy.rule.pctGross', { rate: r.rate || '—' });
-    const ded = (r.deductions ?? []).map((d) => labelOr(tr, `app.roy.ded.${d}`, d)).join(', ');
+    const ded = (r.deductions ?? []).map((d) => deductionLabel(d, tr, controlled)).join(', ');
     return r.deductionCapPct
       ? tr.t('app.roy.rule.pctNetCap', { rate: r.rate || '—', ded: ded || '—', cap: r.deductionCapPct })
       : tr.t('app.roy.rule.pctNet', { rate: r.rate || '—', ded: ded || '—' });
@@ -477,6 +485,7 @@ export const dateWords = (day: string, tr: Translator): string =>
  */
 export const termsSentence = (t: LicenseTerms, tr: Translator): string => {
   const currency = currencyOf(t);
+  const controlled = isControlledTerms(t);
   const parts: string[] = [];
   const names = {
     licensee: t.licensee || tr.t('app.roy.who.licensee'),
@@ -494,20 +503,23 @@ export const termsSentence = (t: LicenseTerms, tr: Translator): string => {
   parts.push(tr.t(t.sublicensable ? 'app.roy.s.subYes' : 'app.roy.s.subNo'));
   const r = ruleOf(t);
   if (r) {
-    parts.push(tr.t('app.roy.s.royalty', { rule: ruleText(r, currency, tr) }));
+    parts.push(tr.t('app.roy.s.royalty', { rule: ruleText(r, currency, tr, controlled) }));
     if (r.kind === 'per-unit' && r.unitDefinition) parts.push(tr.t('app.roy.s.counts', { def: r.unitDefinition }));
   }
   const o = offspringOf(t);
   if (o) {
     parts.push(
       o.years
-        ? tr.t('app.roy.s.offspringFor', { rule: ruleText(o.rule, currency, tr), n: tr.tp('app.roy.years', o.years) })
+        ? tr.t('app.roy.s.offspringFor', {
+            rule: ruleText(o.rule, currency, tr, controlled),
+            n: tr.tp('app.roy.years', o.years),
+          })
         : o.generations
           ? tr.t('app.roy.s.offspringFor', {
-              rule: ruleText(o.rule, currency, tr),
+              rule: ruleText(o.rule, currency, tr, controlled),
               n: tr.tp('app.roy.generations', o.generations),
             })
-          : tr.t('app.roy.s.offspring', { rule: ruleText(o.rule, currency, tr) }),
+          : tr.t('app.roy.s.offspring', { rule: ruleText(o.rule, currency, tr, controlled) }),
     );
   }
   if (t.yearlyMinimum)

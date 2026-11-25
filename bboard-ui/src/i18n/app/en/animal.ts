@@ -10,6 +10,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 export const animal = {
+  // The check page's fixed line (verify/DatedNotOrigin.tsx).
+  'app.animal.v.app.origin.datedNotOriginLiving':
+    'The date shows the holder had this record by then, not who bred it, where it’s from, or that it’s true. The animal may be much older.',
   // flow/AnimalForm.tsx: the logging flow's first screen.
   'app.animal.choice.label': 'What are you logging?',
   'app.animal.choice.plant': 'A plant',

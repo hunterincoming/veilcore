@@ -192,7 +192,15 @@ test('a pack for the authority in Spanish: the missing chromatography first, and
   await page.getByLabel('Held by').fill(HELD_BY);
   const reportId = await seal(page);
 
-  // Home offers the pack once there is a chain to make it from.
+  // Home offers the pack once there is a chain to make it from: in English, under More, without
+  // naming Argentina's authorities.
+  await page.goto('/records?lang=en');
+  await expect(page.locator('[data-pack-link]')).toBeHidden();
+  await page.getByRole('button', { name: 'More' }).click();
+  await expect(page.locator('[data-pack-link]')).toBeVisible();
+  await expect(page.locator('[data-pack-link]')).toHaveText('Pack for an authority');
+  // In Spanish, to someone holding cannabis records (a plant sealed before profiles was cannabis),
+  // it is on Home by name.
   await page.goto('/records?lang=es');
   await expect(page.locator('[data-pack-link]')).toHaveText('Documentación de respaldo para REPROCANN / SEDRONAR');
   await page.locator('[data-pack-link]').click();

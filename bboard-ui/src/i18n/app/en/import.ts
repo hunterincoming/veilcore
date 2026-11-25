@@ -171,4 +171,23 @@ export const importing = {
     "A date stamp shows the details existed by that date. It doesn't confirm they are right.",
   'app.import.done.toRecords': 'Go to your records',
   'app.import.done.another': 'Import another file',
+  'app.import.saved.forget': 'Forget these columns',
+  'app.import.saved.remember': 'Remember these columns on this device for next time',
+  'app.import.saved.rememberHelp':
+    'Kept in this browser only and never sent. A file with the same columns then opens here, ready to seal.',
+  'app.import.saved.list': 'Columns remembered on this device',
+  'app.import.saved.forgetOne': 'Forget',
+  'app.import.saved.forgetName': 'Forget the columns for {name}',
+  'app.import.saved.same': 'Same columns as last time, filled in for you.',
+  'app.import.saved.datesMdy': 'Dates are read as month/day/year, as last time.',
+  'app.import.saved.datesDmy': 'Dates are read as day/month/year, as last time.',
+  'app.import.saved.keeps':
+    'What is kept: the column names ({names}) and which is which. Nothing from the rows or the file name.',
+  'app.import.last.sealed.one': 'Your last import sealed {count} record.',
+  'app.import.last.sealed.other': 'Your last import sealed {count} records.',
+  'app.import.last.download': 'Download its results file (CSV)',
+  'app.import.saved.refused': "These column names look like a row from the sheet, so they aren't remembered.",
+  'app.import.last.once':
+    'It stays in this browser until you choose your next file. Download its results file if you need it.',
+  'app.import.last.remove': 'Remove it',
 };

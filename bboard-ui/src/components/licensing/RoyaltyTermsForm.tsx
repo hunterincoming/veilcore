@@ -26,6 +26,8 @@ import { RIGHTS_FOR, subjectOf, type LicenseTerms } from '../../veilcore/license
 import {
   DEDUCTIONS,
   PERIODS,
+  deductionLabel,
+  isControlledTerms,
   PRESETS_FOR,
   UNITS_FOR,
   periodLabel,
@@ -172,7 +174,9 @@ const RuleFields: React.FC<{
   kind: RecordKind;
   currency: string;
   tr: Translator;
-}> = ({ rule: r, onChange, kind, currency, tr }) => {
+  /** Terms for cannabis, hemp or another controlled plant: excise reads "excise or cannabis tax". */
+  controlled: boolean;
+}> = ({ rule: r, onChange, kind, currency, tr, controlled }) => {
   const units = UNITS_FOR[kind].includes(r.kind === 'per-unit' ? r.unit : 'batch')
     ? UNITS_FOR[kind]
     : [...UNITS_FOR[kind], ...(r.kind === 'per-unit' ? [r.unit] : [])];
@@ -249,7 +253,7 @@ const RuleFields: React.FC<{
                         }
                       />
                     }
-                    label={tr.t(`app.roy.ded.${d}` as AppKey)}
+                    label={deductionLabel(d, tr, controlled)}
                   />
                 ))}
               </Stack>
@@ -508,7 +512,14 @@ export const FullLicenseFields: React.FC<{ terms: LicenseTerms; set: SetTerm; te
       </Stack>
       <Typography variant="overline">{tr.t('app.lic.row.royalty')}</Typography>
       {t.royalty && (
-        <RuleFields rule={t.royalty} onChange={(r) => set('royalty', r)} kind={kind} currency={currency} tr={tr} />
+        <RuleFields
+          rule={t.royalty}
+          onChange={(r) => set('royalty', r)}
+          kind={kind}
+          currency={currency}
+          tr={tr}
+          controlled={isControlledTerms(t)}
+        />
       )}
       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
         <TextField

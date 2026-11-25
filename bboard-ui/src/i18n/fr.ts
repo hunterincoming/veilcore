@@ -230,7 +230,6 @@ export const fr: Strings = {
   'm.nav.menu': 'Menu',
   'm.nav.forLabs': 'Utiliser comme laboratoire',
   'm.nav.getBack': 'Récupérer mes enregistrements',
-  'm.hero.label': 'La preuve de ce que vous détenez',
   'm.hero.title1': 'Datez votre enregistrement.',
   'm.hero.title2': 'Gardez votre génétique privée.',
   'm.hero.how': 'Comment ça marche',
@@ -422,7 +421,7 @@ export const fr: Strings = {
   'm.privacy.contact': 'Questions : hunter@veilcore.org',
   // Round 2 truth pass (14 Oct 2026): keys added or newly translated.
   'm.hero.lede':
-    'Pour les obtenteurs, les éleveurs, les semenciers et les laboratoires qui travaillent sur la génétique végétale, animale et microbienne : donnez à vos enregistrements une date que personne ne peut antidater. Vos données génétiques restent verrouillées : les fichiers ADN ne quittent jamais votre ordinateur, et ce que vous saisissez arrive verrouillé sur notre serveur. Seuls des codes, et les faits que vous choisissez de prouver, vont sur Midnight, qui les date.',
+    'Pour les obtenteurs, les éleveurs, les semenciers et les laboratoires qui travaillent sur la génétique végétale, animale et microbienne : donnez à vos enregistrements une date que personne ne peut avancer. Vos données génétiques restent verrouillées : les fichiers ADN ne quittent jamais votre ordinateur, et ce que vous saisissez arrive verrouillé sur notre serveur. Seuls des codes, et les faits que vous choisissez de prouver, vont sur Midnight, qui les date.',
   'm.for.3p':
     'Envoyez du matériel avec un code laboratoire. Le laboratoire signe un accusé de réception avec sa propre clé, et l’enregistrement montre ainsi une seconde partie. L’accusé est une vraie signature, conservée par le registre de VeilCore, pas sur la chaîne. Des conditions comme l’interdiction de multiplier ne sont qu’un exercice dans la démo web.',
   'm.get.1b': 'pour un enregistrement de ce que vous détenez, sans montrer votre génétique.',
@@ -645,7 +644,7 @@ export const fr: Strings = {
     'Sur les pages des enregistrements, « Demander » remplit un enregistrement, ou un lot de boutures ou de descendants, que vous vérifiez ensuite. Il ne signe et n’envoie jamais rien. C’est vous qui le faites.',
   'm.home.trustLabel': 'Ce que cela vous apporte',
   'm.home.trust':
-    'Preuve que vous déteniez déjà un enregistrement à une date|Une date que personne ne peut antidater|Vérifier est gratuit|Un format ouvert|Sans portefeuille, sans inscription',
+    'Preuve que vous déteniez déjà un enregistrement à une date|Une date que personne ne peut avancer|Vérifier est gratuit|Un format ouvert|Sans portefeuille, sans inscription',
   'm.home.pause': 'Mettre en pause le défilement',
   'm.home.play': 'Reprendre le défilement',
   'm.home.fails': 'Dites-nous où ça ne va pas.',
@@ -679,9 +678,9 @@ export const fr: Strings = {
     'On vous envoie un lien. Vous touchez une fois, et la page de votre interlocuteur vérifie sur le réseau que vous contrôlez la clé propre à votre enregistrement. Votre enregistrement a nommé cette clé au moment où il a été scellé : elle ne peut donc pas être remplacée. Cela ne dit rien de qui vous êtes ni de qui a obtenu la plante. Cela fonctionne pour l’instant sur un réseau de test de Midnight.',
   'm.for.5t': 'Lignées animales.',
   'm.for.5p':
-    'Les livres généalogiques tiennent le pedigree. Un enregistrement peut donner à chaque entrée une date que personne ne peut antidater, sans publier le génotype. Sur ce site, vous pouvez enregistrer un animal : son numéro d’identification individuel, son père et sa mère, et un rapport ADN.',
+    'Les livres généalogiques tiennent le pedigree. Un enregistrement peut donner à chaque entrée une date que personne ne peut avancer, sans publier le génotype. Sur ce site, vous pouvez enregistrer un animal : son numéro d’identification individuel, son père et sa mère, et un rapport ADN.',
   'm.for.5parent':
-    'Un résultat de filiation signé par un laboratoire peut aussi prouver qu’un veau correspond à son père et à sa mère, sans montrer aucun profil ADN.',
+    'Un résultat de filiation signé montre qu’un laboratoire a attesté que les échantillons correspondent au père et à la mère, sans montrer aucun profil ADN.',
   'm.for.5parentLink': 'Comment marche la filiation →',
   'm.for.5ask': 'Si vous élevez des animaux, dites-nous ce dont vos enregistrements ont besoin.',
   'm.how.label': 'Comment ça marche',
@@ -729,7 +728,7 @@ export const fr: Strings = {
   'm.get.title1': 'Ce que vous obtenez,',
   'm.get.title2': 'et où ça s’arrête.',
   'm.get.title': 'Ce que vous obtenez',
-  'm.get.1a': 'Une date que personne ne peut antidater,',
+  'm.get.1a': 'Une date que personne ne peut avancer,',
   'm.get.2a': 'Licences et accords de laboratoire.',
   'm.get.2b':
     'Ils sont attachés à l’enregistrement. Un licencié peut prouver qu’il détient une licence en vigueur sans montrer laquelle. Une redevance ou autre obligation sur un parent apparaît sur chaque descendant confirmé par les deux détenteurs ; VeilCore l’enregistre et ne la perçoit pas. Testé sur un réseau de test de Midnight ; simulé dans la démo web.',

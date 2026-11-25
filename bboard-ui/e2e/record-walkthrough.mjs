@@ -534,7 +534,7 @@ const run = async () => {
     await caption(c, CAPTIONS.ask);
     await sleep(2000);
     step = 'Asking for proof by link';
-    const askHeading = c.getByRole('heading', { name: 'Ask them to prove they hold it' });
+    const askHeading = c.getByRole('heading', { name: 'Ask them to prove they hold its record' });
     await askHeading
       .waitFor({ timeout: 20_000 })
       .catch(() => fail('The checker’s page doesn’t offer "Ask them to prove they hold it".'));

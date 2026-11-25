@@ -224,4 +224,8 @@ export const home = {
     'Diese Datei enthält {n} Datensätze, die für VeilCore neu sind, und Ihr kostenloser Tarif kann noch {left} datieren. Es wurde nichts importiert. Wählen Sie auf Ihrer Datensatzseite einen Tarif, um mehr zu datieren.',
   'app.plan.box.full':
     'Ihre kostenlosen Datensätze sind aufgebraucht. Alles, was Sie schon haben, bleibt prüfbar. Wählen Sie einen Tarif, um weitere hinzuzufügen.',
+  'app.home.labSheet': 'Die Tabelle von heute versiegeln',
+  'app.labpage.work.sheet':
+    'Exportieren Sie jeden Tag eine Tabelle Ihrer Kulturen oder Proben? Versiegeln Sie die ganze Tabelle auf einmal. Nach dem ersten Mal merkt sich dieses Gerät die Spalten, am nächsten Tag ist es ein Knopf.',
+  'app.labpage.work.sheetLink': 'Die Tabelle von heute versiegeln',
 } satisfies Partial<AppTranslation>;

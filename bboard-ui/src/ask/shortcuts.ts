@@ -264,7 +264,7 @@ export const interpret = (text: string, ctx: AskContext): AskResult => {
     const topic = TOPIC_ORDER.find((k) => matches(t, toks, TOPIC_WORDS[k]));
     return topic ? { type: 'explain', topic } : { type: 'explain' };
   }
-  // "find my Gelato crosses from 2025": a search when it starts with one.
+  // "find my Harbour Mist crosses from 2025": a search when it starts with one.
   if (toks.length && matches(toks[0], [toks[0]], SEARCH)) {
     const query = toks
       .slice(1)

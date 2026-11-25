@@ -6,6 +6,8 @@
 import type { AppTranslation } from '../../translate';
 
 export const animal = {
+  'app.animal.v.app.origin.datedNotOriginLiving':
+    'Das Datum zeigt, dass der Inhaber diesen Datensatz spätestens dann hatte, nicht, wer es gezüchtet hat, woher es stammt oder ob die Angaben stimmen. Das Tier kann viel älter sein.',
   'app.animal.choice.label': 'Was erfassen Sie?',
   'app.animal.choice.plant': 'Eine Pflanze',
   'app.animal.choice.animal': 'Ein Tier',

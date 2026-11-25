@@ -230,7 +230,6 @@ export const de: Strings = {
   'm.nav.menu': 'Menü',
   'm.nav.forLabs': 'Als Labor nutzen',
   'm.nav.getBack': 'Meine Datensätze zurückholen',
-  'm.hero.label': 'Nachweis dessen, was Sie haben',
   'm.hero.title1': 'Datieren Sie Ihren Datensatz.',
   'm.hero.title2': 'Ihre Genetik bleibt privat.',
   'm.hero.how': 'So funktioniert es',
@@ -421,7 +420,7 @@ export const de: Strings = {
   'm.privacy.contact': 'Fragen: hunter@veilcore.org',
   // Round 2 truth pass (14 Oct 2026): keys added or newly translated.
   'm.hero.lede':
-    'Für Züchter, Saatgutunternehmen und Labore, die mit pflanzlicher, tierischer und mikrobieller Genetik arbeiten: Geben Sie Ihren Datensätzen ein Datum, das niemand zurückdatieren kann. Ihre genetischen Daten bleiben verschlossen: DNA-Dateien verlassen Ihren Computer nie, und was Sie eingeben, erreicht unseren Server verschlossen. Nur Codes und die Fakten, die Sie beweisen wollen, kommen auf Midnight, das sie datiert.',
+    'Für Züchter, Saatgutunternehmen und Labore, die mit pflanzlicher, tierischer und mikrobieller Genetik arbeiten: Geben Sie Ihren Datensätzen ein Datum, das niemand vorverlegen kann. Ihre genetischen Daten bleiben verschlossen: DNA-Dateien verlassen Ihren Computer nie, und was Sie eingeben, erreicht unseren Server verschlossen. Nur Codes und die Fakten, die Sie beweisen wollen, kommen auf Midnight, das sie datiert.',
   'm.for.3p':
     'Senden Sie Material mit einem Laborcode. Das Labor signiert eine Empfangsbestätigung mit seinem eigenen Schlüssel, sodass der Datensatz eine zweite Partei zeigt. Die Bestätigung ist eine echte Signatur, gespeichert im Register von VeilCore, nicht auf der Chain. Bedingungen wie „keine Vermehrung“ sind in der Web-Demo nur zum Üben.',
   'm.get.1b': 'für einen Datensatz dessen, was Sie haben, ohne Ihre Genetik zu zeigen.',
@@ -642,7 +641,7 @@ export const de: Strings = {
     'Auf den Seiten Ihrer Datensätze füllt „Fragen“ einen Datensatz oder eine Reihe von Stecklingen oder Nachkommen aus, damit Sie ihn prüfen. Es unterschreibt und sendet nie etwas. Das tun Sie.',
   'm.home.trustLabel': 'Was es Ihnen gibt',
   'm.home.trust':
-    'Nachweis, dass Sie einen Datensatz spätestens zu einem Datum hatten|Ein Datum, das niemand zurückdatieren kann|Prüfen ist kostenlos|Ein offenes Format|Keine Wallet, keine Anmeldung',
+    'Nachweis, dass Sie einen Datensatz spätestens zu einem Datum hatten|Ein Datum, das niemand vorverlegen kann|Prüfen ist kostenlos|Ein offenes Format|Keine Wallet, keine Anmeldung',
   'm.home.pause': 'Laufende Namen anhalten',
   'm.home.play': 'Laufende Namen fortsetzen',
   'm.home.fails': 'Sagen Sie uns, wo es scheitert.',
@@ -676,9 +675,9 @@ export const de: Strings = {
     'Man schickt Ihnen einen Link. Sie tippen einmal, und die Seite der anderen Person prüft im Netzwerk, dass Sie den eigenen Schlüssel Ihres Datensatzes kontrollieren. Ihr Datensatz hat diesen Schlüssel beim Versiegeln benannt, deshalb lässt er sich nicht austauschen. Wer Sie sind oder wer die Pflanze gezüchtet hat, zeigt es nicht. Das funktioniert vorerst in einem Testnetz von Midnight.',
   'm.for.5t': 'Tierlinien.',
   'm.for.5p':
-    'Herdbücher führen die Abstammung. Ein Datensatz kann jedem Eintrag ein Datum geben, das niemand zurückdatieren kann, ohne den Genotyp zu veröffentlichen. Auf dieser Website können Sie ein Tier erfassen: seine Einzeltierkennung, Vater und Mutter und einen DNA-Bericht.',
+    'Herdbücher führen die Abstammung. Ein Datensatz kann jedem Eintrag ein Datum geben, das niemand vorverlegen kann, ohne den Genotyp zu veröffentlichen. Auf dieser Website können Sie ein Tier erfassen: seine Einzeltierkennung, Vater und Mutter und einen DNA-Bericht.',
   'm.for.5parent':
-    'Ein signiertes Abstammungsergebnis eines Labors kann auch zeigen, dass ein Kalb zu Vater und Mutter passt, ohne ein DNA-Profil zu zeigen.',
+    'Ein signiertes Abstammungsergebnis zeigt, dass ein Labor unterschrieben hat: Die Proben passen zu Vater und Mutter. Ein DNA-Profil wird nicht gezeigt.',
   'm.for.5parentLink': 'So funktioniert der Abstammungsnachweis →',
   'm.for.5ask': 'Wenn Sie Tiere züchten, sagen Sie uns, was Ihre Datensätze brauchen.',
   'm.how.label': 'So funktioniert es',
@@ -726,7 +725,7 @@ export const de: Strings = {
   'm.get.title1': 'Was Sie bekommen,',
   'm.get.title2': 'und wo es endet.',
   'm.get.title': 'Was Sie bekommen',
-  'm.get.1a': 'Ein Datum, das niemand zurückdatieren kann,',
+  'm.get.1a': 'Ein Datum, das niemand vorverlegen kann,',
   'm.get.2a': 'Lizenzen und Laborvereinbarungen.',
   'm.get.2b':
     'Sie hängen am Datensatz. Ein Lizenznehmer kann beweisen, dass er eine gültige Lizenz hält, ohne zu zeigen, welche. Eine Lizenzgebühr oder andere Verpflichtung auf einem Elternteil erscheint bei jedem Nachkommen, den beide Datensatzinhaber bestätigt haben; VeilCore erfasst sie und zieht sie nicht ein. Getestet in einem Testnetz von Midnight; in der Web-Demo simuliert.',

@@ -228,7 +228,6 @@ export const es: Strings = {
   'm.nav.menu': 'Menú',
   'm.nav.forLabs': 'Usar como laboratorio',
   'm.nav.getBack': 'Recuperar mis registros',
-  'm.hero.label': 'Prueba de lo que usted tiene',
   'm.hero.title1': 'Feche su registro.',
   'm.hero.title2': 'Mantenga su genética en privado.',
   'm.hero.how': 'Cómo funciona',
@@ -417,7 +416,7 @@ export const es: Strings = {
   'm.privacy.contact': 'Preguntas: hunter@veilcore.org',
   // Round 2 truth pass (14 Oct 2026): keys added or newly translated.
   'm.hero.lede':
-    'Para obtentores, empresas de semillas y laboratorios que trabajan con genética vegetal, animal y microbiana: dé a sus registros una fecha que nadie pueda antedatar. Sus datos genéticos se quedan cifrados: los archivos de ADN nunca salen de su computadora, y lo que escribe llega cifrado a nuestro servidor. Solo los códigos, y los hechos que usted decida probar, van a Midnight, que los fecha.',
+    'Para obtentores, empresas de semillas y laboratorios que trabajan con genética vegetal, animal y microbiana: dé a sus registros una fecha que nadie pueda adelantar. Sus datos genéticos se quedan cifrados: los archivos de ADN nunca salen de su computadora, y lo que escribe llega cifrado a nuestro servidor. Solo los códigos, y los hechos que usted decida probar, van a Midnight, que los fecha.',
   'm.for.3p':
     'Envíe material con un código de laboratorio. El laboratorio firma un acuse de recibo con su propia clave, así el registro muestra a una segunda parte. El acuse es una firma real, guardada por el servidor de registros de VeilCore, no en la cadena. Condiciones como no propagar son solo de práctica en la demo web.',
   'm.get.1b': 'para un registro de lo que usted tiene, sin mostrar su genética.',
@@ -639,7 +638,7 @@ export const es: Strings = {
     'En las páginas de registros, «Preguntar» completa un registro, o un lote de esquejes o crías, para que usted lo revise. Nunca firma ni envía nada. Eso lo hace usted.',
   'm.home.trustLabel': 'Lo que le aporta',
   'm.home.trust':
-    'Prueba de que usted ya tenía un registro a una fecha dada|Una fecha que nadie puede antedatar|Comprobar es gratis|Un formato abierto|Sin billetera, sin crear una cuenta',
+    'Prueba de que usted ya tenía un registro a una fecha dada|Una fecha que nadie puede adelantar|Comprobar es gratis|Un formato abierto|Sin billetera, sin crear una cuenta',
   'm.home.pause': 'Pausar los nombres en movimiento',
   'm.home.play': 'Reanudar los nombres en movimiento',
   'm.home.fails': 'Díganos dónde falla.',
@@ -673,9 +672,9 @@ export const es: Strings = {
     'Le envían un enlace. Usted toca una vez, y la página de la otra persona comprueba en la red que usted controla la clave propia de su registro. Su registro nombró esa clave al sellarse, así que no se puede cambiar por otra. No dice nada sobre quién es usted ni sobre quién obtuvo la planta. Por ahora esto funciona en una red de pruebas de Midnight.',
   'm.for.5t': 'Líneas animales.',
   'm.for.5p':
-    'Los libros genealógicos llevan el pedigrí. Un registro puede dar a cada entrada una fecha que nadie puede antedatar, sin publicar el genotipo. En este sitio puede registrar un animal: su identificación individual, padre y madre, y un informe de ADN.',
+    'Los libros genealógicos llevan el pedigrí. Un registro puede dar a cada entrada una fecha que nadie puede adelantar, sin publicar el genotipo. En este sitio puede registrar un animal: su identificación individual, padre y madre, y un informe de ADN.',
   'm.for.5parent':
-    'Un resultado de parentesco firmado por un laboratorio también puede probar que un ternero corresponde a su padre y su madre, sin mostrar ningún perfil de ADN.',
+    'Un resultado de parentesco firmado muestra que un laboratorio firmó que las muestras corresponden al padre y la madre, sin mostrar ningún perfil de ADN.',
   'm.for.5parentLink': 'Cómo funciona el parentesco →',
   'm.for.5ask': 'Si usted cría animales, díganos qué necesitan sus registros.',
   'm.how.label': 'Cómo funciona',
@@ -721,7 +720,7 @@ export const es: Strings = {
   'm.get.title1': 'Lo que obtiene,',
   'm.get.title2': 'y dónde se detiene.',
   'm.get.title': 'Lo que obtiene',
-  'm.get.1a': 'Una fecha que nadie puede antedatar,',
+  'm.get.1a': 'Una fecha que nadie puede adelantar,',
   'm.get.2a': 'Licencias y acuerdos de laboratorio.',
   'm.get.2b':
     'Se adjuntan al registro. Un licenciatario puede probar que tiene una licencia vigente sin mostrar cuál. Una regalía u otra obligación sobre un progenitor aparece en cada descendiente que ambos titulares confirmaron; VeilCore la anota y no la cobra. Probado en una red de pruebas de Midnight; simulado en la demo web.',

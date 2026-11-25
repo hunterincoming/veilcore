@@ -7,6 +7,7 @@ import type { AppTranslation } from '../../translate';
 
 export const pack = {
   'app.pack.home': 'Dossier pour REPROCANN / SEDRONAR',
+  'app.pack.more': 'Dossier pour une autorité',
   'app.pack.title': 'Dossier pour REPROCANN / SEDRONAR',
   'app.pack.intro':
     'Pour une association de cannabis médical en Argentine. Il rassemble ce que vos enregistrements VeilCore montrent sur une période, comme pièces justificatives pour la déclaration semestrielle et le registre de production, indique ce qui manque et donne le lien de vérification de chaque enregistrement VeilCore. Vous le relisez, le signez et l’envoyez vous-même.',

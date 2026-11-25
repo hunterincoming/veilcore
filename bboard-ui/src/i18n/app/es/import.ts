@@ -171,4 +171,23 @@ export const importing = {
     'Un sello de fecha muestra que los datos ya existían a esa fecha. No confirma que sean correctos.',
   'app.import.done.toRecords': 'Ir a sus registros',
   'app.import.done.another': 'Importar otro archivo',
+  'app.import.saved.forget': 'Olvidar estas columnas',
+  'app.import.saved.remember': 'Recordar estas columnas en este dispositivo para la próxima vez',
+  'app.import.saved.rememberHelp':
+    'Se guarda solo en este navegador y nunca se envía. Un archivo con las mismas columnas se abre entonces aquí, listo para sellar.',
+  'app.import.saved.list': 'Columnas recordadas en este dispositivo',
+  'app.import.saved.forgetOne': 'Olvidar',
+  'app.import.saved.forgetName': 'Olvidar las columnas de {name}',
+  'app.import.saved.same': 'Las mismas columnas que la última vez, ya completadas.',
+  'app.import.saved.datesMdy': 'Las fechas se leen como mes/día/año, como la última vez.',
+  'app.import.saved.datesDmy': 'Las fechas se leen como día/mes/año, como la última vez.',
+  'app.import.saved.keeps':
+    'Lo que se guarda: los nombres de las columnas ({names}) y cuál es cuál. Nada de las filas ni del nombre del archivo.',
+  'app.import.last.sealed.one': 'Su última importación selló {count} registro.',
+  'app.import.last.sealed.other': 'Su última importación selló {count} registros.',
+  'app.import.last.download': 'Descargar su archivo de resultados (CSV)',
+  'app.import.saved.refused': 'Estos nombres de columna parecen una fila de la planilla, así que no se recuerdan.',
+  'app.import.last.once':
+    'Se queda en este navegador hasta que elija su próximo archivo. Descargue su archivo de resultados si lo necesita.',
+  'app.import.last.remove': 'Quitarla',
 } satisfies Partial<AppTranslation>;

@@ -16,9 +16,9 @@ export const prove = {
   // flow/ProvePage.tsx: a prove link.
   'app.prove.yourRequest': 'Your request',
   'app.prove.youAskedNamed':
-    "You asked the holder of <b>{name}</b> to prove they hold it. Send them this link if you haven't yet.",
+    "You asked the holder of <b>{name}</b> to prove they hold its record. Send them this link if you haven't yet.",
   'app.prove.youAsked':
-    "You asked the holder of this plant to prove they hold it. Send them this link if you haven't yet.",
+    "You asked the holder of this plant to prove they hold its record. Send them this link if you haven't yet.",
   'app.prove.openCheckPage': "Open the plant's check page",
   'app.prove.opening': 'Opening the request…',
   'app.prove.ended': 'This request has ended',
@@ -57,7 +57,7 @@ export const prove = {
   'app.prove.ask.cantAsk': "Can't ask for a proof from this link",
   'app.prove.ask.refused': '{reason}. A proof made with it would say nothing about this record.',
   'app.prove.ask.noLink': 'No link was made: {error}.',
-  'app.prove.ask.title': 'Ask them to prove they hold it',
+  'app.prove.ask.title': 'Ask them to prove they hold its record',
   'app.prove.ask.intro':
     "You send them a link. They open it and tap Prove it. The answer shows up here. This page checks the answer on the network itself, through a Midnight indexer (on the test site, reached through VeilCore's relay). For a decision that matters, check the transaction on a second indexer. Test network only.",
   'app.prove.ask.bound':
