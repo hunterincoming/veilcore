@@ -6,7 +6,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { WhoVouches } from '../verify/WhoVouches';
-import { CheckVerdict, MakeYourOwn } from '../verify/CheckParts';
+import { CheckVerdict, CheckYourself, MakeYourOwn } from '../verify/CheckParts';
 import { recordVerdict, VERDICT_DATE, type Verdict } from '../verify/verdict';
 import { whoVouches } from '../verify/who-vouches';
 import { useRecordDate } from '../verify/useAnchorCheck';
@@ -114,6 +114,7 @@ export const DocumentCheck: React.FC = () => {
         <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
           {t('app.doc.check.intro')}
         </Typography>
+        <CheckYourself sx={{ mt: -1.5, mb: 3 }} />
         {!read && <CircularProgress size={24} />}
         {read && !read.ok && (
           <Alert severity="error" variant="outlined" data-document-link={read.why}>

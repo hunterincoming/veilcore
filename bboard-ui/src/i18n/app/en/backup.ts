@@ -163,4 +163,6 @@ export const backup = {
   'app.backup.fromFileAdded': 'Records put back from the file itself: {n}.',
   'app.backup.fromFileProblem': "The records inside the file couldn't be put back: {why} Your keys are restored.",
   'app.backup.passkey.err.busy': 'Your other device kept saving at the same moment. It tries again by itself.',
+  // Summit 5b item 15: on the backup screen (BackupStep.tsx).
+  'app.backup.neverAsks': 'VeilCore never asks for your backup file or code.',
 };

@@ -460,6 +460,9 @@ const SignerLine: React.FC<{ signer: ReportSigner }> = ({ signer }) => {
     >
       {rich(t('app.lab.results.signed'), { b }, { lead: label.lead, key: short(a.attester.publicKey) })}
       <NameCheckText label={label} />
+      <Box component="span" sx={{ display: 'block', mt: 0.75 }} data-lab-sample-note="">
+        {t('app.lr.note.sample')}
+      </Box>
     </Alert>
   );
 };

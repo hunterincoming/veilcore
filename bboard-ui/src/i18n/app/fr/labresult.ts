@@ -482,4 +482,7 @@ export const labresult = {
     'Un enregistrement contient au plus 16 nombres. Une grande comparaison de SNP est un calcul propre au laboratoire : seuls ses comptages font ici l’objet d’une preuve.',
   'app.marker.limits.opening':
     'Toute personne qui détient les nombres de l’enregistrement et son secret de champs peut les publier : le détenteur, et aussi le laboratoire.',
+  'app.lr.note.sample':
+    'Le laboratoire a testé l’échantillon reçu sous cet enregistrement. Il n’a pas prélevé l’échantillon, et le résultat s’applique à la portion testée.',
+  'app.lr.note.governs': 'Résumé du rapport {accession} du laboratoire ; le rapport {accession} fait foi.',
 } satisfies Partial<AppTranslation>;

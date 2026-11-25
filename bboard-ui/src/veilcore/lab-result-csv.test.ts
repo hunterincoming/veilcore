@@ -195,6 +195,26 @@ describe('a lab’s CSV of results', () => {
     expect(s).toContain('not signed: inconclusive,L-9,S-9,HLVd');
   });
 
+  // Summit 5b item 10: the summary goes into a LIMS and onto paper, away from the marker counts.
+  it('the summary says "at the markers compared", never a bare "same genotype"', () => {
+    const match = (matches: boolean) => ({
+      statement: {
+        kind: 'match' as const,
+        subject: A,
+        sampleId: 'S-1',
+        accession: 'L-1',
+        tested: '2026-11-05',
+        method: { id: 'SNP-96', version: '1' },
+        result: { other: B, matches, compared: 96, differing: matches ? 0 : 12 },
+      },
+      code: C,
+    });
+    const s = resultsSummaryCsv([match(true), match(false)]);
+    expect(s).toContain(`,${A},match,same at the markers compared,SNP-96 1,`);
+    expect(s).toContain(`,${A},match,different at the markers compared,SNP-96 1,`);
+    expect(s).not.toMatch(/genotype/i);
+  });
+
   // Verification N1: a cell with two codes was read as its first one, silently dropping a parent.
   it('reads a parents cell with two codes, however separated, and refuses a cell that holds two subjects', () => {
     for (const cell of [`"${B},${C}"`, `"${B} ${C}"`, `"${B}; ${C}"`]) {

@@ -580,7 +580,8 @@ export const resultsSummaryCsv = (
     const r = s.result as Record<string, unknown> | undefined;
     if (!r) return 'withdrawal';
     if ('detected' in r) return r.detected ? 'detected' : 'not detected';
-    if ('matches' in r) return r.matches ? 'same genotype' : 'different genotype';
+    // Never a bare "same genotype": the summary ends up on paper, away from the counts.
+    if ('matches' in r) return r.matches ? 'same at the markers compared' : 'different at the markers compared';
     if ('consistent' in r) return r.consistent ? 'consistent' : 'excluded';
     if ('found' in r) return r.found ? 'found' : 'not found';
     return 'numbers';

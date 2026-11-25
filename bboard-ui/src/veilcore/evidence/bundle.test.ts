@@ -21,6 +21,8 @@ import {
   bitcoinSteps,
   midnightSteps,
   readmeText,
+  CHECK_YOURSELF,
+  LAB_SAMPLE,
   reconcile,
   safeFileName,
   signatureLines,
@@ -473,6 +475,22 @@ describe('the bundle', () => {
     // Short lines for any text reader; a long value is never broken across two.
     expect(raw.split('\n').filter((l) => l.length > 78 && !/[0-9a-f]{64}/.test(l))).toEqual([]);
     expect(readme).toContain(`spec version 0.1`);
+  });
+
+  // Summit 5b items 10 and 15: the bundle is shown to someone else, and its own page could be edited.
+  it('README and verify.html say to check it yourself, and what a lab signature covers', async () => {
+    const { s, files } = await make({ key: true, lab: true });
+    const readme = strFromU8(files[`${s.record.id}-evidence/README.txt`]).replace(/\s+/g, ' ');
+    const page = strFromU8(files[`${s.record.id}-evidence/verify.html`]);
+    expect(CHECK_YOURSELF).toBe(
+      'Check it yourself: type the proof code at veilcore.org, or use a checker you installed. Never trust a page you were sent.',
+    );
+    expect(readme).toContain(`HOW TO CHECK IT (nothing from VeilCore needed) ${CHECK_YOURSELF}`);
+    expect(readme).toContain(`- What the sample was. ${LAB_SAMPLE}`);
+    expect(LAB_SAMPLE).toMatch(/^The lab tested the sample it received under this record\. It didn’t take the sample/);
+    expect(LAB_SAMPLE).toMatch(/applies to the portion tested\.$/);
+    expect(page).toContain(`<p class="muted" id="check-yourself">${CHECK_YOURSELF}</p>`);
+    expect(page).toContain(`<li>What a lab’s sample was. ${LAB_SAMPLE}</li>`);
   });
 
   it('the check script names the contract version off mainnet when preprod’s pinned list knows it', () => {

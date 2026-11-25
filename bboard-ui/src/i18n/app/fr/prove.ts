@@ -209,4 +209,5 @@ export const prove = {
     'Ce que cela montre : le code de résultat scellé dans cet enregistrement respecte la ligne ci-dessus, et la clé ci-dessus a signé les résultats de cet enregistrement. Le laboratoire a depuis retiré ce résultat, ne vous y fiez donc pas : demandez au laboratoire ou au détenteur le dernier résultat pour cet échantillon. Chaque preuve sur ce résultat est publique, et ensemble elles le resserrent.',
   'app.claim.check.whatLabUnnamedCall':
     'Ce que cela montre : le code de résultat scellé dans cet enregistrement respecte la ligne ci-dessus, et la clé ci-dessus a signé les résultats de cet enregistrement. Aucun laboratoire unique n’est lié à cette clé ici : considérez le résultat comme celui du détenteur. Chaque preuve sur ce résultat est publique, et ensemble elles le resserrent.',
+  'app.prove.share.tellThem': 'Pour la personne qui ouvre le lien : {line}',
 } satisfies Partial<AppTranslation>;

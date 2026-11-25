@@ -485,4 +485,8 @@ export const labresult = {
     'A record holds at most 16 numbers. A large SNP comparison is the laboratory’s own computation: only its counts go into a claim here.',
   'app.marker.limits.opening':
     'Anyone holding the record’s numbers and its field secret can publish them: the holder, and the laboratory too.',
+  // Summit 5b item 10: on every lab result (ResultFacts.tsx) and lab-signed claim.
+  'app.lr.note.sample':
+    'The lab tested the sample it received under this record. It didn’t take the sample, and the result applies to the portion tested.',
+  'app.lr.note.governs': 'A summary of the lab’s report {accession}; report {accession} governs.',
 };

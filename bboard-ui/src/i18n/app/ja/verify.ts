@@ -95,8 +95,7 @@ export const verify = {
   'app.verify.kindReport': '検査報告書（ファイルのSHA-256 {sha}）',
   'app.verify.kindStatement': '署名付きの陳述',
   'app.verify.forWhom': 'レジストリが報告する証明コードについて：',
-  'app.verify.intro':
-    'このページはVeilCoreの記録を確認します。記録とは、遺伝資源の説明から作った証明コードで、アンカーされると日付が付き、遺伝情報なしで公開されます。確認は無料で、アカウントも不要です。<link>VeilCoreとは？</link>',
+  'app.verify.intro': '確認は無料で、アカウントも不要です。<link>VeilCoreとは？</link>',
   'app.verify.checkingRecord': '記録を確認しています',
   'app.verify.notFound': '{id} の記録は見つかりません',
   'app.verify.notFoundText':
@@ -380,4 +379,6 @@ export const verify = {
     'このブラウザで確認しました：ブロック{height}のプルーフ・オブ・ワークと、このウェブサイトが固定しているブロックであるチェックポイント{checkpoint}から、Bitcoinの実際の難易度で採掘されたブロックを通じた上向きのつながり。このブロックにはこのバッチのスタンプが入っています。ブロック時刻（マイナーが設定したもの）：{time}。より新しいチェックポイントがあれば、より強く確認できます。',
   'app.verify.who.btc.batchOnly':
     'このブラウザは、バッチのスタンプがBitcoinのブロック{height}に入っていて、チェックポイント{checkpoint}につながることを確認しました。この記録がそのバッチに含まれることは、VeilCoreのレジストリが述べているだけです（送られてきたリンクに確認できる証明コードがありません）。',
+  'app.verify.checkYourself':
+    'ご自身で確認を。veilcore.orgで証明コードを入力するか、自分で入れた確認ツールを使ってください。送られてきたページは信用しないでください。',
 } satisfies Partial<AppTranslation>;

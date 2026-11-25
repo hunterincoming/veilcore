@@ -483,4 +483,7 @@ export const labresult = {
     'Ein Datensatz enthält höchstens 16 Zahlen. Ein großer SNP-Vergleich ist eine eigene Berechnung des Labors: Hier werden nur seine Zählungen nachgewiesen.',
   'app.marker.limits.opening':
     'Wer die Zahlen des Datensatzes und sein Feldgeheimnis hat, kann sie veröffentlichen: der Inhaber und auch das Labor.',
+  'app.lr.note.sample':
+    'Das Labor hat die Probe geprüft, die es unter diesem Datensatz erhalten hat. Es hat die Probe nicht genommen, und das Ergebnis gilt für den geprüften Teil.',
+  'app.lr.note.governs': 'Eine Zusammenfassung des Laborberichts {accession}; maßgeblich ist der Bericht {accession}.',
 } satisfies Partial<AppTranslation>;

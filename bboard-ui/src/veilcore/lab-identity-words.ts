@@ -44,6 +44,12 @@ const TITLE: Record<LabIdentityLevel, AppKey> = {
 };
 
 export const labIdentityWords = (id: LabIdentity, tr: Translator = enT): LabIdentityWords => {
+  const w = levelWords(id, tr);
+  // VeilCore's demo key (demo-lab.ts): said first, and never drawn like a lab someone verified.
+  return id.demo ? { tone: 'caution', title: w.title, body: [{ key: 'app.labid.demo' }, ...w.body] } : w;
+};
+
+const levelWords = (id: LabIdentity, tr: Translator): LabIdentityWords => {
   const tone = labIdentityTone(id.level);
   const calls: Part = id.name ? { key: 'app.labid.calls', vars: { name: id.name } } : { key: 'app.labid.callsNone' };
   switch (id.level) {

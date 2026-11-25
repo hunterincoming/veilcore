@@ -242,7 +242,12 @@ export const Step5ProveDisclosure: React.FC<{
   const share = async () => {
     if (!link) return;
     try {
-      await navigator.share({ title: `${recordTitle(record)} · VeilCore`, url: link.absolute });
+      // The line travels with the link, to whoever opens it (summit 5b item 15).
+      await navigator.share({
+        title: `${recordTitle(record)} · VeilCore`,
+        text: t('app.verify.checkYourself'),
+        url: link.absolute,
+      });
     } catch {
       /* closed the share sheet: nothing to say */
     }
@@ -448,6 +453,9 @@ export const Step5ProveDisclosure: React.FC<{
             slotProps={{ input: { readOnly: true }, htmlInput: { 'aria-label': t('app.prove.share.theLink') } }}
             sx={{ mb: 1 }}
           />
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }} data-check-yourself="">
+            {t('app.prove.share.tellThem', { line: t('app.verify.checkYourself') })}
+          </Typography>
           <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 1.5 }}>
             {canShare && (
               <Button variant="contained" startIcon={<ShareIcon />} onClick={() => void share()} sx={{ minHeight: 44 }}>

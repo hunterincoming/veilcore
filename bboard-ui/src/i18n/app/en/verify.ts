@@ -107,8 +107,7 @@ export const verify = {
   'app.verify.kindReport': 'Lab report (file SHA-256 {sha})',
   'app.verify.kindStatement': 'Signed statement',
   'app.verify.forWhom': 'For the proof code the registry reports: ',
-  'app.verify.intro':
-    "This page checks a VeilCore record: a proof code made from a description of genetic material, dated once it's anchored, published without the genetics. Checking is free and needs no account. <link>What is VeilCore?</link>",
+  'app.verify.intro': 'Checking is free and needs no account. <link>What is VeilCore?</link>',
   'app.verify.checkingRecord': 'Checking the record',
   'app.verify.notFound': 'No record found for {id}',
   'app.verify.notFoundText':
@@ -390,4 +389,7 @@ export const verify = {
     'Checked in this browser: block {height}’s proof of work and its link up from checkpoint {checkpoint}, a block this website pins, through blocks mined at Bitcoin’s real difficulty. The block holds this batch’s stamp. Block time, as its miner set it: {time}. A later checkpoint would check it more strongly.',
   'app.verify.who.btc.batchOnly':
     'This browser checked that the batch’s stamp is in Bitcoin block {height}, linked to checkpoint {checkpoint}. Only VeilCore’s registry says this record is in that batch: the link you were sent carries no proof code to check it.',
+  // Summit 5b item 15: wherever a record is shown to someone else.
+  'app.verify.checkYourself':
+    'Check it yourself: type the proof code at veilcore.org, or use a checker you installed. Never trust a page you were sent.',
 };

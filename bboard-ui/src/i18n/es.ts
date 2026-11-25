@@ -125,6 +125,7 @@ export const es: Strings = {
     'Traducción preliminar hecha por máquina, en revisión. La página en inglés es la versión de referencia.',
   'draft.showEnglish': 'Ver en inglés',
   'draft.close': 'Cerrar este aviso',
+  'notice.inApp': 'Ábrala en Chrome o Safari para que sus registros y claves se queden en su teléfono.',
   'notice.datingPaused':
     'El fechado en Midnight está en pausa por la actualización de la red de Midnight. Sus registros están guardados y se fecharán cuando vuelva a funcionar.',
   // The record app's frame and the browser tab's titles.

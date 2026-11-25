@@ -204,4 +204,5 @@ export const prove = {
     'Lo que esto muestra: el código de resultado sellado en ese registro cumple la línea de arriba, y la clave de arriba firmó los resultados de ese registro. El laboratorio ha retirado después este resultado, así que no confíe en él: pida al laboratorio o al titular el resultado más reciente para esta muestra. Cada afirmación probada sobre él es pública, y juntas lo acotan.',
   'app.claim.check.whatLabUnnamedCall':
     'Lo que esto muestra: el código de resultado sellado en ese registro cumple la línea de arriba, y la clave de arriba firmó los resultados de ese registro. Aquí ningún laboratorio único está vinculado a esa clave, así que tome el resultado como de quien selló el registro. Cada afirmación probada sobre él es pública, y juntas lo acotan.',
+  'app.prove.share.tellThem': 'Para quien abra el enlace: {line}',
 } satisfies Partial<AppTranslation>;

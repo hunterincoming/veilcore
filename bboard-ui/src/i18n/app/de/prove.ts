@@ -210,4 +210,5 @@ export const prove = {
     'Was das zeigt: Der in diesem Datensatz versiegelte Ergebniscode erfüllt die Zeile oben, und der Schlüssel oben hat die Ergebnisse dieses Datensatzes signiert. Das Labor hat dieses Ergebnis inzwischen zurückgezogen, verlassen Sie sich also nicht darauf: Fragen Sie das Labor oder den Inhaber nach dem neuesten Ergebnis für diese Probe. Jeder Beleg dazu ist öffentlich, und zusammen grenzen sie es ein.',
   'app.claim.check.whatLabUnnamedCall':
     'Was das zeigt: Der in diesem Datensatz versiegelte Ergebniscode erfüllt die Zeile oben, und der Schlüssel oben hat die Ergebnisse dieses Datensatzes signiert. Hier ist kein einzelnes Labor mit diesem Schlüssel verbunden, lesen Sie das Ergebnis also als Eingabe des Inhabers. Jeder Beleg dazu ist öffentlich, und zusammen grenzen sie es ein.',
+  'app.prove.share.tellThem': 'Für alle, die den Link öffnen: {line}',
 } satisfies Partial<AppTranslation>;

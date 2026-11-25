@@ -81,6 +81,20 @@ export const MakeYourOwn: React.FC = () => {
   );
 };
 
+/**
+ * One line wherever a record is shown to someone else (summit 5b item 15): a lookalike page or
+ * an edited file looks just like this one, so the reader checks at veilcore.org or with a
+ * checker they installed themselves.
+ */
+export const CheckYourself: React.FC<{ sx?: React.ComponentProps<typeof Typography>['sx'] }> = ({ sx }) => {
+  const { t } = useT();
+  return (
+    <Typography variant="body2" color="text.secondary" data-check-yourself="" sx={sx}>
+      {t('app.verify.checkYourself')}
+    </Typography>
+  );
+};
+
 /** The other check pages a link can name (their own words travel after the #). */
 const CHECK_PAGES = ['/check-document', '/check-claim', '/check-lab-result'];
 

@@ -23,7 +23,7 @@ import { Alert, Box, CircularProgress, Container, Paper, Stack, Typography } fro
 import { anchoredFingerprintOf, claimsOf, readClaimLink, type ClaimVerdict } from '../../veilcore/claim-link';
 import { isMarkerSchema, joinedPlacement, markerSourceKey, offerOf } from '../../veilcore/marker-claims';
 import { DatedNotOrigin } from '../verify/DatedNotOrigin';
-import { CheckVerdict, MakeYourOwn } from '../verify/CheckParts';
+import { CheckVerdict, CheckYourself, MakeYourOwn } from '../verify/CheckParts';
 import { claimVerdict, VERDICT_DATE } from '../verify/verdict';
 import { useT } from '../../i18n/app';
 import { DocumentDate, Fact } from './DocumentParts';
@@ -146,6 +146,7 @@ export const ClaimCheck: React.FC = () => {
         <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
           {t('app.claim.check.intro')}
         </Typography>
+        <CheckYourself sx={{ mt: -1.5, mb: 3 }} />
         <DatedNotOrigin />
         {!link ? (
           <Alert severity="error" variant="outlined" data-claim-link="bad">
@@ -292,6 +293,12 @@ export const ClaimCheck: React.FC = () => {
                     </Fact>
                     {verdict.lab.signer?.kind === 'bound' && (
                       <Typography variant="body2">{t('app.claim.check.labFieldSecret')}</Typography>
+                    )}
+                    {/* A result file below says it with the result itself. */}
+                    {!isCall && (
+                      <Typography variant="body2" color="text.secondary" data-lab-sample-note="">
+                        {t('app.lr.note.sample')}
+                      </Typography>
                     )}
                   </Stack>
                 ) : (

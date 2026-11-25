@@ -132,6 +132,7 @@ export const ja: Strings = {
   'draft.banner': '機械で作成した翻訳の下書きで、現在確認中です。英語版のページが正式な版です。',
   'draft.showEnglish': '英語で表示',
   'draft.close': 'このお知らせを閉じる',
+  'notice.inApp': '記録と鍵がスマートフォンに残るよう、ChromeかSafariで開いてください。',
   'notice.datingPaused':
     'Midnightのネットワークアップグレードのため、Midnightでの日付付けを一時停止しています。記録は保存されており、再開しだい日付が付けられます。',
   // The record app's frame and the browser tab's titles.

@@ -459,4 +459,7 @@ export const labresult = {
     '一つの記録が持てる数は16までです。大規模なSNP比較はラボ自身の計算であり、ここで扱うのはその数だけです。',
   'app.marker.limits.opening':
     '記録の数とそのフィールド秘密を持つ人は、それらを公開できます。保有者だけでなくラボも同様です。',
+  'app.lr.note.sample':
+    'ラボは、この記録のもとで受け取ったサンプルを検査しました。サンプルを採取したのはラボではなく、結果は検査した部分にだけ当てはまります。',
+  'app.lr.note.governs': 'ラボの報告書{accession}の要約です。報告書{accession}が優先します。',
 } satisfies Partial<AppTranslation>;

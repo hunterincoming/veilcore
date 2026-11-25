@@ -474,6 +474,10 @@ export const Step3Certificate: React.FC<{
           <Typography variant="caption" sx={{ color: CERT.muted, display: 'block', mt: 0.5 }}>
             Scan the code to check the record. No genetic data or lab files on this summary.
           </Typography>
+          {/* In English, like the rest of the card: a printed QR code can be swapped for a lookalike's. */}
+          <Typography variant="caption" sx={{ color: CERT.muted, display: 'block', mt: 0.5 }} data-check-yourself="">
+            {enT.t('app.verify.checkYourself')}
+          </Typography>
         </Box>
       </Box>
 

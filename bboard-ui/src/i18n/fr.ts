@@ -124,6 +124,8 @@ export const fr: Strings = {
   'draft.banner': 'Traduction provisoire faite par machine, en cours de relecture. La page en anglais fait foi.',
   'draft.showEnglish': 'Afficher en anglais',
   'draft.close': 'Fermer cet avis',
+  'notice.inApp':
+    'Ouvrez cette page dans Chrome ou Safari pour que vos enregistrements et vos clés restent sur votre téléphone.',
   'notice.datingPaused':
     'La datation sur Midnight est suspendue pendant la mise à niveau du réseau de Midnight. Vos enregistrements sont sauvegardés et seront datés dès son retour.',
   // The record app's frame and the browser tab's titles.

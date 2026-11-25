@@ -169,4 +169,5 @@ export const backup = {
   'app.backup.fromFileProblem':
     'No se pudieron recuperar los registros del archivo: {why} Sus claves están restauradas.',
   'app.backup.passkey.err.busy': 'Su otro dispositivo guardó en el mismo momento. Se vuelve a intentar solo.',
+  'app.backup.neverAsks': 'VeilCore nunca le pide su archivo de copia de seguridad ni su código.',
 } satisfies Partial<AppTranslation>;
