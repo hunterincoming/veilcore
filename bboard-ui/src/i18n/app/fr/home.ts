@@ -222,4 +222,8 @@ export const home = {
     'Ce fichier contient {n} enregistrements nouveaux pour VeilCore, et votre formule gratuite peut encore en dater {left}. Rien n’a été importé. Choisissez une formule sur votre page d’enregistrements pour en dater davantage.',
   'app.plan.box.full':
     'Vos enregistrements gratuits sont épuisés. Tout ce que vous avez déjà reste vérifiable. Choisissez une formule pour en ajouter.',
+  'app.home.labSheet': 'Sceller le tableau du jour',
+  'app.labpage.work.sheet':
+    'Vous exportez chaque jour un tableau de vos cultures ou échantillons ? Scellez tout le tableau d’un coup. Après la première fois, cet appareil retient ses colonnes : le lendemain, c’est un seul bouton.',
+  'app.labpage.work.sheetLink': 'Sceller le tableau du jour',
 } satisfies Partial<AppTranslation>;

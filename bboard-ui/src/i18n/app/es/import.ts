@@ -171,4 +171,12 @@ export const importing = {
     'Un sello de fecha muestra que los datos ya existían a esa fecha. No confirma que sean correctos.',
   'app.import.done.toRecords': 'Ir a sus registros',
   'app.import.done.another': 'Importar otro archivo',
+  'app.import.saved.same': 'Las mismas columnas que la última vez ({name}), ya completadas.',
+  'app.import.saved.forget': 'Olvidar estas columnas',
+  'app.import.saved.remember': 'Recordar estas columnas en este dispositivo para la próxima vez',
+  'app.import.saved.rememberHelp':
+    'Se guarda solo en este navegador y nunca se envía. Un archivo con las mismas columnas se abre entonces aquí, listo para sellar.',
+  'app.import.saved.list': 'Columnas recordadas en este dispositivo',
+  'app.import.saved.forgetOne': 'Olvidar',
+  'app.import.saved.forgetName': 'Olvidar las columnas de {name}',
 } satisfies Partial<AppTranslation>;

@@ -173,4 +173,12 @@ export const importing = {
     'Un horodatage montre que les informations existaient déjà à cette date. Il ne confirme pas qu’elles sont exactes.',
   'app.import.done.toRecords': 'Aller à vos enregistrements',
   'app.import.done.another': 'Importer un autre fichier',
+  'app.import.saved.same': 'Les mêmes colonnes que la dernière fois ({name}), déjà remplies pour vous.',
+  'app.import.saved.forget': 'Oublier ces colonnes',
+  'app.import.saved.remember': 'Retenir ces colonnes sur cet appareil pour la prochaine fois',
+  'app.import.saved.rememberHelp':
+    'Gardé dans ce navigateur seulement, jamais envoyé. Un fichier avec les mêmes colonnes s’ouvre alors ici, prêt à sceller.',
+  'app.import.saved.list': 'Colonnes retenues sur cet appareil',
+  'app.import.saved.forgetOne': 'Oublier',
+  'app.import.saved.forgetName': 'Oublier les colonnes de {name}',
 } satisfies Partial<AppTranslation>;

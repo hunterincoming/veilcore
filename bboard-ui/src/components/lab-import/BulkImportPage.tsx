@@ -16,8 +16,10 @@ import {
   Alert,
   Box,
   Button,
+  Checkbox,
   CircularProgress,
   Collapse,
+  FormControlLabel,
   LinearProgress,
   MenuItem,
   Stack,
@@ -80,6 +82,13 @@ import {
   type Sheet,
 } from '../../veilcore/bulk-import';
 import { useKeyStampQueue } from './useKeyStampQueue';
+import {
+  forgetLayout,
+  loadLayouts,
+  matchLayout,
+  rememberLayout,
+  type SavedLayout,
+} from '../../veilcore/import-layouts';
 import { DisclosureReceipt } from '../chain/DisclosureReceipt';
 import { InEnglishNote, rich, useT } from '../../i18n/app';
 import type { AppKey } from '../../i18n/app/en';
@@ -168,6 +177,11 @@ export const BulkImportPage: React.FC = () => {
   const [fileName, setFileName] = useState('');
   const [mapping, setMapping] = useState<Mapping>();
   const [kept, setKept] = useState(true);
+  // Remembered column layouts (import-layouts.ts): kept in this browser only. A file with the
+  // same columns as one sealed before skips the header and column screens, already filled in.
+  const [layouts, setLayouts] = useState<SavedLayout[]>(loadLayouts);
+  const [layout, setLayout] = useState<SavedLayout>();
+  const [remember, setRemember] = useState(true);
   const first = useRef(true);
 
   const setJob = (j: Job | undefined) => {
@@ -213,9 +227,24 @@ export const BulkImportPage: React.FC = () => {
         return (
           <PickFile
             step={step}
+            layouts={layouts}
+            onForget={(id) => {
+              forgetLayout(id);
+              setLayouts(loadLayouts());
+            }}
             onRead={(s, name) => {
-              setSheet(s);
               setFileName(name);
+              setRemember(true);
+              const found = matchLayout(s, layouts);
+              if (found) {
+                setSheet(found.sheet);
+                setMapping(found.mapping);
+                setLayout(found.layout);
+                setScreen('check');
+                return;
+              }
+              setLayout(undefined);
+              setSheet(s);
               setMapping(guessFor(s.headers, startAnimal()));
               setScreen('header');
             }}
@@ -241,7 +270,11 @@ export const BulkImportPage: React.FC = () => {
             step={step}
             sheet={sheet}
             mapping={mapping}
-            onChange={setMapping}
+            onChange={(m) => {
+              // Changed by hand: no longer the remembered layout (sealing saves the new one).
+              setMapping(m);
+              setLayout(undefined);
+            }}
             onBack={() => setScreen('header')}
             onNext={() => setScreen('check')}
           />
@@ -252,9 +285,22 @@ export const BulkImportPage: React.FC = () => {
             step={step}
             sheet={sheet}
             mapping={mapping}
+            layout={layout}
+            remember={remember}
+            onRemember={setRemember}
+            onForget={() => {
+              if (layout) forgetLayout(layout.id);
+              setLayout(undefined);
+              setRemember(false);
+              setLayouts(loadLayouts());
+            }}
             onBack={() => setScreen('columns')}
             onHeaderRow={() => setScreen('header')}
             onSeal={(rows) => {
+              if (remember) {
+                rememberLayout(sheet, mapping, fileName);
+                setLayouts(loadLayouts());
+              }
               setJob({
                 version: 1,
                 fileName,
@@ -318,6 +364,7 @@ export const BulkImportPage: React.FC = () => {
               setJob(undefined);
               setSheet(undefined);
               setMapping(undefined);
+              setLayout(undefined);
               setScreen('file');
             }}
           />
@@ -337,7 +384,12 @@ export const BulkImportPage: React.FC = () => {
 
 // ---------------------------------------------------------------------------------------
 
-const PickFile: React.FC<{ step?: string; onRead: (s: Sheet, name: string) => void }> = ({ step, onRead }) => {
+const PickFile: React.FC<{
+  step?: string;
+  layouts: readonly SavedLayout[];
+  onForget: (id: string) => void;
+  onRead: (s: Sheet, name: string) => void;
+}> = ({ step, layouts, onForget, onRead }) => {
   const tr = useT();
   const { t } = tr;
   const pick = useRef<HTMLInputElement>(null);
@@ -412,6 +464,33 @@ const PickFile: React.FC<{ step?: string; onRead: (s: Sheet, name: string) => vo
       <Typography variant="body2" color="text.secondary">
         {t('app.import.readHere', { server: t('app.copy.ourServer'), dated: t('app.copy.datedOn') })}
       </Typography>
+      {layouts.length > 0 && (
+        <Box data-saved-layouts="">
+          <Typography variant="subtitle2" component="h2">
+            {t('app.import.saved.list')}
+          </Typography>
+          <Box component="ul" sx={{ m: 0, pl: 2.5 }}>
+            {layouts.map((l) => (
+              <li key={l.id} data-saved-layout={l.name}>
+                <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
+                  <Typography variant="body2" sx={{ wordBreak: 'break-word', minWidth: 0 }}>
+                    {l.name}
+                  </Typography>
+                  <Button
+                    variant="text"
+                    size="small"
+                    onClick={() => onForget(l.id)}
+                    aria-label={t('app.import.saved.forgetName', { name: l.name })}
+                    sx={{ minHeight: 44 }}
+                  >
+                    {t('app.import.saved.forgetOne')}
+                  </Button>
+                </Stack>
+              </li>
+            ))}
+          </Box>
+        </Box>
+      )}
       {!IS_MAINNET && (
         <Typography variant="body2" color="text.secondary">
           {t('app.import.testSite')}
@@ -798,10 +877,15 @@ const Check: React.FC<{
   step?: string;
   sheet: Sheet;
   mapping: Mapping;
+  /** The remembered layout this file matched: its columns were filled in from it. */
+  layout?: SavedLayout;
+  remember: boolean;
+  onRemember: (on: boolean) => void;
+  onForget: () => void;
   onBack: () => void;
   onHeaderRow: () => void;
   onSeal: (rows: PreparedRow[]) => void;
-}> = ({ step, sheet, mapping, onBack, onHeaderRow, onSeal }) => {
+}> = ({ step, sheet, mapping, layout, remember, onRemember, onForget, onBack, onHeaderRow, onSeal }) => {
   const { t, tp } = useT();
   const records = useRecords();
   const hintId = useId();
@@ -821,6 +905,20 @@ const Check: React.FC<{
           {t('app.import.end')}
         </Typography>
       </Box>
+      {layout && (
+        <Alert
+          severity="success"
+          variant="outlined"
+          data-saved-layout-used={layout.name}
+          action={
+            <Button color="inherit" onClick={onForget} sx={{ minHeight: 44 }}>
+              {t('app.import.saved.forget')}
+            </Button>
+          }
+        >
+          {t('app.import.saved.same', { name: layout.name })}
+        </Alert>
+      )}
       {checked.blocked && (
         <Alert severity="error" variant="outlined" role="alert">
           {checked.blocked}
@@ -886,6 +984,19 @@ const Check: React.FC<{
       <Typography variant="body2" color="text.secondary">
         {t('app.import.check.savedOn', { server: t('app.copy.ourServer'), dated: t('app.copy.datedOn') })}
       </Typography>
+      {!layout && (
+        <Box>
+          <FormControlLabel
+            control={
+              <Checkbox checked={remember} onChange={(e) => onRemember(e.target.checked)} data-remember-layout="" />
+            }
+            label={t('app.import.saved.remember')}
+          />
+          <Typography variant="caption" color="text.secondary" component="p" sx={{ pl: 4 }}>
+            {t('app.import.saved.rememberHelp')}
+          </Typography>
+        </Box>
+      )}
       <Button
         variant="contained"
         size="large"

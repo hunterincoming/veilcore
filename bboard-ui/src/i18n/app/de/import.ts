@@ -174,4 +174,12 @@ export const importing = {
     'Ein Datumsstempel zeigt, dass die Angaben spätestens zu diesem Datum existierten. Er bestätigt nicht, dass sie stimmen.',
   'app.import.done.toRecords': 'Zu Ihren Datensätzen',
   'app.import.done.another': 'Eine weitere Datei importieren',
+  'app.import.saved.same': 'Dieselben Spalten wie beim letzten Mal ({name}), schon für Sie ausgefüllt.',
+  'app.import.saved.forget': 'Diese Spalten vergessen',
+  'app.import.saved.remember': 'Diese Spalten auf diesem Gerät für das nächste Mal merken',
+  'app.import.saved.rememberHelp':
+    'Nur in diesem Browser gespeichert und nie gesendet. Eine Datei mit denselben Spalten öffnet sich dann hier, bereit zum Versiegeln.',
+  'app.import.saved.list': 'Auf diesem Gerät gemerkte Spalten',
+  'app.import.saved.forgetOne': 'Vergessen',
+  'app.import.saved.forgetName': 'Die Spalten für {name} vergessen',
 } satisfies Partial<AppTranslation>;

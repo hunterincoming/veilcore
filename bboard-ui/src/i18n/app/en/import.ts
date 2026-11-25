@@ -171,4 +171,12 @@ export const importing = {
     "A date stamp shows the details existed by that date. It doesn't confirm they are right.",
   'app.import.done.toRecords': 'Go to your records',
   'app.import.done.another': 'Import another file',
+  'app.import.saved.same': 'Same columns as last time ({name}), filled in for you.',
+  'app.import.saved.forget': 'Forget these columns',
+  'app.import.saved.remember': 'Remember these columns on this device for next time',
+  'app.import.saved.rememberHelp':
+    'Kept in this browser only and never sent. A file with the same columns then opens here, ready to seal.',
+  'app.import.saved.list': 'Columns remembered on this device',
+  'app.import.saved.forgetOne': 'Forget',
+  'app.import.saved.forgetName': 'Forget the columns for {name}',
 };

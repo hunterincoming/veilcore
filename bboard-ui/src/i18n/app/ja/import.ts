@@ -147,4 +147,12 @@ export const importing = {
     '日付スタンプは、その日付までに内容が存在したことを示します。内容が正しいことは確認しません。',
   'app.import.done.toRecords': 'あなたの記録へ',
   'app.import.done.another': '別のファイルを取り込む',
+  'app.import.saved.same': '前回と同じ列です（{name}）。入力済みです。',
+  'app.import.saved.forget': 'この列の設定を忘れる',
+  'app.import.saved.remember': '次回のために、この列の設定をこの端末に覚えておく',
+  'app.import.saved.rememberHelp':
+    'このブラウザにだけ保存され、送信されません。同じ列のファイルは次回ここで開き、すぐに封印できます。',
+  'app.import.saved.list': 'この端末に覚えている列の設定',
+  'app.import.saved.forgetOne': '忘れる',
+  'app.import.saved.forgetName': '{name} の列の設定を忘れる',
 } satisfies Partial<AppTranslation>;
