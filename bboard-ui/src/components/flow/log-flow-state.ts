@@ -16,9 +16,11 @@ import { parseStrainDraft, strainDraftHasContent, type StrainDraft } from './str
 import {
   LANDRACE_METHOD,
   ORIGIN_MAX,
+  emptyOrigin,
   originHasContent,
   originNotes,
   parseOrigin,
+  parseOriginBlock,
   type Origin,
   type OriginSource,
 } from '../../veilcore/origin-notes';
@@ -53,11 +55,16 @@ export type Draft = {
   /** What was typed on the strain form (strain-draft.ts). */
   strain?: StrainDraft;
   /**
-   * "Where is it from?": bred by the holder, received, or a landrace or heirloom. Absent: worked
-   * out from "How it was made" (originSourceOf). Anything but 'bred' makes "Bred by" optional
-   * and opens the "Where it came from" step.
+   * "Where is it from?": bred by the holder, selected from plants they got, received, or a
+   * landrace or heirloom. Absent: worked out from "How it was made" (originSourceOf). Anything
+   * but 'bred' makes "Bred by" optional and opens the "Where it came from" step.
    */
   source?: OriginSource;
+  /**
+   * A next stage's origin lines came from its parent record (nextStageDraft): the step says so.
+   * Kept with the draft only; nothing about it is sealed.
+   */
+  originFromParent?: string;
   /** What the "Where it came from" step holds (veilcore/origin-notes.ts): sealed in the notes. */
   origin?: Origin;
   /**
@@ -74,9 +81,17 @@ export const originSourceOf = (d: Pick<Draft, 'source' | 'breedingMethod'>): Ori
 /** "Bred by" is needed only for the holder's own breeding: a landrace or received material has none to give. */
 export const breederRequired = (d: Pick<Draft, 'source' | 'breedingMethod'>): boolean => originSourceOf(d) === 'bred';
 
-/** Whether the "Where it came from" step is offered, and its answers sealed. */
-export const originApplies = (d: Pick<Draft, 'source' | 'breedingMethod' | 'stageOf'>): boolean =>
-  !d.stageOf && originSourceOf(d) !== 'bred';
+/**
+ * Whether the "Where it came from" step is offered, and its answers sealed: for anything but the
+ * holder's own cross. A next stage too: it inherits its parent's answer (nextStageDraft), so a
+ * selection from a landrace or from received material keeps saying where it came from.
+ *
+ * Lines carried over from a parent are kept whatever the answer, "I bred it" too (review of
+ * #210): an F2 the holder really crossed from a landrace selection still came from that
+ * landrace. The step stays, so the holder can remove a line only where they can see it.
+ */
+export const originApplies = (d: Pick<Draft, 'source' | 'breedingMethod' | 'originFromParent'>): boolean =>
+  !!d.originFromParent || originSourceOf(d) !== 'bred';
 
 /** What the first screen needs before "Next": a name, and who bred it when the holder did. */
 export const plantReady = (d: Draft): boolean =>
@@ -178,7 +193,12 @@ export const parseDraft = (raw: string | null): Draft | undefined => {
       ...(v.kind === 'animal' || v.kind === 'plant' || v.kind === 'strain' ? { kind: v.kind } : {}),
       ...(v.animal !== undefined && parseAnimalDraft(v.animal) ? { animal: parseAnimalDraft(v.animal) } : {}),
       ...(v.strain !== undefined && parseStrainDraft(v.strain) ? { strain: parseStrainDraft(v.strain) } : {}),
-      ...(v.source === 'bred' || v.source === 'received' || v.source === 'landrace' ? { source: v.source } : {}),
+      ...(v.source === 'bred' || v.source === 'selected' || v.source === 'received' || v.source === 'landrace'
+        ? { source: v.source }
+        : {}),
+      ...(typeof v.originFromParent === 'string' && v.originFromParent
+        ? { originFromParent: str(v.originFromParent, 200) }
+        : {}),
       ...(parseOrigin(v.origin) ? { origin: parseOrigin(v.origin) } : {}),
       ...(typeof v.registration === 'string' ? { registration: str(v.registration, ORIGIN_MAX) } : {}),
     };
@@ -212,26 +232,52 @@ export const sealInputOf = (draft: Draft): SealInput => ({
 });
 
 /**
+ * The origin lines a next stage inherits from its parent: the parent's sealed "Where it came
+ * from" block, read back from its notes (after a stage header), without the variety
+ * registration number, which belongs to the registered variety and not to a new stage.
+ */
+export const inheritedOrigin = (notes: unknown): Origin | undefined => {
+  const { origin } = parseOriginBlock(parseStageHeader(notes).rest);
+  const out = { ...emptyOrigin(), ...origin, registration: '' };
+  return originHasContent(out) ? out : undefined;
+};
+
+/**
  * The first screen of the next generation or selection of a plant: this plant as its linked
  * parent (the way the parents box links a logged plant), its breeder and species carried
  * over to edit, and no date (the holder states one, 22 Nov). The name, "How it was made" and the stage questions start
  * empty: they are this stage's, not the parent's. The name box suggests one as a
  * placeholder only (nextStageNamePlaceholder), never as text that would be sealed unread.
+ *
+ * Where it came from travels down the line (summit, 25 Nov 2026): a parent sealed with origin
+ * lines, or with no breeder, makes this stage a selection from it (a landrace's stays a
+ * landrace), its "Where it came from" step offered and filled in with the parent's lines to
+ * check and change. A parent the holder bred, with no origin lines, starts a stage the holder
+ * bred too: no extra step.
  */
 export const nextStageDraft = (
-  parent: Pick<StrainRecord, 'id' | 'strainName' | 'bredBy' | 'taxon'> & { readonly breedingMethod?: string },
-): Draft => ({
-  ...emptyDraft(),
-  bredBy: parent.bredBy,
+  parent: Pick<StrainRecord, 'id' | 'strainName' | 'bredBy' | 'taxon'> & {
+    readonly breedingMethod?: string;
+    readonly notes?: string;
+  },
+): Draft => {
+  const origin = inheritedOrigin(parent.notes);
+  const landrace = parent.breedingMethod === LANDRACE_METHOD;
   // A parent logged with no breeder (a landrace, or received material): the next stage asks for
   // none either, rather than nudging the holder to name someone.
-  ...(parent.bredBy.trim() ? {} : { source: parent.breedingMethod === LANDRACE_METHOD ? 'landrace' : 'received' }),
-  taxon: parent.taxon ?? '',
-  parents: [{ recordId: parent.id, name: parent.strainName }],
-  stageOf: parent.id,
-  stage: '',
-  selectedFor: '',
-});
+  const notBred = landrace || !!origin || !parent.bredBy.trim();
+  return {
+    ...emptyDraft(),
+    bredBy: parent.bredBy,
+    ...(notBred ? { source: landrace ? 'landrace' : 'selected' } : {}),
+    ...(origin ? { origin, originFromParent: parent.strainName } : {}),
+    taxon: parent.taxon ?? '',
+    parents: [{ recordId: parent.id, name: parent.strainName }],
+    stageOf: parent.id,
+    stage: '',
+    selectedFor: '',
+  };
+};
 
 /**
  * The name box's placeholder for a next stage: "e.g. Harbour Pippin F3" when the parent's
@@ -295,7 +341,10 @@ export const clearDraft = (nextOf?: string): void => {
  *     before going on, and that draft is never touched.
  */
 export const nextStageStart = (
-  parent: Pick<StrainRecord, 'id' | 'strainName' | 'bredBy' | 'taxon'>,
+  parent: Pick<StrainRecord, 'id' | 'strainName' | 'bredBy' | 'taxon'> & {
+    readonly breedingMethod?: string;
+    readonly notes?: string;
+  },
   plain: Draft | undefined,
   own: Draft | undefined,
 ): { draft: Draft; resumed: boolean; adopt?: true; conflict?: Draft } => {

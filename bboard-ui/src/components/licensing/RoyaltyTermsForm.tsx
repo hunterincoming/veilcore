@@ -25,15 +25,18 @@ import {
 import { RIGHTS_FOR, subjectOf, type LicenseTerms } from '../../veilcore/licenses';
 import {
   DEDUCTIONS,
+  GIFT_UNITS,
   PERIODS,
   deductionLabel,
   isControlledTerms,
   PRESETS_FOR,
-  UNITS_FOR,
+  countsGifts,
   periodLabel,
   termsSentence,
   unitDefinitionText,
   unitLabel,
+  unitsFor,
+  withFarmersRights,
   type BankFees,
   type PresetId,
   type RoyaltyRule,
@@ -163,7 +166,8 @@ export const TermsSummaryLine: React.FC<{ terms: LicenseTerms; kind: RecordKind 
       <Typography variant="overline" sx={{ display: 'block' }}>
         {tr.t('app.roy.f.summary')}
       </Typography>
-      <Typography variant="body2">{termsSentence(terms, tr)}</Typography>
+      {/* Not sealed yet: shown with the farmers'-rights line it will be sealed with. */}
+      <Typography variant="body2">{termsSentence(withFarmersRights(terms, tr), tr)}</Typography>
     </Paper>
   );
 };
@@ -172,14 +176,16 @@ const RuleFields: React.FC<{
   rule: RoyaltyRule;
   onChange: (r: RoyaltyRule) => void;
   kind: RecordKind;
+  preset?: PresetId;
   currency: string;
   tr: Translator;
   /** Terms for cannabis, hemp or another controlled plant: excise reads "excise or cannabis tax". */
   controlled: boolean;
-}> = ({ rule: r, onChange, kind, currency, tr, controlled }) => {
-  const units = UNITS_FOR[kind].includes(r.kind === 'per-unit' ? r.unit : 'batch')
-    ? UNITS_FOR[kind]
-    : [...UNITS_FOR[kind], ...(r.kind === 'per-unit' ? [r.unit] : [])];
+}> = ({ rule: r, onChange, kind, preset, currency, tr, controlled }) => {
+  // Tonne, hectare and acre only on Custom; a unit already chosen (a renewal) stays offered.
+  const offered = unitsFor(kind, preset);
+  const units = r.kind !== 'per-unit' || offered.includes(r.unit) ? offered : [...offered, r.unit];
+  const gifts = countsGifts(r, tr);
   return (
     <Stack spacing={2}>
       <ToggleButtonGroup
@@ -188,7 +194,7 @@ const RuleFields: React.FC<{
         value={r.kind}
         onChange={(_, v: 'percent' | 'per-unit' | null) => {
           if (!v || v === r.kind) return;
-          const unit = UNITS_FOR[kind][0];
+          const unit = offered[0];
           onChange(
             v === 'percent'
               ? { kind: 'percent', rate: '', base: 'gross' }
@@ -308,6 +314,25 @@ const RuleFields: React.FC<{
             multiline
             fullWidth
           />
+          {/* Seed counts seed sold. Gifts count only when the licensor ticks it (farmers' rights). */}
+          {GIFT_UNITS.includes(r.unit) && (
+            <Box data-count-gifts="">
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={gifts}
+                    onChange={(e) =>
+                      onChange({ ...r, unitDefinition: unitDefinitionText(r.unit, tr, e.target.checked) })
+                    }
+                  />
+                }
+                label={tr.t('app.roy.f.gifts')}
+              />
+              <Typography variant="body2" color="text.secondary" sx={{ pl: 4 }}>
+                {tr.t('app.roy.f.giftsWhy')}
+              </Typography>
+            </Box>
+          )}
         </>
       )}
     </Stack>
@@ -439,11 +464,12 @@ export const LawField: React.FC<{ terms: LicenseTerms; set: SetTerm; tr: Transla
 );
 
 /** The full license form for new terms (royalty-terms.ts), behind "Edit details". */
-export const FullLicenseFields: React.FC<{ terms: LicenseTerms; set: SetTerm; territoryRequired: boolean }> = ({
-  terms: t,
-  set,
-  territoryRequired,
-}) => {
+export const FullLicenseFields: React.FC<{
+  terms: LicenseTerms;
+  set: SetTerm;
+  territoryRequired: boolean;
+  preset?: PresetId;
+}> = ({ terms: t, set, territoryRequired, preset }) => {
   const kind = subjectOf(t);
   const tr = forKind(useT(), kind);
   const rights = RIGHTS_FOR[kind].includes(t.rights) ? RIGHTS_FOR[kind] : [...RIGHTS_FOR[kind], t.rights];
@@ -516,6 +542,7 @@ export const FullLicenseFields: React.FC<{ terms: LicenseTerms; set: SetTerm; te
           rule={t.royalty}
           onChange={(r) => set('royalty', r)}
           kind={kind}
+          preset={preset}
           currency={currency}
           tr={tr}
           controlled={isControlledTerms(t)}
@@ -645,7 +672,7 @@ export const LicenseTermsStep: React.FC<{
           </Button>
           <Collapse in={details} unmountOnExit>
             <Box sx={{ pt: 1.5 }}>
-              <FullLicenseFields terms={t} set={set} territoryRequired />
+              <FullLicenseFields terms={t} set={set} territoryRequired preset={preset} />
             </Box>
           </Collapse>
         </Box>

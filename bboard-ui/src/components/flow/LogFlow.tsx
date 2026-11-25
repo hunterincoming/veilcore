@@ -413,6 +413,8 @@ const LogFlowFor: React.FC<{ nextOf?: string; handoff?: Handoff }> = ({ nextOf, 
         return (
           <OriginStep
             step={step}
+            source={originSourceOf(draft)}
+            fromParent={draft.originFromParent}
             origin={draft.origin ?? emptyOrigin()}
             setOrigin={(o) => setDraft({ ...draft, origin: o })}
             onBack={() => setScreen('plant')}

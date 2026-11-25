@@ -42,9 +42,14 @@ const flattenAnswer = (s: string | undefined): string =>
     .replace(/\s+/g, ' ')
     .trim();
 
-/** Who the material is from: bred by the holder, received, or a community's landrace or heirloom. */
-export type OriginSource = 'bred' | 'received' | 'landrace';
-export const ORIGIN_SOURCES: readonly OriginSource[] = ['bred', 'received', 'landrace'];
+/**
+ * Who the material is from: bred by the holder (they made a cross), selected by the holder from
+ * plants they got, received, or a community's landrace or heirloom. "Selected" is its own answer
+ * (summit, 25 Nov 2026): picking plants out of someone else's material, a landrace above all, is
+ * not the holder's own breeding, so it goes to "Where it came from" like received material.
+ */
+export type OriginSource = 'bred' | 'selected' | 'received' | 'landrace';
+export const ORIGIN_SOURCES: readonly OriginSource[] = ['bred', 'selected', 'received', 'landrace'];
 
 /** The breeding method a landrace or heirloom is sealed with (breeding-methods.ts, always this English). */
 export const LANDRACE_METHOD = 'Landrace / heirloom';

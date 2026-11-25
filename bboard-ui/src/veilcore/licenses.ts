@@ -799,6 +799,8 @@ const royaltyRows = (t: LicenseTerms, tr: Translator): { k: string; v: string }[
   const rows: { k: string; v: string }[] = [];
   const r = ruleOf(t);
   if (r?.kind === 'per-unit' && r.unitDefinition) rows.push({ k: tr.t('app.roy.row.counts'), v: r.unitDefinition });
+  // The farmers'-rights line as sealed (royalty-terms.ts withFarmersRights); never added to older terms.
+  if (t.farmersRights) rows.push({ k: tr.t('app.roy.row.farmersRights'), v: t.farmersRights });
   if (t.currency) rows.push({ k: tr.t('app.roy.row.currency'), v: t.currency });
   if (t.yearlyMinimum)
     rows.push({ k: tr.t('app.roy.row.minimum'), v: formatMoney(t.yearlyMinimum, currencyOf(t), tr.locale) });

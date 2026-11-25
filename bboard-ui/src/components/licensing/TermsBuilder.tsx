@@ -39,6 +39,7 @@ import {
   ruleOf,
   termsProblems,
   termsToSeal,
+  freeShareTerms,
   unitDefinitionText,
   type PresetId,
 } from '../../veilcore/royalty-terms';
@@ -171,28 +172,13 @@ const TermsBuilderFor: React.FC<{ record: StrainRecord }> = ({ record }) => {
   // A breeder share with a royalty on offspring carries the same money terms as a license.
   const shareMoney = type === 'breeder-share' && (Number(t.offspringRoyaltyPct) || 0) > 0;
   const toSeal = (): LicenseTerms => {
-    if (type === 'breeder-share' && !shareMoney) {
-      // A free share keeps the shape it always had: none of the money terms.
-      const {
-        currency: _c,
-        governingLaw: _g,
-        reporting: _r,
-        bankFees: _b,
-        recordsYears: _y,
-        checkNoticeDays: _n,
-        fxSource: _f,
-        disputes: _d,
-        yearlyMinimum: _m,
-        licensor: _l,
-        ...rest
-      } = t;
-      void [_c, _g, _r, _b, _y, _n, _f, _d, _m, _l];
-      return rest;
-    }
+    // A free share keeps the shape it always had: none of the money terms (royalty-terms.ts).
+    if (type === 'breeder-share' && !shareMoney) return freeShareTerms(t);
     return termsToSeal(
       shareMoney
         ? { ...t, offspring: { rule: { kind: 'percent', rate: t.offspringRoyaltyPct ?? '', base: 'gross' } } }
         : t,
+      tr,
     );
   };
   // A commercial license needs its royalty and the money terms; the others just need a counterparty.

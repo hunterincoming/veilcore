@@ -392,3 +392,67 @@ test('a litter by a sire not on VeilCore: each calf’s sex, ID and birth date, 
   ]);
   expectNoErrors(errors);
 });
+
+test('a selection from plants the holder got goes to "Where it came from", and its next stage inherits it', async ({
+  page,
+}) => {
+  test.setTimeout(240_000);
+  const errors = watch(page);
+  const { held, vault } = await standIn(page);
+  const name = 'Bolita selection';
+
+  await page.goto('/new');
+  await startPlant(page);
+  await page.getByLabel(/Plant or line name/).fill(name);
+  // The holder's own cross is still the default answer, and the only one that needs a breeder.
+  await expect(page.getByRole('radio', { name: 'I bred it (made a cross)' })).toBeChecked();
+  await expect(page.getByText('I bred or selected it')).toHaveCount(0);
+  await page.getByRole('radio', { name: 'I selected it from plants I got' }).check();
+  await expect(page.locator('[data-bred-by]')).toHaveAttribute('data-bred-by', 'optional');
+  await shot(page, 'selected-1-plant', true);
+  await page.getByRole('button', { name: /Next: check it/ }).click();
+
+  const step = page.locator('[data-origin-step]');
+  await expect(step).toHaveAttribute('data-origin-for', 'selected');
+  await step.getByLabel('Selected from what?').fill('Bolita maize from a community seed fair');
+  await step.getByLabel('Country of origin').fill('MEX');
+  await shot(page, 'selected-2-where-it-came-from', true);
+  await step.getByRole('button', { name: /Next: check it/ }).click();
+  await expect(page.locator('[data-origin-review]')).toContainText('From: Bolita maize from a community seed fair');
+  await page.getByRole('button', { name: /Seal it/ }).click();
+  await page.getByRole('button', { name: /Go on without waiting/ }).click({ timeout: 90_000 });
+  await page.getByRole('button', { name: /No report yet: skip/ }).click();
+  await saveAndCheckBackup(page);
+  await page.getByRole('button', { name: /Finish/ }).click();
+  await expect(page.getByRole('heading', { name })).toBeVisible();
+  await expect.poll(() => held.records.length, { timeout: 30_000 }).toBe(1);
+  const [plant] = openRecordRows(held.records, vault);
+  expect(plant.bredBy).toBe('');
+  expect(plant.notes).toBe('Where it came from: Bolita maize from a community seed fair\nCountry of origin: MEX');
+
+  // Its next stage: no longer skips the step; the parent's lines are carried over to check.
+  await page.getByText('Next generation or clones').click();
+  await page
+    .getByRole('dialog')
+    .getByRole('button', { name: /Add the next generation or selection/ })
+    .click();
+  await expect(page.getByRole('heading', { name: /Log the next generation or selection/ })).toBeVisible();
+  await page.getByLabel(/Plant or line name/).fill(`${name} F2`);
+  await page.getByLabel('What stage is this? (e.g. F3, second clone run)').fill('F2');
+  await page.getByRole('button', { name: /Next: check it/ }).click();
+  await expect(step).toBeVisible();
+  await expect(page.locator('[data-origin-inherited]')).toContainText(`Carried over from ${name}`);
+  await expect(step.getByLabel('Selected from what?')).toHaveValue('Bolita maize from a community seed fair');
+  await expect(step.getByLabel('Country of origin')).toHaveValue('MEX');
+  await shot(page, 'selected-3-next-stage-inherits', true);
+  await step.getByRole('button', { name: /Next: check it/ }).click();
+  await page.getByRole('button', { name: /Seal it/ }).click();
+  await page.getByRole('button', { name: /Go on without waiting/ }).click({ timeout: 90_000 });
+  await page.getByRole('button', { name: /No report yet: skip/ }).click();
+  await expect.poll(() => held.records.length, { timeout: 30_000 }).toBe(2);
+  const child = openRecordRows(held.records, vault).find((r) => r.strainName === `${name} F2`)!;
+  expect(child.notes).toBe(
+    'Stage: F2\n\nWhere it came from: Bolita maize from a community seed fair\nCountry of origin: MEX',
+  );
+  expectNoErrors(errors);
+});

@@ -29,7 +29,7 @@ export const log = {
   'app.log.unsavedPlant': 'Sie haben eine nicht gespeicherte Pflanze: {name}.',
   'app.log.noNameYet': '(noch ohne Namen)',
   'app.log.title': 'Pflanze erfassen',
-  'app.log.fillIn': 'Füllen Sie aus, was Sie wissen. Auf der nächsten Seite prüfen Sie es.',
+  'app.log.fillIn': 'Füllen Sie aus, was Sie wissen. Danach prüfen Sie es.',
   'app.log.sealEachStage':
     'Ein Datensatz datiert nichts, was vor dem Tag seiner Versiegelung liegt. Versiegeln Sie jede Stufe, wenn sie entsteht.',
   'app.log.parentLinked': ' Ihr Elternteil ist {name}, unten bereits verknüpft.',
@@ -43,7 +43,7 @@ export const log = {
   'app.log.egNextSelection': 'z. B. {name}, nächste Selektion',
   'app.log.bredBy': 'Gezüchtet von',
   'app.log.whenMade': 'Wann Sie sie gezüchtet haben (Ihre eigene Notiz)',
-  'app.log.whenMadeHelp': 'Der öffentliche Datumsstempel kommt aus dem Netzwerk. Dies ist nur, was Sie anderen sagen.',
+  'app.log.whenMadeHelp': 'Der öffentliche Datumsstempel kommt aus dem Netzwerk, nicht von hier.',
   'app.log.stagePrompt': 'Welche Stufe ist das? (z. B. F3, zweiter Klondurchgang)',
   'app.log.stageHelp': 'Wird in den Notizen als „Stage: …“ versiegelt.',
   'app.log.selectedPrompt': 'Worauf haben Sie selektiert?',

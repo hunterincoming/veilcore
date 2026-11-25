@@ -6,7 +6,8 @@ import type { AppTranslation } from '../../translate';
 
 export const origin = {
   'app.origin.source.label': 'どこから来たものですか？',
-  'app.origin.source.bred': '自分で育成または選抜した',
+  'app.origin.source.bred': '自分で交配して育成した',
+  'app.origin.source.selected': '入手した株から選抜した',
   'app.origin.source.received': '育成者、種子バンクまたはコレクションから受け取った',
   'app.origin.source.landrace': '地域で受け継がれてきた在来種・固定種',
   'app.origin.breederIfKnown': '育成者（わかる場合）',
@@ -33,6 +34,10 @@ export const origin = {
   'app.origin.irccHelp': '国際的に認められた遵守の証明書（名古屋議定書）。',
   'app.origin.doi': 'GLISのDOIまたはその他の恒久的な識別子',
   'app.origin.doiPlaceholder': '例：10.18730/…',
+  'app.origin.selectedFrom': '何から選抜しましたか？',
+  'app.origin.selectedFromHelp': '選抜のもとになった株や種子と、その入手先（地域、種子バンク、人など）。',
+  'app.origin.inherited':
+    'このステージのもとになった記録「{name}」から引き継ぎました。違う点があれば変更してください。',
   'app.origin.back': '戻る',
   'app.origin.x.from': '由来：{v}',
   'app.origin.x.collection': 'コレクションまたは地域：{v}',

@@ -1,11 +1,11 @@
-// "Where it came from": the optional step for a landrace, an heirloom or received material
-// (LogFlow.tsx), between the plant's first screen and "Is this right?". Every field is optional;
+// "Where it came from": the optional step for a landrace, an heirloom, a selection from plants
+// the holder got, or received material (LogFlow.tsx), between the plant's first screen and "Is this right?". Every field is optional;
 // what is typed is sealed in the record's notes as labelled lines (veilcore/origin-notes.ts), so
 // no record's fingerprint is computed any differently.
 // SPDX-License-Identifier: Apache-2.0
 
 import React from 'react';
-import { Box, Button, Stack, TextField, Typography } from '@mui/material';
+import { Alert, Box, Button, Stack, TextField, Typography } from '@mui/material';
 import { ScreenHeading } from './FlowFrame';
 import { useT } from '../../i18n/app';
 import type { AppKey } from '../../i18n/app/en';
@@ -15,6 +15,7 @@ import {
   originHasContent,
   type Origin,
   type OriginField,
+  type OriginSource,
 } from '../../veilcore/origin-notes';
 
 /**
@@ -63,27 +64,37 @@ const LINE_WORDS: Record<OriginField, AppKey> = {
 
 export const OriginStep: React.FC<{
   step: string;
+  /** A selection asks "Selected from what?" in the first box (sealed under the same label). */
+  source?: OriginSource;
+  /** The parent record whose lines this next stage carried over, if it did. */
+  fromParent?: string;
   origin: Origin;
   setOrigin: (o: Origin) => void;
   onBack: () => void;
   onNext: () => void;
-}> = ({ step, origin, setOrigin, onBack, onNext }) => {
+}> = ({ step, source, fromParent, origin, setOrigin, onBack, onNext }) => {
   const { t } = useT();
+  const selected = source === 'selected';
   return (
-    <Stack spacing={2.5} data-origin-step="">
+    <Stack spacing={2.5} data-origin-step="" data-origin-for={source}>
       <Box>
         <ScreenHeading step={step}>{t('app.origin.title')}</ScreenHeading>
         <Typography variant="body1" color="text.secondary">
           {t('app.origin.intro')}
         </Typography>
       </Box>
+      {fromParent && (
+        <Alert severity="info" variant="outlined" data-origin-inherited="">
+          {t('app.origin.inherited', { name: fromParent })}
+        </Alert>
+      )}
       {FIELDS.map(({ k, label, help, placeholder }) => (
         <TextField
           key={k}
-          label={t(label)}
+          label={t(selected && k === 'from' ? 'app.origin.selectedFrom' : label)}
           value={origin[k]}
           onChange={(e) => setOrigin({ ...origin, [k]: e.target.value.slice(0, ORIGIN_MAX) })}
-          helperText={help ? t(help) : undefined}
+          helperText={selected && k === 'from' ? t('app.origin.selectedFromHelp') : help ? t(help) : undefined}
           placeholder={placeholder ? t(placeholder) : undefined}
           fullWidth
           {...(k === 'received' ? { type: 'date', slotProps: { inputLabel: { shrink: true } } } : {})}

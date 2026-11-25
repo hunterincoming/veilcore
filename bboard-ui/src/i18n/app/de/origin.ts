@@ -5,8 +5,9 @@ import type { AppTranslation } from '../../translate';
 
 export const origin = {
   'app.origin.source.label': 'Woher stammt sie?',
-  'app.origin.source.bred': 'Ich habe sie gezüchtet oder selektiert',
-  'app.origin.source.received': 'Ich habe sie von einem Züchter, einer Saatgutbank oder einer Sammlung erhalten',
+  'app.origin.source.bred': 'Ich habe sie gezüchtet (gekreuzt)',
+  'app.origin.source.selected': 'Ich habe sie aus Pflanzen selektiert, die ich bekam',
+  'app.origin.source.received': 'Ich habe sie von einem Züchter, einer Saatgutbank oder Sammlung erhalten',
   'app.origin.source.landrace': 'Eine Landsorte oder alte Sorte, die von einer Gemeinschaft bewahrt wird',
   'app.origin.breederIfKnown': 'Züchter, falls bekannt',
   'app.origin.breederHelp':
@@ -32,6 +33,10 @@ export const origin = {
   'app.origin.irccHelp': 'Ein international anerkanntes Konformitätszertifikat (Nagoya-Protokoll).',
   'app.origin.doi': 'GLIS-DOI oder andere dauerhafte Kennung',
   'app.origin.doiPlaceholder': 'z. B. 10.18730/…',
+  'app.origin.selectedFrom': 'Woraus selektiert?',
+  'app.origin.selectedFromHelp':
+    'Die Pflanzen oder das Saatgut, aus denen Sie selektiert haben, und woher sie kamen: eine Gemeinschaft, eine Saatgutbank oder eine Person.',
+  'app.origin.inherited': 'Übernommen von {name}, dem Datensatz, aus dem dieser stammt. Ändern Sie, was anders ist.',
   'app.origin.back': 'Zurück',
   'app.origin.x.from': 'Herkunft: {v}',
   'app.origin.x.collection': 'Sammlung oder Gemeinschaft: {v}',

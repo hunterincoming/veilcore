@@ -28,7 +28,7 @@ export const log = {
   'app.log.unsavedPlant': '保存していない植物があります：{name}。',
   'app.log.noNameYet': '（まだ名前がありません）',
   'app.log.title': '植物を記録する',
-  'app.log.fillIn': 'わかることを入力してください。次の画面で確認します。',
+  'app.log.fillIn': 'わかることを入力してください。次で確認します。',
   'app.log.sealEachStage':
     '記録は、封印した日より前の日付を示すことはできません。各段階は、その時点で封印してください。',
   'app.log.parentLinked': '親は {name} で、下ですでに紐付けられています。',
@@ -42,8 +42,7 @@ export const log = {
   'app.log.egNextSelection': '例：{name}、次の選抜',
   'app.log.bredBy': '育成者',
   'app.log.whenMade': '作出した日（あなた自身のメモ）',
-  'app.log.whenMadeHelp':
-    '公開される日付スタンプはネットワークから得られます。これはあなたが人に伝える日付にすぎません。',
+  'app.log.whenMadeHelp': '公開される日付はネットワークから得られます。これはあなた自身のメモです。',
   'app.log.stagePrompt': 'これはどの段階ですか？（例：F3、2回目のクローン）',
   'app.log.stageHelp': 'メモに「Stage: …」として封印されます。',
   'app.log.selectedPrompt': '何を目的に選抜しましたか？',

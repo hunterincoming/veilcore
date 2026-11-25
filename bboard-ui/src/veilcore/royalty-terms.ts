@@ -32,12 +32,30 @@ export type RoyaltyUnit =
   | 'harvest'
   | 'unit-sold';
 
-/** The units a new license on each kind of record can charge per. */
+/** The units a new license on each kind of record can charge per, from any preset. */
 export const UNITS_FOR: Record<RecordKind, readonly RoyaltyUnit[]> = {
-  plant: ['cutting', 'plant', 'seed-pack', 'seed-kg', 'tonne', 'hectare', 'acre'],
+  plant: ['cutting', 'plant', 'seed-pack', 'seed-kg'],
   animal: ['dose', 'offspring'],
   strain: ['batch'],
 };
+
+/**
+ * Units offered only on a Custom license (farmers' rights, summit 25 Nov 2026): a royalty per
+ * tonne harvested or per hectare or acre planted is how a royalty reaches farm-saved seed, so
+ * none of them is a quick pick. A licensed commercial grower who needs one picks Custom.
+ */
+export const CUSTOM_ONLY_UNITS: Record<RecordKind, readonly RoyaltyUnit[]> = {
+  plant: ['tonne', 'hectare', 'acre'],
+  animal: [],
+  strain: [],
+};
+
+/** The units the form offers for a preset: Custom adds the custom-only ones. */
+export const unitsFor = (kind: RecordKind, preset: PresetId | undefined): readonly RoyaltyUnit[] =>
+  preset === 'custom' ? [...UNITS_FOR[kind], ...CUSTOM_ONLY_UNITS[kind]] : UNITS_FOR[kind];
+
+/** Seed units whose definition counts seed sold, and gifts only when the licensor ticks it. */
+export const GIFT_UNITS: readonly RoyaltyUnit[] = ['seed-pack', 'seed-kg'];
 
 export type Deduction = 'returns' | 'excise' | 'freight';
 export const DEDUCTIONS: readonly Deduction[] = ['returns', 'excise', 'freight'];
@@ -102,6 +120,12 @@ export type RoyaltyTermsFields = {
   /** The law the deal is under, and where disputes go. Required on new terms. */
   governingLaw?: string;
   disputes?: string;
+  /**
+   * The fixed farmers'-rights line, as sealed, in the licensor's language: on every plant license
+   * with money in it (withFarmersRights), from 25 Nov 2026. Absent on animals, strains, free
+   * shares and terms made before it, which say nothing about it.
+   */
+  farmersRights?: string;
 };
 
 // ---- fallback readers: what the terms say, old or new, never more ----------------------------
@@ -241,9 +265,41 @@ export const addYears = (day: string, years: number): string => {
   return `${y + years}-${String(m).padStart(2, '0')}-${String(Math.min(d, last)).padStart(2, '0')}`;
 };
 
-/** The default unit definition for a unit, in the breeder's language (they can change it). */
-export const unitDefinitionText = (unit: RoyaltyUnit, tr: Translator = enT): string =>
-  tr.t(`app.roy.unitDef.${unit}` as AppKey);
+/**
+ * The default unit definition for a unit, in the breeder's language (they can change it). A seed
+ * unit counts seed sold; with `gifts`, seed given away too (the licensor's tick, never a default).
+ */
+export const unitDefinitionText = (unit: RoyaltyUnit, tr: Translator = enT, gifts = false): string =>
+  tr.t((gifts && GIFT_UNITS.includes(unit) ? `app.roy.unitDefGifts.${unit}` : `app.roy.unitDef.${unit}`) as AppKey);
+
+/** Whether a rule's definition is the one that counts seed given away (the tick shows it). */
+export const countsGifts = (r: RoyaltyRule | undefined, tr: Translator = enT): boolean =>
+  r?.kind === 'per-unit' &&
+  GIFT_UNITS.includes(r.unit) &&
+  r.unitDefinition?.trim() === unitDefinitionText(r.unit, tr, true);
+
+/**
+ * Whether terms carry the farmers'-rights line: every plant license with money in it, whatever
+ * the unit (review of #210: a fee per plant, or a percent of sales, reaches a farmer who re-sows
+ * saved seed as surely as one per tonne). One rule anyone can say: plant licenses always say
+ * farmers' legal rights stay. Animals and strains have no farm-saved seed.
+ */
+export const carriesFarmersRights = (t: Pick<LicenseTerms, 'subject' | 'royalty' | 'offspring'>): boolean =>
+  // Absent subject means a plant (licenses.ts subjectOf; not imported, licenses.ts imports this file).
+  (t.subject ?? 'plant') === 'plant' && Boolean(t.royalty || t.offspring);
+
+/**
+ * The terms with the farmers'-rights line set on a plant license (carriesFarmersRights), and
+ * without it otherwise. The line is written out in the licensor's language and sealed with the
+ * terms, like a unit's definition: what was signed never depends on what the app says later,
+ * and terms sealed before it existed keep their fingerprint and show no line (rule 2 above).
+ * Nobody can edit or remove it on the form.
+ */
+export const withFarmersRights = (t: LicenseTerms, tr: Translator = enT): LicenseTerms => {
+  const { farmersRights: _f, ...rest } = t;
+  void _f;
+  return carriesFarmersRights(t) ? { ...rest, farmersRights: tr.t('app.roy.s.farmersRights') } : rest;
+};
 
 const EUROZONE = new Set('AT BE HR CY EE FI FR DE GR IE IT LV LT LU MT NL PT SK SI ES'.split(' '));
 const REGION_CURRENCY: Record<string, string> = {
@@ -370,9 +426,11 @@ const LEGACY_BASIS: Partial<Record<RoyaltyUnit, UnitBasis>> = {
  * The terms exactly as they will be sealed: numbers normalised (the published checker refuses
  * "05"), empty optional values left out, and the old fields set to match the new ones so an older
  * copy of the app shows the same deal. Called once, before sealing; a preset never reaches here.
+ * A plant license gets the farmers'-rights line, in `tr`'s language.
  */
-export const termsToSeal = (t: LicenseTerms): LicenseTerms => {
-  if (!t.royalty && !t.offspring) return t;
+export const termsToSeal = (t: LicenseTerms, tr: Translator = enT): LicenseTerms => {
+  // No money: unchanged (old terms seal as they always did), but never with a stale line.
+  if (!t.royalty && !t.offspring) return 'farmersRights' in t ? withFarmersRights(t, tr) : t;
   const n = (s: string | undefined) => (s === undefined ? undefined : (normaliseDecimal(s) ?? s.trim()));
   const rule = (r: RoyaltyRule): RoyaltyRule =>
     r.kind === 'percent'
@@ -397,8 +455,10 @@ export const termsToSeal = (t: LicenseTerms): LicenseTerms => {
         ...(t.offspring.generations ? { generations: t.offspring.generations } : {}),
       }
     : undefined;
-  const { offspring: _o, yearlyMinimum, fxSource, disputes, ...rest } = t;
+  const { offspring: _o, yearlyMinimum, fxSource, disputes, farmersRights: _fr, ...rest } = t;
   void _o;
+  void _fr;
+  const farm = withFarmersRights({ ...t, ...(royalty ? { royalty } : {}), offspring }, tr).farmersRights;
   return {
     ...rest,
     ...(royalty
@@ -414,9 +474,36 @@ export const termsToSeal = (t: LicenseTerms): LicenseTerms => {
     ...(yearlyMinimum?.trim() && Number(yearlyMinimum) > 0 ? { yearlyMinimum: n(yearlyMinimum) } : {}),
     ...(fxSource?.trim() ? { fxSource: fxSource.trim() } : {}),
     ...(disputes?.trim() ? { disputes: disputes.trim() } : {}),
+    ...(farm ? { farmersRights: farm } : {}),
     licensor: t.licensor?.trim() ?? '',
     governingLaw: t.governingLaw?.trim() ?? '',
   };
+};
+
+/**
+ * A free breeder share as it is sealed: the shape free shares always had, with none of the
+ * money terms. A share renewed as free from a paid one drops them all, its royalty on offspring
+ * and the farmers'-rights line included (a free share charges nothing, so the line has nothing
+ * to limit, and a stale one would say otherwise).
+ */
+export const freeShareTerms = (t: LicenseTerms): LicenseTerms => {
+  const {
+    currency: _c,
+    governingLaw: _g,
+    reporting: _r,
+    bankFees: _b,
+    recordsYears: _y,
+    checkNoticeDays: _n,
+    fxSource: _f,
+    disputes: _d,
+    yearlyMinimum: _m,
+    licensor: _l,
+    offspring: _o,
+    farmersRights: _fr,
+    ...rest
+  } = t;
+  void [_c, _g, _r, _b, _y, _n, _f, _d, _m, _l, _o, _fr];
+  return rest;
 };
 
 /** What is missing before new terms can be saved (empty: ready). */
@@ -506,6 +593,8 @@ export const termsSentence = (t: LicenseTerms, tr: Translator): string => {
     parts.push(tr.t('app.roy.s.royalty', { rule: ruleText(r, currency, tr, controlled) }));
     if (r.kind === 'per-unit' && r.unitDefinition) parts.push(tr.t('app.roy.s.counts', { def: r.unitDefinition }));
   }
+  // As sealed, never added at display time: an older license without it says nothing about it.
+  if (t.farmersRights) parts.push(t.farmersRights);
   const o = offspringOf(t);
   if (o) {
     parts.push(
