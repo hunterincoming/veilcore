@@ -30,7 +30,7 @@ and a Rust implementation in [veilcore-rs](https://github.com/hunterincoming/vei
 |---|---|
 | **Live on veilcore.org** | Sealing records, dated in batches on Midnight mainnet; check pages; proving a record by link; dating a DNA report pairing; lab codes and signed receipts; licenses and royalty reports; documents kept on the device only; proving a fact from a sealed document; production chains of linked document records; numbers and results a lab signs, since a run on 18 November 2026 ([docs/lab-signing.md](docs/lab-signing.md), [docs/lab-mainnet-test.md](docs/lab-mainnet-test.md)); a lab signing a spreadsheet of results, adding a lab's result file to another breeder's records, and five of ICAR 2023's parentage checks proved from a lab's result, since a run on 21 November 2026 with a DEMO lab key and invented data ([docs/lab-mainnet-test.md](docs/lab-mainnet-test.md), [docs/parentage.md](docs/parentage.md)). No wallet needed: VeilCore's fee service pays the network fee. |
 | **Built, not yet run on mainnet** | Handing a license on to another grower, with the breeder's approval. Microbe and cell-line records: offered on veilcore.org, none sealed on mainnet yet ([docs/strain-profile.md](docs/strain-profile.md)). |
-| **Test network only** | A lab's viability result for a sample before or after a kill step; paying royalties in NIGHT on Midnight. |
+| **Test network only** | A lab's viability result for a sample before or after a kill step. |
 | **Built, switched off** | Paid plans for labs: built in the registry, switched off; not on veilcore.org (`veilcore-api` README, "Paid plans"). A plan that hides which records are a lab's is a design only ([docs/lab-plan.md](docs/lab-plan.md)). |
 
 Details and dates: [Where it stands](#where-it-stands). No formal security audit yet: [the reviews so far](#current-status).
@@ -275,8 +275,8 @@ verifier rules and the trust model are in [`docs/design.md`](docs/design.md).
 
 An outside developer reviewed it in August. Since then it has had twelve rounds of
 attack, recorded in [`docs/security-pass-30sep.md`](docs/security-pass-30sep.md): round 1,
-our own pass over both contracts, and rounds 2 to 7 by reviewers who had not seen the
-fixes, all on 30 September 2026; then rounds 8 to 12 on 1 October, three of them (8, 11
+our own pass over both contracts, and rounds 2 to 7 by AI reviewers in fresh
+sessions, all on 30 September 2026; then rounds 8 to 12 on 1 October, three of them (8, 11
 and 12) followed by a fresh re-attack of their fixes. Round 12 attacked the per-identity state
 bounds added that evening (caps on rotations, recoveries, parents, obligations and
 licenses; see State bounds in `docs/design.md`). Contract findings were demonstrated against
@@ -325,6 +325,8 @@ Midnight's standards repository.
 
 - On chain, a record is dated by the block its batch's anchor lands in. Until then, the logging time comes from the browser's clock and the creation date is typed by the holder: both are the holder's own claims. The registry adds the time it first saw the record, which is the registry's word, not the chain's. None of this proves a backdated date wrong.
 - A record establishes **prior possession, not ownership**. It is evidence a lawyer can assess, not a verdict; what weight it gets is for a court.
+- A date shows this record existed. It doesn't show the holder didn't also seal other versions. Weight comes from what someone else saw at the time.
+- VeilCore's servers only ever hold locked copies of a record's details (the proof code and the other things the registry can read are listed under [Where it stands](#where-it-stands)). The code that runs in your browser is ours, every release is published and can be checked ([release manifests and `npm run check:rebuild`](docs/ops/deploying.md)). That shows what we released; it can't prove a host sent everyone the same files.
 - A parent link on chain means both holders **agreed** the child descends from the parent. It is not a genetic test.
 - It **pairs** the DNA report a laboratory returns, as the holder's own statement. It does not sequence anything, check the report, or confirm it came from a laboratory.
 - A license is activated on chain with the licensee's own license secret, and every message in a deal is signed with the sender's Ed25519 key. Neither is a qualified eIDAS signature. The older practice licenses only record a time in the registry.

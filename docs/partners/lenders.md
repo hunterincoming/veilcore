@@ -39,6 +39,28 @@ and any lab signatures on it.
   checked there; one made by bank transfer is the two parties' word, signed.
 - **The license terms' legal effect.** The pack carries the terms as agreed. What they mean is a
   question for your lawyer.
+- **That the record is the only version.** A date shows this record existed. It doesn't show the
+  holder didn't also seal other versions. Weight comes from what someone else saw at the time.
+
+### Who can change the contract today
+
+Read this before you rely on a claim. The VeilCore contract on Midnight mainnet has a
+**maintenance authority**: one key, held by VeilCore's founders on paper (two copies, and either
+copy alone is enough). Whoever holds it can change the contract's rules. That includes removing
+a claim recorded on a record, or inserting a license that neither side issued. Every use is
+visible on chain: the contract keeps a public counter that rises with each change, and you can
+require the value you expect when you check (`authorityCounter` in the partner kit's checks).
+VeilCore's published rules allow the key to be used only for a network upgrade, a security or
+correctness fix, or a change both founders approved in writing; each use is announced 14 days
+before (an urgent security fix within 72 hours after) and published afterwards
+([maintenance-policy.md](../maintenance-policy.md)).
+
+What is planned, and not done: a new contract version run by a committee of three keys, any two
+of which must sign, one of them held by someone independent of the founders. That version runs
+on a test network only today, and it too starts on a single key until the third key holder is
+named. Once it is public and audited, the old contract's single key is
+used once more, to give up its authority for good
+([runbooks/two-of-three.md](../runbooks/two-of-three.md)).
 
 ### Check it yourself
 
