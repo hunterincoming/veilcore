@@ -229,7 +229,7 @@ How others prove this, and what we copied:
   ([announcement](https://petertodd.org/2016/opentimestamps-announcement)).
 - **Certificate Transparency** (RFC 9162). The log's signed receipt is embedded in the
   certificate and checked against the log's public key with no call to the log (8.1.3); the
-  inclusion proof can travel with it too (6.4). Independence comes from more than one log and
+  inclusion proof can travel with it too (7.1.2). Independence comes from more than one log and
   from monitors anyone can run.
 
 So: everything a check needs travels in the bundle, and the one step that needs the outside world
@@ -249,7 +249,7 @@ reach its verdict. It also checks that each test's trap really catches a call to
 | The stamped Bitcoin block holds it, has proof of work and links to a block this release pins | `verify.html`, when the bundle carries `proof/bitcoin-headers.json` | **Nothing.** The headers are in the bundle. Checked in the test on real mainnet data: batch `B-20261011-FE71`, blocks 971004 and 971005 |
 | That block is in Bitcoin's chain today | `ots verify`, or any block explorer | **Bitcoin itself** (a node or any explorer). Not VeilCore |
 | A pending stamp becomes a Bitcoin one | `ots upgrade` | **The OpenTimestamps calendars**, once. Not VeilCore |
-| The batch root is in the Midnight transaction: the date | `proof/check-on-midnight.mjs`, or a Midnight explorer by hand | **Midnight itself**: the script asks Blockfrost's Midnight indexer with your own free project id, and nothing of VeilCore's. Checked on the three real mainnet anchor transactions (`partner-kit/test/bundle-batch.test.ts`: only `midnight-mainnet.blockfrost.io` is asked). The script installs `@veilcore/contracts` from npm: published code, not a server, and anyone can keep a copy |
+| The batch root is in the Midnight transaction: the date | `proof/check-on-midnight.mjs`. We haven't confirmed that any Midnight explorer shows the batch root: it sits inside the contract's state, not in plain text | **Midnight, through Blockfrost, not VeilCore**: the script asks Blockfrost's Midnight indexer with your own free project id, and nothing of VeilCore's. Checked on the three real mainnet anchor transactions (`partner-kit/test/bundle-batch.test.ts`: only `midnight-mainnet.blockfrost.io` is asked). The script installs `@veilcore/contracts` from npm: published code, not a server, and anyone can keep a copy |
 | The RFC 3161 token (`proof/root.tst`) | `openssl ts -verify` | **The authority's root certificate** (from the authority). Not VeilCore. `verify.html` doesn't check this token |
 
 ### Limits, plainly
