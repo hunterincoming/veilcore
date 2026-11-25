@@ -10,7 +10,10 @@ built on `feat/simple-flow`, why, and what is still to do.
 2. Anything from another person comes in by tapping a link, or by pasting it into the one
    box on Home. The app works out what it is (`veilcore/paste.ts`).
 3. Every journey ends back on the plant's page, and that page always says what to do next.
-4. VeilCore never sees genetics and never holds anyone's key.
+4. VeilCore's servers only ever hold locked copies of a record's details, and never a record's
+   secret unlocked: the copy in the record's locked box opens only with the key that locks your
+   records. The code that runs in your browser is ours, every release is published and can be checked
+   ([ops/deploying.md](ops/deploying.md)).
 
 The research behind each choice is in the report "Simple record app UX research"
 (usability psychology, wizard and kiosk studies, key-backup field data, trust and adoption).

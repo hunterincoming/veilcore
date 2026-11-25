@@ -135,6 +135,29 @@ correctedBy     holder | attester | challenge
 
 ---
 
+## Corrections to VeilCore's own published wording
+
+The same rule applies to us. These are errors in text VeilCore published; the originals stay
+as they are.
+
+**25 November 2026: two schema titles overstate what a plant variety office does.**
+
+- `variety-similarity/v1` (`bboard-ui/public/schemas/variety-similarity-v1.json`) describes
+  marker panel 1 as "BARCSoySNP6K (soybean, as in the USDA Plant Variety Protection Office
+  method)". We found no source showing the office adopted it as its method.
+- `variety-identity/v1` (`bboard-ui/public/schemas/variety-identity-v1.json`) describes the
+  result as "its genetic match to that variety's registered reference profile". Most variety
+  offices don't keep or publish a reference genetic profile, so there is usually no registered
+  one to match.
+
+Neither title can be edited in place: a schema's id is a hash of its whole canonical JSON, title
+included ([claims-design.md](claims-design.md)), so editing it would change the id of every
+record made under it. **The fix planned:** publish `variety-similarity/v2` and
+`variety-identity/v2` with corrected titles and the same slots, offer v2 for new results, and
+keep v1 readable. Publishing new schema ids waits for Hunter. Not done yet.
+
+---
+
 ## The one-line version
 
 > A correction is a new anchored record that supersedes an old one, carrying a reason, a

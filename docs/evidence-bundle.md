@@ -134,6 +134,9 @@ practice records, signs a practice lab report, seals and anchors a batch, then d
 - **It doesn't show** that what the record says is true (name, breeder, stated date),
   who holds the plant or the record now, or that a key belongs to the lab it names.
   VeilCore doesn't vouch for anyone.
+- **It doesn't show this is the only version.** A date shows this record existed. It doesn't
+  show the holder didn't also seal other versions. Weight comes from what someone else saw at
+  the time.
 - **A lab report saved after sealing isn't dated by the batch**: it isn't inside the
   record's fingerprint. The bundle carries the pairing facts and the signatures, not a date
   for the pairing.

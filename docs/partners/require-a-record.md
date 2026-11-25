@@ -49,7 +49,9 @@ They send you a **check link**. Anyone can open it.
 VeilCore never vouches. The check tells you what was checked and whose word the rest is.
 It does not show:
 
-- what the material is. VeilCore never sees genetics;
+- what the material is. VeilCore's servers only ever hold locked copies of the description.
+  The code that runs in the applicant's browser is VeilCore's, every release is published and
+  can be checked;
 - that the description is true. It only shows the description hasn't changed;
 - who holds the material, or the record, today;
 - that a lab's work is right. A checked name means VeilCore's operator matched the name
