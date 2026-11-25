@@ -185,7 +185,9 @@ export const importing = {
     'What is kept: the column names ({names}) and which is which. Nothing from the rows or the file name.',
   'app.import.last.sealed.one': 'Your last import sealed {count} record.',
   'app.import.last.sealed.other': 'Your last import sealed {count} records.',
-  'app.import.last.once':
-    'Its rows are no longer kept in this browser. Download its results file now if you still need it.',
   'app.import.last.download': 'Download its results file (CSV)',
+  'app.import.saved.refused': "These column names look like a row from the sheet, so they aren't remembered.",
+  'app.import.last.once':
+    'It stays in this browser until you choose your next file. Download its results file if you need it.',
+  'app.import.last.remove': 'Remove it',
 };

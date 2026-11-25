@@ -188,7 +188,10 @@ export const importing = {
     'Gespeichert werden: die Spaltennamen ({names}) und welche Spalte was ist. Nichts aus den Zeilen oder dem Dateinamen.',
   'app.import.last.sealed.one': 'Ihr letzter Import hat {count} Datensatz versiegelt.',
   'app.import.last.sealed.other': 'Ihr letzter Import hat {count} Datensätze versiegelt.',
-  'app.import.last.once':
-    'Seine Zeilen werden in diesem Browser nicht mehr gespeichert. Laden Sie die Ergebnisdatei jetzt herunter, wenn Sie sie noch brauchen.',
   'app.import.last.download': 'Seine Ergebnisdatei herunterladen (CSV)',
+  'app.import.saved.refused':
+    'Diese Spaltennamen sehen wie eine Zeile aus der Tabelle aus, darum werden sie nicht gemerkt.',
+  'app.import.last.once':
+    'Er bleibt in diesem Browser, bis Sie Ihre nächste Datei wählen. Laden Sie seine Ergebnisdatei herunter, wenn Sie sie brauchen.',
+  'app.import.last.remove': 'Entfernen',
 } satisfies Partial<AppTranslation>;

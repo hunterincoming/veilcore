@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   checkRows,
   emptyAnimalMapping,
+  emptyMapping,
   guessMapping,
   parseCsv,
   toSheet,
@@ -236,34 +237,80 @@ describe('forgetting', () => {
 });
 
 describe('no header row: nothing is remembered', () => {
-  it.each([['2026-11-24'], ['25.11.2026'], ['1500'], ['12,5'], ['V-001'], ['A123'], ['#4471'], ['x'.repeat(61)]])(
-    '%s reads like a value from a row',
-    (v) => expect(looksLikeData(v)).toBe(true),
-  );
+  it.each([
+    ['2026-11-24'],
+    ['25.11.2026'],
+    ['1500'],
+    ['12,5'],
+    ['V-001'],
+    ['AB_12'],
+    ['V001'],
+    ['A123'],
+    ['#4471'],
+    ['x'.repeat(61)],
+  ])('%s reads like a value from a row', (v) => expect(looksLikeData(v)).toBe(true));
 
-  it.each([['Vessel'], ['Parent 1'], ['Lot #'], ['ACCENUMB'], ['Date of birth'], ['個体識別番号']])(
-    '%s reads like a column name',
-    (v) => expect(looksLikeData(v)).toBe(false),
-  );
+  it.each([
+    ['Vessel'],
+    ['Parent 1'],
+    ['Lot #'],
+    ['ACCENUMB'],
+    ['Date of birth'],
+    ['個体識別番号'],
+    // A word, a space and a number, and short names like P10: lab columns, not values.
+    ['Day 14'],
+    ['Well 96'],
+    ['Week 12'],
+    ['Tray 12'],
+    ['Rack 10'],
+    ['Gen 10'],
+    ['P10'],
+    ['F10'],
+    ['F1'],
+    ['2026 batch'],
+    ['96-well plate'],
+  ])('%s reads like a column name', (v) => expect(looksLikeData(v)).toBe(false));
+
+  /** A mapping that fills the given fields from the given columns, as the person picked them. */
+  const picked = (headers: string[], columns: Partial<Mapping['columns']>): Mapping => {
+    const e = emptyMapping();
+    return { ...e, columns: { ...e.columns, ...columns } };
+  };
 
   it('a first row of data (a date, a code) is not remembered, even when sealed with Remember on', () => {
     // No header row: the first row is taken as the column names, and its cells are records.
     const s = sheetOf('V-001,Lab Clone A,Multiply,2026-11-24\nV-002,Lab Clone B,Root,2026-11-24\n');
-    expect(canRemember(s.headers)).toBe(false);
-    const g = guessMapping(s.headers);
-    expect(rememberLayout(s, { ...g, columns: { ...g.columns, strainName: 1 } })).toBe(false);
+    const m = picked(s.headers, { strainName: 1 });
+    expect(canRemember(s.headers, m)).toBe(false);
+    expect(rememberLayout(s, m)).toBe(false);
     expect(local.has(LAYOUTS_KEY)).toBe(false);
   });
 
-  it('names nobody would give a column (nothing guessed) are not remembered', () => {
-    expect(canRemember(['Gelato', 'Multiply', 'Root'])).toBe(false);
-    expect(canRemember(['Column A', 'Column B'])).toBe(false);
+  it('nothing picked, or no column with a name: not remembered', () => {
+    expect(canRemember(['Vessel', 'Explant'], emptyMapping())).toBe(false);
+    expect(canRemember(['Column A', 'Column B'], picked([], { strainName: 0 }))).toBe(false);
+  });
+
+  it.each([
+    ['a tissue culture sheet', ['Vessel', 'Explant', 'Media', 'Tech'], { refId: 0, strainName: 1, notes: 2 }],
+    ['a German sheet', ['Sortenname', 'Datum', 'Bemerkungen'], { strainName: 0, dateCreated: 1, notes: 2 }],
+    ['a Spanish sheet', ['Nombre', 'Fecha', 'Notas'], { strainName: 0, dateCreated: 1, notes: 2 }],
+    ['another Spanish sheet', ['Variedad', 'Fecha'], { strainName: 0, dateCreated: 1 }],
+    ['a French sheet', ['Variété', 'Remarques'], { strainName: 0, notes: 1 }],
+    ['a Japanese sheet', ['名前', '日付', 'メモ'], { strainName: 0, dateCreated: 1, notes: 2 }],
+    ['a lab sheet with day and well columns', ['Line', 'Day 14', 'Well 96', 'Tray 12', 'P10'], { strainName: 0 }],
+  ])('%s, columns picked by hand, is remembered and matched the next day', (_what, headers, columns) => {
+    const s = sheetOf(`${headers.join(',')}\n${headers.map((_, i) => `x${i}`).join(',')}\n`);
+    expect(s.headers).toEqual(headers);
+    const m = picked(headers, columns);
+    expect(canRemember(s.headers, m)).toBe(true);
+    expect(rememberLayout(s, m)).toBe(true);
+    const back = matchLayout(sheetOf(`${headers.join(',')}\n${headers.map((_, i) => `y${i}`).join(',')}\n`))!;
+    expect(back.mapping.columns).toMatchObject(columns);
   });
 
   it('real column names are, with an unnamed column among them', () => {
-    expect(canRemember(['Vessel', 'Clone', 'Stage', 'Initiated', 'Tech'])).toBe(true);
-    expect(canRemember(['Name', 'Column B'])).toBe(true);
-    expect(canRemember(['Tag', 'Sire', 'Dam', 'DOB'])).toBe(true);
+    expect(canRemember(['Name', 'Column B'], picked([], { strainName: 0 }))).toBe(true);
   });
 
   it("an older layout's name from the file is dropped when read", () => {

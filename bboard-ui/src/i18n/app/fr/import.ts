@@ -187,7 +187,9 @@ export const importing = {
     'Ce qui est gardé : les noms des colonnes ({names}) et laquelle est laquelle. Rien des lignes ni du nom du fichier.',
   'app.import.last.sealed.one': 'Votre dernière importation a scellé {count} enregistrement.',
   'app.import.last.sealed.other': 'Votre dernière importation a scellé {count} enregistrements.',
-  'app.import.last.once':
-    'Ses lignes ne sont plus gardées dans ce navigateur. Téléchargez son fichier de résultats maintenant si vous en avez encore besoin.',
   'app.import.last.download': 'Télécharger son fichier de résultats (CSV)',
+  'app.import.saved.refused': 'Ces noms de colonnes ressemblent à une ligne du tableau, ils ne sont donc pas retenus.',
+  'app.import.last.once':
+    'Elle reste dans ce navigateur jusqu’à ce que vous choisissiez votre prochain fichier. Téléchargez son fichier de résultats si vous en avez besoin.',
+  'app.import.last.remove': 'La retirer',
 } satisfies Partial<AppTranslation>;

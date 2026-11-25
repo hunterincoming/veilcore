@@ -174,17 +174,18 @@ const screenFor = (job: Job | undefined): Screen =>
 export const BulkImportPage: React.FC = () => {
   const { t } = useT();
   // A finished import (sealed and backed up, its results file offered) isn't opened again: the
-  // page opens on the file screen, ready for today's file. Its rows are cleared from this
-  // browser as the page opens (below); for this visit only, its results file can still be
-  // downloaded from the file screen (lastJob).
+  // page opens on the file screen, ready for today's file, with a box for the last import and its
+  // results file (lastJob). Its rows stay in this browser (a reload, a second tab or a stray tap
+  // loses nothing) until the person picks today's file on that same screen, or removes it.
   const [stored] = useState<Job | undefined>(loadJob);
   const finished = stored?.phase === 'backed-up' ? stored : undefined;
   const [job, setJobState] = useState<Job | undefined>(finished ? undefined : stored);
   const [lastJob, setLastJob] = useState<Job | undefined>(finished);
   const [screen, setScreen] = useState<Screen>(() => screenFor(finished ? undefined : stored));
-  useEffect(() => {
-    if (finished) clearJob();
-  }, []);
+  const removeLastJob = () => {
+    setLastJob(undefined);
+    clearJob();
+  };
   const [sheet, setSheet] = useState<Sheet>();
   const [fileName, setFileName] = useState('');
   const [mapping, setMapping] = useState<Mapping>();
@@ -241,13 +242,15 @@ export const BulkImportPage: React.FC = () => {
             step={step}
             layouts={layouts}
             lastJob={lastJob}
+            onRemoveLast={removeLastJob}
             onForget={(id) => {
               forgetLayout(id);
               setLayouts(loadLayouts());
             }}
             onRead={(s, name) => {
               setFileName(name);
-              setLastJob(undefined);
+              // Today's file, picked beside the last import's box: that import is put away.
+              if (lastJob) removeLastJob();
               setRemember(true);
               const found = matchLayout(s, layouts);
               if (found) {
@@ -314,7 +317,7 @@ export const BulkImportPage: React.FC = () => {
             onBack={() => setScreen('columns')}
             onHeaderRow={() => setScreen('header')}
             onSeal={(rows) => {
-              if (remember && canRemember(sheet.headers)) {
+              if (remember && canRemember(sheet.headers, mapping)) {
                 rememberLayout(sheet, mapping);
                 setLayouts(loadLayouts());
               }
@@ -404,11 +407,12 @@ export const BulkImportPage: React.FC = () => {
 const PickFile: React.FC<{
   step?: string;
   layouts: readonly SavedLayout[];
-  /** The import finished before this visit: its rows are no longer kept, its results file once more. */
+  /** The import finished before this visit, kept until today's file is picked or it is removed. */
   lastJob?: Job;
+  onRemoveLast: () => void;
   onForget: (id: string) => void;
   onRead: (s: Sheet, name: string) => void;
-}> = ({ step, layouts, lastJob, onForget, onRead }) => {
+}> = ({ step, layouts, lastJob, onRemoveLast, onForget, onRead }) => {
   const tr = useT();
   const { t } = tr;
   const pick = useRef<HTMLInputElement>(null);
@@ -453,7 +457,7 @@ const PickFile: React.FC<{
           {error}
         </Alert>
       )}
-      {lastJob && <LastImport job={lastJob} />}
+      {lastJob && <LastImport job={lastJob} onRemove={onRemoveLast} />}
       <Button
         variant="contained"
         size="large"
@@ -522,10 +526,10 @@ const PickFile: React.FC<{
 };
 
 /**
- * The import finished before this visit: how many records it sealed, and its results file, which
- * is made from the rows held in memory for this visit only (they are no longer kept in storage).
+ * The import finished before this visit: how many records it sealed, and its results file. Its
+ * rows stay in this browser until today's file is picked here, or "Remove it".
  */
-const LastImport: React.FC<{ job: Job }> = ({ job }) => {
+const LastImport: React.FC<{ job: Job; onRemove: () => void }> = ({ job, onRemove }) => {
   const { t, tp } = useT();
   return (
     <Box data-last-import="" sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2, p: 1.5 }}>
@@ -533,13 +537,18 @@ const LastImport: React.FC<{ job: Job }> = ({ job }) => {
       <Typography variant="body2" color="text.secondary">
         {t('app.import.last.once')}
       </Typography>
-      <Button
-        variant="text"
-        onClick={() => downloadText(resultsCsv(job, CANONICAL_ORIGIN, hasDnaReport), resultsFileName(job.fileName))}
-        sx={{ minHeight: 44, px: 0 }}
-      >
-        {t('app.import.last.download')}
-      </Button>
+      <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', gap: 1 }}>
+        <Button
+          variant="text"
+          onClick={() => downloadText(resultsCsv(job, CANONICAL_ORIGIN, hasDnaReport), resultsFileName(job.fileName))}
+          sx={{ minHeight: 44, px: 0 }}
+        >
+          {t('app.import.last.download')}
+        </Button>
+        <Button variant="text" color="inherit" onClick={onRemove} sx={{ minHeight: 44 }}>
+          {t('app.import.last.remove')}
+        </Button>
+      </Stack>
     </Box>
   );
 };
@@ -1029,7 +1038,12 @@ const Check: React.FC<{
       <Typography variant="body2" color="text.secondary">
         {t('app.import.check.savedOn', { server: t('app.copy.ourServer'), dated: t('app.copy.datedOn') })}
       </Typography>
-      {!layout && canRemember(sheet.headers) && (
+      {!layout && !canRemember(sheet.headers, mapping) && (
+        <Typography variant="body2" color="text.secondary" data-remember-refused="">
+          {t('app.import.saved.refused')}
+        </Typography>
+      )}
+      {!layout && canRemember(sheet.headers, mapping) && (
         <Box>
           <FormControlLabel
             control={

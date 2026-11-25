@@ -2,11 +2,13 @@
 // with the stand-in registry (veilcore/import-layouts.ts, lab-import/BulkImportPage.tsx).
 //   - the way in: the lab's home and the For labs page both lead to the import;
 //   - day 1: the columns are picked by hand, "remember these columns" is on, and the rows seal;
-//   - day 2: the page opens on the file screen (yesterday's finished import is cleared, its results
-//     file offered once more); the next file with the same columns opens straight on the check
-//     screen, filled in, with the row count and one button, and seals;
+//   - day 2: the page opens on the file screen, with yesterday's finished import and its results
+//     file in a box that a reload or a second tab doesn't lose; picking today's file puts it away;
+//     that file, with the same columns, opens straight on the check screen, filled in, with the row
+//     count and one button, and seals;
+//   - "Remove it" puts a finished import away by hand;
 //   - another header row drops "same columns as last time", and a file with no header row is
-//     never offered Remember;
+//     never offered Remember, and says why;
 //   - the layout is kept in this browser only: nothing about it goes to the registry, and it can
 //     be forgotten, after which the next file asks for its columns again.
 // NEW_SHOTS saves screenshots at 360 px.
@@ -143,12 +145,28 @@ test('a lab seals its daily sheet: columns picked once, then one button the next
   // ---- Day 2: the page opens on the file screen, not on yesterday's finished import ----
   await page.goto('/records/import?lang=en');
   await expect(page.locator('[data-screen-heading]')).toContainText('Date your whole collection');
-  // Yesterday's rows are no longer kept; its results file can be downloaded once more on this visit.
-  await expect(page.locator('[data-last-import]')).toContainText('Your last import sealed 2 records.');
-  await expect.poll(() => page.evaluate((k) => localStorage.getItem(k), JOB_KEY)).toBeNull();
+  const lastBox = page.locator('[data-last-import]');
+  await expect(lastBox).toContainText('Your last import sealed 2 records.');
+  await expect(lastBox).toContainText('It stays in this browser until you choose your next file.');
+  // A reload loses nothing: the box and its results file are still there, and so are the rows.
+  await page.reload();
+  await expect(lastBox).toContainText('Your last import sealed 2 records.');
+  expect(await page.evaluate((k) => localStorage.getItem(k), JOB_KEY)).not.toBeNull();
+  // Nor does a second tab.
+  const tab = await page.context().newPage();
+  await isolate(tab, {
+    'GET /api/records': (route) => json(route, 200, held.records),
+    'GET /api/licenses': (route) => json(route, 200, []),
+    'GET /transfers/sent': (route) => json(route, 200, { transfers: [] }),
+  });
+  await tab.goto('/records/import?lang=en');
+  await expect(tab.locator('[data-last-import]')).toContainText('Your last import sealed 2 records.');
+  await tab.close();
+  await page.reload();
   const results = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Download its results file (CSV)' }).click();
   expect((await results).suggestedFilename()).toMatch(/\.csv$/);
+  expect(await page.evaluate((k) => localStorage.getItem(k), JOB_KEY)).not.toBeNull();
   await expect(page.locator(`[data-saved-layout="${LABEL}"]`)).toBeVisible();
   const day2 = [
     HEADER,
@@ -157,8 +175,10 @@ test('a lab seals its daily sheet: columns picked once, then one button the next
     'V-005,Lab Clone E (test data),Root,2026-11-25,JS',
   ];
   await upload(page, 'TC_export_2026-11-25.csv', day2);
-  // Straight to the check screen: filled in, the row count, and one button.
+  // Straight to the check screen: filled in, the row count, and one button. Picking today's file
+  // beside the box put yesterday's import away.
   await expect(page.locator('[data-screen-heading]')).toContainText('Is this right?');
+  expect(await page.evaluate((k) => localStorage.getItem(k), JOB_KEY)).toBeNull();
   await expect(page.locator('[data-saved-layout-used]')).toContainText('Same columns as last time, filled in for you.');
   await expect(page.getByText(/^3 rows? ready/)).toBeVisible();
   await expect(page.locator('[data-preview-row="2"]')).toContainText('Lab Clone C (test data)');
@@ -189,8 +209,17 @@ test('a lab seals its daily sheet: columns picked once, then one button the next
   await expect.poll(() => held.records.length, { timeout: 60_000 }).toBe(5);
   await finish(page);
 
-  // ---- A file with no header row: its first row is data, so it is never remembered ----
+  // ---- "Remove it": a finished import put away by hand ----
   await page.goto('/records/import?lang=en');
+  await expect(lastBox).toContainText('Your last import sealed 3 records.');
+  await page.getByRole('button', { name: 'Remove it' }).click();
+  await expect(lastBox).toHaveCount(0);
+  expect(await page.evaluate((k) => localStorage.getItem(k), JOB_KEY)).toBeNull();
+  await page.reload();
+  await expect(page.locator('[data-screen-heading]')).toContainText('Date your whole collection');
+  await expect(lastBox).toHaveCount(0);
+
+  // ---- A file with no header row: its first row is data, so it is never remembered ----
   await upload(page, 'no-header.csv', [
     'V-006,Lab Clone F (test data),Root,2026-11-26,JS',
     'V-007,Lab Clone G (test data),Root,2026-11-26,JS',
@@ -200,6 +229,9 @@ test('a lab seals its daily sheet: columns picked once, then one button the next
   await page.getByRole('button', { name: 'Next: check the rows' }).click();
   await expect(page.locator('[data-screen-heading]')).toContainText('Is this right?');
   await expect(remember).toHaveCount(0);
+  await expect(page.locator('[data-remember-refused]')).toHaveText(
+    "These column names look like a row from the sheet, so they aren't remembered.",
+  );
 
   // ---- Forgetting: the next file asks for its columns again ----
   await page.goto('/records/import?lang=en');

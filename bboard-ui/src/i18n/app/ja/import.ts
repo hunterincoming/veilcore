@@ -159,7 +159,9 @@ export const importing = {
   'app.import.saved.datesDmy': '日付は前回と同じく「日/月/年」として読みます。',
   'app.import.saved.keeps': '保存されるもの：列の名前（{names}）と、どの列が何か。行の内容やファイル名は保存しません。',
   'app.import.last.sealed.other': '前回の取り込みで{count}件の記録を封印しました。',
-  'app.import.last.once':
-    'その行はこのブラウザにもう保存されていません。結果ファイルが必要なら、今ダウンロードしてください。',
   'app.import.last.download': '結果ファイルをダウンロード（CSV）',
+  'app.import.saved.refused': 'この列の名前は表の行のように見えるため、覚えません。',
+  'app.import.last.once':
+    '次のファイルを選ぶまで、このブラウザに残ります。結果ファイルが必要ならダウンロードしてください。',
+  'app.import.last.remove': '削除する',
 } satisfies Partial<AppTranslation>;

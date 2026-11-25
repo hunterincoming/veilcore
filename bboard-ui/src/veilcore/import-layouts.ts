@@ -16,9 +16,9 @@
 // What is kept: the column names, the row they are on, which column fills which field, and the
 // "bred by" and animal ID scheme and species typed on that screen. Nothing from the rows and
 // nothing from the file's name: a layout is shown by its column names. A file whose "column
-// names" look like a row of data (a date, a number, a code like V-001, or nothing a column is
-// usually called) is never remembered (canRemember): those would be record content, and would
-// never match the next file anyway. Each layout can be forgotten on the import page, or all of
+// names" look like a row of data (a date, a number, a code like V-001) is never remembered
+// (canRemember): those would be record content, and would never match the next file anyway.
+// Names like "Day 14", "Well 96" or "P10" are column names, in any language. Each layout can be forgotten on the import page, or all of
 // them with the site's data.
 // SPDX-License-Identifier: Apache-2.0
 
@@ -28,8 +28,6 @@ import {
   PASSPORT_FIELDS,
   emptyAnimalMapping,
   emptyMapping,
-  guessAnimalMapping,
-  guessMapping,
   withHeaderRow,
   type AnimalFieldKey,
   type DateOrder,
@@ -88,28 +86,34 @@ export const signatureOf = (headers: readonly string[]): string => [...headerKey
 /** toSheet's name for a column with no name in the header row ("Column C"). */
 const UNNAMED = /^Column [A-Z]{1,3}$/;
 
-/** A header cell that reads like a value from a row: a date, a number, or a code like V-001. */
+/**
+ * A header cell that reads like a value from a row: a date, a number, or a code like V-001, AB_12,
+ * V001 or #4471 (a separator, or three digits or more). A word, a space and a number ("Day 14",
+ * "Well 96", "Rack 10") and a short name like "P10" or "F1" are column names.
+ */
 export const looksLikeData = (cell: string): boolean => {
   const v = cell.trim();
   return (
     v.length > 60 ||
     /\d{1,4}[-/.]\d{1,2}[-/.]\d{1,4}/.test(v) ||
     /^[-+]?[\d\s.,:%/]*\d[\d\s.,:%/]*$/.test(v) ||
-    /^[A-Za-z]{0,4}[-_ #]?\d{2,}[A-Za-z]?$/.test(v)
+    /^[A-Za-z]{0,4}([-_#]\d{2,}|\d{3,})[A-Za-z]?$/.test(v)
   );
 };
 
+/** Whether a mapping fills any field at all. */
+const fillsAField = (m: Mapping): boolean =>
+  Object.values(m.columns).some((c) => c !== null && c !== undefined) ||
+  (!!m.animal && Object.values(m.animal.columns).some((c) => c !== null));
+
 /**
- * Whether these column names may be remembered: none of them reads like a value from a row, and
- * at least one is something a column is usually called (the same guesses that fill in the columns
- * on a first file). A file with no header row gives neither, and is not remembered.
+ * Whether these column names may be remembered with this mapping: none of them reads like a value
+ * from a row, and the mapping fills at least one field (the person picked which column is which,
+ * in whatever language the sheet is in). A file with no header row is not remembered.
  */
-export const canRemember = (headers: readonly string[]): boolean => {
+export const canRemember = (headers: readonly string[], mapping: Mapping): boolean => {
   const named = headers.filter((h) => !UNNAMED.test(h.trim()));
-  if (named.length === 0 || named.some(looksLikeData)) return false;
-  const plant = Object.values(guessMapping([...headers]).columns).some((c) => c !== null);
-  const animal = Object.values(guessAnimalMapping([...headers]).columns).some((c) => c !== null);
-  return plant || animal;
+  return named.length > 0 && !named.some(looksLikeData) && fillsAField(mapping);
 };
 
 /** How a layout is shown: its first column names. */
@@ -222,7 +226,7 @@ export const rememberLayout = (
   mapping: Mapping,
   now = Date.now(),
 ): boolean => {
-  if (!canRemember(sheet.headers)) return false;
+  if (!canRemember(sheet.headers, mapping)) return false;
   const id = signatureOf(sheet.headers);
   const all = loadLayouts();
   const before = all.find((l) => l.id === id);

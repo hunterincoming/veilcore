@@ -185,7 +185,9 @@ export const importing = {
     'Lo que se guarda: los nombres de las columnas ({names}) y cuál es cuál. Nada de las filas ni del nombre del archivo.',
   'app.import.last.sealed.one': 'Su última importación selló {count} registro.',
   'app.import.last.sealed.other': 'Su última importación selló {count} registros.',
-  'app.import.last.once':
-    'Sus filas ya no se guardan en este navegador. Descargue ahora su archivo de resultados si todavía lo necesita.',
   'app.import.last.download': 'Descargar su archivo de resultados (CSV)',
+  'app.import.saved.refused': 'Estos nombres de columna parecen una fila de la planilla, así que no se recuerdan.',
+  'app.import.last.once':
+    'Se queda en este navegador hasta que elija su próximo archivo. Descargue su archivo de resultados si lo necesita.',
+  'app.import.last.remove': 'Quitarla',
 } satisfies Partial<AppTranslation>;
