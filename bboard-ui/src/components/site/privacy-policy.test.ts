@@ -238,8 +238,10 @@ describe('what the English says', () => {
 // ---- every storage name the code uses is in the technical list ----------------------------
 //
 // A name counts as storage when it is a `veilcore.` string anywhere in the site's code (the
-// local storage naming), or any `veilcore:` / `veilcore-` string in a file that touches browser
-// storage (localStorage, sessionStorage, IndexedDB, Cache Storage, or the prover's file cache).
+// local storage naming), any `veilcore:` / `veilcore-` string in a file that touches browser
+// storage (localStorage, sessionStorage, IndexedDB, Cache Storage, or the prover's file cache),
+// a name built on one of those (`${KEY}.next.${id}`, KEY + '.x'), or the first argument of a
+// storage call when it is a string or a constant, whatever it starts with (storageNames).
 // Each must be in the policy's "Technical details" storage paragraphs, in every language, or
 // below with the reason it isn't storage. A prefix (`veilcore.deal-outbox.v1.`) is listed with
 // a placeholder after it (`veilcore.deal-outbox.v1.<deal>`).
@@ -248,6 +250,10 @@ const NOT_STORAGE: Readonly<Record<string, string>> = {
   'veilcore.': 'the prefix home-screen.ts counts keys by',
   'veilcore-': 'the prefix the service worker and Start over clear caches by',
   'veilcore.org': 'the site’s host name',
+  'veilcore.records.v1': 'the registry’s collection name (api-store.ts kindFor); store.ts localStore is unused',
+  'veilcore.licenses.v1': 'the registry’s collection name (api-store.ts kindFor); store.ts localStore is unused',
+  'veilcore.vault.v1.probe': 'written and removed at once, to test that storage works',
+  'veilcore.record-keys.v1.probe': 'written and removed at once, to test that storage works',
   'veilcore-records': 'the records package’s import name',
   'veilcore.ask.job-runner': 'a Web Lock name (its fallback lease is veilcore.lock.<task>)',
   'veilcore.bulk-ledger': 'a Web Lock name',
@@ -279,8 +285,10 @@ const NOT_STORAGE: Readonly<Record<string, string>> = {
   'veilcore:vault:beneficiary:v1': 'a hashing label',
   'veilcore:vault:handle-tag:v1': 'a hashing label',
   'veilcore:vault:records:v1': 'a hashing label',
-  'veilcore:onchain-sent': 'royalties paid in NIGHT, off on veilcore.org (ONCHAIN_PAYMENTS = !IS_MAINNET)',
-  'veilcore:onchain-counted': 'royalties paid in NIGHT, off on veilcore.org (ONCHAIN_PAYMENTS = !IS_MAINNET)',
+  'veilcore:onchain-sent':
+    'royalties paid in NIGHT or Cardano stablecoins, off on veilcore.org (ONCHAIN_PAYMENTS = !IS_MAINNET, STABLECOIN_PAY_ON_MAINNET = false)',
+  'veilcore:onchain-counted':
+    'royalties paid in NIGHT or Cardano stablecoins, off on veilcore.org (ONCHAIN_PAYMENTS = !IS_MAINNET, STABLECOIN_PAY_ON_MAINNET = false)',
 };
 
 const SITE = path.resolve(HERE, '../..');
@@ -291,15 +299,61 @@ const sourceFiles = (dir: string): string[] =>
     return /\.(ts|tsx|js|mjs)$/.test(d.name) && !/\.test\.tsx?$/.test(d.name) ? [p] : [];
   });
 const TOUCHES_STORAGE = /localStorage|sessionStorage|indexedDB|caches\.|makeProviders[<(]/;
-/** Every storage name the code uses: a string, or a template's text before its first `${`. */
+/** The first argument of a storage call: Web Storage, IndexedDB or Cache Storage. */
+const STORAGE_CALL =
+  /(?:[sS]torage\.(?:getItem|setItem|removeItem)|indexedDB\.(?:open|deleteDatabase)|caches\.(?:open|delete|has))\(\s*([^,)]+?)\s*[,)]/g;
+/**
+ * Every storage name the code uses:
+ *   - a `veilcore.` string anywhere, or a `veilcore:` / `veilcore-` string in a file that touches
+ *     storage (a template's text before its first `${`);
+ *   - a name built on one of those in any file: `${KEY}.suffix` or KEY + '.suffix';
+ *   - the first argument of any storage call, when it is a string, or a constant whose string is
+ *     found in any file, whatever it starts with.
+ */
 const storageNames = (): Map<string, string> => {
   const found = new Map<string, string>();
-  for (const f of [...sourceFiles(SITE), ...sourceFiles(path.resolve(SITE, '../offline'))]) {
-    const code = fs.readFileSync(f, 'utf8');
+  const files = [...sourceFiles(SITE), ...sourceFiles(path.resolve(SITE, '../offline'))].map(
+    (f) => [path.relative(SITE, f), fs.readFileSync(f, 'utf8')] as const,
+  );
+  // Every string constant, by name: this file's own first, then any file's.
+  const consts = new Map<string, Map<string, string>>();
+  for (const [f, code] of files)
+    for (const m of code.matchAll(/\bconst ([A-Za-z_$][\w$]*)(?:: string)? = (['"])([^'"\n]*)\2(?=\s*[;\n])/g)) {
+      if (!consts.has(m[1])) consts.set(m[1], new Map());
+      consts.get(m[1])!.set(f, m[3]);
+    }
+  const valueOf = (ident: string, f: string): string | undefined => {
+    const byFile = consts.get(ident);
+    if (!byFile) return undefined;
+    if (byFile.has(f)) return byFile.get(f);
+    // Another file's only for a constant's name (FOO_KEY), as an import would bring it.
+    if (!/^[A-Z][A-Z0-9_]*$/.test(ident)) return undefined;
+    const values = new Set(byFile.values());
+    return values.size === 1 ? [...values][0] : undefined;
+  };
+  for (const [f, code] of files) {
     const touches = TOUCHES_STORAGE.test(code);
     for (const m of code.matchAll(/['"`](veilcore[.:-][\w.:-]*)(?=['"`]|\$\{)/g))
-      if (m[1].startsWith('veilcore.') || touches) found.set(m[1], path.relative(SITE, f));
+      if (m[1].startsWith('veilcore.') || touches) found.set(m[1], f);
   }
+  const derived = new Map<string, string>();
+  for (const [f, code] of files) {
+    const touches = TOUCHES_STORAGE.test(code);
+    for (const m of code.matchAll(
+      /`\$\{([A-Za-z_$][\w$]*)\}([\w.:-]+)(?=`|\$\{)|\b([A-Z][A-Z0-9_]*) \+ ['"]([\w.:-]+)['"]/g,
+    )) {
+      const base = valueOf(m[1] ?? m[3], f);
+      if (base !== undefined && found.has(base) && !(base in NOT_STORAGE)) derived.set(base + (m[2] ?? m[4]), f);
+    }
+    if (!touches) continue;
+    for (const m of code.matchAll(STORAGE_CALL)) {
+      const arg = m[1];
+      const literal = /^(['"`])([^'"`$]*)\1$/.exec(arg)?.[2];
+      const name = literal ?? (/^[A-Za-z_$][\w$]*$/.test(arg) ? valueOf(arg, f) : undefined);
+      if (name) derived.set(name, f);
+    }
+  }
+  for (const [n, f] of derived) if (!found.has(n)) found.set(n, f);
   return found;
 };
 /** The names a policy's storage paragraphs give, with any trailing full stop off. */
@@ -307,14 +361,26 @@ const listedNames = (dict: Record<string, string>): string[] =>
   TECH_STORAGE.flatMap((n) => [...dict[`m.pp.tech.${n}`].matchAll(/veilcore[.:-][\w.:<>-]*/g)]).map((m) =>
     m[0].replace(/\.+$/, ''),
   );
-const isListed = (name: string, listed: readonly string[]): boolean =>
-  listed.some((l) => l === name || (l.startsWith(name) && l[name.length] === '<'));
+const isListed = (name: string, listed: readonly string[], text = ''): boolean =>
+  name.startsWith('veilcore')
+    ? listed.some((l) => l === name || (l.startsWith(name) && l[name.length] === '<'))
+    : text.includes(name);
+const storageText = (dict: Record<string, string>): string =>
+  TECH_STORAGE.map((n) => dict[`m.pp.tech.${n}`]).join('\n');
 
 describe('the technical list names every storage key the code uses', () => {
   const names = storageNames();
 
   it('finds the names (the scan itself works)', () => {
-    for (const k of [LAYOUTS_KEY, JOB_KEY, LEDGER_KEY, 'veilcore.holder.v1', 'veilcore-offline', 'veilcore-shell-'])
+    for (const k of [
+      LAYOUTS_KEY,
+      JOB_KEY,
+      LEDGER_KEY,
+      'veilcore.holder.v1',
+      'veilcore-offline',
+      'veilcore-shell-',
+      'veilcore.log-draft.v1.next.',
+    ])
       expect(names.has(k), k).toBe(true);
   });
 
@@ -322,7 +388,7 @@ describe('the technical list names every storage key the code uses', () => {
     it(`${lang}: every one is listed, or said not to be storage`, () => {
       const listed = listedNames(dict);
       const missing = [...names]
-        .filter(([n]) => !(n in NOT_STORAGE) && !isListed(n, listed))
+        .filter(([n]) => !(n in NOT_STORAGE) && !isListed(n, listed, storageText(dict)))
         .map(([n, f]) => `${n} (${f})`);
       expect(missing, 'add each to m.pp.tech.storage.* in every language, or to NOT_STORAGE with why').toEqual([]);
     });
