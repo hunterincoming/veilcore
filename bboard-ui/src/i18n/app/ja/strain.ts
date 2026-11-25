@@ -5,6 +5,8 @@
 import type { AppTranslation } from '../../translate';
 
 export const strain = {
+  'app.strain.v.app.origin.datedNotOriginLiving':
+    '日付が示すのは、保有者がその時点でこの記録を持っていたことです。作出者、由来、内容の正しさは示しません。系統そのものはもっと古いこともあります。',
   'app.strain.v.app.verify.noParents': '親は記録されていません。',
   'app.strain.v.app.plant.fix.name': '系統名',
   'app.strain.v.app.plant.fix.bredBy': '作出・分離した人',

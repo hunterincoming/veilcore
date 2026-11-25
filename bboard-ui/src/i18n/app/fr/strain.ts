@@ -5,6 +5,8 @@
 import type { AppTranslation } from '../../translate';
 
 export const strain = {
+  'app.strain.v.app.origin.datedNotOriginLiving':
+    'La date montre que le détenteur avait alors déjà cet enregistrement, pas qui l’a obtenu, d’où il vient ni s’il est exact. La souche peut être bien plus ancienne.',
   'app.strain.v.app.verify.noParents': 'Aucun parent enregistré.',
   'app.strain.v.app.plant.fix.name': 'Nom de la souche',
   'app.strain.v.app.plant.fix.bredBy': 'Obtenue ou isolée par',

@@ -5,6 +5,8 @@
 import type { AppTranslation } from '../../translate';
 
 export const strain = {
+  'app.strain.v.app.origin.datedNotOriginLiving':
+    'Das Datum zeigt, dass der Inhaber diesen Datensatz spätestens dann hatte, nicht, wer es erzeugt hat, woher es stammt oder ob die Angaben stimmen. Die Linie kann viel älter sein.',
   'app.strain.v.app.verify.noParents': 'Keine Eltern erfasst.',
   'app.strain.v.app.plant.fix.name': 'Name der Linie',
   'app.strain.v.app.plant.fix.bredBy': 'Erzeugt oder isoliert von',

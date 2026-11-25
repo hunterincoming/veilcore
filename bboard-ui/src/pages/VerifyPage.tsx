@@ -480,6 +480,11 @@ export const VerifyPage: React.FC = () => {
   const [chosenFile, setChosenFile] = useState<{ name: string; sha: string } | 'reading' | 'too-big' | null>(null);
   // An animal record's page says "animal" where a plant's says "plant" (translate.ts forKind).
   const tr = forKind(useT(), result?.subjectKind === 'animal' ? 'animal' : 'plant');
+  // What the record is about, for the fixed line under the answer (DatedNotOrigin.tsx).
+  const checkKind =
+    result?.subjectKind === 'animal' || result?.subjectKind === 'strain' || result?.subjectKind === 'document'
+      ? result.subjectKind
+      : 'plant';
   const { t, tp } = tr;
 
   useEffect(() => {
@@ -800,7 +805,7 @@ export const VerifyPage: React.FC = () => {
                 })}
               </CheckVerdict>
             )}
-            <DatedNotOrigin living={result?.subjectKind !== 'document'} />
+            <DatedNotOrigin kind={checkKind} />
             <Paper sx={{ p: { xs: 3, md: 4 }, position: 'relative' }} data-specimen-sheet="">
               {/* Stamped only when this page found the batch root's anchor on Midnight itself
                 (anchorCheckedOnChain): gold DATED on the main network, a dashed PRACTICE
@@ -1321,7 +1326,7 @@ export const VerifyPage: React.FC = () => {
         {/* What a date doesn't show, said under a record that can't be shown too. */}
         {!loading && !(result?.found && binding.kind !== 'mismatch') && (
           <Box sx={{ mt: 3 }}>
-            <DatedNotOrigin center living={result?.subjectKind !== 'document'} />
+            <DatedNotOrigin center kind={checkKind} />
           </Box>
         )}
         {/* Real-chain builds: the holder's link may name the record's on-chain identity
