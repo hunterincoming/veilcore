@@ -88,8 +88,8 @@ const UNNAMED = /^Column [A-Z]{1,3}$/;
 
 /**
  * Month names and their short forms in English, German, Spanish and French (Japanese dates are
- * written with 年, 月 and 日, below). Only ever matched as a whole word next to a number, so a
- * column called "March" or "Mai" alone is still a column name.
+ * written with 年, 月 and 日, below). A cell only counts as a written-out date when the whole cell
+ * is one, so "March", "Weight Mar 2024" or "Born Mar 2024" are still column names.
  */
 const MONTHS = [
   // English
@@ -106,16 +106,39 @@ const MONTHS = [
   .join(' ')
   .split(' ')
   .join('|');
+/** Days of the week, long and short, that may come before a date ("Tue, 12 Mar 2024"). */
+const WEEKDAYS = [
+  'monday tuesday wednesday thursday friday saturday sunday mon tue tues wed thu thur thurs fri sat sun',
+  'montag dienstag mittwoch donnerstag freitag samstag sonntag mo di mi do fr sa so',
+  'lunes martes miércoles miercoles jueves viernes sábado sabado domingo lun mié mie jue vie sáb sab dom',
+  'lundi mardi mercredi jeudi vendredi samedi dimanche mer jeu ven sam',
+]
+  .join(' ')
+  .split(' ')
+  .join('|');
 /** Between a day, a month and a year: spaces, a full stop, a comma, a slash or a dash. */
 const GAP = '[\\s.,/-]*';
-const WRITTEN_DATE = [
-  // 12 Mar 2024, 12. März 2024, 12 de marzo de 2024, 1er mars, 12-Mar-24, 12th March
-  new RegExp(`(?<![\\p{L}\\d])\\d{1,2}(?:st|nd|rd|th|er)?${GAP}(?:de\\s+)?(?:${MONTHS})(?!\\p{L})`, 'iu'),
-  // March 12, 2024, Mar 12 2024, Nov 2024, Nov 24, März 2024
-  new RegExp(`(?<!\\p{L})(?:${MONTHS})${GAP}(?:de\\s+)?\\d{1,4}(?!\\d)`, 'iu'),
-  // 2024年3月12日, 令和6年3月, 3月12日 (a year or a month alone, such as 2024年 or 3月, is a column name)
-  /\d{1,4}\s*年\s*\d{1,2}\s*月|\d{1,2}\s*月\s*\d{1,2}\s*日/u,
-];
+const M = `(?:${MONTHS})\\.?`;
+/** A day of the month, with its ordinal: 12th, 1er, 1e, 1º and 1.º (NFKC makes º an o), 1°. */
+const D = '\\d{1,2}(?:\\.?(?:st|nd|rd|th|er|e|o|a|°))?\\.?';
+/** A year: 2024, or 24 and '24. */
+const Y = "(?:\\d{4}|[’']?\\d{2})";
+/** "de" (Spanish) or "of" (English) between the parts: 12 de marzo de 2024, 12th of March. */
+const OF = '(?:(?:de|of)\\s+)?';
+const WRITTEN_DATE = new RegExp(
+  `^(?:(?:${WEEKDAYS})\\.?,?\\s+)?(?:` +
+    // 12 Mar 2024, 12. März 2024, 12 de marzo de 2024, 1er mars, 1º de marzo, 12th of March, 12-Mar-24
+    `${D}${GAP}${OF}${M}(?:${GAP}${OF}${Y})?` +
+    // March 12, 2024, Mar 1 2024 and May 1st (a month and a lone digit, "Sep 1" or "Dec 2", is a column name)
+    `|${M}${GAP}\\d{1,2}(?:(?:st|nd|rd|th)|(?:st|nd|rd|th)?${GAP}${Y})` +
+    // Nov 2024, Mar '24, März 2024, enero de 2024, and Nov 24 or Mar 12 (two digits: a day or a year)
+    `|${M}${GAP}${OF}${Y}` +
+    `)[.,;]?$`,
+  'iu',
+);
+/** 2024年3月12日, 令和6年3月12日, 2024年3月, 3月12日 (a year or a month alone, 2024年 or 3月, is a column name). */
+const JAPANESE_DATE =
+  /^(?:令和|平成|昭和)?\s*(?:\d{1,4}\s*年\s*\d{1,2}\s*月(?:\s*\d{1,2}\s*日)?|\d{1,2}\s*月\s*\d{1,2}\s*日)\s*(?:[(（][^)）]{1,3}[)）])?$/u;
 
 /**
  * A header cell that reads like a value from a row: a date (in numbers, or written out with a
@@ -130,7 +153,8 @@ export const looksLikeData = (cell: string): boolean => {
     /\d{1,4}[-/.]\d{1,2}[-/.]\d{1,4}/.test(v) ||
     /^[-+]?[\d\s.,:%/]*\d[\d\s.,:%/]*$/.test(v) ||
     /^[A-Za-z]{0,4}([-_#]\d{2,}|\d{3,})[A-Za-z]?$/.test(v) ||
-    WRITTEN_DATE.some((re) => re.test(v))
+    WRITTEN_DATE.test(v) ||
+    JAPANESE_DATE.test(v)
   );
 };
 
@@ -294,10 +318,10 @@ export const rememberOnSeal = (
 
 /**
  * The Remember box after something happens on the import. A new file starts it ticked. Forget and
- * an untick turn it off, and it stays off: picking another header row or changing a column is not
- * the person changing their mind, so it never ticks itself again after they pressed Forget.
+ * an untick turn it off, and it stays off: picking another header row is not the person changing
+ * their mind, so it never ticks itself again after they pressed Forget.
  */
-export type RememberEvent = 'new-file' | 'tick' | 'untick' | 'forget' | 'other-header-row' | 'column-changed';
+export type RememberEvent = 'new-file' | 'tick' | 'untick' | 'forget' | 'other-header-row';
 
 export const rememberAfter = (on: boolean, event: RememberEvent): boolean =>
   event === 'new-file' || event === 'tick' ? true : event === 'untick' || event === 'forget' ? false : on;

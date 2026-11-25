@@ -307,6 +307,16 @@ describe('no header row: nothing is remembered', () => {
     ['令和6年3月12日'],
     ['3月12日'],
     ['2024 年 3 月'],
+    ['2024年3月12日(火)'],
+    // Whole-cell dates with a weekday, an apostrophe year or an ordinal
+    ['Tue, 12 Mar 2024'],
+    ['Dienstag, 12. März 2024'],
+    ["Mar '24"],
+    ['Mar ’24'],
+    ['12th of March'],
+    ['May 1st'],
+    ['1º de marzo'],
+    ['1.º de marzo de 2024'],
   ])('the written-out date %s reads like a value from a row', (v) => expect(looksLikeData(v)).toBe(true));
 
   it.each([
@@ -323,7 +333,34 @@ describe('no header row: nothing is remembered', () => {
     ['2024年'],
     ['3月'],
     ['導入年月日'],
-  ])('%s, with no date in it, reads like a column name', (v) => expect(looksLikeData(v)).toBe(false));
+    ['令和6年'],
+    ['Born 2024'],
+    ['Gen 1'],
+    ['Dose 2'],
+    ['Rep 1'],
+    ['Julia 3'],
+    ['Q1 Mar'],
+    // A date inside a longer name (a monthly weight or growth column) is still a column name.
+    ['Weight Mar 2024'],
+    ['Wean Jul 2025'],
+    ['Seed lot Jun 2023'],
+    ['Born Mar 2024'],
+    ['Nov 2024 count'],
+    ['Feb 14 weight'],
+    ['Dec 25 count'],
+    ['Week 1 May'],
+    ['Sire 2 Mar'],
+    ['2024年3月 体重'],
+    // A month and one digit: a column name, not a day.
+    ['Sep 1'],
+    ['Dec 2'],
+    ['Apr 1'],
+    ['Mar1'],
+    ['Mar-1'],
+    ['Okt 1'],
+    ['Ago 1'],
+    ['Avril 2'],
+  ])('%s, not a whole date, reads like a column name', (v) => expect(looksLikeData(v)).toBe(false));
 
   it('a first row with a written-out date (an animal sheet with no header row) is not remembered', () => {
     // The gap the review of #208 found: no code, no numeric date, only a date written out.
@@ -442,12 +479,10 @@ describe('the Remember box', () => {
     expect(rememberAfter(true, 'new-file')).toBe(true);
   });
 
-  it('stays unticked after Forget, when another header row is picked or a column is changed', () => {
+  it('stays unticked after Forget when another header row is picked', () => {
     let on = rememberAfter(true, 'forget');
     expect(on).toBe(false);
     on = rememberAfter(on, 'other-header-row');
-    expect(on).toBe(false);
-    on = rememberAfter(on, 'column-changed');
     expect(on).toBe(false);
   });
 

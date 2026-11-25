@@ -24,7 +24,7 @@ import { policyFr } from '../../i18n/privacy-policy/fr';
 import { policyJa } from '../../i18n/privacy-policy/ja';
 import { brokenPromises } from '../../i18n/promise-rule';
 import { POLICY_KEYS, POLICY_UPDATED, policyDate } from './PrivacyPolicy';
-import { LAYOUTS_KEY } from '../../veilcore/import-layouts';
+import { LAYOUTS_KEY, MAX_LAYOUTS } from '../../veilcore/import-layouts';
 import { JOB_KEY } from '../../veilcore/bulk-import';
 import { LEDGER_KEY } from '../../veilcore/bulk-import-ledger';
 import { importing as importEn } from '../../i18n/app/en/import';
@@ -124,7 +124,10 @@ describe('what the English says', () => {
         expect(dict['m.pp.tech.storage'], `${lang} ${key}`).toContain(key);
     }
     const row = EN['m.pp.device.import.p'];
-    expect(row).toMatch(/until you choose your next file or press “Remove it”/);
+    expect(row).toMatch(/until you choose your next file or press “Remove it” or “Import another file”/);
+    // The cap the row states is the code's own.
+    expect(MAX_LAYOUTS).toBe(20);
+    expect(row).toMatch(/for up to 20 sheets \(the one used longest ago goes first\)/);
     expect(row).toMatch(
       /column is which, the row they are on and the defaults you set there \(breeder, species, ID system and date order\), until you press “Forget”/,
     );
@@ -142,7 +145,7 @@ describe('what the English says', () => {
       ja: importJa,
     };
     for (const [lang, page] of Object.entries(pages))
-      for (const button of ['app.import.last.remove', 'app.import.saved.forgetOne']) {
+      for (const button of ['app.import.last.remove', 'app.import.done.another', 'app.import.saved.forgetOne']) {
         expect(page[button], `${lang} ${button}`).toBeTruthy();
         expect(policies[lang]['m.pp.device.import.p'], `${lang} ${button}`).toContain(page[button]);
       }

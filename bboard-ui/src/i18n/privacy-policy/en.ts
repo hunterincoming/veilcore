@@ -61,7 +61,7 @@ export const policyEn = {
   'm.pp.device.passkey.p': 'Tests your passkey in your browser. Nothing is sent.',
   'm.pp.device.import.t': 'A spreadsheet you import',
   'm.pp.device.import.p':
-    'Read in your browser and never uploaded. For each row, only the details you pick are saved, locked, as with any record. Your browser keeps the rows of your last import (every column, the file name and how each row went) until you choose your next file or press “Remove it”. If you choose to remember a sheet’s columns, it also keeps their names, which column is which, the row they are on and the defaults you set there (breeder, species, ID system and date order), until you press “Forget”. Neither is sent to us.',
+    'Read in your browser and never uploaded. For each row, only the details you pick are saved, locked, as with any record. Your browser keeps the rows of your last import (every column, the file name and how each row went) until you choose your next file or press “Remove it” or “Import another file”. If you choose to remember a sheet’s columns, it also keeps their names, which column is which, the row they are on and the defaults you set there (breeder, species, ID system and date order), until you press “Forget”, for up to 20 sheets (the one used longest ago goes first). Neither is sent to us.',
   'm.pp.device.ask.t': 'Ask, the helper in the app',
   'm.pp.device.ask.p':
     'Works on your device. Typing to it sends nothing. Only Save sends, or approving a “Do it for me” job, which then saves, sends reports or dates exactly what you approved. A job is kept on your device only, and deleted 7 days after it ends.',
