@@ -80,3 +80,42 @@ describe("an evidence bundle's check, on real mainnet batches", () => {
     expect(v.reason).toMatch(/different root/);
   });
 });
+
+// If VeilCore disappears (docs/offline.md, "If VeilCore is gone"): the bundle's script names no
+// indexer, only a Blockfrost project id, so the check asks Midnight's public indexer and nothing
+// of VeilCore's. Every address it asks for is recorded; a VeilCore host is refused, as if gone.
+describe('the check needs Midnight, not VeilCore', () => {
+  const VEILCORE_HOST = /(^|\.)veilcore\.org$|^veilcore-[a-z0-9-]*\.up\.railway\.app$/;
+
+  it.each(golden.transactions.map((t) => [t.stateLedger, t.indexerAnswer.byHash[0].hash.slice(0, 12), t] as const))(
+    '%s batch %s, as check-on-midnight.mjs calls it: only Blockfrost is asked',
+    async (_era, _short, t) => {
+      const tx = t.indexerAnswer.byHash[0];
+      const hosts: string[] = [];
+      vi.stubGlobal('fetch', (url: string, init?: { body?: string }) => {
+        const host = new URL(url).hostname;
+        hosts.push(host);
+        if (VEILCORE_HOST.test(host)) return Promise.reject(new TypeError(`${host} is gone`));
+        const { offset } = (
+          JSON.parse(init?.body ?? '{}') as { variables: { offset: { hash?: string; identifier?: string } } }
+        ).variables;
+        const transactions = (offset.hash === tx.hash ? [tx] : []).map((x) => ({
+          ...x,
+          transactionResult: { status: 'SUCCESS' },
+        }));
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({ data: { transactions } }) });
+      });
+      // Exactly the call the bundle's proof/check-on-midnight.mjs makes (bboard-ui evidence/bundle.ts checkScriptFor).
+      const v = await checkBatchAnchor({
+        network: 'mainnet',
+        blockfrostProjectId: 'mainnetTestProject1',
+        txId: tx.hash,
+        root: Buffer.from(t.root, 'hex'),
+      });
+      expect(v.accepted).toBe(true);
+      expect(v.blockHeight).toBe(tx.block.height);
+      expect(hosts.length).toBeGreaterThan(0);
+      expect([...new Set(hosts)]).toEqual(['midnight-mainnet.blockfrost.io']);
+    },
+  );
+});
