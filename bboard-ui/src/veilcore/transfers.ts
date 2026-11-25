@@ -871,8 +871,15 @@ const readReceiving = (): Record<string, string> => {
 /** Keep a code being received, by its transfer id. */
 export const keepReceivingCode = (code: string): void => {
   const { transferId } = parseShareCode(code);
+  const all = readReceiving();
+  // A different code for the same delivery is not the one a checked backup holds: its mark goes,
+  // so Start over warns again until a backup with this code is checked.
+  if (all[transferId] !== undefined && all[transferId] !== code.trim()) {
+    const marks = backedUpReceiving();
+    if (marks.delete(transferId)) writeBackedUpReceiving(marks);
+  }
   try {
-    localStorage.setItem(RECEIVING, JSON.stringify({ ...readReceiving(), [transferId]: code.trim() }));
+    localStorage.setItem(RECEIVING, JSON.stringify({ ...all, [transferId]: code.trim() }));
   } catch {
     /* a private window: the code is only in the dialog */
   }

@@ -42,9 +42,9 @@ export const home = {
   'app.home.resetReceiving.other':
     'Vous êtes encore en train de recevoir {count} envois, et aucune sauvegarde vérifiée ne contient leurs codes. Recommencer supprime ces codes de ce navigateur, et sans eux ces envois ne peuvent pas être terminés. Enregistrez d’abord votre sauvegarde.',
   'app.home.resetUnsure.one':
-    'Une modification de {count} enregistrement n’est pas encore sauvegardée : sa correction n’a pas reçu de réponse claire. Ce navigateur la garde 30 jours au cas où vous restaureriez cet ensemble depuis sa sauvegarde, puis la supprime.',
+    'Une modification de {count} enregistrement n’est pas encore sauvegardée : sa correction n’a pas reçu de réponse claire. Ce navigateur la garde 30 jours au cas où vous restaureriez cet ensemble depuis sa sauvegarde, puis la retire la prochaine fois que VeilCore est ouvert après ce délai.',
   'app.home.resetUnsure.other':
-    'Les modifications de {count} enregistrements ne sont pas encore sauvegardées : leurs corrections n’ont pas reçu de réponse claire. Ce navigateur les garde 30 jours au cas où vous restaureriez cet ensemble depuis sa sauvegarde, puis les supprime.',
+    'Les modifications de {count} enregistrements ne sont pas encore sauvegardées : leurs corrections n’ont pas reçu de réponse claire. Ce navigateur les garde 30 jours au cas où vous restaureriez cet ensemble depuis sa sauvegarde, puis les retire la prochaine fois que VeilCore est ouvert après ce délai.',
   'app.home.resetConfirm':
     'Recommencer dans ce navigateur avec un nouvel ensemble vide ?\n\nRien n’est supprimé. Vos enregistrements actuels restent verrouillés dans le registre de VeilCore. Vous ne pouvez les récupérer qu’avec vos clés actuelles, qui vont être téléchargées maintenant dans un seul fichier. Gardez-le.',
   'app.home.startedOver':

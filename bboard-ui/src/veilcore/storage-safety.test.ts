@@ -67,6 +67,21 @@ describe('a code being received, and the backup file', () => {
     expect(transfers.receivingOnlyHere()).toEqual([ID]);
   });
 
+  it('a new code pasted for the same delivery after a checked backup loses the mark, so Start over warns', async () => {
+    const transfers = await import('./transfers');
+    const backup = await import('./backup');
+    transfers.keepReceivingCode(CODE);
+    expect(await backup.checkBackup(fileOf(await backup.backupFileText()))).toMatchObject({ ok: true });
+    expect(transfers.receivingOnlyHere()).toEqual([]);
+    // The same code again keeps the mark.
+    transfers.keepReceivingCode(CODE);
+    expect(transfers.receivingOnlyHere()).toEqual([]);
+    // A different code for the same delivery: no checked backup holds it.
+    transfers.keepReceivingCode(`${ID}.newclaim99`);
+    expect(transfers.receivingOnlyHere()).toEqual([ID]);
+    expect(startOverLines(transfers.receivingOnlyHere().length, 0)).toContain('no checked backup holds its code');
+  });
+
   it('comes back from the file, password-locked too, and the delivery can be finished here', async () => {
     let transfers = await import('./transfers');
     let backup = await import('./backup');
