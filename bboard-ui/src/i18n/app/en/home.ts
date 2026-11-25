@@ -35,6 +35,14 @@ export const home = {
     'A record has keys with no checked backup. Save your backup first: clearing the browser later would lose them for good.',
   'app.home.resetWarningRecords.other':
     '{count} records have keys with no checked backup. Save your backup first: clearing the browser later would lose them for good.',
+  'app.home.resetReceiving.one':
+    'You’re still receiving a delivery, and no checked backup holds its code. Starting over deletes the code from this browser, and without it the delivery can’t be finished. Save your backup first.',
+  'app.home.resetReceiving.other':
+    'You’re still receiving {count} deliveries, and no checked backup holds their codes. Starting over deletes the codes from this browser, and without them those deliveries can’t be finished. Save your backup first.',
+  'app.home.resetUnsure.one':
+    'A change to a record isn’t saved yet: its correction got no clear answer. This browser keeps it for 30 days in case you restore this set from its backup, then deletes it.',
+  'app.home.resetUnsure.other':
+    'Changes to {count} records aren’t saved yet: their corrections got no clear answer. This browser keeps them for 30 days in case you restore this set from its backup, then deletes them.',
   'app.home.resetConfirm':
     'Start over in this browser with a new, empty set?\n\nNothing is deleted. Your current records stay on VeilCore’s registry, locked. You can get them back only with your current keys, which will be downloaded now in one file. Keep it.',
   'app.home.startedOver': 'Started over. Restore your old records any time from the holder key file.',

@@ -28,6 +28,7 @@
 import './globals';
 import { guardHolderRequests } from './veilcore/holder-guard';
 import { startOffline } from './offline/register';
+import { sweepDealOutboxes } from './veilcore/deal-outbox-store';
 
 import React from 'react';
 import ReactDOM from 'react-dom/client';
@@ -55,6 +56,9 @@ guardHolderRequests(window);
 // signal. It never sends the holder key from a check or prove page: it sends nothing a page
 // doesn't leave for it (offline/sw.js, Background Sync).
 startOffline();
+// A deal's messages kept to send again expire after 30 days (deal-outbox-store.ts): every load
+// removes the expired ones, not only when that deal is next opened.
+sweepDealOutboxes();
 const startLang = startingLanguage();
 const { pathname } = window.location;
 await Promise.all([

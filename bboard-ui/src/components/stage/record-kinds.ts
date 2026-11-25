@@ -108,6 +108,16 @@ export const keysOnlyHereSubject = (ids: readonly string[], records: readonly Re
 export const keysOnlyHereLine = (ids: readonly string[], kind: 'alert' | 'reset', tr: Translator = enT): string =>
   tr.tp(kind === 'alert' ? 'app.home.keysOnlyHereRecords' : 'app.home.resetWarningRecords', ids.length);
 
+/**
+ * Start over's further lines, each after a blank line, or '' when neither applies: `receiving`
+ * delivery codes no checked backup holds (Start over deletes them), and `unsure` records of this
+ * set still waiting on a correction's answer (kept 30 days in case the set comes back, then
+ * deleted; records.ts UNSURE_KEEP_MS).
+ */
+export const startOverLines = (receiving: number, unsure: number, tr: Translator = enT): string =>
+  (receiving > 0 ? `\n\n${tr.tp('app.home.resetReceiving', receiving)}` : '') +
+  (unsure > 0 ? `\n\n${tr.tp('app.home.resetUnsure', unsure)}` : '');
+
 /** The backup check's "It works." line. */
 export const backupHoldsLine = (ids: readonly string[], tr: Translator = enT): string =>
   ids.length === 0 ? tr.t('app.backup.holds.none') : tr.tp('app.backup.holds.records', ids.length);

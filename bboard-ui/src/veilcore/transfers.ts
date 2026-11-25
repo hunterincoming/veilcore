@@ -891,6 +891,8 @@ export const forgetReceivingCode = (transferId: string, opts: { force?: true } =
   if (!opts.force && !refusedCodes().has(transferId.toUpperCase())) return;
   forgetClaim(transferId);
   unmarkRefused(transferId);
+  const marks = backedUpReceiving();
+  if (marks.delete(transferId.toUpperCase())) writeBackedUpReceiving(marks);
   const all = readReceiving();
   if (!(transferId.toUpperCase() in all)) return;
   delete all[transferId.toUpperCase()];
@@ -964,6 +966,95 @@ const forgetClaim = (transferId: string): void => {
   } catch {
     /* nothing kept */
   }
+};
+
+// --- codes being received, in the backup file ---------------------------------------------
+//
+// Until the claim settles, a code being received is the only copy of the offer key and the
+// breeder's lock in this browser. The backup file carries them (backup.ts `receiving`), so a
+// receiver who saves a backup halfway through can still finish on another device. Which of
+// them a checked backup holds is kept by transfer id, so Start over can say when it would
+// delete the only copy.
+
+const RECEIVING_BACKED_UP = 'veilcore.receiving-backed-up.v1';
+
+const backedUpReceiving = (): Set<string> => {
+  try {
+    const v: unknown = JSON.parse(localStorage.getItem(RECEIVING_BACKED_UP) ?? '[]');
+    return new Set(Array.isArray(v) ? v.filter(isString) : []);
+  } catch {
+    return new Set();
+  }
+};
+
+const writeBackedUpReceiving = (ids: Set<string>): void => {
+  try {
+    if (ids.size) localStorage.setItem(RECEIVING_BACKED_UP, JSON.stringify([...ids]));
+    else localStorage.removeItem(RECEIVING_BACKED_UP);
+  } catch {
+    /* nothing kept: Start over asks as if none were backed up */
+  }
+};
+
+/** The codes being received, for the backup file: { transfer id → code }. */
+export const receivingForBackup = (): Record<string, string> => readReceiving();
+
+/**
+ * A checked backup file holds these codes: each one it holds exactly as kept here is marked,
+ * so Start over doesn't call it the only copy.
+ */
+export const markReceivingBackedUp = (incoming: unknown): void => {
+  if (!isObject(incoming)) return;
+  const here = readReceiving();
+  const marks = backedUpReceiving();
+  const was = marks.size;
+  for (const [id, c] of Object.entries(incoming))
+    if (isString(c) && here[id] !== undefined && here[id] === c.trim()) marks.add(id);
+  if (marks.size !== was) writeBackedUpReceiving(marks);
+};
+
+/**
+ * Add codes being received from a backup; one already here is never replaced, and a code
+ * whose id doesn't match its entry is skipped. Returns how many were added. `mark: false` is a
+ * copy that marks nothing backed up (as RestoreOptions).
+ */
+export const mergeReceiving = (incoming: unknown, opts: { mark?: boolean } = {}): number => {
+  if (!isObject(incoming)) return 0;
+  const here = readReceiving();
+  let added = 0;
+  for (const [id, c] of Object.entries(incoming)) {
+    if (!isString(c) || here[id] !== undefined || parseShareCode(c).transferId !== id) continue;
+    here[id] = c.trim();
+    added++;
+  }
+  if (added) {
+    try {
+      localStorage.setItem(RECEIVING, JSON.stringify(here));
+    } catch {
+      return 0;
+    }
+  }
+  if (opts.mark !== false) markReceivingBackedUp(incoming);
+  return added;
+};
+
+/** Transfer ids of codes being received that no checked backup holds: this browser has the only copy. */
+export const receivingOnlyHere = (): string[] => {
+  const marks = backedUpReceiving();
+  return Object.keys(readReceiving()).filter((id) => !marks.has(id));
+};
+
+/**
+ * Start over: every code being received goes, with what was kept beside it. The caller asks
+ * first when one has no checked backup (receivingOnlyHere).
+ */
+export const forgetAllReceiving = (): void => {
+  for (const name of [RECEIVING, CLAIMS, REFUSED, RECEIVING_BACKED_UP])
+    try {
+      localStorage.removeItem(name);
+    } catch {
+      /* nothing kept */
+    }
 };
 
 /**
