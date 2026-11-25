@@ -8,9 +8,9 @@ deployment record revision 4.**
 applies to contract v2 from day one: the same reasons for use, the 14-day notice and publishing
 every use. v2 starts with a temporary single key, kept age-encrypted on the maintainer's Mac,
 until it is handed to the 2-of-3 committee ([contract-v2.md](contract-v2.md), section 5).
-**Approved by both founders:** Hunter Roberts, maintainer decision of 23 November 2026; Mako,
-by message to Hunter, 24/25 November 2026; the message said 'v3', which Hunter confirms meant
-contract v2 (contract-v2.md, section 9, decision 12). Who holds the third key (decision 2) and
+**Approved by both founders:** Hunter Roberts, maintainer decision of 23 November 2026; Mako's
+yes, by message to Hunter, confirmed as v2 on 25 November 2026 (his first message said 'v3')
+(contract-v2.md, section 9, decision 12). Who holds the third key (decision 2) and
 sealing v1 (decision 9) still wait for the second founder's written approval.
 
 The VeilCore contract on Midnight mainnet keeps a maintenance authority. This page says

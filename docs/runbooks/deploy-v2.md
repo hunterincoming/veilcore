@@ -35,8 +35,8 @@ independently reviewed; not for your records." Never "live" or "audited". No pos
 Decisions the design still lists as open, which both founders settle in writing:
 
 - **Before the mainnet deploy:** the v2 maintenance policy text (design section 9): **approved**.
-  Mako, by message to Hunter, 24/25 November 2026; the message said 'v3', which Hunter confirms
-  meant contract v2 (design decision 12). The record count the fresh start rests on (decision
+  Mako's yes, by message to Hunter, confirmed as v2 on 25 November 2026 (his first message said
+  'v3'); design decision 12. The record count the fresh start rests on (decision
   10): confirmed 23 November 2026.
 - **Before the handover (not before the deploy):** who holds the third key (decision 2).
 - **Condition 8 is waived** by Hunter, 23 November 2026: the team-only deploy rests on VeilCore's

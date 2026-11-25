@@ -639,7 +639,7 @@ key. The tool changes (Stage A item 7) are needed for the handover.
 | 9 | Seal v1 by `retire` only, after the public switch, with the 14-day notice. The approved policy doesn't list sealing as a use. | **Pending the second founder's written approval** |
 | 10 | The fresh start itself, resting on every v1 record being the team's own | **Confirmed 23 Nov 2026**: every v1 record is the team's own testing |
 | 11 | Team-only v2 on mainnet on VeilCore's own review, with condition 8 waived; a temporary single key until the third key holder is named | **Decided by the maintainer, Hunter Roberts, 23 Nov 2026** |
-| 12 | Contract v2 and its maintenance policy (section 5: v1's rules from day one, rules never change, every use announced 14 days ahead and published; the temporary key until the handover) | **Approved by both founders.** Hunter Roberts: maintainer decision, 23 Nov 2026 (decision 11). Mako, by message to Hunter, 24/25 November 2026; the message said 'v3', which Hunter confirms meant contract v2. |
+| 12 | Contract v2 and its maintenance policy (section 5: v1's rules from day one, rules never change, every use announced 14 days ahead and published; the temporary key until the handover) | **Approved by both founders.** Hunter Roberts: maintainer decision, 23 Nov 2026 (decision 11). Mako's yes, by message to Hunter, confirmed as v2 on 25 November 2026 (his first message said 'v3'). |
 
 Still open:
 
