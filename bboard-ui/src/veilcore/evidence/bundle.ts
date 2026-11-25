@@ -35,6 +35,7 @@ import { dnaBindingOf } from '../dna-link';
 import { LAB_SALT_PARAM, isBoundLabDocument, labLinkParams, signsReport } from '../lab-doc';
 import { checkProof } from '../proofs';
 import { holderKeyIfAny } from '../holder';
+import { isDemoLabKey } from '../demo-lab';
 import { custodyView } from '../custody';
 import { receiptCovers, sentByMe, type SentTransfer } from '../transfers';
 import { isObject, isString, isNumber, readJson } from '../json';
@@ -889,7 +890,10 @@ export const signatureLines = async (
     const displayName = isString(attester.displayName) ? oneLine(attester.displayName) : undefined;
     // Who holds the key, in the words the check pages use (docs/lab-identity-levels.md). The bundle
     // is read offline, so it can't look up a lab's website or a public listing: always "not verified".
-    const name = displayName !== undefined ? ` (it calls itself "${displayName}"; not verified)` : '';
+    const name =
+      (displayName !== undefined ? ` (it calls itself "${displayName}"; not verified)` : '') +
+      // VeilCore's own demo key (demo-lab.ts), whatever it calls itself.
+      (isDemoLabKey(key) ? enT.t('app.signer.demo', { who: '' }) : '');
     const bound =
       a.type === 'laboratory-report' &&
       isString(a.attestationId) &&
@@ -1165,6 +1169,16 @@ export const documentFileLines = (ev: Evidence): string[] => {
   return L;
 };
 
+/**
+ * The bundle's own page could have been edited by whoever sent it (summit 5b item 15). Said
+ * without VeilCore, as everything here is checked: verify.html says the same words.
+ */
+export const CHECK_YOURSELF =
+  'If someone sent you this bundle, check it with a checker you got yourself, not one they sent.';
+
+/** What a lab's signature does and doesn't cover (summit 5b item 10; app.lr.note.sample). */
+export const LAB_SAMPLE = enT.t('app.lr.note.sample');
+
 /** README.txt: what each file is, what it proves, what it doesn't. Plain words; formulas at the end. */
 export const readmeText = (
   ev: Evidence,
@@ -1223,6 +1237,7 @@ export const readmeText = (
   }
   L.push('');
   L.push('HOW TO CHECK IT (nothing from VeilCore needed)');
+  L.push(CHECK_YOURSELF);
   L.push(
     '1. Open verify.html in Chrome or Firefox (double-click it). It works offline. It should say "The files agree with each other", "Proof code matches" and "Proof leads to the batch root". If it says "Don\'t use this to date the record", stop there: the files have been changed.',
   );
@@ -1294,6 +1309,7 @@ export const readmeText = (
   );
   L.push(`- Who holds the ${subject} or the record now.`);
   L.push("- That a signing key belongs to the lab it names. VeilCore doesn't vouch for anyone.");
+  if (sigs.some((s) => s.ok && s.type === 'laboratory-report')) L.push(`- What the sample was. ${LAB_SAMPLE}`);
   L.push(
     `- Any date at all until you find the batch root in the named transaction${bitcoin ? ' (or the Bitcoin stamp checks)' : ''}. VeilCore's registry reported the transaction${anchor && utcWords(anchor.anchoredAt) ? `, and its time as ${utcWords(anchor.anchoredAt)}` : ''}; it has not been checked on the chain for you.`,
   );

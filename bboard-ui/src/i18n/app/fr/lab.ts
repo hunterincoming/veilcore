@@ -534,4 +534,8 @@ export const lab = {
   // LabResults.tsx: a lock this browser can’t vouch for (round 3, P1)
   'app.lab.out.pasteAgain':
     'Le verrou des rapports de laboratoire de cet enregistrement ne peut pas être vérifié avec le code laboratoire, donc rien n’est envoyé avec lui. Collez de nouveau le code laboratoire.',
+  'app.signer.demo':
+    '{who} (DÉMO : la clé de démonstration de VeilCore, utilisée uniquement avec des données inventées ; pas un laboratoire)',
+  'app.labid.demo':
+    'DÉMO : c’est la clé de démonstration de VeilCore, utilisée uniquement avec des données inventées. Ce n’est pas un laboratoire.',
 } satisfies Partial<AppTranslation>;

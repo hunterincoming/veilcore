@@ -107,8 +107,7 @@ export const verify = {
   'app.verify.kindReport': 'Rapport de laboratoire (SHA-256 du fichier {sha})',
   'app.verify.kindStatement': 'Déclaration signée',
   'app.verify.forWhom': 'Pour le code de preuve que signale le registre : ',
-  'app.verify.intro':
-    'Cette page vérifie un enregistrement VeilCore : un code de preuve de la description d’un matériel génétique, daté une fois ancré, publié sans la génétique. La vérification est gratuite et ne demande aucun compte. <link>Qu’est-ce que VeilCore ?</link>',
+  'app.verify.intro': 'La vérification est gratuite et ne demande aucun compte. <link>Qu’est-ce que VeilCore ?</link>',
   'app.verify.checkingRecord': 'Vérification de l’enregistrement',
   'app.verify.notFound': 'Aucun enregistrement trouvé pour {id}',
   'app.verify.notFoundText':
@@ -406,4 +405,7 @@ export const verify = {
     'Vérifié dans ce navigateur : la preuve de travail du bloc {height} et son lien vers le haut depuis le point de contrôle {checkpoint}, un bloc que ce site fixe, par des blocs minés à la difficulté réelle de Bitcoin. Le bloc contient l’horodatage de ce lot. Heure du bloc, telle que son mineur l’a fixée : {time}. Un point de contrôle plus récent le vérifierait plus solidement.',
   'app.verify.who.btc.batchOnly':
     'Ce navigateur a vérifié que l’horodatage du lot est dans le bloc Bitcoin {height}, relié au point de contrôle {checkpoint}. Seul le registre de VeilCore dit que cet enregistrement est dans ce lot : le lien qu’on vous a envoyé ne contient pas de code de preuve pour le vérifier.',
+  'app.verify.checkYourself':
+    'Vérifiez vous-même : ouvrez {site}/verify et saisissez l’identifiant d’enregistrement, ou utilisez un vérificateur que vous avez installé vous-même. Ne vous fiez pas seulement à une page qu’on vous a envoyée.',
+  'app.verify.addressBar': 'Vérifiez que la barre d’adresse indique {site}.',
 } satisfies Partial<AppTranslation>;

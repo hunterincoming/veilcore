@@ -480,4 +480,8 @@ export const labresult = {
     'Un registro contiene como máximo 16 números. Una comparación grande de SNP es un cálculo del propio laboratorio: aquí solo se prueban sus recuentos.',
   'app.marker.limits.opening':
     'Cualquiera que tenga los números del registro y su secreto de campos puede publicarlos: el titular, y también el laboratorio.',
+  'app.lr.note.sample':
+    'El laboratorio analizó la muestra que recibió con este registro. Este resultado no muestra quién tomó la muestra ni que procediera del material de este registro, y se aplica solo a la porción analizada.',
+  'app.lr.note.governs':
+    'Un resumen del informe del laboratorio; prevalece el propio informe del laboratorio para el n.º de accesión {accession}.',
 } satisfies Partial<AppTranslation>;

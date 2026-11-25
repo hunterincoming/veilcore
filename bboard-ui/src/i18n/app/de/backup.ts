@@ -175,4 +175,5 @@ export const backup = {
     'Die Datensätze in der Datei konnten nicht wiederhergestellt werden: {why} Ihre Schlüssel sind wiederhergestellt.',
   'app.backup.passkey.err.busy':
     'Ihr anderes Gerät hat im selben Moment gespeichert. Es wird von selbst erneut versucht.',
+  'app.backup.neverAsks': 'VeilCore fragt nie nach Ihrer Sicherungsdatei oder Ihrem Code.',
 } satisfies Partial<AppTranslation>;

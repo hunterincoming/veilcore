@@ -140,6 +140,9 @@ export const CANONICAL_ORIGIN = canonicalOrigin();
 /** An absolute link on the canonical site, for a path that starts with "/". */
 export const canonicalUrl = (path: string): string => `${CANONICAL_ORIGIN}${path}`;
 
+/** The canonical site's host, as an address bar shows it: "veilcore.org" on veilcore.org's own build. */
+export const CANONICAL_HOST = new URL(CANONICAL_ORIGIN).host;
+
 /**
  * Lab reports sent back through the registry (veilcore/lab-results.ts). On in every build,
  * mainnet included (16 Oct 2026): the registry is deployed before the site, and both site

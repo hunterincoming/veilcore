@@ -21,6 +21,8 @@ import {
   bitcoinSteps,
   midnightSteps,
   readmeText,
+  CHECK_YOURSELF,
+  LAB_SAMPLE,
   reconcile,
   safeFileName,
   signatureLines,
@@ -473,6 +475,26 @@ describe('the bundle', () => {
     // Short lines for any text reader; a long value is never broken across two.
     expect(raw.split('\n').filter((l) => l.length > 78 && !/[0-9a-f]{64}/.test(l))).toEqual([]);
     expect(readme).toContain(`spec version 0.1`);
+  });
+
+  // Summit 5b items 10 and 15: the bundle is shown to someone else, and its own page could be edited.
+  it('README and verify.html say to check it yourself, and what a lab signature covers', async () => {
+    const { s, files } = await make({ key: true, lab: true });
+    const readme = strFromU8(files[`${s.record.id}-evidence/README.txt`]).replace(/\s+/g, ' ');
+    const page = strFromU8(files[`${s.record.id}-evidence/verify.html`]);
+    // Nothing from VeilCore needed, and never "go to veilcore.org" under that heading.
+    expect(CHECK_YOURSELF).toBe(
+      'If someone sent you this bundle, check it with a checker you got yourself, not one they sent.',
+    );
+    expect(readme).toContain(`HOW TO CHECK IT (nothing from VeilCore needed) ${CHECK_YOURSELF}`);
+    expect(readme).toContain(`- What the sample was. ${LAB_SAMPLE}`);
+    // Never says who took the sample: VeilCore doesn't know (SPEC 7).
+    expect(LAB_SAMPLE).toBe(
+      'The lab tested the sample it received under this record. This result doesn’t show who took the sample or that it came from this record’s material, and it applies only to the portion tested.',
+    );
+    expect(LAB_SAMPLE).not.toMatch(/didn’t take/);
+    expect(page).toContain(`<p class="muted" id="check-yourself">${CHECK_YOURSELF}</p>`);
+    expect(page).toContain(`<li>What a lab’s sample was. ${LAB_SAMPLE}</li>`);
   });
 
   it('the check script names the contract version off mainnet when preprod’s pinned list knows it', () => {
