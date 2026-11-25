@@ -83,7 +83,9 @@ import {
 } from '../../veilcore/bulk-import';
 import { useKeyStampQueue } from './useKeyStampQueue';
 import {
+  canRemember,
   forgetLayout,
+  layoutLabel,
   loadLayouts,
   matchLayout,
   rememberLayout,
@@ -171,8 +173,18 @@ const screenFor = (job: Job | undefined): Screen =>
 
 export const BulkImportPage: React.FC = () => {
   const { t } = useT();
-  const [job, setJobState] = useState<Job | undefined>(loadJob);
-  const [screen, setScreen] = useState<Screen>(() => screenFor(job));
+  // A finished import (sealed and backed up, its results file offered) isn't opened again: the
+  // page opens on the file screen, ready for today's file. Its rows are cleared from this
+  // browser as the page opens (below); for this visit only, its results file can still be
+  // downloaded from the file screen (lastJob).
+  const [stored] = useState<Job | undefined>(loadJob);
+  const finished = stored?.phase === 'backed-up' ? stored : undefined;
+  const [job, setJobState] = useState<Job | undefined>(finished ? undefined : stored);
+  const [lastJob, setLastJob] = useState<Job | undefined>(finished);
+  const [screen, setScreen] = useState<Screen>(() => screenFor(finished ? undefined : stored));
+  useEffect(() => {
+    if (finished) clearJob();
+  }, []);
   const [sheet, setSheet] = useState<Sheet>();
   const [fileName, setFileName] = useState('');
   const [mapping, setMapping] = useState<Mapping>();
@@ -228,12 +240,14 @@ export const BulkImportPage: React.FC = () => {
           <PickFile
             step={step}
             layouts={layouts}
+            lastJob={lastJob}
             onForget={(id) => {
               forgetLayout(id);
               setLayouts(loadLayouts());
             }}
             onRead={(s, name) => {
               setFileName(name);
+              setLastJob(undefined);
               setRemember(true);
               const found = matchLayout(s, layouts);
               if (found) {
@@ -256,6 +270,9 @@ export const BulkImportPage: React.FC = () => {
             step={step}
             sheet={sheet}
             onPick={(line) => {
+              // Another header row: other column names, so no longer the remembered layout.
+              setLayout(undefined);
+              setRemember(true);
               const s = withHeaderRow(sheet, line);
               setSheet(s);
               setMapping(guessFor(s.headers, !!mapping?.animal));
@@ -297,8 +314,8 @@ export const BulkImportPage: React.FC = () => {
             onBack={() => setScreen('columns')}
             onHeaderRow={() => setScreen('header')}
             onSeal={(rows) => {
-              if (remember) {
-                rememberLayout(sheet, mapping, fileName);
+              if (remember && canRemember(sheet.headers)) {
+                rememberLayout(sheet, mapping);
                 setLayouts(loadLayouts());
               }
               setJob({
@@ -387,9 +404,11 @@ export const BulkImportPage: React.FC = () => {
 const PickFile: React.FC<{
   step?: string;
   layouts: readonly SavedLayout[];
+  /** The import finished before this visit: its rows are no longer kept, its results file once more. */
+  lastJob?: Job;
   onForget: (id: string) => void;
   onRead: (s: Sheet, name: string) => void;
-}> = ({ step, layouts, onForget, onRead }) => {
+}> = ({ step, layouts, lastJob, onForget, onRead }) => {
   const tr = useT();
   const { t } = tr;
   const pick = useRef<HTMLInputElement>(null);
@@ -434,6 +453,7 @@ const PickFile: React.FC<{
           {error}
         </Alert>
       )}
+      {lastJob && <LastImport job={lastJob} />}
       <Button
         variant="contained"
         size="large"
@@ -471,16 +491,16 @@ const PickFile: React.FC<{
           </Typography>
           <Box component="ul" sx={{ m: 0, pl: 2.5 }}>
             {layouts.map((l) => (
-              <li key={l.id} data-saved-layout={l.name}>
+              <li key={l.id} data-saved-layout={layoutLabel(l.columns)}>
                 <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
                   <Typography variant="body2" sx={{ wordBreak: 'break-word', minWidth: 0 }}>
-                    {l.name}
+                    {layoutLabel(l.columns)}
                   </Typography>
                   <Button
                     variant="text"
                     size="small"
                     onClick={() => onForget(l.id)}
-                    aria-label={t('app.import.saved.forgetName', { name: l.name })}
+                    aria-label={t('app.import.saved.forgetName', { name: layoutLabel(l.columns) })}
                     sx={{ minHeight: 44 }}
                   >
                     {t('app.import.saved.forgetOne')}
@@ -498,6 +518,29 @@ const PickFile: React.FC<{
       )}
       <EarlierKeyStamps />
     </Stack>
+  );
+};
+
+/**
+ * The import finished before this visit: how many records it sealed, and its results file, which
+ * is made from the rows held in memory for this visit only (they are no longer kept in storage).
+ */
+const LastImport: React.FC<{ job: Job }> = ({ job }) => {
+  const { t, tp } = useT();
+  return (
+    <Box data-last-import="" sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2, p: 1.5 }}>
+      <Typography variant="body2">{tp('app.import.last.sealed', jobSummary(job).sealed)}</Typography>
+      <Typography variant="body2" color="text.secondary">
+        {t('app.import.last.once')}
+      </Typography>
+      <Button
+        variant="text"
+        onClick={() => downloadText(resultsCsv(job, CANONICAL_ORIGIN, hasDnaReport), resultsFileName(job.fileName))}
+        sx={{ minHeight: 44, px: 0 }}
+      >
+        {t('app.import.last.download')}
+      </Button>
+    </Box>
   );
 };
 
@@ -909,14 +952,16 @@ const Check: React.FC<{
         <Alert
           severity="success"
           variant="outlined"
-          data-saved-layout-used={layout.name}
+          data-saved-layout-used={layoutLabel(layout.columns)}
           action={
             <Button color="inherit" onClick={onForget} sx={{ minHeight: 44 }}>
               {t('app.import.saved.forget')}
             </Button>
           }
         >
-          {t('app.import.saved.same', { name: layout.name })}
+          {t('app.import.saved.same')}
+          {mapping.dateOrder !== 'auto' &&
+            `${t('app.common.sentenceSep')}${t(mapping.dateOrder === 'mdy' ? 'app.import.saved.datesMdy' : 'app.import.saved.datesDmy')}`}
         </Alert>
       )}
       {checked.blocked && (
@@ -984,7 +1029,7 @@ const Check: React.FC<{
       <Typography variant="body2" color="text.secondary">
         {t('app.import.check.savedOn', { server: t('app.copy.ourServer'), dated: t('app.copy.datedOn') })}
       </Typography>
-      {!layout && (
+      {!layout && canRemember(sheet.headers) && (
         <Box>
           <FormControlLabel
             control={
@@ -994,6 +1039,9 @@ const Check: React.FC<{
           />
           <Typography variant="caption" color="text.secondary" component="p" sx={{ pl: 4 }}>
             {t('app.import.saved.rememberHelp')}
+          </Typography>
+          <Typography variant="caption" color="text.secondary" component="p" sx={{ pl: 4 }} data-remember-keeps="">
+            {t('app.import.saved.keeps', { names: layoutLabel(sheet.headers, 8) })}
           </Typography>
         </Box>
       )}

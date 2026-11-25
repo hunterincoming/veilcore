@@ -14,8 +14,12 @@
 //
 // Kept in this browser's local storage only, never sent anywhere, and never part of a record.
 // What is kept: the column names, the row they are on, which column fills which field, and the
-// "bred by" and animal ID scheme and species typed on that screen. Each layout can be forgotten
-// on the import page, or all of them with the site's data.
+// "bred by" and animal ID scheme and species typed on that screen. Nothing from the rows and
+// nothing from the file's name: a layout is shown by its column names. A file whose "column
+// names" look like a row of data (a date, a number, a code like V-001, or nothing a column is
+// usually called) is never remembered (canRemember): those would be record content, and would
+// never match the next file anyway. Each layout can be forgotten on the import page, or all of
+// them with the site's data.
 // SPDX-License-Identifier: Apache-2.0
 
 import {
@@ -24,6 +28,8 @@ import {
   PASSPORT_FIELDS,
   emptyAnimalMapping,
   emptyMapping,
+  guessAnimalMapping,
+  guessMapping,
   withHeaderRow,
   type AnimalFieldKey,
   type DateOrder,
@@ -54,8 +60,8 @@ export type SavedLayout = {
   readonly version: 1;
   /** The file's column names, as one value (signatureOf): what a new file is matched by. */
   readonly id: string;
-  /** What the person sees it called: the file's name without its date or number. */
-  readonly name: string;
+  /** The column names as written (trimmed): what the person sees it called. */
+  readonly columns: readonly string[];
   /** The row the column names were on. */
   readonly headerLine: number;
   readonly mapping: StoredMapping;
@@ -79,17 +85,37 @@ export const headerKeys = (headers: readonly string[]): string[] => {
 /** The set of column names, in any order: two files with the same columns have the same signature. */
 export const signatureOf = (headers: readonly string[]): string => [...headerKeys(headers)].sort().join('\u001f');
 
-/** "TC export 2026-11-25.csv" → "TC export": what a day's file is called without its day. */
-export const layoutName = (fileName: string): string => {
-  const base = fileName.replace(/\.[a-z0-9]{1,5}$/i, '');
-  const plain = base
-    .replace(/\d{4}[-_.]?\d{1,2}[-_.]?\d{1,2}/g, ' ')
-    .replace(/\d{1,2}[-_.]\d{1,2}[-_.]\d{2,4}/g, ' ')
-    .replace(/\(\d+\)/g, ' ')
-    .replace(/\d+/g, ' ')
-    .replace(/[\s_.-]+/g, ' ')
-    .trim();
-  return (plain || base || fileName).slice(0, 60);
+/** toSheet's name for a column with no name in the header row ("Column C"). */
+const UNNAMED = /^Column [A-Z]{1,3}$/;
+
+/** A header cell that reads like a value from a row: a date, a number, or a code like V-001. */
+export const looksLikeData = (cell: string): boolean => {
+  const v = cell.trim();
+  return (
+    v.length > 60 ||
+    /\d{1,4}[-/.]\d{1,2}[-/.]\d{1,4}/.test(v) ||
+    /^[-+]?[\d\s.,:%/]*\d[\d\s.,:%/]*$/.test(v) ||
+    /^[A-Za-z]{0,4}[-_ #]?\d{2,}[A-Za-z]?$/.test(v)
+  );
+};
+
+/**
+ * Whether these column names may be remembered: none of them reads like a value from a row, and
+ * at least one is something a column is usually called (the same guesses that fill in the columns
+ * on a first file). A file with no header row gives neither, and is not remembered.
+ */
+export const canRemember = (headers: readonly string[]): boolean => {
+  const named = headers.filter((h) => !UNNAMED.test(h.trim()));
+  if (named.length === 0 || named.some(looksLikeData)) return false;
+  const plant = Object.values(guessMapping([...headers]).columns).some((c) => c !== null);
+  const animal = Object.values(guessAnimalMapping([...headers]).columns).some((c) => c !== null);
+  return plant || animal;
+};
+
+/** How a layout is shown: its first column names. */
+export const layoutLabel = (columns: readonly string[], max = 4): string => {
+  const named = columns.filter((c) => c && !UNNAMED.test(c));
+  return named.slice(0, max).join(' · ') + (named.length > max ? ' …' : '');
 };
 
 const toStored = (headers: readonly string[], m: Mapping): StoredMapping => {
@@ -142,7 +168,8 @@ const valid = (v: unknown): v is SavedLayout => {
   return (
     l.version === 1 &&
     typeof l.id === 'string' &&
-    typeof l.name === 'string' &&
+    Array.isArray(l.columns) &&
+    l.columns.every((c) => typeof c === 'string') &&
     typeof l.headerLine === 'number' &&
     typeof l.savedAt === 'number' &&
     typeof l.usedAt === 'number' &&
@@ -155,7 +182,21 @@ const valid = (v: unknown): v is SavedLayout => {
 export const loadLayouts = (): SavedLayout[] => {
   try {
     const v = JSON.parse(localStorage.getItem(LAYOUTS_KEY) ?? '[]') as unknown;
-    return Array.isArray(v) ? v.filter(valid).sort((a, b) => b.usedAt - a.usedAt) : [];
+    // Only what a layout is made of: an older entry's other fields (a name from the file) are dropped.
+    return Array.isArray(v)
+      ? v
+          .filter(valid)
+          .map(({ version, id, columns, headerLine, mapping, savedAt, usedAt }) => ({
+            version,
+            id,
+            columns,
+            headerLine,
+            mapping,
+            savedAt,
+            usedAt,
+          }))
+          .sort((a, b) => b.usedAt - a.usedAt)
+      : [];
   } catch {
     return [];
   }
@@ -173,22 +214,22 @@ const store = (layouts: SavedLayout[]): boolean => {
 
 /**
  * Remember this file's layout in this browser. A file with the same columns replaces the one kept
- * before (keeping its name). False when this browser won't keep it.
+ * before. False when its column names can't be remembered (canRemember), or this browser won't
+ * keep it.
  */
 export const rememberLayout = (
   sheet: Pick<Sheet, 'headers' | 'headerLine'>,
   mapping: Mapping,
-  fileName: string,
   now = Date.now(),
 ): boolean => {
-  if (sheet.headers.length === 0) return false;
+  if (!canRemember(sheet.headers)) return false;
   const id = signatureOf(sheet.headers);
   const all = loadLayouts();
   const before = all.find((l) => l.id === id);
   const layout: SavedLayout = {
     version: 1,
     id,
-    name: before?.name ?? layoutName(fileName),
+    columns: sheet.headers.map((h) => h.replace(/\s+/g, ' ').trim()),
     headerLine: sheet.headerLine,
     mapping: toStored(sheet.headers, mapping),
     savedAt: before?.savedAt ?? now,

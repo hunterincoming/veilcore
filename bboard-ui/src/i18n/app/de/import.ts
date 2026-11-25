@@ -174,7 +174,6 @@ export const importing = {
     'Ein Datumsstempel zeigt, dass die Angaben spätestens zu diesem Datum existierten. Er bestätigt nicht, dass sie stimmen.',
   'app.import.done.toRecords': 'Zu Ihren Datensätzen',
   'app.import.done.another': 'Eine weitere Datei importieren',
-  'app.import.saved.same': 'Dieselben Spalten wie beim letzten Mal ({name}), schon für Sie ausgefüllt.',
   'app.import.saved.forget': 'Diese Spalten vergessen',
   'app.import.saved.remember': 'Diese Spalten auf diesem Gerät für das nächste Mal merken',
   'app.import.saved.rememberHelp':
@@ -182,4 +181,14 @@ export const importing = {
   'app.import.saved.list': 'Auf diesem Gerät gemerkte Spalten',
   'app.import.saved.forgetOne': 'Vergessen',
   'app.import.saved.forgetName': 'Die Spalten für {name} vergessen',
+  'app.import.saved.same': 'Dieselben Spalten wie beim letzten Mal, schon für Sie ausgefüllt.',
+  'app.import.saved.datesMdy': 'Daten werden wie beim letzten Mal als Monat/Tag/Jahr gelesen.',
+  'app.import.saved.datesDmy': 'Daten werden wie beim letzten Mal als Tag/Monat/Jahr gelesen.',
+  'app.import.saved.keeps':
+    'Gespeichert werden: die Spaltennamen ({names}) und welche Spalte was ist. Nichts aus den Zeilen oder dem Dateinamen.',
+  'app.import.last.sealed.one': 'Ihr letzter Import hat {count} Datensatz versiegelt.',
+  'app.import.last.sealed.other': 'Ihr letzter Import hat {count} Datensätze versiegelt.',
+  'app.import.last.once':
+    'Seine Zeilen werden in diesem Browser nicht mehr gespeichert. Laden Sie die Ergebnisdatei jetzt herunter, wenn Sie sie noch brauchen.',
+  'app.import.last.download': 'Seine Ergebnisdatei herunterladen (CSV)',
 } satisfies Partial<AppTranslation>;

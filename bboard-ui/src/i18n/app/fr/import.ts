@@ -173,7 +173,6 @@ export const importing = {
     'Un horodatage montre que les informations existaient déjà à cette date. Il ne confirme pas qu’elles sont exactes.',
   'app.import.done.toRecords': 'Aller à vos enregistrements',
   'app.import.done.another': 'Importer un autre fichier',
-  'app.import.saved.same': 'Les mêmes colonnes que la dernière fois ({name}), déjà remplies pour vous.',
   'app.import.saved.forget': 'Oublier ces colonnes',
   'app.import.saved.remember': 'Retenir ces colonnes sur cet appareil pour la prochaine fois',
   'app.import.saved.rememberHelp':
@@ -181,4 +180,14 @@ export const importing = {
   'app.import.saved.list': 'Colonnes retenues sur cet appareil',
   'app.import.saved.forgetOne': 'Oublier',
   'app.import.saved.forgetName': 'Oublier les colonnes de {name}',
+  'app.import.saved.same': 'Les mêmes colonnes que la dernière fois, déjà remplies pour vous.',
+  'app.import.saved.datesMdy': 'Les dates sont lues en mois/jour/année, comme la dernière fois.',
+  'app.import.saved.datesDmy': 'Les dates sont lues en jour/mois/année, comme la dernière fois.',
+  'app.import.saved.keeps':
+    'Ce qui est gardé : les noms des colonnes ({names}) et laquelle est laquelle. Rien des lignes ni du nom du fichier.',
+  'app.import.last.sealed.one': 'Votre dernière importation a scellé {count} enregistrement.',
+  'app.import.last.sealed.other': 'Votre dernière importation a scellé {count} enregistrements.',
+  'app.import.last.once':
+    'Ses lignes ne sont plus gardées dans ce navigateur. Téléchargez son fichier de résultats maintenant si vous en avez encore besoin.',
+  'app.import.last.download': 'Télécharger son fichier de résultats (CSV)',
 } satisfies Partial<AppTranslation>;

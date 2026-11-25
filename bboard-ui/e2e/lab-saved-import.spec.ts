@@ -2,8 +2,11 @@
 // with the stand-in registry (veilcore/import-layouts.ts, lab-import/BulkImportPage.tsx).
 //   - the way in: the lab's home and the For labs page both lead to the import;
 //   - day 1: the columns are picked by hand, "remember these columns" is on, and the rows seal;
-//   - day 2: the next file with the same columns opens straight on the check screen, filled in,
-//     with the row count and one button, and seals;
+//   - day 2: the page opens on the file screen (yesterday's finished import is cleared, its results
+//     file offered once more); the next file with the same columns opens straight on the check
+//     screen, filled in, with the row count and one button, and seals;
+//   - another header row drops "same columns as last time", and a file with no header row is
+//     never offered Remember;
 //   - the layout is kept in this browser only: nothing about it goes to the registry, and it can
 //     be forgotten, after which the next file asks for its columns again.
 // NEW_SHOTS saves screenshots at 360 px.
@@ -18,6 +21,7 @@ import {
   json,
   newVaultKey,
   plainRowRefusal,
+  saveAndCheckBackup,
   watch,
 } from './helpers';
 
@@ -76,6 +80,16 @@ const choose = async (page: Page, label: string | RegExp, option: string) => {
 };
 
 const HEADER = 'Vessel,Clone,Stage,Initiated,Tech';
+/** How the first screen shows the remembered layout: its first column names. */
+const LABEL = 'Vessel · Clone · Stage · Initiated …';
+
+/** After sealing: the summary, the backup (saved and opened again), then the finished screen. */
+const finish = async (page: Page) => {
+  await page.getByRole('button', { name: 'Next: save your backup' }).click();
+  await saveAndCheckBackup(page);
+  await page.getByRole('button', { name: 'Next', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Download the results (CSV)' })).toBeVisible();
+};
 
 test('a lab seals its daily sheet: columns picked once, then one button the next day', async ({ page }) => {
   test.setTimeout(240_000);
@@ -108,51 +122,91 @@ test('a lab seals its daily sheet: columns picked once, then one button the next
   await expect(page.locator('[data-screen-heading]')).toContainText('Is this right?');
   const remember = page.getByRole('checkbox', { name: 'Remember these columns on this device for next time' });
   await expect(remember).toBeChecked();
+  // What will be kept is said under the box: the column names, nothing from the rows.
+  await expect(page.locator('[data-remember-keeps]')).toContainText('Vessel · Clone · Stage · Initiated · Tech');
   await expect(page.locator('[data-saved-layout-used]')).toHaveCount(0);
   await shot(page, 'lab-sheet-1-day1-check');
   await page.getByRole('button', { name: 'Seal 2 records' }).click();
-  await expect(page.locator('[data-screen-heading]')).not.toContainText('Is this right?', { timeout: 60_000 });
   await expect.poll(() => held.records.length, { timeout: 60_000 }).toBe(2);
+  await finish(page);
 
-  // Kept in this browser: the column names and which is which, and no cell of the file.
+  // Kept in this browser: the column names and which is which; no cell of the file, not its name.
   const kept = await page.evaluate((k) => localStorage.getItem(k), LAYOUTS_KEY);
-  expect(kept).toContain('"name":"TC export"');
   expect(kept).toContain('"strainName":"clone"');
-  expect(kept).not.toContain('Lab Clone A');
-  // And nothing of the layout is sent: the registry never sees the column names.
-  for (const b of held.bodies) expect(b).not.toContain('import-layouts');
+  expect(kept).not.toMatch(/Lab Clone A|V-001|TC_export|2026/);
+  // And nothing of the layout is sent: the registry never sees it.
+  for (const b of held.bodies) {
+    expect(b).not.toContain('import-layouts');
+    expect(b).not.toContain(kept!);
+  }
 
-  // ---- Day 2: yesterday's import was put away ("Import another file" clears it) ----
-  await page.evaluate((k) => localStorage.removeItem(k), JOB_KEY);
+  // ---- Day 2: the page opens on the file screen, not on yesterday's finished import ----
   await page.goto('/records/import?lang=en');
-  await expect(page.locator('[data-saved-layout="TC export"]')).toBeVisible();
-  await upload(page, 'TC_export_2026-11-25.csv', [
+  await expect(page.locator('[data-screen-heading]')).toContainText('Date your whole collection');
+  // Yesterday's rows are no longer kept; its results file can be downloaded once more on this visit.
+  await expect(page.locator('[data-last-import]')).toContainText('Your last import sealed 2 records.');
+  await expect.poll(() => page.evaluate((k) => localStorage.getItem(k), JOB_KEY)).toBeNull();
+  const results = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Download its results file (CSV)' }).click();
+  expect((await results).suggestedFilename()).toMatch(/\.csv$/);
+  await expect(page.locator(`[data-saved-layout="${LABEL}"]`)).toBeVisible();
+  const day2 = [
     HEADER,
     'V-003,Lab Clone C (test data),Multiply,2026-11-25,JS',
     'V-004,Lab Clone D (test data),Multiply,2026-11-25,JS',
     'V-005,Lab Clone E (test data),Root,2026-11-25,JS',
-  ]);
+  ];
+  await upload(page, 'TC_export_2026-11-25.csv', day2);
   // Straight to the check screen: filled in, the row count, and one button.
   await expect(page.locator('[data-screen-heading]')).toContainText('Is this right?');
-  await expect(page.locator('[data-saved-layout-used="TC export"]')).toContainText(
-    'Same columns as last time (TC export), filled in for you.',
-  );
+  await expect(page.locator('[data-saved-layout-used]')).toContainText('Same columns as last time, filled in for you.');
   await expect(page.getByText(/^3 rows? ready/)).toBeVisible();
   await expect(page.locator('[data-preview-row="2"]')).toContainText('Lab Clone C (test data)');
   await expect(page.locator('[data-preview-row="2"]')).toContainText('V-003');
   await expect(page.locator('[data-preview-row="2"]')).toContainText('Practice lab (test data)');
   await expect(page.locator('main .MuiButton-contained')).toHaveCount(1);
+  await expect(remember).toHaveCount(0);
   await shot(page, 'lab-sheet-2-day2-check');
+
+  // Another header row drops "same columns as last time": Remember is offered again.
+  await page.getByRole('button', { name: 'Change the columns' }).click();
+  await page.getByRole('button', { name: 'Change the column names row' }).click();
+  await page.getByRole('combobox', { name: 'The column names are in' }).click();
+  await page.getByRole('option', { name: /^Row 2:/ }).click();
+  await page.getByRole('combobox', { name: 'The column names are in' }).click();
+  await page.getByRole('option', { name: /^Row 1:/ }).click();
+  await page.getByRole('button', { name: 'Next: which column is which' }).click();
+  await page.getByRole('button', { name: 'Next: check the rows' }).click();
+  await expect(page.locator('[data-screen-heading]')).toContainText('Is this right?');
+  await expect(page.locator('[data-saved-layout-used]')).toHaveCount(0);
+  await expect(remember).toBeVisible();
+
+  // The same file again: the remembered columns, and one button.
+  await page.goto('/records/import?lang=en');
+  await upload(page, 'TC_export_2026-11-25.csv', day2);
+  await expect(page.locator('[data-saved-layout-used]')).toBeVisible();
   await page.getByRole('button', { name: 'Seal 3 records' }).click();
   await expect.poll(() => held.records.length, { timeout: 60_000 }).toBe(5);
+  await finish(page);
+
+  // ---- A file with no header row: its first row is data, so it is never remembered ----
+  await page.goto('/records/import?lang=en');
+  await upload(page, 'no-header.csv', [
+    'V-006,Lab Clone F (test data),Root,2026-11-26,JS',
+    'V-007,Lab Clone G (test data),Root,2026-11-26,JS',
+  ]);
+  await page.getByRole('button', { name: 'Next: which column is which' }).click();
+  await choose(page, /^Plant or line name/, 'Lab Clone F (test data)');
+  await page.getByRole('button', { name: 'Next: check the rows' }).click();
+  await expect(page.locator('[data-screen-heading]')).toContainText('Is this right?');
+  await expect(remember).toHaveCount(0);
 
   // ---- Forgetting: the next file asks for its columns again ----
-  await page.evaluate((k) => localStorage.removeItem(k), JOB_KEY);
   await page.goto('/records/import?lang=en');
-  await page.getByRole('button', { name: 'Forget the columns for TC export' }).click();
+  await page.getByRole('button', { name: `Forget the columns for ${LABEL}` }).click();
   await expect(page.locator('[data-saved-layouts]')).toHaveCount(0);
   expect(await page.evaluate((k) => localStorage.getItem(k), LAYOUTS_KEY)).toBeNull();
-  await upload(page, 'TC_export_2026-11-26.csv', [HEADER, 'V-006,Lab Clone F (test data),Root,2026-11-26,JS']);
+  await upload(page, 'TC_export_2026-11-26.csv', [HEADER, 'V-008,Lab Clone H (test data),Root,2026-11-26,JS']);
   await expect(page.getByRole('button', { name: 'Next: which column is which' })).toBeVisible();
 
   expectNoErrors(errors);
