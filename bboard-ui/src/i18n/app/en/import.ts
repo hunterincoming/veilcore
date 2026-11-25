@@ -190,4 +190,5 @@ export const importing = {
   'app.import.last.once':
     'It stays in this browser until you choose your next file. Download its results file if you need it.',
   'app.import.last.remove': 'Remove it',
+  'app.import.saved.notKept': 'This browser couldn’t keep the columns, so you’ll pick them again next time.',
 };

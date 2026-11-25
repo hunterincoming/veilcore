@@ -164,4 +164,5 @@ export const importing = {
   'app.import.last.once':
     '次のファイルを選ぶまで、このブラウザに残ります。結果ファイルが必要ならダウンロードしてください。',
   'app.import.last.remove': '削除する',
+  'app.import.saved.notKept': 'このブラウザは列の設定を保存できませんでした。次回もう一度選んでください。',
 } satisfies Partial<AppTranslation>;

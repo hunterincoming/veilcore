@@ -8,11 +8,11 @@
 > code is right and both texts change. Nothing here has been checked against the law of any
 > country: the questions for the lawyer are at the end.
 >
-> Last updated 20 November 2026, to describe veilcore.org once the open pull requests of that
-> week are deployed: site #142, #143, #145, #146, #147, #148, #149 and registry #10, #11, #12
+> Last updated 25 November 2026, to describe veilcore.org once the open pull requests are
+> deployed: site #142, #143, #145, #146, #147, #148, #149, #208, #211 and registry #10, #11, #12
 > (live sync and the recovery sheet; offline sealing and a timestamp per record; two Bitcoin
 > explorers and alerts; scanning and QR labels; parentage results; the Bitcoin header check and
-> the passkey check page). Before that, 15 October to 8 November 2026 (sealed records, locked
+> the passkey check page; what a spreadsheet import keeps in the browser). Before that, 15 October to 8 November 2026 (sealed records, locked
 > names, private lab signatures). The test site keeps its own short note (`m.privacy.*`).
 
 ## What the page leaves out, and why
@@ -71,11 +71,13 @@ hunter@veilcore.org.
 | The recovery sheet's code | Made on the device; never sent (slot id, token and key come from it by HKDF) and never stored | `docs/passkey-backup.md`, PR #143 |
 | The passkey check page | Tests in the browser; nothing sent | `docs/passkey-support.md`, PR #148 |
 | Ask | Shortcuts only, on the device; typing sends nothing; an approved "Do it for me" job saves, sends reports or dates what was approved; jobs are local, deleted 7 days after they end | `docs/ask-veilcore.md`, `ask-job/store.ts` |
+| A spreadsheet you import | Read in the browser, never uploaded; only the picked details of each row are saved, locked, as records. The last import's rows (every column, the file name, each row's outcome) stay in local storage `veilcore.bulk-import.job.v1` until the next file is chosen, "Import another file" or "Remove it" is pressed. Remembered columns (`veilcore.import-layouts.v1`: column names, which is which, the header row, the defaults set there: breeder, species, ID system and date order), for up to 20 sheets (`MAX_LAYOUTS`; the one used longest ago is dropped), stay until "Forget". Neither is sent | `veilcore/bulk-import.ts`, `veilcore/import-layouts.ts` |
 
 ### What your browser keeps
 
 Local storage, IndexedDB and Cache Storage on this device, no cookies: the holder key, the
-vault key, records and licences, record keys, lab codes, an unfinished record, settings and
+vault key, records and licences, record keys, lab codes, an unfinished record, the last
+spreadsheet import's rows and any remembered column layouts, settings and
 language, the offline copy of the site's code (`veilcore-shell-<release>`,
 `veilcore-offline-meta`), and, where Background Sync exists (Chrome), records waiting to be
 dated with the holder key (IndexedDB `veilcore-offline`, `src/offline/dating-mirror.ts`). With

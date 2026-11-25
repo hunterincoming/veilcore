@@ -24,6 +24,14 @@ import { policyFr } from '../../i18n/privacy-policy/fr';
 import { policyJa } from '../../i18n/privacy-policy/ja';
 import { brokenPromises } from '../../i18n/promise-rule';
 import { POLICY_KEYS, POLICY_UPDATED, policyDate } from './PrivacyPolicy';
+import { LAYOUTS_KEY, MAX_LAYOUTS } from '../../veilcore/import-layouts';
+import { JOB_KEY } from '../../veilcore/bulk-import';
+import { LEDGER_KEY } from '../../veilcore/bulk-import-ledger';
+import { importing as importEn } from '../../i18n/app/en/import';
+import { importing as importDe } from '../../i18n/app/de/import';
+import { importing as importEs } from '../../i18n/app/es/import';
+import { importing as importFr } from '../../i18n/app/fr/import';
+import { importing as importJa } from '../../i18n/app/ja/import';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const read = (rel: string) => fs.readFileSync(path.resolve(HERE, rel), 'utf8');
@@ -100,13 +108,49 @@ describe('the privacy policy in every language', () => {
 
   it('writes the date in the reader’s language', () => {
     expect(POLICY_UPDATED).toMatch(/^\d{4}-\d{2}-\d{2}$/);
-    expect(policyDate('en')).toBe('21 November 2026');
-    expect(policyDate('ja')).toBe('2026年11月21日');
-    expect(policyDate('de')).toBe('21. November 2026');
+    expect(policyDate('en')).toBe('25 November 2026');
+    expect(policyDate('ja')).toBe('2026年11月25日');
+    expect(policyDate('de')).toBe('25. November 2026');
   });
 });
 
 describe('what the English says', () => {
+  it('lists what a spreadsheet import keeps in the browser, and for how long, in every language', () => {
+    // The import's own keys (import-layouts.ts, bulk-import.ts, bulk-import-ledger.ts) by the
+    // names the code uses: the remembered columns, the last import's rows, and its ledger.
+    for (const key of [LAYOUTS_KEY, JOB_KEY, LEDGER_KEY]) {
+      expect(EN['m.pp.tech.storage'], key).toContain(key);
+      for (const [lang, dict] of Object.entries(TRANSLATIONS))
+        expect(dict['m.pp.tech.storage'], `${lang} ${key}`).toContain(key);
+    }
+    const row = EN['m.pp.device.import.p'];
+    expect(row).toMatch(/until you choose your next file or press “Remove it” or “Import another file”/);
+    // The cap the row states is the code's own.
+    expect(MAX_LAYOUTS).toBe(20);
+    expect(row).toMatch(/for up to 20 sheets \(the one used longest ago goes first\)/);
+    expect(row).toMatch(
+      /column is which, the row they are on and the defaults you set there \(breeder, species, ID system and date order\), until you press “Forget”/,
+    );
+    expect(row).toMatch(/Neither is sent to us\./);
+    expect(EN['m.pp.browser.p1']).toMatch(
+      /the rows of your last spreadsheet import and any columns you chose to remember/,
+    );
+    // The buttons it names are the import page's own, in each language.
+    const policies: Record<string, Record<string, string>> = { en: EN, ...TRANSLATIONS };
+    const pages: Record<string, Record<string, string>> = {
+      en: importEn,
+      de: importDe,
+      es: importEs,
+      fr: importFr,
+      ja: importJa,
+    };
+    for (const [lang, page] of Object.entries(pages))
+      for (const button of ['app.import.last.remove', 'app.import.done.another', 'app.import.saved.forgetOne']) {
+        expect(page[button], `${lang} ${button}`).toBeTruthy();
+        expect(policies[lang]['m.pp.device.import.p'], `${lang} ${button}`).toContain(page[button]);
+      }
+  });
+
   it('names every outside service a browser or our servers contact', () => {
     for (const name of [
       'Vercel',

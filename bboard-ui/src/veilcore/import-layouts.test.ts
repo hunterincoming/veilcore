@@ -23,7 +23,9 @@ import {
   loadLayouts,
   mappingFor,
   matchLayout,
+  rememberAfter,
   rememberLayout,
+  rememberOnSeal,
   signatureOf,
 } from './import-layouts';
 
@@ -271,6 +273,113 @@ describe('no header row: nothing is remembered', () => {
     ['96-well plate'],
   ])('%s reads like a column name', (v) => expect(looksLikeData(v)).toBe(false));
 
+  it.each([
+    // English
+    ['12 Mar 2024'],
+    ['12 March 2024'],
+    ['March 12, 2024'],
+    ['Mar 12 2024'],
+    ['Sept 3, 2025'],
+    ['12th March'],
+    ['12-Mar-24'],
+    ['Nov 24'],
+    ['Nov 2024'],
+    // German
+    ['12. März 2024'],
+    ['12. Mär. 2024'],
+    ['3. Okt. 2025'],
+    ['1. Mai'],
+    ['Dezember 2024'],
+    // Spanish
+    ['12 de marzo de 2024'],
+    ['12 mar 2024'],
+    ['3 de ago. de 2025'],
+    ['enero de 2024'],
+    // French
+    ['12 mars 2024'],
+    ['1er mars 2024'],
+    ['3 févr. 2025'],
+    ['15 août 2024'],
+    ['décembre 2024'],
+    // Japanese, in ordinary and full-width digits, and with an era year
+    ['2024年3月12日'],
+    ['２０２４年３月１２日'],
+    ['令和6年3月12日'],
+    ['3月12日'],
+    ['2024 年 3 月'],
+    ['2024年3月12日(火)'],
+    // Whole-cell dates with a weekday, an apostrophe year or an ordinal
+    ['Tue, 12 Mar 2024'],
+    ['Dienstag, 12. März 2024'],
+    ["Mar '24"],
+    ['Mar ’24'],
+    ['12th of March'],
+    ['May 1st'],
+    ['1º de marzo'],
+    ['1.º de marzo de 2024'],
+  ])('the written-out date %s reads like a value from a row', (v) => expect(looksLikeData(v)).toBe(true));
+
+  it.each([
+    // A month's name alone, or inside another word, is a column name: so is a year or month alone in Japanese.
+    ['March'],
+    ['Mai'],
+    ['Month'],
+    ['Marker 12'],
+    ['Novelty 3'],
+    ['Decision 2'],
+    ['Season 2'],
+    ['Set 4'],
+    ['生年月日'],
+    ['2024年'],
+    ['3月'],
+    ['導入年月日'],
+    ['令和6年'],
+    ['Born 2024'],
+    ['Gen 1'],
+    ['Dose 2'],
+    ['Rep 1'],
+    ['Julia 3'],
+    ['Q1 Mar'],
+    // A date inside a longer name (a monthly weight or growth column) is still a column name.
+    ['Weight Mar 2024'],
+    ['Wean Jul 2025'],
+    ['Seed lot Jun 2023'],
+    ['Born Mar 2024'],
+    ['Nov 2024 count'],
+    ['Feb 14 weight'],
+    ['Dec 25 count'],
+    ['Week 1 May'],
+    ['Sire 2 Mar'],
+    ['2024年3月 体重'],
+    // A month and one digit: a column name, not a day.
+    ['Sep 1'],
+    ['Dec 2'],
+    ['Apr 1'],
+    ['Mar1'],
+    ['Mar-1'],
+    ['Okt 1'],
+    ['Ago 1'],
+    ['Avril 2'],
+  ])('%s, not a whole date, reads like a column name', (v) => expect(looksLikeData(v)).toBe(false));
+
+  it('a first row with a written-out date (an animal sheet with no header row) is not remembered', () => {
+    // The gap the review of #208 found: no code, no numeric date, only a date written out.
+    for (const row of [
+      'Holstein,Bessie,F,12 Mar 2024',
+      'Holstein,Bessie,F,Nov 24',
+      'Fleckvieh,Berta,F,12. März 2024',
+      'Frisona,Lola,F,12 de marzo de 2024',
+      'Montbéliarde,Lune,F,1er mars 2024',
+      'ホルスタイン,花子,雌,2024年3月12日',
+    ]) {
+      const s = sheetOf(`${row}\n${row}\n`);
+      const m = picked(s.headers, { strainName: 1 });
+      expect(canRemember(s.headers, m), row).toBe(false);
+      expect(rememberLayout(s, m), row).toBe(false);
+    }
+    expect(local.has(LAYOUTS_KEY)).toBe(false);
+  });
+
   /** A mapping that fills the given fields from the given columns, as the person picked them. */
   const picked = (headers: string[], columns: Partial<Mapping['columns']>): Mapping => {
     const e = emptyMapping();
@@ -327,5 +436,58 @@ describe('no header row: nothing is remembered', () => {
     const s = sheetOf(DAY1);
     rememberLayout(s, { ...day1Mapping(s), dateOrder: 'dmy' });
     expect(matchLayout(sheetOf(DAY2))!.mapping.dateOrder).toBe('dmy');
+  });
+});
+
+describe('Remember after sealing', () => {
+  const mapped = (): Mapping => {
+    const e = emptyMapping();
+    return { ...e, columns: { ...e.columns, strainName: 0 } };
+  };
+
+  it('keeps the columns when Remember is on and the browser keeps them', () => {
+    const s = sheetOf('Name,Notes\nA,x\n');
+    expect(rememberOnSeal(s, mapped(), true)).toBe('kept');
+    expect(loadLayouts()).toHaveLength(1);
+  });
+
+  it('is not asked when Remember is off, or the names read like a row', () => {
+    const s = sheetOf('Name,Notes\nA,x\n');
+    expect(rememberOnSeal(s, mapped(), false)).toBe('not-asked');
+    const row = sheetOf('V-001,Gelato\nV-002,Gelato\n');
+    expect(rememberOnSeal(row, mapped(), true)).toBe('not-asked');
+    expect(local.has(LAYOUTS_KEY)).toBe(false);
+  });
+
+  it("says the columns weren't kept when this browser refuses to store them", () => {
+    const s = sheetOf('Name,Notes\nA,x\n');
+    vi.stubGlobal('localStorage', {
+      getItem: (k: string) => local.get(k) ?? null,
+      setItem: () => {
+        throw new DOMException('full', 'QuotaExceededError');
+      },
+      removeItem: (k: string) => void local.delete(k),
+    });
+    expect(rememberOnSeal(s, mapped(), true)).toBe('not-kept');
+    expect(local.has(LAYOUTS_KEY)).toBe(false);
+  });
+});
+
+describe('the Remember box', () => {
+  it('starts ticked for each new file', () => {
+    expect(rememberAfter(false, 'new-file')).toBe(true);
+    expect(rememberAfter(true, 'new-file')).toBe(true);
+  });
+
+  it('stays unticked after Forget when another header row is picked', () => {
+    let on = rememberAfter(true, 'forget');
+    expect(on).toBe(false);
+    on = rememberAfter(on, 'other-header-row');
+    expect(on).toBe(false);
+  });
+
+  it('keeps an untick, and a tick, through a header row change', () => {
+    expect(rememberAfter(rememberAfter(true, 'untick'), 'other-header-row')).toBe(false);
+    expect(rememberAfter(rememberAfter(false, 'tick'), 'other-header-row')).toBe(true);
   });
 });

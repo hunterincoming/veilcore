@@ -10,7 +10,7 @@ import { useI18n, type Lang } from '../../i18n';
 import type { StringKey } from '../../i18n/en';
 
 /** The day the policy last changed, as YYYY-MM-DD: change it with the words. */
-export const POLICY_UPDATED = '2026-11-21';
+export const POLICY_UPDATED = '2026-11-25';
 
 /** The rows of each table, in order: m.pp.<section>.<row>.<cell>. */
 export const DEVICE_ROWS = [
@@ -24,6 +24,7 @@ export const DEVICE_ROWS = [
   'sheet',
   'passkey',
   'ask',
+  'import',
 ] as const;
 export const SERVER_ROWS = [
   'records',
