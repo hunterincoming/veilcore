@@ -262,7 +262,7 @@ export const verify = {
   'app.verify.ex.intro':
     "This shows what a record's check page looks like, with a note under each line. Nothing on it was looked up or checked.",
   'app.verify.ex.status': 'Example · in a sealed batch · anchor reported',
-  'app.verify.ex.name': 'Harbour Mist (example)',
+  'app.verify.ex.name': 'Harbour Pippin (example)',
   'app.verify.ex.fact1':
     'This link was made for proof code 3f9a0c41e2b7…, and the registry reports the same proof code for this record.',
   'app.verify.ex.note1':

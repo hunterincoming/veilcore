@@ -110,7 +110,7 @@ const Steps: React.FC = () => {
           <dl className="k-rec">
             <div>
               <dt>{t('m.hero.cultivar')}</dt>
-              <dd>Harbour Mist</dd>
+              <dd>Harbour Pippin</dd>
             </div>
             <div>
               <dt>{t('m.hero.bredBy')}</dt>

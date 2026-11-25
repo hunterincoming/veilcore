@@ -152,7 +152,7 @@ export const prove = {
   'app.prove.share.savedText':
     'Wer diesen Link öffnet oder die ID dieses Datensatzes auf anderem Weg hat, sieht die Angaben in der Vorschau und nichts sonst; das Register sendet den Rest nicht, und durch Bearbeiten des Links kommt nichts hinzu. Die Genetik wird nie offengelegt. Diese Auswahl steuert, was die Prüfseite zeigt. Einen verborgenen Wert (einen Marker, einen Bereich oder dass sich zwei Sorten unterscheiden) zu beweisen, ohne den Rest zu zeigen, übernimmt der Beleg-Smart-Contract von VeilCore.',
   'app.prove.share.letThemAsk':
-    'Den Datumsstempel prüfen lassen und mich bitten lassen zu beweisen, dass ich sie halte',
+    'Den Datumsstempel prüfen lassen und mich bitten lassen zu beweisen, dass ich den Datensatz dazu halte',
   'app.prove.share.theLink': 'Der Link',
   'app.prove.share.openTheirs': 'Öffnen, was sie sehen',
   'app.prove.share.saving': 'Wird gespeichert…',

@@ -118,7 +118,7 @@ export const document = {
   'app.doc.check.inLink': 'In the link (the holder’s own words)',
   'app.doc.nums.title': 'The numbers on it (optional)',
   'app.doc.nums.help':
-    'Type them as printed. They’re sealed with the document so you can later prove one, like “total THC is at most 0.3 %”, without showing the others or the certificate.',
+    'Type them as printed. They’re sealed with the document so you can later prove one, like “germination is at least 85 %”, without showing the others or the certificate.',
   'app.doc.nums.which': 'Which numbers',
   'app.doc.nums.none': 'None',
   'app.doc.nums.bad': 'A number with at most {places} decimals, like 0.21.',
@@ -146,7 +146,7 @@ export const document = {
   'app.claim.text':
     'Prove a fact to anyone without showing the number behind it, the other numbers or the certificate: that a number you sealed is within a limit, or that a result is “not detected”. The proof goes on Midnight, where anyone can check it.',
   'app.claim.example':
-    'For example: show a buyer that total THC is at most 0.3%, or that a seed lot’s germination is at least 85%, without giving them the figure or the rest of the record. You pick the number and the limit. They get a link that checks it.',
+    'For example: show a buyer that a seed lot’s germination is at least 85%, or that a pathogen test came back “not detected”, without giving them the figure or the rest of the record. You pick the number and the limit. They get a link that checks it.',
   'app.claim.notReady': 'Proving isn’t switched on for this site yet.',
   'app.claim.number': 'Which number',
   'app.claim.how': 'What to prove',

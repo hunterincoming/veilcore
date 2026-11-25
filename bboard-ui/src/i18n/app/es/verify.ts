@@ -268,7 +268,7 @@ export const verify = {
   'app.verify.ex.intro':
     'Esto muestra cómo es la página de comprobación de un registro, con una nota bajo cada línea. Aquí no se consultó ni comprobó nada.',
   'app.verify.ex.status': 'Ejemplo · en un lote sellado · anclaje informado',
-  'app.verify.ex.name': 'Harbour Mist (ejemplo)',
+  'app.verify.ex.name': 'Harbour Pippin (ejemplo)',
   'app.verify.ex.fact1':
     'Este enlace se hizo para el código de prueba 3f9a0c41e2b7…, y el servidor de registros informa el mismo código de prueba para este registro.',
   'app.verify.ex.note1':

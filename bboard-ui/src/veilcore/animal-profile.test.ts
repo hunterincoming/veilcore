@@ -177,7 +177,7 @@ describe('sealing an animal', () => {
 
   it('a plant sealed today still seals the plant fields', async () => {
     const r = await sealRecord({
-      strainName: 'Harbour Mist',
+      strainName: 'Harbour Pippin',
       bredBy: 'Example Farm',
       dateCreated: '2026-10-14',
       notes: '',

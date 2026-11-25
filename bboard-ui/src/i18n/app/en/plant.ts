@@ -24,7 +24,7 @@ export const plant = {
   'app.plant.moreYouCanDo': 'More you can do',
   'app.plant.action.show': 'Show someone',
   'app.plant.action.showHint': 'Pick what they see',
-  'app.plant.action.askedToProve': 'Someone asked me to prove I hold it',
+  'app.plant.action.askedToProve': 'Someone asked me to prove I hold its record',
   'app.plant.action.certificate': 'Certificate',
   'app.plant.action.sendResults': 'Send results back to the breeder',
   'app.plant.action.sendResultsHint': 'Signed by you, locked for them',

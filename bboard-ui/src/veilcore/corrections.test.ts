@@ -10,7 +10,7 @@ import type { StrainRecord } from './records';
 const PLANT: StrainRecord = {
   id: 'VEIL-PLNT',
   nonce: 'n'.repeat(32),
-  strainName: 'Harbour Mist',
+  strainName: 'Harbour Pippin',
   bredBy: 'A. Breeder',
   dateCreated: '2026-01-02',
   notes: 'first notes',

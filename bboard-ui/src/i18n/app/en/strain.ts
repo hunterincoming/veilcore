@@ -5,7 +5,7 @@
 export const strain = {
   // The check page's fixed line (verify/DatedNotOrigin.tsx).
   'app.strain.v.app.origin.datedNotOriginLiving':
-    'The date shows the holder had this record by then, not who made it, where it’s from, or that it’s true. The strain may be much older.',
+    'The date shows the holder had this record by then, not who made it, where it’s from, or that it’s accurate. The strain may be much older.',
   'app.strain.v.app.verify.noParents': 'No parents recorded.',
   'app.strain.v.app.plant.fix.name': 'Strain name',
   'app.strain.v.app.plant.fix.bredBy': 'Made or isolated by',

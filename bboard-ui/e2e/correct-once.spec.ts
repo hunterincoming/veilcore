@@ -114,7 +114,7 @@ for (const lang of ['en', 'ja'] as const) {
     const errorsA = watch(A);
     await A.goto('/new?lang=en');
     await startPlant(A);
-    await A.getByLabel(/Plant or line name/).fill('Harbour Mist');
+    await A.getByLabel(/Plant or line name/).fill('Harbour Pippin');
     await A.getByLabel(/Bred by/).fill('E2E breeder');
     await A.getByRole('button', { name: /Next: check it/ }).click();
     await A.getByRole('button', { name: /Seal it/ }).click();
@@ -122,7 +122,7 @@ for (const lang of ['en', 'ja'] as const) {
     await A.getByRole('button', { name: /No report yet: skip/ }).click();
     await saveAndCheckBackup(A);
     await A.getByRole('button', { name: /Finish/ }).click();
-    await expect(A.getByRole('heading', { name: 'Harbour Mist' })).toBeVisible();
+    await expect(A.getByRole('heading', { name: 'Harbour Pippin' })).toBeVisible();
     await expect.poll(() => held.records.length, { timeout: 30_000 }).toBe(1);
     const id = held.records[0].id;
 
@@ -130,18 +130,18 @@ for (const lang of ['en', 'ja'] as const) {
     const B = await tab(ctx, held, vault, net);
     const errorsB = watch(B);
     await B.goto(`/record/${id}?lang=${lang}`);
-    await expect(B.getByRole('heading', { name: 'Harbour Mist' })).toBeVisible();
-    const formB = await fillFix(B, w, 'Harbour Mist B', 'typo (B)');
+    await expect(B.getByRole('heading', { name: 'Harbour Pippin' })).toBeVisible();
+    const formB = await fillFix(B, w, 'Harbour Pippin B', 'typo (B)');
 
     await A.goto(`/record/${id}?lang=en`);
-    const formA = await fillFix(A, WORDS.en, 'Harbour Mist A', 'typo (A)');
+    const formA = await fillFix(A, WORDS.en, 'Harbour Pippin A', 'typo (A)');
 
     // Tab A issues its correction.
     await formA.getByRole('button', { name: WORDS.en.issue }).click();
     await expect.poll(() => held.records.length, { timeout: 30_000 }).toBe(2);
     await expect(A).not.toHaveURL(new RegExp(`/record/${id}$`));
     const fromA = openRecordRows(held.records, vault).find((r) => r.id !== id)!;
-    expect(fromA.strainName).toBe('Harbour Mist A');
+    expect(fromA.strainName).toBe('Harbour Pippin A');
 
     // Tab B, still showing the form it filled before, tries: refused inside the form.
     await formB.getByRole('button', { name: w.issue }).click();
@@ -160,14 +160,14 @@ for (const lang of ['en', 'ja'] as const) {
     const rows = openRecordRows(held.records, vault);
     expect(rows).toHaveLength(2);
     const corrections = rows.filter((r) => (r.supersedes as { recordId?: string } | undefined)?.recordId === id);
-    expect(corrections.map((r) => r.strainName)).toEqual(['Harbour Mist A']);
+    expect(corrections.map((r) => r.strainName)).toEqual(['Harbour Pippin A']);
     expect(rows.find((r) => r.id === id)!.supersededBy).toBe(fromA.id);
-    expect(rows.some((r) => r.strainName === 'Harbour Mist B')).toBe(false);
+    expect(rows.some((r) => r.strainName === 'Harbour Pippin B')).toBe(false);
 
     // The way on: the latest version, A's correction.
     await refusal.getByRole('button', { name: w.openLatest }).click();
     await expect(B).toHaveURL(new RegExp(`/record/${fromA.id}`));
-    await expect(B.getByRole('heading', { name: 'Harbour Mist A' })).toBeVisible();
+    await expect(B.getByRole('heading', { name: 'Harbour Pippin A' })).toBeVisible();
 
     // The corrected record's own page offers its latest version, not "Fix a mistake".
     await B.goto(`/record/${id}?lang=${lang}`);
@@ -182,7 +182,7 @@ for (const lang of ['en', 'ja'] as const) {
     // Offline, the latest version can't be corrected: VeilCore can't be asked whether another
     // tab or device corrected it first. Said in the form; nothing is made, kept or sent.
     net.down = true;
-    const formOffline = await fillFix(B, w, 'Harbour Mist C', 'typo (offline)');
+    const formOffline = await fillFix(B, w, 'Harbour Pippin C', 'typo (offline)');
     await formOffline.getByRole('button', { name: w.issue }).click();
     const offline = formOffline.getByRole('alert');
     await expect(offline).toContainText(w.offline);
@@ -191,7 +191,7 @@ for (const lang of ['en', 'ja'] as const) {
     if (dir) await B.screenshot({ path: `${dir}/correct-once-offline-${lang}-360.png` });
     await expect(B).toHaveURL(new RegExp(`/record/${fromA.id}`));
     expect(held.records).toHaveLength(2);
-    expect(await B.evaluate(() => localStorage.getItem('veilcore.outbox.v1') ?? '')).not.toContain('Harbour Mist C');
+    expect(await B.evaluate(() => localStorage.getItem('veilcore.outbox.v1') ?? '')).not.toContain('Harbour Pippin C');
     net.down = false;
 
     expectNoErrors(errorsA);

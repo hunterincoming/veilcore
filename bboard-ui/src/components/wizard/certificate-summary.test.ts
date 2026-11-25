@@ -31,7 +31,7 @@ const TERMS: LicenseTerms = {
 const RECORD = {
   id: 'VEIL-SUMMARY1',
   nonce: '1'.repeat(64),
-  strainName: 'Harbour Mist',
+  strainName: 'Harbour Pippin',
   bredBy: 'A breeder',
   dateCreated: '2026-01-01',
   notes: '',
@@ -107,7 +107,7 @@ describe('the certificate summary file', () => {
       expect(text).not.toContain(s);
     }
     // What anyone needs to recompute the proof code stays.
-    expect(out.record).toMatchObject({ nonce: RECORD.nonce, strainName: 'Harbour Mist' });
+    expect(out.record).toMatchObject({ nonce: RECORD.nonce, strainName: 'Harbour Pippin' });
   });
 });
 

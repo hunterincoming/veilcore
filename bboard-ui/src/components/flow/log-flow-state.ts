@@ -234,9 +234,9 @@ export const nextStageDraft = (
 });
 
 /**
- * The name box's placeholder for a next stage: "e.g. Harbour Mist F3" when the parent's
+ * The name box's placeholder for a next stage: "e.g. Harbour Pippin F3" when the parent's
  * generation is known (its sealed "Stage: F2", or a name ending in F2), else
- * "e.g. Harbour Mist, next selection".
+ * "e.g. Harbour Pippin, next selection".
  */
 export const nextStageNamePlaceholder = (
   parent: Pick<StrainRecord, 'strainName' | 'notes'>,

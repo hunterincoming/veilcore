@@ -144,7 +144,7 @@ export const prove = {
   'app.prove.share.savedOn': 'レジストリに保存しました',
   'app.prove.share.savedText':
     'このリンクを開く人や、ほかの方法でこの記録のIDを持つ人に見えるのは、プレビューの事実だけです。レジストリはそれ以外を送らず、リンクを編集しても増やせません。遺伝情報は決して開示されません。この選択で決まるのは確認ページに表示される内容です。隠れた値（マーカー、範囲、2つの品種が異なること）を1つだけ、ほかを見せずに証明するのは、VeilCoreのクレーム用コントラクトの役割です。',
-  'app.prove.share.letThemAsk': '日付スタンプの確認と、保有していることの証明の依頼を許可する',
+  'app.prove.share.letThemAsk': '日付スタンプの確認と、その記録を保有していることの証明の依頼を許可する',
   'app.prove.share.theLink': 'リンク',
   'app.prove.share.openTheirs': '相手に見えるものを開く',
   'app.prove.share.saving': '保存しています…',

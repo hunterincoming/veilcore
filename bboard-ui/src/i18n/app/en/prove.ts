@@ -124,7 +124,7 @@ export const prove = {
     'This plant’s key was date stamped on the network earlier. That dates the key, not the record.',
   'app.prove.watch.stampedThatEarlier':
     'That key was date stamped on the network earlier. That dates the key, not the record.',
-  // chain/ProveOwnershipPanel.tsx: "Someone asked me to prove I hold it" on the plant page.
+  // chain/ProveOwnershipPanel.tsx: "Someone asked me to prove I hold its record" on the plant page.
   'app.prove.own.title': 'Prove you hold this plant’s key (test network)',
   'app.prove.own.stampFirst':
     'Add the key date stamp first: press “Add the key date stamp” on the plant’s page. The proof is about the record’s on-chain identity, which that step creates.',
@@ -149,7 +149,7 @@ export const prove = {
   'app.prove.share.savedOn': 'Saved on the registry',
   'app.prove.share.savedText':
     "Anyone who opens this link, or has this record's id any other way, sees the facts in the preview and nothing else; the registry does not send the rest, and editing the link cannot add to it. The genetics are never disclosed. This choice controls what the verify page shows. Proving one hidden value (a marker, a range, or that two varieties differ) without showing the rest is done by VeilCore's claims contract.",
-  'app.prove.share.letThemAsk': 'Let them check the date stamp and ask me to prove I hold it',
+  'app.prove.share.letThemAsk': 'Let them check the date stamp and ask me to prove I hold its record',
   'app.prove.share.theLink': 'The link',
   'app.prove.share.openTheirs': "Open what they'll see",
   'app.prove.share.saving': 'Saving…',

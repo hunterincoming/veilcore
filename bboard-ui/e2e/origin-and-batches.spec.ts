@@ -70,7 +70,7 @@ const DATED_NOT_ORIGIN =
  * document's numbers have no age). Shorter, so the check page has no more words than before.
  */
 const DATED_NOT_ORIGIN_LIVING =
-  'The date shows the holder had this record by then, not who bred it, where it’s from, or that it’s true. The plant or animal may be much older.';
+  'The date shows the holder had this record by then, not who bred it, where it’s from, or that it’s accurate. The plant or animal may be much older.';
 
 test('a landrace with no breeder and where it came from, then clones with a lot and a tag each', async ({ page }) => {
   test.setTimeout(240_000);
@@ -230,14 +230,14 @@ test('every check page says a date is not who bred it; the terms say not to regi
   await page.goto('/verify/example');
   await expect(page.locator('[data-dated-not-origin]')).toHaveText(DATED_NOT_ORIGIN_LIVING);
   // One main heading, the made-up record's name, saying it is an example.
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Harbour Mist (example)');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Harbour Pippin (example)');
   await shot(page, 'origin-4-check-page-line');
   await page.goto('/check-claim');
   await expect(page.locator('[data-dated-not-origin]')).toHaveText(DATED_NOT_ORIGIN);
   // In the visitor's language.
   await page.goto('/verify/example?lang=ja');
-  await expect(page.locator('[data-dated-not-origin]')).toContainText('育成者、由来、内容の正しさは示しません');
-  await expect(page.locator('[data-dated-not-origin]')).toContainText('植物や動物はもっと古いこともあります');
+  await expect(page.locator('[data-dated-not-origin]')).toContainText('遅くともその日までに記録を持っていた');
+  await expect(page.locator('[data-dated-not-origin]')).toContainText('動植物はずっと古いこともあります');
   await page.goto('/terms');
   await expect(
     page.getByText('Don’t register other people’s traditional varieties, landraces or breeds as your own breeding.', {

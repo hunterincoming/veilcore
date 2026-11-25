@@ -269,7 +269,7 @@ export const verify = {
   'app.verify.ex.intro':
     'Ceci montre à quoi ressemble la page de vérification d’un enregistrement, avec une note sous chaque ligne. Rien n’y a été consulté ni vérifié.',
   'app.verify.ex.status': 'Exemple · dans un lot scellé · ancrage signalé',
-  'app.verify.ex.name': 'Harbour Mist (exemple)',
+  'app.verify.ex.name': 'Harbour Pippin (exemple)',
   'app.verify.ex.fact1':
     'Ce lien a été créé pour le code de preuve 3f9a0c41e2b7…, et le registre signale le même code de preuve pour cet enregistrement.',
   'app.verify.ex.note1':

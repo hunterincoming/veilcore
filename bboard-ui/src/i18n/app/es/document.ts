@@ -116,7 +116,7 @@ export const document = {
   'app.doc.check.inLink': 'En el enlace (las palabras de quien lo selló)',
   'app.doc.nums.title': 'Los números que figuran (opcional)',
   'app.doc.nums.help':
-    'Escríbalos tal como están impresos. Se sellan con el documento para que más adelante pueda probar uno, como «THC total como máximo 0,3 %», sin mostrar los demás ni el certificado.',
+    'Escríbalos tal como están impresos. Se sellan con el documento para que más adelante pueda probar uno, como «germinación de al menos un 85 %», sin mostrar los demás ni el certificado.',
   'app.doc.nums.which': 'Qué números',
   'app.doc.nums.none': 'Ninguno',
   'app.doc.nums.bad': 'Un número con como máximo {places} decimales, como 0,21.',
@@ -144,7 +144,7 @@ export const document = {
   'app.claim.text':
     'Pruebe ante cualquiera un hecho sin mostrar el número que hay detrás, ni los demás números ni el certificado: que un número que usted selló está dentro de un límite, o que un resultado es «no detectado». La prueba va a Midnight, donde cualquiera puede comprobarla.',
   'app.claim.example':
-    'Por ejemplo: muestre a un comprador que el THC total es como máximo 0,3 %, o que la germinación de un lote de semillas es de al menos un 85 %, sin darle la cifra ni el resto del registro. Usted elige el número y el límite. Él recibe un enlace que lo comprueba.',
+    'Por ejemplo: muestre a un comprador que la germinación de un lote de semillas es de al menos un 85 %, o que una prueba de patógenos dio «no detectado», sin darle la cifra ni el resto del registro. Usted elige el número y el límite. Él recibe un enlace que lo comprueba.',
   'app.claim.notReady': 'Las pruebas aún no están activadas en este sitio.',
   'app.claim.number': 'Qué número',
   'app.claim.how': 'Qué probar',

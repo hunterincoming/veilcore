@@ -207,7 +207,7 @@ describe('a list of animals', () => {
   });
 
   it('a plant list is read as before, with no animal fields', () => {
-    const sheet = sheetOf('Name,Species\nHarbour Mist,Solanum');
+    const sheet = sheetOf('Name,Species\nHarbour Pippin,Solanum');
     const c = checkRows(sheet, guessMapping(sheet.headers), { existing: [], ledger: { version: 1, rows: {} } });
     expect(c.rows[0].fields.animal).toBeUndefined();
     expect(c.rows[0].status).toBe('ready');

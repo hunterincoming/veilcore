@@ -146,7 +146,7 @@ export const prove = {
   'app.prove.share.savedOn': 'Guardado en el servidor de registros',
   'app.prove.share.savedText':
     'Quien abra este enlace, o tenga el ID de este registro por otra vía, ve los datos de la vista previa y nada más; el servidor de registros no envía el resto, y editar el enlace no puede agregar nada. La genética nunca se divulga. Esta elección controla lo que muestra la página de verificación. Demostrar un valor oculto (un marcador, un rango, o que dos variedades son distintas) sin mostrar el resto lo hace el contrato de reclamaciones de VeilCore.',
-  'app.prove.share.letThemAsk': 'Permitir que comprueben el sello de fecha y me pidan demostrar que la tengo',
+  'app.prove.share.letThemAsk': 'Permitir que comprueben el sello de fecha y me pidan demostrar que tengo su registro',
   'app.prove.share.theLink': 'El enlace',
   'app.prove.share.openTheirs': 'Abrir lo que verán',
   'app.prove.share.saving': 'Guardando…',

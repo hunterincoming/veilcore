@@ -26,7 +26,7 @@ export const plant = {
   'app.plant.moreYouCanDo': 'Was Sie noch tun können',
   'app.plant.action.show': 'Jemandem zeigen',
   'app.plant.action.showHint': 'Wählen Sie, was die Person sieht',
-  'app.plant.action.askedToProve': 'Jemand hat mich gebeten zu beweisen, dass ich sie halte',
+  'app.plant.action.askedToProve': 'Jemand hat mich gebeten zu beweisen, dass ich den Datensatz dazu halte',
   'app.plant.action.certificate': 'Zertifikat',
   'app.plant.action.sendResults': 'Ergebnisse an den Züchter zurücksenden',
   'app.plant.action.sendResultsHint': 'Von Ihnen signiert, für ihn verschlossen',
