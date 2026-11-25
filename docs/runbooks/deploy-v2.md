@@ -619,7 +619,7 @@ Only when 10 to 14 all pass on preprod, with the exact build, go on.
 mutants: the zero-secret assert and each of its nine call sites, the four version literals,
 ten changes to the response range check, and six more from the independent review of the v2
 code), compiles each (without keys), and runs `src/test/v2-changes.test.ts` and
-`src/test/v1-pure-circuits.test.ts` (the Schnorr mutants also run the Schnorr and attack tests).
+`src/test/v1-pure-circuits.test.ts` (the Schnorr mutants, A1 to A3, also run the Schnorr and attack tests).
 Every mutant must be killed. On the Mac:
 
 ```sh
