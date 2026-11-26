@@ -7,7 +7,9 @@
 //
 //   node scripts/fixtures/verify-deployment/make-states.mjs <folder with the zk-r4 *.verifier files>
 //
-// Every key is checked against deployments/mainnet.json before anything is written.
+// Every key is checked against deployments/mainnet.json before anything is written. Contract
+// version 2's states were recorded from VeilCore's mainnet relay when v2 was pinned (25 November
+// 2026); this script keeps them as they are.
 // SPDX-License-Identifier: Apache-2.0
 import { createHash } from 'node:crypto';
 import { readFileSync, writeFileSync } from 'node:fs';
@@ -22,8 +24,14 @@ if (!dir) {
   process.exit(2);
 }
 const d = loadDeployments('mainnet');
-const out = { note: 'Built by make-states.mjs from the zk-r4 verifier keys; not recorded from a live indexer.', states: {} };
-for (const c of d.contracts) {
+const file = path.join(path.dirname(fileURLToPath(import.meta.url)), 'states.json');
+const kept = JSON.parse(readFileSync(file, 'utf8'));
+const out = { note: kept.note, states: {} };
+for (const c of d.contracts.filter((x) => x.contractVersion === 2)) {
+  if (kept.states[c.address] === undefined) throw new Error(`No recorded state for version 2 ${c.name} ${c.address}`);
+  out.states[c.address] = kept.states[c.address];
+}
+for (const c of d.contracts.filter((x) => (x.contractVersion ?? 1) === 1)) {
   const s = new v9.ContractState();
   for (const [name, want] of Object.entries(verifierPins(c))) {
     const vk = new Uint8Array(readFileSync(path.join(dir, `${c.name}.${name}.verifier`)));
@@ -38,5 +46,5 @@ for (const c of d.contracts) {
     : new v9.ContractMaintenanceAuthority([v9.signatureVerifyingKey(v9.sampleSigningKey())], 1, 16n);
   out.states[c.address] = Buffer.from(s.serialize()).toString('hex');
 }
-writeFileSync(path.join(path.dirname(fileURLToPath(import.meta.url)), 'states.json'), JSON.stringify(out, null, 1) + '\n');
+writeFileSync(file, JSON.stringify(out, null, 1) + '\n');
 console.log('Wrote states.json');

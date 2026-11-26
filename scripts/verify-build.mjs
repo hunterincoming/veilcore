@@ -53,7 +53,9 @@ let differ = 0;
 let missing = 0;
 let matched = 0;
 let total = 0;
-for (const c of d.contracts) {
+// This is version 1's build (contract/). Version 2's keys are checked against
+// docs/fingerprints-v2.md with `npm run fingerprints -w contract-v2 -- --compare`.
+for (const c of d.contracts.filter((x) => (x.contractVersion ?? 1) === 1)) {
   const dir = path.join(managed, c.name);
   if (!existsSync(dir)) {
     console.error(`No build at ${path.relative(ROOT, dir) || dir}. Run \`cd contract && npm run compact\` first (docs/reproduce-build.md).`);

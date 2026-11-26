@@ -133,14 +133,14 @@
         },
         "contractCode": { "description": "SHA-256 of contract/index.js as the compiler wrote it.", "$ref": "#/$defs/sha256" },
         "circuits": {
-          "description": "Every circuit that carries a key, by name: the SHA-256 of its verifier key, prover key, and both ZKIR forms.",
+          "description": "Every circuit that carries a key, by name: the SHA-256 of its verifier key, prover key, and its ZKIR files. Version 1 has both ZKIR forms; version 2 (compactc 0.36.1) writes only the binary one, .bzkir, so its entries have no zkir.",
           "type": "object",
           "minProperties": 1,
           "propertyNames": { "pattern": "^[a-z][A-Za-z0-9]*$" },
           "additionalProperties": {
             "type": "object",
             "additionalProperties": false,
-            "required": ["verifierKey", "proverKey", "zkir", "bzkir"],
+            "required": ["verifierKey", "proverKey", "bzkir"],
             "properties": {
               "verifierKey": { "$ref": "#/$defs/sha256" },
               "proverKey": { "$ref": "#/$defs/sha256" },

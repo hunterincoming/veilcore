@@ -16,11 +16,16 @@ import { after, before, test } from 'node:test';
 import * as v8 from '@midnight-ntwrk/compact-runtime';
 import * as v9 from '@midnight-ntwrk/midnight-js-protocol/v9/compact-runtime';
 import { ROOT, loadDeployments } from './deployments.mjs';
-import { chooseIndexers, parseArgs } from './verify-deployment.mjs';
+import { chooseIndexers, fetchStateHex, fetchTx, parseArgs } from './verify-deployment.mjs';
+import { BLOCKFROST_403, isBlockfrostUrl } from './v2/blockfrost.mjs';
 
 const d = loadDeployments('mainnet');
-const MAIN = d.contracts.find((c) => c.name === 'veilcore').address;
-const CLAIMS = d.contracts.find((c) => c.name === 'veilcore-claims').address;
+const v1 = (c) => (c.contractVersion ?? 1) === 1;
+const MAIN = d.contracts.find((c) => c.name === 'veilcore' && v1(c)).address;
+const CLAIMS = d.contracts.find((c) => c.name === 'veilcore-claims' && v1(c)).address;
+// Contract version 2, pinned on 25 November 2026; its states in the fixture were recorded from mainnet.
+const MAIN2 = d.contracts.find((c) => c.name === 'veilcore' && c.contractVersion === 2);
+const CLAIMS2 = d.contracts.find((c) => c.name === 'veilcore-claims' && c.contractVersion === 2);
 const GENUINE = JSON.parse(readFileSync(path.join(ROOT, 'scripts/fixtures/verify-deployment/states.json'), 'utf8')).states;
 
 const hex = (s) => Buffer.from(s.serialize()).toString('hex');
@@ -79,16 +84,21 @@ const verify = (args, env = {}) =>
 
 const serve = (which, states) => (tables[which] = states);
 
-test('the published build, as mainnet serves it (Ledger 9 format): PASS for all 29 circuits, exit 0', async () => {
+test('the published builds, as mainnet serves them (Ledger 9 format): PASS for all 29 + 29 circuits, exit 0', async () => {
   serve('one', { ...GENUINE });
   const { code, out } = await verify(['--network', 'mainnet', '--indexer', `${base}/one`]);
   assert.equal(code, 0, out);
-  assert.equal((out.match(/^ {2}PASS {2}/gm) ?? []).length, 24 + 5 + 2, out);
+  assert.equal((out.match(/^ {2}PASS {2}/gm) ?? []).length, 2 * (24 + 5 + 2), out);
   assert.match(out, /PASS {2}proveLicense +b338dda3501ae2de…/);
   assert.match(out, /state read in Ledger 9 format; the contract was compiled for Ledger 8 \(compactc 0\.31\.1\)/);
   assert.match(out, /maintenance authority: 1 key\(s\), threshold 1, counter 16 \(published: 1 key\(s\), threshold 1, counter 16\)/);
   assert.match(out, /maintenance authority: retired \(empty committee\), counter 1/);
-  assert.match(out, /RESULT: PASS\. On mainnet, every circuit's verifier key matches the published build \(29 of 29\)/);
+  // Version 2: its own key table (docs/fingerprints-v2.md), slot V4, and its published key state.
+  assert.match(out, /contract version 2, read in Ledger 9 format \(compactc 0\.36\.1\); keys from docs\/fingerprints-v2\.md, slot V4/);
+  assert.match(out, /PASS {2}anchorBatch +48105a46470358f0…/);
+  assert.match(out, /PASS {2}maintenance authority: 1 key\(s\), threshold 1, counter 24 \(published: one key, not yet handed to the committee\)/);
+  assert.match(out, /PASS {2}maintenance authority: 1 key\(s\), threshold 1, counter 5 \(published: one key, not yet handed to the committee\)/);
+  assert.match(out, /RESULT: PASS\. On mainnet, every circuit's verifier key matches the published build \(58 of 58\)/);
   assert.doesNotMatch(out, /FAIL/);
 });
 
@@ -101,7 +111,25 @@ test('one swapped verifier key: that circuit FAILs with both hashes, exit 1', as
   assert.equal(code, 1, out);
   assert.match(out, /FAIL {2}proveLicense +on chain 198c0740486feba6…, published b338dda3501ae2de…/);
   assert.equal((out.match(/^ {2}FAIL/gm) ?? []).length, 1, out);
-  assert.match(out, /RESULT: FAIL\..*28 of 29 circuits match/);
+  assert.match(out, /RESULT: FAIL\..*57 of 58 circuits match/);
+});
+
+test('contract version 2: another contract\'s keys at its address FAIL; an authority in none of its key states FAILs', async () => {
+  // v2 claims' state served at v2 main's address: 24 keys missing, 5 not in the build.
+  serve('one', { ...GENUINE, [MAIN2.address]: GENUINE[CLAIMS2.address] });
+  const { code, out } = await verify(['--indexer', `${base}/one`]);
+  assert.equal(code, 1, out);
+  assert.match(out, /FAIL {2}anchorBatch +not on chain/);
+  assert.match(out, /FAIL {2}proveAttested +on chain, but not a circuit of the published build/);
+  assert.match(out, /FAIL {2}maintenance authority: 1 key\(s\), threshold 1, counter 5, in none of the published key states \(one key, not yet handed to the committee\)/);
+  // The same state against an entry whose only key state is a later counter: the authority FAILs.
+  const { checkOneV2 } = await import('./verify-deployment.mjs');
+  const later = { ...MAIN2, keyStates: [{ ...MAIN2.keyStates[0], counter: 25 }] };
+  const r = checkOneV2(later, GENUINE[MAIN2.address]);
+  assert.equal(r.ok, false);
+  assert.equal(r.failed, 0);
+  assert.match(r.lines.join('\n'), /FAIL {2}maintenance authority: 1 key\(s\), threshold 1, counter 24, in none/);
+  assert.equal(checkOneV2(MAIN2, GENUINE[MAIN2.address]).ok, true);
 });
 
 test('a circuit missing, and one the build does not have: both named, exit 1', async () => {
@@ -153,7 +181,7 @@ test('two indexers: agreeing passes; disagreeing cannot check that contract (exi
   r = await verify(['--indexer', `${base}/one`, '--second-indexer', `${base}/two`]);
   assert.equal(r.code, 2, r.out);
   assert.match(r.out, /CANNOT CHECK {2}the two indexers report different verifier keys or maintenance authority for this contract \(maintenance authority;/);
-  assert.match(r.out, /RESULT: CANNOT CHECK: veilcore-claims \(the indexers disagree.*The rest matches: 24 of 24 circuits\./);
+  assert.match(r.out, /RESULT: CANNOT CHECK: veilcore-claims \(the indexers disagree.*The rest matches: 53 of 53 circuits\./);
   assert.doesNotMatch(r.out, /FAIL|chain does not match/);
   // A contract that really differs is still a FAIL (exit 1), with the disagreement named.
   serve('one', { ...GENUINE, [MAIN]: edited(MAIN, (s) => s.setOperation('proveLicense', opWith(s.operation('anchor').verifierKey))) });
@@ -164,7 +192,7 @@ test('two indexers: agreeing passes; disagreeing cannot check that contract (exi
   });
   r = await verify(['--indexer', `${base}/one`, '--second-indexer', `${base}/two`]);
   assert.equal(r.code, 1, r.out);
-  assert.match(r.out, /RESULT: FAIL\..*23 of 24 circuits match\. Not checked \(indexers disagree or could not be read\): veilcore-claims\./);
+  assert.match(r.out, /RESULT: FAIL\..*52 of 53 circuits match\. Not checked \(indexers disagree or could not be read\): veilcore-claims\./);
 });
 
 test('two indexers a batch apart: the ledger data differs, the keys and authority agree, so it checks (exit 0)', async () => {
@@ -176,7 +204,7 @@ test('two indexers a batch apart: the ledger data differs, the keys and authorit
   const r = await verify(['--indexer', `${base}/one`, '--second-indexer', `${base}/two`]);
   assert.equal(r.code, 0, r.out);
   assert.match(r.out, /the rest of the state differs, as it does between batches; it is not what is checked/);
-  assert.match(r.out, /RESULT: PASS\..*\(29 of 29\)/);
+  assert.match(r.out, /RESULT: PASS\..*\(58 of 58\)/);
 });
 
 test('two indexers that disagree about one verifier key: that circuit named, exit 2, not FAIL', async () => {
@@ -258,7 +286,34 @@ test('the default relay request carries the site origin and the documented query
   seen.length = 0;
   serve('one', { ...GENUINE });
   await verify(['--indexer', `${base}/one`, '--contract', 'veilcore']);
-  assert.equal(seen.length, 1);
+  // --contract veilcore names the main contract of both versions.
+  assert.equal(seen.length, 2);
   assert.equal(seen[0].origin, undefined, 'a user-given indexer gets no Origin header');
   assert.match(JSON.parse(seen[0].body).query, /contractAction\(address: \$address\) \{ state \}/);
+});
+
+test('Blockfrost answering 403: the message says the project must be a Midnight project, not a Cardano one', async () => {
+  assert.equal(
+    BLOCKFROST_403,
+    "Blockfrost refused this project id (403). It must be a Midnight Mainnet project (or Midnight Preprod for preprod), not a Cardano project. Check the project's network on the Blockfrost dashboard.",
+  );
+  assert.equal(isBlockfrostUrl('https://midnight-mainnet.blockfrost.io/api/v0?project_id=x'), true);
+  assert.equal(isBlockfrostUrl('https://veilcore-indexer-relay-production.up.railway.app/indexer'), false);
+  assert.equal(isBlockfrostUrl('https://blockfrost.io.example.org/'), false);
+  const real = globalThis.fetch;
+  const bf = { url: 'https://midnight-mainnet.blockfrost.io/api/v0?project_id=mainnetZZsecretZZ0042', shown: 'midnight-mainnet.blockfrost.io', headers: {} };
+  const other = { url: 'https://indexer.example.org/graphql', shown: 'indexer.example.org', headers: {} };
+  try {
+    globalThis.fetch = async () => new Response('Forbidden', { status: 403 });
+    for (const call of [() => fetchStateHex(bf, MAIN), () => fetchTx(bf, { txHash: 'ab'.repeat(32) })]) {
+      const e = await call().then(() => undefined, (x) => x);
+      assert.equal(e?.message, BLOCKFROST_403);
+      assert.doesNotMatch(e.message, /secret/);
+    }
+    // Another indexer's 403 is reported as it was.
+    const e = await fetchStateHex(other, MAIN).then(() => undefined, (x) => x);
+    assert.equal(e?.message, 'The indexer at indexer.example.org answered HTTP 403.');
+  } finally {
+    globalThis.fetch = real;
+  }
 });

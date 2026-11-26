@@ -94,7 +94,8 @@ export const artefactRows = (contract) => {
     out.set(`keys/${name}.prover`, a.proverKey);
     out.set(`keys/${name}.verifier`, a.verifierKey);
     out.set(`zkir/${name}.bzkir`, a.bzkir);
-    out.set(`zkir/${name}.zkir`, a.zkir);
+    // Version 2 (compactc 0.36.1) writes no text .zkir; its entries have none.
+    if (a.zkir !== undefined) out.set(`zkir/${name}.zkir`, a.zkir);
   }
   out.set('contract/index.js', contract.contractCode);
   return out;

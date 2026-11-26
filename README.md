@@ -71,9 +71,22 @@ flowchart LR
 Deploy transactions and blocks: [the deployment record](docs/deployment-record-revision-4.md#mainnet-deployment).
 Build fingerprints: [docs/fingerprints.md](docs/fingerprints.md).
 
+**Contract version 2, since 25 November 2026: deployed on mainnet for testing by VeilCore; not
+yet independently reviewed; not for your records.** The site and the SDK still use the contracts
+above. Version 2 is pinned so that checkers recognise it, and is held by one temporary key until
+its handover to a 2-of-3 committee ([design](docs/contract-v2.md)).
+
+| Contract version 2 | Address | Can it be changed? |
+|---|---|---|
+| `contract-v2/src/veilcore.compact` (24 circuits) | `2f3392b65bec383d7b33e9883233e8f7e9c9fd696ba4e135e9cb86cf5abf7406` | By one temporary key, not yet handed to the committee |
+| `contract-v2/src/veilcore-claims.compact` (5 circuits) | `f5bc670dcd8a759a4c0476bc1b7e4183a3f7e3727ee3af7fb54e955fa607f1dc` | By one temporary key, not yet handed to the committee |
+
+Deploy transactions and blocks: [deployment record revision 5](docs/deployment-record-revision-5.md#mainnet-deployment).
+Build fingerprints: [docs/fingerprints-v2.md](docs/fingerprints-v2.md).
+
 ### Verify the deployed contracts
 
-Check that both contracts on mainnet carry the circuits built from this source. No account,
+Check that every contract on mainnet carries the circuits built from its source. No account,
 wallet or compiler needed:
 
 ```bash

@@ -223,9 +223,9 @@ const fakeLists = {
   preprod: pinnedContractsFrom(withV2(deployments('preprod'), 'e2'.repeat(32)), 'preprod'),
 };
 const addrs = (l) => l.map((e) => e.address).sort();
-// Today: the two version 1 contracts on mainnet, and on preprod its two.
+// Mainnet: the two version 1 contracts, then version 2's two (pinned 25 November 2026); on preprod its two.
 assert.deepEqual(addrs(pinnedListFor('mainnet')), addrs(MAINNET_PINNED));
-assert.equal(MAINNET_PINNED.length, 2);
+assert.deepEqual(MAINNET_PINNED.map((e) => `${e.kind} ${e.version}`), ['veilcore v1', 'claims v1', 'veilcore v2', 'claims v2']);
 assert.deepEqual(addrs(pinnedListFor(null)), addrs(MAINNET_PINNED));
 assert.deepEqual(addrs(pinnedListFor('preprod')), addrs(PREPROD_PINNED));
 assert.deepEqual(pinnedListFor('undeployed'), []);
@@ -242,6 +242,6 @@ assert.deepEqual([...req.countedWith].sort(), [...addrs(MAINNET_PINNED), 'f2'.re
 assert.deepEqual([...withPinnedLookup({}, 'veilcore-claims', 'mainnet').countedWith].sort(), addrs(MAINNET_PINNED));
 assert.deepEqual(withPinnedLookup({}, 'veilcore', 'undeployed').countedWith, []);
 assert.equal(withPinnedLookup(weaker, 'veilcore', 'preprod').verifierKeys, weaker.verifierKeys);
-console.log('the CLI counts every contract on its network\'s pinned list: version 1 today, version 2 once pinned');
+console.log('the CLI counts every contract on its network\'s pinned list: version 1 and version 2');
 
 console.log('\nall state checks pass');

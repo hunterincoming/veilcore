@@ -61,6 +61,7 @@ import { ROOT, V2_CONTRACTS, loadFingerprintsV2, type V2Pins } from '../../../sc
 import { type Session, IDENTIFY_NOTE, emptySession, readSession, writeSession } from '../../../scripts/v2/session.mjs';
 import { publicKeyOf, runDeploy, type SentTx } from '../../../scripts/v2/deploy-core.mjs';
 import { sendLedger9Tx } from '../../../scripts/v2/send.mjs';
+import { BLOCKFROST_403 } from '../../../scripts/v2/blockfrost.mjs';
 import { constructorStateBytes, haveCompiled, MANAGED } from '../../../scripts/v2/constructor.mjs';
 
 type Network = 'mainnet' | 'preprod' | 'undeployed';
@@ -163,6 +164,7 @@ const latestTxFrom =
       body: JSON.stringify({ query: LATEST_QUERY, variables: { address } }),
       redirect: 'error',
     });
+    if (res.status === 403) throw new Error(BLOCKFROST_403);
     const body = (await res.json()) as { data?: { contractAction?: { transaction?: { hash?: string } } } };
     const h = body.data?.contractAction?.transaction?.hash;
     if (typeof h !== 'string') throw new Error(`The indexer does not show the latest transaction of ${address}.`);
@@ -189,6 +191,7 @@ const txActionsFrom =
       body: JSON.stringify({ query: TX_QUERY, variables: { offset: { hash: txHash } } }),
       redirect: 'error',
     });
+    if (res.status === 403) throw new Error(BLOCKFROST_403);
     type Tx = { raw?: string; transactionResult?: { status?: string } };
     const body = (await res.json()) as { data?: { transactions?: Tx[] | Tx } };
     const list = body.data?.transactions;

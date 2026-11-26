@@ -448,11 +448,14 @@ describe('which indexers and contract the page uses', () => {
     expect(anchorContractFor('preprod', CONTRACT, 'c0'.repeat(32))).toBe('c0'.repeat(32));
   });
 
-  it('the contract list: on mainnet the pinned list (today only v1), off mainnet a named version, or none', () => {
+  it('the contract list: on mainnet the pinned list (v1, then v2 since 25 Nov 2026), off mainnet a named version, or none', () => {
     // With its pinned entry's key states, which the page judges only once more than one is pinned.
-    expect(anchorContractsFor('mainnet', CONTRACT.toUpperCase(), 'c0'.repeat(32))).toEqual([
-      { version: 'v1', address: CONTRACT, keyStates: MAINNET_PINNED.find((e) => e.kind === 'veilcore')?.keyStates },
-    ]);
+    const main = MAINNET_PINNED.filter((e) => e.kind === 'veilcore');
+    expect(main.map((e) => e.version)).toEqual(['v1', 'v2']);
+    expect(anchorContractsFor('mainnet', CONTRACT.toUpperCase(), 'c0'.repeat(32))).toEqual(
+      main.map((e) => ({ version: e.version, address: e.address, keyStates: e.keyStates })),
+    );
+    expect(main[0].address).toBe(CONTRACT);
     expect(anchorContractsFor('mainnet', '', 'c0'.repeat(32))).toEqual([]);
     // A mainnet pin the pinned list doesn't hold: nothing is read.
     expect(anchorContractsFor('mainnet', 'c0'.repeat(32), undefined)).toEqual([]);

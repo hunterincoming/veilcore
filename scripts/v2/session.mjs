@@ -93,15 +93,16 @@ export const sessionProblems = (s) => {
 
 /**
  * v1's pinned addresses on the record's network (deployments/<network>.json), each refused as a
- * v2 address: a record naming one would give v1 the V4 slot and v2's gate exception.
+ * v2 address: a record naming one would give v1 the V4 slot and v2's gate exception. Only the
+ * version 1 entries count: once v2 is pinned (`"contractVersion": 2`), its own record names it.
  */
 export const pinnedV1Problems = (s, root = ROOT) => {
   if (!['mainnet', 'preprod'].includes(s.network)) return [];
   let pinned;
   try {
-    pinned = JSON.parse(readFileSync(path.join(root, 'deployments', `${s.network}.json`), 'utf8')).contracts.map((c) =>
-      String(c.address).toLowerCase(),
-    );
+    pinned = JSON.parse(readFileSync(path.join(root, 'deployments', `${s.network}.json`), 'utf8'))
+      .contracts.filter((c) => (c.contractVersion ?? 1) === 1)
+      .map((c) => String(c.address).toLowerCase());
   } catch {
     return [`deployments/${s.network}.json could not be read, so the record cannot be checked against v1's pinned addresses.`];
   }

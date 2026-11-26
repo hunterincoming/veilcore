@@ -1,9 +1,11 @@
 # Deploying contract v2 (team only)
 
-**Status, 25 November 2026: deployed on preprod only, not on mainnet.** The keys, the key table
-and the proof server pin are done, and on 25 November the preprod deploy, its check and the
-smoke run passed (steps 10 to 12, section F). Next: the practice handover on preprod (steps 13
-and 14), then mainnet (section G).
+**Status, 25 November 2026: deployed on mainnet (team testing), pinned** once the pin PR (step
+17) is merged. The keys, the key table and the proof server pin are done; on 25 November the
+preprod deploy, its check and the smoke run passed (steps 10 to 12, section F), then the mainnet
+deploy and its check passed (steps 15 and 16, section G). Not done yet: the practice handover on
+preprod (steps 13 and 14) and the mainnet handover (step 18). Deployed on mainnet for testing by
+VeilCore; not yet independently reviewed; not for your records.
 This is the order of work for Hunter's Mac. The design is [docs/contract-v2.md](../contract-v2.md);
 the code is `contract-v2/`. v1 (`contract/`) stays exactly as it is and stays the contract the
 public site uses.
@@ -25,12 +27,13 @@ independently reviewed; not for your records." Never "live" or "audited". No pos
 | v2's hashes equal v1's, byte for byte | Passing (`v1-pure-circuits.test.ts`, `interface.test.ts`). |
 | Building the ZK keys | Done on Hunter's Mac (section C) and rebuilt byte for byte by GitHub Actions (section D). |
 | `docs/fingerprints-v2.md` (the key table) | On main: the Mac's table for commit `b1281868`, matched by the GitHub Actions rebuild (step 7). |
-| The v2 deploy command, `npm run deploy-v2 -w bboard-cli` | Built and tested against Midnight's ledger code (PR "Contract v2: deploy, verify and committee tools"). **Run on preprod, 25 November 2026** (section F). Not run on mainnet. |
-| `npm run verify:deployment -- --v2-record FILE` | Built and tested the same way. Checks every key against `docs/fingerprints-v2.md` in slot V4, the authority (temporary key, then the 2-of-3 committee), and every maintenance update since the deploy. **Passed on preprod, 25 November 2026** (29 of 29 keys). |
+| The v2 deploy command, `npm run deploy-v2 -w bboard-cli` | Built and tested against Midnight's ledger code (PR "Contract v2: deploy, verify and committee tools"). **Run on preprod, 25 November 2026** (section F). **Run on mainnet, 25 November 2026** (step 15): v2 main `2f3392b6…`, v2 claims `f5bc670d…`. |
+| `npm run verify:deployment -- --v2-record FILE` | Built and tested the same way. Checks every key against `docs/fingerprints-v2.md` in slot V4, the authority (temporary key, then the 2-of-3 committee), and every maintenance update since the deploy. **Passed on preprod, 25 November 2026** (29 of 29 keys). **Passed on mainnet, 25 November 2026** (29 of 29 keys, step 16). |
 | The committee launcher on v2 (`--v2-record`, the key slot, the mainnet gate) | Built and tested the same way. Not yet run on a network: the practice handover on preprod is steps 13 and 14. |
 | The client stack: midnight-js 5.0.1, ledger-v9 1.0.2, on-chain runtime 4.0.2 | Merged (#188, 23 November 2026). |
 | Proof server **9.0.2, pinned by its digest**, for the v2 tools | **Pinned** (step 8): the digest is in its one place, `bboard-cli/proof-server-v2.yml`. Every v2 send starts that file's proof server, on preprod too. v1's tools keep `proof-server-mainnet.yml` (9.0.1). |
 | The smoke run, `npm run smoke-v2 -w bboard-cli`: every v2 circuit called once, each result checked, a pass/fail table | Built (PR "Contract v2: a client that calls every v2 circuit"). **Passed on preprod, 25 November 2026** (step 12): "PASS: all 29 circuits landed and their results checked". Not run on mainnet. |
+| The pin (step 17): both v2 addresses in `deployments/mainnet.json` (`"contractVersion": 2`), the README and [deployment record revision 5](../deployment-record-revision-5.md) | In its own PR, which Hunter merges. Pinned, once merged. The site, the anchorer, the sponsor and the SDK defaults stay on v1. The SDK's own copy of the list (SPEC 9.2.1, `verify.py`) comes with the SDK release after 0.18.1. |
 
 Decisions the design still lists as open, which both founders settle in writing:
 
@@ -495,6 +498,21 @@ the smoke run's calls are the one exception, section B.)
 Only when 10 to 14 all pass on preprod, with the exact build, go on.
 
 ## G. Mainnet, team only (target: 28 and 29 November 2026)
+
+**Done on 25 November 2026, on Hunter's Mac** (ahead of the target date):
+
+- Step 15, the deploy (commit `9aa72ca`, compiler 0.36.1, key slot V4): v2 main at
+  `2f3392b65bec383d7b33e9883233e8f7e9c9fd696ba4e135e9cb86cf5abf7406` (deploy transaction
+  `00ba1a6ee8cdf87d870836d0a3a1bb0578529713cdd1691ff48045bdc471a163c2`, block 3614857), 24 keys
+  in V4, blocks 3614860 to 3614930; v2 claims at
+  `f5bc670dcd8a759a4c0476bc1b7e4183a3f7e3727ee3af7fb54e955fa607f1dc` (deploy transaction
+  `001093371c22217fe202b1de201aab9a4b20813f45c4a5f62b68f2510aa5f98b8a`, block 3614933), 5 keys
+  in V4, blocks 3614936 to 3614948. All in
+  [deployment record revision 5](../deployment-record-revision-5.md#mainnet-deployment).
+- Step 16, the check: `RESULT: PASS`, 29 of 29 keys matching `docs/fingerprints-v2.md` in V4,
+  "one key, not yet handed to the committee", authority counters 24 and 5.
+- Step 17, the pin: its own PR. Pinned once Hunter merges it.
+- Step 18 (the handover): not done yet; it waits for the third key holder and the 14-day notice.
 
 15. **Deploy v2 to mainnet.** Put the **mainnet** Blockfrost id in (section B), have the DUST
     address your wallet app shows ready to paste, then:
