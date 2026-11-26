@@ -4,7 +4,7 @@
 off by default. Nothing here is live until a re-stamp has been made on the mainnet registry and
 reached a Bitcoin block.
 
-**In one sentence:** once a year, VeilCore puts one fingerprint of every lab signature, withdrawal,
+**In one sentence:** once a year, VeilCore would put one fingerprint of every lab signature, withdrawal,
 key enrolment, timestamp token and batch on Bitcoin, so they still count if today's signatures
 are ever broken.
 
@@ -43,8 +43,12 @@ item bytes are exactly what anyone holding the item can produce again:
 | `rfc3161` | The token's DER bytes | `batches.tsa_token`, `batch_timestamps.token`, `record_timestamps.token` |
 
 Lab report signatures and receipts are attestations, so they are in. Private ones too: their
-entry is a hash of something carrying a 64-byte signature nobody can guess, so it gives nothing
-away (see "Privacy").
+entry is a hash of something carrying a 64-byte signature nobody can guess, so the entry itself
+gives nothing away (see "Privacy" for what the counts do show).
+
+An enrolment carries no signature here: the registry keeps none. Its entry dates the
+**registry's record** of the key's registration (this key, under this name, by this date), not
+the key's own signature. That is what is needed to carry a lab's identity across a break.
 
 An item that can't be put in canonical form (a broken old row) is left out and counted in the
 operator's answer, never guessed at.
@@ -65,7 +69,10 @@ Exactly as a batch: `buildBatch` from `veilcore-records`, SPEC 5. Leaves are
 unchanged. So a re-stamp proof **is** a SPEC 5 inclusion proof, and every checker that folds a
 batch proof folds this one.
 
-**Why a re-stamp root can't be passed off as a batch root.** The tag lives in each entry: an
+**Why a re-stamp root can't be passed off as a batch root.** The design note asks for the tree
+to have its own tag. This build puts the tag in each entry instead and keeps the tree pure SPEC 5,
+on purpose, so every existing checker folds a re-stamp proof unchanged. A re-stamp root therefore
+looks exactly like a batch root (for the cryptographer: a deliberate change from the note). An
 entry is the hash of a `veilcore:restamp:v1:` string, never a record's fingerprint. Nobody can
 show a record inside a re-stamp root without a SHA-256 collision. And even if someone presented
 one as a batch, all it would show is "this hash existed by that block", which is true.
@@ -104,7 +111,8 @@ yet (the design note calls it a convenience; it rests on the signatures this pro
 ## When it runs
 
 - **Off** by default. Deploying the code changes nothing: no table is made, no calendar is asked,
-  and every `/restamps` route answers 404 saying it is off.
+  and every `/restamps` route answers 404 saying it is off (`POST /restamps` asks for the
+  operator token first, so without it the answer is 401).
 - **`VEILCORE_RESTAMP=manual`**: the maintainer makes one with `POST /restamps` (operator token).
   This is the "now" trigger, and the first act on any trigger in the design note.
 - **`VEILCORE_RESTAMP=on`**: manual, plus one automatically when the newest is
@@ -122,14 +130,19 @@ Bitcoin node).
 1. **The item is in the re-stamp.** In a clone of `veilcore-api`:
 
        node scripts/restamp-check.mjs --kind attestation --item attestation.json \
-         --proof proof.json --manifest manifest.json
+         --proof proof.json --manifest manifest.json --root-bin root.bin
 
    It computes the entry, checks the proof is for it, folds the path to the root, and folds the
    manifest's entries to the same root. No network. It prints `IN THE RE-STAMP` and the root.
-2. **The root is on Bitcoin.** `ots verify -f root.bin root.bin.ots` (the official OpenTimestamps
+2. **`root.bin` is that root.** `--root-bin` checks it and says `root.bin is this root`. Without
+   it, check by hand that `root.bin` (32 bytes) is the root printed in step 1, for example
+   `od -An -tx1 root.bin | tr -d ' \n'`. This step matters: `ots verify` in the next step passes
+   for whatever root is in `root.bin`, so a genuine `.ots` for some other root would pass beside a
+   proof for this one.
+3. **The root is on Bitcoin.** `ots verify -f root.bin root.bin.ots` (the official OpenTimestamps
    client), or the evidence bundle's `verify.html` with its Bitcoin headers, as for a batch today.
    The block's time is date X.
-3. **The signature itself still checks** (Ed25519 today; after a break, it is step 1 and 2 that
+4. **The signature itself still checks** (Ed25519 today; after a break, it is steps 1 to 3 that
    give it weight, not the signature alone).
 
 So: the signature existed by block time X, because its hash is in a tree whose root is in that
@@ -142,13 +155,19 @@ in the design note), and `verify.html` checking the path. Until then the steps a
 
 ## Privacy
 
-- Only hashes are published. Every item but a batch root carries a 64-byte signature (or is a
-  token signed by a TSA), so its entry can't be guessed or reversed. Batch roots are public
-  already.
-- The list does not say which entry is which kind. It shows **how many of each kind** existed by
-  each re-stamp, and no finer: that is what a reader learns (for example, roughly how many lab
-  signatures the registry held that year). The design note accepts this and asks a cryptographer
-  to check it with the construction.
+- Only hashes are published. An attestation or a withdrawal carries a 64-byte signature, and a
+  token is signed by its TSA, so their entries can't be guessed or reversed.
+- Batch roots and enrolments are public already (anyone can read them from the registry), so
+  anyone can compute their entries. That shows nothing new.
+- The list does not say which entry is which kind, but it gives **how many of each kind**. Anyone
+  can compute the entries of every public item (batch roots, enrolments, public attestations and
+  withdrawals, batch tokens) and subtract. So **the counts reveal how many private lab signatures
+  and receipts, and proof-code tokens, the registry holds**, and comparing two re-stamps reveals
+  **how many were added between them**. Once a year that is a yearly total, which the design note
+  accepts (and asks the cryptographer to check).
+- **So don't run manual re-stamps often.** Two made close together narrow that count to a short
+  window, for example how many lab signatures arrived this week. Use the manual trigger for what
+  it is for (a trigger in the design note, or the first one), not as a habit.
 - Nothing about a record, a holder or a lab's clients is in it.
 
 ## What it never does
@@ -179,19 +198,22 @@ database, and the list would still need a public route. The module is smaller.
 The code ships first, then the variable (CLAUDE.md, "Deploying veilcore.org").
 
 1. Merge the `veilcore-api` pull request. Railway deploys it. Nothing changes: it is off.
-2. Check it is off: `curl -s https://<registry>/restamps` answers 404, "re-stamps are off".
+2. Check it is off: `curl -s https://veilcore-api-production.up.railway.app/restamps` answers 404, "re-stamps are off".
 3. In Railway, service `veilcore-api`, tab Variables: add `VEILCORE_RESTAMP` = `manual`. Deploy
    (a Restart does not apply new variables).
 4. Make the first one:
 
        read -s TOKEN
-       curl -s -X POST -H "x-operator-token: $TOKEN" https://<registry>/restamps
+       curl -s -X POST -H "x-operator-token: $TOKEN" https://veilcore-api-production.up.railway.app/restamps
        unset TOKEN; pbcopy < /dev/null
 
    It answers with the re-stamp id, root, counts and `"status": "pending"`.
-5. A few hours later, `curl -s https://<registry>/restamps` shows `"status": "bitcoin"` and the
+5. A few hours later, `curl -s https://veilcore-api-production.up.railway.app/restamps` shows `"status": "bitcoin"` and the
    block. Only then change "built, not live" here and in [without-veilcore.md](without-veilcore.md).
 6. Later, for the yearly run: set `VEILCORE_RESTAMP` = `on` (and `VEILCORE_RESTAMP_EVERY_DAYS`
    if not 365), then deploy.
 
-To turn it off again: remove `VEILCORE_RESTAMP` and deploy. Re-stamps already made stay published.
+To turn it off again: **only once the newest re-stamp shows `"status": "bitcoin"`** in
+`curl -s https://veilcore-api-production.up.railway.app/restamps`. While it is off, no job runs, so a re-stamp still `pending` is never
+upgraded to Bitcoin. Then remove `VEILCORE_RESTAMP` and deploy. Re-stamps already made stay
+published.
