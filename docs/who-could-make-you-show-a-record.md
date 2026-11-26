@@ -25,22 +25,28 @@ as your own statement.
 VeilCore keeps a locked copy it can't open, so it can't hand over what you wrote. It can be made
 to give what it can read: the record's ID and proof code, when it was first saved, what you chose
 to show on the check page, which proof codes your holder key has held, lab codes, and its
-providers' request logs while they last. VeilCore tells you if someone asks, unless a court
-forbids it.
+providers' request logs while they last. VeilCore tells you if someone asks, unless the law or
+a court order forbids it.
 
 ## What deleting does, and doesn't do
 
-If you delete the record in VeilCore **and** delete your own copy and your backup file:
+**A warning first.** Once you expect a court case or an investigation, destroying records can
+be a crime in itself, even ones that would have helped you. Ask a lawyer before you delete
+anything then.
 
-- Nobody can open it any more, VeilCore included. The proof code on the chain stays, but on its
-  own it says nothing about what you held.
-- VeilCore keeps a short note that the record existed and was deleted (its ID, proof code, your
-  holder key's code and the time). Earlier backups keep it for a while too.
-- Anyone you sent a copy or check link to still has it.
+"Delete this record" removes VeilCore's locked copy of it. What can still open it is any copy of
+its key that is left:
 
-**A warning.** Once you expect a court case or an investigation, destroying records can be a
-crime in itself, even ones that would have helped you. Ask a lawyer before you delete anything
-then.
+- **Your own copies**: this browser, your backup file, and any other device you restored to.
+- **"Saved with VeilCore"**, if you turned it on: that locked copy holds your record keys until
+  you press "Stop saving with VeilCore". An older passkey copy, if you made one before that,
+  holds them too until the site moves it.
+- **VeilCore's earlier backups** still hold the locked record for a while.
+
+Once no copy of the key is left anywhere, nobody can open the record, VeilCore included. The
+proof code on the chain stays, but on its own it says nothing about what you held. VeilCore also
+keeps a short note that the record existed and was deleted (its ID, proof code, your holder
+key's code and the time). Anyone you sent a copy or check link to still has it.
 
 ## Keeping sensitive records apart
 

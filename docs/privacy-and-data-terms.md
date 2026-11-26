@@ -235,10 +235,11 @@ Not on the published page yet; for the lawyer to confirm before it goes there.
 
 - **Plant and animal DNA isn't "genetic data" under the GDPR.** Article 4(13) defines it as
   "personal data relating to the inherited or acquired genetic characteristics of a natural
-  person", and Article 4(1) defines personal data as information relating to "an identified or
-  identifiable natural person" ([GDPR Article 4](https://www.legislation.gov.uk/eur/2016/679/article/4/adopted/data.html);
-  Recital 34 adds that it results from analysing "a biological sample from the natural person in
-  question"). A plant's or animal's genotype is about the plant or animal, so the special
+  person which give unique information about the physiology or the health of that natural person
+  and which result, in particular, from an analysis of a biological sample from the natural person
+  in question". Article 4(1) defines personal data as information relating to "an identified or
+  identifiable natural person", and Recital 34 gives chromosomal, DNA and RNA analysis as
+  examples ([GDPR on EUR-Lex](https://eur-lex.europa.eu/eli/reg/2016/679/oj)). A plant's or animal's genotype is about the plant or animal, so the special
   category rules for genetic data (Article 9) don't reach it. VeilCore never receives the DNA
   file anyway: the browser sends only a SHA-256 of it.
 - **What still is personal data at VeilCore**, and is treated that way:

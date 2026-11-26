@@ -34,7 +34,7 @@ keeps" and "Who else handles data". Registry code is the `veilcore-api` reposito
 | **Tombstones** of deleted records: ID, holder key digest, proof code, deletion time | Yes | No end set | `tombstones.js` |
 | **Lab-code relationship graph**: for each lab code, the source record, the receiving account and time, a tag made from the recipient's name; labs' public keys, names, websites and signatures | Yes (the quantity, note and sample details are locked with a key in the lab code, which VeilCore doesn't have) | No set period | `lineage/transfer.mjs`, `lineage/attesters.mjs` |
 | Royalty obligations (which record, since when), licence lines, licence invites (30 days), prove requests (7 days), payment-partner receipts | Yes | As stated | privacy terms table |
-| Deal messages, lab reports sent back (180 days), the account copy | No: locked to the parties or to the holder | As stated | `lineage/deals.mjs`, `lineage/lab-results.mjs`, `lineage/account-copy.mjs` |
+| Deal messages, lab reports sent back (180 days), the account copy, and older passkey copies of a backup | No: locked to the parties or to the holder | As stated; an older passkey copy until the site moves it into an account copy and deletes it | `lineage/deals.mjs`, `lineage/lab-results.mjs`, `lineage/account-copy.mjs`, `lineage/passkey-vault.mjs` |
 | Per-record timestamp quota: holder key digest, timestamp service, request time | Yes | One day | `lineage/record-stamps.mjs` |
 | **Backups**: the whole database, encrypted to the operator's key, daily | Only with the operator's key | Locked 30 days; after that not yet set | `backup.mjs`, privacy terms "Backups" |
 
@@ -57,7 +57,7 @@ The hosts keep their own:
 | Host | What its logs show | How long (by plan, from the host's docs) |
 |---|---|---|
 | Railway (registry, sponsor, relay) | Client IP (`@srcIp`), path, time, status | Hobby 7 days, Pro 30 days, Enterprise up to 90 ([Railway docs](https://docs.railway.com/observability/logs)) |
-| Vercel (site) | Request path, time, user agent, region; per-request runtime logs | Hobby 1 hour, Pro 1 day, longer with paid add-ons ([Vercel docs](https://vercel.com/docs/logs/runtime)) |
+| Vercel (site) | Request path, time, user agent, region; per-request runtime logs. Vercel matches requests by IP address but doesn't show the IP as a log field | Hobby 1 hour, Pro 1 day, longer with paid add-ons ([Vercel docs](https://vercel.com/docs/logs/runtime)) |
 
 Which plan each account is on, and so the real period, is to be confirmed (privacy terms,
 question 8). Those logs are the host's records; VeilCore can read and export them only within
@@ -83,7 +83,8 @@ Anything on Midnight or Bitcoin is public already and VeilCore can't remove it.
    country. A request from outside the United States goes to counsel first.
 2. **Narrow it** to named record IDs, proof codes or holder keys and a date range. The registry
    finds records by ID or holder key, not by a person's name.
-3. **Tell the holder** (section 5) before handing anything over, unless a court order forbids it.
+3. **Tell the holder** (section 5) before handing anything over, unless the law or a court
+   order forbids it.
 4. **Hand over only what is asked for** and held, as an export with a note saying what each
    field means and what VeilCore can't read.
 5. **Log it**: date, who asked, what was asked, what was given, and whether the holder was told.
@@ -93,8 +94,8 @@ Anything on Midnight or Bitcoin is public already and VeilCore can't remove it.
 
 ## 5. Telling the people affected
 
-- **Holders are told** of any request for their records, with a copy of it, unless a court
-  order forbids it. When a gag order ends, they are told then. VeilCore has no email address for
+- **Holders are told** of any request for their records, with a copy of it, unless the law or
+  a court order forbids it. When that ends, they are told then. VeilCore has no email address for
   most holders: it tells them through the contact they gave, or not at all if they gave none,
   and says so in its answer to the requester.
 - **Community records.** When a record has been registered on a community's behalf and the
@@ -152,7 +153,7 @@ This is the honest weak point. The code that locks a record runs in the holder's
 VeilCore writes and serves that code. A court or government could in principle order VeilCore
 to ship a changed site that sends a particular holder's keys or unlocked text to the server. A
 new release reaches returning visitors automatically (the site updates itself). VeilCore intends
-to challenge any such order as far as the law allows, and will not ship one voluntarily.
+to challenge any such order as far as the law allows, and will not ship one voluntarily (our stance, not a guarantee).
 
 What limits the damage:
 
@@ -163,8 +164,11 @@ What limits the damage:
   (`npm run check:rebuild`).
 - **Known limit:** neither check proves a host sent everyone the same files. A changed copy
   served to one visitor would show only if that visitor checked.
-- **What a holder already has is safe** from a later release: records sealed before stay
-  sealed, and their backup file and check links don't depend on the site.
+- **What a holder already has stays locked**: a changed release can take only what a holder
+  opens or types in it. A check link carries no secret, so a changed site can't get a key from
+  one, though it could show a wrong result: a check link works on the site that made it
+  ([SELF-HOSTING.md](../SELF-HOSTING.md)). The backup file can be checked with no server at all
+  ([without-veilcore.md](../without-veilcore.md)).
 - **The contracts** can be changed only through the maintenance key, every use is visible on
   chain, and the key can't read a record (see
   [token-and-custody-facts.md](token-and-custody-facts.md)).
