@@ -10,8 +10,8 @@
 //   - Elsewhere (a computer with no install offer), only that this browser keeps a copy and
 //     opens with no signal, once the offline worker is in place.
 //   - Where the offline download didn't start by itself (a link page first, the browser asking to
-//     save data, 2G: offline/register.ts), "Make VeilCore work offline" with its size
-//     (OfflineOffer). Settings offers it too, so "Not now" here hides nothing.
+//     save data, 2G: offline/register.ts), only "Make VeilCore work offline" with its size
+//     (OfflineOffer), within Home's budget. Settings offers it too, so "Not now" hides nothing.
 // Not shown once VeilCore is opened from the Home Screen, or after "Not now" (kept in this
 // browser only). On Home the iPhone steps open from "Show me how" (22 Nov: they were a third of
 // Home's words, open by default); they are still read before anyone does it.
@@ -72,12 +72,23 @@ export const InstallCard: React.FC = () => {
     }
     setGone(true);
   };
+  // The download waited to be asked: the card is that one question, with its size, in place of
+  // the Home Screen steps (Home's budget allows no more words or taps; the steps come back once
+  // the copy is here). Opening VeilCore from the Home Screen also starts it.
+  if (offer)
+    return (
+      <Paper variant="outlined" sx={{ p: 2, mb: 2 }} data-install-card="offer">
+        <Typography variant="subtitle1" component="h2" sx={{ fontWeight: 700, mb: 0.5 }}>
+          {t('app.install.title')}
+        </Typography>
+        <OfflineOffer intro={false} />
+        <Button onClick={dismiss} sx={{ minHeight: 44 }}>
+          {t('app.install.dismiss')}
+        </Button>
+      </Paper>
+    );
   return (
-    <Paper
-      variant="outlined"
-      sx={{ p: 2, mb: 2 }}
-      data-install-card={ios ? 'ios' : s.canInstall ? 'prompt' : s.ready ? 'ready' : 'offer'}
-    >
+    <Paper variant="outlined" sx={{ p: 2, mb: 2 }} data-install-card={ios ? 'ios' : s.canInstall ? 'prompt' : 'ready'}>
       <Typography variant="subtitle1" component="h2" sx={{ fontWeight: 700, mb: 0.5 }}>
         {t('app.install.title')}
       </Typography>
@@ -85,13 +96,11 @@ export const InstallCard: React.FC = () => {
         <Typography variant="body2" sx={{ mb: 1 }}>
           {t('app.install.text')}
         </Typography>
-      ) : !s.ready ? null : (
+      ) : (
         <Typography variant="body2" sx={{ mb: 1 }} data-install-ready="">
           {t('app.install.ready')}
         </Typography>
       )}
-      {/* The download itself, with its size, where it waited to be asked. */}
-      <OfflineOffer outlined={ios || s.canInstall} intro={!ios && !s.canInstall} />
       {ios && (
         <Dialog open={how} onClose={() => setHow(false)} aria-labelledby="install-how-title" data-install-how="">
           <DialogTitle id="install-how-title">{t('app.install.title')}</DialogTitle>

@@ -3,6 +3,9 @@
 // SPDX-License-Identifier: Apache-2.0
 /* eslint-disable @typescript-eslint/require-await -- stand-ins for the browser's fetch */
 
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { megabytes, offlineDownloadBytes, offlineHeldBack } from './register';
 
@@ -21,12 +24,43 @@ describe('the offline download starts by itself only where nobody pays for it un
       '/check-claim',
       '/check-lab-result',
       '/check-this-site',
+      '/license-invite/LI-1',
+      '/lender',
+      '/claim',
+      '/license/L-1/sign',
+      '/for-labs',
     ])
       expect(offlineHeldBack({ ...fresh, path }), path).toBe('link-page');
   });
 
+  it('waits on every page drawn in the stranger’s frame (CheckFrame in App.tsx), so a new link page can’t be missed', () => {
+    const here = path.dirname(fileURLToPath(import.meta.url));
+    const app = fs.readFileSync(path.resolve(here, '../App.tsx'), 'utf8');
+    const framed = app
+      .split('<Route')
+      .filter((r) => r.includes('<CheckFrame>'))
+      .map((r) => /path="([^"]+)"/.exec(r)?.[1]);
+    expect(framed.length).toBeGreaterThan(8);
+    for (const route of framed) {
+      expect(route, 'a CheckFrame route with no path').toBeTruthy();
+      const sample = route!.replace(/:[a-z]+/gi, 'X-1');
+      expect(offlineHeldBack({ ...fresh, path: sample }), route).toBe('link-page');
+    }
+  });
+
   it('starts by itself on the app’s own pages with an ordinary connection', () => {
-    for (const path of ['/', '/records', '/new', '/record/VEIL-ABC', '/settings', '/verifyx', '/provenance'])
+    for (const path of [
+      '/',
+      '/records',
+      '/new',
+      '/record/VEIL-ABC',
+      '/settings',
+      '/verifyx',
+      '/provenance',
+      '/licenses',
+      '/license/L-1',
+      '/claims',
+    ])
       expect(offlineHeldBack({ ...fresh, path }), path).toBeNull();
     expect(
       offlineHeldBack({ ...fresh, path: '/records', connection: { saveData: false, effectiveType: '4g' } }),

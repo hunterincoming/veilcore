@@ -53,8 +53,8 @@ import './fonts.css';
 // The check and prove pages never send the holder key (round 6, CONTRACT.md #36).
 guardHolderRequests(window);
 // The offline worker (docs/offline.md), so the app opens with no signal. Its download (about
-// 11 MB) doesn't start by itself on a check or prove page, when the browser asks to save data,
-// or on 2G: there it waits to be asked (offline/register.ts offlineHeldBack). A browser that
+// 13 MB) doesn't start by itself on a page someone was sent a link to, when the browser asks to
+// save data, or on 2G: there it waits to be asked (offline/register.ts offlineHeldBack). A browser that
 // already has it keeps it and its updates on every page. It never sends the holder key from a
 // check or prove page: it sends nothing a page doesn't leave for it (offline/sw.js, Background Sync).
 startOffline();

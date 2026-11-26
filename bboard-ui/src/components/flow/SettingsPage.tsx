@@ -265,7 +265,7 @@ export const SettingsPage: React.FC = () => {
               <Typography variant="h6" component="h2" sx={{ mb: 1 }}>
                 {t('app.install.title')}
               </Typography>
-              <OfflineOffer outlined />
+              <OfflineOffer />
             </Paper>
           )}
 

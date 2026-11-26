@@ -561,16 +561,27 @@ const saveData = (page: Page) =>
     }),
   );
 
-test('a check link someone was sent downloads nothing for offline use; the app itself still does', async ({ page }) => {
+test('a check link someone was sent downloads nothing for offline use that visit; a later visit to the app does', async ({
+  page,
+}) => {
   test.setTimeout(240_000);
   const commit = site.publish(distFiles());
   const from = site.served.length;
   await page.goto(`${site.origin}/verify/VEIL-${randomBytes(16).toString('hex').toUpperCase()}`);
-  await page.locator('#root *').first().waitFor();
+  await page.locator('#root > *').first().waitFor({ state: 'attached', timeout: 60_000 });
   await page.waitForTimeout(4_000);
   expect(offlineAsks(from), 'no worker, no release list').toEqual([]);
   await noOfflineCopy(page);
-  // The person goes on into the app with an ordinary connection: it starts there, as before.
+  // The person goes on into the app in the same visit: still held (they may only be looking).
+  await page.evaluate(() => {
+    history.pushState({}, '', '/records');
+    dispatchEvent(new PopStateEvent('popstate'));
+  });
+  await expect(page.locator('main h1')).toBeVisible();
+  await page.waitForTimeout(3_000);
+  expect(offlineAsks(from), 'still no worker in the same visit').toEqual([]);
+  await noOfflineCopy(page);
+  // A later visit that opens on an app page, with an ordinary connection: it downloads as usual.
   await page.addInitScript(() => localStorage.setItem('veilcore.role.v1', 'breeder'));
   await page.goto(`${site.origin}/records`);
   await copied(page, commit);
@@ -613,6 +624,28 @@ test('with Save-Data on nothing downloads by itself; the install card and Settin
   await settings.getByRole('button', { name: 'Make VeilCore work offline' }).click();
   await copied(page, commit);
   await expect(settings).toHaveCount(0);
+});
+
+test('if the browser refuses the offline worker when asked, the offer stays to try again', async ({ page }) => {
+  test.setTimeout(240_000);
+  const commit = site.publish(distFiles());
+  await page.addInitScript(() => localStorage.setItem('veilcore.role.v1', 'breeder'));
+  await saveData(page);
+  await page.goto(`${site.origin}/settings`);
+  const settings = page.locator('[data-settings-offline]');
+  await expect(settings).toBeVisible({ timeout: 60_000 });
+  // A worker script that can't run: the browser refuses to register it.
+  site.swOverride('this is not a worker (');
+  try {
+    await settings.getByRole('button', { name: 'Make VeilCore work offline' }).click();
+    await expect(settings.getByRole('button', { name: 'Make VeilCore work offline' })).toBeVisible({ timeout: 30_000 });
+    await expect(settings.locator('[data-offline-getting]')).toHaveCount(0);
+  } finally {
+    site.swOverride(undefined);
+  }
+  // Tried again with the real worker: it downloads.
+  await settings.getByRole('button', { name: 'Make VeilCore work offline' }).click();
+  await copied(page, commit);
 });
 
 test('a browser that already has the offline copy keeps getting its updates with Save-Data on', async ({ page }) => {

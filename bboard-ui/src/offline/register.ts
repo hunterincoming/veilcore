@@ -9,11 +9,13 @@
 //     banner (OfflineBar) and the install card (InstallCard).
 //   - When signal comes back, or the worker says Background Sync fired, tells the record sync
 //     (records.ts startRecordSync) to send now. It never sends anything itself.
-//   - Doesn't start the offline download (about 11 MB) by itself on a page someone was sent a
-//     link to (check, verify and prove), when the browser asks to save data, or on a 2G
-//     connection (summit fix 5b.3). There it waits to be asked: the install card on Home and
-//     "Use VeilCore with no signal" in Settings offer it, with its size. A browser that already
-//     has the worker keeps it, and its updates, as before.
+//   - Doesn't start the offline download (about 13 MB in Nov 2026; the build writes the exact
+//     size into /offline-shell.json) by itself on a page someone was sent a link to (every page
+//     in the stranger's frame, CheckFrame in App.tsx, and the prove pages), when the browser asks
+//     to save data, or on a 2G connection (summit fix 5b.3). There it waits to be asked, for the
+//     whole visit: the install card on Home and "Use VeilCore with no signal" in Settings offer
+//     it, with its size; a later visit that opens on an app page downloads as usual. A browser
+//     that already has the worker keeps it, and its updates, as before.
 // SPDX-License-Identifier: Apache-2.0
 
 import { useSyncExternalStore } from 'react';
@@ -115,10 +117,13 @@ export const askToInstall = async (): Promise<boolean> => {
 // ---- when the offline download starts by itself (summit fix 5b.3) ----------------------------
 
 /**
- * Pages someone is sent a link to: the check pages (/verify, /check-…) and the prove pages
- * (/prove, /prove-license). Opening a link from a message shouldn't cost a download nobody asked for.
+ * Pages someone is sent a link to: every page drawn in the stranger's frame (CheckFrame in
+ * App.tsx: the check pages, a licence invite or signing link, the lender's and claim pages, the
+ * lab door) and the prove pages. Opening a link from a message shouldn't cost a download nobody
+ * asked for. offline-gate.test.ts fails if a CheckFrame route in App.tsx isn't matched here.
  */
-const LINK_PAGE = /^\/(verify|prove|prove-license|check-[a-z-]+)(\/|$)/;
+const LINK_PAGE =
+  /^\/(?:(?:verify|prove|prove-license|license-invite|lender|claim|for-labs|check-[a-z-]+)(?:\/|$)|license\/[^/]+\/sign\/?$)/;
 
 /** What the browser says about the connection (Network Information API; Chrome, Edge, Samsung Internet). */
 export type ConnectionHint = { readonly saveData?: boolean; readonly effectiveType?: string } | undefined;
@@ -166,7 +171,7 @@ export const offlineDownloadBytes = async (fetchImpl: typeof fetch = fetch): Pro
   }
 };
 
-/** "11 MB": whole megabytes (1,000,000 bytes), at least 1. */
+/** "13 MB": whole megabytes (1,000,000 bytes), at least 1. */
 export const megabytes = (bytes: number): string => `${Math.max(1, Math.round(bytes / 1_000_000))} MB`;
 
 const standalone = (): boolean => {
@@ -250,22 +255,24 @@ export const startOffline = (): void => {
 };
 
 let registering = false;
+let listening = false;
 
 /** Register /sw.js: the offline download starts (the worker copies the release when it installs). */
 const registerWorker = (): void => {
   const sw = typeof navigator === 'undefined' ? undefined : navigator.serviceWorker;
   if (registering || !sw || !OFFLINE_ON || import.meta.env.DEV) return;
   registering = true;
+  // Asked for after being held back: if the browser refuses, the offer comes back to try again.
+  const asked = state.held;
+  const refused = () => {
+    registering = false;
+    set({ getting: false, held: asked });
+  };
   set({ held: false });
-  sw.addEventListener('message', (e: MessageEvent) => {
-    if (e.origin && e.origin !== location.origin) return;
-    const data = e.data as { type?: unknown; stale?: unknown } | null;
-    // Only a page the worker answered from an older copy is told it is older: a page from the
-    // network is the new release already.
-    if (data?.type === 'veilcore-release' && data.stale === true) set({ updateReady: true });
-    else if (data?.type === 'veilcore-send-now') window.dispatchEvent(new Event(SEND_NOW_EVENT));
-  });
-  sw.addEventListener('controllerchange', () => set({ ready: true, getting: false }));
+  if (!listening) {
+    listening = true;
+    listen(sw);
+  }
   set({ ready: !!sw.controller });
   try {
     void sw
@@ -277,11 +284,24 @@ const registerWorker = (): void => {
           (sw.controller ?? reg.active)?.postMessage({ type: 'veilcore-check' });
         }
       })
-      .catch(() => set({ getting: false }));
+      .catch(refused);
   } catch {
     /* refused by this browser: no offline copy */
-    set({ getting: false });
+    refused();
   }
+};
+
+/** What the worker tells the page: a newer release is ready, or send now; and when it takes over. */
+const listen = (sw: ServiceWorkerContainer): void => {
+  sw.addEventListener('message', (e: MessageEvent) => {
+    if (e.origin && e.origin !== location.origin) return;
+    const data = e.data as { type?: unknown; stale?: unknown } | null;
+    // Only a page the worker answered from an older copy is told it is older: a page from the
+    // network is the new release already.
+    if (data?.type === 'veilcore-release' && data.stale === true) set({ updateReady: true });
+    else if (data?.type === 'veilcore-send-now') window.dispatchEvent(new Event(SEND_NOW_EVENT));
+  });
+  sw.addEventListener('controllerchange', () => set({ ready: true, getting: false }));
 };
 
 /**
@@ -292,16 +312,6 @@ export const getOfflineCopy = (): void => {
   if (!state.held) return;
   set({ getting: true });
   registerWorker();
-};
-
-/**
- * A new page in the app (App.tsx): a download held only because the first page was a link page
- * starts once the person goes on into the app, unless the connection still holds it back.
- */
-export const offlinePageChanged = (path: string): void => {
-  if (!state.held) return;
-  if (!offlineHeldBack({ path, connection: connectionHint(), existing: false, installed: state.installed }))
-    registerWorker();
 };
 
 /**

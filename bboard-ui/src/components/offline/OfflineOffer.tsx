@@ -11,7 +11,9 @@ import { getOfflineCopy, megabytes, offlineDownloadBytes, useOfflineState, OFFLI
 import { useT } from '../../i18n/app';
 
 /** The offer's words and button, or the line that it is downloading; null when there is nothing to offer. */
-export const OfflineOffer: React.FC<{ outlined?: boolean; intro?: boolean }> = ({ outlined, intro = true }) => {
+// Always an outlined button: never a second filled one beside the screen's main action
+// (complexity-budget.json, primary 1 on Home).
+export const OfflineOffer: React.FC<{ intro?: boolean }> = ({ intro = true }) => {
   const s = useOfflineState();
   const { t } = useT();
   const [size, setSize] = useState<string | null>(null);
@@ -45,12 +47,7 @@ export const OfflineOffer: React.FC<{ outlined?: boolean; intro?: boolean }> = (
           {t('app.install.offerSize', { size })}
         </Typography>
       )}
-      <Button
-        variant={outlined ? 'outlined' : 'contained'}
-        onClick={getOfflineCopy}
-        sx={{ minHeight: 44, mb: 1 }}
-        data-offline-get=""
-      >
+      <Button variant="outlined" onClick={getOfflineCopy} sx={{ minHeight: 44, mb: 1 }} data-offline-get="">
         {t('app.install.get')}
       </Button>
     </div>
